@@ -1,0 +1,102 @@
+# ops 3770 — v4.0 pool widening + industry grouping + catch-up %
+
+**Status:** failure  
+**Duration:** 35.4s  
+**Finished:** 2026-07-23T18:28:11+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| industries | industries_grouped | invoke_seconds | invoke_status | scored | undervalued | with_catchup |
+|---|---|---|---|---|---|---|
+|  |  | 15.4 | 200 |  |  |  |
+| 127 | 127 |  |  | 1189 | 10 | 0 |
+
+## Log
+## G0_KEY_CONTRACT
+
+- `18:27:35` ✅ G0.v33 :: engine at v3.3
+- `18:27:35` ✅ G0.pool_anchor :: pool block unique
+- `18:27:35` ✅ G0.merge_anchor :: results block unique
+- `18:27:35` ✅ G0.eval_anchor :: evaluate row anchor unique
+- `18:27:35` ✅ G0.eval_calc :: evaluate return anchor unique
+- `18:27:35` ✅ G0.cap_rows :: cap_rows in scope
+- `18:27:35` ✅ G0.datetime :: datetime imported for ledger timestamps
+## [1] Pool widening — self-building ledger
+
+- `18:27:35` ✅ ledger read/merge/write spliced; band $150M-$5T, whitelist dropped, +700/run
+## [3] Valuation multiples in evaluate()
+
+- `18:27:35` ✅ ev_sales + pe computed per name
+## [2][3][4] Industry grouping, catch-up, leaderboard
+
+- `18:27:35` ✅ V4.anchor :: v4 splice anchor unique
+- `18:27:35` ✅ v4.0 spliced + compile clean
+## Deploy
+
+- `18:27:36`   zip: 99217 bytes
+## 1. Lambda
+
+- `18:27:36`   Lambda exists — updating
+- `18:27:39` ✅   ✓ updated justhodl-chokepoint
+- `18:27:55` ✅ settled attempt 1
+- `18:27:55` ✅ DEPLOY.settled :: v4.0 live
+## Invoke (widened pool — expect a long run)
+
+## Live verification
+
+- `18:28:11` ✅ LIVE.v40 :: version=4.0
+- `18:28:11` ✅ LIVE.no_v4_error :: v4 err=None
+- `18:28:11` ✅ POOL.widened :: scored=1189 (was 877 pre-widening)
+- `18:28:11` ✅ V4.by_industry :: by_industry n=127
+- `18:28:11` ✅ V4.leaderboard :: leaderboard n=50
+- `18:28:11` ✗ V4.catchup_populated :: catchup on 0 names
+## [4] TOP UNDERVALUED — all industries
+
+- `18:28:11`   NVEC   NVE Corporation          Semiconductors             score=73.0   gap=+64.8 global=+96.3 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+- `18:28:11`   QLYS   Qualys, Inc.             Software - Infrastructure  score=59.6   gap=+29.2 global=+87.0 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+- `18:28:11`   CRUS   Cirrus Logic, Inc.       Semiconductors             score=54.8   gap=+28.7 global=+74.5 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+- `18:28:11`   HESM   Hess Midstream LP        Oil & Gas Midstream        score=54.0   gap=+45.5 global=+53.4 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+- `18:28:11`   FDS    FactSet Research Systems Financial - Data & Stock E score=53.8   gap=+42.0 global=+56.3 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+- `18:28:11`   GRND   Grindr Inc.              Software - Application     score=50.6   gap=+18.5 global=+94.5 catchup=—% (-) legs=2 WATCH
+- `18:28:11`   MORN   Morningstar, Inc.        Financial - Data & Stock E score=50.1   gap=+30.0 global=+59.8 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+- `18:28:11`   PEGA   Pegasystems Inc.         Software - Application     score=49.7   gap=+17.3 global=+88.5 catchup=—% (-) legs=2 WATCH
+- `18:28:11`   GSIT   GSI Technology, Inc.     Semiconductors             score=49.3   gap=+37.4 global=+71.7 catchup=—% (-) legs=2 WATCH
+- `18:28:11`   AOS    A. O. Smith Corporation  Industrial - Machinery     score=48.7   gap=+30.8 global=+53.0 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+- `18:28:11`   DLB    Dolby Laboratories, Inc. Information Technology Ser score=48.6   gap=+21.8 global=+82.8 catchup=—% (-) legs=2 WATCH
+- `18:28:11`   AMBA   Ambarella, Inc.          Semiconductors             score=47.9   gap=+29.0 global=+75.5 catchup=—% (-) legs=2 WATCH
+- `18:28:11`   ESTC   Elastic N.V.             Software - Application     score=47.7   gap=+14.8 global=+82.7 catchup=—% (-) legs=2 WATCH
+- `18:28:11`   MSCI   MSCI Inc.                Financial - Data & Stock E score=47.6   gap=+38.0 global=+29.9 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+- `18:28:11`   GDDY   GoDaddy Inc.             Software - Infrastructure  score=47.6   gap=+13.1 global=+65.3 catchup=—% (-) legs=3 WATCH
+## [2] BY INDUSTRY — top boards
+
+- `18:28:11`   Grocery Stores                   n=2   LOW    med_gap=  +0.0 med_catchup=—% undervalued=0
+- `18:28:11`   Medical - Healthcare Plans       n=9   MEDIUM med_gap=  -2.8 med_catchup=—% undervalued=0
+- `18:28:11`   Financial - Data & Stock Exchang n=10  MEDIUM med_gap=  -8.0 med_catchup=—% undervalued=3
+- `18:28:11`   Drug Manufacturers - General     n=17  MEDIUM med_gap=  -8.3 med_catchup=—% undervalued=0
+- `18:28:11`   Semiconductors                   n=74  HIGH   med_gap=  -9.4 med_catchup=—% undervalued=2
+- `18:28:11`   Banks - Diversified              n=22  HIGH   med_gap= -11.6 med_catchup=—% undervalued=0
+- `18:28:11`   Chemicals - Specialty            n=18  MEDIUM med_gap= -15.8 med_catchup=—% undervalued=0
+- `18:28:11`   Railroads                        n=8   MEDIUM med_gap= -16.9 med_catchup=—% undervalued=0
+- `18:28:11`   Diversified Utilities            n=4   LOW    med_gap= -17.1 med_catchup=—% undervalued=1
+- `18:28:11`   Medical - Distribution           n=4   LOW    med_gap= -19.2 med_catchup=—% undervalued=0
+- `18:28:11`   Integrated Freight & Logistics   n=6   LOW    med_gap= -19.4 med_catchup=—% undervalued=0
+- `18:28:11`   REIT - Specialty                 n=9   MEDIUM med_gap= -19.9 med_catchup=—% undervalued=0
+## Additive contract
+
+- `18:28:11` ✅ ADDITIVE.structural_names :: present
+- `18:28:11` ✅ ADDITIVE.industry_leaders :: present
+- `18:28:11` ✅ ADDITIVE.all_chokepoints :: present
+- `18:28:11` ✅ ADDITIVE.hidden_chokepoint_book :: present
+- `18:28:11` ✅ ADDITIVE.cheap_chokepoint_book :: present
+- `18:28:11` ✅ ADDITIVE.v3_capture_gap :: v3.x key preserved
+- `18:28:11` ✅ ADDITIVE.v3_global_capture_gap :: v3.x key preserved
+- `18:28:11` ✅ ADDITIVE.v3_industry_underweight :: v3.x key preserved
+## VERDICT
+
+- `18:28:11` ✗ FAILED: V4.catchup_populated

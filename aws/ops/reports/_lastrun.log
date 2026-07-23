@@ -1,73 +1,75 @@
-executing-against: dfac68a43174a41b972e88a2ac77afd22713ec8e
-ops 3769 — sample-confidence tiers + v3.1/v3.2 page coverage
+executing-against: e69b40b113cff5b256b7bc4a8ac0486c80ab2fd8
+ops 3770 — v4.0 pool widening + industry grouping + catch-up %
 ── G0_KEY_CONTRACT ──
-[18:17:11] ✅ G0.bygi :: _bygi industry->gaps map in scope
-[18:17:11] ✅ G0.tots :: _tots industry totals in scope
-[18:17:11] ✅ G0.v32 :: engine at v3.2
-[18:17:11] ✅ G0.page_missing_v31 :: confirms page renders NO v3.1/v3.2 fields (the gap being closed)
-── [A] Engine — sample-confidence tiers on industry medians ──
-[18:17:11] ✅ A.anchor :: industry_underweight block unique
-[18:17:11] ✅ confidence tiers spliced (n>=5 floor, HIGH/MEDIUM/LOW, IQR) + v3.3
-── [B] Page — add cross-industry + coverage sections ──
-[18:17:11] ✅ B.sec_anchor :: ledger section anchor unique
-[18:17:11] ✅ B.hero_anchor :: hero backlog tile anchor unique
-[18:17:11] ✅ B.method_anchor :: method anchor unique
-[18:17:11] ✅ page rewritten with cross-industry + confidence-tiered industry board
-[18:17:11] ✅ PAGE.renders_global_capture_gap :: now rendered
-[18:17:11] ✅ PAGE.renders_gap_divergence :: now rendered
-[18:17:11] ✅ PAGE.renders_widest_global_gaps :: now rendered
-[18:17:11] ✅ PAGE.renders_industry_underweight :: now rendered
-[18:17:11] ✅ PAGE.renders_sample_confidence :: now rendered
-[18:17:11] ✅ PAGE.renders_iqr_global_gap :: now rendered
-[18:17:11] ✅ PAGE.renders_legs_available :: now rendered
-[18:17:11] ✅ PAGE.renders_backlog_overlap :: now rendered
-[18:17:11] ✅ PAGE.renders_backlog_ledger_size :: now rendered
-[18:17:11] ✅ PAGE.renders_global_criticality_pctile :: now rendered
-[18:17:11] ✅ PAGE.renders_global_mcap_pctile :: now rendered
-[18:17:11] ✅ PAGE.renders_rpo_yoy :: now rendered
-[18:17:11] ✅ PAGE.no_dead_field :: dead 3766 field removed from page
+[18:27:35] ✅ G0.v33 :: engine at v3.3
+[18:27:35] ✅ G0.pool_anchor :: pool block unique
+[18:27:35] ✅ G0.merge_anchor :: results block unique
+[18:27:35] ✅ G0.eval_anchor :: evaluate row anchor unique
+[18:27:35] ✅ G0.eval_calc :: evaluate return anchor unique
+[18:27:35] ✅ G0.cap_rows :: cap_rows in scope
+[18:27:35] ✅ G0.datetime :: datetime imported for ledger timestamps
+── [1] Pool widening — self-building ledger ──
+[18:27:35] ✅ ledger read/merge/write spliced; band $150M-$5T, whitelist dropped, +700/run
+── [3] Valuation multiples in evaluate() ──
+[18:27:35] ✅ ev_sales + pe computed per name
+── [2][3][4] Industry grouping, catch-up, leaderboard ──
+[18:27:35] ✅ V4.anchor :: v4 splice anchor unique
+[18:27:35] ✅ v4.0 spliced + compile clean
 ── Deploy ──
-[18:17:11]   zip: 96206 bytes
+[18:27:36]   zip: 99217 bytes
 ── 1. Lambda ──
-[18:17:12]   Lambda exists — updating
-[18:17:15] ✅   ✓ updated justhodl-chokepoint
-[18:17:30] ✅ settled attempt 1
-[18:17:30] ✅ DEPLOY.settled :: v3.3 live
+[18:27:36]   Lambda exists — updating
+[18:27:39] ✅   ✓ updated justhodl-chokepoint
+[18:27:55] ✅ settled attempt 1
+[18:27:55] ✅ DEPLOY.settled :: v4.0 live
+── Invoke (widened pool — expect a long run) ──
 ── Live verification ──
-[18:17:46] ✅ LIVE.v33 :: version=3.3
-[18:17:46] ✅ LIVE.iu_present :: industry_underweight n=25
-[18:17:46] ✅ LIVE.conf_field :: every row carries sample_confidence
-[18:17:46] ✅ LIVE.floor :: n>=5 floor enforced (min n=8)
-[18:17:46] ✅ LIVE.conf_sorted :: top row is HIGH confidence (Software - Application, n=80) — thin curiosities demoted
-── Confidence-tiered industry board (was: 3-name medians on top) ──
-[18:17:46]   Software - Application             n=80  HIGH   median  +44.4pp  IQR 49.1
-[18:17:46]   Biotechnology                      n=62  HIGH   median  +32.4pp  IQR 55.4
-[18:17:46]   Software - Infrastructure          n=52  HIGH   median  +25.4pp  IQR 50.1
-[18:17:46]   Semiconductors                     n=71  HIGH   median  +13.6pp  IQR 39.5
-[18:17:46]   Medical - Diagnostics & Research   n=21  HIGH   median   +2.3pp  IQR 41.4
-[18:17:46]   Financial - Capital Markets        n=29  HIGH   median   -6.3pp  IQR 44.0
-[18:17:46]   Information Technology Services    n=28  HIGH   median   -9.8pp  IQR 50.5
-[18:17:46]   Aerospace & Defense                n=37  HIGH   median  -13.9pp  IQR 38.9
-[18:17:46]   Medical - Devices                  n=17  MEDIUM median  +31.6pp  IQR 17.3
-[18:17:46]   Drug Manufacturers - Specialty & G n=9   MEDIUM median  +25.4pp  IQR 45.4
-[18:17:46]   Communication Equipment            n=19  MEDIUM median  +21.4pp  IQR 43.8
-[18:17:46]   Medical - Instruments & Supplies   n=13  MEDIUM median  +16.0pp  IQR 47.1
-[18:17:46]   --- demoted as too thin (n<5) ---
-[18:17:46]   Medical - Pharmaceuticals          n=4   median +51.5pp
-[18:17:46]   Medical - Equipment & Services     n=3   median +48.0pp
-[18:17:46]   REIT - Diversified                 n=1   median +46.7pp
-[18:17:46]   REIT - Mortgage                    n=1   median +39.8pp
-[18:17:46]   Apparel - Footwear & Accessories   n=2   median +31.7pp
-[18:17:46]   REIT - Office                      n=2   median +30.5pp
+[18:28:11] ✅ LIVE.v40 :: version=4.0
+[18:28:11] ✅ LIVE.no_v4_error :: v4 err=None
+[18:28:11] ✅ POOL.widened :: scored=1189 (was 877 pre-widening)
+[18:28:11] ✅ V4.by_industry :: by_industry n=127
+[18:28:11] ✅ V4.leaderboard :: leaderboard n=50
+[18:28:11] ✗ V4.catchup_populated :: catchup on 0 names
+── [4] TOP UNDERVALUED — all industries ──
+[18:28:11]   NVEC   NVE Corporation          Semiconductors             score=73.0   gap=+64.8 global=+96.3 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+[18:28:11]   QLYS   Qualys, Inc.             Software - Infrastructure  score=59.6   gap=+29.2 global=+87.0 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+[18:28:11]   CRUS   Cirrus Logic, Inc.       Semiconductors             score=54.8   gap=+28.7 global=+74.5 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+[18:28:11]   HESM   Hess Midstream LP        Oil & Gas Midstream        score=54.0   gap=+45.5 global=+53.4 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+[18:28:11]   FDS    FactSet Research Systems Financial - Data & Stock E score=53.8   gap=+42.0 global=+56.3 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+[18:28:11]   GRND   Grindr Inc.              Software - Application     score=50.6   gap=+18.5 global=+94.5 catchup=—% (-) legs=2 WATCH
+[18:28:11]   MORN   Morningstar, Inc.        Financial - Data & Stock E score=50.1   gap=+30.0 global=+59.8 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+[18:28:11]   PEGA   Pegasystems Inc.         Software - Application     score=49.7   gap=+17.3 global=+88.5 catchup=—% (-) legs=2 WATCH
+[18:28:11]   GSIT   GSI Technology, Inc.     Semiconductors             score=49.3   gap=+37.4 global=+71.7 catchup=—% (-) legs=2 WATCH
+[18:28:11]   AOS    A. O. Smith Corporation  Industrial - Machinery     score=48.7   gap=+30.8 global=+53.0 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+[18:28:11]   DLB    Dolby Laboratories, Inc. Information Technology Ser score=48.6   gap=+21.8 global=+82.8 catchup=—% (-) legs=2 WATCH
+[18:28:11]   AMBA   Ambarella, Inc.          Semiconductors             score=47.9   gap=+29.0 global=+75.5 catchup=—% (-) legs=2 WATCH
+[18:28:11]   ESTC   Elastic N.V.             Software - Application     score=47.7   gap=+14.8 global=+82.7 catchup=—% (-) legs=2 WATCH
+[18:28:11]   MSCI   MSCI Inc.                Financial - Data & Stock E score=47.6   gap=+38.0 global=+29.9 catchup=—% (-) legs=3 STRUCTURALLY_UNDERVALUED
+[18:28:11]   GDDY   GoDaddy Inc.             Software - Infrastructure  score=47.6   gap=+13.1 global=+65.3 catchup=—% (-) legs=3 WATCH
+── [2] BY INDUSTRY — top boards ──
+[18:28:11]   Grocery Stores                   n=2   LOW    med_gap=  +0.0 med_catchup=—% undervalued=0
+[18:28:11]   Medical - Healthcare Plans       n=9   MEDIUM med_gap=  -2.8 med_catchup=—% undervalued=0
+[18:28:11]   Financial - Data & Stock Exchang n=10  MEDIUM med_gap=  -8.0 med_catchup=—% undervalued=3
+[18:28:11]   Drug Manufacturers - General     n=17  MEDIUM med_gap=  -8.3 med_catchup=—% undervalued=0
+[18:28:11]   Semiconductors                   n=74  HIGH   med_gap=  -9.4 med_catchup=—% undervalued=2
+[18:28:11]   Banks - Diversified              n=22  HIGH   med_gap= -11.6 med_catchup=—% undervalued=0
+[18:28:11]   Chemicals - Specialty            n=18  MEDIUM med_gap= -15.8 med_catchup=—% undervalued=0
+[18:28:11]   Railroads                        n=8   MEDIUM med_gap= -16.9 med_catchup=—% undervalued=0
+[18:28:11]   Diversified Utilities            n=4   LOW    med_gap= -17.1 med_catchup=—% undervalued=1
+[18:28:11]   Medical - Distribution           n=4   LOW    med_gap= -19.2 med_catchup=—% undervalued=0
+[18:28:11]   Integrated Freight & Logistics   n=6   LOW    med_gap= -19.4 med_catchup=—% undervalued=0
+[18:28:11]   REIT - Specialty                 n=9   MEDIUM med_gap= -19.9 med_catchup=—% undervalued=0
 ── Additive contract ──
-[18:17:46] ✅ ADDITIVE.structural_names :: present
-[18:17:46] ✅ ADDITIVE.industry_leaders :: present
-[18:17:46] ✅ ADDITIVE.all_chokepoints :: present
-[18:17:46] ✅ ADDITIVE.hidden_chokepoint_book :: present
-[18:17:46] ✅ ADDITIVE.cheap_chokepoint_book :: present
-[18:17:46] ✅ ADDITIVE.within_gap :: within-industry gap preserved
-[18:17:46] ✅ ADDITIVE.global_gap :: cross-industry gap preserved
+[18:28:11] ✅ ADDITIVE.structural_names :: present
+[18:28:11] ✅ ADDITIVE.industry_leaders :: present
+[18:28:11] ✅ ADDITIVE.all_chokepoints :: present
+[18:28:11] ✅ ADDITIVE.hidden_chokepoint_book :: present
+[18:28:11] ✅ ADDITIVE.cheap_chokepoint_book :: present
+[18:28:11] ✅ ADDITIVE.v3_capture_gap :: v3.x key preserved
+[18:28:11] ✅ ADDITIVE.v3_global_capture_gap :: v3.x key preserved
+[18:28:11] ✅ ADDITIVE.v3_industry_underweight :: v3.x key preserved
 ── VERDICT ──
-[18:17:46] ✅ PASS_ALL — thin-sample flaw closed, page now renders every published field
+[18:28:11] ✗ FAILED: V4.catchup_populated
 
-→ Report written to aws/ops/reports/latest/3769_confidence_and_page_coverage.md
+→ Report written to aws/ops/reports/latest/3770_pool_widening_catchup.md
+❌ OPS-FAIL: aws/ops/pending/ops_3770_pool_widening_catchup.py
