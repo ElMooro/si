@@ -1,0 +1,38 @@
+{
+  "gates": {
+    "G0_key_contract": {
+      "ok": true,
+      "detail": "producer_missing=[] page_missing=[]"
+    },
+    "G1_settle": {
+      "ok": true,
+      "detail": "deployed"
+    },
+    "G2_artifact": {
+      "ok": true,
+      "detail": "lines=120 accel=41 decel=3"
+    },
+    "G3_data_truth": {
+      "ok": true,
+      "detail": "rows=120 math_mismatch=[] bad_confirmed=[] z_leak=[]"
+    },
+    "G4_breadth": {
+      "ok": false,
+      "detail": "coverage 60.6% (120 of 198) \u00b7 accounted=198/198 \u00b7 reasons={'fetch_error': 78, 'short_history': 0, 'exception': 0}"
+    },
+    "G5_page_live": {
+      "ok": true,
+      "detail": "len=10687"
+    },
+    "G5_field_coverage": {
+      "ok": true,
+      "detail": "every published key has a render path"
+    },
+    "G5_nav": {
+      "ok": true,
+      "detail": "listed under ('Macro & Liquidity', 'PPI Acceleration')"
+    }
+  },
+  "unrendered": [],
+  "verdict": "FAIL"
+}
