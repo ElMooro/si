@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "4.0"
+VERSION = "4.0.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -601,6 +601,10 @@ def lambda_handler(event, context):
                     "backlog_covered": _bk_present,
                     "cap_bucket": _r.get("cap_bucket"),
                     "is_chokepoint": _r.get("is_chokepoint"),
+                    # ops 3771: evaluate() emits these; the hand-written field list
+                    # above dropped them, so every catch-up number was silently None.
+                    "ev_sales": _r.get("ev_sales"),
+                    "pe": _r.get("pe"),
                 })
 
         # ── 5-leg confirmation ladder ──────────────────────────────────────
