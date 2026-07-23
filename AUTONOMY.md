@@ -56,6 +56,22 @@ api.github.com / raw.githubusercontent.com. It does NOT have egress to
    `workflow_dispatch` with `function=<name>` (or `MISSING` / `ALL`).
    Tag chore commits `[skip-deploy]` so they don't trigger it.
 
+   ⚠️⚠️ **`[skip-deploy]` ALSO SUPPRESSES pages.yml — cost 6 ops on 2026-07-23.**
+   Page edits written from inside an ops script land via the runner's
+   `ops: auto-commit ... [skip-deploy]` commit, so `*.html` changes are
+   committed but NEVER PUBLISHED. capture-gap.html sat correct in the repo
+   (27KB) while the edge served a stale 23,027-byte copy with 0/9 new
+   markers — invisible to Khalid across six ops. **RULE: any change to a
+   root `*.html` / `*.js` must be committed as a NORMAL push (no
+   `[skip-deploy]`), ideally from the sandbox, never left to the runner
+   auto-commit.** Then VERIFY FROM THE EDGE with a marker string unique to
+   the NEW version — repo state is not proof of live.
+
+   ⚠️ Nav manifest is served at **`/nav-manifest.json` (ROOT)**, not
+   `/data/nav-manifest.json` (that path 403s). The repo copy is CI-regenerated
+   without commit-back and is therefore ALWAYS stale — only the SERVED copy
+   is authoritative when checking sidebar reachability.
+
 3. **Anything needing in-account AWS (boto3), incl. verification**:
    write `aws/ops/pending/ops_<NNNN>_<slug>.py` and push. run-ops.yml
    AUTO-TRIGGERS on that push (no dispatch needed), executes with the
@@ -318,3 +334,18 @@ see. Propose the elevated version, explain the reasoning briefly, then build it.
 "Improve" = ADDITIVE ONLY: add sections/features around what exists;
 never touch, replace, restructure, or remove existing content.
 "Rebuild" happens only when Khalid explicitly says rebuild.
+
+
+## G0_KEY_CONTRACT — gate the FIELD, not just the key
+Open every ops with a gate that greps the PRODUCER source and asserts the key
+exists before any gate consumes it. **Extended 2026-07-23 (capture-gap arc):
+gating the CONTAINER key or the PRODUCING CODE is NOT ENOUGH.** Two silent
+zero-value bugs in one arc:
+ (a) backlog join consumed `rpo_growth_yoy`/`accelerating`; the producer writes
+     `rpo_yoy` / `demand_accelerating` / `deferred_accelerating` → joined=0.
+ (b) `evaluate()` computed AND returned `ev_sales`/`pe` correctly, but the
+     consumer `cap_rows` is assembled from a HAND-WRITTEN FIELD LIST that never
+     copied them → every derived catch-up number silently None.
+**Gate that the field SURVIVES EVERY INTERMEDIATE STRUCTURE and is populated in
+the LIVE artifact — a missing field must fail loudly, never default to 0/None
+and frame the engine for a plumbing typo.**
