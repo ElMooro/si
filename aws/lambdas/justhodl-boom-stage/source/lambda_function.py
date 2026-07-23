@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.6.0"
+VERSION = "1.7.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/boom-stage.json"
 S3 = boto3.client("s3", region_name="us-east-1")
@@ -161,6 +161,12 @@ CANARY = {
     "ID-nickel": ("GROWTH", "nickel = EV battery + stainless demand"),
     "QA-lng": ("INFLATION", "LNG = European/Asian energy input cost"),
     "DE-machinery": ("GROWTH", "capital goods orders = global capex cycle"),
+    "JP-autos": ("GROWTH", "autos + capital goods = global durable demand"),
+    "VN-electronics": ("GROWTH", "China+1 assembly floor — tech supply migration"),
+    "MX-manufacturing": ("GROWTH", "nearshoring capex — US supply-chain reshoring"),
+    "MY-semis": ("GROWTH", "chip packaging/test — back-end capacity signal"),
+    "TH-electronics": ("GROWTH", "HDD + electronics — storage/hardware demand"),
+    "NL-hightech": ("GROWTH", "litho-tool exports = fab capex worldwide"),
 }
 
 TRADE_MAP = {
@@ -436,6 +442,27 @@ def lambda_handler(event=None, context=None):
          "NG=F", "Henry Hub gas (NG=F) yoy", None),
         ("DE-machinery", "Germany", "Germany · Machinery (capital goods "
          "tape vs ports)", "EXS1.DE", "DAX industrials proxy yoy", "mfg"),
+        # --- canary #18 (ops 3749): nations with a LIVE portwatch volume leg
+        # but no value pairing yet. Each paired with the industry it actually
+        # dominates and a keyless value proxy. Same value+volume divergence
+        # logic; new coverage, not new mechanics.
+        ("JP-autos", "Japan", "Japan · Autos & machinery (Nikkei autos vs "
+         "ports)", "TM", "Toyota ADR (TM) yoy — auto/mfg export proxy", "mfg"),
+        ("VN-electronics", "Vietnam", "Vietnam · Electronics assembly "
+         "(SE-Asia tech vs ports)", "QQQ", "US tech demand (QQQ) yoy — "
+         "Vietnam is the China+1 assembly floor", "semis"),
+        ("MX-manufacturing", "Mexico", "Mexico · Nearshoring manufacturing "
+         "(EWW vs ports)", "EWW", "Mexico equity (EWW) yoy — nearshoring "
+         "capex proxy", "mfg"),
+        ("MY-semis", "Malaysia", "Malaysia · Semiconductor back-end "
+         "(assembly/test vs ports)", "SOXX", "SOXX yoy — Malaysia is global "
+         "chip packaging/test", "semis"),
+        ("TH-electronics", "Thailand", "Thailand · Electronics & HDD "
+         "(tech vs ports)", "WDC", "Western Digital (WDC) yoy — Thailand is "
+         "the world HDD hub", "semis"),
+        ("NL-hightech", "Netherlands", "Netherlands · High-tech equipment "
+         "(litho vs Rotterdam)", "ASML", "ASML yoy — litho-tool export "
+         "engine of Europe", "semis"),
     ]
     for pid, ctry, label, sym, vsrc, f4key in NEW:
         vv = _yoy_yahoo(sym) if sym != "NICKEL" else _yoy_yahoo("XME")
@@ -557,7 +584,16 @@ def lambda_handler(event=None, context=None):
     COMMODITY_GROUPS = {
         "copper": ["CL-copper", "PE-copper"],
         "crude": ["SA-oil", "UAE-energy"],
-        "semis": ["KR-semis", "TW-semis"],
+        # ops 3749 canary #18: semis now spans 6 supplier nations, so the
+        # divergence read is a real multi-way supplier race rather than a
+        # single TW-vs-KR pair. Same logic, far more coverage.
+        "semis": ["KR-semis", "TW-semis", "MY-semis", "TH-electronics",
+                  "VN-electronics", "NL-hightech"],
+        "energy_gas": ["QA-lng", "SA-oil"],
+        "electronics_assembly": ["VN-electronics", "MX-manufacturing",
+                                 "TH-electronics"],
+        "industrial_mfg": ["DE-machinery", "JP-autos", "MX-manufacturing"],
+        "metals_bulk": ["AU-iron", "BR-commodities", "CL-copper"],
     }
     divergences = []
     byid = {p["id"]: p for p in pairs}
