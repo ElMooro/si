@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "1.0"
+VERSION = "3.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -415,6 +415,154 @@ def lambda_handler(event, context):
     proven = set(str(x).lower() for x in (ea.get("alpha_proven_signals") or []))
     mode = "PROVEN" if "eng:chokepoint" in proven else "PROVISIONAL"
 
+
+    # ══════════════════════════════════════════════════════════════════════
+    # v3.0 CAPTURE GAP — value-creation (criticality) vs value-capture (mcap)
+    # ══════════════════════════════════════════════════════════════════════
+    # Khalid's TSMC/ASML thesis, made computable. A company can be the single
+    # point of failure for its entire industry and still carry a small slice of
+    # that industry's market cap. That gap is the mispricing.
+    #
+    # Denominator = fetch_bulk_universe() (the WHOLE market, already in memory
+    # for the funnel — zero extra API calls). Industry totals therefore include
+    # names we never deep-dived, which is correct: the denominator must be the
+    # full industry, not just our scored sample.
+    capture = {}
+    try:
+        MIN_PEERS = 5          # industries thinner than this have meaningless shares
+        ind_total, ind_members = {}, {}
+        for _s, _p in bulk.items():
+            if _p.get("is_etf") or _p.get("is_fund") or not _p.get("active"):
+                continue
+            _ind = (_p.get("industry") or "").strip()
+            _mc = _p.get("market_cap") or 0
+            if not _ind or _mc <= 0:
+                continue
+            ind_total[_ind] = ind_total.get(_ind, 0.0) + _mc
+            ind_members.setdefault(_ind, []).append((_s, _mc))
+
+        # backlog join (G0-verified key: "by_ticker")
+        _bk = _read("data/backlog.json") or {}
+        _bk_by = _bk.get("by_ticker") or {}
+
+        def _pctile(vals, v):
+            if not vals:
+                return None
+            n = sum(1 for x in vals if x < v)
+            return round(100.0 * n / len(vals), 1)
+
+        # group SCORED rows by industry so percentiles are cross-sectional
+        scored_by_ind = {}
+        for _r in results:
+            _i = (_r.get("industry") or "").strip()
+            if _i:
+                scored_by_ind.setdefault(_i, []).append(_r)
+
+        cap_rows = []
+        for _ind, _rows in scored_by_ind.items():
+            _tot = ind_total.get(_ind, 0.0)
+            _npeers = len(ind_members.get(_ind, []))
+            if _tot <= 0 or _npeers < MIN_PEERS:
+                continue
+            _crits = [x.get("criticality") or 0 for x in _rows]
+            _shares_all = [mc for _, mc in ind_members[_ind]]
+            for _r in _rows:
+                _mc = _r.get("market_cap") or 0
+                if _mc <= 0:
+                    continue
+                _share = 100.0 * _mc / _tot
+                _crit_p = _pctile(_crits, _r.get("criticality") or 0)
+                _share_p = _pctile(_shares_all, _mc)
+                if _crit_p is None or _share_p is None:
+                    continue
+                _gap = round(_crit_p - _share_p, 1)
+
+                # backlog leg
+                _b = _bk_by.get(_r["ticker"]) or {}
+                _rpo_g = _b.get("rpo_growth_yoy")
+                _bk_accel = bool(_b.get("accelerating")) or (
+                    isinstance(_rpo_g, (int, float)) and _rpo_g > 0)
+
+                cap_rows.append({
+                    "ticker": _r["ticker"], "name": _r.get("name"),
+                    "industry": _ind, "sector": _r.get("sector"),
+                    "market_cap": _mc,
+                    "industry_mcap_total": round(_tot, 0),
+                    "industry_peers": _npeers,
+                    "mcap_share_pct": round(_share, 3),
+                    "criticality": _r.get("criticality"),
+                    "criticality_pctile": _crit_p,
+                    "mcap_share_pctile": _share_p,
+                    "capture_gap": _gap,
+                    "gm_stability": _r.get("gm_stability"),
+                    "gm_level": _r.get("gm_level"),
+                    "roic": _r.get("roic"),
+                    "discount_to_fair_pct": _r.get("discount_to_fair_pct"),
+                    "rpo_growth_yoy": _rpo_g,
+                    "backlog_accelerating": _bk_accel,
+                    "cap_bucket": _r.get("cap_bucket"),
+                    "is_chokepoint": _r.get("is_chokepoint"),
+                })
+
+        # ── 5-leg confirmation ladder ──────────────────────────────────────
+        # One leg is noise. Institutional practice: require independent
+        # confirmation across creation, price, quality, growth and visibility.
+        for _c in cap_rows:
+            legs, why = 0, []
+            if (_c["capture_gap"] or 0) >= 20:
+                legs += 1; why.append("capture gap %.0fpp" % _c["capture_gap"])
+            if isinstance(_c.get("discount_to_fair_pct"), (int, float)) and _c["discount_to_fair_pct"] >= 15:
+                legs += 1; why.append("%.0f%% below fair" % _c["discount_to_fair_pct"])
+            if isinstance(_c.get("gm_stability"), (int, float)) and _c["gm_stability"] <= 5:
+                legs += 1; why.append("margin stability ±%.1fpp" % _c["gm_stability"])
+            if isinstance(_c.get("roic"), (int, float)) and _c["roic"] >= 15:
+                legs += 1; why.append("%.0f%% ROIC" % _c["roic"])
+            if _c.get("backlog_accelerating"):
+                legs += 1; why.append("backlog accelerating")
+            _c["legs"] = legs
+            _c["legs_why"] = why
+            _c["tier"] = ("STRUCTURALLY_UNDERVALUED" if legs >= 3 and _c["capture_gap"] >= 20
+                          else "WATCH" if legs >= 1 else "NONE")
+
+        cap_rows.sort(key=lambda x: -(x.get("capture_gap") or 0))
+        _under = [c for c in cap_rows if c["tier"] == "STRUCTURALLY_UNDERVALUED"]
+        _hidden_cap = [c for c in _under if c.get("cap_bucket") in ("nano", "micro", "small", "mid")]
+
+        capture = {
+            "marker": "capture_gap_v3",
+            "thesis": ("Value CREATION vs value CAPTURE. A company can be the single "
+                       "point of failure for its industry and still hold a small slice "
+                       "of that industry's market cap. capture_gap = criticality "
+                       "percentile minus market-cap-share percentile, within industry. "
+                       "Positive = the market underpays for indispensability."),
+            "method": {
+                "denominator": "full market from profile-bulk (all active non-ETF names)",
+                "min_peers": MIN_PEERS,
+                "ladder": "3 of 5 legs AND capture_gap>=20pp => STRUCTURALLY_UNDERVALUED",
+                "legs": ["capture_gap>=20pp", "discount_to_fair>=15%",
+                         "gm_stability<=5pp", "roic>=15%", "backlog_accelerating"],
+                "honest_limit": ("mcap share is a proxy for value capture, not a "
+                                 "measured revenue share; industries with <5 listed "
+                                 "peers are excluded rather than guessed."),
+            },
+            "stats": {
+                "scored": len(cap_rows),
+                "industries": len(set(c["industry"] for c in cap_rows)),
+                "structurally_undervalued": len(_under),
+                "hidden": len(_hidden_cap),
+                "backlog_joined": sum(1 for c in cap_rows if c.get("rpo_growth_yoy") is not None),
+            },
+            "structurally_undervalued": _under[:40],
+            "hidden_capture_gaps": _hidden_cap[:25],
+            "widest_gaps": cap_rows[:60],
+            "all_rows": cap_rows,
+        }
+        diag.append("capture_gap: %d scored / %d ind / %d undervalued" % (
+            len(cap_rows), len(set(c["industry"] for c in cap_rows)), len(_under)))
+    except Exception as _e:
+        capture = {"marker": "capture_gap_v3", "error": str(_e)[:300]}
+        diag.append("capture_gap FAILED: %s" % str(_e)[:160])
+
     out = {
         "engine": "chokepoint", "version": VERSION, "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1), "mode": mode, "scope": "broad_v2",
@@ -441,6 +589,7 @@ def lambda_handler(event, context):
         "hidden_chokepoint_book": hidden[:25],
         "industry_leaders": industry_leaders[:40],
         "all_chokepoints": chokepoints[:80],
+        "capture_gap": capture,
         "methodology": ("TWO-STAGE FUNNEL. Stage 1: one FMP profile-bulk call returns the whole universe; "
                         "filter to actively-trading US small/mid-caps ($0.8-50B) in chokepoint-prone industries "
                         "(commodity industries never qualify). Stage 2: deep-dive survivors + curated seed + engine "

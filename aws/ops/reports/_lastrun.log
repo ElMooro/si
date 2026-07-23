@@ -1,36 +1,29 @@
-executing-against: c127e72fd03a14642f4a322230a20dd33145a523
-ops 3764 — validate + prune the PPI line universe
-[02:20:39]   universe in: 198 lines
-── A — serial re-test (no concurrency = no false rate-limit) ──
-[02:20:53]   ... 40/198 checked
-[02:21:06]   ... 80/198 checked
-[02:21:20]   ... 120/198 checked
-[02:21:33]   ... 160/198 checked
-[02:21:42]     DEAD  PCU42993042993022      ERR:HTTP Error 429: Too Many Requests
-[02:21:44]     DEAD  PCU4411104411102       ERR:HTTP Error 429: Too Many Requests
-[02:21:46]     DEAD  PCU441310441310P       ERR:HTTP Error 429: Too Many Requests
-[02:21:48]     DEAD  PCU4413144131          ERR:HTTP Error 429: Too Many Requests
-[02:21:49]     DEAD  PCU44134413            ERR:HTTP Error 429: Too Many Requests
-[02:21:51]     DEAD  PCU441441              ERR:HTTP Error 429: Too Many Requests
-[02:21:53]     DEAD  PCU5182105182104       ERR:HTTP Error 429: Too Many Requests
-[02:21:55]     DEAD  WPU05532101            ERR:HTTP Error 429: Too Many Requests
-[02:21:56]     DEAD  WPU061                 ERR:HTTP Error 429: Too Many Requests
-[02:21:58]     DEAD  WPU06710401            ERR:HTTP Error 429: Too Many Requests
-[02:22:01]     FLAKY WPU067903              recovered on retry
-[02:22:02] ✅   LIVE=187 FLAKY=1 DEAD=10
-── B — rewrite the universe (keep LIVE + FLAKY) ──
-[02:22:02] ✅   wrote config/ppi-lines.json: 188 live lines, 10 pruned
-[02:22:02]     pruned PCU42993042993022      Producer Price Index by Industry: Material Recyclers: Al
-[02:22:02]     pruned PCU4411104411102       Producer Price Index by Industry: New Car Dealers: Servi
-[02:22:02]     pruned PCU441310441310P       Producer Price Index by Industry: Automotive Parts and A
-[02:22:02]     pruned PCU4413144131          Producer Price Index by Industry: Automotive Parts and A
-[02:22:02]     pruned PCU44134413            Producer Price Index by Industry: Automotive Parts, Acce
-[02:22:02]     pruned PCU441441              Producer Price Index by Industry: Motor Vehicle and Part
-[02:22:02]     pruned PCU5182105182104       Producer Price Index by Industry: Data Processing, Hosti
-[02:22:02]     pruned WPU05532101            Producer Price Index by Commodity: Fuels and Related Pro
-[02:22:02]     pruned WPU061                 Producer Price Index by Commodity: Chemicals and Allied 
-[02:22:02]     pruned WPU06710401            Producer Price Index by Commodity: Chemicals and Allied 
-── VERDICT ──
-[02:22:02] ✅ UNIVERSE VALIDATED — re-gate #13 against real coverage
+executing-against: eb3b78b9d63abfb02b59575e7a256760e2137d4c
+ops 3765 — chokepoint v3.0 CAPTURE GAP
+[17:25:43] Khalid's thesis: TSMC/ASML undervalued vs their structural role in AI.
+[17:25:43] Audit verdict: EXTEND justhodl-chokepoint (already has criticality + market_cap + industry). Do NOT build a new engine.
+── G0_KEY_CONTRACT — grep producers before consuming ──
+[17:25:43] ✅ G0.chokepoint_row_market_cap :: chokepoint row emits market_cap
+[17:25:43] ✅ G0.chokepoint_row_industry :: chokepoint row emits industry
+[17:25:43] ✅ G0.bulk_universe :: whole-market denominator available in memory (zero extra API cost)
+[17:25:43] ✅ G0.results_var :: `results` holds full scored ledger
+[17:25:43] ✅ G0.reader :: _read() S3 helper present
+[17:25:43] ✅ G0.diag :: diag list present
+[17:25:43] ✅ G0.backlog_by_ticker :: backlog.json exposes by_ticker (verified in producer source)
+── Splice v3.0 capture block (additive, before `out = {`) ──
+[17:25:43] ✅ SPLICE.anchor_unique :: anchor `    out = {` occurs 1 time(s)
+[17:25:43] ✅ SPLICE.key_anchor :: payload key anchor unique
+[17:25:43] ✅ spliced capture block + payload key + VERSION 3.0
+[17:25:43] ✅ py_compile clean
+[17:25:43] ✅ SPLICE.marker_in_source :: marker present in written source
+[17:25:43] ✅ SPLICE.additive :: pre-existing books untouched (additive contract held)
+── Deploy ──
 
-→ Report written to aws/ops/reports/latest/3764_ppi_universe_prune.md
+→ Report written to aws/ops/reports/latest/3765_capture_gap.md
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_3765_capture_gap.py", line 412, in <module>
+    main()
+  File "/home/runner/work/si/si/aws/ops/pending/ops_3765_capture_gap.py", line 292, in main
+    rep.kv("inherited_env_keys", len(env))
+TypeError: Report.kv() takes 1 positional argument but 3 were given
+❌ OPS-FAIL: aws/ops/pending/ops_3765_capture_gap.py
