@@ -1,0 +1,110 @@
+# ops 3766 — chokepoint v3.0 CAPTURE GAP
+
+**Status:** success  
+**Duration:** 33.6s  
+**Finished:** 2026-07-23T17:31:48+00:00  
+
+## Data
+
+| backlog_joined | capture_gap_range | hidden | industries | inherited_env_keys | invoke_seconds | invoke_status | mcap_share_max_pct | scored | structurally_undervalued |
+|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  | 0 |  |  |  |  |  |
+|  |  |  |  |  |  | 200 |  |  |  |
+|  |  |  |  |  | 13.5 |  |  |  |  |
+|  |  |  |  |  |  |  |  | 879 |  |
+|  |  |  | 109 |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  | 11 |
+|  |  | 11 |  |  |  |  |  |  |  |
+| 0 |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  | 92.86 |  |  |
+|  | -98.9 .. 63.8 |  |  |  |  |  |  |  |  |
+
+## Log
+- `17:31:14` Khalid's thesis: TSMC/ASML undervalued vs their structural role in AI.
+- `17:31:14` Audit verdict: EXTEND justhodl-chokepoint (already has criticality + market_cap + industry). Do NOT build a new engine.
+## G0_KEY_CONTRACT — grep producers before consuming
+
+- `17:31:14` ✅ G0.chokepoint_row_market_cap :: chokepoint row emits market_cap
+- `17:31:14` ✅ G0.chokepoint_row_industry :: chokepoint row emits industry
+- `17:31:14` ✅ G0.bulk_universe :: whole-market denominator available in memory (zero extra API cost)
+- `17:31:14` ✅ G0.results_var :: `results` holds full scored ledger
+- `17:31:14` ✅ G0.reader :: _read() S3 helper present
+- `17:31:14` ✅ G0.diag :: diag list present
+- `17:31:14` ✅ G0.backlog_by_ticker :: backlog.json exposes by_ticker (verified in producer source)
+## Splice v3.0 capture block (additive, before `out = {`)
+
+- `17:31:14` ⚠ marker already present — re-splicing idempotently
+- `17:31:14` ✅ SPLICE.anchor_unique :: anchor `    out = {` occurs 1 time(s)
+- `17:31:14` ✅ SPLICE.key_anchor :: payload key anchor unique
+- `17:31:14` ⚠ payload key already registered (3765 auto-commit) — not duplicating
+- `17:31:14` ✅ SPLICE.key_once :: capture_gap payload key appears exactly once
+- `17:31:14` ✅ spliced capture block + payload key + VERSION 3.0
+- `17:31:14` ✅ py_compile clean
+- `17:31:14` ✅ SPLICE.marker_in_source :: marker present in written source
+- `17:31:14` ✅ SPLICE.additive :: pre-existing books untouched (additive contract held)
+## Deploy
+
+- `17:31:15`   zip: 94631 bytes
+## 1. Lambda
+
+- `17:31:15`   Lambda exists — updating
+- `17:31:18` ✅   ✓ updated justhodl-chokepoint
+## Zip settle — prove the NEW artifact is live before invoking
+
+- `17:31:34` ✅ artifact settled with marker on attempt 1
+- `17:31:34` ✅ DEPLOY.zip_settled :: new code confirmed inside deployed zip
+## Invoke + field-coverage audit on the LIVE S3 artifact
+
+- `17:31:48` ✅ LIVE.version :: version=3.0
+- `17:31:48` ✅ LIVE.capture_key :: capture_gap key present
+- `17:31:48` ✅ LIVE.no_error :: capture block error=None
+- `17:31:48` ✅ LIVE.scored_nonzero :: scored=879 (need >=50)
+- `17:31:48` ✅ LIVE.industries_nonzero :: industries=109
+- `17:31:48` ✅ LIVE.all_rows :: all_rows n=879
+## Additive contract — pre-existing keys must survive
+
+- `17:31:48` ✅ ADDITIVE.structural_names :: present
+- `17:31:48` ✅ ADDITIVE.industry_leaders :: present
+- `17:31:48` ✅ ADDITIVE.hidden_chokepoint_book :: present
+- `17:31:48` ✅ ADDITIVE.cheap_chokepoint_book :: present
+- `17:31:48` ✅ ADDITIVE.all_chokepoints :: present
+- `17:31:48` ✅ ADDITIVE.highest_conviction_book :: present
+- `17:31:48` ✅ SANITY.share_distribution :: max share 92.86% within bounds
+- `17:31:48` ✅ SANITY.gap_spread :: gap spread 162.7pp (a real cross-section, not a constant)
+## LIVE top capture gaps
+
+- `17:31:48`   NVEC   Semiconductors                 gap=+63.8pp  share=0.00%  crit=71.8  legs=3  STRUCTURALLY_UNDERVALUED
+- `17:31:48`   FDS    Financial - Data & Stock Excha gap=+43.9pp  share=0.95%  crit=58.7  legs=3  STRUCTURALLY_UNDERVALUED
+- `17:31:48`   USB    Banks - Diversified            gap=+43.8pp  share=1.51%  crit=36.9  legs=2  WATCH
+- `17:31:48`   MSCI   Financial - Data & Stock Excha gap=+42.2pp  share=4.46%  crit=73.3  legs=3  STRUCTURALLY_UNDERVALUED
+- `17:31:48`   GSIT   Semiconductors                 gap=+38.0pp  share=0.00%  crit=52.5  legs=2  WATCH
+- `17:31:48`   HESM   Oil & Gas Midstream            gap=+36.8pp  share=0.69%  crit=56.2  legs=3  STRUCTURALLY_UNDERVALUED
+- `17:31:48`   STAG   REIT - Industrial              gap=+34.7pp  share=2.03%  crit=63.4  legs=2  WATCH
+- `17:31:48`   OGE    Regulated Electric             gap=+34.4pp  share=0.52%  crit=35.1  legs=1  WATCH
+- `17:31:48`   AOS    Industrial - Machinery         gap=+33.3pp  share=0.24%  crit=55.4  legs=3  STRUCTURALLY_UNDERVALUED
+- `17:31:48`   MORN   Financial - Data & Stock Excha gap=+32.6pp  share=0.70%  crit=55.8  legs=3  STRUCTURALLY_UNDERVALUED
+- `17:31:48`   GGG    Industrial - Machinery         gap=+30.9pp  share=0.36%  crit=57.0  legs=3  STRUCTURALLY_UNDERVALUED
+- `17:31:48`   CRUS   Semiconductors                 gap=+30.2pp  share=0.04%  crit=68.1  legs=3  STRUCTURALLY_UNDERVALUED
+## STRUCTURALLY_UNDERVALUED (>=3 legs)
+
+- `17:31:48`   NVEC   NVE Corporation          gap=+63.8pp legs=3 :: capture gap 64pp; margin stability ±1.9pp; 23% ROIC
+- `17:31:48`   FDS    FactSet Research Systems gap=+43.9pp legs=3 :: capture gap 44pp; margin stability ±1.6pp; 16% ROIC
+- `17:31:48`   MSCI   MSCI Inc.                gap=+42.2pp legs=3 :: capture gap 42pp; margin stability ±1.6pp; 35% ROIC
+- `17:31:48`   HESM   Hess Midstream LP        gap=+36.8pp legs=3 :: capture gap 37pp; 49% below fair; 20% ROIC
+- `17:31:48`   AOS    A. O. Smith Corporation  gap=+33.3pp legs=3 :: capture gap 33pp; margin stability ±1.9pp; 24% ROIC
+- `17:31:48`   MORN   Morningstar, Inc.        gap=+32.6pp legs=3 :: capture gap 33pp; margin stability ±1.2pp; 15% ROIC
+- `17:31:48`   GGG    Graco Inc.               gap=+30.9pp legs=3 :: capture gap 31pp; margin stability ±1.2pp; 18% ROIC
+- `17:31:48`   CRUS   Cirrus Logic, Inc.       gap=+30.2pp legs=3 :: capture gap 30pp; margin stability ±1.2pp; 17% ROIC
+- `17:31:48`   QLYS   Qualys, Inc.             gap=+29.0pp legs=3 :: capture gap 29pp; margin stability ±1.9pp; 28% ROIC
+- `17:31:48`   ZTS    Zoetis Inc.              gap=+24.2pp legs=3 :: capture gap 24pp; margin stability ±1.9pp; 22% ROIC
+- `17:31:48`   RMBS   Rambus Inc.              gap=+20.8pp legs=3 :: capture gap 21pp; margin stability ±5.0pp; 15% ROIC
+## Khalid's reference names (TSM / ASML)
+
+- `17:31:48`   TSM   gap=-10.8pp share=11.71% crit=71.4 tier=WATCH
+- `17:31:48`   ASML  gap=-0.3pp share=3.76% crit=73.7 tier=WATCH
+- `17:31:48`   NVDA  gap=-0.7pp share=27.43% crit=88.2 tier=WATCH
+- `17:31:48`   AVGO  gap=-16.7pp share=10.07% crit=67.3 tier=WATCH
+## VERDICT
+
+- `17:31:48` ✅ PASS_ALL — chokepoint v3.0 capture-gap layer live
+- `17:31:48` NEXT: /capture-gap.html page (page contract) + best-setups join.

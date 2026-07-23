@@ -416,6 +416,7 @@ def lambda_handler(event, context):
     mode = "PROVEN" if "eng:chokepoint" in proven else "PROVISIONAL"
 
 
+
     # ══════════════════════════════════════════════════════════════════════
     # v3.0 CAPTURE GAP — value-creation (criticality) vs value-capture (mcap)
     # ══════════════════════════════════════════════════════════════════════
