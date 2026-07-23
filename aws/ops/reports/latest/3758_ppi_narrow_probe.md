@@ -1,0 +1,45 @@
+# ops 3758 — narrow 6-digit PPI availability probe (canary #13)
+
+**Status:** success  
+**Duration:** 0.8s  
+**Finished:** 2026-07-23T01:42:05+00:00  
+
+## Data
+
+| bls_with_data | buildable | discovery_lines | fred_hits |
+|---|---|---|---|
+| 6 | True | 0 | 10 |
+
+## Log
+## A — BLS v2 multi-series batch (the cheap path)
+
+- `01:42:05` ✅   status=REQUEST_SUCCEEDED message=['Series does not exist for Series PCU3339113339110', 'Series does not exist for Series PCU33441333441301']
+- `01:42:05`   series returned: 8 of 8 requested
+- `01:42:05`     PCU334413334413        latest 2026-M06 = 29.695 (n=30)
+- `01:42:05`     PCU33441333441301      NO DATA
+- `01:42:05`     PCU3341123341121       latest 2026-M06 = 64.183 (n=30)
+- `01:42:05`     WPU101                 latest 2026-M06 = 366.341 (n=30)
+- `01:42:05`     WPU0911                latest 2026-M06 = 204.086 (n=30)
+- `01:42:05`     WPU061                 latest 2026-M06 = 343.719 (n=30)
+- `01:42:05`     PCU325180325180        latest 2026-M06 = 169.174 (n=30)
+- `01:42:05`     PCU3339113339110       NO DATA
+## B — BLS series discovery for PPI industry
+
+- `01:42:05` ⚠   ies/pc/pc.series -> HTTP Error 403: Forbidden
+- `01:42:05` ⚠   ies/wp/wp.series -> HTTP Error 403: Forbidden
+## C — FRED mirror of narrow PPI lines
+
+- `01:42:05` ✅   FRED narrow-PPI search -> 10
+- `01:42:05`     PCU33443344              Producer Price Index by Industry: Semiconductor and Other Electronic C
+- `01:42:05`     PCU3344133441            Producer Price Index by Industry: Semiconductor and Other Electronic C
+- `01:42:05`     PCU334413334413A         Producer Price Index by Industry: Semiconductor and Related Device Man
+- `01:42:05`     PCU334413334413          Producer Price Index by Industry: Semiconductor and Related Device Man
+- `01:42:05`     PCU3344133344131         Producer Price Index by Industry: Semiconductor and Related Device Man
+- `01:42:05`     PCU333242333242          Producer Price Index by Industry: Semiconductor Machinery Manufacturin
+## D — cross-check PCU334413334413 (BLS vs FRED)
+
+- `01:42:05` ✅   FRED PCU334413334413 latest=29.695 (2026-06-01)
+## VERDICT
+
+- `01:42:05`   BLS batch usable: True · discovery files: {}
+- `01:42:05` ✅ PROBE COMPLETE
