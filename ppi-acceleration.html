@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPI Acceleration · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:12px 13px}
+.tile .lbl{font-size:12px;color:var(--text-dim);margin-bottom:3px}
+.big{font-size:20px;font-weight:600;font-family:ui-monospace,Menlo,monospace}
+.pill{display:inline-block;border:1px solid var(--border);border-radius:20px;padding:2px 9px;font-size:10.5px;font-family:ui-monospace,Menlo,monospace;margin-right:5px}
+.row{border:1px solid var(--border);border-radius:11px;padding:11px 13px;margin:9px 0;background:rgba(255,255,255,.015)}
+.row .head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+.row .nm{font-size:14px;font-weight:600}
+.row .meta{font-size:11.5px;color:var(--text-mute);font-family:ui-monospace,Menlo,monospace;margin-top:5px}
+.bar{height:5px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:6px;max-width:340px}
+.bar>i{display:block;height:100%;border-radius:3px}
+table{width:100%;border-collapse:collapse;font-family:ui-monospace,Menlo,monospace;font-size:11.5px}
+th,td{text-align:left;padding:5px 7px;border-bottom:1px solid var(--border)}
+th{color:var(--text-mute);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.6px}
+.foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
+.note{font-size:11.5px;color:var(--text-mute);margin-top:8px;line-height:1.6}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>📈 PPI Acceleration — Narrow-Line Bottlenecks</h1>
+<div class="sub">An aggregate PPI print averages a heating input against a cooling one and reports calm. The signal lives in <em>narrow</em> lines — one 6-digit industry whose price is not merely high but rising <em>faster</em>. That is a bottleneck forming, and it shows up months before it reaches a cost line or an earnings call. This board sweeps 198 discovered narrow lines and ranks them by the second derivative. Daily 15:15 UTC.</div>
+
+<div class="card" id="hero"><span class="mono" style="color:var(--text-mute)">LOADING…</span></div>
+
+<div class="sec">🔥 Accelerating — cost pressure building</div>
+<div id="accel"></div>
+
+<div class="sec">❄️ Decelerating — cost tailwind</div>
+<div id="decel"></div>
+
+<div class="sec">📋 All Lines</div>
+<div class="card" style="overflow-x:auto;max-height:560px"><table id="tbl"><thead><tr>
+<th>Series</th><th>Line</th><th>Level</th><th>YoY</th><th>Prior YoY</th><th>Accel</th><th>3m ann</th><th>z</th><th>Signal</th></tr></thead><tbody id="tb"></tbody></table></div>
+
+<div class="sec">Method</div>
+<div class="card mono" style="font-size:12px;color:var(--text-dim)" id="method"></div>
+
+<div class="sec">Coverage</div>
+<div class="card mono" style="font-size:12px;color:var(--text-dim)" id="cov"></div>
+
+<div class="sec">Cross-links</div>
+<div class="card mono" style="font-size:12.5px;color:var(--text-dim)">Physical imports: <a href="/import-canary.html">Import Canary</a> · Supply inflections: <a href="/supply-chain.html">Supply Chain</a> · Industry momentum: <a href="/boom-stage.html">Boom Stage</a></div>
+
+<div class="foot" id="foot"></div>
+</div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+(async function(){
+try{
+var POS='#6fce8a',NEG='#E07A6A',MUT='#5b6479',ACC='#F0B429',NEU='#e8e8e8';
+var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/ppi-acceleration.json?t='+Date.now());
+var d=await r.json();
+var rows=d.lines||[];
+var num=function(v,dp){return (v==null)?'—':(typeof v==='number'?v.toFixed(dp==null?2:dp):v);};
+var sgCol=function(s){if(!s)return MUT;if(s.indexOf('ACCELERATING')===0)return NEG;if(s==='INFLECTING_UP')return ACC;if(s.indexOf('DECELERATING')===0)return POS;if(s==='COOLING')return POS;return NEU;};
+
+document.getElementById('hero').innerHTML='<div class="grid">'
++'<div class="tile"><div class="lbl">Accelerating</div><div class="big" style="color:'+((d.n_accelerating||0)?NEG:MUT)+'">'+(d.n_accelerating||0)+'</div><div class="note">narrow lines with rising 2nd derivative</div></div>'
++'<div class="tile"><div class="lbl">Decelerating</div><div class="big" style="color:'+((d.n_decelerating||0)?POS:MUT)+'">'+(d.n_decelerating||0)+'</div><div class="note">cost tailwinds</div></div>'
++'<div class="tile"><div class="lbl">Lines swept</div><div class="big">'+(d.n_lines||0)+'</div><div class="note">discovered, not hand-picked</div></div>'
++'<div class="tile"><div class="lbl">Base-rate ready</div><div class="big">'+(d.n_base_rate_ready||0)+'</div><div class="note">≥'+((d.thresholds||{}).min_obs_for_z||36)+' obs, z active</div></div>'
++'</div>';
+
+var maxAcc=Math.max.apply(null,rows.map(function(x){return Math.abs(x.accel_pp||0);}).concat([1]));
+var render=function(x){
+var w=Math.min(100,Math.abs(x.accel_pp||0)/maxAcc*100);
+return '<div class="row"><div class="head"><span class="nm">'+(x.title||x.series_id).slice(0,74)
++' <span class="pill" style="color:'+sgCol(x.signal)+';border-color:'+sgCol(x.signal)+'">'+(x.signal||'').replace(/_/g,' ')+'</span></span>'
++'<span class="mono" style="color:'+sgCol(x.signal)+'">accel '+(x.accel_pp>0?'+':'')+num(x.accel_pp)+'pp</span></div>'
++'<div class="meta">'+x.series_id+' · YoY '+(x.yoy_pct>0?'+':'')+num(x.yoy_pct)+'% (prior '+(x.prior_yoy_pct>0?'+':'')+num(x.prior_yoy_pct)+'%)'
++' · 3m ann '+(x.m3_ann_pct>0?'+':'')+num(x.m3_ann_pct)+'%'
++' · z '+(x.z_vs_own_history==null?'building':x.z_vs_own_history)
++' · '+(x.period||'')+' · n='+(x.n_obs||0)
++(x.base_rate_ready?'':' · <span style="color:'+MUT+'">base rate not ready</span>')+'</div>'
++'<div class="bar"><i style="width:'+w+'%;background:'+sgCol(x.signal)+'"></i></div></div>';};
+
+var ta=d.top_accelerating||[];
+document.getElementById('accel').innerHTML=ta.length?ta.map(render).join('')
+:'<div class="card"><span class="mono" style="color:'+MUT+';font-size:12px">No narrow line is accelerating beyond the '+((d.thresholds||{}).accel_pp||2)+'pp threshold. Input costs are stable across the swept universe.</span></div>';
+var td=d.top_decelerating||[];
+document.getElementById('decel').innerHTML=td.length?td.map(render).join('')
+:'<div class="card"><span class="mono" style="color:'+MUT+';font-size:12px">No line is decelerating beyond threshold.</span></div>';
+
+document.getElementById('tb').innerHTML=rows.map(function(x){
+return '<tr><td style="color:'+ACC+'">'+x.series_id+'</td><td>'+((x.title||'').slice(0,46))+'</td>'
++'<td>'+num(x.level,1)+'</td>'
++'<td style="color:'+(x.yoy_pct>0?NEG:(x.yoy_pct<0?POS:MUT))+'">'+(x.yoy_pct>0?'+':'')+num(x.yoy_pct)+'%</td>'
++'<td>'+(x.prior_yoy_pct>0?'+':'')+num(x.prior_yoy_pct)+'%</td>'
++'<td style="color:'+sgCol(x.signal)+'">'+(x.accel_pp>0?'+':'')+num(x.accel_pp)+'</td>'
++'<td>'+(x.m3_ann_pct>0?'+':'')+num(x.m3_ann_pct)+'%</td>'
++'<td>'+(x.z_vs_own_history==null?'—':x.z_vs_own_history)+'</td>'
++'<td style="color:'+sgCol(x.signal)+'">'+(x.signal||'').replace(/_/g,' ')+'</td></tr>';}).join('');
+
+document.getElementById('method').textContent=d.method||'';
+document.getElementById('cov').innerHTML='lines '+(d.n_lines||0)+' · base-rate ready '+(d.n_base_rate_ready||0)
++' · accel threshold '+((d.thresholds||{}).accel_pp||2)+'pp · min obs for z '+((d.thresholds||{}).min_obs_for_z||36)
++((d.degraded&&d.degraded.length)?('<br><span style="color:'+NEG+'">degraded: '+d.degraded.join(' · ')+'</span>'):'<br><span style="color:'+POS+'">no degraded feeds</span>');
+document.getElementById('foot').textContent='Feed data/ppi-acceleration.json · '+(d.attribution||'')+' · v'+(d.version||'')+' · generated '+(d.generated_at||'');
+}catch(e){console.error(e);document.getElementById('hero').innerHTML='<span class="mono" style="color:#E07A6A">Feed unavailable — '+e+'</span>';}
+})();
+</script>
+</body>
+</html>

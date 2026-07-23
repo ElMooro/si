@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-ppi-acceleration",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Canary #13: sweeps 198 discovered narrow PPI lines and ranks them by 2nd derivative (accel_pp). An aggregate print averages a heating input against a cooling one; a narrow accelerating line is a bottleneck forming months early.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-ppi-acceleration-daily",
+    "cron": "cron(15 15 * * ? *)",
+    "description": "PPI narrow-line acceleration — daily 15:15 UTC"
+  }
+}

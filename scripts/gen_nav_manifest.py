@@ -70,6 +70,7 @@ FORCE = {  # ops 3302: explicit category pins (beat keyword collisions)
     "/grid-queue.html": "Macro & Liquidity",         # ops 3739
     "/insider-industry-cluster.html": "Research & Tools",  # ops 3745
     "/credit-before-equity.html": "Macro & Liquidity",     # ops 3756
+    "/ppi-acceleration.html": "Macro & Liquidity",        # ops 3760
 }
 
 
