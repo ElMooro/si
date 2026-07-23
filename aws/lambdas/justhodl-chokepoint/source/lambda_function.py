@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "4.0.1"
+VERSION = "4.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -212,6 +212,7 @@ def evaluate(sym, centrality, rerate_lookup, bulk):
         "roic": round(roic, 1) if isinstance(roic, (int, float)) else None,
         "centrality": ctr, "discount_to_fair_pct": disc, "cheap_chokepoint": bool(is_choke and cheap),
         "ev_sales": ev_sales, "pe": pe_ratio,
+        "revenue_ttm": _rev_ttm,
         "hidden_chokepoint": bool(is_choke and cap_bucket in ("nano", "micro", "small", "mid")),
         "reasons": reasons,
     }
@@ -605,6 +606,8 @@ def lambda_handler(event, context):
                     # above dropped them, so every catch-up number was silently None.
                     "ev_sales": _r.get("ev_sales"),
                     "pe": _r.get("pe"),
+                    "revenue_ttm": _r.get("revenue_ttm"),
+                    "centrality": _r.get("centrality"),
                 })
 
         # ── 5-leg confirmation ladder ──────────────────────────────────────
@@ -822,7 +825,9 @@ def lambda_handler(event, context):
                                  ("ticker", "name", "market_cap", "mcap_share_pct",
                                   "criticality", "capture_gap", "global_capture_gap",
                                   "catchup_pct", "catchup_basis", "ev_sales", "pe",
-                                  "roic", "gm_stability", "legs", "tier", "cap_bucket")}
+                                  "roic", "gm_stability", "legs", "tier", "cap_bucket",
+                                  "revenue_share_pct", "dependency_pct",
+                                  "criticality_pctile", "criticality_basis")}
                                 for x in _mem_sorted],
                 })
             _ind_block.sort(key=lambda x: -(x["median_capture_gap"] if
@@ -854,7 +859,10 @@ def lambda_handler(event, context):
                   "catchup_pct", "catchup_pct_evs", "catchup_pct_pe", "catchup_basis",
                   "catchup_capped", "criticality", "mcap_share_pct", "roic",
                   "gm_stability", "legs", "legs_why", "tier",
-                  "industry_median_ev_sales", "industry_median_pe", "ev_sales", "pe")}
+                  "industry_median_ev_sales", "industry_median_pe", "ev_sales", "pe",
+                  "revenue_share_pct", "revenue_coverage_pct",
+                  "dependency_pct", "criticality_basis",
+                  "criticality_pctile")}
                 for x in _lead[:50]]
 
             capture["stats"]["with_catchup"] = sum(
@@ -872,6 +880,83 @@ def lambda_handler(event, context):
         except Exception as _v4e:
             capture["v4_error"] = str(_v4e)[:300]
             diag.append("v4 FAILED: %s" % str(_v4e)[:160])
+
+        # ── v4.1 "% critical to industry" — three DISTINCT percentages ──
+        # criticality is a 0-100 QUALITY composite, not a share. Rendering it
+        # with a % sign would imply "71% of the industry depends on TSM", which
+        # is not what it measures. So we publish measured shares separately and
+        # label each for exactly what it is.
+        try:
+            _rev_by_ind, _ctr_by_ind = {}, {}
+            for _c in cap_rows:
+                _i = _c.get("industry")
+                if not _i:
+                    continue
+                _rv = _c.get("revenue_ttm")
+                if isinstance(_rv, (int, float)) and _rv > 0:
+                    _rev_by_ind[_i] = _rev_by_ind.get(_i, 0.0) + _rv
+                _ct = _c.get("centrality")
+                if isinstance(_ct, (int, float)) and _ct > 0:
+                    _ctr_by_ind[_i] = _ctr_by_ind.get(_i, 0.0) + _ct
+            _scored_by_ind = {}
+            for _c in cap_rows:
+                _scored_by_ind[_c.get("industry")] = _scored_by_ind.get(_c.get("industry"), 0) + 1
+
+            for _c in cap_rows:
+                _i = _c.get("industry")
+                _rv = _c.get("revenue_ttm")
+                _tot = _rev_by_ind.get(_i) or 0.0
+                # [1] revenue share — of SCORED peers only (bulk carries no revenue)
+                _c["revenue_share_pct"] = (round(100.0 * _rv / _tot, 2)
+                                           if (isinstance(_rv, (int, float)) and _rv > 0 and _tot > 0)
+                                           else None)
+                _lp = _c.get("industry_peers") or 0
+                _sc = _scored_by_ind.get(_i) or 0
+                _c["revenue_coverage_pct"] = (round(100.0 * _sc / _lp, 1)
+                                              if _lp else None)
+                _c["revenue_share_basis"] = "scored peers (n=%d of %s listed)" % (
+                    _sc, _lp or "?")
+                # [3] dependency share from the curated supply-chain graph;
+                # null where the graph does not cover the sector, never guessed
+                _ct = _c.get("centrality")
+                _ctot = _ctr_by_ind.get(_i) or 0.0
+                _c["dependency_pct"] = (round(100.0 * _ct / _ctot, 1)
+                                        if (isinstance(_ct, (int, float)) and _ct > 0 and _ctot > 0)
+                                        else None)
+                # which percentage actually carries the claim for this name
+                if _c.get("dependency_pct") is not None and _c["dependency_pct"] >= 25:
+                    _c["criticality_basis"] = "supply-chain dependency"
+                elif _c.get("revenue_share_pct") is not None and _c["revenue_share_pct"] >= 20:
+                    _c["criticality_basis"] = "revenue scale"
+                elif (_c.get("criticality_pctile") or 0) >= 80:
+                    _c["criticality_basis"] = "business quality (margins/ROIC/R&D)"
+                else:
+                    _c["criticality_basis"] = "mixed"
+
+            capture["percent_critical_note"] = (
+                "Three DIFFERENT percentages, deliberately not merged. "
+                "criticality (0-100) is a QUALITY composite — margins, margin "
+                "stability, ROIC, R&D, supply-chain centrality — NOT a share of "
+                "the industry; criticality_pctile is its honest percentage form "
+                "('ranks above X% of scored peers'). revenue_share_pct is the "
+                "closest measured dependency proxy: this company's TTM revenue "
+                "as a share of SCORED peers in its industry (bulk profiles carry "
+                "no revenue, so the denominator is scored names, not the full "
+                "listed industry — revenue_coverage_pct states how much of the "
+                "industry that sample covers). dependency_pct is the share of "
+                "curated supply-chain edges in the industry that point at this "
+                "company as supplier, and is null wherever the graph does not "
+                "cover the sector rather than guessed.")
+            capture["stats"]["with_revenue_share"] = sum(
+                1 for c in cap_rows if c.get("revenue_share_pct") is not None)
+            capture["stats"]["with_dependency"] = sum(
+                1 for c in cap_rows if c.get("dependency_pct") is not None)
+            diag.append("pct_critical: rev_share=%d dependency=%d" % (
+                capture["stats"]["with_revenue_share"],
+                capture["stats"]["with_dependency"]))
+        except Exception as _pe:
+            capture["percent_critical_error"] = str(_pe)[:250]
+            diag.append("pct_critical FAILED: %s" % str(_pe)[:150])
 
         diag.append("capture_gap: %d scored / %d ind / %d undervalued" % (
             len(cap_rows), len(set(c["industry"] for c in cap_rows)), len(_under)))

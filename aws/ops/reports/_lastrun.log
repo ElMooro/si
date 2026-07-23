@@ -1,35 +1,48 @@
-executing-against: c2cecab46087d0453a7f3c3b27b1fc73731ee439
-ops 3782 — verify v5 sorting controls served
-[23:15:33] attempt 1: HTTP 200 · 28187 bytes · 0/7 markers
-[23:15:58] attempt 2: HTTP 200 · 28187 bytes · 0/7 markers
-[23:16:23] attempt 3: HTTP 200 · 28187 bytes · 0/7 markers
-[23:16:48] attempt 4: HTTP 200 · 28187 bytes · 0/7 markers
-[23:17:13] attempt 5: HTTP 200 · 28187 bytes · 0/7 markers
-[23:17:38] attempt 6: HTTP 200 · 30839 bytes · 7/7 markers
-── v5 controls ──
-[23:17:38] ✅ SERVED.version_stamp :: present
-[23:17:38] ✅ SERVED.leader_sort_attr :: present
-[23:17:38] ✅ SERVED.industry_sort_attr :: present
-[23:17:38] ✅ SERVED.render_leader :: present
-[23:17:38] ✅ SERVED.render_byind :: present
-[23:17:38] ✅ SERVED.industry_filter :: present
-[23:17:38] ✅ SERVED.asc_desc_hint :: present
-── Additive — v4 sections and blend note must survive ──
-[23:17:38] ✅ KEPT.Most_Undervalued :: intact
-[23:17:38] ✅ KEPT.By_Industry :: intact
-[23:17:38] ✅ KEPT.Structurally_Undervalued :: intact
-[23:17:38] ✅ KEPT.Hidden_Capture_Gaps :: intact
-[23:17:38] ✅ KEPT.Creation_vs_Capture :: intact
-[23:17:38] ✅ KEPT.Full_Ledger :: intact
-[23:17:38] ✅ KEPT.Cross-Industry_Gap :: intact
-[23:17:38] ✅ KEPT.Under-Capitalised_Industri :: intact
-[23:17:38] ✅ KEPT.top_undervalued_all_indust :: intact
-[23:17:38] ✅ KEPT.by_industry :: intact
-[23:17:38] ✅ KEPT.catchup_pct :: intact
-[23:17:38] ✅ KEPT.Default_rank_is_blended :: intact
-── Leaderboard is still the FIRST board on the page ──
-[23:17:38] ✅ ORDER.leaderboard_first :: Most Undervalued precedes By Industry and Full Ledger
+executing-against: dd597d2dcd3b73042f3c8a25a3659eeff3762a8e
+ops 3783 — % critical to industry (revenue share + pctile + dependency)
+── G0 — verify what exists before consuming it ──
+[23:23:55] ✅ G0.rev_computed :: evaluate() already derives TTM revenue (currently discarded)
+[23:23:55] ✅ G0.rev_not_persisted :: revenue NOT yet a row field — this is the gap
+[23:23:55] ✅ G0.centrality :: supply-chain edge count per symbol in scope
+[23:23:55] ✅ G0.cap_rows :: cap_rows field-carry block present (3771 lesson: must extend it)
+[23:23:55] ✅ G0.v401 :: engine at v4.0.1
+── [1] Persist revenue_ttm from evaluate() ──
+[23:23:55] ✅ P1.anchor :: evaluate return anchor unique
+── [2] Carry through cap_rows ──
+[23:23:55] ✅ P2.anchor :: cap_rows carry anchor unique
+── [3] Compute revenue_share_pct / dependency_pct / basis ──
+[23:23:55] ✅ P3.anchor :: sort anchor unique
+[23:23:55] ✅ P3.post_anchor :: post anchor unique
+[23:23:55] ✅ v4.1 spliced + compile clean
+── Deploy ──
+[23:23:55]   zip: 100542 bytes
+── 1. Lambda ──
+[23:23:56]   Lambda exists — updating
+[23:24:01] ✅   ✓ updated justhodl-chokepoint
+[23:24:16] ✅ settled attempt 1
+[23:24:16] ✅ DEPLOY.settled :: v4.1 live
+── Invoke + verify ──
+[23:24:38] ✅ LIVE.v41 :: version=4.1
+[23:24:38] ✅ LIVE.no_error :: err=None
+[23:24:38] ✅ LIVE.rev_share :: revenue_share_pct on 1426 names
+[23:24:38] ✅ LIVE.note :: interpretation note shipped in feed
+[23:24:38] ✅ SANITY.bounds :: max share 100.00% within bounds
+[23:24:38] ✅ SANITY.sums_to_100 :: max industry share-sum 100.0% (must be ~100 by construction)
+── Sample — the three percentages side by side ──
+[23:24:38]   TSM   crit=71.4  pctile=89.0  rev_share=3.77%   dep=5.9%   basis=business quality (margins/ROIC/R&D)
+[23:24:38]   ASML  crit=73.7  pctile=95.1  rev_share=0.03%   dep=3.0%   basis=business quality (margins/ROIC/R&D)
+[23:24:38]   NVDA  crit=88.2  pctile=98.8  rev_share=0.21%   dep=14.9%  basis=business quality (margins/ROIC/R&D)
+[23:24:38]   AMD   crit=56.4  pctile=67.1  rev_share=0.03%   dep=5.9%   basis=mixed
+[23:24:38]   AVGO  crit=67.3  pctile=81.7  rev_share=0.06%   dep=5.0%   basis=business quality (margins/ROIC/R&D)
+[23:24:38]   MSFT  crit=70.6  pctile=88.3  rev_share=5.81%   dep=—      basis=business quality (margins/ROIC/R&D)
+── Additive contract ──
+[23:24:38] ✅ ADDITIVE.structural_names :: present
+[23:24:38] ✅ ADDITIVE.industry_leaders :: present
+[23:24:38] ✅ ADDITIVE.all_chokepoints :: present
+[23:24:38] ✅ ADDITIVE.row_capture_gap :: prior field preserved
+[23:24:38] ✅ ADDITIVE.row_catchup_pct :: prior field preserved
+[23:24:38] ✅ ADDITIVE.row_global_capture_gap :: prior field preserved
 ── VERDICT ──
-[23:17:38] ✅ PASS_ALL — sortable leaderboard + industry filter + sortable industry board live
+[23:24:38] ✅ PASS_ALL — three labelled percentages live; composite never shown as a share
 
-→ Report written to aws/ops/reports/latest/3782_verify_sorting_v5.md
+→ Report written to aws/ops/reports/latest/3783_percent_critical.md
