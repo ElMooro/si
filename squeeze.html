@@ -137,6 +137,10 @@ tr:hover td{background:var(--panel2)}
       <h2 style="margin-top:0">SHORTS COVERING <span class="sub">positioning unwinding</span></h2>
       <div class="cardw"><div id="covering"><div class="loading">…</div></div></div>
     </div>
+    <div>
+      <h2 style="margin-top:0">SI COLLAPSE · FLAT PRICE <span class="sub">covering on a catalyst, not on price (#19)</span></h2>
+      <div class="cardw"><div id="sicollapse"><div class="loading">…</div></div></div>
+    </div>
   </div>
 
   <!-- LIVE TAPE: SHORT PRESSURE -->
@@ -206,6 +210,7 @@ const stClean=s=>(s||"").replace(/\s+/g,'_');
     k.push(["Crowded Shorts",(si.top_crowded_shorts||[]).length,"tracked","red"]);
     k.push(["High DTC",(si.top_high_dtc||[]).length,"tracked","orange"]);
     k.push(["Squeeze Risk",(si.top_squeeze_risk||[]).length,"tracked","yellow"]);
+    k.push(["SI Collapse·Flat",(si.top_si_collapse_flat_price||[]).length,"#19","green"]);
     k.push(["Names With Data",n,"FINRA + Polygon","cyan"]);
   }
   document.getElementById("kpis").innerHTML=k.length?
@@ -288,6 +293,11 @@ const stClean=s=>(s||"").replace(/\s+/g,'_');
     ["SI/Float",r=>fmtPct(r.si_pct_float,1)],
     ["DTC",r=>fmtNum(r.days_to_cover,1)],
     ["Trend",r=>fmtZ(r.short_volume_trend),r=>"var(--green)"],
+  ]);
+  renderSiTable(si?.top_si_collapse_flat_price,document.getElementById("sicollapse"),[
+    ["ΔSI",r=>fmtPct(r.si_change_pct,1),r=>"var(--green)"],
+    ["ΔPrice",r=>fmtPct(r.price_change_pct,1),r=>Math.abs(r.price_change_pct||0)<=4?"var(--txt)":"var(--orange)"],
+    ["DTC",r=>fmtNum(r.days_to_cover,1)],
   ]);
 
   // ---------- LIVE TAPE (short-pressure) ----------

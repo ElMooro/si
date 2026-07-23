@@ -215,6 +215,62 @@ def fetch_finra_short_interest(symbols):
     return out
 
 
+# ─────────────── canary #19: price over the SI settlement window ───────────
+def fetch_price_over_window(symbols, si_data):
+    """For SI-collapse-on-FLAT-PRICE (#19): fetch each name's price change over
+    the SAME window as the short-interest change — settlement date vs the prior
+    settlement (~2 weeks). The canary's whole thesis is that short interest
+    dropping WHILE PRICE STAYS FLAT is a different, higher-signal event than
+    covering into a rising price: shorts are exiting on a catalyst they see
+    (forced buy-in, index event, borrow-cost spike), not because the thesis
+    broke. Without a price leg the engine cannot tell the two apart.
+
+    One Polygon aggregates call per name over the window; returns
+    {sym: {price_start, price_end, price_change_pct, window_days}}.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    out = {}
+    # widest span: prior settlement is ~15d before current; pad to 40d and take
+    # first vs last close in the window as the move over that period
+    def one(sym):
+        si = si_data.get(sym) or {}
+        sd = si.get("settlement_date")
+        if not sd:
+            return sym, None
+        try:
+            end = datetime.strptime(sd[:10], "%Y-%m-%d").date()
+        except Exception:
+            return sym, None
+        start = end - timedelta(days=40)
+        url = ("https://api.polygon.io/v2/aggs/ticker/%s/range/1/day/%s/%s"
+               "?adjusted=true&sort=asc&limit=120&apiKey=%s"
+               % (sym, start.isoformat(), end.isoformat(), POLYGON_KEY))
+        try:
+            j = http_get(url, timeout=15)
+            res = (j or {}).get("results") or []
+            closes = [r.get("c") for r in res if r.get("c")]
+            if len(closes) < 5:
+                return sym, None
+            p0, p1 = closes[0], closes[-1]
+            if not p0:
+                return sym, None
+            return sym, {"price_start": round(p0, 2), "price_end": round(p1, 2),
+                         "price_change_pct": round(100 * (p1 / p0 - 1), 1),
+                         "window_days": (end - start).days}
+        except Exception:
+            return sym, None
+
+    # only names that actually have an SI change worth pricing
+    live = [s for s in symbols if (si_data.get(s) or {}).get("si_change_pct") is not None]
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        for fut in as_completed([ex.submit(one, s) for s in live]):
+            sym, rec = fut.result()
+            if rec:
+                out[sym] = rec
+    print("[short-interest] price-window join: %d/%d names priced" % (len(out), len(live)))
+    return out
+
+
 # ────────────────────────── Aggregate signals ──────────────────────────
 def compute_trend(history_for_ticker):
     """
@@ -233,9 +289,13 @@ def compute_trend(history_for_ticker):
     return pct_change, round(r_avg, 2), round(p_avg, 2)
 
 
-def classify_signal(short_pct_now, trend_pct, days_to_cover, si_change_pct):
+def classify_signal(short_pct_now, trend_pct, days_to_cover, si_change_pct,
+                    price_change_pct=None):
     """
     Classify the short positioning signal:
+      - SI_COLLAPSE_FLAT_PRICE (#19): short interest dropping HARD while price
+        barely moves — the highest-signal covering variant. Shorts are exiting
+        on a catalyst they see coming, not because price forced them out.
       - SQUEEZE_RISK: high short interest + falling short volume (covering)
       - DISTRIBUTION: rising short volume (real selling pressure)
       - CROWDED_SHORT: high short volume + rising
@@ -248,6 +308,19 @@ def classify_signal(short_pct_now, trend_pct, days_to_cover, si_change_pct):
     falling = trend_pct is not None and trend_pct < -5
     si_falling = si_change_pct is not None and si_change_pct < -5
     si_rising = si_change_pct is not None and si_change_pct > 5
+
+    # canary #19: the collapse-on-flat-price tell fires FIRST because it is the
+    # most specific and most actionable. Requires a real SI drop (>=10%) AND a
+    # price that stayed within a flat band (|move| <= 4% over the window).
+    si_collapse = si_change_pct is not None and si_change_pct <= -10
+    flat_price = (price_change_pct is not None
+                  and abs(price_change_pct) <= 4.0)
+    if si_collapse and flat_price:
+        # sharper drop + more DTC to unwind = higher conviction
+        sc = 82 + min(12, int(abs(si_change_pct) / 5))
+        if high_dtc:
+            sc = min(97, sc + 5)
+        return "SI_COLLAPSE_FLAT_PRICE", sc
 
     if high_dtc and falling:
         return "SQUEEZE_RISK", 80
@@ -274,6 +347,9 @@ def lambda_handler(event=None, context=None):
     si_data = fetch_finra_short_interest(WATCHLIST_SET)
     print(f"[short-interest] FINRA SI: {len(si_data)} tickers w/ official short interest")
 
+    # 2b. canary #19: price change over the SI settlement window
+    price_data = fetch_price_over_window(WATCHLIST, si_data)
+
     # 3. Combine + classify
     by_ticker = {}
     for sym in WATCHLIST:
@@ -285,7 +361,10 @@ def lambda_handler(event=None, context=None):
         trend_pct, r_avg, p_avg = compute_trend(h)
         days_to_cover = (si or {}).get("days_to_cover")
         si_change = (si or {}).get("si_change_pct")
-        signal, score = classify_signal(latest_pct, trend_pct, days_to_cover, si_change)
+        pw = price_data.get(sym) or {}
+        price_change = pw.get("price_change_pct")
+        signal, score = classify_signal(latest_pct, trend_pct, days_to_cover,
+                                        si_change, price_change)
         by_ticker[sym] = {
             "ticker": sym,
             "latest_short_pct": latest_pct,
@@ -294,6 +373,8 @@ def lambda_handler(event=None, context=None):
             "prior_9d_avg": p_avg,
             "days_to_cover": days_to_cover,
             "si_change_pct": si_change,
+            "price_change_pct": price_change,
+            "price_window_days": pw.get("window_days"),
             "short_interest": (si or {}).get("short_interest"),
             "settlement_date": (si or {}).get("settlement_date"),
             "signal": signal,
@@ -344,27 +425,35 @@ def lambda_handler(event=None, context=None):
     high_dtc.sort(key=lambda x: -(x.get("days_to_cover") or 0))
     covering = [v for v in by_ticker.values() if v["signal"] == "COVERING"]
     covering.sort(key=lambda x: (x.get("trend_pct") or 0))
+    # canary #19 board — the highest-signal covering variant
+    si_collapse = [v for v in by_ticker.values()
+                   if v["signal"] == "SI_COLLAPSE_FLAT_PRICE"]
+    si_collapse.sort(key=lambda x: (x.get("si_change_pct") or 0))  # most negative first
 
     out = {
-        "version": "1.0",
+        "version": "1.1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "watchlist_size": len(WATCHLIST),
         "n_tickers_with_data": len(by_ticker),
         "n_tickers_finra": len(history),
         "n_tickers_polygon": len(si_data),
         "n_tickers_short_interest": len(si_data),
+        "n_tickers_priced": len(price_data),
         "by_ticker": by_ticker,
         "top_crowded_shorts": crowded[:15],
         "top_squeeze_risk": squeeze_risk[:10],
         "top_high_dtc": high_dtc[:10],
         "top_covering": covering[:10],
+        "top_si_collapse_flat_price": si_collapse[:12],
         "duration_s": round(time.time() - started, 2),
         "data_sources": {
             "short_volume": "FINRA daily RegSHO files (free)",
             "short_interest": "FINRA Consolidated Short Interest API (official bi-monthly settlement; replaced dead Polygon feed)",
             "short_float": "Finviz Elite whole-market short float (fresh, primary for latest_short_pct)",
+            "price_window": "Polygon daily aggregates over the SI settlement window (canary #19 flat-price leg)",
         },
         "signal_definitions": {
+            "SI_COLLAPSE_FLAT_PRICE": "short interest down >=10% while price stayed flat (|move|<=4%) over the settlement window — shorts covering on a catalyst they see, not on price (canary #19)",
             "SQUEEZE_RISK": "high days-to-cover + falling short volume (shorts covering)",
             "CROWDED_SHORT_RISING": "high short volume % + rising trend",
             "DISTRIBUTION": "rising short volume (real selling pressure)",
