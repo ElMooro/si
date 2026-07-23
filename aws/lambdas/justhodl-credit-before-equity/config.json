@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-credit-before-equity",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Canary #17: credit reprices before equity. Per-issuer delta distance-to-default and synthetic CDS bp vs a self-building ledger, crossed with the equity leg. Fires CREDIT_LEADS_UP/DOWN only when credit moves and the stock has not.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-credit-before-equity-daily",
+    "cron": "cron(35 22 * * ? *)",
+    "description": "Credit-before-equity — daily 22:35 UTC, after cds-monitor publishes"
+  }
+}

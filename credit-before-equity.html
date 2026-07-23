@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Credit Before Equity · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:12px 13px}
+.tile .lbl{font-size:12px;color:var(--text-dim);margin-bottom:3px}
+.big{font-size:20px;font-weight:600;font-family:ui-monospace,Menlo,monospace}
+.pill{display:inline-block;border:1px solid var(--border);border-radius:20px;padding:2px 9px;font-size:10.5px;font-family:ui-monospace,Menlo,monospace;margin-right:5px}
+.row{border:1px solid var(--border);border-radius:11px;padding:11px 13px;margin:9px 0;background:rgba(255,255,255,.015)}
+.row .head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+.row .nm{font-size:15px;font-weight:600}
+.row .meta{font-size:11.5px;color:var(--text-mute);font-family:ui-monospace,Menlo,monospace;margin-top:5px}
+table{width:100%;border-collapse:collapse;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border)}
+th{color:var(--text-mute);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px}
+.foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
+.note{font-size:11.5px;color:var(--text-mute);margin-top:8px;line-height:1.6}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🏦 Credit Before Equity</h1>
+<div class="sub">The bond desk reprices a company's risk before the equity desk does — credit analysts read covenants, maturity walls and cash flow, and they move on balance-sheet facts weeks before those facts reach an earnings headline. This board measures each issuer's credit <em>direction</em> against its own ledger and crosses it with the stock. A signal fires only when credit moves and the equity hasn't noticed. Daily 22:35 UTC.</div>
+
+<div class="card" id="hero"><span class="mono" style="color:var(--text-mute)">LOADING…</span></div>
+
+<div class="sec">⚡ Leads — credit moved, equity didn't</div>
+<div id="leads"></div>
+
+<div class="sec">📋 All Issuers</div>
+<div class="card" style="overflow-x:auto"><table id="tbl"><thead><tr>
+<th>Ticker</th><th>Name</th><th>DD</th><th>ΔDD</th><th>CDS bp</th><th>ΔCDS</th><th>ΔPrice</th><th>Credit</th><th>Signal</th></tr></thead><tbody id="tb"></tbody></table></div>
+
+<div class="sec">Method</div>
+<div class="card mono" style="font-size:12px;color:var(--text-dim)" id="method"></div>
+
+<div class="sec">Declared Gaps</div>
+<div class="card mono" style="font-size:12px;color:var(--text-dim)" id="gaps"></div>
+
+<div class="sec">Cross-links</div>
+<div class="card mono" style="font-size:12.5px;color:var(--text-dim)">Structural model: <a href="/cds-monitor.html">CDS Monitor</a> · Index-level: <a href="/credit-stress.html">Credit Stress</a> · Short positioning: <a href="/squeeze.html">Squeeze</a></div>
+
+<div class="foot" id="foot"></div>
+</div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+(async function(){
+try{
+var POS='#6fce8a',NEG='#E07A6A',MUT='#5b6479',ACC='#F0B429',NEU='#e8e8e8';
+var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/credit-before-equity.json?t='+Date.now());
+var d=await r.json();
+var rows=d.names||[];
+var num=function(v,dp){return (v==null)?'—':(typeof v==='number'?v.toFixed(dp==null?2:dp):v);};
+var sgCol=function(s){if(s==='CREDIT_LEADS_DOWN')return NEG;if(s==='CREDIT_LEADS_UP')return POS;if(s==='INSUFFICIENT_HISTORY')return MUT;return NEU;};
+var cdCol=function(c){return c==='IMPROVING'?POS:(c==='DETERIORATING'?NEG:MUT);};
+
+document.getElementById('hero').innerHTML='<div class="grid">'
++'<div class="tile"><div class="lbl">Leads firing</div><div class="big" style="color:'+((d.n_leads||0)?ACC:MUT)+'">'+(d.n_leads||0)+'</div><div class="note">credit moved, equity flat or opposite</div></div>'
++'<div class="tile"><div class="lbl">Issuers tracked</div><div class="big">'+(d.n_names||0)+'</div><div class="note">corporates + banks from the structural model</div></div>'
++'<div class="tile"><div class="lbl">Awaiting history</div><div class="big" style="color:'+MUT+'">'+(d.n_awaiting_history||0)+'</div><div class="note">need a 2nd observation — ledger accretes daily</div></div>'
++'<div class="tile"><div class="lbl">Flat band</div><div class="big">±'+((d.thresholds||{}).equity_flat_band_pct||3)+'%</div><div class="note">what counts as "equity hasn\'t noticed"</div></div>'
++'</div>';
+
+var leads=d.leads||[];
+document.getElementById('leads').innerHTML=leads.length?leads.map(function(x){
+return '<div class="row"><div class="head"><span class="nm">'+x.ticker+' <span style="color:'+MUT+';font-weight:400;font-size:13px">'+(x.name||'')+'</span> '
++'<span class="pill" style="color:'+sgCol(x.signal)+';border-color:'+sgCol(x.signal)+'">'+x.signal.replace(/_/g,' ')+'</span></span>'
++'<span class="mono" style="color:'+cdCol(x.credit_direction)+'">credit '+(x.credit_direction||'—')+'</span></div>'
++'<div class="meta">DD '+num(x.distance_to_default)+' ('+(x.d_distance_to_default>0?'+':'')+num(x.d_distance_to_default)+')'
++' · CDS '+num(x.synthetic_cds_bp,1)+'bp ('+(x.d_synthetic_cds_bp>0?'+':'')+num(x.d_synthetic_cds_bp,1)+')'
++' · price '+(x.d_price_pct>0?'+':'')+num(x.d_price_pct)+'%'
++' · 5y PD '+num(x.default_prob_5y_pct,2)+'%'
++' · regime '+(x.regime||'—')+' · vs '+(x.prior_obs_date||'—')+'</div></div>';}).join('')
+:'<div class="card"><span class="mono" style="color:'+MUT+';font-size:12px">No lead firing. Either credit and equity agree across every tracked issuer, or the ledger is still accreting its second observation — the engine reports INSUFFICIENT_HISTORY rather than inventing a direction from one snapshot.</span></div>';
+
+document.getElementById('tb').innerHTML=rows.map(function(x){
+return '<tr><td style="color:'+ACC+'">'+x.ticker+'</td><td>'+((x.name||'').slice(0,26))+'</td>'
++'<td>'+num(x.distance_to_default)+'</td><td style="color:'+(x.d_distance_to_default>0?POS:(x.d_distance_to_default<0?NEG:MUT))+'">'+(x.d_distance_to_default>0?'+':'')+num(x.d_distance_to_default)+'</td>'
++'<td>'+num(x.synthetic_cds_bp,1)+'</td><td style="color:'+(x.d_synthetic_cds_bp<0?POS:(x.d_synthetic_cds_bp>0?NEG:MUT))+'">'+(x.d_synthetic_cds_bp>0?'+':'')+num(x.d_synthetic_cds_bp,1)+'</td>'
++'<td style="color:'+(x.d_price_pct>0?POS:(x.d_price_pct<0?NEG:MUT))+'">'+(x.d_price_pct>0?'+':'')+num(x.d_price_pct)+'%</td>'
++'<td style="color:'+cdCol(x.credit_direction)+'">'+(x.credit_direction||'—')+'</td>'
++'<td style="color:'+sgCol(x.signal)+'">'+x.signal.replace(/_/g,' ')+'</td></tr>';}).join('');
+
+document.getElementById('method').textContent=d.method||'';
+document.getElementById('gaps').innerHTML=((d.gaps||[]).map(function(g){return '• '+g;}).join('<br>')||'none')
++((d.degraded&&d.degraded.length)?('<br><span style="color:'+NEG+'">degraded: '+d.degraded.join(' · ')+'</span>'):'');
+document.getElementById('foot').textContent='Feed data/credit-before-equity.json · '+(d.attribution||'')+' · v'+(d.version||'')+' · generated '+(d.generated_at||'');
+}catch(e){console.error(e);document.getElementById('hero').innerHTML='<span class="mono" style="color:#E07A6A">Feed unavailable — '+e+'</span>';}
+})();
+</script>
+</body>
+</html>
