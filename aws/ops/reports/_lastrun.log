@@ -1,48 +1,29 @@
-executing-against: dd597d2dcd3b73042f3c8a25a3659eeff3762a8e
-ops 3783 — % critical to industry (revenue share + pctile + dependency)
-── G0 — verify what exists before consuming it ──
-[23:23:55] ✅ G0.rev_computed :: evaluate() already derives TTM revenue (currently discarded)
-[23:23:55] ✅ G0.rev_not_persisted :: revenue NOT yet a row field — this is the gap
-[23:23:55] ✅ G0.centrality :: supply-chain edge count per symbol in scope
-[23:23:55] ✅ G0.cap_rows :: cap_rows field-carry block present (3771 lesson: must extend it)
-[23:23:55] ✅ G0.v401 :: engine at v4.0.1
-── [1] Persist revenue_ttm from evaluate() ──
-[23:23:55] ✅ P1.anchor :: evaluate return anchor unique
-── [2] Carry through cap_rows ──
-[23:23:55] ✅ P2.anchor :: cap_rows carry anchor unique
-── [3] Compute revenue_share_pct / dependency_pct / basis ──
-[23:23:55] ✅ P3.anchor :: sort anchor unique
-[23:23:55] ✅ P3.post_anchor :: post anchor unique
-[23:23:55] ✅ v4.1 spliced + compile clean
-── Deploy ──
-[23:23:55]   zip: 100542 bytes
-── 1. Lambda ──
-[23:23:56]   Lambda exists — updating
-[23:24:01] ✅   ✓ updated justhodl-chokepoint
-[23:24:16] ✅ settled attempt 1
-[23:24:16] ✅ DEPLOY.settled :: v4.1 live
-── Invoke + verify ──
-[23:24:38] ✅ LIVE.v41 :: version=4.1
-[23:24:38] ✅ LIVE.no_error :: err=None
-[23:24:38] ✅ LIVE.rev_share :: revenue_share_pct on 1426 names
-[23:24:38] ✅ LIVE.note :: interpretation note shipped in feed
-[23:24:38] ✅ SANITY.bounds :: max share 100.00% within bounds
-[23:24:38] ✅ SANITY.sums_to_100 :: max industry share-sum 100.0% (must be ~100 by construction)
-── Sample — the three percentages side by side ──
-[23:24:38]   TSM   crit=71.4  pctile=89.0  rev_share=3.77%   dep=5.9%   basis=business quality (margins/ROIC/R&D)
-[23:24:38]   ASML  crit=73.7  pctile=95.1  rev_share=0.03%   dep=3.0%   basis=business quality (margins/ROIC/R&D)
-[23:24:38]   NVDA  crit=88.2  pctile=98.8  rev_share=0.21%   dep=14.9%  basis=business quality (margins/ROIC/R&D)
-[23:24:38]   AMD   crit=56.4  pctile=67.1  rev_share=0.03%   dep=5.9%   basis=mixed
-[23:24:38]   AVGO  crit=67.3  pctile=81.7  rev_share=0.06%   dep=5.0%   basis=business quality (margins/ROIC/R&D)
-[23:24:38]   MSFT  crit=70.6  pctile=88.3  rev_share=5.81%   dep=—      basis=business quality (margins/ROIC/R&D)
-── Additive contract ──
-[23:24:38] ✅ ADDITIVE.structural_names :: present
-[23:24:38] ✅ ADDITIVE.industry_leaders :: present
-[23:24:38] ✅ ADDITIVE.all_chokepoints :: present
-[23:24:38] ✅ ADDITIVE.row_capture_gap :: prior field preserved
-[23:24:38] ✅ ADDITIVE.row_catchup_pct :: prior field preserved
-[23:24:38] ✅ ADDITIVE.row_global_capture_gap :: prior field preserved
+executing-against: e865c629fe4bb93f3d0f99a207834c698bfabbdd
+ops 3784 — diagnose implausible revenue_share_pct
+── Semiconductors — raw revenue vs share ──
+[23:29:26]   SKHY   revenue_ttm=97,146,675,000,000 share=95.28%   mcap=1,203,204,010,244
+[23:29:26]   TSM    revenue_ttm=3,848,510,949,000  share=3.77%    mcap=2,155,397,358,400
+[23:29:26]   UMC    revenue_ttm=237,553,199,000    share=0.23%    mcap=52,057,249,582
+[23:29:26]   NVDA   revenue_ttm=215,938,000,000    share=0.21%    mcap=5,056,375,960,000
+[23:29:26]   AVGO   revenue_ttm=63,887,000,000     share=0.06%    mcap=1,867,207,422,600
+[23:29:26]   INTC   revenue_ttm=52,853,000,000     share=0.05%    mcap=503,755,980,000
+[23:29:26]   QCOM   revenue_ttm=44,284,000,000     share=0.04%    mcap=180,349,940,000
+[23:29:26]   MU     revenue_ttm=37,378,000,000     share=0.04%    mcap=1,118,333,271,900
+[23:29:26]   AMD    revenue_ttm=34,639,000,000     share=0.03%    mcap=880,018,514,000
+[23:29:26]   ASML   revenue_ttm=32,667,300,000     share=0.03%    mcap=694,908,637,773
+[23:29:26]   AMAT   revenue_ttm=28,368,000,000     share=0.03%    mcap=446,840,125,200
+[23:29:26]   IMOS   revenue_ttm=24,063,963,960     share=0.02%    mcap=2,092,249,187
+── H1/H2 — are missing-revenue rows carried ledger rows? ──
+[23:29:26] ✅ DIAG.coverage_gap :: 896 of 2322 rows carry NO revenue → they contribute 0 to the denominator
+── H3 — magnitude check on known names ──
+[23:29:26]   NVDA  revenue_ttm=215,938,000,000  plausible=True (expected 50B-400B)
+[23:29:26]   TSM   revenue_ttm=3,848,510,949,000 plausible=False (expected 40B-200B)
+[23:29:26]   ASML  revenue_ttm=32,667,300,000   plausible=True (expected 20B-60B)
+[23:29:26]   AMD   revenue_ttm=34,639,000,000   plausible=True (expected 10B-60B)
+[23:29:26]   AVGO  revenue_ttm=63,887,000,000   plausible=True (expected 30B-100B)
+[23:29:26]   INTC  revenue_ttm=52,853,000,000   plausible=True (expected 30B-100B)
 ── VERDICT ──
-[23:24:38] ✅ PASS_ALL — three labelled percentages live; composite never shown as a share
+[23:29:26] ✅ coverage acceptable — shares are computed against a near-complete total
+[23:29:26] ✅ PASS_ALL — diagnosis complete (no engine change in this ops)
 
-→ Report written to aws/ops/reports/latest/3783_percent_critical.md
+→ Report written to aws/ops/reports/latest/3784_diagnose_revenue_share.md

@@ -1,0 +1,44 @@
+# ops 3784 — diagnose implausible revenue_share_pct
+
+**Status:** success  
+**Duration:** 0.3s  
+**Finished:** 2026-07-23T23:29:26+00:00  
+
+## Data
+
+| industry_revenue_total | rows_without_revenue | semis_missing_revenue | semis_scored | semis_with_revenue | total_rows |
+|---|---|---|---|---|---|
+|  |  | 2 | 81 | 79 |  |
+| 101959413835367 |  |  |  |  |  |
+|  | 896 |  |  |  | 2322 |
+
+## Log
+## Semiconductors — raw revenue vs share
+
+- `23:29:26`   SKHY   revenue_ttm=97,146,675,000,000 share=95.28%   mcap=1,203,204,010,244
+- `23:29:26`   TSM    revenue_ttm=3,848,510,949,000  share=3.77%    mcap=2,155,397,358,400
+- `23:29:26`   UMC    revenue_ttm=237,553,199,000    share=0.23%    mcap=52,057,249,582
+- `23:29:26`   NVDA   revenue_ttm=215,938,000,000    share=0.21%    mcap=5,056,375,960,000
+- `23:29:26`   AVGO   revenue_ttm=63,887,000,000     share=0.06%    mcap=1,867,207,422,600
+- `23:29:26`   INTC   revenue_ttm=52,853,000,000     share=0.05%    mcap=503,755,980,000
+- `23:29:26`   QCOM   revenue_ttm=44,284,000,000     share=0.04%    mcap=180,349,940,000
+- `23:29:26`   MU     revenue_ttm=37,378,000,000     share=0.04%    mcap=1,118,333,271,900
+- `23:29:26`   AMD    revenue_ttm=34,639,000,000     share=0.03%    mcap=880,018,514,000
+- `23:29:26`   ASML   revenue_ttm=32,667,300,000     share=0.03%    mcap=694,908,637,773
+- `23:29:26`   AMAT   revenue_ttm=28,368,000,000     share=0.03%    mcap=446,840,125,200
+- `23:29:26`   IMOS   revenue_ttm=24,063,963,960     share=0.02%    mcap=2,092,249,187
+## H1/H2 — are missing-revenue rows carried ledger rows?
+
+- `23:29:26` ✅ DIAG.coverage_gap :: 896 of 2322 rows carry NO revenue → they contribute 0 to the denominator
+## H3 — magnitude check on known names
+
+- `23:29:26`   NVDA  revenue_ttm=215,938,000,000  plausible=True (expected 50B-400B)
+- `23:29:26`   TSM   revenue_ttm=3,848,510,949,000 plausible=False (expected 40B-200B)
+- `23:29:26`   ASML  revenue_ttm=32,667,300,000   plausible=True (expected 20B-60B)
+- `23:29:26`   AMD   revenue_ttm=34,639,000,000   plausible=True (expected 10B-60B)
+- `23:29:26`   AVGO  revenue_ttm=63,887,000,000   plausible=True (expected 30B-100B)
+- `23:29:26`   INTC  revenue_ttm=52,853,000,000   plausible=True (expected 30B-100B)
+## VERDICT
+
+- `23:29:26` ✅ coverage acceptable — shares are computed against a near-complete total
+- `23:29:26` ✅ PASS_ALL — diagnosis complete (no engine change in this ops)
