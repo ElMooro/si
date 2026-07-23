@@ -3507,6 +3507,44 @@ window.fillJHVitals=async function(d){ try{
     +tile('DILUTION',rising?'⚠ DILUTING':(shrink?'SHRINKING ✓':'STABLE'),rising?'share count rising':(shrink?'buybacks retiring shares':''),rising?'jh-flashred':'')
   +'</div>'
   +(rising?'<div class="jhv-s" style="color:#ff9c9c;margin-top:7px">⚠ Shares outstanding keep rising — every existing share is being diluted. Full 10-year record in Pillar 6 below.</div>':'');
+  try{ window.jhCaptureTiles && window.jhCaptureTiles(t, el); }catch(e){}
+}catch(e){} };
+
+/* ── ops 3781 · Capture-gap tiles — value CREATION vs value CAPTURE.
+   A company can be the single point of failure for its industry and still hold
+   a sliver of that industry's market cap. capture_gap = criticality percentile
+   minus market-cap-share percentile, within industry. Appended to the Vitals
+   strip because it is a valuation fact, alongside P/E and EV/EBITDA.
+   Renders NOTHING when the ticker is outside the scored ledger — an honest
+   blank, never a fabricated zero. ───────────────────────────────────────── */
+window.jhCaptureTiles=async function(t, el){ try{
+  if(!t||!el) return;
+  var ck=await gj9('data/chokepoint.json'); if(!ck) return;
+  var cg=(ck.capture_gap||{}); var rows=(cg.all_rows||[]);
+  var r=null; for(var i=0;i<rows.length;i++){ if(rows[i] && rows[i].ticker===t){ r=rows[i]; break; } }
+  if(!r) return;
+  function tl(l,v,sub,col){ return '<div class="jhv-tile"><div class="jhv-l">'+l+'</div>'
+    +'<div class="jhv-v"'+(col?' style="color:'+col+'"':'')+'>'+v+'</div>'
+    +(sub?'<div class="jhv-s">'+sub+'</div>':'')+'</div>'; }
+  var g=r.capture_gap, gg=r.global_capture_gap, cu=r.catchup_pct;
+  var gcol=(g==null?'':(g>=20?'#6fce8a':(g>0?'':'#E07A6A')));
+  var ccol=(cu==null?'':(cu>0?'#6fce8a':'#E07A6A'));
+  var tiles=tl('CAPTURE GAP', g==null?'—':((g>0?'+':'')+n9(g)+'pp'),
+        (gg==null?'':'vs whole market '+(gg>0?'+':'')+n9(gg)+'pp'), gcol)
+    + tl('CATCH-UP', cu==null?'—':((cu>0?'+':'')+n9(cu,0)+'%'),
+        'to industry median'+(r.catchup_basis?' ('+r.catchup_basis+')':'')+' · not a target', ccol);
+  var extra='<div class="jhv-grid" style="margin-top:8px">'+tiles+'</div>';
+  var tier=r.tier;
+  if(tier==='STRUCTURALLY_UNDERVALUED'){
+    extra+='<div class="jhv-s" style="color:#6fce8a;margin-top:6px">▲ '+t+' captures '
+      +n9(Math.abs(g))+'pp less of its industry\'s market cap than its criticality implies, '
+      +'and clears '+(r.legs||0)+' of '+(r.legs_available||5)+' confirmation legs.</div>';
+  }
+  extra+='<div class="jhv-s" style="color:var(--text-mute,#5b6479);margin-top:5px">'
+    +'Catch-up is mean-reversion arithmetic against the industry median multiple — '
+    +'not a price target. A company can trade below its peers because it deserves to. '
+    +'<a href="/capture-gap.html" style="color:#F0B429">Full board →</a></div>';
+  el.insertAdjacentHTML('beforeend', extra);
 }catch(e){} };
 
 window.fillJHDollarFlows=async function(d){ try{
