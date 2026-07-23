@@ -1,36 +1,35 @@
-executing-against: 3538ddc49a5d1b27ea7976e17fafc4e415ea7c8e
-ops 3781 — verify capture-gap tiles in why.html Vitals
-── Feed precondition ──
-[22:50:10] ✅ FEED.rows :: capture ledger n=1771
-[22:50:10] ✅ FEED.note :: not-a-target note present in feed
-── Sample tickers a user would actually open ──
-[22:50:10]   NVDA   gap=  -0.6pp global=  +0.0pp catchup=    -60% (EV/S+P/E) tier=WATCH
-[22:50:10]   TSM    gap= -10.6pp global=  -1.7pp catchup=    300% (EV/S+P/E) tier=WATCH
-[22:50:10]   ASML   gap=  +0.5pp global=  -0.1pp catchup=    -56% (EV/S+P/E) tier=WATCH
-[22:50:10]   AMD    gap= -30.4pp global= -14.3pp catchup=    -64% (EV/S+P/E) tier=WATCH
-[22:50:10]   GILD   gap= +18.8pp global=  +4.3pp catchup=    -43% (EV/S+P/E) tier=WATCH
-[22:50:10]   DBX    gap= +15.2pp global= +64.4pp catchup=    128% (EV/S+P/E) tier=WATCH
-[22:50:10]   MSFT   gap= -12.3pp global=  -2.1pp catchup=    -30% (EV/S+P/E) tier=WATCH
-── Served page — markers unique to this change ──
-[22:50:10] attempt 1: HTTP 200 · 270963 bytes · 1/5 markers
-[22:50:35] attempt 2: HTTP 200 · 270963 bytes · 1/5 markers
-[22:51:00] attempt 3: HTTP 200 · 273411 bytes · 5/5 markers
-[22:51:00] ✅ SERVED.fetch_call :: present in served why.html
-[22:51:00] ✅ SERVED.tile_gap :: present in served why.html
-[22:51:00] ✅ SERVED.tile_catchup :: present in served why.html
-[22:51:00] ✅ SERVED.honesty :: present in served why.html
-[22:51:00] ✅ SERVED.fn :: present in served why.html
-── Additive — existing Vitals tiles must survive ──
-[22:51:00] ✅ KEPT.P_E_TTM :: intact
-[22:51:00] ✅ KEPT.PEG :: intact
-[22:51:00] ✅ KEPT.P_S :: intact
-[22:51:00] ✅ KEPT.EV_EBITDA :: intact
-[22:51:00] ✅ KEPT.SHARES_OUT :: intact
-[22:51:00] ✅ KEPT.DILUTION :: intact
-[22:51:00] ✅ KEPT.renderJHVitals :: intact
-[22:51:00] ✅ KEPT.fillJHVitals :: intact
+executing-against: c2cecab46087d0453a7f3c3b27b1fc73731ee439
+ops 3782 — verify v5 sorting controls served
+[23:15:33] attempt 1: HTTP 200 · 28187 bytes · 0/7 markers
+[23:15:58] attempt 2: HTTP 200 · 28187 bytes · 0/7 markers
+[23:16:23] attempt 3: HTTP 200 · 28187 bytes · 0/7 markers
+[23:16:48] attempt 4: HTTP 200 · 28187 bytes · 0/7 markers
+[23:17:13] attempt 5: HTTP 200 · 28187 bytes · 0/7 markers
+[23:17:38] attempt 6: HTTP 200 · 30839 bytes · 7/7 markers
+── v5 controls ──
+[23:17:38] ✅ SERVED.version_stamp :: present
+[23:17:38] ✅ SERVED.leader_sort_attr :: present
+[23:17:38] ✅ SERVED.industry_sort_attr :: present
+[23:17:38] ✅ SERVED.render_leader :: present
+[23:17:38] ✅ SERVED.render_byind :: present
+[23:17:38] ✅ SERVED.industry_filter :: present
+[23:17:38] ✅ SERVED.asc_desc_hint :: present
+── Additive — v4 sections and blend note must survive ──
+[23:17:38] ✅ KEPT.Most_Undervalued :: intact
+[23:17:38] ✅ KEPT.By_Industry :: intact
+[23:17:38] ✅ KEPT.Structurally_Undervalued :: intact
+[23:17:38] ✅ KEPT.Hidden_Capture_Gaps :: intact
+[23:17:38] ✅ KEPT.Creation_vs_Capture :: intact
+[23:17:38] ✅ KEPT.Full_Ledger :: intact
+[23:17:38] ✅ KEPT.Cross-Industry_Gap :: intact
+[23:17:38] ✅ KEPT.Under-Capitalised_Industri :: intact
+[23:17:38] ✅ KEPT.top_undervalued_all_indust :: intact
+[23:17:38] ✅ KEPT.by_industry :: intact
+[23:17:38] ✅ KEPT.catchup_pct :: intact
+[23:17:38] ✅ KEPT.Default_rank_is_blended :: intact
+── Leaderboard is still the FIRST board on the page ──
+[23:17:38] ✅ ORDER.leaderboard_first :: Most Undervalued precedes By Industry and Full Ledger
 ── VERDICT ──
-[22:51:00] ✅ PASS_ALL — capture gap now visible on the per-stock research page
-[22:51:00] Wiring set complete: engine -> page -> best-setups -> ranker -> why.html
+[23:17:38] ✅ PASS_ALL — sortable leaderboard + industry filter + sortable industry board live
 
-→ Report written to aws/ops/reports/latest/3781_why_vitals_capture_gap.md
+→ Report written to aws/ops/reports/latest/3782_verify_sorting_v5.md
