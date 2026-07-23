@@ -1,0 +1,42 @@
+# ops 3774 — edge verification of capture-gap.html
+
+**Status:** success  
+**Duration:** 151.5s  
+**Finished:** 2026-07-23T18:55:35+00:00  
+
+## Data
+
+| industries | leaderboard | scored | version | with_catchup |
+|---|---|---|---|---|
+| 141 | 50 | 1771 | 4.0.1 | 1653 |
+
+## Log
+- `18:53:04` attempt 1: HTTP 200 · 23027 bytes · 0/9 v4 markers
+- `18:53:29` attempt 2: HTTP 200 · 23027 bytes · 0/9 v4 markers
+- `18:53:54` attempt 3: HTTP 200 · 23027 bytes · 0/9 v4 markers
+- `18:54:19` attempt 4: HTTP 200 · 23027 bytes · 0/9 v4 markers
+- `18:54:44` attempt 5: HTTP 200 · 23027 bytes · 0/9 v4 markers
+- `18:55:10` attempt 6: HTTP 200 · 23027 bytes · 0/9 v4 markers
+- `18:55:35` attempt 7: HTTP 200 · 28188 bytes · 9/9 v4 markers
+## Marker audit (edge copy)
+
+- `18:55:35` ✅ SERVED.leaderboard_div :: present
+- `18:55:35` ✅ SERVED.byind_div :: present
+- `18:55:35` ✅ SERVED.leaderboard_key :: present
+- `18:55:35` ✅ SERVED.byind_key :: present
+- `18:55:35` ✅ SERVED.catchup :: present
+- `18:55:35` ✅ SERVED.catchup_basis :: present
+- `18:55:35` ✅ SERVED.blend_note :: present
+- `18:55:35` ✅ SERVED.accordion :: present
+- `18:55:35` ✅ SERVED.version_stamp :: present
+- `18:55:35` ✅ SERVED.size :: 28188 bytes
+- `18:55:35` ✅ SERVED.no_dead_field :: dead v3.0 field absent from served copy
+## Nav manifest (SERVED copy — repo copy is always stale)
+
+- `18:55:35` ⚠ nav manifest fetch failed: HTTP Error 403: Forbidden
+## Feed sanity from the edge
+
+- `18:55:35` ✅ FEED.v4 :: engine v4 live
+## VERDICT
+
+- `18:55:35` ✅ PASS_ALL — page v4 confirmed SERVED at https://justhodl.ai/capture-gap.html
