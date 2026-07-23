@@ -1,0 +1,72 @@
+# ops 3759 — build the narrow-PPI line universe
+
+**Status:** success  
+**Duration:** 13.4s  
+**Finished:** 2026-07-23T01:48:12+00:00  
+
+## Data
+
+| candidates | narrow_lines | sample_deep | verdict |
+|---|---|---|---|
+| 359 | 198 | 8 | PASS |
+
+## Log
+## A — discover candidate lines via FRED search
+
+- `01:47:59`   PPI industry semiconductor                 +19 (total 19)
+- `01:47:59`   PPI industry electronic component          +21 (total 40)
+- `01:48:00`   PPI industry industrial chemical           +23 (total 63)
+- `01:48:01`   PPI industry basic inorganic chemical      +20 (total 83)
+- `01:48:02`   PPI industry iron steel                    +24 (total 107)
+- `01:48:02`   PPI industry copper                        +24 (total 131)
+- `01:48:02`   PPI industry aluminum                      +18 (total 149)
+- `01:48:03`   PPI industry plastics resin                +7 (total 156)
+- `01:48:03`   PPI industry electrical equipment          +18 (total 174)
+- `01:48:04`   PPI industry motor vehicle parts           +24 (total 198)
+- `01:48:04`   PPI industry machinery manufacturing       +22 (total 220)
+- `01:48:04`   PPI industry lumber                        +24 (total 244)
+- `01:48:05`   PPI industry paperboard container          +20 (total 264)
+- `01:48:05`   PPI industry pharmaceutical preparation    +24 (total 288)
+- `01:48:06`   PPI industry aerospace product             +2 (total 290)
+- `01:48:06`   PPI industry battery manufacturing         +21 (total 311)
+- `01:48:06`   PPI industry wire cable                    +10 (total 321)
+- `01:48:07`   PPI industry transformer                   +17 (total 338)
+- `01:48:07`   PPI industry rare earth                    +0 (total 338)
+- `01:48:08`   PPI industry industrial gas                +21 (total 359)
+- `01:48:08` ✅   candidates discovered: 359
+## B — keep only FRESH, DEEP, NARROW lines
+
+- `01:48:08`   after freshness/frequency: 245 kept, dropped {'stale': 114, 'shallow': 0, 'monthly': 0}
+## C — dedupe aggregate parents (narrow is the point)
+
+- `01:48:08` ✅   narrow lines after parent-dedupe: 198 (from 245)
+- `01:48:08`     PCU21112111            Producer Price Index by Industry: Oil and Gas Extraction
+- `01:48:08`     PCU211211              Producer Price Index by Industry: Oil and Gas Extraction
+- `01:48:08`     PCU213111213111P       Producer Price Index by Industry: Drilling Oil and Gas Wells: Primary Serv
+- `01:48:08`     PCU213112213112        Producer Price Index by Industry: Support Activities for Oil and Gas Opera
+- `01:48:08`     PCU22121022121011      Producer Price Index by Industry: Natural Gas Distribution: Natural Gas to
+- `01:48:08`     PCU3211133211131       Producer Price Index by Industry: Sawmills: Hardwood Lumber, Made in Sawmi
+- `01:48:08`     PCU3211133211133       Producer Price Index by Industry: Sawmills: Softwood Lumber, Made in Sawmi
+- `01:48:08`     PCU3211133211135       Producer Price Index by Industry: Sawmills: Wood Chips, Excluding Field Ch
+- `01:48:08`     PCU3212132121          Producer Price Index by Industry: Plywood and Engineered Wood Product Manu
+- `01:48:08`     PCU32121332121302      Producer Price Index by Industry: Engineered Wood Member Manufacturing: Ot
+- `01:48:08`     PCU32123212            Producer Price Index by Industry: Plywood and Engineered Wood Product Manu
+- `01:48:08`     PCU321321              Producer Price Index by Industry: Wood Product Manufacturing
+- `01:48:08`     PCU32191132191111      Producer Price Index by Industry: Wood Window and Door Manufacturing: Doub
+- `01:48:08`     PCU3219113219117       Producer Price Index by Industry: Wood Window and Door Manufacturing: Wood
+## D — verify observation depth on a sample
+
+- `01:48:08`     PCU21112111            n=30 latest=218.411 (2026-06-01)
+- `01:48:09`     PCU211211              n=30 latest=217.956 (2026-06-01)
+- `01:48:09`     PCU213111213111P       n=30 latest=394.281 (2026-06-01)
+- `01:48:09`     PCU213112213112        n=30 latest=223.678 (2026-06-01)
+- `01:48:10`     PCU22121022121011      n=30 latest=300.147 (2026-06-01)
+- `01:48:10`     PCU3211133211131       n=30 latest=110.553 (2026-06-01)
+- `01:48:11`     PCU3211133211133       n=30 latest=144.006 (2026-06-01)
+- `01:48:11`     PCU3211133211135       n=30 latest=145.728 (2026-06-01)
+## E — persist config/ppi-lines.json
+
+- `01:48:12` ✅   wrote config/ppi-lines.json with 198 lines
+## VERDICT
+
+- `01:48:12` ✅ UNIVERSE READY — engine can consume config/ppi-lines.json

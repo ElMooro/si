@@ -1,31 +1,57 @@
-executing-against: a7e197d962e2dfe2623184350492598606ee0db3
-ops 3758 — narrow 6-digit PPI availability probe (canary #13)
-── A — BLS v2 multi-series batch (the cheap path) ──
-[01:42:05] ✅   status=REQUEST_SUCCEEDED message=['Series does not exist for Series PCU3339113339110', 'Series does not exist for Series PCU33441333441301']
-[01:42:05]   series returned: 8 of 8 requested
-[01:42:05]     PCU334413334413        latest 2026-M06 = 29.695 (n=30)
-[01:42:05]     PCU33441333441301      NO DATA
-[01:42:05]     PCU3341123341121       latest 2026-M06 = 64.183 (n=30)
-[01:42:05]     WPU101                 latest 2026-M06 = 366.341 (n=30)
-[01:42:05]     WPU0911                latest 2026-M06 = 204.086 (n=30)
-[01:42:05]     WPU061                 latest 2026-M06 = 343.719 (n=30)
-[01:42:05]     PCU325180325180        latest 2026-M06 = 169.174 (n=30)
-[01:42:05]     PCU3339113339110       NO DATA
-── B — BLS series discovery for PPI industry ──
-[01:42:05] ⚠   ies/pc/pc.series -> HTTP Error 403: Forbidden
-[01:42:05] ⚠   ies/wp/wp.series -> HTTP Error 403: Forbidden
-── C — FRED mirror of narrow PPI lines ──
-[01:42:05] ✅   FRED narrow-PPI search -> 10
-[01:42:05]     PCU33443344              Producer Price Index by Industry: Semiconductor and Other Electronic C
-[01:42:05]     PCU3344133441            Producer Price Index by Industry: Semiconductor and Other Electronic C
-[01:42:05]     PCU334413334413A         Producer Price Index by Industry: Semiconductor and Related Device Man
-[01:42:05]     PCU334413334413          Producer Price Index by Industry: Semiconductor and Related Device Man
-[01:42:05]     PCU3344133344131         Producer Price Index by Industry: Semiconductor and Related Device Man
-[01:42:05]     PCU333242333242          Producer Price Index by Industry: Semiconductor Machinery Manufacturin
-── D — cross-check PCU334413334413 (BLS vs FRED) ──
-[01:42:05] ✅   FRED PCU334413334413 latest=29.695 (2026-06-01)
+executing-against: aaf0aa8081d29d9da1598ad124dd9aed29e52fb7
+ops 3759 — build the narrow-PPI line universe
+── A — discover candidate lines via FRED search ──
+[01:47:59]   PPI industry semiconductor                 +19 (total 19)
+[01:47:59]   PPI industry electronic component          +21 (total 40)
+[01:48:00]   PPI industry industrial chemical           +23 (total 63)
+[01:48:01]   PPI industry basic inorganic chemical      +20 (total 83)
+[01:48:02]   PPI industry iron steel                    +24 (total 107)
+[01:48:02]   PPI industry copper                        +24 (total 131)
+[01:48:02]   PPI industry aluminum                      +18 (total 149)
+[01:48:03]   PPI industry plastics resin                +7 (total 156)
+[01:48:03]   PPI industry electrical equipment          +18 (total 174)
+[01:48:04]   PPI industry motor vehicle parts           +24 (total 198)
+[01:48:04]   PPI industry machinery manufacturing       +22 (total 220)
+[01:48:04]   PPI industry lumber                        +24 (total 244)
+[01:48:05]   PPI industry paperboard container          +20 (total 264)
+[01:48:05]   PPI industry pharmaceutical preparation    +24 (total 288)
+[01:48:06]   PPI industry aerospace product             +2 (total 290)
+[01:48:06]   PPI industry battery manufacturing         +21 (total 311)
+[01:48:06]   PPI industry wire cable                    +10 (total 321)
+[01:48:07]   PPI industry transformer                   +17 (total 338)
+[01:48:07]   PPI industry rare earth                    +0 (total 338)
+[01:48:08]   PPI industry industrial gas                +21 (total 359)
+[01:48:08] ✅   candidates discovered: 359
+── B — keep only FRESH, DEEP, NARROW lines ──
+[01:48:08]   after freshness/frequency: 245 kept, dropped {'stale': 114, 'shallow': 0, 'monthly': 0}
+── C — dedupe aggregate parents (narrow is the point) ──
+[01:48:08] ✅   narrow lines after parent-dedupe: 198 (from 245)
+[01:48:08]     PCU21112111            Producer Price Index by Industry: Oil and Gas Extraction
+[01:48:08]     PCU211211              Producer Price Index by Industry: Oil and Gas Extraction
+[01:48:08]     PCU213111213111P       Producer Price Index by Industry: Drilling Oil and Gas Wells: Primary Serv
+[01:48:08]     PCU213112213112        Producer Price Index by Industry: Support Activities for Oil and Gas Opera
+[01:48:08]     PCU22121022121011      Producer Price Index by Industry: Natural Gas Distribution: Natural Gas to
+[01:48:08]     PCU3211133211131       Producer Price Index by Industry: Sawmills: Hardwood Lumber, Made in Sawmi
+[01:48:08]     PCU3211133211133       Producer Price Index by Industry: Sawmills: Softwood Lumber, Made in Sawmi
+[01:48:08]     PCU3211133211135       Producer Price Index by Industry: Sawmills: Wood Chips, Excluding Field Ch
+[01:48:08]     PCU3212132121          Producer Price Index by Industry: Plywood and Engineered Wood Product Manu
+[01:48:08]     PCU32121332121302      Producer Price Index by Industry: Engineered Wood Member Manufacturing: Ot
+[01:48:08]     PCU32123212            Producer Price Index by Industry: Plywood and Engineered Wood Product Manu
+[01:48:08]     PCU321321              Producer Price Index by Industry: Wood Product Manufacturing
+[01:48:08]     PCU32191132191111      Producer Price Index by Industry: Wood Window and Door Manufacturing: Doub
+[01:48:08]     PCU3219113219117       Producer Price Index by Industry: Wood Window and Door Manufacturing: Wood
+── D — verify observation depth on a sample ──
+[01:48:08]     PCU21112111            n=30 latest=218.411 (2026-06-01)
+[01:48:09]     PCU211211              n=30 latest=217.956 (2026-06-01)
+[01:48:09]     PCU213111213111P       n=30 latest=394.281 (2026-06-01)
+[01:48:09]     PCU213112213112        n=30 latest=223.678 (2026-06-01)
+[01:48:10]     PCU22121022121011      n=30 latest=300.147 (2026-06-01)
+[01:48:10]     PCU3211133211131       n=30 latest=110.553 (2026-06-01)
+[01:48:11]     PCU3211133211133       n=30 latest=144.006 (2026-06-01)
+[01:48:11]     PCU3211133211135       n=30 latest=145.728 (2026-06-01)
+── E — persist config/ppi-lines.json ──
+[01:48:12] ✅   wrote config/ppi-lines.json with 198 lines
 ── VERDICT ──
-[01:42:05]   BLS batch usable: True · discovery files: {}
-[01:42:05] ✅ PROBE COMPLETE
+[01:48:12] ✅ UNIVERSE READY — engine can consume config/ppi-lines.json
 
-→ Report written to aws/ops/reports/latest/3758_ppi_narrow_probe.md
+→ Report written to aws/ops/reports/latest/3759_ppi_line_universe.md
