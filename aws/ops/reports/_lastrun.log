@@ -1,52 +1,55 @@
-executing-against: 29a1184e5a4629359437a9a55c83db198c2df995
-ops 3779 — capture_gap overlay into best-setups
-── G0 — read the LIVE artifact, assert per-ROW fields ──
-[19:50:06] ✅ G0.container :: capture_gap container present
-[19:50:06] ✅ G0.all_rows :: all_rows n=1771
-[19:50:06] ✅ G0.row_ticker :: present on live rows
-[19:50:06] ✅ G0.row_capture_gap :: present on live rows
-[19:50:06] ✅ G0.row_global_capture_gap :: present on live rows
-[19:50:06] ✅ G0.row_tier :: present on live rows
-[19:50:06] ✅ G0.row_mcap_share_pct :: present on live rows
-[19:50:06] ✅ G0.row_undervaluation_score :: present on live rows
-[19:50:06] ✅ G0.catchup_present :: catchup_pct populated on live rows
-[19:50:06] ✅ G0.reads_chokepoint :: best-setups already loads chokepoint.json
-[19:50:06] ✅ G0.anchor :: splice anchor unique
-[19:50:06] ✅ G0.overlap_nonzero :: 47 setups will join (sample: ['ABBV', 'ABNB', 'ADBE', 'AEG', 'AKAM', 'ALB', 'ALGN', 'AMD'])
-── Splice overlay (additive, before meta-intelligence block) ──
-[19:50:06] ✅ spliced + py_compile clean
-[19:50:06] ✅ SPLICE.present :: marker in source
-[19:50:06] ✅ SPLICE.structural_kept :: pre-existing structural overlay untouched
+executing-against: 65c8e26ea8817a9ecf83311852cbd54d2e9fd2b4
+ops 3780 — capture_gap overlay into master-ranker
+── G0 — live producer rows ──
+[20:06:56] ✅ G0.all_rows :: all_rows n=1771
+[20:06:56] ✅ G0.row_ticker :: present
+[20:06:56] ✅ G0.row_capture_gap :: present
+[20:06:56] ✅ G0.row_global_capture_gap :: present
+[20:06:56] ✅ G0.row_tier :: present
+[20:06:56] ✅ G0.row_mcap_share_pct :: present
+[20:06:56] ✅ G0.row_undervaluation_score :: present
+── G0 — consumer anchors (grepped, never typed from memory) ──
+[20:06:56] ✅ G0.reader :: _ck already loaded — reusing, no second fetch
+[20:06:56] ✅ G0.loopvar :: top_tickers is the row list
+[20:06:56] ✅ G0.outkey :: output key confirmed
+[20:06:56] ✅ G0.anchor :: splice anchor unique (after _ck block)
+── Forecast join from LIVE artifacts ──
+[20:06:56] ✅ FORECAST.nonzero :: 25 will join (sample ['ALL', 'AMD', 'AMP', 'BABA', 'BE', 'CHRW', 'FDX', 'FIX'])
+── Splice (additive) ──
+[20:06:56] ✅ spliced + compile clean
+[20:06:56] ✅ SPLICE.marker :: marker in source
+[20:06:56] ✅ SPLICE.structural_kept :: pre-existing structural overlay untouched
+[20:06:56] ✅ SPLICE.no_double_fetch :: still exactly one chokepoint fetch
 ── Deploy ──
-[19:50:07]   zip: 108714 bytes
+[20:06:56]   zip: 102069 bytes
 ── 1. Lambda ──
-[19:50:07]   Lambda exists — updating
-[19:50:13] ✅   ✓ updated justhodl-best-setups
-[19:50:29] ✅ settled attempt 1
-[19:50:29] ✅ DEPLOY.settled :: new artifact live
-── Invoke + prove the join is non-zero on the LIVE output ──
-[19:50:37] ✅ LIVE.join_nonzero :: 47 of 50 setups carry capture_gap (the 3766/3770 failure mode)
-[19:50:37] ✅ LIVE.fields_carried :: fields survived into the live artifact
-── Joined setups (sample) ──
-[19:50:37]   GILD   gap= +18.8pp global=  +4.3pp catchup=    -43% tier=WATCH
-[19:50:37]   NVO    gap= +18.5pp global=  +3.0pp catchup=    300% tier=WATCH
-[19:50:37]   DBX    gap= +15.2pp global= +64.4pp catchup=    128% tier=WATCH
-[19:50:37]   AEG    gap=  +9.5pp global= -31.2pp catchup=    -14% tier=NONE
-[19:50:37]   ELV    gap=  +2.8pp global= -55.9pp catchup=    -12% tier=WATCH
-[19:50:37]   ADBE   gap=  +1.3pp global= +10.8pp catchup=     33% tier=WATCH
-[19:50:37]   LRCX   gap=  +1.2pp global=  +0.3pp catchup=    -57% tier=WATCH
-[19:50:37]   ASML   gap=  +0.5pp global=  -0.1pp catchup=    -56% tier=WATCH
-[19:50:37]   ABNB   gap=  +0.5pp global=  +9.8pp catchup=    -36% tier=WATCH
-[19:50:37]   ANET   gap=  -0.2pp global=  +3.2pp catchup=    -17% tier=WATCH
-[19:50:37]   NVDA   gap=  -0.6pp global=  +0.0pp catchup=    -60% tier=WATCH
-[19:50:37]   NEE    gap=  -0.9pp global= -35.5pp catchup=    -60% tier=WATCH
-── Additive contract — best-setups keys must survive ──
-[19:50:37] ✅ ADDITIVE.structural_chokepoints :: present
-[19:50:37] ✅ ADDITIVE.top_setups :: present
-[19:50:37] ✅ ADDITIVE.triple_threats :: present
-[19:50:37] ✅ ADDITIVE.by_verdict :: present
-[19:50:37] ✅ ADDITIVE.structural_intact :: structural overlay still functioning
+[20:06:56]   Lambda exists — updating
+[20:06:59] ✅   ✓ updated justhodl-master-ranker
+[20:07:15] ✅ settled attempt 1
+[20:07:15] ✅ DEPLOY.settled :: artifact live
+── Invoke + prove non-zero join on LIVE output ──
+[20:07:24] ✅ LIVE.join_nonzero :: 24 of 25 ranked names carry capture_gap
+[20:07:24] ✅ LIVE.fields_carried :: fields survived into the live artifact
+── Ranked names with capture context ──
+[20:07:24]   FIX    gap=  +4.4pp global= -12.3pp catchup=    -72% tier=WATCH
+[20:07:24]   LRCX   gap=  +1.2pp global=  +0.3pp catchup=    -57% tier=WATCH
+[20:07:24]   TSM    gap= -10.6pp global=  -1.7pp catchup=    300% tier=WATCH
+[20:07:24]   SPG    gap= -11.2pp global=  -2.5pp catchup=    -15% tier=WATCH
+[20:07:24]   UBS    gap= -16.4pp global= -69.3pp catchup=    -37% tier=NONE
+[20:07:24]   PWR    gap= -16.5pp global= -33.0pp catchup=    -46% tier=WATCH
+[20:07:24]   STX    gap= -18.0pp global=  -4.5pp catchup=    -55% tier=WATCH
+[20:07:24]   IPGP   gap= -24.0pp global= +36.1pp catchup=    -45% tier=WATCH
+[20:07:24]   AMD    gap= -30.4pp global= -14.3pp catchup=    -64% tier=WATCH
+[20:07:24]   AMP    gap= -35.4pp global= -25.2pp catchup=     31% tier=WATCH
+[20:07:24]   MPC    gap= -37.9pp global= -77.1pp catchup=    -13% tier=WATCH
+[20:07:24]   ALL    gap= -39.1pp global= -41.1pp catchup=     64% tier=WATCH
+── Additive contract ──
+[20:07:24] ✅ ADDITIVE.top_tickers :: present
+[20:07:24] ✅ ADDITIVE.top_macro :: present
+[20:07:24] ✅ ADDITIVE.alerts :: present
+[20:07:24] ✅ ADDITIVE.feed_health :: present
+[20:07:24] ✅ ADDITIVE.structural_alive :: structural counter still reported
 ── VERDICT ──
-[19:50:37] ✅ PASS_ALL — capture_gap now reaches the setups desk as context
+[20:07:24] ✅ PASS_ALL — capture_gap now reaches both the setups desk and the ranker
 
-→ Report written to aws/ops/reports/latest/3779_wire_capture_gap_best_setups.md
+→ Report written to aws/ops/reports/latest/3780_wire_capture_gap_ranker.md

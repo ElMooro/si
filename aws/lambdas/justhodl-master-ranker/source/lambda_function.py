@@ -1281,6 +1281,38 @@ def lambda_handler(event, context):
             note += " AT a trough/cheap — system's highest-quality setup"
         t["rationale"] = (t.get("rationale") or "") + " · " + note
 
+
+    # ── Capture-gap overlay (ops 3780) ──
+    # Value CREATION vs value CAPTURE: criticality percentile minus market-cap-share
+    # percentile, within industry (plus the cross-industry variant). Attached as
+    # CONTEXT ONLY — like the structural overlay above, this does NOT change score
+    # or rank: capture gap is a slow valuation-structure fact, while this board's
+    # conviction weights are calibrated on shorter-horizon evidence.
+    _cap = (_ck.get("capture_gap") or {})
+    _cap_rows = {r.get("ticker"): r for r in (_cap.get("all_rows") or [])}
+    n_capture = 0
+    for t in top_tickers:
+        cr = _cap_rows.get(t.get("ticker"))
+        if not cr:
+            continue
+        n_capture += 1
+        t["capture_gap"] = cr.get("capture_gap")
+        t["global_capture_gap"] = cr.get("global_capture_gap")
+        t["capture_tier"] = cr.get("tier")
+        t["mcap_share_pct"] = cr.get("mcap_share_pct")
+        t["undervaluation_score"] = cr.get("undervaluation_score")
+        if cr.get("catchup_pct") is not None:
+            t["catchup_pct"] = cr.get("catchup_pct")
+            t["catchup_basis"] = cr.get("catchup_basis")
+        if cr.get("tier") == "STRUCTURALLY_UNDERVALUED":
+            _n = "captures %.0fpp less of its industry than its criticality implies" % (
+                cr.get("capture_gap") or 0)
+            if cr.get("catchup_pct") is not None:
+                _n += "; %.0f%% to industry-median multiple (%s — arithmetic, not a target)" % (
+                    cr["catchup_pct"], cr.get("catchup_basis") or "-")
+            t["rationale"] = (t.get("rationale") or "") + " · " + _n
+    print("[master-ranker] capture_gap joined=%d" % n_capture)
+
     print("[master-ranker] Collecting macro signals…")
     macro_signals = collect_macro_signals()
 
