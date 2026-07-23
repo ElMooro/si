@@ -1,0 +1,60 @@
+# ops 3756 — canary #17: credit-before-equity
+
+**Status:** failure  
+**Duration:** 147.2s  
+**Finished:** 2026-07-23T01:21:24+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| awaiting | failed | leads | names | verdict |
+|---|---|---|---|---|
+| 26 | G4_gaps | 0 | 26 | FAIL |
+
+## Log
+## G0 — key contract
+
+- `01:18:56` PASS G0_key_contract — producer_missing=[] page_missing=[]
+## G1 — settle v1.0.0
+
+- `01:19:12` PASS G1_settle — deployed
+## G2 — async invoke + freshness
+
+- `01:19:23` PASS G2_artifact — names=26 leads=0 awaiting=26
+## G3 — day-one honesty (no lead without a prior obs)
+
+- `01:19:23`   F      DD=1.11   dDD=None    CDS=130.0   dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+- `01:19:23`   INTC   DD=0.99   dDD=None    CDS=130.0   dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+- `01:19:23`   ORCL   DD=1.08   dDD=None    CDS=130.0   dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+- `01:19:23`   GM     DD=1.49   dDD=None    CDS=121.3   dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+- `01:19:23`   VZ     DD=2.13   dDD=None    CDS=80.4    dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+- `01:19:23`   T      DD=2.15   dDD=None    CDS=79.6    dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+- `01:19:23`   BA     DD=2.45   dDD=None    CDS=68.5    dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+- `01:19:23`   DIS    DD=3.22   dDD=None    CDS=50.0    dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+- `01:19:23`   ledger tickers=26
+- `01:19:23` PASS G3_day_one_honesty — rows=26 fabricated_leads=[] ledger_written=True
+## G4 — HY issuance gap declared, not faked
+
+- `01:19:23`   gap: HY primary ISSUANCE windows NOT included: FRED issuance series are NBER historical archives (discontinued) or quarterly Z.1 flow-of-funds; SIFMA/TRACE are paid. OAS is a PRICE not a volume a
+- `01:19:23`   gap: 26 of 26 names await a second observation — the lead is measured against this engine's own ledger, which accretes daily and cannot be back-filled honestly.
+- `01:19:23` FAIL G4_gaps — issuance_gap_declared=True no_oas_substitution=False
+## G5 — page served + field coverage + nav
+
+- `01:19:23`   attempt 0: HTTP Error 404: Not Found
+- `01:19:43`   attempt 1: HTTP Error 404: Not Found
+- `01:20:03`   attempt 2: HTTP Error 404: Not Found
+- `01:20:23`   attempt 3: HTTP Error 404: Not Found
+- `01:20:43`   attempt 4: HTTP Error 404: Not Found
+- `01:21:03`   attempt 5: HTTP Error 404: Not Found
+- `01:21:23`   served page CURRENT len=9774 after 120s
+- `01:21:23` PASS G5_page_live — len=9774
+- `01:21:23` PASS G5_field_coverage — every published key has a render path
+- `01:21:24` PASS G5_nav — listed under ('Macro & Liquidity', 'Credit Before Equity')
+## VERDICT
+
+- `01:21:24` ✗ gates failed: ['G4_gaps']

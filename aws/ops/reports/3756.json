@@ -1,0 +1,38 @@
+{
+  "gates": {
+    "G0_key_contract": {
+      "ok": true,
+      "detail": "producer_missing=[] page_missing=[]"
+    },
+    "G1_settle": {
+      "ok": true,
+      "detail": "deployed"
+    },
+    "G2_artifact": {
+      "ok": true,
+      "detail": "names=26 leads=0 awaiting=26"
+    },
+    "G3_day_one_honesty": {
+      "ok": true,
+      "detail": "rows=26 fabricated_leads=[] ledger_written=True"
+    },
+    "G4_gaps": {
+      "ok": false,
+      "detail": "issuance_gap_declared=True no_oas_substitution=False"
+    },
+    "G5_page_live": {
+      "ok": true,
+      "detail": "len=9774"
+    },
+    "G5_field_coverage": {
+      "ok": true,
+      "detail": "every published key has a render path"
+    },
+    "G5_nav": {
+      "ok": true,
+      "detail": "listed under ('Macro & Liquidity', 'Credit Before Equity')"
+    }
+  },
+  "unrendered": [],
+  "verdict": "FAIL"
+}

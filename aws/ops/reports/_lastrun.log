@@ -1,36 +1,39 @@
-executing-against: 3c3ac813869ae5bee86a48c07abf856f4b607524
-ops 3755 — canary #17 credit-before-equity probe
-── A — data/cds-monitor.json shape ──
-[01:11:37] ✅   top-level: ['alarm_board', 'canary_alarms', 'cross_reference', 'elapsed_s', 'errors', 'generated_at', 'global_bond_stress', 'global_credit_stress', 'headline', 'method', 'ok', 'schema_version', 'single_name_cds', 'sources', 'sovereign_cds', 'systemic_stress']
-[01:11:37]   list 'single_name_cds.corporates' n=14 keys=['asset_vol_pct', 'default_prob_5y_pct', 'distance_to_default', 'equity_vol_pct', 'group', 'market_cap_usd_bn', 'name', 'peer_rank', 'regime', 'structural_cds_raw_bp']
-[01:11:37]   list 'single_name_cds.banks' n=12 keys=['asset_vol_pct', 'default_prob_5y_pct', 'distance_to_default', 'equity_vol_pct', 'group', 'market_cap_usd_bn', 'name', 'peer_rank', 'regime', 'structural_cds_raw_bp']
-[01:11:37]   list 'alarm_board.alarms' n=1 keys=['detail', 'level', 'signal']
-[01:11:37] ✅   BIGGEST list = 'single_name_cds.corporates' n=14
-[01:11:37]   row keys: ['asset_vol_pct', 'default_prob_5y_pct', 'distance_to_default', 'equity_vol_pct', 'group', 'market_cap_usd_bn', 'name', 'peer_rank', 'regime', 'structural_cds_raw_bp', 'synthetic_cds_bp', 'ticker', 'total_debt_usd_bn']
-[01:11:37]   sample: {"ticker": "F", "name": "Ford Motor", "group": "corporate", "market_cap_usd_bn": 55.9, "total_debt_usd_bn": 167.6, "equity_vol_pct": 37.6, "asset_vol_pct": 15.0, "distance_to_default": 1.11, "default_prob_5y_pct": 24.25, "synthetic_cds_bp": 130.0, "regime": "NORMAL", "structural_cds_raw_bp": 277.7, "peer_rank": 1}
-[01:11:37]   credit-ish fields: ['distance_to_default', 'default_prob_5y_pct', 'peer_rank']
-── B — existing history ledgers (do NOT rebuild) ──
-[01:11:37] ⚠   cds/cds-monitor-history.json -> An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
-[01:11:37] ⚠   data/cds-monitor-history.json -> An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
-[01:11:37] ⚠   credit/credit-history.json -> An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
-[01:11:37] ⚠   data/credit-composite-history.json -> An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
-[01:11:37]   none — the #17 engine must build its OWN ledger (same self-building pattern as import-canary / IIC)
-── C — price change per name (reuse, don't refetch) ──
-[01:11:38] ✅   data/short-interest.json -> list 'top_crowded_shorts' n=15 price-ish=['si_change_pct', 'price_change_pct', 'price_window_days']
-[01:11:38] ✅   data/universe.json -> list 'stocks' n=5320 price-ish=['exchange', 'price']
-── D — HY issuance (is it free-reachable at all?) ──
-[01:11:38] ✅   FRED 'corporate bond issuance' -> 10 series
-[01:11:38]     M10016M144NNBR           New Corporate Issues, Bonds, Notes, and Stocks, Public Utilities, United S
-[01:11:38]     Q10119USQ144NNBR         New Corporate Securities Issued, Debt, All Industries for United States
-[01:11:38]     M10009M144NNBR           New Corporate Issues, Long Term Bonds and Notes, U.S. and Canadian
-[01:11:38]     M13044USM156NNBR         Yields on Corporate Bonds, New Issues, Aa Rating for United States
-[01:11:38]     Q10070USQ144NNBR         Domestic Bond Issues for United States
-[01:11:38]     BOGZ1FA633063045Q        Money Market Funds; Corporate Bonds Issued by Nonfinancial Corporate Busin
-[01:11:38]     FGCBGSQ027S              Federal Government; Corporate Bonds Issued by Commercial Banking Under TAR
-[01:11:38]     BOGZ1FU633063045Q        Money Market Funds; Corporate Bonds Issued by Nonfinancial Corporate Busin
-[01:11:39] ✅   BAMLH0A0HYM2 latest=2.69 (2026-07-21) [PRICE not issuance]
-[01:11:39] ✅   BAMLC0A0CM latest=0.78 (2026-07-21) [PRICE not issuance]
+executing-against: 0f0553c466c931ee82c13d569a81936a31c355de
+ops 3756 — canary #17: credit-before-equity
+── G0 — key contract ──
+[01:18:56] PASS G0_key_contract — producer_missing=[] page_missing=[]
+── G1 — settle v1.0.0 ──
+[01:19:12] PASS G1_settle — deployed
+── G2 — async invoke + freshness ──
+[01:19:23] PASS G2_artifact — names=26 leads=0 awaiting=26
+── G3 — day-one honesty (no lead without a prior obs) ──
+[01:19:23]   F      DD=1.11   dDD=None    CDS=130.0   dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+[01:19:23]   INTC   DD=0.99   dDD=None    CDS=130.0   dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+[01:19:23]   ORCL   DD=1.08   dDD=None    CDS=130.0   dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+[01:19:23]   GM     DD=1.49   dDD=None    CDS=121.3   dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+[01:19:23]   VZ     DD=2.13   dDD=None    CDS=80.4    dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+[01:19:23]   T      DD=2.15   dDD=None    CDS=79.6    dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+[01:19:23]   BA     DD=2.45   dDD=None    CDS=68.5    dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+[01:19:23]   DIS    DD=3.22   dDD=None    CDS=50.0    dCDS=None    dPx=None    INSUFFICIENT_HISTORY
+[01:19:23]   ledger tickers=26
+[01:19:23] PASS G3_day_one_honesty — rows=26 fabricated_leads=[] ledger_written=True
+── G4 — HY issuance gap declared, not faked ──
+[01:19:23]   gap: HY primary ISSUANCE windows NOT included: FRED issuance series are NBER historical archives (discontinued) or quarterly Z.1 flow-of-funds; SIFMA/TRACE are paid. OAS is a PRICE not a volume a
+[01:19:23]   gap: 26 of 26 names await a second observation — the lead is measured against this engine's own ledger, which accretes daily and cannot be back-filled honestly.
+[01:19:23] FAIL G4_gaps — issuance_gap_declared=True no_oas_substitution=False
+── G5 — page served + field coverage + nav ──
+[01:19:23]   attempt 0: HTTP Error 404: Not Found
+[01:19:43]   attempt 1: HTTP Error 404: Not Found
+[01:20:03]   attempt 2: HTTP Error 404: Not Found
+[01:20:23]   attempt 3: HTTP Error 404: Not Found
+[01:20:43]   attempt 4: HTTP Error 404: Not Found
+[01:21:03]   attempt 5: HTTP Error 404: Not Found
+[01:21:23]   served page CURRENT len=9774 after 120s
+[01:21:23] PASS G5_page_live — len=9774
+[01:21:23] PASS G5_field_coverage — every published key has a render path
+[01:21:24] PASS G5_nav — listed under ('Macro & Liquidity', 'Credit Before Equity')
 ── VERDICT ──
-[01:11:39] ✅ PROBE COMPLETE
+[01:21:24] ✗ gates failed: ['G4_gaps']
 
-→ Report written to aws/ops/reports/latest/3755_c17_probe_fix.md
+→ Report written to aws/ops/reports/latest/3756_credit_before_equity.md
+❌ OPS-FAIL: aws/ops/pending/ops_3756_credit_before_equity.py
