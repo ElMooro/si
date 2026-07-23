@@ -2,8 +2,8 @@
   "function_name": "justhodl-chokepoint",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory": 1024,
-  "timeout": 300,
+  "memory": 1536,
+  "timeout": 900,
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "schedule": {
     "rule_name": "justhodl-chokepoint-daily",
