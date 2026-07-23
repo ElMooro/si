@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 3765 — chokepoint v3.0: CAPTURE GAP layer (value-creation vs value-capture).
+"""ops 3766 — chokepoint v3.0: CAPTURE GAP layer (value-creation vs value-capture).
 
 KHALID'S THESIS: "TSMC at $1T and ASML at $600B are grossly undervalued given they
 are the center of the AI trade when every other company is about a trillion."
@@ -218,8 +218,8 @@ CAPTURE_BLOCK = '''
 
 
 def main():
-    with report("3765_capture_gap") as rep:
-        rep.heading("ops 3765 — chokepoint v3.0 CAPTURE GAP")
+    with report("3766_capture_gap") as rep:
+        rep.heading("ops 3766 — chokepoint v3.0 CAPTURE GAP")
         rep.log("Khalid's thesis: TSMC/ASML undervalued vs their structural role in AI.")
         rep.log("Audit verdict: EXTEND justhodl-chokepoint (already has criticality + "
                 "market_cap + industry). Do NOT build a new engine.")
@@ -267,10 +267,18 @@ def main():
         gate(rep, "SPLICE.key_anchor", src.count(key_anchor) == 1, "payload key anchor unique")
         if FAILED:
             sys.exit(1)
-        src = src.replace(key_anchor, key_anchor + '        "capture_gap": capture,\n', 1)
+        payload_key = '        "capture_gap": capture,\n'
+        if payload_key in src:
+            rep.warn("payload key already registered (3765 auto-commit) — not duplicating")
+        else:
+            src = src.replace(key_anchor, key_anchor + payload_key, 1)
+        gate(rep, "SPLICE.key_once", src.count(payload_key) == 1,
+             "capture_gap payload key appears exactly once")
 
         # version bump
         src = src.replace('VERSION = "1.0"', 'VERSION = "3.0"', 1)
+        if 'VERSION = "3.0"' not in src:
+            gate(rep, 'SPLICE.version', False, 'version bump failed')
 
         LAMBDA_FILE.write_text(src)
         rep.ok("spliced capture block + payload key + VERSION 3.0")
@@ -289,7 +297,7 @@ def main():
         rep.section("Deploy")
         cfg = lam.get_function_configuration(FunctionName=FN)
         env = (cfg.get("Environment") or {}).get("Variables") or {}
-        rep.kv("inherited_env_keys", len(env))
+        rep.kv(inherited_env_keys=len(env))
 
         deploy_lambda(
             report=rep, function_name=FN, source_dir=SRC, env_vars=env,
@@ -328,8 +336,8 @@ def main():
         t0 = time.time()
         resp = lam_long.invoke(FunctionName=FN, InvocationType="RequestResponse",
                                Payload=json.dumps({"mode": "full"}).encode())
-        rep.kv("invoke_status", resp.get("StatusCode"))
-        rep.kv("invoke_seconds", round(time.time() - t0, 1))
+        rep.kv(invoke_status=resp.get("StatusCode"))
+        rep.kv(invoke_seconds=round(time.time() - t0, 1))
 
         obj = s3.get_object(Bucket=BUCKET, Key=OUT_KEY)
         data = json.loads(obj["Body"].read())
@@ -340,11 +348,11 @@ def main():
         gate(rep, "LIVE.no_error", "error" not in cap, "capture block error=%s" % cap.get("error"))
 
         st = cap.get("stats") or {}
-        rep.kv("scored", st.get("scored"))
-        rep.kv("industries", st.get("industries"))
-        rep.kv("structurally_undervalued", st.get("structurally_undervalued"))
-        rep.kv("hidden", st.get("hidden"))
-        rep.kv("backlog_joined", st.get("backlog_joined"))
+        rep.kv(scored=st.get("scored"))
+        rep.kv(industries=st.get("industries"))
+        rep.kv(structurally_undervalued=st.get("structurally_undervalued"))
+        rep.kv(hidden=st.get("hidden"))
+        rep.kv(backlog_joined=st.get("backlog_joined"))
 
         gate(rep, "LIVE.scored_nonzero", (st.get("scored") or 0) >= 50,
              "scored=%s (need >=50)" % st.get("scored"))
@@ -364,8 +372,8 @@ def main():
         if rows:
             shares = [r.get("mcap_share_pct") or 0 for r in rows]
             gaps = [r.get("capture_gap") or 0 for r in rows]
-            rep.kv("mcap_share_max_pct", round(max(shares), 2))
-            rep.kv("capture_gap_range", "%.1f .. %.1f" % (min(gaps), max(gaps)))
+            rep.kv(mcap_share_max_pct=round(max(shares), 2))
+            rep.kv(capture_gap_range="%.1f .. %.1f" % (min(gaps), max(gaps)))
             gate(rep, "SANITY.share_distribution", 0 < max(shares) <= 100,
                  "max share %.2f%% within bounds" % max(shares))
             gate(rep, "SANITY.gap_spread", (max(gaps) - min(gaps)) > 20,
