@@ -1,0 +1,48 @@
+# ops 3773 — edge verification of capture-gap.html
+
+**Status:** failure  
+**Duration:** 201.2s  
+**Finished:** 2026-07-23T18:51:05+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| industries | leaderboard | scored | version | with_catchup |
+|---|---|---|---|---|
+| 141 | 50 | 1771 | 4.0.1 | 1653 |
+
+## Log
+- `18:47:44` attempt 1: HTTP 200 · 23027 bytes · 0/8 v4 markers
+- `18:48:09` attempt 2: HTTP 200 · 23027 bytes · 0/8 v4 markers
+- `18:48:35` attempt 3: HTTP 200 · 23027 bytes · 0/8 v4 markers
+- `18:49:00` attempt 4: HTTP 200 · 23027 bytes · 0/8 v4 markers
+- `18:49:25` attempt 5: HTTP 200 · 23027 bytes · 0/8 v4 markers
+- `18:49:50` attempt 6: HTTP 200 · 23027 bytes · 0/8 v4 markers
+- `18:50:15` attempt 7: HTTP 200 · 23027 bytes · 0/8 v4 markers
+- `18:50:40` attempt 8: HTTP 200 · 23027 bytes · 0/8 v4 markers
+## Marker audit (edge copy)
+
+- `18:51:05` ✗ SERVED.leaderboard_div :: present
+- `18:51:05` ✗ SERVED.byind_div :: present
+- `18:51:05` ✗ SERVED.leaderboard_key :: present
+- `18:51:05` ✗ SERVED.byind_key :: present
+- `18:51:05` ✗ SERVED.catchup :: present
+- `18:51:05` ✗ SERVED.catchup_basis :: present
+- `18:51:05` ✗ SERVED.blend_note :: present
+- `18:51:05` ✗ SERVED.accordion :: present
+- `18:51:05` ✅ SERVED.size :: 23027 bytes
+- `18:51:05` ✅ SERVED.no_dead_field :: dead v3.0 field absent from served copy
+## Nav manifest (SERVED copy — repo copy is always stale)
+
+- `18:51:05` ⚠ nav manifest fetch failed: HTTP Error 403: Forbidden
+## Feed sanity from the edge
+
+- `18:51:05` ✅ FEED.v4 :: engine v4 live
+## VERDICT
+
+- `18:51:05` ✗ FAILED: SERVED.leaderboard_div, SERVED.byind_div, SERVED.leaderboard_key, SERVED.byind_key, SERVED.catchup, SERVED.catchup_basis, SERVED.blend_note, SERVED.accordion
