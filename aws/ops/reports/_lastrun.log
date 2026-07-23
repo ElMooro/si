@@ -1,17 +1,26 @@
-executing-against: 2ba36b063bae609b8eb1b343596e27ec037601d0
-ops 3748 — scanner 95% failure classification
-── A — recent Form 4 filings from the daily index ──
-[23:41:03] ✅   2026-07-21: 503 Form-4 rows
-[23:41:03]   classifying 80 filings
-── B — per-filing classification ──
-── C — results ──
-[23:41:21]   NOT_PURCHASE     62  (77.5%)  eg=M
-[23:41:21]   NO_TXN           10  (12.5%)  eg=
-[23:41:21]   PURCHASE          7  ( 8.8%)  eg=
-[23:41:21]   NO_NONDERIV       1  ( 1.2%)  eg=
-[23:41:21]   transaction code census: [('S', 38), ('F', 25), ('A', 15), ('M', 11), ('P', 11), ('D', 10), ('J', 5), ('G', 1)]
+executing-against: e5920be358db594122107dac6f571dd1b3579519
+ops 3749 — canary #18: boom-stage v1.7 (+6 pairs, 7 divergence groups)
+── G0 — key contract (new ids + groups in source) ──
+[00:12:19] PASS G0_key_contract — missing_ids=[] new_groups_present=True
+── G1 — zip settle to v1.7.0 ──
+[00:12:20] PASS G1_settle — v1.7.0 deployed
+── G2 — async invoke + S3 freshness ──
+[00:12:36] PASS G2_artifact — pairs=20 divergences=2
+── G3 — data truth (pairs real, new ones present) ──
+[00:12:36]   JP-autos           stage=MIXED              v=-6.9 vol=-1.9
+[00:12:36]   VN-electronics     stage=BROADENING         v=25.1 vol=16.5
+[00:12:36]   MX-manufacturing   stage=BROADENING         v=26.9 vol=8.6
+[00:12:36]   MY-semis           stage=EARLY_PRICE_LED    v=129.5 vol=-13.6
+[00:12:36]   TH-electronics     stage=MIXED              v=703.0 vol=6.6
+[00:12:36]   NL-hightech        stage=MIXED              v=151.3 vol=7.0
+[00:12:36] PASS G3_data_truth — total_pairs=20 new_present=['JP-autos', 'VN-electronics', 'MX-manufacturing', 'MY-semis', 'TH-electronics', 'NL-hightech'] live=20 invented_vol=[]
+── G4 — divergence groups extended ──
+[00:12:36]   DIVERGENCE semis                55.0pp  weak=MY-semis(-13.6) strong=TW-semis(41.4)
+[00:12:36]   DIVERGENCE copper               40.9pp  weak=CL-copper(-29.7) strong=PE-copper(11.2)
+[00:12:36] PASS G4_divergence — divergences=2 all_>=25pp=True
+── G5 — served page renders the new pairs ──
+[00:12:36] PASS G5_page — page live len=16768 (renders pairs generically from feed)
 ── VERDICT ──
-[23:41:21]   DIAGNOSIS: NOT_PURCHASE dominates — the 95%% 'failure' is a MISNOMER; most Form 4s are sells/grants/exercises correctly skipped
-[23:41:21] ✅ DIAG COMPLETE
+[00:12:36] ✅ PASS_ALL — canary #18 live, board at 20 pairs
 
-→ Report written to aws/ops/reports/latest/3748_scanner_parse_diag.md
+→ Report written to aws/ops/reports/latest/3749_boom_stage_pairs.md

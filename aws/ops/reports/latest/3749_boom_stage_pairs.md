@@ -1,0 +1,42 @@
+# ops 3749 — canary #18: boom-stage v1.7 (+6 pairs, 7 divergence groups)
+
+**Status:** success  
+**Duration:** 17.0s  
+**Finished:** 2026-07-23T00:12:36+00:00  
+
+## Data
+
+| divergences | failed | total_pairs | verdict |
+|---|---|---|---|
+| 2 | none | 20 | PASS_ALL |
+
+## Log
+## G0 — key contract (new ids + groups in source)
+
+- `00:12:19` PASS G0_key_contract — missing_ids=[] new_groups_present=True
+## G1 — zip settle to v1.7.0
+
+- `00:12:20` PASS G1_settle — v1.7.0 deployed
+## G2 — async invoke + S3 freshness
+
+- `00:12:36` PASS G2_artifact — pairs=20 divergences=2
+## G3 — data truth (pairs real, new ones present)
+
+- `00:12:36`   JP-autos           stage=MIXED              v=-6.9 vol=-1.9
+- `00:12:36`   VN-electronics     stage=BROADENING         v=25.1 vol=16.5
+- `00:12:36`   MX-manufacturing   stage=BROADENING         v=26.9 vol=8.6
+- `00:12:36`   MY-semis           stage=EARLY_PRICE_LED    v=129.5 vol=-13.6
+- `00:12:36`   TH-electronics     stage=MIXED              v=703.0 vol=6.6
+- `00:12:36`   NL-hightech        stage=MIXED              v=151.3 vol=7.0
+- `00:12:36` PASS G3_data_truth — total_pairs=20 new_present=['JP-autos', 'VN-electronics', 'MX-manufacturing', 'MY-semis', 'TH-electronics', 'NL-hightech'] live=20 invented_vol=[]
+## G4 — divergence groups extended
+
+- `00:12:36`   DIVERGENCE semis                55.0pp  weak=MY-semis(-13.6) strong=TW-semis(41.4)
+- `00:12:36`   DIVERGENCE copper               40.9pp  weak=CL-copper(-29.7) strong=PE-copper(11.2)
+- `00:12:36` PASS G4_divergence — divergences=2 all_>=25pp=True
+## G5 — served page renders the new pairs
+
+- `00:12:36` PASS G5_page — page live len=16768 (renders pairs generically from feed)
+## VERDICT
+
+- `00:12:36` ✅ PASS_ALL — canary #18 live, board at 20 pairs

@@ -1,0 +1,29 @@
+{
+  "gates": {
+    "G0_key_contract": {
+      "ok": true,
+      "detail": "missing_ids=[] new_groups_present=True"
+    },
+    "G1_settle": {
+      "ok": true,
+      "detail": "v1.7.0 deployed"
+    },
+    "G2_artifact": {
+      "ok": true,
+      "detail": "pairs=20 divergences=2"
+    },
+    "G3_data_truth": {
+      "ok": true,
+      "detail": "total_pairs=20 new_present=['JP-autos', 'VN-electronics', 'MX-manufacturing', 'MY-semis', 'TH-electronics', 'NL-hightech'] live=20 invented_vol=[]"
+    },
+    "G4_divergence": {
+      "ok": true,
+      "detail": "divergences=2 all_>=25pp=True"
+    },
+    "G5_page": {
+      "ok": true,
+      "detail": "page live len=16768 (renders pairs generically from feed)"
+    }
+  },
+  "verdict": "PASS_ALL"
+}
