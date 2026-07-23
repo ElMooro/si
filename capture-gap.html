@@ -43,6 +43,12 @@ a{color:var(--accent)}
 
 <div class="card" id="hero"><span class="mono" style="color:var(--text-mute)">LOADING…</span></div>
 
+<div class="sec">🥇 Most Undervalued — all industries, blended rank</div>
+<div class="card" id="leader"></div>
+
+<div class="sec">🏭 By Industry — every scored name, grouped</div>
+<div class="card" id="byind"></div>
+
 <div class="sec">🏆 Structurally Undervalued — ≥3 of 5 legs AND gap ≥20pp</div>
 <div class="card" id="under"></div>
 
@@ -99,7 +105,7 @@ var st=c.stats||{},rows=c.all_rows||[];
 
 // HERO
 document.getElementById('hero').innerHTML='<div class="grid">'
-+'<div class="tile"><div class="lbl">Names scored</div><div class="big">'+(st.scored||0)+'</div><div class="note">across '+(st.industries||0)+' industries</div></div>'
++'<div class="tile"><div class="lbl">Names scored</div><div class="big">'+(st.scored||0)+'</div><div class="note">across '+(st.industries||0)+' industries · ledger accretes daily</div></div>'
 +'<div class="tile"><div class="lbl">Structurally undervalued</div><div class="big" style="color:'+POS+'">'+(st.structurally_undervalued||0)+'</div><div class="note">≥3 legs &amp; gap ≥20pp</div></div>'
 +'<div class="tile"><div class="lbl">Hidden (small/mid)</div><div class="big" style="color:'+ACC+'">'+(st.hidden||0)+'</div><div class="note">where the screening edge lives</div></div>'
 +'<div class="tile"><div class="lbl">Backlog leg</div><div class="big" style="color:'+((st.backlog_joined||0)>0?POS:NEG)+'">'+(st.backlog_joined||0)+'</div><div class="note">'+(st.backlog_joined||0)+' joined of '+(st.backlog_overlap||0)+' overlapping · ledger '+(st.backlog_ledger_size||0)+'</div></div>'
@@ -241,6 +247,64 @@ document.getElementById('indunder').innerHTML=(iu.length?('<table><tr><th>Indust
 +(iuT.length?('<div class="note" style="margin-top:10px;color:'+MUT+'">Excluded as too thin (n&lt;5, shown for completeness, not for acting on): '
 +iuT.slice(0,8).map(function(x){return x.industry+' (n='+x.n+', '+num(x.median_global_gap)+'pp)';}).join(' · ')+'</div>'):''))
 :'<span class="mono" style="color:'+MUT+'">Industry board pending.</span>');
+
+// ── LEADERBOARD (top of page) ──────────────────────────────────────────
+var lead=c.top_undervalued_all_industries||[];
+function cu(v,basis,capped){
+ if(v==null)return '<span style="color:'+MUT+'">—</span>';
+ var col=v>0?POS:v<0?NEG:MUT;
+ return '<span style="color:'+col+';font-weight:600">'+(v>0?'+':'')+num(v,0)+'%</span>'
+ +(capped?'<span style="color:'+MUT+';font-size:9px"> cap</span>':'')
+ +'<div style="color:'+MUT+';font-size:9px">'+(basis||'')+'</div>';}
+document.getElementById('leader').innerHTML=(lead.length?('<table><tr><th>#</th><th>Ticker</th><th>Company</th><th>Industry</th><th>Score</th><th>Catch-up to<br>industry median</th><th>Capture gap</th><th>Global gap</th><th>Crit</th><th>ROIC</th><th>Legs</th><th>Tier</th></tr>'
++lead.map(function(r,i){return '<tr><td style="color:'+MUT+'">'+(i+1)+'</td>'
++'<td style="color:'+ACC+';font-weight:600">'+r.ticker+'</td>'
++'<td>'+(r.name||'').slice(0,22)+'</td>'
++'<td style="color:'+DIM+'">'+(r.industry||'').slice(0,24)+'</td>'
++'<td style="font-weight:600">'+num(r.undervaluation_score,1)+'</td>'
++'<td>'+cu(r.catchup_pct,r.catchup_basis,r.catchup_capped)+'</td>'
++'<td style="color:'+gapCol(r.capture_gap)+'">'+(r.capture_gap>0?'+':'')+num(r.capture_gap)+'pp</td>'
++'<td style="color:'+gapCol(r.global_capture_gap)+'">'+(r.global_capture_gap>0?'+':'')+num(r.global_capture_gap)+'pp</td>'
++'<td>'+num(r.criticality)+'</td><td>'+num(r.roic)+'%</td>'
++'<td>'+legDots(r.legs||0)+'</td><td>'+tierChip(r.tier)+'</td></tr>';}).join('')+'</table>'
++'<div class="note"><strong>Rank is blended</strong> — capture gap (35%), cross-industry gap (25%), catch-up (15%), confirmation legs and criticality — so one loud metric cannot carry a name to the top. '+(c.catchup_note||'')+'</div>')
+:'<span class="mono" style="color:'+MUT+'">Leaderboard pending.</span>');
+
+// ── BY INDUSTRY (accordion) ────────────────────────────────────────────
+var bi=c.by_industry||[];
+function confChip2(k){var col=k==='HIGH'?POS:k==='MEDIUM'?ACC:MUT;
+ return '<span class="tier" style="background:'+col+'22;color:'+col+';border:1px solid '+col+'55">'+k+'</span>';}
+document.getElementById('byind').innerHTML=(bi.length?(
+ '<div class="note" style="margin-bottom:10px">'+bi.length+' industries · click any row to expand its members. Industries are ranked by median capture gap; the median catch-up column is the middle name\'s distance to its own industry median multiple.</div>'
+ +'<table><tr><th>Industry</th><th>Scored</th><th>Listed peers</th><th>Conf</th><th>Median gap</th><th>Median catch-up</th><th>EV/S med</th><th>P/E med</th><th>Undervalued</th></tr>'
+ +bi.map(function(b,i){
+  var head='<tr class="indrow" data-i="'+i+'" style="cursor:pointer">'
+  +'<td style="color:'+ACC+'">▸ '+(b.industry||'').slice(0,30)+'</td>'
+  +'<td>'+b.n_scored+'</td><td style="color:'+MUT+'">'+(b.listed_peers||'—')+'</td>'
+  +'<td>'+confChip2(b.sample_confidence)+'</td>'
+  +'<td style="color:'+gapCol(b.median_capture_gap)+';font-weight:600">'+(b.median_capture_gap>0?'+':'')+num(b.median_capture_gap)+'pp</td>'
+  +'<td>'+cu(b.median_catchup_pct,'',false)+'</td>'
+  +'<td style="color:'+DIM+'">'+num(b.median_ev_sales,2)+'</td><td style="color:'+DIM+'">'+num(b.median_pe,1)+'</td>'
+  +'<td style="color:'+(b.n_undervalued>0?POS:MUT)+'">'+b.n_undervalued+'</td></tr>';
+  var mem='<tr class="memrow" id="mem'+i+'" style="display:none"><td colspan="9" style="padding:0">'
+  +'<table style="margin:4px 0 10px 0">'
+  +'<tr><th>Ticker</th><th>Company</th><th>Mcap</th><th>Share</th><th>Catch-up</th><th>Gap</th><th>Global</th><th>Crit</th><th>EV/S</th><th>P/E</th><th>ROIC</th><th>Legs</th><th>Tier</th></tr>'
+  +(b.members||[]).map(function(m){return '<tr><td style="color:'+ACC+'">'+m.ticker+'</td>'
+   +'<td>'+(m.name||'').slice(0,20)+'</td><td>'+money(m.market_cap)+'</td>'
+   +'<td>'+num(m.mcap_share_pct,2)+'%</td>'
+   +'<td>'+cu(m.catchup_pct,m.catchup_basis,false)+'</td>'
+   +'<td style="color:'+gapCol(m.capture_gap)+'">'+(m.capture_gap>0?'+':'')+num(m.capture_gap)+'pp</td>'
+   +'<td style="color:'+gapCol(m.global_capture_gap)+'">'+(m.global_capture_gap>0?'+':'')+num(m.global_capture_gap)+'pp</td>'
+   +'<td>'+num(m.criticality)+'</td><td style="color:'+DIM+'">'+num(m.ev_sales,2)+'</td>'
+   +'<td style="color:'+DIM+'">'+num(m.pe,1)+'</td><td>'+num(m.roic)+'%</td>'
+   +'<td>'+legDots(m.legs||0)+'</td><td>'+tierChip(m.tier)+'</td></tr>';}).join('')
+  +'</table></td></tr>';
+  return head+mem;}).join('')+'</table>')
+:'<span class="mono" style="color:'+MUT+'">Industry boards pending.</span>');
+Array.prototype.forEach.call(document.querySelectorAll('.indrow'),function(tr){
+ tr.onclick=function(){var el=document.getElementById('mem'+tr.getAttribute('data-i'));
+  if(!el)return;var open=el.style.display!=='none';el.style.display=open?'none':'table-row';
+  tr.cells[0].innerHTML=(open?'▸ ':'▾ ')+tr.cells[0].textContent.slice(2);};});
 
 // METHOD
 var m=c.method||{};
