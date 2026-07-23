@@ -108,7 +108,11 @@ return '<tr><td style="color:'+ACC+'">'+x.series_id+'</td><td>'+((x.title||'').s
 +'<td style="color:'+sgCol(x.signal)+'">'+(x.signal||'').replace(/_/g,' ')+'</td></tr>';}).join('');
 
 document.getElementById('method').textContent=d.method||'';
-document.getElementById('cov').innerHTML='lines '+(d.n_lines||0)+' · base-rate ready '+(d.n_base_rate_ready||0)
+var dr=d.drop_reasons||{};
+document.getElementById('cov').innerHTML='swept '+(d.n_lines||0)+' of '+(d.n_universe||0)+' universe ('+(d.coverage_pct||0)+'% coverage)'
++' · unreachable '+((dr.fetch_error||0)+(dr.exception||0))+' · short history '+(dr.short_history||0)
++((d.dropped_ids&&d.dropped_ids.length)?(' · dropped: '+d.dropped_ids.slice(0,6).join(', ')+(d.dropped_ids.length>6?' …':'')):'')
++'<br>base-rate ready '+(d.n_base_rate_ready||0)
 +' · accel threshold '+((d.thresholds||{}).accel_pp||2)+'pp · min obs for z '+((d.thresholds||{}).min_obs_for_z||36)
 +((d.degraded&&d.degraded.length)?('<br><span style="color:'+NEG+'">degraded: '+d.degraded.join(' · ')+'</span>'):'<br><span style="color:'+POS+'">no degraded feeds</span>');
 document.getElementById('foot').textContent='Feed data/ppi-acceleration.json · '+(d.attribution||'')+' · v'+(d.version||'')+' · generated '+(d.generated_at||'');

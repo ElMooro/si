@@ -45,7 +45,7 @@ from datetime import datetime, timezone
 import boto3
 import urllib.request
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = "justhodl-dashboard-live"
 LINES_KEY = "config/ppi-lines.json"
 OUT_KEY = "data/ppi-acceleration.json"
@@ -98,7 +98,14 @@ def lambda_handler(event=None, context=None):
                 "body": json.dumps({"error": "line universe missing: %s"
                                     % str(e)[:120]})}
 
+    # ops 3760: coverage was 117/198 with the loss lumped into one opaque
+    # `errs` counter — a sweep silently dropping 41% of its universe defeats
+    # the canary AND hides why. Count each reason separately, and keep
+    # short-history lines in the output (reported, excluded from ranking)
+    # rather than deleting them.
     rows, errs = [], 0
+    drop = {"fetch_error": 0, "short_history": 0, "exception": 0}
+    dropped_ids = []
     with ThreadPoolExecutor(max_workers=WORKERS) as ex:
         futs = {ex.submit(_obs, m["id"]): m for m in lines}
         for f in as_completed(futs):
@@ -106,10 +113,29 @@ def lambda_handler(event=None, context=None):
             try:
                 o = f.result()
             except Exception:
+                drop["exception"] += 1
                 errs += 1
+                dropped_ids.append(m["id"])
                 continue
-            if isinstance(o, dict) or len(o) < 15:
+            if isinstance(o, dict):
+                drop["fetch_error"] += 1
                 errs += 1
+                dropped_ids.append(m["id"])
+                continue
+            if len(o) < 15:
+                # real series, just too short for a 2nd derivative — say so
+                drop["short_history"] += 1
+                rows.append({
+                    "series_id": m["id"],
+                    "title": (m.get("title") or "").replace(
+                        "Producer Price Index by Industry: ", ""),
+                    "period": o[0][0] if o else None,
+                    "level": round(o[0][1], 3) if o else None,
+                    "yoy_pct": None, "prior_yoy_pct": None, "accel_pp": None,
+                    "m3_ann_pct": None, "z_vs_own_history": None,
+                    "n_obs": len(o), "base_rate_ready": False,
+                    "signal": "INSUFFICIENT_HISTORY",
+                })
                 continue
 
             latest_d, latest_v = o[0]
@@ -168,11 +194,19 @@ def lambda_handler(event=None, context=None):
             })
 
     if errs:
-        degraded.append("%d of %d lines failed to fetch" % (errs, len(lines)))
+        degraded.append("%d of %d lines unreachable (fetch_error=%d "
+                        "exception=%d)" % (errs, len(lines),
+                                           drop["fetch_error"],
+                                           drop["exception"]))
+    if drop["short_history"]:
+        degraded.append("%d lines have <15 observations — reported as "
+                        "INSUFFICIENT_HISTORY, excluded from ranking rather "
+                        "than silently dropped" % drop["short_history"])
 
     order = {"ACCELERATING_CONFIRMED": 0, "ACCELERATING_RAW": 1,
              "INFLECTING_UP": 2, "FLAT": 3, "COOLING": 4,
-             "DECELERATING_RAW": 5, "DECELERATING_CONFIRMED": 6}
+             "DECELERATING_RAW": 5, "DECELERATING_CONFIRMED": 6,
+             "INSUFFICIENT_HISTORY": 7}
     rows.sort(key=lambda r: (order.get(r["signal"], 9),
                              -(r["accel_pp"] or -999)))
 
@@ -186,6 +220,10 @@ def lambda_handler(event=None, context=None):
         "n_accelerating": len(accelerating),
         "n_decelerating": len(decelerating),
         "n_base_rate_ready": sum(1 for r in rows if r["base_rate_ready"]),
+        "n_universe": len(lines),
+        "coverage_pct": round(100 * len(rows) / len(lines), 1) if lines else 0,
+        "drop_reasons": drop,
+        "dropped_ids": dropped_ids[:40],
         "top_accelerating": accelerating[:15],
         "top_decelerating": decelerating[:10],
         "lines": rows,

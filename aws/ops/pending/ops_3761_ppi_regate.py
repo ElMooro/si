@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 3760 — SHIP canary #13: narrow-line PPI acceleration.
+"""ops 3761 — SHIP canary #13: narrow-line PPI acceleration.
 
 Sweeps the 198 lines discovered in ops 3759 (config/ppi-lines.json) and ranks
 them by the 2nd derivative of price. An aggregate PPI print averages a heating
@@ -43,14 +43,15 @@ PAGE = "https://justhodl.ai/ppi-acceleration.html"
 REGION = "us-east-1"
 UA = {"User-Agent": "Mozilla/5.0 (JustHodl ops verify)"}
 EXEMPT = {"version", "generated_at", "attribution", "method", "lines",
-          "top_accelerating", "top_decelerating", "n_obs"}
+          "top_accelerating", "top_decelerating", "n_obs",
+          "fetch_error", "exception", "short_history"}
 
-with report("3760_ppi_acceleration") as rep:
-    rep.heading("ops 3760 — canary #13: narrow-line PPI acceleration")
+with report("3761_ppi_regate") as rep:
+    rep.heading("ops 3761 — canary #13: narrow-line PPI acceleration")
     fails = []
     out = {"gates": {}}
     Path("aws/ops/reports").mkdir(parents=True, exist_ok=True)
-    Path("aws/ops/reports/3760.json").write_text(json.dumps({"verdict": "STARTED"}))
+    Path("aws/ops/reports/3761.json").write_text(json.dumps({"verdict": "STARTED"}))
 
     def gate(n, ok, detail):
         out["gates"][n] = {"ok": bool(ok), "detail": str(detail)[:900]}
@@ -77,7 +78,7 @@ with report("3760_ppi_acceleration") as rep:
              "producer_missing=%s page_missing=%s" % (miss, pmiss))
 
         # ── G1 settle ────────────────────────────────────────────────────
-        rep.section("G1 — settle v1.0.0")
+        rep.section("G1 — settle v1.1.0")
         settled = False
         for i in range(26):
             try:
@@ -89,7 +90,7 @@ with report("3760_ppi_acceleration") as rep:
                 blob = urllib.request.urlopen(cfg["Code"]["Location"], timeout=60).read()
                 body = zipfile.ZipFile(io.BytesIO(blob)).read(
                     "lambda_function.py").decode("utf-8", "replace")
-                if 'VERSION = "1.0.0"' in body and "ACCELERATING_CONFIRMED" in body:
+                if 'VERSION = "1.1.0"' in body and "ACCELERATING_CONFIRMED" in body:
                     settled = True
                     break
             except Exception as e:
@@ -161,10 +162,20 @@ with report("3760_ppi_acceleration") as rep:
             n_uni = uni.get("n_lines") or len(uni.get("lines") or [])
             n_out = len((doc or {}).get("lines") or [])
             cov = (n_out / n_uni * 100) if n_uni else 0
+            dr = (doc or {}).get("drop_reasons") or {}
             rep.log("  universe=%d swept=%d coverage=%.1f%%" % (n_uni, n_out, cov))
-            gate("G4_breadth", n_uni > 0 and cov >= 80,
-                 "coverage %.1f%% (%d of %d) — a sweep that collapses to a "
-                 "handful defeats the canary" % (cov, n_out, n_uni))
+            rep.log("  drop reasons: %s" % dr)
+            rep.log("  dropped ids (sample): %s"
+                    % ((doc or {}).get("dropped_ids") or [])[:8])
+            # v1.1 keeps short-history lines IN the output (reported, not
+            # ranked), so coverage should now be near-total; whatever is
+            # still missing must be ACCOUNTED FOR by a stated reason rather
+            # than vanishing silently.
+            accounted = n_out + (dr.get("fetch_error", 0)
+                                 + dr.get("exception", 0))
+            gate("G4_breadth", n_uni > 0 and cov >= 90 and accounted >= n_uni,
+                 "coverage %.1f%% (%d of %d) · accounted=%d/%d · reasons=%s"
+                 % (cov, n_out, n_uni, accounted, n_uni, dr))
         except Exception as e:
             gate("G4_breadth", False, "universe read: %s" % str(e)[:150])
 
@@ -178,7 +189,7 @@ with report("3760_ppi_acceleration") as rep:
                     bust, headers=dict(UA, **{"Cache-Control": "no-cache",
                                               "Pragma": "no-cache"})),
                     timeout=30).read().decode("utf-8", "replace")
-                if "PPI Acceleration" in html and "base_rate_ready" in html:
+                if "PPI Acceleration" in html and "coverage_pct" in html:
                     rep.log("  served page CURRENT len=%d after %ds"
                             % (len(html), attempt * 20))
                     break
@@ -214,7 +225,7 @@ with report("3760_ppi_acceleration") as rep:
         rep.section("VERDICT")
         verdict = "PASS_ALL" if not fails else "FAIL"
         out["verdict"] = verdict
-        Path("aws/ops/reports/3760.json").write_text(json.dumps(out, indent=2))
+        Path("aws/ops/reports/3761.json").write_text(json.dumps(out, indent=2))
         rep.kv(verdict=verdict, lines=(doc or {}).get("n_lines", 0),
                accelerating=(doc or {}).get("n_accelerating", 0),
                decelerating=(doc or {}).get("n_decelerating", 0),
@@ -229,7 +240,7 @@ with report("3760_ppi_acceleration") as rep:
     except Exception:
         tb = traceback.format_exc()
         rep.fail("UNCAUGHT: " + tb[-1500:])
-        Path("aws/ops/reports/3760.json").write_text(
+        Path("aws/ops/reports/3761.json").write_text(
             json.dumps({"verdict": "CRASH", "traceback": tb[-3000:]}, indent=2))
         sys.exit(1)
 
