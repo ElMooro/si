@@ -1,0 +1,50 @@
+# ops 3755 — canary #17 credit-before-equity probe
+
+**Status:** success  
+**Duration:** 2.0s  
+**Finished:** 2026-07-23T01:11:39+00:00  
+
+## Data
+
+| buildable | cds_rows | credit_fields | history_exists |
+|---|---|---|---|
+| True | 14 | distance_to_default,default_prob_5y_pct,peer_rank | False |
+
+## Log
+## A — data/cds-monitor.json shape
+
+- `01:11:37` ✅   top-level: ['alarm_board', 'canary_alarms', 'cross_reference', 'elapsed_s', 'errors', 'generated_at', 'global_bond_stress', 'global_credit_stress', 'headline', 'method', 'ok', 'schema_version', 'single_name_cds', 'sources', 'sovereign_cds', 'systemic_stress']
+- `01:11:37`   list 'single_name_cds.corporates' n=14 keys=['asset_vol_pct', 'default_prob_5y_pct', 'distance_to_default', 'equity_vol_pct', 'group', 'market_cap_usd_bn', 'name', 'peer_rank', 'regime', 'structural_cds_raw_bp']
+- `01:11:37`   list 'single_name_cds.banks' n=12 keys=['asset_vol_pct', 'default_prob_5y_pct', 'distance_to_default', 'equity_vol_pct', 'group', 'market_cap_usd_bn', 'name', 'peer_rank', 'regime', 'structural_cds_raw_bp']
+- `01:11:37`   list 'alarm_board.alarms' n=1 keys=['detail', 'level', 'signal']
+- `01:11:37` ✅   BIGGEST list = 'single_name_cds.corporates' n=14
+- `01:11:37`   row keys: ['asset_vol_pct', 'default_prob_5y_pct', 'distance_to_default', 'equity_vol_pct', 'group', 'market_cap_usd_bn', 'name', 'peer_rank', 'regime', 'structural_cds_raw_bp', 'synthetic_cds_bp', 'ticker', 'total_debt_usd_bn']
+- `01:11:37`   sample: {"ticker": "F", "name": "Ford Motor", "group": "corporate", "market_cap_usd_bn": 55.9, "total_debt_usd_bn": 167.6, "equity_vol_pct": 37.6, "asset_vol_pct": 15.0, "distance_to_default": 1.11, "default_prob_5y_pct": 24.25, "synthetic_cds_bp": 130.0, "regime": "NORMAL", "structural_cds_raw_bp": 277.7, "peer_rank": 1}
+- `01:11:37`   credit-ish fields: ['distance_to_default', 'default_prob_5y_pct', 'peer_rank']
+## B — existing history ledgers (do NOT rebuild)
+
+- `01:11:37` ⚠   cds/cds-monitor-history.json -> An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
+- `01:11:37` ⚠   data/cds-monitor-history.json -> An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
+- `01:11:37` ⚠   credit/credit-history.json -> An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
+- `01:11:37` ⚠   data/credit-composite-history.json -> An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
+- `01:11:37`   none — the #17 engine must build its OWN ledger (same self-building pattern as import-canary / IIC)
+## C — price change per name (reuse, don't refetch)
+
+- `01:11:38` ✅   data/short-interest.json -> list 'top_crowded_shorts' n=15 price-ish=['si_change_pct', 'price_change_pct', 'price_window_days']
+- `01:11:38` ✅   data/universe.json -> list 'stocks' n=5320 price-ish=['exchange', 'price']
+## D — HY issuance (is it free-reachable at all?)
+
+- `01:11:38` ✅   FRED 'corporate bond issuance' -> 10 series
+- `01:11:38`     M10016M144NNBR           New Corporate Issues, Bonds, Notes, and Stocks, Public Utilities, United S
+- `01:11:38`     Q10119USQ144NNBR         New Corporate Securities Issued, Debt, All Industries for United States
+- `01:11:38`     M10009M144NNBR           New Corporate Issues, Long Term Bonds and Notes, U.S. and Canadian
+- `01:11:38`     M13044USM156NNBR         Yields on Corporate Bonds, New Issues, Aa Rating for United States
+- `01:11:38`     Q10070USQ144NNBR         Domestic Bond Issues for United States
+- `01:11:38`     BOGZ1FA633063045Q        Money Market Funds; Corporate Bonds Issued by Nonfinancial Corporate Busin
+- `01:11:38`     FGCBGSQ027S              Federal Government; Corporate Bonds Issued by Commercial Banking Under TAR
+- `01:11:38`     BOGZ1FU633063045Q        Money Market Funds; Corporate Bonds Issued by Nonfinancial Corporate Busin
+- `01:11:39` ✅   BAMLH0A0HYM2 latest=2.69 (2026-07-21) [PRICE not issuance]
+- `01:11:39` ✅   BAMLC0A0CM latest=0.78 (2026-07-21) [PRICE not issuance]
+## VERDICT
+
+- `01:11:39` ✅ PROBE COMPLETE
