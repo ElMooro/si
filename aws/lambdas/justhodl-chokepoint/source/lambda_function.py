@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "3.2"
+VERSION = "3.3"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -608,13 +608,44 @@ def lambda_handler(event, context):
                 "within-industry: large positive means the entire industry is "
                 "under-capitalised, not just the name.")
             capture["widest_global_gaps"] = _gsorted[:40]
+            def _iqr(vs):
+                if len(vs) < 4:
+                    return None
+                _s = sorted(vs)
+                _q1 = _s[len(_s) // 4]
+                _q3 = _s[(3 * len(_s)) // 4]
+                return round(_q3 - _q1, 1)
+
+            def _conf(n):
+                # a median over 3 observations is not a base rate. Tiering makes
+                # the reader's trust proportional to the evidence.
+                return "HIGH" if n >= 20 else "MEDIUM" if n >= 8 else "LOW"
+
+            _ind_all = []
+            for _i, _v in _bygi.items():
+                _n = len(_v)
+                _med = round(sorted(_v)[_n // 2], 1)
+                _ind_all.append({
+                    "industry": _i, "n": _n,
+                    "median_global_gap": _med,
+                    "iqr_global_gap": _iqr(_v),
+                    "max_global_gap": round(max(_v), 1),
+                    "min_global_gap": round(min(_v), 1),
+                    "sample_confidence": _conf(_n),
+                    "industry_mcap_total": _tots.get(_i),
+                })
+            _rank = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
+            # sort by CONFIDENCE first, then magnitude: a 3-name curiosity can
+            # never outrank an 81-name reading on the board again.
             capture["industry_underweight"] = sorted(
-                [{"industry": _i,
-                  "n": len(_v),
-                  "median_global_gap": round(sorted(_v)[len(_v) // 2], 1),
-                  "industry_mcap_total": _tots.get(_i)}
-                 for _i, _v in _bygi.items() if len(_v) >= 3],
-                key=lambda x: -x["median_global_gap"])[:25]
+                [x for x in _ind_all if x["n"] >= 5],
+                key=lambda x: (_rank[x["sample_confidence"]], -x["median_global_gap"]))[:25]
+            capture["industry_underweight_thin"] = sorted(
+                [dict(x, reason="n<5 — median not a base rate, shown for completeness only")
+                 for x in _ind_all if x["n"] < 5],
+                key=lambda x: -x["median_global_gap"])[:15]
+            capture["stats"]["industries_high_conf"] = sum(
+                1 for x in _ind_all if x["sample_confidence"] == "HIGH")
             capture["stats"]["global_scored"] = len(_gsorted)
             diag.append("global_capture_gap: %d scored" % len(_gsorted))
         except Exception as _ge:

@@ -56,6 +56,12 @@ a{color:var(--accent)}
   <div class="note">X = market-cap-share percentile within industry (what the market pays). Y = criticality percentile (what the business is worth to its industry). Names <strong>above the diagonal</strong> create more than they capture. Bubble size = absolute market cap; amber ring = STRUCTURALLY_UNDERVALUED.</div>
 </div>
 
+<div class="sec">🌍 Cross-Industry Gap — is the whole industry under-capitalised?</div>
+<div class="card" id="globalbox"></div>
+
+<div class="sec">🏭 Under-Capitalised Industries — confidence-tiered</div>
+<div class="card" id="indunder"></div>
+
 <div class="sec">📊 Full Ledger — every scored name</div>
 <div class="card" style="overflow-x:auto"><table id="all"></table></div>
 
@@ -96,7 +102,7 @@ document.getElementById('hero').innerHTML='<div class="grid">'
 +'<div class="tile"><div class="lbl">Names scored</div><div class="big">'+(st.scored||0)+'</div><div class="note">across '+(st.industries||0)+' industries</div></div>'
 +'<div class="tile"><div class="lbl">Structurally undervalued</div><div class="big" style="color:'+POS+'">'+(st.structurally_undervalued||0)+'</div><div class="note">≥3 legs &amp; gap ≥20pp</div></div>'
 +'<div class="tile"><div class="lbl">Hidden (small/mid)</div><div class="big" style="color:'+ACC+'">'+(st.hidden||0)+'</div><div class="note">where the screening edge lives</div></div>'
-+'<div class="tile"><div class="lbl">Backlog joined</div><div class="big" style="color:'+((st.backlog_joined||0)>0?NEU:NEG)+'">'+(st.backlog_joined||0)+'</div><div class="note">'+((st.backlog_joined||0)>0?'RPO leg active':'⚠ leg inactive — no overlap')+'</div></div>'
++'<div class="tile"><div class="lbl">Backlog leg</div><div class="big" style="color:'+((st.backlog_joined||0)>0?POS:NEG)+'">'+(st.backlog_joined||0)+'</div><div class="note">'+(st.backlog_joined||0)+' joined of '+(st.backlog_overlap||0)+' overlapping · ledger '+(st.backlog_ledger_size||0)+'</div></div>'
 +'</div>';
 
 // UNDERVALUED
@@ -166,8 +172,8 @@ function ledger(){
  var cols=[['ticker','Ticker'],['name','Company'],['industry','Industry'],['cap_bucket','Cap'],
   ['market_cap','Mcap'],['mcap_share_pct','Share %'],['industry_peers','Peers'],
   ['criticality','Crit'],['criticality_pctile','Crit %ile'],['mcap_share_pctile','Cap %ile'],
-  ['capture_gap','Gap'],['gm_level','GM'],['gm_stability','GM stab'],['roic','ROIC'],
-  ['discount_to_fair_pct','vs fair'],['rpo_growth_yoy','RPO YoY'],['legs','Legs'],['tier','Tier']];
+  ['capture_gap','Gap'],['global_capture_gap','Global gap'],['gap_divergence','Diverg'],['gm_level','GM'],['gm_stability','GM stab'],['roic','ROIC'],
+  ['discount_to_fair_pct','vs fair'],['rpo_yoy','RPO YoY'],['legs','Legs'],['tier','Tier']];
  var h='<tr>'+cols.map(function(c){return '<th data-k="'+c[0]+'">'+c[1]+(sortK===c[0]?(sortD<0?' ▾':' ▴'):'')+'</th>';}).join('')+'</tr>';
  var b=rs.map(function(r){return '<tr>'
   +'<td style="color:'+ACC+';font-weight:600">'+r.ticker+'</td>'
@@ -178,11 +184,11 @@ function ledger(){
   +'<td style="color:'+MUT+'">'+(r.industry_peers||'—')+'</td>'
   +'<td>'+num(r.criticality)+'</td><td style="color:'+DIM+'">'+num(r.criticality_pctile)+'</td>'
   +'<td style="color:'+DIM+'">'+num(r.mcap_share_pctile)+'</td>'
-  +'<td style="color:'+gapCol(r.capture_gap)+';font-weight:600">'+(r.capture_gap>0?'+':'')+num(r.capture_gap)+'pp</td>'
+  +'<td style="color:'+gapCol(r.capture_gap)+';font-weight:600">'+(r.capture_gap>0?'+':'')+num(r.capture_gap)+'pp</td>'+'<td style="color:'+gapCol(r.global_capture_gap)+'">'+(r.global_capture_gap>0?'+':'')+num(r.global_capture_gap)+'pp</td>'+'<td style="color:'+(r.gap_divergence>0?POS:MUT)+'">'+(r.gap_divergence>0?'+':'')+num(r.gap_divergence)+'</td>'
   +'<td>'+num(r.gm_level)+'%</td><td>±'+num(r.gm_stability)+'pp</td><td>'+num(r.roic)+'%</td>'
   +'<td style="color:'+(r.discount_to_fair_pct>0?POS:MUT)+'">'+num(r.discount_to_fair_pct)+'%</td>'
-  +'<td style="color:'+(r.rpo_growth_yoy==null?MUT:(r.rpo_growth_yoy>0?POS:NEG))+'">'+num(r.rpo_growth_yoy)+'</td>'
-  +'<td>'+legDots(r.legs||0)+'</td><td>'+tierChip(r.tier)+'</td></tr>';}).join('');
+  +'<td style="color:'+(r.rpo_yoy==null?MUT:(r.rpo_yoy>0?POS:NEG))+'">'+num(r.rpo_yoy)+'</td>'
+  +'<td>'+legDots(r.legs||0)+(r.legs_available===4?'<span style="color:'+MUT+';font-size:9px"> 4av</span>':'')+'</td>'+'<td>'+tierChip(r.tier)+'</td></tr>';}).join('');
  document.getElementById('all').innerHTML=h+b;
  Array.prototype.forEach.call(document.querySelectorAll('#all th'),function(th){
   th.onclick=function(){var k=th.getAttribute('data-k');
@@ -204,6 +210,37 @@ document.getElementById('ind').innerHTML=inds.length?('<table><tr><th>Industry</
 +'<td style="color:'+gapCol(x.best.capture_gap)+';font-weight:600">+'+num(x.best.capture_gap)+'pp</td>'
 +'<td style="color:'+ACC+'">'+x.best.ticker+'</td><td>'+num(x.best.mcap_share_pct,2)+'%</td></tr>';}).join('')+'</table>'
 +'<div class="note">Industry mcap totals come from the full listed market (all active non-ETF names), not just the scored sample — so a share of 0.04% is a share of the <em>real</em> industry.</div>'):'';
+
+// CROSS-INDUSTRY
+var wg=c.widest_global_gaps||[];
+document.getElementById('globalbox').innerHTML=(wg.length?('<table><tr><th>Ticker</th><th>Industry</th><th>Global gap</th><th>Within-industry</th><th>Divergence</th><th>Crit %ile (global)</th><th>Mcap %ile (global)</th><th>Tier</th></tr>'
++wg.map(function(r){return '<tr><td style="color:'+ACC+';font-weight:600">'+r.ticker+'</td>'
++'<td style="color:'+DIM+'">'+(r.industry||'').slice(0,26)+'</td>'
++'<td style="color:'+gapCol(r.global_capture_gap)+';font-weight:600">'+(r.global_capture_gap>0?'+':'')+num(r.global_capture_gap)+'pp</td>'
++'<td style="color:'+gapCol(r.capture_gap)+'">'+(r.capture_gap>0?'+':'')+num(r.capture_gap)+'pp</td>'
++'<td style="color:'+(r.gap_divergence>0?POS:MUT)+'">'+(r.gap_divergence>0?'+':'')+num(r.gap_divergence)+'pp</td>'
++'<td style="color:'+DIM+'">'+num(r.global_criticality_pctile)+'</td>'
++'<td style="color:'+DIM+'">'+num(r.global_mcap_pctile)+'</td>'
++'<td>'+tierChip(r.tier)+'</td></tr>';}).join('')+'</table>'
++'<div class="note">'+(c.global_method||'')+'</div>'
++'<div class="note">A large positive <strong>divergence</strong> (global ≫ within-industry) means the name looks fairly valued against its own peers but cheap against the whole market — i.e. the entire industry is under-capitalised, not the individual company. Both numbers ship because they answer different questions and disagreeing is informative.</div>')
+:'<span class="mono" style="color:'+MUT+'">Cross-industry layer pending.</span>');
+
+// INDUSTRY UNDERWEIGHT (confidence-tiered)
+var iu=c.industry_underweight||[],iuT=c.industry_underweight_thin||[];
+function confChip(k){var col=k==='HIGH'?POS:k==='MEDIUM'?ACC:MUT;
+ return '<span class="tier" style="background:'+col+'22;color:'+col+';border:1px solid '+col+'55">'+k+'</span>';}
+document.getElementById('indunder').innerHTML=(iu.length?('<table><tr><th>Industry</th><th>Names</th><th>Confidence</th><th>Median global gap</th><th>IQR</th><th>Range</th><th>Industry mcap</th></tr>'
++iu.map(function(x){return '<tr><td>'+(x.industry||'').slice(0,32)+'</td>'
++'<td style="color:'+DIM+'">'+x.n+'</td><td>'+confChip(x.sample_confidence)+'</td>'
++'<td style="color:'+gapCol(x.median_global_gap)+';font-weight:600">'+(x.median_global_gap>0?'+':'')+num(x.median_global_gap)+'pp</td>'
++'<td style="color:'+MUT+'">'+(x.iqr_global_gap==null?'—':num(x.iqr_global_gap)+'pp')+'</td>'
++'<td style="color:'+MUT+'">'+num(x.min_global_gap)+' … '+num(x.max_global_gap)+'</td>'
++'<td>'+money(x.industry_mcap_total)+'</td></tr>';}).join('')+'</table>'
++'<div class="note">Sorted by <strong>confidence first</strong>, then magnitude. A median over 3 names is not a base rate, so an 81-name reading outranks a 4-name one even if the 4-name median is higher. HIGH ≥20 names · MEDIUM ≥8 · LOW ≥5. IQR shows how much the names inside an industry actually disagree.</div>'
++(iuT.length?('<div class="note" style="margin-top:10px;color:'+MUT+'">Excluded as too thin (n&lt;5, shown for completeness, not for acting on): '
++iuT.slice(0,8).map(function(x){return x.industry+' (n='+x.n+', '+num(x.median_global_gap)+'pp)';}).join(' · ')+'</div>'):''))
+:'<span class="mono" style="color:'+MUT+'">Industry board pending.</span>');
 
 // METHOD
 var m=c.method||{};
