@@ -1105,6 +1105,41 @@ def lambda_handler(event, context):
                 note += " — and " + str(hc.get("setup_type", "")).lower().replace("_", " ") + ", the system's highest-quality setup"
             s["why"] = s["why"].rstrip(".") + f". Note: {s['ticker']} is {note}."
 
+
+    # ── Capture-gap overlay (ops 3779) ──
+    # Value CREATION vs value CAPTURE: a name can be the single point of failure
+    # for its industry and still hold a sliver of that industry's market cap.
+    # Attached as CONTEXT ONLY — deliberately does NOT move setup rank, because
+    # capture gap is a slow valuation-structure fact, not a timing signal, and
+    # this board ranks entries. Same choice the structural overlay above makes.
+    _cap = (chokepoint.get("capture_gap") or {})
+    _cap_rows = {r.get("ticker"): r for r in (_cap.get("all_rows") or [])}
+    _cap_joined = 0
+    for s in setups:
+        cr = _cap_rows.get(s.get("ticker"))
+        if not cr:
+            continue
+        _cap_joined += 1
+        s["capture_gap"] = cr.get("capture_gap")
+        s["global_capture_gap"] = cr.get("global_capture_gap")
+        s["capture_tier"] = cr.get("tier")
+        s["mcap_share_pct"] = cr.get("mcap_share_pct")
+        s["undervaluation_score"] = cr.get("undervaluation_score")
+        if cr.get("catchup_pct") is not None:
+            s["catchup_pct"] = cr.get("catchup_pct")
+            s["catchup_basis"] = cr.get("catchup_basis")
+        # only annotate when the evidence is strong enough to be worth a sentence
+        if s.get("why") and cr.get("tier") == "STRUCTURALLY_UNDERVALUED":
+            _bits = ["captures %.0fpp less of its industry's market cap than its "
+                     "criticality implies" % (cr.get("capture_gap") or 0)]
+            if cr.get("catchup_pct") is not None:
+                _bits.append("%.0f%% below its industry median multiple (%s; "
+                             "mean-reversion arithmetic, not a target)"
+                             % (cr["catchup_pct"], cr.get("catchup_basis") or "-"))
+            s["why"] = s["why"].rstrip(".") + ". Note: %s %s." % (
+                s["ticker"], " and ".join(_bits))
+    print("[best-setups] capture_gap_joined=%d" % _cap_joined)
+
     # ── Meta-intelligence overlay: brains you built but never wired into decisions ──
     # premortem kill-theses (failure mode per pick), engine-conflicts (the system arguing
     # with itself), lead-lag (a pick whose leader already moved). Each annotates the pick
