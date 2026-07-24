@@ -1,33 +1,34 @@
-executing-against: 85836a65025eff74aace1faa4bd02e7921c2b42b
-ops 3825 — btc-cycle + global-recession pages
+executing-against: 3d7866e2d8db33436d87bfc6933328dd69b5682e
+ops 3826 — btc-cycle + global-recession pages
 ── ── btc-cycle.html ──
-[21:41:33]   attempt 1: HTTP Error 404: Not Found
-[21:41:53]   attempt 2: HTTP Error 404: Not Found
-[21:42:13]   attempt 3: HTTP Error 404: Not Found
-[21:42:34]   attempt 4: HTTP Error 404: Not Found
-[21:42:54]   attempt 5: HTTP Error 404: Not Found
-[21:43:14]   attempt 6: HTTP Error 404: Not Found
-[21:43:34] ✅   served on attempt 7 (10,702 bytes)
-[21:43:34]   keys checked 29 · missing 1
-[21:43:34] ✗   NO RENDER PATH: ['ma_200d']
-[21:43:34] ✅   marker · rainbow band chart
-[21:43:34] ✅   marker · pi cycle block
-[21:43:34] ✅   marker · fit disclosure
-[21:43:34] ✅   marker · sample warning
-[21:43:34] ✅   marker · context-not-target
+[21:47:06]   attempt 1: 10,702 bytes, marker absent
+[21:47:26]   attempt 2: 10,702 bytes, marker absent
+[21:47:46]   attempt 3: 10,702 bytes, marker absent
+[21:48:06]   attempt 4: 10,702 bytes, marker absent
+[21:48:26]   attempt 5: 10,702 bytes, marker absent
+[21:48:46]   attempt 6: 10,702 bytes, marker absent
+[21:49:06]   attempt 7: 10,702 bytes, marker absent
+[21:49:26]   attempt 8: 10,702 bytes, marker absent
+[21:49:46] ✅   served on attempt 9 (10,734 bytes)
+[21:49:46]   keys checked 22 · missing 0
+[21:49:46] ✅   every non-waived key rendered
+[21:49:46] ✅   marker · rainbow band chart
+[21:49:46] ✅   marker · pi cycle block
+[21:49:46] ✅   marker · fit disclosure
+[21:49:46] ✅   marker · sample warning
+[21:49:46] ✅   marker · context-not-target
 ── ── global-recession.html ──
-[21:43:34] ✅   served on attempt 1 (11,426 bytes)
-[21:43:34]   keys checked 49 · missing 11
-[21:43:34] ✗   NO RENDER PATH: ['Africa', 'Asia-Pacific', 'Europe', 'Latin America', 'Middle East', 'North America', 'cli_level_adj', 'dist_200ma_adj', 'gdp_weight_at_risk_or_recession', 'momentum_6m', 'momentum_6m_adj']
-[21:43:34] ✅   marker · not-macromicro
-[21:43:34] ✅   marker · methodology table
-[21:43:34] ✅   marker · excluded list
-[21:43:34] ✅   marker · breadth
-[21:43:34] ✅   marker · us separate
+[21:49:47] ✅   served on attempt 1 (12,473 bytes)
+[21:49:47]   keys checked 40 · missing 0
+[21:49:47] ✅   every non-waived key rendered
+[21:49:47] ✅   marker · not-macromicro
+[21:49:47] ✅   marker · methodology table
+[21:49:47] ✅   marker · excluded list
+[21:49:47] ✅   marker · breadth
+[21:49:47] ✅   marker · us separate
 ── Nav manifest (served) ──
-[21:43:34] ✅   btc-cycle: Crypto & Digital
-[21:43:34] ✅   global-recession: Macro & Liquidity
-[21:43:34] ✗ FAILED: ['btc-cycle.html:keys', 'global-recession.html:keys']
+[21:49:47] ✅   btc-cycle: Crypto & Digital
+[21:49:47] ✅   global-recession: Macro & Liquidity
+[21:49:47] ✅ PASS_ALL — both pages served, all keys rendered, all markers present
 
-→ Report written to aws/ops/reports/latest/3825_two_pages_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_3825_two_pages_verify.py
+→ Report written to aws/ops/reports/latest/3826_two_pages_verify.md
