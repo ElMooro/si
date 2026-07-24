@@ -1,25 +1,8 @@
-executing-against: d727f29ee6e0b654e6da89d64b9ef6e0d81f7610
-ops 3831 — wire rotation tilt into setups + ranker
-── G0. rotation feed is fresh and carries what we consume ──
-[22:22:03] ✅   11/11 sector ETFs, regime=STAGFLATION
-[22:22:03] ✅   every sector ETF carries rrg.quadrant + trend_gate.eligible
-── ── justhodl-best-setups ──
-[22:22:04] ✅   justhodl-best-setups ZIP-SETTLED with '_rotation_scalar' after 0s
-[22:22:13] ✅   invoked clean
-[22:22:13]   rows=50 · field present=50 · actually tilted=44
-[22:22:13]     TSM    x1.05 rotation LEADING via XLK
-[22:22:13]     REGN   x1.05 rotation LEADING via XLV
-[22:22:13]     MU     x1.05 rotation LEADING via XLK
-[22:22:13]     EXE    x0.96 rotation WEAKENING via XLE
-[22:22:13]     DLTR   x0.93 rotation LAGGING via XLP
-[22:22:13]     GILD   x1.05 rotation LEADING via XLV
-[22:22:13] ✅   NON-ZERO JOIN: 44/50 rows tilted
-── ── justhodl-master-ranker ──
-[22:22:14] ✅   justhodl-master-ranker ZIP-SETTLED with '_rotation_overlay' after 0s
-[22:22:21] ✅   invoked clean
-[22:22:22]   rows=25 · field present=25 · actually tilted=1
-[22:22:22]     ORCL   x1.05 rotation tailwind: LEADING via XLK
-[22:22:22] ✅   NON-ZERO JOIN: 1/25 rows tilted
-[22:22:22] ✅ PASS_ALL — rotation tilt live in both rankers
+executing-against: 6d2bedff1001eb58b353a4c5192c5dc36a332383
+ops 3832 — census sector map -> finish rotation wire
+── G0. Does the census matrix actually carry a sector column? ──
+[22:34:13]   matrix: 496 tickers, 293 cols
+[22:34:13] ✗   NO sector column among candidates. near-misses: ['industry_risk_score']
 
-→ Report written to aws/ops/reports/latest/3831_wire_rotation.md
+→ Report written to aws/ops/reports/latest/3832_ranker_sector_map.md
+❌ OPS-FAIL: aws/ops/pending/ops_3832_ranker_sector_map.py
