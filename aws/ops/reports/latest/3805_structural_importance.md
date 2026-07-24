@@ -1,0 +1,71 @@
+# ops 3805 — 'how crucial to its industry', measurable for every name
+
+**Status:** success  
+**Duration:** 48.4s  
+**Finished:** 2026-07-24T16:52:39+00:00  
+
+## Data
+
+| dependency_still | invoke_seconds | invoke_status | ledger | pct | rd_leg_populated | rows_with_zero_centrality | scored | with_structural_importance |
+|---|---|---|---|---|---|---|---|---|
+|  |  |  | 1269 | 85.7 |  | 1087 |  |  |
+|  | 26.2 | 200 |  |  |  |  |  |  |
+| 156 |  |  |  |  |  |  | 1847 | 1847 |
+|  |  |  |  |  | 1847 |  |  |  |
+
+## Log
+## G0 — prove the zero-centrality penalty is real
+
+- `16:51:51` ✅ G0.formula :: s_ctr present
+- `16:51:51` ✅ G0.weight :: centrality carries 15% of criticality
+- `16:51:51` ✅ G0.v432 :: engine at v4.3.2
+- `16:51:51` ✅ G0.pct_block :: revenue share block present to build on
+- `16:51:52`   -> those 1087 names each lose up to 15 points of criticality purely for being absent from a 185-symbol curated map.
+## [A] Stop penalising unmapped names in criticality
+
+- `16:51:52` ✅ A.anchor :: criticality formula anchor unique
+- `16:51:52` ✅ B.rd_carry_anchor :: cap_rows carry anchor unique
+## [B] structural_importance for every scored name
+
+- `16:51:52` ✅ B.anchor :: percent block diag anchor unique
+- `16:51:52` ✅ v4.4 spliced + compile clean
+## Deploy
+
+- `16:51:52`   zip: 105286 bytes
+## 1. Lambda
+
+- `16:51:53`   Lambda exists — updating
+- `16:51:56` ✅   ✓ updated justhodl-chokepoint
+- `16:52:12` ✅ settled attempt 1
+- `16:52:12` ✅ DEPLOY.settled :: v4.4 live
+## Invoke + verify
+
+- `16:52:39` ✅ LIVE.v44 :: version=4.4
+- `16:52:39` ✅ LIVE.no_err :: err=None
+- `16:52:39` ✅ FIX.rd_leg_alive :: 1847 rows carry rd_premium (0 would mean the field-drop bug recurred)
+- `16:52:39` ✅ FIX.broad_coverage :: 1847 of 1847 names have a structural score (dependency reached ~180)
+## Sample — crucial names the supply-chain map never saw
+
+- `16:52:39`   IBM    Information Technology Servi SI= 73.0  rev_rank=92.0   margin_prem=20.7    top-8% of industry revenue; margins 21% abov
+- `16:52:39`   META   Internet Content & Informati SI= 71.1  rev_rank=78.6   margin_prem=25.0    margins 25% above peers; R&D 9% above peers;
+- `16:52:39`   AMZN   Specialty Retail             SI= 69.8  rev_rank=96.0   margin_prem=6.8     top-4% of industry revenue; R&D 13% above pe
+- `16:52:39`   LLY    Drug Manufacturers - General SI= 69.1  rev_rank=84.6   margin_prem=8.0     top-16% of industry revenue; R&D 7% above pe
+- `16:52:39`   CSCO   Communication Equipment      SI= 67.7  rev_rank=94.7   margin_prem=26.5    top-6% of industry revenue; margins 26% abov
+- `16:52:39`   PDD    Department Stores            SI= 67.2  rev_rank=None   margin_prem=19.8    margins 20% above peers; R&D 8% above peers
+- `16:52:39`   NVDA   Semiconductors               SI= 66.8  rev_rank=98.6   margin_prem=17.5    top-2% of industry revenue; margins 18% abov
+- `16:52:39`   BKNG   Travel Services              SI= 66.6  rev_rank=88.9   margin_prem=28.7    top-12% of industry revenue; margins 29% abo
+- `16:52:39`   HCA    Medical - Care Facilities    SI= 65.8  rev_rank=93.3   margin_prem=28.6    top-7% of industry revenue; margins 29% abov
+- `16:52:39`   EA     Electronic Gaming & Multimed SI= 65.6  rev_rank=66.7   margin_prem=18.2    margins 18% above peers; R&D 16% above peers
+- `16:52:39`   MS     Financial - Capital Markets  SI= 63.4  rev_rank=88.9   margin_prem=23.9    top-12% of industry revenue; margins 24% abo
+- `16:52:39`   MCD    Restaurants                  SI= 62.0  rev_rank=85.7   margin_prem=22.5    top-15% of industry revenue; margins 22% abo
+- `16:52:39`   VLTO   Industrial - Pollution & Tre SI= 60.1  rev_rank=66.7   margin_prem=17.3    margins 17% above peers; R&D 5% above peers
+- `16:52:39`   V      Financial - Credit Services  SI= 59.7  rev_rank=82.1   margin_prem=19.5    top-18% of industry revenue; margins 20% abo
+## Additive
+
+- `16:52:39` ✅ ADDITIVE.capture_gap :: preserved
+- `16:52:39` ✅ ADDITIVE.revenue_share_pct :: preserved
+- `16:52:39` ✅ ADDITIVE.catchup_pct :: preserved
+- `16:52:39` ✅ ADDITIVE.criticality :: preserved
+## VERDICT
+
+- `16:52:39` ✅ PASS_ALL — 'how crucial' now measurable for the whole ledger

@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "4.3.2"
+VERSION = "4.4"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -167,7 +167,20 @@ def evaluate(sym, centrality, rerate_lookup, bulk):
     s_roic = clamp((roic or 0) / 30.0) if roic is not None else 0.3
     s_rd = clamp(rd_int / 20.0)
     s_ctr = clamp(ctr / 8.0)
-    crit = round(100 * (0.30 * s_gm + 0.22 * s_stab + 0.20 * s_roic + 0.13 * s_rd + 0.15 * s_ctr), 1)
+    # ops 3805: the curated supply-chain map names ~185 symbols, so ctr is 0 for
+    # ~94% of the ledger. Scoring that as a genuine zero silently docks those
+    # companies 15 points on the very dimension "how crucial is this company" is
+    # asking about. When centrality is UNAVAILABLE (not merely low), redistribute
+    # its weight across the factors we can actually measure.
+    _has_ctr = ctr > 0
+    if _has_ctr:
+        crit = round(100 * (0.30 * s_gm + 0.22 * s_stab + 0.20 * s_roic
+                            + 0.13 * s_rd + 0.15 * s_ctr), 1)
+    else:
+        _sc = 1.0 / 0.85          # renormalise the remaining 85% back to 1.0
+        crit = round(100 * _sc * (0.30 * s_gm + 0.22 * s_stab + 0.20 * s_roic
+                                  + 0.13 * s_rd), 1)
+    crit = min(crit, 100.0)
     is_choke = crit >= CHOKE_THRESHOLD
 
     # cheap overlay (the actionable edge)
@@ -228,7 +241,8 @@ def evaluate(sym, centrality, rerate_lookup, bulk):
         "gm_level": round(gm_level, 1), "gm_stability": round(gm_stab, 1),
         "om_level": round(om_level, 1), "rd_intensity": round(rd_int, 1),
         "roic": round(roic, 1) if isinstance(roic, (int, float)) else None,
-        "centrality": ctr, "discount_to_fair_pct": disc, "cheap_chokepoint": bool(is_choke and cheap),
+        "centrality": ctr, "centrality_mapped": bool(ctr > 0),
+        "discount_to_fair_pct": disc, "cheap_chokepoint": bool(is_choke and cheap),
         "ev_sales": ev_sales, "pe": pe_ratio,
         "revenue_ttm": _rev_ttm, "revenue_currency": _rev_ccy,
         "revenue_growth_yoy": _g_yoy, "revenue_growth_3y_cagr": _g_cagr,
@@ -640,6 +654,7 @@ def lambda_handler(event, context):
                     "is_chokepoint": _r.get("is_chokepoint"),
                     # ops 3771: evaluate() emits these; the hand-written field list
                     # above dropped them, so every catch-up number was silently None.
+                    "rd_intensity": _r.get("rd_intensity"),
                     "ev_sales": _r.get("ev_sales"),
                     "pe": _r.get("pe"),
                     "revenue_ttm": _r.get("revenue_ttm"),
@@ -1098,6 +1113,110 @@ def lambda_handler(event, context):
                 % (len(g.get("nodes") or []), len(g.get("edges") or [])))
             capture["stats"]["graph_nodes"] = len(g.get("nodes") or [])
             capture["stats"]["graph_edges"] = len(g.get("edges") or [])
+            # ── ops 3805: STRUCTURAL IMPORTANCE ─────────────────────────
+            # "How crucial is this company to its industry?" answered from data
+            # that exists for EVERY name, not from a 185-symbol curated map.
+            # Four measurable legs; supply-chain centrality is a BONUS when
+            # present, never a penalty when absent.
+            try:
+                _gm_by, _rd_by = {}, {}
+                for _c in cap_rows:
+                    _i = _c.get("industry")
+                    if _c.get("gm_level") is not None:
+                        _gm_by.setdefault(_i, []).append(_c["gm_level"])
+                    if _c.get("rd_intensity") is not None:
+                        _rd_by.setdefault(_i, []).append(_c["rd_intensity"])
+
+                def _median(v):
+                    v = sorted(x for x in v if x is not None)
+                    return v[len(v) // 2] if v else None
+
+                _gm_med = {k: _median(v) for k, v in _gm_by.items()}
+                _rd_med = {k: _median(v) for k, v in _rd_by.items()}
+
+                # revenue rank within industry (USD filers only, same guard as share)
+                _rev_by_i = {}
+                for _c in cap_rows:
+                    if _c.get("revenue_share_pct") is not None:
+                        _rev_by_i.setdefault(_c["industry"], []).append(_c["revenue_share_pct"])
+
+                for _c in cap_rows:
+                    _i = _c.get("industry")
+                    _legs, _n = 0.0, 0
+
+                    # 1. revenue scale within industry (0-1)
+                    _rs = _c.get("revenue_share_pct")
+                    _pool = _rev_by_i.get(_i) or []
+                    if _rs is not None and len(_pool) >= 3:
+                        _below = sum(1 for x in _pool if x < _rs)
+                        _rank = _below / float(len(_pool))
+                        _c["revenue_rank_in_industry"] = round(100.0 * _rank, 1)
+                        _legs += _rank; _n += 1
+                    else:
+                        _c["revenue_rank_in_industry"] = None
+
+                    # 2. margin premium vs industry median
+                    _gm, _gmm = _c.get("gm_level"), _gm_med.get(_i)
+                    if _gm is not None and _gmm is not None:
+                        _prem = _gm - _gmm
+                        _c["margin_premium_vs_industry"] = round(_prem, 1)
+                        _legs += max(0.0, min(1.0, (_prem + 10.0) / 40.0)); _n += 1
+                    else:
+                        _c["margin_premium_vs_industry"] = None
+
+                    # 3. R&D premium vs industry median
+                    _rd, _rdm = _c.get("rd_intensity"), _rd_med.get(_i)
+                    if _rd is not None and _rdm is not None:
+                        _rp = _rd - _rdm
+                        _c["rd_premium_vs_industry"] = round(_rp, 1)
+                        _legs += max(0.0, min(1.0, (_rp + 5.0) / 20.0)); _n += 1
+                    else:
+                        _c["rd_premium_vs_industry"] = None
+
+                    # 4. market-cap concentration in industry
+                    _ms = _c.get("mcap_share_pct")
+                    if _ms is not None:
+                        _legs += max(0.0, min(1.0, _ms / 25.0)); _n += 1
+
+                    _base = (_legs / _n) if _n else None
+                    if _base is None:
+                        _c["structural_importance"] = None
+                        _c["structural_basis"] = None
+                        continue
+                    # supply-chain centrality as a BONUS only
+                    _bonus = 0.0
+                    if (_c.get("dependency_pct") or 0) > 0:
+                        _bonus = min(0.15, (_c["dependency_pct"] / 100.0) * 0.15)
+                    _si = round(min(100.0, 100.0 * (_base * 0.85 + _bonus)), 1)
+                    _c["structural_importance"] = _si
+                    _c["structural_legs_used"] = _n
+                    _bits = []
+                    if _c.get("revenue_rank_in_industry") is not None and _c["revenue_rank_in_industry"] >= 80:
+                        _bits.append("top-%d%% of industry revenue" % (100 - int(_c["revenue_rank_in_industry"])))
+                    if _c.get("margin_premium_vs_industry") is not None and _c["margin_premium_vs_industry"] >= 10:
+                        _bits.append("margins %.0f%% above peers" % _c["margin_premium_vs_industry"])
+                    if _c.get("rd_premium_vs_industry") is not None and _c["rd_premium_vs_industry"] >= 3:
+                        _bits.append("R&D %.0f%% above peers" % _c["rd_premium_vs_industry"])
+                    if (_c.get("dependency_pct") or 0) >= 20:
+                        _bits.append("%.0f%% of mapped supplier links" % _c["dependency_pct"])
+                    _c["structural_basis"] = "; ".join(_bits) if _bits else "no standout leg"
+
+                capture["stats"]["with_structural_importance"] = sum(
+                    1 for c in cap_rows if c.get("structural_importance") is not None)
+                capture["structural_note"] = (
+                    "structural_importance (0-100) answers 'how crucial is this company "
+                    "to its industry' using data available for EVERY name: revenue rank "
+                    "within the industry, gross-margin premium over the industry median, "
+                    "R&D premium over the median, and market-cap concentration. "
+                    "Supply-chain centrality adds a bonus where the curated map covers "
+                    "the company, but its ABSENCE never penalises — the map names only "
+                    "~185 symbols and treating that gap as a zero was silently docking "
+                    "94% of the ledger on this exact question.")
+                diag.append("structural_importance=%d" % capture["stats"]["with_structural_importance"])
+            except Exception as _se:
+                capture["structural_error"] = str(_se)[:250]
+                diag.append("structural FAILED: %s" % str(_se)[:150])
+
             diag.append("pct_critical: rev_share=%d dependency=%d" % (
                 capture["stats"]["with_revenue_share"],
                 capture["stats"]["with_dependency"]))
