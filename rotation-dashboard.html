@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rotation Dashboard · JustHodl.AI</title>
+<meta name="jh-page-version" content="v1-ops3819">
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:12px 13px}
+.tile .lbl{font-size:12px;color:var(--text-dim);margin-bottom:3px}
+.tile .val{font-size:20px;font-weight:700}
+.tile .note{font-size:11px;color:var(--text-mute);margin-top:4px}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.4px}
+.p-pos{background:rgba(111,206,138,.14);color:var(--pos);border:1px solid rgba(111,206,138,.4)}
+.p-neg{background:rgba(224,122,106,.14);color:var(--neg);border:1px solid rgba(224,122,106,.4)}
+.p-neu{background:rgba(232,232,232,.10);color:var(--neu);border:1px solid rgba(232,232,232,.28)}
+.p-acc{background:rgba(240,180,41,.14);color:var(--accent);border:1px solid rgba(240,180,41,.42)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--text-mute);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:8px 7px;border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap}
+td{padding:8px 7px;border-bottom:1px solid rgba(28,35,48,.6);white-space:nowrap}
+tr:hover td{background:rgba(240,180,41,.04)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.dim{color:var(--text-dim)}.mute{color:var(--text-mute)}
+.ow{background:var(--panel);border:1px solid rgba(240,180,41,.34);border-radius:11px;padding:13px}
+.ow .rk{font-size:11px;color:var(--accent);font-weight:700}
+.ow .tk{font-size:18px;font-weight:700;margin:2px 0}
+.drv{font-size:11px;color:var(--text-dim);margin-top:7px;line-height:1.7}
+.drv span{display:inline-block;background:rgba(232,232,232,.06);border:1px solid var(--border);border-radius:5px;padding:1px 6px;margin:0 4px 4px 0}
+.banner{background:linear-gradient(90deg,rgba(240,180,41,.10),rgba(240,180,41,.02));border:1px solid rgba(240,180,41,.32);border-radius:12px;padding:15px 17px;margin-bottom:6px}
+.warn{background:rgba(224,122,106,.09);border:1px solid rgba(224,122,106,.34);border-radius:10px;padding:11px 13px;font-size:12.5px;color:var(--neg);margin:10px 0}
+.layers{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px;margin-bottom:6px}
+.ly{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:9px;padding:11px 13px}
+.ly .n{font-size:11px;color:var(--accent);font-weight:700;letter-spacing:.6px}
+.ly .t{font-size:13px;font-weight:600;margin:3px 0}
+.ly .d{font-size:11.5px;color:var(--text-dim)}
+.foot{font-size:11.5px;color:var(--text-mute);margin-top:8px;line-height:1.75}
+.foot li{margin-bottom:5px}
+details{margin-top:8px}summary{cursor:pointer;font-size:12px;color:var(--text-dim)}
+.small{font-size:11px;color:var(--text-mute)}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🧭 Rotation Dashboard</h1>
+  <div class="sub">Not “is this asset good?” but <b>which asset is capital rotating into</b> — regime × ratios × trend gate × relative strength × flows × crowding, fused into one ranked overweight list.</div>
+  <div id="root"><div class="card dim">Loading…</div></div>
+</div>
+<script>
+const F=(n,d=2)=>n===null||n===undefined||isNaN(n)?'—':Number(n).toFixed(d);
+const P=(n,d=1)=>n===null||n===undefined||isNaN(n)?'—':(n>0?'+':'')+Number(n).toFixed(d)+'%';
+const cls=n=>n===null||n===undefined?'dim':n>0?'pos':n<0?'neg':'dim';
+const esc=s=>String(s===null||s===undefined?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const money=v=>v===null||v===undefined?'—':(Math.abs(v)>=1e9?(v/1e9).toFixed(2)+'B':Math.abs(v)>=1e6?(v/1e6).toFixed(0)+'M':Number(v).toFixed(0));
+const QC={LEADING:'p-pos',IMPROVING:'p-acc',WEAKENING:'p-neu',LAGGING:'p-neg',BENCHMARK:'p-neu'};
+
+let D=null,sortKey='rank',sortDir=1;
+
+fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/rotation-dashboard.json?v='+Date.now(),{cache:'no-store'})
+ .then(r=>r.json()).then(d=>{D=d;render();})
+ .catch(e=>{document.getElementById('root').innerHTML='<div class="warn">Feed unavailable: '+esc(e.message)+'</div>';});
+
+function render(){
+  const d=D,L1=d.layer1_regime||{},L2=d.layer2_ratios||{},L34=d.layer3_layer4||{};
+  const q=L1.quadrant||{},roro=L1.roro||{},dol=L1.dollar||{};
+  let h='';
+
+  // ── regime banner ──
+  h+='<div class="banner"><div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center">'
+   +'<div><div class="lbl small">GROWTH × INFLATION REGIME</div><div style="font-size:23px;font-weight:800;color:var(--accent)">'+esc(q.regime||'—')+'</div>'
+   +'<div class="small">growth '+esc(q.growth||'—')+' · inflation '+esc(q.inflation||'—')+'</div></div>'
+   +'<div><div class="lbl small">RISK-ON / RISK-OFF</div><div style="font-size:17px;font-weight:700">'+esc(roro.regime||'—')+' <span class="dim">'+(roro.score!==null&&roro.score!==undefined?F(roro.score,0):'')+'</span></div>'
+   +'<div class="small">size mult '+F(roro.posture,2)+'</div></div>'
+   +'<div><div class="lbl small">DOLLAR (3M)</div><div style="font-size:17px;font-weight:700" class="'+cls(-(dol.chg_3m_pct||0))+'">'+P(dol.chg_3m_pct)+' '+esc(dol.direction||'')+'</div>'
+   +'<div class="small">favours '+esc(dol.favours||'—')+'</div></div>'
+   +'<div><div class="lbl small">TREND GATE</div><div style="font-size:17px;font-weight:700">'+L34.n_eligible+' / '+L34.n_scored+' eligible</div>'
+   +'<div class="small">'+L34.n_failed_gate+' routed to cash · cash 12m '+P(L34.cash_12m_pct)+'</div></div>'
+   +'</div>';
+  if(q.gdpnow!==undefined||q.underlying_inflation!==undefined)
+    h+='<div class="small" style="margin-top:9px">GDPNow '+F(q.gdpnow)+'% · underlying inflation '+F(q.underlying_inflation)+'%'
+      +(q.growth_confirmation?' · hard data: '+esc(q.growth_confirmation):'')
+      +(q.regime_confidence?' · '+esc(q.regime_confidence):'')+'</div>';
+  if(dol.headline) h+='<div class="small" style="margin-top:4px">Dollar desk: '+esc(dol.headline)+'</div>';
+  if(L1.dollar_tilt_applied) h+='<div class="small" style="margin-top:4px">Dollar tilt applied to class prior: <b>'+F(L1.dollar_tilt_applied,2)+'</b> on EM / commodities / gold / intl</div>';
+  h+='</div>';
+
+  // ── four layer strip ──
+  h+='<div class="layers">'
+   +'<div class="ly"><div class="n">LAYER 1</div><div class="t">Regime</div><div class="d">Growth×inflation quadrant, RORO and the dollar set a prior per asset class.</div></div>'
+   +'<div class="ly"><div class="n">LAYER 2</div><div class="t">Ratios</div><div class="d">'+L2.n_ratios+' cross-asset ratios strip shared beta and isolate the rotation.</div></div>'
+   +'<div class="ly"><div class="n">LAYER 3</div><div class="t">Trend Gate</div><div class="d">Above 200d SMA <b>and</b> 12m return beating cash. This — not the ranking — controls drawdowns.</div></div>'
+   +'<div class="ly"><div class="n">LAYER 4</div><div class="t">Rank · Flows · Crowding</div><div class="d">Momentum + RS line → RRG quadrant, confirmed by real ETF flows, capped by positioning.</div></div>'
+   +'</div>';
+
+  if(L2.gold_distortion)
+    h+='<div class="warn"><b>Gold distortion active.</b> Gold has run on central-bank / debasement demand, not cyclical fear — every gold-denominated ratio below is pushed toward its “fear” extreme for a non-fear reason. Read those as <b>favour real assets</b>, not “recession imminent”, and corroborate with copper’s own absolute strength.</div>';
+  if((d.degraded||[]).length)
+    h+='<div class="warn"><b>Degraded (open bugs, not decoration):</b> '+d.degraded.map(esc).join(' · ')+'</div>';
+
+  // ── overweight ──
+  h+='<div class="sec">Overweight — eligible · top-ranked · flow-confirmed · not crowded</div><div class="grid">';
+  (d.overweight||[]).forEach(o=>{
+    h+='<div class="ow"><div class="rk">#'+o.rank+' · '+esc(o.asset_class)+'</div>'
+      +'<div class="tk">'+esc(o.ticker)+' <span class="pill '+(QC[o.quadrant]||'p-neu')+'">'+esc(o.quadrant||'—')+'</span></div>'
+      +'<div class="dim" style="font-size:12px">'+esc(o.label)+'</div>'
+      +'<div style="font-size:15px;font-weight:700;margin-top:6px" class="'+cls(o.confluence_score)+'">confluence '+F(o.confluence_score,1)+'</div>'
+      +'<div class="drv">'+(o.drivers||[]).map(x=>'<span>'+esc(x)+'</span>').join('')+'</div></div>';
+  });
+  h+='</div>';
+
+  // ── RRG scatter ──
+  h+='<div class="sec">Relative Rotation — RS-Ratio (level) × RS-Momentum (acceleration)</div>'+rrg();
+  const qc=d.quadrant_counts||{};
+  h+='<div class="small" style="margin-top:6px">LEADING '+(qc.LEADING||0)+' · IMPROVING '+(qc.IMPROVING||0)+' · WEAKENING '+(qc.WEAKENING||0)+' · LAGGING '+(qc.LAGGING||0)
+    +' — assets rotate clockwise; <b>Improving</b> is the early rotate-in, <b>Weakening</b> the early exit.</div>';
+
+  // ── ratios ──
+  h+='<div class="sec">Layer 2 — Cross-Asset Ratio Dashboard</div><div class="card" style="overflow-x:auto">'
+   +'<table><thead><tr><th>Ratio</th><th>Value</th><th>z (1y)</th><th>%ile 1y</th><th>20d</th><th>60d</th><th>Direction</th><th>Type</th><th>Favours</th></tr></thead><tbody>';
+  (L2.ratios||[]).forEach(r=>{
+    h+='<tr><td><b>'+esc(r.numerator)+'/'+esc(r.denominator)+'</b>'+(r.gold_distorted?' <span class="pill p-neg">gold-distorted</span>':'')+'</td>'
+      +'<td class="mono">'+F(r.value,4)+'</td>'
+      +'<td class="mono '+cls(r.z_1y)+'">'+F(r.z_1y)+'</td>'
+      +'<td class="mono">'+F(r.pctile_1y,1)+'</td>'
+      +'<td class="mono '+cls(r.chg_20d_pct)+'">'+P(r.chg_20d_pct)+'</td>'
+      +'<td class="mono '+cls(r.chg_60d_pct)+'">'+P(r.chg_60d_pct)+'</td>'
+      +'<td><span class="pill '+(r.direction==='RISING'?'p-pos':r.direction==='FALLING'?'p-neg':'p-neu')+'">'+esc(r.direction)+'</span></td>'
+      +'<td><span class="pill '+(r.lead_type==='leading'?'p-acc':'p-neu')+'">'+esc(r.lead_type)+'</span></td>'
+      +'<td class="dim" style="white-space:normal;max-width:280px">'+esc(r.favours)+(r.caveat?'<div class="small neg" style="margin-top:3px">'+esc(r.caveat)+'</div>':'')+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  const rb=L2.roro_buckets||{};
+  h+='<div class="small" style="margin-top:6px">Risk-on ratios rising: '+(rb.risk_on_ratios||0)+' · falling: '+(rb.risk_off_ratios||0)+' · net <b>'+(rb.net>0?'+':'')+(rb.net||0)+'</b>. A genuine regime shift shows up in several buckets at once and persists — that is what filters the false signals.</div>';
+
+  // ── full ranked table ──
+  h+='<div class="sec">Layer 3 + 4 — Full Ranked Universe ('+ (d.assets||[]).length +')</div>'
+   +'<div class="small" style="margin-bottom:7px">Click any header to sort. <b>Gate FAIL</b> = below 200d SMA or failing to beat cash over 12m → redirected to cash, never ranked as an overweight.</div>'
+   +'<div class="card" style="overflow-x:auto"><table><thead><tr>'
+   +cols().map(c=>'<th onclick="sortBy(\''+c[0]+'\')">'+c[1]+'</th>').join('')
+   +'</tr></thead><tbody id="rows"></tbody></table></div>';
+
+  // ── avoid ──
+  h+='<div class="sec">Avoid — bottom of the confluence stack</div><div class="card" style="overflow-x:auto">'
+   +'<table><thead><tr><th>#</th><th>Ticker</th><th>Label</th><th>Confluence</th><th>Why</th></tr></thead><tbody>';
+  (d.avoid||[]).forEach(a=>{
+    h+='<tr><td class="mute">'+a.rank+'</td><td><b>'+esc(a.ticker)+'</b></td><td class="dim">'+esc(a.label)+'</td>'
+      +'<td class="mono neg">'+F(a.confluence_score,1)+'</td>'
+      +'<td class="dim" style="white-space:normal">'+(Array.isArray(a.why)?a.why.map(esc).join(' · '):esc(a.why))+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+
+  // ── excluded ──
+  if((d.excluded||[]).length){
+    h+='<div class="sec">Excluded — insufficient history (never guessed)</div><div class="card"><table><thead><tr><th>Ticker</th><th>Label</th><th>Reason</th></tr></thead><tbody>';
+    d.excluded.forEach(e=>{h+='<tr><td><b>'+esc(e.ticker)+'</b></td><td class="dim">'+esc(e.label)+'</td><td class="mute">'+esc(e.reason)+'</td></tr>';});
+    h+='</tbody></table></div>';
+  }
+
+  // ── methodology + caveats ──
+  h+='<div class="sec">Methodology &amp; Caveats</div><div class="card"><div class="grid4">';
+  Object.entries(d.methodology||{}).forEach(([k,v])=>{
+    h+='<div class="tile"><div class="lbl">'+esc(k.replace(/_/g,' '))+'</div><div class="note" style="font-size:11.5px;color:var(--text-dim)">'+esc(v)+'</div></div>';
+  });
+  h+='</div><ul class="foot">'+(d.caveats||[]).map(c=>'<li>'+esc(c)+'</li>').join('')+'</ul>';
+  h+='<div class="small" style="margin-top:10px">Class prior source: '+esc(L1.prior_source||'—')+'</div>';
+  h+='<details><summary>Regime prior by asset class (raw)</summary><div class="mono small" style="margin-top:6px;white-space:pre-wrap">'+esc(JSON.stringify(L1.prior||{},null,1))+'</div></details>';
+  h+='<div class="small" style="margin-top:10px">Engine <b>'+esc(d.engine)+'</b> v'+esc(d.version)+' · generated '+esc(d.generated_at)+' · built in '+F(d.build_seconds,1)+'s</div></div>';
+
+  document.getElementById('root').innerHTML=h;
+  rows();
+}
+
+function cols(){return [['rank','#'],['ticker','Ticker'],['asset_class','Class'],['price','Price'],
+ ['gate','Gate'],['pct_vs_200d','vs 200d'],['excess','Excess vs cash'],
+ ['ret_3m','3m'],['ret_6m','6m'],['ret_12_1','12-1m'],['blend','Blend'],
+ ['rs_ratio','RS-Ratio'],['rs_momentum','RS-Mom'],['quadrant','Quadrant'],
+ ['flow','Flow (20d)'],['cot','COT idx'],['confluence_score','Confluence'],['rank_stability','Stability']];}
+
+function val(a,k){
+  switch(k){
+    case 'gate':return a.trend_gate.eligible?1:0;
+    case 'pct_vs_200d':return a.trend_gate.pct_vs_200d;
+    case 'excess':return a.trend_gate.excess_vs_cash_pp;
+    case 'ret_3m':return a.momentum.ret_3m_pct;
+    case 'ret_6m':return a.momentum.ret_6m_pct;
+    case 'ret_12_1':return a.momentum.ret_12_1_pct;
+    case 'blend':return a.momentum.blend_score;
+    case 'rs_ratio':return a.rrg.rs_ratio;
+    case 'rs_momentum':return a.rrg.rs_momentum;
+    case 'quadrant':return a.rrg.quadrant||'';
+    case 'flow':return a.flows?a.flows.net_flow_usd:null;
+    case 'cot':return a.crowding?a.crowding.cot_index:null;
+    default:return a[k];
+  }
+}
+function sortBy(k){sortDir=(sortKey===k)?-sortDir:1;sortKey=k;rows();}
+function rows(){
+  const list=(D.assets||[]).slice().sort((x,y)=>{
+    const a=val(x,sortKey),b=val(y,sortKey);
+    if(a===null||a===undefined)return 1;if(b===null||b===undefined)return -1;
+    return (typeof a==='string'?a.localeCompare(b):a-b)*sortDir;
+  });
+  document.getElementById('rows').innerHTML=list.map(a=>{
+    const t=a.trend_gate,m=a.momentum,r=a.rrg,f=a.flows,c=a.crowding;
+    let cot='—';
+    if(c&&c.cot_index!==null&&c.cot_index!==undefined){
+      cot='<span class="'+(c.state==='CROWDED'?'neg':c.state==='WASHED_OUT'?'pos':'dim')+'">'+F(c.cot_index,0)+'</span>'
+        +'<span class="small"> '+esc(c.contract)+' n='+c.n_obs+(c.actionable?'':' <span class="mute">(not applied)</span>')+'</span>';
+    }
+    let fl='—';
+    if(f){fl='<span class="'+(f.state==='INFLOW'?'pos':f.state==='OUTFLOW'?'neg':'dim')+'">$'+money(f.net_flow_usd)+'</span>'
+        +(f.pct_of_aum!==null&&f.pct_of_aum!==undefined?'<span class="small"> '+F(f.pct_of_aum,2)+'% AUM</span>':'');}
+    return '<tr>'
+      +'<td class="mute">'+a.rank+(a.rank_delta?'<span class="small '+(a.rank_delta>0?'pos':'neg')+'"> '+(a.rank_delta>0?'▲':'▼')+Math.abs(a.rank_delta)+'</span>':'')+'</td>'
+      +'<td><b>'+esc(a.ticker)+'</b><div class="small mute">'+esc(a.label)+'</div></td>'
+      +'<td class="small dim">'+esc(a.asset_class)+'</td>'
+      +'<td class="mono">'+F(a.price)+'</td>'
+      +'<td>'+(t.eligible?'<span class="pill p-pos">PASS</span>':'<span class="pill p-neg" title="'+esc((t.fail_reasons||[]).join(' · '))+'">FAIL</span>')+'</td>'
+      +'<td class="mono '+cls(t.pct_vs_200d)+'">'+P(t.pct_vs_200d)+'</td>'
+      +'<td class="mono '+cls(t.excess_vs_cash_pp)+'">'+F(t.excess_vs_cash_pp,1)+'</td>'
+      +'<td class="mono '+cls(m.ret_3m_pct)+'">'+P(m.ret_3m_pct)+'</td>'
+      +'<td class="mono '+cls(m.ret_6m_pct)+'">'+P(m.ret_6m_pct)+'</td>'
+      +'<td class="mono '+cls(m.ret_12_1_pct)+'">'+P(m.ret_12_1_pct)+'</td>'
+      +'<td class="mono '+cls(m.blend_score)+'">'+F(m.blend_score,1)+'</td>'
+      +'<td class="mono '+cls(r.rs_ratio)+'">'+F(r.rs_ratio,1)+'</td>'
+      +'<td class="mono '+cls(r.rs_momentum)+'">'+F(r.rs_momentum,1)+'</td>'
+      +'<td><span class="pill '+(QC[r.quadrant]||'p-neu')+'">'+esc(r.quadrant||'—')+'</span></td>'
+      +'<td class="mono">'+fl+'</td><td class="mono">'+cot+'</td>'
+      +'<td class="mono '+cls(a.confluence_score)+'"><b>'+F(a.confluence_score,1)+'</b></td>'
+      +'<td class="small mute">'+esc(a.rank_stability)+'</td></tr>';
+  }).join('');
+}
+
+function rrg(){
+  const A=(D.assets||[]).filter(a=>a.rrg&&a.rrg.rs_ratio!==null&&a.rrg.rs_momentum!==null);
+  if(!A.length)return '<div class="card dim">No RRG data.</div>';
+  const W=1080,H=520,PAD=52;
+  const xs=A.map(a=>a.rrg.rs_ratio),ys=A.map(a=>a.rrg.rs_momentum);
+  const xm=Math.max(2,...xs.map(Math.abs))*1.15, ym=Math.max(2,...ys.map(Math.abs))*1.15;
+  const X=v=>PAD+((v+xm)/(2*xm))*(W-2*PAD), Y=v=>H-PAD-((v+ym)/(2*ym))*(H-2*PAD);
+  const cx=X(0),cy=Y(0);
+  let s='<div class="card" style="overflow-x:auto"><svg viewBox="0 0 '+W+' '+H+'" style="width:100%;min-width:760px;height:auto">';
+  s+='<rect x="'+cx+'" y="'+PAD+'" width="'+(W-PAD-cx)+'" height="'+(cy-PAD)+'" fill="rgba(111,206,138,.05)"/>';
+  s+='<rect x="'+PAD+'" y="'+PAD+'" width="'+(cx-PAD)+'" height="'+(cy-PAD)+'" fill="rgba(240,180,41,.05)"/>';
+  s+='<rect x="'+cx+'" y="'+cy+'" width="'+(W-PAD-cx)+'" height="'+(H-PAD-cy)+'" fill="rgba(232,232,232,.04)"/>';
+  s+='<rect x="'+PAD+'" y="'+cy+'" width="'+(cx-PAD)+'" height="'+(H-PAD-cy)+'" fill="rgba(224,122,106,.05)"/>';
+  s+='<line x1="'+PAD+'" y1="'+cy+'" x2="'+(W-PAD)+'" y2="'+cy+'" stroke="#1c2330"/>';
+  s+='<line x1="'+cx+'" y1="'+PAD+'" x2="'+cx+'" y2="'+(H-PAD)+'" stroke="#1c2330"/>';
+  s+='<text x="'+(W-PAD-8)+'" y="'+(PAD+16)+'" fill="#6fce8a" font-size="12" font-weight="700" text-anchor="end">LEADING</text>';
+  s+='<text x="'+(PAD+8)+'" y="'+(PAD+16)+'" fill="#F0B429" font-size="12" font-weight="700">IMPROVING — early rotate-in</text>';
+  s+='<text x="'+(W-PAD-8)+'" y="'+(H-PAD-8)+'" fill="#e8e8e8" font-size="12" font-weight="700" text-anchor="end">WEAKENING</text>';
+  s+='<text x="'+(PAD+8)+'" y="'+(H-PAD-8)+'" fill="#E07A6A" font-size="12" font-weight="700">LAGGING</text>';
+  s+='<text x="'+(W/2)+'" y="'+(H-14)+'" fill="#5b6479" font-size="11" text-anchor="middle">RS-Ratio — relative strength vs SPY (level)</text>';
+  s+='<text x="14" y="'+(H/2)+'" fill="#5b6479" font-size="11" transform="rotate(-90 14 '+(H/2)+')" text-anchor="middle">RS-Momentum — acceleration</text>';
+  A.forEach(a=>{
+    const x=X(a.rrg.rs_ratio),y=Y(a.rrg.rs_momentum);
+    const col=a.rrg.quadrant==='LEADING'?'#6fce8a':a.rrg.quadrant==='IMPROVING'?'#F0B429':a.rrg.quadrant==='WEAKENING'?'#e8e8e8':'#E07A6A';
+    const rr=a.trend_gate.eligible?6.5:4;
+    s+='<circle cx="'+x+'" cy="'+y+'" r="'+rr+'" fill="'+col+'" fill-opacity="'+(a.trend_gate.eligible?'.85':'.28')+'" stroke="'+col+'" stroke-width="1.2"><title>'+esc(a.ticker)+' — '+esc(a.label)+'\nquadrant '+esc(a.rrg.quadrant)+'\nRS-Ratio '+F(a.rrg.rs_ratio,1)+' · RS-Mom '+F(a.rrg.rs_momentum,1)+'\nconfluence '+F(a.confluence_score,1)+'\ngate '+(a.trend_gate.eligible?'PASS':'FAIL')+'</title></circle>';
+    s+='<text x="'+(x+9)+'" y="'+(y+4)+'" fill="'+col+'" font-size="10.5" font-weight="600">'+esc(a.ticker)+'</text>';
+  });
+  s+='</svg><div class="small" style="margin-top:6px">Faded dots fail the trend gate — shown for context, never eligible for an overweight.</div></div>';
+  return s;
+}
+</script>
+</body>
+</html>
