@@ -1,27 +1,42 @@
-executing-against: a08aceb5c0bdd998d09c51c6d7682542ce020d2f
+executing-against: 7e3e05ecaf49105bed04f261d5669eb49088c5b0
 ops 3816 — rotation-dashboard v1.0.0 (cross-asset spine)
 ── G0. KEY CONTRACT — grep producers before consuming ──
-[20:15:46] ✅   nowcast_quadrant: 'nowcast_quadrant' present in justhodl-nowcast-desk
-[20:15:46] ✅   risk-regime score: 'score' present in justhodl-risk-regime
-[20:15:46] ✅   dollar chg_3m_pct: 'chg_3m_pct' present in justhodl-dollar-radar
-[20:15:46] ✅ G0 PASS — every consumed key exists in its producer
+[20:20:22] ✅   nowcast_quadrant: 'nowcast_quadrant' present in justhodl-nowcast-desk
+[20:20:22] ✅   risk-regime score: 'score' present in justhodl-risk-regime
+[20:20:22] ✅   dollar chg_3m_pct: 'chg_3m_pct' present in justhodl-dollar-radar
+[20:20:22] ✅ G0 PASS — every consumed key exists in its producer
 ── 1. Inherit env from donors ──
-[20:15:47]   justhodl-industry-rotation: contributed nothing
-[20:15:47]   justhodl-asset-compass: contributed nothing
-[20:15:47]   justhodl-factor-regime: contributed nothing
-[20:15:47]   justhodl-equity-research: contributed ['POLYGON_API_KEY']
-[20:15:47] ✅   inherited ['POLYGON_API_KEY']
+[20:20:23]   justhodl-industry-rotation: contributed nothing
+[20:20:23]   justhodl-asset-compass: contributed nothing
+[20:20:23]   justhodl-factor-regime: contributed nothing
+[20:20:23]   justhodl-equity-research: contributed ['POLYGON_API_KEY']
+[20:20:23] ✅   inherited ['POLYGON_API_KEY']
 ── 2. Deploy ──
-[20:15:47]   zip: 93599 bytes
+[20:20:23]   zip: 93872 bytes
 ── 1. Lambda ──
-[20:15:48]   Lambda exists — updating
-[20:15:51] ✅   ✓ updated justhodl-rotation-dashboard
+[20:20:24]   Lambda exists — updating
+[20:20:30] ✅   ✓ updated justhodl-rotation-dashboard
 ── 3. Zip-settle ──
-[20:15:56] ✅   settled after 5s (State=Active)
+[20:20:36] ✅   settled after 5s (State=Active)
 ── 4. Schedule ──
-[20:15:57] ✅   Scheduler created — cron(10 22 * * ? *)
+[20:20:36] ✅   Scheduler already exists (ConflictException = success)
 ── 5. Invoke ──
-[20:16:00] ✗   invoke error: {'errorMessage': "'int' object is not iterable", 'errorType': 'TypeError', 'requestId': '88fd9294-6002-44d6-8bea-4f8f1bcc9b53', 'stackTrace': ['  File "/var/task/lambda_function.py", line 643, in lambda_handler\n    cot_idx = build_cot_index(read_feed("data/cftc-all-cache.json"))\n', '  File "/var/task/lambda_function.py", line 419, in build_cot_index\n    for r in rows:\n']}
+[20:20:40]   {'statusCode': 200, 'body': '{"ok": true, "scored": 37, "eligible": 20, "overweight": ["XLV", "IWD", "XLF", "EWJ", "RSP", "USO", "XLK", "IWM"]}'}
+── 6. Verify live artifact ──
+[20:20:40] ✅   L1 regime resolved = STAGFLATION
+[20:20:40] ✅   L2 ratios >= 8 = 11
+[20:20:40] ✅   L3/L4 scored >= 25 = 37
+[20:20:40] ✅   trend gate discriminates eligible 20/37
+[20:20:40] ✅   RRG quadrants populated = {'LEADING': 7, 'IMPROVING': 2, 'WEAKENING': 4, 'LAGGING': 23}
+[20:20:40] ✅   overweight list non-empty = ['XLV', 'IWD', 'XLF', 'EWJ', 'RSP', 'USO', 'XLK', 'IWM']
+[20:20:40] ✅   hysteresis field present 
+[20:20:40] ✅   caveats shipped 
 
 → Report written to aws/ops/reports/latest/3816_rotation_dashboard.md
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_3816_rotation_dashboard.py", line 190, in <module>
+    main()
+  File "/home/runner/work/si/si/aws/ops/pending/ops_3816_rotation_dashboard.py", line 170, in main
+    rep.kv("regime", regime)
+TypeError: Report.kv() takes 1 positional argument but 3 were given
 ❌ OPS-FAIL: aws/ops/pending/ops_3816_rotation_dashboard.py
