@@ -1,0 +1,67 @@
+# ops 3791 — growth must reach leaderboard + members
+
+**Status:** success  
+**Duration:** 14.7s  
+**Finished:** 2026-07-24T00:41:58+00:00  
+
+## Data
+
+| invoke_seconds | invoke_status | leaderboard | leaderboard_sp500 | scored | sp500 | with_growth |
+|---|---|---|---|---|---|---|
+| 13.9 | 200 |  |  |  |  |  |
+|  |  | 50 |  | 3411 | 490 | 1477 |
+|  |  |  | 0 |  |  |  |
+
+## Log
+## Zip settle — confirm v4.2.1 is the deployed artifact
+
+- `00:41:44` ✅ v4.2.1 artifact live (attempt 1)
+- `00:41:44` ✅ DEPLOY.settled :: refresh patch present in deployed zip
+## Invoke
+
+- `00:41:58` ✅ LIVE.version :: version=4.2.1
+## THE GATE THAT MATTERS — copied structures
+
+- `00:41:58` ✅ LEAD.growth_tier :: 37 of 50 leaderboard rows (was 0/50)
+- `00:41:58` ✅ LEAD.in_sp500 :: 50 of 50 leaderboard rows (was 0/50)
+- `00:41:58` ✅ LEAD.revenue_growth_yoy :: 37 of 50 leaderboard rows (was 0/50)
+- `00:41:58` ✅ LEAD.gm_level :: 50 of 50 leaderboard rows (was 0/50)
+- `00:41:58` ✅ MEMBERS.growth_tier :: 1477 of 3411 member rows
+- `00:41:58` ✅ MEMBERS.in_sp500 :: 3411 of 3411 member rows
+## Filter viability — each dropdown option must match rows
+
+- `00:41:58`   leaderboard growth=HIGH    7
+- `00:41:58`   leaderboard growth=MEDIUM  9
+- `00:41:58`   leaderboard growth=LOW     21
+- `00:41:58`   leaderboard cap=mega    0
+- `00:41:58`   leaderboard cap=large   0
+- `00:41:58`   leaderboard cap=mid     0
+- `00:41:58`   leaderboard cap=small   3
+- `00:41:58`   leaderboard cap=micro   37
+## Sample
+
+- `00:41:58`   LDI    Financial - Mortgages  growth=37.6%    tier=HIGH    sp500=False cap=micro  gm=83%
+- `00:41:58`   BMBL   Internet Content & Inf growth=-9.9%    tier=LOW     sp500=False cap=micro  gm=64%
+- `00:41:58`   TREE   Financial - Credit Ser growth=24.1%    tier=HIGH    sp500=False cap=micro  gm=95%
+- `00:41:58`   WNC    Agricultural - Machine growth=-20.8%   tier=LOW     sp500=False cap=micro  gm=13%
+- `00:41:58`   HLF    Packaged Foods         growth=—        tier=None    sp500=False cap=micro  gm=79%
+- `00:41:58`   RILYZ  Investment - Banking & growth=-11.5%   tier=LOW     sp500=False cap=nano   gm=77%
+- `00:41:58`   RC     REIT - Mortgage        growth=1726.0%  tier=HIGH    sp500=False cap=nano   gm=87%
+- `00:41:58`   RCD    REIT - Mortgage        growth=1726.0%  tier=HIGH    sp500=False cap=nano   gm=87%
+- `00:41:58`   DCBO   Software - Application growth=11.9%    tier=MEDIUM  sp500=False cap=micro  gm=79%
+- `00:41:58`   PLAY   Leisure                growth=-1.4%    tier=LOW     sp500=False cap=micro  gm=84%
+- `00:41:58`   BWMX   Specialty Retail       growth=—        tier=None    sp500=False cap=micro  gm=62%
+- `00:41:58`   PRAA   Financial - Credit Ser growth=10.4%    tier=MEDIUM  sp500=False cap=micro  gm=65%
+## Additive — nothing regressed
+
+- `00:41:58` ✅ ADDITIVE.capture_gap :: preserved
+- `00:41:58` ✅ ADDITIVE.revenue_share_pct :: preserved
+- `00:41:58` ✅ ADDITIVE.catchup_pct :: preserved
+- `00:41:58` ✅ ADDITIVE.criticality_pctile :: preserved
+- `00:41:58` ✅ ADDITIVE.dependency_pct :: preserved
+- `00:41:58` ✅ ADDITIVE.structural_names :: present
+- `00:41:58` ✅ ADDITIVE.industry_leaders :: present
+- `00:41:58` ✅ ADDITIVE.all_chokepoints :: present
+## VERDICT
+
+- `00:41:58` ✅ PASS_ALL — size and growth filters act on populated fields end to end
