@@ -1,47 +1,31 @@
-executing-against: b8b7540693e4f0f3aa02507d8bb898471d81c5db
-ops 3799 — read the node fields that actually exist
-── G0 — confirm the dead read ──
-[03:25:04] ✅ G0.anchor :: node loop anchor unique
-[03:25:04] ✅ G0.v423 :: engine at v4.2.3
-[03:25:04] ✅ G0.centrality_absent :: 0 of 183 nodes carry 'centrality' — the read is dead
-[03:25:04] ✅ G0.degree_present :: 183 nodes carry 'degree'
-[03:25:04] ✅ G0.ticker_key :: nodes key the symbol as 'ticker' (reader looks for symbol|id)
-── [1] Read ticker/degree/n_suppliers instead of the absent keys ──
-── [2] Ship the graph ceiling so the metric is not overstated ──
-[03:25:04] ✅ dependency_note + graph size shipped in the feed
-[03:25:04] ✅ v4.3 spliced + compile clean
-── Deploy ──
-[03:25:04]   zip: 103328 bytes
-── 1. Lambda ──
-[03:25:05]   Lambda exists — updating
-[03:25:08] ✅   ✓ updated justhodl-chokepoint
-[03:25:23] ✅ settled attempt 1
-[03:25:23] ✅ DEPLOY.settled :: v4.3 live
-── Invoke + measure the change ──
-[03:25:34] ✅ LIVE.v43 :: version=4.3
-[03:25:34] ✅ FIX.improved :: 181 names carry dependency (was 153)
-[03:25:34] ✅ FEED.note :: ceiling stated in the feed
-── Sample — names the graph actually maps ──
-[03:25:34]   NEE    Regulated Electric             dep=100.0%  crit=44.0
-[03:25:34]   AMZN   Specialty Retail               dep=100.0%  crit=63.9
-[03:25:34]   GSAT   Telecommunications Services    dep=100.0%  crit=44.8
-[03:25:34]   AAPL   Consumer Electronics           dep=100.0%  crit=74.1
-[03:25:34]   JCI    Construction Materials         dep=100.0%  crit=40.9
-[03:25:34]   TKR    Manufacturing - Tools & Access dep=100.0%  crit=39.1
-[03:25:34]   PWR    Engineering & Construction     dep=100.0%  crit=41.0
-[03:25:34]   WMT    Discount Stores                dep=100.0%  crit=41.8
-[03:25:34]   NTR    Agricultural Inputs            dep=100.0%  crit=30.3
-[03:25:34]   UAL    Airlines, Airports & Air Servi dep=100.0%  crit=16.4
-[03:25:34]   MP     Industrial Materials           dep=100.0%  crit=16.8
-[03:25:34]   CIFR   Financial - Capital Markets    dep= 90.0%  crit=34.6
-[03:25:34]   XOM    Oil & Gas Integrated           dep= 80.0%  crit=34.6
-[03:25:34]   LLY    Drug Manufacturers - General   dep= 66.7%  crit=91.9
+executing-against: 9ba3268802f657ee2373edf363988441b7a15fec
+ops 3800 — dependency must not be a coverage artifact
+── Settle ──
+[03:33:21] ✅ v4.3.1 live (attempt 1)
+[03:33:21] ✅ DEPLOY.settled :: peer-floor patch in deployed zip
+[03:33:35] ✅ LIVE.v431 :: version=4.3.1
+[03:33:35] ✅ SANITY.no_lone_100 :: 0 rows still print >=99.9% (was 11)
+[03:33:35] ✅ FEED.peer_count :: mapped-peer count shipped
+[03:33:35] ✅ FEED.suppress_reason :: suppression reason shipped
+── Distribution now ──
+[03:33:35]   LLY    Drug Manufacturers - General   dep= 66.7%  mapped_peers=3   crit=91.9
+[03:33:35]   WULF   Software - Application         dep= 63.6%  mapped_peers=3   crit=36.2
+[03:33:35]   META   Internet Content & Information dep= 58.3%  mapped_peers=4   crit=86.5
+[03:33:35]   APLD   Information Technology Service dep= 52.9%  mapped_peers=3   crit=15.0
+[03:33:35]   CAT    Agricultural - Machinery       dep= 50.0%  mapped_peers=3   crit=46.6
+[03:33:35]   CCJ    Uranium                        dep= 50.0%  mapped_peers=3   crit=23.8
+[03:33:35]   ALB    Chemicals - Specialty          dep= 50.0%  mapped_peers=3   crit=20.2
+[03:33:35]   TSLA   Auto - Manufacturers           dep= 45.5%  mapped_peers=3   crit=47.4
+[03:33:35]   LITE   Communication Equipment        dep= 44.4%  mapped_peers=4   crit=42.3
+[03:33:35]   BKR    Oil & Gas Equipment & Services dep= 40.0%  mapped_peers=3   crit=40.4
+[03:33:35]   SLB    Oil & Gas Equipment & Services dep= 40.0%  mapped_peers=3   crit=36.1
+[03:33:35]   MSFT   Software - Infrastructure      dep= 39.6%  mapped_peers=8   crit=85.6
 ── Additive ──
-[03:25:34] ✅ ADDITIVE.capture_gap :: preserved
-[03:25:34] ✅ ADDITIVE.revenue_share_pct :: preserved
-[03:25:34] ✅ ADDITIVE.catchup_pct :: preserved
-[03:25:34] ✅ ADDITIVE.criticality_pctile :: preserved
+[03:33:35] ✅ ADDITIVE.capture_gap :: preserved
+[03:33:35] ✅ ADDITIVE.revenue_share_pct :: preserved
+[03:33:35] ✅ ADDITIVE.catchup_pct :: preserved
+[03:33:35] ✅ ADDITIVE.criticality_pctile :: preserved
 ── VERDICT ──
-[03:25:34] ✅ PASS_ALL — node read fixed; graph ceiling stated rather than implied
+[03:33:35] ✅ PASS_ALL — dependency shares now require real peer coverage
 
-→ Report written to aws/ops/reports/latest/3799_fix_dependency_node_read.md
+→ Report written to aws/ops/reports/latest/3800_verify_dependency_sanity.md
