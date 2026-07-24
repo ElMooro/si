@@ -58,7 +58,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/global-recession.json"
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
@@ -109,6 +109,73 @@ def fred_latest(series, n=30):
 
 def clamp(v, lo, hi):
     return max(lo, min(hi, v))
+
+
+def load_confirmation():
+    """Independent hard-data legs to CONFIRM or CONTRADICT the equity-momentum
+       phase labels. v1.1 let unconfirmed momentum drive ~70% of the global
+       number via CHN+IND — a momentum classifier's best-known failure mode is
+       firing in drawdowns that never become recessions, so it must be checked."""
+    out = {"oecd": {}, "oecd_stale": None, "oecd_period": None}
+    o = read_feed("data/oecd-cli.json") or {}
+    period = o.get("as_of_period") or o.get("period")
+    out["oecd_period"] = period
+    # The OECD CLI series on FRED went stale ~Jan-2024 for some vintages, so we
+    # REFUSE to confirm against data we cannot date, rather than pretend.
+    stale = True
+    try:
+        y, m = int(str(period)[:4]), int(str(period)[5:7])
+        age_m = (datetime.now(timezone.utc).year - y) * 12 + \
+                (datetime.now(timezone.utc).month - m)
+        stale = age_m > 6
+        out["oecd_age_months"] = age_m
+    except Exception:
+        pass
+    out["oecd_stale"] = stale
+    if not stale:
+        for iso, row in (o.get("by_country") or {}).items():
+            if isinstance(row, dict) and row.get("cli") is not None:
+                out["oecd"][iso.upper()] = {
+                    "cli": row.get("cli"), "prior_cli": row.get("prior_cli"),
+                    "phase": row.get("phase"), "trend": row.get("trend")}
+    return out
+
+
+def confirm_country(iso, row, conf):
+    """Returns (state, detail). CONFIRMED / DIVERGENT / UNCONFIRMED."""
+    phase = (row.get("phase") or "").upper()
+    deteriorating = phase in ("RECESSION", "AT_RISK")
+
+    # leg 1 — official OECD CLI, only if fresh
+    o = conf["oecd"].get(iso.upper())
+    if o and o.get("cli") is not None:
+        cli, prior = o["cli"], o.get("prior_cli")
+        hard_weak = cli < 100 or (prior is not None and cli < prior)
+        if deteriorating == hard_weak:
+            return "CONFIRMED", {"source": "OECD CLI", "cli": cli,
+                                 "prior_cli": prior, "phase": o.get("phase")}
+        return "DIVERGENT", {"source": "OECD CLI", "cli": cli,
+                             "prior_cli": prior, "phase": o.get("phase"),
+                             "note": "official CLI disagrees with the equity-momentum phase"}
+
+    # leg 2 — FRED CCI/BCI supplement carried by the cycle engine (<=3mo)
+    sup = row.get("supplement_value")
+    if isinstance(sup, (int, float)):
+        hard_weak = sup < 100
+        if deteriorating == hard_weak:
+            return "CONFIRMED", {"source": "FRED CCI/BCI supplement",
+                                 "value": sup, "as_of": row.get("supplement_date")}
+        return "DIVERGENT", {"source": "FRED CCI/BCI supplement",
+                             "value": sup, "as_of": row.get("supplement_date"),
+                             "note": "survey data disagrees with the equity-momentum phase"}
+
+    return "UNCONFIRMED", {"note": ("no independent hard-data leg available — this "
+                                    "country rests on equity momentum alone")}
+
+
+# dampening toward the phase-neutral midpoint when hard data does not back the call
+DAMPEN = {"CONFIRMED": 0.0, "UNCONFIRMED": 0.25, "DIVERGENT": 0.50}
+NEUTRAL_SCORE = 35.0
 
 
 def country_probability(row):
@@ -182,6 +249,7 @@ def lambda_handler(event, context):
     if not by_country:
         raise RuntimeError("global-business-cycle by_country unavailable")
 
+    conf = load_confirmation()
     rows, unknown, wsum, psum = [], [], 0.0, 0.0
     for iso3, row in by_country.items():
         if not isinstance(row, dict):
@@ -194,7 +262,18 @@ def lambda_handler(event, context):
                             "reason": "no usable phase — EXCLUDED, not imputed"})
             continue
         p, terms = res
+        state, detail = confirm_country(iso3, row, conf)
+        # pull the score toward neutral when nothing independent backs it
+        k = DAMPEN[state]
+        if k:
+            import math as _m2
+            raw = terms["raw_score"]
+            adj_raw = raw * (1 - k) + NEUTRAL_SCORE * k
+            p = round(100.0 / (1.0 + _m2.exp(-(adj_raw - 50.0) / SQUASH_SCALE)), 1)
+            terms["confirmation_dampen_k"] = k
+            terms["raw_score_after_dampen"] = round(adj_raw, 2)
         rows.append({
+            "confirmation": state, "confirmation_detail": detail,
             "iso3": iso3, "region": row.get("region"), "gdp_weight": w,
             "phase": row.get("phase"), "cli_level": row.get("cli_level"),
             "six_month_change": row.get("six_month_change"),
@@ -214,6 +293,10 @@ def lambda_handler(event, context):
         r["contribution_pp"] = round(r["recession_prob_pct"] * r["gdp_weight"] / wsum, 2)
     rows.sort(key=lambda r: r["contribution_pp"], reverse=True)
 
+    unconf_pp = sum(r["contribution_pp"] for r in rows
+                    if r["confirmation"] == "UNCONFIRMED")
+    diverg_pp = sum(r["contribution_pp"] for r in rows
+                    if r["confirmation"] == "DIVERGENT")
     stressed_w = sum(r["gdp_weight"] for r in rows
                      if (r["phase"] or "") in ("RECESSION", "AT_RISK"))
     by_region = {}
@@ -252,6 +335,25 @@ def lambda_handler(event, context):
             "interpretation": ("Share of covered world GDP the cycle engine "
                                "classifies as AT_RISK or RECESSION. Breadth "
                                "matters more than the point estimate."),
+        },
+        "confirmation": {
+            "oecd_period": conf.get("oecd_period"),
+            "oecd_usable": not conf.get("oecd_stale"),
+            "oecd_age_months": conf.get("oecd_age_months"),
+            "counts": {st: sum(1 for r in rows if r["confirmation"] == st)
+                       for st in ("CONFIRMED", "DIVERGENT", "UNCONFIRMED")},
+            "unconfirmed_contribution_pp": round(unconf_pp, 2),
+            "divergent_contribution_pp": round(diverg_pp, 2),
+            "unconfirmed_share_of_global_pct": round(
+                100 * unconf_pp / global_p, 1) if global_p else None,
+            "why": ("The phase labels come from an equity-momentum composite, whose "
+                    "best-known failure mode is firing in drawdowns that never become "
+                    "recessions. Each country is checked against an INDEPENDENT hard "
+                    "leg (official OECD CLI where fresh, else the FRED CCI/BCI "
+                    "supplement). Unconfirmed readings are pulled 25% toward neutral "
+                    "and divergent ones 50% — the momentum call is never simply "
+                    "trusted. This block tells you how much of the headline still "
+                    "rests on unconfirmed momentum."),
         },
         "by_region": regions,
         "countries": rows,
@@ -295,6 +397,9 @@ def lambda_handler(event, context):
             "carries no in-sample hit rate. The one genuinely fitted model here "
             "(NY Fed curve probit) is reported separately and never blended in.",
             "GDP weights are static nominal shares and drift slowly.",
+            "Confirmation is one-legged where OECD CLI is stale or absent — a "
+            "FRED survey supplement is weaker evidence than an official CLI, and "
+            "UNCONFIRMED means exactly that: no independent check exists.",
             "Research only, not investment advice.",
         ],
     }
