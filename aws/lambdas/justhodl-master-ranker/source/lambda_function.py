@@ -1084,15 +1084,39 @@ def lambda_handler(event, context):
         tag = "nowcast tailwind" if m > 1 else "nowcast headwind"
         return round(base_score * m, 1), m, f"nowcast {r} {tag} ({sector})"
 
-    _census_sec = {}
-    try:
-        _census_sec = {k: (v or {}).get("sector")
-                       for k, v in census_idx(S3, "justhodl-dashboard-live").items()
-                       if (v or {}).get("sector")}
-    except Exception as _e:  # noqa: BLE001
-        print("[sector-map]", str(_e)[:80])
-    print(f"[sector-map] census sector coverage: {len(_census_sec)} tickers "
-          f"(col={globals().get('_CENSUS_SECTOR_COL')})")
+    # ops 3832: the census matrix has 293 cols but NO sector column (G0 proved
+    # it), so sector is harvested the way best-setups already does it — a
+    # defensive recursive walk over sector-bearing feeds. best-setups carries the
+    # same comment: "the per-signal records do NOT carry a sector ... so without
+    # this the regime gate silently no-ops." The ranker never got that fix, which
+    # is why roro/liquidity/sectorflow/nowcast/rotation were all firing on ~1/25.
+    def _harvest_sectors(*docs):
+        m = {}
+
+        def walk(o):
+            if isinstance(o, dict):
+                t = o.get("ticker") or o.get("symbol") or o.get("t")
+                sec = o.get("sector") or o.get("sectorName")
+                if isinstance(t, str) and isinstance(sec, str) and t and sec:
+                    m.setdefault(t.upper(), sec)
+                for v in o.values():
+                    walk(v)
+            elif isinstance(o, list):
+                for v in o:
+                    walk(v)
+        for d in docs:
+            walk(d)
+        return m
+
+    _census_sec = _harvest_sectors(
+        fetch_json("screener/data.json"),
+        fetch_json("data/capital-flow-radar.json"),
+        fetch_json("data/deep-value.json"),
+        fetch_json("data/accumulation-radar.json"),
+        fetch_json("data/asymmetric-scorer.json"),
+    )
+    globals()["_SECTOR_MAP_N"] = len(_census_sec)
+    print(f"[sector-map] harvested {len(_census_sec)} ticker->sector pairs")
 
     def _ticker_sector(systems_dict, ticker=None):
         """ops 3832: contributing-system rows rarely carry sector, so the

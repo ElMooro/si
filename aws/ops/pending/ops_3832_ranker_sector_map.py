@@ -35,7 +35,7 @@ from ops_report import report  # noqa: E402
 FN = "justhodl-master-ranker"
 SRC = ROOT / "lambdas" / FN / "source"
 BUCKET = "justhodl-dashboard-live"
-MARKER = "_CENSUS_SECTOR_COL"
+MARKER = "_harvest_sectors"
 lam = boto3.client("lambda", region_name="us-east-1")
 s3 = boto3.client("s3", region_name="us-east-1")
 CFG = boto3.session.Config(read_timeout=890, retries={"max_attempts": 0})
@@ -45,22 +45,38 @@ def main():
     with report("3832_ranker_sector_map") as rep:
         rep.heading("ops 3832 — census sector map -> finish rotation wire")
 
-        rep.section("G0. Does the census matrix actually carry a sector column?")
-        mx = json.loads(s3.get_object(
-            Bucket=BUCKET, Key="data/fundamental-census-matrix.json")["Body"].read())
-        C = mx.get("cols") or {}
-        cands = [k for k in ("sector", "Sector", "sector_name", "gics_sector",
-                             "sectorName") if isinstance(C.get(k), list)]
-        rep.log(f"  matrix: {len(mx.get('tickers') or [])} tickers, {len(C)} cols")
-        if not cands:
-            near = [k for k in C if "sec" in k.lower() or "indus" in k.lower()]
-            rep.fail(f"  NO sector column among candidates. near-misses: {near[:12]}")
+        rep.section("G0. Do the harvest source feeds carry sector?")
+        found = {}
+        for key in ("screener/data.json", "data/capital-flow-radar.json",
+                    "data/deep-value.json", "data/accumulation-radar.json",
+                    "data/asymmetric-scorer.json"):
+            try:
+                doc = json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+            except Exception as e:
+                rep.log(f"  {key}: unreadable ({str(e)[:50]})")
+                continue
+            m = {}
+
+            def walk(o):
+                if isinstance(o, dict):
+                    t = o.get("ticker") or o.get("symbol") or o.get("t")
+                    sec = o.get("sector") or o.get("sectorName")
+                    if isinstance(t, str) and isinstance(sec, str) and t and sec:
+                        m.setdefault(t.upper(), sec)
+                    for v in o.values():
+                        walk(v)
+                elif isinstance(o, list):
+                    for v in o:
+                        walk(v)
+            walk(doc)
+            found.update(m)
+            rep.log(f"  {key}: +{len(m)} pairs")
+        if len(found) < 100:
+            rep.fail(f"  harvest only yields {len(found)} pairs — insufficient")
             sys.exit(1)
-        col = cands[0]
-        vals = [v for v in C[col] if v]
-        rep.ok(f"  sector column = '{col}' · {len(vals)} non-null "
-               f"({round(100*len(vals)/max(1,len(C[col])),1)}%)")
-        rep.log(f"  sample values: {sorted(set(vals))[:12]}")
+        col = f"harvest({len(found)} pairs)"
+        rep.ok(f"  harvested {len(found)} ticker->sector pairs")
+        rep.log(f"  sectors seen: {sorted(set(found.values()))[:12]}")
 
         rep.section("1. Deploy")
         env = (lam.get_function_configuration(FunctionName=FN)
@@ -125,7 +141,7 @@ def main():
 
         rep.kv(sector_col=col,
                rotation_tilted=f"{len(rot)}/{len(rows)}",
-               census_tickers=len(mx.get("tickers") or []))
+               harvest_pairs=len(found))
 
         if fails:
             rep.fail(f"FAILED {len(fails)}: {fails}"); sys.exit(1)
