@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "5.0.1"
+VERSION = "5.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -1250,6 +1250,25 @@ def lambda_handler(event, context):
                               if isinstance(x.get("boom_score"), (int, float))])
                 _b_hi = _bs[int(len(_bs) * 0.75)] if _bs else None
                 _b_lo = _bs[int(len(_bs) * 0.25)] if _bs else None
+                # ops 3814: momentum of the boom score. The mirror of the trap
+                # book is NOT symmetric — "booming" is mostly already priced;
+                # the alpha is the TURN: rising hard from a non-top base.
+                _dls = sorted([x.get("score_delta_20d") for x in _league
+                               if isinstance(x.get("score_delta_20d"), (int, float))])
+                _d_hi = _dls[int(len(_dls) * 0.75)] if _dls else None
+                def _trend(_bi):
+                    _sv = _bi.get("boom_score"); _dv = _bi.get("score_delta_20d")
+                    if not isinstance(_sv, (int, float)):
+                        return None
+                    _rising = isinstance(_dv, (int, float)) and _d_hi is not None and _dv >= _d_hi
+                    _falling = isinstance(_dv, (int, float)) and _dv <= -2.0
+                    if _b_hi is not None and _sv >= _b_hi:
+                        return "FADING" if _falling else "BOOMING"
+                    if _rising and (_b_lo is None or _sv > _b_lo):
+                        return "TURNING"
+                    if _b_lo is not None and _sv <= _b_lo:
+                        return "DECAYING"
+                    return "NEUTRAL"
 
                 # ── time persistence from the ledger (no new feed) ──
                 _today = datetime.now(timezone.utc).date().isoformat()
@@ -1325,6 +1344,8 @@ def lambda_handler(event, context):
                         _n_boom += 1
                         _c["industry_boom_score"] = _bi.get("boom_score")
                         _c["industry_boom_delta_20d"] = _bi.get("score_delta_20d")
+                        _c["industry_trend"] = _trend(_bi)
+                        # keep the coarse regime for the existing verdict logic
                         if _b_hi is not None and isinstance(_bi.get("boom_score"), (int, float)):
                             _c["industry_regime"] = ("BOOMING" if _bi["boom_score"] >= _b_hi
                                                      else "DECAYING" if _bi["boom_score"] <= _b_lo
@@ -1333,6 +1354,7 @@ def lambda_handler(event, context):
                             _c["industry_regime"] = None
                     else:
                         _c["industry_regime"] = None
+                        _c["industry_trend"] = None
 
                     # 6. HOW LONG HAS THIS GAP BEEN OPEN? (trap detector)
                     _pr = _prev.get(_t)
@@ -1356,8 +1378,10 @@ def lambda_handler(event, context):
                         _conf += 1; _why.append("institutional accumulation off-exchange")
                     if _c.get("has_catalyst"):
                         _conf += 1; _why.append("post-earnings drift active")
-                    if _c.get("industry_regime") == "BOOMING":
-                        _conf += 1; _why.append("industry inflecting up")
+                    if _c.get("industry_trend") == "TURNING":
+                        _conf += 1; _why.append("industry turning up (boom score rising from a non-top base)")
+                    elif _c.get("industry_regime") == "BOOMING":
+                        _conf += 1; _why.append("industry booming")
                     if _c.get("estimate_direction") and not _c.get("estimates_falling"):
                         _conf += 1; _why.append("estimates stable or rising")
 
@@ -1366,6 +1390,8 @@ def lambda_handler(event, context):
                         _dis += 1; _dwhy.append("earnings estimates falling — the E is stale, not the P wrong")
                     if _c.get("industry_regime") == "DECAYING":
                         _dis += 1; _dwhy.append("industry in structural decline")
+                    if _c.get("industry_trend") == "FADING":
+                        _dis += 1; _dwhy.append("industry boom rolling over (high score, falling fast)")
                     if (_c.get("gap_days_open") or 0) > 120:
                         _dis += 1; _dwhy.append("gap open %d days without closing" % _c["gap_days_open"])
 
@@ -1397,6 +1423,48 @@ def lambda_handler(event, context):
                 capture["mispriced_book"] = sorted(
                     [c for c in cap_rows if c.get("mispricing_verdict") == "MISPRICED"],
                     key=lambda x: -(x.get("undervaluation_score") or 0))[:40]
+                capture["regime_tailwind_book"] = sorted(
+                    [c for c in cap_rows
+                     if c.get("industry_trend") in ("TURNING", "BOOMING")
+                     and (c.get("capture_gap") or -999) >= 15
+                     and (c.get("structural_importance") or 0) >= 40
+                     and c.get("mispricing_verdict") != "VALUE_TRAP"],
+                    key=lambda x: (0 if x.get("industry_trend") == "TURNING" else 1,
+                                   -(x.get("undervaluation_score") or 0)))[:40]
+                # industry-level summary of the turn, for a page table
+                _seen_i = {}
+                for c in cap_rows:
+                    _i = c.get("industry")
+                    if _i and c.get("industry_trend") and _i not in _seen_i:
+                        _bi2 = _boom.get(_i) or {}
+                        _seen_i[_i] = {"industry": _i, "trend": c.get("industry_trend"),
+                                       "boom_score": _bi2.get("boom_score"),
+                                       "delta_20d": _bi2.get("score_delta_20d"),
+                                       "n_scored": 0, "mcap_b": _bi2.get("mcap_b")}
+                    if _i in _seen_i:
+                        _seen_i[_i]["n_scored"] += 1
+                capture["industry_trends"] = sorted(
+                    [v for v in _seen_i.values() if v["trend"] in ("TURNING", "BOOMING", "FADING")],
+                    key=lambda x: ({"TURNING": 0, "BOOMING": 1, "FADING": 2}.get(x["trend"], 3),
+                                   -(x.get("delta_20d") or -999)))[:40]
+                capture["stats"]["trend_counts"] = {}
+                for c in cap_rows:
+                    _t = c.get("industry_trend")
+                    if _t:
+                        _tc = capture["stats"]["trend_counts"]
+                        _tc[_t] = _tc.get(_t, 0) + 1
+                capture["regime_note"] = (
+                    "The mirror of the value-trap book, and deliberately NOT "
+                    "symmetric. A DECAYING industry is a warning worth heeding "
+                    "because it is visible yet ignored by a cheapness screen. A "
+                    "BOOMING industry is mostly already priced — buying into a "
+                    "visible boom is a momentum call the market already made. The "
+                    "edge is the TURN: an industry whose boom score is rising hard "
+                    "from a mid or low base (TURNING) before the league table shows "
+                    "it at the top. FADING flags the opposite hazard a level check "
+                    "misses — a high boom score that is rolling over. The tailwind "
+                    "book lists structurally important, cheap names sitting in "
+                    "TURNING or BOOMING industries, TURNING first.")
                 capture["value_trap_book"] = sorted(
                     [c for c in cap_rows if c.get("mispricing_verdict") == "VALUE_TRAP"],
                     key=lambda x: -(x.get("capture_gap") or 0))[:25]
