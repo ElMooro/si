@@ -1,5 +1,5 @@
 """
-ops_3821 — cycle bands into justhodl-onchain-ratios (Rainbow + Pi Cycle)
+ops_3822 — cycle bands into justhodl-onchain-ratios (Rainbow + Pi Cycle)
 
 AUDIT FIRST (grep across 748 engines) — these already exist and are NOT rebuilt:
   MVRV 15 engines · NUPL 7 · Puell 7 · Mayer 4 · realized price 6
@@ -40,8 +40,8 @@ s3 = boto3.client("s3", region_name="us-east-1")
 
 
 def main():
-    with report("3821_cycle_bands") as rep:
-        rep.heading("ops 3821 — Rainbow + Pi Cycle into onchain-ratios")
+    with report("3822_cycle_bands") as rep:
+        rep.heading("ops 3822 — Rainbow + Pi Cycle into onchain-ratios")
 
         rep.section("G0. No-rebuild check")
         lam_dir = ROOT / "lambdas"
@@ -135,9 +135,13 @@ def main():
             f"{pi.get('signal')} · {pi.get('distance_to_trigger_pct')}% to trigger")
         chk("pi ships n=3", pi.get("historical_n") == 3)
 
-        chk("honesty caveats present",
-            "curve" in (rb.get("caveat") or "").lower()
-            and "n=3" in (pi.get("caveat") or ""))
+        rc = (rb.get("caveat") or "").lower()
+        pc = pi.get("caveat") or ""
+        chk("rainbow caveat: no predictive claim",
+            "cannot predict" in rc and "never a target" in rc)
+        chk("rainbow caveat: fit-to-own-history stated",
+            "own history" in rc and "drift" in rc)
+        chk("pi caveat ships n=3 explicitly", "n=3" in pc)
 
         mm = cb.get("mayer_multiple") or {}
         if mm:
