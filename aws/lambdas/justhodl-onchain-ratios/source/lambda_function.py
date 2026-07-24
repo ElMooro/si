@@ -207,6 +207,195 @@ def _cq_join(doc, s3c, bucket):
     return doc
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# CYCLE BANDS — the two metrics the fleet genuinely lacked (grep: 0 hits each)
+# ═══════════════════════════════════════════════════════════════════════════
+# Audit before building (ops 3821): MVRV(15) NUPL(7) Puell(7) Mayer(4) all
+# already exist across the fleet, so nothing here recomputes them. The only
+# TRUE zeros were the Bitcoin Rainbow log-regression bands and the Pi Cycle
+# Top. Both are added HERE rather than in a new engine because this engine
+# already owns the on-chain cycle-valuation vocabulary and its own page.
+#
+# HONESTY, SHIPPED IN THE FEED — the popular versions of both are weak:
+#   • The Rainbow chart as circulated is HAND-DRAWN bands on a log chart with
+#     no stated fit. We instead fit ln(price) = a*ln(days) + b by ordinary
+#     least squares over the real history and place bands at +/- k*sigma of
+#     the residuals, then publish a, b, R^2, sigma and n. It remains a curve
+#     FIT TO ITS OWN HISTORY with no predictive claim, and every cycle has
+#     come in lower against it — it is a context band, never a target.
+#   • Pi Cycle called the 2013/2017/2021 tops within days. That is n=3. We
+#     publish n with the signal so it can never read as a law.
+
+import math as _math
+
+
+def _cm_price_history(asset="btc", start="2010-07-18"):
+    """Daily close history from the CoinMetrics community API (free tier).
+       Returns [(YYYY-MM-DD, price)] oldest-first, paging until exhausted."""
+    rows, token, guard = [], None, 0
+    while guard < 12:
+        guard += 1
+        url = (f"{COINMETRICS_BASE}/timeseries/asset-metrics?assets={asset}"
+               f"&metrics=PriceUSD&frequency=1d&page_size=10000"
+               f"&start_time={start}&pretty=false")
+        if token:
+            url += f"&next_page_token={token}"
+        d = _fetch_json(url)
+        if not d:
+            break
+        for r in d.get("data", []):
+            try:
+                px = float(r.get("PriceUSD"))
+            except (TypeError, ValueError):
+                continue
+            if px > 0:
+                rows.append((str(r.get("time", ""))[:10], px))
+        token = d.get("next_page_token")
+        if not token:
+            break
+    rows.sort(key=lambda x: x[0])
+    return rows
+
+
+def _sma(vals, n):
+    return sum(vals[-n:]) / n if len(vals) >= n else None
+
+
+def rainbow_bands(hist):
+    """OLS log-regression rainbow. ln(P) = a*ln(t) + b, bands at +/- k*sigma."""
+    if len(hist) < 800:
+        return {"available": False,
+                "reason": f"only {len(hist)} daily closes; need >=800 for a fit"}
+    t0 = datetime.strptime(hist[0][0], "%Y-%m-%d")
+    xs, ys = [], []
+    for ds, px in hist:
+        try:
+            day = (datetime.strptime(ds, "%Y-%m-%d") - t0).days + 1
+        except ValueError:
+            continue
+        if day > 0 and px > 0:
+            xs.append(_math.log(day))
+            ys.append(_math.log(px))
+    n = len(xs)
+    if n < 800:
+        return {"available": False, "reason": f"only {n} usable points"}
+    mx, my = sum(xs) / n, sum(ys) / n
+    sxy = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    sxx = sum((x - mx) ** 2 for x in xs)
+    if sxx == 0:
+        return {"available": False, "reason": "degenerate regressor"}
+    a = sxy / sxx
+    b = my - a * mx
+    resid = [y - (a * x + b) for x, y in zip(xs, ys)]
+    sst = sum((y - my) ** 2 for y in ys)
+    sse = sum(r * r for r in resid)
+    r2 = 1 - sse / sst if sst else None
+    sigma = _math.sqrt(sse / (n - 2))
+    cur_x, cur_y = xs[-1], ys[-1]
+    fair = a * cur_x + b
+    z = (cur_y - fair) / sigma if sigma else None
+    BANDS = [(-2.0, "DEEP VALUE — max accumulation"), (-1.25, "ACCUMULATE"),
+             (-0.5, "CHEAP"), (0.5, "FAIR / HOLD"), (1.25, "WARM — begin trimming"),
+             (2.0, "HOT — distribution zone"), (99, "EUPHORIA — historic froth")]
+    label = next(lbl for thr, lbl in BANDS if z is not None and z <= thr)
+    return {
+        "available": True,
+        "method": "OLS fit of ln(price) on ln(days since first observation)",
+        "slope_a": round(a, 4), "intercept_b": round(b, 4),
+        "r_squared": round(r2, 4) if r2 is not None else None,
+        "residual_sigma": round(sigma, 4), "n_days": n,
+        "history_starts": hist[0][0],
+        "price": round(_math.exp(cur_y), 2),
+        "fair_value": round(_math.exp(fair), 2),
+        "z_sigma": round(z, 2) if z is not None else None,
+        "band": label,
+        "band_prices": {f"{k:+.2f}sigma": round(_math.exp(fair + k * sigma), 2)
+                        for k in (-2.0, -1.25, -0.5, 0, 0.5, 1.25, 2.0)},
+        "caveat": ("A regression fit to its OWN history — it cannot predict, only "
+                   "describe where price sits versus its past log trend. Bands "
+                   "re-fit every run and drift as history grows; every cycle has "
+                   "come in lower against this line. Context band, never a target, "
+                   "and never a standalone signal."),
+    }
+
+
+def pi_cycle_top(hist):
+    """111DMA crossing above 2x350DMA has marked the 2013/2017/2021 tops. n=3."""
+    closes = [p for _, p in hist]
+    if len(closes) < 400:
+        return {"available": False,
+                "reason": f"only {len(closes)} closes; need >=400 for the 350DMA"}
+    ma111, ma350 = _sma(closes, 111), _sma(closes, 350)
+    if not ma111 or not ma350:
+        return {"available": False, "reason": "moving averages unavailable"}
+    target = 2 * ma350
+    # walk history for the most recent cross
+    last_cross, prior = None, None
+    for i in range(400, len(closes)):
+        w = closes[:i + 1]
+        m1, m3 = _sma(w, 111), _sma(w, 350)
+        if not m1 or not m3:
+            continue
+        state = m1 > 2 * m3
+        if prior is not None and state != prior:
+            last_cross = {"date": hist[i][0],
+                          "direction": "111DMA crossed ABOVE 2x350DMA (TOP SIGNAL)"
+                          if state else "111DMA fell back below 2x350DMA"}
+        prior = state
+    gap_pct = (ma111 / target - 1) * 100 if target else None
+    return {
+        "available": True,
+        "ma_111d": round(ma111, 2), "ma_350d": round(ma350, 2),
+        "trigger_level": round(target, 2),
+        "distance_to_trigger_pct": round(gap_pct, 2) if gap_pct is not None else None,
+        "signal": "TOP SIGNAL ACTIVE" if ma111 > target else "no signal",
+        "last_cross": last_cross,
+        "historical_n": 3,
+        "caveat": ("Called the 2013 / 2017 / 2021 tops within days — but that is "
+                   "n=3 on a single asset, and the post-2024 spot-ETF regime may "
+                   "have changed the cycle shape entirely. Treat as one input, "
+                   "never a law."),
+    }
+
+
+def mayer_and_200w(hist):
+    closes = [p for _, p in hist]
+    out = {}
+    ma200d = _sma(closes, 200)
+    if ma200d:
+        mayer = closes[-1] / ma200d
+        hist_m = [closes[i] / (sum(closes[i - 199:i + 1]) / 200)
+                  for i in range(199, len(closes))]
+        pct = (100 * sum(1 for v in hist_m if v <= mayer) / len(hist_m)) if hist_m else None
+        out["mayer_multiple"] = {
+            "value": round(mayer, 3), "ma_200d": round(ma200d, 2),
+            "percentile_all_history": round(pct, 1) if pct is not None else None,
+            "read": ("OVERBOUGHT (>2.4)" if mayer > 2.4 else
+                     "CHEAP (<1.0)" if mayer < 1.0 else "NEUTRAL"),
+        }
+    if len(closes) >= 1400:
+        ma200w = _sma(closes, 1400)  # 200 weeks of daily closes
+        out["ma_200_week"] = {
+            "value": round(ma200w, 2),
+            "pct_above": round((closes[-1] / ma200w - 1) * 100, 2),
+            "note": "the historical cycle-bottom support; price has rarely closed below it",
+        }
+    return out
+
+
+def build_cycle_bands():
+    hist = _cm_price_history()
+    if not hist:
+        return {"available": False, "reason": "CoinMetrics price history unavailable"}
+    out = {"available": True, "as_of": hist[-1][0], "n_daily_closes": len(hist),
+           "price": round(hist[-1][1], 2),
+           "rainbow": rainbow_bands(hist), "pi_cycle": pi_cycle_top(hist)}
+    out.update(mayer_and_200w(hist))
+    out["joins"] = ("MVRV / NUPL / Puell / SOPR are computed elsewhere in this "
+                    "same document and across the fleet — not recomputed here.")
+    return out
+
+
 def lambda_handler(event, context):
     s3 = boto3.client("s3")
     started = time.time()
@@ -223,6 +412,11 @@ def lambda_handler(event, context):
         "fetch_duration_s": round(time.time() - started, 1),
     }
     output = _cq_join(output, s3, S3_BUCKET)
+    try:
+        output["cycle_bands"] = build_cycle_bands()
+    except Exception as e:
+        print(f"[cycle_bands] failed: {e}")
+        output["cycle_bands"] = {"available": False, "reason": str(e)[:200]}
     s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
                   Body=json.dumps(output).encode(),
                   ContentType="application/json", CacheControl="no-cache")
