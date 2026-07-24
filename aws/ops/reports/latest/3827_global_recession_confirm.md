@@ -1,0 +1,78 @@
+# ops 3827 — v1.2 hard-data confirmation: global recession ensemble + chokepoint day-two
+
+**Status:** success  
+**Duration:** 12.9s  
+**Finished:** 2026-07-24T21:55:09+00:00  
+
+## Data
+
+| band | breadth_pct | confirm_counts | excluded | gdp_covered | global_prob | n_countries | oecd_usable | unconfirmed_share_pct |
+|---|---|---|---|---|---|---|---|---|
+| WATCH — pockets of stress | 35.0 | {"CONFIRMED": 1, "DIVERGENT": 1, "UNCONFIRMED": 31} | 1 | 84.1 | 30.8 | 33 | False | 34.9 |
+
+## Log
+## G0. KEY CONTRACT — live producer artifact
+
+- `21:54:56` ✅   by_country: 34 countries, 34 with phase+gdp_weight
+- `21:54:56` ✅     key 'phase' present
+- `21:54:56` ✅     key 'cli_level' present
+- `21:54:56` ✅     key 'gdp_weight' present
+- `21:54:56` ✅     key 'six_month_change' present
+- `21:54:56` ✅     key 'dist_200ma_pct' present
+## 1. Deploy
+
+- `21:54:56` ✅   FRED_API_KEY from justhodl-nowcast-desk
+- `21:54:56`   zip: 90004 bytes
+## 1. Lambda
+
+- `21:54:56`   Lambda exists — updating
+- `21:55:01` ✅   ✓ updated justhodl-global-recession
+## 2. Zip-settle
+
+- `21:55:07` ✅   settled after 5s
+## 3. Schedule
+
+- `21:55:07` ✅   Scheduler exists (ConflictException = success)
+## 4. Invoke
+
+- `21:55:08`   {'statusCode': 200, 'body': '{"ok": true, "global_pct": 30.8, "n": 33}'}
+## 5. Verify the aggregation is REAL
+
+- `21:55:08` ✅   global probability present = 30.8%
+- `21:55:08` ✅   countries scored >= 15 = 33
+- `21:55:08` ✅   GDP coverage > 0.5 = 84.1
+- `21:55:08` ✅   weighted mean inside country range min 8.4 <= 30.8 <= max 72.6
+- `21:55:08` ✅   contributions reconcile to global sum 30.84 vs 30.8
+- `21:55:08` ✅   no country at 0 or 100 (nothing is certain) 
+- `21:55:08` ✅   not saturated at ceiling (<=2 countries >=95%) = []
+- `21:55:08` ✅   not saturated at floor (<=2 countries <=5%) = []
+- `21:55:08` ✅   dispersion is real (spread >= 25pp) = 64.2pp
+- `21:55:08` ✅   excluded-not-imputed disclosed 
+- `21:55:08` ✅   NOT-MacroMicro disclosure present 
+- `21:55:08` ✅   US cross-check reported separately 
+- `21:55:08` ✅   breadth published = 35.0% of covered GDP at risk
+- `21:55:08` ✅   confirmation block present 
+- `21:55:08` ✅   every country carries a confirmation state = {'CONFIRMED': 1, 'DIVERGENT': 1, 'UNCONFIRMED': 31} vs 33 countries
+- `21:55:08` ✅   unconfirmed exposure is quantified = 34.9% of headline
+- `21:55:08` ✅   OECD staleness is decided, not assumed usable=False period=2024-01-01 age=30mo
+- `21:55:08` ✅   dampening actually applied where unbacked at least one country pulled toward neutral, or all confirmed
+- `21:55:08`     CHN: CONFIRMED — p=72.6% detail={"source": "FRED CCI/BCI supplement", "value": 0.0, "as_of": "2026-05-01"}
+- `21:55:08`     IND: UNCONFIRMED — p=65.4% detail={"note": "no independent hard-data leg available \u2014 this country rests on equity momentum alone"}
+- `21:55:08`   ── top GDP contributors ──
+- `21:55:08`     CHN  RECESSION  p= 72.6% w=18.0    contrib=15.54pp [CONFIRMED]
+- `21:55:08`     USA  EXPANSION  p= 15.3% w=25.0    contrib=4.55pp [DIVERGENT]
+- `21:55:08`     IND  RECESSION  p= 65.4% w=3.6     contrib=2.8pp [UNCONFIRMED]
+- `21:55:08`     IDN  RECESSION  p= 72.1% w=1.3     contrib=1.11pp [UNCONFIRMED]
+- `21:55:08`     DEU  EXPANSION  p= 19.3% w=4.0     contrib=0.92pp [UNCONFIRMED]
+- `21:55:08`     MEX  AT_RISK    p= 42.5% w=1.5     contrib=0.76pp [UNCONFIRMED]
+- `21:55:08`     BRA  AT_RISK    p= 23.2% w=1.9     contrib=0.52pp [UNCONFIRMED]
+- `21:55:08`     GBR  EXPANSION  p= 12.4% w=3.3     contrib=0.49pp [UNCONFIRMED]
+- `21:55:08`     US curve probit: 27.0% (10y-3m 0.73pp)
+- `21:55:08`     Sahm: 0.07 — below trigger
+## 6. Chokepoint day-two unattended re-read (pending since 3776)
+
+- `21:55:09`   chokepoint generated_at = 2026-07-24T18:35:06.798301+00:00
+- `21:55:09`   age = 3.3h
+- `21:55:09` ✅   UNATTENDED RUN CONFIRMED — schedule is genuinely armed
+- `21:55:09`   ledger 2,482,194 bytes, modified 2026-07-24 18:35:04+00:00
+- `21:55:09` ✅ PASS_ALL 18/18
