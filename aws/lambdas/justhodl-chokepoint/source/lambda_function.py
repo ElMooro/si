@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "4.2.3"
+VERSION = "4.3"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -319,11 +319,28 @@ def lambda_handler(event, context):
     g = _read("data/supply-chain-graph.json") or {}
     for e in (g.get("edges") or []):
         sup = e.get("supplier") or e.get("source")
-        if sup: centrality[sup] = centrality.get(sup, 0) + 1
+        if sup:
+            sup = sup.strip().upper()
+            centrality[sup] = centrality.get(sup, 0) + 1
     for n in (g.get("nodes") or []):
-        s = n.get("symbol") or n.get("id")
-        if s and isinstance(n.get("centrality"), (int, float)):
-            centrality[s] = max(centrality.get(s, 0), n["centrality"] * 10)
+        # ops 3799: nodes key the symbol as "ticker" and carry degree /
+        # n_suppliers / n_customers. They have NEVER carried "centrality" —
+        # 0 of 183 — so the previous read was a permanent no-op and only the
+        # edge loop above ever contributed. Use the fields that exist.
+        s = n.get("ticker") or n.get("symbol") or n.get("id")
+        if not s:
+            continue
+        _inb = n.get("n_suppliers")
+        _deg = n.get("degree")
+        _cand = None
+        if isinstance(_inb, (int, float)) and _inb > 0:
+            _cand = float(_inb)
+        if isinstance(_deg, (int, float)) and _deg > 0:
+            _cand = max(_cand or 0.0, float(_deg) * 0.5)
+        if isinstance(n.get("centrality"), (int, float)):
+            _cand = max(_cand or 0.0, float(n["centrality"]) * 10)
+        if _cand:
+            centrality[s.upper()] = max(centrality.get(s.upper(), 0), _cand)
     diag.append("centrality_nodes=%d" % len(centrality))
 
     rerate = _read("data/ai-rerating-radar.json") or {}
@@ -1054,6 +1071,15 @@ def lambda_handler(event, context):
                 1 for c in cap_rows if c.get("revenue_share_pct") is not None)
             capture["stats"]["with_dependency"] = sum(
                 1 for c in cap_rows if c.get("dependency_pct") is not None)
+            capture["dependency_note"] = (
+                "dependency_pct is a share of a CURATED supply-chain map, not of a "
+                "company's real supplier base. That map currently names %d symbols "
+                "across %d edges, so most listed companies have no entry — a blank "
+                "means UNMAPPED, never zero dependency. Expanding coverage is a job "
+                "for the supply-chain engine, not something this page can infer."
+                % (len(g.get("nodes") or []), len(g.get("edges") or [])))
+            capture["stats"]["graph_nodes"] = len(g.get("nodes") or [])
+            capture["stats"]["graph_edges"] = len(g.get("edges") or [])
             diag.append("pct_critical: rev_share=%d dependency=%d" % (
                 capture["stats"]["with_revenue_share"],
                 capture["stats"]["with_dependency"]))

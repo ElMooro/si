@@ -1,39 +1,47 @@
-executing-against: aa5c52d33908c41ca7d1927d5ec9f604fa0fa9c3
-ops 3798 — what is actually inside supply-chain-graph.json
-── 1. Does the feed exist and is it fresh? ──
-[03:20:41] ✅ FEED.exists :: 73048 bytes, 5.4h old
-[03:20:41] ✅ FEED.fresh :: 5.4 hours old
-── 2. ACTUAL top-level keys ──
-[03:20:41]   engine                     str      27
-[03:20:41]   version                    str      5
-[03:20:41]   ok                         bool     True
-[03:20:41]   generated_at               str      32
-[03:20:41]   thesis                     str      222
-[03:20:41]   n_nodes                    int      183
-[03:20:41]   n_edges                    int      303
-[03:20:41]   n_themes                   int      19
-[03:20:41]   themes                     list     19
-[03:20:41]   graph_stats                dict     6
-[03:20:41]   booming_hubs               list     4
-[03:20:41]   nodes                      list     183
-[03:20:41]   edges                      list     303
-[03:20:41]   supply_chain_laggards      list     1
-[03:20:41]   top_picks                  list     1
-[03:20:41]   data_source                str      82
-[03:20:41]   caveats                    list     3
-[03:20:41]   elapsed_s                  float    7.3
-── 3. Real field names on an edge / node ──
-[03:20:41]   edge[0] keys: ['confirm', 'customer', 'relationship', 'source', 'supplier']
-[03:20:41]   edge[0]     : {"supplier": "ASML", "customer": "TSM", "relationship": "EUV litho", "source": "curated", "confirm": "none"}
-[03:20:41] ✅ EDGE.reader_matches :: 303 of 303 edges expose supplier|source (what chokepoint reads)
-[03:20:41]   node[0] keys: ['degree', 'is_boom', 'n_customers', 'n_suppliers', 'origin', 'perf_30d', 'perf_5d', 'price', 'theme', 'ticker']
-[03:20:41]   node[0]     : {"ticker": "A", "theme": "Healthcare/Biopharma", "origin": "curated", "perf_30d": 5.51, "perf_5d": -0.93, "price": 133.46, "is_boom": false, "degree": 3, "n_suppliers": 2, "n_customers": 1}
-── 4. Symbol universe of the graph vs the capture ledger ──
-[03:20:41]   sample: ['A', 'AAPL', 'ACLS', 'ADI', 'AEHR', 'AEIS', 'ALB', 'ALSN', 'ALV', 'AMAT', 'AMD', 'AME', 'AMKR', 'AMZN', 'ANET', 'AOS', 'APH', 'APLD', 'APTV', 'ARM', 'ASML', 'ATKR', 'AVGO', 'AXL']
-[03:20:42] ✅ OVERLAP.nonzero :: 180 shared symbols
-[03:20:42]   overlap sample: ['A', 'AAPL', 'ACLS', 'ADI', 'AEHR', 'AEIS', 'ALB', 'ALSN', 'ALV', 'AMAT', 'AMD', 'AME', 'AMKR', 'AMZN', 'ANET', 'AOS', 'APH', 'APLD', 'APTV', 'ARM', 'ASML', 'ATKR', 'AVGO', 'AXL']
+executing-against: b8b7540693e4f0f3aa02507d8bb898471d81c5db
+ops 3799 — read the node fields that actually exist
+── G0 — confirm the dead read ──
+[03:25:04] ✅ G0.anchor :: node loop anchor unique
+[03:25:04] ✅ G0.v423 :: engine at v4.2.3
+[03:25:04] ✅ G0.centrality_absent :: 0 of 183 nodes carry 'centrality' — the read is dead
+[03:25:04] ✅ G0.degree_present :: 183 nodes carry 'degree'
+[03:25:04] ✅ G0.ticker_key :: nodes key the symbol as 'ticker' (reader looks for symbol|id)
+── [1] Read ticker/degree/n_suppliers instead of the absent keys ──
+── [2] Ship the graph ceiling so the metric is not overstated ──
+[03:25:04] ✅ dependency_note + graph size shipped in the feed
+[03:25:04] ✅ v4.3 spliced + compile clean
+── Deploy ──
+[03:25:04]   zip: 103328 bytes
+── 1. Lambda ──
+[03:25:05]   Lambda exists — updating
+[03:25:08] ✅   ✓ updated justhodl-chokepoint
+[03:25:23] ✅ settled attempt 1
+[03:25:23] ✅ DEPLOY.settled :: v4.3 live
+── Invoke + measure the change ──
+[03:25:34] ✅ LIVE.v43 :: version=4.3
+[03:25:34] ✅ FIX.improved :: 181 names carry dependency (was 153)
+[03:25:34] ✅ FEED.note :: ceiling stated in the feed
+── Sample — names the graph actually maps ──
+[03:25:34]   NEE    Regulated Electric             dep=100.0%  crit=44.0
+[03:25:34]   AMZN   Specialty Retail               dep=100.0%  crit=63.9
+[03:25:34]   GSAT   Telecommunications Services    dep=100.0%  crit=44.8
+[03:25:34]   AAPL   Consumer Electronics           dep=100.0%  crit=74.1
+[03:25:34]   JCI    Construction Materials         dep=100.0%  crit=40.9
+[03:25:34]   TKR    Manufacturing - Tools & Access dep=100.0%  crit=39.1
+[03:25:34]   PWR    Engineering & Construction     dep=100.0%  crit=41.0
+[03:25:34]   WMT    Discount Stores                dep=100.0%  crit=41.8
+[03:25:34]   NTR    Agricultural Inputs            dep=100.0%  crit=30.3
+[03:25:34]   UAL    Airlines, Airports & Air Servi dep=100.0%  crit=16.4
+[03:25:34]   MP     Industrial Materials           dep=100.0%  crit=16.8
+[03:25:34]   CIFR   Financial - Capital Markets    dep= 90.0%  crit=34.6
+[03:25:34]   XOM    Oil & Gas Integrated           dep= 80.0%  crit=34.6
+[03:25:34]   LLY    Drug Manufacturers - General   dep= 66.7%  crit=91.9
+── Additive ──
+[03:25:34] ✅ ADDITIVE.capture_gap :: preserved
+[03:25:34] ✅ ADDITIVE.revenue_share_pct :: preserved
+[03:25:34] ✅ ADDITIVE.catchup_pct :: preserved
+[03:25:34] ✅ ADDITIVE.criticality_pctile :: preserved
 ── VERDICT ──
-[03:20:42] ⚠ The graph itself only names 185 symbols. dependency_pct cannot exceed that. If Khalid expects broad coverage, the GRAPH is the thing to expand — the join is fine.
-[03:20:42] ✅ PASS_ALL — schema probed
+[03:25:34] ✅ PASS_ALL — node read fixed; graph ceiling stated rather than implied
 
-→ Report written to aws/ops/reports/latest/3798_probe_supply_chain_graph.md
+→ Report written to aws/ops/reports/latest/3799_fix_dependency_node_read.md
