@@ -1,0 +1,93 @@
+# ops 3817 — PROBE: dollar-radar 3m, cftc shape, artifact keys
+
+**Status:** success  
+**Duration:** 0.3s  
+**Finished:** 2026-07-24T20:33:52+00:00  
+
+## Data
+
+| degraded | eligible | regime | scored |
+|---|---|---|---|
+| dollar-radar 3m change unavailable; cftc-all-cache unmapped — crowding cap skipped | 20 | STAGFLATION | 37 |
+
+## Log
+## A. dollar-radar.json — where does the 3m change live?
+
+- `20:33:52`   top-level: ['schema_version', 'engine', 'generated_at', 'wl_research', 'build_seconds', 'dollar_pressure', 'regime', 'regime_note', 'headline', 'canaries_pump', 'canaries_dump', 'canaries', 'indices', 'bilaterals', 'bbdxy', 'technicals', 'risk_transmission', 'history_key', 'how_to_read', 'disclaimer']
+- `20:33:52`     wl_research.context.LIQUIDITY.pressure_pctile = 66.0
+- `20:33:52`     wl_research.context.DOLLAR.pressure_pctile = 48.5
+- `20:33:52`     wl_research.divergences[0].khalid.pressure_pctile = 66.0
+- `20:33:52`     indices[0].chg_1m_pct = 0.96
+- `20:33:52`     indices[0].chg_3m_pct = 2.08
+- `20:33:52`     indices[0].chg_1y_pct = -0.09
+- `20:33:52`     indices[0].range_pctile_1y = 69.1
+- `20:33:52`     bilaterals[0].chg_1m_pct = 1.34
+- `20:33:52`     bilaterals[0].chg_3m_pct = 3.16
+- `20:33:52`     bilaterals[0].chg_1y_pct = 1.37
+- `20:33:52`     bbdxy.range_pctile_1y = 79.9
+- `20:33:52`     bbdxy.constituents[0].target_weight_pct = 29.47
+- `20:33:52`     bbdxy.constituents[0].usd_chg_1m_pct = 1.34
+- `20:33:52`     bbdxy.constituents[0].usd_chg_1y_pct = 1.37
+- `20:33:52`     bbdxy.breadth_spread_3m_pp = -0.57
+- `20:33:52`     bbdxy.dxy_synth.chg_1d_pct = 0.06
+- `20:33:52`     bbdxy.dxy_synth.chg_1w_pct = -0.01
+- `20:33:52`     bbdxy.dxy_synth.chg_1m_pct = 1.08
+- `20:33:52`     bbdxy.dxy_synth.chg_3m_pct = 2.87
+- `20:33:52`     bbdxy.dxy_synth.chg_6m_pct = 1.39
+- `20:33:52`     bbdxy.dxy_synth.chg_1y_pct = 2.13
+- `20:33:52`     bbdxy.chg_1d_pct = 0.12
+- `20:33:52`     bbdxy.chg_1w_pct = -0.0
+- `20:33:52`     bbdxy.chg_1m_pct = 0.92
+- `20:33:52`     bbdxy.chg_3m_pct = 2.3
+- `20:33:52`   canaries: list[15] of dict[6] keys=['label', 'reading', 'signal', 'lean', 'weight', 'detail']
+## B. cftc-all-cache.json — real row container + field names
+
+- `20:33:52`   source: str
+- `20:33:52`   contracts: int
+- `20:33:52`   data: dict[29] keys=['ES', 'NQ', 'YM', 'RTY', 'VX', 'ZB', 'ZN', 'ZF']
+- `20:33:52`   timestamp: str
+- `20:33:52`   cached_at: str
+- `20:33:52` ✅   ROW CONTAINER = 'data' (29 rows)
+- `20:33:52`     row keys: ['contract', 'name', 'category', 'cftc_code', 'report_type', 'weekly_reports', 'current', 'signals']
+- `20:33:52`     sample:   {"contract": "ES", "name": "S&P 500 E-Mini", "category": "equity_index", "cftc_code": "13874A", "report_type": "tff", "weekly_reports": [{"report_date": "2026-07-14", "open_interest": 1941500, "noncommercial_long": 1279748, "noncommercial_short": 704278, "net_speculator": 575470, "commercial_long": 142914, "commercial_short": 849691, "net_commercial": -706777, "managed_money_long": 135454, "managed_money_short": 5004
+## C. rotation-dashboard.json — full key inventory for the page
+
+- `20:33:52`   generated_at=2026-07-24T20:25:58+00:00 version=1.0.0
+- `20:33:52`   engine: str
+- `20:33:52`   version: str
+- `20:33:52`   generated_at: str
+- `20:33:52`   thesis: str
+- `20:33:52`   layer1_regime: dict[8] keys=['layer', 'name', 'degraded', 'quadrant', 'roro', 'dollar', 'prior', 'prior_source']
+- `20:33:52`   layer2_ratios: dict[7] keys=['layer', 'name', 'n_ratios', 'gold_distortion', 'gold_distortion_note', 'roro_buckets', 'ratios']
+- `20:33:52`   layer3_layer4: dict[7] keys=['layer', 'name', 'n_universe', 'n_scored', 'n_eligible', 'n_failed_gate', 'cash_12m_pct']
+- `20:33:52`   overweight: list[8] of dict[7] keys=['rank', 'ticker', 'label', 'asset_class', 'confluence_score', 'quadrant', 'drivers']
+- `20:33:52`   avoid: list[6] of dict[5] keys=['rank', 'ticker', 'label', 'confluence_score', 'why']
+- `20:33:52`   assets: list[37] of dict[16] keys=['ticker', 'label', 'asset_class', 'price', 'trend_gate', 'momentum', 'rrg', 'flows']
+- `20:33:52`   excluded: list[0] of empty
+- `20:33:52`   quadrant_counts: dict[4] keys=['LEADING', 'IMPROVING', 'WEAKENING', 'LAGGING']
+- `20:33:52`   degraded: list[2] of str
+- `20:33:52`   methodology: dict[6] keys=['trend_gate', 'rs_ratio', 'rs_momentum', 'quadrants', 'cot_index', 'hysteresis']
+- `20:33:52`   caveats: list[5] of str
+- `20:33:52`   build_seconds: float
+- `20:33:52`   ── per-asset keys (37 rows) ──
+- `20:33:52`     assets[].ticker: str
+- `20:33:52`     assets[].label: str
+- `20:33:52`     assets[].asset_class: str
+- `20:33:52`     assets[].price: float
+- `20:33:52`     assets[].trend_gate: dict[8] keys=['eligible', 'above_200d_sma', 'sma_200d', 'pct_vs_200d', 'ret_12m_pct', 'cash_12m_pct', 'excess_vs_cash_pp', 'fail_reasons']
+- `20:33:52`     assets[].momentum: dict[6] keys=['ret_1m_pct', 'ret_3m_pct', 'ret_6m_pct', 'ret_12m_pct', 'ret_12_1_pct', 'blend_score']
+- `20:33:52`     assets[].rrg: dict[3] keys=['rs_ratio', 'rs_momentum', 'quadrant']
+- `20:33:52`     assets[].flows: NoneType
+- `20:33:52`     assets[].crowding: NoneType
+- `20:33:52`     assets[].regime_prior: float
+- `20:33:52`     assets[].confluence_score: float
+- `20:33:52`     assets[].drivers: list[4] of str
+- `20:33:52`     assets[].rank: int
+- `20:33:52`     assets[].prev_rank: int
+- `20:33:52`     assets[].rank_delta: int
+- `20:33:52`     assets[].rank_stability: str
+- `20:33:52`     assets[].trend_gate.*: ['eligible', 'above_200d_sma', 'sma_200d', 'pct_vs_200d', 'ret_12m_pct', 'cash_12m_pct', 'excess_vs_cash_pp', 'fail_reasons']
+- `20:33:52`     assets[].momentum.*: ['ret_1m_pct', 'ret_3m_pct', 'ret_6m_pct', 'ret_12m_pct', 'ret_12_1_pct', 'blend_score']
+- `20:33:52`     assets[].rrg.*: ['rs_ratio', 'rs_momentum', 'quadrant']
+- `20:33:52`     layer2.ratios[].*: ['key', 'numerator', 'denominator', 'value', 'z_1y', 'chg_20d_pct', 'chg_60d_pct', 'pctile_1y', 'direction', 'lead_type', 'favours']
+- `20:33:52` ✅ PROBE COMPLETE — no code written, shapes recorded for the wire ops
