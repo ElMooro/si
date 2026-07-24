@@ -38,7 +38,8 @@ from ops_report import report  # noqa: E402
 BUCKET = "justhodl-dashboard-live"
 s3 = boto3.client("s3", region_name="us-east-1")
 PAT = re.compile(r"^[a-z0-9_]+(_mult|_multiplier|_scalar)$")
-MAX_BYTES = 6_000_000
+MAX_BYTES = 4_000_000
+MAX_ARTIFACTS = 400
 
 
 def row_arrays(doc, depth=0):
@@ -73,12 +74,12 @@ def main():
                 if o["Key"].endswith(".json") and o["Size"] <= MAX_BYTES:
                     keys.append(o["Key"])
             tok = r.get("NextContinuationToken")
-            if not tok:
+            if not tok or len(keys) >= MAX_ARTIFACTS:
                 break
         rep.ok(f"  {len(keys)} artifacts under {MAX_BYTES//1_000_000}MB")
 
         rep.section("2. Scan for overlay fields")
-        findings, scanned, errors = [], 0, 0
+        findings, scanned, errors, stale_reports = [], 0, 0, []
         for k in keys:
             try:
                 doc = json.loads(s3.get_object(Bucket=BUCKET, Key=k)["Body"].read())
@@ -86,6 +87,15 @@ def main():
                 errors += 1
                 continue
             scanned += 1
+            # single pass: harvest feed_freshness here rather than re-reading
+            # every artifact a second time (the double-load made this ops run
+            # for 20+ minutes on a bucket this size)
+            fh = doc.get("feed_freshness") if isinstance(doc, dict) else None
+            if isinstance(fh, list):
+                bad = [x for x in fh if isinstance(x, dict)
+                       and (x.get("stale") or x.get("missing"))]
+                if bad:
+                    stale_reports.append((k.replace("data/", ""), bad))
             for path, arr in row_arrays(doc):
                 fields = set()
                 for row in arr[:40]:
@@ -135,20 +145,10 @@ def main():
 
         rep.section("6. Feeds excluded by staleness (where published)")
         n_stale = 0
-        for k in keys:
-            try:
-                doc = json.loads(s3.get_object(Bucket=BUCKET, Key=k)["Body"].read())
-            except Exception:
-                continue
-            fh = doc.get("feed_freshness") if isinstance(doc, dict) else None
-            if isinstance(fh, list):
-                bad = [x for x in fh if isinstance(x, dict)
-                       and (x.get("stale") or x.get("missing"))]
-                if bad:
-                    n_stale += len(bad)
-                    rep.warn(f"  {k.replace('data/','')}: "
-                             f"{len(bad)} feed(s) dropped -> "
-                             f"{[b.get('key','?').replace('data/','') for b in bad][:8]}")
+        for name, bad in stale_reports:
+            n_stale += len(bad)
+            rep.warn(f"  {name}: {len(bad)} feed(s) dropped -> "
+                     f"{[b.get('key','?').replace('data/','') for b in bad][:8]}")
         if not n_stale:
             rep.ok("  no published feed_freshness block reports drops")
 
