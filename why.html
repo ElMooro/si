@@ -3544,6 +3544,9 @@ window.jhCaptureTiles=async function(t, el){ try{
     + tl('REV SHARE', rsTxt, rsSub, (rs!=null&&rs>=20?'#6fce8a':''))
     + tl('CRITICALITY', (cp==null?'—':n9(cp,0)+'%ile'),
         'quality rank vs peers'+(r.criticality!=null?' · score '+n9(r.criticality):'')+' — NOT a share of the industry', '')
+    + (r.structural_importance!=null? tl('CRUCIAL TO INDUSTRY', n9(r.structural_importance,1),
+        (r.structural_basis||'revenue rank + margin & R&D premium vs peers'), 
+        (r.structural_importance>=60?'#6fce8a':'')) : '')
     + (dp!=null? tl('SUPPLY-CHAIN DEP', n9(dp,1)+'%',
         'of mapped supplier links in its industry', (dp>=25?'#6fce8a':'')) : '');
   var extra='<div class="jhv-grid" style="margin-top:8px">'+tiles+'</div>';

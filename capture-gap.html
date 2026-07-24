@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Capture Gap · JustHodl.AI</title>
-<meta name="jh-page-version" content="v10-ops3802">
+<meta name="jh-page-version" content="v11-ops3806">
 <style>
 :root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
@@ -132,6 +132,7 @@ var GLOSS={
  revenue_share_pct:"REVENUE SHARE. This company's trailing revenue as a share of USD-FILING scored peers in its industry — the closest measurable proxy for how much of the industry actually depends on it. Suppressed (shown as —) for non-USD filers and for industries where USD filers cover under 60% of scored names, because summing mixed currencies produces a wrong number that looks right.",
  dependency_pct:"SUPPLY-CHAIN DEPENDENCY. Share of mapped supplier links in this industry that point at this company. Sourced from a curated graph that covers only some sectors, so it is blank rather than guessed for most names.",
  criticality:"CRITICALITY (0-100). A QUALITY composite: 30% gross-margin level, 22% margin STABILITY, 20% ROIC, 13% R&D intensity, 15% supply-chain centrality. It is NOT a share of the industry — a 71 does not mean 71% of the industry depends on this company.",
+ structural_importance:"HOW CRUCIAL TO ITS INDUSTRY (0-100). Blends four things measurable for every company: where it ranks by revenue inside its industry, how far its gross margin sits above the industry median, its R&D intensity versus the median, and its share of industry market cap. Supply-chain centrality adds a bonus where the curated map covers the company — but its absence never penalises, because that map names only ~185 symbols. Hover any score to see which legs carried it.",
  criticality_pctile:"CRITICALITY PERCENTILE. The honest percentage form of criticality: this company ranks above X% of scored peers on business quality.",
  revenue_growth_yoy:"REVENUE GROWTH (YoY). Latest annual revenue versus the prior year, from the same income statement used elsewhere. A growth RATE is currency-invariant, so unlike revenue share it is published for non-USD filers too.",
  growth_tier:"GROWTH TIER. Absolute, not percentile: HIGH >=20%, MEDIUM 5-20%, LOW <5%. Absolute so 'high growth' means the same thing on every board rather than 'top third of today's sample'.",
@@ -225,7 +226,7 @@ function ledger(){
   ['market_cap','Mcap'],['mcap_share_pct','Share %'],['industry_peers','Peers'],
   ['criticality','Crit'],['criticality_pctile','Crit %ile'],['mcap_share_pctile','Cap %ile'],
   ['capture_gap','Gap'],['global_capture_gap','Global gap'],['gap_divergence','Diverg'],
-  ['revenue_share_pct','Rev share'],['dependency_pct','Dep %'],['gm_level','GM'],['gm_stability','GM stab'],['roic','ROIC'],
+  ['revenue_share_pct','Rev share'],['structural_importance','Crucial'],['dependency_pct','Dep %'],['gm_level','GM'],['gm_stability','GM stab'],['roic','ROIC'],
   ['discount_to_fair_pct','vs fair'],['rpo_yoy','RPO YoY'],['legs','Legs'],['tier','Tier']];
  var h='<tr>'+cols.map(function(c){return '<th data-k="'+c[0]+'">'+c[1]+help(c[0])+(sortK===c[0]?(sortD<0?' ▾':' ▴'):'')+'</th>';}).join('')+'</tr>';
  var b=rs.map(function(r){return '<tr>'
@@ -238,7 +239,7 @@ function ledger(){
   +'<td>'+num(r.criticality)+'</td><td style="color:'+DIM+'">'+num(r.criticality_pctile)+'</td>'
   +'<td style="color:'+DIM+'">'+num(r.mcap_share_pctile)+'</td>'
   +'<td style="color:'+gapCol(r.capture_gap)+';font-weight:600">'+(r.capture_gap>0?'+':'')+num(r.capture_gap)+'%</td>'+'<td style="color:'+gapCol(r.global_capture_gap)+'">'+(r.global_capture_gap>0?'+':'')+num(r.global_capture_gap)+'%</td>'+'<td style="color:'+(r.gap_divergence>0?POS:MUT)+'">'+(r.gap_divergence>0?'+':'')+num(r.gap_divergence)+'</td>'
-+'<td>'+rsh(r)+'</td><td>'+dep(r)+'</td>'
++'<td>'+rsh(r)+'</td><td>'+si(r)+'</td><td>'+dep(r)+'</td>'
   +'<td>'+num(r.gm_level)+'%</td><td>±'+num(r.gm_stability)+'%</td><td>'+num(r.roic)+'%</td>'
   +'<td style="color:'+(r.discount_to_fair_pct>0?POS:MUT)+'">'+num(r.discount_to_fair_pct)+'%</td>'
   +'<td style="color:'+(r.rpo_yoy==null?MUT:(r.rpo_yoy>0?POS:NEG))+'">'+num(r.rpo_yoy)+'</td>'
@@ -315,6 +316,16 @@ function rsh(r){
  var col=v>=20?POS:(v>=5?ACC:'');
  return '<span'+(col?' style="color:'+col+';font-weight:600"':'')+'>'+num(v,2)+'%</span>';
 }
+function si(r){
+ // ops 3805: "how crucial is this company to its industry", computed for EVERY
+ // name from revenue rank + margin premium + R&D premium + mcap concentration.
+ // Supply-chain centrality is a bonus when mapped, never a penalty when absent.
+ var v=r.structural_importance;
+ if(v==null) return '<span style="color:'+MUT+'">—</span>';
+ var col=v>=60?POS:(v>=40?ACC:'');
+ var why=r.structural_basis||'';
+ return '<span'+(col?' style="color:'+col+';font-weight:600"':'')+' title="'+String(why).replace(/"/g,'&quot;')+'">'+num(v,1)+'</span>';
+}
 function dep(r){
  // ops 3801: a bare dash reads as a broken column. It is not — the curated
  // supply-chain graph names ~185 symbols, so most companies simply have no
@@ -345,7 +356,7 @@ function cu(v,basis,capped){
 var ldK='undervaluation_score',ldD=-1,ldInd='ALL',ldCap='ALL',ldGro='ALL';
 var ldCols=[['undervaluation_score','Score'],['catchup_pct','Catch-up to<br>industry median'],
  ['capture_gap','Capture gap'],['global_capture_gap','Global gap'],
- ['revenue_share_pct','Rev share<br>of industry'],['dependency_pct','Supply-chain<br>dependency'],
+ ['revenue_share_pct','Rev share<br>of industry'],['structural_importance','How crucial<br>to industry'],
  ['revenue_growth_yoy','Rev growth<br>YoY'],['gm_level','Gross<br>margin'],
  ['criticality','Crit'],['criticality_pctile','Crit %ile'],
  ['roic','ROIC'],['legs','Legs'],['tier','Tier']];
@@ -390,7 +401,7 @@ document.getElementById('leader').innerHTML=(lead.length?(
 +'<td>'+cu(r.catchup_pct,r.catchup_basis,r.catchup_capped)+'</td>'
 +'<td style="color:'+gapCol(r.capture_gap)+'">'+(r.capture_gap>0?'+':'')+num(r.capture_gap)+'%</td>'
 +'<td style="color:'+gapCol(r.global_capture_gap)+'">'+(r.global_capture_gap>0?'+':'')+num(r.global_capture_gap)+'%</td>'
-+'<td>'+rsh(r)+'</td><td>'+dep(r)+'</td>'
++'<td>'+rsh(r)+'</td><td>'+si(r)+'</td>'
 +'<td>'+gro(r)+'</td><td>'+(r.gm_level==null?'—':num(r.gm_level)+'%')+'</td>'
 +'<td>'+num(r.criticality)+'</td><td style="color:'+DIM+'">'+num(r.criticality_pctile)+'</td><td>'+num(r.roic)+'%</td>'
 +'<td>'+legDots(r.legs||0)+'</td><td>'+tierChip(r.tier)+'</td></tr>';}).join('')+'</table>'
@@ -434,11 +445,11 @@ document.getElementById('byind').innerHTML=(bi.length?(
   +'<td style="color:'+(b.n_undervalued>0?POS:MUT)+'">'+b.n_undervalued+'</td></tr>';
   var mem='<tr class="memrow" id="mem'+i+'" style="display:none"><td colspan="9" style="padding:0">'
   +'<table style="margin:4px 0 10px 0">'
-  +'<tr><th>Ticker</th><th>Company</th><th>Mcap</th><th>Mcap share</th><th>Rev share</th><th>Dep %</th><th>Catch-up</th><th>Gap</th><th>Global</th><th>Crit</th><th>Crit %ile</th><th>EV/S</th><th>P/E</th><th>ROIC</th><th>Legs</th><th>Tier</th></tr>'
+  +'<tr><th>Ticker</th><th>Company</th><th>Mcap</th><th>Mcap share</th><th>Rev share</th><th>Crucial</th><th>Dep %</th><th>Catch-up</th><th>Gap</th><th>Global</th><th>Crit</th><th>Crit %ile</th><th>EV/S</th><th>P/E</th><th>ROIC</th><th>Legs</th><th>Tier</th></tr>'
   +(b.members||[]).filter(function(m){return m&&m.ticker;}).map(function(m){return '<tr><td style="color:'+ACC+'">'+m.ticker+'</td>'
    +'<td>'+(m.name||'').slice(0,20)+'</td><td>'+money(m.market_cap)+'</td>'
    +'<td>'+num(m.mcap_share_pct,2)+'%</td>'
-   +'<td>'+rsh(m)+'</td><td>'+dep(m)+'</td>'
+   +'<td>'+rsh(m)+'</td><td>'+si(m)+'</td><td>'+dep(m)+'</td>'
    +'<td>'+cu(m.catchup_pct,m.catchup_basis,false)+'</td>'
    +'<td style="color:'+gapCol(m.capture_gap)+'">'+(m.capture_gap>0?'+':'')+num(m.capture_gap)+'%</td>'
    +'<td style="color:'+gapCol(m.global_capture_gap)+'">'+(m.global_capture_gap>0?'+':'')+num(m.global_capture_gap)+'%</td>'
