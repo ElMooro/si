@@ -1,5 +1,5 @@
 """
-ops_3819 — verify rotation-dashboard.html AT THE EDGE + field-coverage audit
+ops_3820 — verify rotation-dashboard.html AT THE EDGE + field-coverage audit
 
 Two things this gates, both learned the hard way:
 
@@ -7,7 +7,7 @@ Two things this gates, both learned the hard way:
      a cache-buster AND a marker string UNIQUE to this version. The capture-gap
      arc burned 6 ops serving a stale page while the repo copy was correct, and
      ops 3746 accepted a stale copy because the sentinel it grepped existed in
-     the OLD version too. Marker here is 'v1-ops3819' — it cannot exist before.
+     the OLD version too. Marker here is 'v2-ops3820' — it cannot exist before.
 
   2. FIELD-COVERAGE AUDIT (the page contract). Dump every key the LIVE S3
      artifact publishes — top-level AND per-row — then grep the SERVED html for
@@ -33,7 +33,7 @@ from ops_report import report  # noqa: E402
 
 BUCKET = "justhodl-dashboard-live"
 PAGE = "https://justhodl.ai/rotation-dashboard.html"
-MARKER = "v1-ops3819"
+MARKER = "v2-ops3820"
 s3 = boto3.client("s3", region_name="us-east-1")
 
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -49,8 +49,8 @@ def get_page(attempt):
 
 
 def main():
-    with report("3819_rotation_page_verify") as rep:
-        rep.heading("ops 3819 — rotation-dashboard.html edge verify + field coverage")
+    with report("3820_rotation_page_verify") as rep:
+        rep.heading("ops 3820 — rotation-dashboard.html edge verify + field coverage")
 
         # ── 1. served page carries the NEW marker ──
         rep.section("1. Served page (Cloudflare edge, unique marker)")

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rotation Dashboard · JustHodl.AI</title>
-<meta name="jh-page-version" content="v1-ops3819">
+<meta name="jh-page-version" content="v2-ops3820">
 <style>
 :root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
@@ -72,6 +72,7 @@ function render(){
   const d=D,L1=d.layer1_regime||{},L2=d.layer2_ratios||{},L34=d.layer3_layer4||{};
   const q=L1.quadrant||{},roro=L1.roro||{},dol=L1.dollar||{};
   let h='';
+  h+='<div class="card" style="margin-bottom:12px;font-size:12.5px;color:var(--text-dim)"><b style="color:var(--text)">Thesis.</b> '+esc(d.thesis||'')+'</div>';
 
   // ── regime banner ──
   h+='<div class="banner"><div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center">'
@@ -124,9 +125,10 @@ function render(){
 
   // ── ratios ──
   h+='<div class="sec">Layer 2 — Cross-Asset Ratio Dashboard</div><div class="card" style="overflow-x:auto">'
-   +'<table><thead><tr><th>Ratio</th><th>Value</th><th>z (1y)</th><th>%ile 1y</th><th>20d</th><th>60d</th><th>Direction</th><th>Type</th><th>Favours</th></tr></thead><tbody>';
+   +'<table><thead><tr><th>Ratio</th><th>Key</th><th>Value</th><th>z (1y)</th><th>%ile 1y</th><th>20d</th><th>60d</th><th>Direction</th><th>Type</th><th>Favours</th></tr></thead><tbody>';
   (L2.ratios||[]).forEach(r=>{
     h+='<tr><td><b>'+esc(r.numerator)+'/'+esc(r.denominator)+'</b>'+(r.gold_distorted?' <span class="pill p-neg">gold-distorted</span>':'')+'</td>'
+      +'<td class="small mute mono">'+esc(r.key)+'</td>'
       +'<td class="mono">'+F(r.value,4)+'</td>'
       +'<td class="mono '+cls(r.z_1y)+'">'+F(r.z_1y)+'</td>'
       +'<td class="mono">'+F(r.pctile_1y,1)+'</td>'
@@ -180,7 +182,7 @@ function render(){
 
 function cols(){return [['rank','#'],['ticker','Ticker'],['asset_class','Class'],['price','Price'],
  ['gate','Gate'],['pct_vs_200d','vs 200d'],['excess','Excess vs cash'],
- ['ret_3m','3m'],['ret_6m','6m'],['ret_12_1','12-1m'],['blend','Blend'],
+ ['ret_1m','1m'],['ret_3m','3m'],['ret_6m','6m'],['ret_12m','12m'],['ret_12_1','12-1m'],['blend','Blend'],['regime_prior','Prior'],
  ['rs_ratio','RS-Ratio'],['rs_momentum','RS-Mom'],['quadrant','Quadrant'],
  ['flow','Flow (20d)'],['cot','COT idx'],['confluence_score','Confluence'],['rank_stability','Stability']];}
 
@@ -189,6 +191,8 @@ function val(a,k){
     case 'gate':return a.trend_gate.eligible?1:0;
     case 'pct_vs_200d':return a.trend_gate.pct_vs_200d;
     case 'excess':return a.trend_gate.excess_vs_cash_pp;
+    case 'ret_1m':return a.momentum.ret_1m_pct;
+    case 'ret_12m':return a.momentum.ret_12m_pct;
     case 'ret_3m':return a.momentum.ret_3m_pct;
     case 'ret_6m':return a.momentum.ret_6m_pct;
     case 'ret_12_1':return a.momentum.ret_12_1_pct;
@@ -217,19 +221,25 @@ function rows(){
     }
     let fl='—';
     if(f){fl='<span class="'+(f.state==='INFLOW'?'pos':f.state==='OUTFLOW'?'neg':'dim')+'">$'+money(f.net_flow_usd)+'</span>'
-        +(f.pct_of_aum!==null&&f.pct_of_aum!==undefined?'<span class="small"> '+F(f.pct_of_aum,2)+'% AUM</span>':'');}
+        +(f.pct_of_aum!==null&&f.pct_of_aum!==undefined?'<span class="small"> '+F(f.pct_of_aum,2)+'% AUM</span>':'')
+        +'<div class="small mute">horizon '+esc(f.horizon)+'</div>';}
     return '<tr>'
-      +'<td class="mute">'+a.rank+(a.rank_delta?'<span class="small '+(a.rank_delta>0?'pos':'neg')+'"> '+(a.rank_delta>0?'▲':'▼')+Math.abs(a.rank_delta)+'</span>':'')+'</td>'
+      +'<td class="mute">'+a.rank+(a.rank_delta?'<span class="small '+(a.rank_delta>0?'pos':'neg')+'"> '+(a.rank_delta>0?'▲':'▼')+Math.abs(a.rank_delta)+'</span>':'')
+        +(a.prev_rank?'<div class="small mute">prev_rank '+a.prev_rank+'</div>':'')+'</td>'
       +'<td><b>'+esc(a.ticker)+'</b><div class="small mute">'+esc(a.label)+'</div></td>'
       +'<td class="small dim">'+esc(a.asset_class)+'</td>'
       +'<td class="mono">'+F(a.price)+'</td>'
       +'<td>'+(t.eligible?'<span class="pill p-pos">PASS</span>':'<span class="pill p-neg" title="'+esc((t.fail_reasons||[]).join(' · '))+'">FAIL</span>')+'</td>'
-      +'<td class="mono '+cls(t.pct_vs_200d)+'">'+P(t.pct_vs_200d)+'</td>'
+      +'<td class="mono '+cls(t.pct_vs_200d)+'" title="200d SMA '+F(t.sma_200d)+'">'+P(t.pct_vs_200d)
+        +'<div class="small mute">sma_200d '+F(t.sma_200d)+' · above_200d_sma '+(t.above_200d_sma?'yes':'no')+'</div></td>'
       +'<td class="mono '+cls(t.excess_vs_cash_pp)+'">'+F(t.excess_vs_cash_pp,1)+'</td>'
+      +'<td class="mono '+cls(m.ret_1m_pct)+'">'+P(m.ret_1m_pct)+'</td>'
       +'<td class="mono '+cls(m.ret_3m_pct)+'">'+P(m.ret_3m_pct)+'</td>'
       +'<td class="mono '+cls(m.ret_6m_pct)+'">'+P(m.ret_6m_pct)+'</td>'
+      +'<td class="mono '+cls(m.ret_12m_pct)+'">'+P(m.ret_12m_pct)+'</td>'
       +'<td class="mono '+cls(m.ret_12_1_pct)+'">'+P(m.ret_12_1_pct)+'</td>'
       +'<td class="mono '+cls(m.blend_score)+'">'+F(m.blend_score,1)+'</td>'
+      +'<td class="mono '+cls(a.regime_prior)+'">'+F(a.regime_prior,2)+'</td>'
       +'<td class="mono '+cls(r.rs_ratio)+'">'+F(r.rs_ratio,1)+'</td>'
       +'<td class="mono '+cls(r.rs_momentum)+'">'+F(r.rs_momentum,1)+'</td>'
       +'<td><span class="pill '+(QC[r.quadrant]||'p-neu')+'">'+esc(r.quadrant||'—')+'</span></td>'
