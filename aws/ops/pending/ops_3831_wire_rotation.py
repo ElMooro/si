@@ -1,5 +1,5 @@
 """
-ops_3830 — WIRE rotation-dashboard -> best-setups + master-ranker
+ops_3831 — WIRE rotation-dashboard -> best-setups + master-ranker
 
 Probe 3829 forecast the naive join at 48% / 0% on PUBLISHED rows. The correct
 read: both engines resolve sector INTERNALLY (best-setups via
@@ -27,19 +27,34 @@ s3 = boto3.client("s3", region_name="us-east-1")
 CFG = boto3.session.Config(read_timeout=890, retries={"max_attempts": 0})
 
 
-def settle(fn, rep):
-    for i in range(50):
+def settle(fn, rep, marker):
+    """ZIP-SETTLE, not state-settle. ops 3830 failed exactly here: State==Active
+    returns instantly when deploy-lambdas has not STARTED yet, so the ops invoked
+    the OLD artifact and the new field was absent on every row. The only reliable
+    proof is downloading the deployed zip and grepping for a string that exists
+    only in the new code."""
+    import io as _io, urllib.request as _u, zipfile as _z
+    for i in range(60):
         c = lam.get_function_configuration(FunctionName=fn)
         if c.get("State") == "Active" and c.get("LastUpdateStatus") != "InProgress":
-            rep.ok(f"  {fn} settled ({i*5}s)")
-            return
-        time.sleep(5)
-    rep.fail(f"{fn} never settled"); sys.exit(1)
+            try:
+                url = lam.get_function(FunctionName=fn)["Code"]["Location"]
+                blob = _u.urlopen(url, timeout=60).read()
+                with _z.ZipFile(_io.BytesIO(blob)) as zf:
+                    src = zf.read("lambda_function.py").decode("utf-8", "ignore")
+                if marker in src:
+                    rep.ok(f"  {fn} ZIP-SETTLED with '{marker}' after {i*10}s")
+                    return
+                rep.log(f"    {fn}: deployed artifact lacks '{marker}' — waiting")
+            except Exception as e:
+                rep.log(f"    {fn}: zip read failed ({str(e)[:60]}) — retrying")
+        time.sleep(10)
+    rep.fail(f"{fn}: '{marker}' never reached the deployed artifact"); sys.exit(1)
 
 
 def main():
-    with report("3830_wire_rotation") as rep:
-        rep.heading("ops 3830 — wire rotation tilt into setups + ranker")
+    with report("3831_wire_rotation") as rep:
+        rep.heading("ops 3831 — wire rotation tilt into setups + ranker")
 
         rep.section("G0. rotation feed is fresh and carries what we consume")
         rd = json.loads(s3.get_object(
@@ -57,11 +72,13 @@ def main():
         rep.ok("  every sector ETF carries rrg.quadrant + trend_gate.eligible")
 
         results = {}
-        for fn, key, listk in (
-                ("justhodl-best-setups", "data/best-setups.json", "top_setups"),
-                ("justhodl-master-ranker", "data/master-ranker.json", "top_tickers")):
+        for fn, key, listk, marker in (
+                ("justhodl-best-setups", "data/best-setups.json", "top_setups",
+                 "_rotation_scalar"),
+                ("justhodl-master-ranker", "data/master-ranker.json", "top_tickers",
+                 "_rotation_overlay")):
             rep.section(f"── {fn}")
-            settle(fn, rep)
+            settle(fn, rep, marker)
             r = boto3.client("lambda", region_name="us-east-1", config=CFG).invoke(
                 FunctionName=fn, InvocationType="RequestResponse", Payload=b"{}")
             if r.get("FunctionError"):
