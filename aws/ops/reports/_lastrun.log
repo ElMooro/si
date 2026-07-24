@@ -1,50 +1,61 @@
-executing-against: 371e070a2cf7c7de453a40a925d7677168bb102f
-ops 3785 — revenue share: USD-only denominator
-── G0 ──
-[23:35:13] ✅ G0.v41 :: engine at v4.1
-[23:35:13] ✅ G0.rev_field :: revenue persisted
-[23:35:13] ✅ G0.share_block :: share computation present to patch
-[23:35:13] ✅ G0.no_currency_yet :: currency never read — the confirmed defect
-── [1] Read reportedCurrency in evaluate() ──
-[23:35:13] ✅ P1.anchor :: revenue pick anchor unique
-── [2] Carry currency through cap_rows ──
-[23:35:13] ✅ P2.anchor :: cap_rows revenue carry unique
-── [3] USD-only denominator with a coverage floor ──
-[23:35:13] ✅ P3.anchor :: denominator build anchor unique
-[23:35:13] ✅ P4.anchor :: share assignment anchor unique
-[23:35:13] ✅ USD-only denominator + coverage floor spliced (v4.1.1)
-── Deploy ──
-[23:35:14]   zip: 101119 bytes
-── 1. Lambda ──
-[23:35:14]   Lambda exists — updating
-[23:35:18] ✅   ✓ updated justhodl-chokepoint
-[23:35:33] ✅ settled attempt 1
-[23:35:33] ✅ DEPLOY.settled :: v4.1.1 live
-── Invoke + MAGNITUDE gate (the check that caught this) ──
-[23:35:52] ✅ LIVE.v411 :: version=4.1.1
-── Semis after the fix ──
-[23:35:52]   NVDA   share=32.25%  rev=215,938,000,000  ccy=USD
-[23:35:52]   AVGO   share=9.54%   rev=63,887,000,000   ccy=USD
-[23:35:52]   INTC   share=7.89%   rev=52,853,000,000   ccy=USD
-[23:35:52]   QCOM   share=6.61%   rev=44,284,000,000   ccy=USD
-[23:35:52]   MU     share=5.58%   rev=37,378,000,000   ccy=USD
-[23:35:52]   AMD    share=5.17%   rev=34,639,000,000   ccy=USD
-[23:35:52]   AMAT   share=4.24%   rev=28,368,000,000   ccy=USD
-[23:35:52]   LRCX   share=2.75%   rev=18,435,591,000   ccy=USD
-[23:35:52]   TXN    share=2.64%   rev=17,682,000,000   ccy=USD
-[23:35:52]   TEL    share=2.55%   rev=17,089,000,000   ccy=USD
-[23:35:52]   TSM    SUPPRESSED :: filer reports in TWD — not summable with USD peers
-[23:35:52]   ASX    SUPPRESSED :: filer reports in unknown — not summable with USD peers
-[23:35:52]   SKHY   SUPPRESSED :: filer reports in KRW — not summable with USD peers
-[23:35:52]   UMC    SUPPRESSED :: filer reports in TWD — not summable with USD peers
-[23:35:52] ✅ MAGNITUDE.nvda :: NVDA now 32.2% of USD-filing semis (was 0.21% with KRW in the denominator)
-[23:35:52] ✅ PURITY.usd_only :: 0 non-USD filers still publishing a share (must be 0)
-── Additive ──
-[23:35:52] ✅ ADDITIVE.capture_gap :: preserved
-[23:35:52] ✅ ADDITIVE.catchup_pct :: preserved
-[23:35:52] ✅ ADDITIVE.global_capture_gap :: preserved
-[23:35:52] ✅ ADDITIVE.criticality_pctile :: preserved
+executing-against: f421598e3c5ad81a651c4b562e52332aa019abed
+ops 3786 — revenue share served on capture-gap + why.html
+── Feed precondition (v4.1.1) ──
+[00:02:36] ✅ FEED.version :: engine v4.1.1
+[00:02:36] ✅ FEED.share_published :: 1063 names publish a share
+[00:02:36] ✅ FEED.suppression_reasons :: 1748 names carry an explicit suppression reason
+[00:02:36] ✅ FEED.usd_purity :: 0 non-USD filers publishing (must be 0)
+── capture-gap.html v6 ──
+[00:02:37] capture-gap attempt 1: HTTP 200 · 30840 bytes · 0/7
+[00:03:02] capture-gap attempt 2: HTTP 200 · 30840 bytes · 0/7
+[00:03:27] capture-gap attempt 3: HTTP 200 · 30840 bytes · 0/7
+[00:03:52] capture-gap attempt 4: HTTP 200 · 30840 bytes · 0/7
+[00:04:17] capture-gap attempt 5: HTTP 200 · 32303 bytes · 7/7
+[00:04:17] ✅ CG.stamp :: present
+[00:04:17] ✅ CG.rsh_fn :: present
+[00:04:17] ✅ CG.dep_fn :: present
+[00:04:17] ✅ CG.col_rev :: present
+[00:04:17] ✅ CG.col_dep :: present
+[00:04:17] ✅ CG.note :: present
+[00:04:17] ✅ CG.member_rev :: present
+[00:04:17] ✅ CG.KEPT.Most_Undervalued :: intact
+[00:04:17] ✅ CG.KEPT.By_Industry :: intact
+[00:04:17] ✅ CG.KEPT.Full_Ledger :: intact
+[00:04:17] ✅ CG.KEPT.catchup_pct :: intact
+[00:04:17] ✅ CG.KEPT.Default_rank_is_blen :: intact
+[00:04:17] ✅ CG.KEPT.data-lk :: intact
+[00:04:17] ✅ CG.KEPT.data-bk :: intact
+── why.html ──
+[00:04:17] why attempt 1: HTTP 200 · 273413 bytes · 1/5
+[00:04:42] why attempt 2: HTTP 200 · 273413 bytes · 1/5
+[00:05:07] why attempt 3: HTTP 200 · 273413 bytes · 1/5
+[00:05:32] why attempt 4: HTTP 200 · 273413 bytes · 1/5
+[00:05:57] why attempt 5: HTTP 200 · 273413 bytes · 1/5
+[00:06:22] why attempt 6: HTTP 200 · 273413 bytes · 1/5
+[00:06:47] why attempt 7: HTTP 200 · 273413 bytes · 1/5
+[00:07:12] why attempt 8: HTTP 200 · 273413 bytes · 1/5
+[00:07:37] why attempt 9: HTTP 200 · 274341 bytes · 5/5
+[00:07:37] ✅ WHY.rev_tile :: present
+[00:07:37] ✅ WHY.crit_tile :: present
+[00:07:37] ✅ WHY.not_a_share :: present
+[00:07:37] ✅ WHY.usd_label :: present
+[00:07:37] ✅ WHY.capture_fn :: present
+[00:07:37] ✅ WHY.KEPT.P_E_TTM :: intact
+[00:07:37] ✅ WHY.KEPT.PEG :: intact
+[00:07:37] ✅ WHY.KEPT.EV_EBITDA :: intact
+[00:07:37] ✅ WHY.KEPT.SHARES_OUT :: intact
+[00:07:37] ✅ WHY.KEPT.DILUTION :: intact
+[00:07:37] ✅ WHY.KEPT.CAPTURE_GAP :: intact
+[00:07:37] ✅ WHY.KEPT.CATCH-UP :: intact
+[00:07:37] ✅ WHY.KEPT.fillJHVitals :: intact
+── Sample — what a reader will actually see ──
+[00:07:37]   NVDA   rev_share=32.25%   ccy=USD   crit_pctile=98.9   dep=14.9%   
+[00:07:37]   AVGO   rev_share=9.54%    ccy=USD   crit_pctile=82.8   dep=5.0%    
+[00:07:37]   AMD    rev_share=5.17%    ccy=USD   crit_pctile=67.8   dep=5.9%    
+[00:07:37]   TSM    rev_share=—        ccy=TWD   crit_pctile=89.7   dep=5.9%    [filer reports in TWD — not summable with USD p]
+[00:07:37]   SKHY   rev_share=—        ccy=KRW   crit_pctile=31.0   dep=—       [filer reports in KRW — not summable with USD p]
+[00:07:37]   MSFT   rev_share=55.79%   ccy=USD   crit_pctile=89.6   dep=—       
 ── VERDICT ──
-[23:35:52] ✅ PASS_ALL — mixed-currency denominator fixed; shares are USD-only or blank
+[00:07:37] ✅ PASS_ALL — revenue share live on both surfaces, suppression reasons visible
 
-→ Report written to aws/ops/reports/latest/3785_fix_currency_revenue_share.md
+→ Report written to aws/ops/reports/latest/3786_verify_revenue_share_pages.md
