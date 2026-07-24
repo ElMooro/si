@@ -1,0 +1,79 @@
+# ops 3796 — H1 coverage vs H2 ordering
+
+**Status:** failure  
+**Duration:** 0.4s  
+**Finished:** 2026-07-24T03:06:20+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| industries | industries_below_60pct_floor | leaderboard | publishing | rows | suppressed | total | version |
+|---|---|---|---|---|---|---|---|
+|  |  | 50 |  | 3012 |  |  | 4.2.2 |
+|  |  |  | 1642 |  | 1370 | 3012 |  |
+| 136 | 24 |  |  |  |  |  |  |
+
+## Log
+## Source row vs copy, for every leaderboard name
+
+- `03:06:20`   HERE   source=None      copy=None      suppressed=filer reports in CNY — not summable with USD peers
+- `03:06:20`   DOMO   source=0.06      copy=None      suppressed=None
+- `03:06:20`   LDI    source=13.32     copy=None      suppressed=None
+- `03:06:20`   BMBL   source=0.09      copy=None      suppressed=None
+- `03:06:20`   QTTB   source=0.09      copy=None      suppressed=None
+- `03:06:20`   TREE   source=0.41      copy=None      suppressed=None
+- `03:06:20`   RCMT   source=0.79      copy=None      suppressed=None
+- `03:06:20`   CGEN   source=0.12      copy=None      suppressed=None
+- `03:06:20`   HLF    source=6.26      copy=None      suppressed=None
+- `03:06:20`   RC     source=2.54      copy=None      suppressed=None
+- `03:06:20`   CMRC   source=0.06      copy=None      suppressed=None
+- `03:06:20`   WNC    source=1.85      copy=None      suppressed=None
+- `03:06:20`   ORGO   source=1.31      copy=None      suppressed=None
+- `03:06:20`   GETY   source=0.09      copy=None      suppressed=None
+- `03:06:20`   SSTK   source=0.09      copy=None      suppressed=None
+- `03:06:20`   GOTU   source=None      copy=None      suppressed=filer reports in CNY — not summable with USD peers
+- `03:06:20`   DCBO   source=0.05      copy=None      suppressed=None
+- `03:06:20`   AMCX   source=0.84      copy=None      suppressed=None
+- `03:06:20`   BWMX   source=None      copy=None      suppressed=filer reports in MXN — not summable with USD peers
+- `03:06:20`   NUS    source=2.93      copy=None      suppressed=None
+- `03:06:20` ✗ DIAG.not_ordering :: 17 names have a source value but a null copy (0 => NOT an ordering bug)
+## H1 — coverage floor analysis across the whole ledger
+
+- `03:06:20`   non-USD                        1251
+- `03:06:20`   coverage floor                 119
+## USD coverage per industry — is the 60% floor the binding constraint?
+
+- `03:06:20`   Specialty Retail                   n=51   usd=18   coverage=53%
+- `03:06:20`   Telecommunications Services        n=49   usd=12   coverage=54%
+- `03:06:20`   Marine Shipping                    n=31   usd=13   coverage=54%
+- `03:06:20`   Specialty Business Services        n=30   usd=9    coverage=45%
+- `03:06:20`   Gold                               n=20   usd=5    coverage=50%
+- `03:06:20`   Gambling, Resorts & Casinos        n=19   usd=4    coverage=44%
+- `03:06:20`   Furnishings, Fixtures & Appliances n=18   usd=9    coverage=56%
+- `03:06:20`   REIT - Retail                      n=18   usd=8    coverage=57%
+- `03:06:20`   Education & Training Services      n=16   usd=4    coverage=44%
+- `03:06:20`   Rental & Leasing Services          n=15   usd=4    coverage=57%
+- `03:06:20`   Regulated Gas                      n=15   usd=4    coverage=57%
+- `03:06:20`   Auto - Dealerships                 n=13   usd=3    coverage=43%
+## What are the leaderboard names' industries?
+
+- `03:06:20`   HERE   Leisure                          usd_coverage=66.7%  ccy=CNY
+- `03:06:20`   DOMO   Software - Application           usd_coverage=89.3%  ccy=USD
+- `03:06:20`   LDI    Financial - Mortgages            usd_coverage=70.0%  ccy=USD
+- `03:06:20`   BMBL   Internet Content & Information   usd_coverage=69.7%  ccy=USD
+- `03:06:20`   QTTB   Biotechnology                    usd_coverage=88.5%  ccy=USD
+- `03:06:20`   TREE   Financial - Credit Services      usd_coverage=70.4%  ccy=USD
+- `03:06:20`   RCMT   Conglomerates                    usd_coverage=75.0%  ccy=USD
+- `03:06:20`   CGEN   Biotechnology                    usd_coverage=88.5%  ccy=USD
+- `03:06:20`   HLF    Packaged Foods                   usd_coverage=66.7%  ccy=USD
+- `03:06:20`   RC     REIT - Mortgage                  usd_coverage=85.2%  ccy=USD
+- `03:06:20`   CMRC   Software - Application           usd_coverage=89.3%  ccy=USD
+- `03:06:20`   WNC    Agricultural - Machinery         usd_coverage=88.9%  ccy=USD
+## VERDICT
+
+- `03:06:20` ✗ FAILED: DIAG.not_ordering
