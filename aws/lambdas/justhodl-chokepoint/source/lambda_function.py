@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "5.0"
+VERSION = "5.0.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -1228,7 +1228,16 @@ def lambda_handler(event, context):
                 _rev = _read("data/estimate-revisions.json") or {}
                 _dirmap = _rev.get("direction_map") or {}
                 _dp = _read("data/dark-pool.json") or {}
-                _dmap = _dp.get("dark_map") or {}
+                # ops 3811: dark_map is ticker -> RAW SHARE COUNT (int), e.g.
+                # MLM -> 1532511 — calling .get() on it threw and killed the whole
+                # verdict block for all 2,393 rows. The rich per-name records live
+                # in the `board` / `top_accumulation` lists of dicts.
+                _dmap = {}
+                for _lst_name in ("board", "top_accumulation", "top_distribution", "top_picks"):
+                    for _row in (_dp.get(_lst_name) or []):
+                        if isinstance(_row, dict) and _row.get("ticker"):
+                            _dmap.setdefault(_row["ticker"], _row)
+                _dvol = _dp.get("dark_map") or {}   # raw off-exchange share counts
                 _fs = _read("data/finra-short.json") or {}
                 _smap = _fs.get("tickers") or {}
                 _pe = _read("data/earnings-pead.json") or {}
@@ -1252,6 +1261,7 @@ def lambda_handler(event, context):
 
                     # 1. IS THE 'E' STALE?  DISQUALIFIER.
                     _dir = _dirmap.get(_t)
+                    _dir = _dir if isinstance(_dir, str) else None
                     if _dir:
                         _n_rev += 1
                         _c["estimate_direction"] = _dir
@@ -1262,7 +1272,8 @@ def lambda_handler(event, context):
                         _c["estimates_falling"] = None
 
                     # 2. SMART MONEY FLOW (best coverage: 38% of ledger)
-                    _d = _dmap.get(_t) or {}
+                    _d = _dmap.get(_t)
+                    _d = _d if isinstance(_d, dict) else {}
                     if _d:
                         _n_flow += 1
                         _c["dark_pool_pct"] = _d.get("dark_pool_pct")
@@ -1275,9 +1286,12 @@ def lambda_handler(event, context):
                     else:
                         _c["dark_state"] = None
                         _c["smart_accumulation"] = None
+                        _v = _dvol.get(_t)
+                        _c["offex_shares_wk"] = _v if isinstance(_v, (int, float)) else None
 
                     # 3. CROWDED BEAR / SQUEEZE FUEL
-                    _sh = _smap.get(_t) or {}
+                    _sh = _smap.get(_t)
+                    _sh = _sh if isinstance(_sh, dict) else {}
                     if _sh:
                         _n_short += 1
                         _c["short_volume_ratio_pct"] = _sh.get("svr_pct")
@@ -1290,7 +1304,8 @@ def lambda_handler(event, context):
                         _c["crowded_short"] = None
 
                     # 4. CATALYST WITH A CLOCK
-                    _p = _pmap.get(_t) or {}
+                    _p = _pmap.get(_t)
+                    _p = _p if isinstance(_p, dict) else {}
                     if _p:
                         _n_cat += 1
                         _m = _p.get("metrics") or {}
@@ -1304,7 +1319,8 @@ def lambda_handler(event, context):
                         _c["has_catalyst"] = None
 
                     # 5. IS THE INDUSTRY INFLECTING OR DECAYING?
-                    _bi = _boom.get(_c.get("industry")) or {}
+                    _bi = _boom.get(_c.get("industry"))
+                    _bi = _bi if isinstance(_bi, dict) else {}
                     if _bi:
                         _n_boom += 1
                         _c["industry_boom_score"] = _bi.get("boom_score")
@@ -1319,7 +1335,8 @@ def lambda_handler(event, context):
                         _c["industry_regime"] = None
 
                     # 6. HOW LONG HAS THIS GAP BEEN OPEN? (trap detector)
-                    _pr = _prev.get(_t) or {}
+                    _pr = _prev.get(_t)
+                    _pr = _pr if isinstance(_pr, dict) else {}
                     _open_now = (_c.get("capture_gap") or -999) >= 20
                     _first = _pr.get("gap_first_seen")
                     if _open_now:
