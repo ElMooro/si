@@ -93,6 +93,17 @@ def census_idx(s3_client, bucket):
         lo = xs[len(xs)//3] if len(xs) >= 3 else None
         hi = xs[2*len(xs)//3] if len(xs) >= 3 else None
         col = lambda k: C.get(k) or [None] * len(mx.get("tickers") or [])
+        # ops 3832: the ranker's _ticker_sector only walked contributing-system
+        # rows for a "sector" key and most lack one -> the rotation tilt fired on
+        # 1/25 rows. The census matrix carries sector for the whole universe, so
+        # we surface it here (census_idx is globally cached, callable anywhere).
+        # The matrix is ~215 cols and the exact name is not guaranteed, so the
+        # column is DISCOVERED, not assumed, and the ops gates which one was used.
+        _sec_col = next((k for k in ("sector", "Sector", "sector_name",
+                                     "gics_sector", "sectorName")
+                         if isinstance(C.get(k), list)), None)
+        globals()["_CENSUS_SECTOR_COL"] = _sec_col
+        _secs = C.get(_sec_col) if _sec_col else None
         for i, t in enumerate(mx.get("tickers") or []):
             pats = [lbl for lbl, k in
                     (("double_bottom", "double_bottom"),
@@ -110,7 +121,8 @@ def census_idx(s3_client, bucket):
                       "turn": (mx.get("turn") or [None]*(i+1))[i]
                       if i < len(mx.get("turn") or []) else None,
                       "patterns": pats,
-                      "whale_usd_m": col("whale_net_usd_m")[i]}
+                      "whale_usd_m": col("whale_net_usd_m")[i],
+                      "sector": (_secs[i] if _secs and i < len(_secs) else None)}
     except Exception as _e:  # noqa: BLE001
         print("[census-overlay]", str(_e)[:80])
     _CENSUS_CACHE = out
@@ -1072,10 +1084,25 @@ def lambda_handler(event, context):
         tag = "nowcast tailwind" if m > 1 else "nowcast headwind"
         return round(base_score * m, 1), m, f"nowcast {r} {tag} ({sector})"
 
-    def _ticker_sector(systems_dict):
+    _census_sec = {}
+    try:
+        _census_sec = {k: (v or {}).get("sector")
+                       for k, v in census_idx(S3, "justhodl-dashboard-live").items()
+                       if (v or {}).get("sector")}
+    except Exception as _e:  # noqa: BLE001
+        print("[sector-map]", str(_e)[:80])
+    print(f"[sector-map] census sector coverage: {len(_census_sec)} tickers "
+          f"(col={globals().get('_CENSUS_SECTOR_COL')})")
+
+    def _ticker_sector(systems_dict, ticker=None):
+        """ops 3832: contributing-system rows rarely carry sector, so the
+        regime overlays (roro / nowcast / rotation) were firing on almost
+        nothing. Falls back to the census matrix, which covers the universe."""
         for v in systems_dict.values():
             if isinstance(v, dict) and v.get("sector"):
                 return v["sector"]
+        if ticker:
+            return _census_sec.get(str(ticker).upper())
         return None
 
     # sector-flow-state overlay (fused RRG-quadrant + posture conviction feed)
@@ -1194,7 +1221,7 @@ def lambda_handler(event, context):
         score, contributions = compute_conviction(systems_dict, calibration)
         n_sys = len(systems_dict)
         score, cf_mult, cf_note = _cf_overlay(ticker, score)
-        _sector = _ticker_sector(systems_dict)
+        _sector = _ticker_sector(systems_dict, ticker)
         score, roro_mult, roro_note = _roro_overlay(_sector, score)
         score, liq_mult, liq_note = _liq_overlay(_sector, score)
         score, sf_mult, sf_note = _sectorflow_overlay(_sector, score)
