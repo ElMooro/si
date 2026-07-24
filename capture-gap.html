@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Capture Gap · JustHodl.AI</title>
-<meta name="jh-page-version" content="v12-ops3813">
+<meta name="jh-page-version" content="v13-ops3815">
 <style>
 :root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
@@ -55,6 +55,9 @@ select{background:#10151d;color:#e6ecf3;border:1px solid #1c2330;border-radius:6
 
 <div class="sec">⚠️ Value Traps — wide gap, but cheap for a reason</div>
 <div class="card" id="traps"></div>
+
+<div class="sec">🌊 Regime Tailwind — important & cheap in industries turning up</div>
+<div class="card" id="tailwind"></div>
 
 <div class="sec">🥇 Most Undervalued — all industries, blended rank</div>
 <div class="card" id="leader"></div>
@@ -138,6 +141,7 @@ var GLOSS={
  revenue_share_pct:"REVENUE SHARE. This company's trailing revenue as a share of USD-FILING scored peers in its industry — the closest measurable proxy for how much of the industry actually depends on it. Suppressed (shown as —) for non-USD filers and for industries where USD filers cover under 60% of scored names, because summing mixed currencies produces a wrong number that looks right.",
  dependency_pct:"SUPPLY-CHAIN DEPENDENCY. Share of mapped supplier links in this industry that point at this company. Sourced from a curated graph that covers only some sectors, so it is blank rather than guessed for most names.",
  criticality:"CRITICALITY (0-100). A QUALITY composite: 30% gross-margin level, 22% margin STABILITY, 20% ROIC, 13% R&D intensity, 15% supply-chain centrality. It is NOT a share of the industry — a 71 does not mean 71% of the industry depends on this company.",
+ industry_trend:"INDUSTRY TREND. From the boom-league score and its 20-day momentum. TURNING = rising hard from a mid or low base, before the industry is visibly at the top — where the edge is. BOOMING = already high and rising, mostly priced. FADING = high score but rolling over, the hazard a simple level check misses. DECAYING = bottom quartile. A turning industry counts as a confirmation for a mispricing; a fading one is a disqualifier.",
  mispricing_verdict:"VERDICT. A wide capture gap says the market pays little for a company that matters to its industry — it does NOT say the market is wrong. MISPRICED requires the gap AND structural importance AND at least two independent confirmations (institutional accumulation off-exchange, active post-earnings drift, an inflecting industry, stable-or-rising estimates) AND no disqualifier. VALUE_TRAP means the gap exists but earnings estimates are falling, the industry is in structural decline, or the gap has stayed open past 120 days without closing — the market disagreeing for a reason. CROWDED_SHORT means heavy short interest with no confirming evidence. UNPROVEN is the honest majority: a gap with no evidence either way. Hover any badge for the specific reasons.",
  industry_regime:"INDUSTRY REGIME. Where this company's industry sits in the boom league — BOOMING (top quartile), DECAYING (bottom quartile), or NEUTRAL. A critical company in a decaying industry is a melting ice cube: cheap, and staying cheap.",
  gap_days_open:"GAP AGE. How many days the capture gap has stayed above 20% without closing, tracked from the engine's own ledger. A gap open past 120 days is treated as a disqualifier — the market has had time to reprice and chose not to.",
@@ -341,6 +345,29 @@ document.getElementById('traps').innerHTML=(tb.length?(
  +'<div class="note"><strong>This is the most useful table on the page.</strong> These carry the widest capture gaps on the board — and under a pure value screen they would rank at the very top. They fail because the evidence contradicts the gap: earnings estimates falling means the E is stale rather than the P wrong; a decaying industry means a critical company is still a melting ice cube; a gap open past 120 days means the market has had time to reprice and declined to.</div>')
  :'<span class="mono" style="color:'+MUT+'">No value traps flagged today.</span>');
 
+// ── REGIME TAILWIND BOOK + INDUSTRY TRENDS ─────────────────────────────
+var wb=(c.regime_tailwind_book||[]).filter(function(r){return r&&r.ticker;});
+var trends=(c.industry_trends||[]);
+function trendChip(t){var col={TURNING:POS,BOOMING:ACC,FADING:NEG,DECAYING:NEG,NEUTRAL:MUT}[t]||MUT;
+ return '<span class="tier" style="background:'+col+'22;color:'+col+';border:1px solid '+col+'55">'+(t||'—')+'</span>';}
+document.getElementById('tailwind').innerHTML=(wb.length?(
+ (trends.length?('<div style="margin-bottom:12px"><div class="note" style="margin-bottom:6px"><strong>Industries turning up</strong> — boom score rising fast from a non-top base (the alpha), already booming (mostly priced), or fading (high but rolling over — the hazard a level check misses):</div>'
+ +'<table><tr><th>Industry</th><th>Trend</th><th>Boom score</th><th>20d momentum</th><th>Scored names</th></tr>'
+ +trends.slice(0,14).map(function(x){return '<tr><td>'+(x.industry||'').slice(0,32)+'</td>'
+  +'<td>'+trendChip(x.trend)+'</td>'
+  +'<td style="color:'+DIM+'">'+num(x.boom_score,1)+'</td>'
+  +'<td style="color:'+(x.delta_20d>0?POS:(x.delta_20d<0?NEG:MUT))+';font-weight:600">'+(x.delta_20d>0?'+':'')+num(x.delta_20d,1)+'</td>'
+  +'<td style="color:'+MUT+'">'+(x.n_scored||0)+'</td></tr>';}).join('')+'</table></div>'):'')
+ +'<table><tr><th>Ticker</th><th>Company</th><th>Industry</th><th>Trend</th><th>Capture gap</th><th>How crucial</th><th>Catch-up</th><th>Verdict</th></tr>'
+ +wb.map(function(r){return '<tr><td style="color:'+ACC+';font-weight:600">'+r.ticker+'</td>'
+  +'<td>'+(r.name||'').slice(0,20)+'</td><td style="color:'+DIM+'">'+(r.industry||'').slice(0,22)+'</td>'
+  +'<td>'+trendChip(r.industry_trend)+'</td>'
+  +'<td style="color:'+POS+';font-weight:600">'+(r.capture_gap>0?'+':'')+num(r.capture_gap)+'%</td>'
+  +'<td>'+si(r)+'</td><td>'+cu(r.catchup_pct,r.catchup_basis,r.catchup_capped)+'</td>'
+  +'<td>'+vdt(r)+'</td></tr>';}).join('')+'</table>'
+ +'<div class="note">'+(c.regime_note||'')+' <strong>Turning industries are listed first.</strong> This is the opposite of the trap book: instead of steering you away from decaying industries, it steers you toward cheap important names where the industry itself is inflecting up.</div>')
+ :'<span class="mono" style="color:'+MUT+'">No important, cheap names currently sit in a turning or booming industry.</span>');
+
 // ── LEADERBOARD (top of page) ──────────────────────────────────────────
 var lead=(c.top_undervalued_all_industries||[]).filter(function(r){return r&&r.ticker;});
 function rsh(r){
@@ -404,7 +431,7 @@ function cu(v,basis,capped){
  +(capped?'<span style="color:'+MUT+';font-size:9px"> cap</span>':'')
  +'<div style="color:'+MUT+';font-size:9px">'+(basis||'')+'</div>';}
 var ldK='undervaluation_score',ldD=-1,ldInd='ALL',ldCap='ALL',ldGro='ALL',ldVer='ALL';
-var ldCols=[['mispricing_verdict','Verdict'],['undervaluation_score','Score'],['catchup_pct','Catch-up to<br>industry median'],
+var ldCols=[['mispricing_verdict','Verdict'],['industry_trend','Industry<br>trend'],['undervaluation_score','Score'],['catchup_pct','Catch-up to<br>industry median'],
  ['capture_gap','Capture gap'],['global_capture_gap','Global gap'],
  ['revenue_share_pct','Rev share<br>of industry'],['structural_importance','How crucial<br>to industry'],
  ['revenue_growth_yoy','Rev growth<br>YoY'],['gm_level','Gross<br>margin'],
@@ -453,7 +480,7 @@ document.getElementById('leader').innerHTML=(lead.length?(
 +'<td style="color:'+ACC+';font-weight:600">'+r.ticker+'</td>'
 +'<td>'+(r.name||'').slice(0,22)+'</td>'
 +'<td style="color:'+DIM+'">'+(r.industry||'').slice(0,24)+'</td>'
-+'<td>'+vdt(r)+'</td><td style="font-weight:600">'+num(r.undervaluation_score,1)+'</td>'
++'<td>'+vdt(r)+'</td><td>'+trendChip(r.industry_trend)+'</td><td style="font-weight:600">'+num(r.undervaluation_score,1)+'</td>'
 +'<td>'+cu(r.catchup_pct,r.catchup_basis,r.catchup_capped)+'</td>'
 +'<td style="color:'+gapCol(r.capture_gap)+'">'+(r.capture_gap>0?'+':'')+num(r.capture_gap)+'%</td>'
 +'<td style="color:'+gapCol(r.global_capture_gap)+'">'+(r.global_capture_gap>0?'+':'')+num(r.global_capture_gap)+'%</td>'
