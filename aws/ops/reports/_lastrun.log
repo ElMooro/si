@@ -1,30 +1,33 @@
-executing-against: 9f3d03afb439c349fe1471b453744f397fd479ec
-ops 3802 — % notation + dependency labelling
-── Engine settle (v4.3.2) ──
-[15:35:52] ✅ v4.3.2 artifact live (attempt 1)
-[15:35:52] ✅ DEPLOY.settled :: % notation present in deployed zip
-── No 'pp' left in engine-authored text ──
-[15:36:08] ✅ ENGINE.no_pp :: method + legs_why carry no 'pp'
-── Dependency: every leaderboard row must carry a REASON ──
-[15:36:08] ✅ DEP.reason_present :: 50 of 50 rows explain themselves
-[15:36:08] ✅ DEP.no_fake_100 :: 0 rows print >=99.9%
-── Served pages ──
-[15:36:08] ✅ PAGE.stamp :: capture-gap v10 served (44906 bytes)
-[15:36:08] ✅ PAGE.no_pp :: no 'pp' rendered on capture-gap
-[15:36:08] ✅ PAGE.unmapped_label :: dependency shows 'unmapped'
-[15:36:08] ✅ PAGE.thin_label :: dependency shows 'thin' for peer-floor cases
-[15:36:08] ✅ PAGE.rank_caveat :: glossary states capture gap is percent of RANK, not price
-[15:36:08] ✅ WHY.no_pp :: why.html tiles carry no 'pp'
-── Sample — leaderboard dependency now self-explaining ──
-[15:36:08]   CRUS   dep=0.9%    peers=41   reason=
-[15:36:08]   AOS    dep=5.3%    peers=13   reason=
-[15:36:08]   NVEC   dep=—       peers=41   reason=no mapped supplier links for this company
-[15:36:08]   PEGA   dep=—       peers=3    reason=no mapped supplier links for this company
-[15:36:08]   GDDY   dep=—       peers=8    reason=no mapped supplier links for this company
-[15:36:08]   FDS    dep=—       peers=0    reason=no mapped supplier links for this company
-[15:36:08]   QLYS   dep=—       peers=8    reason=no mapped supplier links for this company
-[15:36:08]   MORN   dep=—       peers=0    reason=no mapped supplier links for this company
+executing-against: 109801f167dc418a665d26ac8e7e5fc1b43cc87a
+ops 3803 — can supply-chain-linkage widen dependency coverage?
+── 1. Feed presence + freshness ──
+[16:33:12] ✅ LINK.exists :: 25737 bytes
+[16:33:12] ✅ LINK.fresh :: 1.5h old
+── 2. ACTUAL schema ──
+[16:33:12]   engine                       str      20
+[16:33:12]   version                      str      5
+[16:33:12]   generated_at                 str      32
+[16:33:12]   universe_size                int      49
+[16:33:12]   n_systemic_hubs              int      0
+[16:33:12]   n_with_high_severity_flags   int      44
+[16:33:12]   max_degree_in_universe       int      0
+[16:33:12]   entries                      list     49
+[16:33:12]   geographic_risk_tiers        dict     25
+[16:33:12]   methodology                  dict     7
+[16:33:12]   academic_basis               list     2
+[16:33:12]   duration_seconds             float    36.2
+── 3. Symbol universe ──
+[16:33:12]   sample: ['AAPL', 'ABBV', 'ABT', 'ACN', 'ADBE', 'AMD', 'AMZN', 'AVGO', 'BAC', 'BRK-B', 'CAT', 'CMCSA', 'COST', 'CRM', 'CSCO', 'CVX', 'DHR', 'DIS', 'GOOGL', 'HD', 'IBM', 'INTU', 'JNJ', 'JPM', 'KO', 'LIN']
+── 4. Directional relationships present? ──
+[16:33:12]   field 'suppliers' appears 49 times
+[16:33:12]   field 'customers' appears 49 times
+[16:33:12]   field 'n_suppliers' appears 49 times
+[16:33:12]   field 'n_customers' appears 49 times
+[16:33:12] ✅ LINK.directional :: directional supplier/customer fields present
+── 5. What would coverage become? ──
+[16:33:13] ✅ COVERAGE.gain :: union would reach 205 names vs 182 from the curated graph alone
 ── VERDICT ──
-[15:36:08] ✅ PASS_ALL — % everywhere; dependency blanks now say why
+[16:33:13] ⚠ Linkage adds little (48 vs 182). Expanding coverage then means widening the PRODUCER's universe, not adding a join.
+[16:33:13] ✅ PASS_ALL — probe complete
 
-→ Report written to aws/ops/reports/latest/3802_verify_percent_and_dep_labels.md
+→ Report written to aws/ops/reports/latest/3803_probe_linkage_coverage.md
