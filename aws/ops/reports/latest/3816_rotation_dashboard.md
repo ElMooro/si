@@ -1,8 +1,8 @@
 # ops 3816 — rotation-dashboard v1.0.0 (cross-asset spine)
 
 **Status:** failure  
-**Duration:** 0.4s  
-**Finished:** 2026-07-24T20:12:15+00:00  
+**Duration:** 13.9s  
+**Finished:** 2026-07-24T20:16:00+00:00  
 
 ## Error
 
@@ -13,10 +13,30 @@ SystemExit: 1
 ## Log
 ## G0. KEY CONTRACT — grep producers before consuming
 
-- `20:12:14` ✅   nowcast_quadrant: 'nowcast_quadrant' present in justhodl-nowcast-desk
-- `20:12:14` ✅   risk-regime score: 'score' present in justhodl-risk-regime
-- `20:12:14` ✅   dollar chg_3m_pct: 'chg_3m_pct' present in justhodl-dollar-radar
-- `20:12:14` ✅ G0 PASS — every consumed key exists in its producer
-## 1. Inherit env from donor
+- `20:15:46` ✅   nowcast_quadrant: 'nowcast_quadrant' present in justhodl-nowcast-desk
+- `20:15:46` ✅   risk-regime score: 'score' present in justhodl-risk-regime
+- `20:15:46` ✅   dollar chg_3m_pct: 'chg_3m_pct' present in justhodl-dollar-radar
+- `20:15:46` ✅ G0 PASS — every consumed key exists in its producer
+## 1. Inherit env from donors
 
-- `20:12:15` ✗ donor justhodl-confluence-meta has no POLYGON_API_KEY — engine cannot build history
+- `20:15:47`   justhodl-industry-rotation: contributed nothing
+- `20:15:47`   justhodl-asset-compass: contributed nothing
+- `20:15:47`   justhodl-factor-regime: contributed nothing
+- `20:15:47`   justhodl-equity-research: contributed ['POLYGON_API_KEY']
+- `20:15:47` ✅   inherited ['POLYGON_API_KEY']
+## 2. Deploy
+
+- `20:15:47`   zip: 93599 bytes
+## 1. Lambda
+
+- `20:15:48`   Lambda exists — updating
+- `20:15:51` ✅   ✓ updated justhodl-rotation-dashboard
+## 3. Zip-settle
+
+- `20:15:56` ✅   settled after 5s (State=Active)
+## 4. Schedule
+
+- `20:15:57` ✅   Scheduler created — cron(10 22 * * ? *)
+## 5. Invoke
+
+- `20:16:00` ✗   invoke error: {'errorMessage': "'int' object is not iterable", 'errorType': 'TypeError', 'requestId': '88fd9294-6002-44d6-8bea-4f8f1bcc9b53', 'stackTrace': ['  File "/var/task/lambda_function.py", line 643, in lambda_handler\n    cot_idx = build_cot_index(read_feed("data/cftc-all-cache.json"))\n', '  File "/var/task/lambda_function.py", line 419, in build_cot_index\n    for r in rows:\n']}
