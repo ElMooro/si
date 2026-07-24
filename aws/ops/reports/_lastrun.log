@@ -1,31 +1,55 @@
-executing-against: 9ba3268802f657ee2373edf363988441b7a15fec
-ops 3800 — dependency must not be a coverage artifact
-── Settle ──
-[03:33:21] ✅ v4.3.1 live (attempt 1)
-[03:33:21] ✅ DEPLOY.settled :: peer-floor patch in deployed zip
-[03:33:35] ✅ LIVE.v431 :: version=4.3.1
-[03:33:35] ✅ SANITY.no_lone_100 :: 0 rows still print >=99.9% (was 11)
-[03:33:35] ✅ FEED.peer_count :: mapped-peer count shipped
-[03:33:35] ✅ FEED.suppress_reason :: suppression reason shipped
-── Distribution now ──
-[03:33:35]   LLY    Drug Manufacturers - General   dep= 66.7%  mapped_peers=3   crit=91.9
-[03:33:35]   WULF   Software - Application         dep= 63.6%  mapped_peers=3   crit=36.2
-[03:33:35]   META   Internet Content & Information dep= 58.3%  mapped_peers=4   crit=86.5
-[03:33:35]   APLD   Information Technology Service dep= 52.9%  mapped_peers=3   crit=15.0
-[03:33:35]   CAT    Agricultural - Machinery       dep= 50.0%  mapped_peers=3   crit=46.6
-[03:33:35]   CCJ    Uranium                        dep= 50.0%  mapped_peers=3   crit=23.8
-[03:33:35]   ALB    Chemicals - Specialty          dep= 50.0%  mapped_peers=3   crit=20.2
-[03:33:35]   TSLA   Auto - Manufacturers           dep= 45.5%  mapped_peers=3   crit=47.4
-[03:33:35]   LITE   Communication Equipment        dep= 44.4%  mapped_peers=4   crit=42.3
-[03:33:35]   BKR    Oil & Gas Equipment & Services dep= 40.0%  mapped_peers=3   crit=40.4
-[03:33:35]   SLB    Oil & Gas Equipment & Services dep= 40.0%  mapped_peers=3   crit=36.1
-[03:33:35]   MSFT   Software - Infrastructure      dep= 39.6%  mapped_peers=8   crit=85.6
-── Additive ──
-[03:33:35] ✅ ADDITIVE.capture_gap :: preserved
-[03:33:35] ✅ ADDITIVE.revenue_share_pct :: preserved
-[03:33:35] ✅ ADDITIVE.catchup_pct :: preserved
-[03:33:35] ✅ ADDITIVE.criticality_pctile :: preserved
+executing-against: 46f16de06968285adf354080c97c235c85accfef
+ops 3801 — leaderboard dependency: copy lag or coverage floor?
+── Source vs copy for every leaderboard name ──
+[15:28:13]   HERE   src=None    copy=None    peers=0    no mapped supplier links for this company
+[15:28:13]   DOMO   src=None    copy=None    peers=3    no mapped supplier links for this company
+[15:28:13]   LDI    src=None    copy=None    peers=0    no mapped supplier links for this company
+[15:28:13]   BMBL   src=None    copy=None    peers=4    no mapped supplier links for this company
+[15:28:13]   QTTB   src=None    copy=None    peers=0    no mapped supplier links for this company
+[15:28:13]   TREE   src=None    copy=None    peers=0    no mapped supplier links for this company
+[15:28:13]   RCMT   src=None    copy=None    peers=0    no mapped supplier links for this company
+[15:28:13]   CGEN   src=None    copy=None    peers=0    no mapped supplier links for this company
+[15:28:13]   HLF    src=None    copy=None    peers=0    no mapped supplier links for this company
+[15:28:13]   RC     src=None    copy=None    peers=0    no mapped supplier links for this company
+[15:28:13]   CMRC   src=None    copy=None    peers=3    no mapped supplier links for this company
+[15:28:13]   ORGO   src=None    copy=None    peers=0    no mapped supplier links for this company
+[15:28:13]   GETY   src=None    copy=None    peers=4    no mapped supplier links for this company
+[15:28:13]   SSTK   src=None    copy=None    peers=4    no mapped supplier links for this company
+[15:28:13]   GOTU   src=None    copy=None    peers=0    no mapped supplier links for this company
+[15:28:13]   DCBO   src=None    copy=None    peers=3    no mapped supplier links for this company
+[15:28:13]   AMCX   src=None    copy=None    peers=2    no mapped supplier links for this company
+[15:28:13]   WNC    src=None    copy=None    peers=3    no mapped supplier links for this company
+[15:28:13]   NUS    src=None    copy=None    peers=0    no mapped supplier links for this company
+[15:28:13]   BWMX   src=None    copy=None    peers=1    no mapped supplier links for this company
+[15:28:13]   LARK   src=None    copy=None    peers=0    no mapped supplier links for this company
+[15:28:13]   CDXS   src=None    copy=None    peers=0    no mapped supplier links for this company
+[15:28:13]   VLN    src=None    copy=None    peers=41   no mapped supplier links for this company
+[15:28:13]   NLOP   src=None    copy=None    peers=0    no mapped supplier links for this company
+[15:28:13]   MPT    src=None    copy=None    peers=0    no mapped supplier links for this company
+[15:28:13] ✅ DIAG.not_copy_lag :: 0 names have a source value but null copy (0 => copies are fine)
+── How many leaderboard names could EVER have dependency? ──
+── Which industries do leaderboard names sit in, and are they mapped? ──
+[15:28:13]   HERE   Leisure                            mapped_peers_in_industry=0
+[15:28:13]   DOMO   Software - Application             mapped_peers_in_industry=3
+[15:28:13]   LDI    Financial - Mortgages              mapped_peers_in_industry=0
+[15:28:13]   BMBL   Internet Content & Information     mapped_peers_in_industry=4
+[15:28:13]   QTTB   Biotechnology                      mapped_peers_in_industry=0
+[15:28:13]   TREE   Financial - Credit Services        mapped_peers_in_industry=0
+[15:28:13]   RCMT   Conglomerates                      mapped_peers_in_industry=0
+[15:28:13]   CGEN   Biotechnology                      mapped_peers_in_industry=0
+[15:28:13]   HLF    Packaged Foods                     mapped_peers_in_industry=0
+[15:28:13]   RC     REIT - Mortgage                    mapped_peers_in_industry=0
+[15:28:13]   CMRC   Software - Application             mapped_peers_in_industry=3
+[15:28:13]   ORGO   Drug Manufacturers - Specialty & G mapped_peers_in_industry=0
+[15:28:13]   GETY   Internet Content & Information     mapped_peers_in_industry=4
+[15:28:13]   SSTK   Internet Content & Information     mapped_peers_in_industry=4
 ── VERDICT ──
-[03:33:35] ✅ PASS_ALL — dependency shares now require real peer coverage
+[15:28:13] ⚠ NOT a copy bug. The leaderboard is dominated by micro/nano caps whose industries have 0-2 mapped names, so the >=3 peer floor (added in 3800 to kill the fake 100%% prints) legitimately blanks them. The column is correct; the CURATED GRAPH (185 symbols) simply does not reach these companies.
+[15:28:13] HONEST OPTIONS:
+[15:28:13]   a) show the reason inline on the page instead of a bare dash
+[15:28:13]      (dash reads as broken; 'unmapped' reads as true)
+[15:28:13]   b) expand justhodl-supply-chain-graph — real work, own arc
+[15:28:13]   c) do NOT relax the peer floor: that would bring back AMZN=100%
+[15:28:13] ✅ PASS_ALL — cause isolated
 
-→ Report written to aws/ops/reports/latest/3800_verify_dependency_sanity.md
+→ Report written to aws/ops/reports/latest/3801_probe_leaderboard_dependency.md
