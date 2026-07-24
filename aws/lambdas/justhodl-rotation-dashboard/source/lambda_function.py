@@ -411,11 +411,27 @@ def layer2_ratios(hist):
 def build_cot_index(cftc):
     """Normalise spec net positioning to a 0-100 COT Index per contract."""
     idx = {}
-    if not cftc:
+    if not isinstance(cftc, dict):
         return idx
-    rows = cftc.get("contracts") or cftc.get("data") or []
-    if isinstance(rows, dict):
-        rows = list(rows.values())
+    # The cache shape is not guaranteed — some keys are COUNTS not collections.
+    # Walk candidate keys, accept only real collections of dicts, never crash.
+    rows = []
+    for k in ("contracts", "data", "markets", "results", "cache", "by_contract"):
+        v = cftc.get(k)
+        if isinstance(v, dict):
+            v = list(v.values())
+        if isinstance(v, list) and any(isinstance(x, dict) for x in v):
+            rows = [x for x in v if isinstance(x, dict)]
+            break
+    if not rows:
+        # last resort: any top-level list-of-dicts in the document
+        for v in cftc.values():
+            if isinstance(v, list) and v and all(isinstance(x, dict) for x in v):
+                rows = v
+                break
+    if not rows:
+        print(f"[cot] no usable rows; top-level keys={list(cftc)[:12]}")
+        return idx
     for r in rows:
         if not isinstance(r, dict):
             continue
@@ -639,8 +655,14 @@ def lambda_handler(event, context):
 
     l1 = layer1_regime()
     l2 = layer2_ratios(hist)
-    flows = read_feed("data/etf-true-flows.json") or {}
-    cot_idx = build_cot_index(read_feed("data/cftc-all-cache.json"))
+    try:
+        flows = read_feed("data/etf-true-flows.json") or {}
+    except Exception as e:
+        print(f"[flows] {e}"); flows = {}
+    try:
+        cot_idx = build_cot_index(read_feed("data/cftc-all-cache.json"))
+    except Exception as e:
+        print(f"[cot] parse failed: {e}"); cot_idx = {}
     rows, eligible, overweight, excluded = layer34(
         hist, flows, cot_idx, l1.get("prior") or {}, prev_ranks)
 
