@@ -1,0 +1,68 @@
+# ops 3823 — global recession ensemble + chokepoint day-two
+
+**Status:** success  
+**Duration:** 15.1s  
+**Finished:** 2026-07-24T21:27:30+00:00  
+
+## Data
+
+| band | breadth_pct | excluded | gdp_covered | global_prob | n_countries |
+|---|---|---|---|---|---|
+| WATCH — pockets of stress | 35.0 | 1 | 84.1 | 30.9 | 33 |
+
+## Log
+## G0. KEY CONTRACT — live producer artifact
+
+- `21:27:16` ✅   by_country: 34 countries, 34 with phase+gdp_weight
+- `21:27:16` ✅     key 'phase' present
+- `21:27:16` ✅     key 'cli_level' present
+- `21:27:16` ✅     key 'gdp_weight' present
+- `21:27:16` ✅     key 'six_month_change' present
+- `21:27:16` ✅     key 'dist_200ma_pct' present
+## 1. Deploy
+
+- `21:27:16` ✅   FRED_API_KEY from justhodl-nowcast-desk
+- `21:27:16`   zip: 87917 bytes
+## 1. Lambda
+
+- `21:27:17`   Lambda exists — updating
+- `21:27:22` ✅   ✓ updated justhodl-global-recession
+## 2. Zip-settle
+
+- `21:27:27` ✅   settled after 5s
+## 3. Schedule
+
+- `21:27:28` ✅   Scheduler created cron(40 12 * * ? *)
+## 4. Invoke
+
+- `21:27:29`   {'statusCode': 200, 'body': '{"ok": true, "global_pct": 30.9, "n": 33}'}
+## 5. Verify the aggregation is REAL
+
+- `21:27:29` ✅   global probability present = 30.9%
+- `21:27:29` ✅   countries scored >= 15 = 33
+- `21:27:29` ✅   GDP coverage > 0.5 = 84.1
+- `21:27:29` ✅   weighted mean inside country range min 2 <= 30.9 <= max 97
+- `21:27:29` ✅   contributions reconcile to global sum 30.89 vs 30.9
+- `21:27:29` ✅   no country at 0 or 100 (nothing is certain) 
+- `21:27:29` ✅   excluded-not-imputed disclosed 
+- `21:27:29` ✅   NOT-MacroMicro disclosure present 
+- `21:27:29` ✅   US cross-check reported separately 
+- `21:27:29` ✅   breadth published = 35.0% of covered GDP at risk
+- `21:27:29`   ── top GDP contributors ──
+- `21:27:29`     CHN  RECESSION  p=   97% w=18.0    contrib=20.76pp
+- `21:27:29`     IND  RECESSION  p=   97% w=3.6     contrib=4.15pp
+- `21:27:29`     IDN  RECESSION  p=   97% w=1.3     contrib=1.5pp
+- `21:27:29`     MEX  AT_RISK    p= 57.2% w=1.5     contrib=1.02pp
+- `21:27:29`     USA  EXPANSION  p=    2% w=25.0    contrib=0.59pp
+- `21:27:29`     AUS  EXPANSION  p= 27.7% w=1.5     contrib=0.49pp
+- `21:27:29`     DEU  EXPANSION  p=  8.8% w=4.0     contrib=0.42pp
+- `21:27:29`     BRA  AT_RISK    p= 18.6% w=1.9     contrib=0.42pp
+- `21:27:29`     US curve probit: 27.0% (10y-3m 0.73pp)
+- `21:27:29`     Sahm: 0.07 — below trigger
+## 6. Chokepoint day-two unattended re-read (pending since 3776)
+
+- `21:27:30`   chokepoint generated_at = 2026-07-24T18:35:06.798301+00:00
+- `21:27:30`   age = 2.9h
+- `21:27:30` ✅   UNATTENDED RUN CONFIRMED — schedule is genuinely armed
+- `21:27:30`   ledger 2,482,194 bytes, modified 2026-07-24 18:35:04+00:00
+- `21:27:30` ✅ PASS_ALL 10/10

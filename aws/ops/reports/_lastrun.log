@@ -1,36 +1,51 @@
-executing-against: e858018352da0483c2f333e4c628aac54378d066
-ops 3822 — Rainbow + Pi Cycle into onchain-ratios
-── G0. No-rebuild check ──
-[21:20:10] ✅   rainbow: still zero other engines — genuine gap
-[21:20:10] ✅   pi_cycle: still zero other engines — genuine gap
-── 1. Inherit env + deploy ──
-[21:20:10]   preserving env keys: ['S3_BUCKET']
-[21:20:10]   zip: 89850 bytes
+executing-against: d3ac76fc2615d4a6f0217d65e701728bc58b1717
+ops 3823 — global recession ensemble + chokepoint day-two
+── G0. KEY CONTRACT — live producer artifact ──
+[21:27:16] ✅   by_country: 34 countries, 34 with phase+gdp_weight
+[21:27:16] ✅     key 'phase' present
+[21:27:16] ✅     key 'cli_level' present
+[21:27:16] ✅     key 'gdp_weight' present
+[21:27:16] ✅     key 'six_month_change' present
+[21:27:16] ✅     key 'dist_200ma_pct' present
+── 1. Deploy ──
+[21:27:16] ✅   FRED_API_KEY from justhodl-nowcast-desk
+[21:27:16]   zip: 87917 bytes
 ── 1. Lambda ──
-[21:20:11]   Lambda exists — updating
-[21:20:16] ✅   ✓ updated justhodl-onchain-ratios
+[21:27:17]   Lambda exists — updating
+[21:27:22] ✅   ✓ updated justhodl-global-recession
 ── 2. Zip-settle ──
-[21:20:22] ✅   settled after 5s
-── 3. Invoke ──
-[21:20:25]   {'statusCode': 200, 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}, 'body': '{"ok": true, "btc_mvrv": 1.2309583188260411, "eth_gas": null}'}
-── 4. Verify the fit is REAL ──
-[21:20:26] ✅   cycle_bands present reason=
-[21:20:26] ✅   history >= 800 closes = 5850 from 2010-07-18
-[21:20:26] ✅   rainbow fit available reason=
-[21:20:26] ✅   R^2 in a sane range (0.5–0.999) = 0.9091
-[21:20:26] ✅   residual sigma > 0 = 1.0678
-[21:20:26] ✅   fair value within 10x of spot fair 52637.35 vs spot 65094.41
-[21:20:26] ✅   band + z published z=0.2 band='FAIR / HOLD'
-[21:20:26] ✅   7 band prices 
-[21:20:26] ✅   pi cycle available reason=
-[21:20:26] ✅   350DMA genuinely computed 111d=70122.93 350d=86313.9
-[21:20:26] ✅   pi signal + distance no signal · -59.38% to trigger
-[21:20:26] ✅   pi ships n=3 
-[21:20:26] ✅   rainbow caveat: no predictive claim 
-[21:20:26] ✅   rainbow caveat: fit-to-own-history stated 
-[21:20:26] ✅   pi caveat ships n=3 explicitly 
-[21:20:26]     Mayer 0.897 (CHEAP (<1.0)) pctile 27.1
-[21:20:26]     200wMA 63190.37 · 3.01% above
-[21:20:26] ✅ PASS_ALL 15/15
+[21:27:27] ✅   settled after 5s
+── 3. Schedule ──
+[21:27:28] ✅   Scheduler created cron(40 12 * * ? *)
+── 4. Invoke ──
+[21:27:29]   {'statusCode': 200, 'body': '{"ok": true, "global_pct": 30.9, "n": 33}'}
+── 5. Verify the aggregation is REAL ──
+[21:27:29] ✅   global probability present = 30.9%
+[21:27:29] ✅   countries scored >= 15 = 33
+[21:27:29] ✅   GDP coverage > 0.5 = 84.1
+[21:27:29] ✅   weighted mean inside country range min 2 <= 30.9 <= max 97
+[21:27:29] ✅   contributions reconcile to global sum 30.89 vs 30.9
+[21:27:29] ✅   no country at 0 or 100 (nothing is certain) 
+[21:27:29] ✅   excluded-not-imputed disclosed 
+[21:27:29] ✅   NOT-MacroMicro disclosure present 
+[21:27:29] ✅   US cross-check reported separately 
+[21:27:29] ✅   breadth published = 35.0% of covered GDP at risk
+[21:27:29]   ── top GDP contributors ──
+[21:27:29]     CHN  RECESSION  p=   97% w=18.0    contrib=20.76pp
+[21:27:29]     IND  RECESSION  p=   97% w=3.6     contrib=4.15pp
+[21:27:29]     IDN  RECESSION  p=   97% w=1.3     contrib=1.5pp
+[21:27:29]     MEX  AT_RISK    p= 57.2% w=1.5     contrib=1.02pp
+[21:27:29]     USA  EXPANSION  p=    2% w=25.0    contrib=0.59pp
+[21:27:29]     AUS  EXPANSION  p= 27.7% w=1.5     contrib=0.49pp
+[21:27:29]     DEU  EXPANSION  p=  8.8% w=4.0     contrib=0.42pp
+[21:27:29]     BRA  AT_RISK    p= 18.6% w=1.9     contrib=0.42pp
+[21:27:29]     US curve probit: 27.0% (10y-3m 0.73pp)
+[21:27:29]     Sahm: 0.07 — below trigger
+── 6. Chokepoint day-two unattended re-read (pending since 3776) ──
+[21:27:30]   chokepoint generated_at = 2026-07-24T18:35:06.798301+00:00
+[21:27:30]   age = 2.9h
+[21:27:30] ✅   UNATTENDED RUN CONFIRMED — schedule is genuinely armed
+[21:27:30]   ledger 2,482,194 bytes, modified 2026-07-24 18:35:04+00:00
+[21:27:30] ✅ PASS_ALL 10/10
 
-→ Report written to aws/ops/reports/latest/3822_cycle_bands.md
+→ Report written to aws/ops/reports/latest/3823_global_recession.md
