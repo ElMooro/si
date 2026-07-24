@@ -3537,8 +3537,8 @@ window.jhCaptureTiles=async function(t, el){ try{
   var rsSub = (rs==null
       ? (r.revenue_share_suppressed?String(r.revenue_share_suppressed).slice(0,64):'not available')
       : 'of USD-filing peers in '+(r.industry||'its industry'));
-  var tiles=tl('CAPTURE GAP', g==null?'—':((g>0?'+':'')+n9(g)+'pp'),
-        (gg==null?'':'vs whole market '+(gg>0?'+':'')+n9(gg)+'pp'), gcol)
+  var tiles=tl('CAPTURE GAP', g==null?'—':((g>0?'+':'')+n9(g)+'%'),
+        (gg==null?'':'vs whole market '+(gg>0?'+':'')+n9(gg)+'%'), gcol)
     + tl('CATCH-UP', cu==null?'—':((cu>0?'+':'')+n9(cu,0)+'%'),
         'to industry median'+(r.catchup_basis?' ('+r.catchup_basis+')':'')+' · not a target', ccol)
     + tl('REV SHARE', rsTxt, rsSub, (rs!=null&&rs>=20?'#6fce8a':''))
@@ -3550,7 +3550,7 @@ window.jhCaptureTiles=async function(t, el){ try{
   var tier=r.tier;
   if(tier==='STRUCTURALLY_UNDERVALUED'){
     extra+='<div class="jhv-s" style="color:#6fce8a;margin-top:6px">▲ '+t+' captures '
-      +n9(Math.abs(g))+'pp less of its industry\'s market cap than its criticality implies, '
+      +n9(Math.abs(g))+'% less of its industry\'s market cap than its criticality implies, '
       +'and clears '+(r.legs||0)+' of '+(r.legs_available||5)+' confirmation legs.</div>';
   }
   extra+='<div class="jhv-s" style="color:var(--text-mute,#5b6479);margin-top:5px">'

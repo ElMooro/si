@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "4.3.1"
+VERSION = "4.3.2"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -655,11 +655,11 @@ def lambda_handler(event, context):
         for _c in cap_rows:
             legs, why = 0, []
             if (_c["capture_gap"] or 0) >= 20:
-                legs += 1; why.append("capture gap %.0fpp" % _c["capture_gap"])
+                legs += 1; why.append("capture gap %.0f%%" % _c["capture_gap"])
             if isinstance(_c.get("discount_to_fair_pct"), (int, float)) and _c["discount_to_fair_pct"] >= 15:
                 legs += 1; why.append("%.0f%% below fair" % _c["discount_to_fair_pct"])
             if isinstance(_c.get("gm_stability"), (int, float)) and _c["gm_stability"] <= 5:
-                legs += 1; why.append("margin stability ±%.1fpp" % _c["gm_stability"])
+                legs += 1; why.append("margin stability ±%.1f%%" % _c["gm_stability"])
             if isinstance(_c.get("roic"), (int, float)) and _c["roic"] >= 15:
                 legs += 1; why.append("%.0f%% ROIC" % _c["roic"])
             if _c.get("backlog_accelerating"):
@@ -682,13 +682,13 @@ def lambda_handler(event, context):
                        "point of failure for its industry and still hold a small slice "
                        "of that industry's market cap. capture_gap = criticality "
                        "percentile minus market-cap-share percentile, within industry. "
-                       "Positive = the market underpays for indispensability."),
+                       "Positive = the market underpays for indispensability. Expressed in percent of rank."),
             "method": {
                 "denominator": "full market from profile-bulk (all active non-ETF names)",
                 "min_peers": MIN_PEERS,
-                "ladder": "3 of 5 legs AND capture_gap>=20pp => STRUCTURALLY_UNDERVALUED",
-                "legs": ["capture_gap>=20pp", "discount_to_fair>=15%",
-                         "gm_stability<=5pp", "roic>=15%", "backlog_accelerating"],
+                "ladder": "3 of 5 legs AND capture_gap>=20% => STRUCTURALLY_UNDERVALUED",
+                "legs": ["capture_gap>=20%", "discount_to_fair>=15%",
+                         "gm_stability<=5%", "roic>=15%", "backlog_accelerating"],
                 "honest_limit": ("mcap share is a proxy for value capture, not a "
                                  "measured revenue share; industries with <5 listed "
                                  "peers are excluded rather than guessed."),
