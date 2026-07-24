@@ -1,81 +1,41 @@
-executing-against: 4f40452f318d8fad5157a680a7d4236ce4cb5f9c
-ops 3817 — PROBE: dollar-radar 3m, cftc shape, artifact keys
-── A. dollar-radar.json — where does the 3m change live? ──
-[20:33:52]   top-level: ['schema_version', 'engine', 'generated_at', 'wl_research', 'build_seconds', 'dollar_pressure', 'regime', 'regime_note', 'headline', 'canaries_pump', 'canaries_dump', 'canaries', 'indices', 'bilaterals', 'bbdxy', 'technicals', 'risk_transmission', 'history_key', 'how_to_read', 'disclaimer']
-[20:33:52]     wl_research.context.LIQUIDITY.pressure_pctile = 66.0
-[20:33:52]     wl_research.context.DOLLAR.pressure_pctile = 48.5
-[20:33:52]     wl_research.divergences[0].khalid.pressure_pctile = 66.0
-[20:33:52]     indices[0].chg_1m_pct = 0.96
-[20:33:52]     indices[0].chg_3m_pct = 2.08
-[20:33:52]     indices[0].chg_1y_pct = -0.09
-[20:33:52]     indices[0].range_pctile_1y = 69.1
-[20:33:52]     bilaterals[0].chg_1m_pct = 1.34
-[20:33:52]     bilaterals[0].chg_3m_pct = 3.16
-[20:33:52]     bilaterals[0].chg_1y_pct = 1.37
-[20:33:52]     bbdxy.range_pctile_1y = 79.9
-[20:33:52]     bbdxy.constituents[0].target_weight_pct = 29.47
-[20:33:52]     bbdxy.constituents[0].usd_chg_1m_pct = 1.34
-[20:33:52]     bbdxy.constituents[0].usd_chg_1y_pct = 1.37
-[20:33:52]     bbdxy.breadth_spread_3m_pp = -0.57
-[20:33:52]     bbdxy.dxy_synth.chg_1d_pct = 0.06
-[20:33:52]     bbdxy.dxy_synth.chg_1w_pct = -0.01
-[20:33:52]     bbdxy.dxy_synth.chg_1m_pct = 1.08
-[20:33:52]     bbdxy.dxy_synth.chg_3m_pct = 2.87
-[20:33:52]     bbdxy.dxy_synth.chg_6m_pct = 1.39
-[20:33:52]     bbdxy.dxy_synth.chg_1y_pct = 2.13
-[20:33:52]     bbdxy.chg_1d_pct = 0.12
-[20:33:52]     bbdxy.chg_1w_pct = -0.0
-[20:33:52]     bbdxy.chg_1m_pct = 0.92
-[20:33:52]     bbdxy.chg_3m_pct = 2.3
-[20:33:52]   canaries: list[15] of dict[6] keys=['label', 'reading', 'signal', 'lean', 'weight', 'detail']
-── B. cftc-all-cache.json — real row container + field names ──
-[20:33:52]   source: str
-[20:33:52]   contracts: int
-[20:33:52]   data: dict[29] keys=['ES', 'NQ', 'YM', 'RTY', 'VX', 'ZB', 'ZN', 'ZF']
-[20:33:52]   timestamp: str
-[20:33:52]   cached_at: str
-[20:33:52] ✅   ROW CONTAINER = 'data' (29 rows)
-[20:33:52]     row keys: ['contract', 'name', 'category', 'cftc_code', 'report_type', 'weekly_reports', 'current', 'signals']
-[20:33:52]     sample:   {"contract": "ES", "name": "S&P 500 E-Mini", "category": "equity_index", "cftc_code": "13874A", "report_type": "tff", "weekly_reports": [{"report_date": "2026-07-14", "open_interest": 1941500, "noncommercial_long": 1279748, "noncommercial_short": 704278, "net_speculator": 575470, "commercial_long": 142914, "commercial_short": 849691, "net_commercial": -706777, "managed_money_long": 135454, "managed_money_short": 5004
-── C. rotation-dashboard.json — full key inventory for the page ──
-[20:33:52]   generated_at=2026-07-24T20:25:58+00:00 version=1.0.0
-[20:33:52]   engine: str
-[20:33:52]   version: str
-[20:33:52]   generated_at: str
-[20:33:52]   thesis: str
-[20:33:52]   layer1_regime: dict[8] keys=['layer', 'name', 'degraded', 'quadrant', 'roro', 'dollar', 'prior', 'prior_source']
-[20:33:52]   layer2_ratios: dict[7] keys=['layer', 'name', 'n_ratios', 'gold_distortion', 'gold_distortion_note', 'roro_buckets', 'ratios']
-[20:33:52]   layer3_layer4: dict[7] keys=['layer', 'name', 'n_universe', 'n_scored', 'n_eligible', 'n_failed_gate', 'cash_12m_pct']
-[20:33:52]   overweight: list[8] of dict[7] keys=['rank', 'ticker', 'label', 'asset_class', 'confluence_score', 'quadrant', 'drivers']
-[20:33:52]   avoid: list[6] of dict[5] keys=['rank', 'ticker', 'label', 'confluence_score', 'why']
-[20:33:52]   assets: list[37] of dict[16] keys=['ticker', 'label', 'asset_class', 'price', 'trend_gate', 'momentum', 'rrg', 'flows']
-[20:33:52]   excluded: list[0] of empty
-[20:33:52]   quadrant_counts: dict[4] keys=['LEADING', 'IMPROVING', 'WEAKENING', 'LAGGING']
-[20:33:52]   degraded: list[2] of str
-[20:33:52]   methodology: dict[6] keys=['trend_gate', 'rs_ratio', 'rs_momentum', 'quadrants', 'cot_index', 'hysteresis']
-[20:33:52]   caveats: list[5] of str
-[20:33:52]   build_seconds: float
-[20:33:52]   ── per-asset keys (37 rows) ──
-[20:33:52]     assets[].ticker: str
-[20:33:52]     assets[].label: str
-[20:33:52]     assets[].asset_class: str
-[20:33:52]     assets[].price: float
-[20:33:52]     assets[].trend_gate: dict[8] keys=['eligible', 'above_200d_sma', 'sma_200d', 'pct_vs_200d', 'ret_12m_pct', 'cash_12m_pct', 'excess_vs_cash_pp', 'fail_reasons']
-[20:33:52]     assets[].momentum: dict[6] keys=['ret_1m_pct', 'ret_3m_pct', 'ret_6m_pct', 'ret_12m_pct', 'ret_12_1_pct', 'blend_score']
-[20:33:52]     assets[].rrg: dict[3] keys=['rs_ratio', 'rs_momentum', 'quadrant']
-[20:33:52]     assets[].flows: NoneType
-[20:33:52]     assets[].crowding: NoneType
-[20:33:52]     assets[].regime_prior: float
-[20:33:52]     assets[].confluence_score: float
-[20:33:52]     assets[].drivers: list[4] of str
-[20:33:52]     assets[].rank: int
-[20:33:52]     assets[].prev_rank: int
-[20:33:52]     assets[].rank_delta: int
-[20:33:52]     assets[].rank_stability: str
-[20:33:52]     assets[].trend_gate.*: ['eligible', 'above_200d_sma', 'sma_200d', 'pct_vs_200d', 'ret_12m_pct', 'cash_12m_pct', 'excess_vs_cash_pp', 'fail_reasons']
-[20:33:52]     assets[].momentum.*: ['ret_1m_pct', 'ret_3m_pct', 'ret_6m_pct', 'ret_12m_pct', 'ret_12_1_pct', 'blend_score']
-[20:33:52]     assets[].rrg.*: ['rs_ratio', 'rs_momentum', 'quadrant']
-[20:33:52]     layer2.ratios[].*: ['key', 'numerator', 'denominator', 'value', 'z_1y', 'chg_20d_pct', 'chg_60d_pct', 'pctile_1y', 'direction', 'lead_type', 'favours']
-[20:33:52] ✅ PROBE COMPLETE — no code written, shapes recorded for the wire ops
+executing-against: 543059684799649719b68628d833000787c852a3
+ops 3818 — rotation-dashboard v1.1.0 (close degraded)
+── G0. KEY CONTRACT — against LIVE artifacts, not source ──
+[20:39:02] ✅   dollar: bbdxy.dxy_synth.chg_3m_pct = 2.87
+[20:39:02] ✅   cftc: data{} has 29 contracts with weekly_reports
+── G0b. etf-true-flows shape (why flows joined 0 rows) ──
+[20:39:02]   top-level: ['engine', 'version', 'generated_at', 'duration_s', 'n_etfs', 'maturity', 'method', 'inflows', 'outflows', 'category_rotation', 'by_etf']
+[20:39:02]   'inflows': list[25], row keys=['ticker', 'category', 'shares_outstanding', 'price', 'aum_est_b', 'net_flow_1d_usd', 'net_flow_5d_usd', 'net_flow_20d_usd', 'shares_chg_5d_pct']
+[20:39:02]     sample: {"ticker": "VOO", "category": "BROAD_EQUITY_US", "shares_outstanding": 2432284459.0, "price": 682.41992, "aum_est_b": 1659.84, "net_flow_1d_usd": -9257099916.0, "net_flow_5d_usd": 7576320126.0, "net_flow_20d_usd": -31068406133.0, "shares_chg_5d_pct": -0.55}
+── 1. Deploy v1.1.0 ──
+[20:39:02] ✅   POLYGON_API_KEY from justhodl-equity-research
+[20:39:02]   zip: 94127 bytes
+── 1. Lambda ──
+[20:39:03]   Lambda exists — updating
+[20:39:09] ✅   ✓ updated justhodl-rotation-dashboard
+── 2. Zip-settle ──
+[20:39:14] ✅   settled after 5s
+── 3. Invoke ──
+[20:39:17]   {'statusCode': 200, 'body': '{"ok": true, "scored": 37, "eligible": 20, "overweight": ["XLV", "IWD", "XLF", "RSP", "EWJ", "XLK", "USO", "IWM"]}'}
+── 4. Verify — did degraded shrink? ──
+[20:39:18] ✅   dollar 3m populated = 2.87 (RISING)
+[20:39:18] ✅   dollar tilt applied into prior = -0.25
+[20:39:18] ✅   no 'dollar-radar 3m' in degraded 
+[20:39:18] ✗   crowding populated on >=4 assets = 0 assets
+[20:39:18] ✗   no 'cftc-all-cache unmapped' in degraded 
+[20:39:18] ✅   still scoring full universe = 37
+[20:39:18] ✅   trend gate still discriminates = 20/37
+[20:39:18]   ── top 8 after dollar tilt ──
+[20:39:18]     # 1 XLV      32.7 LEADING    gate=PASS
+[20:39:18]     # 2 IWD      19.8 LEADING    gate=PASS
+[20:39:18]     # 3 XLF      19.4 LEADING    gate=PASS
+[20:39:18]     # 4 RSP      15.0 LEADING    gate=PASS
+[20:39:18]     # 5 EWJ      10.2 LEADING    gate=PASS
+[20:39:18]     # 6 XLK       9.9 LEADING    gate=PASS
+[20:39:18]     # 7 USO       9.0 LAGGING    gate=PASS
+[20:39:18]     # 8 IWM       6.5 LEADING    gate=PASS
+[20:39:18] ⚠   remaining degraded: ['cftc-all-cache unmapped — crowding cap skipped']
+[20:39:18] ✗ FAILED 2: ['crowding populated on >=4 assets', "no 'cftc-all-cache unmapped' in degraded"]
 
-→ Report written to aws/ops/reports/latest/3817_probe_feed_shapes.md
+→ Report written to aws/ops/reports/latest/3818_rotation_dashboard_v110.md
+❌ OPS-FAIL: aws/ops/pending/ops_3818_rotation_dashboard_v110.py

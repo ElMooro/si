@@ -1,0 +1,62 @@
+# ops 3818 — rotation-dashboard v1.1.0 (close degraded)
+
+**Status:** failure  
+**Duration:** 16.3s  
+**Finished:** 2026-07-24T20:39:18+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| crowding_rows | degraded | dollar_direction | dxy_3m | overweight | regime |
+|---|---|---|---|---|---|
+| 0 | cftc-all-cache unmapped — crowding cap skipped | RISING | 2.87 | XLV, IWD, XLF, RSP, EWJ, XLK, USO, IWM | STAGFLATION |
+
+## Log
+## G0. KEY CONTRACT — against LIVE artifacts, not source
+
+- `20:39:02` ✅   dollar: bbdxy.dxy_synth.chg_3m_pct = 2.87
+- `20:39:02` ✅   cftc: data{} has 29 contracts with weekly_reports
+## G0b. etf-true-flows shape (why flows joined 0 rows)
+
+- `20:39:02`   top-level: ['engine', 'version', 'generated_at', 'duration_s', 'n_etfs', 'maturity', 'method', 'inflows', 'outflows', 'category_rotation', 'by_etf']
+- `20:39:02`   'inflows': list[25], row keys=['ticker', 'category', 'shares_outstanding', 'price', 'aum_est_b', 'net_flow_1d_usd', 'net_flow_5d_usd', 'net_flow_20d_usd', 'shares_chg_5d_pct']
+- `20:39:02`     sample: {"ticker": "VOO", "category": "BROAD_EQUITY_US", "shares_outstanding": 2432284459.0, "price": 682.41992, "aum_est_b": 1659.84, "net_flow_1d_usd": -9257099916.0, "net_flow_5d_usd": 7576320126.0, "net_flow_20d_usd": -31068406133.0, "shares_chg_5d_pct": -0.55}
+## 1. Deploy v1.1.0
+
+- `20:39:02` ✅   POLYGON_API_KEY from justhodl-equity-research
+- `20:39:02`   zip: 94127 bytes
+## 1. Lambda
+
+- `20:39:03`   Lambda exists — updating
+- `20:39:09` ✅   ✓ updated justhodl-rotation-dashboard
+## 2. Zip-settle
+
+- `20:39:14` ✅   settled after 5s
+## 3. Invoke
+
+- `20:39:17`   {'statusCode': 200, 'body': '{"ok": true, "scored": 37, "eligible": 20, "overweight": ["XLV", "IWD", "XLF", "RSP", "EWJ", "XLK", "USO", "IWM"]}'}
+## 4. Verify — did degraded shrink?
+
+- `20:39:18` ✅   dollar 3m populated = 2.87 (RISING)
+- `20:39:18` ✅   dollar tilt applied into prior = -0.25
+- `20:39:18` ✅   no 'dollar-radar 3m' in degraded 
+- `20:39:18` ✗   crowding populated on >=4 assets = 0 assets
+- `20:39:18` ✗   no 'cftc-all-cache unmapped' in degraded 
+- `20:39:18` ✅   still scoring full universe = 37
+- `20:39:18` ✅   trend gate still discriminates = 20/37
+- `20:39:18`   ── top 8 after dollar tilt ──
+- `20:39:18`     # 1 XLV      32.7 LEADING    gate=PASS
+- `20:39:18`     # 2 IWD      19.8 LEADING    gate=PASS
+- `20:39:18`     # 3 XLF      19.4 LEADING    gate=PASS
+- `20:39:18`     # 4 RSP      15.0 LEADING    gate=PASS
+- `20:39:18`     # 5 EWJ      10.2 LEADING    gate=PASS
+- `20:39:18`     # 6 XLK       9.9 LEADING    gate=PASS
+- `20:39:18`     # 7 USO       9.0 LAGGING    gate=PASS
+- `20:39:18`     # 8 IWM       6.5 LEADING    gate=PASS
+- `20:39:18` ⚠   remaining degraded: ['cftc-all-cache unmapped — crowding cap skipped']
+- `20:39:18` ✗ FAILED 2: ['crowding populated on >=4 assets', "no 'cftc-all-cache unmapped' in degraded"]
