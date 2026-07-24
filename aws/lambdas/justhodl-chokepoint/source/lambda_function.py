@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "4.4"
+VERSION = "4.4.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -1244,9 +1244,21 @@ def lambda_handler(event, context):
             # members carry a deliberately narrower schema so the payload stays
             # small; refresh only the keys already present on them, plus the
             # percentage/growth fields the page renders.
+            # ops 3807: structural_importance and its supporting legs were missing
+            # here, so industry drill-downs showed a blank "Crucial" column while
+            # the leaderboard showed 50/50. Same allow-list lag that hid growth
+            # (3790) and the percentage fields (3794) — this list is the recurring
+            # weak point, so the additions below cover the legs too, not just the
+            # headline score.
             _mem_extra = {"revenue_share_pct", "revenue_share_suppressed",
-                          "dependency_pct", "criticality_pctile", "criticality_basis",
-                          "revenue_growth_yoy", "growth_tier", "in_sp500", "gm_level"}
+                          "dependency_pct", "dependency_suppressed",
+                          "dependency_mapped_peers",
+                          "criticality_pctile", "criticality_basis",
+                          "revenue_growth_yoy", "growth_tier", "in_sp500", "gm_level",
+                          "structural_importance", "structural_basis",
+                          "structural_legs_used", "revenue_rank_in_industry",
+                          "margin_premium_vs_industry", "rd_premium_vs_industry",
+                          "centrality_mapped"}
             for _b in (capture.get("by_industry") or []):
                 for _m in (_b.get("members") or []):
                     if _m:
