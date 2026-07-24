@@ -858,54 +858,6 @@ def lambda_handler(event, context):
                                             x["median_capture_gap"] is not None else -999))
             capture["by_industry"] = _ind_block
 
-        # ── v4.2 growth tiers + S&P 500 membership ──
-        # Tiers are ABSOLUTE, not percentile: "high growth" must mean the same
-        # thing on every board rather than "top third of today's sample".
-        try:
-            _sp = set()
-            _cens = _read("data/fundamental-census-matrix.json") or {}
-            _ct = _cens.get("tickers")
-            if isinstance(_ct, dict):
-                _sp = set(_ct.keys())
-            elif isinstance(_ct, list):
-                _sp = set(x.get("ticker") if isinstance(x, dict) else x for x in _ct)
-            for _c in cap_rows:
-                _y = _c.get("revenue_growth_yoy")
-                _cg = _c.get("revenue_growth_3y_cagr")
-                _c["growth_tier"] = (None if _y is None else
-                                     "HIGH" if _y >= 20 else
-                                     "MEDIUM" if _y >= 5 else "LOW")
-                # cross-check: a single YoY can be a base effect; say so when the
-                # 3y trend disagrees rather than silently trusting one year.
-                if _y is not None and _cg is not None:
-                    _c["growth_basis"] = ("YoY+3y agree" if
-                                          ((_y >= 20) == (_cg >= 20) and (_y >= 5) == (_cg >= 5))
-                                          else "YoY %.0f%% vs 3y CAGR %.0f%% — disagree" % (_y, _cg))
-                elif _y is not None:
-                    _c["growth_basis"] = "YoY only (needs 4y for CAGR)"
-                else:
-                    _c["growth_basis"] = None
-                # None (not False) when the census is unreachable — absence of
-                # evidence is not evidence of absence.
-                _c["in_sp500"] = (_c["ticker"] in _sp) if _sp else None
-            capture["stats"]["with_growth"] = sum(
-                1 for c in cap_rows if c.get("revenue_growth_yoy") is not None)
-            capture["stats"]["sp500_members"] = sum(
-                1 for c in cap_rows if c.get("in_sp500") is True)
-            capture["growth_note"] = (
-                "revenue_growth_yoy is latest annual revenue vs the prior year, from the "
-                "same income statement used elsewhere — no extra data call. Growth is a "
-                "RATIO, so it is currency-invariant and IS published for non-USD filers "
-                "even where revenue_share_pct is suppressed. Tiers are absolute "
-                "(HIGH>=20%, MEDIUM 5-20%, LOW<5%), not percentile, so they mean the same "
-                "thing on every board. growth_basis flags when a single YoY disagrees with "
-                "the 3-year CAGR — often a base effect or a one-off, and worth seeing.")
-            diag.append("v4.2: growth=%d sp500=%d" % (
-                capture["stats"]["with_growth"], capture["stats"]["sp500_members"]))
-        except Exception as _ge:
-            capture["growth_error"] = str(_ge)[:250]
-            diag.append("v4.2 FAILED: %s" % str(_ge)[:150])
-
             # ── [4] cross-industry leaderboard ─────────────────────────────
             # Blended so no single loud axis dominates: a huge catch-up number on
             # a name with weak criticality should not outrank a confirmed one.
@@ -954,6 +906,72 @@ def lambda_handler(event, context):
         except Exception as _v4e:
             capture["v4_error"] = str(_v4e)[:300]
             diag.append("v4 FAILED: %s" % str(_v4e)[:160])
+
+        # ── v4.2 growth tiers + S&P 500 membership ──
+        # Tiers are ABSOLUTE, not percentile: "high growth" must mean the same
+        # thing on every board rather than "top third of today's sample".
+        try:
+            _sp = set()
+            _cens = _read("data/fundamental-census-matrix.json") or {}
+            _ct = _cens.get("tickers")
+            if isinstance(_ct, dict):
+                _sp = set(_ct.keys())
+            elif isinstance(_ct, list):
+                _sp = set(x.get("ticker") if isinstance(x, dict) else x for x in _ct)
+            for _c in cap_rows:
+                _y = _c.get("revenue_growth_yoy")
+                _cg = _c.get("revenue_growth_3y_cagr")
+                _c["growth_tier"] = (None if _y is None else
+                                     "HIGH" if _y >= 20 else
+                                     "MEDIUM" if _y >= 5 else "LOW")
+                # cross-check: a single YoY can be a base effect; say so when the
+                # 3y trend disagrees rather than silently trusting one year.
+                if _y is not None and _cg is not None:
+                    _c["growth_basis"] = ("YoY+3y agree" if
+                                          ((_y >= 20) == (_cg >= 20) and (_y >= 5) == (_cg >= 5))
+                                          else "YoY %.0f%% vs 3y CAGR %.0f%% — disagree" % (_y, _cg))
+                elif _y is not None:
+                    _c["growth_basis"] = "YoY only (needs 4y for CAGR)"
+                else:
+                    _c["growth_basis"] = None
+                # None (not False) when the census is unreachable — absence of
+                # evidence is not evidence of absence.
+                _c["in_sp500"] = (_c["ticker"] in _sp) if _sp else None
+            capture["stats"]["with_growth"] = sum(
+                1 for c in cap_rows if c.get("revenue_growth_yoy") is not None)
+            capture["stats"]["sp500_members"] = sum(
+                1 for c in cap_rows if c.get("in_sp500") is True)
+            capture["growth_note"] = (
+                "revenue_growth_yoy is latest annual revenue vs the prior year, from the "
+                "same income statement used elsewhere — no extra data call. Growth is a "
+                "RATIO, so it is currency-invariant and IS published for non-USD filers "
+                "even where revenue_share_pct is suppressed. Tiers are absolute "
+                "(HIGH>=20%, MEDIUM 5-20%, LOW<5%), not percentile, so they mean the same "
+                "thing on every board. growth_basis flags when a single YoY disagrees with "
+                "the 3-year CAGR — often a base effect or a one-off, and worth seeing.")
+            diag.append("v4.2: growth=%d sp500=%d" % (
+                capture["stats"]["with_growth"], capture["stats"]["sp500_members"]))
+            # ops 3790: the leaderboard and by_industry members are COPIED dicts
+            # built earlier in the function, so fields added to cap_rows after
+            # that snapshot never reach them (growth_tier/in_sp500 were 0/50).
+            # Refresh those copies now that growth exists.
+            _gmap = {c["ticker"]: c for c in cap_rows}
+            for _lst in (capture.get("top_undervalued_all_industries") or [],):
+                for _r in _lst:
+                    _srcrow = _gmap.get(_r.get("ticker"))
+                    if _srcrow:
+                        for _f in ("revenue_growth_yoy", "revenue_growth_3y_cagr",
+                                   "growth_tier", "growth_basis", "in_sp500", "gm_level"):
+                            _r[_f] = _srcrow.get(_f)
+            for _b in (capture.get("by_industry") or []):
+                for _m in (_b.get("members") or []):
+                    _srcrow = _gmap.get(_m.get("ticker"))
+                    if _srcrow:
+                        for _f in ("revenue_growth_yoy", "growth_tier", "in_sp500", "gm_level"):
+                            _m[_f] = _srcrow.get(_f)
+        except Exception as _ge:
+            capture["growth_error"] = str(_ge)[:250]
+            diag.append("v4.2 FAILED: %s" % str(_ge)[:150])
 
         # ── v4.1 "% critical to industry" — three DISTINCT percentages ──
         # criticality is a 0-100 QUALITY composite, not a share. Rendering it
