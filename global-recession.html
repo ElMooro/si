@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Global Recession Probability · JustHodl.AI</title>
+<meta name="jh-page-version" content="v1-ops3825">
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:12px}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:13px}
+.tile .lbl{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px}
+.tile .val{font-size:23px;font-weight:800;margin:3px 0}
+.tile .note{font-size:11.5px;color:var(--text-mute)}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.p-pos{background:rgba(111,206,138,.14);color:var(--pos);border:1px solid rgba(111,206,138,.4)}
+.p-neg{background:rgba(224,122,106,.14);color:var(--neg);border:1px solid rgba(224,122,106,.4)}
+.p-acc{background:rgba(240,180,41,.14);color:var(--accent);border:1px solid rgba(240,180,41,.42)}
+.p-neu{background:rgba(232,232,232,.10);color:var(--neu);border:1px solid rgba(232,232,232,.28)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--text-mute);font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:8px 7px;border-bottom:1px solid var(--border)}
+td{padding:8px 7px;border-bottom:1px solid rgba(28,35,48,.6)}
+tr:hover td{background:rgba(240,180,41,.04)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.dim{color:var(--text-dim)}.mute{color:var(--text-mute)}
+.warn{background:rgba(224,122,106,.09);border:1px solid rgba(224,122,106,.34);border-radius:10px;padding:11px 13px;font-size:12.5px;color:var(--neg);margin:10px 0}
+.caveat{background:rgba(240,180,41,.07);border:1px solid rgba(240,180,41,.28);border-radius:10px;padding:11px 13px;font-size:12.5px;color:var(--text-dim);margin:10px 0}
+.bar{height:9px;border-radius:5px;background:rgba(232,232,232,.08);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.foot{font-size:11.5px;color:var(--text-mute);line-height:1.75}
+.foot li{margin-bottom:5px}
+</style>
+</head>
+<body><div class="wrap">
+<h1>🌍 Global Recession Probability</h1>
+<div class="sub">A GDP-weighted ensemble across the world's major economies — <b>independent and fully published</b>, not a proprietary index.</div>
+<div id="root"><div class="card dim">Loading…</div></div>
+</div>
+<script>
+const F=(n,d=1)=>n===null||n===undefined||isNaN(n)?'—':Number(n).toFixed(d);
+const P=(n,d=1)=>n===null||n===undefined||isNaN(n)?'—':Number(n).toFixed(d)+'%';
+const esc=s=>String(s===null||s===undefined?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const PC={RECESSION:'p-neg',AT_RISK:'p-acc',RECOVERY:'p-neu',EXPANSION:'p-pos'};
+fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/global-recession.json?v='+Date.now(),{cache:'no-store'})
+ .then(r=>r.json()).then(render)
+ .catch(e=>{document.getElementById('root').innerHTML='<div class="warn">Feed unavailable: '+esc(e.message)+'</div>';});
+
+function render(d){
+  const cov=d.coverage||{},br=d.breadth||{},uc=d.us_crosscheck||{},m=d.methodology||{};
+  let h='';
+  h+='<div class="grid">'
+   +'<div class="tile"><div class="lbl">Global probability</div><div class="val" style="color:var(--accent)">'+P(d.global_recession_prob_pct)+'</div><div class="note">'+esc(d.band||'')+'</div></div>'
+   +'<div class="tile"><div class="lbl">Breadth at risk</div><div class="val">'+P(br.pct_of_covered_gdp)+'</div><div class="note">of covered GDP in AT_RISK or RECESSION</div></div>'
+   +'<div class="tile"><div class="lbl">Coverage</div><div class="val">'+esc(cov.n_countries_scored)+'</div><div class="note">countries · GDP weight '+F(cov.gdp_weight_covered,1)+' · '+esc(cov.n_excluded)+' excluded</div></div>';
+  if(uc.yield_curve_probit) h+='<div class="tile"><div class="lbl">US curve probit (separate)</div><div class="val">'+P(uc.yield_curve_probit.prob_12m_pct)+'</div><div class="note">10y-3m '+F(uc.yield_curve_probit.t10y3m_spread_pp,2)+'pp</div></div>';
+  if(uc.sahm_rule) h+='<div class="tile"><div class="lbl">Sahm rule (separate)</div><div class="val">'+F(uc.sahm_rule.value,2)+'</div><div class="note">'+esc(uc.sahm_rule.state)+' · trigger '+F(uc.sahm_rule.trigger,2)+'</div></div>';
+  h+='</div>';
+
+  h+='<div class="caveat"><b>What this is not.</b> '+esc(d.not_macromicro||'')+'</div>';
+  h+='<div class="caveat"><b>Breadth over level.</b> '+esc(br.interpretation||'')+'</div>';
+
+  h+='<div class="sec">By region</div><div class="card" style="overflow-x:auto"><table><thead><tr><th>Region</th><th>Countries</th><th>GDP weight</th><th>Recession probability</th></tr></thead><tbody>';
+  Object.entries(d.by_region||{}).sort((a,b)=>(b[1].recession_prob_pct||0)-(a[1].recession_prob_pct||0)).forEach(([k,v])=>{
+    h+='<tr><td><b>'+esc(k)+'</b></td><td class="mono">'+esc(v.n_countries)+'</td><td class="mono">'+F(v.gdp_weight,2)+'</td>'
+      +'<td class="mono">'+P(v.recession_prob_pct)+'<div class="bar" style="margin-top:4px"><i style="width:'+Math.min(100,v.recession_prob_pct||0)+'%"></i></div></td></tr>';
+  });
+  h+='</tbody></table></div>';
+
+  h+='<div class="sec">By country — ranked by contribution to the global number</div><div class="card" style="overflow-x:auto">'
+   +'<table><thead><tr><th>ISO</th><th>Region</th><th>Phase</th><th>Prob</th><th>GDP wt</th><th>Contribution</th><th>CLI</th><th>6m chg</th><th>vs 200d</th><th>Trend</th><th>z 5y</th><th>As of</th></tr></thead><tbody>';
+  (d.countries||[]).forEach(c=>{
+    h+='<tr><td><b>'+esc(c.iso3)+'</b></td><td class="small dim">'+esc(c.region)+'</td>'
+      +'<td><span class="pill '+(PC[c.phase]||'p-neu')+'">'+esc(c.phase)+'</span></td>'
+      +'<td class="mono"><b>'+P(c.recession_prob_pct)+'</b></td>'
+      +'<td class="mono">'+F(c.gdp_weight,2)+'</td>'
+      +'<td class="mono" style="color:var(--accent)">'+F(c.contribution_pp,2)+'pp</td>'
+      +'<td class="mono">'+F(c.cli_level,1)+'</td>'
+      +'<td class="mono '+((c.six_month_change||0)<0?'neg':'pos')+'">'+F((c.six_month_change||0)*100,1)+'%</td>'
+      +'<td class="mono '+((c.dist_200ma_pct||0)<0?'neg':'pos')+'">'+F(c.dist_200ma_pct,1)+'%</td>'
+      +'<td class="dim">'+esc(c.trend)+'</td><td class="mono">'+F(c.z_5y,2)+'</td>'
+      +'<td class="mute mono">'+esc(c.latest_date)+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+
+  if((d.excluded||[]).length){
+    h+='<div class="sec">Excluded — no usable phase (never imputed benign)</div><div class="card"><table><thead><tr><th>ISO</th><th>GDP weight</th><th>Phase</th><th>Reason</th></tr></thead><tbody>';
+    d.excluded.forEach(e=>{h+='<tr><td><b>'+esc(e.iso3)+'</b></td><td class="mono">'+F(e.gdp_weight,2)+'</td><td class="dim">'+esc(e.phase)+'</td><td class="mute">'+esc(e.reason)+'</td></tr>';});
+    h+='</tbody></table></div>';
+  }
+
+  const eb=d.equity_beta_guidance||{};
+  h+='<div class="sec">Equity beta guidance</div><div class="card"><div style="font-size:13px">'+esc(eb.rule||'')+'</div>'
+    +'<div class="caveat" style="margin-top:10px"><b>Caveat.</b> '+esc(eb.caveat||'')+'</div></div>';
+
+  h+='<div class="sec">Methodology — every number here is reproducible</div><div class="card">';
+  h+='<table><thead><tr><th>Phase</th><th>Base hazard</th></tr></thead><tbody>';
+  Object.entries(m.phase_base||{}).forEach(([k,v])=>{h+='<tr><td><span class="pill '+(PC[k]||'p-neu')+'">'+esc(k)+'</span></td><td class="mono">'+F(v,1)+'</td></tr>';});
+  h+='</tbody></table>';
+  h+='<table style="margin-top:12px"><thead><tr><th>Modifier</th><th>Formula</th></tr></thead><tbody>';
+  Object.entries(m.modifiers||{}).forEach(([k,v])=>{h+='<tr><td class="dim">'+esc(k)+'</td><td class="mono small">'+esc(v)+'</td></tr>';});
+  h+='</tbody></table>';
+  h+='<div class="foot" style="margin-top:10px"><b>Aggregation.</b> '+esc(m.aggregation||'')+'<br><b>Squash.</b> '+esc(m.squash||'')
+    +(m.v1_1_note?'<br><b>Revision.</b> '+esc(m.v1_1_note):'')+'<br><b>Coverage rule.</b> '+esc(cov.note||'')+'</div></div>';
+
+  h+='<div class="sec">Caveats</div><div class="card"><ul class="foot">'+(d.caveats||[]).map(c=>'<li>'+esc(c)+'</li>').join('')+'</ul>';
+  if(uc.note) h+='<div class="foot" style="margin-top:8px"><b>US cross-check.</b> '+esc(uc.note)+'</div>';
+  if(uc.yield_curve_probit) h+='<div class="foot" style="margin-top:6px">Curve probit method: '+esc(uc.yield_curve_probit.method)+' — '+esc(uc.yield_curve_probit.caveat)+' (as of '+esc(uc.yield_curve_probit.as_of)+')</div>';
+  if(uc.sahm_rule) h+='<div class="foot" style="margin-top:6px">Sahm: '+esc(uc.sahm_rule.caveat)+' (as of '+esc(uc.sahm_rule.as_of)+')</div>';
+  h+='<div class="foot" style="margin-top:10px">Engine <b>'+esc(d.engine)+'</b> v'+esc(d.version)+' · generated '+esc(d.generated_at)+'</div></div>';
+  document.getElementById('root').innerHTML=h;
+}
+</script></body></html>

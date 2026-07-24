@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BTC Cycle Bands · JustHodl.AI</title>
+<meta name="jh-page-version" content="v1-ops3825">
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:13px}
+.tile .lbl{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px}
+.tile .val{font-size:23px;font-weight:800;margin:3px 0}
+.tile .note{font-size:11.5px;color:var(--text-mute)}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.p-pos{background:rgba(111,206,138,.14);color:var(--pos);border:1px solid rgba(111,206,138,.4)}
+.p-neg{background:rgba(224,122,106,.14);color:var(--neg);border:1px solid rgba(224,122,106,.4)}
+.p-acc{background:rgba(240,180,41,.14);color:var(--accent);border:1px solid rgba(240,180,41,.42)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--text-mute);font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:8px 7px;border-bottom:1px solid var(--border)}
+td{padding:8px 7px;border-bottom:1px solid rgba(28,35,48,.6)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.dim{color:var(--text-dim)}.mute{color:var(--text-mute)}
+.warn{background:rgba(224,122,106,.09);border:1px solid rgba(224,122,106,.34);border-radius:10px;padding:11px 13px;font-size:12.5px;color:var(--neg);margin:10px 0}
+.caveat{background:rgba(240,180,41,.07);border:1px solid rgba(240,180,41,.28);border-radius:10px;padding:11px 13px;font-size:12.5px;color:var(--text-dim);margin:10px 0}
+.foot{font-size:11.5px;color:var(--text-mute);line-height:1.75}
+</style>
+</head>
+<body><div class="wrap">
+<h1>🌈 BTC Cycle Bands</h1>
+<div class="sub">Where Bitcoin sits against its own long-run log trend — a <b>context band, never a target</b>. Rainbow regression, Pi Cycle, Mayer Multiple and the 200-week support.</div>
+<div id="root"><div class="card dim">Loading…</div></div>
+</div>
+<script>
+const F=(n,d=2)=>n===null||n===undefined||isNaN(n)?'—':Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});
+const P=(n,d=1)=>n===null||n===undefined||isNaN(n)?'—':(n>0?'+':'')+Number(n).toFixed(d)+'%';
+const esc=s=>String(s===null||s===undefined?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/onchain-ratios.json?v='+Date.now(),{cache:'no-store'})
+ .then(r=>r.json()).then(render)
+ .catch(e=>{document.getElementById('root').innerHTML='<div class="warn">Feed unavailable: '+esc(e.message)+'</div>';});
+
+function render(d){
+  const cb=d.cycle_bands||{};
+  if(!cb.available){document.getElementById('root').innerHTML='<div class="warn">Cycle bands unavailable: '+esc(cb.reason||'unknown')+'</div>';return;}
+  const rb=cb.rainbow||{},pi=cb.pi_cycle||{},mm=cb.mayer_multiple||{},w2=cb.ma_200_week||{};
+  let h='';
+  h+='<div class="grid">'
+   +'<div class="tile"><div class="lbl">BTC price</div><div class="val">$'+F(cb.price,0)+'</div><div class="note">as of '+esc(cb.as_of)+' · '+F(cb.n_daily_closes,0)+' daily closes</div></div>'
+   +'<div class="tile"><div class="lbl">Rainbow band</div><div class="val" style="font-size:17px;color:var(--accent)">'+esc(rb.band||'—')+'</div><div class="note">z = '+F(rb.z_sigma)+'σ vs fit</div></div>'
+   +'<div class="tile"><div class="lbl">Regression fair value</div><div class="val">$'+F(rb.fair_value,0)+'</div><div class="note">R² '+F(rb.r_squared,3)+' · σ '+F(rb.residual_sigma,3)+' · n '+F(rb.n_days,0)+'</div></div>'
+   +'<div class="tile"><div class="lbl">Pi Cycle</div><div class="val" style="font-size:17px"><span class="pill '+(pi.signal==='TOP SIGNAL ACTIVE'?'p-neg':'p-pos')+'">'+esc(pi.signal||'—')+'</span></div><div class="note">'+P(pi.distance_to_trigger_pct)+' to trigger</div></div>'
+   +'<div class="tile"><div class="lbl">Mayer Multiple</div><div class="val">'+F(mm.value,3)+'</div><div class="note">'+esc(mm.read||'')+' · '+F(mm.percentile_all_history,1)+'th pctile all-history</div></div>'
+   +'<div class="tile"><div class="lbl">200-week MA</div><div class="val">$'+F(w2.value,0)+'</div><div class="note">price '+P(w2.pct_above)+' above · '+esc(w2.note||'')+'</div></div>'
+   +'</div>';
+
+  h+='<div class="sec">Rainbow — OLS log regression with ±σ bands</div>'+bandchart(rb,cb.price);
+  h+='<div class="caveat"><b>What this is.</b> '+esc(rb.caveat||'')+'</div>';
+  h+='<div class="card" style="margin-top:10px;overflow-x:auto"><table><thead><tr><th>Band</th><th>Price</th><th>vs spot</th></tr></thead><tbody>';
+  Object.entries(rb.band_prices||{}).forEach(([k,v])=>{
+    const rel=(cb.price/v-1)*100;
+    h+='<tr><td class="mono">'+esc(k)+'</td><td class="mono">$'+F(v,0)+'</td><td class="mono '+(rel>0?'pos':'neg')+'">'+P(rel)+'</td></tr>';
+  });
+  h+='</tbody></table><div class="foot" style="margin-top:8px">Fit: ln(price) = '+F(rb.slope_a,4)+'·ln(days) + '+F(rb.intercept_b,4)+' · method: '+esc(rb.method||'')+' · history starts '+esc(rb.history_starts)+'</div></div>';
+
+  h+='<div class="sec">Pi Cycle Top</div><div class="card"><div class="grid">'
+   +'<div class="tile"><div class="lbl">111-day MA</div><div class="val">$'+F(pi.ma_111d,0)+'</div></div>'
+   +'<div class="tile"><div class="lbl">350-day MA</div><div class="val">$'+F(pi.ma_350d,0)+'</div></div>'
+   +'<div class="tile"><div class="lbl">Trigger (2× 350DMA)</div><div class="val">$'+F(pi.trigger_level,0)+'</div><div class="note">111DMA must cross above this</div></div>'
+   +'<div class="tile"><div class="lbl">Historical sample</div><div class="val">n = '+esc(pi.historical_n)+'</div><div class="note">2013 · 2017 · 2021 tops</div></div>'
+   +'</div>';
+  if(pi.last_cross) h+='<div class="foot" style="margin-top:10px">Last cross: '+esc(pi.last_cross.date)+' — '+esc(pi.last_cross.direction)+'</div>';
+  h+='</div><div class="caveat"><b>Sample size warning.</b> '+esc(pi.caveat||'')+'</div>';
+
+  h+='<div class="sec">Notes</div><div class="card"><div class="foot">'+esc(cb.joins||'')+'</div></div>';
+  document.getElementById('root').innerHTML=h;
+}
+
+function bandchart(rb,price){
+  const bp=rb.band_prices||{};const keys=Object.keys(bp);
+  if(!keys.length)return '<div class="card dim">No band data.</div>';
+  const vals=keys.map(k=>bp[k]).concat([price]);
+  const lo=Math.log(Math.min(...vals)*0.82),hi=Math.log(Math.max(...vals)*1.18);
+  const W=980,H=330,PAD=64;
+  const Y=v=>H-PAD-((Math.log(v)-lo)/(hi-lo))*(H-2*PAD);
+  const COL={'-2.00sigma':'#6fce8a','-1.25sigma':'#6fce8a','-0.50sigma':'#e8e8e8','+0.00sigma':'#e8e8e8','+0.50sigma':'#F0B429','+1.25sigma':'#E07A6A','+2.00sigma':'#E07A6A'};
+  let s='<div class="card" style="overflow-x:auto"><svg viewBox="0 0 '+W+' '+H+'" style="width:100%;min-width:700px;height:auto">';
+  const sorted=keys.slice().sort((a,b)=>bp[b]-bp[a]);
+  sorted.forEach((k,i)=>{
+    const y=Y(bp[k]),c=COL[k]||'#8b96a8';
+    if(i<sorted.length-1){const y2=Y(bp[sorted[i+1]]);
+      s+='<rect x="'+PAD+'" y="'+y+'" width="'+(W-2*PAD)+'" height="'+Math.max(0,y2-y)+'" fill="'+c+'" fill-opacity=".07"/>';}
+    s+='<line x1="'+PAD+'" y1="'+y+'" x2="'+(W-PAD)+'" y2="'+y+'" stroke="'+c+'" stroke-opacity=".55" stroke-dasharray="4 4"/>';
+    s+='<text x="'+(PAD-8)+'" y="'+(y+4)+'" fill="'+c+'" font-size="10.5" text-anchor="end">'+k+'</text>';
+    s+='<text x="'+(W-PAD+8)+'" y="'+(y+4)+'" fill="'+c+'" font-size="10.5">$'+Math.round(bp[k]).toLocaleString()+'</text>';
+  });
+  const py=Y(price);
+  s+='<line x1="'+PAD+'" y1="'+py+'" x2="'+(W-PAD)+'" y2="'+py+'" stroke="#F0B429" stroke-width="2.2"/>';
+  s+='<circle cx="'+(W/2)+'" cy="'+py+'" r="6" fill="#F0B429"/>';
+  s+='<text x="'+(W/2)+'" y="'+(py-13)+'" fill="#F0B429" font-size="13" font-weight="700" text-anchor="middle">SPOT $'+Math.round(price).toLocaleString()+'</text>';
+  s+='<text x="'+(W/2)+'" y="'+(H-16)+'" fill="#5b6479" font-size="11" text-anchor="middle">log scale · bands are ±k·σ of the regression residuals, re-fit every run</text>';
+  s+='</svg></div>';
+  return s;
+}
+</script></body></html>
