@@ -1,0 +1,8 @@
+{
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 300,
+  "memory": 512,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "GDP-weighted global recession probability ensemble (independent, published methodology)"
+}
