@@ -493,6 +493,57 @@ def lambda_handler(event, context):
             return 1.0, None
         return m, f"nowcast {r} {'tailwind' if m > 1 else 'haircut'}"
 
+
+    # ── Cross-asset ROTATION gate (ops 3830) ───────────────────────────────
+    # rotation-dashboard answers "which asset is capital rotating INTO". Its L3
+    # TREND GATE (price>200d SMA AND 12m return>cash) is the drawdown control the
+    # rest of the stack lacks. Applied at SECTOR level via the SPDR the sector
+    # maps to. Deliberately CONSERVATIVE and clamped: a sector-level rotation read
+    # is context for a single name, never a verdict on it, and the gate is on the
+    # ETF not the stock. Staleness-gated like every other regime overlay.
+    ROT_SECTOR_ETF = {
+        "Technology": "XLK", "Information Technology": "XLK",
+        "Financial Services": "XLF", "Financials": "XLF", "Financial": "XLF",
+        "Healthcare": "XLV", "Health Care": "XLV",
+        "Energy": "XLE", "Basic Materials": "XLB", "Materials": "XLB",
+        "Industrials": "XLI", "Consumer Cyclical": "XLY",
+        "Consumer Discretionary": "XLY", "Consumer Defensive": "XLP",
+        "Consumer Staples": "XLP", "Utilities": "XLU", "Real Estate": "XLRE",
+        "Communication Services": "XLC",
+    }
+    _rot = read_json("data/rotation-dashboard.json") or {}
+    _rot_assets = {a.get("ticker"): a for a in (_rot.get("assets") or [])}
+    _rot_regime = ((_rot.get("layer1_regime") or {}).get("quadrant") or {}).get("regime")
+    _rot_fresh = False
+    try:
+        from datetime import datetime as _dt, timezone as _tz
+        _age = (_dt.now(_tz.utc) - _dt.fromisoformat(
+            str(_rot.get("generated_at")).replace("Z", "+00:00"))).total_seconds() / 3600
+        _rot_fresh = _age <= 48
+    except Exception:
+        _rot_fresh = False
+
+    def _rotation_scalar(sector):
+        """(mult, note, etf, quadrant). Improving>Leading (early rotate-in pays
+        more than confirmed leadership); below-trend sectors get an extra haircut."""
+        if not _rot_fresh or not sector:
+            return 1.0, None, None, None
+        etf = ROT_SECTOR_ETF.get(sector)
+        row = _rot_assets.get(etf) if etf else None
+        if not row:
+            return 1.0, None, etf, None
+        q = (row.get("rrg") or {}).get("quadrant")
+        elig = ((row.get("trend_gate") or {}).get("eligible"))
+        m = {"IMPROVING": 1.07, "LEADING": 1.05,
+             "WEAKENING": 0.96, "LAGGING": 0.93}.get(q, 1.0)
+        if elig is False:
+            m *= 0.96
+        m = round(max(0.90, min(1.10, m)), 3)
+        if m == 1.0:
+            return 1.0, None, etf, q
+        return m, (f"rotation {q} via {etf}"
+                   + ("" if elig else " · below trend gate")), etf, q
+
     bond_vol = read_json("data/bond-vol.json") or {}
     massive = read_json("data/massive-signals.json") or {}
     bottleneck = read_json("data/bottleneck-boom.json") or {}
@@ -863,6 +914,11 @@ def lambda_handler(event, context):
         if _nc_mult != 1.0:
             composite = round(min(100.0, composite * _nc_mult), 1)
 
+        # ── Cross-asset rotation gate (sector -> SPDR -> RRG quadrant + trend) ──
+        _rot_mult, _rot_note, _rot_etf, _rot_quad = _rotation_scalar(_eff_sector)
+        if _rot_mult != 1.0:
+            composite = round(min(100.0, composite * _rot_mult), 1)
+
         # ── Industry-leadership + factor-appetite priors (theory stack) ──
         _ind_mult, _ind_note, _ind_row = _industry_prior(_eff_sector)
         if _ind_mult != 1.0:
@@ -1030,6 +1086,10 @@ def lambda_handler(event, context):
                                         or {}).get("quadrant"),
             "industry_flow_z": ((_ind_row or {}).get("fund_flows")
                                  or {}).get("flow_zscore_90d"),
+            "rotation_mult": _rot_mult,
+            "rotation_quadrant": _rot_quad,
+            "rotation_etf": _rot_etf,
+            "rotation_note": _rot_note,
             "risk_regime_mult": _rr_mult,
             "industry_mult": _ind_mult,
             "industry_etf": (_ind_row or {}).get("etf"),
@@ -1439,6 +1499,11 @@ def lambda_handler(event, context):
         "weight_source": weight_src,
         "bond_vol_regime": {"regime": bv_regime or None, "composite_z": bv_z,
                             "risk_posture": bv_posture, "conviction_multiplier": regime_mult},
+        "rotation_regime": {"regime": _rot_regime, "fresh": _rot_fresh,
+                            "generated_at": _rot.get("generated_at"),
+                            "note": ("sector-level rotation context from "
+                                     "rotation-dashboard; the trend gate is on the "
+                                     "SPDR, not the individual name")},
         "nowcast_regime": {"regime": _nc_regime, "growth": _nc_quad_growth, "inflation": _nc_quad_infl,
                            "gdpnow": _nc_q.get("gdpnow"), "underlying_inflation": _nc_q.get("underlying_inflation")},
         "methodology": (

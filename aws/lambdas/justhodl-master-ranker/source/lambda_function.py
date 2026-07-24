@@ -1000,6 +1000,51 @@ def lambda_handler(event, context):
     _nc_quad = _nc_desk.get("nowcast_quadrant") or {}
     _nc_regime = _nc_quad.get("regime")
 
+    ROT_SECTOR_ETF = {
+        "Technology": "XLK", "Information Technology": "XLK",
+        "Financial Services": "XLF", "Financials": "XLF", "Financial": "XLF",
+        "Healthcare": "XLV", "Health Care": "XLV",
+        "Energy": "XLE", "Basic Materials": "XLB", "Materials": "XLB",
+        "Industrials": "XLI", "Consumer Cyclical": "XLY",
+        "Consumer Discretionary": "XLY", "Consumer Defensive": "XLP",
+        "Consumer Staples": "XLP", "Utilities": "XLU", "Real Estate": "XLRE",
+        "Communication Services": "XLC",
+    }
+    _rot_doc = fetch_json("data/rotation-dashboard.json") or {}
+    _rot_map = {a.get("ticker"): a for a in (_rot_doc.get("assets") or [])}
+    _rot_regime_lbl = ((_rot_doc.get("layer1_regime") or {}).get("quadrant") or {}).get("regime")
+    try:
+        from datetime import datetime as _rdt, timezone as _rtz
+        _rot_ok = (_rdt.now(_rtz.utc) - _rdt.fromisoformat(
+            str(_rot_doc.get("generated_at")).replace("Z", "+00:00"))
+        ).total_seconds() / 3600 <= 48
+    except Exception:
+        _rot_ok = False
+
+    def _rotation_overlay(sector, base_score):
+        """Cross-asset rotation tilt (ops 3830). Sector -> SPDR -> RRG quadrant.
+        IMPROVING (early rotate-in) pays more than confirmed LEADING; a sector
+        failing rotation-dashboard's absolute trend gate takes a further haircut.
+        Context for a name, never a verdict — the gate is on the ETF."""
+        if not _rot_ok or not sector:
+            return base_score, 1.0, None
+        etf = ROT_SECTOR_ETF.get(sector)
+        row = _rot_map.get(etf) if etf else None
+        if not row:
+            return base_score, 1.0, None
+        q = (row.get("rrg") or {}).get("quadrant")
+        elig = (row.get("trend_gate") or {}).get("eligible")
+        m = {"IMPROVING": 1.07, "LEADING": 1.05,
+             "WEAKENING": 0.96, "LAGGING": 0.93}.get(q, 1.0)
+        if elig is False:
+            m *= 0.96
+        m = round(max(0.90, min(1.10, m)), 3)
+        if m == 1.0:
+            return base_score, 1.0, None
+        tag = "rotation tailwind" if m > 1 else "rotation headwind"
+        return (round(base_score * m, 1), m,
+                f"{tag}: {q} via {etf}{'' if elig else ' (below trend gate)'}")
+
     def _nowcast_overlay(sector, base_score):
         # regime-conditional macro tilt from the Fed nowcast desk. GOLDILOCKS favors
         # high-beta; OVERHEAT/STAGFLATION favor energy/materials (real assets);
@@ -1154,6 +1199,7 @@ def lambda_handler(event, context):
         score, liq_mult, liq_note = _liq_overlay(_sector, score)
         score, sf_mult, sf_note = _sectorflow_overlay(_sector, score)
         score, nc_mult, nc_note = _nowcast_overlay(_sector, score)
+        score, rot_mult, rot_note = _rotation_overlay(_sector, score)
         # cycle gate — tag phase; haircut only the strongest distribution-at-top tell
         _cyc = _cycle_map.get(ticker)
         _cyc_phase = (_cyc or {}).get("phase")
@@ -1191,6 +1237,8 @@ def lambda_handler(event, context):
             "capital_flow_mult": cf_mult,
             "risk_regime_mult": roro_mult,
             "liquidity_regime_mult": liq_mult,
+            "rotation_mult": rot_mult,
+            "rotation_note": rot_note,
             "nowcast_regime_mult": nc_mult,
             "cycle_phase": _cyc_phase,
             "cycle_warning": _cyc_warn,
