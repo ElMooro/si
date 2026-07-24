@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Capture Gap · JustHodl.AI</title>
-<meta name="jh-page-version" content="v11-ops3806">
+<meta name="jh-page-version" content="v12-ops3813">
 <style>
 :root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
@@ -49,6 +49,12 @@ select{background:#10151d;color:#e6ecf3;border:1px solid #1c2330;border-radius:6
 <div class="sub">A company can be the single point of failure for its entire industry and still hold only a sliver of that industry's market cap. <strong>capture_gap = criticality percentile − market-cap-share percentile</strong>, computed <em>within industry</em> against the full listed market. Positive means the market underpays for indispensability. Criticality itself comes from margin level, margin <em>stability</em> (the fingerprint of pricing power), ROIC, R&amp;D intensity and supply-chain centrality — not from the multiple.</div>
 
 <div class="card" id="hero"><span class="mono" style="color:var(--text-mute)">LOADING…</span></div>
+
+<div class="sec">✅ Mispriced — gap confirmed by independent evidence</div>
+<div class="card" id="mispriced"></div>
+
+<div class="sec">⚠️ Value Traps — wide gap, but cheap for a reason</div>
+<div class="card" id="traps"></div>
 
 <div class="sec">🥇 Most Undervalued — all industries, blended rank</div>
 <div class="card" id="leader"></div>
@@ -132,6 +138,9 @@ var GLOSS={
  revenue_share_pct:"REVENUE SHARE. This company's trailing revenue as a share of USD-FILING scored peers in its industry — the closest measurable proxy for how much of the industry actually depends on it. Suppressed (shown as —) for non-USD filers and for industries where USD filers cover under 60% of scored names, because summing mixed currencies produces a wrong number that looks right.",
  dependency_pct:"SUPPLY-CHAIN DEPENDENCY. Share of mapped supplier links in this industry that point at this company. Sourced from a curated graph that covers only some sectors, so it is blank rather than guessed for most names.",
  criticality:"CRITICALITY (0-100). A QUALITY composite: 30% gross-margin level, 22% margin STABILITY, 20% ROIC, 13% R&D intensity, 15% supply-chain centrality. It is NOT a share of the industry — a 71 does not mean 71% of the industry depends on this company.",
+ mispricing_verdict:"VERDICT. A wide capture gap says the market pays little for a company that matters to its industry — it does NOT say the market is wrong. MISPRICED requires the gap AND structural importance AND at least two independent confirmations (institutional accumulation off-exchange, active post-earnings drift, an inflecting industry, stable-or-rising estimates) AND no disqualifier. VALUE_TRAP means the gap exists but earnings estimates are falling, the industry is in structural decline, or the gap has stayed open past 120 days without closing — the market disagreeing for a reason. CROWDED_SHORT means heavy short interest with no confirming evidence. UNPROVEN is the honest majority: a gap with no evidence either way. Hover any badge for the specific reasons.",
+ industry_regime:"INDUSTRY REGIME. Where this company's industry sits in the boom league — BOOMING (top quartile), DECAYING (bottom quartile), or NEUTRAL. A critical company in a decaying industry is a melting ice cube: cheap, and staying cheap.",
+ gap_days_open:"GAP AGE. How many days the capture gap has stayed above 20% without closing, tracked from the engine's own ledger. A gap open past 120 days is treated as a disqualifier — the market has had time to reprice and chose not to.",
  structural_importance:"HOW CRUCIAL TO ITS INDUSTRY (0-100). Blends four things measurable for every company: where it ranks by revenue inside its industry, how far its gross margin sits above the industry median, its R&D intensity versus the median, and its share of industry market cap. Supply-chain centrality adds a bonus where the curated map covers the company — but its absence never penalises, because that map names only ~185 symbols. Hover any score to see which legs carried it.",
  criticality_pctile:"CRITICALITY PERCENTILE. The honest percentage form of criticality: this company ranks above X% of scored peers on business quality.",
  revenue_growth_yoy:"REVENUE GROWTH (YoY). Latest annual revenue versus the prior year, from the same income statement used elsewhere. A growth RATE is currency-invariant, so unlike revenue share it is published for non-USD filers too.",
@@ -302,6 +311,36 @@ document.getElementById('indunder').innerHTML=(iu.length?('<table><tr><th>Indust
 +iuT.slice(0,8).map(function(x){return x.industry+' (n='+x.n+', '+num(x.median_global_gap)+'%)';}).join(' · ')+'</div>'):''))
 :'<span class="mono" style="color:'+MUT+'">Industry board pending.</span>');
 
+// ── MISPRICED + VALUE TRAP BOOKS ───────────────────────────────────────
+var mb=(c.mispriced_book||[]).filter(function(r){return r&&r.ticker;});
+var tb=(c.value_trap_book||[]).filter(function(r){return r&&r.ticker;});
+var vcounts=(st.verdict_counts||{});
+document.getElementById('mispriced').innerHTML=(mb.length?(
+ '<table><tr><th>Ticker</th><th>Company</th><th>Industry</th><th>Capture gap</th>'
+ +'<th>How crucial</th><th>Catch-up</th><th>Evidence</th><th>What confirms it</th></tr>'
+ +mb.map(function(r){return '<tr><td style="color:'+ACC+';font-weight:600">'+r.ticker+'</td>'
+ +'<td>'+(r.name||'').slice(0,22)+'</td><td style="color:'+DIM+'">'+(r.industry||'').slice(0,24)+'</td>'
+ +'<td style="color:'+POS+';font-weight:600">'+(r.capture_gap>0?'+':'')+num(r.capture_gap)+'%</td>'
+ +'<td>'+si(r)+'</td><td>'+cu(r.catchup_pct,r.catchup_basis,r.catchup_capped)+'</td>'
+ +'<td style="color:'+POS+'">'+(r.verdict_evidence_n||0)+' legs</td>'
+ +'<td style="color:'+DIM+';font-size:11px">'+((r.verdict_confirms||[]).join('; '))+'</td></tr>';}).join('')
+ +'</table>'
+ +'<div class="note">These cleared every hurdle: a capture gap of 20%+ , real structural importance, <strong>two or more independent confirmations</strong>, and no disqualifier. Only '+(vcounts.MISPRICED||0)+' of '+(st.scored||0)+' scored names qualify — a screen that labelled hundreds of names mispriced would not be discriminating. Still a research shortlist, not a buy list.</div>')
+ :'<span class="mono" style="color:'+MUT+'">No name currently clears the full evidence bar — reported honestly rather than by lowering it.</span>');
+
+document.getElementById('traps').innerHTML=(tb.length?(
+ '<table><tr><th>Ticker</th><th>Industry</th><th>Capture gap</th><th>Gap age</th><th>Est. direction</th><th>Industry regime</th><th>Why it fails</th></tr>'
+ +tb.map(function(r){return '<tr><td style="color:'+ACC+';font-weight:600">'+r.ticker+'</td>'
+ +'<td style="color:'+DIM+'">'+(r.industry||'').slice(0,26)+'</td>'
+ +'<td style="color:'+NEG+';font-weight:600">'+(r.capture_gap>0?'+':'')+num(r.capture_gap)+'%</td>'
+ +'<td style="color:'+MUT+'">'+(r.gap_days_open!=null?r.gap_days_open+'d':'—')+'</td>'
+ +'<td style="color:'+(r.estimates_falling?NEG:MUT)+'">'+(r.estimate_direction||'—')+'</td>'
+ +'<td style="color:'+(r.industry_regime==='DECAYING'?NEG:(r.industry_regime==='BOOMING'?POS:MUT))+'">'+(r.industry_regime||'—')+'</td>'
+ +'<td style="color:'+NEG+';font-size:11px">'+((r.verdict_disqualifiers||[]).join('; '))+'</td></tr>';}).join('')
+ +'</table>'
+ +'<div class="note"><strong>This is the most useful table on the page.</strong> These carry the widest capture gaps on the board — and under a pure value screen they would rank at the very top. They fail because the evidence contradicts the gap: earnings estimates falling means the E is stale rather than the P wrong; a decaying industry means a critical company is still a melting ice cube; a gap open past 120 days means the market has had time to reprice and declined to.</div>')
+ :'<span class="mono" style="color:'+MUT+'">No value traps flagged today.</span>');
+
 // ── LEADERBOARD (top of page) ──────────────────────────────────────────
 var lead=(c.top_undervalued_all_industries||[]).filter(function(r){return r&&r.ticker;});
 function rsh(r){
@@ -315,6 +354,17 @@ function rsh(r){
  var v=r.revenue_share_pct;
  var col=v>=20?POS:(v>=5?ACC:'');
  return '<span'+(col?' style="color:'+col+';font-weight:600"':'')+'>'+num(v,2)+'%</span>';
+}
+function vdt(r){
+ // ops 3813: the verdict is the point of the whole engine — a wide gap says the
+ // market pays little for a company that matters, NOT that the market is wrong.
+ var v=r.mispricing_verdict;
+ if(!v||v==='NO_GAP') return '<span style="color:'+MUT+';font-size:10px">—</span>';
+ var col={MISPRICED:POS,VALUE_TRAP:NEG,CROWDED_SHORT:ACC,UNPROVEN:MUT}[v]||MUT;
+ var lbl={MISPRICED:'MISPRICED',VALUE_TRAP:'TRAP',CROWDED_SHORT:'CROWDED',UNPROVEN:'UNPROVEN'}[v]||v;
+ var why=[].concat(r.verdict_confirms||[],r.verdict_disqualifiers||[]).join(' · ');
+ return '<span class="tier" style="background:'+col+'22;color:'+col+';border:1px solid '+col+'55" title="'
+  +String(why).replace(/"/g,'&quot;')+'">'+lbl+'</span>';
 }
 function si(r){
  // ops 3805: "how crucial is this company to its industry", computed for EVERY
@@ -353,8 +403,8 @@ function cu(v,basis,capped){
  return '<span style="color:'+col+';font-weight:600">'+(v>0?'+':'')+num(v,0)+'%</span>'
  +(capped?'<span style="color:'+MUT+';font-size:9px"> cap</span>':'')
  +'<div style="color:'+MUT+';font-size:9px">'+(basis||'')+'</div>';}
-var ldK='undervaluation_score',ldD=-1,ldInd='ALL',ldCap='ALL',ldGro='ALL';
-var ldCols=[['undervaluation_score','Score'],['catchup_pct','Catch-up to<br>industry median'],
+var ldK='undervaluation_score',ldD=-1,ldInd='ALL',ldCap='ALL',ldGro='ALL',ldVer='ALL';
+var ldCols=[['mispricing_verdict','Verdict'],['undervaluation_score','Score'],['catchup_pct','Catch-up to<br>industry median'],
  ['capture_gap','Capture gap'],['global_capture_gap','Global gap'],
  ['revenue_share_pct','Rev share<br>of industry'],['structural_importance','How crucial<br>to industry'],
  ['revenue_growth_yoy','Rev growth<br>YoY'],['gm_level','Gross<br>margin'],
@@ -369,6 +419,7 @@ var _l=lead.filter(function(r){ if(!r||!r.ticker) return false;
   if(ldCap==='SP500'){ if(r.in_sp500!==true) return false; }
   else if(ldCap!=='ALL'){ if(CAPSETS[ldCap].indexOf(r.cap_bucket)<0) return false; }
   if(ldGro!=='ALL'&&r.growth_tier!==ldGro) return false;
+  if(ldVer!=='ALL'&&r.mispricing_verdict!==ldVer) return false;
   return true;})
  .sort(function(a,b){var x=a[ldK],y=b[ldK];
   if(typeof x==='string'||typeof y==='string'){x=String(x||'');y=String(y||'');return x<y?-1*ldD:x>y?1*ldD:0;}
@@ -389,6 +440,11 @@ document.getElementById('leader').innerHTML=(lead.length?(
    var lbl={ALL:'All growth',HIGH:'High (&ge;20% YoY)',MEDIUM:'Medium (5-20%)',LOW:'Low (&lt;5%)'}[k];
    return '<option value="'+k+'"'+(ldGro===k?' selected':'')+'>'+lbl+'</option>';}).join('')
  +'</select>'+help('growth_tier')
+ +' <span>Verdict:</span> <select id="ldVer">'
+ +['ALL','MISPRICED','UNPROVEN','VALUE_TRAP','CROWDED_SHORT'].map(function(k){
+   var lbl={ALL:'All verdicts',MISPRICED:'Mispriced only',UNPROVEN:'Unproven',VALUE_TRAP:'Value traps',CROWDED_SHORT:'Crowded short'}[k];
+   return '<option value="'+k+'"'+(ldVer===k?' selected':'')+'>'+lbl+'</option>';}).join('')
+ +'</select>'+help('mispricing_verdict')
  +' <span style="opacity:.75">click any column header to sort ascending / descending</span>'
  +' <span style="color:'+ACC+'">'+_l.length+' shown</span></div>'
  +'<table><tr><th>#</th><th data-lk="ticker">Ticker</th><th>Company</th><th data-lk="industry">Industry</th>'
@@ -397,7 +453,7 @@ document.getElementById('leader').innerHTML=(lead.length?(
 +'<td style="color:'+ACC+';font-weight:600">'+r.ticker+'</td>'
 +'<td>'+(r.name||'').slice(0,22)+'</td>'
 +'<td style="color:'+DIM+'">'+(r.industry||'').slice(0,24)+'</td>'
-+'<td style="font-weight:600">'+num(r.undervaluation_score,1)+'</td>'
++'<td>'+vdt(r)+'</td><td style="font-weight:600">'+num(r.undervaluation_score,1)+'</td>'
 +'<td>'+cu(r.catchup_pct,r.catchup_basis,r.catchup_capped)+'</td>'
 +'<td style="color:'+gapCol(r.capture_gap)+'">'+(r.capture_gap>0?'+':'')+num(r.capture_gap)+'%</td>'
 +'<td style="color:'+gapCol(r.global_capture_gap)+'">'+(r.global_capture_gap>0?'+':'')+num(r.global_capture_gap)+'%</td>'
@@ -416,6 +472,8 @@ var _cp=document.getElementById('ldCap');
 if(_cp)_cp.onchange=function(){ldCap=_cp.value;renderLeader();};
 var _gr=document.getElementById('ldGro');
 if(_gr)_gr.onchange=function(){ldGro=_gr.value;renderLeader();};
+var _vr=document.getElementById('ldVer');
+if(_vr)_vr.onchange=function(){ldVer=_vr.value;renderLeader();};
 }
 renderLeader();
 
@@ -494,6 +552,15 @@ document.getElementById('about').innerHTML=
  +'market-cap-share percentile — within its industry, and again against the whole listed market. '
  +'Alongside it sit the price move needed to reach the industry median multiple (<b>catch-up</b>), the '
  +'company\'s <b>revenue share</b> of its industry, its <b>growth</b>, margins and returns.'
+ +'<br><br><b>The verdict layer.</b> A wide capture gap says the market pays little for a company '
+ +'that matters to its industry. It does <b>not</b> say the market is wrong — and in practice the '
+ +'widest gaps are usually widest because the market is right. So every gap is tested against '
+ +'independent evidence: are earnings estimates falling (the E is stale, not the P wrong), is smart '
+ +'money accumulating off-exchange, is there an active post-earnings drift, is the industry inflecting '
+ +'or decaying, and how long has the gap stayed open without closing. Names that clear the gap AND '
+ +'structural importance AND two confirmations AND no disqualifier are <b>Mispriced</b>. Names with a '
+ +'wide gap contradicted by the evidence are <b>Value Traps</b> — and that table is the more useful of '
+ +'the two, because those are exactly the names a pure value screen would rank first.'
  +'<br><br><b>How to read it.</b> The leaderboard is a ranked hunting ground, not a buy list. Its default '
  +'order is a blend, so no single loud metric carries a name to the top; sorting by one column overrides '
  +'that blend and shows the raw axis. Every metric has a <span class="hm">?</span> explaining exactly what '
@@ -505,6 +572,9 @@ document.getElementById('about').innerHTML=
  +'<b>universe-builder</b> for the full listed market used as the market-cap denominator; '
  +'<b>justhodl-backlog</b> for RPO and deferred-revenue acceleration; '
  +'<b>fundamental-census</b> for S&amp;P 500 membership; '
+ +'<b>estimate-revisions</b> for analyst direction; <b>dark-pool</b> for off-exchange accumulation; '
+ +'<b>finra-short</b> for short interest and squeeze fuel; <b>earnings-pead</b> for post-earnings '
+ +'drift catalysts; <b>industry-boom</b> for the industry regime; '
  +'<b>supply-chain-graph</b> for supplier-dependency links; and FMP income statements for revenue, '
  +'growth and multiples. Capture gap is also wired as context into '
  +'<a href="/best-setups.html">best-setups</a>, <a href="/master-ranker.html">master-ranker</a> and the '
