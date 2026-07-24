@@ -157,6 +157,19 @@ def main():
         rep.kv(artifacts_scanned=scanned, overlay_fields=len(findings),
                **{k.lower(): v for k, v in counts.items()},
                stale_feed_drops=n_stale)
+        # The audit must FAIL when the audit itself is broken — otherwise an
+        # empty scan reads as "fleet is clean", which is the same silent-success
+        # failure mode this ops exists to hunt.
+        if scanned == 0:
+            rep.fail("scanned 0 artifacts — audit could not run")
+            sys.exit(1)
+        if errors > scanned:
+            rep.fail(f"more unreadable ({errors}) than scanned ({scanned})")
+            sys.exit(1)
+        if not findings:
+            rep.fail("0 overlay fields found across the whole fleet — the matcher "
+                     "is broken, not the fleet (15 engines carry *_mult by grep)")
+            sys.exit(1)
         rep.ok("AUDIT COMPLETE — suspects ranked for judgement, nothing auto-changed")
 
 
