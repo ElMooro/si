@@ -64,7 +64,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/rotation-dashboard.json"
 HIST_KEY = "data/rotation-dashboard-history.json"
@@ -195,10 +195,9 @@ REGIME_PRIOR = {
 
 # COT contract mapping for the crowding cap (L4). Only where honest.
 COT_MAP = {
-    "GLD": ["GOLD"], "SLV": ["SILVER"], "USO": ["CRUDE OIL", "WTI"],
-    "CPER": ["COPPER"], "SPY": ["S&P 500"], "IWM": ["RUSSELL"],
-    "TLT": ["ULTRA U.S. TREASURY BONDS", "U.S. TREASURY BONDS"],
-    "IEF": ["10 YEAR", "10-YEAR"], "IBIT": ["BITCOIN"],
+    "SPY": ["ES"], "IWM": ["RTY"], "TLT": ["ZB"], "IEF": ["ZN"],
+    "SHY": ["ZF"], "GLD": ["GC"], "SLV": ["SI"], "USO": ["CL"],
+    "CPER": ["HG"], "IBIT": ["BTC"], "DBC": ["CL"], "EFA": ["NQ"],
 }
 
 
@@ -313,13 +312,25 @@ def layer1_regime():
     if not rr:
         out["degraded"].append("risk-regime unavailable — RORO tilt neutralised")
 
+    out["prior"] = REGIME_PRIOR.get(regime, {})
     dr = read_feed("data/dollar-radar.json") or {}
-    dxy_3m = dr.get("chg_3m_pct")
+    # Probe ops 3817: the 3m change is NESTED at bbdxy.dxy_synth.chg_3m_pct,
+    # not top-level. Reading it top-level silently neutralised the dollar tilt.
+    bb = dr.get("bbdxy") or {}
+    synth = bb.get("dxy_synth") or {}
+    dxy_3m = synth.get("chg_3m_pct")
+    if dxy_3m is None:
+        dxy_3m = bb.get("chg_3m_pct")
     out["dollar"] = {
-        "dxy": dr.get("dxy_synth") or dr.get("dxy"),
-        "chg_1m_pct": dr.get("chg_1m_pct"),
+        "chg_1m_pct": synth.get("chg_1m_pct") or bb.get("chg_1m_pct"),
         "chg_3m_pct": dxy_3m,
-        "verdict": dr.get("breadth_verdict"),
+        "chg_1y_pct": synth.get("chg_1y_pct") or bb.get("chg_1y_pct"),
+        "breadth_spread_3m_pp": bb.get("breadth_spread_3m_pp"),
+        "range_pctile_1y": bb.get("range_pctile_1y"),
+        "regime": dr.get("regime"),
+        "pressure": dr.get("dollar_pressure"),
+        "headline": dr.get("headline"),
+        "source_path": "bbdxy.dxy_synth.chg_3m_pct",
     }
     if dxy_3m is not None:
         out["dollar"]["direction"] = ("FALLING" if dxy_3m < -1 else
@@ -328,10 +339,20 @@ def layer1_regime():
             "EM, ex-US, commodities, gold" if dxy_3m < -1
             else "US large-cap, cash, risk-off" if dxy_3m > 1
             else "no strong dollar tilt")
+        # a rising dollar is a real headwind for EM / commodities / gold
+        tilt = -0.25 if dxy_3m > 1 else 0.25 if dxy_3m < -1 else 0.0
+        if tilt:
+            pr = dict(out.get("prior") or {})
+            for cls in ("equity_em", "commodity", "gold", "precious",
+                        "industrial_metal", "energy_cmdty", "equity_intl",
+                        "credit_em"):
+                pr[cls] = round(pr.get(cls, 0.0) + tilt, 2)
+            out["dollar_tilt_applied"] = tilt
+            out["_prior_after_dollar"] = pr
     else:
         out["degraded"].append("dollar-radar 3m change unavailable")
 
-    out["prior"] = REGIME_PRIOR.get(regime, {})
+    out["prior"] = out.pop("_prior_after_dollar", None) or REGIME_PRIOR.get(regime, {})
     out["prior_source"] = ("Merrill Investment Clock / Bridgewater four-boxes "
                            "growth x inflation asset matrix")
     return out
@@ -409,60 +430,55 @@ def layer2_ratios(hist):
 # LAYER 3 + 4 — trend gate, ranking, flow + crowding confirm
 # ═══════════════════════════════════════════════════════════════════════════
 def build_cot_index(cftc):
-    """Normalise spec net positioning to a 0-100 COT Index per contract."""
+    """COT Index 0-100 per contract. Shape confirmed by probe ops 3817:
+       cftc['data'] = {CODE: {contract, name, category, weekly_reports:[...]}}
+       weekly_reports[] rows carry net_speculator / noncommercial_long|short.
+       0 = most net-short in the window (washed out), 100 = most net-long (crowded)."""
     idx = {}
     if not isinstance(cftc, dict):
         return idx
-    # The cache shape is not guaranteed — some keys are COUNTS not collections.
-    # Walk candidate keys, accept only real collections of dicts, never crash.
-    rows = []
-    for k in ("contracts", "data", "markets", "results", "cache", "by_contract"):
-        v = cftc.get(k)
-        if isinstance(v, dict):
-            v = list(v.values())
-        if isinstance(v, list) and any(isinstance(x, dict) for x in v):
-            rows = [x for x in v if isinstance(x, dict)]
-            break
-    if not rows:
-        # last resort: any top-level list-of-dicts in the document
-        for v in cftc.values():
-            if isinstance(v, list) and v and all(isinstance(x, dict) for x in v):
-                rows = v
-                break
-    if not rows:
-        print(f"[cot] no usable rows; top-level keys={list(cftc)[:12]}")
+    data = cftc.get("data")
+    if not isinstance(data, dict):
+        print(f"[cot] no 'data' dict; keys={list(cftc)[:10]}")
         return idx
-    for r in rows:
-        if not isinstance(r, dict):
+    for code, row in data.items():
+        if not isinstance(row, dict):
             continue
-        name = (r.get("market") or r.get("name") or r.get("contract") or "").upper()
-        if not name:
+        reports = row.get("weekly_reports") or []
+        nets = []
+        for w in reports:
+            if not isinstance(w, dict):
+                continue
+            n = w.get("net_speculator")
+            if n is None:
+                nl, ns = w.get("noncommercial_long"), w.get("noncommercial_short")
+                if isinstance(nl, (int, float)) and isinstance(ns, (int, float)):
+                    n = nl - ns
+            if isinstance(n, (int, float)):
+                nets.append(float(n))
+        if len(nets) < 12:
             continue
-        cur = r.get("net_position") or r.get("noncomm_net") or r.get("net")
-        series = r.get("history") or r.get("net_history") or []
-        vals = [v for v in
-                (x.get("net") if isinstance(x, dict) else x for x in series)
-                if isinstance(v, (int, float))]
-        if cur is None or len(vals) < 26:
-            if cur is not None and r.get("percentile") is not None:
-                idx[name] = {"cot_index": round(float(r["percentile"]), 1),
-                             "basis": "provider percentile"}
-            continue
-        lo, hi = min(vals), max(vals)
+        cur, lo, hi = nets[0], min(nets), max(nets)
         if hi == lo:
             continue
-        idx[name] = {
+        idx[str(code).upper()] = {
+            "contract": str(code).upper(),
+            "name": row.get("name"),
+            "category": row.get("category"),
+            "net_speculator": cur,
             "cot_index": round(100 * (cur - lo) / (hi - lo), 1),
-            "n_obs": len(vals), "basis": "min-max over available history",
+            "n_obs": len(nets),
+            "basis": "min-max of net_speculator over available weekly reports",
         }
+    print(f"[cot] built {len(idx)} contract indices")
     return idx
 
 
 def cot_for(ticker, cot_idx):
-    for needle in COT_MAP.get(ticker, []):
-        for name, blk in cot_idx.items():
-            if needle in name:
-                return {"contract": name, **blk}
+    for code in COT_MAP.get(ticker, []):
+        blk = cot_idx.get(code.upper())
+        if blk:
+            return dict(blk)
     return None
 
 
