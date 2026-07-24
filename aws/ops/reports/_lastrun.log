@@ -1,38 +1,23 @@
-executing-against: 810e5351ef8729ec829d7b9e9d8dc9b874622d4d
-ops 3832 — census sector map -> finish rotation wire
-── G0. Do the harvest source feeds carry sector? ──
-[22:40:09]   screener/data.json: +503 pairs
-[22:40:09]   data/capital-flow-radar.json: +0 pairs
-[22:40:09]   data/deep-value.json: +17 pairs
-[22:40:09]   data/accumulation-radar.json: +0 pairs
-[22:40:09]   data/asymmetric-scorer.json: +45 pairs
-[22:40:09] ✅   harvested 513 ticker->sector pairs
-[22:40:09]   sectors seen: ['Basic Materials', 'Communication Services', 'Consumer Cyclical', 'Consumer Defensive', 'Energy', 'Financial Services', 'Healthcare', 'Industrials', 'Real Estate', 'Technology', 'Utilities']
-── 1. Deploy ──
-[22:40:09]   zip: 103717 bytes
-── 1. Lambda ──
-[22:40:09]   Lambda exists — updating
-[22:40:15] ✅   ✓ updated justhodl-master-ranker
-── 2. ZIP-SETTLE by marker (ops 3830's lesson) ──
-[22:40:25] ✅   settled with '_harvest_sectors' after 10s
-── 3. Invoke ──
-[22:40:31] ✅   invoked clean
-── 4. Verify — every sector-dependent overlay, not just rotation ──
-[22:40:31] ✅   rows present = 25
-[22:40:31]     rotation   active on 16/25 rows
-[22:40:31] ✅   rotation tilt active on >=8 rows = 16
-[22:40:31]     roro       active on 0/25 rows
-[22:40:31]     nowcast    active on 16/25 rows
-[22:40:31]     liquidity  active on 16/25 rows
-[22:40:31]     OXY    x0.96 rotation headwind: WEAKENING via XLE
-[22:40:31]     VLO    x0.96 rotation headwind: WEAKENING via XLE
-[22:40:31]     MPC    x0.96 rotation headwind: WEAKENING via XLE
-[22:40:31]     PSX    x0.96 rotation headwind: WEAKENING via XLE
-[22:40:31]     SPG    x0.96 rotation headwind: WEAKENING via XLRE
-[22:40:31]     JNJ    x1.05 rotation tailwind: LEADING via XLV
-[22:40:31]     ALL    x1.05 rotation tailwind: LEADING via XLF
-[22:40:31]     TER    x1.05 rotation tailwind: LEADING via XLK
-[22:40:31] ✅   rotation coverage beats the 1/25 baseline = 16/25 (was 1/25)
-[22:40:31] ✅ PASS_ALL 3/3
+executing-against: 81331538442f6980c566159cd9db4b7ea2124f81
+ops 3833 — RORO 0/25: diagnose, heal, verify
+── 1. Is data/risk-regime.json fresh enough to pass max_age_h=48? ──
+[22:48:56]   s3 LastModified: 2026-07-24 12:45:38+00:00
+[22:48:56]   generated_at:    2026-07-24T12:45:37.657025+00:00  (age 10.1h)
+[22:48:56]   risk_regime_score = 5.4 · risk_regime = NEUTRAL
+[22:48:56] ✅   FRESH — staleness is not the cause
+── 2. Is the producer actually scheduled? ──
+[22:48:57] ⚠   0 trigger(s) found — NO SCHEDULE: engine only ever ran manually
+── 3. Heal — invoke the producer and confirm it can still run ──
+[22:49:01] ✅   producer invoked clean
+[22:49:01] ✅   refreshed: age 0.0h · score=2.5 · regime=NEUTRAL
+── 3b. Arm a schedule (fleet-health pattern) ──
+[22:49:01] ✅   Scheduler armed cron(15 21 * * ? *)
+── 4. Verify RORO comes alive in master-ranker ──
+[22:49:08]     roro       0/25
+[22:49:08]     rotation   16/25
+[22:49:08]     nowcast    16/25
+[22:49:08]     liquidity  16/25
+[22:49:08] ⚠   RORO STILL 0 — feed is fresh, so the cause is inside _roro_overlay (score band or sector-set membership), NOT staleness. Reported honestly rather than forced.
+[22:49:08] ✅ DIAGNOSIS COMPLETE
 
-→ Report written to aws/ops/reports/latest/3832_ranker_sector_map.md
+→ Report written to aws/ops/reports/latest/3833_roro_health.md

@@ -1,0 +1,37 @@
+# ops 3833 — RORO 0/25: diagnose, heal, verify
+
+**Status:** success  
+**Duration:** 11.8s  
+**Finished:** 2026-07-24T22:49:08+00:00  
+
+## Data
+
+| liquidity_live | nowcast_live | roro_live | rotation_live | rr_age_h | rr_score | triggers |
+|---|---|---|---|---|---|---|
+| 16 | 16 | 0 | 16 | 0.0 | 2.5 | 0 |
+
+## Log
+## 1. Is data/risk-regime.json fresh enough to pass max_age_h=48?
+
+- `22:48:56`   s3 LastModified: 2026-07-24 12:45:38+00:00
+- `22:48:56`   generated_at:    2026-07-24T12:45:37.657025+00:00  (age 10.1h)
+- `22:48:56`   risk_regime_score = 5.4 · risk_regime = NEUTRAL
+- `22:48:56` ✅   FRESH — staleness is not the cause
+## 2. Is the producer actually scheduled?
+
+- `22:48:57` ⚠   0 trigger(s) found — NO SCHEDULE: engine only ever ran manually
+## 3. Heal — invoke the producer and confirm it can still run
+
+- `22:49:01` ✅   producer invoked clean
+- `22:49:01` ✅   refreshed: age 0.0h · score=2.5 · regime=NEUTRAL
+## 3b. Arm a schedule (fleet-health pattern)
+
+- `22:49:01` ✅   Scheduler armed cron(15 21 * * ? *)
+## 4. Verify RORO comes alive in master-ranker
+
+- `22:49:08`     roro       0/25
+- `22:49:08`     rotation   16/25
+- `22:49:08`     nowcast    16/25
+- `22:49:08`     liquidity  16/25
+- `22:49:08` ⚠   RORO STILL 0 — feed is fresh, so the cause is inside _roro_overlay (score band or sector-set membership), NOT staleness. Reported honestly rather than forced.
+- `22:49:08` ✅ DIAGNOSIS COMPLETE
