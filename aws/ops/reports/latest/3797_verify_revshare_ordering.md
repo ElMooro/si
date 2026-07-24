@@ -1,0 +1,59 @@
+# ops 3797 — rev share + dependency on the boards (v4.2.2)
+
+**Status:** success  
+**Duration:** 13.6s  
+**Finished:** 2026-07-24T03:12:57+00:00  
+
+## Data
+
+| dependency_leaderboard | dependency_ledger | dependency_members | invoke_seconds | invoke_status |
+|---|---|---|---|---|
+|  |  |  | 12.7 | 200 |
+| 1 | 153 | 153 |  |  |
+
+## Log
+## Zip settle
+
+- `03:12:43` ✅ v4.2.2 artifact live (attempt 1)
+- `03:12:43` ✅ DEPLOY.settled :: wholesale refresh present in deployed zip
+## Invoke
+
+- `03:12:57` ✅ LIVE.v423 :: version=4.2.3
+## THE FIX — copies must now carry the percentage fields
+
+- `03:12:57` ✅ LEAD.revenue_share_pct :: 39 of 50 leaderboard rows (was 0/50)
+- `03:12:57` ✅ LEAD.criticality_pctile :: 50 of 50 leaderboard rows (was 0/50)
+- `03:12:57` ✅ LEAD.criticality_basis :: 50 of 50 leaderboard rows (was 0/50)
+- `03:12:57` ✅ MEMBERS.revenue_share_pct :: 1642 of 3012 member rows (was 0)
+- `03:12:57` ✅ MEMBERS.criticality_pctile :: 3012 of 3012 member rows (was 0)
+## Dependency — expected to stay sparse (graph coverage)
+
+- `03:12:57` ✅ DEP.members_reached :: 153 member rows carry dependency (ledger has 153)
+## Sample
+
+- `03:12:57`   HERE   rev_share=—         dep=—        crit%ile=94.7   basis=business quality (margins/RO
+- `03:12:57`   DOMO   rev_share=0.06%     dep=—        crit%ile=95.3   basis=business quality (margins/RO
+- `03:12:57`   LDI    rev_share=13.32%    dep=—        crit%ile=90.9   basis=business quality (margins/RO
+- `03:12:57`   BMBL   rev_share=0.09%     dep=—        crit%ile=75.7   basis=mixed
+- `03:12:57`   QTTB   rev_share=0.09%     dep=—        crit%ile=93.4   basis=business quality (margins/RO
+- `03:12:57`   TREE   rev_share=0.41%     dep=—        crit%ile=90.2   basis=business quality (margins/RO
+- `03:12:57`   RCMT   rev_share=0.79%     dep=—        crit%ile=81.8   basis=business quality (margins/RO
+- `03:12:57`   CGEN   rev_share=0.12%     dep=—        crit%ile=90.7   basis=business quality (margins/RO
+- `03:12:57`   HLF    rev_share=6.26%     dep=—        crit%ile=96.9   basis=business quality (margins/RO
+- `03:12:57`   RC     rev_share=2.54%     dep=—        crit%ile=75.0   basis=mixed
+## Served page v9
+
+- `03:12:57` attempt 1: 44551 bytes · 4/4
+- `03:12:57` ✅ SERVED.stamp :: present
+- `03:12:57` ✅ SERVED.dep_tooltip :: present
+- `03:12:57` ✅ SERVED.coverage_note :: present
+- `03:12:57` ✅ SERVED.rsh :: present
+## Additive
+
+- `03:12:57` ✅ ADDITIVE.capture_gap :: leaderboard still carries it
+- `03:12:57` ✅ ADDITIVE.catchup_pct :: leaderboard still carries it
+- `03:12:57` ✅ ADDITIVE.growth_tier :: leaderboard still carries it
+- `03:12:57` ✅ ADDITIVE.in_sp500 :: leaderboard still carries it
+## VERDICT
+
+- `03:12:57` ✅ PASS_ALL — rev share live on the boards; dependency sparsity labelled honestly
