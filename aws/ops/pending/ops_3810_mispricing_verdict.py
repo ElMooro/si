@@ -59,7 +59,7 @@ def gate(rep, n, ok, d=""):
         FAILED.append(n)
 
 
-BLOCK = '''
+BLOCK_RAW = '''
             # ══ ops 3810 · v5.0 MISPRICING VERDICT ═══════════════════════════
             # A wide capture gap says the market pays little for a company that
             # matters. It does NOT say the market is wrong. These legs separate
@@ -214,8 +214,8 @@ BLOCK = '''
                 capture["stats"]["verdict_counts"] = {}
                 for _c in cap_rows:
                     _k = _c.get("mispricing_verdict")
-                    capture["stats"]["verdict_counts"][_k] = \\
-                        capture["stats"]["verdict_counts"].get(_k, 0) + 1
+                    _vc = capture["stats"]["verdict_counts"]
+                    _vc[_k] = _vc.get(_k, 0) + 1
                 capture["stats"]["joins"] = {
                     "revisions": _n_rev, "dark_pool": _n_flow, "short": _n_short,
                     "pead": _n_cat, "industry_boom": _n_boom}
@@ -255,8 +255,15 @@ def main():
         gate(rep, "G0.struct", '_c["structural_importance"] = _si' in src, "structural score present")
         gate(rep, "G0.ledger_var", "_led_rows" in src, "ledger rows in scope for persistence")
         gate(rep, "G0.datetime", "from datetime import datetime" in src, "datetime available")
-        anchor = '            capture["stats"]["with_structural_importance"] = sum('
-        gate(rep, "G0.anchor", src.count(anchor) == 1, "splice anchor unique")
+        # ops 3810 fix: the structural stats line sits at 16-space indent inside a
+        # NESTED try:. Splicing a 12-space block there orphans the enclosing try —
+        # exactly how ops 3790 broke the file. Anchor instead on the 12-space
+        # diag line that runs AFTER the structural try/except has closed.
+        anchor = ('            diag.append("pct_critical: rev_share=%d dependency=%d" % (\n'
+                  '                capture["stats"]["with_revenue_share"],\n'
+                  '                capture["stats"]["with_dependency"]))')
+        gate(rep, "G0.anchor", src.count(anchor) == 1,
+             "12-space anchor after structural try/except (count=%d)" % src.count(anchor))
         if FAILED:
             sys.exit(1)
 
@@ -276,6 +283,7 @@ def main():
             sys.exit(1)
 
         rep.section("Splice v5.0")
+        BLOCK = BLOCK_RAW   # authored at 12-space, matches anchor scope
         src = src.replace(anchor, BLOCK + anchor, 1)
         src = src.replace('VERSION = "4.4.1"', 'VERSION = "5.0"', 1)
         LF.write_text(src)
