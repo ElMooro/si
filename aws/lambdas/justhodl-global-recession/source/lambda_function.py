@@ -58,7 +58,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/global-recession.json"
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
@@ -159,7 +159,13 @@ def confirm_country(iso, row, conf):
                              "note": "official CLI disagrees with the equity-momentum phase"}
 
     # leg 2 — FRED CCI/BCI supplement carried by the cycle engine (<=3mo)
+    # ⚠ v1.2.1: a CCI/BCI index reads around 100. v1.2 accepted supplement_value
+    # 0.0 as evidence and "CONFIRMED" China's recession label off a missing field.
+    # A defaulted zero is NOT a reading — manufacturing false confidence is worse
+    # than reporting that no confirmation exists. Require a plausible index range.
     sup = row.get("supplement_value")
+    if isinstance(sup, (int, float)) and not (50.0 <= sup <= 150.0):
+        sup = None
     if isinstance(sup, (int, float)):
         hard_weak = sup < 100
         if deteriorating == hard_weak:
@@ -317,6 +323,17 @@ def lambda_handler(event, context):
             "WATCH — pockets of stress" if global_p >= 30 else
             "BENIGN — expansion intact")
 
+    n_conf = sum(1 for r in rows if r["confirmation"] == "CONFIRMED")
+    conf_verdict = (
+        "NONE — no usable independent leg exists right now (OECD CLI stale and "
+        "no valid survey supplements). The headline rests on equity momentum "
+        "alone and should be treated as a hazard flag, not a probability."
+        if n_conf == 0 else
+        f"PARTIAL — only {n_conf} of {len(rows)} countries have an independent "
+        f"check; the rest rest on equity momentum alone."
+        if n_conf < len(rows) / 3 else
+        f"GOOD — {n_conf} of {len(rows)} countries independently checked.")
+
     out = {
         "engine": "global-recession", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -346,6 +363,7 @@ def lambda_handler(event, context):
             "divergent_contribution_pp": round(diverg_pp, 2),
             "unconfirmed_share_of_global_pct": round(
                 100 * unconf_pp / global_p, 1) if global_p else None,
+            "coverage_verdict": conf_verdict,
             "why": ("The phase labels come from an equity-momentum composite, whose "
                     "best-known failure mode is firing in drawdowns that never become "
                     "recessions. Each country is checked against an INDEPENDENT hard "
