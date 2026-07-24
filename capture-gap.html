@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Capture Gap · JustHodl.AI</title>
-<meta name="jh-page-version" content="v8-ops3793">
+<meta name="jh-page-version" content="v9-ops3795">
 <style>
 :root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
@@ -316,7 +316,10 @@ function rsh(r){
  return '<span'+(col?' style="color:'+col+';font-weight:600"':'')+'>'+num(v,2)+'%</span>';
 }
 function dep(r){
- if(r.dependency_pct==null) return '<span style="color:'+MUT+'">—</span>';
+ // The supply-chain graph is a curated map covering only some sectors, so most
+ // names legitimately have no value. Say that rather than showing a bare dash
+ // that reads as a broken column.
+ if(r.dependency_pct==null) return '<span style="color:'+MUT+'" title="No mapped supplier links for this company. The supply-chain graph covers selected sectors only — this is missing coverage, not zero dependency.">—</span>';
  return '<span style="color:'+(r.dependency_pct>=25?POS:'')+'">'+num(r.dependency_pct,1)+'%</span>';
 }
 function gro(r){
@@ -460,6 +463,10 @@ document.getElementById('method').innerHTML=
  +'Minimum peers per industry: '+(m.min_peers||'—')
  +'<div class="note" style="color:'+NEG+'">Honest limit: '+(m.honest_limit||'—')+'</div>'
  +(c.percent_critical_note?'<div class="note" style="margin-top:9px;color:'+NEU+'"><strong>The three percentages, and why they are not merged:</strong><br>'+c.percent_critical_note+'</div>':'')
+ +'<div class="note" style="margin-top:9px">Coverage right now: <b>'+(st.with_revenue_share||0)+'</b> names carry a revenue share ('
+ +'the rest are non-USD filers or sit in industries where USD filers cover under 60% of scored names), and <b>'
+ +(st.with_dependency||0)+'</b> carry a supply-chain dependency (the curated graph maps selected sectors only). '
+ +'A dash in either column means <em>not measurable</em>, never zero.</div>'
  +'<div class="note">Criticality is a quality attribute the market usually prices correctly for mega-caps — the reference AI names (NVDA, TSM, ASML) score high on creation <em>and</em> high on capture, so their gaps sit near zero. The engine is designed to say that plainly rather than manufacture a signal where none exists.</div>';
 
 document.getElementById('about').innerHTML=

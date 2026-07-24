@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "4.2.1"
+VERSION = "4.2.2"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -955,20 +955,37 @@ def lambda_handler(event, context):
             # built earlier in the function, so fields added to cap_rows after
             # that snapshot never reach them (growth_tier/in_sp500 were 0/50).
             # Refresh those copies now that growth exists.
+            # ops 3794: refresh the copies WHOLESALE rather than from a curated
+            # field list. Three separate bugs came from a list that lagged the
+            # engine: growth_tier/in_sp500 (3790), then revenue_share_pct,
+            # dependency_pct, criticality_basis, revenue_currency and
+            # revenue_share_suppressed (this ops). Copying every key the source
+            # row carries means a field added later can never be forgotten.
+            # Keys already on the copy are OVERWRITTEN from source; keys unique
+            # to the copy (rank position, legs_why) are preserved.
             _gmap = {c["ticker"]: c for c in cap_rows}
-            for _lst in (capture.get("top_undervalued_all_industries") or [],):
-                for _r in _lst:
-                    _srcrow = _gmap.get(_r.get("ticker"))
-                    if _srcrow:
-                        for _f in ("revenue_growth_yoy", "revenue_growth_3y_cagr",
-                                   "growth_tier", "growth_basis", "in_sp500", "gm_level"):
-                            _r[_f] = _srcrow.get(_f)
+
+            def _refresh(_dst, _keep_only=None):
+                _srcrow = _gmap.get(_dst.get("ticker"))
+                if not _srcrow:
+                    return
+                for _k, _v in _srcrow.items():
+                    if _keep_only is not None and _k not in _keep_only:
+                        continue
+                    _dst[_k] = _v
+
+            for _r in (capture.get("top_undervalued_all_industries") or []):
+                _refresh(_r)
+            # members carry a deliberately narrower schema so the payload stays
+            # small; refresh only the keys already present on them, plus the
+            # percentage/growth fields the page renders.
+            _mem_extra = {"revenue_share_pct", "revenue_share_suppressed",
+                          "dependency_pct", "criticality_pctile", "criticality_basis",
+                          "revenue_growth_yoy", "growth_tier", "in_sp500", "gm_level"}
             for _b in (capture.get("by_industry") or []):
                 for _m in (_b.get("members") or []):
-                    _srcrow = _gmap.get(_m.get("ticker"))
-                    if _srcrow:
-                        for _f in ("revenue_growth_yoy", "growth_tier", "in_sp500", "gm_level"):
-                            _m[_f] = _srcrow.get(_f)
+                    if _m:
+                        _refresh(_m, _keep_only=set(_m.keys()) | _mem_extra)
         except Exception as _ge:
             capture["growth_error"] = str(_ge)[:250]
             diag.append("v4.2 FAILED: %s" % str(_ge)[:150])
