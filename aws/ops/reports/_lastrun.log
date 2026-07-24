@@ -1,41 +1,27 @@
-executing-against: e621c6031043c3e738f102a5c2c46af1d2ee97c1
-ops 3810 — v5.0 mispricing verdict (why/who/what)
-── G0 — keys verified live in ops 3809 ──
-[17:42:51] ✅ G0.v441 :: engine at v4.4.1
-[17:42:51] ✅ G0.struct :: structural score present
-[17:42:51] ✅ G0.ledger_var :: ledger rows in scope for persistence
-[17:42:51] ✅ G0.datetime :: datetime available
-[17:42:51] ✅ G0.anchor :: 12-space anchor after structural try/except (count=1)
-[17:42:51] ✅ G0.direction_map :: data/estimate-revisions.json -> direction_map n=393
-[17:42:51] ✅ G0.dark_map :: data/dark-pool.json -> dark_map n=939
-[17:42:51] ✅ G0.tickers :: data/finra-short.json -> tickers n=501
-[17:42:51] ✅ G0.all_qualifying :: data/earnings-pead.json -> all_qualifying n=244
-[17:42:51] ✅ G0.league :: data/industry-boom.json -> league n=119
-── Splice v5.0 ──
-[17:42:51] ✅ v5.0 spliced + compile clean
-── Deploy ──
-[17:42:52]   zip: 107864 bytes
-── 1. Lambda ──
-[17:42:52]   Lambda exists — updating
-[17:42:55] ✅   ✓ updated justhodl-chokepoint
-[17:43:10] ✅ settled attempt 1
-[17:43:10] ✅ DEPLOY.settled :: v5.0 live
-── Invoke ──
-[17:43:26] ✅ LIVE.v50 :: version=5.0
-[17:43:26] ✗ LIVE.no_err :: err='int' object has no attribute 'get'
-── Join coverage — every leg must be alive ──
-── Verdict distribution ──
-[17:43:26] ✗ VERDICT.discriminates :: more than one verdict class populated
-[17:43:26] ✅ VERDICT.not_all_mispriced :: MISPRICED=None is a minority, not a rubber stamp
-── MISPRICED book — gap + importance + 2 confirmations, no disqualifier ──
-── VALUE_TRAP book — the names this engine used to rank highly ──
-── Additive ──
-[17:43:26] ✅ ADDITIVE.capture_gap :: preserved
-[17:43:26] ✅ ADDITIVE.structural_importance :: preserved
-[17:43:26] ✅ ADDITIVE.catchup_pct :: preserved
-[17:43:26] ✅ ADDITIVE.revenue_share_pct :: preserved
+executing-against: 899c18681b8d0d8ba46a46b47cd9c43a295c5eb4
+ops 3811 — value types of every map the verdict dereferences
+── data/estimate-revisions.json -> direction_map ──
+[17:56:01]   container type: dict  n=393
+[17:56:01]   value types: {'str': 393}
+[17:56:01]   sample: RELL -> FLAT
+[17:56:01] ⚠   ** .get() on these values WILL throw — not dicts **
+── data/dark-pool.json -> dark_map ──
+[17:56:01]   container type: dict  n=939
+[17:56:01]   value types: {'int': 400}
+[17:56:01]   sample: MLM -> 1532511
+[17:56:01] ⚠   ** .get() on these values WILL throw — not dicts **
+── data/finra-short.json -> tickers ──
+[17:56:01]   container type: dict  n=501
+[17:56:01]   value types: {'dict': 400}
+[17:56:01]   sample: SWK -> {'symbol': 'SWK', 'svr': 0.8816, 'svr_pct': 88.16, 'short_volume': 540540.67608, 'total_volume': 613144.264516, 'short_exempt': 26.0, 'svr_5d_avg': 0.6237, 'svr
+── all_qualifying / league are lists of dicts (already row-mapped) ──
+[17:56:01]   all_qualifying                     list n=244 first=dict
+[17:56:01]   league                             list n=119 first=dict
 ── VERDICT ──
-[17:43:26] ✗ FAILED: LIVE.no_err, VERDICT.discriminates
+[17:56:01]   CULPRIT data/estimate-revisions.json       direction_map -> {'str': 393}
+[17:56:01]   CULPRIT data/dark-pool.json                dark_map -> {'int': 400}
+[17:56:01] ⚠ Fix = guard every map dereference with isinstance(x, dict) before .get(), and skip the leg rather than crashing the whole verdict block. One bad value type currently kills all 2,393 rows.
+[17:56:01] ✅ DIAG.found :: 2 culprit map(s) identified
+[17:56:01] ✅ PASS_ALL — culprit isolated
 
-→ Report written to aws/ops/reports/latest/3810_mispricing_verdict.md
-❌ OPS-FAIL: aws/ops/pending/ops_3810_mispricing_verdict.py
+→ Report written to aws/ops/reports/latest/3811_find_int_map.md
