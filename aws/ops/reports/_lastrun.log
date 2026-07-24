@@ -1,48 +1,60 @@
-executing-against: c2560b70253fc2935cf18fce0b2659236f170494
-ops 3788 — revenue growth + S&P500 membership (v4.2)
-── G0 ──
-[00:18:22] ✅ G0.v411 :: engine at v4.1.1
-[00:18:22] ✅ G0.inc :: annual income statement (limit=10) already fetched per name
-[00:18:22] ✅ G0.rev_pick :: revenue/currency block present to extend
-[00:18:22] ✅ G0.cap_carry :: cap_rows carry block present
-[00:18:22] ✅ G0.no_growth :: growth not yet computed
-── [1] Revenue growth from the statement already fetched ──
-[00:18:22] ✅ P1.anchor :: anchor unique
-── [2] Carry growth + gm_level through cap_rows ──
-── [3] Growth tiers (absolute) + S&P500 join ──
-[00:18:22] ✅ P3.anchor :: percent block anchor unique
-[00:18:22] ✅ v4.2 spliced + compile clean
-── Deploy ──
-[00:18:22]   zip: 102237 bytes
-── 1. Lambda ──
-[00:18:23]   Lambda exists — updating
-[00:18:28] ✅   ✓ updated justhodl-chokepoint
-[00:18:43] ✅ settled attempt 1
-[00:18:43] ✅ DEPLOY.settled :: v4.2 live
-── Invoke + verify ──
-[00:18:58] ✅ LIVE.v42 :: version=4.2
-[00:18:58] ✅ LIVE.no_err :: err=None
-[00:18:58] ✅ LIVE.growth :: growth on 1242 names (rpo_yoy covered only 68)
-[00:18:58] ✅ LIVE.sp500 :: 490 S&P500 members flagged
-── Growth tier distribution ──
-[00:18:58]   None     1934
-[00:18:58]   LOW      495
-[00:18:58]   MEDIUM   469
-[00:18:58]   HIGH     278
-[00:18:58] ✅ SANITY.tiers_spread :: all three tiers populated — not a degenerate split
-[00:18:58] ✅ SANITY.nonusd_growth :: 66 non-USD filers publish growth (share is suppressed for them)
-── Sample ──
-[00:18:58]   NVDA  yoy=65.5     cagr3y=100.0    tier=HIGH    sp500=True  basis=YoY+3y agree
-[00:18:58]   TSM   yoy=33.0     cagr3y=19.3     tier=HIGH    sp500=False basis=YoY 33% vs 3y CAGR 19% — disagree
-[00:18:58]   AMD   yoy=34.3     cagr3y=13.6     tier=HIGH    sp500=True  basis=YoY 34% vs 3y CAGR 14% — disagree
-[00:18:58]   MSFT  yoy=14.9     cagr3y=12.4     tier=MEDIUM  sp500=True  basis=YoY+3y agree
-[00:18:58]   AVGO  yoy=23.9     cagr3y=24.4     tier=HIGH    sp500=True  basis=YoY+3y agree
-── Additive ──
-[00:18:58] ✅ ADDITIVE.capture_gap :: preserved
-[00:18:58] ✅ ADDITIVE.revenue_share_pct :: preserved
-[00:18:58] ✅ ADDITIVE.catchup_pct :: preserved
-[00:18:58] ✅ ADDITIVE.criticality_pctile :: preserved
+executing-against: ab2ed0e6a0f7d9a5dc5f1e3212097395a77a0d92
+ops 3789 — verify v7 filters / growth / tooltips / description
+── Feed precondition (v4.2) ──
+[00:25:18] ✅ FEED.v42 :: engine v4.2
+[00:25:18] ✅ FEED.growth :: growth on 1242 names
+[00:25:18] ✅ FEED.sp500 :: 490 S&P500 members
+── Do the filters actually select anything? ──
+[00:25:18] ✅ FILTER.cap_mega :: 68 names
+[00:25:18] ✅ FILTER.cap_large :: 259 names
+[00:25:18] ✅ FILTER.cap_mid :: 652 names
+[00:25:18] ✅ FILTER.cap_small :: 2197 names
+[00:25:18] ✅ FILTER.sp500 :: 490 names
+[00:25:18] ✅ FILTER.growth_HIGH :: 278 names
+[00:25:18] ✅ FILTER.growth_MEDIUM :: 469 names
+[00:25:18] ✅ FILTER.growth_LOW :: 495 names
+[00:25:18] ✗ LEAD.growth_tier :: 0 of 50 leaderboard rows
+[00:25:18] ✗ LEAD.in_sp500 :: 0 of 50 leaderboard rows
+[00:25:18] ✅ LEAD.revenue_growth_yoy :: 28 of 50 leaderboard rows
+[00:25:18] ✅ LEAD.gm_level :: 50 of 50 leaderboard rows
+── Served page v7 ──
+[00:25:19] attempt 1: HTTP 200 · 32303 bytes · 0/11
+[00:25:44] attempt 2: HTTP 200 · 32303 bytes · 0/11
+[00:26:09] attempt 3: HTTP 200 · 32303 bytes · 0/11
+[00:26:34] attempt 4: HTTP 200 · 32303 bytes · 0/11
+[00:26:59] attempt 5: HTTP 200 · 42194 bytes · 11/11
+[00:26:59] ✅ SERVED.stamp :: present
+[00:26:59] ✅ SERVED.gloss :: present
+[00:26:59] ✅ SERVED.help_fn :: present
+[00:26:59] ✅ SERVED.cap_select :: present
+[00:26:59] ✅ SERVED.gro_select :: present
+[00:26:59] ✅ SERVED.growth_col :: present
+[00:26:59] ✅ SERVED.gm_col :: present
+[00:26:59] ✅ SERVED.gro_fn :: present
+[00:26:59] ✅ SERVED.about :: present
+[00:26:59] ✅ SERVED.hm_class :: present
+[00:26:59] ✅ SERVED.sp500_opt :: present
+── Description names the engines it pulls from ──
+[00:26:59] ✅ DESC.justhodl_chokepoint :: cited
+[00:26:59] ✅ DESC.universe_builder :: cited
+[00:26:59] ✅ DESC.justhodl_backlog :: cited
+[00:26:59] ✅ DESC.fundamental_census :: cited
+[00:26:59] ✅ DESC.supply_chain_graph :: cited
+[00:26:59] ✅ DESC.Honest limits :: cited
+── Additive — v6 surfaces intact ──
+[00:26:59] ✅ KEPT.Most_Undervalued :: intact
+[00:26:59] ✅ KEPT.By_Industry :: intact
+[00:26:59] ✅ KEPT.Full_Ledger :: intact
+[00:26:59] ✅ KEPT.rsh( :: intact
+[00:26:59] ✅ KEPT.dep( :: intact
+[00:26:59] ✅ KEPT.percent_critical_not :: intact
+[00:26:59] ✅ KEPT.data-lk :: intact
+[00:26:59] ✅ KEPT.data-bk :: intact
+[00:26:59] ✅ KEPT.Default_rank_is_blen :: intact
+── Sample of what a filtered view returns ──
+[00:26:59]   HIGH-growth names on the leaderboard: 0
 ── VERDICT ──
-[00:18:58] ✅ PASS_ALL — growth + S&P500 live; filters can now be built on real fields
+[00:26:59] ✗ FAILED: LEAD.growth_tier, LEAD.in_sp500
 
-→ Report written to aws/ops/reports/latest/3788_growth_and_sp500.md
+→ Report written to aws/ops/reports/latest/3789_verify_filters_tooltips.md
+❌ OPS-FAIL: aws/ops/pending/ops_3789_verify_filters_tooltips.py
