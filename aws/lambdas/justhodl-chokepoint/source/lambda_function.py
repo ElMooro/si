@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "4.1.1"
+VERSION = "4.2"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -196,6 +196,19 @@ def evaluate(sym, centrality, rerate_lookup, bulk):
                 # KRW filer 95% of the semiconductor denominator.
                 _rev_ccy = (_r.get("reportedCurrency") or "").upper() or None
                 break
+        # ops 3788: revenue growth. A growth RATE is currency-invariant (same
+        # units top and bottom), so unlike revenue_share_pct this is publishable
+        # for non-USD filers too — the SKHY/KRW failure cannot recur here.
+        _rev_series = [x.get("revenue") for x in inc
+                       if isinstance(x.get("revenue"), (int, float)) and x.get("revenue") > 0]
+        _g_yoy = _g_cagr = None
+        if len(_rev_series) >= 2 and _rev_series[1] > 0:
+            _g_yoy = round(100.0 * (_rev_series[0] / _rev_series[1] - 1.0), 1)
+        if len(_rev_series) >= 4 and _rev_series[3] > 0:
+            try:
+                _g_cagr = round(100.0 * ((_rev_series[0] / _rev_series[3]) ** (1.0 / 3.0) - 1.0), 1)
+            except Exception:
+                _g_cagr = None
         if mcap and _rev_ttm and _rev_ttm > 0:
             ev_sales = round(mcap / _rev_ttm, 3)
         _ni = None
@@ -218,6 +231,7 @@ def evaluate(sym, centrality, rerate_lookup, bulk):
         "centrality": ctr, "discount_to_fair_pct": disc, "cheap_chokepoint": bool(is_choke and cheap),
         "ev_sales": ev_sales, "pe": pe_ratio,
         "revenue_ttm": _rev_ttm, "revenue_currency": _rev_ccy,
+        "revenue_growth_yoy": _g_yoy, "revenue_growth_3y_cagr": _g_cagr,
         "hidden_chokepoint": bool(is_choke and cap_bucket in ("nano", "micro", "small", "mid")),
         "reasons": reasons,
     }
@@ -613,6 +627,8 @@ def lambda_handler(event, context):
                     "pe": _r.get("pe"),
                     "revenue_ttm": _r.get("revenue_ttm"),
                     "revenue_currency": _r.get("revenue_currency"),
+                    "revenue_growth_yoy": _r.get("revenue_growth_yoy"),
+                    "revenue_growth_3y_cagr": _r.get("revenue_growth_3y_cagr"),
                     "centrality": _r.get("centrality"),
                 })
 
@@ -833,7 +849,9 @@ def lambda_handler(event, context):
                                   "catchup_pct", "catchup_basis", "ev_sales", "pe",
                                   "roic", "gm_stability", "legs", "tier", "cap_bucket",
                                   "revenue_share_pct", "dependency_pct",
-                                  "criticality_pctile", "criticality_basis")}
+                                  "criticality_pctile", "criticality_basis",
+                                  "revenue_growth_yoy", "growth_tier",
+                                  "in_sp500", "gm_level")}
                                 for x in _mem_sorted],
                 })
             _ind_block.sort(key=lambda x: -(x["median_capture_gap"] if
@@ -868,7 +886,9 @@ def lambda_handler(event, context):
                   "industry_median_ev_sales", "industry_median_pe", "ev_sales", "pe",
                   "revenue_share_pct", "revenue_coverage_pct",
                   "dependency_pct", "criticality_basis",
-                  "criticality_pctile")}
+                  "criticality_pctile", "revenue_growth_yoy",
+                  "revenue_growth_3y_cagr", "growth_tier", "growth_basis",
+                  "in_sp500", "gm_level")}
                 for x in _lead[:50]]
 
             capture["stats"]["with_catchup"] = sum(
@@ -886,6 +906,54 @@ def lambda_handler(event, context):
         except Exception as _v4e:
             capture["v4_error"] = str(_v4e)[:300]
             diag.append("v4 FAILED: %s" % str(_v4e)[:160])
+
+        # ── v4.2 growth tiers + S&P 500 membership ──
+        # Tiers are ABSOLUTE, not percentile: "high growth" must mean the same
+        # thing on every board rather than "top third of today's sample".
+        try:
+            _sp = set()
+            _cens = _read("data/fundamental-census-matrix.json") or {}
+            _ct = _cens.get("tickers")
+            if isinstance(_ct, dict):
+                _sp = set(_ct.keys())
+            elif isinstance(_ct, list):
+                _sp = set(x.get("ticker") if isinstance(x, dict) else x for x in _ct)
+            for _c in cap_rows:
+                _y = _c.get("revenue_growth_yoy")
+                _cg = _c.get("revenue_growth_3y_cagr")
+                _c["growth_tier"] = (None if _y is None else
+                                     "HIGH" if _y >= 20 else
+                                     "MEDIUM" if _y >= 5 else "LOW")
+                # cross-check: a single YoY can be a base effect; say so when the
+                # 3y trend disagrees rather than silently trusting one year.
+                if _y is not None and _cg is not None:
+                    _c["growth_basis"] = ("YoY+3y agree" if
+                                          ((_y >= 20) == (_cg >= 20) and (_y >= 5) == (_cg >= 5))
+                                          else "YoY %.0f%% vs 3y CAGR %.0f%% — disagree" % (_y, _cg))
+                elif _y is not None:
+                    _c["growth_basis"] = "YoY only (needs 4y for CAGR)"
+                else:
+                    _c["growth_basis"] = None
+                # None (not False) when the census is unreachable — absence of
+                # evidence is not evidence of absence.
+                _c["in_sp500"] = (_c["ticker"] in _sp) if _sp else None
+            capture["stats"]["with_growth"] = sum(
+                1 for c in cap_rows if c.get("revenue_growth_yoy") is not None)
+            capture["stats"]["sp500_members"] = sum(
+                1 for c in cap_rows if c.get("in_sp500") is True)
+            capture["growth_note"] = (
+                "revenue_growth_yoy is latest annual revenue vs the prior year, from the "
+                "same income statement used elsewhere — no extra data call. Growth is a "
+                "RATIO, so it is currency-invariant and IS published for non-USD filers "
+                "even where revenue_share_pct is suppressed. Tiers are absolute "
+                "(HIGH>=20%, MEDIUM 5-20%, LOW<5%), not percentile, so they mean the same "
+                "thing on every board. growth_basis flags when a single YoY disagrees with "
+                "the 3-year CAGR — often a base effect or a one-off, and worth seeing.")
+            diag.append("v4.2: growth=%d sp500=%d" % (
+                capture["stats"]["with_growth"], capture["stats"]["sp500_members"]))
+        except Exception as _ge:
+            capture["growth_error"] = str(_ge)[:250]
+            diag.append("v4.2 FAILED: %s" % str(_ge)[:150])
 
         # ── v4.1 "% critical to industry" — three DISTINCT percentages ──
         # criticality is a 0-100 QUALITY composite, not a share. Rendering it
