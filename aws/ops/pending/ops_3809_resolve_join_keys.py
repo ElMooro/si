@@ -83,6 +83,10 @@ def main():
         rep.log("  ledger-only sample: %s" % sorted(list(led_ind - boom_ind))[:6])
         rep.log("  matched sample    : %s" % sorted(list(led_ind & boom_ind))[:6])
 
+        if not (led_ind & boom_ind):
+            rep.fail("industry names do not match between ledger and boom league — "
+                     "a by-industry join would silently produce nothing")
+            sys.exit(1)
         rep.ok("PASS_ALL — keys resolved")
 
 
