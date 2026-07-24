@@ -31,7 +31,9 @@ FN = "justhodl-rotation-dashboard"
 SRC = ROOT / "lambdas" / FN / "source"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/rotation-dashboard.json"
-DONOR = "justhodl-confluence-meta"
+DONORS = ["justhodl-industry-rotation", "justhodl-asset-compass",
+          "justhodl-factor-regime", "justhodl-equity-research",
+          "cftc-futures-positioning-agent", "justhodl-confluence-meta"]
 
 # consumed key -> (producer engine, key that MUST exist in producer source)
 KEY_CONTRACT = [
@@ -68,17 +70,27 @@ def main():
             sys.exit(1)
         rep.ok("G0 PASS — every consumed key exists in its producer")
 
-        # ── 1. env inheritance from donor (never blank the keys) ────────────
-        rep.section("1. Inherit env from donor")
-        donor_env = (lam.get_function_configuration(FunctionName=DONOR)
-                     .get("Environment", {}).get("Variables", {}))
-        env = {k: v for k, v in donor_env.items()
-               if k in ("POLYGON_API_KEY", "FRED_API_KEY", "FMP_API_KEY")}
-        env["S3_BUCKET"] = BUCKET
+        # ── 1. env inheritance — SCAN donors, never trust one ───────────────
+        rep.section("1. Inherit env from donors")
+        env = {"S3_BUCKET": BUCKET}
+        for donor in DONORS:
+            if "POLYGON_API_KEY" in env:
+                break
+            try:
+                de = (lam.get_function_configuration(FunctionName=donor)
+                      .get("Environment", {}).get("Variables", {}))
+            except Exception as e:
+                rep.log(f"  {donor}: unreadable ({str(e)[:60]})")
+                continue
+            got = [k for k in ("POLYGON_API_KEY", "FRED_API_KEY", "FMP_API_KEY")
+                   if k in de and k not in env]
+            for k in got:
+                env[k] = de[k]
+            rep.log(f"  {donor}: contributed {got or 'nothing'}")
         if "POLYGON_API_KEY" not in env:
-            rep.fail(f"donor {DONOR} has no POLYGON_API_KEY — engine cannot build history")
+            rep.fail(f"no donor in {DONORS} carries POLYGON_API_KEY")
             sys.exit(1)
-        rep.ok(f"  inherited {sorted(env)} from {DONOR}")
+        rep.ok(f"  inherited {sorted(k for k in env if k != 'S3_BUCKET')}")
 
         # ── 2. deploy ───────────────────────────────────────────────────────
         rep.section("2. Deploy")
