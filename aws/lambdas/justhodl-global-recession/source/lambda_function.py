@@ -58,15 +58,25 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/global-recession.json"
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
 
 s3 = boto3.client("s3")
 
-PHASE_BASE = {"RECESSION": 78.0, "AT_RISK": 46.0, "RECOVERY": 20.0,
-              "EXPANSION": 12.0}
+# v1.1 RECALIBRATION. v1.0 used base 78 for RECESSION plus modifiers summing to
+# +44, which SATURATED the clamp: CHN/IND/IDN all pinned at exactly 97 and the US
+# at exactly 2. The clamp was doing the work, not the model, and a 97% recession
+# probability for India is not a defensible reading. Two fixes:
+#   (a) tempered bases — the phase label comes from an EQUITY-MOMENTUM composite,
+#       which is a leading but false-positive-prone classifier. A "RECESSION"
+#       label is evidence, not proof, and the base now reflects that.
+#   (b) a logistic squash replaces the hard clamp, so modifiers compress
+#       asymptotically near the bounds instead of pinning.
+PHASE_BASE = {"RECESSION": 58.0, "AT_RISK": 38.0, "RECOVERY": 22.0,
+              "EXPANSION": 15.0}
+SQUASH_SCALE = 22.0
 
 
 def read_feed(key):
@@ -111,23 +121,29 @@ def country_probability(row):
 
     cli = row.get("cli_level")
     if isinstance(cli, (int, float)):
-        adj = clamp((100.0 - cli) * 1.8, -18, 18)
+        adj = clamp((100.0 - cli) * 1.1, -12, 12)
         terms["cli_level_adj"] = round(adj, 2)
         base += adj
 
     m6 = row.get("six_month_change")
     if isinstance(m6, (int, float)):
-        adj = clamp(-m6 * 60, -16, 16)
+        adj = clamp(-m6 * 40, -11, 11)
         terms["momentum_6m_adj"] = round(adj, 2)
         base += adj
 
     d200 = row.get("dist_200ma_pct")
     if isinstance(d200, (int, float)):
-        adj = clamp(-d200 * 0.6, -10, 10)
+        adj = clamp(-d200 * 0.4, -7, 7)
         terms["dist_200ma_adj"] = round(adj, 2)
         base += adj
 
-    return round(clamp(base, 2, 97), 1), terms
+    # logistic squash — asymptotic, so nothing ever pins at a bound
+    import math as _m
+    raw = base
+    p = 100.0 / (1.0 + _m.exp(-(raw - 50.0) / SQUASH_SCALE))
+    terms["raw_score"] = round(raw, 2)
+    terms["squashed_pct"] = round(p, 2)
+    return round(p, 1), terms
 
 
 def us_crosscheck():
@@ -257,7 +273,12 @@ def lambda_handler(event, context):
                 "dist_200ma": "-(distance from 200d trend %) x 0.6, clamped +/-10",
             },
             "aggregation": "GDP-weighted mean of country probabilities",
-            "clamp": "country probabilities bounded to [2, 97] — nothing is certain",
+            "squash": (f"p = 100 / (1 + exp(-(score-50)/{SQUASH_SCALE})) — a logistic "
+                       "squash, so probabilities approach but never reach 0 or 100 "
+                       "and modifiers compress near the bounds instead of pinning"),
+            "v1_1_note": ("v1.0 used harder bases and a hard clamp; CHN/IND/IDN all "
+                          "pinned at exactly 97 and the US at 2, meaning the clamp "
+                          "not the model set the answer. Recalibrated."),
         },
         "not_macromicro": (
             "This is NOT MacroMicro's proprietary 'MM Global Recession "
