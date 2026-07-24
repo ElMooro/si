@@ -1,5 +1,5 @@
 """
-ops_3825 — edge-verify btc-cycle.html + global-recession.html, field-coverage both
+ops_3826 — edge-verify btc-cycle.html + global-recession.html, field-coverage both
 
 Closes two page-contract obligations opened by ops 3822 and 3824.
 
@@ -25,7 +25,7 @@ sys.path.insert(0, str(ROOT / "ops"))
 from ops_report import report  # noqa: E402
 
 BUCKET = "justhodl-dashboard-live"
-MARKER = "v1-ops3825"
+MARKER = "v2-ops3826"
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -50,27 +50,35 @@ def fetch(path, attempt):
         return r.read().decode("utf-8", "ignore")
 
 
-def keys_of(obj, prefix=""):
+# Containers whose KEYS are data, not schema (region names, modifier names).
+# They are rendered via Object.entries and can never appear as source literals,
+# so auditing their children as "keys" is a flaw in the AUDIT, not the page.
+# We require the CONTAINER to be rendered instead.
+DYNAMIC = {"by_region", "modifiers", "phase_base", "band_prices"}
+
+
+def keys_of(obj, parent=""):
     out = []
     if isinstance(obj, dict):
         for k, v in obj.items():
+            if parent in DYNAMIC:
+                continue          # k is a value (e.g. "Europe"), not a schema key
             out.append(k)
             if isinstance(v, dict):
-                out += keys_of(v)
+                out += keys_of(v, k)
             elif isinstance(v, list) and v and isinstance(v[0], dict):
-                out += keys_of(v[0])
+                out += keys_of(v[0], k)
     return out
 
 
 def main():
-    with report("3825_two_pages_verify") as rep:
-        rep.heading("ops 3825 — btc-cycle + global-recession pages")
+    with report("3826_two_pages_verify") as rep:
+        rep.heading("ops 3826 — btc-cycle + global-recession pages")
         allfail = []
 
         WAIVED = {"engine", "version", "generated_at", "layer", "name", "basis",
                   "method", "note", "notes", "errors", "ok", "body", "headers",
-                  "as_of_period", "build_seconds", "duration_s", "terms",
-                  "raw_score", "squashed_pct", "phase_base", "modifiers",
+                  "as_of_period", "build_seconds", "duration_s", "squashed_pct",
                   "aggregation", "clamp", "comp_period", "supplement_value",
                   "supplement_date", "history_n", "composite_pct", "mom_change",
                   "yoy_change", "three_month_change", "joins", "caveats",

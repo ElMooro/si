@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BTC Cycle Bands · JustHodl.AI</title>
-<meta name="jh-page-version" content="v1-ops3825">
+<meta name="jh-page-version" content="v2-ops3826">
 <style>
 :root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
@@ -54,7 +54,7 @@ function render(d){
    +'<div class="tile"><div class="lbl">Rainbow band</div><div class="val" style="font-size:17px;color:var(--accent)">'+esc(rb.band||'—')+'</div><div class="note">z = '+F(rb.z_sigma)+'σ vs fit</div></div>'
    +'<div class="tile"><div class="lbl">Regression fair value</div><div class="val">$'+F(rb.fair_value,0)+'</div><div class="note">R² '+F(rb.r_squared,3)+' · σ '+F(rb.residual_sigma,3)+' · n '+F(rb.n_days,0)+'</div></div>'
    +'<div class="tile"><div class="lbl">Pi Cycle</div><div class="val" style="font-size:17px"><span class="pill '+(pi.signal==='TOP SIGNAL ACTIVE'?'p-neg':'p-pos')+'">'+esc(pi.signal||'—')+'</span></div><div class="note">'+P(pi.distance_to_trigger_pct)+' to trigger</div></div>'
-   +'<div class="tile"><div class="lbl">Mayer Multiple</div><div class="val">'+F(mm.value,3)+'</div><div class="note">'+esc(mm.read||'')+' · '+F(mm.percentile_all_history,1)+'th pctile all-history</div></div>'
+   +'<div class="tile"><div class="lbl">Mayer Multiple</div><div class="val">'+F(mm.value,3)+'</div><div class="note">'+esc(mm.read||'')+' · '+F(mm.percentile_all_history,1)+'th pctile all-history<br>ma_200d $'+F(mm.ma_200d,0)+'</div></div>'
    +'<div class="tile"><div class="lbl">200-week MA</div><div class="val">$'+F(w2.value,0)+'</div><div class="note">price '+P(w2.pct_above)+' above · '+esc(w2.note||'')+'</div></div>'
    +'</div>';
 

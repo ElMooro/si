@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Global Recession Probability · JustHodl.AI</title>
-<meta name="jh-page-version" content="v1-ops3825">
+<meta name="jh-page-version" content="v2-ops3826">
 <style>
 :root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
@@ -55,7 +55,7 @@ function render(d){
   let h='';
   h+='<div class="grid">'
    +'<div class="tile"><div class="lbl">Global probability</div><div class="val" style="color:var(--accent)">'+P(d.global_recession_prob_pct)+'</div><div class="note">'+esc(d.band||'')+'</div></div>'
-   +'<div class="tile"><div class="lbl">Breadth at risk</div><div class="val">'+P(br.pct_of_covered_gdp)+'</div><div class="note">of covered GDP in AT_RISK or RECESSION</div></div>'
+   +'<div class="tile"><div class="lbl">Breadth at risk</div><div class="val">'+P(br.pct_of_covered_gdp)+'</div><div class="note">of covered GDP in AT_RISK or RECESSION<br>raw weight '+F(br.gdp_weight_at_risk_or_recession,2)+'</div></div>'
    +'<div class="tile"><div class="lbl">Coverage</div><div class="val">'+esc(cov.n_countries_scored)+'</div><div class="note">countries · GDP weight '+F(cov.gdp_weight_covered,1)+' · '+esc(cov.n_excluded)+' excluded</div></div>';
   if(uc.yield_curve_probit) h+='<div class="tile"><div class="lbl">US curve probit (separate)</div><div class="val">'+P(uc.yield_curve_probit.prob_12m_pct)+'</div><div class="note">10y-3m '+F(uc.yield_curve_probit.t10y3m_spread_pp,2)+'pp</div></div>';
   if(uc.sahm_rule) h+='<div class="tile"><div class="lbl">Sahm rule (separate)</div><div class="val">'+F(uc.sahm_rule.value,2)+'</div><div class="note">'+esc(uc.sahm_rule.state)+' · trigger '+F(uc.sahm_rule.trigger,2)+'</div></div>';
@@ -92,6 +92,18 @@ function render(d){
     d.excluded.forEach(e=>{h+='<tr><td><b>'+esc(e.iso3)+'</b></td><td class="mono">'+F(e.gdp_weight,2)+'</td><td class="dim">'+esc(e.phase)+'</td><td class="mute">'+esc(e.reason)+'</td></tr>';});
     h+='</tbody></table></div>';
   }
+
+  h+='<div class="sec">Term decomposition — how each country probability is built</div><div class="card" style="overflow-x:auto">'
+   +'<table><thead><tr><th>ISO</th><th>phase_base</th><th>cli_level_adj</th><th>momentum_6m_adj</th><th>dist_200ma_adj</th><th>raw score</th><th>→ probability</th></tr></thead><tbody>';
+  (d.countries||[]).forEach(c=>{const t=c.terms||{};
+    h+='<tr><td><b>'+esc(c.iso3)+'</b></td>'
+      +'<td class="mono">'+F(t.phase_base,1)+'</td>'
+      +'<td class="mono">'+F(t.cli_level_adj,2)+'</td>'
+      +'<td class="mono">'+F(t.momentum_6m_adj,2)+'</td>'
+      +'<td class="mono">'+F(t.dist_200ma_adj,2)+'</td>'
+      +'<td class="mono">'+F(t.raw_score,2)+'</td>'
+      +'<td class="mono" style="color:var(--accent)">'+P(c.recession_prob_pct)+'</td></tr>';});
+  h+='</tbody></table><div class="foot" style="margin-top:8px">Every row reconciles: phase_base + the three adjustments = raw score, then the logistic squash maps it to the probability.</div></div>';
 
   const eb=d.equity_beta_guidance||{};
   h+='<div class="sec">Equity beta guidance</div><div class="card"><div style="font-size:13px">'+esc(eb.rule||'')+'</div>'
