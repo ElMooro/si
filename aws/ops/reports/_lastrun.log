@@ -1,31 +1,33 @@
-executing-against: c3ac0df6089473aebdf93116b412449c6c1843c3
-ops 3819 — rotation-dashboard.html edge verify + field coverage
+executing-against: 8dfca12a63e09cdaf00846ed57df34b7e30e027b
+ops 3820 — rotation-dashboard.html edge verify + field coverage
 ── 1. Served page (Cloudflare edge, unique marker) ──
-[21:00:15]   attempt 1: HTTP Error 404: Not Found
-[21:00:35]   attempt 2: HTTP Error 404: Not Found
-[21:00:55]   attempt 3: HTTP Error 404: Not Found
-[21:01:15]   attempt 4: HTTP Error 404: Not Found
-[21:01:35]   attempt 5: HTTP Error 404: Not Found
-[21:01:55] ✅   marker 'v1-ops3819' served on attempt 6 (22,495 bytes)
+[21:05:47]   attempt 1: 22,495 bytes, marker absent — waiting
+[21:06:07]   attempt 2: 22,495 bytes, marker absent — waiting
+[21:06:27]   attempt 3: 22,495 bytes, marker absent — waiting
+[21:06:47]   attempt 4: 22,495 bytes, marker absent — waiting
+[21:07:07]   attempt 5: 22,495 bytes, marker absent — waiting
+[21:07:27]   attempt 6: 22,495 bytes, marker absent — waiting
+[21:07:47]   attempt 7: 22,495 bytes, marker absent — waiting
+[21:08:07]   attempt 8: 22,495 bytes, marker absent — waiting
+[21:08:27] ✅   marker 'v2-ops3820' served on attempt 9 (23,411 bytes)
 ── 2. FIELD-COVERAGE AUDIT — live artifact vs served html ──
-[21:01:56]   keys checked: 73 · rendered: 64
-[21:01:56] ✗   NO RENDER PATH (9): ['above_200d_sma', 'horizon', 'key', 'prev_rank', 'regime_prior', 'ret_12m_pct', 'ret_1m_pct', 'sma_200d', 'thesis']
+[21:08:28]   keys checked: 73 · rendered: 73
+[21:08:28] ✅   every non-waived key has a render path in the served html
 ── 3. Structural markers ──
-[21:01:56] ✅   regime banner
-[21:01:56] ✅   four-layer strip
-[21:01:56] ✅   overweight board
-[21:01:56] ✅   RRG scatter
-[21:01:56] ✅   ratio table
-[21:01:56] ✅   ranked table
-[21:01:56] ✅   avoid board
-[21:01:56] ✅   methodology
-[21:01:56] ✅   gold caveat copy
-[21:01:56] ✅   gate explainer
-[21:01:56] ✅   degraded surfaced
-[21:01:56] ✅   cot not-applied flag
+[21:08:28] ✅   regime banner
+[21:08:28] ✅   four-layer strip
+[21:08:28] ✅   overweight board
+[21:08:28] ✅   RRG scatter
+[21:08:28] ✅   ratio table
+[21:08:28] ✅   ranked table
+[21:08:28] ✅   avoid board
+[21:08:28] ✅   methodology
+[21:08:28] ✅   gold caveat copy
+[21:08:28] ✅   gate explainer
+[21:08:28] ✅   degraded surfaced
+[21:08:28] ✅   cot not-applied flag
 ── 4. Nav manifest (served) ──
-[21:01:56] ✅   listed under 'Portfolio & Execution' as 'Rotation Dashboard'
-[21:01:56] ✗ FAILED — missing keys ['above_200d_sma', 'horizon', 'key', 'prev_rank', 'regime_prior', 'ret_12m_pct', 'ret_1m_pct', 'sma_200d', 'thesis'] · missing markers []
+[21:08:28] ✅   listed under 'Portfolio & Execution' as 'Rotation Dashboard'
+[21:08:28] ✅ PASS_ALL — 73 keys rendered, 12 markers served
 
-→ Report written to aws/ops/reports/latest/3819_rotation_page_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_3819_rotation_page_verify.py
+→ Report written to aws/ops/reports/latest/3820_rotation_page_verify.md
