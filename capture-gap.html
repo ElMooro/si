@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Capture Gap · JustHodl.AI</title>
-<meta name="jh-page-version" content="v6-ops3786">
+<meta name="jh-page-version" content="v7-ops3789">
 <style>
 :root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
@@ -35,6 +35,12 @@ a{color:var(--accent)}
 .legdot.f{background:var(--pos)}
 #scatter{width:100%;height:430px;display:block}
 .tier{font-size:10px;padding:1px 7px;border-radius:10px;font-weight:600}
+.hm{display:inline-block;width:13px;height:13px;line-height:13px;border-radius:50%;background:rgba(240,180,41,.18);color:var(--accent);font-size:9.5px;text-align:center;cursor:help;margin-left:4px;font-weight:700;vertical-align:middle;border:1px solid rgba(240,180,41,.35)}
+.hm:hover{background:var(--accent);color:#0a0e14}
+select{background:#10151d;color:#e6ecf3;border:1px solid #1c2330;border-radius:6px;padding:3px 8px;font-size:11.5px;font-family:ui-monospace,Menlo,monospace}
+.fbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px;font-size:11px;color:var(--text-mute);font-family:ui-monospace,Menlo,monospace}
+.desc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;font-size:12px;color:var(--text-dim);line-height:1.75}
+.desc b{color:var(--neu,#e8e8e8)}
 </style>
 </head>
 <body>
@@ -77,6 +83,9 @@ a{color:var(--accent)}
 
 <div class="sec">Method &amp; Honest Limits</div>
 <div class="card mono" style="font-size:12px;color:var(--text-dim)" id="method"></div>
+
+<div class="sec">📖 What this page is, and where the data comes from</div>
+<div class="desc" id="about"></div>
 
 <div class="sec">Cross-links</div>
 <div class="card mono" style="font-size:12.5px;color:var(--text-dim)">Criticality source: <a href="/chokepoint.html">Chokepoint</a> · Peer multiples: <a href="/peer-comparison.html">Peer Comparison</a> · Backlog/RPO: <a href="/backlog.html">Backlog</a> · Industry league: <a href="/boom-radar.html">Boom Radar</a> · Census: <a href="/fundamental-census.html">Fundamental Census</a></div>
@@ -182,7 +191,7 @@ function ledger(){
   ['capture_gap','Gap'],['global_capture_gap','Global gap'],['gap_divergence','Diverg'],
   ['revenue_share_pct','Rev share'],['dependency_pct','Dep %'],['gm_level','GM'],['gm_stability','GM stab'],['roic','ROIC'],
   ['discount_to_fair_pct','vs fair'],['rpo_yoy','RPO YoY'],['legs','Legs'],['tier','Tier']];
- var h='<tr>'+cols.map(function(c){return '<th data-k="'+c[0]+'">'+c[1]+(sortK===c[0]?(sortD<0?' ▾':' ▴'):'')+'</th>';}).join('')+'</tr>';
+ var h='<tr>'+cols.map(function(c){return '<th data-k="'+c[0]+'">'+c[1]+help(c[0])+(sortK===c[0]?(sortD<0?' ▾':' ▴'):'')+'</th>';}).join('')+'</tr>';
  var b=rs.map(function(r){return '<tr>'
   +'<td style="color:'+ACC+';font-weight:600">'+r.ticker+'</td>'
   +'<td>'+(r.name||'').slice(0,22)+'</td>'
@@ -251,6 +260,31 @@ document.getElementById('indunder').innerHTML=(iu.length?('<table><tr><th>Indust
 +iuT.slice(0,8).map(function(x){return x.industry+' (n='+x.n+', '+num(x.median_global_gap)+'pp)';}).join(' · ')+'</div>'):''))
 :'<span class="mono" style="color:'+MUT+'">Industry board pending.</span>');
 
+// ── METRIC GLOSSARY — every ? mark on the page reads from here ─────────
+var GLOSS={
+ capture_gap:"CAPTURE GAP. Criticality percentile minus market-cap-share percentile, WITHIN the industry. Positive means the company creates more value for its industry than the market capitalises it for. Measured in percentage POINTS of rank, not price.",
+ global_capture_gap:"GLOBAL GAP. The same calculation against the WHOLE scored cross-section instead of just the industry. Answers 'is this business under-capitalised versus everything listed', which is the cross-industry version of the question. A large positive here with a small within-industry gap means the entire industry is under-capitalised, not the individual name.",
+ gap_divergence:"DIVERGENCE. Global gap minus within-industry gap. Large positive = the name looks fair against its own peers but cheap against the whole market, i.e. the industry is being repriced rather than the company.",
+ catchup_pct:"CATCH-UP. The price move required to reach the INDUSTRY MEDIAN multiple. EV/Sales and P/E are computed independently and cross-checked; the conservative of the two is reported. This is mean-reversion ARITHMETIC, not a price target and not a forecast — a company can trade below its industry median because it deserves to. Capped at +300%.",
+ revenue_share_pct:"REVENUE SHARE. This company's trailing revenue as a share of USD-FILING scored peers in its industry — the closest measurable proxy for how much of the industry actually depends on it. Suppressed (shown as —) for non-USD filers and for industries where USD filers cover under 60% of scored names, because summing mixed currencies produces a wrong number that looks right.",
+ dependency_pct:"SUPPLY-CHAIN DEPENDENCY. Share of mapped supplier links in this industry that point at this company. Sourced from a curated graph that covers only some sectors, so it is blank rather than guessed for most names.",
+ criticality:"CRITICALITY (0-100). A QUALITY composite: 30% gross-margin level, 22% margin STABILITY, 20% ROIC, 13% R&D intensity, 15% supply-chain centrality. It is NOT a share of the industry — a 71 does not mean 71% of the industry depends on this company.",
+ criticality_pctile:"CRITICALITY PERCENTILE. The honest percentage form of criticality: this company ranks above X% of scored peers on business quality.",
+ revenue_growth_yoy:"REVENUE GROWTH (YoY). Latest annual revenue versus the prior year, from the same income statement used elsewhere. A growth RATE is currency-invariant, so unlike revenue share it is published for non-USD filers too.",
+ growth_tier:"GROWTH TIER. Absolute, not percentile: HIGH >=20%, MEDIUM 5-20%, LOW <5%. Absolute so 'high growth' means the same thing on every board rather than 'top third of today's sample'.",
+ gm_level:"GROSS MARGIN. Level, in percent. Feeds 30% of criticality — high stable margins are the fingerprint of pricing power.",
+ gm_stability:"MARGIN STABILITY. Standard deviation of gross margin over ~10 years, in percentage points. LOWER is better: a margin that does not move through cycles is harder to compete away than one that is merely high today.",
+ roic:"RETURN ON INVESTED CAPITAL. Feeds 20% of criticality.",
+ mcap_share_pct:"MARKET-CAP SHARE. This company's market cap as a percent of its industry's TOTAL listed market cap (full market denominator, not just scored names).",
+ undervaluation_score:"BLENDED SCORE. Capture gap 35%, global gap 25%, catch-up 15%, plus confirmation legs and criticality — so no single loud metric can carry a name to the top. Sorting by any single column overrides this blend.",
+ legs:"CONFIRMATION LEGS. Five independent checks: capture gap >=20pp, trading >=15% below fair, margin stability <=5pp, ROIC >=15%, backlog accelerating. Three of five AND a >=20pp gap is required for STRUCTURALLY_UNDERVALUED. One leg is noise.",
+ tier:"TIER. STRUCTURALLY_UNDERVALUED = 3+ legs and gap >=20pp. WATCH = at least one leg. NONE = no legs cleared.",
+ in_sp500:"S&P 500 MEMBERSHIP. Joined from the fundamental-census sweep. Blank when the census is unreachable rather than assumed false.",
+ ev_sales:"EV/SALES. Market cap divided by trailing revenue. Used with P/E to compute catch-up to the industry median.",
+ pe:"P/E. Market cap divided by trailing net income; only computed where earnings are positive."
+};
+function help(k){var t=GLOSS[k];return t?'<span class="hm" title="'+t.replace(/"/g,'&quot;')+'">?</span>':'';}
+
 // ── LEADERBOARD (top of page) ──────────────────────────────────────────
 var lead=c.top_undervalued_all_industries||[];
 function rsh(r){
@@ -269,33 +303,60 @@ function dep(r){
  if(r.dependency_pct==null) return '<span style="color:'+MUT+'">—</span>';
  return '<span style="color:'+(r.dependency_pct>=25?POS:'')+'">'+num(r.dependency_pct,1)+'%</span>';
 }
+function gro(r){
+ var v=r.revenue_growth_yoy;
+ if(v==null) return '<span style="color:'+MUT+'">—</span>';
+ var t=r.growth_tier, col=t==='HIGH'?POS:(t==='LOW'?NEG:'');
+ var dis=(r.growth_basis&&r.growth_basis.indexOf('disagree')>=0);
+ return '<span'+(col?' style="color:'+col+';font-weight:600"':'')+'>'+(v>0?'+':'')+num(v,1)+'%</span>'
+  +(dis?'<span class="hm" title="'+String(r.growth_basis).replace(/"/g,'&quot;')+'">!</span>':'');
+}
 function cu(v,basis,capped){
  if(v==null)return '<span style="color:'+MUT+'">—</span>';
  var col=v>0?POS:v<0?NEG:MUT;
  return '<span style="color:'+col+';font-weight:600">'+(v>0?'+':'')+num(v,0)+'%</span>'
  +(capped?'<span style="color:'+MUT+';font-size:9px"> cap</span>':'')
  +'<div style="color:'+MUT+';font-size:9px">'+(basis||'')+'</div>';}
-var ldK='undervaluation_score',ldD=-1,ldInd='ALL';
+var ldK='undervaluation_score',ldD=-1,ldInd='ALL',ldCap='ALL',ldGro='ALL';
 var ldCols=[['undervaluation_score','Score'],['catchup_pct','Catch-up to<br>industry median'],
  ['capture_gap','Capture gap'],['global_capture_gap','Global gap'],
  ['revenue_share_pct','Rev share<br>of industry'],['dependency_pct','Supply-chain<br>dependency'],
+ ['revenue_growth_yoy','Rev growth<br>YoY'],['gm_level','Gross<br>margin'],
  ['criticality','Crit'],['criticality_pctile','Crit %ile'],
  ['roic','ROIC'],['legs','Legs'],['tier','Tier']];
 function renderLeader(){
 var _inds=[];lead.forEach(function(r){if(r.industry&&_inds.indexOf(r.industry)<0)_inds.push(r.industry);});
 _inds.sort();
-var _l=lead.filter(function(r){return ldInd==='ALL'||r.industry===ldInd;})
+var CAPSETS={SP500:null,mega:['mega'],large:['large'],mid:['mid'],small:['small','micro','nano']};
+var _l=lead.filter(function(r){
+  if(ldInd!=='ALL'&&r.industry!==ldInd) return false;
+  if(ldCap==='SP500'){ if(r.in_sp500!==true) return false; }
+  else if(ldCap!=='ALL'){ if(CAPSETS[ldCap].indexOf(r.cap_bucket)<0) return false; }
+  if(ldGro!=='ALL'&&r.growth_tier!==ldGro) return false;
+  return true;})
  .sort(function(a,b){var x=a[ldK],y=b[ldK];
   if(typeof x==='string'||typeof y==='string'){x=String(x||'');y=String(y||'');return x<y?-1*ldD:x>y?1*ldD:0;}
   if(x==null)return 1;if(y==null)return -1;return (x<y?-1:x>y?1:0)*ldD;});
 document.getElementById('leader').innerHTML=(lead.length?(
- '<div style="margin-bottom:9px"><span style="color:'+MUT+';font-size:11px;font-family:ui-monospace">Industry:</span> '
+ '<div class="fbar"><span>Industry:</span> '
  +'<select id="ldSel" style="background:#10151d;color:#e6ecf3;border:1px solid #1c2330;border-radius:6px;padding:3px 8px;font-size:11.5px;font-family:ui-monospace">'
  +'<option value="ALL">All industries ('+lead.length+')</option>'
  +_inds.map(function(x){return '<option value="'+x+'"'+(ldInd===x?' selected':'')+'>'+x+'</option>';}).join('')
- +'</select> <span style="color:'+MUT+';font-size:10.5px">click any column header to sort ascending / descending</span></div>'
+ +'</select>'
+ +' <span>Size:</span> <select id="ldCap">'
+ +['ALL','SP500','mega','large','mid','small'].map(function(k){
+   var lbl={ALL:'All sizes',SP500:'S&P 500 only',mega:'Mega cap (>$200B)',large:'Large cap ($10-200B)',mid:'Mid cap ($2-10B)',small:'Small & micro (<$2B)'}[k];
+   return '<option value="'+k+'"'+(ldCap===k?' selected':'')+'>'+lbl+'</option>';}).join('')
+ +'</select>'
+ +' <span>Growth:</span> <select id="ldGro">'
+ +['ALL','HIGH','MEDIUM','LOW'].map(function(k){
+   var lbl={ALL:'All growth',HIGH:'High (&ge;20% YoY)',MEDIUM:'Medium (5-20%)',LOW:'Low (&lt;5%)'}[k];
+   return '<option value="'+k+'"'+(ldGro===k?' selected':'')+'>'+lbl+'</option>';}).join('')
+ +'</select>'+help('growth_tier')
+ +' <span style="opacity:.75">click any column header to sort ascending / descending</span>'
+ +' <span style="color:'+ACC+'">'+_l.length+' shown</span></div>'
  +'<table><tr><th>#</th><th data-lk="ticker">Ticker</th><th>Company</th><th data-lk="industry">Industry</th>'
- +ldCols.map(function(c){return '<th data-lk="'+c[0]+'">'+c[1]+(ldK===c[0]?(ldD<0?' ▾':' ▴'):'')+'</th>';}).join('')+'</tr>'
+ +ldCols.map(function(c){return '<th data-lk="'+c[0]+'">'+c[1]+help(c[0])+(ldK===c[0]?(ldD<0?' ▾':' ▴'):'')+'</th>';}).join('')+'</tr>'
 +_l.map(function(r,i){return '<tr><td style="color:'+MUT+'">'+(i+1)+'</td>'
 +'<td style="color:'+ACC+';font-weight:600">'+r.ticker+'</td>'
 +'<td>'+(r.name||'').slice(0,22)+'</td>'
@@ -305,6 +366,7 @@ document.getElementById('leader').innerHTML=(lead.length?(
 +'<td style="color:'+gapCol(r.capture_gap)+'">'+(r.capture_gap>0?'+':'')+num(r.capture_gap)+'pp</td>'
 +'<td style="color:'+gapCol(r.global_capture_gap)+'">'+(r.global_capture_gap>0?'+':'')+num(r.global_capture_gap)+'pp</td>'
 +'<td>'+rsh(r)+'</td><td>'+dep(r)+'</td>'
++'<td>'+gro(r)+'</td><td>'+(r.gm_level==null?'—':num(r.gm_level)+'%')+'</td>'
 +'<td>'+num(r.criticality)+'</td><td style="color:'+DIM+'">'+num(r.criticality_pctile)+'</td><td>'+num(r.roic)+'%</td>'
 +'<td>'+legDots(r.legs||0)+'</td><td>'+tierChip(r.tier)+'</td></tr>';}).join('')+'</table>'
 +'<div class="note"><strong>Default rank is blended</strong> — capture gap (35%), cross-industry gap (25%), catch-up (15%), confirmation legs and criticality — so one loud metric cannot carry a name to the top. Sorting by a single column overrides that blend and shows the raw axis. '+(c.catchup_note||'')+'</div>')
@@ -314,6 +376,10 @@ Array.prototype.forEach.call(document.querySelectorAll('#leader th'),function(th
   if(ldK===k)ldD=-ldD;else{ldK=k;ldD=(k==='ticker'||k==='industry'||k==='tier')?1:-1;}renderLeader();};});
 var _sel=document.getElementById('ldSel');
 if(_sel)_sel.onchange=function(){ldInd=_sel.value;renderLeader();};
+var _cp=document.getElementById('ldCap');
+if(_cp)_cp.onchange=function(){ldCap=_cp.value;renderLeader();};
+var _gr=document.getElementById('ldGro');
+if(_gr)_gr.onchange=function(){ldGro=_gr.value;renderLeader();};
 }
 renderLeader();
 
@@ -331,7 +397,7 @@ var _bi=bi.slice().sort(function(a,b){var x=a[biK],y=b[biK];
  if(x==null)return 1;if(y==null)return -1;return (x<y?-1:x>y?1:0)*biD;});
 document.getElementById('byind').innerHTML=(bi.length?(
  '<div class="note" style="margin-bottom:10px">'+bi.length+' industries · <strong>click a column header to sort</strong> (click again to reverse) · click any industry row to expand its members. The median catch-up column is the middle name\'s distance to its own industry median multiple.</div>'
- +'<table><tr>'+biCols.map(function(c){return '<th data-bk="'+c[0]+'">'+c[1]+(biK===c[0]?(biD<0?' ▾':' ▴'):'')+'</th>';}).join('')+'</tr>'
+ +'<table><tr>'+biCols.map(function(c){return '<th data-bk="'+c[0]+'">'+c[1]+help(c[0].replace('median_','').replace('_pct',''))+(biK===c[0]?(biD<0?' ▾':' ▴'):'')+'</th>';}).join('')+'</tr>'
  +_bi.map(function(b,i){
   var head='<tr class="indrow" data-i="'+i+'" style="cursor:pointer">'
   +'<td style="color:'+ACC+'">▸ '+(b.industry||'').slice(0,30)+'</td>'
@@ -379,6 +445,35 @@ document.getElementById('method').innerHTML=
  +'<div class="note" style="color:'+NEG+'">Honest limit: '+(m.honest_limit||'—')+'</div>'
  +(c.percent_critical_note?'<div class="note" style="margin-top:9px;color:'+NEU+'"><strong>The three percentages, and why they are not merged:</strong><br>'+c.percent_critical_note+'</div>':'')
  +'<div class="note">Criticality is a quality attribute the market usually prices correctly for mega-caps — the reference AI names (NVDA, TSM, ASML) score high on creation <em>and</em> high on capture, so their gaps sit near zero. The engine is designed to say that plainly rather than manufacture a signal where none exists.</div>';
+
+document.getElementById('about').innerHTML=
+ '<b>What this page does.</b> It asks one question the rest of the platform does not: '
+ +'does the market capitalise a company in proportion to how much its industry actually depends on it? '
+ +'A business can be the single point of failure for its entire industry and still hold a sliver of that '
+ +'industry\'s market cap. The <b>capture gap</b> measures that difference — criticality percentile minus '
+ +'market-cap-share percentile — within its industry, and again against the whole listed market. '
+ +'Alongside it sit the price move needed to reach the industry median multiple (<b>catch-up</b>), the '
+ +'company\'s <b>revenue share</b> of its industry, its <b>growth</b>, margins and returns.'
+ +'<br><br><b>How to read it.</b> The leaderboard is a ranked hunting ground, not a buy list. Its default '
+ +'order is a blend, so no single loud metric carries a name to the top; sorting by one column overrides '
+ +'that blend and shows the raw axis. Every metric has a <span class="hm">?</span> explaining exactly what '
+ +'it measures. Where a number cannot be computed honestly it is left blank with a reason rather than '
+ +'filled with a zero.'
+ +'<br><br><b>Engines and feeds.</b> Primary engine <b>justhodl-chokepoint v'+(d.version||'')+'</b> '
+ +'(<span class="mono">data/chokepoint.json</span>), which scores criticality from ten years of margins, '
+ +'margin stability, ROIC, R&amp;D intensity and supply-chain centrality. It joins: '
+ +'<b>universe-builder</b> for the full listed market used as the market-cap denominator; '
+ +'<b>justhodl-backlog</b> for RPO and deferred-revenue acceleration; '
+ +'<b>fundamental-census</b> for S&amp;P 500 membership; '
+ +'<b>supply-chain-graph</b> for supplier-dependency links; and FMP income statements for revenue, '
+ +'growth and multiples. Capture gap is also wired as context into '
+ +'<a href="/best-setups.html">best-setups</a>, <a href="/master-ranker.html">master-ranker</a> and the '
+ +'per-stock <a href="/why.html">research page</a> — as durability context, never as a rank boost.'
+ +'<br><br><b>Honest limits.</b> Market-cap share is a proxy for value capture, not a measured revenue '
+ +'share. Industries with fewer than five listed peers are excluded rather than guessed. Revenue share is '
+ +'computed only across USD filers, so ADR-heavy industries show many blanks. Criticality percentiles are '
+ +'computed within the scored sample while market-cap denominators use the full market; the ledger closes '
+ +'that gap a little every day. Catch-up is mean-reversion arithmetic, not a forecast.';
 
 document.getElementById('foot').textContent='Feed data/chokepoint.json → capture_gap · engine justhodl-chokepoint v'+(d.version||'')+' · '+(st.scored||0)+' names · generated '+(d.generated_at||'');
 }catch(e){console.error(e);document.getElementById('hero').innerHTML='<span class="mono" style="color:#E07A6A">Feed unavailable — '+e+'</span>';}
