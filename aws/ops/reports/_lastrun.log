@@ -1,41 +1,39 @@
-executing-against: 1e8e02c89a8236b0afb86381c4af4f4916b024f3
-ops 3797 — rev share + dependency on the boards (v4.2.2)
-── Zip settle ──
-[03:12:43] ✅ v4.2.2 artifact live (attempt 1)
-[03:12:43] ✅ DEPLOY.settled :: wholesale refresh present in deployed zip
-── Invoke ──
-[03:12:57] ✅ LIVE.v423 :: version=4.2.3
-── THE FIX — copies must now carry the percentage fields ──
-[03:12:57] ✅ LEAD.revenue_share_pct :: 39 of 50 leaderboard rows (was 0/50)
-[03:12:57] ✅ LEAD.criticality_pctile :: 50 of 50 leaderboard rows (was 0/50)
-[03:12:57] ✅ LEAD.criticality_basis :: 50 of 50 leaderboard rows (was 0/50)
-[03:12:57] ✅ MEMBERS.revenue_share_pct :: 1642 of 3012 member rows (was 0)
-[03:12:57] ✅ MEMBERS.criticality_pctile :: 3012 of 3012 member rows (was 0)
-── Dependency — expected to stay sparse (graph coverage) ──
-[03:12:57] ✅ DEP.members_reached :: 153 member rows carry dependency (ledger has 153)
-── Sample ──
-[03:12:57]   HERE   rev_share=—         dep=—        crit%ile=94.7   basis=business quality (margins/RO
-[03:12:57]   DOMO   rev_share=0.06%     dep=—        crit%ile=95.3   basis=business quality (margins/RO
-[03:12:57]   LDI    rev_share=13.32%    dep=—        crit%ile=90.9   basis=business quality (margins/RO
-[03:12:57]   BMBL   rev_share=0.09%     dep=—        crit%ile=75.7   basis=mixed
-[03:12:57]   QTTB   rev_share=0.09%     dep=—        crit%ile=93.4   basis=business quality (margins/RO
-[03:12:57]   TREE   rev_share=0.41%     dep=—        crit%ile=90.2   basis=business quality (margins/RO
-[03:12:57]   RCMT   rev_share=0.79%     dep=—        crit%ile=81.8   basis=business quality (margins/RO
-[03:12:57]   CGEN   rev_share=0.12%     dep=—        crit%ile=90.7   basis=business quality (margins/RO
-[03:12:57]   HLF    rev_share=6.26%     dep=—        crit%ile=96.9   basis=business quality (margins/RO
-[03:12:57]   RC     rev_share=2.54%     dep=—        crit%ile=75.0   basis=mixed
-── Served page v9 ──
-[03:12:57] attempt 1: 44551 bytes · 4/4
-[03:12:57] ✅ SERVED.stamp :: present
-[03:12:57] ✅ SERVED.dep_tooltip :: present
-[03:12:57] ✅ SERVED.coverage_note :: present
-[03:12:57] ✅ SERVED.rsh :: present
-── Additive ──
-[03:12:57] ✅ ADDITIVE.capture_gap :: leaderboard still carries it
-[03:12:57] ✅ ADDITIVE.catchup_pct :: leaderboard still carries it
-[03:12:57] ✅ ADDITIVE.growth_tier :: leaderboard still carries it
-[03:12:57] ✅ ADDITIVE.in_sp500 :: leaderboard still carries it
+executing-against: aa5c52d33908c41ca7d1927d5ec9f604fa0fa9c3
+ops 3798 — what is actually inside supply-chain-graph.json
+── 1. Does the feed exist and is it fresh? ──
+[03:20:41] ✅ FEED.exists :: 73048 bytes, 5.4h old
+[03:20:41] ✅ FEED.fresh :: 5.4 hours old
+── 2. ACTUAL top-level keys ──
+[03:20:41]   engine                     str      27
+[03:20:41]   version                    str      5
+[03:20:41]   ok                         bool     True
+[03:20:41]   generated_at               str      32
+[03:20:41]   thesis                     str      222
+[03:20:41]   n_nodes                    int      183
+[03:20:41]   n_edges                    int      303
+[03:20:41]   n_themes                   int      19
+[03:20:41]   themes                     list     19
+[03:20:41]   graph_stats                dict     6
+[03:20:41]   booming_hubs               list     4
+[03:20:41]   nodes                      list     183
+[03:20:41]   edges                      list     303
+[03:20:41]   supply_chain_laggards      list     1
+[03:20:41]   top_picks                  list     1
+[03:20:41]   data_source                str      82
+[03:20:41]   caveats                    list     3
+[03:20:41]   elapsed_s                  float    7.3
+── 3. Real field names on an edge / node ──
+[03:20:41]   edge[0] keys: ['confirm', 'customer', 'relationship', 'source', 'supplier']
+[03:20:41]   edge[0]     : {"supplier": "ASML", "customer": "TSM", "relationship": "EUV litho", "source": "curated", "confirm": "none"}
+[03:20:41] ✅ EDGE.reader_matches :: 303 of 303 edges expose supplier|source (what chokepoint reads)
+[03:20:41]   node[0] keys: ['degree', 'is_boom', 'n_customers', 'n_suppliers', 'origin', 'perf_30d', 'perf_5d', 'price', 'theme', 'ticker']
+[03:20:41]   node[0]     : {"ticker": "A", "theme": "Healthcare/Biopharma", "origin": "curated", "perf_30d": 5.51, "perf_5d": -0.93, "price": 133.46, "is_boom": false, "degree": 3, "n_suppliers": 2, "n_customers": 1}
+── 4. Symbol universe of the graph vs the capture ledger ──
+[03:20:41]   sample: ['A', 'AAPL', 'ACLS', 'ADI', 'AEHR', 'AEIS', 'ALB', 'ALSN', 'ALV', 'AMAT', 'AMD', 'AME', 'AMKR', 'AMZN', 'ANET', 'AOS', 'APH', 'APLD', 'APTV', 'ARM', 'ASML', 'ATKR', 'AVGO', 'AXL']
+[03:20:42] ✅ OVERLAP.nonzero :: 180 shared symbols
+[03:20:42]   overlap sample: ['A', 'AAPL', 'ACLS', 'ADI', 'AEHR', 'AEIS', 'ALB', 'ALSN', 'ALV', 'AMAT', 'AMD', 'AME', 'AMKR', 'AMZN', 'ANET', 'AOS', 'APH', 'APLD', 'APTV', 'ARM', 'ASML', 'ATKR', 'AVGO', 'AXL']
 ── VERDICT ──
-[03:12:57] ✅ PASS_ALL — rev share live on the boards; dependency sparsity labelled honestly
+[03:20:42] ⚠ The graph itself only names 185 symbols. dependency_pct cannot exceed that. If Khalid expects broad coverage, the GRAPH is the thing to expand — the join is fine.
+[03:20:42] ✅ PASS_ALL — schema probed
 
-→ Report written to aws/ops/reports/latest/3797_verify_revshare_ordering.md
+→ Report written to aws/ops/reports/latest/3798_probe_supply_chain_graph.md
