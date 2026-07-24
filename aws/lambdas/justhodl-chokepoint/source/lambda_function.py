@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "4.3"
+VERSION = "4.3.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -983,6 +983,7 @@ def lambda_handler(event, context):
         # label each for exactly what it is.
         try:
             _rev_by_ind, _ctr_by_ind = {}, {}
+            _ctr_n_by_ind = {}
             _usd_n, _rev_n = {}, {}
             MIN_USD_COVERAGE = 0.60   # below this the denominator omits majors
             for _c in cap_rows:
@@ -1002,6 +1003,7 @@ def lambda_handler(event, context):
                 _ct = _c.get("centrality")
                 if isinstance(_ct, (int, float)) and _ct > 0:
                     _ctr_by_ind[_i] = _ctr_by_ind.get(_i, 0.0) + _ct
+                    _ctr_n_by_ind[_i] = _ctr_n_by_ind.get(_i, 0) + 1
             _scored_by_ind = {}
             for _c in cap_rows:
                 _scored_by_ind[_c.get("industry")] = _scored_by_ind.get(_c.get("industry"), 0) + 1
@@ -1036,11 +1038,27 @@ def lambda_handler(event, context):
                     _sc, _lp or "?")
                 # [3] dependency share from the curated supply-chain graph;
                 # null where the graph does not cover the sector, never guessed
+                # ops 3800: the denominator is centrality summed across SCORED
+                # names in the industry. When a company is the only mapped name
+                # in its industry it takes 100% by construction — AMZN, WMT, AAPL
+                # and NEE all printed exactly 100.0%, which reads as "totally
+                # depended upon" when it actually means "no mapped peers".
+                # Require >=3 mapped peers before publishing a share, and carry
+                # the peer count so the reader can judge it.
                 _ct = _c.get("centrality")
                 _ctot = _ctr_by_ind.get(_i) or 0.0
-                _c["dependency_pct"] = (round(100.0 * _ct / _ctot, 1)
-                                        if (isinstance(_ct, (int, float)) and _ct > 0 and _ctot > 0)
-                                        else None)
+                _cn = _ctr_n_by_ind.get(_i, 0)
+                _c["dependency_mapped_peers"] = _cn
+                if (isinstance(_ct, (int, float)) and _ct > 0 and _ctot > 0 and _cn >= 3):
+                    _c["dependency_pct"] = round(100.0 * _ct / _ctot, 1)
+                    _c["dependency_suppressed"] = None
+                else:
+                    _c["dependency_pct"] = None
+                    _c["dependency_suppressed"] = (
+                        "only %d mapped peer(s) in this industry — a share would be "
+                        "an artifact of thin coverage, not real dependency" % _cn
+                        if (isinstance(_ct, (int, float)) and _ct > 0)
+                        else "no mapped supplier links for this company")
                 # which percentage actually carries the claim for this name
                 if _c.get("dependency_pct") is not None and _c["dependency_pct"] >= 25:
                     _c["criticality_basis"] = "supply-chain dependency"
