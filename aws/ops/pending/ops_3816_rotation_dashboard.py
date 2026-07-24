@@ -1,5 +1,5 @@
 """
-ops_3816 — justhodl-rotation-dashboard v1.0.0
+ops_3816 — justhodl-rotation-dashboard v1.0.1 (COT shape fix)
 
 Builds the cross-asset rotation SPINE: regime -> ratios -> trend gate ->
 rank + flows + crowding -> ranked overweight list.
