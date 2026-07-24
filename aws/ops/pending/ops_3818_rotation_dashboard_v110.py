@@ -41,7 +41,7 @@ s3 = boto3.client("s3", region_name="us-east-1")
 
 def main():
     with report("3818_rotation_dashboard_v110") as rep:
-        rep.heading("ops 3818 — rotation-dashboard v1.1.0 (close degraded)")
+        rep.heading("ops 3818 — rotation-dashboard v1.2.0 (COT low-n + flows field names)")
 
         # ── G0: assert the probe-confirmed paths still exist in the LIVE feeds ─
         rep.section("G0. KEY CONTRACT — against LIVE artifacts, not source")
@@ -153,6 +153,14 @@ def main():
             f"= {len(crowded)} assets")
         chk("no 'cftc-all-cache unmapped' in degraded",
             not any("cftc-all-cache unmapped" in x for x in deg))
+        flowed = [a for a in d["assets"] if a.get("flows")]
+        chk("ETF flows joined on >=10 assets", len(flowed) >= 10,
+            f"= {len(flowed)} assets")
+        for a in flowed[:6]:
+            fl = a["flows"]
+            rep.log(f"    {a['ticker']:<5} {fl['state']:<8} "
+                    f"{fl['horizon']} ${(fl['net_flow_usd'] or 0)/1e9:,.2f}B "
+                    f"({fl.get('pct_of_aum')}% AUM)")
         chk("still scoring full universe", d["layer3_layer4"]["n_scored"] >= 35,
             f"= {d['layer3_layer4']['n_scored']}")
         chk("trend gate still discriminates",

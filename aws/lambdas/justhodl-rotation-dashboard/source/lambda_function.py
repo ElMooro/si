@@ -64,7 +64,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/rotation-dashboard.json"
 HIST_KEY = "data/rotation-dashboard-history.json"
@@ -456,12 +456,18 @@ def build_cot_index(cftc):
                     n = nl - ns
             if isinstance(n, (int, float)):
                 nets.append(float(n))
-        if len(nets) < 12:
+        if len(nets) < 4:
             continue
         cur, lo, hi = nets[0], min(nets), max(nets)
         if hi == lo:
             continue
+        # HONESTY: a min-max over a handful of weeks is noise. We publish the
+        # number with its n, but only let it MOVE THE SCORE at n>=26 (~6mo).
+        conf = ("HIGH" if len(nets) >= 52 else
+                "MEDIUM" if len(nets) >= 26 else "LOW")
         idx[str(code).upper()] = {
+            "confidence": conf,
+            "actionable": len(nets) >= 26,
             "contract": str(code).upper(),
             "name": row.get("name"),
             "category": row.get("category"),
@@ -470,7 +476,10 @@ def build_cot_index(cftc):
             "n_obs": len(nets),
             "basis": "min-max of net_speculator over available weekly reports",
         }
-    print(f"[cot] built {len(idx)} contract indices")
+    ns = [v["n_obs"] for v in idx.values()]
+    print(f"[cot] built {len(idx)} indices; n_obs min={min(ns) if ns else 0} "
+          f"max={max(ns) if ns else 0}; actionable="
+          f"{sum(1 for v in idx.values() if v['actionable'])}")
     return idx
 
 
@@ -489,12 +498,23 @@ def layer34(hist, flows, cot_idx, prior, prev_ranks):
     if cash_12m is None:
         cash_12m = 0.0
 
+    # Probe 3818: containers are inflows[] / outflows[] / by_etf, and the flow
+    # field is net_flow_20d_usd | net_flow_5d_usd | net_flow_1d_usd — NOT
+    # "net_flow_usd". Reading the wrong name silently joined zero rows.
     flow_idx = {}
-    for r in (flows.get("flows") or flows.get("by_etf") or []) if flows else []:
-        if isinstance(r, dict):
-            sym = (r.get("ticker") or r.get("symbol") or "").upper()
-            if sym:
-                flow_idx[sym] = r
+    if isinstance(flows, dict):
+        for key in ("inflows", "outflows", "by_etf", "flows"):
+            v = flows.get(key)
+            if isinstance(v, dict):
+                v = list(v.values())
+            if not isinstance(v, list):
+                continue
+            for r in v:
+                if isinstance(r, dict):
+                    sym = (r.get("ticker") or r.get("symbol") or "").upper()
+                    if sym and sym not in flow_idx:
+                        flow_idx[sym] = r
+    print(f"[flows] indexed {len(flow_idx)} tickers")
 
     rows, excluded = [], []
     for ticker, label, cls in UNIVERSE:
@@ -548,14 +568,24 @@ def layer34(hist, flows, cot_idx, prior, prev_ranks):
         fr = flow_idx.get(ticker)
         flow_blk = None
         if fr:
-            nf = (fr.get("net_flow_usd") or fr.get("flow_usd")
-                  or fr.get("net_creation_usd"))
-            aum = fr.get("aum") or fr.get("aum_usd")
+            nf = fr.get("net_flow_20d_usd")
+            horizon = "20d"
+            if nf is None:
+                nf, horizon = fr.get("net_flow_5d_usd"), "5d"
+            if nf is None:
+                nf, horizon = fr.get("net_flow_1d_usd"), "1d"
+            aum_b = fr.get("aum_est_b")
             flow_blk = {
                 "net_flow_usd": nf,
-                "pct_of_aum": round(nf / aum * 100, 2) if nf and aum else None,
+                "horizon": horizon,
+                "aum_est_b": aum_b,
+                "pct_of_aum": (round(nf / (aum_b * 1e9) * 100, 2)
+                               if nf and aum_b else None),
+                "shares_chg_5d_pct": fr.get("shares_chg_5d_pct"),
                 "state": ("INFLOW" if (nf or 0) > 0 else
                           "OUTFLOW" if (nf or 0) < 0 else "FLAT"),
+                "note": ("creation/redemption derived — rolling multi-week trend, "
+                         "and flows are CONTRARIAN at extremes"),
             }
 
         # ── LAYER 4c: crowding cap ──
@@ -563,9 +593,14 @@ def layer34(hist, flows, cot_idx, prior, prev_ranks):
         crowd_state = None
         if crowd and crowd.get("cot_index") is not None:
             ci = crowd["cot_index"]
-            crowd_state = ("CROWDED" if ci >= 85 else
-                           "WASHED_OUT" if ci <= 15 else "NEUTRAL")
-            crowd["state"] = crowd_state
+            raw = ("CROWDED" if ci >= 85 else
+                   "WASHED_OUT" if ci <= 15 else "NEUTRAL")
+            crowd["state"] = raw
+            # only an actionable (n>=26) reading is allowed to move the score
+            crowd_state = raw if crowd.get("actionable") else None
+            if not crowd.get("actionable"):
+                crowd["note"] = (f"reported but NOT applied — only {crowd['n_obs']} "
+                                 f"weekly reports (<26); shown for context only")
 
         # ── CONFLUENCE ──
         conf, drivers = 0.0, []
