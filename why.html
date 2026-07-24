@@ -3529,10 +3529,23 @@ window.jhCaptureTiles=async function(t, el){ try{
   var g=r.capture_gap, gg=r.global_capture_gap, cu=r.catchup_pct;
   var gcol=(g==null?'':(g>=20?'#6fce8a':(g>0?'':'#E07A6A')));
   var ccol=(cu==null?'':(cu>0?'#6fce8a':'#E07A6A'));
+  var rs=r.revenue_share_pct, dp=r.dependency_pct, cp=r.criticality_pctile;
+  // ops 3786: revenue share is suppressed for non-USD filers and for industries
+  // where USD filers cover <60% of scored names — show the REASON, not a number
+  // built from a mixed-currency denominator (the SKHY/KRW bug, ops 3785).
+  var rsTxt = (rs==null?'—':n9(rs,2)+'%');
+  var rsSub = (rs==null
+      ? (r.revenue_share_suppressed?String(r.revenue_share_suppressed).slice(0,64):'not available')
+      : 'of USD-filing peers in '+(r.industry||'its industry'));
   var tiles=tl('CAPTURE GAP', g==null?'—':((g>0?'+':'')+n9(g)+'pp'),
         (gg==null?'':'vs whole market '+(gg>0?'+':'')+n9(gg)+'pp'), gcol)
     + tl('CATCH-UP', cu==null?'—':((cu>0?'+':'')+n9(cu,0)+'%'),
-        'to industry median'+(r.catchup_basis?' ('+r.catchup_basis+')':'')+' · not a target', ccol);
+        'to industry median'+(r.catchup_basis?' ('+r.catchup_basis+')':'')+' · not a target', ccol)
+    + tl('REV SHARE', rsTxt, rsSub, (rs!=null&&rs>=20?'#6fce8a':''))
+    + tl('CRITICALITY', (cp==null?'—':n9(cp,0)+'%ile'),
+        'quality rank vs peers'+(r.criticality!=null?' · score '+n9(r.criticality):'')+' — NOT a share of the industry', '')
+    + (dp!=null? tl('SUPPLY-CHAIN DEP', n9(dp,1)+'%',
+        'of mapped supplier links in its industry', (dp>=25?'#6fce8a':'')) : '');
   var extra='<div class="jhv-grid" style="margin-top:8px">'+tiles+'</div>';
   var tier=r.tier;
   if(tier==='STRUCTURALLY_UNDERVALUED'){
