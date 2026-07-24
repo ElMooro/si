@@ -1,5 +1,5 @@
 """
-ops_3816 — justhodl-rotation-dashboard v1.0.1 (COT shape fix)
+ops_3816 — justhodl-rotation-dashboard v1.0.2 (kv signature fix)
 
 Builds the cross-asset rotation SPINE: regime -> ratios -> trend gate ->
 rank + flows + crowding -> ranked overweight list.
@@ -167,11 +167,11 @@ def main():
             all("rank_stability" in a for a in d["assets"][:5]))
         chk("caveats shipped", len(d.get("caveats") or []) >= 4)
 
-        rep.kv("regime", regime)
-        rep.kv("gold_distortion", d["layer2_ratios"]["gold_distortion"])
-        rep.kv("eligible", f"{n_elig}/{n_scored}")
-        rep.kv("overweight", ", ".join(o["ticker"] for o in d["overweight"]))
-        rep.kv("quadrants", json.dumps(d["quadrant_counts"]))
+        rep.kv(regime=regime,
+               gold_distortion=d["layer2_ratios"]["gold_distortion"],
+               eligible=f"{n_elig}/{n_scored}",
+               overweight=", ".join(o["ticker"] for o in d["overweight"]),
+               quadrants=json.dumps(d["quadrant_counts"]))
         for a in d["assets"][:8]:
             rep.log(f"    #{a['rank']:>2} {a['ticker']:<5} {a['confluence_score']:>7} "
                     f"{a['rrg']['quadrant'] or '-':<10} "
