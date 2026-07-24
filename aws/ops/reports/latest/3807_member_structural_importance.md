@@ -1,0 +1,60 @@
+# ops 3807 — industry drill-downs must match the leaderboard
+
+**Status:** success  
+**Duration:** 21.8s  
+**Finished:** 2026-07-24T17:09:45+00:00  
+
+## Data
+
+| invoke_seconds | invoke_status | mismatches | parity_checked |
+|---|---|---|---|
+| 21.2 | 200 |  |  |
+|  |  | 0 | 400 |
+
+## Log
+## Settle v4.4.1
+
+- `17:09:24` ✅ v4.4.1 artifact live (attempt 1)
+- `17:09:24` ✅ DEPLOY.settled :: extended allow-list in deployed zip
+## Invoke
+
+- `17:09:45` ✅ LIVE.v441 :: version=4.4.1
+## THE FIX — member rows
+
+- `17:09:45` ✅ MEMBER.structural_importance :: 2393 of 2393 member rows (was 0)
+- `17:09:45` ✅ MEMBER.structural_basis :: 2393 of 2393 member rows (was 0)
+- `17:09:45` ✅ MEMBER.revenue_rank_in_industry :: 2154 of 2393 member rows (was 0)
+- `17:09:45` ✅ MEMBER.margin_premium_vs_industry :: 2393 of 2393 member rows (was 0)
+## No regression on the leaderboard or ledger
+
+- `17:09:45` ✅ NOREG.leaderboard :: 50 of 50
+- `17:09:45` ✅ NOREG.ledger :: 2393 of 2393
+## Drill-down parity — same ticker, same number everywhere
+
+- `17:09:45` ✅ PARITY.consistent :: 400 of 400 member rows match the ledger exactly
+## Sample drill-down
+
+- `17:09:45`   Aluminum (4 scored)
+- `17:09:45`      AA     crucial= 37.5  no standout leg
+- `17:09:45`      CSTM   crucial= 23.9  no standout leg
+- `17:09:45`      KALU   crucial= 21.8  no standout leg
+- `17:09:45`      CENX   crucial=  9.0  no standout leg
+- `17:09:45`   Department Stores (5 scored)
+- `17:09:45`      PDD    crucial= 67.3  margins 20% above peers; R&D 8% above peers
+- `17:09:45`      M      crucial= 29.9  no standout leg
+- `17:09:45`      KSS    crucial= 22.3  no standout leg
+- `17:09:45`      DDS    crucial= 19.6  no standout leg
+- `17:09:45`   Luxury Goods (4 scored)
+- `17:09:45`      TPR    crucial= 31.7  no standout leg
+- `17:09:45`      REAL   crucial= 26.9  R&D 33% above peers
+- `17:09:45`      SIG    crucial= 16.3  no standout leg
+- `17:09:45`      CPRI   crucial= 14.7  no standout leg
+## Additive
+
+- `17:09:45` ✅ ADDITIVE.capture_gap :: member rows still carry it
+- `17:09:45` ✅ ADDITIVE.revenue_share_pct :: member rows still carry it
+- `17:09:45` ✅ ADDITIVE.catchup_pct :: member rows still carry it
+- `17:09:45` ✅ ADDITIVE.growth_tier :: member rows still carry it
+## VERDICT
+
+- `17:09:45` ✅ PASS_ALL — drill-downs now match the leaderboard

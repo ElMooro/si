@@ -1,40 +1,42 @@
-executing-against: 0af7166b752822409342aa575d341af1b6705fe2
-ops 3806 — 'how crucial to industry' on both surfaces
-── Feed ──
-[17:00:13] ✅ FEED.v44 :: v4.4
-[17:00:13] ✅ FEED.coverage :: 1847 names vs 156 via the supply-chain map
-[17:00:13] ✅ FEED.note :: method note shipped
-── Copies must carry it (the recurring snapshot trap) ──
-[17:00:13] ✅ COPY.leaderboard :: 50 of 50 rows
-[17:00:13] ✗ COPY.members :: 0 of 1847 rows
-── Sanity — the score must discriminate, not flatline ──
-[17:00:13] ✅ SANITY.spread :: range 73.0 — a real cross-section
-[17:00:13] ✅ SANITY.not_saturated :: median 23.9 (not everything is 'crucial')
-── Unmapped names now scored — the whole point ──
-[17:00:13] ✅ FIX.unmapped_scored :: 1847 companies outside the curated map now have a crucialness score
-[17:00:13]   IBM    Information Technology Service SI= 73.0  top-8% of industry revenue; margins 21% above 
-[17:00:13]   META   Internet Content & Information SI= 71.1  margins 25% above peers; R&D 9% above peers; 5
-[17:00:13]   AMZN   Specialty Retail               SI= 69.8  top-4% of industry revenue; R&D 13% above peer
-[17:00:13]   LLY    Drug Manufacturers - General   SI= 69.1  top-16% of industry revenue; R&D 7% above peer
-[17:00:13]   CSCO   Communication Equipment        SI= 67.7  top-6% of industry revenue; margins 26% above 
-[17:00:13]   PDD    Department Stores              SI= 67.2  margins 20% above peers; R&D 8% above peers
-[17:00:13]   NVDA   Semiconductors                 SI= 66.8  top-2% of industry revenue; margins 18% above 
-[17:00:13]   BKNG   Travel Services                SI= 66.6  top-12% of industry revenue; margins 29% above
-[17:00:13]   HCA    Medical - Care Facilities      SI= 65.8  top-7% of industry revenue; margins 29% above 
-[17:00:13]   EA     Electronic Gaming & Multimedia SI= 65.6  margins 18% above peers; R&D 16% above peers
-── Served pages ──
-[17:00:13] ✅ PAGE.stamp :: capture-gap v11 (46047 bytes)
-[17:00:13] ✅ PAGE.si_fn :: renderer present
-[17:00:13] ✅ PAGE.col :: column labelled
-[17:00:13] ✅ PAGE.gloss :: glossary entry present
-[17:00:14] ✅ WHY.tile :: tile on the research page
+executing-against: 065f821c84391be5e48a249d93c349740a3a3430
+ops 3807 — industry drill-downs must match the leaderboard
+── Settle v4.4.1 ──
+[17:09:24] ✅ v4.4.1 artifact live (attempt 1)
+[17:09:24] ✅ DEPLOY.settled :: extended allow-list in deployed zip
+── Invoke ──
+[17:09:45] ✅ LIVE.v441 :: version=4.4.1
+── THE FIX — member rows ──
+[17:09:45] ✅ MEMBER.structural_importance :: 2393 of 2393 member rows (was 0)
+[17:09:45] ✅ MEMBER.structural_basis :: 2393 of 2393 member rows (was 0)
+[17:09:45] ✅ MEMBER.revenue_rank_in_industry :: 2154 of 2393 member rows (was 0)
+[17:09:45] ✅ MEMBER.margin_premium_vs_industry :: 2393 of 2393 member rows (was 0)
+── No regression on the leaderboard or ledger ──
+[17:09:45] ✅ NOREG.leaderboard :: 50 of 50
+[17:09:45] ✅ NOREG.ledger :: 2393 of 2393
+── Drill-down parity — same ticker, same number everywhere ──
+[17:09:45] ✅ PARITY.consistent :: 400 of 400 member rows match the ledger exactly
+── Sample drill-down ──
+[17:09:45]   Aluminum (4 scored)
+[17:09:45]      AA     crucial= 37.5  no standout leg
+[17:09:45]      CSTM   crucial= 23.9  no standout leg
+[17:09:45]      KALU   crucial= 21.8  no standout leg
+[17:09:45]      CENX   crucial=  9.0  no standout leg
+[17:09:45]   Department Stores (5 scored)
+[17:09:45]      PDD    crucial= 67.3  margins 20% above peers; R&D 8% above peers
+[17:09:45]      M      crucial= 29.9  no standout leg
+[17:09:45]      KSS    crucial= 22.3  no standout leg
+[17:09:45]      DDS    crucial= 19.6  no standout leg
+[17:09:45]   Luxury Goods (4 scored)
+[17:09:45]      TPR    crucial= 31.7  no standout leg
+[17:09:45]      REAL   crucial= 26.9  R&D 33% above peers
+[17:09:45]      SIG    crucial= 16.3  no standout leg
+[17:09:45]      CPRI   crucial= 14.7  no standout leg
 ── Additive ──
-[17:00:14] ✅ ADDITIVE.capture_gap :: preserved
-[17:00:14] ✅ ADDITIVE.revenue_share_pct :: preserved
-[17:00:14] ✅ ADDITIVE.catchup_pct :: preserved
-[17:00:14] ✅ ADDITIVE.criticality :: preserved
+[17:09:45] ✅ ADDITIVE.capture_gap :: member rows still carry it
+[17:09:45] ✅ ADDITIVE.revenue_share_pct :: member rows still carry it
+[17:09:45] ✅ ADDITIVE.catchup_pct :: member rows still carry it
+[17:09:45] ✅ ADDITIVE.growth_tier :: member rows still carry it
 ── VERDICT ──
-[17:00:14] ✗ FAILED: COPY.members
+[17:09:45] ✅ PASS_ALL — drill-downs now match the leaderboard
 
-→ Report written to aws/ops/reports/latest/3806_verify_structural_importance.md
-❌ OPS-FAIL: aws/ops/pending/ops_3806_verify_structural_importance.py
+→ Report written to aws/ops/reports/latest/3807_member_structural_importance.md
