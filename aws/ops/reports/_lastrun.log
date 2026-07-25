@@ -1,35 +1,19 @@
-executing-against: 55aeb35c3421efd8412786b8e5fcc136a6cce251
-ops 3865 — PROBE: donor to close 8 unresolved + is RORO 0/25 correct
-[16:41:29]   25 ranked tickers · 8 unresolved from ops 3863
-── 1. current donors — keep or drop ──
-[16:41:30] ✅   screener/data.json                      503 pairs · keep (15/25)
-[16:41:30] ✗   data/capital-flow-radar.json              0 pairs · DROP — contributes nothing
-[16:41:30] ✅   data/deep-value.json                     30 pairs · keep (2/25)
-[16:41:30] ✗   data/accumulation-radar.json              0 pairs · DROP — contributes nothing
-[16:41:30] ✅   data/asymmetric-scorer.json              43 pairs · keep (0/25)
-── 2. candidate donors — scored on the 8 that actually matter ──
-[16:41:30] ✅   data/universe.json                     5320 pairs · closes 8/8 ['BE', 'UMC', 'DFTX', 'OVV', 'HCC', 'ALHC', 'IPGP', 'CENX'] · 23h old
-[16:41:31] ✅   data/finviz-universe.json             11519 pairs · closes 8/8 ['BE', 'UMC', 'DFTX', 'OVV', 'HCC', 'ALHC', 'IPGP', 'CENX'] · 3h old
-[16:41:31] ✅   data/finviz-signals.json               3683 pairs · closes 5/8 ['BE', 'DFTX', 'OVV', 'ALHC', 'CENX'] · 3h old
-[16:41:32]   data/stock-xray.json                      0 pairs · closes 0/8 [] · 18h old
-[16:41:32]   data/finviz-groups.json                   0 pairs · closes 0/8 [] · 2h old
-[16:41:32]   data/short-book.json                      7 pairs · closes 0/8 [] · 19h old
-[16:41:32]   data/best-setups.json                    24 pairs · closes 0/8 [] · 1h old
-[16:41:32]   data/fundamental-census-matrix.json       0 pairs · closes 0/8 [] · 131h old
-── 3. recommended wiring ──
-[16:41:32] ✅   data/finviz-universe.json — closes 8/8 ['BE', 'UMC', 'DFTX', 'OVV', 'HCC', 'ALHC', 'IPGP', 'CENX']
-[16:41:32] ✅   data/universe.json — closes 8/8 ['BE', 'UMC', 'DFTX', 'OVV', 'HCC', 'ALHC', 'IPGP', 'CENX']
-[16:41:32] ✅   data/finviz-signals.json — closes 5/8 ['BE', 'DFTX', 'OVV', 'ALHC', 'CENX']
-── 4. is risk_regime 0/25 correct, or broken ──
-[16:41:32] ✅   score 2.5 sits in the engine's neutral band (-12, 12] — 0/25 is CORRECT, not a defect. Do not manufacture a tilt.
-── 5. do the resolved sectors even fall in RORO's tilt sets ──
-[16:41:32]   Energy                      7 tickers · HIGH_BETA
-[16:41:32]   Technology                  4 tickers · HIGH_BETA
-[16:41:32]   Financial Services          3 tickers · HIGH_BETA
-[16:41:32]   Real Estate                 1 tickers · DEFENSIVE
-[16:41:32]   Healthcare                  1 tickers · DEFENSIVE
-[16:41:32] ✗   Industrials                 1 tickers · NOT IN EITHER SET
-[16:41:32]   NOTE: RORO uses FinViz vocabulary (Consumer Cyclical / Financial Services). Any GICS-named sector lands outside both sets and is silently skipped — a vocabulary mismatch, not a data gap.
-[16:41:32] ✅ PROBE COMPLETE
+executing-against: 282bcb44ca937952ac2dab9d8e2eca9e6155a717
+ops 3866 — WIRE finviz-universe donor + gate on measured coverage
+── 1. BEFORE ──
+── 2. ZIP-SETTLE BY MARKER — never invoke the old artifact ──
+[16:46:03] ✅   new artifact live on attempt 1 (105,263 zip bytes)
+[16:46:03] ✅   State=Active LastUpdateStatus=Successful
+── 3. invoke (async — the ranker fans out across ~30 feeds) ──
+[16:46:23] ✅   artifact rewritten on attempt 1 (2026-07-25T16:46:10+00:00)
+── 4. AFTER — measured coverage ──
+[16:46:23] ✅   rotation coverage improved vs before
+[16:46:23] ✅   rotation tilt on >= 20/25
+[16:46:23] ✗   liquidity overlay tracks the same sector map
+[16:46:23] ✅   no row lost its tilt (no regression)
+── 5. honest note on what was deliberately NOT changed ──
+[16:46:23]   risk_regime_mult stays 0/25 by design: probe 3865 measured risk_regime_score = 2.5, inside the engine's neutral band (-12, 12]. A neutral regime SHOULD produce no tilt; forcing one would be a manufactured signal.
+[16:46:23] ✗ FAILED 1: ['liquidity overlay tracks the same sector map']
 
-→ Report written to aws/ops/reports/latest/3865_sector_donor_probe.md
+→ Report written to aws/ops/reports/latest/3866_ranker_sector_close.md
+❌ OPS-FAIL: aws/ops/pending/ops_3866_ranker_sector_close.py
