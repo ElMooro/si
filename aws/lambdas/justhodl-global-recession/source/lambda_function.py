@@ -58,7 +58,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.2.1"
+VERSION = "1.3.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/global-recession.json"
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
@@ -111,6 +111,19 @@ def clamp(v, lo, hi):
     return max(lo, min(hi, v))
 
 
+PORT_COUNTRY_ISO = {
+    "china": "CHN", "united states": "USA", "japan": "JPN", "germany": "DEU",
+    "india": "IND", "united kingdom": "GBR", "france": "FRA", "italy": "ITA",
+    "canada": "CAN", "brazil": "BRA", "south korea": "KOR", "korea": "KOR",
+    "australia": "AUS", "spain": "ESP", "mexico": "MEX", "indonesia": "IDN",
+    "netherlands": "NLD", "turkey": "TUR", "saudi arabia": "SAU",
+    "singapore": "SGP", "belgium": "BEL", "malaysia": "MYS", "thailand": "THA",
+    "vietnam": "VNM", "south africa": "ZAF", "poland": "POL", "sweden": "SWE",
+    "greece": "GRC", "portugal": "PRT", "chile": "CHL", "israel": "ISR",
+    "united arab emirates": "ARE", "egypt": "EGY", "philippines": "PHL",
+}
+
+
 def load_confirmation():
     """Independent hard-data legs to CONFIRM or CONTRADICT the equity-momentum
        phase labels. v1.1 let unconfirmed momentum drive ~70% of the global
@@ -132,6 +145,41 @@ def load_confirmation():
     except Exception:
         pass
     out["oecd_stale"] = stale
+
+    # ── HARD LEG 1: physical port throughput (probe ops 3838). Port volumes are
+    # a PHYSICAL measure — entirely independent of the equity-momentum phase
+    # labels, which is exactly what a confirmation leg has to be.
+    out["ports"] = {}
+    pw = read_feed("data/portwatch.json") or {}
+    agg = {}
+    for row in (pw.get("ports") or []):
+        if not isinstance(row, dict):
+            continue
+        iso = PORT_COUNTRY_ISO.get(str(row.get("country") or "").strip().lower())
+        y = row.get("yoy_pct")
+        if not iso or not isinstance(y, (int, float)):
+            continue
+        agg.setdefault(iso, []).append((y, row.get("z"), row.get("name")))
+    for iso, rows in agg.items():
+        ys = [r[0] for r in rows]
+        if len(ys) < 2:          # a single port is a facility, not an economy
+            continue
+        out["ports"][iso] = {
+            "n_ports": len(ys),
+            "median_yoy_pct": round(sorted(ys)[len(ys) // 2], 2),
+            "worst_port": min(rows, key=lambda r: r[0])[2],
+        }
+
+    # ── HARD LEG 2: China credit impulse — CHN is ~18% of world GDP and the
+    # single largest contributor to the headline, so it earns a dedicated leg.
+    out["credit"] = {}
+    cl = read_feed("data/china-liquidity.json") or {}
+    ci = cl.get("credit_impulse")
+    if isinstance(ci, dict):
+        v = ci.get("impulse_pct") or ci.get("value") or ci.get("latest")
+        if isinstance(v, (int, float)):
+            out["credit"]["CHN"] = {"credit_impulse": v,
+                                    "regime": cl.get("regime")}
     if not stale:
         for iso, row in (o.get("by_country") or {}).items():
             if isinstance(row, dict) and row.get("cli") is not None:
@@ -157,6 +205,25 @@ def confirm_country(iso, row, conf):
         return "DIVERGENT", {"source": "OECD CLI", "cli": cli,
                              "prior_cli": prior, "phase": o.get("phase"),
                              "note": "official CLI disagrees with the equity-momentum phase"}
+
+    # leg 1b — PHYSICAL port throughput (independent of equity momentum)
+    pr = conf["ports"].get(iso.upper())
+    if pr:
+        hard_weak = pr["median_yoy_pct"] < 0
+        state = "CONFIRMED" if deteriorating == hard_weak else "DIVERGENT"
+        return state, {"source": "port throughput (physical)",
+                       "n_ports": pr["n_ports"],
+                       "median_yoy_pct": pr["median_yoy_pct"],
+                       "worst_port": pr["worst_port"],
+                       "note": ("physical trade volume — fully independent of the "
+                                "equity-momentum phase label")}
+
+    # leg 1c — credit impulse (CHN)
+    cr = conf["credit"].get(iso.upper())
+    if cr:
+        hard_weak = cr["credit_impulse"] < 0
+        state = "CONFIRMED" if deteriorating == hard_weak else "DIVERGENT"
+        return state, {"source": "credit impulse", **cr}
 
     # leg 2 — FRED CCI/BCI supplement carried by the cycle engine (<=3mo)
     # ⚠ v1.2.1: a CCI/BCI index reads around 100. v1.2 accepted supplement_value
@@ -194,7 +261,11 @@ def country_probability(row):
 
     cli = row.get("cli_level")
     if isinstance(cli, (int, float)):
-        adj = clamp((100.0 - cli) * 1.1, -12, 12)
+        # ops 3838: this "CLI" is an equity-momentum composite, NOT an OECD CLI —
+        # live values run 60..140 (USA 120, and JPN yoy +63%), so a 100-centred
+        # linear term saturated the clamp on most countries. Scaled to the real
+        # dispersion so the modifier discriminates instead of pinning.
+        adj = clamp((100.0 - cli) * 0.35, -12, 12)
         terms["cli_level_adj"] = round(adj, 2)
         base += adj
 
@@ -364,6 +435,10 @@ def lambda_handler(event, context):
             "unconfirmed_share_of_global_pct": round(
                 100 * unconf_pp / global_p, 1) if global_p else None,
             "coverage_verdict": conf_verdict,
+            "hard_legs": ("port throughput (physical, portwatch) and the China "
+                          "credit impulse are independent of equity momentum; "
+                          "OECD CLI is used only when fresh, and FRED survey "
+                          "supplements only inside a plausible [50,150] range"),
             "why": ("The phase labels come from an equity-momentum composite, whose "
                     "best-known failure mode is firing in drawdowns that never become "
                     "recessions. Each country is checked against an INDEPENDENT hard "
@@ -388,7 +463,9 @@ def lambda_handler(event, context):
         "methodology": {
             "phase_base": PHASE_BASE,
             "modifiers": {
-                "cli_level": "(100 - CLI) x 1.8, clamped +/-18",
+                "cli_level": ("(100 - CLI) x 0.35, clamped +/-12 — scaled for an "
+                          "equity-momentum composite that runs 60..140, not a "
+                          "100-centred official CLI"),
                 "momentum_6m": "-(6m composite change) x 60, clamped +/-16",
                 "dist_200ma": "-(distance from 200d trend %) x 0.6, clamped +/-10",
             },
