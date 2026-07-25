@@ -1,0 +1,62 @@
+# ops 3846 — industry exposure per port
+
+**Status:** success  
+**Duration:** 61.3s  
+**Finished:** 2026-07-25T02:59:24+00:00  
+
+## Data
+
+| countries | industries | ports | ports_with_exposure |
+|---|---|---|---|
+| 16 | 16 | 89 | 35 |
+
+## Log
+## G0. import-canary must publish real shares_pct
+
+- `02:58:23` ✅   26/26 lines carry shares_pct
+- `02:58:23` ✅   baseline: 89 ports, 12 fields/row
+## 1. Deploy
+
+- `02:58:23`   zip: 91743 bytes
+## 1. Lambda
+
+- `02:58:23`   Lambda exists — updating
+- `02:58:26` ✅   ✓ updated justhodl-portwatch
+## 2. ZIP-SETTLE by marker
+
+- `02:58:36` ✅   settled after 10s
+## 3. Invoke
+
+- `02:59:24` ✅   invoked clean
+## 4. Verify the numbers are REAL, not invented
+
+- `02:59:24` ✅   port count preserved 89 -> 89
+- `02:59:24` ✅   no pre-existing port field removed lost=[]
+- `02:59:24` ✅   summary published err=
+- `02:59:24` ✅   exposure on >= 15 ports = 35/89
+- `02:59:24` ✅   industries covered >= 8 = 16
+- `02:59:24` ✅   exposure_pct reconciles to the stated arithmetic Shanghai Electrical Equipment: -50.7 x 42.6% = -21.6 vs published -21.6
+- `02:59:24` ✅   published shares all trace back to import-canary 85 distinct shares, all in feed=True
+- `02:59:24` ✅   limits ship on every available row 
+- `02:59:24`   ── sample: worst-hit ports and what they touch ──
+- `02:59:24`     Shanghai (China) yoy=-50.7%
+- `02:59:24`        Electrical Equipment     share  42.6% -> exposure -21.6%  [Lithium-ion batteries]
+- `02:59:24`        Electrical Equipment     share  32.4% -> exposure -16.43%  [Electric accumulators (batteries)]
+- `02:59:24`        Furnishings              share  21.2% -> exposure -10.75%  [Furniture]
+- `02:59:24`     Shanghai (Yangshan) (China) yoy=-47.7%
+- `02:59:24`        Electrical Equipment     share  42.6% -> exposure -20.32%  [Lithium-ion batteries]
+- `02:59:24`        Electrical Equipment     share  32.4% -> exposure -15.45%  [Electric accumulators (batteries)]
+- `02:59:24`        Furnishings              share  21.2% -> exposure -10.11%  [Furniture]
+- `02:59:24`     Ningbo (China) yoy=-31.8%
+- `02:59:24`        Electrical Equipment     share  42.6% -> exposure -13.55%  [Lithium-ion batteries]
+- `02:59:24`        Electrical Equipment     share  32.4% -> exposure -10.3%  [Electric accumulators (batteries)]
+- `02:59:24`        Furnishings              share  21.2% -> exposure -6.74%  [Furniture]
+- `02:59:24`     Shekou (Shenzhen) (China) yoy=-26.3%
+- `02:59:24`        Electrical Equipment     share  42.6% -> exposure -11.2%  [Lithium-ion batteries]
+- `02:59:24`        Electrical Equipment     share  32.4% -> exposure -8.52%  [Electric accumulators (batteries)]
+- `02:59:24`        Furnishings              share  21.2% -> exposure -5.58%  [Furniture]
+- `02:59:24`     Qingdao Port (China) yoy=-24.2%
+- `02:59:24`        Electrical Equipment     share  42.6% -> exposure -10.31%  [Lithium-ion batteries]
+- `02:59:24`        Electrical Equipment     share  32.4% -> exposure -7.84%  [Electric accumulators (batteries)]
+- `02:59:24`        Furnishings              share  21.2% -> exposure -5.13%  [Furniture]
+- `02:59:24` ✅ PASS_ALL 8/8
