@@ -1,0 +1,49 @@
+# ops 3844 — physical-trade.html live + portwatch untouched
+
+**Status:** success  
+**Duration:** 201.6s  
+**Finished:** 2026-07-25T02:46:07+00:00  
+
+## Data
+
+| divergent | in_nav | keys_missing | markers_missing | page_bytes |
+|---|---|---|---|---|
+| 5 | True | 0 | 0 | 13980 |
+
+## Log
+## 1. Served at the edge
+
+- `02:42:45`   attempt 1: HTTP Error 404: Not Found
+- `02:43:05`   attempt 2: HTTP Error 404: Not Found
+- `02:43:26`   attempt 3: HTTP Error 404: Not Found
+- `02:43:46`   attempt 4: HTTP Error 404: Not Found
+- `02:44:06`   attempt 5: HTTP Error 404: Not Found
+- `02:44:26`   attempt 6: HTTP Error 404: Not Found
+- `02:44:46`   attempt 7: HTTP Error 404: Not Found
+- `02:45:06`   attempt 8: HTTP Error 404: Not Found
+- `02:45:26`   attempt 9: HTTP Error 404: Not Found
+- `02:45:46`   attempt 10: HTTP Error 404: Not Found
+- `02:46:06` ✅   served on attempt 11 (13,980 bytes)
+## 2. portwatch.html must be UNTOUCHED
+
+- `02:46:06`   served portwatch.html = 8,605 bytes
+- `02:46:06`   repo copy 7,132 bytes · identical=False
+- `02:46:06` ✅   original page still serving its own title — untouched
+## 3. Field coverage vs BOTH live feeds
+
+- `02:46:07`   keys checked 18 · missing 0
+- `02:46:07` ✅   every non-waived feed key has a render path
+## 4. Structural markers
+
+- `02:46:07` ✅   divergence board
+- `02:46:07` ✅   country table
+- `02:46:07` ✅   chokepoints
+- `02:46:07` ✅   all ports
+- `02:46:07` ✅   coverage gaps
+- `02:46:07` ✅   limits shipped
+- `02:46:07` ✅   links to old page
+## 5. Nav (served manifest)
+
+- `02:46:07` ✅   listed under 'Macro & Liquidity'
+- `02:46:07` ✅   portwatch.html still listed under 'Macro & Liquidity'
+- `02:46:07` ✅ PASS_ALL — new desk live, original page untouched
