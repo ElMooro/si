@@ -169,6 +169,25 @@ table.flow-table tr:hover td{ background:var(--bg-elev) }
 .tag{ display:inline-block; padding:2px 7px; border-radius:4px; font-size:9.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; font-family:var(--font-mono) }
 .tag.smart{ background:rgba(250,204,21,.12); color:var(--accent) }
 .tag.dumb{ background:rgba(245,158,11,.12); color:var(--warn) }
+.tag.etf{ background:rgba(34,211,238,.12); color:var(--cyan) }
+.tag.stock{ background:rgba(217,70,239,.12); color:var(--magenta) }
+.jh-toolbar{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:12px 18px; border-bottom:1px solid var(--border-light); background:var(--bg-elev) }
+.jh-toolbar label{ font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); margin-right:5px }
+.jh-toolbar select{ background:var(--bg-sunken); border:1px solid var(--border-light); color:var(--text); font-family:var(--font-mono); font-size:11.5px; padding:5px 8px; border-radius:5px; cursor:pointer }
+.jh-toolbar select:hover{ border-color:var(--border-strong) }
+.jh-cadence{ display:inline-flex; border:1px solid var(--border-light); border-radius:6px; overflow:hidden }
+.jh-cadence button{ background:var(--bg-sunken); border:none; color:var(--text-muted); font-family:var(--font-mono); font-size:11px; font-weight:700; padding:6px 13px; cursor:pointer; letter-spacing:.03em }
+.jh-cadence button.active{ background:var(--accent); color:#000 }
+.jh-cadence button:not(.active):hover{ color:var(--text) }
+.jh-count{ font-size:10.5px; color:var(--text-muted); margin-left:auto }
+th.sortable{ cursor:pointer; user-select:none; white-space:nowrap }
+th.sortable:hover{ color:var(--text) }
+th.sortable .arrow{ opacity:.35; font-size:9px; margin-left:2px }
+th.sortable.sorted .arrow{ opacity:1; color:var(--accent) }
+.quad-badge{ font-weight:700; font-size:11px; white-space:nowrap }
+.jh-cell{ padding:8px 10px; border-radius:6px; font-family:var(--font-mono); font-size:10.5px; position:relative; overflow:hidden }
+.jh-cell .tk{ font-weight:700; font-size:12.5px; color:var(--text) }
+.jh-cell .fl{ font-size:11.5px; font-weight:700; margin-top:2px }
 
 .methodology{
   margin-top:24px; padding:14px 18px;
@@ -228,6 +247,77 @@ table.flow-table tr:hover td{ background:var(--bg-elev) }
   <div class="section" id="constituent-pressure-section" style="display:none">
     <h3>🔬 Cross-ETF Constituent Pressure <span class="sub">Stocks under aggregated institutional ETF flow pressure</span></h3>
     <div class="body" id="constituent-pressure-body" style="padding:0; max-height:50vh; overflow-y:auto"></div>
+  </div>
+
+  <!-- Buying / Selling Pressure — daily/weekly/monthly, stocks + ETFs unified -->
+  <div class="section" id="pressure-section" style="display:none">
+    <h3>💰 Buying &amp; Selling Pressure <span class="sub">Stocks + ETFs · implied flow via ETF holdings × aggregate flow</span></h3>
+    <div class="jh-toolbar">
+      <label>Cadence</label>
+      <div class="jh-cadence" id="pressure-cadence">
+        <button data-cad="daily">Daily</button>
+        <button data-cad="weekly" class="active">Weekly</button>
+        <button data-cad="monthly">Monthly</button>
+      </div>
+      <span class="jh-count" id="pressure-count"></span>
+    </div>
+    <div class="col-2" style="padding:14px 18px 4px">
+      <div>
+        <div style="font-size:11px;letter-spacing:1px;color:var(--pos);text-transform:uppercase;margin-bottom:6px">📈 Buying Pressure — Top 20</div>
+        <div id="buying-board"></div>
+      </div>
+      <div>
+        <div style="font-size:11px;letter-spacing:1px;color:var(--neg);text-transform:uppercase;margin-bottom:6px">📉 Selling Pressure — Top 20</div>
+        <div id="selling-board"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unified Inflow/Outflow Heatmap — Stocks + ETFs -->
+  <div class="section" id="unified-heatmap-section" style="display:none">
+    <h3>🔥 Inflow/Outflow Heatmap <span class="sub">Top 20 inflow + top 20 outflow, stocks &amp; ETFs together, at the cadence selected above</span></h3>
+    <div class="body"><div class="heatmap" id="unified-heatmap"></div></div>
+  </div>
+
+  <!-- Master Sortable Universe — every metric, every instrument, filterable -->
+  <div class="section" id="master-table-section" style="display:none">
+    <h3>📋 Master Universe <span class="sub">Click any column to sort · does price follow the flow?</span></h3>
+    <div class="jh-toolbar">
+      <label>Type</label>
+      <select id="flt-type">
+        <option value="ALL">All</option>
+        <option value="ETF">ETFs only</option>
+        <option value="STOCK">Stocks only</option>
+      </select>
+      <label>Sector</label>
+      <select id="flt-sector"><option value="ALL">All</option></select>
+      <label>Leveraged <span style="opacity:.5">(ETF)</span></label>
+      <select id="flt-leveraged">
+        <option value="ALL">All</option>
+        <option value="Y">Leveraged only</option>
+        <option value="N">Unleveraged only</option>
+      </select>
+      <label>Region</label>
+      <select id="flt-region">
+        <option value="ALL">All</option>
+        <option value="US">US</option>
+        <option value="Intl">International</option>
+        <option value="EM">Emerging Markets</option>
+        <option value="CN">China</option>
+        <option value="Global">Global</option>
+      </select>
+      <span class="jh-count" id="master-count"></span>
+    </div>
+    <div class="body" id="master-table" style="padding:0; max-height:65vh; overflow-y:auto">
+      <div class="empty"><span class="spinner"></span></div>
+    </div>
+    <div style="padding:8px 18px;font-size:10px;color:var(--text-muted);border-top:1px solid var(--border-light)">
+      ETF flow-z is a 90-day <b>time-series</b> z-score (this ETF vs its own history). Stock flow-z is a <b>cross-sectional</b>
+      z-score (this stock vs every other stock today) — the two are not directly comparable in magnitude, only in sign and
+      quadrant. Region: US/Intl/EM/China/Global are the platform's real fund-classification tags; for individual stocks this
+      is a simple US-vs-International split by domicile, not a Developed/Emerging/Pacific/Frontier classification — that
+      finer taxonomy only exists at the fund level. Leveraged applies to ETFs only; stocks show "—".
+    </div>
   </div>
 
   <!-- Sector Heatmap -->
@@ -538,11 +628,13 @@ function renderMacroRegime(doc){
 async function fetchConstituentPressure(){
   try {
     const r = await fetch(`${CDN}/etf-flows/constituent-pressure.json?v=${Date.now()}`);
-    if(!r.ok) return;
+    if(!r.ok) return null;
     const doc = await r.json();
     renderConstituentPressure(doc);
+    return doc;   // returned so load() can reuse this same fetch for the pressure/heatmap section
   } catch(e) {
     console.log("constituent fetch error:", e.message);
+    return null;
   }
 }
 
@@ -654,7 +746,7 @@ async function load() {
   // Fire AI + macro + constituent pressure in parallel
   fetchAI();
   fetchMacroRegime();
-  fetchConstituentPressure();
+  const cpPromise = fetchConstituentPressure();   // same fetch feeds both the existing panel and the new pressure/heatmap section below
 
   let daily, composite;
   try {
@@ -785,9 +877,225 @@ async function load() {
       <td class="num" style="color:var(--text-muted)" title="history points behind the 90d z (30+ required)">${m.n_history_points ?? '—'}</td>
     </tr>`).join('')}
   </tbody></table>`;
+
+  // Buying/selling pressure + unified heatmap + master table need BOTH daily
+  // (already in hand here) and constituent-pressure (fired at the top of
+  // load(), awaited now rather than re-fetched — same 2.4MB payload, one trip).
+  const cpDoc = await cpPromise;
+  if (cpDoc) renderPressureAndHeatmap(daily, cpDoc);
 }
 
 /* JH_FLOWS_DIVFIX_3853 */
+// ═══ Buying/Selling Pressure + Unified Heatmap + Master Sortable Table ═══
+/* JH_FLOWS_PRESSURE_3873 — daily/weekly/monthly buying+selling pressure boards,
+   unified stock+ETF heatmap, master sortable/filterable table (sector, region,
+   leveraged), flow-vs-price quadrant on every row */
+// One state object for the two views that share a cadence (boards + heatmap)
+// and the master table's independent sort/filter state.
+const jhState = { cadence: 'weekly', rows: [], sortKey: 'monthly', sortDir: 'desc' };
+const CADENCE_FIELD = { daily: 'daily', weekly: 'weekly', monthly: 'monthly' };
+const CADENCE_LABEL = { daily: 'Daily', weekly: 'Weekly (5d)', monthly: 'Monthly (21d)' };
+
+function quadrantMeta(q) {
+  switch(q) {
+    case 'STEALTH_ACCUMULATION': return { sym: '▲', color: 'var(--pos)', label: 'Stealth Accumulation' };
+    case 'TREND_CONFIRMED':      return { sym: '↑', color: 'var(--pos)', label: 'Trend Confirmed' };
+    case 'DISTRIBUTION_RALLY':   return { sym: '▼', color: 'var(--neg)', label: 'Distribution Rally' };
+    case 'CAPITULATION':         return { sym: '↓', color: 'var(--neg)', label: 'Capitulation' };
+    default:                     return { sym: '·', color: 'var(--text-muted)', label: 'Neutral' };
+  }
+}
+
+// Merge ETF rows (daily.json metrics — real time-series z, real region/leveraged
+// tags) with stock rows (constituent-pressure's full per_stock_exposure map, not
+// just the pre-sorted top 100 — using the full 2,247 so sector/region filters
+// have real breadth to work with) into one common shape.
+function buildUnifiedRows(daily, cpDoc) {
+  const etfRows = (daily.metrics || []).map(m => ({
+    type: 'ETF', ticker: m.ticker, name: (m.subcategory || '').replace(/_/g, ' ') || m.category || '',
+    sector: m.ref_sector || null, region: m.region || null, leveraged: !!m.leveraged,
+    daily: m.daily_flow_usd, weekly: m.flow_5d_usd, monthly: m.flow_21d_usd,
+    priceRet: m.ret_21d_pct, z: m.flow_zscore_90d, zKind: 'ts90d',
+    quadrant: m.quadrant || 'NEUTRAL',
+  }));
+  const per = (cpDoc && cpDoc.per_stock_exposure) || {};
+  const stockRows = Object.values(per).map(s => ({
+    type: 'STOCK', ticker: s.stock, name: s.name || '',
+    sector: s.sector || null,
+    region: s.country === 'US' ? 'US' : (s.country ? 'Intl' : null),
+    leveraged: null,   // not a meaningful concept for individual equities
+    daily: s.total_aggregate_flow_daily_usd, weekly: s.total_aggregate_flow_5d_usd,
+    monthly: s.total_aggregate_flow_21d_usd,
+    priceRet: s.perf_m_pct, z: s.flow_zscore_cross_sectional, zKind: 'xsec',
+    quadrant: s.quadrant || 'NEUTRAL',
+  }));
+  return etfRows.concat(stockRows);
+}
+
+// Generic ascending/descending sort — nulls always sort last regardless of
+// direction (so an empty cell never looks like "the smallest value").
+function sortRows(rows, key, dir) {
+  const mul = dir === 'asc' ? 1 : -1;
+  return [...rows].sort((a, b) => {
+    const av = a[key], bv = b[key];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (typeof av === 'string') return mul * av.localeCompare(bv);
+    if (av === bv) return 0;
+    return mul * (av > bv ? 1 : -1);
+  });
+}
+
+function applyFilters(rows) {
+  const type = $('flt-type')?.value || 'ALL';
+  const sector = $('flt-sector')?.value || 'ALL';
+  const lev = $('flt-leveraged')?.value || 'ALL';
+  const region = $('flt-region')?.value || 'ALL';
+  return rows.filter(r => {
+    if (type !== 'ALL' && r.type !== type) return false;
+    if (sector !== 'ALL' && r.sector !== sector) return false;
+    if (lev === 'Y' && r.leveraged !== true) return false;
+    if (lev === 'N' && r.leveraged !== false) return false;
+    if (region !== 'ALL' && r.region !== region) return false;
+    return true;
+  });
+}
+
+function populateSectorFilter(rows) {
+  const sectors = [...new Set(rows.map(r => r.sector).filter(Boolean))].sort();
+  const sel = $('flt-sector');
+  if (!sel) return;
+  for (const s of sectors) {
+    const opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    sel.appendChild(opt);
+  }
+}
+
+function renderPressureBoards() {
+  const field = CADENCE_FIELD[jhState.cadence];
+  const withVal = jhState.rows.filter(r => r[field] != null && r[field] !== 0);
+  const buying = withVal.filter(r => r[field] > 0).sort((a, b) => b[field] - a[field]).slice(0, 20);
+  const selling = withVal.filter(r => r[field] < 0).sort((a, b) => a[field] - b[field]).slice(0, 20);
+
+  const rowHtml = (r, positive) => {
+    const typeTag = r.type === 'ETF' ? '<span class="tag etf">ETF</span>' : '<span class="tag stock">STK</span>';
+    return `<tr>
+      <td>${typeTag}</td>
+      <td><a href="/why.html?ticker=${encodeURIComponent(r.ticker)}" style="color:var(--accent);text-decoration:none;font-weight:700">${esc(r.ticker)}</a></td>
+      <td style="color:var(--text-muted);font-size:10.5px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.name || '')}</td>
+      <td class="num ${positive ? 'pos' : 'neg'}"><b>${fmtUSD(r[field])}</b></td>
+    </tr>`;
+  };
+  const table = (rows, positive) => rows.length
+    ? `<table class="flow-table"><tbody>${rows.map(r => rowHtml(r, positive)).join('')}</tbody></table>`
+    : `<div class="empty" style="padding:20px">no ${positive ? 'buying' : 'selling'} pressure at this cadence</div>`;
+
+  $('buying-board').innerHTML = table(buying, true);
+  $('selling-board').innerHTML = table(selling, false);
+  $('pressure-count').textContent = `${CADENCE_LABEL[jhState.cadence]} · ${withVal.length.toLocaleString()} instruments with a nonzero flow`;
+  $('pressure-section').style.display = '';
+}
+
+function renderUnifiedHeatmap() {
+  const field = CADENCE_FIELD[jhState.cadence];
+  const withVal = jhState.rows.filter(r => r[field] != null && r[field] !== 0);
+  const inflow = withVal.filter(r => r[field] > 0).sort((a, b) => b[field] - a[field]).slice(0, 20);
+  const outflow = withVal.filter(r => r[field] < 0).sort((a, b) => a[field] - b[field]).slice(0, 20);
+  const maxAbs = Math.max(1, ...withVal.slice(0, 40).map(r => Math.abs(r[field])));
+
+  const cell = r => {
+    const intensity = Math.min(Math.abs(r[field]) / maxAbs, 1);
+    const bg = r[field] >= 0
+      ? `rgba(38,255,175,${0.10 + intensity * 0.35})`
+      : `rgba(239,68,68,${0.10 + intensity * 0.35})`;
+    const qm = quadrantMeta(r.quadrant);
+    return `<div class="jh-cell" style="background:${bg}" title="${esc(r.type)} · ${esc(r.sector || 'sector unknown')} · ${qm.label}">
+      <div class="tk">${esc(r.ticker)} <span style="font-size:8.5px;font-weight:400;color:var(--text-muted)">${r.type === 'ETF' ? 'ETF' : 'STK'}</span></div>
+      <div class="fl" style="color:${r[field] >= 0 ? 'var(--pos)' : 'var(--neg)'}">${fmtUSD(r[field])}</div>
+      <div style="color:${qm.color};font-size:10px;margin-top:2px">${qm.sym} ${esc(qm.label)}</div>
+    </div>`;
+  };
+  $('unified-heatmap').innerHTML = inflow.map(cell).join('') + outflow.map(cell).join('');
+  $('unified-heatmap-section').style.display = '';
+}
+
+function renderMasterTable() {
+  const filtered = applyFilters(jhState.rows);
+  const sorted = sortRows(filtered, jhState.sortKey, jhState.sortDir);
+  const total = sorted.length;
+  const shown = sorted.slice(0, 300);
+  $('master-count').textContent = total > 300
+    ? `showing top 300 of ${total.toLocaleString()} matching (sort/filter to narrow)`
+    : `${total.toLocaleString()} matching`;
+
+  const cols = [
+    ['type', 'Type'], ['ticker', 'Ticker'], ['name', 'Name'], ['sector', 'Sector'],
+    ['region', 'Region'], ['leveraged', 'Lev'], ['daily', 'Daily $'], ['weekly', 'Weekly $'],
+    ['monthly', 'Monthly $'], ['priceRet', '1mo Ret'], ['z', 'Flow Z'], ['quadrant', 'Quadrant'],
+  ];
+  const thead = `<thead><tr>${cols.map(([k, label]) => {
+    const isSorted = jhState.sortKey === k;
+    const arrow = isSorted ? (jhState.sortDir === 'asc' ? '▲' : '▼') : '▲▼';
+    return `<th class="sortable${isSorted ? ' sorted' : ''}" data-key="${k}">${esc(label)}<span class="arrow">${arrow}</span></th>`;
+  }).join('')}</tr></thead>`;
+
+  const tbody = shown.map(r => {
+    const qm = quadrantMeta(r.quadrant);
+    const typeTag = r.type === 'ETF' ? '<span class="tag etf">ETF</span>' : '<span class="tag stock">STK</span>';
+    const levDisp = r.leveraged === true ? 'Y' : r.leveraged === false ? 'N' : '—';
+    return `<tr>
+      <td>${typeTag}</td>
+      <td><a href="/why.html?ticker=${encodeURIComponent(r.ticker)}" style="color:var(--accent);text-decoration:none;font-weight:700">${esc(r.ticker)}</a></td>
+      <td style="color:var(--text-muted);font-size:11px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.name || '')}</td>
+      <td style="font-size:11px">${esc(r.sector || '—')}</td>
+      <td style="font-size:11px">${esc(r.region || '—')}</td>
+      <td style="text-align:center">${levDisp}</td>
+      <td class="num ${(r.daily || 0) > 0 ? 'pos' : 'neg'}">${fmtUSD(r.daily)}</td>
+      <td class="num ${(r.weekly || 0) > 0 ? 'pos' : 'neg'}">${fmtUSD(r.weekly)}</td>
+      <td class="num ${(r.monthly || 0) > 0 ? 'pos' : 'neg'}">${fmtUSD(r.monthly)}</td>
+      <td class="num ${(r.priceRet || 0) > 0 ? 'pos' : 'neg'}">${fmtPct(r.priceRet)}</td>
+      <td class="num" title="${r.zKind === 'ts90d' ? '90-day time-series z (vs own history)' : 'cross-sectional z (vs the whole stock universe today)'}">${fmtZ(r.z)}</td>
+      <td class="quad-badge" style="color:${qm.color}">${qm.sym} ${esc(qm.label)}</td>
+    </tr>`;
+  }).join('');
+
+  $('master-table').innerHTML = `<table class="flow-table">${thead}<tbody>${tbody || ''}</tbody></table>`;
+  if (!shown.length) $('master-table').innerHTML += '<div class="empty">no rows match these filters</div>';
+  $('master-table-section').style.display = '';
+
+  $('master-table').querySelectorAll('th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.key;
+      jhState.sortDir = (jhState.sortKey === key) ? (jhState.sortDir === 'asc' ? 'desc' : 'asc') : 'desc';
+      jhState.sortKey = key;
+      renderMasterTable();
+    });
+  });
+}
+
+function renderPressureAndHeatmap(daily, cpDoc) {
+  jhState.rows = buildUnifiedRows(daily, cpDoc);
+  populateSectorFilter(jhState.rows);
+  renderPressureBoards();
+  renderUnifiedHeatmap();
+  renderMasterTable();
+
+  document.querySelectorAll('#pressure-cadence button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#pressure-cadence button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      jhState.cadence = btn.dataset.cad;
+      renderPressureBoards();
+      renderUnifiedHeatmap();
+    });
+  });
+  ['flt-type', 'flt-sector', 'flt-leveraged', 'flt-region'].forEach(id => {
+    $(id)?.addEventListener('change', renderMasterTable);
+  });
+}
+
 function renderDivergence(b){
   if(!b || (!b.stealth_accumulation?.length && !b.distribution_rally?.length)) return;
   const col = (title, rows, pos) => {
