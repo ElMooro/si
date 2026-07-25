@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-macro-confluence",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "timeout": 120,
+  "memory": 512,
+  "handler": "lambda_function.lambda_handler",
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "layers": ["arn:aws:lambda:us-east-1:857687956942:layer:justhodl-core:1"],
+  "environment_keys": [],
+  "description": "Macro/sector-rotation confluence — missing sibling to 12 per-ticker confluence engines. Scores each sector on 4 independent families (stock-quadrant, sector posture, rotation-dashboard, rebalance-radar); flags 3+/4 agreement with evidence + Telegram alert.",
+  "schedule": {
+    "rule_name": "macro-confluence-daily",
+    "cron": "cron(15 22 * * ? *)",
+    "description": "Daily 22:15 UTC — 15 min after etf-fund-flows/rebalance-radar/sector-flow-state settle"
+  }
+}
