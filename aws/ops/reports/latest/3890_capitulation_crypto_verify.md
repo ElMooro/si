@@ -1,0 +1,42 @@
+# ops 3890 — verify SMH/many-names capitulation + crypto-leg claims, live
+
+**Status:** success  
+**Duration:** 1.6s  
+**Finished:** 2026-07-25T22:28:17+00:00  
+
+## Data
+
+| etf_quadrant_counts | evidence | rotation_risk_flag | severity | stock_quadrant_counts |
+|---|---|---|---|---|
+|  | ['Crypto leg 5d: $+0.49B (accelerating)'] | False | NONE |  |
+| {'NEUTRAL': 270, 'DISTRIBUTION_RALLY': 6, 'STEALTH_ACCUMULATION': 9, 'CAPITULATION': 5, 'TREND_CONFIRMED': 10} |  |  |  |  |
+|  |  |  |  | {'NEUTRAL': 2114, 'STEALTH_ACCUMULATION': 30, 'DISTRIBUTION_RALLY': 30, 'CAPITULATION': 59, 'TREND_CONFIRMED': 14} |
+
+## Log
+## 1. rebalance-radar — is crypto leg STILL accelerating (fresher than ops 3880's read)
+
+- `22:28:16` ✅   0.4h old, generated 2026-07-25T22:05:11+00:00
+- `22:28:16`   QTD proxies now: {"SPY": {"qtd_pct": -0.9, "d5_pct": -0.6}, "QQQ": {"qtd_pct": -5.6, "d5_pct": -1.6}, "SMH": {"qtd_pct": -9.6, "d5_pct": 0.8}, "IWM": {"qtd_pct": -2.7, "d5_pct": -1.0}, "TLT": {"qtd_pct": -2.7, "d5_pct": -1.5}, "AGG": {"qtd_pct": -1.1, "d5_pct": -0.8}, "GLD": {"qtd_pct": 0.4, "d5_pct": 0.9}, "BTCUSD": {"qtd_pct": 7.2, "d5_pct": -1.4}, "XLE": {"qtd_pct": 12.9, "d5_pct": 3.4}, "XLF": {"qtd_pct": 2.8, "d5_pct": 0.1}}
+## 2. daily.json — SMH/SOXX/XLK quadrant + z + return RIGHT NOW
+
+- `22:28:16` ✅   daily.json 0.5h old, generated 2026-07-25T22:00:25.482815+00:00
+- `22:28:16`   SMH    quadrant=CAPITULATION z90d=-1.5 ret21d=-9.45% ret5d=0.86% divergence_score=-1.24
+- `22:28:16`   SOXX   quadrant=NEUTRAL z90d=0.51 ret21d=-12.56% ret5d=1.1% divergence_score=0.47
+- `22:28:16`   XLK    quadrant=NEUTRAL z90d=0.03 ret21d=-3.91% ret5d=0.18% divergence_score=0.01
+- `22:28:16`   SOXL   quadrant=NEUTRAL z90d=0.17 ret21d=-54.87% ret5d=1.39% divergence_score=0.17
+- `22:28:16`   SOXS   quadrant=NEUTRAL z90d=-0.14 ret21d=1463.91% ret5d=-5.87% divergence_score=0.14
+## 3. WHOLE universe — precise count of CAPITULATION, ETF side
+
+- `22:28:16`   ETFs in CAPITULATION (5): ['DRV', 'INDA', 'NVDS', 'SMH', 'TSMX']
+- `22:28:16`   by sector/category: {'country': 1, 'Technology': 1, 'leveraged': 3}
+## 4. WHOLE universe — precise count of CAPITULATION, stock side
+
+- `22:28:17` ✅   constituent-pressure.json 4.6h old, 2247 stocks
+- `22:28:17`   stocks in CAPITULATION: 59 total
+- `22:28:17`   of which semis specifically: []
+- `22:28:17`   CAPITULATION by sector (top 8): [('Industrials', 14), ('Basic Materials', 13), ('Technology', 11), ('Energy', 8), ('Healthcare', 6), ('Financial', 4), ('Consumer Cyclical', 3)]
+- `22:28:17`   sample of NON-semi names also in CAPITULATION: ['HUT', 'RIOT', 'CMC', 'CORZ', 'DHI', 'PHM', 'LEN', 'QFIN', 'TEM', 'CRSP', 'BEAM', 'NTLA', 'ACHR', 'XE', 'RXRX']
+## 5. sector-flow-state — Technology posture right now
+
+- `22:28:17`   0.1h old · Technology: {"symbol": "XLK", "name": "Technology", "conviction": 38.9, "posture": "UNDERWEIGHT", "quadrant": "Weakening", "confluence": 2, "drivers": ["RS accelerating", "cycle-favored"], "rotation_score": 44.9, "rs_rank_1y": 81.7, "rs_slope": -0.2563, "flow_confirm": "NEUTRAL", "in_cycle": true, "dollar_flow_usd": 15384389912, "dollar_confirms": null}
+- `22:28:17` ✅ PROBE COMPLETE
