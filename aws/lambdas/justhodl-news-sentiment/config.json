@@ -12,8 +12,10 @@
     "ANTHROPIC_API_KEY"
   ],
   "inherit_env": {
-    "from_function": "justhodl-confluence-meta",
-    "keys": ["ANTHROPIC_API_KEY"]
+    "from_function": "justhodl-equity-research",
+    "keys": [
+      "ANTHROPIC_API_KEY"
+    ]
   },
   "layers": [],
   "reserved_concurrency": null,

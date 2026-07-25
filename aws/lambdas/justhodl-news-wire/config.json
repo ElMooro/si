@@ -19,8 +19,10 @@
     "TELEGRAM_CHAT_ID": "8678089260"
   },
   "inherit_env": {
-    "from_function": "justhodl-confluence-meta",
-    "keys": ["ANTHROPIC_API_KEY"]
+    "from_function": "justhodl-equity-research",
+    "keys": [
+      "ANTHROPIC_API_KEY"
+    ]
   },
   "schedule": {
     "rule_name": "news-wire-15m",
