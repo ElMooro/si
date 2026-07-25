@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Physical Trade Desk · JustHodl.AI</title>
+<meta name="jh-page-version" content="v1-ops3844">
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:13px}
+.tile .lbl{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px}
+.tile .val{font-size:23px;font-weight:800;margin:3px 0}
+.tile .note{font-size:11.5px;color:var(--text-mute)}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.p-pos{background:rgba(111,206,138,.14);color:var(--pos);border:1px solid rgba(111,206,138,.4)}
+.p-neg{background:rgba(224,122,106,.14);color:var(--neg);border:1px solid rgba(224,122,106,.4)}
+.p-acc{background:rgba(240,180,41,.14);color:var(--accent);border:1px solid rgba(240,180,41,.42)}
+.p-neu{background:rgba(232,232,232,.10);color:var(--neu);border:1px solid rgba(232,232,232,.28)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--text-mute);font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:8px 7px;border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap}
+td{padding:8px 7px;border-bottom:1px solid rgba(28,35,48,.6);white-space:nowrap}
+tr:hover td{background:rgba(240,180,41,.04)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.dim{color:var(--text-dim)}.mute{color:var(--text-mute)}
+.warn{background:rgba(224,122,106,.09);border:1px solid rgba(224,122,106,.34);border-radius:10px;padding:11px 13px;font-size:12.5px;color:var(--neg);margin:10px 0}
+.caveat{background:rgba(240,180,41,.07);border:1px solid rgba(240,180,41,.28);border-radius:10px;padding:11px 13px;font-size:12.5px;color:var(--text-dim);margin:10px 0}
+.div{background:var(--panel);border:1px solid rgba(240,180,41,.34);border-radius:11px;padding:13px;margin-bottom:10px}
+.div .h{font-size:16px;font-weight:700}
+.bar{height:8px;border-radius:4px;background:rgba(232,232,232,.08);overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%}
+.foot{font-size:11.5px;color:var(--text-mute);line-height:1.75}
+.foot li{margin-bottom:5px}
+a{color:var(--accent)}
+</style>
+</head>
+<body><div class="wrap">
+<h1>⚓ Physical Trade Desk</h1>
+<div class="sub">Port throughput as a <b>physical check on equity-derived cycle calls</b>. Where the ships disagree with the market, the disagreement is the signal. Companion to <a href="/portwatch.html">PortWatch Shipping Monitor</a>.</div>
+<div id="root"><div class="card dim">Loading…</div></div>
+</div>
+<script>
+const F=(n,d=1)=>n===null||n===undefined||isNaN(n)?'—':Number(n).toFixed(d);
+const P=(n,d=1)=>n===null||n===undefined||isNaN(n)?'—':(n>0?'+':'')+Number(n).toFixed(d)+'%';
+const esc=s=>String(s===null||s===undefined?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const cls=n=>n===null||n===undefined?'dim':n>0?'pos':n<0?'neg':'dim';
+const SC={CONFIRMED:'p-pos',DIVERGENT:'p-acc',UNCONFIRMED:'p-neu'};
+const PC={EXPANSION:'p-pos',RECOVERY:'p-neu',AT_RISK:'p-acc',RECESSION:'p-neg'};
+let PW=null,GBC=null,sortK='median_yoy_pct',sortD=1;
+
+Promise.all([
+ fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/portwatch.json?v='+Date.now(),{cache:'no-store'}).then(r=>r.json()),
+ fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json?v='+Date.now(),{cache:'no-store'}).then(r=>r.json())
+]).then(([a,b])=>{PW=a;GBC=b;render();})
+ .catch(e=>{document.getElementById('root').innerHTML='<div class="warn">Feed unavailable: '+esc(e.message)+'</div>';});
+
+function render(){
+  const pc=GBC.physical_confirmation||{},bc=GBC.by_country||{},cnt=pc.counts||{};
+  const ports=PW.ports||[],chokes=PW.chokepoints||[];
+  const disrupted=ports.filter(p=>String(p.status||'').toUpperCase()==='DISRUPTED');
+  let h='';
+
+  h+='<div class="grid">'
+   +'<div class="tile"><div class="lbl">Confirmed</div><div class="val pos">'+(cnt.CONFIRMED||0)+'</div><div class="note">ships agree with the cycle phase</div></div>'
+   +'<div class="tile"><div class="lbl">Divergent</div><div class="val" style="color:var(--accent)">'+(cnt.DIVERGENT||0)+'</div><div class="note">ships contradict the phase</div></div>'
+   +'<div class="tile"><div class="lbl">Unconfirmed</div><div class="val dim">'+(cnt.UNCONFIRMED||0)+'</div><div class="note">no port coverage</div></div>'
+   +'<div class="tile"><div class="lbl">Countries with ports</div><div class="val">'+(pc.countries_with_ports||0)+'</div><div class="note">≥2 ports required</div></div>'
+   +'<div class="tile"><div class="lbl">Ports tracked</div><div class="val">'+ports.length+'</div><div class="note">'+disrupted.length+' disrupted · '+chokes.length+' chokepoints</div></div>'
+   +'</div>';
+  h+='<div class="caveat"><b>Why this desk exists.</b> '+esc(pc.why||'')+'</div>';
+
+  // ── divergence board: the actual signal ──
+  const rows=Object.entries(bc).filter(([i,r])=>r&&r.physical).map(([iso,r])=>({iso,...r,...r.physical}));
+  const divs=rows.filter(r=>r.state==='DIVERGENT').sort((a,b)=>(a.median_yoy_pct||0)-(b.median_yoy_pct||0));
+  h+='<div class="sec">Divergence board — market says one thing, ships say another</div>';
+  if(!divs.length){h+='<div class="card dim">No divergences right now.</div>';}
+  divs.forEach(r=>{
+    h+='<div class="div"><div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center">'
+      +'<div><div class="h">'+esc(r.iso)+' <span class="dim" style="font-size:13px">'+esc(r.country_name||'')+'</span></div>'
+      +'<div class="mute" style="font-size:11px">'+esc(r.region||'')+' · GDP weight '+F(r.gdp_weight,1)+'</div></div>'
+      +'<div><div class="lbl mute" style="font-size:10px">EQUITY PHASE</div><span class="pill '+(PC[r.phase]||'p-neu')+'">'+esc(r.phase)+'</span></div>'
+      +'<div><div class="lbl mute" style="font-size:10px">PHYSICAL</div><span class="mono '+cls(r.median_yoy_pct)+'" style="font-size:16px;font-weight:700">'+P(r.median_yoy_pct)+'</span> <span class="small mute">median YoY, '+esc(r.n_ports)+' ports</span></div>'
+      +'<div><div class="lbl mute" style="font-size:10px">WORST PORT</div><span>'+esc(r.worst_port)+' '+P(r.min_yoy_pct)+'</span></div>'
+      +'</div></div>';
+  });
+
+  // ── full country table ──
+  h+='<div class="sec">All countries — phase vs physical</div>'
+   +'<div class="card" style="overflow-x:auto"><table><thead><tr>'
+   +[['iso','ISO'],['country_name','Country'],['region','Region'],['gdp_weight','GDP wt'],
+     ['phase','Equity phase'],['state','Physical'],['median_yoy_pct','Median YoY'],
+     ['min_yoy_pct','Worst YoY'],['n_ports','Ports'],['n_disrupted','Disrupted'],
+     ['worst_port','Worst port'],['cli_level','CLI']]
+     .map(c=>'<th onclick="sb(\''+c[0]+'\')">'+c[1]+'</th>').join('')
+   +'</tr></thead><tbody id="crows"></tbody></table></div>';
+
+  // ── chokepoints ──
+  h+='<div class="sec">Maritime chokepoints</div><div class="card" style="overflow-x:auto"><table><thead><tr>'
+   +'<th>Chokepoint</th><th>YoY</th><th>z</th><th>vs baseline</th><th>Status</th><th>Last</th></tr></thead><tbody>';
+  chokes.slice().sort((a,b)=>(a.yoy_pct||0)-(b.yoy_pct||0)).forEach(c=>{
+    h+='<tr><td><b>'+esc(c.name||c.id)+'</b></td>'
+      +'<td class="mono '+cls(c.yoy_pct)+'">'+P(c.yoy_pct)+'</td>'
+      +'<td class="mono '+cls(c.z)+'">'+F(c.z,2)+'</td>'
+      +'<td class="mono '+cls(c.vs_baseline_pct)+'">'+P(c.vs_baseline_pct)+'</td>'
+      +'<td>'+(String(c.status||'').toUpperCase()==='DISRUPTED'?'<span class="pill p-neg">DISRUPTED</span>':'<span class="pill p-neu">'+esc(c.status||'—')+'</span>')+'</td>'
+      +'<td class="mute mono">'+esc(c.last_date||'')+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+
+  // ── every port ──
+  h+='<div class="sec">All ports ('+ports.length+')</div><div class="card" style="overflow-x:auto"><table><thead><tr>'
+   +'<th>Port</th><th>Country</th><th>YoY</th><th>z</th><th>vs baseline</th><th>7d avg</th><th>prev 30d</th><th>1y base</th><th>obs</th><th>Status</th><th>Last</th></tr></thead><tbody>';
+  ports.slice().sort((a,b)=>(a.yoy_pct||0)-(b.yoy_pct||0)).forEach(p=>{
+    h+='<tr><td><b>'+esc(p.name)+'</b><div class="small mute">'+esc(p.id)+'</div></td>'
+      +'<td class="dim">'+esc(p.country)+'</td>'
+      +'<td class="mono '+cls(p.yoy_pct)+'">'+P(p.yoy_pct)+'</td>'
+      +'<td class="mono '+cls(p.z)+'">'+F(p.z,2)+'</td>'
+      +'<td class="mono '+cls(p.vs_baseline_pct)+'">'+P(p.vs_baseline_pct)+'</td>'
+      +'<td class="mono">'+F(p.latest_7d_avg,1)+'</td><td class="mono">'+F(p.prev_30d_avg,1)+'</td>'
+      +'<td class="mono">'+F(p.baseline_1y,1)+'</td><td class="mono mute">'+esc(p.n_days)+'d</td>'
+      +'<td>'+(String(p.status||'').toUpperCase()==='DISRUPTED'?'<span class="pill p-neg">DISRUPTED</span>':'<span class="pill p-neu">'+esc(p.status||'—')+'</span>')+'</td>'
+      +'<td class="mute mono">'+esc(p.last_date||'')+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+
+  // ── coverage gaps, visible ──
+  const un=pc.unmapped_port_countries||{};
+  if(Object.keys(un).length){
+    h+='<div class="sec">Coverage gaps — ports outside the cycle universe</div><div class="card">'
+     +'<div class="foot" style="margin-bottom:8px">Published rather than silently dropped. These ports carry data but their country is not in the 34-economy cycle universe, so they cannot confirm a phase.</div>'
+     +'<table><thead><tr><th>Country (as the port feed spells it)</th><th>Ports</th></tr></thead><tbody>';
+    Object.entries(un).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{
+      h+='<tr><td>'+esc(k)+'</td><td class="mono">'+v+'</td></tr>';});
+    h+='</tbody></table></div>';
+  }
+
+  h+='<div class="sec">Method &amp; limits</div><div class="card">'
+   +'<div class="foot"><b>Method.</b> '+esc(pc.method||'')+'</div>'
+   +'<div class="caveat" style="margin-top:10px"><b>Limits.</b> '+esc(pc.limits||'')+'</div>'
+   +'<div class="foot" style="margin-top:10px">Sources: '+esc(pc.source||'data/portwatch.json')
+   +' (generated '+esc(pc.portwatch_generated_at||PW.generated_at)+') joined to data/global-business-cycle.json (generated '+esc(GBC.generated_at)+').'
+   +(PW.attribution?'<br>'+esc(typeof PW.attribution==='string'?PW.attribution:JSON.stringify(PW.attribution)):'')+'</div></div>';
+
+  document.getElementById('root').innerHTML=h;
+  crows(rows);
+}
+
+function sb(k){sortD=(sortK===k)?-sortD:1;sortK=k;crows(null);}
+function crows(rows){
+  if(rows) window._R=rows;
+  const list=(window._R||[]).slice().sort((a,b)=>{
+    const x=a[sortK],y=b[sortK];
+    if(x===null||x===undefined)return 1;if(y===null||y===undefined)return -1;
+    return (typeof x==='string'?x.localeCompare(y):x-y)*sortD;});
+  document.getElementById('crows').innerHTML=list.map(r=>
+    '<tr><td><b>'+esc(r.iso)+'</b></td><td class="dim">'+esc(r.country_name||'')+'</td>'
+    +'<td class="small dim">'+esc(r.region||'')+'</td><td class="mono">'+F(r.gdp_weight,1)+'</td>'
+    +'<td><span class="pill '+(PC[r.phase]||'p-neu')+'">'+esc(r.phase)+'</span></td>'
+    +'<td><span class="pill '+(SC[r.state]||'p-neu')+'">'+esc(r.state)+'</span></td>'
+    +'<td class="mono '+cls(r.median_yoy_pct)+'">'+P(r.median_yoy_pct)+'</td>'
+    +'<td class="mono '+cls(r.min_yoy_pct)+'">'+P(r.min_yoy_pct)+'</td>'
+    +'<td class="mono">'+(r.n_ports??'—')+'</td>'
+    +'<td class="mono '+((r.n_disrupted||0)>0?'neg':'dim')+'">'+(r.n_disrupted??'—')+'</td>'
+    +'<td class="dim">'+esc(r.worst_port||'')+'</td>'
+    +'<td class="mono">'+F(r.cli_level,1)+'</td></tr>').join('');
+}
+</script></body></html>
