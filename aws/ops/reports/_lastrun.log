@@ -1,36 +1,37 @@
-executing-against: 5ead863c308ab37ffeca8e3914a26a31ebf056bb
-ops 3847 — industry exposure rendered + portwatch untouched
+executing-against: df3932731a5d872d0fd7db5e2e12514cfad4eea2
+ops 3848 — industry exposure rendered + portwatch untouched
 ── 1. Served at the edge ──
-[03:07:53]   attempt 1: 13,980 bytes, marker absent
-[03:08:13]   attempt 2: 13,980 bytes, marker absent
-[03:08:34]   attempt 3: 13,980 bytes, marker absent
-[03:08:54]   attempt 4: 13,980 bytes, marker absent
-[03:09:14]   attempt 5: 13,980 bytes, marker absent
-[03:09:34]   attempt 6: 13,980 bytes, marker absent
-[03:09:54] ✅   served on attempt 7 (18,741 bytes)
+[03:13:18]   attempt 1: 18,741 bytes, marker absent
+[03:13:38]   attempt 2: 18,741 bytes, marker absent
+[03:13:58]   attempt 3: 18,741 bytes, marker absent
+[03:14:18]   attempt 4: 18,741 bytes, marker absent
+[03:14:38]   attempt 5: 18,741 bytes, marker absent
+[03:14:58]   attempt 6: 18,741 bytes, marker absent
+[03:15:18]   attempt 7: 18,741 bytes, marker absent
+[03:15:38]   attempt 8: 18,741 bytes, marker absent
+[03:15:58] ✅   served on attempt 9 (19,621 bytes)
 ── 2. portwatch.html must be UNTOUCHED ──
-[03:09:54]   served portwatch.html = 8,606 bytes
-[03:09:54]   repo copy 7,132 bytes · identical=False
-[03:09:54] ✅   original page still serving its own title — untouched
+[03:15:58]   served portwatch.html = 8,606 bytes
+[03:15:58]   repo copy 7,132 bytes · identical=False
+[03:15:58] ✅   original page still serving its own title — untouched
 ── 3. Field coverage vs BOTH live feeds ──
-[03:09:54]   keys checked 32 · missing 3
-[03:09:54] ✗   NO RENDER PATH: ['n_industries', 'port_yoy_pct', 'top_industry']
+[03:15:58]   keys checked 32 · missing 0
+[03:15:58] ✅   every non-waived feed key has a render path
 ── 4. Structural markers ──
-[03:09:54] ✅   industry rollup
-[03:09:54] ✅   per-port breakdown
-[03:09:54] ✅   not-a-prediction framing
-[03:09:54] ✅   coverage stated
-[03:09:54] ✅   divergence board
-[03:09:54] ✅   country table
-[03:09:54] ✅   chokepoints
-[03:09:54] ✅   all ports
-[03:09:54] ✅   coverage gaps
-[03:09:54] ✅   limits shipped
-[03:09:54] ✅   links to old page
+[03:15:58] ✅   industry rollup
+[03:15:58] ✅   per-port breakdown
+[03:15:58] ✅   not-a-prediction framing
+[03:15:58] ✅   coverage stated
+[03:15:58] ✅   divergence board
+[03:15:58] ✅   country table
+[03:15:58] ✅   chokepoints
+[03:15:58] ✅   all ports
+[03:15:58] ✅   coverage gaps
+[03:15:58] ✅   limits shipped
+[03:15:58] ✅   links to old page
 ── 5. Nav (served manifest) ──
-[03:09:54] ✅   listed under 'Macro & Liquidity'
-[03:09:54] ✅   portwatch.html still listed under 'Macro & Liquidity'
-[03:09:54] ✗ FAILED — keys ['n_industries', 'port_yoy_pct', 'top_industry'] · markers []
+[03:15:59] ✅   listed under 'Macro & Liquidity'
+[03:15:59] ✅   portwatch.html still listed under 'Macro & Liquidity'
+[03:15:59] ✅ PASS_ALL — new desk live, original page untouched
 
-→ Report written to aws/ops/reports/latest/3847_industry_page.md
-❌ OPS-FAIL: aws/ops/pending/ops_3847_industry_page.py
+→ Report written to aws/ops/reports/latest/3848_industry_page.md

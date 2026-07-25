@@ -1,0 +1,51 @@
+# ops 3848 — industry exposure rendered + portwatch untouched
+
+**Status:** success  
+**Duration:** 160.6s  
+**Finished:** 2026-07-25T03:15:59+00:00  
+
+## Data
+
+| divergent | in_nav | keys_missing | markers_missing | page_bytes |
+|---|---|---|---|---|
+| 5 | True | 0 | 0 | 19621 |
+
+## Log
+## 1. Served at the edge
+
+- `03:13:18`   attempt 1: 18,741 bytes, marker absent
+- `03:13:38`   attempt 2: 18,741 bytes, marker absent
+- `03:13:58`   attempt 3: 18,741 bytes, marker absent
+- `03:14:18`   attempt 4: 18,741 bytes, marker absent
+- `03:14:38`   attempt 5: 18,741 bytes, marker absent
+- `03:14:58`   attempt 6: 18,741 bytes, marker absent
+- `03:15:18`   attempt 7: 18,741 bytes, marker absent
+- `03:15:38`   attempt 8: 18,741 bytes, marker absent
+- `03:15:58` ✅   served on attempt 9 (19,621 bytes)
+## 2. portwatch.html must be UNTOUCHED
+
+- `03:15:58`   served portwatch.html = 8,606 bytes
+- `03:15:58`   repo copy 7,132 bytes · identical=False
+- `03:15:58` ✅   original page still serving its own title — untouched
+## 3. Field coverage vs BOTH live feeds
+
+- `03:15:58`   keys checked 32 · missing 0
+- `03:15:58` ✅   every non-waived feed key has a render path
+## 4. Structural markers
+
+- `03:15:58` ✅   industry rollup
+- `03:15:58` ✅   per-port breakdown
+- `03:15:58` ✅   not-a-prediction framing
+- `03:15:58` ✅   coverage stated
+- `03:15:58` ✅   divergence board
+- `03:15:58` ✅   country table
+- `03:15:58` ✅   chokepoints
+- `03:15:58` ✅   all ports
+- `03:15:58` ✅   coverage gaps
+- `03:15:58` ✅   limits shipped
+- `03:15:58` ✅   links to old page
+## 5. Nav (served manifest)
+
+- `03:15:59` ✅   listed under 'Macro & Liquidity'
+- `03:15:59` ✅   portwatch.html still listed under 'Macro & Liquidity'
+- `03:15:59` ✅ PASS_ALL — new desk live, original page untouched
