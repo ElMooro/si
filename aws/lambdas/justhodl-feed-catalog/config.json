@@ -3,11 +3,16 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory": 1024,
-  "timeout": 300,
+  "memory": 2048,
+  "timeout": 840,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "layers": ["arn:aws:lambda:us-east-1:857687956942:layer:justhodl-core:1"],
   "environment_keys": [],
-  "description": "Arch #5 — Feed Catalog + JSON Schemas. Generates data/feed-catalog.json daily: every feed with size, last-modified, inferred JSON schema, writer Lambdas, cadences, stale-days. Scheduled daily-eve via the scheduler manifest."
+  "description": "Arch #5 — Feed Catalog + JSON Schemas. Catalogs every feed (data/, etf-flows/, screener/, sentiment/, macro/, config/): size, last-modified, inferred schema (by-recency sample, cap 4000), writers (via engine-manifest.json), cadences, stale-days.",
+  "schedule": {
+    "rule_name": "feed-catalog-daily",
+    "cron": "cron(15 6 * * ? *)",
+    "description": "Daily 06:15 UTC — explicit, auditable EventBridge rule (ops 3886: the prior 'scheduled via scheduler manifest' claim was unverifiable from any workflow or config, matching the fleet's declared-vs-live pattern; this replaces it with the same kind of rule every other scheduled engine uses)"
+  }
 }

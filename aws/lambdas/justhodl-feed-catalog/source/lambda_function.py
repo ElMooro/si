@@ -28,26 +28,33 @@ from jhcore import s3io, notify
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
-DATA_PREFIX = "data/"
+# ops 3886: was DATA_PREFIX = "data/" alone, which structurally excluded every
+# feed under etf-flows/, screener/, sentiment/, macro/ (e.g. this whole arc's
+# own etf-flows/daily.json + constituent-pressure.json never appeared here).
+# Same prefix set now used in scripts/gen_engine_manifest.py, kept consistent.
+DATA_PREFIXES = ("data/", "etf-flows/", "screener/", "sentiment/", "macro/", "config/")
 
 _s3 = boto3.client("s3", region_name=REGION)
 _lam = boto3.client("lambda", region_name=REGION)
 
 
 def list_data_keys():
-    """All JSON-like keys under data/."""
+    """All JSON-like keys under every known top-level feed prefix."""
     keys = []
-    paginator = _s3.get_paginator("list_objects_v2")
-    for page in paginator.paginate(Bucket=BUCKET, Prefix=DATA_PREFIX):
-        for o in page.get("Contents", []) or []:
-            k = o["Key"]
-            if k.endswith("/") or k.endswith(".tmp"):
-                continue
-            keys.append({
-                "key": k,
-                "size": o["Size"],
-                "last_modified": o["LastModified"].isoformat(),
-            })
+    seen = set()
+    for prefix in DATA_PREFIXES:
+        paginator = _s3.get_paginator("list_objects_v2")
+        for page in paginator.paginate(Bucket=BUCKET, Prefix=prefix):
+            for o in page.get("Contents", []) or []:
+                k = o["Key"]
+                if k.endswith("/") or k.endswith(".tmp") or k in seen:
+                    continue
+                seen.add(k)
+                keys.append({
+                    "key": k,
+                    "size": o["Size"],
+                    "last_modified": o["LastModified"].isoformat(),
+                })
     return keys
 
 
@@ -100,7 +107,7 @@ def fetch_schema_for(key):
 def writer_map_from_lambdas():
     """Scan Lambda env vars / descriptions for hints about which S3 keys they write.
     Best-effort: looks for justhodl-* and jhk-* Lambdas, builds a map of name -> [keys mentioned].
-    """
+    Weaker fallback source — see writer_map_from_engine_manifest() for the primary one."""
     writers = {}  # key -> [lambda names]
     paginator = _lam.get_paginator("list_functions")
     for page in paginator.paginate():
@@ -109,10 +116,30 @@ def writer_map_from_lambdas():
             if not (name.startswith("justhodl") or name.startswith("jhk")):
                 continue
             desc = fn.get("Description", "") or ""
-            # Look for data/*.json patterns in description
-            mentioned = re.findall(r"data/[a-zA-Z0-9_\-./]+\.json", desc)
+            mentioned = re.findall(
+                r"(?:data|etf-flows|screener|sentiment|macro|config)/[a-zA-Z0-9_\-./]+\.json", desc)
             for m in mentioned:
                 writers.setdefault(m, []).append(name)
+    return writers
+
+
+def writer_map_from_engine_manifest():
+    """Primary writer-attribution source (ops 3886): engine-manifest.json is
+    regenerated fresh on every ops run via a windowed put_object(/.put_json(
+    source scan (79.1% fleet coverage, up from 50.3%) — a real static-analysis
+    result, not a hopeful regex over a Lambda's free-text Description field.
+    Reads the S3 copy (always current) rather than a repo checkout."""
+    writers = {}
+    try:
+        manifest = s3io.get_json("data/engine-manifest.json", default=None)
+        if not manifest:
+            return writers
+        for e in manifest.get("engines", []):
+            fn_name = e.get("engine")
+            for k in (e.get("keys") or []):
+                writers.setdefault(k, []).append(fn_name)
+    except Exception as ex:
+        print(f"[feed-catalog] engine-manifest writer source unavailable: {str(ex)[:120]}")
     return writers
 
 
@@ -130,13 +157,18 @@ def lambda_handler(event=None, context=None):
     print("[feed-catalog] starting")
 
     keys = list_data_keys()
-    print(f"[feed-catalog] {len(keys)} keys under data/")
+    print(f"[feed-catalog] {len(keys)} keys across {len(DATA_PREFIXES)} prefixes")
+
+    def _strip_prefix(key):
+        for p in DATA_PREFIXES:
+            if key.startswith(p):
+                return key[len(p):]
+        return key
 
     # Filter for top-level data feeds (skip noisy subdirs like interpretations/_summary etc)
     feeds = []
     for k in keys:
-        # Only the catalog top-level feeds for now (one slash deep)
-        rel = k["key"][len(DATA_PREFIX):]
+        rel = _strip_prefix(k["key"])
         if "/" in rel:
             # one-level-nested ok (e.g. interpretations/yield-curve.json)
             if rel.count("/") > 1:
@@ -145,19 +177,40 @@ def lambda_handler(event=None, context=None):
             continue
         feeds.append(k)
 
-    # Parallel schema inference (capped to keep Lambda fast)
+    # ops 3886: schema sampling was capped at feeds[:300] with NO priority —
+    # S3 list_objects_v2 returns lexicographic order, so only feeds starting
+    # with an early letter ever got sampled. That's exactly why
+    # data/rebalance-radar.json ('r') and data/earnings-tracker.json ('e')
+    # both showed "_reason": "not sampled" investigating the semi flow/price
+    # divergence. Fix: sample by RECENCY (most-recently-touched first — a
+    # real priority signal, not an alphabet accident), raise the cap, and
+    # widen the worker pool. Config timeout/memory bumped to match.
+    SAMPLE_CAP = 4000
+    feeds_by_recency = sorted(feeds, key=lambda f: f["last_modified"], reverse=True)
     schemas = {}
-    with ThreadPoolExecutor(max_workers=8) as ex:
-        future_map = {ex.submit(fetch_schema_for, f["key"]): f["key"] for f in feeds[:300]}
+    with ThreadPoolExecutor(max_workers=24) as ex:
+        future_map = {ex.submit(fetch_schema_for, f["key"]): f["key"]
+                      for f in feeds_by_recency[:SAMPLE_CAP]}
         for fut in as_completed(future_map):
             k = future_map[fut]
             try:
                 schemas[k] = fut.result()
             except Exception as e:
                 schemas[k] = {"_inferable": False, "_reason": str(e)[:120]}
+    print(f"[feed-catalog] sampled {len(schemas)}/{len(feeds)} feeds "
+          f"(cap={SAMPLE_CAP}, by-recency)")
 
-    # Writer hints
-    writers = writer_map_from_lambdas()
+    # Writer hints — engine-manifest.json (real source-scan, 79.1% coverage)
+    # is primary; the weaker description-text heuristic fills any remaining gaps.
+    writers_primary = writer_map_from_engine_manifest()
+    writers_fallback = writer_map_from_lambdas()
+    writers = {k: v for k, v in writers_primary.items()}
+    for k, v in writers_fallback.items():
+        for name in v:
+            if name not in writers.get(k, []):
+                writers.setdefault(k, []).append(name)
+    print(f"[feed-catalog] writers: {len(writers_primary)} keys from engine-manifest, "
+          f"{len(writers_fallback)} keys from description-scan, {len(writers)} keys total")
 
     # Cadence map (read schedule-manifest.json)
     manifest = s3io.get_json("config/schedule-manifest.json", default={})
@@ -167,7 +220,7 @@ def lambda_handler(event=None, context=None):
     catalog_entries = []
     for f in feeds:
         k = f["key"]
-        rel = k[len(DATA_PREFIX):]
+        rel = _strip_prefix(k)
         writers_for_key = writers.get(k, [])
         # Best cadence: most-specific writer cadence
         cadences = sorted(set(fn_cadence.get(fn) for fn in writers_for_key if fn_cadence.get(fn)))

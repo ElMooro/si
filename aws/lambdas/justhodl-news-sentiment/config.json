@@ -9,8 +9,12 @@
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "environment_keys": [
-    "ANTHROPIC_KEY"
+    "ANTHROPIC_API_KEY"
   ],
+  "inherit_env": {
+    "from_function": "justhodl-confluence-meta",
+    "keys": ["ANTHROPIC_API_KEY"]
+  },
   "layers": [],
   "reserved_concurrency": null,
   "function_url": {

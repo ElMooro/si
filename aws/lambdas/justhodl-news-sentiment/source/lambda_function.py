@@ -45,7 +45,7 @@ import boto3
 
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 FMP_BASE = "https://financialmodelingprep.com/stable"
-ANTHROPIC_KEY = os.environ.get("ANTHROPIC_KEY", "")
+ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 S3_BUCKET = "justhodl-dashboard-live"
 SCREENER_KEY = "screener/data.json"
 SENTIMENT_KEY = "sentiment/data.json"
