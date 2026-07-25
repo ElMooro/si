@@ -193,7 +193,7 @@ table.flow-table tr:hover td{ background:var(--bg-elev) }
 <main class="page">
 
   <h1>💰 ETF Capital Flow Intelligence</h1>
-  <p class="subtitle">Daily institutional fund-flow tracking on 84 tagged ETFs. AI Flow Strategist synthesizes flows × equity research × EDGAR insiders × crisis KB regime into decisive trade calls with conviction grades, signal alignment, and risk parameters. Data: Polygon ETF Global ($99/mo) + Claude Sonnet 4.6.</p>
+  <p class="subtitle">Daily institutional fund-flow tracking on <span id="universe-count-2">…</span> tagged ETFs. AI Flow Strategist synthesizes flows × equity research × EDGAR insiders × crisis KB regime into decisive trade calls with conviction grades, signal alignment, and risk parameters. Data: Polygon ETF Global ($99/mo) + Claude Sonnet 4.6.</p>
   <div class="meta-bar" id="meta-bar">⏳ Loading…</div>
 
   <!-- ═══════════════════════════════════════════════════════════════
@@ -316,7 +316,12 @@ function labelClass(label) {
 function renderAINote(doc){
   const a = doc.analysis || {};
   const inSummary = doc.input_summary || {};
-  $("ai-meta").innerHTML = `${esc(doc.model || 'Sonnet 4.6')} · generated ${esc(doc.generated_at?.slice(0,16).replace('T',' '))} UTC · ${doc.elapsed_s}s · cross-feed: ${inSummary.n_research || 0}R × ${inSummary.n_critiques || 0}C × ${inSummary.n_edgar || 0}E × ${inSummary.n_etfs_with_data || 0}ETF`;
+  const rag = doc.regime_at_generation || {};
+  const ragBits = Object.entries(rag)
+    .filter(([, v]) => v != null && typeof v !== 'object')
+    .map(([k, v]) => `${esc(k.replace(/_/g, ' '))} <b>${esc(v)}</b>`).join(' · ');
+  $("ai-meta").innerHTML = `${esc(doc.model || 'Sonnet 4.6')} · generated ${esc(doc.generated_at?.slice(0,16).replace('T',' '))} UTC · ${doc.elapsed_s}s · cross-feed: ${inSummary.n_research || 0}R × ${inSummary.n_critiques || 0}C × ${inSummary.n_edgar || 0}E × ${inSummary.n_etfs_with_data || 0}ETF`
+    + (ragBits ? `<div style="margin-top:4px;font-size:10.5px;color:var(--text-muted)" title="regime state the model was reasoning in — read its call against this, not today's tape">regime at generation: ${ragBits}</div>` : '');
 
   let body = '';
 
@@ -549,6 +554,7 @@ function renderConstituentPressure(doc){
     <div style="padding:14px 18px; background:var(--bg-elev); border-bottom:1px solid var(--border-light); font-size:11.5px; color:var(--text-muted); line-height:1.7">
       <b style="color:var(--accent)">What this shows:</b> When a stock appears in multiple high-z ETFs, we sum the implied flow pressure (ETF flow × constituent weight) to estimate institutional positioning via index channels.
       <br><b style="color:var(--accent)">Today:</b> ${doc.n_etfs_high_z} of ${doc.n_etfs_total} ETFs cleared the |z|≥${doc.threshold_z}σ threshold, exposing ${doc.n_stocks_with_exposure} unique stocks (${doc.n_etfs_fetched} holdings sets fetched).
+      ${(doc.high_z_etfs || []).length ? `<div style="margin-top:6px">Cleared: ${(doc.high_z_etfs || []).map(e => { const tk = typeof e === 'string' ? e : (e.ticker || e.etf || ''); const z = typeof e === 'object' ? (e.flow_zscore_90d ?? e.etf_zscore ?? e.zscore) : null; return `<span style="display:inline-block;margin:2px 4px 2px 0;padding:2px 7px;border:1px solid var(--border-light);border-radius:3px;font-size:10.5px"><b>${esc(tk)}</b>${z != null ? ` <span style="color:${z >= 0 ? 'var(--pos)' : 'var(--neg)'}">${(+z).toFixed(2)}σ</span>` : ''}</span>`; }).join('')}</div>` : ''}
     </div>
     <table class="flow-table">
       <thead><tr>
@@ -577,7 +583,7 @@ function renderConstituentPressure(doc){
   }
   html += `</tbody></table>`;
 
-  /* JH_FLOWS_COVERAGE_3859 — aggregate exposure board: every ETF holding the name, not just high-z ones */
+  /* JH_FLOWS_COVERAGE_3861 — aggregate exposure board: every ETF holding the name, not just high-z ones */
   const agg = doc.top_aggregate_exposure || [];
   if(agg.length) {
     html += `<div style="padding:14px 18px;border-top:1px solid var(--border-light);font-size:11.5px;color:var(--text-muted);line-height:1.7">
@@ -677,8 +683,10 @@ async function load() {
     + `${daily.n_ok}/${daily.universe_size} ETFs${degraded}`
     + (logged != null ? ` · ${logged} divergence signals logged` : '')
     + ` · elapsed ${daily.elapsed_s}s · schema v${daily.schema_version || '1.0'}`;
-  const uni = document.getElementById('universe-count');
-  if(uni) uni.textContent = daily.universe_size;
+  for(const uid of ['universe-count', 'universe-count-2']) {
+    const uni = document.getElementById(uid);
+    if(uni) uni.textContent = daily.universe_size;
+  }
 
   renderDivergence(composite.divergence_board);
 
