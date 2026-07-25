@@ -13,7 +13,7 @@ heatmap, top-10 in/outflows, full universe table) cleanly, now that it also
 fires the new orchestrator at the end? A working new feature bolted onto a
 broken load() would still be a regression for every existing user.
 
-This shims global.fetch to serve the real live JSON (fetched once, held in
+ops 3878 itself had a gap: FEEDS never included macro/regime.json, so fetchMacroRegime() 404'd against the shim and its own graceful if(!r.ok) return; correctly no-op'd — reporting macro-regime-body as 0 bytes, which looked like a regression but was a harness gap. Fixed here.\n\nThis shims global.fetch to serve the real live JSON (fetched once, held in
 memory) for every CDN URL load() requests, then calls load() itself and
 checks that EVERY section — old and new — populated.
 """
@@ -40,6 +40,10 @@ FEEDS = {
     "etf-flows/rotation.json": "/tmp/l_rotation.json",
     "etf-flows/ai-analysis.json": "/tmp/l_ai.json",
     "etf-flows/constituent-pressure.json": "/tmp/l_cp.json",
+    # ops 3878 forgot this one -> fetchMacroRegime() 404'd against the shim
+    # and correctly no-op'd (if(!r.ok) return;), reporting a FALSE regression
+    # on macro-regime-body. Added here, not a page-code issue.
+    "macro/regime.json": "/tmp/l_macro.json",
 }
 
 
@@ -99,8 +103,8 @@ setTimeout(() => {
 
 
 def main():
-    with report("3878_load_end_to_end_gate") as rep:
-        rep.heading("ops 3878 — GATE: real load() end-to-end vs LIVE data (fetch-shimmed)")
+    with report("3879_load_end_to_end_gate_recheck") as rep:
+        rep.heading("ops 3879 — GATE: real load() end-to-end vs LIVE data (fetch-shimmed)")
 
         rep.section("1. pull the served page and extract the FULL inline script (load(); included)")
         html = get(PAGE)
