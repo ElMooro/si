@@ -1,74 +1,44 @@
-executing-against: 5f15fde03438f25eefa12fe561ebc1f7e3fb9bca
-ops 3876 — GATE: served flows.html script vs LIVE production data
-── 1. pull the SERVED page and extract its inline script ──
-[18:51:29] ✅   67,701 bytes served
-[18:51:29] ✅   version marker JH_FLOWS_PRESSURE_3873 present — CDN matches this deploy
-── 2. pull LIVE daily.json + constituent-pressure.json ──
-[18:51:29] ✅   daily.json 170,648 bytes · constituent-pressure.json 3,612,137 bytes
-── 3. execute the SERVED script against LIVE data under Node ──
-[18:51:29] THREW null
-INPUT_COUNTS {"nStocks":2247,"nEtfs":300}
-BUYING_BYTES 7673
-SELLING_BYTES 7665
-HEATMAP_BYTES 15736
-MASTER_BYTES 320452
-DISPLAY_pressure-section ""
-DISPLAY_unified-heatmap-section ""
-DISPLAY_master-table-section ""
-MASTER_COUNT_TEXT "showing top 300 of 2,547 matching (sort/filter to narrow)"
-SORT_CLICK_OK true
-CADENCE_SWITCH_CHANGED_CONTENT true
-TYPE_STOCK_ETF_LEAK 0
-LEV_Y_STOCK_LEAK 0
-BAD_TOKENS_FOUND []
-SAMPLE_ROWS_JSON ["<tr>\n      <td><span class=\"tag etf\">ETF</span></td>\n      <td><a href=\"/why.html?ticker=VOO\" style=\"color:var(--accent);text-decoration:none;font-weight:700\">VOO</a></td>\n      <td style=\"color:var(--text-muted);font-size:11px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">us large cap</td>\n      <td style=\"font-size:11px\">—</td>\n      <td style=\"font-size:11px\">US</td>\n      <td style=\"text-align:center\">N</td>\n      <td class=\"num\" style=\"color:var(--text-muted)\" title=\"AUM\">$980.30B</td>\n      <td class=\"num pos\">+$42.2M</td>\n      <td class=\"num pos\">+$2.16B</td>\n      <td class=\"num neg\">−$26.05B</td>\n      <td class=\"num\" style=\"color:var(--text-muted)\" title=\"monthly flow as a % of AUM — the size-normalized number the Flow Z is computed from\">-2.66%</td>\n      <td class=\"num neg\" title=\"1wk -1.66%\">-1.09%</td>\n      <td class=\"num\" title=\"90-day time-series z (vs own history)\">+0.02σ</td>\n      <td class=\"quad-badge\" style=\"color:var(--text-muted)\">· Neutral</td>\n    </tr>","<tr>\n      <td><span class=\"tag etf\">ETF</span></td>\n      <td><a href=\"/why.html?ticker=QQQ\" style=\"color:var(--accent);text-decoration:none;font-weight:700\">QQQ</a></td>\n      <td style=\"color:var(--text-muted);font-size:11px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">us megacap tech</td>\n      <td style=\"font-size:11px\">—</td>\n      <td style=\"font-size:11px\">US</td>\n      <td style=\"text-align:center\">N</td>\n      <td class=\"num\" style=\"color:var(--text-muted)\" title=\"AUM\">$457.52B</td>\n      <td class=\"num pos\">+$2.05B</td>\n      <td class=\"num neg\">−$6.22B</td>\n      <td class=\"num neg\">−$9.21B</td>\n      <td class=\"num\" style=\"color:var(--text-muted)\" title=\"monthly flow as a % of AUM — the size-normalized number the Flow Z is computed from\">-2.01%</td>\n      <td class=\"num neg\" title=\"1wk -1.97%\">-3.03%</td>\n      <td class=\"num\" title=\"90-day time-series z (vs own history)\">+0.71σ</td>\n      <td class=\"quad-badge\" style=\"color:var(--text-muted)\">· Neutral</td>\n    </tr>","<tr>\n      <td><span class=\"tag etf\">ETF</span></td>\n      <td><a href=\"/why.html?ticker=VLUE\" style=\"color:var(--accent);text-decoration:none;font-weight:700\">VLUE</a></td>\n      <td style=\"color:var(--text-muted);font-size:11px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">value</td>\n      <td style=\"font-size:11px\">—</td>\n      <td style=\"font-size:11px\">US</td>\n      <td style=\"text-align:center\">N</td>\n      <td class=\"num\" style=\"color:var(--text-muted)\" title=\"AUM\">$9.38B</td>\n      <td class=\"num neg\">−$9.8M</td>\n      <td class=\"num neg\">−$66.6M</td>\n      <td class=\"num neg\">−$3.10B</td>\n      <td class=\"num\" style=\"color:var(--text-muted)\" title=\"monthly flow as a % of AUM — the size-normalized number the Flow Z is computed from\">-33.02%</td>\n      <td class=\"num neg\" title=\"1wk +2.96%\">-0.74%</td>\n      <td class=\"num\" title=\"90-day time-series z (vs own history)\">+0.12σ</td>\n      <td class=\"quad-badge\" style=\"color:var(--text-muted)\">· Neutral</td>\n    </tr>"]
+executing-against: 4fbda49734d3e552fb7055c98a9e98d02381b1b0
+ops 3878 — GATE: real load() end-to-end vs LIVE data (fetch-shimmed)
+── 1. pull the served page and extract the FULL inline script (load(); included) ──
+[18:56:09] ✅   44,384 chars of inline script extracted, load(); call intact
+── 2. pull every live feed load() actually requests ──
+[18:56:09] ✅   etf-flows/daily.json: 170,648 bytes
+[18:56:09] ✅   etf-flows/composite.json: 7,310 bytes
+[18:56:09] ✅   etf-flows/rotation.json: 49,103 bytes
+[18:56:09] ✅   etf-flows/ai-analysis.json: 16,771 bytes
+[18:56:10] ✅   etf-flows/constituent-pressure.json: 3,612,137 bytes
+── 3. run the REAL load() through a fetch shim, wait for async completion ──
+[18:56:13] THREW null
+BYTES_ai-body 25540
+BYTES_macro-regime-body 0
+BYTES_constituent-pressure-body 49870
+BYTES_sector-heatmap 4251
+BYTES_top-inflows 3348
+BYTES_top-outflows 3355
+BYTES_full-table 224699
+BYTES_buying-board 7673
+BYTES_selling-board 7665
+BYTES_unified-heatmap 15736
+BYTES_master-table 320452
+BYTES_meta-bar 153
+DONE
 
-── 4. hard gate on the real results ──
-[18:51:29] ✅   no exception thrown
-[18:51:29] ✅   buying board rendered content
-[18:51:29] ✅   selling board rendered content
-[18:51:29] ✅   heatmap rendered content
-[18:51:29] ✅   master table rendered content
-[18:51:29] ✅   pressure-section unhid
-[18:51:29] ✅   unified-heatmap-section unhid
-[18:51:29] ✅   master-table-section unhid
-[18:51:29] ✅   sort click wired to a real <th>
-[18:51:29] ✅   cadence switch changed real content
-[18:51:29] ✅   type=STOCK filter leaked zero ETF rows on LIVE data
-[18:51:29] ✅   leveraged=Y filter leaked zero stock rows on LIVE data
-[18:51:29] ✅   no null/NaN/undefined leaked on LIVE data
-── 5. sample real rows (human spot-check) ──
-[18:51:29]   ["<tr>\n      <td><span class=\"tag etf\">ETF</span></td>\n      <td><a href=\"/why.html?ticker=VOO\" style=\"color:var(--accent);text-decoration:none;font-weight:700\">VOO</a></td>\n      <td style=\"color:var(--text-muted);font-size:11px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">us large cap</td>\n      <td style=\"font-size:11px\">—</td>\n      <td style=\"font-size:11px\">US</td>\n      <td style=\"text-align:center\">N</td>\n      <td class=\"num\" style=\"color:var(--text-muted)\" title=\"AUM\">$980.30B</td>\n      <td class=\"num pos\">+$42.2M</td>\n      <td class=\"num pos\">+$2.16B</td>\n      <td class=\"num neg\">−$26.05B</td>\n      <td class=\"num\" style=\"color:var(--text-muted)\" title=\"monthly flow as a % of AUM — the size-normalized number the Flow Z is computed from\">-2.66%</td>\n      <td class=\"num neg\" title=\"1wk -1.66%\">-1.09%</td>\n      <td class=\"num\" title=\"90-day time-series z (vs own history)\">+0.02σ</td>\n      <td class=\"quad-badge\" style=\"color:var(--text-muted)\">· Neutral</td>\n    </tr>","<tr>\n      <td><span class=\"tag etf\">ETF</span></td>\n      <td><a href=\"/why.html?ticker=QQQ\" style=\"color:var(--accent);text-decoration:none;font-weight:700\">QQQ</a></td>\n      <td style=\"color:var(--text-muted);font-size:11px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">us megacap tech</td>\n      <td style=\"font-size:11px\">—</td>\n      <td style=\"font-size:11px\"
-[18:51:29] ✅ PASS_ALL — served page executes cleanly against LIVE production data ({"nStocks":2247,"nEtfs":300})
+── 4. gate — EVERY section, old and new, must have populated ──
+[18:56:13] ✅   no exception thrown by the real load()
+[18:56:13] ✅   PRE-EXISTING section 'ai-body' populated (25540 bytes)
+[18:56:13] ✗   PRE-EXISTING section 'macro-regime-body' populated (0 bytes)
+[18:56:13] ✅   PRE-EXISTING section 'constituent-pressure-body' populated (49870 bytes)
+[18:56:13] ✅   PRE-EXISTING section 'sector-heatmap' populated (4251 bytes)
+[18:56:13] ✅   PRE-EXISTING section 'top-inflows' populated (3348 bytes)
+[18:56:13] ✅   PRE-EXISTING section 'top-outflows' populated (3355 bytes)
+[18:56:13] ✅   PRE-EXISTING section 'full-table' populated (224699 bytes)
+[18:56:13] ✅   PRE-EXISTING section 'meta-bar' populated (153 bytes)
+[18:56:13] ✅   NEW section 'buying-board' populated (7673 bytes)
+[18:56:13] ✅   NEW section 'selling-board' populated (7665 bytes)
+[18:56:13] ✅   NEW section 'unified-heatmap' populated (15736 bytes)
+[18:56:13] ✅   NEW section 'master-table' populated (320452 bytes)
+[18:56:13] ✗ FAILED 1: ["PRE-EXISTING section 'macro-regime-body' populated (0 bytes)"]
 
-→ Report written to aws/ops/reports/latest/3876_pressure_feature_live_gate_recheck.md
-ops 3877 — PROBE: field-coverage audit, new stock fields vs served flows.html
-── 1. pull the served page's JS (word-boundary check, not naive substring) ──
-[18:51:29] ✅   buildUnifiedRows() found, 1380 chars
-── 2. live per_stock_exposure — every field vs buildUnifiedRows' consumption ──
-[18:51:30] ✅   country                           1421/2247 populated · consumed in buildUnifiedRows
-[18:51:30]   cumulative_weight_pct             2247/2247 populated · WAIVED — internal aggregation detail (how much of the stock's float the holding-ETF set covers); not a flow signal itself
-[18:51:30] ✅   flow_pct_mcap_21d                 1244/2247 populated · consumed in buildUnifiedRows
-[18:51:30] ✅   flow_zscore_cross_sectional       1244/2247 populated · consumed in buildUnifiedRows
-[18:51:30]   holding_etfs                      2247/2247 populated · WAIVED — the detailed per-ETF breakdown already renders in the EXISTING Cross-ETF Constituent Pressure section above (per-stock lookup), not duplicated here
-[18:51:30] ✅   market_cap                        1244/2247 populated · consumed in buildUnifiedRows
-[18:51:30]   n_etfs_holding                    2247/2247 populated · WAIVED — internal — used to build holding_etfs, not a standalone metric worth its own column
-[18:51:30] ✅   name                              2247/2247 populated · consumed in buildUnifiedRows
-[18:51:30] ✅   perf_m_pct                        1420/2247 populated · consumed in buildUnifiedRows
-[18:51:30] ✅   perf_w_pct                        1421/2247 populated · consumed in buildUnifiedRows
-[18:51:30] ✅   perf_ytd_pct                      1421/2247 populated · consumed in buildUnifiedRows
-[18:51:30] ✅   quadrant                          2247/2247 populated · consumed in buildUnifiedRows
-[18:51:30] ✅   sector                            1421/2247 populated · consumed in buildUnifiedRows
-[18:51:30] ✅   stock                             2247/2247 populated · consumed in buildUnifiedRows
-[18:51:30] ✅   total_aggregate_flow_21d_usd      2247/2247 populated · consumed in buildUnifiedRows
-[18:51:30] ✅   total_aggregate_flow_5d_usd       2247/2247 populated · consumed in buildUnifiedRows
-[18:51:30] ✅   total_aggregate_flow_daily_usd    2247/2247 populated · consumed in buildUnifiedRows
-── 3. same check for the top-level meta the engine added ──
-[18:51:30]   n_stocks_with_sector = 1421 — informational meta, not required to render (the master table's own filter/count UI surfaces the same information live: sector coverage is visible by using the sector filter, quadrant counts are visible in the heatmap)
-[18:51:30]   n_stocks_with_price_return = 1420 — informational meta, not required to render (the master table's own filter/count UI surfaces the same information live: sector coverage is visible by using the sector filter, quadrant counts are visible in the heatmap)
-[18:51:30]   n_stocks_with_flow_zscore = 1244 — informational meta, not required to render (the master table's own filter/count UI surfaces the same information live: sector coverage is visible by using the sector filter, quadrant counts are visible in the heatmap)
-[18:51:30]   quadrant_counts = {'STEALTH_ACCUMULATION': 30, 'DISTRIBUTION_RALLY': 30, 'TREND_CONFIRMED': 14, 'CAPITULATION': 59, 'NEUTRAL': 2114} — informational meta, not required to render (the master table's own filter/count UI surfaces the same information live: sector coverage is visible by using the sector filter, quadrant counts are visible in the heatmap)
-── 4. verdict ──
-[18:51:30] ✅ PASS — every per-stock field is either consumed or waived with a stated reason
-
-→ Report written to aws/ops/reports/latest/3877_pressure_field_coverage_recheck.md
+→ Report written to aws/ops/reports/latest/3878_load_end_to_end_gate.md
+❌ OPS-FAIL: aws/ops/pending/ops_3878_load_end_to_end_gate.py
