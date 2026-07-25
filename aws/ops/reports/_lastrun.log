@@ -1,48 +1,27 @@
-executing-against: 8ffd5b86a08bd88e9ebedd290b638bba8351d925
-ops 3860 — PROBE: does flows.html render everything etf-flows publishes
-── 1. pull the SERVED page (repo copy is not what users get) ──
-[16:16:21] ✅   48,786 bytes served
-── 2. pull every etf-flows artifact the page could consume ──
-[16:16:22] ✅   etf-flows/daily.json: 170,648 bytes
-[16:16:23] ✅   etf-flows/composite.json: 7,310 bytes
-[16:16:23] ✅   etf-flows/rotation.json: 49,103 bytes
-[16:16:24] ✅   etf-flows/ai-analysis.json: 16,771 bytes
-[16:16:25] ✅   etf-flows/constituent-pressure.json: 2,423,843 bytes
-── 3. daily.json — union of per-row keys vs page render paths ──
-[16:16:25]   300 rows, 24 distinct row keys
-[16:16:25] ✅   aum_usd                   300/300 populated · rendered
-[16:16:25] ✅   category                  300/300 populated · rendered
-[16:16:25] ✅   daily_flow_usd            300/300 populated · rendered
-[16:16:25] ✅   divergence_score          296/300 populated · rendered
-[16:16:25] ✅   flow_21d_usd              300/300 populated · rendered
-[16:16:25] ✅   flow_5d_usd               300/300 populated · rendered
-[16:16:25] ✅   flow_zscore_90d           296/300 populated · rendered
-[16:16:25] ✅   leveraged                 300/300 populated · rendered
-[16:16:25] ✅   n_history_points          300/300 populated · rendered
-[16:16:25] ✅   nav                       300/300 populated · rendered
-[16:16:25] ✅   pct_aum_21d               276/300 populated · rendered
-[16:16:25] ✅   pct_aum_5d                227/300 populated · rendered
-[16:16:25] ✅   pct_aum_daily             152/300 populated · rendered
-[16:16:25] ✅   persistence_days          300/300 populated · rendered
-[16:16:25] ✅   processed_date            300/300 populated · rendered
-[16:16:25] ✅   quadrant                  300/300 populated · rendered
-[16:16:25] ✅   ref_sector                 50/300 populated · rendered
-[16:16:25] ✅   region                    300/300 populated · rendered
-[16:16:25] ✅   ret_21d_pct               300/300 populated · rendered
-[16:16:25] ✅   ret_5d_pct                300/300 populated · rendered
-[16:16:25] ✅   signal_label              300/300 populated · rendered
-[16:16:25] ✅   smart_money               300/300 populated · rendered
-[16:16:25] ✅   subcategory               300/300 populated · rendered
-[16:16:25] ✅   ticker                    300/300 populated · rendered
-── 4. top-level keys of each artifact vs the page ──
-[16:16:25]   ai.claude_elapsed_s                WAIVED — run telemetry, same reason
-[16:16:25] ✗   ai.regime_at_generation         (size 4) · NO RENDER PATH
-[16:16:25]   ai.usage                           WAIVED — LLM token accounting - belongs on llm-cost.html, not a flow desk
-[16:16:25]   constituent.as_of_etf_flows_date   WAIVED — duplicate of the daily.json stamp already in the meta bar
-[16:16:25] ✗   constituent.high_z_etfs                  (size 17) · NO RENDER PATH
-── 5. stale literals — hardcoded counts vs live universe_size ──
+executing-against: f07cafb3a733889201c4166d738f2b97dc19cdf1
+ops 3862 — PROBE: master-ranker sector resolution, live (no code written)
+── 1. live master-ranker output ──
+[16:32:35]   list-bearing keys: ['feed_freshness', 'missing_feeds', 'stale_feeds_excluded', 'top_macro', 'top_tickers']
+── 2. overlay coverage — how many rows actually got a sector ──
+[16:32:35] ✗   rotation_mult            non-neutral on 0/63
+[16:32:35] ✗   risk_regime_mult         non-neutral on 0/63
+[16:32:35] ✗   liquidity_regime_mult    non-neutral on 0/63
+[16:32:35] ✗   nowcast_regime_mult      non-neutral on 0/63
+[16:32:35]   rotation_note present on 0/63
+── 3. rebuild the harvest from the same donors — per-donor attribution ──
+[16:32:35] ✅   screener/data.json                    503 pairs · covers  0/0 ranked · 22h old
+[16:32:36] ✗   data/capital-flow-radar.json            0 pairs · covers  0/0 ranked · 18h old
+[16:32:36] ✅   data/deep-value.json                   30 pairs · covers  0/0 ranked · 6h old
+[16:32:36] ✗   data/accumulation-radar.json            0 pairs · covers  0/0 ranked · 19h old
+[16:32:36] ✅   data/asymmetric-scorer.json            43 pairs · covers  0/0 ranked · 6h old
+── 4. TRUE overlap — the number that decides the next move ──
+[16:32:36]   unresolved tickers: []
+[16:32:36] ✅   0/0 ranked tickers resolvable to a sector
+── 5. did the deployed engine log its map size on the last run ──
+[16:32:37] ✅   [sector-map] harvested 513 ticker->sector pairs
+[16:32:37] ✅   [sector-map] harvested 513 ticker->sector pairs
 ── 6. verdict ──
-[16:16:25] ✗ OPEN BUGS 2: ['ai.regime_at_generation', 'constituent.high_z_etfs']
+[16:32:37] ✗ OPEN — resolvable 0/0, rotation non-neutral 0/63
 
-→ Report written to aws/ops/reports/latest/3860_flows_coverage_recheck.md
-❌ OPS-FAIL: aws/ops/pending/ops_3860_flows_coverage_recheck.py
+→ Report written to aws/ops/reports/latest/3862_ranker_sector_probe.md
+❌ OPS-FAIL: aws/ops/pending/ops_3862_ranker_sector_probe.py
