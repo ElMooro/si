@@ -1,13 +1,13 @@
-executing-against: fd7b6eb857e84f735f554ae53f6e8c9a9f13ce1d
-ops 3867 — liquidity overlay 0/25: stale feed, neutral regime, or defect
+executing-against: ed52fe4c245a48961545d87dfb785519a4b85a38
+ops 3868 — liquidity overlay 0/25: stale feed, neutral regime, or defect
 ── 1. ask the ranker what it excluded ──
-[16:52:05]   stale_feeds_excluded: []
-[16:52:05]   missing_feeds: []
-[16:52:05] ✅   liquidity feed is NOT in the ranker's exclusion lists
+[16:55:48]   stale_feeds_excluded: []
+[16:55:48]   missing_feeds: []
+[16:55:48] ✅   liquidity feed is NOT in the ranker's exclusion lists
 ── 2. the feed itself ──
-[16:52:05]   top-level keys: ['analogs', 'availability', 'backtest', 'brain_predictors', 'china', 'china_engine', 'composite', 'composite_clock', 'composite_projection', 'composite_snapshots', 'credit', 'cycle_clock', 'data_health', 'dealer_survey', 'dollar', 'dollar_shortage']
+[16:55:48]   composite keys: ['components', 'composite_z', 'liquidity_score', 'n_components', 'read', 'regime']
+[16:55:48]   top-level keys: ['analogs', 'availability', 'backtest', 'brain_predictors', 'china', 'china_engine', 'composite', 'composite_clock', 'composite_projection', 'composite_snapshots', 'credit', 'cycle_clock', 'data_health', 'dealer_survey', 'dollar', 'dollar_shortage']
 ── 3. verdict ──
-[16:52:05] ✗   CAUSE (a'): feed is fresh (5.6h) but the score field the overlay reads is None — a key-contract drift in the producer. Grep the producer before changing the consumer.
+[16:55:48] ✅   CAUSE (b): feed fresh (5.7h), regime=NEUTRAL, heading=STABLE / MIXED, dollar_shortage=CALM — every multiplier collapses to 1.0, so 0/25 is CORRECT. No change warranted; manufacturing a tilt here would be the same false-signal error as forcing RORO at score 2.5.
 
-→ Report written to aws/ops/reports/latest/3867_liq_overlay_truth.md
-❌ OPS-FAIL: aws/ops/pending/ops_3867_liq_overlay_truth.py
+→ Report written to aws/ops/reports/latest/3868_liq_overlay_truth.md
