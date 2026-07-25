@@ -130,6 +130,15 @@ def main():
                bh_fleetwide=k_all, bh_within_theme=total_theme,
                at_p05=n05, expected_by_chance=round(expected, 1),
                obs_over_expected=round(ratio, 2))
+        # the analysis must fail when the analysis itself is broken, or an
+        # empty read would masquerade as "nothing to find"
+        if len(rows) < 50:
+            rep.fail(f"only {len(rows)} panels with usable stats — cannot judge "
+                     f"family scope on this sample")
+            sys.exit(1)
+        if not themes:
+            rep.fail("no theme taxonomy found — scope question unanswerable")
+            sys.exit(1)
         rep.ok("ANALYSIS COMPLETE — no engine modified")
 
 
