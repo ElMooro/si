@@ -1,0 +1,52 @@
+# ops 3881 — follow-up: past catalyst events + rotation-dashboard layer1_regime
+
+**Status:** success  
+**Duration:** 0.2s  
+**Finished:** 2026-07-25T19:20:21+00:00  
+
+## Data
+
+| as_of | failures | n_events | window_days |
+|---|---|---|---|
+| 2026-07-25T17:51:42+00:00 |  | 579 | 60 |
+|  | [] |  |  |
+
+## Log
+## 1. catalyst-calendar — does it retain PAST events, any semi-specific in last 30d
+
+- `19:20:21`   days_to range across all events: min=2 max=55
+- `19:20:21`   events with days_to < 0 (past): 0
+- `19:20:21`   semi-ticker events anywhere in the 60d window: 3
+- `19:20:21`     2026-07-29 days_to=4 QCOM EARNINGS impact=LOW — QCOM earnings
+- `19:20:21`     2026-08-04 days_to=10 AMD EARNINGS impact=LOW — AMD earnings
+- `19:20:21`     2026-08-13 days_to=19 AMAT EARNINGS impact=LOW — AMAT earnings
+- `19:20:21`   ALL events (any ticker) with days_to in [-21, 3] (i.e. spanning the past 3 weeks through Monday): 16
+- `19:20:21`     2026-07-27 days_to=2 type=AUCTION impact=MEDIUM — 2-Year Note auction
+- `19:20:21`     2026-07-27 days_to=2 type=AUCTION impact=MEDIUM — 5-Year Note auction
+- `19:20:21`     2026-07-27 days_to=2 type=AUCTION impact=LOW — 13-Week Bill auction
+- `19:20:21`     2026-07-27 days_to=2 type=AUCTION impact=LOW — 26-Week Bill auction
+- `19:20:21`     2026-07-28 days_to=3 type=AUCTION impact=MEDIUM — 7-Year Note auction
+- `19:20:21`     2026-07-28 days_to=3 type=AUCTION impact=LOW — 6-Week Bill auction
+- `19:20:21`     2026-07-28 days_to=3 type=EARNINGS impact=LOW — V earnings
+- `19:20:21`     2026-07-28 days_to=3 type=EARNINGS impact=LOW — KO earnings
+- `19:20:21`     2026-07-28 days_to=3 type=EARNINGS impact=LOW — BA earnings
+- `19:20:21`     2026-07-28 days_to=3 type=EARNINGS impact=LOW — SPGI earnings
+- `19:20:21`     2026-07-28 days_to=3 type=EARNINGS impact=LOW — UPS earnings
+- `19:20:21`     2026-07-28 days_to=3 type=EARNINGS impact=LOW — ITW earnings
+- `19:20:21`     2026-07-28 days_to=3 type=EARNINGS impact=LOW — AMT earnings
+- `19:20:21`     2026-07-28 days_to=3 type=EARNINGS impact=LOW — SHW earnings
+- `19:20:21`     2026-07-28 days_to=3 type=EARNINGS impact=LOW — F earnings
+- `19:20:21`   high_impact_next_7d field: 1
+## 2. rotation-dashboard — layer1_regime with the correct key
+
+- `19:20:21`   layer1_regime: {"layer": 1, "name": "Regime", "degraded": [], "quadrant": {"regime": "STAGFLATION", "growth": "BELOW-TREND", "inflation": "HOT", "gdpnow": 1.68, "underlying_inflation": 2.68, "growth_confirmation": "CONFIRMS GDPNow", "regime_confidence": "HIGH \u2014 hard data confirms"}, "roro": {"score": null, "regime": null, "posture": 1.0}, "prior": {"gold": 0.75, "precious": 0.55, "commodity": 0.55, "energy_cmdty": 0.45, "inflation_linked": 0.7, "cash": 0.6, "equity_energy": 0.5, "equity_defensive": 0.3, "short_duration": 0.4, "equity_growth": -0.8, "equity_us_small": -0.6, "credit_hy": -0.6, "duration": -0.4, "crypto": -0.3, "equity_em": -0.25, "industrial_metal": -0.25, "equity_intl": -0.25, "credit_em": -0.25}, "dollar": {"chg_1m_pct": 1.08, "chg_3m_pct": 2.87, "chg_1y_pct": 2.13, "breadth_spread_3m_pp": -0.57, "range_pctile_1y": 79.9, "regime": "NEUTRAL", "pressure": 8, "headline": "Dollar Pressure +8/100 -- NEUTRAL. 6 canaries lean pump, 4 lean dump. Risk-asset transmission: NEUTRAL (+0).", "source_path": "bbdxy.dxy_synth.chg_3m_pct", "direction": "RISING", "favours": "US large-cap, cash, risk-off"}, "dollar_tilt_applied": -0.25, "global_recession_context": {"probability_pct": 32.0, "ban
+- `19:20:21`   thesis: "Not 'is this asset good?' but 'which asset is capital rotating INTO?'. Four layers \u2014 regime, ratios, trend gate, rank+flows+crowding \u2014 fused into one ranked overweight list. Overweight = eligible AND top-ranked AND flow-confirmed AND not maximally crowded."
+- `19:20:21`   overweight: [{"rank": 1, "ticker": "XLV", "label": "Health Care", "asset_class": "equity_defensive", "confluence_score": 38.7, "quadrant": "LEADING", "drivers": ["regime prior +0.3 (equity_defensive)", "momentum blend +8.8%", "RS-momentum +16.7", "RRG Leading", "ETF flows confirming (inflow)"]}, {"rank": 2, "ticker": "XLF", "label": "Financials", "asset_class": "equity_cyclical", "confluence_score": 25.4, "quadrant": "LEADING", "drivers": ["momentum blend +4.8%", "RS-momentum +10.6", "RRG Leading", "ETF flo
+- `19:20:21`   avoid: [{"rank": 32, "ticker": "IEF", "label": "7-10y Treasuries", "confluence_score": -45.7, "why": ["below 200d SMA", "12m excess vs cash -1.64pp <= 0"]}, {"rank": 33, "ticker": "TLT", "label": "Long Treasuries", "confluence_score": -46.5, "why": ["below 200d SMA", "12m excess vs cash -3.16pp <= 0"]}, {"rank": 34, "ticker": "HYG", "label": "High Yield", "confluence_score": -62.3, "why": ["below 200d SMA", "12m excess vs cash -1.55pp <= 0"]}, {"rank": 35, "ticker": "IWF", "label": "US Growth", "conflu
+## 3. rebalance-radar qtd_proxies — real 'where did the money go' numbers
+
+- `19:20:21`   qtd_proxies (QTD = quarter-to-date leadership complex read): {"SPY": {"qtd_pct": -0.9, "d5_pct": -0.6}, "QQQ": {"qtd_pct": -5.6, "d5_pct": -1.6}, "SMH": {"qtd_pct": -9.6, "d5_pct": 0.8}, "IWM": {"qtd_pct": -2.7, "d5_pct": -1.0}, "TLT": {"qtd_pct": -2.7, "d5_pct": -1.5}, "AGG": {"qtd_pct": -1.1, "d5_pct": -0.8}, "GLD": {"qtd_pct": 0.4, "d5_pct": 0.9}, "BTCUSD": {"qtd_pct": 6.9, "d5_pct": -0.9}, "XLE": {"qtd_pct": 12.9, "d5_pct": 3.4}, "XLF": {"qtd_pct": 2.8, "d5_pct": 0.1}}
+- `19:20:21`   window_forensics: {"top_outflows": [{"complex": "Mega-Cap Tech (FANG+)", "net_flow_5d_usd": -6862205751.0, "price_5d_pct": -1.98, "proxy": null, "qtd_vs_spy_pp": null, "mechanical_expectation": null, "classification": null}, {"complex": "Nasdaq Broad", "net_flow_5d_usd": -6428502991.0, "price_5d_pct": -1.98, "proxy": "QQQ", "qtd_vs_spy_pp": -4.7, "mechanical_expectation": "ADD", "classification": "EXCESS_SELLING_INTO_WEAKNESS"}, {"complex": "Technology", "net_flow_5d_usd": -5519956456.0, "price_5d_pct": 0.52, "proxy": "QQQ", "qtd_vs_spy_pp": -4.7, "mechanical_expectation": "ADD", "classification": "EXCESS_SELLING_INTO_WEAKNESS"}, {"complex": "Software", "net_flow_5d_usd": -1278345935.0, "price_5d_pct": -7.04, "proxy": null, "qtd_vs_spy_pp": null, "mechanical_expectation": null, "classification": null}, {"complex": "Small Caps", "net_flow_5d_usd": -1207921604.0, "price_5d_pct": -1.18, "proxy": "IWM", "qtd_vs_spy_pp": -1.8, "mechanical_expectation": "NEUTRAL", "classification": null}, {"complex": "S&P 500 Broad", "net_flow_5d_usd": -712776112.0, "price_5d_pct": -1.67, "proxy": "SPY", "qtd_vs_spy_pp": 0.0, "mechanical_expectation": "NEUTRAL", "classification": null}, {"complex": "Industrials", "net_flow_5d_usd": -560923854.0, "price_5d_pct": 0.99, "proxy": null, "qtd_vs_spy_pp": null, "mechanical_expectation": null, "classification": null}, {"complex": "Dow", "net_flow_5d_usd": -480043041.0, "price_5d_pct": -1.63, "proxy": null, "qtd_vs_spy_pp": null, "mechanical_expectation": null, "classificati
+## 4. verdict
+
+- `19:20:21` ✅ PROBE COMPLETE
