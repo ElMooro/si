@@ -1,0 +1,69 @@
+# ops 3860 — PROBE: does flows.html render everything etf-flows publishes
+
+**Status:** failure  
+**Duration:** 3.6s  
+**Finished:** 2026-07-25T16:16:25+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| gaps | hardcoded_counts | live_n_ok | live_universe_size | missing_feeds | n_dynamic | n_gaps | n_row_keys |
+|---|---|---|---|---|---|---|---|
+|  | [] | 300 | 300 |  |  |  |  |
+| ['ai.regime_at_generation', 'constituent.high_z_etfs'] |  |  |  | [] | 0 | 2 | 24 |
+
+## Log
+## 1. pull the SERVED page (repo copy is not what users get)
+
+- `16:16:21` ✅   48,786 bytes served
+## 2. pull every etf-flows artifact the page could consume
+
+- `16:16:22` ✅   etf-flows/daily.json: 170,648 bytes
+- `16:16:23` ✅   etf-flows/composite.json: 7,310 bytes
+- `16:16:23` ✅   etf-flows/rotation.json: 49,103 bytes
+- `16:16:24` ✅   etf-flows/ai-analysis.json: 16,771 bytes
+- `16:16:25` ✅   etf-flows/constituent-pressure.json: 2,423,843 bytes
+## 3. daily.json — union of per-row keys vs page render paths
+
+- `16:16:25`   300 rows, 24 distinct row keys
+- `16:16:25` ✅   aum_usd                   300/300 populated · rendered
+- `16:16:25` ✅   category                  300/300 populated · rendered
+- `16:16:25` ✅   daily_flow_usd            300/300 populated · rendered
+- `16:16:25` ✅   divergence_score          296/300 populated · rendered
+- `16:16:25` ✅   flow_21d_usd              300/300 populated · rendered
+- `16:16:25` ✅   flow_5d_usd               300/300 populated · rendered
+- `16:16:25` ✅   flow_zscore_90d           296/300 populated · rendered
+- `16:16:25` ✅   leveraged                 300/300 populated · rendered
+- `16:16:25` ✅   n_history_points          300/300 populated · rendered
+- `16:16:25` ✅   nav                       300/300 populated · rendered
+- `16:16:25` ✅   pct_aum_21d               276/300 populated · rendered
+- `16:16:25` ✅   pct_aum_5d                227/300 populated · rendered
+- `16:16:25` ✅   pct_aum_daily             152/300 populated · rendered
+- `16:16:25` ✅   persistence_days          300/300 populated · rendered
+- `16:16:25` ✅   processed_date            300/300 populated · rendered
+- `16:16:25` ✅   quadrant                  300/300 populated · rendered
+- `16:16:25` ✅   ref_sector                 50/300 populated · rendered
+- `16:16:25` ✅   region                    300/300 populated · rendered
+- `16:16:25` ✅   ret_21d_pct               300/300 populated · rendered
+- `16:16:25` ✅   ret_5d_pct                300/300 populated · rendered
+- `16:16:25` ✅   signal_label              300/300 populated · rendered
+- `16:16:25` ✅   smart_money               300/300 populated · rendered
+- `16:16:25` ✅   subcategory               300/300 populated · rendered
+- `16:16:25` ✅   ticker                    300/300 populated · rendered
+## 4. top-level keys of each artifact vs the page
+
+- `16:16:25`   ai.claude_elapsed_s                WAIVED — run telemetry, same reason
+- `16:16:25` ✗   ai.regime_at_generation         (size 4) · NO RENDER PATH
+- `16:16:25`   ai.usage                           WAIVED — LLM token accounting - belongs on llm-cost.html, not a flow desk
+- `16:16:25`   constituent.as_of_etf_flows_date   WAIVED — duplicate of the daily.json stamp already in the meta bar
+- `16:16:25` ✗   constituent.high_z_etfs                  (size 17) · NO RENDER PATH
+## 5. stale literals — hardcoded counts vs live universe_size
+
+## 6. verdict
+
+- `16:16:25` ✗ OPEN BUGS 2: ['ai.regime_at_generation', 'constituent.high_z_etfs']
