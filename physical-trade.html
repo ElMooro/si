@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Physical Trade Desk · JustHodl.AI</title>
-<meta name="jh-page-version" content="v2-ops3847">
+<meta name="jh-page-version" content="v3-ops3848">
 <style>
 :root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
@@ -131,6 +131,17 @@ function render(){
     });
     h+='</tbody></table></div>';
 
+    // most-exposed ports strip — uses top_industry / n_industries / port_yoy_pct
+    const worstP=withIE.slice().sort((a,b)=>(a.industry_exposure.port_yoy_pct||0)
+                                           -(b.industry_exposure.port_yoy_pct||0)).slice(0,5);
+    h+='<div class="grid" style="margin-top:10px">';
+    worstP.forEach(p=>{const ie=p.industry_exposure;
+      h+='<div class="tile"><div class="lbl">'+esc(p.name)+'</div>'
+        +'<div class="val '+cls(ie.port_yoy_pct)+'">'+P(ie.port_yoy_pct)+'</div>'
+        +'<div class="note">top exposure: <b>'+esc(ie.top_industry)+'</b><br>'
+        +esc(ie.n_industries)+' trade lines · '+esc(p.country)+'</div></div>';});
+    h+='</div>';
+
     // per-port breakdown
     h+='<div class="sec">Per-port industry breakdown ('+withIE.length+' of '+ports.length+' ports)</div>'
       +'<div class="card" style="overflow-x:auto"><table><thead><tr>'
@@ -140,9 +151,11 @@ function render(){
       const ie=p.industry_exposure;
       (ie.industries||[]).slice(0,4).forEach((r,i)=>{
         h+='<tr>'
-          +(i===0?'<td rowspan="'+Math.min(4,(ie.industries||[]).length)+'"><b>'+esc(p.name)+'</b></td>'
+          +(i===0?'<td rowspan="'+Math.min(4,(ie.industries||[]).length)+'"><b>'+esc(p.name)+'</b>'
+                 +'<div class="small mute">top: '+esc(ie.top_industry||'—')+' · '+esc(ie.n_industries||0)+' lines</div></td>'
                  +'<td rowspan="'+Math.min(4,(ie.industries||[]).length)+'" class="dim">'+esc(p.country)+'</td>'
-                 +'<td rowspan="'+Math.min(4,(ie.industries||[]).length)+'" class="mono '+cls(p.yoy_pct)+'">'+P(p.yoy_pct)+'</td>':'')
+                 +'<td rowspan="'+Math.min(4,(ie.industries||[]).length)+'" class="mono '+cls(ie.port_yoy_pct)+'">'+P(ie.port_yoy_pct)
+                 +'<div class="small mute">basis</div></td>':'')
           +'<td>'+esc(r.industry)+'</td><td class="dim small">'+esc(r.line)+'</td>'
           +'<td class="mono">'+F(r.share_pct,1)+'%</td>'
           +'<td class="mono '+cls(r.exposure_pct)+'" style="font-weight:700">'+P(r.exposure_pct)+'</td>'

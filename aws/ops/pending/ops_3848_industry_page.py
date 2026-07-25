@@ -1,5 +1,5 @@
 """
-ops_3847 — edge-verify physical-trade.html + field coverage + portwatch untouched
+ops_3848 — edge-verify physical-trade.html + field coverage + portwatch untouched
 
 New page, NOT a rebuild — Khalid wants both. So this also gates that
 portwatch.html is byte-identical to what it was, because "I built you a new page"
@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT / "ops"))
 from ops_report import report  # noqa: E402
 
 BUCKET = "justhodl-dashboard-live"
-MARKER = "v2-ops3847"
+MARKER = "v3-ops3848"
 PAGE = "physical-trade.html"
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
@@ -38,8 +38,8 @@ def fetch(path, attempt):
 
 
 def main():
-    with report("3847_industry_page") as rep:
-        rep.heading("ops 3847 — industry exposure rendered + portwatch untouched")
+    with report("3848_industry_page") as rep:
+        rep.heading("ops 3848 — industry exposure rendered + portwatch untouched")
 
         rep.section("1. Served at the edge")
         html = ""
