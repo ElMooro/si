@@ -1,24 +1,27 @@
-executing-against: a712754a7d0add1ef9910b0dc0f7e336952b2188
-ops 3870 — deploy daily-pressure + sector/price + quadrant, hard-gated
-── 1. BEFORE ──
-── 2. ZIP-SETTLE BY MARKER — never invoke the old artifact (ops 3830 lesson) ──
-[17:34:59] ✅   new artifact live on attempt 1 (91,857 zip bytes)
-[17:35:10] ✅   State=Active LastUpdateStatus=Successful Memory=1024 Timeout=300
-[17:35:10] ✗   memory bump did not land (1024 < 1536) — config.json drift, deploy-lambdas may have stomped it
-── 3. invoke (async — ~284 parallel FMP holdings fetches + a 15.9MB S3 parse) ──
-[17:35:31] ✅   artifact rewritten on attempt 1 (2026-07-25T17:35:27+00:00)
-── 4. real-data gate — every claim, checked against the live artifact ──
-[17:35:31] ✅   stock universe present and not shrunk
-[17:35:31] ✅   daily pressure computed for effectively all stocks
-[17:35:31] ✅   sector known for a meaningful share (finviz+universe join actually ran)
-[17:35:31] ✅   price return known for a meaningful share
-[17:35:31] ✅   cross-sectional z computed (n>=30 gate passed on live data)
-[17:35:31] ✅   at least one stock landed in each directional quadrant
-[17:35:31] ✅   top_aggregate_exposure carries the new fields (hand-written list didn't drop them)
-[17:35:31] ✅   no NaN/inf leaked into JSON (would have failed json.loads above, but check explicitly)
-── 5. spot-check one real stock end to end ──
-[17:35:31]   MU: sector=Technology mcap=$0.0B daily=$+35.3M 5d=$-674.5M 21d=$+4730.6M perf_m=-12.17% z_xsec=4.78 quadrant=STEALTH_ACCUMULATION
-[17:35:31] ✅   MU carries a full real record
-[17:35:31] ✅ PASS_ALL — 2247 stocks, daily/weekly/monthly pressure live, sector 1421/2247 · price 1420/2247 · quadrant {'STEALTH_ACCUMULATION': 30, 'DISTRIBUTION_RALLY': 30, 'TREND_CONFIRMED': 14, 'CAPITULATION': 59, 'NEUTRAL': 2114}
+executing-against: 15d5d73449cc02520afd54ecfa20db50a26f83cf
+ops 3871 — PROBE: market_cap units + sanity-check live rows
+── 1. market_cap units — 5 known mega-caps, order of magnitude ──
+[17:40:47]   AAPL: raw=4891183.28  real_usd~3.40e+12  real/raw ratio=695128.3166800488
+[17:40:47]   MSFT: raw=2835433.57  real_usd~3.20e+12  real/raw ratio=1128575.1970553133
+[17:40:47]   NVDA: raw=5005527.91  real_usd~5.00e+12  real/raw ratio=998895.6389616855
+[17:40:47]   GOOGL: raw=3888807.48  real_usd~2.20e+12  real/raw ratio=565726.1284634229
+[17:40:47]   AMZN: raw=2496832.66  real_usd~2.30e+12  real/raw ratio=921167.0597099606
+[17:40:47] ✅   DETERMINED UNIT: MILLIONS (raw value x 1e6 = dollars)
+── 2. does the SAME unit convention hold in universe.json's market_cap ──
+[17:40:47]   AAPL universe.json market_cap raw=4889273938840 (finviz raw was 4891183.28)
+[17:40:47]   MSFT universe.json market_cap raw=2857048388016 (finviz raw was 2835433.57)
+[17:40:47]   NVDA universe.json market_cap raw=5077932650000 (finviz raw was 5005527.91)
+── 3. sanity-check real top_aggregate_exposure rows (what the page will render) ──
+[17:40:47]   NVDA   NVIDIA CORP                  sector=Technology             mcap=$5M          daily=$   +40.1M 5d=$ -1310.5M 21d=$ -1784.3M quadrant=NEUTRAL
+[17:40:47]   GLD    Physical Gold                sector=Financial              mcap=—            daily=$  +190.6M 5d=$  +964.8M 21d=$ -1056.8M quadrant=NEUTRAL
+[17:40:47]   AAPL   APPLE INC                    sector=Technology             mcap=$5M          daily=$  +204.1M 5d=$  -714.9M 21d=$ -1432.6M quadrant=NEUTRAL
+[17:40:47]   MU     MICRON TECHNOLOGY INC        sector=Technology             mcap=$1M          daily=$   +35.3M 5d=$  -674.5M 21d=$ +4730.6M quadrant=STEALTH_ACCUMULATION
+[17:40:47]   AMD    ADVANCED MICRO DEVICES       sector=Technology             mcap=$1M          daily=$    +0.5M 5d=$  -567.0M 21d=$   +19.5M quadrant=NEUTRAL
+[17:40:47]   AVGO   BROADCOM INC                 sector=Technology             mcap=$2M          daily=$    +0.9M 5d=$  -553.0M 21d=$  -155.8M quadrant=NEUTRAL
+[17:40:47]   MSFT   MICROSOFT CORP               sector=Technology             mcap=$3M          daily=$  +121.9M 5d=$  -535.7M 21d=$ -1022.6M quadrant=NEUTRAL
+[17:40:47]   AMZN   AMAZON.COM INC               sector=Consumer Cyclical      mcap=$2M          daily=$   +35.8M 5d=$  -471.8M 21d=$  -706.0M quadrant=NEUTRAL
+── 4. plausibility — top movers should be large, liquid, real names ──
+[17:40:47] ✗   SUSPICIOUS tickers in top 20: ['000660.KS', ' ']
+[17:40:47] ✅ PROBE COMPLETE
 
-→ Report written to aws/ops/reports/latest/3870_constituents_pressure_deploy.md
+→ Report written to aws/ops/reports/latest/3871_marketcap_units_probe.md
