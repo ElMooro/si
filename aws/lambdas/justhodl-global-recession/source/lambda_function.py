@@ -58,7 +58,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/global-recession.json"
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
@@ -111,6 +111,22 @@ def clamp(v, lo, hi):
     return max(lo, min(hi, v))
 
 
+# ops 3840: the primary country_name -> ISO3 map is DERIVED from
+# global-business-cycle's own by_country rows, so it stays in sync as that
+# universe changes. This table only carries aliases where the port feed's
+# spelling differs from the cycle feed's country_name.
+PORT_ALIASES = {
+    "south korea": "KOR", "korea": "KOR", "republic of korea": "KOR",
+    "united states of america": "USA", "usa": "USA", "us": "USA",
+    "uk": "GBR", "great britain": "GBR", "russian federation": "RUS",
+    "viet nam": "VNM", "iran (islamic republic of)": "IRN",
+    "tanzania, united republic of": "TZA", "hong kong": "HKG",
+    "taiwan, province of china": "TWN", "taiwan": "TWN",
+    "cote d'ivoire": "CIV", "côte d'ivoire": "CIV",
+    "czechia": "CZE", "czech republic": "CZE", "turkiye": "TUR",
+    "türkiye": "TUR", "netherlands (kingdom of the)": "NLD",
+}
+
 PORT_COUNTRY_ISO = {
     "china": "CHN", "united states": "USA", "japan": "JPN", "germany": "DEU",
     "india": "IND", "united kingdom": "GBR", "france": "FRA", "italy": "ITA",
@@ -124,12 +140,13 @@ PORT_COUNTRY_ISO = {
 }
 
 
-def load_confirmation():
+def load_confirmation(by_country=None):
     """Independent hard-data legs to CONFIRM or CONTRADICT the equity-momentum
        phase labels. v1.1 let unconfirmed momentum drive ~70% of the global
        number via CHN+IND — a momentum classifier's best-known failure mode is
        firing in drawdowns that never become recessions, so it must be checked."""
-    out = {"oecd": {}, "oecd_stale": None, "oecd_period": None}
+    out = {"oecd": {}, "oecd_stale": None, "oecd_period": None,
+           "_by_country": by_country or {}}
     o = read_feed("data/oecd-cli.json") or {}
     period = o.get("as_of_period") or o.get("period")
     out["oecd_period"] = period
@@ -151,13 +168,26 @@ def load_confirmation():
     # labels, which is exactly what a confirmation leg has to be.
     out["ports"] = {}
     pw = read_feed("data/portwatch.json") or {}
-    agg = {}
+    # build country_name -> ISO3 from the cycle feed itself (self-maintaining)
+    name_map = dict(PORT_COUNTRY_ISO)
+    name_map.update(PORT_ALIASES)
+    for iso, row in (out.get("_by_country") or {}).items():
+        nm = (row or {}).get("country_name")
+        if isinstance(nm, str) and nm.strip():
+            name_map.setdefault(nm.strip().lower(), iso.upper())
+    agg, unmapped = {}, {}
     for row in (pw.get("ports") or []):
         if not isinstance(row, dict):
             continue
-        iso = PORT_COUNTRY_ISO.get(str(row.get("country") or "").strip().lower())
+        cname = str(row.get("country") or "").strip().lower()
+        iso = name_map.get(cname)
         y = row.get("yoy_pct")
-        if not iso or not isinstance(y, (int, float)):
+        if not isinstance(y, (int, float)):
+            continue
+        if not iso:
+            # residual gaps must be VISIBLE, not silently dropped — that is how
+            # coverage quietly rots
+            unmapped[cname] = unmapped.get(cname, 0) + 1
             continue
         agg.setdefault(iso, []).append((y, row.get("z"), row.get("name")))
     for iso, rows in agg.items():
@@ -169,6 +199,10 @@ def load_confirmation():
             "median_yoy_pct": round(sorted(ys)[len(ys) // 2], 2),
             "worst_port": min(rows, key=lambda r: r[0])[2],
         }
+
+    out["ports_unmapped"] = dict(sorted(unmapped.items(),
+                                        key=lambda kv: -kv[1])[:20])
+    out["ports_n_countries"] = len(out["ports"])
 
     # ── HARD LEG 2: China credit impulse — CHN is ~18% of world GDP and the
     # single largest contributor to the headline, so it earns a dedicated leg.
@@ -326,7 +360,7 @@ def lambda_handler(event, context):
     if not by_country:
         raise RuntimeError("global-business-cycle by_country unavailable")
 
-    conf = load_confirmation()
+    conf = load_confirmation(by_country)
     rows, unknown, wsum, psum = [], [], 0.0, 0.0
     for iso3, row in by_country.items():
         if not isinstance(row, dict):
@@ -425,6 +459,8 @@ def lambda_handler(event, context):
                                "matters more than the point estimate."),
         },
         "confirmation": {
+            "ports_countries": conf.get("ports_n_countries"),
+            "ports_unmapped": conf.get("ports_unmapped"),
             "oecd_period": conf.get("oecd_period"),
             "oecd_usable": not conf.get("oecd_stale"),
             "oecd_age_months": conf.get("oecd_age_months"),
