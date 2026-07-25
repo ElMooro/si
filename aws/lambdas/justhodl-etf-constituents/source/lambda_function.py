@@ -329,7 +329,21 @@ def enrich_sector_and_price(per_stock_exposure: dict) -> dict:
         country = fz.get("country") or uv.get("country")
         rec["sector"] = sector
         rec["country"] = country
-        rec["market_cap"] = fz.get("market_cap") or uv.get("market_cap")
+        # ops 3871 caught (live, via 5 known mega-caps) that finviz-universe's
+        # market_cap is in MILLIONS (AAPL raw ~4.89M -> x1e6 = $4.9T real)
+        # while universe.json's is already raw DOLLARS (AAPL raw ~4.89e12).
+        # Both donors must normalize to the SAME unit before storage, or every
+        # downstream %-of-mcap figure (flow_pct_mcap_21d, the cross-sectional
+        # z, and any page display) is ~1e6x wrong for whichever subset came
+        # from finviz. Normalize to dollars unconditionally.
+        fz_mcap = fz.get("market_cap")
+        uv_mcap = uv.get("market_cap")
+        if fz_mcap is not None:
+            rec["market_cap"] = fz_mcap * 1_000_000
+        elif uv_mcap is not None:
+            rec["market_cap"] = uv_mcap
+        else:
+            rec["market_cap"] = None
         rec["perf_w_pct"] = fz.get("perf_w")
         rec["perf_m_pct"] = fz.get("perf_m")
         rec["perf_ytd_pct"] = fz.get("perf_ytd")
