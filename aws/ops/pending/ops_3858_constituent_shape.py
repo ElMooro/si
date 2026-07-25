@@ -1,5 +1,5 @@
 """
-ops_3857 — PROBE: real row shape of constituent-pressure.json. WRITES NO CODE.
+ops_3858 — PROBE: real row shape of constituent-pressure.json. WRITES NO CODE.
 
 ops 3856 found flows.html reading four keys the producer never writes
 (top_constituents_by_pressure / all_constituents / n_high_z_etfs / threshold_z
@@ -26,13 +26,17 @@ UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
 
 
 def main():
-    with report("3857_constituent_shape") as rep:
-        rep.heading("ops 3857 — PROBE: constituent-pressure.json true shape (no code written)")
+    with report("3858_constituent_shape") as rep:
+        rep.heading("ops 3858 — PROBE: constituent-pressure.json true shape (no code written)")
         req = urllib.request.Request(
             f"{CDN}/etf-flows/constituent-pressure.json?v={int(time.time())}",
             headers={"User-Agent": UA, "Cache-Control": "no-cache"})
-        with urllib.request.urlopen(req, timeout=60) as r:
-            doc = json.loads(r.read())
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                doc = json.loads(r.read())
+        except Exception as e:
+            rep.fail(f"  feed unreachable/unparseable: {str(e)[:200]}")
+            sys.exit(1)
 
         rep.section("1. top-level scalars")
         for k, v in doc.items():
@@ -72,6 +76,9 @@ def main():
 
         rep.kv(n_top=len(rows), n_per_stock=len(per),
                top_container=type(top).__name__, per_container=type(per).__name__)
+        if not rows or not per:
+            rep.fail("  containers empty — cannot map the page from this shape")
+            sys.exit(1)
         rep.ok("PROBE COMPLETE — shape captured; page mapping follows in the fix ops")
 
 
