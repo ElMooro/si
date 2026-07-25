@@ -1,0 +1,74 @@
+# ops 3885 — is existing news/registry infra alive, or declared-but-dormant
+
+**Status:** success  
+**Duration:** 2.1s  
+**Finished:** 2026-07-25T21:08:44+00:00  
+
+## Data
+
+| failures | n_entries | n_feeds_listed | n_semi_items |
+|---|---|---|---|
+|  |  |  | 0 |
+|  |  | 844 |  |
+|  | 27476 |  |  |
+| [] |  |  |  |
+
+## Log
+## 1. data/news-wire.json — live? real semi headlines?
+
+- `21:08:42` ✅   20,190 bytes, 3.3h old
+- `21:08:42`   top-level keys: ['elapsed_s', 'generated_at', 'n_new_this_run', 'n_scored_total', 'portfolio_tickers_tracked', 'recent_30', 'top_10_24h_by_impact', 'version']
+- `21:08:42`   list-bearing keys: ['top_10_24h_by_impact', 'recent_30']
+- `21:08:42`   n items: 0
+## 2. sentiment/data.json — is news-sentiment (schedule=None) actually producing anything
+
+- `21:08:42` ✅   433,195 bytes, 4.8h old
+- `21:08:42`   top-level keys: ['bearish_count', 'bullish_count', 'count', 'elapsed_seconds', 'generated_at', 'generated_at_unix', 'model', 'neutral_count', 'sentiment', 'source', 'stocks_scored', 'stocks_with_news']
+## 3. data/feed-registry.json — fleet freshness ledger, live?
+
+- `21:08:42` ✅   112,609 bytes, 13.6h old
+- `21:08:42`   top-level keys: ['elapsed_s', 'feeds', 'generated_at', 'n_feeds', 'n_stale', 'ok', 'stale', 'version']
+## 4. data/feed-catalog.json — THE ACID TEST: would it have surfaced rebalance-radar and earnings-tracker's real schema?
+
+- `21:08:42` ✅   8,454,037 bytes, 23.1h old
+- `21:08:42`   top-level keys: ['bucket', 'feeds', 'generated_at', 'summary', 'total_feeds', 'version']
+- `21:08:42`   rebalance-radar.json entry: {"key": "data/rebalance-radar.json", "name": "rebalance-radar.json", "size_bytes": 10944, "size_kb": 10.7, "last_modified": "2026-07-23T22:05:11+00:00", "schema": {"_inferable": false, "_reason": "not sampled"}, "writers": [], "cadences": [], "stale_days": 1.0}
+- `21:08:42`   earnings-tracker.json entry: {"key": "data/earnings-tracker.json", "name": "earnings-tracker.json", "size_bytes": 213498, "size_kb": 208.5, "last_modified": "2026-07-24T11:30:37+00:00", "schema": {"_inferable": false, "_reason": "not sampled"}, "writers": [], "cadences": [], "stale_days": 0.4}
+## 5. CloudWatch — actual recent invokes for all 4 (engine-manifest.json checked separately via bash since it's a repo file, not S3)
+
+- `21:08:42`   justhodl-news-wire: last log event 3.3h ago
+- `21:08:43`     INIT_START Runtime Version: python:3.12.mainlinev2.v14	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:40182b778d40c8bdb13a6ef86990df74f5066cdb7d40aac184
+- `21:08:43`     START RequestId: c180c48e-924e-4e76-a283-aeb22739318c Version: $LATEST
+- `21:08:43`     [news-wire] 20 new headlines
+- `21:08:43`     [llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback
+- `21:08:43`     [anthropic batch] HTTP Error 401: Unauthorized
+- `21:08:43`     [news-wire] done · new=20 · top24h=0 · high-impact=0 · elapsed=1.1s
+- `21:08:43`     END RequestId: c180c48e-924e-4e76-a283-aeb22739318c
+- `21:08:43`     REPORT RequestId: c180c48e-924e-4e76-a283-aeb22739318c	Duration: 1092.43 ms	Billed Duration: 1587 ms	Memory Size: 512 MB	Max Memory Used: 111 MB	Init Duration: 
+- `21:08:43`   justhodl-news-sentiment: last log event 4.8h ago
+- `21:08:43`     claude err: HTTP Error 400: Bad Request
+- `21:08:43`     [llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback
+- `21:08:43`     claude err: HTTP Error 400: Bad Request
+- `21:08:43`     scored 0 in 7.5s
+- `21:08:43`     === DONE · B:0 Bear:0 N:503 · 44.3s ===
+- `21:08:43`     wrote 433.3 KB
+- `21:08:43`     END RequestId: 20387771-8562-409b-b521-6d1876aa90c3
+- `21:08:43`     REPORT RequestId: 20387771-8562-409b-b521-6d1876aa90c3	Duration: 44408.38 ms	Billed Duration: 44886 ms	Memory Size: 512 MB	Max Memory Used: 151 MB	Init Duration
+- `21:08:43`   justhodl-feed-registry: last log event 13.6h ago
+- `21:08:43`     INIT_START Runtime Version: python:3.12.mainlinev2.v18	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:9819e0b13863c84a43e11f5c724871d909046d3cfb807eeb19
+- `21:08:43`     START RequestId: 376a6465-f83e-4b6e-b74e-e6c74698ef3e Version: $LATEST
+- `21:08:43`     [feed-registry] 844 feeds, 34 stale, 38.7s
+- `21:08:43`     END RequestId: 376a6465-f83e-4b6e-b74e-e6c74698ef3e
+- `21:08:43`     REPORT RequestId: 376a6465-f83e-4b6e-b74e-e6c74698ef3e	Duration: 38669.69 ms	Billed Duration: 39217 ms	Memory Size: 256 MB	Max Memory Used: 101 MB	Init Duration
+- `21:08:43`   justhodl-feed-catalog: last log event 23.1h ago
+- `21:08:44`     INIT_START Runtime Version: python:3.12.mainlinev2.v14	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:40182b778d40c8bdb13a6ef86990df74f5066cdb7d40aac184
+- `21:08:44`     START RequestId: bd27175c-f823-4c44-9d2f-3ef2d69085aa Version: $LATEST
+- `21:08:44`     [feed-catalog] starting
+- `21:08:44`     [feed-catalog] 39806 keys under data/
+- `21:08:44`     [feed-catalog] OK — 27476 feeds, 21.68s
+- `21:08:44`     [jhcore.notify] telegram err: HTTP Error 401: Unauthorized
+- `21:08:44`     END RequestId: bd27175c-f823-4c44-9d2f-3ef2d69085aa
+- `21:08:44`     REPORT RequestId: bd27175c-f823-4c44-9d2f-3ef2d69085aa	Duration: 21976.07 ms	Billed Duration: 22490 ms	Memory Size: 1024 MB	Max Memory Used: 171 MB	Init Duratio
+## 6. verdict
+
+- `21:08:44` ✅ PROBE COMPLETE
