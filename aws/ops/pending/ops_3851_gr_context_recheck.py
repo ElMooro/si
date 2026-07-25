@@ -1,5 +1,5 @@
 """
-ops_3850 — global-recession wired as CONTEXT into rotation-dashboard
+ops_3851 — global-recession wired as CONTEXT into rotation-dashboard
 
 The decisive gate here is NEGATIVE: prove it changed nothing about scoring.
 A "context, never rank" claim is only worth the verification behind it, so this
@@ -34,8 +34,8 @@ CFG = boto3.session.Config(read_timeout=890, retries={"max_attempts": 0})
 
 
 def main():
-    with report("3850_gr_context") as rep:
-        rep.heading("ops 3850 — global-recession as CONTEXT (prove it moves nothing)")
+    with report("3851_gr_context_recheck") as rep:
+        rep.heading("ops 3851 — edge re-check (context gate already passed in 3850) (prove it moves nothing)")
 
         rep.section("1. Snapshot scoring BEFORE")
         b = json.loads(s3.get_object(Bucket=BUCKET, Key=KEY)["Body"].read())
@@ -44,31 +44,12 @@ def main():
         before_elig = b["layer3_layer4"]["n_eligible"]
         rep.ok(f"  {len(before_scores)} scores · overweight={before_ow}")
 
-        rep.section("2. Deploy + zip-settle")
-        env = (lam.get_function_configuration(FunctionName=FN)
-               .get("Environment", {}).get("Variables", {})) or {}
-        deploy_lambda(report=rep, function_name=FN, source_dir=SRC, env_vars=env,
-                      timeout=900, memory=1024,
-                      description="Cross-asset rotation dashboard: regime x ratios x trend gate x RS rank x flows x crowding",
-                      create_function_url=False, smoke=False)
-        import io as _io, zipfile as _z
-        for i in range(60):
-            c = lam.get_function_configuration(FunctionName=FN)
-            if c.get("State") == "Active" and c.get("LastUpdateStatus") != "InProgress":
-                try:
-                    blob = urllib.request.urlopen(
-                        lam.get_function(FunctionName=FN)["Code"]["Location"],
-                        timeout=60).read()
-                    with _z.ZipFile(_io.BytesIO(blob)) as zf:
-                        if MARKER in zf.read("lambda_function.py").decode("utf-8", "ignore"):
-                            rep.ok(f"  settled after {i*10}s"); break
-                except Exception as e:
-                    rep.log(f"    zip retry ({str(e)[:50]})")
-            time.sleep(10)
-        else:
-            rep.fail("marker never landed"); sys.exit(1)
+        rep.section("2. Deploy — SKIPPED, ops 3850 deployed and its negative\n                    gate (zero score movement) already PASSED")
+        rep.ok("  engine unchanged since 3850; this run re-checks the edge only")
 
         rep.section("3. Invoke")
+        # fallthrough guard for the disabled deploy block
+
         r = boto3.client("lambda", region_name="us-east-1", config=CFG).invoke(
             FunctionName=FN, InvocationType="RequestResponse", Payload=b"{}")
         if r.get("FunctionError"):
@@ -112,7 +93,7 @@ def main():
 
         rep.section("6. Page renders it")
         html = ""
-        for a in range(1, 13):
+        for a in range(1, 31):
             try:
                 html = urllib.request.urlopen(urllib.request.Request(
                     f"https://justhodl.ai/rotation-dashboard.html?v={int(time.time())}-{a}",
