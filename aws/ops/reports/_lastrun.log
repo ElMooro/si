@@ -1,27 +1,28 @@
-executing-against: f07cafb3a733889201c4166d738f2b97dc19cdf1
-ops 3862 — PROBE: master-ranker sector resolution, live (no code written)
+executing-against: 26d3e63fc968f59fc98fe22227d946c0226c92cc
+ops 3863 — PROBE: master-ranker sector resolution, live (no code written)
 ── 1. live master-ranker output ──
-[16:32:35]   list-bearing keys: ['feed_freshness', 'missing_feeds', 'stale_feeds_excluded', 'top_macro', 'top_tickers']
+[16:36:32]   list-bearing keys: ['feed_freshness', 'missing_feeds', 'stale_feeds_excluded', 'top_macro', 'top_tickers']
+[16:36:32]   row keys: ['capital_flow_mult', 'capture_gap', 'capture_tier', 'catchup_basis', 'catchup_pct', 'census', 'contributions', 'cycle_phase', 'cycle_warning', 'details', 'global_capture_gap', 'liquidity_regime_mult', 'mcap_share_pct', 'n_systems', 'nowcast_regime_mult', 'rationale', 'red_flags', 'risk_regime_mult', 'rotation_mult', 'rotation_note', 'score', 'systems', 'ticker', 'undervaluation_score']
 ── 2. overlay coverage — how many rows actually got a sector ──
-[16:32:35] ✗   rotation_mult            non-neutral on 0/63
-[16:32:35] ✗   risk_regime_mult         non-neutral on 0/63
-[16:32:35] ✗   liquidity_regime_mult    non-neutral on 0/63
-[16:32:35] ✗   nowcast_regime_mult      non-neutral on 0/63
-[16:32:35]   rotation_note present on 0/63
+[16:36:32] ✅   rotation_mult            non-neutral on 16/25
+[16:36:32] ✗   risk_regime_mult         non-neutral on 0/25
+[16:36:32] ✅   liquidity_regime_mult    non-neutral on 16/25
+[16:36:32] ✅   nowcast_regime_mult      non-neutral on 16/25
+[16:36:32]   rotation_note present on 16/25
 ── 3. rebuild the harvest from the same donors — per-donor attribution ──
-[16:32:35] ✅   screener/data.json                    503 pairs · covers  0/0 ranked · 22h old
-[16:32:36] ✗   data/capital-flow-radar.json            0 pairs · covers  0/0 ranked · 18h old
-[16:32:36] ✅   data/deep-value.json                   30 pairs · covers  0/0 ranked · 6h old
-[16:32:36] ✗   data/accumulation-radar.json            0 pairs · covers  0/0 ranked · 19h old
-[16:32:36] ✅   data/asymmetric-scorer.json            43 pairs · covers  0/0 ranked · 6h old
+[16:36:32] ✅   screener/data.json                    503 pairs · covers 15/25 ranked · 22h old
+[16:36:33] ✗   data/capital-flow-radar.json            0 pairs · covers  0/25 ranked · 18h old
+[16:36:33] ✅   data/deep-value.json                   30 pairs · covers  2/25 ranked · 6h old
+[16:36:33] ✗   data/accumulation-radar.json            0 pairs · covers  0/25 ranked · 19h old
+[16:36:33] ✅   data/asymmetric-scorer.json            43 pairs · covers  0/25 ranked · 6h old
 ── 4. TRUE overlap — the number that decides the next move ──
-[16:32:36]   unresolved tickers: []
-[16:32:36] ✅   0/0 ranked tickers resolvable to a sector
+[16:36:33]   unresolved tickers: ['BE', 'UMC', 'DFTX', 'OVV', 'HCC', 'ALHC', 'IPGP', 'CENX']
+[16:36:33] ✗   17/25 ranked tickers resolvable to a sector
 ── 5. did the deployed engine log its map size on the last run ──
-[16:32:37] ✅   [sector-map] harvested 513 ticker->sector pairs
-[16:32:37] ✅   [sector-map] harvested 513 ticker->sector pairs
+[16:36:33] ✅   [sector-map] harvested 513 ticker->sector pairs
+[16:36:34] ✅   [sector-map] harvested 513 ticker->sector pairs
 ── 6. verdict ──
-[16:32:37] ✗ OPEN — resolvable 0/0, rotation non-neutral 0/63
+[16:36:34] ✗ OPEN — resolvable 17/25, rotation non-neutral 16/25
 
-→ Report written to aws/ops/reports/latest/3862_ranker_sector_probe.md
-❌ OPS-FAIL: aws/ops/pending/ops_3862_ranker_sector_probe.py
+→ Report written to aws/ops/reports/latest/3863_ranker_sector_probe.md
+❌ OPS-FAIL: aws/ops/pending/ops_3863_ranker_sector_probe.py
