@@ -302,6 +302,93 @@ def compute_cli_from_prices(prices, supplement=None):
 # ════════════════════════════════════════════════════════════════════════
 # Regional + global aggregation (unchanged from v1)
 # ════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════
+# PHYSICAL CONFIRMATION — port throughput (ops 3842)
+# ═══════════════════════════════════════════════════════════════════════════
+# The phase labels above are derived from an EQUITY-MOMENTUM composite. That
+# leads, but its documented failure mode is firing in drawdowns that never
+# become recessions. Downstream, justhodl-global-recession found 84.3% of its
+# GDP-weighted headline resting on exactly these unconfirmed labels.
+#
+# Port throughput is PHYSICAL and independent of equity prices, so it can
+# corroborate or contradict a label at the SOURCE — which fixes every consumer
+# at once rather than each one re-deriving it.
+#
+# STRICTLY ADDITIVE: `phase` is never modified. A new `physical` block is
+# attached per country and consumers opt in. Countries need >=2 ports (a single
+# port is a facility, not an economy) and unmapped names are reported, never
+# silently dropped.
+
+_PORT_ALIASES = {
+    "south korea": "KOR", "korea": "KOR", "united states of america": "USA",
+    "usa": "USA", "us": "USA", "uk": "GBR", "great britain": "GBR",
+    "the netherlands": "NLD", "netherlands (kingdom of the)": "NLD",
+    "russian federation": "RUS", "viet nam": "VNM", "czechia": "CZE",
+    "czech republic": "CZE", "turkiye": "TUR", "t\u00fcrkiye": "TUR",
+    "taiwan province of china": "TWN", "taiwan, province of china": "TWN",
+}
+
+
+def load_port_physical(country_meta):
+    """{ISO3: {n_ports, median_yoy_pct, min_yoy_pct, worst_port, disrupted}}"""
+    out, unmapped = {}, {}
+    try:
+        pw = json.loads(S3.get_object(
+            Bucket=BUCKET, Key="data/portwatch.json")["Body"].read())
+    except Exception as e:
+        print(f"[physical] portwatch unavailable: {str(e)[:80]}")
+        return {}, {}, None
+    name_map = dict(_PORT_ALIASES)
+    for iso, meta in (country_meta or {}).items():
+        nm = (meta or {}).get("name")
+        if isinstance(nm, str) and nm.strip():
+            name_map.setdefault(nm.strip().lower(), iso.upper())
+    agg = {}
+    for row in (pw.get("ports") or []):
+        if not isinstance(row, dict):
+            continue
+        y = row.get("yoy_pct")
+        if not isinstance(y, (int, float)):
+            continue
+        cn = str(row.get("country") or "").strip().lower()
+        iso = name_map.get(cn)
+        if not iso:
+            unmapped[cn] = unmapped.get(cn, 0) + 1
+            continue
+        agg.setdefault(iso, []).append(row)
+    for iso, rows in agg.items():
+        ys = sorted(r["yoy_pct"] for r in rows)
+        if len(ys) < 2:
+            continue
+        worst = min(rows, key=lambda r: r["yoy_pct"])
+        out[iso] = {
+            "n_ports": len(ys),
+            "median_yoy_pct": round(ys[len(ys) // 2], 2),
+            "min_yoy_pct": round(ys[0], 2),
+            "worst_port": worst.get("name"),
+            "n_disrupted": sum(1 for r in rows
+                               if str(r.get("status", "")).upper() == "DISRUPTED"),
+        }
+    return out, dict(sorted(unmapped.items(), key=lambda kv: -kv[1])[:20]), \
+        pw.get("generated_at")
+
+
+def confirm_phase(phase, phys):
+    """CONFIRMED / DIVERGENT / UNCONFIRMED — never alters `phase` itself."""
+    if not phys:
+        return {"state": "UNCONFIRMED",
+                "note": "no port coverage (>=2 ports required) for this economy"}
+    deteriorating = phase in ("RECESSION", "AT_RISK")
+    physical_weak = phys["median_yoy_pct"] < 0
+    state = "CONFIRMED" if deteriorating == physical_weak else "DIVERGENT"
+    return {
+        "state": state, "source": "port throughput (physical)",
+        **phys,
+        "note": ("physical trade volume, independent of the equity-momentum "
+                 "composite that produced `phase`"),
+    }
+
+
 def aggregate(by_country):
     PHASES = ["EXPANSION", "AT_RISK", "RECESSION", "RECOVERY", "UNKNOWN"]
     by_region = defaultdict(lambda: {"phase_mix": defaultdict(float), "n_countries": 0,
@@ -1030,6 +1117,7 @@ def lambda_handler(event=None, context=None):
             "country_count": len(COUNTRY_MAP),
         },
         "by_country": by_country,
+        "physical_confirmation": _phys_summary,
         "aggregate": agg,
         "interpretation": interp,
     }
@@ -1089,6 +1177,44 @@ def lambda_handler(event=None, context=None):
     for tr in transitions:
         print(f"[gbc-history]   {tr['date']} {tr['from_phase']} → {tr['to_phase']} "
               f"CLI {tr['cli_at_transition']} · persisted {tr['weeks_persisted']}w")
+
+    # ── PHYSICAL CONFIRMATION (ops 3842) — strictly additive, `phase` untouched
+    try:
+        _pmeta = {iso: {"name": r.get("country_name")}
+                  for iso, r in by_country.items() if isinstance(r, dict)}
+        _phys, _unmapped, _pw_gen = load_port_physical(_pmeta)
+        _cs = {"CONFIRMED": 0, "DIVERGENT": 0, "UNCONFIRMED": 0}
+        for iso, row in by_country.items():
+            if not isinstance(row, dict):
+                continue
+            blk = confirm_phase(row.get("phase"), _phys.get(iso.upper()))
+            row["physical"] = blk
+            _cs[blk["state"]] = _cs.get(blk["state"], 0) + 1
+        _phys_summary = {
+            "source": "data/portwatch.json",
+            "portwatch_generated_at": _pw_gen,
+            "countries_with_ports": len(_phys),
+            "counts": _cs,
+            "unmapped_port_countries": _unmapped,
+            "method": ("median YoY port throughput per country (>=2 ports). "
+                       "CONFIRMED when physical direction agrees with the "
+                       "equity-momentum phase, DIVERGENT when it contradicts."),
+            "why": ("`phase` is derived from equity momentum, whose known failure "
+                    "mode is firing in drawdowns that never become recessions. "
+                    "Port volumes are physical and independent, so they "
+                    "corroborate or contradict the label at the SOURCE — every "
+                    "downstream consumer inherits the check instead of "
+                    "re-deriving it."),
+            "limits": ("Port throughput is a TRADE proxy: it under-reads "
+                       "service-led and domestic-demand economies, and a "
+                       "commodity exporter can show falling volumes for "
+                       "supply-side reasons unrelated to its business cycle. "
+                       "Corroboration, not proof."),
+        }
+        print(f"[physical] {len(_phys)} countries · {_cs}")
+    except Exception as _pe:  # noqa: BLE001
+        _phys_summary = {"error": str(_pe)[:200]}
+        print(f"[physical] failed: {str(_pe)[:120]}")
 
     # Cross-correlation lead/lag ranking
     lead_lag_started = time.time()
