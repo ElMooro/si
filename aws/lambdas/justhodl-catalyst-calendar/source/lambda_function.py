@@ -11,6 +11,16 @@ WHAT IT AGGREGATES (60-day forward window)
   6. Russell reconstitution — last Friday of June (rebalance) + announcement (~mid-June)
   7. Bank earnings cluster — second week of Jan/Apr/Jul/Oct (JPM/BAC/C/WFC)
 
+PAST WINDOW (45-day trailing, added 2026-07-25)
+────────────────────────────────────────────────
+  8. EARNINGS_ACTUAL — recent_earnings_events() surfaces earnings-tracker's
+     recent_results_30d as past-dated events: real Benzinga actual EPS/revenue,
+     surprise %, and post-earnings 1d/5d/20d returns/PEAD label. Fixes a real
+     gap found investigating a semi-sector flow/price divergence: this feed
+     was forward-only, so "what already happened" had nowhere to look even
+     though the data existed one S3 key over. No new external dependency —
+     reuses data the fleet already computes via justhodl-earnings-tracker.
+
 OUTPUT
 ──────
   data/catalyst-calendar.json
@@ -20,19 +30,23 @@ OUTPUT
       {
         date,             # YYYY-MM-DD
         time,             # HH:MM UTC if known, else null
-        type,             # FOMC | AUCTION | EARNINGS | WITCHING | REBALANCE | BANK_EARNINGS
+        type,             # FOMC | AUCTION | EARNINGS | EARNINGS_ACTUAL | WITCHING
+                          # | REBALANCE | BANK_EARNINGS | FDA
         title,            # short label
         subtitle,         # detail
         impact,           # HIGH | MEDIUM | LOW
         source,           # primary source
         url,              # link to authoritative info
-        days_to,          # countdown
+        days_to,          # countdown (NEGATIVE for EARNINGS_ACTUAL — already happened)
         size_billions,    # for auctions
         consensus,        # for econ data
         previous          # for econ data
+        # EARNINGS_ACTUAL rows additionally carry: eps_actual, eps_estimate,
+        # eps_surprise_pct, revenue_actual, revenue_surprise_pct, pead_label,
+        # pead_score, return_1d_pct, return_5d_pct, return_20d_pct
       }, ...
     ],
-    by_type:    {FOMC: n, AUCTION: n, ...},
+    by_type:    {FOMC: n, AUCTION: n, ..., EARNINGS_ACTUAL: n},
     high_impact_next_7d:   N,
     high_impact_next_30d:  N
   }
@@ -269,6 +283,92 @@ def bank_earnings_cluster(window_days):
 
 
 # ─── Source: Earnings — Benzinga precision + FMP breadth (hybrid) ────────────
+def recent_earnings_events(lookback_days=45):
+    """Surface earnings-tracker's recent_results_30d as PAST catalyst events.
+
+    This is the fix for the gap found 2026-07-25: catalyst-calendar was
+    forward-only (earnings_events() above explicitly drops anything with
+    ed < today), so a "what already happened" investigation had nowhere to
+    look inside this feed even though the data it needed — real Benzinga
+    actual-vs-estimate EPS/revenue, surprise %, and post-earnings 1d/5d/20d
+    returns — was already being computed one S3 key over, in
+    data/earnings-tracker.json's recent_results_30d array. No new external
+    API call: this reuses data the fleet already pays for and computes.
+
+    Deliberately a SEPARATE function from earnings_events() (not a shared
+    code path) so the well-tested forward-calendar logic is untouched —
+    this only ADDS a new event type, never modifies the existing one.
+    """
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key="data/earnings-tracker.json")
+        d = json.loads(obj["Body"].read())
+    except Exception as e:
+        print(f"[catalyst] recent_earnings_events fetch failed: {e}")
+        return []
+
+    today = date.today()
+    floor = today - timedelta(days=lookback_days)
+    events = []
+
+    def _imp(importance):
+        try:
+            importance = float(importance or 0)
+        except (ValueError, TypeError):
+            importance = 0
+        if importance >= 4:
+            return "HIGH"
+        if importance == 3:
+            return "MEDIUM"
+        return "LOW"
+
+    for r in (d.get("recent_results_30d") or []):
+        try:
+            fd_str = (r.get("filing_date") or "")[:10]
+            if not fd_str:
+                continue
+            try:
+                fd = datetime.strptime(fd_str, "%Y-%m-%d").date()
+            except ValueError:
+                continue
+            if fd < floor or fd > today:
+                continue
+            tk = r.get("ticker")
+            eps_a, eps_e = r.get("eps_actual"), r.get("eps_estimate")
+            surprise = r.get("eps_surprise_pct")
+            returns = r.get("returns") or {}
+            r1d = returns.get("1d")
+            beat_txt = (f"EPS {eps_a} vs {eps_e} est ({surprise:+.1f}% surprise)"
+                        if surprise is not None else "earnings reported")
+            react_txt = f" · 1d reaction {r1d:+.1f}%" if r1d is not None else ""
+            events.append({
+                "date": fd_str,
+                "time": None,
+                "type": "EARNINGS_ACTUAL",
+                "title": f"{tk or '?'} reported",
+                "subtitle": (beat_txt + react_txt)[:140],
+                "impact": _imp(r.get("importance")),
+                "source": "Benzinga (via Massive) — actual results",
+                "url": None,
+                "size_billions": None,
+                "ticker": tk,
+                "period_end": r.get("period_end"),
+                "eps_actual": eps_a,
+                "eps_estimate": eps_e,
+                "eps_surprise_pct": surprise,
+                "revenue_actual": r.get("revenue_actual"),
+                "revenue_surprise_pct": r.get("revenue_surprise_pct"),
+                "pead_label": r.get("pead_label"),
+                "pead_score": r.get("pead_score"),
+                "return_1d_pct": r1d,
+                "return_5d_pct": returns.get("5d"),
+                "return_20d_pct": returns.get("20d"),
+            })
+        except Exception as e:
+            print(f"[catalyst] recent earnings row skipped: {e}")
+            continue
+    return events
+
+
 def earnings_events(window_days):
     """Hybrid earnings catalysts:
       1) Benzinga forward_calendar (authoritative) — importance 1-5 drives impact,
@@ -465,6 +565,7 @@ def lambda_handler(event, context):
         ("REBALANCE", lambda: sp_rebalance_events(WINDOW_DAYS)),
         ("BANK_EARNINGS", lambda: bank_earnings_cluster(WINDOW_DAYS)),
         ("EARNINGS", lambda: earnings_events(WINDOW_DAYS)),
+        ("EARNINGS_ACTUAL", lambda: recent_earnings_events(45)),
         ("FDA", lambda: fda_events(WINDOW_DAYS)),
         ("GOV_CONTRACT", lambda: gov_contract_events()),
     ]
