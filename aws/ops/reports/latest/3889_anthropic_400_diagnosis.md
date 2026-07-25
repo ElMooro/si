@@ -1,0 +1,37 @@
+# ops 3889 — get Anthropic's REAL error message, not just the HTTP status line
+
+**Status:** failure  
+**Duration:** 0.9s  
+**Finished:** 2026-07-25T22:17:29+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| control_ok | model_isolated_ok | news_sentiment_replica_ok | news_wire_replica_ok |
+|---|---|---|---|
+| False | False | False | False |
+
+## Log
+## 1. fetch the live key (same one news-wire/news-sentiment now use)
+
+- `22:17:28` ✅   key fetched, len=108, prefix=sk-ant-api03...
+## 2. exact replica of news-wire's request (model=claude-haiku-4-5-20251001, max_tokens=2500)
+
+- `22:17:29` ✗   [news-wire replica] HTTP 400 Bad Request — REAL ANTHROPIC ERROR BODY: {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."},"request_id":"req_011CdPYsMR6aJkheDQe6Pv5t"}
+## 3. exact replica of news-sentiment's request (max_tokens=1600)
+
+- `22:17:29` ✗   [news-sentiment replica] HTTP 400 Bad Request — REAL ANTHROPIC ERROR BODY: {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."},"request_id":"req_011CdPYsN62pFPEPEZFKxKeY"}
+## 4. control: does ANY call with this key succeed at all (rules out a key-level problem)
+
+- `22:17:29` ✗   [minimal control call] HTTP 400 Bad Request — REAL ANTHROPIC ERROR BODY: {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."},"request_id":"req_011CdPYsNbnijie8X5zYPfo6"}
+## 5. control: does the model name itself resolve (isolate model vs other params)
+
+- `22:17:29` ✗   [bare minimum body, same model] HTTP 400 Bad Request — REAL ANTHROPIC ERROR BODY: {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."},"request_id":"req_011CdPYsP73dd14hUUDWcRk2"}
+## 6. verdict
+
+- `22:17:29` ✗   every single call failed, including a bare-minimum control — the key itself or account access is the problem, not request shape
