@@ -1,13 +1,33 @@
-executing-against: ed52fe4c245a48961545d87dfb785519a4b85a38
-ops 3868 — liquidity overlay 0/25: stale feed, neutral regime, or defect
-── 1. ask the ranker what it excluded ──
-[16:55:48]   stale_feeds_excluded: []
-[16:55:48]   missing_feeds: []
-[16:55:48] ✅   liquidity feed is NOT in the ranker's exclusion lists
-── 2. the feed itself ──
-[16:55:48]   composite keys: ['components', 'composite_z', 'liquidity_score', 'n_components', 'read', 'regime']
-[16:55:48]   top-level keys: ['analogs', 'availability', 'backtest', 'brain_predictors', 'china', 'china_engine', 'composite', 'composite_clock', 'composite_projection', 'composite_snapshots', 'credit', 'cycle_clock', 'data_health', 'dealer_survey', 'dollar', 'dollar_shortage']
-── 3. verdict ──
-[16:55:48] ✅   CAUSE (b): feed fresh (5.7h), regime=NEUTRAL, heading=STABLE / MIXED, dollar_shortage=CALM — every multiplier collapses to 1.0, so 0/25 is CORRECT. No change warranted; manufacturing a tilt here would be the same false-signal error as forcing RORO at score 2.5.
+executing-against: 749f775b9b58b9e350960fc67bc71d9f1aa581c3
+ops 3869 — PROBE: pressure boards + heatmap + filters, no code written
+── 1. daily.json — live region / leveraged / category distributions ──
+[17:26:18]   region       distinct=5  [('US', 271), ('EM', 16), ('Intl', 8), ('CN', 3), ('Global', 2)]
+[17:26:18]   category     distinct=11  [('leveraged', 181), ('thematic', 36), ('sector', 21), ('country', 16), ('broad', 9), ('factor', 9), ('commodity', 8), ('treasury', 7), ('fx', 5), ('credit', 4), ('crypto', 4)]
+[17:26:18]   leveraged    distinct=2  [(True, 184), (False, 116)]
+[17:26:18]   subcategory  distinct=263  [('us_large_cap', 3), ('technology', 3), ('semiconductors', 3), ('bitcoin', 3), ('2x_nvda_bull', 3), ('cybersecurity', 3), ('emerging_markets', 2), ('broad', 2), ('high_yield', 2), ('gold', 2), ('biotech', 2), ('3x_sp500_bull', 2), ('3x_sp500_bear', 2), ('2x_sp500_bull', 2), ('2x_qqq_bull', 2)]
+[17:26:18] ✅   leveraged=True on 184/300 · leveraged=False on 116
+── 2. daily.json — buying vs selling split at 3 cadences (the feature itself) ──
+[17:26:18] ✅   daily    buying=64 selling=88 null=0
+[17:26:18] ✅   weekly   buying=97 selling=130 null=0
+[17:26:18] ✅   monthly  buying=124 selling=152 null=0
+── 3. constituent-pressure.json — reconfirm stock universe ──
+[17:26:18]   per-stock keys: ['cumulative_weight_pct', 'holding_etfs', 'n_etfs_holding', 'name', 'stock', 'total_aggregate_flow_21d_usd', 'total_aggregate_flow_5d_usd']
+[17:26:18]   holding_etf keys: ['etf', 'etf_flow_21d_usd', 'etf_flow_5d_usd', 'etf_label', 'etf_zscore', 'implied_pressure_21d_usd', 'implied_pressure_5d_usd', 'weight_pct']
+── 4. data/universe.json — sector/country coverage of the stock universe ──
+[17:26:18]   country distribution (of overlap): [('US', 1084), ('CA', 36), ('CN', 17), ('IE', 15), ('GB', 12), ('CH', 9), ('IL', 8), ('NL', 7), ('KY', 6), ('BM', 5)]
+[17:26:18]   sector distribution (of overlap): [('Technology', 245), ('Industrials', 206), ('Healthcare', 184), ('Consumer Cyclical', 123), ('Financial Services', 119), ('Basic Materials', 97), ('Energy', 96), ('Consumer Defensive', 44), ('Utilities', 42), ('Real Estate', 40), ('Communication Services', 34)]
+[17:26:18]   sample row: {"symbol": "NVDA", "name": "NVIDIA Corporation", "sector": "Technology", "industry": "Semiconductors", "exchange": "NASDAQ Global Select", "country": "US", "is_adr": false, "market_cap": 5077932650000, "price": 209.65, "cap_bucket": "mega", "source": "screener"}
+── 5. finviz-universe.json — does it carry per-stock price RETURN ──
+[17:26:19] ✅   per-ticker container at 'by_ticker' (dict, n=11519)
+[17:26:19]   sample row keys: ['ah_close', 'analyst_recom', 'atr', 'avg_volume', 'beta', 'book_sh', 'cash_sh', 'change_open_pct', 'change_pct', 'company', 'country', 'current_ratio', 'debt_eq', 'div_ex_date', 'div_ttm', 'div_yield', 'earnings_date', 'employees', 'eps_g_3y', 'eps_growth_5y', 'eps_growth_n5y', 'eps_growth_ny', 'eps_growth_qoq', 'eps_growth_ty', 'eps_next_q', 'eps_surprise', 'eps_ttm', 'eps_yoy_ttm', 'ev', 'ev_ebitda', 'ev_sales', 'exchange', 'float_pct', 'float_shares', 'fwd_pe', 'gap_pct', 'gross_margin', 'income', 'index_membership', 'industry', 'insider_own_pct', 'insider_trans_pct', 'inst_own_pct', 'inst_trans_pct', 'ipo_date', 'lt_debt_eq', 'market_cap', 'off_50d_high_pct', 'off_50d_low_pct', 'off_52w_high_pct', 'off_52w_low_pct', 'off_ath_pct', 'off_atl_pct', 'oper_margin', 'optionable', 'p_cash', 'p_fcf', 'payout_ratio', 'pb', 'pe', 'peg', 'perf_h', 'perf_m', 'perf_q', 'perf_w', 'perf_y', 'perf_ytd', 'prev_close', 'price', 'profit_margin', 'ps', 'quick_ratio', 'range_52w', 'rel_volume', 'rev_surprise', 'roa', 'roe', 'roic', 'rsi', 'sales', 'sales_g_3y', 'sales_growth_5y', 'sales_growth_qoq', 'sales_yoy_ttm', 'sector', 'shares_out', 'short_float_pct', 'short_interest_sh', 'short_ratio', 'shortable', 'sma200_pct', 'sma20_pct', 'sma50_pct', 'target_price', 'ticker', 'volatility_m', 'volatility_w', 'volume']
+[17:26:19]   perf/return-looking fields: ['perf_w', 'perf_m', 'perf_q', 'perf_h', 'perf_y', 'perf_ytd', 'change_open_pct', 'change_pct', 'exchange']
+── 6. screener/data.json — S&P 500 flagship screener, perf coverage ──
+[17:26:19]   sample row keys: ['altmanZ', 'avgSurprisePct', 'beatStreak', 'beta', 'buybackYield', 'capex', 'ceoName', 'ceoPay', 'chg1d', 'chg1m', 'chg1w', 'chg1y', 'chg3m', 'chg6m', 'crossDaysAgo', 'crossSignal', 'currentRatio', 'dcfFairValue', 'dcfUpsidePct', 'debtToEquity', 'dividendYield', 'downgrades30d', 'downgrades90d', 'ebitda', 'epsGrowth', 'esgIndustryRank', 'esgRating', 'esgScoreNumeric', 'evEbitda', 'fcfGrowth', 'fcfYieldCalc', 'floatShares', 'forwardEbitda', 'forwardPE', 'forwardRevenue', 'forwardRevenueGrowth', 'forwardYear', 'freeCashFlow', 'freeFloatPct', 'gradesBuy', 'gradesConsensus', 'gradesHold', 'gradesScore', 'gradesSell', 'gradesStrongBuy', 'gradesStrongSell', 'grossMargin', 'grossProfit', 'houseBuysN90d', 'industry', 'insiderBuyersN90d', 'insiderBuys90dUsd', 'insiderClusterBuy', 'insiderNet90dUsd', 'insiderSells90dUsd', 'insiderSignal', 'inst13fShares', 'instChgPct', 'instHolders', 'instHoldersChg', 'instHoldersN', 'instInvestorsChange', 'instInvestorsChgPct', 'instInvestorsHolding', 'instLastInvestorsHolding', 'instOwnershipPct', 'instQoQChgPct', 'instQuarter', 'instSharesChangePct', 'instSignal', 'interestCoverage', 'lastSurprisePct', 'latestHeadline', 'latestNewsDate', 'maAcquirerDealsN', 'maIsAcquirer', 'maIsTarget', 'maLatestCounterparty', 'maLatestDate', 'maLatestRole', 'maTargetDealsN', 'marketCap', 'nExecutives', 'name', 'netIncome', 'netMargin', 'newsCount30d', 'newsCount7d', 'newsSentiment30d', 'operatingCashFlow', 'operatingIncome', 'operatingMargin', 'outstandingShares', 'pbRatio', 'peRatio', 'piotroski', 'politicalBuyersN90d', 'politicalBuys30dN', 'politicalBuys90dUsd', 'politicalClusterBuy', 'politicalNet90dUsd', 'politicalSellersN90d', 'politicalSells90dUsd', 'politicalSignal', 'price', 'priceTargetAvg30d', 'priceTargetCount30d', 'priceTargetCount90d', 'priceTargetHigh', 'priceTargetLow', 'priceTargetMean', 'priceTargetMedian', 'priceTargetUpsidePct', 'psRatio', 'rev3yCAGR', 'revenue', 'revenueGrowth', 'roa', 'roe', 'roic', 'sector', 'senateBuysN90d', 'sma200', 'sma50', 'stealBucket', 'stealFactors', 'stealScore', 'stockRepurchased', 'sustainable3y', 'sustainableQuality', 'symbol', 'upgradeNet30d', 'upgradeNet90d', 'upgrades30d', 'upgrades90d', 'volume']
+[17:26:19]   perf/return-looking fields: ['instInvestorsChange', 'instInvestorsChgPct', 'instSharesChangePct', 'instQoQChgPct', 'instChgPct', 'instHoldersChg', 'chg1d', 'chg1w', 'chg1m', 'chg3m', 'chg6m', 'chg1y']
+── 7. fundamental-census-matrix.json — bonus fallback scan ──
+[17:26:19]   fundamental-census-matrix.json: 'str' object has no attribute 'keys' (known-thin per memory)
+── 8. verdict — is there ANY usable price-return donor for the stock side ──
+[17:26:19] ✅   (see sections 5-7 above for perf/return field presence per candidate)
+[17:26:19] ✅ PROBE COMPLETE — all findings above decide the build, nothing guessed
 
-→ Report written to aws/ops/reports/latest/3868_liq_overlay_truth.md
+→ Report written to aws/ops/reports/latest/3869_pressure_heatmap_probe.md
