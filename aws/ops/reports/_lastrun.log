@@ -1,18 +1,17 @@
-executing-against: 5626ef088a7f4b8bfcfb3d73fc836f601fe17c12
-ops 3841 — portwatch cadence + schedule (feeds a hard leg)
-── 1. Current freshness ──
-[02:09:39]   generated_at 2026-07-24T12:10:50.938521+00:00  (age 14.0h)
-[02:09:39]   LastModified 2026-07-24 12:11:50+00:00 · 35,583 bytes
-[02:09:39]   ports=89 chokepoints=28
-[02:09:39] ✅   daily cadence intact
-── 2. Existing triggers ──
-[02:09:39]     Scheduler justhodl-portwatch-daily
-[02:09:39] ✅   1 trigger(s)
-── 3. Arm / confirm ──
-[02:09:40] ✅   Scheduler armed cron(20 11 * * ? *) — daily, pre-US-open
-── 4. Confirm the engine still runs and the hard leg survives ──
-[02:10:29] ✅   invoked clean · ports=89 · with yoy_pct=88
-[02:10:29] ✅   hard-leg field (yoy_pct) intact
-[02:10:29] ✅ PASS — cadence verified, schedule declared and armed
+executing-against: 6fa1fb81b77b92807b656e59787d560d3012599e
+ops 3842 — port confirmation into global-business-cycle
+── G0. Baseline contract BEFORE the change ──
+[02:21:33] ✅   34 countries · 23 fields/row
+[02:21:33] ✅   portwatch: 88 ports carry yoy_pct
+── 1. Deploy ──
+[02:21:34]   zip: 98306 bytes
+── 1. Lambda ──
+[02:21:34]   Lambda exists — updating
+[02:21:41] ✅   ✓ updated justhodl-global-business-cycle
+── 2. ZIP-SETTLE by marker ──
+[02:21:52] ✅   settled with 'load_port_physical' after 10s
+── 3. Invoke ──
+[02:22:13] ✗   invoke error: b'{"errorMessage": "cannot access local variable \'_phys_summary\' where it is not associated with a value", "errorType": "UnboundLocalError", "requestId": "48eede6c-5dac-419e-86d7-83abb922fbba", "stackTrace": ["  File \\"/var/task/lambda_function.py\\", line 1120, in lambda_handler\\n    \\"physical_confirmation\\": _phys_summary,\\n"]}'
 
-→ Report written to aws/ops/reports/latest/3841_portwatch_cadence.md
+→ Report written to aws/ops/reports/latest/3842_gbc_physical.md
+❌ OPS-FAIL: aws/ops/pending/ops_3842_gbc_physical.py
