@@ -915,8 +915,9 @@ function buildUnifiedRows(daily, cpDoc) {
     type: 'ETF', ticker: m.ticker, name: (m.subcategory || '').replace(/_/g, ' ') || m.category || '',
     sector: m.ref_sector || null, region: m.region || null, leveraged: !!m.leveraged,
     daily: m.daily_flow_usd, weekly: m.flow_5d_usd, monthly: m.flow_21d_usd,
-    priceRet: m.ret_21d_pct, z: m.flow_zscore_90d, zKind: 'ts90d',
-    quadrant: m.quadrant || 'NEUTRAL',
+    priceRet: m.ret_21d_pct, priceRetW: m.ret_5d_pct, priceRetYtd: null,   // no YTD field on the ETF side
+    z: m.flow_zscore_90d, zKind: 'ts90d', quadrant: m.quadrant || 'NEUTRAL',
+    size: m.aum_usd, sizeKind: 'AUM', flowPctSize: m.pct_aum_21d,
   }));
   const per = (cpDoc && cpDoc.per_stock_exposure) || {};
   const stockRows = Object.values(per).map(s => ({
@@ -926,8 +927,9 @@ function buildUnifiedRows(daily, cpDoc) {
     leveraged: null,   // not a meaningful concept for individual equities
     daily: s.total_aggregate_flow_daily_usd, weekly: s.total_aggregate_flow_5d_usd,
     monthly: s.total_aggregate_flow_21d_usd,
-    priceRet: s.perf_m_pct, z: s.flow_zscore_cross_sectional, zKind: 'xsec',
-    quadrant: s.quadrant || 'NEUTRAL',
+    priceRet: s.perf_m_pct, priceRetW: s.perf_w_pct, priceRetYtd: s.perf_ytd_pct,
+    z: s.flow_zscore_cross_sectional, zKind: 'xsec', quadrant: s.quadrant || 'NEUTRAL',
+    size: s.market_cap, sizeKind: 'Market Cap', flowPctSize: s.flow_pct_mcap_21d,
   }));
   return etfRows.concat(stockRows);
 }
@@ -1032,8 +1034,9 @@ function renderMasterTable() {
 
   const cols = [
     ['type', 'Type'], ['ticker', 'Ticker'], ['name', 'Name'], ['sector', 'Sector'],
-    ['region', 'Region'], ['leveraged', 'Lev'], ['daily', 'Daily $'], ['weekly', 'Weekly $'],
-    ['monthly', 'Monthly $'], ['priceRet', '1mo Ret'], ['z', 'Flow Z'], ['quadrant', 'Quadrant'],
+    ['region', 'Region'], ['leveraged', 'Lev'], ['size', 'Size'], ['daily', 'Daily $'],
+    ['weekly', 'Weekly $'], ['monthly', 'Monthly $'], ['flowPctSize', 'Flow % Size'],
+    ['priceRet', '1mo Ret'], ['z', 'Flow Z'], ['quadrant', 'Quadrant'],
   ];
   const thead = `<thead><tr>${cols.map(([k, label]) => {
     const isSorted = jhState.sortKey === k;
@@ -1045,6 +1048,10 @@ function renderMasterTable() {
     const qm = quadrantMeta(r.quadrant);
     const typeTag = r.type === 'ETF' ? '<span class="tag etf">ETF</span>' : '<span class="tag stock">STK</span>';
     const levDisp = r.leveraged === true ? 'Y' : r.leveraged === false ? 'N' : '—';
+    const retTitle = [
+      r.priceRetW != null ? `1wk ${fmtPct(r.priceRetW)}` : null,
+      r.priceRetYtd != null ? `YTD ${fmtPct(r.priceRetYtd)}` : null,
+    ].filter(Boolean).join(' · ') || 'no weekly/YTD data for this name';
     return `<tr>
       <td>${typeTag}</td>
       <td><a href="/why.html?ticker=${encodeURIComponent(r.ticker)}" style="color:var(--accent);text-decoration:none;font-weight:700">${esc(r.ticker)}</a></td>
@@ -1052,10 +1059,12 @@ function renderMasterTable() {
       <td style="font-size:11px">${esc(r.sector || '—')}</td>
       <td style="font-size:11px">${esc(r.region || '—')}</td>
       <td style="text-align:center">${levDisp}</td>
+      <td class="num" style="color:var(--text-muted)" title="${esc(r.sizeKind)}">${r.size == null ? '—' : fmtUSD(r.size).replace(/^[+−]/, '')}</td>
       <td class="num ${(r.daily || 0) > 0 ? 'pos' : 'neg'}">${fmtUSD(r.daily)}</td>
       <td class="num ${(r.weekly || 0) > 0 ? 'pos' : 'neg'}">${fmtUSD(r.weekly)}</td>
       <td class="num ${(r.monthly || 0) > 0 ? 'pos' : 'neg'}">${fmtUSD(r.monthly)}</td>
-      <td class="num ${(r.priceRet || 0) > 0 ? 'pos' : 'neg'}">${fmtPct(r.priceRet)}</td>
+      <td class="num" style="color:var(--text-muted)" title="monthly flow as a % of ${esc(r.sizeKind)} — the size-normalized number the Flow Z is computed from">${r.flowPctSize == null ? '—' : r.flowPctSize.toFixed(2) + '%'}</td>
+      <td class="num ${(r.priceRet || 0) > 0 ? 'pos' : 'neg'}" title="${esc(retTitle)}">${fmtPct(r.priceRet)}</td>
       <td class="num" title="${r.zKind === 'ts90d' ? '90-day time-series z (vs own history)' : 'cross-sectional z (vs the whole stock universe today)'}">${fmtZ(r.z)}</td>
       <td class="quad-badge" style="color:${qm.color}">${qm.sym} ${esc(qm.label)}</td>
     </tr>`;
