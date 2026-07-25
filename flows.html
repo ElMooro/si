@@ -702,11 +702,7 @@ async function load() {
   </tbody></table>`;
 }
 
-load();
-</script>
-
-  <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-nav-drawer.js" defer>
+/* JH_FLOWS_DIVFIX_3853 */
 function renderDivergence(b){
   if(!b || (!b.stealth_accumulation?.length && !b.distribution_rally?.length)) return;
   const col = (title, rows, pos) => {
@@ -735,6 +731,11 @@ function renderDivergence(b){
   <div style="margin-top:8px;font-size:10px;color:var(--text-muted)">${esc(b.method||'')} · ${b.n_scored} ETFs scored · trend-confirmed ${b.trend_confirmed} · capitulation ${b.capitulation} · signals feed the scorecard (etf_stealth_accum / etf_distribution_rally)</div>`;
   $("divergence-section").style.display = '';
 }
+
+load();
 </script>
+
+  <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-nav-drawer.js" defer></script>
 </body>
 </html>
