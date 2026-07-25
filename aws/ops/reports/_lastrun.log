@@ -1,22 +1,17 @@
-executing-against: 71d0c030c1ac4040ad83dd4ad672c39fbc96767e
-ops 3882 — is earnings-tracker's Benzinga path dead, and what's live now
-── 1. live earnings-tracker.json — content, freshness, semi coverage ──
-[19:31:14] ✅   data/earnings-tracker.json: 8.0h old
-[19:31:14]   top-level keys: ['aggregate_stats', 'data_sources', 'duration_s', 'forward_calendar', 'generated_at', 'n_forward_calendar', 'n_pead', 'n_recent', 'n_upcoming', 'pead_signals', 'recent_results_30d', 'upcoming_14d', 'version', 'watchlist_size']
-[19:31:14]   list-bearing keys: ['upcoming_14d', 'forward_calendar', 'recent_results_30d', 'pead_signals']
-[19:31:14]   n records: 81
-[19:31:14]   sample record keys: ['earnings_date', 'eps_consensus', 'fiscal_quarter_ending', 'last_year_eps', 'market_cap', 'n_estimates', 'name', 'ticker', 'time']
-[19:31:14]   semi-ticker records found: 3
-[19:31:14]     {"ticker": "QCOM", "name": "QUALCOMM Incorporated", "earnings_date": "2026-07-29", "time": "AMC", "eps_consensus": 1.54, "n_estimates": "8", "fiscal_quarter_ending": "Jun/2026", "last_year_eps": "$2.29", "market_cap": "$180,349,940,000"}
-[19:31:14]     {"ticker": "AMD", "name": "Advanced Micro Devices, Inc.", "earnings_date": "2026-08-04", "time": "AMC", "eps_consensus": 1.35, "n_estimates": "13", "fiscal_quarter_ending": "Jun/2026", "last_year_eps": "$0.27", "market_cap": "$880,018,858,862"}
-[19:31:14]     {"ticker": "AMAT", "name": "Applied Materials, Inc.", "earnings_date": "2026-08-13", "time": "AMC", "eps_consensus": 3.36, "n_estimates": "9", "fiscal_quarter_ending": "Jul/2026", "last_year_eps": "$2.48", "market_cap": "$446,840,367,204"}
-── 2. is benzinga actually reachable right now, or dead (per memory: 403) ──
-[19:31:15]   no benzinga/403/massive lines in the last 3 log streams (200 events each)
-── 3. does earnings-tracker's source still call the dead Benzinga path unconditionally ──
-[19:31:15]   (source-level check, no live call — just confirms whether a fallback exists)
-── 4. catalyst-calendar.json — confirm it truly has zero retained history (re-verify ops 3881's finding independently) ──
-[19:31:16]   confirmed: 0 past events retained
-── 5. verdict ──
-[19:31:16] ✅ PROBE COMPLETE
+executing-against: 7f69fdc7951c594c2b7be45b9812bed4fb775892
+ops 3883 — read recent_results_30d + data_sources directly, by the RIGHT key
+── 1. the right field this time ──
+[19:35:28]   sample record keys: ['eps_actual', 'eps_estimate', 'eps_surprise_pct', 'filing_date', 'importance', 'pead_label', 'pead_score', 'period_end', 'returns', 'revenue_actual', 'revenue_surprise_pct', 'surprise_source', 'ticker']
+[19:35:28]   full sample record: {"ticker": "VZ", "filing_date": "2026-07-24", "period_end": "Q2 2026", "eps_actual": 1.3, "eps_estimate": 1.27, "eps_surprise_pct": 2.36, "revenue_actual": 34253000000.0, "revenue_surprise_pct": -3.04, "importance": 5, "returns": {"1d": null, "5d": null, "20d": null}, "pead_label": "MIXED", "pead_score": 50, "surprise_source": "benzinga"}
+── 2. data_sources — what's ACTUALLY live vs dead right now ──
+[19:35:28]   data_sources: {"surprises_and_calendar": "Benzinga Earnings (via Massive) \u2014 actual/estimate EPS+revenue, importance, AMC/BMO", "upcoming_watchlist": "Nasdaq earnings calendar API (free)", "returns": "Polygon aggregates API"}
+── 3. semi tickers in recent_results_30d specifically ──
+[19:35:28]     {"ticker": "INTC", "filing_date": "2026-07-23", "period_end": "Q2 2026", "eps_actual": 0.42, "eps_estimate": 0.19, "eps_surprise_pct": 121.05, "revenue_actual": 16128000000.0, "revenue_surprise_pct": 12.0, "importance": 5, "returns": {"1d": -7.89, "5d": null, "20d": null}, "pead_label": "BEAT_BUT_FELL", "pead_score": 43, "surprise_source": "benzinga"}
+[19:35:28]     {"ticker": "TSM", "filing_date": "2026-07-16", "period_end": "Q2 2026", "eps_actual": 4.31, "eps_estimate": 3.77, "eps_surprise_pct": 14.32, "revenue_actual": 40200000000.0, "revenue_surprise_pct": 1.11, "importance": 5, "returns": {"1d": -2.77, "5d": 1.43, "20d": null}, "pead_label": "BEAT_BUT_FELL", "pead_score": 43, "surprise_source": "benzinga"}
+[19:35:28]     {"ticker": "ASML", "filing_date": "2026-07-15", "period_end": "Q2 2026", "eps_actual": 8.824, "eps_estimate": 7.98, "eps_surprise_pct": 10.58, "revenue_actual": 10841000000.0, "revenue_surprise_pct": 5.46, "importance": 5, "returns": {"1d": -1.67, "5d": -0.74, "20d": null}, "pead_label": "BEAT_BUT_FELL", "pead_score": 43, "surprise_source": "benzinga"}
+[19:35:28]     {"ticker": "MU", "filing_date": "2026-06-24", "period_end": "Q3 2026", "eps_actual": 25.11, "eps_estimate": 20.2, "eps_surprise_pct": 24.31, "revenue_actual": 41456000000.0, "revenue_surprise_pct": 18.41, "importance": 5, "returns": {"1d": 15.74, "5d": -1.55, "20d": -5.56}, "pead_label": "STRONG_POSITIVE_DRIFT", "pead_score": 88, "surprise_source": "benzinga"}
+── 4. PEAD signals — same check, might carry surprise/drift even if recent_results doesn't ──
+[19:35:28]     {"ticker": "MU", "filing_date": "2026-06-24", "period_end": "Q3 2026", "eps_actual": 25.11, "eps_estimate": 20.2, "eps_surprise_pct": 24.31, "revenue_actual": 41456000000.0, "revenue_surprise_pct": 18.41, "importance": 5, "returns": {"1d": 15.74, "5d": -1.55, "20d": -5.56}, "pead_label": "STRONG_POSITIVE_DRIFT", "pead_score": 88, "surprise_source": "benzinga"}
+[19:35:28] ✅ PROBE COMPLETE
 
-→ Report written to aws/ops/reports/latest/3882_earnings_infra_audit.md
+→ Report written to aws/ops/reports/latest/3883_recent_results_check.md
