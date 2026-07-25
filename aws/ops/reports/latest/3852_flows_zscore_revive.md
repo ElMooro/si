@@ -1,0 +1,47 @@
+# ops 3852 - flows.html z-score feed: diagnose + auto-fix + gate
+
+**Status:** success  
+**Duration:** 1.4s  
+**Finished:** 2026-07-25T15:14:48+00:00  
+
+## Data
+
+| age_hours | branch | cdn_generated_at | cdn_n_metrics | cdn_n_with_zscore | cdn_spdr_with_z | cdn_status | fails | generated_at | n_error_rows | n_metrics | n_ok | n_with_zscore | s3_last_modified | spdr_with_z | universe_size |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 17.2 |  |  |  |  |  |  |  | 2026-07-24T22:00:25.333758+00:00 | 0 | 300 | 300 | 296 | 2026-07-24T22:00:26+00:00 | 11 | 300 |
+|  |  | 2026-07-24T22:00:25.333758+00:00 | 300 | 296 | 11 | 200 |  |  |  |  |  |  |  |  |  |
+|  | HEALTHY_FEED |  |  |  |  |  | [] |  |  |  |  |  |  |  |  |
+
+## Log
+## 1. etf-flows/daily.json - freshness + z-score coverage
+
+- `15:14:46` ✅   296/300 rows carry flow_zscore_90d (page needs >0) - SPDR 11/11
+## 2. field-coverage - keys flows.html reads vs rows
+
+- `15:14:46` ✅   ticker               300/300
+- `15:14:46` ✅   category             300/300
+- `15:14:46` ✅   subcategory          300/300
+- `15:14:46` ✅   ref_sector           50/300
+- `15:14:46` ✅   smart_money          300/300
+- `15:14:46` ✅   signal_label         300/300
+- `15:14:46` ✅   flow_zscore_90d      296/300
+- `15:14:46` ✅   daily_flow_usd       300/300
+- `15:14:46` ✅   flow_5d_usd          300/300
+- `15:14:46` ✅   flow_21d_usd         300/300
+- `15:14:46` ✅   pct_aum_5d           227/300
+- `15:14:46` ✅   persistence_days     300/300
+## 3. composite.json (drives the gauges that still render)
+
+- `15:14:46` ✅   composite.json 17.2h old - 6 gauges with a score
+## 4. schedule - declared is not live
+
+- `15:14:47` ✅   justhodl-etf-fund-flows-daily: ENABLED cron(0 22 * * ? *) - 1 target(s)
+- `15:14:47`   EventBridge Scheduler entries: none
+## 5. CloudWatch - did it actually run (7d)
+
+- `15:14:47`   Invocations 7d = 7
+- `15:14:47`   Errors 7d = 0
+## 6. S3 IS HEALTHY -> compare against what the CDN serves
+
+- `15:14:47` ✅   S3 carries z-scores and is fresh; the engine is not the problem
+- `15:14:48` ✅   EDGE matches S3 - feed and delivery are both fine; the break is in the page render path, next ops reads flows.html served bytes
