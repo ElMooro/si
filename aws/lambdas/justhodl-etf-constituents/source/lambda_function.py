@@ -25,6 +25,7 @@ OUTPUTS:
 """
 import json
 import os
+import statistics
 import time
 import urllib.request
 from fmp_etf import holdings as fmp_holdings, pctf  # ops 3374 shared hardened client
@@ -154,6 +155,11 @@ def compute_per_stock_etf_exposure(all_etfs: list, constituents_map: dict) -> di
     exposure = {}
     for etf in all_etfs:
         etf_ticker = etf["ticker"]
+        # ops 3870: daily leg added alongside the existing 5d/21d — same
+        # formula (etf_flow x weight), daily_flow_usd was already on every
+        # `all_etfs` row (it comes straight from daily.json's metrics), so
+        # this costs nothing extra to fetch, just wasn't being used here.
+        etf_flow_daily = etf.get("daily_flow_usd") or 0
         etf_flow_5d = etf.get("flow_5d_usd") or 0
         etf_flow_21d = etf.get("flow_21d_usd") or 0
         etf_z = etf.get("flow_zscore_90d")
@@ -171,12 +177,14 @@ def compute_per_stock_etf_exposure(all_etfs: list, constituents_map: dict) -> di
                 "name": c.get("name"),
                 "n_etfs_holding": 0,
                 "cumulative_weight_pct": 0,
+                "total_aggregate_flow_daily_usd": 0,
                 "total_aggregate_flow_5d_usd": 0,
                 "total_aggregate_flow_21d_usd": 0,
                 "holding_etfs": [],
             })
             rec["n_etfs_holding"] += 1
             rec["cumulative_weight_pct"] += c.get("weight_pct") or 0
+            rec["total_aggregate_flow_daily_usd"] += etf_flow_daily * weight_decimal
             rec["total_aggregate_flow_5d_usd"] += etf_flow_5d * weight_decimal
             rec["total_aggregate_flow_21d_usd"] += etf_flow_21d * weight_decimal
             rec["holding_etfs"].append({
@@ -184,8 +192,10 @@ def compute_per_stock_etf_exposure(all_etfs: list, constituents_map: dict) -> di
                 "weight_pct": c.get("weight_pct"),
                 "etf_zscore": etf_z,
                 "etf_label": etf_label,
+                "etf_flow_daily_usd": etf_flow_daily,
                 "etf_flow_5d_usd": etf_flow_5d,
                 "etf_flow_21d_usd": etf_flow_21d,
+                "implied_pressure_daily_usd": etf_flow_daily * weight_decimal,
                 "implied_pressure_5d_usd": etf_flow_5d * weight_decimal,
                 "implied_pressure_21d_usd": etf_flow_21d * weight_decimal,
             })
@@ -193,6 +203,7 @@ def compute_per_stock_etf_exposure(all_etfs: list, constituents_map: dict) -> di
     # Finalize: round + sort each stock's holding_etfs by absolute pressure
     for stock, rec in exposure.items():
         rec["cumulative_weight_pct"] = round(rec["cumulative_weight_pct"], 2)
+        rec["total_aggregate_flow_daily_usd"] = round(rec["total_aggregate_flow_daily_usd"], 2)
         rec["total_aggregate_flow_5d_usd"] = round(rec["total_aggregate_flow_5d_usd"], 2)
         rec["total_aggregate_flow_21d_usd"] = round(rec["total_aggregate_flow_21d_usd"], 2)
         rec["holding_etfs"].sort(
@@ -277,6 +288,112 @@ def compute_implied_pressure(high_z_etfs: list, constituents_map: dict) -> list:
     return out
 
 
+# ═════════════════════════════════════════════════════════════════════
+# ops 3870 — "does price follow the flow" for STOCKS (already existed for
+# ETFs: quadrant/divergence_score in justhodl-etf-fund-flows). Stocks have
+# no 90-day time-series of their own (no history of implied pressure), so a
+# TIME-SERIES z-score the way the ETF engine computes it is not available.
+# Instead this uses a CROSS-SECTIONAL z: how unusual is this stock's flow,
+# size-normalized as %-of-market-cap, relative to every OTHER stock in
+# TODAY's universe. That is a real, computed-fresh-each-run number — not a
+# fabricated history — and is explicitly labeled as cross-sectional so it is
+# never confused with the ETF side's time-series methodology.
+# ═════════════════════════════════════════════════════════════════════
+def enrich_sector_and_price(per_stock_exposure: dict) -> dict:
+    """Join sector/country/price-return onto each stock. finviz-universe.json
+    is the primary donor (11.5k tickers, has perf_w/perf_m/perf_ytd + sector +
+    country); data/universe.json fills any sector/country gap finviz misses.
+    Coverage is real and partial — recorded honestly via n_with_sector /
+    n_with_price_return in the output meta, never silently defaulted."""
+    finviz_by_ticker = {}
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key="data/finviz-universe.json")
+        finviz_by_ticker = json.loads(obj["Body"].read()).get("by_ticker") or {}
+    except Exception as e:
+        print(f"[enrich] finviz-universe.json unavailable: {str(e)[:150]}")
+
+    universe_map = {}
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key="data/universe.json")
+        for s in (json.loads(obj["Body"].read()).get("stocks") or []):
+            if s.get("symbol"):
+                universe_map[s["symbol"]] = s
+    except Exception as e:
+        print(f"[enrich] data/universe.json unavailable: {str(e)[:150]}")
+
+    n_sector = n_price = 0
+    for stock, rec in per_stock_exposure.items():
+        fz = finviz_by_ticker.get(stock) or {}
+        uv = universe_map.get(stock) or {}
+        sector = fz.get("sector") or uv.get("sector")
+        country = fz.get("country") or uv.get("country")
+        rec["sector"] = sector
+        rec["country"] = country
+        rec["market_cap"] = fz.get("market_cap") or uv.get("market_cap")
+        rec["perf_w_pct"] = fz.get("perf_w")
+        rec["perf_m_pct"] = fz.get("perf_m")
+        rec["perf_ytd_pct"] = fz.get("perf_ytd")
+        if sector:
+            n_sector += 1
+        if rec["perf_m_pct"] is not None:
+            n_price += 1
+    print(f"[enrich] sector known for {n_sector}/{len(per_stock_exposure)} · "
+          f"price return known for {n_price}/{len(per_stock_exposure)}")
+    return {"n_with_sector": n_sector, "n_with_price_return": n_price}
+
+
+def classify_stock_quadrant(per_stock_exposure: dict) -> dict:
+    """Cross-sectional flow z (21d flow as %-of-mcap, z-scored across today's
+    stock universe) x 1-month price return -> the SAME quadrant vocabulary
+    and SAME thresholds the ETF engine already uses (mirrored exactly, not
+    reinvented): z>=1 & r<=-2 -> STEALTH_ACCUMULATION, z<=-1 & r>=2 ->
+    DISTRIBUTION_RALLY, z>=1 & r>=2 -> TREND_CONFIRMED, z<=-1 & r<=-2 ->
+    CAPITULATION, else NEUTRAL."""
+    pct_mcap = {}
+    for stock, rec in per_stock_exposure.items():
+        mcap = rec.get("market_cap")
+        flow21 = rec.get("total_aggregate_flow_21d_usd")
+        if mcap and mcap > 0 and flow21 is not None:
+            pct_mcap[stock] = flow21 / mcap
+
+    n_z = 0
+    if len(pct_mcap) >= 30:
+        vals = list(pct_mcap.values())
+        mean = statistics.mean(vals)
+        try:
+            stdev = statistics.stdev(vals)
+        except statistics.StatisticsError:
+            stdev = 0
+    else:
+        mean, stdev = 0, 0
+
+    n_quad = {"STEALTH_ACCUMULATION": 0, "DISTRIBUTION_RALLY": 0,
+              "TREND_CONFIRMED": 0, "CAPITULATION": 0, "NEUTRAL": 0}
+    for stock, rec in per_stock_exposure.items():
+        z = None
+        if stdev > 0 and stock in pct_mcap:
+            z = round((pct_mcap[stock] - mean) / stdev, 2)
+            n_z += 1
+        r = rec.get("perf_m_pct")
+        quadrant = "NEUTRAL"
+        if z is not None and r is not None:
+            if z >= 1.0 and r <= -2.0:
+                quadrant = "STEALTH_ACCUMULATION"
+            elif z <= -1.0 and r >= 2.0:
+                quadrant = "DISTRIBUTION_RALLY"
+            elif z >= 1.0 and r >= 2.0:
+                quadrant = "TREND_CONFIRMED"
+            elif z <= -1.0 and r <= -2.0:
+                quadrant = "CAPITULATION"
+        rec["flow_pct_mcap_21d"] = round(pct_mcap[stock] * 100, 4) if stock in pct_mcap else None
+        rec["flow_zscore_cross_sectional"] = z
+        rec["quadrant"] = quadrant
+        n_quad[quadrant] += 1
+    print(f"[quadrant] cross-sectional z computed for {n_z}/{len(per_stock_exposure)} "
+          f"(needs market_cap + 21d flow) · quadrant counts: {n_quad}")
+    return {"n_with_zscore": n_z, "quadrant_counts": n_quad}
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     print(f"[constituents] starting at {datetime.now(timezone.utc).isoformat()}")
@@ -321,6 +438,12 @@ def lambda_handler(event, context):
     # 4. Compute complete per-stock ETF exposure map (all-ETF coverage)
     per_stock_exposure = compute_per_stock_etf_exposure(all_etfs, constituents_map)
     print(f"[constituents] per-stock exposure: {len(per_stock_exposure)} stocks with ETF holdings")
+
+    # 4b. ops 3870 — sector/country/price-return join + cross-sectional
+    # flow-vs-price quadrant, mutates per_stock_exposure in place (additive
+    # fields only — nothing above this line changes shape).
+    enrich_meta = enrich_sector_and_price(per_stock_exposure)
+    quadrant_meta = classify_stock_quadrant(per_stock_exposure)
 
     # 5. Sort per-stock exposure by abs aggregate flow (top movers across the whole universe)
     top_aggregate = sorted(
@@ -369,20 +492,35 @@ def lambda_handler(event, context):
             }
             for e in high_z
         ],
+        # ops 3870 — sector/price-return/quadrant coverage, honest not assumed
+        "n_stocks_with_sector": enrich_meta["n_with_sector"],
+        "n_stocks_with_price_return": enrich_meta["n_with_price_return"],
+        "n_stocks_with_flow_zscore": quadrant_meta["n_with_zscore"],
+        "quadrant_counts": quadrant_meta["quadrant_counts"],
         "top_constituents_by_pressure": pressure[:50],
         "top_aggregate_exposure": [
             {
                 "stock": s.get("stock"),
                 "name": s.get("name"),
+                "sector": s.get("sector"),
+                "country": s.get("country"),
+                "market_cap": s.get("market_cap"),
                 "n_etfs_holding": s.get("n_etfs_holding"),
                 "cumulative_weight_pct": s.get("cumulative_weight_pct"),
+                "total_aggregate_flow_daily_usd": s.get("total_aggregate_flow_daily_usd"),
                 "total_aggregate_flow_5d_usd": s.get("total_aggregate_flow_5d_usd"),
                 "total_aggregate_flow_21d_usd": s.get("total_aggregate_flow_21d_usd"),
+                "perf_w_pct": s.get("perf_w_pct"),
+                "perf_m_pct": s.get("perf_m_pct"),
+                "perf_ytd_pct": s.get("perf_ytd_pct"),
+                "flow_pct_mcap_21d": s.get("flow_pct_mcap_21d"),
+                "flow_zscore_cross_sectional": s.get("flow_zscore_cross_sectional"),
+                "quadrant": s.get("quadrant"),
                 "top_holding_etfs": s.get("holding_etfs", [])[:5],
             }
             for s in top_aggregate[:100]
         ],
-        "per_stock_exposure": per_stock_exposure,  # full map (large)
+        "per_stock_exposure": per_stock_exposure,  # full map (large) — carries every new field natively
     }
     s3.put_object(
         Bucket=S3_BUCKET, Key="etf-flows/constituent-pressure.json",
@@ -399,10 +537,15 @@ def lambda_handler(event, context):
     # Slim "per-stock lookup" file for fast per-ticker access
     slim_lookup = {
         stock: {
+            "sector": r.get("sector"),
+            "country": r.get("country"),
             "n_etfs_holding": r.get("n_etfs_holding"),
             "cumulative_weight_pct": r.get("cumulative_weight_pct"),
+            "total_aggregate_flow_daily_usd": r.get("total_aggregate_flow_daily_usd"),
             "total_aggregate_flow_5d_usd": r.get("total_aggregate_flow_5d_usd"),
             "total_aggregate_flow_21d_usd": r.get("total_aggregate_flow_21d_usd"),
+            "perf_m_pct": r.get("perf_m_pct"),
+            "quadrant": r.get("quadrant"),
             "top_etfs": r.get("holding_etfs", [])[:5],
         }
         for stock, r in per_stock_exposure.items()
