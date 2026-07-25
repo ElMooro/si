@@ -1,39 +1,28 @@
-executing-against: cce4242b554bb46300f6dbe9974101ed40e14c32
-ops 3835 — fleet audit v2: silently-neutral overlays
-── 1. Enumerate artifacts ──
-[23:40:13]   force-included data/master-ranker.json (must-scan, size-exempt)
-[23:40:13]   force-included data/best-setups.json (must-scan, size-exempt)
-[23:40:14] ✅   1998 artifacts (cap 30MB, 2 size-exempt)
-── 2. Scan for overlay fields ──
-[23:44:28] ✅   scanned 1998 artifacts (0 unreadable) · 29 overlay fields found
-── 3. SILENT — present on every row, never once != 1.0 ──
-[23:44:28] ⚠   best-setups.json                   top_setups.khalid_panel_multiplier    0/50 active
-[23:44:28] ⚠   best-setups.json                   top_setups.risk_regime_mult           0/50 active
-[23:44:28] ⚠   best-setups.json                   structural_chokepoints.khalid_panel_multiplier    0/30 active
-[23:44:28] ⚠   best-setups.json                   structural_chokepoints.risk_regime_mult           0/30 active
-[23:44:28] ⚠   master-ranker.json                 top_tickers.risk_regime_mult           0/25 active
-[23:44:28] ⚠   best-setups.json                   structural_at_trough.khalid_panel_multiplier    0/9 active
-[23:44:28] ⚠   best-setups.json                   structural_at_trough.risk_regime_mult           0/9 active
-── 4. NEAR_SILENT — <10% active ──
-[23:44:28] ⚠   _preview/master-ranker.json        top_tickers.risk_regime_mult           1/25 = 4.0%
-[23:44:28] ⚠   _preview/master-ranker.json        top_tickers.sector_flow_mult           1/25 = 4.0%
-── 5. Healthy overlays (context — what normal looks like) ──
-[23:44:28]   best-setups.json                   top_setups.confluence_mult            100.0%
-[23:44:28]   best-setups.json                   structural_chokepoints.rotation_mult              96.7%
-[23:44:28]   best-setups.json                   structural_chokepoints.nowcast_regime_mult        96.7%
-[23:44:28]   best-setups.json                   structural_chokepoints.industry_mult              96.7%
-[23:44:28]   best-setups.json                   structural_at_trough.rotation_mult              88.9%
-[23:44:28]   best-setups.json                   structural_at_trough.nowcast_regime_mult        88.9%
-[23:44:28]   best-setups.json                   structural_at_trough.industry_mult              88.9%
-[23:44:28]   best-setups.json                   top_setups.rotation_mult              88.0%
-[23:44:28]   best-setups.json                   top_setups.nowcast_regime_mult        88.0%
-[23:44:28]   best-setups.json                   top_setups.industry_mult              88.0%
-── 6. Feeds excluded by staleness (where published) ──
-[23:44:28] ⚠   _preview/master-ranker.json: 2 feed(s) dropped -> ['options-confluence.json', 'scarcity-radar.json']
-── 0. SELF-VALIDATION — did the audit see what we know is there? ──
-[23:44:28] ✅   master-ranker.json: scanned
-[23:44:28] ✅   best-setups.json: scanned
-[23:44:28] ✅   known overlays rediscovered: ['nowcast_regime_mult', 'risk_regime_mult', 'rotation_mult']
-[23:44:28] ✅ AUDIT COMPLETE — suspects ranked for judgement, nothing auto-changed
+executing-against: 0afaa544b6556032b118bb61f025369da4968940
+ops 3836 — khalid_panel_multiplier: dead or correctly silent?
+── 1. Is data/wl-fusion.json even being produced? ──
+[00:41:30] ✅   present · 8,751 bytes · LastModified 2026-07-24 22:50:22+00:00 · generated_at 2026-07-24T22:50:20.960141+00:00
+[00:41:30] ✅   age 1.9h
+── 2. Per-theme evidence — the branch decider ──
+[00:41:30]   theme            n_proven  proven_tilt  pressure_pctile  would_fire
+[00:41:30]   BREADTH                 0         None             66.7  no
+[00:41:30]   CREDIT                  0         None             41.8  no
+[00:41:30]   CRYPTO                  0         None             52.0  no
+[00:41:30]   DOLLAR                  0         None             48.5  no
+[00:41:30]   GROWTH                  0         None             44.9  no
+[00:41:30]   INFLATION               0         None             69.9  no
+[00:41:30]   LIQUIDITY               0         None             66.0  no
+[00:41:30]   OTHER                   0         None             54.0  no
+[00:41:30]   RATES                   0         None             31.9  no
+[00:41:30]   STRESS                  0         None             61.6  no
+── 3. Verdict ──
+[00:41:30] ⚠   BRANCH A — NO theme has both proven_tilt and n_proven>0.
+[00:41:30] ⚠   The multiplier CANNOT fire regardless of the tape. This is a
+[00:41:30] ⚠   learning-loop gap, not a market condition: panels are never
+[00:41:30] ⚠   graduating to proven. Next step is the grader that populates
+[00:41:30] ⚠   proven_tilt / n_proven, NOT the multiplier itself.
+── 4. Is the producer scheduled? ──
+[00:41:30] ⚠   triggers: NONE — manual-only, same gap as risk-regime (ops 3833)
+[00:41:30] ✅ DIAGNOSIS COMPLETE — nothing changed, branch identified
 
-→ Report written to aws/ops/reports/latest/3835_overlay_audit_v2.md
+→ Report written to aws/ops/reports/latest/3836_panel_evidence.md
