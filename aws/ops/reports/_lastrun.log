@@ -1,1 +1,33 @@
-executing-against: 5c6fef8afba81c0bb9263cb1f04184d8eba8bae7
+executing-against: f7d81afef08cf956b31afbdc6f256efba6677312
+ops 3858 — PROBE: constituent-pressure.json true shape (no code written)
+── 1. top-level scalars ──
+[16:01:03]   generated_at                     = '2026-07-24T22:45:42.730007+00:00'
+[16:01:03]   as_of_etf_flows_date             = '2026-07-24T22:00:25.333758+00:00'
+[16:01:03]   threshold_z                      = 1.5
+[16:01:03]   elapsed_s                        = 14.8
+[16:01:03]   mode                             = 'all_etfs'
+[16:01:03]   n_etfs_total                     = 289
+[16:01:03]   n_etfs_high_z                    = 17
+[16:01:03]   n_etfs_fetched                   = 284
+[16:01:03]   n_stocks_with_exposure           = 2248
+[16:01:03]   high_z_etfs                      = list[17]
+[16:01:03]   top_constituents_by_pressure     = list[50]
+[16:01:03]   top_aggregate_exposure           = list[100]
+[16:01:03]   per_stock_exposure               = dict[2248]
+── 2. top_aggregate_exposure — the board the page needs ──
+[16:01:03]   container type=list n=100
+[16:01:03]   row keys: ['cumulative_weight_pct', 'n_etfs_holding', 'name', 'stock', 'top_holding_etfs', 'total_aggregate_flow_21d_usd', 'total_aggregate_flow_5d_usd']
+[16:01:03]   sample: {"stock": "NVDA", "name": "NVIDIA CORP", "n_etfs_holding": 40, "cumulative_weight_pct": 341.89, "total_aggregate_flow_5d_usd": -1310456803.31, "total_aggregate_flow_21d_usd": -1784978762.43, "top_holding_etfs": [{"etf": "IVV", "weight_pct": 7.92386895, "etf_zscore": -0.6, "etf_label": "NEUTRAL", "etf_flow_5d_usd": -8713595644.75, "etf_flow_21d_usd": 3822382879.0000005, "implied_pressure_5d_usd": -690453899.7228975, "
+[16:01:03]   sample: {"stock": "GLD", "name": "Physical Gold", "n_etfs_holding": 1, "cumulative_weight_pct": 100.0, "total_aggregate_flow_5d_usd": 964839900.0, "total_aggregate_flow_21d_usd": -1056753600.0, "top_holding_etfs": [{"etf": "GLD", "weight_pct": 100.0, "etf_zscore": 0.73, "etf_label": "NEUTRAL", "etf_flow_5d_usd": 964839900.0, "etf_flow_21d_usd": -1056753600.0, "implied_pressure_5d_usd": 964839900.0, "implied_pressure_21d_usd"
+[16:01:03]   sample: {"stock": "AAPL", "name": "APPLE INC", "n_etfs_holding": 30, "cumulative_weight_pct": 267.73, "total_aggregate_flow_5d_usd": -714838818.04, "total_aggregate_flow_21d_usd": -1433243026.31, "top_holding_etfs": [{"etf": "IVV", "weight_pct": 7.40365144, "etf_zscore": -0.6, "etf_label": "NEUTRAL", "etf_flow_5d_usd": -8713595644.75, "etf_flow_21d_usd": 3822382879.0000005, "implied_pressure_5d_usd": -645124249.4283106, "imp
+── 3. per_stock_exposure — the universe behind it ──
+[16:01:03]   container type=dict n=2248
+[16:01:03]   keyed by: 'NVDA'
+[16:01:03]   value keys: ['cumulative_weight_pct', 'holding_etfs', 'n_etfs_holding', 'name', 'stock', 'total_aggregate_flow_21d_usd', 'total_aggregate_flow_5d_usd']
+[16:01:03]   sample: {"NVDA": {"stock": "NVDA", "name": "NVIDIA CORP", "n_etfs_holding": 40, "cumulative_weight_pct": 341.89, "total_aggregate_flow_5d_usd": -1310456803.31, "total_aggregate_flow_21d_usd": -1784978762.43, "holding_etfs": [{"etf": "IVV", "weight_pct": 7.92386895, "etf_zscore": -0.6, "etf_label": "NEUTRAL", "etf_flow_5d_usd": -8713595644.75, "etf_flow_21d_usd": 3822382879.0000005, "implied_pressure_5d_usd": -690453899.72289
+── 4. nested contributor list (page wants ETF + weight + z per stock) ──
+[16:01:03] ✅   contributor list at 'top_holding_etfs' — item keys ['etf', 'etf_flow_21d_usd', 'etf_flow_5d_usd', 'etf_label', 'etf_zscore', 'implied_pressure_21d_usd', 'implied_pressure_5d_usd', 'weight_pct']
+[16:01:03]     sample: {"etf": "IVV", "weight_pct": 7.92386895, "etf_zscore": -0.6, "etf_label": "NEUTRAL", "etf_flow_5d_usd": -8713595644.75, "etf_flow_21d_usd": 3822382879.0000005, "implied_pressure_5d_usd": -690453899.7228975, "implied_pressure_21d_usd": 302880610.0991971}
+[16:01:03] ✅ PROBE COMPLETE — shape captured; page mapping follows in the fix ops
+
+→ Report written to aws/ops/reports/latest/3858_constituent_shape.md
