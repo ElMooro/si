@@ -1,17 +1,18 @@
-executing-against: 4fbda49734d3e552fb7055c98a9e98d02381b1b0
-ops 3878 — GATE: real load() end-to-end vs LIVE data (fetch-shimmed)
+executing-against: a6fcd1273d04bda36ab86c3f0b7fffaa3f140a63
+ops 3879 — GATE: real load() end-to-end vs LIVE data (fetch-shimmed)
 ── 1. pull the served page and extract the FULL inline script (load(); included) ──
-[18:56:09] ✅   44,384 chars of inline script extracted, load(); call intact
+[19:00:18] ✅   44,384 chars of inline script extracted, load(); call intact
 ── 2. pull every live feed load() actually requests ──
-[18:56:09] ✅   etf-flows/daily.json: 170,648 bytes
-[18:56:09] ✅   etf-flows/composite.json: 7,310 bytes
-[18:56:09] ✅   etf-flows/rotation.json: 49,103 bytes
-[18:56:09] ✅   etf-flows/ai-analysis.json: 16,771 bytes
-[18:56:10] ✅   etf-flows/constituent-pressure.json: 3,612,137 bytes
+[19:00:18] ✅   etf-flows/daily.json: 170,648 bytes
+[19:00:18] ✅   etf-flows/composite.json: 7,310 bytes
+[19:00:19] ✅   etf-flows/rotation.json: 49,103 bytes
+[19:00:19] ✅   etf-flows/ai-analysis.json: 16,771 bytes
+[19:00:19] ✅   etf-flows/constituent-pressure.json: 3,612,137 bytes
+[19:00:20] ✅   macro/regime.json: 11,899 bytes
 ── 3. run the REAL load() through a fetch shim, wait for async completion ──
-[18:56:13] THREW null
+[19:00:23] THREW null
 BYTES_ai-body 25540
-BYTES_macro-regime-body 0
+BYTES_macro-regime-body 2989
 BYTES_constituent-pressure-body 49870
 BYTES_sector-heatmap 4251
 BYTES_top-inflows 3348
@@ -25,20 +26,19 @@ BYTES_meta-bar 153
 DONE
 
 ── 4. gate — EVERY section, old and new, must have populated ──
-[18:56:13] ✅   no exception thrown by the real load()
-[18:56:13] ✅   PRE-EXISTING section 'ai-body' populated (25540 bytes)
-[18:56:13] ✗   PRE-EXISTING section 'macro-regime-body' populated (0 bytes)
-[18:56:13] ✅   PRE-EXISTING section 'constituent-pressure-body' populated (49870 bytes)
-[18:56:13] ✅   PRE-EXISTING section 'sector-heatmap' populated (4251 bytes)
-[18:56:13] ✅   PRE-EXISTING section 'top-inflows' populated (3348 bytes)
-[18:56:13] ✅   PRE-EXISTING section 'top-outflows' populated (3355 bytes)
-[18:56:13] ✅   PRE-EXISTING section 'full-table' populated (224699 bytes)
-[18:56:13] ✅   PRE-EXISTING section 'meta-bar' populated (153 bytes)
-[18:56:13] ✅   NEW section 'buying-board' populated (7673 bytes)
-[18:56:13] ✅   NEW section 'selling-board' populated (7665 bytes)
-[18:56:13] ✅   NEW section 'unified-heatmap' populated (15736 bytes)
-[18:56:13] ✅   NEW section 'master-table' populated (320452 bytes)
-[18:56:13] ✗ FAILED 1: ["PRE-EXISTING section 'macro-regime-body' populated (0 bytes)"]
+[19:00:23] ✅   no exception thrown by the real load()
+[19:00:23] ✅   PRE-EXISTING section 'ai-body' populated (25540 bytes)
+[19:00:23] ✅   PRE-EXISTING section 'macro-regime-body' populated (2989 bytes)
+[19:00:23] ✅   PRE-EXISTING section 'constituent-pressure-body' populated (49870 bytes)
+[19:00:23] ✅   PRE-EXISTING section 'sector-heatmap' populated (4251 bytes)
+[19:00:23] ✅   PRE-EXISTING section 'top-inflows' populated (3348 bytes)
+[19:00:23] ✅   PRE-EXISTING section 'top-outflows' populated (3355 bytes)
+[19:00:23] ✅   PRE-EXISTING section 'full-table' populated (224699 bytes)
+[19:00:23] ✅   PRE-EXISTING section 'meta-bar' populated (153 bytes)
+[19:00:23] ✅   NEW section 'buying-board' populated (7673 bytes)
+[19:00:23] ✅   NEW section 'selling-board' populated (7665 bytes)
+[19:00:23] ✅   NEW section 'unified-heatmap' populated (15736 bytes)
+[19:00:23] ✅   NEW section 'master-table' populated (320452 bytes)
+[19:00:23] ✅ PASS_ALL — the real load() executes every section, pre-existing and new, cleanly against live data
 
-→ Report written to aws/ops/reports/latest/3878_load_end_to_end_gate.md
-❌ OPS-FAIL: aws/ops/pending/ops_3878_load_end_to_end_gate.py
+→ Report written to aws/ops/reports/latest/3879_load_end_to_end_gate_recheck.md
