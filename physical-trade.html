@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Physical Trade Desk · JustHodl.AI</title>
-<meta name="jh-page-version" content="v1-ops3844">
+<meta name="jh-page-version" content="v2-ops3847">
 <style>
 :root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
@@ -98,6 +98,76 @@ function render(){
      ['worst_port','Worst port'],['cli_level','CLI']]
      .map(c=>'<th onclick="sb(\''+c[0]+'\')">'+c[1]+'</th>').join('')
    +'</tr></thead><tbody id="crows"></tbody></table></div>';
+
+  // ── INDUSTRY EXPOSURE (ops 3847) ──
+  const ies=PW.industry_exposure_summary||{};
+  const withIE=ports.filter(p=>(p.industry_exposure||{}).available);
+  if(withIE.length){
+    // roll up by industry: worst exposure and what drives it
+    const roll={};
+    withIE.forEach(p=>{(p.industry_exposure.industries||[]).forEach(r=>{
+      const k=r.industry+' · '+r.line;
+      if(!roll[k])roll[k]={industry:r.industry,line:r.line,share:r.share_pct,rows:[]};
+      roll[k].rows.push({port:p.name,country:p.country,yoy:p.yoy_pct,exp:r.exposure_pct});
+    });});
+    const board=Object.values(roll).map(g=>{
+      const worst=g.rows.reduce((a,b)=>((b.exp??0)<(a.exp??0)?b:a),g.rows[0]);
+      const neg=g.rows.filter(r=>(r.exp??0)<0);
+      return {...g,worst,n_neg:neg.length,n:g.rows.length,
+              med:g.rows.map(r=>r.exp??0).sort((a,b)=>a-b)[Math.floor(g.rows.length/2)]};
+    }).sort((a,b)=>(a.worst.exp??0)-(b.worst.exp??0));
+
+    h+='<div class="sec">Industry exposure — which industries the falling ports actually touch</div>';
+    h+='<div class="caveat"><b>How to read this.</b> exposure = port YoY × that country\'s <i>measured</i> share of US imports in the line. The share is Census data, not a guess. But port volumes are <b>all-cargo</b>, so this assumes the change is proportional across cargo types — it is a ranked exposure map, <b>not a prediction</b>.</div>';
+    h+='<div class="card" style="overflow-x:auto"><table><thead><tr>'
+      +'<th>Industry</th><th>Trade line</th><th>Share of US imports</th><th>Worst exposure</th>'
+      +'<th>Driven by</th><th>Ports −</th></tr></thead><tbody>';
+    board.forEach(g=>{
+      h+='<tr><td><b>'+esc(g.industry)+'</b></td><td class="dim">'+esc(g.line)+'</td>'
+        +'<td class="mono">'+F(g.share,1)+'%<div class="bar"><i style="width:'+Math.min(100,g.share)+'%;background:var(--accent)"></i></div></td>'
+        +'<td class="mono '+cls(g.worst.exp)+'" style="font-weight:700">'+P(g.worst.exp)+'</td>'
+        +'<td class="dim">'+esc(g.worst.port)+' <span class="mute">('+esc(g.worst.country)+' '+P(g.worst.yoy)+')</span></td>'
+        +'<td class="mono '+(g.n_neg?'neg':'dim')+'">'+g.n_neg+'/'+g.n+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+
+    // per-port breakdown
+    h+='<div class="sec">Per-port industry breakdown ('+withIE.length+' of '+ports.length+' ports)</div>'
+      +'<div class="card" style="overflow-x:auto"><table><thead><tr>'
+      +'<th>Port</th><th>Country</th><th>Port YoY</th><th>Industry</th><th>Line</th>'
+      +'<th>Share</th><th>Exposure</th><th>Direction</th></tr></thead><tbody>';
+    withIE.slice().sort((a,b)=>(a.yoy_pct||0)-(b.yoy_pct||0)).forEach(p=>{
+      const ie=p.industry_exposure;
+      (ie.industries||[]).slice(0,4).forEach((r,i)=>{
+        h+='<tr>'
+          +(i===0?'<td rowspan="'+Math.min(4,(ie.industries||[]).length)+'"><b>'+esc(p.name)+'</b></td>'
+                 +'<td rowspan="'+Math.min(4,(ie.industries||[]).length)+'" class="dim">'+esc(p.country)+'</td>'
+                 +'<td rowspan="'+Math.min(4,(ie.industries||[]).length)+'" class="mono '+cls(p.yoy_pct)+'">'+P(p.yoy_pct)+'</td>':'')
+          +'<td>'+esc(r.industry)+'</td><td class="dim small">'+esc(r.line)+'</td>'
+          +'<td class="mono">'+F(r.share_pct,1)+'%</td>'
+          +'<td class="mono '+cls(r.exposure_pct)+'" style="font-weight:700">'+P(r.exposure_pct)+'</td>'
+          +'<td class="small '+((r.direction||'').indexOf('HEADWIND')>=0?'neg':'pos')+'">'+esc((r.direction||'').split(' - ')[0])+'</td></tr>';
+      });
+    });
+    h+='</tbody></table>'
+      +'<div class="foot" style="margin-top:8px"><b>Method.</b> '+esc(ies.method||'')
+      +'<br><b>Coverage.</b> '+esc(ies.ports_with_exposure)+' of '+esc(ies.ports_total)
+      +' ports · '+esc(ies.countries_with_composition)+' countries with Census composition · '
+      +esc((ies.industries_covered||[]).length)+' industries: '+esc((ies.industries_covered||[]).join(', '))
+      +'<br><b>Source.</b> '+esc(ies.source||'')+' generated '+esc(ies.import_canary_generated_at||'')+'</div></div>';
+    const lim=(withIE[0].industry_exposure||{}).limits;
+    if(lim) h+='<div class="caveat"><b>Limits.</b> '+esc(lim)+'</div>';
+
+    // ports with no composition — stated, not hidden
+    const noIE=ports.filter(p=>!(p.industry_exposure||{}).available);
+    if(noIE.length){
+      h+='<details style="margin-top:8px"><summary class="dim">'+noIE.length+' ports have no industry composition — why</summary>'
+        +'<div class="card" style="margin-top:6px"><div class="foot">'
+        +esc((noIE[0].industry_exposure||{}).reason||'')
+        +'</div><div class="small mute" style="margin-top:6px">'
+        +esc([...new Set(noIE.map(p=>p.country))].sort().join(' · '))+'</div></div></details>';
+    }
+  }
 
   // ── chokepoints ──
   h+='<div class="sec">Maritime chokepoints</div><div class="card" style="overflow-x:auto"><table><thead><tr>'
