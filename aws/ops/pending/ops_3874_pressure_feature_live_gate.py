@@ -1,5 +1,5 @@
 """
-ops_3873 — GATE: run the SERVED flows.html's own inline script, unmodified,
+ops_3874 — GATE: run the SERVED flows.html's own inline script, unmodified,
 against LIVE etf-flows/daily.json + etf-flows/constituent-pressure.json, inside
 a Node+DOM shim. This is the check that matters most: local synthetic tests
 (harness_pressure_heatmap.js, 8/8 pass) prove the LOGIC is correct, but only
@@ -87,7 +87,7 @@ try {
   eval(trimmed);
   renderPressureAndHeatmap(daily, cpDoc);
 } catch (e) { thrown = e; }
-console.log('THREW:', thrown ? thrown.stack : 'null');
+console.log('THREW', thrown ? thrown.stack.replace(/\n/g,' | ') : 'null');
 if (thrown) process.exit(1);
 
 const nStocks = Object.keys(cpDoc.per_stock_exposure || {}).length;
@@ -111,13 +111,13 @@ const buyBefore = el('buying-board').innerHTML;
 cadDaily.click();
 console.log('CADENCE_SWITCH_CHANGED_CONTENT', buyBefore !== el('buying-board').innerHTML);
 
-sel('flt-type','STOCK'); store['flt-type'].dispatch('change');
+store['flt-type']._value = 'STOCK'; store['flt-type'].dispatch('change');
 console.log('TYPE_STOCK_ETF_LEAK', (el('master-table').innerHTML.match(/tag etf/g)||[]).length);
-sel('flt-type','ALL'); store['flt-type'].dispatch('change');
+store['flt-type']._value = 'ALL'; store['flt-type'].dispatch('change');
 
-sel('flt-leveraged','Y'); store['flt-leveraged'].dispatch('change');
+store['flt-leveraged']._value = 'Y'; store['flt-leveraged'].dispatch('change');
 console.log('LEV_Y_STOCK_LEAK', (el('master-table').innerHTML.match(/tag stock/g)||[]).length);
-sel('flt-leveraged','ALL'); store['flt-leveraged'].dispatch('change');
+store['flt-leveraged']._value = 'ALL'; store['flt-leveraged'].dispatch('change');
 
 const finalHtml = el('master-table').innerHTML + el('buying-board').innerHTML + el('selling-board').innerHTML + el('unified-heatmap').innerHTML;
 const badTokens = ['>null<','>NaN<','>undefined<','NaN%','NaNσ'];
@@ -131,8 +131,8 @@ console.log('SAMPLE_ROWS_JSON', JSON.stringify(firstRows));
 
 
 def main():
-    with report("3873_pressure_feature_live_gate") as rep:
-        rep.heading("ops 3873 — GATE: served flows.html script vs LIVE production data")
+    with report("3874_pressure_feature_live_gate") as rep:
+        rep.heading("ops 3874 — GATE: served flows.html script vs LIVE production data")
 
         rep.section("1. pull the SERVED page and extract its inline script")
         html = get(PAGE)
@@ -186,8 +186,8 @@ def main():
             ("pressure-section unhid", out.get('DISPLAY_pressure-section') == '""'),
             ("unified-heatmap-section unhid", out.get('DISPLAY_unified-heatmap-section') == '""'),
             ("master-table-section unhid", out.get('DISPLAY_master-table-section') == '""'),
-            ("sort click wired to a real <th>", out.get("SORT_CLICK_OK") == "True"),
-            ("cadence switch changed real content", out.get("CADENCE_SWITCH_CHANGED_CONTENT") == "True"),
+            ("sort click wired to a real <th>", out.get("SORT_CLICK_OK") == "true"),
+            ("cadence switch changed real content", out.get("CADENCE_SWITCH_CHANGED_CONTENT") == "true"),
             ("type=STOCK filter leaked zero ETF rows on LIVE data", out.get("TYPE_STOCK_ETF_LEAK") == "0"),
             ("leveraged=Y filter leaked zero stock rows on LIVE data", out.get("LEV_Y_STOCK_LEAK") == "0"),
             ("no null/NaN/undefined leaked on LIVE data", out.get("BAD_TOKENS_FOUND") == "[]"),
