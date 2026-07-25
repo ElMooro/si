@@ -1,28 +1,28 @@
-executing-against: bfbfafff8739ab746f633ccab54cea057b8b26c6
-ops 3850 — global-recession as CONTEXT (prove it moves nothing)
+executing-against: 44bae1c248db268da591f11e2675b1f260688578
+ops 3851 — edge re-check (context gate already passed in 3850) (prove it moves nothing)
 ── 1. Snapshot scoring BEFORE ──
-[03:54:56] ✅   37 scores · overweight=['XLV', 'XLF', 'RSP', 'IWD', 'IWM', 'SPY', 'XLK']
-── 2. Deploy + zip-settle ──
-[03:54:57]   zip: 95594 bytes
-── 1. Lambda ──
-[03:54:57]   Lambda exists — updating
-[03:55:00] ✅   ✓ updated justhodl-rotation-dashboard
-[03:55:10] ✅   settled after 10s
+[04:00:33] ✅   37 scores · overweight=['XLV', 'XLF', 'RSP', 'IWD', 'IWM', 'SPY', 'XLK']
+── 2. Deploy — SKIPPED, ops 3850 deployed and its negative
+                    gate (zero score movement) already PASSED ──
+[04:00:33] ✅   engine unchanged since 3850; this run re-checks the edge only
 ── 3. Invoke ──
-[03:55:14] ✅   invoked clean
+[04:00:36] ✅   invoked clean
 ── 4. THE NEGATIVE GATE — nothing about scoring may change ──
-[03:55:14] ✅   no confluence score moved moved=[]
-[03:55:14] ✅   overweight list identical ['XLV', 'XLF', 'RSP', 'IWD', 'IWM', 'SPY', 'XLK'] -> ['XLV', 'XLF', 'RSP', 'IWD', 'IWM', 'SPY', 'XLK']
-[03:55:14] ✅   eligible count identical 20 -> 20
+[04:00:36] ✅   no confluence score moved moved=[]
+[04:00:36] ✅   overweight list identical ['XLV', 'XLF', 'RSP', 'IWD', 'IWM', 'SPY', 'XLK'] -> ['XLV', 'XLF', 'RSP', 'IWD', 'IWM', 'SPY', 'XLK']
+[04:00:36] ✅   eligible count identical 20 -> 20
 ── 5. The context block itself ──
-[03:55:14] ✅   context block present 
-[03:55:14] ✅   probability carried = 32.0%
-[03:55:14] ✅   applied_to_score is FALSE 
-[03:55:14] ✅   why-not-applied disclosed 
-[03:55:14] ✅   coverage verdict carried = PARTIAL — only 4 of 33 countries have an independent check; 
-[03:55:14]     confirmed=4 divergent=5 unconfirmed_share=27.1% us_probit=27.0%
+[04:00:36] ✅   context block present 
+[04:00:36] ✅   probability carried = 32.0%
+[04:00:36] ✅   applied_to_score is FALSE 
+[04:00:36] ✅   why-not-applied disclosed 
+[04:00:36] ✅   coverage verdict carried = PARTIAL — only 4 of 33 countries have an independent check; 
+[04:00:36]     confirmed=4 divergent=5 unconfirmed_share=27.1% us_probit=27.0%
 ── 6. Page renders it ──
-[03:59:14] ✗   page marker 'v3-ops3850' never reached the edge
+[04:00:36] ✅   served on attempt 1 (24,968 bytes)
+[04:00:36] ✅   context-only badge
+[04:00:36] ✅   not-applied disclosure
+[04:00:36] ✅   coverage line
+[04:00:36] ✅ PASS_ALL 8/8 — context wired, zero score impact
 
-→ Report written to aws/ops/reports/latest/3850_gr_context.md
-❌ OPS-FAIL: aws/ops/pending/ops_3850_gr_context.py
+→ Report written to aws/ops/reports/latest/3851_gr_context_recheck.md

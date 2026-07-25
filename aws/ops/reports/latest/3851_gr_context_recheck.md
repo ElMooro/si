@@ -1,0 +1,43 @@
+# ops 3851 — edge re-check (context gate already passed in 3850) (prove it moves nothing)
+
+**Status:** success  
+**Duration:** 3.6s  
+**Finished:** 2026-07-25T04:00:36+00:00  
+
+## Data
+
+| applied | confirmed | divergent | gr_prob | scores_moved |
+|---|---|---|---|---|
+| False | 4 | 5 | 32.0 | 0 |
+
+## Log
+## 1. Snapshot scoring BEFORE
+
+- `04:00:33` ✅   37 scores · overweight=['XLV', 'XLF', 'RSP', 'IWD', 'IWM', 'SPY', 'XLK']
+## 2. Deploy — SKIPPED, ops 3850 deployed and its negative
+                    gate (zero score movement) already PASSED
+
+- `04:00:33` ✅   engine unchanged since 3850; this run re-checks the edge only
+## 3. Invoke
+
+- `04:00:36` ✅   invoked clean
+## 4. THE NEGATIVE GATE — nothing about scoring may change
+
+- `04:00:36` ✅   no confluence score moved moved=[]
+- `04:00:36` ✅   overweight list identical ['XLV', 'XLF', 'RSP', 'IWD', 'IWM', 'SPY', 'XLK'] -> ['XLV', 'XLF', 'RSP', 'IWD', 'IWM', 'SPY', 'XLK']
+- `04:00:36` ✅   eligible count identical 20 -> 20
+## 5. The context block itself
+
+- `04:00:36` ✅   context block present 
+- `04:00:36` ✅   probability carried = 32.0%
+- `04:00:36` ✅   applied_to_score is FALSE 
+- `04:00:36` ✅   why-not-applied disclosed 
+- `04:00:36` ✅   coverage verdict carried = PARTIAL — only 4 of 33 countries have an independent check; 
+- `04:00:36`     confirmed=4 divergent=5 unconfirmed_share=27.1% us_probit=27.0%
+## 6. Page renders it
+
+- `04:00:36` ✅   served on attempt 1 (24,968 bytes)
+- `04:00:36` ✅   context-only badge
+- `04:00:36` ✅   not-applied disclosure
+- `04:00:36` ✅   coverage line
+- `04:00:36` ✅ PASS_ALL 8/8 — context wired, zero score impact
