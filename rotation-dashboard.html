@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rotation Dashboard · JustHodl.AI</title>
-<meta name="jh-page-version" content="v2-ops3820">
+<meta name="jh-page-version" content="v3-ops3850">
 <style>
 :root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
@@ -92,6 +92,23 @@ function render(){
   if(dol.headline) h+='<div class="small" style="margin-top:4px">Dollar desk: '+esc(dol.headline)+'</div>';
   if(L1.dollar_tilt_applied) h+='<div class="small" style="margin-top:4px">Dollar tilt applied to class prior: <b>'+F(L1.dollar_tilt_applied,2)+'</b> on EM / commodities / gold / intl</div>';
   h+='</div>';
+
+  // ── global recession CONTEXT (never rank) ──
+  const gr=L1.global_recession_context;
+  if(gr){
+    h+='<div class="card" style="margin-bottom:12px;border-color:rgba(240,180,41,.3)">'
+     +'<div style="display:flex;flex-wrap:wrap;gap:20px;align-items:center">'
+     +'<div><div class="lbl small">GLOBAL RECESSION PROBABILITY <span class="pill p-neu">CONTEXT ONLY</span></div>'
+     +'<div style="font-size:21px;font-weight:800;color:var(--accent)">'+F(gr.probability_pct,1)+'%</div>'
+     +'<div class="small">'+esc(gr.band||'')+'</div></div>'
+     +'<div><div class="lbl small">BREADTH AT RISK</div><div style="font-size:16px;font-weight:700">'+F(gr.breadth_pct_of_gdp_at_risk,1)+'%</div><div class="small">of covered world GDP</div></div>'
+     +'<div><div class="lbl small">EVIDENCE</div><div style="font-size:16px;font-weight:700">'+esc(gr.confirmed)+' confirmed · '+esc(gr.divergent)+' divergent</div>'
+     +'<div class="small">'+F(gr.unconfirmed_share_of_headline_pct,1)+'% of headline still unconfirmed</div></div>'
+     +'<div><div class="lbl small">US CURVE PROBIT</div><div style="font-size:16px;font-weight:700">'+F(gr.us_curve_probit_pct,1)+'%</div><div class="small">independent, unblended</div></div>'
+     +'</div>'
+     +'<div class="small" style="margin-top:9px;color:var(--text-mute)"><b>Not applied to any score.</b> '+esc(gr.why_not_applied||'')+'</div>'
+     +'<div class="small" style="margin-top:4px;color:var(--text-mute)">Coverage: '+esc(gr.coverage_verdict||'')+' · generated '+esc(gr.generated_at||'')+'</div></div>';
+  }
 
   // ── four layer strip ──
   h+='<div class="layers">'

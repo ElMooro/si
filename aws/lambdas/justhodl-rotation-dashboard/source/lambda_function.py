@@ -64,7 +64,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/rotation-dashboard.json"
 HIST_KEY = "data/rotation-dashboard-history.json"
@@ -351,6 +351,40 @@ def layer1_regime():
             out["_prior_after_dollar"] = pr
     else:
         out["degraded"].append("dollar-radar 3m change unavailable")
+
+    # ── GLOBAL RECESSION — CONTEXT ONLY, NEVER RANK (ops 3850) ──────────────
+    # justhodl-global-recession now carries physical confirmation for 9 economies
+    # (port throughput + China credit impulse), and its unconfirmed share fell
+    # 84.3% -> 27.1%. That makes it worth SHOWING beside the regime read.
+    #
+    # It is deliberately NOT folded into `prior` and touches no multiplier. Two
+    # reasons: (1) its own coverage_verdict still reads PARTIAL, with 25 of 33
+    # countries on equity momentum alone; (2) the phase labels it consumes are
+    # equity-derived, so letting it tilt a cross-asset momentum score would
+    # double-count the very signal this engine already measures directly.
+    # Same convention as capture_gap: durable macro context, not a score change.
+    _gr = read_feed("data/global-recession.json") or {}
+    if _gr:
+        _grc = _gr.get("confirmation") or {}
+        out["global_recession_context"] = {
+            "probability_pct": _gr.get("global_recession_prob_pct"),
+            "band": _gr.get("band"),
+            "breadth_pct_of_gdp_at_risk": (_gr.get("breadth") or {}).get("pct_of_covered_gdp"),
+            "coverage_verdict": _grc.get("coverage_verdict"),
+            "confirmed": (_grc.get("counts") or {}).get("CONFIRMED"),
+            "divergent": (_grc.get("counts") or {}).get("DIVERGENT"),
+            "unconfirmed_share_of_headline_pct": _grc.get("unconfirmed_share_of_global_pct"),
+            "us_curve_probit_pct": ((_gr.get("us_crosscheck") or {})
+                                    .get("yield_curve_probit") or {}).get("prob_12m_pct"),
+            "generated_at": _gr.get("generated_at"),
+            "applied_to_score": False,
+            "why_not_applied": (
+                "CONTEXT ONLY. Its coverage_verdict is still PARTIAL (25 of 33 "
+                "countries rest on equity momentum), and its phase labels are "
+                "equity-derived — letting it tilt a cross-asset momentum score "
+                "would double-count the signal this engine already measures. "
+                "Shown for judgement, never folded into any multiplier."),
+        }
 
     out["prior"] = out.pop("_prior_after_dollar", None) or REGIME_PRIOR.get(regime, {})
     out["prior_source"] = ("Merrill Investment Clock / Bridgewater four-boxes "
