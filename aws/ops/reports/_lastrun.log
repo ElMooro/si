@@ -1,26 +1,42 @@
-executing-against: 930e01e705b839d9b785b78e01e5812230134016
-ops 3890 — verify SMH/many-names capitulation + crypto-leg claims, live
-── 1. rebalance-radar — is crypto leg STILL accelerating (fresher than ops 3880's read) ──
-[22:28:16] ✅   0.4h old, generated 2026-07-25T22:05:11+00:00
-[22:28:16]   QTD proxies now: {"SPY": {"qtd_pct": -0.9, "d5_pct": -0.6}, "QQQ": {"qtd_pct": -5.6, "d5_pct": -1.6}, "SMH": {"qtd_pct": -9.6, "d5_pct": 0.8}, "IWM": {"qtd_pct": -2.7, "d5_pct": -1.0}, "TLT": {"qtd_pct": -2.7, "d5_pct": -1.5}, "AGG": {"qtd_pct": -1.1, "d5_pct": -0.8}, "GLD": {"qtd_pct": 0.4, "d5_pct": 0.9}, "BTCUSD": {"qtd_pct": 7.2, "d5_pct": -1.4}, "XLE": {"qtd_pct": 12.9, "d5_pct": 3.4}, "XLF": {"qtd_pct": 2.8, "d5_pct": 0.1}}
-── 2. daily.json — SMH/SOXX/XLK quadrant + z + return RIGHT NOW ──
-[22:28:16] ✅   daily.json 0.5h old, generated 2026-07-25T22:00:25.482815+00:00
-[22:28:16]   SMH    quadrant=CAPITULATION z90d=-1.5 ret21d=-9.45% ret5d=0.86% divergence_score=-1.24
-[22:28:16]   SOXX   quadrant=NEUTRAL z90d=0.51 ret21d=-12.56% ret5d=1.1% divergence_score=0.47
-[22:28:16]   XLK    quadrant=NEUTRAL z90d=0.03 ret21d=-3.91% ret5d=0.18% divergence_score=0.01
-[22:28:16]   SOXL   quadrant=NEUTRAL z90d=0.17 ret21d=-54.87% ret5d=1.39% divergence_score=0.17
-[22:28:16]   SOXS   quadrant=NEUTRAL z90d=-0.14 ret21d=1463.91% ret5d=-5.87% divergence_score=0.14
-── 3. WHOLE universe — precise count of CAPITULATION, ETF side ──
-[22:28:16]   ETFs in CAPITULATION (5): ['DRV', 'INDA', 'NVDS', 'SMH', 'TSMX']
-[22:28:16]   by sector/category: {'country': 1, 'Technology': 1, 'leveraged': 3}
-── 4. WHOLE universe — precise count of CAPITULATION, stock side ──
-[22:28:17] ✅   constituent-pressure.json 4.6h old, 2247 stocks
-[22:28:17]   stocks in CAPITULATION: 59 total
-[22:28:17]   of which semis specifically: []
-[22:28:17]   CAPITULATION by sector (top 8): [('Industrials', 14), ('Basic Materials', 13), ('Technology', 11), ('Energy', 8), ('Healthcare', 6), ('Financial', 4), ('Consumer Cyclical', 3)]
-[22:28:17]   sample of NON-semi names also in CAPITULATION: ['HUT', 'RIOT', 'CMC', 'CORZ', 'DHI', 'PHM', 'LEN', 'QFIN', 'TEM', 'CRSP', 'BEAM', 'NTLA', 'ACHR', 'XE', 'RXRX']
-── 5. sector-flow-state — Technology posture right now ──
-[22:28:17]   0.1h old · Technology: {"symbol": "XLK", "name": "Technology", "conviction": 38.9, "posture": "UNDERWEIGHT", "quadrant": "Weakening", "confluence": 2, "drivers": ["RS accelerating", "cycle-favored"], "rotation_score": 44.9, "rs_rank_1y": 81.7, "rs_slope": -0.2563, "flow_confirm": "NEUTRAL", "in_cycle": true, "dollar_flow_usd": 15384389912, "dollar_confirms": null}
-[22:28:17] ✅ PROBE COMPLETE
+executing-against: fdd71cafe4ccab0c02f714c87a473a77dc6d7a2c
+ops 3891 — deploy macro-confluence, hard-gate on LIVE Technology convergence
+── 1. ZIP-SETTLE — new function, will 404 until deploy-lambdas.yml creates it ──
+[22:37:31] ✅   new function live on attempt 1 (89,734 zip bytes)
+[22:37:32] ✅   State=Active LastUpdateStatus=Successful
+── 2. invoke ──
+[22:37:33]   invoke response: {"statusCode": 200, "body": "{\"n_sectors\": 17, \"high_convergence\": 1, \"top_theme\": \"Technology\"}"}
+── 3. THE REAL GATE — does it reproduce Technology's convergence from LIVE data ──
+[22:37:33] ✅   engine produced a scored board
+[22:37:33] ✅   Technology sector present in the board
+[22:37:33] ✅   Technology shows a non-trivial convergence score (>=2/4)
+[22:37:33] ✅   Technology's theme is bearish (matches the live capitulation cluster + posture)
+[22:37:33] ✅   stock_quadrant_cluster family fired with real evidence (not a stub)
+[22:37:33] ✅   narrative is non-empty when convergence is high
+[22:37:33]   Technology full record: {
+  "sector": "Technology",
+  "convergence_score": 3,
+  "theme": "bearish",
+  "families": {
+    "stock_quadrant_cluster": {
+      "direction": "bearish",
+      "evidence": "11 names in CAPITULATION (top-3 sector by count)"
+    },
+    "sector_posture": {
+      "direction": "bearish",
+      "evidence": "posture=UNDERWEIGHT quadrant=Weakening rs_slope=-0.2563"
+    },
+    "rotation_dashboard": {
+      "direction": "bullish",
+      "evidence": "XLK in rotation-dashboard OVERWEIGHT list \u00b7 regime prior equity_growth=-0.8"
+    },
+    "rebalance_radar": {
+      "direction": "bearish",
+      "evidence": "Nasdaq Broad: EXCESS_SELLING_INTO_WEAKNESS (5d flow $-6.54B, mechanical expected ADD) | Technology: EXCESS_SELLING_INTO_WEAKNESS (5d flow $-5.72B, mechanical expected ADD) | crypto QTD +7.2% vs SMH -9.6% (16.8pp gap) | energy QTD +12.9% vs SMH -9.6% (22.5pp gap) | gold QTD +0.4% vs SMH -9.6% (10.0pp gap)"
+    }
+  },
+  "n_families_lit": 4,
+  "stock_universe_n": 239
+}
+[22:37:33] ✅ PASS_ALL — macro-confluence correctly surfaces Technology's convergence from live data, score=3/4
 
-→ Report written to aws/ops/reports/latest/3890_capitulation_crypto_verify.md
+→ Report written to aws/ops/reports/latest/3891_macro_confluence_deploy.md
