@@ -1,0 +1,47 @@
+# ops 3843 — port confirmation into global-business-cycle
+
+**Status:** success  
+**Duration:** 40.6s  
+**Finished:** 2026-07-25T02:32:26+00:00  
+
+## Data
+
+| confirmed | countries | divergent | ports_countries | unconfirmed |
+|---|---|---|---|---|
+| 4 | 34 | 5 | 10 | 25 |
+
+## Log
+## G0. Baseline contract BEFORE the change
+
+- `02:31:46` ✅   34 countries · 23 fields/row
+- `02:31:46` ✅   portwatch: 88 ports carry yoy_pct
+## 1. Deploy
+
+- `02:31:46`   zip: 98281 bytes
+## 1. Lambda
+
+- `02:31:47`   Lambda exists — updating
+- `02:31:52` ✅   ✓ updated justhodl-global-business-cycle
+## 2. ZIP-SETTLE by marker
+
+- `02:32:03` ✅   settled with 'load_port_physical' after 10s
+## 3. Invoke
+
+- `02:32:26` ✅   invoked clean
+## 4. Verify — additive, and the confirmation is real
+
+- `02:32:26` ✅   country count preserved 34 -> 34
+- `02:32:26` ✅   NO pre-existing field removed (additive contract) lost=[]
+- `02:32:26` ✅   physical block on every country 
+- `02:32:26` ✅   summary published err=
+- `02:32:26` ✅   countries with port coverage >= 8 = 10
+- `02:32:26` ✅   confirmation states populated = {'CONFIRMED': 4, 'DIVERGENT': 5, 'UNCONFIRMED': 25}
+- `02:32:26` ✅   at least one CONFIRMED or DIVERGENT conf=4 div=5
+- `02:32:26` ✅   limits disclosed (trade proxy caveat) 
+- `02:32:26`     CHN: phase=RECESSION  CONFIRMED    median_yoy=-31.8 n_ports=5
+- `02:32:26`     USA: phase=EXPANSION  DIVERGENT    median_yoy=-7.3 n_ports=4
+- `02:32:26`     DEU: phase=EXPANSION  CONFIRMED    median_yoy=2.5 n_ports=3
+- `02:32:26`     JPN: phase=EXPANSION  DIVERGENT    median_yoy=-5.0 n_ports=5
+- `02:32:26`     IND: phase=RECESSION  UNCONFIRMED  median_yoy=None n_ports=None
+- `02:32:26` ⚠   unmapped (visible, not dropped): {'saudi arabia': 6, 'qatar': 4, 'vietnam': 3, 'singapore': 3, 'united arab emirates': 2, 'malaysia': 2, 'peru': 2, 'philippines': 1, 'panama': 1, 'costa rica': 1, 'dominican republic': 1, 'sri lanka': 1, 'thailand': 1}
+- `02:32:26` ✅ PASS_ALL 8/8
