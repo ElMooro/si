@@ -1,30 +1,16 @@
-executing-against: 72617ec4787d22870701517a77bea66b13c0c8b5
-ops 3852 - flows.html z-score feed: diagnose + auto-fix + gate
-── 1. etf-flows/daily.json - freshness + z-score coverage ──
-[15:14:46] ✅   296/300 rows carry flow_zscore_90d (page needs >0) - SPDR 11/11
-── 2. field-coverage - keys flows.html reads vs rows ──
-[15:14:46] ✅   ticker               300/300
-[15:14:46] ✅   category             300/300
-[15:14:46] ✅   subcategory          300/300
-[15:14:46] ✅   ref_sector           50/300
-[15:14:46] ✅   smart_money          300/300
-[15:14:46] ✅   signal_label         300/300
-[15:14:46] ✅   flow_zscore_90d      296/300
-[15:14:46] ✅   daily_flow_usd       300/300
-[15:14:46] ✅   flow_5d_usd          300/300
-[15:14:46] ✅   flow_21d_usd         300/300
-[15:14:46] ✅   pct_aum_5d           227/300
-[15:14:46] ✅   persistence_days     300/300
-── 3. composite.json (drives the gauges that still render) ──
-[15:14:46] ✅   composite.json 17.2h old - 6 gauges with a score
-── 4. schedule - declared is not live ──
-[15:14:47] ✅   justhodl-etf-fund-flows-daily: ENABLED cron(0 22 * * ? *) - 1 target(s)
-[15:14:47]   EventBridge Scheduler entries: none
-── 5. CloudWatch - did it actually run (7d) ──
-[15:14:47]   Invocations 7d = 7
-[15:14:47]   Errors 7d = 0
-── 6. S3 IS HEALTHY -> compare against what the CDN serves ──
-[15:14:47] ✅   S3 carries z-scores and is fresh; the engine is not the problem
-[15:14:48] ✅   EDGE matches S3 - feed and delivery are both fine; the break is in the page render path, next ops reads flows.html served bytes
+executing-against: 255119ecee6189cb92ac03b4c7a06afd2110dcbf
+ops 3853 — flows.html render fix proven on the edge, live feed
+── 1. EDGE — poll until the new page is actually served ──
+[15:20:59]   attempt 1: stale (42,784 bytes, no marker)
+[15:21:19]   attempt 2: stale (42,784 bytes, no marker)
+[15:21:39]   attempt 3: stale (42,784 bytes, no marker)
+[15:21:59]   attempt 4: stale (42,784 bytes, no marker)
+[15:22:19]   attempt 5: stale (42,784 bytes, no marker)
+[15:22:40]   attempt 6: stale (42,784 bytes, no marker)
+[15:23:00]   attempt 7: stale (42,784 bytes, no marker)
+[15:23:20]   attempt 8: stale (42,784 bytes, no marker)
+[15:23:40]   attempt 9: stale (42,784 bytes, no marker)
+[15:24:00] ✗   marker JH_FLOWS_DIVFIX_3853 never reached the edge after 9 attempts
 
-→ Report written to aws/ops/reports/latest/3852_flows_zscore_revive.md
+→ Report written to aws/ops/reports/latest/3853_flows_page_proof.md
+❌ OPS-FAIL: aws/ops/pending/ops_3853_flows_page_proof.py
