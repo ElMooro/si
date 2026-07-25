@@ -1,0 +1,79 @@
+# ops 3856 — PROBE: does flows.html render everything etf-flows publishes
+
+**Status:** failure  
+**Duration:** 1.0s  
+**Finished:** 2026-07-25T15:56:24+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| gaps | hardcoded_counts | live_n_ok | live_universe_size | missing_feeds | n_dynamic | n_gaps | n_row_keys |
+|---|---|---|---|---|---|---|---|
+|  | ['84'] | 300 | 300 |  |  |  |  |
+| ['daily.metrics[].aum_usd', 'daily.metrics[].divergence_score', 'daily.metrics[].n_history_points', 'daily.metrics[].pct_aum_daily', 'daily.metrics[].region', 'daily.metrics[].ret_5d_pct', 'daily.n_failed', 'composite.divergence_signals_logged', 'composite.n_failed', 'rotation.n_failed', 'ai.claude_elapsed_s', 'ai.regime_at_generation', 'ai.usage', 'constituent.as_of_etf_flows_date'] |  |  |  | [] | 0 | 21 | 24 |
+
+## Log
+## 1. pull the SERVED page (repo copy is not what users get)
+
+- `15:56:23` ✅   42,811 bytes served
+## 2. pull every etf-flows artifact the page could consume
+
+- `15:56:23` ✅   etf-flows/daily.json: 170,648 bytes
+- `15:56:24` ✅   etf-flows/composite.json: 7,310 bytes
+- `15:56:24` ✅   etf-flows/rotation.json: 49,103 bytes
+- `15:56:24` ✅   etf-flows/ai-analysis.json: 16,771 bytes
+- `15:56:24` ✅   etf-flows/constituent-pressure.json: 2,423,843 bytes
+## 3. daily.json — union of per-row keys vs page render paths
+
+- `15:56:24`   300 rows, 24 distinct row keys
+- `15:56:24` ✗   aum_usd                   300/300 populated · NO RENDER PATH
+- `15:56:24` ✅   category                  300/300 populated · rendered
+- `15:56:24` ✅   daily_flow_usd            300/300 populated · rendered
+- `15:56:24` ✗   divergence_score          296/300 populated · NO RENDER PATH
+- `15:56:24` ✅   flow_21d_usd              300/300 populated · rendered
+- `15:56:24` ✅   flow_5d_usd               300/300 populated · rendered
+- `15:56:24` ✅   flow_zscore_90d           296/300 populated · rendered
+- `15:56:24` ✅   leveraged                 300/300 populated · rendered
+- `15:56:24` ✗   n_history_points          300/300 populated · NO RENDER PATH
+- `15:56:24` ✅   nav                       300/300 populated · rendered
+- `15:56:24` ✅   pct_aum_21d               276/300 populated · rendered
+- `15:56:24` ✅   pct_aum_5d                227/300 populated · rendered
+- `15:56:24` ✗   pct_aum_daily             152/300 populated · NO RENDER PATH
+- `15:56:24` ✅   persistence_days          300/300 populated · rendered
+- `15:56:24` ✅   processed_date            300/300 populated · rendered
+- `15:56:24` ✅   quadrant                  300/300 populated · rendered
+- `15:56:24` ✅   ref_sector                 50/300 populated · rendered
+- `15:56:24` ✗   region                    300/300 populated · NO RENDER PATH
+- `15:56:24` ✅   ret_21d_pct               300/300 populated · rendered
+- `15:56:24` ✗   ret_5d_pct                300/300 populated · NO RENDER PATH
+- `15:56:24` ✅   signal_label              300/300 populated · rendered
+- `15:56:24` ✅   smart_money               300/300 populated · rendered
+- `15:56:24` ✅   subcategory               300/300 populated · rendered
+- `15:56:24` ✅   ticker                    300/300 populated · rendered
+## 4. top-level keys of each artifact vs the page
+
+- `15:56:24` ✗   daily.n_failed                     (size 1) · NO RENDER PATH
+- `15:56:24` ✗   composite.divergence_signals_logged    (size 1) · NO RENDER PATH
+- `15:56:24` ✗   composite.n_failed                     (size 1) · NO RENDER PATH
+- `15:56:24` ✗   rotation.n_failed                     (size 1) · NO RENDER PATH
+- `15:56:24` ✗   ai.claude_elapsed_s             (size 1) · NO RENDER PATH
+- `15:56:24` ✗   ai.regime_at_generation         (size 4) · NO RENDER PATH
+- `15:56:24` ✗   ai.usage                        (size 7) · NO RENDER PATH
+- `15:56:24` ✗   constituent.as_of_etf_flows_date         (size 1) · NO RENDER PATH
+- `15:56:24` ✗   constituent.n_etfs_fetched               (size 1) · NO RENDER PATH
+- `15:56:24` ✗   constituent.n_etfs_high_z                (size 1) · NO RENDER PATH
+- `15:56:24` ✗   constituent.n_etfs_total                 (size 1) · NO RENDER PATH
+- `15:56:24` ✗   constituent.n_stocks_with_exposure       (size 1) · NO RENDER PATH
+- `15:56:24` ✗   constituent.per_stock_exposure           (size 2248) · NO RENDER PATH
+- `15:56:24` ✗   constituent.top_aggregate_exposure       (size 100) · NO RENDER PATH
+## 5. stale literals — hardcoded counts vs live universe_size
+
+- `15:56:24` ✗   page says '84 ETFs' — live universe_size is 300
+## 6. verdict
+
+- `15:56:24` ✗ OPEN BUGS 21: ['daily.metrics[].aum_usd', 'daily.metrics[].divergence_score', 'daily.metrics[].n_history_points', 'daily.metrics[].pct_aum_daily', 'daily.metrics[].region', 'daily.metrics[].ret_5d_pct', 'daily.n_failed', 'composite.divergence_signals_logged', 'composite.n_failed', 'rotation.n_failed', 'ai.claude_elapsed_s', 'ai.regime_at_generation', 'ai.usage', 'constituent.as_of_etf_flows_date', 'constituent.n_etfs_fetched', 'constituent.n_etfs_high_z', 'constituent.n_etfs_total', 'constituent.n_stocks_with_exposure', 'constituent.per_stock_exposure', 'constituent.top_aggregate_exposure', 'stale_literal_84_ETFs']

@@ -1,26 +1,58 @@
-executing-against: 908666e26b2c9fac797b581948e4b456e0038b00
-ops 3855 — flows.html render fix proven on the edge, live feed
-── 1. EDGE — poll until the new page is actually served ──
-[15:40:46] ✅   served on attempt 1 (42,811 bytes)
-── 2. structural invariant — the bug class itself ──
-[15:40:46] ✅   renderDivergence defined exactly once
-[15:40:46] ✅   defined BEFORE load() in the same executing block
-[15:40:46] ✅   nav-drawer script tag is self-closed (no trapped body)
-[15:40:46] ✅   no function body left inside any src'd script tag
-── 3. execute the page's own script against the LIVE feed ──
-[15:40:46]   live feed: 300 rows, 296 z-scored
-[15:40:46] ✅   render completed with no exception
-[15:40:46] ✅   meta-bar              74 bytes  rows=0
-[15:40:46] ✅   composite-grid     2,252 bytes  rows=0
-[15:40:46] ✅   sector-heatmap     4,251 bytes  rows=0
-[15:40:46] ✅   top-inflows        3,348 bytes  rows=11
-[15:40:46] ✅   top-outflows       3,355 bytes  rows=11
-[15:40:46] ✅   full-table       108,059 bytes  rows=297
-── 4. the four reported sections, specifically ──
-[15:40:46] ✅   sector heatmap has all 11 SPDR cells
-[15:40:46] ✅   top-inflows renders 10 data rows
-[15:40:46] ✅   top-outflows renders 10 data rows
-[15:40:46] ✅   full universe renders the whole z-scored set
-[15:40:46] ✅ PASS_ALL — all four sections render from live data on the served page
+executing-against: 507032454c62f55192f7d7f2bd89aec4c8d74615
+ops 3856 — PROBE: does flows.html render everything etf-flows publishes
+── 1. pull the SERVED page (repo copy is not what users get) ──
+[15:56:23] ✅   42,811 bytes served
+── 2. pull every etf-flows artifact the page could consume ──
+[15:56:23] ✅   etf-flows/daily.json: 170,648 bytes
+[15:56:24] ✅   etf-flows/composite.json: 7,310 bytes
+[15:56:24] ✅   etf-flows/rotation.json: 49,103 bytes
+[15:56:24] ✅   etf-flows/ai-analysis.json: 16,771 bytes
+[15:56:24] ✅   etf-flows/constituent-pressure.json: 2,423,843 bytes
+── 3. daily.json — union of per-row keys vs page render paths ──
+[15:56:24]   300 rows, 24 distinct row keys
+[15:56:24] ✗   aum_usd                   300/300 populated · NO RENDER PATH
+[15:56:24] ✅   category                  300/300 populated · rendered
+[15:56:24] ✅   daily_flow_usd            300/300 populated · rendered
+[15:56:24] ✗   divergence_score          296/300 populated · NO RENDER PATH
+[15:56:24] ✅   flow_21d_usd              300/300 populated · rendered
+[15:56:24] ✅   flow_5d_usd               300/300 populated · rendered
+[15:56:24] ✅   flow_zscore_90d           296/300 populated · rendered
+[15:56:24] ✅   leveraged                 300/300 populated · rendered
+[15:56:24] ✗   n_history_points          300/300 populated · NO RENDER PATH
+[15:56:24] ✅   nav                       300/300 populated · rendered
+[15:56:24] ✅   pct_aum_21d               276/300 populated · rendered
+[15:56:24] ✅   pct_aum_5d                227/300 populated · rendered
+[15:56:24] ✗   pct_aum_daily             152/300 populated · NO RENDER PATH
+[15:56:24] ✅   persistence_days          300/300 populated · rendered
+[15:56:24] ✅   processed_date            300/300 populated · rendered
+[15:56:24] ✅   quadrant                  300/300 populated · rendered
+[15:56:24] ✅   ref_sector                 50/300 populated · rendered
+[15:56:24] ✗   region                    300/300 populated · NO RENDER PATH
+[15:56:24] ✅   ret_21d_pct               300/300 populated · rendered
+[15:56:24] ✗   ret_5d_pct                300/300 populated · NO RENDER PATH
+[15:56:24] ✅   signal_label              300/300 populated · rendered
+[15:56:24] ✅   smart_money               300/300 populated · rendered
+[15:56:24] ✅   subcategory               300/300 populated · rendered
+[15:56:24] ✅   ticker                    300/300 populated · rendered
+── 4. top-level keys of each artifact vs the page ──
+[15:56:24] ✗   daily.n_failed                     (size 1) · NO RENDER PATH
+[15:56:24] ✗   composite.divergence_signals_logged    (size 1) · NO RENDER PATH
+[15:56:24] ✗   composite.n_failed                     (size 1) · NO RENDER PATH
+[15:56:24] ✗   rotation.n_failed                     (size 1) · NO RENDER PATH
+[15:56:24] ✗   ai.claude_elapsed_s             (size 1) · NO RENDER PATH
+[15:56:24] ✗   ai.regime_at_generation         (size 4) · NO RENDER PATH
+[15:56:24] ✗   ai.usage                        (size 7) · NO RENDER PATH
+[15:56:24] ✗   constituent.as_of_etf_flows_date         (size 1) · NO RENDER PATH
+[15:56:24] ✗   constituent.n_etfs_fetched               (size 1) · NO RENDER PATH
+[15:56:24] ✗   constituent.n_etfs_high_z                (size 1) · NO RENDER PATH
+[15:56:24] ✗   constituent.n_etfs_total                 (size 1) · NO RENDER PATH
+[15:56:24] ✗   constituent.n_stocks_with_exposure       (size 1) · NO RENDER PATH
+[15:56:24] ✗   constituent.per_stock_exposure           (size 2248) · NO RENDER PATH
+[15:56:24] ✗   constituent.top_aggregate_exposure       (size 100) · NO RENDER PATH
+── 5. stale literals — hardcoded counts vs live universe_size ──
+[15:56:24] ✗   page says '84 ETFs' — live universe_size is 300
+── 6. verdict ──
+[15:56:24] ✗ OPEN BUGS 21: ['daily.metrics[].aum_usd', 'daily.metrics[].divergence_score', 'daily.metrics[].n_history_points', 'daily.metrics[].pct_aum_daily', 'daily.metrics[].region', 'daily.metrics[].ret_5d_pct', 'daily.n_failed', 'composite.divergence_signals_logged', 'composite.n_failed', 'rotation.n_failed', 'ai.claude_elapsed_s', 'ai.regime_at_generation', 'ai.usage', 'constituent.as_of_etf_flows_date', 'constituent.n_etfs_fetched', 'constituent.n_etfs_high_z', 'constituent.n_etfs_total', 'constituent.n_stocks_with_exposure', 'constituent.per_stock_exposure', 'constituent.top_aggregate_exposure', 'stale_literal_84_ETFs']
 
-→ Report written to aws/ops/reports/latest/3855_flows_page_gatefix.md
+→ Report written to aws/ops/reports/latest/3856_flows_field_coverage.md
+❌ OPS-FAIL: aws/ops/pending/ops_3856_flows_field_coverage.py
