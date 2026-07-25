@@ -70,11 +70,18 @@ def harvest(doc):
 
 
 def main():
-    with report("3864_sector_donor_probe") as rep:
-        rep.heading("ops 3864 — PROBE: donor to close 8 unresolved + is RORO 0/25 correct")
+    with report("3865_sector_donor_probe") as rep:
+        rep.heading("ops 3865 — PROBE: donor to close 8 unresolved + is RORO 0/25 correct")
 
-        mr, _ = get("data/master-ranker.json")
+        try:
+            mr, _ = get("data/master-ranker.json")
+        except Exception as e:
+            rep.fail(f"  master-ranker.json unreadable: {str(e)[:160]}")
+            sys.exit(1)
         ranked = [str(r["ticker"]).upper() for r in (mr.get("top_tickers") or []) if r.get("ticker")]
+        if not ranked:
+            rep.fail("  top_tickers empty — nothing to resolve, engine contract changed")
+            sys.exit(1)
         rep.log(f"  {len(ranked)} ranked tickers · {len(UNRESOLVED)} unresolved from ops 3863")
 
         rep.section("1. current donors — keep or drop")
@@ -157,6 +164,10 @@ def main():
                     "Services). Any GICS-named sector lands outside both sets and is "
                     "silently skipped — a vocabulary mismatch, not a data gap.")
 
+        if score is None:
+            rep.fail("PROBE FAILED — risk_regime_score is null; the overlay no-ops on a "
+                     "missing field and that must not be reported as a healthy neutral")
+            sys.exit(1)
         rep.ok("PROBE COMPLETE")
 
 
