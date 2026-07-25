@@ -254,7 +254,7 @@ table.flow-table tr:hover td{ background:var(--bg-elev) }
 
   <!-- Full ETF Table -->
   <div class="section">
-    <h3>📊 Full Universe · 84 ETFs by 90d Z-Score</h3>
+    <h3>📊 Full Universe · <span id="universe-count">…</span> ETFs by 90d Z-Score</h3>
     <div class="body" id="full-table" style="padding:0; max-height:60vh; overflow-y:auto">
       <div class="empty"><span class="spinner"></span></div>
     </div>
@@ -262,7 +262,7 @@ table.flow-table tr:hover td{ background:var(--bg-elev) }
 
   <div class="methodology">
     <b style="color:var(--accent)">AI Methodology:</b>
-    The AI Flow Strategist runs daily after the flow engine. It ingests today's 84-ETF flow data,
+    The AI Flow Strategist runs daily after the flow engine. It ingests today's full-universe ETF flow data,
     all current equity research verdicts, EDGAR insider signals, crisis-KB regime tag, and 30-day flow history,
     then generates structured output via Claude Sonnet 4.6 (1h cached system prompt).
     Each ticker call cites <code>signal_alignment</code> — exactly which feeds support it. 4+ aligned = HIGH conviction; 1 isolated signal = LOW.
@@ -548,7 +548,7 @@ function renderConstituentPressure(doc){
   let html = `
     <div style="padding:14px 18px; background:var(--bg-elev); border-bottom:1px solid var(--border-light); font-size:11.5px; color:var(--text-muted); line-height:1.7">
       <b style="color:var(--accent)">What this shows:</b> When a stock appears in multiple high-z ETFs, we sum the implied flow pressure (ETF flow × constituent weight) to estimate institutional positioning via index channels.
-      <br><b style="color:var(--accent)">Today:</b> ${doc.n_high_z_etfs} ETFs cleared the |z|≥${doc.threshold_z}σ threshold, exposing ${(doc.all_constituents || []).length} unique stocks.
+      <br><b style="color:var(--accent)">Today:</b> ${doc.n_etfs_high_z} of ${doc.n_etfs_total} ETFs cleared the |z|≥${doc.threshold_z}σ threshold, exposing ${doc.n_stocks_with_exposure} unique stocks (${doc.n_etfs_fetched} holdings sets fetched).
     </div>
     <table class="flow-table">
       <thead><tr>
@@ -576,8 +576,69 @@ function renderConstituentPressure(doc){
       </tr>`;
   }
   html += `</tbody></table>`;
+
+  /* JH_FLOWS_COVERAGE_3859 — aggregate exposure board: every ETF holding the name, not just high-z ones */
+  const agg = doc.top_aggregate_exposure || [];
+  if(agg.length) {
+    html += `<div style="padding:14px 18px;border-top:1px solid var(--border-light);font-size:11.5px;color:var(--text-muted);line-height:1.7">
+      <b style="color:var(--accent)">Aggregate exposure (${agg.length} names):</b> total implied flow across
+      <i>all</i> ${doc.n_etfs_fetched} ETFs holding the name — the passive-channel footprint, not just the high-z subset.
+      Cumulative weight can exceed 100% because a stock sits in many overlapping funds.</div>
+      <table class="flow-table"><thead><tr>
+        <th>Stock</th><th>Name</th><th>ETFs</th><th>Cum Wt</th><th>5d Agg Flow</th><th>21d Agg Flow</th>
+        <th style="min-width:240px">Largest Holders</th></tr></thead><tbody>`;
+    for(const a of agg.slice(0, 40)) {
+      const f5 = a.total_aggregate_flow_5d_usd || 0, f21 = a.total_aggregate_flow_21d_usd || 0;
+      const hold = (a.top_holding_etfs || []).slice(0, 3).map(e =>
+        `<span style="font-size:10px"><b>${esc(e.etf)}</b> <span style="color:var(--text-muted)">(${(e.weight_pct||0).toFixed(1)}%, z=${e.etf_zscore?.toFixed?.(2) ?? '—'})</span></span>`
+      ).join(' · ');
+      html += `<tr>
+        <td><a href="/why.html?ticker=${encodeURIComponent(a.stock)}" style="color:var(--accent);text-decoration:none;font-weight:700">${esc(a.stock)}</a></td>
+        <td style="color:var(--text-muted);font-size:11px">${esc(a.name || '')}</td>
+        <td class="num">${a.n_etfs_holding || 0}</td>
+        <td class="num">${(a.cumulative_weight_pct || 0).toFixed(1)}%</td>
+        <td class="num ${f5 > 0 ? 'pos' : 'neg'}"><b>${fmtUSD(f5)}</b></td>
+        <td class="num ${f21 > 0 ? 'pos' : 'neg'}">${fmtUSD(f21)}</td>
+        <td>${hold}</td></tr>`;
+    }
+    html += `</tbody></table>`;
+  }
+
+  /* per-stock lookup over the full exposure universe (already downloaded — no extra fetch) */
+  const per = doc.per_stock_exposure || {};
+  const nPer = Object.keys(per).length;
+  if(nPer) {
+    html += `<div style="padding:14px 18px;border-top:1px solid var(--border-light)">
+      <div style="font-size:11px;letter-spacing:1px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">
+        Look up any of the ${nPer.toLocaleString()} exposed stocks</div>
+      <input id="cp-lookup" placeholder="ticker, e.g. NVDA"
+        style="background:var(--bg);border:1px solid var(--border-light);color:var(--text);padding:7px 10px;border-radius:4px;font-size:12px;width:180px;text-transform:uppercase">
+      <div id="cp-lookup-out" style="margin-top:10px;font-size:12px"></div></div>`;
+  }
+
   $("constituent-pressure-body").innerHTML = html;
   $("constituent-pressure-section").style.display = 'block';
+
+  const box = $("cp-lookup");
+  if(box) box.addEventListener('input', () => {
+    const t = (box.value || '').trim().toUpperCase();
+    const r = per[t];
+    if(!t) { $("cp-lookup-out").innerHTML = ''; return; }
+    if(!r) { $("cp-lookup-out").innerHTML = `<span style="color:var(--text-muted)">${esc(t)} — no ETF exposure in today's set</span>`; return; }
+    const rows = (r.holding_etfs || []).slice(0, 12).map(e => `<tr>
+      <td style="padding:3px 8px"><b>${esc(e.etf)}</b></td>
+      <td style="padding:3px 8px;text-align:right">${(e.weight_pct||0).toFixed(2)}%</td>
+      <td style="padding:3px 8px;text-align:right;color:${(e.etf_zscore||0)>=0?'var(--pos)':'var(--neg)'}">${e.etf_zscore?.toFixed?.(2) ?? '—'}σ</td>
+      <td style="padding:3px 8px;text-align:right;color:${(e.implied_pressure_5d_usd||0)>=0?'var(--pos)':'var(--neg)'}">${fmtUSD(e.implied_pressure_5d_usd)}</td></tr>`).join('');
+    $("cp-lookup-out").innerHTML = `<div style="margin-bottom:6px"><b style="color:var(--accent)">${esc(r.stock)}</b>
+      <span style="color:var(--text-muted)">${esc(r.name||'')}</span> · held by <b>${r.n_etfs_holding}</b> ETFs ·
+      cum wt <b>${(r.cumulative_weight_pct||0).toFixed(1)}%</b> · 5d <b class="${(r.total_aggregate_flow_5d_usd||0)>=0?'pos':'neg'}">${fmtUSD(r.total_aggregate_flow_5d_usd)}</b>
+      · 21d <b class="${(r.total_aggregate_flow_21d_usd||0)>=0?'pos':'neg'}">${fmtUSD(r.total_aggregate_flow_21d_usd)}</b></div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="color:var(--text-muted);font-size:10px;text-transform:uppercase">
+      <th style="text-align:left;padding:3px 8px">ETF</th><th style="text-align:right;padding:3px 8px">Weight</th>
+      <th style="text-align:right;padding:3px 8px">ETF z</th><th style="text-align:right;padding:3px 8px">Implied 5d</th></tr></thead>
+      <tbody>${rows}</tbody></table>`;
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -607,7 +668,17 @@ async function load() {
     return;
   }
 
-  $("meta-bar").innerHTML = `Generated ${esc(daily.generated_at?.slice(0,16).replace('T',' '))} UTC · ${daily.n_ok}/${daily.universe_size} ETFs · elapsed ${daily.elapsed_s}s · schema v${daily.schema_version || '1.0'}`;
+  const nf = (daily.n_failed || 0) + (composite.n_failed || 0);
+  const degraded = nf > 0
+    ? ` · <span style="color:var(--neg);font-weight:700" title="rows that failed upstream and carry no z-score">${nf} failed</span>`
+    : ` · <span style="color:var(--pos)">0 failed</span>`;
+  const logged = composite.divergence_signals_logged;
+  $("meta-bar").innerHTML = `Generated ${esc(daily.generated_at?.slice(0,16).replace('T',' '))} UTC · `
+    + `${daily.n_ok}/${daily.universe_size} ETFs${degraded}`
+    + (logged != null ? ` · ${logged} divergence signals logged` : '')
+    + ` · elapsed ${daily.elapsed_s}s · schema v${daily.schema_version || '1.0'}`;
+  const uni = document.getElementById('universe-count');
+  if(uni) uni.textContent = daily.universe_size;
 
   renderDivergence(composite.divergence_board);
 
@@ -682,22 +753,28 @@ async function load() {
   // Full universe
   const allSorted = [...allMetrics].sort((a,b) => (b.flow_zscore_90d || -999) - (a.flow_zscore_90d || -999));
   $("full-table").innerHTML = `<table class="flow-table"><thead><tr>
-    <th>ETF</th><th>Cat</th><th>Sub</th><th>Inst?</th>
-    <th>Label</th><th>z-90d</th><th>Daily $</th><th>5d $</th><th>21d $</th>
-    <th>%AUM 5d</th><th>Persist</th>
+    <th>ETF</th><th>Cat</th><th>Sub</th><th>Region</th><th>Inst?</th>
+    <th>Label</th><th>z-90d</th><th>Div</th><th>AUM</th><th>Daily $</th><th>5d $</th><th>21d $</th>
+    <th>%AUM d</th><th>%AUM 5d</th><th>5d Ret</th><th>Persist</th><th>n hist</th>
   </tr></thead><tbody>
     ${allSorted.map(m => `<tr>
       <td><b>${esc(m.ticker)}</b></td>
       <td>${esc(m.category)}</td>
       <td>${esc(m.subcategory)}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${esc(m.region || '—')}</td>
       <td>${m.smart_money ? '✓' : ''}</td>
       <td class="${labelClass(m.signal_label)}">${esc(m.signal_label || '—')}</td>
       <td class="num ${m.flow_zscore_90d > 0 ? 'pos' : 'neg'}">${fmtZ(m.flow_zscore_90d)}</td>
+      <td class="num" title="flow-vs-price divergence score">${m.divergence_score == null ? '—' : m.divergence_score.toFixed(2)}</td>
+      <td class="num" style="color:var(--text-muted)">${fmtUSD(m.aum_usd).replace(/^[+−]/,'')}</td>
       <td class="num ${(m.daily_flow_usd||0) > 0 ? 'pos' : 'neg'}">${fmtUSD(m.daily_flow_usd)}</td>
       <td class="num ${(m.flow_5d_usd||0) > 0 ? 'pos' : 'neg'}">${fmtUSD(m.flow_5d_usd)}</td>
       <td class="num ${(m.flow_21d_usd||0) > 0 ? 'pos' : 'neg'}">${fmtUSD(m.flow_21d_usd)}</td>
+      <td class="num ${(m.pct_aum_daily||0) > 0 ? 'pos' : 'neg'}">${fmtPct(m.pct_aum_daily)}</td>
       <td class="num ${(m.pct_aum_5d||0) > 0 ? 'pos' : 'neg'}">${fmtPct(m.pct_aum_5d)}</td>
+      <td class="num ${(m.ret_5d_pct||0) > 0 ? 'pos' : 'neg'}">${fmtPct(m.ret_5d_pct)}</td>
       <td class="num">${m.persistence_days || 0}d</td>
+      <td class="num" style="color:var(--text-muted)" title="history points behind the 90d z (30+ required)">${m.n_history_points ?? '—'}</td>
     </tr>`).join('')}
   </tbody></table>`;
 }
