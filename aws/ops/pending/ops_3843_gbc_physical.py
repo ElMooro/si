@@ -1,5 +1,5 @@
 """
-ops_3842 — physical confirmation INTO global-business-cycle (source-level fix)
+ops_3843 — physical confirmation INTO global-business-cycle (source-level fix)
 
 global-business-cycle classifies 34 economies from an EQUITY-MOMENTUM composite.
 That leads, but its documented failure mode is firing in drawdowns that never
@@ -38,8 +38,8 @@ CFG = boto3.session.Config(read_timeout=890, retries={"max_attempts": 0})
 
 
 def main():
-    with report("3842_gbc_physical") as rep:
-        rep.heading("ops 3842 — port confirmation into global-business-cycle")
+    with report("3843_gbc_physical") as rep:
+        rep.heading("ops 3843 — port confirmation into global-business-cycle")
 
         rep.section("G0. Baseline contract BEFORE the change")
         before = json.loads(s3.get_object(Bucket=BUCKET, Key=KEY)["Body"].read())

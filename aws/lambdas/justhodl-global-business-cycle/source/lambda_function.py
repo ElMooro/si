@@ -1088,6 +1088,44 @@ def lambda_handler(event=None, context=None):
     agg = aggregate(by_country)
     interp = interpret_global_cycle(agg, by_country)
 
+    # ── PHYSICAL CONFIRMATION (ops 3842) — strictly additive, `phase` untouched
+    try:
+        _pmeta = {iso: {"name": r.get("country_name")}
+                  for iso, r in by_country.items() if isinstance(r, dict)}
+        _phys, _unmapped, _pw_gen = load_port_physical(_pmeta)
+        _cs = {"CONFIRMED": 0, "DIVERGENT": 0, "UNCONFIRMED": 0}
+        for iso, row in by_country.items():
+            if not isinstance(row, dict):
+                continue
+            blk = confirm_phase(row.get("phase"), _phys.get(iso.upper()))
+            row["physical"] = blk
+            _cs[blk["state"]] = _cs.get(blk["state"], 0) + 1
+        _phys_summary = {
+            "source": "data/portwatch.json",
+            "portwatch_generated_at": _pw_gen,
+            "countries_with_ports": len(_phys),
+            "counts": _cs,
+            "unmapped_port_countries": _unmapped,
+            "method": ("median YoY port throughput per country (>=2 ports). "
+                       "CONFIRMED when physical direction agrees with the "
+                       "equity-momentum phase, DIVERGENT when it contradicts."),
+            "why": ("`phase` is derived from equity momentum, whose known failure "
+                    "mode is firing in drawdowns that never become recessions. "
+                    "Port volumes are physical and independent, so they "
+                    "corroborate or contradict the label at the SOURCE — every "
+                    "downstream consumer inherits the check instead of "
+                    "re-deriving it."),
+            "limits": ("Port throughput is a TRADE proxy: it under-reads "
+                       "service-led and domestic-demand economies, and a "
+                       "commodity exporter can show falling volumes for "
+                       "supply-side reasons unrelated to its business cycle. "
+                       "Corroboration, not proof."),
+        }
+        print(f"[physical] {len(_phys)} countries · {_cs}")
+    except Exception as _pe:  # noqa: BLE001
+        _phys_summary = {"error": str(_pe)[:200]}
+        print(f"[physical] failed: {str(_pe)[:120]}")
+
     output = {
         "schema_version": "2.0",
         "engine_type": "synthetic_equity_momentum",
@@ -1177,44 +1215,6 @@ def lambda_handler(event=None, context=None):
     for tr in transitions:
         print(f"[gbc-history]   {tr['date']} {tr['from_phase']} → {tr['to_phase']} "
               f"CLI {tr['cli_at_transition']} · persisted {tr['weeks_persisted']}w")
-
-    # ── PHYSICAL CONFIRMATION (ops 3842) — strictly additive, `phase` untouched
-    try:
-        _pmeta = {iso: {"name": r.get("country_name")}
-                  for iso, r in by_country.items() if isinstance(r, dict)}
-        _phys, _unmapped, _pw_gen = load_port_physical(_pmeta)
-        _cs = {"CONFIRMED": 0, "DIVERGENT": 0, "UNCONFIRMED": 0}
-        for iso, row in by_country.items():
-            if not isinstance(row, dict):
-                continue
-            blk = confirm_phase(row.get("phase"), _phys.get(iso.upper()))
-            row["physical"] = blk
-            _cs[blk["state"]] = _cs.get(blk["state"], 0) + 1
-        _phys_summary = {
-            "source": "data/portwatch.json",
-            "portwatch_generated_at": _pw_gen,
-            "countries_with_ports": len(_phys),
-            "counts": _cs,
-            "unmapped_port_countries": _unmapped,
-            "method": ("median YoY port throughput per country (>=2 ports). "
-                       "CONFIRMED when physical direction agrees with the "
-                       "equity-momentum phase, DIVERGENT when it contradicts."),
-            "why": ("`phase` is derived from equity momentum, whose known failure "
-                    "mode is firing in drawdowns that never become recessions. "
-                    "Port volumes are physical and independent, so they "
-                    "corroborate or contradict the label at the SOURCE — every "
-                    "downstream consumer inherits the check instead of "
-                    "re-deriving it."),
-            "limits": ("Port throughput is a TRADE proxy: it under-reads "
-                       "service-led and domestic-demand economies, and a "
-                       "commodity exporter can show falling volumes for "
-                       "supply-side reasons unrelated to its business cycle. "
-                       "Corroboration, not proof."),
-        }
-        print(f"[physical] {len(_phys)} countries · {_cs}")
-    except Exception as _pe:  # noqa: BLE001
-        _phys_summary = {"error": str(_pe)[:200]}
-        print(f"[physical] failed: {str(_pe)[:120]}")
 
     # Cross-correlation lead/lag ranking
     lead_lag_started = time.time()
