@@ -1108,11 +1108,17 @@ def lambda_handler(event, context):
             walk(d)
         return m
 
+    # ops 3866: donors re-scored on measured coverage (probe 3865, real S3 reads).
+    # finviz-universe.json alone closes all 8 names ops 3863 could not resolve
+    # (BE UMC DFTX OVV HCC ALHC IPGP CENX) and is the freshest wide feed (~3h,
+    # 11.5k pairs); universe.json backs it up (5.3k, also 8/8 but ~23h old).
+    # capital-flow-radar and accumulation-radar yielded ZERO pairs on live data
+    # and were being fetched + walked on every run for nothing — dropped.
     _census_sec = _harvest_sectors(
+        fetch_json("data/finviz-universe.json"),
+        fetch_json("data/universe.json"),
         fetch_json("screener/data.json"),
-        fetch_json("data/capital-flow-radar.json"),
         fetch_json("data/deep-value.json"),
-        fetch_json("data/accumulation-radar.json"),
         fetch_json("data/asymmetric-scorer.json"),
     )
     globals()["_SECTOR_MAP_N"] = len(_census_sec)
