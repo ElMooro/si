@@ -144,6 +144,102 @@ def _feats(j):
     return [f.get("attributes") or {} for f in (j.get("features") or [])]
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# INDUSTRY EXPOSURE PER PORT (ops 3846)
+# ═══════════════════════════════════════════════════════════════════════════
+# Khalid: attach the industries most likely affected by each port, and by how
+# much. THE TRAP AVOIDED: port throughput is TOTAL cargo, so "Shanghai -50.7%
+# therefore Chinese electronics -50.7%" is a fabrication. A defensible figure
+# needs real country x industry composition, which justhodl-import-canary
+# already builds from US Census (HS6/NAICS x country, 16 industries, measured
+# per-country shares_pct).
+#
+#   share_pct    = that country's MEASURED share of US imports in that line
+#   exposure_pct = port_yoy_pct x share_pct/100
+#
+# EXPOSURE ARITHMETIC, NOT A FORECAST — same discipline as catchup_pct. Limits
+# ship on every row and must never be stripped.
+
+_IC_ALIASES = {
+    "south korea": "Korea, South", "korea": "Korea, South",
+    "the netherlands": "Netherlands", "viet nam": "Vietnam",
+    "taiwan province of china": "Taiwan", "taiwan, province of china": "Taiwan",
+}
+
+
+def _ic_norm(name):
+    n = str(name or "").strip()
+    return _IC_ALIASES.get(n.lower(), n)
+
+
+def load_industry_map():
+    """{country: [{industry, line, code, share_pct, hhi, fragile, top_source}]}"""
+    try:
+        ic = json.loads(S3.get_object(
+            Bucket=BUCKET, Key="data/import-canary.json")["Body"].read())
+    except Exception as e:
+        print("[industry] import-canary unavailable: %s" % str(e)[:90])
+        return {}, None
+    by_country = {}
+    for ln in (ic.get("lines") or []):
+        if not isinstance(ln, dict):
+            continue
+        con = ln.get("concentration") or {}
+        shares = con.get("shares_pct")
+        if not isinstance(shares, dict):
+            continue
+        for cty, share in shares.items():
+            if not isinstance(share, (int, float)) or share <= 0:
+                continue
+            by_country.setdefault(str(cty).strip(), []).append({
+                "industry": ln.get("industry"), "line": ln.get("label"),
+                "code": ln.get("code"), "share_pct": round(float(share), 2),
+                "hhi": con.get("hhi"), "fragile": con.get("fragile"),
+                "top_source": con.get("top_source"),
+            })
+    for c in by_country:
+        by_country[c].sort(key=lambda r: -r["share_pct"])
+    return by_country, ic.get("generated_at")
+
+
+def attach_industry_exposure(port, ind_map):
+    cty = _ic_norm(port.get("country"))
+    rows = ind_map.get(cty)
+    if not rows:
+        return {"available": False,
+                "reason": ("no US-import trade composition for '%s' - this "
+                           "country does not appear in the Census country "
+                           "splits" % port.get("country"))}
+    y = port.get("yoy_pct")
+    out = []
+    for r in rows[:8]:
+        exp = (round(y * r["share_pct"] / 100.0, 2)
+               if isinstance(y, (int, float)) else None)
+        direction = None
+        if isinstance(y, (int, float)):
+            direction = ("SUPPLY HEADWIND - volumes falling, upstream input "
+                         "risk and price pressure for buyers" if y < 0 else
+                         "SUPPLY TAILWIND - volumes rising, easing input "
+                         "availability for buyers")
+        out.append(dict(r, exposure_pct=exp, direction=direction))
+    return {
+        "available": True, "country_matched": cty, "port_yoy_pct": y,
+        "n_industries": len(out),
+        "top_industry": out[0]["industry"] if out else None,
+        "industries": out,
+        "method": ("exposure_pct = port_yoy_pct x (country share of US imports "
+                   "in that industry line). Shares are MEASURED from US Census "
+                   "via import-canary, not assumed."),
+        "limits": ("EXPOSURE ARITHMETIC, NOT A FORECAST. (1) Port throughput is "
+                   "ALL cargo, so applying it to one industry assumes the "
+                   "port's change is proportional across cargo types. "
+                   "(2) Shares are US-IMPORT shares, not global trade shares. "
+                   "(3) A port can fall for supply-side or weather reasons "
+                   "unrelated to demand. A ranked exposure map, never a "
+                   "prediction."),
+    }
+
+
 def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     since = now - timedelta(days=400)
@@ -437,6 +533,33 @@ def lambda_handler(event=None, context=None):
     out["n_disrupted"] = sum(1 for c in out["chokepoints"]
                              if c["status"] == "DISRUPTED")
     out["ok"] = len(out["chokepoints"]) >= 5
+
+    # ── industry exposure per port (ops 3846) ──
+    try:
+        _imap, _ic_gen = load_industry_map()
+        _n_ok = 0
+        for _p in out.get("ports", []):
+            _p["industry_exposure"] = attach_industry_exposure(_p, _imap)
+            if _p["industry_exposure"].get("available"):
+                _n_ok += 1
+        out["industry_exposure_summary"] = {
+            "source": "data/import-canary.json",
+            "import_canary_generated_at": _ic_gen,
+            "countries_with_composition": len(_imap),
+            "ports_with_exposure": _n_ok,
+            "ports_total": len(out.get("ports", [])),
+            "industries_covered": sorted({r["industry"] for v in _imap.values()
+                                          for r in v if r.get("industry")}),
+            "method": ("exposure_pct = port_yoy_pct x measured country share of "
+                       "US imports in each industry line"),
+            "limits": ("Exposure arithmetic, not a forecast. Port volumes are "
+                       "all-cargo; shares are US-import, not global."),
+        }
+        print("[industry] %d/%d ports carry exposure; %d countries"
+              % (_n_ok, len(out.get("ports", [])), len(_imap)))
+    except Exception as _ie:
+        out["industry_exposure_summary"] = {"error": str(_ie)[:200]}
+        print("[industry] failed: %s" % str(_ie)[:120])
 
     S3.put_object(Bucket=BUCKET, Key=KEY,
                   Body=json.dumps(out, default=str).encode(),
