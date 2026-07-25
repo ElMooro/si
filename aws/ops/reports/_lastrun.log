@@ -1,19 +1,13 @@
-executing-against: 282bcb44ca937952ac2dab9d8e2eca9e6155a717
-ops 3866 — WIRE finviz-universe donor + gate on measured coverage
-── 1. BEFORE ──
-── 2. ZIP-SETTLE BY MARKER — never invoke the old artifact ──
-[16:46:03] ✅   new artifact live on attempt 1 (105,263 zip bytes)
-[16:46:03] ✅   State=Active LastUpdateStatus=Successful
-── 3. invoke (async — the ranker fans out across ~30 feeds) ──
-[16:46:23] ✅   artifact rewritten on attempt 1 (2026-07-25T16:46:10+00:00)
-── 4. AFTER — measured coverage ──
-[16:46:23] ✅   rotation coverage improved vs before
-[16:46:23] ✅   rotation tilt on >= 20/25
-[16:46:23] ✗   liquidity overlay tracks the same sector map
-[16:46:23] ✅   no row lost its tilt (no regression)
-── 5. honest note on what was deliberately NOT changed ──
-[16:46:23]   risk_regime_mult stays 0/25 by design: probe 3865 measured risk_regime_score = 2.5, inside the engine's neutral band (-12, 12]. A neutral regime SHOULD produce no tilt; forcing one would be a manufactured signal.
-[16:46:23] ✗ FAILED 1: ['liquidity overlay tracks the same sector map']
+executing-against: fd7b6eb857e84f735f554ae53f6e8c9a9f13ce1d
+ops 3867 — liquidity overlay 0/25: stale feed, neutral regime, or defect
+── 1. ask the ranker what it excluded ──
+[16:52:05]   stale_feeds_excluded: []
+[16:52:05]   missing_feeds: []
+[16:52:05] ✅   liquidity feed is NOT in the ranker's exclusion lists
+── 2. the feed itself ──
+[16:52:05]   top-level keys: ['analogs', 'availability', 'backtest', 'brain_predictors', 'china', 'china_engine', 'composite', 'composite_clock', 'composite_projection', 'composite_snapshots', 'credit', 'cycle_clock', 'data_health', 'dealer_survey', 'dollar', 'dollar_shortage']
+── 3. verdict ──
+[16:52:05] ✗   CAUSE (a'): feed is fresh (5.6h) but the score field the overlay reads is None — a key-contract drift in the producer. Grep the producer before changing the consumer.
 
-→ Report written to aws/ops/reports/latest/3866_ranker_sector_close.md
-❌ OPS-FAIL: aws/ops/pending/ops_3866_ranker_sector_close.py
+→ Report written to aws/ops/reports/latest/3867_liq_overlay_truth.md
+❌ OPS-FAIL: aws/ops/pending/ops_3867_liq_overlay_truth.py
