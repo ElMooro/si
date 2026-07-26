@@ -1,19 +1,18 @@
-executing-against: 893ace33cdb4f8ec90502ca70cf557975ebf124b
-ops 3898 — same feeds, real container names this time
-── 1. earnings-whisper — all_setups + top_setups, search for TSLA ──
-[00:42:04]   n_upcoming=83 tier_counts={'S': 0, 'A': 0, 'B': 1, 'C': 82} — TSLA genuinely absent from this feed's setups
-── 2. eps-revision-velocity — all_qualifying, search for TSLA and ORCL ──
-[00:42:04]   TSLA: 1 hits
-[00:42:04]     [18]: {"symbol": "TSLA", "company": "Tesla, Inc.", "score": 70.4, "flag": "HIGH_VELOCITY_TIER_B", "status": "ok", "fundamentals": {"price": 313.03, "market_cap": 1236326809475, "sector": "", "industry": "", "pct_from_52w_high": -37.2}, "estimates": {"fy1_year": "2026", "fy1_eps_avg": 1.8127, "fy1_rev_avg": 105092055501, "fy1_n_estimates": 25, "fy2_year": "2027", "fy2_eps_avg": 2.34693, "fy2_lift_pct": 29.5, "fwd_rev_growth_pct": 14.4, "dispersion": 0.745}, "ratings_breadth": {"n_recent_90d": 25, "n_up
-[00:42:04]   ORCL: 1 hits
-[00:42:04]     [8]: {"symbol": "ORCL", "company": "Oracle Corporation", "score": 85.0, "flag": "HIGH_VELOCITY_TIER_B", "status": "ok", "fundamentals": {"price": 114.99, "market_cap": 331225245300, "sector": "", "industry": "", "pct_from_52w_high": -66.7}, "estimates": {"fy1_year": "2027", "fy1_eps_avg": 8.04981, "fy1_rev_avg": 89614281041, "fy1_n_estimates": 26, "fy2_year": "2028", "fy2_eps_avg": 10.90724, "fy2_lift_pct": 35.5, "fwd_rev_growth_pct": 45.5, "dispersion": 0.041}, "ratings_breadth": {"n_recent_90d": 25
-── 3. sec-filings-intel — all_tickers + events_by_signal + highlights, search ORCL ──
-[00:42:05]   ORCL hits: 0
-── 4. capital-return — cannibals list, is ORCL in it (aggressive buybacks) ──
-[00:42:05]   ORCL in cannibals list: 0 hits
-── 5. hiring-velocity top_50 + talent-migration departures/appointments — ORCL ──
-[00:42:05]   ORCL in hiring top_50: 0 hits: not present
-[00:42:05]   ORCL departures: 0, appointments: 0, recent_moves: 0
-[00:42:05] ✅ PROBE COMPLETE
+executing-against: 1f52da50106285e46a5abf3d766e452715a40f35
+ops 3899 — diagnose signal-backtest's snapshot bug + alpha-calibrator's trade-journal bug
+── 1. data/track-record/snapshots/ — does it actually have dated files ──
+[03:15:49]   earliest: data/track-record/snapshots/2026-05-17.json (2026-05-17 14:07:02+00:00)
+[03:15:49]   latest:   data/track-record/snapshots/2026-07-25.json (2026-07-25 14:01:05+00:00)
+[03:15:49]   age distribution (date, age_days, size_bytes): [('2026-05-17', 70, 51922), ('2026-05-18', 69, 52027), ('2026-05-19', 68, 52177), ('2026-05-20', 67, 52040), ('2026-05-21', 66, 52017), ('2026-05-22', 65, 52018), ('2026-05-23', 64, 52021), ('2026-05-24', 63, 52118), ('2026-05-25', 62, 52015), ('2026-05-26', 61, 52107)]
+── 2. shape check — does the OLDEST aged-7+ snapshot actually have a real 'picks' dict ──
+[03:15:49] ✅   data/track-record/snapshots/2026-05-17.json readable, top-level keys: ['date', 'generated_at', 'n', 'picks', 'schema']
+[03:15:49]   sample pick [FICO]: {"v": "STRONG OPPORTUNITY", "p": 1098.59, "fv": 1609.24, "s": 85.9, "c": "high", "ss": [91, 100, 82, 32]}
+── 3. data/trade-journal.json — does alpha-calibrator's OWN journal read have real data ──
+[03:15:49] ✅   top-level keys: ['best_calls_60d', 'generated_at', 'generated_at_unix', 'ledger', 'lookback_days', 'strategies', 'summary', 'version', 'worst_calls_60d']
+[03:15:49]   FULL DOC (first 1500 chars): {"generated_at": "2026-07-25T23:03:29.107211+00:00", "generated_at_unix": 1785020609, "version": "1.0.0", "lookback_days": 90, "summary": {"total_calls_90d": 1973, "total_evaluated_30d": 0, "overall_win_rate_30d_pct": null, "overall_avg_return_30d_pct": null, "n_strategies_tracked": 5, "n_open": 1973, "n_closed_or_hit": 0}, "strategies": [{"strategy": "OPTIONS_TIER_A", "total_calls_90d": 1462, "evaluated_30d": 0, "win_rate_30d_pct": null, "avg_return_30d_pct": null, "evaluated_90d": 0, "win_rate_90d_pct": null, "avg_return_90d_pct": null}, {"strategy": "REGIME_PICK", "total_calls_90d": 449, "evaluated_30d": 0, "win_rate_30d_pct": null, "avg_return_30d_pct": null, "evaluated_90d": 0, "win_rate_90d_pct": null, "avg_return_90d_pct": null}, {"strategy": "TIER_A_ALPHA", "total_calls_90d": 45, "evaluated_30d": 0, "win_rate_30d_pct": null, "avg_return_30d_pct": null, "evaluated_90d": 0, "win_rate_90d_pct": null, "avg_return_90d_pct": null}, {"strategy": "DEBATE_BUY", "total_calls_90d": 7, "evaluated_30d": 0, "win_rate_30d_pct": null, "avg_return_30d_pct": null, "evaluated_90d": 0, "win_rate_90d_pct": null, "avg_return_90d_pct": null}, {"strategy": "DEBATE_STRONG_BUY", "total_calls_90d": 10, "evaluated_30d": 0, "win_rate_30d_pct": null, "avg_return_30d_pct": null, "evaluated_90d": 0, "win_rate_90d_pct": null, "avg_return_90d_pct": null}], "best_calls_60d": [], "worst_calls_60d": [], "ledger": [{"call_date": "2026-07-25", "call_timestamp": "2026-07-25T22:50:42.020965+00:00", "symbol":
+── 4. justhodl-trades DynamoDB table — the REAL source alpha-calibrator scans ──
+[03:15:49]   sample of 5 items: [{"strategy": "OPTIONS_TIER_A", "current_price_at_call": "84.42", "symbol": "ABT", "call_date": "2026-05-13", "signals_firing": ["CPR_SURGING", "CALL_VOL_3X", "SHORTS_COVERING"], "sector": "Healthcare", "outcome_status": "OPEN", "tier": "C", "options_flow_score_at_call": "75", "entry_price": "84.42", "call_timestamp": "2026-05-13T00:10:35.126154+00:00", "alpha_score": "57", "components_snapshot": {"sentiment": "58", "analysts": "75", "insiders": "92", "smart_money": "65", "growth": "41", "options_flow": "75", "quality": "67", "momentum": "9"}, "name": "Abbott Laboratories", "evaluated": false, "rationale": "Options flow TIER A \u00b7 score 75.0 \u00b7 CPR_SURGING, CALL_VOL_3X, SHORTS_COVERING", "macro_stress_at_call": "34", "sk": "2026-05-13#ABT#OPTIONS_TIER_A", "pk": "CALL", "regime_at_call": "NORMAL"}, {"strategy": "OPTIONS_TIER_A", "current_price_at_call": "432.17", "symbol": "ADI", "call_date": "2026-05-13", "signals_firing": ["CPR_SURGING", "CALL_VOL_3X", "ABS_CPR_3X", "SHORTS_COVERING"], "sector": "Technology", "outcome_status": "OPEN", "tier": "B", "options_flow_score_at_call": "85", "entry_price": "432.17", "call_timestamp": "2026-05-13T21:50:24.197105+00:00", "alpha_score"
+── verdict ──
+[03:15:49] ✅ PROBE COMPLETE
 
-→ Report written to aws/ops/reports/latest/3898_tsla_orcl_correct_containers.md
+→ Report written to aws/ops/reports/latest/3899_two_n0_bugs_diagnosed.md
