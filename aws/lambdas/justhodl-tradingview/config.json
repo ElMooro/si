@@ -5,11 +5,25 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 1024,
   "timeout": 900,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "TradingView Metric Vault: parses the brain's 2,920 TV notes into a 524-symbol registry, resolves live values (FRED/FMP ladder), honest UNRESOLVED for TV-only symbols. Self-updating from brain.",
+  "description": "TradingView Metric Vault v3: cadence-aware (fetch only when data updates), FRED throttled, resolver ladder FRED/FMP/Yahoo/ECB/Polygon/fleet. Registry self-updates from brain.",
   "environment": {},
   "inherit_env": [
-    {"from_function": "justhodl-signal-backtest", "keys": ["FRED_KEY", "FMP_KEY", "POLYGON_KEY"]}
+    {
+      "from_function": "justhodl-signal-backtest",
+      "keys": [
+        "FRED_KEY",
+        "FMP_KEY"
+      ]
+    },
+    {
+      "from_function": "justhodl-equity-research",
+      "keys": [
+        "POLYGON_KEY"
+      ]
+    }
   ]
 }
