@@ -1,48 +1,88 @@
-executing-against: 01fb6a115f7c3af4d9be4c55f5eb82ea00e3cb5a
-ops 3895 — LIST the real convergence-radar archive keys, don't guess the format
-── 1. list real keys under the archive prefix ──
-[23:45:17]   sample of 10 spread across the range: ['data/archive/convergence-radar/20260601_1643.json', 'data/archive/convergence-radar/20260607_0130.json', 'data/archive/convergence-radar/20260612_1200.json', 'data/archive/convergence-radar/20260617_2230.json', 'data/archive/convergence-radar/20260623_0830.json', 'data/archive/convergence-radar/20260628_1900.json', 'data/archive/convergence-radar/20260704_0530.json', 'data/archive/convergence-radar/20260709_1600.json', 'data/archive/convergence-radar/20260715_0130.json', 'data/archive/convergence-radar/20260720_1200.json']
-── 2. pull a spread of ~8 archive snapshots across the full available range ──
-[23:45:17]   data/archive/convergence-radar/20260601_1643.json: 130 rows, sample keys of first row: ['avg_signal', 'convergence_score', 'domain_coverage', 'engines', 'is_accelerating', 'is_new_high', 'is_ultra', 'n_domains', 'n_engines', 'prior_n_engines', 'ticker', 'tier']
-[23:45:17]   data/archive/convergence-radar/20260608_1000.json: 137 rows, sample keys of first row: ['avg_signal', 'bearish_engines', 'bullish_engines', 'convergence_score', 'directional_score', 'domain_coverage', 'engines', 'exclude_from_longs', 'is_accelerating', 'is_new_high', 'is_ultra_new', 'n_bearish_eng', 'n_bullish_eng', 'n_domains', 'n_engines', 'n_neutral_eng', 'prior_n_engines', 'pump_category', 'pump_components', 'pump_likelihood', 'ticker', 'tier']
-[23:45:17]   data/archive/convergence-radar/20260615_0500.json: 158 rows, sample keys of first row: ['avg_signal', 'bearish_engines', 'bullish_engines', 'convergence_score', 'directional_score', 'domain_coverage', 'engines', 'exclude_from_longs', 'is_accelerating', 'is_new_high', 'is_ultra_new', 'n_bearish_eng', 'n_bullish_eng', 'n_domains', 'n_engines', 'n_neutral_eng', 'prior_n_engines', 'pump_category', 'pump_components', 'pump_likelihood', 'ticker', 'tier']
-[23:45:17]   data/archive/convergence-radar/20260621_2330.json: 191 rows, sample keys of first row: ['avg_signal', 'bearish_engines', 'bullish_engines', 'convergence_score', 'directional_score', 'domain_coverage', 'engines', 'exclude_from_longs', 'is_accelerating', 'is_new_high', 'is_ultra_new', 'n_bearish_eng', 'n_bullish_eng', 'n_domains', 'n_engines', 'n_neutral_eng', 'prior_n_engines', 'pump_category', 'pump_components', 'pump_likelihood', 'ticker', 'tier']
-[23:45:17]   data/archive/convergence-radar/20260628_1830.json: 200 rows, sample keys of first row: ['avg_signal', 'bearish_engines', 'bullish_engines', 'convergence_score', 'directional_score', 'domain_coverage', 'engines', 'exclude_from_longs', 'is_accelerating', 'is_new_high', 'is_ultra_new', 'n_bearish_eng', 'n_bullish_eng', 'n_domains', 'n_engines', 'n_neutral_eng', 'prior_n_engines', 'pump_category', 'pump_components', 'pump_likelihood', 'ticker', 'tier']
-[23:45:18]   data/archive/convergence-radar/20260705_1330.json: 199 rows, sample keys of first row: ['avg_signal', 'bearish_engines', 'bullish_engines', 'convergence_score', 'directional_score', 'domain_coverage', 'engines', 'exclude_from_longs', 'is_accelerating', 'is_new_high', 'is_ultra_new', 'n_bearish_eng', 'n_bullish_eng', 'n_domains', 'n_engines', 'n_neutral_eng', 'prior_n_engines', 'pump_category', 'pump_components', 'pump_likelihood', 'ticker', 'tier']
-[23:45:18]   data/archive/convergence-radar/20260712_0730.json: 179 rows, sample keys of first row: ['avg_signal', 'bearish_engines', 'bullish_engines', 'convergence_score', 'directional_score', 'domain_coverage', 'engines', 'exclude_from_longs', 'is_accelerating', 'is_new_high', 'is_ultra_new', 'n_bearish_eng', 'n_bullish_eng', 'n_domains', 'n_engines', 'n_neutral_eng', 'prior_n_engines', 'pump_category', 'pump_components', 'pump_likelihood', 'ticker', 'tier']
-[23:45:18]   data/archive/convergence-radar/20260719_0230.json: 200 rows, sample keys of first row: ['avg_signal', 'bearish_engines', 'bullish_engines', 'convergence_score', 'directional_score', 'domain_coverage', 'engines', 'exclude_from_longs', 'is_accelerating', 'is_new_high', 'is_ultra_new', 'n_bearish_eng', 'n_bullish_eng', 'n_domains', 'n_engines', 'n_neutral_eng', 'prior_n_engines', 'pump_category', 'pump_components', 'pump_likelihood', 'ticker', 'tier']
-── 3. tickers flagged across MULTIPLE distinct snapshots (a sustained, not one-off, signal) ──
-[23:45:18]   AVGO: [('20260601_1643', 12), ('20260608_1000', 11), ('20260615_0500', 8), ('20260621_2330', 11), ('20260628_1830', 9), ('20260705_1330', 10), ('20260712_0730', 11), ('20260719_0230', 9)]
-[23:45:18]   AMD: [('20260601_1643', 8), ('20260608_1000', 8), ('20260615_0500', 5), ('20260621_2330', 9), ('20260628_1830', 7), ('20260705_1330', 9), ('20260712_0730', 8), ('20260719_0230', 11)]
-[23:45:18]   TSLA: [('20260601_1643', 9), ('20260608_1000', 9), ('20260615_0500', 5), ('20260621_2330', 10), ('20260628_1830', 8), ('20260705_1330', 10), ('20260712_0730', 12), ('20260719_0230', 12)]
-[23:45:18]   AMZN: [('20260601_1643', 8), ('20260608_1000', 8), ('20260615_0500', 6), ('20260621_2330', 10), ('20260628_1830', 10), ('20260705_1330', 10), ('20260712_0730', 11), ('20260719_0230', 10)]
-[23:45:18]   NVDA: [('20260601_1643', 9), ('20260608_1000', 10), ('20260615_0500', 7), ('20260621_2330', 10), ('20260628_1830', 8), ('20260705_1330', 9), ('20260712_0730', 9), ('20260719_0230', 10)]
-[23:45:18]   MU: [('20260601_1643', 9), ('20260608_1000', 8), ('20260615_0500', 5), ('20260621_2330', 10), ('20260628_1830', 8), ('20260705_1330', 8), ('20260712_0730', 7), ('20260719_0230', 7)]
-[23:45:18]   GOOG: [('20260601_1643', 6), ('20260608_1000', 6), ('20260615_0500', 5), ('20260621_2330', 8), ('20260628_1830', 7), ('20260705_1330', 8), ('20260712_0730', 8), ('20260719_0230', 8)]
-[23:45:18]   META: [('20260601_1643', 10), ('20260608_1000', 9), ('20260615_0500', 7), ('20260621_2330', 10), ('20260628_1830', 9), ('20260705_1330', 10), ('20260712_0730', 14), ('20260719_0230', 15)]
-[23:45:18]   MSFT: [('20260601_1643', 8), ('20260608_1000', 10), ('20260615_0500', 6), ('20260621_2330', 10), ('20260628_1830', 9), ('20260705_1330', 10), ('20260712_0730', 13), ('20260719_0230', 12)]
-[23:45:18]   AAPL: [('20260601_1643', 8), ('20260608_1000', 9), ('20260615_0500', 6), ('20260621_2330', 8), ('20260628_1830', 8), ('20260705_1330', 8), ('20260712_0730', 12), ('20260719_0230', 13)]
-[23:45:18]   GOOGL: [('20260601_1643', 6), ('20260608_1000', 6), ('20260615_0500', 4), ('20260621_2330', 8), ('20260628_1830', 7), ('20260705_1330', 8), ('20260712_0730', 9), ('20260719_0230', 7)]
-[23:45:18]   PLTR: [('20260601_1643', 8), ('20260608_1000', 9), ('20260615_0500', 5), ('20260621_2330', 7), ('20260628_1830', 5), ('20260712_0730', 6), ('20260719_0230', 7)]
-[23:45:18]   GE: [('20260601_1643', 6), ('20260608_1000', 5), ('20260615_0500', 5), ('20260621_2330', 6), ('20260628_1830', 6), ('20260705_1330', 7), ('20260712_0730', 6)]
-[23:45:18]   INTC: [('20260601_1643', 6), ('20260608_1000', 4), ('20260615_0500', 4), ('20260621_2330', 7), ('20260628_1830', 6), ('20260705_1330', 7), ('20260712_0730', 6)]
-[23:45:18]   ORCL: [('20260601_1643', 8), ('20260608_1000', 9), ('20260615_0500', 7), ('20260621_2330', 9), ('20260628_1830', 8), ('20260705_1330', 8), ('20260719_0230', 7)]
-── 4. cross-check sustained tickers against REAL current price/flow (constituent-pressure) ──
-[23:45:18]     AVGO: perf_m=-0.04% perf_w=2.99% quadrant=NEUTRAL — flagged 8x in convergence-radar archive
-[23:45:18]     PLTR: perf_m=8.3% perf_w=-7.15% quadrant=DISTRIBUTION_RALLY — flagged 7x in convergence-radar archive
-[23:45:18]     AMD: perf_m=0.43% perf_w=5.28% quadrant=NEUTRAL — flagged 8x in convergence-radar archive
-[23:45:18]     TSLA: perf_m=-16.64% perf_w=-17.81% quadrant=NEUTRAL — flagged 8x in convergence-radar archive
-[23:45:18]     AMZN: perf_m=-0.92% perf_w=-6.12% quadrant=NEUTRAL — flagged 8x in convergence-radar archive
-[23:45:18]     NVDA: perf_m=3.94% perf_w=1.99% quadrant=NEUTRAL — flagged 8x in convergence-radar archive
-[23:45:18]     MU: perf_m=-12.17% perf_w=8.48% quadrant=STEALTH_ACCUMULATION — flagged 8x in convergence-radar archive
-[23:45:18]     GOOG: perf_m=-7.52% perf_w=-7.81% quadrant=NEUTRAL — flagged 8x in convergence-radar archive
-[23:45:18]     META: perf_m=6.73% perf_w=-7.87% quadrant=NEUTRAL — flagged 8x in convergence-radar archive
-[23:45:18]     GE: perf_m=-3.32% perf_w=1.4% quadrant=NEUTRAL — flagged 7x in convergence-radar archive
-[23:45:18]     INTC: perf_m=-29.87% perf_w=-2.86% quadrant=NEUTRAL — flagged 7x in convergence-radar archive
-[23:45:18]     MSFT: perf_m=4.44% perf_w=-3.08% quadrant=NEUTRAL — flagged 8x in convergence-radar archive
-[23:45:18]     ARM: perf_m=-27.59% perf_w=-2.69% quadrant=NEUTRAL — flagged 2x in convergence-radar archive
-[23:45:18]     ORCL: perf_m=-27.0% perf_w=-9.03% quadrant=NEUTRAL — flagged 7x in convergence-radar archive
-[23:45:18]     AAPL: perf_m=13.63% perf_w=-0.22% quadrant=NEUTRAL — flagged 8x in convergence-radar archive
-[23:45:18] ✅ PROBE COMPLETE
+executing-against: e60b64a95f92af4902fd667e03160abbdb039422
+ops 3896 — TSLA/ORCL full directional time-series + earnings catalyst check
+── 1. list every archive key (real S3 listing, not a guessed date format) ──
+── 2. dense sample across June 20 - July 25 specifically (the decline window) ──
+── 3. full directional record for TSLA and ORCL, every day, June 20 - July 25 ──
+[00:28:49]   === TSLA — day-by-day, 37 snapshots found ===
+[00:28:49]     20260620: n_eng=9 bull=2 bear=0 dir_score=38.0 conv=93.0 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260621: n_eng=10 bull=2 bear=0 dir_score=38.5 conv=92.5 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260622: n_eng=10 bull=2 bear=0 dir_score=37.3 conv=90.5 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260623: n_eng=10 bull=2 bear=0 dir_score=37.3 conv=91.1 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260624: n_eng=9 bull=3 bear=0 dir_score=54.3 conv=92.4 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260625: n_eng=11 bull=3 bear=0 dir_score=51.0 conv=92.2 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260626: n_eng=9 bull=3 bear=0 dir_score=53.8 conv=92.4 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260627: n_eng=10 bull=3 bear=0 dir_score=52.6 conv=91.9 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260628: n_eng=8 bull=2 bear=0 dir_score=43.8 conv=91.6 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260629: n_eng=8 bull=2 bear=0 dir_score=43.8 conv=91.6 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260630: n_eng=10 bull=3 bear=0 dir_score=53.6 conv=94.3 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260701: n_eng=8 bull=2 bear=0 dir_score=42.7 conv=86.0 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260702: n_eng=10 bull=2 bear=1 dir_score=31.4 conv=97.4 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260703: n_eng=11 bull=2 bear=1 dir_score=34.5 conv=98.5 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260704: n_eng=10 bull=2 bear=1 dir_score=35.4 conv=94.9 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260705: n_eng=10 bull=2 bear=0 dir_score=37.3 conv=93.1 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260706: n_eng=10 bull=2 bear=0 dir_score=41.6 conv=89.8 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260707: n_eng=11 bull=2 bear=0 dir_score=36.1 conv=93.5 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260708: n_eng=11 bull=2 bear=0 dir_score=36.1 conv=92.4 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260709: n_eng=10 bull=2 bear=0 dir_score=36.7 conv=93.3 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260710: n_eng=10 bull=2 bear=0 dir_score=39.5 conv=86.8 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260711: n_eng=10 bull=2 bear=0 dir_score=39.6 conv=93.3 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260712: n_eng=12 bull=2 bear=0 dir_score=36.6 conv=93.5 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260713: n_eng=10 bull=2 bear=0 dir_score=41.0 conv=94.4 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260714: n_eng=11 bull=2 bear=0 dir_score=36.1 conv=92.7 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260715: n_eng=11 bull=2 bear=0 dir_score=36.1 conv=92.5 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260716: n_eng=10 bull=2 bear=0 dir_score=39.5 conv=86.8 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260717: n_eng=9 bull=2 bear=0 dir_score=40.5 conv=90.1 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260718: n_eng=10 bull=2 bear=0 dir_score=39.6 conv=94.6 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260719: n_eng=12 bull=2 bear=0 dir_score=35.6 conv=94.4 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260720: n_eng=12 bull=2 bear=0 dir_score=35.6 conv=94.1 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260721: n_eng=11 bull=3 bear=0 dir_score=50.5 conv=94.7 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260722: n_eng=10 bull=2 bear=0 dir_score=39.5 conv=86.8 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260723: n_eng=12 bull=3 bear=0 dir_score=49.9 conv=92.7 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260724: n_eng=12 bull=2 bear=0 dir_score=35.4 conv=92.1 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260725: n_eng=11 bull=2 bear=0 dir_score=36.5 conv=91.3 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260726: n_eng=10 bull=2 bear=0 dir_score=38.7 conv=92.7 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]   === ORCL — day-by-day, 37 snapshots found ===
+[00:28:49]     20260620: n_eng=9 bull=3 bear=1 dir_score=37.0 conv=88.7 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260621: n_eng=8 bull=3 bear=1 dir_score=38.5 conv=88.4 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260622: n_eng=9 bull=3 bear=1 dir_score=37.7 conv=86.9 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260623: n_eng=7 bull=3 bear=1 dir_score=39.6 conv=85.3 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260624: n_eng=8 bull=3 bear=1 dir_score=36.0 conv=89.3 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260625: n_eng=8 bull=3 bear=1 dir_score=40.0 conv=91.8 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260626: n_eng=8 bull=3 bear=1 dir_score=36.0 conv=89.5 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260627: n_eng=8 bull=3 bear=1 dir_score=38.6 conv=88.0 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260628: n_eng=9 bull=3 bear=1 dir_score=37.3 conv=88.0 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260629: n_eng=8 bull=3 bear=1 dir_score=37.9 conv=88.9 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260630: n_eng=8 bull=3 bear=1 dir_score=40.0 conv=91.6 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260701: n_eng=8 bull=3 bear=1 dir_score=37.9 conv=88.0 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260702: n_eng=8 bull=3 bear=0 dir_score=44.8 conv=83.0 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260703: n_eng=10 bull=3 bear=1 dir_score=36.2 conv=87.3 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260704: n_eng=8 bull=3 bear=1 dir_score=39.2 conv=90.6 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260705: n_eng=8 bull=4 bear=1 dir_score=50.6 conv=90.7 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260706: n_eng=7 bull=3 bear=1 dir_score=39.6 conv=84.9 exclude_from_longs=False tier=HIGH accelerating=False
+[00:28:49]     20260707: n_eng=6 bull=3 bear=0 dir_score=48.4 conv=77.6 exclude_from_longs=False tier=HIGH accelerating=False
+[00:28:49]     20260708: n_eng=9 bull=4 bear=0 dir_score=54.6 conv=91.2 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260709: n_eng=7 bull=3 bear=0 dir_score=45.9 conv=82.9 exclude_from_longs=False tier=HIGH accelerating=False
+[00:28:49]     20260710: n_eng=6 bull=3 bear=0 dir_score=57.9 conv=81.9 exclude_from_longs=False tier=HIGH accelerating=False
+[00:28:49]     20260711: n_eng=6 bull=3 bear=0 dir_score=57.9 conv=83.4 exclude_from_longs=False tier=HIGH accelerating=False
+[00:28:49]     20260712: n_eng=5 bull=3 bear=0 dir_score=62.0 conv=71.6 exclude_from_longs=False tier=HIGH accelerating=False
+[00:28:49]     20260713: n_eng=6 bull=3 bear=1 dir_score=51.0 conv=84.6 exclude_from_longs=False tier=HIGH accelerating=False
+[00:28:49]     20260714: n_eng=8 bull=3 bear=1 dir_score=48.3 conv=92.0 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260715: n_eng=7 bull=3 bear=1 dir_score=49.5 conv=90.1 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260716: n_eng=6 bull=3 bear=0 dir_score=57.9 conv=81.4 exclude_from_longs=False tier=HIGH accelerating=False
+[00:28:49]     20260717: n_eng=7 bull=3 bear=1 dir_score=48.2 conv=89.6 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260718: n_eng=8 bull=3 bear=1 dir_score=46.5 conv=87.0 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260719: n_eng=7 bull=3 bear=1 dir_score=49.0 conv=89.3 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260720: n_eng=6 bull=3 bear=0 dir_score=59.2 conv=81.9 exclude_from_longs=False tier=HIGH accelerating=False
+[00:28:49]     20260721: n_eng=8 bull=3 bear=1 dir_score=48.7 conv=90.1 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260722: n_eng=7 bull=3 bear=0 dir_score=55.5 conv=82.1 exclude_from_longs=False tier=HIGH accelerating=False
+[00:28:49]     20260723: n_eng=7 bull=3 bear=0 dir_score=55.5 conv=82.1 exclude_from_longs=False tier=HIGH accelerating=False
+[00:28:49]     20260724: n_eng=9 bull=3 bear=1 dir_score=44.7 conv=85.7 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260725: n_eng=8 bull=3 bear=0 dir_score=55.1 conv=83.5 exclude_from_longs=False tier=ULTRA accelerating=False
+[00:28:49]     20260726: n_eng=8 bull=3 bear=1 dir_score=47.8 conv=88.7 exclude_from_longs=False tier=ULTRA accelerating=False
+── 4. did the bearish count meaningfully RISE before/during the decline, for either name ──
+── 5. earnings-tracker — was there a real, dated earnings catalyst for either name ──
+[00:28:50]   TSLA EARNINGS FOUND: {"ticker": "TSLA", "filing_date": "2026-07-22", "period_end": "Q2 2026", "eps_actual": 0.33, "eps_estimate": 0.44, "eps_surprise_pct": -25.0, "revenue_actual": 28236000000.0, "revenue_surprise_pct": 11.89, "importance": 5, "returns": {"1d": -14.52, "5d": null, "20d": null}, "pead_label": "NEGATIVE_DRIFT", "pead_score": 23, "surprise_source": "benzinga"}
+[00:28:50]   ORCL: no entry in recent_results_30d (no earnings report in the last 30d, or it aged out — decline is NOT earnings-driven per this feed)
+[00:28:50] ✅ PROBE COMPLETE
 
-→ Report written to aws/ops/reports/latest/3895_convergence_radar_archive_corrected.md
+→ Report written to aws/ops/reports/latest/3896_tsla_orcl_directional_check.md
