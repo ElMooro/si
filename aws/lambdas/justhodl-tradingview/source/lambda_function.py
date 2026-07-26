@@ -36,9 +36,10 @@ import boto3
 
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v2.3 SUFFIX-KEYS"
+MARKER = "tradingview-vault v3.0 CADENCE-AWARE"
 
 s3 = boto3.client("s3")
 
@@ -106,8 +107,38 @@ ALIASES = {
     "ES10Y-TVC": "fleetsum:data/euro-fragmentation.json:bund_benchmark_10y_pct:countries.ES.spread_vs_bund_bp",
     "FR10Y-TVC": "fleetsum:data/euro-fragmentation.json:bund_benchmark_10y_pct:countries.FR.spread_vs_bund_bp",
     "BDI": "none:referenced in eurodollar-plumbing code but not exported in its feed (producer todo)",
-    "EUGDPYY": "none:referenced in macro-nowcast code but not exported (producer todo)",
+    # v3.0 certified additions
+    "USIJC": "fred:ICSA", "USJC": "fred:ICSA", "USCFNAI": "fred:CFNAI",
+    "USLEI": "fred:USSLIND", "USNFP": "fred:PAYEMS", "USHST": "fred:HOUST",
+    "USNHS": "fred:HSN1F", "USCBBS": "fred:WALCL",
+    "USHPIYY": "yoy:CSUSHPINSA", "USMPRYY": "yoy:PPIACO",
+    "JPGDPYY": "yoy:JPNRGDPEXP", "EUGDPYY": "yoy:CLVMNACSCAB1GQEA19",
+    "FIGDPYY": "yoy:CLVMNACSCAB1GQFI",
+    "USCLI": "fleet:data/global-business-cycle.json:by_country.USA.cli_level",
+    "JPCLI": "fleet:data/global-business-cycle.json:by_country.JPN.cli_level",
+    "DECLI": "fleet:data/global-business-cycle.json:by_country.DEU.cli_level",
+    "FRCLI": "fleet:data/global-business-cycle.json:by_country.FRA.cli_level",
+    "GBCLI": "fleet:data/global-business-cycle.json:by_country.GBR.cli_level",
+    "ITCLI": "fleet:data/global-business-cycle.json:by_country.ITA.cli_level",
+    "KRCLI": "fleet:data/global-business-cycle.json:by_country.KOR.cli_level",
+    "CNCLI": "fleet:data/global-business-cycle.json:by_country.CHN.cli_level",
+    "2USNOTE": "yahoo:ZT=F", "5USNOTE": "yahoo:ZF=F", "10USNOTE": "yahoo:ZN=F",
+    "NOVO_B": "yahoo:NOVO-B.CO", "BARC": "yahoo:BARC.L", "AKZA": "yahoo:AKZA.AS",
+    "000039": "yahoo:000039.SZ", "TOPIX1!": "yahoo:^TPX",
 }
+
+# ── v3.0 CADENCE TIERS: refetch only when new data is possible ─────────────
+_WEEKLY = re.compile(r"^ICSA$|^WALCL$|^WRESBAL$|^WTREGEN$|^WDTGAL$|^WLRRA|^WORAL|^WRBWFRBL|^H41RES|^CASACB|^MMMF|^WREPO|^DPSACB|^WLCFL|^WLODLL")
+_MONTHLY = re.compile(r"YY$|^CPI|^PPI|^INDPRO$|^UNRATE$|^UNEMPLOY$|^PAYEMS$|^HOUST$|^HSN1F$|^CFNAI$|^USSLIND$|^M1SL$|^M2SL$|^BOGMBASE$|^TOTRESNS$|^BOGMBBM$|^IRLTLT|^IRSTCB|^MABMM|^TRESEG|^CSUSHPI|^PPIACO$|^PCOPP|^PALLF|^PNICK|^PALUM|^PIOREC|^PRAWM|^STLPPM$|^LNS14|^CSCICP|^SPASTT|^GACDFS|OSTSAM$|^TCU$|^MCUMFN$|^TEMPHELP|^MSACSR$|^AISRSA$|^DRTSC|cli_level")
+_QUARTERLY = re.compile(r"GDP|^CLVMNAC|^JPNRGDPEXP$|^USGFCF|CA$|TOT$")
+
+
+def cadence_days(sym, src):
+    tgt = (src or "").split(":")[-1] or sym
+    for rx, d in ((_QUARTERLY, 85), (_MONTHLY, 26), (_WEEKLY, 6.5)):
+        if rx.search(tgt) or rx.search(sym):
+            return d
+    return 0.8  # daily default (quotes, yields, spreads, fleet, vol)
 
 
 def _dot(doc, path):
@@ -244,7 +275,12 @@ def route(sym, exchanges, cat):
     return "unresolved_tv_only"
 
 
-def fred_latest(series_id):
+_FRED_CALLS = {"n": 0}
+
+
+def fred_latest(series_id, _retry=True):
+    _FRED_CALLS["n"] += 1
+    time.sleep(0.55)  # 120/min free-tier throttle — the 429 root-cause fix
     url = (f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}"
            f"&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit=3")
     try:
@@ -258,6 +294,28 @@ def fred_latest(series_id):
         prev = float(obs[1]["value"]) if len(obs) > 1 else None
         return {"value": cur, "prev": prev, "asof": obs[0]["date"],
                 "chg_pct": round((cur / prev - 1) * 100, 3) if prev else None}
+    except Exception:
+        if _retry:
+            time.sleep(1.5)
+            return fred_latest(series_id, _retry=False)
+        return None
+
+
+def polygon_prev(sym):
+    if not POLYGON_KEY:
+        return None
+    url = (f"https://api.polygon.io/v2/aggs/ticker/{urllib.request.quote(sym)}/prev"
+           f"?adjusted=true&apiKey={POLYGON_KEY}")
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "JH-TV-Vault/3.0"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            res = json.loads(r.read()).get("results") or []
+        if not res:
+            return None
+        c = res[0].get("c")
+        o = res[0].get("o")
+        return {"value": c, "prev": o, "chg_pct": round((c / o - 1) * 100, 3) if o else None,
+                "asof": "polygon_prev"}
     except Exception:
         return None
 
@@ -289,6 +347,13 @@ def lambda_handler(event, context):
     print(f"[tv-vault] {MARKER}")
     brain = get_brain()
     reg = build_registry(brain)
+    # v3.0: prior run's resolved values = the cadence cache
+    try:
+        prior = {r_["symbol"]: r_ for r_ in json.loads(
+            s3.get_object(Bucket=S3_BUCKET, Key=OUT_KEY)["Body"].read()).get("symbols", [])}
+    except Exception:
+        prior = {}
+    now_ts = time.time()
     print(f"[tv-vault] registry: {len(reg)} symbols from {sum(r['n_notes'] for r in reg.values())} TV notes")
 
     rows = []
@@ -300,6 +365,17 @@ def lambda_handler(event, context):
         row = dict(r)
         row["category"] = cat
         row["source"] = src
+        pv = prior.get(sym) or {}
+        lf = pv.get("last_fetch_ts") or 0
+        due = (now_ts - lf) >= cadence_days(sym, pv.get("source")) * 86400 * 0.92
+        if not due and pv.get("status") == "LIVE":
+            row.update({k: pv.get(k) for k in ("value", "prev", "chg_pct", "asof",
+                                               "source", "last_fetch_ts")})
+            row["status"] = "LIVE"
+            row["cached"] = True
+            rows.append(row)
+            continue
+        row["_due"] = True
         rows.append(row)
         if src == "fred":
             fred_syms.append(sym)
@@ -315,12 +391,15 @@ def lambda_handler(event, context):
     # resolve FMP in batches
     fmp_vals = fmp_quotes(fmp_syms)
 
-    n_live = 0
+    n_live = sum(1 for r_ in rows if r_.get("cached"))
     for row in rows:
+        if row.get("cached"):
+            continue
         v = fred_vals.get(row["symbol"]) if row["source"] == "fred" else fmp_vals.get(row["symbol"])
         if v:
             row.update(v)
             row["status"] = "LIVE"
+            row["last_fetch_ts"] = now_ts
             n_live += 1
         else:
             row["status"] = "UNRESOLVED"
@@ -333,7 +412,15 @@ def lambda_handler(event, context):
         if row["status"] == "LIVE":
             continue
         sym = row["symbol"]
-        al = ALIASES.get(sym)
+        # v3.0 suffix-strip: regex artifacts like US02Y-TVC / FEDFUNDS-FRED
+        base = re.sub(r"-(TVC|FRED|ECONOMICS)$", "", sym)
+        al = ALIASES.get(sym) or ALIASES.get(base)
+        if al is None and base != sym:
+            al = None
+            sym_try = base
+        else:
+            sym_try = sym
+        sym = sym_try if al is None else sym
         v = None
         if al:
             kind, _, tgt = al.partition(":")
@@ -380,14 +467,18 @@ def lambda_handler(event, context):
         if v is None and not al and sym.endswith("!"):
             v = yahoo_quote(sym.rstrip("0123456789!") + "=F")
             if v: row["source"] = f"yahoo:{sym.rstrip('0123456789!')}=F"
+        if v is None and 2 <= len(sym) <= 5 and sym.isalpha() and POLYGON_KEY:
+            v = polygon_prev(sym)  # paid-key retry rung for US-listed strays
+            if v: row["source"] = f"polygon:{sym}"
         if v:
             row.update(v)
             row["status"] = "LIVE"
+            row["last_fetch_ts"] = now_ts
             n_live += 1
         elif row["status"] == "UNRESOLVED":
             row["status"] = "NO_FREE_SOURCE"
             row.setdefault("resolution_note", "no free API found (TV/TradingEconomics only)")
-        time.sleep(0.12)
+        time.sleep(0.05)
 
     rows.sort(key=lambda r: (-r["n_notes"], r["symbol"]))
     by_cat = defaultdict(list)
@@ -406,6 +497,11 @@ def lambda_handler(event, context):
         "n_live": n_live,
         "n_unresolved": len(rows) - n_live,
         "coverage_pct": round(n_live / max(1, len(rows)) * 100, 1),
+        "api_calls": {"fred": _FRED_CALLS["n"]},
+        "n_cached": sum(1 for r_ in rows if r_.get("cached")),
+        "cadence_note": "each symbol refetched only when its release cadence allows "
+                        "(daily/weekly/monthly/quarterly); values carried from cache "
+                        "in between — FRED throttled 0.55s + retry",
         "by_category_counts": {k: len(v) for k, v in sorted(by_cat.items())},
         "unresolved_reason": "futures(!)/ECONOMICS:/TV-only symbols have no free API "
                              "(TradingView+TradingEconomics paywalled) — preserved with "

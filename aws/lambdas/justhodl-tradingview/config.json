@@ -10,6 +10,6 @@
   "description": "TradingView Metric Vault: parses the brain's 2,920 TV notes into a 524-symbol registry, resolves live values (FRED/FMP ladder), honest UNRESOLVED for TV-only symbols. Self-updating from brain.",
   "environment": {},
   "inherit_env": [
-    {"from_function": "justhodl-signal-backtest", "keys": ["FRED_KEY", "FMP_KEY"]}
+    {"from_function": "justhodl-signal-backtest", "keys": ["FRED_KEY", "FMP_KEY", "POLYGON_KEY"]}
   ]
 }
