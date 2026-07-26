@@ -51,6 +51,24 @@ def to_float(v, default=0.0):
         return default
 
 
+# riskgate-wire-v1 — brain-constitutional Master Risk Gate (Khalid 2026-07-26:
+# macro gates SIZING before selection). data/risk-gate.json, 48h stale guard.
+def _risk_gate_doc():
+    if not hasattr(_risk_gate_doc, "_c"):
+        try:
+            import boto3 as _b3, json as _js
+            from datetime import datetime as _dt, timezone as _tz
+            _d = _js.loads(_b3.client("s3").get_object(
+                Bucket="justhodl-dashboard-live", Key="data/risk-gate.json")["Body"].read())
+            _age_h = (_dt.now(_tz.utc) - _dt.fromisoformat(
+                _d.get("generated_at", "2000-01-01T00:00:00+00:00"))).total_seconds() / 3600
+            _risk_gate_doc._c = _d if _age_h <= 48 else {"posture": "STALE", "sizing_multiplier": 1.0}
+        except Exception:
+            _risk_gate_doc._c = {"posture": "UNAVAILABLE", "sizing_multiplier": 1.0}
+    return _risk_gate_doc._c
+
+_RG_RANK_CLAMP = {"RISK_ON": 1.05, "NEUTRAL": 1.0, "RISK_OFF": 0.88, "SEVERE": 0.80}
+
 def load_json(key, default=None):
     try:
         obj = S3.get_object(Bucket=BUCKET, Key=key)
@@ -221,6 +239,10 @@ def lambda_handler(event=None, context=None):
         "UNKNOWN": 1.0,
     }.get(call_verb, 1.0)
     print(f"[sizer-v2] decisive call: {call_verb} → risk_mult={risk_mult}")
+    _rg = _risk_gate_doc()
+    _rg_mult = float(_rg.get("sizing_multiplier") or 1.0)
+    risk_mult = risk_mult * _rg_mult
+    print(f"[sizer-v2] risk-gate {_rg.get('posture')} x{_rg_mult} -> combined risk_mult={risk_mult}")
 
     # 5. For each open position, compute horizon-aware Kelly
     initial_nav = to_float(portfolio.get("initial_nav"), BASE_NAV)

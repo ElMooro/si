@@ -128,6 +128,24 @@ SIGNAL_PRIORS = {
 }
 
 
+# riskgate-wire-v1 — brain-constitutional Master Risk Gate (Khalid 2026-07-26:
+# macro gates SIZING before selection). data/risk-gate.json, 48h stale guard.
+def _risk_gate_doc():
+    if not hasattr(_risk_gate_doc, "_c"):
+        try:
+            import boto3 as _b3, json as _js
+            from datetime import datetime as _dt, timezone as _tz
+            _d = _js.loads(_b3.client("s3").get_object(
+                Bucket="justhodl-dashboard-live", Key="data/risk-gate.json")["Body"].read())
+            _age_h = (_dt.now(_tz.utc) - _dt.fromisoformat(
+                _d.get("generated_at", "2000-01-01T00:00:00+00:00"))).total_seconds() / 3600
+            _risk_gate_doc._c = _d if _age_h <= 48 else {"posture": "STALE", "sizing_multiplier": 1.0}
+        except Exception:
+            _risk_gate_doc._c = {"posture": "UNAVAILABLE", "sizing_multiplier": 1.0}
+    return _risk_gate_doc._c
+
+_RG_RANK_CLAMP = {"RISK_ON": 1.05, "NEUTRAL": 1.0, "RISK_OFF": 0.88, "SEVERE": 0.80}
+
 def learned_weights(calibration):
     """Blend priors with per-tier hit rates the self-improvement loop has learned.
     Until a tier has enough scored data, we lean on the prior."""
@@ -923,6 +941,14 @@ def lambda_handler(event, context):
         _ind_mult, _ind_note, _ind_row = _industry_prior(_eff_sector)
         if _ind_mult != 1.0:
             composite = round(min(100.0, composite * _ind_mult), 1)
+
+        # ── Master Risk Gate (brain-constitutional, sector-agnostic) ──
+        _rg_doc = _risk_gate_doc()
+        _rg_posture = _rg_doc.get("posture")
+        _rg_raw = float(_rg_doc.get("sizing_multiplier") or 1.0)
+        _rg_mult = _RG_RANK_CLAMP.get(_rg_posture, 1.0)
+        if _rg_mult != 1.0:
+            composite = round(min(100.0, composite * _rg_mult), 1)
         _fa_mult, _fa_note = _factor_appetite_mult(_eff_sector)
         if _fa_mult != 1.0:
             composite = round(min(100.0, composite * _fa_mult), 1)
@@ -1091,6 +1117,9 @@ def lambda_handler(event, context):
             "rotation_etf": _rot_etf,
             "rotation_note": _rot_note,
             "risk_regime_mult": _rr_mult,
+            "risk_gate_posture": _rg_posture,
+            "risk_gate_rank_mult": _rg_mult,
+            "risk_gate_sizing_mult": _rg_raw,
             "industry_mult": _ind_mult,
             "industry_etf": (_ind_row or {}).get("etf"),
             "industry_score": (_ind_row or {}).get("leadership_score"),

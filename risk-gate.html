@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Master Risk Gate · JustHodl AI</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--line:#30363d;--tx:#e8e8e8;--dim:#9aa4b2;--amber:#F0B429;--green:#6fce8a;--red:#E07A6A}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;padding:18px}
+a{color:var(--amber)}h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:22px 0 8px;color:var(--amber)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin:10px 0}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.big{font-size:34px;font-weight:800}.dim{color:var(--dim)}.mono{font-family:ui-monospace,monospace}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:700;font-size:12px}
+.p-RISK_ON{background:#12331d;color:var(--green)}.p-NEUTRAL{background:#2a2a14;color:var(--amber)}
+.p-RISK_OFF{background:#33170f;color:var(--red)}.p-SEVERE{background:#4a120a;color:#ff9c8a}
+.leg-neg{color:var(--red)}.leg-pos{color:var(--green)}.leg-zero{color:var(--dim)}
+.tl{display:flex;gap:2px;flex-wrap:wrap}.tl div{width:8px;height:22px;border-radius:2px}
+.tl .ON{background:var(--green)}.tl .NEUTRAL{background:var(--amber)}.tl .OFF{background:var(--red)}.tl .SEV{background:#8a1e0e}
+small{color:var(--dim)}
+</style></head><body>
+<h1>🚦 Master Risk Gate</h1>
+<div class="dim">Brain-constitutional: every rule implements a cited note from Khalid's brain. Macro gates sizing before selection.</div>
+<div id="root" class="card">Loading data/risk-gate.json…</div>
+<script>
+const SRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/risk-gate.json',
+           'https://s3.amazonaws.com/justhodl-dashboard-live/data/risk-gate.json'];
+const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const fmt=(v,d=2)=>v==null?'—':(typeof v==='number'?v.toFixed(d):esc(v));
+async function load(){let d=null;for(const u of SRC){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){d=await r.json();break}}catch(e){}}
+if(!d){document.getElementById('root').textContent='Feed unreachable.';return}render(d)}
+function legRow(name,leg){const s=leg.score??0;const cls=s<0?'leg-neg':(s>0?'leg-pos':'leg-zero');
+ const metrics=Object.entries(leg).filter(([k])=>!['score','why'].includes(k)).map(([k,v])=>`${esc(k)}=${fmt(v)}`).join(' · ');
+ return `<div class="card"><b>${esc(name.toUpperCase())}</b> <span class="${cls} mono" style="float:right;font-weight:800">${fmt(s,1)}</span>
+ <div class="dim mono" style="font-size:12px">${metrics||'—'}</div>
+ ${(leg.why||[]).map(w=>`<div style="font-size:12px;margin-top:4px">• ${esc(w)}</div>`).join('')||'<div class="dim" style="font-size:12px;margin-top:4px">neutral — no rule triggered</div>'}</div>`}
+function render(d){const es=d.event_study||{},oc=es.october_2025_replay||{},bc=d.brain_constitution||{};
+ const flips=(es.flips||[]).map(f=>`<tr><td>${esc(f.date)}</td><td><span class="badge p-${esc(f.posture)}">${esc(f.posture)}</span></td><td class="mono">${fmt(f.spx_fwd_21d_pct)}%</td><td class="mono">${fmt(f.spx_fwd_63d_pct)}%</td></tr>`).join('');
+ const tl=(d.recent_timeline||[]).map(t=>`<div class="${t.posture==='RISK_ON'?'ON':t.posture==='NEUTRAL'?'NEUTRAL':t.posture==='SEVERE'?'SEV':'OFF'}" title="${esc(t.date)} ${esc(t.posture)} ${fmt(t.composite)}"></div>`).join('');
+ const s2n=Object.entries(bc.series_to_note||{}).map(([s,n])=>`<tr><td class="mono">${esc(s)}</td><td class="mono dim">${esc(n)}</td></tr>`).join('');
+ const fc=d.fleet_context||{};
+ document.getElementById('root').outerHTML=`
+ <div class="grid">
+  <div class="card"><div class="dim">POSTURE</div><div class="big"><span class="badge p-${esc(d.posture)}" style="font-size:26px;padding:6px 18px">${esc(d.posture)}</span></div>
+   <div class="dim" style="margin-top:6px">composite <b class="mono">${fmt(d.composite)}</b> · updated ${esc((d.generated_at||'').slice(0,16))}Z</div></div>
+  <div class="card"><div class="dim">SIZING MULTIPLIER</div><div class="big mono" style="color:var(--amber)">×${fmt(d.sizing_multiplier)}</div>
+   <div class="dim" style="font-size:12px">${esc(d.consume_as)}</div></div>
+  <div class="card"><div class="dim">FLEET CONTEXT</div>
+   <div style="font-size:12px">yen-carry: <span class="mono">${fmt(fc.yen_carry_composite)}</span></div>
+   <div style="font-size:12px">crisis-composite: <span class="mono">${fmt(fc.crisis_composite)}</span></div>
+   <div class="dim" style="font-size:11px;margin-top:4px">v${esc(d.version)} · ${esc(d.engine)} · ${fmt(d.elapsed_s,1)}s</div></div>
+ </div>
+ <h2>Six Legs (brain-cited)</h2><div class="grid">${Object.entries(d.legs||{}).map(([n,l])=>legRow(n,l)).join('')}</div>
+ <h2>Recent Posture Timeline (~90d)</h2><div class="card"><div class="tl">${tl}</div></div>
+ <h2>Event Study — the brain's grading (never daily IC)</h2>
+ <div class="card"><div style="font-size:13px">${esc(es.methodology||'')}</div>
+  <div style="margin:8px 0" class="mono">flips→risk-off: <b>${fmt(es.n_flips_to_risk_off_or_worse,0)}</b> ·
+   SPX fwd21 baseline <b>${fmt(es.spx_baseline_fwd_21d_pct)}%</b> vs while-risk-off <b>${fmt(es.avg_spx_fwd_21d_while_risk_off_pct)}%</b></div>
+  <div class="dim" style="font-size:12px">${esc(es.gate_adds_value_if||'')}</div>
+  <table style="margin-top:8px"><tr><th>flip date</th><th>posture</th><th>SPX fwd 21d</th><th>fwd 63d</th></tr>${flips}</table></div>
+ <h2>October 2025 Replay — Khalid's call</h2>
+ <div class="card"><div class="mono" style="font-size:13px">window ${esc(oc.window)} · RRP min <b style="color:var(--amber)">$${fmt(oc.rrp_min_in_window_bn)}B</b> ·
+  days: ${Object.entries(oc.posture_day_counts||{}).map(([k,v])=>`${esc(k)} ${v}`).join(' · ')}</div>
+  <div class="dim" style="font-size:12px;margin-top:6px">${esc(oc.khalid_call||'')}</div></div>
+ <h2>Brain Constitution</h2>
+ <div class="card"><div style="font-size:13px">${esc(bc.directive||'')}</div>
+  <div class="dim" style="font-size:12px;margin:6px 0">${esc(bc.hierarchy||'')}</div>
+  <table><tr><th>series</th><th>brain note</th></tr>${s2n}</table></div>`}
+load();
+</script></body></html>

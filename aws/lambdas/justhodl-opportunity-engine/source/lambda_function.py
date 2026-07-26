@@ -836,6 +836,24 @@ def fetch_tail_metrics(tail):
     return out
 
 
+# riskgate-wire-v1 — brain-constitutional Master Risk Gate (Khalid 2026-07-26:
+# macro gates SIZING before selection). data/risk-gate.json, 48h stale guard.
+def _risk_gate_doc():
+    if not hasattr(_risk_gate_doc, "_c"):
+        try:
+            import boto3 as _b3, json as _js
+            from datetime import datetime as _dt, timezone as _tz
+            _d = _js.loads(_b3.client("s3").get_object(
+                Bucket="justhodl-dashboard-live", Key="data/risk-gate.json")["Body"].read())
+            _age_h = (_dt.now(_tz.utc) - _dt.fromisoformat(
+                _d.get("generated_at", "2000-01-01T00:00:00+00:00"))).total_seconds() / 3600
+            _risk_gate_doc._c = _d if _age_h <= 48 else {"posture": "STALE", "sizing_multiplier": 1.0}
+        except Exception:
+            _risk_gate_doc._c = {"posture": "UNAVAILABLE", "sizing_multiplier": 1.0}
+    return _risk_gate_doc._c
+
+_RG_RANK_CLAMP = {"RISK_ON": 1.05, "NEUTRAL": 1.0, "RISK_OFF": 0.88, "SEVERE": 0.80}
+
 def lambda_handler(event, context):
     t0 = time.time()
     screener = load("screener/data.json") or {}
@@ -1128,6 +1146,9 @@ def lambda_handler(event, context):
         "schema_version": "2.0",
         "method": "retail_edge_multi_method_synthesis",
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "risk_gate": {"posture": _risk_gate_doc().get("posture"),
+                       "sizing_multiplier": _risk_gate_doc().get("sizing_multiplier"),
+                       "consume_as": "multiply position size; verdicts unchanged (macro gates sizing, not selection labels)"},
         "elapsed_s": round(time.time() - t0, 2),
         "n_covered": len(rows),
         "factor_weights": weights,

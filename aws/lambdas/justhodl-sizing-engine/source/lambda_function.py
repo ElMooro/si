@@ -26,6 +26,24 @@ from boto3.dynamodb.conditions import Attr
 
 S3 = boto3.client("s3", region_name="us-east-1")
 DDB = boto3.resource("dynamodb", region_name="us-east-1")
+# riskgate-wire-v1 — brain-constitutional Master Risk Gate (Khalid 2026-07-26:
+# macro gates SIZING before selection). data/risk-gate.json, 48h stale guard.
+def _risk_gate_doc():
+    if not hasattr(_risk_gate_doc, "_c"):
+        try:
+            import boto3 as _b3, json as _js
+            from datetime import datetime as _dt, timezone as _tz
+            _d = _js.loads(_b3.client("s3").get_object(
+                Bucket="justhodl-dashboard-live", Key="data/risk-gate.json")["Body"].read())
+            _age_h = (_dt.now(_tz.utc) - _dt.fromisoformat(
+                _d.get("generated_at", "2000-01-01T00:00:00+00:00"))).total_seconds() / 3600
+            _risk_gate_doc._c = _d if _age_h <= 48 else {"posture": "STALE", "sizing_multiplier": 1.0}
+        except Exception:
+            _risk_gate_doc._c = {"posture": "UNAVAILABLE", "sizing_multiplier": 1.0}
+    return _risk_gate_doc._c
+
+_RG_RANK_CLAMP = {"RISK_ON": 1.05, "NEUTRAL": 1.0, "RISK_OFF": 0.88, "SEVERE": 0.80}
+
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sizing.json"
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
@@ -270,7 +288,9 @@ def lambda_handler(event=None, context=None):
                            "cluster_corr_max": round(mx, 2),
                            "haircut_x": round(hcut, 2)},
                 "spy_corr": round(beta, 2) if beta is not None else None,
-                "final_w_pct": round(w, 2),
+                "final_w_pct": round(w * float(_risk_gate_doc().get("sizing_multiplier") or 1.0), 2),
+                "risk_gate_posture": _risk_gate_doc().get("posture"),
+                "pre_gate_w_pct": round(w, 2),
                 "dollars_per_100k": int(round(w * 1000)),
                 "overlap_flags": overlaps[:3],
                 "baseline_px": c["px"], "signal_id": c["sid"]}

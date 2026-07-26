@@ -157,6 +157,24 @@ def _doc_age_hours(doc):
         return None
 
 
+# riskgate-wire-v1 — brain-constitutional Master Risk Gate (Khalid 2026-07-26:
+# macro gates SIZING before selection). data/risk-gate.json, 48h stale guard.
+def _risk_gate_doc():
+    if not hasattr(_risk_gate_doc, "_c"):
+        try:
+            import boto3 as _b3, json as _js
+            from datetime import datetime as _dt, timezone as _tz
+            _d = _js.loads(_b3.client("s3").get_object(
+                Bucket="justhodl-dashboard-live", Key="data/risk-gate.json")["Body"].read())
+            _age_h = (_dt.now(_tz.utc) - _dt.fromisoformat(
+                _d.get("generated_at", "2000-01-01T00:00:00+00:00"))).total_seconds() / 3600
+            _risk_gate_doc._c = _d if _age_h <= 48 else {"posture": "STALE", "sizing_multiplier": 1.0}
+        except Exception:
+            _risk_gate_doc._c = {"posture": "UNAVAILABLE", "sizing_multiplier": 1.0}
+    return _risk_gate_doc._c
+
+_RG_RANK_CLAMP = {"RISK_ON": 1.05, "NEUTRAL": 1.0, "RISK_OFF": 0.88, "SEVERE": 0.80}
+
 def fetch_json(key, default=None, max_age_h=None):
     """Load a feed. If max_age_h is set and the feed is older, treat it as ABSENT
     (return default) so stale data never silently contaminates a decision. Every
@@ -1254,6 +1272,10 @@ def lambda_handler(event, context):
         _sector = _ticker_sector(systems_dict, ticker)
         score, roro_mult, roro_note = _roro_overlay(_sector, score)
         score, liq_mult, liq_note = _liq_overlay(_sector, score)
+        _rgd = _risk_gate_doc()
+        rg_mult = _RG_RANK_CLAMP.get(_rgd.get("posture"), 1.0)
+        if rg_mult != 1.0:
+            score = round(score * rg_mult, 2)
         score, sf_mult, sf_note = _sectorflow_overlay(_sector, score)
         score, nc_mult, nc_note = _nowcast_overlay(_sector, score)
         score, rot_mult, rot_note = _rotation_overlay(_sector, score)
@@ -1293,6 +1315,9 @@ def lambda_handler(event, context):
             "contributions": contributions,
             "capital_flow_mult": cf_mult,
             "risk_regime_mult": roro_mult,
+            "risk_gate_posture": _rgd.get("posture"),
+            "risk_gate_rank_mult": rg_mult,
+            "risk_gate_sizing_mult": _rgd.get("sizing_multiplier"),
             "liquidity_regime_mult": liq_mult,
             "rotation_mult": rot_mult,
             "rotation_note": rot_note,
