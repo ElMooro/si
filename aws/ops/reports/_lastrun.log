@@ -1,6 +1,23 @@
-executing-against: 1d35f42787393e6d2c2f18eb793f82a5768caabe
-ops 3929 — v3.0 async verify (Event-invoke + freshness)
-[22:05:58] ✗ run1 artifact not fresh v3.0 — engine may have failed; aborting
+executing-against: 96da04af95567987776a9b7f459223f5bdaa0a2f
+ops 3930 — justhodl-tradingview crash logs
+── f2d1ac1c14481b9c7bd674be28e96f ──
+[22:11:21]   INIT_START Runtime Version: python:3.12.mainlinev2.v18	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:9819e0b13863c84a43e11f5c724871d909046d3cfb807eeb19460c63f974f26f
+[22:11:21]   START RequestId: 2745c736-c018-4b89-a88a-102cc746575b Version: $LATEST
+[22:11:21]   [tv-vault] tradingview-vault v3.0 CADENCE-AWARE
+[22:11:21]   [tv-vault] registry: 567 symbols from 2963 TV notes
+[22:11:21]   [tv-vault] DONE 642.3s live=447/567
+[22:11:21]   END RequestId: 2745c736-c018-4b89-a88a-102cc746575b
+[22:11:21]   REPORT RequestId: 2745c736-c018-4b89-a88a-102cc746575b	Duration: 642434.68 ms	Billed Duration: 642914 ms	Memory Size: 1024 MB	Max Memory Used: 114 MB	Init Duration: 478.74 ms	
+XRAY TraceId: 1-6a668250-3e959eaa2c0a2c4f76f
+── 0882b8090844cc8655d648666f585d ──
+[22:11:22]   INIT_START Runtime Version: python:3.12.mainlinev2.v18	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:9819e0b13863c84a43e11f5c724871d909046d3cfb807eeb19460c63f974f26f
+[22:11:22]   START RequestId: c275ed44-b627-4cbd-9bf0-dd1b7d68e4f7 Version: $LATEST
+[22:11:22]   [tv-vault] tradingview-vault v2.3 SUFFIX-KEYS
+[22:11:22]   [tv-vault] registry: 567 symbols from 2963 TV notes
+[22:11:22]   [tv-vault] DONE 109.6s live=402/567
+[22:11:22]   END RequestId: c275ed44-b627-4cbd-9bf0-dd1b7d68e4f7
+[22:11:22]   REPORT RequestId: c275ed44-b627-4cbd-9bf0-dd1b7d68e4f7	Duration: 109772.10 ms	Billed Duration: 110286 ms	Memory Size: 1024 MB	Max Memory Used: 113 MB	Init Duration: 513.70 ms	
+XRAY TraceId: 1-6a667e29-7f7c343d35124095764
+[22:11:22] ✅ LOGS DUMPED
 
-→ Report written to aws/ops/reports/latest/3929_v3_async_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_3929_v3_async_verify.py
+→ Report written to aws/ops/reports/latest/3930_vault_logs.md
