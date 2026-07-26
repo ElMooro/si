@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.2.1 NORGES-FIX"
+MARKER = "tradingview-vault v3.2.2 NO03Y-ALIAS"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -100,7 +100,7 @@ ALIASES = {
     "DE02Y": "ecb:YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_2Y",
     "JP02Y": "none:JGB tenors need MOF/BOJ build", "JP03MY": "none:JGB build",
     "CH02Y": "none:SNB tenor build", "CH03Y": "none:SNB tenor build",
-    "CN10Y": "none:ChinaBond licensed", "NO03Y": "none:Norges build",
+    "CN10Y": "none:ChinaBond licensed", "NO03Y": "norges:GOVT_GENERIC_RATES:3",
     "SS03": "none:FTSE licensed",
     "USCLI": "fleetany:data/global-business-cycle.json:by_country.USA.cli_level|by_country.United States.cli_level|by_country.US.cli_level",
     "JPCLI": "fleetany:data/global-business-cycle.json:by_country.JPN.cli_level|by_country.Japan.cli_level|by_country.JP.cli_level",
