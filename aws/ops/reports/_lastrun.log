@@ -1,23 +1,26 @@
-executing-against: 96da04af95567987776a9b7f459223f5bdaa0a2f
-ops 3930 — justhodl-tradingview crash logs
-── f2d1ac1c14481b9c7bd674be28e96f ──
-[22:11:21]   INIT_START Runtime Version: python:3.12.mainlinev2.v18	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:9819e0b13863c84a43e11f5c724871d909046d3cfb807eeb19460c63f974f26f
-[22:11:21]   START RequestId: 2745c736-c018-4b89-a88a-102cc746575b Version: $LATEST
-[22:11:21]   [tv-vault] tradingview-vault v3.0 CADENCE-AWARE
-[22:11:21]   [tv-vault] registry: 567 symbols from 2963 TV notes
-[22:11:21]   [tv-vault] DONE 642.3s live=447/567
-[22:11:21]   END RequestId: 2745c736-c018-4b89-a88a-102cc746575b
-[22:11:21]   REPORT RequestId: 2745c736-c018-4b89-a88a-102cc746575b	Duration: 642434.68 ms	Billed Duration: 642914 ms	Memory Size: 1024 MB	Max Memory Used: 114 MB	Init Duration: 478.74 ms	
-XRAY TraceId: 1-6a668250-3e959eaa2c0a2c4f76f
-── 0882b8090844cc8655d648666f585d ──
-[22:11:22]   INIT_START Runtime Version: python:3.12.mainlinev2.v18	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:9819e0b13863c84a43e11f5c724871d909046d3cfb807eeb19460c63f974f26f
-[22:11:22]   START RequestId: c275ed44-b627-4cbd-9bf0-dd1b7d68e4f7 Version: $LATEST
-[22:11:22]   [tv-vault] tradingview-vault v2.3 SUFFIX-KEYS
-[22:11:22]   [tv-vault] registry: 567 symbols from 2963 TV notes
-[22:11:22]   [tv-vault] DONE 109.6s live=402/567
-[22:11:22]   END RequestId: c275ed44-b627-4cbd-9bf0-dd1b7d68e4f7
-[22:11:22]   REPORT RequestId: c275ed44-b627-4cbd-9bf0-dd1b7d68e4f7	Duration: 109772.10 ms	Billed Duration: 110286 ms	Memory Size: 1024 MB	Max Memory Used: 113 MB	Init Duration: 513.70 ms	
-XRAY TraceId: 1-6a667e29-7f7c343d35124095764
-[22:11:22] ✅ LOGS DUMPED
+executing-against: 4e957fe2ca78d9c3f41a1403bd0521ccd68cfa00
+ops 3929 — v3.0 async verify (Event-invoke + freshness)
+[22:15:08]   EUINTR: LIVE value=2.25 src=fred_alias:ECBDFR
+[22:15:08]   US03Y: LIVE value=4.4 src=fred_alias:DGS3
+[22:15:08]   GB10Y: LIVE value=4.796 src=fred_alias:IRLTLT01GBM156N
+[22:15:08]   USCLI: LIVE value=120 src=fleet:data/global-business-cycle.json
+[22:15:08]   10USNOTE: LIVE value=108.3281 src=yahoo:ZN=F
+[22:15:08]   NOVO_B: LIVE value=320.6 src=yahoo:NOVO-B.CO
+── RUN 2 — Event-invoke, poll freshness, prove the cache ──
+[22:20:11] ✅   RUN 1 completed despite closed connection
+[22:20:11] ✅   EUINTR LIVE
+[22:20:11] ✅   US03Y LIVE
+[22:20:11] ✅   GB10Y LIVE
+[22:20:11] ✅   USCLI LIVE
+[22:20:11] ✅   10USNOTE LIVE
+[22:20:11] ✅   NOVO_B LIVE
+[22:20:11] ✗   n_live >= 450
+[22:20:11] ✅   zero UNRESOLVED
+[22:20:11] ✅   run2 artifact refreshed
+[22:20:11] ✗   run2 fred calls < 60 (cadence working)
+[22:20:11] ✅   run2 cached > 300
+[22:20:11] ✅   run2 n_live within tolerance of run1
+[22:20:11] ✗ FAILED: ['n_live >= 450', 'run2 fred calls < 60 (cadence working)']
 
-→ Report written to aws/ops/reports/latest/3930_vault_logs.md
+→ Report written to aws/ops/reports/latest/3931_v3_verify_regate.md
+❌ OPS-FAIL: aws/ops/pending/ops_3931_v3_verify_regate.py
