@@ -1,0 +1,51 @@
+# ops 3934 — v3.0 open-threads probe
+
+**Status:** success  
+**Duration:** 0.2s  
+**Finished:** 2026-07-26T23:00:40+00:00  
+
+## Data
+
+| fred_calls_this_run | n_cached | n_live |
+|---|---|---|
+| 395 | 212 | 443 |
+
+## Log
+## 1. ECB-aliased symbols in the live artifact
+
+- `23:00:40`   EU03Y: LIVE value=2.8518 src=ecb:YC note=None
+- `23:00:40`   DE02Y: LIVE value=2.8006 src=ecb:YC note=None
+- `23:00:40`   EUCA: LIVE value=28898.3886 src=ecb:BP6 note=None
+- `23:00:40`   EU02Y-TVC: ABSENT from registry
+- `23:00:40`   EU30Y-TVC: ABSENT from registry
+## 2. cache math (from artifact rows)
+
+- `23:00:40`   cadence=daily cached=False: 349
+- `23:00:40`   cadence=daily cached=True: 50
+- `23:00:40`   cadence=monthly cached=True: 99
+- `23:00:40`   cadence=quarterly cached=True: 11
+- `23:00:40`   cadence=weekly cached=True: 52
+- `23:00:40`   fetched-this-run by source family: {'fmp': 179, 'fred_2nd_chance': 84, 'yahoo': 58, 'fred_alias': 20, 'unresolved_futures': 2, 'ecb': 2, 'unresolved_tv_only': 2, 'polygon': 1, 'fred': 1}
+## 3. NFS composition (112)
+
+- `23:00:40`    87  no free API found (TV/TradingEconomics only)
+- `23:00:40`     8  S&P Global PMI licensed
+- `23:00:40`     2  SNB tenor build
+- `23:00:40`     1  BOJ stat-search build queued (endpoint probe in ops 392
+- `23:00:40`     1  JGB build
+- `23:00:40`     1  referenced in eurodollar-plumbing code, not exported (p
+- `23:00:40`     1  TradingEconomics-paywalled (Chile ToT)
+- `23:00:40`     1  JGB tenors need MOF/BOJ build
+- `23:00:40`     1  FTSE licensed
+- `23:00:40`     1  ChinaBond licensed
+- `23:00:40`     1  LPR not on FRED
+- `23:00:40`     1  NBS series not on FRED
+- `23:00:40`     1  no free UK 30Y series
+- `23:00:40`     1  ISM licensed
+- `23:00:40`     1  Norges build
+- `23:00:40`     1  TradingEconomics-paywalled (Peru ToT)
+- `23:00:40`     1  CBC not on FRED
+- `23:00:40`     1  no DGS2MO series
+- `23:00:40`     1  ambiguous TE composite
+- `23:00:40`     1  BLS ToT not on FRED as level
+- `23:00:40` ✅ PROBE COMPLETE

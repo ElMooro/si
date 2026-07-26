@@ -1,26 +1,39 @@
-executing-against: 84eb171c35f9c7e3e95e6494f853bce72fde8963
-ops 3933 — v3.0 async full-run gate
-[22:39:34]   async force fired at 2026-07-26T22:39:34.455960+00:00; polling artifact…
-[22:47:38] ✅   artifact refreshed after ~480s
-[22:47:38]   USCLI: LIVE value=120 src=fleet:data/global-business-cycle.json:by_country.USA.cli_level
-[22:47:38]   EUINTR: LIVE value=2.25 src=fred_alias:ECBDFR
-[22:47:38]   10USNOTE: LIVE value=108.625 src=yahoo:ZN=F
-[22:47:38]   NOVO_B: LIVE value=320.6 src=yahoo:NOVO-B.CO
-[22:47:38]   EU02Y-TVC: None value=None src=None
-── cached run (sync, fast) ──
-[22:50:22]   invoke2: {"ok": true, "n_symbols": 561, "n_live": 443, "n_cached": 212, "fred_calls": 395, "coverage_pct": 79.0}
-[22:50:22] ✅   POLYGON_KEY present
-[22:50:22] ✅   force run wrote fresh artifact
-[22:50:22] ✗   LIVE >= 450
-[22:50:22] ✅   zero bare UNRESOLVED
-[22:50:22] ✅   USCLI LIVE via fleet
-[22:50:22] ✅   EUINTR LIVE via fred_alias
-[22:50:22] ✅   10USNOTE LIVE via yahoo:ZN=F
-[22:50:22] ✅   NOVO_B LIVE via yahoo:NOVO-B.CO
-[22:50:22] ✗   EU02Y-TVC LIVE via ecb:
-[22:50:22] ✅   cache engaged (n_cached >= 100)
-[22:50:22] ✗   fred calls small on cached run
-[22:50:22] ✗ FAILED: ['LIVE >= 450', 'EU02Y-TVC LIVE via ecb:', 'fred calls small on cached run']
+executing-against: f4ba5e07419f00e0cd12032e6946eef8e2810935
+ops 3934 — v3.0 open-threads probe
+── 1. ECB-aliased symbols in the live artifact ──
+[23:00:40]   EU03Y: LIVE value=2.8518 src=ecb:YC note=None
+[23:00:40]   DE02Y: LIVE value=2.8006 src=ecb:YC note=None
+[23:00:40]   EUCA: LIVE value=28898.3886 src=ecb:BP6 note=None
+[23:00:40]   EU02Y-TVC: ABSENT from registry
+[23:00:40]   EU30Y-TVC: ABSENT from registry
+── 2. cache math (from artifact rows) ──
+[23:00:40]   cadence=daily cached=False: 349
+[23:00:40]   cadence=daily cached=True: 50
+[23:00:40]   cadence=monthly cached=True: 99
+[23:00:40]   cadence=quarterly cached=True: 11
+[23:00:40]   cadence=weekly cached=True: 52
+[23:00:40]   fetched-this-run by source family: {'fmp': 179, 'fred_2nd_chance': 84, 'yahoo': 58, 'fred_alias': 20, 'unresolved_futures': 2, 'ecb': 2, 'unresolved_tv_only': 2, 'polygon': 1, 'fred': 1}
+── 3. NFS composition (112) ──
+[23:00:40]    87  no free API found (TV/TradingEconomics only)
+[23:00:40]     8  S&P Global PMI licensed
+[23:00:40]     2  SNB tenor build
+[23:00:40]     1  BOJ stat-search build queued (endpoint probe in ops 392
+[23:00:40]     1  JGB build
+[23:00:40]     1  referenced in eurodollar-plumbing code, not exported (p
+[23:00:40]     1  TradingEconomics-paywalled (Chile ToT)
+[23:00:40]     1  JGB tenors need MOF/BOJ build
+[23:00:40]     1  FTSE licensed
+[23:00:40]     1  ChinaBond licensed
+[23:00:40]     1  LPR not on FRED
+[23:00:40]     1  NBS series not on FRED
+[23:00:40]     1  no free UK 30Y series
+[23:00:40]     1  ISM licensed
+[23:00:40]     1  Norges build
+[23:00:40]     1  TradingEconomics-paywalled (Peru ToT)
+[23:00:40]     1  CBC not on FRED
+[23:00:40]     1  no DGS2MO series
+[23:00:40]     1  ambiguous TE composite
+[23:00:40]     1  BLS ToT not on FRED as level
+[23:00:40] ✅ PROBE COMPLETE
 
-→ Report written to aws/ops/reports/latest/3933_v3_async_gate.md
-❌ OPS-FAIL: aws/ops/pending/ops_3933_v3_async_gate.py
+→ Report written to aws/ops/reports/latest/3934_v3_threads_probe.md
