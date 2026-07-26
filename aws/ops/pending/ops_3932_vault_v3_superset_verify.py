@@ -1,5 +1,5 @@
 """
-ops_3928 — DEPLOY vault v3.0 CADENCE-AWARE. Also: (a) ensure POLYGON_KEY is
+ops_3932 — verify the v3.0 SUPERSET engine (parallel-session reconcile: their 5ec00 v3.0 proved 447 LIVE; my 7d548 rewrite adds ECB adapter/EUCA/EU tenors/Polygon env-ensure/BOJ probe and is now the deployed source). Also: (a) ensure POLYGON_KEY is
 on the function env (merged from justhodl-equity-research donor, settle-wait
 after update); (b) BOJ endpoint PROBE for JPLG — try candidate stat-search
 CSV URLs from the runner and report which respond (wire only verified, next
@@ -33,8 +33,8 @@ def wait_settle_env(fn):
 
 
 def main():
-    with report("3928_vault_v3_deploy") as rep:
-        rep.heading("ops 3928 — vault v3.0 cadence-aware deploy")
+    with report("3932_vault_v3_superset_verify") as rep:
+        rep.heading("ops 3932 — v3.0 superset verify (post-collision reconcile)")
         checks = []
 
         rep.section("BOJ probe for JPLG (report-only; wire on verified URL next)")
