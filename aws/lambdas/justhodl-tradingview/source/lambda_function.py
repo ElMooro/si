@@ -38,7 +38,7 @@ FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v2.1 FLEET-RESOLVER"
+MARKER = "tradingview-vault v2.2 ALNUM-YAHOO-FLEETSUM"
 
 s3 = boto3.client("s3")
 
@@ -100,6 +100,9 @@ ALIASES = {
     "JPEXPYY": "fleet:data/asia-leads.json:korea_exports.yoy_pct",
     "TWMPMI": "none:S&P Global PMI licensed", "USRR": "fred:RRPONTSYD",
     "KOSPI": "yahoo:^KS11", "EWT": "yahoo:EWT", "USDX": "yahoo:DX-Y.NYB",
+    "ES10Y": "fleetsum:data/euro-fragmentation.json:bund_benchmark_10y_pct:countries.ES.spread_vs_bund_bp",
+    "FR10Y": "fleetsum:data/euro-fragmentation.json:bund_benchmark_10y_pct:countries.FR.spread_vs_bund_bp",
+    "UNTAGGED": "meta:not a metric — the no-tag note bucket",
 }
 
 
@@ -343,18 +346,33 @@ def lambda_handler(event, context):
                 fk, _, fp = tgt.partition(":")
                 v = fleet_value(fk, fp)
                 if v: row["source"] = f"fleet:{fk}"
+            elif kind == "fleetsum":
+                fk, base_p, add_p = tgt.split(":")
+                b_ = fleet_value(fk, base_p)
+                a_ = fleet_value(fk, add_p)
+                if b_ and a_:
+                    v = {"value": round(b_["value"] + a_["value"] / 100.0, 3),
+                         "prev": None, "chg_pct": None,
+                         "asof": f"fleet:{fk.split('/')[-1]} computed"}
+                    row["source"] = f"fleetsum:{fk}"
+            elif kind == "meta":
+                row["status"] = "META"; row["resolution_note"] = tgt
+                continue
             elif kind == "disc":
                 row["status"] = "DISCONTINUED"; row["source"] = "cme"; row["resolution_note"] = tgt
                 continue
             elif kind == "none":
                 row["status"] = "NO_FREE_SOURCE"; row["resolution_note"] = tgt
                 continue
-        if v is None and not al and sym.isalpha() and 3 <= len(sym) <= 20 and not sym.endswith("!"):
-            v = fred_latest(sym)  # second-chance: bare symbol IS a FRED id
+        if v is None and not al and sym.isalnum() and 3 <= len(sym) <= 22 and not sym.endswith("!"):
+            v = fred_latest(sym)  # second-chance: bare symbol IS a FRED id (alnum!)
             if v: row["source"] = "fred_2nd_chance"
         if v is None and not al and sym.isalpha() and len(sym) <= 6:
             v = yahoo_quote("^" + sym)
             if v: row["source"] = f"yahoo:^{sym}"
+        if v is None and not al and sym.isalpha() and 2 <= len(sym) <= 5:
+            v = yahoo_quote(sym)  # plain ETF/equity fallback (UVXY/SVXY/IBHY...)
+            if v: row["source"] = f"yahoo:{sym}"
         if v is None and not al and sym.endswith("!"):
             v = yahoo_quote(sym.rstrip("0123456789!") + "=F")
             if v: row["source"] = f"yahoo:{sym.rstrip('0123456789!')}=F"
