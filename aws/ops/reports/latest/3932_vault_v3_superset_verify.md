@@ -1,13 +1,12 @@
-executing-against: 6d3b8fd6e3e9ffdbb68d3a892cde2375bc70c795
-ops 3932 — v3.0 superset verify (post-collision reconcile)
-── BOJ probe for JPLG (report-only; wire on verified URL next) ──
-[22:33:47]   https://www.stat-search.boj.or.jp/ssi/mtshtml/md02_m_1.csv -> HTTP Error 404: Not Found
-[22:33:47]   https://www.stat-search.boj.or.jp/info/dload_e.html -> HTTP Error 404: Not Found
-[22:33:48]   https://www.boj.or.jp/en/statistics/dl/loan/ldo/ldo.csv -> HTTP Error 404: Not Found
-[22:33:48] ✅   settled attempt 1
-── force-invoke: full re-resolution ──
+# ops 3932 — v3.0 superset verify (post-collision reconcile)
 
-→ Report written to aws/ops/reports/latest/3932_vault_v3_superset_verify.md
+**Status:** failure  
+**Duration:** 269.4s  
+**Finished:** 2026-07-26T22:38:16+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
     response = self._make_request(
@@ -62,8 +61,8 @@ urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Re
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3932_vault_v3_superset_verify.py", line 122, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_3932_vault_v3_superset_verify.py", line 84, in main
     r = lam.invoke(FunctionName=FN, InvocationType="RequestResponse",
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -123,4 +122,15 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 516, in send
     raise ConnectionClosedError(
 botocore.exceptions.ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-tradingview/invocations".
-❌ OPS-FAIL: aws/ops/pending/ops_3932_vault_v3_superset_verify.py
+
+```
+
+## Log
+## BOJ probe for JPLG (report-only; wire on verified URL next)
+
+- `22:33:47`   https://www.stat-search.boj.or.jp/ssi/mtshtml/md02_m_1.csv -> HTTP Error 404: Not Found
+- `22:33:47`   https://www.stat-search.boj.or.jp/info/dload_e.html -> HTTP Error 404: Not Found
+- `22:33:48`   https://www.boj.or.jp/en/statistics/dl/loan/ldo/ldo.csv -> HTTP Error 404: Not Found
+- `22:33:48` ✅   settled attempt 1
+## force-invoke: full re-resolution
+
