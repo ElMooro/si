@@ -1,0 +1,25 @@
+# ops 3904 — invoke alpha-calibrator now that real trade-journal data exists
+
+**Status:** success  
+**Duration:** 9.4s  
+**Finished:** 2026-07-26T03:40:38+00:00  
+
+## Data
+
+| n_evaluated_30d | n_significant_strategies | n_trades_analyzed |
+|---|---|---|
+| 1557 | 2 | 1984 |
+
+## Log
+## 1. invoke
+
+- `03:40:38`   invoke body: {"success": true, "version": "1.0.0", "n_calls": 1984, "n_strategies": 5, "n_significant": 2, "proposed_weights": {"quality": 0.2317, "growth": 0.1707, "momentum": 0.1341, "smart_money": 0.1585, "sentiment": 0.0854, "analysts": 0.061, "insiders": 0.0976, "options_flow": 0.061}, "would_auto_apply": false, "alert_sent": false, "elapsed_seconds": 8.04}
+## 2. read the fresh calibration-latest.json
+
+- `03:40:38`   guardrails: {"shrinkage_lambda": 0.4, "n_obs_used": 1356, "shrinkage_divisor": 200, "max_shift_pp": 0.03, "floor": 0.04, "ceiling": 0.22, "renormalized": true}
+- `03:40:38`   current_weights: {"quality": 0.16, "growth": 0.17, "momentum": 0.14, "smart_money": 0.16, "sentiment": 0.1, "analysts": 0.08, "insiders": 0.11, "options_flow": 0.08}
+- `03:40:38`   proposed_weights: {"quality": 0.2317, "growth": 0.1707, "momentum": 0.1341, "smart_money": 0.1585, "sentiment": 0.0854, "analysts": 0.061, "insiders": 0.0976, "options_flow": 0.061}
+- `03:40:38`   weight_deltas: {"quality": 0.0717, "growth": 0.0007, "momentum": -0.0059, "smart_money": -0.0015, "sentiment": -0.0146, "analysts": -0.019, "insiders": -0.0124, "options_flow": -0.019}
+- `03:40:38`   deployment_decision: {"auto_apply_calibrations_flag": false, "would_auto_apply": false, "reason": "auto_apply_calibrations flag is false (manual approval required)"}
+- `03:40:38`   factor_attribution coefficients: {"intercept": {"value": 3.1914, "se": 1.24434, "t_stat": 2.565, "p_value": 0.0103, "significant_05": true}, "quality": {"value": 4.13949, "se": 1.45726, "t_stat": 2.841, "p_value": 0.0045, "significant_05": true}, "growth": {"value": -4.89374, "se": 1.1402, "t_stat": -4.292, "p_value": 0.0, "significant_05": true}, "momentum": {"value": -1.64869, "se": 1.10662, "t_stat": -1.49, "p_value": 0.1363, "significant_05": false}, "smart_money": {"value": 0.08278, "se": 2.20944, "t_stat": 0.037, "p_value": 0.9701, "significant_05": false}, "sentiment": {"value": -5.56109, "se": 1.51412, "t_stat": -3.673, "p_value": 0.0002, "significant_05": true}, "analysts": {"value": -9.21325, "se": 2.3902, "t_stat": -3.855, "p_value": 0.0001, "significant_05": true}, "insiders": {"value": -1.34803, "se": 1.46782, "t_stat": -0.918, "p_value": 0.3584, "significant_05": false}, "options_flow": {"value": -1.1719, "se": 1.41678, "t_stat": -0.827, "p_value": 0.4081, "significant_05": false}}
+- `03:40:38` ✅ PROBE COMPLETE
