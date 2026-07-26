@@ -1,7 +1,6 @@
-executing-against: ef050d4798b6c84689c1b71fa5e1eaa42814017d
-ops 3915 — sizing-engine wire: observable, or honestly unobservable (no recs)
-[19:03:09]   sample rec: {"ticker": "CMCSA", "direction": "LONG", "engine": "eng:gf-value", "engine_gate": "OK", "claimed_conf": 0.9, "calibrator_scale": 1.0, "chain": {"quarter_kelly_w": 7.5, "conf_adj_x": 1.27, "vol_ann_pct": 39.5, "vol_scalar_x": 0.76, "cluster_corr_max": 0.0, "haircut_x": 1.0}, "spy_corr": 0.07, "final_
-[19:03:09] ✗ recs exist but gate not applied
+executing-against: ee71b312e6819e82d7ae378dee3bc83bfe56896e
+ops 3916 — sizing-engine clean re-invoke with full settle discipline
+[19:07:28]   sample: {"ticker": "CMCSA", "direction": "LONG", "engine": "eng:gf-value", "engine_gate": "OK", "claimed_conf": 0.9, "calibrator_scale": 1.0, "chain": {"quarter_kelly_w": 7.5, "conf_adj_x": 1.27, "vol_ann_pct": 39.5, "vol_scalar_x": 0.76, "cluster_corr_max": 0.0, "haircut_x": 1.0}, "spy_corr": 0.07, "final_w_pct": 2.25, "risk_gate_posture": "RISK_OFF", "pre_gate_w_pct": 5.0, "dollars_per_100k": 5000, "overlap_flags": [], "ba
+[19:07:28] ✅ PASS_ALL — sizing-engine gated live: CMCSA pre_gate 5.0% -> final 2.25% (RISK_OFF)
 
-→ Report written to aws/ops/reports/latest/3915_sizing_engine_honest_close.md
-❌ OPS-FAIL: aws/ops/pending/ops_3915_sizing_engine_honest_close.py
+→ Report written to aws/ops/reports/latest/3916_sizing_engine_reinvoke.md
