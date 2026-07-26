@@ -28,10 +28,11 @@ const fmt=(v,d=2)=>v==null?'—':(typeof v==='number'?v.toFixed(d):esc(v));
 async function load(){let d=null;for(const u of SRC){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){d=await r.json();break}}catch(e){}}
 if(!d){document.getElementById('root').textContent='Feed unreachable.';return}render(d)}
 function legRow(name,leg){const s=leg.score??0;const cls=s<0?'leg-neg':(s>0?'leg-pos':'leg-zero');
- const metrics=Object.entries(leg).filter(([k])=>!['score','why'].includes(k)).map(([k,v])=>`${esc(k)}=${fmt(v)}`).join(' · ');
- return `<div class="card"><b>${esc(name.toUpperCase())}</b> <span class="${cls} mono" style="float:right;font-weight:800">${fmt(s,1)}</span>
+ const metrics=Object.entries(leg).filter(([k])=>!['score','why','fleet_inputs','fleet_adj','score_fused'].includes(k)).map(([k,v])=>`${esc(k)}=${fmt(v)}`).join(' · ');
+ const fis=(leg.fleet_inputs||[]).map(x=>`<div style="font-size:11px;margin-top:3px"><span class="${x.status==='OK'?'leg-pos':'dim'}">[${esc(x.status)}]</span> <b>${esc(x.input)}</b>=${typeof x.value==='object'?esc(JSON.stringify(x.value).slice(0,60)):fmt(x.value)} <span class="${x.score_adj<0?'leg-neg':x.score_adj>0?'leg-pos':'dim'} mono">adj ${fmt(x.score_adj)}</span></div>`).join('');
+ return `<div class="card"><b>${esc(name.toUpperCase())}</b> <span class="${cls} mono" style="float:right;font-weight:800">${fmt(s,1)}${leg.score_fused!=null?` → <span style="color:var(--amber)">${fmt(leg.score_fused,2)}</span>`:''}</span>
  <div class="dim mono" style="font-size:12px">${metrics||'—'}</div>
- ${(leg.why||[]).map(w=>`<div style="font-size:12px;margin-top:4px">• ${esc(w)}</div>`).join('')||'<div class="dim" style="font-size:12px;margin-top:4px">neutral — no rule triggered</div>'}</div>`}
+ ${(leg.why||[]).map(w=>`<div style="font-size:12px;margin-top:4px">• ${esc(w)}</div>`).join('')||'<div class="dim" style="font-size:12px;margin-top:4px">neutral — no rule triggered</div>'}${fis?`<div style="border-top:1px solid var(--line);margin-top:6px;padding-top:4px"><span class="dim" style="font-size:10px">FLEET INPUTS</span>${fis}</div>`:''}</div>`}
 function render(d){const es=d.event_study||{},oc=es.october_2025_replay||{},bc=d.brain_constitution||{};
  const flips=(es.flips||[]).map(f=>`<tr><td>${esc(f.date)}</td><td><span class="badge p-${esc(f.posture)}">${esc(f.posture)}</span></td><td class="mono">${fmt(f.spx_fwd_21d_pct)}%</td><td class="mono">${fmt(f.spx_fwd_63d_pct)}%</td></tr>`).join('');
  const tl=(d.recent_timeline||[]).map(t=>`<div class="${t.posture==='RISK_ON'?'ON':t.posture==='NEUTRAL'?'NEUTRAL':t.posture==='SEVERE'?'SEV':'OFF'}" title="${esc(t.date)} ${esc(t.posture)} ${fmt(t.composite)}"></div>`).join('');

@@ -58,7 +58,7 @@ import boto3
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/risk-gate.json"
-MARKER = "risk-gate v2.0 BRAIN-CONSTITUTIONAL FLEET-FUSED"
+MARKER = "risk-gate v2.1 BRAIN-CONSTITUTIONAL FLEET-FUSED"
 
 s3 = boto3.client("s3")
 
@@ -82,6 +82,7 @@ SERIES = {
     "VIXCLS":          "tv-14a76b6087dc80eb", # vol cascade proxy
     "DCPN3M":          "nmrdt9tk992wt",       # 3M CP (CP-FFR spread, fuse-list)
     "DFF":             "nmrdt9tk992wt",       # fed funds for the CP spread
+    "RIFSPPNA2P2D90NB": "nmq5x1qrkm0cn",     # A2/P2 spread (graceful if ID wrong)
     "SP500":           "event-study-benchmark",
 }
 
@@ -188,6 +189,10 @@ def compute_posture(F, calendar, i):
         funding -= 0.5
         notes1.append(f"CP-FFR spread +{cp_ffr_bp:.0f}bp — credit conditions tightening "
                       f"in the funding market [nmrdt9tk992wt]")
+    a2p2 = F.get("RIFSPPNA2P2D90NB", {}).get(d)
+    if a2p2 is not None and a2p2 > 0.5:
+        funding -= 0.4
+        notes1.append(f"A2/P2 spread {a2p2:.2f}% — low-grade paper stress [nmq5x1qrkm0cn]")
     legs["funding"] = {"score": max(-2.0, min(2.0, funding)), "why": notes1,
                        "cp_ffr_bp": cp_ffr_bp,
                        "rrp_bn": rrp, "reserves_13w_pct": res_13w,
@@ -423,15 +428,16 @@ def fleet_adjust(legs):
 
     # LEG 1 FUNDING — fails, dealer stress, 10Y auction, SOMA/TGA + xcc basis
     pd_doc, a = _feed("data/nyfed-primary-dealer.json")
-    v = (pd_doc or {}).get("corp_net_bonds_b")
-    adj = (-0.3 if (isinstance(v, (int, float)) and v < -20) else 0.0)
-    out["funding"].append(_fi("dealer_corp_net_bonds_b", "nyfed-primary-dealer", v, adj,
-        "corporate NET_SHORT deepening = dealer balance-sheet stress [tv-a8157acb4435ffe6]", a))
+    v = (pd_doc or {}).get("net_treasury_total_b")
+    adj = (-0.3 if (isinstance(v, (int, float)) and v < -50) else 0.0)
+    out["funding"].append(_fi("dealer_net_treasury_b", "nyfed-primary-dealer", v, adj,
+        "dealer net treasury positioning; deep short = stressed intermediation "
+        "[tv-a8157acb4435ffe6]; corp_net_bonds_b not exported in live artifact (producer todo)", a))
     ofr, a = _feed("data/ofr-stfm.json")
     v = (ofr or {}).get("fails_cross")
     adj = (-0.4 if (isinstance(v, (int, float)) and v > 1.5) else 0.0)
     out["funding"].append(_fi("fails_cross_z", "ofr-stfm", v, adj,
-        "fails = collateral scramble, liquidity-barometer basket [nmq5x0cp7zp4j]", a))
+        "fails = collateral scramble [nmq5x0cp7zp4j]; fails_cross not in live artifact yet — producer-side export needed, stays MISSING honestly", a))
     ag, a = _feed("data/auction-grades.json")
     g10 = None
     for r in ((ag or {}).get("graded_auctions") or []):
@@ -441,15 +447,26 @@ def fleet_adjust(legs):
     out["funding"].append(_fi("auction_10y_grade", "auction-grades", g10, adj,
         "the 10-year auction is THE one to watch [nmq5x0cp8023c]", a))
     cp_doc, a = _feed("data/crisis-plumbing.json")
-    v = (cp_doc or {}).get("composite_stress_score") or (cp_doc or {}).get("composite_score")
+    v = ((cp_doc or {}).get("composite") or {}).get("composite_stress_score")
     adj = (-0.4 if (isinstance(v, (int, float)) and v > 60) else
            (0.2 if (isinstance(v, (int, float)) and v < 20) else 0.0))
     out["funding"].append(_fi("plumbing_composite", "crisis-plumbing", v, adj,
         "SOMA/TGA/repo composite [nmq5x1e4pod5k]", a))
-    v = (cp_doc or {}).get("xcc_basis_proxy")
-    adj = (-0.5 if (isinstance(v, (int, float)) and v < -25) else 0.0)
-    out["funding"].append(_fi("xcc_basis_proxy_bp", "crisis-plumbing", v, adj,
-        "cross-currency basis — his ranked #1 leading funding signal [nmq5x1qrmghwy]", a))
+    xd = (cp_doc or {}).get("xcc_basis_proxy") or {}
+    zs = []
+    sigs = []
+    for sub in ("rate_diff_jpy_3m", "rate_diff_eur_3m", "obfr_iorb_spread"):
+        d_ = xd.get(sub) or {}
+        z_ = d_.get("z_score_1y")
+        if isinstance(z_, (int, float)): zs.append(z_)
+        if d_.get("signal"): sigs.append(f"{sub}:{d_['signal']}")
+    worst_z = min(zs) if zs else None
+    non_normal = any("NORMAL" not in s_ for s_ in sigs) if sigs else False
+    v = {"worst_z_1y": worst_z, "signals": sigs} if zs or sigs else None
+    adj = (-0.4 if (non_normal or (worst_z is not None and worst_z <= -2)) else 0.0)
+    out["funding"].append(_fi("xcc_basis_signals", "crisis-plumbing", v, adj,
+        "cross-currency basis proxies (JPY/EUR rate-diff z + OBFR-IORB) — ranked #1 "
+        "leading funding signal [nmq5x1qrmghwy]", a))
 
     # LEG 2 CREDIT — 5-lens composite + IG z-scores
     cc, a = _feed("data/credit-composite.json")
@@ -466,6 +483,12 @@ def fleet_adjust(legs):
     adj = (-0.4 if (v is not None and v > 1.5) else (0.2 if (v is not None and v < -0.5) else 0.0))
     out["credit"].append(_fi("credit_z60_mean", "credit-stress", v, adj,
         "mean spread z across the IG/HY ladder — widening cascade [tv-ba419d7b64a1e75d]", a))
+    tf2, a = _feed("data/etf-true-flows.json")
+    hyg = (((tf2 or {}).get("by_etf") or {}).get("HYG") or {}).get("net_flow_20d_usd")
+    v = round(hyg / 1e9, 2) if isinstance(hyg, (int, float)) else None
+    adj = (-0.3 if (v is not None and v < -1.0) else (0.15 if (v is not None and v > 1.0) else 0.0))
+    out["credit"].append(_fi("hyg_net_flow_20d_bn", "etf-true-flows", v, adj,
+        "HY fund outflows = credit risk-off; HYG/LQD in the fuse-list [nmrdt9tk992wt]", a))
 
     # LEG 3 DOLLAR/GLOBAL — BTP-Bund/fragmentation + BIS cross-border
     ef, a = _feed("data/euro-fragmentation.json")
@@ -481,6 +504,12 @@ def fleet_adjust(legs):
     adj = (-0.3 if (v is not None and v < 0) else (0.2 if (v is not None and v > 8) else 0.0))
     out["dollar"].append(_fi("bis_crossborder_yoy_median", "bis-crossborder", v, adj,
         "eurodollar loan growth = global liquidity creation [nmq5vzr2aozu3]", a))
+    ci, a = _feed("data/ciss-stress.json")
+    v = (ci or {}).get("ea_regime")
+    adj = (-0.3 if (isinstance(v, str) and any(t in v.upper() for t in ("HIGH", "STRESS", "SEVERE", "ELEV"))) else 0.0)
+    out["dollar"].append(_fi("ecb_ciss_regime", "ciss-stress", v, adj,
+        "euro-area systemic stress regime; sovereign board (data/sovereign-stress.json, "
+        "no composite field) stays deferred", a))
 
     # LEG 4 CARRY/EURODOLLAR — yen-carry scored, plumbing board, China credit
     yc, a = _feed("data/yen-carry.json")
