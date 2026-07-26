@@ -58,7 +58,7 @@ import boto3
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/risk-gate.json"
-MARKER = "risk-gate v2.1 BRAIN-CONSTITUTIONAL FLEET-FUSED"
+MARKER = "risk-gate v2.2 BRAIN-CONSTITUTIONAL FLEET-FUSED"
 
 s3 = boto3.client("s3")
 
@@ -589,6 +589,24 @@ def fleet_adjust(legs):
     cf, a = _feed("data/cftc-deep-view.json")
     rows = (cf or {}).get("all_contract_analyses") or []
     v = len(rows) if rows else None
+    tv, a = _feed("data/tradingview.json")
+    tvi = {r_.get("symbol"): r_ for r_ in ((tv or {}).get("symbols") or [])}
+    mv = (tvi.get("MOVE") or {}).get("value")
+    adj = (-0.4 if (isinstance(mv, (int, float)) and mv > 130) else
+           (-0.2 if (isinstance(mv, (int, float)) and mv > 110) else 0.0))
+    out["structure"].append(_fi("move_index", "tradingview-vault", mv, adj,
+        "REAL MOVE via the vault — margin-call->forced-selling->QE mechanism "
+        "[tv-14a76b6087dc80eb]", a))
+    cl_front = (tvi.get("CL1!") or {}).get("value")
+    spot = (tvi.get("WTI") or {}).get("value") or (tvi.get("USOIL") or {}).get("value")
+    bw = (round((cl_front / spot - 1) * 100, 2)
+          if isinstance(cl_front, (int, float)) and isinstance(spot, (int, float)) and spot
+          else None)
+    adj = (-0.4 if (bw is not None and bw < -1.0) else 0.0)
+    out["structure"].append(_fi("oil_backwardation_front_vs_spot_pct", "tradingview-vault",
+        bw, adj,
+        "front-month vs spot proxy — 'oil backwardation preceded every crisis' "
+        "[nmrdt9tk992wt]; full-curve version still needs a real strip source", a))
     out["structure"].append(_fi("cftc_dealer_positioning", "cftc-deep-view", v, 0.0,
         "context only until n>=26 weekly reports [rotation-arc COT rule]; "
         "excessive longs = vulnerable setup [nmq5x0b27is35]", a))

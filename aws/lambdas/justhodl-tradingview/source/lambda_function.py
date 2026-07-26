@@ -38,7 +38,7 @@ FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v1.0"
+MARKER = "tradingview-vault v2.0 FULL-COVERAGE"
 
 s3 = boto3.client("s3")
 
@@ -52,6 +52,79 @@ CAT_RULES = [
     ("commodity", re.compile(r"^GOLD$|^SILVER$|^WTI$|^USOIL$|^COPPER$|^PLATINUM$|^PALLADIUM$|^P[A-Z]{3,5}USDM$|^PIOREC|^PRAWM|^BDI$|^CPER$|^UGA$|^GC\d|^HG\d|^CL\d")),
     ("macro", re.compile(r"YY$|^UNEMPLOY|^ICSA$|^HOUST|^USNFP|^USLEI|^SAHM|CFNAI|^STLPPM|^USALOL|^ONMLOL|PMI$|^JPLG$|TOT$|^BOTOT|^MABOT|^USM[0-2]$|^PPIACO|^GACDFS|^TCU$|^MCUMFN|^TEMPHELP|^MSACSR|^AISRSA|^USHMI|^USBCOI|^DRTSC|^CSCICP|^SPASTT|^MAN_PMI")),
 ]
+
+
+# ── v2.0: explicit alias ladder (exact, high-confidence only) ──────────────
+ALIASES = {
+    # rates -> FRED
+    "US01Y": "fred:DGS1", "US02Y": "fred:DGS2", "US03Y": "fred:DGS3",
+    "US05Y": "fred:DGS5", "US10Y": "fred:DGS10", "US30Y": "fred:DGS30",
+    "US01MY": "fred:DGS1MO", "US03MY": "fred:DGS3MO", "US06MY": "fred:DGS6MO",
+    "TNX": "fred:DGS10", "VIX": "fred:VIXCLS", "WTI": "fred:DCOILWTICO",
+    "USOIL": "fred:DCOILWTICO", "TEDRATE": "fred:TEDRATE",
+    "US02MY": "none:no DGS2MO series", "SOFR30DAYAVG": "fred:SOFR30DAYAVG",
+    "USIRYY": "yoy:CPIAUCSL", "JPIRYY": "yoy:JPNCPIALLMINMEI",
+    "USGDPYY": "yoy:GDPC1", "UNEMPLOY": "fred:UNEMPLOY",
+    # indices/vol/fx -> Yahoo
+    "SPX": "yahoo:^GSPC", "NDX": "yahoo:^NDX", "RUT": "yahoo:^RUT",
+    "IXIC": "yahoo:^IXIC", "RUA": "yahoo:^RUA", "MOVE": "yahoo:^MOVE",
+    "VIX3M": "yahoo:^VIX3M", "VVIX": "yahoo:^VVIX", "SKEW": "yahoo:^SKEW",
+    "DXY": "yahoo:DX-Y.NYB", "NI225": "yahoo:^N225", "TOPIX": "yahoo:^TPX",
+    "HSI": "yahoo:^HSI", "DAX": "yahoo:^GDAXI", "AEX": "yahoo:^AEX",
+    "SX5E": "yahoo:^STOXX50E", "SXXP": "yahoo:^STOXX", "SENSEX": "yahoo:^BSESN",
+    "XJO": "yahoo:^AXJO", "NZ50G": "yahoo:^NZ50", "KRX": "yahoo:^KS11",
+    "MDAX": "yahoo:^MDAXI", "XAUUSD": "yahoo:GC=F",
+    "000300": "yahoo:000300.SS", "000001": "yahoo:000001.SS",
+    "2330": "yahoo:2330.TW", "700": "yahoo:0700.HK", "388": "yahoo:0388.HK",
+    "8604": "yahoo:8604.T", "W4500": "none:index not on free feeds",
+    # futures -> Yahoo REAL front-month
+    "CL1!": "yahoo:CL=F", "GC2!": "yahoo:GC=F", "HG1!": "yahoo:HG=F",
+    "6J2!": "yahoo:6J=F", "ZF1!": "yahoo:ZF=F", "SR32!": "yahoo:SR3=F",
+    "GOLD": "yahoo:GC=F", "SILVER": "yahoo:SI=F", "COPPER": "yahoo:HG=F",
+    "PLATINUM": "yahoo:PL=F", "PALLADIUM": "yahoo:PA=F",
+    "GE1!": "disc:CME eurodollar futures ceased Jun-2023 (SOFR transition)",
+    "GE2!": "disc:CME eurodollar futures ceased Jun-2023 (SOFR transition)",
+    "MME1!": "yahoo:EEM",  # proxy: MSCI EM ETF for EM futures
+    "JPLG": "none:TradingEconomics-paywalled; BOJ stat-search build queued",
+    "CLTOT": "none:TradingEconomics-paywalled (Chile ToT)",
+    "PETOT": "none:TradingEconomics-paywalled (Peru ToT)",
+}
+
+
+def yahoo_quote(sym):
+    url = (f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.request.quote(sym)}"
+           f"?range=5d&interval=1d")
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            res = json.loads(r.read())["chart"]["result"][0]
+        closes = [c for c in res["indicators"]["quote"][0]["close"] if c is not None]
+        if not closes:
+            return None
+        cur = closes[-1]
+        prev = closes[-2] if len(closes) > 1 else None
+        return {"value": round(cur, 4), "prev": round(prev, 4) if prev else None,
+                "chg_pct": round((cur / prev - 1) * 100, 3) if prev else None,
+                "asof": "yahoo_5d"}
+    except Exception:
+        return None
+
+
+def fred_yoy(series_id):
+    url = (f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}"
+           f"&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit=14")
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "JH-TV-Vault/2.0"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            obs = [o for o in json.loads(r.read()).get("observations", [])
+                   if o.get("value") not in (None, "", ".")]
+        if len(obs) < 13:
+            return None
+        cur, yr = float(obs[0]["value"]), float(obs[12]["value"])
+        return {"value": round((cur / yr - 1) * 100, 2), "prev": None,
+                "chg_pct": None, "asof": obs[0]["date"] + " YoY"}
+    except Exception:
+        return None
 
 
 def get_brain():
@@ -79,8 +152,20 @@ def build_registry(brain):
         body = txt[len(m.group(0)):].strip()
         if len(body) > len(r["note_snippet"]):
             r["note_snippet"] = body[:400]
+    # v2.0: scan ALL note texts for symbol mentions beyond the [TV:] header
+    # (fuse-list prose like "FRED:TRESEGCNM052N + ECONOMICS:USFER ...")
+    for n in brain.get("notes", []):
+        txt = n.get("text") or ""
+        for ex, sym in re.findall(r"\b(FRED|ECONOMICS|AMEX|NASDAQ|NYSE|TVC|ICEUS):"
+                                  r"([A-Z0-9_\.\-]{2,22})\b", txt):
+            if sym in reg:
+                continue
+            reg[sym] = {"symbol": sym, "n_notes": 1, "exchanges": {ex},
+                        "note_ids": [n.get("id")], "note_snippet": txt[:300],
+                        "origin": "brain_text"}
     for r in reg.values():
         r["exchanges"] = sorted(r["exchanges"])
+        r.setdefault("origin", "tv_tag")
     return reg
 
 
@@ -196,6 +281,48 @@ def lambda_handler(event, context):
             row["value"] = None
             if row["source"] in ("fred", "fmp"):
                 row["source"] = row["source"] + "_failed"
+
+    # ── v2.0 LADDER 2: aliases -> second-chance FRED -> Yahoo ^ -> documented
+    for row in rows:
+        if row["status"] == "LIVE":
+            continue
+        sym = row["symbol"]
+        al = ALIASES.get(sym)
+        v = None
+        if al:
+            kind, _, tgt = al.partition(":")
+            if kind == "fred":
+                v = fred_latest(tgt)
+                if v: row["source"] = f"fred_alias:{tgt}"
+            elif kind == "yoy":
+                v = fred_yoy(tgt)
+                if v: row["source"] = f"fred_yoy:{tgt}"
+            elif kind == "yahoo":
+                v = yahoo_quote(tgt)
+                if v: row["source"] = f"yahoo:{tgt}"
+            elif kind == "disc":
+                row["status"] = "DISCONTINUED"; row["source"] = "cme"; row["resolution_note"] = tgt
+                continue
+            elif kind == "none":
+                row["status"] = "NO_FREE_SOURCE"; row["resolution_note"] = tgt
+                continue
+        if v is None and not al and sym.isalpha() and 3 <= len(sym) <= 20 and not sym.endswith("!"):
+            v = fred_latest(sym)  # second-chance: bare symbol IS a FRED id
+            if v: row["source"] = "fred_2nd_chance"
+        if v is None and not al and sym.isalpha() and len(sym) <= 6:
+            v = yahoo_quote("^" + sym)
+            if v: row["source"] = f"yahoo:^{sym}"
+        if v is None and not al and sym.endswith("!"):
+            v = yahoo_quote(sym.rstrip("0123456789!") + "=F")
+            if v: row["source"] = f"yahoo:{sym.rstrip('0123456789!')}=F"
+        if v:
+            row.update(v)
+            row["status"] = "LIVE"
+            n_live += 1
+        elif row["status"] == "UNRESOLVED":
+            row["status"] = "NO_FREE_SOURCE"
+            row.setdefault("resolution_note", "no free API found (TV/TradingEconomics only)")
+        time.sleep(0.12)
 
     rows.sort(key=lambda r: (-r["n_notes"], r["symbol"]))
     by_cat = defaultdict(list)
