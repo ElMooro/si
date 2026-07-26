@@ -1,0 +1,28 @@
+# ops 3939 — norges skeleton + BCRP titles + BOJ shift_jis
+
+**Status:** success  
+**Duration:** 2.9s  
+**Finished:** 2026-07-26T23:48:14+00:00  
+
+## Log
+## 1. Norges GOVT_GENERIC_RATES raw skeleton
+
+- `23:48:12`   top keys: ['data', 'meta']
+- `23:48:12`   data keys: ['dataSets', 'structure']
+- `23:48:12`   dataSets[0] keys: ['action', 'attributes', 'links', 'reportingBegin', 'reportingEnd', 'series']
+- `23:48:12`   n_series=21 first_key=0:0:0 first_val={"attributes": [], "observations": {"0": ["4.495"]}}
+- `23:48:12`   structure: present; series dims:
+- `23:48:12`     dim[0] id=FREQ values=[('M', 'Monthly'), ('B', 'Business'), ('A', 'Annual')]
+- `23:48:12`     dim[1] id=TENOR values=[('3Y', '3 years'), ('12M', '12 months'), ('3M', '3 months'), ('6M', '6 months'), ('5Y', '5 years'), ('7Y', '7 years'), ('10Y', '10 years')]
+- `23:48:12`     dim[2] id=INSTRUMENT_TYPE values=[('GBON', 'Government bonds'), ('TBIL', 'Treasury bills')]
+## 2. BCRP candidate ToT index codes — identify by TITLE
+
+- `23:48:13`   PN38910BM: Importaciones según uso o destino económico - valores FOB (millones US$) | last={"name": "May.2026", "values": ["4.088951066"]}
+- `23:48:13`   PN38911BM: Importaciones según uso o destino económico - valores FOB (millones US$) | last={"name": "May.2026", "values": ["9.082943097"]}
+- `23:48:13`   PN38912BM: Importaciones según uso o destino económico - valores FOB (millones US$) | last={"name": "May.2026", "values": ["19.579901617"]}
+- `23:48:14`   PN38913BM: Importaciones según uso o destino económico - valores FOB (millones US$) | last={"name": "May.2026", "values": ["78.315778633"]}
+- `23:48:14`   PN38914BM: Importaciones según uso o destino económico - valores FOB (millones US$) | last={"name": "May.2026", "values": ["15.530922829"]}
+## 3. BOJ index decoded as Shift_JIS — loan links
+
+- `23:48:14`   International Investment Position (Calendar Year Data) -> iip_cy_en.zip
+- `23:48:14` ✅ PROBE COMPLETE
