@@ -1,0 +1,31 @@
+# ops 3906 — deploy FMP retry-with-backoff, hard-gate on n_observations > 0
+
+**Status:** success  
+**Duration:** 68.1s  
+**Finished:** 2026-07-26T04:39:15+00:00  
+
+## Data
+
+| after_maturity | after_n_observations | after_s3 | before_maturity | before_n_observations | before_s3 | overall |
+|---|---|---|---|---|---|---|
+|  |  |  | BOOTSTRAPPING | 0 | 2026-07-25T16:01:14+00:00 |  |
+| MATURE | 59021 | 2026-07-26T04:39:09+00:00 |  |  |  | {"n": 59021, "avg": 0.56, "median": 1.05, "win_rate": 55.7, "hit_5pct": 31.0, "best": 1838.0, "worst": -90.2} |
+
+## Log
+## 1. BEFORE
+
+## 2. ZIP-SETTLE BY MARKER
+
+- `04:38:08` ✅   new artifact live on attempt 1 (94,070 zip bytes)
+- `04:38:08` ✅   State=Active LastUpdateStatus=Successful Timeout=300
+## 3. invoke (real network I/O across ~18 chunks with backoff — may take a while)
+
+- `04:39:15`   invoke body: {"ok": true, "obs": 59021, "maturity": "MATURE", "overall": {"n": 59021, "avg": 0.56, "median": 1.05, "win_rate": 55.7, "hit_5pct": 31.0, "best": 1838.0, "worst": -90.2}}
+## 4. THE REAL GATE
+
+- `04:39:15`   by_verdict (first 3): {"STRONG OPPORTUNITY": {"n": 1537, "avg": 2.23, "median": 2.06, "win_rate": 59.0, "hit_5pct": 37.7, "best": 44.1, "worst": -25.5}, "OPPORTUNITY": {"n": 8845, "avg": 1.57, "median": 1.16, "win_rate": 56.4, "hit_5pct": 32.4, "best": 51.8, "worst": -38.9}, "HIGH RISK": {"n": 10408, "avg": 4.34, "median": 3.36, "win_rate": 71.3, "hit_5pct": 40.2, "best": 195.6, "worst": -38.0}}
+- `04:39:15` ✅   artifact rewritten this invoke
+- `04:39:15` ✅   n_observations is a real positive number (was structurally 0)
+- `04:39:15` ✅   maturity moved off BOOTSTRAPPING
+- `04:39:15` ✅   by_verdict has real, non-empty entries
+- `04:39:15` ✅ PASS_ALL — 59021 real observations, maturity=MATURE

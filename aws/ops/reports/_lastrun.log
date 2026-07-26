@@ -1,41 +1,17 @@
-executing-against: b99c026566b595b2254abd5dac89b0aba5f416c2
-ops 3905 — test the exact FMP batch-quote-short endpoint signal-backtest uses
-── 1. live FMP_KEY on signal-backtest itself ──
-── 2. the EXACT endpoint + real tickers from the FICO sample seen in ops 3899 ──
-[04:32:38] ✅   SUCCESS: [{"symbol": "FICO", "price": 1237.37, "change": 31.18, "volume": 125566}, {"symbol": "AAPL", "price": 333.02, "change": 11.36, "volume": 47402209}, {"symbol": "MSFT", "price": 381.7, "change": 0.12001, "volume": 27544509}]
-── 3. sanity check — does /stable/quote (singular, older-style) work as a comparison ──
-[04:32:39] ✅   /stable/quote works: [{"symbol": "AAPL", "name": "Apple Inc.", "price": 333.02, "changePercentage": 3.53168, "change": 11.36, "volume": 47402209, "dayLow": 321.62, "dayHigh": 334.37, "yearHigh": 334.99, "yearLow": 201.5, "marketCap": 4891183295120, "priceAvg50": 306.2314, "priceAvg200": 275.98044, "exchange": "NASDAQ", "open": 322.04, "previousClose": 321.66, "timestamp": 1784923201}]
-── 4. real CloudWatch invocation history for signal-backtest ──
-[04:32:40]   most recent run log tail:
-INIT_START Runtime Version: python:3.12.mainlinev2.v14	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:40182b778d40c8bdb13a6ef86990df74f5066cdb7d40aac1845f6f3fa5a1b20f
-START RequestId: 6fd69afe-46e8-4cd0-afb9-eabd35bc2009 Version: $LATEST
-[bt] 70 opportunity snapshots
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] quote chunk err: HTTP Error 429: Too Many Requests
-[bt] 57997 obs, 0 live prices
-[bt] ai_analysis: Validation is impossible because the dataset contains zero observations (n=0).
-[bt] DONE 31.5s — 0 obs, maturity BOOTSTRAPPING
-[ic] dates_used=35 maturity=MATURE composite_ic=-0.1219
-[bt] factor-ic: MATURE dates_used=35
-END RequestId: 6fd69afe-46e8-4cd0-afb9-eabd35bc2009
-REPORT RequestId: 6fd69afe-46e8-4cd0-afb9-eabd35bc2009	Duration: 35927.43 ms	Billed Duration: 36424 ms	Memory Size: 512 MB	Max Memory Used: 160 MB	Init Duration: 496.48 ms	
-XRAY TraceId: 1-6a64dda9-19e029957df6f1ae6722420a	SegmentId: e013e7eec1f346d7	Sampled: true
-[04:32:40] ✅ PROBE COMPLETE
+executing-against: aa970a318d937e64ce96824cb586034d1afdea60
+ops 3906 — deploy FMP retry-with-backoff, hard-gate on n_observations > 0
+── 1. BEFORE ──
+── 2. ZIP-SETTLE BY MARKER ──
+[04:38:08] ✅   new artifact live on attempt 1 (94,070 zip bytes)
+[04:38:08] ✅   State=Active LastUpdateStatus=Successful Timeout=300
+── 3. invoke (real network I/O across ~18 chunks with backoff — may take a while) ──
+[04:39:15]   invoke body: {"ok": true, "obs": 59021, "maturity": "MATURE", "overall": {"n": 59021, "avg": 0.56, "median": 1.05, "win_rate": 55.7, "hit_5pct": 31.0, "best": 1838.0, "worst": -90.2}}
+── 4. THE REAL GATE ──
+[04:39:15]   by_verdict (first 3): {"STRONG OPPORTUNITY": {"n": 1537, "avg": 2.23, "median": 2.06, "win_rate": 59.0, "hit_5pct": 37.7, "best": 44.1, "worst": -25.5}, "OPPORTUNITY": {"n": 8845, "avg": 1.57, "median": 1.16, "win_rate": 56.4, "hit_5pct": 32.4, "best": 51.8, "worst": -38.9}, "HIGH RISK": {"n": 10408, "avg": 4.34, "median": 3.36, "win_rate": 71.3, "hit_5pct": 40.2, "best": 195.6, "worst": -38.0}}
+[04:39:15] ✅   artifact rewritten this invoke
+[04:39:15] ✅   n_observations is a real positive number (was structurally 0)
+[04:39:15] ✅   maturity moved off BOOTSTRAPPING
+[04:39:15] ✅   by_verdict has real, non-empty entries
+[04:39:15] ✅ PASS_ALL — 59021 real observations, maturity=MATURE
 
-→ Report written to aws/ops/reports/latest/3905_fmp_batch_quote_test.md
+→ Report written to aws/ops/reports/latest/3906_signal_backtest_retry_fix_deploy.md
