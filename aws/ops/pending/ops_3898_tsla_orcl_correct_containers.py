@@ -57,19 +57,25 @@ def scan_for_ticker(obj, ticker, path="", hits=None):
 def main():
     with report("3898_tsla_orcl_correct_containers") as rep:
         rep.heading("ops 3898 — same feeds, real container names this time")
+        total_hits = 0
+        core_failures = []
 
         rep.section("1. earnings-whisper — all_setups + top_setups, search for TSLA")
         try:
             ew, ew_lm = get("data/earnings-whisper.json")
+        except Exception as e:
+            rep.fail(f"  unreadable: {str(e)[:200]}")
+            core_failures.append("earnings-whisper")
+            ew = {}
+        if ew:
             hits = scan_for_ticker(ew.get("all_setups"), "TSLA") + scan_for_ticker(ew.get("top_setups"), "TSLA")
+            total_hits += len(hits)
             rep.kv(earnings_whisper_age_h=age_h(ew_lm), tsla_hits=len(hits))
             for path, row in hits[:3]:
                 rep.log(f"    {path}: {json.dumps(row, default=str)[:500]}")
             if not hits:
                 rep.log(f"  n_upcoming={ew.get('n_upcoming')} tier_counts={ew.get('tier_counts')} "
                         f"— TSLA genuinely absent from this feed's setups")
-        except Exception as e:
-            rep.fail(f"  unreadable: {str(e)[:200]}")
 
         rep.section("2. eps-revision-velocity — all_qualifying, search for TSLA and ORCL")
         try:
@@ -79,6 +85,7 @@ def main():
                    summary=json.dumps(erv.get("summary"), default=str)[:400])
             for tk in ("TSLA", "ORCL"):
                 hits = scan_for_ticker(aq, tk)
+                total_hits += len(hits)
                 rep.log(f"  {tk}: {len(hits)} hits")
                 for path, row in hits[:3]:
                     rep.log(f"    {path}: {json.dumps(row, default=str)[:500]}")
@@ -94,6 +101,7 @@ def main():
             hits = (scan_for_ticker(sfi.get("all_tickers"), "ORCL") +
                     scan_for_ticker(sfi.get("events_by_signal"), "ORCL") +
                     scan_for_ticker(sfi.get("highlights"), "ORCL"))
+            total_hits += len(hits)
             rep.log(f"  ORCL hits: {len(hits)}")
             for path, row in hits[:8]:
                 rep.log(f"    {path}: {json.dumps(row, default=str)[:500]}")
@@ -112,6 +120,7 @@ def main():
             rep.kv(capital_return_age_h=age_h(cr_lm), n_cannibals=len(cannibals) if isinstance(cannibals, list) else None,
                    headline=cr.get("headline"))
             hits = scan_for_ticker(cannibals, "ORCL")
+            total_hits += len(hits)
             rep.log(f"  ORCL in cannibals list: {len(hits)} hits")
             for path, row in hits[:3]:
                 rep.log(f"    {json.dumps(row, default=str)[:600]}")
@@ -122,6 +131,7 @@ def main():
         try:
             hv, hv_lm = get("data/hiring-velocity.json")
             hits = scan_for_ticker(hv.get("top_50"), "ORCL")
+            total_hits += len(hits)
             rep.kv(hiring_velocity_age_h=age_h(hv_lm))
             rep.log(f"  ORCL in hiring top_50: {len(hits)} hits: "
                     f"{json.dumps(hits[0][1], default=str)[:400] if hits else 'not present'}")
@@ -132,6 +142,7 @@ def main():
             dep_hits = scan_for_ticker(tm.get("departures"), "ORCL")
             app_hits = scan_for_ticker(tm.get("appointments"), "ORCL")
             recent_hits = scan_for_ticker(tm.get("recent_moves"), "ORCL")
+            total_hits += len(dep_hits) + len(app_hits) + len(recent_hits)
             rep.kv(talent_migration_age_h=age_h(tm_lm), n_total=tm.get("n_total"),
                    n_departures=tm.get("n_departures"), n_appointments=tm.get("n_appointments"))
             rep.log(f"  ORCL departures: {len(dep_hits)}, appointments: {len(app_hits)}, "
@@ -141,7 +152,18 @@ def main():
         except Exception as e:
             rep.fail(f"  talent-migration unreadable: {str(e)[:200]}")
 
-        rep.ok("PROBE COMPLETE")
+        rep.section("verdict")
+        rep.kv(total_hits_across_all_5_investigations=total_hits, core_failures=str(core_failures))
+        if len(core_failures) >= 4:
+            rep.fail(f"most feeds unreadable: {core_failures}")
+            sys.exit(1)
+        if total_hits == 0:
+            rep.fail("ZERO hits for TSLA/ORCL across all 5 feeds despite all being readable — "
+                     "either both tickers are genuinely absent from every one of these signal "
+                     "types, or the recursive scan itself has a bug. Either way this needs a "
+                     "human-visible failure, not a silent pass.")
+            sys.exit(1)
+        rep.ok(f"PROBE COMPLETE — {total_hits} total hits found across the 5 investigations")
 
 
 if __name__ == "__main__":
