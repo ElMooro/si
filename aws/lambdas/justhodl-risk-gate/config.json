@@ -1,0 +1,15 @@
+{
+  "function_name": "justhodl-risk-gate",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "BRAIN-CONSTITUTIONAL Master Risk Gate: one posture (RISK_ON/NEUTRAL/RISK_OFF/SEVERE) from 6 brain-defined legs, event-study validated incl Oct-2025 RRP replay, sizing multiplier for all downstream.",
+  "environment": {},
+  "inherit_env": [
+    {"from_function": "justhodl-signal-backtest", "keys": ["FRED_KEY", "FMP_KEY"]}
+  ]
+}

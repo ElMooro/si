@@ -368,3 +368,6 @@ BEFORE splicing and refused at `current_setups=0`.
 Also grep the in-code VARIABLE, not just the output key: `top_setups` is
 `setups[:50]` and `top_tickers` is its own list — an overlay must mutate the
 variable that becomes the key, before it is sliced.
+
+## BRAIN IS CONSTITUTIONAL (Khalid directive 2026-07-26, PROTECTED)
+data/brain.json defines how the system thinks. ALL decisions, analysis, macro/liquidity/risk definitions, stock and asset-class picking must be based on and traceable to Khalid's brain notes — cite note IDs in engine code and output. Macro/risk/liquidity engines implement his frameworks (liquidity rules; dollar view first; credit spreads = visible liquidity; macro gates sizing before selection) and are graded by EVENT-STUDY / regime P&L, never daily IC. Reference implementation: justhodl-risk-gate (ops 3912).
