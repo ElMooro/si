@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.1 SOURCE-MEMORY"
+MARKER = "tradingview-vault v3.2 GOV-ADAPTERS"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -61,7 +61,7 @@ CADENCE_OVERRIDE = {
     "USM2": "monthly", "USM0": "monthly", "JPM3": "monthly",
     "INDPRO": "monthly", "UNEMPLOY": "monthly", "ICSA": "weekly",
 }
-GDP_RX = re.compile(r"GDPYY$|^USGFCF|CA$")
+GDP_RX = re.compile(r"GDPYY$|^USGFCF|CA$|GDG$")
 
 ALIASES = {
     "US01Y": "fred:DGS1", "US02Y": "fred:DGS2", "US03Y": "fred:DGS3",
@@ -69,7 +69,7 @@ ALIASES = {
     "US01MY": "fred:DGS1MO", "US03MY": "fred:DGS3MO", "US06MY": "fred:DGS6MO",
     "TNX": "fred:DGS10", "VIX": "fred:VIXCLS", "WTI": "fred:DCOILWTICO",
     "USOIL": "fred:DCOILWTICO", "TEDRATE": "fred:TEDRATE",
-    "US02MY": "none:no DGS2MO series", "SOFR30DAYAVG": "fred:SOFR30DAYAVG",
+    "US02MY": "ust:2 Mo", "SOFR30DAYAVG": "fred:SOFR30DAYAVG",
     "USRR": "fred:RRPONTSYD",
     "USIRYY": "yoy:CPIAUCSL", "JPIRYY": "yoy:JPNCPIALLMINMEI",
     "USGDPYY": "yoy:GDPC1", "CNIRYY": "yoy:CHNCPIALLMINMEI",
@@ -145,6 +145,11 @@ ALIASES = {
     "CHMPMI": "none:S&P Global PMI licensed", "WWMPMI": "none:S&P Global PMI licensed",
     "USCPMI": "none:S&P Global PMI licensed", "USNMPR": "none:S&P Global PMI licensed",
     "MAN_PMI": "none:ISM licensed",
+    "ITGDG": "estat:gov_10dd_edpt1|na_item=GD&sector=S13&unit=PC_GDP|IT",
+    "ESGDG": "estat:gov_10dd_edpt1|na_item=GD&sector=S13&unit=PC_GDP|ES",
+    "EUGDG": "estat:gov_10dd_edpt1|na_item=GD&sector=S13&unit=PC_GDP|EA20|EA19",
+    "GBGDG": "none:left Eurostat post-Brexit — ONS build queued",
+    "JPGDG": "none:IMF new data.imf.org API discovery queued",
     "UNTAGGED": "meta:not a metric — the no-tag note bucket",
 }
 
@@ -422,6 +427,24 @@ def resolve_alias(row, al):
                 row["source"] = f"fleet:{fk}:{fp}"
                 return v, None
         return None, None
+    if kind == "ust":
+        v = ust_latest(tgt)
+        if v:
+            row["source"] = "treasury.gov"
+            row["resolved_via"] = f"ust:{tgt}"
+        return v, None
+    if kind == "estat":
+        v = estat_latest(tgt)
+        if v:
+            row["source"] = "eurostat"
+            row["resolved_via"] = f"estat:{tgt}"
+        return v, None
+    if kind == "norges":
+        v = norges_latest(tgt)
+        if v:
+            row["source"] = "norges-bank"
+            row["resolved_via"] = f"norges:{tgt}"
+        return v, None
     if kind == "disc":
         return None, ("DISCONTINUED", tgt)
     if kind == "none":
@@ -429,6 +452,95 @@ def resolve_alias(row, al):
     if kind == "meta":
         return None, ("META", tgt)
     return None, None
+
+
+_UST_CACHE = {}
+
+
+def ust_latest(col):
+    """US Treasury daily par yield curve CSV — official gov source."""
+    if "rows" not in _UST_CACHE:
+        url = ("https://home.treasury.gov/resource-center/data-chart-center/"
+               "interest-rates/daily-treasury-rates.csv/2026/all"
+               "?type=daily_treasury_yield_curve&field_tdr_date_value=2026&_format=csv")
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=25) as r:
+                lines = r.read().decode("utf-8", "ignore").strip().splitlines()
+            hdr = [h.strip().strip('"') for h in lines[0].split(",")]
+            first = [c.strip().strip('"') for c in lines[1].split(",")]
+            _UST_CACHE["rows"] = (hdr, first)
+        except Exception:
+            _UST_CACHE["rows"] = None
+    if not _UST_CACHE.get("rows"):
+        return None
+    hdr, first = _UST_CACHE["rows"]
+    try:
+        i = hdr.index(col)
+        v = float(first[i])
+        return {"value": v, "prev": None, "chg_pct": None,
+                "asof": f"treasury.gov:{first[0]}"}
+    except Exception:
+        return None
+
+
+def estat_latest(tgt):
+    """Eurostat JSON API. tgt = dataset|params|geo1|geo2..."""
+    parts = tgt.split("|")
+    ds, params, geos = parts[0], parts[1], parts[2:]
+    for geo in geos:
+        url = (f"https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/"
+               f"{ds}?format=JSON&lang=EN&freq=A&{params}&geo={geo}&lastTimePeriod=1")
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=25) as r:
+                d = json.loads(r.read())
+            vals = d.get("value") or {}
+            if vals:
+                t_idx = (d.get("dimension", {}).get("time", {})
+                         .get("category", {}).get("index", {}))
+                t_lbl = sorted(t_idx.keys())[-1] if t_idx else "latest"
+                return {"value": float(list(vals.values())[0]), "prev": None,
+                        "chg_pct": None, "asof": f"eurostat:{geo}:{t_lbl}"}
+        except Exception:
+            continue
+    return None
+
+
+def norges_latest(tgt):
+    """Norges Bank SDMX-JSON. tgt = flow:tenor_match (e.g. GOVT_GENERIC_RATES:3)."""
+    flow, _, match = tgt.partition(":")
+    url = (f"https://data.norges-bank.no/api/data/{flow}"
+           f"?format=sdmx-json&lastNObservations=1")
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=25) as r:
+            d = json.loads(r.read())
+        data = d.get("data") or d
+        series = data["dataSets"][0]["series"]
+        dims = data["structure"]["dimensions"]["series"]
+        # find the tenor-ish dimension index and target value position
+        want = None
+        for di, dim in enumerate(dims):
+            for vi, val in enumerate(dim.get("values") or []):
+                idn = (str(val.get("id", "")) + " " + str(val.get("name", ""))).upper()
+                if match.upper() + "Y" in idn.replace(" ", "") or                    (match in idn and "YEAR" in idn):
+                    want = (di, vi)
+                    break
+            if want:
+                break
+        for skey, sval in series.items():
+            pos = [int(x) for x in skey.split(":")]
+            if want and pos[want[0]] != want[1]:
+                continue
+            obs = sval.get("observations") or {}
+            if obs:
+                v = list(obs.values())[0][0]
+                return {"value": round(float(v), 4), "prev": None, "chg_pct": None,
+                        "asof": "norges-bank"}
+    except Exception:
+        pass
+    return None
 
 
 def resolve_direct(rv):
@@ -444,6 +556,12 @@ def resolve_direct(rv):
         return ecb_latest(tgt)
     if kind == "poly":
         return poly_prev(tgt)
+    if kind == "ust":
+        return ust_latest(tgt)
+    if kind == "estat":
+        return estat_latest(tgt)
+    if kind == "norges":
+        return norges_latest(tgt)
     return None
 
 
@@ -556,7 +674,8 @@ def lambda_handler(event, context):
                 age_d = (now - datetime.fromisoformat(fetched_at)).total_seconds() / 86400
             except Exception:
                 age_d = 999
-            retry_gate = 27 if c.get("status") == "NO_FREE_SOURCE" else fresh_days
+            retry_gate = (fresh_days if c.get("resolved_via")
+                          else (27 if c.get("status") == "NO_FREE_SOURCE" else fresh_days))
             if age_d < retry_gate and c.get("status") in ("LIVE", "NO_FREE_SOURCE",
                                                           "DISCONTINUED", "META"):
                 for k in ("value", "prev", "chg_pct", "asof", "status", "source",
@@ -596,7 +715,7 @@ def lambda_handler(event, context):
 
     out = {
         "engine": "justhodl-tradingview",
-        "version": "3.1",
+        "version": "3.2",
         "marker": MARKER,
         "generated_at": now.isoformat(),
         "brain_constitution": "registry parsed live from data/brain.json [TV:*] tags — "
