@@ -1,21 +1,13 @@
-executing-against: 64fc56ed170fd9b5c3b2d8f0228e5ca5710f097e
-ops 3902 — deploy the Decimal fix, hard-gate on updated > 0 (was structurally 0 every run)
-── 1. BEFORE ──
-── 2. ZIP-SETTLE BY MARKER ──
-[03:30:52] ✅   new artifact live on attempt 1 (89,778 zip bytes)
-[03:30:52] ✅   State=Active LastUpdateStatus=Successful
-── 3. invoke (may run close to the full 600s timeout — real Polygon calls per checkpoint) ──
-[03:33:50]   invoke response: {"statusCode": 200, "body": "{\"success\": true, \"version\": \"1.0.0\", \"n_calls_scanned\": 1984, \"n_updated\": 1946, \"n_strategies_tracked\": 5, \"overall_win_rate_30d_pct\": 53.2, \"overall_avg_return_30d_pct\": 1.05, \"elapsed_seconds\": 177.52}"}
-── 4. THE REAL GATE — did updated actually move off the structural 0 ──
-[03:33:50] ✅   journal artifact was rewritten this invoke
-[03:33:50] ✗   n_updated this invoke is a real positive number (was structurally 0 every prior run)
-[03:33:50] ✅   total_evaluated_30d increased from before
-── 5. spot-check a real evaluated call, if any exist now ──
-[03:33:50]   {"strategy": "DEBATE_BUY", "total_calls_90d": 7, "evaluated_30d": 6, "win_rate_30d_pct": 33.3, "avg_return_30d_pct": 9.47, "evaluated_90d": 0, "win_rate_90d_pct": null, "avg_return_90d_pct": null}
-[03:33:50]   {"strategy": "REGIME_PICK", "total_calls_90d": 454, "evaluated_30d": 260, "win_rate_30d_pct": 61.9, "avg_return_30d_pct": 2.83, "evaluated_90d": 0, "win_rate_90d_pct": null, "avg_return_90d_pct": null}
-[03:33:50]   {"strategy": "OPTIONS_TIER_A", "total_calls_90d": 1468, "evaluated_30d": 1262, "win_rate_30d_pct": 52.1, "avg_return_30d_pct": 0.78, "evaluated_90d": 0, "win_rate_90d_pct": null, "avg_return_90d_pct": null}
-[03:33:50]   {"strategy": "TIER_A_ALPHA", "total_calls_90d": 45, "evaluated_30d": 29, "win_rate_30d_pct": 24.1, "avg_return_30d_pct": -5.11, "evaluated_90d": 0, "win_rate_90d_pct": null, "avg_return_90d_pct": null}
-[03:33:50] ✗ FAILED 1: ['n_updated this invoke is a real positive number (was structurally 0 every prior run)']
+executing-against: 9e834cfc54f518d0a2f1b8e1b86636c5401553cc
+ops 3903 — clean re-verification (3902's fix worked, 3902's gate parsing didn't)
+[03:36:27]   DEBATE_BUY           evaluated_30d=6      win_rate=33.3% avg_return=9.47%
+[03:36:27]   REGIME_PICK          evaluated_30d=260    win_rate=61.9% avg_return=2.83%
+[03:36:27]   OPTIONS_TIER_A       evaluated_30d=1262   win_rate=52.1% avg_return=0.78%
+[03:36:27]   TIER_A_ALPHA         evaluated_30d=29     win_rate=24.1% avg_return=-5.11%
+[03:36:27]   DEBATE_STRONG_BUY    evaluated_30d=0      win_rate=None% avg_return=None%
+[03:36:27] ✅   total_evaluated_30d is a real, large positive number
+[03:36:27] ✅   at least 3 strategies have real evaluated data
+[03:36:27] ✅   overall win rate is a real, plausible number (not null, not 0 or 100)
+[03:36:27] ✅ PASS_ALL — 1557 real evaluated calls, 53.2% overall win rate, first time ever populated
 
-→ Report written to aws/ops/reports/latest/3902_trade_evaluator_decimal_fix_deploy.md
-❌ OPS-FAIL: aws/ops/pending/ops_3902_trade_evaluator_decimal_fix_deploy.py
+→ Report written to aws/ops/reports/latest/3903_trade_evaluator_verify_clean.md
