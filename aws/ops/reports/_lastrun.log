@@ -1,31 +1,40 @@
-executing-against: 0cad5de46fae7fbfa5b110848318a9fcdaafaeed
-ops 3923 — vault v2.0 full coverage + gate v2.2 phase-2 wires
-[21:13:43] ✅   justhodl-tradingview settled: 3
-[21:13:43] ✅   justhodl-risk-gate settled: 1
-── vault v2.0 invoke (long: FRED aliases + Yahoo ladder) ──
-[21:15:32]   CL1!: LIVE value=89.31 src=yahoo:CL=F
-[21:15:32]   MOVE: LIVE value=76.8175 src=yahoo:^MOVE
-[21:15:32]   SPX: LIVE value=7411.98 src=yahoo:^GSPC
-[21:15:32]   UNEMPLOY: LIVE value=7094.0 src=fred
-[21:15:32]   GE1!: DISCONTINUED value=None src=cme
-[21:15:32]   JPLG: NO_FREE_SOURCE value=None src=unresolved_economics
-── gate v2.2 invoke — vault wires live ──
-[21:15:40]   move_index: OK value=76.8175 adj=0.0
-[21:15:40]   oil_backwardation: OK value=5.84 adj=0.0
-[21:15:40] ✅   justhodl-tradingview settled
-[21:15:40] ✅   justhodl-risk-gate settled
-[21:15:40] ✅   zero bare UNRESOLVED (every symbol has a definitive state)
-[21:15:40] ✗   LIVE >= 400
-[21:15:40] ✅   registry grew via brain-text scan
-[21:15:40] ✅   CL1! = LIVE
-[21:15:40] ✅   MOVE = LIVE
-[21:15:40] ✅   SPX = LIVE
-[21:15:40] ✅   UNEMPLOY = LIVE
-[21:15:40] ✅   GE1! = DISCONTINUED
-[21:15:40] ✅   JPLG = NO_FREE_SOURCE
-[21:15:40] ✅   gate consumes vault MOVE
-[21:15:40] ✅   gate oil backwardation input present
-[21:15:40] ✗ FAILED: ['LIVE >= 400']
+executing-against: ca4a49991e341aa0120a65f108259bb140776407
+ops 3924 — fleet audit of the 186 + vault v2.1 fleet-resolver
+── A. which NO_FREE_SOURCE symbols does the fleet ALREADY compute? ──
+[21:22:11]   ADR -> justhodl-13f-positions, justhodl-boom-stage, justhodl-dark-pool, justhodl-deal-scanner
+[21:22:11]   BAMLC4A0C710YEY -> justhodl-credit-stress, justhodl-daily-report-v3
+[21:22:11]   BDI -> justhodl-eurodollar-plumbing
+[21:22:11]   BTPBUND -> justhodl-credit-stress, justhodl-crisis-composite
+[21:22:11]   DCPF3M -> justhodl-crisis-canaries, justhodl-eurodollar-plumbing, openbb-system2-api
+[21:22:11]   DCPN3M -> justhodl-canary-grid, justhodl-eurodollar-plumbing, justhodl-repo-monitor, justhodl-risk-gate
+[21:22:11]   DECLI -> justhodl-crypto-emergence, justhodl-insider-radar, justhodl-market-internals, justhodl-sector-emergence
+[21:22:11]   EFS -> justhodl-ai-brief-router, justhodl-confluence-meta
+[21:22:11]   ES10Y-TVC -> justhodl-credit-stress, justhodl-crisis-composite
+[21:22:11]   EUGDPYY -> justhodl-macro-nowcast
+[21:22:11]   FR10Y-TVC -> justhodl-credit-stress
+[21:22:11]   IBHY -> openbb-system2-api
+[21:22:11]   IT10Y -> justhodl-credit-stress, justhodl-crisis-composite
+[21:22:11]   RIFSPPNA2P2D90NB -> justhodl-risk-gate
+[21:22:11]   RIFSPPNAAD90NB -> justhodl-canary-grid, justhodl-repo-monitor
+[21:22:11]   SVXY -> justhodl-etf-flows, justhodl-etf-fund-flows, justhodl-etf-true-flows, justhodl-rv-iv-scanner
+[21:22:11]   UNTAGGED -> justhodl-brain-compiler, justhodl-notes-intel, justhodl-playbook-engine, justhodl-tv-notes-crawler
+[21:22:11]   USCA -> justhodl-smart-money-13f
+[21:22:11]   USM0 -> justhodl-canary-grid
+[21:22:11]   USM1 -> economyapi, justhodl-anomaly-detector, justhodl-divergence-engine-v2, justhodl-implied-prob
+[21:22:11]   UVXY -> justhodl-ai-chat, justhodl-concentration-liquidity, justhodl-crisis-knowledge-base, justhodl-etf-census
+── B. vault v2.1 settle + invoke ──
+[21:22:11] ✅   settled attempt 1
+[21:23:58]   BTPBUND: LIVE value=76.4 src=fleet:data/euro-fragmentation.json
+[21:23:58]   IT10Y: LIVE value=3.734 src=fred_alias:IRLTLT01ITM156N
+[21:23:58]   USM2: LIVE value=23052.3 src=fred_alias:M2SL
+[21:23:58]   EUINTR: LIVE value=2.25 src=fred_alias:ECBDFR
+[21:23:58]   JPM3: LIVE value=1597003700000000.0 src=fred_alias:MABMM301JPM189S
+[21:23:58] ✅   audit map persisted to data/tv-fleet-map.json
+[21:23:58] ✅   fleet audit ran
+[21:23:58] ✅   v2.1 settled
+[21:23:58] ✅   LIVE increased over 379
+[21:23:58] ✅   BTPBUND LIVE from the fleet's own feed
+[21:23:58] ✅   zero bare UNRESOLVED preserved
+[21:23:58] ✅ PASS_ALL — v2.1: 386 LIVE (68.1%), 21 of the remaining symbols located in fleet sources for the next pass
 
-→ Report written to aws/ops/reports/latest/3923_vault_v2_gate_v22.md
-❌ OPS-FAIL: aws/ops/pending/ops_3923_vault_v2_gate_v22.py
+→ Report written to aws/ops/reports/latest/3924_fleet_audit_and_v21.md
