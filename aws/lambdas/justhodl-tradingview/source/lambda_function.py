@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.0 CADENCE-AWARE"
+MARKER = "tradingview-vault v3.1 SOURCE-MEMORY"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -96,9 +96,7 @@ ALIASES = {
     "JPM3": "fred:MABMM301JPM189S",
     "IT10Y": "fred:IRLTLT01ITM156N", "GB10Y": "fred:IRLTLT01GBM156N",
     "EU10Y": "fred:IRLTLT01DEM156N", "GB30Y": "none:no free UK 30Y series",
-    "EU02Y-TVC": "ecb:YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_2Y",
     "EU03Y": "ecb:YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_3Y",
-    "EU30Y-TVC": "ecb:YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_30Y",
     "DE02Y": "ecb:YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_2Y",
     "JP02Y": "none:JGB tenors need MOF/BOJ build", "JP03MY": "none:JGB build",
     "CH02Y": "none:SNB tenor build", "CH03Y": "none:SNB tenor build",
@@ -375,26 +373,31 @@ def resolve_alias(row, al):
         v = fred_latest(tgt)
         if v:
             row["source"] = f"fred_alias:{tgt}"
+            row["resolved_via"] = f"fred:{tgt}"
         return v, None
     if kind == "yoy":
         v = fred_yoy(tgt)
         if v:
             row["source"] = f"fred_yoy:{tgt}"
+            row["resolved_via"] = f"yoy:{tgt}"
         return v, None
     if kind == "yahoo":
         v = yahoo_quote(tgt)
         if v:
             row["source"] = f"yahoo:{tgt}"
+            row["resolved_via"] = f"yahoo:{tgt}"
         return v, None
     if kind == "ecb":
         v = ecb_latest(tgt)
         if v:
             row["source"] = f"ecb:{tgt.split('/')[0]}"
+            row["resolved_via"] = f"ecb:{tgt}"
         return v, None
     if kind == "poly":
         v = poly_prev(tgt)
         if v:
             row["source"] = f"polygon:{tgt}"
+            row["resolved_via"] = f"poly:{tgt}"
         return v, None
     if kind == "fleet":
         fk, _, fp = tgt.partition(":")
@@ -426,6 +429,22 @@ def resolve_alias(row, al):
     if kind == "meta":
         return None, ("META", tgt)
     return None, None
+
+
+def resolve_direct(rv):
+    """Source memory: refetch straight from the proven resolver."""
+    kind, _, tgt = (rv or "").partition(":")
+    if kind == "fred":
+        return fred_latest(tgt)
+    if kind == "yoy":
+        return fred_yoy(tgt)
+    if kind == "yahoo":
+        return yahoo_quote(tgt)
+    if kind == "ecb":
+        return ecb_latest(tgt)
+    if kind == "poly":
+        return poly_prev(tgt)
+    return None
 
 
 def ladder(row):
@@ -468,6 +487,7 @@ def ladder(row):
             row.update(v)
             row["status"] = "LIVE"
             row["source"] = "fred_2nd_chance"
+            row["resolved_via"] = f"fred:{sym}"
             return True
     if not al and sym.isalpha() and len(sym) <= 6:
         v = yahoo_quote("^" + sym)
@@ -475,6 +495,7 @@ def ladder(row):
             row.update(v)
             row["status"] = "LIVE"
             row["source"] = f"yahoo:^{sym}"
+            row["resolved_via"] = f"yahoo:^{sym}"
             return True
     if not al and sym.isalpha() and 2 <= len(sym) <= 5:
         v = yahoo_quote(sym)
@@ -482,12 +503,14 @@ def ladder(row):
             row.update(v)
             row["status"] = "LIVE"
             row["source"] = f"yahoo:{sym}"
+            row["resolved_via"] = f"yahoo:{sym}"
             return True
         v = poly_prev(sym)
         if v:
             row.update(v)
             row["status"] = "LIVE"
             row["source"] = f"polygon:{sym}"
+            row["resolved_via"] = f"poly:{sym}"
             return True
     row["status"] = "NO_FREE_SOURCE"
     row["value"] = None
@@ -548,9 +571,19 @@ def lambda_handler(event, context):
         if row["source"] == "fmp" and sym in fmp_vals:
             row.update(fmp_vals[sym])
             row["status"] = "LIVE"
+            row["resolved_via"] = "fmp"
             n_live += 1
         else:
-            if ladder(row):
+            rv = c.get("resolved_via")
+            v = resolve_direct(rv) if (rv and rv != "fmp" and c.get("status") == "LIVE"
+                                       and not force) else None
+            if v:
+                row.update(v)
+                row["status"] = "LIVE"
+                row["source"] = c.get("source")
+                row["resolved_via"] = rv
+                n_live += 1
+            elif ladder(row):
                 n_live += 1
         row["fetched_at"] = now.isoformat()
 
@@ -563,7 +596,7 @@ def lambda_handler(event, context):
 
     out = {
         "engine": "justhodl-tradingview",
-        "version": "3.0",
+        "version": "3.1",
         "marker": MARKER,
         "generated_at": now.isoformat(),
         "brain_constitution": "registry parsed live from data/brain.json [TV:*] tags — "
