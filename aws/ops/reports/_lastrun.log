@@ -1,14 +1,167 @@
-executing-against: 3002599be34402b48f2643120aed0344aded18f0
-ops 3926 — v2.3 suffix-key close
-[21:37:45] ✅   settled attempt 1
-[21:39:36]   ES10Y-TVC: LIVE value=3.421 src=fleetsum:data/euro-fragmentation.json
-[21:39:36]   FR10Y-TVC: LIVE value=3.68 src=fleetsum:data/euro-fragmentation.json
-[21:39:36] ✅   settled
-[21:39:36] ✅   ES10Y-TVC LIVE via fleetsum
-[21:39:36] ✅   FR10Y-TVC LIVE via fleetsum
-[21:39:36] ✗   LIVE >= 404
-[21:39:36] ✅   zero bare UNRESOLVED
-[21:39:36] ✗ FAILED: ['LIVE >= 404']
+executing-against: 2fd86f6c1ff6ed0ca5f490f7b3e543ab3ec757d2
+ops 3927 — the exact NO_FREE_SOURCE list
+[21:45:55]   BDI | cat=commodity | ex=INDEX | notes=4 | src=unresolved_tv_only
+[21:45:55]   IBHY | cat=credit | ex=FX | notes=2 | src=unresolved_tv_only
+[21:45:55]   BAMLC4A0C710YEY-TVC | cat=credit | ex=FRED | notes=1 | src=fred_failed
+[21:45:55]   HQMCB10YRP-TVC | cat=credit | ex=FRED | notes=1 | src=fred_failed
+[21:45:55]   EFS | cat=equity | ex=CBOE | notes=8 | src=fmp_failed
+[21:45:55]   JSGW | cat=equity | ex=DUS | notes=6 | src=fmp_failed
+[21:45:55]   399233 | cat=equity | ex=SZSE | notes=4 | src=fmp_failed
+[21:45:55]   CPCS | cat=equity | ex=INDEX | notes=3 | src=fmp_failed
+[21:45:55]   000039 | cat=equity | ex=SZSE | notes=2 | src=fmp_failed
+[21:45:55]   000161 | cat=equity | ex=SSE | notes=2 | src=fmp_failed
+[21:45:55]   ADR | cat=equity | ex=NYSE | notes=2 | src=fmp_failed
+[21:45:55]   ADRN | cat=equity | ex=INDEX | notes=2 | src=fmp_failed
+[21:45:55]   AKZA | cat=equity | ex=EURONEXT | notes=2 | src=fmp_failed
+[21:45:55]   BARC | cat=equity | ex=LSE | notes=2 | src=fmp_failed
+[21:45:55]   BNEWE | cat=equity | ex=EURONEXT | notes=2 | src=fmp_failed
+[21:45:55]   CEMG | cat=equity | ex=LSE | notes=2 | src=fmp_failed
+[21:45:55]   LLXD | cat=equity | ex=HAM | notes=2 | src=fmp_failed
+[21:45:55]   MXS | cat=equity | ex=CBOE | notes=2 | src=fmp_failed
+[21:45:55]   NCFI | cat=equity | ex=INDEX | notes=2 | src=fmp_failed
+[21:45:55]   TDXP | cat=equity | ex=XETR | notes=2 | src=fmp_failed
+[21:45:55]   XBAE | cat=equity | ex=XETR | notes=2 | src=fmp_failed
+[21:45:55]   USIJC | cat=equity | ex= | notes=1 | src=fmp_failed
+[21:45:55]   YIT1! | cat=futures | ex=CBOT | notes=12 | src=unresolved_futures
+[21:45:55]   USW1! | cat=futures | ex=ICEEUR | notes=10 | src=unresolved_futures
+[21:45:55]   AWN1! | cat=futures | ex=ICEUS | notes=4 | src=unresolved_futures
+[21:45:55]   F1U1! | cat=futures | ex=CBOT | notes=4 | src=unresolved_futures
+[21:45:55]   FMMG1! | cat=futures | ex=EUREX | notes=4 | src=unresolved_futures
+[21:45:55]   I1! | cat=futures | ex=ICEEUR | notes=4 | src=unresolved_futures
+[21:45:55]   EMM2! | cat=futures | ex=ICEEUR | notes=2 | src=unresolved_futures
+[21:45:55]   FMEA2! | cat=futures | ex=EUREX | notes=2 | src=unresolved_futures
+[21:45:55]   FMMI2! | cat=futures | ex=EUREX | notes=2 | src=unresolved_futures
+[21:45:55]   GBW2! | cat=futures | ex=ICEEUR | notes=2 | src=unresolved_futures
+[21:45:55]   SO32! | cat=futures | ex=ICEEUR | notes=2 | src=unresolved_futures
+[21:45:55]   SON1! | cat=futures | ex=CME | notes=2 | src=unresolved_futures
+[21:45:55]   TOPIX1! | cat=futures | ex=OSE | notes=2 | src=unresolved_futures
+[21:45:55]   USP2! | cat=futures | ex=ICEEUR | notes=2 | src=unresolved_futures
+[21:45:55]   TWEXPYY | cat=fx | ex=ECONOMICS | notes=6 | src=unresolved_economics
+[21:45:55]   JPLG | cat=macro | ex=ECONOMICS | notes=14 | src=unresolved_economics
+[21:45:55]   WWMPMI | cat=macro | ex=ECONOMICS | notes=7 | src=unresolved_economics
+[21:45:55]   USHMI | cat=macro | ex=ECONOMICS | notes=6 | src=unresolved_economics
+[21:45:55]   USM0 | cat=macro | ex=ECONOMICS | notes=6 | src=unresolved_economics
+[21:45:55]   EUMPMI | cat=macro | ex=ECONOMICS | notes=5 | src=unresolved_economics
+[21:45:55]   USMPMI | cat=macro | ex=ECONOMICS | notes=5 | src=unresolved_economics
+[21:45:55]   CLGDPYY | cat=macro | ex=ECONOMICS | notes=4 | src=unresolved_economics
+[21:45:55]   CLTOT | cat=macro | ex=ECONOMICS | notes=4 | src=unresolved_economics
+[21:45:55]   JPM3 | cat=macro | ex=ECONOMICS | notes=4 | src=unresolved_economics
+[21:45:55]   USCBBS | cat=macro | ex=ECONOMICS | notes=4 | src=unresolved_economics
+[21:45:55]   USFDI | cat=macro | ex=ECONOMICS | notes=4 | src=unresolved_economics
+[21:45:55]   USMNO | cat=macro | ex=ECONOMICS | notes=4 | src=unresolved_economics
+[21:45:55]   USMPRYY | cat=macro | ex=ECONOMICS | notes=4 | src=unresolved_economics
+[21:45:55]   USBCOI | cat=macro | ex=ECONOMICS | notes=3 | src=unresolved_economics
+[21:45:55]   USINBR | cat=macro | ex=ECONOMICS | notes=3 | src=unresolved_economics
+[21:45:55]   BOTOT | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   CHMPMI | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   CHUR | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   CLBOT | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   CNCA | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   CNCLI | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   CNEAI | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   CNLIVRR | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   CNPPIYY | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   DENO | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   ESGDG | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   EUCA | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   EUEOI | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   EUESI | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   EUFER | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   EUGDG | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   FIGDPYY | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   GBGDG | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   ITGDG | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   JPCIND | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   JPGDG | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   JPIRYY | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   JPJV | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   JPMPMI | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   JPMTO | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   JPPPIYY | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   MABOT | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   MAN_PMI | cat=macro | ex=ISM | notes=2 | src=unresolved_tv_only
+[21:45:55]   PETOT | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   TWMPMI | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   USBLR | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   USCF | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   USCFNAI | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   USCPMI | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   USFER | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   USGFCF | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   USHPIYY | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   USHST | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   USJC | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   USLEI | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   USNFP | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   USNHS | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   USNMPR | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   USSBSI | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   USTOT | cat=macro | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   CHFER-ECONOMICS | cat=macro | ex=ECONOMICS | notes=1 | src=unresolved_economics
+[21:45:55]   CNGDPYY | cat=macro | ex=ECONOMICS | notes=1 | src=unresolved_economics
+[21:45:55]   DECLI | cat=macro | ex=ECONOMICS | notes=1 | src=unresolved_economics
+[21:45:55]   EUFER-ECONOMICS | cat=macro | ex=ECONOMICS | notes=1 | src=unresolved_economics
+[21:45:55]   EUGDPYY | cat=macro | ex=ECONOMICS | notes=1 | src=unresolved_economics
+[21:45:55]   FRCLI | cat=macro | ex=ECONOMICS | notes=1 | src=unresolved_economics
+[21:45:55]   GBCLI | cat=macro | ex=ECONOMICS | notes=1 | src=unresolved_economics
+[21:45:55]   ITCLI | cat=macro | ex=ECONOMICS | notes=1 | src=unresolved_economics
+[21:45:55]   JPCLI | cat=macro | ex=ECONOMICS | notes=1 | src=unresolved_economics
+[21:45:55]   JPFER-ECONOMICS | cat=macro | ex=ECONOMICS | notes=1 | src=unresolved_economics
+[21:45:55]   JPGDPYY | cat=macro | ex=ECONOMICS | notes=1 | src=unresolved_economics
+[21:45:55]   KRCLI | cat=macro | ex=ECONOMICS | notes=1 | src=unresolved_economics
+[21:45:55]   USCLI | cat=macro | ex=ECONOMICS | notes=1 | src=unresolved_economics
+[21:45:55]   USFER-ECONOMICS | cat=macro | ex=ECONOMICS | notes=1 | src=unresolved_economics
+[21:45:55]   2USNOTE | cat=other | ex=FX | notes=10 | src=unresolved_tv_only
+[21:45:55]   FTEMSLU | cat=other | ex=FTSE | notes=9 | src=unresolved_tv_only
+[21:45:55]   EMBASKET | cat=other | ex=FX | notes=8 | src=unresolved_tv_only
+[21:45:55]   EUBUND | cat=other | ex=TVC | notes=4 | src=unresolved_tv_only
+[21:45:55]   088691_F_OI | cat=other | ex=COT | notes=2 | src=unresolved_tv_only
+[21:45:55]   10USNOTE | cat=other | ex=FX | notes=2 | src=unresolved_tv_only
+[21:45:55]   5USNOTE | cat=other | ex=FX | notes=2 | src=unresolved_tv_only
+[21:45:55]   C1000P | cat=other | ex=SIX | notes=2 | src=unresolved_tv_only
+[21:45:55]   C9DA | cat=other | ex=HAM | notes=2 | src=unresolved_tv_only
+[21:45:55]   NOVO_B | cat=other | ex=OMXCOP | notes=2 | src=unresolved_tv_only
+[21:45:55]   NQBRICT | cat=other | ex=NASDAQ | notes=2 | src=fmp_failed
+[21:45:55]   NQCAPSTDMXUST | cat=other | ex=NASDAQ | notes=2 | src=fmp_failed
+[21:45:55]   NQDMXUS | cat=other | ex=NASDAQ | notes=2 | src=fmp_failed
+[21:45:55]   NQG50 | cat=other | ex=NASDAQ | notes=2 | src=fmp_failed
+[21:45:55]   NQHKHKD | cat=other | ex=NASDAQ | notes=2 | src=fmp_failed
+[21:45:55]   OMRXREAL | cat=other | ex=OMXNORDIC | notes=2 | src=unresolved_tv_only
+[21:45:55]   W4500 | cat=other | ex=NYSE | notes=2 | src=fmp_failed
+[21:45:55]   AWN1 | cat=other | ex=ICEUS | notes=1 | src=unresolved_tv_only
+[21:45:55]   DE10Y-IT10Y | cat=other | ex=TVC | notes=1 | src=unresolved_tv_only
+[21:45:55]   DE10Y-TVC | cat=other | ex=TVC | notes=1 | src=unresolved_tv_only
+[21:45:55]   MME1 | cat=other | ex=ICEUS | notes=1 | src=unresolved_tv_only
+[21:45:55]   US01MY-TVC | cat=other | ex=TVC | notes=1 | src=unresolved_tv_only
+[21:45:55]   US02Y-TVC | cat=other | ex=TVC | notes=1 | src=unresolved_tv_only
+[21:45:55]   US05Y-TVC | cat=other | ex=TVC | notes=1 | src=unresolved_tv_only
+[21:45:55]   US30Y-TVC | cat=other | ex=TVC | notes=1 | src=unresolved_tv_only
+[21:45:55]   JPINTR | cat=rates | ex=ECONOMICS | notes=10 | src=unresolved_economics
+[21:45:55]   CLINTR | cat=rates | ex=ECONOMICS | notes=8 | src=unresolved_economics
+[21:45:55]   EUINTR | cat=rates | ex=ECONOMICS | notes=8 | src=unresolved_economics
+[21:45:55]   USINTR | cat=rates | ex=ECONOMICS | notes=8 | src=unresolved_economics
+[21:45:55]   JP03MY | cat=rates | ex=TVC | notes=7 | src=unresolved_tv_only
+[21:45:55]   US03Y | cat=rates | ex=TVC | notes=6 | src=unresolved_tv_only
+[21:45:55]   CH02Y | cat=rates | ex=TVC | notes=4 | src=unresolved_tv_only
+[21:45:55]   CH03Y | cat=rates | ex=TVC | notes=4 | src=unresolved_tv_only
+[21:45:55]   JP02Y | cat=rates | ex=TVC | notes=4 | src=unresolved_tv_only
+[21:45:55]   SS03 | cat=rates | ex=FTSE | notes=4 | src=unresolved_tv_only
+[21:45:55]   CHINTR | cat=rates | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   CN10Y | cat=rates | ex=TVC | notes=2 | src=unresolved_tv_only
+[21:45:55]   CNINTR | cat=rates | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   DE02Y | cat=rates | ex=TVC | notes=2 | src=unresolved_tv_only
+[21:45:55]   EU03Y | cat=rates | ex=TVC | notes=2 | src=unresolved_tv_only
+[21:45:55]   EU10Y | cat=rates | ex=TVC | notes=2 | src=unresolved_tv_only
+[21:45:55]   GB10Y | cat=rates | ex=TVC | notes=2 | src=unresolved_tv_only
+[21:45:55]   GB30Y | cat=rates | ex=TVC | notes=2 | src=unresolved_tv_only
+[21:45:55]   NO03Y | cat=rates | ex=TVC | notes=2 | src=unresolved_tv_only
+[21:45:55]   TWINTR | cat=rates | ex=ECONOMICS | notes=2 | src=unresolved_economics
+[21:45:55]   US02MY | cat=rates | ex=TVC | notes=2 | src=unresolved_tv_only
+[21:45:55]   CN01Y | cat=rates | ex= | notes=1 | src=unresolved_tv_only
+[21:45:55]   EU02Y-TVC | cat=rates | ex=TVC | notes=1 | src=unresolved_tv_only
+[21:45:55]   EU30Y-TVC | cat=rates | ex=TVC | notes=1 | src=unresolved_tv_only
+[21:45:55]   FEDFUNDS-FRED | cat=rates | ex=FRED | notes=1 | src=fred_failed
+[21:45:55]   JP02Y-TVC | cat=rates | ex=TVC | notes=1 | src=unresolved_tv_only
+[21:45:55] ✅ DUMP COMPLETE
 
-→ Report written to aws/ops/reports/latest/3926_vault_v23_close.md
-❌ OPS-FAIL: aws/ops/pending/ops_3926_vault_v23_close.py
+→ Report written to aws/ops/reports/latest/3927_dump_unresolved.md
