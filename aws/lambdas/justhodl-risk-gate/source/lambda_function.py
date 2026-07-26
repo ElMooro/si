@@ -58,7 +58,7 @@ import boto3
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/risk-gate.json"
-MARKER = "risk-gate v1.0 BRAIN-CONSTITUTIONAL"
+MARKER = "risk-gate v2.0 BRAIN-CONSTITUTIONAL FLEET-FUSED"
 
 s3 = boto3.client("s3")
 
@@ -80,6 +80,8 @@ SERIES = {
     "DEXJPUS":         "tv-f58a44fc2f839aac", # yen (carry unwind)
     "INDPRO":          "nmq5x00zh27pq",       # recession predictor
     "VIXCLS":          "tv-14a76b6087dc80eb", # vol cascade proxy
+    "DCPN3M":          "nmrdt9tk992wt",       # 3M CP (CP-FFR spread, fuse-list)
+    "DFF":             "nmrdt9tk992wt",       # fed funds for the CP spread
     "SP500":           "event-study-benchmark",
 }
 
@@ -180,7 +182,14 @@ def compute_posture(F, calendar, i):
         elif sofr_iorb_bp > 5:
             funding -= 0.5
             notes1.append(f"SOFR-IORB +{sofr_iorb_bp:.0f}bp elevated [tv-a56315720e79a9ea]")
+    cp, ff = F["DCPN3M"].get(d), F["DFF"].get(d)
+    cp_ffr_bp = (cp - ff) * 100 if (cp is not None and ff is not None) else None
+    if cp_ffr_bp is not None and cp_ffr_bp > 40:
+        funding -= 0.5
+        notes1.append(f"CP-FFR spread +{cp_ffr_bp:.0f}bp — credit conditions tightening "
+                      f"in the funding market [nmrdt9tk992wt]")
     legs["funding"] = {"score": max(-2.0, min(2.0, funding)), "why": notes1,
+                       "cp_ffr_bp": cp_ffr_bp,
                        "rrp_bn": rrp, "reserves_13w_pct": res_13w,
                        "sofr_iorb_bp": sofr_iorb_bp}
 
@@ -383,6 +392,179 @@ def event_study(F, calendar, postures):
     }
 
 
+
+
+# ── FLEET LAYER (v2.0, Khalid-approved list 2026-07-26) ─────────────────────
+# Consumes existing engines' LIVE outputs as per-leg adjustments. Applied to
+# the LIVE posture only — the FRED replay stays pure so the event study keeps
+# its integrity (fleet feeds lack deep history; grading them by replay would
+# be fake). Per-leg fleet adjustment clamped to ±0.75 so no single feed and
+# no leg's fleet inputs can dominate the FRED base. Missing/stale = 0 + an
+# honest status, never a synthesized value.
+FLEET_STALE_H = 72.0
+
+def _feed(key):
+    try:
+        o = s3.get_object(Bucket=S3_BUCKET, Key=key)
+        age = (datetime.now(timezone.utc) - o["LastModified"]).total_seconds() / 3600
+        return json.loads(o["Body"].read()), round(age, 1)
+    except Exception:
+        return None, None
+
+def _fi(name, key, value, adj, note, age):
+    status = "MISSING" if value is None else ("STALE" if (age or 0) > FLEET_STALE_H else "OK")
+    return {"input": name, "feed": key, "value": value,
+            "score_adj": adj if status == "OK" else 0.0,
+            "note": note, "age_h": age, "status": status}
+
+def fleet_adjust(legs):
+    """Returns {leg: [fleet_input dicts]}; mutates nothing."""
+    out = {k: [] for k in legs}
+
+    # LEG 1 FUNDING — fails, dealer stress, 10Y auction, SOMA/TGA + xcc basis
+    pd_doc, a = _feed("data/nyfed-primary-dealer.json")
+    v = (pd_doc or {}).get("corp_net_bonds_b")
+    adj = (-0.3 if (isinstance(v, (int, float)) and v < -20) else 0.0)
+    out["funding"].append(_fi("dealer_corp_net_bonds_b", "nyfed-primary-dealer", v, adj,
+        "corporate NET_SHORT deepening = dealer balance-sheet stress [tv-a8157acb4435ffe6]", a))
+    ofr, a = _feed("data/ofr-stfm.json")
+    v = (ofr or {}).get("fails_cross")
+    adj = (-0.4 if (isinstance(v, (int, float)) and v > 1.5) else 0.0)
+    out["funding"].append(_fi("fails_cross_z", "ofr-stfm", v, adj,
+        "fails = collateral scramble, liquidity-barometer basket [nmq5x0cp7zp4j]", a))
+    ag, a = _feed("data/auction-grades.json")
+    g10 = None
+    for r in ((ag or {}).get("graded_auctions") or []):
+        if "10" in json.dumps({k: r.get(k) for k in r if not isinstance(r.get(k), dict)}):
+            g10 = r.get("overall_grade"); break
+    adj = (-0.4 if g10 in ("D", "F", "D-", "D+") else (0.2 if g10 in ("A", "A+") else 0.0))
+    out["funding"].append(_fi("auction_10y_grade", "auction-grades", g10, adj,
+        "the 10-year auction is THE one to watch [nmq5x0cp8023c]", a))
+    cp_doc, a = _feed("data/crisis-plumbing.json")
+    v = (cp_doc or {}).get("composite_stress_score") or (cp_doc or {}).get("composite_score")
+    adj = (-0.4 if (isinstance(v, (int, float)) and v > 60) else
+           (0.2 if (isinstance(v, (int, float)) and v < 20) else 0.0))
+    out["funding"].append(_fi("plumbing_composite", "crisis-plumbing", v, adj,
+        "SOMA/TGA/repo composite [nmq5x1e4pod5k]", a))
+    v = (cp_doc or {}).get("xcc_basis_proxy")
+    adj = (-0.5 if (isinstance(v, (int, float)) and v < -25) else 0.0)
+    out["funding"].append(_fi("xcc_basis_proxy_bp", "crisis-plumbing", v, adj,
+        "cross-currency basis — his ranked #1 leading funding signal [nmq5x1qrmghwy]", a))
+
+    # LEG 2 CREDIT — 5-lens composite + IG z-scores
+    cc, a = _feed("data/credit-composite.json")
+    v = (cc or {}).get("composite")
+    adj = (-0.5 if (isinstance(v, (int, float)) and v > 60) else
+           (-0.25 if (isinstance(v, (int, float)) and v > 40) else
+            (0.25 if (isinstance(v, (int, float)) and v < 20) else 0.0)))
+    out["credit"].append(_fi("credit_composite_0_100", "credit-composite", v, adj,
+        "5-lens incl %-banks-tightening which follows CCC [nmq8lde8rj3g8]", a))
+    cs, a = _feed("data/credit-stress.json")
+    zs = [(m or {}).get("z_score_60d") for m in ((cs or {}).get("metrics") or {}).values()]
+    zs = [z for z in zs if isinstance(z, (int, float))]
+    v = round(sum(zs) / len(zs), 2) if zs else None
+    adj = (-0.4 if (v is not None and v > 1.5) else (0.2 if (v is not None and v < -0.5) else 0.0))
+    out["credit"].append(_fi("credit_z60_mean", "credit-stress", v, adj,
+        "mean spread z across the IG/HY ladder — widening cascade [tv-ba419d7b64a1e75d]", a))
+
+    # LEG 3 DOLLAR/GLOBAL — BTP-Bund/fragmentation + BIS cross-border
+    ef, a = _feed("data/euro-fragmentation.json")
+    v = ((ef or {}).get("fragmentation") or {}).get("widest_spread_bp") or (ef or {}).get("widest_spread_bp")
+    adj = (-0.4 if (isinstance(v, (int, float)) and v > 150) else
+           (-0.2 if (isinstance(v, (int, float)) and v > 100) else 0.0))
+    out["dollar"].append(_fi("btp_bund_widest_bp", "euro-fragmentation", v, adj,
+        "BTP-Bund / fragmentation — fuse-list [nmrdt9tk992wt]", a))
+    bis, a = _feed("data/bis-crossborder.json")
+    ys = [(r or {}).get("yoy_pct") for r in ((bis or {}).get("by_counterparty") or [])]
+    ys = sorted([y for y in ys if isinstance(y, (int, float))])
+    v = ys[len(ys)//2] if ys else None
+    adj = (-0.3 if (v is not None and v < 0) else (0.2 if (v is not None and v > 8) else 0.0))
+    out["dollar"].append(_fi("bis_crossborder_yoy_median", "bis-crossborder", v, adj,
+        "eurodollar loan growth = global liquidity creation [nmq5vzr2aozu3]", a))
+
+    # LEG 4 CARRY/EURODOLLAR — yen-carry scored, plumbing board, China credit
+    yc, a = _feed("data/yen-carry.json")
+    v = (yc or {}).get("unwind_risk_score")
+    adj = (-0.6 if (isinstance(v, (int, float)) and v > 70) else
+           (-0.3 if (isinstance(v, (int, float)) and v > 50) else
+            (0.2 if (isinstance(v, (int, float)) and v < 25) else 0.0)))
+    out["carry"].append(_fi("yen_unwind_risk_0_100", "yen-carry", v, adj,
+        "5-factor carry unwind — margin-call cascade [tv-f58a44fc2f839aac]", a))
+    ep, a = _feed("data/eurodollar-plumbing.json")
+    v = (ep or {}).get("stress_score")
+    adj = (-0.5 if (isinstance(v, (int, float)) and v > 60) else
+           (0.25 if (isinstance(v, (int, float)) and v < 20) else 0.0))
+    out["carry"].append(_fi("eurodollar_stress_0_100", "eurodollar-plumbing", v, adj,
+        "the 7-layer offshore-USD transmission board [nmq5x1e4kdcoz]", a))
+    cl, a = _feed("data/china-liquidity.json")
+    v = ((cl or {}).get("money") or {}).get("m1_yoy_pct")
+    adj = (-0.3 if (isinstance(v, (int, float)) and v < 0) else
+           (0.2 if (isinstance(v, (int, float)) and v > 8) else 0.0))
+    out["carry"].append(_fi("china_m1_yoy_pct", "china-liquidity", v, adj,
+        "CNY liquidity/devaluation risk channel [nmq5x0cpig3hx]", a))
+
+    # LEG 5 GLOBAL GROWTH — Taiwan/Korea exports, freight, air cargo, ports
+    al, a = _feed("data/asia-leads.json")
+    v = ((al or {}).get("taiwan_exports") or {}).get("yoy_pct")
+    adj = (-0.4 if (isinstance(v, (int, float)) and v < 0) else
+           (0.3 if (isinstance(v, (int, float)) and v > 15) else 0.0))
+    out["growth"].append(_fi("taiwan_exports_yoy", "asia-leads", v, adj,
+        "Taiwan exports YoY — fuse-list [nmrdt9tk992wt]", a))
+    fp, a = _feed("data/freight-pulse.json")
+    ys = [((fp or {}).get("series") or {}).get(k, {}).get("yoy_pct")
+          for k in ("tsi_freight", "cass_shipments", "truck_tonnage", "rail_carloads")]
+    ys = sorted([y for y in ys if isinstance(y, (int, float))])
+    v = ys[len(ys)//2] if ys else None
+    adj = (-0.3 if (v is not None and v < -3) else (0.2 if (v is not None and v > 3) else 0.0))
+    out["growth"].append(_fi("freight_yoy_median", "freight-pulse", v, adj,
+        "real-economy nowcast", a))
+    ac, a = _feed("data/air-cargo.json")
+    v = (ac or {}).get("yoy_pct")
+    adj = (-0.2 if (isinstance(v, (int, float)) and v < -5) else
+           (0.1 if (isinstance(v, (int, float)) and v > 5) else 0.0))
+    out["growth"].append(_fi("air_cargo_yoy", "air-cargo", v, adj, "air freight nowcast", a))
+    pw, a = _feed("data/portwatch.json")
+    ys = [(r or {}).get("yoy_pct") for r in ((pw or {}).get("chokepoints") or [])]
+    ys = sorted([y for y in ys if isinstance(y, (int, float))])
+    v = ys[len(ys)//2] if ys else None
+    adj = (-0.3 if (v is not None and v < -15) else 0.0)
+    out["growth"].append(_fi("portwatch_chokepoint_yoy_median", "portwatch", v, adj,
+        "median guards against single disrupted-chokepoint noise", a))
+
+    # LEG 6 STRUCTURE — bond-vol board, vol-migration spill, ETF flows, CFTC ctx
+    bv, a = _feed("data/bond-vol.json")
+    v = (bv or {}).get("composite_z_score")
+    fr = ((bv or {}).get("funding_plumbing") or {}).get("regime")
+    adj = (-0.5 if (isinstance(v, (int, float)) and v > 1.5) else 0.0)
+    adj += (-0.2 if fr == "TIGHTENING" else 0.0)
+    out["structure"].append(_fi("bond_vol_z_plus_funding", "bond-vol",
+        {"z": v, "funding_regime": fr} if v is not None else None, adj,
+        "real MOVE-proxy + funding regime — vol->forced-selling cascade [tv-14a76b6087dc80eb]", a))
+    fv, a = _feed("data/fifx-vol-history.json")
+    rows = (fv or {}).get("rows") or []
+    v = (rows[-1] or {}).get("spill") if rows else None
+    adj = (-0.4 if (isinstance(v, (int, float)) and v > 2) else 0.0)
+    out["structure"].append(_fi("vol_migration_spill_z", "fifx-vol-history", v, adj,
+        "cross-asset vol spillover; breadth 100% in 2008 AND 2020", a))
+    tf, a = _feed("data/etf-true-flows.json")
+    tot = 0.0; seen = False
+    for side in ("inflows", "outflows"):
+        for r in ((tf or {}).get(side) or []):
+            fl = (r or {}).get("net_flow_20d_usd")
+            if isinstance(fl, (int, float)):
+                tot += fl; seen = True
+    v = round(tot / 1e9, 2) if seen else None
+    adj = (-0.3 if (v is not None and v < -10) else (0.2 if (v is not None and v > 10) else 0.0))
+    out["structure"].append(_fi("etf_net_flow_20d_usd_bn", "etf-true-flows", v, adj,
+        "capital risk-on/off direction feeds signals [Khalid 2026-06-09]", a))
+    cf, a = _feed("data/cftc-deep-view.json")
+    rows = (cf or {}).get("all_contract_analyses") or []
+    v = len(rows) if rows else None
+    out["structure"].append(_fi("cftc_dealer_positioning", "cftc-deep-view", v, 0.0,
+        "context only until n>=26 weekly reports [rotation-arc COT rule]; "
+        "excessive longs = vulnerable setup [nmq5x0b27is35]", a))
+    return out
+
 def read_feed(key):
     try:
         return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
@@ -415,7 +597,27 @@ def lambda_handler(event, context):
 
     # live reading = last day, with full leg detail
     li = len(calendar) - 1
-    live_posture, live_comp, live_legs = compute_posture(F, calendar, li)
+    replay_posture, replay_comp, live_legs = compute_posture(F, calendar, li)
+
+    # v2.0: fuse the approved fleet feeds into the LIVE posture (replay stays
+    # FRED-pure). Per-leg fleet adjustment clamped to +/-0.75.
+    fleet_in = fleet_adjust(live_legs)
+    W = {"funding": .25, "credit": .25, "dollar": .20, "carry": .10,
+         "growth": .10, "structure": .10}
+    live_comp = 0.0
+    for k in W:
+        fa = max(-0.75, min(0.75, sum(x["score_adj"] for x in fleet_in.get(k, []))))
+        live_legs[k]["fleet_adj"] = round(fa, 3)
+        live_legs[k]["fleet_inputs"] = fleet_in.get(k, [])
+        live_legs[k]["score_fused"] = round(max(-2.0, min(2.0, live_legs[k]["score"] + fa)), 3)
+        live_comp += live_legs[k]["score_fused"] * W[k]
+    live_comp = round(live_comp, 3)
+    if live_legs["funding"]["score_fused"] <= -2 and live_legs["credit"]["score_fused"] <= -1:
+        live_posture = "SEVERE"
+    elif live_comp >= 0.35: live_posture = "RISK_ON"
+    elif live_comp > -0.35: live_posture = "NEUTRAL"
+    elif live_comp > -0.95: live_posture = "RISK_OFF"
+    else: live_posture = "SEVERE"
 
     # existing-fleet context (consumed, never duplicated) — live only
     yen = read_feed("data/yen-carry.json")
@@ -447,6 +649,8 @@ def lambda_handler(event, context):
         },
         "posture": live_posture,
         "composite": live_comp,
+        "replay_posture_fred_only": replay_posture,
+        "replay_composite_fred_only": replay_comp,
         "sizing_multiplier": SIZING[live_posture],
         "legs": live_legs,
         "fleet_context": fleet_context,
