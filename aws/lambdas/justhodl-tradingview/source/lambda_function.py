@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.2 GOV-ADAPTERS"
+MARKER = "tradingview-vault v3.2.1 NORGES-FIX"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -518,7 +518,8 @@ def norges_latest(tgt):
             d = json.loads(r.read())
         data = d.get("data") or d
         series = data["dataSets"][0]["series"]
-        dims = data["structure"]["dimensions"]["series"]
+        struct = data.get("structure") or (data.get("structures") or [{}])[0]
+        dims = struct["dimensions"]["series"]
         # find the tenor-ish dimension index and target value position
         want = None
         for di, dim in enumerate(dims):
