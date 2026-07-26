@@ -1,9 +1,12 @@
-executing-against: 5ec00ea3bf01a3fb6c4079f8c060f889962ebc8f
-ops 3928 — v3.0 cadence-aware: conversion run + cache-proof run
-[21:55:19] ✅   settled attempt 1
-── RUN 1 — cold conversion ──
+# ops 3928 — v3.0 cadence-aware: conversion run + cache-proof run
 
-→ Report written to aws/ops/reports/latest/3928_vault_v3_cadence.md
+**Status:** failure  
+**Duration:** 292.5s  
+**Finished:** 2026-07-26T22:00:12+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
     response = self._make_request(
@@ -58,8 +61,8 @@ urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Re
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3928_vault_v3_cadence.py", line 98, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_3928_vault_v3_cadence.py", line 58, in main
     d1 = invoke_and_read()
          ^^^^^^^^^^^^^^^^^
@@ -122,4 +125,10 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 516, in send
     raise ConnectionClosedError(
 botocore.exceptions.ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-tradingview/invocations".
-❌ OPS-FAIL: aws/ops/pending/ops_3928_vault_v3_cadence.py
+
+```
+
+## Log
+- `21:55:19` ✅   settled attempt 1
+## RUN 1 — cold conversion
+
