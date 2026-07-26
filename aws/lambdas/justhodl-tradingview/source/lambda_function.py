@@ -38,7 +38,7 @@ FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v2.2 ALNUM-YAHOO-FLEETSUM"
+MARKER = "tradingview-vault v2.3 SUFFIX-KEYS"
 
 s3 = boto3.client("s3")
 
@@ -103,6 +103,10 @@ ALIASES = {
     "ES10Y": "fleetsum:data/euro-fragmentation.json:bund_benchmark_10y_pct:countries.ES.spread_vs_bund_bp",
     "FR10Y": "fleetsum:data/euro-fragmentation.json:bund_benchmark_10y_pct:countries.FR.spread_vs_bund_bp",
     "UNTAGGED": "meta:not a metric — the no-tag note bucket",
+    "ES10Y-TVC": "fleetsum:data/euro-fragmentation.json:bund_benchmark_10y_pct:countries.ES.spread_vs_bund_bp",
+    "FR10Y-TVC": "fleetsum:data/euro-fragmentation.json:bund_benchmark_10y_pct:countries.FR.spread_vs_bund_bp",
+    "BDI": "none:referenced in eurodollar-plumbing code but not exported in its feed (producer todo)",
+    "EUGDPYY": "none:referenced in macro-nowcast code but not exported (producer todo)",
 }
 
 
