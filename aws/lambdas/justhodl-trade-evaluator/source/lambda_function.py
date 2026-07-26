@@ -113,6 +113,28 @@ def _decimal_to_float(obj):
     return obj
 
 
+def _to_decimal(obj):
+    """Recursively convert every float (never bool) to Decimal, at any nesting
+    depth. Fix (2026-07-26): the old _dec() below only checked whether the
+    TOP-LEVEL value passed to update_call_outcome was a float — but
+    evaluate_call() always nests outcomes as {"close_price": ..., "return_pct":
+    ...} dicts, so isinstance(v, (int, float)) was False for every single
+    update (v was a dict), _dec() never fired, and DynamoDB rejected the raw
+    nested floats on every write: "Float types are not supported. Use Decimal
+    types instead." Confirmed via real production logs: 27/27 evaluated calls
+    failed this exact way on every run since this engine was first deployed —
+    real Polygon prices fetched correctly, discarded every time on write."""
+    if isinstance(obj, bool):
+        return obj
+    if isinstance(obj, float):
+        return Decimal(str(round(obj, 6)))
+    if isinstance(obj, dict):
+        return {k: _to_decimal(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_to_decimal(v) for v in obj]
+    return obj
+
+
 def _dec(v):
     if v is None: return None
     return Decimal(str(round(v, 4)))
@@ -144,7 +166,7 @@ def update_call_outcome(pk, sk, updates):
     values = {}
     for i, (k, v) in enumerate(updates.items()):
         names[f"#k{i}"] = k
-        values[f":v{i}"] = _dec(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else v
+        values[f":v{i}"] = _to_decimal(v)
         expr_parts.append(f"#k{i} = :v{i}")
     try:
         table.update_item(
