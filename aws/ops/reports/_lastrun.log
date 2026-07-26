@@ -1,24 +1,31 @@
-executing-against: 7d98e199d4d39c6a91934bd912305a0976046ce2
-ops 3922 — TradingView Metric Vault deploy
-[20:59:16] ✅   settled attempt 1
-[20:59:51]   invoke: {"ok": true, "n_symbols": 524, "n_live": 293, "coverage_pct": 55.9}
-[20:59:52]   RRPONTSYD: LIVE value=0.675 notes=19
-[20:59:52]   BAMLH0A3HYC: LIVE value=9.91 notes=16
-[20:59:52]   DTWEXBGS: LIVE value=120.5315 notes=22
-[20:59:52]   JPLG: status=UNRESOLVED n_notes=14 ids=['tv-0c5ca28e88d8ea78', 'tv-81e6f47b59421342', 'tv-abe1f3e5c9528323', 'tv-eef3e0e1089efd1b']
-[20:59:52] ✅   Scheduler created
-[21:01:33] ✅   page live attempt 6, 6637b
-[21:01:33] ✅   deploy settled
-[21:01:33] ✅   invoke ok
-[21:01:33] ✅   registry >= 500 symbols from brain
-[21:01:33] ✅   >= 150 resolved LIVE
-[21:01:33] ✅   RRPONTSYD LIVE
-[21:01:33] ✅   BAMLH0A3HYC LIVE
-[21:01:33] ✅   DTWEXBGS LIVE
-[21:01:33] ✅   CL1! honestly UNRESOLVED (futures, no free API)
-[21:01:33] ✅   JPLG present w/ its brain notes
-[21:01:33] ✅   daily schedule armed
-[21:01:33] ✅   served page renders
-[21:01:33] ✅ PASS_ALL — vault live: 524 symbols, 293 LIVE (55.9%)
+executing-against: 0cad5de46fae7fbfa5b110848318a9fcdaafaeed
+ops 3923 — vault v2.0 full coverage + gate v2.2 phase-2 wires
+[21:13:43] ✅   justhodl-tradingview settled: 3
+[21:13:43] ✅   justhodl-risk-gate settled: 1
+── vault v2.0 invoke (long: FRED aliases + Yahoo ladder) ──
+[21:15:32]   CL1!: LIVE value=89.31 src=yahoo:CL=F
+[21:15:32]   MOVE: LIVE value=76.8175 src=yahoo:^MOVE
+[21:15:32]   SPX: LIVE value=7411.98 src=yahoo:^GSPC
+[21:15:32]   UNEMPLOY: LIVE value=7094.0 src=fred
+[21:15:32]   GE1!: DISCONTINUED value=None src=cme
+[21:15:32]   JPLG: NO_FREE_SOURCE value=None src=unresolved_economics
+── gate v2.2 invoke — vault wires live ──
+[21:15:40]   move_index: OK value=76.8175 adj=0.0
+[21:15:40]   oil_backwardation: OK value=5.84 adj=0.0
+[21:15:40] ✅   justhodl-tradingview settled
+[21:15:40] ✅   justhodl-risk-gate settled
+[21:15:40] ✅   zero bare UNRESOLVED (every symbol has a definitive state)
+[21:15:40] ✗   LIVE >= 400
+[21:15:40] ✅   registry grew via brain-text scan
+[21:15:40] ✅   CL1! = LIVE
+[21:15:40] ✅   MOVE = LIVE
+[21:15:40] ✅   SPX = LIVE
+[21:15:40] ✅   UNEMPLOY = LIVE
+[21:15:40] ✅   GE1! = DISCONTINUED
+[21:15:40] ✅   JPLG = NO_FREE_SOURCE
+[21:15:40] ✅   gate consumes vault MOVE
+[21:15:40] ✅   gate oil backwardation input present
+[21:15:40] ✗ FAILED: ['LIVE >= 400']
 
-→ Report written to aws/ops/reports/latest/3922_tradingview_vault_deploy.md
+→ Report written to aws/ops/reports/latest/3923_vault_v2_gate_v22.md
+❌ OPS-FAIL: aws/ops/pending/ops_3923_vault_v2_gate_v22.py
