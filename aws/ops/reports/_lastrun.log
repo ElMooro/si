@@ -1,20 +1,10 @@
-executing-against: 48f44419057bcbb7b0d4ce41c71f60c56bc01ba8
-ops 3908 — is the verdict inversion persistent or recent-only
-── cohort: EARLY (May 17 - Jun 7) (22 snapshots, 14250 candidate obs, 1594/1594 live prices resolved) ──
-[05:10:47]     HIGH RISK            n=3624   win_rate=78.8% avg=6.83%
-[05:10:47]     FAIR VALUE           n=1660   win_rate=71.7% avg=3.74%
-[05:10:47]     OPPORTUNITY          n=3013   win_rate=60.8% avg=2.45%
-[05:10:47]     STRONG OPPORTUNITY   n=567    win_rate=60.3% avg=3.19%
-[05:10:47]     HOLD / NEUTRAL       n=3374   win_rate=59.8% avg=2.73%
-[05:10:47]     EXPENSIVE            n=2012   win_rate=47.9% avg=-2.86%
-── cohort: RECENT (Jul 1 - Jul 19) (19 snapshots, 18942 candidate obs, 1185/1185 live prices resolved) ──
-[05:10:53]     HIGH RISK            n=3029   win_rate=60.8% avg=1.29%
-[05:10:53]     FAIR VALUE           n=1480   win_rate=52.2% avg=0.21%
-[05:10:53]     OPPORTUNITY          n=2577   win_rate=48.2% avg=-0.13%
-[05:10:53]     HOLD / NEUTRAL       n=9533   win_rate=44.5% avg=-1.85%
-[05:10:53]     STRONG OPPORTUNITY   n=394    win_rate=42.4% avg=-0.46%
-[05:10:53]     EXPENSIVE            n=1929   win_rate=39.8% avg=-2.67%
-── verdict — direct comparison ──
-[05:10:53] ✅ PROBE COMPLETE
+executing-against: a17370deac92f4913a5ecaa4090d9c622b77a7a0
+ops 3909 — verify the served pages behind the conviction-inversion finding
+── 1. the feed itself — is the SERVED signal-backtest.json the fresh post-fix copy ──
+── 2. each page — serves, and contains its render path ──
+[17:46:32] ✅   scorecard.html: 15,364 bytes, markers={'by_verdict': 2, 'ai_analysis': 1}
+[17:46:32] ✅   proof.html: 14,053 bytes, markers={'by_verdict': 2}
+[17:46:33] ✅   track-public.html: 9,452 bytes, markers={'by_verdict': 1}
+[17:46:33] ✅ PASS_ALL — pages live, render paths present, feed is the fresh post-fix copy
 
-→ Report written to aws/ops/reports/latest/3908_verdict_inversion_time_split.md
+→ Report written to aws/ops/reports/latest/3909_verify_verdict_pages_live.md
