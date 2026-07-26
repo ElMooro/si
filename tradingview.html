@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TradingView Vault · JustHodl AI</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--line:#30363d;--tx:#e8e8e8;--dim:#9aa4b2;--amber:#F0B429;--green:#6fce8a;--red:#E07A6A}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;padding:18px}
+h1{font-size:22px;margin:0 0 4px}.dim{color:var(--dim)}.mono{font-family:ui-monospace,monospace}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin:10px 0}
+.grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.chip{display:inline-block;background:#21262d;border:1px solid var(--line);border-radius:999px;padding:3px 12px;margin:3px;cursor:pointer;font-size:12px}
+.chip.on{background:var(--amber);color:#111;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:12.5px}td,th{padding:5px 7px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.pos{color:var(--green)}.neg{color:var(--red)}.badge{padding:1px 8px;border-radius:999px;font-size:10.5px;font-weight:700}
+.b-LIVE{background:#12331d;color:var(--green)}.b-UNRESOLVED{background:#2a2a14;color:var(--amber)}
+input{background:#0d1117;border:1px solid var(--line);border-radius:8px;color:var(--tx);padding:7px 10px;width:240px}
+.note{color:var(--dim);font-size:11px;max-width:520px}
+</style></head><body>
+<h1>📺 TradingView Metric Vault</h1>
+<div class="dim">Every metric Khalid harvested from TradingView, parsed live from the brain — each symbol carries its note ids. Self-updating.</div>
+<div id="stats" class="grid"></div>
+<div class="card"><input id="q" placeholder="search symbol or note…"> <span id="cats"></span></div>
+<div class="card" style="overflow-x:auto"><table id="tbl"><thead><tr><th>symbol</th><th>cat</th><th>value</th><th>Δ%</th><th>status</th><th>notes</th><th>brain note (longest)</th></tr></thead><tbody></tbody></table></div>
+<script>
+const SRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/tradingview.json','https://s3.amazonaws.com/justhodl-dashboard-live/data/tradingview.json'];
+const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+let D=null,cat='ALL';
+async function load(){for(const u of SRC){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){D=await r.json();break}}catch(e){}}
+if(!D){document.getElementById('stats').innerHTML='<div class="card">Feed unreachable.</div>';return}
+document.getElementById('stats').innerHTML=`
+ <div class="card"><div class="dim">SYMBOLS</div><div style="font-size:26px;font-weight:800">${D.n_symbols}</div><div class="dim" style="font-size:11px">${D.n_tv_notes} TV notes</div></div>
+ <div class="card"><div class="dim">LIVE</div><div style="font-size:26px;font-weight:800;color:var(--green)">${D.n_live}</div><div class="dim" style="font-size:11px">${D.coverage_pct}% coverage</div></div>
+ <div class="card"><div class="dim">UNRESOLVED</div><div style="font-size:26px;font-weight:800;color:var(--amber)">${D.n_unresolved}</div><div class="dim" style="font-size:11px">TV-only/futures/economics — honest</div></div>
+ <div class="card"><div class="dim">UPDATED</div><div style="font-size:15px" class="mono">${esc((D.generated_at||'').slice(0,16))}Z</div><div class="dim" style="font-size:11px">v${esc(D.version)} · brain-constitutional</div></div>`;
+const cats=['ALL',...Object.keys(D.by_category_counts||{})];
+document.getElementById('cats').innerHTML=cats.map(c=>`<span class="chip${c===cat?' on':''}" onclick="setCat('${c}')">${c} ${c==='ALL'?D.n_symbols:D.by_category_counts[c]}</span>`).join('');
+render()}
+function setCat(c){cat=c;document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x.textContent.startsWith(c+' ')||c==='ALL'&&x.textContent.startsWith('ALL')));render()}
+function render(){const q=(document.getElementById('q').value||'').toUpperCase();
+const rows=(D.symbols||[]).filter(r=>(cat==='ALL'||r.category===cat)&&(!q||r.symbol.includes(q)||(r.note_snippet||'').toUpperCase().includes(q)));
+document.querySelector('#tbl tbody').innerHTML=rows.slice(0,600).map(r=>{
+ const v=r.value==null?'—':(typeof r.value==='number'?r.value.toLocaleString(undefined,{maximumFractionDigits:3}):esc(r.value));
+ const ch=r.chg_pct==null?'—':`<span class="${r.chg_pct>=0?'pos':'neg'}">${r.chg_pct>0?'+':''}${Number(r.chg_pct).toFixed(2)}%</span>`;
+ return `<tr><td class="mono"><b>${esc(r.symbol)}</b><div class="dim" style="font-size:10px">${esc((r.exchanges||[]).join(','))}</div></td>
+ <td>${esc(r.category)}</td><td class="mono">${v}</td><td class="mono">${ch}</td>
+ <td><span class="badge b-${esc(r.status)}">${esc(r.status)}</span><div class="dim" style="font-size:10px">${esc(r.source)}</div></td>
+ <td class="mono">${r.n_notes}<div class="dim" style="font-size:9.5px">${esc((r.note_ids||[]).slice(0,2).join(' '))}</div></td>
+ <td class="note">${esc((r.note_snippet||'').slice(0,220))}</td></tr>`}).join('')}
+document.addEventListener('input',e=>{if(e.target.id==='q')render()});
+load();
+</script></body></html>
