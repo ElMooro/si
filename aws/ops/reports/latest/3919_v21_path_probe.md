@@ -1,0 +1,46 @@
+# ops 3919 — v2.1 unknowns, all at once
+
+**Status:** success  
+**Duration:** 0.7s  
+**Finished:** 2026-07-26T19:57:33+00:00  
+
+## Log
+## 1. real nested paths for the 3 MISSING Leg-1 fields
+
+- `19:57:32`   data/nyfed-primary-dealer.json :: corp_net_bonds_b: NOT FOUND ANYWHERE
+- `19:57:32`   data/nyfed-primary-dealer.json :: net_treasury_total_b: .net_treasury_total_b = -14.6
+- `19:57:32`   data/ofr-stfm.json :: fails_cross: NOT FOUND ANYWHERE
+- `19:57:32`   data/crisis-plumbing.json :: composite_stress_score: .composite.composite_stress_score = 21.6
+- `19:57:32`   data/crisis-plumbing.json :: composite_score: NOT FOUND ANYWHERE
+- `19:57:32`   data/crisis-plumbing.json :: repo_stress_score: .funding_credit_signals.REPO_TAIL_P99.repo_stress_score = 14.3
+## 2. sovereign-distress — list the real prefix
+
+- `19:57:32`   keys: ['data/sovereign-fiscal.json', 'data/sovereign-gssi.json', 'data/sovereign-stress-history.json', 'data/sovereign-stress.json']
+- `19:57:32`   top keys: ['debt_service', 'engine', 'fiscal', 'generated_at', 'reads', 'tic', 'version']
+- `19:57:32`   composite hunt: 
+## 3. CISS scale
+
+- `19:57:33`   top keys: ['categories', 'ea_composite', 'ea_composite_date', 'ea_regime', 'elapsed_s', 'engine', 'frequency_note', 'generated_at', 'n_series', 'provenance', 'series', 'version']
+- `19:57:33`   country_ciss: .categories.country_ciss = 11
+## 4. HYG/LQD in etf-true-flows by_etf
+
+- `19:57:33`   by_etf has HYG=True LQD=True; HYG sample: {"ticker": "HYG", "category": "CREDIT", "shares_outstanding": 200487876.0, "price": 79.23, "aum_est_b": 15.88, "net_flow_1d_usd": -295029147.0, "net_flow_5d_usd": -547677692.0, "net_flow_20d_usd": -15
+## 5. FMP commodities — CL curve months? (backwardation feasibility)
+
+- `19:57:33`   CLUSD quote: [
+  {
+    "symbol": "CLUSD",
+    "name": "Crude Oil",
+    "price": 90.46,
+    "changePercentage": -1.87656,
+    "change": -1.73,
+    "volume": 340384,
+    "dayLow": 87.68,
+    "dayHigh": 92.83,
+    "yearHigh": 119.48,
+    "yearLow": 54.98,
+    "marketCap": null,
+    "priceAvg50": 80.66,
+    "priceAv
+- `19:57:33`   commodities-list n=40; CL-ish symbols: ['CLUSD']
+- `19:57:33` ✅ PROBE COMPLETE
