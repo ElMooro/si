@@ -1,0 +1,34 @@
+# ops 3922 — TradingView Metric Vault deploy
+
+**Status:** success  
+**Duration:** 137.0s  
+**Finished:** 2026-07-26T21:01:33+00:00  
+
+## Data
+
+| by_cat | coverage_pct | has_keys | n_live | n_symbols | state | timeout |
+|---|---|---|---|---|---|---|
+|  |  | True |  |  | Active | 900 |
+| {"commodity": 15, "credit": 38, "equity": 207, "futures": 25, "fx": 12, "macro": 92, "other": 41, "plumbing": 38, "rates": 41, "vol": 15} | 55.9 |  | 293 | 524 |  |  |
+
+## Log
+- `20:59:16` ✅   settled attempt 1
+- `20:59:51`   invoke: {"ok": true, "n_symbols": 524, "n_live": 293, "coverage_pct": 55.9}
+- `20:59:52`   RRPONTSYD: LIVE value=0.675 notes=19
+- `20:59:52`   BAMLH0A3HYC: LIVE value=9.91 notes=16
+- `20:59:52`   DTWEXBGS: LIVE value=120.5315 notes=22
+- `20:59:52`   JPLG: status=UNRESOLVED n_notes=14 ids=['tv-0c5ca28e88d8ea78', 'tv-81e6f47b59421342', 'tv-abe1f3e5c9528323', 'tv-eef3e0e1089efd1b']
+- `20:59:52` ✅   Scheduler created
+- `21:01:33` ✅   page live attempt 6, 6637b
+- `21:01:33` ✅   deploy settled
+- `21:01:33` ✅   invoke ok
+- `21:01:33` ✅   registry >= 500 symbols from brain
+- `21:01:33` ✅   >= 150 resolved LIVE
+- `21:01:33` ✅   RRPONTSYD LIVE
+- `21:01:33` ✅   BAMLH0A3HYC LIVE
+- `21:01:33` ✅   DTWEXBGS LIVE
+- `21:01:33` ✅   CL1! honestly UNRESOLVED (futures, no free API)
+- `21:01:33` ✅   JPLG present w/ its brain notes
+- `21:01:33` ✅   daily schedule armed
+- `21:01:33` ✅   served page renders
+- `21:01:33` ✅ PASS_ALL — vault live: 524 symbols, 293 LIVE (55.9%)
