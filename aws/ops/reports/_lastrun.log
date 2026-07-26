@@ -1,126 +1,26 @@
-executing-against: 6d3b8fd6e3e9ffdbb68d3a892cde2375bc70c795
-ops 3932 — v3.0 superset verify (post-collision reconcile)
-── BOJ probe for JPLG (report-only; wire on verified URL next) ──
-[22:33:47]   https://www.stat-search.boj.or.jp/ssi/mtshtml/md02_m_1.csv -> HTTP Error 404: Not Found
-[22:33:47]   https://www.stat-search.boj.or.jp/info/dload_e.html -> HTTP Error 404: Not Found
-[22:33:48]   https://www.boj.or.jp/en/statistics/dl/loan/ldo/ldo.csv -> HTTP Error 404: Not Found
-[22:33:48] ✅   settled attempt 1
-── force-invoke: full re-resolution ──
+executing-against: 84eb171c35f9c7e3e95e6494f853bce72fde8963
+ops 3933 — v3.0 async full-run gate
+[22:39:34]   async force fired at 2026-07-26T22:39:34.455960+00:00; polling artifact…
+[22:47:38] ✅   artifact refreshed after ~480s
+[22:47:38]   USCLI: LIVE value=120 src=fleet:data/global-business-cycle.json:by_country.USA.cli_level
+[22:47:38]   EUINTR: LIVE value=2.25 src=fred_alias:ECBDFR
+[22:47:38]   10USNOTE: LIVE value=108.625 src=yahoo:ZN=F
+[22:47:38]   NOVO_B: LIVE value=320.6 src=yahoo:NOVO-B.CO
+[22:47:38]   EU02Y-TVC: None value=None src=None
+── cached run (sync, fast) ──
+[22:50:22]   invoke2: {"ok": true, "n_symbols": 561, "n_live": 443, "n_cached": 212, "fred_calls": 395, "coverage_pct": 79.0}
+[22:50:22] ✅   POLYGON_KEY present
+[22:50:22] ✅   force run wrote fresh artifact
+[22:50:22] ✗   LIVE >= 450
+[22:50:22] ✅   zero bare UNRESOLVED
+[22:50:22] ✅   USCLI LIVE via fleet
+[22:50:22] ✅   EUINTR LIVE via fred_alias
+[22:50:22] ✅   10USNOTE LIVE via yahoo:ZN=F
+[22:50:22] ✅   NOVO_B LIVE via yahoo:NOVO-B.CO
+[22:50:22] ✗   EU02Y-TVC LIVE via ecb:
+[22:50:22] ✅   cache engaged (n_cached >= 100)
+[22:50:22] ✗   fred calls small on cached run
+[22:50:22] ✗ FAILED: ['LIVE >= 450', 'EU02Y-TVC LIVE via ecb:', 'fred calls small on cached run']
 
-→ Report written to aws/ops/reports/latest/3932_vault_v3_superset_verify.md
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
-    response = self._make_request(
-               ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
-    response = conn.getresponse()
-               ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connection.py", line 571, in getresponse
-    httplib_response = super().getresponse()
-                       ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 1450, in getresponse
-    response.begin()
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 336, in begin
-    version, status, reason = self._read_status()
-                              ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 305, in _read_status
-    raise RemoteDisconnected("Remote end closed connection without"
-http.client.RemoteDisconnected: Remote end closed connection without response
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 477, in send
-    urllib_response = conn.urlopen(
-                      ^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 842, in urlopen
-    retries = retries.increment(
-              ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/util/retry.py", line 473, in increment
-    raise reraise(type(error), error, _stacktrace)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/util/util.py", line 38, in reraise
-    raise value.with_traceback(tb)
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
-    response = self._make_request(
-               ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
-    response = conn.getresponse()
-               ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connection.py", line 571, in getresponse
-    httplib_response = super().getresponse()
-                       ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 1450, in getresponse
-    response.begin()
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 336, in begin
-    version, status, reason = self._read_status()
-                              ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 305, in _read_status
-    raise RemoteDisconnected("Remote end closed connection without"
-urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3932_vault_v3_superset_verify.py", line 122, in <module>
-    main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3932_vault_v3_superset_verify.py", line 84, in main
-    r = lam.invoke(FunctionName=FN, InvocationType="RequestResponse",
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1076, in _make_api_call
-    http, parsed_response = self._make_request(
-                            ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1100, in _make_request
-    return self._endpoint.make_request(operation_model, request_dict)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 119, in make_request
-    return self._send_request(request_dict, operation_model)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 200, in _send_request
-    while self._needs_retry(
-          ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 360, in _needs_retry
-    responses = self._event_emitter.emit(
-                ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/hooks.py", line 412, in emit
-    return self._emitter.emit(aliased_event_name, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/hooks.py", line 256, in emit
-    return self._emit(event_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/hooks.py", line 239, in _emit
-    response = handler(**kwargs)
-               ^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 207, in __call__
-    if self._checker(**checker_kwargs):
-       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 284, in __call__
-    should_retry = self._should_retry(
-                   ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 320, in _should_retry
-    return self._checker(attempt_number, response, caught_exception)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 363, in __call__
-    checker_response = checker(
-                       ^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 247, in __call__
-    return self._check_caught_exception(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 416, in _check_caught_exception
-    raise caught_exception
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 279, in _do_get_response
-    http_response = self._send(request)
-                    ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 383, in _send
-    return self.http_session.send(request)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 516, in send
-    raise ConnectionClosedError(
-botocore.exceptions.ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-tradingview/invocations".
-❌ OPS-FAIL: aws/ops/pending/ops_3932_vault_v3_superset_verify.py
+→ Report written to aws/ops/reports/latest/3933_v3_async_gate.md
+❌ OPS-FAIL: aws/ops/pending/ops_3933_v3_async_gate.py
