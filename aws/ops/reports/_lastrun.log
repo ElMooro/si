@@ -1,10 +1,21 @@
-executing-against: a17370deac92f4913a5ecaa4090d9c622b77a7a0
-ops 3909 — verify the served pages behind the conviction-inversion finding
-── 1. the feed itself — is the SERVED signal-backtest.json the fresh post-fix copy ──
-── 2. each page — serves, and contains its render path ──
-[17:46:32] ✅   scorecard.html: 15,364 bytes, markers={'by_verdict': 2, 'ai_analysis': 1}
-[17:46:32] ✅   proof.html: 14,053 bytes, markers={'by_verdict': 2}
-[17:46:33] ✅   track-public.html: 9,452 bytes, markers={'by_verdict': 1}
-[17:46:33] ✅ PASS_ALL — pages live, render paths present, feed is the fresh post-fix copy
+executing-against: d7bf02a9b17a283faf0317d13739c89ad230fd14
+ops 3910 — is the closed loop actually closed, live
+── 1. SSM /justhodl/calibration/weights — exists? real values? fresh? ──
+[17:56:09] ✅   EXISTS, last modified 2026-06-30 21:30:48.123000+00:00, version 137
+[17:56:09]   full value: {"screener_top_pick": 0.8597, "correlation_break": 0.3552, "ml_risk": 0.3751, "eng:insider-trades": 1.14, "edge_regime": 0.3923, "plumbing_stress": 0.4747, "cot_extreme": 0.312, "earnings_pead": 0.656, "eng:finviz-news": 0.5761, "crisis_sofr_iorb": 0.3676, "eng:consumer-pulse-decisive-call": 0.95, "momentum_gld": 0.3472, "khalid_index": 0.3275, "crypto_risk_score": 0.3685, "etf_rotation": 0.4808, "corr_break_composite_vs_vxx": 0.3301, "crisis_index_stlfsi4": 0.3289, "edge_composite": 0.3937, "crisis_ig_bbb_oas": 0.3287, "crisis_index_kcfsi": 0.3275, "divergence_extreme": 0.4799, "crypto_fear_greed": 0.3959, "crisis_rate_diff_eur_3m": 0.327, "macro_frontrun_sniffer_setup": 0.3738, "crisis_t10yie_extreme": 0.3475, "corr_break_top_pair": 0.3464, "frontrun_sniffer_setup": 0.5121, "corr_break_c
+── 2. best-setups live output — do learned weights actually diverge from defaults ──
+[17:56:09]   top-level keys: ['alpha_trust_wiring', 'bond_vol_regime', 'brain_aligned', 'buildout_threats', 'by_verdict', 'contested_picks', 'duration_s', 'engine', 'generated_at', 'industry_context', 'lead_lag_tailwinds', 'meta_confluence_book', 'meta_intelligence', 'methodology', 'nowcast_regime', 'orphan_meta_wiring', 'picks_with_kill_thesis', 'playbook_context', 'quad_threats', 'resilient_setups']
+[17:56:09]   learned_weights field: null
+── 3. cascade-calibration feed (what best-setups learns from) — real? fresh? ──
+[17:56:09] ✅   exists, 53.4h old
+[17:56:09]     global: top=None
+[17:56:09]     by_tier: top=None
+[17:56:09]     tier_distribution: top=None
+[17:56:09] ✗   cascade-calibration.json unreadable: 'int' object has no attribute 'get'
+── 4. do the two confirmed-broken frontrun sniffers still feed anything downstream ──
+[17:56:09]   data/signal-board.json: mentions macro_frontrun=False equity_frontrun=False has fade/exclusion language=True
+[17:56:09]   data/apex-fusion.json: mentions macro_frontrun=False equity_frontrun=False has fade/exclusion language=True
+[17:56:09]   data/confluence-meta.json: mentions macro_frontrun=True equity_frontrun=True has fade/exclusion language=True
+[17:56:09] ✅ PROBE COMPLETE — see each section for the live truth
 
-→ Report written to aws/ops/reports/latest/3909_verify_verdict_pages_live.md
+→ Report written to aws/ops/reports/latest/3910_closed_loop_live_audit.md
