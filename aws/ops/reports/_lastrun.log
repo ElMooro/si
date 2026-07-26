@@ -1,28 +1,14 @@
-executing-against: 8a8a95edbb9461e781f9d6b81f230861d0aa4fbb
-ops 3925 — v2.2 conversion pass + BDI/EUGDPYY path probe
-── probe: BDI + EUGDPYY paths for the next wire ──
-[21:32:15]   data/eurodollar-plumbing.json :: bdi: none
-[21:32:15]   data/eurodollar-plumbing.json :: baltic: none
-[21:32:15]   data/macro-nowcast.json :: eu: none
-[21:32:15]   data/macro-nowcast.json :: gdp: none
-[21:32:15] ✅   settled attempt 1
-[21:34:21]   DCPN3M: LIVE value=3.68 src=fred_2nd_chance
-[21:34:21]   BAMLC4A0C710YEY: LIVE value=5.55 src=fred_2nd_chance
-[21:34:21]   RIFSPPNA2P2D90NB: LIVE value=4.01 src=fred_2nd_chance
-[21:34:21]   UVXY: LIVE value=25.09 src=yahoo:UVXY
-[21:34:21]   ES10Y: None value=None src=None
-[21:34:21]   FR10Y: None value=None src=None
-[21:34:21] ✅   v2.2 settled
-[21:34:21] ✅   DCPN3M LIVE
-[21:34:21] ✅   BAMLC4A0C710YEY LIVE
-[21:34:21] ✅   RIFSPPNA2P2D90NB LIVE
-[21:34:21] ✅   UVXY LIVE
-[21:34:21] ✗   ES10Y LIVE
-[21:34:21] ✗   FR10Y LIVE
-[21:34:21] ✅   UNTAGGED = META
-[21:34:21] ✗   LIVE > 405
-[21:34:21] ✅   zero bare UNRESOLVED
-[21:34:21] ✗ FAILED: ['ES10Y LIVE', 'FR10Y LIVE', 'LIVE > 405']
+executing-against: 3002599be34402b48f2643120aed0344aded18f0
+ops 3926 — v2.3 suffix-key close
+[21:37:45] ✅   settled attempt 1
+[21:39:36]   ES10Y-TVC: LIVE value=3.421 src=fleetsum:data/euro-fragmentation.json
+[21:39:36]   FR10Y-TVC: LIVE value=3.68 src=fleetsum:data/euro-fragmentation.json
+[21:39:36] ✅   settled
+[21:39:36] ✅   ES10Y-TVC LIVE via fleetsum
+[21:39:36] ✅   FR10Y-TVC LIVE via fleetsum
+[21:39:36] ✗   LIVE >= 404
+[21:39:36] ✅   zero bare UNRESOLVED
+[21:39:36] ✗ FAILED: ['LIVE >= 404']
 
-→ Report written to aws/ops/reports/latest/3925_vault_v22_convert.md
-❌ OPS-FAIL: aws/ops/pending/ops_3925_vault_v22_convert.py
+→ Report written to aws/ops/reports/latest/3926_vault_v23_close.md
+❌ OPS-FAIL: aws/ops/pending/ops_3926_vault_v23_close.py
