@@ -1,0 +1,64 @@
+# ops 3897 — TSLA pre-earnings risk signals + ORCL non-earnings decline drivers
+
+**Status:** success  
+**Duration:** 2.3s  
+**Finished:** 2026-07-26T00:37:40+00:00  
+
+## Data
+
+| failures | n_orcl_headlines | n_recent_30 | n_tsla_headlines | news_wire_age_h |
+|---|---|---|---|---|
+|  | 0 | 30 | 0 | 2.4 |
+| [] |  |  |  |  |
+
+## Log
+## 1. earnings-whisper.json — was TSLA's whisper number below consensus pre-print
+
+- `00:37:38` ✅   16.6h old
+- `00:37:38`   top-level keys: ['all_setups', 'as_of', 'duration_s', 'feed_health', 'method', 'n_upcoming', 'schema_version', 'tier_counts', 'top_setups']
+- `00:37:38`   TSLA entry: NOT FOUND
+## 2. eps-revision-velocity.json — TSLA (pre-print) and ORCL (ongoing, no earnings trigger)
+
+- `00:37:38` ✅   13.6h old
+- `00:37:38`   top-level keys: ['all_qualifying', 'duration_s', 'generated_at', 'method', 'schema_version', 'stats', 'summary']
+- `00:37:38`   TSLA entry: NOT FOUND
+- `00:37:38`   ORCL entry: NOT FOUND
+## 3. sec-filings-intel.json — ORCL insider activity / unusual 8-Ks
+
+- `00:37:38` ✅   3.5h old
+- `00:37:38`   top-level keys: ['all_tickers', 'duration_s', 'events_by_signal', 'generated_at', 'highlights', 'lookback_days', 'method', 'n_events_total', 'n_signal_queries', 'n_tickers_with_signals', 'notes', 'schema_version', 'signal_definitions']
+- `00:37:38`   ORCL entry: NOT FOUND
+## 4. capital-return.json — ORCL buyback/dividend changes
+
+- `00:37:38` ✅   10.9h old
+- `00:37:38`   top-level keys: ['cannibals', 'elapsed_s', 'generated_at', 'headline', 'how_to_read', 'method', 'n_cannibals', 'n_evaluated', 'ok', 'schema_version', 'source']
+- `00:37:38`   ORCL entry: NOT FOUND
+## 5. hiring-velocity + talent-migration — ORCL workforce signals
+
+- `00:37:39` ✅   hiring-velocity: 156.1h old, top-level keys: ['counts', 'double_confirmed', 'elapsed_s', 'expansion_inflections', 'generated_at', 'method', 'methodology', 'n_errors', 'n_scanned', 'n_scored', 'schema_version', 'top_50']
+- `00:37:39`   ORCL entry: NOT FOUND
+- `00:37:39` ✅   talent-migration: 11.5h old, top-level keys: ['appointments', 'by_sector', 'departures', 'disclaimer', 'elapsed_s', 'engine', 'generated_at', 'methodology_note', 'n_appointments', 'n_classified', 'n_departures', 'n_total', 'recent_moves', 'sources', 'thesis', 'version', 'window']
+- `00:37:39`   ORCL entry: NOT FOUND
+## 6. news-wire — is it still credit-blocked, or did the billing fix land
+
+- `00:37:40`   recent log tail: RT Runtime Version: python:3.12.mainlinev2.v18	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:9819e0b13863c84a43e11f5c724871d909046d3cfb807eeb19460c63f974f26f
+
+START RequestId: 6432db43-e135-495e-9393-d5698e9a63c4 Version: $LATEST
+
+[news-wire] 20 new headlines
+
+[llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback
+
+[anthropic batch] HTTP Error 400: Bad Request
+
+[news-wire] done · new=20 · top24h=0 · high-impact=0 · elapsed=1.1s
+
+END RequestId: 6432db43-e135-495e-9393-d5698e9a63c4
+
+REPORT RequestId: 6432db43-e135-495e-9393-d5698e9a63c4	Duration: 1174.14 ms	Billed Duration: 1666 ms	Memory Size: 512 MB	Max Memory Used: 111 MB	Init Duration: 491.36 ms	
+XRAY TraceId: 1-6a653492-52f15b514e5465b138a098df	SegmentId: 66a71ad90018828b	Sampled: true	
+
+- `00:37:40`   STILL credit-blocked as of the most recent run
+## verdict
+
+- `00:37:40` ✅ PROBE COMPLETE
