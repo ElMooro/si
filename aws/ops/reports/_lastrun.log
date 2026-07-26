@@ -1,43 +1,26 @@
-executing-against: 3c1c819a649f7d6fb02f9bfb3b6cf07f34cb5321
-ops 3912 — Master Risk Gate deploy + brain-doctrine event-study validation
-── 1. zip-settle by marker (deploy-lambdas runs on this same push) ──
-[18:37:50] ✅   marker live on attempt 1
-── 2. invoke (17 FRED series + full 2023+ replay) ──
-[18:37:56]   invoke body: {"ok": true, "posture": "RISK_OFF", "composite": -0.4, "sizing_multiplier": 0.45, "n_flips": 30}
-── 3. read live output — posture + brain constitution + legs ──
-[18:37:56]   funding: score=-2.0 why=['RRP buffer EXHAUSTED (1B, near zero, below pre-COVID) while reserves drain -2.2%/13w [nmq5x1e4os92j]']
-[18:37:56]   credit: score=0.0 why=[]
-[18:37:56]   dollar: score=0.0 why=[]
-[18:37:56]   carry: score=0.0 why=[]
-[18:37:56]   growth: score=1.0 why=['INDPRO +1.6% YoY expanding']
-[18:37:56]   structure: score=0.0 why=[]
-── 4. event study — the brain's grading methodology ──
-[18:37:56]   flip 2025-10-06 -> RISK_OFF: SPX fwd21=2.0% fwd63=1.58%
-[18:37:56]   flip 2025-12-17 -> RISK_OFF: SPX fwd21=2.97% fwd63=2.38%
-[18:37:56]   flip 2025-12-21 -> RISK_OFF: SPX fwd21=1.93% fwd63=1.1%
-[18:37:56]   flip 2026-02-24 -> RISK_OFF: SPX fwd21=-2.53% fwd63=3.61%
-[18:37:56]   flip 2026-03-02 -> RISK_OFF: SPX fwd21=-4.37% fwd63=4.64%
-[18:37:56]   flip 2026-03-09 -> RISK_OFF: SPX fwd21=-6.65% fwd63=9.08%
-[18:37:56]   flip 2026-03-12 -> RISK_OFF: SPX fwd21=-1.35% fwd63=12.42%
-[18:37:56]   flip 2026-05-05 -> RISK_OFF: SPX fwd21=3.58% fwd63=3.37%
-[18:37:56]   flip 2026-06-05 -> RISK_OFF: SPX fwd21=-0.4% fwd63=None%
-[18:37:56]   flip 2026-06-12 -> RISK_OFF: SPX fwd21=0.7% fwd63=None%
-[18:37:56]   flip 2026-06-29 -> RISK_OFF: SPX fwd21=0.04% fwd63=None%
-[18:37:56]   flip 2026-07-22 -> RISK_OFF: SPX fwd21=None% fwd63=None%
-── 5. OCTOBER 2025 REPLAY — Khalid's call ──
-[18:37:56]   {"window": "2025-09-15 .. 2025-11-15", "posture_day_counts": {"NEUTRAL": 16, "RISK_OFF": 41, "SEVERE": 5}, "rrp_min_in_window_bn": 1.559, "khalid_call": "his other system flipped risk-off on RRP drain to ~zero (below pre-COVID) and stayed risk-off"}
-── 6. ensure daily Scheduler schedule ──
-[18:37:57] ✅   Scheduler created: risk-gate-daily cron(5 11 * * ? *)
-── verdict ──
-[18:37:57] ✅   deploy settled with new-code marker
-[18:37:57] ✅   invoke succeeded
-[18:37:57] ✅   valid posture
-[18:37:57] ✅   sizing multiplier present
-[18:37:57] ✅   all six legs present
-[18:37:57] ✅   brain note-ID citations present in live output (4/4 sampled)
-[18:37:57] ✅   event study ran with >= 2 real flips
-[18:37:57] ✅   October window replayed with real RRP data
-[18:37:57] ✅   daily schedule armed
-[18:37:57] ✅ PASS_ALL — Master Risk Gate live: RISK_OFF (sizing x0.45), event-study graded, October replayed, schedule armed
+executing-against: d2dedbf4218255d17b8f5f0459656ad05014c89e
+ops 3913 — risk-gate wired into 5 engines, live-output verified
+── 1. zip-settle all 5 ──
+[18:54:29] ✅   justhodl-position-sizer-v2: marker live attempt 6
+[18:54:41] ✅   justhodl-sizing-engine: marker live attempt 2
+[18:54:41] ✅   justhodl-opportunity-engine: marker live attempt 1
+[18:54:42] ✅   justhodl-best-setups: marker live attempt 1
+[18:54:42] ✅   justhodl-master-ranker: marker live attempt 1
+── 2. invoke fast consumers + verify live output fields ──
+[18:55:02] ✗   justhodl-sizing-engine: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+[18:55:09]   justhodl-master-ranker: rows w/ risk_gate fields=25, sample posture=RISK_OFF rank_mult=0.88 sizing_mult=0.45
+[18:55:17]   justhodl-best-setups: rows w/ risk_gate fields=85, sample posture=RISK_OFF rank_mult=0.88 sizing_mult=0.45
+── 3. gate value sanity vs live risk-gate.json ──
+[18:55:17] ✅   justhodl-position-sizer-v2 settled
+[18:55:17] ✅   justhodl-sizing-engine settled
+[18:55:17] ✅   justhodl-opportunity-engine settled
+[18:55:17] ✅   justhodl-best-setups settled
+[18:55:17] ✅   justhodl-master-ranker settled
+[18:55:17] ✗   justhodl-sizing-engine invoke
+[18:55:17] ✅   justhodl-master-ranker rows carry gate fields
+[18:55:17] ✅   justhodl-best-setups rows carry gate fields
+[18:55:17] ✅   risk-gate feed live and valid
+[18:55:17] ✗ FAILED 1: ['justhodl-sizing-engine invoke']
 
-→ Report written to aws/ops/reports/latest/3912_risk_gate_deploy.md
+→ Report written to aws/ops/reports/latest/3913_riskgate_wire_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_3913_riskgate_wire_verify.py
