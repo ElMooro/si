@@ -20,6 +20,7 @@ SCHEDULE: daily 16:00 UTC.
 import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, os, time, statistics
 import urllib.request
+import urllib.error
 from datetime import datetime, timezone, date
 from collections import defaultdict
 import boto3
@@ -51,22 +52,48 @@ def list_snapshots(prefix, limit=120):
 
 
 def batch_quotes(tickers):
-    """Current prices via FMP batch quote-short (chunks of 100)."""
+    """Current prices via FMP batch quote-short (chunks of 100).
+
+    Fix (2026-07-26): production logs showed EVERY chunk (18/18) failing with
+    HTTP 429 Too Many Requests, every single run, resulting in 57,997 real
+    candidate observations but 0 live prices -> n_observations always 0. The
+    old code fired all chunks back-to-back with zero delay and no retry, so
+    once the rate limit tripped it never recovered within the same run. Added
+    exponential-backoff retry specifically for 429s (up to 3 retries: 1s, 2s,
+    4s) plus a small fixed gap between chunks to avoid re-triggering the
+    limit in the first place. A single isolated 3-ticker test call succeeded
+    immediately, confirming the key itself was never the problem."""
     out = {}
     base = "https://financialmodelingprep.com/stable"
     tk = list(tickers)
+    n_rate_limited = 0
     for i in range(0, len(tk), 100):
         chunk = tk[i:i+100]
-        try:
-            url = f"{base}/batch-quote-short?symbols={','.join(chunk)}&apikey={FMP_KEY}"
-            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/1.0"})
-            with urllib.request.urlopen(req, timeout=25) as r:
-                data = json.loads(r.read().decode())
-            for q in (data if isinstance(data, list) else []):
-                p = q.get("price")
-                if p: out[(q.get("symbol") or "").upper()] = float(p)
-        except Exception as e:
-            print(f"[bt] quote chunk err: {str(e)[:60]}")
+        for attempt in range(4):
+            try:
+                url = f"{base}/batch-quote-short?symbols={','.join(chunk)}&apikey={FMP_KEY}"
+                req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/1.0"})
+                with urllib.request.urlopen(req, timeout=25) as r:
+                    data = json.loads(r.read().decode())
+                for q in (data if isinstance(data, list) else []):
+                    p = q.get("price")
+                    if p: out[(q.get("symbol") or "").upper()] = float(p)
+                break
+            except urllib.error.HTTPError as e:
+                if e.code == 429 and attempt < 3:
+                    n_rate_limited += 1
+                    wait = 2 ** attempt
+                    print(f"[bt] chunk {i}: 429, retry {attempt+1}/3 after {wait}s")
+                    time.sleep(wait)
+                    continue
+                print(f"[bt] quote chunk err: {str(e)[:60]}")
+                break
+            except Exception as e:
+                print(f"[bt] quote chunk err: {str(e)[:60]}")
+                break
+        time.sleep(0.3)
+    if n_rate_limited:
+        print(f"[bt] {n_rate_limited} chunk(s) hit 429 at least once; recovered via backoff")
     return out
 
 
