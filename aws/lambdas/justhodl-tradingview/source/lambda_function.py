@@ -38,7 +38,7 @@ FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v2.0 FULL-COVERAGE"
+MARKER = "tradingview-vault v2.1 FLEET-RESOLVER"
 
 s3 = boto3.client("s3")
 
@@ -88,7 +88,46 @@ ALIASES = {
     "JPLG": "none:TradingEconomics-paywalled; BOJ stat-search build queued",
     "CLTOT": "none:TradingEconomics-paywalled (Chile ToT)",
     "PETOT": "none:TradingEconomics-paywalled (Peru ToT)",
+    # v2.1 — fleet-resolver rung (values from the system's OWN feeds) + certified FRED
+    "BTPBUND": "fleet:data/euro-fragmentation.json:countries.IT.spread_vs_bund_bp",
+    "IT10Y": "fred:IRLTLT01ITM156N", "GB10Y": "fred:IRLTLT01GBM156N",
+    "EU10Y": "fred:IRLTLT01DEM156N", "GB30Y": "none:no free UK 30Y series",
+    "USM1": "fred:M1SL", "USM2": "fred:M2SL", "USM0": "fred:BOGMBASE",
+    "JPM3": "fred:MABMM301JPM189S", "CNIRYY": "yoy:CHNCPIALLMINMEI",
+    "EUINTR": "fred:ECBDFR", "USINTR": "fred:DFF",
+    "JPINTR": "fred:IRSTCB01JPM156N", "CHINTR": "fred:IRSTCB01CHM156N",
+    "DEIRYY": "yoy:DEUCPIALLMINMEI", "EUIRYY": "yoy:CP0000EZ19M086NEST",
+    "JPEXPYY": "fleet:data/asia-leads.json:korea_exports.yoy_pct",
+    "TWMPMI": "none:S&P Global PMI licensed", "USRR": "fred:RRPONTSYD",
+    "KOSPI": "yahoo:^KS11", "EWT": "yahoo:EWT", "USDX": "yahoo:DX-Y.NYB",
 }
+
+
+def _dot(doc, path):
+    cur = doc
+    for part in path.split("."):
+        if isinstance(cur, dict):
+            cur = cur.get(part)
+        else:
+            return None
+    return cur if isinstance(cur, (int, float)) else None
+
+
+_FLEET_CACHE = {}
+
+
+def fleet_value(key, path):
+    if key not in _FLEET_CACHE:
+        try:
+            _FLEET_CACHE[key] = json.loads(
+                s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
+        except Exception:
+            _FLEET_CACHE[key] = {}
+    v = _dot(_FLEET_CACHE[key], path)
+    if v is None:
+        return None
+    return {"value": v, "prev": None, "chg_pct": None,
+            "asof": f"fleet:{key.split('/')[-1]}"}
 
 
 def yahoo_quote(sym):
@@ -300,6 +339,10 @@ def lambda_handler(event, context):
             elif kind == "yahoo":
                 v = yahoo_quote(tgt)
                 if v: row["source"] = f"yahoo:{tgt}"
+            elif kind == "fleet":
+                fk, _, fp = tgt.partition(":")
+                v = fleet_value(fk, fp)
+                if v: row["source"] = f"fleet:{fk}"
             elif kind == "disc":
                 row["status"] = "DISCONTINUED"; row["source"] = "cme"; row["resolution_note"] = tgt
                 continue
