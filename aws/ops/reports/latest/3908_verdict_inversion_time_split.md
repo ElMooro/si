@@ -1,0 +1,35 @@
+# ops 3908 — is the verdict inversion persistent or recent-only
+
+**Status:** success  
+**Duration:** 13.6s  
+**Finished:** 2026-07-26T05:10:53+00:00  
+
+## Data
+
+| EARLY_HIGH_RISK_win_rate | EARLY_STRONG_OPPORTUNITY_win_rate | EARLY_inverted | RECENT_HIGH_RISK_win_rate | RECENT_STRONG_OPPORTUNITY_win_rate | RECENT_inverted | earliest | latest | n_early_snapshots | n_recent_snapshots | total_snapshots |
+|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  | data/track-record/snapshots/2026-05-17.json | data/track-record/snapshots/2026-07-25.json |  |  | 70 |
+|  |  |  |  |  |  |  |  | 22 | 19 |  |
+| 78.8 | 60.3 | True |  |  |  |  |  |  |  |  |
+|  |  |  | 60.8 | 42.4 | True |  |  |  |  |  |
+
+## Log
+## cohort: EARLY (May 17 - Jun 7) (22 snapshots, 14250 candidate obs, 1594/1594 live prices resolved)
+
+- `05:10:47`     HIGH RISK            n=3624   win_rate=78.8% avg=6.83%
+- `05:10:47`     FAIR VALUE           n=1660   win_rate=71.7% avg=3.74%
+- `05:10:47`     OPPORTUNITY          n=3013   win_rate=60.8% avg=2.45%
+- `05:10:47`     STRONG OPPORTUNITY   n=567    win_rate=60.3% avg=3.19%
+- `05:10:47`     HOLD / NEUTRAL       n=3374   win_rate=59.8% avg=2.73%
+- `05:10:47`     EXPENSIVE            n=2012   win_rate=47.9% avg=-2.86%
+## cohort: RECENT (Jul 1 - Jul 19) (19 snapshots, 18942 candidate obs, 1185/1185 live prices resolved)
+
+- `05:10:53`     HIGH RISK            n=3029   win_rate=60.8% avg=1.29%
+- `05:10:53`     FAIR VALUE           n=1480   win_rate=52.2% avg=0.21%
+- `05:10:53`     OPPORTUNITY          n=2577   win_rate=48.2% avg=-0.13%
+- `05:10:53`     HOLD / NEUTRAL       n=9533   win_rate=44.5% avg=-1.85%
+- `05:10:53`     STRONG OPPORTUNITY   n=394    win_rate=42.4% avg=-0.46%
+- `05:10:53`     EXPENSIVE            n=1929   win_rate=39.8% avg=-2.67%
+## verdict — direct comparison
+
+- `05:10:53` ✅ PROBE COMPLETE
