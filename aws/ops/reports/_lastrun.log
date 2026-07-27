@@ -1,37 +1,23 @@
-executing-against: ca117c09ae8707914563607e1aeb163f3efb61d3
-ops 3971 — identify SNB CH02Y / CH03Y series + freshness
-── A. every series header in the rendoblid cube ──
-[05:37:17]   [ 0] n=7534   last={'date': '2025-07-31', 'value': -0  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
-[05:37:17]   [ 1] n=7534   last={'date': '2025-07-31', 'value': -0  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
-[05:37:17]   [ 2] n=7534   last={'date': '2025-07-31', 'value': -0  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
-[05:37:17]   [ 3] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
-[05:37:17]   [ 4] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
-[05:37:17]   [ 5] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
-[05:37:17]   [ 6] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
-[05:37:17]   [ 7] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
-[05:37:17]   [ 8] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
-[05:37:17]   [ 9] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
-[05:37:17]   [10] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
-[05:37:17]   [11] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
-[05:37:17]   [12] n=6913   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
-[05:37:17]   [13] n=7064   last={'date': '2025-07-31', 'value': 2.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - EUR German government bond iss
-[05:37:17]   [14] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of Swiss borrowers - Confederati
-[05:37:17]   [15] n=6104   last={'date': '2025-07-31', 'value': 0.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of Swiss borrowers - Cantons
-[05:37:17]   [16] n=6725   last={'date': '2025-07-31', 'value': 0.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of Swiss borrowers - Mortgage bo
-[05:37:17]   [17] n=6104   last={'date': '2025-07-31', 'value': 0.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of Swiss borrowers - Commercial 
-[05:37:17]   [18] n=6104   last={'date': '2025-07-31', 'value': 1.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of Swiss borrowers - Manufacturi
-[05:37:17]   [19] n=6104   last={'date': '2025-07-31', 'value': 0.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of foreign borrowers - AAA
-[05:37:17]   [20] n=6104   last={'date': '2025-07-31', 'value': 0.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of foreign borrowers - AA
-[05:37:17]   [21] n=6104   last={'date': '2025-07-31', 'value': 1.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of foreign borrowers - A
-── B. freshness — re-pull with fromDate ──
-[05:37:18]   series returned: 22
-── C. verdict ──
-[05:37:18]   CH02Y -> rendoblid series index 1
-[05:37:18]   CH03Y -> rendoblid series index 2
-[05:37:18]   NOTE: index position is not a stable contract. The wiring op must match on the HEADER TEXT at fetch time, never on a hardcoded index, or an SNB reordering silently repoints CH02Y at another tenor.
-[05:37:18] ✅   2Y and 3Y series located
-[05:37:18] ✗   fromDate pull returns data
-[05:37:18] ✗ FAILED: ['fromDate pull returns data']
+executing-against: 7181a3683f2c616407ba36fc99283d94b92976ee
+ops 3972 — wire EUBUND (ECB) + refresh barometers
+── A. settle the vault by marker ──
+[05:41:08]   [0] justhodl-tradingview busy
+── B. invoke the vault (async — it runs long) ──
+[05:49:01] ✅   vault refreshed after ~460s
+[05:49:01]   EUBUND: status=LIVE value=3.2247 src=ecb:YC asof=ecb:2026-07-23
+── C. refresh the barometers so it actually votes ──
+[05:49:04]   payload={"ok": true, "n_symbols": 561, "barometers": {"MACRO": 50.3, "LIQUIDITY": 33.2, "RISK": 34.8}, "own_notes_pct": 74.5}
+[05:49:04]   EUBUND in barometers: domain=RISK status=LIVE pol=0 tier=T2
+[05:49:04]   MACRO     50.3 NEUTRAL voting=96 of 325
+[05:49:04]   LIQUIDITY 33.2 TIGHTENING voting=47 of 101
+[05:49:04]   RISK      34.8 TIGHTENING voting=61 of 135
+[05:49:04] ✅   vault settled with EUBUND marker
+[05:49:04] ✅   EUBUND is LIVE
+[05:49:04] ✅   EUBUND carries a real value
+[05:49:04] ✅   vault coverage did not regress
+[05:49:04] ✅   barometers invoke clean
+[05:49:04] ✅   EUBUND classified and live in the barometers
+[05:49:04] ✅   ledger now carries prior values for change derivation
+[05:49:04] ✅ PASS_ALL — EUBUND 3.2247 LIVE from ECB; vault 455 live; 204 indicators voting; ledger prev n=454
 
-→ Report written to aws/ops/reports/latest/3971_snb_identify.md
-❌ OPS-FAIL: aws/ops/pending/ops_3971_snb_identify.py
+→ Report written to aws/ops/reports/latest/3972_wire_eubund.md
