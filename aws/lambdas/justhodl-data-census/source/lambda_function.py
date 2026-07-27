@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "data-census v2.0 ops3991 vault-complete"
+MARKER = "data-census v2.1 ops3993 full-lists"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/data-census.json"
 LEDGER_KEY = "data-census/paths-ledger.json"
@@ -76,7 +76,7 @@ SRC_SIB = ("source", "src", "provider", "resolved_via", "via", "feed")
 MAX_LIST_SAMPLE = 40
 
 
-def walk(o, pre="", depth=0, out=None, cap=None):
+def walk(o, pre="", depth=0, out=None, cap=None, list_cap=None):
     """v1.2: lists of keyed records are walked up to MAX_LIST_SAMPLE deep,
     labelled by their identifier (symbols[TWEXPYY].value) instead of [0] —
     v1.0 sampled only element [0], which is why 561 vault symbols yielded
@@ -87,6 +87,8 @@ def walk(o, pre="", depth=0, out=None, cap=None):
         out = []
     if cap is None:
         cap = MAX_PATHS_PER
+    if list_cap is None:
+        list_cap = MAX_LIST_SAMPLE
     if len(out) >= cap or depth > MAX_DEPTH:
         return out
     if isinstance(o, dict):
@@ -103,18 +105,18 @@ def walk(o, pre="", depth=0, out=None, cap=None):
                 if len(out) >= cap:
                     return out
             else:
-                walk(v, f"{pre}.{k}" if pre else str(k), depth + 1, out, cap)
+                walk(v, f"{pre}.{k}" if pre else str(k), depth + 1, out, cap, list_cap)
     elif isinstance(o, list) and o:
         if isinstance(o[0], dict):
             idf = next((f for f in ID_FIELDS if isinstance(o[0].get(f), str)), None)
             if idf:
-                for el in o[:MAX_LIST_SAMPLE]:
+                for el in o[:list_cap]:
                     tag = str(el.get(idf, "?"))[:24] if isinstance(el, dict) else "?"
-                    walk(el, f"{pre}[{tag}]", depth + 1, out, cap)
+                    walk(el, f"{pre}[{tag}]", depth + 1, out, cap, list_cap)
                     if len(out) >= MAX_PATHS_PER:
                         return out
                 return out
-        walk(o[0], f"{pre}[0]", depth + 1, out, cap)
+        walk(o[0], f"{pre}[0]", depth + 1, out, cap, list_cap)
     elif isinstance(o, (int, float)) and not isinstance(o, bool):
         out.append({"p": pre, "v": float(o), "leaf": pre.split(".")[-1], "name": None, "src": None, "st": None})
     return out
@@ -210,7 +212,13 @@ def lambda_handler(event, context):
             # v1.7: the 500-path cap starved the vault (561 symbols x ~10
             # fields) — the single richest source-attributed artifact walked
             # only its first slice, which is why FRED counted <40 on v1.6.
-            pl = walk(doc, cap=(12000 if key in PRIORITY else MAX_PATHS_PER))
+            pl = walk(doc, cap=(12000 if key in PRIORITY else MAX_PATHS_PER),
+                      list_cap=(700 if key in PRIORITY else MAX_LIST_SAMPLE))
+            # v2.1: MAX_LIST_SAMPLE=40 was the REAL binding constraint all
+            # along — symbols[0..39] walked, JPLG/JP02Y/NO03Y/PETOT/EUBUND
+            # (deeper in the 561) never existed to the census (probe 3990 +
+            # the 22:44 verify made this provable). Priority lists now walk
+            # in full.
             rec["n_paths"] = len(pl)
             gen = doc.get("generated_at") if isinstance(doc, dict) else None
             rec["generated_at"] = gen
