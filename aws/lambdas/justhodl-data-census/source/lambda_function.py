@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "data-census v1.8 ops3987 clean-values"
+MARKER = "data-census v1.9 ops3989 vault-canonical"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/data-census.json"
 LEDGER_KEY = "data-census/paths-ledger.json"
@@ -171,7 +171,12 @@ def lambda_handler(event, context):
                 "data/boj-detail.json", "data/risk-gate.json",
                 "data/rotation-dashboard.json", "data/domain-barometers.json",
                 "data/china-liquidity.json", "data/global-business-cycle.json")
-    keys.sort(key=lambda k: (k[0] not in PRIORITY, k[0]))
+    # v1.9: sort by PRIORITY *index*, not just membership — alphabetical
+    # order put domain-barometers before tradingview, so the barometers'
+    # republished copy of US10Y won the equal-rank dedup and got credited
+    # as the engine. The vault walks first now; canonical wins ties.
+    keys.sort(key=lambda k: (PRIORITY.index(k[0]) if k[0] in PRIORITY else 99,
+                             k[0]))
     MAX_TOTAL_PATHS = 250_000
     truncated = 0
     for key, size, lm in keys:

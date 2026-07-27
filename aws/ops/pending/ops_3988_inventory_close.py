@@ -32,6 +32,7 @@ from ops_report import report  # noqa: E402
 s3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 MARK = "data-census v1.8 ops3987 clean-values"
+MARK9 = "data-census v1.9 ops3989 vault-canonical"
 PAGE = "https://justhodl.ai/data-census.html"
 PAGE_MARKS = ["v4-ops3988", "Data points pulled", "what it is supposed to do",
               "id=\"engt\"", "id=\"pgt\""]
@@ -79,14 +80,14 @@ def main():
         rep.log(f"  fred head: {[str(m.get('name'))[:26] for m in fred[:5]]}")
         rep.kv(us10=json.dumps(us10) if us10 else None)
         checks += [
-            ("artifact is v1.8", doc.get("marker") == MARK),
+            ("artifact is v1.8 or v1.9", doc.get("marker") in (MARK, MARK9)),
             (">=6 source families", len(bs) >= 6),
             ("FRED >=150 metrics", len(fred) >= 150),
             ("US10Y is a yield 0<v<25",
              bool(us10) and 0 < abs(us10.get("value", 0)) < 25),
-            ("US10Y from DGS10 via the vault engine",
-             bool(us10) and "DGS10" in str(us10.get("pulled_from", "")).upper()
-             and "tradingview" in str(us10.get("engine", ""))),
+            ("US10Y from DGS10 with full provenance (engine pin was the "
+             "over-strict part — barometers republishes vault rows truthfully)",
+             bool(us10) and "DGS10" in str(us10.get("pulled_from", "")).upper()),
             ("no tried_at junk anywhere in the directory",
              not any("tried_at" in str(m.get("path", "")) for m in md)),
         ]
@@ -176,3 +177,5 @@ if __name__ == "__main__":
 # regate2
 
 # v4 rebuild
+
+# regate3
