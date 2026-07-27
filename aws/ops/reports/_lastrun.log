@@ -1,98 +1,52 @@
-executing-against: 41cd1c16f5cdff09fc3f071311ee4cd55a817ab7
-ops 3959 — PROBE: brain-sourced MACRO/LIQUIDITY/RISK classification
-[04:03:11] no engine code written; no S3 artifact written. evidence only.
-── A. corpus ──
-[04:03:12]   → bare-tag symbols cannot self-classify; they need T3/T4/T5 inheritance.
-── B. doctrine anchor notes — full text ──
-[04:03:12]   [LIQUIDITY/funding] nmq5x1e4os92j
-      A reverse repurchase agreement (RRP) is a short-term transaction in which the Federal Reserve Bank of New York (New York Fed) sells securities to an eligible counterparty with an agreement to repurchase those same securities at a specified price at a specific time in the future. The counterparty earns a small interest payment on the transaction, which is currently set at the overnight interest on reserve balances (IO
-[04:03:12]   [LIQUIDITY/funding] nmq5x1e4kuplz
-      Liquidity in United States: Add up Commercial banks Cash assets and Total reserves of Depository institutions and Monetary base Reserve Balances. (FRED:TOTRESNS+FRED:BOGMBBM+FRED:CASACBW027SBOG)
-[04:03:12]   [LIQUIDITY/funding] tv-f452edc700d3a8da
-      [TV:WRESBAL] Bank reserves are a great barometer of liquidity in the system.
+executing-against: a70d8559ad5e2d3323eb227ad43b258e238b2b07
+ops 3960 — PROBE 2: brain lexicon v2 + subject priority + futures join
+── A. lexicon v2 — in-anchor AND frequent, then weak-label expansion ──
+[04:06:36]   seed MACRO (n=299): ['absolutely', 'accord', 'account', 'adding', 'additionally', 'ahead', 'allow', 'allowing', 'along', 'angel', 'anticipation', 'anyway', 'apply', 'applying', 'appropriately', 'asia', 'asset', 'attractive', 'average', 'barometer', 'bearish', 'becoming', 'behavior', 'behind', 'believe', 'benchmark']
+[04:06:36]   seed LIQUIDITY (n=267): ['according', 'accounts', 'actions', 'affect', 'affects', 'agreement', 'alone', 'always', 'amount', 'ample', 'assets', 'balances', 'bank', 'banking', 'barometer', 'base', 'basis', 'bear', 'becomes', 'begun', 'biggest', 'billion', 'bitcoin', 'bogmbbm', 'bond', 'borrow']
+[04:06:36]   seed RISK (n=250): ['ability', 'addittion', 'already', 'always', 'amount', 'angels', 'arent', 'asset', 'assets', 'backbone', 'balance', 'bamlc', 'bamlh', 'bamlhe', 'banking', 'becomes', 'better', 'bigger', 'biggest', 'bofa', 'bond', 'bonds', 'borrow', 'broader', 'brokers', 'businesses']
+[04:06:36]   LEX MACRO (n=988): economy, macro, real, inflation, leverage, economic, countries, number, note, drains, value, quality, strengthens, favor, strong, indicators, trend, last, curve, raise, lead, returns, rise, provide, leading, falling, portfolio, chart, manufacturing, right
+[04:06:36]   LEX LIQUIDITY (n=696): banks, bank, repo, reserve, reserves, lending, bottom, funding, securities, federal, stress, bull, borrow, bitcoin, reverse, carry, institutions, lend, overnight, loan, typically, position, sofr, commercial, short-term, increasing, access, billion, excess, line
+[04:06:36]   LEX RISK (n=321): bond, bonds, credit, spread, spreads, corporate, sheet, equities, selling, measure, default, watch, equity, chaos, stay, corp, panic, bofa, event, income, step, leveraged, earnings, forced, maturity, bottoms, exit, called, shadow, fixed
+── B. ladder ──
+[04:06:36]   learned category priors (T1/T2 only): {"commodity": "MACRO", "credit": "RISK", "equity": "MACRO", "futures": "MACRO", "fx": "MACRO", "macro": "MACRO", "other": "MACRO", "plumbing": "LIQUIDITY", "rates": "MACRO", "vol": "MACRO"}
+── C. driver vs asset split (no self-prediction) ──
+── D. worked examples ──
+[04:06:36]   RRPONTSYD  → LIQUIDITY [T2 ] own notes ['tv-a16acd9879dc9220', 'tv-f448e7c41a5a5693'] score=280320850v7006890 terms=['transferred', 'knee', 'chaneel', 'agrees', 'tempora
+[04:06:36]   SOFR       → LIQUIDITY [T2 ] own notes ['tv-f6ef08c9f739c287', 'tv-1f33aec6ccfcf62a'] score=19949566v278 terms=['instituions', 'requiring', 'replacing', 'institution', '
+[04:06:36]   WRESBAL    → LIQUIDITY [T1a] subject of anchor tv-f452edc700d3a8da
+[04:06:36]   JPLG       → LIQUIDITY [T1a] subject of anchor tv-b3ec3933837d5155
+[04:06:36]   MOVE       → RISK      [T1a] subject of anchor tv-14a76b6087dc80eb
+[04:06:36]   VIX        → MACRO     [T2 ] own notes ['tv-0c6357351cc61b1a', 'tv-e4a678dd4aba61ea'] score=3184771v30 terms=['generates', 'expectations', 'forward', 'closes', 'sentimen
+[04:06:36]   VVIX       → LIQUIDITY [T2 ] own notes ['tv-cdefc56e453c652a', 'tv-2c7983504fc0f37a'] score=14v8 terms=['short-term', 'quickly']
+[04:06:36]   SKEW       → MACRO     [T2 ] own notes ['tv-9b9a60d9a86ee929', 'tv-09640a0a721b0eb8'] score=2547791v14 terms=['edges', 'sentiment', 'leading', 'curve', 'ends']
+[04:06:36]   DXY        → LIQUIDITY [T1a] subject of anchor tv-9fa576184567fa8f
+[04:06:36]   USDX       → MACRO     [T2 ] own notes ['tv-9272761fabc17977', 'tv-d12594ebe94e32ee'] score=42v0 terms=['bullish', 'bearish', 'falling']
+[04:06:36]   US10Y      → MACRO     [T1a] subject of anchor tv-b4c32545ea1dc640
+[04:06:36]   US02Y      → MACRO     [T2 ] own notes ['tv-1319552adc54e57d', 'tv-2eabc51a489f4778'] score=16879691v467 terms=['overheated', 'confident', 'mandate', 'afraid', 'recessio
+[04:06:36]   TEDRATE    → RISK      [T2 ] own notes ['tv-2a53d1de698ed44e', 'tv-2a9eaca03ec90218'] score=56v15 terms=['risk-free', 'widens', 'default', 'spread', 'credit', 'measure']
+[04:06:36]   XAUUSD     → MACRO     [T2 ] own notes ['tv-423ac77b1559efa6', 'tv-24db5be5de3dfd0a'] score=35v0 terms=['perform', 'falling']
+[04:06:36]   GOLD       → MACRO     [T2 ] own notes ['tv-3dbac12c4327292b', 'tv-06e196b7baa0a856'] score=10828472v4199664 terms=['annualized', 'minute', 'predicting', 'bullish', 'fla
+[04:06:36]   CL1!       → MACRO     [T2 ] own notes ['tv-cd4416418c37c69f', 'tv-92c1db49abcd1af9'] score=84078177v8191975 terms=['sanctions', 'shipping', 'renewable', 'horizons', 'in
+[04:06:36]   HG1!       → MACRO     [T2 ] own notes ['tv-53730fbcb0775a83', 'tv-cda6eee04f61ae87'] score=5732918v7 terms=['interpret', 'input', 'trends', 'passed', 'industrial', 'acc
+[04:06:36]   GC2!       → MACRO     [T2 ] own notes ['tv-d9c34dff403ff7d7', 'tv-6beb1b500c04f858'] score=3821818v59 terms=['annualized', 'bullish', 'dramatically', 'bought', 'wrecks'
+[04:06:36]   SR32!      → MACRO     [T2 ] own notes ['tv-e8ea1cc6dc9b2a4b', 'tv-cfcc7b300f021b87'] score=184714101v272 terms=['imperial', 'cascading', 'evaluate', 'endured', 'untethe
+[04:06:36]   ZF1!       → MACRO     [T2 ] own notes ['tv-55bfc5da2e79f21f', 'tv-e931b262ace35714'] score=333v74 terms=['perform', 'expectations', 'tend', 'rise', 'inversely', 'fall']
+[04:06:36]   SPX        → MACRO     [T2 ] own notes ['tv-39e5a021df56a47b', 'tv-50acf6781eeee2ac'] score=698096294v286618644 terms=['frontier', 'imperial', 'divide', 'timing', 'apply
+[04:06:36]   USM2       → LIQUIDITY [T2 ] own notes ['tv-da6c576551ccab9b', 'tv-0ea53726ec4eb02e'] score=6299363v10 terms=['distinguishing', 'deposits', 'reporting', 'checks', 'remai
+[04:06:36]   USCLI      → MACRO     [T2 ] own notes [] score=22v0 terms=['economic', 'indicators', 'leading']
+[04:06:36]   USIRYY     → MACRO     [T2 ] own notes ['tv-cd8a3382285dfc55', 'tv-d2fd25b4cb733bc5'] score=56051825v46 terms=['overheated', 'mandate', 'chair', 'emphasized', 'accommoda
+[04:06:36]   BDI        → MACRO     [T2 ] own notes ['tv-bf9bc0bbaa83998d', 'tv-c5ba85661337e63a'] score=30573392v6 terms=['shipping', 'baltic', 'input', 'spots', 'rise', 'economic']
+[04:06:36]   USNFP      → MACRO     [T2 ] own notes ['tv-963105f8dac801c6', 'tv-21fd189838fad255'] score=9554261v5 terms=['hyperinflation', 'number', 'dynamics', 'employment', 'consu
+[04:06:36]   USFER      → MACRO     [T3 ] co-occurs with 9 MACRO symbols
+[04:06:36]   USLEI      → MACRO     [T2 ] own notes ['tv-a878e91b61293580', 'tv-5d91231ce6660cec'] score=5732617v14 terms=['permits', 'published', 'expectations', 'orders', 'consumer
+[04:06:36]   USINTR     → MACRO     [T2 ] own notes ['tv-73dee9663e8cd469', 'tv-c312ef1723cf3703'] score=66879326v13648496 terms=['pyramided', 'deplete', 'discounted', 'vast', 'input
+[04:06:36]   CN10Y      → LIQUIDITY [T2 ] own notes ['tv-973fb82dc1cda723', 'tv-dd797ca0a506555c'] score=14v9 terms=['underperforming', 'drained']
+[04:06:36] ✅   seeds found for 3 domains
+[04:06:36] ✅   expanded lexicon non-trivial
+[04:06:36] ✅   100% classified
+[04:06:36] ✅   no T6 backstop needed
+[04:06:36] ✅   majority from his own notes (T1/T2 >= 60%)
+[04:06:36] ✅   all 3 domains have drivers
+[04:06:36] ✅ PASS_ALL — 561/561 classified, 492 (87.7%) from his own notes; MACRO 336 LIQUIDITY 141 RISK 84
 
-Reserve balances are the amount of money that depository institutions, such as banks, maintain in their accounts at their regional Federal Reserve Banks. Reserve balances are made up of two components: 1-Required reserves: The amount of reserves that banks are required to hold by the Federal Reserve. Required reserves are a percentage of 
-[04:03:12]   [LIQUIDITY/funding] tv-a56315720e79a9ea
-      [TV:UNTAGGED] The spread between SOFR and the Fed’s Overnight Reverse Repo rate has been exhibiting volatility not seen since the repo spike of September 2019, with quarter-end spikes hitting 25 basis points in recent months. This might seem like financial jargon to most, but for those who understand the intricacies of monetary plumbing, it’s the canary in the coal mine: signaling stress fractures in the very foundat
-[04:03:12]   [LIQUIDITY/funding] nmq5vhvebjob6
-      WHY YOU SHOULD NEVER EVER TOUCH STOCKS IN A BEAR MARKETS WHEN FINANCIAL PLUMBING AND LIQUIDITY ARE SHAKY? HERE IS THE PROBLEM: YOU BUY A STOCK THAT’S 35% IN THE HOLE, COMPANY COME OUT WITH EARNINGS AND THE EARNINGS NOT AS BAD AS FEARED AND THE STOCK RALLIES BY %10 AND YOU SAY I MADE A GREAT BUY AND A WEEK LATER IT’S ROLLING BACK OVER AND THE STOCK IS MAKING LOWER LOWS.THIS IS THE MAIN CONCERN AMONG WALLSTREET STRATEG
-[04:03:12]   [LIQUIDITY/carry] tv-9fa576184567fa8f
-      [TV:DXY] WHAT’S THE DOLLAR ROLE IN THE GLOBAL STAGE?  IT’S THE LIQUIDITY PROVIDER FOR THE ENTIRE WORLD. THE DOLLAR IS THE FUNDING CURRENCY FOR THE ENTIRE GLOBE ON EVERYTHING FROM LOANS, SOVEREIGN DEBT, TRADE, INVESTMENT TO INFRASTRUCTURE. JUST EVERYTHING IS FUNDED IN DOLLARS. The demand for dollars Rooted in the relentless demand for dollars to service global debt (Both sovereign debt and Eurodollar market debt), to 
-[04:03:12]   [LIQUIDITY/carry] tv-f58a44fc2f839aac
-      [TV:DXY] EVERYDAY YOU HAVE TO ROLL OVER YOUR POSITION IN THE EURODOLLAR MARKET.
-Why in a crisis the us dollar spike and the Japanese yen or the problem currencies be crashing in the Eurodollar system and globally? So when things start going sour in the markets and when risk start increasing in the market. And since everyday positions in the Eurodollar market has to be rolled over (in the pawnshop since the Eurodolla
-[04:03:12]   [LIQUIDITY/carry] tv-b3ec3933837d5155
-      [TV:JPLG] Japan Loan Growth YOY is crucial for global liquidity especially Risk assets liquidity bcs of the carry trade. so a higher japan loan growth YOY means higher EuroDollar loans and lower japan loan growth yoy means lower Eurodollar loans. 
-
-Japan Loan Growth YOY decreasing has ALWAYS drained liquidity from the Eurodollar system. We should consider it as A FLASH WARNING that crypto and bitcoin bull  market i
-[04:03:12]   [RISK/credit] tv-8711fbee989cf1eb
-      [TV:BAMLH0A3HYC] THE MOST IMPORT THING FOR ALL MARKETS INCLUDING THE STOCK MARKET IS LIQUIDITY, NOT EARNINGS, NOT MULTIPLE. NOT THAT EARNINGS AND MULTIPLE ARENT IMPORTANT BUT LIQUIDITY IS A LOT MORE IMPORTANT. EVEN IF THE US RAISES RATES AS LONG AS MARKETS STAY LIQUID WHERE CREDIT SPREADS STILL NARROW THE MARKETS ARE GONNA DO WELL.
-
-The 2 biggest components of Credit Market are: 1- Gov credit Market (controlled thr
-[04:03:12]   [RISK/credit] tv-ba419d7b64a1e75d
-      [TV:BAMLC0A4CBBB] Global Liquidity Crisis can be seen in Credit Spreads. 
-This indicator shows liquidity in the US Corporate Bond Market. Check "Move" indicator for a better picture of whats going to happen in the bond market. "Bond" precedes this indicator and shows the bigger picture of the bond market.
-Most corporate Bonds in the US market are BBB bonds. A downgrade of a BBB bond will turn it from an investment 
-[04:03:12]   [RISK/credit] tv-e38d57bffedb366a
-      [TV:BAMLHE00EHYIOAS] This data represents the Option-Adjusted Spread (OAS) of the ICE BofA Euro High Yield Index tracks the performance of Euro denominated below investment grade corporate debt publicly issued in the euro domestic or eurobond markets.
-When This Metric start spiking  that signals Liquidity squeeze and Dollar shortage Which means Euro is in Trouble. DXY is about to spike. When this metric drops that m
-[04:03:12]   [RISK/credit] nmq5w1e03r08g
-      WHERE TO SPOT THE LEVERAGE IN THE FINANCIAL SYSTEM? The leverage is ALWAYS in the weaker parts of the corporate sector. That is those firms that are essentially high yields, especially the worst part of the high yield. (which are C Level and lower) and among fallen angels which are a Trillion dollars (fallen angels are bonds that have gone from investment grade to below investment grade) That is THE LEVERAGE IN THE S
-[04:03:12]   [RISK/structure] tv-14a76b6087dc80eb
-      [TV:MOVE] HOW DOES MOVE INDEX PREDICT QE AND LIQUIDITY? 
-The Fed might step in and start pumping money into the economy again—aka "going Brrr," like a money printer. One signal to watch for this is something called the MOVE Index, which tracks volatility (or wild price swings) in the bond market, specifically U.S. Treasury bonds.
-Here’s how it works: When the MOVE Index goes up, it means bond prices are jumping aro
-[04:03:12]   [MACRO/dollar] tv-ab761f92999efe68
-      [TV:DXY] The Global system (global economy, global trade and global finance) was built on a weak Dollar. For the global economy to continue running and for the system to continue functioning you need a weak dollar. A strong Dollar just wrecks it. The worst case for the Dollar for it to fall is when we witness global growth, Europe is growing, China is growing, EM are growing, ROw is growing. Bcs if the world gets int
-[04:03:12]   [MACRO/dollar] nmq5x00zhe98n
-      WHEN DOLLAR STRENGTHEN AND RATES ARE HIGHER IN THE US YOU BETTER EXIT THE MARKETS: THE ENTIRE GLOBAL FINANCIAL SYSTEM IS PYRAMID IN TOP OF THE US TREASURIES AND US DOLLAR. THE SECOND FED START HIKING RATE AGGRESIVELY THAT PUMPS THE DOLLAR AND DUMPS TREASURIES PRICES (THAT THE ENTIRE FINANCIAL MARKET IN PYRAMID IN TOP OF) AND SINCE THE EURODOLLAR SYSTEM WAS MEANT TO CREATE MONEY FROM THE COLLATERAL OF US TREASURIES, I
-[04:03:12]   [MACRO/dollar] tv-b4c32545ea1dc640
-      [TV:TVC:US10Y] US10Y reflects current economic conditions and market future inflations expectations and market future growth expectation.
-
-what does us10y tell us about economic conditions
-
-The US10Y, or the 10-year US Treasury yield, can provide important information about economic conditions. Generally, the yield on the 10-year Treasury note is a reflection of market expectations for future inflation, economic 
-[04:03:12]   [MACRO/growth] nmq5x00zh27pq
-      Industrial Production: Total Index (INDPRO) IS A GREAT INDICATOR FOR GLOBAL GROWTH TREND REVERSAL. YOU CAN SOLELY LOOK AT INDPRO AND PREDICT RECESSIONS YEARS AHEAD. YOU SHOULD TAKE A HUGE CONSIDERATION TO INDPRO WHEN YOU DECIDE TO BE INVESTED IN THE MARKET OR RISK OFF BCS RISK ASSET WILL EVENTUALLY CONVERGE WITH INDPRO AND THE ECONOMY WILL BRING THE STOCK MARKET TO REALITY.
-[04:03:12]   [MACRO/hierarchy] nmq5x0cp7zp4j
-      We should focus on LIQUIDITY bcs liquidity RULES. When there is plenty of liquidity EVERYONE WILL BE RISK ON, and as liquidity dries up that's when institutions start to unwind their risky position and go Risk off. EM stocks and developed nation stock, japan stock, frontier, pacific, angel, High yield, global stocks and small cap stocks along Yield spreads, commercial banks cash and Marketable Securities holding, DXY
-[04:03:12]   [MACRO/hierarchy] tv-c8640dea0c15ee5c
-      [TV:UNTAGGED] Technical indicators: are nothing more than expressions of filters so a technical indicator is nothing more than a filter that tries to get rid of noise, some of them are lagging and some of them try to be forward looking by looking at turning points in the market. The question you have to ask yourself is not whats the magic behind this filter but how persistent is the behavior in the market that will a
-── C. lexicon mined from Khalid's own notes (log-odds vs corpus) ──
-[04:03:12]   LIQUIDITY: well-functioning(1515.2), tri-party(1515.2), strategists(1515.2), sofr-rrp(1515.2), quarter-ends(1515.2), quarter-end(1515.2), persistently(1515.2), jargon(1515.2), intricacies(1515.2), foreshadow(1515.2), feared(1515.2), exhibiting(1515.2), compelling(1515.2), bueno(1515.2), bilateral(1515.2), tonight(757.6), fractures(757.6), evergrande(757.6), cdontions(757.6), volume-weighted(505.1), touch(505.1), sour(505.1)
-[04:03:12]   RISK: worrying(808.1), swoops(808.1), notch(808.1), mess(808.1), guardian(808.1), eurobond(808.1), costing(808.1), cascadation(808.1), sees(606.1), moodys(606.1), cares(606.1), brrr(606.1), avalanche(606.1), spook(484.9), fitch(484.9), felt(484.9), snowball(404.1), printer(404.1), ehyioas(404.1), downgraded(303.1), deeply(303.1), relies(269.4)
-[04:03:12]   MACRO: jeopardizing(2020.3), indpro(2020.3), aggresively(2020.3), marketable(1010.2), consistant(1010.2), chine(1010.2), alwyas(1010.2), signle(673.4), inflations(505.1), expressions(505.1), binary(505.1), announcements(505.1), thrown(404.1), conceived(404.1), appropriately(404.1), applying(404.1), gotten(336.7), pessimistic(288.6), helicopter(288.6), expression(288.6), entries(288.6), effort(288.6)
-── D. classification ladder dry-run ──
-[04:03:12]   learned category priors: {"commodity": "MACRO", "credit": "RISK", "equity": "MACRO", "fx": "LIQUIDITY", "macro": "LIQUIDITY", "other": "LIQUIDITY", "plumbing": "LIQUIDITY", "rates": "LIQUIDITY", "vol": "MACRO"}
-[04:03:12]   UNRESOLVED sample: ['CL1!', 'GE1!', 'MME1!', 'SR32!', 'YIT1!', 'GC2!', 'USW1!', 'AWN1!', 'F1U1!', 'FMMG1!', 'GE2!', 'I1!', '6J2!', 'AW1!', 'EMM2!', 'FMEA2!', 'FMMI2!', 'GBW2!', 'HG1!', 'SO32!', 'SON1!', 'TOPIX1!', 'USP2!', 'ZF1!', 'MWL1!']
-── E. worked examples (evidence per symbol) ──
-[04:03:12]   RRPONTSYD  → LIQUIDITY [T5] category 'plumbing' learned prior LIQUIDITY ({'LIQUIDITY': 4})
-[04:03:12]   SOFR       → LIQUIDITY [T5] category 'plumbing' learned prior LIQUIDITY ({'LIQUIDITY': 4})
-[04:03:12]   JPLG       → LIQUIDITY [T1] anchor tv-b3ec3933837d5155
-[04:03:12]   MOVE       → RISK      [T1] anchor tv-14a76b6087dc80eb
-[04:03:12]   VIX        → MACRO     [T5] category 'vol' learned prior MACRO ({'RISK': 1, 'MACRO': 2})
-[04:03:12]   DXY        → LIQUIDITY [T1] anchor tv-9fa576184567fa8f
-[04:03:12]   USDX       → LIQUIDITY [T5] category 'fx' learned prior LIQUIDITY ({'LIQUIDITY': 1, 'MACRO': 1})
-[04:03:12]   US10Y      → MACRO     [T1] anchor tv-b4c32545ea1dc640
-[04:03:12]   US02Y      → MACRO     [T3] co-occurs with 1 MACRO symbols
-[04:03:12]   TEDRATE    → LIQUIDITY [T5] category 'plumbing' learned prior LIQUIDITY ({'LIQUIDITY': 4})
-[04:03:12]   XAUUSD     → LIQUIDITY [T5] category 'fx' learned prior LIQUIDITY ({'LIQUIDITY': 1, 'MACRO': 1})
-[04:03:12]   CL1!       → UNRESOLVED
-[04:03:12]   SPX        → MACRO     [T2] own notes ['tv-39e5a021df56a47b', 'tv-50acf6781eeee2ac'] terms=['angel', 'announcements', 'applying', 'appropriately', 'binary', 'combining']
-[04:03:12]   USM2       → LIQUIDITY [T5] category 'macro' learned prior LIQUIDITY ({'LIQUIDITY': 2, 'MACRO': 1})
-[04:03:12]   USCLI      → LIQUIDITY [T5] category 'macro' learned prior LIQUIDITY ({'LIQUIDITY': 2, 'MACRO': 1})
-[04:03:12]   USIRYY     → LIQUIDITY [T5] category 'macro' learned prior LIQUIDITY ({'LIQUIDITY': 2, 'MACRO': 1})
-[04:03:12]   BDI        → MACRO     [T5] category 'commodity' learned prior MACRO ({'MACRO': 1})
-[04:03:12]   HG1!       → UNRESOLVED
-[04:03:12]   USNFP      → LIQUIDITY [T5] category 'macro' learned prior LIQUIDITY ({'LIQUIDITY': 2, 'MACRO': 1})
-[04:03:12]   USFER      → LIQUIDITY [T5] category 'macro' learned prior LIQUIDITY ({'LIQUIDITY': 2, 'MACRO': 1})
-[04:03:12] ✅   brain loaded
-[04:03:12] ✅   vault loaded
-[04:03:12] ✅   majority of anchor notes resolve
-[04:03:12] ✅   lexicon mined for all 3 domains
-[04:03:12] ✗   100% of vault symbols classified
-[04:03:12] ✅   all three domains populated
-[04:03:12] ✗ FAILED: ['100% of vault symbols classified']
-
-→ Report written to aws/ops/reports/latest/3959_brain_domain_probe.md
-❌ OPS-FAIL: aws/ops/pending/ops_3959_brain_domain_probe.py
+→ Report written to aws/ops/reports/latest/3960_domain_lexicon_v2.md
