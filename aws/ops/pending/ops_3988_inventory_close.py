@@ -76,10 +76,7 @@ def main():
                          if "DGS10" in str(m.get("pulled_from", "")).upper()
                          and "VOL" not in str(m.get("name")).upper()), None))
         rep.log(f"  matched us10 -> {json.dumps(us10)[:200]}")
-        rep.log(f"  fred head names: {[str(m.get('name'))[:28] for m in fred[:5]]}")
-                or next((m for m in fred
-                         if "DGS10" in str(m.get("pulled_from", "")).upper()
-                         and "VOL" not in str(m.get("name")).upper()), None))
+        rep.log(f"  fred head: {[str(m.get('name'))[:26] for m in fred[:5]]}")
         rep.kv(us10=json.dumps(us10) if us10 else None)
         checks += [
             ("artifact is v1.8", doc.get("marker") == MARK),
@@ -177,3 +174,5 @@ if __name__ == "__main__":
 # regate nonce
 
 # regate2
+
+# v4 rebuild
