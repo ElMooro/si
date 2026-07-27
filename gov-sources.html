@@ -1,0 +1,80 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Government Data Sources — JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#111823;--line:#1e2a3a;--txt:#d7e0ea;--dim:#7d8fa3;
+--amber:#f0b429;--green:#3ecf8e;--red:#ff5c5c;--grey:#5a6b7d;--blue:#58a6ff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font:14px/1.5 'Segoe UI',system-ui,sans-serif;padding:18px}
+a{color:var(--blue);text-decoration:none}
+h1{font-size:20px;color:var(--amber);letter-spacing:.5px}
+.sub{color:var(--dim);font-size:12px;margin:4px 0 14px}
+.strip{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 16px;min-width:120px}
+.kpi .v{font-size:20px;font-weight:700;color:var(--amber)}
+.kpi .l{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.hdr{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hdr .nm{font-size:16px;font-weight:700}
+.hdr .cty{color:var(--dim);font-size:12px}
+.pill{font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;letter-spacing:.5px}
+.LIVE{background:#0d2b1e;color:var(--green);border:1px solid var(--green)}
+.DEGRADED{background:#2b230d;color:var(--amber);border:1px solid var(--amber)}
+.DOWN{background:#2b0d0d;color:var(--red);border:1px solid var(--red)}
+.SPEC_ONLY,.BLOCKED_ACCOUNT{background:#151c26;color:var(--grey);border:1px solid var(--grey)}
+.lat{color:var(--dim);font-size:11px;margin-left:auto}
+.sec{margin-top:10px}
+.sec .t{font-size:11px;color:var(--amber);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{padding:4px 8px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--dim);font-size:11px;text-transform:uppercase}
+.ok{color:var(--green)}.bad{color:var(--red)}
+.mono{font-family:Consolas,monospace;font-size:12px;color:#a8c7e8;word-break:break-all}
+.spec div{margin:2px 0}
+.spec .k{color:var(--dim);font-size:11px;text-transform:uppercase;margin-right:6px}
+ul.q{margin-left:18px;color:var(--txt)}
+ul.q li{margin:3px 0;font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{background:#16202e;border:1px solid var(--line);border-radius:5px;padding:1px 8px;font-size:11px;font-family:Consolas,monospace;color:#9fd0ff}
+.howto{background:#0d1420;border-left:3px solid var(--amber);padding:6px 10px;font-size:12px;color:var(--txt);margin-top:8px}
+.auth{font-size:11px;color:var(--dim)}
+.foot{color:var(--dim);font-size:11px;margin-top:18px}
+</style></head><body>
+<h1>🏛 GOVERNMENT DATA SOURCES</h1>
+<div class="sub">The registry of every official agency this platform pulls from — full API specs, hard-won quirks, independent live probes, and the vault symbols each source serves. Institutional memory of the ops 3936–3955 discovery arc.</div>
+<div class="strip" id="strip"></div>
+<div id="cards">Loading registry…</div>
+<div class="foot" id="foot"></div>
+<script>
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+fetch('data/gov-sources.json?cb='+Date.now()).then(r=>r.json()).then(d=>{
+  document.getElementById('strip').innerHTML=[
+    ['Agencies',d.n_agencies],['Live',d.n_live],['Degraded',d.n_degraded],
+    ['Spec / blocked',d.n_spec_only],['Run time',(d.elapsed_s??'—')+'s']
+  ].map(([l,v])=>`<div class="kpi"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join('');
+  document.getElementById('cards').innerHTML=(d.agencies||[]).map(a=>{
+    const probes=(a.probes&&a.probes.length)?`<div class="sec"><div class="t">What we pull (live probe)</div>
+      <table><tr><th>Series</th><th>Value</th><th>Unit</th><th>As of</th><th></th></tr>${
+      a.probes.map(p=>`<tr><td>${esc(p.name)}</td><td><b>${esc(p.value)}</b></td><td>${esc(p.unit)}</td><td>${esc(p.asof)}</td><td class="${p.ok?'ok':'bad'}">${p.ok?'✔':'✖'}${p.note?' <span class="auth">'+esc(p.note)+'</span>':''}</td></tr>`).join('')}</table></div>`:'';
+    const sp=a.spec||{};
+    const spec=`<div class="sec spec"><div class="t">API spec</div>
+      <div><span class="k">Base</span><span class="mono">${esc(sp.base)}</span></div>
+      <div><span class="k">Endpoints</span>${(sp.endpoints||[]).map(e=>`<div class="mono">· ${esc(e)}</div>`).join('')}</div>
+      <div><span class="k">Params</span><span class="mono">${esc(sp.params)}</span></div>
+      <div><span class="k">Example</span><span class="mono">${esc(sp.example)}</span></div>
+      ${sp.db_table?`<div><span class="k">DB table</span><span class="mono">${esc(sp.db_table)}</span></div>`:''}</div>`;
+    const quirks=(a.quirks&&a.quirks.length)?`<div class="sec"><div class="t">Quirks &amp; lessons</div><ul class="q">${a.quirks.map(q=>`<li>${esc(q)}</li>`).join('')}</ul></div>`:'';
+    const vs=(a.vault_symbols&&a.vault_symbols.length)?`<div class="sec"><div class="t">Vault symbols served (${esc(a.vault_count)})</div><div class="chips">${a.vault_symbols.map(s=>`<span class="chip">${esc(s)}</span>`).join('')}</div></div>`:
+      `<div class="sec"><div class="t">Vault symbols served</div><div class="auth">none yet (${esc(a.vault_count??0)})</div></div>`;
+    return `<div class="card" id="${esc(a.id)}"><div class="hdr">
+      <span style="font-size:22px">${esc(a.flag)}</span>
+      <span class="nm">${esc(a.name)}</span><span class="cty">${esc(a.country)}</span>
+      <span class="pill ${esc(a.status)}">${esc(a.status)}</span>
+      <span class="auth">auth: ${esc(a.auth)}</span>
+      <span class="lat">${a.latency_ms!=null?esc(a.latency_ms)+' ms':''}</span></div>
+      ${probes}${spec}${quirks}${vs}
+      <div class="howto">➕ <b>How to add a series:</b> ${esc(a.how_to_add)}</div></div>`;
+  }).join('');
+  document.getElementById('foot').textContent=`${d.marker} · generated ${d.generated_at}`;
+}).catch(e=>{document.getElementById('cards').textContent='Failed to load data/gov-sources.json: '+e;});
+</script></body></html>
