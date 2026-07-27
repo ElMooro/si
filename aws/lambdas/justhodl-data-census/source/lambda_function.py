@@ -1,0 +1,259 @@
+"""
+justhodl-data-census v1.0 — ONE catalog of every value the fleet publishes.
+
+Khalid (2026-07-27): "put all the data we have under one engine all
+displaying in one page so that we don't repeat the same mistake, we don't
+rebuild, we just fill gaps, and we can compare them against real data to
+detect bugs. my system has tons of engines and tons of data — you just have
+to discover them all."
+
+The JPEXPYY bug motivates the design: Japan's export symbol published
+Korea's number for weeks because no layer compares VALUES across engines.
+feed-registry (freshness) and feed-catalog (schemas/writers/pages) already
+inventory the fleet — this engine CONSUMES both and adds the missing layer:
+
+  1. WALK every data/*.json to its scalar leaves (bounded) → one path index.
+  2. MISLABEL DETECTOR: the same distinctive numeric value appearing in 2+
+     artifacts under paths whose COUNTRY tokens differ (JPEXPYY = 47.96 =
+     korea_exports.yoy_pct would have lit up here).
+  3. CONFLICT DETECTOR: same country+measure tokens, materially different
+     values → which engine is right?
+  4. GAP FILLER: dead vault symbols matched to candidate fleet paths by
+     country+measure tokens — candidates for a human/ops decision, never
+     auto-wired (the same-measure/same-country bar stays manual).
+
+EMITS data/data-census.json (compact) + data-census/paths-ledger.json (full)
+"""
+import json
+import re
+import time
+from collections import Counter, defaultdict
+from datetime import datetime, timezone
+
+import boto3
+
+MARKER = "data-census v1.0 ops3975"
+BUCKET = "justhodl-dashboard-live"
+OUT_KEY = "data/data-census.json"
+LEDGER_KEY = "data-census/paths-ledger.json"
+s3 = boto3.client("s3")
+
+MAX_ARTIFACT_MB = 12
+MAX_PATHS_PER = 400
+MAX_DEPTH = 5
+TRIVIAL = {0.0, 1.0, -1.0, 100.0, 50.0, 2.0, 10.0}
+
+COUNTRY = {"us": "US", "usa": "US", "united_states": "US", "korea": "KR", "kr": "KR",
+           "korean": "KR", "japan": "JP", "jp": "JP", "jpn": "JP", "china": "CN",
+           "cn": "CN", "chn": "CN", "taiwan": "TW", "tw": "TW", "euro": "EU",
+           "eu": "EU", "ea": "EU", "germany": "DE", "de": "DE", "deu": "DE",
+           "uk": "GB", "gb": "GB", "gbr": "GB", "france": "FR", "fr": "FR",
+           "italy": "IT", "it": "IT", "spain": "ES", "es": "ES", "swiss": "CH",
+           "ch": "CH", "che": "CH", "norway": "NO", "no": "NO", "chile": "CL",
+           "cl": "CL", "peru": "PE", "pe": "PE", "india": "IN", "brazil": "BR",
+           "canada": "CA", "australia": "AU", "mexico": "MX", "global": "WW",
+           "world": "WW"}
+MEASURE = {"export": "exports", "exports": "exports", "import": "imports",
+           "cpi": "cpi", "inflation": "cpi", "ppi": "ppi", "gdp": "gdp",
+           "pmi": "pmi", "yield": "yield", "rate": "rate", "policy": "rate",
+           "m0": "m0", "m1": "m1", "m2": "m2", "m3": "m3", "tsf": "tsf",
+           "credit": "credit", "impulse": "credit", "unemployment": "unemp",
+           "orders": "orders", "yoy": "yoy", "reserves": "reserves",
+           "fx": "fx", "spread": "spread", "cli": "cli", "sentiment": "sent",
+           "tankan": "tankan", "loans": "loans", "lending": "loans"}
+TOK = re.compile(r"[a-z0-9]+")
+
+
+def toks(path):
+    ts = set(TOK.findall(path.lower()))
+    return ({COUNTRY[t] for t in ts if t in COUNTRY},
+            {MEASURE[t] for t in ts if t in MEASURE})
+
+
+def walk(o, pre="", depth=0, out=None):
+    if out is None:
+        out = []
+    if len(out) >= MAX_PATHS_PER or depth > MAX_DEPTH:
+        return out
+    if isinstance(o, dict):
+        for k, v in o.items():
+            walk(v, f"{pre}.{k}" if pre else str(k), depth + 1, out)
+    elif isinstance(o, list) and o:
+        walk(o[0], f"{pre}[0]", depth + 1, out)
+    elif isinstance(o, (int, float)) and not isinstance(o, bool):
+        out.append((pre, float(o)))
+    return out
+
+
+def lambda_handler(event, context):
+    t0 = time.time()
+    now = datetime.now(timezone.utc)
+    print(f"[census] {MARKER}")
+
+    # ── consume the EXISTING registries (wire, don't rebuild) ────────────
+    def gj(key, default=None):
+        try:
+            return json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+        except Exception:
+            return default
+
+    freg = gj("data/feed-registry.json", {}) or {}
+    fcat = gj("data/feed-catalog.json", {}) or {}
+    vault = gj("data/tradingview.json", {}) or {}
+    stale_set = {f.get("key") for f in (freg.get("stale") or []) if isinstance(f, dict)}
+    writers = {}
+    for it in (fcat.get("feeds") or fcat.get("catalog") or []):
+        if isinstance(it, dict) and it.get("key"):
+            writers[it["key"]] = {"writer": it.get("writer") or it.get("writers"),
+                                  "pages": it.get("pages") or it.get("consumers")}
+
+    # ── list + walk every artifact ───────────────────────────────────────
+    keys, tok = [], None
+    while True:
+        kw = dict(Bucket=BUCKET, Prefix="data/", MaxKeys=1000)
+        if tok:
+            kw["ContinuationToken"] = tok
+        r = s3.list_objects_v2(**kw)
+        for o in r.get("Contents") or []:
+            if o["Key"].endswith(".json"):
+                keys.append((o["Key"], o["Size"], o["LastModified"]))
+        if not r.get("IsTruncated"):
+            break
+        tok = r.get("NextContinuationToken")
+
+    arts, paths, errors = [], [], []
+    val_index = defaultdict(list)          # rounded value -> [(key, path)]
+    for key, size, lm in keys:
+        age_h = (now - lm).total_seconds() / 3600
+        rec = {"key": key, "size": size, "age_h": round(age_h, 1),
+               "stale": key in stale_set, **(writers.get(key) or {})}
+        if size > MAX_ARTIFACT_MB * 1_000_000:
+            rec["skipped"] = f">{MAX_ARTIFACT_MB}MB"
+            arts.append(rec)
+            continue
+        try:
+            doc = json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+            pl = walk(doc)
+            rec["n_paths"] = len(pl)
+            gen = doc.get("generated_at") if isinstance(doc, dict) else None
+            rec["generated_at"] = gen
+            for p, v in pl:
+                paths.append({"k": key, "p": p, "v": v})
+                rv = round(v, 4)
+                if rv not in TRIVIAL and abs(rv) > 0.01:
+                    val_index[rv].append((key, p))
+        except Exception as e:
+            rec["error"] = f"{type(e).__name__}"
+            errors.append(key)
+        arts.append(rec)
+
+    # ── detector 1: MISLABELS (same value, different country tokens) ─────
+    mislabels = []
+    for rv, hits in val_index.items():
+        if len(hits) < 2 or len(hits) > 12:
+            continue
+        cs = [(k, p, *toks(k + "." + p)) for k, p in hits]
+        countries = {c for _k, _p, cset, _m in cs for c in cset}
+        if len(countries) >= 2:
+            mislabels.append({
+                "value": rv, "n_occurrences": len(hits),
+                "countries_claimed": sorted(countries),
+                "paths": [{"artifact": k, "path": p, "countries": sorted(cc),
+                           "measures": sorted(mm)} for k, p, cc, mm in cs][:8],
+                "read": "one number published under multiple country labels — "
+                        "verify which is real (JPEXPYY class)"})
+    mislabels.sort(key=lambda m: -m["n_occurrences"])
+
+    # ── detector 2: CONFLICTS (same country+measure, different values) ───
+    grp = defaultdict(list)
+    for r in paths:
+        cset, mset = toks(r["k"] + "." + r["p"])
+        if len(cset) == 1 and mset:
+            grp[(next(iter(cset)), tuple(sorted(mset)))].append(r)
+    conflicts = []
+    for (c, ms), rs in grp.items():
+        by_art = {}
+        for r in rs:
+            by_art.setdefault(r["k"], r)
+        if len(by_art) < 2:
+            continue
+        vals = [r["v"] for r in by_art.values()]
+        lo, hi = min(vals), max(vals)
+        if hi - lo > max(0.5, abs(lo) * 0.15):
+            conflicts.append({
+                "country": c, "measures": list(ms),
+                "spread": round(hi - lo, 3), "n_engines": len(by_art),
+                "values": [{"artifact": r["k"], "path": r["p"],
+                            "value": r["v"]} for r in list(by_art.values())[:6]],
+                "read": "engines disagree on the same measure — different "
+                        "vintages/definitions, or one is wrong"})
+    conflicts.sort(key=lambda c: -c["n_engines"])
+
+    # ── detector 3: GAP FILL candidates for dead vault symbols ───────────
+    SYM_RX = [(re.compile(r"^(US|JP|CN|TW|KR|EU|DE|GB|FR|IT|ES|CH|NO|CL|PE)"), 0)]
+    MEAS_SYM = {"EXPYY": {"exports", "yoy"}, "IRYY": {"cpi", "yoy"},
+                "PPIYY": {"ppi", "yoy"}, "GDPYY": {"gdp", "yoy"},
+                "INTR": {"rate"}, "FER": {"reserves", "fx"}, "M2": {"m2"},
+                "M1": {"m1"}, "M0": {"m0"}, "CLI": {"cli"}, "TOT": {"exports"}}
+    dead = [r for r in (vault.get("symbols") or []) if r.get("status") != "LIVE"]
+    gaps = []
+    for d in dead:
+        sym = d["symbol"]
+        m = SYM_RX[0][0].match(sym)
+        if not m:
+            continue
+        cc = m.group(1)
+        want = None
+        for suf, ms in MEAS_SYM.items():
+            if sym[len(cc):].startswith(suf) or sym.endswith(suf):
+                want = ms
+                break
+        if not want:
+            continue
+        cands = []
+        for r in paths:
+            cset, mset = toks(r["k"] + "." + r["p"])
+            if cc in cset and want <= mset:
+                cands.append({"artifact": r["k"], "path": r["p"], "value": r["v"]})
+        if cands:
+            gaps.append({"symbol": sym, "n_notes": d.get("n_notes"),
+                         "needs": {"country": cc, "measures": sorted(want)},
+                         "candidates": cands[:5],
+                         "rule": "wire ONLY if same measure AND same country — "
+                                 "the bar JPEXPYY failed"})
+    gaps.sort(key=lambda g: -(g["n_notes"] or 0))
+
+    live_paths = len(paths)
+    fresh = sum(1 for a in arts if (a.get("age_h") or 9e9) <= 48)
+    out = {
+        "engine": "justhodl-data-census", "version": "1.0", "marker": MARKER,
+        "generated_at": now.isoformat(),
+        "doctrine": "one catalog of every value the fleet publishes, so nothing is "
+                    "rebuilt, gaps are visible, and cross-engine comparison catches "
+                    "mislabels before they poison a downstream join.",
+        "consumes": ["data/feed-registry.json (freshness — wired, not rebuilt)",
+                     "data/feed-catalog.json (writers/pages — wired, not rebuilt)",
+                     "data/tradingview.json (dead-symbol gap join)"],
+        "totals": {"artifacts": len(arts), "artifacts_fresh_48h": fresh,
+                   "artifacts_stale": sum(1 for a in arts if a.get("stale")),
+                   "scalar_paths": live_paths, "parse_errors": len(errors)},
+        "mislabel_candidates": mislabels[:40],
+        "measure_conflicts": conflicts[:40],
+        "gap_fill_candidates": gaps[:60],
+        "artifacts": sorted(arts, key=lambda a: -(a.get("n_paths") or 0)),
+        "honesty": "detectors are heuristic token matches — every hit is a CANDIDATE "
+                   "for verification, never an auto-fix. Auto-wiring on token match is "
+                   "how JPEXPYY happened.",
+        "elapsed_s": round(time.time() - t0, 1),
+    }
+    s3.put_object(Bucket=BUCKET, Key=LEDGER_KEY,
+                  Body=json.dumps({"generated_at": now.isoformat(), "paths": paths},
+                                  default=str),
+                  ContentType="application/json")
+    s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str),
+                  ContentType="application/json", CacheControl="max-age=600")
+    print(f"[census] DONE {out['elapsed_s']}s arts={len(arts)} paths={live_paths} "
+          f"mislabels={len(mislabels)} conflicts={len(conflicts)} gaps={len(gaps)}")
+    return {"ok": True, **out["totals"],
+            "mislabels": len(mislabels), "conflicts": len(conflicts),
+            "gap_candidates": len(gaps)}
