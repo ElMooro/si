@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "data-census v1.2 ops3979 provenance"
+MARKER = "data-census v1.3 ops3980 o1-enrich"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/data-census.json"
 LEDGER_KEY = "data-census/paths-ledger.json"
@@ -294,11 +294,15 @@ def lambda_handler(event, context):
                          "engine": eng_of(r["k"]), "artifact": r["k"],
                          "path": r["p"]} for r in named[:1200]]
 
+    pidx = {}
+    for r in paths:
+        pidx.setdefault((r["k"], r["p"]), r)
+
     def enrich(key, path):
-        for r in paths:
-            if r["k"] == key and r["p"] == path:
-                return {"name": r.get("name"), "pulled_from": r.get("src"),
-                        "live": r.get("live"), "engine": eng_of(key)}
+        r = pidx.get((key, path))
+        if r:
+            return {"name": r.get("name"), "pulled_from": r.get("src"),
+                    "live": r.get("live"), "engine": eng_of(key)}
         return {"engine": eng_of(key)}
 
     for m in mislabels[:40]:
@@ -336,9 +340,15 @@ def lambda_handler(event, context):
                    "how JPEXPYY happened.",
         "elapsed_s": round(time.time() - t0, 1),
     }
+    led_paths = sorted(paths, key=lambda r: (not (r.get("name") and r.get("src")),
+                                             not r.get("name")))[:150000]
     s3.put_object(Bucket=BUCKET, Key=LEDGER_KEY,
-                  Body=json.dumps({"generated_at": now.isoformat(), "paths": paths},
-                                  default=str),
+                  Body=json.dumps({"generated_at": now.isoformat(),
+                                   "n_total_indexed": len(paths),
+                                   "n_in_ledger": len(led_paths),
+                                   "note": "capped at 150k records, named+sourced "
+                                           "first; totals reflect the full index",
+                                   "paths": led_paths}, default=str),
                   ContentType="application/json")
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str),
                   ContentType="application/json", CacheControl="max-age=600")
