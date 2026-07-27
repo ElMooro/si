@@ -1,22 +1,27 @@
-executing-against: 21b53b15e23fc76665e60add36836063aa169647
-ops 3947 — rendoblid switch + MOF self-diagnosis + IMF unkeyed
-── IMF unkeyed pull — learn real series attributes inline ──
-[01:57:32]   FCL?lastNObservations=1&startPeriod=2026: 299999b Obs=YES
-[01:57:32] ✅   FIRST OBS ATTRS: <Obs TIME_PERIOD="2026-M06" OBS_VALUE="6835420052.85176" DERIVATION_TYPE="O"/>
-[01:57:32] ✅   settled attempt 1
-[02:06:45] ✅   refreshed ~540s
-── MOF self-diagnosis from inside the Lambda ──
-[02:06:45]   https://www.mof.go.jp/english/policy/jgbs/reference/interest -> OK 21 lines
-[02:06:45]   JP02Y: NO_FREE_SOURCE value=None src=unresolved_tv_only asof=None
-[02:06:45]   CH02Y: NO_FREE_SOURCE value=None src=unresolved_tv_only asof=None
-[02:06:45]   CH03Y: NO_FREE_SOURCE value=None src=unresolved_tv_only asof=None
-[02:06:45] ✅   v3.5.2 settled (strings in zip)
-[02:06:45] ✅   force run wrote
-[02:06:45] ✅   debug_mof captured
-[02:06:45] ✗   CH02Y LIVE + 2026 asof via rendoblid
-[02:06:45] ✗   n_live >= 455
-[02:06:45] ✅   zero bare UNRESOLVED
-[02:06:45] ✗ FAILED: ['CH02Y LIVE + 2026 asof via rendoblid', 'n_live >= 455']
+executing-against: fe2518bd21be74a8dcc159aae2e070c07a20fd43
+ops 3948 — runner-exec ground truth + IMF Series attrs
+── A. runner-exec the engine functions (real network, tracebacks) ──
+[02:08:49]   mofjp_latest('2Y') -> {'value': 1.531, 'prev': None, 'chg_pct': None, 'asof': 'mof.go.jp:2026/7/24'}
+[02:08:50]   snb_latest('2 year') -> None
+[02:08:51]   snb_latest('3 year') -> None
+[02:08:51]   mof diag: ['https://www.mof.go.jp/english/policy/jgbs/reference/interest -> OK 21 lines']
+── B. IMF <Series> attrs -> exact key -> verify ──
+[02:08:52] ✅   SERIES ATTRS: <Series COUNTRY="AGO" INDICATOR="IRFCLDT1_IRFCL32_USD" SECTOR="S1XS1311" FREQUENCY="M" SCALE="6" METHODOLOGY="IRFCL13" ACCESS_SHARING_LEVEL="PUBLIC_OPEN" SECURITY_CLASSIFICATION="PUB">
+[02:08:52]   parsed attrs: {'COUNTRY': 'AGO', 'INDICATOR': 'IRFCLDT1_IRFCL32_USD', 'SECTOR': 'S1XS1311', 'FREQUENCY': 'M', 'SCALE': '6', 'METHODOLOGY': 'IRFCL13', 'ACCESS_SHARING_LEVEL': 'PUBLIC_OPEN', 'SECURITY_CLASSIFICATION': 'PUB'}
+[02:08:52]   a US series: None
+── C. settle v3.5.3 + force + gates ──
+[02:08:52] ✅   settled attempt 1
+[02:16:26] ✅   refreshed ~450s
+[02:16:26]   JP02Y: LIVE value=1.531 src=mof-japan asof=mof.go.jp:2026/7/24
+[02:16:26]   CH02Y: NO_FREE_SOURCE value=None src=unresolved_tv_only asof=None
+[02:16:26]   CH03Y: NO_FREE_SOURCE value=None src=unresolved_tv_only asof=None
+[02:16:26] ✅   runner-exec ran
+[02:16:26] ✅   IMF series attrs extracted
+[02:16:26] ✅   v3.5.3 settled
+[02:16:26] ✅   force run wrote
+[02:16:26] ✅   JP02Y LIVE via mof
+[02:16:26] ✅   n_live >= 453
+[02:16:26] ✅   zero bare UNRESOLVED
+[02:16:26] ✅ PASS_ALL — 453 LIVE, JP02Y 1.531 from MOF Japan; IMF key: None
 
-→ Report written to aws/ops/reports/latest/3947_rendoblid_mofdiag.md
-❌ OPS-FAIL: aws/ops/pending/ops_3947_rendoblid_mofdiag.py
+→ Report written to aws/ops/reports/latest/3948_runner_exec_truth.md
