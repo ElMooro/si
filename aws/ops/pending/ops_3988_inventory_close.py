@@ -40,6 +40,8 @@ MD_RX = re.compile(r'<meta\s+(?:name|property)=["\'](?:og:)?description["\']\s+c
 SUB2 = re.compile(r'class=["\'][^"\']*(?:sub|dim|lead|tagline)[^"\']*["\'][^>]*>(.*?)<', re.I | re.S)
 P_RX = re.compile(r"<p[^>]*>(.*?)</p>", re.I | re.S)
 SUB_RX = re.compile(r'<div class="dim"[^>]*>(.*?)</div>', re.I | re.S)
+SUB2 = re.compile(r"(?:sub|dim|lead|tagline)[^>]*>([^<]{10,300})<", re.I)
+P_RX = re.compile(r"<p[^>]*>(.*?)</p>", re.I | re.S)
 TAGS = re.compile(r"<[^>]+>")
 
 
@@ -70,6 +72,11 @@ def main():
                     f"from {str(m['pulled_from'])[:30]} via {m['engine']}")
         us10 = (next((m for m in fred
                       if str(m.get("name")).upper() == "US10Y"), None)
+                or next((m for m in fred
+                         if "DGS10" in str(m.get("pulled_from", "")).upper()
+                         and "VOL" not in str(m.get("name")).upper()), None))
+        rep.log(f"  matched us10 -> {json.dumps(us10)[:200]}")
+        rep.log(f"  fred head names: {[str(m.get('name'))[:28] for m in fred[:5]]}")
                 or next((m for m in fred
                          if "DGS10" in str(m.get("pulled_from", "")).upper()
                          and "VOL" not in str(m.get("name")).upper()), None))
@@ -105,7 +112,16 @@ def main():
             except Exception:
                 continue
             title = clean((T_RX.search(raw) or [None, ""])[1], 120)
-            purpose = clean((MD_RX.search(raw) or [None, ""])[1], 240) or \
+            purpose = ""
+            for rx in (MD_RX, SUB_RX, SUB2, P_RX):
+                m0 = rx.search(raw)
+                if m0:
+                    cand = clean(m0.group(1), 240)
+                    if len(cand) >= 25:
+                        purpose = cand
+                        break
+                    if cand and not purpose:
+                        purpose = cand or \
                 clean((SUB_RX.search(raw) or [None, ""])[1], 240)
             pages.append({"page": f.name, "title": title, "purpose": purpose})
         with_purpose = sum(1 for g in pages if g["purpose"])
@@ -159,3 +175,5 @@ if __name__ == "__main__":
     main()
 
 # regate nonce
+
+# regate2
