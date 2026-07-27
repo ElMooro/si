@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.2.2 NO03Y-ALIAS"
+MARKER = "tradingview-vault v3.3 BCRP-PERU"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -138,7 +138,7 @@ ALIASES = {
     "JPEXPYY": "fleet:data/asia-leads.json:korea_exports.yoy_pct",
     "JPLG": "none:BOJ stat-search build queued (endpoint probe in ops 3928)",
     "CLTOT": "none:TradingEconomics-paywalled (Chile ToT)",
-    "PETOT": "none:TradingEconomics-paywalled (Peru ToT)",
+    "PETOT": "bcrp:PN38923BM",
     "BDI": "none:referenced in eurodollar-plumbing code, not exported (producer todo)",
     "TWMPMI": "none:S&P Global PMI licensed", "USMPMI": "none:S&P Global PMI licensed",
     "EUMPMI": "none:S&P Global PMI licensed", "JPMPMI": "none:S&P Global PMI licensed",
@@ -445,6 +445,12 @@ def resolve_alias(row, al):
             row["source"] = "norges-bank"
             row["resolved_via"] = f"norges:{tgt}"
         return v, None
+    if kind == "bcrp":
+        v = bcrp_latest(tgt)
+        if v:
+            row["source"] = "bcrp-peru"
+            row["resolved_via"] = f"bcrp:{tgt}"
+        return v, None
     if kind == "disc":
         return None, ("DISCONTINUED", tgt)
     if kind == "none":
@@ -544,6 +550,26 @@ def norges_latest(tgt):
     return None
 
 
+def bcrp_latest(code):
+    """Banco Central de Reserva del Peru official series API (no key)."""
+    yr = datetime.now(timezone.utc).year
+    url = (f"https://estadisticas.bcrp.gob.pe/estadisticas/series/api/"
+           f"{code}/json/{yr-1}-1/{yr}-12")
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=25) as r:
+            d = json.loads(r.read())
+        periods = d.get("periods") or []
+        if not periods:
+            return None
+        last = periods[-1]
+        v = float(str(last.get("values", [None])[0]).replace(",", ""))
+        return {"value": round(v, 3), "prev": None, "chg_pct": None,
+                "asof": f"bcrp:{last.get('name')}"}
+    except Exception:
+        return None
+
+
 def resolve_direct(rv):
     """Source memory: refetch straight from the proven resolver."""
     kind, _, tgt = (rv or "").partition(":")
@@ -563,6 +589,8 @@ def resolve_direct(rv):
         return estat_latest(tgt)
     if kind == "norges":
         return norges_latest(tgt)
+    if kind == "bcrp":
+        return bcrp_latest(tgt)
     return None
 
 
