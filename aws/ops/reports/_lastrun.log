@@ -1,5 +1,46 @@
-executing-against: 73bb2559ed17b34c9f46fcc8ae0c1a1418f85b9b
-ops 3985 — invoke-only: enforce, settle, fire
-[21:30:42] ✅ FIRED — v1.6 async under 900s/3008MB; verify via ops 3984 in ~13 min
+executing-against: e40e07effedc1d17440d790644fe0180da79b684
+ops 3984 — pure verifier: is the census finally whole?
+── A. the artifact (short poll for the v1.6 write) ──
+[21:31:14]   [0] marker=data-census v1.6 ops3985 deterministic — waiting 30s
+[21:31:45]   [1] marker=data-census v1.6 ops3985 deterministic — waiting 30s
+[21:32:15]   [2] marker=data-census v1.6 ops3985 deterministic — waiting 30s
+[21:32:45]   [3] marker=data-census v1.6 ops3985 deterministic — waiting 30s
+── B. totals + directory ──
+[21:33:15]   DIR ADT INC                              = 1784008233.288516 live=True from=figi eng=justhodl-13f-positions
+[21:33:15]   DIR AFLAC INC                            = 1783985607.781589 live=True from=sec eng=justhodl-13f-positions
+[21:33:15]   DIR API GROUP CORP                       = 1783985607.781589 live=True from=sec eng=justhodl-13f-positions
+[21:33:15]   DIR ASE TECHNOLOGY HLDG CO LTD           = 1784008233.288516 live=True from=sec eng=justhodl-13f-positions
+[21:33:15]   DIR ABBOTT LABORATORIES                  = 1783985607.781589 live=True from=sec eng=justhodl-13f-positions
+[21:33:15]   DIR ABERCROMBIE & FITCH CO               = 1783985607.781589 live=True from=sec eng=justhodl-13f-positions
+── C. by_source — the locating scheme ──
+[21:33:15]   FRED: BAMLC0A0CM = 1.1862 live=True pulled from fred_2nd_chance through justhodl-domain-barometers
+[21:33:15]   FRED: BAMLC0A4CBBB = -1.0 live=True pulled from fred_2nd_chance through justhodl-domain-barometers
+[21:33:15]   FRED: BAMLEMPBPUBSICRPIEY = -1.0 live=True pulled from fred_2nd_chance through justhodl-domain-barometers
+[21:33:15]   FRED: BAMLH0A0HYM2 = 0.1953 live=True pulled from fred_2nd_chance through justhodl-domain-barometers
+[21:33:15]   FRED: BAMLH0A0HYM2SYTW = 0.2463 live=True pulled from fred_2nd_chance through justhodl-domain-barometers
+[21:33:15]   FRED: BAMLH0A3HYC = -1.0 live=True pulled from fred_2nd_chance through justhodl-domain-barometers
+── D. detectors (first run with a fed keyed walk) ──
+[21:33:15]   MISLABEL v=-0.25 ['TW', 'US'] ['domain-barometers.json:predictions.asset_classes.us_equity_larg', 'rotation-dashboard.json:layer1_regime.prior.equity_em']
+[21:33:15]   MISLABEL v=1211.0 ['CN', 'WW'] ['global-business-cycle.json:by_country.CHN.history_n', 'digest-2026-06-04.json:message_chars']
+[21:33:15]   MISLABEL v=1.6 ['KR', 'WW'] ['global-business-cycle.json:by_country.KOR.gdp_weight', 'master-ranker.json:top_tickers[AMZN].details.future_intel.r']
+[21:33:15]   MISLABEL v=0.33 ['CN', 'WW'] ['global-business-cycle.json:by_country.CHN.composite_pct', '13f-clone-alpha.json:managers.CITADEL.hit_rate']
+[21:33:15]   MISLABEL v=1.45 ['GB', 'WW'] ['global-business-cycle.json:by_country.GBR.z_5y', 'global-business-cycle.json:by_country.SWE.z_5y']
+[21:33:15]   GAP CNINTR    notes=2 -> ['interbank_rate.latest_pct', 'interbank_rate.change_3m_pp']
+── E. schedule + page ──
+[21:33:16] ✅   artifact is v1.5
+[21:33:16] ✅   written after the v1.6 invoke
+[21:33:16] ✅   >=100 artifacts walked
+[21:33:16] ✅   >=2000 scalar paths
+[21:33:16] ✅   metric directory >=50
+[21:33:16] ✅   >=50 fully attributed (name+source+engine)
+[21:33:16] ✅   keyed-list walk landed
+[21:33:16] ✅   by_source >=5 families
+[21:33:16] ✗   FRED >=40 metrics
+[21:33:16] ✅   US 10Y locatable under FRED
+[21:33:16] ✅   detectors present
+[21:33:16] ✅   schedule ENABLED
+[21:33:16] ✅   page v3 live at edge
+[21:33:16] ✗ FAILED: ['FRED >=40 metrics']
 
-→ Report written to aws/ops/reports/latest/3986_census_invoke_v17.md
+→ Report written to aws/ops/reports/latest/3984_census_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_3984_census_verify.py
