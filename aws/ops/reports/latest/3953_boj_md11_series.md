@@ -1,0 +1,37 @@
+# ops 3953 — MD11 metadata -> the JPLG series code
+
+**Status:** success  
+**Duration:** 4.9s  
+**Finished:** 2026-07-27T02:51:34+00:00  
+
+## Log
+## 1. getMetadata db=MD11 (+ param fallbacks)
+
+- `02:51:29`   format=json&lang=en&db=MD11: STATUS=200 msg=Successfully completed n=792
+## 2. MD11 series list (792 entries) — loans YoY hunt
+
+- `02:51:29`   entry shape: {"SERIES_CODE": "", "NAME_OF_TIME_SERIES": "Deposits, Vault Cash, and Loans and Bills Discounted (Domestically Licensed Banks)", "UNIT": "", "FREQUENCY": "", "CATEGORY": "", "LAYER1": 1, "LAYER2": 0, "LAYER3": 0, "LAYER4": 0, "LAYER5": 0, "START_OF_THE_TIME_SERIES": "", "END_OF_THE_TIME_SERIES": "", "LAST_UPDATE": "", "NOTES": ""}
+- `02:51:29`   loans-any                                Deposits, Vault Cash, and Loans and Bills Discounted (Domestically Licensed Banks)
+- `02:51:29`   loans-any DLCDBEDBDTTO                   Total Deposits/End of Period/Banking Accounts/Domestically Licensed Banks
+- `02:51:29`   loans-any DLCDBEDBDTMO                   Entities other than Financial Institutions and Central Government/End of Period/Banking Ac
+- `02:51:29`   loans-any DLCDBEDBDTEP                   Entities other than Financial Institutions and Central Government/Corporations/End of Peri
+- `02:51:29`   loans-any DLCDBEDBDTPN                   Entities other than Financial Institutions and Central Government/Households/End of Period
+- `02:51:29`   loans-any DLCDBEDBDTRO                   Entities other than Financial Institutions and Central Government/Local Governments and Lo
+- `02:51:29`   loans-any DLCDBEDBDDMO                   Entities other than Financial Institutions and Central Government/Demand Deposits/End of P
+- `02:51:29`   loans-any DLCDBEDBDDEP                   Entities other than Financial Institutions and Central Government/Demand Deposits/Corporat
+- `02:51:29`   loans-any DLCDBEDBDDPN                   Entities other than Financial Institutions and Central Government/Demand Deposits/Househol
+- `02:51:29`   loans-any DLCDBEDBDDRO                   Entities other than Financial Institutions and Central Government/Demand Deposits/Local Go
+- `02:51:29`   loans-any DLCDBEDBTSMO                   Entities other than Financial Institutions and Central Government/Time and Savings Deposit
+- `02:51:29`   loans-any DLCDBEDBTSEP                   Entities other than Financial Institutions and Central Government/Time and Savings Deposit
+- `02:51:29`   loans-any DLCDBEDBTSPN                   Entities other than Financial Institutions and Central Government/Time and Savings Deposit
+- `02:51:29`   loans-any DLCDBEDBTSRO                   Entities other than Financial Institutions and Central Government/Time and Savings Deposit
+- `02:51:29`   loans-any DLCDBEDBNYMO                   Entities other than Financial Institutions and Central Government/Nonresident Yen Deposits
+## 3. confirm candidates via getDataCode (real values)
+
+- `02:51:30` ✅   DLCDBEDBDTTO :: Total Deposits/End of Period/Banking Accounts/Domestically Licensed Banks :: unit=100 million yen freq=MONTHLY last=, 9996571, 10019175, 10060961, 10034364]
+- `02:51:31` ✅   DLCDBEDBDTMO :: Entities other than Financial Institutions and Central Government/End of Period/ :: unit=100 million yen freq=MONTHLY last=074, 9666687, 9694055, 9738265, 9707190]
+- `02:51:32` ✅   DLCDBEDBDTEP :: Entities other than Financial Institutions and Central Government/Corporations/E :: unit=100 million yen freq=MONTHLY last=130, 3544794, 3635410, 3668315, 3547156]
+- `02:51:33` ✅   DLCDBEDBDTPN :: Entities other than Financial Institutions and Central Government/Households/End :: unit=100 million yen freq=MONTHLY last=955, 5756884, 5763490, 5738428, 5819602]
+- `02:51:34` ✅   DLCDBEDBDTRO :: Entities other than Financial Institutions and Central Government/Local Governme :: unit=100 million yen freq=MONTHLY last= 291987, 365007, 295153, 331520, 340429]
+- `02:51:34` ✅ JPLG CANDIDATE CONFIRMED: DLCDBEDBDTTO — wire next ops
+- `02:51:34` ✅ MD11 HUNT COMPLETE
