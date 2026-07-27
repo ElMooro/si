@@ -1,0 +1,15 @@
+{
+  "function_name": "justhodl-domain-barometers",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1536,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "BRAIN-CONSTITUTIONAL MACRO/LIQUIDITY/RISK domain classifier + 3 barometers + asset-class prediction. Classifies all 561 TV-vault symbols from Khalid's own brain notes via NB trained on the brain corpus; fuses risk-gate legs with vault breadth; self-building grading ledger.",
+  "environment": {},
+  "inherit_env": [
+    {"from_function": "justhodl-signal-backtest", "keys": ["FRED_KEY", "FMP_KEY"]}
+  ]
+}
