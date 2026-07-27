@@ -47,7 +47,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "domain-barometers v1.0 ops3962"
+MARKER = "domain-barometers v1.1 ops3965 polarity-guard"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/domain-barometers.json"
 LEDGER_KEY = "domain-barometers/history-ledger.json"
@@ -106,7 +106,22 @@ POLARITY_NOTES = {
     "USLEI": (+1, "leading index up = growth"),
     "USNFP": (+1, "employment growth"),
     "BDI": (+1, "freight rates = real global demand"),
+    # growth nowcasts: these live in the vault's "rates" bucket by name shape,
+    # but a RISE is growth-positive, not a tightening. Signing them off the
+    # rates default inverted them (ops 3964 caught GDPNOW +35.7% being counted
+    # as an adverse MACRO driver).
+    "GDPNOW": (+1, "GDP nowcast up = growth"),
+    "USCFNAI": (+1, "Chicago Fed activity up = growth"),
+    "CFNAIMA3": (+1, "Chicago Fed 3m activity up = growth"),
+    "USGDPYY": (+1, "GDP growth"), "CNGDPYY": (+1, "GDP growth"),
+    "JPGDPYY": (+1, "GDP growth"), "EUGDPYY": (+1, "GDP growth"),
+    "USINBR": (+1, "industrial activity up = growth"),
 }
+# The rates polarity ("yields up = tighter") may only be applied to things
+# that ARE a yield or a policy/inflation rate. Anything else in that bucket
+# scores 0 and is EXCLUDED from breadth: a missing vote is honest, a wrong
+# sign quietly corrupts the barometer.
+YIELD_RX = re.compile(r"(\d+(M|Y)$|INTR|IRYY|TNX|SOFR|RATE|YIELD|BLR)")
 CAT_POLARITY = {
     "credit": (-1, "spreads widen = liquidity tightening [tv-8711fbee989cf1eb]"),
     "vol": (-1, "volatility up = derisking [tv-14a76b6087dc80eb]"),
@@ -347,6 +362,8 @@ def polarity(sym, cat):
         p, why = POLARITY_NOTES[sym]
         return p, why, "brain_note"
     p, why = CAT_POLARITY.get(cat, (0, "unmapped"))
+    if cat == "rates" and not YIELD_RX.search(sym):
+        return 0, "in the rates bucket but not a yield/policy rate — excluded rather than mis-signed", "guarded"
     return p, why, "category_default"
 
 
@@ -412,6 +429,9 @@ def build_barometers(rows, dom, gate, cat_of):
                                   if disagree else None),
             "worst_movers": movers[:6], "best_movers": movers[-6:][::-1],
             "interpretation": "100 = maximally supportive of risk assets, 0 = maximally hostile",
+            "breadth_uses": "SIGN of each driver's move only. Magnitudes shown in the mover "
+                            "lists are informational — percent change is meaningless for "
+                            "index-level series that oscillate around zero (CFNAI et al).",
         }
     return out
 
