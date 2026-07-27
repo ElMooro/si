@@ -33,7 +33,7 @@ s3 = boto3.client("s3", region_name="us-east-1")
 sch = boto3.client("scheduler", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT = "data/data-census.json"
-MARK = "data-census v1.5 ops3983 adaptive-budget"
+MARK = "data-census v1.6 ops3985 deterministic"
 PAGE = "https://justhodl.ai/data-census.html"
 PAGE_MARKS = ["v3-ops3982", "Browse by data source", "pulled from",
               "Metric directory", "JPEXPYY"]
@@ -42,8 +42,14 @@ PAGE_MARKS = ["v3-ops3982", "Browse by data source", "pulled from",
 def body(rep, checks):
     now = datetime.now(timezone.utc)
 
-    rep.section("A. the artifact")
-    doc = json.loads(s3.get_object(Bucket=BUCKET, Key=OUT)["Body"].read())
+    rep.section("A. the artifact (short poll for the v1.6 write)")
+    doc = None
+    for i in range(12):
+        doc = json.loads(s3.get_object(Bucket=BUCKET, Key=OUT)["Body"].read())
+        if doc.get("marker") == MARK:
+            break
+        rep.log(f"  [{i}] marker={str(doc.get('marker'))[:40]} — waiting 30s")
+        time.sleep(30)
     gen = doc.get("generated_at")
     rep.kv(marker=doc.get("marker"), generated_at=gen,
            elapsed_s=doc.get("elapsed_s"))
@@ -54,8 +60,8 @@ def body(rep, checks):
         pass
     rep.kv(age_min=age_min)
     checks.append(("artifact is v1.5", doc.get("marker") == MARK))
-    checks.append(("written after the 20:33 enforced invoke",
-                   bool(gen and gen >= "2026-07-27T20:3")))
+    checks.append(("written after the v1.6 invoke",
+                   bool(gen and gen >= "2026-07-27T21:1")))
 
     rep.section("B. totals + directory")
     t = doc.get("totals") or {}

@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "data-census v1.5 ops3983 adaptive-budget"
+MARKER = "data-census v1.6 ops3985 deterministic"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/data-census.json"
 LEDGER_KEY = "data-census/paths-ledger.json"
@@ -73,7 +73,7 @@ def toks(path):
 ID_FIELDS = ("symbol", "ticker", "id", "code", "country", "name", "key", "label")
 NAME_SIB = ("label", "name", "title", "description")
 SRC_SIB = ("source", "src", "provider", "resolved_via", "via", "feed")
-MAX_LIST_SAMPLE = 80
+MAX_LIST_SAMPLE = 40
 
 
 def walk(o, pre="", depth=0, out=None):
@@ -156,20 +156,32 @@ def lambda_handler(event, context):
 
     arts, paths, errors = [], [], []
     val_index = defaultdict(list)          # rounded value -> [(key, path)]
-    # adaptive budget: stop walking when <90s remain on THIS invocation's
-    # clock — survives any configured timeout instead of assuming one.
-    # (Deploy Lambdas re-applies config.json on every push; the hardcoded
-    # 780s budget was meaningless the moment the config reverted to 600s.)
+    # v1.6 determinism: the v1.5 guard protected only the WALK — it ran
+    # until 90s remained, then detectors + indexes + the ledger dump over
+    # millions of paths blew through the reserve and the run timed out with
+    # nothing written. Three rules now guarantee completion:
+    #   1. PRIORITY artifacts walk first (vault leads → FRED/US10Y always
+    #      present even on a truncated run);
+    #   2. hard global cap MAX_TOTAL_PATHS;
+    #   3. the walk surrenders with 240s still on the clock — the reserve
+    #      belongs to the post-walk pipeline, not the walk.
+    PRIORITY = ("data/tradingview.json", "data/asia-leads.json",
+                "data/boj-detail.json", "data/risk-gate.json",
+                "data/rotation-dashboard.json", "data/domain-barometers.json",
+                "data/china-liquidity.json", "data/global-business-cycle.json")
+    keys.sort(key=lambda k: (k[0] not in PRIORITY, k[0]))
+    MAX_TOTAL_PATHS = 250_000
     truncated = 0
     for key, size, lm in keys:
+        low_time = False
         try:
-            if context and context.get_remaining_time_in_millis() < 90_000:
-                truncated += 1
-                continue
+            low_time = bool(context) and \
+                context.get_remaining_time_in_millis() < 240_000
         except Exception:
-            if time.time() - t0 > 700:
-                truncated += 1
-                continue
+            low_time = time.time() - t0 > 560
+        if low_time or len(paths) >= MAX_TOTAL_PATHS:
+            truncated += 1
+            continue
         age_h = (now - lm).total_seconds() / 3600
         rec = {"key": key, "size": size, "age_h": round(age_h, 1),
                "stale": key in stale_set, **(writers.get(key) or {})}
