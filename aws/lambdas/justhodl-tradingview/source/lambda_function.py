@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.4 MOF-BOE"
+MARKER = "tradingview-vault v3.5 SNB-IMF-GOVPROXY"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -95,11 +95,11 @@ ALIASES = {
     "EUCA": "ecb:BP6/M.N.I8.W1.S1.S1.T.B.CA._Z._Z._Z.EUR._T._X.N",
     "JPM3": "fred:MABMM301JPM189S",
     "IT10Y": "fred:IRLTLT01ITM156N", "GB10Y": "fred:IRLTLT01GBM156N",
-    "EU10Y": "fred:IRLTLT01DEM156N", "GB30Y": "none:no free UK 30Y series",
+    "EU10Y": "fred:IRLTLT01DEM156N", "GB30Y": "none:BoE IADB max par tenor = 20Y (IUDLNPY 5.27 live); no official 30Y series",
     "EU03Y": "ecb:YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_3Y",
     "DE02Y": "ecb:YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_2Y",
     "JP02Y": "mofjp:2Y", "JP03MY": "none:3M TB not in MOF JGB CSV — BOJ API next",
-    "CH02Y": "none:SNB tenor build", "CH03Y": "none:SNB tenor build",
+    "CH02Y": "snb:2 year", "CH03Y": "snb:3 year",
     "CN10Y": "none:ChinaBond licensed", "NO03Y": "norges:GOVT_GENERIC_RATES:3",
     "SS03": "none:FTSE licensed",
     "USCLI": "fleetany:data/global-business-cycle.json:by_country.USA.cli_level|by_country.United States.cli_level|by_country.US.cli_level",
@@ -145,6 +145,8 @@ ALIASES = {
     "CHMPMI": "none:S&P Global PMI licensed", "WWMPMI": "none:S&P Global PMI licensed",
     "USCPMI": "none:S&P Global PMI licensed", "USNMPR": "none:S&P Global PMI licensed",
     "MAN_PMI": "none:ISM licensed",
+    "USFER": "imf:M.US.RAF_USD", "EUFER": "imf:M.U2.RAF_USD",
+    "JPFER": "imf:M.JP.RAF_USD", "CHFER": "imf:M.CH.RAF_USD",
     "ITGDG": "estat:gov_10dd_edpt1|na_item=GD&sector=S13&unit=PC_GDP|IT",
     "ESGDG": "estat:gov_10dd_edpt1|na_item=GD&sector=S13&unit=PC_GDP|ES",
     "EUGDG": "estat:gov_10dd_edpt1|na_item=GD&sector=S13&unit=PC_GDP|EA20|EA19",
@@ -463,6 +465,18 @@ def resolve_alias(row, al):
             row["source"] = "bank-of-england"
             row["resolved_via"] = f"boe:{tgt}"
         return v, None
+    if kind == "snb":
+        v = snb_latest(tgt)
+        if v:
+            row["source"] = "snb"
+            row["resolved_via"] = f"snb:{tgt}"
+        return v, None
+    if kind == "imf":
+        v = imf_latest(tgt)
+        if v:
+            row["source"] = "imf"
+            row["resolved_via"] = f"imf:{tgt}"
+        return v, None
     if kind == "disc":
         return None, ("DISCONTINUED", tgt)
     if kind == "none":
@@ -566,19 +580,29 @@ _MOF_CACHE = {}
 
 
 def mofjp_latest(col):
-    """Japan MOF official JGB par-yield CSV (current month)."""
+    """Japan MOF official JGB par-yield CSV. mof.go.jp blocks AWS IPs (runner
+    fetched fine, Lambda 3942 could not) -> direct first, then the /gov edge
+    proxy (Cloudflare IPs pass)."""
     if "rows" not in _MOF_CACHE:
-        url = "https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/jgbcme.csv"
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=25) as r:
-                lines = [l for l in r.read().decode("utf-8", "ignore").splitlines()
-                         if l.strip()]
-            hdr = [h.strip() for h in lines[1].split(",")]
-            last = [c.strip() for c in lines[-1].split(",")]
-            _MOF_CACHE["rows"] = (hdr, last)
-        except Exception:
-            _MOF_CACHE["rows"] = None
+        base = "https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/jgbcme.csv"
+        urls = [base,
+                "https://justhodl-data-proxy.raafouis.workers.dev/gov?u="
+                + urllib.request.quote(base, safe="")]
+        _MOF_CACHE["rows"] = None
+        for url in urls:
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(req, timeout=25) as r:
+                    lines = [l for l in r.read().decode("utf-8", "ignore").splitlines()
+                             if l.strip()]
+                if len(lines) < 3 or "Date" not in lines[1]:
+                    continue
+                hdr = [h.strip() for h in lines[1].split(",")]
+                last = [c.strip() for c in lines[-1].split(",")]
+                _MOF_CACHE["rows"] = (hdr, last)
+                break
+            except Exception:
+                continue
     if not _MOF_CACHE.get("rows"):
         return None
     hdr, last = _MOF_CACHE["rows"]
@@ -629,6 +653,49 @@ def bcrp_latest(code):
         return None
 
 
+def snb_latest(match):
+    """SNB data portal — rendoblim monthly Confederation yield cube."""
+    url = "https://data.snb.ch/api/cube/rendoblim/data/json/en"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=25) as r:
+            d = json.loads(r.read())
+        for ts in d.get("timeseries") or []:
+            dim = " ".join(str(h.get("dimItem", "")) for h in ts.get("header") or [])
+            if match.lower() in dim.lower():
+                vals = ts.get("values") or []
+                if not vals:
+                    continue
+                last = vals[-1]
+                if isinstance(last, dict):
+                    v, dt = last.get("value"), last.get("date")
+                else:
+                    dt, v = last[0], last[-1]
+                return {"value": round(float(v), 3), "prev": None, "chg_pct": None,
+                        "asof": f"snb:{dt}"}
+    except Exception:
+        pass
+    return None
+
+
+def imf_latest(key):
+    """IMF official SDMX 2.1 API (api.imf.org) — IRFCL reserves etc."""
+    url = (f"https://api.imf.org/external/sdmx/2.1/data/IRFCL/{key}"
+           f"?lastNObservations=1")
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=25) as r:
+            xml = r.read().decode("utf-8", "ignore")
+        vals = re.findall(r'OBS_VALUE="([\d\.eE\+\-]+)"', xml)
+        tps = re.findall(r'TIME_PERIOD="([^"]+)"', xml)
+        if not vals:
+            return None
+        return {"value": round(float(vals[-1]), 2), "prev": None, "chg_pct": None,
+                "asof": f"imf:{tps[-1] if tps else 'latest'}"}
+    except Exception:
+        return None
+
+
 def resolve_direct(rv):
     """Source memory: refetch straight from the proven resolver."""
     kind, _, tgt = (rv or "").partition(":")
@@ -654,6 +721,10 @@ def resolve_direct(rv):
         return mofjp_latest(tgt)
     if kind == "boe":
         return boe_latest(tgt)
+    if kind == "snb":
+        return snb_latest(tgt)
+    if kind == "imf":
+        return imf_latest(tgt)
     return None
 
 
