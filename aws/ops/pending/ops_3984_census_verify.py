@@ -33,7 +33,7 @@ s3 = boto3.client("s3", region_name="us-east-1")
 sch = boto3.client("scheduler", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT = "data/data-census.json"
-MARK = "data-census v1.7 ops3986 vault-full"
+MARK = "data-census v1.8 ops3987 clean-values"
 PAGE = "https://justhodl.ai/data-census.html"
 PAGE_MARKS = ["v3-ops3982", "Browse by data source", "pulled from",
               "Metric directory", "JPEXPYY"]
@@ -61,7 +61,7 @@ def body(rep, checks):
     rep.kv(age_min=age_min)
     checks.append(("artifact is v1.5", doc.get("marker") == MARK))
     checks.append(("written after the v1.6 invoke",
-                   bool(gen and gen >= "2026-07-27T21:3")))
+                   bool(gen and gen >= "2026-07-27T21:5")))
 
     rep.section("B. totals + directory")
     t = doc.get("totals") or {}
@@ -99,6 +99,14 @@ def body(rep, checks):
         ("by_source >=5 families", len(bs) >= 5),
         ("FRED >=40 metrics", len(fred) >= 40),
         ("US 10Y locatable under FRED", bool(us10)),
+        ("US10Y shows the YIELD not an internal (0<v<25)",
+         bool(us10) and 0 < abs(us10.get("value", 0)) < 25),
+        ("US10Y pulled from DGS10 through the vault engine",
+         bool(us10) and "DGS10" in str(us10.get("pulled_from", "")).upper()
+         and "tradingview" in str(us10.get("engine", ""))),
+        ("no tried_at junk in the directory",
+         not any("tried_at" in str(m.get("path", "")) for m in md)),
+        ("FRED >=150 after the vault-full walk", len(fred) >= 150),
     ]
 
     rep.section("D. detectors (first run with a fed keyed walk)")
@@ -167,3 +175,5 @@ if __name__ == "__main__":
 # nonce 1785187451
 
 # v17 retarget nonce
+
+# v1.8 retarget

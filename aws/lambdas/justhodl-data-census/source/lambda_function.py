@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "data-census v1.7 ops3986 vault-full"
+MARKER = "data-census v1.8 ops3987 clean-values"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/data-census.json"
 LEDGER_KEY = "data-census/paths-ledger.json"
@@ -98,7 +98,7 @@ def walk(o, pre="", depth=0, out=None, cap=None):
         for k, v in o.items():
             if isinstance(v, (int, float)) and not isinstance(v, bool):
                 out.append({"p": (f"{pre}.{k}" if pre else str(k)),
-                            "v": float(v), "name": sib_name,
+                            "v": float(v), "leaf": k, "name": sib_name,
                             "src": sib_src, "st": sib_st})
                 if len(out) >= cap:
                     return out
@@ -116,7 +116,7 @@ def walk(o, pre="", depth=0, out=None, cap=None):
                 return out
         walk(o[0], f"{pre}[0]", depth + 1, out, cap)
     elif isinstance(o, (int, float)) and not isinstance(o, bool):
-        out.append({"p": pre, "v": float(o), "name": None, "src": None, "st": None})
+        out.append({"p": pre, "v": float(o), "leaf": pre.split(".")[-1], "name": None, "src": None, "st": None})
     return out
 
 
@@ -187,6 +187,12 @@ def lambda_handler(event, context):
         age_h = (now - lm).total_seconds() / 3600
         rec = {"key": key, "size": size, "age_h": round(age_h, 1),
                "stale": key in stale_set, **(writers.get(key) or {})}
+        if key.startswith(("data/archive/", "data/_archive/",
+                           "data/_alerts/digest-", "data/archive/convergence",
+                           "data/archive/auction")):
+            rec["skipped"] = "archive (inventoried, values not indexed)"
+            arts.append(rec)
+            continue
         if size > MAX_ARTIFACT_MB * 1_000_000:
             rec["skipped"] = f">{MAX_ARTIFACT_MB}MB"
             arts.append(rec)
@@ -347,30 +353,74 @@ def lambda_handler(event, context):
             return m.group(1)
         return r["p"].split(".")[-1]
 
-    by_source = {}
-    seen_sn = set()
+    # v1.8: Khalid's audit of the live page found three corruptions —
+    # tried_at epoch stamps shown as values, classifier internals (polarity/
+    # margin) winning over real market values, and src-less fleet metrics
+    # silently dropped. Fixed by junk exclusion, primary-field ranking, and
+    # a family fallback so every named metric lands in SOME source.
+    TS_RX = re.compile(r"(tried_at|_at$|_ts$|timestamp|epoch|checked|"
+                       r"updated|generated|elapsed)", re.I)
+    PRIMARY = {"value": 0, "last_value": 1, "latest": 1, "latest_usd_bn": 1,
+               "price": 1, "yield_pct": 1, "level": 2, "close": 2,
+               "yoy_pct": 2, "pct": 3, "score": 6, "chg_pct": 5}
+    INTERNAL = {"polarity", "margin", "n_notes", "tier", "confidence"}
+
+    def leaf_rank(r):
+        lf = (r.get("leaf") or "").lower()
+        if lf in PRIMARY:
+            return PRIMARY[lf]
+        if lf in INTERNAL:
+            return 90
+        return 40
+
+    def is_junk(r):
+        lf = r.get("leaf") or ""
+        if TS_RX.search(lf) or TS_RX.search(r["p"].split(".")[-1]):
+            return True
+        # bare epoch heuristic: 2017..2049 in seconds
+        if 1.4e9 < abs(r["v"]) < 2.5e9 and not any(
+                k in lf.lower() for k in ("shares", "usd", "volume", "cap")):
+            return True
+        return False
+
+    up_of = {a["key"]: " ".join(a.get("upstream") or []) for a in arts}
+    best = {}
     for r in paths:
-        fam = src_family(r.get("src"))
+        if is_junk(r):
+            continue
+        fam = (src_family(r.get("src"))
+               or src_family(up_of.get(r["k"]))
+               or ("FLEET-INTERNAL" if (r.get("name") or "[" in r["p"]) else None))
         if not fam:
             continue
         nm = disp_name(r)
-        if (fam, nm) in seen_sn:
-            continue
-        seen_sn.add((fam, nm))
+        key2 = (fam, nm)
+        rk = leaf_rank(r)
+        cur = best.get(key2)
+        if cur is None or rk < cur[0]:
+            best[key2] = (rk, r, fam, nm)
+    by_source = {}
+    for (_f, _n), (rk, r, fam, nm) in sorted(best.items(),
+                                             key=lambda kv: kv[1][0]):
         b = by_source.setdefault(fam, {"n": 0, "engines": set(), "metrics": []})
         b["n"] += 1
         b["engines"].add(eng_of(r["k"]))
         if len(b["metrics"]) < 150:
-            b["metrics"].append({"name": nm, "value": r["v"],
-                                 "live": r.get("live"),
-                                 "pulled_from": r.get("src"),
-                                 "engine": eng_of(r["k"]),
-                                 "artifact": r["k"], "path": r["p"]})
+            lf = r.get("leaf") or ""
+            b["metrics"].append({
+                "name": nm if leaf_rank(r) < 40 or lf.lower() in ("", nm.lower())
+                else f"{nm} · {lf}",
+                "value": r["v"], "live": r.get("live"),
+                "pulled_from": r.get("src") or (up_of.get(r["k"]) or
+                                                "engine-internal")[:60],
+                "engine": eng_of(r["k"]),
+                "artifact": r["k"], "path": r["p"]})
     for b in by_source.values():
         b["engines"] = sorted(b["engines"])[:8]
         b["metrics"].sort(key=lambda m: (not m.get("live"), str(m["name"])))
 
-    named = [r for r in paths if r.get("name") and r.get("src")]
+    named = [r for _k, (rk, r, fam, nm) in best.items()
+             if r.get("name") and rk < 90]
     named.sort(key=lambda r: (not r.get("live"), r["k"], r["p"]))
     metric_directory = [{"name": r["name"], "value": r["v"],
                          "live": r.get("live"), "pulled_from": r["src"],
