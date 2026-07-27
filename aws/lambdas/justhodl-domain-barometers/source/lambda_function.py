@@ -47,7 +47,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "domain-barometers v1.1 ops3965 polarity-guard"
+MARKER = "domain-barometers v1.2 ops3968 full-coverage"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/domain-barometers.json"
 LEDGER_KEY = "domain-barometers/history-ledger.json"
@@ -116,12 +116,31 @@ POLARITY_NOTES = {
     "USGDPYY": (+1, "GDP growth"), "CNGDPYY": (+1, "GDP growth"),
     "JPGDPYY": (+1, "GDP growth"), "EUGDPYY": (+1, "GDP growth"),
     "USINBR": (+1, "industrial activity up = growth"),
+    # ops 3967 audit: these carry heavy note counts and an UNAMBIGUOUS direction
+    # in his doctrine, but were scoring 0 and therefore not voting at all.
+    # "WHEN DOLLAR STRENGTHEN AND RATES ARE HIGHER IN THE US YOU BETTER EXIT
+    #  THE MARKETS" [nmq5x00zhe98n] gives the sign for both the policy rate
+    # and the broad dollar.
+    "FEDFUNDS": (-1, "policy rate up = tighter, exit condition [nmq5x00zhe98n]"),
+    "DFF": (-1, "policy rate up = tighter [nmq5x00zhe98n]"),
+    "EFFR": (-1, "policy rate up = tighter [nmq5x00zhe98n]"),
+    "IORB": (-1, "policy rate up = tighter [nmq5x00zhe98n]"),
+    "DTWEXBGS": (-1, "broad dollar up = global system wrecked [tv-ab761f92999efe68]"),
+    "RBUSBIS": (-1, "real broad dollar up = global tightening [tv-ab761f92999efe68]"),
+    "DTB3": (-1, "bill yields up = tighter [nmq5x00zhe98n]"),
+    "DTB6": (-1, "bill yields up = tighter [nmq5x00zhe98n]"),
+    "TB4WK": (-1, "bill yields up = tighter [nmq5x00zhe98n]"),
+    "US01MY": (-1, "front-end yield up = tighter [nmq5x00zhe98n]"),
+    "US02MY": (-1, "front-end yield up = tighter [nmq5x00zhe98n]"),
+    "US03MY": (-1, "front-end yield up = tighter [nmq5x00zhe98n]"),
+    "US06MY": (-1, "front-end yield up = tighter [nmq5x00zhe98n]"),
+    "CPFF": (-1, "commercial paper spread up = funding stress"),
 }
 # The rates polarity ("yields up = tighter") may only be applied to things
 # that ARE a yield or a policy/inflation rate. Anything else in that bucket
 # scores 0 and is EXCLUDED from breadth: a missing vote is honest, a wrong
 # sign quietly corrupts the barometer.
-YIELD_RX = re.compile(r"(\d+(M|Y)$|INTR|IRYY|TNX|SOFR|RATE|YIELD|BLR)")
+YIELD_RX = re.compile(r"(\d+(M|Y)$|INTR|IRYY|TNX|SOFR|RATE|YIELD|BLR|FEDFUNDS|DFF|EFFR|IORB|DGS|DTB|TB\d|BILL)")
 CAT_POLARITY = {
     "credit": (-1, "spreads widen = liquidity tightening [tv-8711fbee989cf1eb]"),
     "vol": (-1, "volatility up = derisking [tv-14a76b6087dc80eb]"),
@@ -367,7 +386,28 @@ def polarity(sym, cat):
     return p, why, "category_default"
 
 
-def build_barometers(rows, dom, gate, cat_of):
+def effective_change(r, prev_vals):
+    """The feed supplies chg_pct only on some adapter paths (Yahoo ^MOVE and
+    every FRED yoy/single-observation path return a level with no change).
+    ops 3967 showed that silently dropped 39 LIVE directional metrics —
+    including MOVE, his most-cited RISK anchor at 42 notes. So derive it:
+    feed first, then the row's own prev, then this engine's ledger."""
+    ch = r.get("chg_pct")
+    if ch is not None:
+        return float(ch), "feed"
+    v = r.get("value")
+    if not isinstance(v, (int, float)):
+        return None, None
+    pv = r.get("prev")
+    if isinstance(pv, (int, float)) and pv:
+        return (v / pv - 1) * 100, "row_prev"
+    lv = prev_vals.get(r["symbol"])
+    if isinstance(lv, (int, float)) and lv:
+        return (v / lv - 1) * 100, "ledger"
+    return None, None
+
+
+def build_barometers(rows, dom, gate, cat_of, prev_vals):
     """Fuse the gate's brain-cited legs (depth) with vault breadth."""
     LEG_MAP = {"LIQUIDITY": ("funding", "carry"),
                "RISK": ("credit", "structure"),
@@ -389,22 +429,34 @@ def build_barometers(rows, dom, gate, cat_of):
 
         # (b) vault breadth: signed share of live drivers moving favourably
         up = dn = 0
+        n_asset = n_drv = n_drv_live = n_dir = 0
         movers = []
         for r in rows:
             s = r["symbol"]
-            if dom.get(s) != d or r.get("status") != "LIVE":
+            if dom.get(s) != d:
+                continue
+            if r.get("status") != "LIVE":
+                if not (cat_of.get(s) in ASSET_CATS or s in ASSET_SYMS):
+                    n_drv += 1
                 continue
             cat = cat_of.get(s)
             if cat in ASSET_CATS or s in ASSET_SYMS:
+                n_asset += 1
                 continue
+            n_drv += 1
+            n_drv_live += 1
             pol, why, basis = polarity(s, cat)
-            ch = r.get("chg_pct")
-            if not pol or ch is None:
+            if not pol:
+                continue
+            n_dir += 1
+            ch, chsrc = effective_change(r, prev_vals)
+            if ch is None:
                 continue
             signed = pol * float(ch)
             (up, dn) = (up + 1, dn) if signed > 0 else (up, dn + 1)
             movers.append({"symbol": s, "chg_pct": round(float(ch), 3),
-                           "polarity": pol, "signed": round(signed, 3),
+                           "chg_source": chsrc, "polarity": pol,
+                           "signed": round(signed, 3),
                            "polarity_basis": basis, "why": why})
         n = up + dn
         breadth_c = (up / n * 100) if n else None
@@ -428,6 +480,17 @@ def build_barometers(rows, dom, gate, cat_of):
                                   "treat this barometer as unstable and size down"
                                   if disagree else None),
             "worst_movers": movers[:6], "best_movers": movers[-6:][::-1],
+            "coverage": {
+                "classified": sum(1 for x in rows if dom.get(x["symbol"]) == d),
+                "drivers": n_drv, "live_drivers": n_drv_live,
+                "with_direction": n_dir, "voting": n,
+                "not_voting": {"is_a_prediction_target": n_asset,
+                               "no_live_value": n_drv - n_drv_live,
+                               "direction_not_stated_in_your_notes": n_drv_live - n_dir,
+                               "no_measurable_move_yet": n_dir - n},
+                "note": "voting is the honest denominator — a metric with no live value "
+                        "or no stated direction is excluded rather than guessed at",
+            },
             "interpretation": "100 = maximally supportive of risk assets, 0 = maximally hostile",
             "breadth_uses": "SIGN of each driver's move only. Magnitudes shown in the mover "
                             "lists are informational — percent change is meaningless for "
@@ -516,6 +579,15 @@ def predict(bar, gate, rot):
 
 
 # ══════════════════════════ 4. GRADE (self-building) ═════════════════════
+def load_prev_values():
+    led = gj(LEDGER_KEY, {}) or {}
+    obs = led.get("observations") or []
+    for o in reversed(obs):
+        if o.get("values"):
+            return o["values"], o.get("date")
+    return {}, None
+
+
 def update_ledger(bar, rows, now):
     """Append today's barometer state + asset proxy levels. Forward returns
     are computed on later runs against these stamps. Day one: n_obs 0."""
@@ -529,7 +601,10 @@ def update_ledger(bar, rows, now):
             if r and r.get("status") == "LIVE" and isinstance(r.get("value"), (int, float)):
                 px[cls] = {"proxy": p, "value": float(r["value"])}
                 break
+    vals = {r["symbol"]: r["value"] for r in rows
+            if r.get("status") == "LIVE" and isinstance(r.get("value"), (int, float))}
     obs.append({"date": now.strftime("%Y-%m-%d"), "ts": now.isoformat(),
+                "values": vals,
                 "barometers": {d: (bar[d] or {}).get("score_0_100") for d in DOMS},
                 "states": {d: (bar[d] or {}).get("state") for d in DOMS},
                 "proxy_levels": px})
@@ -616,7 +691,8 @@ def lambda_handler(event, context):
             "note_snippet": (r.get("note_snippet") or "")[:240],
         })
 
-    bar = build_barometers(rows, dom, gate, cat_of)
+    prev_vals, prev_date = load_prev_values()
+    bar = build_barometers(rows, dom, gate, cat_of, prev_vals)
     pred = predict(bar, gate, rot)
     grade = update_ledger(bar, rows, now)
 
@@ -663,6 +739,7 @@ def lambda_handler(event, context):
             "confidence_counts": dict(Counter(conf.values())),
             "learned_category_priors": prior,
         },
+        "ledger_prev_values": {"n": len(prev_vals), "as_of": prev_date},
         "barometers": bar,
         "predictions": pred,
         "grading": grade,
