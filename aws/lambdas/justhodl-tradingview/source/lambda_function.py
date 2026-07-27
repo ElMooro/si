@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.7 ops3972 EUBUND"
+MARKER = "tradingview-vault v3.8 ops3974 asia-wire+jpexpyy-fix"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -139,7 +139,19 @@ ALIASES = {
     "BTPBUND": "fleet:data/euro-fragmentation.json:countries.IT.spread_vs_bund_bp",
     "ES10Y-TVC": "fleetsum:data/euro-fragmentation.json:bund_benchmark_10y_pct:countries.ES.spread_vs_bund_bp",
     "FR10Y-TVC": "fleetsum:data/euro-fragmentation.json:bund_benchmark_10y_pct:countries.FR.spread_vs_bund_bp",
-    "JPEXPYY": "fleet:data/asia-leads.json:korea_exports.yoy_pct",
+    # ops 3973 INTEGRITY FIX: JPEXPYY (JAPAN exports YoY) was wired to KOREA's
+    # export YoY and resolved LIVE at 47.96 — one country's number published
+    # under another country's symbol, carrying his Japan notes and voting in
+    # the MACRO barometer. Repointed to Japan's own series in the same FRED
+    # family Korea uses (XTEXVA01KRM667N -> XTEXVA01JPM667N).
+    "JPEXPYY": "yoy:XTEXVA01JPM667N",
+    # ops 3973: the fleet already held these — the Asia Arc (3582-3634) and
+    # boj-detail landed them while the vault still called them NO_FREE_SOURCE.
+    # Both are the SAME measure for the SAME country, which is the bar that
+    # the JPEXPYY bug failed.
+    "TWEXPYY": "fleet:data/asia-leads.json:taiwan_exports.yoy_pct",
+    "JPIRYY": "fleet:data/boj-detail.json:inflation.cpi_yoy_pct",
+    "TOPIX": "yahoo:^TPX",
     "JPLG": "boj:MD11:DLCLAADBLTTO|MD11:DLCLBADBLTTO",
     "CLTOT": "none:TradingEconomics-paywalled (Chile ToT)",
     "PETOT": "bcrp:PN38923BM",
