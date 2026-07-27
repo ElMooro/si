@@ -1,15 +1,12 @@
-executing-against: f8f7e6e71b6954831c9c5dbe872412833ce8da45
-ops 3963 — self-heal deploy justhodl-data-census
-── A. diagnose ──
-[17:55:01]   function EXISTS state=Active modified=2026-07-27T17:34:41.000+0000
-── B. create or update from the runner ──
-[17:55:02] ✅   update_function_code issued
-── C. settle BY MARKER inside the deployed artifact ──
-[17:55:02]   [0] state=Active upd=InProgress
-[17:55:12] ✅   settled with marker after ~10s
-── D. invoke ──
+# ops 3963 — self-heal deploy justhodl-data-census
 
-→ Report written to aws/ops/reports/latest/3975_data_census_deploy.md
+**Status:** failure  
+**Duration:** 332.5s  
+**Finished:** 2026-07-27T18:00:33+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
     response = self._make_request(
@@ -64,8 +61,8 @@ urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Re
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3975_data_census_deploy.py", line 187, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_3975_data_census_deploy.py", line 122, in main
     r = lam.invoke(FunctionName=FN, InvocationType="RequestResponse",
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -125,4 +122,26 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 516, in send
     raise ConnectionClosedError(
 botocore.exceptions.ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-data-census/invocations".
-❌ OPS-FAIL: aws/ops/pending/ops_3975_data_census_deploy.py
+
+```
+
+## Data
+
+| donor | marker_in_source | role | runtime | zip_bytes |
+|---|---|---|---|---|
+|  | True |  |  | 4755 |
+| justhodl-tradingview |  | arn:aws:iam::857687956942:role/lambda-execution-role | python3.12 |  |
+
+## Log
+## A. diagnose
+
+- `17:55:01`   function EXISTS state=Active modified=2026-07-27T17:34:41.000+0000
+## B. create or update from the runner
+
+- `17:55:02` ✅   update_function_code issued
+## C. settle BY MARKER inside the deployed artifact
+
+- `17:55:02`   [0] state=Active upd=InProgress
+- `17:55:12` ✅   settled with marker after ~10s
+## D. invoke
+
