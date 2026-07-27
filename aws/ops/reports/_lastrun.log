@@ -1,30 +1,19 @@
-executing-against: 1c75b61d8efecae424d81523afc0a2881c7771f0
-ops 3957 — gov-sources v2.0 FULL-PULL + FRED env fix
-── env fix: copy FRED_KEY/FMP_KEY from donor ──
-[03:43:20]   donor has: ['FMP_KEY', 'FRED_KEY']; fn had FRED_KEY: False
-[03:43:27] ✅   env updated
-── settle v2.0 (marker + full-pull strings in zip) ──
-[03:43:28] ✅   settled attempt 1
-── invoke + gates ──
-[03:43:49] ✅   artifact ~20s
-[03:43:49]   FRED: LIVE US 10Y (DGS10)=4.71 @ 2026-07-23
-── served page (new KPI) ──
-[03:45:29] ✅   served attempt 6
-[03:45:29] ✅   FRED_KEY on function
-[03:45:29] ✅   v2.0 settled
-[03:45:29] ✅   artifact written
-[03:45:29] ✅   FRED LIVE with real DGS10
-[03:45:29] ✅   n_series_pulled >= 45
-[03:45:29] ✅   us_treasury >= 12 series
-[03:45:29] ✅   mof_japan >= 14 series
-[03:45:29] ✅   boe >= 4 series
-[03:45:29] ✅   ecb >= 3 series
-[03:45:29] ✅   norges >= 4 series
-[03:45:29] ✅   eurostat >= 6 series
-[03:45:29] ✗   boj >= 2 series
-[03:45:29] ✅   13 agencies
-[03:45:29] ✅   page served with v2 markers
-[03:45:29] ✗ FAILED: ['boj >= 2 series']
+executing-against: 871a29237fc46095296c6048d7ee56399dc28a57
+ops 3958 — Tankan close (runner-exec + hardened)
+── runner-exec p_boj (ground truth) ──
+[03:49:20]   {'name': 'Bank lending YoY (JPLG)', 'value': 7.07, 'unit': '%', 'asof': '202605', 'ok': True}
+[03:49:20]   {'name': 'Tankan DI Large Mfg (actual)', 'value': None, 'unit': 'pts', 'asof': None, 'ok': False, 'note': 'HTTPError: HTTP Error 400: Bad Request'}
+── settle v2.0.1 ──
+[03:49:20] ✅   settled attempt 1
+[03:50:01] ✅   artifact ~40s
+[03:50:01]   boj probe: {'name': 'Bank lending YoY (JPLG)', 'value': 7.07, 'unit': '%', 'asof': '202605', 'ok': True}
+[03:50:01]   boj probe: {'name': 'Tankan DI Large Mfg (actual)', 'value': None, 'unit': 'pts', 'asof': None, 'ok': False, 'note': 'HTTPError: HTTP Error 400: Bad Request'}
+[03:50:01] ✅   runner-exec ran
+[03:50:01] ✅   v2.0.1 settled
+[03:50:01] ✅   artifact written
+[03:50:01] ✗   boj >= 2 ok probes
+[03:50:01] ✅   n_series_pulled >= 46
+[03:50:01] ✗ FAILED: ['boj >= 2 ok probes']
 
-→ Report written to aws/ops/reports/latest/3957_gov_fullpull.md
-❌ OPS-FAIL: aws/ops/pending/ops_3957_gov_fullpull.py
+→ Report written to aws/ops/reports/latest/3958_tankan_close.md
+❌ OPS-FAIL: aws/ops/pending/ops_3958_tankan_close.py
