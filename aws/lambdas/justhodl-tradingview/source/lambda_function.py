@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.5.3 MOF-ROWWALK"
+MARKER = "tradingview-vault v3.6 BOJ-JPLG"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -136,7 +136,7 @@ ALIASES = {
     "ES10Y-TVC": "fleetsum:data/euro-fragmentation.json:bund_benchmark_10y_pct:countries.ES.spread_vs_bund_bp",
     "FR10Y-TVC": "fleetsum:data/euro-fragmentation.json:bund_benchmark_10y_pct:countries.FR.spread_vs_bund_bp",
     "JPEXPYY": "fleet:data/asia-leads.json:korea_exports.yoy_pct",
-    "JPLG": "none:BOJ stat-search build queued (endpoint probe in ops 3928)",
+    "JPLG": "boj:MD11:DLCLAADBLTTO|MD11:DLCLBADBLTTO",
     "CLTOT": "none:TradingEconomics-paywalled (Chile ToT)",
     "PETOT": "bcrp:PN38923BM",
     "BDI": "none:referenced in eurodollar-plumbing code, not exported (producer todo)",
@@ -477,6 +477,12 @@ def resolve_alias(row, al):
             row["source"] = "imf"
             row["resolved_via"] = f"imf:{tgt}"
         return v, None
+    if kind == "boj":
+        v = boj_yoy(tgt)
+        if v:
+            row["source"] = "bank-of-japan"
+            row["resolved_via"] = f"boj:{tgt}"
+        return v, None
     if kind == "disc":
         return None, ("DISCONTINUED", tgt)
     if kind == "none":
@@ -719,6 +725,47 @@ def imf_latest(key):
         return None
 
 
+def boj_yoy(tgt):
+    """Bank of Japan official API (launched 2026-02): getDataCode on the
+    loans db, YoY computed from avg-amounts-outstanding levels (last
+    non-null month vs 12 months prior) — JPLG, the flash-warning metric
+    [tv-b3ec3933837d5155]. tgt = 'DB:CODE|DB:CODE' fallback list."""
+    now = datetime.now(timezone.utc)
+    end = now.year * 100 + now.month
+    sy, sm = now.year - 1, now.month - 3
+    if sm < 1:
+        sy, sm = sy - 1, sm + 12
+    start = sy * 100 + sm
+    for pair in tgt.split("|"):
+        db, _, code = pair.partition(":")
+        url = (f"https://www.stat-search.boj.or.jp/api/v1/getDataCode"
+               f"?format=json&lang=en&db={db}&startDate={start}&endDate={end}"
+               f"&code={code}")
+        try:
+            req = urllib.request.Request(url, headers={
+                "User-Agent": "Mozilla/5.0", "Accept-Encoding": "identity"})
+            with urllib.request.urlopen(req, timeout=25) as r:
+                d = json.loads(r.read())
+            rs = (d.get("RESULTSET") or [{}])[0]
+            vals = ((rs.get("VALUES") or {}).get("VALUES")) or []
+            dates = ((rs.get("VALUES") or {}).get("SURVEY_DATES")) or []
+            i = len(vals) - 1
+            while i >= 12 and vals[i] in (None, ""):
+                i -= 1
+            if i < 12 or vals[i] in (None, "") or vals[i - 12] in (None, ""):
+                continue
+            yoy = round((float(vals[i]) / float(vals[i - 12]) - 1) * 100, 2)
+            prev = None
+            if i >= 13 and vals[i - 1] not in (None, "") and vals[i - 13] not in (None, ""):
+                prev = round((float(vals[i - 1]) / float(vals[i - 13]) - 1) * 100, 2)
+            return {"value": yoy, "prev": prev,
+                    "chg_pct": round(yoy - prev, 2) if prev is not None else None,
+                    "asof": f"boj:{dates[i] if i < len(dates) else '?'} YoY"}
+        except Exception:
+            continue
+    return None
+
+
 def resolve_direct(rv):
     """Source memory: refetch straight from the proven resolver."""
     kind, _, tgt = (rv or "").partition(":")
@@ -748,6 +795,8 @@ def resolve_direct(rv):
         return snb_latest(tgt)
     if kind == "imf":
         return imf_latest(tgt)
+    if kind == "boj":
+        return boj_yoy(tgt)
     return None
 
 

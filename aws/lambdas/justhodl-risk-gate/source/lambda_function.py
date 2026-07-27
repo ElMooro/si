@@ -58,7 +58,7 @@ import boto3
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/risk-gate.json"
-MARKER = "risk-gate v2.2 BRAIN-CONSTITUTIONAL FLEET-FUSED"
+MARKER = "risk-gate v2.3 BRAIN-CONSTITUTIONAL FLEET-FUSED"
 
 s3 = boto3.client("s3")
 
@@ -531,6 +531,20 @@ def fleet_adjust(legs):
            (0.2 if (isinstance(v, (int, float)) and v > 8) else 0.0))
     out["carry"].append(_fi("china_m1_yoy_pct", "china-liquidity", v, adj,
         "CNY liquidity/devaluation risk channel [nmq5x0cpig3hx]", a))
+    tvj, a = _feed("data/tradingview.json")
+    jrow = next((r_ for r_ in ((tvj or {}).get("symbols") or [])
+                 if r_.get("symbol") == "JPLG"), {})
+    v = jrow.get("value")
+    pv = jrow.get("prev")
+    adj = 0.0
+    if isinstance(v, (int, float)):
+        if v < 0:
+            adj = -0.4
+        elif (isinstance(pv, (int, float)) and v < pv - 0.3) or v < 1.0:
+            adj = -0.2
+    out["carry"].append(_fi("jplg_loan_growth_yoy", "tradingview-vault(BOJ)", v, adj,
+        "Japan bank lending YoY from the BOJ API — 'JPLG decline = FLASH WARNING' "
+        "[tv-b3ec3933837d5155]; contraction -0.4, sharp decel -0.2", a))
 
     # LEG 5 GLOBAL GROWTH — Taiwan/Korea exports, freight, air cargo, ports
     al, a = _feed("data/asia-leads.json")
