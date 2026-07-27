@@ -1,0 +1,43 @@
+# ops 3977 — data-census async close + schedule + page edge
+
+**Status:** failure  
+**Duration:** 920.9s  
+**Finished:** 2026-07-27T19:20:37+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| memory | timeout | v12_settled |
+|---|---|---|
+| 1536 | 600 | True |
+
+## Log
+## A0. the truth from CloudWatch
+
+- `19:05:17`   [census] data-census v1.2 ops3979 provenance
+- `19:05:17`   REPORT RequestId: 23bfe72d-5fcf-4cc3-af6a-66c3bcc0144c	Duration: 600000.00 ms	Billed Duration: 600484 ms	Memory Size: 1536 MB	Max Memory Used: 1043 MB	Init Duration: 483.75 ms	Status: timeou
+- `19:05:17`   [census] data-census v1.2 ops3979 provenance
+- `19:05:17`   [census] data-census v1.1 ops3978 4mb-cap
+- `19:05:17`   [census] DONE 840.3s arts=10015 paths=726786 mislabels=0 conflicts=0 gaps=0
+- `19:05:17`   REPORT RequestId: 70dcee71-2916-4f8a-8360-414730bce0a1	Duration: 842718.84 ms	Billed Duration: 843218 ms	Memory Size: 3008 MB	Max Memory Used: 686 MB	Init Duration: 498.34 ms	
+XRAY TraceId: 
+## A1. push engine v1.2 + settle by marker
+
+## A. does the crashed invoke's output already exist?
+
+- `19:05:29`   found generated_at=2026-07-27T18:29:04.828087+00:00 fresh=False
+## B. async invoke + poll (the 3972 pattern)
+
+- `19:07:30`   [5] still waiting
+- `19:09:31`   [11] still waiting
+- `19:11:32`   [17] still waiting
+- `19:13:33`   [23] still waiting
+- `19:15:34`   [29] still waiting
+- `19:17:36`   [35] still waiting
+- `19:19:37`   [41] still waiting
+- `19:20:37` ✗ census never wrote — check CloudWatch for the lambda error
