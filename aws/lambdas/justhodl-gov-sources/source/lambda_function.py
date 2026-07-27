@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "gov-sources v2.0 FULL-PULL"
+MARKER = "gov-sources v2.0.1 TANKAN-HARDENED"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/gov-sources.json"
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0"}
@@ -192,22 +192,31 @@ def p_boj():
     yoy = round((float(vals[i]) / float(vals[i - 12]) - 1) * 100, 2)
     out = [{"name": "Bank lending YoY (JPLG)", "value": yoy, "unit": "%",
             "asof": str(dates[i]), "ok": True}]
-    try:
-        u2 = ("https://www.stat-search.boj.or.jp/api/v1/getDataCode?format=json"
-              "&lang=en&db=CO&startDate=" + str((now.year - 1) * 100 + 1) +
-              "&endDate=" + str(end) + "&code=TK99F1000601GCQ01000")
-        d2 = json.loads(_get(u2, 25, {"Accept-Encoding": "identity"}))
-        r2 = (d2.get("RESULTSET") or [{}])[0]
-        v2 = ((r2.get("VALUES") or {}).get("VALUES")) or []
-        dt2 = ((r2.get("VALUES") or {}).get("SURVEY_DATES")) or []
-        j = len(v2) - 1
-        while j >= 0 and v2[j] in (None, ""):
-            j -= 1
-        if j >= 0:
-            out.append({"name": "Tankan DI Large Mfg (actual)", "value": float(v2[j]),
-                        "unit": "pts", "asof": str(dt2[j]), "ok": True})
-    except Exception:
-        pass
+    err = None
+    for tcode in ("TK99F1000601GCQ01000", "TK99F2000601GCQ01000"):
+        try:
+            u2 = ("https://www.stat-search.boj.or.jp/api/v1/getDataCode?format=json"
+                  "&lang=en&db=CO&startDate=" + str((now.year - 1) * 100 + 1) +
+                  "&endDate=" + str(end) + "&code=" + tcode)
+            d2 = json.loads(_get(u2, 25, {"Accept-Encoding": "identity"}))
+            r2 = (d2.get("RESULTSET") or [{}])[0]
+            v2 = ((r2.get("VALUES") or {}).get("VALUES")) or []
+            dt2 = ((r2.get("VALUES") or {}).get("SURVEY_DATES")) or []
+            j = len(v2) - 1
+            while j >= 0 and v2[j] in (None, ""):
+                j -= 1
+            if j >= 0:
+                out.append({"name": "Tankan DI Large Mfg (actual)",
+                            "value": float(v2[j]), "unit": "pts",
+                            "asof": str(dt2[j]), "ok": True})
+                err = None
+                break
+            err = "empty values (" + tcode + ")"
+        except Exception as e:
+            err = type(e).__name__ + ": " + str(e)[:90]
+    if err:
+        out.append({"name": "Tankan DI Large Mfg (actual)", "value": None,
+                    "unit": "pts", "asof": None, "ok": False, "note": err})
     return out
 
 
