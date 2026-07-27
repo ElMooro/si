@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "data-census v1.1 ops3978 4mb-cap"
+MARKER = "data-census v1.2 ops3979 provenance"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/data-census.json"
 LEDGER_KEY = "data-census/paths-ledger.json"
@@ -70,18 +70,51 @@ def toks(path):
             {MEASURE[t] for t in ts if t in MEASURE})
 
 
+ID_FIELDS = ("symbol", "ticker", "id", "code", "country", "name", "key", "label")
+NAME_SIB = ("label", "name", "title", "description")
+SRC_SIB = ("source", "src", "provider", "resolved_via", "via", "feed")
+MAX_LIST_SAMPLE = 80
+
+
 def walk(o, pre="", depth=0, out=None):
+    """v1.2: lists of keyed records are walked up to MAX_LIST_SAMPLE deep,
+    labelled by their identifier (symbols[TWEXPYY].value) instead of [0] —
+    v1.0 sampled only element [0], which is why 561 vault symbols yielded
+    one path and every detector read zero. Numeric leaves also capture the
+    provenance SIBLINGS Khalid asked to see: name, upstream source, status.
+    """
     if out is None:
         out = []
     if len(out) >= MAX_PATHS_PER or depth > MAX_DEPTH:
         return out
     if isinstance(o, dict):
+        sib_name = next((str(o[k])[:70] for k in NAME_SIB
+                         if isinstance(o.get(k), str)), None)
+        sib_src = next((str(o[k])[:60] for k in SRC_SIB
+                        if isinstance(o.get(k), str)), None)
+        sib_st = o.get("status") if isinstance(o.get("status"), str) else None
         for k, v in o.items():
-            walk(v, f"{pre}.{k}" if pre else str(k), depth + 1, out)
+            if isinstance(v, (int, float)) and not isinstance(v, bool):
+                out.append({"p": (f"{pre}.{k}" if pre else str(k)),
+                            "v": float(v), "name": sib_name,
+                            "src": sib_src, "st": sib_st})
+                if len(out) >= MAX_PATHS_PER:
+                    return out
+            else:
+                walk(v, f"{pre}.{k}" if pre else str(k), depth + 1, out)
     elif isinstance(o, list) and o:
+        if isinstance(o[0], dict):
+            idf = next((f for f in ID_FIELDS if isinstance(o[0].get(f), str)), None)
+            if idf:
+                for el in o[:MAX_LIST_SAMPLE]:
+                    tag = str(el.get(idf, "?"))[:24] if isinstance(el, dict) else "?"
+                    walk(el, f"{pre}[{tag}]", depth + 1, out)
+                    if len(out) >= MAX_PATHS_PER:
+                        return out
+                return out
         walk(o[0], f"{pre}[0]", depth + 1, out)
     elif isinstance(o, (int, float)) and not isinstance(o, bool):
-        out.append((pre, float(o)))
+        out.append({"p": pre, "v": float(o), "name": None, "src": None, "st": None})
     return out
 
 
@@ -142,11 +175,28 @@ def lambda_handler(event, context):
             rec["n_paths"] = len(pl)
             gen = doc.get("generated_at") if isinstance(doc, dict) else None
             rec["generated_at"] = gen
-            for p, v in pl:
-                paths.append({"k": key, "p": p, "v": v})
-                rv = round(v, 4)
+            if isinstance(doc, dict):
+                ups = []
+                for f in ("source", "sources", "method", "provider"):
+                    x = doc.get(f)
+                    if isinstance(x, str):
+                        ups.append(x[:60])
+                    elif isinstance(x, list):
+                        ups += [str(i)[:60] for i in x[:3] if isinstance(i, str)]
+                    elif isinstance(x, dict):
+                        ups += [str(v)[:60] for v in list(x.values())[:3]
+                                if isinstance(v, str)]
+                if ups:
+                    rec["upstream"] = ups[:4]
+            live_art = age_h <= 48
+            for r0 in pl:
+                r0["k"] = key
+                r0["live"] = (r0.get("st") == "LIVE") if r0.get("st") \
+                    else (None if r0.get("st") else live_art)
+                paths.append(r0)
+                rv = round(r0["v"], 4)
                 if rv not in TRIVIAL and abs(rv) > 0.01:
-                    val_index[rv].append((key, p))
+                    val_index[rv].append((key, r0["p"]))
         except Exception as e:
             rec["error"] = f"{type(e).__name__}"
             errors.append(key)
@@ -228,6 +278,39 @@ def lambda_handler(event, context):
                                  "the bar JPEXPYY failed"})
     gaps.sort(key=lambda g: -(g["n_notes"] or 0))
 
+    def eng_of(key):
+        w = (writers.get(key) or {}).get("writer")
+        if isinstance(w, list):
+            w = w[0] if w else None
+        if not w:
+            stem = key.split("/")[-1].replace(".json", "")
+            w = f"justhodl-{stem}"
+        return w
+
+    named = [r for r in paths if r.get("name") and r.get("src")]
+    named.sort(key=lambda r: (not r.get("live"), r["k"], r["p"]))
+    metric_directory = [{"name": r["name"], "value": r["v"],
+                         "live": r.get("live"), "pulled_from": r["src"],
+                         "engine": eng_of(r["k"]), "artifact": r["k"],
+                         "path": r["p"]} for r in named[:1200]]
+
+    def enrich(key, path):
+        for r in paths:
+            if r["k"] == key and r["p"] == path:
+                return {"name": r.get("name"), "pulled_from": r.get("src"),
+                        "live": r.get("live"), "engine": eng_of(key)}
+        return {"engine": eng_of(key)}
+
+    for m in mislabels[:40]:
+        for pp in m["paths"]:
+            pp.update(enrich(pp["artifact"], pp["path"]))
+    for c in conflicts[:40]:
+        for vv in c["values"]:
+            vv.update(enrich(vv["artifact"], vv["path"]))
+    for g in gaps[:60]:
+        for cc in g["candidates"]:
+            cc.update(enrich(cc["artifact"], cc["path"]))
+
     live_paths = len(paths)
     fresh = sum(1 for a in arts if (a.get("age_h") or 9e9) <= 48)
     out = {
@@ -246,7 +329,8 @@ def lambda_handler(event, context):
         "mislabel_candidates": mislabels[:40],
         "measure_conflicts": conflicts[:40],
         "gap_fill_candidates": gaps[:60],
-        "artifacts": sorted(arts, key=lambda a: -(a.get("n_paths") or 0)),
+        "metric_directory": metric_directory,
+        "artifacts": [dict(a, engine=eng_of(a["key"])) for a in sorted(arts, key=lambda a: -(a.get("n_paths") or 0))],
         "honesty": "detectors are heuristic token matches — every hit is a CANDIDATE "
                    "for verification, never an auto-fix. Auto-wiring on token match is "
                    "how JPEXPYY happened.",
