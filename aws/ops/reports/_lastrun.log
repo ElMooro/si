@@ -1,35 +1,69 @@
-executing-against: 7b22efae76ca55bddb7f6775325c1c87adb34da1
-ops 3988 — fleet inventory + v1.8 close
-── A. the v1.8 artifact (fired 21:50:30, never gated) ──
-[22:19:34]   FRED: 10Y Breakeven Inflation Vol · realized_vol_now = 0.3146 live=True from FRED (Federal Reserve Bank of  via justhodl-bond-vol
-[22:19:34]   FRED: 10Y Real Yield Vol · realized_vol_now = 0.576 live=True from FRED (Federal Reserve Bank of  via justhodl-bond-vol
-[22:19:34]   FRED: 10Y Treasury Yield Vol · realized_vol_now = 0.677 live=True from FRED (Federal Reserve Bank of  via justhodl-bond-vol
-[22:19:34]   FRED: 10Y-3M Curve Vol · realized_vol_now = 0.5997 live=True from FRED (Federal Reserve Bank of  via justhodl-bond-vol
-[22:19:34]   FRED: 16% Trimmed-Mean CPI (1m ann.) = 2.63 live=True from FRED — Atlanta/Cleveland/Dalla via justhodl-nowcast-desk
-[22:19:34]   FRED: 2Y Treasury Yield Vol · realized_vol_now = 0.831 live=True from FRED (Federal Reserve Bank of  via justhodl-bond-vol
-[22:19:34]   matched us10 -> {"name": "US10Y", "value": 4.71, "live": true, "pulled_from": "fred_alias:DGS10", "engine": "justhodl-domain-barometers", "artifact": "data/domain-barometers.json", "path": "symbols[US10Y].value"}
-[22:19:34]   fred head: ['10Y Breakeven Inflation Vo', '10Y Real Yield Vol · reali', '10Y Treasury Yield Vol · r', '10Y-3M Curve Vol · realize', '16% Trimmed-Mean CPI (1m a']
-── B. WIRE engines (already generated fleet-wide) ──
-── C. COMPILE data/page-manifest.json from the repo HTML ──
-[22:19:34]   13f.html                     | 13F · Big Investors · JustHodl         | Every quarter, institutional investors managing $100M+ must 
-[22:19:34]   about.html                   | About · JustHodl AI                    | JustHodl.AI is an institutional-grade financial intelligence
-[22:19:34]   accumulation.html            | Accumulation / Distribution Radar · Ju | Wyckoff cycle across stocks, ETFs & countries — who's being 
-[22:19:34]   accuracy.html                | Accuracy · JustHodl                    | Live calibration dashboard — every signal type
-[22:19:34]   activist-13d.html            | Activist 13D Scanner | JustHodl        | Edge #9 of 10 — fresh schedule 13D filings by 17 curated act
-[22:19:34]   activity-nowcast.html        | Activity Nowcast · JustHodl.AI         | The monthly data — payrolls, production, retail sales — land
-── D. page v4 at the edge ──
-[22:19:35]   [0] 17936B 5/5
-[22:19:35] ✅   artifact is v1.8 or v1.9
-[22:19:35] ✅   >=6 source families
-[22:19:35] ✅   FRED >=150 metrics
-[22:19:35] ✅   US10Y is a yield 0<v<25
-[22:19:35] ✅   US10Y from DGS10 with full provenance (engine pin was the over-strict part — barometers republishes vault rows truthfully)
-[22:19:35] ✅   no tried_at junk anywhere in the directory
-[22:19:35] ✅   engine manifest >=600 engines
-[22:19:35] ✅   >=70% engines carry a description
-[22:19:35] ✅   page manifest >=350 pages
-[22:19:35] ✅   >=40% pages carry a purpose (best-effort from real content; empty stays honestly empty)
-[22:19:35] ✅   page v4 live at edge
-[22:19:35] ✅ PASS_ALL — v1.8 whole: 12856 data points across 15 sources (FRED 150); engines 733 (711 described); pages 414 (391 with purpose); page v4 5/5
+executing-against: dcc5d8a568c6316ffd367930076b49bc55580aed
+ops 3990 — probe: OTHER decomposition + missing-BOJ forensics
+── A. what is inside OTHER — top source strings ──
+[22:33:58]     345  Benzinga (via Massive) — actual results
+[22:33:58]     253  seed
+[22:33:58]     211  sec
+[22:33:58]     128  discovered
+[22:33:58]     110  earnings_pead
+[22:33:58]     110  short_squeeze
+[22:33:58]      77  live_breakout
+[22:33:58]      76  figi
+[22:33:58]      36  port throughput (physical)
+[22:33:58]      10  OFR
+[22:33:58]      10  HKMA
+[22:33:58]       9  magdist
+[22:33:58]       8  edge
+[22:33:58]       8  bank-of-japan
+[22:33:58]       8  coingecko
+[22:33:58]       7  cad_xlsx(edge)
+[22:33:58]       6  owned
+[22:33:58]       6  unresolved_futures
+[22:33:58]       6  w52_baseline
+[22:33:58]       6  opportunity
+[22:33:58]       5  risk-monitor
+[22:33:58]       5  factor-risk
+[22:33:58]       5  firm-stress
+[22:33:58]       5  firm-book + desk-allocator
+[22:33:58]       5  merger-arb-risk
+[22:33:58]       5  pnl-attribution
+[22:33:58]       4  liquidity-capacity
+[22:33:58]       4  unresolved_tv_only
+[22:33:58]       4  repo-market engine
+[22:33:58]       3  ICSA
+[22:33:58]       3  BAMLH0A3HYC−BAMLH0A1HYBB
+[22:33:58]       3  WLRRAFOIAL
+[22:33:58]       3  eurodollar-plumbing
+[22:33:58]       3  global-sovereign
+[22:33:58]       3  crisis-plumbing
+[22:33:58]       3  credit-stress
+[22:33:58]       3  regime-composite
+[22:33:58]       3  vol-surface
+[22:33:58]       3  global-liquidity
+[22:33:58]       3  leading-markets
+── B. the vault's BOJ/MOF/NORGES/BCRP rows — what the walk saw ──
+[22:33:58]   JPLG: 8 ledger entries
+[22:33:58]       k=data/domain-barometers.json p=symbols[JPLG].polarity v=1.0 leaf=polarity src=bank-of-japan name=None
+[22:33:58]       k=data/domain-barometers.json p=symbols[JPLG].value v=7.07 leaf=value src=bank-of-japan name=None
+[22:33:58]       k=data/domain-barometers.json p=symbols[JPLG].chg_pct v=0.44 leaf=chg_pct src=bank-of-japan name=None
+[22:33:58]   JP02Y: 0 ledger entries
+[22:33:58]   NO03Y: 0 ledger entries
+[22:33:58]   PETOT: 0 ledger entries
+[22:33:58]   EUBUND: 0 ledger entries
+[22:33:58]   US10Y: 10 ledger entries
+[22:33:58]       k=data/data-census.json p=by_source.FRED.metrics[US10Y].value v=-1.0 leaf=value src=None name=US10Y
+[22:33:58]       k=data/market-tape.json p=items[US10Y].value v=4.69 leaf=value src=None name=US10Y
+[22:33:58]       k=data/domain-barometers.json p=symbols[US10Y].polarity v=-1.0 leaf=polarity src=fred_alias:DGS10 name=None
+[22:33:58]   SOFR: 12 ledger entries
+[22:33:58]       k=data/ka-config.json p=metrics[SOFR].weight v=9.0 leaf=weight src=fred name=SOFR Rate
+[22:33:58]       k=data/khalid-config.json p=metrics[SOFR].weight v=9.0 leaf=weight src=fred name=SOFR Rate
+[22:33:58]       k=data/data-census.json p=by_source.FRED.metrics[SOFR].value v=0.7419 leaf=value src=None name=SOFR
+── C. are they in by_source anywhere? ──
+[22:33:58]   JPLG: [('OTHER', 7.07, 'bank-of-japan')]
+[22:33:58]   NO03Y: ABSENT from every family
+[22:33:58]   PETOT: ABSENT from every family
+[22:33:58]   JP02Y: ABSENT from every family
+── D. ledger truncation check ──
+[22:33:58] ✅ PROBE DONE — evidence recorded for the FAMS patch
 
-→ Report written to aws/ops/reports/latest/3988_inventory_close.md
+→ Report written to aws/ops/reports/latest/3990_other_boj_probe.md
