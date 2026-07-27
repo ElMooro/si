@@ -1,69 +1,36 @@
-executing-against: dcc5d8a568c6316ffd367930076b49bc55580aed
-ops 3990 — probe: OTHER decomposition + missing-BOJ forensics
-── A. what is inside OTHER — top source strings ──
-[22:33:58]     345  Benzinga (via Massive) — actual results
-[22:33:58]     253  seed
-[22:33:58]     211  sec
-[22:33:58]     128  discovered
-[22:33:58]     110  earnings_pead
-[22:33:58]     110  short_squeeze
-[22:33:58]      77  live_breakout
-[22:33:58]      76  figi
-[22:33:58]      36  port throughput (physical)
-[22:33:58]      10  OFR
-[22:33:58]      10  HKMA
-[22:33:58]       9  magdist
-[22:33:58]       8  edge
-[22:33:58]       8  bank-of-japan
-[22:33:58]       8  coingecko
-[22:33:58]       7  cad_xlsx(edge)
-[22:33:58]       6  owned
-[22:33:58]       6  unresolved_futures
-[22:33:58]       6  w52_baseline
-[22:33:58]       6  opportunity
-[22:33:58]       5  risk-monitor
-[22:33:58]       5  factor-risk
-[22:33:58]       5  firm-stress
-[22:33:58]       5  firm-book + desk-allocator
-[22:33:58]       5  merger-arb-risk
-[22:33:58]       5  pnl-attribution
-[22:33:58]       4  liquidity-capacity
-[22:33:58]       4  unresolved_tv_only
-[22:33:58]       4  repo-market engine
-[22:33:58]       3  ICSA
-[22:33:58]       3  BAMLH0A3HYC−BAMLH0A1HYBB
-[22:33:58]       3  WLRRAFOIAL
-[22:33:58]       3  eurodollar-plumbing
-[22:33:58]       3  global-sovereign
-[22:33:58]       3  crisis-plumbing
-[22:33:58]       3  credit-stress
-[22:33:58]       3  regime-composite
-[22:33:58]       3  vol-surface
-[22:33:58]       3  global-liquidity
-[22:33:58]       3  leading-markets
-── B. the vault's BOJ/MOF/NORGES/BCRP rows — what the walk saw ──
-[22:33:58]   JPLG: 8 ledger entries
-[22:33:58]       k=data/domain-barometers.json p=symbols[JPLG].polarity v=1.0 leaf=polarity src=bank-of-japan name=None
-[22:33:58]       k=data/domain-barometers.json p=symbols[JPLG].value v=7.07 leaf=value src=bank-of-japan name=None
-[22:33:58]       k=data/domain-barometers.json p=symbols[JPLG].chg_pct v=0.44 leaf=chg_pct src=bank-of-japan name=None
-[22:33:58]   JP02Y: 0 ledger entries
-[22:33:58]   NO03Y: 0 ledger entries
-[22:33:58]   PETOT: 0 ledger entries
-[22:33:58]   EUBUND: 0 ledger entries
-[22:33:58]   US10Y: 10 ledger entries
-[22:33:58]       k=data/data-census.json p=by_source.FRED.metrics[US10Y].value v=-1.0 leaf=value src=None name=US10Y
-[22:33:58]       k=data/market-tape.json p=items[US10Y].value v=4.69 leaf=value src=None name=US10Y
-[22:33:58]       k=data/domain-barometers.json p=symbols[US10Y].polarity v=-1.0 leaf=polarity src=fred_alias:DGS10 name=None
-[22:33:58]   SOFR: 12 ledger entries
-[22:33:58]       k=data/ka-config.json p=metrics[SOFR].weight v=9.0 leaf=weight src=fred name=SOFR Rate
-[22:33:58]       k=data/khalid-config.json p=metrics[SOFR].weight v=9.0 leaf=weight src=fred name=SOFR Rate
-[22:33:58]       k=data/data-census.json p=by_source.FRED.metrics[SOFR].value v=0.7419 leaf=value src=None name=SOFR
-── C. are they in by_source anywhere? ──
-[22:33:58]   JPLG: [('OTHER', 7.07, 'bank-of-japan')]
-[22:33:58]   NO03Y: ABSENT from every family
-[22:33:58]   PETOT: ABSENT from every family
-[22:33:58]   JP02Y: ABSENT from every family
-── D. ledger truncation check ──
-[22:33:58] ✅ PROBE DONE — evidence recorded for the FAMS patch
+executing-against: 820c7f1cdfdeb8dfa1a35b4a99213ee88c3543f3
+ops 3985 — invoke-only: enforce, settle, fire
+[22:39:38] ✅ FIRED — v1.6 async under 900s/3008MB; verify via ops 3984 in ~13 min
 
-→ Report written to aws/ops/reports/latest/3990_other_boj_probe.md
+→ Report written to aws/ops/reports/latest/3991_census_invoke_v20.md
+ops 3992 — v2.0 vault-complete verify
+[22:39:39]   [0] data-census v1.8 ops3987 clean-values
+[22:40:10]   [1] data-census v1.8 ops3987 clean-values
+[22:40:41]   [2] data-census v1.8 ops3987 clean-values
+[22:41:12]   [3] data-census v1.8 ops3987 clean-values
+[22:41:42]   [4] data-census v1.8 ops3987 clean-values
+[22:42:13]   [5] data-census v1.8 ops3987 clean-values
+[22:42:44]   [6] data-census v1.8 ops3987 clean-values
+[22:43:15]   [7] data-census v1.8 ops3987 clean-values
+[22:43:45]   [8] data-census v1.8 ops3987 clean-values
+[22:44:16] ✅   v2.0 artifact after ~270s
+[22:44:16]   BOJ              JPLG    -> {"name": "JPLG", "value": 7.07, "live": true, "pulled_from": "bank-of-japan", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
+[22:44:16]   MOF-JAPAN        JP02Y   -> ABSENT
+[22:44:16]   NORGES           NO03Y   -> ABSENT
+[22:44:16]   BCRP-PERU        PETOT   -> ABSENT
+[22:44:16]   ECB              EUBUND  -> ABSENT
+[22:44:16]   FRED US10Y -> {"name": "US10Y", "value": 4.71, "live": true, "pulled_from": "fred_alias:DGS10", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "path": "symbols[
+[22:44:17] ✅   artifact is v2.0
+[22:44:17] ✗   vault actually walked (>=3000 paths, not skipped)
+[22:44:17] ✗   BOJ family holds JPLG
+[22:44:17] ✗   MOF-JAPAN holds JP02Y
+[22:44:17] ✗   NORGES holds NO03Y
+[22:44:17] ✗   BCRP-PERU holds PETOT
+[22:44:17] ✗   ECB holds EUBUND
+[22:44:17] ✗   OTHER shrunk below 800
+[22:44:17] ✅   US10Y credited to the vault engine (v1.9 canonical)
+[22:44:17] ✅   page v4 still at edge
+[22:44:17] ✗ FAILED: ['vault actually walked (>=3000 paths, not skipped)', 'BOJ family holds JPLG', 'MOF-JAPAN holds JP02Y', 'NORGES holds NO03Y', 'BCRP-PERU holds PETOT', 'ECB holds EUBUND', 'OTHER shrunk below 800']
+
+→ Report written to aws/ops/reports/latest/3992_v20_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_3992_v20_verify.py
