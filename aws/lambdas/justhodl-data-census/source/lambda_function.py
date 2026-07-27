@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "data-census v1.6 ops3985 deterministic"
+MARKER = "data-census v1.7 ops3986 vault-full"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/data-census.json"
 LEDGER_KEY = "data-census/paths-ledger.json"
@@ -76,7 +76,7 @@ SRC_SIB = ("source", "src", "provider", "resolved_via", "via", "feed")
 MAX_LIST_SAMPLE = 40
 
 
-def walk(o, pre="", depth=0, out=None):
+def walk(o, pre="", depth=0, out=None, cap=None):
     """v1.2: lists of keyed records are walked up to MAX_LIST_SAMPLE deep,
     labelled by their identifier (symbols[TWEXPYY].value) instead of [0] —
     v1.0 sampled only element [0], which is why 561 vault symbols yielded
@@ -85,7 +85,9 @@ def walk(o, pre="", depth=0, out=None):
     """
     if out is None:
         out = []
-    if len(out) >= MAX_PATHS_PER or depth > MAX_DEPTH:
+    if cap is None:
+        cap = MAX_PATHS_PER
+    if len(out) >= cap or depth > MAX_DEPTH:
         return out
     if isinstance(o, dict):
         sib_name = next((str(o[k])[:70] for k in NAME_SIB
@@ -98,21 +100,21 @@ def walk(o, pre="", depth=0, out=None):
                 out.append({"p": (f"{pre}.{k}" if pre else str(k)),
                             "v": float(v), "name": sib_name,
                             "src": sib_src, "st": sib_st})
-                if len(out) >= MAX_PATHS_PER:
+                if len(out) >= cap:
                     return out
             else:
-                walk(v, f"{pre}.{k}" if pre else str(k), depth + 1, out)
+                walk(v, f"{pre}.{k}" if pre else str(k), depth + 1, out, cap)
     elif isinstance(o, list) and o:
         if isinstance(o[0], dict):
             idf = next((f for f in ID_FIELDS if isinstance(o[0].get(f), str)), None)
             if idf:
                 for el in o[:MAX_LIST_SAMPLE]:
                     tag = str(el.get(idf, "?"))[:24] if isinstance(el, dict) else "?"
-                    walk(el, f"{pre}[{tag}]", depth + 1, out)
+                    walk(el, f"{pre}[{tag}]", depth + 1, out, cap)
                     if len(out) >= MAX_PATHS_PER:
                         return out
                 return out
-        walk(o[0], f"{pre}[0]", depth + 1, out)
+        walk(o[0], f"{pre}[0]", depth + 1, out, cap)
     elif isinstance(o, (int, float)) and not isinstance(o, bool):
         out.append({"p": pre, "v": float(o), "name": None, "src": None, "st": None})
     return out
@@ -191,7 +193,10 @@ def lambda_handler(event, context):
             continue
         try:
             doc = json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
-            pl = walk(doc)
+            # v1.7: the 500-path cap starved the vault (561 symbols x ~10
+            # fields) — the single richest source-attributed artifact walked
+            # only its first slice, which is why FRED counted <40 on v1.6.
+            pl = walk(doc, cap=(6000 if key in PRIORITY else MAX_PATHS_PER))
             rec["n_paths"] = len(pl)
             gen = doc.get("generated_at") if isinstance(doc, dict) else None
             rec["generated_at"] = gen
