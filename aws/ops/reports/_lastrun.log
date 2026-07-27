@@ -1,46 +1,37 @@
-executing-against: 3dfbd8f4f1d04ec34c9396cde296e6b8520f3e45
-ops 3970 — DISCOVERY: call the candidate official endpoints
-── A. ECB — German 10Y (EUBUND) via the YC curve ──
-[05:33:34]   [200] EUBUND -> 3.2247334899  https://data-api.ecb.europa.eu/service/data/YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_10Y?format=jsondata&
-── B. FRED — JPIRYY / CNPPIYY / USHMI candidates ──
-[05:33:34]   [200] JPIRYY       JPNCPIALLMINMEI      -> None
-[05:33:35]   [400] CNPPIYY      CHNPPIALLMINMEI      -> None
-[05:33:35]   [200] CNPPIYY_alt  CHNCPIALLMINMEI      -> {'realtime_start': '2026-06-01', 'realtime_end': '2026-06-01', 'date': '2025-04-01', 'value': '115.0297'}
-[05:33:35]   [400] USHMI        NAHBHMI              -> None
-[05:33:35]   [400] USHMI_alt    HMI                  -> None
-[05:33:36]   [400] USMPMI       NAPM                 -> None
-[05:33:36]   [400] USNMPR       NMFCI                -> None
-── C. Eurostat — DENO / EUESI ──
-[05:33:37]   [200] DENO     sts_intv_m     -> None
-[05:33:37]   [200] EUESI    ei_bssi_m_r2   -> None
-── D. BOJ — hunt a 3M rate series for JP03MY ──
-[05:33:37]   [200] IR01 metadata bytes=1289 3-month candidates=0
-── E. SNB — CH02Y/CH03Y (registry records this parse as an open bug) ──
-[05:33:39]   [200] bytes=5608048
-[05:33:39]   timeseries n=22
-[05:33:39]       header=[{'dim': 'Overview', 'dimItem': 'Spot interest rates with different maturities f n_values=7534 last={'date': '2025-07-31', 'value': -0.096}
-[05:33:39]       header=[{'dim': 'Overview', 'dimItem': 'Spot interest rates with different maturities f n_values=7534 last={'date': '2025-07-31', 'value': -0.083}
-[05:33:39]       header=[{'dim': 'Overview', 'dimItem': 'Spot interest rates with different maturities f n_values=7534 last={'date': '2025-07-31', 'value': -0.043}
-[05:33:39]       header=[{'dim': 'Overview', 'dimItem': 'Spot interest rates with different maturities f n_values=7534 last={'date': '2025-07-31', 'value': 0.013}
-── F. ONS — GBGDG ──
-[05:33:40]   [404] bytes=25 head=b'HTTP Error 404: Not Found'
-── G. verdict ──
-[05:33:40]   CONFIRMED (wire these):
-[05:33:40]     EUBUND         ecb:YC 10Y               3.2247334899
-[05:33:40]     CNPPIYY_alt    fred:CHNCPIALLMINMEI     {'realtime_start': '2026-06-01', 'realtime_end': '2026-06-01', 'date':
-[05:33:40]   NOT RESOLVED (leave NO_FREE_SOURCE, documented):
-[05:33:40]     JPIRYY         fred:JPNCPIALLMINMEI
-[05:33:40]     CNPPIYY        fred:CHNPPIALLMINMEI
-[05:33:40]     USHMI          fred:NAHBHMI
-[05:33:40]     USHMI_alt      fred:HMI
-[05:33:40]     USMPMI         fred:NAPM
-[05:33:40]     USNMPR         fred:NMFCI
-[05:33:40]     DENO           eurostat:sts_intv_m
-[05:33:40]     EUESI          eurostat:ei_bssi_m_r2
-[05:33:40]     JP03MY         boj:IR01
-[05:33:40] 
-[05:33:40]   NOT GOVERNMENT DATA AT ALL — will NOT be faked with a substitute:
-[05:33:40]     USMPMI / USCPMI / USNMPR / EUMPMI / JPMPMI / TWMPMI = S&P Global and ISM licensed PMIs; USHMI = NAHB. No agency publishes them.
-[05:33:40] ✅ DISCOVERY COMPLETE — evidence recorded; wiring op follows for confirmed only
+executing-against: ca117c09ae8707914563607e1aeb163f3efb61d3
+ops 3971 — identify SNB CH02Y / CH03Y series + freshness
+── A. every series header in the rendoblid cube ──
+[05:37:17]   [ 0] n=7534   last={'date': '2025-07-31', 'value': -0  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
+[05:37:17]   [ 1] n=7534   last={'date': '2025-07-31', 'value': -0  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
+[05:37:17]   [ 2] n=7534   last={'date': '2025-07-31', 'value': -0  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
+[05:37:17]   [ 3] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
+[05:37:17]   [ 4] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
+[05:37:17]   [ 5] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
+[05:37:17]   [ 6] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
+[05:37:17]   [ 7] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
+[05:37:17]   [ 8] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
+[05:37:17]   [ 9] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
+[05:37:17]   [10] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
+[05:37:17]   [11] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
+[05:37:17]   [12] n=6913   last={'date': '2025-07-31', 'value': 0.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - CHF Swiss Confederation bond i
+[05:37:17]   [13] n=7064   last={'date': '2025-07-31', 'value': 2.  Overview=Spot interest rates with different maturities for Confederation bond issues and euro-denominated bond issues - EUR German government bond iss
+[05:37:17]   [14] n=7534   last={'date': '2025-07-31', 'value': 0.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of Swiss borrowers - Confederati
+[05:37:17]   [15] n=6104   last={'date': '2025-07-31', 'value': 0.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of Swiss borrowers - Cantons
+[05:37:17]   [16] n=6725   last={'date': '2025-07-31', 'value': 0.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of Swiss borrowers - Mortgage bo
+[05:37:17]   [17] n=6104   last={'date': '2025-07-31', 'value': 0.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of Swiss borrowers - Commercial 
+[05:37:17]   [18] n=6104   last={'date': '2025-07-31', 'value': 1.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of Swiss borrowers - Manufacturi
+[05:37:17]   [19] n=6104   last={'date': '2025-07-31', 'value': 0.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of foreign borrowers - AAA
+[05:37:17]   [20] n=6104   last={'date': '2025-07-31', 'value': 0.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of foreign borrowers - AA
+[05:37:17]   [21] n=6104   last={'date': '2025-07-31', 'value': 1.  Overview=Yields on CHF bond issues issued by various borrower categories with a maturity of 8 years - CHF bond issues of foreign borrowers - A
+── B. freshness — re-pull with fromDate ──
+[05:37:18]   series returned: 22
+── C. verdict ──
+[05:37:18]   CH02Y -> rendoblid series index 1
+[05:37:18]   CH03Y -> rendoblid series index 2
+[05:37:18]   NOTE: index position is not a stable contract. The wiring op must match on the HEADER TEXT at fetch time, never on a hardcoded index, or an SNB reordering silently repoints CH02Y at another tenor.
+[05:37:18] ✅   2Y and 3Y series located
+[05:37:18] ✗   fromDate pull returns data
+[05:37:18] ✗ FAILED: ['fromDate pull returns data']
 
-→ Report written to aws/ops/reports/latest/3970_gov_discovery.md
+→ Report written to aws/ops/reports/latest/3971_snb_identify.md
+❌ OPS-FAIL: aws/ops/pending/ops_3971_snb_identify.py
