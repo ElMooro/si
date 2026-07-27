@@ -1,0 +1,62 @@
+# ops 3966 — race-safe settle + verify polarity guard
+
+**Status:** success  
+**Duration:** 3.6s  
+**Finished:** 2026-07-27T05:10:58+00:00  
+
+## Data
+
+| generated_at | ledger_prev | marker_already_deployed | n_guarded_excluded | total_voting_now | version | was_before |
+|---|---|---|---|---|---|---|
+|  |  | True |  |  |  |  |
+| 2026-07-27T05:10:55.759234+00:00 |  |  |  |  | 1.0 |  |
+|  | {"n": 0, "as_of": null} |  |  | 165 |  | 156 |
+|  |  |  | 6 |  |  |  |
+
+## Log
+## A. wait for idle, then check whether the workflow already shipped it
+
+## B. skipped — Deploy Lambdas already shipped v1.1
+
+## C. invoke
+
+- `05:10:57`   payload={"ok": true, "n_symbols": 561, "barometers": {"MACRO": 56.7, "LIQUIDITY": 35.5, "RISK": 37.0}, "own_notes_pct": 74.5}
+## D. prove the polarity fix changed the numbers
+
+- `05:10:58`   GDPNOW     domain=MACRO     pol=+1 basis=brain_note — GDP nowcast up = growth
+- `05:10:58`   USCFNAI    domain=MACRO     pol=+1 basis=brain_note — Chicago Fed activity up = growth
+- `05:10:58`   CFNAIMA3   domain=MACRO     pol=+1 basis=brain_note — Chicago Fed 3m activity up = growth
+- `05:10:58`   USGDPYY    domain=MACRO     pol=+1 basis=brain_note — GDP growth
+## D2. the ops-3967 defects must now be closed
+
+- `05:10:58`   MOVE       pol=-1 basis=brain_note chg=None status=LIVE
+- `05:10:58`   FEDFUNDS   pol=-1 basis=brain_note chg=0.0 status=LIVE
+- `05:10:58`   DTWEXBGS   pol=-1 basis=brain_note chg=0.167 status=LIVE
+- `05:10:58`   RBUSBIS    pol=-1 basis=brain_note chg=0.588 status=LIVE
+- `05:10:58`   USIRYY     pol=-1 basis=brain_note chg=None status=LIVE
+- `05:10:58`   CPFF       pol=-1 basis=brain_note chg=None status=LIVE
+- `05:10:58`   MACRO     coverage {"classified": 325, "drivers": 189, "live_drivers": 125, "with_direction": 97, "voting": 70, "not_voting": {"is_a_prediction_target": 125, "no_live_value": 64, "direction_not_stated_in_your_notes": 28, "no_measurable_move_yet": 27}, "note": "voting is the honest denominator \u2014 a metric with no live value or no stated direction is excluded rather than guessed at"}
+- `05:10:58`   LIQUIDITY coverage {"classified": 101, "drivers": 75, "live_drivers": 56, "with_direction": 47, "voting": 42, "not_voting": {"is_a_prediction_target": 25, "no_live_value": 19, "direction_not_stated_in_your_notes": 9, "no_measurable_move_yet": 5}, "note": "voting is the honest denominator \u2014 a metric with no live value or no stated direction is excluded rather than guessed at"}
+- `05:10:58`   RISK      coverage {"classified": 135, "drivers": 76, "live_drivers": 67, "with_direction": 61, "voting": 53, "not_voting": {"is_a_prediction_target": 56, "no_live_value": 9, "direction_not_stated_in_your_notes": 6, "no_measurable_move_yet": 8}, "note": "voting is the honest denominator \u2014 a metric with no live value or no stated direction is excluded rather than guessed at"}
+- `05:10:58`   guarded (excluded rather than mis-signed): ['JP03MY', 'THREEFYTP1', 'SS03', 'THREEFF1', 'THREEFF2', 'THREEFYTP10']
+- `05:10:58`   MACRO     56.7 SUPPORTIVE gate=66.2 breadth=47.1 drivers=70 (+33/-37)
+- `05:10:58`   LIQUIDITY 35.5 TIGHTENING gate=28.1 breadth=42.9 drivers=42 (+18/-24)
+- `05:10:58`   RISK      37.0 TIGHTENING gate=40.0 breadth=34.0 drivers=53 (+18/-35)
+- `05:10:58` ✅   v1.1 marker in the deployed artifact
+- `05:10:58` ✅   invoke clean
+- `05:10:58` ✅   GDPNOW no longer inverted by the rates default
+- `05:10:58` ✅   MOVE has a direction (42 notes, was silently dropped)
+- `05:10:58` ✅   FEDFUNDS no longer guarded to 0 (174 notes)
+- `05:10:58` ✅   DTWEXBGS broad dollar now signed (22 notes)
+- `05:10:58` ✅   every barometer publishes its coverage denominator
+- `05:10:58` ✅   more indicators voting than the 156 baseline
+- `05:10:58` ✅   MACRO still scored
+- `05:10:58` ✅   MACRO publishes breadth_uses note
+- `05:10:58` ✅   LIQUIDITY still scored
+- `05:10:58` ✅   LIQUIDITY publishes breadth_uses note
+- `05:10:58` ✅   RISK still scored
+- `05:10:58` ✅   RISK publishes breadth_uses note
+- `05:10:58` ✅   still 561 symbols
+- `05:10:58` ✅   zero evidence-free
+- `05:10:58` ✅   10 predictions
+- `05:10:58` ✅ PASS_ALL v1.1 — GDPNOW pol=1, 6 guarded; M 56.7 / L 35.5 / R 37.0
