@@ -31,7 +31,7 @@ input{background:#0d1117;border:1px solid var(--line);border-radius:8px;color:va
 <h1>📺 TradingView Metric Vault</h1>
 <div class="dim">Every metric Khalid harvested from TradingView, parsed live from the brain — each symbol carries its note ids. Self-updating.</div>
 <div id="stats" class="grid"></div>
-<!-- v2-ops3964 domain barometers -->
+<!-- v3-ops3969 domain barometers -->
 <div id="baro" class="grid"></div>
 <div id="predwrap" class="card" style="display:none">
   <div style="font-weight:800;margin-bottom:2px">What this implies per asset class</div>
@@ -47,6 +47,14 @@ let D=null,cat='ALL',B=null,DOMIDX={},dom='ALL';
 const BSRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/domain-barometers.json','https://s3.amazonaws.com/justhodl-dashboard-live/data/domain-barometers.json'];
 const COL={MACRO:'#7EA6F0',LIQUIDITY:'#F0B429',RISK:'#E07A6A'};
 function gcol(v){return v>=55?'var(--green)':v>=45?'var(--amber)':'var(--red)'}
+function cov(b){const c=b.coverage;if(!c)return '';const nv=c.not_voting||{};
+ return `<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--line)">
+  <b style="color:var(--tx)">${c.voting} of ${c.classified}</b> classified indicators voted
+  <div style="font-size:10px;margin-top:2px">
+   ${nv.is_a_prediction_target||0} are prediction targets ·
+   ${nv.no_live_value||0} have no live value ·
+   ${nv.direction_not_stated_in_your_notes||0} have no direction stated in your notes ·
+   ${nv.no_measurable_move_yet||0} awaiting a second reading</div></div>`}
 async function loadB(){for(const u of BSRC){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){B=await r.json();break}}catch(e){}}
  if(!B)return;
  (B.symbols||[]).forEach(s=>DOMIDX[s.symbol]=s);
@@ -58,7 +66,8 @@ async function loadB(){for(const u of BSRC){try{const r=await fetch(u+'?v='+Date
    <div class="gauge"><i style="width:${Math.max(0,Math.min(100,v||0))}%;background:${COL[d]}"></i></div>
    <div class="sub">gate ${b.gate_component??'—'} · breadth ${b.breadth_component??'—'}<br>
     ${b.n_favourable??0} of ${b.n_drivers_live??0} live drivers favourable
-    ${b.disagreement?'<br><b style="color:var(--amber)">gate vs breadth disagree — unstable</b>':''}</div></div>`}).join('')
+    ${b.disagreement?'<br><b style="color:var(--amber)">gate vs breadth disagree — unstable</b>':''}
+    ${cov(b)}</div></div>`}).join('')
   +`<div class="baro"><h3>CLASSIFICATION</h3><div class="big">${(B.classification_audit||{}).n_symbols??'—'}</div>
     <div class="sub">every indicator sorted into one of the three domains<br>
     ${(B.classification_audit||{}).from_his_own_notes??'—'} classified directly from your own notes
