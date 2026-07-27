@@ -1,3 +1,4 @@
+# retry ops3976: run 30289873127 died at Configure-AWS-credentials before executing a line — transient OIDC/STS failure, code unchanged
 """
 ops_3975 — deploy justhodl-data-census v1.0 from the runner.
 
