@@ -3,13 +3,21 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory": 1536,
-  "timeout": 600,
-  "architectures": ["x86_64"],
+  "memory": 3008,
+  "timeout": 900,
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "ONE catalog of every value the fleet publishes: walks all data/*.json scalar leaves, detects cross-engine mislabels (JPEXPYY class), measure conflicts, and dead-symbol fill candidates. Consumes feed-registry + feed-catalog.",
   "environment": {},
   "inherit_env": [
-    {"from_function": "justhodl-signal-backtest", "keys": ["FRED_KEY", "FMP_KEY"]}
+    {
+      "from_function": "justhodl-signal-backtest",
+      "keys": [
+        "FRED_KEY",
+        "FMP_KEY"
+      ]
+    }
   ]
 }

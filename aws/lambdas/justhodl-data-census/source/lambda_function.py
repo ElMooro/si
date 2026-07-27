@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "data-census v1.4 ops3982 by-source"
+MARKER = "data-census v1.5 ops3983 adaptive-budget"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/data-census.json"
 LEDGER_KEY = "data-census/paths-ledger.json"
@@ -156,12 +156,20 @@ def lambda_handler(event, context):
 
     arts, paths, errors = [], [], []
     val_index = defaultdict(list)          # rounded value -> [(key, path)]
-    budget_s = 780   # leave headroom under the 900s lambda timeout
+    # adaptive budget: stop walking when <90s remain on THIS invocation's
+    # clock — survives any configured timeout instead of assuming one.
+    # (Deploy Lambdas re-applies config.json on every push; the hardcoded
+    # 780s budget was meaningless the moment the config reverted to 600s.)
     truncated = 0
     for key, size, lm in keys:
-        if time.time() - t0 > budget_s:
-            truncated += 1
-            continue
+        try:
+            if context and context.get_remaining_time_in_millis() < 90_000:
+                truncated += 1
+                continue
+        except Exception:
+            if time.time() - t0 > 700:
+                truncated += 1
+                continue
         age_h = (now - lm).total_seconds() / 3600
         rec = {"key": key, "size": size, "age_h": round(age_h, 1),
                "stale": key in stale_set, **(writers.get(key) or {})}
