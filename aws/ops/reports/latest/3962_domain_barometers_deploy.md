@@ -1,0 +1,56 @@
+# ops 3962 — justhodl-domain-barometers v1.0
+
+**Status:** failure  
+**Duration:** 602.7s  
+**Finished:** 2026-07-27T04:26:01+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## A. zip-settle by marker (never trust State==Active alone)
+
+- `04:15:59`   [0] function not created yet
+- `04:16:14`   [1] function not created yet
+- `04:16:29`   [2] function not created yet
+- `04:16:44`   [3] function not created yet
+- `04:16:59`   [4] function not created yet
+- `04:17:14`   [5] function not created yet
+- `04:17:29`   [6] function not created yet
+- `04:17:44`   [7] function not created yet
+- `04:17:59`   [8] function not created yet
+- `04:18:14`   [9] function not created yet
+- `04:18:29`   [10] function not created yet
+- `04:18:45`   [11] function not created yet
+- `04:19:00`   [12] function not created yet
+- `04:19:15`   [13] function not created yet
+- `04:19:30`   [14] function not created yet
+- `04:19:45`   [15] function not created yet
+- `04:20:00`   [16] function not created yet
+- `04:20:15`   [17] function not created yet
+- `04:20:30`   [18] function not created yet
+- `04:20:45`   [19] function not created yet
+- `04:21:00`   [20] function not created yet
+- `04:21:15`   [21] function not created yet
+- `04:21:30`   [22] function not created yet
+- `04:21:45`   [23] function not created yet
+- `04:22:00`   [24] function not created yet
+- `04:22:16`   [25] function not created yet
+- `04:22:31`   [26] function not created yet
+- `04:22:46`   [27] function not created yet
+- `04:23:01`   [28] function not created yet
+- `04:23:16`   [29] function not created yet
+- `04:23:31`   [30] function not created yet
+- `04:23:46`   [31] function not created yet
+- `04:24:01`   [32] function not created yet
+- `04:24:16`   [33] function not created yet
+- `04:24:31`   [34] function not created yet
+- `04:24:46`   [35] function not created yet
+- `04:25:01`   [36] function not created yet
+- `04:25:16`   [37] function not created yet
+- `04:25:31`   [38] function not created yet
+- `04:25:46`   [39] function not created yet
+- `04:26:01` ✗ zip never settled with the new marker

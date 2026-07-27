@@ -1,57 +1,47 @@
-executing-against: 6302737d4762aa1456ed4b244c3e3fcc8a375b62
-ops 3961 — PROBE 3: Naive Bayes domain classifier from the brain
-── A. sharpened seeds (exclusive to one domain, df>=5) ──
-[04:10:02]   MACRO (n=229): ['absolutely', 'accord', 'account', 'adding', 'additionally', 'ahead', 'allow', 'allowing', 'along', 'angel', 'anticipation', 'anyway', 'apply', 'applying', 'appropriately', 'asia', 'attractive', 'average', 'bearish', 'becoming', 'behavior', 'behind', 'believe', 'benchmark', 'beyond', 'bias', 'bring', 'built', 'bullish', 'bunch']
-[04:10:02]   LIQUIDITY (n=186): ['according', 'accounts', 'actions', 'affect', 'affects', 'agreement', 'alone', 'ample', 'balances', 'bank', 'base', 'basis', 'bear', 'begun', 'billion', 'bitcoin', 'bogmbbm', 'borrowers', 'bottom', 'brewing', 'build', 'bull', 'buys', 'call', 'calls', 'canary', 'carry', 'casacbw', 'change', 'changes']
-[04:10:02]   RISK (n=175): ['ability', 'addittion', 'already', 'angels', 'arent', 'backbone', 'balance', 'bamlc', 'bamlh', 'bamlhe', 'bigger', 'bofa', 'bonds', 'broader', 'brokers', 'businesses', 'buying', 'called', 'calm', 'causing', 'cbbb', 'chaos', 'check', 'choice', 'climbing', 'companies', 'contagion', 'controlled', 'corp', 'corporate']
-── B. weak labels + multinomial NB (Laplace a=1, equal priors) ──
-[04:10:03]   NB top MACRO: debt-to-gdp, classname, dark, defensive, favor, bg-gray-, strengthens, pyramided, text-gray-, product, orders, crude, influenced, greece, span, consumption, backlogs, blowing, turning, react, equilibrium, flex, organizations, hover, nation, industrial
-[04:10:03]   NB top LIQUIDITY: repos, repurchase, agreement, york, transaction, chilean, dealer, million, transferred, counterparty, obligations, karens, balances, exchanging, advantages, repurchases, sofr, temporarily, valley, transfered, knee, silicon, deposits, agrees, institution, chaneel
-[04:10:03]   NB top RISK: rated, grade, option-adjusted, semi, re-evaluation, reusing, bamlc, subset, bringout, meanwhile, slack, angels, cbbb, widen, issuers, recesssion, addittion, excessively, ratings, triggers, sink, bamlh, reused, sytw, multiplier, blink
-── C. ladder ──
-[04:10:03]   learned category priors: {"commodity": "MACRO", "credit": "RISK", "equity": "MACRO", "futures": "MACRO", "fx": "MACRO", "macro": "MACRO", "other": "RISK", "plumbing": "LIQUIDITY", "rates": "MACRO", "vol": "RISK"}
-── D. contested symbols — his ACTUAL note text ──
-[04:10:03]   VIX → MACRO [T2] margin=0.1159
-[04:10:03]       notes(n=10): IF THE VIX IS SUPPRESSED AND AND THEN IT RISES THAT SIGNALS DERISKING. IF THE VIX IS SUPPRESSED AND AND THEN IT RISES THAT SIGNALS DERISKING. WHENEVER THE VIX IS ABOVE 60 AND CLOSES BELOW 30, 100% OF THE TIME THAT HAS BEEN THE BOTTOM. WHENEVER THE VIX IS ABOVE 60 AND CLOSES BELOW 30, 100% OF THE TIM
-[04:10:03]   VVIX → LIQUIDITY [T2] margin=0.0846
-[04:10:03]       notes(n=2): VIX of VIX (or VVIX) is a measure of the volatility of the Cboe Global Markets (Cboe) Volatility Index (VIX). The Cboe's VIX measures the short-term volatility of the S&P 500 indexes, and the VVIX measures the volatility of the price of the VIX. In other words, VVIX is a measure of the volatility of
-[04:10:03]   SKEW → LIQUIDITY [T2] margin=0.0264
-[04:10:03]       notes(n=2): The SKEW index is a measure of potential risk in financial markets. Much like the VIX index, the SKEW index can be a proxy for investor sentiment and volatility. The Skew Index measures perceived tail-risk in the S&P 500. Tail-risk is a change in the price of the S&P 500 or a stock that would place 
-[04:10:03]   SR32! → RISK [T2] margin=0.1218
-[04:10:03]       notes(n=12): A STRONGER DOLLAR SUCK FOREIGN CAPITAL INTO THE USA WHICH IS GONNA CAUSE A PUMP IN US STOCKS AND A PUMP IN US TREASURIES, LOWER US TREASURY YIELDS AND TAME INFLATION. A STRONGER DOLLAR SUCK FOREIGN CAPITAL INTO THE USA WHICH IS GONNA CAUSE A PUMP IN US STOCKS AND A PUMP IN US TREASURIES, LOWER US TR
-[04:10:03]   DXY → MACRO [T1a*] margin=0.1264
-[04:10:03]       notes(n=234): The United States is the world’s piggy bank. That is where the world invests the majority of their excess savings and capital bcs they want to access either US Treasuries or they wanted to access the united states stock market growth or they want to hold a currency that’s appreciating against theirs
-[04:10:03]   XAUUSD → MACRO [T2] margin=0.5154
-[04:10:03]       notes(n=4): Falling USD = Silver outperforms Gold. Rising USD = Gold outperforms Silver Falling USD = Silver outperforms Gold. Rising USD = Gold outperforms Silver When ur local currency under crisis gold should perform well. When us dollar isn't in a crisis gold doesn't necessarily need to perform well. When u
-[04:10:03]   TEDRATE → RISK [T2] margin=0.195
-[04:10:03]       notes(n=2): The TED spread is the difference between the three-month LIBOR and the three-month Treasury bill rate. The TED spread is commonly used as a measure of credit risk, as U.S. Treasury bills are seen as risk-free. The TED spread often widens in periods of economic crisis, as the default risk widens; t
-── E. worked examples ──
-[04:10:03]   RRPONTSYD  → LIQUIDITY [T2  ] own notes n=19 margin=0.573 terms=['repos', 'repurchase', 'agreement', 'york', 'transaction', 'million']
-[04:10:03]   SOFR       → LIQUIDITY [T2  ] own notes n=24 margin=0.742 terms=['repurchase', 'agreement', 'balances', 'sofr', 'institution', 'injections']
-[04:10:03]   WRESBAL    → LIQUIDITY [T1a ] subject of his anchor note
-[04:10:03]   JPLG       → LIQUIDITY [T1a ] subject of his anchor note
-[04:10:03]   MOVE       → RISK      [T1a ] subject of his anchor note
-[04:10:03]   US10Y      → MACRO     [T1a ] subject of his anchor note
-[04:10:03]   US02Y      → MACRO     [T2  ] own notes n=22 margin=0.165 terms=['influenced', 'nation', 'expectations', 'overheated', 'bullish', 'slow']
-[04:10:03]   GOLD       → MACRO     [T2  ] own notes n=33 margin=0.270 terms=['dramatically', 'bullish', 'economic', 'upside', 'precious', 'bought']
-[04:10:03]   CL1!       → MACRO     [T2  ] own notes n=37 margin=0.550 terms=['influenced', 'crude', 'consumption', 'industrial', 'dramatically', 'production']
-[04:10:03]   HG1!       → MACRO     [T2  ] own notes n=2 margin=0.741 terms=['industrial', 'production', 'input', 'trends', 'relationship', 'economic']
-[04:10:03]   SPX        → MACRO     [T2  ] own notes n=143 margin=0.240 terms=['defensive', 'favor', 'strengthens', 'consumption', 'blowing', 'turning']
-[04:10:03]   USM2       → LIQUIDITY [T2  ] own notes n=2 margin=0.683 terms=['deposits', 'smallest', 'reserves', 'nested', 'checks', 'reporting']
-[04:10:03]   USCLI      → MACRO     [T2  ] own notes n=0 margin=0.255 terms=['economic', 'country', 'leading', 'gauge', 'indicator', 'growth']
-[04:10:03]   USIRYY     → MACRO     [T2  ] own notes n=23 margin=0.557 terms=['industrial', 'production', 'expectations', 'fight', 'input', 'trends']
-[04:10:03]   BDI        → MACRO     [T2  ] own notes n=4 margin=0.443 terms=['input', 'rise', 'shipping', 'economic', 'falling', 'countries']
-[04:10:03]   USNFP      → MACRO     [T2  ] own notes n=2 margin=0.677 terms=['dynamics', 'number', 'hyperinflation', 'expect', 'employment', 'consumer']
-[04:10:03]   USLEI      → MACRO     [T2  ] own notes n=2 margin=0.640 terms=['orders', 'expectations', 'feeds', 'economic', 'permits', 'consumer']
-[04:10:03]   CN10Y      → MACRO     [T3  ] co-occurs with 4 MACRO symbols
-[04:10:03]   USINTR     → MACRO     [T2  ] own notes n=8 margin=0.101 terms=['pyramided', 'deplete', 'input', 'momentum', 'rise', 'anyway']
-[04:10:03]   USM0       → LIQUIDITY [T2  ] own notes n=6 margin=0.292 terms=['composition', 'smallest', 'lend', 'held', 'reserves', 'sufficient']
-[04:10:03] ✅   exclusive seeds for all domains
-[04:10:03] ✅   all domains weak-labeled
-[04:10:03] ✅   100% classified
-[04:10:03] ✅   no backstop
-[04:10:03] ✅   T1/T2 >= 60%
-[04:10:03] ✅   no domain collapse (each >= 8% of drivers)
-[04:10:03] ✅ PASS_ALL — 561/561; own-notes 538 (95.9%); MACRO 271 LIQUIDITY 107 RISK 183
+executing-against: a498082a59982396fb00e85e860ced88138a68e0
+ops 3962 — justhodl-domain-barometers v1.0
+── A. zip-settle by marker (never trust State==Active alone) ──
+[04:15:59]   [0] function not created yet
+[04:16:14]   [1] function not created yet
+[04:16:29]   [2] function not created yet
+[04:16:44]   [3] function not created yet
+[04:16:59]   [4] function not created yet
+[04:17:14]   [5] function not created yet
+[04:17:29]   [6] function not created yet
+[04:17:44]   [7] function not created yet
+[04:17:59]   [8] function not created yet
+[04:18:14]   [9] function not created yet
+[04:18:29]   [10] function not created yet
+[04:18:45]   [11] function not created yet
+[04:19:00]   [12] function not created yet
+[04:19:15]   [13] function not created yet
+[04:19:30]   [14] function not created yet
+[04:19:45]   [15] function not created yet
+[04:20:00]   [16] function not created yet
+[04:20:15]   [17] function not created yet
+[04:20:30]   [18] function not created yet
+[04:20:45]   [19] function not created yet
+[04:21:00]   [20] function not created yet
+[04:21:15]   [21] function not created yet
+[04:21:30]   [22] function not created yet
+[04:21:45]   [23] function not created yet
+[04:22:00]   [24] function not created yet
+[04:22:16]   [25] function not created yet
+[04:22:31]   [26] function not created yet
+[04:22:46]   [27] function not created yet
+[04:23:01]   [28] function not created yet
+[04:23:16]   [29] function not created yet
+[04:23:31]   [30] function not created yet
+[04:23:46]   [31] function not created yet
+[04:24:01]   [32] function not created yet
+[04:24:16]   [33] function not created yet
+[04:24:31]   [34] function not created yet
+[04:24:46]   [35] function not created yet
+[04:25:01]   [36] function not created yet
+[04:25:16]   [37] function not created yet
+[04:25:31]   [38] function not created yet
+[04:25:46]   [39] function not created yet
+[04:26:01] ✗ zip never settled with the new marker
 
-→ Report written to aws/ops/reports/latest/3961_nb_domain_classifier.md
+→ Report written to aws/ops/reports/latest/3962_domain_barometers_deploy.md
+❌ OPS-FAIL: aws/ops/pending/ops_3962_domain_barometers_deploy.py
