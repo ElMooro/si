@@ -1,59 +1,41 @@
-executing-against: 5ae312bd8290d23324008e2087ef94c713e73a8a
-ops 3984 — pure verifier: is the census finally whole?
-── A. the artifact (short poll for the v1.6 write) ──
-[21:50:56]   [0] marker=data-census v1.7 ops3986 vault-full — waiting 30s
-[21:51:26]   [1] marker=data-census v1.7 ops3986 vault-full — waiting 30s
-[21:51:57]   [2] marker=data-census v1.7 ops3986 vault-full — waiting 30s
-[21:52:28]   [3] marker=data-census v1.7 ops3986 vault-full — waiting 30s
-[21:52:58]   [4] marker=data-census v1.7 ops3986 vault-full — waiting 30s
-[21:53:29]   [5] marker=data-census v1.7 ops3986 vault-full — waiting 30s
-[21:53:59]   [6] marker=data-census v1.7 ops3986 vault-full — waiting 30s
-[21:54:30]   [7] marker=data-census v1.7 ops3986 vault-full — waiting 30s
-[21:55:00]   [8] marker=data-census v1.7 ops3986 vault-full — waiting 30s
-── B. totals + directory ──
-[21:55:32]   DIR MARKET-LIKE                          = 12.0 live=True from=None eng=justhodl-13f-clone-alpha
-[21:55:32]   DIR FAMOUS ≠ SKILLED                     = 9.0 live=True from=None eng=justhodl-13f-clone-alpha
-[21:55:32]   DIR INSUFFICIENT_HISTORY                 = 0.0 live=True from=None eng=justhodl-13f-clone-alpha
-[21:55:32]   DIR SELECTIVE EDGE                       = 12.0 live=True from=None eng=justhodl-13f-clone-alpha
-[21:55:32]   DIR WORTH CLONING                        = 12.0 live=True from=None eng=justhodl-13f-clone-alpha
-[21:55:32]   DIR Coatue                               = 58.0 live=True from=None eng=justhodl-13f-flows-by-ticker
-── C. by_source — the locating scheme ──
-[21:55:32]   FRED: 10Y Breakeven Inflation Vol · realized_vol_now = 0.3146 live=True pulled from FRED (Federal Reserve Bank of St through justhodl-bond-vol
-[21:55:32]   FRED: 10Y Real Yield Vol · realized_vol_now = 0.576 live=True pulled from FRED (Federal Reserve Bank of St through justhodl-bond-vol
-[21:55:32]   FRED: 10Y Treasury Yield Vol · realized_vol_now = 0.677 live=True pulled from FRED (Federal Reserve Bank of St through justhodl-bond-vol
-[21:55:32]   FRED: 10Y-3M Curve Vol · realized_vol_now = 0.5997 live=True pulled from FRED (Federal Reserve Bank of St through justhodl-bond-vol
-[21:55:32]   FRED: 16% Trimmed-Mean CPI (1m ann.) = 2.63 live=True pulled from FRED — Atlanta/Cleveland/Dallas  through justhodl-nowcast-desk
-[21:55:32]   FRED: 2Y Treasury Yield Vol · realized_vol_now = 0.831 live=True pulled from FRED (Federal Reserve Bank of St through justhodl-bond-vol
-── D. detectors (first run with a fed keyed walk) ──
-[21:55:32]   MISLABEL v=4.66 ['CN', 'WW'] ['china-liquidity.json:tsf.pboc_cn.yoy_delta_trn', 'ark-holdings-prev.json:holdings_by_fund.ARKK[SPCX].weight']
-[21:55:32]   MISLABEL v=-12.9 ['ES', 'WW'] ['global-business-cycle.json:by_country.KOR.physical.min_yoy_pct', 'backlog.json:by_ticker.CNET.deferred_qoq']
-[21:55:32]   MISLABEL v=3.61 ['IT', 'WW'] ['rotation-dashboard.json:assets[SMH].flows.pct_of_aum', 'ai-rerating-radar.json:coverage.peer_groups.Industrial - Machin']
-[21:55:32]   MISLABEL v=9.81 ['DE', 'WW'] ['tradingview.json:symbols[BAMLH0A3HYC].prev', '2026-07-13.json:pump_candidates[VLO].engines.earnings-tr']
-[21:55:32]   MISLABEL v=3.66 ['CN', 'GB', 'WW'] ['13f-clone-alpha.json:managers.BERKSHIRE.best_alpha', '2026-06-29.json:by_tier_stats.MEDIUM_TIER.mean_max_retur']
-[21:55:32]   GAP CLINTR    notes=8 -> ['countries[Chile].cb_rate_pct']
-[21:55:32]   GAP CLTOT     notes=4 -> ['Chile exports (Dr. Copper supply sid', 'Chile exports (Dr. Copper supply sid']
-[21:55:32]   GAP CHINTR    notes=2 -> ['indicators.country_unemployment.coun']
-[21:55:32]   GAP CNINTR    notes=2 -> ['interbank_rate.latest_pct', 'interbank_rate.change_3m_pp']
-[21:55:32]   GAP TWINTR    notes=2 -> ['countries[Taiwan].cb_rate_pct']
-── E. schedule + page ──
-[21:55:32] ✅   artifact is v1.5
-[21:55:32] ✅   written after the v1.6 invoke
-[21:55:32] ✅   >=100 artifacts walked
-[21:55:32] ✅   >=2000 scalar paths
-[21:55:32] ✅   metric directory >=50
-[21:55:32] ✅   >=50 fully attributed (name+source+engine)
-[21:55:32] ✅   keyed-list walk landed
-[21:55:32] ✅   by_source >=5 families
-[21:55:32] ✅   FRED >=40 metrics
-[21:55:32] ✅   US 10Y locatable under FRED
-[21:55:32] ✅   US10Y shows the YIELD not an internal (0<v<25)
-[21:55:32] ✗   US10Y pulled from DGS10 through the vault engine
-[21:55:32] ✅   no tried_at junk in the directory
-[21:55:32] ✅   FRED >=150 after the vault-full walk
-[21:55:32] ✅   detectors present
-[21:55:32] ✅   schedule ENABLED
-[21:55:32] ✅   page v3 live at edge
-[21:55:32] ✗ FAILED: ['US10Y pulled from DGS10 through the vault engine']
+executing-against: affb54db2eba0957bf3f82a0f3028a44ea50fe4c
+ops 3988 — fleet inventory + v1.8 close
+── A. the v1.8 artifact (fired 21:50:30, never gated) ──
+[21:57:45]   FRED: 10Y Breakeven Inflation Vol · realized_vol_now = 0.3146 live=True from FRED (Federal Reserve Bank of  via justhodl-bond-vol
+[21:57:45]   FRED: 10Y Real Yield Vol · realized_vol_now = 0.576 live=True from FRED (Federal Reserve Bank of  via justhodl-bond-vol
+[21:57:45]   FRED: 10Y Treasury Yield Vol · realized_vol_now = 0.677 live=True from FRED (Federal Reserve Bank of  via justhodl-bond-vol
+[21:57:45]   FRED: 10Y-3M Curve Vol · realized_vol_now = 0.5997 live=True from FRED (Federal Reserve Bank of  via justhodl-bond-vol
+[21:57:45]   FRED: 16% Trimmed-Mean CPI (1m ann.) = 2.63 live=True from FRED — Atlanta/Cleveland/Dalla via justhodl-nowcast-desk
+[21:57:45]   FRED: 2Y Treasury Yield Vol · realized_vol_now = 0.831 live=True from FRED (Federal Reserve Bank of  via justhodl-bond-vol
+── B. WIRE engines (already generated fleet-wide) ──
+── C. COMPILE data/page-manifest.json from the repo HTML ──
+[21:57:45]   13f.html                     | 13F · Big Investors · JustHodl         | What 18 of the world
+[21:57:45]   about.html                   | About · JustHodl AI                    | JustHodl.AI is an institutional-grade financial intelligence
+[21:57:45]   accumulation.html            | Accumulation / Distribution Radar · Ju | 
+[21:57:45]   accuracy.html                | Accuracy · JustHodl                    | Live calibration dashboard — every signal type
+[21:57:45]   activist-13d.html            | Activist 13D Scanner | JustHodl        | 
+[21:57:45]   activity-nowcast.html        | Activity Nowcast · JustHodl.AI         | 
+── D. page v4 at the edge ──
+[21:57:45]   [0] 14181B 0/5
+[21:58:10]   [1] 14181B 0/5
+[21:58:35]   [2] 14181B 0/5
+[21:59:00]   [3] 14181B 0/5
+[21:59:25]   [4] 14181B 0/5
+[21:59:50]   [5] 14181B 0/5
+[22:00:15]   [6] 14181B 0/5
+[22:00:40]   [7] 17936B 5/5
+[22:00:40] ✅   artifact is v1.8
+[22:00:40] ✅   >=6 source families
+[22:00:40] ✅   FRED >=150 metrics
+[22:00:40] ✅   US10Y is a yield 0<v<25
+[22:00:40] ✗   US10Y from DGS10 via the vault engine
+[22:00:40] ✅   no tried_at junk anywhere in the directory
+[22:00:40] ✅   engine manifest >=600 engines
+[22:00:40] ✅   >=70% engines carry a description
+[22:00:40] ✅   page manifest >=350 pages
+[22:00:40] ✗   >=60% pages carry a purpose
+[22:00:40] ✅   page v4 live at edge
+[22:00:40] ✗ FAILED: ['US10Y from DGS10 via the vault engine', '>=60% pages carry a purpose']
 
-→ Report written to aws/ops/reports/latest/3984_census_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_3984_census_verify.py
+→ Report written to aws/ops/reports/latest/3988_inventory_close.md
+❌ OPS-FAIL: aws/ops/pending/ops_3988_inventory_close.py
