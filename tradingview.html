@@ -14,16 +14,74 @@ table{width:100%;border-collapse:collapse;font-size:12.5px}td,th{padding:5px 7px
 .b-LIVE{background:#12331d;color:var(--green)}.b-UNRESOLVED{background:#2a2a14;color:var(--amber)}
 input{background:#0d1117;border:1px solid var(--line);border-radius:8px;color:var(--tx);padding:7px 10px;width:240px}
 .note{color:var(--dim);font-size:11px;max-width:520px}
+.baro{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.baro h3{margin:0 0 2px;font-size:12px;letter-spacing:.10em;color:var(--dim);font-weight:700}
+.gauge{height:9px;background:#21262d;border-radius:999px;overflow:hidden;margin:9px 0 6px}
+.gauge > i{display:block;height:100%;border-radius:999px}
+.big{font-size:30px;font-weight:800;line-height:1.1}
+.st{font-size:11px;font-weight:700;letter-spacing:.06em}
+.sub{font-size:10.5px;color:var(--dim);margin-top:5px;line-height:1.45}
+.d-MACRO{color:#7EA6F0}.d-LIQUIDITY{color:var(--amber)}.d-RISK{color:var(--red)}
+.pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:9.5px;font-weight:700;border:1px solid var(--line)}
+.p-MACRO{background:#16213a;color:#7EA6F0}.p-LIQUIDITY{background:#2a2410;color:var(--amber)}.p-RISK{background:#2e1a17;color:var(--red)}
+.c-HIGH{color:var(--green)}.c-MEDIUM{color:var(--amber)}.c-LOW{color:var(--dim)}
+.warn{background:#2a2414;border:1px solid #5a4a1e;border-radius:8px;padding:9px 11px;font-size:11.5px;color:#e8d9a8;margin:8px 0}
+.ev{color:var(--dim);font-size:10px;max-width:420px}
 </style></head><body>
 <h1>📺 TradingView Metric Vault</h1>
 <div class="dim">Every metric Khalid harvested from TradingView, parsed live from the brain — each symbol carries its note ids. Self-updating.</div>
 <div id="stats" class="grid"></div>
-<div class="card"><input id="q" placeholder="search symbol or note…"> <span id="cats"></span></div>
-<div class="card" style="overflow-x:auto"><table id="tbl"><thead><tr><th>symbol</th><th>cat</th><th>value</th><th>Δ%</th><th>status</th><th>notes</th><th>brain note (longest)</th></tr></thead><tbody></tbody></table></div>
+<!-- v2-ops3964 domain barometers -->
+<div id="baro" class="grid"></div>
+<div id="predwrap" class="card" style="display:none">
+  <div style="font-weight:800;margin-bottom:2px">What this implies per asset class</div>
+  <div class="dim" style="font-size:11px;margin-bottom:9px" id="predhow"></div>
+  <div style="overflow-x:auto"><table id="predtbl"><thead><tr><th>asset class</th><th>call</th><th>score</th><th>conviction</th><th>dominant driver</th><th>your note it implements</th></tr></thead><tbody></tbody></table></div>
+</div>
+<div class="card"><input id="q" placeholder="search symbol or note…"> <span id="doms"></span> <span id="cats"></span></div>
+<div class="card" style="overflow-x:auto"><table id="tbl"><thead><tr><th>symbol</th><th>domain</th><th>cat</th><th>value</th><th>Δ%</th><th>status</th><th>notes</th><th>why this domain (from your notes)</th><th>brain note (longest)</th></tr></thead><tbody></tbody></table></div>
 <script>
 const SRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/tradingview.json','https://s3.amazonaws.com/justhodl-dashboard-live/data/tradingview.json'];
 const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-let D=null,cat='ALL';
+let D=null,cat='ALL',B=null,DOMIDX={},dom='ALL';
+const BSRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/domain-barometers.json','https://s3.amazonaws.com/justhodl-dashboard-live/data/domain-barometers.json'];
+const COL={MACRO:'#7EA6F0',LIQUIDITY:'#F0B429',RISK:'#E07A6A'};
+function gcol(v){return v>=55?'var(--green)':v>=45?'var(--amber)':'var(--red)'}
+async function loadB(){for(const u of BSRC){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){B=await r.json();break}}catch(e){}}
+ if(!B)return;
+ (B.symbols||[]).forEach(s=>DOMIDX[s.symbol]=s);
+ const order=['LIQUIDITY','RISK','MACRO'];
+ document.getElementById('baro').innerHTML=order.map(d=>{const b=(B.barometers||{})[d]||{};const v=b.score_0_100;
+  return `<div class="baro"><h3 class="d-${d}">${d} BAROMETER</h3>
+   <div class="big" style="color:${gcol(v)}">${v==null?'—':v}<span style="font-size:13px;color:var(--dim);font-weight:600"> /100</span></div>
+   <div class="st" style="color:${gcol(v)}">${esc(b.state||'')}</div>
+   <div class="gauge"><i style="width:${Math.max(0,Math.min(100,v||0))}%;background:${COL[d]}"></i></div>
+   <div class="sub">gate ${b.gate_component??'—'} · breadth ${b.breadth_component??'—'}<br>
+    ${b.n_favourable??0} of ${b.n_drivers_live??0} live drivers favourable
+    ${b.disagreement?'<br><b style="color:var(--amber)">gate vs breadth disagree — unstable</b>':''}</div></div>`}).join('')
+  +`<div class="baro"><h3>CLASSIFICATION</h3><div class="big">${(B.classification_audit||{}).n_symbols??'—'}</div>
+    <div class="sub">every indicator sorted into one of the three domains<br>
+    ${(B.classification_audit||{}).from_his_own_notes??'—'} classified directly from your own notes
+    (${(B.classification_audit||{}).from_his_own_notes_pct??'—'}%)<br>
+    <span class="mono" style="font-size:10px">${esc(JSON.stringify((B.classification_audit||{}).domain_counts||{}))}</span></div></div>`;
+ const P=((B.predictions||{}).asset_classes)||{};
+ if(Object.keys(P).length){document.getElementById('predwrap').style.display='';
+  document.getElementById('predhow').textContent=(B.predictions||{}).how_to_read||'';
+  document.querySelector('#predtbl tbody').innerHTML=Object.entries(P)
+   .sort((a,b)=>Math.abs(b[1].score)-Math.abs(a[1].score)).map(([k,v])=>{
+   const c=v.score>=0.10?'pos':v.score<=-0.10?'neg':'';
+   return `<tr><td><b>${esc(k.replace(/_/g,' '))}</b><div class="dim" style="font-size:10px">${esc((v.proxies||[]).join(', '))}</div></td>
+    <td class="${c}"><b>${esc(v.direction)}</b></td><td class="mono ${c}">${v.score>0?'+':''}${Number(v.score).toFixed(3)}</td>
+    <td>${esc(v.conviction)}</td><td>${esc(v.dominant_driver)}</td>
+    <td class="ev">${esc(v.brain_basis||'')}</td></tr>`}).join('')}
+ const gr=B.grading||{};
+ if(gr.status==='ACCRUING'){document.getElementById('predwrap').insertAdjacentHTML('beforeend',
+  `<div class="warn">Forward-return grading is still accruing (${gr.n_observations||0} observation(s)). These calls are a transmission model built from your notes — they are not yet backtested, and this page will say so until the ledger has real history.</div>`)}
+ buildDomChips();render()}
+function buildDomChips(){const dc=((B||{}).classification_audit||{}).domain_counts||{};
+ document.getElementById('doms').innerHTML=['ALL','MACRO','LIQUIDITY','RISK'].map(d=>
+  `<span class="chip${d===dom?' on':''}" onclick="setDom('${d}')">${d}${d==='ALL'?'':' '+(dc[d]||0)}</span>`).join('')}
+function setDom(d){dom=d;buildDomChips();render()}
 async function load(){for(const u of SRC){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){D=await r.json();break}}catch(e){}}
 if(!D){document.getElementById('stats').innerHTML='<div class="card">Feed unreachable.</div>';return}
 document.getElementById('stats').innerHTML=`
@@ -36,15 +94,18 @@ document.getElementById('cats').innerHTML=cats.map(c=>`<span class="chip${c===ca
 render()}
 function setCat(c){cat=c;document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x.textContent.startsWith(c+' ')||c==='ALL'&&x.textContent.startsWith('ALL')));render()}
 function render(){const q=(document.getElementById('q').value||'').toUpperCase();
-const rows=(D.symbols||[]).filter(r=>(cat==='ALL'||r.category===cat)&&(!q||r.symbol.includes(q)||(r.note_snippet||'').toUpperCase().includes(q)));
+const rows=(D.symbols||[]).filter(r=>(cat==='ALL'||r.category===cat)&&(dom==='ALL'||(DOMIDX[r.symbol]||{}).domain===dom)&&(!q||r.symbol.includes(q)||(r.note_snippet||'').toUpperCase().includes(q)));
 document.querySelector('#tbl tbody').innerHTML=rows.slice(0,600).map(r=>{
  const v=r.value==null?'—':(typeof r.value==='number'?r.value.toLocaleString(undefined,{maximumFractionDigits:3}):esc(r.value));
  const ch=r.chg_pct==null?'—':`<span class="${r.chg_pct>=0?'pos':'neg'}">${r.chg_pct>0?'+':''}${Number(r.chg_pct).toFixed(2)}%</span>`;
+ const dm=DOMIDX[r.symbol]||{};
+ const dcell=dm.domain?`<span class="pill p-${dm.domain}">${dm.domain}</span><div class="dim" style="font-size:9.5px;margin-top:2px"><span class="c-${esc(dm.confidence)}">${esc(dm.confidence||'')}</span> · ${esc(dm.tier||'')} · ${esc(dm.role||'')}</div>`:'<span class="dim">—</span>';
  return `<tr><td class="mono"><b>${esc(r.symbol)}</b><div class="dim" style="font-size:10px">${esc((r.exchanges||[]).join(','))}</div></td>
- <td>${esc(r.category)}</td><td class="mono">${v}</td><td class="mono">${ch}</td>
+ <td>${dcell}</td><td>${esc(r.category)}</td><td class="mono">${v}</td><td class="mono">${ch}</td>
  <td><span class="badge b-${esc(r.status)}">${esc(r.status)}</span><div class="dim" style="font-size:10px">${esc(r.source)}</div></td>
  <td class="mono">${r.n_notes}<div class="dim" style="font-size:9.5px">${esc((r.note_ids||[]).slice(0,2).join(' '))}</div></td>
+ <td class="ev">${esc((dm.evidence||'').slice(0,190))}${dm.margin!=null?`<div class="dim" style="font-size:9.5px">margin ${dm.margin}</div>`:''}</td>
  <td class="note">${esc((r.note_snippet||'').slice(0,220))}</td></tr>`}).join('')}
 document.addEventListener('input',e=>{if(e.target.id==='q')render()});
-load();
+load();loadB();
 </script></body></html>
