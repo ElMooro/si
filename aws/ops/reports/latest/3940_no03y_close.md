@@ -1,0 +1,29 @@
+# ops 3940 — NO03Y close (silent-no-op fixed)
+
+**Status:** success  
+**Duration:** 589.9s  
+**Finished:** 2026-07-27T00:04:57+00:00  
+
+## Data
+
+| coverage_pct | n_live | statuses |
+|---|---|---|
+| 80.4 | 451 | {'META': 1, 'LIVE': 451, 'DISCONTINUED': 2, 'NO_FREE_SOURCE': 107} |
+
+## Log
+## BCRP — series whose NAME is the ToT index, monthly
+
+- `23:55:19`   PN38726BM;Balanza comercial;Balanza comercial (variacin porcentual);Trminos de Intercambio;;;;;;BCRP, Sunat, Zofratacna, Banco de la Nacin, empresas;Mensual;2022-04-08;Ba
+- `23:55:19`   PN38923BM;Trminos de intercambio;Trminos de intercambio de comercio exterior (ndice 2007 = 100);Trminos de Intercambio;;;;;;BCRP, Sunat, Zofratacna, Banco de la Nacin, em
+- `23:55:19`   PN38924BM;Trminos de intercambio;Trminos de intercambio de comercio exterior (var% mensual);Trminos de Intercambio;;;;;;BCRP, Sunat, Zofratacna, Banco de la Nacin, empres
+- `23:55:19`   PN38925BM;Trminos de intercambio;Trminos de intercambio de comercio exterior (var% acumulada);Trminos de Intercambio;;;;;;BCRP, Sunat, Zofratacna, Banco de la Nacin, empr
+- `23:55:19`   PN38926BM;Trminos de intercambio;Trminos de intercambio de comercio exterior (var% 12 meses);Trminos de Intercambio;;;;;;BCRP, Sunat, Zofratacna, Banco de la Nacin, empre
+- `23:55:20` ✅   settled attempt 1 (alias verified in zip)
+- `00:04:57` ✅   refreshed ~555s
+- `00:04:57`   NO03Y: LIVE value=4.495 src=norges-bank
+- `00:04:57` ✅   v3.2.2 settled + alias in artifact
+- `00:04:57` ✅   force run wrote
+- `00:04:57` ✅   NO03Y LIVE via norges-bank
+- `00:04:57` ✅   n_live >= 451
+- `00:04:57` ✅   zero bare UNRESOLVED
+- `00:04:57` ✅ PASS_ALL — 451 LIVE (80.4%), NO03Y 4.495 from Norges Bank
