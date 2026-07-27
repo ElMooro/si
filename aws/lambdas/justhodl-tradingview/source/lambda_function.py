@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.3 BCRP-PERU"
+MARKER = "tradingview-vault v3.4 MOF-BOE"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -98,7 +98,7 @@ ALIASES = {
     "EU10Y": "fred:IRLTLT01DEM156N", "GB30Y": "none:no free UK 30Y series",
     "EU03Y": "ecb:YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_3Y",
     "DE02Y": "ecb:YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_2Y",
-    "JP02Y": "none:JGB tenors need MOF/BOJ build", "JP03MY": "none:JGB build",
+    "JP02Y": "mofjp:2Y", "JP03MY": "none:3M TB not in MOF JGB CSV — BOJ API next",
     "CH02Y": "none:SNB tenor build", "CH03Y": "none:SNB tenor build",
     "CN10Y": "none:ChinaBond licensed", "NO03Y": "norges:GOVT_GENERIC_RATES:3",
     "SS03": "none:FTSE licensed",
@@ -451,6 +451,18 @@ def resolve_alias(row, al):
             row["source"] = "bcrp-peru"
             row["resolved_via"] = f"bcrp:{tgt}"
         return v, None
+    if kind == "mofjp":
+        v = mofjp_latest(tgt)
+        if v:
+            row["source"] = "mof-japan"
+            row["resolved_via"] = f"mofjp:{tgt}"
+        return v, None
+    if kind == "boe":
+        v = boe_latest(tgt)
+        if v:
+            row["source"] = "bank-of-england"
+            row["resolved_via"] = f"boe:{tgt}"
+        return v, None
     if kind == "disc":
         return None, ("DISCONTINUED", tgt)
     if kind == "none":
@@ -550,6 +562,53 @@ def norges_latest(tgt):
     return None
 
 
+_MOF_CACHE = {}
+
+
+def mofjp_latest(col):
+    """Japan MOF official JGB par-yield CSV (current month)."""
+    if "rows" not in _MOF_CACHE:
+        url = "https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/jgbcme.csv"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=25) as r:
+                lines = [l for l in r.read().decode("utf-8", "ignore").splitlines()
+                         if l.strip()]
+            hdr = [h.strip() for h in lines[1].split(",")]
+            last = [c.strip() for c in lines[-1].split(",")]
+            _MOF_CACHE["rows"] = (hdr, last)
+        except Exception:
+            _MOF_CACHE["rows"] = None
+    if not _MOF_CACHE.get("rows"):
+        return None
+    hdr, last = _MOF_CACHE["rows"]
+    try:
+        i = hdr.index(col)
+        return {"value": float(last[i]), "prev": None, "chg_pct": None,
+                "asof": f"mof.go.jp:{last[0]}"}
+    except Exception:
+        return None
+
+
+def boe_latest(series_code):
+    """Bank of England IADB CSV API (the /iadb/ path returns pure CSV)."""
+    url = ("https://www.bankofengland.co.uk/boeapps/iadb/fromshowcolumns.asp"
+           f"?csv.x=yes&SeriesCodes={series_code}&CSVF=TN&UsingCodes=Y"
+           "&Datefrom=01/Jan/2026")
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=25) as r:
+            lines = [l for l in r.read().decode("utf-8", "ignore").splitlines()
+                     if l.strip()]
+        if len(lines) < 2 or "DATE" not in lines[0].upper():
+            return None
+        last = lines[-1].split(",")
+        return {"value": float(last[1]), "prev": None, "chg_pct": None,
+                "asof": f"boe:{last[0]}"}
+    except Exception:
+        return None
+
+
 def bcrp_latest(code):
     """Banco Central de Reserva del Peru official series API (no key)."""
     yr = datetime.now(timezone.utc).year
@@ -591,6 +650,10 @@ def resolve_direct(rv):
         return norges_latest(tgt)
     if kind == "bcrp":
         return bcrp_latest(tgt)
+    if kind == "mofjp":
+        return mofjp_latest(tgt)
+    if kind == "boe":
+        return boe_latest(tgt)
     return None
 
 
