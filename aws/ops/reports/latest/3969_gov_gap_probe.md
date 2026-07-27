@@ -1,0 +1,132 @@
+# ops 3969 — which dead vault symbols can gov-sources actually serve?
+
+**Status:** success  
+**Duration:** 1.3s  
+**Finished:** 2026-07-27T05:28:54+00:00  
+
+## Data
+
+| addressable | dead | futures_no_gov_source | generated_at | live | n_agencies | notes_behind_addressable | notes_behind_futures | status_counts | unrouted | vault_symbols |
+|---|---|---|---|---|---|---|---|---|---|---|
+|  | 107 |  |  | 454 |  |  |  | {"META": 1, "LIVE": 454, "DISCONTINUED": 2, "NO_FREE_SOURCE": 104} |  | 561 |
+|  |  |  | 2026-07-27T03:49:58.651132+00:00 |  | 13 |  |  |  |  |  |
+| 51 |  | 18 |  |  |  |  |  |  | 38 |  |
+|  |  |  |  |  |  | 128 |  |  |  |  |
+|  |  |  |  |  |  |  | 79 |  |  |  |
+
+## Log
+## A. the dead set
+
+## B. the registry
+
+- `05:28:54`   boj            probe=None     vault_join=['JPLG'] | 10+ databases; MD11 alone = 792 series (getMetadata lists every code)
+- `05:28:54`   mof_japan      probe=None     vault_join=['JP02Y'] | full JGB par curve 1Y-40Y daily + complete history file
+- `05:28:54`   us_treasury    probe=None     vault_join=['US02MY'] | full daily par curve + bill/auction datasets on the same portal
+- `05:28:54`   eurostat       probe=None     vault_join=['ESGDG', 'EUGDG', 'ITGDG'] | the entire Eurostat dissemination API (thousands of datasets)
+- `05:28:54`   norges         probe=None     vault_join=['NO03Y'] | all published tenors, bonds + bills, D/M/A frequencies
+- `05:28:54`   bcrp           probe=None     vault_join=['PETOT'] | thousands of Peru series in the ;-separated catalog
+- `05:28:54`   ecb            probe=None     vault_join=['DE02Y', 'EU03Y', 'EUCA'] | the entire ECB Data Portal (YC, BP6, BSI, MIR, ...)
+- `05:28:54`   boe            probe=None     vault_join=[] | the full IADB database by series code
+- `05:28:54`   snb            probe=None     vault_join=[] | every data.snb.ch cube once the windowed parse lands
+- `05:28:54`   imf            probe=None     vault_join=[] | every IMF SDMX dataflow (IRFCL, IFS, ...) once keys are mapped
+- `05:28:54`   fred           probe=None     vault_join=['AISRSA', 'AMERIBOR', 'BAMLC0A0CM', 'BAMLC0A0CMEY', 'BAMLC0A1CAAA', 'BAMLC0A4CBBB', 'BAMLC0A4CBBBEY', 'BAMLC4A0C710YEY', 'BAMLCC0A0CMTRIV', 'BAMLCC0A4BBBTRIV', 'BAMLEMCBPIEY', 'BAMLEMCBPIOAS', 'BAMLEMHBHYCRPIOAS', 'BAMLEMPBPUBSICRPIEY', 'BAMLEMRACRPIASIAOAS', 'BAMLEMRLCRPILAOAS', 'BAMLH0A0HYM2', 'BAMLH0A0HYM2EY', 'BAMLH0A0HYM2SYTW', 'BAMLH0A1HYBB', 'BAMLH0A2HYB', 'BAMLH0A3HYC', 'BAMLH0A3HYCEY', 'BAMLHE00EHYIEY', 'BAMLHE00EHYIOAS', 'BAMLHE00EHYITRIV', 'BAMLHYH0A0HYM2TRIV', 'BAMLHYH0A3CMTRIV', 'BOGMBASE', 'BOGMBBM', 'CASACBQ158SBOG', 'CASACBW027SBOG', 'CAUR', 'CFNAIMA3', 'CHNLORSGPNOSTSAM', 'CHUR', 'CNCA', 'CNGDPYY', 'CNIRYY', 'CPFF', 'CSCICP03USM665S', 'DCPF3M', 'DCPN3M', 'DEIRYY', 'DPCREDIT', 'DPSACBW027SBOG', 'DRTSCILM', 'DRTSCIS', 'DRTSCLCC', 'DTB3', 'DTB6', 'DTWEXAFEGS', 'DTWEXBGS', 'ECBASSETSW', 'EFFR', 'EU10Y', 'EUGDPYY', 'EUINTR', 'EUIRYY', 'FEDFUNDS', 'FIGDPYY', 'GACDFSA066MSFRBPHI', 'GB10Y', 'GDPNOW', 'H41RESH4ENWW', 'HOUST', 'HQMCB10YR', 'HQMCB10YRP', 'ICSA', 'IORB', 'IR3TCD01USM156N', 'IR3TIB01USM156N', 'IT10Y', 'JPGDPYY', 'JPINTR', 'JPM3', 'JPNASSETS', 'JPPPIYY', 'LNS14000006', 'LNS14000009', 'MABMM301JPM189S', 'MBST', 'MCUMFN', 'MMMFFAQ027S', 'MMMFTAQ027S', 'MSACSR', 'NFCI', 'NFCICREDIT', 'NFCILEVERAGE', 'NFCIRISK', 'ONMLOLITOAASTSAM', 'PALLFNFINDEXQ', 'PALUMUSDM', 'PCOPPUSDM', 'PIORECRUSDM', 'PNICKUSDM', 'PPIACO', 'PRAWMINDEXM', 'RBUSBIS', 'RIFSPPNA2P2D90NB', 'RIFSPPNAAD90NB', 'RMFSL', 'RPONTSYD', 'RPONTTLD', 'RRPONTSYAWARD', 'RRPONTSYD', 'RRPONTTLD', 'SAHMCURRENT', 'SAHMREALTIME', 'SOFR', 'SOFR30DAYAVG', 'SOFRVOL', 'SPASTT01USM661N', 'STLPPM', 'SWPT', 'TB4WK', 'TCU', 'TEDRATE', 'TEMPHELPS', 'THREEFF1', 'THREEFF2', 'THREEFYTP1', 'THREEFYTP10', 'TLRESCONS', 'TNX', 'TOTRESNS', 'TREASURY', 'TRESEGCNM052N', 'UNEMPLOY', 'US01MY', 'US01Y', 'US02Y', 'US03MY', 'US03Y', 'US05Y', 'US06MY', 'US10Y', 'US30Y', 'USALOLITONOSTSAM', 'USALORSGPNOSTSAM', 'USBLR', 'USCBBS', 'USCFNAI', 'USFDI', 'USGDPYY', 'USGFCF', 'USHPIYY', 'USHST', 'USIJC', 'USINBR', 'USINTR', 'USIRYY', 'USJC', 'USLEI', 'USM0', 'USM1', 'USM2', 'USMNO', 'USMPRYY', 'USNFP', 'USNHS', 'USOIL', 'USPHCI', 'USRR', 'VIX', 'WALCL', 'WDTGAL', 'WFCDA', 'WLCFLL', 'WLCFLPCL', 'WLODLL', 'WLRRAFOIAL', 'WLRRAL', 'WORAL', 'WPU081', 'WPU09120325', 'WRBWFRBL', 'WREPO', 'WRESBAL', 'WTI', 'WTREGEN'] | 800k+ FRED series; the fleet workhorse
+- `05:28:54`   bcch           probe=None     vault_join=[] | full BCCh catalog after account creation
+- `05:28:54`   gov_proxy      probe=None     vault_join=[] | any allowlisted agency page/file at edge
+## C. route each dead symbol
+
+## D. ADDRESSABLE — ranked by how much he wrote about them
+
+- `05:28:54`   CLINTR       notes=8    MACRO     NO_FREE_SOURCE   → bcch / bcrp
+- `05:28:54`   JP03MY       notes=7    LIQUIDITY NO_FREE_SOURCE   → boj / mof_japan
+- `05:28:54`   TWEXPYY      notes=6    MACRO     NO_FREE_SOURCE   → imf / national — no registry entry
+- `05:28:54`   USHMI        notes=6    MACRO     NO_FREE_SOURCE   → us_treasury / fred
+- `05:28:54`   EUMPMI       notes=5    MACRO     NO_FREE_SOURCE   → ecb / eurostat
+- `05:28:54`   USMPMI       notes=5    MACRO     NO_FREE_SOURCE   → us_treasury / fred
+- `05:28:54`   CH02Y        notes=4    MACRO     NO_FREE_SOURCE   → snb
+- `05:28:54`   CH03Y        notes=4    MACRO     NO_FREE_SOURCE   → snb
+- `05:28:54`   CLGDPYY      notes=4    MACRO     NO_FREE_SOURCE   → bcch / bcrp
+- `05:28:54`   CLTOT        notes=4    MACRO     NO_FREE_SOURCE   → bcch / bcrp
+- `05:28:54`   EUBUND       notes=4    RISK      NO_FREE_SOURCE   → ecb / eurostat
+- `05:28:54`   TOPIX        notes=4    LIQUIDITY NO_FREE_SOURCE   → boj / mof_japan
+- `05:28:54`   USBCOI       notes=3    MACRO     NO_FREE_SOURCE   → us_treasury / fred
+- `05:28:54`   CLBOT        notes=2    MACRO     NO_FREE_SOURCE   → bcch / bcrp
+- `05:28:54`   CN10Y        notes=2    MACRO     NO_FREE_SOURCE   → imf / national — no registry entry
+- `05:28:54`   CNEAI        notes=2    RISK      NO_FREE_SOURCE   → imf / national — no registry entry
+- `05:28:54`   CNINTR       notes=2    MACRO     NO_FREE_SOURCE   → imf / national — no registry entry
+- `05:28:54`   CNLIVRR      notes=2    MACRO     NO_FREE_SOURCE   → imf / national — no registry entry
+- `05:28:54`   CNPPIYY      notes=2    MACRO     NO_FREE_SOURCE   → imf / national — no registry entry
+- `05:28:54`   DENO         notes=2    MACRO     NO_FREE_SOURCE   → ecb / eurostat
+- `05:28:54`   EUEOI        notes=2    MACRO     NO_FREE_SOURCE   → ecb / eurostat
+- `05:28:54`   EUESI        notes=2    MACRO     NO_FREE_SOURCE   → ecb / eurostat
+- `05:28:54`   EUFER        notes=2    LIQUIDITY NO_FREE_SOURCE   → ecb / eurostat
+- `05:28:54`   GB30Y        notes=2    MACRO     NO_FREE_SOURCE   → boe / ons
+- `05:28:54`   GBGDG        notes=2    MACRO     NO_FREE_SOURCE   → boe / ons
+- `05:28:54`   JPCIND       notes=2    RISK      NO_FREE_SOURCE   → boj / mof_japan
+- `05:28:54`   JPGDG        notes=2    MACRO     NO_FREE_SOURCE   → boj / mof_japan
+- `05:28:54`   JPIRYY       notes=2    LIQUIDITY NO_FREE_SOURCE   → boj / mof_japan
+- `05:28:54`   JPJV         notes=2    MACRO     NO_FREE_SOURCE   → boj / mof_japan
+- `05:28:54`   JPMPMI       notes=2    MACRO     NO_FREE_SOURCE   → boj / mof_japan
+- `05:28:54`   JPMTO        notes=2    MACRO     NO_FREE_SOURCE   → boj / mof_japan
+- `05:28:54`   TWINTR       notes=2    MACRO     NO_FREE_SOURCE   → imf / national — no registry entry
+- `05:28:54`   TWMPMI       notes=2    LIQUIDITY NO_FREE_SOURCE   → imf / national — no registry entry
+- `05:28:54`   USCF         notes=2    MACRO     NO_FREE_SOURCE   → us_treasury / fred
+- `05:28:54`   USCPMI       notes=2    MACRO     NO_FREE_SOURCE   → us_treasury / fred
+- `05:28:54`   USFER        notes=2    LIQUIDITY NO_FREE_SOURCE   → us_treasury / fred
+- `05:28:54`   USNMPR       notes=2    MACRO     NO_FREE_SOURCE   → us_treasury / fred
+- `05:28:54`   USSBSI       notes=2    MACRO     NO_FREE_SOURCE   → us_treasury / fred
+- `05:28:54`   USTOT        notes=2    MACRO     NO_FREE_SOURCE   → us_treasury / fred
+- `05:28:54`   CHFER        notes=1    LIQUIDITY NO_FREE_SOURCE   → snb
+- `05:28:54`   by agency: {"bcch / bcrp": 4, "boj / mof_japan": 10, "imf / national \u2014 no registry entry": 9, "us_treasury / fred": 10, "ecb / eurostat": 13, "snb": 3, "boe / ons": 2}
+## E. STRUCTURALLY UNAVAILABLE — futures, no agency publishes these
+
+- `05:28:54`   GE1!         notes=18   DISCONTINUED     CME eurodollar futures ceased Jun-2023 (SOFR transition)
+- `05:28:54`   YIT1!        notes=12   NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   USW1!        notes=10   NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   AWN1!        notes=4    NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   F1U1!        notes=4    NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   FMMG1!       notes=4    NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   GE2!         notes=4    DISCONTINUED     CME eurodollar futures ceased Jun-2023 (SOFR transition)
+- `05:28:54`   I1!          notes=4    NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   AW1!         notes=2    NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   EMM2!        notes=2    NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   FMEA2!       notes=2    NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   FMMI2!       notes=2    NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   GBW2!        notes=2    NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   SO32!        notes=2    NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   SON1!        notes=2    NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   TOPIX1!      notes=2    NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   USP2!        notes=2    NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   MWL1!        notes=1    NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+## F. UNROUTED — no prefix match, needs a manual look
+
+- `05:28:54`   UNTAGGED     notes=248  cat=other      META             not a metric — the no-tag note bucket
+- `05:28:54`   FTEMSLU      notes=9    cat=other      NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   EMBASKET     notes=8    cat=other      NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   WWMPMI       notes=7    cat=macro      NO_FREE_SOURCE   S&P Global PMI licensed
+- `05:28:54`   JSGW         notes=6    cat=equity     NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   399233       notes=4    cat=equity     NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   BDI          notes=4    cat=commodity  NO_FREE_SOURCE   referenced in eurodollar-plumbing code, not exported (producer todo)
+- `05:28:54`   SS03         notes=4    cat=rates      NO_FREE_SOURCE   FTSE licensed
+- `05:28:54`   CPCS         notes=3    cat=equity     NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   000161       notes=2    cat=equity     NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   088691_F_OI  notes=2    cat=other      NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   ADR          notes=2    cat=equity     NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   ADRN         notes=2    cat=equity     NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   BNEWE        notes=2    cat=equity     NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   BOTOT        notes=2    cat=macro      NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   C1000P       notes=2    cat=other      NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   C9DA         notes=2    cat=other      NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   CEMG         notes=2    cat=equity     NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   CHINTR       notes=2    cat=rates      NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   CHMPMI       notes=2    cat=macro      NO_FREE_SOURCE   S&P Global PMI licensed
+- `05:28:54`   IBHY         notes=2    cat=credit     NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   LLXD         notes=2    cat=equity     NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   MABOT        notes=2    cat=macro      NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+- `05:28:54`   MAN_PMI      notes=2    cat=macro      NO_FREE_SOURCE   ISM licensed
+- `05:28:54`   MXS          notes=2    cat=equity     NO_FREE_SOURCE   no free API found (TV/TradingEconomics only)
+## G. page at the edge (v3 coverage denominator)
+
+- `05:28:54`   [0] 13024B 4/4
+- `05:28:54` ✅   vault + barometers loaded
+- `05:28:54` ✅   page v3 live at edge
+- `05:28:54` ✅ PROBE DONE — 51 addressable from official APIs (128 notes behind them), 18 futures with no government source, 38 unrouted
