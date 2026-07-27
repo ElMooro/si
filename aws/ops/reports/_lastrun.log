@@ -1,33 +1,195 @@
-executing-against: cc747d2ddcb9c6299dee3b4e8443f764f6446358
-ops 3949 — BOJ API base hunt (4 prongs)
-── 1. PDF text layer (manual + notice) ──
-[02:33:04]   manual: 857117b pdf -> 3303 chars of text
-[02:33:04]   manual ctx: …          24       1.             https://www.stat - search.boj.or.jp/api/v1/getDataCode?format=json&lan g=en&db=CO&startDate=202401&endDate=202504&code=TK99F100 0601GCQ01000,TK99F2000601GCQ…
-[02:33:04]   notice: 109822b pdf -> 87 chars of text
-[02:33:04]   url-ish: https://www.boj.or.jp/en/statistics/outline/index.htm
-[02:33:04]   url-ish: https://www.stat
-[02:33:04]   url-ish: search.boj.or.jp/api/v1/getDataCode?format=json
-── 2. JP-language notice page ──
-[02:33:05]   HTTP 200, 43576b; api links: ['https://www.stat-search.boj.or.jp/info/api_manual.pdf', 'https://www.stat-search.boj.or.jp/info/api_notice.pdf']
-[02:33:05]   inline: https://fonts.googleapis.com
-[02:33:05]   inline: https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;300;400;500;700;900&display=swap
-[02:33:05]   inline: https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@600&display=swap
-[02:33:05]   inline: https://www.stat-search.boj.or.jp/info/api_manual.pdf
-[02:33:05]   inline: https://www.stat-search.boj.or.jp/info/api_notice.pdf
-── 3. portal index pages (EN+JP) — API nav link? ──
-[02:33:05]   index_en: HTTP 200, 58913b; api hrefs: []
-[02:33:05]   index_jp: HTTP 200, 60504b; api hrefs: []
-[02:33:06]   info_en: HTTP Error 404: Not Found
-── 4. common REST-pattern probes ──
-[02:33:06]   https://api.stat-search.boj.or.jp/ -> <urlopen error [Errno -2] Name or service not known>
-[02:33:06]   https://www.stat-search.boj.or.jp/api/v1/ -> HTTP Error 403: Forbidden
-[02:33:06]   https://www.stat-search.boj.or.jp/api/ -> HTTP Error 404: Not Found
-[02:33:07]   https://www.stat-search.boj.or.jp/ssi/api/ -> HTTP Error 404: Not Found
-[02:33:07]   https://api.boj.or.jp/ -> <urlopen error [Errno -2] Name or service not known>
-── 5. follow-probe the best candidates ──
-[02:33:07] ✅   https://www.stat-search.boj.or.jp/info/api_manual.pdf -> HTTP 200, 1035777b, head b'%PDF-1.7\r%\xe2\xe3\xcf\xd3\r\n723 0 obj\r<</Linearized 1/L 1035777/O 725/E 263333/N 22/T 1034791/H [ 489 719]>>\rendobj\r          \r\n739 '
-[02:33:07] ✅   https://www.stat-search.boj.or.jp/info/api_notice.pdf -> HTTP 200, 117885b, head b'%PDF-1.7\r%\xe2\xe3\xcf\xd3\r\n9 0 obj\r<</Linearized 1/L 117885/O 11/E 112102/N 2/T 117587/H [ 501 185]>>\rendobj\r                \r\n26 0'
-[02:33:07]   https://www.stat-search.boj.or.jp/search.boj.or.jp/api/v1/getDataCode?format=json -> HTTP Error 404: Not Found
-[02:33:07] ✅ HUNT COMPLETE — wire only on a verified endpoint (next ops)
+executing-against: 1ebc7e3a1a9cef33ec90ed6ce948810c8eaec01e
+ops 3950 — BOJ API verify + JPLG code hunt
+── a. run the manual's exact example ──
+[02:37:49] ✅   HTTP 200, 600b
+[02:37:49]   SCHEMA HEAD: {
+"STATUS":200,
+"MESSAGEID":"M181000I",
+"MESSAGE":"Successfully completed",
+"DATE":"2026-07-27T11:37:49.520+09:00",
+"PARAMETER":{
+"FORMAT":"JSON",
+"LANG":"EN",
+"DB":"CO",
+"STARTDATE":"202501",
+"ENDDATE":"202504",
+"STARTPOSITION":""
+},
+"NEXTPOSITION":null,
+"RESULTSET":[
+{
+"SERIES_CODE":"TK99F1000601GCQ01000",
+"NAME_OF_TIME_SERIES":"D.I./Business Conditions/Large Enterprises/Manufacturing/Actual result",
+"UNIT":"% points",
+"FREQUENCY":"QUARTERLY",
+"CATEGORY":"TANKAN/Judgement Survey",
+"LAST_UPDATE":20260702,
+"VALUES":{
+"SURVEY_DATES":[202501,202502,202503,202504],
+"VALUES":[12,13,14,15]
+}
+}
+]
+}
 
-→ Report written to aws/ops/reports/latest/3949_boj_api_hunt.md
+── b. JP manual — endpoints, db table, loan mentions ──
+[02:37:50]   jp manual: 1035777b -> 6935 chars
+[02:37:50]   endpoints seen: ['getDataCode', 'getDataLayer']
+[02:37:50]   db codes seen: ['CO']
+[02:37:50]   fn ctx: …
+API
+ 
+API
+API
+API
+ 
+https://www.stat
+-
+search.boj.or.jp/info/
+api_notice.pdf
+ 
+ 
+API
+ 
+API
+ 
+ 
+ 
+ 
+ 
+API
+ 
+ 
+ 
+ 
+API
+ 
+ 
+DB
+ 
+API…
+[02:37:50]   fn ctx: …URL
+JSON
+CSV
+ 
+URL
+ 
+https://www.stat
+-
+search.boj.or.jp/api/v1/getDataCode?format=json&lang=jp&db=CO&start
+Date=202401&endDate=20…
+[02:37:50]   fn ctx: …ps://www.stat
+-
+search.boj.or.jp/api/v1/getDataCode?format=json&lang=jp&db=CO&start
+Date=202401&endDate=202504&code=TK99F1000601GC…
+[02:37:50]   fn ctx: … 
+API
+URL
+URL
+ 
+ 
+  
+https://www.stat
+-
+search.boj.or.jp/info/api_tool.xlsx
+ 
+ 
+ 
+4
+ 
+ 
+ 
+ 
+URL
+ 
+API
+URL
+API
+URL
+ 
+API
+ 
+ 
+API
+ 
+…
+[02:37:50]   fn ctx: … 
+ 
+ 
+20
+ 
+ 
+API
+ 
+ 
+https://www.stat
+-
+search.boj.or.jp/api/v1/getDataLayer?format=csv&db=
+ 
+ 
+ 
+ 
+ 
+CSV
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+…
+[02:37:50]   fn ctx: …ps://www.stat
+-
+search.boj.or.jp/api/v1/getDataLayer?format=csv&db=
+ 
+ 
+ 
+ 
+ 
+CSV
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+API
+ 
+ 
+ 
+…
+── c. sibling endpoint probes ──
+[02:37:50]   getCode: HTTP Error 404: Not Found
+[02:37:50]   getSeries: HTTP Error 404: Not Found
+[02:37:50]   searchDataCode: HTTP Error 404: Not Found
+[02:37:51]   getDbList: HTTP Error 404: Not Found
+[02:37:51]   getDataList: HTTP Error 404: Not Found
+[02:37:51]   getMetaData: HTTP Error 404: Not Found
+── d. loans code hunt — try MD/DL db guesses with the data endpoint ──
+[02:37:51]   db=MD: HTTP Error 400: Bad Request
+[02:37:51]   db=DL: HTTP Error 400: Bad Request
+[02:37:52]   db=LA: HTTP Error 400: Bad Request
+[02:37:52]   db=PF: HTTP Error 400: Bad Request
+[02:37:52]   db=MA: HTTP Error 400: Bad Request
+[02:37:52] ✅ VERIFY COMPLETE — wire JPLG next ops on confirmed code
+
+→ Report written to aws/ops/reports/latest/3950_boj_api_verify.md
