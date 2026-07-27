@@ -1,31 +1,53 @@
-executing-against: 8e58fd6db8b9b7f7225bf280527fe52f26f81694
-ops 3953 — MD11 metadata -> the JPLG series code
-── 1. getMetadata db=MD11 (+ param fallbacks) ──
-[02:51:29]   format=json&lang=en&db=MD11: STATUS=200 msg=Successfully completed n=792
-── 2. MD11 series list (792 entries) — loans YoY hunt ──
-[02:51:29]   entry shape: {"SERIES_CODE": "", "NAME_OF_TIME_SERIES": "Deposits, Vault Cash, and Loans and Bills Discounted (Domestically Licensed Banks)", "UNIT": "", "FREQUENCY": "", "CATEGORY": "", "LAYER1": 1, "LAYER2": 0, "LAYER3": 0, "LAYER4": 0, "LAYER5": 0, "START_OF_THE_TIME_SERIES": "", "END_OF_THE_TIME_SERIES": "", "LAST_UPDATE": "", "NOTES": ""}
-[02:51:29]   loans-any                                Deposits, Vault Cash, and Loans and Bills Discounted (Domestically Licensed Banks)
-[02:51:29]   loans-any DLCDBEDBDTTO                   Total Deposits/End of Period/Banking Accounts/Domestically Licensed Banks
-[02:51:29]   loans-any DLCDBEDBDTMO                   Entities other than Financial Institutions and Central Government/End of Period/Banking Ac
-[02:51:29]   loans-any DLCDBEDBDTEP                   Entities other than Financial Institutions and Central Government/Corporations/End of Peri
-[02:51:29]   loans-any DLCDBEDBDTPN                   Entities other than Financial Institutions and Central Government/Households/End of Period
-[02:51:29]   loans-any DLCDBEDBDTRO                   Entities other than Financial Institutions and Central Government/Local Governments and Lo
-[02:51:29]   loans-any DLCDBEDBDDMO                   Entities other than Financial Institutions and Central Government/Demand Deposits/End of P
-[02:51:29]   loans-any DLCDBEDBDDEP                   Entities other than Financial Institutions and Central Government/Demand Deposits/Corporat
-[02:51:29]   loans-any DLCDBEDBDDPN                   Entities other than Financial Institutions and Central Government/Demand Deposits/Househol
-[02:51:29]   loans-any DLCDBEDBDDRO                   Entities other than Financial Institutions and Central Government/Demand Deposits/Local Go
-[02:51:29]   loans-any DLCDBEDBTSMO                   Entities other than Financial Institutions and Central Government/Time and Savings Deposit
-[02:51:29]   loans-any DLCDBEDBTSEP                   Entities other than Financial Institutions and Central Government/Time and Savings Deposit
-[02:51:29]   loans-any DLCDBEDBTSPN                   Entities other than Financial Institutions and Central Government/Time and Savings Deposit
-[02:51:29]   loans-any DLCDBEDBTSRO                   Entities other than Financial Institutions and Central Government/Time and Savings Deposit
-[02:51:29]   loans-any DLCDBEDBNYMO                   Entities other than Financial Institutions and Central Government/Nonresident Yen Deposits
-── 3. confirm candidates via getDataCode (real values) ──
-[02:51:30] ✅   DLCDBEDBDTTO :: Total Deposits/End of Period/Banking Accounts/Domestically Licensed Banks :: unit=100 million yen freq=MONTHLY last=, 9996571, 10019175, 10060961, 10034364]
-[02:51:31] ✅   DLCDBEDBDTMO :: Entities other than Financial Institutions and Central Government/End of Period/ :: unit=100 million yen freq=MONTHLY last=074, 9666687, 9694055, 9738265, 9707190]
-[02:51:32] ✅   DLCDBEDBDTEP :: Entities other than Financial Institutions and Central Government/Corporations/E :: unit=100 million yen freq=MONTHLY last=130, 3544794, 3635410, 3668315, 3547156]
-[02:51:33] ✅   DLCDBEDBDTPN :: Entities other than Financial Institutions and Central Government/Households/End :: unit=100 million yen freq=MONTHLY last=955, 5756884, 5763490, 5738428, 5819602]
-[02:51:34] ✅   DLCDBEDBDTRO :: Entities other than Financial Institutions and Central Government/Local Governme :: unit=100 million yen freq=MONTHLY last= 291987, 365007, 295153, 331520, 340429]
-[02:51:34] ✅ JPLG CANDIDATE CONFIRMED: DLCDBEDBDTTO — wire next ops
-[02:51:34] ✅ MD11 HUNT COMPLETE
+executing-against: da7cbf7d09bf43966ff8dca6afad34a58f5b96cd
+ops 3954 — the exact JPLG loans series in MD11
+── loans-named series (100) ──
+[02:56:33]   DLCLAEDBLTTO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/End of Period/Banking Accounts, Trust Accounts and Overs
+[02:56:33]   DLCLAEDBLTCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Corporations(Including Financial Corporations)/End of Pe
+[02:56:33]   DLCLAEDB3TCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Corporations(Including Financial Corporations)/Loans for
+[02:56:33]   DLCLAEDB2SCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Corporations(Including Financial Corporations)/Small Ent
+[02:56:33]   DLCLAEDBLTRO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Local Governments/End of Period/Banking Accounts, Trust 
+[02:56:33]   DLCLAEDBLTTS     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Local Governments/Excluding Local Government-owned Corpo
+[02:56:33]   DLCLAEDBLTPN     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Households/End of Period/Banking Accounts, Trust Account
+[02:56:33]   DLCLAEDBLTFL     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Overseas Yen Loans and Domestic Loans Transferred Overse
+[02:56:33]   DLCLAADBLTTO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Average Amounts during the Period/Banking Accounts, Trus
+[02:56:33]   DLCLBEDBLTTO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/End of Period/Banking Accounts/Domestically Licensed Ban
+[02:56:33]   DLCLBEDBLTCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Corporations(Including Financial Corporations)/End of Pe
+[02:56:33]   DLCLBEDBLTRO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Local Governments/End of Period/Banking Accounts/Domesti
+[02:56:33]   DLCLBEDBLTTS     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Local Governments/Excluding Local Government-owned Corpo
+[02:56:33]   DLCLBEDBLTPN     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Households/End of Period/Banking Accounts/Domestically L
+[02:56:33]   DLCLBEDBLTFL     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Overseas Yen Loans and Domestic Loans Transferred Overse
+[02:56:33]   DLCLBEDB3TTO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/End of Period/Banking Account
+[02:56:33]   DLCLBEDB3TCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Corporations(Including Financ
+[02:56:33]   DLCLBEDB3TRO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Local Governments/End of Peri
+[02:56:33]   DLCLBEDB3TPN     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Households/End of Period/Bank
+[02:56:33]   DLCLBEDB3TFL     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Overseas Yen Loans and Domest
+[02:56:33]   DLCLBEDB2STO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Small Enterprises/End of Period/Banking Accounts/Domesti
+[02:56:33]   DLCLBEDB2SCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Small Enterprises/Corporations(Including Financial Corpo
+[02:56:33]   DLCLBEDB2SPN     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Small Enterprises/Households/End of Period/Banking Accou
+[02:56:33]   DLCLBEDB2SFL     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Small Enterprises/Overseas Yen Loans and Domestic Loans 
+[02:56:33]   DLCLBEDBLTFI     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Finance and Insurance/End of Period/Banking Accounts/Dom
+[02:56:33]   DLCLBADBLTTO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Average Amounts During the Period/Banking Accounts/Domes
+[02:56:33]   DLCLTEDBLTTO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/End of Period/Trust Accounts/Domestically Licensed Banks
+[02:56:33]   DLCLTEDBLTCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Corporations(Including Financial Corporations)/End of Pe
+[02:56:33]   DLCLTEDBLTRO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Local Governments/End of Period/Trust Accounts/Domestica
+[02:56:33]   DLCLTEDBLTTS     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Local Governments/Excluding Local Government-owned Corpo
+[02:56:33]   DLCLTEDBLTPN     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Households/End of Period/Trust Accounts/Domestically Lic
+[02:56:33]   DLCLTEDBLTFL     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Overseas Yen Loans and Domestic Loans Transferred Overse
+[02:56:33]   DLCLTEDB3TTO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/End of Period/Trust Accounts/
+[02:56:33]   DLCLTEDB3TCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Corporations(Including Financ
+[02:56:33]   DLCLTEDB3TRO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Local Governments/End of Peri
+[02:56:33]   DLCLTEDB3TPN     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Households/End of Period/Trus
+[02:56:33]   DLCLTEDB3TFL     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Overseas Yen Loans and Domest
+[02:56:33]   DLCLTEDB2STO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Small Enterprises/End of Period/Trust Accounts/Domestica
+[02:56:33]   DLCLTEDB2SCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Small Enterprises/Corporations(Including Financial Corpo
+[02:56:33]   DLCLTEDB2SPN     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Small Enterprises/Households/End of Period/Trust Account
+── native % variants ──
+── confirm top candidates (14 months -> computed YoY) ──
+[02:56:33] ✅   DLCLAADBLTTO :: Outstanding Loans and Bills Discounted/Average Amounts during the Peri :: unit=100 million yen n=14 last_date=202606 last=None computed_yoy=None%
+[02:56:34] ✅   DLCLBADBLTTO :: Outstanding Loans and Bills Discounted/Average Amounts During the Peri :: unit=100 million yen n=14 last_date=202606 last=None computed_yoy=None%
+[02:56:35] ✅   DLCLBAFBLTTO :: Outstanding Loans and Bills Discounted/Average Amounts During the Peri :: unit=100 million yen n=14 last_date=202606 last=None computed_yoy=None%
+[02:56:36] ✅   DLCLBACRLTTO :: Outstanding Loans and Bills Discounted/Average Amounts During the Peri :: unit=100 million yen n=14 last_date=202606 last=None computed_yoy=None%
+[02:56:36] no candidate yielded 13+ monthly values — list above steers
+[02:56:36] ✅ DONE
 
-→ Report written to aws/ops/reports/latest/3953_boj_md11_series.md
+→ Report written to aws/ops/reports/latest/3954_jplg_loans_exact.md

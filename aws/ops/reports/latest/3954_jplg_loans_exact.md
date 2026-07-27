@@ -1,0 +1,65 @@
+# ops 3954 — the exact JPLG loans series in MD11
+
+**Status:** success  
+**Duration:** 4.0s  
+**Finished:** 2026-07-27T02:56:36+00:00  
+
+## Data
+
+| n_series |
+|---|
+| 792 |
+
+## Log
+## loans-named series (100)
+
+- `02:56:33`   DLCLAEDBLTTO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/End of Period/Banking Accounts, Trust Accounts and Overs
+- `02:56:33`   DLCLAEDBLTCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Corporations(Including Financial Corporations)/End of Pe
+- `02:56:33`   DLCLAEDB3TCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Corporations(Including Financial Corporations)/Loans for
+- `02:56:33`   DLCLAEDB2SCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Corporations(Including Financial Corporations)/Small Ent
+- `02:56:33`   DLCLAEDBLTRO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Local Governments/End of Period/Banking Accounts, Trust 
+- `02:56:33`   DLCLAEDBLTTS     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Local Governments/Excluding Local Government-owned Corpo
+- `02:56:33`   DLCLAEDBLTPN     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Households/End of Period/Banking Accounts, Trust Account
+- `02:56:33`   DLCLAEDBLTFL     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Overseas Yen Loans and Domestic Loans Transferred Overse
+- `02:56:33`   DLCLAADBLTTO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Average Amounts during the Period/Banking Accounts, Trus
+- `02:56:33`   DLCLBEDBLTTO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/End of Period/Banking Accounts/Domestically Licensed Ban
+- `02:56:33`   DLCLBEDBLTCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Corporations(Including Financial Corporations)/End of Pe
+- `02:56:33`   DLCLBEDBLTRO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Local Governments/End of Period/Banking Accounts/Domesti
+- `02:56:33`   DLCLBEDBLTTS     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Local Governments/Excluding Local Government-owned Corpo
+- `02:56:33`   DLCLBEDBLTPN     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Households/End of Period/Banking Accounts/Domestically L
+- `02:56:33`   DLCLBEDBLTFL     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Overseas Yen Loans and Domestic Loans Transferred Overse
+- `02:56:33`   DLCLBEDB3TTO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/End of Period/Banking Account
+- `02:56:33`   DLCLBEDB3TCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Corporations(Including Financ
+- `02:56:33`   DLCLBEDB3TRO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Local Governments/End of Peri
+- `02:56:33`   DLCLBEDB3TPN     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Households/End of Period/Bank
+- `02:56:33`   DLCLBEDB3TFL     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Overseas Yen Loans and Domest
+- `02:56:33`   DLCLBEDB2STO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Small Enterprises/End of Period/Banking Accounts/Domesti
+- `02:56:33`   DLCLBEDB2SCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Small Enterprises/Corporations(Including Financial Corpo
+- `02:56:33`   DLCLBEDB2SPN     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Small Enterprises/Households/End of Period/Banking Accou
+- `02:56:33`   DLCLBEDB2SFL     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Small Enterprises/Overseas Yen Loans and Domestic Loans 
+- `02:56:33`   DLCLBEDBLTFI     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Finance and Insurance/End of Period/Banking Accounts/Dom
+- `02:56:33`   DLCLBADBLTTO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Average Amounts During the Period/Banking Accounts/Domes
+- `02:56:33`   DLCLTEDBLTTO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/End of Period/Trust Accounts/Domestically Licensed Banks
+- `02:56:33`   DLCLTEDBLTCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Corporations(Including Financial Corporations)/End of Pe
+- `02:56:33`   DLCLTEDBLTRO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Local Governments/End of Period/Trust Accounts/Domestica
+- `02:56:33`   DLCLTEDBLTTS     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Local Governments/Excluding Local Government-owned Corpo
+- `02:56:33`   DLCLTEDBLTPN     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Households/End of Period/Trust Accounts/Domestically Lic
+- `02:56:33`   DLCLTEDBLTFL     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Overseas Yen Loans and Domestic Loans Transferred Overse
+- `02:56:33`   DLCLTEDB3TTO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/End of Period/Trust Accounts/
+- `02:56:33`   DLCLTEDB3TCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Corporations(Including Financ
+- `02:56:33`   DLCLTEDB3TRO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Local Governments/End of Peri
+- `02:56:33`   DLCLTEDB3TPN     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Households/End of Period/Trus
+- `02:56:33`   DLCLTEDB3TFL     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Loans for Fixed Investment/Overseas Yen Loans and Domest
+- `02:56:33`   DLCLTEDB2STO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Small Enterprises/End of Period/Trust Accounts/Domestica
+- `02:56:33`   DLCLTEDB2SCO     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Small Enterprises/Corporations(Including Financial Corpo
+- `02:56:33`   DLCLTEDB2SPN     unit=100 million ye freq=MONTHLY  Outstanding Loans and Bills Discounted/Small Enterprises/Households/End of Period/Trust Account
+## native % variants
+
+## confirm top candidates (14 months -> computed YoY)
+
+- `02:56:33` ✅   DLCLAADBLTTO :: Outstanding Loans and Bills Discounted/Average Amounts during the Peri :: unit=100 million yen n=14 last_date=202606 last=None computed_yoy=None%
+- `02:56:34` ✅   DLCLBADBLTTO :: Outstanding Loans and Bills Discounted/Average Amounts During the Peri :: unit=100 million yen n=14 last_date=202606 last=None computed_yoy=None%
+- `02:56:35` ✅   DLCLBAFBLTTO :: Outstanding Loans and Bills Discounted/Average Amounts During the Peri :: unit=100 million yen n=14 last_date=202606 last=None computed_yoy=None%
+- `02:56:36` ✅   DLCLBACRLTTO :: Outstanding Loans and Bills Discounted/Average Amounts During the Peri :: unit=100 million yen n=14 last_date=202606 last=None computed_yoy=None%
+- `02:56:36` no candidate yielded 13+ monthly values — list above steers
+- `02:56:36` ✅ DONE
