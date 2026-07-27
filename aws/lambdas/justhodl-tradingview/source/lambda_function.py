@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.5.2 RENDOBLID-MOFDIAG"
+MARKER = "tradingview-vault v3.5.3 MOF-ROWWALK"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -603,8 +603,8 @@ def mofjp_latest(col):
                         f"head={body[:80].decode('utf-8','ignore')!r}")
                     continue
                 hdr = [h.strip() for h in lines[1].split(",")]
-                last = [c.strip() for c in lines[-1].split(",")]
-                _MOF_CACHE["rows"] = (hdr, last)
+                data_rows = [[c.strip() for c in l.split(",")] for l in lines[2:]]
+                _MOF_CACHE["rows"] = (hdr, data_rows)
                 _MOF_CACHE["diag"].append(f"{url[:60]} -> OK {len(lines)} lines")
                 break
             except Exception as e:
@@ -612,13 +612,16 @@ def mofjp_latest(col):
                 continue
     if not _MOF_CACHE.get("rows"):
         return None
-    hdr, last = _MOF_CACHE["rows"]
+    hdr, rows = _MOF_CACHE["rows"]
     try:
         i = hdr.index(col)
-        return {"value": float(last[i]), "prev": None, "chg_pct": None,
-                "asof": f"mof.go.jp:{last[0]}"}
+        for last in reversed(rows):
+            if re.match(r"^\d{4}/", last[0]) and len(last) > i and last[i] not in ("", "-"):
+                return {"value": float(last[i]), "prev": None, "chg_pct": None,
+                        "asof": f"mof.go.jp:{last[0]}"}
     except Exception:
-        return None
+        pass
+    return None
 
 
 def boe_latest(series_code):
