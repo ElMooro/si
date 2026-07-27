@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Data Census — JustHodl.AI</title>
-<!-- data-census v2-ops3979: ONE page for every value the fleet publishes.
+<!-- data-census v3-ops3982: ONE page for every value the fleet publishes.
      Khalid 2026-07-27: "put all the data we have under one engine all
      displaying in one page so we don't repeat the same mistake, we don't
      rebuild, we just fill gaps, and we can compare them against real data
@@ -54,6 +54,10 @@ The bar is same measure AND same country; auto-wiring on a token match is exactl
 <div class="card" style="overflow-x:auto"><table id="gap"><thead><tr>
 <th>dead symbol</th><th>your notes</th><th>needs</th><th>candidate fleet paths</th></tr></thead><tbody></tbody></table></div>
 
+<h2>Browse by data source <span class="dim" style="text-transform:none;letter-spacing:0">— FRED: US10Y = 4.25 · pulled from fred:DGS10 · through justhodl-tradingview. Locate anything in seconds.</span></h2>
+<div class="card"><input id="sq" placeholder="search symbol, source, engine across all sources…"></div>
+<div id="bysrc"></div>
+
 <h2>Metric directory <span class="dim" style="text-transform:none;letter-spacing:0">— named data points with full provenance: what it is, live state, where it's pulled from, which engine publishes it</span></h2>
 <div class="card"><input id="mq" placeholder="search metric name, source, engine…"></div>
 <div class="card" style="overflow-x:auto"><table id="mdir"><thead><tr>
@@ -76,7 +80,22 @@ const age=h=>h==null?'—':h<1?Math.round(h*60)+'m':h<48?h.toFixed(1)+'h':(h/24)
 const kb=b=>b==null?'—':b>1e6?(b/1e6).toFixed(1)+'MB':Math.round(b/1e3)+'KB';
 const lv=x=>x===true?'<span class="pill p-ok">LIVE</span>':x===false?'<span class="pill p-stale">STALE</span>':'<span class="pill" style="color:var(--dim)">—</span>';
 const prov=o=>`<div class="path">${o.name?`<b style="color:var(--tx)">${esc(o.name)}</b> · `:''}${esc(o.artifact)} : ${esc(o.path)}${o.value!==undefined?` = <b class="mono" style="color:var(--tx)">${esc(o.value)}</b>`:''} ${lv(o.live)}${o.pulled_from?` <span class="dim">from ${esc(o.pulled_from)}</span>`:''}${o.engine?` <span class="dim">· ${esc(o.engine)}</span>`:''}</div>`;
-let mq='';
+let mq='',sq='';
+function renderSrc(){const bs=D.by_source||{};const el=document.getElementById('bysrc');
+ el.innerHTML=Object.entries(bs).map(([fam,b])=>{
+  const rows=(b.metrics||[]).filter(m=>!sq||[m.name,m.pulled_from,m.engine,m.artifact].join(' ').toLowerCase().includes(sq));
+  if(sq&&!rows.length)return '';
+  return `<div class="card" style="margin-bottom:10px"><div style="font-weight:800;margin-bottom:4px">${esc(fam)}
+   <span class="dim" style="font-weight:400;font-size:11px">· ${b.n} metrics · engines: ${esc((b.engines||[]).join(', '))}</span></div>
+   <div style="overflow-x:auto"><table><tbody>${rows.slice(0,60).map(m=>
+    `<tr><td class="mono" style="width:170px"><b>${esc(m.name)}</b></td>
+     <td class="mono" style="width:110px">= ${esc(m.value)}</td><td style="width:70px">${lv(m.live)}</td>
+     <td class="small dim">pulled from <span style="color:var(--tx)">${esc(m.pulled_from)}</span></td>
+     <td class="small dim">through <span class="mono" style="color:var(--tx)">${esc(m.engine)}</span></td>
+     <td class="path">${esc(m.artifact)} : ${esc(m.path)}</td></tr>`).join('')}
+    ${rows.length>60?`<tr><td colspan="6" class="dim">…${rows.length-60} more in this source — refine the search</td></tr>`:''}
+   </tbody></table></div></div>`}).join('')
+  ||'<div class="card dim">by_source not published yet — repopulates on the next census run</div>'}
 function renderDir(){const rows=(D.metric_directory||[]).filter(m=>!mq||
   [m.name,m.pulled_from,m.engine,m.artifact].join(' ').toLowerCase().includes(mq));
  document.querySelector('#mdir tbody').innerHTML=rows.slice(0,300).map(m=>
@@ -115,7 +134,7 @@ async function load(){for(const u of SRC){try{const r=await fetch(u+'?v='+Date.n
    <td><span class="pill p-gap">${esc((g.needs||{}).country)} · ${esc(((g.needs||{}).measures||[]).join('+'))}</span></td>
    <td>${(g.candidates||[]).map(prov).join('')}</td></tr>`).join('')
   ||'<tr><td colspan="4" class="dim">none — every routable dead symbol lacks a fleet path</td></tr>';
- render();document.getElementById('q').addEventListener('input',e=>{q=e.target.value.toLowerCase();render()});renderDir();document.getElementById('mq').addEventListener('input',e=>{mq=e.target.value.toLowerCase();renderDir()})}
+ render();document.getElementById('q').addEventListener('input',e=>{q=e.target.value.toLowerCase();render()});renderSrc();document.getElementById('sq').addEventListener('input',e=>{sq=e.target.value.toLowerCase();renderSrc()});renderDir();document.getElementById('mq').addEventListener('input',e=>{mq=e.target.value.toLowerCase();renderDir()})}
 function render(){const rows=(D.artifacts||[]).filter(a=>!q||
   (a.key||'').toLowerCase().includes(q)||String(a.writer||'').toLowerCase().includes(q)||
   String(a.pages||'').toLowerCase().includes(q));

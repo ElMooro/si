@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "data-census v1.3 ops3980 o1-enrich"
+MARKER = "data-census v1.4 ops3982 by-source"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/data-census.json"
 LEDGER_KEY = "data-census/paths-ledger.json"
@@ -287,6 +287,64 @@ def lambda_handler(event, context):
             w = f"justhodl-{stem}"
         return w
 
+    # ── by_source: "FRED: US10Y = 4.25 — pulled from fred:DGS10 through
+    # justhodl-tradingview". Khalid 2026-07-27: categorise by data source so
+    # anything is locatable in seconds. Family is parsed from the src sibling
+    # (and the path/artifact as fallback), never guessed from the value. ──
+    FAMS = (("FRED", ("fred",)), ("ECB", ("ecb",)),
+            ("BOJ", ("boj", "stat-search")), ("MOF-JAPAN", ("mof", "jgbcme")),
+            ("YAHOO", ("yahoo", "^")), ("MOEA-TAIWAN", ("moea", "gov.tw", "getpointdata")),
+            ("BCRP-PERU", ("bcrp",)), ("NORGES", ("norges",)),
+            ("BOE", ("boe", "iadb")), ("SNB", ("snb",)), ("IMF", ("imf",)),
+            ("EUROSTAT", ("eurostat", "ec.europa")),
+            ("US-TREASURY", ("treasury", "ust:")), ("PBOC", ("pboc",)),
+            ("POLYGON", ("polygon", "poly:")), ("FMP", ("fmp",)),
+            ("CFTC", ("cftc",)), ("COINMETRICS", ("coinmetrics",)),
+            ("SEC-EDGAR", ("edgar", "sec.gov")), ("GNEWS", ("gnews",)),
+            ("FLEET-INTERNAL", ("fleet:", "data/")))
+
+    def src_family(src_str):
+        t = (src_str or "").lower()
+        if not t:
+            return None
+        for fam, keys in FAMS:
+            if any(k in t for k in keys):
+                return fam
+        return "OTHER"
+
+    TAGRX = re.compile(r"\[([A-Za-z0-9_\.\-\^\!]{1,24})\]")
+
+    def disp_name(r):
+        if r.get("name"):
+            return r["name"]
+        m = TAGRX.search(r["p"])
+        if m and m.group(1) != "0":
+            return m.group(1)
+        return r["p"].split(".")[-1]
+
+    by_source = {}
+    seen_sn = set()
+    for r in paths:
+        fam = src_family(r.get("src"))
+        if not fam:
+            continue
+        nm = disp_name(r)
+        if (fam, nm) in seen_sn:
+            continue
+        seen_sn.add((fam, nm))
+        b = by_source.setdefault(fam, {"n": 0, "engines": set(), "metrics": []})
+        b["n"] += 1
+        b["engines"].add(eng_of(r["k"]))
+        if len(b["metrics"]) < 150:
+            b["metrics"].append({"name": nm, "value": r["v"],
+                                 "live": r.get("live"),
+                                 "pulled_from": r.get("src"),
+                                 "engine": eng_of(r["k"]),
+                                 "artifact": r["k"], "path": r["p"]})
+    for b in by_source.values():
+        b["engines"] = sorted(b["engines"])[:8]
+        b["metrics"].sort(key=lambda m: (not m.get("live"), str(m["name"])))
+
     named = [r for r in paths if r.get("name") and r.get("src")]
     named.sort(key=lambda r: (not r.get("live"), r["k"], r["p"]))
     metric_directory = [{"name": r["name"], "value": r["v"],
@@ -334,6 +392,7 @@ def lambda_handler(event, context):
         "measure_conflicts": conflicts[:40],
         "gap_fill_candidates": gaps[:60],
         "metric_directory": metric_directory,
+        "by_source": {k: v for k, v in sorted(by_source.items(), key=lambda kv: -kv[1]["n"])},
         "artifacts": [dict(a, engine=eng_of(a["key"])) for a in sorted(arts, key=lambda a: -(a.get("n_paths") or 0))],
         "honesty": "detectors are heuristic token matches — every hit is a CANDIDATE "
                    "for verification, never an auto-fix. Auto-wiring on token match is "
