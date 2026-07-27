@@ -1,0 +1,41 @@
+# ops 3949 — BOJ API base hunt (4 prongs)
+
+**Status:** success  
+**Duration:** 3.6s  
+**Finished:** 2026-07-27T02:33:07+00:00  
+
+## Log
+## 1. PDF text layer (manual + notice)
+
+- `02:33:04`   manual: 857117b pdf -> 3303 chars of text
+- `02:33:04`   manual ctx: …          24       1.             https://www.stat - search.boj.or.jp/api/v1/getDataCode?format=json&lan g=en&db=CO&startDate=202401&endDate=202504&code=TK99F100 0601GCQ01000,TK99F2000601GCQ…
+- `02:33:04`   notice: 109822b pdf -> 87 chars of text
+- `02:33:04`   url-ish: https://www.boj.or.jp/en/statistics/outline/index.htm
+- `02:33:04`   url-ish: https://www.stat
+- `02:33:04`   url-ish: search.boj.or.jp/api/v1/getDataCode?format=json
+## 2. JP-language notice page
+
+- `02:33:05`   HTTP 200, 43576b; api links: ['https://www.stat-search.boj.or.jp/info/api_manual.pdf', 'https://www.stat-search.boj.or.jp/info/api_notice.pdf']
+- `02:33:05`   inline: https://fonts.googleapis.com
+- `02:33:05`   inline: https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;300;400;500;700;900&display=swap
+- `02:33:05`   inline: https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@600&display=swap
+- `02:33:05`   inline: https://www.stat-search.boj.or.jp/info/api_manual.pdf
+- `02:33:05`   inline: https://www.stat-search.boj.or.jp/info/api_notice.pdf
+## 3. portal index pages (EN+JP) — API nav link?
+
+- `02:33:05`   index_en: HTTP 200, 58913b; api hrefs: []
+- `02:33:05`   index_jp: HTTP 200, 60504b; api hrefs: []
+- `02:33:06`   info_en: HTTP Error 404: Not Found
+## 4. common REST-pattern probes
+
+- `02:33:06`   https://api.stat-search.boj.or.jp/ -> <urlopen error [Errno -2] Name or service not known>
+- `02:33:06`   https://www.stat-search.boj.or.jp/api/v1/ -> HTTP Error 403: Forbidden
+- `02:33:06`   https://www.stat-search.boj.or.jp/api/ -> HTTP Error 404: Not Found
+- `02:33:07`   https://www.stat-search.boj.or.jp/ssi/api/ -> HTTP Error 404: Not Found
+- `02:33:07`   https://api.boj.or.jp/ -> <urlopen error [Errno -2] Name or service not known>
+## 5. follow-probe the best candidates
+
+- `02:33:07` ✅   https://www.stat-search.boj.or.jp/info/api_manual.pdf -> HTTP 200, 1035777b, head b'%PDF-1.7\r%\xe2\xe3\xcf\xd3\r\n723 0 obj\r<</Linearized 1/L 1035777/O 725/E 263333/N 22/T 1034791/H [ 489 719]>>\rendobj\r          \r\n739 '
+- `02:33:07` ✅   https://www.stat-search.boj.or.jp/info/api_notice.pdf -> HTTP 200, 117885b, head b'%PDF-1.7\r%\xe2\xe3\xcf\xd3\r\n9 0 obj\r<</Linearized 1/L 117885/O 11/E 112102/N 2/T 117587/H [ 501 185]>>\rendobj\r                \r\n26 0'
+- `02:33:07`   https://www.stat-search.boj.or.jp/search.boj.or.jp/api/v1/getDataCode?format=json -> HTTP Error 404: Not Found
+- `02:33:07` ✅ HUNT COMPLETE — wire only on a verified endpoint (next ops)
