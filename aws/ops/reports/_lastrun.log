@@ -1,22 +1,30 @@
-executing-against: cedb24922c91c8c637f07475104f899ab38df97b
-ops 3963 — self-heal deploy justhodl-domain-barometers
-── A. diagnose ──
-[04:56:09]   function EXISTS state=Active modified=2026-07-27T04:56:09.000+0000
-── B. create or update from the runner ──
+executing-against: 87f21d3ae61a21268981bfb0a47efdffca955343
+ops 3966 — race-safe settle + verify polarity guard
+── A. wait for idle, then check whether the workflow already shipped it ──
+── B. skipped — Deploy Lambdas already shipped v1.1 ──
+── C. invoke ──
+[05:00:46]   payload={"ok": true, "n_symbols": 561, "barometers": {"MACRO": 58.5, "LIQUIDITY": 36.0, "RISK": 38.0}, "own_notes_pct": 74.5}
+── D. prove the polarity fix changed the numbers ──
+[05:00:47]   GDPNOW     domain=MACRO     pol=+1 basis=brain_note — GDP nowcast up = growth
+[05:00:47]   USCFNAI    domain=MACRO     pol=+1 basis=brain_note — Chicago Fed activity up = growth
+[05:00:47]   CFNAIMA3   domain=MACRO     pol=+1 basis=brain_note — Chicago Fed 3m activity up = growth
+[05:00:47]   USGDPYY    domain=MACRO     pol=+1 basis=brain_note — GDP growth
+[05:00:47]   guarded (excluded rather than mis-signed): ['FEDFUNDS', 'US01MY', 'DTB6', 'TB4WK', 'DTB3', 'JP03MY', 'THREEFYTP1', 'SS03', 'US03MY', 'THREEFF1', 'THREEFF2', 'THREEFYTP10', 'US02MY', 'US06MY']
+[05:00:47]   MACRO     58.5 SUPPORTIVE gate=66.2 breadth=50.8 drivers=65 (+33/-32)
+[05:00:47]   LIQUIDITY 36.0 TIGHTENING gate=28.1 breadth=43.9 drivers=41 (+18/-23)
+[05:00:47]   RISK      38.0 TIGHTENING gate=40.0 breadth=36.0 drivers=50 (+18/-32)
+[05:00:47] ✅   v1.1 marker in the deployed artifact
+[05:00:47] ✅   invoke clean
+[05:00:47] ✅   GDPNOW no longer inverted by the rates default
+[05:00:47] ✅   MACRO still scored
+[05:00:47] ✅   MACRO publishes breadth_uses note
+[05:00:47] ✅   LIQUIDITY still scored
+[05:00:47] ✅   LIQUIDITY publishes breadth_uses note
+[05:00:47] ✅   RISK still scored
+[05:00:47] ✅   RISK publishes breadth_uses note
+[05:00:47] ✅   still 561 symbols
+[05:00:47] ✅   zero evidence-free
+[05:00:47] ✅   10 predictions
+[05:00:47] ✅ PASS_ALL v1.1 — GDPNOW pol=1, 14 guarded; M 58.5 / L 36.0 / R 38.0
 
-→ Report written to aws/ops/reports/latest/3965_polarity_fix.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3965_polarity_fix.py", line 208, in <module>
-    main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3965_polarity_fix.py", line 92, in main
-    lam.update_function_code(FunctionName=FN, ZipFile=blob, Publish=True)
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-domain-barometers
-❌ OPS-FAIL: aws/ops/pending/ops_3965_polarity_fix.py
+→ Report written to aws/ops/reports/latest/3966_polarity_settle.md

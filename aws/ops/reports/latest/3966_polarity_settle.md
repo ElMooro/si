@@ -1,0 +1,45 @@
+# ops 3966 — race-safe settle + verify polarity guard
+
+**Status:** success  
+**Duration:** 4.4s  
+**Finished:** 2026-07-27T05:00:47+00:00  
+
+## Data
+
+| generated_at | marker_already_deployed | n_guarded_excluded | version |
+|---|---|---|---|
+|  | True |  |  |
+| 2026-07-27T05:00:44.292237+00:00 |  |  | 1.0 |
+|  |  | 14 |  |
+
+## Log
+## A. wait for idle, then check whether the workflow already shipped it
+
+## B. skipped — Deploy Lambdas already shipped v1.1
+
+## C. invoke
+
+- `05:00:46`   payload={"ok": true, "n_symbols": 561, "barometers": {"MACRO": 58.5, "LIQUIDITY": 36.0, "RISK": 38.0}, "own_notes_pct": 74.5}
+## D. prove the polarity fix changed the numbers
+
+- `05:00:47`   GDPNOW     domain=MACRO     pol=+1 basis=brain_note — GDP nowcast up = growth
+- `05:00:47`   USCFNAI    domain=MACRO     pol=+1 basis=brain_note — Chicago Fed activity up = growth
+- `05:00:47`   CFNAIMA3   domain=MACRO     pol=+1 basis=brain_note — Chicago Fed 3m activity up = growth
+- `05:00:47`   USGDPYY    domain=MACRO     pol=+1 basis=brain_note — GDP growth
+- `05:00:47`   guarded (excluded rather than mis-signed): ['FEDFUNDS', 'US01MY', 'DTB6', 'TB4WK', 'DTB3', 'JP03MY', 'THREEFYTP1', 'SS03', 'US03MY', 'THREEFF1', 'THREEFF2', 'THREEFYTP10', 'US02MY', 'US06MY']
+- `05:00:47`   MACRO     58.5 SUPPORTIVE gate=66.2 breadth=50.8 drivers=65 (+33/-32)
+- `05:00:47`   LIQUIDITY 36.0 TIGHTENING gate=28.1 breadth=43.9 drivers=41 (+18/-23)
+- `05:00:47`   RISK      38.0 TIGHTENING gate=40.0 breadth=36.0 drivers=50 (+18/-32)
+- `05:00:47` ✅   v1.1 marker in the deployed artifact
+- `05:00:47` ✅   invoke clean
+- `05:00:47` ✅   GDPNOW no longer inverted by the rates default
+- `05:00:47` ✅   MACRO still scored
+- `05:00:47` ✅   MACRO publishes breadth_uses note
+- `05:00:47` ✅   LIQUIDITY still scored
+- `05:00:47` ✅   LIQUIDITY publishes breadth_uses note
+- `05:00:47` ✅   RISK still scored
+- `05:00:47` ✅   RISK publishes breadth_uses note
+- `05:00:47` ✅   still 561 symbols
+- `05:00:47` ✅   zero evidence-free
+- `05:00:47` ✅   10 predictions
+- `05:00:47` ✅ PASS_ALL v1.1 — GDPNOW pol=1, 14 guarded; M 58.5 / L 36.0 / R 38.0
