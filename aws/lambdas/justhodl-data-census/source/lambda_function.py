@@ -32,13 +32,13 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "data-census v1.0 ops3975"
+MARKER = "data-census v1.1 ops3978 4mb-cap"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/data-census.json"
 LEDGER_KEY = "data-census/paths-ledger.json"
 s3 = boto3.client("s3")
 
-MAX_ARTIFACT_MB = 12
+MAX_ARTIFACT_MB = 4   # >4MB = ledgers/brain dumps: few scalars, seconds of parse each
 MAX_PATHS_PER = 400
 MAX_DEPTH = 5
 TRIVIAL = {0.0, 1.0, -1.0, 100.0, 50.0, 2.0, 10.0}
@@ -123,7 +123,12 @@ def lambda_handler(event, context):
 
     arts, paths, errors = [], [], []
     val_index = defaultdict(list)          # rounded value -> [(key, path)]
+    budget_s = 780   # leave headroom under the 900s lambda timeout
+    truncated = 0
     for key, size, lm in keys:
+        if time.time() - t0 > budget_s:
+            truncated += 1
+            continue
         age_h = (now - lm).total_seconds() / 3600
         rec = {"key": key, "size": size, "age_h": round(age_h, 1),
                "stale": key in stale_set, **(writers.get(key) or {})}
@@ -235,6 +240,7 @@ def lambda_handler(event, context):
                      "data/feed-catalog.json (writers/pages — wired, not rebuilt)",
                      "data/tradingview.json (dead-symbol gap join)"],
         "totals": {"artifacts": len(arts), "artifacts_fresh_48h": fresh,
+                   "artifacts_truncated_by_time_budget": truncated,
                    "artifacts_stale": sum(1 for a in arts if a.get("stale")),
                    "scalar_paths": live_paths, "parse_errors": len(errors)},
         "mislabel_candidates": mislabels[:40],
