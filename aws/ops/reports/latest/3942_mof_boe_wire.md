@@ -1,0 +1,48 @@
+# ops 3942 — MOF wire + BOJ-API/BoE-gilts/SNB/IMF discovery
+
+**Status:** failure  
+**Duration:** 470.2s  
+**Finished:** 2026-07-27T00:43:59+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| coverage_pct | n_live | statuses |
+|---|---|---|
+| 80.6 | 452 | {'META': 1, 'LIVE': 452, 'DISCONTINUED': 2, 'NO_FREE_SOURCE': 106} |
+
+## Log
+## a. BOJ api_manual_en.pdf — URL extraction
+
+- `00:36:10`   manual: HTTP 200, 857117b
+## b. BoE gilt candidates for GB30Y (by CSV title/value)
+
+- `00:36:11`   IUDLNPY: 334b :: DATE,IUDLNPY  | 01 Jul 2026,5.2654  | 02 Jul 2026,5.2752  | 03 Jul 2026,5.2885  | 06 Jul 2026,5.2966  | 07 Jul 2026,5.3321  | 08 J
+- `00:36:11`   IUDMNPY: 331b :: DATE,IUDMNPY  | 01 Jul 2026,4.7446  | 02 Jul 2026,4.749  | 03 Jul 2026,4.7652  | 06 Jul 2026,4.7694  | 07 Jul 2026,4.8092  | 08 Ju
+- `00:36:12`   IUDSNPY: 333b :: DATE,IUDSNPY  | 01 Jul 2026,4.2683  | 02 Jul 2026,4.2618  | 03 Jul 2026,4.2781  | 06 Jul 2026,4.2799  | 07 Jul 2026,4.3208  | 08 J
+- `00:36:13`   IUDMIZC: 333b :: DATE,IUDMIZC  | 01 Jul 2026,3.1044  | 02 Jul 2026,3.1133  | 03 Jul 2026,3.1201  | 06 Jul 2026,3.1077  | 07 Jul 2026,3.1186  | 08 J
+- `00:36:13`   IUDLIZC: 331b :: DATE,IUDLIZC  | 01 Jul 2026,3.2102  | 02 Jul 2026,3.2269  | 03 Jul 2026,3.2174  | 06 Jul 2026,3.2035  | 07 Jul 2026,3.2094  | 08 J
+## c. SNB cube ids
+
+- `00:36:16`   rendoblid: HTTP 200, 5608048b, head b'{"timeseries":[{"header":[{"dim":"Overview","dimItem":"Spot interest rates with different maturities for Confederation bond issues'
+- `00:36:17`   rendoblim: HTTP 200, 192460b, head b'{"timeseries":[{"header":[{"dim":"Overview","dimItem":"CHF Swiss Confederation bond issues - 1 year"}],"metadata":{"key":"EPB@SNB.'
+## d. IMF — IRFCL in dataflow + data probe
+
+- `00:36:18`   dataflow ids: ['IRFCL', 'DSD_IRFCL_PUB']
+- `00:36:18`   data IRFCL: HTTP 200, 3285b, head b'<?xml version=\'1.0\' encoding=\'UTF-8\'?><message:StructureSpecificData xmlns:ss="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/d'
+## deploy gate — v3.4 + JP02Y
+
+- `00:36:18` ✅   settled attempt 1 (alias in zip)
+- `00:43:59` ✅   refreshed ~450s
+- `00:43:59`   JP02Y: NO_FREE_SOURCE value=None src=unresolved_tv_only asof=None
+- `00:43:59` ✅   v3.4 settled + JP02Y alias in artifact
+- `00:43:59` ✅   force run wrote
+- `00:43:59` ✗   JP02Y LIVE via mof-japan
+- `00:43:59` ✗   n_live >= 453
+- `00:43:59` ✅   zero bare UNRESOLVED
+- `00:43:59` ✗ FAILED: ['JP02Y LIVE via mof-japan', 'n_live >= 453']
