@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.5.1 PROXY-IMF-SNBDATE"
+MARKER = "tradingview-vault v3.5.2 RENDOBLID-MOFDIAG"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -589,19 +589,26 @@ def mofjp_latest(col):
                 "https://justhodl-data-proxy.raafouis.workers.dev/gov?u="
                 + urllib.request.quote(base, safe="")]
         _MOF_CACHE["rows"] = None
+        _MOF_CACHE["diag"] = []
         for url in urls:
             try:
                 req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
                 with urllib.request.urlopen(req, timeout=25) as r:
-                    lines = [l for l in r.read().decode("utf-8", "ignore").splitlines()
-                             if l.strip()]
+                    body = r.read()
+                lines = [l for l in body.decode("utf-8", "ignore").splitlines()
+                         if l.strip()]
                 if len(lines) < 3 or "Date" not in lines[1]:
+                    _MOF_CACHE["diag"].append(
+                        f"{url[:60]} -> {len(body)}b noDate "
+                        f"head={body[:80].decode('utf-8','ignore')!r}")
                     continue
                 hdr = [h.strip() for h in lines[1].split(",")]
                 last = [c.strip() for c in lines[-1].split(",")]
                 _MOF_CACHE["rows"] = (hdr, last)
+                _MOF_CACHE["diag"].append(f"{url[:60]} -> OK {len(lines)} lines")
                 break
-            except Exception:
+            except Exception as e:
+                _MOF_CACHE["diag"].append(f"{url[:60]} -> EXC {type(e).__name__}: {str(e)[:90]}")
                 continue
     if not _MOF_CACHE.get("rows"):
         return None
@@ -654,8 +661,10 @@ def bcrp_latest(code):
 
 
 def snb_latest(match):
-    """SNB data portal — rendoblim monthly Confederation yield cube."""
-    url = "https://data.snb.ch/api/cube/rendoblim/data/json/en"
+    """SNB data portal — rendoblid DAILY Confederation yield cube, windowed
+    (rendoblim proven stale at 2025-07 in ops 3946)."""
+    frm = (datetime.now(timezone.utc).date().replace(day=1)).isoformat()
+    url = f"https://data.snb.ch/api/cube/rendoblid/data/json/en?fromDate={frm}"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=25) as r:
@@ -909,6 +918,7 @@ def lambda_handler(event, context):
         "status_counts": dict(by_status),
         "by_category_counts": {k: len(v) for k, v in sorted(by_cat.items())},
         "symbols": rows,
+        "debug_mof": _MOF_CACHE.get("diag"),
         "elapsed_s": round(time.time() - t0, 1),
     }
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str),
