@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.5 SNB-IMF-GOVPROXY"
+MARKER = "tradingview-vault v3.5.1 PROXY-IMF-SNBDATE"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -666,11 +666,11 @@ def snb_latest(match):
                 vals = ts.get("values") or []
                 if not vals:
                     continue
-                last = vals[-1]
-                if isinstance(last, dict):
-                    v, dt = last.get("value"), last.get("date")
-                else:
-                    dt, v = last[0], last[-1]
+                def _dv(x):
+                    if isinstance(x, dict):
+                        return str(x.get("date")), x.get("value")
+                    return str(x[0]), x[-1]
+                dt, v = max((_dv(x) for x in vals), key=lambda t: t[0])
                 return {"value": round(float(v), 3), "prev": None, "chg_pct": None,
                         "asof": f"snb:{dt}"}
     except Exception:
@@ -680,12 +680,23 @@ def snb_latest(match):
 
 def imf_latest(key):
     """IMF official SDMX 2.1 API (api.imf.org) — IRFCL reserves etc."""
-    url = (f"https://api.imf.org/external/sdmx/2.1/data/IRFCL/{key}"
-           f"?lastNObservations=1")
+    base = (f"https://api.imf.org/external/sdmx/2.1/data/IRFCL/{key}"
+            f"?lastNObservations=1")
+    xml = None
+    for url in (base,
+                "https://justhodl-data-proxy.raafouis.workers.dev/gov?u="
+                + urllib.request.quote(base, safe="")):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=25) as r:
+                xml = r.read().decode("utf-8", "ignore")
+            if "OBS_VALUE" in xml:
+                break
+        except Exception:
+            xml = None
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=25) as r:
-            xml = r.read().decode("utf-8", "ignore")
+        if xml is None:
+            return None
         vals = re.findall(r'OBS_VALUE="([\d\.eE\+\-]+)"', xml)
         tps = re.findall(r'TIME_PERIOD="([^"]+)"', xml)
         if not vals:

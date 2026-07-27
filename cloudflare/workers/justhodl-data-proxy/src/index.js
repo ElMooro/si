@@ -91,6 +91,7 @@ async function fetchUpstream(upstreamUrl, ttl) {
 // edge-cached 10min. NOT an open proxy.
 const GOV_ALLOW = new Set([
   "www.mof.go.jp",
+  "api.imf.org",
   "www.stat-search.boj.or.jp",
   "www.customs.go.kr", "tradedata.go.kr", "unipass.customs.go.kr",
   "www.moea.gov.tw", "eng.stat.gov.tw", "nstatdb.dgbas.gov.tw", "data.gov.tw",
