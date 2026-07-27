@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Data Census — JustHodl.AI</title>
-<!-- data-census v3-ops3982: ONE page for every value the fleet publishes.
+<!-- data-census v4-ops3988: ONE page for every value the fleet publishes.
      Khalid 2026-07-27: "put all the data we have under one engine all
      displaying in one page so we don't repeat the same mistake, we don't
      rebuild, we just fill gaps, and we can compare them against real data
@@ -39,6 +39,8 @@ and cross-engine comparison catches mislabels before they poison a downstream jo
 Generated <span id="gen" class="mono">—</span> by <span class="mono">justhodl-data-census</span>.</div>
 <div id="err" class="warn" style="display:none"></div>
 <div id="stats" class="grid"></div>
+<div class="card"><div style="font-weight:800">Data points pulled — total <span id="dp_total" class="mono" style="color:var(--green)">—</span></div>
+<div id="dp_src" class="small" style="margin-top:6px;line-height:2"></div></div>
 
 <h2>Mislabel candidates <span class="dim" style="text-transform:none;letter-spacing:0">— one number under multiple country labels (the JPEXPYY class)</span></h2>
 <div class="card" style="overflow-x:auto"><table id="mis"><thead><tr>
@@ -63,6 +65,14 @@ The bar is same measure AND same country; auto-wiring on a token match is exactl
 <div class="card" style="overflow-x:auto"><table id="mdir"><thead><tr>
 <th>data name</th><th>value</th><th>live</th><th>pulled from</th><th>engine</th><th>artifact : path</th></tr></thead><tbody></tbody></table></div>
 
+<h2>Engines <span id="eng_n"></span> <span class="dim" style="text-transform:none;letter-spacing:0">— every Lambda in the fleet and what it is supposed to do</span></h2>
+<div class="card"><input id="eq" placeholder="search engine name or purpose…"></div>
+<div class="card" style="overflow-x:auto"><table id="engt"><thead><tr><th style="width:260px">engine</th><th>what it does</th></tr></thead><tbody></tbody></table></div>
+
+<h2>Pages <span id="pg_n"></span> <span class="dim" style="text-transform:none;letter-spacing:0">— every page on the site and what it is supposed to do</span></h2>
+<div class="card"><input id="pq" placeholder="search page or purpose…"></div>
+<div class="card" style="overflow-x:auto"><table id="pgt"><thead><tr><th style="width:230px">page</th><th style="width:240px">title</th><th>purpose</th></tr></thead><tbody></tbody></table></div>
+
 <h2>Artifact browser <span class="dim" style="text-transform:none;letter-spacing:0">— every data/*.json, freshest knowledge of who writes and reads it</span></h2>
 <div class="card"><input id="q" placeholder="search artifact key, writer, page…"></div>
 <div class="card" style="overflow-x:auto"><table id="arts"><thead><tr>
@@ -80,7 +90,29 @@ const age=h=>h==null?'—':h<1?Math.round(h*60)+'m':h<48?h.toFixed(1)+'h':(h/24)
 const kb=b=>b==null?'—':b>1e6?(b/1e6).toFixed(1)+'MB':Math.round(b/1e3)+'KB';
 const lv=x=>x===true?'<span class="pill p-ok">LIVE</span>':x===false?'<span class="pill p-stale">STALE</span>':'<span class="pill" style="color:var(--dim)">—</span>';
 const prov=o=>`<div class="path">${o.name?`<b style="color:var(--tx)">${esc(o.name)}</b> · `:''}${esc(o.artifact)} : ${esc(o.path)}${o.value!==undefined?` = <b class="mono" style="color:var(--tx)">${esc(o.value)}</b>`:''} ${lv(o.live)}${o.pulled_from?` <span class="dim">from ${esc(o.pulled_from)}</span>`:''}${o.engine?` <span class="dim">· ${esc(o.engine)}</span>`:''}</div>`;
-let mq='',sq='';
+let mq='',sq='',eq='',pq='',ENG=[],PGS=[];
+async function loadInv(){
+ for(const u of ['https://justhodl-data-proxy.raafouis.workers.dev/data/engine-manifest.json','https://s3.amazonaws.com/justhodl-dashboard-live/data/engine-manifest.json']){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){const d=await r.json();ENG=d.engines||[];break}}catch(e){}}
+ for(const u of ['https://justhodl-data-proxy.raafouis.workers.dev/data/page-manifest.json','https://s3.amazonaws.com/justhodl-dashboard-live/data/page-manifest.json']){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){const d=await r.json();PGS=d.pages||[];break}}catch(e){}}
+ document.getElementById('eng_n').textContent='('+ENG.length+')';
+ document.getElementById('pg_n').textContent='('+PGS.length+')';
+ renderEng();renderPgs();
+ document.getElementById('eq').addEventListener('input',e=>{eq=e.target.value.toLowerCase();renderEng()});
+ document.getElementById('pq').addEventListener('input',e=>{pq=e.target.value.toLowerCase();renderPgs()})}
+function renderEng(){const rows=ENG.filter(e=>!eq||((e.engine||'')+' '+(e.description||'')).toLowerCase().includes(eq));
+ document.querySelector('#engt tbody').innerHTML=rows.slice(0,300).map(e=>
+  `<tr><td class="mono"><b>${esc(e.engine)}</b></td><td class="small">${esc(e.description||'—')}</td></tr>`).join('')
+  +(rows.length>300?`<tr><td colspan="2" class="dim">…${rows.length-300} more — refine the search</td></tr>`:'')
+  ||'<tr><td colspan="2" class="dim">engine-manifest.json not published yet</td></tr>'}
+function renderPgs(){const rows=PGS.filter(g=>!pq||((g.page||'')+' '+(g.title||'')+' '+(g.purpose||'')).toLowerCase().includes(pq));
+ document.querySelector('#pgt tbody').innerHTML=rows.slice(0,300).map(g=>
+  `<tr><td class="mono"><a href="/${esc(g.page)}">${esc(g.page)}</a></td><td>${esc(g.title||'')}</td><td class="small dim">${esc(g.purpose||'—')}</td></tr>`).join('')
+  +(rows.length>300?`<tr><td colspan="3" class="dim">…${rows.length-300} more — refine the search</td></tr>`:'')
+  ||'<tr><td colspan="3" class="dim">page-manifest.json not published yet — first run of ops 3988 creates it</td></tr>'}
+function renderTotals(){const bs=D.by_source||{};let tot=0;const parts=[];
+ for(const [f,b] of Object.entries(bs)){tot+=b.n||0;parts.push(`<span class="pill" style="margin-right:6px">${esc(f)} <b style="color:var(--tx)">${b.n}</b></span>`)}
+ document.getElementById('dp_total').textContent=tot.toLocaleString();
+ document.getElementById('dp_src').innerHTML=parts.join('')||'<span class="dim">by_source pending</span>'}
 function renderSrc(){const bs=D.by_source||{};const el=document.getElementById('bysrc');
  el.innerHTML=Object.entries(bs).map(([fam,b])=>{
   const rows=(b.metrics||[]).filter(m=>!sq||[m.name,m.pulled_from,m.engine,m.artifact].join(' ').toLowerCase().includes(sq));
@@ -134,7 +166,7 @@ async function load(){for(const u of SRC){try{const r=await fetch(u+'?v='+Date.n
    <td><span class="pill p-gap">${esc((g.needs||{}).country)} · ${esc(((g.needs||{}).measures||[]).join('+'))}</span></td>
    <td>${(g.candidates||[]).map(prov).join('')}</td></tr>`).join('')
   ||'<tr><td colspan="4" class="dim">none — every routable dead symbol lacks a fleet path</td></tr>';
- render();document.getElementById('q').addEventListener('input',e=>{q=e.target.value.toLowerCase();render()});renderSrc();document.getElementById('sq').addEventListener('input',e=>{sq=e.target.value.toLowerCase();renderSrc()});renderDir();document.getElementById('mq').addEventListener('input',e=>{mq=e.target.value.toLowerCase();renderDir()})}
+ render();document.getElementById('q').addEventListener('input',e=>{q=e.target.value.toLowerCase();render()});renderTotals();renderSrc();document.getElementById('sq').addEventListener('input',e=>{sq=e.target.value.toLowerCase();renderSrc()});renderDir();document.getElementById('mq').addEventListener('input',e=>{mq=e.target.value.toLowerCase();renderDir()})}
 function render(){const rows=(D.artifacts||[]).filter(a=>!q||
   (a.key||'').toLowerCase().includes(q)||String(a.writer||'').toLowerCase().includes(q)||
   String(a.pages||'').toLowerCase().includes(q));
@@ -146,5 +178,5 @@ function render(){const rows=(D.artifacts||[]).filter(a=>!q||
    <td class="small">${esc(Array.isArray(a.pages)?a.pages.join(', '):a.pages||'—')}</td>
    <td>${a.error?`<span class="pill p-bug">${esc(a.error)}</span>`:a.stale?'<span class="pill p-stale">STALE</span>':'<span class="pill p-ok">OK</span>'}</td></tr>`).join('')
   +(rows.length>400?`<tr><td colspan="7" class="dim">…${rows.length-400} more — refine the search</td></tr>`:'')}
-load();
+load();loadInv();
 </script></body></html>
