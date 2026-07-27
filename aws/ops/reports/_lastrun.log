@@ -1,36 +1,35 @@
-executing-against: 820c7f1cdfdeb8dfa1a35b4a99213ee88c3543f3
+executing-against: 039d9cdb45b7d27b088a42ac4619114c6d04b8f4
 ops 3985 — invoke-only: enforce, settle, fire
-[22:39:38] ✅ FIRED — v1.6 async under 900s/3008MB; verify via ops 3984 in ~13 min
+[22:50:19] ✅ FIRED — v1.6 async under 900s/3008MB; verify via ops 3984 in ~13 min
 
-→ Report written to aws/ops/reports/latest/3991_census_invoke_v20.md
-ops 3992 — v2.0 vault-complete verify
-[22:39:39]   [0] data-census v1.8 ops3987 clean-values
-[22:40:10]   [1] data-census v1.8 ops3987 clean-values
-[22:40:41]   [2] data-census v1.8 ops3987 clean-values
-[22:41:12]   [3] data-census v1.8 ops3987 clean-values
-[22:41:42]   [4] data-census v1.8 ops3987 clean-values
-[22:42:13]   [5] data-census v1.8 ops3987 clean-values
-[22:42:44]   [6] data-census v1.8 ops3987 clean-values
-[22:43:15]   [7] data-census v1.8 ops3987 clean-values
-[22:43:45]   [8] data-census v1.8 ops3987 clean-values
-[22:44:16] ✅   v2.0 artifact after ~270s
-[22:44:16]   BOJ              JPLG    -> {"name": "JPLG", "value": 7.07, "live": true, "pulled_from": "bank-of-japan", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
-[22:44:16]   MOF-JAPAN        JP02Y   -> ABSENT
-[22:44:16]   NORGES           NO03Y   -> ABSENT
-[22:44:16]   BCRP-PERU        PETOT   -> ABSENT
-[22:44:16]   ECB              EUBUND  -> ABSENT
-[22:44:16]   FRED US10Y -> {"name": "US10Y", "value": 4.71, "live": true, "pulled_from": "fred_alias:DGS10", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "path": "symbols[
-[22:44:17] ✅   artifact is v2.0
-[22:44:17] ✗   vault actually walked (>=3000 paths, not skipped)
-[22:44:17] ✗   BOJ family holds JPLG
-[22:44:17] ✗   MOF-JAPAN holds JP02Y
-[22:44:17] ✗   NORGES holds NO03Y
-[22:44:17] ✗   BCRP-PERU holds PETOT
-[22:44:17] ✗   ECB holds EUBUND
-[22:44:17] ✗   OTHER shrunk below 800
-[22:44:17] ✅   US10Y credited to the vault engine (v1.9 canonical)
-[22:44:17] ✅   page v4 still at edge
-[22:44:17] ✗ FAILED: ['vault actually walked (>=3000 paths, not skipped)', 'BOJ family holds JPLG', 'MOF-JAPAN holds JP02Y', 'NORGES holds NO03Y', 'BCRP-PERU holds PETOT', 'ECB holds EUBUND', 'OTHER shrunk below 800']
+→ Report written to aws/ops/reports/latest/3993_census_invoke_v21.md
+ops 3992 — v2.1 vault-complete verify
+[22:50:20]   [0] data-census v2.0 ops3991 vault-complete
+[22:50:52]   [1] data-census v2.0 ops3991 vault-complete
+[22:51:23]   [2] data-census v2.0 ops3991 vault-complete
+[22:51:54]   [3] data-census v2.0 ops3991 vault-complete
+[22:52:25]   [4] data-census v2.0 ops3991 vault-complete
+[22:52:56]   [5] data-census v2.0 ops3991 vault-complete
+[22:53:27]   [6] data-census v2.0 ops3991 vault-complete
+[22:53:58]   [7] data-census v2.0 ops3991 vault-complete
+[22:54:29] ✅   v2.1 artifact after ~240s
+[22:54:29]   BOJ              JPLG    -> {"name": "JPLG", "value": 7.07, "live": true, "pulled_from": "bank-of-japan", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
+[22:54:29]   MOF-JAPAN        JP02Y   -> ABSENT
+[22:54:29]   NORGES           NO03Y   -> ABSENT
+[22:54:29]   BCRP-PERU        PETOT   -> ABSENT
+[22:54:29]   ECB              EUBUND  -> ABSENT
+[22:54:29]   FRED US10Y -> {"name": "US10Y", "value": 4.71, "live": true, "pulled_from": "fred_alias:DGS10", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "path": "symbols[
+[22:54:30] ✅   artifact is v2.1
+[22:54:30] ✗   vault actually walked (>=3000 paths, not skipped)
+[22:54:30] ✗   BOJ family holds JPLG
+[22:54:30] ✗   MOF-JAPAN holds JP02Y
+[22:54:30] ✗   NORGES holds NO03Y
+[22:54:30] ✗   BCRP-PERU holds PETOT
+[22:54:30] ✗   ECB holds EUBUND
+[22:54:30] ✗   OTHER shrunk below 800
+[22:54:30] ✅   US10Y credited to the vault engine (v1.9 canonical)
+[22:54:30] ✅   page v4 still at edge
+[22:54:30] ✗ FAILED: ['vault actually walked (>=3000 paths, not skipped)', 'BOJ family holds JPLG', 'MOF-JAPAN holds JP02Y', 'NORGES holds NO03Y', 'BCRP-PERU holds PETOT', 'ECB holds EUBUND', 'OTHER shrunk below 800']
 
-→ Report written to aws/ops/reports/latest/3992_v20_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_3992_v20_verify.py
+→ Report written to aws/ops/reports/latest/3994_v21_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_3994_v21_verify.py
