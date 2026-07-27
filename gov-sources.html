@@ -50,7 +50,7 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 fetch('data/gov-sources.json?cb='+Date.now()).then(r=>r.json()).then(d=>{
   document.getElementById('strip').innerHTML=[
     ['Agencies',d.n_agencies],['Live',d.n_live],['Degraded',d.n_degraded],
-    ['Spec / blocked',d.n_spec_only],['Run time',(d.elapsed_s??'—')+'s']
+    ['Spec / blocked',d.n_spec_only],['Gov series pulled',d.n_series_pulled??'—'],['Run time',(d.elapsed_s??'—')+'s']
   ].map(([l,v])=>`<div class="kpi"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join('');
   document.getElementById('cards').innerHTML=(d.agencies||[]).map(a=>{
     const probes=(a.probes&&a.probes.length)?`<div class="sec"><div class="t">What we pull (live probe)</div>
@@ -62,7 +62,7 @@ fetch('data/gov-sources.json?cb='+Date.now()).then(r=>r.json()).then(d=>{
       <div><span class="k">Endpoints</span>${(sp.endpoints||[]).map(e=>`<div class="mono">· ${esc(e)}</div>`).join('')}</div>
       <div><span class="k">Params</span><span class="mono">${esc(sp.params)}</span></div>
       <div><span class="k">Example</span><span class="mono">${esc(sp.example)}</span></div>
-      ${sp.db_table?`<div><span class="k">DB table</span><span class="mono">${esc(sp.db_table)}</span></div>`:''}</div>`;
+      ${sp.db_table?`<div><span class="k">DB table</span><span class="mono">${esc(sp.db_table)}</span></div>`:''}${a.universe?`<div><span class="k">Universe</span><span class="mono">${esc(a.universe)}</span></div>`:''}</div>`;
     const quirks=(a.quirks&&a.quirks.length)?`<div class="sec"><div class="t">Quirks &amp; lessons</div><ul class="q">${a.quirks.map(q=>`<li>${esc(q)}</li>`).join('')}</ul></div>`:'';
     const vs=(a.vault_symbols&&a.vault_symbols.length)?`<div class="sec"><div class="t">Vault symbols served (${esc(a.vault_count)})</div><div class="chips">${a.vault_symbols.map(s=>`<span class="chip">${esc(s)}</span>`).join('')}</div></div>`:
       `<div class="sec"><div class="t">Vault symbols served</div><div class="auth">none yet (${esc(a.vault_count??0)})</div></div>`;

@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "gov-sources v1.0 REGISTRY"
+MARKER = "gov-sources v2.0 FULL-PULL"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/gov-sources.json"
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0"}
@@ -36,14 +36,20 @@ def p_treasury():
     lines = [l for l in _get(url, 30).decode("utf-8", "ignore").splitlines() if l.strip()]
     hdr = [h.strip().strip('"') for h in lines[0].split(",")]
     row = [c.strip().strip('"') for c in lines[1].split(",")]
-    i = hdr.index("2 Mo")
-    return [{"name": "US 2M par yield", "value": float(row[i]), "unit": "%",
-             "asof": row[0], "ok": True}]
+    out = []
+    for col in hdr[1:]:
+        i = hdr.index(col)
+        try:
+            out.append({"name": "UST " + col + " par", "value": float(row[i]),
+                        "unit": "%", "asof": row[0], "ok": True})
+        except Exception:
+            continue
+    return out
 
 
 def p_eurostat():
     out = []
-    for geo in ("IT", "ES"):
+    for geo in ("IT", "ES", "FR", "DE", "PT", "GR", "EA20"):
         url = ("https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/"
                "data/gov_10dd_edpt1?format=JSON&na_item=GD&sector=S13"
                "&unit=PC_GDP&geo=" + geo + "&lastTimePeriod=1")
@@ -62,22 +68,27 @@ def p_norges():
     d = json.loads(_get(url, 25))
     data = d.get("data") or d
     dims = ((data.get("structure") or {}).get("dimensions") or {}).get("series") or []
-    want = None
+    tenor_di, tenor_names = None, {}
     for di, dim in enumerate(dims):
-        for vi, val in enumerate(dim.get("values") or []):
-            if "3Y" in (str(val.get("id", "")) + str(val.get("name", ""))).replace(" ", ""):
-                want = (di, vi)
-                break
-        if want:
-            break
-    v = None
+        if str(dim.get("id", "")).upper() == "TENOR":
+            tenor_di = di
+            tenor_names = {vi: str(v.get("id", v.get("name", "")))
+                           for vi, v in enumerate(dim.get("values") or [])}
+    out, seen = [], set()
     for skey, sval in ((data.get("dataSets") or [{}])[0].get("series") or {}).items():
         pos = [int(x) for x in skey.split(":")]
-        if want and pos[want[0]] == want[1]:
-            obs = sval.get("observations") or {}
+        tn = tenor_names.get(pos[tenor_di]) if tenor_di is not None else None
+        if not tn or tn in seen:
+            continue
+        obs = sval.get("observations") or {}
+        try:
             v = float(list(obs.values())[0][0])
-            break
-    return [{"name": "Norway 3Y govt", "value": v, "unit": "%", "asof": "latest", "ok": v is not None}]
+        except Exception:
+            continue
+        seen.add(tn)
+        out.append({"name": "Norway " + tn + " govt", "value": v, "unit": "%",
+                    "asof": "latest", "ok": True})
+    return sorted(out, key=lambda x: x["name"])
 
 
 def p_bcrp():
@@ -87,22 +98,41 @@ def p_bcrp():
     d = json.loads(_get(url, 25))
     last = (d.get("periods") or [{}])[-1]
     v = float(str(last.get("values", [None])[0]).replace(",", ""))
-    return [{"name": "Peru terms of trade (2007=100)", "value": round(v, 2),
-             "unit": "index", "asof": last.get("name"), "ok": True}]
+    out = [{"name": "Peru terms of trade (2007=100)", "value": round(v, 2),
+            "unit": "index", "asof": last.get("name"), "ok": True}]
+    try:
+        u2 = url.replace("PN38923BM", "PN38926BM")
+        d2 = json.loads(_get(u2, 25))
+        l2 = (d2.get("periods") or [{}])[-1]
+        v2 = float(str(l2.get("values", [None])[0]).replace(",", ""))
+        out.append({"name": "Peru ToT var% 12m", "value": round(v2, 2),
+                    "unit": "%", "asof": l2.get("name"), "ok": True})
+    except Exception:
+        pass
+    return out
 
 
 def p_ecb():
-    url = ("https://data-api.ecb.europa.eu/service/data/YC/"
-           "B.U2.EUR.4F.G_N_A.SV_C_YM.SR_3Y?lastNObservations=1&format=jsondata")
-    d = json.loads(_get(url, 25))
-    ser = ((d.get("dataSets") or [{}])[0].get("series") or {})
-    v = None
-    for sv in ser.values():
-        obs = sv.get("observations") or {}
-        v = float(list(obs.values())[0][0])
-        break
-    return [{"name": "Euro area 3Y AAA yield", "value": round(v, 3) if v else None,
-             "unit": "%", "asof": "latest", "ok": v is not None}]
+    out = []
+    for tn in ("2Y", "3Y", "5Y", "10Y"):
+        try:
+            url = ("https://data-api.ecb.europa.eu/service/data/YC/"
+                   "B.U2.EUR.4F.G_N_A.SV_C_YM.SR_" + tn +
+                   "?lastNObservations=1&format=jsondata")
+            d = json.loads(_get(url, 25))
+            ser = ((d.get("dataSets") or [{}])[0].get("series") or {})
+            v = None
+            for sv in ser.values():
+                obs = sv.get("observations") or {}
+                v = float(list(obs.values())[0][0])
+                break
+            out.append({"name": "Euro area " + tn + " AAA yield",
+                        "value": round(v, 3) if v is not None else None,
+                        "unit": "%", "asof": "latest", "ok": v is not None})
+        except Exception:
+            out.append({"name": "Euro area " + tn + " AAA yield", "value": None,
+                        "unit": "%", "asof": None, "ok": False})
+    return out
 
 
 def p_mofjp():
@@ -110,25 +140,37 @@ def p_mofjp():
     lines = [l for l in _get(url, 25).decode("utf-8", "ignore").splitlines() if l.strip()]
     hdr = [h.strip() for h in lines[1].split(",")]
     rows = [[c.strip() for c in l.split(",")] for l in lines[2:]]
-    i2, i10 = hdr.index("2Y"), hdr.index("10Y")
     out = []
     for last in reversed(rows):
         if last[0][:4].isdigit() and "/" in last[0]:
-            out = [{"name": "JGB 2Y par", "value": float(last[i2]), "unit": "%",
-                    "asof": last[0], "ok": True},
-                   {"name": "JGB 10Y par", "value": float(last[i10]), "unit": "%",
-                    "asof": last[0], "ok": True}]
+            for col in hdr[1:]:
+                i = hdr.index(col)
+                try:
+                    out.append({"name": "JGB " + col + " par",
+                                "value": float(last[i]), "unit": "%",
+                                "asof": last[0], "ok": True})
+                except Exception:
+                    continue
             break
     return out
 
 
 def p_boe():
-    url = ("https://www.bankofengland.co.uk/boeapps/iadb/fromshowcolumns.asp"
-           "?csv.x=yes&SeriesCodes=IUDSOIA&CSVF=TN&UsingCodes=Y&Datefrom=01/Jan/2026")
-    lines = [l for l in _get(url, 25).decode("utf-8", "ignore").splitlines() if l.strip()]
-    last = lines[-1].split(",")
-    return [{"name": "SONIA o/n", "value": float(last[1]), "unit": "%",
-             "asof": last[0], "ok": True}]
+    out = []
+    for code, nm in (("IUDSOIA", "SONIA o/n"), ("IUDSNPY", "UK gilt 5Y par"),
+                     ("IUDMNPY", "UK gilt 10Y par"), ("IUDLNPY", "UK gilt 20Y par")):
+        try:
+            url = ("https://www.bankofengland.co.uk/boeapps/iadb/fromshowcolumns.asp"
+                   "?csv.x=yes&SeriesCodes=" + code +
+                   "&CSVF=TN&UsingCodes=Y&Datefrom=01/Jul/2026")
+            lines = [l for l in _get(url, 25).decode("utf-8", "ignore").splitlines()
+                     if l.strip()]
+            last = lines[-1].split(",")
+            out.append({"name": nm, "value": float(last[1]), "unit": "%",
+                        "asof": last[0], "ok": True})
+        except Exception:
+            out.append({"name": nm, "value": None, "unit": "%", "asof": None, "ok": False})
+    return out
 
 
 def p_boj():
@@ -148,8 +190,25 @@ def p_boj():
     while i >= 12 and vals[i] in (None, ""):
         i -= 1
     yoy = round((float(vals[i]) / float(vals[i - 12]) - 1) * 100, 2)
-    return [{"name": "Bank lending YoY (JPLG)", "value": yoy, "unit": "%",
-             "asof": str(dates[i]), "ok": True}]
+    out = [{"name": "Bank lending YoY (JPLG)", "value": yoy, "unit": "%",
+            "asof": str(dates[i]), "ok": True}]
+    try:
+        u2 = ("https://www.stat-search.boj.or.jp/api/v1/getDataCode?format=json"
+              "&lang=en&db=CO&startDate=" + str((now.year - 1) * 100 + 1) +
+              "&endDate=" + str(end) + "&code=TK99F1000601GCQ01000")
+        d2 = json.loads(_get(u2, 25, {"Accept-Encoding": "identity"}))
+        r2 = (d2.get("RESULTSET") or [{}])[0]
+        v2 = ((r2.get("VALUES") or {}).get("VALUES")) or []
+        dt2 = ((r2.get("VALUES") or {}).get("SURVEY_DATES")) or []
+        j = len(v2) - 1
+        while j >= 0 and v2[j] in (None, ""):
+            j -= 1
+        if j >= 0:
+            out.append({"name": "Tankan DI Large Mfg (actual)", "value": float(v2[j]),
+                        "unit": "pts", "asof": str(dt2[j]), "ok": True})
+    except Exception:
+        pass
+    return out
 
 
 def p_snb():
@@ -327,11 +386,13 @@ def lambda_handler(event, context):
     except Exception:
         pass
 
+    UNIVERSE = {'boj': '10+ databases; MD11 alone = 792 series (getMetadata lists every code)', 'mof_japan': 'full JGB par curve 1Y-40Y daily + complete history file', 'us_treasury': 'full daily par curve + bill/auction datasets on the same portal', 'eurostat': 'the entire Eurostat dissemination API (thousands of datasets)', 'norges': 'all published tenors, bonds + bills, D/M/A frequencies', 'bcrp': 'thousands of Peru series in the ;-separated catalog', 'ecb': 'the entire ECB Data Portal (YC, BP6, BSI, MIR, ...)', 'boe': 'the full IADB database by series code', 'snb': 'every data.snb.ch cube once the windowed parse lands', 'imf': 'every IMF SDMX dataflow (IRFCL, IFS, ...) once keys are mapped', 'fred': '800k+ FRED series; the fleet workhorse', 'bcch': 'full BCCh catalog after account creation', 'gov_proxy': 'any allowlisted agency page/file at edge'}
     agencies = []
     n_live = n_deg = 0
     for a in AGENCIES:
         row = {k: a[k] for k in ("id", "name", "country", "flag", "auth", "spec", "quirks", "how_to_add")}
-        row["vault_symbols"] = sorted(set(by_src.get(a["id"], [])))[:40]
+        row["universe"] = UNIVERSE.get(a["id"], "")
+        row["vault_symbols"] = sorted(set(by_src.get(a["id"], [])))[:220]
         row["vault_count"] = len(set(by_src.get(a["id"], [])))
         if a.get("probe") is None:
             row["status"] = a.get("status_override", "SPEC_ONLY")
@@ -359,6 +420,7 @@ def lambda_handler(event, context):
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "n_agencies": len(agencies), "n_live": n_live, "n_degraded": n_deg,
            "n_spec_only": sum(1 for a in agencies if a["status"] in ("SPEC_ONLY", "BLOCKED_ACCOUNT")),
+           "n_series_pulled": sum(len(a.get("probes") or []) for a in agencies),
            "agencies": agencies,
            "elapsed_s": round(time.time() - t0, 1)}
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out).encode(),
