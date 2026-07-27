@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "data-census v1.9 ops3989 vault-canonical"
+MARKER = "data-census v2.0 ops3991 vault-complete"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/data-census.json"
 LEDGER_KEY = "data-census/paths-ledger.json"
@@ -198,7 +198,10 @@ def lambda_handler(event, context):
             rec["skipped"] = "archive (inventoried, values not indexed)"
             arts.append(rec)
             continue
-        if size > MAX_ARTIFACT_MB * 1_000_000:
+        if size > MAX_ARTIFACT_MB * 1_000_000 and key not in PRIORITY:
+            # v2.0: PRIORITY is exempt — the 4MB timeout-fix had silently
+            # excluded data/tradingview.json ITSELF (probe 3990), which is
+            # why BOJ/MOF/NORGES/BCRP never formed families.
             rec["skipped"] = f">{MAX_ARTIFACT_MB}MB"
             arts.append(rec)
             continue
@@ -207,7 +210,7 @@ def lambda_handler(event, context):
             # v1.7: the 500-path cap starved the vault (561 symbols x ~10
             # fields) — the single richest source-attributed artifact walked
             # only its first slice, which is why FRED counted <40 on v1.6.
-            pl = walk(doc, cap=(6000 if key in PRIORITY else MAX_PATHS_PER))
+            pl = walk(doc, cap=(12000 if key in PRIORITY else MAX_PATHS_PER))
             rec["n_paths"] = len(pl)
             gen = doc.get("generated_at") if isinstance(doc, dict) else None
             rec["generated_at"] = gen
@@ -336,17 +339,26 @@ def lambda_handler(event, context):
             ("US-TREASURY", ("treasury", "ust:")), ("PBOC", ("pboc",)),
             ("POLYGON", ("polygon", "poly:")), ("FMP", ("fmp",)),
             ("CFTC", ("cftc",)), ("COINMETRICS", ("coinmetrics",)),
-            ("SEC-EDGAR", ("edgar", "sec.gov")), ("GNEWS", ("gnews",)),
+            ("SEC-EDGAR", ("edgar", "sec.gov", "figi", "sec_13f")),
+            ("GNEWS", ("gnews",)),
+            ("BOJ", ("bank-of-japan",)),
+            ("BENZINGA-MASSIVE", ("benzinga", "massive")),
+            ("IMF-PORTWATCH", ("portwatch", "port throughput")),
+            ("OFR", ("ofr",)), ("HKMA", ("hkma",)),
+            ("COINGECKO", ("coingecko",)),
             ("FLEET-INTERNAL", ("fleet:", "data/")))
 
     def src_family(src_str):
         t = (src_str or "").lower()
         if not t:
             return None
+        if t == "sec":
+            return "SEC-EDGAR"
         for fam, keys in FAMS:
             if any(k in t for k in keys):
                 return fam
-        return "OTHER"
+        return None   # v2.0: unmatched engine-labels fall through to
+                      # FLEET-INTERNAL instead of short-circuiting to OTHER
 
     TAGRX = re.compile(r"\[([A-Za-z0-9_\.\-\^\!]{1,24})\]")
 
@@ -395,7 +407,8 @@ def lambda_handler(event, context):
             continue
         fam = (src_family(r.get("src"))
                or src_family(up_of.get(r["k"]))
-               or ("FLEET-INTERNAL" if (r.get("name") or "[" in r["p"]) else None))
+               or ("FLEET-INTERNAL" if (r.get("name") or "[" in r["p"]
+                                        or r.get("src")) else "OTHER"))
         if not fam:
             continue
         nm = disp_name(r)
