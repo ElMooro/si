@@ -1,30 +1,30 @@
-executing-against: 4c4eaae39200deca82f163898ee375753112db61
-ops 3956 — gov-sources registry deploy
-── function: settle or self-heal create ──
-[03:21:43] ✅   engine settled
-── schedule: gov-sources-daily cron(50 11) ──
-[03:21:43] ✅   schedule created (role from vault schedule)
-── invoke + poll artifact ──
-[03:21:54] ✅   artifact written ~10s
-── served page check (edge retries) ──
-[03:21:54]   attempt 1: HTTP Error 404: Not Found
-[03:22:14]   attempt 2: HTTP Error 404: Not Found
-[03:22:34]   attempt 3: HTTP Error 404: Not Found
-[03:22:54]   attempt 4: HTTP Error 404: Not Found
-[03:23:14]   attempt 5: HTTP Error 404: Not Found
-[03:23:34] ✅   served attempt 6 (7682b)
-[03:23:34]   nav-manifest served has entry: True (soft)
-[03:23:34] ✅   engine deployed (marker in zip)
-[03:23:34] ✅   schedule armed
-[03:23:34] ✅   artifact written
-[03:23:34] ✅   13 agencies
-[03:23:34] ✅   n_live >= 8
-[03:23:34] ✅   boj LIVE
-[03:23:34] ✅   mof_japan LIVE
-[03:23:34] ✅   bcrp LIVE
-[03:23:34] ✅   vault join boj >= 1
-[03:23:34] ✅   vault join mof >= 1
-[03:23:34] ✅   page served with markers
-[03:23:34] ✅ PASS_ALL — gov-sources registry LIVE: 10/13 agencies probing green, page served, schedule armed cron(50 11)
+executing-against: 1c75b61d8efecae424d81523afc0a2881c7771f0
+ops 3957 — gov-sources v2.0 FULL-PULL + FRED env fix
+── env fix: copy FRED_KEY/FMP_KEY from donor ──
+[03:43:20]   donor has: ['FMP_KEY', 'FRED_KEY']; fn had FRED_KEY: False
+[03:43:27] ✅   env updated
+── settle v2.0 (marker + full-pull strings in zip) ──
+[03:43:28] ✅   settled attempt 1
+── invoke + gates ──
+[03:43:49] ✅   artifact ~20s
+[03:43:49]   FRED: LIVE US 10Y (DGS10)=4.71 @ 2026-07-23
+── served page (new KPI) ──
+[03:45:29] ✅   served attempt 6
+[03:45:29] ✅   FRED_KEY on function
+[03:45:29] ✅   v2.0 settled
+[03:45:29] ✅   artifact written
+[03:45:29] ✅   FRED LIVE with real DGS10
+[03:45:29] ✅   n_series_pulled >= 45
+[03:45:29] ✅   us_treasury >= 12 series
+[03:45:29] ✅   mof_japan >= 14 series
+[03:45:29] ✅   boe >= 4 series
+[03:45:29] ✅   ecb >= 3 series
+[03:45:29] ✅   norges >= 4 series
+[03:45:29] ✅   eurostat >= 6 series
+[03:45:29] ✗   boj >= 2 series
+[03:45:29] ✅   13 agencies
+[03:45:29] ✅   page served with v2 markers
+[03:45:29] ✗ FAILED: ['boj >= 2 series']
 
-→ Report written to aws/ops/reports/latest/3956_gov_sources_deploy.md
+→ Report written to aws/ops/reports/latest/3957_gov_fullpull.md
+❌ OPS-FAIL: aws/ops/pending/ops_3957_gov_fullpull.py
