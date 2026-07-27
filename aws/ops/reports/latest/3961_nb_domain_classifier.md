@@ -1,0 +1,74 @@
+# ops 3961 — PROBE 3: Naive Bayes domain classifier from the brain
+
+**Status:** success  
+**Duration:** 1.6s  
+**Finished:** 2026-07-27T04:10:03+00:00  
+
+## Data
+
+| LIQUIDITY | MACRO | RISK | T1a | T1a* | T1b | T2 | T3 | T3f | T4 | T5 | T6 | driver_LIQUIDITY | driver_MACRO | driver_RISK | drivers | own_pct | own_words | total | weak_labeled | wl_LIQUIDITY | wl_MACRO | wl_RISK |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 5280 | 1365 | 2691 | 1224 |
+|  |  |  | 7 | 2 | 3 | 526 | 2 | 2 | 0 | 19 | 0 |  |  |  |  |  |  |  |  |  |  |  |
+| 107 | 271 | 183 |  |  |  |  |  |  |  |  |  |  |  |  |  | 95.9 | 538 | 561 |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |  | 77 | 168 | 95 | 340 |  |  |  |  |  |  |  |
+
+## Log
+## A. sharpened seeds (exclusive to one domain, df>=5)
+
+- `04:10:02`   MACRO (n=229): ['absolutely', 'accord', 'account', 'adding', 'additionally', 'ahead', 'allow', 'allowing', 'along', 'angel', 'anticipation', 'anyway', 'apply', 'applying', 'appropriately', 'asia', 'attractive', 'average', 'bearish', 'becoming', 'behavior', 'behind', 'believe', 'benchmark', 'beyond', 'bias', 'bring', 'built', 'bullish', 'bunch']
+- `04:10:02`   LIQUIDITY (n=186): ['according', 'accounts', 'actions', 'affect', 'affects', 'agreement', 'alone', 'ample', 'balances', 'bank', 'base', 'basis', 'bear', 'begun', 'billion', 'bitcoin', 'bogmbbm', 'borrowers', 'bottom', 'brewing', 'build', 'bull', 'buys', 'call', 'calls', 'canary', 'carry', 'casacbw', 'change', 'changes']
+- `04:10:02`   RISK (n=175): ['ability', 'addittion', 'already', 'angels', 'arent', 'backbone', 'balance', 'bamlc', 'bamlh', 'bamlhe', 'bigger', 'bofa', 'bonds', 'broader', 'brokers', 'businesses', 'buying', 'called', 'calm', 'causing', 'cbbb', 'chaos', 'check', 'choice', 'climbing', 'companies', 'contagion', 'controlled', 'corp', 'corporate']
+## B. weak labels + multinomial NB (Laplace a=1, equal priors)
+
+- `04:10:03`   NB top MACRO: debt-to-gdp, classname, dark, defensive, favor, bg-gray-, strengthens, pyramided, text-gray-, product, orders, crude, influenced, greece, span, consumption, backlogs, blowing, turning, react, equilibrium, flex, organizations, hover, nation, industrial
+- `04:10:03`   NB top LIQUIDITY: repos, repurchase, agreement, york, transaction, chilean, dealer, million, transferred, counterparty, obligations, karens, balances, exchanging, advantages, repurchases, sofr, temporarily, valley, transfered, knee, silicon, deposits, agrees, institution, chaneel
+- `04:10:03`   NB top RISK: rated, grade, option-adjusted, semi, re-evaluation, reusing, bamlc, subset, bringout, meanwhile, slack, angels, cbbb, widen, issuers, recesssion, addittion, excessively, ratings, triggers, sink, bamlh, reused, sytw, multiplier, blink
+## C. ladder
+
+- `04:10:03`   learned category priors: {"commodity": "MACRO", "credit": "RISK", "equity": "MACRO", "futures": "MACRO", "fx": "MACRO", "macro": "MACRO", "other": "RISK", "plumbing": "LIQUIDITY", "rates": "MACRO", "vol": "RISK"}
+## D. contested symbols — his ACTUAL note text
+
+- `04:10:03`   VIX → MACRO [T2] margin=0.1159
+- `04:10:03`       notes(n=10): IF THE VIX IS SUPPRESSED AND AND THEN IT RISES THAT SIGNALS DERISKING. IF THE VIX IS SUPPRESSED AND AND THEN IT RISES THAT SIGNALS DERISKING. WHENEVER THE VIX IS ABOVE 60 AND CLOSES BELOW 30, 100% OF THE TIME THAT HAS BEEN THE BOTTOM. WHENEVER THE VIX IS ABOVE 60 AND CLOSES BELOW 30, 100% OF THE TIM
+- `04:10:03`   VVIX → LIQUIDITY [T2] margin=0.0846
+- `04:10:03`       notes(n=2): VIX of VIX (or VVIX) is a measure of the volatility of the Cboe Global Markets (Cboe) Volatility Index (VIX). The Cboe's VIX measures the short-term volatility of the S&P 500 indexes, and the VVIX measures the volatility of the price of the VIX. In other words, VVIX is a measure of the volatility of
+- `04:10:03`   SKEW → LIQUIDITY [T2] margin=0.0264
+- `04:10:03`       notes(n=2): The SKEW index is a measure of potential risk in financial markets. Much like the VIX index, the SKEW index can be a proxy for investor sentiment and volatility. The Skew Index measures perceived tail-risk in the S&P 500. Tail-risk is a change in the price of the S&P 500 or a stock that would place 
+- `04:10:03`   SR32! → RISK [T2] margin=0.1218
+- `04:10:03`       notes(n=12): A STRONGER DOLLAR SUCK FOREIGN CAPITAL INTO THE USA WHICH IS GONNA CAUSE A PUMP IN US STOCKS AND A PUMP IN US TREASURIES, LOWER US TREASURY YIELDS AND TAME INFLATION. A STRONGER DOLLAR SUCK FOREIGN CAPITAL INTO THE USA WHICH IS GONNA CAUSE A PUMP IN US STOCKS AND A PUMP IN US TREASURIES, LOWER US TR
+- `04:10:03`   DXY → MACRO [T1a*] margin=0.1264
+- `04:10:03`       notes(n=234): The United States is the world’s piggy bank. That is where the world invests the majority of their excess savings and capital bcs they want to access either US Treasuries or they wanted to access the united states stock market growth or they want to hold a currency that’s appreciating against theirs
+- `04:10:03`   XAUUSD → MACRO [T2] margin=0.5154
+- `04:10:03`       notes(n=4): Falling USD = Silver outperforms Gold. Rising USD = Gold outperforms Silver Falling USD = Silver outperforms Gold. Rising USD = Gold outperforms Silver When ur local currency under crisis gold should perform well. When us dollar isn't in a crisis gold doesn't necessarily need to perform well. When u
+- `04:10:03`   TEDRATE → RISK [T2] margin=0.195
+- `04:10:03`       notes(n=2): The TED spread is the difference between the three-month LIBOR and the three-month Treasury bill rate. The TED spread is commonly used as a measure of credit risk, as U.S. Treasury bills are seen as risk-free. The TED spread often widens in periods of economic crisis, as the default risk widens; t
+## E. worked examples
+
+- `04:10:03`   RRPONTSYD  → LIQUIDITY [T2  ] own notes n=19 margin=0.573 terms=['repos', 'repurchase', 'agreement', 'york', 'transaction', 'million']
+- `04:10:03`   SOFR       → LIQUIDITY [T2  ] own notes n=24 margin=0.742 terms=['repurchase', 'agreement', 'balances', 'sofr', 'institution', 'injections']
+- `04:10:03`   WRESBAL    → LIQUIDITY [T1a ] subject of his anchor note
+- `04:10:03`   JPLG       → LIQUIDITY [T1a ] subject of his anchor note
+- `04:10:03`   MOVE       → RISK      [T1a ] subject of his anchor note
+- `04:10:03`   US10Y      → MACRO     [T1a ] subject of his anchor note
+- `04:10:03`   US02Y      → MACRO     [T2  ] own notes n=22 margin=0.165 terms=['influenced', 'nation', 'expectations', 'overheated', 'bullish', 'slow']
+- `04:10:03`   GOLD       → MACRO     [T2  ] own notes n=33 margin=0.270 terms=['dramatically', 'bullish', 'economic', 'upside', 'precious', 'bought']
+- `04:10:03`   CL1!       → MACRO     [T2  ] own notes n=37 margin=0.550 terms=['influenced', 'crude', 'consumption', 'industrial', 'dramatically', 'production']
+- `04:10:03`   HG1!       → MACRO     [T2  ] own notes n=2 margin=0.741 terms=['industrial', 'production', 'input', 'trends', 'relationship', 'economic']
+- `04:10:03`   SPX        → MACRO     [T2  ] own notes n=143 margin=0.240 terms=['defensive', 'favor', 'strengthens', 'consumption', 'blowing', 'turning']
+- `04:10:03`   USM2       → LIQUIDITY [T2  ] own notes n=2 margin=0.683 terms=['deposits', 'smallest', 'reserves', 'nested', 'checks', 'reporting']
+- `04:10:03`   USCLI      → MACRO     [T2  ] own notes n=0 margin=0.255 terms=['economic', 'country', 'leading', 'gauge', 'indicator', 'growth']
+- `04:10:03`   USIRYY     → MACRO     [T2  ] own notes n=23 margin=0.557 terms=['industrial', 'production', 'expectations', 'fight', 'input', 'trends']
+- `04:10:03`   BDI        → MACRO     [T2  ] own notes n=4 margin=0.443 terms=['input', 'rise', 'shipping', 'economic', 'falling', 'countries']
+- `04:10:03`   USNFP      → MACRO     [T2  ] own notes n=2 margin=0.677 terms=['dynamics', 'number', 'hyperinflation', 'expect', 'employment', 'consumer']
+- `04:10:03`   USLEI      → MACRO     [T2  ] own notes n=2 margin=0.640 terms=['orders', 'expectations', 'feeds', 'economic', 'permits', 'consumer']
+- `04:10:03`   CN10Y      → MACRO     [T3  ] co-occurs with 4 MACRO symbols
+- `04:10:03`   USINTR     → MACRO     [T2  ] own notes n=8 margin=0.101 terms=['pyramided', 'deplete', 'input', 'momentum', 'rise', 'anyway']
+- `04:10:03`   USM0       → LIQUIDITY [T2  ] own notes n=6 margin=0.292 terms=['composition', 'smallest', 'lend', 'held', 'reserves', 'sufficient']
+- `04:10:03` ✅   exclusive seeds for all domains
+- `04:10:03` ✅   all domains weak-labeled
+- `04:10:03` ✅   100% classified
+- `04:10:03` ✅   no backstop
+- `04:10:03` ✅   T1/T2 >= 60%
+- `04:10:03` ✅   no domain collapse (each >= 8% of drivers)
+- `04:10:03` ✅ PASS_ALL — 561/561; own-notes 538 (95.9%); MACRO 271 LIQUIDITY 107 RISK 183
