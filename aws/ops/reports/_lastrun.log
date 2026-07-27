@@ -1,37 +1,26 @@
-executing-against: fc6e471fd9a721d607511a2fe2e9be43a7d52fc1
+executing-against: 6f37dfb2fd61bba8272c2151c4ba934363ae26d1
 ops 3977 — data-census async close + schedule + page edge
 ── A0. the truth from CloudWatch ──
-[18:21:25]   [census] data-census v1.0 ops3975
-[18:21:25]   REPORT RequestId: 280f06ed-0330-4fa7-aa44-650c87765282	Duration: 600000.00 ms	Billed Duration: 600485 ms	Memory Size: 1536 MB	Max Memory Used: 384 MB	Init Duration: 484.96 ms	Status: timeout
-[18:21:25]   [census] data-census v1.0 ops3975
-[18:21:25]   REPORT RequestId: 348d73b5-5b96-4731-bc3c-8607a2ce6375	Duration: 600000.00 ms	Billed Duration: 600000 ms	Memory Size: 1536 MB	Max Memory Used: 387 MB	Status: timeout
-XRAY TraceId: 1-6a679df9
-[18:21:25]   [census] data-census v1.0 ops3975
-── A1. resources + engine v1.1 ──
+[18:44:45]   [census] data-census v1.1 ops3978 4mb-cap
+[18:44:45]   [census] DONE 839.7s arts=10022 paths=729243 mislabels=0 conflicts=0 gaps=0
+[18:44:45]   REPORT RequestId: 348d73b5-5b96-4731-bc3c-8607a2ce6375	Duration: 842179.94 ms	Billed Duration: 842752 ms	Memory Size: 3008 MB	Max Memory Used: 697 MB	Init Duration: 571.82 ms	
+XRAY TraceId: 
+[18:44:45]   [census] data-census v1.1 ops3978 4mb-cap
+[18:44:45]   [census] DONE 840.3s arts=10015 paths=726786 mislabels=0 conflicts=0 gaps=0
+[18:44:45]   REPORT RequestId: 70dcee71-2916-4f8a-8360-414730bce0a1	Duration: 842718.84 ms	Billed Duration: 843218 ms	Memory Size: 3008 MB	Max Memory Used: 686 MB	Init Duration: 498.34 ms	
+XRAY TraceId: 
+── A1. push engine v1.2 + settle by marker ──
 ── A. does the crashed invoke's output already exist? ──
-[18:21:42]   no artifact yet
+[18:44:57]   found generated_at=2026-07-27T18:29:04.828087+00:00 fresh=False
 ── B. async invoke + poll (the 3972 pattern) ──
-[18:23:43]   [5] still waiting
-[18:25:44]   [11] still waiting
-[18:27:44]   [17] still waiting
-[18:29:45]   [23] still waiting
-[18:31:45]   [29] still waiting
-[18:33:46]   [35] still waiting
-[18:35:47] ✅   census wrote after ~840s
-── C. verify ──
-── D. schedule (crashed op never reached it) ──
-[18:35:47] ✅   schedule created
-── E. page at the Cloudflare edge ──
-[18:35:47]   [0] 10772B 5/5
-[18:35:47] ✅   v1.1 resources applied
-[18:35:47] ✅   census artifact fresh
-[18:35:47] ✅   >=100 artifacts walked
-[18:35:47] ✅   >=2000 scalar paths indexed
-[18:35:47] ✅   all three detectors present
-[18:35:47] ✅   full paths ledger written
-[18:35:47] ✅   honesty clause published
-[18:35:47] ✅   schedule ENABLED
-[18:35:47] ✅   data-census.html live at edge
-[18:35:47] ✅ PASS_ALL — census 10015 artifacts / 726786 values; 0 mislabel candidates, 0 conflicts, 0 gap candidates; scheduled 12:45; page 10772B at edge
+[18:46:58]   [5] still waiting
+[18:48:59]   [11] still waiting
+[18:51:00]   [17] still waiting
+[18:53:01]   [23] still waiting
+[18:55:02]   [29] still waiting
+[18:57:03]   [35] still waiting
+[18:59:04]   [41] still waiting
+[19:00:05] ✗ census never wrote — check CloudWatch for the lambda error
 
-→ Report written to aws/ops/reports/latest/3978_census_v11_close.md
+→ Report written to aws/ops/reports/latest/3979_census_v12_provenance.md
+❌ OPS-FAIL: aws/ops/pending/ops_3979_census_v12_provenance.py
