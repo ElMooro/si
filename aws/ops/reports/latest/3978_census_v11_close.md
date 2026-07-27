@@ -1,0 +1,58 @@
+# ops 3977 — data-census async close + schedule + page edge
+
+**Status:** success  
+**Duration:** 862.1s  
+**Finished:** 2026-07-27T18:35:47+00:00  
+
+## Data
+
+| artifacts | artifacts_fresh_48h | artifacts_stale | artifacts_truncated_by_time_budget | conflicts | cron | elapsed_s | gap_candidates | ledger_bytes | marker | memory | mislabels | parse_errors | scalar_paths | schedule_state | timeout |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  |  |  |  | 3008 |  |  |  |  | 900 |
+| 10015 | 393 | 1 | 30381 |  |  |  |  |  |  |  |  | 0 | 726786 |  |  |
+|  |  |  |  |  |  | 840.3 |  |  | data-census v1.1 ops3978 4mb-cap |  |  |  |  |  |  |
+|  |  |  |  | 0 |  |  | 0 |  |  |  | 0 |  |  |  |  |
+|  |  |  |  |  |  |  |  | 81165697 |  |  |  |  |  |  |  |
+|  |  |  |  |  | cron(45 12 * * ? *) |  |  |  |  |  |  |  |  | ENABLED |  |
+
+## Log
+## A0. the truth from CloudWatch
+
+- `18:21:25`   [census] data-census v1.0 ops3975
+- `18:21:25`   REPORT RequestId: 280f06ed-0330-4fa7-aa44-650c87765282	Duration: 600000.00 ms	Billed Duration: 600485 ms	Memory Size: 1536 MB	Max Memory Used: 384 MB	Init Duration: 484.96 ms	Status: timeout
+- `18:21:25`   [census] data-census v1.0 ops3975
+- `18:21:25`   REPORT RequestId: 348d73b5-5b96-4731-bc3c-8607a2ce6375	Duration: 600000.00 ms	Billed Duration: 600000 ms	Memory Size: 1536 MB	Max Memory Used: 387 MB	Status: timeout
+XRAY TraceId: 1-6a679df9
+- `18:21:25`   [census] data-census v1.0 ops3975
+## A1. resources + engine v1.1
+
+## A. does the crashed invoke's output already exist?
+
+- `18:21:42`   no artifact yet
+## B. async invoke + poll (the 3972 pattern)
+
+- `18:23:43`   [5] still waiting
+- `18:25:44`   [11] still waiting
+- `18:27:44`   [17] still waiting
+- `18:29:45`   [23] still waiting
+- `18:31:45`   [29] still waiting
+- `18:33:46`   [35] still waiting
+- `18:35:47` ✅   census wrote after ~840s
+## C. verify
+
+## D. schedule (crashed op never reached it)
+
+- `18:35:47` ✅   schedule created
+## E. page at the Cloudflare edge
+
+- `18:35:47`   [0] 10772B 5/5
+- `18:35:47` ✅   v1.1 resources applied
+- `18:35:47` ✅   census artifact fresh
+- `18:35:47` ✅   >=100 artifacts walked
+- `18:35:47` ✅   >=2000 scalar paths indexed
+- `18:35:47` ✅   all three detectors present
+- `18:35:47` ✅   full paths ledger written
+- `18:35:47` ✅   honesty clause published
+- `18:35:47` ✅   schedule ENABLED
+- `18:35:47` ✅   data-census.html live at edge
+- `18:35:47` ✅ PASS_ALL — census 10015 artifacts / 726786 values; 0 mislabel candidates, 0 conflicts, 0 gap candidates; scheduled 12:45; page 10772B at edge

@@ -1,15 +1,37 @@
-executing-against: a29b88b9f1c2a6364da6eff59235ac0ea2155ecd
+executing-against: fc6e471fd9a721d607511a2fe2e9be43a7d52fc1
 ops 3977 — data-census async close + schedule + page edge
+── A0. the truth from CloudWatch ──
+[18:21:25]   [census] data-census v1.0 ops3975
+[18:21:25]   REPORT RequestId: 280f06ed-0330-4fa7-aa44-650c87765282	Duration: 600000.00 ms	Billed Duration: 600485 ms	Memory Size: 1536 MB	Max Memory Used: 384 MB	Init Duration: 484.96 ms	Status: timeout
+[18:21:25]   [census] data-census v1.0 ops3975
+[18:21:25]   REPORT RequestId: 348d73b5-5b96-4731-bc3c-8607a2ce6375	Duration: 600000.00 ms	Billed Duration: 600000 ms	Memory Size: 1536 MB	Max Memory Used: 387 MB	Status: timeout
+XRAY TraceId: 1-6a679df9
+[18:21:25]   [census] data-census v1.0 ops3975
+── A1. resources + engine v1.1 ──
 ── A. does the crashed invoke's output already exist? ──
-[18:05:45]   no artifact yet
+[18:21:42]   no artifact yet
 ── B. async invoke + poll (the 3972 pattern) ──
-[18:07:47]   [5] still waiting
-[18:09:49]   [11] still waiting
-[18:11:50]   [17] still waiting
-[18:13:52]   [23] still waiting
-[18:15:53]   [29] still waiting
-[18:17:55]   [35] still waiting
-[18:17:55] ✗ census never wrote — check CloudWatch for the lambda error
+[18:23:43]   [5] still waiting
+[18:25:44]   [11] still waiting
+[18:27:44]   [17] still waiting
+[18:29:45]   [23] still waiting
+[18:31:45]   [29] still waiting
+[18:33:46]   [35] still waiting
+[18:35:47] ✅   census wrote after ~840s
+── C. verify ──
+── D. schedule (crashed op never reached it) ──
+[18:35:47] ✅   schedule created
+── E. page at the Cloudflare edge ──
+[18:35:47]   [0] 10772B 5/5
+[18:35:47] ✅   v1.1 resources applied
+[18:35:47] ✅   census artifact fresh
+[18:35:47] ✅   >=100 artifacts walked
+[18:35:47] ✅   >=2000 scalar paths indexed
+[18:35:47] ✅   all three detectors present
+[18:35:47] ✅   full paths ledger written
+[18:35:47] ✅   honesty clause published
+[18:35:47] ✅   schedule ENABLED
+[18:35:47] ✅   data-census.html live at edge
+[18:35:47] ✅ PASS_ALL — census 10015 artifacts / 726786 values; 0 mislabel candidates, 0 conflicts, 0 gap candidates; scheduled 12:45; page 10772B at edge
 
-→ Report written to aws/ops/reports/latest/3977_census_async_close.md
-❌ OPS-FAIL: aws/ops/pending/ops_3977_census_async_close.py
+→ Report written to aws/ops/reports/latest/3978_census_v11_close.md
