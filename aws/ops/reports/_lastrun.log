@@ -1,83 +1,56 @@
-executing-against: d2ff80f9830ffe6058a5da677acd65fa213bdf86
-ops 4002 — preflight v2: final confirmed alias set
-── A. BOJ — generic (code,name) walk ──
-[04:04:16]   [200] MD01 bytes=6082 head={
- "STATUS":200,
- "MESSAGEID":"M181000I",
- "MESSAGE":"Successfully completed",
- "DATE":"2026-07-25T5:01:30.219+09:00",
- 
-[04:04:16]       pairs found: 15; sample: [('M181000I', 'Successfully completed'), ('MABS1AN11', 'Monetary Base/Average Amounts Outstanding'), ('MABS1AN11@', 'Monetary Base/Average Amounts Outstanding/Year-on-year change')]
-[04:04:16]       'monetary base': 14
-[04:04:16]         MABS1AN11 — Monetary Base/Average Amounts Outstanding
-[04:04:16]         MABS1AN11@ — Monetary Base/Average Amounts Outstanding/Year-on-year change
-[04:04:16]         MABS2AN116 — Monetary Base/Banknotes in Circulation/Average Amounts Outstanding
-[04:04:16]         MABS2AN116@ — Monetary Base/Banknotes in Circulation/Average Amounts Outstanding/Year-on-year change
-[04:04:16]         MABS2AN117 — Monetary Base/Coins in Circulation/Average Amounts Outstanding
-[04:04:17]         probe MABS1AN11 [200] values=[]
-[04:04:18]         probe MABS1AN11@ [200] values=[]
-[04:04:19]   [200] MD02 bytes=70973 head={
- "STATUS":200,
- "MESSAGEID":"M181000I",
- "MESSAGE":"Successfully completed",
- "DATE":"2026-07-25T5:01:31.427+09:00",
- 
-[04:04:19]       pairs found: 155; sample: [('M181000I', 'Successfully completed'), ('MAM1NAM2M2MO', 'M2/Average Amounts Outstanding/Money Stock'), ('MAM1NAM3M3MO', 'M3/Average Amounts Outstanding/Money Stock')]
-[04:04:19]       'm2': 7
-[04:04:19]         MAM1NAM2M2MO — M2/Average Amounts Outstanding/Money Stock
-[04:04:19]         MAM1XAM2M2MO — M2/Average Amounts Outstanding/Seasonally Adjusted/Money Stock
-[04:04:19]         MAM1YAM2M2MO — M2/Percent changes from the previous year in average amounts outstanding/Money Stock (Fo
-[04:04:19]         MAMS3ANM2C — (discontinued)M2+CDs/Average Amounts Outstanding/(Reference) Money Stock (from April 199
-[04:04:19]         MAMS3AAM2CX12 — (discontinued)M2+CDs/Average Amounts Outstanding/Seasonally Adjusted /(Reference) Money 
-[04:04:20]         probe MAM1NAM2M2MO [200] values=[]
-[04:04:20]         probe MAM1XAM2M2MO [200] values=[]
-[04:04:20]       'm3': 7
-[04:04:20]         MAM1NAM3M3MO — M3/Average Amounts Outstanding/Money Stock
-[04:04:20]         MAM1XAM3M3MO — M3/Average Amounts Outstanding/Seasonally Adjusted/Money Stock
-[04:04:20]         MAM1YAM3M3MO — M3/Percent changes from the previous year in average amounts outstanding/Money Stock (Fo
-[04:04:20]         MAMS3AN09NE — (discontinued)M3+CDs/Average Amounts Outstanding/(Reference) Money Stock (from April 199
-[04:04:20]         MAMS3ANM3 — (discontinued)_M3+CDs-Money Trusts/Average Amounts Outstanding/(Reference) Money Stock (
-[04:04:21]         probe MAM1NAM3M3MO [200] values=[]
-[04:04:22]         probe MAM1XAM3M3MO [200] values=[]
-── B. MOF — dual-URL + footer rule (the 3947 lesson) ──
-[04:04:22]   [200] https://www.mof.go.jp/english/policy/jgbs/reference/interest bytes=2025 data_rows=18
-[04:04:22]   latest 2026/7/27: 1Y=1.249 5Y=2.032 10Y=2.778 20Y=3.665 30Y=3.969
-── C. NORGES IR — dimension dump for the NOINTR match token ──
-[04:04:23]   dim FREQ: [('A', 'Annual'), ('B', 'Business'), ('M', 'Monthly')]
-[04:04:23]   dim INSTRUMENT_TYPE: [('KPRA', 'Key policy rate')]
-[04:04:23]   dim TENOR: [('SD', 'Policy rate'), ('OL', 'Overnight lending rate'), ('RR', 'Reserve rate')]
-[04:04:23]   dim UNIT_MEASURE: [('R', 'Rate')]
-[04:04:23]   series 0:0:0:0 -> [['4.29']]
-[04:04:23]   series 1:0:1:0 -> [['5.25']]
-[04:04:23]   series 1:0:0:0 -> [['4.25']]
-[04:04:23]   series 1:0:2:0 -> [['3.25']]
-[04:04:23]   series 2:0:1:0 -> [['5.25']]
-[04:04:23]   series 0:0:1:0 -> [['5.29']]
-[04:04:23]   policy-rate token: ('INSTRUMENT_TYPE', 'KPRA', 'Key policy rate')
-── D. BCRP — full names for the reserve candidates ──
-[04:04:24]   PEINTR PD04722MM
-[04:04:24]       NAME: Tasas de interés del Banco Central de Reserva - Tasa de Referencia de la Política Monetaria
-[04:04:24]       last Jul.2026 = ['4.25']
-[04:04:24]   PENUSD PN01207PM
-[04:04:24]       NAME: Tipo de cambio - promedio del periodo (S/ por US$) - Interbancario - Promedio
-[04:04:24]       last Jun.2026 = ['3.40596190476191']
-[04:04:24]   PEFER PN00026MM
-[04:04:24]       NAME: Cuentas monetarias del Banco Central de Reserva del Perú - Reservas Internacionales Netas (millones S/)
-[04:04:24]       last Jun.2026 = ['325836.330645']
-[04:04:25]   PEFER PN00027MM
-[04:04:25]       NAME: Cuentas monetarias del Banco Central de Reserva del Perú - Reservas Internacionales Netas (millones US$)
-[04:04:25]       last Jun.2026 = ['96490.199362']
-── E. FINAL — paste-ready ──
-[04:04:25]   "JP01Y": "mofjp:1Y",  # JGB curve — carry-unwind trigger [tv-9fa576184567fa8f]
-[04:04:25]   "JP05Y": "mofjp:5Y",  # JGB curve — carry-unwind trigger [tv-9fa576184567fa8f]
-[04:04:25]   "JP10Y": "mofjp:10Y",  # JGB curve — carry-unwind trigger [tv-9fa576184567fa8f]
-[04:04:25]   "JP20Y": "mofjp:20Y",  # JGB curve — carry-unwind trigger [tv-9fa576184567fa8f]
-[04:04:25]   "JP30Y": "mofjp:30Y",  # JGB curve — carry-unwind trigger [tv-9fa576184567fa8f]
-[04:04:25]   "NOINTR": "norges:IR:KPRA",  # policy rate — tighter (Key policy rate)
-[04:04:25]   "NO10Y": "norges:GOVT_GENERIC_RATES:10",  # long NOK rate (4001-confirmed)
-[04:04:25]   "PEINTR": "bcrp:PD04722MM",  # Tasas de interés del Banco Central de Reserva - Tasa de Refe
-[04:04:25]   "PENUSD": "bcrp:PN01207PM",  # Tipo de cambio - promedio del periodo (S/ por US$) - Interba
-[04:04:25]   "PEFER": "bcrp:PN00026MM",  # Cuentas monetarias del Banco Central de Reserva del Perú - R
-[04:04:25] ✅ PREFLIGHT DONE — 10 confirmed for wiring
+executing-against: b5f13b3b8bad5059fe7d7caa1aac2533b014c300
+ops 3985 — invoke-only: enforce, settle, fire
+[04:10:30] ✅   v1.6 pushed from runner
+[04:10:30] ✅ FIRED — v1.6 async under 900s/3008MB; verify via ops 3984 in ~13 min
 
-→ Report written to aws/ops/reports/latest/4002_preflight_v2.md
+→ Report written to aws/ops/reports/latest/4003_fire_vault.md
+ops 4004 — CB expansion pipeline verify
+── A. vault: poll for v3.9 write, then symbol sanity ──
+[04:12:34] ✅   v3.9 vault after ~120s
+[04:12:34]   JP01Y   None           v=None src=None sane=False
+[04:12:34]   JP05Y   None           v=None src=None sane=False
+[04:12:34]   JP10Y   None           v=None src=None sane=False
+[04:12:34]   JP20Y   None           v=None src=None sane=False
+[04:12:34]   JP30Y   None           v=None src=None sane=False
+[04:12:34]   NOINTR  None           v=None src=None sane=False
+[04:12:34]   NO10Y   None           v=None src=None sane=False
+[04:12:34]   PEINTR  None           v=None src=None sane=False
+[04:12:34]   PENUSD  None           v=None src=None sane=False
+[04:12:34]   PEFER   None           v=None src=None sane=False
+── B. barometers: classify + sign the new symbols ──
+[04:12:38]   invoke fnerr=None
+[04:12:38]   JP01Y   dom=None      pol=None basis=None status=None
+[04:12:38]   JP05Y   dom=None      pol=None basis=None status=None
+[04:12:38]   JP10Y   dom=None      pol=None basis=None status=None
+[04:12:38]   JP20Y   dom=None      pol=None basis=None status=None
+[04:12:38]   JP30Y   dom=None      pol=None basis=None status=None
+[04:12:38]   NOINTR  dom=None      pol=None basis=None status=None
+[04:12:38]   NO10Y   dom=None      pol=None basis=None status=None
+[04:12:38]   PEINTR  dom=None      pol=None basis=None status=None
+[04:12:38]   PENUSD  dom=None      pol=None basis=None status=None
+[04:12:38]   PEFER   dom=None      pol=None basis=None status=None
+[04:12:38]   MACRO     53.8 NEUTRAL voting=95
+[04:12:38]   LIQUIDITY 42.2 TIGHTENING voting=48
+[04:12:38]   RISK      33.9 TIGHTENING voting=61
+── C. risk-gate: carry leg cites JGB 10Y ──
+[04:12:46]   invoke fnerr=None
+[04:12:46]   posture=RISK_OFF sizing=0.45
+[04:12:46]   carry inputs head: []
+[04:12:46] ✅   vault marker v3.9
+[04:12:46] ✗   >=8 of 10 new symbols LIVE and sane
+[04:12:46] ✗   JGB curve monotone (sanity)
+[04:12:46] ✅   barometers v1.3 settled
+[04:12:46] ✅   barometers invoke clean
+[04:12:46] ✗   >=8 new symbols carry a brain-note polarity
+[04:12:46] ✅   risk-gate jp10y patch settled
+[04:12:46] ✅   risk-gate invoke clean
+[04:12:46] ✗   carry leg includes jgb10y_carry_cost
+[04:12:46] ✅   posture valid
+[04:12:46] ✗ FAILED: ['>=8 of 10 new symbols LIVE and sane', 'JGB curve monotone (sanity)', '>=8 new symbols carry a brain-note polarity', 'carry leg includes jgb10y_carry_cost']
+
+→ Report written to aws/ops/reports/latest/4004_cb_expansion_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_4004_cb_expansion_verify.py
+ops 3985 — invoke-only: enforce, settle, fire
+[04:12:48] ✅ FIRED — v1.6 async under 900s/3008MB; verify via ops 3984 in ~13 min
+
+→ Report written to aws/ops/reports/latest/4005_census_refresh.md
