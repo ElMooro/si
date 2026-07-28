@@ -297,7 +297,7 @@
     panel.innerHTML =
       '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">' +
         '<span style="width:7px;height:7px;background:#F0B429;border-radius:50%"></span>' +
-        '<b style="font-size:12px">JustHodl \u00b7 TV Harvest v1.2</b>' +
+        '<b style="font-size:12px">JustHodl \u00b7 TV Harvest v' + (chrome.runtime.getManifest().version) + '</b>' +
         '<span id="jh-x" style="margin-left:auto;cursor:pointer;color:#8a836f">\u2715</span></div>' +
       '<div id="jh-status" style="font-size:12px;margin-bottom:8px">listening\u2026</div>' +
       '<div id="jh-seen" style="max-height:110px;overflow:auto;margin-bottom:10px;border-top:1px solid #2B2820;padding-top:6px"></div>' +
