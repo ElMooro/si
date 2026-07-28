@@ -253,12 +253,73 @@
    * self-starting harvest (once per day, resume-aware = free at full
    * coverage), sync at T+75s, at harvest finish, and every 15 min when
    * anything grew. */
+  /* v1.7.3: harvest moved INTO the content script. MAIN-world fetches
+   * obey the PAGE's CSP — if TradingView's connect-src blocks
+   * symbol-search, every request throws into a silent catch and SRCS
+   * stays 0 forever (four hours of server-side absence proved it).
+   * Content-script fetches run under the EXTENSION's permissions and
+   * ignore page CSP. Telemetry ships with every sync even at 0 sources,
+   * so the server can see exactly what happened. */
+  var DIAG = { started: 0, done: 0, total: 0, ss_ok: 0, ss_err: 0,
+               html_ok: 0, html_err: 0, matched: 0, first_err: "" };
+  var HRUN = false;
+  function contentHarvest(syms) {
+    if (HRUN || !syms.length) return;
+    HRUN = true;
+    DIAG.started = Date.now(); DIAG.total = syms.length; DIAG.done = 0;
+    var i = 0;
+    function step() {
+      if (i >= syms.length) {
+        HRUN = false;
+        saveSrcs();
+        msg("Harvest complete \u2014 " + SRCS.size + " sources (ss " +
+            DIAG.ss_ok + "/" + DIAG.ss_err + " \u00b7 html " +
+            DIAG.html_ok + "/" + DIAG.html_err + "). Auto-syncing\u2026",
+            "#4CC38A");
+        try { upload(); } catch (e) {}
+        return;
+      }
+      var sym = syms[i++];
+      var bare = String(sym).split(":").pop();
+      var before = SRCS.size;
+      fetch("https://symbol-search.tradingview.com/symbol_search/v3/?text=" +
+            encodeURIComponent(bare) + "&hl=0&lang=en&domain=production",
+            { credentials: "include" })
+        .then(function (r) { return r.json(); })
+        .then(function (j) { DIAG.ss_ok++; sniffSources(j, 0); })
+        .catch(function (e) {
+          DIAG.ss_err++;
+          if (!DIAG.first_err) DIAG.first_err = "ss:" + String(e).slice(0, 90);
+        });
+      fetch("https://www.tradingview.com/symbols/" +
+            String(sym).replace(":", "-") + "/",
+            { credentials: "include" })
+        .then(function (r) { return r.text(); })
+        .then(function (t) { DIAG.html_ok++; fromHtml(sym, String(t)); })
+        .catch(function (e) {
+          DIAG.html_err++;
+          if (!DIAG.first_err) DIAG.first_err = "html:" + String(e).slice(0, 90);
+        });
+      setTimeout(function () {
+        if (SRCS.size > before) DIAG.matched++;
+      }, 900);
+      DIAG.done = i;
+      if (i % 5 === 0)
+        msg("Harvesting\u2026 " + i + "/" + syms.length + " \u00b7 " +
+            SRCS.size + " sources \u00b7 ss " + DIAG.ss_ok + "/" +
+            DIAG.ss_err + " html " + DIAG.html_ok + "/" + DIAG.html_err,
+            "#F0B429");
+      setTimeout(step, 340);
+    }
+    step();
+  }
   function startHarvest() {
     var syms = allWatchlistSymbols();
-    if (!syms.length) return 0;
-    msg("Auto-harvesting sources for " + syms.length + " symbols (\u2248" +
-        Math.ceil(syms.length / 170) + " min, resumable)\u2026", "#F0B429");
-    window.postMessage({ __jh_cmd: "harvest", symbols: syms }, "*");
+    if (!syms.length) {
+      msg("All " + SRCS.size + " sources already harvested \u2713", "#4CC38A");
+      return 0;
+    }
+    contentHarvest(syms);
     return syms.length;
   }
   var LAST_SIG = "";
@@ -317,7 +378,7 @@
     });
     var sources = [];
     SRCS.forEach(function (v, k) { sources.push({ symbol: k, source: v.source, description: v.description }); });
-    chrome.runtime.sendMessage({ action: "upload", notes: notes, watchlists: lists, sources: sources },
+    chrome.runtime.sendMessage({ action: "upload", notes: notes, watchlists: lists, sources: sources, harvest_diag: DIAG },
       function (res) {
         if (res && (res.ok || res.brain_upserted > 0 || res.watchlists_saved > 0)) {
           msg("\u2705 " + (res.brain_upserted || 0) + " notes \u2192 Brain \u00b7 " +

@@ -128,12 +128,16 @@ def _norm(raw):
 
 
 
-def _save_sources(sources):
+def _save_sources(sources, diag=None):
     """ops4016: TradingView per-metric attribution — the canonical source
     map ('you can see where tradingview is pulling their data from').
     Merged by symbol so every browse session enriches it."""
-    if not sources or not isinstance(sources, list):
+    # ops4052: diag ships even at ZERO sources — the file is born either
+    # way, so the server can finally SEE why capture fails without
+    # screenshots.
+    if (not sources or not isinstance(sources, list)) and not diag:
         return 0
+    sources = sources if isinstance(sources, list) else []
     try:
         cur = json.loads(S3.get_object(Bucket=BUCKET,
                                        Key=SOURCES_KEY)["Body"].read())
@@ -155,7 +159,9 @@ def _save_sources(sources):
     S3.put_object(Bucket=BUCKET, Key=SOURCES_KEY,
                   Body=json.dumps({"generated_at":
                                    datetime.now(timezone.utc).isoformat(),
-                                   "n_symbols": len(m), "sources": m}),
+                                   "n_symbols": len(m),
+                                   "last_harvest_diag": diag,
+                                   "sources": m}),
                   ContentType="application/json", CacheControl="max-age=300")
     return n
 
@@ -224,7 +230,7 @@ def lambda_handler(event, context):
         print(f"[tv-ingest] watchlists save failed: {str(_e)[:120]}")
     src_saved = 0
     try:
-        src_saved = _save_sources(req.get("sources"))
+        src_saved = _save_sources(req.get("sources"), req.get("harvest_diag"))
     except Exception as _e:
         print(f"[tv-ingest] sources save failed: {str(_e)[:120]}")
 

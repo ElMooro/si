@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "JustHodl \u2014 TradingView Notes",
   "short_name": "JH TV Notes",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "description": "Sync your TradingView notes AND watchlists into JustHodl \u2014 taps TradingView's own network traffic (no endpoint guessing).",
   "permissions": [
     "alarms",
@@ -11,10 +11,11 @@
     "tabs"
   ],
   "host_permissions": [
-    "https://*.tradingview.com/*",
     "https://*.lambda-url.us-east-1.on.aws/*",
+    "https://*.tradingview.com/*",
     "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/*",
-    "https://justhodl.ai/*"
+    "https://justhodl.ai/*",
+    "https://symbol-search.tradingview.com/*"
   ],
   "background": {
     "service_worker": "background.js"
