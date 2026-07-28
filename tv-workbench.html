@@ -1,0 +1,84 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TV Workbench — JustHodl.AI</title>
+<meta name="description" content="Every TradingView watchlist mirrored: indicators, notes, live values, and TradingView's own data-source attribution — organized by watchlist name.">
+<!-- tv-workbench v1-ops4019 -->
+<style>
+:root{--bg:#0d1117;--card:#161b22;--line:#30363d;--tx:#e6edf3;--dim:#8b949e;
+--amber:#F0B429;--red:#E07A6A;--green:#4CC38A;--blue:#7EA6F0}
+*{box-sizing:border-box}body{margin:0 auto;background:var(--bg);color:var(--tx);
+font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;padding:18px;max-width:1180px}
+h1{font-size:20px;margin:0 0 2px}.dim{color:var(--dim)}.mono{font-family:ui-monospace,Menlo,monospace}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:14px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.big{font-size:24px;font-weight:800}
+input{background:#0d1117;border:1px solid var(--line);border-radius:8px;color:var(--tx);
+padding:9px 11px;width:100%;max-width:460px;font-size:13px}
+.pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:9.5px;font-weight:700;border:1px solid var(--line)}
+.p-ok{background:#12261c;color:var(--green)}.p-bad{background:#2e1a17;color:var(--red)}
+.p-dim{color:var(--dim)}
+details.wl{background:var(--card);border:1px solid var(--line);border-radius:10px;margin:8px 0;padding:0}
+details.wl>summary{cursor:pointer;padding:11px 14px;font-weight:800;list-style:none;display:flex;gap:10px;align-items:center}
+details.wl>summary::before{content:"▸";color:var(--dim)}details.wl[open]>summary::before{content:"▾"}
+.sym{border-top:1px solid #1c2129;padding:8px 14px}
+.sym .head{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline}
+.src{color:var(--blue);font-size:11.5px}
+.note{background:#0d1117;border-left:3px solid var(--amber);border-radius:6px;
+padding:7px 10px;margin:6px 0 0;font-size:12.5px;white-space:pre-wrap}
+.warn{background:#2a2414;border:1px solid #5a4a1e;border-radius:8px;padding:9px 11px;
+font-size:12px;color:#e8d9a8;margin:10px 0}
+details.notes>summary{cursor:pointer;color:var(--dim);font-size:11px;list-style:none;margin-top:3px}
+</style></head><body>
+<h1>TV Workbench</h1>
+<div class="dim">Every TradingView watchlist, mirrored — indicators, your notes, live values, and TradingView's own
+source attribution. Organized by watchlist name, just like the platform. Generated
+<span id="gen" class="mono">—</span> · watchlists snapshot <span id="wlgen" class="mono">—</span>.</div>
+<div id="srcwarn" class="warn" style="display:none">TradingView source attribution isn't populated yet —
+it fills the moment a v1.5.0 extension <b>Upload</b> lands (browse TradingView, click Upload). Everything else below is live.</div>
+<div id="stats" class="grid"></div>
+<div class="card"><input id="q" placeholder="search watchlist, symbol, note text, source…"></div>
+<div id="lists"></div>
+<script>
+const SRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/tv-workbench.json',
+'https://s3.amazonaws.com/justhodl-dashboard-live/data/tv-workbench.json'];
+let D=null,q='';
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const st=s=>s==='LIVE'?'<span class="pill p-ok">LIVE</span>':s?'<span class="pill p-bad">'+esc(s)+'</span>':'<span class="pill p-dim">—</span>';
+async function load(){for(const u of SRC){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){D=await r.json();break}}catch(e){}}
+ if(!D){document.getElementById('lists').innerHTML='<div class="card dim">data/tv-workbench.json not published yet — first engine run creates it.</div>';return}
+ document.getElementById('gen').textContent=(D.generated_at||'').slice(0,16).replace('T',' ')+' UTC';
+ document.getElementById('wlgen').textContent=((D.inputs||{}).watchlists_generated||'—').slice(0,10);
+ if(!(D.inputs||{}).sources_available)document.getElementById('srcwarn').style.display='';
+ const t=D.totals||{};
+ document.getElementById('stats').innerHTML=[['watchlists',t.watchlists],
+  ['unique indicators',t.unique_symbols],['with your notes',t.symbols_with_notes],
+  ['with TV source',t.symbols_with_tv_source]]
+  .map(([k,v])=>`<div class="card"><div class="dim" style="font-size:11px">${k}</div><div class="big">${v??'—'}</div></div>`).join('');
+ render();document.getElementById('q').addEventListener('input',e=>{q=e.target.value.toLowerCase();render()})}
+function symHit(s){const d=D.symbols[s]||{};return !q||s.toLowerCase().includes(q)
+ ||(d.description||'').toLowerCase().includes(q)||(d.tv_source||'').toLowerCase().includes(q)
+ ||(d.notes||[]).some(n=>(n.t||'').toLowerCase().includes(q))}
+function render(){const el=document.getElementById('lists');
+ el.innerHTML=(D.watchlists||[]).map(w=>{
+  const hitWl=!q||w.name.toLowerCase().includes(q);
+  const syms=(w.symbols||[]).filter(s=>hitWl||symHit(s));
+  if(q&&!syms.length&&!hitWl)return '';
+  const open=q?' open':'';
+  return `<details class="wl"${open}><summary>${esc(w.name)}
+    <span class="dim" style="font-weight:400;font-size:11.5px">${w.n} indicators${w.named?'':' · unnamed id '+esc(w.id)}</span></summary>
+   ${syms.slice(0,600).map(s=>{const d=D.symbols[s]||{};
+    return `<div class="sym"><div class="head">
+      <b class="mono">${esc(s)}</b>
+      ${d.value!=null?`<span class="mono">= ${esc(d.value)}</span>`:''}
+      ${st(d.status)}
+      ${d.tv_source?`<span class="src">pulled from ${esc(d.tv_source)}</span>`:''}
+      ${d.description?`<span class="dim" style="font-size:11.5px">${esc(d.description)}</span>`:''}
+      ${d.source_engine?`<span class="dim" style="font-size:10.5px">· engine src ${esc(d.source_engine)}</span>`:''}
+     </div>
+     ${(d.notes||[]).length?`<details class="notes"${q&&(d.notes||[]).some(n=>(n.t||'').toLowerCase().includes(q))?' open':''}>
+       <summary>${d.n_notes} note${d.n_notes>1?'s':''}</summary>
+       ${(d.notes||[]).map(n=>`<div class="note">${esc(n.t)}</div>`).join('')}</details>`:''}
+    </div>`}).join('')}
+  </details>`}).join('')||'<div class="card dim">nothing matches the search</div>'}
+load();
+</script></body></html>
