@@ -1,225 +1,45 @@
-executing-against: ce73d19c6533f5fd5a0faae50050c1d4c13b9b7e
-ops 4015 — TV watchlists + sources server-side audit
-── A. candidate artifacts ──
-[13:23:23]   data/tv-watchlists.json: FOUND
-[13:23:23]   data/watchlists.json: NoSuchKey
-[13:23:23]   data/tv-notes-watchlists.json: NoSuchKey
-[13:23:23]   tv/watchlists.json: NoSuchKey
-[13:23:23]   data/tv-tracker.json: NoSuchKey
-── B. data/tv-watchlists.json — the truth ──
-[13:23:23]   10 YR High Quality Market (HQM)  - PREDI n_symbols=2
-[13:23:23]   2 Year US Note                           n_symbols=3
-[13:23:23]   3 year Global bond yield - 3 yr bonds sh n_symbols=8
-[13:23:23]   3X ETF                                   n_symbols=26
-[13:23:23]   68114374                                 n_symbols=319
-[13:23:23]   71699273                                 n_symbols=500
-[13:23:23]   82577015                                 n_symbols=38
-[13:23:23]   82604570                                 n_symbols=500
-[13:23:23]   87717856                                 n_symbols=170
-[13:23:23]   91314743                                 n_symbols=118
-[13:23:23]   Above and Below Moving Averages          n_symbols=14
-[13:23:23]   Advertising companies indicators         n_symbols=6
-[13:23:23]   Africa                                   n_symbols=1
-[13:23:23]   Ai hedge fund stocks to buy              n_symbols=7
-[13:23:23]   Ai stocks                                n_symbols=13
-[13:23:23]   Airport Stocks                           n_symbols=4
-[13:23:23]   All World Ex US: WHAT GLOBAL STOCK MARKE n_symbols=153
-[13:23:23]   ALLOCATION: SHOWS IF GLOBAL INVESTORS AR n_symbols=14
-[13:23:23]   Altcoin Dominance                        n_symbols=17
-[13:23:23]   Autos                                    n_symbols=40
-[13:23:23]   Balance sheet                            n_symbols=9
-[13:23:23]   Bank Reserves - Great Barometer of Liqui n_symbols=2
-[13:23:23]   Bankcruptcies                            n_symbols=25
-[13:23:23]   Banking Sector : Banks = Liquidity Proxy n_symbols=129
-[13:23:23]   Banks Capital Deployment                 n_symbols=4
-[13:23:23]   Banks Tightening Percentage              n_symbols=7
-[13:23:23]   Basic Materials                          n_symbols=91
-[13:23:23]   Bitcoin - Global Liquidity: GOLD ALWAYS  n_symbols=248
-[13:23:23]   Bitcoin : Nikkei TOP and Bottom in USD A n_symbols=437
-[13:23:23]   Black Swan Event                         n_symbols=500
-[13:23:23]   Blackrock ETF                            n_symbols=4
-[13:23:23]   Bond Global High Yield EX USA : Global L n_symbols=1
-[13:23:23]   Bond: Treasuries gauge Stock Mkt Health  n_symbols=16
-[13:23:23]   Bonds - Corp: AGG IS THE BEST TOOL TO GA n_symbols=61
-[13:23:23]   Bonds - Sovereign : Bonds dumping especi n_symbols=11
-[13:23:23]   BONDS : Fixed income tends to lean itsel n_symbols=103
-[13:23:23]   BONDS I WANNA BUY                        n_symbols=3
-[13:23:23]   Bottom Indicators                        n_symbols=500
-[13:23:23]   Brazil: Brazil GDP: a proxy of commodity n_symbols=2
-[13:23:23]   Breadth: leads the Market                n_symbols=180
-[13:23:23]   Brent Johnson Portfolio: THE SHORTTERM S n_symbols=273
-[13:23:23]   BTP BUND: Italy to Germany bond spread i n_symbols=3
-[13:23:23]   Business Confidence Index: used to asses n_symbols=72
-[13:23:23]   Business Cycle                           n_symbols=32
-[13:23:23]   Buybacks: great barometer of global liqu n_symbols=29
-[13:23:23]   Buying pressure Indicators               n_symbols=15
-[13:23:23]   Buying the Dip indicators                n_symbols=5
-[13:23:23]   Capacity Utilization                     n_symbols=17
-[13:23:23]   Capital Markets ETF                      n_symbols=1
-[13:23:23]   Central Bank Balance Sheet               n_symbols=89
-[13:23:23]   Central Banks Interest Rates - To Spot C n_symbols=29
-[13:23:23]   Change in private inventories            n_symbols=16
-[13:23:23]   Chicago Financial conditions             n_symbols=20
-[13:23:23]   Chile - Early Warning Sign for Global Fi n_symbols=41
-[13:23:23]   china                                    n_symbols=91
-[13:23:23]   China Liquidity                          n_symbols=5
-[13:23:23]   Coincident Index                         n_symbols=2
-[13:23:23]   Collateral: FED control liquidity, Credi n_symbols=20
-[13:23:23]   Commercial banks                         n_symbols=40
-[13:23:23]   Commercial Banks                         n_symbols=38
-[13:23:23]   Commercial banks                         n_symbols=31
-[13:23:23]   Commercial Papers                        n_symbols=6
-[13:23:23]   Commercial Real Estate                   n_symbols=2
-[13:23:23]   Commodities : are often rented but rarel n_symbols=45
-[13:23:23]   Confidence Index                         n_symbols=9
-[13:23:23]   Consumer                                 n_symbols=9
-[13:23:23]   CONSUMER CONFIDENCE                      n_symbols=26
-[13:23:23]   CONSUMER SPENDING                        n_symbols=41
-[13:23:23]   Consumers                                n_symbols=42
-[13:23:23]   Convertible Bonds                        n_symbols=1
-[13:23:23]   Copper                                   n_symbols=5
-[13:23:23]   Copper - Predict Future                  n_symbols=3
-[13:23:23]   Corp Yields                              n_symbols=36
-[13:23:23]   Corporate Bonds                          n_symbols=11
-[13:23:23]   Corporate Profits                        n_symbols=7
-[13:23:23]   Corporate profits                        n_symbols=15
-[13:23:23]   Countries Balance of Trade               n_symbols=189
-[13:23:23]   Countries Factory orders                 n_symbols=10
-[13:23:23]   Countries New Orders                     n_symbols=37
-[13:23:23]   Country ETFs                             n_symbols=12
-[13:23:23]   Country Import Prices                    n_symbols=59
-[13:23:23]   Credit - Predict futures : Em SMALL CAP  n_symbols=11
-[13:23:23]   Credit Crunch                            n_symbols=16
-[13:23:23]   Credit market                            n_symbols=108
-[13:23:23]   Credit Risk                              n_symbols=25
-[13:23:23]   Credit Spreads                           n_symbols=35
-[13:23:23]   Crisis Proof portfolio                   n_symbols=1
-[13:23:23]   Crypto : Nikkei TOP and Bottom in USD AL n_symbols=327
-[13:23:23]   Crypto Projects Dominance                n_symbols=10
-[13:23:23]   Current Account                          n_symbols=31
-[13:23:23]   Current Account to GDP                   n_symbols=26
-[13:23:23]   Customers Confidence surveys             n_symbols=2
-[13:23:23]   Daily Metrics to watch                   n_symbols=122
-[13:23:23]   Danger                                   n_symbols=29
-[13:23:23]   Debt To GDP                              n_symbols=166
-[13:23:23]   Defense stocks                           n_symbols=5
-[13:23:23]   Delinquencies                            n_symbols=4
-[13:23:23]   Delinquency and Defaults on loans        n_symbols=9
-[13:23:23]   Deposit Interest Rate                    n_symbols=153
-[13:23:23]   Developed Markets                        n_symbols=7
-[13:23:23]   Different Types of Stock indexes         n_symbols=52
-[13:23:23]   Dollar Shortage Indicators               n_symbols=17
-[13:23:23]   Draining Liquidity                       n_symbols=13
-[13:23:23]   Drones                                   n_symbols=11
-[13:23:23]   Drug Manufacturers                       n_symbols=9
-[13:23:23]   Dubai Index                              n_symbols=14
-[13:23:23]   DUMP Metrics                             n_symbols=10
-[13:23:23]   Durable Goods                            n_symbols=8
-[13:23:23]   DXY predict Future Moves : Currencies be n_symbols=85
-[13:23:23]   DXY: Currencies best seen in "3M" : DXY  n_symbols=90
-[13:23:23]   DXY: DIFFERENT TYPE OF DXY: IN CURRENCY  n_symbols=18
-[13:23:23]   Earnings                                 n_symbols=15
-[13:23:23]   Economic Index                           n_symbols=9
-[13:23:23]   Economies Current Conditions             n_symbols=4
-[13:23:23]   Economy                                  n_symbols=229
-[13:23:23]   Economy Trend Reversal                   n_symbols=18
-[13:23:23]   Emerging Market Bonds                    n_symbols=25
-[13:23:23]   Emerging Market Growth: High EM growth m n_symbols=6
-[13:23:23]   Emerging Market Sovereign Crisis - Eurod n_symbols=20
-[13:23:23]   Emerging markets : BEST GUAGE FOR GLOBAL n_symbols=158
-[13:23:23]   Emerging Markets Liquidity: $ Flow into  n_symbols=28
-[13:23:23]   EMERGING MARKETS STRESS                  n_symbols=8
-[13:23:23]   Employment                               n_symbols=37
-[13:23:23]   Energy and oil stocks                    n_symbols=22
-[13:23:23]   Equal Weight means all stocks have the s n_symbols=62
-[13:23:23]   Ethereum Treasuries                      n_symbols=5
-[13:23:23]   Euro Dollar Shortage & Liquidity squeeze n_symbols=14
-[13:23:23]   Euro Positioning                         n_symbols=24
-[13:23:23]   Euro Predict Future Moves : Currencies B n_symbols=10
-[13:23:23]   EuroDollar - Interest rates              n_symbols=26
-[13:23:23]   Eurodollar - is it functioning as it sho n_symbols=27
-[13:23:23]   EuroDollar - Predict Future move         n_symbols=40
-[13:23:23]   EuroDollar banks                         n_symbols=10
-[13:23:23]   EuroDollar Bonds                         n_symbols=9
-[13:23:23]   EURODOLLAR COLLATERAL                    n_symbols=30
-[13:23:23]   EuroDollar Futures                       n_symbols=17
-[13:23:23]   Eurodollar Global Liquidity : Interbank  n_symbols=43
-[13:23:23]   EuroDollar Liquidity                     n_symbols=46
-[13:23:23]   EuroDollar Predict future moves: DXY pum n_symbols=43
-[13:23:23]   EuroDollar: DXY pumping means tightening n_symbols=86
-[13:23:23]   Europe                                   n_symbols=128
-[13:23:23]   Europe Corporate Bonds                   n_symbols=23
-[13:23:23]   Europe Gov DATA                          n_symbols=89
-[13:23:23]   Europe Growth                            n_symbols=14
-[13:23:23]   Europe Liquidity :BTPBUND  measure finan n_symbols=9
-[13:23:23]   Europe Stocks Indices                    n_symbols=13
-[13:23:23]   Europe Yield Curve                       n_symbols=1
-[13:23:23]   European Bonds                           n_symbols=120
-[13:23:23]   Expansion / Contraction - United States  n_symbols=10
-[13:23:23]   Factory orders                           n_symbols=12
-[13:23:23]   Fallen Angels bonds                      n_symbols=3
-[13:23:23]   Fear / Greed in Mkt: Put/Call ratio      n_symbols=39
-[13:23:23]   Fed Activity                             n_symbols=77
-[13:23:23]   FED BALANCE SHEET                        n_symbols=2
-[13:23:23]   Fed Balance sheet                        n_symbols=30
-[13:23:23]   Fed Expected yield policy and future int n_symbols=10
-[13:23:23]   Fed Interest Rates                       n_symbols=60
-[13:23:23]   fed plumbing                             n_symbols=89
-[13:23:23]   fed powell holding                       n_symbols=10
-[13:23:23]   Fed Rates - Prediction                   n_symbols=32
-[13:23:23]   Federal Reserve Liquidity                n_symbols=2
-[13:23:23]   Feds                                     n_symbols=30
-[13:23:23]   Feds Monetary Policy: Fed tighten moneta n_symbols=37
-[13:23:23]   Feds Rates                               n_symbols=13
-[13:23:23]   Fertilizer                               n_symbols=3
-[13:23:23]   Fidelity  portfolio                      n_symbols=8
-[13:23:23]   Financial Conditions                     n_symbols=39
-[13:23:23]   Financial Crisis                         n_symbols=101
-[13:23:23]   Financial Crisis Signs                   n_symbols=203
-[13:23:23]   Financial Stress                         n_symbols=53
-[13:23:23]   Finland : a major producer of pulp & pap n_symbols=114
-[13:23:23]   Floating Rate Loans ETF                  n_symbols=1
-[13:23:23]   Foreign Currency Reserves/GDP            n_symbols=16
-[13:23:23]   Foreign Exchange Reserve / External Debt n_symbols=11
-[13:23:23]   Foreign Exchange Reserves                n_symbols=123
-[13:23:23]   Foreign Exchange Reserves / Money Supply n_symbols=16
-[13:23:23]   Foreign investments                      n_symbols=3
-[13:23:23]   Forex                                    n_symbols=12
-[13:23:23]   Forward Rates                            n_symbols=11
-[13:23:23]   France                                   n_symbols=8
-[13:23:23]   Freight                                  n_symbols=26
-[13:23:23]   Frontier Market ETFS                     n_symbols=50
-[13:23:23]   FTSE                                     n_symbols=500
-[13:23:23]   Future Feds policy predictors            n_symbols=4
-[13:23:23]   Futures                                  n_symbols=171
-[13:23:23]   GDP Growth                               n_symbols=30
-[13:23:23]   GDP to Money Supply M3: Determines Local n_symbols=18
-[13:23:23]   GDP YOY                                  n_symbols=168
-[13:23:23]   Germany: Germany stock Markets are a GRE n_symbols=20
-[13:23:23]   Global 10 year yields                    n_symbols=33
-[13:23:23]   Global 2 year yields                     n_symbols=27
-[13:23:23]   Global Bond Markets                      n_symbols=48
-[13:23:23]   Global Bonds                             n_symbols=27
-[13:23:23]   Global Commodities prices                n_symbols=29
-[13:23:23]   Global Commodities signaling Growth      n_symbols=5
-[13:23:23]   Global Countries Net Total Return        n_symbols=41
-[13:23:23]   Global Credit                            n_symbols=57
-[13:23:23]   Global Deposit Rates Which drains liquid n_symbols=6
-[13:23:23]   Global Economic policy Uncertainty Indic n_symbols=3
-[13:23:23]   Global Economies Health                  n_symbols=4
-[13:23:23]   Global Economy Expansion / Contraction   n_symbols=23
-[13:23:23]   GLOBAL EQUITY                            n_symbols=23
-[13:23:23]   Global ETFs                              n_symbols=75
-[13:23:23]   Global Food Inflation                    n_symbols=174
-[13:23:23]   global freight                           n_symbols=3
-[13:23:23]   Global Freight Transportation            n_symbols=4
-[13:23:23]   Red list                                 n_symbols=500
-── C. BLACKSWAN membership ──
-[13:23:23]   symbols: AMEX:IQLT, AMEX:HEFA, NASDAQ:SUSL, AMEX:EPP
-── D. brain TV-note parity + source-attribution absence ──
-[13:23:23] ✅   watchlists artifact exists
-[13:23:23] ✗   blackswan present with >=5 symbols
-[13:23:23] ✗ FAILED: ['blackswan present with >=5 symbols']
+executing-against: f873f0daa7040888024f9dec374848779b32a5cd
+ops 4016 — extension v1.5.0 + sources persistence
+── A. rebuild + upload the zip (mirror current layout) ──
+── B. settle the ingest lambda ──
+── C. corrected blackswan gate (prefer 'swan' over 'black*') ──
+[13:29:58]     TVC:US03MY/FRED:BAMLH0A0HYM2
+[13:29:58]     NYMEX:CL1!-BLACKBULL:WTI
+[13:29:58]     FRED:T10YIEM
+[13:29:58]     FRED:T10YIE
+[13:29:58]     ECONOMICS:USRR
+[13:29:58]     EUREX:FMOG1!
+[13:29:58]     FRED:MCUMFN
+[13:29:58]     FRED:USALOLITONOSTSAM
+[13:29:58]     FRED:PCOPPUSDM
+[13:29:58]     NYMEX:AA51!
+[13:29:58]     FX_IDC:KYDUSD
+[13:29:58]     FX_IDC:BMDUSD
+[13:29:58]     FRED:CES4348400001
+[13:29:58]     TVC:BTPBUND
+[13:29:58]     FRED:HTRUCKSSAAR
+[13:29:58]     FRED:WPU09120325
+[13:29:58]     ECONOMICS:USWEI
+[13:29:58]     FRED:TCU
+[13:29:58]     FRED:AISRSA
+[13:29:58]     NASDAQ:TLT
+[13:29:58]     FRED:TOTALSA
+[13:29:58]     ECONOMICS:USJC
+[13:29:58]     FRED:JTSQUR
+[13:29:58]     ECONOMICS:CLGDPYY
+[13:29:58]     FRED:OUTMS
+[13:29:58]     ECONOMICS:CLUR
+[13:29:58]     ECONOMICS:CHUR
+[13:29:58]     ECONOMICS:HKUR
+[13:29:58]     ECONOMICS:USRSYY
+[13:29:58]     ECONOMICS:EURSYY
+── D. zip reachable at the edge download URL ──
+[13:30:59] ✅   zip carries v1.5.0
+[13:30:59] ✅   zip inject taps symbol metadata
+[13:30:59] ✅   ingest lambda persists sources
+[13:30:59] ✅   Black Swan Event >=100 symbols captured
+[13:30:59] ✗   download serves the new zip
+[13:30:59] ✗ FAILED: ['download serves the new zip']
 
-→ Report written to aws/ops/reports/latest/4015_tv_capture_audit.md
-❌ OPS-FAIL: aws/ops/pending/ops_4015_tv_capture_audit.py
+→ Report written to aws/ops/reports/latest/4016_ship_v150.md
+❌ OPS-FAIL: aws/ops/pending/ops_4016_ship_v150.py
