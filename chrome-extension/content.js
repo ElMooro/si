@@ -269,16 +269,25 @@
     LAST_SIG = g;
     try { upload(); } catch (e) {}
   }
-  setTimeout(function () {
+  /* v1.7.1: the one-shot 30s auto-start RACED the watchlist load and
+   * died silently (Khalid's badge: v1.7.0, 491 lists, no harvest line).
+   * Now it retries every 20s until the lists exist, then starts once. */
+  var AUTO_TRIES = 0;
+  function autoStart() {
+    AUTO_TRIES++;
     try {
       chrome.storage.local.get(["jh_auto_day"], function (r) {
         var today = new Date().toISOString().slice(0, 10);
         if ((r && r.jh_auto_day) === today) return;
-        if (startHarvest() > 0)
+        if (startHarvest() > 0) {
           chrome.storage.local.set({ jh_auto_day: today });
+        } else if (AUTO_TRIES < 30) {
+          setTimeout(autoStart, 20000);
+        }
       });
     } catch (e) {}
-  }, 30000);
+  }
+  setTimeout(autoStart, 20000);
   setTimeout(autoSync, 75000);
   setInterval(autoSync, 15 * 60 * 1000);
 
