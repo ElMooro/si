@@ -1,47 +1,23 @@
-executing-against: 326902346fc2ff2738017383ee128acc3310a7c1
+executing-against: 37cb8cbdcee21f731e0ed83e9d19e397719293a9
 ops 4019 — workbench: create/settle + fire + schedule
-[17:54:23]   function exists
-[17:54:31] ✅   v1.0 settled by marker
-[17:54:31] ✅ FIRED — workbench assembling
-[17:54:31] ✅   schedule ENABLED cron(55 12 * * ? *)
+[18:00:04]   function exists
+[18:00:05] ✅   v1.0 settled by marker
+[18:00:05] ✅ FIRED — workbench assembling
+[18:00:06] ✅   schedule ENABLED cron(55 12 * * ? *)
 
-→ Report written to aws/ops/reports/latest/4035_fire_wb_v11.md
+→ Report written to aws/ops/reports/latest/4037_fire_wb_v111.md
 ops 4036 — note-fidelity: exactly as in TradingView
+[18:00:24] ✅   v1.1.1 artifact after ~15s
 ── A. count parity per symbol (watchlisted only) ──
-[17:54:32]     MISMATCH GC2!: brain=6 workbench=4
-[17:54:32]     MISMATCH UNEMPLOY: brain=7 workbench=6
-[17:54:32]     MISMATCH VIX: brain=5 workbench=1
-[17:54:32]     MISMATCH WLRRAL: brain=6 workbench=4
-[17:54:32]     MISMATCH RRPONTSYD: brain=10 workbench=9
-[17:54:32]     MISMATCH US02Y: brain=12 workbench=10
-[17:54:32]     MISMATCH VOO: brain=10 workbench=9
-[17:54:32]     MISMATCH CL1!: brain=19 workbench=18
-[17:54:32]     orphans (INFO): ['CBOE:SPX', 'UNTAGGED', 'ICEUS:DXY', 'TSX:WCN', 'XDN', 'NASDAQ:XDN']
+[18:00:24]     orphans (INFO): ['UNTAGGED', 'XDN', 'NASDAQ:XDN', 'MC', 'EURONEXT:MC', 'AKZA']
 ── B. verbatim fidelity — 30 random notes, byte-exact ──
-[17:54:32]     NOT VERBATIM FEDFUNDS: 'THERE ARE TWO MAIN ECONOMIC POLICIES: ECONOMIC AND FISCAL: \r'
-[17:54:32]     NOT VERBATIM FEDFUNDS: 'The united states can either pump and drain global liquidity'
-[17:54:32]     NOT VERBATIM MOVE: 'MOVE >150 is a symptom of Fed losing control.'
-[17:54:32]     NOT VERBATIM DXY: '5% US 10 YEAR TREASURY YIELDS ARE THE RISK BEARING LOAD FOR '
-[17:54:32]     NOT VERBATIM VIX: 'The Cboe Volatility Index (VIX) is a real-time index that re'
-[17:54:32]     NOT VERBATIM ECONOMICS:USRI: 'The Redbook Index is a sales-weighted index of year-over-yea'
-[17:54:32]     NOT VERBATIM SOFR: 'Monitoring intraday SOFR (Secured Overnight Financing Rate) '
-[17:54:32]     NOT VERBATIM RBUSBIS: 'The Global system (global economy, global trade and global f'
-[17:54:32]     NOT VERBATIM DTWEXBGS: 'Bull and Bear Markets are the result of the Central Banks po'
-[17:54:32]     NOT VERBATIM YIT1!: 'More Dollars are created every single day outside of America'
-[17:54:32]     NOT VERBATIM ECONOMICS:DEIRYY: 'Inflation can have a significant impact on currency values. '
-[17:54:32]     NOT VERBATIM FRED:BAMLH0A0HYM2SYTW: 'Credit spreads are always positive: for corporations to attr'
-[17:54:32]     NOT VERBATIM FEDFUNDS: 'THE DESIGN OF THE SYSTEM DETERMINES THAT THE PREPHERY ECONOM'
-[17:54:32]     NOT VERBATIM UGA: 'The United States Gasoline Fund, LP (USO) is an exchange-tra'
-[17:54:32]     NOT VERBATIM AMEX:KRE: 'Utilities rally is money wants to move into a defensive sect'
-[17:54:32]     NOT VERBATIM FRED:FEDFUNDS: 'GEORGE SOROS IMPERIAL CIRCLE: A STRONG DOLLAR WOULD CAUSE A '
-[17:54:32]     NOT VERBATIM FEDFUNDS: 'What is the Milkshake theory? Based on the design of the mon'
-[17:54:32]     NOT VERBATIM FRED:RBUSBIS: 'Manufacturing PMI "3M" predicts forex currency future moves '
+[18:00:24]     NOT VERBATIM DXY: 'A rising yield is dollar bullish. A falling yield is dollar '
 ── C. truncation detector ──
-[17:54:32] ✗   workbench is v1.1 full-fidelity
-[17:54:32] ✗   every watchlisted symbol carries ALL its notes
-[17:54:32] ✗   30/30 sampled notes byte-exact
-[17:54:32] ✅   zero notes hitting the cap
-[17:54:32] ✗ FAILED: ['workbench is v1.1 full-fidelity', 'every watchlisted symbol carries ALL its notes', '30/30 sampled notes byte-exact']
+[18:00:24] ✅   workbench is v1.1.1 bare-union
+[18:00:24] ✅   every watchlisted symbol carries ALL its notes
+[18:00:24] ✗   30/30 sampled notes byte-exact
+[18:00:24] ✗   zero notes hitting the cap
+[18:00:24] ✗ FAILED: ['30/30 sampled notes byte-exact', 'zero notes hitting the cap']
 
-→ Report written to aws/ops/reports/latest/4036_fidelity_check.md
-❌ OPS-FAIL: aws/ops/pending/ops_4036_fidelity_check.py
+→ Report written to aws/ops/reports/latest/4038_fidelity_check2.md
+❌ OPS-FAIL: aws/ops/pending/ops_4038_fidelity_check2.py
