@@ -1,0 +1,32 @@
+# ops 3992 — v2.3 vault-complete verify
+
+**Status:** success  
+**Duration:** 1.6s  
+**Finished:** 2026-07-28T03:38:52+00:00  
+
+## Data
+
+| families | per_source | total | vault_walked |
+|---|---|---|---|
+| 24 | {"FLEET-INTERNAL": 14367, "FMP": 1470, "POLYGON": 692, "FRED": 650, "BENZINGA-MASSIVE": 132, "CFTC": 95, "YAHOO": 81, "ECB": 41, "COINGECKO": 31, "COINMETRICS": 29, "IMF-PORTWATCH": 24, "OFR": 12, "US-TREASURY": 8, "MOEA-TAIWAN": 4, "EUROSTAT": 3, "HKMA": 3, "SEC-EDGAR": 3, "BOJ": 2, "BOE": 2, "MOF-JAPAN": 1, "NORGES": 1, "BCRP-PERU": 1, "GNEWS": 1, "PBOC": 1} | 17654 |  |
+|  |  |  | {"n_paths": 1847, "skipped": null, "size": 391643} |
+
+## Log
+- `03:38:51` ✅   v2.3 artifact after ~0s
+- `03:38:51`   BOJ              JPLG    -> {"name": "JPLG", "value": 7.07, "live": true, "pulled_from": "bank-of-japan", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
+- `03:38:51`   MOF-JAPAN        JP02Y   -> {"name": "JP02Y", "value": 1.531, "live": true, "pulled_from": "mof-japan", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "pa
+- `03:38:51`   NORGES           NO03Y   -> {"name": "NO03Y", "value": 4.495, "live": true, "pulled_from": "norges-bank", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
+- `03:38:51`   BCRP-PERU        PETOT   -> {"name": "PETOT", "value": 182.731, "live": true, "pulled_from": "bcrp-peru", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
+- `03:38:51`   ECB              EUBUND  -> {"name": "EUBUND", "value": 3.2247, "live": true, "pulled_from": "ecb:YC", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "pat
+- `03:38:51`   FRED US10Y -> {"name": "US10Y", "value": 4.71, "live": true, "pulled_from": "fred_alias:DGS10", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "path": "symbols[
+- `03:38:52` ✅   artifact is v2.3
+- `03:38:52` ✅   vault actually walked (>=1500 paths, not skipped)
+- `03:38:52` ✅   BOJ family holds JPLG
+- `03:38:52` ✅   MOF-JAPAN holds JP02Y
+- `03:38:52` ✅   NORGES holds NO03Y
+- `03:38:52` ✅   BCRP-PERU holds PETOT
+- `03:38:52` ✅   ECB holds EUBUND
+- `03:38:52` ✅   OTHER near-zero (<100, truly unattributable only)
+- `03:38:52` ✅   US10Y credited to the vault engine (v1.9 canonical)
+- `03:38:52` ✅   page v4 still at edge
+- `03:38:52` ✅ PASS_ALL — v2.3 complete: 17654 points / 24 families; vault 1847 paths; OTHER None
