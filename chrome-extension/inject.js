@@ -105,4 +105,52 @@
     _push.apply(this, arguments);
     setTimeout(domSrc, 2500);
   };
+
+  /* ── v1.6.0 ACTIVE HARVEST — walks EVERY watchlist symbol on command,
+   * in page context (TV session + CORS), so its own APIs answer; every
+   * response flows through the existing tap and the content-script
+   * sniffer extracts whatever source fields exist. ~3 symbols/sec. */
+  var HARVESTING = false;
+  function harvest(symbols) {
+    if (HARVESTING) return;
+    HARVESTING = true;
+    var i = 0, total = symbols.length;
+    function step() {
+      if (i >= total) {
+        HARVESTING = false;
+        post("harvest", { __progress: 1, done: total, total: total,
+                          finished: 1 }, "tap");
+        return;
+      }
+      var sym = symbols[i++];
+      var bare = String(sym).split(":").pop();
+      try {
+        origFetch("https://symbol-search.tradingview.com/symbol_search/v3/?text=" +
+                  encodeURIComponent(bare) + "&hl=0&lang=en&domain=production",
+                  { credentials: "include" })
+          .then(function (r) { return r.json(); })
+          .then(function (j) { post("symsearch:" + sym, j); })
+          .catch(function () {});
+      } catch (e) {}
+      try {
+        origFetch("https://www.tradingview.com/symbols/" +
+                  String(sym).replace(":", "-") + "/",
+                  { credentials: "include" })
+          .then(function (r) { return r.text(); })
+          .then(function (t) {
+            post("htmlsrc", { __htmlsrc: 1, symbol: sym,
+                              text: String(t).slice(0, 60000) }, "tap");
+          }).catch(function () {});
+      } catch (e) {}
+      if (i % 5 === 0)
+        post("harvest", { __progress: 1, done: i, total: total }, "tap");
+      setTimeout(step, 340);
+    }
+    step();
+  }
+  window.addEventListener("message", function (e) {
+    var d = e && e.data;
+    if (d && d.__jh_cmd === "harvest" && Array.isArray(d.symbols))
+      harvest(d.symbols.slice(0, 12000));
+  });
 })();
