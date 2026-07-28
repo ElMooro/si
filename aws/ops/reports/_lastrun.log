@@ -1,6 +1,20 @@
-executing-against: f90723f0624935793adefbbba1abc54cc4f35b59
-ops 4018 — bucket-policy public read for tools/*
-[13:39:35] ✅   statement ToolsPublicRead appended (additive only)
-[13:39:35] ✅ PASS_ALL — v1.5.0 publicly downloadable (14324B)
+executing-against: 568b309255c5cf9c852936aa4905584c0f03d594
+ops 4019 — workbench: create/settle + fire + schedule
+[14:32:24]   function exists
+[14:32:25] ✅   v1.0 settled by marker
+[14:32:25] ✅ FIRED — workbench assembling
+[14:32:26] ✅   schedule ENABLED cron(55 12 * * ? *)
 
-→ Report written to aws/ops/reports/latest/4018_tools_policy.md
+→ Report written to aws/ops/reports/latest/4019_fire_workbench.md
+ops 4020 — TV workbench verify
+[14:32:47] ✅   artifact after ~20s
+[14:34:18] ✅   artifact is v1.0
+[14:34:18] ✅   >=150 watchlists
+[14:34:18] ✅   >=800 unique indicators
+[14:34:18] ✅   >=300 indicators carry notes
+[14:34:18] ✅   Black Swan Event mirrored >=400 indicators
+[14:34:18] ✅   JPLG carries a verbatim note
+[14:34:18] ✅   page live at edge
+[14:34:18] ✅ PASS_ALL — 207 watchlists / 6507 indicators / 701 noted; Black Swan 500; page 4/4
+
+→ Report written to aws/ops/reports/latest/4020_workbench_verify.md
