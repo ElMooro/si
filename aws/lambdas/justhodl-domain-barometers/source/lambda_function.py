@@ -47,7 +47,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "domain-barometers v1.2 ops3968 full-coverage"
+MARKER = "domain-barometers v1.3 ops4003 cb-polarities"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/domain-barometers.json"
 LEDGER_KEY = "domain-barometers/history-ledger.json"
@@ -135,6 +135,17 @@ POLARITY_NOTES = {
     "US03MY": (-1, "front-end yield up = tighter [nmq5x00zhe98n]"),
     "US06MY": (-1, "front-end yield up = tighter [nmq5x00zhe98n]"),
     "CPFF": (-1, "commercial paper spread up = funding stress"),
+    # ops 4003 central-bank expansion — each direction cites the note it implements
+    "JP01Y": (-1, "JGB yields up = yen carry funding cost up [tv-9fa576184567fa8f]"),
+    "JP05Y": (-1, "JGB yields up = carry funding cost [tv-9fa576184567fa8f]"),
+    "JP10Y": (-1, "JGB 10Y up = the carry-unwind trigger [tv-9fa576184567fa8f]"),
+    "JP20Y": (-1, "long JGB up = BOJ losing the curve [tv-9fa576184567fa8f]"),
+    "JP30Y": (-1, "long JGB up = BOJ losing the curve [tv-9fa576184567fa8f]"),
+    "NOINTR": (-1, "policy rate up = tighter [nmq5x00zhe98n]"),
+    "NO10Y": (-1, "long rates up = tighter [nmq5x00zhe98n]"),
+    "PEINTR": (-1, "EM policy tightening [nmq5x00zhe98n]"),
+    "PEFER": (+1, "net intl reserves = EM buffer vs the dollar squeeze [tv-ab761f92999efe68]"),
+    "PENUSD": (-1, "sol per dollar up = dollar squeeze on EM [tv-ab761f92999efe68]"),
 }
 # The rates polarity ("yields up = tighter") may only be applied to things
 # that ARE a yield or a policy/inflation rate. Anything else in that bucket

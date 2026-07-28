@@ -546,6 +546,25 @@ def fleet_adjust(legs):
         "Japan bank lending YoY from the BOJ API — 'JPLG decline = FLASH WARNING' "
         "[tv-b3ec3933837d5155]; contraction -0.4, sharp decel -0.2", a))
 
+    # ops4003 jp10y-carry: JGB 10Y from the vault (MOF official curve). Rising
+    # long JGB yields raise the funding cost of every yen-carry position —
+    # the unwind trigger [tv-9fa576184567fa8f]. Level >2.5% or a >4% jump vs
+    # the stored prev shaves the carry leg; absence is neutral, never guessed.
+    tvv, a = _feed("data/tradingview.json")
+    _row = next((r for r in ((tvv or {}).get("symbols") or [])
+                 if r.get("symbol") == "JP10Y"), None)
+    v = (_row or {}).get("value")
+    if isinstance(v, (int, float)):
+        pv = (_row or {}).get("prev")
+        adj = 0.0
+        if v >= 2.5:
+            adj = -0.15
+        if isinstance(pv, (int, float)) and pv and (v / pv - 1) > 0.04:
+            adj = min(adj, 0.0) - 0.1
+        out["carry"].append(_fi("jgb10y_carry_cost", "tradingview-vault(MOF)", v, adj,
+            "JGB 10Y par yield — yen carry funding cost; >2.5% -0.15, "
+            ">4% jump -0.1 [tv-9fa576184567fa8f]", a))
+
     # LEG 5 GLOBAL GROWTH — Taiwan/Korea exports, freight, air cargo, ports
     al, a = _feed("data/asia-leads.json")
     v = ((al or {}).get("taiwan_exports") or {}).get("yoy_pct")

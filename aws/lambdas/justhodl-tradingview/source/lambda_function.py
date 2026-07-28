@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.8 ops3974 asia-wire+jpexpyy-fix"
+MARKER = "tradingview-vault v3.9 ops4003 cb-expansion"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -103,6 +103,18 @@ ALIASES = {
     # his notes and was sitting NO_FREE_SOURCE.
     "EUBUND": "ecb:YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_10Y",
     "JP02Y": "mofjp:2Y", "JP03MY": "none:3M TB not in MOF JGB CSV — BOJ API next",
+    # ops 4001-4002 expansion (Khalid: pull all important BOJ/MOF/NORGES/BCRP
+    # data). Every alias below was LIVE-confirmed with a real value and, for
+    # BCRP, a full-name check ("Reservas Internacionales Netas") — the
+    # JPEXPYY same-measure/same-country bar. BOJ M-aggregates (JPMB/JPM2YY/
+    # JPM3) deferred: codes found, getDataCode returns empty for them —
+    # response-shape work, not guessed.
+    "JP01Y": "mofjp:1Y", "JP05Y": "mofjp:5Y", "JP10Y": "mofjp:10Y",
+    "JP20Y": "mofjp:20Y", "JP30Y": "mofjp:30Y",
+    "NOINTR": "norges:IR:KPRA",
+    "NO10Y": "norges:GOVT_GENERIC_RATES:10",
+    "PEINTR": "bcrp:PD04722MM", "PENUSD": "bcrp:PN01207PM",
+    "PEFER": "bcrp:PN00026MM",
     "CH02Y": "snb:2 year", "CH03Y": "snb:3 year",
     "CN10Y": "none:ChinaBond licensed", "NO03Y": "norges:GOVT_GENERIC_RATES:3",
     "SS03": "none:FTSE licensed",
