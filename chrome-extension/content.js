@@ -24,14 +24,59 @@
     src = String(src || "").trim();
     if (!sym || !src || src.length > 120) return;
     var cur = SRCS.get(sym) || {};
+    if (SRCS.size && SRCS.size % 40 === 0) saveSrcs();
     SRCS.set(sym, { source: src.slice(0, 120),
                     description: String(desc || cur.description || "").slice(0, 160) });
+  }
+  var HRX = [/"source"\s*:\s*"([^"]{2,90})"/,
+             /"source_description"\s*:\s*"([^"]{2,120})"/,
+             /"source-description"\s*:\s*"([^"]{2,120})"/];
+  var DRX = /"description"\s*:\s*"([^"]{2,140})"/;
+  function fromHtml(sym, text) {
+    for (var i = 0; i < HRX.length; i++) {
+      var m = HRX[i].exec(text);
+      if (m) {
+        var d = DRX.exec(text);
+        keepSource(sym, m[1], d ? d[1] : "");
+        return;
+      }
+    }
+  }
+  function saveSrcs() {
+    try {
+      var o = {};
+      SRCS.forEach(function (v, k) { o[k] = v; });
+      chrome.storage.local.set({ jh_srcs: o });
+    } catch (e) {}
+  }
+  try {
+    chrome.storage.local.get(["jh_srcs"], function (r) {
+      var o = (r && r.jh_srcs) || {};
+      Object.keys(o).forEach(function (k) { if (!SRCS.has(k)) SRCS.set(k, o[k]); });
+    });
+  } catch (e) {}
+  function allWatchlistSymbols() {
+    var seen = {}, out = [];
+    LISTS.forEach(function (l) {
+      (l.symbols || []).forEach(function (s2) {
+        if (!seen[s2] && !SRCS.has(s2)) { seen[s2] = 1; out.push(s2); }
+      });
+    });
+    return out;
   }
   function sniffSources(o, depth) {
     if (!o || depth > 6) return;
     if (Array.isArray(o)) { for (var i = 0; i < o.length && i < 400; i++) sniffSources(o[i], depth + 1); return; }
     if (typeof o !== "object") return;
     if (o.__dom && o.symbol) { keepSource(o.symbol, o.source_text, o.title); return; }
+    if (o.__htmlsrc && o.symbol) { fromHtml(o.symbol, o.text || ""); return; }
+    if (o.__progress) {
+      if (o.finished) { saveSrcs(); msg("Harvest complete — " + SRCS.size +
+        " sources. Auto-uploading…", "#4CC38A"); try { upload(); } catch (e) {} }
+      else { msg("Harvesting sources… " + o.done + "/" + o.total +
+        " (resumable — safe to close)", "#F0B429"); }
+      return;
+    }
     var sym = "";
     for (var k = 0; k < SYM_KEYS.length; k++) if (typeof o[SYM_KEYS[k]] === "string") { sym = o[SYM_KEYS[k]]; break; }
     if (!sym && typeof o.s === "string") sym = o.s;
@@ -207,7 +252,19 @@
     if (!notes.length && !lists.length) { msg("Nothing captured yet.", "#E07A6A"); return; }
     btn.disabled = true;
     msg("Uploading " + notes.length + " notes · " + lists.length + " watchlists · " + SRCS.size + " sources…", "#F0B429");
-    chrome.runtime.onMessage.addListener(function (m) {
+    chrome.runtime.onMessage.addListener(function (m, _s, sendResponse) {
+    if (m && m.action === "harvest") {
+      var syms = allWatchlistSymbols();
+      if (!syms.length) { msg("All " + SRCS.size + " sources already harvested \u2713", "#4CC38A"); }
+      else {
+        msg("Harvesting " + syms.length + " symbols (\u2248" +
+            Math.ceil(syms.length / 170) + " min)…", "#F0B429");
+        window.postMessage({ __jh_cmd: "harvest", symbols: syms }, "*");
+      }
+      try { sendResponse({ ok: 1, n: syms.length, have: SRCS.size }); } catch (e) {}
+      return;
+    }
+  
       if (m && m.action === "upload_progress") {
         msg("Uploading " + m.sent + "/" + m.total + " notes \u00b7 " +
             (m.brainOk || 0) + " in Brain\u2026", "#F0B429");

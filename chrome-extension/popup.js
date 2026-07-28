@@ -117,3 +117,14 @@ document.getElementById('uploadBtn').addEventListener('click', async () => {
 
 // Init
 refreshStatus();
+
+document.getElementById("jhHarvest").addEventListener("click", function () {
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    if (!tabs[0]) return;
+    chrome.tabs.sendMessage(tabs[0].id, { action: "harvest" }, function (r) {
+      document.getElementById("jhHarvestMsg").textContent = r && r.ok
+        ? ("Harvesting " + r.n + " symbols (" + (r.have || 0) + " already known).")
+        : "Open a tradingview.com tab first, then click again.";
+    });
+  });
+});

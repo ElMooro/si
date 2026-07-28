@@ -2,13 +2,13 @@
   "manifest_version": 3,
   "name": "JustHodl \u2014 TradingView Notes",
   "short_name": "JH TV Notes",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Sync your TradingView notes AND watchlists into JustHodl \u2014 taps TradingView's own network traffic (no endpoint guessing).",
   "permissions": [
-    "storage",
+    "alarms",
     "scripting",
-    "tabs",
-    "alarms"
+    "storage",
+    "tabs"
   ],
   "host_permissions": [
     "https://*.tradingview.com/*",
