@@ -47,7 +47,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "domain-barometers v1.3 ops4003 cb-polarities"
+MARKER = "domain-barometers v1.4 ops4010 six-country"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/domain-barometers.json"
 LEDGER_KEY = "domain-barometers/history-ledger.json"
@@ -146,6 +146,29 @@ POLARITY_NOTES = {
     "PEINTR": (-1, "EM policy tightening [nmq5x00zhe98n]"),
     "PEFER": (+1, "net intl reserves = EM buffer vs the dollar squeeze [tv-ab761f92999efe68]"),
     "PENUSD": (-1, "sol per dollar up = dollar squeeze on EM [tv-ab761f92999efe68]"),
+    # ops 4010 — BOJ family + six-country layer
+    "JPMB": (+1, "BOJ monetary base = yen liquidity provider [tv-9fa576184567fa8f]"),
+    "JPM2YY": (+1, "Japan M2 growth = yen liquidity [tv-9fa576184567fa8f]"),
+    "JPM3": (+1, "Japan M3 growth = yen liquidity [tv-9fa576184567fa8f]"),
+    "JPTANKAN": (+1, "Tankan mfg DI up = Japan output [brain doctrine: "
+                 "INDPRO-class output leads recessions]"),
+    "JPCALLR": (-1, "call rate up = carry funding cost [tv-9fa576184567fa8f]"),
+    "BRINTR": (-1, "Selic up = tighter [nmq5x00zhe98n]"),
+    "BRFER": (+1, "Brazil intl reserves = EM buffer [tv-ab761f92999efe68]"),
+    "BRLUSD": (-1, "BRL per dollar up = dollar squeeze on EM [tv-ab761f92999efe68]"),
+    "FIIPYY": (+1, "industrial output up [brain doctrine: INDPRO leads]"),
+    "ESIPYY": (+1, "industrial output up [brain doctrine: INDPRO leads]"),
+    "ITIPYY": (+1, "industrial output up [brain doctrine: INDPRO leads]"),
+    "CHIPYY": (+1, "industrial output up [brain doctrine: INDPRO leads]"),
+    "KRIPYY": (+1, "industrial output up [brain doctrine: INDPRO leads]"),
+    "BRIPYY": (+1, "industrial output up [brain doctrine: INDPRO leads]"),
+    "IT10Y": (-1, "periphery long yields up = tighter/fragmentation [nmq5x00zhe98n]"),
+    "ES10Y": (-1, "periphery long yields up = tighter [nmq5x00zhe98n]"),
+    "FI10Y": (-1, "long yields up = tighter [nmq5x00zhe98n]"),
+    "CH10Y": (-1, "long yields up = tighter [nmq5x00zhe98n]"),
+    "KR10Y": (-1, "long yields up = tighter [nmq5x00zhe98n]"),
+    "CHINTR": (-1, "policy rate up = tighter [nmq5x00zhe98n]"),
+    "KRINTR": (-1, "policy rate up = tighter [nmq5x00zhe98n]"),
 }
 # The rates polarity ("yields up = tighter") may only be applied to things
 # that ARE a yield or a policy/inflation rate. Anything else in that bucket

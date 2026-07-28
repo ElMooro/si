@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.9.1 ops4006 alias-union"
+MARKER = "tradingview-vault v3.10 ops4010 boj-and-six"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -115,6 +115,28 @@ ALIASES = {
     "NO10Y": "norges:GOVT_GENERIC_RATES:10",
     "PEINTR": "bcrp:PD04722MM", "PENUSD": "bcrp:PN01207PM",
     "PEFER": "bcrp:PN00026MM",
+    # ops 4009-4010 — BOJ family + six-country liquidity/risk/output layer.
+    # BOJ M-aggregates: the "empty" of ops-4002 was a lowercase-regex probe
+    # bug; RESULTSET.VALUES parses with the existing adapter (MonBase running
+    # ~-13.7% YoY as of 202606 — the yen-QT signal). Tankan/call rate go
+    # through the new LEVEL adapter (YoY would be silently wrong). FRED-MEI
+    # aliases verify at RUNTIME (fredgraph is bot-walled to the runner; the
+    # Lambda key resolves them daily). Duplicate keys later in this dict
+    # OVERRIDE earlier ones — that is how JPM3 gets repointed to the BOJ.
+    "JPMB": "boj:MD01:MABS1AN11",
+    "JPM2YY": "boj:MD02:MAM1NAM2M2MO",
+    "JPM3": "boj:MD02:MAM1NAM3M3MO",
+    "JPTANKAN": "bojlvl:CO:TK99F1000601GCQ00000",
+    "JPCALLR": "bojlvl:FM01:STRDCLUCON",
+    "BRINTR": "bcb:432", "BRFER": "bcb:13621", "BRLUSD": "bcb:1",
+    "FIIPYY": "yoy:FINPROINDMISMEI", "ESIPYY": "yoy:ESPPROINDMISMEI",
+    "ITIPYY": "yoy:ITAPROINDMISMEI", "CHIPYY": "yoy:CHEPROINDMISMEI",
+    "KRIPYY": "yoy:KORPROINDMISMEI", "BRIPYY": "yoy:BRAPROINDMISMEI",
+    "IT10Y": "fred_alias:IRLTLT01ITM156N", "ES10Y": "fred_alias:IRLTLT01ESM156N",
+    "FI10Y": "fred_alias:IRLTLT01FIM156N", "CH10Y": "fred_alias:IRLTLT01CHM156N",
+    "KR10Y": "fred_alias:IRLTLT01KRM156N",
+    "CHINTR": "fred_alias:IRSTCI01CHM156N",
+    "KRINTR": "fred_alias:INTDSRKRM193N",
     "CH02Y": "snb:2 year", "CH03Y": "snb:3 year",
     "CN10Y": "none:ChinaBond licensed", "NO03Y": "norges:GOVT_GENERIC_RATES:3",
     "SS03": "none:FTSE licensed",
@@ -511,6 +533,18 @@ def resolve_alias(row, al):
             row["source"] = "bank-of-japan"
             row["resolved_via"] = f"boj:{tgt}"
         return v, None
+    if kind == "bojlvl":
+        v = boj_level(tgt)
+        if v:
+            row["source"] = "bank-of-japan"
+            row["resolved_via"] = f"bojlvl:{tgt}"
+        return v, None
+    if kind == "bcb":
+        v = bcb_latest(tgt)
+        if v:
+            row["source"] = "bcb-brazil"
+            row["resolved_via"] = f"bcb:{tgt}"
+        return v, None
     if kind == "disc":
         return None, ("DISCONTINUED", tgt)
     if kind == "none":
@@ -677,6 +711,28 @@ def boe_latest(series_code):
         return None
 
 
+def bcb_latest(code):
+    """Banco Central do Brasil SGS open API (no key). Selic=432, NIR=13621,
+    USD/BRL=1 — code-canonical, value sanity-gated in the verifier."""
+    url = (f"https://api.bcb.gov.br/dados/serie/bcdata.sgs.{code}"
+           f"/dados/ultimos/2?formato=json")
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=25) as r:
+            d = json.loads(r.read())
+        xs = [float(str(x.get("valor")).replace(",", ".")) for x in d
+              if x.get("valor") not in (None, "")]
+        if xs:
+            v = xs[-1]
+            pv = xs[-2] if len(xs) > 1 else None
+            return {"value": round(v, 4), "prev": pv,
+                    "chg_pct": round((v / pv - 1) * 100, 2) if pv else None,
+                    "asof": str(d[-1].get("data"))}
+    except Exception:
+        pass
+    return None
+
+
 def bcrp_latest(code):
     """Banco Central de Reserva del Peru official series API (no key)."""
     yr = datetime.now(timezone.utc).year
@@ -789,6 +845,41 @@ def boj_yoy(tgt):
             return {"value": yoy, "prev": prev,
                     "chg_pct": round(yoy - prev, 2) if prev is not None else None,
                     "asof": f"boj:{dates[i] if i < len(dates) else '?'} YoY"}
+        except Exception:
+            continue
+    return None
+
+def boj_level(tgt):
+    """Bank of Japan official API (launched 2026-02): getDataCode on the
+    loans db, LEVEL series (Tankan DI, call rate) — last non-null value; the
+    YoY adapter would be silently wrong for these. Same RESULTSET shape."""
+    now = datetime.now(timezone.utc)
+    end = now.year * 100 + now.month
+    sy, sm = now.year - 1, now.month - 3
+    if sm < 1:
+        sy, sm = sy - 1, sm + 12
+    start = sy * 100 + sm
+    for pair in tgt.split("|"):
+        db, _, code = pair.partition(":")
+        url = (f"https://www.stat-search.boj.or.jp/api/v1/getDataCode"
+               f"?format=json&lang=en&db={db}&startDate={start}&endDate={end}"
+               f"&code={code}")
+        try:
+            req = urllib.request.Request(url, headers={
+                "User-Agent": "Mozilla/5.0", "Accept-Encoding": "identity"})
+            with urllib.request.urlopen(req, timeout=25) as r:
+                d = json.loads(r.read())
+            rs = (d.get("RESULTSET") or [{}])[0]
+            vals = ((rs.get("VALUES") or {}).get("VALUES")) or []
+            dates = ((rs.get("VALUES") or {}).get("SURVEY_DATES")) or []
+            xs = [(dates[j] if j < len(dates) else None, float(v))
+                  for j, v in enumerate(vals) if v is not None]
+            if xs:
+                dt, v = xs[-1]
+                pv = xs[-2][1] if len(xs) > 1 else None
+                chg = round((v / pv - 1) * 100, 2) if pv else None
+                return {"value": round(v, 4), "prev": pv, "chg_pct": chg,
+                        "asof": str(dt)}
         except Exception:
             continue
     return None
