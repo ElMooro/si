@@ -1,37 +1,37 @@
-executing-against: 33121bda1625cc0ae531ca6a84123e70a8976354
-ops 3996 — vault artifact truth + deployed census walk dump
-── A. the live vault artifact itself ──
-[03:06:37]   contains EUBUND: True
-[03:06:37]   contains JP02Y: True
-[03:06:37]   contains NO03Y: True
-[03:06:37]   contains PETOT: True
-[03:06:37]   contains JPLG: True
-[03:06:37]   contains US10Y: True
-[03:06:37]   contains USM0: True
-[03:06:37]   contains XAUUSD: True
-[03:06:37]   first 6: ['UNTAGGED', 'DXY', 'FEDFUNDS', 'SPX', 'MOVE', 'CL1!']
-[03:06:37]   last 6:  ['VFMO', 'VICI', 'VPL', 'VUSB', 'VWO', 'XLRE']
-[03:06:37]   numeric fields on row0: 1 (['n_notes'])
-── B. deployed census walk() — the list branch, verbatim ──
-[03:06:37]   elif isinstance(o, list) and o:
-          if isinstance(o[0], dict):
-              idf = next((f for f in ID_FIELDS if isinstance(o[0].get(f), str)), None)
-              if idf:
-                  for el in o[:list_cap]:
-                      tag = str(el.get(idf, "?"))[:24] if isinstance(el, dict) else "?"
-                      walk(el, f"{pre}[{tag}]", depth + 1, out, cap, list_cap)
-                      if len(out) >= MAX_PATHS_PER:
-                          return out
-                  return out
-          walk(o[0], f"{pre}[0]", depth + 1, out, cap, list_cap)
-      elif isinstance(o, (int, float)) and not isinstance(o, bool):
-          out.append({"p": pre, "v": float(o), "leaf": pre.split(".")[-1], "name": Non
-[03:06:37]   CALL SITE: pl = walk(doc, cap=(12000 if key in PRIORITY else MAX_PATHS_PER),
-                        list_cap=(700 if key in PRIORITY else MAX_LIST_SAMPLE))
-              # v2.1: MAX_LIST_SAMPLE=40 was the REAL binding constraint all
-              # along — symbols[0..39] walked, JPLG/JP02Y/NO03Y/PETOT/EUBUND
-        
-── C. vault ENGINE deployed marker (is v3.8 live?) ──
-[03:06:38] ✅ PROBE DONE — A decides shrunken-artifact vs census bug; B settles the deployed-code question; C dates the vault code
+executing-against: 3c372135fd6381ce576bdcaed8a088a2e6b002e0
+ops 3985 — invoke-only: enforce, settle, fire
+[03:11:11] ✅ FIRED — v1.6 async under 900s/3008MB; verify via ops 3984 in ~13 min
 
-→ Report written to aws/ops/reports/latest/3996_vault_artifact_truth.md
+→ Report written to aws/ops/reports/latest/3997_census_invoke_v22.md
+ops 3992 — v2.2 vault-complete verify
+[03:11:12]   [0] data-census v2.1 ops3993 full-lists
+[03:11:42]   [1] data-census v2.1 ops3993 full-lists
+[03:12:12]   [2] data-census v2.1 ops3993 full-lists
+[03:12:43]   [3] data-census v2.1 ops3993 full-lists
+[03:13:13]   [4] data-census v2.1 ops3993 full-lists
+[03:13:43]   [5] data-census v2.1 ops3993 full-lists
+[03:14:14]   [6] data-census v2.1 ops3993 full-lists
+[03:14:44]   [7] data-census v2.1 ops3993 full-lists
+[03:15:14]   [8] data-census v2.1 ops3993 full-lists
+[03:15:45]   [9] data-census v2.1 ops3993 full-lists
+[03:16:15] ✅   v2.2 artifact after ~300s
+[03:16:15]   BOJ              JPLG    -> {"name": "JPLG", "value": 7.07, "live": true, "pulled_from": "bank-of-japan", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
+[03:16:15]   MOF-JAPAN        JP02Y   -> {"name": "JP02Y", "value": 1.531, "live": true, "pulled_from": "mof-japan", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "pa
+[03:16:15]   NORGES           NO03Y   -> {"name": "NO03Y", "value": 4.495, "live": true, "pulled_from": "norges-bank", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
+[03:16:15]   BCRP-PERU        PETOT   -> {"name": "PETOT", "value": 182.731, "live": true, "pulled_from": "bcrp-peru", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
+[03:16:15]   ECB              EUBUND  -> {"name": "EUBUND", "value": 3.2247, "live": true, "pulled_from": "ecb:YC", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "pat
+[03:16:15]   FRED US10Y -> {"name": "US10Y", "value": 4.71, "live": true, "pulled_from": "fred_alias:DGS10", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "path": "symbols[
+[03:16:15] ✅   artifact is v2.2
+[03:16:15] ✗   vault actually walked (>=3000 paths, not skipped)
+[03:16:15] ✅   BOJ family holds JPLG
+[03:16:15] ✅   MOF-JAPAN holds JP02Y
+[03:16:15] ✅   NORGES holds NO03Y
+[03:16:15] ✅   BCRP-PERU holds PETOT
+[03:16:15] ✅   ECB holds EUBUND
+[03:16:15] ✗   OTHER shrunk below 800
+[03:16:15] ✅   US10Y credited to the vault engine (v1.9 canonical)
+[03:16:15] ✅   page v4 still at edge
+[03:16:15] ✗ FAILED: ['vault actually walked (>=3000 paths, not skipped)', 'OTHER shrunk below 800']
+
+→ Report written to aws/ops/reports/latest/3998_v22_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_3998_v22_verify.py
