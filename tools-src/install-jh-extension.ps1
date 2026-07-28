@@ -30,45 +30,37 @@ try {
   $cands += "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
   foreach ($p in $cands) { if ($p -and (Test-Path $p)) { $chrome = $p; break } }
   if (-not $chrome) { throw 'Chrome not found - install Google Chrome first.' }
-  Write-Host '  [4/4] Creating Desktop shortcuts (every desktop Windows might be showing you)'
+  Write-Host '  [4/4] Opening Chrome extensions page + the install folder side-by-side'
+  Write-Host ''
+  Write-Host '  ONE-TIME step in Chrome (Google removed silent loading in 2025,' -ForegroundColor Yellow
+  Write-Host '  so this is the only legitimate way - and it PERSISTS forever):' -ForegroundColor Yellow
+  Write-Host ''
+  Write-Host '     1. On the chrome://extensions tab that just opened:'
+  Write-Host '        toggle  Developer mode  ON (top-right)'
+  Write-Host '     2. Click  Load unpacked  and pick the folder that just'
+  Write-Host ('        opened in Explorer:  ' + $dir)
+  Write-Host '     3. Open tradingview.com - the amber JH panel appears.'
+  Write-Host '        Click the JH icon -> "Harvest sources" -> walk away.'
+  Write-Host ''
+  Start-Process explorer.exe $dir
+  Start-Process $chrome 'chrome://extensions/'
   $ws = New-Object -ComObject WScript.Shell
   $desks = @([Environment]::GetFolderPath('Desktop'),
              (Join-Path $env:USERPROFILE 'Desktop'))
   if ($env:OneDrive) { $desks += (Join-Path $env:OneDrive 'Desktop') }
   $desks = $desks | Where-Object { $_ -and (Test-Path $_) } | Select-Object -Unique
-  $written = @()
   foreach ($d in $desks) {
     try {
       $lnk = $ws.CreateShortcut((Join-Path $d 'TradingView (JH Harvester).lnk'))
       $lnk.TargetPath = $chrome
-      $lnk.Arguments = ('--load-extension="' + $dir + '" https://www.tradingview.com/chart/')
+      $lnk.Arguments = 'https://www.tradingview.com/chart/'
       $lnk.IconLocation = "$chrome,0"
-      $lnk.Description = 'TradingView with the JustHodl harvester pre-loaded'
+      $lnk.Description = 'TradingView - JH harvester persists once loaded'
       $lnk.Save()
-      $written += (Join-Path $d 'TradingView (JH Harvester).lnk')
     } catch {}
   }
-  if (-not $written.Count) { throw 'Could not write a Desktop shortcut anywhere.' }
-  Write-Host '       Shortcut written to:'
-  foreach ($w in $written) { Write-Host ('         ' + $w) }
-  Write-Host ''
-  Write-Host '  Launching TradingView with the harvester NOW...' -ForegroundColor Yellow
-  Write-Host '  (If Chrome was already open, this new window may NOT carry the'
-  Write-Host '   extension - close ALL Chrome windows and use the shortcut.)'
-  Start-Process $chrome -ArgumentList ('--load-extension="' + $dir + '"'), 'https://www.tradingview.com/chart/' 
-  Write-Host ''
-  Write-Host ("  DONE. Version " + $man.version + " installed.") -ForegroundColor Green
-  Write-Host ''
-  Write-Host '  ====================================================='
-  Write-Host '   From now on:'
-  Write-Host '   1. CLOSE all Chrome windows once (so the flag takes)'
-  Write-Host '   2. Double-click "TradingView (JH Harvester)" on your'
-  Write-Host '      Desktop - Chrome opens on TradingView with the'
-  Write-Host '      extension already loaded.'
-  Write-Host '   3. Click the JH icon -> "Harvest sources" -> walk away.'
-  Write-Host '      It auto-uploads when finished.'
-  Write-Host '   To UPDATE later: run the same installer again.'
-  Write-Host '  ====================================================='
+  Write-Host '  Desktop shortcut written (plain TradingView launcher - the'
+  Write-Host '  extension persists on its own after the one-time load).'
 } catch {
   Write-Host ''
   Write-Host ('  ERROR: ' + $_.Exception.Message) -ForegroundColor Red
