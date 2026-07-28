@@ -1,40 +1,37 @@
-executing-against: dc4a07a895a40f90394c80ffe30fee16d263840e
-ops 3995 — vault-walk truncation forensics (v2.1)
-── A. the two priority artifacts, as the engine recorded them ──
-[03:00:45]   data/tradingview.json
-[03:00:45]       n_paths=401 skipped=None error=None size=391643 age_h=11.2
-[03:00:45]   data/domain-barometers.json
-[03:00:45]       n_paths=403 skipped=None error=None size=454131 age_h=10.5
-[03:00:45]   data/risk-gate.json
-[03:00:45]       n_paths=62 skipped=None error=None size=12279 age_h=11.8
-[03:00:45]   data/rotation-dashboard.json
-[03:00:45]       n_paths=405 skipped=None error=None size=52865 age_h=0.7
-── B. ledger: per-artifact capture + WHERE the vault stopped ──
-[03:00:46]      530  data/global-business-cycle.json
-[03:00:46]      405  data/rotation-dashboard.json
-[03:00:46]      403  data/domain-barometers.json
-[03:00:46]      402  data/ai-rerating-radar.json
-[03:00:46]      402  data/asset-compass.json
-[03:00:46]      402  data/bagger-engine.json
-[03:00:46]      402  data/convergence-radar-history/2026-06-25.json
-[03:00:46]      401  data/ai-infra-stack.json
-[03:00:46]   first 3 vault paths: ['n_symbols', 'n_tv_notes', 'n_live']
-[03:00:46]   LAST 6 vault paths (truncation point evidence):
-[03:00:46]       symbols[USHMI].n_notes v=6.0 src=unresolved_economics
-[03:00:46]       symbols[USM0].n_notes v=6.0 src=fred_alias:BOGMBASE
-[03:00:46]       symbols[USM0].value v=5538.6 src=fred_alias:BOGMBASE
-[03:00:46]       symbols[USM0].prev v=5470.4 src=fred_alias:BOGMBASE
-[03:00:46]       symbols[USM0].chg_pct v=1.247 src=fred_alias:BOGMBASE
-[03:00:46]       elapsed_s v=91.7 src=None
-[03:00:46]   last symbols reached: ['THREEFYTP1', 'TREASURY', 'TWEXPYY', 'US03Y', 'USALOLITONOSTSAM', 'USFR', 'USHMI', 'USM0']
-[03:00:46]   EUBUND captured: False
-[03:00:46]   JP02Y captured: False
-[03:00:46]   NO03Y captured: False
-[03:00:46]   PETOT captured: False
-[03:00:46]   JPLG captured: True
-[03:00:46]   US10Y captured: True
-── C. barometers same question ──
-[03:00:46]   barometers last symbols: ['US01MY', 'YIT1!', 'XDN', '2USNOTE', 'AGG', 'BAMLC0A0CM']
-[03:00:46] ✅ PROBE DONE — evidence above decides cap vs exception vs order
+executing-against: 33121bda1625cc0ae531ca6a84123e70a8976354
+ops 3996 — vault artifact truth + deployed census walk dump
+── A. the live vault artifact itself ──
+[03:06:37]   contains EUBUND: True
+[03:06:37]   contains JP02Y: True
+[03:06:37]   contains NO03Y: True
+[03:06:37]   contains PETOT: True
+[03:06:37]   contains JPLG: True
+[03:06:37]   contains US10Y: True
+[03:06:37]   contains USM0: True
+[03:06:37]   contains XAUUSD: True
+[03:06:37]   first 6: ['UNTAGGED', 'DXY', 'FEDFUNDS', 'SPX', 'MOVE', 'CL1!']
+[03:06:37]   last 6:  ['VFMO', 'VICI', 'VPL', 'VUSB', 'VWO', 'XLRE']
+[03:06:37]   numeric fields on row0: 1 (['n_notes'])
+── B. deployed census walk() — the list branch, verbatim ──
+[03:06:37]   elif isinstance(o, list) and o:
+          if isinstance(o[0], dict):
+              idf = next((f for f in ID_FIELDS if isinstance(o[0].get(f), str)), None)
+              if idf:
+                  for el in o[:list_cap]:
+                      tag = str(el.get(idf, "?"))[:24] if isinstance(el, dict) else "?"
+                      walk(el, f"{pre}[{tag}]", depth + 1, out, cap, list_cap)
+                      if len(out) >= MAX_PATHS_PER:
+                          return out
+                  return out
+          walk(o[0], f"{pre}[0]", depth + 1, out, cap, list_cap)
+      elif isinstance(o, (int, float)) and not isinstance(o, bool):
+          out.append({"p": pre, "v": float(o), "leaf": pre.split(".")[-1], "name": Non
+[03:06:37]   CALL SITE: pl = walk(doc, cap=(12000 if key in PRIORITY else MAX_PATHS_PER),
+                        list_cap=(700 if key in PRIORITY else MAX_LIST_SAMPLE))
+              # v2.1: MAX_LIST_SAMPLE=40 was the REAL binding constraint all
+              # along — symbols[0..39] walked, JPLG/JP02Y/NO03Y/PETOT/EUBUND
+        
+── C. vault ENGINE deployed marker (is v3.8 live?) ──
+[03:06:38] ✅ PROBE DONE — A decides shrunken-artifact vs census bug; B settles the deployed-code question; C dates the vault code
 
-→ Report written to aws/ops/reports/latest/3995_vault_walk_probe.md
+→ Report written to aws/ops/reports/latest/3996_vault_artifact_truth.md
