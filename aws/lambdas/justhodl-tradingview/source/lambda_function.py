@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.9 ops4003 cb-expansion"
+MARKER = "tradingview-vault v3.9.1 ops4006 alias-union"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -912,6 +912,14 @@ def lambda_handler(event, context):
 
     brain = get_brain()
     reg = build_registry(brain)
+    # ops4006 alias-union: ALIASES define coverage too. reg is notes-derived,
+    # so a wired official source sat DORMANT whenever the notes never mention
+    # the ticker — the ten CB-expansion symbols proved it (v3.9 marker live,
+    # symbols absent for a full run). Stub rows carry n_notes=0 honestly.
+    for _s in ALIASES:
+        if _s not in reg:
+            reg[_s] = {"symbol": _s, "n_notes": 0, "exchanges": set(),
+                       "note_ids": [], "note_snippet": ""}
     rows, fmp_syms = [], []
     for sym, r in reg.items():
         ex = set(r["exchanges"])
