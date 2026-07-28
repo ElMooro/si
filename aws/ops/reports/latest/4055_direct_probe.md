@@ -1,0 +1,41 @@
+# ops 4055 — server-side truth, this minute
+
+**Status:** success  
+**Duration:** 0.4s  
+**Finished:** 2026-07-28T23:52:47+00:00  
+
+## Data
+
+| invocations_30min | log_lines |
+|---|---|
+| 26 | 100 |
+
+## Log
+## A. the file
+
+- `23:52:46`   ABSENT still
+## B. ingest logs — last 30 min, everything
+
+- `23:52:47`   [23:33:10] REPORT RequestId: 7245b26e-6b71-4910-a048-48b4461ff86d	Duration: 515.94 ms	Billed Duration: 516 ms	Memory Size: 1024 MB	Max Memory
+- `23:52:47`   [23:33:11] START RequestId: 49d99d84-161b-4d62-9cb3-e7aac627c5b6 Version: $LATEST
+- `23:52:47`   [23:33:11] {"ok": true, "brain_error_sample": null, "received": 40, "normalized": 40, "rejected": 0, "brain_upserted": 40, "brain_failed": 0,
+- `23:52:47`   [23:33:11] REPORT RequestId: 49d99d84-161b-4d62-9cb3-e7aac627c5b6	Duration: 535.16 ms	Billed Duration: 536 ms	Memory Size: 1024 MB	Max Memory
+- `23:52:47`   [23:33:12] START RequestId: 228df299-a62d-4d36-87d9-70ce74e572d1 Version: $LATEST
+- `23:52:47`   [23:33:12] {"ok": true, "brain_error_sample": null, "received": 40, "normalized": 40, "rejected": 0, "brain_upserted": 40, "brain_failed": 0,
+- `23:52:47`   [23:33:12] REPORT RequestId: 228df299-a62d-4d36-87d9-70ce74e572d1	Duration: 518.24 ms	Billed Duration: 519 ms	Memory Size: 1024 MB	Max Memory
+- `23:52:47`   [23:33:12] START RequestId: cb4b689c-9894-43a4-b910-1db4f871835a Version: $LATEST
+- `23:52:47`   [23:33:13] {"ok": true, "brain_error_sample": null, "received": 40, "normalized": 40, "rejected": 0, "brain_upserted": 40, "brain_failed": 0,
+- `23:52:47`   [23:33:13] REPORT RequestId: cb4b689c-9894-43a4-b910-1db4f871835a	Duration: 511.61 ms	Billed Duration: 512 ms	Memory Size: 1024 MB	Max Memory
+- `23:52:47`   [23:33:13] START RequestId: 11b0c87b-15cc-47ab-a6fd-b10ecde1b00a Version: $LATEST
+- `23:52:47`   [23:33:14] {"ok": true, "brain_error_sample": null, "received": 40, "normalized": 40, "rejected": 0, "brain_upserted": 40, "brain_failed": 0,
+- `23:52:47`   [23:33:14] REPORT RequestId: 11b0c87b-15cc-47ab-a6fd-b10ecde1b00a	Duration: 533.94 ms	Billed Duration: 534 ms	Memory Size: 1024 MB	Max Memory
+- `23:52:47`   [23:33:14] START RequestId: 1fe3fd96-215f-4305-9392-7c4afe0c7161 Version: $LATEST
+- `23:52:47`   [23:33:15] {"ok": true, "brain_error_sample": null, "received": 40, "normalized": 40, "rejected": 0, "brain_upserted": 40, "brain_failed": 0,
+- `23:52:47`   [23:33:15] REPORT RequestId: 1fe3fd96-215f-4305-9392-7c4afe0c7161	Duration: 527.53 ms	Billed Duration: 528 ms	Memory Size: 1024 MB	Max Memory
+- `23:52:47`   [23:33:15] START RequestId: 23afa821-3ad6-423e-b6c2-efec9efadcce Version: $LATEST
+- `23:52:47`   [23:33:15] {"ok": true, "brain_error_sample": null, "received": 40, "normalized": 40, "rejected": 0, "brain_upserted": 40, "brain_failed": 0,
+- `23:52:47`   [23:33:15] REPORT RequestId: 23afa821-3ad6-423e-b6c2-efec9efadcce	Duration: 473.49 ms	Billed Duration: 474 ms	Memory Size: 1024 MB	Max Memory
+- `23:52:47`   [23:33:15] START RequestId: 71c0f2d5-8be2-4b22-a5a6-1013a0750e64 Version: $LATEST
+- `23:52:47`   [23:33:16] {"ok": true, "brain_error_sample": null, "received": 40, "normalized": 40, "rejected": 0, "brain_upserted": 40, "brain_failed": 0,
+- `23:52:47`   [23:33:16] REPORT RequestId: 71c0f2d5-8be2-4b22-a5a6-1013a0750e64	Duration: 460.31 ms	Billed Duration: 461 ms	Memory Size: 1024 MB	Max Memory
+- `23:52:47` ✅ PROBE DONE
