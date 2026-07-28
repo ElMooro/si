@@ -1,35 +1,40 @@
-executing-against: 039d9cdb45b7d27b088a42ac4619114c6d04b8f4
-ops 3985 — invoke-only: enforce, settle, fire
-[22:50:19] ✅ FIRED — v1.6 async under 900s/3008MB; verify via ops 3984 in ~13 min
+executing-against: dc4a07a895a40f90394c80ffe30fee16d263840e
+ops 3995 — vault-walk truncation forensics (v2.1)
+── A. the two priority artifacts, as the engine recorded them ──
+[03:00:45]   data/tradingview.json
+[03:00:45]       n_paths=401 skipped=None error=None size=391643 age_h=11.2
+[03:00:45]   data/domain-barometers.json
+[03:00:45]       n_paths=403 skipped=None error=None size=454131 age_h=10.5
+[03:00:45]   data/risk-gate.json
+[03:00:45]       n_paths=62 skipped=None error=None size=12279 age_h=11.8
+[03:00:45]   data/rotation-dashboard.json
+[03:00:45]       n_paths=405 skipped=None error=None size=52865 age_h=0.7
+── B. ledger: per-artifact capture + WHERE the vault stopped ──
+[03:00:46]      530  data/global-business-cycle.json
+[03:00:46]      405  data/rotation-dashboard.json
+[03:00:46]      403  data/domain-barometers.json
+[03:00:46]      402  data/ai-rerating-radar.json
+[03:00:46]      402  data/asset-compass.json
+[03:00:46]      402  data/bagger-engine.json
+[03:00:46]      402  data/convergence-radar-history/2026-06-25.json
+[03:00:46]      401  data/ai-infra-stack.json
+[03:00:46]   first 3 vault paths: ['n_symbols', 'n_tv_notes', 'n_live']
+[03:00:46]   LAST 6 vault paths (truncation point evidence):
+[03:00:46]       symbols[USHMI].n_notes v=6.0 src=unresolved_economics
+[03:00:46]       symbols[USM0].n_notes v=6.0 src=fred_alias:BOGMBASE
+[03:00:46]       symbols[USM0].value v=5538.6 src=fred_alias:BOGMBASE
+[03:00:46]       symbols[USM0].prev v=5470.4 src=fred_alias:BOGMBASE
+[03:00:46]       symbols[USM0].chg_pct v=1.247 src=fred_alias:BOGMBASE
+[03:00:46]       elapsed_s v=91.7 src=None
+[03:00:46]   last symbols reached: ['THREEFYTP1', 'TREASURY', 'TWEXPYY', 'US03Y', 'USALOLITONOSTSAM', 'USFR', 'USHMI', 'USM0']
+[03:00:46]   EUBUND captured: False
+[03:00:46]   JP02Y captured: False
+[03:00:46]   NO03Y captured: False
+[03:00:46]   PETOT captured: False
+[03:00:46]   JPLG captured: True
+[03:00:46]   US10Y captured: True
+── C. barometers same question ──
+[03:00:46]   barometers last symbols: ['US01MY', 'YIT1!', 'XDN', '2USNOTE', 'AGG', 'BAMLC0A0CM']
+[03:00:46] ✅ PROBE DONE — evidence above decides cap vs exception vs order
 
-→ Report written to aws/ops/reports/latest/3993_census_invoke_v21.md
-ops 3992 — v2.1 vault-complete verify
-[22:50:20]   [0] data-census v2.0 ops3991 vault-complete
-[22:50:52]   [1] data-census v2.0 ops3991 vault-complete
-[22:51:23]   [2] data-census v2.0 ops3991 vault-complete
-[22:51:54]   [3] data-census v2.0 ops3991 vault-complete
-[22:52:25]   [4] data-census v2.0 ops3991 vault-complete
-[22:52:56]   [5] data-census v2.0 ops3991 vault-complete
-[22:53:27]   [6] data-census v2.0 ops3991 vault-complete
-[22:53:58]   [7] data-census v2.0 ops3991 vault-complete
-[22:54:29] ✅   v2.1 artifact after ~240s
-[22:54:29]   BOJ              JPLG    -> {"name": "JPLG", "value": 7.07, "live": true, "pulled_from": "bank-of-japan", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
-[22:54:29]   MOF-JAPAN        JP02Y   -> ABSENT
-[22:54:29]   NORGES           NO03Y   -> ABSENT
-[22:54:29]   BCRP-PERU        PETOT   -> ABSENT
-[22:54:29]   ECB              EUBUND  -> ABSENT
-[22:54:29]   FRED US10Y -> {"name": "US10Y", "value": 4.71, "live": true, "pulled_from": "fred_alias:DGS10", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "path": "symbols[
-[22:54:30] ✅   artifact is v2.1
-[22:54:30] ✗   vault actually walked (>=3000 paths, not skipped)
-[22:54:30] ✗   BOJ family holds JPLG
-[22:54:30] ✗   MOF-JAPAN holds JP02Y
-[22:54:30] ✗   NORGES holds NO03Y
-[22:54:30] ✗   BCRP-PERU holds PETOT
-[22:54:30] ✗   ECB holds EUBUND
-[22:54:30] ✗   OTHER shrunk below 800
-[22:54:30] ✅   US10Y credited to the vault engine (v1.9 canonical)
-[22:54:30] ✅   page v4 still at edge
-[22:54:30] ✗ FAILED: ['vault actually walked (>=3000 paths, not skipped)', 'BOJ family holds JPLG', 'MOF-JAPAN holds JP02Y', 'NORGES holds NO03Y', 'BCRP-PERU holds PETOT', 'ECB holds EUBUND', 'OTHER shrunk below 800']
-
-→ Report written to aws/ops/reports/latest/3994_v21_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_3994_v21_verify.py
+→ Report written to aws/ops/reports/latest/3995_vault_walk_probe.md
