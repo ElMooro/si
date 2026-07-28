@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "tv-workbench v1.1.1 ops4037 bare-union"
+MARKER = "tv-workbench v1.1.2 ops4039 uncut"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/tv-workbench.json"
 s3 = boto3.client("s3")
@@ -37,7 +37,7 @@ TV_RX = re.compile(r"\[TV:([A-Z0-9_:!\.\-]+)\]")
 # in practice: full verbatim text, every note. Caps exist only as absurd
 # safety rails, never as editorial policy.
 MAX_NOTES_PER = 80
-NOTE_CHARS = 6000
+NOTE_CHARS = 60000   # v1.1.2: his real notes exceed 6k — rail, not editor
 
 
 def gj(key, default=None):
