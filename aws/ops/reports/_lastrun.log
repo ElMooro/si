@@ -1,37 +1,6 @@
-executing-against: 3c372135fd6381ce576bdcaed8a088a2e6b002e0
+executing-against: 133f4a814abdaf6f0940cda889d614ede248d11b
 ops 3985 — invoke-only: enforce, settle, fire
-[03:11:11] ✅ FIRED — v1.6 async under 900s/3008MB; verify via ops 3984 in ~13 min
+[03:22:24] ✅   v1.6 pushed from runner
+[03:22:24] ✅ FIRED — v1.6 async under 900s/3008MB; verify via ops 3984 in ~13 min
 
-→ Report written to aws/ops/reports/latest/3997_census_invoke_v22.md
-ops 3992 — v2.2 vault-complete verify
-[03:11:12]   [0] data-census v2.1 ops3993 full-lists
-[03:11:42]   [1] data-census v2.1 ops3993 full-lists
-[03:12:12]   [2] data-census v2.1 ops3993 full-lists
-[03:12:43]   [3] data-census v2.1 ops3993 full-lists
-[03:13:13]   [4] data-census v2.1 ops3993 full-lists
-[03:13:43]   [5] data-census v2.1 ops3993 full-lists
-[03:14:14]   [6] data-census v2.1 ops3993 full-lists
-[03:14:44]   [7] data-census v2.1 ops3993 full-lists
-[03:15:14]   [8] data-census v2.1 ops3993 full-lists
-[03:15:45]   [9] data-census v2.1 ops3993 full-lists
-[03:16:15] ✅   v2.2 artifact after ~300s
-[03:16:15]   BOJ              JPLG    -> {"name": "JPLG", "value": 7.07, "live": true, "pulled_from": "bank-of-japan", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
-[03:16:15]   MOF-JAPAN        JP02Y   -> {"name": "JP02Y", "value": 1.531, "live": true, "pulled_from": "mof-japan", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "pa
-[03:16:15]   NORGES           NO03Y   -> {"name": "NO03Y", "value": 4.495, "live": true, "pulled_from": "norges-bank", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
-[03:16:15]   BCRP-PERU        PETOT   -> {"name": "PETOT", "value": 182.731, "live": true, "pulled_from": "bcrp-peru", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
-[03:16:15]   ECB              EUBUND  -> {"name": "EUBUND", "value": 3.2247, "live": true, "pulled_from": "ecb:YC", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "pat
-[03:16:15]   FRED US10Y -> {"name": "US10Y", "value": 4.71, "live": true, "pulled_from": "fred_alias:DGS10", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "path": "symbols[
-[03:16:15] ✅   artifact is v2.2
-[03:16:15] ✗   vault actually walked (>=3000 paths, not skipped)
-[03:16:15] ✅   BOJ family holds JPLG
-[03:16:15] ✅   MOF-JAPAN holds JP02Y
-[03:16:15] ✅   NORGES holds NO03Y
-[03:16:15] ✅   BCRP-PERU holds PETOT
-[03:16:15] ✅   ECB holds EUBUND
-[03:16:15] ✗   OTHER shrunk below 800
-[03:16:15] ✅   US10Y credited to the vault engine (v1.9 canonical)
-[03:16:15] ✅   page v4 still at edge
-[03:16:15] ✗ FAILED: ['vault actually walked (>=3000 paths, not skipped)', 'OTHER shrunk below 800']
-
-→ Report written to aws/ops/reports/latest/3998_v22_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_3998_v22_verify.py
+→ Report written to aws/ops/reports/latest/3999_census_invoke_v23.md
