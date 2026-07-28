@@ -1,8 +1,12 @@
-executing-against: fb8983a4b8497de70113ca9f8acbff764db80626
-ops 4017 — public ACL on the v1.5.0 zip
-[13:34:50]   put_object_acl: ClientError — re-putting with ACL
+# ops 4017 — public ACL on the v1.5.0 zip
 
-→ Report written to aws/ops/reports/latest/4017_zip_acl.md
+**Status:** failure  
+**Duration:** 0.2s  
+**Finished:** 2026-07-28T13:34:50+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
   File "/home/runner/work/si/si/aws/ops/pending/ops_4017_zip_acl.py", line 31, in main
     s3.put_object_acl(Bucket=BUCKET, Key=KEY, ACL="public-read")
@@ -19,8 +23,8 @@ botocore.exceptions.ClientError: An error occurred (AccessControlListNotSupporte
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4017_zip_acl.py", line 58, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4017_zip_acl.py", line 35, in main
     s3.put_object(Bucket=BUCKET, Key=KEY, Body=body,
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
@@ -32,4 +36,14 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
     raise error_class(parsed_response, operation_name)
 botocore.exceptions.ClientError: An error occurred (AccessControlListNotSupported) when calling the PutObject operation: The bucket does not allow ACLs
-❌ OPS-FAIL: aws/ops/pending/ops_4017_zip_acl.py
+
+```
+
+## Data
+
+| s3_bytes | version |
+|---|---|
+| 14324 | 1.5.0 |
+
+## Log
+- `13:34:50`   put_object_acl: ClientError — re-putting with ACL
