@@ -61,12 +61,21 @@ def main():
                                         Key="data/tradingview.json")["Body"].read())
         g0 = base.get("generated_at")
         doc = base
-        for i in range(16):
+        def live_count(d):
+            ix = {r["symbol"]: r for r in d.get("symbols") or []}
+            return sum(1 for s2, (lo, hi) in NEW.items()
+                       if (ix.get(s2) or {}).get("status") == "LIVE"
+                       and isinstance((ix.get(s2) or {}).get("value"), (int, float))
+                       and lo <= ix[s2]["value"] <= hi)
+        for i in range(20):
             doc = json.loads(s3.get_object(Bucket=BUCKET,
                                            Key="data/tradingview.json")["Body"].read())
-            if doc.get("generated_at") != g0 and "v3.9" in str(doc.get("marker")):
-                rep.ok(f"  v3.9 vault after ~{i*30}s")
+            if "v3.9" in str(doc.get("marker")) and live_count(doc) >= 8:
+                rep.ok(f"  v3.9 with >=8 new LIVE after ~{i*30}s")
                 break
+            if i % 4 == 3:
+                rep.log(f"  [{i}] marker={str(doc.get('marker'))[:28]} "
+                        f"new_live={live_count(doc)}")
             time.sleep(30)
         rep.kv(marker=doc.get("marker"), n_live=doc.get("n_live"),
                generated_at=doc.get("generated_at"))
@@ -125,10 +134,10 @@ def main():
         checks.append(("risk-gate invoke clean", not r.get("FunctionError")))
         gate = json.loads(s3.get_object(Bucket=BUCKET,
                                         Key="data/risk-gate.json")["Body"].read())
-        carry = ((gate.get("legs") or {}).get("carry")) or {}
-        inputs = carry.get("inputs") or carry.get("factors") or []
-        names = json.dumps(inputs)[:600]
-        has = "jgb10y" in names
+        gj = json.dumps(gate)
+        has = "jgb10y_carry_cost" in gj
+        i2 = gj.find("jgb10y_carry_cost")
+        names = gj[max(0, i2 - 40):i2 + 220] if has else gj[:200]
         rep.log(f"  posture={gate.get('posture')} sizing={gate.get('sizing_multiplier')}")
         rep.log(f"  carry inputs head: {names[:260]}")
         checks.append(("carry leg includes jgb10y_carry_cost", has))
@@ -147,3 +156,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# rerun after race fix
