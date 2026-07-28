@@ -28,13 +28,16 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "tv-workbench v1.0 ops4019"
+MARKER = "tv-workbench v1.1 ops4035 full-fidelity"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/tv-workbench.json"
 s3 = boto3.client("s3")
 TV_RX = re.compile(r"\[TV:([A-Z0-9_:!\.\-]+)\]")
-MAX_NOTES_PER = 6
-NOTE_CHARS = 420
+# v1.1 (Khalid: "all my notes… exactly as in TradingView") — no truncation
+# in practice: full verbatim text, every note. Caps exist only as absurd
+# safety rails, never as editorial policy.
+MAX_NOTES_PER = 80
+NOTE_CHARS = 6000
 
 
 def gj(key, default=None):
