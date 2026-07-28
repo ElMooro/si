@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "data-census v2.1 ops3993 full-lists"
+MARKER = "data-census v2.2 ops3997 cap-honoured"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/data-census.json"
 LEDGER_KEY = "data-census/paths-ledger.json"
@@ -113,7 +113,11 @@ def walk(o, pre="", depth=0, out=None, cap=None, list_cap=None):
                 for el in o[:list_cap]:
                     tag = str(el.get(idf, "?"))[:24] if isinstance(el, dict) else "?"
                     walk(el, f"{pre}[{tag}]", depth + 1, out, cap, list_cap)
-                    if len(out) >= MAX_PATHS_PER:
+                    if len(out) >= cap:
+                        # v2.2: THE one-token bug — this guard still read the
+                        # 500 constant, so cap=12000 never bound and every
+                        # artifact stopped at ~500 paths (probe 3996, verbatim
+                        # deployed dump). Vault = 106 of 561 symbols exactly.
                         return out
                 return out
         walk(o[0], f"{pre}[0]", depth + 1, out, cap, list_cap)
