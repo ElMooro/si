@@ -1,23 +1,22 @@
-executing-against: 2754d9cb2a06e6edcd75f05f5d8e2a37a594cbf5
+executing-against: 7e82a1cf34b00a5f9b20a567c356d29b581b3897
 ops 4019 — workbench: create/settle + fire + schedule
-[18:05:14]   function exists
-[18:05:15] ✅   v1.0 settled by marker
-[18:05:15] ✅ FIRED — workbench assembling
-[18:05:15] ✅   schedule ENABLED cron(55 12 * * ? *)
+[18:10:51]   function exists
+[18:10:52]   pushed v1.0 from runner
+[18:11:08] ✅   v1.0 settled by marker
+[18:11:08] ✅ FIRED — workbench assembling
+[18:11:09] ✅   schedule ENABLED cron(55 12 * * ? *)
 
-→ Report written to aws/ops/reports/latest/4039_fire_wb_v112.md
+→ Report written to aws/ops/reports/latest/4041_fire_wb_v113.md
 ops 4036 — note-fidelity: exactly as in TradingView
-[18:05:33] ✅   v1.1.2 artifact after ~15s
+[18:11:25] ✅   v1.1.3 artifact after ~15s
 ── A. count parity per symbol (watchlisted only) ──
-[18:05:33]     orphans (INFO): ['UNTAGGED', 'XDN', 'NASDAQ:XDN', 'MC', 'EURONEXT:MC', 'AKZA']
+[18:11:25]     orphans (INFO): ['UNTAGGED', 'XDN', 'NASDAQ:XDN', 'MC', 'EURONEXT:MC', 'AKZA']
 ── B. verbatim fidelity — 30 random notes, byte-exact ──
-[18:05:33]     NOT VERBATIM DXY: 'A rising yield is dollar bullish. A falling yield is dollar '
 ── C. truncation detector ──
-[18:05:33] ✅   workbench is v1.1.2 bare-union
-[18:05:33] ✅   every watchlisted symbol carries ALL its notes
-[18:05:33] ✗   30/30 sampled notes byte-exact
-[18:05:33] ✅   zero notes hitting the cap
-[18:05:33] ✗ FAILED: ['30/30 sampled notes byte-exact']
+[18:11:25] ✅   workbench is v1.1.3 bare-union
+[18:11:25] ✅   every watchlisted symbol carries ALL its notes
+[18:11:25] ✅   30/30 sampled notes byte-exact
+[18:11:25] ✅   zero notes hitting the cap
+[18:11:25] ✅ PASS_ALL — 1004 watchlisted symbols carry all their notes verbatim; 25 orphans (symbols in no list) reported honestly; zero truncation
 
-→ Report written to aws/ops/reports/latest/4040_fidelity_final.md
-❌ OPS-FAIL: aws/ops/pending/ops_4040_fidelity_final.py
+→ Report written to aws/ops/reports/latest/4042_fidelity_final2.md
