@@ -30,15 +30,32 @@ try {
   $cands += "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
   foreach ($p in $cands) { if ($p -and (Test-Path $p)) { $chrome = $p; break } }
   if (-not $chrome) { throw 'Chrome not found - install Google Chrome first.' }
-  Write-Host '  [4/4] Creating Desktop shortcut: TradingView (JH Harvester)'
+  Write-Host '  [4/4] Creating Desktop shortcuts (every desktop Windows might be showing you)'
   $ws = New-Object -ComObject WScript.Shell
-  $lnkPath = Join-Path ([Environment]::GetFolderPath('Desktop')) 'TradingView (JH Harvester).lnk'
-  $lnk = $ws.CreateShortcut($lnkPath)
-  $lnk.TargetPath = $chrome
-  $lnk.Arguments = ('--load-extension="' + $dir + '" https://www.tradingview.com/chart/')
-  $lnk.IconLocation = "$chrome,0"
-  $lnk.Description = 'TradingView with the JustHodl harvester pre-loaded'
-  $lnk.Save()
+  $desks = @([Environment]::GetFolderPath('Desktop'),
+             (Join-Path $env:USERPROFILE 'Desktop'))
+  if ($env:OneDrive) { $desks += (Join-Path $env:OneDrive 'Desktop') }
+  $desks = $desks | Where-Object { $_ -and (Test-Path $_) } | Select-Object -Unique
+  $written = @()
+  foreach ($d in $desks) {
+    try {
+      $lnk = $ws.CreateShortcut((Join-Path $d 'TradingView (JH Harvester).lnk'))
+      $lnk.TargetPath = $chrome
+      $lnk.Arguments = ('--load-extension="' + $dir + '" https://www.tradingview.com/chart/')
+      $lnk.IconLocation = "$chrome,0"
+      $lnk.Description = 'TradingView with the JustHodl harvester pre-loaded'
+      $lnk.Save()
+      $written += (Join-Path $d 'TradingView (JH Harvester).lnk')
+    } catch {}
+  }
+  if (-not $written.Count) { throw 'Could not write a Desktop shortcut anywhere.' }
+  Write-Host '       Shortcut written to:'
+  foreach ($w in $written) { Write-Host ('         ' + $w) }
+  Write-Host ''
+  Write-Host '  Launching TradingView with the harvester NOW...' -ForegroundColor Yellow
+  Write-Host '  (If Chrome was already open, this new window may NOT carry the'
+  Write-Host '   extension - close ALL Chrome windows and use the shortcut.)'
+  Start-Process $chrome -ArgumentList ('--load-extension="' + $dir + '"'), 'https://www.tradingview.com/chart/' 
   Write-Host ''
   Write-Host ("  DONE. Version " + $man.version + " installed.") -ForegroundColor Green
   Write-Host ''
