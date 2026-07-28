@@ -1,88 +1,112 @@
-executing-against: cacbc482b44c37223f34603d87919093ac30c40c
-ops 4009 — BOJ shape + FI/ES/IT/CH/TW/KR/BR discovery
-── V. collision check — candidate symbols in the live vault ──
-[04:46:01]   JPM3      EXISTS status=LIVE src=fred_alias:MABMM30
-[04:46:01]   CHINTR    EXISTS status=NO_FREE_SOURCE src=unresolved_economi
-[04:46:01]   IT10Y     EXISTS status=LIVE src=fred_alias:IRLTLT0
-[04:46:01]   ES10Y     EXISTS status=NO_FREE_SOURCE src=unresolved_tv_only
-[04:46:01]   TWINTR    EXISTS status=NO_FREE_SOURCE src=unresolved_economi
-── A. BOJ getDataCode RAW — the shape work ──
-[04:46:02]   MD01/MABS1AN11 [200] bytes=739
-[04:46:02]   HEAD: { "STATUS":200, "MESSAGEID":"M181000I", "MESSAGE":"Successfully completed", "DATE":"2026-07-28T13:46:01.898+09:00", "PARAMETER":{ "FORMAT":"JSON", "LANG":"EN", "DB":"MD01", "STARTDATE":"202505", "ENDDATE":"202607", "STARTPOSITION":"" }, "NEXTPOSITION":null, "RESULTSET":[ { "SERIES_CODE":"MABS1AN11", "NAME_OF_TIME_SERIES":"Monetary Base/Average Amounts Outstanding", "UNIT":"100 million yen", "FREQU
-[04:46:02]   TAIL: ase", "LAST_UPDATE":20260702, "VALUES":{ "SURVEY_DATES":[202505,202506,202507,202508,202509,202510,202511,202512,202601,202602,202603,202604,202605,202606,202607], "VALUES":[6560120,6479525,6438964,6437775,6281080,6165980,6126869,5941943,5894035,5809326,5707875,5829256,5757634,5592039,null] } } ] } 
-[04:46:02]     .STATUS: int 200
-[04:46:02]     .MESSAGEID: str M181000I
-[04:46:02]     .MESSAGE: str Successfully completed
-[04:46:02]     .DATE: str 2026-07-28T13:46:01.898+09:00
-[04:46:02]     .PARAMETER: dict n=6
-[04:46:02]     .PARAMETER.FORMAT: str JSON
-[04:46:02]     .PARAMETER.LANG: str EN
-[04:46:02]     .PARAMETER.DB: str MD01
-[04:46:02]     .PARAMETER.STARTDATE: str 202505
-[04:46:02]     .PARAMETER.ENDDATE: str 202607
-[04:46:02]     .PARAMETER.STARTPOSITION: str 
-[04:46:02]     .NEXTPOSITION: NoneType None
-[04:46:02]     .RESULTSET: list n=1
-[04:46:02]     .RESULTSET[0]: {'SERIES_CODE': 'MABS1AN11', 'NAME_OF_TIME_SERIES': 'Monetary Base/Average Amounts Outstanding', 'UNIT': '100 million ye
-[04:46:02]     .RESULTSET[0].SERIES_CODE: str MABS1AN11
-[04:46:02]     .RESULTSET[0].NAME_OF_TIME_SERIES: str Monetary Base/Average Amounts Outstanding
-[04:46:02]     .RESULTSET[0].UNIT: str 100 million yen
-[04:46:02]     .RESULTSET[0].FREQUENCY: str MONTHLY
-[04:46:02]     .RESULTSET[0].CATEGORY: str Monetary Base
-[04:46:02]     .RESULTSET[0].LAST_UPDATE: int 20260702
-[04:46:02]     .RESULTSET[0].VALUES: dict n=2
-[04:46:02]     .RESULTSET[0].VALUES.SURVEY_DATES: list n=15
-[04:46:02]     .RESULTSET[0].VALUES.SURVEY_DATES[0]: 202505
-[04:46:02]     .RESULTSET[0].VALUES.VALUES: list n=15
-[04:46:02]     .RESULTSET[0].VALUES.VALUES[0]: 6560120
-── A2. BOJ Tankan + call-rate code discovery ──
-[04:46:07]   [200] CO: pairs=166514 hits=5
-[04:46:07]       TK99F0000601GCQ00000 — D.I./Business Conditions/All Enterprises/All industries/Actual result
-[04:46:07]       TK99F0000601GCQ10000 — D.I./Business Conditions/All Enterprises/All industries/Forecast
-[04:46:07]       TK99F1000601GCQ00000 — D.I./Business Conditions/All Enterprises/Manufacturing/Actual result
-[04:46:07]       TK99F1000601GCQ10000 — D.I./Business Conditions/All Enterprises/Manufacturing/Forecast
-[04:46:07]   [200] FM08: pairs=59 hits=0
-[04:46:07]   [200] FM01: pairs=5 hits=3
-[04:46:07]       STRDCLUCON — Call Rate, Uncollateralized Overnight, Average (Daily)
-[04:46:07]       STRDCLUCONH — Call Rate, Uncollateralized Overnight, Highest (Daily)
-[04:46:07]       STRDCLUCONL — Call Rate, Uncollateralized Overnight, Lowest (Daily)
-[04:46:08]   [200] IR01: pairs=3 hits=0
-── B. FRED MEI — keyless fredgraph confirms ──
-[04:46:53]   FIIPYY  FINPROINDMISMEI      [0] n=0 last=None
-[04:47:38]   ESIPYY  ESPPROINDMISMEI      [0] n=0 last=None
-[04:48:24]   ITIPYY  ITAPROINDMISMEI      [0] n=0 last=None
-[04:49:09]   CHIPYY  CHEPROINDMISMEI      [0] n=0 last=None
-[04:49:54]   KRIPYY  KORPROINDMISMEI      [0] n=0 last=None
-[04:50:39]   BRIPYY  BRAPROINDMISMEI      [0] n=0 last=None
-[04:51:24]   IT10Y   IRLTLT01ITM156N      [0] n=0 last=None
-[04:52:09]   ES10Y   IRLTLT01ESM156N      [0] n=0 last=None
-[04:52:54]   FI10Y   IRLTLT01FIM156N      [0] n=0 last=None
-[04:53:39]   CH10Y   IRLTLT01CHM156N      [0] n=0 last=None
-[04:54:24]   KR10Y   IRLTLT01KRM156N      [0] n=0 last=None
-[04:55:09]   CHINTR  IRSTCI01CHM156N      [0] n=0 last=None
-[04:55:54]   KRINTR  INTDSRKRM193N        [0] n=0 last=None
-── C. BCB Brazil — SGS open API ──
-[04:55:55]   BRINTR  sgs.432 [200] 05/08/2026 v=14.25
-[04:55:56]   BRFER   sgs.13621 [200] 24/07/2026 v=368899.0
-[04:55:57]   BRLUSD  sgs.1 [200] 27/07/2026 v=5.1005
-── E. PASTE-READY + DEFERRED ──
-[04:55:57]   "BRINTR": "bcb:432",  # Selic target
-[04:55:57]   "BRFER": "bcb:13621",  # intl reserves USD mn
-[04:55:57]   "BRLUSD": "bcb:1",  # USD/BRL
-[04:55:57]   DEFER FIIPYY: st=0 n=0
-[04:55:57]   DEFER ESIPYY: st=0 n=0
-[04:55:57]   DEFER ITIPYY: st=0 n=0
-[04:55:57]   DEFER CHIPYY: st=0 n=0
-[04:55:57]   DEFER KRIPYY: st=0 n=0
-[04:55:57]   DEFER BRIPYY: st=0 n=0
-[04:55:57]   DEFER IT10Y: st=0 n=0
-[04:55:57]   DEFER ES10Y: st=0 n=0
-[04:55:57]   DEFER FI10Y: st=0 n=0
-[04:55:57]   DEFER CH10Y: st=0 n=0
-[04:55:57]   DEFER KR10Y: st=0 n=0
-[04:55:57]   DEFER CHINTR: st=0 n=0
-[04:55:57]   DEFER KRINTR: st=0 n=0
-[04:55:57] ✗ under 8 — read the evidence before wiring
+executing-against: e4281a1ea96de88cd4ea106769972c7645b9f2aa
+ops 3985 — invoke-only: enforce, settle, fire
+[04:59:52] ✅   v1.6 pushed from runner
+[04:59:52] ✅ FIRED — v1.6 async under 900s/3008MB; verify via ops 3984 in ~13 min
 
-→ Report written to aws/ops/reports/latest/4009_boj_shape_and_six.md
-❌ OPS-FAIL: aws/ops/pending/ops_4009_boj_shape_and_six.py
+→ Report written to aws/ops/reports/latest/4010_fire_vault_v310.md
+ops 4004 — CB expansion pipeline verify
+── A. vault: poll for v3.9 write, then symbol sanity ──
+[05:01:23]   [3] marker=tradingview-vault v3.9.1 ops new_live=1
+[05:03:23]   [7] marker=tradingview-vault v3.10 ops4 new_live=12
+[05:05:24]   [11] marker=tradingview-vault v3.10 ops4 new_live=12
+[05:07:25]   [15] marker=tradingview-vault v3.10 ops4 new_live=12
+[05:09:25]   [19] marker=tradingview-vault v3.10 ops4 new_live=12
+[05:09:55]   JPMB    LIVE           v=-13.7 src=bank-of-japan sane=True
+[05:09:55]   JPM2YY  LIVE           v=2.23 src=bank-of-japan sane=True
+[05:09:55]   JPM3    LIVE           v=1597003700000000.0 src=fred_alias:MABMM sane=False
+[05:09:55]   JPTANKAN NO_FREE_SOURCE v=None src=unresolved_tv_on sane=False
+[05:09:55]   JPCALLR LIVE           v=0.977 src=bank-of-japan sane=True
+[05:09:55]   BRINTR  LIVE           v=14.25 src=bcb-brazil sane=True
+[05:09:55]   BRFER   LIVE           v=368899.0 src=bcb-brazil sane=True
+[05:09:55]   BRLUSD  LIVE           v=5.1005 src=bcb-brazil sane=True
+[05:09:55]   FIIPYY  LIVE           v=-7.22 src=fred_yoy:FINPROI sane=True
+[05:09:55]   ESIPYY  LIVE           v=-0.25 src=fred_yoy:ESPPROI sane=True
+[05:09:55]   ITIPYY  LIVE           v=-3.34 src=fred_yoy:ITAPROI sane=True
+[05:09:55]   CHIPYY  NO_FREE_SOURCE v=None src=unresolved_tv_on sane=False
+[05:09:55]   KRIPYY  LIVE           v=2.47 src=fred_yoy:KORPROI sane=True
+[05:09:55]   BRIPYY  LIVE           v=2.27 src=fred_yoy:BRAPROI sane=True
+[05:09:55]   IT10Y   LIVE           v=3.734 src=fred_alias:IRLTL sane=True
+[05:09:55]   ES10Y   NO_FREE_SOURCE v=None src=unresolved_tv_on sane=False
+[05:09:55]   FI10Y   NO_FREE_SOURCE v=None src=unresolved_tv_on sane=False
+[05:09:55]   CH10Y   NO_FREE_SOURCE v=None src=unresolved_tv_on sane=False
+[05:09:55]   KR10Y   NO_FREE_SOURCE v=None src=unresolved_tv_on sane=False
+[05:09:55]   CHINTR  NO_FREE_SOURCE v=None src=unresolved_econo sane=False
+[05:09:55]   KRINTR  NO_FREE_SOURCE v=None src=unresolved_tv_on sane=False
+── B. barometers: classify + sign the new symbols ──
+[05:09:56]   justhodl-domain-barometers: pushed from runner
+[05:10:07]   justhodl-domain-barometers: pushed from runner
+[05:10:18]   justhodl-domain-barometers: pushed from runner
+[05:10:29]   justhodl-domain-barometers: pushed from runner
+[05:10:40]   justhodl-domain-barometers: pushed from runner
+[05:10:50]   justhodl-domain-barometers: pushed from runner
+[05:11:01]   justhodl-domain-barometers: pushed from runner
+[05:11:12]   justhodl-domain-barometers: pushed from runner
+[05:11:23]   justhodl-domain-barometers: pushed from runner
+[05:11:33]   justhodl-domain-barometers: pushed from runner
+[05:11:44]   justhodl-domain-barometers: pushed from runner
+[05:11:55]   justhodl-domain-barometers: pushed from runner
+[05:12:06]   justhodl-domain-barometers: pushed from runner
+[05:12:16]   justhodl-domain-barometers: pushed from runner
+[05:12:27]   justhodl-domain-barometers: pushed from runner
+[05:12:38]   justhodl-domain-barometers: pushed from runner
+[05:12:49]   justhodl-domain-barometers: pushed from runner
+[05:12:59]   justhodl-domain-barometers: pushed from runner
+[05:13:10]   justhodl-domain-barometers: pushed from runner
+[05:13:21]   justhodl-domain-barometers: pushed from runner
+[05:13:31]   justhodl-domain-barometers: pushed from runner
+[05:13:42]   justhodl-domain-barometers: pushed from runner
+[05:13:53]   justhodl-domain-barometers: pushed from runner
+[05:14:04]   justhodl-domain-barometers: pushed from runner
+[05:14:14]   justhodl-domain-barometers: pushed from runner
+[05:14:25]   justhodl-domain-barometers: pushed from runner
+[05:14:36]   justhodl-domain-barometers: pushed from runner
+[05:14:47]   justhodl-domain-barometers: pushed from runner
+[05:14:57]   justhodl-domain-barometers: pushed from runner
+[05:15:08]   justhodl-domain-barometers: pushed from runner
+[05:15:21]   invoke fnerr=None
+[05:15:21]   JPMB    dom=MACRO     pol=1 basis=brain_note status=LIVE
+[05:15:21]   JPM2YY  dom=MACRO     pol=1 basis=brain_note status=LIVE
+[05:15:21]   JPM3    dom=MACRO     pol=1 basis=brain_note status=LIVE
+[05:15:21]   JPTANKAN dom=MACRO     pol=1 basis=brain_note status=NO_FREE_SOURCE
+[05:15:21]   JPCALLR dom=MACRO     pol=-1 basis=brain_note status=LIVE
+[05:15:21]   BRINTR  dom=MACRO     pol=-1 basis=brain_note status=LIVE
+[05:15:21]   BRFER   dom=MACRO     pol=1 basis=brain_note status=LIVE
+[05:15:21]   BRLUSD  dom=MACRO     pol=-1 basis=brain_note status=LIVE
+[05:15:21]   FIIPYY  dom=MACRO     pol=1 basis=brain_note status=LIVE
+[05:15:21]   ESIPYY  dom=MACRO     pol=1 basis=brain_note status=LIVE
+[05:15:21]   ITIPYY  dom=MACRO     pol=1 basis=brain_note status=LIVE
+[05:15:21]   CHIPYY  dom=MACRO     pol=1 basis=brain_note status=NO_FREE_SOURCE
+[05:15:21]   KRIPYY  dom=MACRO     pol=1 basis=brain_note status=LIVE
+[05:15:21]   BRIPYY  dom=MACRO     pol=1 basis=brain_note status=LIVE
+[05:15:21]   IT10Y   dom=RISK      pol=-1 basis=brain_note status=LIVE
+[05:15:21]   ES10Y   dom=MACRO     pol=-1 basis=brain_note status=NO_FREE_SOURCE
+[05:15:21]   FI10Y   dom=MACRO     pol=-1 basis=brain_note status=NO_FREE_SOURCE
+[05:15:21]   CH10Y   dom=MACRO     pol=-1 basis=brain_note status=NO_FREE_SOURCE
+[05:15:21]   KR10Y   dom=MACRO     pol=-1 basis=brain_note status=NO_FREE_SOURCE
+[05:15:21]   CHINTR  dom=MACRO     pol=-1 basis=brain_note status=NO_FREE_SOURCE
+[05:15:21]   KRINTR  dom=MACRO     pol=-1 basis=brain_note status=NO_FREE_SOURCE
+[05:15:21]   MACRO     52.5 NEUTRAL voting=102
+[05:15:21]   LIQUIDITY 36.7 TIGHTENING voting=53
+[05:15:21]   RISK      31.3 TIGHTENING voting=62
+── C. risk-gate: carry leg cites JGB 10Y ──
+[05:15:29]   invoke fnerr=None
+[05:15:29]   posture=RISK_OFF sizing=0.45
+[05:15:29]   carry inputs head: ge_h": 0.2, "status": "OK"}, {"input": "jgb10y_carry_cost", "feed": "tradingview-vault(MOF)", "value": 2.778, "score_adj": -0.15, "note": "JGB 10Y par yield \u2014 yen carry funding cost; >2.5% -0.15, >4% jump -0.1 [tv-9fa576184567fa8f]", "age_h": 0.2, "status
+[05:15:29] ✗   vault marker v3.9
+[05:15:29] ✗   >=15 of 21 new symbols LIVE and sane
+[05:15:29] ✅   JGB curve monotone (sanity)
+[05:15:29] ✗   barometers v1.3 settled
+[05:15:29] ✅   barometers invoke clean
+[05:15:29] ✅   >=15 new symbols carry a brain-note polarity
+[05:15:29] ✅   risk-gate jp10y patch settled
+[05:15:29] ✅   risk-gate invoke clean
+[05:15:29] ✅   carry leg includes jgb10y_carry_cost
+[05:15:29] ✅   posture valid
+[05:15:29] ✗ FAILED: ['vault marker v3.9', '>=15 of 21 new symbols LIVE and sane', 'barometers v1.3 settled']
+
+→ Report written to aws/ops/reports/latest/4011_six_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_4011_six_verify.py
+ops 3985 — invoke-only: enforce, settle, fire
+[05:15:30] ✅ FIRED — v1.6 async under 900s/3008MB; verify via ops 3984 in ~13 min
+
+→ Report written to aws/ops/reports/latest/4012_census_refresh3.md
