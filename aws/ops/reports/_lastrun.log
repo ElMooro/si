@@ -1,23 +1,23 @@
-executing-against: 37cb8cbdcee21f731e0ed83e9d19e397719293a9
+executing-against: 2754d9cb2a06e6edcd75f05f5d8e2a37a594cbf5
 ops 4019 — workbench: create/settle + fire + schedule
-[18:00:04]   function exists
-[18:00:05] ✅   v1.0 settled by marker
-[18:00:05] ✅ FIRED — workbench assembling
-[18:00:06] ✅   schedule ENABLED cron(55 12 * * ? *)
+[18:05:14]   function exists
+[18:05:15] ✅   v1.0 settled by marker
+[18:05:15] ✅ FIRED — workbench assembling
+[18:05:15] ✅   schedule ENABLED cron(55 12 * * ? *)
 
-→ Report written to aws/ops/reports/latest/4037_fire_wb_v111.md
+→ Report written to aws/ops/reports/latest/4039_fire_wb_v112.md
 ops 4036 — note-fidelity: exactly as in TradingView
-[18:00:24] ✅   v1.1.1 artifact after ~15s
+[18:05:33] ✅   v1.1.2 artifact after ~15s
 ── A. count parity per symbol (watchlisted only) ──
-[18:00:24]     orphans (INFO): ['UNTAGGED', 'XDN', 'NASDAQ:XDN', 'MC', 'EURONEXT:MC', 'AKZA']
+[18:05:33]     orphans (INFO): ['UNTAGGED', 'XDN', 'NASDAQ:XDN', 'MC', 'EURONEXT:MC', 'AKZA']
 ── B. verbatim fidelity — 30 random notes, byte-exact ──
-[18:00:24]     NOT VERBATIM DXY: 'A rising yield is dollar bullish. A falling yield is dollar '
+[18:05:33]     NOT VERBATIM DXY: 'A rising yield is dollar bullish. A falling yield is dollar '
 ── C. truncation detector ──
-[18:00:24] ✅   workbench is v1.1.1 bare-union
-[18:00:24] ✅   every watchlisted symbol carries ALL its notes
-[18:00:24] ✗   30/30 sampled notes byte-exact
-[18:00:24] ✗   zero notes hitting the cap
-[18:00:24] ✗ FAILED: ['30/30 sampled notes byte-exact', 'zero notes hitting the cap']
+[18:05:33] ✅   workbench is v1.1.2 bare-union
+[18:05:33] ✅   every watchlisted symbol carries ALL its notes
+[18:05:33] ✗   30/30 sampled notes byte-exact
+[18:05:33] ✅   zero notes hitting the cap
+[18:05:33] ✗ FAILED: ['30/30 sampled notes byte-exact']
 
-→ Report written to aws/ops/reports/latest/4038_fidelity_check2.md
-❌ OPS-FAIL: aws/ops/pending/ops_4038_fidelity_check2.py
+→ Report written to aws/ops/reports/latest/4040_fidelity_final.md
+❌ OPS-FAIL: aws/ops/pending/ops_4040_fidelity_final.py
