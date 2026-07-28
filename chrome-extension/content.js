@@ -325,7 +325,11 @@
   var LAST_SIG = "";
   function autoSync() {
     var g = STORE.size + ":" + LISTS.size + ":" + SRCS.size;
-    if (g === LAST_SIG) return;
+    // v1.7.4: the sig-guard starved DIAG exactly when diagnosis mattered
+    // most — zero source-growth meant zero syncs meant the telemetry
+    // explaining the zero could never ship. During or after any harvest,
+    // sync unconditionally.
+    if (g === LAST_SIG && !DIAG.total) return;
     if (!STORE.size && !LISTS.size && !SRCS.size) return;
     LAST_SIG = g;
     try { upload(); } catch (e) {}
