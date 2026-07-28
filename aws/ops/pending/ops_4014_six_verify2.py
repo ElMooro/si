@@ -74,7 +74,7 @@ def main():
         for i in range(24):
             doc = json.loads(s3.get_object(Bucket=BUCKET,
                                            Key="data/tradingview.json")["Body"].read())
-            if "v3.10" in str(doc.get("marker")) and live_count(doc) >= 8:
+            if "v3.10.1" in str(doc.get("marker")) and live_count(doc) >= 15:
                 rep.ok(f"  v3.9 with >=8 new LIVE after ~{i*30}s")
                 break
             if i % 4 == 3:
@@ -93,7 +93,7 @@ def main():
             live_n += bool(ok)
             rep.log(f"  {sym:7s} {str(r.get('status')):14s} v={v} "
                     f"src={str(r.get('source'))[:16]} sane={ok}")
-        checks.append(("vault marker v3.10", "v3.10" in str(doc.get("marker"))))
+        checks.append(("vault marker v3.10.1", "v3.10.1" in str(doc.get("marker"))))
         checks.append((">=15 of 21 new symbols LIVE and sane", live_n >= 15))
         curve = [idx.get(s, {}).get("value") for s in
                  ("JP01Y", "JP05Y", "JP10Y", "JP20Y", "JP30Y")]
@@ -162,3 +162,5 @@ if __name__ == "__main__":
     main()
 
 # rerun after race fix
+
+# post-p2 retrigger
