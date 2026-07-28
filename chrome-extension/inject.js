@@ -18,7 +18,7 @@
   if (window.__JH_TAP) return;
   window.__JH_TAP = 1;
 
-  var INTEREST = /symbols_list|watchlist|note|getall|text_note|custom\/|colored|drawing/i;
+  var INTEREST = /symbols_list|watchlist|note|getall|text_note|custom\/|colored|drawing|symbol_search|scanner|snapshot|metainfo|symbol-info|quotes?\//i;
   var SKIP = /google|doubleclick|analytics|collect|sentry|report|savesettings|\.png|\.jpg|\.css/i;
 
   function post(url, data, kind) {
@@ -83,4 +83,26 @@
   });
 
   window.postMessage({ __jh: "tap-ready" }, "*");
+
+  /* ── v1.5.0 sources: DOM fallback on symbol pages ─────────────────
+   * Network taps catch most attribution (symbol_search/scanner carry
+   * source fields), but server-rendered symbol pages may not refetch.
+   * On /symbols/ paths, after settle, read the page's own source line. */
+  function domSrc() {
+    try {
+      if (!/\/symbols\//.test(location.pathname)) return;
+      var sym = (location.pathname.match(/\/symbols\/([^\/]+)/) || [])[1] || "";
+      var el = document.querySelector('[class*="source" i], [data-name*="source" i]');
+      var t = el ? el.textContent.trim().slice(0, 160) : "";
+      post(location.href, { __dom: 1, symbol: sym.replace(/-/g, ":"),
+                            source_text: t, title: document.title.slice(0, 160) },
+           "tap");
+    } catch (e) {}
+  }
+  setTimeout(domSrc, 2500);
+  var _push = history.pushState;
+  history.pushState = function () {
+    _push.apply(this, arguments);
+    setTimeout(domSrc, 2500);
+  };
 })();

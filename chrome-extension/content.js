@@ -16,6 +16,41 @@
   var STORE = new Map();   // note id -> note
   var TICKERS = new Set();
   var LISTS = new Map();   // list id -> {id,name,symbols[]}
+  var SRCS = new Map();    // symbol -> {source, description} (v1.5.0)
+  var SRC_KEYS = ["source", "source_id", "source-logoid", "source_description",
+                  "provider", "provider_id", "exchange_source"];
+  function keepSource(sym, src, desc) {
+    sym = String(sym || "").trim();
+    src = String(src || "").trim();
+    if (!sym || !src || src.length > 120) return;
+    var cur = SRCS.get(sym) || {};
+    SRCS.set(sym, { source: src.slice(0, 120),
+                    description: String(desc || cur.description || "").slice(0, 160) });
+  }
+  function sniffSources(o, depth) {
+    if (!o || depth > 6) return;
+    if (Array.isArray(o)) { for (var i = 0; i < o.length && i < 400; i++) sniffSources(o[i], depth + 1); return; }
+    if (typeof o !== "object") return;
+    if (o.__dom && o.symbol) { keepSource(o.symbol, o.source_text, o.title); return; }
+    var sym = "";
+    for (var k = 0; k < SYM_KEYS.length; k++) if (typeof o[SYM_KEYS[k]] === "string") { sym = o[SYM_KEYS[k]]; break; }
+    if (!sym && typeof o.s === "string") sym = o.s;
+    if (sym) {
+      for (var j = 0; j < SRC_KEYS.length; j++) {
+        var v = o[SRC_KEYS[j]];
+        if (typeof v === "string" && v) { keepSource(sym, v, o.description || o.title || o.short_description); break; }
+      }
+    }
+    // scanner shape: {columns:[...], data:[{s, d:[...]}]}
+    if (Array.isArray(o.columns) && Array.isArray(o.data)) {
+      var ci = o.columns.indexOf("source"), di = o.columns.indexOf("description");
+      if (ci >= 0) for (var r = 0; r < o.data.length && r < 500; r++) {
+        var row = o.data[r];
+        if (row && row.s && Array.isArray(row.d)) keepSource(row.s, row.d[ci], di >= 0 ? row.d[di] : "");
+      }
+    }
+    for (var kk in o) { var vv = o[kk]; if (vv && typeof vv === "object") sniffSources(vv, depth + 1); }
+  }
   var SEEN = new Map();    // endpoint -> {notes,lists} | {err}
 
   function hashId(sym, ts, text) {
@@ -123,6 +158,7 @@
   }
 
   window.addEventListener("message", function (e) {
+    try { if (e.data && e.data.__jh && e.data.data) sniffSources(e.data.data, 0); } catch (_) {}
     var d = e && e.data;
     if (!d || !d.__jh) return;
     if (d.__jh === "tap-ready") { paint(); return; }
@@ -147,7 +183,7 @@
     var tagged = 0;
     STORE.forEach(function (n) { if (n.symbol !== "UNTAGGED") tagged++; });
     statusEl.innerHTML = '<b style="color:#F0B429">' + STORE.size + '</b> notes (' + tagged +
-      ' tagged) · <b style="color:#F0B429">' + LISTS.size + '</b> watchlists · ' +
+      ' tagged) · <b style="color:#F0B429">' + LISTS.size + '</b> watchlists · <b style="color:#7EA6F0">' + SRCS.size + '</b> sources · ' +
       TICKERS.size + ' tickers';
     var rows = [];
     SEEN.forEach(function (v, k) {
@@ -170,14 +206,16 @@
     var lists = Array.from(LISTS.values());
     if (!notes.length && !lists.length) { msg("Nothing captured yet.", "#E07A6A"); return; }
     btn.disabled = true;
-    msg("Uploading " + notes.length + " notes · " + lists.length + " watchlists…", "#F0B429");
+    msg("Uploading " + notes.length + " notes · " + lists.length + " watchlists · " + SRCS.size + " sources…", "#F0B429");
     chrome.runtime.onMessage.addListener(function (m) {
       if (m && m.action === "upload_progress") {
         msg("Uploading " + m.sent + "/" + m.total + " notes \u00b7 " +
             (m.brainOk || 0) + " in Brain\u2026", "#F0B429");
       }
     });
-    chrome.runtime.sendMessage({ action: "upload", notes: notes, watchlists: lists },
+    var sources = [];
+    SRCS.forEach(function (v, k) { sources.push({ symbol: k, source: v.source, description: v.description }); });
+    chrome.runtime.sendMessage({ action: "upload", notes: notes, watchlists: lists, sources: sources },
       function (res) {
         if (res && (res.ok || res.brain_upserted > 0 || res.watchlists_saved > 0)) {
           msg("\u2705 " + (res.brain_upserted || 0) + " notes \u2192 Brain \u00b7 " +

@@ -46,7 +46,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   switch (msg.action) {
 
     case 'upload':
-      getConfig().then(cfg => uploadNotes(msg.notes, cfg, msg.watchlists))
+      getConfig().then(cfg => uploadNotes(msg.notes, cfg, msg.watchlists, msg.sources))
         .then(result => {
           harvestResults.lastRun = new Date().toISOString();
           sendResponse(result);
@@ -99,7 +99,7 @@ async function getConfig() {
 }
 
 // ── Upload notes to Lambda ────────────────────────────────────────────────────
-async function uploadNotes(notes, cfg, watchlists) {
+async function uploadNotes(notes, cfg, watchlists, sources) {
   if (!cfg?.url || cfg.url.includes('PLACEHOLDER')) {
     return { ok: false, error: 'Ingest URL not configured' };
   }
@@ -133,6 +133,13 @@ async function uploadNotes(notes, cfg, watchlists) {
   // ops 3161: watchlists go FIRST, in their own request. Previously they
   // rode chunk 0 — so a note-chunk failure silently killed the watchlists
   // too. They are the smaller, more valuable payload; they land first.
+  let srcSaved = 0;
+  if (sources?.length) {
+    try {
+      const r = await post({ token: cfg.token, notes: [], sources });
+      if (r.ok) srcSaved = r.data.sources_saved || 0;
+    } catch (e) {}
+  }
   if (watchlists?.length) {
     try {
       const r = await post({ token: cfg.token, notes: [], watchlists });

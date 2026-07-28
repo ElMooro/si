@@ -30,6 +30,7 @@ SSM = boto3.client("ssm")
 BUCKET = "justhodl-dashboard-live"
 MIRROR_KEY = "data/tradingview-notes.json"
 WATCHLISTS_KEY = "data/tv-watchlists.json"
+SOURCES_KEY = "data/tv-sources.json"   # ops4016 sources: TV per-metric attribution
 BRAIN_BASES = ["https://api.justhodl.ai",
                "https://justhodl-data-proxy.raafouis.workers.dev"]
 MAX_NOTES = 2000
@@ -126,6 +127,38 @@ def _norm(raw):
 
 
 
+def _save_sources(sources):
+    """ops4016: TradingView per-metric attribution — the canonical source
+    map ('you can see where tradingview is pulling their data from').
+    Merged by symbol so every browse session enriches it."""
+    if not sources or not isinstance(sources, list):
+        return 0
+    try:
+        cur = json.loads(S3.get_object(Bucket=BUCKET,
+                                       Key=SOURCES_KEY)["Body"].read())
+    except Exception:
+        cur = {"sources": {}}
+    m = cur.get("sources") or {}
+    n = 0
+    for it in sources[:4000]:
+        if not isinstance(it, dict):
+            continue
+        sym = str(it.get("symbol") or "").strip()[:40]
+        src = str(it.get("source") or "").strip()[:120]
+        if not sym or not src:
+            continue
+        m[sym] = {"source": src,
+                  "description": str(it.get("description") or "")[:160],
+                  "updated": datetime.now(timezone.utc).isoformat()}
+        n += 1
+    S3.put_object(Bucket=BUCKET, Key=SOURCES_KEY,
+                  Body=json.dumps({"generated_at":
+                                   datetime.now(timezone.utc).isoformat(),
+                                   "n_symbols": len(m), "sources": m}),
+                  ContentType="application/json", CacheControl="max-age=300")
+    return n
+
+
 def _save_watchlists(watchlists):
     """ops 3158: watchlists ARE the predictive unit — mirror them for the
     tracker engine. Merge by list id: latest sync wins per list."""
@@ -188,6 +221,11 @@ def lambda_handler(event, context):
         wl_saved = _save_watchlists(req.get("watchlists"))
     except Exception as _e:
         print(f"[tv-ingest] watchlists save failed: {str(_e)[:120]}")
+    src_saved = 0
+    try:
+        src_saved = _save_sources(req.get("sources"))
+    except Exception as _e:
+        print(f"[tv-ingest] sources save failed: {str(_e)[:120]}")
 
     # ---- delete mode (used by ops self-test cleanup) --------------------
     if req.get("delete_ids"):
@@ -207,7 +245,7 @@ def lambda_handler(event, context):
         if wl_saved:
             return _resp(200, {"ok": True, "brain_upserted": 0,
                                "mirror_added": 0,
-                               "watchlists_saved": wl_saved})
+                               "watchlists_saved": wl_saved, "sources_saved": src_saved, "sources_saved": src_saved})
         return _resp(400, {"ok": False, "error": "notes[] required"})
     raw = raw[:MAX_NOTES]
     notes, rejected = [], 0
@@ -274,7 +312,7 @@ def lambda_handler(event, context):
            "received": len(raw),
            "normalized": len(notes), "rejected": rejected,
            "brain_upserted": brain_ok, "brain_failed": brain_err,
-           "watchlists_saved": wl_saved,
+           "watchlists_saved": wl_saved, "sources_saved": src_saved,
            "mirror_added": added, "mirror_total": len(m["notes"])}
     print(json.dumps(out))
     return _resp(200 if out["ok"] else 502, out)
