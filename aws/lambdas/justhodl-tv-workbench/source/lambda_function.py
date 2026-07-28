@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "tv-workbench v1.1 ops4035 full-fidelity"
+MARKER = "tv-workbench v1.1.1 ops4037 bare-union"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/tv-workbench.json"
 s3 = boto3.client("s3")
@@ -99,7 +99,17 @@ def lambda_handler(event, context):
                 continue
             vr = vidx.get(bare) or vidx.get(full) or {}
             src, desc = attribution(full, bare)
-            nl = notes_by.get(full) or notes_by.get(bare) or []
+            # v1.1.1: the full-key hit SHADOWED the bare aggregate — a
+            # symbol noted under both [TV:CBOE:VIX] and [TV:VIX] kept only
+            # the prefixed subset (fidelity check 4036 caught VIX 5->1).
+            # The bare list is built as the superset; prefer it, dedupe by
+            # text, keep order.
+            _cand = (notes_by.get(bare) or []) + (notes_by.get(full) or [])
+            _seen, nl = set(), []
+            for _r in _cand:
+                if _r["t"] not in _seen:
+                    _seen.add(_r["t"])
+                    nl.append(_r)
             symbols[key] = {
                 "bare": bare,
                 "value": vr.get("value"),
