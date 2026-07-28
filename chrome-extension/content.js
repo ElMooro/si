@@ -246,6 +246,42 @@
     if (m) { m.textContent = t; m.style.color = c || "#8a836f"; }
   }
 
+  /* ── v1.7.0 FULL AUTONOMY — "capture every watchlist, every indicator,
+   * every note without me touching anything" (Khalid). Lists arrive via
+   * symbols_list/all on plain page load (982 events in his own session,
+   * zero clicks), notes via the existing auto-scroll, sources via a
+   * self-starting harvest (once per day, resume-aware = free at full
+   * coverage), sync at T+75s, at harvest finish, and every 15 min when
+   * anything grew. */
+  function startHarvest() {
+    var syms = allWatchlistSymbols();
+    if (!syms.length) return 0;
+    msg("Auto-harvesting sources for " + syms.length + " symbols (\u2248" +
+        Math.ceil(syms.length / 170) + " min, resumable)\u2026", "#F0B429");
+    window.postMessage({ __jh_cmd: "harvest", symbols: syms }, "*");
+    return syms.length;
+  }
+  var LAST_SIG = "";
+  function autoSync() {
+    var g = STORE.size + ":" + LISTS.size + ":" + SRCS.size;
+    if (g === LAST_SIG) return;
+    if (!STORE.size && !LISTS.size && !SRCS.size) return;
+    LAST_SIG = g;
+    try { upload(); } catch (e) {}
+  }
+  setTimeout(function () {
+    try {
+      chrome.storage.local.get(["jh_auto_day"], function (r) {
+        var today = new Date().toISOString().slice(0, 10);
+        if ((r && r.jh_auto_day) === today) return;
+        if (startHarvest() > 0)
+          chrome.storage.local.set({ jh_auto_day: today });
+      });
+    } catch (e) {}
+  }, 30000);
+  setTimeout(autoSync, 75000);
+  setInterval(autoSync, 15 * 60 * 1000);
+
   function upload() {
     var notes = Array.from(STORE.values());
     var lists = Array.from(LISTS.values());
