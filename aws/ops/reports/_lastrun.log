@@ -1,22 +1,68 @@
-executing-against: 07416e2f00e27c09fb653f749cdb8889060e33df
-ops 3992 — v2.3 vault-complete verify
-[03:38:51] ✅   v2.3 artifact after ~0s
-[03:38:51]   BOJ              JPLG    -> {"name": "JPLG", "value": 7.07, "live": true, "pulled_from": "bank-of-japan", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
-[03:38:51]   MOF-JAPAN        JP02Y   -> {"name": "JP02Y", "value": 1.531, "live": true, "pulled_from": "mof-japan", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "pa
-[03:38:51]   NORGES           NO03Y   -> {"name": "NO03Y", "value": 4.495, "live": true, "pulled_from": "norges-bank", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
-[03:38:51]   BCRP-PERU        PETOT   -> {"name": "PETOT", "value": 182.731, "live": true, "pulled_from": "bcrp-peru", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "
-[03:38:51]   ECB              EUBUND  -> {"name": "EUBUND", "value": 3.2247, "live": true, "pulled_from": "ecb:YC", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "pat
-[03:38:51]   FRED US10Y -> {"name": "US10Y", "value": 4.71, "live": true, "pulled_from": "fred_alias:DGS10", "engine": "justhodl-tradingview", "artifact": "data/tradingview.json", "path": "symbols[
-[03:38:52] ✅   artifact is v2.3
-[03:38:52] ✅   vault actually walked (>=1500 paths, not skipped)
-[03:38:52] ✅   BOJ family holds JPLG
-[03:38:52] ✅   MOF-JAPAN holds JP02Y
-[03:38:52] ✅   NORGES holds NO03Y
-[03:38:52] ✅   BCRP-PERU holds PETOT
-[03:38:52] ✅   ECB holds EUBUND
-[03:38:52] ✅   OTHER near-zero (<100, truly unattributable only)
-[03:38:52] ✅   US10Y credited to the vault engine (v1.9 canonical)
-[03:38:52] ✅   page v4 still at edge
-[03:38:52] ✅ PASS_ALL — v2.3 complete: 17654 points / 24 families; vault 1847 paths; OTHER None
+executing-against: 999c5a914af9fd87a28a47da1820998ca4030cd0
+ops 4001 — BOJ/MOF/NORGES/BCRP series discovery
+── R. registry specs (audit-first) ──
+[03:58:17]   [boj] base=None
+[03:58:17]       example=None
+[03:58:17]       quirks=['Launched 2026-02; send Accept-Encoding: identity', 'JPLG = MD11:DLCLAADBLTTO (avg amounts, banks+trust+overseas); fallback DLCLB
+[03:58:17]   [mof_japan] base=None
+[03:58:17]       example=None
+[03:58:17]       quirks=['LAST CSV LINE IS A FOOTER — float() on it fails; walk back to the last date row', "'AWS blocks MOF' theory was FALSIFIED (debug_
+[03:58:17]   [norges] base=None
+[03:58:17]       example=None
+[03:58:17]       quirks=['data.structure is SINGULAR here (ECB-style), not structures[]']
+[03:58:17]   [bcrp] base=None
+[03:58:17]       example=None
+[03:58:17]       quirks=['Identify codes by TITLE from the catalog, never by adjacency', 'PN38923BM = ToT index · PN38926BM = var% 12m']
+── V. current status of the fill targets in the live vault ──
+[03:58:17]   JPINTR   status=LIVE             src=fred_alias:IRSTCB01JPM15 n_notes=10
+[03:58:17]   JPM3     status=LIVE             src=fred_alias:MABMM301JPM18 n_notes=4
+[03:58:17]   JPFER    status=NO_FREE_SOURCE   src=unresolved_economics n_notes=1
+[03:58:17]   JPGDG    status=NO_FREE_SOURCE   src=unresolved_economics n_notes=2
+[03:58:17]   JPCLI    status=LIVE             src=fleet:data/global-busine n_notes=1
+[03:58:17]   JP02Y    status=LIVE             src=mof-japan n_notes=4
+[03:58:17]   NO03Y    status=LIVE             src=norges-bank n_notes=2
+[03:58:17]   PETOT    status=LIVE             src=bcrp-peru n_notes=2
+[03:58:17]   JPLG     status=LIVE             src=bank-of-japan n_notes=14
+── A. BOJ — find MonBase / M2 / M3 codes via getMetadata ──
+[03:58:18]   [200] MD01 metadata bytes=6082
+[03:58:18]       series listed: 0
+[03:58:18]       match ('monetary base', 'average'): 0
+[03:58:18]   [200] MD02 metadata bytes=70973
+[03:58:18]       series listed: 0
+[03:58:18]       match ('m2', 'average'): 0
+[03:58:18]       match ('m3', 'average'): 0
+── B. MOF — the full JGB curve from jgbcme.csv ──
+[03:58:19]   [200] bytes=2025
+[03:58:19]   header: Date,1Y,2Y,3Y,4Y,5Y,6Y,7Y,8Y,9Y,10Y,15Y,20Y,25Y,30Y,40Y
+[03:58:19]   last row: "  If you cannot download the latest csv data, please clear the browser's cache and download again.",,,,,,,,,,,,,,,
+[03:58:19]   JP01Y <- 1Y = please clear the browser's cache and download again."
+[03:58:19]   JP05Y <- 5Y = 
+[03:58:19]   JP10Y <- 10Y = 
+[03:58:19]   JP20Y <- 20Y = 
+[03:58:19]   JP30Y <- 30Y = 
+── C. NORGES — policy rate + 10Y ──
+[03:58:20]   [200] NO10Y flow=GOVT_GENERIC_RATES bytes=4498 head={"meta":{"id":"IREF110902","prepared":"2026-07-28T03:58:19","test":false,"datasetId":"37b8ecd9-47ec-4929-8fb0-
+[03:58:20]   [200] NOINTR flow=IR bytes=3891 head={"meta":{"id":"IREF110940","prepared":"2026-07-28T03:58:18","test":false,"datasetId":"0baa10d6-052b-48c9-97c3-
+[03:58:20]       series-dims sample: series":{"0:0:0:0":{"attributes":[0,0],"observations":{"0":["4.29"]}},"1:0:1:0":{"attributes":[0,1],"observations":{"1":["5.25"]}},"1:0:0:0":{"attributes":[0,1],"observations":{"1"
+[03:58:20]   [404] NOINTR flow=KPRA bytes=25 head=HTTP Error 404: Not Found
+── D. BCRP — policy rate / net reserves / FX ──
+[03:58:21]   [200] PEINTR PD04722MM — Tasas de interés del Banco Central de Reserva - Tasa de Referencia de 
+[03:58:21]       last=Jul.2026 v=['4.25']
+[03:58:21]   [200] PEFER PN00026MM — Cuentas monetarias del Banco Central de Reserva del Perú - Reservas In
+[03:58:21]       last=Jun.2026 v=['325836.330645']
+[03:58:22]   [200] PEFER PN00027MM — Cuentas monetarias del Banco Central de Reserva del Perú - Reservas In
+[03:58:22]       last=Jun.2026 v=['96490.199362']
+[03:58:22]   [200] PENUSD PD04640PD — Tipo de cambio - TC Sistema bancario SBS (S/ por US$) - Venta
+[03:58:22]       last=01.Dic.26 v=['n.d.']
+[03:58:23]   [200] PENUSD PN01207PM — Tipo de cambio - promedio del periodo (S/ por US$) - Interbancario - P
+[03:58:23]       last=Jun.2026 v=['3.40596190476191']
+── E. CONFIRMED — paste-ready aliases ──
+[03:58:23]   "NO10Y": "norges:GOVT_GENERIC_RATES:10",   # long NOK rate
+[03:58:23]   "NOINTR": "norges:IR:KPRA?",   # policy rate — tighter — MATCH RULE TBD FROM DIMS
+[03:58:23]   "PEINTR": "bcrp:PD04722MM",   # reference rate — tighter (Tasas de interés del Banco Central de Re)
+[03:58:23]   "PEFER": "bcrp:PN00026MM",   # net intl reserves — EM buffer (Cuentas monetarias del Banco Central de )
+[03:58:23]   "PENUSD": "bcrp:PD04640PD",   # interbank FX (Tipo de cambio - TC Sistema bancario SBS)
+[03:58:23] ✗ fewer than 6 confirmed — wiring op must shrink to match
 
-→ Report written to aws/ops/reports/latest/4000_v23_verify.md
+→ Report written to aws/ops/reports/latest/4001_expand_discovery.md
+❌ OPS-FAIL: aws/ops/pending/ops_4001_expand_discovery.py
