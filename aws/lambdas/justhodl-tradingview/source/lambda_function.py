@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.10 ops4010 boj-and-six"
+MARKER = "tradingview-vault v3.10.1 ops4013 jpm3+2y"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -93,7 +93,7 @@ ALIASES = {
     "CNINTR": "none:LPR not on FRED", "TWINTR": "none:CBC not on FRED",
     "CNCA": "fred:CHNBCABP6USD",
     "EUCA": "ecb:BP6/M.N.I8.W1.S1.S1.T.B.CA._Z._Z._Z.EUR._T._X.N",
-    "JPM3": "fred:MABMM301JPM189S",
+    
     "IT10Y": "fred:IRLTLT01ITM156N", "GB10Y": "fred:IRLTLT01GBM156N",
     "EU10Y": "fred:IRLTLT01DEM156N", "GB30Y": "none:BoE IADB max par tenor = 20Y (IUDLNPY 5.27 live); no official 30Y series",
     "EU03Y": "ecb:YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_3Y",
@@ -858,7 +858,7 @@ def boj_level(tgt):
     sy, sm = now.year - 1, now.month - 3
     if sm < 1:
         sy, sm = sy - 1, sm + 12
-    start = sy * 100 + sm
+    start = (now.year - 2) * 100 + 1   # 2y window: CO Tankan is QUARTERLY
     for pair in tgt.split("|"):
         db, _, code = pair.partition(":")
         url = (f"https://www.stat-search.boj.or.jp/api/v1/getDataCode"
