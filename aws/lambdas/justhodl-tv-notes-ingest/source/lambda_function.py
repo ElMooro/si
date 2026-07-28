@@ -30,6 +30,7 @@ SSM = boto3.client("ssm")
 BUCKET = "justhodl-dashboard-live"
 MIRROR_KEY = "data/tradingview-notes.json"
 WATCHLISTS_KEY = "data/tv-watchlists.json"
+# ops4030: watchlist cap 200 silently dropped 291 of Khalid's 491 lists
 SOURCES_KEY = "data/tv-sources.json"   # ops4016 sources: TV per-metric attribution
 BRAIN_BASES = ["https://api.justhodl.ai",
                "https://justhodl-data-proxy.raafouis.workers.dev"]
@@ -166,7 +167,7 @@ def _save_watchlists(watchlists):
         return 0
     from datetime import datetime, timezone
     clean = []
-    for l in watchlists[:200]:
+    for l in watchlists[:1200]:
         if not isinstance(l, dict):
             continue
         syms = [str(x)[:40] for x in (l.get("symbols") or [])
