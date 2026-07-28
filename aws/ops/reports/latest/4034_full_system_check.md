@@ -1,0 +1,48 @@
+# ops 4034 — full system check
+
+**Status:** success  
+**Duration:** 2.0s  
+**Finished:** 2026-07-28T17:45:45+00:00  
+
+## Data
+
+| cb_live | census_age_h | census_marker | expr | ingest_hits_40min | jgb10y_in_carry | marker | n_lists | of | posture | sizing | symbols_with_notes | symbols_with_tv_source | unique_symbols | vault_marker | version_json | watchlists | watchlists_age_min | workbench_sched | zip_bytes | zip_version |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  | 14 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  | 491 |  |  |  |  |  |  |  |  |  | 16.1 |  |  |  |
+|  |  |  |  |  |  | tv-workbench v1.0 ops4019 |  |  |  |  | 771 | 0 | 10319 |  |  | 491 |  |  |  |  |
+|  |  |  | cron(55 12 * * ? *) |  |  |  |  |  |  |  |  |  |  |  |  |  |  | ENABLED |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 1.7.0 |  |  |  | 16370 | 1.7.0 |
+| 22 |  |  |  |  |  |  |  | 22 |  |  |  |  |  | tradingview-vault v3.10.1 ops4013 jpm3+2y |  |  |  |  |  |  |
+|  |  |  |  |  | True |  |  |  | RISK_OFF | 0.45 |  |  |  |  |  |  |  |  |  |  |
+|  | 4.9 | data-census v2.3 ops3999 fleet-fallback |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+
+## Log
+## A. capture pipeline — live heartbeat
+
+- `17:45:43`   tv-sources.json: not born yet — harvest mid-run (INFO)
+## B. workbench — artifact + schedule + page
+
+## C. distribution chain — zip/version/installer
+
+- `17:45:44`   tools/install-jh-extension.bat: 412B
+- `17:45:44`   tools/install-jh-extension.ps1: 3669B
+## D. CB expansion + risk stack still healthy
+
+- `17:45:45`   MACRO     51.2 NEUTRAL voting=107
+- `17:45:45`   LIQUIDITY 35.8 TIGHTENING voting=53
+- `17:45:45`   RISK      31.3 TIGHTENING voting=62
+## E. census + schedules
+
+- `17:45:45` ✅   browser still syncing (auto)
+- `17:45:45` ✅   tracker fresh + 491
+- `17:45:45` ✅   workbench current (491/10k)
+- `17:45:45` ✅   workbench schedule ENABLED
+- `17:45:45` ✅   workbench page at edge
+- `17:45:45` ✅   zip + version.json agree on 1.7.0
+- `17:45:45` ✅   autonomy code in served zip
+- `17:45:45` ✅   installer pair serving
+- `17:45:45` ✅   CB expansion >=18/22 LIVE
+- `17:45:45` ✅   risk-gate carries JGB10Y input
+- `17:45:45` ✅   census ran today (12:45 schedule alive)
+- `17:45:45` ✅ PASS_ALL — 11 gates green; sources in-flight (harvest counting)
