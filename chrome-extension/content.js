@@ -346,7 +346,9 @@
         '<span id="jh-x" style="margin-left:auto;cursor:pointer;color:#8a836f">\u2715</span></div>' +
       '<div id="jh-status" style="font-size:12px;margin-bottom:8px">listening\u2026</div>' +
       '<div id="jh-seen" style="max-height:110px;overflow:auto;margin-bottom:10px;border-top:1px solid #2B2820;padding-top:6px"></div>' +
-      '<div style="font-size:11px;color:#8a836f;margin-bottom:8px">Open your <b>Watchlist</b> panel and click through your lists, then open <b>Notes \u2192 All notes</b> and scroll. Everything TradingView loads gets captured live.</div>' +
+      '<div style="font-size:11px;color:#8a836f;margin-bottom:8px">Fully automatic \u2014 watchlists, notes and sources capture, harvest and sync on their own. Leave this tab in the foreground while a harvest counts.</div>' +
+      '<button id="jh-harvest" style="width:100%;background:#1f6feb;border:0;border-radius:8px;padding:9px;' +
+        'font-weight:700;font-size:12px;cursor:pointer;color:#fff;margin-bottom:7px">\u26a1 HARVEST SOURCES (all symbols)</button>' +
       '<button id="jh-up" style="width:100%;background:#F0B429;border:0;border-radius:8px;padding:9px;' +
         'font-weight:700;font-size:12px;cursor:pointer;color:#12110C">SYNC TO JUSTHODL</button>' +
       '<div id="jh-msg" style="font-size:11px;margin-top:7px;color:#8a836f"></div>';
@@ -356,6 +358,14 @@
     btn = document.getElementById("jh-up");
     document.getElementById("jh-x").onclick = function () { panel.remove(); };
     btn.onclick = upload;
+    document.getElementById("jh-harvest").onclick = function () {
+      // v1.7.2: in-panel, same scope as startHarvest — no popup, no
+      // messaging, nothing between the click and the walk.
+      var n = startHarvest();
+      if (n > 0)
+        chrome.storage.local.set({ jh_auto_day:
+          new Date().toISOString().slice(0, 10) });
+    };
     paint();
   }
 
@@ -373,3 +383,15 @@
   if (document.body) boot();
   else document.addEventListener("DOMContentLoaded", boot);
 })();
+
+  /* v1.7.2: top-level popup listener — the earlier one was injected into a
+   * nested handler and depended on upload() having run first. */
+  try {
+    chrome.runtime.onMessage.addListener(function (m, _s, sendResponse) {
+      if (m && m.action === "harvest") {
+        var n = startHarvest();
+        try { sendResponse({ ok: 1, n: n, have: SRCS.size }); } catch (e) {}
+        return true;
+      }
+    });
+  } catch (e) {}
