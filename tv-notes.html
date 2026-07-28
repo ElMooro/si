@@ -22,7 +22,15 @@ a{color:var(--amber)}
 .badge{display:inline-block;background:rgba(240,180,41,.15);border:1px solid var(--amber);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--amber);margin-left:8px}
 </style></head>
 <body><div class="wrap">
-<h1>TV Notes Chrome Extension <span class="badge">v1.0.0</span></h1>
+<h1>TV Notes Chrome Extension <span class="badge" id="extVer">v1.6.0</span></h1>
+<div style="font-size:12px;color:#8b949e" id="extMeta">checking latest…</div>
+<script>
+fetch("https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/tools/jh-tv-extension.version.json?t="+Date.now())
+ .then(r=>r.json()).then(v=>{
+  document.getElementById("extVer").textContent="v"+v.version;
+  document.getElementById("extMeta").textContent="latest build · "+(v.bytes||"?")+" bytes · updated "+String(v.updated_utc||"").slice(0,16).replace("T"," ")+" UTC";
+ }).catch(()=>{document.getElementById("extMeta").textContent="(version check offline — the download link always serves the latest build)"});
+</script>
 <div class="sub">Fully autonomous — installs in Chrome, auto-harvests every note across all your watchlists, uploads to Brain with one click. No DevTools, no pasting, no F12.</div>
 
 <div class="card" style="display:flex;align-items:center;justify-content:space-between">
@@ -65,6 +73,13 @@ a{color:var(--amber)}
     <div>
       <b>Open TradingView.</b> Go to <a href="https://www.tradingview.com/chart/" target="_blank">tradingview.com</a> (logged in). The extension auto-starts immediately — an amber panel appears bottom-right showing harvest progress. When it stops counting up, press <b>UPLOAD TO BRAIN</b>.<br>
       <div class="warn">The extension also opens the Notes panel automatically and scrolls through your watchlists. Just let it run — it takes 1–5 minutes depending on how many notes you have.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">5</div>
+    <div>
+      <b>⚡ Harvest sources (new in v1.6.0).</b> With the TradingView tab open, click the <b>JH</b> icon → <b>Harvest sources (all watchlist symbols)</b>. It walks <i>every</i> symbol in <i>every</i> watchlist and captures TradingView's own <b>data source</b> for each — the "pulled from …" attribution. First full pass ≈ 35–40&nbsp;min for ~6,500 symbols; it's <b>resumable</b> (already-known symbols skip) and <b>auto-uploads</b> notes + watchlists + sources the moment it finishes. The <a href="/tv-workbench.html">TV&nbsp;Workbench</a> page fills its source column on the next 12:55&nbsp;UTC run.
     </div>
   </div>
 </div>
