@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "data-census v2.2 ops3997 cap-honoured"
+MARKER = "data-census v2.3 ops3999 fleet-fallback"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/data-census.json"
 LEDGER_KEY = "data-census/paths-ledger.json"
@@ -420,7 +420,12 @@ def lambda_handler(event, context):
         fam = (src_family(r.get("src"))
                or src_family(up_of.get(r["k"]))
                or ("FLEET-INTERNAL" if (r.get("name") or "[" in r["p"]
-                                        or r.get("src")) else "OTHER"))
+                                        or r.get("src")
+                                        or r["k"].startswith("data/"))
+                  else "OTHER"))
+        # v2.3: bare top-level numerics in source-less artifacts are still
+        # FLEET OUTPUTS by definition — OTHER is reserved for the truly
+        # unattributable, which after this is approximately nothing.
         if not fam:
             continue
         nm = disp_name(r)
