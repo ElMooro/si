@@ -1,0 +1,49 @@
+# ops 4076 — extension v1.7.9 + installer v4
+
+**Status:** failure  
+**Duration:** 0.7s  
+**Finished:** 2026-07-29T03:15:32+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| bat_bytes | bytes | new_version | old_version | ps1_bytes | ps1_edge |
+|---|---|---|---|---|---|
+|  | 19565 | 1.7.9 | 1.7.8 |  |  |
+|  |  |  |  | 5608 | 5608 |
+| 412 |  |  |  |  |  |
+
+## Log
+## A. rebuild + upload the extension zip
+
+- `03:15:32`   previous S3 zip: v1.7.8 (19286 B)
+## B. upload installer v4
+
+## C. stub integrity
+
+## D. repo/Pages zip parity
+
+- `03:15:32`   repo zip version: 1.7.9
+## VERDICT
+
+- `03:15:32`   ✓ zip carries v1.7.9
+- `03:15:32`   ✓ auto-start guard is version-stamped (update-day trap)
+- `03:15:32`   ✗ no bare-date stamp survives anywhere
+- `03:15:32`   ✓ v1.7.8 priority walk still present
+- `03:15:32`   ✓ symsearch canary + 240ms step still present
+- `03:15:32`   ✓ rate telemetry still present
+- `03:15:32`   ✓ harvester + autonomy intact
+- `03:15:32`   ✓ served .ps1 is byte-exact
+- `03:15:32`   ✓ caret-free (the v2 cmd-escaping bug class)
+- `03:15:32`   ✓ no longer nukes the loaded folder
+- `03:15:32`   ✓ updates IN PLACE via a staging copy
+- `03:15:32`   ✓ detects update vs fresh install
+- `03:15:32`   ✓ still pulls the zip from S3 + writes the shortcut
+- `03:15:32`   ✓ the .bat Khalid already has still fetches this .ps1
+- `03:15:32`   ✓ repo zip matches S3 (no stale Pages decoy)
+- `03:15:32` ✗ FAILED: ['no bare-date stamp survives anywhere']
