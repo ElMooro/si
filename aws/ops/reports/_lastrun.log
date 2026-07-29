@@ -1,12 +1,25 @@
-executing-against: 4fa708190cba36d71c927105ee46c067ce2376e9
-ops 4060 — dedicated sources/watchlists requests only
-[00:13:58]   tv-sources.json absent at probe time
-── zero-notes requests — 0 lines ──
-── handler failures — 3 lines ──
-[00:13:59]   [23:32:57] [tv-ingest] sources save failed: name 'datetime' is not defined
-[00:13:59]   [23:46:43] [tv-ingest] sources save failed: name 'datetime' is not defined
-[00:13:59]   [00:01:42] [tv-ingest] sources save failed: name 'datetime' is not defined
-── crashes — 0 lines ──
-[00:13:59] ✅ PROBE DONE — the sources hop is on this page
+executing-against: 8a170ce153f5a2d0d01fa67f49d2e9538376f93a
+ops 4030 — cap lifted + upload proof
+── A. proof his SYNC landed ──
+── B. lift the cap (491 lists must fit) ──
+── C. birth watch — next sync is <=15 min out ──
+[00:32:22] ✅   BORN — 1000 sources at 2026-07-29T00:31:43.033861+00:00
+[00:32:22]     CRYPTOCAP:TOTAL3: django_model
+[00:32:22]     TVC:NI225: django_model
+[00:32:22]     TVC:FTMIB: django_model
+[00:32:22]     TVC:HSI: django_model
+[00:32:22]     TVC:NZ50G: django_model
+[00:32:22]     SIX:SMI: django_model
+[00:32:22]     SZSE:399001: django_model
+[00:32:22]     OMXCOP:MAERSK_B: django_model
+[00:32:22]     EUREX:FMOG1!: django_model
+[00:32:22]     OANDA:AU200AUD: django_model
+[00:32:22] ✅   watchlists artifact refreshed TODAY
+[00:32:22] ✗   ~200 lists landed (pre-fix cap)
+[00:32:22] ✅   ingest heard from the browser
+[00:32:22] ✅   cap 1200 settled in the deployed zip
+[00:32:22] ✅   tv-sources.json BORN with content
+[00:32:22] ✗ FAILED: ['~200 lists landed (pre-fix cap)']
 
-→ Report written to aws/ops/reports/latest/4060_the_line.md
+→ Report written to aws/ops/reports/latest/4061_datetime_settle_birth.md
+❌ OPS-FAIL: aws/ops/pending/ops_4061_datetime_settle_birth.py
