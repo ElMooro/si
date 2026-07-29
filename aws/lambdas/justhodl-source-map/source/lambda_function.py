@@ -31,7 +31,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "source-map engine v2.1 ops4083"
+MARKER = "source-map engine v2.2 ops4100"
 BUCKET = "justhodl-dashboard-live"
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -74,6 +74,8 @@ KNOWN = {
     "EIA": ("energy information administration",),
     "MARKET-VENUES": (
         "tvc", "sgx", "tpex", "xetr", "omx", "six", "bme", "tradegate",
+        "cryptocap", "iceus", "ose", "comex", "gpw", "nymex", "ftse",
+        "hose", "vie", "cselk", "pse", "sparks", "spcfd", "lse", "dj",
         "nasdaq", "nyse", "cboe", "cme", "ice ", "eurex", "tradingview",
         "arca", "amex", "otc", "lse ", "tsx", "borsa", "euronext", "xetra",
         "b3 ", "bmv", "hkex", "krx", "twse", "sse", "szse", "asx", "moex",
