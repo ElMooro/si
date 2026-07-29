@@ -50,7 +50,10 @@ def main():
 
         rep.section("B. deploy resolver v2.0")
         src = (ROOT / "lambdas" / FN / "source" / "lambda_function.py").read_text()
-        assert MARK in src
+        # ops4090 note: the runner triggers only on aws/ops/pending/*.py, so
+        # a fix that touches ONLY the engine source never re-runs the op and
+        # the last report stays stale while looking like a fresh failure.
+        assert MARK in src, f"marker parity broken: {MARK!r} not in engine source"
         buf = io.BytesIO()
         with zf.ZipFile(buf, "w", zf.ZIP_DEFLATED) as z:
             z.writestr("lambda_function.py", src)
