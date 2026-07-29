@@ -1,0 +1,53 @@
+# ops 4069 — check and deliver
+
+**Status:** success  
+**Duration:** 2.1s  
+**Finished:** 2026-07-29T02:21:15+00:00  
+
+## Data
+
+| fnerr | generated | junk | real | store | symbols_with_notes | symbols_with_tv_source | unique_symbols | watchlists |
+|---|---|---|---|---|---|---|---|---|
+|  | 2026-07-29T02:09:53.052406+00:00 |  |  | 1113 |  |  |  |  |
+|  |  | 943 | 170 |  |  |  |  |  |
+| None |  |  |  |  | 771 | 170 | 10319 | 491 |
+
+## Log
+- `02:21:13`   DIAG: {"started": 1785288299614, "done": 407, "total": 10319, "sc_ok": 407, "sc_err": 0, "sc2_ok": 407, "sc2_err": 0, "ss_ok": 0, "ss_err": 407, "matched": 212, "first_err": ""}
+- `02:21:13`     CRYPTOCAP:TOTAL3: CRYPTOCAP
+- `02:21:13`     SIX:SMI: SIX
+- `02:21:13`     OSE:TOPIX1!: OSE
+- `02:21:13`     EURONEXT:N100: EURONEXT
+- `02:21:13`     EURONEXT:AEX: EURONEXT
+- `02:21:13`     HKEX:388: HKEX
+- `02:21:13`     AMEX:URTH: AMEX
+- `02:21:13`     AMEX:VSS: AMEX
+- `02:21:13`     AMEX:VT: AMEX
+- `02:21:13`     AMEX:KCE: AMEX
+- `02:21:13`     NASDAQ:VIGI: NASDAQ
+- `02:21:13`     AMEX:VPL: AMEX
+## DELIVER — purge remnant, write the delta
+
+## ECONOMICS symbols walked so far: 0 — the agency payoff preview
+
+## KNOWN families covered by his indicators
+
+- `02:21:13`     138  MARKET-VENUES
+## NEW — the sources the system does NOT have
+
+- `02:21:13`      16  CRYPTOCAP   e.g. CRYPTOCAP:TOTAL3, CRYPTOCAP:BTC.D, CRYPTOCAP:TOTAL2
+- `02:21:13`       2  US   e.g. SPCFD:SPX, SPCFD:SPF
+- `02:21:13`       2  ICEUS   e.g. ICEUS:AWN1!, ICEUS:MWL1!
+- `02:21:13`       1  OSE   e.g. OSE:TOPIX1!
+- `02:21:13`       1  LSE   e.g. LSE:0LMQ
+- `02:21:13`       1  COMEX   e.g. COMEX:HG1!
+- `02:21:13`       1  GPW   e.g. GPW:WIG20
+- `02:21:13`       1  NYMEX   e.g. NYMEX:CL1!
+- `02:21:13`       1  FTSE   e.g. FTSE:UKX
+- `02:21:13`       1  HOSE   e.g. HOSE:VN30
+- `02:21:13`       1  VIE   e.g. VIE:ATX
+- `02:21:13`       1  DJ   e.g. DJ:W1DOW
+- `02:21:13`       1  CSELK   e.g. CSELK:ASI
+- `02:21:13`       1  PSE   e.g. PSE:PSEI
+- `02:21:13`       1  SPARKS   e.g. SPARKS:BANKS
+- `02:21:15` ✅ DELIVERED — 170 real / 15 NEW sources / page 170 sourced
