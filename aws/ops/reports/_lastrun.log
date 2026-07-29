@@ -1,11 +1,17 @@
-executing-against: ecd6135a3db05151f57cda1c7021ae0bcdc0f330
-ops 4096 — force past the 27-day NO_FREE_SOURCE gate
-── A. baseline ──
-[21:20:57]   rows 1358  LIVE 1176  cot aliases 65
-[21:20:57]   cot rows LIVE before: 0
-── B. invoke with force=true (async, then poll) ──
-[21:20:57]   async accepted: 202
-[21:36:30] ✗ artifact never moved
+executing-against: 6c78adf3553ff0fc99211c242ecc2742b8719228
+ops 4098 — full TradingView universe on the vault page
+── A. why are the cftc rows still NO_FREE_SOURCE? ──
+[21:36:55]   cot aliases in artifact: 65
+[21:36:55]   cot alias keys that match a vault symbol EXACTLY: 65
+[21:36:55]   sample alias key : 020601_FO_AMP_SPREAD
+[21:36:55]   in aliases map   : True
+[21:36:55]   alias value      : cftc:yw9f-hn96:020601:asset_mgr_positions_spread
+[21:36:56]   LIVE CFTC CALL   : [{'report_date_as_yyyy_mm_dd': '2026-07-21T00:00:00.000', 'asset_mgr_positions_spread': '266327'}]
+[21:36:56]   → if this returns a value, the API and column are fine and the fault is in how the vault reaches the alias
+── B. deploy vault v3.14.0 ──
+[21:37:07]   ✓ settled (attempt 2)
+── C. run it (async + poll) ──
+[21:52:13] ✗ never moved
 
-→ Report written to aws/ops/reports/latest/4096_cftc_force.md
-❌ OPS-FAIL: aws/ops/pending/ops_4096_cftc_force.py
+→ Report written to aws/ops/reports/latest/4098_full_universe.md
+❌ OPS-FAIL: aws/ops/pending/ops_4098_full_universe.py
