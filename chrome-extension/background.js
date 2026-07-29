@@ -56,7 +56,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   switch (msg.action) {
 
     case 'upload':
-      getConfig().then(cfg => uploadNotes(msg.notes, cfg, msg.watchlists, msg.sources, msg.harvest_diag))
+      getConfig().then(cfg => uploadNotes(msg.notes, cfg, msg.watchlists, msg.sources, msg.harvest_diag, msg.descs))
         .then(result => {
           harvestResults.lastRun = new Date().toISOString();
           sendResponse(result);
@@ -109,7 +109,7 @@ async function getConfig() {
 }
 
 // ── Upload notes to Lambda ────────────────────────────────────────────────────
-async function uploadNotes(notes, cfg, watchlists, sources, harvest_diag) {
+async function uploadNotes(notes, cfg, watchlists, sources, harvest_diag, descs) {
   if (!cfg?.url || cfg.url.includes('PLACEHOLDER')) {
     return { ok: false, error: 'Ingest URL not configured' };
   }
@@ -146,7 +146,7 @@ async function uploadNotes(notes, cfg, watchlists, sources, harvest_diag) {
   let srcSaved = 0;
   if (sources?.length || harvest_diag) {
     try {
-      const r = await post({ token: cfg.token, notes: [], sources: sources || [], harvest_diag });
+      const r = await post({ token: cfg.token, notes: [], sources: sources || [], descs: descs || {}, harvest_diag });
       if (r.ok) srcSaved = r.data.sources_saved || 0;
     } catch (e) {}
   }

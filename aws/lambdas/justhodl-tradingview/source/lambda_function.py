@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.10.1 ops4013 jpm3+2y"
+MARKER = "tradingview-vault v3.11.0 ops4085 generated-aliases"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -919,9 +919,33 @@ def resolve_direct(rv):
     return None
 
 
+# v3.11.0 — GENERATED ALIAS LAYER. ops 4084 found only 43.6% of the 10,319
+# imported watchlist tickers had any fetch route, while the mechanism to fix
+# it already existed here: the curated ALIASES dict. justhodl-symbol-resolver
+# generates the rest into data/symbol-aliases.json (FRED ids VERIFIED against
+# the FRED API before emission). Loaded once per invocation and consulted
+# ONLY after the curated dict, so a hand-made decision always outranks a
+# generated one.
+_GEN_ALIASES = None
+
+
+def gen_aliases():
+    global _GEN_ALIASES
+    if _GEN_ALIASES is None:
+        try:
+            doc = json.loads(s3.get_object(
+                Bucket=S3_BUCKET, Key="data/symbol-aliases.json")["Body"].read())
+            _GEN_ALIASES = doc.get("aliases") or {}
+            print(f"[vault] generated aliases loaded: {len(_GEN_ALIASES)}")
+        except Exception as e:
+            print(f"[vault] no generated aliases ({str(e)[:60]})")
+            _GEN_ALIASES = {}
+    return _GEN_ALIASES
+
+
 def ladder(row):
     sym = row["symbol"]
-    al = ALIASES.get(sym)
+    al = ALIASES.get(sym) or gen_aliases().get(sym)
     if al:
         v, terminal = resolve_alias(row, al)
         if terminal:

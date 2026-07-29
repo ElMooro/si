@@ -97,6 +97,8 @@
     });
     return b[0].concat(b[1], b[2]);
   }
+  var DESCS = {};   // v1.8.1: symbol -> description, captured independently
+                    // of attribution (macro symbols have one but no source)
   function sniffSources(o, depth) {
     if (!o || depth > 6) return;
     if (Array.isArray(o)) { for (var i = 0; i < o.length && i < 400; i++) sniffSources(o[i], depth + 1); return; }
@@ -114,9 +116,23 @@
     for (var k = 0; k < SYM_KEYS.length; k++) if (typeof o[SYM_KEYS[k]] === "string") { sym = o[SYM_KEYS[k]]; break; }
     if (!sym && typeof o.s === "string") sym = o.s;
     if (sym) {
+      var gotSrc = false;
       for (var j = 0; j < SRC_KEYS.length; j++) {
         var v = o[SRC_KEYS[j]];
-        if (typeof v === "string" && v) { keepSource(sym, v, o.description || o.title || o.short_description); break; }
+        if (typeof v === "string" && v) { keepSource(sym, v, o.description || o.title || o.short_description); gotSrc = true; break; }
+      }
+      /* v1.8.1 — KEEP THE DESCRIPTION EVEN WITH NO SOURCE.
+       * ops 4081 showed TradingView returns source=null for its entire
+       * macro namespace but DOES return a description ("Japan Money Supply
+       * M3"). The old code only stored a row when a source string was
+       * truthy, so every macro description was thrown away. That
+       * description is the join key for mapping ECONOMICS: codes onto real
+       * FRED series — i.e. the difference between a ticker Khalid can only
+       * annotate and one his system can actually chart. Kept separately so
+       * it can never be mistaken for attribution. */
+      if (!gotSrc) {
+        var dsc = o.description || o.title || o.short_description;
+        if (typeof dsc === "string" && dsc && !DESCS[sym]) DESCS[sym] = dsc;
       }
     }
     // scanner shape: {columns:[...], data:[{s, d:[...]}]}
@@ -540,7 +556,7 @@
     });
     var sources = [];
     SRCS.forEach(function (v, k) { sources.push({ symbol: k, source: v.source, description: v.description }); });
-    chrome.runtime.sendMessage({ action: "upload", notes: notes, watchlists: lists, sources: sources, harvest_diag: DIAG },
+    chrome.runtime.sendMessage({ action: "upload", notes: notes, watchlists: lists, sources: sources, descs: DESCS, harvest_diag: DIAG },
       function (res) {
         if (res && (res.ok || res.brain_upserted > 0 || res.watchlists_saved > 0)) {
           msg("\u2705 " + (res.brain_upserted || 0) + " notes \u2192 Brain \u00b7 " +

@@ -129,6 +129,29 @@ def _norm(raw):
 
 
 
+def _save_descs(descs):
+    """Accrete symbol -> description. Additive: never drops a known one."""
+    if not descs or not isinstance(descs, dict):
+        return 0
+    key = "data/tv-descriptions.json"
+    try:
+        cur = json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+        m = cur.get("descriptions") or {}
+    except Exception:
+        m = {}
+    before = len(m)
+    for k, v in descs.items():
+        if isinstance(v, str) and v and k not in m:
+            m[k] = v
+    s3.put_object(Bucket=BUCKET, Key=key,
+                  Body=json.dumps({"generated_at":
+                                   datetime.now(timezone.utc).isoformat(),
+                                   "n": len(m), "descriptions": m}),
+                  ContentType="application/json", CacheControl="max-age=300")
+    print(f"[ingest] descriptions {before} -> {len(m)}")
+    return len(m) - before
+
+
 def _save_sources(sources, diag=None):
     """ops4016: TradingView per-metric attribution — the canonical source
     map ('you can see where tradingview is pulling their data from').
@@ -232,6 +255,15 @@ def lambda_handler(event, context):
     src_saved = 0
     try:
         src_saved = _save_sources(req.get("sources"), req.get("harvest_diag"))
+        # ops4085: descriptions land in their OWN artifact. TradingView
+        # returns source=null for macro symbols but still returns a
+        # description, and that description is the join key for mapping
+        # ECONOMICS: codes onto real FRED series. Kept separate from
+        # tv-sources so a description can never be misread as attribution.
+        try:
+            _save_descs(req.get("descs"))
+        except Exception as e:
+            print(f"[ingest] descs save failed: {e}")
     except Exception as _e:
         print(f"[tv-ingest] sources save failed: {str(_e)[:120]}")
 

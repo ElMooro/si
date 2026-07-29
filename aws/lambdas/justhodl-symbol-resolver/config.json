@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-symbol-resolver",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Turns imported TradingView tickers into fetchable series aliases. Step 1: FRED: tickers verified against the FRED API before becoming vault aliases.",
+  "environment": {},
+  "inherit_env": [{ "from_function": "justhodl-tv-workbench", "keys": ["FRED_KEY"] }]
+}
