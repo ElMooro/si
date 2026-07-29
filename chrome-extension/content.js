@@ -296,7 +296,62 @@
   var DIAG = { started: 0, done: 0, total: 0, sc_ok: 0, sc_err: 0,
                sc2_ok: 0, sc2_err: 0, ss_ok: 0, ss_err: 0,
                matched: 0, first_err: "",
-               tier1_done: 0, rate_per_min: 0, elapsed_s: 0 };
+               tier1_done: 0, rate_per_min: 0, elapsed_s: 0,
+               delay_ms: 0, wall_events: 0, recoveries: 0, max_delay: 0,
+               streak_err: 0, paused_s: 0, econ_probe: [] };
+
+  /* ── v1.8.0 ADAPTIVE THROTTLE (AIMD) ────────────────────────────────
+   * ops 4079 post-mortem: the v1.7.8 sweep finished 10,159 symbols but
+   * 9,568 of 10,159 scanner calls were REJECTED (sc 591 ok / 9,568 err).
+   * At the 117-symbol mark it was 116 ok / 0 err, so TradingView walled
+   * us at roughly 600 successful requests.
+   *
+   * MY ERROR, stated plainly: I cut the step to 240ms arguing "3 requests
+   * per symbol became 2, so the rate falls." The arithmetic was right and
+   * the conclusion was wrong — the OLD EFFECTIVE rate was ~6/min, not the
+   * timer's theoretical 250/min. Going to 240ms was a 17x increase in
+   * requests per minute, not a decrease. The sweep looked fast because
+   * most of it was being refused.
+   *
+   * Fix is the standard congestion-control shape (AIMD, as TCP and every
+   * serious client library does it): probe upward gently, collapse hard
+   * on failure, and trip a circuit breaker on a sustained error streak
+   * rather than hammering a closed door for two hours.
+   *   success -> delay -= STEP_DOWN   (additive rate increase)
+   *   error   -> delay *= 2           (multiplicative rate decrease)
+   *   15 consecutive errors -> WALL: pause, then resume at 4x floor
+   * Every transition is counted, so the next op can SEE whether the wall
+   * lifted instead of inferring it.                                    */
+  var D_MIN = 700, D_MAX = 45000, D_START = 1400, D_STEP = 30;
+  var DELAY = D_START, PAUSED = false;
+
+  function onOk() {
+    DIAG.streak_err = 0;
+    if (DELAY > D_MIN) DELAY = Math.max(D_MIN, DELAY - D_STEP);
+    DIAG.delay_ms = DELAY;
+  }
+  function onErr() {
+    DIAG.streak_err++;
+    DELAY = Math.min(D_MAX, Math.round(DELAY * 2));
+    DIAG.delay_ms = DELAY;
+    if (DELAY > DIAG.max_delay) DIAG.max_delay = DELAY;
+    if (DIAG.streak_err === 15 && !PAUSED) {
+      // Circuit breaker. Hammering through a wall produced 9,568 useless
+      // rejects last run; sitting out the penalty box is strictly better.
+      PAUSED = true;
+      DIAG.wall_events++;
+      var restMs = 300000;                       // 5 minutes
+      msg("Rate wall hit \u2014 pausing 5 min, then resuming slowly",
+          "#F0B429");
+      setTimeout(function () {
+        PAUSED = false;
+        DIAG.paused_s += restMs / 1000;
+        DIAG.streak_err = 0;
+        DELAY = D_MIN * 4;
+        DIAG.recoveries++;
+      }, restMs);
+    }
+  }
   var HRUN = false;
   function contentHarvest(syms) {
     if (HRUN || !syms.length) return;
@@ -314,6 +369,7 @@
         try { upload(); } catch (e) {}
         return;
       }
+      if (PAUSED) { setTimeout(step, 20000); return; }
       var sym = syms[i++];
       var bare = String(sym).split(":").pop();
       var before = SRCS.size;
@@ -326,10 +382,28 @@
         function (resp) {
           if (resp && resp.ok) {
             DIAG.sc_ok++;
+            onOk();
+            /* PAYLOAD PROBE: ops 4079 found zero ECONOMICS/FRED rows even
+             * among clean responses, but a zero cannot distinguish "no
+             * publisher field" from "field named something we never look
+             * for". Capture the actual key shape for the first few macro
+             * symbols so the question is settled by evidence. */
+            try {
+              if (DIAG.econ_probe.length < 4 &&
+                  /^(ECONOMICS|FRED):/i.test(String(sym))) {
+                var d = resp.j && (resp.j.data || resp.j);
+                DIAG.econ_probe.push({
+                  sym: sym,
+                  keys: Object.keys(d || {}).slice(0, 25),
+                  sample: JSON.stringify(d).slice(0, 400)
+                });
+              }
+            } catch (e) {}
             try { resp.j.symbol = sym; } catch (e) {}
             sniffSources(resp.j, 0);
           } else {
             DIAG.sc_err++;
+            onErr();
             if (!DIAG.first_err)
               DIAG.first_err = "sc:" + String((resp && resp.e) ||
                                               "no-response").slice(0, 90);
@@ -377,7 +451,8 @@
             SRCS.size + " sources \u00b7 ss " + DIAG.ss_ok + "/" +
             DIAG.ss_err + " html " + DIAG.html_ok + "/" + DIAG.html_err,
             "#F0B429");
-      setTimeout(step, 240);   // v1.7.8: 2 reqs/sym now, not 3
+      // v1.8.0: adaptive, and it does not advance at all while paused.
+      setTimeout(step, PAUSED ? 20000 : DELAY);
     }
     step();
   }
