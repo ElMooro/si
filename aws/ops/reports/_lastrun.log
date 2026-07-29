@@ -1,9 +1,9 @@
-executing-against: a706865a2f99bb0144eab9509da0aedaeeb4a888
+executing-against: 962e80b8bb78ab3694ed762a01fca5f4a4dc5e7b
 ops 4103 — By-Watchlist verify
-[22:28:44] ✗   page at edge 0/3 markers
-[22:28:44] ✅   join covers >=95% of watchlist symbols
-[22:28:44] ✅   491 lists present
-[22:28:44] ✗ FAILED: ['page at edge 0/3 markers']
+[22:29:49] ✅   edge serving new page after ~0s (16784B, 3/3 markers)
+[22:29:50] ✅   page at edge 3/3 markers
+[22:29:50] ✅   join covers >=95% of watchlist symbols
+[22:29:50] ✅   491 lists present
+[22:29:50] ✅ PASS_ALL — 491 lists x 10319 symbols mirrored; 10319 joined (100.0%), 1544 LIVE
 
-→ Report written to aws/ops/reports/latest/4103_bywatchlist_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_4103_bywatchlist_verify.py
+→ Report written to aws/ops/reports/latest/4104_edge_retry.md
