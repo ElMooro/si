@@ -39,7 +39,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "symbol-resolver v2.0 ops4089 step2-economics"
+MARKER = "symbol-resolver v2.0 ops4090 step2-economics"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/symbol-aliases.json"
 LEDGER_KEY = "symbol-resolver/ledger.json"
