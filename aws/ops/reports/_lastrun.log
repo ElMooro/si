@@ -1,17 +1,26 @@
-executing-against: 6c78adf3553ff0fc99211c242ecc2742b8719228
-ops 4098 — full TradingView universe on the vault page
-── A. why are the cftc rows still NO_FREE_SOURCE? ──
-[21:36:55]   cot aliases in artifact: 65
-[21:36:55]   cot alias keys that match a vault symbol EXACTLY: 65
-[21:36:55]   sample alias key : 020601_FO_AMP_SPREAD
-[21:36:55]   in aliases map   : True
-[21:36:55]   alias value      : cftc:yw9f-hn96:020601:asset_mgr_positions_spread
-[21:36:56]   LIVE CFTC CALL   : [{'report_date_as_yyyy_mm_dd': '2026-07-21T00:00:00.000', 'asset_mgr_positions_spread': '266327'}]
-[21:36:56]   → if this returns a value, the API and column are fine and the fault is in how the vault reaches the alias
-── B. deploy vault v3.14.0 ──
-[21:37:07]   ✓ settled (attempt 2)
-── C. run it (async + poll) ──
-[21:52:13] ✗ never moved
+executing-against: a04b04a7db87b10b030e41250ef5d2404f71dd41
+ops 4099 — full check, read-only
+── A. harvest store ──
+[21:52:43]   DIAG: {"started": 1785360540970, "done": 148, "total": 10116, "sc_ok": 143, "sc_err": 5, "sc2_ok": 143, "sc2_err": 5, "ss_ok": 0, "ss_err": 0, "matched": 0, "first_err": "sc2:TypeError: Failed to fetch", "tier1_done": 148, "rate_per_min": 10.1, "elapsed_s": 882, "delay_ms": 21530, "wall_events": 0, "recov
+── B. source-map — the delta deliverable ──
+[21:52:43]   KNOWN: MARKET-VENUES:165
+[21:52:43]   NEW    16  CRYPTOCAP   e.g. CRYPTOCAP:TOTAL3, CRYPTOCAP:BTC.D, CRYPTOCAP:TOTAL2
+[21:52:43]   NEW     2  US   e.g. SPCFD:SPX, SPCFD:SPF
+[21:52:43]   NEW     2  ICEUS   e.g. ICEUS:AWN1!, ICEUS:MWL1!
+[21:52:43]   NEW     1  OSE   e.g. OSE:TOPIX1!
+[21:52:43]   NEW     1  LSE   e.g. LSE:0LMQ
+[21:52:43]   NEW     1  COMEX   e.g. COMEX:HG1!
+[21:52:43]   NEW     1  GPW   e.g. GPW:WIG20
+[21:52:43]   NEW     1  NYMEX   e.g. NYMEX:CL1!
+[21:52:43]   NEW     1  FTSE   e.g. FTSE:UKX
+[21:52:43]   NEW     1  HOSE   e.g. HOSE:VN30
+[21:52:43]   NEW     1  VIE   e.g. VIE:ATX
+[21:52:43]   NEW     1  DJ   e.g. DJ:W1DOW
+[21:52:43]   NEW     1  CSELK   e.g. CSELK:ASI
+[21:52:43]   NEW     1  PSE   e.g. PSE:PSEI
+[21:52:43]   NEW     1  SPARKS   e.g. SPARKS:BANKS
+── C. workbench page ──
+── D. vault mirror + COT wound ──
+[21:52:44] ✅ CHECK DONE — store 232 / map 197 src 15 NEW / page 197 sourced / vault 1176 LIVE 0 pending, cot 0
 
-→ Report written to aws/ops/reports/latest/4098_full_universe.md
-❌ OPS-FAIL: aws/ops/pending/ops_4098_full_universe.py
+→ Report written to aws/ops/reports/latest/4099_full_check.md
