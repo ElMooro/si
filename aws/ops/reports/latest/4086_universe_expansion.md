@@ -1,13 +1,12 @@
-executing-against: 7b5c15e7d915542c1eafc8f7d726227bf2f59535
-ops 4086 — vault universe expansion (admit the aliases)
-── A. baseline ──
-[18:22:24]   rows 591  LIVE 480
-[18:22:24]   generated aliases available: 696
-── B. deploy v3.12.0 ──
-[18:22:36]   ✓ settled by marker (attempt 2)
-── C. invoke — admit the first batch ──
+# ops 4086 — vault universe expansion (admit the aliases)
 
-→ Report written to aws/ops/reports/latest/4086_universe_expansion.md
+**Status:** failure  
+**Duration:** 314.1s  
+**Finished:** 2026-07-29T18:27:37+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
     response = self._make_request(
@@ -62,8 +61,8 @@ urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Re
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4086_universe_expansion.py", line 135, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4086_universe_expansion.py", line 83, in main
     r = lam.invoke(FunctionName=FN, InvocationType="RequestResponse",
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -123,4 +122,22 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 516, in send
     raise ConnectionClosedError(
 botocore.exceptions.ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-tradingview/invocations".
-❌ OPS-FAIL: aws/ops/pending/ops_4086_universe_expansion.py
+
+```
+
+## Data
+
+| before_live | before_rows |
+|---|---|
+| 480 | 591 |
+
+## Log
+## A. baseline
+
+- `18:22:24`   rows 591  LIVE 480
+- `18:22:24`   generated aliases available: 696
+## B. deploy v3.12.0
+
+- `18:22:36`   ✓ settled by marker (attempt 2)
+## C. invoke — admit the first batch
+
