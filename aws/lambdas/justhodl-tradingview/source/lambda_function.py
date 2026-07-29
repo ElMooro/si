@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.11.0 ops4085 generated-aliases"
+MARKER = "tradingview-vault v3.12.0 ops4086 universe-expansion"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -926,6 +926,7 @@ def resolve_direct(rv):
 # the FRED API before emission). Loaded once per invocation and consulted
 # ONLY after the curated dict, so a hand-made decision always outranks a
 # generated one.
+MAX_EXPAND = int(os.environ.get("MAX_EXPAND", "250"))
 _GEN_ALIASES = None
 
 
@@ -1035,6 +1036,27 @@ def lambda_handler(event, context):
         if _s not in reg:
             reg[_s] = {"symbol": _s, "n_notes": 0, "exchanges": set(),
                        "note_ids": [], "note_snippet": ""}
+    # ops4086 UNIVERSE EXPANSION — the other half of ops4085.
+    # ops4085 taught the vault to RESOLVE generated aliases, but the union
+    # above only admitted the curated dict, so a FRED ticker could be
+    # perfectly aliased and still never walked: n_symbols stayed at 591
+    # while 354 verified aliases sat unused. Resolution without admission
+    # is a no-op, and it looked like a success.
+    #
+    # BOUNDED on purpose: ops4084 counted 10,319 imported tickers, and
+    # admitting a four-figure block in one run would blow the 900s budget
+    # and rewrite every cadence gate at once. New symbols are admitted
+    # MAX_EXPAND per run and accrete, exactly like the resolver's own
+    # ledger — the vault reaches full coverage over days, never in a
+    # single unreviewable jump.
+    _gen = gen_aliases()
+    _new = [x for x in sorted(_gen) if x not in reg]
+    _admit = _new[:MAX_EXPAND]
+    for _s in _admit:
+        reg[_s] = {"symbol": _s, "n_notes": 0, "exchanges": set(),
+                   "note_ids": [], "note_snippet": ""}
+    print(f"[vault] universe expansion: {len(_gen)} generated aliases, "
+          f"{len(_new)} not yet admitted, admitting {len(_admit)} this run")
     rows, fmp_syms = [], []
     for sym, r in reg.items():
         ex = set(r["exchanges"])
