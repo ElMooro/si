@@ -406,11 +406,24 @@
    * died silently (Khalid's badge: v1.7.0, 491 lists, no harvest line).
    * Now it retries every 20s until the lists exist, then starts once. */
   var AUTO_TRIES = 0;
+  /* v1.7.9 — THE UPDATE-DAY TRAP.  The guard stored only the date, so an
+   * extension updated on a day the old build had already walked would see
+   * jh_auto_day == today and return immediately: the new build sits idle
+   * until tomorrow.  That would have silently swallowed the entire v1.7.8
+   * priority walk on the very day it shipped.  Stamping the VERSION into
+   * the guard makes any upgrade re-arm the walk at once, while still
+   * holding the once-per-day rule within a single version.            */
+  function EXTV() {
+    try { return chrome.runtime.getManifest().version; } catch (e) { return "0"; }
+  }
+  function autoKey() {
+    return new Date().toISOString().slice(0, 10) + "|" + EXTV();
+  }
   function autoStart() {
     AUTO_TRIES++;
     try {
       chrome.storage.local.get(["jh_auto_day"], function (r) {
-        var today = new Date().toISOString().slice(0, 10);
+        var today = autoKey();
         if ((r && r.jh_auto_day) === today) return;
         if (startHarvest() > 0) {
           chrome.storage.local.set({ jh_auto_day: today });
@@ -496,8 +509,7 @@
       // messaging, nothing between the click and the walk.
       var n = startHarvest();
       if (n > 0)
-        chrome.storage.local.set({ jh_auto_day:
-          new Date().toISOString().slice(0, 10) });
+        chrome.storage.local.set({ jh_auto_day: autoKey() });
     };
     paint();
   }
