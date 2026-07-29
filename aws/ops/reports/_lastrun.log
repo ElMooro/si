@@ -1,70 +1,42 @@
-executing-against: 431faba5237b0a202b7a4cf30e16e0412afeb46d
-ops 4092 — PROBE: CFTC API for the 340 COT tickers
-── A. the codes we must serve ──
-[20:30:58]   tickers 340 · distinct market codes 26
-[20:30:58]   codes sample: ['020601', '020604', '045601', '067651', '06765T', '088691', '088695', '092741', '097741', '098662', '099741', '112741', '11700', '1170E1']
-[20:30:58]   suffix patterns:
-[20:30:58]       14  F_NRP_S
-[20:30:58]       13  F_NRP_L
-[20:30:58]       11  F_AMP_SPREAD
-[20:30:58]       10  F_DP_S
-[20:30:58]        9  F_LMP_S
-[20:30:58]        9  F_AMP_S
-[20:30:58]        8  F_DP_SPREAD
-[20:30:58]        8  F_DP_L
-[20:30:58]        8  F_LMP_L
-[20:30:58]        8  F_AMP_L
-[20:30:58]        8  F_CP_L
-[20:30:58]        7  F_TRP_L
-[20:30:58]        7  F_ORP_L
-[20:30:58]        6  F_LMP_SPREAD
-[20:30:58]        6  F_ORP_SPREAD
-[20:30:58]        6  FO_TT
-[20:30:58]        6  F_TT
-[20:30:58]        6  F_CP_S
-── B. H1 — reachability + H2 — which dataset has 020601? ──
-[20:30:58]   probing market code: 020601
-[20:30:58]   legacy_futures_only    6dca-aqww  rows=1  ✓ HAS IT
-[20:30:59]   tff_futures_only       gpe5-46if  rows=1  ✓ HAS IT
-[20:30:59]   disaggregated_fut      72hh-3qpy  rows=0  —
-[20:31:00]   tff_combined           yw9f-hn96  rows=1  ✓ HAS IT
-[20:31:00]   legacy_combined        jun7-fc8e  rows=1  ✓ HAS IT
-── C. H3 — do real columns match the suffixes? ──
-[20:31:00]   ── legacy_futures_only (6dca-aqww) · 133 columns
-[20:31:00]      market: UST BOND - CHICAGO BOARD OF TRADE
-[20:31:00]      date  : 2022-09-13T00:00:00.000
-[20:31:00]      spread    : ['noncomm_positions_spread', 'noncomm_positions_spread_1', 'noncomm_postions_spread_all', 'pct_of_oi_noncomm_spread', 'pct_of_oi_noncomm_spread_1']
-[20:31:00]      all columns: ['cftc_commodity_code', 'cftc_contract_market_code', 'cftc_market_code', 'cftc_region_code', 'change_in_comm_long_all', 'change_in_comm_short_all', 'change_in_noncomm_long_all', 'change_in_noncomm_short_all', 'change_in_noncomm_spead_all', 'change_in_nonrept_long_all', 'change_in_nonrept_short_all', 'change_in_open_interest_all', 'change_in_tot_rept_long_all', 'change_in_tot_rept_short', 'comm_positions_long_all', 'comm_positions_long_old', 'comm_positions_long_other', 'comm_positions_short_all', 'comm_positions_short_old', 'comm_positions_short_other', 'commodity', 'commodity_group_name', 'commodity_name', 'commodity_subgroup_name', 'conc_gross_le_4_tdr_long', 'conc_gross_le_4_tdr_long_1', 'conc_gross_le_4_tdr_long_2', 'conc_gross_le_4_tdr_short', 'conc_gross_le_4_tdr_short_1', 'conc_gross_le_4_tdr_short_2', 'conc_gross_le_8_tdr_long', 'conc_gross_le_8_tdr_long_1', 'conc_gross_le_8_tdr_long_2', 'conc_gross_le_8_tdr_short', 'conc_gross_le_8_tdr_short_1', 'conc_gross_le_8_tdr_short_2', 'conc_net_le_4_tdr_long_all', 'conc_net_le_4_tdr_long_old', 'conc_net_le_4_tdr_long_other', 'conc_net_le_4_tdr_short_all']
-[20:31:00]   ── tff_futures_only (gpe5-46if) · 89 columns
-[20:31:00]      market: UST BOND - CHICAGO BOARD OF TRADE
-[20:31:00]      date  : 2022-09-13T00:00:00.000
-[20:31:00]      dealer    : ['change_in_dealer_long_all', 'change_in_dealer_short_all', 'change_in_dealer_spread_all', 'dealer_positions_long_all', 'dealer_positions_short_all']
-[20:31:00]      asset mgr : ['asset_mgr_positions_long', 'asset_mgr_positions_short', 'asset_mgr_positions_spread', 'change_in_asset_mgr_long', 'change_in_asset_mgr_short']
-[20:31:00]      lev money : ['change_in_lev_money_long', 'change_in_lev_money_short', 'change_in_lev_money_spread', 'lev_money_positions_long', 'lev_money_positions_short']
-[20:31:00]      other rept: ['change_in_other_rept_long', 'change_in_other_rept_short', 'change_in_other_rept_spread', 'other_rept_positions_long', 'other_rept_positions_short']
-[20:31:00]      spread    : ['asset_mgr_positions_spread', 'change_in_asset_mgr_spread', 'change_in_dealer_spread_all', 'change_in_lev_money_spread', 'change_in_other_rept_spread']
-[20:31:00]      all columns: ['asset_mgr_positions_long', 'asset_mgr_positions_short', 'asset_mgr_positions_spread', 'cftc_commodity_code', 'cftc_contract_market_code', 'cftc_market_code', 'cftc_region_code', 'cftc_subgroup_code', 'change_in_asset_mgr_long', 'change_in_asset_mgr_short', 'change_in_asset_mgr_spread', 'change_in_dealer_long_all', 'change_in_dealer_short_all', 'change_in_dealer_spread_all', 'change_in_lev_money_long', 'change_in_lev_money_short', 'change_in_lev_money_spread', 'change_in_nonrept_long_all', 'change_in_nonrept_short_all', 'change_in_open_interest_all', 'change_in_other_rept_long', 'change_in_other_rept_short', 'change_in_other_rept_spread', 'change_in_tot_rept_long_all', 'change_in_tot_rept_short', 'commodity', 'commodity_group_name', 'commodity_name', 'commodity_subgroup_name', 'conc_gross_le_4_tdr_long', 'conc_gross_le_4_tdr_short', 'conc_gross_le_8_tdr_long', 'conc_gross_le_8_tdr_short', 'conc_net_le_4_tdr_long_all', 'conc_net_le_4_tdr_short_all', 'conc_net_le_8_tdr_long_all', 'conc_net_le_8_tdr_short_all', 'contract_market_name', 'contract_units', 'dealer_positions_long_all']
-[20:31:00]   ── tff_combined (yw9f-hn96) · 90 columns
-[20:31:00]      market: UST BOND - CHICAGO BOARD OF TRADE
-[20:31:00]      date  : 2022-09-13T00:00:00.000
-[20:31:00]      dealer    : ['change_in_dealer_long_all', 'change_in_dealer_short_all', 'change_in_dealer_spread_all', 'dealer_positions_long_all', 'dealer_positions_short_all']
-[20:31:00]      asset mgr : ['asset_mgr_positions_long', 'asset_mgr_positions_short', 'asset_mgr_positions_spread', 'change_in_asset_mgr_long', 'change_in_asset_mgr_short']
-[20:31:00]      lev money : ['change_in_lev_money_long', 'change_in_lev_money_short', 'change_in_lev_money_spread', 'lev_money_positions_long', 'lev_money_positions_short']
-[20:31:00]      other rept: ['change_in_other_rept_long', 'change_in_other_rept_short', 'change_in_other_rept_spread', 'other_rept_positions_long', 'other_rept_positions_short']
-[20:31:00]      spread    : ['asset_mgr_positions_spread', 'change_in_asset_mgr_spread', 'change_in_dealer_spread_all', 'change_in_lev_money_spread', 'change_in_other_rept_spread']
-[20:31:00]      all columns: ['asset_mgr_positions_long', 'asset_mgr_positions_short', 'asset_mgr_positions_spread', 'cftc_commodity_code', 'cftc_contract_market_code', 'cftc_market_code', 'cftc_region_code', 'cftc_subgroup_code', 'change_in_asset_mgr_long', 'change_in_asset_mgr_short', 'change_in_asset_mgr_spread', 'change_in_dealer_long_all', 'change_in_dealer_short_all', 'change_in_dealer_spread_all', 'change_in_lev_money_long', 'change_in_lev_money_short', 'change_in_lev_money_spread', 'change_in_nonrept_long_all', 'change_in_nonrept_short_all', 'change_in_open_interest_all', 'change_in_other_rept_long', 'change_in_other_rept_short', 'change_in_other_rept_spread', 'change_in_tot_rept_long_all', 'change_in_tot_rept_short', 'commodity', 'commodity_group_name', 'commodity_name', 'commodity_subgroup_name', 'conc_gross_le_4_tdr_long', 'conc_gross_le_4_tdr_short', 'conc_gross_le_8_tdr_long', 'conc_gross_le_8_tdr_short', 'conc_net_le_4_tdr_long_all', 'conc_net_le_4_tdr_short_all', 'conc_net_le_8_tdr_long_all', 'conc_net_le_8_tdr_short_all', 'contract_market_name', 'contract_units', 'dealer_positions_long_all']
-[20:31:00]   ── legacy_combined (jun7-fc8e) · 133 columns
-[20:31:00]      market: UST BOND - CHICAGO BOARD OF TRADE
-[20:31:00]      date  : 2022-09-13T00:00:00.000
-[20:31:00]      spread    : ['noncomm_positions_spread', 'noncomm_positions_spread_1', 'noncomm_postions_spread_all', 'pct_of_oi_noncomm_spread', 'pct_of_oi_noncomm_spread_1']
-[20:31:00]      all columns: ['cftc_commodity_code', 'cftc_contract_market_code', 'cftc_market_code', 'cftc_region_code', 'change_in_comm_long_all', 'change_in_comm_short_all', 'change_in_noncomm_long_all', 'change_in_noncomm_short_all', 'change_in_noncomm_spead_all', 'change_in_nonrept_long_all', 'change_in_nonrept_short_all', 'change_in_open_interest_all', 'change_in_tot_rept_long_all', 'change_in_tot_rept_short', 'comm_positions_long_all', 'comm_positions_long_old', 'comm_positions_long_other', 'comm_positions_short_all', 'comm_positions_short_old', 'comm_positions_short_other', 'commodity', 'commodity_group_name', 'commodity_name', 'commodity_subgroup_name', 'conc_gross_le_4_tdr_long', 'conc_gross_le_4_tdr_long_1', 'conc_gross_le_4_tdr_long_2', 'conc_gross_le_4_tdr_short', 'conc_gross_le_4_tdr_short_1', 'conc_gross_le_4_tdr_short_2', 'conc_gross_le_8_tdr_long', 'conc_gross_le_8_tdr_long_1', 'conc_gross_le_8_tdr_long_2', 'conc_gross_le_8_tdr_short', 'conc_gross_le_8_tdr_short_1', 'conc_gross_le_8_tdr_short_2', 'conc_net_le_4_tdr_long_all', 'conc_net_le_4_tdr_long_old', 'conc_net_le_4_tdr_long_other', 'conc_net_le_4_tdr_short_all']
-── D. coverage — how many of his codes does it serve? ──
-[20:31:24]   sampled 25 codes against legacy_futures_only: 24 served
+executing-against: 15e8d6754e438990ad5189f14d12319647575e49
+ops 4093 — STEP 3: COT/COT3 → CFTC TFF, verified
+── A. deploy resolver v3.0 + vault v3.13.0 ──
+[20:37:39]   ✓ justhodl-symbol-resolver settled (attempt 3)
+[20:37:50]   ✓ justhodl-tradingview settled (attempt 2)
+── B. resolve COT tickers (async + poll) ──
+[20:42:18]   ✓ data/symbol-aliases.json moved after 260s
+[20:42:18]   COT tickers 340 · aliased 65 · skipped 253
+[20:42:18]   by_route: {'fred-verified': 696, 'economics-matched': 103, 'cot-verified': 65}
+── Verified COT aliases (sample) ──
+[20:42:18]   020601_FO_AMP_SPREAD       → cftc:yw9f-hn96:020601:asset_mgr_positions_sp asof 2026-07-21
+[20:42:18]   020601_FO_DP_SPREAD        → cftc:yw9f-hn96:020601:dealer_positions_sprea asof 2026-07-21
+[20:42:18]   020601_FO_LMP_SPREAD       → cftc:yw9f-hn96:020601:lev_money_positions_sp asof 2026-07-21
+[20:42:18]   020601_FO_ORP_SPREAD       → cftc:yw9f-hn96:020601:other_rept_positions_s asof 2026-07-21
+[20:42:18]   020601_FO_TAM_SPREAD       → cftc:yw9f-hn96:020601:traders_asset_mgr_spre asof 2026-07-21
+[20:42:18]   020601_FO_TD_SPREAD        → cftc:yw9f-hn96:020601:traders_dealer_spread_ asof 2026-07-21
+[20:42:18]   020601_FO_TLM_SPREAD       → cftc:yw9f-hn96:020601:traders_lev_money_spre asof 2026-07-21
+[20:42:18]   020601_FO_TOR_SPREAD       → cftc:yw9f-hn96:020601:traders_other_rept_spr asof 2026-07-21
+[20:42:18]   020601_F_AMP_SPREAD        → cftc:gpe5-46if:020601:asset_mgr_positions_sp asof 2026-07-21
+[20:42:18]   020601_F_DP_SPREAD         → cftc:gpe5-46if:020601:dealer_positions_sprea asof 2026-07-21
+[20:42:18]   020601_F_LMP_SPREAD        → cftc:gpe5-46if:020601:lev_money_positions_sp asof 2026-07-21
+[20:42:18]   020601_F_ORP_SPREAD        → cftc:gpe5-46if:020601:other_rept_positions_s asof 2026-07-21
+[20:42:18]   020601_F_TAM_SPREAD        → cftc:gpe5-46if:020601:traders_asset_mgr_spre asof 2026-07-21
+[20:42:18]   020601_F_TD_SPREAD         → cftc:gpe5-46if:020601:traders_dealer_spread_ asof 2026-07-21
+── C. vault fetches them for real ──
+[20:48:10]   ✓ data/tradingview.json moved after 340s
+[20:48:10]   vault rows 1091 → 1314 · LIVE 975 → 1132
+── CFTC-routed symbols carrying real values ──
 ── VERDICT ──
-[20:31:24]   dataset to build on: legacy_futures_only (6dca-aqww)
-[20:31:24]   suffix decode must be derived from the COLUMN NAMES above,
-[20:31:24]   not from my assumption about what DP/AMP/LMP mean. If a
-[20:31:24]   suffix has no matching column, that ticker stays unrouted.
-[20:31:24]   PROBE ONLY — no engine code written.
+[20:48:10]   ✓ resolver v3.0 settled
+[20:48:10]   ✓ vault v3.13.0 settled
+[20:48:10]   ✓ resolver async accepted
+[20:48:10]   ✓ COT aliases produced
+[20:48:10]   ✓ every COT alias points at a real CFTC column
+[20:48:10]   ✓ every COT alias was verified against a live row
+[20:48:10]   ✓ vault async accepted
+[20:48:10]   ✗ cftc: adapter returns real values
+[20:48:10]   ✓ pre-existing LIVE not regressed
+[20:48:10] ✗ FAILED: ['cftc: adapter returns real values']
 
-→ Report written to aws/ops/reports/latest/4092_cftc_api_probe.md
+→ Report written to aws/ops/reports/latest/4093_step3_cot.md
+❌ OPS-FAIL: aws/ops/pending/ops_4093_step3_cot.py
