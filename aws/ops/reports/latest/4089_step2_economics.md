@@ -1,11 +1,15 @@
-executing-against: b3cf2bdabfd6e50260079339b838508c873380ba
-ops 4089 — STEP 2: ECONOMICS → FRED, confidence-gated
-── A. descriptions available (v1.8.1 pipe) ──
+# ops 4089 — STEP 2: ECONOMICS → FRED, confidence-gated
 
-→ Report written to aws/ops/reports/latest/4089_step2_economics.md
+**Status:** failure  
+**Duration:** 0.3s  
+**Finished:** 2026-07-29T18:58:40+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4089_step2_economics.py", line 144, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4089_step2_economics.py", line 39, in main
     d = s3.get_object(Bucket=BUCKET, Key="data/tv-descriptions.json") \
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -18,4 +22,9 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
     raise error_class(parsed_response, operation_name)
 botocore.errorfactory.NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
-❌ OPS-FAIL: aws/ops/pending/ops_4089_step2_economics.py
+
+```
+
+## Log
+## A. descriptions available (v1.8.1 pipe)
+
