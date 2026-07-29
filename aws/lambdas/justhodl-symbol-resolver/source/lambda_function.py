@@ -39,7 +39,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "symbol-resolver v2.0 ops4090 step2-economics"
+MARKER = "symbol-resolver v3.0 ops4093 step3-cot"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/symbol-aliases.json"
 LEDGER_KEY = "symbol-resolver/ledger.json"
@@ -209,6 +209,95 @@ def resolve_economics(tickers, descs, verified, dead, budget, context):
     return aliased, len(cands), cands, calls
 
 
+# ───────────────────────── STEP 3: COT / COT3 ────────────────────────
+# ops 4091: the fleet's cftc-all-cache shares ZERO keys with these 340
+# tickers. ops 4092: the CFTC's own TFF datasets carry exactly the trader
+# taxonomy the ticker suffixes encode. So the decode below is read off
+# REAL column names returned by the API, and every mapping is verified
+# against a live row before it becomes an alias — if a suffix has no
+# matching column, or the column is empty, the ticker stays unrouted
+# rather than getting an alias that resolves to nothing.
+CFTC_TFF_F  = "gpe5-46if"   # futures only          (TV "_F_")
+CFTC_TFF_FO = "yw9f-hn96"   # futures + options     (TV "_FO_")
+CFTC_LEG_F  = "6dca-aqww"
+CFTC_LEG_FO = "jun7-fc8e"
+CFTC_BASE = "https://publicreporting.cftc.gov/resource/{}.json"
+
+# trader-class suffix -> the column STEM the API actually publishes
+TRADER = {
+    "DP":  "dealer_positions_{p}_all",
+    "AMP": "asset_mgr_positions_{p}",
+    "LMP": "lev_money_positions_{p}",
+    "ORP": "other_rept_positions_{p}",
+}
+# trader-COUNT variants (TV's T-prefixed classes)
+TRADER_CT = {
+    "TD":  "traders_dealer_{p}_all",
+    "TAM": "traders_asset_mgr_{p}",
+    "TLM": "traders_lev_money_{p}",
+    "TOR": "traders_other_rept_{p}",
+}
+POSITION = {"LONG": "long", "SHORT": "short", "SPREAD": "spread"}
+
+
+def cftc_row(did, code):
+    url = (CFTC_BASE.format(did) + "?" + urllib.parse.urlencode({
+        "cftc_contract_market_code": code,
+        "$order": "report_date_as_yyyy_mm_dd DESC", "$limit": 1}))
+    try:
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "justhodl-resolver/3.0", "Accept": "application/json"})
+        rows = json.loads(urllib.request.urlopen(req, timeout=25).read())
+        return rows[0] if rows else None
+    except Exception:
+        return None
+
+
+def resolve_cot(tickers, verified, dead, budget, context):
+    """Verify each COT ticker against a live CFTC row before aliasing."""
+    rowcache, calls, aliased, skipped = {}, 0, 0, 0
+    for t in tickers:
+        if calls >= budget or (context and
+                               context.get_remaining_time_in_millis() < 45000):
+            break
+        code_body = t.split(":", 1)[1]
+        if code_body in verified or code_body in dead:
+            continue
+        parts = code_body.split("_")
+        if len(parts) < 4:
+            dead.add(code_body); skipped += 1; continue
+        market, rep = parts[0], parts[1]
+        klass, pos = parts[2], parts[-1]
+        p = POSITION.get(pos.upper())
+        stem = TRADER.get(klass.upper()) or TRADER_CT.get(klass.upper())
+        if not p or not stem:
+            # Unknown suffix. Inventing a column here is exactly how you
+            # ship an alias that charts the wrong trader class.
+            dead.add(code_body); skipped += 1; continue
+        col = stem.format(p=p)
+        did = (CFTC_TFF_FO if rep.upper() == "FO" else CFTC_TFF_F)
+        ck = (did, market)
+        if ck not in rowcache:
+            rowcache[ck] = cftc_row(did, market)
+            calls += 1
+            time.sleep(SPACING)
+        row = rowcache[ck]
+        if not row or col not in row or row.get(col) in (None, ""):
+            dead.add(code_body); skipped += 1; continue
+        verified[code_body] = {
+            "alias": f"cftc:{did}:{market}:{col}",
+            "title": f"{row.get('contract_market_name') or row.get('market_and_exchange_names')} · {klass} {pos.lower()}",
+            "units": "contracts",
+            "freq": "W",
+            "route": "cot-verified",
+            "confidence": 1.0,
+            "tv_symbol": t,
+            "asof": str(row.get("report_date_as_yyyy_mm_dd") or "")[:10],
+        }
+        aliased += 1
+    return aliased, skipped, calls
+
+
 def lambda_handler(event, context):
     print(f"[symbol-resolver] {MARKER}")
     now = datetime.now(timezone.utc)
@@ -262,6 +351,13 @@ def lambda_handler(event, context):
         econ_tickers, descs, verified, dead, econ_budget, context)
     spent += e_calls
     newly += e_alias
+    # ── STEP 3: COT / COT3 against the CFTC's own publication ──
+    cot_tickers = sorted(t for t in tickers if t.startswith(("COT:", "COT3:")))
+    c_alias, c_skip, c_calls = resolve_cot(
+        cot_tickers, verified, dead, max(0, MAX_NEW - spent + 200), context)
+    spent += c_calls
+    newly += c_alias
+
     prev_c = {c["tv_symbol"]: c for c in (led.get("candidates") or [])}
     for c in e_cands:
         prev_c[c["tv_symbol"]] = c
@@ -295,6 +391,10 @@ def lambda_handler(event, context):
                                  if v.get("route") == "economics-matched"),
         "economics_candidates": len(candidates),
         "economics_accept_threshold": ACCEPT,
+        "cot_total": len(cot_tickers),
+        "cot_aliased": sum(1 for v in verified.values()
+                           if v.get("route") == "cot-verified"),
+        "cot_skipped_this_run": c_skip,
         "candidates": [
             {k: c[k] for k in ("tv_symbol", "alias", "title", "confidence",
                                "query", "had_description")}

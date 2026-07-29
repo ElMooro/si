@@ -22,6 +22,7 @@ import json
 import os
 import re
 import time
+import urllib.parse
 import urllib.request
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -33,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.12.1 ops4088 accretion-fix"
+MARKER = "tradingview-vault v3.13.0 ops4093 cftc-adapter"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -885,9 +886,58 @@ def boj_level(tgt):
     return None
 
 
+# ── CFTC adapter (ops 4093) ───────────────────────────────────────────
+# ops 4091 found the fleet's cftc-all-cache holds 29 short-name contracts
+# and shares ZERO keys with Khalid's 340 COT/COT3 tickers, which are
+# 6-digit CFTC market codes. ops 4092 probed the CFTC's own Socrata
+# publication and confirmed the TFF datasets carry exactly the trader
+# taxonomy those tickers encode: dealer / asset_mgr / lev_money /
+# other_rept, each with long, short and spread columns.
+#
+# Alias form: cftc:<dataset_id>:<market_code>:<column>
+# The column is chosen and VERIFIED by the resolver against a real row
+# before the alias is ever written, so this adapter only ever reads a
+# column already proven to exist and to carry a value.
+CFTC_BASE = "https://publicreporting.cftc.gov/resource/{}.json"
+
+
+def cftc_latest(tgt):
+    """tgt = '<dataset_id>:<market_code>:<column>' -> (value, asof)."""
+    try:
+        did, code, col = tgt.split(":", 2)
+    except ValueError:
+        return None
+    url = (CFTC_BASE.format(did) + "?" + urllib.parse.urlencode({
+        "cftc_contract_market_code": code,
+        "$select": f"report_date_as_yyyy_mm_dd,{col}",
+        "$order": "report_date_as_yyyy_mm_dd DESC",
+        "$limit": 1}))
+    try:
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "justhodl-vault/3.13", "Accept": "application/json"})
+        rows = json.loads(urllib.request.urlopen(req, timeout=25).read())
+    except Exception as e:
+        print(f"[cftc] {tgt}: {str(e)[:80]}")
+        return None
+    if not rows:
+        return None
+    r = rows[0]
+    v = r.get(col)
+    if v in (None, ""):
+        return None
+    try:
+        v = float(v)
+    except Exception:
+        return None
+    asof = str(r.get("report_date_as_yyyy_mm_dd") or "")[:10]
+    return v, asof
+
+
 def resolve_direct(rv):
     """Source memory: refetch straight from the proven resolver."""
     kind, _, tgt = (rv or "").partition(":")
+    if kind == "cftc":
+        return cftc_latest(tgt)
     if kind == "fred":
         return fred_latest(tgt)
     if kind == "yoy":
