@@ -1,0 +1,46 @@
+# ops 4098 — full TradingView universe on the vault page
+
+**Status:** success  
+**Duration:** 565.4s  
+**Finished:** 2026-07-29T22:04:10+00:00  
+
+## Data
+
+| cftc_live | live | pending | rows |
+|---|---|---|---|
+| 0 | 1282 | 8551 | 10059 |
+
+## Log
+## A. why are the cftc rows still NO_FREE_SOURCE?
+
+- `21:54:45`   cot aliases in artifact: 65
+- `21:54:46`   cot alias keys that match a vault symbol EXACTLY: 65
+- `21:54:46`   sample alias key : 020601_FO_AMP_SPREAD
+- `21:54:46`   in aliases map   : True
+- `21:54:46`   alias value      : cftc:yw9f-hn96:020601:asset_mgr_positions_spread
+- `21:54:46`   LIVE CFTC CALL   : [{'report_date_as_yyyy_mm_dd': '2026-07-21T00:00:00.000', 'asset_mgr_positions_spread': '266327'}]
+- `21:54:46`   → if this returns a value, the API and column are fine and the fault is in how the vault reaches the alias
+## B. deploy vault v3.14.1
+
+- `21:55:10`   ✓ settled (attempt 2)
+## C. run it (async + poll)
+
+- `22:04:10`   ✓ artifact moved after 520s
+## D. did the universe actually widen?
+
+- `22:04:10`   rows 1358 → 10059
+- `22:04:10`   from_watchlist : 9468
+- `22:04:10`   LIVE 1282 · pending 8551 · unresolved 223
+- `22:04:10`   status histogram: {'META': 1, 'LIVE': 1282, 'DISCONTINUED': 2, 'NO_FREE_SOURCE': 223, 'PENDING_RESOLUTION': 8551}
+- `22:04:10`   cftc rows with a value: 0
+- `22:04:10`   imported unique symbols: 10319
+## VERDICT
+
+- `22:04:10`   ✓ v3.14.1 settled by marker
+- `22:04:10`   ✓ async accepted
+- `22:04:10`   ✓ vault universe grew past 8,000 rows
+- `22:04:10`   ✓ watchlist symbols are flagged
+- `22:04:10`   ✓ un-attempted rows are PENDING, not NO_FREE_SOURCE
+- `22:04:10`   ✓ existing LIVE population not regressed
+- `22:04:10`   ✓ every row serialises exchanges as a list
+- `22:04:10` ✅ PASS_ALL — 10059 rows on tradingview.html (1282 live, 8551 queued). Resolution accretes at RESOLVE_BUDGET/run.

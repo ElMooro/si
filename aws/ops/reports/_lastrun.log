@@ -1,26 +1,32 @@
-executing-against: a04b04a7db87b10b030e41250ef5d2404f71dd41
-ops 4099 — full check, read-only
-── A. harvest store ──
-[21:52:43]   DIAG: {"started": 1785360540970, "done": 148, "total": 10116, "sc_ok": 143, "sc_err": 5, "sc2_ok": 143, "sc2_err": 5, "ss_ok": 0, "ss_err": 0, "matched": 0, "first_err": "sc2:TypeError: Failed to fetch", "tier1_done": 148, "rate_per_min": 10.1, "elapsed_s": 882, "delay_ms": 21530, "wall_events": 0, "recov
-── B. source-map — the delta deliverable ──
-[21:52:43]   KNOWN: MARKET-VENUES:165
-[21:52:43]   NEW    16  CRYPTOCAP   e.g. CRYPTOCAP:TOTAL3, CRYPTOCAP:BTC.D, CRYPTOCAP:TOTAL2
-[21:52:43]   NEW     2  US   e.g. SPCFD:SPX, SPCFD:SPF
-[21:52:43]   NEW     2  ICEUS   e.g. ICEUS:AWN1!, ICEUS:MWL1!
-[21:52:43]   NEW     1  OSE   e.g. OSE:TOPIX1!
-[21:52:43]   NEW     1  LSE   e.g. LSE:0LMQ
-[21:52:43]   NEW     1  COMEX   e.g. COMEX:HG1!
-[21:52:43]   NEW     1  GPW   e.g. GPW:WIG20
-[21:52:43]   NEW     1  NYMEX   e.g. NYMEX:CL1!
-[21:52:43]   NEW     1  FTSE   e.g. FTSE:UKX
-[21:52:43]   NEW     1  HOSE   e.g. HOSE:VN30
-[21:52:43]   NEW     1  VIE   e.g. VIE:ATX
-[21:52:43]   NEW     1  DJ   e.g. DJ:W1DOW
-[21:52:43]   NEW     1  CSELK   e.g. CSELK:ASI
-[21:52:43]   NEW     1  PSE   e.g. PSE:PSEI
-[21:52:43]   NEW     1  SPARKS   e.g. SPARKS:BANKS
-── C. workbench page ──
-── D. vault mirror + COT wound ──
-[21:52:44] ✅ CHECK DONE — store 232 / map 197 src 15 NEW / page 197 sourced / vault 1176 LIVE 0 pending, cot 0
+executing-against: f60a6e7451120e7aa468e12c32380bf2ac741d1f
+ops 4098 — full TradingView universe on the vault page
+── A. why are the cftc rows still NO_FREE_SOURCE? ──
+[21:54:45]   cot aliases in artifact: 65
+[21:54:46]   cot alias keys that match a vault symbol EXACTLY: 65
+[21:54:46]   sample alias key : 020601_FO_AMP_SPREAD
+[21:54:46]   in aliases map   : True
+[21:54:46]   alias value      : cftc:yw9f-hn96:020601:asset_mgr_positions_spread
+[21:54:46]   LIVE CFTC CALL   : [{'report_date_as_yyyy_mm_dd': '2026-07-21T00:00:00.000', 'asset_mgr_positions_spread': '266327'}]
+[21:54:46]   → if this returns a value, the API and column are fine and the fault is in how the vault reaches the alias
+── B. deploy vault v3.14.1 ──
+[21:55:10]   ✓ settled (attempt 2)
+── C. run it (async + poll) ──
+[22:04:10]   ✓ artifact moved after 520s
+── D. did the universe actually widen? ──
+[22:04:10]   rows 1358 → 10059
+[22:04:10]   from_watchlist : 9468
+[22:04:10]   LIVE 1282 · pending 8551 · unresolved 223
+[22:04:10]   status histogram: {'META': 1, 'LIVE': 1282, 'DISCONTINUED': 2, 'NO_FREE_SOURCE': 223, 'PENDING_RESOLUTION': 8551}
+[22:04:10]   cftc rows with a value: 0
+[22:04:10]   imported unique symbols: 10319
+── VERDICT ──
+[22:04:10]   ✓ v3.14.1 settled by marker
+[22:04:10]   ✓ async accepted
+[22:04:10]   ✓ vault universe grew past 8,000 rows
+[22:04:10]   ✓ watchlist symbols are flagged
+[22:04:10]   ✓ un-attempted rows are PENDING, not NO_FREE_SOURCE
+[22:04:10]   ✓ existing LIVE population not regressed
+[22:04:10]   ✓ every row serialises exchanges as a list
+[22:04:10] ✅ PASS_ALL — 10059 rows on tradingview.html (1282 live, 8551 queued). Resolution accretes at RESOLVE_BUDGET/run.
 
-→ Report written to aws/ops/reports/latest/4099_full_check.md
+→ Report written to aws/ops/reports/latest/4099_full_universe.md
