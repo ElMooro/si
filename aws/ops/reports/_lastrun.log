@@ -1,53 +1,42 @@
-executing-against: 9ef4371b9b93a53cd4d72d8c6564e35026ee53e6
-ops 4089 — STEP 2: ECONOMICS → FRED, confidence-gated
-── A. descriptions available (v1.8.1 pipe) ──
-[20:09:32]   none yet (An error occurred (NoSuchKey) when calling the GetObject ope) — matcher falls back to code decomposition, which is why the threshold exists
-── B. deploy resolver v2.0 ──
-[20:09:44]   ✓ settled (attempt 2)
-── C. async invoke + poll (600s engine, socket won't hold) ──
-[20:09:44]   async accepted: 202
-[20:13:50]   ✓ artifact moved after 240s
-── D. results ──
-[20:13:50]   ECONOMICS tickers      : 3317
-[20:13:50]   ACCEPTED as aliases    : 53
-[20:13:50]   candidates (below 0.80): 24
-[20:13:50]   by_route               : {'fred-verified': 696, 'economics-matched': 53}
-── Accepted ECONOMICS matches (sample) ──
-[20:13:50]   ARBOT            → fred:ARGXTNTVA01NCMLM  0.8  International Merchandise Trade Statistics: 
-[20:13:50]   ARCA             → fred:ARGBCAGDPBP6      0.8  Balance of Payments: Current account balance
-[20:13:50]   ARGDPYY          → fred:NGDPRSAXDCARQ     0.8  Real Gross Domestic Product for Argentina
-[20:13:50]   ATBOT            → fred:XTNTVA01ATA664S   0.8  International Merchandise Trade Statistics: 
-[20:13:50]   ATGDPYY          → fred:CLVMNACSCAB1GQAT  0.8  Real Gross Domestic Product for Austria
-[20:13:50]   ATINTR           → fred:IRLTLT01ATM156N   0.8  Interest Rates: Long-Term Government Bond Yi
-[20:13:50]   AUBOT            → fred:XTNTVA01AUQ664S   0.8  International Merchandise Trade Statistics: 
-[20:13:50]   AUCCI            → fred:CSCICP02AUM460S   0.8  Consumer Opinion Surveys: Composite Consumer
-[20:13:50]   AUGDPYY          → fred:NGDPRSAXDCAUQ     0.8  Real Gross Domestic Product for Australia
-[20:13:50]   AUINTR           → fred:IRLTLT01AUM156N   0.8  Interest Rates: Long-Term Government Bond Yi
-[20:13:50]   BEBOT            → fred:XTNTVA01BEQ664N   0.8  International Merchandise Trade Statistics: 
-[20:13:50]   BECCI            → fred:CSCICP02BEM460S   0.8  Consumer Opinion Surveys: Composite Consumer
-[20:13:50]   BEGDPYY          → fred:CLVMNACSCAB1GQBE  0.8  Real Gross Domestic Product for Belgium
-[20:13:50]   BEINTR           → fred:IRLTLT01BEM156N   0.8  Interest Rates: Long-Term Government Bond Yi
-── Rejected candidates — the honest queue (sample) ──
-[20:13:50]   ECONOMICS:CLGDPQQ      0.712  National Accounts: GDP by Expenditure: C  q='Chile real gross domestic pr'
-[20:13:50]   ECONOMICS:CLGDPYY      0.712  National Accounts: GDP by Expenditure: C  q='Chile real gross domestic pr'
-[20:13:50]   ECONOMICS:COGDPQQ      0.712  National Accounts: GDP by Expenditure: C  q='Colombia real gross domestic'
-[20:13:50]   ECONOMICS:COGDPYY      0.712  National Accounts: GDP by Expenditure: C  q='Colombia real gross domestic'
-[20:13:50]   ECONOMICS:ATFER        0.683  Austria / U.S. Foreign Exchange Rate (DI  q='Austria foreign exchange res'
-[20:13:50]   ECONOMICS:BEFER        0.683  Belgium / U.S. Foreign Exchange Rate (DI  q='Belgium foreign exchange res'
-[20:13:50]   ECONOMICS:DEFER        0.683  Germany / U.S. Foreign Exchange Rate (DI  q='Germany foreign exchange res'
-[20:13:50]   ECONOMICS:ARINTR       0.625  Bank's Net Interest Margin for Argentina  q='Argentina interest rate'
-[20:13:50]   ECONOMICS:ARM0         0.625  Base Money for Argentina  q='Argentina monetary base'
-[20:13:50]   ECONOMICS:AUIPYY       0.625  Production, Sales, Work Started and Orde  q='Australia industrial product'
-[20:13:50]   ECONOMICS:BEIPYY       0.625  Production, Sales, Work Started and Orde  q='Belgium industrial productio'
-[20:13:50]   ECONOMICS:BRIPYY       0.625  Production, Sales, Work Started and Orde  q='Brazil industrial production'
+executing-against: f49bcc20633de382b3712fd5a504f374f18cb28b
+ops 4091 — PROBE: can COT tickers join the CFTC cache?
+── A. the COT tickers we owe a route ──
+[20:16:22]   COT/COT3 tickers: 340
+[20:16:22]     COT3:020601_FO_AMP_SPREAD
+[20:16:22]     COT3:020601_FO_DP_SPREAD
+[20:16:22]     COT3:020601_FO_LMP_SPREAD
+[20:16:22]     COT3:020601_FO_ORP_SPREAD
+[20:16:22]     COT3:020601_FO_TAM_SPREAD
+[20:16:22]     COT3:020601_FO_TD_SPREAD
+[20:16:22]     COT3:020601_FO_TLM_SPREAD
+[20:16:22]     COT3:020601_FO_TOR_SPREAD
+[20:16:22]     COT3:020601_F_AMP_SPREAD
+[20:16:22]     COT3:020601_F_DP_SPREAD
+[20:16:22]     COT3:020601_F_LMP_SPREAD
+[20:16:22]     COT3:020601_F_ORP_SPREAD
+[20:16:22]     COT3:020601_F_TAM_SPREAD
+[20:16:22]     COT3:020601_F_TD_SPREAD
+[20:16:22]     COT3:020601_F_TLM_SPREAD
+[20:16:22]     COT3:020601_F_TOR_SPREAD
+[20:16:22]     COT3:020604_FO_AMP_SPREAD
+[20:16:22]     COT3:020604_FO_DP_SPREAD
+[20:16:22]     COT3:020604_FO_LMP_SPREAD
+[20:16:22]     COT3:020604_FO_ORP_SPREAD
+[20:16:22]   shape histogram: {'digits_6': 320, 'parts_4': 276, 'digits_5': 2, 'parts_7': 20, 'parts_3': 14, 'parts_5': 22, 'parts_8': 8}
+── B. what the CFTC cache is actually keyed by ──
+[20:16:22]   top-level keys: ['cached_at', 'contracts', 'data', 'source', 'timestamp']
+[20:16:22]   contracts container: 'data'
+[20:16:22]   contracts in cache: 29
+[20:16:22]   sample keys: ['6B', '6C', '6E', '6J', '6S', 'CL', 'CT', 'DX', 'ES', 'GC', 'HG', 'HO', 'KC', 'NG', 'NQ', 'PL', 'RB', 'RTY']
+── C. THE JOIN — does it exist? ──
+[20:16:22]   exact body match      : 0
+[20:16:22]   leading-code match    : 0
 ── VERDICT ──
-[20:13:50]   ✓ resolver v2.0 settled by marker
-[20:13:50]   ✓ async accepted
-[20:13:50]   ✓ every accepted match scored >= 0.80
-[20:13:50]   ✓ every accepted match names a real FRED series
-[20:13:50]   ✓ weak matches are PUBLISHED as candidates, not dropped
-[20:13:50]   ✓ candidates were NOT promoted into aliases
-[20:13:50]   ✓ step 1 FRED aliases not regressed
-[20:13:50] ✅ PASS_ALL — 53 ECONOMICS tickers mapped to verified FRED series; 24 held as scored candidates rather than guessed. Total aliases now 749.
+[20:16:22]   ✗ NO JOIN. The cache is not keyed by anything the TV COT
+[20:16:22]     symbols carry. Step 3 is therefore NOT a wiring job —
+[20:16:22]     it needs a code mapping (CFTC market code -> cache key)
+[20:16:22]     built from the CFTC metadata, or a direct pull from the
+[20:16:22]     CFTC's own API. Do NOT emit aliases on this basis.
+[20:16:22]   PROBE ONLY — no engine code written.
 
-→ Report written to aws/ops/reports/latest/4090_step2_economics.md
+→ Report written to aws/ops/reports/latest/4091_cot_probe.md

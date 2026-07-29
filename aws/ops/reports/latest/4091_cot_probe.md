@@ -1,0 +1,57 @@
+# ops 4091 — PROBE: can COT tickers join the CFTC cache?
+
+**Status:** success  
+**Duration:** 0.7s  
+**Finished:** 2026-07-29T20:16:22+00:00  
+
+## Data
+
+| cache_contracts | cot_tickers | join_bycode | join_exact |
+|---|---|---|---|
+|  | 340 |  |  |
+| 29 |  |  |  |
+|  |  | 0 | 0 |
+
+## Log
+## A. the COT tickers we owe a route
+
+- `20:16:22`   COT/COT3 tickers: 340
+- `20:16:22`     COT3:020601_FO_AMP_SPREAD
+- `20:16:22`     COT3:020601_FO_DP_SPREAD
+- `20:16:22`     COT3:020601_FO_LMP_SPREAD
+- `20:16:22`     COT3:020601_FO_ORP_SPREAD
+- `20:16:22`     COT3:020601_FO_TAM_SPREAD
+- `20:16:22`     COT3:020601_FO_TD_SPREAD
+- `20:16:22`     COT3:020601_FO_TLM_SPREAD
+- `20:16:22`     COT3:020601_FO_TOR_SPREAD
+- `20:16:22`     COT3:020601_F_AMP_SPREAD
+- `20:16:22`     COT3:020601_F_DP_SPREAD
+- `20:16:22`     COT3:020601_F_LMP_SPREAD
+- `20:16:22`     COT3:020601_F_ORP_SPREAD
+- `20:16:22`     COT3:020601_F_TAM_SPREAD
+- `20:16:22`     COT3:020601_F_TD_SPREAD
+- `20:16:22`     COT3:020601_F_TLM_SPREAD
+- `20:16:22`     COT3:020601_F_TOR_SPREAD
+- `20:16:22`     COT3:020604_FO_AMP_SPREAD
+- `20:16:22`     COT3:020604_FO_DP_SPREAD
+- `20:16:22`     COT3:020604_FO_LMP_SPREAD
+- `20:16:22`     COT3:020604_FO_ORP_SPREAD
+- `20:16:22`   shape histogram: {'digits_6': 320, 'parts_4': 276, 'digits_5': 2, 'parts_7': 20, 'parts_3': 14, 'parts_5': 22, 'parts_8': 8}
+## B. what the CFTC cache is actually keyed by
+
+- `20:16:22`   top-level keys: ['cached_at', 'contracts', 'data', 'source', 'timestamp']
+- `20:16:22`   contracts container: 'data'
+- `20:16:22`   contracts in cache: 29
+- `20:16:22`   sample keys: ['6B', '6C', '6E', '6J', '6S', 'CL', 'CT', 'DX', 'ES', 'GC', 'HG', 'HO', 'KC', 'NG', 'NQ', 'PL', 'RB', 'RTY']
+## C. THE JOIN — does it exist?
+
+- `20:16:22`   exact body match      : 0
+- `20:16:22`   leading-code match    : 0
+## VERDICT
+
+- `20:16:22`   ✗ NO JOIN. The cache is not keyed by anything the TV COT
+- `20:16:22`     symbols carry. Step 3 is therefore NOT a wiring job —
+- `20:16:22`     it needs a code mapping (CFTC market code -> cache key)
+- `20:16:22`     built from the CFTC metadata, or a direct pull from the
+- `20:16:22`     CFTC's own API. Do NOT emit aliases on this basis.
+- `20:16:22`   PROBE ONLY — no engine code written.
