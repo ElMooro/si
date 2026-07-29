@@ -1,4 +1,4 @@
-"""ops_4086 — admit the resolved aliases into the vault's universe.
+"""ops_4087 — admit the resolved aliases into the vault's universe.
 
 ops 4085 shipped the resolution half and I flagged the gap rather than
 leaving it: the vault learned to RESOLVE generated aliases, but its
@@ -35,8 +35,8 @@ MARK = "tradingview-vault v3.12.0 ops4086 universe-expansion"
 
 
 def main():
-    with report("4086_universe_expansion") as rep:
-        rep.heading("ops 4086 — vault universe expansion (admit the aliases)")
+    with report("4087_universe_expansion_async") as rep:
+        rep.heading("ops 4087 — vault universe expansion (async invoke + poll)")
         checks = []
 
         # baseline BEFORE, so growth is measured not assumed
@@ -79,14 +79,36 @@ def main():
         if not settled:
             rep.log("✗ stale artifact"); sys.exit(1)
 
-        rep.section("C. invoke — admit the first batch")
-        r = lam.invoke(FunctionName=FN, InvocationType="RequestResponse",
-                       Payload=b'{"source":"ops4086"}')
-        rep.log(f"  fnerr={r.get('FunctionError')}")
-        rep.log(f"  {r['Payload'].read().decode()[:240]}")
-        checks.append(("invoke clean", r.get("FunctionError") is None))
+        rep.section("C. invoke ASYNC and poll the artifact")
+        # ops 4086 died on ConnectionClosedError: a RequestResponse invoke
+        # holds a socket for the whole 900s run and the runner's connection
+        # does not survive it. read_timeout does not help — the connection
+        # is dropped, not timed out. The correct pattern for a long engine
+        # is Event invoke plus polling the artifact it writes, which also
+        # matches how the daily schedule actually triggers it.
+        before_gen = base.get("generated_at")
+        rep.log(f"  artifact generated_at before: {before_gen}")
+        r = lam.invoke(FunctionName=FN, InvocationType="Event",
+                       Payload=b'{"source":"ops4087"}')
+        rep.log(f"  async accepted: status={r['StatusCode']}")
+        checks.append(("async invoke accepted (202)", r["StatusCode"] == 202))
 
-        after = json.loads(s3.get_object(Bucket=BUCKET, Key="data/tradingview.json")["Body"].read())
+        after = None
+        for a in range(40):                     # up to ~13 min
+            time.sleep(20)
+            try:
+                cur = json.loads(s3.get_object(Bucket=BUCKET,
+                                               Key="data/tradingview.json")["Body"].read())
+                if cur.get("generated_at") != before_gen:
+                    after = cur
+                    rep.log(f"  ✓ artifact moved after {(a+1)*20}s "
+                            f"→ {cur.get('generated_at')}")
+                    break
+            except Exception as e:
+                rep.log(f"  poll {a+1}: {str(e)[:50]}")
+        if after is None:
+            rep.log("  ✗ artifact never moved — the run did not complete")
+            sys.exit(1)
         a_rows = after.get("symbols") or []
         a_live = [r for r in a_rows if str(r.get("status")).upper() == "LIVE"]
         rep.kv(after_rows=len(a_rows), after_live=len(a_live),
