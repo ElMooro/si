@@ -1,0 +1,64 @@
+# ops 4087 — vault universe expansion (async invoke + poll)
+
+**Status:** failure  
+**Duration:** 155.9s  
+**Finished:** 2026-07-29T18:44:35+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| admitted | admitted_live | after_live | after_rows | before_live | before_rows | growth |
+|---|---|---|---|---|---|---|
+|  |  |  |  | 727 | 841 |  |
+|  |  | 727 | 841 |  |  | 0 |
+| 380 | 377 |  |  |  |  |  |
+
+## Log
+## A. baseline
+
+- `18:41:59`   rows 841  LIVE 727
+- `18:42:00`   generated aliases available: 696
+## B. deploy v3.12.0
+
+- `18:42:11`   ✓ settled by marker (attempt 2)
+## C. invoke ASYNC and poll the artifact
+
+- `18:42:11`   artifact generated_at before: 2026-07-29T18:22:36.861456+00:00
+- `18:42:11`   async accepted: status=202
+- `18:44:35`   ✓ artifact moved after 140s → 2026-07-29T18:42:12.304356+00:00
+- `18:44:35`   rows 841 → 841   LIVE 727 → 727
+## D. do the admitted aliases carry REAL values?
+
+- `18:44:35`   admitted rows 380   LIVE with a value 377
+- `18:44:35`     FEDFUNDS             = 3.63           via fred:FEDFUNDS              asof 2026-06-01
+- `18:44:35`     BAMLH0A0HYM2SYTW     = 7.31           via fred:BAMLH0A0HYM2SYTW      asof 2026-07-28
+- `18:44:35`     RBUSBIS              = 107.84         via fred:RBUSBIS               asof 2026-06-01
+- `18:44:35`     SOFR                 = 3.65           via fred:SOFR                  asof 2026-07-28
+- `18:44:35`     DTWEXBGS             = 120.7105       via fred:DTWEXBGS              asof 2026-07-24
+- `18:44:35`     RRPONTSYD            = 2.576          via fred:RRPONTSYD             asof 2026-07-29
+- `18:44:35`     BAMLH0A0HYM2         = 2.84           via fred:BAMLH0A0HYM2          asof 2026-07-28
+- `18:44:35`     BAMLH0A3HYC          = 10.05          via fred:BAMLH0A3HYC           asof 2026-07-28
+- `18:44:35`     IORB                 = 3.65           via fred:IORB                  asof 2026-07-29
+- `18:44:35`     BAMLEMPBPUBSICRPIEY  = 5.55           via fred:BAMLEMPBPUBSICRPIEY   asof 2026-07-28
+- `18:44:35`     RRPONTSYAWARD        = 3.5            via fred:RRPONTSYAWARD         asof 2026-07-29
+- `18:44:35`     BAMLC0A4CBBB         = 1.0            via fred:BAMLC0A4CBBB          asof 2026-07-28
+- `18:44:35`   resolved_via: {'fred': 130, '': 240, 'fmp': 7}
+## E. remaining backlog
+
+- `18:44:35`   generated aliases not yet admitted: 316
+- `18:44:35`   → accretes at MAX_EXPAND=250/run on the daily schedule
+## VERDICT
+
+- `18:44:35`   ✓ v3.12.0 settled by marker
+- `18:44:35`   ✓ async invoke accepted (202)
+- `18:44:35`   ✗ vault universe GREW
+- `18:44:35`   ✓ admitted aliases resolve to real values
+- `18:44:35`   ✓ admitted rows route through fred
+- `18:44:35`   ✓ pre-existing LIVE population not regressed
+- `18:44:35`   ✓ growth is BOUNDED, not a runaway
+- `18:44:35` ✗ FAILED: ['vault universe GREW']
