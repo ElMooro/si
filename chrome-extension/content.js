@@ -17,7 +17,7 @@
   var TICKERS = new Set();
   var LISTS = new Map();   // list id -> {id,name,symbols[]}
   var SRCS = new Map();    // symbol -> {source, description} (v1.5.0)
-  var SRC_KEYS = ["source", "source_id", "source-logoid", "source_description",
+  var SRC_KEYS = ["source", "source_id", "source-logoid", "source_description", "source-description",
                   "provider", "provider_id", "exchange_source"];
   function keepSource(sym, src, desc) {
     sym = String(sym || "").trim();
@@ -269,8 +269,9 @@
    * Content-script fetches run under the EXTENSION's permissions and
    * ignore page CSP. Telemetry ships with every sync even at 0 sources,
    * so the server can see exactly what happened. */
-  var DIAG = { started: 0, done: 0, total: 0, ss_ok: 0, ss_err: 0,
-               html_ok: 0, html_err: 0, matched: 0, first_err: "" };
+  var DIAG = { started: 0, done: 0, total: 0, sc_ok: 0, sc_err: 0,
+               sc2_ok: 0, sc2_err: 0, ss_ok: 0, ss_err: 0,
+               matched: 0, first_err: "" };
   var HRUN = false;
   function contentHarvest(syms) {
     if (HRUN || !syms.length) return;
@@ -291,27 +292,48 @@
       var sym = syms[i++];
       var bare = String(sym).split(":").pop();
       var before = SRCS.size;
+      var scUrl = "https://scanner.tradingview.com/symbol?symbol=" +
+        encodeURIComponent(sym) +
+        "&fields=source,source_description,source-description," +
+        "source-logoid,description,type&no_404=true";
+      // r1: scanner via background (extension perms)
+      chrome.runtime.sendMessage({ action: "ssfetch", url: scUrl },
+        function (resp) {
+          if (resp && resp.ok) {
+            DIAG.sc_ok++;
+            try { resp.j.symbol = sym; } catch (e) {}
+            sniffSources(resp.j, 0);
+          } else {
+            DIAG.sc_err++;
+            if (!DIAG.first_err)
+              DIAG.first_err = "sc:" + String((resp && resp.e) ||
+                                              "no-response").slice(0, 90);
+          }
+        });
+      // r2: scanner direct from content (page-origin CORS may pass)
+      try {
+        fetch(scUrl)
+          .then(function (r) { return r.json(); })
+          .then(function (j) {
+            DIAG.sc2_ok++;
+            try { j.symbol = sym; } catch (e) {}
+            sniffSources(j, 0);
+          })
+          .catch(function (e) {
+            DIAG.sc2_err++;
+            if (!DIAG.first_err)
+              DIAG.first_err = "sc2:" + String(e).slice(0, 90);
+          });
+      } catch (e) { DIAG.sc2_err++; }
+      // r3: symbol_search via background (currently bot-walled; kept for
+      // the day the wall changes)
       chrome.runtime.sendMessage(
         { action: "ssfetch",
           url: "https://symbol-search.tradingview.com/symbol_search/v3/?text=" +
                encodeURIComponent(bare) + "&hl=0&lang=en&domain=production" },
         function (resp) {
           if (resp && resp.ok) { DIAG.ss_ok++; sniffSources(resp.j, 0); }
-          else {
-            DIAG.ss_err++;
-            if (!DIAG.first_err)
-              DIAG.first_err = "ss:" + String((resp && resp.e) ||
-                                              "no-response").slice(0, 90);
-          }
-        });
-      fetch("https://www.tradingview.com/symbols/" +
-            String(sym).replace(":", "-") + "/",
-            { credentials: "include" })
-        .then(function (r) { return r.text(); })
-        .then(function (t) { DIAG.html_ok++; fromHtml(sym, String(t)); })
-        .catch(function (e) {
-          DIAG.html_err++;
-          if (!DIAG.first_err) DIAG.first_err = "html:" + String(e).slice(0, 90);
+          else { DIAG.ss_err++; }
         });
       setTimeout(function () {
         if (SRCS.size > before) DIAG.matched++;
