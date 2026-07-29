@@ -1,4 +1,4 @@
-"""ops_4089 — STEP 2: map ECONOMICS codes onto real FRED series.
+"""ops_4090 — STEP 2: map ECONOMICS codes onto real FRED series.
 
 ops 4084 counted 3,317 ECONOMICS: tickers carrying Khalid's notes with no
 fetch route. TradingView's macro namespace is <COUNTRY><INDICATOR>
@@ -27,19 +27,22 @@ lam = boto3.client("lambda", region_name="us-east-1",
                    config=Config(read_timeout=120, retries={"max_attempts": 0}))
 BUCKET = "justhodl-dashboard-live"
 FN = "justhodl-symbol-resolver"
-MARK = "symbol-resolver v2.0 ops4089 step2-economics"
+MARK = "symbol-resolver v2.0 ops4090 step2-economics"
 
 
 def main():
-    with report("4089_step2_economics") as rep:
+    with report("4090_step2_economics") as rep:
         rep.heading("ops 4089 — STEP 2: ECONOMICS → FRED, confidence-gated")
         checks = []
 
         rep.section("A. descriptions available (v1.8.1 pipe)")
-        d = s3.get_object(Bucket=BUCKET, Key="data/tv-descriptions.json") \
-            if True else None
+        # ops 4089 died here: the get_object sat OUTSIDE the try, so a
+        # missing descriptions file (v1.8.1 not reloaded yet) raised before
+        # the handler could ever run. The absence of an optional input must
+        # never be fatal to the op that reports on it.
         try:
-            dd = json.loads(d["Body"].read())
+            dd = json.loads(s3.get_object(
+                Bucket=BUCKET, Key="data/tv-descriptions.json")["Body"].read())
             rep.log(f"  descriptions banked: {dd.get('n')}")
         except Exception as e:
             rep.log(f"  none yet ({str(e)[:60]}) — matcher falls back to "
@@ -78,7 +81,7 @@ def main():
         before = json.loads(s3.get_object(Bucket=BUCKET, Key="data/symbol-aliases.json")["Body"].read())
         bgen = before.get("generated_at")
         r = lam.invoke(FunctionName=FN, InvocationType="Event",
-                       Payload=b'{"source":"ops4089"}')
+                       Payload=b'{"source":"ops4090"}')
         rep.log(f"  async accepted: {r['StatusCode']}")
         checks.append(("async accepted", r["StatusCode"] == 202))
         sa = None
