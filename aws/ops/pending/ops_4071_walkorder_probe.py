@@ -85,7 +85,7 @@ def main():
                     order.append(s)
         walkable = [s for s in order if s not in have]
 
-        r.row(unique_symbols=len(order), already_sourced=len(have),
+        r.kv(unique_symbols=len(order), already_sourced=len(have),
               walk_queue=len(walkable))
 
         def pref(sym):
@@ -124,13 +124,13 @@ def main():
             r.log(f"  → under priority ordering the first {len(agency_idx)} "
                   f"symbols walked would ALL be agency-bearing "
                   f"({len(agency_idx) * 0.34 / 60:.0f} min to full payoff)")
-            r.row(agency_in_queue=len(agency_idx),
+            r.kv(agency_in_queue=len(agency_idx),
                   agency_first_500=first_500,
                   agency_median_idx=median)
         else:
             r.log("  ✗ zero agency-bearing symbols in the queue — "
                   "H1 is WRONG, do not build the priority walk")
-            r.row(agency_in_queue=0)
+            r.kv(agency_in_queue=0)
 
         # What attribution have we actually banked so far?
         r.section("Attribution banked so far, by family")
@@ -182,11 +182,11 @@ def main():
             r.log("    It exists only because ops_4070 wrote it by hand.")
             r.log("    harvest-monitor.html freezes the moment this session "
                   "ends. Must be promoted to a scheduled engine.")
-            r.row(source_map_producer="NONE", source_map_armed=bool(armed))
+            r.kv(source_map_producer="NONE", source_map_armed=bool(armed))
         else:
             r.log(f"  producer exists: {cand} — H2 wrong, only the schedule "
                   f"may be missing ({armed or 'NOT ARMED'})")
-            r.row(source_map_producer=",".join(cand),
+            r.kv(source_map_producer=",".join(cand),
                   source_map_armed=bool(armed))
 
         # ─────────────────── the served monitor page ───────────────────
@@ -202,7 +202,7 @@ def main():
             mk = re.findall(r"v\d+-ops\d+", body)
             r.log(f"  served bytes  : {len(body)}")
             r.log(f"  served marker : {mk[:2] or 'NONE'}")
-            r.row(page_bytes=len(body), page_marker=(mk[0] if mk else "none"))
+            r.kv(page_bytes=len(body), page_marker=(mk[0] if mk else "none"))
         except Exception as e:
             r.log(f"  ✗ edge fetch failed: {str(e)[:120]}")
 
