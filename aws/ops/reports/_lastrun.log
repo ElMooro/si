@@ -1,11 +1,9 @@
-executing-against: 47625c41d48071b7fd9898680374dd2da62ef26f
-ops 4100 — venue vocabulary, agency-pure NEW list
-[22:18:50]   NEW     2  US   e.g. SPCFD:SPX, SPCFD:SPF
-[22:18:50]   KNOWN: MARKET-VENUES:195
-[22:18:50] ✗   v2.2 settled in deployed zip
-[22:18:50] ✅   engine invoke clean
-[22:18:50] ✅   no added-venue leaks in NEW
-[22:18:50] ✗ FAILED: ['v2.2 settled in deployed zip']
+executing-against: a706865a2f99bb0144eab9509da0aedaeeb4a888
+ops 4103 — By-Watchlist verify
+[22:28:44] ✗   page at edge 0/3 markers
+[22:28:44] ✅   join covers >=95% of watchlist symbols
+[22:28:44] ✅   491 lists present
+[22:28:44] ✗ FAILED: ['page at edge 0/3 markers']
 
-→ Report written to aws/ops/reports/latest/4102_venue_retrigger.md
-❌ OPS-FAIL: aws/ops/pending/ops_4102_venue_retrigger.py
+→ Report written to aws/ops/reports/latest/4103_bywatchlist_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_4103_bywatchlist_verify.py
