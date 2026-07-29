@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.13.2 ops4097 exchanges-normalize"
+MARKER = "tradingview-vault v3.14.0 ops4098 full-universe"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -989,6 +989,8 @@ def resolve_direct(rv):
 # ONLY after the curated dict, so a hand-made decision always outranks a
 # generated one.
 MAX_EXPAND = int(os.environ.get("MAX_EXPAND", "250"))
+RESOLVE_BUDGET = int(os.environ.get("RESOLVE_BUDGET", "600"))
+FMP_CAP = int(os.environ.get("FMP_CAP", "900"))
 _GEN_ALIASES = None
 
 
@@ -1119,6 +1121,45 @@ def lambda_handler(event, context):
     # re-admitted for FREE (they are cadence-cached, no new fetch), and the
     # MAX_EXPAND budget is spent only on genuinely UNSEEN symbols. That is
     # what makes the backlog actually shrink run over run.
+    # ── v3.14.0 FULL UNIVERSE (Khalid: "make sure every single tradingview
+    # indicator is here"). Until now the vault's registry came only from
+    # brain-tagged notes plus aliases, so it carried ~1,358 of the 10,319
+    # symbols he actually imported: clicking a category showed a fraction
+    # of his watchlists. Every imported symbol is now admitted as a ROW so
+    # the page mirrors TradingView, with its exchange preserved.
+    #
+    # Resolution stays BOUNDED. Admitting 10,319 rows is cheap; trying to
+    # price them all in one 900s run is not. Rows we have not attempted
+    # yet carry status PENDING_RESOLUTION — an honest "not looked at yet",
+    # never a fake zero and never a claim that no source exists.
+    try:
+        _wl = json.loads(s3.get_object(Bucket=S3_BUCKET,
+                                       Key="data/tv-watchlists.json")["Body"].read())
+        _seen_wl = 0
+        for _l in (_wl.get("watchlists") or _wl.get("lists") or []):
+            for _x in (_l.get("symbols") or []):
+                _x = str(_x).strip()
+                if not _x:
+                    continue
+                _ex, _, _bare = _x.partition(":")
+                if not _bare:
+                    _ex, _bare = "", _x
+                _bare = _bare.upper()
+                if _bare in reg:
+                    if _ex:
+                        _e = reg[_bare].get("exchanges")
+                        if isinstance(_e, (set, list)):
+                            reg[_bare]["exchanges"] = sorted(set(_e) | {_ex.upper()})
+                    continue
+                reg[_bare] = {"symbol": _bare, "n_notes": 0,
+                              "exchanges": {_ex.upper()} if _ex else set(),
+                              "note_ids": [], "note_snippet": "",
+                              "from_watchlist": True}
+                _seen_wl += 1
+        print(f"[vault] full universe: +{_seen_wl} watchlist symbols admitted")
+    except Exception as _e:
+        print(f"[vault] watchlist admission skipped: {str(_e)[:80]}")
+
     _gen = gen_aliases()
     _seen = set(cache)
     _readmit = [x for x in _gen if x not in reg and x in _seen]
@@ -1152,9 +1193,17 @@ def lambda_handler(event, context):
         rows.append(row)
         if row["source"] == "fmp" and sym not in ALIASES:
             fmp_syms.append(sym)
+    # v3.14.0: the universe now includes thousands of listed names. Cap the
+    # quote batch so one run cannot turn into a multi-thousand-symbol call.
+    if len(fmp_syms) > FMP_CAP:
+        _known = [x for x in fmp_syms if x in cache]
+        _new = [x for x in fmp_syms if x not in cache]
+        fmp_syms = (_known + _new)[:FMP_CAP]
+        print(f"[vault] fmp batch capped to {len(fmp_syms)}")
 
     fmp_vals = fmp_quotes(fmp_syms)
-    n_live = n_cached = 0
+    n_live = n_cached = n_pending = 0
+    attempted = 0
     force = bool((event or {}).get("force"))
     for row in rows:
         sym = row["symbol"]
@@ -1179,6 +1228,18 @@ def lambda_handler(event, context):
                     n_live += 1
                 n_cached += 1
                 continue
+        # v3.14.0 BOUNDED RESOLUTION. A symbol we have never attempted and
+        # have no budget left for is marked PENDING_RESOLUTION — an honest
+        # "not looked at yet". It is deliberately NOT NO_FREE_SOURCE, which
+        # would be a claim we have not earned and would also trip the
+        # 27-day retry gate and freeze the symbol out for a month.
+        if not c and row.get("from_watchlist") and attempted >= RESOLVE_BUDGET:
+            row["status"] = "PENDING_RESOLUTION"
+            row["resolution_note"] = "queued — not yet attempted this run"
+            n_pending += 1
+            continue
+        if not c:
+            attempted += 1
         if row["source"] == "fmp" and sym in fmp_vals:
             row.update(fmp_vals[sym])
             row["status"] = "LIVE"
@@ -1223,6 +1284,8 @@ def lambda_handler(event, context):
         "n_cached_this_run": n_cached,
         "fred_calls_this_run": _FRED_CALLS["n"],
         "n_unresolved": by_status.get("NO_FREE_SOURCE", 0),
+        "n_pending": by_status.get("PENDING_RESOLUTION", 0),
+        "n_from_watchlist": sum(1 for r in rows if r.get("from_watchlist")),
         "coverage_pct": round(n_live / max(1, len(rows)) * 100, 1),
         "status_counts": dict(by_status),
         "by_category_counts": {k: len(v) for k, v in sorted(by_cat.items())},

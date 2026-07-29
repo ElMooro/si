@@ -97,6 +97,7 @@ document.getElementById('stats').innerHTML=`
  <div class="card"><div class="dim">SYMBOLS</div><div style="font-size:26px;font-weight:800">${D.n_symbols}</div><div class="dim" style="font-size:11px">${D.n_tv_notes} TV notes</div></div>
  <div class="card"><div class="dim">LIVE</div><div style="font-size:26px;font-weight:800;color:var(--green)">${D.n_live}</div><div class="dim" style="font-size:11px">${D.coverage_pct}% coverage</div></div>
  <div class="card"><div class="dim">UNRESOLVED</div><div style="font-size:26px;font-weight:800;color:var(--amber)">${D.n_unresolved}</div><div class="dim" style="font-size:11px">TV-only/futures/economics — honest</div></div>
+ <div class="card"><div class="dim">QUEUED</div><div style="font-size:26px;font-weight:800">${D.n_pending??0}</div><div class="dim" style="font-size:11px">${D.n_from_watchlist??0} from your watchlists · not yet attempted</div></div>
  <div class="card"><div class="dim">UPDATED</div><div style="font-size:15px" class="mono">${esc((D.generated_at||'').slice(0,16))}Z</div><div class="dim" style="font-size:11px">v${esc(D.version)} · brain-constitutional</div></div>`;
 const cats=['ALL',...Object.keys(D.by_category_counts||{})];
 document.getElementById('cats').innerHTML=cats.map(c=>`<span class="chip${c===cat?' on':''}" onclick="setCat('${c}')">${c} ${c==='ALL'?D.n_symbols:D.by_category_counts[c]}</span>`).join('');
