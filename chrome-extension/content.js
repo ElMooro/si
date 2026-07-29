@@ -64,14 +64,38 @@
       if (purged) { saveSrcs(); }
     });
   } catch (e) {}
+  /* v1.7.8 — PRIORITY WALK.  ops 4071 measured what the raw watchlist
+   * order actually cost: of the first 500 symbols walked, 278 were pure
+   * trading venues (NASDAQ/AMEX/NYSE — knowing NVDA lists on NASDAQ
+   * teaches this system nothing) and only 117 carried agency attribution.
+   * The 4,598 agency-bearing rows — ECONOMICS 3317, FRED 765, TVC 353,
+   * CBOE 162, the CFTC COT sets — sat at a MEDIAN index of 4,985: half
+   * the payoff was past the 5,000th symbol, many hours of walking away,
+   * which is why 407 symbols in produced ZERO agency rows and 100%
+   * venue junk.  Those rows are the entire point of the arc: they
+   * resolve to the BLS, the BEA, the ECB, the BOJ, and become real
+   * provenance in gov-sources and the vault.  Walk them FIRST.       */
+  var TIER1 = ["ECONOMICS", "FRED", "TVC", "COT", "COT3", "CBOE",
+               "QUANDL", "USCF", "USI", "EIA", "BLS", "BEA"];
+  var TIER2 = ["GLASSNODE", "INTOTHEBLOCK", "CRYPTOCAP", "FX_IDC",
+               "INDEX", "DJ", "SPCFD"];
+  function tierOf(s2) {
+    var p = s2.indexOf(":") > 0 ? s2.split(":")[0].toUpperCase() : "";
+    if (TIER1.indexOf(p) >= 0) return 0;
+    if (TIER2.indexOf(p) >= 0) return 1;
+    return 2;
+  }
   function allWatchlistSymbols() {
-    var seen = {}, out = [];
+    var seen = {}, b = [[], [], []];
     LISTS.forEach(function (l) {
       (l.symbols || []).forEach(function (s2) {
-        if (!seen[s2] && !SRCS.has(s2)) { seen[s2] = 1; out.push(s2); }
+        if (!seen[s2] && !SRCS.has(s2)) {
+          seen[s2] = 1;
+          b[tierOf(s2)].push(s2);
+        }
       });
     });
-    return out;
+    return b[0].concat(b[1], b[2]);
   }
   function sniffSources(o, depth) {
     if (!o || depth > 6) return;
@@ -271,7 +295,8 @@
    * so the server can see exactly what happened. */
   var DIAG = { started: 0, done: 0, total: 0, sc_ok: 0, sc_err: 0,
                sc2_ok: 0, sc2_err: 0, ss_ok: 0, ss_err: 0,
-               matched: 0, first_err: "" };
+               matched: 0, first_err: "",
+               tier1_done: 0, rate_per_min: 0, elapsed_s: 0 };
   var HRUN = false;
   function contentHarvest(syms) {
     if (HRUN || !syms.length) return;
@@ -325,9 +350,13 @@
               DIAG.first_err = "sc2:" + String(e).slice(0, 90);
           });
       } catch (e) { DIAG.sc2_err++; }
-      // r3: symbol_search via background (currently bot-walled; kept for
-      // the day the wall changes)
-      chrome.runtime.sendMessage(
+      /* r3: symbol_search — bot-walled.  ops 4069/4070 measured ss 0 ok /
+       * 407 err: a 100% failure on every single symbol walked.  v1.7.8
+       * demotes it from a per-symbol tax to a 1-in-200 CANARY, so the
+       * wall is still watched for the day it lifts while 99.5% of the
+       * dead requests disappear — that is what pays for the tighter step
+       * delay below WITHOUT raising the real request rate.            */
+      if (i % 200 === 0) chrome.runtime.sendMessage(
         { action: "ssfetch",
           url: "https://symbol-search.tradingview.com/symbol_search/v3/?text=" +
                encodeURIComponent(bare) + "&hl=0&lang=en&domain=production" },
@@ -339,12 +368,16 @@
         if (SRCS.size > before) DIAG.matched++;
       }, 900);
       DIAG.done = i;
+      if (tierOf(sym) === 0) DIAG.tier1_done++;
+      DIAG.elapsed_s = Math.round((Date.now() - DIAG.started) / 1000);
+      DIAG.rate_per_min = DIAG.elapsed_s
+        ? Math.round(i / (DIAG.elapsed_s / 60) * 10) / 10 : 0;
       if (i % 5 === 0)
         msg("Harvesting\u2026 " + i + "/" + syms.length + " \u00b7 " +
             SRCS.size + " sources \u00b7 ss " + DIAG.ss_ok + "/" +
             DIAG.ss_err + " html " + DIAG.html_ok + "/" + DIAG.html_err,
             "#F0B429");
-      setTimeout(step, 340);
+      setTimeout(step, 240);   // v1.7.8: 2 reqs/sym now, not 3
     }
     step();
   }
