@@ -104,17 +104,18 @@ render()}
 function setCat(c){cat=c;document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x.textContent.startsWith(c+' ')||c==='ALL'&&x.textContent.startsWith('ALL')));render()}
 function render(){const q=(document.getElementById('q').value||'').toUpperCase();
 const rows=(D.symbols||[]).filter(r=>(cat==='ALL'||r.category===cat)&&(dom==='ALL'||(DOMIDX[r.symbol]||{}).domain===dom)&&(!q||r.symbol.includes(q)||(r.note_snippet||'').toUpperCase().includes(q)));
-document.querySelector('#tbl tbody').innerHTML=rows.slice(0,600).map(r=>{
+// hardened: a single bad row must never blank the whole table again
+document.querySelector('#tbl tbody').innerHTML=rows.slice(0,600).map(r=>{try{
  const v=r.value==null?'—':(typeof r.value==='number'?r.value.toLocaleString(undefined,{maximumFractionDigits:3}):esc(r.value));
  const ch=r.chg_pct==null?'—':`<span class="${r.chg_pct>=0?'pos':'neg'}">${r.chg_pct>0?'+':''}${Number(r.chg_pct).toFixed(2)}%</span>`;
  const dm=DOMIDX[r.symbol]||{};
  const dcell=dm.domain?`<span class="pill p-${dm.domain}">${dm.domain}</span><div class="dim" style="font-size:9.5px;margin-top:2px"><span class="c-${esc(dm.confidence)}">${esc(dm.confidence||'')}</span> · ${esc(dm.tier||'')} · ${esc(dm.role||'')}</div>`:'<span class="dim">—</span>';
- return `<tr><td class="mono"><b>${esc(r.symbol)}</b><div class="dim" style="font-size:10px">${esc((r.exchanges||[]).join(','))}</div></td>
+ return `<tr><td class="mono"><b>${esc(r.symbol)}</b><div class="dim" style="font-size:10px">${esc(Array.isArray(r.exchanges)?r.exchanges.join(','):'')}</div></td>
  <td>${dcell}</td><td>${esc(r.category)}</td><td class="mono">${v}</td><td class="mono">${ch}</td>
  <td><span class="badge b-${esc(r.status)}">${esc(r.status)}</span><div class="dim" style="font-size:10px">${esc(r.source)}</div></td>
  <td class="mono">${r.n_notes}<div class="dim" style="font-size:9.5px">${esc((r.note_ids||[]).slice(0,2).join(' '))}</div></td>
  <td class="ev">${esc((dm.evidence||'').slice(0,190))}${dm.margin!=null?`<div class="dim" style="font-size:9.5px">margin ${dm.margin}</div>`:''}</td>
- <td class="note">${esc((r.note_snippet||'').slice(0,220))}</td></tr>`}).join('')}
+ <td class="note">${esc((r.note_snippet||'').slice(0,220))}</td></tr>`}catch(e){console.warn('row render failed',r&&r.symbol,e);return ''}}).join('')}
 document.addEventListener('input',e=>{if(e.target.id==='q')render()});
 load();loadB();
 </script></body></html>

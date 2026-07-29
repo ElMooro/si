@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.13.1 ops4094 cftc-alias-path"
+MARKER = "tradingview-vault v3.13.2 ops4097 exchanges-normalize"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1131,6 +1131,16 @@ def lambda_handler(event, context):
         reg[_s] = {"symbol": _s, "n_notes": 0, "exchanges": set(),
                    "note_ids": [], "note_snippet": ""}
 
+    # v3.13.2 — THE EMPTY-TABLE BUG. build_registry() sorts exchanges into a
+    # list, but every row admitted AFTER it (the curated ALIASES union and the
+    # generated-alias expansion) kept a raw Python set(). json.dumps(default=str)
+    # silently renders set() as the STRING "set()", and tradingview.html does
+    # (r.exchanges||[]).join(',') on it -> TypeError -> the .map() throws ->
+    # the ENTIRE table body renders empty. One malformed row blanked all 1,358.
+    # Normalising here covers every admission path, present and future.
+    for _r in reg.values():
+        _e = _r.get("exchanges")
+        _r["exchanges"] = sorted(_e) if isinstance(_e, (set, list, tuple)) else []
     rows, fmp_syms = [], []
     for sym, r in reg.items():
         ex = set(r["exchanges"])

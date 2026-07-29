@@ -97,6 +97,7 @@
     });
     return b[0].concat(b[1], b[2]);
   }
+  var SENT_DESCS = {};   // v1.8.2: descriptions already uploaded
   var DESCS = {};   // v1.8.1: symbol -> description, captured independently
                     // of attribution (macro symbols have one but no source)
   function sniffSources(o, depth) {
@@ -556,7 +557,18 @@
     });
     var sources = [];
     SRCS.forEach(function (v, k) { sources.push({ symbol: k, source: v.source, description: v.description }); });
-    chrome.runtime.sendMessage({ action: "upload", notes: notes, watchlists: lists, sources: sources, descs: DESCS, harvest_diag: DIAG },
+    /* v1.8.2 — BOUNDED DESCS. v1.8.1 shipped the whole DESCS map every sync.
+     * With ~10k macro symbols that is a large POST on top of the notes and
+     * watchlists, and Khalid's upload hung at "Uploading 1984 notes...".
+     * Descriptions accrete server-side, so there is no reason to resend the
+     * whole map: send at most DESC_BATCH new ones per sync and drop those
+     * already sent. Bounded payload, same end state, no hang. */
+    var _dsend = {}, _dn = 0;
+    for (var _k in DESCS) {
+      if (_dn >= 1500) break;
+      if (!SENT_DESCS[_k]) { _dsend[_k] = DESCS[_k]; SENT_DESCS[_k] = 1; _dn++; }
+    }
+    chrome.runtime.sendMessage({ action: "upload", notes: notes, watchlists: lists, sources: sources, descs: _dsend, harvest_diag: DIAG },
       function (res) {
         if (res && (res.ok || res.brain_upserted > 0 || res.watchlists_saved > 0)) {
           msg("\u2705 " + (res.brain_upserted || 0) + " notes \u2192 Brain \u00b7 " +
