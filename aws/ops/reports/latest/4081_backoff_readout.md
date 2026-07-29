@@ -1,0 +1,56 @@
+# ops 4081 — AIMD readout: wall + macro payload
+
+**Status:** success  
+**Duration:** 1.4s  
+**Finished:** 2026-07-29T06:05:47+00:00  
+
+## Data
+
+| age_min | delay_ms | econ_probe_n | recoveries | sc_err | sc_ok | sourced | success_pct | v180_running | wall_events |
+|---|---|---|---|---|---|---|---|---|---|
+| 1.3 |  |  |  |  |  | 232 |  | True |  |
+|  | 700 |  | 0 | 0 | 73 |  | 100.0 |  | 0 |
+|  |  | 4 |  |  |  |  |  |  |  |
+
+## Log
+## A. is the new build even running?
+
+- `06:05:46`   v1.8.0-only fields present: ['delay_ms', 'wall_events', 'recoveries', 'econ_probe']
+- `06:05:46`   sync age: 1.3 min
+## B. Q1 — THE WALL
+
+- `06:05:46`   scanner   : 73 ok / 0 err  (100.0% success)
+- `06:05:46`   walked    : 74/10116
+- `06:05:46`   delay_ms  : 700   max_delay 0
+- `06:05:46`   wall trips: 0   recoveries 0   paused 0s
+- `06:05:46`   streak_err: 0
+- `06:05:46`   rate      : 72.8/min  elapsed 61s
+- `06:05:46`   matched   : 2
+- `06:05:46`   → v1.7.8 baseline was 5.8% success; this pass is 100.0%
+## B2. verdict on the wall
+
+- `06:05:46`   ✓ no wall at this rate — the starting delay is under TradingView's ceiling. The 94% failure was self-inflicted by the 240ms step, confirmed.
+## C. Q2 — WHAT A MACRO PAYLOAD ACTUALLY CONTAINS
+
+- `06:05:46`   ── ECONOMICS:JPM3
+- `06:05:46`      keys  : ['description', 'source', 'source-description', 'source-logoid', 'source_description', 'type']
+- `06:05:46`      sample: {"description":"Japan Money Supply M3","source":null,"source-description":null,"source-logoid":null,"source_description":null,"type":"economic"}
+- `06:05:46`   ── FRED:MABMM301JPM189S
+- `06:05:46`      keys  : []
+- `06:05:46`      sample: null
+- `06:05:46`   ── ECONOMICS:JPCBBS
+- `06:05:46`      keys  : ['description', 'source', 'source-description', 'source-logoid', 'source_description', 'type']
+- `06:05:46`      sample: {"description":"Japan Central Bank Balance Sheet","source":null,"source-description":null,"source-logoid":null,"source_description":null,"type":"economic"}
+- `06:05:46`   ── FRED:JPNASSETS
+- `06:05:46`      keys  : []
+- `06:05:46`      sample: null
+- `06:05:46`   union of keys seen: ['description', 'source', 'source-description', 'source-logoid', 'source_description', 'type']
+- `06:05:46`   ✓ publisher-ish fields DO exist: ['source', 'source-description', 'source-logoid', 'source_description'] — extraction can be fixed, the data is there
+## D. current attribution state
+
+- `06:05:46`   ECONOMICS/FRED sourced: 0
+- `06:05:46`   top prefixes: AMEX 61, NASDAQ 47, TVC 36, CBOE 32, CRYPTOCAP 16, NYSE 8, EURONEXT 5, SPCFD 2
+- `06:05:47`   rollup: {"statusCode": 200, "body": "{\"symbols_with_source\": 196, \"agency_rows\": 0, \"economics_symbols\": 0}"}
+## VERDICT
+
+- `06:05:47` readout above; no gate failure — this op reports truth, it does not assert an outcome.

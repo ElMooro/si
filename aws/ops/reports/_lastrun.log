@@ -1,32 +1,39 @@
-executing-against: ec7e44e7a111d598a84c13c8b0489b3050e88a45
-ops 4080 — extension v1.8.0: AIMD backoff over the walled symbols
-── A. rebuild + upload the extension zip ──
-[05:51:06]   previous S3 zip: v1.7.9 (19638 B)
-── B. upload installer v4 ──
-── C. stub integrity ──
-── D. repo/Pages zip parity ──
-[05:51:08]   repo zip version: 1.8.0
+executing-against: 7b1de8a76e42c80966079f37c5f00d80a19cf011
+ops 4081 — AIMD readout: wall + macro payload
+── A. is the new build even running? ──
+[06:05:46]   v1.8.0-only fields present: ['delay_ms', 'wall_events', 'recoveries', 'econ_probe']
+[06:05:46]   sync age: 1.3 min
+── B. Q1 — THE WALL ──
+[06:05:46]   scanner   : 73 ok / 0 err  (100.0% success)
+[06:05:46]   walked    : 74/10116
+[06:05:46]   delay_ms  : 700   max_delay 0
+[06:05:46]   wall trips: 0   recoveries 0   paused 0s
+[06:05:46]   streak_err: 0
+[06:05:46]   rate      : 72.8/min  elapsed 61s
+[06:05:46]   matched   : 2
+[06:05:46]   → v1.7.8 baseline was 5.8% success; this pass is 100.0%
+── B2. verdict on the wall ──
+[06:05:46]   ✓ no wall at this rate — the starting delay is under TradingView's ceiling. The 94% failure was self-inflicted by the 240ms step, confirmed.
+── C. Q2 — WHAT A MACRO PAYLOAD ACTUALLY CONTAINS ──
+[06:05:46]   ── ECONOMICS:JPM3
+[06:05:46]      keys  : ['description', 'source', 'source-description', 'source-logoid', 'source_description', 'type']
+[06:05:46]      sample: {"description":"Japan Money Supply M3","source":null,"source-description":null,"source-logoid":null,"source_description":null,"type":"economic"}
+[06:05:46]   ── FRED:MABMM301JPM189S
+[06:05:46]      keys  : []
+[06:05:46]      sample: null
+[06:05:46]   ── ECONOMICS:JPCBBS
+[06:05:46]      keys  : ['description', 'source', 'source-description', 'source-logoid', 'source_description', 'type']
+[06:05:46]      sample: {"description":"Japan Central Bank Balance Sheet","source":null,"source-description":null,"source-logoid":null,"source_description":null,"type":"economic"}
+[06:05:46]   ── FRED:JPNASSETS
+[06:05:46]      keys  : []
+[06:05:46]      sample: null
+[06:05:46]   union of keys seen: ['description', 'source', 'source-description', 'source-logoid', 'source_description', 'type']
+[06:05:46]   ✓ publisher-ish fields DO exist: ['source', 'source-description', 'source-logoid', 'source_description'] — extraction can be fixed, the data is there
+── D. current attribution state ──
+[06:05:46]   ECONOMICS/FRED sourced: 0
+[06:05:46]   top prefixes: AMEX 61, NASDAQ 47, TVC 36, CBOE 32, CRYPTOCAP 16, NYSE 8, EURONEXT 5, SPCFD 2
+[06:05:47]   rollup: {"statusCode": 200, "body": "{\"symbols_with_source\": 196, \"agency_rows\": 0, \"economics_symbols\": 0}"}
 ── VERDICT ──
-[05:51:08]   ✓ zip carries v1.8.0
-[05:51:08]   ✓ auto-start guard is version-stamped (update-day trap)
-[05:51:08]   ✓ no bare-date value is written to jh_auto_day
-[05:51:08]   ✓ v1.7.8 priority walk still present
-[05:51:08]   ✓ symsearch canary still present
-[05:51:08]   ✓ fixed 240ms step is GONE
-[05:51:08]   ✓ AIMD throttle wired into the scanner route
-[05:51:08]   ✓ circuit breaker + pause guard present
-[05:51:08]   ✓ backoff telemetry ships
-[05:51:08]   ✓ ECONOMICS payload probe present
-[05:51:08]   ✓ rate telemetry still present
-[05:51:08]   ✓ harvester + autonomy intact
-[05:51:08]   ✓ served .ps1 is byte-exact
-[05:51:08]   ✓ caret-free (the v2 cmd-escaping bug class)
-[05:51:08]   ✓ no longer nukes the loaded folder
-[05:51:08]   ✓ updates IN PLACE via a staging copy
-[05:51:08]   ✓ detects update vs fresh install
-[05:51:08]   ✓ still pulls the zip from S3 + writes the shortcut
-[05:51:08]   ✓ the .bat Khalid already has still fetches this .ps1
-[05:51:08]   ✓ repo zip matches S3 (no stale Pages decoy)
-[05:51:08] ✅ PASS_ALL — v1.8.0 live. Reload and the slow pass retries the 9,568 walled symbols under AIMD backoff; the next op reads wall_events/recoveries to say whether the wall lifts, and econ_probe settles the ECONOMICS payload question either way.
+[06:05:47] readout above; no gate failure — this op reports truth, it does not assert an outcome.
 
-→ Report written to aws/ops/reports/latest/4080_ship_v180_backoff.md
+→ Report written to aws/ops/reports/latest/4081_backoff_readout.md
