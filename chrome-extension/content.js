@@ -423,10 +423,12 @@
     AUTO_TRIES++;
     try {
       chrome.storage.local.get(["jh_auto_day"], function (r) {
-        var today = autoKey();
-        if ((r && r.jh_auto_day) === today) return;
+        // named `stamp`, not `today`: it is date|version, and calling it
+        // `today` invited exactly the misreading that failed ops 4076.
+        var stamp = autoKey();
+        if ((r && r.jh_auto_day) === stamp) return;
         if (startHarvest() > 0) {
-          chrome.storage.local.set({ jh_auto_day: today });
+          chrome.storage.local.set({ jh_auto_day: stamp });
         } else if (AUTO_TRIES < 30) {
           setTimeout(autoStart, 20000);
         }

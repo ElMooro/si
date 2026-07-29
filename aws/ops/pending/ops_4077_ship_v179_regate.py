@@ -1,4 +1,4 @@
-"""ops_4076 — ship extension v1.7.9 + installer v4.
+"""ops_4077 — ship extension v1.7.9 + installer v4.
 
 TWO REAL BUGS, both of which would have silently eaten the v1.7.8
 priority walk on the day it shipped:
@@ -45,7 +45,7 @@ S3BASE = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/"
 
 
 def main():
-    with report("4076_ship_v179_installer_v4") as rep:
+    with report("4077_ship_v179_regate") as rep:
         rep.heading("ops 4076 — extension v1.7.9 + installer v4")
         checks = []
 
@@ -87,9 +87,16 @@ def main():
                        "function autoKey" in cjs
                        and "getManifest().version" in cjs
                        and "jh_auto_day: autoKey()" in cjs))
-        checks.append(("no bare-date stamp survives anywhere",
-                       "jh_auto_day: today }" not in cjs
-                       and cjs.count("new Date().toISOString().slice(0, 10) });") == 0))
+        # CORRECTED: ops 4076 matched the VARIABLE NAME `today` and called
+        # a correct implementation a bug — `var today = autoKey()` already
+        # stored date|version. The variable is now named `stamp` and the
+        # assertion tests the real condition: no bare-date value is ever
+        # written to jh_auto_day.
+        checks.append(("no bare-date value is written to jh_auto_day",
+                       "jh_auto_day: stamp" in cjs
+                       and "jh_auto_day: autoKey()" in cjs
+                       and cjs.count("new Date().toISOString().slice(0, 10) });") == 0
+                       and "var today =" not in cjs))
         # v1.7.8 work must still be intact — a later ship must not regress it.
         checks.append(("v1.7.8 priority walk still present",
                        "PRIORITY WALK" in cjs and "b[tierOf(s2)].push" in cjs))
