@@ -1,11 +1,11 @@
-executing-against: fe08bf0550512bd5548eb84e6974deda58e5d46f
-ops 4100 — venue vocabulary, agency-pure NEW list
-[22:08:00]   NEW     2  US   e.g. SPCFD:SPX, SPCFD:SPF
-[22:08:00]   KNOWN: MARKET-VENUES:195
-[22:08:00] ✗   v2.2 settled in deployed zip
-[22:08:00] ✅   engine invoke clean
-[22:08:00] ✅   no added-venue leaks in NEW
-[22:08:00] ✗ FAILED: ['v2.2 settled in deployed zip']
+executing-against: ccffbb07c47d69481e26fb09d36eac1d06f0f8d4
+ops 4101 — ship v1.8.3
+[22:14:56] ✅   local manifest 1.8.3
+[22:14:56] ✅   served zip byte-identical
+[22:14:56] ✅   served manifest 1.8.3
+[22:14:56] ✅   streak-halving in served zip
+[22:14:56] ✅   self-test in served zip
+[22:14:56] ✅   version.json serves 1.8.3
+[22:14:56] ✅ PASS_ALL — v1.8.3 live (20480B): streak-halving + start self-test, badge verdict in ~8s, server-visible within a minute
 
-→ Report written to aws/ops/reports/latest/4100_venue_vocab.md
-❌ OPS-FAIL: aws/ops/pending/ops_4100_venue_vocab.py
+→ Report written to aws/ops/reports/latest/4101_ship_v183.md
