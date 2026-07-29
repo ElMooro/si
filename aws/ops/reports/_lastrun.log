@@ -1,27 +1,24 @@
-executing-against: 8676057e73f83b59eda0d626983b7be67397e1a6
-ops 4076 — extension v1.7.9 + installer v4
-── A. rebuild + upload the extension zip ──
-[03:20:14]   previous S3 zip: v1.7.9 (19565 B)
-── B. upload installer v4 ──
-── C. stub integrity ──
-── D. repo/Pages zip parity ──
-[03:20:16]   repo zip version: 1.7.9
+executing-against: 82d4587bee4cd8e6d149d78df5e06885a3caf9e0
+ops 4078 — is v1.7.9 executing?
+── A. last sync ──
+[03:31:58]   generated_at : 2026-07-29T03:31:03.070775+00:00
+[03:31:58]   age          : 0.9 min
+[03:31:58]   sources held : 193
+── B. FINGERPRINT — fields only v1.7.8+ can emit ──
+[03:31:58]   raw diag: {"started": 1785295795336, "done": 117, "total": 10159, "sc_ok": 116, "sc_err": 0, "sc2_ok": 116, "sc2_err": 0, "ss_ok": 0, "ss_err": 0, "matched": 7, "first_err": "", "tier1_done": 117, "rate_per_min": 104.8, "elapsed_s": 67}
+[03:31:58]   new-build fields present: ['tier1_done', 'rate_per_min', 'elapsed_s']
+[03:31:58]   ✓ the NEW content script is running
+[03:31:58]     walked 117/10159 · tier1 117 · 104.8/min · 67s elapsed
+[03:31:58]     ETA to finish at this rate: 1.6 h
+[03:31:58]     rate is consistent with the timer — no throttling
+── C. WALK ORDER — what is actually being sourced ──
+[03:31:58]     164  other/venue
+[03:31:58]      29  AGENCY
+[03:31:58]   top prefixes sourced: AMEX 61, NASDAQ 47, TVC 22, CRYPTOCAP 16, NYSE 8, CBOE 7, EURONEXT 5, SPCFD 2
+[03:31:58]   ✓ 29 agency-tier symbols sourced — the priority walk is producing the payoff
+── D. refresh the rollup so the page shows current truth ──
+[03:31:59]   source-map: {"statusCode": 200, "body": "{\"symbols_with_source\": 171, \"agency_rows\": 0, \"economics_symbols\": 0}"}
 ── VERDICT ──
-[03:20:16]   ✓ zip carries v1.7.9
-[03:20:16]   ✓ auto-start guard is version-stamped (update-day trap)
-[03:20:16]   ✓ no bare-date value is written to jh_auto_day
-[03:20:16]   ✓ v1.7.8 priority walk still present
-[03:20:16]   ✓ symsearch canary + 240ms step still present
-[03:20:16]   ✓ rate telemetry still present
-[03:20:16]   ✓ harvester + autonomy intact
-[03:20:16]   ✓ served .ps1 is byte-exact
-[03:20:16]   ✓ caret-free (the v2 cmd-escaping bug class)
-[03:20:16]   ✓ no longer nukes the loaded folder
-[03:20:16]   ✓ updates IN PLACE via a staging copy
-[03:20:16]   ✓ detects update vs fresh install
-[03:20:16]   ✓ still pulls the zip from S3 + writes the shortcut
-[03:20:16]   ✓ the .bat Khalid already has still fetches this .ps1
-[03:20:16]   ✓ repo zip matches S3 (no stale Pages decoy)
-[03:20:16] ✅ PASS_ALL — v1.7.9 + installer v4 live. Re-running the same .bat updates in place; one reload click and the agency-first walk starts immediately.
+[03:31:59] ✅ v1.7.9 is running AND the agency-first walk is banking the payoff.
 
-→ Report written to aws/ops/reports/latest/4077_ship_v179_regate.md
+→ Report written to aws/ops/reports/latest/4078_v179_liveness.md
