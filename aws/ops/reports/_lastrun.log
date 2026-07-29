@@ -1,9 +1,12 @@
-executing-against: 962e80b8bb78ab3694ed762a01fca5f4a4dc5e7b
-ops 4103 — By-Watchlist verify
-[22:29:49] ✅   edge serving new page after ~0s (16784B, 3/3 markers)
-[22:29:50] ✅   page at edge 3/3 markers
-[22:29:50] ✅   join covers >=95% of watchlist symbols
-[22:29:50] ✅   491 lists present
-[22:29:50] ✅ PASS_ALL — 491 lists x 10319 symbols mirrored; 10319 joined (100.0%), 1544 LIVE
+executing-against: 7ae0d1e3f95af3ecc9375b211724360a5578f47b
+ops 4101 — ship v1.8.3
+[22:48:58] ✅   local manifest 1.8.3
+[22:48:58] ✅   served zip byte-identical
+[22:48:58] ✅   served manifest 1.8.3
+[22:48:58] ✅   streak-halving in served zip
+[22:48:58] ✅   self-test in served zip
+[22:48:58] ✅   icons/ present in served zip
+[22:48:58] ✅   version.json serves 1.8.3
+[22:48:58] ✅ PASS_ALL — v1.8.3 live (22300B): streak-halving + start self-test, badge verdict in ~8s, server-visible within a minute
 
-→ Report written to aws/ops/reports/latest/4104_edge_retry.md
+→ Report written to aws/ops/reports/latest/4105_ship_v183_icons.md
