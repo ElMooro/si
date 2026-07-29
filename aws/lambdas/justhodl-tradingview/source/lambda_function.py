@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.13.0 ops4093 cftc-adapter"
+MARKER = "tradingview-vault v3.13.1 ops4094 cftc-alias-path"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -427,6 +427,18 @@ def cadence_for(sym, cat):
 
 def resolve_alias(row, al):
     kind, _, tgt = al.partition(":")
+    # v3.13.1 — ops 4093 added the cftc adapter to resolve_direct only, which
+    # is the REFETCH path used once a symbol already has a proven source. The
+    # FIRST resolution of an alias comes through here, so every one of the 65
+    # verified COT aliases fell straight through to "no source" and the gate
+    # correctly reported zero cftc values despite perfect resolution upstream.
+    # Two entry points, both must know the kind.
+    if kind == "cftc":
+        v = cftc_latest(tgt)
+        if v:
+            row["source"] = f"cftc:{tgt.split(':')[1]}"
+            row["resolved_via"] = f"cftc:{tgt}"
+        return v, None
     if kind == "fred":
         v = fred_latest(tgt)
         if v:

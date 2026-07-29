@@ -1,4 +1,4 @@
-"""ops_4093 — STEP 3: route the 340 COT/COT3 tickers to real CFTC data.
+"""ops_4094 — STEP 3: route the 340 COT/COT3 tickers to real CFTC data.
 
 ops 4091 killed my assumption that this was a wiring job: the fleet's
 cftc-all-cache holds 29 short-name contracts and shares ZERO keys with
@@ -68,21 +68,21 @@ def poll(key, before_gen, rep, tries=42):
 
 
 def main():
-    with report("4093_step3_cot") as rep:
-        rep.heading("ops 4093 — STEP 3: COT/COT3 → CFTC TFF, verified")
+    with report("4094_step3_cot_fetch") as rep:
+        rep.heading("ops 4094 — STEP 3 fetch half: cftc on the ALIAS path")
         checks = []
 
         rep.section("A. deploy resolver v3.0 + vault v3.13.0")
         ok1 = deploy(rep, "justhodl-symbol-resolver", "symbol-resolver v3.0 ops4093 step3-cot")
-        ok2 = deploy(rep, "justhodl-tradingview", "tradingview-vault v3.13.0 ops4093 cftc-adapter")
-        checks += [("resolver v3.0 settled", ok1), ("vault v3.13.0 settled", ok2)]
+        ok2 = deploy(rep, "justhodl-tradingview", "tradingview-vault v3.13.1 ops4094 cftc-alias-path")
+        checks += [("resolver v3.0 settled", ok1), ("vault v3.13.1 settled", ok2)]
         if not (ok1 and ok2):
             rep.log("✗ stale artifact"); sys.exit(1)
 
         rep.section("B. resolve COT tickers (async + poll)")
         before = json.loads(s3.get_object(Bucket=BUCKET, Key="data/symbol-aliases.json")["Body"].read())
         r = lam.invoke(FunctionName="justhodl-symbol-resolver",
-                       InvocationType="Event", Payload=b'{"source":"ops4093"}')
+                       InvocationType="Event", Payload=b'{"source":"ops4094"}')
         checks.append(("resolver async accepted", r["StatusCode"] == 202))
         sa = poll("data/symbol-aliases.json", before.get("generated_at"), rep)
         if sa is None:
@@ -110,7 +110,7 @@ def main():
         bv = json.loads(s3.get_object(Bucket=BUCKET, Key="data/tradingview.json")["Body"].read())
         b_live = len([x for x in (bv.get("symbols") or []) if str(x.get("status")).upper() == "LIVE"])
         r2 = lam.invoke(FunctionName="justhodl-tradingview",
-                        InvocationType="Event", Payload=b'{"source":"ops4093"}')
+                        InvocationType="Event", Payload=b'{"source":"ops4094"}')
         checks.append(("vault async accepted", r2["StatusCode"] == 202))
         av = poll("data/tradingview.json", bv.get("generated_at"), rep)
         if av is None:
