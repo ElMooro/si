@@ -1,0 +1,85 @@
+# ops 4092 — PROBE: CFTC API for the 340 COT tickers
+
+**Status:** success  
+**Duration:** 26.7s  
+**Finished:** 2026-07-29T20:31:24+00:00  
+
+## Data
+
+| cot_tickers | dataset | dataset_id | market_codes | sampled | served |
+|---|---|---|---|---|---|
+| 340 |  |  | 26 |  |  |
+|  | legacy_futures_only | 6dca-aqww |  | 25 | 24 |
+
+## Log
+## A. the codes we must serve
+
+- `20:30:58`   tickers 340 · distinct market codes 26
+- `20:30:58`   codes sample: ['020601', '020604', '045601', '067651', '06765T', '088691', '088695', '092741', '097741', '098662', '099741', '112741', '11700', '1170E1']
+- `20:30:58`   suffix patterns:
+- `20:30:58`       14  F_NRP_S
+- `20:30:58`       13  F_NRP_L
+- `20:30:58`       11  F_AMP_SPREAD
+- `20:30:58`       10  F_DP_S
+- `20:30:58`        9  F_LMP_S
+- `20:30:58`        9  F_AMP_S
+- `20:30:58`        8  F_DP_SPREAD
+- `20:30:58`        8  F_DP_L
+- `20:30:58`        8  F_LMP_L
+- `20:30:58`        8  F_AMP_L
+- `20:30:58`        8  F_CP_L
+- `20:30:58`        7  F_TRP_L
+- `20:30:58`        7  F_ORP_L
+- `20:30:58`        6  F_LMP_SPREAD
+- `20:30:58`        6  F_ORP_SPREAD
+- `20:30:58`        6  FO_TT
+- `20:30:58`        6  F_TT
+- `20:30:58`        6  F_CP_S
+## B. H1 — reachability + H2 — which dataset has 020601?
+
+- `20:30:58`   probing market code: 020601
+- `20:30:58`   legacy_futures_only    6dca-aqww  rows=1  ✓ HAS IT
+- `20:30:59`   tff_futures_only       gpe5-46if  rows=1  ✓ HAS IT
+- `20:30:59`   disaggregated_fut      72hh-3qpy  rows=0  —
+- `20:31:00`   tff_combined           yw9f-hn96  rows=1  ✓ HAS IT
+- `20:31:00`   legacy_combined        jun7-fc8e  rows=1  ✓ HAS IT
+## C. H3 — do real columns match the suffixes?
+
+- `20:31:00`   ── legacy_futures_only (6dca-aqww) · 133 columns
+- `20:31:00`      market: UST BOND - CHICAGO BOARD OF TRADE
+- `20:31:00`      date  : 2022-09-13T00:00:00.000
+- `20:31:00`      spread    : ['noncomm_positions_spread', 'noncomm_positions_spread_1', 'noncomm_postions_spread_all', 'pct_of_oi_noncomm_spread', 'pct_of_oi_noncomm_spread_1']
+- `20:31:00`      all columns: ['cftc_commodity_code', 'cftc_contract_market_code', 'cftc_market_code', 'cftc_region_code', 'change_in_comm_long_all', 'change_in_comm_short_all', 'change_in_noncomm_long_all', 'change_in_noncomm_short_all', 'change_in_noncomm_spead_all', 'change_in_nonrept_long_all', 'change_in_nonrept_short_all', 'change_in_open_interest_all', 'change_in_tot_rept_long_all', 'change_in_tot_rept_short', 'comm_positions_long_all', 'comm_positions_long_old', 'comm_positions_long_other', 'comm_positions_short_all', 'comm_positions_short_old', 'comm_positions_short_other', 'commodity', 'commodity_group_name', 'commodity_name', 'commodity_subgroup_name', 'conc_gross_le_4_tdr_long', 'conc_gross_le_4_tdr_long_1', 'conc_gross_le_4_tdr_long_2', 'conc_gross_le_4_tdr_short', 'conc_gross_le_4_tdr_short_1', 'conc_gross_le_4_tdr_short_2', 'conc_gross_le_8_tdr_long', 'conc_gross_le_8_tdr_long_1', 'conc_gross_le_8_tdr_long_2', 'conc_gross_le_8_tdr_short', 'conc_gross_le_8_tdr_short_1', 'conc_gross_le_8_tdr_short_2', 'conc_net_le_4_tdr_long_all', 'conc_net_le_4_tdr_long_old', 'conc_net_le_4_tdr_long_other', 'conc_net_le_4_tdr_short_all']
+- `20:31:00`   ── tff_futures_only (gpe5-46if) · 89 columns
+- `20:31:00`      market: UST BOND - CHICAGO BOARD OF TRADE
+- `20:31:00`      date  : 2022-09-13T00:00:00.000
+- `20:31:00`      dealer    : ['change_in_dealer_long_all', 'change_in_dealer_short_all', 'change_in_dealer_spread_all', 'dealer_positions_long_all', 'dealer_positions_short_all']
+- `20:31:00`      asset mgr : ['asset_mgr_positions_long', 'asset_mgr_positions_short', 'asset_mgr_positions_spread', 'change_in_asset_mgr_long', 'change_in_asset_mgr_short']
+- `20:31:00`      lev money : ['change_in_lev_money_long', 'change_in_lev_money_short', 'change_in_lev_money_spread', 'lev_money_positions_long', 'lev_money_positions_short']
+- `20:31:00`      other rept: ['change_in_other_rept_long', 'change_in_other_rept_short', 'change_in_other_rept_spread', 'other_rept_positions_long', 'other_rept_positions_short']
+- `20:31:00`      spread    : ['asset_mgr_positions_spread', 'change_in_asset_mgr_spread', 'change_in_dealer_spread_all', 'change_in_lev_money_spread', 'change_in_other_rept_spread']
+- `20:31:00`      all columns: ['asset_mgr_positions_long', 'asset_mgr_positions_short', 'asset_mgr_positions_spread', 'cftc_commodity_code', 'cftc_contract_market_code', 'cftc_market_code', 'cftc_region_code', 'cftc_subgroup_code', 'change_in_asset_mgr_long', 'change_in_asset_mgr_short', 'change_in_asset_mgr_spread', 'change_in_dealer_long_all', 'change_in_dealer_short_all', 'change_in_dealer_spread_all', 'change_in_lev_money_long', 'change_in_lev_money_short', 'change_in_lev_money_spread', 'change_in_nonrept_long_all', 'change_in_nonrept_short_all', 'change_in_open_interest_all', 'change_in_other_rept_long', 'change_in_other_rept_short', 'change_in_other_rept_spread', 'change_in_tot_rept_long_all', 'change_in_tot_rept_short', 'commodity', 'commodity_group_name', 'commodity_name', 'commodity_subgroup_name', 'conc_gross_le_4_tdr_long', 'conc_gross_le_4_tdr_short', 'conc_gross_le_8_tdr_long', 'conc_gross_le_8_tdr_short', 'conc_net_le_4_tdr_long_all', 'conc_net_le_4_tdr_short_all', 'conc_net_le_8_tdr_long_all', 'conc_net_le_8_tdr_short_all', 'contract_market_name', 'contract_units', 'dealer_positions_long_all']
+- `20:31:00`   ── tff_combined (yw9f-hn96) · 90 columns
+- `20:31:00`      market: UST BOND - CHICAGO BOARD OF TRADE
+- `20:31:00`      date  : 2022-09-13T00:00:00.000
+- `20:31:00`      dealer    : ['change_in_dealer_long_all', 'change_in_dealer_short_all', 'change_in_dealer_spread_all', 'dealer_positions_long_all', 'dealer_positions_short_all']
+- `20:31:00`      asset mgr : ['asset_mgr_positions_long', 'asset_mgr_positions_short', 'asset_mgr_positions_spread', 'change_in_asset_mgr_long', 'change_in_asset_mgr_short']
+- `20:31:00`      lev money : ['change_in_lev_money_long', 'change_in_lev_money_short', 'change_in_lev_money_spread', 'lev_money_positions_long', 'lev_money_positions_short']
+- `20:31:00`      other rept: ['change_in_other_rept_long', 'change_in_other_rept_short', 'change_in_other_rept_spread', 'other_rept_positions_long', 'other_rept_positions_short']
+- `20:31:00`      spread    : ['asset_mgr_positions_spread', 'change_in_asset_mgr_spread', 'change_in_dealer_spread_all', 'change_in_lev_money_spread', 'change_in_other_rept_spread']
+- `20:31:00`      all columns: ['asset_mgr_positions_long', 'asset_mgr_positions_short', 'asset_mgr_positions_spread', 'cftc_commodity_code', 'cftc_contract_market_code', 'cftc_market_code', 'cftc_region_code', 'cftc_subgroup_code', 'change_in_asset_mgr_long', 'change_in_asset_mgr_short', 'change_in_asset_mgr_spread', 'change_in_dealer_long_all', 'change_in_dealer_short_all', 'change_in_dealer_spread_all', 'change_in_lev_money_long', 'change_in_lev_money_short', 'change_in_lev_money_spread', 'change_in_nonrept_long_all', 'change_in_nonrept_short_all', 'change_in_open_interest_all', 'change_in_other_rept_long', 'change_in_other_rept_short', 'change_in_other_rept_spread', 'change_in_tot_rept_long_all', 'change_in_tot_rept_short', 'commodity', 'commodity_group_name', 'commodity_name', 'commodity_subgroup_name', 'conc_gross_le_4_tdr_long', 'conc_gross_le_4_tdr_short', 'conc_gross_le_8_tdr_long', 'conc_gross_le_8_tdr_short', 'conc_net_le_4_tdr_long_all', 'conc_net_le_4_tdr_short_all', 'conc_net_le_8_tdr_long_all', 'conc_net_le_8_tdr_short_all', 'contract_market_name', 'contract_units', 'dealer_positions_long_all']
+- `20:31:00`   ── legacy_combined (jun7-fc8e) · 133 columns
+- `20:31:00`      market: UST BOND - CHICAGO BOARD OF TRADE
+- `20:31:00`      date  : 2022-09-13T00:00:00.000
+- `20:31:00`      spread    : ['noncomm_positions_spread', 'noncomm_positions_spread_1', 'noncomm_postions_spread_all', 'pct_of_oi_noncomm_spread', 'pct_of_oi_noncomm_spread_1']
+- `20:31:00`      all columns: ['cftc_commodity_code', 'cftc_contract_market_code', 'cftc_market_code', 'cftc_region_code', 'change_in_comm_long_all', 'change_in_comm_short_all', 'change_in_noncomm_long_all', 'change_in_noncomm_short_all', 'change_in_noncomm_spead_all', 'change_in_nonrept_long_all', 'change_in_nonrept_short_all', 'change_in_open_interest_all', 'change_in_tot_rept_long_all', 'change_in_tot_rept_short', 'comm_positions_long_all', 'comm_positions_long_old', 'comm_positions_long_other', 'comm_positions_short_all', 'comm_positions_short_old', 'comm_positions_short_other', 'commodity', 'commodity_group_name', 'commodity_name', 'commodity_subgroup_name', 'conc_gross_le_4_tdr_long', 'conc_gross_le_4_tdr_long_1', 'conc_gross_le_4_tdr_long_2', 'conc_gross_le_4_tdr_short', 'conc_gross_le_4_tdr_short_1', 'conc_gross_le_4_tdr_short_2', 'conc_gross_le_8_tdr_long', 'conc_gross_le_8_tdr_long_1', 'conc_gross_le_8_tdr_long_2', 'conc_gross_le_8_tdr_short', 'conc_gross_le_8_tdr_short_1', 'conc_gross_le_8_tdr_short_2', 'conc_net_le_4_tdr_long_all', 'conc_net_le_4_tdr_long_old', 'conc_net_le_4_tdr_long_other', 'conc_net_le_4_tdr_short_all']
+## D. coverage — how many of his codes does it serve?
+
+- `20:31:24`   sampled 25 codes against legacy_futures_only: 24 served
+## VERDICT
+
+- `20:31:24`   dataset to build on: legacy_futures_only (6dca-aqww)
+- `20:31:24`   suffix decode must be derived from the COLUMN NAMES above,
+- `20:31:24`   not from my assumption about what DP/AMP/LMP mean. If a
+- `20:31:24`   suffix has no matching column, that ticker stays unrouted.
+- `20:31:24`   PROBE ONLY — no engine code written.
