@@ -1,0 +1,62 @@
+# ops 4082 — PROBE: macro attribution join
+
+**Status:** success  
+**Duration:** 2.6s  
+**Finished:** 2026-07-29T06:12:53+00:00  
+
+## Data
+
+| distinct_prefixes | inference_only | macro_econ | macro_fred | macro_total | vault_hits | vault_rows |
+|---|---|---|---|---|---|---|
+| 12 |  |  |  |  |  | 591 |
+|  |  | 3317 | 765 | 4082 | 241 |  |
+|  | 3206 |  |  |  |  |  |
+
+## Log
+## H1 — vault shape and coverage
+
+- `06:12:51`   vault rows: 591
+- `06:12:51`   sample row keys: ['cached', 'cadence', 'category', 'exchanges', 'fetched_at', 'n_notes', 'note_ids', 'note_snippet', 'origin', 'resolution_note', 'source', 'status', 'symbol', 'value']
+- `06:12:51`     UNTAGGED           resolved_via=None                                   status=META
+- `06:12:51`     DXY                resolved_via=yahoo:DX-Y.NYB                         status=LIVE
+- `06:12:51`     FEDFUNDS           resolved_via=fred:FEDFUNDS                          status=LIVE
+- `06:12:51`     SPX                resolved_via=yahoo:^GSPC                            status=LIVE
+- `06:12:51`     MOVE               resolved_via=yahoo:^MOVE                            status=LIVE
+- `06:12:51`     CL1!               resolved_via=yahoo:CL=F                             status=LIVE
+- `06:12:51`   resolved_via prefixes: (none) 232, fmp 179, fred 107, yahoo 59, mofjp 3, ecb 2, norges 2, bcb 2, bcrp 2, poly 1, ust 1, boj 1
+- `06:12:51`   macro symbols in watchlists: 4082 (ECONOMICS 3317, FRED 765)
+- `06:12:51`   macro symbols matching a vault row: 241 (5.9%)
+- `06:12:51`     ✓ ECONOMICS:BOTOT
+- `06:12:51`     ✓ ECONOMICS:BRFER
+- `06:12:51`     ✓ ECONOMICS:BRINTR
+- `06:12:51`     ✓ ECONOMICS:BRIPYY
+- `06:12:51`     ✓ ECONOMICS:CAUR
+- `06:12:51`     ✓ ECONOMICS:CHFER
+- `06:12:51`     ✓ ECONOMICS:CHGRES
+- `06:12:51`     ✓ ECONOMICS:CHINTR
+- `06:12:51`     ✓ ECONOMICS:CHIPYY
+- `06:12:51`     ✓ ECONOMICS:CHMPMI
+## H2 — is FRED's own metadata authoritative?
+
+- `06:12:51`   FRED_KEY available: True
+- `06:12:52`   A053RC1Q027SBEA        release='Gross Domestic Product'
+- `06:12:52`                          → PUBLISHER: ['U.S. Bureau of Economic Analysis']
+- `06:12:52`   A072RC1Q156SBEA        release='Gross Domestic Product'
+- `06:12:52`                          → PUBLISHER: ['U.S. Bureau of Economic Analysis']
+- `06:12:53`   A14187USA163NNBR       release='NBER Macrohistory Database'
+- `06:12:53`                          → PUBLISHER: ['National Bureau of Economic Research']
+- `06:12:53`   → if publishers came back above, FRED: symbols get REAL attribution from the publisher's own metadata
+## H3 — the inference trap (to be EXCLUDED, not used)
+
+- `06:12:53`   ECONOMICS:JPM3 description = 'Japan Money Supply M3'.
+- `06:12:53`   A country+topic heuristic would map that to the Bank of
+- `06:12:53`   Japan and look authoritative. It is a GUESS. This fleet
+- `06:12:53`   already shipped one false confirmation (global-recession
+- `06:12:53`   v1.2 'CONFIRMED' off a defaulted 0.0 field). The wire op
+- `06:12:53`   must mark heuristic rows UNATTRIBUTED, not agency rows.
+- `06:12:53`   symbols that would ONLY resolve by inference: 3206
+## FORECAST for the wire op
+
+- `06:12:53`   real attribution reachable now : vault 241 + FRED 765 (pending H2 result)
+- `06:12:53`   honestly UNATTRIBUTED          : 3206
+- `06:12:53`   PROBE COMPLETE — no engine code written.
