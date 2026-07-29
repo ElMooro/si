@@ -1,60 +1,36 @@
-executing-against: 68a9bd979dbd5b325a1d65c74310a34eb801e4ff
-ops 4071 — PROBE: walk order + source-map producer
-── H1 — where does the payoff sit in the queue? ──
-── Walk queue by prefix (top 18) ──
-[02:32:34]     3317  ECONOMICS  ← AGENCY PAYOFF
-[02:32:34]     1488  NASDAQ  (venue: low info)
-[02:32:34]      765  FRED  ← AGENCY PAYOFF
-[02:32:34]      593  AMEX  (venue: low info)
-[02:32:34]      454  FTSE
-[02:32:34]      353  TVC  ← AGENCY PAYOFF
-[02:32:34]      330  INDEX
-[02:32:34]      269  NYSE  (venue: low info)
-[02:32:34]      229  COT3
-[02:32:34]      162  CBOE  ← AGENCY PAYOFF
-[02:32:34]      151  FX_IDC
-[02:32:34]      150  INTOTHEBLOCK
-[02:32:34]      143  USI
-[02:32:34]      111  COT
-[02:32:34]      107  SGX
-[02:32:34]       86  DJ
-[02:32:34]       64  LSE  (venue: low info)
-[02:32:34]       62  GLASSNODE
-── H1 verdict — position of the payoff ──
-[02:32:34]   agency-bearing symbols in queue : 4598
-[02:32:34]   first agency symbol at index    : 0
-[02:32:34]   median agency index             : 4985
-[02:32:34]   agency symbols in first 500     : 117
-[02:32:34]   venue symbols in first 500      : 278
-[02:32:34]   → at the observed 340ms/symbol, the MEDIAN agency row is 0.5h into the walk
-[02:32:34]   → under priority ordering the first 4598 symbols walked would ALL be agency-bearing (26 min to full payoff)
-── Attribution banked so far, by family ──
-[02:32:34]      60  source/AMEX
-[02:32:34]      47  source/NASDAQ
-[02:32:34]      18  provider/tvc
-[02:32:34]      16  source/CRYPTOCAP
-[02:32:34]       8  source/NYSE
-[02:32:34]       7  source/CBOE
-[02:32:34]       5  source/EURONEXT
-[02:32:34]       2  country/US
-[02:32:34]       2  source/TSX
-[02:32:34]       2  source/OMXCOP
-[02:32:34]       2  source/ICEUS
-[02:32:34]       1  source/SIX
-── H2 — does the monitor's artifact have a producer? ──
-[02:32:34]   source-map.json generated_at : 2026-07-29T02:21:13.730861+00:00
-[02:32:34]   marker                       : source-map v1.3 ops4070 normalized
-[02:32:41]   fleet size                   : 756 functions
-[02:32:41]   functions named *source-map* : NONE
-[02:32:42]   schedules targeting it       : NONE
-── H2 verdict ──
-[02:32:42]   ✓ CONFIRMED — source-map.json has NO Lambda producer.
-[02:32:42]     It exists only because ops_4070 wrote it by hand.
-[02:32:42]     harvest-monitor.html freezes the moment this session ends. Must be promoted to a scheduled engine.
-── Served page check (runner CAN reach the edge) ──
-[02:32:42]   served bytes  : 5971
-[02:32:42]   served marker : ['v2-ops4067']
-[02:32:42] 
-[02:32:42] PROBE COMPLETE — no code written. Wire op reads these numbers.
+executing-against: 6fe3f885a537b0bcde42bf2ab3d05bb677013a71
+ops 4072 — v1.7.8 PRIORITY WALK (forecast-gated)
+── A. FORECAST the new order on live data (pre-ship gate) ──
+[02:38:49]   first 500  : 136 agency  →  500 agency
+[02:38:49]   first 2000 : 659 agency  →  2000 agency
+[02:38:49]   tier1 total: 5081   tier2: 811   venue/other: 4239
+[02:38:49]   ✓ forecast passes — proceeding to ship
+── What the first 300 walked will now be (top prefixes) ──
+[02:38:49]     122  FRED
+[02:38:49]      93  ECONOMICS
+[02:38:49]      24  TVC
+[02:38:49]      23  CBOE
+[02:38:49]      21  USI
+[02:38:49]      15  COT3
+[02:38:49]       2  COT
+── B. rebuild + upload the extension zip ──
+── C. edge download serves the new bytes ──
+[02:38:50]   edge zip version: 1.4.0
+── VERDICT ──
+[02:38:50]   ✓ reorder is a pure permutation — nothing dropped
+[02:38:50]   ✓ first-500 agency yield strictly improves
+[02:38:50]   ✓ first 500 is now ~pure agency (>=450/500)
+[02:38:50]   ✓ payoff no longer buried past index 5000
+[02:38:50]   ✓ zip carries v1.7.8
+[02:38:50]   ✓ zip content.js carries the PRIORITY WALK
+[02:38:50]   ✓ zip carries the tier lists
+[02:38:50]   ✓ symsearch demoted to 1-in-200 canary
+[02:38:50]   ✓ step tightened to 240ms
+[02:38:50]   ✓ rate telemetry present
+[02:38:50]   ✓ scanner route still intact
+[02:38:50]   ✓ autonomy preserved (auto-start + auto-sync)
+[02:38:50]   ✗ edge serves v1.7.8
+[02:38:50] ✗ FAILED: ['edge serves v1.7.8']
 
-→ Report written to aws/ops/reports/latest/4071_walkorder_probe.md
+→ Report written to aws/ops/reports/latest/4072_ship_v178_priority.md
+❌ OPS-FAIL: aws/ops/pending/ops_4072_ship_v178_priority.py
