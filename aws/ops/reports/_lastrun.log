@@ -1,64 +1,92 @@
-executing-against: 08159859efba8394a69c9178eea9fdaffcee4367
-ops 4083 — real macro attribution (FRED metadata)
-── A. deploy justhodl-macro-attribution ──
-[06:19:03]   ✓ updated justhodl-macro-attribution
-[06:19:14]   ✓ justhodl-macro-attribution marker settled (attempt 2)
-── B. invoke — first ledger pass ──
-[06:22:57]   status=200 fnerr=None
-[06:22:57]   {"statusCode": 200, "body": "{\"attributed\": 239, \"unattributed\": 3843, \"resolved_this_run\": 239}"}
-── Publishers resolved (real institutions) ──
-[06:22:57]      83  Board of Governors of the Federal Reserve System (US)  [FRED]
-[06:22:57]      38  Ice Data Indices, LLC  [OTHER-OFFICIAL]
-[06:22:57]      23  U.S. Bureau of Economic Analysis  [BEA]
-[06:22:57]      14  U.S. Census Bureau  [CENSUS-US]
-[06:22:57]      13  U.S. Bureau of Labor Statistics  [BLS]
-[06:22:57]      10  Organization for Economic Co-operation and Development  [OECD]
-[06:22:57]       6  World Bank  [WORLD-BANK]
-[06:22:57]       5  Federal Reserve Bank of St. Louis  [FRED]
-[06:22:57]       4  Eurostat  [EUROSTAT]
-[06:22:57]       4  U.S. Department of the Treasury. Fiscal Service  [US-TREASURY]
-[06:22:57]       3  U.S. Employment and Training Administration  [OTHER-OFFICIAL]
-[06:22:57]       3  Federal Reserve Bank of Chicago  [FRED]
-[06:22:57]       3  U.S. Office of Management and Budget  [OTHER-OFFICIAL]
-[06:22:57]       2  BCB-BRAZIL  [OTHER-OFFICIAL]
-[06:22:57]   by_route: {'vault-gov': 5, 'vault-fred': 6, 'fred-metadata': 228}
-── C. source-map v2.1 merge ──
-[06:22:58]   ✓ updated justhodl-source-map
-[06:23:09]   ✓ justhodl-source-map marker settled (attempt 2)
-[06:23:10]   {"statusCode": 200, "body": "{\"symbols_with_source\": 197, \"agency_rows\": 239, \"economics_symbols\": 0}"}
-[06:23:10]   agency_families: {'BCB-BRAZIL': 2, 'OECD': 10, 'ECB': 2, 'NORGES': 1, 'BCRP-PERU': 2, 'FRED': 97, 'OTHER-OFFICIAL': 56, 'BEA': 23, 'NBER': 1, 'CENSUS-US': 14, 'BTS-US': 1, 'BLS': 13, 'BOE': 1, 'EUROSTAT': 4, 'IMF': 2, 'WORLD-BANK': 6, 'US-TREASURY': 4}
-── D. schedule ──
-[06:23:11]   ✓ created macro-attribution-daily
-[06:23:11]   state=ENABLED expr=cron(5 12 * * ? *)
-── E. field coverage ──
-[06:23:11]   ✓ agency_families
-[06:23:11]   ✓ agency_rows
-[06:23:11]   ✓ distinct_sources
-[06:23:11]   ✓ economics_agencies
-[06:23:11]   ✓ economics_symbols
-[06:23:11]   · generated_at
-[06:23:11]   ✓ harvest_progress
-[06:23:11]   ✓ junk_purged
-[06:23:11]   ✓ known_families
-[06:23:11]   ✓ macro_attributed
-[06:23:11]   ✓ macro_coverage_pct
-[06:23:11]   ✓ macro_unattributed
-[06:23:11]   · marker
-[06:23:11]   ✓ new_sources
-[06:23:11]   ✓ symbols_with_source
-[06:23:11]   ✓ venue_rows
-── VERDICT ──
-[06:23:11]   ✓ macro-attribution settled
-[06:23:11]   ✓ invoke clean
-[06:23:11]   ✓ attribution is non-empty
-[06:23:11]   ✓ the unattributed gap is PUBLISHED, not hidden
-[06:23:11]   ✓ no attribution invented for inference-only symbols
-[06:23:11]   ✓ every resolved row names its route
-[06:23:11]   ✓ source-map v2.1 settled
-[06:23:11]   ✓ agency_rows is finally NON-ZERO
-[06:23:11]   ✓ macro gap surfaced on the artifact
-[06:23:11]   ✓ schedule ENABLED (verified)
-[06:23:11]   ✓ every source-map key rendered (16/16)
-[06:23:11] ✅ PASS_ALL — 239 macro symbols carry a REAL publisher; 3843 reported honestly unattributed. Ledger accretes daily.
+executing-against: ed57c0a4e5e3e589074e89a700c0e5a8dd806041
+ops 4084 — AUDIT: is every imported ticker FETCHABLE?
+── A. imported ticker universe ──
+[06:31:23]   watchlists: 491   unique tickers: 10319
+[06:31:23]        500  71699273
+[06:31:23]        500  82604570
+[06:31:23]        500  Black Swan Event
+[06:31:23]        500  Bottom Indicators
+[06:31:23]        500  FTSE
+[06:31:23]        500  Red list
+[06:31:23]        437  Bitcoin : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.
+[06:31:23]        434  TOP
+[06:31:23]        433  Watchlist
+[06:31:23]        373  Top Indicators
+[06:31:23]        359  Global Liquidity Trend Reversal
+[06:31:23]        327  Crypto : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.
+[06:31:23]        324  68114374
+[06:31:23]        273  Brent Johnson Portfolio: THE SHORTTERM SWINGS MIGHT GRAB HEADLINES BUT THE LONG TERM TRAJECTORY IS UMISTAKABLE.
+[06:31:23]   distinct namespaces: 172
+── B. namespace breakdown (top 25) ──
+[06:31:23]     3317  ECONOMICS
+[06:31:23]     1535  NASDAQ
+[06:31:23]      765  FRED
+[06:31:23]      653  AMEX
+[06:31:23]      455  FTSE
+[06:31:23]      371  TVC
+[06:31:23]      330  INDEX
+[06:31:23]      277  NYSE
+[06:31:23]      229  COT3
+[06:31:23]      169  CBOE
+[06:31:23]      151  FX_IDC
+[06:31:23]      150  INTOTHEBLOCK
+[06:31:23]      143  USI
+[06:31:23]      111  COT
+[06:31:23]      107  SGX
+[06:31:23]       87  DJ
+[06:31:23]       65  LSE
+[06:31:23]       62  GLASSNODE
+[06:31:23]       61  SSE
+[06:31:23]       59  EURONEXT
+[06:31:23]       58  SWB
+[06:31:23]       52  HSI
+[06:31:23]       50  ICEEUR
+[06:31:23]       42  CME
+[06:31:23]       42  EUREX
+── C. vault: what is fetchable RIGHT NOW ──
+[06:31:23]   vault rows 591   LIVE 480
+[06:31:23]   adapters: fmp 179, (none) 121, fred 107, yahoo 59, mofjp 3, ecb 2, norges 2, bcb 2, bcrp 2, poly 1, ust 1, boj 1
+[06:31:23]   imported tickers with a LIVE vault row: 535
+── D. route classification for every imported ticker ──
+[06:31:23]     4369  macro-needs-mapping
+[06:31:23]     2959  equity-api
+[06:31:23]     1446  UNROUTED
+[06:31:23]      957  fx-index-api
+[06:31:23]      535  vault-live
+[06:31:23]       53  crypto-api
+[06:31:23]   → plausibly fetchable today : 4504 (43.6%)
+[06:31:23]   → macro needing a series map: 4369
+[06:31:23]   → no route at all           : 1446
+── E. the UNROUTED tail — which namespaces? ──
+[06:31:23]      455  FTSE
+[06:31:23]      151  CBOE
+[06:31:23]      150  INTOTHEBLOCK
+[06:31:23]       62  GLASSNODE
+[06:31:23]       58  SWB
+[06:31:23]       52  HSI
+[06:31:23]       40  CBOEEU
+[06:31:23]       33  TRADEGATE
+[06:31:23]       29  CSEMA
+[06:31:23]       20  OMXNORDIC
+[06:31:23]       17  BER
+[06:31:23]       16  CME_MINI
+[06:31:23]       16  GETTEX
+[06:31:23]       14  DFM
+[06:31:23]       14  1-TVC
+[06:31:23]       13  ADX
+[06:31:23]       12  DJCFD
+[06:31:23]       12  SPARKS
+[06:31:23]       12  MULTPL
+[06:31:23]       12  TSE
+[06:31:23]   sample: CBOE:BMNU, CBOE:SBTU, OKEX:CVXUSDT, DJCFD:DE30, OMXBALTIC:B55PI, CBOE:FDEM, TRADEGATE:FJ2B, TRADEGATE:FJ25, NEO:FGRO, SWB:FJ2B, SWB:FJ2F, SWB:FJ25
+── F. macro: attribution ledger vs fetchability ──
+[06:31:23]   macro symbols attributed so far: 239
+[06:31:23]   ...of which carry a FRED series id (=> FETCHABLE): 234
+[06:31:23]   NOTE: a FRED-routed macro symbol is not just labelled, it is
+[06:31:23]   pullable — the series id is the fetch key. That is the bridge
+[06:31:23]   from 'who publishes this' to 'my system can chart this'.
+── VERDICT — where the real work is ──
+[06:31:23]   universe 10319 · fetchable-ish 4504 · macro-gap 4369 · unrouted 1446
+[06:31:23]   AUDIT ONLY — no engine code written.
 
-→ Report written to aws/ops/reports/latest/4083_macro_attribution.md
+→ Report written to aws/ops/reports/latest/4084_coverage_audit.md
