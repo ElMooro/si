@@ -1,0 +1,67 @@
+# ops 4095 — mirror completeness · category bug · cftc
+
+**Status:** success  
+**Duration:** 1.6s  
+**Finished:** 2026-07-29T21:15:35+00:00  
+
+## Data
+
+| chips | cot_aliases | cot_in_vault | mirror_lists | mirror_missing | mirror_symbols | mirror_with_notes | orphan_chips | truth_lists | truth_symbols | unchipped |
+|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  | 491 | 0 | 10319 | 771 |  | 491 | 10319 |  |
+| 10 |  |  |  |  |  |  | 0 |  |  | 0 |
+|  | 65 | 65 |  |  |  |  |  |  |  |  |
+
+## Log
+## A. is the mirror complete?
+
+- `21:15:34`   TRUTH (import): 491 watchlists · 10319 unique symbols
+- `21:15:35`   MIRROR (tv-workbench.json):
+- `21:15:35`     watchlists      : 491
+- `21:15:35`     symbols         : 10319
+- `21:15:35`     with >=1 note   : 771   (total notes 5556)
+- `21:15:35`     with a value    : 715
+- `21:15:35`     generated_at    : 2026-07-29T12:55:09.878359+00:00
+- `21:15:35`     symbols MISSING from the mirror: 0
+- `21:15:35`   biggest lists in the mirror:
+- `21:15:35`       500  Black Swan Event
+- `21:15:35`       500  Bottom Indicators
+- `21:15:35`       500  FTSE
+- `21:15:35`       500  Red list
+- `21:15:35`       500  71699273
+- `21:15:35`       500  82604570
+- `21:15:35`       437  Bitcoin : Nikkei TOP and Bottom in USD ALWAYS MARKED
+- `21:15:35`       434  TOP
+- `21:15:35`   → if lists/symbols match TRUTH, the mirror is FINE and the
+- `21:15:35`     problem is entirely in the pages, not the engines.
+## B. why does clicking a category show nothing?
+
+- `21:15:35`   vault rows: 1358
+- `21:15:35`   by_category_counts keys (chips the page renders):
+- `21:15:35`     chip 'other' claims 597  ·  rows actually matching: 597
+- `21:15:35`     chip 'equity' claims 353  ·  rows actually matching: 353
+- `21:15:35`     chip 'macro' claims 145  ·  rows actually matching: 145
+- `21:15:35`     chip 'rates' claims 82  ·  rows actually matching: 82
+- `21:15:35`     chip 'credit' claims 57  ·  rows actually matching: 57
+- `21:15:35`     chip 'plumbing' claims 46  ·  rows actually matching: 46
+- `21:15:35`     chip 'futures' claims 25  ·  rows actually matching: 25
+- `21:15:35`     chip 'commodity' claims 22  ·  rows actually matching: 22
+- `21:15:35`     chip 'vol' claims 18  ·  rows actually matching: 18
+- `21:15:35`     chip 'fx' claims 13  ·  rows actually matching: 13
+- `21:15:35`   chips that match ZERO rows : []
+- `21:15:35`   categories with NO chip    : []
+## C. cftc: admitted, or failing to resolve?
+
+- `21:15:35`   cot aliases generated: 65
+- `21:15:35`   ...present as vault rows: 65
+- `21:15:35`     020601_FO_AMP_SPREAD       status=NO_FREE_SOURCE value=None via=None note=no free API found (TV/TradingEconomics o
+- `21:15:35`     020601_FO_DP_SPREAD        status=NO_FREE_SOURCE value=None via=None note=no free API found (TV/TradingEconomics o
+- `21:15:35`     020601_FO_LMP_SPREAD       status=NO_FREE_SOURCE value=None via=None note=no free API found (TV/TradingEconomics o
+- `21:15:35`     020601_FO_ORP_SPREAD       status=NO_FREE_SOURCE value=None via=None note=no free API found (TV/TradingEconomics o
+- `21:15:35`     020601_FO_TAM_SPREAD       status=NO_FREE_SOURCE value=None via=None note=no free API found (TV/TradingEconomics o
+- `21:15:35`     020601_FO_TD_SPREAD        status=NO_FREE_SOURCE value=None via=None note=no free API found (TV/TradingEconomics o
+## VERDICT
+
+- `21:15:35`   mirror 10319/10319 symbols, 491/491 lists
+- `21:15:35`   orphan chips 0 · cot admitted 65/65
+- `21:15:35`   DIAGNOSTIC ONLY — no code written.
