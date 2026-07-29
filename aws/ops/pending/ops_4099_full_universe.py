@@ -1,4 +1,4 @@
-"""ops_4098 — every TradingView indicator on tradingview.html + cftc diag.
+"""ops_4099 — every TradingView indicator on tradingview.html + cftc diag.
 
 Khalid: "make sure every single tradingview indicator is here". The vault
 carried 1,358 of the 10,319 symbols he imported, because its registry came
@@ -30,7 +30,7 @@ lam = boto3.client("lambda", region_name="us-east-1",
                    config=Config(read_timeout=120, retries={"max_attempts": 0}))
 BUCKET = "justhodl-dashboard-live"
 FN = "justhodl-tradingview"
-MARK = "tradingview-vault v3.14.0 ops4098 full-universe"
+MARK = "tradingview-vault v3.14.1 ops4099 wallclock-guard"
 
 
 def gj(k, d=None):
@@ -39,7 +39,7 @@ def gj(k, d=None):
 
 
 def main():
-    with report("4098_full_universe") as rep:
+    with report("4099_full_universe") as rep:
         rep.heading("ops 4098 — full TradingView universe on the vault page")
         checks = []
 
@@ -80,7 +80,7 @@ def main():
                         "before blaming the alias lookup")
 
         # ── ship the full universe ──
-        rep.section("B. deploy vault v3.14.0")
+        rep.section("B. deploy vault v3.14.1")
         src = (ROOT / "lambdas" / FN / "source" / "lambda_function.py").read_text()
         assert MARK in src, "marker parity broken"
         buf = io.BytesIO()
@@ -105,7 +105,7 @@ def main():
             except Exception as e:
                 rep.log(f"  settle {a+1}: {str(e)[:55]}")
             time.sleep(10)
-        checks.append(("v3.14.0 settled by marker", settled))
+        checks.append(("v3.14.1 settled by marker", settled))
         if not settled:
             rep.log("✗ stale"); sys.exit(1)
 
@@ -113,10 +113,10 @@ def main():
         before_gen = v.get("generated_at")
         before_n = len(v.get("symbols") or [])
         r = lam.invoke(FunctionName=FN, InvocationType="Event",
-                       Payload=b'{"source":"ops4098"}')
+                       Payload=b'{"source":"ops4099"}')
         checks.append(("async accepted", r["StatusCode"] == 202))
         after = None
-        for a in range(45):
+        for a in range(50):
             time.sleep(20)
             cur = gj("data/tradingview.json")
             if cur and cur.get("generated_at") != before_gen:

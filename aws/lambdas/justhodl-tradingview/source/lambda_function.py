@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.14.0 ops4098 full-universe"
+MARKER = "tradingview-vault v3.14.1 ops4099 wallclock-guard"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -989,8 +989,8 @@ def resolve_direct(rv):
 # ONLY after the curated dict, so a hand-made decision always outranks a
 # generated one.
 MAX_EXPAND = int(os.environ.get("MAX_EXPAND", "250"))
-RESOLVE_BUDGET = int(os.environ.get("RESOLVE_BUDGET", "600"))
-FMP_CAP = int(os.environ.get("FMP_CAP", "900"))
+RESOLVE_BUDGET = int(os.environ.get("RESOLVE_BUDGET", "150"))
+FMP_CAP = int(os.environ.get("FMP_CAP", "400"))
 _GEN_ALIASES = None
 
 
@@ -1204,6 +1204,7 @@ def lambda_handler(event, context):
     fmp_vals = fmp_quotes(fmp_syms)
     n_live = n_cached = n_pending = 0
     attempted = 0
+    out_of_time = False
     force = bool((event or {}).get("force"))
     for row in rows:
         sym = row["symbol"]
@@ -1233,7 +1234,19 @@ def lambda_handler(event, context):
         # "not looked at yet". It is deliberately NOT NO_FREE_SOURCE, which
         # would be a claim we have not earned and would also trip the
         # 27-day retry gate and freeze the symbol out for a month.
-        if not c and row.get("from_watchlist") and attempted >= RESOLVE_BUDGET:
+        # v3.14.1 WALL-CLOCK GUARD. ops 4098 timed out at 917s: a COUNT
+        # budget cannot bound wall time, because each ladder attempt makes
+        # several network calls of unknown latency. The only safe bound is
+        # the clock itself — stop attempting with headroom to spare and
+        # write the artifact, rather than dying with nothing written.
+        if context is not None:
+            try:
+                if context.get_remaining_time_in_millis() < 180000:
+                    out_of_time = True
+            except Exception:
+                pass
+        if (out_of_time or attempted >= RESOLVE_BUDGET) and not c \
+                and row.get("from_watchlist"):
             row["status"] = "PENDING_RESOLUTION"
             row["resolution_note"] = "queued — not yet attempted this run"
             n_pending += 1
