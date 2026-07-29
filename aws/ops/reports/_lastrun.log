@@ -1,15 +1,53 @@
-executing-against: 6eb67321883b59f9345ed808a2e12e74bff592b0
+executing-against: 9ef4371b9b93a53cd4d72d8c6564e35026ee53e6
 ops 4089 — STEP 2: ECONOMICS → FRED, confidence-gated
 ── A. descriptions available (v1.8.1 pipe) ──
-[19:13:48]   none yet (An error occurred (NoSuchKey) when calling the GetObject ope) — matcher falls back to code decomposition, which is why the threshold exists
+[20:09:32]   none yet (An error occurred (NoSuchKey) when calling the GetObject ope) — matcher falls back to code decomposition, which is why the threshold exists
 ── B. deploy resolver v2.0 ──
+[20:09:44]   ✓ settled (attempt 2)
+── C. async invoke + poll (600s engine, socket won't hold) ──
+[20:09:44]   async accepted: 202
+[20:13:50]   ✓ artifact moved after 240s
+── D. results ──
+[20:13:50]   ECONOMICS tickers      : 3317
+[20:13:50]   ACCEPTED as aliases    : 53
+[20:13:50]   candidates (below 0.80): 24
+[20:13:50]   by_route               : {'fred-verified': 696, 'economics-matched': 53}
+── Accepted ECONOMICS matches (sample) ──
+[20:13:50]   ARBOT            → fred:ARGXTNTVA01NCMLM  0.8  International Merchandise Trade Statistics: 
+[20:13:50]   ARCA             → fred:ARGBCAGDPBP6      0.8  Balance of Payments: Current account balance
+[20:13:50]   ARGDPYY          → fred:NGDPRSAXDCARQ     0.8  Real Gross Domestic Product for Argentina
+[20:13:50]   ATBOT            → fred:XTNTVA01ATA664S   0.8  International Merchandise Trade Statistics: 
+[20:13:50]   ATGDPYY          → fred:CLVMNACSCAB1GQAT  0.8  Real Gross Domestic Product for Austria
+[20:13:50]   ATINTR           → fred:IRLTLT01ATM156N   0.8  Interest Rates: Long-Term Government Bond Yi
+[20:13:50]   AUBOT            → fred:XTNTVA01AUQ664S   0.8  International Merchandise Trade Statistics: 
+[20:13:50]   AUCCI            → fred:CSCICP02AUM460S   0.8  Consumer Opinion Surveys: Composite Consumer
+[20:13:50]   AUGDPYY          → fred:NGDPRSAXDCAUQ     0.8  Real Gross Domestic Product for Australia
+[20:13:50]   AUINTR           → fred:IRLTLT01AUM156N   0.8  Interest Rates: Long-Term Government Bond Yi
+[20:13:50]   BEBOT            → fred:XTNTVA01BEQ664N   0.8  International Merchandise Trade Statistics: 
+[20:13:50]   BECCI            → fred:CSCICP02BEM460S   0.8  Consumer Opinion Surveys: Composite Consumer
+[20:13:50]   BEGDPYY          → fred:CLVMNACSCAB1GQBE  0.8  Real Gross Domestic Product for Belgium
+[20:13:50]   BEINTR           → fred:IRLTLT01BEM156N   0.8  Interest Rates: Long-Term Government Bond Yi
+── Rejected candidates — the honest queue (sample) ──
+[20:13:50]   ECONOMICS:CLGDPQQ      0.712  National Accounts: GDP by Expenditure: C  q='Chile real gross domestic pr'
+[20:13:50]   ECONOMICS:CLGDPYY      0.712  National Accounts: GDP by Expenditure: C  q='Chile real gross domestic pr'
+[20:13:50]   ECONOMICS:COGDPQQ      0.712  National Accounts: GDP by Expenditure: C  q='Colombia real gross domestic'
+[20:13:50]   ECONOMICS:COGDPYY      0.712  National Accounts: GDP by Expenditure: C  q='Colombia real gross domestic'
+[20:13:50]   ECONOMICS:ATFER        0.683  Austria / U.S. Foreign Exchange Rate (DI  q='Austria foreign exchange res'
+[20:13:50]   ECONOMICS:BEFER        0.683  Belgium / U.S. Foreign Exchange Rate (DI  q='Belgium foreign exchange res'
+[20:13:50]   ECONOMICS:DEFER        0.683  Germany / U.S. Foreign Exchange Rate (DI  q='Germany foreign exchange res'
+[20:13:50]   ECONOMICS:ARINTR       0.625  Bank's Net Interest Margin for Argentina  q='Argentina interest rate'
+[20:13:50]   ECONOMICS:ARM0         0.625  Base Money for Argentina  q='Argentina monetary base'
+[20:13:50]   ECONOMICS:AUIPYY       0.625  Production, Sales, Work Started and Orde  q='Australia industrial product'
+[20:13:50]   ECONOMICS:BEIPYY       0.625  Production, Sales, Work Started and Orde  q='Belgium industrial productio'
+[20:13:50]   ECONOMICS:BRIPYY       0.625  Production, Sales, Work Started and Orde  q='Brazil industrial production'
+── VERDICT ──
+[20:13:50]   ✓ resolver v2.0 settled by marker
+[20:13:50]   ✓ async accepted
+[20:13:50]   ✓ every accepted match scored >= 0.80
+[20:13:50]   ✓ every accepted match names a real FRED series
+[20:13:50]   ✓ weak matches are PUBLISHED as candidates, not dropped
+[20:13:50]   ✓ candidates were NOT promoted into aliases
+[20:13:50]   ✓ step 1 FRED aliases not regressed
+[20:13:50] ✅ PASS_ALL — 53 ECONOMICS tickers mapped to verified FRED series; 24 held as scored candidates rather than guessed. Total aliases now 749.
 
 → Report written to aws/ops/reports/latest/4090_step2_economics.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4090_step2_economics.py", line 147, in <module>
-    main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4090_step2_economics.py", line 53, in main
-    assert MARK in src
-           ^^^^^^^^^^^
-AssertionError
-❌ OPS-FAIL: aws/ops/pending/ops_4090_step2_economics.py
