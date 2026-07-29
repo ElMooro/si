@@ -1,28 +1,27 @@
-executing-against: 1929830edc8cbc47f56d72c1afedf1484402b400
+executing-against: 8676057e73f83b59eda0d626983b7be67397e1a6
 ops 4076 — extension v1.7.9 + installer v4
 ── A. rebuild + upload the extension zip ──
-[03:15:32]   previous S3 zip: v1.7.8 (19286 B)
+[03:20:14]   previous S3 zip: v1.7.9 (19565 B)
 ── B. upload installer v4 ──
 ── C. stub integrity ──
 ── D. repo/Pages zip parity ──
-[03:15:32]   repo zip version: 1.7.9
+[03:20:16]   repo zip version: 1.7.9
 ── VERDICT ──
-[03:15:32]   ✓ zip carries v1.7.9
-[03:15:32]   ✓ auto-start guard is version-stamped (update-day trap)
-[03:15:32]   ✗ no bare-date stamp survives anywhere
-[03:15:32]   ✓ v1.7.8 priority walk still present
-[03:15:32]   ✓ symsearch canary + 240ms step still present
-[03:15:32]   ✓ rate telemetry still present
-[03:15:32]   ✓ harvester + autonomy intact
-[03:15:32]   ✓ served .ps1 is byte-exact
-[03:15:32]   ✓ caret-free (the v2 cmd-escaping bug class)
-[03:15:32]   ✓ no longer nukes the loaded folder
-[03:15:32]   ✓ updates IN PLACE via a staging copy
-[03:15:32]   ✓ detects update vs fresh install
-[03:15:32]   ✓ still pulls the zip from S3 + writes the shortcut
-[03:15:32]   ✓ the .bat Khalid already has still fetches this .ps1
-[03:15:32]   ✓ repo zip matches S3 (no stale Pages decoy)
-[03:15:32] ✗ FAILED: ['no bare-date stamp survives anywhere']
+[03:20:16]   ✓ zip carries v1.7.9
+[03:20:16]   ✓ auto-start guard is version-stamped (update-day trap)
+[03:20:16]   ✓ no bare-date value is written to jh_auto_day
+[03:20:16]   ✓ v1.7.8 priority walk still present
+[03:20:16]   ✓ symsearch canary + 240ms step still present
+[03:20:16]   ✓ rate telemetry still present
+[03:20:16]   ✓ harvester + autonomy intact
+[03:20:16]   ✓ served .ps1 is byte-exact
+[03:20:16]   ✓ caret-free (the v2 cmd-escaping bug class)
+[03:20:16]   ✓ no longer nukes the loaded folder
+[03:20:16]   ✓ updates IN PLACE via a staging copy
+[03:20:16]   ✓ detects update vs fresh install
+[03:20:16]   ✓ still pulls the zip from S3 + writes the shortcut
+[03:20:16]   ✓ the .bat Khalid already has still fetches this .ps1
+[03:20:16]   ✓ repo zip matches S3 (no stale Pages decoy)
+[03:20:16] ✅ PASS_ALL — v1.7.9 + installer v4 live. Re-running the same .bat updates in place; one reload click and the agency-first walk starts immediately.
 
-→ Report written to aws/ops/reports/latest/4076_ship_v179_installer_v4.md
-❌ OPS-FAIL: aws/ops/pending/ops_4076_ship_v179_installer_v4.py
+→ Report written to aws/ops/reports/latest/4077_ship_v179_regate.md

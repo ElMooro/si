@@ -1,0 +1,43 @@
+# ops 4076 — extension v1.7.9 + installer v4
+
+**Status:** success  
+**Duration:** 1.4s  
+**Finished:** 2026-07-29T03:20:16+00:00  
+
+## Data
+
+| bat_bytes | bytes | new_version | old_version | ps1_bytes | ps1_edge |
+|---|---|---|---|---|---|
+|  | 19638 | 1.7.9 | 1.7.9 |  |  |
+|  |  |  |  | 5608 | 5608 |
+| 412 |  |  |  |  |  |
+
+## Log
+## A. rebuild + upload the extension zip
+
+- `03:20:14`   previous S3 zip: v1.7.9 (19565 B)
+## B. upload installer v4
+
+## C. stub integrity
+
+## D. repo/Pages zip parity
+
+- `03:20:16`   repo zip version: 1.7.9
+## VERDICT
+
+- `03:20:16`   ✓ zip carries v1.7.9
+- `03:20:16`   ✓ auto-start guard is version-stamped (update-day trap)
+- `03:20:16`   ✓ no bare-date value is written to jh_auto_day
+- `03:20:16`   ✓ v1.7.8 priority walk still present
+- `03:20:16`   ✓ symsearch canary + 240ms step still present
+- `03:20:16`   ✓ rate telemetry still present
+- `03:20:16`   ✓ harvester + autonomy intact
+- `03:20:16`   ✓ served .ps1 is byte-exact
+- `03:20:16`   ✓ caret-free (the v2 cmd-escaping bug class)
+- `03:20:16`   ✓ no longer nukes the loaded folder
+- `03:20:16`   ✓ updates IN PLACE via a staging copy
+- `03:20:16`   ✓ detects update vs fresh install
+- `03:20:16`   ✓ still pulls the zip from S3 + writes the shortcut
+- `03:20:16`   ✓ the .bat Khalid already has still fetches this .ps1
+- `03:20:16`   ✓ repo zip matches S3 (no stale Pages decoy)
+- `03:20:16` ✅ PASS_ALL — v1.7.9 + installer v4 live. Re-running the same .bat updates in place; one reload click and the agency-first walk starts immediately.
