@@ -119,4 +119,28 @@ document.querySelector('#tbl tbody').innerHTML=rows.slice(0,600).map(r=>{try{
  <td class="note">${esc((r.note_snippet||'').slice(0,220))}</td></tr>`}catch(e){console.warn('row render failed',r&&r.symbol,e);return ''}}).join('')}
 document.addEventListener('input',e=>{if(e.target.id==='q')render()});
 load();loadB();
+/* bywatchlist v1-ops4103 — every symbol categorized under YOUR lists,
+   exactly as on TradingView; per-list LIVE coverage made visible. */
+const WSRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/tv-watchlists.json','https://s3.amazonaws.com/justhodl-dashboard-live/data/tv-watchlists.json'];
+let WL=null,WIDX={},LISTS=[];
+async function buildWatchlists(){
+ for(const u of WSRC){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){WL=await r.json();break}}catch(e){}}
+ if(!WL||!D){return setTimeout(buildWatchlists,900)}
+ LISTS=(WL.lists||WL.watchlists||[]).slice().sort((x,y)=>String(x.name).localeCompare(String(y.name)));
+ (D.symbols||[]).forEach(r=>{WIDX[r.symbol]=r;const b=String(r.symbol).split(':').pop();if(!(b in WIDX))WIDX[b]=r});
+ const host=document.createElement('div');
+ host.innerHTML=`<div class="card" style="margin-top:14px"><h2 style="margin:0 0 2px">BY WATCHLIST <span class="dim" style="font-size:12px;font-weight:400">— all ${LISTS.length} lists, every symbol, as on your TradingView · status = free-source resolution</span></h2><input id="wq" placeholder="filter lists…" style="margin:8px 0;padding:6px 10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--tx);width:240px"><div id="wlists"></div></div>`;
+ const anch=document.getElementById('tbl');(anch?anch.closest('div,section,table').parentElement===document.body?anch:anch.closest('div,section,table'):document.body).insertAdjacentElement('afterend',host.firstChild);
+ wlRender()}
+function wlLive(l){let live=0;const syms=l.symbols||[];syms.forEach(sy=>{const r=WIDX[sy]||WIDX[String(sy).split(':').pop()];if(r&&r.status==='LIVE')live++});return live}
+function wlRender(){const q=(document.getElementById('wq').value||'').toLowerCase();
+ document.getElementById('wlists').innerHTML=LISTS.map((l,i)=>({l,i})).filter(x=>!q||String(x.l.name).toLowerCase().includes(q)).map(x=>{
+  const syms=x.l.symbols||[],live=wlLive(x.l),pct=syms.length?Math.round(live*100/syms.length):0;
+  return `<details data-i="${x.i}" ontoggle="wlFill(this)"><summary style="cursor:pointer;padding:7px 4px;border-bottom:1px solid var(--line)"><b>${esc(x.l.name)}</b> <span class="dim">· ${syms.length} symbols · </span><span style="color:${pct>=50?'var(--green)':pct>=20?'var(--amber)':'var(--red)'}"><b>${live}</b> LIVE (${pct}%)</span></summary><div class="wlbody dim" style="padding:6px 4px">loading…</div></details>`}).join('')||'<div class="dim">no list matches</div>'}
+function wlFill(d){if(!d.open||d.dataset.done)return;d.dataset.done=1;const l=LISTS[+d.dataset.i];
+ d.querySelector('.wlbody').innerHTML='<table style="width:100%"><tbody>'+(l.symbols||[]).map(sy=>{const r=WIDX[sy]||WIDX[String(sy).split(':').pop()];
+  const v=r&&r.value!=null?(typeof r.value==='number'?r.value.toLocaleString(undefined,{maximumFractionDigits:3}):esc(r.value)):'—';
+  return `<tr><td class="mono" style="width:34%"><b>${esc(sy)}</b></td><td style="width:22%">${r?`<span class="badge b-${esc(r.status)}">${esc(r.status)}</span>`:'<span class="badge">NOT-IN-VAULT</span>'}</td><td class="mono" style="width:22%">${v}</td><td class="dim" style="font-size:10px">${esc(r?(r.source||''):'')}</td></tr>`}).join('')+'</tbody></table>'}
+document.addEventListener('input',e=>{if(e.target.id==='wq')wlRender()});
+buildWatchlists();
 </script></body></html>
