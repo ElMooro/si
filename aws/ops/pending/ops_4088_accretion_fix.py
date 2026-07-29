@@ -1,4 +1,4 @@
-"""ops_4087 — admit the resolved aliases into the vault's universe.
+"""ops_4088 — admit the resolved aliases into the vault's universe.
 
 ops 4085 shipped the resolution half and I flagged the gap rather than
 leaving it: the vault learned to RESOLVE generated aliases, but its
@@ -31,12 +31,12 @@ lam = boto3.client("lambda", region_name="us-east-1",
                    config=Config(read_timeout=900, retries={"max_attempts": 0}))
 BUCKET = "justhodl-dashboard-live"
 FN = "justhodl-tradingview"
-MARK = "tradingview-vault v3.12.0 ops4086 universe-expansion"
+MARK = "tradingview-vault v3.12.1 ops4088 accretion-fix"
 
 
 def main():
-    with report("4087_universe_expansion_async") as rep:
-        rep.heading("ops 4087 — vault universe expansion (async invoke + poll)")
+    with report("4088_accretion_fix") as rep:
+        rep.heading("ops 4088 — accretion fix: the backlog must actually shrink")
         checks = []
 
         # baseline BEFORE, so growth is measured not assumed
@@ -51,7 +51,7 @@ def main():
         gen = sa.get("aliases") or {}
         rep.log(f"  generated aliases available: {len(gen)}")
 
-        rep.section("B. deploy v3.12.0")
+        rep.section("B. deploy v3.12.1")
         src = (ROOT / "lambdas" / FN / "source" / "lambda_function.py").read_text()
         assert MARK in src
         buf = io.BytesIO()
@@ -75,7 +75,7 @@ def main():
             except Exception as e:
                 rep.log(f"  settle {a+1}: {str(e)[:60]}")
             time.sleep(10)
-        checks.append(("v3.12.0 settled by marker", settled))
+        checks.append(("v3.12.1 settled by marker", settled))
         if not settled:
             rep.log("✗ stale artifact"); sys.exit(1)
 
@@ -89,7 +89,7 @@ def main():
         before_gen = base.get("generated_at")
         rep.log(f"  artifact generated_at before: {before_gen}")
         r = lam.invoke(FunctionName=FN, InvocationType="Event",
-                       Payload=b'{"source":"ops4087"}')
+                       Payload=b'{"source":"ops4088"}')
         rep.log(f"  async accepted: status={r['StatusCode']}")
         checks.append(("async invoke accepted (202)", r["StatusCode"] == 202))
 
@@ -129,6 +129,9 @@ def main():
         rep.log(f"  resolved_via: {dict(rv)}")
         rep.kv(admitted=len(admitted), admitted_live=len(adm_live))
 
+        # The bug v3.12.0 had: it re-admitted the same alphabetical slice
+        # every run, so the vault froze at 841 while looking healthy. The
+        # only honest proof of accretion is that the BACKLOG shrinks.
         checks.append(("vault universe GREW", len(a_rows) > len(b_rows)))
         checks.append(("admitted aliases resolve to real values", len(adm_live) > 0))
         checks.append(("admitted rows route through fred", rv.get("fred", 0) > 0))
@@ -141,7 +144,10 @@ def main():
         rep.section("E. remaining backlog")
         still = [x for x in gen if x not in {r.get("symbol") for r in a_rows}]
         rep.log(f"  generated aliases not yet admitted: {len(still)}")
-        rep.log(f"  → accretes at MAX_EXPAND=250/run on the daily schedule")
+        before_backlog = len([x for x in gen if x not in {r.get("symbol") for r in b_rows}])
+        rep.log(f"  backlog {before_backlog} → {len(still)}")
+        checks.append(("BACKLOG SHRANK (accretion actually works)",
+                       len(still) < before_backlog))
 
         rep.section("VERDICT")
         for n, o in checks: rep.log(f"  {'✓' if o else '✗'} {n}")

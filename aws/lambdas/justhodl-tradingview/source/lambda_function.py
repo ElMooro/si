@@ -33,7 +33,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.12.0 ops4086 universe-expansion"
+MARKER = "tradingview-vault v3.12.1 ops4088 accretion-fix"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1049,14 +1049,26 @@ def lambda_handler(event, context):
     # MAX_EXPAND per run and accrete, exactly like the resolver's own
     # ledger — the vault reaches full coverage over days, never in a
     # single unreviewable jump.
+    # v3.12.1 ACCRETION FIX. v3.12.0 took sorted(_gen)[:MAX_EXPAND], which
+    # selects the SAME alphabetical 250 on every run: the backlog could
+    # never drain and the vault would have sat at 841 rows forever while
+    # reporting a healthy expansion. The gate in ops 4087 caught it.
+    # Correct rule: symbols already carried in the previous artifact are
+    # re-admitted for FREE (they are cadence-cached, no new fetch), and the
+    # MAX_EXPAND budget is spent only on genuinely UNSEEN symbols. That is
+    # what makes the backlog actually shrink run over run.
     _gen = gen_aliases()
-    _new = [x for x in sorted(_gen) if x not in reg]
-    _admit = _new[:MAX_EXPAND]
+    _seen = set(cache)
+    _readmit = [x for x in _gen if x not in reg and x in _seen]
+    _fresh = [x for x in sorted(_gen) if x not in reg and x not in _seen]
+    _admit = _readmit + _fresh[:MAX_EXPAND]
+    print(f"[vault] expansion: {len(_gen)} aliases · re-admit {len(_readmit)} "
+          f"cached · {len(_fresh)} unseen · spending budget on "
+          f"{len(_fresh[:MAX_EXPAND])}")
     for _s in _admit:
         reg[_s] = {"symbol": _s, "n_notes": 0, "exchanges": set(),
                    "note_ids": [], "note_snippet": ""}
-    print(f"[vault] universe expansion: {len(_gen)} generated aliases, "
-          f"{len(_new)} not yet admitted, admitting {len(_admit)} this run")
+
     rows, fmp_syms = [], []
     for sym, r in reg.items():
         ex = set(r["exchanges"])
