@@ -1,15 +1,33 @@
-executing-against: 157874263159940bd6ac41219bd3a0b0959ad2e8
-ops 4106 — working + rendering
-── A. harvest vitals (v1.8.3 features live?) ──
-[22:57:09]   DIAG: {"started": 1785365650561, "done": 93, "total": 10116, "sc_ok": 93, "sc_err": 0, "sc2_ok": 93, "sc2_err": 0, "ss_ok": 0, "ss_err": 0, "matched": 5, "first_err": "", "tier1_done": 93, "rate_per_min": 79.7, "elapsed_s": 70, "delay_ms": 700, "wall_events": 0, "recoveries": 1, "max_delay": 0, "streak_err": 0, "paused_s": 0, "econ_probe": [{"s
-── B. source-map purity ──
-[22:57:09]   NEW    2  US
-── C. pages — workbench + BY WATCHLIST render join ──
-[22:57:10]   STATUS DISTRIBUTION: {"PENDING_RESOLUTION": 8513, "LIVE": 1544, "NO_FREE_SOURCE": 260, "DISCONTINUED": 2}
-[22:57:10] ✅   v1.8.3 self-test visible in diag
-[22:57:10] ✅   BY WATCHLIST join complete (0 unjoined)
-[22:57:10] ✅   491 lists
-[22:57:10] ✅   edge page markers 2/2
-[22:57:10] ✅ PASS_ALL — store 236, 0 agency slugs, union 10319 fully joined, statuses honest
+executing-against: 5ca62405671cdb17342441a11f4b5ff40f1ff92b
+ops 4107 — attribution coverage right now
+[23:51:52]   DIAG: {"started": 1785365650561, "done": 1168, "total": 10116, "sc_ok": 1147, "sc_err": 21, "sc2_ok": 1147, "sc2_err": 21, "ss_ok": 0, "ss_err": 5, "matched": 60, "first_err": "sc2:TypeError: Failed to fetch", "tier1_done": 1168, "rate_per_min": 26.4, "elapsed_s": 2652, "delay_ms": 44880, "wall_events": 0, "recoveries": 13, 
+── distinct sources seen (normalized) ──
+[23:51:52]      62  AMEX
+[23:51:52]      62  tvc
+[23:51:52]      48  NASDAQ
+[23:51:52]      45  CBOE
+[23:51:52]      16  CRYPTOCAP
+[23:51:52]       8  NYSE
+[23:51:52]       5  EURONEXT
+[23:51:52]       2  US
+[23:51:52]       2  TSX
+[23:51:52]       2  OMXCOP
+[23:51:52]       2  ICEUS
+[23:51:52]       1  SIX
+[23:51:52]       1  OSE
+[23:51:52]       1  HKEX
+[23:51:52]       1  LSE
+[23:51:52]       1  COMEX
+[23:51:52]       1  GPW
+[23:51:52]       1  OMXSTO
+[23:51:52]       1  NYMEX
+[23:51:52]       1  FTSE
+[23:51:52]       1  XETR
+[23:51:52]       1  CME_MINI
+[23:51:52]       1  OMXHEX
+[23:51:52]       1  EUREX
+[23:51:52]       1  HOSE
+── ECONOMICS agencies seen ──
+[23:51:52] ✅ COVERAGE — 273/10319 attributed (2.6%), 30 distinct, 0 economics rows
 
-→ Report written to aws/ops/reports/latest/4106_working_rendering.md
+→ Report written to aws/ops/reports/latest/4107_attr_coverage.md
