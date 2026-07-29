@@ -23,14 +23,16 @@
     sym = String(sym || "").trim();
     src = String(src || "").trim();
     if (!sym || !src || src.length > 120) return;
+    if (JUNK_RX.test(src)) return;   // v1.7.5: template internals are not attribution
     var cur = SRCS.get(sym) || {};
     if (SRCS.size && SRCS.size % 40 === 0) saveSrcs();
     SRCS.set(sym, { source: src.slice(0, 120),
                     description: String(desc || cur.description || "").slice(0, 160) });
   }
-  var HRX = [/"source"\s*:\s*"([^"]{2,90})"/,
-             /"source_description"\s*:\s*"([^"]{2,120})"/,
-             /"source-description"\s*:\s*"([^"]{2,120})"/];
+  var HRX = [/"source_description"\s*:\s*"([^"]{2,120})"/,
+             /"source-description"\s*:\s*"([^"]{2,120})"/,
+             /"source"\s*:\s*"([^"]{2,90})"/];
+  var JUNK_RX = /^[a-z0-9_]{3,}$/;   // django_model-class template strings
   var DRX = /"description"\s*:\s*"([^"]{2,140})"/;
   function fromHtml(sym, text) {
     for (var i = 0; i < HRX.length; i++) {

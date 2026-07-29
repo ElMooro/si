@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "tv-workbench v1.1.3 ops4041 count-rail"
+MARKER = "tv-workbench v1.2 ops4063 junk-filter"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/tv-workbench.json"
 s3 = boto3.client("s3")
@@ -75,10 +75,13 @@ def lambda_handler(event, context):
     vidx = {r.get("symbol"): r for r in vault.get("symbols") or []}
     smap = srcs.get("sources") or {}
 
+    JUNK_RX = re.compile(r"^[a-z0-9_]{3,}$")
+
     def attribution(key, bare):
         for k in (key, bare):
             v = smap.get(k)
-            if isinstance(v, dict) and v.get("source"):
+            if isinstance(v, dict) and v.get("source") \
+                    and not JUNK_RX.match(v["source"]):
                 return v.get("source"), v.get("description") or ""
         return None, ""
 
