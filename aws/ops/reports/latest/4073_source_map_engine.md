@@ -1,0 +1,78 @@
+# ops 4073 — source-map promoted to a scheduled engine
+
+**Status:** failure  
+**Duration:** 174.3s  
+**Finished:** 2026-07-29T02:48:30+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| agency_rows | bytes | created | econ | edge_zip | junk | keys | marker | s3_zip | schedule | sourced | state | unrendered | venue_rows |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  | 3549 | False |  |  |  |  |  |  |  |  |  |  |  |
+| 0 |  |  | 0 |  | 18 |  | source-map engine v2.0 ops4073 |  |  | 170 |  |  | 138 |
+|  |  |  |  |  |  |  |  |  | source-map-daily |  | ENABLED |  |  |
+|  |  |  |  |  |  | 13 |  |  |  |  |  | 0 |  |
+|  |  |  |  | 1.4.0 |  |  |  | 1.7.8 |  |  |  |  |  |
+
+## Log
+## A. create/update the function
+
+- `02:45:36`   donor justhodl-tv-workbench: role/runtime discovered
+- `02:45:37`   ✓ updated justhodl-source-map
+## B. settle by marker inside the deployed artifact
+
+- `02:45:47`   ✓ marker present in deployed zip (attempt 2)
+## C. invoke and read the live artifact
+
+- `02:45:48`   invoke status=200 fnerr=None
+- `02:45:48`   payload: {"statusCode": 200, "body": "{\"symbols_with_source\": 170, \"agency_rows\": 0, \"economics_symbols\": 0}"}
+- `02:45:49`   walk: 437/10319 (4.2%) tier1=None rate=None/min eta=Noneh
+## Agency families attested so far
+
+- `02:45:49`   (none yet — expected: the walk had not reached the ECONOMICS tier when this ran. v1.7.8 changes that.)
+- `02:45:49`   venue rows (low-information): 138
+## D. schedule
+
+- `02:45:49`   ✓ created schedule source-map-daily
+- `02:45:49`   state=ENABLED expr=cron(20 12 * * ? *)
+## E. field-coverage audit against harvest-monitor.html
+
+- `02:45:49`   ✓ agency_families
+- `02:45:49`   ✓ agency_rows
+- `02:45:49`   ✓ distinct_sources
+- `02:45:49`   ✓ economics_agencies
+- `02:45:49`   ✓ economics_symbols
+- `02:45:49`   · generated_at
+- `02:45:49`   ✓ harvest_progress
+- `02:45:49`   ✓ junk_purged
+- `02:45:49`   ✓ known_families
+- `02:45:49`   · marker
+- `02:45:49`   ✓ new_sources
+- `02:45:49`   ✓ symbols_with_source
+- `02:45:49`   ✓ venue_rows
+## F. extension zip — S3 vs the Pages copy at the edge
+
+- `02:45:49`   S3 zip version   : 1.7.8
+- `02:48:30`   edge zip version : 1.4.0
+## VERDICT
+
+- `02:48:30`   ✓ deployed artifact carries the marker
+- `02:48:30`   ✓ invoke clean
+- `02:48:30`   ✓ artifact rewritten by the ENGINE, not an ops script
+- `02:48:30`   ✓ artifact carries `generated_at`
+- `02:48:30`   ✓ artifact carries `known_families`
+- `02:48:30`   ✓ artifact carries `agency_families`
+- `02:48:30`   ✓ artifact carries `economics_agencies`
+- `02:48:30`   ✓ artifact carries `harvest_progress`
+- `02:48:30`   ✓ artifact carries `new_sources`
+- `02:48:30`   ✓ schedule armed and ENABLED (verified, not declared)
+- `02:48:30`   ✓ every shipped key is rendered (13/13)
+- `02:48:30`   ✓ S3 zip is v1.7.8
+- `02:48:30`   ✗ edge (Pages) zip matches S3 — decoy closed
+- `02:48:30` ✗ FAILED: ['edge (Pages) zip matches S3 — decoy closed']
