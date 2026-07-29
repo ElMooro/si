@@ -1,92 +1,55 @@
-executing-against: ed57c0a4e5e3e589074e89a700c0e5a8dd806041
-ops 4084 — AUDIT: is every imported ticker FETCHABLE?
-── A. imported ticker universe ──
-[06:31:23]   watchlists: 491   unique tickers: 10319
-[06:31:23]        500  71699273
-[06:31:23]        500  82604570
-[06:31:23]        500  Black Swan Event
-[06:31:23]        500  Bottom Indicators
-[06:31:23]        500  FTSE
-[06:31:23]        500  Red list
-[06:31:23]        437  Bitcoin : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.
-[06:31:23]        434  TOP
-[06:31:23]        433  Watchlist
-[06:31:23]        373  Top Indicators
-[06:31:23]        359  Global Liquidity Trend Reversal
-[06:31:23]        327  Crypto : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.
-[06:31:23]        324  68114374
-[06:31:23]        273  Brent Johnson Portfolio: THE SHORTTERM SWINGS MIGHT GRAB HEADLINES BUT THE LONG TERM TRAJECTORY IS UMISTAKABLE.
-[06:31:23]   distinct namespaces: 172
-── B. namespace breakdown (top 25) ──
-[06:31:23]     3317  ECONOMICS
-[06:31:23]     1535  NASDAQ
-[06:31:23]      765  FRED
-[06:31:23]      653  AMEX
-[06:31:23]      455  FTSE
-[06:31:23]      371  TVC
-[06:31:23]      330  INDEX
-[06:31:23]      277  NYSE
-[06:31:23]      229  COT3
-[06:31:23]      169  CBOE
-[06:31:23]      151  FX_IDC
-[06:31:23]      150  INTOTHEBLOCK
-[06:31:23]      143  USI
-[06:31:23]      111  COT
-[06:31:23]      107  SGX
-[06:31:23]       87  DJ
-[06:31:23]       65  LSE
-[06:31:23]       62  GLASSNODE
-[06:31:23]       61  SSE
-[06:31:23]       59  EURONEXT
-[06:31:23]       58  SWB
-[06:31:23]       52  HSI
-[06:31:23]       50  ICEEUR
-[06:31:23]       42  CME
-[06:31:23]       42  EUREX
-── C. vault: what is fetchable RIGHT NOW ──
-[06:31:23]   vault rows 591   LIVE 480
-[06:31:23]   adapters: fmp 179, (none) 121, fred 107, yahoo 59, mofjp 3, ecb 2, norges 2, bcb 2, bcrp 2, poly 1, ust 1, boj 1
-[06:31:23]   imported tickers with a LIVE vault row: 535
-── D. route classification for every imported ticker ──
-[06:31:23]     4369  macro-needs-mapping
-[06:31:23]     2959  equity-api
-[06:31:23]     1446  UNROUTED
-[06:31:23]      957  fx-index-api
-[06:31:23]      535  vault-live
-[06:31:23]       53  crypto-api
-[06:31:23]   → plausibly fetchable today : 4504 (43.6%)
-[06:31:23]   → macro needing a series map: 4369
-[06:31:23]   → no route at all           : 1446
-── E. the UNROUTED tail — which namespaces? ──
-[06:31:23]      455  FTSE
-[06:31:23]      151  CBOE
-[06:31:23]      150  INTOTHEBLOCK
-[06:31:23]       62  GLASSNODE
-[06:31:23]       58  SWB
-[06:31:23]       52  HSI
-[06:31:23]       40  CBOEEU
-[06:31:23]       33  TRADEGATE
-[06:31:23]       29  CSEMA
-[06:31:23]       20  OMXNORDIC
-[06:31:23]       17  BER
-[06:31:23]       16  CME_MINI
-[06:31:23]       16  GETTEX
-[06:31:23]       14  DFM
-[06:31:23]       14  1-TVC
-[06:31:23]       13  ADX
-[06:31:23]       12  DJCFD
-[06:31:23]       12  SPARKS
-[06:31:23]       12  MULTPL
-[06:31:23]       12  TSE
-[06:31:23]   sample: CBOE:BMNU, CBOE:SBTU, OKEX:CVXUSDT, DJCFD:DE30, OMXBALTIC:B55PI, CBOE:FDEM, TRADEGATE:FJ2B, TRADEGATE:FJ25, NEO:FGRO, SWB:FJ2B, SWB:FJ2F, SWB:FJ25
-── F. macro: attribution ledger vs fetchability ──
-[06:31:23]   macro symbols attributed so far: 239
-[06:31:23]   ...of which carry a FRED series id (=> FETCHABLE): 234
-[06:31:23]   NOTE: a FRED-routed macro symbol is not just labelled, it is
-[06:31:23]   pullable — the series id is the fetch key. That is the bridge
-[06:31:23]   from 'who publishes this' to 'my system can chart this'.
-── VERDICT — where the real work is ──
-[06:31:23]   universe 10319 · fetchable-ish 4504 · macro-gap 4369 · unrouted 1446
-[06:31:23]   AUDIT ONLY — no engine code written.
+executing-against: f796320e50af51d27a98f931be4c3790e34cd8f8
+ops 4085 — STEP 1: FRED tickers fetchable + descs pipe
+── A. deploy justhodl-symbol-resolver ──
+[06:41:18]   ✓ CREATED justhodl-symbol-resolver (env ['FRED_KEY'])
+[06:41:29]   ✓ justhodl-symbol-resolver settled by marker (attempt 2)
+── B. invoke — verify FRED ids against the FRED API ──
+[06:44:59]   status=200 fnerr=None
+[06:44:59]   {"statusCode": 200, "body": "{\"fred_verified\": 354, \"verified_this_run\": 354, \"dead\": 46}"}
+── Sample verified aliases (real, pullable series) ──
+[06:44:59]   A053RC1Q027SBEA        → fred:A053RC1Q027SBEA       National income: Corporate profits before ta
+[06:44:59]   A072RC1Q156SBEA        → fred:A072RC1Q156SBEA       Personal saving as a percentage of disposabl
+[06:44:59]   A14187USA163NNBR       → fred:A14187USA163NNBR      Velocity of Money Stock for United States
+[06:44:59]   A34SNO                 → fred:A34SNO                Manufacturers' New Orders: Computers and Ele
+[06:44:59]   A794RX0Q048SBEA        → fred:A794RX0Q048SBEA       Real personal consumption expenditures per c
+[06:44:59]   AAA                    → fred:AAA                   Moody's Seasoned Aaa Corporate Bond Yield
+[06:44:59]   AAA10Y                 → fred:AAA10Y                Moody's Seasoned Aaa Corporate Bond Yield Re
+[06:44:59]   AAAFF                  → fred:AAAFF                 Moody's Seasoned Aaa Corporate Bond Minus Fe
+[06:44:59]   ACDGNO                 → fred:ACDGNO                Manufacturers' New Orders: Consumer Durable 
+[06:44:59]   ACOGNO                 → fred:ACOGNO                Manufacturers' New Orders: Consumer Goods
+[06:44:59]   ACTLISCOUUS            → fred:ACTLISCOUUS           Housing Inventory: Active Listing Count in t
+[06:44:59]   ADXTNO                 → fred:ADXTNO                Manufacturers' New Orders: Durable Goods Exc
+── C. vault v3.11.0 consumes the generated aliases ──
+[06:45:00]   ✓ updated justhodl-tradingview
+[06:45:11]   ✓ justhodl-tradingview settled by marker (attempt 2)
+[06:46:51]   vault invoke fnerr=None
+[06:46:51]   {"ok": true, "n_symbols": 591, "n_live": 480, "n_cached": 229, "fred_calls": 107, "coverage_pct": 81.2}
+[06:46:51]   vault rows 591  LIVE 480
+── D. ingest v-descs (step 2 prerequisite) ──
+[06:46:52]   ✓ updated justhodl-tv-notes-ingest
+[06:47:03]   ✓ justhodl-tv-notes-ingest settled by marker (attempt 2)
+── E. extension v1.8.1 — descriptions captured ──
+── F. schedule the resolver ──
+[06:47:04]   ✓ created symbol-resolver-daily
+[06:47:04]   state=ENABLED expr=cron(50 11 * * ? *) (before the vault's 11:35 so aliases are fresh)
+── VERDICT ──
+[06:47:04]   ✓ resolver settled
+[06:47:04]   ✓ invoke clean
+[06:47:04]   ✓ aliases produced
+[06:47:04]   ✓ every alias was FRED-verified (confidence 1.0)
+[06:47:04]   ✓ every alias carries a real series title
+[06:47:04]   ✓ no ECONOMICS guesswork shipped in step 1
+[06:47:04]   ✓ vault settled
+[06:47:04]   ✓ vault invoke clean
+[06:47:04]   ✓ vault still healthy after the alias layer
+[06:47:04]   ✓ ingest settled with _save_descs
+[06:47:04]   ✓ extension v1.8.1
+[06:47:04]   ✓ descriptions captured when source is null
+[06:47:04]   ✓ descs shipped in the sync payload
+[06:47:04]   ✓ background forwards descs
+[06:47:04]   ✓ v1.8.0 AIMD backoff not regressed
+[06:47:04]   ✓ priority walk not regressed
+[06:47:04]   ✓ resolver schedule ENABLED
+[06:47:04] ✅ PASS_ALL — 354 FRED tickers verified and aliased; ledger accretes toward 765. Descriptions now captured for step 2.
 
-→ Report written to aws/ops/reports/latest/4084_coverage_audit.md
+→ Report written to aws/ops/reports/latest/4085_step1_fred_aliases.md
