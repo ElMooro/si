@@ -344,11 +344,21 @@
 
   function onOk() {
     DIAG.streak_err = 0;
+    /* v1.8.3 streak-halving: 8 consecutive successes halve the delay.
+     * Linear -30ms recovery meant ~70 min limping back from a transient
+     * error burst; halving makes it ~1 min. */
+    DIAG.streak_ok = (DIAG.streak_ok || 0) + 1;
+    if (DIAG.streak_ok >= 8 && DELAY > D_MIN) {
+      DIAG.streak_ok = 0;
+      DELAY = Math.max(D_MIN, Math.round(DELAY / 2));
+      DIAG.recoveries++;
+    }
     if (DELAY > D_MIN) DELAY = Math.max(D_MIN, DELAY - D_STEP);
     DIAG.delay_ms = DELAY;
   }
   function onErr() {
     DIAG.streak_err++;
+    DIAG.streak_ok = 0;
     DELAY = Math.min(D_MAX, Math.round(DELAY * 2));
     DIAG.delay_ms = DELAY;
     if (DELAY > DIAG.max_delay) DIAG.max_delay = DELAY;
@@ -374,6 +384,41 @@
     if (HRUN || !syms.length) return;
     HRUN = true;
     DIAG.started = Date.now(); DIAG.total = syms.length; DIAG.done = 0;
+    /* v1.8.3 self-test: instant proof-of-life. Three known-good probes
+     * through the live scanner route; verdict on the badge in ~8s and
+     * synced server-side immediately, so the monitor answers "is it
+     * working?" within a minute of harvest start. */
+    var PROBES = ["AMEX:SPY", "NASDAQ:AAPL", "ECONOMICS:USINTR"];
+    DIAG.selftest = { n: PROBES.length, matched: -1 };
+    PROBES.forEach(function (ps) { SRCS.delete(ps); });
+    PROBES.forEach(function (ps) {
+      var pu = "https://scanner.tradingview.com/symbol?symbol=" +
+        encodeURIComponent(ps) +
+        "&fields=source,source_description,source-description," +
+        "source-logoid,description,type&no_404=true";
+      chrome.runtime.sendMessage({ action: "ssfetch", url: pu },
+        function (resp) {
+          if (resp && resp.ok) {
+            try { resp.j.symbol = ps; } catch (e) {}
+            sniffSources(resp.j, 0);
+          }
+        });
+    });
+    setTimeout(function () {
+      var hit = PROBES.filter(function (ps) {
+        return SRCS.has(ps); }).length;
+      DIAG.selftest.matched = hit;
+      if (hit > 0) {
+        msg("SELF-TEST \u2713 " + hit + "/" + PROBES.length +
+            " \u2014 capture verified, walking " + DIAG.total +
+            " symbols\u2026", "#4CC38A");
+      } else {
+        msg("SELF-TEST \u2717 0/" + PROBES.length +
+            " \u2014 NOT capturing \u00b7 first_err: " +
+            (DIAG.first_err || "none"), "#E07A6A");
+      }
+      try { upload(); } catch (e) {}
+    }, 8000);
     var i = 0;
     function step() {
       if (i >= syms.length) {
