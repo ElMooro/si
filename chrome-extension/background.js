@@ -43,6 +43,16 @@ chrome.runtime.onInstalled.addListener(async () => {
 
 // ── Message handler ───────────────────────────────────────────────────────────
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg && msg.action === "ssfetch") {
+    // v1.7.6: MV3 content scripts lost cross-origin fetch — symsearch was
+    // 0/2142 with "Failed to fetch". The service worker has the
+    // host_permissions; proxy the call here.
+    fetch(msg.url, { credentials: "include" })
+      .then(r => r.json())
+      .then(j => sendResponse({ ok: 1, j }))
+      .catch(e => sendResponse({ ok: 0, e: String(e).slice(0, 120) }));
+    return true;
+  }
   switch (msg.action) {
 
     case 'upload':

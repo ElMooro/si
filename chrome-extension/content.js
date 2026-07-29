@@ -29,7 +29,8 @@
     SRCS.set(sym, { source: src.slice(0, 120),
                     description: String(desc || cur.description || "").slice(0, 160) });
   }
-  var HRX = [/"source_description"\s*:\s*"([^"]{2,120})"/,
+  var HRX = [/"source"\s*:\s*\{[^{}]{0,200}?"description"\s*:\s*"([^"]{2,120})"/,
+             /"source_description"\s*:\s*"([^"]{2,120})"/,
              /"source-description"\s*:\s*"([^"]{2,120})"/,
              /"source"\s*:\s*"([^"]{2,90})"/];
   var JUNK_RX = /^[a-z0-9_]{3,}$/;   // django_model-class template strings
@@ -54,7 +55,13 @@
   try {
     chrome.storage.local.get(["jh_srcs"], function (r) {
       var o = (r && r.jh_srcs) || {};
-      Object.keys(o).forEach(function (k) { if (!SRCS.has(k)) SRCS.set(k, o[k]); });
+      var purged = 0;
+      Object.keys(o).forEach(function (k) {
+        var v = o[k] || {};
+        if (JUNK_RX.test(String(v.source || ""))) { purged++; return; }
+        if (!SRCS.has(k)) SRCS.set(k, v);
+      });
+      if (purged) { saveSrcs(); }
     });
   } catch (e) {}
   function allWatchlistSymbols() {
@@ -284,14 +291,18 @@
       var sym = syms[i++];
       var bare = String(sym).split(":").pop();
       var before = SRCS.size;
-      fetch("https://symbol-search.tradingview.com/symbol_search/v3/?text=" +
-            encodeURIComponent(bare) + "&hl=0&lang=en&domain=production",
-            { credentials: "include" })
-        .then(function (r) { return r.json(); })
-        .then(function (j) { DIAG.ss_ok++; sniffSources(j, 0); })
-        .catch(function (e) {
-          DIAG.ss_err++;
-          if (!DIAG.first_err) DIAG.first_err = "ss:" + String(e).slice(0, 90);
+      chrome.runtime.sendMessage(
+        { action: "ssfetch",
+          url: "https://symbol-search.tradingview.com/symbol_search/v3/?text=" +
+               encodeURIComponent(bare) + "&hl=0&lang=en&domain=production" },
+        function (resp) {
+          if (resp && resp.ok) { DIAG.ss_ok++; sniffSources(resp.j, 0); }
+          else {
+            DIAG.ss_err++;
+            if (!DIAG.first_err)
+              DIAG.first_err = "ss:" + String((resp && resp.e) ||
+                                              "no-response").slice(0, 90);
+          }
         });
       fetch("https://www.tradingview.com/symbols/" +
             String(sym).replace(":", "-") + "/",
