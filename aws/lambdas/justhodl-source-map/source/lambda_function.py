@@ -31,7 +31,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "source-map engine v2.0 ops4073"
+MARKER = "source-map engine v2.1 ops4083"
 BUCKET = "justhodl-dashboard-live"
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -156,6 +156,28 @@ def lambda_handler(event, context):
 
     agency_families = {f: n for f, n in known_ct.items()
                        if f not in NON_AGENCY}
+
+    # v2.1 — MACRO JOIN. TradingView returns source=null for its entire
+    # macro namespace (ops 4081), so agency attribution for ECONOMICS/FRED
+    # symbols cannot come from the harvester at all. justhodl-macro-
+    # attribution resolves it from FRED's own series/release/sources
+    # metadata and the vault's government adapters. Merged here so the
+    # page shows one honest agency picture instead of a browser-only view
+    # that is structurally stuck at zero.
+    ma = gj("data/macro-attribution.json", {}) or {}
+    macro_attr = ma.get("attribution") or {}
+    macro_fams = Counter()
+    for sym, v in macro_attr.items():
+        macro_fams[v.get("family") or "OTHER-OFFICIAL"] += 1
+    for f, n in macro_fams.items():
+        agency_families[f] = agency_families.get(f, 0) + n
+    for row in (ma.get("by_publisher") or [])[:40]:
+        economics_agencies.append({"source": row.get("publisher"),
+                                   "n_symbols": row.get("n_symbols"),
+                                   "family": row.get("family")})
+    econ_count_extra = len(macro_attr)
+    macro_unattributed = ma.get("unattributed") or 0
+
     agency_rows = sum(agency_families.values())
 
     # ── 4. is the walk actually reaching the payoff? ──
@@ -184,7 +206,10 @@ def lambda_handler(event, context):
         "agency_rows": agency_rows,
         "venue_rows": known_ct.get("MARKET-VENUES", 0),
         "economics_agencies": economics_agencies,
-        "economics_symbols": len(econ),
+        "economics_symbols": len(econ) + econ_count_extra,
+        "macro_attributed": econ_count_extra,
+        "macro_unattributed": macro_unattributed,
+        "macro_coverage_pct": ma.get("coverage_pct"),
         "harvest_progress": progress,
         "new_sources": new_rows,
     }

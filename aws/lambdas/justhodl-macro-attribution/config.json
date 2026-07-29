@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-macro-attribution",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Resolves macro symbols to their REAL publishing agency via FRED series/release/sources metadata and the TV vault's government adapters. Symbols resolvable only by country+topic inference are reported UNATTRIBUTED, never guessed.",
+  "environment": {},
+  "inherit_env": [{ "from_function": "justhodl-tv-workbench", "keys": ["FRED_KEY"] }]
+}
