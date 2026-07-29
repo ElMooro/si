@@ -1,0 +1,14 @@
+{
+  "function_name": "justhodl-source-map",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 120,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Attribution rollup: normalises TV source attribution, purges logoid junk, and rolls it into agency families + the ECONOMICS-to-agency payoff map. Promoted from a hand-run ops script (ops 4071 found source-map.json had no producer and no schedule).",
+  "environment": {}
+}
