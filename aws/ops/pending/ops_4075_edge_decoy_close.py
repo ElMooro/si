@@ -1,4 +1,4 @@
-"""ops_4074 — close the extension-zip decoy, end to end.
+"""ops_4075 — close the extension-zip decoy, end to end.
 
 ops 4072/4073 found justhodl.ai/tools/jh-tv-extension.zip serving v1.4.0
 (ops 3162 — no autoStart, no harvester) while S3 held v1.7.8.  Root cause
@@ -52,7 +52,7 @@ def fetch(url, tag):
 
 
 def main():
-    with report("4074_edge_decoy_close") as rep:
+    with report("4075_edge_decoy_close") as rep:
         rep.heading("ops 4074 — extension zip: origin vs edge vs install path")
         checks = []
 
@@ -77,8 +77,18 @@ def main():
                        and b"s3.us-east-1.amazonaws.com" in ps1))
         checks.append((".ps1 still caret-free (the v2 bug class)",
                        b"^" not in ps1))
-        checks.append((".ps1 loads the extension + makes the shortcut",
-                       b"load-extension" in ps1 and b"CreateShortcut" in ps1))
+        # CORRECTED (ops 4074 failed this on a wrong assertion, not a real
+        # defect): Google removed silent --load-extension in 2025, so the
+        # installer legitimately moved to expand -> open Explorer at the
+        # folder -> open chrome://extensions for a one-time Load unpacked.
+        # Asserting the old flag would have forced a "fix" that reverted a
+        # correct evolution.
+        checks.append((".ps1 expands to a stable folder and drives the "
+                       "Load-unpacked flow",
+                       b"JustHodl" in ps1 and b"Expand-Archive" in ps1
+                       and b"chrome://extensions" in ps1))
+        checks.append((".ps1 writes the desktop shortcut (all desktop roots)",
+                       b"CreateShortcut" in ps1 and b"OneDrive" in ps1))
         rep.log("  → re-running the .bat already on his machine pulls v1.7.8; "
                 "the stub pattern means no re-download was ever needed")
 
