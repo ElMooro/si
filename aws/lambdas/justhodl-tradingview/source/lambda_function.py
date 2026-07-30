@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.15.5 ops4125 corridor"
+MARKER = "tradingview-vault v3.15.6 ops4126 trust-cache"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1360,6 +1360,16 @@ def lambda_handler(event, context):
         pass
     PH("families-preflight-done")
     force = bool((event or {}).get("force"))
+    try:
+        _age_h = (datetime.now(timezone.utc)
+                  - datetime.fromisoformat(str(prev.get("generated_at")))
+                  ).total_seconds() / 3600
+    except Exception:
+        _age_h = 999.0
+    CACHE_FRESH = _age_h < 26
+    REV_SLOT = int(time.time() // 86400) % 12
+    _rev_spent = 0.0
+    PH("cache age_h=%.1f fresh=%s slot=%d" % (_age_h, CACHE_FRESH, REV_SLOT))
     PH("main-loop-start")
     for row in rows:
         sym = row["symbol"]
@@ -1412,8 +1422,9 @@ def lambda_handler(event, context):
             continue
         if not c:
             attempted += 1
-            if attempted % 10 == 0:
-                PH("loop attempted=%d" % attempted)
+            if attempted <= 12 or attempted % 25 == 0:
+                PH("iter %d sym=%s via=%s" % (attempted, sym,
+                                              c.get("resolved_via")))
         if row["source"] == "fmp" and sym in fmp_vals:
             row.update(fmp_vals[sym])
             row["status"] = "LIVE"
@@ -1421,8 +1432,30 @@ def lambda_handler(event, context):
             n_live += 1
         else:
             rv = c.get("resolved_via")
-            v = resolve_direct(rv) if (rv and rv != "fmp" and c.get("status") == "LIVE"
-                                       and not force) else None
+            # ops4126 TRUST-THE-CACHE — the measured 900s hog: <10 network
+            # re-verifications completed in 895s (~90s+/symbol). Fresh
+            # cache (<26h) passes through untouched; a rotating slice
+            # (attempted %% 12 == daily slot) still re-verifies, under a
+            # 120s wall budget, so staleness can't hide and a hanging
+            # adapter names itself in slow-prints instead of killing runs.
+            _cok = (rv and rv != "fmp" and c.get("status") == "LIVE"
+                    and not force)
+            _rev = (_cok and ((not CACHE_FRESH)
+                              or (attempted % 12 == REV_SLOT))
+                    and _rev_spent < 120.0)
+            v = None
+            if _cok and not _rev:
+                v = {k: c[k] for k in ("value", "prev", "chg_pct", "asof")
+                     if k in c}
+                row["resolution_note"] = ("cache<26h" if CACHE_FRESH
+                                          else "cache-passthrough (rev-budget)")
+            elif _cok:
+                _rt = time.time()
+                v = resolve_direct(rv)
+                _dt = time.time() - _rt
+                _rev_spent += _dt
+                if _dt > 3:
+                    PH("slow sym=%s via=%s %.1fs" % (sym, rv, _dt))
             if v:
                 row.update(v)
                 row["status"] = "LIVE"
