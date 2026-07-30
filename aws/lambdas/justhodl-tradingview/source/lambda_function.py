@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.19.0 ops4145 mfs-families"
+MARKER = "tradingview-vault v3.19.1 ops4147 nfs-thaw"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1477,6 +1477,13 @@ def lambda_handler(event, context):
                     if k in c:
                         row[k] = c[k]
                 row["cached"] = True
+                if row["status"] == "NO_FREE_SOURCE":
+                    # ops4147 NFS-THAW: a frozen NO_FREE_SOURCE row whose
+                    # symbol a family can now serve gets flipped here —
+                    # the 27-day retry gate must never outrank real data.
+                    _fh = _family_try(row)
+                    if _fh:
+                        row.update(_fh)
                 if row["status"] == "LIVE":
                     n_live += 1
                 n_cached += 1
