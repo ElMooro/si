@@ -1,54 +1,18 @@
-executing-against: 8d5ba1837e1785f4bb6ad3f452b4288e8f61aa6b
-ops 4145 — real-id round-2 wire
-── A. indicator census + code picks ──
-[16:55:28]   MFS_DC: 91 monthly indicators; top:
-[16:55:28]      303  DCORP_L_BM
-[16:55:28]      178  ODCORP_A_ACO_NRES
-[16:55:28]      178  ODCORP_A_ACO_PS
-[16:55:28]      178  ODCORP_A_ACO_S12R
-[16:55:28]      178  ODCORP_A_ACO_S1311MIXED
-[16:55:28]      178  ODCORP_A_ACO_S13M1
-[16:55:28]      178  ODCORP_A_F21_ACO_S121
-[16:55:28]      178  ODCORP_A_F2MSOTS_RR_ACO_S121
-[16:55:28]      178  ODCORP_A_OCO_S121
-[16:55:28]      178  ODCORP_L_F22_IBM
-[16:55:28]      178  ODCORP_L_F29_IBM
-[16:55:28]      178  ODCORP_L_F2M_XBM
-[16:55:28]      178  ODCORP_L_F3_IBM
-[16:55:28]      178  ODCORP_L_F3_XBM
-[16:55:55]   MFS_CBS: 58 monthly indicators; top:
-[16:55:55]      177  S121_A_OFAIL_ACO_NRES_FC_CBS
-[16:55:55]      175  S121_L_IL_LT_NRES_CBS
-[16:55:55]      174  S121_A_ACO_NRES_CBS
-[16:55:55]      174  S121_A_ACO_ODCORP_CBS
-[16:55:55]      174  S121_A_ACO_PS_CBS
-[16:55:55]      174  S121_A_ACO_S12R_CBS
-[16:55:55]      174  S121_A_ACO_S1311MIXED_CBS
-[16:55:55]      174  S121_A_ACO_S13M1_CBS
-[16:55:55]      174  S121_A_ACO_S1_Z_CBS
-[16:55:55]      174  S121_L_IMB_LT_ODCORP_CBS
-[16:55:55]      174  S121_L_IMB_LT_S1_Z_CBS
-[16:55:55]      174  S121_L_LT_NRES_CBS
-[16:55:55]      174  S121_L_LT_S1311MIXED_CBS
-[16:55:55]      174  S121_L_OLT_ODCORP_CBS
-── B. bulk proofs ──
-[16:55:56]   BULK MFS_DC/.DCORP_A_ACO_PS.XDC.M -> countries=146 JPN=771655200000000 BRA=8861998144914.38
-[16:55:56]   BULK MFS_CBS/.S121_A_TA_ASEC_CB1SR.XDC.M -> countries=146 JPN=731110200000000 BRA=5027289480000
-[16:55:57]   BULK MFS_CBS/.S121_L_MB_CBS.XDC.M -> countries=146 JPN=582652600000000 BRA=1399128320000
-── C. families-feed v1.1 self-patch + deploy ──
-[16:56:13] ✅   justhodl-families-feed settled at loop 1
-── D. vault FAM_RX widen + settle + invoke ──
-[17:01:50] ✗   justhodl-tradingview never settled
-[17:01:50] ✅   vault fired async — artifact lands ~t+610s; next op reads it
-[17:01:50] ✅   LG bulk >=60
-[17:01:50] ✅   CBBS bulk >=40
-[17:01:50] ✅   M0 bulk >=40
-[17:01:50] ✅   feed v1.1 settled
-[17:01:50] ✅   LG >= 40
-[17:01:50] ✅   CBBS >= 40
-[17:01:50] ✅   M0 >= 40
-[17:01:50] ✗   vault v3.19.0 settled
-[17:01:50] ✗ FAILED: ['vault v3.19.0 settled']
+executing-against: 916fec112f6481df402c125aa7d7bf9ea64d6e64
+ops 4146 — v3.19.0 settle, fire, gate
+[17:05:41] ✅   update accepted (attempt 0)
+[17:05:41]   [0] ('Active', 'InProgress', 'The function is being created.')
+[17:05:50] ✅   settled at loop 1
+[17:12:12] ✅   artifact v3.19.0 after ~375s
+[17:12:12]   spot JPLG: LIVE v=7.07 src=bank-of-japan
+[17:12:12]   spot BRCBBS: LIVE v=5027289480000.0 src=imf:MFS_CBS TA (family)
+[17:12:12]   spot JPM0: NO_FREE_SOURCE v=None src=unresolved_economics
+[17:12:12] ✗   imf family-src >=300 (FER+LG+CBBS+M0)
+[17:12:12] ✅   total LIVE >= 3300
+[17:12:12] ✗   spot JPLG LIVE&plausible
+[17:12:12] ✅   spot BRCBBS LIVE&plausible
+[17:12:12] ✗   spot JPM0 LIVE&plausible
+[17:12:12] ✗ FAILED: ['imf family-src >=300 (FER+LG+CBBS+M0)', 'spot JPLG LIVE&plausible', 'spot JPM0 LIVE&plausible']
 
-→ Report written to aws/ops/reports/latest/4145_realids_wire.md
-❌ OPS-FAIL: aws/ops/pending/ops_4145_realids_wire.py
+→ Report written to aws/ops/reports/latest/4146_vault_settle_gates.md
+❌ OPS-FAIL: aws/ops/pending/ops_4146_vault_settle_gates.py
