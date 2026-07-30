@@ -1,13 +1,18 @@
-executing-against: 7828dd3f9aa0e16480538221d05fe40d5562b78d
+executing-against: 107853caa94284fc62e06f303e44848753c85f8f
 ops 4124 — phase stream
-[04:39:10] ✅   update accepted (attempt 0)
-[04:39:20] ✅   settled at loop 1
+[04:55:35]   EXC ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The ope
+[04:55:46] ✅   update accepted (attempt 1)
+[04:56:04] ✅   settled at loop 2
 ── live phase timeline ──
-[04:40:20]   [tv-vault][phase] start t+0.0s
-[04:40:20]   [tv-vault][phase] brain-loaded t+0.5s
-[04:40:20]   [tv-vault][phase] registry n=561 t+0.6s
-[04:44:23]   [tv-vault][phase] brain-loaded t+0.4s
-[04:44:23]   [tv-vault][phase] registry n=561 t+0.5s
-[04:51:30] ✅ STREAM DONE — 5 phase lines, wrote=False
+[04:57:05]   [tv-vault][phase] start t+0.0s
+[04:57:05]   [tv-vault] tradingview-vault v3.15.5 ops4125 corridor
+[04:57:05]   [tv-vault][phase] brain-loaded t+0.3s
+[04:57:05]   [tv-vault][phase] registry n=561 t+0.4s
+[04:57:05]   [tv-vault][phase] pre-admission t+0.4s
+[04:57:05]   [tv-vault][phase] fmp-bulk-done n=352 t+4.6s
+[04:57:05]   [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
+[04:57:05]   [tv-vault][phase] families-preflight-done t+4.6s
+[04:57:05]   [tv-vault][phase] main-loop-start t+4.6s
+[05:08:14] ✅ STREAM DONE — 9 phase lines, wrote=False
 
-→ Report written to aws/ops/reports/latest/4124_phase_stream.md
+→ Report written to aws/ops/reports/latest/4125_corridor_stream.md
