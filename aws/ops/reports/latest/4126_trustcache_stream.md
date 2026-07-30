@@ -1,0 +1,38 @@
+# ops 4124 — phase stream
+
+**Status:** success  
+**Duration:** 737.2s  
+**Finished:** 2026-07-30T05:31:00+00:00  
+
+## Log
+- `05:18:43` ✅   update accepted (attempt 0)
+- `05:18:52` ✅   settled at loop 1
+## live phase timeline
+
+- `05:19:53`   [tv-vault][phase] start t+0.0s
+- `05:19:53`   [tv-vault] tradingview-vault v3.15.6 ops4126 trust-cache
+- `05:19:53`   [tv-vault][phase] brain-loaded t+0.5s
+- `05:19:53`   [tv-vault][phase] registry n=561 t+0.6s
+- `05:19:53`   [tv-vault][phase] pre-admission t+0.6s
+- `05:19:53`   [tv-vault][phase] fmp-bulk-done n=352 t+3.7s
+- `05:19:53`   [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
+- `05:19:53`   [tv-vault][phase] families-preflight-done t+3.8s
+- `05:19:53`   [tv-vault][phase] cache age_h=7.4 fresh=True slot=0 t+3.8s
+- `05:19:53`   [tv-vault][phase] main-loop-start t+3.8s
+- `05:20:53`   [tv-vault][phase] slow sym=NO03Y via=norges:GOVT_GENERIC_RATES:3 4.1s t+59.9s
+- `05:20:53`   [tv-vault][phase] slow sym=EU10Y via=fred:IRLTLT01DEM156N 3.5s t+63.4s
+- `05:29:59`   [tv-vault][phase] brain-loaded t+0.4s
+- `05:29:59`   [tv-vault][phase] registry n=561 t+0.5s
+- `05:29:59`   [tv-vault][phase] pre-admission t+0.5s
+- `05:29:59`   [tv-vault][phase] fmp-bulk-done n=352 t+3.8s
+- `05:29:59`   [tv-vault][phase] families-preflight-done t+3.9s
+- `05:29:59`   [tv-vault][phase] cache age_h=7.6 fresh=True slot=0 t+3.9s
+- `05:29:59`   [tv-vault][phase] main-loop-start t+3.9s
+- `05:30:59`   [tv-vault][phase] slow sym=PIORECRUSDM via=fred:PIORECRUSDM 3.9s t+53.6s
+- `05:30:59`   [tv-vault][phase] slow sym=JPINTR via=fred:IRSTCB01JPM156N 4.0s t+60.6s
+- `05:30:59`   [tv-vault][phase] slow sym=EUINTR via=fred:ECBDFR 4.5s t+67.7s
+- `05:30:59`   [tv-vault][phase] slow sym=BAMLEMCBPIEY via=fred:BAMLEMCBPIEY 3.5s t+71.2s
+- `05:30:59`   [tv-vault][phase] slow sym=BAMLEMRACRPIASIAOAS via=fred:BAMLEMRACRPIASIAOAS 4.9s t+76.0s
+- `05:30:59`   [tv-vault][phase] slow sym=BAMLHE00EHYIOAS via=fred:BAMLHE00EHYIOAS 4.0s t+80.1s
+- `05:30:59`   [tv-vault][phase] slow sym=US03Y via=fred:DGS3 3.6s t+85.4s
+- `05:31:00` ✅ STREAM DONE wrote=False — 26 lines; slow-prints above name the adapter
