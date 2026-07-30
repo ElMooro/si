@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.15.2 ops4117 indent-true"
+MARKER = "tradingview-vault v3.15.3 ops4121 feed-first"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -866,6 +866,20 @@ def _families():
     mn; GDPYY/IRYY/UR=World Bank mrnev (annual, honest asof)."""
     if _FAM:
         return _FAM
+    # ops4121: S3-FIRST — the families-feed lambda pre-computes on its own
+    # clock; the vault pays one 1s read instead of five network pulls.
+    try:
+        _doc = json.loads(s3.get_object(
+            Bucket=S3_BUCKET, Key="data/families.json")["Body"].read())
+        _f = _doc.get("families") or {}
+        if _f.get("INTR"):
+            for _k, _v in _f.items():
+                _FAM[_k] = {c: (r[0], r[1]) for c, r in (_v or {}).items()}
+            print("[tv-vault] families from feed:",
+                  {k: len(v) for k, v in _FAM.items()})
+            return _FAM
+    except Exception:
+        pass
     _fb0 = time.time()
 
     def _left():
