@@ -1,21 +1,15 @@
-executing-against: 8c7ab97ed7ba7e1d6e0f23982cae3f119666a55b
+executing-against: efac88eb80d53f0a13b8f1ba6a7612d699cc469f
 ops 4113 — family verify-only
 ── vault's own story (last 40 min) ──
-[05:34:35]   [04:54:20] REPORT RequestId: bcd24a90-7f84-4b98-8509-cd5cfe26d3d3	Duration: 900000.00 ms	Billed Duration: 900496 ms	Memory Size: 2048 MB	Max Memory Used: 134 MB	Init Duration: 495.5
-[05:34:35]   [04:55:24] [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
-[05:34:35]   [04:56:10] [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
-[05:34:35]   [04:56:10] [tv-vault][phase] families-preflight-done t+4.6s
-[05:34:35]   [04:58:22] REPORT RequestId: 8d8ef73f-dc92-40d7-9870-9f293eac697a	Duration: 900000.00 ms	Billed Duration: 900545 ms	Memory Size: 2048 MB	Max Memory Used: 134 MB	Init Duration: 544.9
-[05:34:35]   [05:10:20] REPORT RequestId: bcd24a90-7f84-4b98-8509-cd5cfe26d3d3	Duration: 900000.00 ms	Billed Duration: 900000 ms	Memory Size: 2048 MB	Max Memory Used: 134 MB	Status: timeout
+[05:44:17]   [05:27:08] REPORT RequestId: 48783754-0b39-410b-9309-e98dcc941529	Duration: 900000.00 ms	Billed Duration: 900000 ms	Memory Size: 2048 MB	Max Memory Used: 134 MB	Status: timeout
 XRAY
-[05:34:35]   [05:11:05] REPORT RequestId: 48783754-0b39-410b-9309-e98dcc941529	Duration: 900000.00 ms	Billed Duration: 900480 ms	Memory Size: 2048 MB	Max Memory Used: 134 MB	Init Duration: 479.6
-[05:34:35]   [05:12:12] [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
-[05:34:35]   [05:12:12] [tv-vault][phase] families-preflight-done t+3.6s
-[05:34:35]   [05:12:20] [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
-[05:34:35]   [05:12:20] [tv-vault][phase] families-preflight-done t+3.6s
-[05:34:35]   [05:18:57] [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
-[05:34:35]   [05:18:57] [tv-vault][phase] families-preflight-done t+3.8s
-[05:34:35] ✗ ARTIFACT NOT v3.15.0 — evidence above
+[05:44:17]   [05:27:16] REPORT RequestId: bcd24a90-7f84-4b98-8509-cd5cfe26d3d3	Duration: 900000.00 ms	Billed Duration: 900515 ms	Memory Size: 2048 MB	Max Memory Used: 134 MB	Init Duration: 514.3
+[05:44:17]   [05:29:20] [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
+[05:44:17]   [05:29:20] [tv-vault][phase] families-preflight-done t+3.9s
+[05:44:17]   [05:33:53] REPORT RequestId: 9993c5db-6f02-4185-a707-3a8ed9881df1	Duration: 900000.00 ms	Billed Duration: 900507 ms	Memory Size: 2048 MB	Max Memory Used: 134 MB	Init Duration: 506.4
+[05:44:17]   [05:34:56] [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
+[05:44:17]   [05:34:56] [tv-vault][phase] families-preflight-done t+4.2s
+[05:44:17] ✗ ARTIFACT NOT v3.15.0 — evidence above
 
-→ Report written to aws/ops/reports/latest/4127_write_truth.md
-❌ OPS-FAIL: aws/ops/pending/ops_4127_write_truth.py
+→ Report written to aws/ops/reports/latest/4128_run2_fate.md
+❌ OPS-FAIL: aws/ops/pending/ops_4128_run2_fate.py
