@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.17.1 ops4134 label-persist"
+MARKER = "tradingview-vault v3.18.0 ops4136 symbol-feed"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -957,6 +957,29 @@ def _fleet_prices():
     return _FV
 
 
+_SF = {}
+
+
+def _symfeed_try(row):
+    """ops4136: intl/FX/index prices from the symbol-feed (yahoo chart)."""
+    if not row.get("from_watchlist"):
+        return None
+    if not _SF:
+        try:
+            d = json.loads(s3.get_object(
+                Bucket=S3_BUCKET, Key="data/symbol-feed.json")["Body"].read())
+            _SF["p"] = d.get("prices") or {}
+            print("[tv-vault] symbol-feed n=%d" % len(_SF["p"]))
+        except Exception:
+            _SF["p"] = {}
+    r = (_SF.get("p") or {}).get(str(row.get("symbol") or ""))
+    if not isinstance(r, dict) or "value" not in r:
+        return None
+    return {"status": "LIVE", "value": r["value"],
+            "source": "yahoo:" + str(r.get("ysym", "")),
+            "adapter": "feed:symbol", "asof": r.get("asof")}
+
+
 def _fleet_try(row):
     if not row.get("from_watchlist"):
         return None
@@ -1547,6 +1570,9 @@ def lambda_handler(event, context):
                     n_live += 1
                 elif _fvhit:
                     row.update(_fvhit)
+                    n_live += 1
+                elif _symfeed_try(row):
+                    row.update(_symfeed_try(row))
                     n_live += 1
                 elif (not out_of_time) and _ladder_spent < LADDER_WALL_S:
                     _lt = time.time()
