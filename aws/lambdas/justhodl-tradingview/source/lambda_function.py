@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.16.1 ops4131 bare-family"
+MARKER = "tradingview-vault v3.17.0 ops4133 fleet-join"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -935,6 +935,54 @@ def _families():
     return _FAM
 
 
+_FV = {}
+
+
+def _fleet_prices():
+    """ops4133 FLEET-PRICE JOIN — the fleet already pays for these prices
+    (finviz-universe, ~11.3k tickers). One S3 read, dict-hits forever."""
+    if _FV:
+        return _FV
+    try:
+        d = json.loads(s3.get_object(Bucket=S3_BUCKET,
+                                     Key="data/finviz-universe.json")["Body"].read())
+        _FV["by"] = d.get("by_ticker") or {}
+        _FV["asof"] = str(d.get("generated_at") or "")[:10]
+        print("[tv-vault] fleet-prices n=%d asof=%s"
+              % (len(_FV["by"]), _FV["asof"]))
+    except Exception as e:
+        _FV["by"] = {}
+        _FV["asof"] = ""
+        print("[tv-vault] fleet-prices load failed:", type(e).__name__)
+    return _FV
+
+
+def _fleet_try(row):
+    if not row.get("from_watchlist"):
+        return None
+    F = _fleet_prices()
+    fvr = (F.get("by") or {}).get(str(row.get("symbol") or ""))
+    if not isinstance(fvr, dict):
+        return None
+    pv = None
+    for k in ("price", "close", "last", "prev_close"):
+        try:
+            pv = float(fvr.get(k))
+            break
+        except Exception:
+            continue
+    if pv is None or pv <= 0:
+        return None
+    out = {"status": "LIVE", "value": round(pv, 4),
+           "source": "fleet:finviz", "adapter": "fleet:finviz",
+           "asof": F.get("asof") or "finviz"}
+    try:
+        out["chg_pct"] = round(float(fvr.get("change")), 2)
+    except Exception:
+        pass
+    return out
+
+
 def _family_try(row):
     m = FAM_RX.match(str(row.get("symbol") or ""))
     if not m:
@@ -1359,6 +1407,11 @@ def lambda_handler(event, context):
     except Exception:
         pass
     PH("families-preflight-done")
+    try:
+        _fleet_prices()
+    except Exception:
+        pass
+    PH("fleet-prices-preflight-done")
     force = bool((event or {}).get("force"))
     try:
         _age_h = (datetime.now(timezone.utc)
@@ -1369,7 +1422,7 @@ def lambda_handler(event, context):
     CACHE_FRESH = _age_h < 26
     REV_SLOT = int(time.time() // 86400) % 12
     _rev_spent = 0.0
-    LADDER_WALL_S = 240.0
+    LADDER_WALL_S = 480.0   # ops4133: headroom banked at 370s runs
     _ladder_spent = 0.0
     _ladder_n = 0
     _ri = 0
@@ -1487,8 +1540,12 @@ def lambda_handler(event, context):
                 # 240s wall budget, then HONEST deferral keeping prior
                 # state. Write becomes guaranteed by arithmetic.
                 _famhit = _family_try(row)
+                _fvhit = None if _famhit else _fleet_try(row)
                 if _famhit:
                     row.update(_famhit)
+                    n_live += 1
+                elif _fvhit:
+                    row.update(_fvhit)
                     n_live += 1
                 elif (not out_of_time) and _ladder_spent < LADDER_WALL_S:
                     _lt = time.time()
