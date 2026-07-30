@@ -1,19 +1,19 @@
-executing-against: 5997e67a559429463912adc40ae8e84a53fd92a8
-ops 4138 — MFS_DC / MFS_CBS discovery
-── MFS_DC: dataflow -> DSD -> dimensions ──
-[16:14:45]   ERR: 
-── MFS_CBS: dataflow -> DSD -> dimensions ──
-[16:14:45]   ERR: 
-── codelist grep — the LG / CBBS concepts by name ──
-[16:14:45]   CL_INDICATOR_MFS_DC: status=204 bytes=0
-[16:14:45]     ERR: 
-[16:14:45]   CL_INDICATOR_MFS_CBS: status=204 bytes=0
-[16:14:45]     ERR: 
-── live spots — key-shape trial for JP/BR ──
-[16:14:45]   MFS_DC/M.JPN: status=200 series=0 bytes=1518
-[16:14:46]   MFS_DC/M.JP: status=200 series=0 bytes=1518
-[16:14:46]   MFS_CBS/M.JPN: status=200 series=0 bytes=3226
-[16:14:47]   MFS_CBS/M.BRA: status=200 series=0 bytes=3226
-[16:14:47] ✅ MFS DISCOVERY DONE
+executing-against: e824914440d3a09712d96a44959f18fcb95b7afb
+ops 4139 — raw MFS bodies
+[16:21:10] == /sdmx/2.1/data/MFS_DC/M.JPN?lastNObservations=1 -> 200 (1518B)
+[16:21:10]   <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData xmlns:ss="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/data/structurespecific" xmlns:footer="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message/footer" xmlns:ns1="urn:sdmx:org.sdm
+[16:21:10]   x.infomodel.datastructure.Dataflow=IMF.STA:MFS_DC(8.0.0):ObsLevelDim:TIME_PERIOD" xmlns:message="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message" xmlns:common="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common" xmlns:xsi="http://www.w3.org/200
+[16:21:10]   1/XMLSchema-instance" xmlns:xml="http://www.w3.org/XML/1998/namespace"><message:Header><message:ID>DS1785428470065</message:ID><message:Test>false</message:Test><message:Prepared>2026-07-30T16:21:10Z</message:Prepared><message:Sender id="iData"/><message:Struc
+[16:21:10]   ture structureID="IMF.STA_MFS_DC_8_0_0" namespace="urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.STA:MFS_DC(8.0.0):ObsLevelDim:TIME_PERIOD" dimensionAtObservation="TIME_PERIOD"><common:StructureUsage><Ref agencyID="IMF.STA" id="MFS_DC" version="8.0.0"
+[16:21:10]   /></common:StructureUsage></message:Structure><message:DataSetAction>Replace</message:DataSetAction></message:Header><message:DataSet ss:dataScope="DataStructure" xsi:type="ns1:DataSetType" ss:structureRef="IMF.STA_MFS_DC_8_0_0" action="Replace" LANGUAGE="EN" 
+[16:21:10] == /sdmx/2.1/data/MFS_CBS/M.JPN?lastNObservations=1 -> 200 (3226B)
+[16:21:10]   <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData xmlns:ss="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/data/structurespecific" xmlns:footer="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message/footer" xmlns:ns1="urn:sdmx:org.sdm
+[16:21:10]   x.infomodel.datastructure.Dataflow=IMF.STA:MFS_CBS(24.0.0):ObsLevelDim:TIME_PERIOD" xmlns:message="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message" xmlns:common="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common" xmlns:xsi="http://www.w3.org/2
+[16:21:10]   001/XMLSchema-instance" xmlns:xml="http://www.w3.org/XML/1998/namespace"><message:Header><message:ID>DS1785428470345</message:ID><message:Test>false</message:Test><message:Prepared>2026-07-30T16:21:10Z</message:Prepared><message:Sender id="iData"/><message:Str
+[16:21:10]   ucture structureID="IMF.STA_MFS_CBS_24_0_0" namespace="urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.STA:MFS_CBS(24.0.0):ObsLevelDim:TIME_PERIOD" dimensionAtObservation="TIME_PERIOD"><common:StructureUsage><Ref agencyID="IMF.STA" id="MFS_CBS" version=
+[16:21:10]   "24.0.0"/></common:StructureUsage></message:Structure><message:DataSetAction>Replace</message:DataSetAction></message:Header><message:DataSet ss:dataScope="DataStructure" xsi:type="ns1:DataSetType" ss:structureRef="IMF.STA_MFS_CBS_24_0_0" action="Replace" LANG
+[16:21:10] == /sdmx/2.1/dataflow/IMF/MFS_DC -> 204 (0B)
+[16:21:10] == /sdmx/2.1/datastructure/IMF/DSD_MFS_DC -> 204 (0B)
+[16:21:10] ✅ RAW DONE
 
-→ Report written to aws/ops/reports/latest/4138_mfs_discovery.md
+→ Report written to aws/ops/reports/latest/4139_raw_bodies.md
