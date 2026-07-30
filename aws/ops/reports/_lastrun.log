@@ -1,22 +1,13 @@
-executing-against: 041df17a41f1ca0116a34c591d12705f755f614d
-ops 4142 — transformation/frequency + spot matrix
-[16:32:03]   CL_MFS_TYPE_OF_TRANSFORMATION: EUR, USD, XDC, EOP_PT, PCH_CP_A_PT, XDR, RMBBMPT_A_PT, IX, PT, EOP, SA_EUR, SA_USD, SA_XDC, SAF_IX, EOP_IX
-[16:32:03]   CL_TRANSFORMATION: 1DIGITPT, 12MMA, 12MRB, C12, A12, C16, Q1, 2DIGITPT, Q2, C3, A3, Q3, C4, A4, 6MRMQCHG
-[16:32:03]   CL_FREQ: A, D, M, Q, S, W, A2, A3, A4, A5, A10, A20
-[16:32:03]   SPOT JPN.MB.1DIGITPT.M -> 200 series=0 vals=[]
-[16:32:04]   SPOT JPN.MB.1DIGITPT.A -> 200 series=0 vals=[]
-[16:32:04]   SPOT JPN.MB.1DIGITPT.Q -> 200 series=0 vals=[]
-[16:32:04]   SPOT JPN.MB.12MMA.M -> 200 series=0 vals=[]
-[16:32:05]   SPOT JPN.MB.12MMA.A -> 200 series=0 vals=[]
-[16:32:05]   SPOT JPN.MB.12MMA.Q -> 200 series=0 vals=[]
-[16:32:06]   SPOT JPN.MB.12MRB.M -> 200 series=0 vals=[]
-[16:32:06]   SPOT JPN.MB.12MRB.A -> 200 series=0 vals=[]
-[16:32:06]   SPOT JPN.MB.12MRB.Q -> 200 series=0 vals=[]
-[16:32:07]   SPOT JPN.MB.C12.M -> 200 series=0 vals=[]
-[16:32:07]   SPOT JPN.MB.C12.A -> 200 series=0 vals=[]
-[16:32:07]   SPOT JPN.MB.C12.Q -> 200 series=0 vals=[]
-[16:32:08]   SPOT JPN.MB.A12.M -> 200 series=0 vals=[]
-[16:32:08]   SPOT JPN.MB.A12.A -> 200 series=0 vals=[]
-[16:32:08] ✅ LAST-DIMS DONE hit=None tries=14
+executing-against: cd0849cba6b0926a1d444a8f944494350c870d6e
+ops 4143 — MFS round-2: discover, wire, gate
+── A. XDC spots + DC code hunt ──
+[16:37:51]   JPN.TA.XDC.M -> series=0 vals=[]
+[16:37:52]   JPN.MB.XDC.M -> series=0 vals=[]
+[16:37:53]   DC private candidates: 0
+── B. bulk wildcard test (blank COUNTRY) ──
+[16:37:54] ✗   CBS TA/MB XDC keys live
+[16:37:54] ✗   DC private-credit code found
+[16:37:54] ✗ grammar incomplete — not wiring
 
-→ Report written to aws/ops/reports/latest/4142_last_dims.md
+→ Report written to aws/ops/reports/latest/4143_round2_wire.md
+❌ OPS-FAIL: aws/ops/pending/ops_4143_round2_wire.py
