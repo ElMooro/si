@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.15.6 ops4126 trust-cache"
+MARKER = "tradingview-vault v3.16.0 ops4129 ladder-wall"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1369,10 +1369,19 @@ def lambda_handler(event, context):
     CACHE_FRESH = _age_h < 26
     REV_SLOT = int(time.time() // 86400) % 12
     _rev_spent = 0.0
+    LADDER_WALL_S = 240.0
+    _ladder_spent = 0.0
+    _ladder_n = 0
+    _ri = 0
     PH("cache age_h=%.1f fresh=%s slot=%d" % (_age_h, CACHE_FRESH, REV_SLOT))
     PH("main-loop-start")
     for row in rows:
         sym = row["symbol"]
+        _ri += 1
+        if _ri % 500 == 0:
+            PH("row %d/%d live=%d lad=%d(%.0fs) rev=%.0fs"
+               % (_ri, len(rows), n_live, _ladder_n,
+                  _ladder_spent, _rev_spent))
         c = cache.get(sym) or {}
         fetched_at = c.get("fetched_at")
         fresh_days = CADENCE.get(row["cadence"], 0)
@@ -1462,8 +1471,40 @@ def lambda_handler(event, context):
                 row["source"] = c.get("source")
                 row["resolved_via"] = rv
                 n_live += 1
-            elif ladder(row):
-                n_live += 1
+            else:
+                # ops4129 THE HOG, finally named: ~8,500 cached-PENDING
+                # rows fail the cadence gate (PENDING not in the list),
+                # dodge the wall-clock guard (its "and not c" died the
+                # moment every row had cache), and each called the full
+                # network ladder — unguarded, every run, since 21:55.
+                # Order now: family dict-hit first, then ladder under a
+                # 240s wall budget, then HONEST deferral keeping prior
+                # state. Write becomes guaranteed by arithmetic.
+                _famhit = _family_try(row)
+                if _famhit:
+                    row.update(_famhit)
+                    n_live += 1
+                elif (not out_of_time) and _ladder_spent < LADDER_WALL_S:
+                    _lt = time.time()
+                    if ladder(row):
+                        n_live += 1
+                    _ladder_spent += time.time() - _lt
+                    _ladder_n += 1
+                    if _ladder_n <= 12 or _ladder_n % 50 == 0:
+                        PH("ladder %d sym=%s %.1fs spent=%.0fs"
+                           % (_ladder_n, sym,
+                              time.time() - _lt, _ladder_spent))
+                else:
+                    if c:
+                        for k in ("value", "prev", "chg_pct", "asof",
+                                  "status", "source"):
+                            if k in c:
+                                row[k] = c[k]
+                        if row.get("status") == "LIVE":
+                            n_live += 1
+                    else:
+                        row["status"] = "PENDING_RESOLUTION"
+                    row["resolution_note"] = "deferred (ladder wall budget)"
         row["fetched_at"] = now.isoformat()
 
     rows.sort(key=lambda r: (-r["n_notes"], r["symbol"]))
