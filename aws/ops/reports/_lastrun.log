@@ -1,6 +1,13 @@
-executing-against: 83b046c023bf057b86db3fc33e09a7baa3f404f4
-ops 4123 — families-feed daily schedule
-[04:30:35] ✅   created cron(15 11) daily
-[04:30:35] ✅ PASS_ALL — feed refreshes daily at 11:15 UTC
+executing-against: 7828dd3f9aa0e16480538221d05fe40d5562b78d
+ops 4124 — phase stream
+[04:39:10] ✅   update accepted (attempt 0)
+[04:39:20] ✅   settled at loop 1
+── live phase timeline ──
+[04:40:20]   [tv-vault][phase] start t+0.0s
+[04:40:20]   [tv-vault][phase] brain-loaded t+0.5s
+[04:40:20]   [tv-vault][phase] registry n=561 t+0.6s
+[04:44:23]   [tv-vault][phase] brain-loaded t+0.4s
+[04:44:23]   [tv-vault][phase] registry n=561 t+0.5s
+[04:51:30] ✅ STREAM DONE — 5 phase lines, wrote=False
 
-→ Report written to aws/ops/reports/latest/4123_feed_schedule.md
+→ Report written to aws/ops/reports/latest/4124_phase_stream.md
