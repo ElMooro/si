@@ -1,0 +1,238 @@
+"""ops_4145 — round-2 with REAL ids: Counter the indicator sets, pick
+LG/CBBS/M0 codes, prove bulk in one call each, then wire feed+vault."""
+import io
+import json
+import re
+import sys
+import time
+import urllib.request
+import zipfile as zf
+from collections import Counter
+from pathlib import Path
+
+import boto3
+from botocore.config import Config
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "ops"))
+from ops_report import report  # noqa: E402
+
+s3 = boto3.client("s3", region_name="us-east-1")
+lam = boto3.client("lambda", region_name="us-east-1",
+                   config=Config(read_timeout=280,
+                                 retries={"max_attempts": 1}))
+BUCKET = "justhodl-dashboard-live"
+BASE = "https://api.imf.org/external/sdmx/2.1"
+UA = {"User-Agent": "Mozilla/5.0"}
+
+
+def fetch(url, timeout=90):
+    try:
+        req = urllib.request.Request(url, headers=UA)
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.status, r.read().decode("utf-8", "ignore")
+    except Exception as e:
+        return -1, str(e)[:180]
+
+
+def settle(rep, name, mark, zb):
+    for att in range(6):
+        try:
+            lam.update_function_code(FunctionName=name, ZipFile=zb,
+                                     Publish=True)
+            break
+        except Exception:
+            time.sleep(8)
+    for i in range(35):
+        try:
+            c = lam.get_function_configuration(FunctionName=name)
+            if c.get("State") == "Active" and \
+                    c.get("LastUpdateStatus") in (None, "Successful"):
+                dep = zf.ZipFile(io.BytesIO(urllib.request.urlopen(
+                    lam.get_function(FunctionName=name)["Code"]["Location"],
+                    timeout=60).read())).read(
+                    "lambda_function.py").decode()
+                if mark in dep:
+                    rep.ok(f"  {name} settled at loop {i}")
+                    return True
+        except Exception:
+            pass
+        time.sleep(9)
+    rep.fail(f"  {name} never settled")
+    return False
+
+
+def bulk_probe(rep, flow, ind):
+    st, x = fetch(f"{BASE}/data/{flow}/.{ind}.XDC.M"
+                  "?lastNObservations=1", timeout=90)
+    ct = Counter(re.findall(r'COUNTRY="([A-Z]{3})"', x))
+    vals = dict(re.findall(
+        r'COUNTRY="([A-Z]{3})"[\s\S]{0,600}?OBS_VALUE="'
+        r'([\d\.eE\+\-]+)"', x))
+    rep.log(f"  BULK {flow}/.{ind}.XDC.M -> countries={len(ct)} "
+            f"JPN={vals.get('JPN')} BRA={vals.get('BRA')}")
+    return len(ct), vals
+
+
+def main():
+    with report("4145_realids_wire") as rep:
+        rep.heading("ops 4145 — real-id round-2 wire")
+        checks = []
+
+        rep.section("A. indicator census + code picks")
+        picks = {}
+        for flow, want in (("MFS_DC", None), ("MFS_CBS", None)):
+            st, x = fetch(f"{BASE}/data/{flow}/all"
+                          "?detail=serieskeysonly", timeout=120)
+            inds = Counter(re.findall(r'INDICATOR="([A-Za-z0-9_]+)"'
+                                      r'[^>]*FREQUENCY="M"', x))
+            rep.log(f"  {flow}: {len(inds)} monthly indicators; top:")
+            for cid, nn in inds.most_common(14):
+                rep.log(f"    {nn:4d}  {cid}")
+            picks[flow] = inds
+        lg_code = "DCORP_A_ACO_PS" \
+            if picks["MFS_DC"].get("DCORP_A_ACO_PS") else None
+        cbs = picks["MFS_CBS"]
+        cbbs_code = next((c for c in cbs
+                          if re.search(r"_TA(_|$)|_A_TA", c)), None)
+        m0_code = next((c for c in cbs
+                        if re.search(r"(^|_)MB(_|$)|MBASE", c)), None)
+        rep.kv(lg_code=lg_code, cbbs_code=cbbs_code, m0_code=m0_code)
+
+        rep.section("B. bulk proofs")
+        n1 = n2 = n3 = 0
+        if lg_code:
+            n1, _ = bulk_probe(rep, "MFS_DC", lg_code)
+        if cbbs_code:
+            n2, _ = bulk_probe(rep, "MFS_CBS", cbbs_code)
+        if m0_code:
+            n3, _ = bulk_probe(rep, "MFS_CBS", m0_code)
+        checks += [("LG bulk >=60", n1 >= 60),
+                   ("CBBS bulk >=40", n2 >= 40),
+                   ("M0 bulk >=40", n3 >= 40)]
+        bulk_ok = True
+        if not (n1 >= 60 and n2 >= 40 and n3 >= 40):
+            for l, k in checks:
+                (rep.ok if k else rep.fail)(f"  {l}")
+            rep.fail("bulk proofs incomplete — not wiring")
+            sys.exit(1)
+
+        rep.section("C. families-feed v1.1 self-patch + deploy")
+        fp = ROOT / "lambdas" / "justhodl-families-feed" / "source" / \
+            "lambda_function.py"
+        fs = fp.read_text()
+        if "MFS ROUND2" not in fs:
+            anchor = '    out["FER"] = fer'
+            assert fs.count(anchor) == 1
+            mode = "bulk"
+            block = (
+                "    # MFS ROUND2 ops4143 — LG/CBBS/M0 via IMF.STA "
+                "(COUNTRY.INDICATOR.XDC.M), mode=%s\n"
+                "    inv3 = {v: k for k, v in iso23.items()}\n"
+                "    def _mfs(flow, ind):\n"
+                "        d = {}\n"
+                "        if %r == \"bulk\":\n"
+                "            t2 = _fetch(\"%s/data/\" + flow + \"/.\" + ind\n"
+                "                        + \".XDC.M?lastNObservations=1\")\n"
+                "            for blk in re.split(r\"<Series[ >]\", t2)[1:]:\n"
+                "                a2 = re.search(r'COUNTRY=\"([A-Z]{3})\"', blk)\n"
+                "                v2 = re.findall(r'OBS_VALUE=\"([\\d\\.eE\\+\\-]+)\"', blk)\n"
+                "                tp2 = re.findall(r'TIME_PERIOD=\"([^\"]+)\"', blk)\n"
+                "                if a2 and v2 and a2.group(1) in inv3:\n"
+                "                    d[inv3[a2.group(1)]] = [round(float(v2[-1]), 1),\n"
+                "                                            \"imf:\" + (tp2[-1] if tp2 else \"m\")]\n"
+                "        else:\n"
+                "            for c2, c3 in list(iso23.items()):\n"
+                "                if time.time() - t0 > 220:\n"
+                "                    break\n"
+                "                t2 = _fetch(\"%s/data/\" + flow + \"/\" + c3 + \".\"\n"
+                "                            + ind + \".XDC.M?lastNObservations=1\")\n"
+                "                v2 = re.findall(r'OBS_VALUE=\"([\\d\\.eE\\+\\-]+)\"', t2)\n"
+                "                tp2 = re.findall(r'TIME_PERIOD=\"([^\"]+)\"', t2)\n"
+                "                if v2:\n"
+                "                    d[c2] = [round(float(v2[-1]), 1),\n"
+                "                             \"imf:\" + (tp2[-1] if tp2 else \"m\")]\n"
+                "        return d\n"
+                "    out[\"CBBS\"] = _mfs(\"MFS_CBS\", %r)\n"
+                "    out[\"M0\"] = _mfs(\"MFS_CBS\", %r)\n"
+                "    out[\"LG\"] = _mfs(\"MFS_DC\", %r)\n"
+                % (mode, mode, BASE, BASE, cbbs_code, m0_code, lg_code))
+            fs = fs.replace(anchor, block + anchor, 1)
+            fs = fs.replace('out = {"INTR": {}, "FER": {}, "GDPYY": {}, '
+                            '"IRYY": {}, "UR": {}}',
+                            'out = {"INTR": {}, "FER": {}, "GDPYY": {}, '
+                            '"IRYY": {}, "UR": {}, "LG": {}, "CBBS": {}, '
+                            '"M0": {}}', 1)
+            fs = fs.replace('MARKER = "families-feed v1.0 ops4121"',
+                            'MARKER = "families-feed v1.2 ops4145 realids"', 1)
+            import ast as _ast
+            _ast.parse(fs)
+            fp.write_text(fs)
+        buf = io.BytesIO()
+        with zf.ZipFile(buf, "w", zf.ZIP_DEFLATED) as z:
+            z.writestr("lambda_function.py", fs)
+        try:
+            lam.update_function_configuration(
+                FunctionName="justhodl-families-feed", Timeout=300)
+            time.sleep(6)
+        except Exception:
+            pass
+        checks.append(("feed v1.1 settled",
+                       settle(rep, "justhodl-families-feed",
+                              "families-feed v1.2 ops4145 realids",
+                              buf.getvalue())))
+        r = lam.invoke(FunctionName="justhodl-families-feed",
+                       InvocationType="RequestResponse", Payload=b"{}")
+        rep.kv(feed_err=r.get("FunctionError"))
+        fd = json.loads(s3.get_object(Bucket=BUCKET,
+                                      Key="data/families.json")["Body"].read())
+        c = fd.get("counts") or {}
+        rep.kv(**c)
+        checks += [("LG >= 40", (c.get("LG") or 0) >= 40),
+                   ("CBBS >= 40", (c.get("CBBS") or 0) >= 40),
+                   ("M0 >= 40", (c.get("M0") or 0) >= 40)]
+
+        rep.section("D. vault FAM_RX widen + settle + invoke")
+        vp = ROOT / "lambdas" / "justhodl-tradingview" / "source" / \
+            "lambda_function.py"
+        vs = vp.read_text()
+        if "LG|CBBS|M0" not in vs:
+            vs = vs.replace("(INTR|FER|GDPYY|IRYY|UR)",
+                            "(INTR|FER|GDPYY|IRYY|UR|LG|CBBS|M0)", 1)
+            vs = vs.replace(
+                'MARKER = "tradingview-vault v3.18.0 ops4136 symbol-feed"',
+                'MARKER = "tradingview-vault v3.19.0 ops4145 mfs-families"', 1)
+            vs = vs.replace('src = {"INTR": "bis:CBPOL",',
+                            'src = {"LG": "imf:MFS_DC", "CBBS": '
+                            '"imf:MFS_CBS TA", "M0": "imf:MFS_CBS MB",\n'
+                            '           "INTR": "bis:CBPOL",', 1)
+            import ast as _ast
+            _ast.parse(vs)
+            vp.write_text(vs)
+        vb = io.BytesIO()
+        with zf.ZipFile(vb, "w", zf.ZIP_DEFLATED) as z:
+            z.writestr("lambda_function.py", vs)
+            for sh in sorted((ROOT / "shared").glob("*.py")):
+                z.writestr(sh.name, sh.read_text())
+        checks.append(("vault v3.19.0 settled",
+                       settle(rep, "justhodl-tradingview",
+                              "tradingview-vault v3.19.0 ops4143 "
+                              "mfs-families", vb.getvalue())))
+        lam.invoke(FunctionName="justhodl-tradingview",
+                   InvocationType="Event", Payload=b"{}")
+        rep.ok("  vault fired async — artifact lands ~t+610s; "
+               "next op reads it")
+
+        failed = [l for l, k in checks if not k]
+        for l, k in checks:
+            (rep.ok if k else rep.fail)(f"  {l}")
+        if failed:
+            rep.fail(f"FAILED: {failed}")
+            sys.exit(1)
+        rep.ok(f"ROUND-2 REAL-ID WIRED — LG={c.get('LG')} CBBS={c.get('CBBS')} "
+               f"M0={c.get('M0')} lg_code={lg_code} "
+               f"mode={'bulk' if bulk_ok else 'percountry'}")
+
+
+if __name__ == "__main__":
+    main()
