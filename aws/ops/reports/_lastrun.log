@@ -1,24 +1,18 @@
-executing-against: 85642afc29fd3b3c75ef8cdc697bd843a78a4691
-ops 4111 — discovery round 2
-── A. IMF dataflow enumeration (what exists now?) ──
-[02:34:19]   monetary-ish flows: BOP, BOP_2026_APR_VINTAGE, BOP_2026_FEB_VINTAGE, BOP_2026_JAN_VINTAGE, BOP_2026_MAY_VINTAGE, BOP_AGG, CPI, CPI_2026_APR_VINTAGE, CPI_2026_FEB_VINTAGE, CPI_2026_JAN_VINTAGE, CPI_2026_MAY_VINTAGE, CPI_WCA, CPI_WCA_2026_APR_VINTAGE, CPI_WCA_2026_FEB_VINTAGE, CPI_WCA_2026_JAN_VINTAGE, CPI_WCA_2026_MAY_VINTAGE, FSIBSIS, FSIC, FSICDM, FSI_COUNTRY_METADATA_TABLE_2, GFS_BS, GFS_COFOG, GFS_SFCP, GFS_SOEF, GFS_SOO, GFS_SSUC, IRFCL, MFS_CBS, MFS_CBS_2026_APR_VINTAGE, MFS_CBS_2026_FEB_VINTAGE, MFS_CBS_2026_JAN_VINTAGE, MFS_CBS_2026_MAY_VINTAGE, MFS_DC, MFS_DC_2026_APR_VINTAGE, MFS_DC_2026_FEB_VINTAGE, MFS_DC_2026_JAN_VINTAGE, MFS_DC_2026_MAY_VINTAGE, MFS_FC, MFS_FC_2026_APR_VINTAGE, MFS_FC_2026_FEB_VINTAGE
-[02:34:19]   first 40 all: FSI_COUNTRY_METADATA_TABLE_2, FSICDM, MFS_CBS_2026_MAY_VINTAGE, GFS_SSUC, IL_2026_JAN_VINTAGE, ITG_2026_JAN_VINTAGE, IMTS_2026_MAY_VINTAGE, FSIBSIS, MFS_MA_2026_JAN_VINTAGE, QNEA, PI_2026_JAN_VINTAGE, QNEA_2026_MAY_VINTAGE, MFS_NSRF, RE, ER_2026_APR_VINTAGE, FDI, BOP_2026_MAY_VINTAGE, MFS_FC_2026_FEB_VINTAGE, EQ, WPFXI, SPE_2026_MAY_VINTAGE, ECFIE, EER_2026_MAY_VINTAGE, SDG, INFORMRISK, PI_WCA_2026_APR_VINTAGE, APDREO, RSUI, FA_2026_JAN_VINTAGE, MFS_ODC, MFS_CBS_2026_JAN_VINTAGE, PI, MFS_IR_2026_FEB_VINTAGE, MFS_MA_2026_MAY_VINTAGE, IL, CPI, ISORA_2018_DATA_PUB, QGFS_2026_APR_VINTAGE, MFS_IR_2026_APR_VINTAGE, ANEA_2026_MAY_VINTAGE
-── B. IRFCL bulk — explicit status this time ──
-[02:34:20]   spots BR=None PE=None JP=None US=None
-── C. BIS CBPOL — policy rates, all countries, daily ──
-[02:34:20]   https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D..?lastNO... -> 406 (363B)
-[02:34:20]     body: <?xml version="1.0" ?>
-<message:Error xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:message="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message" xmlns:com="htt
-[02:34:21]   https://stats.bis.org/api/v1/data/WS_CBPOL/D../all?lastNObservations=1... -> 200 (32021B)
-[02:34:21]   spots BR=14.25 PE=4.25 NO=4.25 JP=1.0 US=3.625
-── D. WB breadth across doctrine families ──
-[02:34:21]   FER    FI.RES.TOTL.CD         -> 183 countries, latest~2025
-[02:34:21]   GDG    GC.DOD.TOTL.GD.ZS      -> 120 countries, latest~2007
-[02:34:42]   BM     FM.LBL.BMNY.CN         ->   0 countries, latest~
-[02:35:00]   LEND   FR.INR.LEND            -> 148 countries, latest~2017
-[02:35:00]   GDPYY  NY.GDP.MKTP.KD.ZG      -> 261 countries, latest~2025
-[02:35:00]   IRYY   FP.CPI.TOTL.ZG         -> 240 countries, latest~2025
-[02:35:00]   UR     SL.UEM.TOTL.ZS         -> 234 countries, latest~2025
-[02:35:00] ✅ DISCOVERY2 DONE — flows enumerated, BIS + WB measured
+executing-against: 2bc03a111de671d8c076616508362c1f86b58dc2
+ops 4112 — family adapters: settle, fire, verify
+[02:45:11] ✅   async invoke fired; polling artifact
+[02:55:15]   spot ECONOMICS:BRINTR: got=None want~14.25
+[02:55:15]   spot ECONOMICS:PEINTR: got=None want~4.25
+[02:55:15]   spot ECONOMICS:BRFER: got=None want~368899
+[02:55:15] ✗   v3.15.0 settled in deployed zip
+[02:55:15] ✗   artifact moved with v3.15.0 marker
+[02:55:15] ✗   INTR family >=25 LIVE
+[02:55:15] ✗   FER family >=80 LIVE
+[02:55:15] ✗   WB trio >=250 LIVE
+[02:55:15] ✗   spot ECONOMICS:BRINTR
+[02:55:15] ✗   spot ECONOMICS:PEINTR
+[02:55:15] ✗   spot ECONOMICS:BRFER
+[02:55:15] ✗ FAILED: ['v3.15.0 settled in deployed zip', 'artifact moved with v3.15.0 marker', 'INTR family >=25 LIVE', 'FER family >=80 LIVE', 'WB trio >=250 LIVE', 'spot ECONOMICS:BRINTR', 'spot ECONOMICS:PEINTR', 'spot ECONOMICS:BRFER']
 
-→ Report written to aws/ops/reports/latest/4111_discovery2.md
+→ Report written to aws/ops/reports/latest/4112_family_wire.md
+❌ OPS-FAIL: aws/ops/pending/ops_4112_family_wire.py
