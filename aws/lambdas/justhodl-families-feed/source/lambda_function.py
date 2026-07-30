@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "families-feed v1.0 ops4121"
+MARKER = "families-feed v1.2 ops4145 realids"
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 
@@ -46,7 +46,7 @@ def _sdmx(t, alen):
 
 def lambda_handler(event, context):
     t0 = time.time()
-    out = {"INTR": {}, "FER": {}, "GDPYY": {}, "IRYY": {}, "UR": {}}
+    out = {"INTR": {}, "FER": {}, "GDPYY": {}, "IRYY": {}, "UR": {}, "LG": {}, "CBBS": {}, "M0": {}}
     iso23 = {}
     for fam, code in (("GDPYY", "NY.GDP.MKTP.KD.ZG"),
                       ("IRYY", "FP.CPI.TOTL.ZG"),
@@ -87,6 +87,35 @@ def lambda_handler(event, context):
             fer[inv[a3]] = [round(vv, 1), "imf:" + tp]
     for cc, rec in ferwb.items():
         fer.setdefault(cc, rec)
+    # MFS ROUND2 ops4143 — LG/CBBS/M0 via IMF.STA (COUNTRY.INDICATOR.XDC.M), mode=bulk
+    inv3 = {v: k for k, v in iso23.items()}
+    def _mfs(flow, ind):
+        d = {}
+        if 'bulk' == "bulk":
+            t2 = _fetch("https://api.imf.org/external/sdmx/2.1/data/" + flow + "/." + ind
+                        + ".XDC.M?lastNObservations=1")
+            for blk in re.split(r"<Series[ >]", t2)[1:]:
+                a2 = re.search(r'COUNTRY="([A-Z]{3})"', blk)
+                v2 = re.findall(r'OBS_VALUE="([\d\.eE\+\-]+)"', blk)
+                tp2 = re.findall(r'TIME_PERIOD="([^"]+)"', blk)
+                if a2 and v2 and a2.group(1) in inv3:
+                    d[inv3[a2.group(1)]] = [round(float(v2[-1]), 1),
+                                            "imf:" + (tp2[-1] if tp2 else "m")]
+        else:
+            for c2, c3 in list(iso23.items()):
+                if time.time() - t0 > 220:
+                    break
+                t2 = _fetch("https://api.imf.org/external/sdmx/2.1/data/" + flow + "/" + c3 + "."
+                            + ind + ".XDC.M?lastNObservations=1")
+                v2 = re.findall(r'OBS_VALUE="([\d\.eE\+\-]+)"', t2)
+                tp2 = re.findall(r'TIME_PERIOD="([^"]+)"', t2)
+                if v2:
+                    d[c2] = [round(float(v2[-1]), 1),
+                             "imf:" + (tp2[-1] if tp2 else "m")]
+        return d
+    out["CBBS"] = _mfs("MFS_CBS", 'S121_A_TA_ASEC_CB1SR')
+    out["M0"] = _mfs("MFS_CBS", 'S121_L_MB_CBS')
+    out["LG"] = _mfs("MFS_DC", 'DCORP_A_ACO_PS')
     out["FER"] = fer
     doc = {"generated_at": datetime.now(timezone.utc).isoformat(),
            "marker": MARKER,

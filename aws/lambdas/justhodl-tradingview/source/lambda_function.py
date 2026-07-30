@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.18.0 ops4136 symbol-feed"
+MARKER = "tradingview-vault v3.19.0 ops4145 mfs-families"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -822,7 +822,7 @@ def imf_latest(key):
         return None
 
 
-FAM_RX = re.compile(r"^(?:ECONOMICS:)?([A-Z]{2})(INTR|FER|GDPYY|IRYY|UR)$")   # ops4131: admission stores BARE
+FAM_RX = re.compile(r"^(?:ECONOMICS:)?([A-Z]{2})(INTR|FER|GDPYY|IRYY|UR|LG|CBBS|M0)$")   # ops4131: admission stores BARE
 _FAM = {}
 
 
@@ -1012,7 +1012,8 @@ def _family_try(row):
         return None
     cc, f = m.group(1), m.group(2)
     F = _families()
-    src = {"INTR": "bis:CBPOL", "FER": "imf:IRFCL RAF_USD",
+    src = {"LG": "imf:MFS_DC", "CBBS": "imf:MFS_CBS TA", "M0": "imf:MFS_CBS MB",
+           "INTR": "bis:CBPOL", "FER": "imf:IRFCL RAF_USD",
            "GDPYY": "wb:NY.GDP.MKTP.KD.ZG", "IRYY": "wb:FP.CPI.TOTL.ZG",
            "UR": "wb:SL.UEM.TOTL.ZS"}[f]
     hit = (F.get(f) or {}).get(cc)

@@ -1,20 +1,54 @@
-executing-against: ccc9a4a0af03d2d4b96fb935ae8023d4fda95ee3
-ops 4144 — real MFS keys + harvest audit
-── A. real series keys (serieskeysonly) ──
-[16:49:35]   MFS_CBS ta/MFS_CBS/all -> 200 series=16532 (1642275B)
-[16:49:35]     <Series COUNTRY="AFG" INDICATOR="S121_A_ACO_NRES_CBS" TYPE_OF_TRANSFORMATION="XDC" FREQUENCY="A"/>
-[16:49:35]     <Series COUNTRY="AFG" INDICATOR="S121_A_ACO_NRES_CBS" TYPE_OF_TRANSFORMATION="XDC" FREQUENCY="M"/>
-[16:49:35]     <Series COUNTRY="AFG" INDICATOR="S121_A_ACO_NRES_CBS" TYPE_OF_TRANSFORMATION="XDC" FREQUENCY="Q"/>
-[16:49:35]     <Series COUNTRY="AFG" INDICATOR="S121_A_ACO_ODCORP_CBS" TYPE_OF_TRANSFORMATION="XDC" FREQUENCY="A"/>
-[16:49:35]     <Series COUNTRY="AFG" INDICATOR="S121_A_ACO_ODCORP_CBS" TYPE_OF_TRANSFORMATION="XDC" FREQUENCY="M"/>
-[16:50:26]   MFS_DC ata/MFS_DC/all -> 200 series=36794 (3502631B)
-[16:50:26]     <Series COUNTRY="AFG" INDICATOR="DCORP_A_ACO_NRES" TYPE_OF_TRANSFORMATION="XDC" FREQUENCY="A"/>
-[16:50:26]     <Series COUNTRY="AFG" INDICATOR="DCORP_A_ACO_NRES" TYPE_OF_TRANSFORMATION="XDC" FREQUENCY="M"/>
-[16:50:26]     <Series COUNTRY="AFG" INDICATOR="DCORP_A_ACO_NRES" TYPE_OF_TRANSFORMATION="XDC" FREQUENCY="Q"/>
-[16:50:26]     <Series COUNTRY="AFG" INDICATOR="DCORP_A_ACO_PS" TYPE_OF_TRANSFORMATION="XDC" FREQUENCY="A"/>
-[16:50:26]     <Series COUNTRY="AFG" INDICATOR="DCORP_A_ACO_PS" TYPE_OF_TRANSFORMATION="XDC" FREQUENCY="M"/>
-── B. tv-sources harvest audit ──
-[16:50:27]   top sources: {"source/AMEX": 502, "source/NASDAQ": 299, "source/NYSE": 248, "provider/tvc": 243, "provider/ice": 146, "source/CBOE": 68, "source/LSE": 62, "country/US": 27, "source/CRYPTOCAP": 25, "source/XETR": 23}
-[16:50:27] ✅ AUDIT DONE — harvest 2019 entries, 2019 sourced
+executing-against: 8d5ba1837e1785f4bb6ad3f452b4288e8f61aa6b
+ops 4145 — real-id round-2 wire
+── A. indicator census + code picks ──
+[16:55:28]   MFS_DC: 91 monthly indicators; top:
+[16:55:28]      303  DCORP_L_BM
+[16:55:28]      178  ODCORP_A_ACO_NRES
+[16:55:28]      178  ODCORP_A_ACO_PS
+[16:55:28]      178  ODCORP_A_ACO_S12R
+[16:55:28]      178  ODCORP_A_ACO_S1311MIXED
+[16:55:28]      178  ODCORP_A_ACO_S13M1
+[16:55:28]      178  ODCORP_A_F21_ACO_S121
+[16:55:28]      178  ODCORP_A_F2MSOTS_RR_ACO_S121
+[16:55:28]      178  ODCORP_A_OCO_S121
+[16:55:28]      178  ODCORP_L_F22_IBM
+[16:55:28]      178  ODCORP_L_F29_IBM
+[16:55:28]      178  ODCORP_L_F2M_XBM
+[16:55:28]      178  ODCORP_L_F3_IBM
+[16:55:28]      178  ODCORP_L_F3_XBM
+[16:55:55]   MFS_CBS: 58 monthly indicators; top:
+[16:55:55]      177  S121_A_OFAIL_ACO_NRES_FC_CBS
+[16:55:55]      175  S121_L_IL_LT_NRES_CBS
+[16:55:55]      174  S121_A_ACO_NRES_CBS
+[16:55:55]      174  S121_A_ACO_ODCORP_CBS
+[16:55:55]      174  S121_A_ACO_PS_CBS
+[16:55:55]      174  S121_A_ACO_S12R_CBS
+[16:55:55]      174  S121_A_ACO_S1311MIXED_CBS
+[16:55:55]      174  S121_A_ACO_S13M1_CBS
+[16:55:55]      174  S121_A_ACO_S1_Z_CBS
+[16:55:55]      174  S121_L_IMB_LT_ODCORP_CBS
+[16:55:55]      174  S121_L_IMB_LT_S1_Z_CBS
+[16:55:55]      174  S121_L_LT_NRES_CBS
+[16:55:55]      174  S121_L_LT_S1311MIXED_CBS
+[16:55:55]      174  S121_L_OLT_ODCORP_CBS
+── B. bulk proofs ──
+[16:55:56]   BULK MFS_DC/.DCORP_A_ACO_PS.XDC.M -> countries=146 JPN=771655200000000 BRA=8861998144914.38
+[16:55:56]   BULK MFS_CBS/.S121_A_TA_ASEC_CB1SR.XDC.M -> countries=146 JPN=731110200000000 BRA=5027289480000
+[16:55:57]   BULK MFS_CBS/.S121_L_MB_CBS.XDC.M -> countries=146 JPN=582652600000000 BRA=1399128320000
+── C. families-feed v1.1 self-patch + deploy ──
+[16:56:13] ✅   justhodl-families-feed settled at loop 1
+── D. vault FAM_RX widen + settle + invoke ──
+[17:01:50] ✗   justhodl-tradingview never settled
+[17:01:50] ✅   vault fired async — artifact lands ~t+610s; next op reads it
+[17:01:50] ✅   LG bulk >=60
+[17:01:50] ✅   CBBS bulk >=40
+[17:01:50] ✅   M0 bulk >=40
+[17:01:50] ✅   feed v1.1 settled
+[17:01:50] ✅   LG >= 40
+[17:01:50] ✅   CBBS >= 40
+[17:01:50] ✅   M0 >= 40
+[17:01:50] ✗   vault v3.19.0 settled
+[17:01:50] ✗ FAILED: ['vault v3.19.0 settled']
 
-→ Report written to aws/ops/reports/latest/4144_keys_and_harvest.md
+→ Report written to aws/ops/reports/latest/4145_realids_wire.md
+❌ OPS-FAIL: aws/ops/pending/ops_4145_realids_wire.py
