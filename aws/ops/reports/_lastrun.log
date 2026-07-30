@@ -1,12 +1,6 @@
-executing-against: 41ee6e6f7743b2f21e8e21a2d1cbf526030efc2a
-ops 4113 — family verify-only
-── vault's own story (last 40 min) ──
-[04:25:17]   [03:50:40] [tv-vault] families: {'GDPYY': 261, 'IRYY': 240, 'UR': 234, 'FERWB': 183, 'INTR': 46, 'FER': 0} in 0.9s
-[04:25:17]   [03:53:33] REPORT RequestId: 6374f735-2227-4820-817c-c906319f7e94	Duration: 900000.00 ms	Billed Duration: 900486 ms	Memory Size: 1024 MB	Max Memory Used: 134 MB	Init Duration: 485.9
-[04:25:17]   [04:05:35] REPORT RequestId: e3e04958-c179-451e-ad09-2219fcde98a9	Duration: 900000.00 ms	Billed Duration: 900498 ms	Memory Size: 1024 MB	Max Memory Used: 134 MB	Init Duration: 497.8
-[04:25:17]   [04:06:37] [tv-vault] families: {'GDPYY': 261, 'IRYY': 240, 'UR': 234, 'FERWB': 183, 'INTR': 46, 'FER': 0} in 2.0s
-[04:25:17]   [04:10:22] [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
-[04:25:17] ✗ ARTIFACT NOT v3.15.0 — evidence above
+executing-against: 83b046c023bf057b86db3fc33e09a7baa3f404f4
+ops 4123 — families-feed daily schedule
+[04:30:35] ✅   created cron(15 11) daily
+[04:30:35] ✅ PASS_ALL — feed refreshes daily at 11:15 UTC
 
-→ Report written to aws/ops/reports/latest/4122_final_truth.md
-❌ OPS-FAIL: aws/ops/pending/ops_4122_final_truth.py
+→ Report written to aws/ops/reports/latest/4123_feed_schedule.md
