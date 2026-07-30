@@ -1,13 +1,19 @@
-executing-against: f72ac3a47c60692a20d69b0061987889242b9f83
-ops 4118 — loud deterministic deploy
-── A. what is deployed RIGHT NOW ──
-[03:50:24]   names: lambda_function.py, _fred_shim.py, _sentry_lite.py, anthropic_shim.py, api_auth.py, benzinga.py, calibration.py, capital_flow.py, census_lib.py, claude_compat.py, edgar.py, engine_trust.py
-── B. build pipeline-layout zip + update, LOUDLY ──
-[03:50:25] ✅   update accepted (attempt 0)
-[03:50:25]   [0] state=('Active', 'InProgress', 'The function is being created.')
-[03:50:34] ✅   settled at loop 1
-── C. invoke + poll + gates ──
-[04:02:31] ✗ artifact never moved to v3.15.2
+executing-against: a8fe2b80c273345eff5275c1e4a5bd235400c044
+ops 4113 — family verify-only
+── marker not v3.15.0 — the vault's own story ──
+[04:03:30]   [03:33:18] END RequestId: d10e0460-ca39-4a63-8bcb-d9b9ba55078c
+[04:03:30]   [03:33:18] REPORT RequestId: d10e0460-ca39-4a63-8bcb-d9b9ba55078c	Duration: 900000.00 ms	Billed Duration: 900000 ms	Memory Size: 1024 MB	Max Memory Used: 134 MB	Status: timeout
+XRAY
+[04:03:30]   [03:36:39] END RequestId: 6374f735-2227-4820-817c-c906319f7e94
+[04:03:30]   [03:36:39] REPORT RequestId: 6374f735-2227-4820-817c-c906319f7e94	Duration: 900000.00 ms	Billed Duration: 900000 ms	Memory Size: 1024 MB	Max Memory Used: 134 MB	Status: timeout
+XRAY
+[04:03:30]   [03:38:33] INIT_START Runtime Version: python:3.12.mainlinev2.v27	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:fb4a5cbb4aeb1909cf946882192e0e708d8756b3a866c3ab89a3cfcfffec
+[04:03:30]   [03:38:33] START RequestId: 6374f735-2227-4820-817c-c906319f7e94 Version: $LATEST
+[04:03:30]   [03:50:34] INIT_START Runtime Version: python:3.12.mainlinev2.v27	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:fb4a5cbb4aeb1909cf946882192e0e708d8756b3a866c3ab89a3cfcfffec
+[04:03:30]   [03:50:35] START RequestId: e3e04958-c179-451e-ad09-2219fcde98a9 Version: $LATEST
+[04:03:30]   [03:53:33] END RequestId: 6374f735-2227-4820-817c-c906319f7e94
+[04:03:30]   [03:53:33] REPORT RequestId: 6374f735-2227-4820-817c-c906319f7e94	Duration: 900000.00 ms	Billed Duration: 900486 ms	Memory Size: 1024 MB	Max Memory Used: 134 MB	Init Duration: 485.9
+[04:03:30] ✗ ARTIFACT NOT v3.15.0 — evidence above
 
-→ Report written to aws/ops/reports/latest/4119_settle_once.md
-❌ OPS-FAIL: aws/ops/pending/ops_4119_settle_once.py
+→ Report written to aws/ops/reports/latest/4120_post_window.md
+❌ OPS-FAIL: aws/ops/pending/ops_4120_post_window.py
