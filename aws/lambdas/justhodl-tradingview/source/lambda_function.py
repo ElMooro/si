@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.16.0 ops4129 ladder-wall"
+MARKER = "tradingview-vault v3.16.1 ops4131 bare-family"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -822,7 +822,7 @@ def imf_latest(key):
         return None
 
 
-FAM_RX = re.compile(r"^ECONOMICS:([A-Z]{2})(INTR|FER|GDPYY|IRYY|UR)$")
+FAM_RX = re.compile(r"^(?:ECONOMICS:)?([A-Z]{2})(INTR|FER|GDPYY|IRYY|UR)$")   # ops4131: admission stores BARE
 _FAM = {}
 
 
@@ -1465,6 +1465,12 @@ def lambda_handler(event, context):
                 _rev_spent += _dt
                 if _dt > 3:
                     PH("slow sym=%s via=%s %.1fs" % (sym, rv, _dt))
+                if not v:
+                    # ops4131: a failed re-verify must never cost a LIVE
+                    # row — restore the cache, note it, move on.
+                    v = {k: c[k] for k in ("value", "prev", "chg_pct",
+                                           "asof") if k in c}
+                    row["resolution_note"] = "cache kept (rev miss)"
             if v:
                 row.update(v)
                 row["status"] = "LIVE"
