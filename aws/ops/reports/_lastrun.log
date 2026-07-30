@@ -1,6 +1,19 @@
-executing-against: 3094e0c806859ddc41bd77eba82c0b8b3e75fb22
-ops 4123 — families-feed daily schedule
-[16:07:02] ✅   created cron(15 11) daily
-[16:07:02] ✅ PASS_ALL — symbol-feed rotates daily at 11:30 UTC
+executing-against: 5997e67a559429463912adc40ae8e84a53fd92a8
+ops 4138 — MFS_DC / MFS_CBS discovery
+── MFS_DC: dataflow -> DSD -> dimensions ──
+[16:14:45]   ERR: 
+── MFS_CBS: dataflow -> DSD -> dimensions ──
+[16:14:45]   ERR: 
+── codelist grep — the LG / CBBS concepts by name ──
+[16:14:45]   CL_INDICATOR_MFS_DC: status=204 bytes=0
+[16:14:45]     ERR: 
+[16:14:45]   CL_INDICATOR_MFS_CBS: status=204 bytes=0
+[16:14:45]     ERR: 
+── live spots — key-shape trial for JP/BR ──
+[16:14:45]   MFS_DC/M.JPN: status=200 series=0 bytes=1518
+[16:14:46]   MFS_DC/M.JP: status=200 series=0 bytes=1518
+[16:14:46]   MFS_CBS/M.JPN: status=200 series=0 bytes=3226
+[16:14:47]   MFS_CBS/M.BRA: status=200 series=0 bytes=3226
+[16:14:47] ✅ MFS DISCOVERY DONE
 
-→ Report written to aws/ops/reports/latest/4137_symfeed_schedule.md
+→ Report written to aws/ops/reports/latest/4138_mfs_discovery.md
