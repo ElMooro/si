@@ -1,0 +1,96 @@
+# ops 4109 — the ECONOMICS gap list
+
+**Status:** success  
+**Duration:** 0.9s  
+**Finished:** 2026-07-30T02:19:13+00:00  
+
+## Data
+
+| LIVE | NO_FREE_SOURCE | PENDING_RESOLUTION | economics_watched |
+|---|---|---|---|
+| 218 | 53 | 3046 | 3317 |
+
+## Log
+## GAPS — 3099 not yet LIVE
+
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AEBOT   in: Countries Balance of Trade
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AECBBS   in: Central Bank Balance Sheet, Gov Balance sheet
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AECOP   in: Oil production by country
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AECS   in: CONSUMER SPENDING
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AEDIR   in: Deposit Interest Rate
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AEFER   in: Foreign Exchange Reserves
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AEFI   in: Global Food Inflation
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AEGDG   in: Debt To GDP
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AEGRES   in: Gold Reserves
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AEINTR   in: Central Banks Interest Rates - To Spot Carry Trade
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AELG   in: Loan Growth by country
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AEM0   in: Global Money Supply M0
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AEMPMI   in: PMI
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AFBOT   in: Countries Balance of Trade
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AFFI   in: Global Food Inflation
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AFGDG   in: Debt To GDP
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AFGDPYY   in: GDP YOY
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AFIRYY   in: Global Inflation
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AFUR   in: Unemployment ROW
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AGDIR   in: Deposit Interest Rate
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ALBCOI   in: Business Confidence Index: used to assess European
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ALBOT   in: Countries Balance of Trade
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ALCBBS   in: Central Bank Balance Sheet, Gov Balance sheet
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ALDIR   in: Deposit Interest Rate
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ALFI   in: Global Food Inflation
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ALGDG   in: Debt To GDP
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ALGDPYY   in: GDP YOY
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ALINTR   in: Interest Rates
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ALIPYY   in: Industrial Production YOY
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ALIRYY   in: Global Inflation, Inflation - Per country
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ALM0   in: Global Money Supply M0
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ALMPRYY   in: Manufacturing Production YOY
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ALRSYY   in: Retail Sales YOY
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ALUP   in: Unemployment - Unemployed persons
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ALUR   in: Unemployment ROW
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMBCOI   in: Business Confidence Index: used to assess European
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMBOT   in: Countries Balance of Trade
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMCIR   in: Global Inflation
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMDIR   in: Deposit Interest Rate
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMFER   in: Foreign Exchange Reserves
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMFI   in: Global Food Inflation
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMGDG   in: Debt To GDP
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMGDPYY   in: GDP YOY
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMINTR   in: Interest Rates
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMIPMM   in: Manufacturing Production MOM
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMIPRI   in: Country Import Prices
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMIPYY   in: Industrial Production YOY
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMIRYY   in: Global Inflation, Inflation - Per country
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMM0   in: Global Money Supply M0
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMRSYY   in: Retail Sales YOY
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMTOT   in: Global Terms of Trade
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMUP   in: Unemployment - Unemployed persons
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AMUR   in: Unemployment ROW
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AOBOT   in: Countries Balance of Trade
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AOCBBS   in: Central Bank Balance Sheet, Gov Balance sheet
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AODIR   in: Deposit Interest Rate
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AOFER   in: Foreign Exchange Reserves
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AOFI   in: Global Food Inflation
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AOGDG   in: Debt To GDP
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AOINTR   in: Interest Rates
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AOIPMM   in: Manufacturing Production MOM
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AOIPYY   in: Industrial Production YOY
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AOIRYY   in: Global Inflation, Inflation - Per country
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AOM0   in: Global Money Supply M0
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AOMPRYY   in: Manufacturing Production YOY
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AOUP   in: Unemployment - Unemployed persons
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:AOUR   in: Unemployment ROW
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ARCAG   in: Current Account to GDP
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ARCBBS   in: Central Bank Balance Sheet, Gov Balance sheet
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ARCU   in: Global Growth - Capacity Utilization : serve as a 
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ARDIR   in: Deposit Interest Rate
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ARFER   in: Foreign Exchange Reserves
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ARFER/ECONOMICS:ARGDP   in: Foreign Currency Reserves/GDP
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ARFI   in: Global Food Inflation
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ARGDG   in: Debt To GDP
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ARGDP/ECONOMICS:ARM3   in: GDP to Money Supply M3: Determines Local Currency/
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ARGRES   in: Gold Reserves
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ARINTR   in: Interest Rates
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ARIPRI   in: Country Import Prices
+- `02:19:13`   PENDING_RESOLUTION   ECONOMICS:ARIPYY   in: Industrial Production YOY
+- `02:19:13` ✅ ECON GAP — 3317 watched, 218 LIVE, 3099 gaps
