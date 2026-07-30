@@ -1,18 +1,8 @@
-executing-against: 2bc03a111de671d8c076616508362c1f86b58dc2
-ops 4112 — family adapters: settle, fire, verify
-[02:45:11] ✅   async invoke fired; polling artifact
-[02:55:15]   spot ECONOMICS:BRINTR: got=None want~14.25
-[02:55:15]   spot ECONOMICS:PEINTR: got=None want~4.25
-[02:55:15]   spot ECONOMICS:BRFER: got=None want~368899
-[02:55:15] ✗   v3.15.0 settled in deployed zip
-[02:55:15] ✗   artifact moved with v3.15.0 marker
-[02:55:15] ✗   INTR family >=25 LIVE
-[02:55:15] ✗   FER family >=80 LIVE
-[02:55:15] ✗   WB trio >=250 LIVE
-[02:55:15] ✗   spot ECONOMICS:BRINTR
-[02:55:15] ✗   spot ECONOMICS:PEINTR
-[02:55:15] ✗   spot ECONOMICS:BRFER
-[02:55:15] ✗ FAILED: ['v3.15.0 settled in deployed zip', 'artifact moved with v3.15.0 marker', 'INTR family >=25 LIVE', 'FER family >=80 LIVE', 'WB trio >=250 LIVE', 'spot ECONOMICS:BRINTR', 'spot ECONOMICS:PEINTR', 'spot ECONOMICS:BRFER']
+executing-against: e8554c984a87597ded47a192359daa88ced1e93c
+ops 4113 — family verify-only
+── marker not v3.15.0 — the vault's own story ──
+[02:56:10]   [02:45:12] [tv-vault] tradingview-vault v3.15.0 ops4112 family-adapters
+[02:56:10] ✗ ARTIFACT NOT v3.15.0 — evidence above
 
-→ Report written to aws/ops/reports/latest/4112_family_wire.md
-❌ OPS-FAIL: aws/ops/pending/ops_4112_family_wire.py
+→ Report written to aws/ops/reports/latest/4113_family_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_4113_family_verify.py
