@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.15.4 ops4124 phases"
+MARKER = "tradingview-vault v3.15.5 ops4125 corridor"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1278,6 +1278,7 @@ def lambda_handler(event, context):
     # price them all in one 900s run is not. Rows we have not attempted
     # yet carry status PENDING_RESOLUTION — an honest "not looked at yet",
     # never a fake zero and never a claim that no source exists.
+    PH("pre-admission")
     try:
         _wl = json.loads(s3.get_object(Bucket=S3_BUCKET,
                                        Key="data/tv-watchlists.json")["Body"].read())
@@ -1348,6 +1349,8 @@ def lambda_handler(event, context):
         print(f"[vault] fmp batch capped to {len(fmp_syms)}")
 
     fmp_vals = fmp_quotes(fmp_syms)
+
+    PH("fmp-bulk-done n=%d" % len(fmp_vals))
     n_live = n_cached = n_pending = 0
     attempted = 0
     out_of_time = False
@@ -1355,7 +1358,9 @@ def lambda_handler(event, context):
         _families()   # ops4117 pre-flight: hard 60s cap, before the heavy loops
     except Exception:
         pass
+    PH("families-preflight-done")
     force = bool((event or {}).get("force"))
+    PH("main-loop-start")
     for row in rows:
         sym = row["symbol"]
         c = cache.get(sym) or {}
@@ -1407,7 +1412,7 @@ def lambda_handler(event, context):
             continue
         if not c:
             attempted += 1
-            if attempted % 40 == 0:
+            if attempted % 10 == 0:
                 PH("loop attempted=%d" % attempted)
         if row["source"] == "fmp" and sym in fmp_vals:
             row.update(fmp_vals[sym])
