@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.15.0 ops4112 family-adapters"
+MARKER = "tradingview-vault v3.15.1 ops4116 family-budget"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -827,12 +827,17 @@ _FAM = {}
 
 
 def _fam_fetch(url):
-    for u in (url,
-              "https://justhodl-data-proxy.raafouis.workers.dev/gov?u="
-              + urllib.request.quote(url, safe="")):
+    """ops4116: 8s fast-fail. Three 900s timeouts (Max Mem 134MB) proved
+    the cost was blocking I/O inside the admission loop. Proxy fallback
+    only where GOV_ALLOW permits (api.imf.org)."""
+    urls = [url]
+    if "api.imf.org" in url:
+        urls.append("https://justhodl-data-proxy.raafouis.workers.dev/gov?u="
+                    + urllib.request.quote(url, safe=""))
+    for u in urls:
         try:
             req = urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=30) as r:
+            with urllib.request.urlopen(req, timeout=8) as r:
                 return r.read().decode("utf-8", "ignore")
         except Exception:
             continue
@@ -861,11 +866,18 @@ def _families():
     mn; GDPYY/IRYY/UR=World Bank mrnev (annual, honest asof)."""
     if _FAM:
         return _FAM
+    _fb0 = time.time()
+
+    def _left():
+        return 60 - (time.time() - _fb0)
     iso23 = {}
     for fam, code in (("GDPYY", "NY.GDP.MKTP.KD.ZG"),
                       ("IRYY", "FP.CPI.TOTL.ZG"),
                       ("UR", "SL.UEM.TOTL.ZS"),
                       ("FERWB", "FI.RES.TOTL.CD")):
+        if _left() < 10:
+            _FAM.setdefault(fam, {})
+            continue
         t = _fam_fetch("https://api.worldbank.org/v2/country/all/indicator/"
                        f"{code}?format=json&mrnev=1&per_page=400")
         try:
@@ -886,18 +898,26 @@ def _families():
             if c3:
                 iso23[c2.upper()] = c3
         _FAM[fam] = d
-    t = _fam_fetch("https://stats.bis.org/api/v1/data/WS_CBPOL/D../all"
-                   "?lastNObservations=1")
+    t = "" if _left() < 10 else _fam_fetch(
+        "https://stats.bis.org/api/v1/data/WS_CBPOL/D../all"
+        "?lastNObservations=1")
     _FAM["INTR"] = {k: (v[0], "bis:" + v[1])
                     for k, v in _sdmx_map(t, 2).items()}
     inv = {v: k for k, v in iso23.items()}
-    t = _fam_fetch("https://api.imf.org/external/sdmx/2.1/data/IRFCL/"
-                   "M..RAF_USD?lastNObservations=1")
+    t = "" if _left() < 10 else _fam_fetch(
+        "https://api.imf.org/external/sdmx/2.1/data/IRFCL/"
+        "M..RAF_USD?lastNObservations=1")
     d3 = {}
     for a3, (vv, tp) in _sdmx_map(t, 3).items():
         if a3 in inv:
             d3[inv[a3]] = (round(vv, 1), "imf:" + tp)
     _FAM["FER"] = d3
+    try:
+        print("[tv-vault] families:",
+              {k: len(v) for k, v in _FAM.items()},
+              "in %.1fs" % (time.time() - _fb0))
+    except Exception:
+        pass
     return _FAM
 
 
@@ -1306,6 +1326,10 @@ def lambda_handler(event, context):
     n_live = n_cached = n_pending = 0
     attempted = 0
     out_of_time = False
+try:
+    _families()   # ops4116 pre-flight: hard 60s cap, before the heavy loops
+except Exception:
+    pass
     force = bool((event or {}).get("force"))
     for row in rows:
         sym = row["symbol"]
@@ -1353,8 +1377,8 @@ def lambda_handler(event, context):
                 row.update(_famhit)
             else:
                 row["status"] = "PENDING_RESOLUTION"
-            row["resolution_note"] = "queued — not yet attempted this run"
-            n_pending += 1
+                row["resolution_note"] = "queued — not yet attempted this run"
+                n_pending += 1
             continue
         if not c:
             attempted += 1
