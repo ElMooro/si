@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.14.1 ops4099 wallclock-guard"
+MARKER = "tradingview-vault v3.15.0 ops4112 family-adapters"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -822,6 +822,107 @@ def imf_latest(key):
         return None
 
 
+FAM_RX = re.compile(r"^ECONOMICS:([A-Z]{2})(INTR|FER|GDPYY|IRYY|UR)$")
+_FAM = {}
+
+
+def _fam_fetch(url):
+    for u in (url,
+              "https://justhodl-data-proxy.raafouis.workers.dev/gov?u="
+              + urllib.request.quote(url, safe="")):
+        try:
+            req = urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                return r.read().decode("utf-8", "ignore")
+        except Exception:
+            continue
+    return ""
+
+
+def _sdmx_map(t, alen, conv=None):
+    d = {}
+    for blk in re.split(r"<Series[ >]", t)[1:]:
+        a2 = re.search(r'(?:REF_AREA|COUNTRY)="([A-Z0-9]{%d})"' % alen, blk)
+        v = re.findall(r'OBS_VALUE="([\d\.eE\+\-]+)"', blk)
+        tp = re.findall(r'TIME_PERIOD="([^"]+)"', blk)
+        if a2 and v:
+            try:
+                d[a2.group(1)] = ((conv or float)(v[-1]),
+                                  tp[-1] if tp else "latest")
+            except Exception:
+                pass
+    return d
+
+
+def _families():
+    """ops4112 FAMILY ADAPTERS: one bulk call per family per run.
+    INTR=BIS CBPOL (daily, BR/PE exact-matched fleet in discovery 4111);
+    FER=IMF IRFCL RAF_USD bulk (ISO3) with WB fallback normalized to USD
+    mn; GDPYY/IRYY/UR=World Bank mrnev (annual, honest asof)."""
+    if _FAM:
+        return _FAM
+    iso23 = {}
+    for fam, code in (("GDPYY", "NY.GDP.MKTP.KD.ZG"),
+                      ("IRYY", "FP.CPI.TOTL.ZG"),
+                      ("UR", "SL.UEM.TOTL.ZS"),
+                      ("FERWB", "FI.RES.TOTL.CD")):
+        t = _fam_fetch("https://api.worldbank.org/v2/country/all/indicator/"
+                       f"{code}?format=json&mrnev=1&per_page=400")
+        try:
+            rows = json.loads(t)[1] or []
+        except Exception:
+            rows = []
+        d = {}
+        for r in rows:
+            v = r.get("value")
+            c2 = (r.get("country") or {}).get("id") or ""
+            if v is None or len(c2) != 2:
+                continue
+            vv = float(v)
+            if fam == "FERWB":
+                vv = round(vv / 1e6, 1)   # USD -> USD millions (IRFCL unit)
+            d[c2.upper()] = (round(vv, 2), "wb:%s" % r.get("date"))
+            c3 = r.get("countryiso3code")
+            if c3:
+                iso23[c2.upper()] = c3
+        _FAM[fam] = d
+    t = _fam_fetch("https://stats.bis.org/api/v1/data/WS_CBPOL/D../all"
+                   "?lastNObservations=1")
+    _FAM["INTR"] = {k: (v[0], "bis:" + v[1])
+                    for k, v in _sdmx_map(t, 2).items()}
+    inv = {v: k for k, v in iso23.items()}
+    t = _fam_fetch("https://api.imf.org/external/sdmx/2.1/data/IRFCL/"
+                   "M..RAF_USD?lastNObservations=1")
+    d3 = {}
+    for a3, (vv, tp) in _sdmx_map(t, 3).items():
+        if a3 in inv:
+            d3[inv[a3]] = (round(vv, 1), "imf:" + tp)
+    _FAM["FER"] = d3
+    return _FAM
+
+
+def _family_try(row):
+    m = FAM_RX.match(str(row.get("symbol") or ""))
+    if not m:
+        return None
+    cc, f = m.group(1), m.group(2)
+    F = _families()
+    src = {"INTR": "bis:CBPOL", "FER": "imf:IRFCL RAF_USD",
+           "GDPYY": "wb:NY.GDP.MKTP.KD.ZG", "IRYY": "wb:FP.CPI.TOTL.ZG",
+           "UR": "wb:SL.UEM.TOTL.ZS"}[f]
+    hit = (F.get(f) or {}).get(cc)
+    if not hit and f == "FER":
+        hit = (F.get("FERWB") or {}).get(cc)
+        if hit:
+            src = "wb:FI.RES.TOTL.CD"
+    if not hit:
+        return None
+    val, asof = hit
+    return {"status": "LIVE", "value": val,
+            "source": src + " (family)", "asof": asof,
+            "adapter": "family:" + f}
+
+
 def boj_yoy(tgt):
     """Bank of Japan official API (launched 2026-02): getDataCode on the
     loans db, YoY computed from avg-amounts-outstanding levels (last
@@ -1247,7 +1348,11 @@ def lambda_handler(event, context):
                 pass
         if (out_of_time or attempted >= RESOLVE_BUDGET) and not c \
                 and row.get("from_watchlist"):
-            row["status"] = "PENDING_RESOLUTION"
+            _famhit = _family_try(row)
+            if _famhit:
+                row.update(_famhit)
+            else:
+                row["status"] = "PENDING_RESOLUTION"
             row["resolution_note"] = "queued — not yet attempted this run"
             n_pending += 1
             continue
