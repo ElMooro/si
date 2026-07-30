@@ -1,0 +1,86 @@
+# ops 4118 — loud deterministic deploy
+
+**Status:** failure  
+**Duration:** 496.0s  
+**Finished:** 2026-07-30T03:48:02+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| current_marker | new_zip_files | zip_files |
+|---|---|---|
+| tradingview-vault v3.15.2 ops4117 indent-true |  | 1 |
+|  | 27 |  |
+
+## Log
+## A. what is deployed RIGHT NOW
+
+- `03:39:46`   names: lambda_function.py
+## B. build pipeline-layout zip + update, LOUDLY
+
+- `03:39:47`   [0] update_function_code ACCEPTED
+- `03:39:47`   [0] state=('Active', 'InProgress', 'The function is being created.')
+- `03:39:57`   [1] update_function_code ACCEPTED
+- `03:40:07`   [2] update_function_code ACCEPTED
+- `03:40:17`   [3] update_function_code ACCEPTED
+- `03:40:26`   [4] update_function_code ACCEPTED
+- `03:40:36`   [5] update_function_code ACCEPTED
+- `03:40:37`   [5] state=('Active', 'InProgress', 'The function is being created.')
+- `03:40:46`   [6] update_function_code ACCEPTED
+- `03:40:56`   [7] update_function_code ACCEPTED
+- `03:41:06`   [8] update_function_code ACCEPTED
+- `03:41:16`   [9] update_function_code ACCEPTED
+- `03:41:26`   [10] update_function_code ACCEPTED
+- `03:41:26`   [10] state=('Active', 'InProgress', 'The function is being created.')
+- `03:41:36`   [11] update_function_code ACCEPTED
+- `03:41:46`   [12] update_function_code ACCEPTED
+- `03:41:56`   [13] update_function_code ACCEPTED
+- `03:42:05`   [14] update_function_code ACCEPTED
+- `03:42:15`   [15] update_function_code ACCEPTED
+- `03:42:15`   [15] state=('Active', 'InProgress', 'The function is being created.')
+- `03:42:25`   [16] update_function_code ACCEPTED
+- `03:42:35`   [17] update_function_code ACCEPTED
+- `03:42:45`   [18] update_function_code ACCEPTED
+- `03:42:55`   [19] update_function_code ACCEPTED
+- `03:43:05`   [20] update_function_code ACCEPTED
+- `03:43:05`   [20] state=('Active', 'InProgress', 'The function is being created.')
+- `03:43:15`   [21] update_function_code ACCEPTED
+- `03:43:25`   [22] update_function_code ACCEPTED
+- `03:43:35`   [23] update_function_code ACCEPTED
+- `03:43:45`   [24] update_function_code ACCEPTED
+- `03:43:54`   [25] update_function_code ACCEPTED
+- `03:43:55`   [25] state=('Active', 'InProgress', 'The function is being created.')
+- `03:44:04`   [26] update_function_code ACCEPTED
+- `03:44:14`   [27] update_function_code ACCEPTED
+- `03:44:24`   [28] update_function_code ACCEPTED
+- `03:44:34`   [29] update_function_code ACCEPTED
+- `03:44:44`   [30] update_function_code ACCEPTED
+- `03:44:44`   [30] state=('Active', 'InProgress', 'The function is being created.')
+- `03:44:54`   [31] update_function_code ACCEPTED
+- `03:45:04`   [32] update_function_code ACCEPTED
+- `03:45:14`   [33] update_function_code ACCEPTED
+- `03:45:24`   [34] update_function_code ACCEPTED
+- `03:45:34`   [35] update_function_code ACCEPTED
+- `03:45:34`   [35] state=('Active', 'InProgress', 'The function is being created.')
+- `03:45:44`   [36] update_function_code ACCEPTED
+- `03:45:54`   [37] update_function_code ACCEPTED
+- `03:46:03`   [38] update_function_code ACCEPTED
+- `03:46:13`   [39] update_function_code ACCEPTED
+- `03:46:23`   [40] update_function_code ACCEPTED
+- `03:46:23`   [40] state=('Active', 'InProgress', 'The function is being created.')
+- `03:46:33`   [41] update_function_code ACCEPTED
+- `03:46:43`   [42] update_function_code ACCEPTED
+- `03:46:53`   [43] update_function_code ACCEPTED
+- `03:47:03`   [44] update_function_code ACCEPTED
+- `03:47:13`   [45] update_function_code ACCEPTED
+- `03:47:13`   [45] state=('Active', 'InProgress', 'The function is being created.')
+- `03:47:23`   [46] update_function_code ACCEPTED
+- `03:47:33`   [47] update_function_code ACCEPTED
+- `03:47:43`   [48] update_function_code ACCEPTED
+- `03:47:52`   [49] update_function_code ACCEPTED
+- `03:48:02` ✗ v3.15.2 never settled — every refusal printed above
