@@ -1,18 +1,18 @@
-executing-against: 916fec112f6481df402c125aa7d7bf9ea64d6e64
+executing-against: 9adcf121d7727db903e76f195e81dfde64290df3
 ops 4146 — v3.19.0 settle, fire, gate
-[17:05:41] ✅   update accepted (attempt 0)
-[17:05:41]   [0] ('Active', 'InProgress', 'The function is being created.')
-[17:05:50] ✅   settled at loop 1
-[17:12:12] ✅   artifact v3.19.0 after ~375s
-[17:12:12]   spot JPLG: LIVE v=7.07 src=bank-of-japan
-[17:12:12]   spot BRCBBS: LIVE v=5027289480000.0 src=imf:MFS_CBS TA (family)
-[17:12:12]   spot JPM0: NO_FREE_SOURCE v=None src=unresolved_economics
-[17:12:12] ✗   imf family-src >=300 (FER+LG+CBBS+M0)
-[17:12:12] ✅   total LIVE >= 3300
-[17:12:12] ✗   spot JPLG LIVE&plausible
-[17:12:12] ✅   spot BRCBBS LIVE&plausible
-[17:12:12] ✗   spot JPM0 LIVE&plausible
-[17:12:12] ✗ FAILED: ['imf family-src >=300 (FER+LG+CBBS+M0)', 'spot JPLG LIVE&plausible', 'spot JPM0 LIVE&plausible']
+[17:16:35] ✅   update accepted (attempt 0)
+[17:16:36]   [0] ('Active', 'InProgress', 'The function is being created.')
+[17:16:45] ✅   settled at loop 1
+[17:26:54] ✅   artifact v3.19.0 after ~600s
+[17:26:54]   spot BRLG: LIVE v=8861998144914.4 src=imf:MFS_DC (family)
+[17:26:54]   spot BRCBBS: LIVE v=5027289480000.0 src=imf:MFS_CBS TA (family)
+[17:26:54]   spot JPM0: LIVE v=582652600000000.0 src=imf:MFS_CBS MB (family)
+[17:26:54] ✗   imf family-src >=300 (FER+LG+CBBS+M0)
+[17:26:54] ✅   total LIVE >= 3300
+[17:26:54] ✅   spot BRLG LIVE&plausible
+[17:26:54] ✅   spot BRCBBS LIVE&plausible
+[17:26:54] ✅   spot JPM0 LIVE&plausible
+[17:26:54] ✗ FAILED: ['imf family-src >=300 (FER+LG+CBBS+M0)']
 
-→ Report written to aws/ops/reports/latest/4146_vault_settle_gates.md
-❌ OPS-FAIL: aws/ops/pending/ops_4146_vault_settle_gates.py
+→ Report written to aws/ops/reports/latest/4147_nfsthaw_gates.md
+❌ OPS-FAIL: aws/ops/pending/ops_4147_nfsthaw_gates.py
