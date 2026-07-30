@@ -1,19 +1,45 @@
-executing-against: e824914440d3a09712d96a44959f18fcb95b7afb
-ops 4139 — raw MFS bodies
-[16:21:10] == /sdmx/2.1/data/MFS_DC/M.JPN?lastNObservations=1 -> 200 (1518B)
-[16:21:10]   <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData xmlns:ss="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/data/structurespecific" xmlns:footer="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message/footer" xmlns:ns1="urn:sdmx:org.sdm
-[16:21:10]   x.infomodel.datastructure.Dataflow=IMF.STA:MFS_DC(8.0.0):ObsLevelDim:TIME_PERIOD" xmlns:message="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message" xmlns:common="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common" xmlns:xsi="http://www.w3.org/200
-[16:21:10]   1/XMLSchema-instance" xmlns:xml="http://www.w3.org/XML/1998/namespace"><message:Header><message:ID>DS1785428470065</message:ID><message:Test>false</message:Test><message:Prepared>2026-07-30T16:21:10Z</message:Prepared><message:Sender id="iData"/><message:Struc
-[16:21:10]   ture structureID="IMF.STA_MFS_DC_8_0_0" namespace="urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.STA:MFS_DC(8.0.0):ObsLevelDim:TIME_PERIOD" dimensionAtObservation="TIME_PERIOD"><common:StructureUsage><Ref agencyID="IMF.STA" id="MFS_DC" version="8.0.0"
-[16:21:10]   /></common:StructureUsage></message:Structure><message:DataSetAction>Replace</message:DataSetAction></message:Header><message:DataSet ss:dataScope="DataStructure" xsi:type="ns1:DataSetType" ss:structureRef="IMF.STA_MFS_DC_8_0_0" action="Replace" LANGUAGE="EN" 
-[16:21:10] == /sdmx/2.1/data/MFS_CBS/M.JPN?lastNObservations=1 -> 200 (3226B)
-[16:21:10]   <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData xmlns:ss="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/data/structurespecific" xmlns:footer="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message/footer" xmlns:ns1="urn:sdmx:org.sdm
-[16:21:10]   x.infomodel.datastructure.Dataflow=IMF.STA:MFS_CBS(24.0.0):ObsLevelDim:TIME_PERIOD" xmlns:message="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message" xmlns:common="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common" xmlns:xsi="http://www.w3.org/2
-[16:21:10]   001/XMLSchema-instance" xmlns:xml="http://www.w3.org/XML/1998/namespace"><message:Header><message:ID>DS1785428470345</message:ID><message:Test>false</message:Test><message:Prepared>2026-07-30T16:21:10Z</message:Prepared><message:Sender id="iData"/><message:Str
-[16:21:10]   ucture structureID="IMF.STA_MFS_CBS_24_0_0" namespace="urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.STA:MFS_CBS(24.0.0):ObsLevelDim:TIME_PERIOD" dimensionAtObservation="TIME_PERIOD"><common:StructureUsage><Ref agencyID="IMF.STA" id="MFS_CBS" version=
-[16:21:10]   "24.0.0"/></common:StructureUsage></message:Structure><message:DataSetAction>Replace</message:DataSetAction></message:Header><message:DataSet ss:dataScope="DataStructure" xsi:type="ns1:DataSetType" ss:structureRef="IMF.STA_MFS_CBS_24_0_0" action="Replace" LANG
-[16:21:10] == /sdmx/2.1/dataflow/IMF/MFS_DC -> 204 (0B)
-[16:21:10] == /sdmx/2.1/datastructure/IMF/DSD_MFS_DC -> 204 (0B)
-[16:21:10] ✅ RAW DONE
+executing-against: 6c76023b98504c0fac4ccbcb1e395fcfb98c7ca7
+ops 4140 — self-driving MFS resolver
+── MFS_DC ──
+[16:26:23]   KEY ORDER: COUNTRY.INDICATOR.TYPE_OF_TRANSFORMATION.FREQUENCY
+[16:26:23]   area form: JPN=True JP=False
+[16:26:23]   candidate indicators (196):
+[16:26:23]     S121_A_ACO_PS_CBS: Assets, Claims on Private sector (CBS)
+[16:26:23]     S121_A_ACO_PS_DIC_FC_CBS: Assets, Claims on Private sector, Denominated in Foreign Currency (CBS)
+[16:26:23]     S121_A_ACO_PS_DIC_XDC_CBS: Assets, Claims on Private sector, Denominated in Domestic currency (CBS)
+[16:26:23]     S121_A_ACO_PS_EAWR_CBS: Assets, Claims on Private sector, Euro area wide residency (CBS)
+[16:26:23]     S121_A_ACO_S1_Z_CBS: Assets, Claims on Other sectors (CBS)
+[16:26:23]     S121_A_ACO_S1_Z_EAWR_CBS: Assets, Claims on Other sectors, Euro area wide residency (CBS)
+[16:26:23]     S121_A_AIF4_ASEC_CB1SR: Assets, Accrued Interest on Loans, All sectors (CB1SR)
+[16:26:23]     S121_A_CT_PS_DIC_FC_CBS: Assets, Credit to Private sector, Denominated in Foreign Currency (CBS)
+[16:26:23]     S121_A_CT_PS_DIC_XDC_CBS: Assets, Credit to Private sector, Denominated in Domestic currency (CBS)
+[16:26:23]     S121_A_ELF4_ASEC_CB1SR: Assets, Expected Losses on Loans, All sectors (CB1SR)
+[16:26:23]   SPOT MFS_DC/JPN.S121_A_ACO_PS_CBS.. -> 200 series=0 vals=[]
+[16:26:23]   SPOT MFS_DC/BRA.S121_A_ACO_PS_CBS.. -> 200 series=0 vals=[]
+[16:26:24]   SPOT MFS_DC/JPN.S121_A_ACO_PS_DIC_FC_CBS.. -> 200 series=0 vals=[]
+[16:26:24]   SPOT MFS_DC/BRA.S121_A_ACO_PS_DIC_FC_CBS.. -> 200 series=0 vals=[]
+[16:26:25]   SPOT MFS_DC/JPN.S121_A_ACO_PS_DIC_XDC_CBS.. -> 200 series=0 vals=[]
+[16:26:25]   SPOT MFS_DC/BRA.S121_A_ACO_PS_DIC_XDC_CBS.. -> 200 series=0 vals=[]
+── MFS_CBS ──
+[16:26:26]   KEY ORDER: COUNTRY.INDICATOR.TYPE_OF_TRANSFORMATION.FREQUENCY
+[16:26:26]   area form: JPN=True JP=False
+[16:26:26]   candidate indicators (179):
+[16:26:26]     F22S12CBF: Transferable Deposits, SDR Allocations (with Fund Record), Central Bank 
+[16:26:26]     MB: Monetary base
+[16:26:26]     TA: Total assets
+[16:26:26]     HSCB: Holdings of Securities issued by Central Bank
+[16:26:26]     F22CBF: Transferable Deposits, Central Bank Float
+[16:26:26]     CBF: Central Bank Float
+[16:26:26]     S121_A_TA_ASEC_CB1SR: Assets, Total assets, All sectors (CB1SR)
+[16:26:26]     S121_L_CIC_IMB_CBS: Liabilities, Currency in circulation, Included In Monetary Base (CBS)
+[16:26:26]     S121_L_F22_XMBXBM_CBS: Liabilities, Transferable Deposits, Excluded from both the Monetary Base
+[16:26:26]     S121_L_F29_IMBIBM_CB1SR: Liabilities, Other Deposits, Included in the Monetary Base and Included 
+[16:26:26]   SPOT MFS_CBS/JPN.F22S12CBF.. -> 200 series=0 vals=[]
+[16:26:27]   SPOT MFS_CBS/BRA.F22S12CBF.. -> 200 series=0 vals=[]
+[16:26:27]   SPOT MFS_CBS/JPN.MB.. -> 200 series=0 vals=[]
+[16:26:28]   SPOT MFS_CBS/BRA.MB.. -> 200 series=0 vals=[]
+[16:26:28]   SPOT MFS_CBS/JPN.TA.. -> 200 series=0 vals=[]
+[16:26:29]   SPOT MFS_CBS/BRA.TA.. -> 200 series=0 vals=[]
+[16:26:29] ✅ SELF-DRIVE DONE
 
-→ Report written to aws/ops/reports/latest/4139_raw_bodies.md
+→ Report written to aws/ops/reports/latest/4140_mfs_selfdrive.md

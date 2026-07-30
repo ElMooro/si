@@ -1,0 +1,57 @@
+# ops 4140 — self-driving MFS resolver
+
+**Status:** success  
+**Duration:** 7.1s  
+**Finished:** 2026-07-30T16:26:29+00:00  
+
+## Data
+
+| MFS_CBS_MB | MFS_CBS_status | MFS_DC_MB | MFS_DC_status |
+|---|---|---|---|
+|  |  | 6.75 | 200 |
+| 6.75 | 200 |  |  |
+
+## Log
+## MFS_DC
+
+- `16:26:23`   KEY ORDER: COUNTRY.INDICATOR.TYPE_OF_TRANSFORMATION.FREQUENCY
+- `16:26:23`   area form: JPN=True JP=False
+- `16:26:23`   candidate indicators (196):
+- `16:26:23`     S121_A_ACO_PS_CBS: Assets, Claims on Private sector (CBS)
+- `16:26:23`     S121_A_ACO_PS_DIC_FC_CBS: Assets, Claims on Private sector, Denominated in Foreign Currency (CBS)
+- `16:26:23`     S121_A_ACO_PS_DIC_XDC_CBS: Assets, Claims on Private sector, Denominated in Domestic currency (CBS)
+- `16:26:23`     S121_A_ACO_PS_EAWR_CBS: Assets, Claims on Private sector, Euro area wide residency (CBS)
+- `16:26:23`     S121_A_ACO_S1_Z_CBS: Assets, Claims on Other sectors (CBS)
+- `16:26:23`     S121_A_ACO_S1_Z_EAWR_CBS: Assets, Claims on Other sectors, Euro area wide residency (CBS)
+- `16:26:23`     S121_A_AIF4_ASEC_CB1SR: Assets, Accrued Interest on Loans, All sectors (CB1SR)
+- `16:26:23`     S121_A_CT_PS_DIC_FC_CBS: Assets, Credit to Private sector, Denominated in Foreign Currency (CBS)
+- `16:26:23`     S121_A_CT_PS_DIC_XDC_CBS: Assets, Credit to Private sector, Denominated in Domestic currency (CBS)
+- `16:26:23`     S121_A_ELF4_ASEC_CB1SR: Assets, Expected Losses on Loans, All sectors (CB1SR)
+- `16:26:23`   SPOT MFS_DC/JPN.S121_A_ACO_PS_CBS.. -> 200 series=0 vals=[]
+- `16:26:23`   SPOT MFS_DC/BRA.S121_A_ACO_PS_CBS.. -> 200 series=0 vals=[]
+- `16:26:24`   SPOT MFS_DC/JPN.S121_A_ACO_PS_DIC_FC_CBS.. -> 200 series=0 vals=[]
+- `16:26:24`   SPOT MFS_DC/BRA.S121_A_ACO_PS_DIC_FC_CBS.. -> 200 series=0 vals=[]
+- `16:26:25`   SPOT MFS_DC/JPN.S121_A_ACO_PS_DIC_XDC_CBS.. -> 200 series=0 vals=[]
+- `16:26:25`   SPOT MFS_DC/BRA.S121_A_ACO_PS_DIC_XDC_CBS.. -> 200 series=0 vals=[]
+## MFS_CBS
+
+- `16:26:26`   KEY ORDER: COUNTRY.INDICATOR.TYPE_OF_TRANSFORMATION.FREQUENCY
+- `16:26:26`   area form: JPN=True JP=False
+- `16:26:26`   candidate indicators (179):
+- `16:26:26`     F22S12CBF: Transferable Deposits, SDR Allocations (with Fund Record), Central Bank 
+- `16:26:26`     MB: Monetary base
+- `16:26:26`     TA: Total assets
+- `16:26:26`     HSCB: Holdings of Securities issued by Central Bank
+- `16:26:26`     F22CBF: Transferable Deposits, Central Bank Float
+- `16:26:26`     CBF: Central Bank Float
+- `16:26:26`     S121_A_TA_ASEC_CB1SR: Assets, Total assets, All sectors (CB1SR)
+- `16:26:26`     S121_L_CIC_IMB_CBS: Liabilities, Currency in circulation, Included In Monetary Base (CBS)
+- `16:26:26`     S121_L_F22_XMBXBM_CBS: Liabilities, Transferable Deposits, Excluded from both the Monetary Base
+- `16:26:26`     S121_L_F29_IMBIBM_CB1SR: Liabilities, Other Deposits, Included in the Monetary Base and Included 
+- `16:26:26`   SPOT MFS_CBS/JPN.F22S12CBF.. -> 200 series=0 vals=[]
+- `16:26:27`   SPOT MFS_CBS/BRA.F22S12CBF.. -> 200 series=0 vals=[]
+- `16:26:27`   SPOT MFS_CBS/JPN.MB.. -> 200 series=0 vals=[]
+- `16:26:28`   SPOT MFS_CBS/BRA.MB.. -> 200 series=0 vals=[]
+- `16:26:28`   SPOT MFS_CBS/JPN.TA.. -> 200 series=0 vals=[]
+- `16:26:29`   SPOT MFS_CBS/BRA.TA.. -> 200 series=0 vals=[]
+- `16:26:29` ✅ SELF-DRIVE DONE
