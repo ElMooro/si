@@ -1,45 +1,22 @@
-executing-against: 6c76023b98504c0fac4ccbcb1e395fcfb98c7ca7
-ops 4140 — self-driving MFS resolver
-── MFS_DC ──
-[16:26:23]   KEY ORDER: COUNTRY.INDICATOR.TYPE_OF_TRANSFORMATION.FREQUENCY
-[16:26:23]   area form: JPN=True JP=False
-[16:26:23]   candidate indicators (196):
-[16:26:23]     S121_A_ACO_PS_CBS: Assets, Claims on Private sector (CBS)
-[16:26:23]     S121_A_ACO_PS_DIC_FC_CBS: Assets, Claims on Private sector, Denominated in Foreign Currency (CBS)
-[16:26:23]     S121_A_ACO_PS_DIC_XDC_CBS: Assets, Claims on Private sector, Denominated in Domestic currency (CBS)
-[16:26:23]     S121_A_ACO_PS_EAWR_CBS: Assets, Claims on Private sector, Euro area wide residency (CBS)
-[16:26:23]     S121_A_ACO_S1_Z_CBS: Assets, Claims on Other sectors (CBS)
-[16:26:23]     S121_A_ACO_S1_Z_EAWR_CBS: Assets, Claims on Other sectors, Euro area wide residency (CBS)
-[16:26:23]     S121_A_AIF4_ASEC_CB1SR: Assets, Accrued Interest on Loans, All sectors (CB1SR)
-[16:26:23]     S121_A_CT_PS_DIC_FC_CBS: Assets, Credit to Private sector, Denominated in Foreign Currency (CBS)
-[16:26:23]     S121_A_CT_PS_DIC_XDC_CBS: Assets, Credit to Private sector, Denominated in Domestic currency (CBS)
-[16:26:23]     S121_A_ELF4_ASEC_CB1SR: Assets, Expected Losses on Loans, All sectors (CB1SR)
-[16:26:23]   SPOT MFS_DC/JPN.S121_A_ACO_PS_CBS.. -> 200 series=0 vals=[]
-[16:26:23]   SPOT MFS_DC/BRA.S121_A_ACO_PS_CBS.. -> 200 series=0 vals=[]
-[16:26:24]   SPOT MFS_DC/JPN.S121_A_ACO_PS_DIC_FC_CBS.. -> 200 series=0 vals=[]
-[16:26:24]   SPOT MFS_DC/BRA.S121_A_ACO_PS_DIC_FC_CBS.. -> 200 series=0 vals=[]
-[16:26:25]   SPOT MFS_DC/JPN.S121_A_ACO_PS_DIC_XDC_CBS.. -> 200 series=0 vals=[]
-[16:26:25]   SPOT MFS_DC/BRA.S121_A_ACO_PS_DIC_XDC_CBS.. -> 200 series=0 vals=[]
-── MFS_CBS ──
-[16:26:26]   KEY ORDER: COUNTRY.INDICATOR.TYPE_OF_TRANSFORMATION.FREQUENCY
-[16:26:26]   area form: JPN=True JP=False
-[16:26:26]   candidate indicators (179):
-[16:26:26]     F22S12CBF: Transferable Deposits, SDR Allocations (with Fund Record), Central Bank 
-[16:26:26]     MB: Monetary base
-[16:26:26]     TA: Total assets
-[16:26:26]     HSCB: Holdings of Securities issued by Central Bank
-[16:26:26]     F22CBF: Transferable Deposits, Central Bank Float
-[16:26:26]     CBF: Central Bank Float
-[16:26:26]     S121_A_TA_ASEC_CB1SR: Assets, Total assets, All sectors (CB1SR)
-[16:26:26]     S121_L_CIC_IMB_CBS: Liabilities, Currency in circulation, Included In Monetary Base (CBS)
-[16:26:26]     S121_L_F22_XMBXBM_CBS: Liabilities, Transferable Deposits, Excluded from both the Monetary Base
-[16:26:26]     S121_L_F29_IMBIBM_CB1SR: Liabilities, Other Deposits, Included in the Monetary Base and Included 
-[16:26:26]   SPOT MFS_CBS/JPN.F22S12CBF.. -> 200 series=0 vals=[]
-[16:26:27]   SPOT MFS_CBS/BRA.F22S12CBF.. -> 200 series=0 vals=[]
-[16:26:27]   SPOT MFS_CBS/JPN.MB.. -> 200 series=0 vals=[]
-[16:26:28]   SPOT MFS_CBS/BRA.MB.. -> 200 series=0 vals=[]
-[16:26:28]   SPOT MFS_CBS/JPN.TA.. -> 200 series=0 vals=[]
-[16:26:29]   SPOT MFS_CBS/BRA.TA.. -> 200 series=0 vals=[]
-[16:26:29] ✅ SELF-DRIVE DONE
+executing-against: 041df17a41f1ca0116a34c591d12705f755f614d
+ops 4142 — transformation/frequency + spot matrix
+[16:32:03]   CL_MFS_TYPE_OF_TRANSFORMATION: EUR, USD, XDC, EOP_PT, PCH_CP_A_PT, XDR, RMBBMPT_A_PT, IX, PT, EOP, SA_EUR, SA_USD, SA_XDC, SAF_IX, EOP_IX
+[16:32:03]   CL_TRANSFORMATION: 1DIGITPT, 12MMA, 12MRB, C12, A12, C16, Q1, 2DIGITPT, Q2, C3, A3, Q3, C4, A4, 6MRMQCHG
+[16:32:03]   CL_FREQ: A, D, M, Q, S, W, A2, A3, A4, A5, A10, A20
+[16:32:03]   SPOT JPN.MB.1DIGITPT.M -> 200 series=0 vals=[]
+[16:32:04]   SPOT JPN.MB.1DIGITPT.A -> 200 series=0 vals=[]
+[16:32:04]   SPOT JPN.MB.1DIGITPT.Q -> 200 series=0 vals=[]
+[16:32:04]   SPOT JPN.MB.12MMA.M -> 200 series=0 vals=[]
+[16:32:05]   SPOT JPN.MB.12MMA.A -> 200 series=0 vals=[]
+[16:32:05]   SPOT JPN.MB.12MMA.Q -> 200 series=0 vals=[]
+[16:32:06]   SPOT JPN.MB.12MRB.M -> 200 series=0 vals=[]
+[16:32:06]   SPOT JPN.MB.12MRB.A -> 200 series=0 vals=[]
+[16:32:06]   SPOT JPN.MB.12MRB.Q -> 200 series=0 vals=[]
+[16:32:07]   SPOT JPN.MB.C12.M -> 200 series=0 vals=[]
+[16:32:07]   SPOT JPN.MB.C12.A -> 200 series=0 vals=[]
+[16:32:07]   SPOT JPN.MB.C12.Q -> 200 series=0 vals=[]
+[16:32:08]   SPOT JPN.MB.A12.M -> 200 series=0 vals=[]
+[16:32:08]   SPOT JPN.MB.A12.A -> 200 series=0 vals=[]
+[16:32:08] ✅ LAST-DIMS DONE hit=None tries=14
 
-→ Report written to aws/ops/reports/latest/4140_mfs_selfdrive.md
+→ Report written to aws/ops/reports/latest/4142_last_dims.md
