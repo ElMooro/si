@@ -1,20 +1,12 @@
-executing-against: a6ad0da7f8c89237da332c71f319e17503781a8b
-ops 4121 — families-feed + vault feed-first
-── A. families-feed: create/settle, invoke, verify ──
-[04:09:32]   update EXC: ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be per
-[04:09:43] ✅   justhodl-families-feed update accepted (attempt 1)
-[04:09:53] ✅   justhodl-families-feed settled at loop 1
-── B. vault: settle v3.15.3 + memory 2048 ──
-[04:09:56] ✅   justhodl-tradingview update accepted (attempt 0)
-[04:10:06] ✅   justhodl-tradingview settled at loop 1
-[04:10:06] ✅   memory -> 2048 (2x CPU)
-── C. vault run + gates ──
-[04:23:28] ✗ vault artifact never moved to v3.15.3
-[04:23:28] ✅   feed settled
-[04:23:28] ✅   feed INTR >=25
-[04:23:28] ✅   feed FER >=120
-[04:23:28] ✅   feed WB trio >=600
-[04:23:28] ✅   vault settled
+executing-against: 41ee6e6f7743b2f21e8e21a2d1cbf526030efc2a
+ops 4113 — family verify-only
+── vault's own story (last 40 min) ──
+[04:25:17]   [03:50:40] [tv-vault] families: {'GDPYY': 261, 'IRYY': 240, 'UR': 234, 'FERWB': 183, 'INTR': 46, 'FER': 0} in 0.9s
+[04:25:17]   [03:53:33] REPORT RequestId: 6374f735-2227-4820-817c-c906319f7e94	Duration: 900000.00 ms	Billed Duration: 900486 ms	Memory Size: 1024 MB	Max Memory Used: 134 MB	Init Duration: 485.9
+[04:25:17]   [04:05:35] REPORT RequestId: e3e04958-c179-451e-ad09-2219fcde98a9	Duration: 900000.00 ms	Billed Duration: 900498 ms	Memory Size: 1024 MB	Max Memory Used: 134 MB	Init Duration: 497.8
+[04:25:17]   [04:06:37] [tv-vault] families: {'GDPYY': 261, 'IRYY': 240, 'UR': 234, 'FERWB': 183, 'INTR': 46, 'FER': 0} in 2.0s
+[04:25:17]   [04:10:22] [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
+[04:25:17] ✗ ARTIFACT NOT v3.15.0 — evidence above
 
-→ Report written to aws/ops/reports/latest/4121_feed_first.md
-❌ OPS-FAIL: aws/ops/pending/ops_4121_feed_first.py
+→ Report written to aws/ops/reports/latest/4122_final_truth.md
+❌ OPS-FAIL: aws/ops/pending/ops_4122_final_truth.py
