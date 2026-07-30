@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.15.1 ops4116 family-budget"
+MARKER = "tradingview-vault v3.15.2 ops4117 indent-true"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1326,10 +1326,10 @@ def lambda_handler(event, context):
     n_live = n_cached = n_pending = 0
     attempted = 0
     out_of_time = False
-try:
-    _families()   # ops4116 pre-flight: hard 60s cap, before the heavy loops
-except Exception:
-    pass
+    try:
+        _families()   # ops4117 pre-flight: hard 60s cap, before the heavy loops
+    except Exception:
+        pass
     force = bool((event or {}).get("force"))
     for row in rows:
         sym = row["symbol"]
