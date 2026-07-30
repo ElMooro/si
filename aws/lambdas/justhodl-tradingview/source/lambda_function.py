@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.17.0 ops4133 fleet-join"
+MARKER = "tradingview-vault v3.17.1 ops4134 label-persist"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1448,7 +1448,8 @@ def lambda_handler(event, context):
             if age_d < retry_gate and c.get("status") in ("LIVE", "NO_FREE_SOURCE",
                                                           "DISCONTINUED", "META"):
                 for k in ("value", "prev", "chg_pct", "asof", "status", "source",
-                          "resolution_note", "fetched_at"):
+                          "resolution_note", "fetched_at",
+                          "adapter", "resolved_via"):
                     if k in c:
                         row[k] = c[k]
                 row["cached"] = True
