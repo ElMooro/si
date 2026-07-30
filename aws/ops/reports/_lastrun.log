@@ -1,34 +1,21 @@
-executing-against: 7cbe127d3e6eb1dc5c9919d443ba6a2f5adf9cc1
-ops 4124 — phase stream
-[05:18:43] ✅   update accepted (attempt 0)
-[05:18:52] ✅   settled at loop 1
-── live phase timeline ──
-[05:19:53]   [tv-vault][phase] start t+0.0s
-[05:19:53]   [tv-vault] tradingview-vault v3.15.6 ops4126 trust-cache
-[05:19:53]   [tv-vault][phase] brain-loaded t+0.5s
-[05:19:53]   [tv-vault][phase] registry n=561 t+0.6s
-[05:19:53]   [tv-vault][phase] pre-admission t+0.6s
-[05:19:53]   [tv-vault][phase] fmp-bulk-done n=352 t+3.7s
-[05:19:53]   [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
-[05:19:53]   [tv-vault][phase] families-preflight-done t+3.8s
-[05:19:53]   [tv-vault][phase] cache age_h=7.4 fresh=True slot=0 t+3.8s
-[05:19:53]   [tv-vault][phase] main-loop-start t+3.8s
-[05:20:53]   [tv-vault][phase] slow sym=NO03Y via=norges:GOVT_GENERIC_RATES:3 4.1s t+59.9s
-[05:20:53]   [tv-vault][phase] slow sym=EU10Y via=fred:IRLTLT01DEM156N 3.5s t+63.4s
-[05:29:59]   [tv-vault][phase] brain-loaded t+0.4s
-[05:29:59]   [tv-vault][phase] registry n=561 t+0.5s
-[05:29:59]   [tv-vault][phase] pre-admission t+0.5s
-[05:29:59]   [tv-vault][phase] fmp-bulk-done n=352 t+3.8s
-[05:29:59]   [tv-vault][phase] families-preflight-done t+3.9s
-[05:29:59]   [tv-vault][phase] cache age_h=7.6 fresh=True slot=0 t+3.9s
-[05:29:59]   [tv-vault][phase] main-loop-start t+3.9s
-[05:30:59]   [tv-vault][phase] slow sym=PIORECRUSDM via=fred:PIORECRUSDM 3.9s t+53.6s
-[05:30:59]   [tv-vault][phase] slow sym=JPINTR via=fred:IRSTCB01JPM156N 4.0s t+60.6s
-[05:30:59]   [tv-vault][phase] slow sym=EUINTR via=fred:ECBDFR 4.5s t+67.7s
-[05:30:59]   [tv-vault][phase] slow sym=BAMLEMCBPIEY via=fred:BAMLEMCBPIEY 3.5s t+71.2s
-[05:30:59]   [tv-vault][phase] slow sym=BAMLEMRACRPIASIAOAS via=fred:BAMLEMRACRPIASIAOAS 4.9s t+76.0s
-[05:30:59]   [tv-vault][phase] slow sym=BAMLHE00EHYIOAS via=fred:BAMLHE00EHYIOAS 4.0s t+80.1s
-[05:30:59]   [tv-vault][phase] slow sym=US03Y via=fred:DGS3 3.6s t+85.4s
-[05:31:00] ✅ STREAM DONE wrote=False — 26 lines; slow-prints above name the adapter
+executing-against: 8c7ab97ed7ba7e1d6e0f23982cae3f119666a55b
+ops 4113 — family verify-only
+── vault's own story (last 40 min) ──
+[05:34:35]   [04:54:20] REPORT RequestId: bcd24a90-7f84-4b98-8509-cd5cfe26d3d3	Duration: 900000.00 ms	Billed Duration: 900496 ms	Memory Size: 2048 MB	Max Memory Used: 134 MB	Init Duration: 495.5
+[05:34:35]   [04:55:24] [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
+[05:34:35]   [04:56:10] [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
+[05:34:35]   [04:56:10] [tv-vault][phase] families-preflight-done t+4.6s
+[05:34:35]   [04:58:22] REPORT RequestId: 8d8ef73f-dc92-40d7-9870-9f293eac697a	Duration: 900000.00 ms	Billed Duration: 900545 ms	Memory Size: 2048 MB	Max Memory Used: 134 MB	Init Duration: 544.9
+[05:34:35]   [05:10:20] REPORT RequestId: bcd24a90-7f84-4b98-8509-cd5cfe26d3d3	Duration: 900000.00 ms	Billed Duration: 900000 ms	Memory Size: 2048 MB	Max Memory Used: 134 MB	Status: timeout
+XRAY
+[05:34:35]   [05:11:05] REPORT RequestId: 48783754-0b39-410b-9309-e98dcc941529	Duration: 900000.00 ms	Billed Duration: 900480 ms	Memory Size: 2048 MB	Max Memory Used: 134 MB	Init Duration: 479.6
+[05:34:35]   [05:12:12] [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
+[05:34:35]   [05:12:12] [tv-vault][phase] families-preflight-done t+3.6s
+[05:34:35]   [05:12:20] [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
+[05:34:35]   [05:12:20] [tv-vault][phase] families-preflight-done t+3.6s
+[05:34:35]   [05:18:57] [tv-vault] families from feed: {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234}
+[05:34:35]   [05:18:57] [tv-vault][phase] families-preflight-done t+3.8s
+[05:34:35] ✗ ARTIFACT NOT v3.15.0 — evidence above
 
-→ Report written to aws/ops/reports/latest/4126_trustcache_stream.md
+→ Report written to aws/ops/reports/latest/4127_write_truth.md
+❌ OPS-FAIL: aws/ops/pending/ops_4127_write_truth.py
