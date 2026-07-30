@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.15.3 ops4121 feed-first"
+MARKER = "tradingview-vault v3.15.4 ops4124 phases"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1215,6 +1215,15 @@ def ladder(row):
 
 
 def lambda_handler(event, context):
+    import time as _tm
+    _T0 = _tm.time()
+
+    def PH(tag):
+        try:
+            print("[tv-vault][phase] %s t+%.1fs" % (tag, _tm.time() - _T0))
+        except Exception:
+            pass
+    PH("start")
     t0 = time.time()
     now = datetime.now(timezone.utc)
     print(f"[tv-vault] {MARKER}")
@@ -1226,7 +1235,9 @@ def lambda_handler(event, context):
         cache = {}
 
     brain = get_brain()
+    PH("brain-loaded")
     reg = build_registry(brain)
+    PH("registry n=%d" % len(reg))
     # ops4006 alias-union: ALIASES define coverage too. reg is notes-derived,
     # so a wired official source sat DORMANT whenever the notes never mention
     # the ticker — the ten CB-expansion symbols proved it (v3.9 marker live,
@@ -1396,6 +1407,8 @@ def lambda_handler(event, context):
             continue
         if not c:
             attempted += 1
+            if attempted % 40 == 0:
+                PH("loop attempted=%d" % attempted)
         if row["source"] == "fmp" and sym in fmp_vals:
             row.update(fmp_vals[sym])
             row["status"] = "LIVE"
@@ -1449,6 +1462,7 @@ def lambda_handler(event, context):
         "debug_mof": _MOF_CACHE.get("diag"),
         "elapsed_s": round(time.time() - t0, 1),
     }
+    PH("pre-write")
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str),
                   ContentType="application/json", CacheControl="max-age=900")
     print(f"[tv-vault] DONE {out['elapsed_s']}s live={n_live}/{len(rows)} "
