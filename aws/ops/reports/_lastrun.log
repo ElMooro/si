@@ -1,11 +1,9 @@
-executing-against: 8657a1117db6f358cb7993457d1389fc38408413
-ops 4157 — last_harvest_diag verbatim
-[14:45:10]   {"started": 1785472043881, "done": 8300, "total": 8300, "sc_ok": 8145, "sc_err": 155, "sc2_ok": 8145, "sc2_err": 155, "ss_ok": 0, "ss_err": 41, "matched": 33, "first_err": "sc2:TypeError: Failed to fe
-[14:45:10]   tch", "tier1_done": 4795, "rate_per_min": 22.8, "elapsed_s": 21853, "delay_ms": 700, "wall_events": 0, "recoveries": 127, "max_delay": 45000, "streak_err": 0, "paused_s": 0, "econ_probe": [{"sym": "EC
-[14:45:10]   ONOMICS:JPM3", "keys": ["description", "source", "source-description", "source-logoid", "source_description", "type"], "sample": "{\"description\":\"Japan Money Supply M3\",\"source\":null,\"source-de
-[14:45:10]   scription\":null,\"source-logoid\":null,\"source_description\":null,\"type\":\"economic\"}"}, {"sym": "FRED:MABMM301JPM189S", "keys": [], "sample": "null"}, {"sym": "ECONOMICS:JPCBBS", "keys": ["descr
-[14:45:10]   iption", "source", "source-description", "source-logoid", "source_description", "type"], "sample": "{\"description\":\"Japan Central Bank Balance Sheet\",\"source\":null,\"source-description\":null,\"
-[14:45:10]   source-logoid\":null,\"source_description\":null,\"type\":\"economic\"}"}, {"sym": "FRED:JPNASSETS", "keys": [], "sample": "null"}], "selftest": {"n": 3, "matched": 2}, "streak_ok": 9}
-[14:45:10] ✅ CONFESSION READ
+executing-against: 6565e29c2555fb3e88ea9980cfb4be9bd45e2bbd
+ops 4158 — indices/futures/crypto + source-map v3
+[14:56:19] ✅   justhodl-symbol-feed settled at loop 1
+[14:57:10]   spot ES1!: 7470.25 ysym=ES=F
+[14:57:10]   spot BTCUSDT: None ysym=None
+[15:08:51] ✗ artifact never refreshed
 
-→ Report written to aws/ops/reports/latest/4157_harvest_confession.md
+→ Report written to aws/ops/reports/latest/4158_triple_round.md
+❌ OPS-FAIL: aws/ops/pending/ops_4158_triple_round.py
