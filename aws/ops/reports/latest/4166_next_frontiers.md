@@ -1,0 +1,23 @@
+# ops 4166 — queued table + CPI census + DBnomics
+
+**Status:** success  
+**Duration:** 20.2s  
+**Finished:** 2026-07-31T16:18:29+00:00  
+
+## Data
+
+| cpi_status | monthly_indicators |
+|---|---|
+| 200 | 0 |
+
+## Log
+- `16:18:10`   pending classes: {"econ-bare": 3071, "other-bare": 595, "futures": 102, "cot": 68}
+- `16:18:10`   econ residual suffixes: {"FI": 165, "IPYY": 104, "UP": 91, "INTR": 79, "RSYY": 75, "MPRYY": 65, "IPMM": 60, "CU": 45, "MPMI": 42, "CIR": 36, "INBR": 28, "M0": 23, "02Y": 22, "10Y": 22, "GRES": 20, "COMPPMI": 20, "LEI": 19, "SPMI": 19, "02": 11, "MGDPYY": 11, "M2": 11, "M1": 10, "GDPQQ": 10, "10": 10}
+## IMF CPI flow — indicator census
+
+## DBnomics OECD gateway probe
+
+- `16:18:28`   https://api.db.nomics.world/v22/series/OECD/MEI/JPN.PRINTO01.IXOBSA.M?obse... -> 200 (147589B)
+- `16:18:28`     {"_meta":{"args":{"align_periods":false,"dataset_code":"MEI","dimensions":{},"facets":false,"format":"json","limit":1000,"metadata":true,"observations":true,"offset":0,"provider_code":"OECD","q":"","series_code":"JPN.PRI
+- `16:18:29`   https://api.db.nomics.world/v22/series?provider_code=OECD&q=industrial%20p... -> -1 (27B)
+- `16:18:29` ✅ FRONTIERS MAPPED

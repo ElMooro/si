@@ -1,13 +1,12 @@
-executing-against: 45a0a288265035400138ddcd75bd20c97fac1e0e
-ops 4164 — queue accelerator (feed x2)
-[16:05:33] ✗ accelerator gained only 72
+executing-against: e7ee3af216d63377c57cded465f71c0c0ac80539
+ops 4166 — queued table + CPI census + DBnomics
+[16:18:10]   pending classes: {"econ-bare": 3071, "other-bare": 595, "futures": 102, "cot": 68}
+[16:18:10]   econ residual suffixes: {"FI": 165, "IPYY": 104, "UP": 91, "INTR": 79, "RSYY": 75, "MPRYY": 65, "IPMM": 60, "CU": 45, "MPMI": 42, "CIR": 36, "INBR": 28, "M0": 23, "02Y": 22, "10Y": 22, "GRES": 20, "COMPPMI": 20, "LEI": 19, "SPMI": 19, "02": 11, "MGDPYY": 11, "M2": 11, "M1": 10, "GDPQQ": 10, "10": 10}
+── IMF CPI flow — indicator census ──
+── DBnomics OECD gateway probe ──
+[16:18:28]   https://api.db.nomics.world/v22/series/OECD/MEI/JPN.PRINTO01.IXOBSA.M?obse... -> 200 (147589B)
+[16:18:28]     {"_meta":{"args":{"align_periods":false,"dataset_code":"MEI","dimensions":{},"facets":false,"format":"json","limit":1000,"metadata":true,"observations":true,"offset":0,"provider_code":"OECD","q":"","series_code":"JPN.PRI
+[16:18:29]   https://api.db.nomics.world/v22/series?provider_code=OECD&q=industrial%20p... -> -1 (27B)
+[16:18:29] ✅ FRONTIERS MAPPED
 
-→ Report written to aws/ops/reports/latest/4164_queue_accel.md
-❌ OPS-FAIL: aws/ops/pending/ops_4164_queue_accel.py
-ops 4165 — convert the chewed queue
-[16:13:53] ✅   artifact after ~465s
-[16:13:53]   statuses: {"LIVE": 4236, "PENDING_RESOLUTION": 3836, "NO_FREE_SOURCE": 1984, "DISCONTINUED": 2, "META": 1}
-[16:13:53]   LIVE by adapter: {"native": 1261, "fleet:finviz": 818, "feed:symbol": 437, "fmp": 351, "feed:cot": 227, "family:BOT": 144, "family:DIR": 136, "family:GDG": 90, "family:M0": 75, "family:TOT": 60, "family:CBBS": 60, "family:INTR": 21}
-[16:13:53] ✅ CONVERTED — LIVE 4236
-
-→ Report written to aws/ops/reports/latest/4165_convert.md
+→ Report written to aws/ops/reports/latest/4166_next_frontiers.md
