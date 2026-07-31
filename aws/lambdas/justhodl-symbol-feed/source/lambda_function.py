@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "symbol-feed v1.2 ops4158 idx-fut-crypto"
+MARKER = "symbol-feed v1.3 ops4160 aimd"
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64)"}
@@ -37,6 +37,9 @@ INDEX_MAP = {"FTSE:UKX": "^FTSE", "DJ:DJI": "^DJI", "HSI:HSI": "^HSI",
              "TVC:NI225": "^N225", "TVC:SPX": "^GSPC"}
 
 
+_D = {"ms": 500}
+
+
 def chart_price(ysym):
     try:
         req = urllib.request.Request(
@@ -47,9 +50,11 @@ def chart_price(ysym):
             t = r.read().decode("utf-8", "ignore")
         m = re.search(r'"regularMarketPrice":([\d\.eE\+\-]+)', t)
         if m:
+            _D["ms"] = max(350, int(_D["ms"] * 0.9))
             return float(m.group(1))
     except Exception:
         pass
+    _D["ms"] = min(8000, _D["ms"] * 2)   # ops4160 AIMD: Yahoo walls bursts
     return None
 
 
@@ -103,7 +108,8 @@ def lambda_handler(event, context):
         todo = sorted(tg, key=lambda k: str(
             (store.get(k) or {}).get("asof")))[:300]
     ok = err = 0
-    for full in todo[:900]:
+    for full in todo[:500]:
+        time.sleep(_D["ms"] / 1000.0)
         if time.time() - t0 > 250:
             break
         bare = full.split(":", 1)[1]
