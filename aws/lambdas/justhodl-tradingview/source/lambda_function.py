@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.22.0 ops4162 wb-wave"
+MARKER = "tradingview-vault v3.23.0 ops4167 mei"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -822,7 +822,7 @@ def imf_latest(key):
         return None
 
 
-FAM_RX = re.compile(r"^(?:ECONOMICS:)?([A-Z]{2})(INTR|FER|GDPYY|IRYY|UR|LG|CBBS|M0|BM|GDG|BOT|DIR|LIR|TOT|CA)$")   # ops4131: admission stores BARE
+FAM_RX = re.compile(r"^(?:ECONOMICS:)?([A-Z]{2})(INTR|FER|GDPYY|IRYY|UR|LG|CBBS|M0|BM|GDG|BOT|DIR|LIR|TOT|CA|RSYY|CIR|INBR|UP|MPRYY)$")   # ops4131: admission stores BARE
 _FAM = {}
 
 
@@ -1046,7 +1046,7 @@ def _family_try(row):
         return None
     cc, f = m.group(1), m.group(2)
     F = _families()
-    src = {"GDG": "wb:GC.DOD.TOTL.GD.ZS", "BOT": "wb:BN.GSR.GNFS.CD",
+    src = {"RSYY": "oecd:MEI SLRTCR03", "CIR": "oecd:MEI CPGRLE01", "INBR": "oecd:MEI IR3TIB01", "UP": "oecd:MEI LFHUTTTT", "MPRYY": "oecd:MEI PITGND01", "GDG": "wb:GC.DOD.TOTL.GD.ZS", "BOT": "wb:BN.GSR.GNFS.CD",
            "DIR": "wb:FR.INR.DPST", "LIR": "wb:FR.INR.LEND",
            "TOT": "wb:TT.PRI.MRCH.XD.WD", "CA": "wb:BN.CAB.XOKA.CD",
            "BM": "imf:MFS_DC BM", "LG": "imf:MFS_DC", "CBBS": "imf:MFS_CBS TA", "M0": "imf:MFS_CBS MB",

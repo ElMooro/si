@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "families-feed v1.4 ops4162 wb-wave"
+MARKER = "families-feed v1.5 ops4167 mei"
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 
@@ -46,7 +46,7 @@ def _sdmx(t, alen):
 
 def lambda_handler(event, context):
     t0 = time.time()
-    out = {"INTR": {}, "FER": {}, "GDPYY": {}, "IRYY": {}, "UR": {}, "LG": {}, "CBBS": {}, "M0": {}, "BM": {}, "GDG": {}, "BOT": {}, "DIR": {}, "LIR": {}, "TOT": {}, "CA": {}}
+    out = {"INTR": {}, "FER": {}, "GDPYY": {}, "IRYY": {}, "UR": {}, "LG": {}, "CBBS": {}, "M0": {}, "BM": {}, "GDG": {}, "BOT": {}, "DIR": {}, "LIR": {}, "TOT": {}, "CA": {}, "RSYY": {}, "CIR": {}, "INBR": {}, "UP": {}, "MPRYY": {}}
     iso23 = {}
     for fam, code in (("GDPYY", "NY.GDP.MKTP.KD.ZG"),
                       ("IRYY", "FP.CPI.TOTL.ZG"),
@@ -123,6 +123,24 @@ def lambda_handler(event, context):
     out["M0"] = _mfs("MFS_CBS", 'S121_L_MB_CBS')
     out["BM"] = _mfs("MFS_DC", "DCORP_L_BM")
     out["LG"] = _mfs("MFS_DC", 'DCORP_A_ACO_PS')
+    # MEI WAVE ops4167 — DBnomics OECD/MEI bulk per family
+    _MEI = json.loads('{"RSYY": ["SLRTCR03", "GY"], "CIR": ["CPGRLE01", "GY"], "INBR": ["IR3TIB01", "ST"], "UP": ["LFHUTTTT", "STSA"], "MPRYY": ["PITGND01", "GY"]}')
+    for _fam, (_sub, _mea) in _MEI.items():
+        d5 = {}
+        t5 = _fetch("https://api.db.nomics.world/v22/series/OECD/MEI/."
+                    + _sub + "." + _mea + ".M?observations=1&limit=500")
+        try:
+            for doc in json.loads(t5)["series"]["docs"]:
+                cc3 = str(doc.get("series_code", "")).split(".")[0]
+                vv5 = [z for z in doc.get("value") or [] if z is not None]
+                pp5 = doc.get("period") or []
+                c2m = inv3.get(cc3)
+                if vv5 and c2m:
+                    d5[c2m] = [round(float(vv5[-1]), 2),
+                               "oecd:" + (pp5[-1] if pp5 else "m")]
+        except Exception:
+            pass
+        out[_fam] = d5
     out["FER"] = fer
     doc = {"generated_at": datetime.now(timezone.utc).isoformat(),
            "marker": MARKER,

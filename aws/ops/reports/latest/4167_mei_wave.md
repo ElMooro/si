@@ -1,0 +1,45 @@
+# ops 4167 — MEI wave: probe, prove, wire
+
+**Status:** success  
+**Duration:** 85.8s  
+**Finished:** 2026-07-31T16:25:51+00:00  
+
+## Data
+
+| CIR | INBR | MPRYY | RSYY | UP | bulk_series | bulk_status | feed_err | fi_path_found |
+|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  | 38 | 200 |  |  |
+|  |  |  |  |  |  |  |  | False |
+|  |  |  |  |  |  |  | None |  |
+| 38 | 46 | 25 | 37 | 36 |  |  |  |  |
+
+## Log
+## A. tuple probes (JPN + USA)
+
+- `16:24:27`   IPYY: no candidate answered
+- `16:24:30`   RSYY: SLRTCR03.GY ✓ sample=('USA', -1.80698151950719, '2023-10')
+- `16:24:32`   CU: no candidate answered
+- `16:24:33`   CIR: CPGRLE01.GY ✓ sample=('USA', 3.92985308866993, '2023-12')
+- `16:24:35`   INBR: IR3TIB01.ST ✓ sample=('USA', 5.26, '2024-01')
+- `16:24:37`   LEI: no candidate answered
+- `16:24:38`   UP: LFHUTTTT.STSA ✓ sample=('USA', 6124.0, '2024-01')
+- `16:24:41`   MPRYY: PITGND01.GY ✓ sample=('USA', 6.95894148336003, '2022-12')
+## B. bulk mask test (all countries, one call)
+
+## C. IMF CPI flow retry (FI)
+
+- `16:24:43`   CPI-ish flows: ["CPI", "CPI_2026_APR_VINTAGE", "CPI_2026_FEB_VINTAGE", "CPI_2026_JAN_VINTAGE", "CPI_2026_MAY_VINTAGE", "CPI_WCA", "CPI_WCA_2026_APR_VINTAGE", "CPI_WCA_2026_FEB_VINTAGE"]
+- `16:24:55`   CPI: keys=29579 food-ish=[]
+- `16:25:03`   CPI_2026_APR_VINTAGE: keys=29792 food-ish=[]
+- `16:25:12`   CPI_2026_FEB_VINTAGE: keys=30968 food-ish=[]
+## D. wire families-feed v1.5 (+MEI) + vault
+
+- `16:25:22` ✅   justhodl-families-feed settled at loop 1
+- `16:25:50` ✅   justhodl-tradingview settled at loop 1
+- `16:25:51` ✅   vault fired async — converter next cycle
+- `16:25:51` ✅   MEI tuples >= 5
+- `16:25:51` ✅   bulk mask works >=30
+- `16:25:51` ✅   feed v1.5 settled
+- `16:25:51` ✅   MEI families sum >= 150
+- `16:25:51` ✅   vault v3.23.0 settled
+- `16:25:51` ✅ MEI WIRED — ['RSYY', 'CIR', 'INBR', 'UP', 'MPRYY'] fi_path=False
