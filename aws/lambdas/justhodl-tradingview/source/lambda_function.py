@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.24.0 ops4176 ipyy-fi"
+MARKER = "tradingview-vault v3.24.1 ops4180 label-alive"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1670,6 +1670,13 @@ def lambda_handler(event, context):
                                 row[k] = c[k]
                         if row.get("status") == "LIVE":
                             n_live += 1
+                        if row.get("status") == "PENDING_RESOLUTION":
+                            # ops4180: labels live in the CACHED deferral
+                            # — the else-branch was dead (every row has
+                            # cache), the not-c pattern reborn and slain.
+                            _hl = _honest_label(row)
+                            if _hl:
+                                row.update(_hl)
                     else:
                         _hl = _honest_label(row)
                         if _hl:
