@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "families-feed v1.2 ops4145 realids"
+MARKER = "families-feed v1.3 ops4148 broad-money"
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 
@@ -46,7 +46,7 @@ def _sdmx(t, alen):
 
 def lambda_handler(event, context):
     t0 = time.time()
-    out = {"INTR": {}, "FER": {}, "GDPYY": {}, "IRYY": {}, "UR": {}, "LG": {}, "CBBS": {}, "M0": {}}
+    out = {"INTR": {}, "FER": {}, "GDPYY": {}, "IRYY": {}, "UR": {}, "LG": {}, "CBBS": {}, "M0": {}, "BM": {}}
     iso23 = {}
     for fam, code in (("GDPYY", "NY.GDP.MKTP.KD.ZG"),
                       ("IRYY", "FP.CPI.TOTL.ZG"),
@@ -115,6 +115,7 @@ def lambda_handler(event, context):
         return d
     out["CBBS"] = _mfs("MFS_CBS", 'S121_A_TA_ASEC_CB1SR')
     out["M0"] = _mfs("MFS_CBS", 'S121_L_MB_CBS')
+    out["BM"] = _mfs("MFS_DC", "DCORP_L_BM")
     out["LG"] = _mfs("MFS_DC", 'DCORP_A_ACO_PS')
     out["FER"] = fer
     doc = {"generated_at": datetime.now(timezone.utc).isoformat(),
