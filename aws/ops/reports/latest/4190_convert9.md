@@ -1,10 +1,15 @@
-executing-against: 7b27c66b588467bdd579d8493c51e7351ab9bc8e
-ops 4165 — convert the chewed queue
+# ops 4165 — convert the chewed queue
 
-→ Report written to aws/ops/reports/latest/4190_convert9.md
+**Status:** failure  
+**Duration:** 0.0s  
+**Finished:** 2026-07-31T20:01:50+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4190_convert9.py", line 127, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4190_convert9.py", line 68, in main
     checksA = settle(rep, "justhodl-tradingview",
               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -12,4 +17,8 @@ Traceback (most recent call last):
     assert mark in src
            ^^^^^^^^^^^
 AssertionError
-❌ OPS-FAIL: aws/ops/pending/ops_4190_convert9.py
+
+```
+
+## Log
+
