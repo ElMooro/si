@@ -55,6 +55,7 @@ def col_value(row, base, side):
                     pass
         return None, None
     for cand in (f"{base}_{side}_all", f"{base}_{side}",
+                 f"{base}_{side}_old_all", f"{base}_{side}_old",
                  f"{base}_{side}_all".replace("_tdr_", "_tdr_"),
                  base.replace("_positions", "__positions")
                  + f"_{side}_all",
@@ -79,6 +80,7 @@ def parse_field(field):
         return ("conc_net_le_%s_tdr" % m2.group(1), side)
     if field == "TT":
         return ("traders_tot", "all")
+    field = re.sub(r"_OLD$", "", field)
     m = re.match(r"([A-Z]+)_(L|S|SPREAD)$", field)
     if m and m.group(1) in GROUP:
         return (GROUP[m.group(1)], SIDE[m.group(2)])

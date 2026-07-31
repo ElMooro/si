@@ -46,7 +46,7 @@ def _sdmx(t, alen):
 
 def lambda_handler(event, context):
     t0 = time.time()
-    out = {"INTR": {}, "FER": {}, "GDPYY": {}, "IRYY": {}, "UR": {}, "LG": {}, "CBBS": {}, "M0": {}, "BM": {}, "GDG": {}, "BOT": {}, "DIR": {}, "LIR": {}, "TOT": {}, "CA": {}, "IPYY": {}, "FI": {}, "GRES": {}, "RSYY": {}, "CIR": {}, "INBR": {}, "UP": {}, "MPRYY": {}}
+    out = {"INTR": {}, "FER": {}, "GDPYY": {}, "IRYY": {}, "UR": {}, "LG": {}, "CBBS": {}, "M0": {}, "BM": {}, "GDG": {}, "BOT": {}, "DIR": {}, "LIR": {}, "TOT": {}, "CA": {}, "IPYY": {}, "FI": {}, "GRES": {}, "GRES": {}, "RSYY": {}, "CIR": {}, "INBR": {}, "UP": {}, "MPRYY": {}}
     iso23 = {}
     for fam, code in (("GDPYY", "NY.GDP.MKTP.KD.ZG"),
                       ("IRYY", "FP.CPI.TOTL.ZG"),
@@ -57,6 +57,7 @@ def lambda_handler(event, context):
                       ("LIR", "FR.INR.LEND"),
                       ("TOT", "TT.PRI.MRCH.XD.WD"),
                       ("CA", "BN.CAB.XOKA.CD"),
+                      ("GRES", "FI.RES.XGLD.CD"),
                       ("GRES", "FI.RES.XGLD.CD"),
                       ("FERWB", "FI.RES.TOTL.CD")):
         t = _fetch("https://api.worldbank.org/v2/country/all/indicator/"
@@ -72,7 +73,7 @@ def lambda_handler(event, context):
             if v is None or len(c2) != 2:
                 continue
             vv = float(v)
-            if fam == "FERWB":
+            if fam in ("FERWB", "GRES"):
                 vv = round(vv / 1e6, 1)
             d[c2.upper()] = [round(vv, 2), "wb:%s" % r.get("date")]
             c3 = r.get("countryiso3code")

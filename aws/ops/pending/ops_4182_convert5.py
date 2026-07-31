@@ -66,7 +66,7 @@ def main():
         from collections import Counter
         from datetime import datetime, timezone
         checksA = settle(rep, "justhodl-tradingview",
-                         "tradingview-vault v3.25.0 ops4181 gres-old")
+                         "tradingview-vault v3.25.0 ops4181 gres-old-months")
         if not checksA:
             sys.exit(1)
         t_op = datetime.now(timezone.utc)
@@ -108,6 +108,9 @@ def main():
             dict(reasons.most_common(6)))[:400])
         lab = sum(n for r5, n in reasons.items()
                   if "no free mirror" in r5)
+        bm = sum(n for r5, n in reasons.items()
+                 if "back-month" in r5)
+        rep.kv(backmonth_labeled=bm)
         rep.kv(honest_label_rows=lab)
         if lab < 300:
             rep.fail(f"label wave inert: {lab}")
