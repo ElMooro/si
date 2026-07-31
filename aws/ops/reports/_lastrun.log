@@ -1,25 +1,10 @@
-executing-against: 9708f65465f2a5f3947fd78b15d013c46f5a7081
-ops 4193 — MPRYY config + cot codes-wide + wave-2
-[21:12:18] ✅   MPRYY def PUT (71 countries)
-[21:12:37] ✅   justhodl-cot-feed settled at loop 2
-[21:12:48] ✅   justhodl-tradingview settled at loop 1
-[21:14:04] ✅   vault fired — 4194 converts
-[21:14:04] ✅   MPRYY proven >= 40
-[21:14:04] ✅   cot v1.3 settled
-[21:14:04] ✅   vault v3.26.2 settled
-[21:14:04] ✅   MPRYY feed >= 40
-[21:14:04] ✗   cot wanted >= 330 (wide codes admitted)
-[21:14:04] ✅   cot resolved >= 260
-[21:14:04] ✗ FAILED: ['cot wanted >= 330 (wide codes admitted)']
-
-→ Report written to aws/ops/reports/latest/4193_wave2_codes.md
-❌ OPS-FAIL: aws/ops/pending/ops_4193_wave2_codes.py
+executing-against: 1ff9b1d4ed366fc911b360e652cc7512cfa96722
 ops 4165 — convert the chewed queue
-[21:14:15] ✅   justhodl-tradingview settled at loop 1
-[21:22:36] ✅   artifact after ~480s
-[21:22:36]   statuses: {"LIVE": 4798, "NO_FREE_SOURCE": 3799, "PENDING_RESOLUTION": 1459, "DISCONTINUED": 2, "META": 1}
-[21:22:36]   NFS reasons: {"no free API found (TV/TradingEconomics only)": 2787, "attempted: no free mirror (tv-proprietary/un": 761, "no free API for this indicator family (BIS/I": 123, "S&P Global PMI licensed": 89, "expired dated contract": 11, "continuation back-month: front-only mirrored": 7}
-[21:22:36]   LIVE by adapter: {"native": 1261, "fleet:finviz": 818, "feed:symbol": 437, "fmp": 351, "feed:cot": 260, "family:BOT": 144, "family:DIR": 136, "family:FI": 118, "family:GDG": 90, "family:M0": 75, "family:TOT": 60, "family:CBBS": 60}
-[21:22:36] ✅ CONVERTED — LIVE 4798
+[21:40:52] ✅   justhodl-tradingview settled at loop 1
+[21:49:04] ✅   artifact after ~465s
+[21:49:04]   statuses: {"NO_FREE_SOURCE": 5192, "LIVE": 4833, "PENDING_RESOLUTION": 31, "DISCONTINUED": 2, "META": 1}
+[21:49:04]   NFS reasons: {"no free API found (TV/TradingEconomics only)": 2882, "country-indicator pair: no free agency sourc": 1105, "attempted: no free mirror (tv-proprietary/un": 761, "exchange/venue has no free mirror": 137, "no free API for this indicator family (BIS/I": 123, "S&P Global PMI licensed": 89}
+[21:49:04]   LIVE by adapter: {"native": 1261, "fleet:finviz": 818, "feed:symbol": 437, "fmp": 351, "feed:cot": 260, "family:BOT": 144, "family:DIR": 136, "family:FI": 118, "family:GDG": 90, "family:M0": 75, "family:TOT": 60, "family:CBBS": 60}
+[21:49:04] ✅ CONVERTED — LIVE 4833
 
-→ Report written to aws/ops/reports/latest/4194_wave2_convert.md
+→ Report written to aws/ops/reports/latest/4196_collapse_convert.md
