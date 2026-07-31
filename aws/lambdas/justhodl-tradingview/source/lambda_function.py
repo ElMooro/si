@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.28.0 ops4198 te-primary"
+MARKER = "tradingview-vault v3.29.0 ops4205 cq-rail"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1045,6 +1045,28 @@ def _symfeed_try(row):
             "adapter": "feed:symbol", "asof": r.get("asof")}
 
 
+_CQ = {}
+
+
+def _cqfeed_try(row):
+    """ops4205 paid on-chain rail (CryptoQuant)."""
+    sym = str(row.get("symbol") or "")
+    if not _CQ:
+        try:
+            d4 = json.loads(s3.get_object(
+                Bucket=S3_BUCKET, Key="data/cq-feed.json")["Body"].read())
+            _CQ["p"] = d4.get("prices") or {}
+            print("[tv-vault] cq-feed n=%d" % len(_CQ["p"]))
+        except Exception:
+            _CQ["p"] = {}
+    r = (_CQ.get("p") or {}).get(sym)
+    if not isinstance(r, dict) or "value" not in r:
+        return None
+    return {"status": "LIVE", "value": r["value"],
+            "source": "cryptoquant:" + str(r.get("src", ""))[:36],
+            "adapter": "feed:cq", "asof": r.get("asof")}
+
+
 _TE = {}
 
 
@@ -1125,7 +1147,7 @@ def _fleet_try(row):
 def _dict_try(row):
     """ops4154: the cheap-dictionary chain — every zero-cost resolver in
     one place, so thaw and else-path can never skip a feed again."""
-    return (_tefeed_try(row) or _family_try(row) or _fleet_try(row)
+    return (_tefeed_try(row) or _cqfeed_try(row) or _family_try(row) or _fleet_try(row)
             or _symfeed_try(row) or _cotfeed_try(row))
 
 
