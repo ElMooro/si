@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.23.0 ops4167 mei"
+MARKER = "tradingview-vault v3.23.1 ops4168 honest-labels"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -960,6 +960,37 @@ def _fleet_prices():
 _SF = {}
 
 
+_ONCHAIN = ("GLASSNODE", "INTOTHEBLOCK", "COINMETRICS", "CRYPTOQUANT")
+
+
+def _honest_label(row):
+    """ops4168 LABELING WAVE: rows whose only source was attempted and
+    rejected get truthful NFS with a named reason — QUEUED shrinks into
+    honest UNRESOLVED instead of pretending work remains."""
+    ex = ""
+    for l in row.get("lists") or []:
+        pass
+    full = None
+    for cand in (row.get("full_symbol"), row.get("tv_symbol")):
+        if cand:
+            full = str(cand)
+            break
+    sym = str(row.get("symbol") or "")
+    if not _SF:
+        _symfeed_try({"from_watchlist": True, "symbol": "__warm__"})
+    p = _SF.get("p") or {}
+    rec = (p.get(full) if full else None) or p.get(sym)
+    if isinstance(rec, dict) and rec.get("miss"):
+        return {"status": "NO_FREE_SOURCE",
+                "resolution_note": "attempted: no free mirror "
+                                   "(tv-proprietary/unlisted)"}
+    for pref in _ONCHAIN:
+        if sym.startswith(pref) or (full or "").startswith(pref + ":"):
+            return {"status": "NO_FREE_SOURCE",
+                    "resolution_note": "on-chain data is paywalled"}
+    return None
+
+
 def _symfeed_try(row):
     """ops4136: intl/FX/index prices from the symbol-feed (yahoo chart)."""
     if not row.get("from_watchlist"):
@@ -1640,8 +1671,16 @@ def lambda_handler(event, context):
                         if row.get("status") == "LIVE":
                             n_live += 1
                     else:
-                        row["status"] = "PENDING_RESOLUTION"
-                    row["resolution_note"] = "deferred (ladder wall budget)"
+                        _hl = _honest_label(row)
+                        if _hl:
+                            row.update(_hl)
+                        else:
+                            row["status"] = "PENDING_RESOLUTION"
+                            row["resolution_note"] = \
+                                "deferred (ladder wall budget)"
+                    if row.get("status") == "PENDING_RESOLUTION":
+                        row["resolution_note"] = \
+                            "deferred (ladder wall budget)"
         row["fetched_at"] = now.isoformat()
 
     rows.sort(key=lambda r: (-r["n_notes"], r["symbol"]))
