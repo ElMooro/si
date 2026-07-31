@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "symbol-feed v1.5 ops4169 miss-bare"
+MARKER = "symbol-feed v1.6 ops4200 eodhd-tier"
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64)"}
@@ -38,6 +38,42 @@ INDEX_MAP = {"FTSE:UKX": "^FTSE", "DJ:DJI": "^DJI", "HSI:HSI": "^HSI",
 
 
 _D = {"ms": 500}
+_EO = {}
+EOMAP = {"LSE": ".LSE", "XETR": ".XETRA", "FWB": ".F", "SIX": ".SW",
+         "TSX": ".TO", "TSXV": ".V", "ASX": ".AU", "NSE": ".NSE",
+         "BSE": ".BSE", "HKEX": ".HK", "TWSE": ".TW", "KRX": ".KO",
+         "TSE": ".TSE", "JPX": ".TSE", "BME": ".MC", "BIT": ".MI",
+         "OMXSTO": ".ST", "OMXCOP": ".CO", "OMXHEX": ".HE",
+         "OSL": ".OL", "WSE": ".WAR", "BMV": ".MX", "BOVESPA": ".SA",
+         "B3": ".SA", "JSE": ".JSE", "TADAWUL": ".SR", "IDX": ".JK",
+         "SET": ".BK", "MYX": ".KLSE", "SGX": ".SG"}
+
+
+def eodhd_price(code):
+    import boto3 as _b3
+    if "k" not in _EO:
+        try:
+            _EO["k"] = _b3.client("ssm").get_parameter(
+                Name="/justhodl/eodhd_api",
+                WithDecryption=True)["Parameter"]["Value"]
+        except Exception:
+            _EO["k"] = None
+    if not _EO["k"]:
+        return None
+    try:
+        req = urllib.request.Request(
+            "https://eodhd.com/api/real-time/" + code
+            + "?api_token=" + _EO["k"] + "&fmt=json",
+            headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=12) as r:
+            j = json.loads(r.read().decode())
+        c = j.get("close")
+        if isinstance(c, (int, float)):
+            return float(c)
+    except Exception:
+        pass
+    return None
+
 
 
 def chart_price(ysym):
@@ -136,6 +172,32 @@ def lambda_handler(event, context):
                        "asof": datetime.now(timezone.utc)
                        .isoformat()[:16]}
         store[bare] = store[full]
+    # ops4200 EODHD miss-retry tier
+    retried = 0
+    for full in list(store):
+        if time.time() - t0 > 235 or retried >= 300:
+            break
+        v0 = store.get(full)
+        if not (isinstance(v0, dict) and v0.get("miss")
+                and ":" in full):
+            continue
+        ex0, bare0 = full.split(":", 1)
+        eoc = None
+        if ex0 in EOMAP:
+            eoc = bare0 + EOMAP[ex0]
+        elif ex0 in ("FTSE", "DJ", "USI", "SPCFD", "INDEX"):
+            eoc = bare0 + ".INDX"
+        if not eoc:
+            continue
+        retried += 1
+        pv = eodhd_price(eoc)
+        if pv is not None:
+            rec0 = {"value": round(pv, 4), "ysym": "eodhd:" + eoc,
+                    "asof": datetime.now(timezone.utc).isoformat()[:16]}
+            store[full] = rec0
+            store[bare0] = rec0
+            ok += 1
+        time.sleep(0.15)
     doc = {"generated_at": datetime.now(timezone.utc).isoformat(),
            "marker": MARKER, "targets": len(tg),
            "resolved": sum(1 for v in store.values()
