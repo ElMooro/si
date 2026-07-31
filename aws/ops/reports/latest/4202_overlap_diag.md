@@ -1,0 +1,36 @@
+# ops 4202 — TE overlap diagnosis
+
+**Status:** success  
+**Duration:** 1.3s  
+**Finished:** 2026-07-31T22:34:03+00:00  
+
+## Data
+
+| direct_hits | nfs_pool | te_keys |
+|---|---|---|
+| 68 | 3528 | 7664 |
+
+## Log
+- `22:34:03`   NFS suffixes: {"INTR": 90, "TH": 39, "IPYY": 35, "02Y": 30, "10Y": 29, "GDG": 28, "IPRI": 27, "CS": 25, "NO": 25, "BR": 22, "UP": 22, "RSYY": 19, "FI": 18, "10": 16, "BCOI": 14, "CU": 13, "03Y": 11, "FYGDPG": 11, "DIR": 10, "IC": 10, "TVS": 9, "MPRYY": 9, "30Y": 8, "01": 8, "30": 8, "02": 8, "05Y": 7, "IRYY": 7}
+- `22:34:03`   TE suffixes:  {"POP": 137, "GDPYY": 136, "GB": 135, "TEMP": 135, "IRYY": 134, "UR": 134, "CORRUPT": 134, "CORRANK": 134, "CAG": 133, "FI": 132, "IMP": 132, "BOT": 131, "GDG": 131, "INTR": 131, "EXP": 131, "CA": 130, "CTR": 130, "IRMM": 129, "STR": 129, "PITR": 128, "MILEX": 120, "M2": 114, "FER": 110, "M1": 109, "GSP": 107, "FDI": 106, "GFCF": 106, "SSR": 103}
+- `22:34:03`   suffixes on BOTH sides: ["DIR", "INTR", "BCOI", "IPYY", "MPRYY", "CU", "UP", "FI", "RSYY", "GDG", "M0", "IRYY", "FO", "JV", "CCR", "COMPPMI", "M3", "MPMI", "SPMI", "STR"]
+## verbatim probes
+
+- `22:34:03`   YIT1!: te=null
+- `22:34:03`   USW1!: te=null
+- `22:34:03`   FTEMSLU: te=null
+- `22:34:03`   EMBASKET: te=null
+- `22:34:03`   JSGW: te=null
+- `22:34:03`   USHMI: te=null
+- `22:34:03`   399233: te=null
+- `22:34:03`   AWN1!: te=null
+- `22:34:03`   CH02Y: te=null
+- `22:34:03`   CH03Y: te=null
+- `22:34:03`   F1U1!: te=null
+- `22:34:03`   FMMG1!: te=null
+- `22:34:03`   known USIPYY: in_te=True artifact_status=LIVE
+- `22:34:03`   known USFER: in_te=True artifact_status=LIVE
+- `22:34:03`   known JPINTR: in_te=True artifact_status=LIVE
+- `22:34:03`   known DEIRYY: in_te=True artifact_status=LIVE
+- `22:34:03`   known USCARREG: in_te=True artifact_status=ABSENT
+- `22:34:03` ✅ DIAG — hits=68/3528
