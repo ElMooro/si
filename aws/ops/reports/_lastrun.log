@@ -1,24 +1,20 @@
-executing-against: 09f59471d96cd63225e191b2bdb7aba45023e13f
-ops 4152 — CFTC Socrata discovery
-── A. catalog — dataset ids by name ──
-── B. column census per candidate (1 row) ──
-[02:09:31]   gpe5-46if: 89 cols; groups=53; sample=["dealer_positions_long_all", "dealer_positions_short_all", "dealer_positions_spread_all", "asset_mgr_positions_long", "asset_mgr_positions_short", "asset_mgr_positions_spread"]
-[02:09:31]   yw9f-hn96: 90 cols; groups=54; sample=["dealer_positions_long_all", "dealer_positions_short_all", "dealer_positions_spread_all", "asset_mgr_positions_long", "asset_mgr_positions_short", "asset_mgr_positions_spread"]
-[02:09:31]   72hh-3qpy: 194 cols; groups=124; sample=["prod_merc_positions_long", "prod_merc_positions_short", "swap_positions_long_all", "swap__positions_short_all", "swap__positions_spread_all", "m_money_positions_long_all"]
-[02:09:31]   kh3c-gbw2: 194 cols; groups=124; sample=["prod_merc_positions_long", "prod_merc_positions_short", "swap_positions_long_all", "swap__positions_short_all", "swap__positions_spread_all", "m_money_positions_long_all"]
-── C. filtered spots — 099741 & 067651 latest ──
-[02:09:32]   gpe5-46if/099741: 2026-07-21 dealer_positions_long_all=51686 tot_rept_positions_long_all=719588 nonrept_positions_long_all=80473
-[02:09:32]   gpe5-46if/067651: 200 []
+executing-against: add943f177f0e309038fae5dd182efa64b125aa9
+ops 4153 — COT feed + vault wire
+[02:15:36] ✅   justhodl-cot-feed settled at loop 1
+[02:15:48]   miss sample: [["132741_FO_TOR_S", "no-column-or-market"], ["132741_F_TAM_SPREAD", "no-column-or-market"], ["132741_FO_NCP_L_OLD", "unmapped-field"], ["132741_F_CON_NET_LE_8_L", "unmapped-field"], ["132741_F_CON_NET_LE_8_S", "unmapped-field"], ["132741_F_CON_NET_LE_4_S", "unmapped-field"], ["132741_F_CON_NET_LE_4
+[02:15:48]   spot 099741_F_DP_L: got=None want=51686.0
+[02:15:48]   spot 067651_F_MMP_L: got=None want=187469.0
+[02:16:07] ✅   justhodl-tradingview settled at loop 2
+[02:24:28] ✅   artifact after ~480s
+[02:24:29] ✅   schedule cot-feed-daily cron(45 11)
+[02:24:29] ✅   cot-feed settled
+[02:24:29] ✅   resolved >= 220
+[02:24:29] ✗   spot 099741_F_DP_L exact
+[02:24:29] ✗   spot 067651_F_MMP_L exact
+[02:24:29] ✅   vault v3.21.0 settled
+[02:24:29] ✗   feed:cot >= 200
+[02:24:29] ✗   total LIVE >= 3500
+[02:24:29] ✗ FAILED: ['spot 099741_F_DP_L exact', 'spot 067651_F_MMP_L exact', 'feed:cot >= 200', 'total LIVE >= 3500']
 
-[02:09:33]   yw9f-hn96/099741: 2026-07-21 dealer_positions_long_all=55246 tot_rept_positions_long_all=835773 nonrept_positions_long_all=86538
-[02:09:33]   yw9f-hn96/067651: 200 []
-
-[02:09:33]   72hh-3qpy/099741: 200 []
-
-[02:09:33]   72hh-3qpy/067651: 2026-07-21 swap_positions_long_all=94804 m_money_positions_long_all=187469 tot_rept_positions_long_all=1787410
-[02:09:34]   kh3c-gbw2/099741: 200 []
-
-[02:09:34]   kh3c-gbw2/067651: 2026-07-21 swap_positions_long_all=85575 m_money_positions_long_all=189485 tot_rept_positions_long_all=2428666
-[02:09:34] ✅ SOCRATA DISCOVERY — 4 datasets read
-
-→ Report written to aws/ops/reports/latest/4152_cftc_socrata.md
+→ Report written to aws/ops/reports/latest/4153_cot_wire.md
+❌ OPS-FAIL: aws/ops/pending/ops_4153_cot_wire.py
