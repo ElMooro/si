@@ -1,29 +1,23 @@
-executing-against: 2aafaac2ea7b88bae1aa0f78d44520d07dc2e2ba
-ops 4146 — v3.19.0 settle, fire, gate
-── A. feed v1.3: settle + invoke + counts ──
-[00:57:59] ✅   update accepted (attempt 0)
-[00:57:59]   [0] ('Active', 'InProgress', 'The function is being created.')
-[00:58:18] ✅   settled at loop 2
-[01:06:40] ✅   artifact v3.19.0 after ~495s
-[01:06:40]   demand LG: watched=25 served=17
-[01:06:40]   demand CBBS: watched=89 served=61
-[01:06:40]   demand M0: watched=102 served=78
-[01:06:40]   demand BM: watched=2 served=2
-[01:06:40]   spot BRLG: LIVE v=8861998144914.4 src=imf:MFS_DC (family)
-[01:06:40]   spot BRCBBS: LIVE v=5027289480000.0 src=imf:MFS_CBS TA (family)
-[01:06:40]   spot JPM0: LIVE v=582652600000000.0 src=imf:MFS_CBS MB (family)
-[01:06:40]   spot BRBM: None v=None src=None
-[01:06:40] ✅   total LIVE >= 3300
-[01:06:40] ✅   BM feed >= 100
-[01:06:40] ✅   LG demand-served >=50%
-[01:06:40] ✅   CBBS demand-served >=50%
-[01:06:40] ✅   M0 demand-served >=50%
-[01:06:40] ✅   BM demand-served >=50%
-[01:06:40] ✅   spot BRLG LIVE&plausible
-[01:06:40] ✅   spot BRCBBS LIVE&plausible
-[01:06:40] ✅   spot JPM0 LIVE&plausible
-[01:06:40] ✗   spot BRBM LIVE&plausible
-[01:06:40] ✗ FAILED: ['spot BRBM LIVE&plausible']
+executing-against: d1a5e5053c15ea46fd53292c19044850b55f7ec8
+ops 4149 — harvest re-audit + COT discovery
+── A. harvest v1.8.3 — done? ──
+── B. his COT symbols, verbatim ──
+[01:50:08]   COT3:020601_FO_AMP_SPREAD
+[01:50:08]   COT3:020601_FO_DP_SPREAD
+[01:50:08]   COT3:020601_FO_LMP_SPREAD
+[01:50:08]   COT3:020601_FO_ORP_SPREAD
+[01:50:08]   COT3:020601_FO_TAM_SPREAD
+[01:50:08]   COT3:020601_FO_TD_SPREAD
+[01:50:08]   COT3:020601_FO_TLM_SPREAD
+[01:50:08]   COT3:020601_FO_TOR_SPREAD
+[01:50:08]   COT3:020601_F_AMP_SPREAD
+[01:50:08]   COT3:020601_F_DP_SPREAD
+[01:50:08]   COT3:020601_F_LMP_SPREAD
+[01:50:08]   COT3:020601_F_ORP_SPREAD
+[01:50:08]   COT3:020601_F_TAM_SPREAD
+[01:50:08]   COT3:020601_F_TD_SPREAD
+── C. fleet CFTC store anatomy ──
+[01:50:09]   no cftc store found at guessed keys
+[01:50:09] ✅ DONE — harvest 2019, COT watched 340
 
-→ Report written to aws/ops/reports/latest/4148_bm_demand_gates.md
-❌ OPS-FAIL: aws/ops/pending/ops_4148_bm_demand_gates.py
+→ Report written to aws/ops/reports/latest/4149_harvest_cot.md
