@@ -1,0 +1,91 @@
+# ops 4161 — the decomposition
+
+**Status:** success  
+**Duration:** 0.8s  
+**Finished:** 2026-07-31T15:36:51+00:00  
+
+## Data
+
+| generated_at | live_joined | marker | pct | union |
+|---|---|---|---|---|
+| 2026-07-31T15:27:52 |  | tradingview-vault v3.21.1 ops4154 dict-thaw |  |  |
+|  | 3980 |  | 38.6 | 10319 |
+
+## Log
+## LIVE by class
+
+- `15:36:51`    1338  us-equity
+- `15:36:51`     972  economics
+- `15:36:51`     691  fred
+- `15:36:51`     487  intl-equity-or-other
+- `15:36:51`     249  cot
+- `15:36:51`     161  index-family
+- `15:36:51`      72  futures
+- `15:36:51`       8  crypto
+- `15:36:51`       2  fx
+## NON-LIVE buckets (class, status)
+
+- `15:36:51`    1781  economics                PENDING_RESOLUTION
+- `15:36:51`    1012  index-family             PENDING_RESOLUTION
+- `15:36:51`     930  us-equity                PENDING_RESOLUTION
+- `15:36:51`     564  economics                NO_FREE_SOURCE
+- `15:36:51`     543  intl-equity-or-other     PENDING_RESOLUTION
+- `15:36:51`     380  us-equity                NO_FREE_SOURCE
+- `15:36:51`     346  index-family             NO_FREE_SOURCE
+- `15:36:51`     217  intl-equity-or-other     NO_FREE_SOURCE
+- `15:36:51`     186  onchain-paywalled        PENDING_RESOLUTION
+- `15:36:51`      80  cot                      PENDING_RESOLUTION
+- `15:36:51`      78  futures                  PENDING_RESOLUTION
+- `15:36:51`      59  futures                  NO_FREE_SOURCE
+- `15:36:51`      43  fred                     NO_FREE_SOURCE
+- `15:36:51`      31  fred                     PENDING_RESOLUTION
+- `15:36:51`      27  crypto                   NO_FREE_SOURCE
+- `15:36:51`      26  onchain-paywalled        NO_FREE_SOURCE
+- `15:36:51`      18  crypto                   PENDING_RESOLUTION
+- `15:36:51`      11  cot                      NO_FREE_SOURCE
+- `15:36:51`       3  fx                       NO_FREE_SOURCE
+- `15:36:51`       2  futures                  DISCONTINUED
+- `15:36:51`       2  fx                       PENDING_RESOLUTION
+## residual ECONOMICS family suffixes (top 40)
+
+- `15:36:51`    166  FI
+- `15:36:51`    161  GDG
+- `15:36:51`    153  BOT
+- `15:36:51`    150  DIR
+- `15:36:51`    115  IPYY
+- `15:36:51`     93  UP
+- `15:36:51`     91  INTR
+- `15:36:51`     82  RSYY
+- `15:36:51`     73  MPRYY
+- `15:36:51`     73  BCOI
+- `15:36:51`     63  IPMM
+- `15:36:51`     61  TOT
+- `15:36:51`     59  IPRI
+- `15:36:51`     56  CU
+- `15:36:51`     51  MPMI
+- `15:36:51`     40  CIR
+- `15:36:51`     30  INBR
+- `15:36:51`     28  CAG
+- `15:36:51`     28  NO
+- `15:36:51`     28  CBBS
+- `15:36:51`     24  M0
+- `15:36:51`     24  CS
+- `15:36:51`     24  GRES
+- `15:36:51`     23  COMPPMI
+- `15:36:51`     23  LEI
+- `15:36:51`     22  BR
+- `15:36:51`     20  SPMI
+- `15:36:51`     13  IC
+- `15:36:51`     12  GDPQQ
+- `15:36:51`     12  MGDPYY
+- `15:36:51`     11  M1
+- `15:36:51`     11  M2
+- `15:36:51`     11  FYGDPG
+- `15:36:51`     10  COP
+- `15:36:51`      9  IRYY
+- `15:36:51`      9  FO
+- `15:36:51`      9  TVS
+- `15:36:51`      9  CCI
+- `15:36:51`      8  LPS
+- `15:36:51`      8  GFCF
+- `15:36:51` ✅ DECOMPOSED — 3980/10319 LIVE; top gap classes above

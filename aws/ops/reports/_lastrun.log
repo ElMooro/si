@@ -1,16 +1,78 @@
-executing-against: 3de7de1230866feb2ad14a018156a65340249c83
-ops 4158 — indices/futures/crypto + source-map v3
-[15:23:40] ✅   justhodl-symbol-feed settled at loop 1
-[15:27:51]   spot ES1!: 7470.25 ysym=ES=F
-[15:36:12] ✅   post-invoke artifact after ~495s
-[15:36:13] ✅   feed v1.3 settled
-[15:36:13] ✅   targets >= 1800
-[15:36:13] ✗   resolved >= 1080
-[15:36:13] ✅   spot ES1! > 1000
-[15:36:13] ✗   feed:symbol >= 450
-[15:36:13] ✗   total LIVE >= 3800
-[15:36:13] ✅   source-map v3 written >= 10000
-[15:36:13] ✗ FAILED: ['resolved >= 1080', 'feed:symbol >= 450', 'total LIVE >= 3800']
+executing-against: 219c53c209503161684b2c190ca38cf433694e91
+ops 4161 — the decomposition
+── LIVE by class ──
+[15:36:51]    1338  us-equity
+[15:36:51]     972  economics
+[15:36:51]     691  fred
+[15:36:51]     487  intl-equity-or-other
+[15:36:51]     249  cot
+[15:36:51]     161  index-family
+[15:36:51]      72  futures
+[15:36:51]       8  crypto
+[15:36:51]       2  fx
+── NON-LIVE buckets (class, status) ──
+[15:36:51]    1781  economics                PENDING_RESOLUTION
+[15:36:51]    1012  index-family             PENDING_RESOLUTION
+[15:36:51]     930  us-equity                PENDING_RESOLUTION
+[15:36:51]     564  economics                NO_FREE_SOURCE
+[15:36:51]     543  intl-equity-or-other     PENDING_RESOLUTION
+[15:36:51]     380  us-equity                NO_FREE_SOURCE
+[15:36:51]     346  index-family             NO_FREE_SOURCE
+[15:36:51]     217  intl-equity-or-other     NO_FREE_SOURCE
+[15:36:51]     186  onchain-paywalled        PENDING_RESOLUTION
+[15:36:51]      80  cot                      PENDING_RESOLUTION
+[15:36:51]      78  futures                  PENDING_RESOLUTION
+[15:36:51]      59  futures                  NO_FREE_SOURCE
+[15:36:51]      43  fred                     NO_FREE_SOURCE
+[15:36:51]      31  fred                     PENDING_RESOLUTION
+[15:36:51]      27  crypto                   NO_FREE_SOURCE
+[15:36:51]      26  onchain-paywalled        NO_FREE_SOURCE
+[15:36:51]      18  crypto                   PENDING_RESOLUTION
+[15:36:51]      11  cot                      NO_FREE_SOURCE
+[15:36:51]       3  fx                       NO_FREE_SOURCE
+[15:36:51]       2  futures                  DISCONTINUED
+[15:36:51]       2  fx                       PENDING_RESOLUTION
+── residual ECONOMICS family suffixes (top 40) ──
+[15:36:51]    166  FI
+[15:36:51]    161  GDG
+[15:36:51]    153  BOT
+[15:36:51]    150  DIR
+[15:36:51]    115  IPYY
+[15:36:51]     93  UP
+[15:36:51]     91  INTR
+[15:36:51]     82  RSYY
+[15:36:51]     73  MPRYY
+[15:36:51]     73  BCOI
+[15:36:51]     63  IPMM
+[15:36:51]     61  TOT
+[15:36:51]     59  IPRI
+[15:36:51]     56  CU
+[15:36:51]     51  MPMI
+[15:36:51]     40  CIR
+[15:36:51]     30  INBR
+[15:36:51]     28  CAG
+[15:36:51]     28  NO
+[15:36:51]     28  CBBS
+[15:36:51]     24  M0
+[15:36:51]     24  CS
+[15:36:51]     24  GRES
+[15:36:51]     23  COMPPMI
+[15:36:51]     23  LEI
+[15:36:51]     22  BR
+[15:36:51]     20  SPMI
+[15:36:51]     13  IC
+[15:36:51]     12  GDPQQ
+[15:36:51]     12  MGDPYY
+[15:36:51]     11  M1
+[15:36:51]     11  M2
+[15:36:51]     11  FYGDPG
+[15:36:51]     10  COP
+[15:36:51]      9  IRYY
+[15:36:51]      9  FO
+[15:36:51]      9  TVS
+[15:36:51]      9  CCI
+[15:36:51]      8  LPS
+[15:36:51]      8  GFCF
+[15:36:51] ✅ DECOMPOSED — 3980/10319 LIVE; top gap classes above
 
-→ Report written to aws/ops/reports/latest/4160_forelse_fix.md
-❌ OPS-FAIL: aws/ops/pending/ops_4160_forelse_fix.py
+→ Report written to aws/ops/reports/latest/4161_decomposition.md
