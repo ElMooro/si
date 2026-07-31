@@ -1,11 +1,24 @@
-executing-against: c27c72803d4a934991a37c2230bd9347333c3331
-ops 4151 — COT wire decision
-[01:55:52]   cftc_codes: [["001602", "ZW"], ["002602", "ZC"], ["005602", "ZS"], ["020601", "ZB"], ["022651", "HO"], ["023651", "NG"], ["033661", "CT"], ["042601", "ZT"], ["043602", "ZN"], ["044601", "ZF"], ["067651", "CL"], ["076651", "PL"], ["080732", "SB"], ["083731", "KC"], ["084691", "SI"], ["085692", "HG"], ["088691", "GC"], ["090741", "6C"], ["092741", "6S"], ["096742", "6B"], ["097741", "6J"], ["098662", "DX"], ["099741", "6E"], ["111
-[01:55:52]   weekly row columns: ["report_date", "open_interest", "noncommercial_long", "noncommercial_short", "net_speculator", "commercial_long", "commercial_short", "net_commercial", "managed_money_long", "managed_money_short", "net_managed_money", "speculator_long_ratio"]
-[01:55:52]   tff-ish: []
-[01:55:52]   his codes: [["020601", 16], ["020604", 16], ["045601", 7], ["067651", 12], ["088691", 14], ["088695", 1], ["092741", 10], ["097741", 2], ["098662", 9], ["099741", 67], ["112741", 2], ["132741", 140], ["133741", 35], ["133742", 11], ["134741", 16], ["134742", 11], ["146021", 28], ["232741", 3], ["240741", 1], ["299741", 8], ["399741", 10]]
-[01:55:52]   overlap: [["098662", "DX"], ["067651", "CL"], ["099741", "6E"], ["088691", "GC"], ["020601", "ZB"], ["092741", "6S"], ["097741", "6J"]]
-[01:55:52]   his field suffixes: {"CP_S": 20, "CP_L": 18, "NRP_L": 18, "AMP_SPREAD": 16, "DP_S": 15, "DP_L": 14, "NRP_S": 14, "AMP_S": 13, "LMP_L": 13, "DP_SPREAD": 13, "TAM_S": 12, "OI": 12, "TT": 12, "TAM_SPREAD": 11, "AMP_L": 10, "TTR_L": 9}
-[01:55:52] ✅ DECISION DATA — overlap 7 markets, tff cols 0
+executing-against: 09f59471d96cd63225e191b2bdb7aba45023e13f
+ops 4152 — CFTC Socrata discovery
+── A. catalog — dataset ids by name ──
+── B. column census per candidate (1 row) ──
+[02:09:31]   gpe5-46if: 89 cols; groups=53; sample=["dealer_positions_long_all", "dealer_positions_short_all", "dealer_positions_spread_all", "asset_mgr_positions_long", "asset_mgr_positions_short", "asset_mgr_positions_spread"]
+[02:09:31]   yw9f-hn96: 90 cols; groups=54; sample=["dealer_positions_long_all", "dealer_positions_short_all", "dealer_positions_spread_all", "asset_mgr_positions_long", "asset_mgr_positions_short", "asset_mgr_positions_spread"]
+[02:09:31]   72hh-3qpy: 194 cols; groups=124; sample=["prod_merc_positions_long", "prod_merc_positions_short", "swap_positions_long_all", "swap__positions_short_all", "swap__positions_spread_all", "m_money_positions_long_all"]
+[02:09:31]   kh3c-gbw2: 194 cols; groups=124; sample=["prod_merc_positions_long", "prod_merc_positions_short", "swap_positions_long_all", "swap__positions_short_all", "swap__positions_spread_all", "m_money_positions_long_all"]
+── C. filtered spots — 099741 & 067651 latest ──
+[02:09:32]   gpe5-46if/099741: 2026-07-21 dealer_positions_long_all=51686 tot_rept_positions_long_all=719588 nonrept_positions_long_all=80473
+[02:09:32]   gpe5-46if/067651: 200 []
 
-→ Report written to aws/ops/reports/latest/4151_cot_decision.md
+[02:09:33]   yw9f-hn96/099741: 2026-07-21 dealer_positions_long_all=55246 tot_rept_positions_long_all=835773 nonrept_positions_long_all=86538
+[02:09:33]   yw9f-hn96/067651: 200 []
+
+[02:09:33]   72hh-3qpy/099741: 200 []
+
+[02:09:33]   72hh-3qpy/067651: 2026-07-21 swap_positions_long_all=94804 m_money_positions_long_all=187469 tot_rept_positions_long_all=1787410
+[02:09:34]   kh3c-gbw2/099741: 200 []
+
+[02:09:34]   kh3c-gbw2/067651: 2026-07-21 swap_positions_long_all=85575 m_money_positions_long_all=189485 tot_rept_positions_long_all=2428666
+[02:09:34] ✅ SOCRATA DISCOVERY — 4 datasets read
+
+→ Report written to aws/ops/reports/latest/4152_cftc_socrata.md
