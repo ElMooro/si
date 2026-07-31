@@ -1,23 +1,10 @@
-executing-against: d1a5e5053c15ea46fd53292c19044850b55f7ec8
-ops 4149 — harvest re-audit + COT discovery
-── A. harvest v1.8.3 — done? ──
-── B. his COT symbols, verbatim ──
-[01:50:08]   COT3:020601_FO_AMP_SPREAD
-[01:50:08]   COT3:020601_FO_DP_SPREAD
-[01:50:08]   COT3:020601_FO_LMP_SPREAD
-[01:50:08]   COT3:020601_FO_ORP_SPREAD
-[01:50:08]   COT3:020601_FO_TAM_SPREAD
-[01:50:08]   COT3:020601_FO_TD_SPREAD
-[01:50:08]   COT3:020601_FO_TLM_SPREAD
-[01:50:08]   COT3:020601_FO_TOR_SPREAD
-[01:50:08]   COT3:020601_F_AMP_SPREAD
-[01:50:08]   COT3:020601_F_DP_SPREAD
-[01:50:08]   COT3:020601_F_LMP_SPREAD
-[01:50:08]   COT3:020601_F_ORP_SPREAD
-[01:50:08]   COT3:020601_F_TAM_SPREAD
-[01:50:08]   COT3:020601_F_TD_SPREAD
-── C. fleet CFTC store anatomy ──
-[01:50:09]   no cftc store found at guessed keys
-[01:50:09] ✅ DONE — harvest 2019, COT watched 340
+executing-against: a94bcb1803f4dbb9ca89054f43e26adb84c4689a
+ops 4150 — cftc-all-cache anatomy
+[01:50:32]   code sample: ["ES", "NQ", "YM", "RTY", "VX", "ZB", "ZN", "ZF", "ZT", "6E", "6J", "6B"]
+[01:50:32]   record keys: ["contract", "name", "category", "cftc_code", "report_type", "weekly_reports", "current", "signals"]
+[01:50:32]   record sample: {"contract": "ES", "name": "S&P 500 E-Mini", "category": "equity_index", "cftc_code": "13874A", "report_type": "tff", "weekly_reports": [{"report_date": "2026-07-21", "open_interest": 1939493, "noncommercial_long": 1290557, "noncommercial_short": 684263, "net_speculator": 606294, "commercial_long": 
+[01:50:32]   bare sample: ["020601_FO_AMP_SPREAD", "020601_FO_DP_SPREAD", "020601_FO_LMP_SPREAD", "020601_FO_ORP_SPREAD", "020601_FO_TAM_SPREAD", "020601_FO_TD_SPREAD", "020601_FO_TLM_SPREAD", "020601_FO_TOR_SPREAD", "020601_F_AMP_SPREAD", "020601_F_DP_SPREAD"]
+[01:50:32]   hit sample: []
+[01:50:32] ✅ ANATOMY — 29 codes, overlap 0
 
-→ Report written to aws/ops/reports/latest/4149_harvest_cot.md
+→ Report written to aws/ops/reports/latest/4150_cftc_anatomy.md
