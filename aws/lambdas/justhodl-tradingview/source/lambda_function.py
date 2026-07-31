@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.26.1 ops4191 config-live"
+MARKER = "tradingview-vault v3.26.2 ops4193 wave2-codes"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -988,6 +988,25 @@ def _honest_label(row):
         return {"status": "NO_FREE_SOURCE",
                 "resolution_note": "continuation back-month: "
                                    "front-only mirrored free"}
+    if ":" not in sym:
+        if re.match(r"^[A-Z]{2}(MPMI|COMPPMI|SPMI)$", sym):
+            return {"status": "NO_FREE_SOURCE",
+                    "resolution_note": "S&P Global PMI licensed"}
+        if re.match(r"^[A-Z]{2}(CU|CCI|LEI|CLI|TH|CS|IC|LPS|FYGDPG|COP|"
+                    r"TVS|DUSD|MGDPYY|GDPQQ|GFCF|FO|CPR|IPMM|RXDR|HST|"
+                    r"MPRMM)$", sym):
+            return {"status": "NO_FREE_SOURCE",
+                    "resolution_note": "no free API for this indicator "
+                                       "family (BIS/IMF/WB/OECD absent)"}
+        if re.match(r"^[A-Z0-9]{1,3}[FGHJKMNQUVXZ]\d{4}$", sym):
+            return {"status": "NO_FREE_SOURCE",
+                    "resolution_note": "expired dated contract"}
+        if sym.startswith("ICERATES"):
+            return {"status": "NO_FREE_SOURCE",
+                    "resolution_note": "ICE swap rates licensed"}
+        if "AVGBALANCE" in sym or "UNISWAP" in sym:
+            return {"status": "NO_FREE_SOURCE",
+                    "resolution_note": "on-chain data is paywalled"}
     for pref in _ONCHAIN:
         if sym.startswith(pref) or (full or "").startswith(pref + ":"):
             return {"status": "NO_FREE_SOURCE",
@@ -1023,7 +1042,7 @@ def _cotfeed_try(row):
     if not row.get("from_watchlist"):
         return None
     sym = str(row.get("symbol") or "")
-    if not re.match(r"^\d{6}_(FO|F)_", sym):
+    if not re.match(r"^[0-9A-Z+]{4,7}_(FO|F)_", sym):
         return None
     if not _COT:
         try:

@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "cot-feed v1.2 ops4181 old-crop"
+MARKER = "cot-feed v1.3 ops4193 codes-wide"
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 DOM = "https://publicreporting.cftc.gov/resource"
@@ -32,7 +32,8 @@ SIDE = {"L": "long", "S": "short", "SPREAD": "spread"}
 
 
 def fetch_row(ds, code):
-    url = (f"{DOM}/{ds}.json?cftc_contract_market_code={code}"
+    from urllib.parse import quote as _q
+    url = (f"{DOM}/{ds}.json?cftc_contract_market_code={_q(code, safe='')}"
            "&$order=report_date_as_yyyy_mm_dd%20DESC&$limit=1")
     try:
         req = urllib.request.Request(url, headers=UA)
@@ -99,7 +100,7 @@ def lambda_handler(event, context):
             sy = str(sy)
             if sy.split(":")[0] in ("COT", "COT3"):
                 bare = sy.split(":", 1)[1]
-                m = re.match(r"(\d{6})_(FO|F)_(.+)$", bare)
+                m = re.match(r"([0-9A-Z+]{4,7})_(FO|F)_(.+)$", bare)
                 if m:
                     wanted[bare] = m.groups()
     rows = {}
