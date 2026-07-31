@@ -1,26 +1,20 @@
-executing-against: 7c3a7a8baf9fed2e8eddada44dc38071e07c39b0
-ops 4202 — TE overlap diagnosis
-[22:34:03]   NFS suffixes: {"INTR": 90, "TH": 39, "IPYY": 35, "02Y": 30, "10Y": 29, "GDG": 28, "IPRI": 27, "CS": 25, "NO": 25, "BR": 22, "UP": 22, "RSYY": 19, "FI": 18, "10": 16, "BCOI": 14, "CU": 13, "03Y": 11, "FYGDPG": 11, "DIR": 10, "IC": 10, "TVS": 9, "MPRYY": 9, "30Y": 8, "01": 8, "30": 8, "02": 8, "05Y": 7, "IRYY": 7}
-[22:34:03]   TE suffixes:  {"POP": 137, "GDPYY": 136, "GB": 135, "TEMP": 135, "IRYY": 134, "UR": 134, "CORRUPT": 134, "CORRANK": 134, "CAG": 133, "FI": 132, "IMP": 132, "BOT": 131, "GDG": 131, "INTR": 131, "EXP": 131, "CA": 130, "CTR": 130, "IRMM": 129, "STR": 129, "PITR": 128, "MILEX": 120, "M2": 114, "FER": 110, "M1": 109, "GSP": 107, "FDI": 106, "GFCF": 106, "SSR": 103}
-[22:34:03]   suffixes on BOTH sides: ["DIR", "INTR", "BCOI", "IPYY", "MPRYY", "CU", "UP", "FI", "RSYY", "GDG", "M0", "IRYY", "FO", "JV", "CCR", "COMPPMI", "M3", "MPMI", "SPMI", "STR"]
-── verbatim probes ──
-[22:34:03]   YIT1!: te=null
-[22:34:03]   USW1!: te=null
-[22:34:03]   FTEMSLU: te=null
-[22:34:03]   EMBASKET: te=null
-[22:34:03]   JSGW: te=null
-[22:34:03]   USHMI: te=null
-[22:34:03]   399233: te=null
-[22:34:03]   AWN1!: te=null
-[22:34:03]   CH02Y: te=null
-[22:34:03]   CH03Y: te=null
-[22:34:03]   F1U1!: te=null
-[22:34:03]   FMMG1!: te=null
-[22:34:03]   known USIPYY: in_te=True artifact_status=LIVE
-[22:34:03]   known USFER: in_te=True artifact_status=LIVE
-[22:34:03]   known JPINTR: in_te=True artifact_status=LIVE
-[22:34:03]   known DEIRYY: in_te=True artifact_status=LIVE
-[22:34:03]   known USCARREG: in_te=True artifact_status=ABSENT
-[22:34:03] ✅ DIAG — hits=68/3528
+executing-against: e9a8d0e78778fc3bd9a539469fd71263e3dc912c
+ops 4203 — world-wide finish
+[22:40:19] ✅   justhodl-te-feed settled at loop 1
+[22:40:29] ✅   justhodl-symbol-feed settled at loop 1
+[22:47:47] ✅   vault fired — 4204 converts
+[22:47:47] ✅   te v1.2 settled
+[22:47:47] ✅   sf v1.7 settled
+[22:47:47] ✅   te n >= 8200
+[22:47:47] ✅ WORLDWIDE — te=8934 sf=1868
 
-→ Report written to aws/ops/reports/latest/4202_overlap_diag.md
+→ Report written to aws/ops/reports/latest/4203_worldwide.md
+ops 4165 — convert the chewed queue
+[22:47:57] ✅   justhodl-tradingview settled at loop 1
+[22:48:12] ✅   artifact after ~15s
+[22:48:12]   statuses: {"LIVE": 5599, "NO_FREE_SOURCE": 4457, "DISCONTINUED": 2, "META": 1}
+[22:48:12]   NFS reasons: {"no free API found (TV/TradingEconomics only)": 2513, "country-indicator pair: no free agency sourc": 837, "attempted: no free mirror (tv-proprietary/un": 760, "exchange/venue has no free mirror": 137, "S&P Global PMI licensed": 76, "CFTC dataset lacks this column/market": 56}
+[22:48:12]   LIVE by adapter: {"native": 1261, "fleet:finviz": 818, "feed:te": 764, "feed:symbol": 437, "fmp": 351, "feed:cot": 260, "family:BOT": 144, "family:DIR": 136, "family:FI": 118, "family:GDG": 90, "family:M0": 75, "family:TOT": 60}
+[22:48:12] ✅ CONVERTED — LIVE 5599
+
+→ Report written to aws/ops/reports/latest/4204_world_convert.md
