@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.27.0 ops4195 catch-all"
+MARKER = "tradingview-vault v3.28.0 ops4198 te-primary"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1045,6 +1045,30 @@ def _symfeed_try(row):
             "adapter": "feed:symbol", "asof": r.get("asof")}
 
 
+_TE = {}
+
+
+def _tefeed_try(row):
+    """ops4198 PAID PRIMARY: Trading Economics dict for econ bares."""
+    if not row.get("from_watchlist") and ":" in str(row.get("symbol")):
+        return None
+    sym = str(row.get("symbol") or "")
+    if not _TE:
+        try:
+            d3 = json.loads(s3.get_object(
+                Bucket=S3_BUCKET, Key="data/te-feed.json")["Body"].read())
+            _TE["p"] = d3.get("prices") or {}
+            print("[tv-vault] te-feed n=%d" % len(_TE["p"]))
+        except Exception:
+            _TE["p"] = {}
+    r = (_TE.get("p") or {}).get(sym)
+    if not isinstance(r, dict) or "value" not in r:
+        return None
+    return {"status": "LIVE", "value": r["value"],
+            "source": "te:api " + str(r.get("cat", ""))[:28],
+            "adapter": "feed:te", "asof": r.get("asof")}
+
+
 _COT = {}
 
 
@@ -1101,7 +1125,7 @@ def _fleet_try(row):
 def _dict_try(row):
     """ops4154: the cheap-dictionary chain — every zero-cost resolver in
     one place, so thaw and else-path can never skip a feed again."""
-    return (_family_try(row) or _fleet_try(row)
+    return (_tefeed_try(row) or _family_try(row) or _fleet_try(row)
             or _symfeed_try(row) or _cotfeed_try(row))
 
 
