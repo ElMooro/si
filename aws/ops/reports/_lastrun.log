@@ -1,6 +1,11 @@
-executing-against: 31ab6027b5ee560af2856298d84b8d21a4335a24
-ops 4156 — crawler last words
-[14:39:34]   STATUS VERBATIM: {"ok": false, "updated": "2026-07-31T06:00:19.044585+00:00", "username": null, "session_valid": false, "notes_crawled": 0, "notes_in_mirror": 3495, "symbols_covered": 0, "brain_upserted": 0, "brain_errors": 0, "elapsed_seconds": 26.1, "phases": ["username", "watchlists", "bulk_notes", "per_symbol", "chart_layouts", "mirror", "brain"]}
-[14:39:34] ✅ LAST WORDS READ — 2044 entries
+executing-against: 8657a1117db6f358cb7993457d1389fc38408413
+ops 4157 — last_harvest_diag verbatim
+[14:45:10]   {"started": 1785472043881, "done": 8300, "total": 8300, "sc_ok": 8145, "sc_err": 155, "sc2_ok": 8145, "sc2_err": 155, "ss_ok": 0, "ss_err": 41, "matched": 33, "first_err": "sc2:TypeError: Failed to fe
+[14:45:10]   tch", "tier1_done": 4795, "rate_per_min": 22.8, "elapsed_s": 21853, "delay_ms": 700, "wall_events": 0, "recoveries": 127, "max_delay": 45000, "streak_err": 0, "paused_s": 0, "econ_probe": [{"sym": "EC
+[14:45:10]   ONOMICS:JPM3", "keys": ["description", "source", "source-description", "source-logoid", "source_description", "type"], "sample": "{\"description\":\"Japan Money Supply M3\",\"source\":null,\"source-de
+[14:45:10]   scription\":null,\"source-logoid\":null,\"source_description\":null,\"type\":\"economic\"}"}, {"sym": "FRED:MABMM301JPM189S", "keys": [], "sample": "null"}, {"sym": "ECONOMICS:JPCBBS", "keys": ["descr
+[14:45:10]   iption", "source", "source-description", "source-logoid", "source_description", "type"], "sample": "{\"description\":\"Japan Central Bank Balance Sheet\",\"source\":null,\"source-description\":null,\"
+[14:45:10]   source-logoid\":null,\"source_description\":null,\"type\":\"economic\"}"}, {"sym": "FRED:JPNASSETS", "keys": [], "sample": "null"}], "selftest": {"n": 3, "matched": 2}, "streak_ok": 9}
+[14:45:10] ✅ CONFESSION READ
 
-→ Report written to aws/ops/reports/latest/4156_crawler_lastwords.md
+→ Report written to aws/ops/reports/latest/4157_harvest_confession.md
