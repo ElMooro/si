@@ -1,10 +1,21 @@
-executing-against: 1ff9b1d4ed366fc911b360e652cc7512cfa96722
-ops 4165 — convert the chewed queue
-[21:40:52] ✅   justhodl-tradingview settled at loop 1
-[21:49:04] ✅   artifact after ~465s
-[21:49:04]   statuses: {"NO_FREE_SOURCE": 5192, "LIVE": 4833, "PENDING_RESOLUTION": 31, "DISCONTINUED": 2, "META": 1}
-[21:49:04]   NFS reasons: {"no free API found (TV/TradingEconomics only)": 2882, "country-indicator pair: no free agency sourc": 1105, "attempted: no free mirror (tv-proprietary/un": 761, "exchange/venue has no free mirror": 137, "no free API for this indicator family (BIS/I": 123, "S&P Global PMI licensed": 89}
-[21:49:04]   LIVE by adapter: {"native": 1261, "fleet:finviz": 818, "feed:symbol": 437, "fmp": 351, "feed:cot": 260, "family:BOT": 144, "family:DIR": 136, "family:FI": 118, "family:GDG": 90, "family:M0": 75, "family:TOT": 60, "family:CBBS": 60}
-[21:49:04] ✅ CONVERTED — LIVE 4833
+executing-against: fec0840839bc186220f163f07ed8500582d5d043
+ops 4197 — paid keys + discovery
+[21:52:18] ✅   SSM /justhodl/te_api = ...B40F
+[21:52:18] ✅   SSM /justhodl/eodhd_api = ...1566
+[21:52:18] ✅   SSM /justhodl/cryptoquant_api = ...X7Qv
+── A. Trading Economics — country dump shape ──
+[21:52:19]   keys: ["Country", "Category", "Title", "LatestValueDate", "LatestValue", "Source", "SourceURL", "Unit", "URL", "CategoryGroup", "Adjustment", "Frequency", "HistoricalDataSymbol", "CreateDate", "FirstValueDate", "PreviousValue", "PreviousValueDate", "HighestValue", "HighestValueDate", "LowestValue", "Lowes
+[21:52:19]   row: {"Country": "Mexico", "Category": "Auto Exports", "Ticker": null, "LatestValue": 301.01, "LatestValueDate": "2026-06-30T00:00:00", "Unit": "Thousand Units"}
+[21:52:19]   row: {"Country": "Mexico", "Category": "Average Annual Wages", "Ticker": null, "LatestValue": 24463.12, "LatestValueDate": "2025-12-31T00:00:00", "Unit": "USD"}
+[21:52:19]   row: {"Country": "Mexico", "Category": "Balance of Trade", "Ticker": null, "LatestValue": 4090.0, "LatestValueDate": "2026-06-30T00:00:00", "Unit": "USD Million"}
+[21:52:19]   row: {"Country": "Mexico", "Category": "Banks Balance Sheet", "Ticker": null, "LatestValue": 13239202.0, "LatestValueDate": "2026-05-31T00:00:00", "Unit": "MXN Million"}
+── B. EODHD — real-time + LSE bare ──
+[21:52:19]   AAPL.US: 200 {"code":"AAPL.US","timestamp":1785529740,"gmtoffset":0,"open":304.81,"high":310.69,"low":300,"close":308.91,"volume":131680676,"previousClos
+[21:52:19]   IEFM.LSE: 200 {"code":"IEFM.LSE","timestamp":1785512100,"gmtoffset":0,"open":1365.85,"high":1371,"low":1348.6121,"close":1352.4,"volume":4300,"previousClo
+[21:52:19]   0P0000WA0M.LSE: 200 {"code":"0P0000WA0M.LSE","timestamp":"NA","gmtoffset":0,"open":"NA","high":"NA","low":"NA","close":"NA","volume":"NA","previousClose":"NA","
+── C. CryptoQuant — auth + one metric ──
+[21:52:19]   btc/market-data/price-ohlcv?window=day&l: 200 {"status": {"code": 200, "message": "success"}, "result": {"window": "day", "data": [{"date": "2026-07-30", "open": 63900.72567312, "high": 65102.36841621, "low
+[21:52:19]   btc/network-data/supply?window=day&limit: 200 {"result":{"window":"day","data":[{"date":"2026-07-30","supply_new":478.125,"supply_total":20063486.66655096}]},"status":{"code":200,"message":"success"}}
+[21:52:19] ✅ PAID DISCOVERY DONE
 
-→ Report written to aws/ops/reports/latest/4196_collapse_convert.md
+→ Report written to aws/ops/reports/latest/4197_paid_keys.md

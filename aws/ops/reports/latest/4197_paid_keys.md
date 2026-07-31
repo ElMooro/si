@@ -1,0 +1,35 @@
+# ops 4197 — paid keys + discovery
+
+**Status:** success  
+**Duration:** 1.5s  
+**Finished:** 2026-07-31T21:52:19+00:00  
+
+## Data
+
+| te_bytes | te_rows | te_status | tickers_tv_like |
+|---|---|---|---|
+| 94887 |  | 200 |  |
+|  | 143 |  |  |
+|  |  |  | 0 |
+
+## Log
+- `21:52:18` ✅   SSM /justhodl/te_api = ...B40F
+- `21:52:18` ✅   SSM /justhodl/eodhd_api = ...1566
+- `21:52:18` ✅   SSM /justhodl/cryptoquant_api = ...X7Qv
+## A. Trading Economics — country dump shape
+
+- `21:52:19`   keys: ["Country", "Category", "Title", "LatestValueDate", "LatestValue", "Source", "SourceURL", "Unit", "URL", "CategoryGroup", "Adjustment", "Frequency", "HistoricalDataSymbol", "CreateDate", "FirstValueDate", "PreviousValue", "PreviousValueDate", "HighestValue", "HighestValueDate", "LowestValue", "Lowes
+- `21:52:19`   row: {"Country": "Mexico", "Category": "Auto Exports", "Ticker": null, "LatestValue": 301.01, "LatestValueDate": "2026-06-30T00:00:00", "Unit": "Thousand Units"}
+- `21:52:19`   row: {"Country": "Mexico", "Category": "Average Annual Wages", "Ticker": null, "LatestValue": 24463.12, "LatestValueDate": "2025-12-31T00:00:00", "Unit": "USD"}
+- `21:52:19`   row: {"Country": "Mexico", "Category": "Balance of Trade", "Ticker": null, "LatestValue": 4090.0, "LatestValueDate": "2026-06-30T00:00:00", "Unit": "USD Million"}
+- `21:52:19`   row: {"Country": "Mexico", "Category": "Banks Balance Sheet", "Ticker": null, "LatestValue": 13239202.0, "LatestValueDate": "2026-05-31T00:00:00", "Unit": "MXN Million"}
+## B. EODHD — real-time + LSE bare
+
+- `21:52:19`   AAPL.US: 200 {"code":"AAPL.US","timestamp":1785529740,"gmtoffset":0,"open":304.81,"high":310.69,"low":300,"close":308.91,"volume":131680676,"previousClos
+- `21:52:19`   IEFM.LSE: 200 {"code":"IEFM.LSE","timestamp":1785512100,"gmtoffset":0,"open":1365.85,"high":1371,"low":1348.6121,"close":1352.4,"volume":4300,"previousClo
+- `21:52:19`   0P0000WA0M.LSE: 200 {"code":"0P0000WA0M.LSE","timestamp":"NA","gmtoffset":0,"open":"NA","high":"NA","low":"NA","close":"NA","volume":"NA","previousClose":"NA","
+## C. CryptoQuant — auth + one metric
+
+- `21:52:19`   btc/market-data/price-ohlcv?window=day&l: 200 {"status": {"code": 200, "message": "success"}, "result": {"window": "day", "data": [{"date": "2026-07-30", "open": 63900.72567312, "high": 65102.36841621, "low
+- `21:52:19`   btc/network-data/supply?window=day&limit: 200 {"result":{"window":"day","data":[{"date":"2026-07-30","supply_new":478.125,"supply_total":20063486.66655096}]},"status":{"code":200,"message":"success"}}
+- `21:52:19` ✅ PAID DISCOVERY DONE
