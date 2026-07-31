@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.21.0 ops4153 cot-feed"
+MARKER = "tradingview-vault v3.21.1 ops4154 dict-thaw"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1033,6 +1033,13 @@ def _fleet_try(row):
     return out
 
 
+def _dict_try(row):
+    """ops4154: the cheap-dictionary chain — every zero-cost resolver in
+    one place, so thaw and else-path can never skip a feed again."""
+    return (_family_try(row) or _fleet_try(row)
+            or _symfeed_try(row) or _cotfeed_try(row))
+
+
 def _family_try(row):
     m = FAM_RX.match(str(row.get("symbol") or ""))
     if not m:
@@ -1505,10 +1512,9 @@ def lambda_handler(event, context):
                         row[k] = c[k]
                 row["cached"] = True
                 if row["status"] == "NO_FREE_SOURCE":
-                    # ops4147 NFS-THAW: a frozen NO_FREE_SOURCE row whose
-                    # symbol a family can now serve gets flipped here —
-                    # the 27-day retry gate must never outrank real data.
-                    _fh = _family_try(row)
+                    # ops4154 THAW GENERALIZED: any cheap dict (family,
+                    # fleet, symbol-feed, cot-feed) can thaw a frozen row.
+                    _fh = _dict_try(row)
                     if _fh:
                         row.update(_fh)
                 if row["status"] == "LIVE":

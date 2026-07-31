@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "cot-feed v1.0 ops4153"
+MARKER = "cot-feed v1.1 ops4154 conc"
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 DOM = "https://publicreporting.cftc.gov/resource"
@@ -45,6 +45,7 @@ def fetch_row(ds, code):
 
 def col_value(row, base, side):
     for cand in (f"{base}_{side}_all", f"{base}_{side}",
+                 f"{base}_{side}_all".replace("_tdr_", "_tdr_"),
                  base.replace("_positions", "__positions")
                  + f"_{side}_all",
                  f"{base}_{side}_all".replace("swap_", "swap__")):
@@ -59,6 +60,10 @@ def col_value(row, base, side):
 def parse_field(field):
     if field == "OI":
         return ("open_interest", "all")
+    m2 = re.match(r"CON_NET_LE_(4|8)_(L|S)$", field)
+    if m2:
+        side = "long" if m2.group(2) == "L" else "short"
+        return ("conc_net_le_%s_tdr" % m2.group(1), side)
     if field == "TT":
         return ("traders_tot", "all")
     m = re.match(r"([A-Z]+)_(L|S|SPREAD)$", field)
