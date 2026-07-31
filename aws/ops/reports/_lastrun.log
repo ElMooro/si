@@ -1,10 +1,24 @@
-executing-against: 956dee14e045d5ca237ac2a4bee73b15e4afa939
-ops 4165 — convert the chewed queue
-[19:02:07] ✅   justhodl-tradingview settled at loop 1
-[19:10:23] ✅   artifact after ~465s
-[19:10:23]   statuses: {"LIVE": 4562, "NO_FREE_SOURCE": 3296, "PENDING_RESOLUTION": 2198, "DISCONTINUED": 2, "META": 1}
-[19:10:23]   NFS reasons: {"no free API found (TV/TradingEconomics only)": 2516, "attempted: no free mirror (tv-proprietary/un": 761, "S&P Global PMI licensed": 8, "3M TB not in MOF JGB CSV \u2014 BOJ API next": 1, "referenced in eurodollar-plumbing code, not ": 1, "FTSE licensed": 1}
-[19:10:23]   LIVE by adapter: {"native": 1261, "fleet:finviz": 818, "feed:symbol": 437, "fmp": 351, "feed:cot": 227, "family:BOT": 144, "family:DIR": 136, "family:FI": 118, "family:GDG": 90, "family:M0": 75, "family:TOT": 60, "family:CBBS": 60}
-[19:10:23] ✅ CONVERTED — LIVE 4562
+executing-against: 5763fbb2d6a2d40b3ddb84f9d47fe788509ca94b
+ops 4181 — GRES + old-crop
+[19:14:22] ✅   justhodl-families-feed settled at loop 1
+[19:14:32] ✅   justhodl-cot-feed settled at loop 1
+[19:14:43] ✅   justhodl-tradingview settled at loop 1
+[19:15:23] ✅   vault fired — 4182 converts
+[19:15:23] ✅   feed v1.7 settled
+[19:15:23] ✅   cot v1.2 settled
+[19:15:23] ✅   vault v3.25.0 settled
+[19:15:23] ✗   GRES >= 90
+[19:15:23] ✅   cot resolved >= 240
+[19:15:23] ✗ FAILED: ['GRES >= 90']
 
-→ Report written to aws/ops/reports/latest/4180_label_alive.md
+→ Report written to aws/ops/reports/latest/4181_gres_old.md
+❌ OPS-FAIL: aws/ops/pending/ops_4181_gres_old.py
+ops 4165 — convert the chewed queue
+[19:15:34] ✅   justhodl-tradingview settled at loop 1
+[19:23:46] ✅   artifact after ~465s
+[19:23:46]   statuses: {"LIVE": 4604, "NO_FREE_SOURCE": 3442, "PENDING_RESOLUTION": 2010, "DISCONTINUED": 2, "META": 1}
+[19:23:46]   NFS reasons: {"no free API found (TV/TradingEconomics only)": 2662, "attempted: no free mirror (tv-proprietary/un": 761, "S&P Global PMI licensed": 8, "3M TB not in MOF JGB CSV \u2014 BOJ API next": 1, "referenced in eurodollar-plumbing code, not ": 1, "FTSE licensed": 1}
+[19:23:46]   LIVE by adapter: {"native": 1261, "fleet:finviz": 818, "feed:symbol": 437, "fmp": 351, "feed:cot": 240, "family:BOT": 144, "family:DIR": 136, "family:FI": 118, "family:GDG": 90, "family:M0": 75, "family:TOT": 60, "family:CBBS": 60}
+[19:23:46] ✅ CONVERTED — LIVE 4604
+
+→ Report written to aws/ops/reports/latest/4182_convert5.md
