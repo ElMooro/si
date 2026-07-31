@@ -1,26 +1,21 @@
-executing-against: 46e23f1231deca628a81879f358834458bf5e8fe
-ops 4198 — TE paid primary
-[21:58:59] ✅   justhodl-te-feed settled at loop 1
-[22:00:44]   spot USINTR: {"value": 3.75, "asof": "2026-07-29", "unit": "percent", "cat": "Interest Rate"}
-[22:00:44]   spot USIRYY: {"value": 3.5, "asof": "2026-06-30", "unit": "percent", "cat": "Inflation Rate"}
-[22:00:44]   spot CNGDPYY: {"value": 4.3, "asof": "2026-06-30", "unit": "percent", "cat": "GDP Annual Growth Rate"}
-[22:00:44]   spot MXBOT: {"value": 4090.0, "asof": "2026-06-30", "unit": "USD Million", "cat": "Balance of Trade"}
-[22:00:55] ✅   justhodl-tradingview settled at loop 1
-[22:00:55] ✅   vault fired — thaw + 4199 convert
-[22:00:56] ✅   schedule te-feed-daily cron(0 11)
-[22:00:56] ✅   te-feed settled
-[22:00:56] ✅   te n >= 1200
-[22:00:56] ✅   USINTR present
-[22:00:56] ✅   vault v3.28.0 settled
-[22:00:56] ✅ TE PRIMARY LIVE — n=4279
+executing-against: 766e0bfac5a15fa0c06be5c6ea8854e880fadc29
+ops 4200 — paid wave completion
+[22:10:32] ✅   justhodl-te-feed settled at loop 1
+[22:10:43] ✅   justhodl-symbol-feed settled at loop 1
+[22:20:58] ✅   vault fired — 4201 converts
+[22:20:58] ✅   te v1.1 settled
+[22:20:58] ✅   symbol v1.6 settled
+[22:20:58] ✅   te n >= 6000
+[22:20:58] ✅   sf resolved >= 1650
+[22:20:58] ✅ PAID COMPLETE — te=7664 sf=1838
 
-→ Report written to aws/ops/reports/latest/4198_te_primary.md
+→ Report written to aws/ops/reports/latest/4200_paid_complete.md
 ops 4165 — convert the chewed queue
-[22:01:07] ✅   justhodl-tradingview settled at loop 1
-[22:03:16] ✅   artifact after ~120s
-[22:03:16]   statuses: {"LIVE": 5436, "NO_FREE_SOURCE": 4620, "DISCONTINUED": 2, "META": 1}
-[22:03:16]   NFS reasons: {"no free API found (TV/TradingEconomics only)": 2604, "country-indicator pair: no free agency sourc": 897, "attempted: no free mirror (tv-proprietary/un": 761, "exchange/venue has no free mirror": 137, "S&P Global PMI licensed": 76, "CFTC dataset lacks this column/market": 56}
-[22:03:16]   LIVE by adapter: {"native": 1261, "fleet:finviz": 818, "feed:te": 603, "feed:symbol": 437, "fmp": 351, "feed:cot": 260, "family:BOT": 144, "family:DIR": 136, "family:FI": 118, "family:GDG": 90, "family:M0": 75, "family:TOT": 60}
-[22:03:16] ✅ CONVERTED — LIVE 5436
+[22:21:09] ✅   justhodl-tradingview settled at loop 1
+[22:26:12] ✅   artifact after ~285s
+[22:26:12]   statuses: {"LIVE": 5418, "NO_FREE_SOURCE": 4638, "DISCONTINUED": 2, "META": 1}
+[22:26:12]   NFS reasons: {"no free API found (TV/TradingEconomics only)": 2642, "country-indicator pair: no free agency sourc": 886, "attempted: no free mirror (tv-proprietary/un": 760, "exchange/venue has no free mirror": 137, "S&P Global PMI licensed": 76, "CFTC dataset lacks this column/market": 56}
+[22:26:12]   LIVE by adapter: {"native": 1261, "fleet:finviz": 818, "feed:te": 585, "feed:symbol": 437, "fmp": 351, "feed:cot": 260, "family:BOT": 144, "family:DIR": 136, "family:FI": 118, "family:GDG": 90, "family:M0": 75, "family:TOT": 60}
+[22:26:12] ✅ CONVERTED — LIVE 5418
 
-→ Report written to aws/ops/reports/latest/4199_te_convert.md
+→ Report written to aws/ops/reports/latest/4201_final_convert.md
