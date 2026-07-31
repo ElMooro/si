@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "families-feed v1.5 ops4167 mei"
+MARKER = "families-feed v1.6 ops4176 ipyy-fi"
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 
@@ -46,7 +46,7 @@ def _sdmx(t, alen):
 
 def lambda_handler(event, context):
     t0 = time.time()
-    out = {"INTR": {}, "FER": {}, "GDPYY": {}, "IRYY": {}, "UR": {}, "LG": {}, "CBBS": {}, "M0": {}, "BM": {}, "GDG": {}, "BOT": {}, "DIR": {}, "LIR": {}, "TOT": {}, "CA": {}, "RSYY": {}, "CIR": {}, "INBR": {}, "UP": {}, "MPRYY": {}}
+    out = {"INTR": {}, "FER": {}, "GDPYY": {}, "IRYY": {}, "UR": {}, "LG": {}, "CBBS": {}, "M0": {}, "BM": {}, "GDG": {}, "BOT": {}, "DIR": {}, "LIR": {}, "TOT": {}, "CA": {}, "IPYY": {}, "FI": {}, "RSYY": {}, "CIR": {}, "INBR": {}, "UP": {}, "MPRYY": {}}
     iso23 = {}
     for fam, code in (("GDPYY", "NY.GDP.MKTP.KD.ZG"),
                       ("IRYY", "FP.CPI.TOTL.ZG"),
@@ -141,6 +141,32 @@ def lambda_handler(event, context):
         except Exception:
             pass
         out[_fam] = d5
+    # IPYY-FI ops4176
+    d7 = {}
+    t7 = _fetch("https://api.db.nomics.world/v22/series/OECD/MEI/.PRINTO01.IXOBSA.M?observations=1&limit=500")
+    try:
+        for doc in json.loads(t7)["series"]["docs"]:
+            cc3 = str(doc.get("series_code", "")).split(".")[0]
+            vv7 = [z for z in doc.get("value") or [] if z is not None]
+            pp7 = doc.get("period") or []
+            c2m = inv3.get(cc3)
+            if len(vv7) >= 13 and c2m:
+                d7[c2m] = [round((vv7[-1] / vv7[-13] - 1) * 100, 2),
+                           "oecd:" + (pp7[-1] if pp7 else "m")]
+    except Exception:
+        pass
+    out["IPYY"] = d7
+    d8 = {}
+    t8 = _fetch("https://api.imf.org/external/sdmx/2.1/data/CPI/..CP01.YOY_PCH_PA_PT.M?lastNObservations=1")
+    for blk8 in re.split(r"<Series[ >]", t8)[1:]:
+        a8 = re.search(r'COUNTRY="([A-Z]{3})"', blk8)
+        v8 = re.findall(r'OBS_VALUE="([\d\.eE\+\-]+)"', blk8)
+        tp8 = re.findall(r'TIME_PERIOD="([^"]+)"', blk8)
+        c2m = inv3.get(a8.group(1)) if a8 else None
+        if v8 and c2m:
+            d8[c2m] = [round(float(v8[-1]), 2),
+                       "imf:" + (tp8[-1] if tp8 else "m")]
+    out["FI"] = d8
     out["FER"] = fer
     doc = {"generated_at": datetime.now(timezone.utc).isoformat(),
            "marker": MARKER,
