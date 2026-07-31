@@ -1,29 +1,10 @@
-executing-against: 290ad16143989c0a234cf0e82754baa1ce4d76ff
-ops 4167 — MEI wave: probe, prove, wire
-── A. tuple probes (JPN + USA) ──
-[16:24:27]   IPYY: no candidate answered
-[16:24:30]   RSYY: SLRTCR03.GY ✓ sample=('USA', -1.80698151950719, '2023-10')
-[16:24:32]   CU: no candidate answered
-[16:24:33]   CIR: CPGRLE01.GY ✓ sample=('USA', 3.92985308866993, '2023-12')
-[16:24:35]   INBR: IR3TIB01.ST ✓ sample=('USA', 5.26, '2024-01')
-[16:24:37]   LEI: no candidate answered
-[16:24:38]   UP: LFHUTTTT.STSA ✓ sample=('USA', 6124.0, '2024-01')
-[16:24:41]   MPRYY: PITGND01.GY ✓ sample=('USA', 6.95894148336003, '2022-12')
-── B. bulk mask test (all countries, one call) ──
-── C. IMF CPI flow retry (FI) ──
-[16:24:43]   CPI-ish flows: ["CPI", "CPI_2026_APR_VINTAGE", "CPI_2026_FEB_VINTAGE", "CPI_2026_JAN_VINTAGE", "CPI_2026_MAY_VINTAGE", "CPI_WCA", "CPI_WCA_2026_APR_VINTAGE", "CPI_WCA_2026_FEB_VINTAGE"]
-[16:24:55]   CPI: keys=29579 food-ish=[]
-[16:25:03]   CPI_2026_APR_VINTAGE: keys=29792 food-ish=[]
-[16:25:12]   CPI_2026_FEB_VINTAGE: keys=30968 food-ish=[]
-── D. wire families-feed v1.5 (+MEI) + vault ──
-[16:25:22] ✅   justhodl-families-feed settled at loop 1
-[16:25:50] ✅   justhodl-tradingview settled at loop 1
-[16:25:51] ✅   vault fired async — converter next cycle
-[16:25:51] ✅   MEI tuples >= 5
-[16:25:51] ✅   bulk mask works >=30
-[16:25:51] ✅   feed v1.5 settled
-[16:25:51] ✅   MEI families sum >= 150
-[16:25:51] ✅   vault v3.23.0 settled
-[16:25:51] ✅ MEI WIRED — ['RSYY', 'CIR', 'INBR', 'UP', 'MPRYY'] fi_path=False
+executing-against: 560428cfc0ae98971507fd8f88d309216fd90a4a
+ops 4165 — convert the chewed queue
+[16:30:30] ✅   justhodl-tradingview settled at loop 2
+[16:38:49] ✅   artifact after ~480s
+[16:38:49]   statuses: {"LIVE": 4382, "PENDING_RESOLUTION": 3562, "NO_FREE_SOURCE": 2112, "DISCONTINUED": 2, "META": 1}
+[16:38:49]   NFS reasons: {"no free API found (TV/TradingEconomics only)": 2093, "S&P Global PMI licensed": 8, "3M TB not in MOF JGB CSV \u2014 BOJ API next": 1, "referenced in eurodollar-plumbing code, not ": 1, "FTSE licensed": 1, "ChinaBond licensed": 1}
+[16:38:49]   LIVE by adapter: {"native": 1261, "fleet:finviz": 818, "feed:symbol": 437, "fmp": 351, "feed:cot": 227, "family:BOT": 144, "family:DIR": 136, "family:GDG": 90, "family:M0": 75, "family:TOT": 60, "family:CBBS": 60, "family:RSYY": 34}
+[16:38:49] ✅ CONVERTED — LIVE 4382
 
-→ Report written to aws/ops/reports/latest/4167_mei_wave.md
+→ Report written to aws/ops/reports/latest/4168_labels_convert.md
