@@ -1,12 +1,24 @@
-executing-against: b201f58c3cf78d30521f3f93132d6996a3d1f7f0
-ops 4207 — fleet coverage scan (ticker remap)
-── per-artifact NFS hits (top 18) ──
-[23:38:20]   2797 hits  ( 3735 keys)  data/stock-xray.json
-[23:38:20]   1183 hits  ( 1183 keys)  data/_ma200/closes.json
-[23:38:20]    238 hits  (  409 keys)  data/archive/report_20260707_1107.json
-[23:38:20]      2 hits  (  409 keys)  data/archive/report_20260627_1106.json
-[23:38:20]      1 hits  (  409 keys)  data/archive/report_20260530_1104.json
-[23:38:20]   sample: {"IBKR": {"value": 90.48, "asof": null, "src_key": "data/_ma200/closes.json"}, "ELF": {"value": 82.26, "asof": null, "src_key": "data/_ma200/closes.json"}, "DIA": {"value": 521.51, "asof": null, "src_key": "data/_ma200/closes.json"}, "XLB": {"value": 51.64, "asof": null, "src_key": "data/_ma200/closes.json"}, "DOW": {"value": 30.09, "asof": null, "src_key": "data/_ma200/closes.json"}, "XOP": {"value": 174.87, "asof": null, "src_key": "data/_ma200/closes.json"}}
-[23:38:20] ✅ FLEET INVENTORY — 4221 remappable ticks banked
+executing-against: 00d7309576de8a6e53c7e74dd4b929d1af1ba6bf
+ops 4209 — systematic discovery forensics
+── H1a. TE categories we NEVER mapped (US dump) ──
+[23:48:56]   unmapped sample: []
+── H1b. dead country slugs (silent 404s) ──
+[23:48:57]   'czech republic': status=-1 rows=-1
+[23:48:57]   'ivory coast': status=-1 rows=-1
+[23:48:57]   'east timor': status=-1 rows=-1
+[23:48:57]   'macau': status=-1 rows=-1
+[23:48:57]   'swaziland': status=-1 rows=-1
+[23:48:57]   'cape verde': status=-1 rows=-1
+── H4. description corpus over NFS bares ──
+[23:48:58]   desc samples: []
+── H2. bare futures-root class in NFS ──
+[23:48:58]   roots sample: ["YIT1!", "USW1!", "AWN1!", "F1U1!", "FMMG1!", "I1!", "AW1!", "SON1!", "MWL1!", "AP1!", "BD1!", "CA1!", "CN1!", "DFM1!", "DJIA1!", "DX1!"]
+── H6. EODHD macro-indicator API ──
+[23:48:58]   CHE/government_bond_10y: -1 HTTP Error 403: Forbidden
+[23:48:59]   CHE/ALL: -1 HTTP Error 403: Forbidden
+[23:48:59]   MCO/gdp_current_usd: -1 HTTP Error 403: Forbidden
+── H3. NFS-ladder freeze size (yield class) ──
+[23:48:59]   yields sample: ["CH02Y", "CH03Y", "SS03", "CN10Y", "GB30Y", "CN01Y", "DE10Y", "ES10Y", "EU02Y", "EU05Y", "EU30Y", "FR10Y", "AC24", "AD02"]
+[23:48:59] ✅ SYSTEMATIC FORENSICS COMPLETE
 
-→ Report written to aws/ops/reports/latest/4208_fleet_inventory.md
+→ Report written to aws/ops/reports/latest/4209_systematic.md
