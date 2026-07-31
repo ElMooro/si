@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "te-feed v1.0 ops4198"
+MARKER = "te-feed v1.1 ops4200 catmap-wide"
 S3 = boto3.client("s3")
 SSM = boto3.client("ssm")
 BUCKET = "justhodl-dashboard-live"
@@ -90,7 +90,38 @@ CAT = {"Interest Rate": "INTR", "Inflation Rate": "IRYY",
        "Private Sector Credit": "PSC", "Bank Lending Rate": "BLR",
        "Cash Reserve Ratio": "CRR", "Foreign Direct Investment": "FDI",
        "Government Budget Value": "GBV", "Car Registrations": "CARREG",
-       "Bankruptcies": "BNK", "Tourist Arrivals": "TOUR"}
+       "Bankruptcies": "BNK", "Tourist Arrivals": "TOUR",
+       "Factory Orders": "FO", "Crude Oil Production": "COP",
+       "GDP per capita": "GDPPC", "GDP per capita PPP": "GDPPCP",
+       "Gross Fixed Capital Formation": "GFCF", "Exports": "EXP",
+       "Imports": "IMP", "Gasoline Prices": "GASP",
+       "Minimum Wages": "MINW", "Wages": "WAG", "Population": "POP",
+       "Personal Income Tax Rate": "PITR",
+       "Corporate Tax Rate": "CTR", "Sales Tax Rate": "STR",
+       "Social Security Rate": "SSR", "Employed Persons": "EP",
+       "Job Vacancies": "JV", "Labour Costs": "LC",
+       "Productivity": "PROD", "Housing Index": "HI",
+       "Home Ownership Rate": "HOR", "Construction Output": "CTO",
+       "New Home Sales": "NHS", "Existing Home Sales": "EHS",
+       "Mortgage Rate": "MR", "Mortgage Applications": "MAPL",
+       "Steel Production": "STLP", "Car Production": "CARPROD",
+       "Electricity Production": "ELEC",
+       "Mining Production": "MNGPROD",
+       "Manufacturing Production": "MANPROD",
+       "Government Spending": "GSP",
+       "Government Revenues": "GRV", "Fiscal Expenditure": "FE",
+       "Military Expenditure": "MILEX", "Remittances": "REMIT",
+       "Credit Rating": "CRED", "Corruption Index": "CORRUPT",
+       "Corruption Rank": "CORRANK", "Ease of Doing Business": "EODB",
+       "Internet Speed": "NETSPD", "IP Addresses": "IPADDR",
+       "Coronavirus Vaccination Rate": "COVAXR",
+       "Hospital Beds": "HOSP", "Medical Doctors": "DOCS",
+       "CO2 Emissions": "CO2", "Temperature": "TEMP",
+       "Precipitation": "PRECIP", "Youth Unemployment Rate": "YUR2",
+       "Long Term Unemployment Rate": "LTUR",
+       "Part Time Employment": "PTE", "Full Time Employment": "FTE",
+       "Labor Force Participation Rate": "LFPR",
+       "Retirement Age Men": "RAM", "Retirement Age Women": "RAW"}
 
 PRIORITY = list(CC)
 
