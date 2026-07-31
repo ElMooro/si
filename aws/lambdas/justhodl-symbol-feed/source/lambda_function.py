@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "symbol-feed v1.3 ops4160 aimd"
+MARKER = "symbol-feed v1.4 ops4162 us-fallback"
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64)"}
@@ -75,6 +75,12 @@ def targets():
                 out[sy] = [bare + "=X"]
             elif ex == "EURONEXT":
                 out[sy] = [bare + sfx for sfx in EURONEXT_TRY]
+            elif ex in ("AMEX", "NASDAQ", "NYSE", "OTC", "BATS",
+                        "CBOE", "ARCA"):
+                cands = [bare]
+                if "." in bare:
+                    cands.append(bare.replace(".", "-"))
+                out[sy] = cands
             elif ex in SUFFIX:
                 out[sy] = [bare + SUFFIX[ex]]
             elif ex in INDEXY:

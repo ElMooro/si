@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "families-feed v1.3 ops4148 broad-money"
+MARKER = "families-feed v1.4 ops4162 wb-wave"
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 
@@ -46,11 +46,17 @@ def _sdmx(t, alen):
 
 def lambda_handler(event, context):
     t0 = time.time()
-    out = {"INTR": {}, "FER": {}, "GDPYY": {}, "IRYY": {}, "UR": {}, "LG": {}, "CBBS": {}, "M0": {}, "BM": {}}
+    out = {"INTR": {}, "FER": {}, "GDPYY": {}, "IRYY": {}, "UR": {}, "LG": {}, "CBBS": {}, "M0": {}, "BM": {}, "GDG": {}, "BOT": {}, "DIR": {}, "LIR": {}, "TOT": {}, "CA": {}}
     iso23 = {}
     for fam, code in (("GDPYY", "NY.GDP.MKTP.KD.ZG"),
                       ("IRYY", "FP.CPI.TOTL.ZG"),
                       ("UR", "SL.UEM.TOTL.ZS"),
+                      ("GDG", "GC.DOD.TOTL.GD.ZS"),
+                      ("BOT", "BN.GSR.GNFS.CD"),
+                      ("DIR", "FR.INR.DPST"),
+                      ("LIR", "FR.INR.LEND"),
+                      ("TOT", "TT.PRI.MRCH.XD.WD"),
+                      ("CA", "BN.CAB.XOKA.CD"),
                       ("FERWB", "FI.RES.TOTL.CD")):
         t = _fetch("https://api.worldbank.org/v2/country/all/indicator/"
                    f"{code}?format=json&mrnev=1&per_page=400")
