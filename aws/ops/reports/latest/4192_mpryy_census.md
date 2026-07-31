@@ -1,22 +1,27 @@
 # ops 4192 — MPRYY retry + bare census + wave-2 sizing
 
-**Status:** failure  
-**Duration:** 0.7s  
-**Finished:** 2026-07-31T20:54:46+00:00  
+**Status:** success  
+**Duration:** 9.7s  
+**Finished:** 2026-07-31T21:06:05+00:00  
 
-## Error
+## Data
 
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4192_mpryy_census.py", line 54, in main
-    attrs = list(dict(re.findall(
-                 ^^^^^^^^^^^^^^^^
-ValueError: dictionary update sequence element #0 has length 7; 2 is required
-
-```
+| deadcode_pending | mpryy_proven | pmi_pending |
+|---|---|---|
+|  | False |  |
+| 106 |  | 81 |
 
 ## Log
 ## A. MPRYY: PPI flow, freq variants, vintages
 
+- `21:06:03`   PPI: attrs=['COUNTRY', 'INDICATOR', 'TYPE_OF_TRANSFORMATION', 'FREQUENCY'] trs=["IX", "POP_PCH_PT", "YOY_PCH_PT"] fqs=['A', 'M', 'Q']
+- `21:06:04`   PPI_2026_MAY_VINTAGE: attrs=['COUNTRY', 'INDICATOR', 'TYPE_OF_TRANSFORMATION', 'FREQUENCY'] trs=["IX", "POP_PCH_PT", "YOY_PCH_PT"] fqs=['A', 'M', 'Q']
+- `21:06:04`   MPRYY: no mask proved — honest, config untouched
+## B. other-bare identification (verbatim)
+
+- `21:06:05`   shapes: {"econ-bare": 1598, "prefixed": 148, "other": 59, "cot": 56, "futures": 1}
+- `21:06:05`   other samples: ["06765T_F_CP_L", "06765T_F_CP_S", "11700_F_AMP_L", "11700_F_AMP_S", "1170E1_F_AMP_L", "1170E1_F_AMP_S", "1170E1_F_LMP_S", "1170E1_F_NRP_S", "1170E1_F_ORP_L", "1170E1_F_TRP_L", "12460+_F_NRP_L", "12460+_F_NRP_S", "1OBG", "20974+_F_DP_L", "20974+_F_NRP_L", "20974+_F_NRP_S", "2VWE", "6EQ2022", "A2JNP5", "B&MC", "B35GI", "B35PI", "B3FG", "B4050GI", "B4050PI", "BASED_AVGBALANCE", "CN", "I&BEI", "ICERATES1100USD10Y", "ICERATES1100USD30Y", "ICERATES1100USD3Y", "ICERATES1100USD4Y", "IEFM.GB", "IEMO.GB", "INDEX_UNISWAPLIQUIDITY", "INDEX_UNISWAPLIQUIDITYUSD", "IUMF.GB", "IUMO.GB", "IWFM.GB", "IWMO.GB", "K", "L&H", "L&SI", "LMY_AVGBALANCE"]
+## C. label-wave-2 sizing (PENDING suffixes)
+
+- `21:06:05`   top pending suffixes: {"INTR": 78, "IPYY": 76, "UP": 59, "IPMM": 57, "MPRYY": 46, "RSYY": 45, "MPMI": 42, "M0": 22, "COMPPMI": 20, "SPMI": 19, "LEI": 18, "COP": 9, "M2": 9, "CIR": 8, "MGDPYY": 7, "CLI": 7, "IRYY": 7, "M1": 7, "RXDR": 7, "HST": 6, "LG": 5, "S": 5, "MPRMM": 5, "I": 5}
+- `21:06:05` ✅ 4192 DONE — mpryy=False pmi=81 dead=106
