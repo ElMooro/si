@@ -1,25 +1,28 @@
-executing-against: 8e8c482701e96f80e63e53864175c7604ef6751d
+executing-against: 7c58bad2f2db56b7d6b019f3b8f3aa5d8fac0b13
 ops 4170 — IPYY + FI + label activation
-── A. IPYY: MEI index obs=13, yoy self-computed ──
-── B. FI: CPI Series attribute self-discovery ──
-[18:07:41]   sample attrs: {"COUNTRY": "ABW", "INDEX_TYPE": "CPI", "COICOP_1999": "CP01", "TYPE_OF_TRANSFORMATION": "IX", "FREQUENCY": "A"}
-[18:07:41] ✗   IPYY computable
-[18:07:41] ✗   FI mask proven >=40
-[18:07:41] ✗ probes incomplete — not wiring
+── A. IPYY: obs=13 yoy, retried, JPN->USA fallback ──
+── B. FI: full-doc transform/freq sets, ranked pick ──
+[18:15:11]   attr order: ["COUNTRY", "INDEX_TYPE", "COICOP_1999", "TYPE_OF_TRANSFORMATION", "FREQUENCY"]
+[18:15:11]   transforms: ["IX", "POP_PCH_PA_PT", "SRP_IX", "SRP_POP_PCH_PA_PT", "SRP_YOY_PCH_PA_PT", "WGT", "WGT_PT", "YOY_PCH_PA_PT"]
+[18:15:11]   freqs: ["A", "M", "Q"]
+[18:15:14]   spots: [["USA", "0.1950197202776857"]]
+[18:15:14] ✗   IPYY computable
+[18:15:14] ✅   FI mask proven >=40
+[18:15:14] ✗ probes incomplete — not wiring
 
-→ Report written to aws/ops/reports/latest/4170_ipyy_fi.md
-❌ OPS-FAIL: aws/ops/pending/ops_4170_ipyy_fi.py
+→ Report written to aws/ops/reports/latest/4172_ipyy_fi2.md
+❌ OPS-FAIL: aws/ops/pending/ops_4172_ipyy_fi2.py
 ops 4165 — convert the chewed queue
 
-→ Report written to aws/ops/reports/latest/4171_convert2.md
+→ Report written to aws/ops/reports/latest/4173_convert3.md
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4171_convert2.py", line 118, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4173_convert3.py", line 118, in <module>
     main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4171_convert2.py", line 68, in main
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4173_convert3.py", line 68, in main
     checksA = settle(rep, "justhodl-tradingview",
               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4171_convert2.py", line 28, in settle
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4173_convert3.py", line 28, in settle
     assert mark in src
            ^^^^^^^^^^^
 AssertionError
-❌ OPS-FAIL: aws/ops/pending/ops_4171_convert2.py
+❌ OPS-FAIL: aws/ops/pending/ops_4173_convert3.py
