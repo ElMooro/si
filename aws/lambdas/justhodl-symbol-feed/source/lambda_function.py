@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "symbol-feed v1.7 ops4203 cn-codes"
+MARKER = "symbol-feed v1.8 ops4210 root-admit"
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64)"}
@@ -145,6 +145,25 @@ def lambda_handler(event, context):
     except Exception:
         store = {}
     tg = targets()
+    # ops4210 root admission: artifact-NFS bare futures roots
+    try:
+        art = json.loads(S3.get_object(
+            Bucket=BUCKET, Key="data/tradingview.json")["Body"].read())
+        for r9 in art.get("symbols") or []:
+            s9 = str(r9.get("symbol") or "")
+            m9 = re.match(r"^([A-Z0-9]{1,4})1!$", s9)
+            if m9 and r9.get("status") in ("NO_FREE_SOURCE",
+                                           "PENDING_RESOLUTION") \
+                    and s9 not in tg:
+                root9 = m9.group(1)
+                cands9 = [root9 + "=F", "^" + root9]
+                if root9 == "DX":
+                    cands9 = ["DX-Y.NYB", "DX=F"]
+                if root9 == "DJIA":
+                    cands9 = ["^DJI"]
+                tg[s9] = cands9
+    except Exception:
+        pass
     todo = [k for k in tg if k not in store]
     if not todo:
         todo = sorted(tg, key=lambda k: str(

@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.29.0 ops4205 cq-rail"
+MARKER = "tradingview-vault v3.30.0 ops4210 nfs-lottery"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1067,6 +1067,9 @@ def _cqfeed_try(row):
             "adapter": "feed:cq", "asof": r.get("asof")}
 
 
+_LOTTO = set()
+_LOTTO_RX = re.compile(r"^[A-Z]{2}\d{2}Y?$|^[A-Z0-9]{1,4}1!$")
+
 _TE = {}
 
 
@@ -1629,6 +1632,14 @@ def lambda_handler(event, context):
                     # ops4154 THAW GENERALIZED: any cheap dict (family,
                     # fleet, symbol-feed, cot-feed) can thaw a frozen row.
                     _fh = _dict_try(row)
+                    if not _fh and len(_LOTTO) < 40 and \
+                            _LOTTO_RX.match(str(row.get("symbol") or "")):
+                        # ops4210 NFS-LADDER LOTTERY: frozen resolvable
+                        # classes get a real retry — flip to PENDING;
+                        # next pass ladders them; fail relabels honestly.
+                        _LOTTO.add(row.get("symbol"))
+                        row["status"] = "PENDING_RESOLUTION"
+                        row["resolution_note"] = "lottery: ladder retry"
                     if _fh:
                         row.update(_fh)
                 if row["status"] == "LIVE":
