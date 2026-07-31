@@ -822,7 +822,7 @@ def imf_latest(key):
         return None
 
 
-FAM_RX = re.compile(r"^(?:ECONOMICS:)?([A-Z]{2})(INTR|FER|GDPYY|IRYY|UR|LG|CBBS|M0|BM|GDG|BOT|DIR|LIR|TOT|CA|IPYY|FI|GRES|GRES|RSYY|CIR|INBR|UP|MPRYY)$")   # ops4131: admission stores BARE
+FAM_RX = re.compile(r"^(?:ECONOMICS:)?([A-Z]{2})(INTR|FER|GDPYY|IRYY|UR|LG|CBBS|M0|BM|GDG|BOT|DIR|LIR|TOT|CA|IPYY|FI|GRES|CAG|BCOI|CCI|IPRI|LEI|CU|MPRYY|GRES|RSYY|CIR|INBR|UP|MPRYY)$")   # ops4131: admission stores BARE
 _FAM = {}
 
 
@@ -1081,7 +1081,7 @@ def _family_try(row):
         return None
     cc, f = m.group(1), m.group(2)
     F = _families()
-    src = {"GRES": "wb:FI.RES.XGLD.CD", "IPYY": "oecd:MEI PRINTO01 yoy", "FI": "imf:CPI food", "GRES": "wb:FI.RES.XGLD.CD", "RSYY": "oecd:MEI SLRTCR03", "CIR": "oecd:MEI CPGRLE01", "INBR": "oecd:MEI IR3TIB01", "UP": "oecd:MEI LFHUTTTT", "MPRYY": "oecd:MEI PITGND01", "GDG": "wb:GC.DOD.TOTL.GD.ZS", "BOT": "wb:BN.GSR.GNFS.CD",
+    src = {"CAG": "wb:BN.CAB.XOKA.GD.ZS", "BCOI": "oecd:MEI", "CCI": "oecd:MEI", "IPRI": "oecd:MEI", "LEI": "oecd:MEI", "CU": "oecd:MEI", "MPRYY": "imf:PPI", "GRES": "wb:FI.RES.XGLD.CD", "IPYY": "oecd:MEI PRINTO01 yoy", "FI": "imf:CPI food", "GRES": "wb:FI.RES.XGLD.CD", "RSYY": "oecd:MEI SLRTCR03", "CIR": "oecd:MEI CPGRLE01", "INBR": "oecd:MEI IR3TIB01", "UP": "oecd:MEI LFHUTTTT", "MPRYY": "oecd:MEI PITGND01", "GDG": "wb:GC.DOD.TOTL.GD.ZS", "BOT": "wb:BN.GSR.GNFS.CD",
            "DIR": "wb:FR.INR.DPST", "LIR": "wb:FR.INR.LEND",
            "TOT": "wb:TT.PRI.MRCH.XD.WD", "CA": "wb:BN.CAB.XOKA.CD",
            "BM": "imf:MFS_DC BM", "LG": "imf:MFS_DC", "CBBS": "imf:MFS_CBS TA", "M0": "imf:MFS_CBS MB",

@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "families-feed v1.7 ops4181 gres"
+MARKER = "families-feed v2.0 ops4187 config-driven"
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 
@@ -169,6 +169,59 @@ def lambda_handler(event, context):
             d8[c2m] = [round(float(v8[-1]), 2),
                        "imf:" + (tp8[-1] if tp8 else "m")]
     out["FI"] = d8
+    # CONFIG-DRIVEN v2.0 ops4187 — extra families from S3 defs; adding a
+    # family is now data, never code. kinds: wb | mei | imf_mask.
+    try:
+        _defs = json.loads(S3.get_object(
+            Bucket=BUCKET, Key="data/family-defs.json")["Body"].read()
+        ).get("families") or {}
+    except Exception:
+        _defs = {}
+    for _fam, _dd in _defs.items():
+        try:
+            _kind = _dd.get("kind")
+            dX = {}
+            if _kind == "wb":
+                tX = _fetch("https://api.worldbank.org/v2/country/all/"
+                            "indicator/" + _dd["code"]
+                            + "?format=json&mrnev=1&per_page=400")
+                for rX in (json.loads(tX)[1] or []):
+                    vX = rX.get("value")
+                    cX = (rX.get("country") or {}).get("id") or ""
+                    if vX is not None and len(cX) == 2:
+                        dX[cX.upper()] = [
+                            round(float(vX) / float(_dd.get("div", 1)), 2),
+                            "wb:%s" % rX.get("date")]
+            elif _kind == "mei":
+                tX = _fetch("https://api.db.nomics.world/v22/series/OECD/"
+                            "MEI/." + _dd["subject"] + "."
+                            + _dd["measure"] + ".M?observations=1"
+                            "&limit=500")
+                for doc in json.loads(tX)["series"]["docs"]:
+                    c3X = str(doc.get("series_code", "")).split(".")[0]
+                    vXs = [z for z in doc.get("value") or []
+                           if z is not None]
+                    pXs = doc.get("period") or []
+                    cmX = inv3.get(c3X)
+                    if vXs and cmX:
+                        dX[cmX] = [round(float(vXs[-1]), 2),
+                                   "oecd:" + (pXs[-1] if pXs else "m")]
+            elif _kind == "imf_mask":
+                tX = _fetch("https://api.imf.org/external/sdmx/2.1/data/"
+                            + _dd["flow"] + "/" + _dd["mask"]
+                            + "?lastNObservations=1")
+                for bX in re.split(r"<Series[ >]", tX)[1:]:
+                    aX = re.search(r'COUNTRY="([A-Z]{3})"', bX)
+                    vX2 = re.findall(
+                        r'OBS_VALUE="([\d\.eE\+\-]+)"', bX)
+                    pX2 = re.findall(r'TIME_PERIOD="([^"]+)"', bX)
+                    cmX = inv3.get(aX.group(1)) if aX else None
+                    if vX2 and cmX:
+                        dX[cmX] = [round(float(vX2[-1]), 2),
+                                   "imf:" + (pX2[-1] if pX2 else "m")]
+            out[_fam] = dX
+        except Exception:
+            out.setdefault(_fam, {})
     out["FER"] = fer
     doc = {"generated_at": datetime.now(timezone.utc).isoformat(),
            "marker": MARKER,
