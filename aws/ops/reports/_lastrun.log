@@ -1,10 +1,25 @@
-executing-against: 560428cfc0ae98971507fd8f88d309216fd90a4a
-ops 4165 — convert the chewed queue
-[16:30:30] ✅   justhodl-tradingview settled at loop 2
-[16:38:49] ✅   artifact after ~480s
-[16:38:49]   statuses: {"LIVE": 4382, "PENDING_RESOLUTION": 3562, "NO_FREE_SOURCE": 2112, "DISCONTINUED": 2, "META": 1}
-[16:38:49]   NFS reasons: {"no free API found (TV/TradingEconomics only)": 2093, "S&P Global PMI licensed": 8, "3M TB not in MOF JGB CSV \u2014 BOJ API next": 1, "referenced in eurodollar-plumbing code, not ": 1, "FTSE licensed": 1, "ChinaBond licensed": 1}
-[16:38:49]   LIVE by adapter: {"native": 1261, "fleet:finviz": 818, "feed:symbol": 437, "fmp": 351, "feed:cot": 227, "family:BOT": 144, "family:DIR": 136, "family:GDG": 90, "family:M0": 75, "family:TOT": 60, "family:CBBS": 60, "family:RSYY": 34}
-[16:38:49] ✅ CONVERTED — LIVE 4382
+executing-against: 8e8c482701e96f80e63e53864175c7604ef6751d
+ops 4170 — IPYY + FI + label activation
+── A. IPYY: MEI index obs=13, yoy self-computed ──
+── B. FI: CPI Series attribute self-discovery ──
+[18:07:41]   sample attrs: {"COUNTRY": "ABW", "INDEX_TYPE": "CPI", "COICOP_1999": "CP01", "TYPE_OF_TRANSFORMATION": "IX", "FREQUENCY": "A"}
+[18:07:41] ✗   IPYY computable
+[18:07:41] ✗   FI mask proven >=40
+[18:07:41] ✗ probes incomplete — not wiring
 
-→ Report written to aws/ops/reports/latest/4168_labels_convert.md
+→ Report written to aws/ops/reports/latest/4170_ipyy_fi.md
+❌ OPS-FAIL: aws/ops/pending/ops_4170_ipyy_fi.py
+ops 4165 — convert the chewed queue
+
+→ Report written to aws/ops/reports/latest/4171_convert2.md
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4171_convert2.py", line 118, in <module>
+    main()
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4171_convert2.py", line 68, in main
+    checksA = settle(rep, "justhodl-tradingview",
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4171_convert2.py", line 28, in settle
+    assert mark in src
+           ^^^^^^^^^^^
+AssertionError
+❌ OPS-FAIL: aws/ops/pending/ops_4171_convert2.py
