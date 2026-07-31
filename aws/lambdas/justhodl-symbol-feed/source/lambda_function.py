@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "symbol-feed v1.4 ops4162 us-fallback"
+MARKER = "symbol-feed v1.5 ops4169 miss-bare"
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64)"}
@@ -129,6 +129,7 @@ def lambda_handler(event, context):
         if pv is None:
             err += 1
             store.setdefault(full, {"miss": True})
+            store.setdefault(full.split(":", 1)[1], {"miss": True})
             continue
         ok += 1
         store[full] = {"value": round(pv, 4), "ysym": used,
