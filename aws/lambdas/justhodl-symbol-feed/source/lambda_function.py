@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "symbol-feed v1.6 ops4200 eodhd-tier"
+MARKER = "symbol-feed v1.7 ops4203 cn-codes"
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64)"}
@@ -187,6 +187,9 @@ def lambda_handler(event, context):
             eoc = bare0 + EOMAP[ex0]
         elif ex0 in ("FTSE", "DJ", "USI", "SPCFD", "INDEX"):
             eoc = bare0 + ".INDX"
+        elif bare0.isdigit() and len(bare0) == 6:
+            eoc = bare0 + (".SHE" if bare0.startswith(("0", "3"))
+                           else ".SHG")
         if not eoc:
             continue
         retried += 1

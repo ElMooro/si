@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "te-feed v1.1 ops4200 catmap-wide"
+MARKER = "te-feed v1.2 ops4203 world-wide"
 S3 = boto3.client("s3")
 SSM = boto3.client("ssm")
 BUCKET = "justhodl-dashboard-live"
@@ -57,7 +57,33 @@ CC = {"united states": "US", "china": "CN", "japan": "JP",
       "iraq": "IQ", "iran": "IR", "libya": "LY", "sudan": "SD",
       "yemen": "YE", "afghanistan": "AF", "syria": "SY",
       "cuba": "CU", "haiti": "HT", "fiji": "FJ",
-      "papua new guinea": "PG", "euro area": "EU"}
+      "papua new guinea": "PG", "euro area": "EU",
+      "bhutan": "BT", "maldives": "MV", "mali": "ML",
+      "burkina faso": "BF", "niger": "NE", "chad": "TD",
+      "benin": "BJ", "togo": "TG", "guinea": "GN",
+      "sierra leone": "SL", "liberia": "LR", "gambia": "GM",
+      "mauritania": "MR", "gabon": "GA", "congo": "CG",
+      "equatorial guinea": "GQ", "djibouti": "DJ", "eritrea": "ER",
+      "somalia": "SO", "south sudan": "SS", "burundi": "BI",
+      "malawi": "MW", "lesotho": "LS", "swaziland": "SZ",
+      "comoros": "KM", "seychelles": "SC", "cape verde": "CV",
+      "sao tome and principe": "ST", "guinea bissau": "GW",
+      "central african republic": "CF",
+      "republic of the congo": "CG", "east timor": "TL",
+      "solomon islands": "SB", "vanuatu": "VU", "samoa": "WS",
+      "tonga": "TO", "kiribati": "KI", "micronesia": "FM",
+      "palau": "PW", "marshall islands": "MH", "tuvalu": "TV",
+      "nauru": "NR", "andorra": "AD", "monaco": "MC",
+      "liechtenstein": "LI", "san marino": "SM",
+      "montenegro": "ME", "kosovo": "XK", "turkmenistan": "TM",
+      "uzbekistan": "UZ", "tajikistan": "TJ", "kyrgyzstan": "KG",
+      "macau": "MO", "new caledonia": "NC", "bermuda": "BM",
+      "cayman islands": "KY", "aruba": "AW", "curacao": "CW",
+      "puerto rico": "PR", "greenland": "GL",
+      "faroe islands": "FO2", "isle of man": "IM", "jersey": "JE",
+      "guernsey": "GG", "gibraltar": "GI", "dominica": "DM",
+      "grenada": "GD", "saint lucia": "LC", "antigua": "AG",
+      "saint kitts": "KN", "saint vincent": "VC"}
 
 CAT = {"Interest Rate": "INTR", "Inflation Rate": "IRYY",
        "Unemployment Rate": "UR", "GDP Annual Growth Rate": "GDPYY",
@@ -121,7 +147,27 @@ CAT = {"Interest Rate": "INTR", "Inflation Rate": "IRYY",
        "Long Term Unemployment Rate": "LTUR",
        "Part Time Employment": "PTE", "Full Time Employment": "FTE",
        "Labor Force Participation Rate": "LFPR",
-       "Retirement Age Men": "RAM", "Retirement Age Women": "RAW"}
+       "Retirement Age Men": "RAM", "Retirement Age Women": "RAW",
+       "Government Bond 10y": "10Y",
+       "Nahb Housing Market Index": "HMI",
+       "Redbook Index": "REDBOOK", "Chicago Pmi": "CHIPMI",
+       "Chicago Fed National Activity Index": "CFNAI",
+       "Dallas Fed Manufacturing Index": "DALFED",
+       "Philadelphia Fed Manufacturing Index": "PHILFED",
+       "Richmond Fed Manufacturing Index": "RICHFED",
+       "Kansas Fed Manufacturing Index": "KANFED",
+       "Ny Empire State Manufacturing Index": "NYESMI",
+       "Ism Manufacturing New Orders": "ISMNO",
+       "Ism Manufacturing Employment": "ISMEMP",
+       "Non Farm Payrolls": "NFP", "Adp Employment Change": "ADP",
+       "Initial Jobless Claims": "IJC",
+       "Continuing Jobless Claims": "CJC",
+       "Challenger Job Cuts": "CHJC", "Jolts Job Openings": "JOLTS",
+       "Michigan Consumer Sentiment": "MICHCS",
+       "Cb Consumer Confidence": "CBCC",
+       "Durable Goods Orders": "DGO", "Pending Home Sales": "PHS",
+       "Case Shiller Home Price Index": "CSHPI",
+       "Nonfarm Productivity": "NFPROD", "Unit Labour Costs": "ULC"}
 
 PRIORITY = list(CC)
 
