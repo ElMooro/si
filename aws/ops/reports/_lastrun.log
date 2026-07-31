@@ -1,24 +1,34 @@
-executing-against: 2820788c93be0f9a6b21d4b3618eed28272ce738
-ops 4183 — biggest families first
-── A. joint PENDING+NFS econ suffix census ──
-[19:31:47]   demand: {"INTR": 91, "IPYY": 83, "BCOI": 73, "GDG": 71, "IPMM": 63, "UP": 61, "IPRI": 59, "CU": 58, "FI": 52, "MPMI": 51, "MPRYY": 50, "RSYY": 48, "TH": 39, "CAG": 28, "CBBS": 28, "CS": 25, "NO": 25, "GRES": 24, "BR": 23, "COMPPMI": 23, "LEI": 23, "SPMI": 20, "CIR": 19, "DIR": 14, "IC": 13, "MGDPYY": 12, "FYGDPG": 11, "COP": 10, "TVS": 9, "IRYY": 9, "CCI": 9, "GDPQQ": 9, "BOT": 9, "CLI": 8, "GFCF": 8, "INBR": 8, "FO": 8, "LPS": 8, "CPR": 7, "DUSD": 7}
-── B. probes for demanded candidates ──
-[19:31:48]   PPI-ish flows: ["PPI", "PPI_2026_APR_VINTAGE", "PPI_2026_FEB_VINTAGE", "PPI_2026_JAN_VINTAGE", "PPI_2026_MAY_VINTAGE"]
-[19:31:48] ✗ nothing proved — not wiring
+executing-against: 54386975d94d0456f498730a53229e62c635ea21
+ops 4187 — config-driven demand wave
+[19:41:21]   CAG wb: 200
+[19:41:26]   MEI BCOI: BSCICP03.IXNSA ✓
+[19:41:28]   MEI CCI: none answered
+[19:41:30]   MEI IPRI: PRINTO01.IXOBSA ✓
+[19:41:33]   MEI LEI: none answered
+[19:41:36]   MEI CU: none answered
+[19:41:42] ✅   family-defs.json written (3)
+[19:41:52] ✅   justhodl-families-feed settled at loop 1
 
-→ Report written to aws/ops/reports/latest/4183_biggest_first.md
-❌ OPS-FAIL: aws/ops/pending/ops_4183_biggest_first.py
-ops 4165 — convert the chewed queue
-
-→ Report written to aws/ops/reports/latest/4184_convert6.md
+→ Report written to aws/ops/reports/latest/4187_config_wave.md
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4184_convert6.py", line 127, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4187_config_wave.py", line 186, in <module>
     main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4184_convert6.py", line 68, in main
-    checksA = settle(rep, "justhodl-tradingview",
-              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4184_convert6.py", line 28, in settle
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4187_config_wave.py", line 154, in main
     assert mark in src
            ^^^^^^^^^^^
 AssertionError
-❌ OPS-FAIL: aws/ops/pending/ops_4184_convert6.py
+❌ OPS-FAIL: aws/ops/pending/ops_4187_config_wave.py
+ops 4165 — convert the chewed queue
+
+→ Report written to aws/ops/reports/latest/4188_convert8.md
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4188_convert8.py", line 127, in <module>
+    main()
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4188_convert8.py", line 68, in main
+    checksA = settle(rep, "justhodl-tradingview",
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4188_convert8.py", line 28, in settle
+    assert mark in src
+           ^^^^^^^^^^^
+AssertionError
+❌ OPS-FAIL: aws/ops/pending/ops_4188_convert8.py
