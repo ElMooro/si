@@ -52,7 +52,7 @@ def main():
                 rep.log(f"  {flow}: no series ({st})")
                 continue
             attrs = list(dict(re.findall(
-                r'([A-Za-z0-9_]+)="[^"]*"', m.group(0))))
+                r'([A-Za-z0-9_]+)="([^"]*)"', m.group(0))))
             trs = sorted(set(re.findall(
                 r'TYPE_OF_TRANSFORMATION="([A-Za-z0-9_]+)"', x)))
             fqs = sorted(set(re.findall(
