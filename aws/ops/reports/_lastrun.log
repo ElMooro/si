@@ -1,21 +1,26 @@
-executing-against: 5c59c3092ef59df70a6315c6f11be562d9db3fd6
-ops 4153 — COT feed + vault wire
-[02:26:33] ✅   justhodl-cot-feed settled at loop 1
-[02:26:45]   miss sample: [["132741_FO_TOR_S", "no-column-or-market"], ["132741_F_TAM_SPREAD", "no-column-or-market"], ["132741_FO_NCP_L_OLD", "unmapped-field"], ["146021_F_NRP_L_OLD", "unmapped-field"], ["132741_F_TC_L", "unmapped-field"], ["132741_F_CP_L_OLD", "unmapped-field"], ["132741_F_TAM_L", "no-column-or-market"], [
-[02:26:45]   spot 020601_FO_AMP_SPREAD: v=266327.0 col=asset_mgr_positions_spread asof=2026-07-21
-[02:26:45]   spot 132741_FO_TAM_S: v=0.0 col=traders_asset_mgr_short_all asof=2023-06-13
-[02:26:45]   whale 132741 probe (yw9f): [{"id":"220913132741C","market_and_exchange_names":"EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE","report_date_as_yyyy_mm_dd":"2022-09-13T00:00:00.000","yyyy_report_week_ww":"2022 
-[02:26:55] ✅   justhodl-tradingview settled at loop 1
-[02:35:11] ✅   artifact after ~480s
-[02:35:11] ✅   schedule exists
-[02:35:11] ✅   cot-feed settled
-[02:35:11] ✗   resolved >= 235
-[02:35:11] ✅   spot 020601_FO_AMP_SPREAD plausible
-[02:35:11] ✗   spot 132741_FO_TAM_S plausible
-[02:35:11] ✅   vault v3.21.0 settled
-[02:35:11] ✅   feed:cot >= 180
-[02:35:11] ✅   total LIVE >= 3450
-[02:35:11] ✗ FAILED: ['resolved >= 235', 'spot 132741_FO_TAM_S plausible']
+executing-against: 1558650a4123ed9c93c951304527450f0f3dd4c9
+ops 4155 — harvest pipeline forensics
+── A. S3 truth — every data/tv* object, LastModified ──
+[14:34:32]   data/tv-watchlists.json              495,412B  age=   0.1h
+[14:34:32]   data/tv-sources.json                 287,274B  age=   0.1h
+[14:34:32]   data/tv-workbench.json             8,636,125B  age=   1.7h
+[14:34:32]   data/tv-watchlist-state.json         204,257B  age=   8.1h
+[14:34:32]   data/tv-watchlist-tracker.json         6,796B  age=   8.1h
+[14:34:32]   data/tv-crawler-status.json              336B  age=   8.6h
+[14:34:32]   data/tv-fleet-map.json                 3,539B  age= 113.2h
+[14:34:32]   data/tv-ingest-config.json               213B  age= 450.0h
+[14:34:32]   data/tv-bookmarklet.json               6,964B  age= 586.0h
+[14:34:32]   data/tv-pipeline-status.json             481B  age= 587.1h
+── B. ingest lambda — overnight log truth ──
+[14:34:32]   message kinds: {"START": 63, "END": 63, "REPORT": 62, "{\"ok\":": 57, "[ingest]": 3, "INIT_START": 2}
+[14:34:32]   [04:28] REPORT RequestId: 99dc5f4f-73f8-4c93-b8eb-f07f45b1c861	Duration: 578.19 ms	Billed Duration: 579 ms	Memory Size: 1024 MB	Max Memory
+[14:34:32]   [04:28] START RequestId: 485127e4-f35f-4c6c-9113-9031a71e1d63 Version: $LATEST
+[14:34:32]   [04:28] START RequestId: c296457e-42e9-49a8-a969-01ab523a0a61 Version: $LATEST
+[14:34:32]   [04:28] {"ok": true, "brain_error_sample": null, "received": 40, "normalized": 40, "rejected": 0, "brain_upserted": 40, "brain_failed": 0,
+[14:34:32]   [04:28] END RequestId: 485127e4-f35f-4c6c-9113-9031a71e1d63
+[14:34:32]   [04:28] REPORT RequestId: 485127e4-f35f-4c6c-9113-9031a71e1d63	Duration: 441.58 ms	Billed Duration: 442 ms	Memory Size: 1024 MB	Max Memory
+[14:34:32]   [04:28] {"ok": true, "brain_error_sample": null, "received": 40, "normalized": 40, "rejected": 0, "brain_upserted": 40, "brain_failed": 0,
+[14:34:32]   [04:28] END RequestId: c296457e-42e9-49a8-a969-01ab523a0a61
+[14:34:32] ✅ FORENSICS — sources 2044, see stage ages above
 
-→ Report written to aws/ops/reports/latest/4154_dictthaw_wire.md
-❌ OPS-FAIL: aws/ops/pending/ops_4154_dictthaw_wire.py
+→ Report written to aws/ops/reports/latest/4155_harvest_forensics.md
