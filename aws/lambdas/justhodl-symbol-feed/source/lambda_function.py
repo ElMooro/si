@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "symbol-feed v1.0 ops4136"
+MARKER = "symbol-feed v1.2 ops4158 idx-fut-crypto"
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64)"}
@@ -26,6 +26,12 @@ SUFFIX = {"SGX": ".SI", "LSE": ".L", "SIX": ".SW", "SWB": ".SG",
           "TASE": ".TA", "EGX": ".CA", "JSE": ".JO", "BVMF": ".SA",
           "BCBA": ".BA", "BVL": ".LM", "WSE": ".WA", "GPW": ".WA"}
 EURONEXT_TRY = (".PA", ".AS", ".BR", ".LS")
+INDEXY = {"FTSE", "DJ", "HSI", "USI", "SPCFD", "INDEX", "SP", "NASDAQ100"}
+FUTEX = {"CME", "CME_MINI", "CBOT", "NYMEX", "COMEX", "ICEUS", "ICEEUR",
+         "EUREX", "CBOT_MINI", "COMEX_MINI", "NYMEX_MINI"}
+FUT_ROOT = {"BRN": "BZ", "GAS": "NG", "GOLD": "GC", "SILVER": "SI"}
+CRYPTX = {"BINANCE", "COINBASE", "BITSTAMP", "KRAKEN", "BYBIT", "OKX",
+          "BITFINEX", "GEMINI", "CRYPTO"}
 INDEX_MAP = {"FTSE:UKX": "^FTSE", "DJ:DJI": "^DJI", "HSI:HSI": "^HSI",
              "SSE:000001": "000001.SS", "XETR:DAX": "^GDAXI",
              "TVC:NI225": "^N225", "TVC:SPX": "^GSPC"}
@@ -66,6 +72,20 @@ def targets():
                 out[sy] = [bare + sfx for sfx in EURONEXT_TRY]
             elif ex in SUFFIX:
                 out[sy] = [bare + SUFFIX[ex]]
+            elif ex in INDEXY:
+                cands = ["^" + bare]
+                if bare.isdigit():
+                    cands.append(bare + ".SS")
+                out[sy] = cands
+            elif ex in FUTEX:
+                m3 = re.match(r"([A-Z0-9]{1,4})1!$", bare)
+                if m3:
+                    root = FUT_ROOT.get(m3.group(1), m3.group(1))
+                    out[sy] = [root + "=F"]
+            elif ex in CRYPTX:
+                m4 = re.match(r"([A-Z0-9]{2,10}?)(USDT|USD|PERP)$", bare)
+                if m4:
+                    out[sy] = [m4.group(1) + "-USD"]
     return out
 
 
@@ -83,7 +103,7 @@ def lambda_handler(event, context):
         todo = sorted(tg, key=lambda k: str(
             (store.get(k) or {}).get("asof")))[:300]
     ok = err = 0
-    for full in todo[:700]:
+    for full in todo[:900]:
         if time.time() - t0 > 250:
             break
         bare = full.split(":", 1)[1]
