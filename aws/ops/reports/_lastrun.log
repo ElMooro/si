@@ -1,8 +1,16 @@
-executing-against: fd4f9d106eb8d5469f7fb191864abab0199d6538
+executing-against: 3de7de1230866feb2ad14a018156a65340249c83
 ops 4158 — indices/futures/crypto + source-map v3
-[15:12:40]   spot ES1!: 7470.25 ysym=ES=F
-[15:12:40]   spot BTCUSDT: None ysym=None
-[15:12:40] ✗ artifact never refreshed
+[15:23:40] ✅   justhodl-symbol-feed settled at loop 1
+[15:27:51]   spot ES1!: 7470.25 ysym=ES=F
+[15:36:12] ✅   post-invoke artifact after ~495s
+[15:36:13] ✅   feed v1.3 settled
+[15:36:13] ✅   targets >= 1800
+[15:36:13] ✗   resolved >= 1080
+[15:36:13] ✅   spot ES1! > 1000
+[15:36:13] ✗   feed:symbol >= 450
+[15:36:13] ✗   total LIVE >= 3800
+[15:36:13] ✅   source-map v3 written >= 10000
+[15:36:13] ✗ FAILED: ['resolved >= 1080', 'feed:symbol >= 450', 'total LIVE >= 3800']
 
-→ Report written to aws/ops/reports/latest/4159_resume_round.md
-❌ OPS-FAIL: aws/ops/pending/ops_4159_resume_round.py
+→ Report written to aws/ops/reports/latest/4160_forelse_fix.md
+❌ OPS-FAIL: aws/ops/pending/ops_4160_forelse_fix.py
