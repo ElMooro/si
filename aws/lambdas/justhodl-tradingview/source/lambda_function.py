@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.24.1 ops4180 label-alive"
+MARKER = "tradingview-vault v3.25.0 ops4181 gres-old"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -822,7 +822,7 @@ def imf_latest(key):
         return None
 
 
-FAM_RX = re.compile(r"^(?:ECONOMICS:)?([A-Z]{2})(INTR|FER|GDPYY|IRYY|UR|LG|CBBS|M0|BM|GDG|BOT|DIR|LIR|TOT|CA|IPYY|FI|RSYY|CIR|INBR|UP|MPRYY)$")   # ops4131: admission stores BARE
+FAM_RX = re.compile(r"^(?:ECONOMICS:)?([A-Z]{2})(INTR|FER|GDPYY|IRYY|UR|LG|CBBS|M0|BM|GDG|BOT|DIR|LIR|TOT|CA|IPYY|FI|GRES|RSYY|CIR|INBR|UP|MPRYY)$")   # ops4131: admission stores BARE
 _FAM = {}
 
 
@@ -1077,7 +1077,7 @@ def _family_try(row):
         return None
     cc, f = m.group(1), m.group(2)
     F = _families()
-    src = {"IPYY": "oecd:MEI PRINTO01 yoy", "FI": "imf:CPI food", "RSYY": "oecd:MEI SLRTCR03", "CIR": "oecd:MEI CPGRLE01", "INBR": "oecd:MEI IR3TIB01", "UP": "oecd:MEI LFHUTTTT", "MPRYY": "oecd:MEI PITGND01", "GDG": "wb:GC.DOD.TOTL.GD.ZS", "BOT": "wb:BN.GSR.GNFS.CD",
+    src = {"IPYY": "oecd:MEI PRINTO01 yoy", "FI": "imf:CPI food", "GRES": "wb:FI.RES.XGLD.CD", "RSYY": "oecd:MEI SLRTCR03", "CIR": "oecd:MEI CPGRLE01", "INBR": "oecd:MEI IR3TIB01", "UP": "oecd:MEI LFHUTTTT", "MPRYY": "oecd:MEI PITGND01", "GDG": "wb:GC.DOD.TOTL.GD.ZS", "BOT": "wb:BN.GSR.GNFS.CD",
            "DIR": "wb:FR.INR.DPST", "LIR": "wb:FR.INR.LEND",
            "TOT": "wb:TT.PRI.MRCH.XD.WD", "CA": "wb:BN.CAB.XOKA.CD",
            "BM": "imf:MFS_DC BM", "LG": "imf:MFS_DC", "CBBS": "imf:MFS_CBS TA", "M0": "imf:MFS_CBS MB",
