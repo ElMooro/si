@@ -1,24 +1,13 @@
-executing-against: 38a857bc6a038e53b6ee93e108f542ef0250fb2a
-ops 4162 — feeds wave
-[15:42:00] ✅   justhodl-families-feed settled at loop 2
-[15:42:10] ✅   justhodl-symbol-feed settled at loop 1
-[15:46:34] ✅   families v1.4 settled
-[15:46:34] ✅   symbol-feed v1.4 settled
-[15:46:34] ✅   GDG >= 100
-[15:46:34] ✅   BOT >= 120
-[15:46:34] ✅   DIR >= 90
-[15:46:34] ✅   TOT >= 80
-[15:46:34] ✅   resolved >= 1300 (US fallback wave)
-[15:46:34] ✅ FEEDS WAVE — families {'INTR': 46, 'FER': 183, 'GDPYY': 261, 'IRYY': 240, 'UR': 234, 'LG': 141, 'CBBS': 144, 'M0': 143, 'BM': 140, 'GDG': 120, 'BOT': 201, 'DIR': 152, 'LIR': 0, 'TOT': 207, 'CA': 201} | symfeed 1558
+executing-against: 45a0a288265035400138ddcd75bd20c97fac1e0e
+ops 4164 — queue accelerator (feed x2)
+[16:05:33] ✗ accelerator gained only 72
 
-→ Report written to aws/ops/reports/latest/4162_feeds_wave.md
-ops 4163 — vault wave + source-map + retire
-[15:46:45] ✅   justhodl-tradingview settled at loop 1
-[15:55:06] ✅   artifact after ~465s
-[15:55:07] ✅   vault v3.22.0 settled
-[15:55:07] ✗   total LIVE >= 4300
-[15:55:07] ✅   source-map >= 10000
-[15:55:07] ✗ FAILED: ['total LIVE >= 4300']
+→ Report written to aws/ops/reports/latest/4164_queue_accel.md
+❌ OPS-FAIL: aws/ops/pending/ops_4164_queue_accel.py
+ops 4165 — convert the chewed queue
+[16:13:53] ✅   artifact after ~465s
+[16:13:53]   statuses: {"LIVE": 4236, "PENDING_RESOLUTION": 3836, "NO_FREE_SOURCE": 1984, "DISCONTINUED": 2, "META": 1}
+[16:13:53]   LIVE by adapter: {"native": 1261, "fleet:finviz": 818, "feed:symbol": 437, "fmp": 351, "feed:cot": 227, "family:BOT": 144, "family:DIR": 136, "family:GDG": 90, "family:M0": 75, "family:TOT": 60, "family:CBBS": 60, "family:INTR": 21}
+[16:13:53] ✅ CONVERTED — LIVE 4236
 
-→ Report written to aws/ops/reports/latest/4163_vault_wave.md
-❌ OPS-FAIL: aws/ops/pending/ops_4163_vault_wave.py
+→ Report written to aws/ops/reports/latest/4165_convert.md
