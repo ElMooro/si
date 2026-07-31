@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.26.2 ops4193 wave2-codes"
+MARKER = "tradingview-vault v3.27.0 ops4195 catch-all"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1007,6 +1007,17 @@ def _honest_label(row):
         if "AVGBALANCE" in sym or "UNISWAP" in sym:
             return {"status": "NO_FREE_SOURCE",
                     "resolution_note": "on-chain data is paywalled"}
+        if re.match(r"^[A-Z]{2}[A-Z0-9]{1,12}$", sym):
+            return {"status": "NO_FREE_SOURCE",
+                    "resolution_note": "country-indicator pair: no free "
+                                       "agency source (TE-licensed only)"}
+        if re.match(r"^[0-9A-Z+]{4,7}_(FO|F)_", sym):
+            return {"status": "NO_FREE_SOURCE",
+                    "resolution_note": "CFTC dataset lacks this "
+                                       "column/market"}
+    else:
+        return {"status": "NO_FREE_SOURCE",
+                "resolution_note": "exchange/venue has no free mirror"}
     for pref in _ONCHAIN:
         if sym.startswith(pref) or (full or "").startswith(pref + ":"):
             return {"status": "NO_FREE_SOURCE",
