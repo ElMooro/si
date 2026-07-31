@@ -1,31 +1,14 @@
-executing-against: dba742ff7a22c2de99d13a9c2f40e5d6254a3202
-ops 4170 — IPYY + FI + label activation
-── A. IPYY: obs=13 yoy, retried, JPN->USA fallback ──
-── B. FI: full-doc transform/freq sets, ranked pick ──
-[18:25:53]   attr order: ["COUNTRY", "INDEX_TYPE", "COICOP_1999", "TYPE_OF_TRANSFORMATION", "FREQUENCY"]
-[18:25:53]   transforms: ["IX", "POP_PCH_PA_PT", "SRP_IX", "SRP_POP_PCH_PA_PT", "SRP_YOY_PCH_PA_PT", "WGT", "WGT_PT", "YOY_PCH_PA_PT"]
-[18:25:53]   freqs: ["A", "M", "Q"]
-[18:25:54]   spots: [["USA", "2.761783572593346"]]
-── C. wire feed v1.6 + vault v3.24.0 ──
-[18:26:04] ✅   justhodl-families-feed settled at loop 1
-[18:26:14] ✅   justhodl-tradingview settled at loop 1
-── D. invokes: families, symbol (bare-misses), vault ──
-[18:27:09] ✅   vault fired — 4171 converts
-[18:27:09] ✅   IPYY computable
-[18:27:09] ✅   FI mask proven >=40
-[18:27:09] ✅   feed v1.6 settled
-[18:27:09] ✅   vault v3.24.0 settled
-[18:27:09] ✅   IPYY >= 25
-[18:27:09] ✅   FI >= 60
-[18:27:09] ✅ IPYY+FI WIRED — mask=..CP01.YOY_PCH_PA_PT.M
+executing-against: c0e6bd7e8e06fa8cca4b7f9c5b025f014775df8e
+ops 4178 — bare-miss backfill
+[18:51:07] ✅ BACKFILLED 1353 — vault refired
 
-→ Report written to aws/ops/reports/latest/4176_ipyy_fi3.md
+→ Report written to aws/ops/reports/latest/4178_miss_backfill.md
 ops 4165 — convert the chewed queue
-[18:27:20] ✅   justhodl-tradingview settled at loop 1
-[18:35:27] ✅   artifact after ~480s
-[18:35:27]   statuses: {"LIVE": 4535, "PENDING_RESOLUTION": 3302, "NO_FREE_SOURCE": 2219, "DISCONTINUED": 2, "META": 1}
-[18:35:27]   NFS reasons: {"no free API found (TV/TradingEconomics only)": 2200, "S&P Global PMI licensed": 8, "3M TB not in MOF JGB CSV \u2014 BOJ API next": 1, "referenced in eurodollar-plumbing code, not ": 1, "FTSE licensed": 1, "ChinaBond licensed": 1}
-[18:35:27]   LIVE by adapter: {"native": 1261, "fleet:finviz": 818, "feed:symbol": 437, "fmp": 351, "feed:cot": 227, "family:BOT": 144, "family:DIR": 136, "family:FI": 118, "family:GDG": 90, "family:M0": 75, "family:TOT": 60, "family:CBBS": 60}
-[18:35:27] ✅ CONVERTED — LIVE 4535
+[18:51:18] ✅   justhodl-tradingview settled at loop 1
+[18:59:28] ✅   artifact after ~465s
+[18:59:28]   statuses: {"LIVE": 4555, "PENDING_RESOLUTION": 3113, "NO_FREE_SOURCE": 2388, "DISCONTINUED": 2, "META": 1}
+[18:59:28]   NFS reasons: {"no free API found (TV/TradingEconomics only)": 2369, "S&P Global PMI licensed": 8, "3M TB not in MOF JGB CSV \u2014 BOJ API next": 1, "referenced in eurodollar-plumbing code, not ": 1, "FTSE licensed": 1, "ChinaBond licensed": 1}
+[18:59:28] ✗ label wave inert: 0
 
-→ Report written to aws/ops/reports/latest/4177_convert4.md
+→ Report written to aws/ops/reports/latest/4179_label_proof.md
+❌ OPS-FAIL: aws/ops/pending/ops_4179_label_proof.py
