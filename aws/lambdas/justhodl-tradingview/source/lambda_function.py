@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.20.0 ops4148 broad-money"
+MARKER = "tradingview-vault v3.21.0 ops4153 cot-feed"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -980,6 +980,33 @@ def _symfeed_try(row):
             "adapter": "feed:symbol", "asof": r.get("asof")}
 
 
+_COT = {}
+
+
+def _cotfeed_try(row):
+    """ops4153: CFTC primary via cot-feed for {code}_{F|FO}_{FIELD}."""
+    if not row.get("from_watchlist"):
+        return None
+    sym = str(row.get("symbol") or "")
+    if not re.match(r"^\d{6}_(FO|F)_", sym):
+        return None
+    if not _COT:
+        try:
+            d2 = json.loads(s3.get_object(
+                Bucket=S3_BUCKET, Key="data/cot-feed.json")["Body"].read())
+            _COT["p"] = d2.get("prices") or {}
+            print("[tv-vault] cot-feed n=%d" % len(_COT["p"]))
+        except Exception:
+            _COT["p"] = {}
+    r = (_COT.get("p") or {}).get(sym)
+    if not isinstance(r, dict) or "value" not in r:
+        return None
+    return {"status": "LIVE", "value": r["value"],
+            "source": "cftc:" + str(r.get("ds", "")) + " "
+            + str(r.get("col", ""))[:40],
+            "adapter": "feed:cot", "asof": r.get("asof")}
+
+
 def _fleet_try(row):
     if not row.get("from_watchlist"):
         return None
@@ -1581,6 +1608,9 @@ def lambda_handler(event, context):
                     n_live += 1
                 elif _symfeed_try(row):
                     row.update(_symfeed_try(row))
+                    n_live += 1
+                elif _cotfeed_try(row):
+                    row.update(_cotfeed_try(row))
                     n_live += 1
                 elif (not out_of_time) and _ladder_spent < LADDER_WALL_S:
                     _lt = time.time()
