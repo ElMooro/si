@@ -1,20 +1,21 @@
-executing-against: add943f177f0e309038fae5dd182efa64b125aa9
+executing-against: 5c59c3092ef59df70a6315c6f11be562d9db3fd6
 ops 4153 — COT feed + vault wire
-[02:15:36] ✅   justhodl-cot-feed settled at loop 1
-[02:15:48]   miss sample: [["132741_FO_TOR_S", "no-column-or-market"], ["132741_F_TAM_SPREAD", "no-column-or-market"], ["132741_FO_NCP_L_OLD", "unmapped-field"], ["132741_F_CON_NET_LE_8_L", "unmapped-field"], ["132741_F_CON_NET_LE_8_S", "unmapped-field"], ["132741_F_CON_NET_LE_4_S", "unmapped-field"], ["132741_F_CON_NET_LE_4
-[02:15:48]   spot 099741_F_DP_L: got=None want=51686.0
-[02:15:48]   spot 067651_F_MMP_L: got=None want=187469.0
-[02:16:07] ✅   justhodl-tradingview settled at loop 2
-[02:24:28] ✅   artifact after ~480s
-[02:24:29] ✅   schedule cot-feed-daily cron(45 11)
-[02:24:29] ✅   cot-feed settled
-[02:24:29] ✅   resolved >= 220
-[02:24:29] ✗   spot 099741_F_DP_L exact
-[02:24:29] ✗   spot 067651_F_MMP_L exact
-[02:24:29] ✅   vault v3.21.0 settled
-[02:24:29] ✗   feed:cot >= 200
-[02:24:29] ✗   total LIVE >= 3500
-[02:24:29] ✗ FAILED: ['spot 099741_F_DP_L exact', 'spot 067651_F_MMP_L exact', 'feed:cot >= 200', 'total LIVE >= 3500']
+[02:26:33] ✅   justhodl-cot-feed settled at loop 1
+[02:26:45]   miss sample: [["132741_FO_TOR_S", "no-column-or-market"], ["132741_F_TAM_SPREAD", "no-column-or-market"], ["132741_FO_NCP_L_OLD", "unmapped-field"], ["146021_F_NRP_L_OLD", "unmapped-field"], ["132741_F_TC_L", "unmapped-field"], ["132741_F_CP_L_OLD", "unmapped-field"], ["132741_F_TAM_L", "no-column-or-market"], [
+[02:26:45]   spot 020601_FO_AMP_SPREAD: v=266327.0 col=asset_mgr_positions_spread asof=2026-07-21
+[02:26:45]   spot 132741_FO_TAM_S: v=0.0 col=traders_asset_mgr_short_all asof=2023-06-13
+[02:26:45]   whale 132741 probe (yw9f): [{"id":"220913132741C","market_and_exchange_names":"EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE","report_date_as_yyyy_mm_dd":"2022-09-13T00:00:00.000","yyyy_report_week_ww":"2022 
+[02:26:55] ✅   justhodl-tradingview settled at loop 1
+[02:35:11] ✅   artifact after ~480s
+[02:35:11] ✅   schedule exists
+[02:35:11] ✅   cot-feed settled
+[02:35:11] ✗   resolved >= 235
+[02:35:11] ✅   spot 020601_FO_AMP_SPREAD plausible
+[02:35:11] ✗   spot 132741_FO_TAM_S plausible
+[02:35:11] ✅   vault v3.21.0 settled
+[02:35:11] ✅   feed:cot >= 180
+[02:35:11] ✅   total LIVE >= 3450
+[02:35:11] ✗ FAILED: ['resolved >= 235', 'spot 132741_FO_TAM_S plausible']
 
-→ Report written to aws/ops/reports/latest/4153_cot_wire.md
-❌ OPS-FAIL: aws/ops/pending/ops_4153_cot_wire.py
+→ Report written to aws/ops/reports/latest/4154_dictthaw_wire.md
+❌ OPS-FAIL: aws/ops/pending/ops_4154_dictthaw_wire.py
