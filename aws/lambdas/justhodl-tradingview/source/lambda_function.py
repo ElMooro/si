@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.25.0 ops4181 gres-old"
+MARKER = "tradingview-vault v3.26.1 ops4191 config-live"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
