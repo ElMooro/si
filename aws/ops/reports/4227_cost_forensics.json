@@ -1,0 +1,538 @@
+{
+ "ops": 4227,
+ "ts": "2026-08-01T05:14:17.097680+00:00",
+ "service_totals_45d": {
+  "Amazon OpenSearch Service": 80.64,
+  "AmazonCloudWatch": 63.79,
+  "Amazon SageMaker": 54.3,
+  "Amazon Elastic Load Balancing": 48.16,
+  "AWS Lambda": 44.95,
+  "Amazon Virtual Private Cloud": 26.76,
+  "Amazon Elastic Compute Cloud - Compute": 24.77,
+  "AWS App Runner": 14.98,
+  "Amazon Simple Storage Service": 13.08,
+  "AWS Secrets Manager": 5.23,
+  "Amazon EC2 Container Registry (ECR)": 2.66,
+  "EC2 - Other": 1.85,
+  "Amazon DynamoDB": 1.85,
+  "Amazon Route 53": 1.5
+ },
+ "daily_totals": {
+  "2026-06-17": 7.45,
+  "2026-06-18": 6.99,
+  "2026-06-19": 7.01,
+  "2026-06-20": 6.87,
+  "2026-06-21": 6.87,
+  "2026-06-22": 6.96,
+  "2026-06-23": 7.01,
+  "2026-06-24": 6.96,
+  "2026-06-25": 6.95,
+  "2026-06-26": 7.13,
+  "2026-06-27": 7.12,
+  "2026-06-28": 8.42,
+  "2026-06-29": 9.02,
+  "2026-06-30": 9.71,
+  "2026-07-01": 8.22,
+  "2026-07-02": 6.74,
+  "2026-07-03": 6.73,
+  "2026-07-04": 6.69,
+  "2026-07-05": 6.83,
+  "2026-07-06": 8.79,
+  "2026-07-07": 8.8,
+  "2026-07-08": 8.81,
+  "2026-07-09": 8.8,
+  "2026-07-10": 8.83,
+  "2026-07-11": 8.9,
+  "2026-07-12": 9.34,
+  "2026-07-13": 9.77,
+  "2026-07-14": 9.68,
+  "2026-07-15": 9.72,
+  "2026-07-16": 9.51,
+  "2026-07-17": 9.58,
+  "2026-07-18": 9.44,
+  "2026-07-19": 9.51,
+  "2026-07-20": 9.71,
+  "2026-07-21": 9.72,
+  "2026-07-22": 9.71,
+  "2026-07-23": 9.97,
+  "2026-07-24": 9.78,
+  "2026-07-25": 9.56,
+  "2026-07-26": 9.68,
+  "2026-07-27": 10.9,
+  "2026-07-28": 9.89,
+  "2026-07-29": 10.21,
+  "2026-07-30": 10.95,
+  "2026-07-31": 5.94
+ },
+ "usage_types_14d": {
+  "CW:Requests": 30.23,
+  "ESInstance:t3.small": 23.47,
+  "USE1-Studio:JupyterLab-ml.t3.medium": 16.29,
+  "LoadBalancerUsage": 14.67,
+  "Lambda-GB-Second": 9.52,
+  "USE1-PublicIPv4:InUseAddress": 8.15,
+  "BoxUsage:t2.micro": 7.52,
+  "Lambda-SnapStart-Cached-GB-S": 7.5,
+  "USE1-AppRunner-Provisioned-GB-hours": 4.56,
+  "USW2-Requests-SIA-Tier1": 1.85,
+  "USE1-AWSSecretsManager-Secrets": 1.58,
+  "TimedStorage-ByteHrs": 1.48,
+  "Lambda-GB-Second-ARM": 1.22,
+  "CW:AlarmMonitorUsage": 1.14,
+  "ES:GP3-Storage": 1.07,
+  "USE1-USW2-AWS-Out-Bytes": 0.87,
+  "Requests-Tier1": 0.86,
+  "Requests-Tier2": 0.64,
+  "EBS:VolumeUsage.gp3": 0.55,
+  "ReadRequestUnits": 0.49
+ },
+ "recursive": {
+  "justhodl-fundamental-census": 5
+ },
+ "lambda_total_usd_14d": 11.87,
+ "lambda_invocations_14d": 216240,
+ "burn_top": {
+  "justhodl-news-velocity": {
+   "inv": 350,
+   "dur_s": 232538.3,
+   "gb_s": 116269.2,
+   "usd_14d": 1.94,
+   "mem": 512,
+   "err": 0,
+   "avg_ms": 664395.3
+  },
+  "justhodl-tradingview": {
+   "inv": 116,
+   "dur_s": 57968.7,
+   "gb_s": 115937.4,
+   "usd_14d": 1.93,
+   "mem": 2048,
+   "err": 30,
+   "avg_ms": 499730.2
+  },
+  "justhodl-data-census": {
+   "inv": 37,
+   "dur_s": 20406.4,
+   "gb_s": 59943.7,
+   "usd_14d": 1.0,
+   "mem": 3008,
+   "err": 21,
+   "avg_ms": 551523.7
+  },
+  "justhodl-fleet-error-monitor": {
+   "inv": 1372,
+   "dur_s": 47555.4,
+   "gb_s": 23777.7,
+   "usd_14d": 0.4,
+   "mem": 512,
+   "err": 0,
+   "avg_ms": 34661.4
+  },
+  "justhodl-thesis-engine": {
+   "inv": 32,
+   "dur_s": 6875.4,
+   "gb_s": 20196.4,
+   "usd_14d": 0.34,
+   "mem": 3008,
+   "err": 0,
+   "avg_ms": 214855.1
+  },
+  "justhodl-insider-cluster-scanner": {
+   "inv": 16,
+   "dur_s": 10105.8,
+   "gb_s": 15158.7,
+   "usd_14d": 0.25,
+   "mem": 1536,
+   "err": 0,
+   "avg_ms": 631610.8
+  },
+  "justhodl-wl-engines": {
+   "inv": 20,
+   "dur_s": 4980.8,
+   "gb_s": 14631.0,
+   "usd_14d": 0.24,
+   "mem": 3008,
+   "err": 0,
+   "avg_ms": 249038.8
+  },
+  "bond-indices-agent": {
+   "inv": 301,
+   "dur_s": 28004.7,
+   "gb_s": 14002.4,
+   "usd_14d": 0.23,
+   "mem": 512,
+   "err": 4,
+   "avg_ms": 93038.9
+  },
+  "justhodl-search-attention": {
+   "inv": 84,
+   "dur_s": 25200.0,
+   "gb_s": 12600.0,
+   "usd_14d": 0.21,
+   "mem": 512,
+   "err": 84,
+   "avg_ms": 300000.0
+  },
+  "justhodl-daily-report-v3": {
+   "inv": 28,
+   "dur_s": 11522.4,
+   "gb_s": 11522.4,
+   "usd_14d": 0.19,
+   "mem": 1024,
+   "err": 0,
+   "avg_ms": 411514.6
+  },
+  "justhodl-patent-velocity": {
+   "inv": 28,
+   "dur_s": 18161.4,
+   "gb_s": 9080.7,
+   "usd_14d": 0.15,
+   "mem": 512,
+   "err": 0,
+   "avg_ms": 648620.7
+  },
+  "justhodl-fleet-monitor": {
+   "inv": 266,
+   "dur_s": 16549.5,
+   "gb_s": 8274.7,
+   "usd_14d": 0.14,
+   "mem": 512,
+   "err": 0,
+   "avg_ms": 62216.2
+  },
+  "justhodl-fundamental-census": {
+   "inv": 105,
+   "dur_s": 5582.2,
+   "gb_s": 8373.3,
+   "usd_14d": 0.14,
+   "mem": 1536,
+   "err": 1,
+   "avg_ms": 53163.7
+  },
+  "justhodl-research-critique": {
+   "inv": 397,
+   "dur_s": 16495.8,
+   "gb_s": 8247.9,
+   "usd_14d": 0.14,
+   "mem": 512,
+   "err": 0,
+   "avg_ms": 41551.3
+  },
+  "justhodl-sovereign-stress": {
+   "inv": 28,
+   "dur_s": 7963.9,
+   "gb_s": 7963.9,
+   "usd_14d": 0.13,
+   "mem": 1024,
+   "err": 0,
+   "avg_ms": 284425.5
+  },
+  "xccy-basis-agent": {
+   "inv": 312,
+   "dur_s": 15623.1,
+   "gb_s": 7811.5,
+   "usd_14d": 0.13,
+   "mem": 512,
+   "err": 3,
+   "avg_ms": 50073.9
+  },
+  "justhodl-tv-notes-ingest": {
+   "inv": 13075,
+   "dur_s": 6863.8,
+   "gb_s": 6863.8,
+   "usd_14d": 0.12,
+   "mem": 1024,
+   "err": 0,
+   "avg_ms": 525.0
+  },
+  "dollar-strength-agent": {
+   "inv": 255,
+   "dur_s": 13232.4,
+   "gb_s": 6616.2,
+   "usd_14d": 0.11,
+   "mem": 512,
+   "err": 209,
+   "avg_ms": 51891.9
+  },
+  "justhodl-carry-surface": {
+   "inv": 196,
+   "dur_s": 6878.0,
+   "gb_s": 6878.0,
+   "usd_14d": 0.11,
+   "mem": 1024,
+   "err": 0,
+   "avg_ms": 35091.8
+  },
+  "justhodl-finviz-signals": {
+   "inv": 84,
+   "dur_s": 12792.6,
+   "gb_s": 6396.3,
+   "usd_14d": 0.11,
+   "mem": 512,
+   "err": 0,
+   "avg_ms": 152293.0
+  },
+  "manufacturing-global-agent": {
+   "inv": 250,
+   "dur_s": 13499.1,
+   "gb_s": 6749.5,
+   "usd_14d": 0.11,
+   "mem": 512,
+   "err": 211,
+   "avg_ms": 53996.4
+  },
+  "securities-banking-agent": {
+   "inv": 253,
+   "dur_s": 13199.3,
+   "gb_s": 6599.6,
+   "usd_14d": 0.11,
+   "mem": 512,
+   "err": 212,
+   "avg_ms": 52171.0
+  },
+  "volatility-monitor-agent": {
+   "inv": 254,
+   "dur_s": 12691.6,
+   "gb_s": 6345.8,
+   "usd_14d": 0.11,
+   "mem": 512,
+   "err": 176,
+   "avg_ms": 49966.9
+  },
+  "bls-labor-agent": {
+   "inv": 298,
+   "dur_s": 11795.5,
+   "gb_s": 5897.8,
+   "usd_14d": 0.1,
+   "mem": 512,
+   "err": 6,
+   "avg_ms": 39582.3
+  },
+  "justhodl-outcome-checker": {
+   "inv": 60,
+   "dur_s": 5461.2,
+   "gb_s": 5461.2,
+   "usd_14d": 0.09,
+   "mem": 1024,
+   "err": 2,
+   "avg_ms": 91020.8
+  },
+  "justhodl-signal-registry-ingest": {
+   "inv": 140515,
+   "dur_s": 13931.9,
+   "gb_s": 3483.0,
+   "usd_14d": 0.09,
+   "mem": 256,
+   "err": 0,
+   "avg_ms": 99.1
+  },
+  "justhodl-bagger-engine": {
+   "inv": 8,
+   "dur_s": 4756.6,
+   "gb_s": 4756.6,
+   "usd_14d": 0.08,
+   "mem": 1024,
+   "err": 6,
+   "avg_ms": 594573.3
+  },
+  "justhodl-fundamental-graphs": {
+   "inv": 396,
+   "dur_s": 10107.8,
+   "gb_s": 5053.9,
+   "usd_14d": 0.08,
+   "mem": 512,
+   "err": 1,
+   "avg_ms": 25524.9
+  },
+  "justhodl-industry-rotation": {
+   "inv": 28,
+   "dur_s": 4649.2,
+   "gb_s": 4649.2,
+   "usd_14d": 0.08,
+   "mem": 1024,
+   "err": 0,
+   "avg_ms": 166041.3
+  },
+  "justhodl-13f-positions": {
+   "inv": 24,
+   "dur_s": 4127.7,
+   "gb_s": 4127.7,
+   "usd_14d": 0.07,
+   "mem": 1024,
+   "err": 0,
+   "avg_ms": 171985.8
+  },
+  "justhodl-crypto-opportunities": {
+   "inv": 98,
+   "dur_s": 7882.0,
+   "gb_s": 3941.0,
+   "usd_14d": 0.07,
+   "mem": 512,
+   "err": 0,
+   "avg_ms": 80428.3
+  },
+  "justhodl-stock-screener": {
+   "inv": 14,
+   "dur_s": 3156.5,
+   "gb_s": 3945.6,
+   "usd_14d": 0.07,
+   "mem": 1280,
+   "err": 0,
+   "avg_ms": 225464.6
+  },
+  "justhodl-eurodollar-plumbing": {
+   "inv": 34,
+   "dur_s": 3830.8,
+   "gb_s": 3830.8,
+   "usd_14d": 0.06,
+   "mem": 1024,
+   "err": 2,
+   "avg_ms": 112671.0
+  },
+  "justhodl-market-tape": {
+   "inv": 4171,
+   "dur_s": 18122.0,
+   "gb_s": 3397.9,
+   "usd_14d": 0.06,
+   "mem": 192,
+   "err": 138,
+   "avg_ms": 4344.8
+  },
+  "justhodl-portwatch": {
+   "inv": 62,
+   "dur_s": 3331.0,
+   "gb_s": 3331.0,
+   "usd_14d": 0.06,
+   "mem": 1024,
+   "err": 0,
+   "avg_ms": 53726.0
+  },
+  "justhodl-backtest-harness": {
+   "inv": 42,
+   "dur_s": 5604.9,
+   "gb_s": 2802.4,
+   "usd_14d": 0.05,
+   "mem": 512,
+   "err": 0,
+   "avg_ms": 133449.6
+  },
+  "justhodl-dealer-gex": {
+   "inv": 190,
+   "dur_s": 1439.2,
+   "gb_s": 2878.5,
+   "usd_14d": 0.05,
+   "mem": 2048,
+   "err": 0,
+   "avg_ms": 7574.9
+  },
+  "justhodl-dr-snapshot": {
+   "inv": 28,
+   "dur_s": 2787.9,
+   "gb_s": 2787.9,
+   "usd_14d": 0.05,
+   "mem": 1024,
+   "err": 0,
+   "avg_ms": 99568.6
+  },
+  "justhodl-research-papers": {
+   "inv": 14,
+   "dur_s": 5720.3,
+   "gb_s": 2860.1,
+   "usd_14d": 0.05,
+   "mem": 512,
+   "err": 0,
+   "avg_ms": 408589.3
+  },
+  "justhodl-trade-evaluator": {
+   "inv": 35,
+   "dur_s": 3058.7,
+   "gb_s": 3058.7,
+   "usd_14d": 0.05,
+   "mem": 1024,
+   "err": 0,
+   "avg_ms": 87390.1
+  }
+ },
+ "s3_triggers": [
+  {
+   "bucket": "justhodl-dashboard-live",
+   "fn": "openbb-websocket-broadcast",
+   "events": [
+    "s3:ObjectCreated:*"
+   ],
+   "filter": "Prefix=data/report.json"
+  },
+  {
+   "bucket": "justhodl-dashboard-live",
+   "fn": "openbb-websocket-broadcast",
+   "events": [
+    "s3:ObjectCreated:*"
+   ],
+   "filter": "Prefix=data/macro-nowcast.json"
+  },
+  {
+   "bucket": "justhodl-dashboard-live",
+   "fn": "openbb-websocket-broadcast",
+   "events": [
+    "s3:ObjectCreated:*"
+   ],
+   "filter": "Prefix=data/compound-signals.json"
+  },
+  {
+   "bucket": "justhodl-dashboard-live",
+   "fn": "openbb-websocket-broadcast",
+   "events": [
+    "s3:ObjectCreated:*"
+   ],
+   "filter": "Prefix=data/cross-asset-regime.json"
+  },
+  {
+   "bucket": "justhodl-dashboard-live",
+   "fn": "openbb-websocket-broadcast",
+   "events": [
+    "s3:ObjectCreated:*"
+   ],
+   "filter": "Prefix=data/options-flow.json"
+  },
+  {
+   "bucket": "justhodl-dashboard-live",
+   "fn": "openbb-websocket-broadcast",
+   "events": [
+    "s3:ObjectCreated:*"
+   ],
+   "filter": "Prefix=data/eurodollar-stress.json"
+  },
+  {
+   "bucket": "justhodl-dashboard-live",
+   "fn": "openbb-websocket-broadcast",
+   "events": [
+    "s3:ObjectCreated:*"
+   ],
+   "filter": "Prefix=data/nobrainers.json"
+  },
+  {
+   "bucket": "justhodl-dashboard-live",
+   "fn": "openbb-websocket-broadcast",
+   "events": [
+    "s3:ObjectCreated:*"
+   ],
+   "filter": "Prefix=data/narrative-density.json"
+  }
+ ],
+ "event_source_mappings": [],
+ "eventbridge_rules": 445,
+ "scheduler_schedules": 276,
+ "hot_schedules": [
+  {
+   "rule": "justhodl-trade-ticket-monitor-10min",
+   "expr": "cron(0/10 14-20 ? * MON-FRI *)",
+   "fn": "justhodl-trade-ticket-monitor"
+  }
+ ],
+ "logs": {
+  "groups": 1070,
+  "stored_gb": 0.3,
+  "never_expiring": 974,
+  "never_expiring_gb": 0.3
+ }
+}
