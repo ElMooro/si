@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -258,7 +258,8 @@ CLASS_KEYWORDS = [  # asset-name -> canonical class (first match wins)
     (("BITCOIN", "BTC"), "BTC"), (("ETHEREUM", "ETH"), "ETH"),
     (("T-BILL", "TBILL", "BIL", "SHV", "SGOV", "0-3 MONTH"), "TBILLS"),
     (("TIP",), "TIPS"),
-    (("LONG TREASUR", "TLT", "20+", "ZROZ", "EDV", "LONG BOND"), "BONDS_LONG"),
+    (("LONG TREASUR", "TREASUR", "TLT", "IEF", "20+", "ZROZ", "EDV",
+      "LONG BOND"), "BONDS_LONG"),
     (("HIGH YIELD", "HYG", "JNK", "CREDIT"), "CREDIT_HY"),
     (("GOLD", "GLD", "IAU"), "GOLD"), (("SILVER", "SLV"), "SILVER"),
     (("ENERGY", "XLE", "OIL", "USO", "CRUDE"), "ENERGY"),
@@ -336,6 +337,7 @@ COMPASS_CLASS = {  # asset-compass row["class"] vocabulary (ops 4259 probe)
     "commodities": "COMMODITIES", "commodity": "COMMODITIES",
     "btc": "BTC", "bitcoin": "BTC", "eth": "ETH", "ethereum": "ETH",
     "reit": "REITS", "reits": "REITS", "tips": "TIPS",
+    "bonds": "BONDS_LONG", "bond": "BONDS_LONG",
     "duration": "BONDS_LONG", "long_treasury": "BONDS_LONG",
     "bonds_long": "BONDS_LONG", "treasuries": "BONDS_LONG",
     "credit": "CREDIT_HY", "hy": "CREDIT_HY",
@@ -427,6 +429,10 @@ def leg_discount(row):
     trend; 1.0 = deeply below (Khalid's buy zone); 0.0 = far above."""
     tr = row.get("trend")
     if isinstance(tr, dict):
+        pv = num(tr.get("px_vs_200dma_pct"))   # ops 4261: the exact
+        if pv is not None:                     # field for Khalid's lens
+            gap = pv / 100.0
+            return clamp(0.5 - gap * 2.5), "px_vs_200dma", round(pv, 1)
         lbl = str(tr.get("label") or "")
         import re as _re
         m = _re.search(r"(-?\d+(?:\.\d+)?)\s*%", lbl)
@@ -468,6 +474,9 @@ def leg_asymmetry(row):
         return clamp(ratio / 4.0), round(ratio, 2)   # 4:1 saturates
     asym = row.get("asym")
     if isinstance(asym, dict):
+        rt = num(asym.get("ratio"))            # ops 4261: precomputed,
+        if rt is not None:                     # capped at 25 upstream
+            return clamp(rt / 4.0), round(rt, 2)
         ups = [num(v) for k, v in asym.items()
                if any(t in k.lower() for t in ("up", "bull", "gain"))]
         dns = [num(v) for k, v in asym.items()
@@ -475,7 +484,7 @@ def leg_asymmetry(row):
                                                "risk", "dd"))]
         u = next((x for x in ups if x is not None), None)
         dn2 = next((x for x in dns if x is not None), None)
-        if u is not None and dn2 not in (None, 0):
+        if u is not None and dn2 is not None and abs(dn2) > 1e-9:
             ratio = abs(u) / abs(dn2)
             return clamp(ratio / 4.0), round(ratio, 2)
         rt = num(asym.get("ratio")) or num(asym.get("score"))
@@ -505,8 +514,8 @@ def leg_strategic(fr_doc, cls, name):
             break
     if not best:
         return None, None
-    pct = num(dig(best, "er_percentile", "percentile",
-                  "er_vs_history_pct"))
+    pct = num(dig(best, "current_vs_history_percentile",
+                  "er_percentile", "percentile", "er_vs_history_pct"))
     if pct is not None:  # high ER vs own history = historically cheap
         p = pct / 100.0 if pct > 1 else pct
         return clamp(p), round(p * 100)
@@ -629,9 +638,13 @@ def build_ladder(docs, regime, risk):
                 "asymmetry_ratio": a_ratio,
                 "strategic": st_val, "liquidity": pl_dir,
                 "cycle": cy_det,
+                "dd_now_pct": num((row.get("asym") or {}).get("dd_now_pct"))
+                if isinstance(row.get("asym"), dict) else None,
+                "asym_status": (row.get("asym") or {}).get("status")
+                if isinstance(row.get("asym"), dict) else None,
                 "compass": {k: row.get(k) for k in
-                            ("price", "upside_pct", "downside_pct",
-                             "verdict_trio", "score") if k in row},
+                            ("price", "er_1y_pct", "excess_vs_cash_pp")
+                            if k in row},
             },
         })
     cc = docs.get("crypto_cycle")
@@ -648,8 +661,10 @@ def build_ladder(docs, regime, risk):
             mvrv = (cy_det or {}).get("mvrv")
             disc = clamp(0.5 + (1.0 - mvrv) * 0.8) if mvrv else None
             pl, pl_dir = leg_plumbing(docs.get("liquidity"), cls)
+            st, st_val = leg_strategic(docs.get("forward_returns"),
+                                       cls, cls)
             legs = {"discount": disc, "asymmetry": None,
-                    "strategic": None,
+                    "strategic": st,
                     "regime": PLAYBOOK.get(regime,
                                            PLAYBOOK["NEUTRAL"]).get(cls, .5),
                     "plumbing": pl, "cycle": cy}
@@ -661,7 +676,8 @@ def build_ladder(docs, regime, risk):
                 "legs": {k: (round(v, 3) if isinstance(v, float) else v)
                          for k, v in legs.items()},
                 "legs_used": used,
-                "audit": {"discount": {"basis": "mvrv_vs_realized",
+                "audit": {"strategic": st_val,
+                          "discount": {"basis": "mvrv_vs_realized",
                                        "pct_vs_trend":
                                        round((mvrv - 1) * 100, 1)
                                        if mvrv else None},
