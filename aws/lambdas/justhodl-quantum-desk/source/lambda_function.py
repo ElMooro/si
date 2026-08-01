@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -191,7 +191,68 @@ REGIME_ALIASES = {
     "EXPANSION": "GOLDILOCKS", "GOLDILOCKS": "GOLDILOCKS",
     "MID-CYCLE": "GOLDILOCKS", "MID_CYCLE": "GOLDILOCKS",
     "DISINFLATION": "DISINFLATION", "DISINFLATIONARY": "DISINFLATION",
+    # real sibling vocabularies (nowcast quadrant, cycle-clock
+    # investment-clock, router sleeves) -- ops 4258 ground truth
+    "SOFT LANDING": "GOLDILOCKS", "SOFT-LANDING": "GOLDILOCKS",
+    "HARD LANDING": "RECESSION_BUST", "HARD-LANDING": "RECESSION_BUST",
+    "OVERHEAT": "LATE_CYCLE", "DOWNTURN": "RECESSION_BUST",
+    "DEFLATION-BUST": "RECESSION_BUST", "DEFLATION_BUST": "RECESSION_BUST",
 }
+REGIME_KEYS = ("regime", "phase", "cycle_phase", "primary_regime",
+               "nowcast_regime", "label", "quadrant_regime", "state")
+
+
+def deep_find_regime(doc, depth=5):
+    """Bounded walk: first alias-mappable regime string under a
+    regime-ish key, in stable order. Survives sibling refactors."""
+    if depth < 0 or doc is None:
+        return None
+    if isinstance(doc, dict):
+        for k in REGIME_KEYS:                      # direct hits first
+            v = doc.get(k)
+            if isinstance(v, str):
+                r = norm_regime(v)
+                if r:
+                    return r
+        for k in sorted(doc):                      # then descend, stable
+            r = deep_find_regime(doc[k], depth - 1)
+            if r:
+                return r
+    elif isinstance(doc, list):
+        for item in doc[:20]:
+            r = deep_find_regime(item, depth - 1)
+            if r:
+                return r
+    return None
+
+
+def deep_find_setups(doc, depth=4):
+    """First list[dict] that looks like setups rows (ticker/symbol +
+    conviction/score on several items)."""
+    if depth < 0 or doc is None:
+        return None
+    if isinstance(doc, list):
+        hits = [x for x in doc[:80] if isinstance(x, dict)
+                and (x.get("ticker") or x.get("symbol"))
+                and (x.get("conviction") is not None
+                     or x.get("score") is not None)]
+        if len(hits) >= 3:
+            return doc
+    if isinstance(doc, dict):
+        for k in ("setups", "top", "rows", "items", "list"):  # fast paths
+            r = deep_find_setups(doc.get(k), depth - 1)
+            if r:
+                return r
+        for k in sorted(doc):
+            r = deep_find_setups(doc[k], depth - 1)
+            if r:
+                return r
+    elif isinstance(doc, list):
+        for item in doc[:10]:
+            r = deep_find_setups(item, depth - 1)
+            if r:
+                return r
+    return None
 
 CLASS_KEYWORDS = [  # asset-name -> canonical class (first match wins)
     (("BITCOIN", "BTC"), "BTC"), (("ETHEREUM", "ETH"), "ETH"),
@@ -300,7 +361,7 @@ def regime_consensus(docs):
         doc = docs.get(src)
         if not doc:
             continue
-        r = norm_regime(dig(doc, *paths))
+        r = norm_regime(dig(doc, *paths)) or deep_find_regime(doc)
         if r:
             votes.append({"source": src, "regime": r})
     if not votes:
@@ -504,7 +565,7 @@ QUAD_BONUS = {"STEALTH_ACCUMULATION": 1.0, "CAPITULATION": 0.85,
 
 def build_money_map(docs, ladder, risk, top_n=12):
     bs = docs.get("best_setups") or {}
-    setups = dig(bs, "setups", "top", "rows") or []
+    setups = deep_find_setups(bs) or []
     if not setups:
         return [], "best-setups unreadable -- money map ABSTAINS " \
                    "(names never invented)"
