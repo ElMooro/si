@@ -1,58 +1,50 @@
-executing-against: c41c00dc400bf8c5507f0b3c2e09c2b11112f5dc
-ops 4249 — structural gates + cadence bounds
-── A. Scorecard — deploy, verify STRUCTURE of the zip ──
-[19:09:21] ✅ deployed-zip AST check: helper@module, 2 calls, ends in return
-── A2. Behavioural gate — three independent ends ──
-[19:10:02] generated_at=2026-08-01T19:09:54.559538+00:00 ssm_ok=True
-[19:10:02] ssm_writes=[{"ok": true, "mode": "s3_pointer", "bytes": 15201, "param": "/justhodl/calibration/scorecard"}, {"ok": true, "mode": "inline", "bytes": 4579, "param": "/justhodl/calibration/alpha"}]
-[19:10:02] ✅ END 1 — artifact carries ssm_ok=true
-[19:10:02] ✅ END 2 — SSM /justhodl/calibration/scorecard updated_at=2026-08-01T19:09:54.559538+00:00 (artifact=2026-08-01T19:09:54.559538+00:00) match=True
-[19:10:02] ✅ END 3 — summary line in logs: [signal-scorecard] done 28.1s tracked=401 graded=310 promoted=40 deprecated=169 insufficient=91 dq_flags=6
-[19:10:02] ⚠ Downstream note: the enforcement map every consumer reads had been frozen since 2026-07-27. It just moved for the first time in five days.
-── B. Build the artifact->producers map from source ──
-[19:10:02] contracted artifacts: 866
-[19:10:29] ✅ mapped 799 of 866 artifacts to producers (git + S3)
-── C. Deploy contract-gate v1.1.0, relearn, recheck ──
-[19:10:36] ✅ marker verified
-[19:11:32] learn -> {"ok": true, "mode": "learn", "n_contracts": 866, "n_cadence_bounded": 760, "n_suspects": 129, "elapsed_s": 55.8}
-[19:11:32] ✅ 760 artifacts now bounded by DECLARED cadence
-[19:11:33] scorecard contract: bound=12.0h source=cadence(1.0h)
-[19:11:33] ✅ a repeat of the five-day freeze now goes STALE at 12.0h instead of being certified healthy
-[19:11:33] ⚠   SUSPECT data/13f-flows-by-ticker.json age=21.9h bound=12.0h
-[19:11:33] ⚠   SUSPECT data/8k-filings.json age=28.2h bound=22.0h
-[19:11:33] ⚠   SUSPECT data/_freshness-manifest.json age=1262.5h bound=12.0h
-[19:11:33] ⚠   SUSPECT data/_freshness-status.json age=1710.0h bound=72.0h
-[19:11:33] ⚠   SUSPECT data/_probe_shares.json age=1408.7h bound=72.0h
-[19:11:33] ⚠   SUSPECT data/accumulation-radar.json age=21.3h bound=12.0h
-[19:11:33] ⚠   SUSPECT data/alert-history.json age=28.2h bound=12.0h
-[19:11:33] ⚠   SUSPECT data/alpha-triage.json age=355.6h bound=54.0h
-[19:11:33] ⚠   SUSPECT data/ark-holdings.json age=13.2h bound=12.0h
-[19:11:33] ⚠   SUSPECT data/askdesk-config.json age=1082.1h bound=72.0h
-[19:11:33] ⚠   SUSPECT data/asset-compass.json age=20.9h bound=12.0h
-[19:11:33] ⚠   SUSPECT data/auction-crisis-alert-state.json age=430.0h bound=12.0h
-[19:12:12] check -> {"ok": true, "mode": "check", "n_contracts": 866, "n_violations": 129, "sev1": 0, "by_class": {"STALE": 129}, "elapsed_s": 39.6}
-[19:12:12] STALE under cadence bounds: 129 (these are REAL finds the old bounds were blind to)
-[19:12:12] ⚠    data/13f-flows-by-ticker.json                  22h old, bound is 12h
-[19:12:12] ⚠    data/8k-filings.json                           28h old, bound is 22h
-[19:12:12] ⚠    data/_freshness-manifest.json                  1262h old, bound is 12h
-[19:12:12] ⚠    data/_freshness-status.json                    1710h old, bound is 72h
-[19:12:12] ⚠    data/_probe_shares.json                        1409h old, bound is 72h
-[19:12:12] ⚠    data/accumulation-radar.json                   21h old, bound is 12h
-[19:12:12] ⚠    data/alert-history.json                        28h old, bound is 12h
-[19:12:12] ⚠    data/alpha-triage.json                         356h old, bound is 54h
-[19:12:12] ⚠    data/ark-holdings.json                         13h old, bound is 12h
-[19:12:12] ⚠    data/askdesk-config.json                       1082h old, bound is 72h
-[19:12:12] ⚠    data/asset-compass.json                        21h old, bound is 12h
-[19:12:12] ⚠    data/auction-crisis-alert-state.json           430h old, bound is 12h
-[19:12:12] ⚠    data/backtest-summary.json                     1221h old, bound is 72h
-[19:12:12] ⚠    data/bagger-engine.json                        319h old, bound is 54h
-[19:12:12] ⚠    data/bank-stress.json                          28h old, bound is 18h
-[19:12:12] ⚠    data/bis-crossborder.json                      130h old, bound is 54h
-[19:12:12] ⚠    data/bond-trace.json                           21h old, bound is 12h
-[19:12:12] ⚠    data/brain-history.json                        787h old, bound is 54h
-[19:12:12] ⚠    data/buyback-scanner.json                      127h old, bound is 54h
-[19:12:12] ⚠    data/calibration-snapshot.json                 28h old, bound is 12h
+executing-against: 048559292d714c20c1085638a3e4cb5277afee9c
+ops 4250 — session review (4227-4249)
+── R1. Regression sweep — did today's surgery silence anything? ──
+[19:25:07] functions with declared cadence <= 6h: 74
+[19:25:09] active-before, silent-in-8h: 2 (of which cadence<=1h: 0)
+[19:25:09] ⚠    justhodl-polygon-options-flow              cadence=4.0h prior7d=30 now=0
+[19:25:09] ⚠    justhodl-trade-tickets                     cadence=4.0h prior7d=31 now=0
+── R2. CRR backfill — replication is forward-only ──
+[19:25:31] source objects: 111336 | already in us-west-2: 6 | missing: 111330
+[19:26:29]    … 400 copied
+[19:27:19]    … 800 copied
+[19:28:10]    … 1200 copied
+[19:29:01]    … 1600 copied
+[19:29:51]    … 2000 copied
+[19:30:43]    … 2400 copied
+[19:31:34]    … 2800 copied
+[19:32:25]    … 3200 copied
+[19:33:15]    … 3600 copied
+[19:34:06]    … 4000 copied
+[19:34:57]    … 4400 copied
+[19:35:47]    … 4800 copied
+[19:36:15] copied=5000 failed=0 | destination now holds 5006 of 111336
+[19:36:15] ⚠ 106330 objects still to converge (replication covers everything written from today forward)
+── R3. Give the alarms someone to call ──
+[19:36:15] ✅ SNS topic arn:aws:sns:us-east-1:857687956942:jh-ops-alerts
+[19:36:16] ✅ subscribed raa*** — AWS sent a confirmation email; alarms deliver only after it is clicked
+[19:36:16] ✅    justhodl-integrity-new-defects -> jh-ops-alerts
+[19:36:16] ✅    justhodl-schedule-drift -> jh-ops-alerts
+[19:36:16] ✅    justhodl-contract-sev1 -> jh-ops-alerts
+── R4. Mirror the contract registry into git ──
+[19:36:17] ✅ engine-contracts.json mirrored — 866 contracts, 760 cadence-bounded
+── R5. SSM pointer containment (verified earlier, recorded) ──
+[19:36:17] The scorecard SSM value became a pointer today for payloads >8KB. Repo-wide grep: ZERO functions read /justhodl/calibration/scorecard — the ~10 real consumers (conviction-engine, engine-trust, apex-fusion, proven-portfolio, …) read data/signal-scorecard.json, which was extended ADDITIVELY only. Suspected contract break: cleared with evidence, no action needed.
+── R6. Control-plane coherence ──
+[19:36:17] ✅    justhodl-fleet-integrity-weekly        cron(0 8 ? * MON *)    state=ENABLED targets=1
+[19:36:17] ✅    justhodl-d1-scan-daily                 cron(0 5 * * ? *)      state=ENABLED targets=1
+[19:36:17] ✅    justhodl-schedule-reconciler-daily     cron(30 7 * * ? *)     state=ENABLED targets=1
+[19:36:17] ✅    justhodl-contract-gate-daily           cron(0 13 * * ? *)     state=ENABLED targets=1
+[19:36:17] ✅    jh-clone-alpha-backfill-weekly         cron(30 8 ? * MON *)   state=ENABLED targets=1
+[19:36:31] ✗ live reconciler drift = 1
+[19:36:31] ✅    integrity    artifact 3.5h old
+[19:36:31] ✅    contracts    artifact 0.2h old
 ── RESULT ──
-[19:12:12] ✅ OPS 4249 PASS
+[19:36:31] ✗   backfill incomplete: 106330 remaining
+[19:36:31] ✗   drift 1
+[19:36:31] ✗   coherence: An error occurred (404) when calling the HeadObject operation: Not Found
 
-→ Report written to aws/ops/reports/latest/4249_structural_gates.md
+→ Report written to aws/ops/reports/latest/4250_session_review.md
+FAILS: backfill incomplete: 106330 remaining; drift 1; coherence: An error occurred (404) when calling the HeadObject operation: Not Found
+❌ OPS-FAIL: aws/ops/pending/ops_4250_session_review.py
