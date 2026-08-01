@@ -52,8 +52,8 @@ from datetime import datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.1.0"
-MARKER = "fleet-integrity v1.1.0 ops4242 guard-aware"
+VERSION = "1.1.1"
+MARKER = "fleet-integrity v1.1.1 ops4244 multi-site"
 
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -212,11 +212,35 @@ def classify_source(src, fname):
         else:
             findings.append(("UNGUARDED", {}))
 
+    # v1.1.1: a function can self-invoke from SEVERAL places with
+    # DIFFERENT guards, and collapsing that to one label loses the thing
+    # you actually need to know. justhodl-fundamental-census does exactly
+    # this: one site continues the walk under `depth + 1 < CHAIN_MAX`
+    # (a counter), another fires the terminal aggregate phase under a
+    # payload flag. v1.1.0 returned whichever site sorted first and
+    # reported the function as flag-guarded, hiding the bound of 12.
+    #
+    # So the headline is now binary — UNGUARDED if ANY site is unguarded,
+    # otherwise BOUNDED — and every site is enumerated underneath it.
+    # The headline answers "is this a defect"; the sites answer "what is
+    # the bound", which is the question that actually matters once you
+    # know MAX_HOPS=10 was silently capping a backfill.
     if not findings:
         return "NO_SELF_INVOKE", {}
-    order = {"UNGUARDED": 0, "BOUNDED_FLAG": 1, "BOUNDED_COUNTER": 2}
-    findings.sort(key=lambda x: order.get(x[0], 3))
-    return findings[0][0], findings[0][1]
+    sites = [{"guard": c, **d} for c, d in findings]
+    bounds = [x["bound"] for x in sites if "bound" in x]
+    flags = [x["flag"] for x in sites if "flag" in x]
+    detail = {"sites": sites, "n_sites": len(sites)}
+    if bounds:
+        detail["min_bound"] = min(bounds)
+        detail["bounds"] = sorted(bounds)
+    if flags:
+        detail["flags"] = sorted(set(flags))
+    if any(c == "UNGUARDED" for c, _ in findings):
+        detail["unguarded_sites"] = sum(1 for c, _ in findings
+                                        if c == "UNGUARDED")
+        return "UNGUARDED", detail
+    return "BOUNDED", detail
 
 
 SELFTEST = [
@@ -237,7 +261,7 @@ def lambda_handler(event, context):
         lam.invoke(FunctionName=context.function_name,
                    InvocationType="Event",
                    Payload=json.dumps({"hop": hop + 1}).encode())
-""", "BOUNDED_COUNTER"),
+""", "BOUNDED"),
     ("kickoff", "fn_c", """
 import boto3, json
 lam = boto3.client("lambda")
@@ -248,13 +272,32 @@ def lambda_handler(event, context):
         lam.invoke(FunctionName=context.function_name,
                    InvocationType="Event",
                    Payload=json.dumps({"_internal": "1"}).encode())
-""", "BOUNDED_FLAG"),
+""", "BOUNDED"),
     ("clean", "fn_d", """
 import boto3
 lam = boto3.client("lambda")
 def lambda_handler(event, context):
     lam.invoke(FunctionName="some-other-function", InvocationType="Event")
 """, "NO_SELF_INVOKE"),
+    # the census shape: two self-invoke sites, different guards. v1.1.0
+    # reported only one of them and hid the bound.
+    ("multi_site", "fn_e", """
+import boto3, json
+CHAIN_MAX = 12
+lam = boto3.client("lambda")
+def lambda_handler(event, context):
+    phase = event.get("phase") or "aggregate"
+    depth = int(event.get("depth") or 0)
+    if cur >= total:
+        lam.invoke(FunctionName=context.function_name,
+                   InvocationType="Event",
+                   Payload=json.dumps({"phase": "aggregate"}).encode())
+    elif depth + 1 < CHAIN_MAX:
+        lam.invoke(FunctionName=context.function_name,
+                   InvocationType="Event",
+                   Payload=json.dumps({"phase": "warm",
+                                       "depth": depth + 1}).encode())
+""", "BOUNDED"),
 ]
 
 
@@ -353,15 +396,19 @@ def d1_findings():
         cls, det = v.get("cls"), v.get("detail") or {}
         if cls == "UNGUARDED":
             out.append({"id": fn,
-                        "detail": "self-invokes with no bounding condition "
-                                  "— AWS will break the chain at depth 16 "
-                                  "and the remainder of the walk is lost "
-                                  "silently"})
-        elif cls == "BOUNDED_COUNTER" and det.get("bound", 0) >= 16:
-            out.append({"id": fn,
-                        "detail": "self-invoke bound is %s, at or above the "
-                                  "depth 16 at which AWS breaks the chain"
-                                  % det.get("bound")})
+                        "detail": "%d of %d self-invoke site(s) have no "
+                                  "bounding condition — AWS breaks the chain "
+                                  "at depth 16 and the rest of the walk is "
+                                  "lost silently"
+                                  % (det.get("unguarded_sites", 1),
+                                     det.get("n_sites", 1))})
+        elif cls == "BOUNDED" and det.get("bounds"):
+            hi = [b for b in det["bounds"] if b >= 16]
+            if hi:
+                out.append({"id": fn,
+                            "detail": "self-invoke bound(s) %s at or above "
+                                      "the depth 16 at which AWS breaks the "
+                                      "chain" % hi})
     return out
 
 
