@@ -1,16 +1,17 @@
-executing-against: bdd72b7ed19e45e6330b70ddcc9aa1d84be13c59
+executing-against: 02f5ff24a92be0688b976a593d9ab875f6429a30
 ops 4217 — wave-2 (recession, sentinel, dollar)
-[02:55:03]   [bus_macro] wired: {"marker": "ops4218", "world_policy_rate_median": 5.0, "intr_n": 165, "ip_contracting_pct":
-[02:55:03]   router bus_macro: {"marker": "ops4218", "world_policy_rate_median": 5.0, "intr_n": 165, "ip_contracting_pct": 39.8, "gdp_contracting_pct": 7.1, "note": "global hard-data context for KB elevation"}
-[02:55:06]   [bus_tape] wired: {"marker": "ops4218", "added": ["CN GDP", "US CPI"]}
-[02:55:06]   tape added: ["CN GDP", "US CPI"]
-[02:55:09]   [bus_hard] wired: {"marker": "ops4218", "us_ipyy": -0.39, "us_rsyy": -1.81, "global_ip_contracting_pct": 39.8,
-[02:55:10] ✅   ledger: wired=15 next=4
-[02:55:10] ✅   justhodl-regime-conditional-router bus_macro emitted
-[02:55:10] ✅   world rate median 1-12
-[02:55:10] ✅   justhodl-market-tape bus_tape emitted
-[02:55:10] ✅   tape added >= 2
-[02:55:10] ✅   justhodl-activity-nowcast bus_hard emitted
-[02:55:10] ✅ WAVE-3 LIVE — router sees the world rate, homepage tape carries bus, activity bridged
+[03:07:20]   [bus_context] wired: {"marker": "ops4219", "world_policy_rate_median": 5.0, "us10y": 4.61, "ip_contracting_pct
+[03:07:20]   allocator: {"marker": "ops4219", "world_policy_rate_median": 5.0, "us10y": 4.61, "ip_contracting_pct": 39.8, "gdp_contracting_pct": 6.5, "note": "global sizing context"}
+[03:07:29]   [bus_canaries] wired: {"marker": "ops4219", "ip_contracting_pct": 39.8, "gdp_contracting_pct": 6.5, "inflation
+[03:07:29]   warroom: {"marker": "ops4219", "ip_contracting_pct": 39.8, "gdp_contracting_pct": 6.5, "inflation_hot_n": 41, "inflation_hot_sample": ["AOIRYY", "ARIRYY", "BDIRYY", "BIIRYY", "BOIRYY", "CUI
+[03:07:33]   [bus_facts] wired: {"marker": "ops4219", "us_cpi_yoy": 3.73, "us_ip_yoy": -0.39, "de10y": null, "cn_gdp_yoy": 
+[03:07:34]   [bus_pulse] wired: {"marker": "ops4219", "us10y": 4.61, "usintr": 3.63, "de10y": null, "note": "rates trio bes
+[03:07:34] ✅   ledger COMPLETE: wired=14 next=0
+[03:07:34] ✅   justhodl-allocator bus_context emitted
+[03:07:34] ✅   allocator world rate 1-12
+[03:07:34] ✅   justhodl-canary-warroom bus_canaries emitted
+[03:07:34] ✅   justhodl-debate-engine bus_facts emitted
+[03:07:34] ✅   justhodl-intraday-pulse bus_pulse emitted
+[03:07:34] ✅ EVERYWHERE COMPLETE — fourteen surfaces on one bus
 
-→ Report written to aws/ops/reports/latest/4218_wave3.md
+→ Report written to aws/ops/reports/latest/4219_final_wave.md
