@@ -1,6 +1,13 @@
-executing-against: f78a06b7004aabf8ab9c9cf925372310d5c61d10
-ops 4214 — TE quota armor
-[01:27:28] ✅   justhodl-te-feed settled at loop 2
-[01:27:28] ✅ QUOTA ARMOR LIVE — 25/day rotation, 403 stop+flag; cached 8,934 keep serving with honest asof
+executing-against: e22b1ac35defd1ee8ed2b1b24c8dc26830619090
+ops 4215 — THE INDICATOR BUS
+[01:49:07] ✅   settled loop 1
+[01:49:09]   origin: {"vault": 5517, "te_extra": 6591, "family_extra": 1231, "yahoo_extra": 1165, "cftc_extra": 1, "cryptoquant_extra": 4, "fleet_extra": 3545}
+[01:49:09]   spot USINTR: {"v": 3.63, "asof": "2026-07-28", "src": "fred_alias:DFF"}
+[01:49:09]   spot US10Y: {"v": 4.61, "asof": "2026-07-28", "src": "fred_alias:DGS10"}
+[01:49:09]   spot DE02Y: {"v": 2.732, "asof": "ecb:2026-07-29", "src": "ecb:YC"}
+[01:49:09]   spot ES1!: {"v": 7470.25, "asof": "2026-07-31T14:57", "src": "yahoo:ES=F"}
+[01:49:09]   spot BTC_HASHRATE: {"v": 960075344981.735, "asof": "2026-07-30", "src": "cryptoquant:btc/network-data/hashrat
+[01:49:10] ✅   schedule 12:15
+[01:49:10] ✅ BUS LIVE — n=18054
 
-→ Report written to aws/ops/reports/latest/4214_quota_armor.md
+→ Report written to aws/ops/reports/latest/4215_bus.md
