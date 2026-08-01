@@ -2,12 +2,13 @@
 Per-country dumps -> TV-bare keyed dict, cumulative cache."""
 import json
 import time
+import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "te-feed v1.2 ops4203 world-wide"
+MARKER = "te-feed v1.3 ops4214 quota-armor"
 S3 = boto3.client("s3")
 SSM = boto3.client("ssm")
 BUCKET = "justhodl-dashboard-live"
@@ -187,8 +188,9 @@ def lambda_handler(event, context):
     if not [c for c in PRIORITY if c not in done]:
         done = []
     swept = []
-    for cty in todo:
-        if time.time() - t0 > 230:
+    hit403 = False
+    for cty in todo[:25]:
+        if time.time() - t0 > 230 or hit403:
             break
         cc2 = CC[cty]
         url = ("https://api.tradingeconomics.com/country/"
@@ -198,6 +200,10 @@ def lambda_handler(event, context):
                 url, headers={"User-Agent": "Mozilla/5.0"})
             with urllib.request.urlopen(req, timeout=20) as r:
                 rows = json.loads(r.read().decode())
+        except urllib.error.HTTPError as e9:
+            if e9.code == 403:
+                hit403 = True
+            continue
         except Exception:
             continue
         n0 = 0
@@ -218,7 +224,7 @@ def lambda_handler(event, context):
         time.sleep(0.35)
     out = {"generated_at": datetime.now(timezone.utc).isoformat(),
            "marker": MARKER, "prices": prices,
-           "countries_done": done, "swept_now": swept,
+           "countries_done": done, "swept_now": swept, "quota_403": hit403,
            "n": len(prices),
            "elapsed_s": round(time.time() - t0, 1)}
     S3.put_object(Bucket=BUCKET, Key="data/te-feed.json",
