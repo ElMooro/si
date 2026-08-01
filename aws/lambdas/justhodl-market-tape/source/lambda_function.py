@@ -107,11 +107,11 @@ def lambda_handler(event=None, context=None):
     """bus_tape — bus enrichment wrapper (core untouched)."""
     r = _orig_handler_4218(event, context)
     try:
-        _bus = (json.loads(s3.get_object(
+        _bus = (json.loads(_s3.get_object(
             Bucket="justhodl-dashboard-live",
             Key="data/indicator-bus.json")["Body"].read())
             or {}).get("indicators") or {}
-        _doc = json.loads(s3.get_object(
+        _doc = json.loads(_s3.get_object(
             Bucket="justhodl-dashboard-live", Key=KEY)["Body"].read())
         _picks = (("DE10Y", "DE10Y", "%"),
                   ("CNGDPYY", "CN GDP", "%"),
@@ -129,7 +129,7 @@ def lambda_handler(event=None, context=None):
                 _added.append(_lab)
         _blk = {"marker": "ops4218", "added": _added}
         _doc["bus_tape"] = _blk
-        s3.put_object(Bucket="justhodl-dashboard-live", Key=KEY,
+        _s3.put_object(Bucket="justhodl-dashboard-live", Key=KEY,
                       Body=json.dumps(_doc).encode(),
                       ContentType="application/json")
         print("[bus_tape] wired: " + json.dumps(_blk)[:120])
