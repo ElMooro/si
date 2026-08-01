@@ -1,15 +1,15 @@
-executing-against: 1438eccb8f4e58f252057342a5d4f9259b9e4674
+executing-against: f8c37a125992fdf7411fa2365c1f48dd7218cc3a
 ops 4217 — wave-2 (recession, sentinel, dollar)
-[02:44:46]   [bus_macro] wired: {"marker": "ops4218", "world_policy_rate_median": 5.0, "intr_n": 165, "ip_contracting_pct":
-[02:44:46]   router bus_macro: {"marker": "ops4218", "world_policy_rate_median": 5.0, "intr_n": 165, "ip_contracting_pct": 39.8, "gdp_contracting_pct": 7.1, "note": "global hard-data context for KB elevation"}
-[02:44:48]   [bus_tape] EXC NameError
-[02:44:52]   [bus_hard] wired: {"marker": "ops4218", "us_ipyy": -0.39, "us_rsyy": -1.81, "global_ip_contracting_pct": 39.8,
-[02:44:52] ✅   ledger: wired=9 next=4
-[02:44:52] ✅   justhodl-regime-conditional-router bus_macro emitted
-[02:44:52] ✅   world rate median 1-12
-[02:44:52] ✗   justhodl-market-tape bus_tape emitted
-[02:44:52] ✅   justhodl-activity-nowcast bus_hard emitted
-[02:44:52] ✗ FAILED: ['justhodl-market-tape bus_tape emitted']
+[02:50:02]   [bus_macro] wired: {"marker": "ops4218", "world_policy_rate_median": 5.0, "intr_n": 165, "ip_contracting_pct":
+[02:50:03]   router bus_macro: {"marker": "ops4218", "world_policy_rate_median": 5.0, "intr_n": 165, "ip_contracting_pct": 39.8, "gdp_contracting_pct": 7.1, "note": "global hard-data context for KB elevation"}
+[02:50:05]   [bus_tape] EXC NameError
+[02:50:09]   [bus_hard] wired: {"marker": "ops4218", "us_ipyy": -0.39, "us_rsyy": -1.81, "global_ip_contracting_pct": 39.8,
+[02:50:09] ✅   ledger: wired=12 next=4
+[02:50:09] ✅   justhodl-regime-conditional-router bus_macro emitted
+[02:50:09] ✅   world rate median 1-12
+[02:50:09] ✗   justhodl-market-tape bus_tape emitted
+[02:50:09] ✅   justhodl-activity-nowcast bus_hard emitted
+[02:50:09] ✗ FAILED: ['justhodl-market-tape bus_tape emitted']
 
 → Report written to aws/ops/reports/latest/4218_wave3.md
 ❌ OPS-FAIL: aws/ops/pending/ops_4218_wave3.py
