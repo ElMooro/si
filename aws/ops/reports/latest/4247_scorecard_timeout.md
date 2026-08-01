@@ -1,0 +1,41 @@
+# ops 4247 — signal-scorecard ceiling
+
+**Status:** failure  
+**Duration:** 36.3s  
+**Finished:** 2026-08-01T18:53:07+00:00  
+
+## Error
+
+```
+SystemExit: FAILS: scorecard did not publish a clean SSM write within 15 minutes
+```
+
+## Data
+
+| avg_s | max_s | memory | ok | section | timeout | writes |
+|---|---|---|---|---|---|---|
+| 118.6 | 120.0 | 256 |  | before | 120 |  |
+|  |  | 1024 |  | after | 900 |  |
+|  |  |  | None | ssm |  | null |
+
+## Log
+## 1. What the engine actually needs
+
+- `18:52:31` current timeout=120s memory=256MB | 7d duration avg=119s max=120s
+- `18:52:31` max pins the ceiling exactly -> the ceiling IS the constraint, so observed duration cannot tell us how long it really needs
+## 2. Set the ceiling from headroom, not a multiplier
+
+- `18:52:36` ✅ timeout 120s -> 900s, memory 256MB -> 1024MB (more memory also means proportionally more CPU, so this is a speed change as well as a ceiling change)
+## 3. Async probe, verified through the artifact
+
+- `18:52:36` artifact generated_at before: 2026-07-27T11:02:00.268682+00:00
+- `18:52:37` async invoke dispatched; polling the artifact…
+- `18:53:07` ✅ artifact republished at 2026-08-01T18:53:06.833714+00:00 (after 30s)
+- `18:53:07` ssm_writes -> null
+- `18:53:07` ⚠ artifact refreshed but carries no ssm_writes key — the run ended before that branch
+## 4. Error rate to watch
+
+- `18:53:07` 24h invocations before this change: 10 at 100% error. The verdict on the fix arrives with tomorrow's scheduled runs, not from this single probe.
+## RESULT
+
+- `18:53:07` ✗   scorecard did not publish a clean SSM write within 15 minutes

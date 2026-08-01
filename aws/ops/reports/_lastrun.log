@@ -1,62 +1,21 @@
-executing-against: 42741e6ed3197077bd3869e2af9138a5b968b4e8
-ops 4246 — the D8 error block
-── A. Did the ops-4234 timeout raises actually work? ──
-[18:45:41] engines whose timeout was raised in ops 4234: 14
-[18:45:41] 
-[18:45:41] ENGINE                                     BEFORE   NOW24h    RUNS24h VERDICT
-[18:45:42] dollar-strength-agent                         81%      25%          4 IMPROVED
-[18:45:42] fedliquidityapi                               84%      62%          8 IMPROVED
-[18:45:43] justhodl-cb-injection                         43%      33%          3 UNCHANGED
-[18:45:43] justhodl-construction-housing                 33%       0%          2 FIXED
-[18:45:44] justhodl-ecb-detail                           26%       0%          2 FIXED
-[18:45:44] justhodl-fx-intelligence                      32%       0%          2 FIXED
-[18:45:45] justhodl-gdelt-buzz                           28%       0%          2 FIXED
-[18:45:45] justhodl-global-liquidity                      ?%       0%          1 no baseline
-[18:45:46] justhodl-search-attention                    100%      75%          4 IMPROVED
-[18:45:46] justhodl-signal-scorecard                     70%     100%          9 WORSE
-[18:45:47] justhodl-yen-carry                            32%      33%          3 UNCHANGED
-[18:45:48] manufacturing-global-agent                    84%      50%          4 IMPROVED
-[18:45:48] securities-banking-agent                      83%      50%          4 IMPROVED
-[18:45:49] volatility-monitor-agent                      69%      25%          4 IMPROVED
-[18:45:49] 
-[18:45:49] fixed/improved=10 unchanged=3 worse=1 not-yet-run=0
-[18:45:49] ⚠ Engines that have not re-run since the change cannot be judged yet — most of this fleet is on daily cadence, so the honest read arrives tomorrow.
-── A2. Current top of the error block ──
-[18:45:49] D8 entries on the board: 47
-[18:45:49]    aiapi-market-analyzer                    0% error rate (0/304), 5 throttles
-[18:45:49]    alphavantage-market-agent                0% error rate (0/533), 25 throttles
-[18:45:49]    bea-economic-agent                       0% error rate (0/282), 25 throttles
-[18:45:49]    bls-labor-agent                          2% error rate (6/300), 25 throttles
-[18:45:49]    bond-indices-agent                       1% error rate (4/303), 22 throttles
-[18:45:49]    census-economic-agent                    0% error rate (0/288), 18 throttles
-[18:45:49]    chatgpt-agent-api                        0% error rate (0/258), 21 throttles
-[18:45:49]    dollar-strength-agent                    81% error rate (209/257), 22 throttles
-[18:45:49]    enhanced-repo-agent                      1% error rate (4/308), 16 throttles
-[18:45:49]    fedliquidityapi                          85% error rate (289/342), 5 throttles
-[18:45:49]    fred-ice-bofa-api                        0% error rate (0/557), 15 throttles
-[18:45:49]    google-trends-agent                      0% error rate (0/255), 24 throttles
-[18:45:49]    justhodl-13f-positions                   0% error rate (0/24), 72 throttles
-[18:45:49]    justhodl-air-cargo                       27% error rate (11/41), 0 throttles
-[18:45:49]    justhodl-backtest-harness                0% error rate (0/42), 106 throttles
-[18:45:49]    justhodl-bagger-engine                   75% error rate (6/8), 0 throttles
-[18:45:49]    justhodl-boj-detail                      29% error rate (11/38), 0 throttles
-[18:45:49]    justhodl-cb-injection                    43% error rate (20/47), 0 throttles
-── B. signal-scorecard — the silent-data bug ──
-[18:46:00] ✅ marker verified
-[18:48:06] ✗ probe FunctionError=Unhandled {"errorType":"Sandbox.Timedout","errorMessage":"RequestId: e39c9ae7-b6da-4773-9307-99f759eb4404 Error: Task timed out after 120.00 seconds"}
-[18:48:06] ssm_writes -> null
-[18:48:06] ⚠ artifact has no ssm_writes key yet (engine may not have reached that branch on this run)
-── C. Quarantine the six broken packages ──
-[18:48:08] ✅   macro-report-api                     backed up 29862 bytes, concurrency 0, tagged
-[18:48:09] ✅   multi-agent-orchestrator             backed up 1505 bytes, concurrency 0, tagged
-[18:48:10] ✅   nyfed-financial-stability-fetcher    backed up 2769 bytes, concurrency 0, tagged
-[18:48:11] ✅   nyfed-primary-dealer-fetcher         backed up 1692 bytes, concurrency 0, tagged
-[18:48:11] ✅   nyfedapi-isolated                    backed up 4426 bytes, concurrency 0, tagged
-[18:48:12] ✅   ultimate-multi-agent                 backed up 1931 bytes, concurrency 0, tagged
-[18:48:13] ✅ quarantine ledger -> config/quarantine-ledger.json + S3
+executing-against: d152c4f52bcaa27ae22ea068734706fc2424ac79
+ops 4247 — signal-scorecard ceiling
+── 1. What the engine actually needs ──
+[18:52:31] current timeout=120s memory=256MB | 7d duration avg=119s max=120s
+[18:52:31] max pins the ceiling exactly -> the ceiling IS the constraint, so observed duration cannot tell us how long it really needs
+── 2. Set the ceiling from headroom, not a multiplier ──
+[18:52:36] ✅ timeout 120s -> 900s, memory 256MB -> 1024MB (more memory also means proportionally more CPU, so this is a speed change as well as a ceiling change)
+── 3. Async probe, verified through the artifact ──
+[18:52:36] artifact generated_at before: 2026-07-27T11:02:00.268682+00:00
+[18:52:37] async invoke dispatched; polling the artifact…
+[18:53:07] ✅ artifact republished at 2026-08-01T18:53:06.833714+00:00 (after 30s)
+[18:53:07] ssm_writes -> null
+[18:53:07] ⚠ artifact refreshed but carries no ssm_writes key — the run ended before that branch
+── 4. Error rate to watch ──
+[18:53:07] 24h invocations before this change: 10 at 100% error. The verdict on the fix arrives with tomorrow's scheduled runs, not from this single probe.
 ── RESULT ──
-[18:48:13] ✗   scorecard probe
+[18:53:07] ✗   scorecard did not publish a clean SSM write within 15 minutes
 
-→ Report written to aws/ops/reports/latest/4246_error_block.md
-FAILS: scorecard probe
-❌ OPS-FAIL: aws/ops/pending/ops_4246_error_block.py
+→ Report written to aws/ops/reports/latest/4247_scorecard_timeout.md
+FAILS: scorecard did not publish a clean SSM write within 15 minutes
+❌ OPS-FAIL: aws/ops/pending/ops_4247_scorecard_timeout.py
