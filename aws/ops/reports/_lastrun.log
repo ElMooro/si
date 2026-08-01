@@ -1,11 +1,6 @@
-executing-against: 903f8285d8af4004c8ceff87e8581169105814db
-ops 4223 — premium param hunt
-[03:46:05]   miss btc/fund-data/coinbase-premium-index&exchange=coinbase: HTTP Error 400: Bad Request
-[03:46:05]   miss btc/fund-data/coinbase-premium-index&market=coinbase: HTTP Error 400: Bad Request
-[03:46:05]   miss btc/fund-data/coinbase-premium-index&exchange=coinbase_pro: HTTP Error 400: Bad Request
-[03:46:05]   miss btc/fund-data/coinbase-premium-gap&exchange=coinbase: HTTP Error 400: Bad Request
-[03:46:06]   miss btc/fund-data/market-premium&exchange=coinbase: HTTP Error 400: Bad Request
-[03:46:06]   miss btc/fund-data/korea-premium-index&exchange=upbit: HTTP Error 400: Bad Request
-[03:46:15] ✅ HUNT DONE — won=[] catalog=26
+executing-against: ea51a05cfa71d8ee7b8f9b227620773b57b9c71e
+ops 4224 — harvest tally
+[03:57:32]   cq-sourced: [["BTC_HASHRATE", 960075344981.735]]
+[03:57:32] ✅ TALLY — LIVE=5604 cq_rows=1
 
-→ Report written to aws/ops/reports/latest/4223_premium_hunt.md
+→ Report written to aws/ops/reports/latest/4224_harvest_tally.md
