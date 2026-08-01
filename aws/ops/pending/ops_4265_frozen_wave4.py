@@ -134,17 +134,21 @@ with report("4265_frozen_wave4") as r:
                 r.ok("party map REFRESHED (%.1f min, %d members, "
                      "source=%s)" % (a, n, doc.get("source", "?")[:60]))
             elif a >= 20:
-                # live source may be blocked from Lambda -- read the logs
+                # rerun delta: CloudWatch ingestion lag hid the tail last
+                # time -- wait, then read UNFILTERED recent lines.
+                time.sleep(10)
                 ev = logs.filter_log_events(
                     logGroupName="/aws/lambda/justhodl-political-stocks",
-                    startTime=int((time.time() - 240) * 1000),
-                    filterPattern="political")
+                    startTime=int((time.time() - 420) * 1000))
                 lines = [e["message"].strip()[:130]
-                         for e in ev.get("events", [])][-5:]
+                         for e in ev.get("events", [])
+                         if "political" in e["message"]
+                         or "Error" in e["message"]
+                         or "Traceback" in e["message"]][-10:]
                 for ln in lines:
                     r.log("log: %s" % ln)
-                if any("live fetch" in ln and "failed" in ln
-                       for ln in lines):
+                if any(("live fetch" in ln and "failed" in ln)
+                       or "parse err" in ln for ln in lines):
                     r.warn("theunitedstates.io blocked from Lambda -- "
                            "stale-copy fallback held (map is 62d old, "
                            "materially fine; SLA now 45d, disclosed)")
@@ -177,21 +181,38 @@ with report("4265_frozen_wave4") as r:
     except Exception as e:
         r.warn("monitor re-read: %s" % str(e)[:100])
 
-    r.section("5. calibration family -- disclosed, requeued")
+    r.section("5. calibration-snapshotter -- weights exist, so the "
+              "blocker is the dead schedule: invoke it")
     try:
-        try:
-            w = ssm.get_parameter(
-                Name="/justhodl/calibration/weights")["Parameter"]["Value"]
-            r.log("SSM weights present: %d chars -- %s"
-                  % (len(w), w[:80]))
-        except Exception as e:
-            r.warn("SSM /justhodl/calibration/weights: %s -- snapshotter "
-                   "is starved upstream, and the engine is UNMANAGED "
-                   "(no config.json). Wave-5: resurrect the outcomes/"
-                   "calibration producer, then bring the snapshotter "
-                   "under deploy management." % type(e).__name__)
-    except Exception:
-        pass
+        p = lam.invoke(FunctionName="justhodl-calibration-snapshotter",
+                       InvocationType="RequestResponse", Payload=b"{}")
+        r.log("invoked: %s"
+              % (p["Payload"].read() or b"")[:200].decode("utf-8",
+                                                          "ignore"))
+        a = age_min("calibration/history-index.json")
+        if a < 20:
+            idx = json.loads(s3.get_object(
+                Bucket=BUCKET,
+                Key="calibration/history-index.json")["Body"].read())
+            r.ok("history-index UNFROZEN (%.1f min) -- %d snapshots, "
+                 "latest week %s"
+                 % (a, len(idx.get("snapshots") or []),
+                    (idx.get("snapshots") or [{}])[-1].get("iso_week")))
+        else:
+            fails.append("calibration index still stale %.0f min" % a)
+        c = lam.get_function_configuration(
+            FunctionName="justhodl-calibration-snapshotter")
+        r.log("live config for onboarding: runtime=%s mem=%s timeout=%s "
+              "role=...%s env_keys=%s"
+              % (c.get("Runtime"), c.get("MemorySize"), c.get("Timeout"),
+                 (c.get("Role") or "")[-28:],
+                 sorted(((c.get("Environment") or {})
+                         .get("Variables") or {}).keys())))
+        r.warn("UNMANAGED: no config.json + no schedule -- next push "
+               "onboards it (config.json from the values above + weekly "
+               "Scheduler entry in the manifest)")
+    except Exception as e:
+        fails.append("calibration invoke: %s" % str(e)[:120])
 
     r.section("RESULT")
     if fails:
