@@ -297,6 +297,13 @@ def is_deal(title, text, value, trust="pr"):
 def revenue_and_cap(symbol, uni):
     inc = _fmp(f"income-statement?symbol={urllib.parse.quote(symbol)}&limit=2")
     rev = None
+    # ops 4234/4235: rev_prev and rev_g were bound ONLY inside the branch
+    # below, but read unconditionally at the bottom of this function. Any
+    # symbol whose FMP income-statement call returns empty — no filing,
+    # rate-limit, ADR, or a fresh listing — raised UnboundLocalError and
+    # killed the whole scan. 222 of 312 runs (71%) were dying here.
+    rev_prev = None
+    rev_g = None
     if isinstance(inc, list) and inc:
         rev = _num(inc[0].get("revenue"))
         rev_prev = _num(inc[1].get("revenue")) if len(inc) > 1 else None
