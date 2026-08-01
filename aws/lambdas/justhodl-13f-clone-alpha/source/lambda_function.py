@@ -404,7 +404,25 @@ def lambda_handler(event=None, context=None):
           "pct=%s" % (hop, fetched, px_fetched, filings_pending,
                       prices_pending, out["pct_complete"]))
 
-    if not complete and hop < MAX_HOPS:
+    # ops 4242: the self-chain is now OPTIONAL and off by default.
+    # A Step Functions state machine drives the walk instead — see
+    # jh-13f-clone-alpha-backfill. Two reasons this is better than the
+    # hop chain it replaces, neither of them "recursion risk" (MAX_HOPS
+    # was 10, comfortably under the 16 at which AWS breaks a chain):
+    #
+    #   1. MAX_HOPS=10 silently CAPPED convergence. A backfill needing
+    #      more than ten hops simply stopped and waited a week for the
+    #      next schedule. The state machine has no chain ceiling, so the
+    #      walk finishes when the data says it is finished.
+    #   2. A dropped or throttled link in an Event self-chain is
+    #      invisible and unrecoverable — nothing is watching the chain.
+    #      Step Functions retries each hop with backoff and records every
+    #      transition in an execution history you can actually read.
+    #
+    # SELF_CHAIN=on restores the old behaviour if the state machine is
+    # ever removed, so this function is never stranded without a driver.
+    if not complete and hop < MAX_HOPS and \
+            os.environ.get("SELF_CHAIN", "off").lower() == "on":
         try:
             lam.invoke(FunctionName=context.function_name
                        if context else "justhodl-13f-clone-alpha",
@@ -412,6 +430,13 @@ def lambda_handler(event=None, context=None):
                        Payload=json.dumps({"hop": hop + 1}).encode())
         except Exception as e:
             warns.append("self-chain: %s" % str(e)[:60])
+    # Top-level machine-readable state so a Choice state can branch on it
+    # without parsing a JSON string out of `body`.
     return {"statusCode": 200,
+            "complete": bool(complete),
+            "hop": hop,
+            "next_hop": hop + 1,
+            "pct": out.get("pct_complete"),
+            "status": out.get("status"),
             "body": json.dumps({"status": out["status"],
                                 "pct": out["pct_complete"]})}

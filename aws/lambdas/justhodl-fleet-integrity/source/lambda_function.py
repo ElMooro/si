@@ -51,8 +51,8 @@ from datetime import datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.0.0"
-MARKER = "fleet-integrity v1.0.0 ops4236"
+VERSION = "1.1.0"
+MARKER = "fleet-integrity v1.1.0 ops4242 guard-aware"
 
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
