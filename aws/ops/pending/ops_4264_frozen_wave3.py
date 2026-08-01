@@ -44,17 +44,34 @@ TARGETS = [
     ("justhodl-meta-improver", None),
 ]
 
+RUN_START = datetime.now(timezone.utc)
+
 def wait_deployed(fn, tries=45):
+    """Deploy-race safe: 'Successful' on OLD code fooled the first run
+    (ka-metrics invoked pre-patch). Require the function's own
+    LastModified to be recent -- proof the parallel deploy workflow
+    actually touched it -- before trusting the invoke."""
     for _ in range(tries):
         try:
             c = lam.get_function_configuration(FunctionName=fn)
             if c.get("LastUpdateStatus") in (None, "Successful") \
                     and c.get("State") == "Active":
-                return c
+                lm = c.get("LastModified", "")
+                try:
+                    lm_dt = datetime.strptime(
+                        lm.split(".")[0], "%Y-%m-%dT%H:%M:%S"
+                    ).replace(tzinfo=timezone.utc)
+                    fresh_deploy = (RUN_START - lm_dt).total_seconds() \
+                        < 45 * 60
+                except Exception:
+                    fresh_deploy = True
+                if fresh_deploy:
+                    return c
         except Exception:
             pass
         time.sleep(8)
     return None
+# rerun delta: first run raced the deploy on ka-metrics; verify settled code
 
 def age_min(key):
     h = s3.head_object(Bucket=BUCKET, Key=key)
