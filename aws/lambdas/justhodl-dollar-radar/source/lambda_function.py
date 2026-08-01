@@ -1313,3 +1313,28 @@ def lambda_handler(event, context):
         "double_bottom": bool(technicals.get("double_bottom")),
         "telegram_alert": alerted,
         "build_seconds": out["build_seconds"]})}
+
+
+_orig_handler_4217 = lambda_handler
+
+
+def lambda_handler(event=None, context=None):
+    """bus_dollar — bus enrichment wrapper (core math untouched)."""
+    r = _orig_handler_4217(event, context)
+    try:
+        _bus = (json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/indicator-bus.json")["Body"].read()) or {}).get("indicators") or {}
+        _cot = {k: v.get("v") for k, v in _bus.items()
+                if k.startswith("098662_")}
+        _blk = {"marker": "ops4217",
+                "dx_front": (_bus.get("DX1!") or {}).get("v"),
+                "cot_098662": dict(sorted(_cot.items())[:10]),
+                "note": "modern cot-feed rail beside legacy 29-cache"}
+        _doc = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=OUT_KEY)["Body"].read())
+        _doc["bus_dollar"] = _blk
+        s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
+                      Body=json.dumps(_doc).encode(),
+                      ContentType="application/json")
+        print("[bus_dollar] wired: " + json.dumps(_blk)[:120])
+    except Exception as _e:
+        print("[bus_dollar] EXC " + type(_e).__name__)
+    return r

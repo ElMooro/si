@@ -544,3 +544,33 @@ def lambda_handler(event, context):
             "body": json.dumps({"ok": True,
                                 "global_pct": out["global_recession_prob_pct"],
                                 "n": len(rows)})}
+
+
+_orig_handler_4217 = lambda_handler
+
+
+def lambda_handler(event=None, context=None):
+    """bus_legs — bus enrichment wrapper (core math untouched)."""
+    r = _orig_handler_4217(event, context)
+    try:
+        _bus = (read_feed("data/indicator-bus.json") or {}).get("indicators") or {}
+        _g = {k: v for k, v in _bus.items() if k.endswith("GDPYY")
+              and isinstance(v.get("v"), (int, float))}
+        _i = {k: v for k, v in _bus.items() if k.endswith("IPYY")
+              and isinstance(v.get("v"), (int, float))}
+        _ng = sorted(k for k, v in _g.items() if v["v"] < 0)
+        _ni = sorted(k for k, v in _i.items() if v["v"] < 0)
+        _blk = {"marker": "ops4217", "gdp_universe": len(_g),
+                "gdp_contracting": len(_ng),
+                "ip_universe": len(_i), "ip_contracting": len(_ni),
+                "contracting_sample": _ng[:10],
+                "note": "fresh TE hard-legs; the CLI-staleness workaround"}
+        _doc = read_feed(OUT_KEY) or {}
+        _doc["bus_legs"] = _blk
+        s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
+                      Body=json.dumps(_doc).encode(),
+                      ContentType="application/json")
+        print("[bus_legs] wired: " + json.dumps(_blk)[:120])
+    except Exception as _e:
+        print("[bus_legs] EXC " + type(_e).__name__)
+    return r

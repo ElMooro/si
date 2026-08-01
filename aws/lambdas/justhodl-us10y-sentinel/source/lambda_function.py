@@ -308,3 +308,26 @@ def lambda_handler(event=None, context=None):
              {k: v["n"] for k, v in eps.items()}))
     return {"statusCode": 200, "body": json.dumps(
         {"ok": True, "level": level, "tier": tier})}
+
+
+_orig_handler_4217 = lambda_handler
+
+
+def lambda_handler(event=None, context=None):
+    """bus_cross — bus enrichment wrapper (core math untouched)."""
+    r = _orig_handler_4217(event, context)
+    try:
+        _bus = (json.loads(S3.get_object(Bucket=BUCKET, Key="data/indicator-bus.json")["Body"].read()) or {}).get("indicators") or {}
+        _r = _bus.get("US10Y") or {}
+        _blk = {"marker": "ops4217", "us10y_bus": _r.get("v"),
+                "asof": _r.get("asof"), "src": _r.get("src"),
+                "note": "independent cross-check leg (source diversity)"}
+        _doc = json.loads(S3.get_object(Bucket=BUCKET, Key=OUT_KEY)["Body"].read())
+        _doc["bus_cross"] = _blk
+        S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
+                      Body=json.dumps(_doc).encode(),
+                      ContentType="application/json")
+        print("[bus_cross] wired: " + json.dumps(_blk)[:120])
+    except Exception as _e:
+        print("[bus_cross] EXC " + type(_e).__name__)
+    return r
