@@ -296,7 +296,7 @@ def lambda_handler(event=None, context=None):
             Key="data/indicator-bus.json")["Body"].read())
             or {}).get("indicators") or {}
         _doc = json.loads(s3.get_object(
-            Bucket=S3_BUCKET, Key="data/macro-nowcast.json")["Body"].read())
+            Bucket=S3_BUCKET, Key=OUT_KEY)["Body"].read())
         _ipn = [v.get("v") for k, v in _bus.items()
                 if k.endswith("IPYY")
                 and isinstance(v.get("v"), (int, float))]
@@ -309,7 +309,7 @@ def lambda_handler(event=None, context=None):
                 "note": "monthly hard-data bridge beside the "
                         "weekly basket"}
         _doc["bus_hard"] = _blk
-        s3.put_object(Bucket=S3_BUCKET, Key="data/macro-nowcast.json",
+        s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
                       Body=json.dumps(_doc).encode(),
                       ContentType="application/json")
         print("[bus_hard] wired: " + json.dumps(_blk)[:120])
