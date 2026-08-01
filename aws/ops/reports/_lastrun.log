@@ -1,77 +1,36 @@
-executing-against: a01899a72cfe8a7e09c1f70b15cc5b615db2f7b0
-ops 4254 — writer map v2, weekend bounds, real selftest, LLM page-wire
-── S1. Writer-aware producers map v2 ──
-[20:59:09] ✅ v2: 799 mapped | WRITER identified for 683 | reader-only 40 | mention-only 76
-── S2/S3. Deploy gate v1.3.0 — selftest 8/8 required ──
-[20:59:09] ✅ exemption ledger written — 21 keys, each with a reason
-[20:59:17] ✅ marker verified
-[20:59:18] ✅    dotted_keys          PASS 
-[20:59:18] ✅    legacy_dotted_path   PASS 
-[20:59:18] ✅    rate_parse           PASS 
-[20:59:18] ✅    weekday_cron         PASS 
-[20:59:18] ✅    weekend_floor        PASS 
-[20:59:18] ✅    weekday_agnostic     PASS 
-[20:59:18] ✅    learned_while_stale  PASS 
-[20:59:18] ✅    observed_cap         PASS 
-[20:59:18] ✅ selftest 8/8 — the mode ops 4252 gated on now actually exists, and it pins every historical bug class of this file
-[21:00:08] learn -> {"ok": true, "mode": "learn", "n_contracts": 866, "n_cadence_bounded": 736, "n_suspects": 77, "elapsed_s": 49.4}
-[21:00:08] weekday-floored contracts: 122 (bound >= 78h so weekends sit inside contract)
-[21:00:08]    data/13f-clone-alpha.json -> 78.0h
-[21:00:08]    data/13f-cusip-map.json -> 78.0h
-[21:00:08]    data/13f-positions.json -> 78.0h
-[21:00:08]    data/13f-price-divergence.json -> 78.0h
-[21:00:08]    data/8k-filings.json -> 78.0h
-[21:00:08]    data/accumulation-radar.json -> 78.0h
-[21:00:08]    data/analyst-consensus.json -> 78.0h
-[21:00:08]    data/auction-grades.json -> 78.0h
-[21:00:46] ✅ check -> violations=56 (was 136) exempted=21
-[21:00:46] ✅ no exempted key appears in violations
-── S1b. RUNS-BUT-SILENT re-triaged on WRITERS only ──
-[21:00:46] 
-[21:00:46] WRITER-IS-COLLAPSED-LLM: 2
-[21:00:46] ⚠    brain-history.json                             justhodl-brain-sync
-[21:00:46] ⚠    options-flow.json                              justhodl-debate-engine
-[21:00:46] 
-[21:00:46] WRITER-SILENT-OTHER: 33
-[21:00:46] ✗    _freshness-manifest.json                       justhodl-fleet-freshness-monitor
-[21:00:46] ✗    alert-history.json                             justhodl-alert-router
-[21:00:46] ✗    bis-crossborder.json                           justhodl-bis-crossborder
-[21:00:46] ✗    buyback-scanner.json                           justhodl-buyback-scanner
-[21:00:46] ✗    compound-signals.json                          justhodl-alpha-research
-[21:00:46] ✗    congress-party-map.json                        justhodl-political-stocks
-[21:00:46] ✗    etf-census-matrix.json                         justhodl-etf-census
-[21:00:46] ✗    etf-census.json                                justhodl-etf-census
-[21:00:46] ✗    eurodollar-stress.json                         justhodl-dollar-radar
-[21:00:46] ✗    factor-data-cache.json                         justhodl-factor-decomposition
-[21:00:46] ✗    factor-decomposition.json                      justhodl-factor-decomposition
-[21:00:46] ✗    feedback-summary.json                          justhodl-feedback
-[21:00:46] ✗    fi-census-matrix.json                          justhodl-fi-census
-[21:00:46] ✗    fi-census.json                                 justhodl-fi-census
-[21:00:46] ✗    forward-returns.json                           justhodl-forward-returns
-[21:00:46] 
-[21:00:46] NO-WRITER-RESOLVED: 21
-[21:00:46] ⚠    13f-flows-by-ticker.json                       -
-[21:00:46] ⚠    alpha-triage.json                              -
-[21:00:46] ⚠    backtest-summary.json                          -
-[21:00:46] ⚠    dealer-survey.json                             -
-[21:00:46] ⚠    divergence-interpreted.json                    -
-[21:00:46] ⚠    engine-registry.json                           -
-[21:00:46] ⚠    fleet-audit.json                               -
-[21:00:46] ⚠    frontrun-sniffer-history.json                  -
-[21:00:46] ⚠    global-sovereign-longhistory.json              -
-[21:00:46] ⚠    liquidity-flow.json                            -
-[21:00:46] ⚠    macro-frontrun-sniffer-history.json            -
-[21:00:46] ⚠    market-internals-history.json                  -
-[21:00:46] ⚠    page-ai-manifest.json                          -
-[21:00:46] ⚠    page-manifest.json                             -
-[21:00:46] ⚠    plumbing-stress.json                           -
-[21:00:46] 
-[21:00:46] ✅ read: 2 frozen artifacts trace to the ONE billing outage; 33 need engine-level work; 21 lack a resolved writer (map refinement continues)
-── S4. llm-health v1.1 — the knower becomes a pager ──
-[21:00:53] ✅ marker verified
-[21:00:58] ✅ EMF line emitted: {"_aws": {"Timestamp": 1785618058389, "CloudWatchMetrics": [{"Namespace": "JustHodl/LLM", "Dimensions": [[]], "Metrics": [{"Name": "ProvidersUp", "Unit": "Count"}, {"Name": "Billin
-[21:00:58] ✅ alarm justhodl-llm-providers-down armed (missing data = breaching: a health canary that stops running IS the emergency). It WILL fire now — both providers are billing-dead, and paging on that is the entire point.
-── RESULT ──
-[21:00:58] ✅ OPS 4254 PASS
-
-→ Report written to aws/ops/reports/latest/4254_sharpen.md
+executing-against: ab09e1164d6a4d14f50061d3b666c4ac07eeb296
+ops 4255 — silent-writer forensics (35 pairs)
+[21:16:03] ✗ _freshness-manifest.json               justhodl-fleet-freshness-monit CODE-PATH-SILENT   age=649.8h 
+[21:16:15] ✗ alert-history.json                     justhodl-alert-router          INTERMITTENT       age=30.3h data/_fleet-monitor-alert-history.json;data/_freshness-alert
+[21:16:17] ⚠ bis-crossborder.json <- justhodl-bis-crossborder : DEPLOY-DRIFT — repo writes the key, deployed zip does not. Redeploying from repo.
+[21:18:24] ✅ bis-crossborder.json                   justhodl-bis-crossborder       FIXED-DEPLOY-DRIFT age=131.6h 
+[21:20:29] ✗ buyback-scanner.json                   justhodl-buyback-scanner       INTERMITTENT       age=129.2h 
+[21:20:30] ⚠ compound-signals.json <- justhodl-alpha-research : DEPLOY-DRIFT — repo writes the key, deployed zip does not. Redeploying from repo.
+[21:22:38] ⚠ compound-signals.json                  justhodl-alpha-research        SUPERSEDED?        age=27.4h data/compound-signals-state.json
+[21:24:43] ✗ congress-party-map.json                justhodl-political-stocks      CODE-PATH-SILENT   age=1492.0h 
+[21:26:47] ✗ etf-census-matrix.json                 justhodl-etf-census            SCHEDULE-INPUT     age=307.5h {}
+[21:26:51] ✗ etf-census.json                        justhodl-etf-census            SCHEDULE-INPUT     age=-0.2h {}
+[21:27:00] ✗ eurodollar-stress.json                 justhodl-dollar-radar          SCHEDULE-INPUT     age=-0.0h {}
+[21:29:04] ✗ factor-data-cache.json                 justhodl-factor-decomposition  CODE-PATH-SILENT   age=127.6h 
+[21:29:07] ✗ factor-decomposition.json              justhodl-factor-decomposition  SCHEDULE-INPUT     age=-0.2h {}
+[21:29:11] ✗ feedback-summary.json                  justhodl-feedback              CODE-PATH-SILENT   age=2144.4h 
+[21:29:12] ⚠ fi-census-matrix.json <- justhodl-fi-census : DEPLOY-DRIFT — repo writes the key, deployed zip does not. Redeploying from repo.
+/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: 'census_lib.py'
+  return self._open_to_write(zinfo, force_zip64=force_zip64)
+[21:31:20] ✅ fi-census-matrix.json                  justhodl-fi-census             FIXED-DEPLOY-DRIFT age=307.5h 
+[21:31:22] ⚠ fi-census.json <- justhodl-fi-census : DEPLOY-DRIFT — repo writes the key, deployed zip does not. Redeploying from repo.
+[21:31:29] ✅ fi-census.json                         justhodl-fi-census             FIXED-DEPLOY-DRIFT age=-0.3h 
+[21:33:33] ✗ forward-returns.json                   justhodl-forward-returns       INTERMITTENT       age=153.2h 
+[21:33:43] ✗ brain-history.json                     justhodl-brain-sync            CODE-PATH-SILENT   age=788.9h 
+[21:33:49] ✗ history-index.json                     justhodl-calibration-snapshott CODE-PATH-SILENT   age=1304.2h 
+[21:33:50] ⚠ index-inclusion.json <- justhodl-index-inclusion : DEPLOY-DRIFT — repo writes the key, deployed zip does not. Redeploying from repo.
+[21:35:58] ✅ index-inclusion.json                   justhodl-index-inclusion       FIXED-DEPLOY-DRIFT age=128.2h 
+[21:35:59] ⚠ inventory-drawdown.json <- justhodl-inventory-drawdown : DEPLOY-DRIFT — repo writes the key, deployed zip does not. Redeploying from repo.
+[21:36:12] ✅ inventory-drawdown.json                justhodl-inventory-drawdown    FIXED-DEPLOY-DRIFT age=93.7h 
+[21:38:16] ✗ ka-analysis.json                       justhodl-ka-metrics            CODE-PATH-SILENT   age=418.1h 
+[21:38:20] ✗ khalid-analysis.json                   justhodl-ka-metrics            CODE-PATH-SILENT   age=418.1h 
+[21:38:24] ✗ massive-signals.json                   justhodl-alpha-score           CODE-PATH-SILENT   age=23.2h 
+[21:40:28] ✗ miss-calibrator-proposals.json         justhodl-miss-calibrator       INTERMITTENT       age=132.0h 
+[21:40:32] ✗ options-flow.json                      justhodl-alpha-score           MENTIONS-NO-WRITE  age=23.2h inputs: 503 stocks · 503 sentiment · 1872 smart-money · 15 options-flo
+[21:40:32] ⚠ playbook-rules.json <- justhodl-playbook-engine : DEPLOY-DRIFT — repo writes the key, deployed zip does not. Redeploying from repo.
+[21:42:40] ✅ playbook-rules.json                    justhodl-playbook-engine       FIXED-DEPLOY-DRIFT age=134.2h 
