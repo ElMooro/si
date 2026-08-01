@@ -597,3 +597,33 @@ def lambda_handler(event, context):
         "summary": payload["summary"],
         "elapsed_seconds": payload["elapsed_seconds"],
     })}
+
+
+_orig_handler_4219 = lambda_handler
+
+
+def lambda_handler(event=None, context=None):
+    """bus_facts — bus enrichment wrapper (core untouched)."""
+    r = _orig_handler_4219(event, context)
+    try:
+        _bus = (json.loads(s3.get_object(
+            Bucket=S3_BUCKET,
+            Key="data/indicator-bus.json")["Body"].read())
+            or {}).get("indicators") or {}
+        _doc = json.loads(s3.get_object(
+            Bucket=S3_BUCKET, Key=OUTPUT_KEY)["Body"].read())
+        def _v(k):
+            return (_bus.get(k) or {}).get("v")
+        _blk = {"marker": "ops4219",
+                "us_cpi_yoy": _v("USIRYY"), "us_ip_yoy": _v("USIPYY"),
+                "de10y": _v("DE10Y"), "cn_gdp_yoy": _v("CNGDPYY"),
+                "us10y": _v("US10Y"),
+                "note": "grounding facts for every debate"}
+        _doc["bus_facts"] = _blk
+        s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY,
+                      Body=json.dumps(_doc, default=str).encode(),
+                      ContentType="application/json")
+        print("[bus_facts] wired: " + json.dumps(_blk)[:120])
+    except Exception as _e:
+        print("[bus_facts] EXC " + type(_e).__name__)
+    return r

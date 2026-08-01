@@ -176,3 +176,31 @@ def lambda_handler(event=None, context=None):
     if event.get("arm"):
         return {"statusCode": 200, "body": json.dumps(arm())}
     return {"statusCode": 200, "body": json.dumps(pulse(force=bool(event.get("force"))))}
+
+
+_orig_handler_4219 = lambda_handler
+
+
+def lambda_handler(event=None, context=None):
+    """bus_pulse — bus enrichment wrapper (core untouched)."""
+    r = _orig_handler_4219(event, context)
+    try:
+        _bus = (json.loads(S3.get_object(
+            Bucket=BUCKET,
+            Key="data/indicator-bus.json")["Body"].read())
+            or {}).get("indicators") or {}
+        _doc = json.loads(S3.get_object(
+            Bucket=BUCKET, Key=OUT_KEY)["Body"].read())
+        def _v(k):
+            return (_bus.get(k) or {}).get("v")
+        _blk = {"marker": "ops4219", "us10y": _v("US10Y"),
+                "usintr": _v("USINTR"), "de10y": _v("DE10Y"),
+                "note": "rates trio beside the intraday tape"}
+        _doc["bus_pulse"] = _blk
+        S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
+                      Body=json.dumps(_doc, default=str).encode(),
+                      ContentType="application/json")
+        print("[bus_pulse] wired: " + json.dumps(_blk)[:120])
+    except Exception as _e:
+        print("[bus_pulse] EXC " + type(_e).__name__)
+    return r

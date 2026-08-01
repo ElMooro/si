@@ -914,3 +914,47 @@ def lambda_handler(event=None, context=None):
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, ensure_ascii=False, default=str).encode("utf-8"),
                   ContentType="application/json; charset=utf-8", CacheControl="max-age=1800")
     return {"ok": True, "barometer": baro, "per_mechanism": pm, "earned": earned, "master_ew": master_ew, "n_firing": len(firing), "n_divergences": len(divs)}
+
+
+_orig_handler_4219 = lambda_handler
+
+
+def lambda_handler(event=None, context=None):
+    """bus_canaries — bus enrichment wrapper (core untouched)."""
+    r = _orig_handler_4219(event, context)
+    try:
+        _bus = (json.loads(S3.get_object(
+            Bucket=BUCKET,
+            Key="data/indicator-bus.json")["Body"].read())
+            or {}).get("indicators") or {}
+        _doc = json.loads(S3.get_object(
+            Bucket=BUCKET, Key=OUT_KEY)["Body"].read())
+        import statistics as _st
+        def _pct_neg(sfx):
+            _v = [v.get("v") for k, v in _bus.items()
+                  if k.endswith(sfx)
+                  and isinstance(v.get("v"), (int, float))]
+            return (round(100 * sum(1 for x in _v if x < 0)
+                          / len(_v), 1) if _v else None)
+        _intr = [v.get("v") for k, v in _bus.items()
+                 if k.endswith("INTR")
+                 and isinstance(v.get("v"), (int, float))
+                 and -2 < v["v"] < 60]
+        _hot = sorted(k for k, v in _bus.items()
+                      if k.endswith("IRYY")
+                      and isinstance(v.get("v"), (int, float))
+                      and v["v"] > 6)
+        _blk = {"marker": "ops4219",
+                "ip_contracting_pct": _pct_neg("IPYY"),
+                "gdp_contracting_pct": _pct_neg("GDPYY"),
+                "inflation_hot_n": len(_hot),
+                "inflation_hot_sample": _hot[:8],
+                "note": "global breadth canaries from the bus"}
+        _doc["bus_canaries"] = _blk
+        S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
+                      Body=json.dumps(_doc, default=str).encode(),
+                      ContentType="application/json")
+        print("[bus_canaries] wired: " + json.dumps(_blk)[:120])
+    except Exception as _e:
+        print("[bus_canaries] EXC " + type(_e).__name__)
+    return r
