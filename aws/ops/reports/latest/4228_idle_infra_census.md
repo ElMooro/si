@@ -1,0 +1,63 @@
+# ops 4228 — idle infrastructure census (read-only)
+
+**Status:** success  
+**Duration:** 9.3s  
+**Finished:** 2026-08-01T05:24:18+00:00  
+
+## Data
+
+| function | section | versions |
+|---|---|---|
+| justhodl-stock-analyzer | snapstart | 1 |
+| justhodl-ai-chat | snapstart | 1 |
+| justhodl-stock-screener | snapstart | 1 |
+| justhodl-investor-agents | snapstart | 1 |
+| justhodl-reports-builder | snapstart | 1 |
+| cftc-futures-positioning-agent | snapstart | 1 |
+| justhodl-morning-intelligence | snapstart | 1 |
+| justhodl-edge-engine | snapstart | 1 |
+
+## Log
+## 1. OpenSearch  (~$51/mo)
+
+- `05:24:09` ✗ opensearch: An error occurred (AccessDeniedException) when calling the ListDomainNames operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: es:
+## 2. SageMaker  (~$35/mo Studio JupyterLab)
+
+- `05:24:09` ✗ sagemaker: An error occurred (AccessDeniedException) when calling the ListApps operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: sagemaker:
+## 3. Load balancers  (~$32/mo)
+
+- `05:24:10` ✗ elb: An error occurred (AccessDenied) when calling the DescribeLoadBalancers operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: elasti
+## 4. EC2 instances, EIPs, NAT  (~$34/mo)
+
+- `05:24:10` ✗ ec2: An error occurred (UnauthorizedOperation) when calling the DescribeInstances operation: You are not authorized to perform this operation. User: arn:aws:iam::857687956942:user/githu
+## 5. App Runner  (~$10/mo)
+
+- `05:24:10` ✗ apprunner/ecr: An error occurred (AccessDeniedException) when calling the ListServices operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: apprun
+## 6. Lambda SnapStart cached versions  (~$16/mo)
+
+- `05:24:17` functions with SnapStart=PublishedVersions: 8
+- `05:24:17` ⚠   justhodl-stock-analyzer                  versions=1
+- `05:24:17` ⚠   justhodl-ai-chat                         versions=1
+- `05:24:17` ⚠   justhodl-stock-screener                  versions=1
+- `05:24:17` ⚠   justhodl-investor-agents                 versions=1
+- `05:24:18` ⚠   justhodl-reports-builder                 versions=1
+- `05:24:18` ⚠   cftc-futures-positioning-agent           versions=1
+- `05:24:18` ⚠   justhodl-morning-intelligence            versions=1
+- `05:24:18` ⚠   justhodl-edge-engine                     versions=1
+## 7. Secrets Manager / DynamoDB / other standing charges
+
+- `05:24:18` ⚠ secrets: An error occurred (AccessDeniedException) when calling the ListSecrets operation: User: arn:aws:iam::857687956942:user/g
+## 8. KILL LIST (evidence-backed, nothing executed)
+
+- `05:24:18`   $  2.00/mo  snapstart        justhodl-stock-analyzer             1 published versions cached
+- `05:24:18`   $  2.00/mo  snapstart        justhodl-ai-chat                    1 published versions cached
+- `05:24:18`   $  2.00/mo  snapstart        justhodl-stock-screener             1 published versions cached
+- `05:24:18`   $  2.00/mo  snapstart        justhodl-investor-agents            1 published versions cached
+- `05:24:18`   $  2.00/mo  snapstart        justhodl-reports-builder            1 published versions cached
+- `05:24:18`   $  2.00/mo  snapstart        cftc-futures-positioning-agent      1 published versions cached
+- `05:24:18`   $  2.00/mo  snapstart        justhodl-morning-intelligence       1 published versions cached
+- `05:24:18`   $  2.00/mo  snapstart        justhodl-edge-engine                1 published versions cached
+- `05:24:18` 
+- `05:24:18` TOTAL RECLAIMABLE IF ALL KILLED: $16.00/mo
+- `05:24:18` Current run-rate ~$300/mo -> would land ~$284/mo
+- `05:24:18` ✅ wrote 4228_idle_infra_census.json
