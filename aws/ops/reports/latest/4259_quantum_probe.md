@@ -1,0 +1,27 @@
+# ops 4259 -- shape probe for quantum-desk v1.0.2
+
+**Status:** success  
+**Duration:** 0.6s  
+**Finished:** 2026-08-01T22:30:40+00:00  
+
+## Log
+## asset-compass
+
+- `22:30:40` top keys: ['schema_version', 'generated_at', 'engine', 'status', 'macro_forward', 'hurdle', 'credit_context', 'betas', 'assets', 'horizons', 'compass_ranking', 'verdict_trio', 'cash_path_pct', 'h_meta', 'correlations', 'factor_betas', 'scenarios', 'forecast_ledger', 'boards', 'context']
+- `22:30:40` assets type: [31 x {ticker:str,class:str,label:str,price:float,structural:bool,er_1y_pct:float,er_components:{...2 keys},flags:[0 x ?],asym:{...1 keys},trend:{...2 keys},breakout:{...1 keys},horizon:{...2 keys},excess_vs_cash_pp:float,read:{...3 keys}}]
+- `22:30:40` row0 keys: ['ticker', 'class', 'label', 'price', 'structural', 'er_1y_pct', 'er_components', 'flags', 'asym', 'trend', 'breakout', 'horizon', 'excess_vs_cash_pp', 'read']
+- `22:30:40` row0: {"ticker": "CASH", "class": "cash", "label": "Cash (1y T-bill)", "price": 1.0, "structural": true, "er_1y_pct": 4.04, "er_components": {"carry_pct": 4.04, "model": "1y T-bill"}, "flags": [], "asym": {"status": "N/A"}, "trend": {"label": "N/A", "ok": true}, "breakout": {"state": "NONE"}, "horizon": {"hold": "any", "basis": "parking; no path risk"}, "excess_vs_cash_pp": 0.0, "read": {"bull": [], "bear": ["Fails the cash hurdle: ER 4.0% vs 4.0% risk-free"], "net": "Nothing compelling at today's prices."}}
+## best-setups
+
+- `22:30:40` top keys: ['schema_version', 'engine', 'generated_at', 'duration_s', 'weight_source', 'bond_vol_regime', 'rotation_regime', 'nowcast_regime', 'methodology', 'playbook_context', 'stats', 'top_setups', 'quad_threats', 'triple_threats', 'buildout_threats', 'brain_aligned', 'structural_chokepoints', 'contested_picks', 'picks_with_kill_thesis', 'lead_lag_tailwinds']
+- `22:30:40` list 'playbook_context': [3 x {id:str,symbol:str,family:str,text:str}]
+- `22:30:40` list 'top_setups': [50 x {why:str,ticker:str,name:str,conviction:float,khalid_panels:{...3 keys},khalid_panel_multiplier:float,khalid_panel_audit:NoneType,earnings_date:NoneType,earnings_in_days:NoneType,earnings_flag:bool,squeeze_fuel:NoneType,khalid_note:NoneType,industry_flow_quadrant:str,industry_flow_z:float}]
+- `22:30:40` list 'structural_chokepoints': [30 x {why:str,ticker:str,name:str,conviction:float,khalid_panels:{...3 keys},khalid_panel_multiplier:float,khalid_panel_audit:NoneType,earnings_date:str,earnings_in_days:int,earnings_flag:bool,squeeze_fuel:NoneType,khalid_note:{...5 keys},industry_flow_quadrant:str,industry_flow_z:float}]
+- `22:30:40` list 'lead_lag_tailwinds': [2 x {ticker:str,conviction:float,lead_lag:{...5 keys}}]
+- `22:30:40` setup row keys: ['why', 'ticker', 'name', 'conviction', 'khalid_panels', 'khalid_panel_multiplier', 'khalid_panel_audit', 'earnings_date', 'earnings_in_days', 'earnings_flag', 'squeeze_fuel', 'khalid_note', 'industry_flow_quadrant', 'industry_flow_z', 'rotation_mult', 'rotation_quadrant', 'rotation_etf', 'rotation_note', 'risk_regime_mult', 'risk_gate_posture', 'risk_gate_rank_mult', 'risk_gate_sizing_mult', 'industry_mult', 'industry_etf', 'industry_score', 'industry_tag', 'factor_regime_mult', 'nowcast_regime_mult', 'cycle_phase', 'cycle_flag', 'cycle_warning', 'red_flags', 'quad_threat', 'verdict', 'triple_threat', 'buildout_threat', 'brain_aligned', 'value_lenses', 'flow_lenses', 'n_signals']
+- `22:30:40` setup row sample: {"ticker": "MU", "name": "Micron Technology Inc", "conviction": 72.6, "industry_flow_quadrant": "NEUTRAL", "sector": "Technology"}
+## router
+
+- `22:30:40` top keys: ['engine', 'version', 'generated_at', 'primary_framework', 'primary_framework_score', 'primary_framework_active', 'primary_regime', 'primary_thesis', 'primary_sleeve', 'secondary_framework', 'secondary_framework_score', 'secondary_sleeve', 'all_framework_scores', 'evidence_map', 'feeds_available', 'framework_universe', 'methodology', 'academic_basis', 'duration_seconds', 'bus_macro']
+- `22:30:40` regime-ish strings: ['$.primary_regime=BALANCED_UNCERTAIN']
+- `22:30:40` ✅ probe complete -- wire v1.0.2 from these shapes
