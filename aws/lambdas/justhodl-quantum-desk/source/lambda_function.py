@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -330,8 +330,29 @@ def read_source(name, spec):
                       "error": str(e)[:120]}
 
 
+COMPASS_CLASS = {  # asset-compass row["class"] vocabulary (ops 4259 probe)
+    "cash": "CASH", "tbill": "TBILLS", "tbills": "TBILLS",
+    "gold": "GOLD", "silver": "SILVER", "energy": "ENERGY",
+    "commodities": "COMMODITIES", "commodity": "COMMODITIES",
+    "btc": "BTC", "bitcoin": "BTC", "eth": "ETH", "ethereum": "ETH",
+    "reit": "REITS", "reits": "REITS", "tips": "TIPS",
+    "duration": "BONDS_LONG", "long_treasury": "BONDS_LONG",
+    "bonds_long": "BONDS_LONG", "treasuries": "BONDS_LONG",
+    "credit": "CREDIT_HY", "hy": "CREDIT_HY",
+    "em": "EM", "em_equity": "EM", "intl": "INTL_DM", "dm": "INTL_DM",
+    "intl_dm": "INTL_DM", "ex_us": "INTL_DM",
+    "small_value": "US_SMALL_VALUE", "us_small": "US_SMALL_VALUE",
+    "small": "US_SMALL_VALUE", "value": "US_SMALL_VALUE",
+    "equity": "US_LARGE", "us_equity": "US_LARGE", "us_large": "US_LARGE",
+    "spx": "US_LARGE", "growth": "US_LARGE",
+}
+
+
 def classify_asset(name):
-    up = " %s " % str(name or "").upper()
+    raw = str(name or "").strip().lower()
+    if raw in COMPASS_CLASS:
+        return COMPASS_CLASS[raw]
+    up = " %s " % raw.upper()
     for keys, cls in CLASS_KEYWORDS:
         if any(k in up for k in keys):
             return cls
@@ -364,14 +385,23 @@ def regime_consensus(docs):
         r = norm_regime(dig(doc, *paths)) or deep_find_regime(doc)
         if r:
             votes.append({"source": src, "regime": r})
+    abst = []
+    for src2, doc in (("router", docs.get("router")),):
+        if doc:
+            lbl = dig(doc, "primary_regime", "regime")
+            if lbl and not norm_regime(lbl) and \
+                    not any(v["source"] == src2 for v in votes):
+                abst.append({"source": src2, "label": str(lbl)[:40],
+                             "note": "explicitly uncertain -- abstains"})
     if not votes:
-        return {"regime": "NEUTRAL", "votes": [], "unanimous": False,
+        return {"regime": "NEUTRAL", "votes": [], "abstained": abst,
+                "unanimous": False,
                 "note": "no regime engine readable -- neutral prior"}
     counts = {}
     for v in votes:
         counts[v["regime"]] = counts.get(v["regime"], 0) + 1
     win = max(counts, key=counts.get)
-    return {"regime": win, "votes": votes,
+    return {"regime": win, "votes": votes, "abstained": abst,
             "unanimous": len(counts) == 1 and len(votes) > 1,
             "disagreement": sorted(counts) if len(counts) > 1 else None}
 
@@ -395,6 +425,23 @@ def risk_layer(doc):
 def leg_discount(row):
     """Depth below 200dma (preferred) or drawdown-from-high. 0.5 = at
     trend; 1.0 = deeply below (Khalid's buy zone); 0.0 = far above."""
+    tr = row.get("trend")
+    if isinstance(tr, dict):
+        lbl = str(tr.get("label") or "")
+        import re as _re
+        m = _re.search(r"(-?\d+(?:\.\d+)?)\s*%", lbl)
+        gap = None
+        if m:
+            gap = float(m.group(1)) / 100.0
+            if "BELOW" in lbl.upper() and gap > 0:
+                gap = -gap
+        elif "BELOW" in lbl.upper():
+            gap = -0.08          # below trend, magnitude unstated
+        elif "ABOVE" in lbl.upper():
+            gap = 0.08
+        if gap is not None:
+            return clamp(0.5 - gap * 2.5), "trend_label", \
+                round(gap * 100, 1)
     price = num(dig(row, "price", "last", "close"))
     ma = None
     for f in ("ma200", "sma200", "dma200", "ma_200", "sma_200",
@@ -419,9 +466,27 @@ def leg_asymmetry(row):
     if up is not None and dn is not None and abs(dn) > 0.01:
         ratio = up / abs(dn)
         return clamp(ratio / 4.0), round(ratio, 2)   # 4:1 saturates
+    asym = row.get("asym")
+    if isinstance(asym, dict):
+        ups = [num(v) for k, v in asym.items()
+               if any(t in k.lower() for t in ("up", "bull", "gain"))]
+        dns = [num(v) for k, v in asym.items()
+               if any(t in k.lower() for t in ("down", "bear", "loss",
+                                               "risk", "dd"))]
+        u = next((x for x in ups if x is not None), None)
+        dn2 = next((x for x in dns if x is not None), None)
+        if u is not None and dn2 not in (None, 0):
+            ratio = abs(u) / abs(dn2)
+            return clamp(ratio / 4.0), round(ratio, 2)
+        rt = num(asym.get("ratio")) or num(asym.get("score"))
+        if rt is not None:
+            return clamp(rt / 4.0 if rt > 1.2 else rt), rt
     a = num(dig(row, "asymmetry", "asym_score", "asymmetry_score"))
     if a is not None:
         return clamp(a if a <= 1 else a / 100.0), a
+    ex = num(row.get("excess_vs_cash_pp"))     # last resort: modeled 1y
+    if ex is not None:                         # excess return vs cash
+        return clamp(0.5 + ex / 20.0), None
     return None, None
 
 
@@ -456,8 +521,24 @@ def leg_strategic(fr_doc, cls, name):
 def leg_plumbing(liq_doc, cls):
     if not liq_doc:
         return None, None
-    slope = num(dig(liq_doc, "slope", "trend", "delta_13w", "delta_4w",
-                    "index_change_13w", "gli_slope", "momentum"))
+    slope = None
+    def _scan(d, depth=3):
+        if depth < 0:
+            return None
+        if isinstance(d, dict):
+            for k, v in d.items():
+                kl = k.lower()
+                if any(t in kl for t in ("slope", "delta", "chg",
+                                         "change", "momentum", "13w",
+                                         "4w", "trend")) \
+                        and num(v) is not None:
+                    return num(v)
+            for v in d.values():
+                x = _scan(v, depth - 1)
+                if x is not None:
+                    return x
+        return None
+    slope = _scan(liq_doc)
     if slope is None:
         lvl = num(dig(liq_doc, "index", "gli", "global_liquidity_index",
                       "net_liquidity"))
@@ -553,6 +634,41 @@ def build_ladder(docs, regime, risk):
                              "verdict_trio", "score") if k in row},
             },
         })
+    cc = docs.get("crypto_cycle")
+    if cc:  # compass carries no crypto -- build rows from the real
+        # on-chain artifact. MVRV = price/realized-price, a legitimate
+        # discount-vs-fair analog (below 1.0 = below aggregate cost basis).
+        for cls in ("BTC", "ETH"):
+            if cls in seen:
+                continue
+            cy, cy_det = leg_cycle(cc, cls)
+            if cy is None:
+                continue
+            seen.add(cls)
+            mvrv = (cy_det or {}).get("mvrv")
+            disc = clamp(0.5 + (1.0 - mvrv) * 0.8) if mvrv else None
+            pl, pl_dir = leg_plumbing(docs.get("liquidity"), cls)
+            legs = {"discount": disc, "asymmetry": None,
+                    "strategic": None,
+                    "regime": PLAYBOOK.get(regime,
+                                           PLAYBOOK["NEUTRAL"]).get(cls, .5),
+                    "plumbing": pl, "cycle": cy}
+            score, used = score_legs(legs)
+            ladder.append({
+                "class": cls, "asset": "%s (on-chain)" % cls,
+                "score": score,
+                "verdict": verdict_for(score, legs, risk),
+                "legs": {k: (round(v, 3) if isinstance(v, float) else v)
+                         for k, v in legs.items()},
+                "legs_used": used,
+                "audit": {"discount": {"basis": "mvrv_vs_realized",
+                                       "pct_vs_trend":
+                                       round((mvrv - 1) * 100, 1)
+                                       if mvrv else None},
+                          "cycle": cy_det, "liquidity": pl_dir,
+                          "source": "crypto-cycle-risk (compass has no "
+                                    "crypto rows)"},
+            })
     ladder.sort(key=lambda r: (r["score"] is not None, r["score"] or 0),
                 reverse=True)
     return ladder
@@ -580,7 +696,16 @@ def build_money_map(docs, ladder, risk, top_n=12):
         conv_n = clamp((conv or 50) / 100.0)
         quad = srow.get("industry_flow_quadrant")
         quad_n = QUAD_BONUS.get(quad, 0.5)
-        cls = classify_asset(dig(srow, "class", "sector", "name") or "") \
+        etf = str(dig(srow, "industry_etf", "rotation_etf") or "").upper()
+        # sector/ETF-aware class gate: miners gate on GOLD, energy on
+        # ENERGY, etc.; generic equities gate on US_LARGE
+        ETF_CLASS = {"GDX": "GOLD", "GDXJ": "GOLD", "SIL": "SILVER",
+                     "XLE": "ENERGY", "XOP": "ENERGY", "OIH": "ENERGY",
+                     "XME": "COMMODITIES", "URA": "COMMODITIES",
+                     "IYR": "REITS", "VNQ": "REITS", "HYG": "CREDIT_HY"}
+        cls = ETF_CLASS.get(etf) \
+            or classify_asset(dig(srow, "sector", "industry_tag",
+                                  "class") or "") \
             or "US_LARGE"
         gate = clamp(class_score.get(cls, 0.5))
         sq = srow.get("squeeze_fuel")
@@ -598,6 +723,9 @@ def build_money_map(docs, ladder, risk, top_n=12):
             "conviction": conv, "flow_quadrant": quad,
             "squeeze_fuel": bool(sq),
             "earnings_in_days": srow.get("earnings_in_days"),
+            "setup_verdict": srow.get("verdict"),
+            "red_flags": len(srow.get("red_flags") or []) or None,
+            "panel_mult": srow.get("khalid_panel_multiplier"),
             "why": (srow.get("why") or "")[:300] or None,
             "legs": {"conviction": round(conv_n, 3),
                      "quadrant": quad_n, "class_gate": round(gate, 3),
