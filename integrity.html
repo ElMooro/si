@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fleet Integrity — JustHodl</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg0:#0a0f1a;--bg1:#0f172a;--bg2:#111c33;--bg3:#16233f;--brd:#1e293b;--brd2:#2c3d5c;
+--t1:#e2e8f0;--t2:#94a3b8;--t3:#64748b;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;
+--purple:#8b5cf6;--cyan:#06b6d4}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg0);color:var(--t1);font-family:'Inter',system-ui,sans-serif;padding:22px;line-height:1.5}
+.wrap{max-width:1320px;margin:0 auto}
+h1{font-size:22px;font-weight:700;letter-spacing:-.4px}
+.sub{color:var(--t3);font-size:12px;margin-top:4px}
+.why{background:var(--bg1);border:1px solid var(--brd);border-left:3px solid var(--purple);
+border-radius:9px;padding:14px 16px;margin:16px 0;color:var(--t2);font-size:13px;max-width:900px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+.k{background:var(--bg1);border:1px solid var(--brd);border-radius:9px;padding:14px 16px}
+.k .lab{font-size:10px;text-transform:uppercase;letter-spacing:1.1px;color:var(--t3);font-weight:600}
+.k .val{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;margin-top:6px}
+.s1{color:var(--red)}.s2{color:var(--yellow)}.s3{color:var(--t2)}.ok{color:var(--green)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.chip{background:var(--bg2);border:1px solid var(--brd2);border-radius:20px;padding:5px 13px;
+font-size:11px;font-weight:600;cursor:pointer;color:var(--t2);transition:.15s;user-select:none}
+.chip:hover{border-color:var(--purple);color:var(--t1)}
+.chip.on{background:var(--purple);border-color:var(--purple);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px;background:var(--bg1);
+border:1px solid var(--brd);border-radius:9px;overflow:hidden}
+th{background:var(--bg2);color:var(--t3);font-size:10px;text-transform:uppercase;
+letter-spacing:1.1px;padding:10px 13px;text-align:left;font-weight:600}
+td{padding:10px 13px;border-top:1px solid var(--brd);vertical-align:top}
+tr:hover td{background:var(--bg2)}
+.mono{font-family:'JetBrains Mono',monospace;font-size:12px}
+.sev{display:inline-block;min-width:34px;text-align:center;border-radius:4px;padding:2px 7px;
+font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.sev1{background:rgba(239,68,68,.16);color:var(--red)}
+.sev2{background:rgba(245,158,11,.16);color:var(--yellow)}
+.sev3{background:rgba(148,163,184,.12);color:var(--t3)}
+.new{background:rgba(139,92,246,.18);color:var(--purple);border-radius:4px;padding:2px 6px;
+font-size:9px;font-weight:700;letter-spacing:.6px;margin-left:7px}
+.det{color:var(--t2);font-size:12px}
+.empty{padding:40px;text-align:center;color:var(--t3)}
+footer{margin-top:22px;color:var(--t3);font-size:11px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Fleet Integrity</h1>
+  <div class="sub" id="sub">loading…</div>
+
+  <div class="why">
+    <b>Why this board exists.</b> The fundamental-census walk ran at 25% completion for months and
+    90 engines fired twice on every tick. Neither errored, neither alarmed, and both were found only
+    because a cost investigation happened to walk past them. This board runs the checks that would
+    have caught them, weekly, against every function in the fleet — and flags what is
+    <span style="color:var(--purple);font-weight:600">NEW</span> since the last accepted baseline,
+    so a known backlog never drowns a fresh failure.
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+  <div class="bar" id="bar"></div>
+  <div id="tblwrap"></div>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const NAMES={
+ D11_code_storage:"Code storage headroom",D4_orphan_rule:"Orphan schedule",
+ D6_scheduled_never_ran:"Scheduled, never ran",D1_recursion:"Unguarded self-invoke",
+ D2_timeout_clipped:"Timeout-clipped",D3_double_fire:"Double-fire target",
+ D8_errors:"Error / throttle outlier",D7_concurrency_drop:"Dropped by concurrency cap",
+ D9_no_dlq:"Failures with no DLQ",D12_stale_env:"Stale env reference",
+ D10_runtime:"Deprecated runtime",D13_dead:"Dead function"};
+let DATA=null,filt=null,onlyNew=false;
+
+function kpi(l,v,c){return `<div class="k"><div class="lab">${l}</div><div class="val ${c||''}">${v}</div></div>`}
+
+function render(){
+  const d=DATA;
+  document.getElementById('sub').textContent=
+    `${d.fleet_size} functions scanned · generated ${new Date(d.generated_at).toLocaleString()} · ${d.elapsed_s}s`;
+  document.getElementById('kpis').innerHTML=
+    kpi('Severity 1',d.sev1,d.sev1?'s1':'ok')+kpi('Severity 2',d.sev2,d.sev2?'s2':'ok')+
+    kpi('Severity 3',d.sev3,'s3')+kpi('New this run',d.n_new,d.n_new?'s1':'ok')+
+    kpi('Resolved',d.n_fixed,'ok')+kpi('Code storage',d.code_storage_pct+'%',
+      d.code_storage_pct>70?'s1':'ok');
+
+  const cls=[...new Set(d.rows.map(r=>r.cls))];
+  document.getElementById('bar').innerHTML=
+    `<div class="chip ${!filt&&!onlyNew?'on':''}" onclick="setF(null,false)">All (${d.rows.length})</div>`+
+    `<div class="chip ${onlyNew?'on':''}" onclick="setF(null,true)">New only (${d.n_new})</div>`+
+    cls.map(c=>`<div class="chip ${filt===c?'on':''}" onclick="setF('${c}',false)">${NAMES[c]||c} (${d.rows.filter(r=>r.cls===c).length})</div>`).join('');
+
+  let rows=d.rows;
+  if(onlyNew)rows=rows.filter(r=>r.is_new);
+  if(filt)rows=rows.filter(r=>r.cls===filt);
+  document.getElementById('tblwrap').innerHTML= rows.length?
+    `<table><thead><tr><th style="width:60px">Sev</th><th style="width:210px">Class</th>
+     <th style="width:290px">Resource</th><th>Evidence</th></tr></thead><tbody>`+
+    rows.map(r=>`<tr><td><span class="sev sev${r.sev}">S${r.sev}</span></td>
+      <td>${NAMES[r.cls]||r.cls}</td>
+      <td class="mono">${r.id}${r.is_new?'<span class="new">NEW</span>':''}</td>
+      <td class="det">${r.detail}</td></tr>`).join('')+`</tbody></table>`
+    : `<div class="empty">Nothing matches this filter.</div>`;
+
+  document.getElementById('foot').textContent=
+    `${d.marker} · baseline diffing on · metrics emitted via CloudWatch EMF (zero API calls)`;
+}
+function setF(c,n){filt=c;onlyNew=n;render()}
+fetch('data/fleet-integrity.json?cb='+Date.now())
+ .then(r=>r.json()).then(j=>{DATA=j;render()})
+ .catch(e=>{document.getElementById('sub').textContent='feed unavailable: '+e});
+</script>
+</body>
+</html>
