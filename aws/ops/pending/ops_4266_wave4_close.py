@@ -25,7 +25,7 @@ s3 = boto3.client("s3", region_name=REGION)
 sch = boto3.client("scheduler", region_name=REGION)
 RUN_START = datetime.now(timezone.utc)
 
-def wait_deployed(fn, tries=45):
+def wait_deployed(fn, tries=45, window_min=45):
     for _ in range(tries):
         try:
             c = lam.get_function_configuration(FunctionName=fn)
@@ -36,7 +36,7 @@ def wait_deployed(fn, tries=45):
                     lm_dt = datetime.strptime(
                         lm.split(".")[0], "%Y-%m-%dT%H:%M:%S"
                     ).replace(tzinfo=timezone.utc)
-                    if (RUN_START - lm_dt).total_seconds() < 45 * 60:
+                    if (RUN_START - lm_dt).total_seconds() < window_min * 60:
                         return c
                 except Exception:
                     return c
@@ -96,7 +96,10 @@ with report("4266_wave4_close") as r:
                "onboarded; next push cycle will touch it)")
 
     r.section("2. party map -- canonical source, reachable host")
-    if wait_deployed("justhodl-political-stocks"):
+    # rerun delta: 45-min window let the PREVIOUS push's deploy satisfy
+    # the check while this push was still rolling out (alphabetical
+    # order touched the snapshotter first). Tight window = this push.
+    if wait_deployed("justhodl-political-stocks", window_min=12):
         p = lam.invoke(FunctionName="justhodl-political-stocks",
                        InvocationType="RequestResponse", Payload=b"{}")
         r.log("invoked: %s"
@@ -117,6 +120,16 @@ with report("4266_wave4_close") as r:
                 r.warn("map fresh (%d members) but source=%s"
                        % (n, src2[:70]))
             else:
+                time.sleep(10)
+                logs = boto3.client("logs", region_name=REGION)
+                ev = logs.filter_log_events(
+                    logGroupName="/aws/lambda/justhodl-political-stocks",
+                    startTime=int((time.time() - 240) * 1000))
+                for e2 in [x["message"].strip()[:140]
+                           for x in ev.get("events", [])
+                           if "political" in x["message"]
+                           or "Error" in x["message"]][-8:]:
+                    r.log("log: %s" % e2)
                 fails.append("party map still stale %.0f min" % a)
         except Exception as e:
             fails.append("party-map verify: %s" % str(e)[:100])
