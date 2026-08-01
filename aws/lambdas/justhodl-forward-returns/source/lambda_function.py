@@ -29,7 +29,8 @@ ASSETS COVERED (every retail can buy via ETF or savings account):
   QQQ    US tech / NASDAQ    TLT  US 20+yr Treasury  DBC  Commodities
   IWM    US small-cap        TIP  US TIPS (real)     BIL  Cash / T-bills
   EFA    Intl developed      LQD  IG corporate       BTC  Bitcoin
-  EEM    Emerging markets    HYG  HY corporate
+  EEM    Emerging markets    HYG  HY corporate      SLV  Silver
+                                                    ETH  Ethereum
                              VNQ  US REITs (real estate)
 
 DATA SOURCES (all real, all free-tier):
@@ -55,7 +56,7 @@ try:
 except Exception:
     pass
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/forward-returns.json"
@@ -113,6 +114,9 @@ HISTORICAL = {
     "GLD": dict(name="Gold", nominal_30y=7.0, vol_10y=15.5, worst_12mo=-29.0,
                 er_median_30y=2.5, er_p10_30y=-1.0, er_p90_30y=6.0,
                 explainer="Pure inflation/dollar hedge. Earns NOTHING — no dividend, no coupon. Pays only via price appreciation. Erb-Harvey: real return mean-reverts to ~1.5%."),
+    "SLV": dict(name="Silver", nominal_30y=5.5, vol_10y=28.0, worst_12mo=-48.0,
+                er_median_30y=2.5, er_p10_30y=-4.0, er_p90_30y=8.0,
+                explainer="Gold's high-beta cousin: half monetary hedge, half industrial input (solar, electronics). No yield. Wider swings than gold in both directions; Erb-Harvey real-return logic applies with much wider bands."),
     "DBC": dict(name="Broad Commodities (oil + metals + ag)", nominal_30y=4.5, vol_10y=18.0, worst_12mo=-44.0,
                 er_median_30y=4.0, er_p10_30y=-2.0, er_p90_30y=8.0,
                 explainer="Basket of physical commodities. Roll yield + spot. Inflation hedge but produces NO income; long-run real return is approximately zero."),
@@ -122,6 +126,9 @@ HISTORICAL = {
     "BTC": dict(name="Bitcoin", nominal_30y=60.0, vol_10y=70.0, worst_12mo=-84.0,
                 er_median_30y=15.0, er_p10_30y=-30.0, er_p90_30y=50.0,
                 explainer="Highest-risk highest-return asset of the last 15 years. -80% drawdowns are NORMAL not exceptional. Forward expected return is enormously uncertain — model with extreme caution."),
+    "ETH": dict(name="Ethereum", nominal_30y=45.0, vol_10y=80.0, worst_12mo=-80.0,
+                er_median_30y=12.0, er_p10_30y=-35.0, er_p90_30y=45.0,
+                explainer="Smart-contract platform token; shorter history than BTC and a persistently weaker ETH/BTC trend since 2021. Staking yields ~3% exist but price path dominates. Forward ER even more uncertain than Bitcoin — the bands here are doing the real work."),
 }
 
 ASSETS = list(HISTORICAL.keys())
@@ -340,6 +347,10 @@ def compute_forward_returns():
         elif sym == "GLD":
             # Erb-Harvey: gold real return mean-reverts to ~1.5%. Nominal = 1.5% + breakeven.
             er = 1.5 + breakeven
+        elif sym == "SLV":
+            # Silver: Erb-Harvey logic, lower long-run real (~1.0%) than
+            # gold, industrial demand adds cyclicality not carry.
+            er = 1.0 + breakeven
         elif sym == "DBC":
             # Commodities: 0% real long-run + breakeven inflation
             er = 0.0 + breakeven
@@ -349,6 +360,10 @@ def compute_forward_returns():
         elif sym == "BTC":
             # Conservative forward of 15% with massive uncertainty (in p10/p90)
             er = 15.0
+        elif sym == "ETH":
+            # Below BTC (weaker ETH/BTC regime); uncertainty lives in the
+            # p10/p90 bands, not the point estimate.
+            er = 12.0
         else:
             er = hist["er_median_30y"]
 
