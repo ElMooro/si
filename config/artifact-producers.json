@@ -1,0 +1,4766 @@
+{
+ "version": 1,
+ "generated_at": "2026-08-01T19:09:14.221201+00:00",
+ "source": "ops_4249 grep of contracted keys against engine source; refresh by re-running this build",
+ "n_mapped": 799,
+ "n_contracted": 866,
+ "producers": {
+  "data/10kq-filings.json": [
+   "justhodl-health-monitor",
+   "justhodl-morning-intelligence",
+   "justhodl-sec-10kq",
+   "justhodl-sec-filing-diff"
+  ],
+  "data/13f-clone-alpha.json": [
+   "justhodl-13f-clone-alpha",
+   "justhodl-13f-positions"
+  ],
+  "data/13f-cusip-map.json": [
+   "justhodl-13f-clone-alpha",
+   "justhodl-13f-positions"
+  ],
+  "data/13f-flows-by-ticker.json": [
+   "justhodl-13f-positions",
+   "justhodl-capital-flow",
+   "justhodl-deal-scanner",
+   "justhodl-fundamental-census",
+   "justhodl-fundamental-graphs",
+   "justhodl-industry-boom"
+  ],
+  "data/13f-positions.json": [
+   "justhodl-13f-positions",
+   "justhodl-13f-price-divergence",
+   "justhodl-ai-chat",
+   "justhodl-attention-confluence",
+   "justhodl-best-ideas",
+   "justhodl-bottleneck-research",
+   "justhodl-capital-flow",
+   "justhodl-flow-confluence",
+   "justhodl-forward-returns",
+   "justhodl-health-monitor",
+   "justhodl-institutional-footprint",
+   "justhodl-master-ranker",
+   "justhodl-money-flow-state",
+   "justhodl-morning-intelligence",
+   "justhodl-page-ai-commentary",
+   "justhodl-regime-composite",
+   "justhodl-smart-money-cluster",
+   "justhodl-whats-changed"
+  ],
+  "data/13f-price-anchors.json": [
+   "justhodl-13f-positions"
+  ],
+  "data/13f-price-divergence.json": [
+   "justhodl-13f-price-divergence",
+   "justhodl-consensus-bottom",
+   "justhodl-institutional-footprint",
+   "justhodl-page-ai-commentary",
+   "justhodl-signal-board"
+  ],
+  "data/52wk-quality-breakout.json": [
+   "justhodl-52wk-quality-breakout",
+   "justhodl-boom-radar",
+   "justhodl-prepump-alerts-router",
+   "justhodl-signal-board"
+  ],
+  "data/8k-filings.json": [
+   "justhodl-ai-chat",
+   "justhodl-asymmetric-scorer",
+   "justhodl-earnings-whisper",
+   "justhodl-health-monitor",
+   "justhodl-morning-intelligence",
+   "justhodl-readthrough",
+   "justhodl-redflag-alerter",
+   "justhodl-sec-8k"
+  ],
+  "data/_fleet-monitor-alert-history.json": [
+   "justhodl-fleet-error-monitor",
+   "justhodl-fleet-freshness-monitor"
+  ],
+  "data/_fleet-monitor.json": [
+   "justhodl-fleet-error-monitor",
+   "justhodl-fleet-freshness-monitor"
+  ],
+  "data/_freshness-alert-history.json": [
+   "justhodl-fleet-freshness-monitor"
+  ],
+  "data/_freshness-manifest.json": [
+   "justhodl-fleet-freshness-monitor"
+  ],
+  "data/_freshness-monitor.json": [
+   "justhodl-fleet-freshness-monitor"
+  ],
+  "data/aaii-sentiment.json": [
+   "justhodl-aaii-sentiment",
+   "justhodl-ai-chat",
+   "justhodl-asymmetric-scorer",
+   "justhodl-crisis-knowledge-base",
+   "justhodl-cycle-clock",
+   "justhodl-global-flow-desk",
+   "justhodl-health-monitor",
+   "justhodl-market-extremes",
+   "justhodl-morning-intelligence",
+   "justhodl-put-call-extreme",
+   "justhodl-signal-board"
+  ],
+  "data/ab-test-results.json": [
+   "justhodl-ab-test",
+   "justhodl-calibration-snapshot",
+   "justhodl-morning-brief-tg",
+   "justhodl-whats-changed"
+  ],
+  "data/accumulation-radar.json": [
+   "justhodl-accumulation-radar",
+   "justhodl-best-setups",
+   "justhodl-finviz-signals",
+   "justhodl-industry-rotation",
+   "justhodl-master-ranker",
+   "justhodl-morning-intelligence",
+   "justhodl-sector-capital-fusion",
+   "justhodl-short-book",
+   "justhodl-whales"
+  ],
+  "data/activist-13d.json": [
+   "justhodl-activist-13d",
+   "justhodl-ma-target-predictor",
+   "justhodl-page-ai-commentary",
+   "justhodl-prediction-snapshotter",
+   "justhodl-prepump-alerts-router",
+   "justhodl-screen-builder",
+   "justhodl-sequence-alpha-detector",
+   "justhodl-signal-board"
+  ],
+  "data/activist-filings-state.json": [
+   "justhodl-activist-filings-scanner"
+  ],
+  "data/activist-filings.json": [
+   "justhodl-activist-filings-scanner",
+   "justhodl-compound-aggregator"
+  ],
+  "data/activity-nowcast.json": [
+   "justhodl-activity-nowcast",
+   "justhodl-cycle-clock"
+  ],
+  "data/ai-brief.json": [
+   "justhodl-ai-brief",
+   "justhodl-history-snapshotter"
+  ],
+  "data/ai-infra-stack.json": [
+   "justhodl-ai-infra-stack",
+   "justhodl-ai-rerating-radar",
+   "justhodl-attention-signals",
+   "justhodl-deal-scanner",
+   "justhodl-fast-filings",
+   "justhodl-finnhub-signals",
+   "justhodl-leadlag-graph",
+   "justhodl-smart-money-13f",
+   "justhodl-stocktwits"
+  ],
+  "data/ai-rerating-radar.json": [
+   "justhodl-ai-rerating-radar",
+   "justhodl-attention-signals",
+   "justhodl-chokepoint",
+   "justhodl-cyclical-bagger",
+   "justhodl-fast-filings",
+   "justhodl-finnhub-signals",
+   "justhodl-leadlag-graph",
+   "justhodl-smart-money-13f"
+  ],
+  "data/ai-website-synthesis.json": [
+   "justhodl-ai-website-synthesis",
+   "justhodl-catalyst-clusters",
+   "justhodl-pump-positioning",
+   "justhodl-pump-radar-brief"
+  ],
+  "data/air-cargo.json": [
+   "justhodl-air-cargo",
+   "justhodl-boom-stage",
+   "justhodl-risk-gate"
+  ],
+  "data/alert-backtests.json": [
+   "justhodl-alert-backtester",
+   "justhodl-confluence-meta"
+  ],
+  "data/alert-history.json": [
+   "justhodl-ai-brief",
+   "justhodl-alert-router",
+   "justhodl-alpha-alerts",
+   "justhodl-anomaly-detector",
+   "justhodl-carry-surface",
+   "justhodl-fleet-error-monitor",
+   "justhodl-fleet-freshness-monitor",
+   "justhodl-health-monitor",
+   "justhodl-history-snapshotter",
+   "justhodl-portfolio-catalysts",
+   "justhodl-portfolio-risk",
+   "justhodl-portfolio-sizer"
+  ],
+  "data/alert-sentinel.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-canary-warroom"
+  ],
+  "data/allocator.json": [
+   "justhodl-ai-brief",
+   "justhodl-allocator",
+   "justhodl-cro-digest",
+   "justhodl-desk-allocator",
+   "justhodl-firm-book",
+   "justhodl-firm-risk-board",
+   "justhodl-pm-decision",
+   "justhodl-pnl-attribution",
+   "justhodl-risk-monitor"
+  ],
+  "data/alpha-brief.json": [
+   "justhodl-alpha-daily-brief"
+  ],
+  "data/alpha-compass-history.json": [
+   "justhodl-alpha-compass"
+  ],
+  "data/alpha-compass.json": [
+   "justhodl-alpha-compass",
+   "justhodl-alpha-daily-brief"
+  ],
+  "data/alpha-decay-history.json": [
+   "justhodl-alpha-decay"
+  ],
+  "data/alpha-decay.json": [
+   "justhodl-alpha-decay"
+  ],
+  "data/alpha-prev-state.json": [
+   "justhodl-alpha-research"
+  ],
+  "data/alpha-scoreboard-research.json": [
+   "justhodl-alpha-research"
+  ],
+  "data/alpha-track-record.json": [
+   "justhodl-alpha-research"
+  ],
+  "data/alpha-triage.json": [
+   "justhodl-inverse-harvester",
+   "justhodl-proven-alpha"
+  ],
+  "data/altseason.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-altseason",
+   "justhodl-crypto-confluence",
+   "justhodl-signal-board"
+  ],
+  "data/analyst-actions.json": [
+   "justhodl-analyst-actions",
+   "justhodl-boom-radar",
+   "justhodl-equity-confluence",
+   "justhodl-morning-brief-tg",
+   "justhodl-readthrough",
+   "justhodl-resilience"
+  ],
+  "data/analyst-consensus.json": [
+   "justhodl-ai-rerating-radar",
+   "justhodl-analyst-consensus"
+  ],
+  "data/apac-flows.json": [
+   "justhodl-apac-flows"
+  ],
+  "data/apac-leadlag-series.json": [
+   "justhodl-apac-leadlag"
+  ],
+  "data/apac-leadlag.json": [
+   "justhodl-apac-leadlag",
+   "justhodl-industry-rotation"
+  ],
+  "data/apex-fusion.json": [
+   "justhodl-apex-fusion",
+   "justhodl-confluence-meta"
+  ],
+  "data/ark-holdings-prev.json": [
+   "justhodl-ark-holdings"
+  ],
+  "data/ark-holdings.json": [
+   "justhodl-ark-holdings",
+   "justhodl-convergence-radar"
+  ],
+  "data/asia-leads.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-asia-leads",
+   "justhodl-best-setups",
+   "justhodl-boom-stage",
+   "justhodl-data-census",
+   "justhodl-morning-intelligence",
+   "justhodl-risk-gate",
+   "justhodl-tradingview"
+  ],
+  "data/asset-compass.json": [
+   "justhodl-asset-compass",
+   "justhodl-asset-discovery",
+   "justhodl-equity-research",
+   "justhodl-master-allocator"
+  ],
+  "data/asset-discovery.json": [
+   "justhodl-asset-discovery"
+  ],
+  "data/asymmetric-scorer.json": [
+   "justhodl-ai-brief",
+   "justhodl-asymmetric-scorer",
+   "justhodl-best-ideas",
+   "justhodl-deep-value-screener",
+   "justhodl-history-snapshotter",
+   "justhodl-master-ranker",
+   "justhodl-risk-radar"
+  ],
+  "data/ath.json": [
+   "justhodl-daily-report-v3"
+  ],
+  "data/attention-confluence.json": [
+   "justhodl-attention-confluence",
+   "justhodl-buyback-engine",
+   "justhodl-search-attention",
+   "justhodl-signal-logger"
+  ],
+  "data/attention-signals.json": [
+   "justhodl-ai-rerating-radar",
+   "justhodl-attention-confluence",
+   "justhodl-attention-signals",
+   "justhodl-search-attention"
+  ],
+  "data/auction-crisis-ai.json": [
+   "justhodl-ai-website-synthesis",
+   "justhodl-auction-crisis-ai"
+  ],
+  "data/auction-crisis-alert-state.json": [
+   "justhodl-auction-crisis-ai"
+  ],
+  "data/auction-crisis.json": [
+   "justhodl-ai-brief",
+   "justhodl-ai-chat",
+   "justhodl-ai-website-synthesis",
+   "justhodl-alert-router",
+   "justhodl-allocator",
+   "justhodl-auction-crisis-ai",
+   "justhodl-auction-crisis-detector",
+   "justhodl-auction-grader",
+   "justhodl-auction-interpreter",
+   "justhodl-bond-desk",
+   "justhodl-chart-data",
+   "justhodl-confluence-meta",
+   "justhodl-crisis-canaries",
+   "justhodl-kb-matcher",
+   "justhodl-liquidity-inflection",
+   "justhodl-morning-intelligence",
+   "justhodl-page-ai-commentary",
+   "justhodl-regime-conditional-router",
+   "justhodl-signal-board",
+   "justhodl-smart-wake",
+   "justhodl-tenor-signal-interpreter",
+   "justhodl-wave-signal-logger"
+  ],
+  "data/auction-decisive-call.json": [
+   "justhodl-auction-interpreter"
+  ],
+  "data/auction-grades.json": [
+   "justhodl-auction-grader",
+   "justhodl-auction-tail",
+   "justhodl-risk-gate"
+  ],
+  "data/auction-tail.json": [
+   "justhodl-auction-tail"
+  ],
+  "data/auction-tenor-signals.json": [
+   "justhodl-ai-chat",
+   "justhodl-alert-router",
+   "justhodl-allocator",
+   "justhodl-daily-report-v3",
+   "justhodl-morning-intelligence",
+   "justhodl-tenor-signal-interpreter"
+  ],
+  "data/backlog-coverage-cache.json": [
+   "justhodl-backlog"
+  ],
+  "data/backlog.json": [
+   "justhodl-backlog",
+   "justhodl-chokepoint",
+   "justhodl-deep-value-overlap",
+   "justhodl-equity-research",
+   "justhodl-industry-boom",
+   "justhodl-readthrough",
+   "justhodl-stock-xray"
+  ],
+  "data/backtest-harness.json": [
+   "justhodl-alpha-decay",
+   "justhodl-ask-desk",
+   "justhodl-backtest-harness",
+   "justhodl-signal-board"
+  ],
+  "data/backtest-summary.json": [
+   "justhodl-health-monitor"
+  ],
+  "data/bagger-engine.json": [
+   "justhodl-bagger-engine",
+   "justhodl-best-ideas",
+   "justhodl-chokepoint",
+   "justhodl-cyclical-bagger",
+   "justhodl-hiring-velocity",
+   "justhodl-opportunity-screener"
+  ],
+  "data/baltic-dry.json": [
+   "justhodl-gap-metrics"
+  ],
+  "data/bank-stress-history.json": [
+   "justhodl-bank-stress"
+  ],
+  "data/bank-stress.json": [
+   "justhodl-bank-stress",
+   "justhodl-cds-monitor",
+   "justhodl-cycle-clock",
+   "justhodl-page-ai-commentary",
+   "justhodl-risk-regime",
+   "justhodl-stress-index"
+  ],
+  "data/basket-var.json": [
+   "justhodl-basket-var",
+   "justhodl-brain-sync"
+  ],
+  "data/bea-economic.json": [
+   "bea-economic-agent",
+   "justhodl-cycle-clock",
+   "justhodl-nowcast-desk"
+  ],
+  "data/behavior-mirror.json": [
+   "justhodl-behavior-mirror"
+  ],
+  "data/beneish.json": [
+   "justhodl-ai-rerating-radar",
+   "justhodl-beneish",
+   "justhodl-best-setups",
+   "justhodl-master-ranker"
+  ],
+  "data/benzinga-earnings-calendar.json": [
+   "justhodl-benzinga-earnings",
+   "justhodl-best-setups",
+   "justhodl-fundamental-census",
+   "justhodl-proven-portfolio"
+  ],
+  "data/benzinga-earnings.json": [
+   "justhodl-benzinga-earnings"
+  ],
+  "data/best-ideas.json": [
+   "justhodl-best-ideas",
+   "justhodl-chart-vision",
+   "justhodl-convexity-scorer",
+   "justhodl-desk-allocator",
+   "justhodl-desk-returns",
+   "justhodl-failure-library",
+   "justhodl-firm-book",
+   "justhodl-premortem-engine"
+  ],
+  "data/best-setups.json": [
+   "justhodl-alpha-compass",
+   "justhodl-ask",
+   "justhodl-basket-var",
+   "justhodl-best-setups",
+   "justhodl-bottleneck-boom",
+   "justhodl-confluence-meta",
+   "justhodl-conviction-engine",
+   "justhodl-deep-value-overlap",
+   "justhodl-devils-advocate",
+   "justhodl-engine-conflicts",
+   "justhodl-ignition",
+   "justhodl-my-brief",
+   "justhodl-position-sizer",
+   "justhodl-setups-push",
+   "justhodl-stock-xray",
+   "justhodl-strategist",
+   "justhodl-weekly-ai-review",
+   "justhodl-whats-changed",
+   "justhodl-wl-fusion"
+  ],
+  "data/beta-laggards.json": [
+   "justhodl-best-ideas",
+   "justhodl-beta-laggard",
+   "justhodl-theme-second-wave"
+  ],
+  "data/bill-share.json": [
+   "justhodl-gap-metrics"
+  ],
+  "data/bis-crossborder.json": [
+   "justhodl-bis-crossborder",
+   "justhodl-eurodollar-plumbing",
+   "justhodl-morning-intelligence",
+   "justhodl-risk-gate"
+  ],
+  "data/bls-employment.json": [
+   "bls-labor-agent"
+  ],
+  "data/bls-labor.json": [
+   "bls-labor-agent",
+   "justhodl-cycle-clock",
+   "justhodl-nowcast-desk"
+  ],
+  "data/boj-detail.json": [
+   "justhodl-boj-detail",
+   "justhodl-data-census",
+   "justhodl-global-tide",
+   "justhodl-snb-detail",
+   "justhodl-tradingview"
+  ],
+  "data/bond-desk.json": [
+   "justhodl-bond-desk",
+   "justhodl-signal-board"
+  ],
+  "data/bond-trace.json": [
+   "justhodl-ai-website-synthesis",
+   "justhodl-bond-trace"
+  ],
+  "data/bond-vol-history.json": [
+   "justhodl-bond-vol"
+  ],
+  "data/bond-vol.json": [
+   "justhodl-ai-chat",
+   "justhodl-ask",
+   "justhodl-best-setups",
+   "justhodl-bond-desk",
+   "justhodl-bond-vol",
+   "justhodl-brain-sync",
+   "justhodl-crypto-cycle-risk",
+   "justhodl-cycle-clock",
+   "justhodl-dollar-radar",
+   "justhodl-fifx-vol-migration",
+   "justhodl-my-brief",
+   "justhodl-position-sizer",
+   "justhodl-regime-playbook",
+   "justhodl-risk-gate"
+  ],
+  "data/boom-radar.json": [
+   "justhodl-boom-radar",
+   "justhodl-equity-confluence",
+   "justhodl-morning-brief-tg",
+   "justhodl-prepump-alerts-router",
+   "justhodl-supply-chain-graph"
+  ],
+  "data/boom-stage.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-boom-stage",
+   "justhodl-morning-intelligence"
+  ],
+  "data/bottleneck-boom-research.json": [
+   "justhodl-bottleneck-research"
+  ],
+  "data/bottleneck-boom.json": [
+   "justhodl-ai-infra-stack",
+   "justhodl-best-setups",
+   "justhodl-bottleneck-boom",
+   "justhodl-bottleneck-research",
+   "justhodl-confluence-meta",
+   "justhodl-cycle-clock",
+   "justhodl-industry-boom",
+   "justhodl-inventory-drawdown",
+   "justhodl-morning-intelligence",
+   "justhodl-scarcity-radar",
+   "justhodl-signal-board"
+  ],
+  "data/bottleneck-pressure-history.json": [
+   "justhodl-bottleneck-research"
+  ],
+  "data/bottleneck-prev-state.json": [
+   "justhodl-bottleneck-research"
+  ],
+  "data/bottleneck-track-record.json": [
+   "justhodl-bottleneck-research"
+  ],
+  "data/brain-compiler.json": [
+   "justhodl-brain-compiler"
+  ],
+  "data/brain-history.json": [
+   "justhodl-brain-sync"
+  ],
+  "data/brain.json": [
+   "justhodl-ask",
+   "justhodl-best-setups",
+   "justhodl-brain-compiler",
+   "justhodl-brain-sync",
+   "justhodl-canary-warroom",
+   "justhodl-devils-advocate",
+   "justhodl-domain-barometers",
+   "justhodl-llm-health",
+   "justhodl-master-allocator",
+   "justhodl-morning-intelligence",
+   "justhodl-my-brief",
+   "justhodl-position-sizer",
+   "justhodl-tradingview",
+   "justhodl-tv-workbench"
+  ],
+  "data/breadth-divergence.json": [
+   "justhodl-breadth-divergence",
+   "justhodl-forced-selling-bounce",
+   "justhodl-institutional-footprint",
+   "justhodl-risk-regime",
+   "justhodl-signal-board"
+  ],
+  "data/breadth-history.json": [
+   "justhodl-breadth-thrust"
+  ],
+  "data/breadth-thrust.json": [
+   "justhodl-breadth-thrust",
+   "justhodl-cycle-clock",
+   "justhodl-forced-selling-bounce",
+   "justhodl-prepump-alerts-router",
+   "justhodl-signal-board",
+   "justhodl-wl-fusion"
+  ],
+  "data/buyback-engine.json": [
+   "justhodl-attention-confluence",
+   "justhodl-best-setups",
+   "justhodl-buyback-engine",
+   "justhodl-insider-buyback-confluence",
+   "justhodl-master-ranker",
+   "justhodl-signal-logger"
+  ],
+  "data/buyback-scanner.json": [
+   "justhodl-buyback-engine",
+   "justhodl-buyback-scanner",
+   "justhodl-insider-buyback-confluence",
+   "justhodl-signal-board"
+  ],
+  "data/buyback-yield-ranking.json": [
+   "justhodl-buyback-yield-ranking",
+   "justhodl-flow-confluence",
+   "justhodl-signal-board"
+  ],
+  "data/buzz-velocity.json": [
+   "justhodl-buzz-velocity",
+   "justhodl-convergence-radar",
+   "justhodl-future-intelligence",
+   "justhodl-hot-stocks-digest",
+   "justhodl-velocity-acceleration"
+  ],
+  "data/calibration-fleet-history.json": [
+   "justhodl-calibration-fleet",
+   "justhodl-signal-orthogonality"
+  ],
+  "data/calibration-fleet.json": [
+   "justhodl-calibration-fleet",
+   "justhodl-signal-orthogonality"
+  ],
+  "data/calibration-history.json": [
+   "justhodl-alpha-calibrator",
+   "justhodl-self-improvement"
+  ],
+  "data/calibration-latest.json": [
+   "justhodl-alpha-calibrator"
+  ],
+  "data/calibration-snapshot.json": [
+   "justhodl-ai-brief",
+   "justhodl-allocator",
+   "justhodl-calibration-snapshot",
+   "justhodl-khalid-adaptive"
+  ],
+  "data/canary-grid.json": [
+   "justhodl-canary-grid",
+   "justhodl-canary-warroom",
+   "justhodl-cds-monitor",
+   "justhodl-conviction-engine",
+   "justhodl-crisis-canaries",
+   "justhodl-crisis-composite",
+   "justhodl-regime-conditional-router",
+   "justhodl-signal-board",
+   "justhodl-systemic-stress",
+   "justhodl-tail-hedge"
+  ],
+  "data/canary-warroom.json": [
+   "justhodl-canary-warroom",
+   "justhodl-morning-intelligence",
+   "justhodl-signal-board",
+   "justhodl-strategist"
+  ],
+  "data/cannibals.json": [
+   "justhodl-cannibals"
+  ],
+  "data/capex-pulse.json": [
+   "justhodl-capex-pulse",
+   "justhodl-global-flow-desk",
+   "justhodl-signal-board"
+  ],
+  "data/capital-flow-history.json": [
+   "justhodl-capital-flow"
+  ],
+  "data/capital-flow-radar-state.json": [
+   "justhodl-capital-flow-radar"
+  ],
+  "data/capital-flow-radar.json": [
+   "justhodl-best-setups",
+   "justhodl-capital-flow-radar",
+   "justhodl-global-flow-desk",
+   "justhodl-institutional-footprint",
+   "justhodl-margin-lending",
+   "justhodl-master-ranker",
+   "justhodl-rebalance-radar",
+   "justhodl-sector-capital-fusion",
+   "justhodl-strategist",
+   "justhodl-whales"
+  ],
+  "data/capital-flow.json": [
+   "justhodl-ask",
+   "justhodl-best-setups",
+   "justhodl-capital-flow",
+   "justhodl-deep-value-overlap",
+   "justhodl-engine-conflicts",
+   "justhodl-equity-confluence",
+   "justhodl-flow-confluence",
+   "justhodl-industry-rotation",
+   "justhodl-liquidity-inflection",
+   "justhodl-narrative-vs-tape"
+  ],
+  "data/capital-inflows.json": [
+   "justhodl-capital-inflows",
+   "justhodl-cross-asset-flow-state",
+   "justhodl-master-allocator",
+   "justhodl-morning-intelligence",
+   "justhodl-risk-regime"
+  ],
+  "data/capital-return.json": [
+   "justhodl-best-ideas",
+   "justhodl-capital-return",
+   "justhodl-convergence-radar"
+  ],
+  "data/capitulation-history.json": [
+   "justhodl-capitulation"
+  ],
+  "data/capitulation.json": [
+   "justhodl-accumulation-radar",
+   "justhodl-ai-chat",
+   "justhodl-allocator",
+   "justhodl-capitulation",
+   "justhodl-market-extremes",
+   "justhodl-master-ranker",
+   "justhodl-morning-intelligence",
+   "justhodl-pm-decision",
+   "justhodl-prepump-alerts-router",
+   "justhodl-vol-radar"
+  ],
+  "data/carry-surface.json": [
+   "justhodl-carry-surface",
+   "justhodl-confluence-meta",
+   "justhodl-hot-money",
+   "justhodl-stress-index"
+  ],
+  "data/cascade-calibration.json": [
+   "justhodl-best-setups",
+   "justhodl-cascade-recalibrator",
+   "justhodl-digest-trends-ai",
+   "justhodl-page-ai-commentary",
+   "justhodl-self-improvement",
+   "justhodl-ticket-ai-rationale",
+   "justhodl-track-record",
+   "justhodl-trade-tickets",
+   "justhodl-weekly-ai-review"
+  ],
+  "data/cascade-recalibration-audit.json": [
+   "justhodl-cascade-recalibrator",
+   "justhodl-prepump-alerts-router",
+   "justhodl-track-record",
+   "justhodl-trade-tickets",
+   "justhodl-weekly-ai-review"
+  ],
+  "data/cascade-validation-log.json": [
+   "justhodl-apex-fusion",
+   "justhodl-cascade-validator",
+   "justhodl-digest-trends-ai",
+   "justhodl-page-ai-commentary",
+   "justhodl-weekly-ai-review"
+  ],
+  "data/catalyst-calendar.json": [
+   "justhodl-best-setups",
+   "justhodl-catalyst-calendar",
+   "justhodl-catalyst-skew-premove",
+   "justhodl-deep-value-overlap",
+   "justhodl-morning-brief-tg",
+   "justhodl-portfolio-catalysts",
+   "justhodl-precatalyst-vol-expansion",
+   "justhodl-squeeze-pretrigger"
+  ],
+  "data/catalyst-clusters.json": [
+   "justhodl-catalyst-clusters",
+   "justhodl-prepump-summary",
+   "justhodl-pump-positioning",
+   "justhodl-pump-radar-brief"
+  ],
+  "data/catalyst-skew-premove.json": [
+   "justhodl-catalyst-skew-premove",
+   "justhodl-options-confluence",
+   "justhodl-signal-board"
+  ],
+  "data/catalysts.json": [
+   "justhodl-catalyst-classifier",
+   "justhodl-catalyst-clusters",
+   "justhodl-portfolio-catalysts",
+   "justhodl-prepump-alerts-router",
+   "justhodl-prepump-summary",
+   "justhodl-pump-positioning",
+   "justhodl-pump-radar-brief",
+   "justhodl-theme-cascade"
+  ],
+  "data/causality-discoveries.json": [
+   "justhodl-causality-scanner"
+  ],
+  "data/cb-injection.json": [
+   "justhodl-boj-detail",
+   "justhodl-cb-injection",
+   "justhodl-ecb-detail",
+   "justhodl-euro-fragmentation",
+   "justhodl-risk-regime",
+   "justhodl-snb-detail",
+   "justhodl-yen-carry"
+  ],
+  "data/cb-stance.json": [
+   "justhodl-ai-chat",
+   "justhodl-cb-stance",
+   "justhodl-dollar-radar",
+   "justhodl-fed-pivot-factor-router",
+   "justhodl-morning-intelligence",
+   "justhodl-regime-composite"
+  ],
+  "data/cds-monitor.json": [
+   "justhodl-cds-monitor",
+   "justhodl-credit-before-equity",
+   "justhodl-risk-regime"
+  ],
+  "data/cds-proxy.json": [
+   "justhodl-cds-monitor",
+   "justhodl-cds-proxy",
+   "justhodl-fi-census",
+   "justhodl-industry-rotation",
+   "justhodl-sovereign-stress",
+   "justhodl-systemic-stress"
+  ],
+  "data/cef-discount.json": [
+   "justhodl-cef-discount",
+   "justhodl-signal-board"
+  ],
+  "data/census-economic.json": [
+   "census-economic-agent",
+   "justhodl-consumer-pulse",
+   "justhodl-cycle-clock",
+   "justhodl-nowcast-desk"
+  ],
+  "data/cftc-all-cache.json": [
+   "cftc-futures-positioning-agent",
+   "justhodl-bottleneck-boom",
+   "justhodl-canary-warroom",
+   "justhodl-cftc-deep-view",
+   "justhodl-dollar-radar",
+   "justhodl-institutional-footprint",
+   "justhodl-rotation-dashboard",
+   "justhodl-yen-carry"
+  ],
+  "data/cftc-deep-view.json": [
+   "justhodl-cftc-deep-view",
+   "justhodl-institutional-footprint",
+   "justhodl-risk-gate"
+  ],
+  "data/chart-patterns.json": [
+   "justhodl-chart-patterns",
+   "justhodl-finviz-signals",
+   "justhodl-sector-capital-fusion",
+   "justhodl-short-book"
+  ],
+  "data/chart-vision.json": [
+   "justhodl-chart-vision"
+  ],
+  "data/china-liquidity-history.json": [
+   "justhodl-china-liquidity"
+  ],
+  "data/china-liquidity.json": [
+   "justhodl-allocator",
+   "justhodl-asia-leads",
+   "justhodl-boom-stage",
+   "justhodl-cb-injection",
+   "justhodl-china-liquidity",
+   "justhodl-cycle-clock",
+   "justhodl-data-census",
+   "justhodl-dollar-radar",
+   "justhodl-global-recession",
+   "justhodl-global-tide",
+   "justhodl-liquidity-inflection",
+   "justhodl-morning-intelligence",
+   "justhodl-risk-gate",
+   "justhodl-risk-regime"
+  ],
+  "data/chokepoint.json": [
+   "justhodl-best-setups",
+   "justhodl-bottleneck-boom",
+   "justhodl-chokepoint",
+   "justhodl-inventory-drawdown",
+   "justhodl-master-ranker",
+   "justhodl-scarcity-radar"
+  ],
+  "data/ciss-ai.json": [
+   "justhodl-ciss-ai"
+  ],
+  "data/ciss-stress.json": [
+   "justhodl-canary-warroom",
+   "justhodl-ciss-ai",
+   "justhodl-ciss-stress",
+   "justhodl-cycle-clock",
+   "justhodl-global-stress",
+   "justhodl-regime-composite",
+   "justhodl-risk-gate",
+   "justhodl-risk-radar",
+   "justhodl-stress-index",
+   "justhodl-warroom-weights"
+  ],
+  "data/coffee-can-holdings.json": [
+   "justhodl-coffee-can"
+  ],
+  "data/coffee-can.json": [
+   "justhodl-coffee-can"
+  ],
+  "data/coinbase-premium-history.json": [
+   "justhodl-coinbase-premium"
+  ],
+  "data/coinbase-premium.json": [
+   "justhodl-coinbase-premium",
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-intel",
+   "justhodl-cycle-clock",
+   "justhodl-signal-logger"
+  ],
+  "data/comeback-screener.json": [
+   "justhodl-comeback-screener"
+  ],
+  "data/commodity-curves.json": [
+   "justhodl-ai-chat",
+   "justhodl-commodity-curves",
+   "justhodl-cycle-clock",
+   "justhodl-morning-intelligence",
+   "justhodl-opportunity-screener",
+   "justhodl-regime-composite"
+  ],
+  "data/compass-forecast-ledger.json": [
+   "justhodl-asset-compass"
+  ],
+  "data/composite-snapshots.json": [
+   "justhodl-liquidity-inflection"
+  ],
+  "data/compound-signals-state.json": [
+   "justhodl-compound-aggregator"
+  ],
+  "data/compound-signals.json": [
+   "justhodl-alpha-research",
+   "justhodl-chart-data",
+   "justhodl-compound-aggregator",
+   "justhodl-history-snapshotter",
+   "justhodl-master-ranker",
+   "justhodl-nobrainer-rationale",
+   "justhodl-system-signal-logger",
+   "openbb-websocket-broadcast",
+   "openbb-websocket-handler"
+  ],
+  "data/concentration-liquidity.json": [
+   "justhodl-concentration-liquidity"
+  ],
+  "data/confluence-meta.json": [
+   "justhodl-confluence-meta",
+   "justhodl-signal-board"
+  ],
+  "data/congress-alpha.json": [
+   "justhodl-congress-alpha"
+  ],
+  "data/congress-direct.json": [
+   "justhodl-congress-alpha",
+   "justhodl-congress-direct",
+   "justhodl-fundamental-graphs"
+  ],
+  "data/congress-filer-skill.json": [
+   "justhodl-congress-alpha"
+  ],
+  "data/congress-party-map.json": [
+   "justhodl-political-stocks"
+  ],
+  "data/consensus-bottom.json": [
+   "justhodl-accumulation-radar",
+   "justhodl-consensus-bottom"
+  ],
+  "data/construction-housing.json": [
+   "justhodl-construction-housing",
+   "justhodl-conviction-engine",
+   "justhodl-opportunity-screener",
+   "justhodl-signal-board"
+  ],
+  "data/consumer-pulse.json": [
+   "justhodl-consumer-pulse",
+   "justhodl-cycle-clock"
+  ],
+  "data/convergence-radar.json": [
+   "justhodl-convergence-radar",
+   "justhodl-early-movers",
+   "justhodl-momentum-leaders",
+   "justhodl-pair-trades",
+   "justhodl-polygon-options-flow",
+   "justhodl-portfolio-analytics",
+   "justhodl-prediction-snapshotter",
+   "justhodl-prepump-alerts-router",
+   "justhodl-pump-earnings-nlp",
+   "justhodl-pump-mechanics",
+   "justhodl-pump-positioning",
+   "justhodl-pump-radar-brief",
+   "justhodl-ticker-deep-research",
+   "justhodl-velocity-acceleration"
+  ],
+  "data/convexity-scores.json": [
+   "justhodl-convexity-scorer",
+   "justhodl-equity-confluence"
+  ],
+  "data/conviction.json": [
+   "justhodl-alpha-compass",
+   "justhodl-conviction-engine"
+  ],
+  "data/correlation-break-trades.json": [
+   "justhodl-correlation-break-trade-router"
+  ],
+  "data/correlation-breaks.json": [
+   "justhodl-ai-chat",
+   "justhodl-correlation-break-trade-router",
+   "justhodl-correlation-breaks",
+   "justhodl-cycle-clock",
+   "justhodl-morning-intelligence",
+   "justhodl-reversal-radar",
+   "justhodl-risk-regime",
+   "justhodl-signal-logger",
+   "justhodl-stress-scenarios"
+  ],
+  "data/correlation-surface.json": [
+   "justhodl-ai-brief",
+   "justhodl-alert-router",
+   "justhodl-allocator",
+   "justhodl-correlation-break-trade-router",
+   "justhodl-correlation-surface",
+   "justhodl-morning-brief-tg",
+   "justhodl-wave-signal-logger",
+   "justhodl-whats-changed"
+  ],
+  "data/cost-anomaly.json": [
+   "justhodl-cost-anomaly"
+  ],
+  "data/cot-extremes.json": [
+   "justhodl-alert-router",
+   "justhodl-cftc-deep-view",
+   "justhodl-signal-portfolio"
+  ],
+  "data/cot-feed.json": [
+   "justhodl-cot-feed",
+   "justhodl-indicator-bus",
+   "justhodl-tradingview"
+  ],
+  "data/cq-catalog.json": [
+   "justhodl-cq-feed"
+  ],
+  "data/cq-feed.json": [
+   "justhodl-altseason",
+   "justhodl-coinbase-premium",
+   "justhodl-cq-feed",
+   "justhodl-crypto-cycle-risk",
+   "justhodl-crypto-exchange-flows",
+   "justhodl-indicator-bus",
+   "justhodl-tradingview"
+  ],
+  "data/credit-before-equity.json": [
+   "justhodl-credit-before-equity"
+  ],
+  "data/credit-composite.json": [
+   "justhodl-credit-composite",
+   "justhodl-risk-gate"
+  ],
+  "data/credit-equity-divergence.json": [
+   "justhodl-credit-equity-divergence",
+   "justhodl-cycle-clock",
+   "justhodl-risk-regime",
+   "justhodl-signal-board"
+  ],
+  "data/credit-stress-history.json": [
+   "justhodl-bond-desk",
+   "justhodl-credit-stress"
+  ],
+  "data/credit-stress.json": [
+   "justhodl-ai-chat",
+   "justhodl-bond-desk",
+   "justhodl-bottleneck-boom",
+   "justhodl-calibration-fleet",
+   "justhodl-capitulation",
+   "justhodl-cds-monitor",
+   "justhodl-credit-composite",
+   "justhodl-credit-stress",
+   "justhodl-crisis-composite",
+   "justhodl-cycle-clock",
+   "justhodl-fi-census",
+   "justhodl-history-snapshotter",
+   "justhodl-liquidity-inflection",
+   "justhodl-market-extremes",
+   "justhodl-morning-intelligence",
+   "justhodl-nyfed-pd",
+   "justhodl-page-ai-commentary",
+   "justhodl-regime-composite",
+   "justhodl-reversal-radar",
+   "justhodl-risk-gate",
+   "justhodl-stress-scenarios",
+   "justhodl-systemic-stress",
+   "justhodl-vol-radar"
+  ],
+  "data/crisis-canaries.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-altseason",
+   "justhodl-ask-desk",
+   "justhodl-canary-warroom",
+   "justhodl-confluence-meta",
+   "justhodl-crisis-canaries",
+   "justhodl-cycle-clock",
+   "justhodl-kb-matcher",
+   "justhodl-research-papers",
+   "justhodl-risk-regime",
+   "justhodl-signal-board",
+   "justhodl-strategist",
+   "justhodl-stress-index"
+  ],
+  "data/crisis-composite-history.json": [
+   "justhodl-crisis-composite"
+  ],
+  "data/crisis-composite.json": [
+   "justhodl-ai-chat",
+   "justhodl-allocator",
+   "justhodl-calibration-fleet",
+   "justhodl-capitulation",
+   "justhodl-conviction-engine",
+   "justhodl-crisis-composite",
+   "justhodl-cycle-clock",
+   "justhodl-desk-allocator",
+   "justhodl-history-snapshotter",
+   "justhodl-master-allocator",
+   "justhodl-master-ranker",
+   "justhodl-morning-intelligence",
+   "justhodl-near-miss-monitor",
+   "justhodl-page-ai-commentary",
+   "justhodl-pm-decision",
+   "justhodl-prepump-alerts-router",
+   "justhodl-regime-conditional-router",
+   "justhodl-risk-gate",
+   "justhodl-sovereign-stress",
+   "justhodl-strategist",
+   "justhodl-streaming-fanout",
+   "justhodl-stress-index",
+   "justhodl-wl-fusion"
+  ],
+  "data/crisis-knowledge-base.json": [
+   "justhodl-ai-chat",
+   "justhodl-ask-desk",
+   "justhodl-crisis-knowledge-base",
+   "justhodl-flows-ai-analysis",
+   "justhodl-kb-matcher",
+   "justhodl-morning-intelligence"
+  ],
+  "data/crisis-plumbing.json": [
+   "justhodl-crisis-composite",
+   "justhodl-crisis-plumbing",
+   "justhodl-morning-intelligence",
+   "justhodl-risk-gate",
+   "justhodl-signal-logger"
+  ],
+  "data/cro-digest-history.json": [
+   "justhodl-cro-digest"
+  ],
+  "data/cro-digest.json": [
+   "justhodl-cro-digest",
+   "justhodl-cro-escalation",
+   "justhodl-page-ai-commentary"
+  ],
+  "data/cro-escalation.json": [
+   "justhodl-cro-escalation"
+  ],
+  "data/cross-asset-confirm.json": [
+   "justhodl-cross-asset-confirm",
+   "justhodl-risk-regime"
+  ],
+  "data/cross-asset-flow-state.json": [
+   "justhodl-cross-asset-flow-state"
+  ],
+  "data/cross-asset-regime-state.json": [
+   "justhodl-cross-asset-regime"
+  ],
+  "data/cross-asset-regime.json": [
+   "justhodl-asset-compass",
+   "justhodl-cross-asset-regime",
+   "justhodl-cycle-clock",
+   "justhodl-master-allocator",
+   "justhodl-master-ranker",
+   "openbb-websocket-broadcast",
+   "openbb-websocket-handler"
+  ],
+  "data/cross-asset-rv-history.json": [
+   "justhodl-cross-asset-rv"
+  ],
+  "data/cross-asset-rv.json": [
+   "justhodl-asset-compass",
+   "justhodl-conviction-engine",
+   "justhodl-correlation-break-trade-router",
+   "justhodl-cross-asset-rv",
+   "justhodl-signal-board"
+  ],
+  "data/crypto-basis-history.json": [
+   "justhodl-crypto-basis"
+  ],
+  "data/crypto-basis.json": [
+   "justhodl-crypto-basis",
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-intel",
+   "justhodl-cycle-clock",
+   "justhodl-signal-logger"
+  ],
+  "data/crypto-confluence.json": [
+   "justhodl-conviction-engine",
+   "justhodl-crypto-confluence"
+  ],
+  "data/crypto-cot-history.json": [
+   "justhodl-crypto-cot"
+  ],
+  "data/crypto-cot.json": [
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-cot",
+   "justhodl-crypto-intel",
+   "justhodl-cycle-clock",
+   "justhodl-signal-logger"
+  ],
+  "data/crypto-cycle-risk-prev.json": [
+   "justhodl-crypto-cycle-risk"
+  ],
+  "data/crypto-cycle-risk.json": [
+   "justhodl-asset-compass",
+   "justhodl-asset-discovery",
+   "justhodl-brain-sync",
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-cycle-risk",
+   "justhodl-crypto-emergence",
+   "justhodl-morning-intelligence",
+   "justhodl-my-brief",
+   "justhodl-regime-playbook"
+  ],
+  "data/crypto-dvol.json": [
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-dvol",
+   "justhodl-crypto-intel",
+   "justhodl-cycle-clock",
+   "justhodl-signal-logger"
+  ],
+  "data/crypto-emergence.json": [
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-emergence",
+   "justhodl-strategist"
+  ],
+  "data/crypto-engine-trust.json": [
+   "justhodl-crypto-ma200",
+   "justhodl-crypto-scorecard"
+  ],
+  "data/crypto-etf-arb.json": [
+   "justhodl-crypto-etf-arb",
+   "justhodl-signal-board"
+  ],
+  "data/crypto-etf-flows-history.json": [
+   "justhodl-crypto-etf-flows"
+  ],
+  "data/crypto-etf-flows.json": [
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-etf-flows",
+   "justhodl-crypto-intel",
+   "justhodl-cycle-clock",
+   "justhodl-signal-logger"
+  ],
+  "data/crypto-exchange-flows-history.json": [
+   "justhodl-crypto-exchange-flows"
+  ],
+  "data/crypto-exchange-flows.json": [
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-exchange-flows",
+   "justhodl-crypto-intel",
+   "justhodl-cycle-clock",
+   "justhodl-signal-logger"
+  ],
+  "data/crypto-funding.json": [
+   "justhodl-ai-chat",
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-emergence",
+   "justhodl-crypto-funding",
+   "justhodl-cycle-clock",
+   "justhodl-margin-lending",
+   "justhodl-morning-intelligence",
+   "justhodl-regime-composite"
+  ],
+  "data/crypto-gex.json": [
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-gex",
+   "justhodl-crypto-intel",
+   "justhodl-cycle-clock"
+  ],
+  "data/crypto-liquidity.json": [
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-liquidity",
+   "justhodl-cycle-clock",
+   "justhodl-eurodollar-plumbing",
+   "justhodl-risk-regime"
+  ],
+  "data/crypto-ma200.json": [
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-ma200"
+  ],
+  "data/crypto-miners-history.json": [
+   "justhodl-crypto-miners"
+  ],
+  "data/crypto-miners.json": [
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-intel",
+   "justhodl-crypto-miners",
+   "justhodl-cycle-clock",
+   "justhodl-signal-logger"
+  ],
+  "data/crypto-narratives.json": [
+   "justhodl-conviction-engine",
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-narratives",
+   "justhodl-signal-board"
+  ],
+  "data/crypto-opportunities.json": [
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-opportunities",
+   "justhodl-signal-board"
+  ],
+  "data/crypto-options-history.json": [
+   "justhodl-crypto-options"
+  ],
+  "data/crypto-options-surface-history.json": [
+   "justhodl-crypto-options-surface"
+  ],
+  "data/crypto-options-surface.json": [
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-intel",
+   "justhodl-crypto-options-surface",
+   "justhodl-cycle-clock",
+   "justhodl-signal-logger"
+  ],
+  "data/crypto-options.json": [
+   "justhodl-crypto-options"
+  ],
+  "data/crypto-scorecard.json": [
+   "justhodl-crypto-scorecard"
+  ],
+  "data/crypto-stablecoin-peg.json": [
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-intel",
+   "justhodl-crypto-stablecoin-peg",
+   "justhodl-cycle-clock"
+  ],
+  "data/cryptoquant-onchain.json": [
+   "justhodl-crypto-exchange-flows",
+   "justhodl-crypto-miners",
+   "justhodl-cryptoquant",
+   "justhodl-onchain-ratios",
+   "justhodl-signal-logger"
+  ],
+  "data/cryptoquant-series.json": [
+   "justhodl-cryptoquant"
+  ],
+  "data/cta-trend-exhaust.json": [
+   "justhodl-cta-trend-exhaust",
+   "justhodl-signal-board"
+  ],
+  "data/cycle-clock-history.json": [
+   "justhodl-cycle-clock"
+  ],
+  "data/cycle-clock.json": [
+   "justhodl-cycle-clock",
+   "justhodl-industry-rotation",
+   "justhodl-strategist",
+   "justhodl-wl-fusion"
+  ],
+  "data/cyclical-bagger.json": [
+   "justhodl-chokepoint",
+   "justhodl-cyclical-bagger"
+  ],
+  "data/dark-pool.json": [
+   "justhodl-accumulation-radar",
+   "justhodl-attention-confluence",
+   "justhodl-chokepoint",
+   "justhodl-cross-asset-flow-state",
+   "justhodl-dark-pool",
+   "justhodl-equity-confluence",
+   "justhodl-flow-confluence",
+   "justhodl-fundamental-census",
+   "justhodl-global-flow-desk",
+   "justhodl-ignition",
+   "justhodl-industry-rotation",
+   "justhodl-institutional-footprint",
+   "justhodl-phase-detector",
+   "justhodl-pm-decision",
+   "justhodl-resilience",
+   "justhodl-sector-capital-fusion",
+   "justhodl-short-book",
+   "justhodl-signal-board",
+   "justhodl-stock-xray",
+   "justhodl-whales"
+  ],
+  "data/data-census.json": [
+   "justhodl-data-census"
+  ],
+  "data/deal-history.json": [
+   "justhodl-deal-scanner",
+   "justhodl-industry-boom"
+  ],
+  "data/deal-scanner.json": [
+   "justhodl-ai-rerating-radar",
+   "justhodl-best-setups",
+   "justhodl-deal-scanner",
+   "justhodl-leadlag-graph",
+   "justhodl-master-ranker",
+   "justhodl-morning-intelligence"
+  ],
+  "data/dealer-gex-history.json": [
+   "justhodl-dealer-gex"
+  ],
+  "data/dealer-gex.json": [
+   "justhodl-ai-chat",
+   "justhodl-best-setups",
+   "justhodl-dealer-gex",
+   "justhodl-hedge-planner",
+   "justhodl-hedge-pnl",
+   "justhodl-institutional-footprint",
+   "justhodl-massive-signals",
+   "justhodl-morning-intelligence",
+   "justhodl-options-confluence",
+   "justhodl-page-ai-commentary",
+   "justhodl-portfolio-analytics",
+   "justhodl-position-sizer",
+   "justhodl-prepump-alerts-router",
+   "justhodl-regime-composite",
+   "justhodl-tail-hedge"
+  ],
+  "data/dealer-survey.json": [
+   "justhodl-ai-chat",
+   "justhodl-bond-desk",
+   "justhodl-health-monitor",
+   "justhodl-institutional-footprint",
+   "justhodl-liquidity-inflection",
+   "justhodl-morning-intelligence",
+   "justhodl-nyfed-dealer-survey"
+  ],
+  "data/debate.json": [
+   "justhodl-alpha-daily-brief",
+   "justhodl-debate-engine",
+   "justhodl-trade-logger"
+  ],
+  "data/decisive-call-history.json": [
+   "justhodl-ai-brief",
+   "justhodl-calls-backtest",
+   "justhodl-history-snapshotter",
+   "justhodl-position-monitor",
+   "justhodl-position-sizer-v2"
+  ],
+  "data/deep-value-overlap.json": [
+   "justhodl-best-setups",
+   "justhodl-deep-value-overlap",
+   "justhodl-equity-confluence",
+   "justhodl-stock-valuations"
+  ],
+  "data/deep-value.json": [
+   "justhodl-best-ideas",
+   "justhodl-compound-aggregator",
+   "justhodl-deep-value-screener",
+   "justhodl-history-snapshotter",
+   "justhodl-master-ranker",
+   "justhodl-nobrainer-rationale",
+   "justhodl-system-signal-logger"
+  ],
+  "data/dependency-graph.json": [
+   "justhodl-dep-graph"
+  ],
+  "data/desk-allocator-history.json": [
+   "justhodl-desk-allocator"
+  ],
+  "data/desk-allocator.json": [
+   "justhodl-cro-digest",
+   "justhodl-desk-allocator",
+   "justhodl-firm-book",
+   "justhodl-firm-risk-board",
+   "justhodl-pnl-attribution",
+   "justhodl-risk-monitor"
+  ],
+  "data/desk-returns.json": [
+   "justhodl-cro-digest",
+   "justhodl-desk-allocator",
+   "justhodl-desk-returns",
+   "justhodl-pnl-attribution",
+   "justhodl-risk-monitor"
+  ],
+  "data/devils-advocate.json": [
+   "justhodl-devils-advocate",
+   "justhodl-engine-conflicts"
+  ],
+  "data/digest-trends-ai.json": [
+   "justhodl-digest-trends-ai"
+  ],
+  "data/digest-trends-history.json": [
+   "justhodl-digest-trends-ai"
+  ],
+  "data/dislocation-ai.json": [
+   "justhodl-ask",
+   "justhodl-dislocation-ai"
+  ],
+  "data/dislocations.json": [
+   "justhodl-ask",
+   "justhodl-best-setups",
+   "justhodl-deep-value-overlap",
+   "justhodl-dislocation-ai",
+   "justhodl-dislocation-detector",
+   "justhodl-engine-conflicts",
+   "justhodl-narrative-vs-tape",
+   "justhodl-whales"
+  ],
+  "data/divcut-warning.json": [
+   "justhodl-divcut-warning",
+   "justhodl-prepump-alerts-router",
+   "justhodl-signal-board"
+  ],
+  "data/divergence-interpreted-state.json": [
+   "justhodl-divergence-interpreter"
+  ],
+  "data/divergence-interpreted.json": [
+   "justhodl-divergence-interpreter",
+   "justhodl-morning-brief-tg"
+  ],
+  "data/divergence-v2.json": [
+   "justhodl-divergence-engine-v2",
+   "justhodl-divergence-interpreter",
+   "justhodl-master-ranker",
+   "justhodl-morning-brief-tg"
+  ],
+  "data/dividend-growth.json": [
+   "justhodl-best-ideas",
+   "justhodl-dividend-growth"
+  ],
+  "data/dix-history.json": [
+   "justhodl-dix",
+   "justhodl-regime-composite"
+  ],
+  "data/dix.json": [
+   "justhodl-ai-chat",
+   "justhodl-dark-pool",
+   "justhodl-dix",
+   "justhodl-morning-intelligence",
+   "justhodl-vol-radar"
+  ],
+  "data/dollar-radar-history.json": [
+   "justhodl-dollar-radar"
+  ],
+  "data/dollar-radar.json": [
+   "justhodl-alpha-compass",
+   "justhodl-auction-interpreter",
+   "justhodl-calibration-fleet",
+   "justhodl-canary-warroom",
+   "justhodl-correlation-break-trade-router",
+   "justhodl-crisis-composite",
+   "justhodl-cross-asset-flow-state",
+   "justhodl-crypto-confluence",
+   "justhodl-cycle-clock",
+   "justhodl-dollar-radar",
+   "justhodl-equity-confluence",
+   "justhodl-history-snapshotter",
+   "justhodl-market-interpreter",
+   "justhodl-master-allocator",
+   "justhodl-morning-intelligence",
+   "justhodl-regime-conditional-router",
+   "justhodl-risk-regime",
+   "justhodl-rotation-dashboard",
+   "justhodl-signal-board",
+   "justhodl-streaming-fanout",
+   "justhodl-wl-fusion"
+  ],
+  "data/domain-barometers.json": [
+   "justhodl-data-census",
+   "justhodl-domain-barometers"
+  ],
+  "data/dr-snapshot-latest.json": [
+   "justhodl-dr-snapshot"
+  ],
+  "data/dxy-equity-divergence.json": [
+   "justhodl-dxy-equity-divergence",
+   "justhodl-signal-board"
+  ],
+  "data/early-movers.json": [
+   "justhodl-early-movers",
+   "justhodl-prediction-snapshotter",
+   "justhodl-prepump-alerts-router"
+  ],
+  "data/earnings-blackout.json": [
+   "justhodl-buyback-engine",
+   "justhodl-earnings-blackout",
+   "justhodl-institutional-footprint",
+   "justhodl-signal-board"
+  ],
+  "data/earnings-cascade.json": [
+   "justhodl-convergence-radar",
+   "justhodl-earnings-cascade",
+   "justhodl-earnings-confluence",
+   "justhodl-near-miss-monitor"
+  ],
+  "data/earnings-confluence.json": [
+   "justhodl-best-setups",
+   "justhodl-earnings-confluence",
+   "justhodl-master-ranker"
+  ],
+  "data/earnings-iv-crush.json": [
+   "justhodl-catalyst-skew-premove",
+   "justhodl-earnings-iv-crush",
+   "justhodl-options-confluence",
+   "justhodl-signal-board"
+  ],
+  "data/earnings-nlp.json": [
+   "justhodl-ai-chat",
+   "justhodl-catalyst-classifier",
+   "justhodl-earnings-cascade",
+   "justhodl-earnings-nlp",
+   "justhodl-morning-intelligence",
+   "justhodl-pump-earnings-nlp",
+   "justhodl-pump-radar-brief",
+   "justhodl-regime-composite"
+  ],
+  "data/earnings-pead.json": [
+   "justhodl-best-ideas",
+   "justhodl-chokepoint",
+   "justhodl-convergence-radar",
+   "justhodl-earnings-pead",
+   "justhodl-near-miss-monitor",
+   "justhodl-opportunity-screener",
+   "justhodl-portfolio-catalysts"
+  ],
+  "data/earnings-quality.json": [
+   "justhodl-ai-rerating-radar",
+   "justhodl-best-setups",
+   "justhodl-earnings-confluence",
+   "justhodl-earnings-quality",
+   "justhodl-master-ranker",
+   "justhodl-signal-board"
+  ],
+  "data/earnings-tone-velocity.json": [
+   "justhodl-earnings-confluence",
+   "justhodl-earnings-tone-velocity"
+  ],
+  "data/earnings-tracker.json": [
+   "justhodl-ai-brief",
+   "justhodl-ai-chat",
+   "justhodl-alert-router",
+   "justhodl-boom-radar",
+   "justhodl-catalyst-calendar",
+   "justhodl-catalyst-classifier",
+   "justhodl-catalyst-clusters",
+   "justhodl-convergence-radar",
+   "justhodl-debate-engine",
+   "justhodl-earnings-confluence",
+   "justhodl-earnings-tracker",
+   "justhodl-earnings-whisper",
+   "justhodl-equity-confluence",
+   "justhodl-feed-catalog",
+   "justhodl-implied-prob",
+   "justhodl-industry-rotation",
+   "justhodl-morning-intelligence",
+   "justhodl-portfolio-catalysts",
+   "justhodl-pump-positioning",
+   "justhodl-pump-radar-brief",
+   "justhodl-resilience",
+   "justhodl-signal-portfolio",
+   "justhodl-wave-signal-logger",
+   "justhodl-whats-changed"
+  ],
+  "data/earnings-whisper.json": [
+   "justhodl-convergence-radar",
+   "justhodl-earnings-confluence",
+   "justhodl-earnings-whisper",
+   "justhodl-portfolio-catalysts"
+  ],
+  "data/ecb-derived.json": [
+   "justhodl-brain-sync",
+   "justhodl-ecb-derived",
+   "justhodl-global-tide",
+   "justhodl-signal-board",
+   "justhodl-smart-wake"
+  ],
+  "data/ecb-detail.json": [
+   "justhodl-cb-injection",
+   "justhodl-ecb-derived",
+   "justhodl-ecb-detail",
+   "justhodl-euro-fragmentation",
+   "justhodl-global-tide"
+  ],
+  "data/econ-calendar.json": [
+   "justhodl-asia-leads",
+   "justhodl-econ-calendar",
+   "justhodl-morning-intelligence"
+  ],
+  "data/edgar-authority.json": [
+   "justhodl-edgar-authority"
+  ],
+  "data/edge-discovery-graduated.json": [
+   "justhodl-edge-discovery"
+  ],
+  "data/edge-discovery.json": [
+   "justhodl-edge-discovery"
+  ],
+  "data/eia-energy.json": [
+   "eia-energy-agent",
+   "justhodl-refining-stress"
+  ],
+  "data/em-carry.json": [
+   "justhodl-gap-metrics"
+  ],
+  "data/engine-alpha.json": [
+   "justhodl-chokepoint",
+   "justhodl-cyclical-bagger",
+   "justhodl-equity-confluence",
+   "justhodl-signal-scorecard",
+   "justhodl-strategist",
+   "justhodl-strategy-portfolio"
+  ],
+  "data/engine-conflicts.json": [
+   "justhodl-best-setups",
+   "justhodl-engine-conflicts"
+  ],
+  "data/engine-contributions.json": [
+   "justhodl-engine-contribution"
+  ],
+  "data/engine-registry.json": [
+   "justhodl-brain-compiler"
+  ],
+  "data/engine-signal-map.json": [
+   "justhodl-alpha-compass",
+   "justhodl-engine-signal-map"
+  ],
+  "data/engine-trust.json": [
+   "justhodl-best-setups",
+   "justhodl-crypto-ma200",
+   "justhodl-crypto-scorecard",
+   "justhodl-engine-trust",
+   "justhodl-flow-confluence",
+   "justhodl-options-confluence",
+   "justhodl-strategist"
+  ],
+  "data/episode-compass.json": [
+   "justhodl-episode-compass",
+   "justhodl-signal-board"
+  ],
+  "data/episode-reference.json": [
+   "justhodl-ai-brief-router",
+   "justhodl-auction-interpreter",
+   "justhodl-episode-reference",
+   "justhodl-market-interpreter",
+   "justhodl-synthetic-monitor"
+  ],
+  "data/eps-revision-velocity.json": [
+   "justhodl-ai-rerating-radar",
+   "justhodl-best-ideas",
+   "justhodl-compound-aggregator",
+   "justhodl-convergence-radar",
+   "justhodl-cycle-clock",
+   "justhodl-earnings-whisper",
+   "justhodl-eps-revision-velocity",
+   "justhodl-history-snapshotter",
+   "justhodl-industry-boom",
+   "justhodl-master-ranker",
+   "justhodl-nobrainer-rationale",
+   "justhodl-opportunity-screener",
+   "justhodl-sector-earnings-diffusion",
+   "justhodl-sector-emergence",
+   "justhodl-system-signal-logger"
+  ],
+  "data/equity-confluence.json": [
+   "justhodl-best-setups",
+   "justhodl-equity-confluence",
+   "justhodl-master-ranker",
+   "justhodl-stock-xray"
+  ],
+  "data/equity-ftd.json": [
+   "justhodl-equity-ftd"
+  ],
+  "data/esi-history.json": [
+   "justhodl-esi"
+  ],
+  "data/esi.json": [
+   "justhodl-ecb-derived",
+   "justhodl-esi"
+  ],
+  "data/estimate-revisions-latest.json": [
+   "justhodl-bottleneck-research",
+   "justhodl-opportunity-engine"
+  ],
+  "data/estimate-revisions.json": [
+   "justhodl-ai-rerating-radar",
+   "justhodl-alert-sentinel",
+   "justhodl-boom-radar",
+   "justhodl-chokepoint",
+   "justhodl-equity-confluence",
+   "justhodl-estimate-revisions",
+   "justhodl-industry-boom",
+   "justhodl-industry-rotation",
+   "justhodl-master-ranker",
+   "justhodl-readthrough",
+   "justhodl-signal-board",
+   "justhodl-stock-valuations",
+   "justhodl-stock-xray"
+  ],
+  "data/etf-census-matrix.json": [
+   "justhodl-etf-census"
+  ],
+  "data/etf-census.json": [
+   "justhodl-etf-census"
+  ],
+  "data/etf-flows.json": [
+   "justhodl-alert-router",
+   "justhodl-capital-flow",
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-etf-flows",
+   "justhodl-crypto-intel",
+   "justhodl-cycle-clock",
+   "justhodl-etf-census",
+   "justhodl-etf-flows",
+   "justhodl-finviz-universe",
+   "justhodl-history-snapshotter",
+   "justhodl-portfolio-analytics",
+   "justhodl-signal-logger",
+   "justhodl-wave-signal-logger"
+  ],
+  "data/etf-shares-history.json": [
+   "justhodl-etf-true-flows"
+  ],
+  "data/etf-true-flows.json": [
+   "justhodl-bond-desk",
+   "justhodl-capital-flow",
+   "justhodl-cross-asset-flow-state",
+   "justhodl-crypto-cycle-risk",
+   "justhodl-etf-true-flows",
+   "justhodl-global-flow-desk",
+   "justhodl-hot-money",
+   "justhodl-risk-gate",
+   "justhodl-rotation-dashboard"
+  ],
+  "data/euro-fragmentation.json": [
+   "justhodl-bond-desk",
+   "justhodl-euro-fragmentation",
+   "justhodl-global-stress",
+   "justhodl-risk-gate",
+   "justhodl-stress-index",
+   "justhodl-tradingview"
+  ],
+  "data/eurodollar-plumbing.json": [
+   "justhodl-bond-desk",
+   "justhodl-canary-grid",
+   "justhodl-canary-warroom",
+   "justhodl-carry-surface",
+   "justhodl-credit-composite",
+   "justhodl-crisis-composite",
+   "justhodl-cycle-clock",
+   "justhodl-eurodollar-plumbing",
+   "justhodl-fi-census",
+   "justhodl-liquidity-inflection",
+   "justhodl-morning-intelligence",
+   "justhodl-risk-gate",
+   "justhodl-signal-board",
+   "justhodl-sovereign-stress",
+   "justhodl-strategist",
+   "justhodl-stress-index",
+   "justhodl-systemic-stress",
+   "justhodl-tail-hedge",
+   "justhodl-vol-radar"
+  ],
+  "data/eurodollar-stress.json": [
+   "justhodl-ai-brief",
+   "justhodl-alert-router",
+   "justhodl-allocator",
+   "justhodl-auction-interpreter",
+   "justhodl-boj-detail",
+   "justhodl-calibration-fleet",
+   "justhodl-canary-grid",
+   "justhodl-capitulation",
+   "justhodl-carry-surface",
+   "justhodl-chart-data",
+   "justhodl-confluence-meta",
+   "justhodl-dollar-radar",
+   "justhodl-ecb-detail",
+   "justhodl-eurodollar-plumbing",
+   "justhodl-eurodollar-stress",
+   "justhodl-global-stress",
+   "justhodl-history-snapshotter",
+   "justhodl-kb-matcher",
+   "justhodl-liquidity-inflection",
+   "justhodl-market-interpreter",
+   "justhodl-master-allocator",
+   "justhodl-page-ai-commentary",
+   "justhodl-plumbing-aggregator",
+   "justhodl-regime-conditional-router",
+   "justhodl-repo-lending",
+   "justhodl-reversal-radar",
+   "justhodl-snb-detail",
+   "justhodl-stress-index",
+   "justhodl-stress-scenarios",
+   "justhodl-wave-signal-logger",
+   "openbb-websocket-broadcast",
+   "openbb-websocket-handler"
+  ],
+  "data/eva-spread.json": [
+   "justhodl-best-ideas",
+   "justhodl-consensus-bottom",
+   "justhodl-eva-spread",
+   "justhodl-quality-on-sale",
+   "justhodl-screen-builder",
+   "justhodl-sequence-alpha-detector"
+  ],
+  "data/event-flow-health.json": [
+   "justhodl-event-flow-monitor"
+  ],
+  "data/event-study.json": [
+   "justhodl-ab-test",
+   "justhodl-allocator",
+   "justhodl-etf-fund-flows",
+   "justhodl-event-study",
+   "justhodl-health-monitor",
+   "justhodl-morning-brief-tg",
+   "justhodl-stealth-flow",
+   "justhodl-wave-signal-logger",
+   "justhodl-whats-changed"
+  ],
+  "data/exchange-flows.json": [
+   "justhodl-ai-chat",
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-exchange-flows",
+   "justhodl-crypto-intel",
+   "justhodl-cycle-clock",
+   "justhodl-exchange-flows",
+   "justhodl-health-monitor",
+   "justhodl-morning-intelligence",
+   "justhodl-signal-logger"
+  ],
+  "data/executive-intel.json": [
+   "justhodl-best-setups",
+   "justhodl-executive-intel",
+   "justhodl-prediction-snapshotter"
+  ],
+  "data/factor-data-cache.json": [
+   "justhodl-factor-decomposition"
+  ],
+  "data/factor-decomposition.json": [
+   "justhodl-factor-decomposition"
+  ],
+  "data/factor-ic.json": [
+   "justhodl-signal-backtest"
+  ],
+  "data/factor-loadings-cache.json": [
+   "justhodl-factor-risk",
+   "justhodl-firm-stress"
+  ],
+  "data/factor-regime.json": [
+   "justhodl-alpha-compass",
+   "justhodl-best-setups",
+   "justhodl-canary-warroom",
+   "justhodl-factor-regime",
+   "justhodl-industry-rotation"
+  ],
+  "data/factor-returns.json": [
+   "justhodl-factor-returns",
+   "justhodl-institutional-footprint",
+   "justhodl-signal-board",
+   "justhodl-stock-xray"
+  ],
+  "data/factor-risk.json": [
+   "justhodl-cro-digest",
+   "justhodl-factor-risk",
+   "justhodl-firm-risk-board",
+   "justhodl-firm-stress",
+   "justhodl-pnl-attribution",
+   "justhodl-tail-hedge"
+  ],
+  "data/failed-pattern-reversal.json": [
+   "justhodl-failed-pattern-reversal",
+   "justhodl-signal-board"
+  ],
+  "data/families.json": [
+   "justhodl-families-feed",
+   "justhodl-indicator-bus",
+   "justhodl-tradingview"
+  ],
+  "data/family-defs.json": [
+   "justhodl-families-feed"
+  ],
+  "data/fast-filings.json": [
+   "justhodl-fast-filings"
+  ],
+  "data/fed-collateral.json": [
+   "justhodl-fed-collateral"
+  ],
+  "data/fed-nlp.json": [
+   "justhodl-cycle-clock",
+   "justhodl-fed-nlp"
+  ],
+  "data/fed-pivot-factor-trades.json": [
+   "justhodl-fed-pivot-factor-router"
+  ],
+  "data/fed-speak-state.json": [
+   "justhodl-fed-speak"
+  ],
+  "data/fed-speak.json": [
+   "justhodl-cycle-clock",
+   "justhodl-fed-speak",
+   "justhodl-morning-brief-tg",
+   "justhodl-powell-pivot"
+  ],
+  "data/fedwatch.json": [
+   "justhodl-cycle-clock",
+   "justhodl-fedwatch-rate-probability",
+   "justhodl-fomc-reaction"
+  ],
+  "data/feed-catalog.json": [
+   "justhodl-data-census",
+   "justhodl-feed-catalog"
+  ],
+  "data/feed-registry.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-data-census",
+   "justhodl-feed-registry"
+  ],
+  "data/feedback-summary.json": [
+   "justhodl-feedback"
+  ],
+  "data/fi-census-matrix.json": [
+   "justhodl-fi-census"
+  ],
+  "data/fi-census.json": [
+   "justhodl-fi-census"
+  ],
+  "data/fiat-peg-monitor.json": [
+   "justhodl-fiat-peg-monitor"
+  ],
+  "data/fifx-vol-history.json": [
+   "justhodl-fifx-vol-migration",
+   "justhodl-risk-gate"
+  ],
+  "data/fifx-vol.json": [
+   "justhodl-fifx-vol-migration",
+   "justhodl-morning-intelligence"
+  ],
+  "data/finnhub-signals.json": [
+   "justhodl-finnhub-signals"
+  ],
+  "data/finra-short-history.json": [
+   "justhodl-dark-pool",
+   "justhodl-finra-short"
+  ],
+  "data/finra-short.json": [
+   "justhodl-ai-chat",
+   "justhodl-ai-infra-stack",
+   "justhodl-ai-rerating-radar",
+   "justhodl-best-setups",
+   "justhodl-chokepoint",
+   "justhodl-dark-pool",
+   "justhodl-deep-value-overlap",
+   "justhodl-finra-short",
+   "justhodl-flow-confluence",
+   "justhodl-master-ranker",
+   "justhodl-regime-composite",
+   "justhodl-repo-lending",
+   "justhodl-squeeze-fuel",
+   "justhodl-squeeze-pretrigger",
+   "justhodl-theme-second-wave"
+  ],
+  "data/finviz-earnings-calendar.json": [
+   "justhodl-finviz-universe"
+  ],
+  "data/finviz-earnings-surprise.json": [
+   "justhodl-finviz-universe"
+  ],
+  "data/finviz-etf-flows.json": [
+   "justhodl-finviz-universe"
+  ],
+  "data/finviz-groups.json": [
+   "justhodl-asset-discovery",
+   "justhodl-equity-research",
+   "justhodl-finviz-groups",
+   "justhodl-industry-boom",
+   "justhodl-industry-rotation",
+   "justhodl-sector-rotation",
+   "justhodl-stock-valuations"
+  ],
+  "data/finviz-heatmap.json": [
+   "justhodl-finviz-universe"
+  ],
+  "data/finviz-index-membership.json": [
+   "justhodl-finviz-universe",
+   "justhodl-index-inclusion",
+   "justhodl-index-recon",
+   "justhodl-russell-recon-frontrun"
+  ],
+  "data/finviz-news.json": [
+   "justhodl-finviz-news",
+   "justhodl-retail-sentiment"
+  ],
+  "data/finviz-short.json": [
+   "justhodl-finviz-universe"
+  ],
+  "data/finviz-signals.json": [
+   "justhodl-best-setups",
+   "justhodl-finviz-signals",
+   "justhodl-insider-radar",
+   "justhodl-master-ranker"
+  ],
+  "data/finviz-universe.json": [
+   "justhodl-earnings-blackout",
+   "justhodl-edgar-authority",
+   "justhodl-etf-constituents",
+   "justhodl-finviz-universe",
+   "justhodl-fundamental-census",
+   "justhodl-master-ranker",
+   "justhodl-tradingview"
+  ],
+  "data/firm-book.json": [
+   "justhodl-concentration-liquidity",
+   "justhodl-cro-digest",
+   "justhodl-factor-risk",
+   "justhodl-firm-book",
+   "justhodl-firm-risk-board",
+   "justhodl-firm-stress",
+   "justhodl-hedge-planner",
+   "justhodl-liquidity-capacity",
+   "justhodl-merger-arb-risk",
+   "justhodl-risk-monitor",
+   "justhodl-tail-hedge"
+  ],
+  "data/firm-risk-board-history.json": [
+   "justhodl-firm-risk-board"
+  ],
+  "data/firm-risk-board.json": [
+   "justhodl-cro-digest",
+   "justhodl-cro-escalation",
+   "justhodl-firm-risk-board",
+   "justhodl-hedge-planner",
+   "justhodl-tail-hedge"
+  ],
+  "data/firm-stress.json": [
+   "justhodl-cro-digest",
+   "justhodl-cycle-clock",
+   "justhodl-desk-allocator",
+   "justhodl-firm-risk-board",
+   "justhodl-firm-stress",
+   "justhodl-merger-arb-risk",
+   "justhodl-tail-hedge"
+  ],
+  "data/fleet-audit.json": [
+   "justhodl-gap-metrics"
+  ],
+  "data/fleet-inventory.json": [
+   "justhodl-indicator-bus"
+  ],
+  "data/flow-confluence.json": [
+   "justhodl-best-setups",
+   "justhodl-flow-confluence",
+   "justhodl-master-ranker"
+  ],
+  "data/flow-lookthrough.json": [
+   "justhodl-boom-radar",
+   "justhodl-equity-confluence",
+   "justhodl-flow-confluence",
+   "justhodl-flow-lookthrough",
+   "justhodl-index-recon"
+  ],
+  "data/fomc-calibration.json": [
+   "justhodl-fomc-reaction"
+  ],
+  "data/fomc-reaction.json": [
+   "justhodl-cycle-clock",
+   "justhodl-fomc-reaction"
+  ],
+  "data/forced-selling-bounce.json": [
+   "justhodl-forced-selling-bounce"
+  ],
+  "data/forensic-screen.json": [
+   "justhodl-forensic-screen",
+   "justhodl-fundamental-census",
+   "justhodl-fundamental-graphs",
+   "justhodl-health-monitor",
+   "justhodl-history-snapshotter",
+   "justhodl-opportunity-engine",
+   "justhodl-short-book"
+  ],
+  "data/forward-orders.json": [
+   "justhodl-forward-orders",
+   "justhodl-future-intelligence",
+   "justhodl-master-ranker",
+   "justhodl-readthrough"
+  ],
+  "data/forward-returns.json": [
+   "justhodl-asset-compass",
+   "justhodl-forward-returns",
+   "justhodl-tax-plan",
+   "justhodl-wealth-plan"
+  ],
+  "data/fred-cache-secretary.json": [
+   "justhodl-bond-regime-detector",
+   "justhodl-divergence-scanner",
+   "justhodl-financial-secretary"
+  ],
+  "data/fred-cache.json": [
+   "justhodl-capex-pulse",
+   "justhodl-daily-report-v3",
+   "justhodl-financial-secretary",
+   "justhodl-global-tide",
+   "justhodl-liquidity-agent"
+  ],
+  "data/freight-pulse.json": [
+   "justhodl-boom-stage",
+   "justhodl-freight-pulse",
+   "justhodl-morning-intelligence",
+   "justhodl-risk-gate"
+  ],
+  "data/frontrun-sniffer.json": [
+   "justhodl-ai-brief-router",
+   "justhodl-ai-website-synthesis",
+   "justhodl-signal-logger"
+  ],
+  "data/fundamental-census-history.json": [
+   "justhodl-fundamental-census"
+  ],
+  "data/fundamental-census-matrix.json": [
+   "justhodl-best-setups",
+   "justhodl-chokepoint",
+   "justhodl-comeback-screener",
+   "justhodl-deal-scanner",
+   "justhodl-equity-research",
+   "justhodl-fundamental-census",
+   "justhodl-industry-boom",
+   "justhodl-master-ranker",
+   "justhodl-short-book",
+   "justhodl-spx-ma"
+  ],
+  "data/fundamental-census.json": [
+   "justhodl-fundamental-census"
+  ],
+  "data/fundamentals.json": [
+   "justhodl-best-ideas",
+   "justhodl-convergence-radar",
+   "justhodl-conviction-engine",
+   "justhodl-fundamentals-engine",
+   "justhodl-opportunity-engine",
+   "justhodl-screen-builder",
+   "justhodl-signal-board"
+  ],
+  "data/funding-plumbing-prev.json": [
+   "justhodl-funding-plumbing"
+  ],
+  "data/funding-plumbing.json": [
+   "justhodl-bond-vol",
+   "justhodl-brain-sync",
+   "justhodl-crypto-cycle-risk",
+   "justhodl-funding-plumbing",
+   "justhodl-liquidity-inflection",
+   "justhodl-my-brief",
+   "justhodl-position-sizer",
+   "justhodl-regime-playbook"
+  ],
+  "data/future-intelligence.json": [
+   "justhodl-bagger-engine",
+   "justhodl-future-intelligence",
+   "justhodl-master-ranker"
+  ],
+  "data/fx-decomposition.json": [
+   "justhodl-fx-decomposition"
+  ],
+  "data/fx-intelligence.json": [
+   "justhodl-fx-intelligence"
+  ],
+  "data/gap-est-snapshots.json": [
+   "justhodl-gap-metrics"
+  ],
+  "data/gap-fill-confirm.json": [
+   "justhodl-gap-fill-confirm",
+   "justhodl-signal-board"
+  ],
+  "data/gap-metrics.json": [
+   "justhodl-gap-metrics"
+  ],
+  "data/gdelt-buzz.json": [
+   "justhodl-gdelt-buzz",
+   "justhodl-hot-stocks-digest"
+  ],
+  "data/gdelt-news.json": [
+   "justhodl-attention-confluence",
+   "justhodl-gdelt-sentiment",
+   "justhodl-health-monitor"
+  ],
+  "data/geopolitical-risk.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-geopolitical-risk",
+   "justhodl-morning-intelligence"
+  ],
+  "data/gf-value.json": [
+   "justhodl-best-ideas",
+   "justhodl-gf-value",
+   "justhodl-stock-valuations"
+  ],
+  "data/global-business-cycle-history.json": [
+   "justhodl-global-business-cycle"
+  ],
+  "data/global-business-cycle.json": [
+   "justhodl-ai-chat",
+   "justhodl-allocator",
+   "justhodl-bottleneck-boom",
+   "justhodl-cycle-clock",
+   "justhodl-daily-report-v3",
+   "justhodl-data-census",
+   "justhodl-global-business-cycle",
+   "justhodl-global-recession",
+   "justhodl-morning-intelligence",
+   "justhodl-tradingview"
+  ],
+  "data/global-flow-desk.json": [
+   "justhodl-global-flow-desk",
+   "justhodl-institutional-footprint",
+   "justhodl-signal-board"
+  ],
+  "data/global-liquidity-history.json": [
+   "justhodl-global-liquidity"
+  ],
+  "data/global-liquidity.json": [
+   "justhodl-allocator",
+   "justhodl-cb-injection",
+   "justhodl-crisis-composite",
+   "justhodl-cycle-clock",
+   "justhodl-global-liquidity",
+   "justhodl-global-tide",
+   "justhodl-liquidity-inflection",
+   "justhodl-risk-regime",
+   "justhodl-wl-fusion"
+  ],
+  "data/global-m2.json": [
+   "justhodl-gap-metrics"
+  ],
+  "data/global-macro.json": [
+   "justhodl-global-macro",
+   "justhodl-morning-brief-tg"
+  ],
+  "data/global-markets.json": [
+   "justhodl-ai-chat",
+   "justhodl-global-markets",
+   "justhodl-morning-intelligence",
+   "justhodl-regime-composite"
+  ],
+  "data/global-recession.json": [
+   "justhodl-global-recession",
+   "justhodl-rotation-dashboard"
+  ],
+  "data/global-sovereign-history.json": [
+   "justhodl-global-sovereign"
+  ],
+  "data/global-sovereign.json": [
+   "justhodl-crisis-composite",
+   "justhodl-geopolitical-risk",
+   "justhodl-global-sovereign",
+   "justhodl-risk-regime",
+   "justhodl-stress-index"
+  ],
+  "data/global-stress-history.json": [
+   "justhodl-global-stress"
+  ],
+  "data/global-stress.json": [
+   "justhodl-ai-website-synthesis",
+   "justhodl-calibration-fleet",
+   "justhodl-canary-warroom",
+   "justhodl-crisis-composite",
+   "justhodl-cycle-clock",
+   "justhodl-global-stress",
+   "justhodl-history-snapshotter",
+   "justhodl-liquidity-inflection",
+   "justhodl-live-pulse",
+   "justhodl-master-allocator",
+   "justhodl-morning-intelligence",
+   "justhodl-regime-conditional-router",
+   "justhodl-signal-board",
+   "justhodl-streaming-fanout",
+   "justhodl-stress-index"
+  ],
+  "data/global-tide.json": [
+   "justhodl-confluence-meta",
+   "justhodl-global-tide",
+   "justhodl-stress-index"
+  ],
+  "data/gold-equity-rotation.json": [
+   "justhodl-cross-asset-flow-state",
+   "justhodl-cycle-clock",
+   "justhodl-gold-equity-rotation",
+   "justhodl-master-allocator",
+   "justhodl-morning-intelligence",
+   "justhodl-signal-board"
+  ],
+  "data/google-trends.json": [
+   "justhodl-ai-chat",
+   "justhodl-google-trends",
+   "justhodl-morning-intelligence"
+  ],
+  "data/gov-sources.json": [
+   "justhodl-gov-sources"
+  ],
+  "data/grid-queue-history.json": [
+   "justhodl-grid-queue"
+  ],
+  "data/grid-queue.json": [
+   "justhodl-grid-queue"
+  ],
+  "data/gsi-calibration.json": [
+   "justhodl-gsi-calibrator"
+  ],
+  "data/gsi-dim-history.json": [
+   "justhodl-calibration-fleet",
+   "justhodl-global-stress",
+   "justhodl-gsi-calibrator",
+   "justhodl-gsi-horizons",
+   "justhodl-signal-orthogonality"
+  ],
+  "data/gsi-horizons.json": [
+   "justhodl-gsi-horizons"
+  ],
+  "data/hedge-book.json": [
+   "justhodl-hedge-planner"
+  ],
+  "data/hedge-planner-history.json": [
+   "justhodl-hedge-planner",
+   "justhodl-hedge-pnl"
+  ],
+  "data/hedge-planner.json": [
+   "justhodl-cro-digest",
+   "justhodl-cro-escalation",
+   "justhodl-hedge-planner"
+  ],
+  "data/hedge-pnl-history.json": [
+   "justhodl-hedge-pnl"
+  ],
+  "data/hedge-pnl.json": [
+   "justhodl-hedge-pnl"
+  ],
+  "data/hiring-velocity.json": [
+   "justhodl-convergence-radar",
+   "justhodl-hiring-velocity"
+  ],
+  "data/historical-analogs.json": [
+   "justhodl-ab-test",
+   "justhodl-allocator",
+   "justhodl-confluence-meta",
+   "justhodl-cycle-clock",
+   "justhodl-historical-analogs",
+   "justhodl-morning-brief-tg",
+   "justhodl-stress-simulator",
+   "justhodl-wave-signal-logger",
+   "justhodl-whats-changed"
+  ],
+  "data/history-api-url.json": [
+   "justhodl-health-monitor"
+  ],
+  "data/history-index.json": [
+   "justhodl-backtest-engine",
+   "justhodl-calibration-snapshotter",
+   "justhodl-health-monitor",
+   "justhodl-history-api",
+   "justhodl-history-snapshotter"
+  ],
+  "data/history-snapshotter-status.json": [
+   "justhodl-health-monitor",
+   "justhodl-history-snapshotter"
+  ],
+  "data/hkma.json": [
+   "justhodl-bond-desk",
+   "justhodl-eurodollar-plumbing",
+   "justhodl-hkma-monitor",
+   "justhodl-plumbing-aggregator"
+  ],
+  "data/hot-money.json": [
+   "justhodl-accumulation-radar",
+   "justhodl-hot-money",
+   "justhodl-morning-intelligence",
+   "justhodl-risk-regime"
+  ],
+  "data/hot-stocks-digest.json": [
+   "justhodl-hot-stocks-digest"
+  ],
+  "data/hyperliquid-perps-history.json": [
+   "justhodl-hyperliquid-perps"
+  ],
+  "data/hyperliquid-perps.json": [
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-intel",
+   "justhodl-cycle-clock",
+   "justhodl-hyperliquid-perps"
+  ],
+  "data/ignition.json": [
+   "justhodl-confluence-meta",
+   "justhodl-ignition",
+   "justhodl-signal-board"
+  ],
+  "data/implied-corr.json": [
+   "justhodl-gap-metrics"
+  ],
+  "data/implied-prob.json": [
+   "justhodl-implied-prob"
+  ],
+  "data/import-canary-history.json": [
+   "justhodl-import-canary"
+  ],
+  "data/import-canary.json": [
+   "justhodl-import-canary",
+   "justhodl-portwatch"
+  ],
+  "data/index-inclusion.json": [
+   "justhodl-index-inclusion",
+   "justhodl-signal-board",
+   "justhodl-stock-valuations"
+  ],
+  "data/index-recon.json": [
+   "justhodl-desk-allocator",
+   "justhodl-desk-returns",
+   "justhodl-firm-book",
+   "justhodl-index-recon",
+   "justhodl-weekly-ai-review"
+  ],
+  "data/indicator-bus.json": [
+   "justhodl-activity-nowcast",
+   "justhodl-allocator",
+   "justhodl-canary-warroom",
+   "justhodl-debate-engine",
+   "justhodl-dollar-radar",
+   "justhodl-domain-barometers",
+   "justhodl-global-recession",
+   "justhodl-indicator-bus",
+   "justhodl-intraday-pulse",
+   "justhodl-market-tape",
+   "justhodl-regime-conditional-router",
+   "justhodl-us10y-sentinel"
+  ],
+  "data/industry-boom-history.json": [
+   "justhodl-industry-boom"
+  ],
+  "data/industry-boom.json": [
+   "justhodl-best-setups",
+   "justhodl-boom-stage",
+   "justhodl-chokepoint",
+   "justhodl-deal-scanner",
+   "justhodl-industry-boom",
+   "justhodl-readthrough"
+  ],
+  "data/industry-rotation.json": [
+   "justhodl-best-setups",
+   "justhodl-industry-boom",
+   "justhodl-industry-rotation",
+   "justhodl-share-flows",
+   "justhodl-spx-ma"
+  ],
+  "data/insider-aggregate-history.json": [
+   "justhodl-insider-aggregate"
+  ],
+  "data/insider-aggregate.json": [
+   "justhodl-best-ideas",
+   "justhodl-capitulation",
+   "justhodl-insider-aggregate",
+   "justhodl-market-extremes",
+   "justhodl-spinoff-desk"
+  ],
+  "data/insider-buyback-confluence.json": [
+   "justhodl-flow-confluence",
+   "justhodl-insider-buyback-confluence",
+   "justhodl-signal-board"
+  ],
+  "data/insider-buys-enriched.json": [
+   "justhodl-52wk-quality-breakout",
+   "justhodl-ignition",
+   "justhodl-insider-buyback-confluence",
+   "justhodl-insider-buys-enriched",
+   "justhodl-share-flows",
+   "justhodl-signal-board",
+   "justhodl-stealth-accumulation"
+  ],
+  "data/insider-clusters.json": [
+   "justhodl-ai-chat",
+   "justhodl-apex-fusion",
+   "justhodl-attention-confluence",
+   "justhodl-best-setups",
+   "justhodl-compound-aggregator",
+   "justhodl-deep-value-overlap",
+   "justhodl-equity-confluence",
+   "justhodl-flow-confluence",
+   "justhodl-history-snapshotter",
+   "justhodl-insider-buys-enriched",
+   "justhodl-insider-cluster-scanner",
+   "justhodl-insider-industry-cluster",
+   "justhodl-ma-target-predictor",
+   "justhodl-master-ranker",
+   "justhodl-morning-intelligence",
+   "justhodl-nobrainer-rationale",
+   "justhodl-page-ai-commentary",
+   "justhodl-prediction-snapshotter",
+   "justhodl-prepump-alerts-router",
+   "justhodl-regime-composite",
+   "justhodl-screen-builder",
+   "justhodl-sequence-alpha-detector",
+   "justhodl-share-flows",
+   "justhodl-system-signal-logger",
+   "justhodl-ticket-ai-rationale"
+  ],
+  "data/insider-industry-cluster-history.json": [
+   "justhodl-insider-industry-cluster"
+  ],
+  "data/insider-industry-cluster.json": [
+   "justhodl-insider-industry-cluster"
+  ],
+  "data/insider-radar.json": [
+   "justhodl-accumulation-radar",
+   "justhodl-alert-sentinel",
+   "justhodl-industry-boom",
+   "justhodl-insider-radar",
+   "justhodl-share-flows",
+   "justhodl-signal-board",
+   "justhodl-stock-valuations"
+  ],
+  "data/insider-sell-cluster.json": [
+   "justhodl-best-setups",
+   "justhodl-fundamental-graphs",
+   "justhodl-insider-sell-cluster",
+   "justhodl-master-ranker",
+   "justhodl-signal-board"
+  ],
+  "data/insider-trades.json": [
+   "justhodl-ai-brief",
+   "justhodl-asymmetric-scorer",
+   "justhodl-earnings-whisper",
+   "justhodl-fundamental-graphs",
+   "justhodl-health-monitor",
+   "justhodl-insider-trades",
+   "justhodl-share-flows"
+  ],
+  "data/institutional-footprint.json": [
+   "justhodl-institutional-footprint",
+   "justhodl-signal-board"
+  ],
+  "data/institutional-positions.json": [
+   "justhodl-13f-positions",
+   "justhodl-asymmetric-scorer",
+   "justhodl-health-monitor",
+   "justhodl-sec-13f"
+  ],
+  "data/interpretation-ledger.json": [
+   "justhodl-interpretation-grader"
+  ],
+  "data/interpretation-scorecard.json": [
+   "justhodl-interpretation-grader"
+  ],
+  "data/intraday-pulse.json": [
+   "justhodl-intraday-pulse",
+   "justhodl-signal-board"
+  ],
+  "data/inventory-drawdown.json": [
+   "justhodl-bottleneck-boom",
+   "justhodl-inventory-drawdown",
+   "justhodl-scarcity-radar"
+  ],
+  "data/ipo-pipeline.json": [
+   "justhodl-ipo-pipeline"
+  ],
+  "data/journal-graded.json": [
+   "justhodl-journal-grader"
+  ],
+  "data/jsi-calibration.json": [
+   "justhodl-jsi-calibrator"
+  ],
+  "data/jsi-history.json": [
+   "justhodl-proven-portfolio",
+   "justhodl-stress-index"
+  ],
+  "data/jsi-overlay-history.json": [
+   "justhodl-jsi-calibrator",
+   "justhodl-stress-index"
+  ],
+  "data/jsi.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-proven-portfolio",
+   "justhodl-stress-index"
+  ],
+  "data/ka-analysis.json": [
+   "justhodl-ka-metrics"
+  ],
+  "data/ka-config.json": [
+   "justhodl-ka-metrics"
+  ],
+  "data/ka-metrics.json": [
+   "justhodl-ka-metrics"
+  ],
+  "data/kb-match.json": [
+   "justhodl-kb-matcher",
+   "justhodl-signal-board"
+  ],
+  "data/khalid-adaptive-history.json": [
+   "justhodl-khalid-adaptive"
+  ],
+  "data/khalid-adaptive.json": [
+   "justhodl-khalid-adaptive"
+  ],
+  "data/khalid-analysis.json": [
+   "justhodl-history-snapshotter",
+   "justhodl-ka-metrics",
+   "justhodl-khalid-metrics"
+  ],
+  "data/khalid-config.json": [
+   "justhodl-fleet-freshness-monitor",
+   "justhodl-history-snapshotter",
+   "justhodl-ka-metrics",
+   "justhodl-khalid-metrics"
+  ],
+  "data/khalid-metrics.json": [
+   "justhodl-history-snapshotter",
+   "justhodl-ka-metrics",
+   "justhodl-khalid-metrics"
+  ],
+  "data/kill-theses.json": [
+   "justhodl-alpha-compass",
+   "justhodl-best-setups",
+   "justhodl-master-ranker",
+   "justhodl-premortem-engine"
+  ],
+  "data/labor-leading.json": [
+   "justhodl-ai-chat",
+   "justhodl-consumer-pulse",
+   "justhodl-cycle-clock",
+   "justhodl-health-monitor",
+   "justhodl-labor-leading",
+   "justhodl-morning-intelligence"
+  ],
+  "data/lead-lag-graph.json": [
+   "justhodl-best-setups",
+   "justhodl-leadlag-graph"
+  ],
+  "data/leading-markets-history.json": [
+   "justhodl-leading-markets"
+  ],
+  "data/leading-markets.json": [
+   "justhodl-allocator",
+   "justhodl-bloomberg-v8",
+   "justhodl-canary-warroom",
+   "justhodl-conviction-engine",
+   "justhodl-crisis-composite",
+   "justhodl-daily-report-v3",
+   "justhodl-leading-markets",
+   "justhodl-master-ranker"
+  ],
+  "data/leverage-monitor.json": [
+   "justhodl-institutional-footprint",
+   "justhodl-margin-lending"
+  ],
+  "data/liquidity-capacity.json": [
+   "justhodl-bottleneck-boom",
+   "justhodl-cro-digest",
+   "justhodl-firm-risk-board",
+   "justhodl-liquidity-capacity"
+  ],
+  "data/liquidity-credit-engine.json": [
+   "justhodl-ai-chat",
+   "justhodl-alert-router",
+   "justhodl-allocator",
+   "justhodl-cycle-clock",
+   "justhodl-daily-report-v3",
+   "justhodl-liquidity-credit-engine",
+   "justhodl-morning-intelligence"
+  ],
+  "data/liquidity-flow.json": [
+   "justhodl-ai-chat",
+   "justhodl-crisis-knowledge-base",
+   "justhodl-cycle-clock",
+   "justhodl-health-monitor",
+   "justhodl-liquidity-flow",
+   "justhodl-morning-intelligence",
+   "justhodl-sector-capital-fusion",
+   "justhodl-sector-flow-state"
+  ],
+  "data/liquidity-inflection-decisive-call.json": [
+   "justhodl-liquidity-inflection"
+  ],
+  "data/liquidity-inflection.json": [
+   "justhodl-confluence-meta",
+   "justhodl-cycle-clock",
+   "justhodl-kb-matcher",
+   "justhodl-liquidity-inflection",
+   "justhodl-master-ranker",
+   "justhodl-risk-regime",
+   "justhodl-signal-board",
+   "justhodl-strategist"
+  ],
+  "data/liquidity-profile.json": [
+   "justhodl-liquidity-profile"
+  ],
+  "data/liquidity-pulse.json": [
+   "justhodl-alert-router",
+   "justhodl-cycle-clock",
+   "justhodl-liquidity-pulse"
+  ],
+  "data/live-pulse-history.json": [
+   "justhodl-live-pulse"
+  ],
+  "data/live-pulse.json": [
+   "justhodl-live-pulse",
+   "justhodl-streaming-fanout"
+  ],
+  "data/llm-cost.json": [
+   "justhodl-llm-cost-dashboard"
+  ],
+  "data/llm-health.json": [
+   "justhodl-llm-health"
+  ],
+  "data/lobbying-intel.json": [
+   "justhodl-convergence-radar",
+   "justhodl-lobbying-intel"
+  ],
+  "data/lockup-expiration.json": [
+   "justhodl-lockup-expiration",
+   "justhodl-signal-board"
+  ],
+  "data/ma-reversion.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-ma-reversion",
+   "justhodl-signal-board"
+  ],
+  "data/ma-target-predictor.json": [
+   "justhodl-ma-target-predictor"
+  ],
+  "data/ma200-reclaim.json": [
+   "justhodl-ma200-reclaim"
+  ],
+  "data/macro-attribution.json": [
+   "justhodl-macro-attribution",
+   "justhodl-source-map"
+  ],
+  "data/macro-calendar.json": [
+   "justhodl-macro-calendar"
+  ],
+  "data/macro-confluence.json": [
+   "justhodl-macro-confluence"
+  ],
+  "data/macro-frontrun-sniffer.json": [
+   "justhodl-ai-brief-router",
+   "justhodl-ai-website-synthesis",
+   "justhodl-signal-logger"
+  ],
+  "data/macro-leads.json": [
+   "justhodl-cycle-clock",
+   "justhodl-macro-leads",
+   "justhodl-nowcast-desk"
+  ],
+  "data/macro-nowcast.json": [
+   "justhodl-activity-nowcast",
+   "justhodl-cycle-clock",
+   "justhodl-divergence-interpreter",
+   "justhodl-engine-trust",
+   "justhodl-health-monitor",
+   "justhodl-history-snapshotter",
+   "justhodl-macro-nowcast",
+   "justhodl-master-allocator",
+   "justhodl-master-ranker",
+   "justhodl-morning-intelligence",
+   "justhodl-sector-tilt",
+   "justhodl-signal-harvester",
+   "justhodl-stress-simulator",
+   "justhodl-wl-fusion",
+   "openbb-websocket-broadcast",
+   "openbb-websocket-handler"
+  ],
+  "data/macro-surprise.json": [
+   "justhodl-ab-test",
+   "justhodl-ai-brief",
+   "justhodl-alert-router",
+   "justhodl-allocator",
+   "justhodl-cycle-clock",
+   "justhodl-esi",
+   "justhodl-macro-surprise",
+   "justhodl-morning-brief-tg",
+   "justhodl-wave-signal-logger",
+   "justhodl-whats-changed"
+  ],
+  "data/magic-formula.json": [
+   "justhodl-best-ideas",
+   "justhodl-magic-formula"
+  ],
+  "data/magnitude-distributions.json": [
+   "justhodl-alpha-compass",
+   "justhodl-magnitude-distributions"
+  ],
+  "data/margin-lending.json": [
+   "justhodl-margin-lending",
+   "justhodl-signal-board"
+  ],
+  "data/market-extremes-history.json": [
+   "justhodl-market-extremes"
+  ],
+  "data/market-extremes.json": [
+   "justhodl-calibration-fleet",
+   "justhodl-cro-escalation",
+   "justhodl-forced-selling-bounce",
+   "justhodl-history-snapshotter",
+   "justhodl-market-extremes",
+   "justhodl-morning-intelligence"
+  ],
+  "data/market-internals.json": [
+   "justhodl-capitulation",
+   "justhodl-crisis-composite",
+   "justhodl-forced-selling-bounce",
+   "justhodl-market-extremes",
+   "justhodl-market-internals",
+   "justhodl-risk-regime",
+   "justhodl-signal-board"
+  ],
+  "data/market-map.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-market-map",
+   "justhodl-signal-board"
+  ],
+  "data/market-tape.json": [
+   "justhodl-market-tape",
+   "justhodl-spx-ma"
+  ],
+  "data/massive-signals.json": [
+   "justhodl-alpha-score",
+   "justhodl-best-setups",
+   "justhodl-capital-flow-radar",
+   "justhodl-convergence-radar",
+   "justhodl-massive-signals",
+   "justhodl-master-ranker",
+   "justhodl-pump-mechanics"
+  ],
+  "data/master-allocation.json": [
+   "justhodl-master-allocator",
+   "justhodl-regime-conditional-router",
+   "justhodl-streaming-fanout"
+  ],
+  "data/master-ranker.json": [
+   "justhodl-52wk-quality-breakout",
+   "justhodl-bottleneck-boom",
+   "justhodl-buyback-yield-ranking",
+   "justhodl-catalyst-skew-premove",
+   "justhodl-chokepoint",
+   "justhodl-earnings-quality",
+   "justhodl-failed-pattern-reversal",
+   "justhodl-fundamental-graphs",
+   "justhodl-fundamentals-engine",
+   "justhodl-gap-fill-confirm",
+   "justhodl-ignition",
+   "justhodl-master-ranker",
+   "justhodl-miss-calibrator",
+   "justhodl-miss-detector",
+   "justhodl-multi-tf-convergence",
+   "justhodl-pm-decision",
+   "justhodl-post-earnings-mean-rev",
+   "justhodl-screen-builder",
+   "justhodl-share-flows",
+   "justhodl-short-pressure",
+   "justhodl-stock-xray",
+   "justhodl-strategist"
+  ],
+  "data/merger-arb-risk.json": [
+   "justhodl-cro-digest",
+   "justhodl-firm-risk-board",
+   "justhodl-merger-arb-risk"
+  ],
+  "data/merger-arb.json": [
+   "justhodl-desk-allocator",
+   "justhodl-desk-returns",
+   "justhodl-firm-book",
+   "justhodl-merger-arb",
+   "justhodl-merger-arb-risk"
+  ],
+  "data/meta-improver-state.json": [
+   "justhodl-meta-improver"
+  ],
+  "data/meta-labeler.json": [
+   "justhodl-ask-desk",
+   "justhodl-meta-labeler",
+   "justhodl-signal-board"
+  ],
+  "data/microcap-float-squeeze.json": [
+   "justhodl-ai-infra-stack",
+   "justhodl-apex-fusion",
+   "justhodl-compound-aggregator",
+   "justhodl-microcap-float-squeeze",
+   "justhodl-theme-second-wave"
+  ],
+  "data/miner-margin.json": [
+   "justhodl-gap-metrics"
+  ],
+  "data/miss-calibrator-proposals.json": [
+   "justhodl-miss-calibrator"
+  ],
+  "data/miss-summary.json": [
+   "justhodl-alpha-compass",
+   "justhodl-miss-calibrator",
+   "justhodl-miss-detector"
+  ],
+  "data/momentum-breakout.json": [
+   "justhodl-best-ideas",
+   "justhodl-compound-aggregator",
+   "justhodl-convergence-radar",
+   "justhodl-master-ranker",
+   "justhodl-momentum-breakout",
+   "justhodl-momentum-leaders",
+   "justhodl-opportunity-screener",
+   "justhodl-velocity-acceleration"
+  ],
+  "data/momentum-leaders.json": [
+   "justhodl-apex-fusion",
+   "justhodl-catalyst-classifier",
+   "justhodl-catalyst-clusters",
+   "justhodl-momentum-leaders",
+   "justhodl-polygon-options-flow",
+   "justhodl-pump-positioning",
+   "justhodl-pump-radar-brief",
+   "justhodl-theme-cascade",
+   "justhodl-theme-cascade-backtest",
+   "justhodl-theme-classifier",
+   "justhodl-velocity-acceleration"
+  ],
+  "data/momentum-scanner.json": [
+   "justhodl-ai-brief",
+   "justhodl-momentum-scanner",
+   "justhodl-wave-signal-logger"
+  ],
+  "data/money-flow-state.json": [
+   "justhodl-global-flow-desk",
+   "justhodl-money-flow-state",
+   "justhodl-sector-capital-fusion",
+   "justhodl-sector-flow-state"
+  ],
+  "data/morning-brief-latest.json": [
+   "justhodl-history-snapshotter",
+   "justhodl-morning-brief-tg"
+  ],
+  "data/move-index.json": [
+   "justhodl-brain-sync",
+   "justhodl-cycle-clock",
+   "justhodl-liquidity-inflection",
+   "justhodl-move-index"
+  ],
+  "data/multi-tf-convergence.json": [
+   "justhodl-multi-tf-convergence",
+   "justhodl-signal-board"
+  ],
+  "data/muni-ratio.json": [
+   "justhodl-gap-metrics"
+  ],
+  "data/my-brief.json": [
+   "justhodl-my-brief"
+  ],
+  "data/naaim.json": [
+   "justhodl-institutional-footprint",
+   "justhodl-naaim",
+   "justhodl-put-call-extreme",
+   "justhodl-signal-board"
+  ],
+  "data/narrative-density.json": [
+   "justhodl-narrative-density-tracker",
+   "openbb-websocket-broadcast",
+   "openbb-websocket-handler"
+  ],
+  "data/narrative-vs-tape.json": [
+   "justhodl-narrative-vs-tape",
+   "justhodl-scarcity-radar"
+  ],
+  "data/ndx-spx-spread.json": [
+   "justhodl-ndx-spx-spread",
+   "justhodl-signal-board"
+  ],
+  "data/near-misses-by-signal.json": [
+   "justhodl-miss-detector",
+   "justhodl-near-miss-monitor"
+  ],
+  "data/news-velocity.json": [
+   "justhodl-ai-chat",
+   "justhodl-convergence-radar",
+   "justhodl-morning-intelligence",
+   "justhodl-narrative-vs-tape",
+   "justhodl-news-velocity",
+   "justhodl-regime-composite",
+   "justhodl-retail-sentiment"
+  ],
+  "data/news-wire-state.json": [
+   "justhodl-news-wire"
+  ],
+  "data/news-wire.json": [
+   "justhodl-hot-stocks-digest",
+   "justhodl-news-wire"
+  ],
+  "data/nobrainers-rationale.json": [
+   "justhodl-history-snapshotter",
+   "justhodl-nobrainer-rationale"
+  ],
+  "data/nobrainers.json": [
+   "justhodl-asymmetric-hunter",
+   "justhodl-chart-vision",
+   "justhodl-compound-aggregator",
+   "justhodl-convexity-scorer",
+   "justhodl-failure-library",
+   "justhodl-history-snapshotter",
+   "justhodl-master-ranker",
+   "justhodl-nobrainer-rationale",
+   "justhodl-nobrainer-tracker",
+   "justhodl-premortem-engine",
+   "openbb-websocket-broadcast",
+   "openbb-websocket-handler"
+  ],
+  "data/notes-index.json": [
+   "justhodl-alpha-compass",
+   "justhodl-best-setups",
+   "justhodl-equity-research",
+   "justhodl-master-ranker",
+   "justhodl-notes-intel"
+  ],
+  "data/notes-themes.json": [
+   "justhodl-notes-intel"
+  ],
+  "data/nowcast-desk.json": [
+   "justhodl-best-setups",
+   "justhodl-master-ranker",
+   "justhodl-nowcast-desk",
+   "justhodl-rotation-dashboard",
+   "justhodl-strategist"
+  ],
+  "data/nyfed-primary-dealer.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-credit-composite",
+   "justhodl-credit-stress",
+   "justhodl-institutional-footprint",
+   "justhodl-morning-intelligence",
+   "justhodl-nyfed-pd",
+   "justhodl-risk-gate"
+  ],
+  "data/oecd-cli.json": [
+   "justhodl-ai-chat",
+   "justhodl-global-recession",
+   "justhodl-health-monitor",
+   "justhodl-morning-intelligence",
+   "justhodl-oecd-cli"
+  ],
+  "data/ofr-fsi.json": [
+   "justhodl-gap-metrics"
+  ],
+  "data/ofr-stfm.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-credit-composite",
+   "justhodl-eurodollar-plumbing",
+   "justhodl-liquidity-inflection",
+   "justhodl-morning-intelligence",
+   "justhodl-ofr-stfm",
+   "justhodl-risk-gate"
+  ],
+  "data/onchain-ratios.json": [
+   "justhodl-asymmetric-scorer",
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-intel",
+   "justhodl-cycle-clock",
+   "justhodl-health-monitor",
+   "justhodl-morning-intelligence",
+   "justhodl-onchain-ratios"
+  ],
+  "data/opex-calendar.json": [
+   "justhodl-opex-calendar",
+   "justhodl-signal-board"
+  ],
+  "data/opportunities-research.json": [
+   "justhodl-edgar-authority",
+   "justhodl-opportunities-research"
+  ],
+  "data/opportunities.json": [
+   "justhodl-ask",
+   "justhodl-best-setups",
+   "justhodl-conviction-engine",
+   "justhodl-crypto-confluence",
+   "justhodl-crypto-opportunities",
+   "justhodl-deep-value-overlap",
+   "justhodl-engine-conflicts",
+   "justhodl-near-miss-monitor",
+   "justhodl-opportunities-research",
+   "justhodl-opportunity-engine",
+   "justhodl-share-flows",
+   "justhodl-signal-board",
+   "justhodl-whales",
+   "justhodl-whats-changed"
+  ],
+  "data/opportunity-calibration.json": [
+   "justhodl-opportunity-calibrator"
+  ],
+  "data/options-analytics-iv-history.json": [
+   "justhodl-options-analytics"
+  ],
+  "data/options-analytics.json": [
+   "justhodl-deal-scanner",
+   "justhodl-equity-confluence",
+   "justhodl-options-analytics",
+   "justhodl-options-confluence"
+  ],
+  "data/options-confluence.json": [
+   "justhodl-best-setups",
+   "justhodl-deal-scanner",
+   "justhodl-industry-rotation",
+   "justhodl-master-ranker",
+   "justhodl-options-confluence"
+  ],
+  "data/options-flow.json": [
+   "justhodl-ai-infra-stack",
+   "justhodl-alpha-score",
+   "justhodl-apex-fusion",
+   "justhodl-attention-confluence",
+   "justhodl-best-setups",
+   "justhodl-catalyst-skew-premove",
+   "justhodl-compound-aggregator",
+   "justhodl-convergence-radar",
+   "justhodl-deal-scanner",
+   "justhodl-debate-engine",
+   "justhodl-earnings-whisper",
+   "justhodl-fleet-freshness-monitor",
+   "justhodl-history-snapshotter",
+   "justhodl-massive-signals",
+   "justhodl-master-ranker",
+   "justhodl-options-confluence",
+   "justhodl-options-flow-scanner",
+   "justhodl-page-ai-commentary",
+   "justhodl-political-ai-investigation",
+   "justhodl-polygon-options-flow",
+   "justhodl-prediction-snapshotter",
+   "justhodl-prepump-alerts-router",
+   "justhodl-pump-mechanics",
+   "justhodl-regime-composite",
+   "justhodl-retail-sentiment",
+   "justhodl-sector-capital-fusion",
+   "justhodl-stealth-accumulation",
+   "justhodl-theme-second-wave",
+   "justhodl-ticket-ai-rationale",
+   "justhodl-trade-logger",
+   "justhodl-velocity-acceleration",
+   "openbb-websocket-broadcast",
+   "openbb-websocket-handler"
+  ],
+  "data/options-gamma.json": [
+   "justhodl-ai-chat",
+   "justhodl-attention-confluence",
+   "justhodl-health-monitor",
+   "justhodl-institutional-footprint",
+   "justhodl-morning-intelligence",
+   "justhodl-options-gamma"
+  ],
+  "data/page-ai-manifest.json": [
+   "justhodl-page-ai"
+  ],
+  "data/pair-trades.json": [
+   "justhodl-pair-trades",
+   "justhodl-pump-radar-brief"
+  ],
+  "data/pairs-arb.json": [
+   "justhodl-desk-allocator",
+   "justhodl-desk-returns",
+   "justhodl-firm-book",
+   "justhodl-pairs-arb"
+  ],
+  "data/pairs-scanner.json": [
+   "justhodl-master-ranker",
+   "justhodl-morning-brief-tg",
+   "justhodl-pairs-scanner"
+  ],
+  "data/paper-book.json": [
+   "justhodl-paper-book"
+  ],
+  "data/patent-velocity.json": [
+   "justhodl-patent-velocity"
+  ],
+  "data/pead-signals.json": [
+   "justhodl-best-ideas",
+   "justhodl-compound-aggregator",
+   "justhodl-earnings-cascade",
+   "justhodl-master-ranker",
+   "justhodl-pead-detector",
+   "justhodl-screen-builder",
+   "justhodl-sequence-alpha-detector"
+  ],
+  "data/peer-comparison.json": [
+   "justhodl-peer-comparison",
+   "justhodl-screen-builder"
+  ],
+  "data/peru-copper.json": [
+   "justhodl-peru-copper"
+  ],
+  "data/phase-detector.json": [
+   "justhodl-accumulation-radar",
+   "justhodl-industry-rotation",
+   "justhodl-phase-detector",
+   "justhodl-share-flows",
+   "justhodl-whales"
+  ],
+  "data/playbook-rules.json": [
+   "justhodl-best-setups",
+   "justhodl-playbook-engine"
+  ],
+  "data/plumbing-history.json": [
+   "justhodl-plumbing-aggregator",
+   "justhodl-warroom-weights"
+  ],
+  "data/plumbing-stress.json": [
+   "justhodl-canary-warroom",
+   "justhodl-chart-data",
+   "justhodl-plumbing-aggregator",
+   "justhodl-risk-regime"
+  ],
+  "data/pm-decision-history.json": [
+   "justhodl-pm-decision"
+  ],
+  "data/pm-decision.json": [
+   "justhodl-conviction-engine",
+   "justhodl-page-ai-commentary",
+   "justhodl-pm-decision",
+   "justhodl-signal-board"
+  ],
+  "data/pnl-attribution.json": [
+   "justhodl-cro-digest",
+   "justhodl-firm-risk-board",
+   "justhodl-pnl-attribution"
+  ],
+  "data/pnl-ledger.json": [
+   "justhodl-pnl-attribution"
+  ],
+  "data/pnl-stats.json": [
+   "justhodl-digest-trends-ai",
+   "justhodl-page-ai-commentary",
+   "justhodl-pnl-tracker"
+  ],
+  "data/political-ai-investigation.json": [
+   "justhodl-best-setups",
+   "justhodl-political-ai-investigation"
+  ],
+  "data/political-intel.json": [
+   "justhodl-best-setups",
+   "justhodl-political-ai-investigation",
+   "justhodl-political-intel",
+   "justhodl-prediction-snapshotter"
+  ],
+  "data/political-stocks.json": [
+   "justhodl-attention-confluence",
+   "justhodl-political-stocks"
+  ],
+  "data/political-trades.json": [
+   "justhodl-convergence-radar",
+   "justhodl-political-trades"
+  ],
+  "data/polygon-futures-curves.json": [
+   "justhodl-crisis-composite",
+   "justhodl-massive-signals",
+   "justhodl-polygon-futures-curves",
+   "justhodl-prediction-snapshotter",
+   "justhodl-prepump-alerts-router"
+  ],
+  "data/polygon-fx-regime.json": [
+   "justhodl-capital-flow-radar",
+   "justhodl-carry-surface",
+   "justhodl-crisis-composite",
+   "justhodl-cross-asset-flow-state",
+   "justhodl-eurodollar-plumbing",
+   "justhodl-eurodollar-stress",
+   "justhodl-global-flow-desk",
+   "justhodl-hot-money",
+   "justhodl-massive-signals",
+   "justhodl-polygon-fx-regime",
+   "justhodl-prediction-snapshotter",
+   "justhodl-prepump-alerts-router",
+   "justhodl-risk-regime",
+   "justhodl-stress-index"
+  ],
+  "data/polygon-options-flow.json": [
+   "justhodl-best-setups",
+   "justhodl-deal-scanner",
+   "justhodl-massive-signals",
+   "justhodl-options-confluence",
+   "justhodl-page-ai-commentary",
+   "justhodl-political-ai-investigation",
+   "justhodl-polygon-options-flow",
+   "justhodl-prediction-snapshotter",
+   "justhodl-prepump-alerts-router",
+   "justhodl-ticket-ai-rationale"
+  ],
+  "data/polygon-related-graph.json": [
+   "justhodl-readthrough",
+   "justhodl-stock-xray",
+   "justhodl-supply-chain-graph"
+  ],
+  "data/portfolio-analytics.json": [
+   "justhodl-portfolio-analytics",
+   "justhodl-pump-radar-brief"
+  ],
+  "data/portwatch.json": [
+   "justhodl-boom-stage",
+   "justhodl-global-business-cycle",
+   "justhodl-global-recession",
+   "justhodl-morning-intelligence",
+   "justhodl-portwatch",
+   "justhodl-risk-gate"
+  ],
+  "data/position-sizing.json": [
+   "justhodl-position-sizer"
+  ],
+  "data/positioning-analog.json": [
+   "justhodl-positioning-analog"
+  ],
+  "data/post-earnings-mean-rev.json": [
+   "justhodl-post-earnings-mean-rev",
+   "justhodl-signal-board"
+  ],
+  "data/powell-pivot.json": [
+   "justhodl-powell-pivot"
+  ],
+  "data/ppi-acceleration.json": [
+   "justhodl-ppi-acceleration"
+  ],
+  "data/pre-disaster-watchlist.json": [
+   "justhodl-failure-library"
+  ],
+  "data/pre-pump-signals.json": [
+   "justhodl-ai-infra-stack",
+   "justhodl-compound-aggregator",
+   "justhodl-master-ranker",
+   "justhodl-pre-pump-detector",
+   "justhodl-theme-second-wave"
+  ],
+  "data/precatalyst-vol-expansion.json": [
+   "justhodl-precatalyst-vol-expansion",
+   "justhodl-signal-board"
+  ],
+  "data/predictability.json": [
+   "justhodl-best-ideas",
+   "justhodl-consensus-bottom",
+   "justhodl-earnings-cascade",
+   "justhodl-forced-selling-bounce",
+   "justhodl-predictability",
+   "justhodl-quality-on-sale",
+   "justhodl-screen-builder",
+   "justhodl-sequence-alpha-detector"
+  ],
+  "data/price-redundancy.json": [
+   "justhodl-health-monitor",
+   "justhodl-morning-intelligence",
+   "justhodl-price-redundancy"
+  ],
+  "data/proven-alpha.json": [
+   "justhodl-proven-alpha"
+  ],
+  "data/proven-portfolio-history.json": [
+   "justhodl-proven-portfolio"
+  ],
+  "data/proven-portfolio.json": [
+   "justhodl-fundamental-census",
+   "justhodl-proven-portfolio",
+   "justhodl-weekly-ai-review"
+  ],
+  "data/pump-earnings-nlp.json": [
+   "justhodl-catalyst-classifier",
+   "justhodl-pump-earnings-nlp",
+   "justhodl-pump-radar-brief"
+  ],
+  "data/pump-mechanics.json": [
+   "justhodl-catalyst-classifier",
+   "justhodl-pump-mechanics",
+   "justhodl-pump-radar-brief"
+  ],
+  "data/pump-positioning.json": [
+   "justhodl-apex-fusion",
+   "justhodl-catalyst-classifier",
+   "justhodl-catalyst-clusters",
+   "justhodl-prepump-summary",
+   "justhodl-pump-positioning",
+   "justhodl-pump-radar-brief"
+  ],
+  "data/pump-radar-brief.json": [
+   "justhodl-prepump-summary",
+   "justhodl-pump-radar-brief"
+  ],
+  "data/pump-radar-summary.plain.json": [
+   "justhodl-prepump-summary"
+  ],
+  "data/put-call-extreme.json": [
+   "justhodl-forced-selling-bounce",
+   "justhodl-put-call-extreme",
+   "justhodl-signal-board"
+  ],
+  "data/quality-on-sale.json": [
+   "justhodl-quality-on-sale"
+  ],
+  "data/quiver-congress-cache.json": [
+   "justhodl-political-stocks"
+  ],
+  "data/quiver-lobbying-cache.json": [
+   "justhodl-lobbying-intel"
+  ],
+  "data/radar-backtest.json": [
+   "justhodl-radar-backtest"
+  ],
+  "data/rating-change-cluster.json": [
+   "justhodl-attention-confluence",
+   "justhodl-rating-change-cluster",
+   "justhodl-signal-board"
+  ],
+  "data/readthrough-state.json": [
+   "justhodl-readthrough"
+  ],
+  "data/readthrough.json": [
+   "justhodl-readthrough"
+  ],
+  "data/rebalance-radar.json": [
+   "justhodl-feed-catalog",
+   "justhodl-macro-confluence",
+   "justhodl-rebalance-radar",
+   "justhodl-signal-board"
+  ],
+  "data/redflag-alerts.json": [
+   "justhodl-health-monitor",
+   "justhodl-redflag-alerter"
+  ],
+  "data/refining-stress.json": [
+   "justhodl-refining-stress"
+  ],
+  "data/regime-anomaly.json": [
+   "justhodl-master-ranker",
+   "justhodl-regime-anomaly"
+  ],
+  "data/regime-composite-history.json": [
+   "justhodl-regime-composite"
+  ],
+  "data/regime-composite.json": [
+   "justhodl-ai-chat",
+   "justhodl-alpha-compass",
+   "justhodl-crisis-composite",
+   "justhodl-cycle-clock",
+   "justhodl-morning-intelligence",
+   "justhodl-page-ai-commentary",
+   "justhodl-regime-composite",
+   "justhodl-reversal-radar",
+   "justhodl-strategist",
+   "justhodl-stress-scenarios"
+  ],
+  "data/regime-conditional-router.json": [
+   "justhodl-fed-pivot-factor-router",
+   "justhodl-regime-conditional-router"
+  ],
+  "data/regime-conditional-trust.json": [
+   "justhodl-engine-trust",
+   "justhodl-regime-conditional-trust"
+  ],
+  "data/regime-map-prev.json": [
+   "justhodl-regime-map"
+  ],
+  "data/regime-map.json": [
+   "justhodl-cycle-clock",
+   "justhodl-engine-trust",
+   "justhodl-paper-book",
+   "justhodl-regime-conditional-trust",
+   "justhodl-regime-map",
+   "justhodl-sector-emergence",
+   "justhodl-strategist"
+  ],
+  "data/regime-playbook-history.json": [
+   "justhodl-regime-playbook"
+  ],
+  "data/regime-playbook.json": [
+   "justhodl-cycle-clock",
+   "justhodl-regime-playbook"
+  ],
+  "data/regime.json": [
+   "justhodl-ai-chat",
+   "justhodl-ai-website-synthesis",
+   "justhodl-alpha-compass",
+   "justhodl-alpha-decay",
+   "justhodl-altseason",
+   "justhodl-asset-compass",
+   "justhodl-best-setups",
+   "justhodl-canary-warroom",
+   "justhodl-capital-flow-radar",
+   "justhodl-carry-surface",
+   "justhodl-conviction-engine",
+   "justhodl-correlation-break-trade-router",
+   "justhodl-crisis-composite",
+   "justhodl-cross-asset-flow-state",
+   "justhodl-cross-asset-regime",
+   "justhodl-cycle-clock",
+   "justhodl-equity-research",
+   "justhodl-eurodollar-plumbing",
+   "justhodl-eurodollar-stress",
+   "justhodl-factor-regime",
+   "justhodl-flows-ai-analysis",
+   "justhodl-fomc-reaction",
+   "justhodl-global-flow-desk",
+   "justhodl-hedge-planner",
+   "justhodl-hot-money",
+   "justhodl-industry-rotation",
+   "justhodl-macro-regime",
+   "justhodl-massive-signals",
+   "justhodl-master-allocator",
+   "justhodl-master-ranker",
+   "justhodl-morning-intelligence",
+   "justhodl-polygon-fx-regime",
+   "justhodl-prediction-snapshotter",
+   "justhodl-prepump-alerts-router",
+   "justhodl-regime-engine",
+   "justhodl-research-critique",
+   "justhodl-risk-regime",
+   "justhodl-rotation-dashboard",
+   "justhodl-sector-capital-fusion",
+   "justhodl-signal-board",
+   "justhodl-strategist",
+   "justhodl-stress-index",
+   "justhodl-theme-cascade",
+   "justhodl-vol-radar",
+   "justhodl-vol-regime",
+   "justhodl-vvix-vov-regime",
+   "openbb-websocket-broadcast",
+   "openbb-websocket-handler"
+  ],
+  "data/reit-nav-discount.json": [
+   "justhodl-reit-nav-discount",
+   "justhodl-signal-board"
+  ],
+  "data/repo-lending.json": [
+   "justhodl-liquidity-inflection",
+   "justhodl-repo-lending",
+   "justhodl-risk-regime"
+  ],
+  "data/repo-market-history.json": [
+   "justhodl-repo-market"
+  ],
+  "data/repo-market.json": [
+   "justhodl-crisis-plumbing",
+   "justhodl-dollar-radar",
+   "justhodl-repo-market",
+   "justhodl-risk-regime"
+  ],
+  "data/report.json": [
+   "justhodl-ab-test",
+   "justhodl-ai-brief",
+   "justhodl-ai-chat",
+   "justhodl-allocator",
+   "justhodl-apex-fusion",
+   "justhodl-bloomberg-v8",
+   "justhodl-chat-api",
+   "justhodl-crisis-knowledge-base",
+   "justhodl-crypto-enricher",
+   "justhodl-crypto-intel",
+   "justhodl-daily-report-v3",
+   "justhodl-data-collector",
+   "justhodl-divergence-scanner",
+   "justhodl-financial-secretary",
+   "justhodl-health-monitor",
+   "justhodl-history-snapshotter",
+   "justhodl-intelligence",
+   "justhodl-investor-agents",
+   "justhodl-khalid-adaptive",
+   "justhodl-macro-nowcast",
+   "justhodl-morning-intelligence",
+   "justhodl-nobrainer-tracker",
+   "justhodl-outcome-checker",
+   "justhodl-regime-anomaly",
+   "justhodl-reversal-radar",
+   "justhodl-risk-sizer",
+   "justhodl-signal-logger",
+   "justhodl-stock-analyzer",
+   "justhodl-stress-scenarios",
+   "justhodl-stress-simulator",
+   "justhodl-telegram-bot",
+   "openbb-websocket-broadcast",
+   "openbb-websocket-handler",
+   "scrapeMacroData"
+  ],
+  "data/research-papers.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-ask-desk",
+   "justhodl-research-papers",
+   "justhodl-signal-board"
+  ],
+  "data/resilience.json": [
+   "justhodl-best-setups",
+   "justhodl-equity-confluence",
+   "justhodl-industry-rotation",
+   "justhodl-phase-detector",
+   "justhodl-resilience",
+   "justhodl-stock-xray"
+  ],
+  "data/retail-alert-state.json": [
+   "justhodl-retail-sentiment"
+  ],
+  "data/retail-alerts.json": [
+   "justhodl-retail-sentiment"
+  ],
+  "data/retail-attention-history.json": [
+   "justhodl-retail-sentiment"
+  ],
+  "data/retail-divergence-track.json": [
+   "justhodl-retail-sentiment"
+  ],
+  "data/retail-momentum-track.json": [
+   "justhodl-retail-sentiment"
+  ],
+  "data/retail-sentiment.json": [
+   "justhodl-ai-chat",
+   "justhodl-best-setups",
+   "justhodl-convergence-radar",
+   "justhodl-cycle-clock",
+   "justhodl-digest-trends-ai",
+   "justhodl-hot-stocks-digest",
+   "justhodl-market-extremes",
+   "justhodl-morning-intelligence",
+   "justhodl-prediction-snapshotter",
+   "justhodl-regime-composite",
+   "justhodl-retail-sentiment"
+  ],
+  "data/revenue-acceleration.json": [
+   "justhodl-ai-infra-stack",
+   "justhodl-ai-rerating-radar",
+   "justhodl-best-ideas",
+   "justhodl-compound-aggregator",
+   "justhodl-cyclical-bagger",
+   "justhodl-earnings-whisper",
+   "justhodl-master-ranker",
+   "justhodl-opportunity-screener",
+   "justhodl-revenue-acceleration",
+   "justhodl-theme-second-wave"
+  ],
+  "data/reversal-radar-history.json": [
+   "justhodl-reversal-radar"
+  ],
+  "data/reversal-radar.json": [
+   "justhodl-forced-selling-bounce",
+   "justhodl-reversal-radar"
+  ],
+  "data/revision-breadth.json": [
+   "justhodl-gap-metrics"
+  ],
+  "data/risk-gate.json": [
+   "justhodl-best-setups",
+   "justhodl-data-census",
+   "justhodl-domain-barometers",
+   "justhodl-master-ranker",
+   "justhodl-opportunity-engine",
+   "justhodl-position-sizer-v2",
+   "justhodl-risk-gate",
+   "justhodl-sizing-engine"
+  ],
+  "data/risk-monitor.json": [
+   "justhodl-cro-digest",
+   "justhodl-firm-risk-board",
+   "justhodl-risk-monitor"
+  ],
+  "data/risk-radar.json": [
+   "justhodl-desk-allocator",
+   "justhodl-desk-returns",
+   "justhodl-firm-book",
+   "justhodl-risk-radar"
+  ],
+  "data/risk-ratios.json": [
+   "justhodl-risk-ratios",
+   "justhodl-stress-index"
+  ],
+  "data/risk-regime-state.json": [
+   "justhodl-risk-regime"
+  ],
+  "data/risk-regime.json": [
+   "justhodl-alpha-compass",
+   "justhodl-alpha-decay",
+   "justhodl-asset-compass",
+   "justhodl-best-setups",
+   "justhodl-carry-surface",
+   "justhodl-conviction-engine",
+   "justhodl-cross-asset-flow-state",
+   "justhodl-cycle-clock",
+   "justhodl-hedge-planner",
+   "justhodl-hot-money",
+   "justhodl-industry-rotation",
+   "justhodl-master-ranker",
+   "justhodl-morning-intelligence",
+   "justhodl-risk-regime",
+   "justhodl-rotation-dashboard",
+   "justhodl-sector-capital-fusion",
+   "justhodl-signal-board",
+   "justhodl-strategist",
+   "justhodl-stress-index"
+  ],
+  "data/risk-sizer.json": [
+   "justhodl-ai-brief",
+   "justhodl-risk-sizer"
+  ],
+  "data/rotation-chains.json": [
+   "justhodl-bottleneck-research",
+   "justhodl-future-intelligence",
+   "justhodl-rotation-chain"
+  ],
+  "data/rotation-dashboard-history.json": [
+   "justhodl-rotation-dashboard"
+  ],
+  "data/rotation-dashboard.json": [
+   "justhodl-best-setups",
+   "justhodl-data-census",
+   "justhodl-domain-barometers",
+   "justhodl-macro-confluence",
+   "justhodl-master-ranker",
+   "justhodl-rotation-dashboard"
+  ],
+  "data/rotation-radar.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-rotation-radar",
+   "justhodl-signal-board"
+  ],
+  "data/russell-recon-frontrun.json": [
+   "justhodl-russell-recon-frontrun",
+   "justhodl-signal-board"
+  ],
+  "data/rv-iv-scanner.json": [
+   "_archived",
+   "justhodl-rv-iv-scanner",
+   "justhodl-signal-board"
+  ],
+  "data/scarcity-radar.json": [
+   "justhodl-conviction-engine",
+   "justhodl-inventory-drawdown",
+   "justhodl-master-ranker",
+   "justhodl-scarcity-radar"
+  ],
+  "data/schedule-liveness.json": [
+   "justhodl-schedule-liveness"
+  ],
+  "data/screen-universe.json": [
+   "justhodl-screen-builder"
+  ],
+  "data/search-attention-titlemap.json": [
+   "justhodl-search-attention"
+  ],
+  "data/search-attention.json": [
+   "justhodl-attention-confluence",
+   "justhodl-search-attention"
+  ],
+  "data/seasonality.json": [
+   "justhodl-seasonality"
+  ],
+  "data/sec-filing-diff.json": [
+   "justhodl-sec-filing-diff"
+  ],
+  "data/sec-filings-intel.json": [
+   "justhodl-convergence-radar",
+   "justhodl-pump-mechanics",
+   "justhodl-sec-filings-intel"
+  ],
+  "data/secretary-latest.json": [
+   "justhodl-financial-secretary",
+   "justhodl-history-snapshotter"
+  ],
+  "data/sector-capital-fusion.json": [
+   "justhodl-sector-capital-fusion"
+  ],
+  "data/sector-earnings-diffusion-state.json": [
+   "justhodl-sector-earnings-diffusion"
+  ],
+  "data/sector-earnings-diffusion.json": [
+   "justhodl-sector-earnings-diffusion"
+  ],
+  "data/sector-emergence.json": [
+   "justhodl-sector-emergence",
+   "justhodl-strategist"
+  ],
+  "data/sector-flow-state.json": [
+   "justhodl-best-setups",
+   "justhodl-deal-scanner",
+   "justhodl-macro-confluence",
+   "justhodl-master-ranker",
+   "justhodl-morning-intelligence",
+   "justhodl-sector-flow-state"
+  ],
+  "data/sector-groups.json": [
+   "justhodl-market-map",
+   "justhodl-research-papers",
+   "justhodl-signal-board",
+   "justhodl-stock-valuations"
+  ],
+  "data/sector-heatmap.json": [
+   "justhodl-sector-heatmap"
+  ],
+  "data/sector-rotation.json": [
+   "justhodl-ai-brief",
+   "justhodl-ai-chat",
+   "justhodl-alert-router",
+   "justhodl-allocator",
+   "justhodl-confluence-meta",
+   "justhodl-cycle-clock",
+   "justhodl-deal-scanner",
+   "justhodl-morning-intelligence",
+   "justhodl-sector-capital-fusion",
+   "justhodl-sector-flow-state",
+   "justhodl-sector-rotation",
+   "justhodl-sector-tilt",
+   "justhodl-wave-signal-logger"
+  ],
+  "data/sector-tilt.json": [
+   "justhodl-master-ranker",
+   "justhodl-morning-brief-tg",
+   "justhodl-sector-tilt"
+  ],
+  "data/sellside-views.json": [
+   "justhodl-gap-metrics",
+   "justhodl-sellside-views"
+  ],
+  "data/sequence-alpha.json": [
+   "justhodl-sequence-alpha-detector"
+  ],
+  "data/settlement-fails.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-bond-desk",
+   "justhodl-credit-composite",
+   "justhodl-cycle-clock",
+   "justhodl-eurodollar-plumbing",
+   "justhodl-liquidity-inflection",
+   "justhodl-morning-intelligence",
+   "justhodl-plumbing-aggregator",
+   "justhodl-settlement-fails"
+  ],
+  "data/share-flows.json": [
+   "justhodl-buyback-engine",
+   "justhodl-cannibals",
+   "justhodl-comeback-screener",
+   "justhodl-deal-scanner",
+   "justhodl-equity-research",
+   "justhodl-forensic-screen",
+   "justhodl-industry-boom",
+   "justhodl-opportunity-engine",
+   "justhodl-share-flows",
+   "justhodl-short-book"
+  ],
+  "data/short-book.json": [
+   "justhodl-fundamental-census",
+   "justhodl-proven-portfolio",
+   "justhodl-short-book",
+   "justhodl-weekly-ai-review"
+  ],
+  "data/short-interest.json": [
+   "justhodl-accumulation-radar",
+   "justhodl-alert-router",
+   "justhodl-attention-confluence",
+   "justhodl-bottleneck-research",
+   "justhodl-flow-confluence",
+   "justhodl-institutional-footprint",
+   "justhodl-repo-lending",
+   "justhodl-short-interest",
+   "justhodl-signal-portfolio",
+   "justhodl-squeeze-pretrigger",
+   "justhodl-wave-signal-logger",
+   "justhodl-whats-changed"
+  ],
+  "data/short-pressure.json": [
+   "justhodl-ai-infra-stack",
+   "justhodl-conviction-engine",
+   "justhodl-opportunity-engine",
+   "justhodl-risk-radar",
+   "justhodl-short-pressure",
+   "justhodl-signal-board",
+   "justhodl-stealth-accumulation",
+   "justhodl-theme-second-wave"
+  ],
+  "data/sifma-issuance.json": [
+   "justhodl-gap-metrics"
+  ],
+  "data/signal-backtest.json": [
+   "justhodl-regime-playbook",
+   "justhodl-signal-backtest"
+  ],
+  "data/signal-board.json": [
+   "justhodl-ai-website-synthesis",
+   "justhodl-ask-desk",
+   "justhodl-calibration-fleet",
+   "justhodl-cross-asset-confirm",
+   "justhodl-desk-allocator",
+   "justhodl-history-snapshotter",
+   "justhodl-live-pulse",
+   "justhodl-master-allocator",
+   "justhodl-page-ai-commentary",
+   "justhodl-regime-conditional-router",
+   "justhodl-signal-board",
+   "justhodl-strategist",
+   "justhodl-streaming-fanout",
+   "justhodl-synthetic-monitor",
+   "justhodl-whats-changed"
+  ],
+  "data/signal-genealogy.json": [
+   "justhodl-signal-genealogy"
+  ],
+  "data/signal-halflife.json": [
+   "justhodl-best-setups",
+   "justhodl-meta-improver",
+   "justhodl-signal-halflife"
+  ],
+  "data/signal-orthogonality.json": [
+   "justhodl-best-setups",
+   "justhodl-proven-portfolio",
+   "justhodl-signal-orthogonality"
+  ],
+  "data/signal-scorecard.json": [
+   "justhodl-alpha-compass",
+   "justhodl-alpha-decay",
+   "justhodl-apex-fusion",
+   "justhodl-conviction-engine",
+   "justhodl-engine-trust",
+   "justhodl-equity-confluence",
+   "justhodl-miss-calibrator",
+   "justhodl-page-ai",
+   "justhodl-proven-portfolio",
+   "justhodl-signal-scorecard"
+  ],
+  "data/signal-suppress.json": [
+   "justhodl-proven-alpha"
+  ],
+  "data/simulated-portfolio.json": [
+   "justhodl-digest-trends-ai",
+   "justhodl-page-ai-commentary",
+   "justhodl-pnl-tracker",
+   "justhodl-weekly-ai-review"
+  ],
+  "data/singapore-nodx.json": [
+   "justhodl-singapore-nodx"
+  ],
+  "data/sizing.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-portfolio-sizer",
+   "justhodl-position-sizer",
+   "justhodl-proven-portfolio",
+   "justhodl-signal-board",
+   "justhodl-sizing-engine"
+  ],
+  "data/skew-tail-hedging.json": [
+   "justhodl-cycle-clock",
+   "justhodl-institutional-footprint",
+   "justhodl-signal-board",
+   "justhodl-skew-tail-hedging"
+  ],
+  "data/sloos.json": [
+   "justhodl-gap-metrics"
+  ],
+  "data/smart-beta.json": [
+   "justhodl-best-ideas",
+   "justhodl-consensus-bottom",
+   "justhodl-quality-on-sale",
+   "justhodl-screen-builder",
+   "justhodl-sequence-alpha-detector",
+   "justhodl-smart-beta"
+  ],
+  "data/smart-money-13f.json": [
+   "justhodl-ai-rerating-radar",
+   "justhodl-deal-scanner",
+   "justhodl-finnhub-signals",
+   "justhodl-smart-money-13f"
+  ],
+  "data/smart-money-clusters.json": [
+   "justhodl-attention-confluence",
+   "justhodl-compound-aggregator",
+   "justhodl-earnings-whisper",
+   "justhodl-flow-confluence",
+   "justhodl-history-snapshotter",
+   "justhodl-master-ranker",
+   "justhodl-nobrainer-rationale",
+   "justhodl-smart-money-cluster",
+   "justhodl-stealth-accumulation",
+   "justhodl-system-signal-logger"
+  ],
+  "data/smart-wake.json": [
+   "justhodl-smart-wake"
+  ],
+  "data/snb-detail.json": [
+   "justhodl-snb-detail"
+  ],
+  "data/source-map.json": [
+   "justhodl-source-map"
+  ],
+  "data/sovereign-fiscal.json": [
+   "justhodl-cycle-clock",
+   "justhodl-global-flow-desk",
+   "justhodl-sovereign-fiscal"
+  ],
+  "data/sovereign-gssi.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-proven-portfolio",
+   "justhodl-sovereign-stress"
+  ],
+  "data/sovereign-stress-history.json": [
+   "justhodl-sovereign-stress"
+  ],
+  "data/sovereign-stress.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-risk-gate",
+   "justhodl-sovereign-stress",
+   "justhodl-stress-index"
+  ],
+  "data/spac-floor-warrant.json": [
+   "justhodl-signal-board",
+   "justhodl-spac-floor-warrant"
+  ],
+  "data/spinoff-desk.json": [
+   "justhodl-desk-allocator",
+   "justhodl-desk-returns",
+   "justhodl-firm-book",
+   "justhodl-spinoff-desk"
+  ],
+  "data/spx-history-deep.json": [
+   "justhodl-alert-backtester",
+   "justhodl-confluence-meta",
+   "justhodl-ecb-derived",
+   "justhodl-episode-compass",
+   "justhodl-fundamental-census",
+   "justhodl-historical-analogs",
+   "justhodl-liquidity-inflection",
+   "justhodl-ma-reversion",
+   "justhodl-regime-engine",
+   "justhodl-screen-backtest",
+   "justhodl-spx-history",
+   "justhodl-spx-ma"
+  ],
+  "data/spx-ma.json": [
+   "justhodl-morning-intelligence",
+   "justhodl-spx-ma"
+  ],
+  "data/squeeze-fuel.json": [
+   "justhodl-best-setups",
+   "justhodl-equity-confluence",
+   "justhodl-master-ranker",
+   "justhodl-short-book",
+   "justhodl-squeeze-fuel"
+  ],
+  "data/squeeze-pretrigger.json": [
+   "justhodl-boom-radar",
+   "justhodl-prepump-alerts-router",
+   "justhodl-signal-board",
+   "justhodl-squeeze-pretrigger"
+  ],
+  "data/stablecoin-flow.json": [
+   "justhodl-crypto-confluence",
+   "justhodl-global-flow-desk",
+   "justhodl-liquidity-inflection",
+   "justhodl-signal-board",
+   "justhodl-stablecoin-flow"
+  ],
+  "data/starmine.json": [
+   "justhodl-best-ideas",
+   "justhodl-screen-builder",
+   "justhodl-starmine"
+  ],
+  "data/stealth-accumulation.json": [
+   "justhodl-ai-infra-stack",
+   "justhodl-flow-confluence",
+   "justhodl-signal-board",
+   "justhodl-stealth-accumulation",
+   "justhodl-theme-second-wave"
+  ],
+  "data/stealth-flow.json": [
+   "justhodl-stealth-flow"
+  ],
+  "data/stock-bond-corr.json": [
+   "justhodl-gap-metrics"
+  ],
+  "data/stock-valuations.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-ask-desk",
+   "justhodl-edgar-authority",
+   "justhodl-intraday-pulse",
+   "justhodl-research-papers",
+   "justhodl-share-flows",
+   "justhodl-signal-board",
+   "justhodl-stock-valuations"
+  ],
+  "data/stock-xray.json": [
+   "justhodl-capex-pulse",
+   "justhodl-institutional-footprint",
+   "justhodl-signal-board",
+   "justhodl-stock-xray"
+  ],
+  "data/stocktwits.json": [
+   "justhodl-hot-stocks-digest",
+   "justhodl-stocktwits"
+  ],
+  "data/strategist.json": [
+   "justhodl-best-setups",
+   "justhodl-strategist"
+  ],
+  "data/strategy-portfolio.json": [
+   "justhodl-strategist",
+   "justhodl-strategy-portfolio"
+  ],
+  "data/streaming-config.json": [
+   "justhodl-streaming-fanout"
+  ],
+  "data/streaming-fanout.json": [
+   "justhodl-streaming-fanout"
+  ],
+  "data/stress-factor-loadings.json": [
+   "justhodl-stress-loadings",
+   "justhodl-stress-simulator"
+  ],
+  "data/stress-scenarios.json": [
+   "justhodl-cycle-clock",
+   "justhodl-stress-scenarios"
+  ],
+  "data/structural-pre-signals.json": [
+   "justhodl-convergence-radar",
+   "justhodl-global-flow-desk",
+   "justhodl-structural-pre-signals"
+  ],
+  "data/supply-chain-graph.json": [
+   "justhodl-bottleneck-boom",
+   "justhodl-chokepoint",
+   "justhodl-equity-confluence",
+   "justhodl-readthrough",
+   "justhodl-scarcity-radar",
+   "justhodl-supply-chain-graph"
+  ],
+  "data/supply-chain-linkage.json": [
+   "justhodl-bottleneck-boom",
+   "justhodl-supply-chain-linkage"
+  ],
+  "data/supply-inflection.json": [
+   "justhodl-asymmetric-hunter",
+   "justhodl-bottleneck-boom",
+   "justhodl-cyclical-bagger",
+   "justhodl-history-snapshotter",
+   "justhodl-master-ranker",
+   "justhodl-scarcity-radar",
+   "justhodl-supply-inflection-scanner"
+  ],
+  "data/switzerland.json": [
+   "justhodl-switzerland"
+  ],
+  "data/symbol-aliases.json": [
+   "justhodl-symbol-resolver",
+   "justhodl-tradingview"
+  ],
+  "data/symbol-dictionary.json": [
+   "justhodl-symbol-dictionary",
+   "justhodl-wl-engines"
+  ],
+  "data/symbol-feed.json": [
+   "justhodl-indicator-bus",
+   "justhodl-symbol-feed",
+   "justhodl-tradingview"
+  ],
+  "data/symbol-map.json": [
+   "justhodl-symbol-dictionary",
+   "justhodl-thesis-engine",
+   "justhodl-wl-engines"
+  ],
+  "data/sympathetic-momentum.json": [
+   "justhodl-convergence-radar",
+   "justhodl-signal-board",
+   "justhodl-sympathetic-momentum",
+   "justhodl-theme-second-wave"
+  ],
+  "data/synthetic-monitor-prev.json": [
+   "justhodl-synthetic-monitor"
+  ],
+  "data/synthetic-monitor.json": [
+   "justhodl-synthetic-monitor"
+  ],
+  "data/systemic-stress.json": [
+   "justhodl-bond-desk",
+   "justhodl-calibration-fleet",
+   "justhodl-cds-monitor",
+   "justhodl-cycle-clock",
+   "justhodl-euro-fragmentation",
+   "justhodl-history-snapshotter",
+   "justhodl-market-interpreter",
+   "justhodl-risk-regime",
+   "justhodl-systemic-stress",
+   "justhodl-wl-fusion"
+  ],
+  "data/tail-hedge-history.json": [
+   "justhodl-tail-hedge"
+  ],
+  "data/tail-hedge.json": [
+   "justhodl-cro-digest",
+   "justhodl-cro-escalation",
+   "justhodl-hedge-planner",
+   "justhodl-hedge-pnl",
+   "justhodl-stress-index",
+   "justhodl-tail-hedge"
+  ],
+  "data/tail-risk-history.json": [
+   "justhodl-tail-risk"
+  ],
+  "data/tail-risk.json": [
+   "justhodl-cycle-clock",
+   "justhodl-implied-prob",
+   "justhodl-risk-regime",
+   "justhodl-strategist",
+   "justhodl-stress-index",
+   "justhodl-tail-risk"
+  ],
+  "data/taiwan-moea.json": [
+   "justhodl-apac-flows",
+   "justhodl-bottleneck-boom",
+   "justhodl-taiwan-moea"
+  ],
+  "data/talent-migration.json": [
+   "justhodl-convergence-radar",
+   "justhodl-talent-migration"
+  ],
+  "data/tape-reader.json": [
+   "justhodl-tape-reader"
+  ],
+  "data/tax-plan-snapshot.json": [
+   "justhodl-tax-plan"
+  ],
+  "data/te-feed.json": [
+   "justhodl-indicator-bus",
+   "justhodl-te-feed",
+   "justhodl-tradingview"
+  ],
+  "data/term-premium.json": [
+   "justhodl-bond-desk",
+   "justhodl-signal-board",
+   "justhodl-term-premium",
+   "justhodl-yield-curve"
+  ],
+  "data/theme-cascade-backtest.json": [
+   "justhodl-theme-cascade-backtest"
+  ],
+  "data/theme-cascade-calibrated.json": [
+   "justhodl-apex-fusion",
+   "justhodl-cascade-recalibrator",
+   "justhodl-prepump-alerts-router",
+   "justhodl-ticket-ai-rationale",
+   "justhodl-trade-tickets",
+   "justhodl-weekly-ai-review"
+  ],
+  "data/theme-cascade.json": [
+   "justhodl-best-setups",
+   "justhodl-cascade-recalibrator",
+   "justhodl-digest-trends-ai",
+   "justhodl-page-ai-commentary",
+   "justhodl-political-ai-investigation",
+   "justhodl-polygon-options-flow",
+   "justhodl-prediction-snapshotter",
+   "justhodl-prepump-alerts-router",
+   "justhodl-theme-cascade",
+   "justhodl-ticket-ai-rationale",
+   "justhodl-trade-tickets",
+   "justhodl-weekly-ai-review"
+  ],
+  "data/theme-rotation-state.json": [
+   "justhodl-theme-rotation-engine"
+  ],
+  "data/theme-rotation.json": [
+   "justhodl-fast-filings",
+   "justhodl-theme-cascade",
+   "justhodl-theme-cascade-backtest",
+   "justhodl-theme-rotation",
+   "justhodl-theme-rotation-engine",
+   "justhodl-theme-second-wave"
+  ],
+  "data/theme-second-wave.json": [
+   "justhodl-theme-second-wave"
+  ],
+  "data/theme-tiers.json": [
+   "justhodl-asymmetric-hunter",
+   "justhodl-history-snapshotter",
+   "justhodl-master-ranker",
+   "justhodl-theme-tier-classifier"
+  ],
+  "data/themes-detected.json": [
+   "justhodl-asymmetric-hunter",
+   "justhodl-bottleneck-boom",
+   "justhodl-history-snapshotter",
+   "justhodl-scarcity-radar",
+   "justhodl-supply-inflection-scanner",
+   "justhodl-theme-detector",
+   "justhodl-theme-tier-classifier"
+  ],
+  "data/themes.json": [
+   "justhodl-catalyst-classifier",
+   "justhodl-catalyst-clusters",
+   "justhodl-market-map",
+   "justhodl-notes-intel",
+   "justhodl-theme-cascade",
+   "justhodl-theme-classifier",
+   "justhodl-velocity-acceleration"
+  ],
+  "data/thesis-engine.json": [
+   "justhodl-thesis-engine"
+  ],
+  "data/tic-flows.json": [
+   "justhodl-cycle-clock",
+   "justhodl-global-flow-desk",
+   "justhodl-tic-flows"
+  ],
+  "data/ticker-research-bundle.json": [
+   "justhodl-catalyst-classifier",
+   "justhodl-pump-radar-brief",
+   "justhodl-ticker-deep-research"
+  ],
+  "data/ticker-trends.json": [
+   "justhodl-convergence-radar",
+   "justhodl-future-intelligence",
+   "justhodl-momentum-leaders",
+   "justhodl-retail-sentiment",
+   "justhodl-ticker-trends"
+  ],
+  "data/track-record.json": [
+   "justhodl-alpha-research",
+   "justhodl-bottleneck-research",
+   "justhodl-cascade-validator",
+   "justhodl-track-record"
+  ],
+  "data/trade-journal.json": [
+   "justhodl-alpha-calibrator",
+   "justhodl-trade-evaluator"
+  ],
+  "data/trade-monitor-snapshots.json": [
+   "justhodl-digest-trends-ai",
+   "justhodl-page-ai-commentary",
+   "justhodl-pnl-tracker",
+   "justhodl-trade-ticket-monitor"
+  ],
+  "data/trade-nowcast.json": [
+   "justhodl-morning-intelligence",
+   "justhodl-trade-nowcast"
+  ],
+  "data/trade-tickets-ai-rationale.json": [
+   "justhodl-best-setups",
+   "justhodl-prepump-alerts-router",
+   "justhodl-ticket-ai-rationale"
+  ],
+  "data/trade-tickets.json": [
+   "justhodl-best-setups",
+   "justhodl-digest-trends-ai",
+   "justhodl-page-ai-commentary",
+   "justhodl-pnl-tracker",
+   "justhodl-prediction-snapshotter",
+   "justhodl-prepump-alerts-router",
+   "justhodl-ticket-ai-rationale",
+   "justhodl-trade-ticket-monitor",
+   "justhodl-trade-tickets"
+  ],
+  "data/tradingview-notes.json": [
+   "justhodl-brain-compiler",
+   "justhodl-notes-intel",
+   "justhodl-playbook-engine",
+   "justhodl-tv-notes-crawler",
+   "justhodl-tv-notes-ingest"
+  ],
+  "data/tradingview.json": [
+   "justhodl-data-census",
+   "justhodl-domain-barometers",
+   "justhodl-gov-sources",
+   "justhodl-indicator-bus",
+   "justhodl-macro-attribution",
+   "justhodl-risk-gate",
+   "justhodl-symbol-feed",
+   "justhodl-tradingview",
+   "justhodl-tv-workbench"
+  ],
+  "data/treasury-auctions.json": [
+   "justhodl-sovereign-fiscal"
+  ],
+  "data/treasury-noise-history.json": [
+   "justhodl-treasury-noise"
+  ],
+  "data/treasury-noise.json": [
+   "justhodl-crisis-composite",
+   "justhodl-cycle-clock",
+   "justhodl-treasury-noise"
+  ],
+  "data/trend-engine.json": [
+   "justhodl-desk-allocator",
+   "justhodl-desk-returns",
+   "justhodl-firm-book",
+   "justhodl-trend-engine"
+  ],
+  "data/tv-crawler-status.json": [
+   "justhodl-tv-notes-crawler"
+  ],
+  "data/tv-sources.json": [
+   "justhodl-source-map",
+   "justhodl-tv-notes-ingest",
+   "justhodl-tv-workbench"
+  ],
+  "data/tv-watchlist-state.json": [
+   "justhodl-tv-watchlist-tracker"
+  ],
+  "data/tv-watchlist-tracker.json": [
+   "justhodl-tv-watchlist-tracker"
+  ],
+  "data/tv-watchlists.json": [
+   "justhodl-cot-feed",
+   "justhodl-macro-attribution",
+   "justhodl-symbol-dictionary",
+   "justhodl-symbol-feed",
+   "justhodl-symbol-resolver",
+   "justhodl-thesis-engine",
+   "justhodl-tradingview",
+   "justhodl-tv-notes-ingest",
+   "justhodl-tv-watchlist-tracker",
+   "justhodl-tv-workbench",
+   "justhodl-wl-engines"
+  ],
+  "data/tv-workbench.json": [
+   "justhodl-tv-workbench"
+  ],
+  "data/universe-discovery.json": [
+   "justhodl-convergence-radar",
+   "justhodl-universe-discovery"
+  ],
+  "data/universe.json": [
+   "justhodl-activist-filings-scanner",
+   "justhodl-ai-infra-stack",
+   "justhodl-backlog",
+   "justhodl-bagger-engine",
+   "justhodl-best-setups",
+   "justhodl-bottleneck-boom",
+   "justhodl-cannibals",
+   "justhodl-credit-before-equity",
+   "justhodl-deal-scanner",
+   "justhodl-deep-value-screener",
+   "justhodl-dislocation-detector",
+   "justhodl-earnings-blackout",
+   "justhodl-earnings-pead",
+   "justhodl-edgar-authority",
+   "justhodl-eps-revision-velocity",
+   "justhodl-etf-constituents",
+   "justhodl-finviz-universe",
+   "justhodl-fundamental-census",
+   "justhodl-hiring-velocity",
+   "justhodl-history-snapshotter",
+   "justhodl-ignition",
+   "justhodl-industry-boom",
+   "justhodl-insider-industry-cluster",
+   "justhodl-master-ranker",
+   "justhodl-microcap-float-squeeze",
+   "justhodl-miss-calibrator",
+   "justhodl-miss-detector",
+   "justhodl-momentum-breakout",
+   "justhodl-money-flow-state",
+   "justhodl-opportunity-engine",
+   "justhodl-options-flow-scanner",
+   "justhodl-pead-detector",
+   "justhodl-pre-pump-detector",
+   "justhodl-readthrough",
+   "justhodl-revenue-acceleration",
+   "justhodl-screen-builder",
+   "justhodl-sector-capital-fusion",
+   "justhodl-sector-earnings-diffusion",
+   "justhodl-short-book",
+   "justhodl-tape-reader",
+   "justhodl-theme-second-wave",
+   "justhodl-tradingview",
+   "justhodl-universe-builder",
+   "justhodl-volatility-squeeze-hunter"
+  ],
+  "data/upside-radar.json": [
+   "justhodl-alert-sentinel",
+   "justhodl-signal-board",
+   "justhodl-upside-radar"
+  ],
+  "data/upside-theses.json": [
+   "justhodl-upside-thesis"
+  ],
+  "data/us-cycle.json": [
+   "justhodl-cycle-clock",
+   "justhodl-signal-board",
+   "justhodl-us-cycle"
+  ],
+  "data/us10y-sentinel.json": [
+   "justhodl-master-allocator",
+   "justhodl-us10y-sentinel"
+  ],
+  "data/user-trades-stats.json": [
+   "justhodl-trade-journal"
+  ],
+  "data/user-trades.json": [
+   "justhodl-trade-journal"
+  ],
+  "data/user-watchlist.json": [
+   "justhodl-vol-regime",
+   "justhodl-watchlist"
+  ],
+  "data/velocity-acceleration.json": [
+   "justhodl-convergence-radar",
+   "justhodl-prediction-snapshotter",
+   "justhodl-prepump-alerts-router",
+   "justhodl-prepump-summary",
+   "justhodl-pump-radar-brief",
+   "justhodl-theme-cascade",
+   "justhodl-velocity-acceleration"
+  ],
+  "data/vix-backwardation-trigger.json": [
+   "justhodl-forced-selling-bounce",
+   "justhodl-risk-regime",
+   "justhodl-signal-board",
+   "justhodl-vix-backwardation-trigger"
+  ],
+  "data/vix-curve-history.json": [
+   "justhodl-vix-curve",
+   "justhodl-vol-radar",
+   "justhodl-vrp"
+  ],
+  "data/vix-curve.json": [
+   "justhodl-ai-chat",
+   "justhodl-alert-router",
+   "justhodl-auction-interpreter",
+   "justhodl-crisis-knowledge-base",
+   "justhodl-cycle-clock",
+   "justhodl-forced-selling-bounce",
+   "justhodl-global-tide",
+   "justhodl-health-monitor",
+   "justhodl-market-interpreter",
+   "justhodl-morning-intelligence",
+   "justhodl-regime-composite",
+   "justhodl-reversal-radar",
+   "justhodl-smart-wake",
+   "justhodl-synthetic-monitor",
+   "justhodl-systemic-stress",
+   "justhodl-vix-curve",
+   "justhodl-vol-radar",
+   "justhodl-vrp"
+  ],
+  "data/vix9d-vix-inversion.json": [
+   "justhodl-forced-selling-bounce",
+   "justhodl-risk-regime",
+   "justhodl-signal-board",
+   "justhodl-vix9d-vix-inversion"
+  ],
+  "data/vol-radar-history.json": [
+   "justhodl-vol-radar"
+  ],
+  "data/vol-radar.json": [
+   "justhodl-ai-website-synthesis",
+   "justhodl-calibration-fleet",
+   "justhodl-canary-warroom",
+   "justhodl-correlation-break-trade-router",
+   "justhodl-cro-escalation",
+   "justhodl-fed-pivot-factor-router",
+   "justhodl-forced-selling-bounce",
+   "justhodl-hedge-planner",
+   "justhodl-history-snapshotter",
+   "justhodl-regime-conditional-router",
+   "justhodl-streaming-fanout",
+   "justhodl-vol-radar"
+  ],
+  "data/vol-regime.json": [
+   "justhodl-ai-chat",
+   "justhodl-cycle-clock",
+   "justhodl-master-allocator",
+   "justhodl-morning-intelligence",
+   "justhodl-vol-radar",
+   "justhodl-vol-regime"
+  ],
+  "data/vol-surface-history.json": [
+   "justhodl-vol-surface"
+  ],
+  "data/vol-surface.json": [
+   "justhodl-capitulation",
+   "justhodl-confluence-meta",
+   "justhodl-crisis-composite",
+   "justhodl-hedge-planner",
+   "justhodl-hedge-pnl",
+   "justhodl-kb-matcher",
+   "justhodl-portfolio-analytics",
+   "justhodl-position-sizer",
+   "justhodl-tail-hedge",
+   "justhodl-vol-surface"
+  ],
+  "data/vol-target-unwind.json": [
+   "justhodl-risk-regime",
+   "justhodl-signal-board",
+   "justhodl-vol-target-unwind"
+  ],
+  "data/volatility-squeeze.json": [
+   "justhodl-ai-infra-stack",
+   "justhodl-compound-aggregator",
+   "justhodl-master-ranker",
+   "justhodl-options-confluence",
+   "justhodl-theme-second-wave",
+   "justhodl-volatility-squeeze-hunter"
+  ],
+  "data/vrp-history.json": [
+   "justhodl-vrp"
+  ],
+  "data/vrp.json": [
+   "justhodl-calibration-fleet",
+   "justhodl-history-snapshotter",
+   "justhodl-market-extremes",
+   "justhodl-vol-radar",
+   "justhodl-vrp"
+  ],
+  "data/vvix-vov-regime.json": [
+   "justhodl-cycle-clock",
+   "justhodl-risk-regime",
+   "justhodl-signal-board",
+   "justhodl-stress-index",
+   "justhodl-vvix-vov-regime"
+  ],
+  "data/warroom-history.json": [
+   "justhodl-canary-warroom"
+  ],
+  "data/warroom-replay.json": [
+   "justhodl-warroom-weights"
+  ],
+  "data/warroom-weights.json": [
+   "justhodl-canary-warroom",
+   "justhodl-warroom-weights"
+  ],
+  "data/wealth-plan-snapshot.json": [
+   "justhodl-wealth-plan"
+  ],
+  "data/weekly-review-latest.json": [
+   "justhodl-weekly-ai-review"
+  ],
+  "data/whales.json": [
+   "justhodl-accumulation-radar",
+   "justhodl-industry-rotation",
+   "justhodl-phase-detector",
+   "justhodl-whales"
+  ],
+  "data/whats-changed.json": [
+   "justhodl-morning-brief-tg",
+   "justhodl-whats-changed"
+  ],
+  "data/wl-engines.json": [
+   "justhodl-alpha-daily-brief",
+   "justhodl-wl-engines",
+   "justhodl-wl-fusion"
+  ],
+  "data/wl-fusion.json": [
+   "justhodl-alpha-daily-brief",
+   "justhodl-wl-fusion"
+  ],
+  "data/wl-predictions.json": [
+   "justhodl-wl-engines"
+  ],
+  "data/yen-carry.json": [
+   "justhodl-bond-desk",
+   "justhodl-cycle-clock",
+   "justhodl-risk-gate",
+   "justhodl-yen-carry"
+  ],
+  "data/yield-curve.json": [
+   "justhodl-ab-test",
+   "justhodl-alert-router",
+   "justhodl-allocator",
+   "justhodl-auction-interpreter",
+   "justhodl-chart-data",
+   "justhodl-cycle-clock",
+   "justhodl-feed-catalog",
+   "justhodl-market-interpreter",
+   "justhodl-morning-brief-tg",
+   "justhodl-synthetic-monitor",
+   "justhodl-wave-signal-logger",
+   "justhodl-whats-changed",
+   "justhodl-yield-curve"
+  ]
+ }
+}

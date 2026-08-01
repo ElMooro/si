@@ -1,36 +1,58 @@
-executing-against: a2d5746cf37f0978c8c3ea9219ec71a56cba1487
-ops 4248 — scorecard: read the logs
-── 1. Confirm what code is actually running ──
-[18:56:45] timeout=900s memory=1024MB modified=2026-08-01T18:52:32.000+0000
-── 2. Most recent run — the whole stream, not one line ──
-[18:56:45] --- stream $LATEST]727bb3b492564d4bb185a581eac5b0c5 ---
-[18:56:45]    INIT_START Runtime Version: python:3.12.mainlinev2.v27	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:fb4a5cbb4aeb1909cf946882192e0e708d8756b3a866c3ab89a3cfcfffeca7bc
-[18:56:45]    START RequestId: da6b1e5b-18d8-402a-b106-57a1c4f3504d Version: $LATEST
-[18:56:45]    [signal-scorecard] starting 2026-08-01T18:52:37.841041+00:00
-[18:56:45]    [signal-scorecard] scanned 101095 outcome records
-[18:56:45]    [scorecard] SPY history points: 296
-[18:56:45]    END RequestId: da6b1e5b-18d8-402a-b106-57a1c4f3504d
-[18:56:45]    REPORT RequestId: da6b1e5b-18d8-402a-b106-57a1c4f3504d	Duration: 29390.51 ms	Billed Duration: 29964 ms	Memory Size: 1024 MB	Max Memory Used: 319 MB	Init Duration: 573.49 ms	
-XRAY TraceId: 1-6a6e4075-1
-[18:56:45] --- stream $LATEST]28b641d44fb84209a39984e07dc4572c ---
-[18:56:45]    INIT_START Runtime Version: python:3.12.mainlinev2.v27	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:fb4a5cbb4aeb1909cf946882192e0e708d8756b3a866c3ab89a3cfcfffeca7bc
-[18:56:45]    START RequestId: e39c9ae7-b6da-4773-9307-99f759eb4404 Version: $LATEST
-[18:56:45]    [signal-scorecard] starting 2026-08-01T18:46:06.267447+00:00
-[18:56:45]    END RequestId: e39c9ae7-b6da-4773-9307-99f759eb4404
-[18:56:45]    REPORT RequestId: e39c9ae7-b6da-4773-9307-99f759eb4404	Duration: 120000.00 ms	Billed Duration: 120779 ms	Memory Size: 256 MB	Max Memory Used: 256 MB	Init Duration: 778.85 ms	Status: timeout
-XRAY Trace
-── 3. Explicit ERROR filter across 24h ──
-[18:56:46] matching lines in 24h: 0
-[18:56:46] ✅ no ERROR lines in 24h — the handler is completing; the missing ssm_writes key is a code-path question, not a crash
-── 4. What the artifact says now ──
-[18:56:46] generated_at=2026-08-01T18:53:06.833714+00:00 keys=22
-[18:56:46] has ssm_writes: False   ssm_ok: None
-[18:56:46] top-level keys: alpha, avg_graded_wilson_lb, data_quality_flags, deprecated_signals, elapsed_s, generated_at, interpretation, method, n_deprecated, n_insufficient, n_outcomes_legacy, n_outcomes_neutral, n_outcomes_scanned, n_outcomes_scored, n_outcomes_unresolved, n_promoted, n_signals_graded, n_signals_tracked, pr
-[18:56:46] artifact age: 0.00 days
-── 5. Who consumes this artifact ──
-[18:56:53] functions naming the scorecard in their env: 0
-[18:56:53] ⚠ The scorecard artifact was 5 DAYS STALE before ops 4247. Anything reading it — calibrator, best-setups, master-ranker — was scoring on week-old truth and had no way to know. This is precisely the failure the contract gate exists to catch, and its STALE bound should have fired: worth checking why it did not.
+executing-against: c41c00dc400bf8c5507f0b3c2e09c2b11112f5dc
+ops 4249 — structural gates + cadence bounds
+── A. Scorecard — deploy, verify STRUCTURE of the zip ──
+[19:09:21] ✅ deployed-zip AST check: helper@module, 2 calls, ends in return
+── A2. Behavioural gate — three independent ends ──
+[19:10:02] generated_at=2026-08-01T19:09:54.559538+00:00 ssm_ok=True
+[19:10:02] ssm_writes=[{"ok": true, "mode": "s3_pointer", "bytes": 15201, "param": "/justhodl/calibration/scorecard"}, {"ok": true, "mode": "inline", "bytes": 4579, "param": "/justhodl/calibration/alpha"}]
+[19:10:02] ✅ END 1 — artifact carries ssm_ok=true
+[19:10:02] ✅ END 2 — SSM /justhodl/calibration/scorecard updated_at=2026-08-01T19:09:54.559538+00:00 (artifact=2026-08-01T19:09:54.559538+00:00) match=True
+[19:10:02] ✅ END 3 — summary line in logs: [signal-scorecard] done 28.1s tracked=401 graded=310 promoted=40 deprecated=169 insufficient=91 dq_flags=6
+[19:10:02] ⚠ Downstream note: the enforcement map every consumer reads had been frozen since 2026-07-27. It just moved for the first time in five days.
+── B. Build the artifact->producers map from source ──
+[19:10:02] contracted artifacts: 866
+[19:10:29] ✅ mapped 799 of 866 artifacts to producers (git + S3)
+── C. Deploy contract-gate v1.1.0, relearn, recheck ──
+[19:10:36] ✅ marker verified
+[19:11:32] learn -> {"ok": true, "mode": "learn", "n_contracts": 866, "n_cadence_bounded": 760, "n_suspects": 129, "elapsed_s": 55.8}
+[19:11:32] ✅ 760 artifacts now bounded by DECLARED cadence
+[19:11:33] scorecard contract: bound=12.0h source=cadence(1.0h)
+[19:11:33] ✅ a repeat of the five-day freeze now goes STALE at 12.0h instead of being certified healthy
+[19:11:33] ⚠   SUSPECT data/13f-flows-by-ticker.json age=21.9h bound=12.0h
+[19:11:33] ⚠   SUSPECT data/8k-filings.json age=28.2h bound=22.0h
+[19:11:33] ⚠   SUSPECT data/_freshness-manifest.json age=1262.5h bound=12.0h
+[19:11:33] ⚠   SUSPECT data/_freshness-status.json age=1710.0h bound=72.0h
+[19:11:33] ⚠   SUSPECT data/_probe_shares.json age=1408.7h bound=72.0h
+[19:11:33] ⚠   SUSPECT data/accumulation-radar.json age=21.3h bound=12.0h
+[19:11:33] ⚠   SUSPECT data/alert-history.json age=28.2h bound=12.0h
+[19:11:33] ⚠   SUSPECT data/alpha-triage.json age=355.6h bound=54.0h
+[19:11:33] ⚠   SUSPECT data/ark-holdings.json age=13.2h bound=12.0h
+[19:11:33] ⚠   SUSPECT data/askdesk-config.json age=1082.1h bound=72.0h
+[19:11:33] ⚠   SUSPECT data/asset-compass.json age=20.9h bound=12.0h
+[19:11:33] ⚠   SUSPECT data/auction-crisis-alert-state.json age=430.0h bound=12.0h
+[19:12:12] check -> {"ok": true, "mode": "check", "n_contracts": 866, "n_violations": 129, "sev1": 0, "by_class": {"STALE": 129}, "elapsed_s": 39.6}
+[19:12:12] STALE under cadence bounds: 129 (these are REAL finds the old bounds were blind to)
+[19:12:12] ⚠    data/13f-flows-by-ticker.json                  22h old, bound is 12h
+[19:12:12] ⚠    data/8k-filings.json                           28h old, bound is 22h
+[19:12:12] ⚠    data/_freshness-manifest.json                  1262h old, bound is 12h
+[19:12:12] ⚠    data/_freshness-status.json                    1710h old, bound is 72h
+[19:12:12] ⚠    data/_probe_shares.json                        1409h old, bound is 72h
+[19:12:12] ⚠    data/accumulation-radar.json                   21h old, bound is 12h
+[19:12:12] ⚠    data/alert-history.json                        28h old, bound is 12h
+[19:12:12] ⚠    data/alpha-triage.json                         356h old, bound is 54h
+[19:12:12] ⚠    data/ark-holdings.json                         13h old, bound is 12h
+[19:12:12] ⚠    data/askdesk-config.json                       1082h old, bound is 72h
+[19:12:12] ⚠    data/asset-compass.json                        21h old, bound is 12h
+[19:12:12] ⚠    data/auction-crisis-alert-state.json           430h old, bound is 12h
+[19:12:12] ⚠    data/backtest-summary.json                     1221h old, bound is 72h
+[19:12:12] ⚠    data/bagger-engine.json                        319h old, bound is 54h
+[19:12:12] ⚠    data/bank-stress.json                          28h old, bound is 18h
+[19:12:12] ⚠    data/bis-crossborder.json                      130h old, bound is 54h
+[19:12:12] ⚠    data/bond-trace.json                           21h old, bound is 12h
+[19:12:12] ⚠    data/brain-history.json                        787h old, bound is 54h
+[19:12:12] ⚠    data/buyback-scanner.json                      127h old, bound is 54h
+[19:12:12] ⚠    data/calibration-snapshot.json                 28h old, bound is 12h
 ── RESULT ──
-[18:56:53] ✅ OPS 4248 — diagnostic complete, no changes made
+[19:12:12] ✅ OPS 4249 PASS
 
-→ Report written to aws/ops/reports/latest/4248_scorecard_trace.md
+→ Report written to aws/ops/reports/latest/4249_structural_gates.md

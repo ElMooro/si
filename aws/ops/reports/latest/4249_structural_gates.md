@@ -1,0 +1,96 @@
+# ops 4249 — structural gates + cadence bounds
+
+**Status:** success  
+**Duration:** 178.7s  
+**Finished:** 2026-08-01T19:12:12+00:00  
+
+## Data
+
+| artifact | bound_h | cadence_bounded | contracted | contracts | detail | mapped | matches_artifact | name | section | source | ssm_ok | suspects | updated_at | writes |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  |  |  | scorecard |  | True |  |  | [{"ok": true, "mode": "s3_pointer", "bytes": 15201, "param": "/justhodl/calibration/scorecard"}, {"ok": true, "mode": "inline", "bytes": 4579, "param": "/justho |
+|  |  |  |  |  |  |  | True | /justhodl/calibration/scorecard | ssm_param |  |  |  | 2026-08-01T19:09:54.559538+00:00 |  |
+|  |  |  | 866 |  |  | 799 |  |  | producers |  |  |  |  |  |
+|  |  | 760 |  | 866 |  |  |  |  | learn |  |  | 129 |  |  |
+|  | 12.0 |  |  |  |  |  |  |  | scorecard_contract | cadence(1.0h) |  |  |  |  |
+| data/13f-flows-by-ticker.json |  |  |  |  | 22h old, bound is 12h |  |  |  | stale |  |  |  |  |  |
+| data/8k-filings.json |  |  |  |  | 28h old, bound is 22h |  |  |  | stale |  |  |  |  |  |
+| data/_freshness-manifest.json |  |  |  |  | 1262h old, bound is 12h |  |  |  | stale |  |  |  |  |  |
+| data/_freshness-status.json |  |  |  |  | 1710h old, bound is 72h |  |  |  | stale |  |  |  |  |  |
+| data/_probe_shares.json |  |  |  |  | 1409h old, bound is 72h |  |  |  | stale |  |  |  |  |  |
+| data/accumulation-radar.json |  |  |  |  | 21h old, bound is 12h |  |  |  | stale |  |  |  |  |  |
+| data/alert-history.json |  |  |  |  | 28h old, bound is 12h |  |  |  | stale |  |  |  |  |  |
+| data/alpha-triage.json |  |  |  |  | 356h old, bound is 54h |  |  |  | stale |  |  |  |  |  |
+| data/ark-holdings.json |  |  |  |  | 13h old, bound is 12h |  |  |  | stale |  |  |  |  |  |
+| data/askdesk-config.json |  |  |  |  | 1082h old, bound is 72h |  |  |  | stale |  |  |  |  |  |
+| data/asset-compass.json |  |  |  |  | 21h old, bound is 12h |  |  |  | stale |  |  |  |  |  |
+| data/auction-crisis-alert-state.json |  |  |  |  | 430h old, bound is 12h |  |  |  | stale |  |  |  |  |  |
+| data/backtest-summary.json |  |  |  |  | 1221h old, bound is 72h |  |  |  | stale |  |  |  |  |  |
+| data/bagger-engine.json |  |  |  |  | 319h old, bound is 54h |  |  |  | stale |  |  |  |  |  |
+| data/bank-stress.json |  |  |  |  | 28h old, bound is 18h |  |  |  | stale |  |  |  |  |  |
+| data/bis-crossborder.json |  |  |  |  | 130h old, bound is 54h |  |  |  | stale |  |  |  |  |  |
+| data/bond-trace.json |  |  |  |  | 21h old, bound is 12h |  |  |  | stale |  |  |  |  |  |
+| data/brain-history.json |  |  |  |  | 787h old, bound is 54h |  |  |  | stale |  |  |  |  |  |
+| data/buyback-scanner.json |  |  |  |  | 127h old, bound is 54h |  |  |  | stale |  |  |  |  |  |
+| data/calibration-snapshot.json |  |  |  |  | 28h old, bound is 12h |  |  |  | stale |  |  |  |  |  |
+
+## Log
+## A. Scorecard — deploy, verify STRUCTURE of the zip
+
+- `19:09:21` ✅ deployed-zip AST check: helper@module, 2 calls, ends in return
+## A2. Behavioural gate — three independent ends
+
+- `19:10:02` generated_at=2026-08-01T19:09:54.559538+00:00 ssm_ok=True
+- `19:10:02` ssm_writes=[{"ok": true, "mode": "s3_pointer", "bytes": 15201, "param": "/justhodl/calibration/scorecard"}, {"ok": true, "mode": "inline", "bytes": 4579, "param": "/justhodl/calibration/alpha"}]
+- `19:10:02` ✅ END 1 — artifact carries ssm_ok=true
+- `19:10:02` ✅ END 2 — SSM /justhodl/calibration/scorecard updated_at=2026-08-01T19:09:54.559538+00:00 (artifact=2026-08-01T19:09:54.559538+00:00) match=True
+- `19:10:02` ✅ END 3 — summary line in logs: [signal-scorecard] done 28.1s tracked=401 graded=310 promoted=40 deprecated=169 insufficient=91 dq_flags=6
+- `19:10:02` ⚠ Downstream note: the enforcement map every consumer reads had been frozen since 2026-07-27. It just moved for the first time in five days.
+## B. Build the artifact->producers map from source
+
+- `19:10:02` contracted artifacts: 866
+- `19:10:29` ✅ mapped 799 of 866 artifacts to producers (git + S3)
+## C. Deploy contract-gate v1.1.0, relearn, recheck
+
+- `19:10:36` ✅ marker verified
+- `19:11:32` learn -> {"ok": true, "mode": "learn", "n_contracts": 866, "n_cadence_bounded": 760, "n_suspects": 129, "elapsed_s": 55.8}
+- `19:11:32` ✅ 760 artifacts now bounded by DECLARED cadence
+- `19:11:33` scorecard contract: bound=12.0h source=cadence(1.0h)
+- `19:11:33` ✅ a repeat of the five-day freeze now goes STALE at 12.0h instead of being certified healthy
+- `19:11:33` ⚠   SUSPECT data/13f-flows-by-ticker.json age=21.9h bound=12.0h
+- `19:11:33` ⚠   SUSPECT data/8k-filings.json age=28.2h bound=22.0h
+- `19:11:33` ⚠   SUSPECT data/_freshness-manifest.json age=1262.5h bound=12.0h
+- `19:11:33` ⚠   SUSPECT data/_freshness-status.json age=1710.0h bound=72.0h
+- `19:11:33` ⚠   SUSPECT data/_probe_shares.json age=1408.7h bound=72.0h
+- `19:11:33` ⚠   SUSPECT data/accumulation-radar.json age=21.3h bound=12.0h
+- `19:11:33` ⚠   SUSPECT data/alert-history.json age=28.2h bound=12.0h
+- `19:11:33` ⚠   SUSPECT data/alpha-triage.json age=355.6h bound=54.0h
+- `19:11:33` ⚠   SUSPECT data/ark-holdings.json age=13.2h bound=12.0h
+- `19:11:33` ⚠   SUSPECT data/askdesk-config.json age=1082.1h bound=72.0h
+- `19:11:33` ⚠   SUSPECT data/asset-compass.json age=20.9h bound=12.0h
+- `19:11:33` ⚠   SUSPECT data/auction-crisis-alert-state.json age=430.0h bound=12.0h
+- `19:12:12` check -> {"ok": true, "mode": "check", "n_contracts": 866, "n_violations": 129, "sev1": 0, "by_class": {"STALE": 129}, "elapsed_s": 39.6}
+- `19:12:12` STALE under cadence bounds: 129 (these are REAL finds the old bounds were blind to)
+- `19:12:12` ⚠    data/13f-flows-by-ticker.json                  22h old, bound is 12h
+- `19:12:12` ⚠    data/8k-filings.json                           28h old, bound is 22h
+- `19:12:12` ⚠    data/_freshness-manifest.json                  1262h old, bound is 12h
+- `19:12:12` ⚠    data/_freshness-status.json                    1710h old, bound is 72h
+- `19:12:12` ⚠    data/_probe_shares.json                        1409h old, bound is 72h
+- `19:12:12` ⚠    data/accumulation-radar.json                   21h old, bound is 12h
+- `19:12:12` ⚠    data/alert-history.json                        28h old, bound is 12h
+- `19:12:12` ⚠    data/alpha-triage.json                         356h old, bound is 54h
+- `19:12:12` ⚠    data/ark-holdings.json                         13h old, bound is 12h
+- `19:12:12` ⚠    data/askdesk-config.json                       1082h old, bound is 72h
+- `19:12:12` ⚠    data/asset-compass.json                        21h old, bound is 12h
+- `19:12:12` ⚠    data/auction-crisis-alert-state.json           430h old, bound is 12h
+- `19:12:12` ⚠    data/backtest-summary.json                     1221h old, bound is 72h
+- `19:12:12` ⚠    data/bagger-engine.json                        319h old, bound is 54h
+- `19:12:12` ⚠    data/bank-stress.json                          28h old, bound is 18h
+- `19:12:12` ⚠    data/bis-crossborder.json                      130h old, bound is 54h
+- `19:12:12` ⚠    data/bond-trace.json                           21h old, bound is 12h
+- `19:12:12` ⚠    data/brain-history.json                        787h old, bound is 54h
+- `19:12:12` ⚠    data/buyback-scanner.json                      127h old, bound is 54h
+- `19:12:12` ⚠    data/calibration-snapshot.json                 28h old, bound is 12h
+## RESULT
+
+- `19:12:12` ✅ OPS 4249 PASS
