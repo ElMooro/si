@@ -1,0 +1,158 @@
+{
+ "ops": 4229,
+ "ts": "2026-08-01T05:27:53.258853+00:00",
+ "actions": [
+  {
+   "a": "deploy",
+   "fn": "justhodl-fundamental-census",
+   "v": "1.11.0"
+  },
+  {
+   "a": "retune",
+   "fn": "justhodl-fleet-error-monitor",
+   "rule": "justhodl-fleet-error-6h",
+   "from": "cron(13 13 * * ? *)",
+   "to": "rate(1 hour)"
+  },
+  {
+   "a": "retune",
+   "fn": "justhodl-fleet-error-monitor",
+   "rule": "fleet-error-monitor-sched",
+   "from": "rate(15 minutes)",
+   "to": "rate(1 hour)"
+  },
+  {
+   "a": "retune",
+   "fn": "justhodl-fleet-monitor",
+   "rule": "fleet-monitor-3h",
+   "from": "cron(20 */3 * * ? *)",
+   "to": "rate(6 hours)"
+  },
+  {
+   "a": "retune",
+   "fn": "justhodl-fleet-monitor",
+   "rule": "justhodl-fleet-monitor-6h",
+   "from": "cron(36 19 * * ? *)",
+   "to": "rate(6 hours)"
+  },
+  {
+   "a": "retune",
+   "fn": "justhodl-fleet-monitor",
+   "rule": "justhodl-fleet-monitor-sched",
+   "from": "cron(38 14 * * ? *)",
+   "to": "rate(6 hours)"
+  },
+  {
+   "a": "retune",
+   "fn": "justhodl-fleet-monitor",
+   "rule": "fleet-monitor-sched",
+   "from": "rate(3 hours)",
+   "to": "rate(6 hours)"
+  },
+  {
+   "a": "retune",
+   "fn": "justhodl-event-flow-monitor",
+   "rule": "event-flow-monitor-hourly",
+   "from": "cron(53 12 * * ? *)",
+   "to": "rate(6 hours)"
+  },
+  {
+   "a": "retune",
+   "fn": "justhodl-event-flow-monitor",
+   "rule": "event-flow-monitor-hourly",
+   "from": "cron(53 12 * * ? *)",
+   "to": "rate(6 hours)"
+  },
+  {
+   "a": "retune",
+   "fn": "justhodl-fleet-freshness-monitor",
+   "rule": "fleet-freshness-monitor-30min",
+   "from": "cron(12 12 * * ? *)",
+   "to": "rate(3 hours)"
+  },
+  {
+   "a": "retune",
+   "fn": "justhodl-fleet-freshness-monitor",
+   "rule": "justhodl-fleet-freshness-hourly",
+   "from": "cron(52 19 * * ? *)",
+   "to": "rate(3 hours)"
+  },
+  {
+   "a": "retune",
+   "fn": "justhodl-fleet-freshness-monitor",
+   "rule": "justhodl-fleet-freshness-monitor-sched",
+   "from": "cron(10 20 * * ? *)",
+   "to": "rate(3 hours)"
+  },
+  {
+   "a": "retune",
+   "fn": "justhodl-fleet-freshness-monitor",
+   "rule": "justhodl-freshness-30m",
+   "from": "cron(56 17 * * ? *)",
+   "to": "rate(3 hours)"
+  },
+  {
+   "a": "retune",
+   "fn": "justhodl-fleet-freshness-monitor",
+   "rule": "fleet-freshness-monitor-sched",
+   "from": "rate(30 minutes)",
+   "to": "rate(3 hours)"
+  },
+  {
+   "a": "snapstart_off",
+   "fn": "justhodl-stock-analyzer"
+  },
+  {
+   "a": "snapstart_off",
+   "fn": "justhodl-stock-screener"
+  },
+  {
+   "a": "snapstart_off",
+   "fn": "justhodl-investor-agents"
+  },
+  {
+   "a": "snapstart_off",
+   "fn": "justhodl-reports-builder"
+  },
+  {
+   "a": "snapstart_off",
+   "fn": "cftc-futures-positioning-agent"
+  },
+  {
+   "a": "snapstart_off",
+   "fn": "justhodl-morning-intelligence"
+  },
+  {
+   "a": "snapstart_off",
+   "fn": "justhodl-edge-engine"
+  },
+  {
+   "a": "log_retention",
+   "n": 974
+  }
+ ],
+ "done": [
+  "census-v1.11.0",
+  "justhodl-fleet-error-monitor:cron(13 13 * * ? *)->rate(1 hour)",
+  "justhodl-fleet-error-monitor:rate(15 minutes)->rate(1 hour)",
+  "justhodl-fleet-monitor:cron(20 */3 * * ? *)->rate(6 hours)",
+  "justhodl-fleet-monitor:cron(36 19 * * ? *)->rate(6 hours)",
+  "justhodl-fleet-monitor:cron(38 14 * * ? *)->rate(6 hours)",
+  "justhodl-fleet-monitor:rate(3 hours)->rate(6 hours)",
+  "justhodl-event-flow-monitor:cron(53 12 * * ? *)->rate(6 hours)",
+  "justhodl-event-flow-monitor:cron(53 12 * * ? *)->rate(6 hours)",
+  "justhodl-fleet-freshness-monitor:cron(12 12 * * ? *)->rate(3 hours)",
+  "justhodl-fleet-freshness-monitor:cron(52 19 * * ? *)->rate(3 hours)",
+  "justhodl-fleet-freshness-monitor:cron(10 20 * * ? *)->rate(3 hours)",
+  "justhodl-fleet-freshness-monitor:cron(56 17 * * ? *)->rate(3 hours)",
+  "justhodl-fleet-freshness-monitor:rate(30 minutes)->rate(3 hours)",
+  "snapstart-off:justhodl-stock-analyzer",
+  "snapstart-off:justhodl-stock-screener",
+  "snapstart-off:justhodl-investor-agents",
+  "snapstart-off:justhodl-reports-builder",
+  "snapstart-off:cftc-futures-positioning-agent",
+  "snapstart-off:justhodl-morning-intelligence",
+  "snapstart-off:justhodl-edge-engine"
+ ],
+ "fails": []
+}

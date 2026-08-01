@@ -1,39 +1,79 @@
-executing-against: d92d7d3191d19ec35f6f1027601b568e0384a38c
-ops 4228 — idle infrastructure census (read-only)
-── 1. OpenSearch  (~$51/mo) ──
-[05:24:09] ✗ opensearch: An error occurred (AccessDeniedException) when calling the ListDomainNames operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: es:
-── 2. SageMaker  (~$35/mo Studio JupyterLab) ──
-[05:24:09] ✗ sagemaker: An error occurred (AccessDeniedException) when calling the ListApps operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: sagemaker:
-── 3. Load balancers  (~$32/mo) ──
-[05:24:10] ✗ elb: An error occurred (AccessDenied) when calling the DescribeLoadBalancers operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: elasti
-── 4. EC2 instances, EIPs, NAT  (~$34/mo) ──
-[05:24:10] ✗ ec2: An error occurred (UnauthorizedOperation) when calling the DescribeInstances operation: You are not authorized to perform this operation. User: arn:aws:iam::857687956942:user/githu
-── 5. App Runner  (~$10/mo) ──
-[05:24:10] ✗ apprunner/ecr: An error occurred (AccessDeniedException) when calling the ListServices operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: apprun
-── 6. Lambda SnapStart cached versions  (~$16/mo) ──
-[05:24:17] functions with SnapStart=PublishedVersions: 8
-[05:24:17] ⚠   justhodl-stock-analyzer                  versions=1
-[05:24:17] ⚠   justhodl-ai-chat                         versions=1
-[05:24:17] ⚠   justhodl-stock-screener                  versions=1
-[05:24:17] ⚠   justhodl-investor-agents                 versions=1
-[05:24:18] ⚠   justhodl-reports-builder                 versions=1
-[05:24:18] ⚠   cftc-futures-positioning-agent           versions=1
-[05:24:18] ⚠   justhodl-morning-intelligence            versions=1
-[05:24:18] ⚠   justhodl-edge-engine                     versions=1
-── 7. Secrets Manager / DynamoDB / other standing charges ──
-[05:24:18] ⚠ secrets: An error occurred (AccessDeniedException) when calling the ListSecrets operation: User: arn:aws:iam::857687956942:user/g
-── 8. KILL LIST (evidence-backed, nothing executed) ──
-[05:24:18]   $  2.00/mo  snapstart        justhodl-stock-analyzer             1 published versions cached
-[05:24:18]   $  2.00/mo  snapstart        justhodl-ai-chat                    1 published versions cached
-[05:24:18]   $  2.00/mo  snapstart        justhodl-stock-screener             1 published versions cached
-[05:24:18]   $  2.00/mo  snapstart        justhodl-investor-agents            1 published versions cached
-[05:24:18]   $  2.00/mo  snapstart        justhodl-reports-builder            1 published versions cached
-[05:24:18]   $  2.00/mo  snapstart        cftc-futures-positioning-agent      1 published versions cached
-[05:24:18]   $  2.00/mo  snapstart        justhodl-morning-intelligence       1 published versions cached
-[05:24:18]   $  2.00/mo  snapstart        justhodl-edge-engine                1 published versions cached
-[05:24:18] 
-[05:24:18] TOTAL RECLAIMABLE IF ALL KILLED: $16.00/mo
-[05:24:18] Current run-rate ~$300/mo -> would land ~$284/mo
-[05:24:18] ✅ wrote 4228_idle_infra_census.json
+executing-against: 179211ffbd367414df65f95e0476541308e091cb
+ops 4229 — cost remediation wave 1
+── 1. Deploy census v1.11.0 — break the AWS recursion alarm ──
+[05:27:53] pre-fix RecursiveInvocationsDropped(14d) = 5
+[05:27:54] code uploaded, settling by marker…
+[05:27:54] ✅ census v1.11.0 SETTLED (marker verified inside zip)
+[05:42:15] ⚠ census probe: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-fundamental-census/invocations"
+── 2. Retune CloudWatch pollers (the ~$66/mo line) ──
+[05:42:40]   justhodl-fleet-error-monitor           events    justhodl-fleet-error-6h        cur=cron(13 13 * * ? *) state=ENABLED
+[05:42:40] ✅      cron(13 13 * * ? *)  ->  rate(1 hour)
+[05:42:40]   justhodl-fleet-error-monitor           scheduler fleet-error-monitor-sched      cur=rate(15 minutes) state=ENABLED
+[05:42:40] ✅      rate(15 minutes)  ->  rate(1 hour)
+[05:42:40]   justhodl-fleet-monitor                 events    fleet-monitor-3h               cur=cron(20 */3 * * ? *) state=ENABLED
+[05:42:40] ✅      cron(20 */3 * * ? *)  ->  rate(6 hours)
+[05:42:40]   justhodl-fleet-monitor                 events    justhodl-fleet-monitor-6h      cur=cron(36 19 * * ? *) state=ENABLED
+[05:42:40] ✅      cron(36 19 * * ? *)  ->  rate(6 hours)
+[05:42:40]   justhodl-fleet-monitor                 events    justhodl-fleet-monitor-sched   cur=cron(38 14 * * ? *) state=ENABLED
+[05:42:40] ✅      cron(38 14 * * ? *)  ->  rate(6 hours)
+[05:42:40]   justhodl-fleet-monitor                 scheduler fleet-monitor-sched            cur=rate(3 hours) state=ENABLED
+[05:42:40] ✅      rate(3 hours)  ->  rate(6 hours)
+[05:42:40] ⚠   justhodl-health-monitor                no schedule found — skipped
+[05:42:40]   justhodl-event-flow-monitor            events    event-flow-monitor-hourly      cur=cron(53 12 * * ? *) state=ENABLED
+[05:42:40] ✅      cron(53 12 * * ? *)  ->  rate(6 hours)
+[05:42:40]   justhodl-event-flow-monitor            events    event-flow-monitor-hourly      cur=cron(53 12 * * ? *) state=ENABLED
+[05:42:40] ✅      cron(53 12 * * ? *)  ->  rate(6 hours)
+[05:42:40]   justhodl-fleet-freshness-monitor       events    fleet-freshness-monitor-30min  cur=cron(12 12 * * ? *) state=ENABLED
+[05:42:40] ✅      cron(12 12 * * ? *)  ->  rate(3 hours)
+[05:42:40]   justhodl-fleet-freshness-monitor       events    justhodl-fleet-freshness-hourl cur=cron(52 19 * * ? *) state=ENABLED
+[05:42:40] ✅      cron(52 19 * * ? *)  ->  rate(3 hours)
+[05:42:40]   justhodl-fleet-freshness-monitor       events    justhodl-fleet-freshness-monit cur=cron(10 20 * * ? *) state=ENABLED
+[05:42:40] ✅      cron(10 20 * * ? *)  ->  rate(3 hours)
+[05:42:40]   justhodl-fleet-freshness-monitor       events    justhodl-freshness-30m         cur=cron(56 17 * * ? *) state=ENABLED
+[05:42:40] ✅      cron(56 17 * * ? *)  ->  rate(3 hours)
+[05:42:40]   justhodl-fleet-freshness-monitor       scheduler fleet-freshness-monitor-sched  cur=rate(30 minutes) state=ENABLED
+[05:42:40] ✅      rate(30 minutes)  ->  rate(3 hours)
+── 3. Disable SnapStart on batch functions (~$16/mo) ──
+[05:42:47] ✅   justhodl-stock-analyzer                  SnapStart OFF
+[05:42:47]   justhodl-ai-chat                         KEPT (interactive path)
+[05:42:48] ✅   justhodl-stock-screener                  SnapStart OFF
+[05:42:48] ✅   justhodl-investor-agents                 SnapStart OFF
+[05:42:48] ✅   justhodl-reports-builder                 SnapStart OFF
+[05:42:49] ✅   cftc-futures-positioning-agent           SnapStart OFF
+[05:42:49] ✅   justhodl-morning-intelligence            SnapStart OFF
+[05:42:50] ✅   justhodl-edge-engine                     SnapStart OFF
+── 4. Log retention 14d on never-expiring groups ──
+[05:46:12] ✅ retention=14d applied to 974 groups (0 skipped, 1070 total)
+── 5. Budget alarms on ACTUAL (not only FORECASTED) ──
+[05:46:13] ⚠ budgets not in IAM scope (An error occurred (AccessDeniedException) when calling the DescribeBudgets operation: User) — set via console/CLI
+── 6. Verify — recount CW poll volume after retune ──
+[05:46:13] expected CW metric requests/day AFTER retune:
+[05:46:13]   fleet-error-monitor  765 fn x 3 metrics x 24 runs = 55,080/day  (~$0.55/day, was ~$2.25/day)
+[05:46:13]   -> CloudWatch line should fall ~$66/mo -> ~$17/mo
+[05:46:13]   (a further 3x is available by moving check_lambda to a single Metrics Insights GROUP BY query — wave 2)
+── RESULT ──
+[05:46:13] actions completed: 21
+[05:46:13]    + census-v1.11.0
+[05:46:13]    + justhodl-fleet-error-monitor:cron(13 13 * * ? *)->rate(1 hour)
+[05:46:13]    + justhodl-fleet-error-monitor:rate(15 minutes)->rate(1 hour)
+[05:46:13]    + justhodl-fleet-monitor:cron(20 */3 * * ? *)->rate(6 hours)
+[05:46:13]    + justhodl-fleet-monitor:cron(36 19 * * ? *)->rate(6 hours)
+[05:46:13]    + justhodl-fleet-monitor:cron(38 14 * * ? *)->rate(6 hours)
+[05:46:13]    + justhodl-fleet-monitor:rate(3 hours)->rate(6 hours)
+[05:46:13]    + justhodl-event-flow-monitor:cron(53 12 * * ? *)->rate(6 hours)
+[05:46:13]    + justhodl-event-flow-monitor:cron(53 12 * * ? *)->rate(6 hours)
+[05:46:13]    + justhodl-fleet-freshness-monitor:cron(12 12 * * ? *)->rate(3 hours)
+[05:46:13]    + justhodl-fleet-freshness-monitor:cron(52 19 * * ? *)->rate(3 hours)
+[05:46:13]    + justhodl-fleet-freshness-monitor:cron(10 20 * * ? *)->rate(3 hours)
+[05:46:13]    + justhodl-fleet-freshness-monitor:cron(56 17 * * ? *)->rate(3 hours)
+[05:46:13]    + justhodl-fleet-freshness-monitor:rate(30 minutes)->rate(3 hours)
+[05:46:13]    + snapstart-off:justhodl-stock-analyzer
+[05:46:13]    + snapstart-off:justhodl-stock-screener
+[05:46:13]    + snapstart-off:justhodl-investor-agents
+[05:46:13]    + snapstart-off:justhodl-reports-builder
+[05:46:13]    + snapstart-off:cftc-futures-positioning-agent
+[05:46:13]    + snapstart-off:justhodl-morning-intelligence
+[05:46:13]    + snapstart-off:justhodl-edge-engine
+[05:46:13] ✅ wrote 4229_cost_remediation.json
 
-→ Report written to aws/ops/reports/latest/4228_idle_infra_census.md
+→ Report written to aws/ops/reports/latest/4229_cost_remediation.md
