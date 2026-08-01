@@ -50,8 +50,8 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.2.0"
-MARKER = "contract-gate v1.2.0 ops4252 rowcount-history"
+VERSION = "1.3.0"
+MARKER = "contract-gate v1.3.0 ops4254 weekday-aware"
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CONTRACTS_KEY = "config/engine-contracts.json"
@@ -193,17 +193,26 @@ MANIFEST_KEY = "config/schedule-manifest.json"
 
 
 def _cadence_hours(expr):
-    """Conservative parse of rate()/cron() into an interval in hours.
-    Returns None when the expression cannot be read confidently — an
-    honest None beats a confident guess."""
+    """Conservative parse of rate()/cron() into (interval_hours,
+    weekday_only). Returns None when unreadable — an honest None beats a
+    confident guess.
+
+    v1.3.0: the day-of-week field is no longer ignored. v1.1's parser
+    read cron(15 14-19 ? * MON-FRI *) as a 4-hour cadence and set a 14h
+    staleness bound — so every MON-FRI engine's artifact would go
+    "STALE" every single weekend (Fri close -> Mon open is ~67h). The
+    Saturday check that jumped 129 -> 136 violations was this parser
+    manufacturing findings, exactly like the weekend false positives in
+    the ops-4250 sweep. weekday_only feeds a 78h floor at bound time so
+    the weekend gap is inside contract, not a weekly false alarm."""
     if not expr:
         return None
     e = expr.strip().lower()
     m = re.match(r"rate\((\d+)\s+(minute|hour|day)s?\)", e)
     if m:
         n, unit = int(m.group(1)), m.group(2)
-        return {"minute": n / 60.0, "hour": float(n),
-                "day": n * 24.0}[unit]
+        return ({"minute": n / 60.0, "hour": float(n),
+                 "day": n * 24.0}[unit], False)
     m = re.match(r"cron\(([^)]+)\)", e)
     if not m:
         return None
@@ -211,19 +220,46 @@ def _cadence_hours(expr):
     if len(f) < 6:
         return None
     minute, hour, dom, month, dow = f[0], f[1], f[2], f[3], f[4]
+    dl = dow.lower()
+    weekday_only = (bool(re.search(r"mon|tue|wed|thu|fri", dl))
+                    and not re.search(r"sat|sun", dl)) \
+        or bool(re.match(r"^[2-6]-[2-6]$", dl)) \
+        or bool(re.match(r"^[1-5]-[1-5]$", dl))
+    single_day = bool(re.match(r"^[a-z]{3}$", dl)) or \
+        bool(re.match(r"^\d$", dl))
     mm = re.match(r"\*/(\d+)$", minute)
     if mm:
-        return int(mm.group(1)) / 60.0
+        return (int(mm.group(1)) / 60.0, weekday_only)
     hm = re.match(r"\*/(\d+)$", hour)
     if hm:
-        return float(hm.group(1))
+        return (float(hm.group(1)), weekday_only)
     if hour == "*":
-        return 1.0
-    if re.match(r"^[a-z]{3}$", dow) or re.match(r"^\d$", dow):
-        return 168.0
+        return (1.0, weekday_only)
+    if single_day and not weekday_only:
+        return (168.0, False)
     if "," in hour:
-        return max(1.0, 24.0 / (hour.count(",") + 1))
-    return 24.0
+        return (max(1.0, 24.0 / (hour.count(",") + 1)), weekday_only)
+    return (24.0, weekday_only)
+
+
+def _staleness_bound(cad_tuple, age_h):
+    """Pure bound policy, extracted so the self-test can hold it still.
+    Returns (bound_hours, bound_source, learned_while_stale)."""
+    if cad_tuple is not None:
+        cad, wd = cad_tuple
+        bound = max(12.0, 2.0 * cad + 6.0)
+        if wd:
+            bound = max(bound, 78.0)
+        bsrc = "cadence(%.1fh%s)" % (cad, ",wd" if wd else "")
+    elif age_h is None:
+        bound, bsrc = 48.0, "default"
+    elif age_h < 30:
+        bound, bsrc = 36.0, "observed"
+    else:
+        bound = min(72.0, max(48.0, math.ceil(age_h * 2.0)))
+        bsrc = "observed-capped"
+    suspect = age_h is not None and age_h > bound
+    return bound, bsrc, suspect
 
 
 def _load_cadences():
@@ -240,18 +276,27 @@ def _load_cadences():
     for r in (man.get("rules") or []) + (man.get("schedules") or []):
         if (r.get("state") or "ENABLED") != "ENABLED":
             continue
-        h = _cadence_hours(r.get("expr"))
-        if h is None:
+        ct = _cadence_hours(r.get("expr"))
+        if ct is None:
             continue
         for t in r.get("targets") or []:
             fn = (t.get("arn") or "").split(":")[-1]
             if fn:
-                fn_cad[fn] = min(h, fn_cad.get(fn, 1e9))
+                prev = fn_cad.get(fn)
+                if prev is None or ct[0] < prev[0]:
+                    fn_cad[fn] = ct
     out = {}
-    for key, fns in (prod.get("producers") or {}).items():
+    for key, entry in (prod.get("producers") or {}).items():
+        if isinstance(entry, dict):
+            fns = entry.get("writers") or entry.get("readers") \
+                or entry.get("mentions") or []
+        else:
+            fns = entry
         cads = [fn_cad[f] for f in fns if f in fn_cad]
         if cads:
-            out[key] = min(cads)
+            best = min(c for c, _ in cads)
+            wd = any(w for c, w in cads if abs(c - best) < 0.01)
+            out[key] = (best, wd)
     return out
 
 
@@ -272,17 +317,8 @@ def learn():
         path, n = principal_rows(doc)
         age_h, src = doc_age_h(doc, a["modified"])
         cad = cadences.get(a["key"])
-        if cad is not None:
-            bound = max(12.0, 2.0 * cad + 6.0)
-            bsrc = "cadence(%.1fh)" % cad
-        elif age_h is None:
-            bound, bsrc = 48.0, "default"
-        elif age_h < 30:
-            bound, bsrc = 36.0, "observed"
-        else:
-            bound = min(72.0, max(48.0, math.ceil(age_h * 2.0)))
-            bsrc = "observed-capped"
-        if age_h is not None and age_h > bound:
+        bound, bsrc, was_stale = _staleness_bound(cad, age_h)
+        if was_stale:
             suspects.append({"key": a["key"],
                              "age_h": round(age_h, 1),
                              "bound_h": bound,
@@ -322,15 +358,39 @@ def check():
     except Exception as e:
         return {"ok": False, "error": "no contract registry: %s" % str(e)[:90]}
     contracts = reg.get("contracts", {})
+    # Explicit, reviewed exemptions — one-shot reports and event-driven
+    # state files whose silence is their normal condition. An exemption
+    # ledger keeps the violations feed meaning "something is wrong"
+    # instead of "here is the same known-benign list again"; a feed that
+    # repeats itself trains people to skim, which is how CRITICAL sat
+    # unread for two days.
+    try:
+        exempt = json.loads(get_json_raw(
+            "config/contract-exemptions.json")).get("exempt") or {}
+    except Exception:
+        exempt = {}
     live = {a["key"]: a for a in list_artifacts()}
     violations = []
     rowcounts = {}
+    exempted_hits = []
 
     def v(cls, key, detail):
         violations.append({"cls": cls, "sev": SEV.get(cls, 2),
                            "artifact": key, "detail": detail})
 
     for key, c in contracts.items():
+        if key in exempt:
+            exempted_hits.append(key)
+            a = live.get(key)
+            if a:
+                try:
+                    doc = get_json(key)
+                    nn = rows_at(doc, c.get("rows_path") or ["$"])
+                    if nn is not None:
+                        rowcounts[key] = nn
+                except Exception:
+                    pass
+            continue
         a = live.get(key)
         if not a:
             v("MISSING", key, "contracted artifact no longer exists")
@@ -391,6 +451,8 @@ def check():
            "sev1": sum(1 for x in violations if x["sev"] == 1),
            "sev2": sum(1 for x in violations if x["sev"] == 2),
            "by_class": {},
+           "n_exempted": len(exempted_hits),
+           "exempted": sorted(exempted_hits),
            "uncontracted": uncontracted[:100],
            "n_uncontracted": len(uncontracted),
            "violations": violations[:400]}
@@ -403,9 +465,47 @@ def check():
     return doc
 
 
+SELFTEST = [
+    ("dotted_keys", lambda: principal_rows(
+        {"page_reads": {"risk-regime.html": [1, 2, 3],
+                        "other.html": [1]}})
+        == (["page_reads", "risk-regime.html"], 3)),
+    ("legacy_dotted_path", lambda: rows_at({"a.b": [1, 2]}, "a.b") == 2),
+    ("rate_parse", lambda: _cadence_hours("rate(2 hours)") == (2.0, False)),
+    ("weekday_cron", lambda: _cadence_hours(
+        "cron(15 14,15,16,17,18,19 ? * MON-FRI *)") == (4.0, True)),
+    ("weekend_floor", lambda: _staleness_bound((4.0, True), 20.0)[0] == 78.0
+        and _staleness_bound((4.0, True), 20.0)[2] is False),
+    ("weekday_agnostic", lambda: _staleness_bound((1.0, False), 5.0)[0]
+        == 12.0),
+    ("learned_while_stale", lambda: _staleness_bound((1.0, False), 120.0)[2]
+        is True),
+    ("observed_cap", lambda: _staleness_bound(None, 500.0)[0] == 72.0),
+]
+
+
+def run_selftest():
+    cases = []
+    for name, fn in SELFTEST:
+        try:
+            ok = bool(fn())
+            cases.append({"case": name, "pass": ok})
+        except Exception as e:
+            cases.append({"case": name, "pass": False,
+                          "error": str(e)[:90]})
+    return {"passed": all(c["pass"] for c in cases), "cases": cases}
+
+
 def lambda_handler(event=None, context=None):
     event = event or {}
     mode = (event.get("mode") or "check").lower()
+    if mode == "selftest":
+        r = run_selftest()
+        for c in r["cases"]:
+            print("[gate-selftest] %-20s %s%s"
+                  % (c["case"], "PASS" if c["pass"] else "FAIL",
+                     " " + c.get("error", "") if not c["pass"] else ""))
+        return {"ok": r["passed"], "mode": "selftest", **r}
     t0 = time.time()
     if mode == "learn":
         d = learn()

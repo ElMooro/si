@@ -124,5 +124,24 @@ def lambda_handler(event=None, context=None):
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, indent=2).encode(),
                   ContentType="application/json", CacheControl="no-cache")
+    # v1.1 (ops 4254): this engine KNEW both providers were billing-dead
+    # for two days and its knowledge stayed inside a JSON file nobody
+    # reads. An EMF gauge turns that knowledge into a metric CloudWatch
+    # ingests from this one log line — zero API calls — so an alarm can
+    # page the moment ProvidersUp drops below 1. Monitoring that cannot
+    # page is a diary. llm-health v1.1 ops4254 emf-gauge
+    import time as _t
+    print(json.dumps({
+        "_aws": {"Timestamp": int(_t.time() * 1000),
+                 "CloudWatchMetrics": [{
+                     "Namespace": "JustHodl/LLM", "Dimensions": [[]],
+                     "Metrics": [
+                         {"Name": "ProvidersUp", "Unit": "Count"},
+                         {"Name": "BillingBlocked", "Unit": "Count"},
+                         {"Name": "DegradedOutputs", "Unit": "Count"}]}]},
+        "ProvidersUp": len(up),
+        "BillingBlocked": len(billing),
+        "DegradedOutputs": len(degraded),
+        "status": status}))
     print(f"[llm-health] {headline}")
     return {"statusCode": 200, "body": status}
