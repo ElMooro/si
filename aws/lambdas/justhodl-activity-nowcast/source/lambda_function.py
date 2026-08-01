@@ -282,3 +282,37 @@ def lambda_handler(event, context):
     return {"statusCode": 200, "body": json.dumps({
         "ok": True, "activity_index": activity_index, "regime": regime,
         "momentum": momentum, "divergence_flag": div.get("flag")})}
+
+
+_orig_handler_4218 = lambda_handler
+
+
+def lambda_handler(event=None, context=None):
+    """bus_hard — bus enrichment wrapper (core untouched)."""
+    r = _orig_handler_4218(event, context)
+    try:
+        _bus = (json.loads(s3.get_object(
+            Bucket=S3_BUCKET,
+            Key="data/indicator-bus.json")["Body"].read())
+            or {}).get("indicators") or {}
+        _doc = json.loads(s3.get_object(
+            Bucket=S3_BUCKET, Key="data/macro-nowcast.json")["Body"].read())
+        _ipn = [v.get("v") for k, v in _bus.items()
+                if k.endswith("IPYY")
+                and isinstance(v.get("v"), (int, float))]
+        _blk = {"marker": "ops4218",
+                "us_ipyy": (_bus.get("USIPYY") or {}).get("v"),
+                "us_rsyy": (_bus.get("USRSYY") or {}).get("v"),
+                "global_ip_contracting_pct":
+                round(100 * sum(1 for x in _ipn if x < 0)
+                      / len(_ipn), 1) if _ipn else None,
+                "note": "monthly hard-data bridge beside the "
+                        "weekly basket"}
+        _doc["bus_hard"] = _blk
+        s3.put_object(Bucket=S3_BUCKET, Key="data/macro-nowcast.json",
+                      Body=json.dumps(_doc).encode(),
+                      ContentType="application/json")
+        print("[bus_hard] wired: " + json.dumps(_blk)[:120])
+    except Exception as _e:
+        print("[bus_hard] EXC " + type(_e).__name__)
+    return r

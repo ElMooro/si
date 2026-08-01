@@ -98,3 +98,41 @@ def lambda_handler(event, context):
                    ContentType="application/json", CacheControl="max-age=120")
     return {"statusCode": 200, "body": json.dumps({"n": len(items),
             "labels": [i["label"] for i in items]})}
+
+
+_orig_handler_4218 = lambda_handler
+
+
+def lambda_handler(event=None, context=None):
+    """bus_tape — bus enrichment wrapper (core untouched)."""
+    r = _orig_handler_4218(event, context)
+    try:
+        _bus = (json.loads(s3.get_object(
+            Bucket=BUCKET,
+            Key="data/indicator-bus.json")["Body"].read())
+            or {}).get("indicators") or {}
+        _doc = json.loads(s3.get_object(
+            Bucket=BUCKET, Key=KEY)["Body"].read())
+        _picks = (("DE10Y", "DE10Y", "%"),
+                  ("CNGDPYY", "CN GDP", "%"),
+                  ("USIRYY", "US CPI", "%"))
+        _have = {str(i.get("label")) for i in _doc.get("items") or []}
+        _added = []
+        for _k, _lab, _u in _picks:
+            _r2 = _bus.get(_k) or {}
+            _v2 = _r2.get("v")
+            if isinstance(_v2, (int, float)) and _lab not in _have:
+                _doc.setdefault("items", []).append(
+                    {"label": _lab, "value": _v2,
+                     "display": ("%.2f" % _v2) + _u,
+                     "src": str(_r2.get("src"))[:20]})
+                _added.append(_lab)
+        _blk = {"marker": "ops4218", "added": _added}
+        _doc["bus_tape"] = _blk
+        s3.put_object(Bucket=BUCKET, Key=KEY,
+                      Body=json.dumps(_doc).encode(),
+                      ContentType="application/json")
+        print("[bus_tape] wired: " + json.dumps(_blk)[:120])
+    except Exception as _e:
+        print("[bus_tape] EXC " + type(_e).__name__)
+    return r
