@@ -49,8 +49,8 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.0.0"
-MARKER = "contract-gate v1.0.0 ops4240"
+VERSION = "1.0.1"
+MARKER = "contract-gate v1.0.1 ops4241 path-segments"
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CONTRACTS_KEY = "config/engine-contracts.json"
@@ -96,28 +96,50 @@ def list_artifacts():
 
 
 def principal_rows(doc):
-    """Find the collection that carries the engine's actual payload:
-    the largest list, checked one level deep. Returns (path, count)."""
+    """Find the collection that carries the engine's actual payload: the
+    largest list, checked one level deep.
+
+    v1.0.1: the path is a LIST OF SEGMENTS, not a dotted string. v1.0.0
+    joined segments with "." and split them again on read, which silently
+    broke for any document whose keys contain dots — and this fleet is
+    full of them, because artifacts are keyed by filename
+    ("page_reads" -> "risk-regime.html"). The resolver returned None, the
+    gate read None as a row collapse, and it reported two failures that
+    were entirely its own. A validator that manufactures false positives
+    trains people to ignore it, which is the exact failure it exists to
+    prevent, so this is fixed at the representation rather than patched
+    at the parse.
+
+    Returns (path_segments, count). ["$"] means the document is itself
+    the list."""
     best = (None, 0)
     if isinstance(doc, list):
-        return ("$", len(doc))
+        return (["$"], len(doc))
     if not isinstance(doc, dict):
         return best
     for k, v in doc.items():
         if isinstance(v, list) and len(v) > best[1]:
-            best = (k, len(v))
+            best = ([k], len(v))
         elif isinstance(v, dict):
             for k2, v2 in v.items():
                 if isinstance(v2, list) and len(v2) > best[1]:
-                    best = ("%s.%s" % (k, k2), len(v2))
+                    best = ([k, k2], len(v2))
     return best
 
 
 def rows_at(doc, path):
-    if path == "$":
+    """Accepts the v1.0.1 segment list and, for registries written by
+    v1.0.0, a dotted string — resolved whole-key-first so a key
+    containing a dot still resolves correctly."""
+    if isinstance(path, str):
+        path = [path] if (isinstance(doc, dict) and path in doc) \
+            else path.split(".")
+    if not path:
+        return None
+    if path == ["$"]:
         return len(doc) if isinstance(doc, list) else 0
     cur = doc
-    for part in path.split("."):
+    for part in path:
         if not isinstance(cur, dict) or part not in cur:
             return None
         cur = cur[part]
@@ -203,12 +225,13 @@ def check():
         except Exception as e:
             v("UNPARSEABLE", key, "will not parse: %s" % str(e)[:80])
             continue
-        n = rows_at(doc, c.get("rows_path") or "$")
+        n = rows_at(doc, c.get("rows_path") or ["$"])
         if c.get("min_rows") and (n is None or n < c["min_rows"]):
             v("ROW_COLLAPSE", key,
               "%s has %s rows, contract floor is %d (learned %d) — the "
               "engine ran but produced a fraction of its output"
-              % (c.get("rows_path"), n, c["min_rows"], c.get("learned_rows", 0)))
+              % (".".join(c.get("rows_path") or []), n,
+                 c["min_rows"], c.get("learned_rows", 0)))
         if isinstance(doc, dict):
             missing = [k for k in (c.get("required_keys") or [])
                        if k not in doc]
