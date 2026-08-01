@@ -1,21 +1,14 @@
-executing-against: 2c4b3c1a5adeb7725178e8fbce53c0023e464099
-ops 4216 — bus wave-1 consumers
-[01:50:52]   [barometers] bus extras +1170
-── nowcast auto-heal via vault ──
-[01:50:53]   JPCCI: bus=True {"v": 33.8, "asof": "2026-06-01", "src": "fred_alias:CSCICP02JPM460S"}
-[01:50:53]   DECCI: bus=True {"v": -14.6, "asof": "2026-06-01", "src": "fred_alias:CSCICP02DEM460S"
-[01:50:53]   FRCCI: bus=True {"v": -19.3, "asof": "2026-06-01", "src": "fred_alias:CSCICP02FRM460S"
-[01:50:53]   GBCCI: bus=True {"v": -17.0, "asof": "2026-06-01", "src": "fred_alias:CSCICP02GBM460S"
-[01:50:53]   GBBCOI: bus=True {"v": 99.54, "asof": "oecd:2023-12", "src": "oecd:MEI (family)"}
-[01:50:53]   CNBCOI: bus=True {"v": 97.64, "asof": "oecd:2023-12", "src": "oecd:MEI (family)"}
-[01:50:53]   EUBCOI: bus=True {"v": -0.19, "asof": "2026-07-31", "src": "te:api Business Confidence"
-[01:50:53]   DEGDPYY: bus=True {"v": 769540.5, "asof": "2026-01-01", "src": "fred_alias:CLVMNACSCAB1G
-[01:50:53]   FRGDPYY: bus=True {"v": 597460.2, "asof": "2026-01-01", "src": "fred_alias:CLVMNACSCAB1G
-[01:50:53]   EUGDPYY: bus=True {"v": 2.76, "asof": "2026-01-01 YoY", "src": "fred_yoy:CLVMNACSCAB1GQE
-[01:50:53] ✅   macro-nowcast fired (consumes healed legs)
-[01:50:54] ✅   bus-consumers ledger written
-[01:50:54] ✅   barometers bus extras >= 800
-[01:50:54] ✅   nowcast legs in bus >= 8
-[01:50:54] ✅ WAVE-1 LIVE — extras=1170 healed=10
+executing-against: e28c5e56878f1682c89b3fb6f34aaefc0f50fd99
+ops 4217 — wave-2 (recession, sentinel, dollar)
+[02:00:32]   [bus_legs] wired: {"marker": "ops4217", "gdp_universe": 262, "gdp_contracting": 17, "ip_universe": 103, "ip_co
+[02:00:32]   recession bus_legs: {"marker": "ops4217", "gdp_universe": 262, "gdp_contracting": 17, "ip_universe": 103, "ip_contracting": 41, "contracting_sample": ["BOGDPYY", "BWGDPYY", "CUGDPYY", "GQGDPYY", "HTGDPYY", "IMGDPYY", "IQGDPYY", "IRGDPYY", "
+[02:00:44]   [bus_cross] wired: {"marker": "ops4217", "us10y_bus": 4.61, "asof": "2026-07-28", "src": "fred_alias:DGS10", "
+[02:01:19]   [bus_dollar] wired: {"marker": "ops4217", "dx_front": null, "cot_098662": {"098662_FO_CP_L": 14773.0, "098662_
+[02:01:19] ✅   ledger: wired=6 next=7
+[02:01:19] ✅   justhodl-global-recession bus_legs emitted
+[02:01:19] ✅   gdp_universe >= 100
+[02:01:19] ✅   justhodl-us10y-sentinel bus_cross emitted
+[02:01:19] ✅   justhodl-dollar-radar bus_dollar emitted
+[02:01:19] ✅ WAVE-2 LIVE — recession hard-legs armed, sentinel cross-checked, dollar on modern COT
 
-→ Report written to aws/ops/reports/latest/4216_wave1.md
+→ Report written to aws/ops/reports/latest/4217_wave2.md
