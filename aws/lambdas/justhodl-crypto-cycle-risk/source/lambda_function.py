@@ -355,3 +355,39 @@ def lambda_handler(event=None, context=None):
     print(f"[crypto-cycle-risk] DONE {round(time.time()-t0,1)}s — {level} ({composite}); "
           f"halving {factors['halving_cycle'].get('months_since_halving')}mo")
     return {"statusCode": 200, "body": json.dumps({"score": composite, "level": level})}
+
+
+_orig_handler_4221 = lambda_handler
+
+
+def lambda_handler(event=None, context=None):
+    """cq_cycle — CryptoQuant primary rail (core untouched)."""
+    r = _orig_handler_4221(event, context)
+    try:
+        _cq = json.loads(s3.get_object(
+            Bucket=BUCKET,
+            Key="data/cq-feed.json")["Body"].read()
+        ).get("metrics") or {}
+        def _f(slug, field):
+            return ((_cq.get(slug) or {}).get("fields")
+                    or {}).get(field)
+        _doc = json.loads(s3.get_object(
+            Bucket=BUCKET, Key=OUT_KEY)["Body"].read())
+        _blk = {"marker": "ops4221",
+                "mvrv": _f("btc_market-indicator_mvrv", "mvrv"),
+                "sopr": _f("btc_market-indicator_sopr", "sopr"),
+                "sth_sopr":
+                _f("btc_market-indicator_sopr", "sth_sopr"),
+                "nupl": _f("btc_network-indicator_nupl", "nupl"),
+                "realized_price":
+                _f("btc_market-indicator_realized-price",
+                   "realized_price"),
+                "note": "CryptoQuant cycle suite — paid rail"}
+        _doc["cq_cycle"] = _blk
+        s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
+                      Body=json.dumps(_doc, default=str).encode(),
+                      ContentType="application/json")
+        print("[cq_cycle] wired: " + json.dumps(_blk)[:130])
+    except Exception as _e:
+        print("[cq_cycle] EXC " + type(_e).__name__)
+    return r

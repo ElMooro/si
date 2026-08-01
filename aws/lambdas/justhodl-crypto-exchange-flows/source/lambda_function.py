@@ -215,3 +215,41 @@ def lambda_handler(event, context):
     return {"statusCode": 200, "body": json.dumps({"regime": out.get("regime"),
                                                     "cum_30d_btc": out.get("cum_30d_btc"),
                                                     "verdict": (btc.get("event_study") or {}).get("verdict")})}
+
+
+_orig_handler_4221 = lambda_handler
+
+
+def lambda_handler(event=None, context=None):
+    """cq_flows — CryptoQuant primary rail (core untouched)."""
+    r = _orig_handler_4221(event, context)
+    try:
+        _cq = json.loads(s3.get_object(
+            Bucket=BUCKET,
+            Key="data/cq-feed.json")["Body"].read()
+        ).get("metrics") or {}
+        def _f(slug, field):
+            return ((_cq.get(slug) or {}).get("fields")
+                    or {}).get(field)
+        _doc = json.loads(s3.get_object(
+            Bucket=BUCKET, Key=HIST_KEY)["Body"].read())
+        _blk = {"marker": "ops4221",
+                "reserve_btc":
+                _f("btc_exchange-flows_reserve", "reserve"),
+                "reserve_usd":
+                _f("btc_exchange-flows_reserve", "reserve_usd"),
+                "netflow_btc":
+                _f("btc_exchange-flows_netflow", "netflow_total"),
+                "whale_ratio":
+                _f("btc_flow-indicator_exchange-whale-ratio",
+                   "exchange_whale_ratio"),
+                "mpi": _f("btc_flow-indicator_mpi", "mpi"),
+                "note": "CryptoQuant primary — paid rail"}
+        _doc["cq_flows"] = _blk
+        s3.put_object(Bucket=BUCKET, Key=HIST_KEY,
+                      Body=json.dumps(_doc, default=str).encode(),
+                      ContentType="application/json")
+        print("[cq_flows] wired: " + json.dumps(_blk)[:130])
+    except Exception as _e:
+        print("[cq_flows] EXC " + type(_e).__name__)
+    return r
