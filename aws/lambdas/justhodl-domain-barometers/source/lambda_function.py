@@ -698,6 +698,30 @@ def lambda_handler(event, context):
 
     brain = gj("data/brain.json") or {}
     vault = gj("data/tradingview.json") or {}
+    # ops4216 BUS WAVE-1: beyond-book indicators join as drivers —
+    # suffix-filtered to polarity-resolvable families only, so the
+    # honest denominator widens with signal, never with noise.
+    try:
+        _bus = gj("data/indicator-bus.json") or {}
+        _have = {str(r.get("symbol"))
+                 for r in vault.get("symbols") or []}
+        _rx = re.compile(
+            r"^[A-Z]{2}(INTR|IRYY|GDPYY|UR|FI|CIR|M0|M1|M2|FER|GRES|"
+            r"BOT|CA|GDG|UP|RSYY|MPRYY|BCOI|CCI|10Y|02Y)$")
+        _add = []
+        for _k, _r in (_bus.get("indicators") or {}).items():
+            if _k not in _have and _rx.match(_k):
+                _add.append({
+                    "symbol": _k, "status": "LIVE",
+                    "value": _r.get("v"), "asof": _r.get("asof"),
+                    "source": "bus:" + str(_r.get("src"))[:24],
+                    "category": "rates"
+                    if ("10Y" in _k or "02Y" in _k or "INTR" in _k)
+                    else "macro"})
+        vault.setdefault("symbols", []).extend(_add)
+        print("[barometers] bus extras +%d" % len(_add))
+    except Exception:
+        pass
     gate = gj("data/risk-gate.json") or {}
     rot = gj("data/rotation-dashboard.json") or {}
     rows = vault.get("symbols") or []
