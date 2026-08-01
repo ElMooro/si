@@ -1,66 +1,56 @@
-executing-against: 7b5baf7a8ca9ba5bf04485f7d9fbeb06ff3aa09d
-ops 4255 v2 — silent-writer forensics (35 pairs)
-[21:52:30] resume cursor: 0 pair(s) already evidenced today
-── Phase 1 — static evidence + drift repair ──
-[21:52:33] ⚠ DEPLOY-DRIFT bis-crossborder.json <- justhodl-bis-crossborder — redeploying from repo
-[21:52:36] ⚠ DEPLOY-DRIFT compound-signals.json <- justhodl-alpha-research — redeploying from repo
-[21:52:41] ⚠ DEPLOY-DRIFT fi-census-matrix.json <- justhodl-fi-census — redeploying from repo
-/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: 'census_lib.py'
-  return self._open_to_write(zinfo, force_zip64=force_zip64)
-[21:52:42] ⚠ DEPLOY-DRIFT fi-census.json <- justhodl-fi-census — redeploying from repo
-[21:52:48] ⚠ DEPLOY-DRIFT index-inclusion.json <- justhodl-index-inclusion — redeploying from repo
-[21:52:50] ⚠ DEPLOY-DRIFT inventory-drawdown.json <- justhodl-inventory-drawdown — redeploying from repo
-[21:52:53] ⚠ DEPLOY-DRIFT playbook-rules.json <- justhodl-playbook-engine — redeploying from repo
-[21:52:59] ⚠ DEPLOY-DRIFT symbol-dictionary.json <- justhodl-symbol-dictionary — redeploying from repo
-[21:53:00] ⚠ DEPLOY-DRIFT symbol-map.json <- justhodl-symbol-dictionary — redeploying from repo
-── Phase 2 — probe volley ──
-[21:53:14] async volley fired: 27 | fast RequestResponse queue: 1
-[21:53:15] single settle wait 150s for the async volley…
-── Classification ──
-[21:55:45] ✗ _freshness-manifest.json               justhodl-fleet-freshness-mon ASYNC-NO-WRITE     
-[21:55:45] ✅ alert-history.json                     justhodl-alert-router        WRITES-ON-PROBE    data/_fleet-monitor-alert-history.json;data/_freshness-alert
-[21:55:45] ✅ bis-crossborder.json                   justhodl-bis-crossborder     FIXED-DEPLOY-DRIFT 
-[21:55:46] ✗ brain-history.json                     justhodl-brain-sync          ASYNC-NO-WRITE     
-[21:55:46] ✅ buyback-scanner.json                   justhodl-buyback-scanner     WRITES-ON-PROBE    
-[21:55:46] ⚠ compound-signals.json                  justhodl-alpha-research      SUPERSEDED?        data/compound-signals-state.json
-[21:55:46] ✗ congress-party-map.json                justhodl-political-stocks    ASYNC-NO-WRITE     
-[21:55:46] ✗ etf-census-matrix.json                 justhodl-etf-census          SCHEDULE-INPUT     
-[21:55:46] ✗ etf-census.json                        justhodl-etf-census          SCHEDULE-INPUT     [etf-census] flow records=60 vocab=['aum_b', 'avg_20d_dollar_vol_b', '
-[21:55:46] ✗ eurodollar-stress.json                 justhodl-dollar-radar        ASYNC-NO-WRITE     
-[21:55:46] ✗ factor-data-cache.json                 justhodl-factor-decompositio ASYNC-NO-WRITE     
-[21:55:46] ✗ factor-decomposition.json              justhodl-factor-decompositio SCHEDULE-INPUT     [factor-decomposition] start v1.0.0;[factor-decomposition] complete: n
-[21:55:46] ✗ feedback-summary.json                  justhodl-feedback            CODE-PATH-SILENT   
-[21:55:46] ✅ fi-census-matrix.json                  justhodl-fi-census           FIXED-DEPLOY-DRIFT 
-[21:55:46] ✅ fi-census.json                         justhodl-fi-census           FIXED-DEPLOY-DRIFT [fi-census] 0/45 BIL;[fi-census] 12/45 GOVT
-[21:55:47] ✅ forward-returns.json                   justhodl-forward-returns     WRITES-ON-PROBE    [forward-returns] v1.0.0 starting;[forward-returns] fetching market da
-[21:55:47] ✗ history-index.json                     justhodl-calibration-snapsho ASYNC-NO-WRITE     
-[21:55:47] ✅ index-inclusion.json                   justhodl-index-inclusion     FIXED-DEPLOY-DRIFT 
-[21:55:47] ✅ inventory-drawdown.json                justhodl-inventory-drawdown  FIXED-DEPLOY-DRIFT [inventory-drawdown] sectors_drawing=6 names_with_inv=87 boom_setups=7
-[21:55:47] ✗ ka-analysis.json                       justhodl-ka-metrics          ASYNC-NO-WRITE     
-[21:55:47] ✗ khalid-analysis.json                   justhodl-ka-metrics          ASYNC-NO-WRITE     
-[21:55:47] ✗ massive-signals.json                   justhodl-alpha-score         ASYNC-NO-WRITE     
-[21:55:47] ✅ miss-calibrator-proposals.json         justhodl-miss-calibrator     WRITES-ON-PROBE    
-[21:55:47] ⚠ options-flow.json                      justhodl-alpha-score         SUPERSEDED?        inputs: 503 stocks · 503 sentiment · 1862 smart-money · 8 options-flow
-[21:55:47] ✅ playbook-rules.json                    justhodl-playbook-engine     FIXED-DEPLOY-DRIFT 
-[21:55:47] ✗ polygon-related-graph.json             justhodl-supply-chain-graph  ASYNC-NO-WRITE     
-[21:55:48] ✗ quiver-congress-cache.json             justhodl-political-stocks    ASYNC-NO-WRITE     
-[21:55:48] ✗ quiver-lobbying-cache.json             justhodl-lobbying-intel      ASYNC-NO-WRITE     
-[21:55:48] ⚠ risk-regime.json                       justhodl-carry-surface       SUPERSEDED?        data/risk-regime-state.json
-[21:55:48] ✗ sec-filings-intel.json                 justhodl-pump-mechanics      ASYNC-NO-WRITE     
-[21:55:48] ✗ signal-halflife.json                   justhodl-meta-improver       ASYNC-NO-WRITE     
-[21:55:48] ✅ smart-money-13f.json                   justhodl-smart-money-13f     WRITES-ON-PROBE    data/smart-money-clusters.json;data/smart-money-names.json
-[21:55:48] ✅ symbol-dictionary.json                 justhodl-symbol-dictionary   FIXED-DEPLOY-DRIFT 
-[21:55:48] ⚠ symbol-map.json                        justhodl-symbol-dictionary   SUPERSEDED?        data/symbol-aliases.json;data/symbol-feed.json
-[21:55:48] ✅ whales.json                            justhodl-whales              WRITES-ON-PROBE    
-── MATRIX ──
-[21:55:48]   ASYNC-NO-WRITE         14
-[21:55:48]   FIXED-DEPLOY-DRIFT     7
-[21:55:48]   WRITES-ON-PROBE        6
-[21:55:48]   SUPERSEDED?            4
-[21:55:48]   SCHEDULE-INPUT         3
-[21:55:48]   CODE-PATH-SILENT       1
-[21:55:48] auto-repaired deploy-drift, artifact verified moving: 7
+executing-against: 73b6f58dbb6729abb00dce62b915e55a3857d840
+ops 4256 — wave-2 closure
+── A. Record correction — SCHEDULE-INPUT is empty ──
+[22:01:37] etf-census-matrix, etf-census, factor-decomposition: the scheduled Input was the literal '{}' — identical to the probe. Reclassified WRITES-ON-PROBE. Self-heal set is now NINE engines; tomorrow's 13:00 contract check is the arbiter, and any that stay frozen re-enter the queue with yesterday's evidence attached.
+── B. ASYNC re-head after full settle (14) ──
+[22:01:38] ✅   eurodollar-stress.json                 LATE-WRITER-OK — wrote 0.8h ago (slow, not broken)
+[22:01:38] ✅   massive-signals.json                   LATE-WRITER-OK — wrote 0.0h ago (slow, not broken)
+[22:01:38] ✅   sec-filings-intel.json                 LATE-WRITER-OK — wrote 0.9h ago (slow, not broken)
+[22:01:38] late-but-healthy: 3 | still frozen: 11
+[22:01:39] ✗   _freshness-manifest.json               justhodl-fleet-freshness-mon age=651.0h
+[22:01:39]       REPORT RequestId: 199adf7f-9335-4502-9eb4-f13d53abaabf	Duration: 5344.39 ms	Billed Duration: 5805 ms	Memory Size: 512 MB	Max Memory Used: 113 MB	Init 
+[22:01:39] ✗       ERR  [telegram] failed: HTTP Error 401: Unauthorized
+[22:01:39] ✗   brain-history.json                     justhodl-brain-sync          age=790.0h
+[22:01:39]       REPORT RequestId: ffc0a457-3859-4ead-aa04-b2ddc4dba555	Duration: 4968.02 ms	Billed Duration: 5757 ms	Memory Size: 512 MB	Max Memory Used: 146 MB	Init 
+[22:01:39] ✗       ERR  [brain-sync] direct anthropic err: HTTP Error 400: Bad Request
+[22:01:39] ✗       ERR  [brain-sync] direct anthropic err: HTTP Error 400: Bad Request
+[22:01:39] ✗   congress-party-map.json                justhodl-political-stocks    age=1493.0h
+[22:01:39]       REPORT RequestId: 0e7a04e2-7acd-4dbc-9b1b-674d84c1a870	Duration: 528.38 ms	Billed Duration: 1033 ms	Memory Size: 512 MB	Max Memory Used: 102 MB	Init D
+[22:01:39] ⚠       tail is silent about the key — write branch never reached in this run
+[22:01:40] ✗   factor-data-cache.json                 justhodl-factor-decompositio age=128.0h
+[22:01:40]       REPORT RequestId: bb750a26-9cee-4e61-a3f2-90cf8d94ae8e	Duration: 12367.60 ms	Billed Duration: 12875 ms	Memory Size: 1024 MB	Max Memory Used: 100 MB	In
+[22:01:40] ⚠       tail is silent about the key — write branch never reached in this run
+[22:01:40] ✗   history-index.json                     justhodl-calibration-snapsho age=1305.0h
+[22:01:40]       REPORT RequestId: 9b5e6de5-932b-4a49-a4c9-ed877a2d071a	Duration: 979.36 ms	Billed Duration: 1557 ms	Memory Size: 512 MB	Max Memory Used: 106 MB	Init D
+[22:01:40] ⚠       tail is silent about the key — write branch never reached in this run
+[22:01:41] ✗   ka-analysis.json                       justhodl-ka-metrics          age=419.0h
+[22:01:41]       REPORT RequestId: 3836cc6a-014d-45ce-836c-e44d2cf9dcad	Duration: 85603.87 ms	Billed Duration: 86132 ms	Memory Size: 512 MB	Max Memory Used: 114 MB	Ini
+[22:01:41] ✗       ERR  response = self.parent.error(
+[22:01:41] ✗       ERR  File "/var/lang/lib/python3.12/urllib/request.py", line 559, in error
+[22:01:41] ✗   khalid-analysis.json                   (same writer as above)
+[22:01:41] ✗   polygon-related-graph.json             justhodl-supply-chain-graph  age=104.0h
+[22:01:41]       REPORT RequestId: 932c7620-e29f-49ae-91ee-ee7b85c57b12	Duration: 8544.37 ms	Billed Duration: 9190 ms	Memory Size: 512 MB	Max Memory Used: 215 MB	Init 
+[22:01:41] ⚠       tail is silent about the key — write branch never reached in this run
+[22:01:41] ✗   quiver-congress-cache.json             (same writer as above)
+[22:01:41] ✗   quiver-lobbying-cache.json             justhodl-lobbying-intel      age=1230.0h
+[22:01:41]       REPORT RequestId: 99f296a6-9778-4c39-bfa0-86de7f8c9608	Duration: 2019.89 ms	Billed Duration: 2563 ms	Memory Size: 1024 MB	Max Memory Used: 134 MB	Init
+[22:01:41] ⚠       tail is silent about the key — write branch never reached in this run
+[22:01:42] ✗   signal-halflife.json                   justhodl-meta-improver       age=136.0h
+[22:01:42]       REPORT RequestId: cf16269b-3dd2-4c43-b812-eb26a80cdcbe	Duration: 247.03 ms	Billed Duration: 779 ms	Memory Size: 1024 MB	Max Memory Used: 100 MB	Init D
+[22:01:42] ✗       ERR  [WARNING]	2026-08-01T21:53:14.833Z	cf16269b-3dd2-4c43-b812-eb26a80cdcbe	github_get_fail /repos/ElMooro/si/contents/aws/lambdas: HTTP Error 4
+── C. Page-critical four — true writer, probe, verify ──
+[22:01:42] compound-signals.json — put_object writers in source: NONE
+[22:01:42] ✗    NO ENGINE writes this key anymore — the pages reading it are on permanent stale data; writer was removed or renamed. REAL repair: restore the write or repoint the pages.
+[22:01:42] options-flow.json — put_object writers in source: justhodl-fleet-freshness-monitor, justhodl-polygon-options-flow
+[22:01:42]    fired justhodl-fleet-freshness-monitor async (timeout 300s)
+[22:01:43]    fired justhodl-polygon-options-flow async (timeout 300s)
+[22:01:43] risk-regime.json — put_object writers in source: justhodl-carry-surface
+[22:01:43]    fired justhodl-carry-surface async (timeout 600s)
+[22:01:43] symbol-map.json — put_object writers in source: NONE
+[22:01:43] ✗    NO ENGINE writes this key anymore — the pages reading it are on permanent stale data; writer was removed or renamed. REAL repair: restore the write or repoint the pages.
+── D. feedback-summary — the guard, in evidence ──
+[22:01:43] ⚠    guard structure above — reviewed fix next, not a blind patch
 ── RESULT ──
-[21:55:48] ✅ OPS 4255 v2 PASS — matrix complete, cursor-resumable
+[22:01:43] ✅ OPS 4256 PASS
 
-→ Report written to aws/ops/reports/latest/4255_silent_writers.md
+→ Report written to aws/ops/reports/latest/4256_wave2_close.md

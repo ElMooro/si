@@ -1,0 +1,86 @@
+# ops 4256 — wave-2 closure
+
+**Status:** success  
+**Duration:** 5.9s  
+**Finished:** 2026-08-01T22:01:43+00:00  
+
+## Data
+
+| age_h | artifact | cls | evidence | real_members | reclassified | report | section | true_writers | writer |
+|---|---|---|---|---|---|---|---|---|---|
+|  |  | SCHEDULE-INPUT |  | 0 | 3 |  | correction |  |  |
+| 0.75 | data/eurodollar-stress.json |  |  |  |  |  | late_ok |  | justhodl-dollar-radar |
+| 0.02 | data/massive-signals.json |  |  |  |  |  | late_ok |  | justhodl-alpha-score |
+| 0.9 | data/sec-filings-intel.json |  |  |  |  |  | late_ok |  | justhodl-pump-mechanics |
+| 650.5507112722222 | data/_freshness-manifest.json |  | [telegram] failed: HTTP Error 401: Unauthorized |  |  | REPORT RequestId: 199adf7f-9335-4502-9eb4-f13d53abaabf	Duration: 5344.39 ms	Billed Duration: 5805 ms	Memory Size: 512 MB | still_frozen |  | justhodl-fleet-freshness-monitor |
+| 789.6940446055555 | data/brain-history.json |  | [brain-sync] direct anthropic err: HTTP Error 400: Bad Request |  |  | REPORT RequestId: ffc0a457-3859-4ead-aa04-b2ddc4dba555	Duration: 4968.02 ms	Billed Duration: 5757 ms	Memory Size: 512 MB | still_frozen |  | justhodl-brain-sync |
+| 1492.8201557166667 | data/congress-party-map.json |  | silent |  |  | REPORT RequestId: 0e7a04e2-7acd-4dbc-9b1b-674d84c1a870	Duration: 528.38 ms	Billed Duration: 1033 ms	Memory Size: 512 MB	 | still_frozen |  | justhodl-political-stocks |
+| 128.43571127222222 | data/factor-data-cache.json |  | silent |  |  | REPORT RequestId: bb750a26-9cee-4e61-a3f2-90cf8d94ae8e	Duration: 12367.60 ms	Billed Duration: 12875 ms	Memory Size: 1024 | still_frozen |  | justhodl-factor-decomposition |
+| 1305.022377938889 | data/history-index.json |  | silent |  |  | REPORT RequestId: 9b5e6de5-932b-4a49-a4c9-ed877a2d071a	Duration: 979.36 ms	Billed Duration: 1557 ms	Memory Size: 512 MB	 | still_frozen |  | justhodl-calibration-snapshotter |
+| 418.86682238333333 | data/ka-analysis.json |  | response = self.parent.error( |  |  | REPORT RequestId: 3836cc6a-014d-45ce-836c-e44d2cf9dcad	Duration: 85603.87 ms	Billed Duration: 86132 ms	Memory Size: 512  | still_frozen |  | justhodl-ka-metrics |
+| 104.27237793888888 | data/polygon-related-graph.json |  | silent |  |  | REPORT RequestId: 932c7620-e29f-49ae-91ee-ee7b85c57b12	Duration: 8544.37 ms	Billed Duration: 9190 ms	Memory Size: 512 MB | still_frozen |  | justhodl-supply-chain-graph |
+| 1230.0246001611113 | data/quiver-lobbying-cache.json |  | silent |  |  | REPORT RequestId: 99f296a6-9778-4c39-bfa0-86de7f8c9608	Duration: 2019.89 ms	Billed Duration: 2563 ms	Memory Size: 1024 M | still_frozen |  | justhodl-lobbying-intel |
+| 136.01821127222223 | data/signal-halflife.json |  | [WARNING]	2026-08-01T21:53:14.833Z	cf16269b-3dd2-4c43-b812-eb26a80cdcbe	github_get_fail /repos/ElMooro/si/contents/aws/lambdas: HTTP Error 4 |  |  | REPORT RequestId: cf16269b-3dd2-4c43-b812-eb26a80cdcbe	Duration: 247.03 ms	Billed Duration: 779 ms	Memory Size: 1024 MB	 | still_frozen |  | justhodl-meta-improver |
+|  | data/compound-signals.json |  |  |  |  |  | page_critical | none |  |
+|  | data/options-flow.json |  |  |  |  |  | page_critical | justhodl-fleet-freshness-monitor,justhodl-polygon-options-flow |  |
+|  | data/risk-regime.json |  |  |  |  |  | page_critical | justhodl-carry-surface |  |
+|  | data/symbol-map.json |  |  |  |  |  | page_critical | none |  |
+
+## Log
+## A. Record correction — SCHEDULE-INPUT is empty
+
+- `22:01:37` etf-census-matrix, etf-census, factor-decomposition: the scheduled Input was the literal '{}' — identical to the probe. Reclassified WRITES-ON-PROBE. Self-heal set is now NINE engines; tomorrow's 13:00 contract check is the arbiter, and any that stay frozen re-enter the queue with yesterday's evidence attached.
+## B. ASYNC re-head after full settle (14)
+
+- `22:01:38` ✅   eurodollar-stress.json                 LATE-WRITER-OK — wrote 0.8h ago (slow, not broken)
+- `22:01:38` ✅   massive-signals.json                   LATE-WRITER-OK — wrote 0.0h ago (slow, not broken)
+- `22:01:38` ✅   sec-filings-intel.json                 LATE-WRITER-OK — wrote 0.9h ago (slow, not broken)
+- `22:01:38` late-but-healthy: 3 | still frozen: 11
+- `22:01:39` ✗   _freshness-manifest.json               justhodl-fleet-freshness-mon age=651.0h
+- `22:01:39`       REPORT RequestId: 199adf7f-9335-4502-9eb4-f13d53abaabf	Duration: 5344.39 ms	Billed Duration: 5805 ms	Memory Size: 512 MB	Max Memory Used: 113 MB	Init 
+- `22:01:39` ✗       ERR  [telegram] failed: HTTP Error 401: Unauthorized
+- `22:01:39` ✗   brain-history.json                     justhodl-brain-sync          age=790.0h
+- `22:01:39`       REPORT RequestId: ffc0a457-3859-4ead-aa04-b2ddc4dba555	Duration: 4968.02 ms	Billed Duration: 5757 ms	Memory Size: 512 MB	Max Memory Used: 146 MB	Init 
+- `22:01:39` ✗       ERR  [brain-sync] direct anthropic err: HTTP Error 400: Bad Request
+- `22:01:39` ✗       ERR  [brain-sync] direct anthropic err: HTTP Error 400: Bad Request
+- `22:01:39` ✗   congress-party-map.json                justhodl-political-stocks    age=1493.0h
+- `22:01:39`       REPORT RequestId: 0e7a04e2-7acd-4dbc-9b1b-674d84c1a870	Duration: 528.38 ms	Billed Duration: 1033 ms	Memory Size: 512 MB	Max Memory Used: 102 MB	Init D
+- `22:01:39` ⚠       tail is silent about the key — write branch never reached in this run
+- `22:01:40` ✗   factor-data-cache.json                 justhodl-factor-decompositio age=128.0h
+- `22:01:40`       REPORT RequestId: bb750a26-9cee-4e61-a3f2-90cf8d94ae8e	Duration: 12367.60 ms	Billed Duration: 12875 ms	Memory Size: 1024 MB	Max Memory Used: 100 MB	In
+- `22:01:40` ⚠       tail is silent about the key — write branch never reached in this run
+- `22:01:40` ✗   history-index.json                     justhodl-calibration-snapsho age=1305.0h
+- `22:01:40`       REPORT RequestId: 9b5e6de5-932b-4a49-a4c9-ed877a2d071a	Duration: 979.36 ms	Billed Duration: 1557 ms	Memory Size: 512 MB	Max Memory Used: 106 MB	Init D
+- `22:01:40` ⚠       tail is silent about the key — write branch never reached in this run
+- `22:01:41` ✗   ka-analysis.json                       justhodl-ka-metrics          age=419.0h
+- `22:01:41`       REPORT RequestId: 3836cc6a-014d-45ce-836c-e44d2cf9dcad	Duration: 85603.87 ms	Billed Duration: 86132 ms	Memory Size: 512 MB	Max Memory Used: 114 MB	Ini
+- `22:01:41` ✗       ERR  response = self.parent.error(
+- `22:01:41` ✗       ERR  File "/var/lang/lib/python3.12/urllib/request.py", line 559, in error
+- `22:01:41` ✗   khalid-analysis.json                   (same writer as above)
+- `22:01:41` ✗   polygon-related-graph.json             justhodl-supply-chain-graph  age=104.0h
+- `22:01:41`       REPORT RequestId: 932c7620-e29f-49ae-91ee-ee7b85c57b12	Duration: 8544.37 ms	Billed Duration: 9190 ms	Memory Size: 512 MB	Max Memory Used: 215 MB	Init 
+- `22:01:41` ⚠       tail is silent about the key — write branch never reached in this run
+- `22:01:41` ✗   quiver-congress-cache.json             (same writer as above)
+- `22:01:41` ✗   quiver-lobbying-cache.json             justhodl-lobbying-intel      age=1230.0h
+- `22:01:41`       REPORT RequestId: 99f296a6-9778-4c39-bfa0-86de7f8c9608	Duration: 2019.89 ms	Billed Duration: 2563 ms	Memory Size: 1024 MB	Max Memory Used: 134 MB	Init
+- `22:01:41` ⚠       tail is silent about the key — write branch never reached in this run
+- `22:01:42` ✗   signal-halflife.json                   justhodl-meta-improver       age=136.0h
+- `22:01:42`       REPORT RequestId: cf16269b-3dd2-4c43-b812-eb26a80cdcbe	Duration: 247.03 ms	Billed Duration: 779 ms	Memory Size: 1024 MB	Max Memory Used: 100 MB	Init D
+- `22:01:42` ✗       ERR  [WARNING]	2026-08-01T21:53:14.833Z	cf16269b-3dd2-4c43-b812-eb26a80cdcbe	github_get_fail /repos/ElMooro/si/contents/aws/lambdas: HTTP Error 4
+## C. Page-critical four — true writer, probe, verify
+
+- `22:01:42` compound-signals.json — put_object writers in source: NONE
+- `22:01:42` ✗    NO ENGINE writes this key anymore — the pages reading it are on permanent stale data; writer was removed or renamed. REAL repair: restore the write or repoint the pages.
+- `22:01:42` options-flow.json — put_object writers in source: justhodl-fleet-freshness-monitor, justhodl-polygon-options-flow
+- `22:01:42`    fired justhodl-fleet-freshness-monitor async (timeout 300s)
+- `22:01:43`    fired justhodl-polygon-options-flow async (timeout 300s)
+- `22:01:43` risk-regime.json — put_object writers in source: justhodl-carry-surface
+- `22:01:43`    fired justhodl-carry-surface async (timeout 600s)
+- `22:01:43` symbol-map.json — put_object writers in source: NONE
+- `22:01:43` ✗    NO ENGINE writes this key anymore — the pages reading it are on permanent stale data; writer was removed or renamed. REAL repair: restore the write or repoint the pages.
+## D. feedback-summary — the guard, in evidence
+
+- `22:01:43` ⚠    guard structure above — reviewed fix next, not a blind patch
+## RESULT
+
+- `22:01:43` ✅ OPS 4256 PASS

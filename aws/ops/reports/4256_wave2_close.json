@@ -1,0 +1,100 @@
+{
+ "ops": 4256,
+ "ts": "2026-08-01T22:01:37.560580+00:00",
+ "still_frozen": [
+  {
+   "artifact": "data/_freshness-manifest.json",
+   "writer": "justhodl-fleet-freshness-monitor",
+   "report": "REPORT RequestId: 199adf7f-9335-4502-9eb4-f13d53abaabf\tDuration: 5344.39 ms\tBilled Duration: 5805 ms\tMemory Size: 512 MB\tMax Memory Used: 113 MB\tInit ",
+   "errs": [
+    "[telegram] failed: HTTP Error 401: Unauthorized"
+   ],
+   "mentions": []
+  },
+  {
+   "artifact": "data/brain-history.json",
+   "writer": "justhodl-brain-sync",
+   "report": "REPORT RequestId: ffc0a457-3859-4ead-aa04-b2ddc4dba555\tDuration: 4968.02 ms\tBilled Duration: 5757 ms\tMemory Size: 512 MB\tMax Memory Used: 146 MB\tInit ",
+   "errs": [
+    "[brain-sync] direct anthropic err: HTTP Error 400: Bad Request",
+    "[brain-sync] direct anthropic err: HTTP Error 400: Bad Request"
+   ],
+   "mentions": []
+  },
+  {
+   "artifact": "data/congress-party-map.json",
+   "writer": "justhodl-political-stocks",
+   "report": "REPORT RequestId: 0e7a04e2-7acd-4dbc-9b1b-674d84c1a870\tDuration: 528.38 ms\tBilled Duration: 1033 ms\tMemory Size: 512 MB\tMax Memory Used: 102 MB\tInit D",
+   "errs": [],
+   "mentions": []
+  },
+  {
+   "artifact": "data/factor-data-cache.json",
+   "writer": "justhodl-factor-decomposition",
+   "report": "REPORT RequestId: bb750a26-9cee-4e61-a3f2-90cf8d94ae8e\tDuration: 12367.60 ms\tBilled Duration: 12875 ms\tMemory Size: 1024 MB\tMax Memory Used: 100 MB\tIn",
+   "errs": [],
+   "mentions": []
+  },
+  {
+   "artifact": "data/history-index.json",
+   "writer": "justhodl-calibration-snapshotter",
+   "report": "REPORT RequestId: 9b5e6de5-932b-4a49-a4c9-ed877a2d071a\tDuration: 979.36 ms\tBilled Duration: 1557 ms\tMemory Size: 512 MB\tMax Memory Used: 106 MB\tInit D",
+   "errs": [],
+   "mentions": []
+  },
+  {
+   "artifact": "data/ka-analysis.json",
+   "writer": "justhodl-ka-metrics",
+   "report": "REPORT RequestId: 3836cc6a-014d-45ce-836c-e44d2cf9dcad\tDuration: 85603.87 ms\tBilled Duration: 86132 ms\tMemory Size: 512 MB\tMax Memory Used: 114 MB\tIni",
+   "errs": [
+    "response = self.parent.error(",
+    "File \"/var/lang/lib/python3.12/urllib/request.py\", line 559, in error"
+   ],
+   "mentions": []
+  },
+  {
+   "artifact": "data/polygon-related-graph.json",
+   "writer": "justhodl-supply-chain-graph",
+   "report": "REPORT RequestId: 932c7620-e29f-49ae-91ee-ee7b85c57b12\tDuration: 8544.37 ms\tBilled Duration: 9190 ms\tMemory Size: 512 MB\tMax Memory Used: 215 MB\tInit ",
+   "errs": [],
+   "mentions": []
+  },
+  {
+   "artifact": "data/quiver-lobbying-cache.json",
+   "writer": "justhodl-lobbying-intel",
+   "report": "REPORT RequestId: 99f296a6-9778-4c39-bfa0-86de7f8c9608\tDuration: 2019.89 ms\tBilled Duration: 2563 ms\tMemory Size: 1024 MB\tMax Memory Used: 134 MB\tInit",
+   "errs": [],
+   "mentions": []
+  },
+  {
+   "artifact": "data/signal-halflife.json",
+   "writer": "justhodl-meta-improver",
+   "report": "REPORT RequestId: cf16269b-3dd2-4c43-b812-eb26a80cdcbe\tDuration: 247.03 ms\tBilled Duration: 779 ms\tMemory Size: 1024 MB\tMax Memory Used: 100 MB\tInit D",
+   "errs": [
+    "[WARNING]\t2026-08-01T21:53:14.833Z\tcf16269b-3dd2-4c43-b812-eb26a80cdcbe\tgithub_get_fail /repos/ElMooro/si/contents/aws/lambdas: HTTP Error 401: Unauthorized"
+   ],
+   "mentions": []
+  }
+ ],
+ "orphan_page_keys": [
+  "data/compound-signals.json",
+  "data/symbol-map.json"
+ ],
+ "page_critical": [
+  {
+   "artifact": "data/options-flow.json",
+   "writers": [
+    "justhodl-fleet-freshness-monitor",
+    "justhodl-polygon-options-flow"
+   ],
+   "thawed": false
+  },
+  {
+   "artifact": "data/risk-regime.json",
+   "writers": [
+    "justhodl-carry-surface"
+   ],
+   "thawed": false
+  }
+ ]
+}
