@@ -1,0 +1,24 @@
+# ops 4263 -- forward-returns v1.1.0 (SLV + ETH) chained into quantum-desk
+
+**Status:** success  
+**Duration:** 17.0s  
+**Finished:** 2026-08-01T23:21:43+00:00  
+
+## Log
+## 1. forward-returns v1.1.0 rebuild
+
+- `23:21:41` ✅ SLV: er_10y=3.28% pctile=56 verdict=FAIR price=52.36 vol=None worst12m=None
+- `23:21:41` ✅ ETH: er_10y=12.0% pctile=50 verdict=FAIR price=17.8 vol=None worst12m=None
+- `23:21:41` rankings now (17): ['BTC', 'ETH', 'QQQ', 'EEM', 'EFA', 'SPY', 'VNQ', 'IWM', 'TLT', 'LQD', 'TIP', 'IEF', 'HYG', 'BIL', 'GLD', 'SLV', 'DBC']
+## 2. quantum-desk picks them up
+
+- `23:21:43` ✅ SILVER strategic leg live: 0.560 (pctile 56) -- score 0.648 ACCUMULATE, 5 legs
+- `23:21:43` ✅ ETH strategic leg live: 0.500 (pctile 50) -- score 0.574 ACCUMULATE, 5 legs
+- `23:21:43` strategic coverage: 12/13 rows
+- `23:21:43` ladder now: GOLD 0.692 ACCUMULATE, BONDS_LONG 0.687 ACCUMULATE, SILVER 0.648 ACCUMULATE, CASH 0.640 ACCUMULATE, BTC 0.581 ACCUMULATE, ETH 0.574 ACCUMULATE, EM 0.445 NEUTRAL, CREDIT_HY 0.246 AVOID
+## 3. page edge (closing 4257's CDN warn)
+
+- `23:21:43` ✅ page LIVE on edge (13091 bytes)
+## RESULT
+
+- `23:21:43` ✅ OPS 4263 PASS -- SLV + ETH in the 10y ER universe and wired through the desk
