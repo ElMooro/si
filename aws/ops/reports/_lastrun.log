@@ -1,79 +1,87 @@
-executing-against: 179211ffbd367414df65f95e0476541308e091cb
-ops 4229 — cost remediation wave 1
-── 1. Deploy census v1.11.0 — break the AWS recursion alarm ──
-[05:27:53] pre-fix RecursiveInvocationsDropped(14d) = 5
-[05:27:54] code uploaded, settling by marker…
-[05:27:54] ✅ census v1.11.0 SETTLED (marker verified inside zip)
-[05:42:15] ⚠ census probe: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-fundamental-census/invocations"
-── 2. Retune CloudWatch pollers (the ~$66/mo line) ──
-[05:42:40]   justhodl-fleet-error-monitor           events    justhodl-fleet-error-6h        cur=cron(13 13 * * ? *) state=ENABLED
-[05:42:40] ✅      cron(13 13 * * ? *)  ->  rate(1 hour)
-[05:42:40]   justhodl-fleet-error-monitor           scheduler fleet-error-monitor-sched      cur=rate(15 minutes) state=ENABLED
-[05:42:40] ✅      rate(15 minutes)  ->  rate(1 hour)
-[05:42:40]   justhodl-fleet-monitor                 events    fleet-monitor-3h               cur=cron(20 */3 * * ? *) state=ENABLED
-[05:42:40] ✅      cron(20 */3 * * ? *)  ->  rate(6 hours)
-[05:42:40]   justhodl-fleet-monitor                 events    justhodl-fleet-monitor-6h      cur=cron(36 19 * * ? *) state=ENABLED
-[05:42:40] ✅      cron(36 19 * * ? *)  ->  rate(6 hours)
-[05:42:40]   justhodl-fleet-monitor                 events    justhodl-fleet-monitor-sched   cur=cron(38 14 * * ? *) state=ENABLED
-[05:42:40] ✅      cron(38 14 * * ? *)  ->  rate(6 hours)
-[05:42:40]   justhodl-fleet-monitor                 scheduler fleet-monitor-sched            cur=rate(3 hours) state=ENABLED
-[05:42:40] ✅      rate(3 hours)  ->  rate(6 hours)
-[05:42:40] ⚠   justhodl-health-monitor                no schedule found — skipped
-[05:42:40]   justhodl-event-flow-monitor            events    event-flow-monitor-hourly      cur=cron(53 12 * * ? *) state=ENABLED
-[05:42:40] ✅      cron(53 12 * * ? *)  ->  rate(6 hours)
-[05:42:40]   justhodl-event-flow-monitor            events    event-flow-monitor-hourly      cur=cron(53 12 * * ? *) state=ENABLED
-[05:42:40] ✅      cron(53 12 * * ? *)  ->  rate(6 hours)
-[05:42:40]   justhodl-fleet-freshness-monitor       events    fleet-freshness-monitor-30min  cur=cron(12 12 * * ? *) state=ENABLED
-[05:42:40] ✅      cron(12 12 * * ? *)  ->  rate(3 hours)
-[05:42:40]   justhodl-fleet-freshness-monitor       events    justhodl-fleet-freshness-hourl cur=cron(52 19 * * ? *) state=ENABLED
-[05:42:40] ✅      cron(52 19 * * ? *)  ->  rate(3 hours)
-[05:42:40]   justhodl-fleet-freshness-monitor       events    justhodl-fleet-freshness-monit cur=cron(10 20 * * ? *) state=ENABLED
-[05:42:40] ✅      cron(10 20 * * ? *)  ->  rate(3 hours)
-[05:42:40]   justhodl-fleet-freshness-monitor       events    justhodl-freshness-30m         cur=cron(56 17 * * ? *) state=ENABLED
-[05:42:40] ✅      cron(56 17 * * ? *)  ->  rate(3 hours)
-[05:42:40]   justhodl-fleet-freshness-monitor       scheduler fleet-freshness-monitor-sched  cur=rate(30 minutes) state=ENABLED
-[05:42:40] ✅      rate(30 minutes)  ->  rate(3 hours)
-── 3. Disable SnapStart on batch functions (~$16/mo) ──
-[05:42:47] ✅   justhodl-stock-analyzer                  SnapStart OFF
-[05:42:47]   justhodl-ai-chat                         KEPT (interactive path)
-[05:42:48] ✅   justhodl-stock-screener                  SnapStart OFF
-[05:42:48] ✅   justhodl-investor-agents                 SnapStart OFF
-[05:42:48] ✅   justhodl-reports-builder                 SnapStart OFF
-[05:42:49] ✅   cftc-futures-positioning-agent           SnapStart OFF
-[05:42:49] ✅   justhodl-morning-intelligence            SnapStart OFF
-[05:42:50] ✅   justhodl-edge-engine                     SnapStart OFF
-── 4. Log retention 14d on never-expiring groups ──
-[05:46:12] ✅ retention=14d applied to 974 groups (0 skipped, 1070 total)
-── 5. Budget alarms on ACTUAL (not only FORECASTED) ──
-[05:46:13] ⚠ budgets not in IAM scope (An error occurred (AccessDeniedException) when calling the DescribeBudgets operation: User) — set via console/CLI
-── 6. Verify — recount CW poll volume after retune ──
-[05:46:13] expected CW metric requests/day AFTER retune:
-[05:46:13]   fleet-error-monitor  765 fn x 3 metrics x 24 runs = 55,080/day  (~$0.55/day, was ~$2.25/day)
-[05:46:13]   -> CloudWatch line should fall ~$66/mo -> ~$17/mo
-[05:46:13]   (a further 3x is available by moving check_lambda to a single Metrics Insights GROUP BY query — wave 2)
-── RESULT ──
-[05:46:13] actions completed: 21
-[05:46:13]    + census-v1.11.0
-[05:46:13]    + justhodl-fleet-error-monitor:cron(13 13 * * ? *)->rate(1 hour)
-[05:46:13]    + justhodl-fleet-error-monitor:rate(15 minutes)->rate(1 hour)
-[05:46:13]    + justhodl-fleet-monitor:cron(20 */3 * * ? *)->rate(6 hours)
-[05:46:13]    + justhodl-fleet-monitor:cron(36 19 * * ? *)->rate(6 hours)
-[05:46:13]    + justhodl-fleet-monitor:cron(38 14 * * ? *)->rate(6 hours)
-[05:46:13]    + justhodl-fleet-monitor:rate(3 hours)->rate(6 hours)
-[05:46:13]    + justhodl-event-flow-monitor:cron(53 12 * * ? *)->rate(6 hours)
-[05:46:13]    + justhodl-event-flow-monitor:cron(53 12 * * ? *)->rate(6 hours)
-[05:46:13]    + justhodl-fleet-freshness-monitor:cron(12 12 * * ? *)->rate(3 hours)
-[05:46:13]    + justhodl-fleet-freshness-monitor:cron(52 19 * * ? *)->rate(3 hours)
-[05:46:13]    + justhodl-fleet-freshness-monitor:cron(10 20 * * ? *)->rate(3 hours)
-[05:46:13]    + justhodl-fleet-freshness-monitor:cron(56 17 * * ? *)->rate(3 hours)
-[05:46:13]    + justhodl-fleet-freshness-monitor:rate(30 minutes)->rate(3 hours)
-[05:46:13]    + snapstart-off:justhodl-stock-analyzer
-[05:46:13]    + snapstart-off:justhodl-stock-screener
-[05:46:13]    + snapstart-off:justhodl-investor-agents
-[05:46:13]    + snapstart-off:justhodl-reports-builder
-[05:46:13]    + snapstart-off:cftc-futures-positioning-agent
-[05:46:13]    + snapstart-off:justhodl-morning-intelligence
-[05:46:13]    + snapstart-off:justhodl-edge-engine
-[05:46:13] ✅ wrote 4229_cost_remediation.json
+executing-against: 14fd7293916d8babe38af608052d0ae5fc50cc39
+ops 4230 — standby infrastructure, wave 2
+── 1. Did the ops-4229 census fix hold? ──
+[13:59:14] ✅ cursor artifact EXISTS — the drain-loop ran and persisted
+[13:59:14]    {"cursor": 504, "universe": 498, "depth": 3, "version": "1.11.0", "at": "2026-08-01T06:42:54.629247+00:00"}
+[13:59:14]    universe=498 -> OLD design needed 63 chained links (AWS kills at 16, so ~25.4% of the walk ever ran)
+[13:59:14] RecursiveInvocationsDropped since deploy (10h) = 0
+── 2. Duplicate schedule census (fleet-wide) ──
+[13:59:32] functions carrying MORE THAN ONE enabled schedule: 168
+[13:59:32]    justhodl-scheduler                         x17  cron(53 17 * * ? *), cron(55 14 * * ? *), cron(6 18 * * ? *), cron(24 
+[13:59:32]    justhodl-ai-brief-router                   x6  cron(0 21 * * ? *), cron(0 9 * * ? *), cron(30 10 * * ? *), cron(30 14
+[13:59:32]    justhodl-fleet-freshness-monitor           x5  rate(3 hours), rate(3 hours), rate(3 hours), rate(3 hours), rate(3 hou
+[13:59:32]    justhodl-fleet-monitor                     x4  rate(6 hours), rate(6 hours), rate(6 hours), rate(6 hours)
+[13:59:32]    justhodl-market-internals                  x4  cron(40 12 * * ? *), cron(40 22 ? * TUE-SAT *), cron(40 22 ? * TUE-SAT
+[13:59:32]    justhodl-capital-flow-radar                x3  cron(30 22 * * ? *), cron(30 22 * * ? *), cron(20 22 ? * MON-FRI *)
+[13:59:32]    justhodl-carry-surface                     x3  rate(4 hours), rate(4 hours), cron(0 13 * * ? *)
+[13:59:32]    justhodl-estimate-revisions                x3  cron(40 13 ? * MON-FRI *), cron(40 17 ? * MON-FRI *), cron(0 12 * * ? 
+[13:59:32]    justhodl-alpha-daily-brief                 x3  cron(30 11 * * ? *), cron(30 11 * * ? *), cron(30 11 * * ? *)
+[13:59:32]    justhodl-breadth-thrust                    x3  cron(0 22 ? * MON-FRI *), cron(0 22 ? * MON-FRI *), cron(30 21 * * ? *
+[13:59:32]    justhodl-crypto-exchange-flows             x3  cron(55 21 * * ? *), cron(35 21 ? * * *), cron(40 12 * * ? *)
+[13:59:32]    justhodl-dark-pool                         x3  cron(40 21 ? * MON-FRI *), cron(0 14 ? * WED *), cron(0 14 ? * WED *)
+[13:59:32]    justhodl-dealer-gex                        x3  cron(7 13-21 ? * MON-FRI *), cron(7 13-21 ? * MON-FRI *), cron(35 20 ?
+[13:59:32]    justhodl-factor-decomposition              x3  cron(35 13 ? * MON *), cron(35 13 ? * MON *), cron(0 6 ? * SUN *)
+[13:59:32]    justhodl-money-flow-state                  x3  cron(40 20 ? * MON-FRI *), cron(30 23 * * ? *), cron(30 23 * * ? *)
+[13:59:32]    justhodl-options-analytics                 x3  cron(0 13 ? * TUE-SAT *), cron(0 13 ? * TUE-SAT *), cron(30 21 ? * MON
+[13:59:32]    justhodl-options-confluence                x3  cron(20 * * * ? *), cron(20 * * * ? *), cron(20 * * * ? *)
+[13:59:32]    justhodl-outcome-checker                   x3  cron(29 21 * * ? *), cron(29 21 * * ? *), cron(0 23 * * ? *)
+[13:59:32]    justhodl-sector-emergence                  x3  cron(0 22 * * ? *), cron(0 22 * * ? *), cron(20 21 ? * MON-FRI *)
+[13:59:32]    justhodl-sector-rotation                   x3  cron(12 18 * * ? *), cron(38 * * * ? *), cron(5 21 ? * MON-FRI *)
+[13:59:32]    justhodl-squeeze-fuel                      x3  cron(30 13 ? * TUE-SAT *), cron(30 13 ? * TUE-SAT *), cron(40 21 ? * M
+[13:59:32]    justhodl-supply-chain-graph                x3  cron(45 13 ? * TUE-SAT *), cron(45 13 ? * TUE-SAT *), cron(55 21 ? * *
+[13:59:32]    justhodl-tail-risk                         x3  cron(0 13 ? * TUE-SAT *), cron(0 13 ? * TUE-SAT *), cron(35 21 * * ? *
+[13:59:32]    justhodl-theme-rotation                    x3  cron(25 21 ? * MON-FRI *), cron(30 13 * * ? *), cron(30 13 * * ? *)
+[13:59:32]    justhodl-treasury-noise                    x3  cron(30 13 ? * TUE-SAT *), cron(30 13 ? * TUE-SAT *), cron(45 21 ? * M
+[13:59:32] 
+[13:59:32] auto-dedupe: MONITORS only (keep 1, disable the rest)
+[13:59:32] ✅    justhodl-fleet-error-monitor KEEP scheduler/fleet-error-monitor-sched (rate(1 hour))
+[13:59:32]       disabled events/justhodl-fleet-error-6h (rate(1 hour))
+[13:59:32] ✅    justhodl-fleet-monitor KEEP scheduler/fleet-monitor-sched (rate(6 hours))
+[13:59:32]       disabled events/fleet-monitor-3h (rate(6 hours))
+[13:59:32]       disabled events/justhodl-fleet-monitor-6h (rate(6 hours))
+[13:59:32]       disabled events/justhodl-fleet-monitor-sched (rate(6 hours))
+[13:59:32] ✅    justhodl-event-flow-monitor KEEP events/event-flow-monitor-hourly (rate(6 hours))
+[13:59:32] ✅    justhodl-fleet-freshness-monitor KEEP scheduler/fleet-freshness-monitor-sched (rate(3 hours))
+[13:59:32]       disabled events/fleet-freshness-monitor-30min (rate(3 hours))
+[13:59:32]       disabled events/justhodl-fleet-freshness-hourly (rate(3 hours))
+[13:59:32]       disabled events/justhodl-fleet-freshness-monitor-sched (rate(3 hours))
+[13:59:32]       disabled events/justhodl-freshness-30m (rate(3 hours))
+── 3. Standby infrastructure inventory ──
+[13:59:32] OpenSearch domains: 2
+[13:59:33] ⚠   openbb-financial-search  t3.small.search x1  14d searches=1259 docs=2
+[13:59:33]      endpoint=search-openbb-financial-search-pjxaw2cqqeqfilppjyxkhfgwue.us-east-1.es.amazonaws.com created=True
+[13:59:34] ⚠   openbb-simple-working    t3.small.search x1  14d searches=1260 docs=6206
+[13:59:34]      endpoint=search-openbb-simple-working-oi5qjg5nan4a73ifgopmhfp234.us-east-1.es.amazonaws.com created=True
+[13:59:34]   SM app default              type=JupyterLab status=InService
+[13:59:35] ⚠   ELB openbb-prod-alb            14d requests=0 targets=1 dns=openbb-prod-alb-180258533.us-east-1.elb.
+[13:59:35] ⚠   ELB openbb-basic-alb           14d requests=0 targets=0 dns=openbb-basic-alb-989296070.us-east-1.elb
+[13:59:36] ⚠   EC2 i-0a38d50ce030fed84  t2.micro    name=web server       14d avgCPU=0.94% netOut=4181653B
+[13:59:37] ⚠   EC2 i-0236308c6be77cee8  t2.micro    name=OpenBB Server    14d avgCPU=2.38% netOut=10990588B
+[13:59:37]   EIP 100.48.244.171   -> eni-084068b954d7a70e7
+[13:59:37]   EIP 44.223.130.247   -> eni-00e4d6c6a852ea8c3
+[13:59:37]   EIP 52.206.134.240   -> eni-02b416228751e541b
+[13:59:37] NAT gateways: 0   interface VPC endpoints: 0
+[13:59:37] ⚠   AppRunner openbb-api             status=RUNNING url=ped8gafyuz.us-east-1.awsapprunner.com
+── 4. Execute REVERSIBLE stops ──
+[13:59:37] ✗   sagemaker_app: Parameter validation failed:
+Invalid type for parameter UserProfileName, value: None, type: <class 'NoneType'>, valid types: <class 'str'>
+[13:59:38] ✅   EC2 i-0a38d50ce030fed84 (web server) STOPPED — 14d avg CPU 0.94%; EBS preserved, `aws ec2 start-instances` to undo
+[13:59:38] ✅   EC2 i-0236308c6be77cee8 (OpenBB Server) STOPPED — 14d avg CPU 2.38%; EBS preserved, `aws ec2 start-instances` to undo
+[13:59:38] ✅   AppRunner openbb-api PAUSED (resume anytime)
+[13:59:38] 
+[13:59:38] reversible stops executed -> ~$42/mo removed
+── 5. Budget -> ACTUAL alerts at 50/80/100% ──
+[13:59:39]   budget My Monthly Cost Budget   limit=$150.0
+[13:59:39] ✅      ACTUAL > 50% added ($75)
+[13:59:39] ✅      ACTUAL > 80% added ($120)
+[13:59:39]      ACTUAL 100% already present
+── 6. HELD — irreversible, needs an explicit call ──
+[13:59:39]   $ 51.00/mo  opensearch       openbb-financial-search     14d searches=1259, 2 docs indexed
+[13:59:39]   $ 51.00/mo  opensearch       openbb-simple-working       14d searches=1260, 6206 docs indexed
+[13:59:39]   $ 32.00/mo  elbv2            openbb-prod-alb             14d requests=0, 1 registered targets
+[13:59:39]   $ 32.00/mo  elbv2            openbb-basic-alb            14d requests=0, 0 registered targets
+[13:59:39] 
+[13:59:39] held total: $166.00/mo   executed this run: $42.00/mo
+[13:59:39] ✅ wrote 4230_infra_kill_wave2.json
 
-→ Report written to aws/ops/reports/latest/4229_cost_remediation.md
+→ Report written to aws/ops/reports/latest/4230_infra_kill_wave2.md
