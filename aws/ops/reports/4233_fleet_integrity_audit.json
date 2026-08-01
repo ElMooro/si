@@ -1,0 +1,584 @@
+{
+ "ops": 4233,
+ "ts": "2026-08-01T14:23:32.411547+00:00",
+ "defects": {
+  "D1_recursion": [
+   {
+    "fn": "justhodl-13f-clone-alpha"
+   },
+   {
+    "fn": "justhodl-equity-research"
+   }
+  ],
+  "D2_timeout_clipped": [
+   {
+    "fn": "justhodl-market-tape",
+    "timeout_s": 30,
+    "max_s": 30.0,
+    "inv": 4173
+   },
+   {
+    "fn": "fedliquidityapi",
+    "timeout_s": 30,
+    "max_s": 30.0,
+    "inv": 342
+   },
+   {
+    "fn": "xccy-basis-agent",
+    "timeout_s": 300,
+    "max_s": 300.0,
+    "inv": 314
+   },
+   {
+    "fn": "enhanced-repo-agent",
+    "timeout_s": 60,
+    "max_s": 60.0,
+    "inv": 308
+   },
+   {
+    "fn": "bond-indices-agent",
+    "timeout_s": 300,
+    "max_s": 300.0,
+    "inv": 303
+   },
+   {
+    "fn": "bls-labor-agent",
+    "timeout_s": 180,
+    "max_s": 180.0,
+    "inv": 300
+   },
+   {
+    "fn": "dollar-strength-agent",
+    "timeout_s": 60,
+    "max_s": 60.0,
+    "inv": 257
+   },
+   {
+    "fn": "volatility-monitor-agent",
+    "timeout_s": 60,
+    "max_s": 60.0,
+    "inv": 256
+   },
+   {
+    "fn": "securities-banking-agent",
+    "timeout_s": 60,
+    "max_s": 60.0,
+    "inv": 255
+   },
+   {
+    "fn": "manufacturing-global-agent",
+    "timeout_s": 60,
+    "max_s": 60.0,
+    "inv": 252
+   },
+   {
+    "fn": "justhodl-tradingview",
+    "timeout_s": 900,
+    "max_s": 900.0,
+    "inv": 118
+   },
+   {
+    "fn": "justhodl-fundamental-census",
+    "timeout_s": 900,
+    "max_s": 900.0,
+    "inv": 117
+   },
+   {
+    "fn": "justhodl-search-attention",
+    "timeout_s": 300,
+    "max_s": 300.0,
+    "inv": 84
+   },
+   {
+    "fn": "justhodl-outcome-checker",
+    "timeout_s": 300,
+    "max_s": 300.0,
+    "inv": 62
+   },
+   {
+    "fn": "justhodl-signal-scorecard",
+    "timeout_s": 120,
+    "max_s": 120.0,
+    "inv": 60
+   },
+   {
+    "fn": "justhodl-china-liquidity",
+    "timeout_s": 300,
+    "max_s": 300.0,
+    "inv": 55
+   },
+   {
+    "fn": "justhodl-fx-intelligence",
+    "timeout_s": 120,
+    "max_s": 120.0,
+    "inv": 54
+   },
+   {
+    "fn": "justhodl-cb-injection",
+    "timeout_s": 90,
+    "max_s": 90.0,
+    "inv": 47
+   },
+   {
+    "fn": "justhodl-air-cargo",
+    "timeout_s": 180,
+    "max_s": 300.0,
+    "inv": 41
+   },
+   {
+    "fn": "justhodl-global-liquidity",
+    "timeout_s": 120,
+    "max_s": 120.0,
+    "inv": 41
+   },
+   {
+    "fn": "justhodl-consumer-pulse",
+    "timeout_s": 90,
+    "max_s": 90.0,
+    "inv": 40
+   },
+   {
+    "fn": "justhodl-yen-carry",
+    "timeout_s": 90,
+    "max_s": 90.0,
+    "inv": 40
+   },
+   {
+    "fn": "justhodl-construction-housing",
+    "timeout_s": 120,
+    "max_s": 120.0,
+    "inv": 39
+   },
+   {
+    "fn": "justhodl-gdelt-buzz",
+    "timeout_s": 180,
+    "max_s": 180.0,
+    "inv": 39
+   },
+   {
+    "fn": "justhodl-boj-detail",
+    "timeout_s": 90,
+    "max_s": 90.0,
+    "inv": 38
+   },
+   {
+    "fn": "justhodl-cds-proxy",
+    "timeout_s": 120,
+    "max_s": 120.0,
+    "inv": 38
+   },
+   {
+    "fn": "justhodl-data-census",
+    "timeout_s": 900,
+    "max_s": 900.0,
+    "inv": 38
+   },
+   {
+    "fn": "justhodl-snb-detail",
+    "timeout_s": 90,
+    "max_s": 90.0,
+    "inv": 38
+   },
+   {
+    "fn": "justhodl-activity-nowcast",
+    "timeout_s": 90,
+    "max_s": 90.0,
+    "inv": 36
+   },
+   {
+    "fn": "justhodl-ecb-detail",
+    "timeout_s": 90,
+    "max_s": 90.0,
+    "inv": 35
+   }
+  ],
+  "D3_double_fire": [
+   {
+    "rule": "justhodl-alpha-daily-brief",
+    "fn": "justhodl-alpha-daily-brief"
+   },
+   {
+    "rule": "justhodl-options-confluence-hourly",
+    "fn": "justhodl-options-confluence"
+   },
+   {
+    "rule": "premortem-engine-daily",
+    "fn": "justhodl-premortem-engine"
+   }
+  ],
+  "D5_broken_wire": [
+   {
+    "fn": "justhodl-warroom-weights",
+    "inv": 1,
+    "expr": "cron(10 7 1 * ? *)"
+   },
+   {
+    "fn": "justhodl-13f-clone-alpha",
+    "inv": 2,
+    "expr": "cron(30 8 ? * MON *)"
+   },
+   {
+    "fn": "justhodl-gsi-horizons",
+    "inv": 2,
+    "expr": "cron(30 9 ? * SUN *)"
+   },
+   {
+    "fn": "justhodl-ma-target-predictor",
+    "inv": 2,
+    "expr": "cron(0 14 ? * SUN *)"
+   },
+   {
+    "fn": "justhodl-playbook-engine",
+    "inv": 2,
+    "expr": "cron(0 7 ? * MON *)"
+   },
+   {
+    "fn": "justhodl-signal-orthogonality",
+    "inv": 2,
+    "expr": "cron(45 9 ? * SUN *)"
+   },
+   {
+    "fn": "justhodl-spx-history",
+    "inv": 2,
+    "expr": "cron(10 8 ? * SUN *)"
+   },
+   {
+    "fn": "justhodl-whales",
+    "inv": 2,
+    "expr": "cron(10 13 ? * MON *)"
+   },
+   {
+    "fn": "justhodl-fi-census",
+    "inv": 3,
+    "expr": "cron(0 7 2,16 * ? *)"
+   },
+   {
+    "fn": "justhodl-indicator-bus",
+    "inv": 3,
+    "expr": "cron(15 12 * * ? *)"
+   },
+   {
+    "fn": "justhodl-etf-census",
+    "inv": 4,
+    "expr": "cron(30 6 2,16 * ? *)"
+   },
+   {
+    "fn": "justhodl-macro-attribution",
+    "inv": 5,
+    "expr": "cron(5 12 * * ? *)"
+   },
+   {
+    "fn": "justhodl-cot-feed",
+    "inv": 6,
+    "expr": "cron(45 11 * * ? *)"
+   },
+   {
+    "fn": "justhodl-equity-ftd",
+    "inv": 6,
+    "expr": "cron(10 15 ? * MON,THU *)"
+   },
+   {
+    "fn": "justhodl-cq-feed",
+    "inv": 7,
+    "expr": "cron(50 10 * * ? *)"
+   },
+   {
+    "fn": "justhodl-symbol-resolver",
+    "inv": 8,
+    "expr": "cron(50 11 * * ? *)"
+   },
+   {
+    "fn": "justhodl-te-feed",
+    "inv": 8,
+    "expr": "cron(0 11 * * ? *)"
+   },
+   {
+    "fn": "justhodl-gov-sources",
+    "inv": 9,
+    "expr": "cron(50 11 * * ? *)"
+   },
+   {
+    "fn": "justhodl-desk-returns",
+    "inv": 10,
+    "expr": "cron(30 23 ? * MON-FRI *)"
+   },
+   {
+    "fn": "justhodl-ofr-stfm",
+    "inv": 10,
+    "expr": "cron(30 11 ? * TUE-SAT *)"
+   },
+   {
+    "fn": "justhodl-source-map",
+    "inv": 11,
+    "expr": "cron(20 12 * * ? *)"
+   },
+   {
+    "fn": "justhodl-families-feed",
+    "inv": 12,
+    "expr": "cron(15 11 * * ? *)"
+   },
+   {
+    "fn": "justhodl-tv-workbench",
+    "inv": 12,
+    "expr": "cron(55 12 * * ? *)"
+   },
+   {
+    "fn": "justhodl-spx-ma",
+    "inv": 13,
+    "expr": "cron(15 21 ? * MON-FRI *)"
+   },
+   {
+    "fn": "justhodl-calibration-fleet",
+    "inv": 14,
+    "expr": "cron(10 9 * * ? *)"
+   },
+   {
+    "fn": "justhodl-catalyst-classifier",
+    "inv": 14,
+    "expr": "cron(0 14 * * ? *)"
+   },
+   {
+    "fn": "justhodl-catalyst-clusters",
+    "inv": 14,
+    "expr": "cron(15 14 * * ? *)"
+   },
+   {
+    "fn": "justhodl-chart-patterns",
+    "inv": 14,
+    "expr": "cron(30 23 * * ? *)"
+   },
+   {
+    "fn": "justhodl-credit-equity-divergence",
+    "inv": 14,
+    "expr": "cron(0 21 * * ? *)"
+   },
+   {
+    "fn": "justhodl-desk-allocator",
+    "inv": 14,
+    "expr": "cron(30 0 * * ? *)"
+   }
+  ],
+  "D8_errors": [
+   {
+    "fn": "justhodl-ici-flows",
+    "err_pct": 100.0,
+    "errors": 12,
+    "inv": 12
+   },
+   {
+    "fn": "justhodl-search-attention",
+    "err_pct": 100.0,
+    "errors": 84,
+    "inv": 84
+   },
+   {
+    "fn": "ultimate-multi-agent",
+    "err_pct": 100.0,
+    "errors": 57,
+    "inv": 57
+   },
+   {
+    "fn": "fedliquidityapi",
+    "err_pct": 84.5,
+    "errors": 289,
+    "inv": 342
+   },
+   {
+    "fn": "manufacturing-global-agent",
+    "err_pct": 83.7,
+    "errors": 211,
+    "inv": 252
+   },
+   {
+    "fn": "securities-banking-agent",
+    "err_pct": 83.1,
+    "errors": 212,
+    "inv": 255
+   },
+   {
+    "fn": "dollar-strength-agent",
+    "err_pct": 81.3,
+    "errors": 209,
+    "inv": 257
+   },
+   {
+    "fn": "justhodl-bagger-engine",
+    "err_pct": 75.0,
+    "errors": 6,
+    "inv": 8
+   },
+   {
+    "fn": "justhodl-deal-scanner",
+    "err_pct": 71.2,
+    "errors": 222,
+    "inv": 312
+   },
+   {
+    "fn": "justhodl-signal-scorecard",
+    "err_pct": 70.0,
+    "errors": 42,
+    "inv": 60
+   },
+   {
+    "fn": "volatility-monitor-agent",
+    "err_pct": 68.8,
+    "errors": 176,
+    "inv": 256
+   },
+   {
+    "fn": "justhodl-data-census",
+    "err_pct": 55.3,
+    "errors": 21,
+    "inv": 38
+   },
+   {
+    "fn": "justhodl-cb-injection",
+    "err_pct": 42.6,
+    "errors": 20,
+    "inv": 47
+   },
+   {
+    "fn": "justhodl-ka-metrics",
+    "err_pct": 36.4,
+    "errors": 8,
+    "inv": 22
+   },
+   {
+    "fn": "justhodl-khalid-metrics",
+    "err_pct": 36.4,
+    "errors": 8,
+    "inv": 22
+   },
+   {
+    "fn": "justhodl-construction-housing",
+    "err_pct": 33.3,
+    "errors": 13,
+    "inv": 39
+   },
+   {
+    "fn": "justhodl-consumer-pulse",
+    "err_pct": 32.5,
+    "errors": 13,
+    "inv": 40
+   },
+   {
+    "fn": "justhodl-yen-carry",
+    "err_pct": 32.5,
+    "errors": 13,
+    "inv": 40
+   },
+   {
+    "fn": "justhodl-fx-intelligence",
+    "err_pct": 31.5,
+    "errors": 17,
+    "inv": 54
+   },
+   {
+    "fn": "justhodl-boj-detail",
+    "err_pct": 28.9,
+    "errors": 11,
+    "inv": 38
+   },
+   {
+    "fn": "justhodl-cds-proxy",
+    "err_pct": 28.9,
+    "errors": 11,
+    "inv": 38
+   },
+   {
+    "fn": "justhodl-snb-detail",
+    "err_pct": 28.9,
+    "errors": 11,
+    "inv": 38
+   },
+   {
+    "fn": "justhodl-gdelt-buzz",
+    "err_pct": 28.2,
+    "errors": 11,
+    "inv": 39
+   },
+   {
+    "fn": "justhodl-air-cargo",
+    "err_pct": 26.8,
+    "errors": 11,
+    "inv": 41
+   },
+   {
+    "fn": "justhodl-ecb-detail",
+    "err_pct": 25.7,
+    "errors": 9,
+    "inv": 35
+   },
+   {
+    "fn": "justhodl-tradingview",
+    "err_pct": 25.4,
+    "errors": 30,
+    "inv": 118
+   },
+   {
+    "fn": "justhodl-jsi-calibrator",
+    "err_pct": 20.0,
+    "errors": 1,
+    "inv": 5
+   },
+   {
+    "fn": "justhodl-outcome-checker",
+    "err_pct": 4.8,
+    "errors": 3,
+    "inv": 62
+   },
+   {
+    "fn": "bls-labor-agent",
+    "err_pct": 2.0,
+    "errors": 6,
+    "inv": 300
+   },
+   {
+    "fn": "bond-indices-agent",
+    "err_pct": 1.3,
+    "errors": 4,
+    "inv": 303
+   }
+  ],
+  "D13_dead": [
+   {
+    "count": 33,
+    "functions": [
+     "autonomous-ai-processor",
+     "ecb",
+     "economyapi",
+     "fmp-fundamentals-agent",
+     "justhodl-api-keys-admin",
+     "justhodl-ask",
+     "justhodl-ask-desk",
+     "justhodl-charts-agent",
+     "justhodl-chat-api",
+     "justhodl-daily-macro-report",
+     "justhodl-ecb-proxy",
+     "justhodl-email-reports",
+     "justhodl-feedback",
+     "justhodl-fred-proxy",
+     "justhodl-history-api",
+     "justhodl-investor-agents",
+     "justhodl-portfolio-admin",
+     "justhodl-public-api-demo",
+     "justhodl-push-api",
+     "justhodl-stock-ai-research",
+     "justhodl-stock-analyzer",
+     "justhodl-subscribe",
+     "justhodl-trade-journal",
+     "justhodl-transcript-query",
+     "justhodl-treasury-proxy",
+     "justhodl-watchlist",
+     "macro-report-api",
+     "multi-agent-orchestrator",
+     "nasdaq-datalink-agent",
+     "nyfed-financial-stability-fetcher",
+     "nyfed-primary-dealer-fetcher",
+     "nyfedapi-isolated",
+     "openbb-system2-api"
+    ]
+   }
+  ]
+ }
+}
