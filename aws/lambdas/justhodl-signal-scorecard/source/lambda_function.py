@@ -561,16 +561,64 @@ def lambda_handler(event, context):
                    Body=json.dumps(out, default=str).encode("utf-8"),
                    ContentType="application/json", CacheControl="public, max-age=3600")
 
-    # publish the enforcement map to SSM for downstream consumers
-    multipliers = {r["signal_type"]: r["performance_multiplier"] for r in scorecard}
+
+# ---------------------------------------------------------------------
+# ops 4246: SSM Standard-tier parameters cap at 4,096 characters. The
+# enforcement map outgrew that, PutParameter began returning
+# ValidationException, and because the write was wrapped in a bare
+# try/except that only PRINTED, the function kept returning success
+# while the map every downstream consumer reads — the calibrator,
+# best-setups, master-ranker — silently froze at its last good value.
+#
+# A stale map that looks fresh is worse than a crash: a crash gets
+# noticed. So this helper does three things the old code did not.
+#   1. Intelligent-Tiering: AWS promotes the parameter to Advanced only
+#      if it actually exceeds 4KB, so there is no standing cost for the
+#      parameters that stay small.
+#   2. Above the 8KB Advanced ceiling it writes the payload to S3 and
+#      stores a POINTER, so growth can never silently truncate truth.
+#   3. Failures are RETURNED, not printed, and surface in the published
+#      artifact where the contract gate and integrity board can see them.
+# ---------------------------------------------------------------------
+def _ssm_put_large(ssm_client, s3_client, bucket, name, payload,
+                   s3_fallback_key):
+    body = json.dumps(payload, default=str)
+    size = len(body.encode("utf-8"))
     try:
-        ssm.put_parameter(Name=SSM_PARAM, Type="String", Overwrite=True,
-                          Value=json.dumps({"updated_at": out["generated_at"],
-                                            "multipliers": multipliers,
-                                            "deprecated": deprecated}))
-        print(f"[signal-scorecard] SSM {SSM_PARAM} updated ({len(multipliers)} signals)")
+        if size > 8000:
+            s3_client.put_object(Bucket=bucket, Key=s3_fallback_key,
+                                 Body=body.encode("utf-8"),
+                                 ContentType="application/json")
+            ptr = json.dumps({"_pointer": "s3://%s/%s" % (bucket,
+                                                          s3_fallback_key),
+                              "bytes": size,
+                              "updated_at": payload.get("updated_at")})
+            ssm_client.put_parameter(Name=name, Type="String",
+                                     Overwrite=True,
+                                     Tier="Intelligent-Tiering", Value=ptr)
+            return {"ok": True, "mode": "s3_pointer", "bytes": size}
+        ssm_client.put_parameter(Name=name, Type="String", Overwrite=True,
+                                 Tier="Intelligent-Tiering", Value=body)
+        return {"ok": True, "mode": "inline", "bytes": size}
     except Exception as e:
-        print(f"[signal-scorecard] SSM write failed: {e}")
+        return {"ok": False, "error": str(e)[:160], "bytes": size,
+                "param": name}
+
+
+    # publish the enforcement map to SSM for downstream consumers
+    ssm_results = []
+    multipliers = {r["signal_type"]: r["performance_multiplier"] for r in scorecard}
+    _r = _ssm_put_large(ssm, s3, S3_BUCKET, SSM_PARAM,
+                        {"updated_at": out["generated_at"],
+                         "multipliers": multipliers,
+                         "deprecated": deprecated},
+                        "data/_state/signal-enforcement-map.json")
+    ssm_results.append(dict(_r, param=SSM_PARAM))
+    if _r["ok"]:
+        print(f"[signal-scorecard] SSM {SSM_PARAM} updated "
+              f"({len(multipliers)} signals, {_r['bytes']}B, {_r['mode']})")
+    else:
+        print(f"[signal-scorecard] SSM WRITE FAILED {SSM_PARAM}: {_r['error']}")
 
     # publish the per-engine ALPHA map (benchmark-relative truth) for the
     # calibrator / best-setups / master-ranker to consume.
@@ -590,13 +638,30 @@ def lambda_handler(event, context):
         s3.put_object(Bucket=S3_BUCKET, Key=ALPHA_S3_KEY,
                       Body=json.dumps(alpha_doc, default=str).encode("utf-8"),
                       ContentType="application/json", CacheControl="public, max-age=3600")
-        ssm.put_parameter(Name=ALPHA_SSM_PARAM, Type="String", Overwrite=True,
-                          Value=json.dumps({"updated_at": out["generated_at"],
-                                            "alpha_proven": alpha_proven,
-                                            "alpha_negative": alpha_negative}))
+        _r2 = _ssm_put_large(ssm, s3, S3_BUCKET, ALPHA_SSM_PARAM,
+                             {"updated_at": out["generated_at"],
+                              "alpha_proven": alpha_proven,
+                              "alpha_negative": alpha_negative},
+                             "data/_state/signal-alpha-map.json")
+        ssm_results.append(dict(_r2, param=ALPHA_SSM_PARAM))
+        if not _r2["ok"]:
+            print(f"[signal-scorecard] ALPHA SSM FAILED: {_r2['error']}")
         print(f"[signal-scorecard] alpha map -> {ALPHA_S3_KEY} ({len(alpha_proven)} proven, {len(alpha_negative)} negative)")
     except Exception as e:
         print(f"[signal-scorecard] alpha map write failed: {e}")
+
+    # Make the SSM outcome part of the ARTIFACT, not just the log stream.
+    # This is what turns a silent freeze into something the contract gate
+    # and the integrity board can both see.
+    out["ssm_writes"] = ssm_results
+    out["ssm_ok"] = all(x.get("ok") for x in ssm_results)
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
+                      Body=json.dumps(out, default=str).encode("utf-8"),
+                      ContentType="application/json",
+                      CacheControl="public, max-age=3600")
+    except Exception as e:
+        print(f"[signal-scorecard] artifact republish failed: {e}")
 
     # alert on newly deprecated / promoted vs last run
     prior = {}
