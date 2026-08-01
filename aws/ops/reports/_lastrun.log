@@ -1,14 +1,12 @@
-executing-against: e28c5e56878f1682c89b3fb6f34aaefc0f50fd99
+executing-against: 04993cfa591914e22fb21e107f08bb3395a53915
 ops 4217 — wave-2 (recession, sentinel, dollar)
-[02:00:32]   [bus_legs] wired: {"marker": "ops4217", "gdp_universe": 262, "gdp_contracting": 17, "ip_universe": 103, "ip_co
-[02:00:32]   recession bus_legs: {"marker": "ops4217", "gdp_universe": 262, "gdp_contracting": 17, "ip_universe": 103, "ip_contracting": 41, "contracting_sample": ["BOGDPYY", "BWGDPYY", "CUGDPYY", "GQGDPYY", "HTGDPYY", "IMGDPYY", "IQGDPYY", "IRGDPYY", "
-[02:00:44]   [bus_cross] wired: {"marker": "ops4217", "us10y_bus": 4.61, "asof": "2026-07-28", "src": "fred_alias:DGS10", "
-[02:01:19]   [bus_dollar] wired: {"marker": "ops4217", "dx_front": null, "cot_098662": {"098662_FO_CP_L": 14773.0, "098662_
-[02:01:19] ✅   ledger: wired=6 next=7
-[02:01:19] ✅   justhodl-global-recession bus_legs emitted
-[02:01:19] ✅   gdp_universe >= 100
-[02:01:19] ✅   justhodl-us10y-sentinel bus_cross emitted
-[02:01:19] ✅   justhodl-dollar-radar bus_dollar emitted
-[02:01:19] ✅ WAVE-2 LIVE — recession hard-legs armed, sentinel cross-checked, dollar on modern COT
 
-→ Report written to aws/ops/reports/latest/4217_wave2.md
+→ Report written to aws/ops/reports/latest/4218_wave3.md
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4218_wave3.py", line 159, in <module>
+    main()
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4218_wave3.py", line 89, in main
+    assert blk in src
+           ^^^^^^^^^^
+AssertionError
+❌ OPS-FAIL: aws/ops/pending/ops_4218_wave3.py
