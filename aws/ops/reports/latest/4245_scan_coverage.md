@@ -1,0 +1,63 @@
+# ops 4245 — D1 scan coverage
+
+**Status:** success  
+**Duration:** 183.4s  
+**Finished:** 2026-08-01T15:58:06+00:00  
+
+## Data
+
+| count | defect_class | failed | function | handler | prior | reason | runtime | scanned | section | total | unscanned |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  | 0 |  |  | 745 |  |  | 762 | coverage | 768 | 6 |
+|  |  |  | macro-report-api | lambda_function.lambda_handler |  | handler module lambda_function.lambda_handler not found in package (8 files) | python3.9 |  | unscanned |  |  |
+|  |  |  | multi-agent-orchestrator | lambda_function.lambda_handler |  | handler module lambda_function.lambda_handler not found in package (1 files) | python3.11 |  | unscanned |  |  |
+|  |  |  | nyfed-financial-stability-fetcher | lambda_function.lambda_handler |  | handler module lambda_function.lambda_handler not found in package (1 files) | python3.9 |  | unscanned |  |  |
+|  |  |  | nyfed-primary-dealer-fetcher | lambda_function.lambda_handler |  | handler module lambda_function.lambda_handler not found in package (1 files) | python3.9 |  | unscanned |  |  |
+|  |  |  | nyfedapi-isolated | lambda_function.lambda_handler |  | handler module lambda_function.lambda_handler not found in package (1 files) | python3.9 |  | unscanned |  |  |
+|  |  |  | ultimate-multi-agent | lambda_function.lambda_handler |  | handler module lambda_function.lambda_handler not found in package (1 files) | python3.11 |  | unscanned |  |  |
+| 47 | D8_errors |  |  |  |  |  |  |  | totals |  |  |
+| 7 | D2_timeout_clipped |  |  |  |  |  |  |  | totals |  |  |
+| 6 | D14_unscanned |  |  |  |  |  |  |  | totals |  |  |
+
+## Log
+## 1. Deploy v1.2.0
+
+- `15:55:09` ✅ marker verified
+## 2. GATE 1 — self-test unchanged at 5/5
+
+- `15:55:10` ✅    unguarded   expect=UNGUARDED       got=UNGUARDED      
+- `15:55:10` ✅    counter     expect=BOUNDED         got=BOUNDED        
+- `15:55:10` ✅    kickoff     expect=BOUNDED         got=BOUNDED        
+- `15:55:10` ✅    clean       expect=NO_SELF_INVOKE  got=NO_SELF_INVOKE 
+- `15:55:10` ✅    multi_site  expect=BOUNDED         got=BOUNDED        
+- `15:55:10` ✅ 5/5 — the classifier is unchanged and still correct
+## 3. Rescan with handler resolution
+
+- `15:55:10` cache cleared — resolution logic changed
+- `15:57:40` pass 1 -> {"ok": true, "mode": "d1scan", "scanned": 762, "from_cache": 0, "failed": 0, "unscanned": 6, "cursor": 0, "total": 768, "complete": true, "cache_entries": 768}
+## 4. GATE 2/3 — full accounting, coverage improved
+
+- `15:57:40` scanned=762 unscanned=6 failed=0 total=768  (sum=768)
+- `15:57:40` ✅ accounting closes — every function is in the ledger
+- `15:57:40` ✅ coverage 745 -> 762 (+17 functions now analysed)
+## 5. GATE 4 — what remains, and why
+
+- `15:57:40` classification: {'NO_SELF_INVOKE': 759, 'BOUNDED': 3, 'UNSCANNED': 6}
+- `15:57:40` still unscanned or needing review: 6
+- `15:57:40` ⚠    macro-report-api                         rt=python3.9    handler module lambda_function.lambda_handler not found in package (8 
+- `15:57:40` ⚠    multi-agent-orchestrator                 rt=python3.11   handler module lambda_function.lambda_handler not found in package (1 
+- `15:57:40` ⚠    nyfed-financial-stability-fetcher        rt=python3.9    handler module lambda_function.lambda_handler not found in package (1 
+- `15:57:40` ⚠    nyfed-primary-dealer-fetcher             rt=python3.9    handler module lambda_function.lambda_handler not found in package (1 
+- `15:57:40` ⚠    nyfedapi-isolated                        rt=python3.9    handler module lambda_function.lambda_handler not found in package (1 
+- `15:57:40` ⚠    ultimate-multi-agent                     rt=python3.11   handler module lambda_function.lambda_handler not found in package (1 
+- `15:57:40` ✅ every remaining entry carries a machine-readable reason
+- `15:57:40` GENUINELY UNGUARDED after full-coverage scan: 0
+## 6. Audit with coverage now tracked as D14
+
+- `15:58:06` ✅ audit -> {"ok": true, "n_defects": 60, "n_new": 6, "n_fixed": 4, "sev1": 7}
+- `15:58:06`    D8_errors                  47
+- `15:58:06`    D2_timeout_clipped         7
+- `15:58:06`    D14_unscanned              6
+## RESULT
+
+- `15:58:06` ✅ OPS 4245 PASS

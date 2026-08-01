@@ -1,30 +1,38 @@
-executing-against: ef6280c1822ba32c9fd36a0a41bd4a9e1664b058
-ops 4244 — D1 v1.1.1 multi-site classification
-── 1. Deploy ──
-[15:42:02] ✅ marker verified
-── 2. GATE A — self-test, now 5 cases ──
-[15:42:03] ✅    unguarded   expect=UNGUARDED       got=UNGUARDED       {"sites": [{"guard": "UNGUARDED"}], "n_sites": 1, "unguarded_sites": 1}
-[15:42:03] ✅    counter     expect=BOUNDED         got=BOUNDED         {"sites": [{"guard": "BOUNDED_COUNTER", "bound": 10}], "n_sites": 1, "min_bound": 10, "bou
-[15:42:03] ✅    kickoff     expect=BOUNDED         got=BOUNDED         {"sites": [{"guard": "BOUNDED_FLAG", "flag": "_internal"}], "n_sites": 1, "flags": ["_inte
-[15:42:03] ✅    clean       expect=NO_SELF_INVOKE  got=NO_SELF_INVOKE  {}
-[15:42:03] ✅    multi_site  expect=BOUNDED         got=BOUNDED         {"sites": [{"guard": "BOUNDED_FLAG", "flag": "phase"}, {"guard": "BOUNDED_COUNTER", "bound
-[15:42:03] ✅ 5/5
-── 3. Rescan (cache is keyed by sha; code changed, so rescan) ──
-[15:42:03] cache cleared — classifier semantics changed, stale classifications would be worse than none
-[15:44:33] pass 1 -> {"ok": true, "mode": "d1scan", "scanned": 745, "from_cache": 0, "failed": 23, "cursor": 0, "total": 768, "complete": true, "cache_entries": 745}
-[15:44:33] ⚠ 23 function(s) had no lambda_function.py to parse (non-Python or nested handler) — reported, not assumed clean
-── 4. GATE B — the three real engines ──
-[15:44:33] ✅    justhodl-13f-clone-alpha           cls=BOUNDED        sites=1 bounds=[10] flags=None
-[15:44:33] ✅    justhodl-equity-research           cls=BOUNDED        sites=1 bounds=None flags=['_internal']
-[15:44:33] ✅    justhodl-fundamental-census        cls=BOUNDED        sites=2 bounds=[12] flags=['phase']
-[15:44:33] fleet: {'NO_SELF_INVOKE': 742, 'BOUNDED': 3}
-[15:44:33] GENUINELY UNGUARDED: 0
-[15:44:33]    bounded justhodl-13f-clone-alpha               sites=1 bounds=[10] flags=None
-[15:44:33]    bounded justhodl-equity-research               sites=1 bounds=None flags=['_internal']
-[15:44:33]    bounded justhodl-fundamental-census            sites=2 bounds=[12] flags=['phase']
-── 5. Full audit with the corrected D1 ──
-[15:45:08] ✅ audit -> {"ok": true, "n_defects": 54, "n_new": 0, "n_fixed": 4, "sev1": 7}
+executing-against: 15ba373889d0fcf30a985bf6f5671b9a31acc072
+ops 4245 — D1 scan coverage
+── 1. Deploy v1.2.0 ──
+[15:55:09] ✅ marker verified
+── 2. GATE 1 — self-test unchanged at 5/5 ──
+[15:55:10] ✅    unguarded   expect=UNGUARDED       got=UNGUARDED      
+[15:55:10] ✅    counter     expect=BOUNDED         got=BOUNDED        
+[15:55:10] ✅    kickoff     expect=BOUNDED         got=BOUNDED        
+[15:55:10] ✅    clean       expect=NO_SELF_INVOKE  got=NO_SELF_INVOKE 
+[15:55:10] ✅    multi_site  expect=BOUNDED         got=BOUNDED        
+[15:55:10] ✅ 5/5 — the classifier is unchanged and still correct
+── 3. Rescan with handler resolution ──
+[15:55:10] cache cleared — resolution logic changed
+[15:57:40] pass 1 -> {"ok": true, "mode": "d1scan", "scanned": 762, "from_cache": 0, "failed": 0, "unscanned": 6, "cursor": 0, "total": 768, "complete": true, "cache_entries": 768}
+── 4. GATE 2/3 — full accounting, coverage improved ──
+[15:57:40] scanned=762 unscanned=6 failed=0 total=768  (sum=768)
+[15:57:40] ✅ accounting closes — every function is in the ledger
+[15:57:40] ✅ coverage 745 -> 762 (+17 functions now analysed)
+── 5. GATE 4 — what remains, and why ──
+[15:57:40] classification: {'NO_SELF_INVOKE': 759, 'BOUNDED': 3, 'UNSCANNED': 6}
+[15:57:40] still unscanned or needing review: 6
+[15:57:40] ⚠    macro-report-api                         rt=python3.9    handler module lambda_function.lambda_handler not found in package (8 
+[15:57:40] ⚠    multi-agent-orchestrator                 rt=python3.11   handler module lambda_function.lambda_handler not found in package (1 
+[15:57:40] ⚠    nyfed-financial-stability-fetcher        rt=python3.9    handler module lambda_function.lambda_handler not found in package (1 
+[15:57:40] ⚠    nyfed-primary-dealer-fetcher             rt=python3.9    handler module lambda_function.lambda_handler not found in package (1 
+[15:57:40] ⚠    nyfedapi-isolated                        rt=python3.9    handler module lambda_function.lambda_handler not found in package (1 
+[15:57:40] ⚠    ultimate-multi-agent                     rt=python3.11   handler module lambda_function.lambda_handler not found in package (1 
+[15:57:40] ✅ every remaining entry carries a machine-readable reason
+[15:57:40] GENUINELY UNGUARDED after full-coverage scan: 0
+── 6. Audit with coverage now tracked as D14 ──
+[15:58:06] ✅ audit -> {"ok": true, "n_defects": 60, "n_new": 6, "n_fixed": 4, "sev1": 7}
+[15:58:06]    D8_errors                  47
+[15:58:06]    D2_timeout_clipped         7
+[15:58:06]    D14_unscanned              6
 ── RESULT ──
-[15:45:08] ✅ OPS 4244 PASS
+[15:58:06] ✅ OPS 4245 PASS
 
-→ Report written to aws/ops/reports/latest/4244_d1_multisite.md
+→ Report written to aws/ops/reports/latest/4245_scan_coverage.md
