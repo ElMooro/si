@@ -1,21 +1,28 @@
-executing-against: 477a91594e1518d098336d9caa4016bf9077f300
-ops 4237 — declarative schedule reconciliation
-── 1. Snapshot live AWS into the authoritative manifest ──
-[14:49:47] captured 445 EventBridge rules + 276 Scheduler schedules (690 enabled)
-[14:49:47] duplicate targets dropped during capture: 4
-[14:49:48] ✅ manifest written to repo config/ and s3://justhodl-dashboard-live/config/schedule-manifest.json
-── 2. Deploy the reconciler (AUDIT mode) ──
-[14:49:48] ✅ SSM /justhodl/schedules/mode = audit
-[14:49:54] ✅ updated
-[14:49:55] ✅ zip marker verified
-── 3. PROVE the snapshot — drift must be exactly 0 ──
-[14:50:10] reconciler -> {"errorMessage": "An error occurred (AccessDeniedException) when calling the ListSchedules operation: User: arn:aws:sts::857687956942:assumed-role/lambda-execution-role/justhodl-schedule-reconciler is not authorized to perform: scheduler:ListSchedules on resource: arn:aws:scheduler:us-east-1:8576879
-── 4. Schedule the reconciler daily ──
-[14:50:11] ✅ cron(30 7 * * ? *) -> justhodl-schedule-reconciler (1 target)
-[14:50:12] ✅ manifest updated to include the two new control-plane rules
-── RESULT ──
-[14:50:12] ✗   reconciler invoke error
+executing-against: 0151dab26a433b32edae05ba6097988784cfeb7d
+ops 4238 — reconciler proof, alarm, DR ground truth
+── A. Reconciler proof gate (retry with new IAM) ──
+[14:59:26] reconciler -> {"ok": true, "mode": "audit", "drift_count": 4, "by_class": {"DUPLICATE_TARGET": 4}, "enforced": 0}
+[14:59:26] ⚠ drift = 4
+[14:59:26] ⚠    DUPLICATE_TARGET: 4
+[14:59:26]    DUPLICATE_TARGET deal-scanner-daily                         2 targets, 1 unique — this rule fires its function more than once per 
+[14:59:26]    DUPLICATE_TARGET justhodl-alpha-daily-brief                 2 targets, 1 unique — this rule fires its function more than once per 
+[14:59:26]    DUPLICATE_TARGET justhodl-options-confluence-hourly         2 targets, 1 unique — this rule fires its function more than once per 
+[14:59:26]    DUPLICATE_TARGET premortem-engine-daily                     2 targets, 1 unique — this rule fires its function more than once per 
+[14:59:26] mirroring the manifest into a committed repo path…
+[14:59:26] ✅ manifest mirrored (446 rules + 276 schedules) -> aws/ops/audit/schedule-manifest.json
+── B. Arm the integrity alarm ──
+[14:59:27] ✅ alarm justhodl-integrity-new-defects armed
+[14:59:27] ✅ alarm justhodl-schedule-drift armed
+── C. Disaster recovery — GROUND TRUTH, not assumptions ──
+[14:59:27] ✅ function DEPLOYED — modified 2026-05-30T18:45:25.000+0000, timeout 900s
+[15:00:32] ✅ schedule dr-snapshot-sched cron(0 6 * * ? *) (ENABLED)
+[15:00:32] invocations in the last 14 days: 28
+[15:00:32] candidate DR buckets: justhodl-backups-857687956942, justhodl-dashboard-live-dr
+[15:00:33]   justhodl-backups-857687956942      versioning=Disabled replication=NO objects~1 newest=2026-07-12 18:09:23
+[15:00:33] ✗      newest backup object is 19 day(s) old
+[15:00:34]   justhodl-dashboard-live-dr         versioning=Enabled replication=NO objects~3000 newest=2026-08-01 11:44:27
+[15:00:34] ✅      newest backup object is 0 day(s) old
+── VERDICT ──
+[15:00:34] ✅ DR is executing; freshness reported above.
 
-→ Report written to aws/ops/reports/latest/4237_schedule_reconciler.md
-FAILS: reconciler invoke error
-❌ OPS-FAIL: aws/ops/pending/ops_4237_schedule_reconciler.py
+→ Report written to aws/ops/reports/latest/4238_prove_and_dr_audit.md

@@ -1,0 +1,42 @@
+# ops 4238 — reconciler proof, alarm, DR ground truth
+
+**Status:** success  
+**Duration:** 81.8s  
+**Finished:** 2026-08-01T15:00:34+00:00  
+
+## Data
+
+| age_days | bucket | newest | objects | replication | section | versioning |
+|---|---|---|---|---|---|---|
+| 19 | justhodl-backups-857687956942 | 2026-07-12 18:09:23 | 1 | NO | dr_bucket | Disabled |
+| 0 | justhodl-dashboard-live-dr | 2026-08-01 11:44:27 | 3000 | NO | dr_bucket | Enabled |
+
+## Log
+## A. Reconciler proof gate (retry with new IAM)
+
+- `14:59:26` reconciler -> {"ok": true, "mode": "audit", "drift_count": 4, "by_class": {"DUPLICATE_TARGET": 4}, "enforced": 0}
+- `14:59:26` ⚠ drift = 4
+- `14:59:26` ⚠    DUPLICATE_TARGET: 4
+- `14:59:26`    DUPLICATE_TARGET deal-scanner-daily                         2 targets, 1 unique — this rule fires its function more than once per 
+- `14:59:26`    DUPLICATE_TARGET justhodl-alpha-daily-brief                 2 targets, 1 unique — this rule fires its function more than once per 
+- `14:59:26`    DUPLICATE_TARGET justhodl-options-confluence-hourly         2 targets, 1 unique — this rule fires its function more than once per 
+- `14:59:26`    DUPLICATE_TARGET premortem-engine-daily                     2 targets, 1 unique — this rule fires its function more than once per 
+- `14:59:26` mirroring the manifest into a committed repo path…
+- `14:59:26` ✅ manifest mirrored (446 rules + 276 schedules) -> aws/ops/audit/schedule-manifest.json
+## B. Arm the integrity alarm
+
+- `14:59:27` ✅ alarm justhodl-integrity-new-defects armed
+- `14:59:27` ✅ alarm justhodl-schedule-drift armed
+## C. Disaster recovery — GROUND TRUTH, not assumptions
+
+- `14:59:27` ✅ function DEPLOYED — modified 2026-05-30T18:45:25.000+0000, timeout 900s
+- `15:00:32` ✅ schedule dr-snapshot-sched cron(0 6 * * ? *) (ENABLED)
+- `15:00:32` invocations in the last 14 days: 28
+- `15:00:32` candidate DR buckets: justhodl-backups-857687956942, justhodl-dashboard-live-dr
+- `15:00:33`   justhodl-backups-857687956942      versioning=Disabled replication=NO objects~1 newest=2026-07-12 18:09:23
+- `15:00:33` ✗      newest backup object is 19 day(s) old
+- `15:00:34`   justhodl-dashboard-live-dr         versioning=Enabled replication=NO objects~3000 newest=2026-08-01 11:44:27
+- `15:00:34` ✅      newest backup object is 0 day(s) old
+## VERDICT
+
+- `15:00:34` ✅ DR is executing; freshness reported above.
