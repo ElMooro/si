@@ -78,7 +78,7 @@ def main():
         import base64
         checks = []
         TRIO = (("justhodl-regime-conditional-router", "bus_macro",
-                 'data/regime-router.json'),
+                 'data/regime-conditional-router.json'),
                 ("justhodl-market-tape", "bus_tape",
                  "data/market-tape.json"),
                 ("justhodl-activity-nowcast", "bus_hard",
@@ -157,3 +157,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# delta-touch

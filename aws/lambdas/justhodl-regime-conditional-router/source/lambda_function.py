@@ -549,3 +549,49 @@ def lambda_handler(event=None, context=None):
 
 if __name__ == "__main__":
     print(json.dumps(lambda_handler(), indent=2))
+
+
+_orig_handler_4218 = lambda_handler
+
+
+def lambda_handler(event=None, context=None):
+    """bus_macro — bus enrichment wrapper (core untouched)."""
+    r = _orig_handler_4218(event, context)
+    try:
+        _bus = (json.loads(s3.get_object(
+            Bucket=S3_BUCKET,
+            Key="data/indicator-bus.json")["Body"].read())
+            or {}).get("indicators") or {}
+        _doc = json.loads(s3.get_object(
+            Bucket=S3_BUCKET, Key=S3_KEY)["Body"].read())
+        import statistics as _st
+        _intr = [v.get("v") for k, v in _bus.items()
+                 if k.endswith("INTR")
+                 and isinstance(v.get("v"), (int, float))
+                 and -2 < v["v"] < 60]
+        _ipn = [v.get("v") for k, v in _bus.items()
+                if k.endswith("IPYY")
+                and isinstance(v.get("v"), (int, float))]
+        _gdn = [v.get("v") for k, v in _bus.items()
+                if k.endswith("GDPYY")
+                and isinstance(v.get("v"), (int, float))
+                and -30 < v["v"] < 30]
+        _blk = {"marker": "ops4218",
+                "world_policy_rate_median":
+                round(_st.median(_intr), 2) if _intr else None,
+                "intr_n": len(_intr),
+                "ip_contracting_pct":
+                round(100 * sum(1 for x in _ipn if x < 0)
+                      / len(_ipn), 1) if _ipn else None,
+                "gdp_contracting_pct":
+                round(100 * sum(1 for x in _gdn if x < 0)
+                      / len(_gdn), 1) if _gdn else None,
+                "note": "global hard-data context for KB elevation"}
+        _doc["bus_macro"] = _blk
+        s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
+                      Body=json.dumps(_doc).encode(),
+                      ContentType="application/json")
+        print("[bus_macro] wired: " + json.dumps(_blk)[:120])
+    except Exception as _e:
+        print("[bus_macro] EXC " + type(_e).__name__)
+    return r
