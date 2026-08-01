@@ -22,13 +22,14 @@ coverage is stated honestly (coverage block + dormant names). All
 values REAL from the docs; nulls skipped, never invented.
 """
 import json
+import os
 import time
 from datetime import datetime, timezone
 
 import boto3
 from botocore.config import Config
 
-VERSION = "1.10.0"
+VERSION = "1.11.0"  # ops4229 recursion-break
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
@@ -37,6 +38,11 @@ HIST_KEY = "data/fundamental-census-history.json"
 CACHE_TPL = "data/fundgraph/cache/{sym}_quarter_v21.json"
 FG_FN = "justhodl-fundamental-graphs"
 BATCH = 8  # v1.2.0: small SYNC batches — proven robust; Event-25 dropped silently
+# v1.11.0 (ops 4229) recursion-break constants. AWS drops the invocation
+# at chain depth 16; we stop at 12 and park the cursor on S3 instead.
+CHAIN_MAX = int(os.environ.get("CENSUS_CHAIN_MAX", "12"))
+DRAIN_RESERVE_MS = int(os.environ.get("CENSUS_DRAIN_RESERVE_MS", "120000"))
+CURSOR_KEY = "data/_state/fundamental-census-cursor.json"
 
 S3 = boto3.client("s3", region_name="us-east-1")
 LAM = boto3.client("lambda", region_name="us-east-1",
@@ -769,14 +775,52 @@ def lambda_handler(event, context):
     phase = event.get("phase") or "aggregate"
     uni = universe()
     if phase == "warm":
-        # v1.1.2 chain-hardening: fundgraph batches fire-and-forget
-        # (Event) with ~35s pacing so a slow batch can NEVER kill the
-        # orchestrator; the next chain link is guaranteed by finally.
+        # ---------------------------------------------------------------
+        # v1.11.0 RECURSION BREAK (ops 4229).
+        #
+        # v1.1.2 chained ONE batch of 8 per invocation via a self
+        # Event-invoke inside finally:. AWS Lambda's recursive-loop
+        # detector drops the invocation at chain depth 16, so this
+        # function was being KILLED BY AWS after ~128 tickers every run
+        # (RecursiveInvocationsDropped=5 in the last 14d) and the
+        # "aggregate" tail link at the end of the walk NEVER FIRED.
+        # It was not a cost event — it was a silent correctness failure
+        # that also tripped an account-level Lambda alarm.
+        #
+        # The fix is structural, not cosmetic:
+        #   1. DRAIN many batches inside ONE invocation under a
+        #      wall-clock budget, so the walk needs ~20x fewer links.
+        #   2. HARD-CAP chain depth at CHAIN_MAX (< AWS's 16) and carry
+        #      the depth in the payload, so the detector can never fire.
+        #   3. On hitting the cap, PERSIST the cursor to S3 and stop
+        #      cleanly. The next scheduled run resumes from there —
+        #      progress is durable instead of being thrown away.
+        # ---------------------------------------------------------------
         cur = int(event.get("cursor") or 0)
+        depth = int(event.get("depth") or 0)
         refresh = bool(event.get("refresh"))
-        batch = [u["t"] for u in uni[cur:cur + BATCH]]
-        try:
-            if batch:
+        if cur == 0 and event.get("resume"):
+            try:
+                _c = json.loads(S3.get_object(
+                    Bucket=BUCKET, Key=CURSOR_KEY)["Body"].read())
+                if _c.get("cursor") and _c["cursor"] < len(uni):
+                    cur = int(_c["cursor"])
+                    print(f"[census] resumed cursor={cur} from S3")
+            except Exception:  # noqa: BLE001
+                pass
+
+        n_done = 0
+        while cur < len(uni):
+            if context is not None:
+                try:
+                    if context.get_remaining_time_in_millis() < DRAIN_RESERVE_MS:
+                        break
+                except Exception:  # noqa: BLE001
+                    pass
+            batch = [u["t"] for u in uni[cur:cur + BATCH]]
+            if not batch:
+                break
+            try:
                 rr = LAM.invoke(FunctionName=FG_FN,
                                 Payload=json.dumps(
                                     {"warm": batch,
@@ -785,19 +829,45 @@ def lambda_handler(event, context):
                 print(f"[census] warm@{cur} status="
                       f"{rr.get('StatusCode')} err="
                       f"{rr.get('FunctionError')}")
+            except Exception as e:  # noqa: BLE001
+                print(f"[census] warm batch@{cur}: {str(e)[:90]}")
+            cur += BATCH
+            n_done += 1
+
+        try:
+            S3.put_object(Bucket=BUCKET, Key=CURSOR_KEY,
+                          Body=json.dumps(
+                              {"cursor": cur, "universe": len(uni),
+                               "depth": depth, "version": VERSION,
+                               "at": datetime.now(timezone.utc).isoformat()}
+                          ).encode(),
+                          ContentType="application/json")
         except Exception as e:  # noqa: BLE001
-            print(f"[census] warm batch@{cur}: {str(e)[:90]}")
-        finally:
-            nxt = cur + BATCH
-            payload = ({"phase": "warm", "cursor": nxt,
-                        "refresh": refresh}
-                       if nxt < len(uni)
-                       else {"phase": "aggregate", "settle_s": 240})
+            print(f"[census] cursor persist: {str(e)[:80]}")
+
+        if cur >= len(uni):
             LAM.invoke(FunctionName=context.function_name,
                        InvocationType="Event",
-                       Payload=json.dumps(payload).encode())
+                       Payload=json.dumps(
+                           {"phase": "aggregate", "settle_s": 240,
+                            "depth": depth + 1}).encode())
+            print(f"[census] walk complete at {cur}; aggregate fired")
+        elif depth + 1 < CHAIN_MAX:
+            LAM.invoke(FunctionName=context.function_name,
+                       InvocationType="Event",
+                       Payload=json.dumps(
+                           {"phase": "warm", "cursor": cur,
+                            "refresh": refresh,
+                            "depth": depth + 1}).encode())
+        else:
+            # Chain budget spent. Stop CLEANLY rather than letting AWS
+            # drop us. Cursor is on S3; the next schedule resumes it.
+            print(f"[census] chain cap {CHAIN_MAX} reached at cursor={cur}"
+                  f"/{len(uni)} — parked, resumes next run")
         return {"ok": True, "phase": "warm", "cursor": cur,
-                "n_batch": len(batch)}
+                "depth": depth, "batches_this_run": n_done,
+                "universe": len(uni),
+                "parked": bool(cur < len(uni) and depth + 1 >= CHAIN_MAX)}
 
     if event.get("settle_s"):
         time.sleep(min(600, int(event["settle_s"])))
