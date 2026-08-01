@@ -1,0 +1,78 @@
+{
+ "ops": 4246,
+ "at": "2026-08-01T18:45:41.506215+00:00",
+ "entries": [
+  {
+   "fn": "macro-report-api",
+   "runtime": "python3.9",
+   "handler": "lambda_function.lambda_handler",
+   "last_modified": "2026-06-02T12:44:22.000+0000",
+   "code_size": 29862,
+   "backup": "s3://justhodl-dashboard-live-dr/quarantine/2026-08-01/macro-report-api.zip",
+   "backup_bytes": 29862,
+   "reserved": 0,
+   "tagged": false,
+   "tag_error": "An error occurred (ValidationException) when calling the TagResource operation: 1 validati"
+  },
+  {
+   "fn": "multi-agent-orchestrator",
+   "runtime": "python3.11",
+   "handler": "lambda_function.lambda_handler",
+   "last_modified": "2026-05-22T10:55:40.000+0000",
+   "code_size": 1505,
+   "backup": "s3://justhodl-dashboard-live-dr/quarantine/2026-08-01/multi-agent-orchestrator.zip",
+   "backup_bytes": 1505,
+   "reserved": 0,
+   "tagged": false,
+   "tag_error": "An error occurred (ValidationException) when calling the TagResource operation: 1 validati"
+  },
+  {
+   "fn": "nyfed-financial-stability-fetcher",
+   "runtime": "python3.9",
+   "handler": "lambda_function.lambda_handler",
+   "last_modified": "2026-05-31T13:49:14.000+0000",
+   "code_size": 2769,
+   "backup": "s3://justhodl-dashboard-live-dr/quarantine/2026-08-01/nyfed-financial-stability-fetcher.zip",
+   "backup_bytes": 2769,
+   "reserved": 0,
+   "tagged": false,
+   "tag_error": "An error occurred (ValidationException) when calling the TagResource operation: 1 validati"
+  },
+  {
+   "fn": "nyfed-primary-dealer-fetcher",
+   "runtime": "python3.9",
+   "handler": "lambda_function.lambda_handler",
+   "last_modified": "2026-05-31T13:49:27.000+0000",
+   "code_size": 1692,
+   "backup": "s3://justhodl-dashboard-live-dr/quarantine/2026-08-01/nyfed-primary-dealer-fetcher.zip",
+   "backup_bytes": 1692,
+   "reserved": 0,
+   "tagged": false,
+   "tag_error": "An error occurred (ValidationException) when calling the TagResource operation: 1 validati"
+  },
+  {
+   "fn": "nyfedapi-isolated",
+   "runtime": "python3.9",
+   "handler": "lambda_function.lambda_handler",
+   "last_modified": "2026-05-31T13:49:39.000+0000",
+   "code_size": 4426,
+   "backup": "s3://justhodl-dashboard-live-dr/quarantine/2026-08-01/nyfedapi-isolated.zip",
+   "backup_bytes": 4426,
+   "reserved": 0,
+   "tagged": false,
+   "tag_error": "An error occurred (ValidationException) when calling the TagResource operation: 1 validati"
+  },
+  {
+   "fn": "ultimate-multi-agent",
+   "runtime": "python3.11",
+   "handler": "lambda_function.lambda_handler",
+   "last_modified": "2026-05-22T10:55:36.000+0000",
+   "code_size": 1931,
+   "backup": "s3://justhodl-dashboard-live-dr/quarantine/2026-08-01/ultimate-multi-agent.zip",
+   "backup_bytes": 1931,
+   "reserved": 0,
+   "tagged": false,
+   "tag_error": "An error occurred (ValidationException) when calling the TagResource operation: 1 validati"
+  }
+ ]
+}

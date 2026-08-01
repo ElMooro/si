@@ -1,38 +1,62 @@
-executing-against: 15ba373889d0fcf30a985bf6f5671b9a31acc072
-ops 4245 — D1 scan coverage
-── 1. Deploy v1.2.0 ──
-[15:55:09] ✅ marker verified
-── 2. GATE 1 — self-test unchanged at 5/5 ──
-[15:55:10] ✅    unguarded   expect=UNGUARDED       got=UNGUARDED      
-[15:55:10] ✅    counter     expect=BOUNDED         got=BOUNDED        
-[15:55:10] ✅    kickoff     expect=BOUNDED         got=BOUNDED        
-[15:55:10] ✅    clean       expect=NO_SELF_INVOKE  got=NO_SELF_INVOKE 
-[15:55:10] ✅    multi_site  expect=BOUNDED         got=BOUNDED        
-[15:55:10] ✅ 5/5 — the classifier is unchanged and still correct
-── 3. Rescan with handler resolution ──
-[15:55:10] cache cleared — resolution logic changed
-[15:57:40] pass 1 -> {"ok": true, "mode": "d1scan", "scanned": 762, "from_cache": 0, "failed": 0, "unscanned": 6, "cursor": 0, "total": 768, "complete": true, "cache_entries": 768}
-── 4. GATE 2/3 — full accounting, coverage improved ──
-[15:57:40] scanned=762 unscanned=6 failed=0 total=768  (sum=768)
-[15:57:40] ✅ accounting closes — every function is in the ledger
-[15:57:40] ✅ coverage 745 -> 762 (+17 functions now analysed)
-── 5. GATE 4 — what remains, and why ──
-[15:57:40] classification: {'NO_SELF_INVOKE': 759, 'BOUNDED': 3, 'UNSCANNED': 6}
-[15:57:40] still unscanned or needing review: 6
-[15:57:40] ⚠    macro-report-api                         rt=python3.9    handler module lambda_function.lambda_handler not found in package (8 
-[15:57:40] ⚠    multi-agent-orchestrator                 rt=python3.11   handler module lambda_function.lambda_handler not found in package (1 
-[15:57:40] ⚠    nyfed-financial-stability-fetcher        rt=python3.9    handler module lambda_function.lambda_handler not found in package (1 
-[15:57:40] ⚠    nyfed-primary-dealer-fetcher             rt=python3.9    handler module lambda_function.lambda_handler not found in package (1 
-[15:57:40] ⚠    nyfedapi-isolated                        rt=python3.9    handler module lambda_function.lambda_handler not found in package (1 
-[15:57:40] ⚠    ultimate-multi-agent                     rt=python3.11   handler module lambda_function.lambda_handler not found in package (1 
-[15:57:40] ✅ every remaining entry carries a machine-readable reason
-[15:57:40] GENUINELY UNGUARDED after full-coverage scan: 0
-── 6. Audit with coverage now tracked as D14 ──
-[15:58:06] ✅ audit -> {"ok": true, "n_defects": 60, "n_new": 6, "n_fixed": 4, "sev1": 7}
-[15:58:06]    D8_errors                  47
-[15:58:06]    D2_timeout_clipped         7
-[15:58:06]    D14_unscanned              6
+executing-against: 42741e6ed3197077bd3869e2af9138a5b968b4e8
+ops 4246 — the D8 error block
+── A. Did the ops-4234 timeout raises actually work? ──
+[18:45:41] engines whose timeout was raised in ops 4234: 14
+[18:45:41] 
+[18:45:41] ENGINE                                     BEFORE   NOW24h    RUNS24h VERDICT
+[18:45:42] dollar-strength-agent                         81%      25%          4 IMPROVED
+[18:45:42] fedliquidityapi                               84%      62%          8 IMPROVED
+[18:45:43] justhodl-cb-injection                         43%      33%          3 UNCHANGED
+[18:45:43] justhodl-construction-housing                 33%       0%          2 FIXED
+[18:45:44] justhodl-ecb-detail                           26%       0%          2 FIXED
+[18:45:44] justhodl-fx-intelligence                      32%       0%          2 FIXED
+[18:45:45] justhodl-gdelt-buzz                           28%       0%          2 FIXED
+[18:45:45] justhodl-global-liquidity                      ?%       0%          1 no baseline
+[18:45:46] justhodl-search-attention                    100%      75%          4 IMPROVED
+[18:45:46] justhodl-signal-scorecard                     70%     100%          9 WORSE
+[18:45:47] justhodl-yen-carry                            32%      33%          3 UNCHANGED
+[18:45:48] manufacturing-global-agent                    84%      50%          4 IMPROVED
+[18:45:48] securities-banking-agent                      83%      50%          4 IMPROVED
+[18:45:49] volatility-monitor-agent                      69%      25%          4 IMPROVED
+[18:45:49] 
+[18:45:49] fixed/improved=10 unchanged=3 worse=1 not-yet-run=0
+[18:45:49] ⚠ Engines that have not re-run since the change cannot be judged yet — most of this fleet is on daily cadence, so the honest read arrives tomorrow.
+── A2. Current top of the error block ──
+[18:45:49] D8 entries on the board: 47
+[18:45:49]    aiapi-market-analyzer                    0% error rate (0/304), 5 throttles
+[18:45:49]    alphavantage-market-agent                0% error rate (0/533), 25 throttles
+[18:45:49]    bea-economic-agent                       0% error rate (0/282), 25 throttles
+[18:45:49]    bls-labor-agent                          2% error rate (6/300), 25 throttles
+[18:45:49]    bond-indices-agent                       1% error rate (4/303), 22 throttles
+[18:45:49]    census-economic-agent                    0% error rate (0/288), 18 throttles
+[18:45:49]    chatgpt-agent-api                        0% error rate (0/258), 21 throttles
+[18:45:49]    dollar-strength-agent                    81% error rate (209/257), 22 throttles
+[18:45:49]    enhanced-repo-agent                      1% error rate (4/308), 16 throttles
+[18:45:49]    fedliquidityapi                          85% error rate (289/342), 5 throttles
+[18:45:49]    fred-ice-bofa-api                        0% error rate (0/557), 15 throttles
+[18:45:49]    google-trends-agent                      0% error rate (0/255), 24 throttles
+[18:45:49]    justhodl-13f-positions                   0% error rate (0/24), 72 throttles
+[18:45:49]    justhodl-air-cargo                       27% error rate (11/41), 0 throttles
+[18:45:49]    justhodl-backtest-harness                0% error rate (0/42), 106 throttles
+[18:45:49]    justhodl-bagger-engine                   75% error rate (6/8), 0 throttles
+[18:45:49]    justhodl-boj-detail                      29% error rate (11/38), 0 throttles
+[18:45:49]    justhodl-cb-injection                    43% error rate (20/47), 0 throttles
+── B. signal-scorecard — the silent-data bug ──
+[18:46:00] ✅ marker verified
+[18:48:06] ✗ probe FunctionError=Unhandled {"errorType":"Sandbox.Timedout","errorMessage":"RequestId: e39c9ae7-b6da-4773-9307-99f759eb4404 Error: Task timed out after 120.00 seconds"}
+[18:48:06] ssm_writes -> null
+[18:48:06] ⚠ artifact has no ssm_writes key yet (engine may not have reached that branch on this run)
+── C. Quarantine the six broken packages ──
+[18:48:08] ✅   macro-report-api                     backed up 29862 bytes, concurrency 0, tagged
+[18:48:09] ✅   multi-agent-orchestrator             backed up 1505 bytes, concurrency 0, tagged
+[18:48:10] ✅   nyfed-financial-stability-fetcher    backed up 2769 bytes, concurrency 0, tagged
+[18:48:11] ✅   nyfed-primary-dealer-fetcher         backed up 1692 bytes, concurrency 0, tagged
+[18:48:11] ✅   nyfedapi-isolated                    backed up 4426 bytes, concurrency 0, tagged
+[18:48:12] ✅   ultimate-multi-agent                 backed up 1931 bytes, concurrency 0, tagged
+[18:48:13] ✅ quarantine ledger -> config/quarantine-ledger.json + S3
 ── RESULT ──
-[15:58:06] ✅ OPS 4245 PASS
+[18:48:13] ✗   scorecard probe
 
-→ Report written to aws/ops/reports/latest/4245_scan_coverage.md
+→ Report written to aws/ops/reports/latest/4246_error_block.md
+FAILS: scorecard probe
+❌ OPS-FAIL: aws/ops/pending/ops_4246_error_block.py
