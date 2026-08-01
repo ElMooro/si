@@ -232,7 +232,7 @@ def lambda_handler(event=None, context=None):
             return ((_cq.get(slug) or {}).get("fields")
                     or {}).get(field)
         _doc = json.loads(s3.get_object(
-            Bucket=BUCKET, Key=HIST_KEY)["Body"].read())
+            Bucket=BUCKET, Key=OUT_KEY)["Body"].read())
         _blk = {"marker": "ops4221",
                 "reserve_btc":
                 _f("btc_exchange-flows_reserve", "reserve"),
@@ -246,7 +246,7 @@ def lambda_handler(event=None, context=None):
                 "mpi": _f("btc_flow-indicator_mpi", "mpi"),
                 "note": "CryptoQuant primary — paid rail"}
         _doc["cq_flows"] = _blk
-        s3.put_object(Bucket=BUCKET, Key=HIST_KEY,
+        s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                       Body=json.dumps(_doc, default=str).encode(),
                       ContentType="application/json")
         print("[cq_flows] wired: " + json.dumps(_blk)[:130])
