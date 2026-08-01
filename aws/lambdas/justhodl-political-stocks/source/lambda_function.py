@@ -231,10 +231,24 @@ def load_party_map_from_s3() -> dict:
         obj = s3.get_object(Bucket=BUCKET, Key=S3_PARTY_MAP_KEY)
         data = json.loads(obj["Body"].read().decode("utf-8"))
         pm = data.get("party_map") or {}
-        if pm:
+        # ops 4265: freshness-aware -- a party map older than 21d forces a
+        # live refetch (members change via vacancies/specials); the stale
+        # copy stays as fallback if live is blocked.
+        try:
+            gen = datetime.fromisoformat(
+                str(data.get("generated_at", "")).replace("Z", "+00:00"))
+            age_d = (datetime.now(timezone.utc) - gen).total_seconds() / 86400
+        except Exception:
+            age_d = 9999
+        if pm and age_d <= 21:
             print(f"[political] loaded {len(pm)} party mappings from S3 cache "
                   f"(generated {data.get('generated_at','?')})")
             return pm
+        if pm:
+            print(f"[political] S3 party map is {age_d:.0f}d old -- "
+                  f"forcing live refresh (stale copy kept as fallback)")
+            globals()["_STALE_PM_FALLBACK"] = pm
+            return None
     except Exception as e:
         print(f"[political] S3 party map load failed: {e}")
     return None
@@ -253,6 +267,11 @@ def fetch_full_legislators_map() -> dict:
     url = "https://theunitedstates.io/congress-legislators/legislators-current.json"
     body = _http_get(url, timeout=20, retries=1)
     if not body:
+        stale = globals().get("_STALE_PM_FALLBACK")
+        if stale:
+            print("[political] live fetch failed -- keeping stale S3 map "
+                  "(better than the hardcoded floor)")
+            return stale
         print("[political] live fetch also failed — using hardcoded fallback")
         return dict(BIOGUIDE_TO_PARTY)
     
@@ -283,7 +302,27 @@ def fetch_full_legislators_map() -> dict:
     
     for k, v in BIOGUIDE_TO_PARTY.items():
         party_map.setdefault(k, v)
-    
+
+    # ops 4265: self-refreshing cache -- write the live map back so the
+    # artifact stays honest and the next runs are fast again.
+    try:
+        s3.put_object(
+            Bucket=BUCKET, Key=S3_PARTY_MAP_KEY,
+            Body=json.dumps({
+                "schema_version": "1.1",
+                "generated_at": datetime.now(timezone.utc).isoformat(
+                    timespec="seconds"),
+                "source": url,
+                "n": len(party_map),
+                "party_map": party_map,
+            }, default=str, separators=(",", ":")).encode("utf-8"),
+            ContentType="application/json",
+            CacheControl="public, max-age=86400")
+        print(f"[political] party map refreshed + written back "
+              f"({len(party_map)} members)")
+    except Exception as e:
+        print(f"[political] party map write-back failed: {e}")
+
     return party_map
 
 

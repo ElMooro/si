@@ -351,7 +351,31 @@ def lambda_handler(event, context):
     outcomes = scan_all_outcomes()
     logger.info(f"scanned {len(outcomes)} outcomes")
     if not outcomes:
-        return {"statusCode": 500, "body": json.dumps({"error": "no outcomes"})}
+        # ops 4265: an empty outcomes table is a FINDING, not a reason to
+        # freeze the artifact. Write it honestly so the dashboard and the
+        # freshness contract both see the true state of the edge pipeline.
+        payload = {
+            "computed_at": started.isoformat(),
+            "n_outcomes_scanned": 0,
+            "summary": {"n_engines": 0, "n_fresh": 0,
+                        "n_decaying_or_dead": 0, "n_strengthening": 0,
+                        "n_marginal": 0},
+            "engines": {}, "rankings": {},
+            "status": "NO_OUTCOMES",
+            "status_detail": ("DynamoDB table 'justhodl-outcomes' returned "
+                              "zero items -- the outcome-tracking pipeline "
+                              "upstream is dry (same family as the empty "
+                              "SSM calibration weights). Edge half-life "
+                              "cannot be computed until outcomes flow."),
+        }
+        s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
+                      Body=json.dumps(payload, default=str,
+                                      indent=2).encode(),
+                      ContentType="application/json",
+                      CacheControl="max-age=3600, public")
+        logger.warning("no outcomes -- honest-empty artifact written")
+        return {"statusCode": 200,
+                "body": json.dumps({"degraded": "no_outcomes"})}
 
     # 2. Compute per-engine stats
     engines = compute_engine_stats(outcomes)
