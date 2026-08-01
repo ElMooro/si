@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.30.1 ops4226 onchain-label"
+MARKER = "tradingview-vault v3.30.2 ops4227 sticky-relabel"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1649,6 +1649,16 @@ def lambda_handler(event, context):
                         _LOTTO.add(row.get("symbol"))
                         row["status"] = "PENDING_RESOLUTION"
                         row["resolution_note"] = "lottery: ladder retry"
+                    elif "no free API found" in str(
+                            row.get("resolution_note") or ""):
+                        try:
+                            _nh = _honest_label(row)
+                            if _nh and "provider-licensed" in str(
+                                    _nh.get("resolution_note")):
+                                row["resolution_note"] = \
+                                    _nh["resolution_note"]
+                        except Exception:
+                            pass
                     if _fh:
                         row.update(_fh)
                 if row["status"] == "LIVE":
