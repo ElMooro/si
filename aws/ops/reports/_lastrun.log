@@ -1,22 +1,22 @@
-executing-against: d8575cc05b447a41c15022bfd01d76c3fd5d197c
-ops 4264 -- frozen-writer wave 3 (4 engines)
-── justhodl-ka-metrics ──
-[23:38:10] invoked: {"statusCode": 200, "body": "{\"status\": \"refreshed+analyzed\", \"metrics\": 84, \"risk_index\": 32.8, \"grade\": \"?\", \"phase\": \"?\", \"crypto\": \"?\", \"errors\": 0}"}
-[23:38:10] ✅ data/ka-analysis.json FRESH -- age -0.0 min (was 420.5 h)
-── justhodl-brain-sync ──
-[23:38:15] invoked: {"statusCode": 200, "body": "{\"n_notes\": 12744, \"n_pinned\": 1}"}
-[23:38:15] ✅ data/brain-history.json FRESH -- age 0.0 min (was 0.0 h)
-── justhodl-fleet-freshness-monitor ──
-[23:38:20] invoked: {"statusCode": 200, "body": "{\"n_tracked\": 52, \"stale\": 2, \"fresh\": 50, \"alerts\": 0, \"suppressed\": 2, \"elapsed_s\": 5.51}"}
-[23:38:21] ✅ data/_freshness-manifest.json FRESH -- age 0.1 min (was 0.0 h)
-── justhodl-meta-improver ──
-[23:38:21] ⚠ no github token available to Lambda yet -- meta-improver stays degraded (disclosed); its artifact owner is signal-halflife (wave 4) so this does not gate the wave
-[23:38:22] invoked: {"statusCode": 200, "body": "{\"ok\": true, \"no_action\": \"no_decaying_engines_outside_cooldown\"}"}
-[23:38:26] log: [WARNING]	2026-08-01T23:35:56.282Z	1c495763-15ef-44d7-b38b-7884abcfd564	github_get_fail /repos/ElMooro/si/contents/aws/lambdas: HTTP Error 401: Unauth
-[23:38:26] ⚠ github still failing -- see lines above (disclosed, wave-4 item)
-── KHALID-ACTION (outside autonomous reach) ──
-[23:38:26] ⚠ fleet TELEGRAM_BOT_TOKEN returns 401 on api.telegram.org -- needs BotFather rotation, then one config push updates all engines that carry it
+executing-against: e30cc4945ac7ef604e5a97a01cc90795bfe8b7ac
+ops 4265 -- frozen-writer wave 4
+── 1. contract corrections (manifest key_overrides) ──
+[23:49:40] ✅ manifest updated: 4 key_overrides, 1 retirement
+── 2. signal-halflife -- honest-empty semantics ──
+[23:50:36] invoked: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"ok\": true, \"n_engines\": 334, \"n_outcome
+[23:50:37] ✅ signal-halflife.json FRESH (0.0 min) -- n_outcomes=101000 status=OK
+── 3. congress party map -- self-refreshing cache ──
+[23:51:11] invoked: {"statusCode": 200, "body": "{\"ok\": true, \"n_quiver\": 1000, \"n_house\": 500, \"n_senate\": 500, \"n_tickers\": 181, \"n_clusters\": 25, \"n_bipartisan\": 4
+[23:51:12] log: [political] S3 party map is 62d old -- forcing live refresh (stale copy kept as fallback)
+[23:51:12] log: [political] S3 cache miss — trying live fetch
+── 4. monitor re-read under the corrected contract ──
+[23:51:19] ✅ data/polygon-related-graph.json CLEAN under corrected SLA
+[23:51:19] ✅ data/factor-data-cache.json CLEAN under corrected SLA
+[23:51:19] fleet: 2 stale / 52 tracked
+── 5. calibration family -- disclosed, requeued ──
+[23:51:19] SSM weights present: 8115 chars -- {"screener_top_pick": 0.8597, "correlation_break": 0.3552, "ml_risk": 0.3751, "e
 ── RESULT ──
-[23:38:26] ✅ OPS 4264 PASS -- three artifacts unfrozen with honest semantics, meta-improver authenticated; 7 of 11 frozen writers remain for wave 4
+[23:51:19] ✗   party map still stale (89679 min) with no blocked-source evidence
 
-→ Report written to aws/ops/reports/latest/4264_frozen_wave3.md
+→ Report written to aws/ops/reports/latest/4265_frozen_wave4.md
+❌ OPS-FAIL: aws/ops/pending/ops_4265_frozen_wave4.py
