@@ -1,0 +1,219 @@
+{
+ "ops": 4231,
+ "ts": "2026-08-01T14:09:01.005712+00:00",
+ "deleted": [
+  {
+   "svc": "elbv2",
+   "id": "openbb-prod-alb"
+  },
+  {
+   "svc": "elbv2",
+   "id": "openbb-basic-alb"
+  },
+  {
+   "svc": "sagemaker_app",
+   "id": "default"
+  }
+ ],
+ "held": [
+  {
+   "id": "openbb-financial-search",
+   "why": "referenced"
+  },
+  {
+   "id": "openbb-simple-working",
+   "why": "backup_failed",
+   "docs": 6206
+  }
+ ],
+ "disabled_schedules": [
+  {
+   "kind": "events",
+   "name": "activity-nowcast-daily",
+   "group": null,
+   "fn": "justhodl-activity-nowcast",
+   "expr": "cron(30 12 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-alpha-daily-brief",
+   "group": null,
+   "fn": "justhodl-alpha-daily-brief",
+   "expr": "cron(30 11 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-alpha-daily-brief",
+   "group": null,
+   "fn": "justhodl-alpha-daily-brief",
+   "expr": "cron(30 11 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-buyback-scanner-weekly",
+   "group": null,
+   "fn": "justhodl-buyback-scanner",
+   "expr": "cron(0 12 ? * MON *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-chokepoint-daily",
+   "group": null,
+   "fn": "justhodl-chokepoint",
+   "expr": "cron(30 15 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-coinbase-premium-hourly",
+   "group": null,
+   "fn": "justhodl-coinbase-premium",
+   "expr": "cron(35 * * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-crypto-confluence-daily",
+   "group": null,
+   "fn": "justhodl-crypto-confluence",
+   "expr": "cron(20 23 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-crypto-miners-daily",
+   "group": null,
+   "fn": "justhodl-crypto-miners",
+   "expr": "cron(30 12 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-debate-engine-daily",
+   "group": null,
+   "fn": "justhodl-debate-engine",
+   "expr": "cron(15 12 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-earnings-sentiment-daily",
+   "group": null,
+   "fn": "justhodl-earnings-sentiment",
+   "expr": "cron(0 10 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-factor-decomposition-weekly",
+   "group": null,
+   "fn": "justhodl-factor-decomposition",
+   "expr": "cron(35 13 ? * MON *)"
+  },
+  {
+   "kind": "events",
+   "name": "finviz-signals-3x",
+   "group": null,
+   "fn": "justhodl-finviz-signals",
+   "expr": "cron(0 14,18,21 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-hot-stocks-digest-am",
+   "group": null,
+   "fn": "justhodl-hot-stocks-digest",
+   "expr": "cron(30 12 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-insider-buys-enriched-sched",
+   "group": null,
+   "fn": "justhodl-insider-buys-enriched",
+   "expr": "cron(0 10 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "meta-improver-weekly",
+   "group": null,
+   "fn": "justhodl-meta-improver",
+   "expr": "cron(0 22 ? * SUN *)"
+  },
+  {
+   "kind": "events",
+   "name": "news-wire-15m",
+   "group": null,
+   "fn": "justhodl-news-wire",
+   "expr": "cron(0 11 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-opex-calendar-sched",
+   "group": null,
+   "fn": "justhodl-opex-calendar",
+   "expr": "cron(0 11 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-options-confluence-hourly",
+   "group": null,
+   "fn": "justhodl-options-confluence",
+   "expr": "cron(20 * * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-options-confluence-hourly",
+   "group": null,
+   "fn": "justhodl-options-confluence",
+   "expr": "cron(20 * * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "premortem-engine-daily",
+   "group": null,
+   "fn": "justhodl-premortem-engine",
+   "expr": "cron(0 14 ? * MON-FRI *)"
+  },
+  {
+   "kind": "events",
+   "name": "premortem-engine-daily",
+   "group": null,
+   "fn": "justhodl-premortem-engine",
+   "expr": "cron(0 14 ? * MON-FRI *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-russell-recon-frontrun-sched",
+   "group": null,
+   "fn": "justhodl-russell-recon-frontrun",
+   "expr": "cron(30 12 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-rv-iv-scanner-sched",
+   "group": null,
+   "fn": "justhodl-rv-iv-scanner",
+   "expr": "cron(30 14 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-trade-evaluator-daily",
+   "group": null,
+   "fn": "justhodl-trade-evaluator",
+   "expr": "cron(0 23 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-vix-backwardation-trigger-daily",
+   "group": null,
+   "fn": "justhodl-vix-backwardation-trigger",
+   "expr": "cron(15 13 * * ? *)"
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-vol-surface-sched",
+   "group": null,
+   "fn": "justhodl-vol-surface",
+   "expr": "cron(30 13 * * ? *)"
+  }
+ ],
+ "gate": {
+  "opensearch:openbb-financial-search": false,
+  "opensearch:openbb-simple-working": true,
+  "elbv2:openbb-prod-alb": true,
+  "elbv2:openbb-basic-alb": true
+ }
+}
