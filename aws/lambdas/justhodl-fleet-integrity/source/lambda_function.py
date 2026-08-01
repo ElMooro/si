@@ -52,8 +52,8 @@ from datetime import datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.1.1"
-MARKER = "fleet-integrity v1.1.1 ops4244 multi-site"
+VERSION = "1.2.0"
+MARKER = "fleet-integrity v1.2.0 ops4245 handler-aware"
 
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -149,6 +149,68 @@ def _payload_literal_keys(call):
                 if isinstance(k, ast.Constant) and isinstance(k.value, str):
                     keys.append(k.value)
     return keys
+
+
+
+def _pick_handler_source(z, names, handler, runtime):
+    """Resolve the file the Lambda actually runs.
+
+    v1.1.1 looked only for a file ending in "lambda_function.py". That is
+    the house convention, not a rule — 23 functions use a different
+    handler module or a different language entirely, and each was skipped
+    with no record of why. Resolve from the Handler configuration
+    instead, which is the only authoritative answer.
+
+    Returns (source, picked_name) on success, or (None, reason)."""
+    mod = (handler or "").rsplit(".", 1)[0] if handler else ""
+    cands = []
+    if mod:
+        base = mod.replace(".", "/")
+        for ext in (".py", ".mjs", ".js", ".cjs", ".ts"):
+            cands.append(base + ext)
+        cands.append(base.split("/")[-1] + ".py")
+    cands += ["lambda_function.py", "index.py", "app.py", "main.py",
+              "index.mjs", "index.js", "app.js"]
+    for c in cands:
+        for n in names:
+            if n == c or n.endswith("/" + c):
+                try:
+                    return z.read(n).decode("utf-8", "ignore"), n
+                except Exception:
+                    pass
+    if not runtime.startswith(("python", "nodejs")):
+        return None, "unsupported runtime %s" % (runtime or "unknown")
+    if handler and ("::" in handler or handler.count(".") > 2):
+        return None, "compiled/complex handler %s" % handler[:60]
+    return None, "handler module %s not found in package (%d files)" \
+        % (handler or "?", len(names))
+
+
+_NP_SELF = re.compile(r"invoke\s*\(", re.I)
+_NP_CTX = re.compile(r"functionName|FunctionName|AWS_LAMBDA_FUNCTION_NAME")
+
+
+def _classify_nonpython(src, fname):
+    """Non-Python packages get a REGEX pass, and the result is labelled
+    low-confidence rather than presented as equivalent to the AST result.
+    A weak answer that says it is weak is useful; a weak answer dressed
+    as a strong one is how the original D1 misled me twice."""
+    if not _NP_SELF.search(src):
+        return "NO_SELF_INVOKE", {"method": "regex", "confidence": "low"}
+    window_hit = False
+    for m in _NP_SELF.finditer(src):
+        w = src[m.start(): m.start() + 400]
+        if _NP_CTX.search(w) and (fname in w or "function_name" in w
+                                  or "functionName" in w):
+            window_hit = True
+            break
+    if not window_hit:
+        return "NO_SELF_INVOKE", {"method": "regex", "confidence": "low",
+                                  "note": "invokes something, not itself"}
+    return "REVIEW", {"method": "regex", "confidence": "low",
+                      "note": "possible self-invoke in a non-Python "
+                              "package — needs human review, the regex "
+                              "cannot see guard structure"}
 
 
 def classify_source(src, fname):
@@ -320,7 +382,8 @@ def d1_scan(context):
     fns = []
     for page in lam.get_paginator("list_functions").paginate():
         for f in page["Functions"]:
-            fns.append((f["FunctionName"], f.get("CodeSha256")))
+            fns.append((f["FunctionName"], f.get("CodeSha256"),
+                        f.get("Handler") or "", f.get("Runtime") or ""))
     fns.sort()
     try:
         cur = int(json.loads(s3.get_object(
@@ -333,7 +396,7 @@ def d1_scan(context):
     from urllib.request import urlopen
     import io as _io
     import zipfile as _zip
-    scanned = cached = failed = 0
+    scanned = cached = failed = unscanned = 0
     while cur < len(fns):
         if context is not None:
             try:
@@ -341,7 +404,7 @@ def d1_scan(context):
                     break
             except Exception:
                 pass
-        fname, sha = fns[cur]
+        fname, sha, handler, runtime = fns[cur]
         cur += 1
         if not sha:
             failed += 1
@@ -352,19 +415,38 @@ def d1_scan(context):
         try:
             loc = lam.get_function(FunctionName=fname)["Code"]["Location"]
             z = _zip.ZipFile(_io.BytesIO(urlopen(loc, timeout=45).read()))
-            src = ""
-            for n in z.namelist():
-                if n.endswith("lambda_function.py"):
-                    src = z.read(n).decode("utf-8", "ignore")
-                    break
-            if not src:
-                failed += 1
+            names = z.namelist()
+            src, picked = _pick_handler_source(z, names, handler, runtime)
+            if src is None:
+                # v1.2.0: "could not parse" is now a RECORDED STATE, not a
+                # silent skip. 23 functions fell into this hole in v1.1.1
+                # and were reported only as a count. A function nobody
+                # looked at is indistinguishable from a clean one, and
+                # that indistinguishability is the exact condition that
+                # let the census run at 25% for months.
+                cache[sha] = {"fn": fname, "cls": "UNSCANNED",
+                              "detail": {"reason": picked,
+                                         "runtime": runtime,
+                                         "handler": handler,
+                                         "files": names[:12]}}
+                unscanned += 1
                 continue
-            cls, det = classify_source(src, fname)
+            if runtime.startswith("python"):
+                cls, det = classify_source(src, fname)
+                det["scanned_file"] = picked
+                det["method"] = "ast"
+            else:
+                cls, det = _classify_nonpython(src, fname)
+                det["scanned_file"] = picked
+                det["runtime"] = runtime
             cache[sha] = {"fn": fname, "cls": cls, "detail": det}
             scanned += 1
         except Exception as e:
             print("[d1] %s: %s" % (fname, str(e)[:80]))
+            cache[sha] = {"fn": fname, "cls": "UNSCANNED",
+                          "detail": {"reason": "error: %s" % str(e)[:70],
+                                     "runtime": runtime,
+                                     "handler": handler}}
             failed += 1
 
     complete = cur >= len(fns)
@@ -377,8 +459,34 @@ def d1_scan(context):
                                    "at": _now().isoformat()}).encode(),
                   ContentType="application/json")
     return {"scanned": scanned, "from_cache": cached, "failed": failed,
+            "unscanned": unscanned,
             "cursor": 0 if complete else cur, "total": len(fns),
             "complete": complete, "cache_entries": len(cache)}
+
+
+def d1_unscanned():
+    """A function nobody could look at is not a clean function. Tracking
+    coverage as a defect class keeps "we did not look" visible instead of
+    letting it hide inside a pass."""
+    try:
+        cache = json.loads(s3.get_object(Bucket=BUCKET,
+                                         Key=D1_CACHE_KEY)["Body"].read())
+    except Exception:
+        return []
+    out = []
+    for sha, v in cache.items():
+        if v.get("cls") == "UNSCANNED":
+            d = v.get("detail") or {}
+            out.append({"id": v.get("fn"),
+                        "detail": "self-invoke analysis could not run: %s "
+                                  "(runtime %s) — unscanned, not clean"
+                                  % (d.get("reason"), d.get("runtime"))})
+        elif v.get("cls") == "REVIEW":
+            out.append({"id": v.get("fn"),
+                        "detail": "possible self-invoke in a non-Python "
+                                  "package; regex cannot see guard "
+                                  "structure — needs human review"})
+    return out
 
 
 def d1_findings():
@@ -421,7 +529,7 @@ SEV = {
     "D11_code_storage": 1, "D4_orphan_rule": 1, "D6_scheduled_never_ran": 1,
     "D1_recursion": 1, "D2_timeout_clipped": 1, "D3_double_fire": 1,
     "D8_errors": 2, "D7_concurrency_drop": 2, "D9_no_dlq": 2,
-    "D12_stale_env": 2, "D10_runtime": 3, "D13_dead": 3,
+    "D12_stale_env": 2, "D14_unscanned": 2, "D10_runtime": 3, "D13_dead": 3,
 }
 
 
@@ -580,6 +688,8 @@ def audit():
 
     for f in d1_findings():
         add("D1_recursion", f)
+    for f in d1_unscanned():
+        add("D14_unscanned", f)
 
     M = collect_metrics(names)
     wired, orphans, dupes = schedule_map()
