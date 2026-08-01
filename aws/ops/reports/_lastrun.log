@@ -1,13 +1,21 @@
-executing-against: e22b1ac35defd1ee8ed2b1b24c8dc26830619090
-ops 4215 — THE INDICATOR BUS
-[01:49:07] ✅   settled loop 1
-[01:49:09]   origin: {"vault": 5517, "te_extra": 6591, "family_extra": 1231, "yahoo_extra": 1165, "cftc_extra": 1, "cryptoquant_extra": 4, "fleet_extra": 3545}
-[01:49:09]   spot USINTR: {"v": 3.63, "asof": "2026-07-28", "src": "fred_alias:DFF"}
-[01:49:09]   spot US10Y: {"v": 4.61, "asof": "2026-07-28", "src": "fred_alias:DGS10"}
-[01:49:09]   spot DE02Y: {"v": 2.732, "asof": "ecb:2026-07-29", "src": "ecb:YC"}
-[01:49:09]   spot ES1!: {"v": 7470.25, "asof": "2026-07-31T14:57", "src": "yahoo:ES=F"}
-[01:49:09]   spot BTC_HASHRATE: {"v": 960075344981.735, "asof": "2026-07-30", "src": "cryptoquant:btc/network-data/hashrat
-[01:49:10] ✅   schedule 12:15
-[01:49:10] ✅ BUS LIVE — n=18054
+executing-against: 2c4b3c1a5adeb7725178e8fbce53c0023e464099
+ops 4216 — bus wave-1 consumers
+[01:50:52]   [barometers] bus extras +1170
+── nowcast auto-heal via vault ──
+[01:50:53]   JPCCI: bus=True {"v": 33.8, "asof": "2026-06-01", "src": "fred_alias:CSCICP02JPM460S"}
+[01:50:53]   DECCI: bus=True {"v": -14.6, "asof": "2026-06-01", "src": "fred_alias:CSCICP02DEM460S"
+[01:50:53]   FRCCI: bus=True {"v": -19.3, "asof": "2026-06-01", "src": "fred_alias:CSCICP02FRM460S"
+[01:50:53]   GBCCI: bus=True {"v": -17.0, "asof": "2026-06-01", "src": "fred_alias:CSCICP02GBM460S"
+[01:50:53]   GBBCOI: bus=True {"v": 99.54, "asof": "oecd:2023-12", "src": "oecd:MEI (family)"}
+[01:50:53]   CNBCOI: bus=True {"v": 97.64, "asof": "oecd:2023-12", "src": "oecd:MEI (family)"}
+[01:50:53]   EUBCOI: bus=True {"v": -0.19, "asof": "2026-07-31", "src": "te:api Business Confidence"
+[01:50:53]   DEGDPYY: bus=True {"v": 769540.5, "asof": "2026-01-01", "src": "fred_alias:CLVMNACSCAB1G
+[01:50:53]   FRGDPYY: bus=True {"v": 597460.2, "asof": "2026-01-01", "src": "fred_alias:CLVMNACSCAB1G
+[01:50:53]   EUGDPYY: bus=True {"v": 2.76, "asof": "2026-01-01 YoY", "src": "fred_yoy:CLVMNACSCAB1GQE
+[01:50:53] ✅   macro-nowcast fired (consumes healed legs)
+[01:50:54] ✅   bus-consumers ledger written
+[01:50:54] ✅   barometers bus extras >= 800
+[01:50:54] ✅   nowcast legs in bus >= 8
+[01:50:54] ✅ WAVE-1 LIVE — extras=1170 healed=10
 
-→ Report written to aws/ops/reports/latest/4215_bus.md
+→ Report written to aws/ops/reports/latest/4216_wave1.md
