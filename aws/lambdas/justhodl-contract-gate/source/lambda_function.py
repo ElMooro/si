@@ -50,8 +50,8 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.1.0"
-MARKER = "contract-gate v1.1.0 ops4249 cadence-bounds"
+VERSION = "1.2.0"
+MARKER = "contract-gate v1.2.0 ops4252 rowcount-history"
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CONTRACTS_KEY = "config/engine-contracts.json"
@@ -324,6 +324,7 @@ def check():
     contracts = reg.get("contracts", {})
     live = {a["key"]: a for a in list_artifacts()}
     violations = []
+    rowcounts = {}
 
     def v(cls, key, detail):
         violations.append({"cls": cls, "sev": SEV.get(cls, 2),
@@ -340,6 +341,8 @@ def check():
             v("UNPARSEABLE", key, "will not parse: %s" % str(e)[:80])
             continue
         n = rows_at(doc, c.get("rows_path") or ["$"])
+        if n is not None:
+            rowcounts[key] = n
         if c.get("min_rows") and (n is None or n < c["min_rows"]):
             v("ROW_COLLAPSE", key,
               "%s has %s rows, contract floor is %d (learned %d) — the "
@@ -356,6 +359,28 @@ def check():
         if age_h is not None and age_h > c.get("max_age_hours", 48):
             v("STALE", key, "%.0fh old, bound is %.0fh"
               % (age_h, c.get("max_age_hours", 48)))
+
+    # v1.2.0 (ops 4252): persist today's principal-row counts.
+    #
+    # The learn-time floor (70% of observed) has a blind spot the cadence
+    # fix did not touch: an engine that collapsed BEFORE contracts were
+    # learned had its collapsed output blessed as the baseline — the
+    # census-at-25% class is covered forward, not backward. Detection
+    # needs ground truth over time, and none existed. This writes one
+    # small dated file per check (866 integers), so from today the
+    # question "did this engine used to produce more?" has an answer
+    # that is data, not memory. A future learn can take max-over-history
+    # as the floor instead of a single day's snapshot.
+    try:
+        s3.put_object(
+            Bucket=BUCKET,
+            Key="data/_state/rowcounts/%s.json"
+                % now().strftime("%Y%m%d"),
+            Body=json.dumps({"at": now().isoformat(),
+                             "rows": rowcounts}).encode(),
+            ContentType="application/json")
+    except Exception as e:
+        print("[contracts] rowcount history write failed: %s" % str(e)[:90])
 
     uncontracted = sorted(set(live) - set(contracts))
     violations.sort(key=lambda x: (x["sev"], x["cls"], x["artifact"]))
