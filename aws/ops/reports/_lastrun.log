@@ -1,22 +1,24 @@
-executing-against: f895e2b3f8201d943ace907bd00e9b65493c1d3a
-ops 4239 — converge schedules, real cross-region DR
-── A. Reconciler v1.1.0 + converge duplicates ──
-[15:03:36] ✅ marker verified
-[15:03:36] ✅ SSM mode = enforce-duplicates
-[15:03:50] converge run -> {"ok": true, "mode": "enforce-duplicates", "drift_count": 4, "by_class": {"DUPLICATE_TARGET": 4}, "enforced": 4}
-[15:04:10] verify run  -> {"ok": true, "mode": "enforce-duplicates", "drift_count": 0, "by_class": {}, "enforced": 0}
-[15:04:10] ✅ DRIFT = 0 — live AWS now matches the declared manifest
-── B1. Destination bucket in us-west-2 ──
-[15:04:10] ✅ created justhodl-dr-usw2-857687956942
-[15:04:11] ✅ destination versioning=Enabled
-── B2. Replication role ──
-[15:04:11] ✅ created role jh-s3-dr-replication
-[15:04:23] ✅ role policy attached — arn:aws:iam::857687956942:role/jh-s3-dr-replication
-── B3. Replication rule + read-back verification ──
-[15:04:24] ✅ replication read-back: 1 rule(s), enabled->justhodl-dr-usw2-857687956942 = True
-── B4. Note the stale second bucket ──
-[15:04:24] ⚠ justhodl-backups-857687956942 — 1 object, 19 days old, versioning DISABLED. Left untouched: identify what wrote it before removing anything.
+executing-against: 24565364ff04e3c89189c6939296158cda457ee6
+ops 4240 — output contracts
+── 1. Deploy ──
+[15:13:29] ✅ updated
+[15:13:30] ✅ GATE 1 zip marker verified
+── 2. GATE 2 — learn contracts from current state ──
+[15:14:29] learn -> {"ok": true, "mode": "learn", "n_contracts": 866, "elapsed_s": 54.0}
+[15:14:29] ✅ 866 contracts learned
+── 3. GATE 3/4 — check, and show the sev-1s ──
+[15:15:06] ✅ check -> {"ok": true, "mode": "check", "n_contracts": 866, "n_violations": 2, "sev1": 2, "by_class": {"ROW_COLLAPSE": 2}, "elapsed_s": 36.8}
+[15:15:06] artifacts live=867 contracted=866 uncontracted=1
+[15:15:06] SEV-1 VIOLATIONS (2):
+[15:15:06] ✗    ROW_COLLAPSE   data/dependency-graph.json                 page_reads.risk-regime.html has None rows, contract floor is 36 (learned 52) — the engine 
+[15:15:06] ✗    ROW_COLLAPSE   data/fleet-audit.json                      engine_shared_outs.data/auction-crisis.json has None rows, contract floor is 15 (learned 2
+── 4. GATE 5/6 — schedule + alarm ──
+[15:15:07] ✅ schedule cron(0 13 * * ? *) -> 1 target
+[15:15:08] ✅ alarm justhodl-contract-sev1 armed
+── 5. GATE 7 — declare it in the manifest ──
+[15:15:08] ✅ manifest now declares justhodl-contract-gate-daily (447 rules total)
+[15:15:22] ✅ reconciler drift after declaring: 0
 ── RESULT ──
-[15:04:24] ✅ OPS 4239 PASS — schedules converged and DR now leaves us-east-1.
+[15:15:22] ✅ OPS 4240 PASS — 866 artifacts now have an asserted shape, checked daily.
 
-→ Report written to aws/ops/reports/latest/4239_converge_and_crr.md
+→ Report written to aws/ops/reports/latest/4240_contract_gate.md
