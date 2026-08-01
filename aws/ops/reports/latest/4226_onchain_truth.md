@@ -1,0 +1,29 @@
+# ops 4226 — onchain truth
+
+**Status:** failure  
+**Duration:** 394.3s  
+**Finished:** 2026-08-01T05:07:05+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| cq_live | live | nfs | provider_labeled |
+|---|---|---|---|
+| 2 | 5521 | 4498 | 0 |
+
+## Log
+- `05:00:31`   BTC_SOPR: {"status": "NO_FREE_SOURCE", "src": "unresolved_tv_only", "note": "no free API found (TV/TradingEconomics"}
+- `05:00:31`   GLASSNODE:BTC_SOPR: ABSENT
+- `05:00:31`   BTC_HASHRATE: {"status": "LIVE", "src": "cryptoquant:btc/network-data", "note": "no free API found (TV/TradingEconomics"}
+- `05:00:31`   USDT_SUPPLY: {"status": "NO_FREE_SOURCE", "src": "unresolved_tv_only", "note": "no free API found (TV/TradingEconomics"}
+- `05:00:31`   ERC20_WHALES: {"status": "NO_FREE_SOURCE", "src": "unresolved_tv_only", "note": "no free API found (TV/TradingEconomics"}
+- `05:00:41` ✅   justhodl-tradingview settled at loop 1
+- `05:07:05` ✅   vault v3.30.1 settled
+- `05:07:05` ✅   fresh artifact
+- `05:07:05` ✗   provider labels >= 120
+- `05:07:05` ✗ FAILED: ['provider labels >= 120']
