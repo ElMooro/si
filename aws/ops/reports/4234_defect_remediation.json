@@ -1,0 +1,369 @@
+{
+ "ops": 4234,
+ "ts": "2026-08-01T14:28:19.766161+00:00",
+ "diagnoses": {
+  "justhodl-ici-flows": {
+   "err_pct": 100.0,
+   "errors": 12,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-search-attention": {
+   "err_pct": 100.0,
+   "errors": 84,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "ultimate-multi-agent": {
+   "err_pct": 100.0,
+   "errors": 57,
+   "signature": "ImportModuleError: Unable to import module 'lambda_function': No module named 'lambda_fun",
+   "sample": "[ERROR] Runtime.ImportModuleError: Unable to import module 'lambda_function': No module named 'lambda_function' | Traceback (most recent call last):"
+  },
+  "fedliquidityapi": {
+   "err_pct": 84.5,
+   "errors": 289,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "manufacturing-global-agent": {
+   "err_pct": 83.7,
+   "errors": 211,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "securities-banking-agent": {
+   "err_pct": 83.1,
+   "errors": 212,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "dollar-strength-agent": {
+   "err_pct": 81.3,
+   "errors": 209,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-bagger-engine": {
+   "err_pct": 75.0,
+   "errors": 6,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-deal-scanner": {
+   "err_pct": 71.2,
+   "errors": 222,
+   "signature": "UnboundLocalError: cannot access local variable 'rev_g' where it is not associated with a",
+   "sample": "[ERROR] UnboundLocalError: cannot access local variable 'rev_g' where it is not associated with a value | Traceback (most recent call last): | \u00a0\u00a0File \"/var/task/lambda_function.py\", line 798, in lambda_handler | \u00a0\u00a0\u00a0\u00a0info[fut[f]] = f.result() | \u00a0\u00a0File \"/var/lang/lib/python3.12/concurrent/futures/_base.py\", line 449, in result | \u00a0\u00a0\u00a0\u00a0return self.__get_result() | \u00a0\u00a0File \"/var/lang/lib/python3.12/concurrent/future"
+  },
+  "justhodl-signal-scorecard": {
+   "err_pct": 70.0,
+   "errors": 42,
+   "signature": "ValidationException: ) when calling the PutParameter operation: Standard tier parameters s",
+   "sample": "[signal-scorecard] SSM write failed: An error occurred (ValidationException) when calling the PutParameter operation: Standard tier parameters support a maximum parameter value of 4096 characters. To create a larger parameter value, upgrade the parameter to use the advanced-parameter tier. For more information, see https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-advanc"
+  },
+  "volatility-monitor-agent": {
+   "err_pct": 68.8,
+   "errors": 176,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-data-census": {
+   "err_pct": 55.3,
+   "errors": 21,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-cb-injection": {
+   "err_pct": 42.6,
+   "errors": 20,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-ka-metrics": {
+   "err_pct": 36.4,
+   "errors": 8,
+   "signature": "Traceback (most recent call last):",
+   "sample": "Traceback (most recent call last):"
+  },
+  "justhodl-khalid-metrics": {
+   "err_pct": 36.4,
+   "errors": 8,
+   "signature": "Traceback (most recent call last):",
+   "sample": "Traceback (most recent call last):"
+  },
+  "justhodl-construction-housing": {
+   "err_pct": 33.3,
+   "errors": 13,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-consumer-pulse": {
+   "err_pct": 32.5,
+   "errors": 13,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-yen-carry": {
+   "err_pct": 32.5,
+   "errors": 13,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-fx-intelligence": {
+   "err_pct": 31.5,
+   "errors": 17,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-boj-detail": {
+   "err_pct": 28.9,
+   "errors": 11,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-cds-proxy": {
+   "err_pct": 28.9,
+   "errors": 11,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-snb-detail": {
+   "err_pct": 28.9,
+   "errors": 11,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-gdelt-buzz": {
+   "err_pct": 28.2,
+   "errors": 11,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-air-cargo": {
+   "err_pct": 26.8,
+   "errors": 11,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-ecb-detail": {
+   "err_pct": 25.7,
+   "errors": 9,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-tradingview": {
+   "err_pct": 25.4,
+   "errors": 30,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "justhodl-jsi-calibrator": {
+   "err_pct": 20.0,
+   "errors": 1,
+   "signature": "[ERROR] TooManyUpdates: An error occurred (TooManyUpdates) when callin",
+   "sample": "[ERROR] TooManyUpdates: An error occurred (TooManyUpdates) when calling the PutParameter operation:  | Traceback (most recent call last): | \u00a0\u00a0File \"/var/task/lambda_function.py\", line 325, in lambda_handler | \u00a0\u00a0\u00a0\u00a0_put_ssm(SPINE_WEIGHTS_PARAM, {\"weights\": spine[\"weights\"], \"mode\": spine[\"mode\"], | \u00a0\u00a0File \"/var/task/lambda_function.py\", line 299, in _put_ssm | \u00a0\u00a0\u00a0\u00a0ssm.put_parameter(Name=name, Value=json.dumps"
+  },
+  "justhodl-outcome-checker": {
+   "err_pct": 4.8,
+   "errors": 3,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "bls-labor-agent": {
+   "err_pct": 2.0,
+   "errors": 6,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  },
+  "bond-indices-agent": {
+   "err_pct": 1.3,
+   "errors": 4,
+   "signature": "no ERROR lines in 7d (failure may be a timeout with no traceback)",
+   "sample": null
+  }
+ },
+ "changes": [
+  {
+   "a": "concurrency",
+   "fn": "justhodl-outcome-checker",
+   "from": 1,
+   "to": 10,
+   "throttles_14d": 118
+  },
+  {
+   "a": "concurrency",
+   "fn": "justhodl-signal-scorecard",
+   "from": 1,
+   "to": 10,
+   "throttles_14d": 14
+  },
+  {
+   "a": "concurrency",
+   "fn": "justhodl-onchain-ratios",
+   "from": 1,
+   "to": 10,
+   "throttles_14d": 1
+  },
+  {
+   "a": "concurrency",
+   "fn": "justhodl-13f-positions",
+   "from": 1,
+   "to": 10,
+   "throttles_14d": 72
+  },
+  {
+   "a": "concurrency",
+   "fn": "justhodl-backtest-harness",
+   "from": 1,
+   "to": 10,
+   "throttles_14d": 106
+  },
+  {
+   "a": "timeout",
+   "fn": "fedliquidityapi",
+   "from": 30,
+   "to": 90,
+   "avg_s": 26.6
+  },
+  {
+   "a": "timeout",
+   "fn": "dollar-strength-agent",
+   "from": 60,
+   "to": 180,
+   "avg_s": 51.5
+  },
+  {
+   "a": "timeout",
+   "fn": "volatility-monitor-agent",
+   "from": 60,
+   "to": 180,
+   "avg_s": 49.6
+  },
+  {
+   "a": "timeout",
+   "fn": "securities-banking-agent",
+   "from": 60,
+   "to": 180,
+   "avg_s": 51.8
+  },
+  {
+   "a": "timeout",
+   "fn": "manufacturing-global-agent",
+   "from": 60,
+   "to": 180,
+   "avg_s": 53.7
+  },
+  {
+   "a": "timeout",
+   "fn": "justhodl-search-attention",
+   "from": 300,
+   "to": 900,
+   "avg_s": 300.0
+  },
+  {
+   "a": "timeout",
+   "fn": "justhodl-signal-scorecard",
+   "from": 120,
+   "to": 360,
+   "avg_s": 111.1
+  },
+  {
+   "a": "timeout",
+   "fn": "justhodl-fx-intelligence",
+   "from": 120,
+   "to": 360,
+   "avg_s": 75.9
+  },
+  {
+   "a": "timeout",
+   "fn": "justhodl-cb-injection",
+   "from": 90,
+   "to": 270,
+   "avg_s": 59.3
+  },
+  {
+   "a": "timeout",
+   "fn": "justhodl-global-liquidity",
+   "from": 120,
+   "to": 360,
+   "avg_s": 84.4
+  },
+  {
+   "a": "timeout",
+   "fn": "justhodl-yen-carry",
+   "from": 90,
+   "to": 270,
+   "avg_s": 62.0
+  },
+  {
+   "a": "timeout",
+   "fn": "justhodl-construction-housing",
+   "from": 120,
+   "to": 360,
+   "avg_s": 103.2
+  },
+  {
+   "a": "timeout",
+   "fn": "justhodl-gdelt-buzz",
+   "from": 180,
+   "to": 540,
+   "avg_s": 173.1
+  },
+  {
+   "a": "needs_split",
+   "fn": "justhodl-data-census"
+  },
+  {
+   "a": "timeout",
+   "fn": "justhodl-ecb-detail",
+   "from": 90,
+   "to": 270,
+   "avg_s": 60.8
+  }
+ ],
+ "root_causes": {
+  "no ERROR lines in 7d (failure may be a timeout with no traceback)": [
+   "justhodl-ici-flows",
+   "justhodl-search-attention",
+   "fedliquidityapi",
+   "manufacturing-global-agent",
+   "securities-banking-agent",
+   "dollar-strength-agent",
+   "justhodl-bagger-engine",
+   "volatility-monitor-agent",
+   "justhodl-data-census",
+   "justhodl-cb-injection",
+   "justhodl-construction-housing",
+   "justhodl-consumer-pulse",
+   "justhodl-yen-carry",
+   "justhodl-fx-intelligence",
+   "justhodl-boj-detail",
+   "justhodl-cds-proxy",
+   "justhodl-snb-detail",
+   "justhodl-gdelt-buzz",
+   "justhodl-air-cargo",
+   "justhodl-ecb-detail",
+   "justhodl-tradingview",
+   "justhodl-outcome-checker",
+   "bls-labor-agent",
+   "bond-indices-agent"
+  ],
+  "ImportModuleError: Unable to import module 'lambda_function': No module named 'lambda_fun": [
+   "ultimate-multi-agent"
+  ],
+  "UnboundLocalError: cannot access local variable 'rev_g' where it is not associated with a": [
+   "justhodl-deal-scanner"
+  ],
+  "ValidationException: ) when calling the PutParameter operation: Standard tier parameters s": [
+   "justhodl-signal-scorecard"
+  ],
+  "Traceback (most recent call last):": [
+   "justhodl-ka-metrics",
+   "justhodl-khalid-metrics"
+  ],
+  "[ERROR] TooManyUpdates: An error occurred (TooManyUpdates) when callin": [
+   "justhodl-jsi-calibrator"
+  ]
+ }
+}

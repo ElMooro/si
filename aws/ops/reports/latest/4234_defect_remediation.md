@@ -1,0 +1,164 @@
+# ops 4234 — defect remediation
+
+**Status:** success  
+**Duration:** 67.3s  
+**Finished:** 2026-08-01T14:29:27+00:00  
+
+## Data
+
+| avg_s | engines | error_pct | function | functions | new | new_s | old | old_s | section | signature | throttles_14d |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  | 100.0 | justhodl-ici-flows |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 100.0 | justhodl-search-attention |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 100.0 | ultimate-multi-agent |  |  |  |  |  | diagnosis | ImportModuleError: Unable to import module 'lambda_function': No module named 'lambda_fun |  |
+|  |  | 84.5 | fedliquidityapi |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 83.7 | manufacturing-global-agent |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 83.1 | securities-banking-agent |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 81.3 | dollar-strength-agent |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 75.0 | justhodl-bagger-engine |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 71.2 | justhodl-deal-scanner |  |  |  |  |  | diagnosis | UnboundLocalError: cannot access local variable 'rev_g' where it is not associated with a |  |
+|  |  | 70.0 | justhodl-signal-scorecard |  |  |  |  |  | diagnosis | ValidationException: ) when calling the PutParameter operation: Standard tier parameters s |  |
+|  |  | 68.8 | volatility-monitor-agent |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 55.3 | justhodl-data-census |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 42.6 | justhodl-cb-injection |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 36.4 | justhodl-ka-metrics |  |  |  |  |  | diagnosis | Traceback (most recent call last): |  |
+|  |  | 36.4 | justhodl-khalid-metrics |  |  |  |  |  | diagnosis | Traceback (most recent call last): |  |
+|  |  | 33.3 | justhodl-construction-housing |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 32.5 | justhodl-consumer-pulse |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 32.5 | justhodl-yen-carry |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 31.5 | justhodl-fx-intelligence |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 28.9 | justhodl-boj-detail |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 28.9 | justhodl-cds-proxy |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 28.9 | justhodl-snb-detail |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 28.2 | justhodl-gdelt-buzz |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 26.8 | justhodl-air-cargo |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 25.7 | justhodl-ecb-detail |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 25.4 | justhodl-tradingview |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 20.0 | justhodl-jsi-calibrator |  |  |  |  |  | diagnosis | [ERROR] TooManyUpdates: An error occurred (TooManyUpdates) when callin |  |
+|  |  | 4.8 | justhodl-outcome-checker |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 2.0 | bls-labor-agent |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  |  | 1.3 | bond-indices-agent |  |  |  |  |  | diagnosis | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  | 24 |  |  | justhodl-ici-flows, justhodl-search-attention, fedliquidityapi, manufacturing-global-agent, securities-banking-agent, dollar-strength-agent, justhodl- |  |  |  |  | root_cause | no ERROR lines in 7d (failure may be a timeout with no traceback) |  |
+|  | 2 |  |  | justhodl-ka-metrics, justhodl-khalid-metrics |  |  |  |  | root_cause | Traceback (most recent call last): |  |
+|  | 1 |  |  | ultimate-multi-agent |  |  |  |  | root_cause | ImportModuleError: Unable to import module 'lambda_function': No module named 'lambda_fun |  |
+|  | 1 |  |  | justhodl-deal-scanner |  |  |  |  | root_cause | UnboundLocalError: cannot access local variable 'rev_g' where it is not associated with a |  |
+|  | 1 |  |  | justhodl-signal-scorecard |  |  |  |  | root_cause | ValidationException: ) when calling the PutParameter operation: Standard tier parameters s |  |
+|  | 1 |  |  | justhodl-jsi-calibrator |  |  |  |  | root_cause | [ERROR] TooManyUpdates: An error occurred (TooManyUpdates) when callin |  |
+|  |  |  | justhodl-outcome-checker |  | 10 |  | 1 |  | concurrency |  | 118 |
+|  |  |  | justhodl-signal-scorecard |  | 10 |  | 1 |  | concurrency |  | 14 |
+| 26.6 |  |  | fedliquidityapi |  |  | 90 |  | 30 | timeout |  |  |
+| 51.5 |  |  | dollar-strength-agent |  |  | 180 |  | 60 | timeout |  |  |
+| 49.6 |  |  | volatility-monitor-agent |  |  | 180 |  | 60 | timeout |  |  |
+| 51.8 |  |  | securities-banking-agent |  |  | 180 |  | 60 | timeout |  |  |
+| 53.7 |  |  | manufacturing-global-agent |  |  | 180 |  | 60 | timeout |  |  |
+| 300.0 |  |  | justhodl-search-attention |  |  | 900 |  | 300 | timeout |  |  |
+| 111.1 |  |  | justhodl-signal-scorecard |  |  | 360 |  | 120 | timeout |  |  |
+| 75.9 |  |  | justhodl-fx-intelligence |  |  | 360 |  | 120 | timeout |  |  |
+| 59.3 |  |  | justhodl-cb-injection |  |  | 270 |  | 90 | timeout |  |  |
+| 84.4 |  |  | justhodl-global-liquidity |  |  | 360 |  | 120 | timeout |  |  |
+| 62.0 |  |  | justhodl-yen-carry |  |  | 270 |  | 90 | timeout |  |  |
+| 103.2 |  |  | justhodl-construction-housing |  |  | 360 |  | 120 | timeout |  |  |
+| 173.1 |  |  | justhodl-gdelt-buzz |  |  | 540 |  | 180 | timeout |  |  |
+| 60.8 |  |  | justhodl-ecb-detail |  |  | 270 |  | 90 | timeout |  |  |
+
+## Log
+## A. Real exceptions behind the failing engines
+
+- `14:28:19` engines with >=20% error rate: 30
+- `14:28:20` ✗   justhodl-ici-flows                     100.0%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:21` ✗   justhodl-search-attention              100.0%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:22` ✗   ultimate-multi-agent                   100.0%  ImportModuleError: Unable to import module 'lambda_function': No module named 'lambda_fun
+- `14:28:22`        [ERROR] Runtime.ImportModuleError: Unable to import module 'lambda_function': No module named 'lambda_function' | Traceback (most recent call last):
+- `14:28:22` ✗   fedliquidityapi                         84.5%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:23` ✗   manufacturing-global-agent              83.7%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:23` ✗   securities-banking-agent                83.1%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:24` ✗   dollar-strength-agent                   81.3%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:25` ✗   justhodl-bagger-engine                  75.0%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:25` ✗   justhodl-deal-scanner                   71.2%  UnboundLocalError: cannot access local variable 'rev_g' where it is not associated with a
+- `14:28:25`        [ERROR] UnboundLocalError: cannot access local variable 'rev_g' where it is not associated with a value | Traceback (most recent call last): |   File "/var/task/lambda_function.py", line 798, in lambd
+- `14:28:26` ✗   justhodl-signal-scorecard               70.0%  ValidationException: ) when calling the PutParameter operation: Standard tier parameters s
+- `14:28:26`        [signal-scorecard] SSM write failed: An error occurred (ValidationException) when calling the PutParameter operation: Standard tier parameters support a maximum parameter value of 4096 characters. To 
+- `14:28:26` ✗   volatility-monitor-agent                68.8%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:27` ✗   justhodl-data-census                    55.3%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:28` ✗   justhodl-cb-injection                   42.6%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:29` ✗   justhodl-ka-metrics                     36.4%  Traceback (most recent call last):
+- `14:28:29`        Traceback (most recent call last):
+- `14:28:29` ✗   justhodl-khalid-metrics                 36.4%  Traceback (most recent call last):
+- `14:28:29`        Traceback (most recent call last):
+- `14:28:30` ✗   justhodl-construction-housing           33.3%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:31` ✗   justhodl-consumer-pulse                 32.5%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:32` ✗   justhodl-yen-carry                      32.5%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:32` ✗   justhodl-fx-intelligence                31.5%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:33` ✗   justhodl-boj-detail                     28.9%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:34` ✗   justhodl-cds-proxy                      28.9%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:35` ✗   justhodl-snb-detail                     28.9%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:36` ✗   justhodl-gdelt-buzz                     28.2%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:36` ✗   justhodl-air-cargo                      26.8%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:37` ✗   justhodl-ecb-detail                     25.7%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:38` ✗   justhodl-tradingview                    25.4%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:39` ✗   justhodl-jsi-calibrator                 20.0%  [ERROR] TooManyUpdates: An error occurred (TooManyUpdates) when callin
+- `14:28:39`        [ERROR] TooManyUpdates: An error occurred (TooManyUpdates) when calling the PutParameter operation:  | Traceback (most recent call last): |   File "/var/task/lambda_function.py", line 325, in lambda_h
+- `14:28:39` ✗   justhodl-outcome-checker                 4.8%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:40` ✗   bls-labor-agent                          2.0%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:40` ✗   bond-indices-agent                       1.3%  no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:40` 
+- `14:28:40` GROUPED BY ROOT CAUSE — shared causes fix many engines at once
+- `14:28:40`   [24 engines] no ERROR lines in 7d (failure may be a timeout with no traceback)
+- `14:28:40`                justhodl-ici-flows, justhodl-search-attention, fedliquidityapi, manufacturing-global-agent, securities-banking-agent, dollar-strength-agent, justhodl-bagger-engine, volatility-moni
+- `14:28:40`   [ 2 engines] Traceback (most recent call last):
+- `14:28:40`                justhodl-ka-metrics, justhodl-khalid-metrics
+- `14:28:40`   [ 1 engines] ImportModuleError: Unable to import module 'lambda_function': No module named 'lambda_fun
+- `14:28:40`                ultimate-multi-agent
+- `14:28:40`   [ 1 engines] UnboundLocalError: cannot access local variable 'rev_g' where it is not associated with a
+- `14:28:40`                justhodl-deal-scanner
+- `14:28:40`   [ 1 engines] ValidationException: ) when calling the PutParameter operation: Standard tier parameters s
+- `14:28:40`                justhodl-signal-scorecard
+- `14:28:40`   [ 1 engines] [ERROR] TooManyUpdates: An error occurred (TooManyUpdates) when callin
+- `14:28:40`                justhodl-jsi-calibrator
+## B. Throttle fix — reserved concurrency ceilings
+
+- `14:28:42` ✅   justhodl-outcome-checker                 reserved 1 -> 10  (118 throttled runs were being DROPPED)
+- `14:28:42` ✅   justhodl-signal-scorecard                reserved 1 -> 10  (14 throttled runs were being DROPPED)
+- `14:28:42` concurrency ceilings raised: 2
+- `14:28:49` ✅   justhodl-onchain-ratios                  reserved 1 -> 10 (1 dropped)
+- `14:29:06` ✅   justhodl-13f-positions                   reserved 1 -> 10 (72 dropped)
+- `14:29:11` ✅   justhodl-backtest-harness                reserved 1 -> 10 (106 dropped)
+- `14:29:13` additional throttled functions repaired: 3
+## C. Timeout-clip fix (only where the AVERAGE is pinned)
+
+- `14:29:13`   justhodl-market-tape                   avg 4s of 30s (15%) — TAIL clip only, left alone (code issue, see A)
+- `14:29:13` ✅   fedliquidityapi                        timeout 30s -> 90s (avg 27s = 89% of old ceiling)
+- `14:29:14`   xccy-basis-agent                       avg 50s of 300s (17%) — TAIL clip only, left alone (code issue, see A)
+- `14:29:14`   enhanced-repo-agent                    avg 3s of 60s (4%) — TAIL clip only, left alone (code issue, see A)
+- `14:29:14`   bond-indices-agent                     avg 92s of 300s (31%) — TAIL clip only, left alone (code issue, see A)
+- `14:29:14`   bls-labor-agent                        avg 39s of 180s (22%) — TAIL clip only, left alone (code issue, see A)
+- `14:29:15` ✅   dollar-strength-agent                  timeout 60s -> 180s (avg 52s = 86% of old ceiling)
+- `14:29:16` ✅   volatility-monitor-agent               timeout 60s -> 180s (avg 50s = 83% of old ceiling)
+- `14:29:16` ✅   securities-banking-agent               timeout 60s -> 180s (avg 52s = 86% of old ceiling)
+- `14:29:17` ✅   manufacturing-global-agent             timeout 60s -> 180s (avg 54s = 90% of old ceiling)
+- `14:29:18`   justhodl-tradingview                   avg 495s of 900s (55%) — TAIL clip only, left alone (code issue, see A)
+- `14:29:18`   justhodl-fundamental-census            avg 119s of 900s (13%) — TAIL clip only, left alone (code issue, see A)
+- `14:29:18` ✅   justhodl-search-attention              timeout 300s -> 900s (avg 300s = 100% of old ceiling)
+- `14:29:19`   justhodl-outcome-checker               avg 96s of 300s (32%) — TAIL clip only, left alone (code issue, see A)
+- `14:29:19` ✅   justhodl-signal-scorecard              timeout 120s -> 360s (avg 111s = 93% of old ceiling)
+- `14:29:20`   justhodl-china-liquidity               avg 65s of 300s (22%) — TAIL clip only, left alone (code issue, see A)
+- `14:29:20` ✅   justhodl-fx-intelligence               timeout 120s -> 360s (avg 76s = 63% of old ceiling)
+- `14:29:21` ✅   justhodl-cb-injection                  timeout 90s -> 270s (avg 59s = 66% of old ceiling)
+- `14:29:22`   justhodl-air-cargo                     avg 65s of 180s (36%) — TAIL clip only, left alone (code issue, see A)
+- `14:29:22` ✅   justhodl-global-liquidity              timeout 120s -> 360s (avg 84s = 70% of old ceiling)
+- `14:29:23`   justhodl-consumer-pulse                avg 41s of 90s (46%) — TAIL clip only, left alone (code issue, see A)
+- `14:29:23` ✅   justhodl-yen-carry                     timeout 90s -> 270s (avg 62s = 69% of old ceiling)
+- `14:29:24` ✅   justhodl-construction-housing          timeout 120s -> 360s (avg 103s = 86% of old ceiling)
+- `14:29:25` ✅   justhodl-gdelt-buzz                    timeout 180s -> 540s (avg 173s = 96% of old ceiling)
+- `14:29:25`   justhodl-boj-detail                    avg 40s of 90s (44%) — TAIL clip only, left alone (code issue, see A)
+- `14:29:25`   justhodl-cds-proxy                     avg 59s of 120s (50%) — TAIL clip only, left alone (code issue, see A)
+- `14:29:26` ⚠   justhodl-data-census                   already at 900s ceiling — needs work SPLITTING, not a bigger timeout
+- `14:29:26`   justhodl-snb-detail                    avg 40s of 90s (45%) — TAIL clip only, left alone (code issue, see A)
+- `14:29:26`   justhodl-activity-nowcast              avg 41s of 90s (45%) — TAIL clip only, left alone (code issue, see A)
+- `14:29:26` ✅   justhodl-ecb-detail                    timeout 90s -> 270s (avg 61s = 68% of old ceiling)
+- `14:29:27` timeouts raised: 14
+## D. Result
+
+- `14:29:27` diagnoses captured: 30
+- `14:29:27` config changes applied: 20
+- `14:29:27` ✅ wrote 4234_defect_remediation.json
