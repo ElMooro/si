@@ -1,0 +1,42 @@
+# ops 4220 — CryptoQuant catalog harvest
+
+**Status:** failure  
+**Duration:** 24.5s  
+**Finished:** 2026-08-01T03:23:30+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| dead | live | probed |
+|---|---|---|
+| 69 | 19 | 88 |
+
+## Log
+## LIVE catalog
+
+- `03:23:30`   btc/exchange-flows/in-house-flow: {"flow_total": 13701.78571, "flow_mean": 29.52971058, "transactions_count_flow": 464}
+- `03:23:30`   btc/exchange-flows/inflow: {"inflow_total": 1368.666661, "inflow_top10": 737.429482, "inflow_mean": 0.5237913}
+- `03:23:30`   btc/exchange-flows/netflow: {"netflow_total": 505.412267}
+- `03:23:30`   btc/exchange-flows/outflow: {"outflow_total": 863.254394, "outflow_top10": 645.547026, "outflow_mean": 1.66973771}
+- `03:23:30`   btc/exchange-flows/reserve: {"reserve": 2713907.20793477, "reserve_usd": 170570179773.8276}
+- `03:23:30`   btc/exchange-flows/transactions-count: {"transactions_count_inflow": 2613, "transactions_count_outflow": 517}
+- `03:23:30`   btc/flow-indicator/exchange-shutdown-index: {"is_shutdown": 1}
+- `03:23:30`   btc/flow-indicator/exchange-whale-ratio: {"exchange_whale_ratio": 0.30754999}
+- `03:23:30`   btc/flow-indicator/fund-flow-ratio: {"fund_flow_ratio": 0.05946532}
+- `03:23:30`   btc/flow-indicator/mpi: {"mpi": 0.10328971}
+- `03:23:30`   btc/flow-indicator/stablecoins-ratio: {"stablecoins_ratio": 4.528e-05, "stablecoins_ratio_usd": 2.845727}
+- `03:23:30`   btc/market-indicator/mvrv: {"mvrv": 1.18837439}
+- `03:23:30`   btc/market-indicator/realized-price: {"realized_price": 52873.53521033}
+- `03:23:30`   btc/market-indicator/sopr: {"sopr": 0.99465663, "a_sopr": 0.98888536, "sth_sopr": 0.98739621}
+- `03:23:30`   btc/market-indicator/sopr-ratio: {"sopr_ratio": 1.01111914}
+- `03:23:30`   btc/market-indicator/stablecoin-supply-ratio: {"stablecoin_supply_ratio": 11.19456099}
+- `03:23:30`   btc/network-data/blockreward: {"blockreward": 496.35972557, "blockreward_usd": 31511648.022723}
+- `03:23:30`   btc/network-indicator/nupl: {"nupl": 0.15851435, "nup": 0.35017491, "nul": 0.19166056}
+- `03:23:30`   btc/network-indicator/nvm: {"nvm": 1.31652559}
+- `03:23:30`   dead sample: ["btc/market-indicator/estimated-leverage-ratio:HTTP Error 400: Bad Requ", "btc/market-indicator/nvt:HTTP Error 404: Not Foun", "btc/market-indicator/nvt-golden-cross:HTTP Error 404: Not Foun", "btc/market-indicator/puell-multiple:HTTP Error 404: Not Foun", "btc/miner-flows/reserve:HTTP Error 429: T
+- `03:23:30` ✗ only 19 live paths
