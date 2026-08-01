@@ -1,24 +1,13 @@
-executing-against: 24565364ff04e3c89189c6939296158cda457ee6
-ops 4240 — output contracts
-── 1. Deploy ──
-[15:13:29] ✅ updated
-[15:13:30] ✅ GATE 1 zip marker verified
-── 2. GATE 2 — learn contracts from current state ──
-[15:14:29] learn -> {"ok": true, "mode": "learn", "n_contracts": 866, "elapsed_s": 54.0}
-[15:14:29] ✅ 866 contracts learned
-── 3. GATE 3/4 — check, and show the sev-1s ──
-[15:15:06] ✅ check -> {"ok": true, "mode": "check", "n_contracts": 866, "n_violations": 2, "sev1": 2, "by_class": {"ROW_COLLAPSE": 2}, "elapsed_s": 36.8}
-[15:15:06] artifacts live=867 contracted=866 uncontracted=1
-[15:15:06] SEV-1 VIOLATIONS (2):
-[15:15:06] ✗    ROW_COLLAPSE   data/dependency-graph.json                 page_reads.risk-regime.html has None rows, contract floor is 36 (learned 52) — the engine 
-[15:15:06] ✗    ROW_COLLAPSE   data/fleet-audit.json                      engine_shared_outs.data/auction-crisis.json has None rows, contract floor is 15 (learned 2
-── 4. GATE 5/6 — schedule + alarm ──
-[15:15:07] ✅ schedule cron(0 13 * * ? *) -> 1 target
-[15:15:08] ✅ alarm justhodl-contract-sev1 armed
-── 5. GATE 7 — declare it in the manifest ──
-[15:15:08] ✅ manifest now declares justhodl-contract-gate-daily (447 rules total)
-[15:15:22] ✅ reconciler drift after declaring: 0
-── RESULT ──
-[15:15:22] ✅ OPS 4240 PASS — 866 artifacts now have an asserted shape, checked daily.
+executing-against: 54efd401468907e864fe0c1a61cb48a4850c546a
+ops 4241 — contract-gate v1.0.1
+[15:17:31] ✅ marker verified
+── re-learn with segment paths ──
+[15:18:14] learn -> {"ok": true, "mode": "learn", "n_contracts": 866, "elapsed_s": 41.8}
+── re-check ──
+[15:18:50] check -> {"ok": true, "mode": "check", "n_contracts": 866, "n_violations": 0, "sev1": 0, "by_class": {}, "elapsed_s": 36.2}
+[15:18:51] ✅ the two v1.0.0 false positives are gone
+[15:18:51] ✅ still watching 866 artifacts
+[15:18:51] remaining violations by class: {}
+[15:18:51] ✅ OPS 4241 PASS
 
-→ Report written to aws/ops/reports/latest/4240_contract_gate.md
+→ Report written to aws/ops/reports/latest/4241_contract_path_fix.md
