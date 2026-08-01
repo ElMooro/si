@@ -34,7 +34,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.30.0 ops4210 nfs-lottery"
+MARKER = "tradingview-vault v3.30.1 ops4226 onchain-label"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
@@ -1004,9 +1004,18 @@ def _honest_label(row):
         if sym.startswith("ICERATES"):
             return {"status": "NO_FREE_SOURCE",
                     "resolution_note": "ICE swap rates licensed"}
-        if "AVGBALANCE" in sym or "UNISWAP" in sym:
+        if re.search(
+                r"AVGBALANCE|UNISWAP|WHALES|RETAIL|INVESTORS|TRADERS|"
+                r"INOUTMONEY|BTCCORRELATION|VOLATILITY\d|BULLS|BEARS|"
+                r"ATHDRAWDOWN|LARGETX|INFLOWTX|AVGTIMEBETWEEN|TXSPS|"
+                r"SENDINGADDRESSES|RECEIVINGADDRESSES|NEWADDRESSES|"
+                r"MEANVOLUME|MEDIANVOLUME|TOTALVOLUME|TXVOLUME|"
+                r"UTXOSPENT|MINERTOTALFLOWS|MINEROUTFLOWS|"
+                r"FUTURESOPENINTEREST|PERPETUALOPENINTEREST|"
+                r"TOTALTXFEES|ACTIVEADDRESSES|MARKETCAP", sym):
             return {"status": "NO_FREE_SOURCE",
-                    "resolution_note": "on-chain data is paywalled"}
+                    "resolution_note": "on-chain provider-licensed "
+                                       "(Glassnode/IntoTheBlock)"}
         if re.match(r"^[A-Z]{2}[A-Z0-9]{1,12}$", sym):
             return {"status": "NO_FREE_SOURCE",
                     "resolution_note": "country-indicator pair: no free "
