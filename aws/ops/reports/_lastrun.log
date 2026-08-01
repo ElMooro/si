@@ -1,21 +1,36 @@
-executing-against: d152c4f52bcaa27ae22ea068734706fc2424ac79
-ops 4247 — signal-scorecard ceiling
-── 1. What the engine actually needs ──
-[18:52:31] current timeout=120s memory=256MB | 7d duration avg=119s max=120s
-[18:52:31] max pins the ceiling exactly -> the ceiling IS the constraint, so observed duration cannot tell us how long it really needs
-── 2. Set the ceiling from headroom, not a multiplier ──
-[18:52:36] ✅ timeout 120s -> 900s, memory 256MB -> 1024MB (more memory also means proportionally more CPU, so this is a speed change as well as a ceiling change)
-── 3. Async probe, verified through the artifact ──
-[18:52:36] artifact generated_at before: 2026-07-27T11:02:00.268682+00:00
-[18:52:37] async invoke dispatched; polling the artifact…
-[18:53:07] ✅ artifact republished at 2026-08-01T18:53:06.833714+00:00 (after 30s)
-[18:53:07] ssm_writes -> null
-[18:53:07] ⚠ artifact refreshed but carries no ssm_writes key — the run ended before that branch
-── 4. Error rate to watch ──
-[18:53:07] 24h invocations before this change: 10 at 100% error. The verdict on the fix arrives with tomorrow's scheduled runs, not from this single probe.
+executing-against: a2d5746cf37f0978c8c3ea9219ec71a56cba1487
+ops 4248 — scorecard: read the logs
+── 1. Confirm what code is actually running ──
+[18:56:45] timeout=900s memory=1024MB modified=2026-08-01T18:52:32.000+0000
+── 2. Most recent run — the whole stream, not one line ──
+[18:56:45] --- stream $LATEST]727bb3b492564d4bb185a581eac5b0c5 ---
+[18:56:45]    INIT_START Runtime Version: python:3.12.mainlinev2.v27	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:fb4a5cbb4aeb1909cf946882192e0e708d8756b3a866c3ab89a3cfcfffeca7bc
+[18:56:45]    START RequestId: da6b1e5b-18d8-402a-b106-57a1c4f3504d Version: $LATEST
+[18:56:45]    [signal-scorecard] starting 2026-08-01T18:52:37.841041+00:00
+[18:56:45]    [signal-scorecard] scanned 101095 outcome records
+[18:56:45]    [scorecard] SPY history points: 296
+[18:56:45]    END RequestId: da6b1e5b-18d8-402a-b106-57a1c4f3504d
+[18:56:45]    REPORT RequestId: da6b1e5b-18d8-402a-b106-57a1c4f3504d	Duration: 29390.51 ms	Billed Duration: 29964 ms	Memory Size: 1024 MB	Max Memory Used: 319 MB	Init Duration: 573.49 ms	
+XRAY TraceId: 1-6a6e4075-1
+[18:56:45] --- stream $LATEST]28b641d44fb84209a39984e07dc4572c ---
+[18:56:45]    INIT_START Runtime Version: python:3.12.mainlinev2.v27	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:fb4a5cbb4aeb1909cf946882192e0e708d8756b3a866c3ab89a3cfcfffeca7bc
+[18:56:45]    START RequestId: e39c9ae7-b6da-4773-9307-99f759eb4404 Version: $LATEST
+[18:56:45]    [signal-scorecard] starting 2026-08-01T18:46:06.267447+00:00
+[18:56:45]    END RequestId: e39c9ae7-b6da-4773-9307-99f759eb4404
+[18:56:45]    REPORT RequestId: e39c9ae7-b6da-4773-9307-99f759eb4404	Duration: 120000.00 ms	Billed Duration: 120779 ms	Memory Size: 256 MB	Max Memory Used: 256 MB	Init Duration: 778.85 ms	Status: timeout
+XRAY Trace
+── 3. Explicit ERROR filter across 24h ──
+[18:56:46] matching lines in 24h: 0
+[18:56:46] ✅ no ERROR lines in 24h — the handler is completing; the missing ssm_writes key is a code-path question, not a crash
+── 4. What the artifact says now ──
+[18:56:46] generated_at=2026-08-01T18:53:06.833714+00:00 keys=22
+[18:56:46] has ssm_writes: False   ssm_ok: None
+[18:56:46] top-level keys: alpha, avg_graded_wilson_lb, data_quality_flags, deprecated_signals, elapsed_s, generated_at, interpretation, method, n_deprecated, n_insufficient, n_outcomes_legacy, n_outcomes_neutral, n_outcomes_scanned, n_outcomes_scored, n_outcomes_unresolved, n_promoted, n_signals_graded, n_signals_tracked, pr
+[18:56:46] artifact age: 0.00 days
+── 5. Who consumes this artifact ──
+[18:56:53] functions naming the scorecard in their env: 0
+[18:56:53] ⚠ The scorecard artifact was 5 DAYS STALE before ops 4247. Anything reading it — calibrator, best-setups, master-ranker — was scoring on week-old truth and had no way to know. This is precisely the failure the contract gate exists to catch, and its STALE bound should have fired: worth checking why it did not.
 ── RESULT ──
-[18:53:07] ✗   scorecard did not publish a clean SSM write within 15 minutes
+[18:56:53] ✅ OPS 4248 — diagnostic complete, no changes made
 
-→ Report written to aws/ops/reports/latest/4247_scorecard_timeout.md
-FAILS: scorecard did not publish a clean SSM write within 15 minutes
-❌ OPS-FAIL: aws/ops/pending/ops_4247_scorecard_timeout.py
+→ Report written to aws/ops/reports/latest/4248_scorecard_trace.md
