@@ -1,25 +1,21 @@
-executing-against: 4a20ec9a6f6ca260a1db4ca8c26213cdc2c7466e
-ops 4236 — justhodl-fleet-integrity
-── 1. Discover deploy config from a donor ──
-[14:43:35] ✅ donor = justhodl-fleet-error-monitor
-── 2. Create or update the function ──
-[14:43:35] package 5518 bytes
-[14:43:45] ✅ updated existing function
-── 3. GATE 1 — marker inside the deployed zip ──
-[14:43:45] ✅ marker verified
-── 4. GATE 2 — live invoke ──
-[14:44:16] ✅ returned {"ok": true, "n_defects": 58, "n_new": 58, "n_fixed": 0, "sev1": 11}
-── 5. GATE 3 — artifact is real ──
-[14:44:16] ✅ artifact ok — 58 rows, sev1=11 sev2=47 sev3=0, fleet=766
-[14:44:16]    D8_errors                  47
-[14:44:16]    D2_timeout_clipped         7
-[14:44:16]    D3_double_fire             4
-── 6. GATE 4 — weekly schedule ──
-[14:44:16] ✅ invoke permission granted to EventBridge
-[14:44:16] ✅ schedule cron(0 8 ? * MON *) -> justhodl-fleet-integrity (1 target)
-── 7. GATE 5 — alarm on NEW defects only ──
-[14:44:16] ⚠ alarm: An error occurred (AccessDenied) when calling the PutMetricAlarm operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to pe
+executing-against: 477a91594e1518d098336d9caa4016bf9077f300
+ops 4237 — declarative schedule reconciliation
+── 1. Snapshot live AWS into the authoritative manifest ──
+[14:49:47] captured 445 EventBridge rules + 276 Scheduler schedules (690 enabled)
+[14:49:47] duplicate targets dropped during capture: 4
+[14:49:48] ✅ manifest written to repo config/ and s3://justhodl-dashboard-live/config/schedule-manifest.json
+── 2. Deploy the reconciler (AUDIT mode) ──
+[14:49:48] ✅ SSM /justhodl/schedules/mode = audit
+[14:49:54] ✅ updated
+[14:49:55] ✅ zip marker verified
+── 3. PROVE the snapshot — drift must be exactly 0 ──
+[14:50:10] reconciler -> {"errorMessage": "An error occurred (AccessDeniedException) when calling the ListSchedules operation: User: arn:aws:sts::857687956942:assumed-role/lambda-execution-role/justhodl-schedule-reconciler is not authorized to perform: scheduler:ListSchedules on resource: arn:aws:scheduler:us-east-1:8576879
+── 4. Schedule the reconciler daily ──
+[14:50:11] ✅ cron(30 7 * * ? *) -> justhodl-schedule-reconciler (1 target)
+[14:50:12] ✅ manifest updated to include the two new control-plane rules
 ── RESULT ──
-[14:44:16] ✅ OPS 4236 PASS — the fleet now audits itself every Monday 08:00 UTC and alarms only on regressions.
+[14:50:12] ✗   reconciler invoke error
 
-→ Report written to aws/ops/reports/latest/4236_fleet_integrity_engine.md
+→ Report written to aws/ops/reports/latest/4237_schedule_reconciler.md
+FAILS: reconciler invoke error
+❌ OPS-FAIL: aws/ops/pending/ops_4237_schedule_reconciler.py
