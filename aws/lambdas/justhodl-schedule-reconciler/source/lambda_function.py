@@ -39,8 +39,8 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.0.0"
-MARKER = "schedule-reconciler v1.0.0 ops4237"
+VERSION = "1.1.0"
+MARKER = "schedule-reconciler v1.1.0 ops4239 enforce-duplicates"
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 MANIFEST_KEY = "config/schedule-manifest.json"
@@ -209,7 +209,21 @@ def lambda_handler(event=None, context=None):
     live.update(ls)
 
     drifts = diff(live, want)
-    acted = enforce(drifts, live, want) if mode == "enforce" else []
+    # v1.1.0 (ops 4239): three modes, not two. Full "enforce" is a blunt
+    # instrument for an unattended daily loop — a legitimately new engine
+    # whose schedule has not yet been added to the manifest would be
+    # disabled before anyone noticed. DUPLICATE_TARGET, by contrast, is
+    # NEVER legitimate: one rule listing the same function twice with the
+    # same payload has no valid meaning, it only ever means double-fire.
+    # So that one class self-heals continuously while everything else
+    # waits for a human decision.
+    if mode == "enforce":
+        acted = enforce(drifts, live, want)
+    elif mode in ("enforce-duplicates", "enforce_duplicates"):
+        acted = enforce([d for d in drifts
+                         if d["drift"] == "DUPLICATE_TARGET"], live, want)
+    else:
+        acted = []
 
     by = {}
     for d in drifts:
