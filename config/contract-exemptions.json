@@ -1,0 +1,28 @@
+{
+ "version": 1,
+ "reviewed_at": "2026-08-01T20:58:40.385383+00:00",
+ "note": "reviewed silence \u2014 exempted from STALE, still row-counted daily",
+ "exempt": {
+  "data/_freshness-status.json": "one-shot ops report (retired tooling)",
+  "data/engine-wiring.json": "one-shot ops report",
+  "data/eventbridge-audit.json": "one-shot ops report",
+  "data/llm-cost-audit.json": "one-shot ops report",
+  "data/page-ai-live.json": "one-shot ops report",
+  "data/source-utilization.json": "one-shot ops report",
+  "data/stale-triage.json": "one-shot ops report",
+  "data/subscribe-endpoint.json": "one-shot config",
+  "data/system-audit.json": "one-shot ops report",
+  "data/tv-bookmarklet.json": "one-shot config",
+  "data/tv-fleet-map.json": "one-shot ops report",
+  "data/tv-pipeline-status.json": "one-shot ops report",
+  "data/_probe_shares.json": "event-driven probe state",
+  "data/askdesk-config.json": "manual config; changes only by hand",
+  "data/auction-crisis-alert-state.json": "fires only during a crisis",
+  "data/config-backtest-url.json": "manual config",
+  "data/divergence-interpreted-state.json": "event-driven state",
+  "data/finviz-signals-state.json": "event-driven state",
+  "data/history-api-url.json": "manual config",
+  "data/ka-config.json": "manual config",
+  "data/khalid-config.json": "manual config"
+ }
+}
