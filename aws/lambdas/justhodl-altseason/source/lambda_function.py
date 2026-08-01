@@ -781,3 +781,39 @@ def lambda_handler(event=None, context=None):
     print(f"[altseason] {phase} {score} confirms={len(composite['confirms'])} "
           f"rejects={len(composite['rejects'])} alt_index={ai_now} {out['duration_s']}s")
     return {"statusCode": 200, "body": json.dumps({"phase": phase, "score": score})}
+
+
+_orig_handler_4222 = lambda_handler
+
+
+def lambda_handler(event=None, context=None):
+    """cq_ssr — CryptoQuant rail (core untouched)."""
+    r = _orig_handler_4222(event, context)
+    try:
+        _cq = json.loads(S3.get_object(
+            Bucket=BUCKET,
+            Key="data/cq-feed.json")["Body"].read()
+        ).get("metrics") or {}
+        def _f(slug, field):
+            return ((_cq.get(slug) or {}).get("fields")
+                    or {}).get(field)
+        _doc = json.loads(S3.get_object(
+            Bucket=BUCKET, Key=OUT_KEY)["Body"].read())
+        _blk = {"marker": "ops4222",
+                "ssr": _f("btc_market-indicator_stablecoin-supply-ratio",
+                          "stablecoin_supply_ratio"),
+                "stablecoins_ratio_usd":
+                _f("btc_flow-indicator_stablecoins-ratio",
+                   "stablecoins_ratio_usd"),
+                "fund_flow_ratio":
+                _f("btc_flow-indicator_fund-flow-ratio",
+                   "fund_flow_ratio"),
+                "note": "dry-powder gauges (CQ paid rail)"}
+        _doc["cq_ssr"] = _blk
+        S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
+                      Body=json.dumps(_doc, default=str).encode(),
+                      ContentType="application/json")
+        print("[cq_ssr] wired: " + json.dumps(_blk)[:130])
+    except Exception as _e:
+        print("[cq_ssr] EXC " + type(_e).__name__)
+    return r

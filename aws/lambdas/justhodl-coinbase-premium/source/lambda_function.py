@@ -81,3 +81,48 @@ def lambda_handler(event, context):
                   ContentType="application/json", CacheControl="public, max-age=900")
     return {"statusCode": 200, "body": json.dumps({"btc_premium_pct": out.get("btc_premium_pct"),
                                                     "read": btc.get("read")})}
+
+
+_orig_handler_4222 = lambda_handler
+
+
+def lambda_handler(event=None, context=None):
+    """cq_premium — CryptoQuant rail (core untouched)."""
+    r = _orig_handler_4222(event, context)
+    try:
+        _cq = json.loads(s3.get_object(
+            Bucket=BUCKET,
+            Key="data/cq-feed.json")["Body"].read()
+        ).get("metrics") or {}
+        def _f(slug, field):
+            return ((_cq.get(slug) or {}).get("fields")
+                    or {}).get(field)
+        _doc = json.loads(s3.get_object(
+            Bucket=BUCKET, Key=OUT_KEY)["Body"].read())
+        _cands = ("btc_fund-data_coinbase-premium-index",
+                  "btc_fund-data_coinbase-premium",
+                  "btc_fund-data_coinbase-premium-gap",
+                  "btc_market-data_coinbase-premium-index")
+        _val = None
+        _slug = None
+        for _c in _cands:
+            for _fk in ("coinbase_premium_index",
+                        "coinbase_premium_gap", "premium_index"):
+                _v = _f(_c, _fk)
+                if isinstance(_v, (int, float)):
+                    _val, _slug = _v, _c + "." + _fk
+                    break
+            if _val is not None:
+                break
+        _blk = {"marker": "ops4222", "premium": _val,
+                "slug": _slug,
+                "note": "CQ cross-check leg; null-honest until "
+                        "slug proves"}
+        _doc["cq_premium"] = _blk
+        s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
+                      Body=json.dumps(_doc, default=str).encode(),
+                      ContentType="application/json")
+        print("[cq_premium] wired: " + json.dumps(_blk)[:130])
+    except Exception as _e:
+        print("[cq_premium] EXC " + type(_e).__name__)
+    return r
