@@ -6266,6 +6266,20 @@
      "path": null
     }
    ]
+  },
+  {
+   "kind": "events",
+   "name": "jh-clone-alpha-backfill-weekly",
+   "expr": "cron(30 8 ? * MON *)",
+   "state": "ENABLED",
+   "targets": [
+    {
+     "id": "1",
+     "arn": "arn:aws:states:us-east-1:857687956942:stateMachine:jh-13f-clone-alpha-backfill",
+     "input": null,
+     "path": null
+    }
+   ]
   }
  ],
  "schedules": [

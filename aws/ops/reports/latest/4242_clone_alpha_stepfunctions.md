@@ -1,0 +1,45 @@
+# ops 4242 — clone-alpha backfill on Step Functions
+
+**Status:** success  
+**Duration:** 76.2s  
+**Finished:** 2026-08-01T15:26:50+00:00  
+
+## Data
+
+| action | engine | finding | hops | section | status |
+|---|---|---|---|---|---|
+| none | justhodl-equity-research | async-kickoff depth 2 |  | correction |  |
+| step functions | justhodl-13f-clone-alpha | MAX_HOPS=10 caps convergence silently |  | correction |  |
+|  |  |  | 1 | execution | SUCCEEDED |
+
+## Log
+## 1. Correction of record
+
+- `15:25:33` justhodl-equity-research: async-kickoff, child carries _internal=1 which disables kickoff_mode. Depth is structurally 2. NOT a recursion risk — NO CHANGE MADE.
+- `15:25:33` justhodl-13f-clone-alpha: MAX_HOPS=10, already under AWS's 16. Real defect is silent convergence capping, not recursion.
+## 2. Deploy clone-alpha with SELF_CHAIN=off
+
+- `15:25:44` ✅ zip marker verified
+- `15:25:45` ✅ SELF_CHAIN=off — the Lambda no longer drives itself
+## 3. IAM roles
+
+- `15:25:57` ✅ state machine role arn:aws:iam::857687956942:role/jh-states-clone-alpha
+- `15:26:09` ✅ eventbridge role arn:aws:iam::857687956942:role/jh-events-start-execution
+## 4. State machine definition
+
+- `15:26:10` ✅ created jh-13f-clone-alpha-backfill
+## 5. GATE — run it end to end
+
+- `15:26:10` execution started
+- `15:26:22` status=SUCCEEDED
+- `15:26:22` hops executed in this run: 1
+- `15:26:22` ✅ SUCCEEDED — walk converged in 1 hop(s), no chain ceiling involved
+## 6. Point the weekly schedule at the state machine
+
+- `15:26:22` ✅ cron(30 8 ? * MON *) -> jh-13f-clone-alpha-backfill (1 target)
+## 7. Declare in the manifest, verify drift 0
+
+- `15:26:50` ✅ reconciler drift = 0
+## RESULT
+
+- `15:26:50` ✅ OPS 4242 PASS
