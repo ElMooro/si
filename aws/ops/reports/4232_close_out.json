@@ -1,0 +1,565 @@
+{
+ "ops": 4232,
+ "ts": "2026-08-01T14:15:47.455271+00:00",
+ "actions": [
+  {
+   "a": "strip_env",
+   "fn": "scrapeMacroData",
+   "removed": [
+    "OPENSEARCH_ENDPOINT"
+   ]
+  },
+  {
+   "a": "delete_domain",
+   "id": "openbb-financial-search"
+  },
+  {
+   "a": "delete_domain",
+   "id": "openbb-simple-working",
+   "backup": "backups/opensearch/openbb-simple-working-20260801.json",
+   "docs": 6206
+  }
+ ],
+ "double_fire_fixed": [
+  {
+   "rule": "ai-infra-stack-daily",
+   "fn": "justhodl-ai-infra-stack",
+   "removed": 1,
+   "expr": "cron(45 13 * * ? *)"
+  },
+  {
+   "rule": "ai-rerating-radar-daily",
+   "fn": "justhodl-ai-rerating-radar",
+   "removed": 1,
+   "expr": "cron(15 14 * * ? *)"
+  },
+  {
+   "rule": "alpha-compass-3h",
+   "fn": "justhodl-alpha-compass",
+   "removed": 1,
+   "expr": "cron(50 */3 * * ? *)"
+  },
+  {
+   "rule": "ark-holdings-daily",
+   "fn": "justhodl-ark-holdings",
+   "removed": 1,
+   "expr": "cron(0 6 * * ? *)"
+  },
+  {
+   "rule": "attention-signals-daily",
+   "fn": "justhodl-attention-signals",
+   "removed": 1,
+   "expr": "cron(45 14 * * ? *)"
+  },
+  {
+   "rule": "bea-economic-agent-daily",
+   "fn": "bea-economic-agent",
+   "removed": 1,
+   "expr": "cron(15 14 * * ? *)"
+  },
+  {
+   "rule": "bls-labor-agent-daily",
+   "fn": "bls-labor-agent",
+   "removed": 1,
+   "expr": "cron(0 14 * * ? *)"
+  },
+  {
+   "rule": "capital-flow-radar-daily",
+   "fn": "justhodl-capital-flow-radar",
+   "removed": 1,
+   "expr": "cron(30 22 * * ? *)"
+  },
+  {
+   "rule": "carry-surface-4h",
+   "fn": "justhodl-carry-surface",
+   "removed": 1,
+   "expr": "rate(4 hours)"
+  },
+  {
+   "rule": "census-economic-agent-daily",
+   "fn": "census-economic-agent",
+   "removed": 1,
+   "expr": "cron(30 14 * * ? *)"
+  },
+  {
+   "rule": "crisis-composite-hourly",
+   "fn": "justhodl-crisis-composite",
+   "removed": 1,
+   "expr": "cron(15 * * * ? *)"
+  },
+  {
+   "rule": "engine-signal-map-daily",
+   "fn": "justhodl-engine-signal-map",
+   "removed": 1,
+   "expr": "cron(0 9 * * ? *)"
+  },
+  {
+   "rule": "engine-trust-daily",
+   "fn": "justhodl-engine-trust",
+   "removed": 1,
+   "expr": "cron(30 12 * * ? *)"
+  },
+  {
+   "rule": "eurodollar-plumbing-daily",
+   "fn": "justhodl-eurodollar-plumbing",
+   "removed": 1,
+   "expr": "cron(0 12 * * ? *)"
+  },
+  {
+   "rule": "event-flow-monitor-hourly",
+   "fn": "justhodl-event-flow-monitor",
+   "removed": 1,
+   "expr": "rate(6 hours)"
+  },
+  {
+   "rule": "fast-filings-daily",
+   "fn": "justhodl-fast-filings",
+   "removed": 1,
+   "expr": "cron(0 12 * * ? *)"
+  },
+  {
+   "rule": "fed-nlp-6h",
+   "fn": "justhodl-fed-nlp",
+   "removed": 1,
+   "expr": "rate(6 hours)"
+  },
+  {
+   "rule": "finnhub-signals-daily",
+   "fn": "justhodl-finnhub-signals",
+   "removed": 1,
+   "expr": "cron(0 12 * * ? *)"
+  },
+  {
+   "rule": "fomc-reaction-daily",
+   "fn": "justhodl-fomc-reaction",
+   "removed": 1,
+   "expr": "cron(35 21 * * ? *)"
+  },
+  {
+   "rule": "forward-returns-weekly",
+   "fn": "justhodl-forward-returns",
+   "removed": 1,
+   "expr": "cron(0 3 ? * SUN *)"
+  },
+  {
+   "rule": "gdelt-buzz-daily",
+   "fn": "justhodl-gdelt-buzz",
+   "removed": 1,
+   "expr": "cron(45 12 * * ? *)"
+  },
+  {
+   "rule": "global-liquidity-daily",
+   "fn": "justhodl-global-liquidity",
+   "removed": 1,
+   "expr": "cron(0 14 ? * MON-FRI *)"
+  },
+  {
+   "rule": "global-sovereign-12h",
+   "fn": "justhodl-global-sovereign",
+   "removed": 1,
+   "expr": "cron(15 6,18 * * ? *)"
+  },
+  {
+   "rule": "hiring-velocity-weekly",
+   "fn": "justhodl-hiring-velocity",
+   "removed": 1,
+   "expr": "cron(30 12 ? * SUN *)"
+  },
+  {
+   "rule": "hkma-monitor-daily",
+   "fn": "justhodl-hkma-monitor",
+   "removed": 1,
+   "expr": "cron(0 9 * * ? *)"
+  },
+  {
+   "rule": "industry-rotation-daily",
+   "fn": "justhodl-industry-rotation",
+   "removed": 1,
+   "expr": "cron(35 21 * * ? *)"
+  },
+  {
+   "rule": "jsi-6h",
+   "fn": "justhodl-stress-index",
+   "removed": 1,
+   "expr": "rate(6 hours)"
+  },
+  {
+   "rule": "jsi-calibrator-weekly",
+   "fn": "justhodl-jsi-calibrator",
+   "removed": 1,
+   "expr": "cron(30 9 ? * SUN *)"
+  },
+  {
+   "rule": "justhodl-accumulation-radar-daily",
+   "fn": "justhodl-accumulation-radar",
+   "removed": 1,
+   "expr": "cron(50 21 ? * MON-FRI *)"
+  },
+  {
+   "rule": "justhodl-attention-confluence-daily",
+   "fn": "justhodl-attention-confluence",
+   "removed": 1,
+   "expr": "cron(10 15 * * ? *)"
+  },
+  {
+   "rule": "justhodl-brain-sync-monthly",
+   "fn": "justhodl-brain-sync",
+   "removed": 1,
+   "expr": "cron(0 9 1 * ? *)"
+  },
+  {
+   "rule": "justhodl-breadth-thrust-daily",
+   "fn": "justhodl-breadth-thrust",
+   "removed": 1,
+   "expr": "cron(0 22 ? * MON-FRI *)"
+  },
+  {
+   "rule": "justhodl-canary-warroom-hourly",
+   "fn": "justhodl-canary-warroom",
+   "removed": 1,
+   "expr": "cron(50 * * * ? *)"
+  },
+  {
+   "rule": "justhodl-crypto-emergence-daily",
+   "fn": "justhodl-crypto-emergence",
+   "removed": 1,
+   "expr": "cron(0 13,23 * * ? *)"
+  },
+  {
+   "rule": "justhodl-crypto-liquidity-daily",
+   "fn": "justhodl-crypto-liquidity",
+   "removed": 1,
+   "expr": "cron(0 12,22 * * ? *)"
+  },
+  {
+   "rule": "justhodl-cycle-clock-daily",
+   "fn": "justhodl-cycle-clock",
+   "removed": 1,
+   "expr": "cron(30 23 * * ? *)"
+  },
+  {
+   "rule": "justhodl-dark-pool-weekly",
+   "fn": "justhodl-dark-pool",
+   "removed": 1,
+   "expr": "cron(0 14 ? * WED *)"
+  },
+  {
+   "rule": "justhodl-dealer-gex-hourly",
+   "fn": "justhodl-dealer-gex",
+   "removed": 1,
+   "expr": "cron(7 13-21 ? * MON-FRI *)"
+  },
+  {
+   "rule": "justhodl-earnings-confluence-daily",
+   "fn": "justhodl-earnings-confluence",
+   "removed": 1,
+   "expr": "cron(30 22 ? * MON-FRI *)"
+  },
+  {
+   "rule": "justhodl-edge-discovery-weekly",
+   "fn": "justhodl-edge-discovery",
+   "removed": 1,
+   "expr": "cron(0 11 ? * SUN *)"
+  },
+  {
+   "rule": "justhodl-equity-confluence-daily",
+   "fn": "justhodl-equity-confluence",
+   "removed": 1,
+   "expr": "cron(30 0 * * ? *)"
+  },
+  {
+   "rule": "justhodl-interp-grader-daily",
+   "fn": "justhodl-interpretation-grader",
+   "removed": 1,
+   "expr": "cron(0 15 * * ? *)"
+  },
+  {
+   "rule": "justhodl-llm-cost-dashboard-hourly",
+   "fn": "justhodl-llm-cost-dashboard",
+   "removed": 1,
+   "expr": "cron(5 * * * ? *)"
+  },
+  {
+   "rule": "justhodl-ma200-reclaim-daily",
+   "fn": "justhodl-ma200-reclaim",
+   "removed": 1,
+   "expr": "cron(30 21 ? * MON-FRI *)"
+  },
+  {
+   "rule": "justhodl-macro-leads-daily",
+   "fn": "justhodl-macro-leads",
+   "removed": 1,
+   "expr": "cron(20 12 * * ? *)"
+  },
+  {
+   "rule": "justhodl-nowcast-desk-daily",
+   "fn": "justhodl-nowcast-desk",
+   "removed": 1,
+   "expr": "cron(30 13 * * ? *)"
+  },
+  {
+   "rule": "justhodl-options-analytics-daily",
+   "fn": "justhodl-options-analytics",
+   "removed": 1,
+   "expr": "cron(0 13 ? * TUE-SAT *)"
+  },
+  {
+   "rule": "justhodl-outcome-checker-4h",
+   "fn": "justhodl-outcome-checker",
+   "removed": 1,
+   "expr": "cron(29 21 * * ? *)"
+  },
+  {
+   "rule": "justhodl-paper-book-daily",
+   "fn": "justhodl-paper-book",
+   "removed": 1,
+   "expr": "cron(30 21 * * ? *)"
+  },
+  {
+   "rule": "justhodl-peru-copper-daily",
+   "fn": "justhodl-peru-copper",
+   "removed": 1,
+   "expr": "cron(0 4 * * ? *)"
+  },
+  {
+   "rule": "justhodl-refining-stress-daily",
+   "fn": "justhodl-refining-stress",
+   "removed": 1,
+   "expr": "cron(20 13 * * ? *)"
+  },
+  {
+   "rule": "justhodl-regime-cond-trust-daily",
+   "fn": "justhodl-regime-conditional-trust",
+   "removed": 1,
+   "expr": "cron(0 12 * * ? *)"
+  },
+  {
+   "rule": "justhodl-regime-map-daily",
+   "fn": "justhodl-regime-map",
+   "removed": 1,
+   "expr": "cron(0 13,21 * * ? *)"
+  },
+  {
+   "rule": "justhodl-resilience-daily",
+   "fn": "justhodl-resilience",
+   "removed": 1,
+   "expr": "cron(45 22 ? * MON-FRI *)"
+  },
+  {
+   "rule": "justhodl-sector-emergence-daily",
+   "fn": "justhodl-sector-emergence",
+   "removed": 1,
+   "expr": "cron(0 22 * * ? *)"
+  },
+  {
+   "rule": "justhodl-singapore-nodx-daily",
+   "fn": "justhodl-singapore-nodx",
+   "removed": 1,
+   "expr": "cron(20 4 * * ? *)"
+  },
+  {
+   "rule": "justhodl-squeeze-fuel-daily",
+   "fn": "justhodl-squeeze-fuel",
+   "removed": 1,
+   "expr": "cron(30 13 ? * TUE-SAT *)"
+  },
+  {
+   "rule": "justhodl-strategist-daily",
+   "fn": "justhodl-strategist",
+   "removed": 1,
+   "expr": "cron(0 14 ? * MON-FRI *)"
+  },
+  {
+   "rule": "justhodl-strategy-portfolio-weekly",
+   "fn": "justhodl-strategy-portfolio",
+   "removed": 1,
+   "expr": "cron(20 12 ? * SUN *)"
+  },
+  {
+   "rule": "justhodl-supply-chain-graph-daily",
+   "fn": "justhodl-supply-chain-graph",
+   "removed": 1,
+   "expr": "cron(45 13 ? * TUE-SAT *)"
+  },
+  {
+   "rule": "justhodl-tail-risk-daily",
+   "fn": "justhodl-tail-risk",
+   "removed": 1,
+   "expr": "cron(0 13 ? * TUE-SAT *)"
+  },
+  {
+   "rule": "justhodl-taiwan-moea-daily",
+   "fn": "justhodl-taiwan-moea",
+   "removed": 1,
+   "expr": "cron(30 3 * * ? *)"
+  },
+  {
+   "rule": "justhodl-treasury-noise-daily",
+   "fn": "justhodl-treasury-noise",
+   "removed": 1,
+   "expr": "cron(30 13 ? * TUE-SAT *)"
+  },
+  {
+   "rule": "leadlag-graph-daily",
+   "fn": "justhodl-leadlag-graph",
+   "removed": 1,
+   "expr": "cron(0 13 * * ? *)"
+  },
+  {
+   "rule": "lobbying-intel-daily",
+   "fn": "justhodl-lobbying-intel",
+   "removed": 1,
+   "expr": "cron(0 16 * * ? *)"
+  },
+  {
+   "rule": "magnitude-distributions-daily",
+   "fn": "justhodl-magnitude-distributions",
+   "removed": 1,
+   "expr": "cron(30 7 * * ? *)"
+  },
+  {
+   "rule": "market-internals-daily",
+   "fn": "justhodl-market-internals",
+   "removed": 1,
+   "expr": "cron(40 22 ? * TUE-SAT *)"
+  },
+  {
+   "rule": "massive-signals-daily",
+   "fn": "justhodl-massive-signals",
+   "removed": 1,
+   "expr": "cron(0 22 * * ? *)"
+  },
+  {
+   "rule": "miss-calibrator-weekly",
+   "fn": "justhodl-miss-calibrator",
+   "removed": 1,
+   "expr": "cron(15 9 ? * MON *)"
+  },
+  {
+   "rule": "miss-detector-nightly",
+   "fn": "justhodl-miss-detector",
+   "removed": 1,
+   "expr": "cron(0 1 * * ? *)"
+  },
+  {
+   "rule": "money-flow-state-daily",
+   "fn": "justhodl-money-flow-state",
+   "removed": 1,
+   "expr": "cron(30 23 * * ? *)"
+  },
+  {
+   "rule": "near-miss-monitor-hourly",
+   "fn": "justhodl-near-miss-monitor",
+   "removed": 1,
+   "expr": "cron(58 21 * * ? *)"
+  },
+  {
+   "rule": "notes-intel-daily",
+   "fn": "justhodl-notes-intel",
+   "removed": 1,
+   "expr": "cron(10 12 * * ? *)"
+  },
+  {
+   "rule": "patent-velocity-daily",
+   "fn": "justhodl-patent-velocity",
+   "removed": 1,
+   "expr": "cron(0 17 * * ? *)"
+  },
+  {
+   "rule": "political-stocks-daily",
+   "fn": "justhodl-political-stocks",
+   "removed": 1,
+   "expr": "cron(0 14 * * ? *)"
+  },
+  {
+   "rule": "rotation-chain-2x-daily",
+   "fn": "justhodl-rotation-chain",
+   "removed": 1,
+   "expr": "cron(50 15 * * ? *)"
+  },
+  {
+   "rule": "sec-filings-intel-3x-daily",
+   "fn": "justhodl-sec-filings-intel",
+   "removed": 1,
+   "expr": "cron(7 21 * * ? *)"
+  },
+  {
+   "rule": "signal-board-3h",
+   "fn": "justhodl-signal-board",
+   "removed": 1,
+   "expr": "cron(15 0/6 * * ? *)"
+  },
+  {
+   "rule": "signal-halflife-weekly",
+   "fn": "justhodl-signal-halflife",
+   "removed": 1,
+   "expr": "cron(0 6 ? * MON *)"
+  },
+  {
+   "rule": "signal-harvester-daily",
+   "fn": "justhodl-signal-harvester",
+   "removed": 1,
+   "expr": "cron(15 23 * * ? *)"
+  },
+  {
+   "rule": "smart-money-13f-weekly",
+   "fn": "justhodl-smart-money-13f",
+   "removed": 1,
+   "expr": "cron(0 11 ? * MON *)"
+  },
+  {
+   "rule": "sovereign-stress-daily",
+   "fn": "justhodl-sovereign-stress",
+   "removed": 1,
+   "expr": "cron(0 12 ? * * *)"
+  },
+  {
+   "rule": "stocktwits-daily",
+   "fn": "justhodl-stocktwits",
+   "removed": 1,
+   "expr": "cron(15 12 * * ? *)"
+  },
+  {
+   "rule": "symbol-dictionary-weekly",
+   "fn": "justhodl-symbol-dictionary",
+   "removed": 1,
+   "expr": "cron(0 5 ? * SUN *)"
+  },
+  {
+   "rule": "theme-rotation-daily",
+   "fn": "justhodl-theme-rotation",
+   "removed": 1,
+   "expr": "cron(30 13 * * ? *)"
+  },
+  {
+   "rule": "theme-second-wave-daily",
+   "fn": "justhodl-theme-second-wave",
+   "removed": 1,
+   "expr": "cron(0 14 * * ? *)"
+  },
+  {
+   "rule": "thesis-engine-daily",
+   "fn": "justhodl-thesis-engine",
+   "removed": 1,
+   "expr": "cron(45 22 ? * TUE-SAT *)"
+  },
+  {
+   "rule": "tv-watchlist-tracker-daily",
+   "fn": "justhodl-tv-watchlist-tracker",
+   "removed": 1,
+   "expr": "cron(15 21 ? * TUE-SAT *)"
+  },
+  {
+   "rule": "wl-engines-daily",
+   "fn": "justhodl-wl-engines",
+   "removed": 1,
+   "expr": "cron(30 22 ? * TUE-SAT *)"
+  },
+  {
+   "rule": "wl-fusion-daily",
+   "fn": "justhodl-wl-fusion",
+   "removed": 1,
+   "expr": "cron(50 22 ? * TUE-SAT *)"
+  }
+ ]
+}
