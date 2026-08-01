@@ -1,0 +1,485 @@
+{
+ "ops": 4255,
+ "matrix": {
+  "ASYNC-NO-WRITE": 14,
+  "WRITES-ON-PROBE": 6,
+  "FIXED-DEPLOY-DRIFT": 7,
+  "SUPERSEDED?": 4,
+  "SCHEDULE-INPUT": 3,
+  "CODE-PATH-SILENT": 1
+ },
+ "engines": [
+  {
+   "artifact": "data/_freshness-manifest.json",
+   "writer": "justhodl-fleet-freshness-monitor",
+   "age_h": 650.4,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "ASYNC-NO-WRITE"
+  },
+  {
+   "artifact": "data/alert-history.json",
+   "writer": "justhodl-alert-router",
+   "age_h": 0.6,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [
+    "data/_fleet-monitor-alert-history.json",
+    "data/_freshness-alert-history.json"
+   ],
+   "log_lines": [],
+   "sched_inputs": [],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "WRITES-ON-PROBE"
+  },
+  {
+   "artifact": "data/bis-crossborder.json",
+   "writer": "justhodl-bis-crossborder",
+   "age_h": 0.6,
+   "deployed_writes": false,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "FIXED-DEPLOY-DRIFT"
+  },
+  {
+   "artifact": "data/brain-history.json",
+   "writer": "justhodl-brain-sync",
+   "age_h": 789.5,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "ASYNC-NO-WRITE"
+  },
+  {
+   "artifact": "data/buyback-scanner.json",
+   "writer": "justhodl-buyback-scanner",
+   "age_h": 0.6,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "sched_inputs": [],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "WRITES-ON-PROBE"
+  },
+  {
+   "artifact": "data/compound-signals.json",
+   "writer": "justhodl-alpha-research",
+   "age_h": 28.0,
+   "deployed_writes": false,
+   "repo_writes": true,
+   "fresh_siblings": [
+    "data/compound-signals-state.json"
+   ],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "SUPERSEDED?"
+  },
+  {
+   "artifact": "data/congress-party-map.json",
+   "writer": "justhodl-political-stocks",
+   "age_h": 1492.7,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "ASYNC-NO-WRITE"
+  },
+  {
+   "artifact": "data/etf-census-matrix.json",
+   "writer": "justhodl-etf-census",
+   "age_h": 0.5,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "sched_inputs": [
+    "{}"
+   ],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "SCHEDULE-INPUT"
+  },
+  {
+   "artifact": "data/etf-census.json",
+   "writer": "justhodl-etf-census",
+   "age_h": 0.5,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [
+    "data/etf-census-matrix.json"
+   ],
+   "log_lines": [
+    "[etf-census] flow records=60 vocab=['aum_b', 'avg_20d_dollar_vol_b', 'avg_5d_dollar_vol_b', 'avg_60d_dollar_vol_b', 'category', 'dvol_5d_vs_",
+    "[etf-census] 0/80 AGG (1s)"
+   ],
+   "sched_inputs": [
+    "{}"
+   ],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "SCHEDULE-INPUT"
+  },
+  {
+   "artifact": "data/eurodollar-stress.json",
+   "writer": "justhodl-dollar-radar",
+   "age_h": 0.6,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "ASYNC-NO-WRITE"
+  },
+  {
+   "artifact": "data/factor-data-cache.json",
+   "writer": "justhodl-factor-decomposition",
+   "age_h": 128.3,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "ASYNC-NO-WRITE"
+  },
+  {
+   "artifact": "data/factor-decomposition.json",
+   "writer": "justhodl-factor-decomposition",
+   "age_h": 0.4,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [
+    "[factor-decomposition] start v1.0.0",
+    "[factor-decomposition] complete: n_ok=47 pos_alpha=2 neg_alpha=5"
+   ],
+   "sched_inputs": [
+    "{}"
+   ],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "SCHEDULE-INPUT"
+  },
+  {
+   "artifact": "data/feedback-summary.json",
+   "writer": "justhodl-feedback",
+   "age_h": 2145.1,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "CODE-PATH-SILENT"
+  },
+  {
+   "artifact": "data/fi-census-matrix.json",
+   "writer": "justhodl-fi-census",
+   "age_h": 0.4,
+   "deployed_writes": false,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "FIXED-DEPLOY-DRIFT"
+  },
+  {
+   "artifact": "data/fi-census.json",
+   "writer": "justhodl-fi-census",
+   "age_h": 0.4,
+   "deployed_writes": false,
+   "repo_writes": true,
+   "fresh_siblings": [
+    "data/fi-census-matrix.json"
+   ],
+   "log_lines": [
+    "[fi-census] 0/45 BIL",
+    "[fi-census] 12/45 GOVT"
+   ],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "FIXED-DEPLOY-DRIFT"
+  },
+  {
+   "artifact": "data/forward-returns.json",
+   "writer": "justhodl-forward-returns",
+   "age_h": 0.3,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [
+    "[forward-returns] v1.0.0 starting",
+    "[forward-returns] fetching market data ..."
+   ],
+   "sched_inputs": [],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "WRITES-ON-PROBE"
+  },
+  {
+   "artifact": "data/history-index.json",
+   "writer": "justhodl-calibration-snapshotter",
+   "age_h": 1304.9,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "ASYNC-NO-WRITE"
+  },
+  {
+   "artifact": "data/index-inclusion.json",
+   "writer": "justhodl-index-inclusion",
+   "age_h": 0.3,
+   "deployed_writes": false,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "FIXED-DEPLOY-DRIFT"
+  },
+  {
+   "artifact": "data/inventory-drawdown.json",
+   "writer": "justhodl-inventory-drawdown",
+   "age_h": 0.3,
+   "deployed_writes": false,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [
+    "[inventory-drawdown] sectors_drawing=6 names_with_inv=87 boom_setups=7 4.4s"
+   ],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "FIXED-DEPLOY-DRIFT"
+  },
+  {
+   "artifact": "data/ka-analysis.json",
+   "writer": "justhodl-ka-metrics",
+   "age_h": 418.7,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "ASYNC-NO-WRITE"
+  },
+  {
+   "artifact": "data/khalid-analysis.json",
+   "writer": "justhodl-ka-metrics",
+   "age_h": 418.7,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "ASYNC-NO-WRITE"
+  },
+  {
+   "artifact": "data/massive-signals.json",
+   "writer": "justhodl-alpha-score",
+   "age_h": 23.9,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "ASYNC-NO-WRITE"
+  },
+  {
+   "artifact": "data/miss-calibrator-proposals.json",
+   "writer": "justhodl-miss-calibrator",
+   "age_h": 0.2,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "sched_inputs": [],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "WRITES-ON-PROBE"
+  },
+  {
+   "artifact": "data/options-flow.json",
+   "writer": "justhodl-alpha-score",
+   "age_h": 23.9,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [
+    "data/crypto-options-history.json",
+    "data/crypto-options-surface-history.json",
+    "data/crypto-options-surface.json"
+   ],
+   "log_lines": [
+    "inputs: 503 stocks \u00b7 503 sentiment \u00b7 1862 smart-money \u00b7 8 options-flow"
+   ],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "SUPERSEDED?"
+  },
+  {
+   "artifact": "data/playbook-rules.json",
+   "writer": "justhodl-playbook-engine",
+   "age_h": 0.2,
+   "deployed_writes": false,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "FIXED-DEPLOY-DRIFT"
+  },
+  {
+   "artifact": "data/polygon-related-graph.json",
+   "writer": "justhodl-supply-chain-graph",
+   "age_h": 104.1,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "ASYNC-NO-WRITE"
+  },
+  {
+   "artifact": "data/quiver-congress-cache.json",
+   "writer": "justhodl-political-stocks",
+   "age_h": 895.9,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "ASYNC-NO-WRITE"
+  },
+  {
+   "artifact": "data/quiver-lobbying-cache.json",
+   "writer": "justhodl-lobbying-intel",
+   "age_h": 1229.9,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "ASYNC-NO-WRITE"
+  },
+  {
+   "artifact": "data/risk-regime.json",
+   "writer": "justhodl-carry-surface",
+   "age_h": 0.6,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [
+    "data/risk-regime-state.json"
+   ],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "SUPERSEDED?"
+  },
+  {
+   "artifact": "data/sec-filings-intel.json",
+   "writer": "justhodl-pump-mechanics",
+   "age_h": 0.7,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "ASYNC-NO-WRITE"
+  },
+  {
+   "artifact": "data/signal-halflife.json",
+   "writer": "justhodl-meta-improver",
+   "age_h": 135.9,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "ASYNC-NO-WRITE"
+  },
+  {
+   "artifact": "data/smart-money-13f.json",
+   "writer": "justhodl-smart-money-13f",
+   "age_h": 130.9,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [
+    "data/smart-money-clusters.json",
+    "data/smart-money-names.json"
+   ],
+   "log_lines": [],
+   "sched_inputs": [],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "WRITES-ON-PROBE"
+  },
+  {
+   "artifact": "data/symbol-dictionary.json",
+   "writer": "justhodl-symbol-dictionary",
+   "age_h": 158.6,
+   "deployed_writes": false,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "FIXED-DEPLOY-DRIFT"
+  },
+  {
+   "artifact": "data/symbol-map.json",
+   "writer": "justhodl-symbol-dictionary",
+   "age_h": 459.6,
+   "deployed_writes": false,
+   "repo_writes": true,
+   "fresh_siblings": [
+    "data/symbol-aliases.json",
+    "data/symbol-feed.json"
+   ],
+   "log_lines": [],
+   "moved_on_probe": false,
+   "probe_error": null,
+   "class": "SUPERSEDED?"
+  },
+  {
+   "artifact": "data/whales.json",
+   "writer": "justhodl-whales",
+   "age_h": 128.7,
+   "deployed_writes": true,
+   "repo_writes": true,
+   "fresh_siblings": [],
+   "log_lines": [],
+   "sched_inputs": [],
+   "moved_on_probe": true,
+   "probe_error": null,
+   "class": "WRITES-ON-PROBE"
+  }
+ ]
+}

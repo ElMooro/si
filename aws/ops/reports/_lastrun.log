@@ -1,36 +1,66 @@
-executing-against: ab09e1164d6a4d14f50061d3b666c4ac07eeb296
-ops 4255 — silent-writer forensics (35 pairs)
-[21:16:03] ✗ _freshness-manifest.json               justhodl-fleet-freshness-monit CODE-PATH-SILENT   age=649.8h 
-[21:16:15] ✗ alert-history.json                     justhodl-alert-router          INTERMITTENT       age=30.3h data/_fleet-monitor-alert-history.json;data/_freshness-alert
-[21:16:17] ⚠ bis-crossborder.json <- justhodl-bis-crossborder : DEPLOY-DRIFT — repo writes the key, deployed zip does not. Redeploying from repo.
-[21:18:24] ✅ bis-crossborder.json                   justhodl-bis-crossborder       FIXED-DEPLOY-DRIFT age=131.6h 
-[21:20:29] ✗ buyback-scanner.json                   justhodl-buyback-scanner       INTERMITTENT       age=129.2h 
-[21:20:30] ⚠ compound-signals.json <- justhodl-alpha-research : DEPLOY-DRIFT — repo writes the key, deployed zip does not. Redeploying from repo.
-[21:22:38] ⚠ compound-signals.json                  justhodl-alpha-research        SUPERSEDED?        age=27.4h data/compound-signals-state.json
-[21:24:43] ✗ congress-party-map.json                justhodl-political-stocks      CODE-PATH-SILENT   age=1492.0h 
-[21:26:47] ✗ etf-census-matrix.json                 justhodl-etf-census            SCHEDULE-INPUT     age=307.5h {}
-[21:26:51] ✗ etf-census.json                        justhodl-etf-census            SCHEDULE-INPUT     age=-0.2h {}
-[21:27:00] ✗ eurodollar-stress.json                 justhodl-dollar-radar          SCHEDULE-INPUT     age=-0.0h {}
-[21:29:04] ✗ factor-data-cache.json                 justhodl-factor-decomposition  CODE-PATH-SILENT   age=127.6h 
-[21:29:07] ✗ factor-decomposition.json              justhodl-factor-decomposition  SCHEDULE-INPUT     age=-0.2h {}
-[21:29:11] ✗ feedback-summary.json                  justhodl-feedback              CODE-PATH-SILENT   age=2144.4h 
-[21:29:12] ⚠ fi-census-matrix.json <- justhodl-fi-census : DEPLOY-DRIFT — repo writes the key, deployed zip does not. Redeploying from repo.
+executing-against: 7b5baf7a8ca9ba5bf04485f7d9fbeb06ff3aa09d
+ops 4255 v2 — silent-writer forensics (35 pairs)
+[21:52:30] resume cursor: 0 pair(s) already evidenced today
+── Phase 1 — static evidence + drift repair ──
+[21:52:33] ⚠ DEPLOY-DRIFT bis-crossborder.json <- justhodl-bis-crossborder — redeploying from repo
+[21:52:36] ⚠ DEPLOY-DRIFT compound-signals.json <- justhodl-alpha-research — redeploying from repo
+[21:52:41] ⚠ DEPLOY-DRIFT fi-census-matrix.json <- justhodl-fi-census — redeploying from repo
 /opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: 'census_lib.py'
   return self._open_to_write(zinfo, force_zip64=force_zip64)
-[21:31:20] ✅ fi-census-matrix.json                  justhodl-fi-census             FIXED-DEPLOY-DRIFT age=307.5h 
-[21:31:22] ⚠ fi-census.json <- justhodl-fi-census : DEPLOY-DRIFT — repo writes the key, deployed zip does not. Redeploying from repo.
-[21:31:29] ✅ fi-census.json                         justhodl-fi-census             FIXED-DEPLOY-DRIFT age=-0.3h 
-[21:33:33] ✗ forward-returns.json                   justhodl-forward-returns       INTERMITTENT       age=153.2h 
-[21:33:43] ✗ brain-history.json                     justhodl-brain-sync            CODE-PATH-SILENT   age=788.9h 
-[21:33:49] ✗ history-index.json                     justhodl-calibration-snapshott CODE-PATH-SILENT   age=1304.2h 
-[21:33:50] ⚠ index-inclusion.json <- justhodl-index-inclusion : DEPLOY-DRIFT — repo writes the key, deployed zip does not. Redeploying from repo.
-[21:35:58] ✅ index-inclusion.json                   justhodl-index-inclusion       FIXED-DEPLOY-DRIFT age=128.2h 
-[21:35:59] ⚠ inventory-drawdown.json <- justhodl-inventory-drawdown : DEPLOY-DRIFT — repo writes the key, deployed zip does not. Redeploying from repo.
-[21:36:12] ✅ inventory-drawdown.json                justhodl-inventory-drawdown    FIXED-DEPLOY-DRIFT age=93.7h 
-[21:38:16] ✗ ka-analysis.json                       justhodl-ka-metrics            CODE-PATH-SILENT   age=418.1h 
-[21:38:20] ✗ khalid-analysis.json                   justhodl-ka-metrics            CODE-PATH-SILENT   age=418.1h 
-[21:38:24] ✗ massive-signals.json                   justhodl-alpha-score           CODE-PATH-SILENT   age=23.2h 
-[21:40:28] ✗ miss-calibrator-proposals.json         justhodl-miss-calibrator       INTERMITTENT       age=132.0h 
-[21:40:32] ✗ options-flow.json                      justhodl-alpha-score           MENTIONS-NO-WRITE  age=23.2h inputs: 503 stocks · 503 sentiment · 1872 smart-money · 15 options-flo
-[21:40:32] ⚠ playbook-rules.json <- justhodl-playbook-engine : DEPLOY-DRIFT — repo writes the key, deployed zip does not. Redeploying from repo.
-[21:42:40] ✅ playbook-rules.json                    justhodl-playbook-engine       FIXED-DEPLOY-DRIFT age=134.2h 
+[21:52:42] ⚠ DEPLOY-DRIFT fi-census.json <- justhodl-fi-census — redeploying from repo
+[21:52:48] ⚠ DEPLOY-DRIFT index-inclusion.json <- justhodl-index-inclusion — redeploying from repo
+[21:52:50] ⚠ DEPLOY-DRIFT inventory-drawdown.json <- justhodl-inventory-drawdown — redeploying from repo
+[21:52:53] ⚠ DEPLOY-DRIFT playbook-rules.json <- justhodl-playbook-engine — redeploying from repo
+[21:52:59] ⚠ DEPLOY-DRIFT symbol-dictionary.json <- justhodl-symbol-dictionary — redeploying from repo
+[21:53:00] ⚠ DEPLOY-DRIFT symbol-map.json <- justhodl-symbol-dictionary — redeploying from repo
+── Phase 2 — probe volley ──
+[21:53:14] async volley fired: 27 | fast RequestResponse queue: 1
+[21:53:15] single settle wait 150s for the async volley…
+── Classification ──
+[21:55:45] ✗ _freshness-manifest.json               justhodl-fleet-freshness-mon ASYNC-NO-WRITE     
+[21:55:45] ✅ alert-history.json                     justhodl-alert-router        WRITES-ON-PROBE    data/_fleet-monitor-alert-history.json;data/_freshness-alert
+[21:55:45] ✅ bis-crossborder.json                   justhodl-bis-crossborder     FIXED-DEPLOY-DRIFT 
+[21:55:46] ✗ brain-history.json                     justhodl-brain-sync          ASYNC-NO-WRITE     
+[21:55:46] ✅ buyback-scanner.json                   justhodl-buyback-scanner     WRITES-ON-PROBE    
+[21:55:46] ⚠ compound-signals.json                  justhodl-alpha-research      SUPERSEDED?        data/compound-signals-state.json
+[21:55:46] ✗ congress-party-map.json                justhodl-political-stocks    ASYNC-NO-WRITE     
+[21:55:46] ✗ etf-census-matrix.json                 justhodl-etf-census          SCHEDULE-INPUT     
+[21:55:46] ✗ etf-census.json                        justhodl-etf-census          SCHEDULE-INPUT     [etf-census] flow records=60 vocab=['aum_b', 'avg_20d_dollar_vol_b', '
+[21:55:46] ✗ eurodollar-stress.json                 justhodl-dollar-radar        ASYNC-NO-WRITE     
+[21:55:46] ✗ factor-data-cache.json                 justhodl-factor-decompositio ASYNC-NO-WRITE     
+[21:55:46] ✗ factor-decomposition.json              justhodl-factor-decompositio SCHEDULE-INPUT     [factor-decomposition] start v1.0.0;[factor-decomposition] complete: n
+[21:55:46] ✗ feedback-summary.json                  justhodl-feedback            CODE-PATH-SILENT   
+[21:55:46] ✅ fi-census-matrix.json                  justhodl-fi-census           FIXED-DEPLOY-DRIFT 
+[21:55:46] ✅ fi-census.json                         justhodl-fi-census           FIXED-DEPLOY-DRIFT [fi-census] 0/45 BIL;[fi-census] 12/45 GOVT
+[21:55:47] ✅ forward-returns.json                   justhodl-forward-returns     WRITES-ON-PROBE    [forward-returns] v1.0.0 starting;[forward-returns] fetching market da
+[21:55:47] ✗ history-index.json                     justhodl-calibration-snapsho ASYNC-NO-WRITE     
+[21:55:47] ✅ index-inclusion.json                   justhodl-index-inclusion     FIXED-DEPLOY-DRIFT 
+[21:55:47] ✅ inventory-drawdown.json                justhodl-inventory-drawdown  FIXED-DEPLOY-DRIFT [inventory-drawdown] sectors_drawing=6 names_with_inv=87 boom_setups=7
+[21:55:47] ✗ ka-analysis.json                       justhodl-ka-metrics          ASYNC-NO-WRITE     
+[21:55:47] ✗ khalid-analysis.json                   justhodl-ka-metrics          ASYNC-NO-WRITE     
+[21:55:47] ✗ massive-signals.json                   justhodl-alpha-score         ASYNC-NO-WRITE     
+[21:55:47] ✅ miss-calibrator-proposals.json         justhodl-miss-calibrator     WRITES-ON-PROBE    
+[21:55:47] ⚠ options-flow.json                      justhodl-alpha-score         SUPERSEDED?        inputs: 503 stocks · 503 sentiment · 1862 smart-money · 8 options-flow
+[21:55:47] ✅ playbook-rules.json                    justhodl-playbook-engine     FIXED-DEPLOY-DRIFT 
+[21:55:47] ✗ polygon-related-graph.json             justhodl-supply-chain-graph  ASYNC-NO-WRITE     
+[21:55:48] ✗ quiver-congress-cache.json             justhodl-political-stocks    ASYNC-NO-WRITE     
+[21:55:48] ✗ quiver-lobbying-cache.json             justhodl-lobbying-intel      ASYNC-NO-WRITE     
+[21:55:48] ⚠ risk-regime.json                       justhodl-carry-surface       SUPERSEDED?        data/risk-regime-state.json
+[21:55:48] ✗ sec-filings-intel.json                 justhodl-pump-mechanics      ASYNC-NO-WRITE     
+[21:55:48] ✗ signal-halflife.json                   justhodl-meta-improver       ASYNC-NO-WRITE     
+[21:55:48] ✅ smart-money-13f.json                   justhodl-smart-money-13f     WRITES-ON-PROBE    data/smart-money-clusters.json;data/smart-money-names.json
+[21:55:48] ✅ symbol-dictionary.json                 justhodl-symbol-dictionary   FIXED-DEPLOY-DRIFT 
+[21:55:48] ⚠ symbol-map.json                        justhodl-symbol-dictionary   SUPERSEDED?        data/symbol-aliases.json;data/symbol-feed.json
+[21:55:48] ✅ whales.json                            justhodl-whales              WRITES-ON-PROBE    
+── MATRIX ──
+[21:55:48]   ASYNC-NO-WRITE         14
+[21:55:48]   FIXED-DEPLOY-DRIFT     7
+[21:55:48]   WRITES-ON-PROBE        6
+[21:55:48]   SUPERSEDED?            4
+[21:55:48]   SCHEDULE-INPUT         3
+[21:55:48]   CODE-PATH-SILENT       1
+[21:55:48] auto-repaired deploy-drift, artifact verified moving: 7
+── RESULT ──
+[21:55:48] ✅ OPS 4255 v2 PASS — matrix complete, cursor-resumable
+
+→ Report written to aws/ops/reports/latest/4255_silent_writers.md
