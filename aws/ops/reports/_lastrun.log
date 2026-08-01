@@ -1,11 +1,25 @@
-executing-against: b172740c22f839b1160bcda1aac41c057fab265b
-ops 4235 — deal-scanner UnboundLocalError + legacy silence
-── A. deploy deal-scanner ──
-[14:32:20] ✅ settled by marker inside the deployed zip
-── A2. live probe ──
-[14:32:26] ✅ probe clean — {"statusCode": 200, "body": "{\"ok\": true, \"n_prs\": 3600, \"n_deals\": 7, \"n_small_cap\": 4, \"n_high_materiality\": 0, \"logged\": 0}"}
-── B. silence ultimate-multi-agent (100% ImportModuleError) ──
-[14:32:51] schedules disabled: 0 (function kept for salvage)
-[14:32:51] ✅ OPS 4235 PASS
+executing-against: 4a20ec9a6f6ca260a1db4ca8c26213cdc2c7466e
+ops 4236 — justhodl-fleet-integrity
+── 1. Discover deploy config from a donor ──
+[14:43:35] ✅ donor = justhodl-fleet-error-monitor
+── 2. Create or update the function ──
+[14:43:35] package 5518 bytes
+[14:43:45] ✅ updated existing function
+── 3. GATE 1 — marker inside the deployed zip ──
+[14:43:45] ✅ marker verified
+── 4. GATE 2 — live invoke ──
+[14:44:16] ✅ returned {"ok": true, "n_defects": 58, "n_new": 58, "n_fixed": 0, "sev1": 11}
+── 5. GATE 3 — artifact is real ──
+[14:44:16] ✅ artifact ok — 58 rows, sev1=11 sev2=47 sev3=0, fleet=766
+[14:44:16]    D8_errors                  47
+[14:44:16]    D2_timeout_clipped         7
+[14:44:16]    D3_double_fire             4
+── 6. GATE 4 — weekly schedule ──
+[14:44:16] ✅ invoke permission granted to EventBridge
+[14:44:16] ✅ schedule cron(0 8 ? * MON *) -> justhodl-fleet-integrity (1 target)
+── 7. GATE 5 — alarm on NEW defects only ──
+[14:44:16] ⚠ alarm: An error occurred (AccessDenied) when calling the PutMetricAlarm operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to pe
+── RESULT ──
+[14:44:16] ✅ OPS 4236 PASS — the fleet now audits itself every Monday 08:00 UTC and alarms only on regressions.
 
-→ Report written to aws/ops/reports/latest/4235_dealscanner_fix.md
+→ Report written to aws/ops/reports/latest/4236_fleet_integrity_engine.md
