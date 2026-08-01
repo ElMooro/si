@@ -46,6 +46,22 @@ STATE_KEY = "data/meta-improver-state.json"
 HIST_KEY = "data/history/meta-improver-history.json"
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
+_SSM_TOKEN_PARAM = os.environ.get("GITHUB_TOKEN_SSM", "/justhodl/github-token")
+
+def _github_token():
+    """env first; else SSM SecureString (house pattern -- secrets never
+    live in the repo; GitHub push protection enforces this). Cached."""
+    global GITHUB_TOKEN
+    if GITHUB_TOKEN:
+        return GITHUB_TOKEN
+    try:
+        _ssm = boto3.client("ssm", region_name=os.environ.get("AWS_REGION", "us-east-1"))
+        GITHUB_TOKEN = _ssm.get_parameter(
+            Name=_SSM_TOKEN_PARAM, WithDecryption=True
+        )["Parameter"]["Value"]
+    except Exception as e:
+        print(f"[github-token] ssm miss: {str(e)[:70]}")
+    return GITHUB_TOKEN
 GITHUB_REPO = "ElMooro/si"
 GITHUB_API = "https://api.github.com"
 
@@ -157,7 +173,7 @@ def deci(v):
 def github_get(path):
     url = GITHUB_API + path
     req = urllib.request.Request(url, headers={
-        "Authorization": f"token {GITHUB_TOKEN}",
+        "Authorization": f"token {_github_token()}",
         "Accept": "application/vnd.github.v3+json",
         "User-Agent": "justhodl-meta-improver/1.0",
     })
@@ -175,7 +191,7 @@ def github_post(path, data, method="POST"):
     req = urllib.request.Request(
         url, data=body, method=method,
         headers={
-            "Authorization": f"token {GITHUB_TOKEN}",
+            "Authorization": f"token {_github_token()}",
             "Accept": "application/vnd.github.v3+json",
             "Content-Type": "application/json",
             "User-Agent": "justhodl-meta-improver/1.0",

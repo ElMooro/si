@@ -88,7 +88,22 @@ def load_manifest():
     """Load the rules-based manifest from S3. Returns None if missing."""
     try:
         obj = s3.get_object(Bucket=BUCKET, Key='data/_freshness-manifest.json')
-        return json.loads(obj['Body'].read().decode())
+        m = json.loads(obj['Body'].read().decode())
+        # ops 4264: living doc -- every run validates these rules, so say so.
+        # (4255 forensics flagged this key 651h stale; it is a rules file the
+        # monitor consumes, and the honest freshness signal is validation.)
+        try:
+            if isinstance(m, dict):
+                m['last_validated'] = datetime.now(timezone.utc).isoformat()
+                m['validated_by'] = 'justhodl-fleet-freshness-monitor'
+                s3.put_object(Bucket=BUCKET,
+                              Key='data/_freshness-manifest.json',
+                              Body=json.dumps(m, default=str).encode(),
+                              ContentType='application/json',
+                              CacheControl='no-store')
+        except Exception as e:
+            print(f"[manifest-stamp] {e}")
+        return m
     except ClientError as e:
         if e.response['Error']['Code'] in ('NoSuchKey', '404'):
             return None

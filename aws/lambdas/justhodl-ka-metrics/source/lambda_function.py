@@ -322,7 +322,22 @@ Return ONLY valid JSON:
             s3.put_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json',Body=json.dumps(analysis,indent=2).encode('utf-8'),ContentType='application/json')
             print(f"AI: grade={analysis.get('plumbing_health',{}).get('grade','?')}, crypto={analysis.get('crypto_outlook',{}).get('btc_regime','?')}")
             return analysis
-    except Exception as e:print(f"AI err:{e}");traceback.print_exc();return{"error":str(e)}
+    except Exception as e:
+        # ops 4264: LLM outage must not freeze the artifact. Preserve the
+        # last good analysis, stamp honest llm_status, keep freshness true.
+        print(f"AI err:{e}");traceback.print_exc()
+        try:
+            try:prev=json.loads(s3.get_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json')['Body'].read())
+            except Exception:prev={}
+            prev['llm_status']='unavailable'
+            prev['llm_error']=str(e)[:140]
+            prev['llm_last_attempt']=datetime.now(timezone.utc).isoformat()
+            body=json.dumps(prev,indent=2).encode('utf-8')
+            s3.put_object(Bucket=S3_BUCKET,Key='data/khalid-analysis.json',Body=body,ContentType='application/json')
+            s3.put_object(Bucket=S3_BUCKET,Key='data/ka-analysis.json',Body=body,ContentType='application/json')
+            print("[ka] degrade-write: previous analysis preserved + llm_status stamped")
+        except Exception as e2:print(f"[ka] degrade-write failed: {e2}")
+        return{"error":str(e)}
 
 # ═══════════════════════════════════════════
 # HANDLER

@@ -314,6 +314,20 @@ def lambda_handler(event=None, context=None):
         except Exception as e:
             print(f"[brain-sync] history write err: {str(e)[:60]}")
 
+    # ops 4264: heartbeat -- history appends only on directive change, but
+    # the doc itself must stay fresh ("checked, nothing new" is real info).
+    try:
+        _h = read_history()
+        s3.put_object(Bucket=BUCKET, Key="data/brain-history.json",
+                      Body=json.dumps({"history": _h,
+                                       "last_checked": datetime.now(timezone.utc).isoformat(),
+                                       "directive_changed_this_run": directive_changed,
+                                       "note": "entries append only when the directive changes"},
+                                      default=str).encode(),
+                      ContentType="application/json")
+    except Exception as _e:
+        print(f"[brain-sync] heartbeat err: {str(_e)[:60]}")
+
     out = {
         "engine": "brain-sync", "version": "2.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
