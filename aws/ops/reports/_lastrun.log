@@ -1,50 +1,32 @@
-executing-against: 048559292d714c20c1085638a3e4cb5277afee9c
-ops 4250 — session review (4227-4249)
-── R1. Regression sweep — did today's surgery silence anything? ──
-[19:25:07] functions with declared cadence <= 6h: 74
-[19:25:09] active-before, silent-in-8h: 2 (of which cadence<=1h: 0)
-[19:25:09] ⚠    justhodl-polygon-options-flow              cadence=4.0h prior7d=30 now=0
-[19:25:09] ⚠    justhodl-trade-tickets                     cadence=4.0h prior7d=31 now=0
-── R2. CRR backfill — replication is forward-only ──
-[19:25:31] source objects: 111336 | already in us-west-2: 6 | missing: 111330
-[19:26:29]    … 400 copied
-[19:27:19]    … 800 copied
-[19:28:10]    … 1200 copied
-[19:29:01]    … 1600 copied
-[19:29:51]    … 2000 copied
-[19:30:43]    … 2400 copied
-[19:31:34]    … 2800 copied
-[19:32:25]    … 3200 copied
-[19:33:15]    … 3600 copied
-[19:34:06]    … 4000 copied
-[19:34:57]    … 4400 copied
-[19:35:47]    … 4800 copied
-[19:36:15] copied=5000 failed=0 | destination now holds 5006 of 111336
-[19:36:15] ⚠ 106330 objects still to converge (replication covers everything written from today forward)
-── R3. Give the alarms someone to call ──
-[19:36:15] ✅ SNS topic arn:aws:sns:us-east-1:857687956942:jh-ops-alerts
-[19:36:16] ✅ subscribed raa*** — AWS sent a confirmation email; alarms deliver only after it is clicked
-[19:36:16] ✅    justhodl-integrity-new-defects -> jh-ops-alerts
-[19:36:16] ✅    justhodl-schedule-drift -> jh-ops-alerts
-[19:36:16] ✅    justhodl-contract-sev1 -> jh-ops-alerts
-── R4. Mirror the contract registry into git ──
-[19:36:17] ✅ engine-contracts.json mirrored — 866 contracts, 760 cadence-bounded
-── R5. SSM pointer containment (verified earlier, recorded) ──
-[19:36:17] The scorecard SSM value became a pointer today for payloads >8KB. Repo-wide grep: ZERO functions read /justhodl/calibration/scorecard — the ~10 real consumers (conviction-engine, engine-trust, apex-fusion, proven-portfolio, …) read data/signal-scorecard.json, which was extended ADDITIVELY only. Suspected contract break: cleared with evidence, no action needed.
-── R6. Control-plane coherence ──
-[19:36:17] ✅    justhodl-fleet-integrity-weekly        cron(0 8 ? * MON *)    state=ENABLED targets=1
-[19:36:17] ✅    justhodl-d1-scan-daily                 cron(0 5 * * ? *)      state=ENABLED targets=1
-[19:36:17] ✅    justhodl-schedule-reconciler-daily     cron(30 7 * * ? *)     state=ENABLED targets=1
-[19:36:17] ✅    justhodl-contract-gate-daily           cron(0 13 * * ? *)     state=ENABLED targets=1
-[19:36:17] ✅    jh-clone-alpha-backfill-weekly         cron(30 8 ? * MON *)   state=ENABLED targets=1
-[19:36:31] ✗ live reconciler drift = 1
-[19:36:31] ✅    integrity    artifact 3.5h old
-[19:36:31] ✅    contracts    artifact 0.2h old
+executing-against: 887f16ac1b1dcf1bfa1137f478d5a673e9d25fdb
+ops 4251 — review closure
+── F1. The 'silenced' engines — prove the false positive ──
+[19:39:50] ✅   justhodl-polygon-options-flow          last ran Fri 18:39 UTC — Friday inside market hours; Saturday silence is the SCHEDULE, not a defect
+[19:39:50] ✅   justhodl-trade-tickets                 last ran Fri 18:39 UTC — Friday inside market hours; Saturday silence is the SCHEDULE, not a defect
+[19:39:50] sweep-parser gap recorded: cadence_hours() ignores the day-of-week field; weekend runs of the sweep will over-flag MON-FRI engines until it is day-aware.
+── F2. The drift of one ──
+[19:39:51] reconciler mode=enforce-duplicates drift_count=1
+[19:39:51] ⚠   DUPLICATE_TARGET signal-scorecard-daily                       2 targets, 1 unique — this rule fires its function more than once per tick
+[19:40:05] ✅ reconciler after fix: drift = 0
+── F3. CRR backfill to completion (threaded) ──
+[19:40:28] source=111339 dest=5006 missing=106333
+[19:41:06]    … 10000 copied (265/s)
+[19:41:42]    … 20000 copied (271/s)
+[19:42:18]    … 30000 copied (274/s)
+[19:42:54]    … 40000 copied (275/s)
+[19:43:30]    … 50000 copied (276/s)
+[19:44:07]    … 60000 copied (275/s)
+[19:44:45]    … 70000 copied (273/s)
+[19:45:23]    … 80000 copied (271/s)
+[19:46:16]    … 90000 copied (259/s)
+[19:46:58]    … 100000 copied (257/s)
+[19:47:52] copied=106333 errors=0 in 444s | destination=111339 source=111339
+[19:47:52] ✅ us-west-2 holds a COMPLETE copy (±in-flight daily writes, which forward replication covers)
+── F4. DR freshness — against the REAL key ──
+[19:47:52] ✅ data/dr-snapshot-latest.json is 13.6h old
+[19:47:52] ✅ signal-scorecard artifact is 0.5h old (bound 12h)
+[19:47:52] follow-up recorded: the DR engine writes dated per-day code trees — the bucket grows ~fleet-size daily. Cheap, but a dedupe design pass belongs in a future session.
 ── RESULT ──
-[19:36:31] ✗   backfill incomplete: 106330 remaining
-[19:36:31] ✗   drift 1
-[19:36:31] ✗   coherence: An error occurred (404) when calling the HeadObject operation: Not Found
+[19:47:52] ✅ OPS 4251 PASS — review findings closed with evidence
 
-→ Report written to aws/ops/reports/latest/4250_session_review.md
-FAILS: backfill incomplete: 106330 remaining; drift 1; coherence: An error occurred (404) when calling the HeadObject operation: Not Found
-❌ OPS-FAIL: aws/ops/pending/ops_4250_session_review.py
+→ Report written to aws/ops/reports/latest/4251_review_closure.md
