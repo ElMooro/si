@@ -42,6 +42,7 @@ MODES
                             (use after a deliberate cleanup)
 """
 
+import ast
 import json
 import os
 import re
@@ -66,6 +67,303 @@ cw = boto3.client("cloudwatch", config=CFG)
 evb = boto3.client("events", config=CFG)
 sch = boto3.client("scheduler", config=CFG)
 s3 = boto3.client("s3", config=CFG)
+
+
+# ---------------------------------------------------------------------
+# D1 — self-invocation classification (v1.1.0, ops 4243)
+#
+# v1.0.0 asked "does the source contain the string CHAIN_MAX or depth?"
+# and called everything else unguarded. That produced two false
+# positives out of three findings: justhodl-13f-clone-alpha guards with
+# `hop < MAX_HOPS`, and justhodl-equity-research guards with a payload
+# flag. Reporting a heuristic's output as a finding is the same mistake
+# as reading HTTP 200 as success — which is the mistake this whole
+# engine exists to catch. So the detector now parses the code.
+#
+# CLASSES
+#   UNGUARDED       a self-invoke reachable with no bounding condition.
+#                   The real defect. Severity 1.
+#   BOUNDED_COUNTER guarded by a numeric comparison. The bound is
+#                   REPORTED, because a bound is not automatically safe:
+#                   >= 16 will be broken by AWS mid-walk, and a low bound
+#                   silently caps convergence (MAX_HOPS=10 was capping
+#                   clone-alpha's backfill at ten hops a week).
+#   BOUNDED_FLAG    the self-invoke stamps a key into its own payload
+#                   that the handler reads to disable the same branch —
+#                   the async-kickoff pattern, structurally depth 2.
+#   NO_SELF_INVOKE  clean.
+#
+# Scanning 766 packages is expensive, so results are cached by
+# CodeSha256 — the artifact's own identity. Unchanged code is never
+# re-downloaded, and the walk carries a durable cursor so a run that
+# runs out of clock resumes instead of restarting.
+# ---------------------------------------------------------------------
+
+D1_CACHE_KEY = "data/_state/d1-classification-cache.json"
+D1_CURSOR_KEY = "data/_state/d1-scan-cursor.json"
+D1_RESERVE_MS = 90000
+
+
+def _module_ints(tree):
+    """Module-level integer constants, including the
+    int(os.environ.get("X", "12")) idiom these engines favour."""
+    out = {}
+    for node in tree.body:
+        if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+            continue
+        t = node.targets[0]
+        if not isinstance(t, ast.Name):
+            continue
+        v = node.value
+        if isinstance(v, ast.Constant) and isinstance(v.value, int):
+            out[t.id] = v.value
+        elif isinstance(v, ast.Call) and getattr(v.func, "id", "") == "int":
+            for a in ast.walk(v):
+                if isinstance(a, ast.Constant) and \
+                        isinstance(a.value, str) and a.value.isdigit():
+                    out[t.id] = int(a.value)
+                    break
+    return out
+
+
+def _is_self_target(node, fname):
+    """Does this expression name the function's own identity?"""
+    for a in ast.walk(node):
+        if isinstance(a, ast.Attribute) and a.attr == "function_name":
+            return True
+        if isinstance(a, ast.Constant) and isinstance(a.value, str):
+            if a.value == fname or a.value.endswith("/" + fname):
+                return True
+        if isinstance(a, ast.Constant) and \
+                a.value == "AWS_LAMBDA_FUNCTION_NAME":
+            return True
+    return False
+
+
+def _payload_literal_keys(call):
+    """Literal dict keys the self-invoke stamps into its own payload."""
+    keys = []
+    for a in ast.walk(call):
+        if isinstance(a, ast.Dict):
+            for k in a.keys:
+                if isinstance(k, ast.Constant) and isinstance(k.value, str):
+                    keys.append(k.value)
+    return keys
+
+
+def classify_source(src, fname):
+    """Returns (class, detail_dict). Pure function — self-testable."""
+    try:
+        tree = ast.parse(src)
+    except Exception as e:
+        return "UNPARSEABLE", {"error": str(e)[:90]}
+
+    parent = {}
+    for node in ast.walk(tree):
+        for ch in ast.iter_child_nodes(node):
+            parent[ch] = node
+
+    consts = _module_ints(tree)
+    findings = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        f = node.func
+        if not (isinstance(f, ast.Attribute) and f.attr == "invoke"):
+            continue
+        target = None
+        for kw in node.keywords:
+            if kw.arg == "FunctionName":
+                target = kw.value
+        if target is None and node.args:
+            target = node.args[0]
+        if target is None or not _is_self_target(target, fname):
+            continue
+
+        # walk up collecting every enclosing If test
+        bound, flag = None, None
+        cur = node
+        seen = 0
+        while cur in parent and seen < 40:
+            cur = parent[cur]
+            seen += 1
+            if not isinstance(cur, ast.If):
+                continue
+            for c in ast.walk(cur.test):
+                if isinstance(c, ast.Compare):
+                    for side in [c.left] + list(c.comparators):
+                        if isinstance(side, ast.Constant) and \
+                                isinstance(side.value, int):
+                            bound = side.value if bound is None \
+                                else min(bound, side.value)
+                        elif isinstance(side, ast.Name) and \
+                                side.id in consts:
+                            bv = consts[side.id]
+                            bound = bv if bound is None else min(bound, bv)
+        pkeys = _payload_literal_keys(node)
+        for k in pkeys:
+            if ('get("%s")' % k) in src or ("get('%s')" % k) in src:
+                flag = k
+                break
+        if bound is not None:
+            findings.append(("BOUNDED_COUNTER", {"bound": bound}))
+        elif flag:
+            findings.append(("BOUNDED_FLAG", {"flag": flag}))
+        else:
+            findings.append(("UNGUARDED", {}))
+
+    if not findings:
+        return "NO_SELF_INVOKE", {}
+    order = {"UNGUARDED": 0, "BOUNDED_FLAG": 1, "BOUNDED_COUNTER": 2}
+    findings.sort(key=lambda x: order.get(x[0], 3))
+    return findings[0][0], findings[0][1]
+
+
+SELFTEST = [
+    ("unguarded", "fn_a", """
+import boto3, json
+lam = boto3.client("lambda")
+def lambda_handler(event, context):
+    lam.invoke(FunctionName=context.function_name,
+               InvocationType="Event", Payload=json.dumps({"c": 1}).encode())
+""", "UNGUARDED"),
+    ("counter", "fn_b", """
+import boto3, json
+MAX_HOPS = 10
+lam = boto3.client("lambda")
+def lambda_handler(event, context):
+    hop = int(event.get("hop") or 0)
+    if not complete and hop < MAX_HOPS:
+        lam.invoke(FunctionName=context.function_name,
+                   InvocationType="Event",
+                   Payload=json.dumps({"hop": hop + 1}).encode())
+""", "BOUNDED_COUNTER"),
+    ("kickoff", "fn_c", """
+import boto3, json
+lam = boto3.client("lambda")
+def lambda_handler(event, context):
+    is_internal = event.get("_internal") == "1"
+    kickoff = not is_internal
+    if kickoff:
+        lam.invoke(FunctionName=context.function_name,
+                   InvocationType="Event",
+                   Payload=json.dumps({"_internal": "1"}).encode())
+""", "BOUNDED_FLAG"),
+    ("clean", "fn_d", """
+import boto3
+lam = boto3.client("lambda")
+def lambda_handler(event, context):
+    lam.invoke(FunctionName="some-other-function", InvocationType="Event")
+""", "NO_SELF_INVOKE"),
+]
+
+
+def run_selftest():
+    results = []
+    for name, fname, src, expect in SELFTEST:
+        got, det = classify_source(src, fname)
+        results.append({"case": name, "expect": expect, "got": got,
+                        "pass": got == expect, "detail": det})
+    return {"passed": all(r["pass"] for r in results), "cases": results}
+
+
+def d1_scan(context):
+    """Incremental, sha-cached AST scan of the fleet."""
+    try:
+        cache = json.loads(s3.get_object(Bucket=BUCKET,
+                                         Key=D1_CACHE_KEY)["Body"].read())
+    except Exception:
+        cache = {}
+    fns = []
+    for page in lam.get_paginator("list_functions").paginate():
+        for f in page["Functions"]:
+            fns.append((f["FunctionName"], f.get("CodeSha256")))
+    fns.sort()
+    try:
+        cur = int(json.loads(s3.get_object(
+            Bucket=BUCKET, Key=D1_CURSOR_KEY)["Body"].read()).get("cursor", 0))
+        if cur >= len(fns):
+            cur = 0
+    except Exception:
+        cur = 0
+
+    from urllib.request import urlopen
+    import io as _io
+    import zipfile as _zip
+    scanned = cached = failed = 0
+    while cur < len(fns):
+        if context is not None:
+            try:
+                if context.get_remaining_time_in_millis() < D1_RESERVE_MS:
+                    break
+            except Exception:
+                pass
+        fname, sha = fns[cur]
+        cur += 1
+        if not sha:
+            failed += 1
+            continue
+        if cache.get(sha, {}).get("fn") == fname:
+            cached += 1
+            continue
+        try:
+            loc = lam.get_function(FunctionName=fname)["Code"]["Location"]
+            z = _zip.ZipFile(_io.BytesIO(urlopen(loc, timeout=45).read()))
+            src = ""
+            for n in z.namelist():
+                if n.endswith("lambda_function.py"):
+                    src = z.read(n).decode("utf-8", "ignore")
+                    break
+            if not src:
+                failed += 1
+                continue
+            cls, det = classify_source(src, fname)
+            cache[sha] = {"fn": fname, "cls": cls, "detail": det}
+            scanned += 1
+        except Exception as e:
+            print("[d1] %s: %s" % (fname, str(e)[:80]))
+            failed += 1
+
+    complete = cur >= len(fns)
+    s3.put_object(Bucket=BUCKET, Key=D1_CACHE_KEY,
+                  Body=json.dumps(cache).encode(),
+                  ContentType="application/json")
+    s3.put_object(Bucket=BUCKET, Key=D1_CURSOR_KEY,
+                  Body=json.dumps({"cursor": 0 if complete else cur,
+                                   "total": len(fns), "complete": complete,
+                                   "at": _now().isoformat()}).encode(),
+                  ContentType="application/json")
+    return {"scanned": scanned, "from_cache": cached, "failed": failed,
+            "cursor": 0 if complete else cur, "total": len(fns),
+            "complete": complete, "cache_entries": len(cache)}
+
+
+def d1_findings():
+    """Read the cache and emit only genuine defects."""
+    try:
+        cache = json.loads(s3.get_object(Bucket=BUCKET,
+                                         Key=D1_CACHE_KEY)["Body"].read())
+    except Exception:
+        return []
+    by_fn = {}
+    for sha, v in cache.items():
+        by_fn[v.get("fn")] = v
+    out = []
+    for fn, v in sorted(by_fn.items()):
+        cls, det = v.get("cls"), v.get("detail") or {}
+        if cls == "UNGUARDED":
+            out.append({"id": fn,
+                        "detail": "self-invokes with no bounding condition "
+                                  "— AWS will break the chain at depth 16 "
+                                  "and the remainder of the walk is lost "
+                                  "silently"})
+        elif cls == "BOUNDED_COUNTER" and det.get("bound", 0) >= 16:
+            out.append({"id": fn,
+                        "detail": "self-invoke bound is %s, at or above the "
+                                  "depth 16 at which AWS breaks the chain"
+                                  % det.get("bound")})
+    return out
+
 
 DEPRECATED = {"python3.6", "python3.7", "python3.8", "nodejs12.x",
               "nodejs14.x", "nodejs16.x", "ruby2.7", "go1.x", "dotnet6"}
@@ -233,6 +531,9 @@ def audit():
     except Exception as e:
         print("[integrity] account settings: %s" % str(e)[:100])
 
+    for f in d1_findings():
+        add("D1_recursion", f)
+
     M = collect_metrics(names)
     wired, orphans, dupes = schedule_map()
 
@@ -329,6 +630,21 @@ def lambda_handler(event=None, context=None):
     event = event or {}
     mode = (event.get("mode") or "audit").lower()
     t0 = time.time()
+
+    if mode == "selftest":
+        r = run_selftest()
+        print("[d1] selftest passed=%s" % r["passed"])
+        for c in r["cases"]:
+            print("[d1] %-10s expect=%-16s got=%-16s %s"
+                  % (c["case"], c["expect"], c["got"],
+                     "OK" if c["pass"] else "FAIL"))
+        return {"ok": r["passed"], "mode": "selftest", **r}
+
+    if mode == "d1scan":
+        r = d1_scan(context)
+        print("[d1] scan %s" % json.dumps(r))
+        return {"ok": True, "mode": "d1scan", **r}
+
     D, n_fn, storage_pct = audit()
 
     # ---- baseline diff: report what is NEW, not the whole backlog
