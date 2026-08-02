@@ -372,6 +372,15 @@ def _norm_name(s):
     return re.sub(r"[^a-z ]", "", s.lower()).strip()
 
 
+def _efd_date(s):
+    """eFD dates arrive MM/DD/YYYY; the engine's 90d cutoff compares ISO
+    strings, so un-normalized dates silently drop EVERY row (the 4268
+    first-run bug: 86 in, 0 through)."""
+    s = str(s or "").strip()[:10]
+    m = re.match(r"(\d{2})/(\d{2})/(\d{4})", s)
+    return f"{m.group(3)}-{m.group(1)}-{m.group(2)}" if m else s
+
+
 def fetch_congress_direct() -> tuple:
     """ops 4268: PRIMARY trade feed -- the official pipeline
     (justhodl-congress-direct: Senate eFD + House Clerk), replacing the
@@ -394,8 +403,8 @@ def fetch_congress_direct() -> tuple:
         rows.append({
             "Representative": t.get("filer") or "Unknown",
             "BioGuideID": "",
-            "TransactionDate": (t.get("tx_date") or "")[:10],
-            "ReportDate": (t.get("tx_date") or "")[:10],
+            "TransactionDate": _efd_date(t.get("tx_date")),
+            "ReportDate": _efd_date(t.get("tx_date")),
             "Ticker": t.get("ticker"),
             "Transaction": t.get("type") or "",
             "Range": t.get("amount") or "?",
@@ -509,6 +518,8 @@ def aggregate_trades(quiver_trades: list):
     by_ticker = defaultdict(lambda: {
         "ticker": None,
         "n_trades": 0,
+        "trade_source": "congress_direct_official",
+        "source_status": "LIVE_OFFICIAL_EMPTY",
         "n_buys": 0,
         "n_sells": 0,
         "buy_dollar_est": 0,
@@ -660,20 +671,19 @@ def handler(event, context):
     _cache_note = globals().get("_QUIVER_CACHE_AGE_H")
     
     out = {
+        "trade_source": source,
     
-        "source_status": ("STALE_CACHE — Quiver key expired; congress data age "
-    
-                          f"{_cache_note}h" if _cache_note else "LIVE"),
-    
-        "stale_cache": bool(_cache_note),
+        "source_status": "LIVE_OFFICIAL",
+        "stale_cache": False,
         "schema_version":   "1.3",
         "method":           "political_stocks_v1_s3cached",
         "generated_at":     datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "duration_s":       round((datetime.now(timezone.utc) - started).total_seconds(), 1),
         "lookback_days":    LOOKBACK_DAYS,
-        "data_source":      "https://api.quiverquant.com/beta/live/congresstrading",
-        "party_source":     "https://theunitedstates.io/congress-legislators/legislators-current.json",
-        "quiver_source":    source,  # "live", "s3_cache_Xh", or "none"
+        "data_source":      "official: Senate eFD + House Clerk via "
+                            "justhodl-congress-direct (Quiver retired ops 4268)",
+        "party_source":     "unitedstates/congress-legislators "
+                            "(gh-pages, canonical)",
         
         "trump_holdings":   TRUMP_HOLDINGS,
         
