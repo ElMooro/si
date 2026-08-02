@@ -1,19 +1,15 @@
-executing-against: 640599790dc17fb313b1840c195951f5f4236200
-ops 4286 -- shim gold heal + endpoint residuals, verified live
-── 1. gold engines on the healed shim ──
-[20:17:52] carry-surface invoked: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "
-[20:17:58] carry-surface: no gold call this run (path not exercised) -- neutral
-[20:19:57] china-liquidity invoked: {"statusCode": 200, "body": "{\"ok\": true, \"regime\": \"NEUTRAL\", \"credit_impulse_pp\": -5.52, \
-[20:20:03] china-liquidity: no gold call this run (path not exercised) -- neutral
-[20:35:11] morning-intelligence invoked: {"statusCode": 200, "body": "{\"success\": true, \"khalid\": {\"score\": 51, \"regime\": \"NEUTRAL\"
-[20:35:16] morning-intelligence: no gold call this run (path not exercised) -- neutral
-── 2. endpoint residuals clean ──
-[20:35:27] ✅ convexity-scorer: no dead-path 404s in fresh logs
-[20:35:37] ✅ failure-library: no dead-path 404s in fresh logs
-[20:35:44] ✅ insider-aggregate: no dead-path 404s in fresh logs
+executing-against: e01e4bd5069c88a522c89c28b4bc77eb28324ec6
+ops 4287 -- gold heal proven at the cache source
+── 1. evidence: who carries the gold series ──
+[20:52:05] secretary: gold refs=0 shim import=NO
+── 3. fallback: force a direct-fetch importer ──
+[20:52:06] justhodl-correlation-breaks post-wave=True (lm=2026-08-02 20:21:29+00:00)
+[20:52:15] justhodl-divergence-engine-v2 post-wave=True (lm=2026-08-02 20:24:27+00:00)
+── 4. us-cycle on settled code ──
+[20:52:29] us-cycle: {"statusCode": 200, "body": "{\"score\": 51.7, \"level\": \"WATCH\"}"}
+[20:52:35] ✅ us-cycle clean (gold path not exercised this run -- neutral)
 ── RESULT ──
-[20:35:44] ✗   justhodl-us-cycle deploy window missed (shared-triggered redeploy)
-[20:35:44] ✗   no engine exercised the gold shim -- cannot claim the heal
+[20:52:35] ✗   gold heal still UNPROVEN by served-log or current cache -- evidence above says where next
 
-→ Report written to aws/ops/reports/latest/4286_shim_heal.md
-❌ OPS-FAIL: aws/ops/pending/ops_4286_shim_heal.py
+→ Report written to aws/ops/reports/latest/4287_gold_proof.md
+❌ OPS-FAIL: aws/ops/pending/ops_4287_gold_proof.py
