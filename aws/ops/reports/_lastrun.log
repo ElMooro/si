@@ -1,6 +1,16 @@
-executing-against: daed4e5e7b072de5a22f6e352749ea06a488e99b
-ops 4272 -- -30m schedule amended to declared cron
-[03:29:51] ✅ amended: cron(33 15 * * ? *) (name is legacy; manifest expr honored)
-[03:29:51] ✅ OPS 4272 PASS
+executing-against: 7d73c07df2a05d20a2ca64229bdc468c6780b375
+ops 4273 -- House PTR PDFs into the official tape
+── 1. extractor live + first walk ──
+[17:30:54] ✅ function live via deploy workflow
+[17:30:59] invoked: {"ok": true, "new_docs": 20, "parsed": 17, "no_text": 3, "errors": 0, "elapsed_s": 4.3, "trades_total": 5}
+[17:30:59] ✅ ledger: 20 docs (17 parsed / 3 no_text / 0 err) -> 5 trades
+── 2. schedule (6-hourly incremental) ──
+[17:31:00] ✅ schedule CREATED cron(10 1,7,13,19 * * ? *)
+── 3. political-stocks: both chambers + attribution proof ──
+[17:31:01] invoked: {"statusCode": 200, "body": "{\"ok\": true, \"n_quiver\": 86, \"n_house\": 0, \"n_senate\": 86, \"n_tickers\": 27, \"n_clusters\": 0, \"n_bipartisan\": 0, \"duration_s\": 0.2}"}
+[17:31:01] chambers: senate=86 house=0 tickers=27 clusters=0
+[17:31:01] ⚠ no scored-ticker trades to sample yet
+── RESULT ──
+[17:31:01] ✅ OPS 4273 PASS -- both chambers on official rails, quality inspectable per-doc
 
-→ Report written to aws/ops/reports/latest/4272_options_30m_amend.md
+→ Report written to aws/ops/reports/latest/4273_house_ptr.md
