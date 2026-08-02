@@ -1,8 +1,6 @@
-executing-against: bdbd154abc46cb319277967277b258b98d90fd23
-ops 4271 -- options-flow schedules reconciled
-[03:27:57] ✅ CREATED justhodl-options-flow-sched cron(25 20 ? * MON-FRI *) -> options-flow
-[03:27:57] ✅ CREATED justhodl-options-flow-30m rate(30 minutes) -> options-flow
-── RESULT ──
-[03:27:57] ✅ OPS 4271 PASS -- declarations true; the alias + both cadences keep options-flow.json living
+executing-against: daed4e5e7b072de5a22f6e352749ea06a488e99b
+ops 4272 -- -30m schedule amended to declared cron
+[03:29:51] ✅ amended: cron(33 15 * * ? *) (name is legacy; manifest expr honored)
+[03:29:51] ✅ OPS 4272 PASS
 
-→ Report written to aws/ops/reports/latest/4271_options_schedules.md
+→ Report written to aws/ops/reports/latest/4272_options_30m_amend.md
