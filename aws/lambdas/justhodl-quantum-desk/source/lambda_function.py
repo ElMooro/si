@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "2.2.2"
+VERSION = "2.2.3"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -717,13 +717,10 @@ def build_macro_board(docs):
         worst = sorted((r for r in legs if num(r.get("z")) is not None),
                        key=lambda r: -abs(num(r.get("z"))))[:3]
         out["us_cycle"] = {"score": num(dig(
-                               uc, "score", "composite.score",
-                               "cycle.score", "summary.score",
-                               "composite.zbar", "zbar")),
-                           "level": dig(uc, "level", "band",
-                                        "composite.level",
-                                        "cycle.band", "summary.level",
-                                        "composite.band"),
+                               uc, "cycle_score.score_0_100",
+                               "score", "cycle_score.score")),
+                           "level": dig(uc, "cycle_score.level",
+                                        "level", "band"),
                            "worst": [{"name": next(
                                (r[k] for k in NAMEISH
                                 if r.get(k)), "?"),
@@ -866,18 +863,23 @@ def _stress_and_backtest(docs, money_map):
             if v is not None:
                 return v
         return None
-    bt = docs.get("signal_backtest")
-    vstats = {}
-    if isinstance(bt, dict):
-        for k, v in bt.items():
-            if isinstance(v, dict):
-                for verdict, rows2 in v.items():
-                    if isinstance(rows2, list) and rows2 and                             isinstance(rows2[0], dict) and                             "win_rate" in rows2[0]:
-                        ws = [num(x.get("win_rate")) for x in rows2
-                              if num(x.get("win_rate")) is not None]
-                        if ws:
-                            vstats[verdict] = round(
-                                sum(ws) / len(ws), 1)
+    bt = docs.get("signal_backtest") or {}
+    # by_verdict is a SUMMARY dict: verdict -> {n, win_rate, avg, ...}
+    vstats = {str(k).upper(): num((v or {}).get("win_rate"))
+              for k, v in (bt.get("by_verdict") or {}).items()
+              if isinstance(v, dict)}
+
+    def _win_for(verdict):
+        if not verdict:
+            return None
+        vu = str(verdict).upper()
+        if vu in vstats:
+            return vstats[vu]
+        tok = vu.split()[0]
+        for k, w in vstats.items():
+            if k.startswith(tok) or vu.startswith(k.split()[0]):
+                return w
+        return None
     for r in (globals().get("_LADDER_REF") or []):
         er = _stress_for(str(r.get("asset") or "").upper(),
                          str(r.get("class") or "").upper())
@@ -887,9 +889,17 @@ def _stress_and_backtest(docs, money_map):
         er = by.get(m["ticker"])
         if er is not None:
             m["stress_er_pct"] = round(er, 1)
-        wv = vstats.get(m.get("setup_verdict") or "")
+        wv = _win_for(m.get("setup_verdict"))
         if wv is not None:
             m["verdict_hist_winrate"] = wv
+        if m.get("price") is None:  # best-setups has no price; the
+            # evidence chips do (momentum/options engines)
+            for c in m.get("evidence") or []:
+                pv = num(c.get("current_price")
+                         or c.get("stock_price") or c.get("price"))
+                if pv is not None:
+                    m["price"] = pv
+                    break
 
 
 def build_ladder(docs, regime, risk):

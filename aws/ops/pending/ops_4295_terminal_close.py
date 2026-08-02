@@ -85,3 +85,5 @@ with report("4295_terminal_close") as r:
              "every shape real")
 if fails:
     sys.exit(1)
+
+# retrigger after engine landed (heredoc assert had blocked v2.2.3)
