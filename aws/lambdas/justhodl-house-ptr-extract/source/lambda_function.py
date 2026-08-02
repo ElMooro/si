@@ -39,7 +39,7 @@ MAX_DOCS_PER_RUN = int(os.environ.get("MAX_DOCS_PER_RUN", "20"))
 MAX_TRADES_KEPT = 1500
 MAX_DOCS_KEPT = 900
 UA = "Mozilla/5.0 (JustHodl research; contact via github.com/ElMooro)"
-VERSION = "1.1"
+VERSION = "1.1.1"
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -167,6 +167,11 @@ def lambda_handler(event=None, context=None):
                 rec.update(status="no_text", n_rows=0, n_tickers=0)
                 n_notext += 1
             else:
+                # honest zero-row metric: a PTR of only mutual funds /
+                # treasuries has no (TICKER) mentions -- zero rows is
+                # CORRECT there, a recall miss only where mentions > 0.
+                rec["n_ticker_mentions"] = len(
+                    set(RX_TICKER.findall(text)))
                 rows = parse_ptr_text(text, filer)
                 for r_ in rows:
                     r_["doc_id"] = did

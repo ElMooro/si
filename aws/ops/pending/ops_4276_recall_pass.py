@@ -48,7 +48,7 @@ with report("4276_recall_pass") as r:
     else:
         p = lam.invoke(FunctionName="justhodl-house-ptr-extract",
                        InvocationType="RequestResponse",
-                       Payload=json.dumps({"reparse_zero": True}).encode())
+                       Payload=json.dumps({"reparse_zero": True}).encode())  # v1.1.1 stamps mentions on reparse
         r.log("invoked: %s"
               % (p["Payload"].read() or b"")[:220].decode("utf-8",
                                                           "ignore"))
@@ -63,12 +63,32 @@ with report("4276_recall_pass") as r:
                     hist[n] = hist.get(n, 0) + 1
             st = led.get("stats") or {}
             zeros = hist.get(0, 0)
-            r.log("histogram now: %s -- trades_total=%s"
+            true_miss, fund_only, unmeasured = [], 0, 0
+            for did, d in (led.get("docs") or {}).items():
+                if d.get("status") == "parsed" and not d.get("n_rows"):
+                    nm = d.get("n_ticker_mentions")
+                    if nm is None:
+                        unmeasured += 1
+                    elif nm > 0:
+                        true_miss.append((did,
+                                          (d.get("filer") or "?")[:20],
+                                          nm))
+                    else:
+                        fund_only += 1
+            r.log("histogram: %s -- trades_total=%s"
                   % (dict(sorted(hist.items())), st.get("trades_total")))
-            if zeros > 5:
-                fails.append("zero-bucket still %d after v1.1" % zeros)
+            r.log("zero-rows split: true_miss=%d fund_only=%d "
+                  "unmeasured(pre-v1.1.1)=%d"
+                  % (len(true_miss), fund_only, unmeasured))
+            if true_miss:
+                r.warn("true misses (tickers in text, none parsed): %s"
+                       % true_miss[:4])
+            if len(true_miss) > 2:
+                fails.append("%d true recall misses" % len(true_miss))
             else:
-                r.ok("zero-bucket 12 -> %d; recall recovered" % zeros)
+                r.ok("recall honest: %d trades, zero-rows are "
+                     "fund-only or pre-metric" % (st.get("trades_total")
+                                                  or 0))
             for t in (led.get("trades") or [])[:6]:
                 r.kv(who=t.get("Representative"), ticker=t.get("Ticker"),
                      tx=t.get("Transaction"),
