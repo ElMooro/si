@@ -68,7 +68,18 @@ with report("4270_page_critical") as r:
         except Exception as e:
             r.log("baseline head: %s" % str(e)[:80])
         try:
-            cfg = lam.get_function_configuration(FunctionName=fn)
+            cfg = None
+            for _ in range(40):   # delta2: deploy-race wait — options-
+                cfg = lam.get_function_configuration(FunctionName=fn)
+                if fn != "justhodl-options-flow":
+                    break         # flow's big zip raced the invoke
+                if cfg.get("LastUpdateStatus") in (None, "Successful")                         and cfg.get("State") == "Active":
+                    lm_dt = datetime.strptime(
+                        cfg["LastModified"].split(".")[0],
+                        "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
+                    if (RUN_START - lm_dt).total_seconds() < 12 * 60:
+                        break
+                time.sleep(8)
             r.log("live cfg: runtime=%s mem=%s timeout=%s managed=%s"
                   % (cfg.get("Runtime"), cfg.get("MemorySize"),
                      cfg.get("Timeout"),
@@ -107,7 +118,7 @@ with report("4270_page_critical") as r:
             else:
                 fails.append("%s ran but %s still %.0f min stale"
                              % (fn, key, a))
-                continue
+                # fall through: schedule triage still worth recording
         except Exception as e:
             fails.append("%s: %s" % (fn, str(e)[:120]))
             continue
