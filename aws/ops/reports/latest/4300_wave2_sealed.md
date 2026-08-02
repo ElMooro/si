@@ -1,0 +1,30 @@
+# ops 4300 -- deployed-bytes verdict + independent desk gate
+
+**Status:** success  
+**Duration:** 11.4s  
+**Finished:** 2026-08-02T23:41:13+00:00  
+
+## Log
+## A. what is ACTUALLY deployed for stress-scenarios
+
+- `23:41:02` git floor 2026-08-02 22:17:45+00:00 | fn LM 2026-08-02T22:18:19.000+0000
+- `23:41:03` deployed zip 90KB: overlay=True aggregation_fold=True
+- `23:41:03` ✅ H1 falsified -- fold IS deployed; probing why it no-ops
+- `23:41:03` spec winners literal: '"winners": [\n            {"ticker": "QQQ", "expected_pct": +6.5, "rationale": "growth duration + multiple expansion"},\n '
+- `23:41:05` invoked
+- `23:41:09` probabilities: [('GOLDILOCKS', 0.2), ('CHINA_SLOWDOWN', 0.15), ('FED_PIVOT', 0.0), ('CREDIT_EVENT', 0.0), ('DOLLAR_CRISIS', 0.0)]
+- `23:41:09` ladder coverage now: 13/13 -- ['SPY', 'IWM', 'EFA', 'EEM', 'HYG', 'IEF', 'GLD', 'SLV', 'DBC', 'VNQ', 'BTC', 'ETH', 'CASH']
+- `23:41:09` ✅ STRESS SEALED: GLD weighted -0.15 over 5 scenarios
+## B. desk v2.3.1 wires -- independent verdict
+
+- `23:41:13` version 2.3.1 · sources 30/30
+- `23:41:13` CFTC: [('GOLD', {'pctile': None, 'net': -71965.0, 'market': 'GC'}), ('BONDS_LONG', {'pctile': None, 'net': 456225.0, 'market': 'ZN'}), ('US_SMALL_VALUE', {'pctile': None, 'net': -73668.0, 'market': 'RTY'})]
+- `23:41:13` RRG: []
+- `23:41:13` stress col: [('GOLD', -0.1), ('BONDS_LONG', 1.6), ('SILVER', -0.8), ('CASH', 0.1), ('BTC', 3.2), ('ETH', 3.8), ('EM', 0.6), ('CREDIT_HY', 0.6), ('US_LARGE', 1.5), ('INTL_DM', 0.3), ('COMMODITIES', -2.6), ('REITS', 1.4), ('US_SMALL_VALUE', 0.4)]
+- `23:41:13` extras: tail={'score': None, 'level': None} treasury={'score': None, 'level': 'WATCH'} sig_health(n=66, decayed=None)
+- `23:41:13` boom_stage=None
+- `23:41:13` sector-boom: [('MU', {'sector': 'Technology', 'industry': 'BIOTECHNOLOGY', 'score': 79.7}), ('NVDA', {'sector': 'Technology', 'industry': 'BIOTECHNOLOGY', 'score': 79.7}), ('REGN', {'sector': 'Healthcare', 'industry': 'REIT - HEALTHCARE FACILITI', 'score': 58.6}), ('AMD', {'sector': 'Technology', 'industry': 'BIOTECHNOLOGY', 'score': 79.7}), ('LMT', {'sector': 'Industrials', 'industry': 'INDUSTRIALS', 'score': 67.4})]
+## RESULT
+
+- `23:41:13` ✗   RRG classes 0 < 3
+- `23:41:13` ✗   boom_stage signals unread
