@@ -1,7 +1,21 @@
-executing-against: 7e33551c4497ccbc523cb95fa0a58c16c9cf15f7
-ops 4280 -- firing labels humanized
-[18:13:49] triggered: ['Broker-Dealer Margin Loans', 'Retail Money Market Fund balan', 'Deposits at foreign-related ba', 'Securities in bank credit', 'CISS: Euro Area — Cross-subind', 'Broad Dollar Index (Real)']
-[18:13:49] ✅ labels clean; barometer WATCH 27.8
-[18:13:49] ✅ OPS 4280 PASS
+executing-against: 737ea9781a51009b6a7adcfe77ec7a73740a8d21
+ops 4281 -- Alpha Atlas: every money-making mechanism, scanned
+[18:19:05] ✅ scanning 875 live artifacts (writer map: 750 targets from 772 engines)
+[18:20:37] ✅ ATLAS: 186 opportunity engines across 12 families (scanned 862 docs); 60 dormant targets
+── Uncategorized Signals (99) ──
+── Macro Timing & Canaries (20) ──
+── Momentum & Trend (11) ──
+── Options & Derivatives (10) ──
+── Cross-Signal Convergence (8) ──
+── Rotation & Industry (7) ──
+── Event & Catalyst (7) ──
+── Pairs & Relative Value (6) ──
+── Value & Quality (6) ──
+── Squeeze & Short Structure (6) ──
+── Insider & Political (5) ──
+── Crypto Cycle & On-Chain (1) ──
+── dormant (built, never wrote) ──
+── RESULT ──
+[18:20:37] ✅ OPS 4281 PASS -- the atlas is live at data/alpha-atlas.json
 
-→ Report written to aws/ops/reports/latest/4280_firing_labels.md
+→ Report written to aws/ops/reports/latest/4281_alpha_atlas.md
