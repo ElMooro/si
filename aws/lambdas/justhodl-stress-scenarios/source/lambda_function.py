@@ -185,6 +185,41 @@ SCENARIOS = [
 ]
 
 
+# ── ops 4296: ladder coverage overlay ─────────────────────────────────
+# The quantum desk's asset ladder needs a stress ER per class. These are
+# historical-archetype expected moves for the five scenarios, mirroring
+# the curated impact_map convention above (round, defensible magnitudes
+# from the named analog periods). Merged with setdefault -- existing
+# curated entries always win.
+LADDER_OVERLAY = {
+    "GOLDILOCKS":     {"SPY": 12, "IWM": 14, "EFA": 9,  "EEM": 12,
+                       "HYG": 6,  "IEF": 4,  "GLD": 0,  "SLV": 2,
+                       "DBC": -2, "VNQ": 10, "BTC": 25, "ETH": 30,
+                       "CASH": 0},
+    "FED_PIVOT":      {"SPY": 8,  "IWM": 12, "EFA": 7,  "EEM": 10,
+                       "HYG": 5,  "IEF": 8,  "GLD": 8,  "SLV": 10,
+                       "DBC": 2,  "VNQ": 12, "BTC": 20, "ETH": 24,
+                       "CASH": -1},
+    "CREDIT_EVENT":   {"SPY": -18, "IWM": -25, "EFA": -16, "EEM": -22,
+                       "HYG": -12, "IEF": 7,  "GLD": 6,  "SLV": -4,
+                       "DBC": -12, "VNQ": -20, "BTC": -35, "ETH": -45,
+                       "CASH": 2},
+    "DOLLAR_CRISIS":  {"SPY": -8, "IWM": -10, "EFA": 4,  "EEM": 6,
+                       "HYG": -5, "IEF": -6, "GLD": 18, "SLV": 22,
+                       "DBC": 10, "VNQ": -6, "BTC": 30, "ETH": 28,
+                       "CASH": -4},
+    "CHINA_SLOWDOWN": {"SPY": -6, "IWM": -8, "EFA": -10, "EEM": -18,
+                       "HYG": -4, "IEF": 5,  "GLD": 4,  "SLV": -8,
+                       "DBC": -15, "VNQ": -4, "BTC": -12, "ETH": -15,
+                       "CASH": 1},
+}
+for _s in SCENARIOS:
+    _ov = LADDER_OVERLAY.get(_s["key"], {})
+    im = _s.setdefault("impact_map", {})
+    for _t, _p in _ov.items():
+        im.setdefault(_t, _p)
+
+
 def get_path(obj, path):
     """Navigate nested dict via dot-separated path. Returns None if missing."""
     if obj is None: return None
