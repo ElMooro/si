@@ -265,11 +265,11 @@ def fetch_full_legislators_map() -> dict:
     # Live fetch fallback (slow, sometimes blocked from us-east-1)
     print("[political] S3 cache miss — trying live fetch")
     # ops 4266: theunitedstates.io times out from Lambda (Errno 110,
-    # proven in 4265 logs). It is GitHub Pages for
+    # proven in 4265 logs). 404 on main proved the repo is YAML-first; the JSON build ships on gh-pages, i.e. what
     # unitedstates/congress-legislators -- same canonical file, served
     # from a host Lambda reaches. Pages URL kept as fallback.
     url = ("https://raw.githubusercontent.com/unitedstates/"
-           "congress-legislators/main/legislators-current.json")
+           "congress-legislators/gh-pages/legislators-current.json")
     body = _http_get(url, timeout=20, retries=1)
     if not body:
         url = ("https://theunitedstates.io/congress-legislators/"
