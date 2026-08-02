@@ -1,8 +1,12 @@
-executing-against: 362704b271f0607115218518e87b3e209204c752
-ops 4267 -- congress party map: gh-pages source
-[00:05:00] invoked: {"statusCode": 200, "body": "{\"ok\": true, \"n_quiver\": 1000, \"n_house\": 500, \"n_senate\": 500, \"n_tickers\": 181, \"n_clust
-[00:05:01] ✅ party map LIVE after 62 days: 0.0 min old, 549 members, composition {'R': 279, 'D': 266, 'I': 4}, source gh-pages
+executing-against: a724697fb5b4b1a7a9e79b85f55b4b529dd4a761
+ops 4268 -- political-stocks on the official rail
+── 1. refresh congress-direct (source of record) ──
+[02:13:13] invoked: {"statusCode": 200, "body": "{\"ok\": true, \"senate_tx\": 108, \"house\": 200}"}
+[02:13:14] ✅ congress-direct fresh: 108 senate txns (86 with ticker), 200 house PTR filings, errors: sen=None house=None
+── 2. political-stocks v2 on the official feed ──
+[02:13:15] invoked: {"statusCode": 200, "body": "{\"ok\": true, \"n_quiver\": 86, \"n_house\": 0, \"n_senate\": 86, \"n_tickers\": 0, \"n_clusters\": 0, \"n_bipartisan\": 0, \"duration_s\": 
+[02:13:15] ✅ ARTIFACT LIVE: -0.0 min, source=, trades=0, party-attributed 0/0
 ── RESULT ──
-[00:05:01] ✅ OPS 4267 PASS -- self-refreshing party map on the canonical dataset; wave 4 truly closed
+[02:13:15] ✅ OPS 4268 PASS -- congress trading intelligence runs on official filings; Quiver is history
 
-→ Report written to aws/ops/reports/latest/4267_party_map_live.md
+→ Report written to aws/ops/reports/latest/4268_political_refit.md
