@@ -1,27 +1,25 @@
-executing-against: b4138156730f1adebd98d8a5bb5fcb980dc1abbd
+executing-against: 81a6f8d7eddff8886e4122192c35e84a708f111f
 ops 4270 -- page-critical quartet
 ── justhodl-compound-aggregator ──
-[03:19:39] baseline data/compound-signals.json: 33 h stale
-[03:19:39] live cfg: runtime=python3.12 mem=512 timeout=120 managed=NO (onboard next push from these values)
-[03:19:42] invoked: {"statusCode": 200, "body": "{\"n_compound\": 134, \"n_3_plus\": 42, \"n_alerts\": 59, \"duration_s\": 1.39}"}
-[03:19:42] ⚠ fresh but page-shape keys missing: ['signals'] (has: ['schema_version', 'generated_at', 'duration_s', 'feed_stats', 'stats', 'compound', 'new_alerts'])
-[03:19:42] ✅ data/compound-signals.json UNFROZEN: 0.0 min, 98108 bytes, {'generated_at': '2026-08-02T03:19:41+00:00'}
-[03:19:43] ✅ schedule CREATED: compound-aggregator-daily cron(15 21 ? * MON-FRI *)
+[03:22:46] baseline data/compound-signals.json: 0 h stale
+[03:22:46] live cfg: runtime=python3.12 mem=512 timeout=120 managed=NO (onboard next push from these values)
+[03:22:49] invoked: {"statusCode": 200, "body": "{\"n_compound\": 134, \"n_3_plus\": 42, \"n_alerts\": 42, \"duration_s\": 1.19}"}
+[03:22:49] ✅ data/compound-signals.json UNFROZEN: 0.0 min, 94670 bytes, {'compound': "[{'symbol': 'TSM', 'n_systems': 7, 'systems': ['", 'generated_at': '2026-08-02T03:22:48+00:00'}
+[03:22:49] schedule compound-aggregator-daily: ENABLED cron(15 21 ? * MON-FRI *)
 ── justhodl-options-flow ──
-[03:19:43] baseline data/options-flow.json: 29 h stale
-[03:19:43] live cfg: runtime=python3.11 mem=1024 timeout=300 managed=yes
-[03:19:53] invoked: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,OPTIONS", "Access-Control-Allow-Headers": "Content-Typ
+[03:22:49] baseline data/options-flow.json: 29 h stale
+[03:22:49] live cfg: runtime=python3.11 mem=1024 timeout=300 managed=yes
+[03:23:00] invoked: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,OPTIONS", "Access-Control-Allow-Headers": "Content-Typ
 ── justhodl-risk-regime ──
-[03:19:53] baseline data/risk-regime.json: 6 h stale
-[03:19:53] live cfg: runtime=python3.12 mem=512 timeout=120 managed=yes
-[03:19:57] invoked: {"statusCode": 200, "body": "{\"ok\": true, \"risk_regime_score\": -2.1, \"risk_regime\": \"NEUTRAL\", \"blocks\": [\"fx\", \"options\", \"vix\", \"credit\", \"liquidity_regime\", \"funding\", \"eurod
-[03:19:57] ⚠ fresh but page-shape keys missing: ['regime'] (has: ['engine', 'version', 'generated_at', 'wl_research', 'risk_regime_score', 'risk_regime', 'scale', 'posture', 'participation', 'cross_border'])
-[03:19:57] ✅ data/risk-regime.json UNFROZEN: -0.0 min, 4530 bytes, {'generated_at': '2026-08-02T03:19:57.039533+00:00'}
-[03:19:57] ⚠ declared schedule justhodl-risk-regime-daily MISSING in Scheduler -- the freeze cause; recreating from manifest next delta once cadence confirmed
+[03:23:00] baseline data/risk-regime.json: 0 h stale
+[03:23:00] live cfg: runtime=python3.12 mem=512 timeout=120 managed=yes
+[03:23:03] invoked: {"statusCode": 200, "body": "{\"ok\": true, \"risk_regime_score\": -2.1, \"risk_regime\": \"NEUTRAL\", \"blocks\": [\"fx\", \"options\", \"vix\", \"credit\", \"liquidity_regime\", \"funding\", \"eurod
+[03:23:03] ✅ data/risk-regime.json UNFROZEN: -0.0 min, 4530 bytes, {'risk_regime': 'NEUTRAL', 'generated_at': '2026-08-02T03:23:03.038415+00:00'}
+[03:23:03] ✅ schedule CREATED: justhodl-risk-regime-daily cron(45 12 ? * MON-FRI *)
 ── symbol-map -- downgraded, superseded ──
-[03:19:58] ✅ manifest: symbol-map SLA 8760h + retirement note
+[03:23:03] ✅ manifest: symbol-map SLA 8760h + retirement note
 ── RESULT ──
-[03:19:58] ✗   justhodl-options-flow ran but data/options-flow.json still 1759 min stale
+[03:23:03] ✗   justhodl-options-flow ran but data/options-flow.json still 1762 min stale
 
 → Report written to aws/ops/reports/latest/4270_page_critical.md
 ❌ OPS-FAIL: aws/ops/pending/ops_4270_page_critical.py
