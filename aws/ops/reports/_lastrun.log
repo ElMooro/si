@@ -1,14 +1,13 @@
-executing-against: dbebe50a6bc05645fae7fa2369e689f1c47a8210
-ops 4292 -- one page, whole decision
-[21:33:39] sources 23/23
-[21:33:39] DECISION: GOLD ACCUMULATE score=0.692 -- 4/6 legs clear; blockers=['risk-gate RISK_OFF: size x0.45']
-[21:33:39]   deltas: [] | in: None out: None
-[21:33:39] MACRO: nowcast top-z [] | us_cycle None | credit [] | bond_vol_z -0.13
-[21:33:39] RISK: gate_legs=0 veto_stack=[('risk-gate', True), ('canary-barometer', False)]
-[21:33:39] ladder ETF flow badges: ['INFLOW', 'INFLOW', 'INFLOW', 'INFLOW', 'OUTFLOW', 'INFLOW']
-[21:35:40] ✅ page v4 LIVE (23748 bytes)
+executing-against: 33eaf1d9a53a6b4ed3758e003d68b8d12f7c3eb9
+ops 4293 -- decision terminal, shapes proven
+[21:38:40] nowcast: [('Consumer Sentiment (UMich)', -1.67), ('Nonfarm Payrolls', -1.07), ('2s10s Yield Curve', 0.55), ('Housing Starts', 0.52)]
+[21:38:40] us_cycle: None None worst=[{'name': 'margin', 'z': 1.52}, {'name': 'semis', 'z': 1.49}, {'name': 'real_10y', 'z': -1.47}]
+[21:38:40] credit: [{'name': 'HYG/LQD', 'z': 2.04}, {'name': 'LQD/IEF', 'z': -0.13}, {'name': 'TIP/IEF', 'z': 0.84}, {'name': 'EMB/IEF', 'z': 1.66}, {'name': 'TLT/SHY', 'z': -1.88}] | bond_vol -0.13
+[21:38:40] ladder stress ERs: [('US_SMALL_VALUE', 1.6)]
 ── RESULT ──
-[21:35:40] ✗   macro_board nowcast empty
+[21:38:40] ✗   us_cycle unread
+[21:38:40] ✗   mm hydration incomplete: {'why': None, 'setup_verdict': None, 'price': None}
+[21:38:40] ✗   ladder stress <3 classes ([('US_SMALL_VALUE', 1.6)])
 
-→ Report written to aws/ops/reports/latest/4292_decision_terminal.md
-❌ OPS-FAIL: aws/ops/pending/ops_4292_decision_terminal.py
+→ Report written to aws/ops/reports/latest/4293_terminal_full.md
+❌ OPS-FAIL: aws/ops/pending/ops_4293_terminal_full.py
