@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "2.0.2"
+VERSION = "2.1.0"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -982,6 +982,12 @@ def lambda_handler(event=None, context=None):
                 "top_class": top["class"] if top else None,
                 "top_names": [m["ticker"] for m in money_map[:3]],
                 "sizing_x": risk.get("sizing_multiplier"),
+                # v2.1: per-class scores so the page can draw real
+                # sparklines as days accumulate
+                "scores": {r["class"]: r["score"] for r in ladder
+                           if r.get("score") is not None},
+                "barometer": (out.get("canary_barometer") or {}
+                              ).get("score"),
             }]
             s3.put_object(Bucket=BUCKET, Key=HIST_KEY,
                           Body=json.dumps(hist).encode(),
