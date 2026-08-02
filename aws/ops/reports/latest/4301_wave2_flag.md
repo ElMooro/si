@@ -1,0 +1,29 @@
+# ops 4301 -- deployed-bytes verdict + independent desk gate
+
+**Status:** success  
+**Duration:** 12.9s  
+**Finished:** 2026-08-02T23:47:36+00:00  
+
+## Log
+## A. what is ACTUALLY deployed for stress-scenarios
+
+- `23:47:23` git floor 2026-08-02 22:17:45+00:00 | fn LM 2026-08-02T22:18:19.000+0000
+- `23:47:24` deployed zip 90KB: overlay=True aggregation_fold=True
+- `23:47:24` ✅ H1 falsified -- fold IS deployed; probing why it no-ops
+- `23:47:24` spec winners literal: '"winners": [\n            {"ticker": "QQQ", "expected_pct": +6.5, "rationale": "growth duration + multiple expansion"},\n '
+- `23:47:26` invoked
+- `23:47:31` probabilities: [('GOLDILOCKS', 0.2), ('CHINA_SLOWDOWN', 0.15), ('FED_PIVOT', 0.0), ('CREDIT_EVENT', 0.0), ('DOLLAR_CRISIS', 0.0)]
+- `23:47:31` ladder coverage now: 13/13 -- ['SPY', 'IWM', 'EFA', 'EEM', 'HYG', 'IEF', 'GLD', 'SLV', 'DBC', 'VNQ', 'BTC', 'ETH', 'CASH']
+- `23:47:31` ✅ STRESS SEALED: GLD weighted -0.15 over 5 scenarios
+## B. desk v2.3.2 wires -- independent verdict
+
+- `23:47:36` version 2.3.2 · sources 30/30
+- `23:47:36` CFTC: [('GOLD', {'pctile': None, 'net': -71965.0, 'market': 'GC'}), ('BONDS_LONG', {'pctile': None, 'net': 456225.0, 'market': 'ZN'}), ('US_SMALL_VALUE', {'pctile': None, 'net': -73668.0, 'market': 'RTY'})]
+- `23:47:36` RRG: []
+- `23:47:36` stress col: [('GOLD', -0.1), ('BONDS_LONG', 1.6), ('SILVER', -0.8), ('CASH', 0.1), ('BTC', 3.2), ('ETH', 3.8), ('EM', 0.6), ('CREDIT_HY', 0.6), ('US_LARGE', 1.5), ('INTL_DM', 0.3), ('COMMODITIES', -2.6), ('REITS', 1.4), ('US_SMALL_VALUE', 0.4)]
+- `23:47:36` extras: tail={'score': None, 'level': None} treasury={'score': None, 'level': 'WATCH'} sig_health(n=66, decayed=None)
+- `23:47:36` boom_stage={'n_signals': 17, 'top': ['China · Broad economy (credit vs ports): EARLY_PRICE_LED -> SUPPLY_SHOCK_PRICING', 'UAE · Energy re-export (Brent vs Jebel Ali): EARLY_PRICE_LED -> SUPPLY_SHOCK_PRI'], 'stage': None}
+- `23:47:36` sector-boom: [('MU', {'sector': 'Technology', 'industry': 'TECHNOLOGY', 'score': 70.0}), ('NVDA', {'sector': 'Technology', 'industry': 'TECHNOLOGY', 'score': 70.0}), ('REGN', {'sector': 'Healthcare', 'industry': 'HEALTHCARE', 'score': 66.0}), ('AMD', {'sector': 'Technology', 'industry': 'TECHNOLOGY', 'score': 70.0}), ('LMT', {'sector': 'Industrials', 'industry': 'INDUSTRIALS', 'score': 67.4})]
+## RESULT
+
+- `23:47:36` ✗   RRG classes 0 < 3
