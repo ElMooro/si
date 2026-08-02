@@ -67,6 +67,46 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 s3 = boto3.client("s3", region_name=REGION)
 
 
+_HOUSE_SI = None
+
+
+def _house_short(symbol):
+    """Per-symbol lookup in the FINRA-official house artifact, tolerant
+    of dict-by-ticker or rows-list shapes."""
+    global _HOUSE_SI
+    if _HOUSE_SI is None:
+        try:
+            _HOUSE_SI = json.loads(s3.get_object(
+                Bucket=BUCKET,
+                Key="data/short-interest.json")["Body"].read())
+        except Exception as e:
+            logger.warning(f"house short-interest read: {str(e)[:80]}")
+            _HOUSE_SI = {}
+    doc = _HOUSE_SI
+    for k in ("tickers", "by_ticker", "latest", "data"):
+        m = doc.get(k)
+        if isinstance(m, dict) and symbol in m:
+            return m[symbol]
+    def scan(d, depth=0):
+        if depth > 2:
+            return None
+        if isinstance(d, dict):
+            if symbol in d and isinstance(d[symbol], dict):
+                return d[symbol]
+            for v in d.values():
+                r = scan(v, depth + 1)
+                if r:
+                    return r
+        if isinstance(d, list):
+            for row in d[:400]:
+                if isinstance(row, dict) and str(
+                        row.get("ticker") or row.get("symbol")
+                        or "").upper() == symbol:
+                    return row
+        return None
+    return scan(doc)
+
+
 def fmp_get(path, params=None):
     params = params or {}
     params["apikey"] = FMP_KEY
@@ -148,12 +188,14 @@ def score_convexity(symbol):
                     break
             except Exception: pass
 
-    # Float / short interest = potential squeeze (right tail)
-    short = fmp_get("/short-interest", {"symbol": symbol})
-    if short and isinstance(short, list) and short:
-        s = short[0]
-        si_pct = safe_num(s.get("shortInterestPercentFloat"))
-        d2c = safe_num(s.get("daysToCover"))
+    # Float / short interest = potential squeeze (right tail).
+    # ops 4285: FMP removed /short-interest (404). The house FINRA rail
+    # (data/short-interest.json, official settlement data) is richer.
+    s = _house_short(symbol)
+    if s:
+        si_pct = safe_num(s.get("short_pct")
+                          or s.get("shortInterestPercentFloat"))
+        d2c = safe_num(s.get("days_to_cover") or s.get("daysToCover"))
         if si_pct is not None and si_pct > 0.15:
             components["right_tail"] += 1.0
             components["drivers_right"].append(f"high_short_interest ({si_pct:.0%})")

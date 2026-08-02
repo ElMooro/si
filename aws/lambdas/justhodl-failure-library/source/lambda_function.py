@@ -162,7 +162,10 @@ def compute_marker_set(symbol):
         markers["errors"].append("cf_or_inc_unavailable")
 
     # 4. Insider trading — net selling
-    insider = fmp_get(f"/insider-trading", {"symbol": symbol, "limit": 30})
+    # ops 4285: FMP stable renamed the endpoint; /insider-trading 404s,
+    # /insider-trading/search is the current path (same row shape).
+    insider = fmp_get("/insider-trading/search",
+                      {"symbol": symbol, "limit": 30})
     if insider and isinstance(insider, list):
         sells = sum(1 for t in insider if t.get("transactionType", "").lower().startswith("s"))
         buys = sum(1 for t in insider if t.get("transactionType", "").lower().startswith("p"))

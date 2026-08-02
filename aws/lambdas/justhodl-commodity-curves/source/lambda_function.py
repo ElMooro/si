@@ -84,7 +84,9 @@ FRED_SERIES = {
     "DCOILWTICO":       {"name": "WTI Crude",        "unit": "USD/bbl",   "category": "energy"},
     "DCOILBRENTEU":     {"name": "Brent Crude",      "unit": "USD/bbl",   "category": "energy"},
     "DHHNGSP":          {"name": "Natural Gas",      "unit": "USD/mmBtu", "category": "energy"},
-    "GOLDAMGBD228NLBM": {"name": "Gold (LBMA AM)",   "unit": "USD/oz",    "category": "precious"},
+    # LBMA fix series discontinued at FRED (ops 4285: HTTP 400 in the
+    # wild). Gold now rides the engine's own FMP rail as COMEX front.
+    "GOLD_FMP_GCUSD":   {"name": "Gold (COMEX GC)",  "unit": "USD/oz",    "category": "precious"},
 }
 
 ETF_UNIVERSE = [
@@ -133,6 +135,11 @@ def http_get_json(url, timeout=HTTP_TIMEOUT):
 # ═══════════════════════════════════════════════════════════════════════════
 
 def fetch_fred(series_id, n_years=3):
+    if series_id == "GOLD_FMP_GCUSD":
+        # same [{date, value}] shape the FRED path returns
+        return [{"date": r["date"], "value": r["close"]}
+                for r in fetch_history_etf("GCUSD", days=n_years * 365)
+                if r.get("close")]
     end = datetime.now(timezone.utc).date()
     start = end.replace(year=end.year - n_years)
     url = (f"https://api.stlouisfed.org/fred/series/observations"
