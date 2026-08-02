@@ -1,24 +1,20 @@
-executing-against: e37281c0b2f3c2a795f314622751e39295fae4c7
-ops 4301 -- deployed-bytes verdict + independent desk gate
-── A. what is ACTUALLY deployed for stress-scenarios ──
-[23:47:23] git floor 2026-08-02 22:17:45+00:00 | fn LM 2026-08-02T22:18:19.000+0000
-[23:47:24] deployed zip 90KB: overlay=True aggregation_fold=True
-[23:47:24] ✅ H1 falsified -- fold IS deployed; probing why it no-ops
-[23:47:24] spec winners literal: '"winners": [\n            {"ticker": "QQQ", "expected_pct": +6.5, "rationale": "growth duration + multiple expansion"},\n '
-[23:47:26] invoked
-[23:47:31] probabilities: [('GOLDILOCKS', 0.2), ('CHINA_SLOWDOWN', 0.15), ('FED_PIVOT', 0.0), ('CREDIT_EVENT', 0.0), ('DOLLAR_CRISIS', 0.0)]
-[23:47:31] ladder coverage now: 13/13 -- ['SPY', 'IWM', 'EFA', 'EEM', 'HYG', 'IEF', 'GLD', 'SLV', 'DBC', 'VNQ', 'BTC', 'ETH', 'CASH']
-[23:47:31] ✅ STRESS SEALED: GLD weighted -0.15 over 5 scenarios
-── B. desk v2.3.2 wires -- independent verdict ──
-[23:47:36] version 2.3.2 · sources 30/30
-[23:47:36] CFTC: [('GOLD', {'pctile': None, 'net': -71965.0, 'market': 'GC'}), ('BONDS_LONG', {'pctile': None, 'net': 456225.0, 'market': 'ZN'}), ('US_SMALL_VALUE', {'pctile': None, 'net': -73668.0, 'market': 'RTY'})]
-[23:47:36] RRG: []
-[23:47:36] stress col: [('GOLD', -0.1), ('BONDS_LONG', 1.6), ('SILVER', -0.8), ('CASH', 0.1), ('BTC', 3.2), ('ETH', 3.8), ('EM', 0.6), ('CREDIT_HY', 0.6), ('US_LARGE', 1.5), ('INTL_DM', 0.3), ('COMMODITIES', -2.6), ('REITS', 1.4), ('US_SMALL_VALUE', 0.4)]
-[23:47:36] extras: tail={'score': None, 'level': None} treasury={'score': None, 'level': 'WATCH'} sig_health(n=66, decayed=None)
-[23:47:36] boom_stage={'n_signals': 17, 'top': ['China · Broad economy (credit vs ports): EARLY_PRICE_LED -> SUPPLY_SHOCK_PRICING', 'UAE · Energy re-export (Brent vs Jebel Ali): EARLY_PRICE_LED -> SUPPLY_SHOCK_PRI'], 'stage': None}
-[23:47:36] sector-boom: [('MU', {'sector': 'Technology', 'industry': 'TECHNOLOGY', 'score': 70.0}), ('NVDA', {'sector': 'Technology', 'industry': 'TECHNOLOGY', 'score': 70.0}), ('REGN', {'sector': 'Healthcare', 'industry': 'HEALTHCARE', 'score': 66.0}), ('AMD', {'sector': 'Technology', 'industry': 'TECHNOLOGY', 'score': 70.0}), ('LMT', {'sector': 'Industrials', 'industry': 'INDUSTRIALS', 'score': 67.4})]
+executing-against: d84f1f78e5701c83a5477991c8617184de47732c
+ops 4302 -- rehypothecation + trend-reversal, live
+── 1. treasury-rehypo ──
+[23:57:39] function: self-created
+[23:57:43] run: {"ok": true, "composite": null, "band": null, "legs": [], "missing": ["ofr: gcf/tri unresolved from candidates", "fred: HTTP Error 400: Bad Request"]}
+[23:57:43] COMPOSITE None (None) · legs: [] · missing: ['ofr: gcf/tri unresolved from candidates', 'fred: HTTP Error 400: Bad Request']
+[23:57:43] catalog picks: {'fails': 6, 'sec_in': 0, 'sec_out': 0, 'net_pos': 0}
+[23:57:44] schedule: created
+── 2. trend-reversal ──
+[23:57:49] function: self-created
+[23:57:51] run: {"ok": true, "n": 0, "hot": 0, "top": []}
+[23:57:51] universe 0 · hot(>=30) 0 · errors ['SPY:HTTP Error 401: Unauthorized', 'IWM:HTTP Error 401: Unauthorized', 'EFA:HTTP Error 401: Unauthorized', 'EEM:HTTP Error 401: Unauthorized', 'HYG:HTTP Error 401: Unauthorized', 'IEF:HTTP Error 401: Unauthorized', 'GLD:HTTP Error 401: Unauthorized', 'SLV:HTTP Error 401: Unauthorized', 'DBC:HTTP Error 401: Unauthorized', 'VNQ:HTTP Error 401: Unauthorized', 'MSFT:HTTP Error 401: Unauthorized', 'TSM:HTTP Error 401: Unauthorized', 'MU:HTTP Error 401: Unauthorized', 'NVO:HTTP Error 401: Unauthorized', 'GILD:HTTP Error 401: Unauthorized', 'NVDA:HTTP Error 401: Unauthorized', 'AMAT:HTTP Error 401: Unauthorized', 'PLTR:HTTP Error 401: Unauthorized', 'AN:HTTP Error 401: Unauthorized', 'ADBE:HTTP Error 401: Unauthorized', 'BSX:HTTP Error 401: Unauthorized', 'EXE:HTTP Error 401: Unauthorized', 'META:HTTP Error 401: Unauthorized', 'AMZN:HTTP Error 401: Unauthorized']
+[23:57:51] schedule: created
+── 3. desk v2.3.3 -- both wired + RRG retry ──
 ── RESULT ──
-[23:47:36] ✗   RRG classes 0 < 3
+[23:57:51] ✗   rehypo legs 0 < 3 (missing=['ofr: gcf/tri unresolved from candidates', 'fred: HTTP Error 400: Bad Request'])
+[23:57:51] ✗   reversal universe 0 < 10
 
-→ Report written to aws/ops/reports/latest/4301_wave2_flag.md
-❌ OPS-FAIL: aws/ops/pending/ops_4301_wave2_flag.py
+→ Report written to aws/ops/reports/latest/4302_two_engines.md
+❌ OPS-FAIL: aws/ops/pending/ops_4302_two_engines.py
