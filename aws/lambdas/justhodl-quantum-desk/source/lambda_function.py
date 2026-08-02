@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "2.3.2"
+VERSION = "2.3.3"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -132,6 +132,8 @@ SOURCES = {
     "industry_boom":   {"key": "data/industry-boom.json",            "max_age_h": 40},
     "boom_stage":      {"key": "data/boom-stage.json",               "max_age_h": 40},
     "alpha_decay":     {"key": "data/alpha-decay.json",              "max_age_h": 40},
+    "treasury_rehypo": {"key": "data/treasury-rehypo.json",          "max_age_h": 40},
+    "trend_reversal":  {"key": "data/trend-reversal.json",           "max_age_h": 30},
     "asset_compass":   {"key": "data/asset-compass.json",            "max_age_h": 30},
     "forward_returns": {"key": "data/forward-returns.json",          "max_age_h": 200},
     "best_setups":     {"key": "data/best-setups.json",              "max_age_h": 8},
@@ -970,6 +972,15 @@ def attach_rotation(docs, ladder):
                 and (v[0].get("ticker") or v[0].get("label")):
             rows = v
             break
+    if rows is None:  # exhaustive depth-1: any list of ranked rows
+        for v in doc.values():
+            if isinstance(v, list) and v and isinstance(v[0], dict) \
+                    and v[0].get("ticker") and (
+                        v[0].get("rank") is not None
+                        or v[0].get("quadrant")
+                        or dig(v[0], "rrg.quadrant")):
+                rows = v
+                break
     rows = rows or _rows_with(doc, ("name",)) or []
     rows = [r for r in rows if isinstance(r, dict)
             and (r.get("rank") is not None or r.get("quadrant")
@@ -1006,6 +1017,14 @@ def risk_extras(docs, panel):
                              "composite.score")),
             "level": dig(tn, "level", "band", "status", "regime"),
         }
+    rh = docs.get("treasury_rehypo")
+    if rh:
+        panel["rehypo"] = {
+            "composite": num(dig(rh, "composite")),
+            "band": dig(rh, "band"),
+            "legs": {k: (v or {}).get("z")
+                     for k, v in (rh.get("legs") or {}).items()},
+            "missing": rh.get("legs_missing")}
     ad = docs.get("alpha_decay")
     rows = _rows_with(ad, ("signal",)) or _rows_with(ad,
                                                     ("name",)) or []
@@ -1436,6 +1455,24 @@ def lambda_handler(event=None, context=None):
             globals()["_LADDER_REF"] = ladder
             _flow_badges(docs, ladder)
             attach_positioning(docs, ladder)
+            rev = docs.get("trend_reversal") or {}
+            rv = {str(r0.get("ticker")).upper(): r0
+                  for r0 in rev.get("rows") or []
+                  if isinstance(r0, dict)}
+            for lr in ladder:
+                r0 = rv.get(str(lr.get("asset")).upper())
+                if r0 and (r0.get("reversal_score") or 0) >= 25:
+                    lr["reversal"] = {
+                        "score": r0["reversal_score"],
+                        "direction": r0.get("direction"),
+                        "top": (r0.get("signals") or [{}])[0]
+                        .get("signal")}
+            for m in money_map:
+                r0 = rv.get(m["ticker"])
+                if r0 and (r0.get("reversal_score") or 0) >= 25:
+                    m["reversal"] = {
+                        "score": r0["reversal_score"],
+                        "direction": r0.get("direction")}
             attach_rotation(docs, ladder)
             risk_extras(docs, out.get("risk_panel") or {})
             mm_sector_boom(docs, money_map)

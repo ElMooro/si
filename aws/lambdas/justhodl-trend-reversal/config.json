@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-trend-reversal",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 240,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Early trend-reversal ensemble on real closes (ladder ETFs + best-setups names): MA/structure/RSI-divergence/MACD/Donchian/ATR-release with recency decay. ops 4302.",
+  "env": {
+    "MAX_NAMES": "14"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "function_name": "justhodl-treasury-rehypo",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Treasury rehypothecation stress proxy: FR2004 catalog-discovered fails+velocity, OFR GCF-Tri specialness, SOFR-IORB, RRP drain. Composite over present legs. ops 4302.",
+  "env": {}
+}
