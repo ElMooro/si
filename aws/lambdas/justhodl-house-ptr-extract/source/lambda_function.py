@@ -39,7 +39,7 @@ MAX_DOCS_PER_RUN = int(os.environ.get("MAX_DOCS_PER_RUN", "20"))
 MAX_TRADES_KEPT = 1500
 MAX_DOCS_KEPT = 900
 UA = "Mozilla/5.0 (JustHodl research; contact via github.com/ElMooro)"
-VERSION = "1.0"
+VERSION = "1.1"
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -47,11 +47,16 @@ s3 = boto3.client("s3", region_name="us-east-1")
 #   SP  Apple Inc. (AAPL) [ST]  P  01/15/2026  01/20/2026  $1,001 - $15,000
 # Owner is optional; asset may wrap lines; type is P / S / S (partial) / E.
 RX_TICKER = re.compile(r"\(([A-Z][A-Z0-9.]{0,5})\)")
-RX_DATE = re.compile(r"\b(\d{2})/(\d{2})/(\d{4})\b")
+# Clerk generator variant glues dates: "06/12/202607/08/2026$1,001".
+# Word boundaries can't fire between 2026|07, so no \b anchors.
+RX_DATE = re.compile(r"(\d{2})/(\d{2})/(\d{4})")
 RX_AMOUNT = re.compile(
     r"\$[\d,]+\s*-\s*\$[\d,]+|\$1,000,000\s*\+|Over\s*\$50,000,000")
 RX_TYPE = re.compile(r"\b(P|S|E)\b(?:\s*\(partial\))?", re.I)
 RX_OWNER = re.compile(r"^(SP|DC|JT)\b")
+# Clerk noise rows between trades: "F… S…: New" (Filing Status) and
+# "S… O…: <account>" (Subholding Of) -- \x00-padded labels.
+NOISE_LINE = re.compile(r"^[A-Z][^A-Za-z]{0,12}[A-Z][^A-Za-z]{0,12}:\s")
 SKIP_LINE = re.compile(
     r"filing|asset\s+owner|transaction|notification|amount|cap\.?\s*gains|"
     r"description|status|subholding|comment|initial public offering|"
@@ -69,7 +74,8 @@ def parse_ptr_text(text, filer):
     rows, buf = [], ""
     for raw in (text or "").splitlines():
         ln = re.sub(r"\s+", " ", raw).strip()
-        if not ln or SKIP_LINE.search(ln) and not RX_TICKER.search(ln):
+        if not ln or NOISE_LINE.search(ln) \
+                or (SKIP_LINE.search(ln) and not RX_TICKER.search(ln)):
             continue
         buf = (buf + " " + ln).strip()
         tk = RX_TICKER.search(buf)
@@ -133,9 +139,20 @@ def lambda_handler(event=None, context=None):
     docs = ledger.get("docs") or {}
     trades = ledger.get("trades") or []
 
-    new = [f for f in filings
-           if f.get("doc_id") and f.get("pdf")
-           and f["doc_id"] not in docs][:MAX_DOCS_PER_RUN]
+    reparse = bool((event or {}).get("reparse_zero"))
+    def _eligible(f):
+        did = f.get("doc_id")
+        if not did or not f.get("pdf"):
+            return False
+        if did not in docs:
+            return True
+        if reparse:
+            d = docs[did]
+            return d.get("status") == "parsed" and not d.get("n_rows")
+        return False
+    new = [f for f in filings if _eligible(f)][:MAX_DOCS_PER_RUN]
+    if reparse:
+        print(f"[house-ptr] reparse_zero mode: {len(new)} zero-row docs")
     n_ok = n_notext = n_err = 0
     for f in new:
         did, filer = f["doc_id"], f.get("name") or "Unknown"
