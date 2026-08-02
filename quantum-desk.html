@@ -184,7 +184,8 @@ Promise.all([fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("f
     const hotchips=[a.discount&&a.discount.pct_vs_trend!=null?`${a.discount.pct_vs_trend}% ${a.discount.basis||"vs trend"}`:null,
       a.asymmetry_ratio!=null?`asym ${a.asymmetry_ratio}:1${a.asym_status?" ("+a.asym_status+")":""}`:null,
       a.dd_now_pct!=null?`dd ${a.dd_now_pct}%`:null,
-      r.etf_flow?`ETF ${r.etf_flow}`:null].filter(Boolean).map(t=>`<span class="pill" style="font-size:11px">${esc(t)}</span>`).join(" ");
+      r.etf_flow?`ETF ${r.etf_flow}`:null,
+      r.stress_er_pct!=null?`stress ${r.stress_er_pct>0?"+":""}${r.stress_er_pct}%`:null].filter(Boolean).map(t=>`<span class="pill" style="font-size:11px">${esc(t)}</span>`).join(" ");
     const svals=H.map(h=>(h.scores||{})[r.class]).filter(v=>v!=null);
     const legbars=Object.entries(LEGDESC).map(([k,desc])=>{const v=L[k];
       return `<div class="leg"><span>${k} <b style="color:var(--tx)">${v==null?"ABSTAIN":pct(v)}</b> · w ${W[k]!=null?(W[k]*100).toFixed(0)+"%":"—"}</span>

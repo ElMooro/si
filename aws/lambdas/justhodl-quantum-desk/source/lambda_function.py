@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "2.2.0"
+VERSION = "2.2.1"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -670,12 +670,19 @@ def _coverage_block(census):
             "census_at": (census or {}).get("generated_at")}
 
 
+NAMEISH = ("name", "id", "pair", "label", "title")
+
+
 def _rows_with(doc, need, depth=0, path="$"):
-    """First list of dicts carrying all fields in `need` (defensive)."""
-    if depth > 3 or doc is None:
+    """First list of dicts carrying the needed fields; 'name' matches
+    any name-ish key (fleet engines use id/pair/label too)."""
+    if depth > 4 or doc is None:
         return None
     if isinstance(doc, list) and doc and isinstance(doc[0], dict):
-        if all(any(n in r for r in doc[:4]) for n in need):
+        def has(field):
+            keys = NAMEISH if field == "name" else (field,)
+            return any(any(k in r for k in keys) for r in doc[:4])
+        if all(has(n) for n in need):
             return doc
     if isinstance(doc, dict):
         for k in list(doc)[:40]:
@@ -700,7 +707,8 @@ def build_macro_board(docs):
                  key=lambda r: -abs(num(r.get("z"))))[:6]
     out["nowcast"] = {
         "regime": dig(nc or {}, "regime", "nowcast_regime", "label"),
-        "top": [{"name": str(r.get("name"))[:30],
+        "top": [{"name": str(next((r[k] for k in NAMEISH
+                                    if r.get(k)), "?"))[:30],
                  "z": round(num(r.get("z")), 2),
                  "signal": r.get("signal")} for r in top]} if nc else None
     uc = docs.get("us_cycle")
@@ -710,13 +718,16 @@ def build_macro_board(docs):
                        key=lambda r: -abs(num(r.get("z"))))[:3]
         out["us_cycle"] = {"score": num(dig(uc, "score")),
                            "level": dig(uc, "level", "band"),
-                           "worst": [{"name": r.get("name"),
+                           "worst": [{"name": next(
+                               (r[k] for k in NAMEISH
+                                if r.get(k)), "?"),
                                       "z": round(num(r.get("z")), 2)}
                                      for r in worst]}
     fi = docs.get("fi_census")
     if fi:
         rows = _rows_with(fi, ("name", "z")) or []
-        out["credit"] = [{"name": str(r.get("name"))[:18],
+        out["credit"] = [{"name": str(next((r[k] for k in NAMEISH
+                                            if r.get(k)), "?"))[:18],
                           "z": round(num(r.get("z")), 2)}
                          for r in rows[:5]
                          if num(r.get("z")) is not None] or None
@@ -844,6 +855,10 @@ def _stress_and_backtest(docs, money_map):
                         if ws:
                             vstats[verdict] = round(
                                 sum(ws) / len(ws), 1)
+    for r in (globals().get("_LADDER_REF") or []):
+        er = by.get(str(r.get("asset") or "").upper())
+        if er is not None:
+            r["stress_er_pct"] = round(er, 1)
     for m in money_map:
         er = by.get(m["ticker"])
         if er is not None:
@@ -1102,6 +1117,22 @@ def build_money_map(docs, ladder, risk, top_n=12):
                      "quadrant": quad_n, "class_gate": round(gate, 3),
                      "flow": round(flow_n, 3)},
         })
+    idx = {}
+    for s_ in setups:
+        t_ = str(s_.get("ticker") or "").upper()
+        if t_ and t_ not in idx:
+            idx[t_] = s_
+    for m_ in out:
+        s_ = idx.get(m_["ticker"]) or {}
+        if not m_.get("why") and s_.get("why"):
+            m_["why"] = str(s_["why"])[:220]
+        if m_.get("price") is None:
+            m_["price"] = num(s_.get("price")
+                              or s_.get("current_price"))
+        if not m_.get("setup_verdict"):
+            m_["setup_verdict"] = s_.get("verdict") or s_.get("rating")
+        if m_.get("earnings_in_days") is None:
+            m_["earnings_in_days"] = s_.get("earnings_in_days")
     ev_map, ev_stats = build_evidence(docs.get("sources_census"),
                                       [r["ticker"] for r in out[:40]])
     W_EV = float(os.environ.get("MM_W_EVIDENCE", "0.15"))
@@ -1178,6 +1209,7 @@ def lambda_handler(event=None, context=None):
             out["decision"] = build_decision(
                 ladder, risk, out.get("canary_barometer"),
                 hist.get("rows") or [], money_map)
+            globals()["_LADDER_REF"] = ladder
             _flow_badges(docs, ladder)
             _stress_and_backtest(docs, money_map)
             out["asset_ladder"] = ladder
