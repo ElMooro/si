@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "2.3.1"
+VERSION = "2.3.2"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -961,8 +961,19 @@ def attach_positioning(docs, ladder):
 
 
 def attach_rotation(docs, ladder):
-    doc = docs.get("rotation_dash")
-    rows = _rows_with(doc, ("name",)) or []
+    doc = docs.get("rotation_dash") or {}
+    rows = None
+    for k in ("assets", "rows", "ranked", "board", "universe",
+              "eligible"):
+        v = doc.get(k)
+        if isinstance(v, list) and v and isinstance(v[0], dict) \
+                and (v[0].get("ticker") or v[0].get("label")):
+            rows = v
+            break
+    rows = rows or _rows_with(doc, ("name",)) or []
+    rows = [r for r in rows if isinstance(r, dict)
+            and (r.get("rank") is not None or r.get("quadrant")
+                 or dig(r, "rrg.quadrant"))]
     if not rows:
         return
     for lr in ladder:
@@ -1043,8 +1054,18 @@ def mm_sector_boom(docs, money_map):
         if not sec:
             continue
         su = str(sec).upper()
-        hit = next(((k, v) for k, v in bm.items()
-                    if v is not None and (su in k or k in su)), None)
+        import re as _re
+        hit = None
+        if su in bm:
+            hit = (su, bm[su])
+        else:
+            for k, v in bm.items():
+                if v is None:
+                    continue
+                if _re.search(r"\b%s\b" % _re.escape(su), k) or \
+                        _re.search(r"\b%s\b" % _re.escape(k), su):
+                    hit = (k, v)
+                    break
         if hit:
             m["sector_boom"] = {"sector": str(sec)[:22],
                                 "industry": hit[0][:26],
@@ -1379,7 +1400,9 @@ def lambda_handler(event=None, context=None):
         "canary_barometer": _canary_block(docs.get("canary_warroom")),
         "fleet_coverage": _coverage_block(docs.get("sources_census")),
         "evidence_stats": globals().get("_EV_STATS"),
-        "macro_board": build_macro_board(docs),
+        "macro_board": (globals().__setitem__(
+            "_MB", build_macro_board(docs)) or globals()["_MB"]),
+        "boom_stage": (globals().get("_MB") or {}).get("boom_stage"),
         "risk_panel": build_risk_panel(
             docs, risk, _canary_block(docs.get("canary_warroom"))),
         "best_asset_class": ({"class": top["class"],
