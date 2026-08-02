@@ -240,10 +240,17 @@ def load_party_map_from_s3() -> dict:
             age_d = (datetime.now(timezone.utc) - gen).total_seconds() / 86400
         except Exception:
             age_d = 9999
-        if pm and age_d <= 21:
-            print(f"[political] loaded {len(pm)} party mappings from S3 cache "
-                  f"(generated {data.get('generated_at','?')})")
+        if pm and age_d <= 21 and data.get("name_map"):
+            globals()["_NAME_MAP"] = data.get("name_map") or {}
+            print(f"[political] loaded {len(pm)} party mappings + "
+                  f"{len(data.get('name_map') or {})} name mappings from "
+                  f"S3 cache (generated {data.get('generated_at','?')})")
             return pm
+        if pm and age_d <= 21:
+            print("[political] cache lacks name_map (schema v1.1) -- "
+                  "forcing live refresh for v1.2")
+            globals()["_STALE_PM_FALLBACK"] = pm
+            return None
         if pm:
             print(f"[political] S3 party map is {age_d:.0f}d old -- "
                   f"forcing live refresh (stale copy kept as fallback)")
@@ -309,6 +316,24 @@ def fetch_full_legislators_map() -> dict:
         except Exception:
             continue
     
+    name_map = {}
+    for legislator in (data or []):
+        try:
+            bid = (legislator.get("id") or {}).get("bioguide")
+            nm = (legislator.get("name") or {})
+            full = nm.get("official_full") or \
+                f"{nm.get('first','')} {nm.get('last','')}"
+            terms = legislator.get("terms") or []
+            party_full = (terms[-1].get("party", "") if terms else "")
+            if bid and full.strip():
+                name_map[_norm_name(full)] = {
+                    "bioguide": bid,
+                    "party": party_short.get(party_full,
+                                             party_full[:1] or "?")}
+        except Exception:
+            continue
+    globals()["_NAME_MAP"] = name_map
+
     for k, v in BIOGUIDE_TO_PARTY.items():
         party_map.setdefault(k, v)
 
@@ -324,6 +349,7 @@ def fetch_full_legislators_map() -> dict:
                 "source": url,
                 "n": len(party_map),
                 "party_map": party_map,
+                "name_map": name_map,
             }, default=str, separators=(",", ":")).encode("utf-8"),
             ContentType="application/json",
             CacheControl="public, max-age=86400")
@@ -333,6 +359,52 @@ def fetch_full_legislators_map() -> dict:
         print(f"[political] party map write-back failed: {e}")
 
     return party_map
+
+
+def _norm_name(s):
+    """'Tommy Tuberville' / 'Tuberville, Tommy (Senator)' -> 'tommy tuberville'."""
+    s = re.sub(r"\([^)]*\)", " ", str(s or ""))
+    s = re.sub(r"\b(senator|rep\.?|hon\.?|jr\.?|sr\.?|iii?|iv)\b", " ",
+               s, flags=re.I)
+    if "," in s:
+        last, first = s.split(",", 1)
+        s = f"{first} {last}"
+    return re.sub(r"[^a-z ]", "", s.lower()).strip()
+
+
+def fetch_congress_direct() -> tuple:
+    """ops 4268: PRIMARY trade feed -- the official pipeline
+    (justhodl-congress-direct: Senate eFD + House Clerk), replacing the
+    dead Quiver vendor (401 live, 898h tombstone cache). Senate PTR
+    transactions adapt cleanly onto the quiver row shape the rest of
+    this engine consumes; House PTRs are filing metadata only (per-trade
+    tickers live in PDFs) and are disclosed as such."""
+    try:
+        doc = json.loads(s3.get_object(
+            Bucket=BUCKET, Key="data/congress-direct.json")["Body"].read())
+    except Exception as e:
+        print(f"[political] congress-direct read failed: {str(e)[:80]}")
+        return [], "congress_direct_unavailable"
+    gen = str(doc.get("generated_at", ""))
+    txns = ((doc.get("senate") or {}).get("transactions") or [])
+    rows = []
+    for t in txns:
+        if not t.get("ticker"):
+            continue
+        rows.append({
+            "Representative": t.get("filer") or "Unknown",
+            "BioGuideID": "",
+            "TransactionDate": (t.get("tx_date") or "")[:10],
+            "ReportDate": (t.get("tx_date") or "")[:10],
+            "Ticker": t.get("ticker"),
+            "Transaction": t.get("type") or "",
+            "Range": t.get("amount") or "?",
+            "House": "Senate", "_source": "senate_efd",
+        })
+    print(f"[political] congress-direct: {len(rows)} senate txns with "
+          f"tickers (doc {gen[:19]}), house PTR filings metadata-only "
+          f"({(doc.get('house') or {}).get('n_ptr_filings', 0)})")
+    return rows, "congress_direct_official"
 
 
 def fetch_quiver_with_cache() -> tuple:
@@ -477,6 +549,10 @@ def aggregate_trades(quiver_trades: list):
         
         name = (t.get("Representative") or "Unknown").strip()
         bioguide = t.get("BioGuideID", "")
+        if not bioguide:
+            hit = (globals().get("_NAME_MAP") or {}).get(_norm_name(name))
+            if hit:
+                bioguide = hit.get("bioguide", "")
         party = party_for_bioguide(bioguide)
         chamber = "house" if (t.get("House") or "") == "Representatives" else "senate"
         amount = parse_trade_amount(t.get("Range") or "")
@@ -557,7 +633,12 @@ def handler(event, context):
     
     # 1. Fetch Congress trades (live → S3 cache)
     print("[political] fetching Congress trades…")
-    quiver_trades, source = fetch_quiver_with_cache()
+    quiver_trades, source = fetch_congress_direct()
+    if not quiver_trades:
+        # honest-empty: no vendor resurrection. congress-direct being
+        # unreadable is a finding the artifact must carry.
+        print("[political] no official trades available -- writing "
+              "honest-empty artifact (quiver retired, ops 4268)")
     print(f"[political] got {len(quiver_trades)} trades from: {source}")
     
     # Tally house/senate split (Quiver's House field is "Representatives" or "Senate")
