@@ -112,6 +112,7 @@ fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("feed "+r.statu
     `v${d.version} · ops ${d.ops} · generated ${d.generated_at} · sources ${d.data_health?.sources_ok}/${d.data_health?.sources_total} live · ${d.elapsed_s}s`;
   const reg=d.regime||{},rk=d.risk_gate||{},best=d.best_asset_class;
   const votes=(reg.votes||[]).map(v=>`${v.source}:${v.regime}`).join(" · ")||"no engine readable";
+  const ki=d.khalid_index,cb=d.canary_barometer,cov=d.fleet_coverage;
   document.getElementById("hero").innerHTML=`
     <div class="card"><div class="k">Regime consensus</div><div class="v">${esc(reg.regime||"—")}</div>
       <div class="vs">${reg.unanimous?"unanimous — ":reg.disagreement?"⚠ split — ":""}${esc(votes)}</div></div>
@@ -120,7 +121,12 @@ fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("feed "+r.statu
     <div class="card"><div class="k">Best asset class now</div>
       <div class="v">${best?esc(best.class):"ABSTAIN"}</div>
       <div class="vs">${best?`score ${best.score} · <span class="pill ${vp(best.verdict)}">${best.verdict}</span>`:"insufficient live sources"}</div></div>
-    <div class="card"><div class="k">Doctrine</div><div class="vs" style="margin-top:8px">${esc(d.doctrine||"")}</div></div>`;
+    <div class="card"><div class="k">Khalid Index</div><div class="v">${ki&&ki.risk_index!=null?ki.risk_index:"—"}${ki&&ki.grade?` <span class="pill p-neu">${esc(ki.grade)}</span>`:""}</div>
+      <div class="vs">${esc((ki&&ki.phase)||"")}${ki&&ki.llm_status==="unavailable"?" · llm off":""}</div></div>
+    <div class="card"><div class="k">Canary barometer</div><div class="v">${esc((cb&&cb.level)||"—")}${cb&&cb.score!=null?` · ${cb.score}`:""}${cb&&cb.veto_active?` <span class="pill p-avd">VETO</span>`:""}</div>
+      <div class="vs">${cb&&cb.triggered?esc(cb.triggered.slice(0,4).join(", ")):"equal-weight per canary"}</div></div>
+    <div class="card"><div class="k">Doctrine</div><div class="vs" style="margin-top:8px">${esc(d.doctrine||"")}</div>
+      <div class="vs" style="margin-top:6px;opacity:.75">fed by ${cov&&cov.engines||"—"} engines · ${cov&&cov.live_artifacts||"—"} artifacts · ${cov&&cov.ticker_sources_consulted||0} per-name sources</div></div>`;
 
   const rows=(d.asset_ladder||[]).map(r=>{
     const L=r.legs||{},chips=Object.entries(L).filter(([k,v])=>v!=null)
@@ -141,10 +147,12 @@ fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("feed "+r.statu
 
   const mm=(d.money_map||[]).map(m=>`
     <div class="mm"><span class="fit">fit ${m.khalid_fit}</span>
+      ${m.n_corroborating?`<span class="pill p-buy" title="fleet engines corroborating">×${m.n_corroborating} engines</span>`:""}
       <span class="tk">${esc(m.ticker)}</span><span class="nm">${esc(m.name||"")}</span>
       <div class="row">
         <span class="pill">${esc(m.class)}</span>
         ${m.flow_quadrant?`<span class="pill ${m.flow_quadrant==="DISTRIBUTION_RALLY"?"p-avd":m.flow_quadrant==="TREND_CONFIRMED"?"p-neu":"p-buy"}">${esc(m.flow_quadrant)}</span>`:""}
+      </div><div class="vs" style="margin-top:6px">${(m.evidence||[]).map(c=>{const kv=Object.entries(c).filter(([k])=>k!=="src").slice(0,2).map(([k,v])=>`${k} ${v}`).join(" · ");return `<span class="pill p-neu" style="margin:2px 3px 0 0" title="${esc(kv)}">${esc(c.src)}${kv?": "+esc(kv):""}</span>`}).join("")}<div style="display:none">
         ${m.squeeze_fuel?'<span class="pill p-acc">squeeze fuel</span>':""}
         <span class="pill">size ×${m.size_hint_x}</span>
         ${m.earnings_in_days!=null?`<span class="pill p-neu">earnings ${m.earnings_in_days}d</span>`:""}

@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "1.0.3"
+VERSION = "2.0.0"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -114,6 +114,10 @@ MM_W = {  # money-map name-level weights
 }
 
 SOURCES = {
+    "sources_census":  {"key": "data/quantum-desk-sources.json",     "max_age_h": 24 * 14},
+    "canary_warroom":  {"key": "data/canary-warroom.json",           "max_age_h": 26},
+    "ka_metrics":      {"key": "data/ka-metrics.json",               "max_age_h": 30},
+    "global_recession": {"key": "data/global-recession.json",        "max_age_h": 30},
     "asset_compass":   {"key": "data/asset-compass.json",            "max_age_h": 30},
     "forward_returns": {"key": "data/forward-returns.json",          "max_age_h": 200},
     "best_setups":     {"key": "data/best-setups.json",              "max_age_h": 8},
@@ -375,6 +379,7 @@ def norm_regime(label):
 def regime_consensus(docs):
     votes = []
     for src, paths in (
+        ("global_recession", ("regime", "status", "verdict", "label")),
         ("router",      ("regime", "primary_regime", "sleeve.regime")),
         ("cycle_clock", ("regime", "phase", "cycle_phase", "clock.phase",
                          "label")),
@@ -591,7 +596,9 @@ def score_legs(legs):
     return round(sum(W[k] * used[k] for k in used) / tot, 3), sorted(used)
 
 
-def verdict_for(score, legs, risk):
+def verdict_for(score, legs, risk, canary_veto=False):
+    if canary_veto and score is not None and score >= 0:
+        score = min(score, 0.72)  # RED barometer: never BUY_ZONE
     if score is None:
         return "ABSTAIN"
     v = ("BUY_ZONE" if score >= 0.66 and (legs.get("discount") or 0) >= 0.5
@@ -603,7 +610,50 @@ def verdict_for(score, legs, risk):
     return v
 
 
+def _khalid_index_block(doc):
+    """Khalid's original composite, honored beside the risk-gate."""
+    if not doc:
+        return None
+    ri = num(dig(doc, "risk_index", "khalid_index", "score"))
+    return {"risk_index": ri, "grade": dig(doc, "grade", "rating"),
+            "phase": dig(doc, "phase", "market_phase"),
+            "llm_status": doc.get("llm_status"),
+            "note": "original Khalid Index composite (ka-metrics)"}
+
+
+def _canary_block(doc):
+    """Canary war-room master barometer -- equal weight per canary
+    (Khalid spec 2026-07-09). Second veto layer at RED."""
+    if not doc:
+        return None
+    level = dig(doc, "master_barometer.level", "master.level", "level",
+                "status", "master_level")
+    score = num(dig(doc, "master_barometer.score", "master.score",
+                    "score", "barometer"))
+    trig = dig(doc, "master_barometer.triggered", "triggered",
+               "red_canaries", "alerts")
+    if isinstance(trig, list):
+        trig = [str(t)[:28] for t in trig[:8]]
+    return {"level": str(level)[:20] if level else None,
+            "score": score,
+            "triggered": trig if isinstance(trig, list) else None,
+            "veto_active": str(level or "").upper() in
+            ("RED", "CRITICAL", "ALERT")}
+
+
+def _coverage_block(census):
+    c = (census or {}).get("census") or {}
+    return {"engines": c.get("engines"),
+            "live_artifacts": c.get("live_artifacts"),
+            "fresh_26h": c.get("fresh_26h"),
+            "ticker_sources_consulted":
+            len((census or {}).get("per_ticker_sources") or []),
+            "census_at": (census or {}).get("generated_at")}
+
+
 def build_ladder(docs, regime, risk):
+    CANARY_VETO = bool((_canary_block(docs.get("canary_warroom"))
+                        or {}).get("veto_active"))
     compass = docs.get("asset_compass") or {}
     rows = dig(compass, "assets", "rows") or []
     if isinstance(rows, dict):
@@ -629,7 +679,7 @@ def build_ladder(docs, regime, risk):
         score, used = score_legs(legs)
         ladder.append({
             "class": cls, "asset": name, "score": score,
-            "verdict": verdict_for(score, legs, risk),
+            "verdict": verdict_for(score, legs, risk, canary_veto=CANARY_VETO),
             "legs": {k: (round(v, 3) if isinstance(v, float) else v)
                      for k, v in legs.items()},
             "legs_used": used,
@@ -672,7 +722,7 @@ def build_ladder(docs, regime, risk):
             ladder.append({
                 "class": cls, "asset": "%s (on-chain)" % cls,
                 "score": score,
-                "verdict": verdict_for(score, legs, risk),
+                "verdict": verdict_for(score, legs, risk, canary_veto=CANARY_VETO),
                 "legs": {k: (round(v, 3) if isinstance(v, float) else v)
                          for k, v in legs.items()},
                 "legs_used": used,
@@ -693,6 +743,105 @@ def build_ladder(docs, regime, risk):
 # ── L4 money map ────────────────────────────────────────────────────────
 QUAD_BONUS = {"STEALTH_ACCUMULATION": 1.0, "CAPITULATION": 0.85,
               "TREND_CONFIRMED": 0.55, "DISTRIBUTION_RALLY": 0.10}
+
+
+def _nav(doc, path):
+    """Navigate a census path like '$.congress.top_buys' or
+    '$.entries[].flagged_scores'; [] flattens lists."""
+    cur = [doc]
+    for seg in path.split(".")[1:]:
+        nxt = []
+        flat = seg.endswith("[]")
+        seg = seg[:-2] if flat else seg
+        for c in cur:
+            v = c.get(seg) if isinstance(c, dict) else None
+            if v is None:
+                continue
+            if flat and isinstance(v, list):
+                nxt.extend(v)
+            else:
+                nxt.append(v)
+        cur = nxt
+    return cur
+
+
+def _chip_fields(entry, fields):
+    keep = {}
+    for f in fields:
+        if f in ("ticker", "symbol", "Ticker", "name") or f not in entry:
+            continue
+        v = entry[f]
+        if isinstance(v, (dict, list)):
+            continue
+        keep[f] = round(v, 3) if isinstance(v, float) else str(v)[:26]
+        if len(keep) >= 3:
+            break
+    return keep
+
+
+def build_evidence(census, tickers):
+    """ops 4278: consult EVERY ticker-keyed artifact the fleet produces
+    (the 4277 census) for each candidate name. Data-driven -- new
+    engines join automatically when the census re-runs. Fresh only."""
+    srcs = (census or {}).get("per_ticker_sources") or []
+    ev = {t: [] for t in tickers}
+    used, skipped = set(), 0
+    for meta in srcs:
+        key = meta.get("key")
+        if not key or key == "data/best-setups.json":
+            continue
+        try:
+            if LOCAL_DIR:
+                import os as _o
+                fp = _o.path.join(LOCAL_DIR, key.split("/")[-1])
+                if not _o.path.exists(fp):
+                    skipped += 1
+                    continue
+                doc = json.load(open(fp))
+            else:
+                o = s3.get_object(Bucket=BUCKET, Key=key)
+                age_h = (datetime.now(timezone.utc)
+                         - o["LastModified"]).total_seconds() / 3600
+                if age_h > 72:
+                    skipped += 1
+                    continue
+                doc = json.loads(o["Body"].read())
+        except Exception:
+            skipped += 1
+            continue
+        short = key.replace("data/", "").replace(".json", "")
+        hit = False
+        for node in _nav(doc, meta.get("path") or "$"):
+            if meta.get("mode") == "dict" and isinstance(node, dict):
+                for t in tickers:
+                    e = node.get(t)
+                    if isinstance(e, dict):
+                        ev[t].append({"src": short, **_chip_fields(
+                            e, meta.get("fields") or [])})
+                        hit = True
+            else:
+                rows = node if isinstance(node, list) else [node]
+                for row in rows:
+                    if not isinstance(row, dict):
+                        continue
+                    rt = str(row.get("ticker") or row.get("symbol")
+                             or row.get("Ticker") or "").upper()
+                    if rt in ev:
+                        ev[rt].append({"src": short, **_chip_fields(
+                            row, meta.get("fields") or [])})
+                        hit = True
+        if hit:
+            used.add(short)
+    for t in ev:
+        seen, uniq = set(), []
+        for c in ev[t]:
+            if c["src"] in seen:
+                continue
+            seen.add(c["src"])
+            uniq.append(c)
+        ev[t] = uniq[:8]
+    return ev, {"consulted": len(srcs), "hit_sources": len(used),
+                "skipped_stale_or_err": skipped}
 
 
 def build_money_map(docs, ladder, risk, top_n=12):
@@ -747,6 +896,17 @@ def build_money_map(docs, ladder, risk, top_n=12):
                      "quadrant": quad_n, "class_gate": round(gate, 3),
                      "flow": round(flow_n, 3)},
         })
+    ev_map, ev_stats = build_evidence(docs.get("sources_census"),
+                                      [r["ticker"] for r in out[:40]])
+    W_EV = float(os.environ.get("MM_W_EVIDENCE", "0.15"))
+    for r in out:
+        chips = ev_map.get(r["ticker"]) or []
+        r["evidence"] = chips
+        r["n_corroborating"] = len(chips)
+        r["khalid_fit"] = round(clamp(
+            r["khalid_fit"] * (1 - W_EV)
+            + W_EV * clamp(len(chips) / 6.0)), 3)
+    globals()["_EV_STATS"] = ev_stats
     out.sort(key=lambda r: r["khalid_fit"], reverse=True)
     return out[:top_n], None
 
@@ -777,6 +937,10 @@ def lambda_handler(event=None, context=None):
                      "the risk-gate is never overridden."),
         "regime": reg,
         "risk_gate": risk,
+        "khalid_index": _khalid_index_block(docs.get("ka_metrics")),
+        "canary_barometer": _canary_block(docs.get("canary_warroom")),
+        "fleet_coverage": _coverage_block(docs.get("sources_census")),
+        "evidence_stats": globals().get("_EV_STATS"),
         "best_asset_class": ({"class": top["class"],
                               "verdict": top["verdict"],
                               "score": top["score"]} if top else None),
