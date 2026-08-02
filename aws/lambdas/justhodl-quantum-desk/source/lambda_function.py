@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -118,6 +118,13 @@ SOURCES = {
     "canary_warroom":  {"key": "data/canary-warroom.json",           "max_age_h": 26},
     "ka_metrics":      {"key": "data/ka-metrics.json",               "max_age_h": 30},
     "global_recession": {"key": "data/global-recession.json",        "max_age_h": 30},
+    "macro_nowcast":   {"key": "data/macro-nowcast.json",            "max_age_h": 30},
+    "us_cycle":        {"key": "data/us-cycle.json",                 "max_age_h": 30},
+    "fi_census":       {"key": "data/fi-census.json",                "max_age_h": 40},
+    "etf_true_flows":  {"key": "data/etf-true-flows.json",           "max_age_h": 40},
+    "bond_vol":        {"key": "data/bond-vol.json",                 "max_age_h": 40},
+    "stress_scenarios": {"key": "data/stress-scenarios.json",        "max_age_h": 60},
+    "signal_backtest": {"key": "data/signal-backtest.json",          "max_age_h": 90},
     "asset_compass":   {"key": "data/asset-compass.json",            "max_age_h": 30},
     "forward_returns": {"key": "data/forward-returns.json",          "max_age_h": 200},
     "best_setups":     {"key": "data/best-setups.json",              "max_age_h": 8},
@@ -663,6 +670,189 @@ def _coverage_block(census):
             "census_at": (census or {}).get("generated_at")}
 
 
+def _rows_with(doc, need, depth=0, path="$"):
+    """First list of dicts carrying all fields in `need` (defensive)."""
+    if depth > 3 or doc is None:
+        return None
+    if isinstance(doc, list) and doc and isinstance(doc[0], dict):
+        if all(any(n in r for r in doc[:4]) for n in need):
+            return doc
+    if isinstance(doc, dict):
+        for k in list(doc)[:40]:
+            r = _rows_with(doc[k], need, depth + 1, path + "." + str(k))
+            if r:
+                return r
+    if isinstance(doc, list):
+        for x in doc[:5]:
+            r = _rows_with(x, need, depth + 1)
+            if r:
+                return r
+    return None
+
+
+def build_macro_board(docs):
+    """ops 4292: the macro a PM checks before any buy -- straight from
+    the fleet's own engines, defensively read, honest Nones."""
+    out = {}
+    nc = docs.get("macro_nowcast")
+    rows = _rows_with(nc, ("name", "z")) or []
+    top = sorted((r for r in rows if num(r.get("z")) is not None),
+                 key=lambda r: -abs(num(r.get("z"))))[:6]
+    out["nowcast"] = {
+        "regime": dig(nc or {}, "regime", "nowcast_regime", "label"),
+        "top": [{"name": str(r.get("name"))[:30],
+                 "z": round(num(r.get("z")), 2),
+                 "signal": r.get("signal")} for r in top]} if nc else None
+    uc = docs.get("us_cycle")
+    if uc:
+        legs = _rows_with(uc, ("name", "z")) or []
+        worst = sorted((r for r in legs if num(r.get("z")) is not None),
+                       key=lambda r: -abs(num(r.get("z"))))[:3]
+        out["us_cycle"] = {"score": num(dig(uc, "score")),
+                           "level": dig(uc, "level", "band"),
+                           "worst": [{"name": r.get("name"),
+                                      "z": round(num(r.get("z")), 2)}
+                                     for r in worst]}
+    fi = docs.get("fi_census")
+    if fi:
+        rows = _rows_with(fi, ("name", "z")) or []
+        out["credit"] = [{"name": str(r.get("name"))[:18],
+                          "z": round(num(r.get("z")), 2)}
+                         for r in rows[:5]
+                         if num(r.get("z")) is not None] or None
+    bv = docs.get("bond_vol")
+    if bv:
+        rows = _rows_with(bv, ("z",)) or []
+        zs = [num(r.get("z")) for r in rows if num(r.get("z"))
+              is not None]
+        out["bond_vol_z"] = round(zs[0], 2) if zs else None
+    gr = docs.get("global_recession")
+    if gr:
+        out["global_recession"] = {
+            "status": dig(gr, "status", "regime", "verdict"),
+            "confirmed": dig(gr, "confirmed", "n_confirmed"),
+            "watch": dig(gr, "watch", "n_watch")}
+    return out or None
+
+
+def build_risk_panel(docs, risk, canary):
+    """Risk-gate decomposed + the veto stack with flip conditions."""
+    rg = docs.get("risk_gate") or {}
+    legs = _rows_with(rg, ("name",)) or []
+    legs = [l for l in legs if any(k in l for k in
+                                   ("score", "value", "state",
+                                    "signal"))][:8]
+    panel = {"gate_legs": [{"name": str(l.get("name"))[:34],
+                            "value": l.get("score", l.get("value")),
+                            "state": l.get("state", l.get("signal"))}
+                           for l in legs] or None,
+             "veto_stack": [
+        {"name": "risk-gate", "state": risk.get("posture"),
+         "sizing_x": risk.get("sizing_multiplier"),
+         "active": (risk.get("sizing_multiplier") or 1) < 1,
+         "flips_when": "composite recovers above the gate's own "
+                       "threshold (engine-defined)"},
+        {"name": "canary-barometer",
+         "state": "%s %s" % ((canary or {}).get("level"),
+                             (canary or {}).get("score")),
+         "active": bool((canary or {}).get("veto_active")),
+         "flips_when": "master band reaches RED (caps BUY_ZONE) / "
+                       "eases below WATCH"},
+    ]}
+    return panel
+
+
+def build_decision(ladder, risk, canary, hist_rows, money_map):
+    """The buy/no-buy card for the top class: checklist, blockers,
+    and what changed since the previous snapshot."""
+    if not ladder:
+        return None
+    top = ladder[0]
+    L = top.get("legs") or {}
+    checklist = [{"leg": k, "value": L.get(k),
+                  "ok": (L.get(k) is not None and L[k] >= 0.5)}
+                 for k in ("discount", "asymmetry", "strategic",
+                           "regime", "plumbing", "cycle")
+                 if k in L]
+    blockers = []
+    if (risk.get("sizing_multiplier") or 1) < 1:
+        blockers.append("risk-gate %s: size x%s"
+                        % (risk.get("posture"),
+                           risk.get("sizing_multiplier")))
+    if (canary or {}).get("veto_active"):
+        blockers.append("canary barometer RED veto: BUY_ZONE capped")
+    prev = hist_rows[-2] if hist_rows and len(hist_rows) >= 2 else {}
+    prev_scores = prev.get("scores") or {}
+    deltas = []
+    for r in ladder[:6]:
+        pv = prev_scores.get(r["class"])
+        if pv is not None and r.get("score") is not None:
+            deltas.append({"class": r["class"],
+                           "d": round(r["score"] - pv, 3)})
+    prev_names = set(prev.get("top_names") or [])
+    now_names = [m["ticker"] for m in money_map[:8]]
+    return {
+        "class": top["class"], "verdict": top["verdict"],
+        "score": top["score"],
+        "checklist": checklist,
+        "n_ok": sum(1 for c in checklist if c["ok"]),
+        "blockers": blockers,
+        "since_yesterday": {
+            "regime_prev": prev.get("regime"),
+            "sizing_prev": prev.get("sizing_x"),
+            "score_deltas": deltas,
+            "names_in": [n for n in now_names[:3]
+                         if n not in prev_names] or None,
+            "names_out": [n for n in prev_names
+                          if n not in now_names] or None,
+        } if prev else None,
+        "note": "checklist marks legs >= 0.50; blockers are the live "
+                "veto stack; deltas vs previous snapshot",
+    }
+
+
+def _flow_badges(docs, ladder):
+    """ETF creation/redemption direction per ladder asset."""
+    doc = docs.get("etf_true_flows")
+    if not doc:
+        return
+    def _scan(key, tag):
+        for r in (doc.get(key) or [])[:40]:
+            yield str(r.get("ticker") or "").upper(), tag
+    fl = dict(list(_scan("inflows", "INFLOW"))
+              + list(_scan("outflows", "OUTFLOW")))
+    for r in ladder:
+        t = str(r.get("asset") or "").upper()
+        if t in fl:
+            r["etf_flow"] = fl[t]
+
+
+def _stress_and_backtest(docs, money_map):
+    sc = docs.get("stress_scenarios")
+    rows = _rows_with(sc, ("ticker", "expected_return_pct")) or []
+    by = {str(r.get("ticker")).upper(): num(
+        r.get("expected_return_pct")) for r in rows}
+    bt = docs.get("signal_backtest")
+    vstats = {}
+    if isinstance(bt, dict):
+        for k, v in bt.items():
+            if isinstance(v, dict):
+                for verdict, rows2 in v.items():
+                    if isinstance(rows2, list) and rows2 and                             isinstance(rows2[0], dict) and                             "win_rate" in rows2[0]:
+                        ws = [num(x.get("win_rate")) for x in rows2
+                              if num(x.get("win_rate")) is not None]
+                        if ws:
+                            vstats[verdict] = round(
+                                sum(ws) / len(ws), 1)
+    for m in money_map:
+        er = by.get(m["ticker"])
+        if er is not None:
+            m["stress_er_pct"] = round(er, 1)
+        wv = vstats.get(m.get("setup_verdict") or "")
+        if wv is not None:
+            m["verdict_hist_winrate"] = wv
+
+
 def build_ladder(docs, regime, risk):
     CANARY_VETO = bool((_canary_block(docs.get("canary_warroom"))
                         or {}).get("veto_active"))
@@ -901,6 +1091,10 @@ def build_money_map(docs, ladder, risk, top_n=12):
             "squeeze_fuel": bool(sq),
             "earnings_in_days": srow.get("earnings_in_days"),
             "setup_verdict": srow.get("verdict"),
+            "why": (str(srow.get("why"))[:220]
+                    if srow.get("why") else None),
+            "price": num(srow.get("price")
+                         or srow.get("current_price")),
             "red_flags": len(srow.get("red_flags") or []) or None,
             "panel_mult": srow.get("khalid_panel_multiplier"),
             "why": (srow.get("why") or "")[:300] or None,
@@ -953,12 +1147,16 @@ def lambda_handler(event=None, context=None):
         "canary_barometer": _canary_block(docs.get("canary_warroom")),
         "fleet_coverage": _coverage_block(docs.get("sources_census")),
         "evidence_stats": globals().get("_EV_STATS"),
+        "macro_board": build_macro_board(docs),
+        "risk_panel": build_risk_panel(
+            docs, risk, _canary_block(docs.get("canary_warroom"))),
         "best_asset_class": ({"class": top["class"],
                               "verdict": top["verdict"],
                               "score": top["score"]} if top else None),
         "asset_ladder": ladder,
         "money_map": money_map,
         "money_map_note": mm_note,
+        "decision": None,  # filled below with history context
         "weights": {"ladder": W, "money_map": MM_W},
         "data_health": {"sources_ok": ok_n,
                         "sources_total": len(SOURCES),
@@ -977,10 +1175,17 @@ def lambda_handler(event=None, context=None):
                     Bucket=BUCKET, Key=HIST_KEY)["Body"].read())
             except Exception:
                 hist = {"rows": []}
+            out["decision"] = build_decision(
+                ladder, risk, out.get("canary_barometer"),
+                hist.get("rows") or [], money_map)
+            _flow_badges(docs, ladder)
+            _stress_and_backtest(docs, money_map)
+            out["asset_ladder"] = ladder
+            out["money_map"] = money_map
             hist["rows"] = (hist.get("rows") or [])[-179:] + [{
                 "t": out["generated_at"], "regime": regime,
                 "top_class": top["class"] if top else None,
-                "top_names": [m["ticker"] for m in money_map[:3]],
+                "top_names": [m["ticker"] for m in money_map[:8]],
                 "sizing_x": risk.get("sizing_multiplier"),
                 # v2.1: per-class scores so the page can draw real
                 # sparklines as days accumulate
@@ -994,6 +1199,13 @@ def lambda_handler(event=None, context=None):
                           ContentType="application/json")
         except Exception as e:
             print("[quantum-desk] history append failed: %s" % e)
+        try:  # re-put with decision/flow/stress enrichments included
+            s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
+                          Body=json.dumps(out, default=str).encode(),
+                          ContentType="application/json",
+                          CacheControl="max-age=300")
+        except Exception as e:
+            print("[quantum-desk] enriched re-put failed: %s" % e)
 
     print("[quantum-desk] regime=%s sources=%d/%d ladder=%d map=%d "
           "top=%s %.1fs" % (regime, ok_n, len(SOURCES), len(ladder),

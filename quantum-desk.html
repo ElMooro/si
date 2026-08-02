@@ -68,6 +68,23 @@ details.row>summary::-webkit-details-marker{display:none}
   <div class="tl tl2" id="tlsz" title="risk-gate sizing multiplier"></div>
 </div>
 
+<div class="sec" id="decsec" style="display:none">
+  <h2>The call — buy checklist, blockers, and what changed</h2>
+  <div class="note">Everything a buy decision needs in one card: which legs clear 0.50, which vetoes are live, and the overnight deltas.</div>
+  <div id="decision"></div>
+</div>
+
+<div class="sec" id="macrosec" style="display:none">
+  <h2>Macro board</h2>
+  <div class="note">The macro state behind the regime label — nowcast extremes, cycle stress, credit, and rates vol, each from its own engine.</div>
+  <div class="health" id="macro"></div>
+</div>
+
+<div class="sec" id="risksec" style="display:none">
+  <h2>Risk panel — gate legs & veto stack</h2>
+  <div id="riskpanel"></div>
+</div>
+
 <div class="sec">
   <h2>Asset ladder — six-leg blend, fully audited</h2>
   <div class="note">Click any row for its complete leg-by-leg breakdown and audit trail. Missing legs renormalize; nothing is invented. Sparklines appear as daily history accumulates.</div>
@@ -109,7 +126,7 @@ Promise.all([fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("f
   document.getElementById("meta").textContent=`v${d.version} · ops ${d.ops} · ${d.generated_at} · sources ${d.data_health?.sources_ok}/${d.data_health?.sources_total} · ${d.elapsed_s}s`;
   const reg=d.regime||{},rk=d.risk_gate||{},best=d.best_asset_class,ki=d.khalid_index,cb=d.canary_barometer||{},cov=d.fleet_coverage,es=d.evidence_stats;
   const votes=(reg.votes||[]).map(v=>`<span class="pill p-neu" style="margin:2px 3px 0 0">${esc(v.source)}: ${esc(v.regime)}</span>`).join("");
-  const abst=(reg.abstained||[]).map(a=>`<span class="pill p-abs" style="margin:2px 3px 0 0">${esc(a)} abstained</span>`).join("");
+  const abst=(reg.abstained||[]).map(a=>{const n=typeof a==="object"?(a.source||a.name||JSON.stringify(a)):a;return `<span class="pill p-abs" style="margin:2px 3px 0 0" title="${esc(typeof a==="object"?(a.reason||""):"")}">${esc(n)} abstained</span>`}).join("");
   document.getElementById("hero").innerHTML=`
     <div class="card"><div class="k">Regime consensus</div><div class="v">${esc(reg.regime||"—")}</div>
       <div class="vs">${reg.unanimous?"unanimous":reg.disagreement?"⚠ split vote":""}</div><div style="margin-top:6px">${votes}${abst}</div></div>
@@ -135,12 +152,39 @@ Promise.all([fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("f
       return `<i style="background:var(--neu);opacity:.7;height:${Math.max(8,x*100)}%" title="${esc((r.t||"").slice(0,10))} · sizing ×${x}"></i>`}).join("");
   }
 
+  const dec=d.decision;
+  if(dec){document.getElementById("decsec").style.display="";
+    const cl=(dec.checklist||[]).map(c=>`<span class="pill ${c.ok?"p-buy":"p-avd"}" style="margin:2px 4px 2px 0">${c.ok?"✓":"✗"} ${esc(c.leg)} ${c.value!=null?pct(c.value):"—"}</span>`).join("");
+    const bl=(dec.blockers||[]).map(b=>`<span class="pill p-avd" style="margin:2px 4px 2px 0">⛔ ${esc(b)}</span>`).join("")||'<span class="pill p-buy">no live vetoes</span>';
+    const sy=dec.since_yesterday||{};
+    const dd=(sy.score_deltas||[]).map(x=>`<span class="pill ${x.d>0?"p-buy":x.d<0?"p-avd":"p-neu"}" style="margin:2px 4px 2px 0">${esc(x.class)} ${x.d>0?"+":""}${x.d}</span>`).join("");
+    document.getElementById("decision").innerHTML=`<div class="card">
+      <div class="v">${esc(dec.class)} · ${dec.score} <span class="pill ${vp(dec.verdict)}">${dec.verdict}</span> <span class="vs">${dec.n_ok}/${(dec.checklist||[]).length} legs clear</span></div>
+      <div style="margin-top:10px">${cl}</div>
+      <div style="margin-top:10px"><span class="k">blockers</span><div style="margin-top:4px">${bl}</div></div>
+      ${sy&&(sy.regime_prev||dd)?`<div style="margin-top:10px"><span class="k">since previous snapshot</span><div class="vs" style="margin-top:4px">regime ${esc(sy.regime_prev||"—")} → now · sizing ×${sy.sizing_prev??"—"} → ×${(d.risk_gate||{}).sizing_multiplier??"—"}${sy.names_in?` · in: ${sy.names_in.join(", ")}`:""}${sy.names_out?` · out: ${sy.names_out.map(esc).join(", ")}`:""}</div><div style="margin-top:6px">${dd}</div></div>`:""}
+      <div class="vs" style="margin-top:8px;opacity:.7">${esc(dec.note||"")}</div></div>`;}
+  const mb=d.macro_board;
+  if(mb){document.getElementById("macrosec").style.display="";
+    const cards=[];
+    if(mb.nowcast)cards.push(`<div><b>nowcast${mb.nowcast.regime?" · "+esc(mb.nowcast.regime):""}</b><br>${(mb.nowcast.top||[]).map(t=>`<span class="vs">${esc(t.name)} z ${t.z>0?"+":""}${t.z}</span>`).join("<br>")}</div>`);
+    if(mb.us_cycle)cards.push(`<div><b>US cycle · ${esc(mb.us_cycle.level||"")} ${mb.us_cycle.score??""}</b><br>${(mb.us_cycle.worst||[]).map(t=>`<span class="vs">${esc(t.name)} z ${t.z>0?"+":""}${t.z}</span>`).join("<br>")}</div>`);
+    if(mb.credit)cards.push(`<div><b>credit / factor spreads</b><br>${mb.credit.map(t=>`<span class="vs ${Math.abs(t.z)>=2?"stale":""}">${esc(t.name)} z ${t.z>0?"+":""}${t.z}</span>`).join("<br>")}</div>`);
+    if(mb.bond_vol_z!=null)cards.push(`<div><b>bond vol</b><br><span class="vs">z ${mb.bond_vol_z>0?"+":""}${mb.bond_vol_z}</span></div>`);
+    if(mb.global_recession)cards.push(`<div><b>global recession</b><br><span class="vs">${esc(mb.global_recession.status||"—")}${mb.global_recession.confirmed!=null?` · confirmed ${mb.global_recession.confirmed}`:""}${mb.global_recession.watch!=null?` · watch ${mb.global_recession.watch}`:""}</span></div>`);
+    document.getElementById("macro").innerHTML=cards.join("");}
+  const rp=d.risk_panel;
+  if(rp){document.getElementById("risksec").style.display="";
+    const legs=(rp.gate_legs||[]).map(l=>`<div>${esc(l.name)}<br><b>${esc(l.value??"—")}</b> <span class="vs">${esc(l.state||"")}</span></div>`).join("");
+    const vs2=(rp.veto_stack||[]).map(v=>`<div><span class="${v.active?"dead":"ok"}">●</span> <b>${esc(v.name)}</b> · ${esc(v.state||"")}${v.sizing_x!=null?` · ×${v.sizing_x}`:""}<br><span class="vs">flips when: ${esc(v.flips_when||"")}</span></div>`).join("");
+    document.getElementById("riskpanel").innerHTML=`${rp.gate_legs?`<div class="health" style="margin-bottom:12px">${legs}</div>`:""}<div class="health">${vs2}</div>`;}
   const W=(d.weights||{}).ladder||{};
   const rows=(d.asset_ladder||[]).map(r=>{
     const L=r.legs||{},a=r.audit||{},cp=a.compass||{};
     const hotchips=[a.discount&&a.discount.pct_vs_trend!=null?`${a.discount.pct_vs_trend}% ${a.discount.basis||"vs trend"}`:null,
       a.asymmetry_ratio!=null?`asym ${a.asymmetry_ratio}:1${a.asym_status?" ("+a.asym_status+")":""}`:null,
-      a.dd_now_pct!=null?`dd ${a.dd_now_pct}%`:null].filter(Boolean).map(t=>`<span class="pill" style="font-size:11px">${esc(t)}</span>`).join(" ");
+      a.dd_now_pct!=null?`dd ${a.dd_now_pct}%`:null,
+      r.etf_flow?`ETF ${r.etf_flow}`:null].filter(Boolean).map(t=>`<span class="pill" style="font-size:11px">${esc(t)}</span>`).join(" ");
     const svals=H.map(h=>(h.scores||{})[r.class]).filter(v=>v!=null);
     const legbars=Object.entries(LEGDESC).map(([k,desc])=>{const v=L[k];
       return `<div class="leg"><span>${k} <b style="color:var(--tx)">${v==null?"ABSTAIN":pct(v)}</b> · w ${W[k]!=null?(W[k]*100).toFixed(0)+"%":"—"}</span>
@@ -178,6 +222,12 @@ Promise.all([fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("f
         ${m.squeeze_fuel?'<span class="pill p-acc">squeeze fuel</span>':""}
         <span class="pill">size ×${m.size_hint_x??"—"}</span>
         ${m.earnings_in_days!=null?`<span class="pill p-neu">earnings ${m.earnings_in_days}d</span>`:""}
+      </div>
+      ${m.why?`<div class="vs" style="margin-top:8px">${esc(m.why)}</div>`:""}
+      <div class="row" style="margin-top:6px">
+        ${m.price!=null?`<span class="pill">$${m.price}</span>`:""}
+        ${m.stress_er_pct!=null?`<span class="pill ${m.stress_er_pct>=0?"p-buy":"p-avd"}">stress ER ${m.stress_er_pct>0?"+":""}${m.stress_er_pct}%</span>`:""}
+        ${m.verdict_hist_winrate!=null?`<span class="pill p-neu">verdict hist win ${m.verdict_hist_winrate}%</span>`:""}
       </div>
       <div class="legchips" style="margin-top:9px">${Object.entries(m.legs||{}).map(([k,v])=>`<span class="pill" style="font-size:11px;margin:2px 3px 0 0">${esc(k)} ${pct(v)}</span>`).join("")}</div>
       <details class="ev"><summary>evidence from ${(m.evidence||[]).length} engines ▾</summary><table>${evt||"<tr><td>—</td><td>no per-name corroboration this run</td></tr>"}</table></details>
