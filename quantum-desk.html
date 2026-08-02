@@ -171,7 +171,7 @@ Promise.all([fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("f
     if(mb.us_cycle)cards.push(`<div><b>US cycle · ${esc(mb.us_cycle.level||"")} ${mb.us_cycle.score??""}</b><br>${(mb.us_cycle.worst||[]).map(t=>`<span class="vs">${esc(t.name)} z ${t.z>0?"+":""}${t.z}</span>`).join("<br>")}</div>`);
     if(mb.credit)cards.push(`<div><b>credit / factor spreads</b><br>${mb.credit.map(t=>`<span class="vs ${Math.abs(t.z)>=2?"stale":""}">${esc(t.name)} z ${t.z>0?"+":""}${t.z}</span>`).join("<br>")}</div>`);
     if(mb.bond_vol_z!=null)cards.push(`<div><b>bond vol</b><br><span class="vs">z ${mb.bond_vol_z>0?"+":""}${mb.bond_vol_z}</span></div>`);
-    if(d.boom_stage&&(d.boom_stage.stage||d.boom_stage.score!=null))cards.push(`<div><b>boom stage</b><br><span class="vs">${esc(d.boom_stage.stage||"—")}${d.boom_stage.score!=null?" · "+d.boom_stage.score:""}</span></div>`);
+    if(d.boom_stage&&(d.boom_stage.n_signals!=null||d.boom_stage.stage))cards.push(`<div><b>boom stage · ${d.boom_stage.n_signals??0} signals</b><br>${(d.boom_stage.top||[]).map(t=>`<span class="vs">${esc(t)}</span>`).join("<br>")||`<span class="vs">${esc(d.boom_stage.stage||"—")}</span>`}</div>`);
     if(mb.global_recession)cards.push(`<div><b>global recession</b><br><span class="vs">${esc(mb.global_recession.status||"—")}${mb.global_recession.confirmed!=null?` · confirmed ${mb.global_recession.confirmed}`:""}${mb.global_recession.watch!=null?` · watch ${mb.global_recession.watch}`:""}</span></div>`);
     document.getElementById("macro").innerHTML=cards.join("");}
   const rp=d.risk_panel;

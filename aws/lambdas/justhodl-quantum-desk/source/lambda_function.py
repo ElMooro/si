@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "2.3.0"
+VERSION = "2.3.1"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -677,7 +677,7 @@ def _coverage_block(census):
             "census_at": (census or {}).get("generated_at")}
 
 
-NAMEISH = ("name", "id", "pair", "label", "title")
+NAMEISH = ("name", "id", "pair", "label", "title", "industry", "market", "ticker")
 
 
 def _rows_with(doc, need, depth=0, path="$"):
@@ -749,9 +749,13 @@ def build_macro_board(docs):
         out["bond_vol_z"] = round(zs[0], 2) if zs else None
     bs = docs.get("boom_stage")
     if bs:
+        sigs = bs.get("signals") or []
         out["boom_stage"] = {
-            "stage": dig(bs, "stage", "label", "phase", "regime"),
-            "score": num(dig(bs, "score", "composite"))}
+            "n_signals": len(sigs),
+            "top": [str(s0.get("line") or
+                        "%s:%s" % (s0.get("type"), s0.get("pair"))
+                        )[:80] for s0 in sigs[:2]] or None,
+            "stage": dig(bs, "stage", "label", "phase")}
     gr = docs.get("global_recession")
     if gr:
         out["global_recession"] = {
@@ -855,7 +859,9 @@ def _flow_badges(docs, ladder):
 
 def _stress_and_backtest(docs, money_map):
     sc = docs.get("stress_scenarios")
-    rows = _rows_with(sc, ("ticker", "expected_return_pct")) or []
+    rows = dig(sc or {}, "asset_impact.all")
+    if not (isinstance(rows, list) and rows):
+        rows = _rows_with(sc, ("ticker", "expected_return_pct")) or []
     by = {str(r.get("ticker")).upper(): num(
         r.get("expected_return_pct")) for r in rows}
     ALIAS = {"GLD": ("GLD", "GOLD", "GC", "XAU"),
@@ -929,15 +935,17 @@ def attach_positioning(docs, ladder):
     rows = _rows_with(doc, ("name",)) or []
     rows = [r for r in rows
             if any(k in r for k in ("net_pctile", "percentile",
-                                    "pct_rank", "net_pct", "z",
-                                    "net"))]
+                                    "pct_rank", "net_pct", "z", "net",
+                                    "net_speculator",
+                                    "net_commercial"))]
     if not rows:
         return
     def val(r):
         pk = next((k for k in ("net_pctile", "percentile", "pct_rank")
                    if r.get(k) is not None), None)
         return (num(r.get(pk)) if pk else None,
-                num(r.get("net") or r.get("net_pct") or r.get("z")))
+                num(r.get("net_speculator") or r.get("net")
+                    or r.get("net_pct") or r.get("z")))
     for lr in ladder:
         keys = (lr["asset"].upper(),) + CFTC_ALIAS.get(
             lr["asset"].upper(), ())
@@ -965,6 +973,7 @@ def attach_rotation(docs, ladder):
             if nm == t or t in nm.split("/"):
                 lr["rrg"] = {"rank": r.get("rank"),
                              "quadrant": r.get("quadrant")
+                             or dig(r, "rrg.quadrant")
                              or r.get("phase") or r.get("state")}
                 break
 
@@ -973,9 +982,11 @@ def risk_extras(docs, panel):
     tr = docs.get("tail_risk")
     if tr:
         panel["tail_risk"] = {
-            "score": num(dig(tr, "score", "tail_score",
-                             "composite")),
-            "level": dig(tr, "level", "band", "status"),
+            "score": num(dig(tr, "score", "tail_score", "composite",
+                             "prob_tail", "tail_prob",
+                             "percentile")),
+            "level": dig(tr, "level", "band", "status", "regime",
+                         "verdict"),
         }
     tn = docs.get("treasury_noise")
     if tn:
@@ -1000,11 +1011,28 @@ def risk_extras(docs, panel):
 
 def mm_sector_boom(docs, money_map):
     doc = docs.get("industry_boom")
-    rows = _rows_with(doc, ("name", "score")) or []
+    rows = (dig(doc or {}, "league") or
+            _rows_with(doc, ("name",)) or [])
+    rows = [r for r in rows if isinstance(r, dict)
+            and (r.get("boom_score") is not None
+                 or r.get("score") is not None)]
     if not rows:
         return
-    bm = {str(next((r[k] for k in NAMEISH if r.get(k)),
-                   "")).upper(): num(r.get("score")) for r in rows}
+    bm = {}
+    sec_acc = {}
+    for r in rows:
+        sc_ = num(r.get("boom_score", r.get("score")))
+        if sc_ is None:
+            continue
+        nm = str(next((r[k] for k in NAMEISH if r.get(k)),
+                      "")).upper()
+        if nm:
+            bm[nm] = sc_
+        se = str(r.get("sector") or "").upper()
+        if se:
+            sec_acc.setdefault(se, []).append(sc_)
+    for se, vs in sec_acc.items():
+        bm.setdefault(se, round(sum(vs) / len(vs), 1))
     for m in money_map:
         sec = m.get("sector")
         if not sec:
