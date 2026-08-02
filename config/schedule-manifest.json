@@ -10188,6 +10188,13 @@
       "cron": "cron(15 21 ? * MON-FRI *)",
       "target": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-compound-aggregator",
       "note": "ops 4270 \u2014 resurrect page-critical compound-signals.json (cadence tunable)"
+    },
+    {
+      "name": "house-ptr-extract-6h",
+      "kind": "scheduler",
+      "cron": "cron(10 1,7,13,19 * * ? *)",
+      "target": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-house-ptr-extract",
+      "note": "ops 4273 \u2014 6-hourly PTR PDF walk (20 docs/run incremental)"
     }
   ]
 }

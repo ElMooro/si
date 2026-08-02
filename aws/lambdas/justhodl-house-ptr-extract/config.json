@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-house-ptr-extract",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 768,
+  "timeout": 240,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "House PTR PDF extractor: walks congress-direct's filing index, pypdf-parses per-trade tickers into data/house-ptr-trades.json (quiver-shape rows). Incremental 20 docs/run; scanned filings recorded no_text, never guessed. ops 4273.",
+  "env": {
+    "MAX_DOCS_PER_RUN": "20"
+  }
+}

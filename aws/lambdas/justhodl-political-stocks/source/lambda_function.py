@@ -411,9 +411,25 @@ def fetch_congress_direct() -> tuple:
             "Range": t.get("amount") or "?",
             "House": "Senate", "_source": "senate_efd",
         })
-    print(f"[political] congress-direct: {len(rows)} senate txns with "
-          f"tickers (doc {gen[:19]}), house PTR filings metadata-only "
-          f"({(doc.get('house') or {}).get('n_ptr_filings', 0)})")
+    n_house_rows = 0
+    try:
+        hp = json.loads(s3.get_object(
+            Bucket=BUCKET,
+            Key="data/house-ptr-trades.json")["Body"].read())
+        for t in (hp.get("trades") or []):
+            if t.get("Ticker") and t.get("TransactionDate"):
+                rows.append(t)
+                n_house_rows += 1
+        st = hp.get("stats") or {}
+        print(f"[political] house-ptr-extract: +{n_house_rows} PDF-parsed "
+              f"trades ({st.get('docs_parsed')} docs parsed, "
+              f"{st.get('docs_no_text')} scanned/no-text -- honest)")
+    except Exception as e:
+        print(f"[political] house-ptr-trades unavailable: {str(e)[:70]} "
+              f"(senate-only run)")
+    print(f"[political] congress-direct: {len(rows)} official rows "
+          f"(senate eFD {len(rows)-n_house_rows} + house PDF "
+          f"{n_house_rows}), doc {gen[:19]}")
     return rows, "congress_direct_official"
 
 
