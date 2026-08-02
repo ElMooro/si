@@ -10181,6 +10181,13 @@
       "cron": "cron(0 4 ? * SUN *)",
       "target": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-calibration-snapshotter",
       "note": "ops 4266 \u2014 weekly calibration snapshot (Sun 04 UTC, after forward-returns 03 UTC)"
+    },
+    {
+      "name": "compound-aggregator-daily",
+      "kind": "scheduler",
+      "cron": "cron(15 21 ? * MON-FRI *)",
+      "target": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-compound-aggregator",
+      "note": "ops 4270 \u2014 resurrect page-critical compound-signals.json (cadence tunable)"
     }
   ]
 }
