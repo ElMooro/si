@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "2.2.3"
+VERSION = "2.3.0"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -125,6 +125,13 @@ SOURCES = {
     "bond_vol":        {"key": "data/bond-vol.json",                 "max_age_h": 40},
     "stress_scenarios": {"key": "data/stress-scenarios.json",        "max_age_h": 60},
     "signal_backtest": {"key": "data/signal-backtest.json",          "max_age_h": 90},
+    "cftc_deep":       {"key": "data/cftc-deep-view.json",           "max_age_h": 200},
+    "rotation_dash":   {"key": "data/rotation-dashboard.json",       "max_age_h": 40},
+    "tail_risk":       {"key": "data/tail-risk.json",                "max_age_h": 40},
+    "treasury_noise":  {"key": "data/treasury-noise.json",           "max_age_h": 40},
+    "industry_boom":   {"key": "data/industry-boom.json",            "max_age_h": 40},
+    "boom_stage":      {"key": "data/boom-stage.json",               "max_age_h": 40},
+    "alpha_decay":     {"key": "data/alpha-decay.json",              "max_age_h": 40},
     "asset_compass":   {"key": "data/asset-compass.json",            "max_age_h": 30},
     "forward_returns": {"key": "data/forward-returns.json",          "max_age_h": 200},
     "best_setups":     {"key": "data/best-setups.json",              "max_age_h": 8},
@@ -740,6 +747,11 @@ def build_macro_board(docs):
         zs = [num(r.get("z")) for r in rows if num(r.get("z"))
               is not None]
         out["bond_vol_z"] = round(zs[0], 2) if zs else None
+    bs = docs.get("boom_stage")
+    if bs:
+        out["boom_stage"] = {
+            "stage": dig(bs, "stage", "label", "phase", "regime"),
+            "score": num(dig(bs, "score", "composite"))}
     gr = docs.get("global_recession")
     if gr:
         out["global_recession"] = {
@@ -900,6 +912,115 @@ def _stress_and_backtest(docs, money_map):
                 if pv is not None:
                     m["price"] = pv
                     break
+
+
+CFTC_ALIAS = {"GLD": ("GOLD", "GC"), "SLV": ("SILVER", "SI "),
+              "IEF": ("10-YEAR", "10Y", "UST 10", "ZN"),
+              "SPY": ("S&P", "E-MINI S", "ES "),
+              "IWM": ("RUSSELL", "RTY"),
+              "BTC": ("BITCOIN", "BTC"), "ETH": ("ETHER",),
+              "DBC": ("CRUDE", "WTI"), "HYG": (), "EEM": (),
+              "EFA": (), "VNQ": (), "CASH": ()}
+
+
+def attach_positioning(docs, ladder):
+    """CFTC net-spec context per ladder class (ops 4297)."""
+    doc = docs.get("cftc_deep")
+    rows = _rows_with(doc, ("name",)) or []
+    rows = [r for r in rows
+            if any(k in r for k in ("net_pctile", "percentile",
+                                    "pct_rank", "net_pct", "z",
+                                    "net"))]
+    if not rows:
+        return
+    def val(r):
+        pk = next((k for k in ("net_pctile", "percentile", "pct_rank")
+                   if r.get(k) is not None), None)
+        return (num(r.get(pk)) if pk else None,
+                num(r.get("net") or r.get("net_pct") or r.get("z")))
+    for lr in ladder:
+        keys = (lr["asset"].upper(),) + CFTC_ALIAS.get(
+            lr["asset"].upper(), ())
+        for r in rows:
+            nm = str(next((r[k] for k in NAMEISH if r.get(k)),
+                          "")).upper()
+            if any(k and k in nm for k in keys):
+                pct_, net_ = val(r)
+                if pct_ is not None or net_ is not None:
+                    lr["cftc"] = {"pctile": pct_, "net": net_,
+                                  "market": nm[:24]}
+                break
+
+
+def attach_rotation(docs, ladder):
+    doc = docs.get("rotation_dash")
+    rows = _rows_with(doc, ("name",)) or []
+    if not rows:
+        return
+    for lr in ladder:
+        t = lr["asset"].upper()
+        for r in rows:
+            nm = str(next((r[k] for k in NAMEISH if r.get(k)),
+                          "")).upper()
+            if nm == t or t in nm.split("/"):
+                lr["rrg"] = {"rank": r.get("rank"),
+                             "quadrant": r.get("quadrant")
+                             or r.get("phase") or r.get("state")}
+                break
+
+
+def risk_extras(docs, panel):
+    tr = docs.get("tail_risk")
+    if tr:
+        panel["tail_risk"] = {
+            "score": num(dig(tr, "score", "tail_score",
+                             "composite")),
+            "level": dig(tr, "level", "band", "status"),
+        }
+    tn = docs.get("treasury_noise")
+    if tn:
+        panel["treasury"] = {
+            "score": num(dig(tn, "score", "stress", "noise",
+                             "composite.score")),
+            "level": dig(tn, "level", "band", "status", "regime"),
+        }
+    ad = docs.get("alpha_decay")
+    rows = _rows_with(ad, ("signal",)) or _rows_with(ad,
+                                                    ("name",)) or []
+    if rows:
+        bad = [str(next((r[k] for k in ("signal",) + NAMEISH
+                         if r.get(k)), "?"))[:34]
+               for r in rows
+               if str(r.get("status", "")).upper().startswith(
+                   ("DECAY", "DEAD", "BROKEN"))
+               or r.get("alert") in (True, "True")]
+        panel["signal_health"] = {"n_checked": len(rows),
+                                  "decayed": bad[:8] or None}
+
+
+def mm_sector_boom(docs, money_map):
+    doc = docs.get("industry_boom")
+    rows = _rows_with(doc, ("name", "score")) or []
+    if not rows:
+        return
+    bm = {str(next((r[k] for k in NAMEISH if r.get(k)),
+                   "")).upper(): num(r.get("score")) for r in rows}
+    for m in money_map:
+        sec = m.get("sector")
+        if not sec:
+            for c in m.get("evidence") or []:
+                if c.get("sector"):
+                    sec = c["sector"]
+                    break
+        if not sec:
+            continue
+        su = str(sec).upper()
+        hit = next(((k, v) for k, v in bm.items()
+                    if v is not None and (su in k or k in su)), None)
+        if hit:
+            m["sector_boom"] = {"sector": str(sec)[:22],
+                                "industry": hit[0][:26],
+                                "score": round(hit[1], 1)}
 
 
 def build_ladder(docs, regime, risk):
@@ -1263,6 +1384,10 @@ def lambda_handler(event=None, context=None):
                 hist.get("rows") or [], money_map)
             globals()["_LADDER_REF"] = ladder
             _flow_badges(docs, ladder)
+            attach_positioning(docs, ladder)
+            attach_rotation(docs, ladder)
+            risk_extras(docs, out.get("risk_panel") or {})
+            mm_sector_boom(docs, money_map)
             _stress_and_backtest(docs, money_map)
             out["asset_ladder"] = ladder
             out["money_map"] = money_map
