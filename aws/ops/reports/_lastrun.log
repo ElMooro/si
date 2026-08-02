@@ -1,15 +1,12 @@
-executing-against: 7e2252210377002c3d490981489874bfd73c55a6
-ops 4276 -- glued-date recall pass
-── 1. reparse the zero-row dozen on v1.1 ──
-[17:43:51] invoked: {"ok": true, "new_docs": 20, "parsed": 20, "no_text": 0, "errors": 0, "elapsed_s": 4.9, "trades_total": 209}
-[17:43:51] histogram: {0: 8, 1: 13, 2: 5, 3: 2, 5: 1, 6: 1, 7: 1, 8: 1, 11: 1, 13: 1, 17: 1, 19: 1, 31: 1, 63: 1} -- trades_total=209
-[17:43:51] zero-rows split: true_miss=0 fund_only=8 unmeasured(pre-v1.1.1)=0
-[17:43:51] ✅ recall honest: 209 trades, zero-rows are fund-only or pre-metric
-── 2. both chambers, attribution visible ──
-[17:43:52] invoked: {"statusCode": 200, "body": "{\"ok\": true, \"n_quiver\": 295, \"n_house\": 209, \"n_senate\": 86, \"n_tickers\": 153, \"n_clusters\": 13, \"n_bipartisan\": 4, \"duration_s\": 0.2}
-[17:43:52] chambers: senate=86 house=209 tickers=153
-[17:43:52] ✅ party attribution: 244/380 (64%) via name_map
+executing-against: c831ac643da881542eeb1c6bea1dd6a5a1e0e176
+ops 4277 -- fleet census: every engine, every artifact
+[18:00:51] ✅ repo walk: 771 engines, 916 py files, 680 distinct data/ write targets
+[18:00:58] ✅ live S3: 874 top-level data/*.json (649 fresh<26h); 634 have identified writers; 46 write-targets not yet materialized
+── per-ticker shape probe (every candidate, capped fetch) ──
+[18:01:04] ✅ ticker-keyed artifacts found: 32 (probed 120)
+── macro candidates (fresh, non-ticker, for new legs) ──
+[18:01:04] ✅ census PUBLISHED: data/quantum-desk-sources.json (32 per-ticker sources, 29 macro candidates)
 ── RESULT ──
-[17:43:52] ✅ OPS 4276 PASS -- recall recovered, two chambers live with visible attribution
+[18:01:04] ✅ OPS 4277 PASS -- the fleet is mapped; v2 wiring next
 
-→ Report written to aws/ops/reports/latest/4276_recall_pass.md
+→ Report written to aws/ops/reports/latest/4277_fleet_census.md
