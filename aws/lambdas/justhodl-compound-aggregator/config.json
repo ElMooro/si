@@ -1,0 +1,14 @@
+{
+  "function_name": "justhodl-compound-aggregator",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 120,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Compound-signal aggregator: fuses per-engine signals into data/compound-signals.json (134 compound / 42 triple+ on ops-4270 resurrection). Onboarded ops 4270; was unmanaged with a dead schedule.",
+  "env": {}
+}

@@ -4657,6 +4657,18 @@ def lambda_handler(event, context):
                 ContentType="application/json",
                 CacheControl="public, max-age=300")
             print("flow S3 saved")
+            # ops 4270: options-scanner.html reads the LEGACY key
+            # data/options-flow.json; the engine key-migrated to
+            # flow-data.json at some point and the page never followed.
+            # Dual-write the alias -- zero page risk, honest provenance.
+            _alias = dict(payload)
+            _alias["legacy_alias_of"] = "flow-data.json"
+            _s3.put_object(Bucket="justhodl-dashboard-live",
+                Key="data/options-flow.json",
+                Body=json.dumps(_alias, default=str).encode(),
+                ContentType="application/json",
+                CacheControl="public, max-age=300")
+            print("flow legacy alias saved")
         except Exception as _e:
             # audit P2.5: emit EMF metric for silent put_object failure
             print(__import__('json').dumps({"_aws":{"Timestamp":int(__import__('time').time()*1000),"CloudWatchMetrics":[{"Namespace":"JustHodl/Reliability","Dimensions":[["Lambda"]],"Metrics":[{"Name":"S3PutFailure","Unit":"Count"}]}]},"Lambda":__import__('os').environ.get("AWS_LAMBDA_FUNCTION_NAME","?"),"S3PutFailure":1,"error":str(e)[:200] if 'e' in dir() else "unknown"}))

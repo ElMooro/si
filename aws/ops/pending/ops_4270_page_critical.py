@@ -1,5 +1,5 @@
 """
-ops_4270 -- the page-critical quartet, by invoke-and-observe.
+ops_4270 (delta) -- quartet closed: options-flow was never frozen, it key-migrated to flow-data.json while the page kept reading the legacy key; the engine now dual-writes the alias. risk-regime schedule recreated from manifest cadence. compound-aggregator onboarded.
 
 4256 flagged four page-critical artifacts. Tonight's recon corrected
 the attribution table again: alpha-research and carry-surface only
@@ -29,13 +29,13 @@ RUN_START = datetime.now(timezone.utc)
 
 ENGINES = [
     ("justhodl-compound-aggregator", "data/compound-signals.json",
-     ["signals", "generated_at"], [("compound-aggregator-daily",
+     ["compound", "generated_at"], [("compound-aggregator-daily",
                                     "cron(15 21 ? * MON-FRI *)")]),
     ("justhodl-options-flow", "data/options-flow.json",
-     ["generated_at"], [("justhodl-options-flow-sched", None),
+     ["generated_at", "legacy_alias_of"], [("justhodl-options-flow-sched", None),
                         ("justhodl-options-flow-30m", None)]),
     ("justhodl-risk-regime", "data/risk-regime.json",
-     ["regime", "generated_at"], [("justhodl-risk-regime-daily", None)]),
+     ["risk_regime", "generated_at"], [("justhodl-risk-regime-daily", "cron(45 12 ? * MON-FRI *)")]),
 ]
 
 def age_min(key):
