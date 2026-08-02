@@ -1,34 +1,23 @@
-executing-against: 07b0b90f512b292ab88e3d4195a1c0cf7796d2d6
-ops 4283 -- Atlas v2: nested stores + dormant triage + switch-on wave 1
-── 1. nested stores ──
-[18:50:17] subdirs: 61 total, 46 signal-candidates: ['_alerts/', '_altseason/', '_askdesk/', '_audit/', '_backtest/', '_canaries/', '_cycle/', '_estrev/', '_harvest/', '_internals/', '_intraday/', '_ledger/', '_ma200/', '_map/', '_preview/', '_research/', '_skill/', '_state/', '_streaming/', '_upside/']
-[18:51:10] ✅ nested scan: 420 docs -> 8 opportunity artifacts ({'Alerts & Routing': 2, 'Nested Signals': 6})
-── 2. dormant triage (writer-code classification) ──
-[18:51:10] ✅ triage of 60 dormant targets: {'MAIN_PATH': 56, 'LAZY_EVENT': 4}
-── 3. switch-on wave 1 (MAIN_PATH writers, cap 10) ──
-[18:51:12] invoked justhodl-convergence-radar
-[18:51:15] invoked justhodl-alert-sentinel
-[18:51:17] invoked justhodl-prepump-alerts-router
-[18:51:18] invoked justhodl-trade-ticket-monitor
-[18:51:56] invoked justhodl-altseason
-[18:53:47] invoke justhodl-backtest-harness: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/
-[18:53:48] invoked justhodl-theme-classifier
-[18:54:08] invoked justhodl-crisis-canaries
-[18:54:11] invoked justhodl-accumulation-radar
-[18:56:01] invoked justhodl-signal-harvester
-[18:56:05] ✅ LIT: data/_alerts/convergence-radar-alerted.json (by justhodl-convergence-radar)
-[18:56:05] ✅ LIT: data/_alerts/last.json (by justhodl-alert-sentinel)
-[18:56:05] ✅ LIT: data/_alerts/prepump-router-state.json (by justhodl-prepump-alerts-router)
-[18:56:05] ✅ LIT: data/_alerts/trade-monitor-state.json (by justhodl-trade-ticket-monitor)
-[18:56:05] ✅ LIT: data/_altseason/global-history.json (by justhodl-altseason)
-[18:56:05] ✅ LIT: data/_backtest/state.json (by justhodl-backtest-harness)
-[18:56:05] ✅ LIT: data/_cache/ticker-profiles.json (by justhodl-theme-classifier)
-[18:56:06] ✅ LIT: data/_canaries/history.json (by justhodl-crisis-canaries)
-[18:56:06] ✅ LIT: data/_cycle/pv.json (by justhodl-accumulation-radar)
-[18:56:06] ✅ LIT: data/_harvest/last-run.json (by justhodl-signal-harvester)
-[18:56:06] wave 1: 10 invoked, 10 targets materialized
-[18:56:06] ✅ ATLAS v2 published: 194 engines / 14 families; dormant split lazy=4 true=56; wave1 lit=10
+executing-against: b211a67175be933a0cafe0bad5c0d40788e214b4
+ops 4284 -- switch-on wave 2
+[19:21:09] ✅ remaining true-dormant after re-head: 16 (30 lit by schedules since wave 1)
+[19:21:09] firing 15 unfired writers: ['alpha-compass', 'analyst-consensus', 'commodity-curves', 'eurostat-history', 'engine-robustness', 'stealth-flow', 'causality-scanner', 'convexity-scorer', 'meta-improver', 'failure-library', 'ab-test', 'news-velocity', 'concentration-liquidity', 'retail-sentiment', 'transcript-indexer']
+[19:23:41] justhodl-news-velocity: client timeout (server-side likely completing)
+[19:24:14] ⚠ DEFECT: data/_telegram-chat.json (alpha-compass) -- ran clean, key absent -- conditional or different-name write
+[19:24:14] ⚠ DEFECT: data/analyst-consensus-history.json (analyst-consensus) -- ran clean, key absent -- conditional or different-name write
+[19:24:14] ⚠ DEFECT: data/commodity-curves-history.json (commodity-curves) -- fred GOLDAMGBD228NLBM err: HTTP Error 400: Bad Request | tg err: HTTP Error 401: Unauthorized
+[19:24:14] ⚠ DEFECT: data/ecb-confidence.json (eurostat-history) -- An error occurred (ResourceNotFoundException) when calling the Invoke operation: Function not found: arn:aws:lambda:us-e
+[19:24:14] ⚠ DEFECT: data/engine-robustness.json (engine-robustness) -- ran clean, key absent -- conditional or different-name write
+[19:24:14] ⚠ DEFECT: data/etf-flows/event-study.json (stealth-flow) -- ran clean, key absent -- conditional or different-name write
+[19:24:14] ⚠ DEFECT: data/history/causality-discoveries-history.json (causality-scanner) -- ran clean, key absent -- conditional or different-name write
+[19:24:14] ⚠ DEFECT: data/history/convexity-scores-history.json (convexity-scorer) -- [WARNING]	2026-08-02T19:21:41.505Z	0dc089b6-203f-4a04-9479-b8ac25660c01	fmp_fail /short-interest: HTTP Error 404: Not Fo
+[19:24:14] ⚠ DEFECT: data/history/meta-improver-history.json (meta-improver) -- ran clean, key absent -- conditional or different-name write
+[19:24:14] ⚠ DEFECT: data/history/pre-disaster-history.json (failure-library) -- [WARNING]	2026-08-02T19:21:46.646Z	63cfe8e0-92e5-428e-b8aa-75c14a3ca2aa	fmp_fail /insider-trading: HTTP Error 404: Not F
+[19:24:14] ⚠ DEFECT: data/morning-intel.json (ab-test) -- anthropic call fail: HTTP Error 400: Bad Request | anthropic call fail: HTTP Error 400: Bad Request
+[19:24:14] ⚠ DEFECT: data/news-velocity-history.json (news-velocity) -- ran clean, key absent -- conditional or different-name write
+[19:24:14] ✅ wave 2: 0 lit, 0 conditional, 16 defects with evidence, 0 queued for wave 3
+[19:24:14] ✅ atlas updated with wave-2 results
 ── RESULT ──
-[18:56:06] ✅ OPS 4283 PASS
+[19:24:14] ✅ OPS 4284 PASS
 
-→ Report written to aws/ops/reports/latest/4283_atlas_v2.md
+→ Report written to aws/ops/reports/latest/4284_wave2.md
