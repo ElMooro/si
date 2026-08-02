@@ -16,6 +16,7 @@ Built from Khalid's brain audit (ops 1580). Each pillar carries its note-spec:
 
 Composite 0–100 coverage-honest; ≥70 logs us_cycle DOWN vs SPY (closed loop).
 """
+import _fred_shim  # noqa: F401 — ops 4286: cache-first FRED + gold heal
 import json, os, time, urllib.request, urllib.parse, bisect
 from datetime import datetime, timezone, timedelta
 from statistics import mean, stdev

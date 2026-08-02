@@ -212,10 +212,55 @@ def _intercept_fred(url):
     return _build_fred_response(sliced, series_id)
 
 
+_GOLD_CACHE = None
+
+
+def _gold_via_fmp(url):
+    """FRED-shaped observations for the dead LBMA series, sourced from
+    FMP GCUSD (COMEX front, USD/oz). Memoized per container."""
+    global _GOLD_CACHE
+    key = os.environ.get("FMP_KEY") or os.environ.get("FMP_API_KEY")
+    if not key:
+        return None
+    if _GOLD_CACHE is None:
+        u = ("https://financialmodelingprep.com/stable/"
+             "historical-price-eod/full?symbol=GCUSD&apikey=" + key)
+        d = json.loads(_REAL_URLOPEN(u, timeout=20).read())
+        rows = d.get("historical", []) if isinstance(d, dict) else d
+        obs = [{"date": r.get("date"),
+                "value": str(r.get("close") or r.get("adjClose"))}
+               for r in rows if r.get("date")
+               and (r.get("close") or r.get("adjClose"))]
+        obs.sort(key=lambda x: x["date"])
+        _GOLD_CACHE = obs
+    import re as _re
+    m = _re.search(r"observation_start=(\d{4}-\d{2}-\d{2})", url)
+    start = m.group(1) if m else "1900-01-01"
+    obs = [o for o in _GOLD_CACHE if o["date"] >= start]
+    body = json.dumps({"observations": obs,
+                       "count": len(obs),
+                       "_shim": "gold->FMP GCUSD (LBMA series "
+                                "discontinued)"}).encode()
+    print(f"[fred-shim] gold->GCUSD served ({len(obs)} obs)")
+    return _FakeResp(body)
+
+
 def _patched_urlopen(req_or_url, *args, **kwargs):
     """Cache-first FRED + 429 backoff for any urlopen call."""
     url = req_or_url if isinstance(req_or_url, str) else req_or_url.full_url
     
+    # ops 4286: LBMA gold fix series are DISCONTINUED at FRED (live 400s;
+    # worse, the cache could silently serve pre-2022 values). Serve real
+    # COMEX gold from FMP GCUSD in FRED observation shape, BEFORE the
+    # cache. Fail-safe: any error returns None -> normal flow.
+    if _FRED_ENDPOINT_MARKER in url and "GOLD" in url and             ("GOLDAMGBD228NLBM" in url or "GOLDPMGBD228NLBM" in url):
+        try:
+            resp = _gold_via_fmp(url)
+            if resp is not None:
+                return resp
+        except Exception as e:
+            print(f"[fred-shim] gold-fmp err: {str(e)[:80]}")
+
     # Cache-first for FRED endpoints
     if _FRED_ENDPOINT_MARKER in url:
         try:

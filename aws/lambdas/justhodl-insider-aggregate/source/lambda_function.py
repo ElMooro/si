@@ -62,7 +62,8 @@ def fetch_insider_page(page):
     """Try the documented /stable endpoint names for market-wide latest insider
     trades. limit=1000 pulls far more per call so the 90-day window has depth;
     if the param is unsupported FMP simply ignores it."""
-    for path in ("insider-trading/latest", "insider-trading"):
+    for path in ("insider-trading/latest",
+                 "insider-trading/search"):  # ops 4286: bare path 404s
         url = (f"https://financialmodelingprep.com/stable/{path}"
                f"?page={page}&limit=1000&apikey={FMP_KEY}")
         d = _get_json(url)

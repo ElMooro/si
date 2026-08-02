@@ -243,11 +243,26 @@ def fetch_universe():
     except Exception: pass
     # 4. Top short interest names from FMP (high-shorted = often pre-disaster)
     try:
-        si = fmp_get("/short-interest", {"limit": 100})
-        if si and isinstance(si, list):
-            for r in si[:50]:
-                sym = r.get("symbol")
-                if sym: universe.add(sym.upper())
+        # ops 4286: FMP /short-interest is dead; the house FINRA rail is
+        # the universe source (top short_pct names).
+        doc = json.loads(s3.get_object(
+            Bucket=BUCKET, Key="data/short-interest.json")["Body"].read())
+        def _rows(d, depth=0):
+            if depth > 2:
+                return []
+            if isinstance(d, list) and d and isinstance(d[0], dict) \
+                    and (d[0].get("ticker") or d[0].get("symbol")):
+                return d
+            if isinstance(d, dict):
+                for v in d.values():
+                    r = _rows(v, depth + 1)
+                    if r:
+                        return r
+            return []
+        for r in _rows(doc)[:50]:
+            sym = r.get("ticker") or r.get("symbol")
+            if sym:
+                universe.add(str(sym).upper())
     except Exception: pass
     return sorted(universe)
 

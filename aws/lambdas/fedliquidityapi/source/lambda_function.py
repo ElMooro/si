@@ -1,3 +1,4 @@
+import _fred_shim  # noqa: F401 — ops 4286: cache-first FRED + gold heal
 import json
 import urllib.request
 import urllib.parse

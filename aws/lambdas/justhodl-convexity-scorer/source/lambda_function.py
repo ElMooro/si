@@ -157,7 +157,8 @@ def score_convexity(symbol):
             components["drivers_left"].append(f"high_leverage (D/E={de:.1f})")
 
     # Insider activity — buying = positive gamma signal
-    insider = fmp_get("/insider-trading", {"symbol": symbol, "limit": 30})
+    insider = fmp_get("/insider-trading/search",
+                      {"symbol": symbol, "limit": 30})  # ops 4286
     if insider and isinstance(insider, list):
         buys = sum(1 for t in insider if t.get("transactionType", "").lower().startswith("p"))
         sells = sum(1 for t in insider if t.get("transactionType", "").lower().startswith("s"))
