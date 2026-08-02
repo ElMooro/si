@@ -1,12 +1,13 @@
-executing-against: c831ac643da881542eeb1c6bea1dd6a5a1e0e176
-ops 4277 -- fleet census: every engine, every artifact
-[18:00:51] ✅ repo walk: 771 engines, 916 py files, 680 distinct data/ write targets
-[18:00:58] ✅ live S3: 874 top-level data/*.json (649 fresh<26h); 634 have identified writers; 46 write-targets not yet materialized
-── per-ticker shape probe (every candidate, capped fetch) ──
-[18:01:04] ✅ ticker-keyed artifacts found: 32 (probed 120)
-── macro candidates (fresh, non-ticker, for new legs) ──
-[18:01:04] ✅ census PUBLISHED: data/quantum-desk-sources.json (32 per-ticker sources, 29 macro candidates)
+executing-against: d245b4f828e7ba366b0253fecece3e070b0d965e
+ops 4278 -- quantum-desk v2.0.0 live
+[18:07:24] ✅ v2.0.0 live -- sources 16/16
+[18:07:24] KHALID INDEX: 32.8 (None, None)
+[18:07:24] CANARY BAROMETER: None score=None veto=False triggered=[]
+[18:07:24] COVERAGE: 771 engines, 874 artifacts (649 fresh), 32 per-name sources; evidence hit 21 sources, skipped 0
+[18:07:24] REGIME RECESSION_BUST | votes: global_recession=RECESSION_BUST, cycle_clock=RECESSION_BUST, nowcast=LATE_CYCLE
+[18:07:24] MONEY MAP (12, 12 with >=2 corroborating engines):
+[18:07:25] ⚠ page v2 still propagating on edge (13089 bytes)
 ── RESULT ──
-[18:01:04] ✅ OPS 4277 PASS -- the fleet is mapped; v2 wiring next
+[18:07:25] ✅ OPS 4278 PASS -- the desk now reads the whole fleet, name by name
 
-→ Report written to aws/ops/reports/latest/4277_fleet_census.md
+→ Report written to aws/ops/reports/latest/4278_quantum_v2.md
