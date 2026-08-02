@@ -1,9 +1,11 @@
-executing-against: b74d647e202b877a701e493e7bcc4a969e62394c
-ops 4297 -- 30 wires + strict-LM law
+executing-against: 2d98eb175a04d9b048231d4140d0b1ab90cb7fac
+ops 4298 -- 30 wires under the git-anchored deploy law
 ── 1. stress ladder, race-proof retry ──
+[23:23:01] ✅ stress asset_impact ladder coverage: 0/13 -- []
+[23:23:01] GLD weighted 0.00 over None scenarios (overlay rows carry src tags)
 ── 2. desk v2.3.0: the seven new wires, live ──
 ── RESULT ──
-[23:21:57] ✗   stress LM never crossed RUN_START
+[23:23:01] ✗   stress coverage 0 < 11
 
-→ Report written to aws/ops/reports/latest/4297_wave2_wires.md
-❌ OPS-FAIL: aws/ops/pending/ops_4297_wave2_wires.py
+→ Report written to aws/ops/reports/latest/4298_wave2_git_gate.md
+❌ OPS-FAIL: aws/ops/pending/ops_4298_wave2_git_gate.py
