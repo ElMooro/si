@@ -1,27 +1,13 @@
-executing-against: 1715adb574e0670d6b306b5dfe6d5b05a455170d
-ops 4290 -- orphan verdicts + the last two dormants
-── A. dynamic-key writer sweep ──
-[21:10:33] ✅ dynamic put templates: 68 across 42 files
-[21:10:33] ✅ analyst-consensus-history.json -> DYNAMIC_WRITER (justhodl-calibrator :: Key=f"calibration/history/{now.strftime(")
-[21:10:33] ✅ commodity-curves-history.json -> DYNAMIC_WRITER (justhodl-calibrator :: Key=f"calibration/history/{now.strftime(")
-[21:10:33] etf-flows/event-study.json -> TRUE_ORPHAN
-[21:10:33] ✅ history/causality-discoveries-history.json -> DYNAMIC_WRITER (justhodl-calibrator :: Key=f"calibration/history/{now.strftime(")
-[21:10:33] ✅ history/convexity-scores-history.json -> DYNAMIC_WRITER (justhodl-calibrator :: Key=f"calibration/history/{now.strftime(")
-[21:10:33] ✅ history/meta-improver-history.json -> DYNAMIC_WRITER (justhodl-calibrator :: Key=f"calibration/history/{now.strftime(")
-[21:10:33] ✅ history/pre-disaster-history.json -> DYNAMIC_WRITER (justhodl-calibrator :: Key=f"calibration/history/{now.strftime(")
-[21:10:33] morning-intel.json -> TRUE_ORPHAN
-[21:10:33] ✅ news-velocity-history.json -> DYNAMIC_WRITER (justhodl-calibrator :: Key=f"calibration/history/{now.strftime(")
-[21:10:33] _telegram-chat.json -> TRUE_ORPHAN
-[21:10:33] ✅ ecb-confidence-history.json -> DYNAMIC_WRITER (justhodl-calibrator :: Key=f"calibration/history/{now.strftime(")
-[21:10:33] ✅ insider-aggregate-history.json -> DYNAMIC_WRITER (justhodl-calibrator :: Key=f"calibration/history/{now.strftime(")
-── B. still-dormant pair: put-site root cause ──
-[21:10:33] engine-robustness :: …5 ¶   VOLATILE   stability 0.40–0.65  (could be by design — e.g., short-horizon) ¶   FRAGILE    stability < 0.40  + universe_churn < 30%  (likely overfit) ¶   CHAOTIC    universe_churn > 70%  (whole universe rotating — not measurable) ¶  ¶ OUTPUT ¶ ====== ¶ data/engine-robustness.json — per-engine classifications + drill-down ¶ data/engin…
-[21:10:33] transcript-indexer :: …sentiment  per-call sentiment scoring ¶   justhodl-crisis-knowledge-base   RAG over crisis frameworks (DIFFERENT corpus) ¶   THIS engine                  searchable index over RAW TRANSCRIPT TEXT ¶  ¶ OUTPUT ¶ ────── ¶   s3://justhodl-dashboard-live/data/transcripts-index.json ¶     { ¶       "version": "1.0", ¶       "built_at": "...", ¶…
-── C. retirements for TRUE_ORPHANs ──
-[21:10:33] ✅ manifest: 3 retirements recorded
-── D. atlas ledger sealed ──
-[21:10:33] ✅ SEALED: {'ALIVE': 44, 'TRUE_ORPHAN': 3, 'DYNAMIC_WRITER': 7, 'STILL_DORMANT': 2, 'LAZY_EVENT': 1, 'ORPHAN': 3}
+executing-against: 928570d1c1b2cdb1a66ea4fe656aefec2fac7ccb
+ops 4291 -- quantum desk v3: nothing left unrendered
+── 1. engine v2.1.0 + history scores ──
+[21:21:19] ✅ history row now carries per-class scores: {'GOLD': 0.692, 'BONDS_LONG': 0.687, 'SILVER': 0.648, 'CASH': 0.64}
+[21:21:19] weights: {"ladder": {"discount": 0.22, "asymmetry": 0.22, "strategic": 0.14, "regime": 0.16, "plumbing": 0.13, "cycle": 0.13}, "money_map":
+[21:21:19] barometer headline: 102 of 291 canaries firing across 12 mechanisms; early-warning 27.8 (WATCH). 2 cross-mechanism divergences.
+[21:21:19] mm[0] renderable fields: fit=0.633 conv=88.4 verdict=None size=0.45 earn=None x8
+── 2. page v3 on the edge ──
+[21:23:40] ✅ page v3 LIVE (18779 bytes) -- history fetch, weights line, full audit, evidence tables all present
 ── RESULT ──
-[21:10:33] ✅ OPS 4290 PASS -- every one of the sixty has a named ending
+[21:23:40] ✅ OPS 4291 PASS -- the desk shows everything it knows
 
-→ Report written to aws/ops/reports/latest/4290_orphan_verdicts.md
+→ Report written to aws/ops/reports/latest/4291_desk_v3.md
