@@ -241,7 +241,10 @@ def load_party_map_from_s3() -> dict:
             age_d = (datetime.now(timezone.utc) - gen).total_seconds() / 86400
         except Exception:
             age_d = 9999
-        if pm and age_d <= 21 and data.get("name_map"):
+        wide = any(" " not in k or len(k.split()) == 2
+                   for k in list((data.get("name_map") or {}))[:50])
+        if pm and age_d <= 21 and data.get("name_map") \
+                and data.get("schema_version") == "1.3":
             globals()["_NAME_MAP"] = data.get("name_map") or {}
             print(f"[political] loaded {len(pm)} party mappings + "
                   f"{len(data.get('name_map') or {})} name mappings from "
@@ -327,10 +330,26 @@ def fetch_full_legislators_map() -> dict:
             terms = legislator.get("terms") or []
             party_full = (terms[-1].get("party", "") if terms else "")
             if bid and full.strip():
-                name_map[_norm_name(full)] = {
-                    "bioguide": bid,
-                    "party": party_short.get(party_full,
-                                             party_full[:1] or "?")}
+                rec = {"bioguide": bid,
+                       "party": party_short.get(party_full,
+                                                party_full[:1] or "?")}
+                nn = _norm_name(full)
+                name_map[nn] = rec
+                toks = nn.split()
+                if len(toks) >= 2:
+                    # eFD filers often add middles ("Sam T. Liccardo")
+                    # or titles ("Richard Dean Dr McCormick"): index by
+                    # first+last and by last+first-initial too. Ambiguous
+                    # short keys are dropped, never guessed.
+                    for k2 in (f"{toks[0]} {toks[-1]}",
+                               f"{toks[-1]} {toks[0][0]}"):
+                        if k2 in name_map and \
+                                name_map[k2].get("bioguide") != bid:
+                            name_map[k2] = {"bioguide": None,
+                                            "party": "?",
+                                            "ambiguous": True}
+                        elif k2 not in name_map:
+                            name_map[k2] = rec
         except Exception:
             continue
     globals()["_NAME_MAP"] = name_map
@@ -344,7 +363,7 @@ def fetch_full_legislators_map() -> dict:
         s3.put_object(
             Bucket=BUCKET, Key=S3_PARTY_MAP_KEY,
             Body=json.dumps({
-                "schema_version": "1.1",
+                "schema_version": "1.3",
                 "generated_at": datetime.now(timezone.utc).isoformat(
                     timespec="seconds"),
                 "source": url,
@@ -578,9 +597,19 @@ def aggregate_trades(quiver_trades: list):
         name = (t.get("Representative") or "Unknown").strip()
         bioguide = t.get("BioGuideID", "")
         if not bioguide:
-            hit = (globals().get("_NAME_MAP") or {}).get(_norm_name(name))
-            if hit:
-                bioguide = hit.get("bioguide", "")
+            nm = globals().get("_NAME_MAP") or {}
+            nn = _norm_name(name)
+            toks = nn.split()
+            cands = [nn]
+            if len(toks) >= 2:
+                cands += [f"{toks[0]} {toks[-1]}",
+                          f"{toks[-1]} {toks[0][0]}"]
+            for k2 in cands:
+                hit = nm.get(k2)
+                if hit and hit.get("bioguide") \
+                        and not hit.get("ambiguous"):
+                    bioguide = hit["bioguide"]
+                    break
         party = party_for_bioguide(bioguide)
         chamber = "house" if (t.get("House") or "") == "Representatives" else "senate"
         amount = parse_trade_amount(t.get("Range") or "")
