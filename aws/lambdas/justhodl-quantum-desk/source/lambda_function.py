@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "2.2.1"
+VERSION = "2.2.2"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -716,8 +716,14 @@ def build_macro_board(docs):
         legs = _rows_with(uc, ("name", "z")) or []
         worst = sorted((r for r in legs if num(r.get("z")) is not None),
                        key=lambda r: -abs(num(r.get("z"))))[:3]
-        out["us_cycle"] = {"score": num(dig(uc, "score")),
-                           "level": dig(uc, "level", "band"),
+        out["us_cycle"] = {"score": num(dig(
+                               uc, "score", "composite.score",
+                               "cycle.score", "summary.score",
+                               "composite.zbar", "zbar")),
+                           "level": dig(uc, "level", "band",
+                                        "composite.level",
+                                        "cycle.band", "summary.level",
+                                        "composite.band"),
                            "worst": [{"name": next(
                                (r[k] for k in NAMEISH
                                 if r.get(k)), "?"),
@@ -843,6 +849,23 @@ def _stress_and_backtest(docs, money_map):
     rows = _rows_with(sc, ("ticker", "expected_return_pct")) or []
     by = {str(r.get("ticker")).upper(): num(
         r.get("expected_return_pct")) for r in rows}
+    ALIAS = {"GLD": ("GLD", "GOLD", "GC", "XAU"),
+             "IEF": ("IEF", "UST10", "ZN", "BONDS", "TLT"),
+             "SLV": ("SLV", "SILVER", "SI", "XAG"),
+             "SPY": ("SPY", "SPX", "ES", "US_LARGE"),
+             "IWM": ("IWM", "RTY", "US_SMALL"),
+             "BTC": ("BTC", "BTCUSD", "BITCOIN"),
+             "ETH": ("ETH", "ETHUSD"),
+             "EEM": ("EEM", "EM"), "EFA": ("EFA", "INTL"),
+             "HYG": ("HYG", "CREDIT_HY"), "DBC": ("DBC",
+                                                  "COMMODITIES"),
+             "VNQ": ("VNQ", "REITS"), "CASH": ("CASH", "BIL")}
+    def _stress_for(tick, cls):
+        for k in (tick, cls) + ALIAS.get(tick, ()):
+            v = by.get(str(k).upper())
+            if v is not None:
+                return v
+        return None
     bt = docs.get("signal_backtest")
     vstats = {}
     if isinstance(bt, dict):
@@ -856,7 +879,8 @@ def _stress_and_backtest(docs, money_map):
                             vstats[verdict] = round(
                                 sum(ws) / len(ws), 1)
     for r in (globals().get("_LADDER_REF") or []):
-        er = by.get(str(r.get("asset") or "").upper())
+        er = _stress_for(str(r.get("asset") or "").upper(),
+                         str(r.get("class") or "").upper())
         if er is not None:
             r["stress_er_pct"] = round(er, 1)
     for m in money_map:
@@ -1117,8 +1141,26 @@ def build_money_map(docs, ladder, risk, top_n=12):
                      "quadrant": quad_n, "class_gate": round(gate, 3),
                      "flow": round(flow_n, 3)},
         })
+    # hydrate from the RICH top_setups list explicitly (deep_find may
+    # have selected a slimmer list without why/verdict/price)
+    bs_doc = docs.get("best_setups") or {}
+    rich = dig(bs_doc, "top_setups") or []
+    if not (isinstance(rich, list) and rich
+            and isinstance(rich[0], dict) and "why" in rich[0]):
+        def _find_rich(d, depth=0):
+            if depth > 3:
+                return None
+            if isinstance(d, list) and d and isinstance(d[0], dict)                     and "why" in d[0] and "ticker" in d[0]:
+                return d
+            if isinstance(d, dict):
+                for v in d.values():
+                    rr = _find_rich(v, depth + 1)
+                    if rr:
+                        return rr
+            return None
+        rich = _find_rich(bs_doc) or []
     idx = {}
-    for s_ in setups:
+    for s_ in list(rich) + list(setups):
         t_ = str(s_.get("ticker") or "").upper()
         if t_ and t_ not in idx:
             idx[t_] = s_
