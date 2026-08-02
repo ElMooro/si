@@ -1,12 +1,11 @@
-executing-against: a724697fb5b4b1a7a9e79b85f55b4b529dd4a761
-ops 4268 -- political-stocks on the official rail
-── 1. refresh congress-direct (source of record) ──
-[02:13:13] invoked: {"statusCode": 200, "body": "{\"ok\": true, \"senate_tx\": 108, \"house\": 200}"}
-[02:13:14] ✅ congress-direct fresh: 108 senate txns (86 with ticker), 200 house PTR filings, errors: sen=None house=None
-── 2. political-stocks v2 on the official feed ──
-[02:13:15] invoked: {"statusCode": 200, "body": "{\"ok\": true, \"n_quiver\": 86, \"n_house\": 0, \"n_senate\": 86, \"n_tickers\": 0, \"n_clusters\": 0, \"n_bipartisan\": 0, \"duration_s\": 
-[02:13:15] ✅ ARTIFACT LIVE: -0.0 min, source=, trades=0, party-attributed 0/0
+executing-against: ce1d571ee508ffc118982214ad64dfc0719c032f
+ops 4269 -- political-stocks v2, non-vacuous proof
+[02:17:19] invoked: {"errorMessage": "name 're' is not defined", "errorType": "NameError", "requestId": "cba04211-82bd-4dca-b0e5-f17e5c5d069c", "stackTrace": ["  File \"/var/task/_sentry_lite.py\", line 68, in wrapped\n 
+[02:17:19] provenance: trade_source= status=LIVE data_source=https://api.quiverquant.com/beta/live/congresstrading
+[02:17:19] congress block: trades=86 tickers=0 senate=86 house=0 clusters=0
 ── RESULT ──
-[02:13:15] ✅ OPS 4268 PASS -- congress trading intelligence runs on official filings; Quiver is history
+[02:17:19] ✗   trade_source=''
+[02:17:19] ✗   rows dropping again: total=86 tickers=0
 
-→ Report written to aws/ops/reports/latest/4268_political_refit.md
+→ Report written to aws/ops/reports/latest/4269_refit_proven.md
+❌ OPS-FAIL: aws/ops/pending/ops_4269_refit_proven.py
