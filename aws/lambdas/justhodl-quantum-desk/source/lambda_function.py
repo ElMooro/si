@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "2.0.1"
+VERSION = "2.0.2"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -633,9 +633,15 @@ def _canary_block(doc):
                     "master_barometer.score", "score"))
     firing = doc.get("firing") or dig(doc, "master_barometer.triggered")
     if isinstance(firing, list):
-        firing = [str((f.get("label") or f.get("key") or f)
-                      if isinstance(f, dict) else f)[:28]
-                  for f in firing[:8]]
+        def _fname(f):
+            if isinstance(f, dict):
+                return (f.get("label") or f.get("canary")
+                        or f.get("name") or f.get("key")
+                        or "%s:%s" % (f.get("mechanism", "?"),
+                                      f.get("mech_key")
+                                      or f.get("metric") or "?"))
+            return str(f)
+        firing = [str(_fname(f))[:30] for f in firing[:8]]
     n_f = num(dig(doc, "master.n_firing"))
     n_c = num(dig(doc, "master.n_canaries"))
     return {"level": str(level)[:20] if level else None,
