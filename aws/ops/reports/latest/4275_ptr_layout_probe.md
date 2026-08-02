@@ -1,0 +1,81 @@
+# ops 4275 -- zero-row PTR layout study
+
+**Status:** success  
+**Duration:** 0.9s  
+**Finished:** 2026-08-02T17:37:15+00:00  
+
+## Log
+## doc 20034954 (Richard Dean Dr McCormick)
+
+- `17:37:14` pages=3 chars=3585 nonempty_lines=126
+- `17:37:14` | 'P\x00\x00\x00\x00\x00\x00\x00 T\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 R\x00\x00\x00\x00\x00'
+- `17:37:14` | 'Clerk of the House of Representatives • Legislative Resource Center • B81 Cannon Building • Washington, DC 20515'
+- `17:37:14` | 'F\x00\x00\x00\x00 I\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+- `17:37:14` | 'Name: Hon. Richard Dean Dr McCormick'
+- `17:37:14` | 'Status: Member'
+- `17:37:14` | 'State/District:GA06'
+- `17:37:14` | 'T\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+- `17:37:14` | 'ID Owner Asset Transaction'
+- `17:37:14` | 'Type'
+- `17:37:14` | 'Date Notification'
+- `17:37:14` | 'Date'
+- `17:37:14` | 'Amount Cap.'
+- `17:37:14` | 'Gains >'
+- `17:37:14` | '$200?'
+- `17:37:14` | 'Abbott Laboratories Common Stock'
+- `17:37:14` | '(ABT) [ST]'
+- `17:37:14` | 'P 06/12/202607/08/2026$1,001 - $15,000'
+- `17:37:14` | 'F\x00\x00\x00\x00\x00 S\x00\x00\x00\x00\x00: New'
+- `17:37:14` | 'S\x00\x00\x00\x00\x00\x00\x00\x00\x00 O\x00: Growth Partners IRA'
+- `17:37:14` | 'Abbott Laboratories Common Stock'
+- `17:37:14` | '(ABT) [ST]'
+- `17:37:14` | 'P 06/12/202607/08/2026$1,001 - $15,000'
+- `17:37:14` | 'F\x00\x00\x00\x00\x00 S\x00\x00\x00\x00\x00: New'
+- `17:37:14` | 'S\x00\x00\x00\x00\x00\x00\x00\x00\x00 O\x00: Growth Partners Roth IRA'
+- `17:37:14` | 'Analog Devices, Inc. - Common Stock'
+- `17:37:14` | '(ADI) [ST]'
+## doc 20034806 (Kelly Louise Morrison)
+
+- `17:37:15` pages=1 chars=1089 nonempty_lines=31
+- `17:37:15` | 'P\x00\x00\x00\x00\x00\x00\x00 T\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 R\x00\x00\x00\x00\x00'
+- `17:37:15` | 'Clerk of the House of Representatives • Legislative Resource Center • B81 Cannon Building • Washington, DC 20515'
+- `17:37:15` | 'F\x00\x00\x00\x00 I\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+- `17:37:15` | 'Name: Hon. Kelly Louise Morrison'
+- `17:37:15` | 'Status: Member'
+- `17:37:15` | 'State/District:MN03'
+- `17:37:15` | 'T\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+- `17:37:15` | 'ID Owner Asset Transaction'
+- `17:37:15` | 'Type'
+- `17:37:15` | 'Date Notification'
+- `17:37:15` | 'Date'
+- `17:37:15` | 'Amount Cap.'
+- `17:37:15` | 'Gains >'
+- `17:37:15` | '$200?'
+- `17:37:15` | 'JT Andersen Corporation [OL] S (partial) 06/19/202606/22/2026$100,001 -'
+- `17:37:15` | '$250,000'
+- `17:37:15` | 'F\x00\x00\x00\x00\x00 S\x00\x00\x00\x00\x00: New'
+- `17:37:15` | 'S\x00\x00\x00\x00\x00\x00\x00\x00\x00 O\x00: Investment Fund 1'
+- `17:37:15` | 'L\x00\x00\x00\x00\x00\x00\x00: Bayport, MN, US'
+- `17:37:15` | 'D\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00: Window manufacturer'
+- `17:37:15` | '* For the complete list of asset type abbreviations, please visit https://fd.house.gov/reference/asset-type-codes.aspx'
+- `17:37:15` | 'I\x00\x00\x00\x00\x00\x00\x00\x00\x00 V\x00\x00\x00\x00\x00\x00 D\x00\x00\x00\x00\x00\x00'
+- `17:37:15` | 'Investment Fund 1 (Owner: JT)'
+- `17:37:15` | 'L\x00\x00\x00\x00\x00\x00\x00: US'
+- `17:37:15` | 'I\x00\x00\x00\x00\x00\x00 P\x00\x00\x00\x00\x00 O\x00\x00\x00\x00\x00\x00\x00\x00'
+- `17:37:15` | ' Yes  No'
+## political-stocks artifact shape
+
+- `17:37:15` trade_source: str
+- `17:37:15` source_status: str
+- `17:37:15` stale_cache: bool
+- `17:37:15` schema_version: str
+- `17:37:15` method: str
+- `17:37:15` generated_at: str
+- `17:37:15` duration_s: float
+- `17:37:15` lookback_days: int
+- `17:37:15` data_source: str
+- `17:37:15` party_source: str
+- `17:37:15` trump_holdings: dict
+- `17:37:15` congress: dict
+- `17:37:15` notes: str
+- `17:37:15` ✅ probe complete -- wire the recall pass from these lines

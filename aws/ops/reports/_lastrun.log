@@ -1,13 +1,75 @@
-executing-against: 0c6cac2a32cbef835201745dd287c3e18e224a5a
-ops 4274 -- two chambers, one tape
-── 1. parser recall histogram ──
-[17:34:10] rows-per-parsed-doc: {0: 12, 1: 5}
-[17:34:10] ⚠ 12/17 parsed docs yielded ZERO rows -- recall gap, sample doc_ids for layout study: [('20034954', 'Richard Dean Dr McCorm'), ('20034806', 'Kelly Louise Morrison'), ('20034947', 'Mike Kelly'), ('20034790', 'Susie Lee')]
-── 2. political-stocks with the merge actually deployed ──
-[17:34:11] invoked: {"statusCode": 200, "body": "{\"ok\": true, \"n_quiver\": 91, \"n_house\": 5, \"n_senate\": 86, \"n_tickers\": 31, \"n_clusters\": 0, \"n_bipartisan\": 0, \"duration_s\": 0.2}"}
-[17:34:12] chambers: senate=86 house=5 tickers=31
-[17:34:12] ⚠ no recent_trades pools found to sample (artifact shape note for next pass)
-── RESULT ──
-[17:34:12] ✅ OPS 4274 PASS -- both chambers merged on official rails with attribution visible
+executing-against: 331acd3a2f0a82e80fa88c791a85a8591b3a1e49
+ops 4275 -- zero-row PTR layout study
+── doc 20034954 (Richard Dean Dr McCormick) ──
+[17:37:14] pages=3 chars=3585 nonempty_lines=126
+[17:37:14] | 'P\x00\x00\x00\x00\x00\x00\x00 T\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 R\x00\x00\x00\x00\x00'
+[17:37:14] | 'Clerk of the House of Representatives • Legislative Resource Center • B81 Cannon Building • Washington, DC 20515'
+[17:37:14] | 'F\x00\x00\x00\x00 I\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+[17:37:14] | 'Name: Hon. Richard Dean Dr McCormick'
+[17:37:14] | 'Status: Member'
+[17:37:14] | 'State/District:GA06'
+[17:37:14] | 'T\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+[17:37:14] | 'ID Owner Asset Transaction'
+[17:37:14] | 'Type'
+[17:37:14] | 'Date Notification'
+[17:37:14] | 'Date'
+[17:37:14] | 'Amount Cap.'
+[17:37:14] | 'Gains >'
+[17:37:14] | '$200?'
+[17:37:14] | 'Abbott Laboratories Common Stock'
+[17:37:14] | '(ABT) [ST]'
+[17:37:14] | 'P 06/12/202607/08/2026$1,001 - $15,000'
+[17:37:14] | 'F\x00\x00\x00\x00\x00 S\x00\x00\x00\x00\x00: New'
+[17:37:14] | 'S\x00\x00\x00\x00\x00\x00\x00\x00\x00 O\x00: Growth Partners IRA'
+[17:37:14] | 'Abbott Laboratories Common Stock'
+[17:37:14] | '(ABT) [ST]'
+[17:37:14] | 'P 06/12/202607/08/2026$1,001 - $15,000'
+[17:37:14] | 'F\x00\x00\x00\x00\x00 S\x00\x00\x00\x00\x00: New'
+[17:37:14] | 'S\x00\x00\x00\x00\x00\x00\x00\x00\x00 O\x00: Growth Partners Roth IRA'
+[17:37:14] | 'Analog Devices, Inc. - Common Stock'
+[17:37:14] | '(ADI) [ST]'
+── doc 20034806 (Kelly Louise Morrison) ──
+[17:37:15] pages=1 chars=1089 nonempty_lines=31
+[17:37:15] | 'P\x00\x00\x00\x00\x00\x00\x00 T\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00 R\x00\x00\x00\x00\x00'
+[17:37:15] | 'Clerk of the House of Representatives • Legislative Resource Center • B81 Cannon Building • Washington, DC 20515'
+[17:37:15] | 'F\x00\x00\x00\x00 I\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+[17:37:15] | 'Name: Hon. Kelly Louise Morrison'
+[17:37:15] | 'Status: Member'
+[17:37:15] | 'State/District:MN03'
+[17:37:15] | 'T\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+[17:37:15] | 'ID Owner Asset Transaction'
+[17:37:15] | 'Type'
+[17:37:15] | 'Date Notification'
+[17:37:15] | 'Date'
+[17:37:15] | 'Amount Cap.'
+[17:37:15] | 'Gains >'
+[17:37:15] | '$200?'
+[17:37:15] | 'JT Andersen Corporation [OL] S (partial) 06/19/202606/22/2026$100,001 -'
+[17:37:15] | '$250,000'
+[17:37:15] | 'F\x00\x00\x00\x00\x00 S\x00\x00\x00\x00\x00: New'
+[17:37:15] | 'S\x00\x00\x00\x00\x00\x00\x00\x00\x00 O\x00: Investment Fund 1'
+[17:37:15] | 'L\x00\x00\x00\x00\x00\x00\x00: Bayport, MN, US'
+[17:37:15] | 'D\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00: Window manufacturer'
+[17:37:15] | '* For the complete list of asset type abbreviations, please visit https://fd.house.gov/reference/asset-type-codes.aspx'
+[17:37:15] | 'I\x00\x00\x00\x00\x00\x00\x00\x00\x00 V\x00\x00\x00\x00\x00\x00 D\x00\x00\x00\x00\x00\x00'
+[17:37:15] | 'Investment Fund 1 (Owner: JT)'
+[17:37:15] | 'L\x00\x00\x00\x00\x00\x00\x00: US'
+[17:37:15] | 'I\x00\x00\x00\x00\x00\x00 P\x00\x00\x00\x00\x00 O\x00\x00\x00\x00\x00\x00\x00\x00'
+[17:37:15] | ' Yes  No'
+── political-stocks artifact shape ──
+[17:37:15] trade_source: str
+[17:37:15] source_status: str
+[17:37:15] stale_cache: bool
+[17:37:15] schema_version: str
+[17:37:15] method: str
+[17:37:15] generated_at: str
+[17:37:15] duration_s: float
+[17:37:15] lookback_days: int
+[17:37:15] data_source: str
+[17:37:15] party_source: str
+[17:37:15] trump_holdings: dict
+[17:37:15] congress: dict
+[17:37:15] notes: str
+[17:37:15] ✅ probe complete -- wire the recall pass from these lines
 
-→ Report written to aws/ops/reports/latest/4274_two_chambers.md
+→ Report written to aws/ops/reports/latest/4275_ptr_layout_probe.md
