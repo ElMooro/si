@@ -1,0 +1,68 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alpha Atlas — every opportunity mechanism · JustHodl.AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0d12;--bg1:#10141b;--bg2:#161b24;--brd:#232a36;--tx:#e8ebf0;--tx2:#9aa3b2;--acc:#e8b34a;--buy:#3fd08c;--avd:#ff6b6b;--neu:#8fa3c0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 "IBM Plex Sans",sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 18px 80px}
+h1{font-family:Fraunces,serif;font-weight:900;font-size:34px;margin:6px 0 4px}
+.sub{color:var(--tx2);max-width:860px}
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:20px 0 6px}
+.card{background:var(--bg1);border:1px solid var(--brd);border-radius:12px;padding:14px 16px}
+.k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx2)}
+.v{font-family:Fraunces,serif;font-size:26px;font-weight:700;margin-top:4px}
+h2{font-family:Fraunces,serif;font-size:21px;margin:30px 0 10px;border-bottom:1px solid var(--brd);padding-bottom:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.eng{background:var(--bg1);border:1px solid var(--brd);border-radius:12px;padding:12px 14px}
+.eng .nm{font-weight:600}
+.eng .meta{color:var(--tx2);font-size:12px;margin-top:2px}
+.pill{display:inline-block;background:var(--bg2);border:1px solid var(--brd);border-radius:999px;padding:2px 9px;font:12px "IBM Plex Mono",monospace;margin:6px 4px 0 0}
+.p-hot{border-color:var(--buy);color:var(--buy)}
+.p-old{border-color:#5a4a2a;color:#c9a35a}
+.note{color:var(--tx2);font-size:13px;margin-top:8px}
+.dorm{font:12px "IBM Plex Mono",monospace;color:var(--tx2)}
+a{color:var(--acc)}
+.loading{color:var(--tx2);padding:40px 0}
+</style></head><body><div class="wrap">
+<h1>Alpha Atlas</h1>
+<div class="sub">Every opportunity-finding mechanism this platform runs, scanned live from the system itself (ops 4281). Each card is a real engine with its artifact, freshness, and the <b>top signal it is emitting right now</b> — nothing curated by hand, nothing invented. Dormant entries are engines whose code writes a target that doesn't exist yet: built alpha, not switched on.</div>
+<div class="hero" id="hero"><div class="loading">Loading data/alpha-atlas.json…</div></div>
+<div id="fams"></div>
+<h2 id="dormh" style="display:none">Dormant — built, never wrote</h2>
+<div id="dorm" class="dorm"></div>
+<div class="note" id="scopenote"></div>
+</div>
+<script src="/jh-enhance.js" defer></script><script src="/jh-page-ai.js" defer></script><script src="/jh-nav-drawer.js" defer></script>
+<script>
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/alpha-atlas.json?t="+Math.floor(Date.now()/6e5))
+.then(r=>r.json()).then(d=>{
+  const t=d.totals||{};
+  document.getElementById("hero").innerHTML=`
+    <div class="card"><div class="k">Opportunity engines</div><div class="v">${t.opportunity_engines??"—"}</div></div>
+    <div class="card"><div class="k">Mechanism families</div><div class="v">${t.families??"—"}</div></div>
+    <div class="card"><div class="k">Artifacts scanned</div><div class="v">${t.scanned??"—"} / ${t.live_artifacts??"—"}</div></div>
+    <div class="card"><div class="k">Dormant targets</div><div class="v">${t.dormant_targets??"—"}</div></div>
+    <div class="card"><div class="k">Scanned at</div><div class="v" style="font-size:15px;font-family:'IBM Plex Mono',monospace">${esc((d.generated_at||"").slice(0,16))}Z</div></div>`;
+  const fams=document.getElementById("fams");
+  (d.families||[]).forEach(f=>{
+    const sec=document.createElement("div");
+    sec.innerHTML=`<h2>${esc(f.family)} <span style="color:var(--tx2);font-size:14px">· ${f.n} engines</span></h2>`;
+    const g=document.createElement("div");g.className="grid";
+    (f.engines||[]).forEach(e=>{
+      const top=Object.entries(e.top_now||{}).map(([k,v])=>`${k==="name"?"":k+" "}${esc(v)}`).join(" · ");
+      const hot=e.age_h<=26;
+      g.innerHTML+=`<div class="eng"><div class="nm">${esc(e.artifact.replace("data/","").replace(".json",""))}</div>
+        <div class="meta">${e.n_signals} signals · ${e.age_h}h old${e.writers&&e.writers.length?` · ${esc(e.writers[0].replace("justhodl-",""))}`:""}</div>
+        <span class="pill ${hot?"p-hot":"p-old"}" title="live top signal">${top||"—"}</span></div>`;
+    });
+    sec.appendChild(g);fams.appendChild(sec);
+  });
+  const dl=d.dormant||[];
+  if(dl.length){document.getElementById("dormh").style.display="";
+    document.getElementById("dorm").innerHTML=dl.map(x=>`${esc(x.target.replace("data/",""))} <span style="opacity:.6">(${esc((x.writers||[]).join(", ").replace(/justhodl-/g,""))})</span>`).join("<br>");}
+  document.getElementById("scopenote").textContent="Scope note: this pass scans top-level data/*.json; nested stores (e.g. data/crypto/*, data/_alerts/*) join in the next atlas revision — the crypto family under-counts until then.";
+}).catch(e=>{document.getElementById("hero").innerHTML=`<div class="loading">Failed to load atlas: ${esc(e)}</div>`});
+</script></body></html>
