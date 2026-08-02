@@ -44,6 +44,7 @@ OUTPUT
   Emits political.cluster_buy event for cluster buying patterns
 """
 import json
+import re
 import os
 import time
 import urllib.error
