@@ -1,5 +1,5 @@
 """
-ops_4269 -- refit proven end-to-end (4268's gate passed vacuously).
+ops_4269 (delta 2) -- refit proven end-to-end [import re now deployed] (4268's gate passed vacuously).
 
 4268 moved 86 official senate txns into the engine and 0 came out: eFD
 dates are MM/DD/YYYY and the 90d cutoff compares ISO strings -- every
