@@ -1,0 +1,28 @@
+# ops 4299 -- deployed-bytes verdict + independent desk gate
+
+**Status:** success  
+**Duration:** 12.0s  
+**Finished:** 2026-08-02T23:31:14+00:00  
+
+## Log
+## A. what is ACTUALLY deployed for stress-scenarios
+
+- `23:31:02` git floor 2026-08-02 22:17:45+00:00 | fn LM 2026-08-02T22:18:19.000+0000
+- `23:31:02` deployed zip 90KB: overlay=True aggregation_fold=True
+- `23:31:02` ✅ H1 falsified -- fold IS deployed; probing why it no-ops
+- `23:31:02` spec winners literal: '"winners": [\n            {"ticker": "QQQ", "expected_pct": +6.5, "rationale": "growth duration + multiple expansion"},\n '
+- `23:31:05` invoked
+- `23:31:09` probabilities: [('GOLDILOCKS', 0.2), ('CHINA_SLOWDOWN', 0.15), ('FED_PIVOT', 0.0), ('CREDIT_EVENT', 0.0), ('DOLLAR_CRISIS', 0.0)]
+- `23:31:09` ladder coverage now: 0/13 -- []
+## B. desk v2.3.0 wires -- independent verdict
+
+- `23:31:14` version 2.3.0 · sources 30/30
+- `23:31:14` CFTC: []
+- `23:31:14` RRG: []
+- `23:31:14` stress col: [('BONDS_LONG', 1.6), ('BTC', 3.2), ('ETH', 3.8)]
+- `23:31:14` extras: tail={'score': None, 'level': None} treasury={'score': None, 'level': 'WATCH'} sig_health(n=66, decayed=None)
+- `23:31:14` boom_stage=None
+- `23:31:14` sector-boom: []
+## RESULT
+
+- `23:31:14` ✗   coverage 0 after verdict path; tracebacks=[]
