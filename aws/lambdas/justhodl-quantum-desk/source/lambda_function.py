@@ -80,7 +80,7 @@ try:
 except ImportError:      # fixture-mode unit tests run without the SDK
     boto3 = None
 
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 OPS = 4257
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -626,19 +626,25 @@ def _canary_block(doc):
     (Khalid spec 2026-07-09). Second veto layer at RED."""
     if not doc:
         return None
-    level = dig(doc, "master_barometer.level", "master.level", "level",
-                "status", "master_level")
-    score = num(dig(doc, "master_barometer.score", "master.score",
-                    "score", "barometer"))
-    trig = dig(doc, "master_barometer.triggered", "triggered",
-               "red_canaries", "alerts")
-    if isinstance(trig, list):
-        trig = [str(t)[:28] for t in trig[:8]]
+    # real doc shape (warroom source, ops 4278): master.band,
+    # master.early_warning_0_100, master.n_firing, firing[] names
+    level = dig(doc, "master.band", "master_barometer.level", "level")
+    score = num(dig(doc, "master.early_warning_0_100",
+                    "master_barometer.score", "score"))
+    firing = doc.get("firing") or dig(doc, "master_barometer.triggered")
+    if isinstance(firing, list):
+        firing = [str((f.get("label") or f.get("key") or f)
+                      if isinstance(f, dict) else f)[:28]
+                  for f in firing[:8]]
+    n_f = num(dig(doc, "master.n_firing"))
+    n_c = num(dig(doc, "master.n_canaries"))
     return {"level": str(level)[:20] if level else None,
             "score": score,
-            "triggered": trig if isinstance(trig, list) else None,
+            "n_firing": n_f, "n_canaries": n_c,
+            "triggered": firing if isinstance(firing, list) else None,
+            "headline": (dig(doc, "master.headline") or "")[:160] or None,
             "veto_active": str(level or "").upper() in
-            ("RED", "CRITICAL", "ALERT")}
+            ("RED", "CRITICAL", "ALERT", "SEVERE")}
 
 
 def _coverage_block(census):
