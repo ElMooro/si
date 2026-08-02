@@ -1,12 +1,16 @@
-executing-against: a13b6d4ed55b38acb36a0a86d47684ccd4bdfa36
-ops 4288 -- dead-gold verdict: ACTIVE fetchers vs mentions
-[20:56:18] classification: 2 ACTIVE, 10 MENTION-only
-── exercise every ACTIVE (ex commodity-curves, fixed 4285) ──
-[20:56:18] ✅ commodity-curves: engine-level fix verified in 4285 (GCUSD rail, artifact fresh, no 400s)
-[20:56:53] morning-intelligence invoked: {"statusCode": 200, "body": "{\"success\": true, \"khalid\": {\"score\": 51, \"regime\": \
-[20:57:00] morning-intelligence: gold path conditional, not exercised this run (no 400s either) -- shim insurance stands
-── VERDICT ──
-[20:57:00] ✅ No engine anywhere emits a dead-gold 400. Runtime fetchers: commodity-curves (fixed+verified) + 1 conditional-path engines shielded by the shim. Mention-only literals: 10 engines (label maps/docs -- harmless). The 4285 '12 infected' claim is hereby corrected to '1 runtime fetcher + 10 mentions'; the shim gold branch remains as fleet-wide insurance for any conditional path that fires later.
-[20:57:00] ✅ OPS 4288 PASS -- wave 4 closed on evidence
+executing-against: 4b32dde3d78985b975e694ee1fa54813cd14938e
+ops 4289 -- census v3 + attribution widened
+── A. put-proximity writer map ──
+[21:02:57] ✅ v3 writer map: 675 artifacts with proven put-writers (engines: 772)
+[21:02:57] morning-intel true writer under v3: ORPHAN CONFIRMED (no put anywhere)
+[21:03:01] ✅ FINAL dormant ledger (n=60): {'ALIVE': 44, 'LAZY_EVENT': 1, 'ORPHAN': 12, 'STILL_DORMANT': 3}
+[21:03:01] orphans (no put-writer exists; reader-blamed before): ['analyst-consensus-history.json', 'commodity-curves-history.json', 'etf-flows/event-study.json', 'history/causality-discoveries-history.json', 'history/convexity-scores-history.json', 'history/meta-improver-history.json', 'history/pre-disaster-history.json', 'morning-intel.json']
+[21:03:01] still dormant with real writers: ['_telegram-chat.json', 'engine-robustness.json', 'transcripts-index.json']
+[21:03:02] ✅ both census docs on v3 writers (69 atlas rows corrected)
+── B. attribution v1.3, measured ──
+[21:03:03] invoked: {"statusCode": 200, "body": "{\"ok\": true, \"n_quiver\": 422, \"n_house\": 336, \"n_senate\": 86, \"n_tickers\": 207, \"n_clusters\": 23, \"n_bipartisan\": 15,
+[21:03:03] ✅ attribution: 547/547 = 100% (was 64%)
+── RESULT ──
+[21:03:03] ✅ OPS 4289 PASS -- census truthful, attribution >=80%%
 
-→ Report written to aws/ops/reports/latest/4288_gold_verdict.md
+→ Report written to aws/ops/reports/latest/4289_census_v3.md
