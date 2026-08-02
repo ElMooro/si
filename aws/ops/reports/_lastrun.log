@@ -1,10 +1,9 @@
-executing-against: 66e994be3b005c88b371bed124a6d6ac9006fe2a
-ops 4296 -- stress ERs across the full ladder
-[22:18:13] stress invoked: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"ok\
-[22:18:13] ✅ asset_impact ladder coverage: 0/13 -- []
-[22:18:13] GLD weighted None over None scenarios
+executing-against: b74d647e202b877a701e493e7bcc4a969e62394c
+ops 4297 -- 30 wires + strict-LM law
+── 1. stress ladder, race-proof retry ──
+── 2. desk v2.3.0: the seven new wires, live ──
 ── RESULT ──
-[22:18:13] ✗   coverage 0 < 11
+[23:21:57] ✗   stress LM never crossed RUN_START
 
-→ Report written to aws/ops/reports/latest/4296_stress_ladder.md
-❌ OPS-FAIL: aws/ops/pending/ops_4296_stress_ladder.py
+→ Report written to aws/ops/reports/latest/4297_wave2_wires.md
+❌ OPS-FAIL: aws/ops/pending/ops_4297_wave2_wires.py
