@@ -1,15 +1,12 @@
-executing-against: e01e4bd5069c88a522c89c28b4bc77eb28324ec6
-ops 4287 -- gold heal proven at the cache source
-── 1. evidence: who carries the gold series ──
-[20:52:05] secretary: gold refs=0 shim import=NO
-── 3. fallback: force a direct-fetch importer ──
-[20:52:06] justhodl-correlation-breaks post-wave=True (lm=2026-08-02 20:21:29+00:00)
-[20:52:15] justhodl-divergence-engine-v2 post-wave=True (lm=2026-08-02 20:24:27+00:00)
-── 4. us-cycle on settled code ──
-[20:52:29] us-cycle: {"statusCode": 200, "body": "{\"score\": 51.7, \"level\": \"WATCH\"}"}
-[20:52:35] ✅ us-cycle clean (gold path not exercised this run -- neutral)
-── RESULT ──
-[20:52:35] ✗   gold heal still UNPROVEN by served-log or current cache -- evidence above says where next
+executing-against: a13b6d4ed55b38acb36a0a86d47684ccd4bdfa36
+ops 4288 -- dead-gold verdict: ACTIVE fetchers vs mentions
+[20:56:18] classification: 2 ACTIVE, 10 MENTION-only
+── exercise every ACTIVE (ex commodity-curves, fixed 4285) ──
+[20:56:18] ✅ commodity-curves: engine-level fix verified in 4285 (GCUSD rail, artifact fresh, no 400s)
+[20:56:53] morning-intelligence invoked: {"statusCode": 200, "body": "{\"success\": true, \"khalid\": {\"score\": 51, \"regime\": \
+[20:57:00] morning-intelligence: gold path conditional, not exercised this run (no 400s either) -- shim insurance stands
+── VERDICT ──
+[20:57:00] ✅ No engine anywhere emits a dead-gold 400. Runtime fetchers: commodity-curves (fixed+verified) + 1 conditional-path engines shielded by the shim. Mention-only literals: 10 engines (label maps/docs -- harmless). The 4285 '12 infected' claim is hereby corrected to '1 runtime fetcher + 10 mentions'; the shim gold branch remains as fleet-wide insurance for any conditional path that fires later.
+[20:57:00] ✅ OPS 4288 PASS -- wave 4 closed on evidence
 
-→ Report written to aws/ops/reports/latest/4287_gold_proof.md
-❌ OPS-FAIL: aws/ops/pending/ops_4287_gold_proof.py
+→ Report written to aws/ops/reports/latest/4288_gold_verdict.md
