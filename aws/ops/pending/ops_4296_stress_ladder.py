@@ -86,3 +86,5 @@ with report("4296_stress_ladder") as r:
              "scenario-weighted stress ER")
 if fails:
     sys.exit(1)
+
+# retrigger: aggregation fix landed (winners/losers-only was the miss)

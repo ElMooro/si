@@ -378,6 +378,27 @@ def lambda_handler(event, context):
                 "scenario": s["key"], "prob": p, "expected_pct": l["expected_pct"],
             })
 
+    # ops 4296b: aggregation only read winners/losers; fold the ladder
+    # overlay through the same probability-weighting. Curated entries
+    # win -- overlay fills only tickers a scenario didn't touch.
+    prob_by_key = {s["key"]: s["probability"] for s in scenarios_out}
+    for spec in SCENARIOS:
+        p = prob_by_key.get(spec["key"], 0)
+        touched = {w["ticker"] for w in spec.get("winners", [])} | \
+                  {l["ticker"] for l in spec.get("losers", [])}
+        for t, pct in (spec.get("impact_map") or {}).items():
+            if t in touched:
+                continue
+            if t not in asset_impact:
+                asset_impact[t] = {"weighted_pct": 0,
+                                   "scenarios_count": 0,
+                                   "by_scenario": []}
+            asset_impact[t]["weighted_pct"] += p * pct
+            asset_impact[t]["scenarios_count"] += 1
+            asset_impact[t]["by_scenario"].append({
+                "scenario": spec["key"], "prob": p,
+                "expected_pct": pct, "src": "ladder_overlay"})
+
     # Round + sort
     asset_impact_list = [
         {"ticker": t, "expected_return_pct": round(d["weighted_pct"], 2),
