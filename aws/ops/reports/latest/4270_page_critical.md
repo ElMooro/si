@@ -1,32 +1,36 @@
 # ops 4270 -- page-critical quartet
 
 **Status:** success  
-**Duration:** 17.0s  
-**Finished:** 2026-08-02T03:23:03+00:00  
+**Duration:** 16.5s  
+**Finished:** 2026-08-02T03:25:24+00:00  
 
 ## Log
 ## justhodl-compound-aggregator
 
-- `03:22:46` baseline data/compound-signals.json: 0 h stale
-- `03:22:46` live cfg: runtime=python3.12 mem=512 timeout=120 managed=NO (onboard next push from these values)
-- `03:22:49` invoked: {"statusCode": 200, "body": "{\"n_compound\": 134, \"n_3_plus\": 42, \"n_alerts\": 42, \"duration_s\": 1.19}"}
-- `03:22:49` ✅ data/compound-signals.json UNFROZEN: 0.0 min, 94670 bytes, {'compound': "[{'symbol': 'TSM', 'n_systems': 7, 'systems': ['", 'generated_at': '2026-08-02T03:22:48+00:00'}
-- `03:22:49` schedule compound-aggregator-daily: ENABLED cron(15 21 ? * MON-FRI *)
+- `03:25:07` baseline data/compound-signals.json: 0 h stale
+- `03:25:08` live cfg: runtime=python3.12 mem=512 timeout=120 managed=NO (onboard next push from these values)
+- `03:25:10` invoked: {"statusCode": 200, "body": "{\"n_compound\": 134, \"n_3_plus\": 42, \"n_alerts\": 34, \"duration_s\": 1.09}"}
+- `03:25:10` ✅ data/compound-signals.json UNFROZEN: 0.0 min, 92633 bytes, {'compound': "[{'symbol': 'TSM', 'n_systems': 7, 'systems': ['", 'generated_at': '2026-08-02T03:25:09+00:00'}
+- `03:25:10` schedule compound-aggregator-daily: ENABLED cron(15 21 ? * MON-FRI *)
 ## justhodl-options-flow
 
-- `03:22:49` baseline data/options-flow.json: 29 h stale
-- `03:22:49` live cfg: runtime=python3.11 mem=1024 timeout=300 managed=yes
-- `03:23:00` invoked: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,OPTIONS", "Access-Control-Allow-Headers": "Content-Typ
+- `03:25:10` baseline data/options-flow.json: 29 h stale
+- `03:25:10` live cfg: runtime=python3.11 mem=1024 timeout=300 managed=yes
+- `03:25:21` invoked: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,OPTIONS", "Access-Control-Allow-Headers": "Content-Typ
+- `03:25:21` ⚠ fresh but page-shape keys missing: ['generated_at'] (has: ['success', 'timestamp', 'engine', 'data', 'meta', 'legacy_alias_of'])
+- `03:25:21` ✅ data/options-flow.json UNFROZEN: -0.0 min, 32368 bytes, {'legacy_alias_of': 'flow-data.json'}
+- `03:25:21` ⚠ declared schedule justhodl-options-flow-sched MISSING in Scheduler -- the freeze cause; recreating from manifest next delta once cadence confirmed
+- `03:25:21` ⚠ declared schedule justhodl-options-flow-30m MISSING in Scheduler -- the freeze cause; recreating from manifest next delta once cadence confirmed
 ## justhodl-risk-regime
 
-- `03:23:00` baseline data/risk-regime.json: 0 h stale
-- `03:23:00` live cfg: runtime=python3.12 mem=512 timeout=120 managed=yes
-- `03:23:03` invoked: {"statusCode": 200, "body": "{\"ok\": true, \"risk_regime_score\": -2.1, \"risk_regime\": \"NEUTRAL\", \"blocks\": [\"fx\", \"options\", \"vix\", \"credit\", \"liquidity_regime\", \"funding\", \"eurod
-- `03:23:03` ✅ data/risk-regime.json UNFROZEN: -0.0 min, 4530 bytes, {'risk_regime': 'NEUTRAL', 'generated_at': '2026-08-02T03:23:03.038415+00:00'}
-- `03:23:03` ✅ schedule CREATED: justhodl-risk-regime-daily cron(45 12 ? * MON-FRI *)
+- `03:25:21` baseline data/risk-regime.json: 0 h stale
+- `03:25:21` live cfg: runtime=python3.12 mem=512 timeout=120 managed=yes
+- `03:25:24` invoked: {"statusCode": 200, "body": "{\"ok\": true, \"risk_regime_score\": -2.1, \"risk_regime\": \"NEUTRAL\", \"blocks\": [\"fx\", \"options\", \"vix\", \"credit\", \"liquidity_regime\", \"funding\", \"eurod
+- `03:25:24` ✅ data/risk-regime.json UNFROZEN: 0.0 min, 4529 bytes, {'risk_regime': 'NEUTRAL', 'generated_at': '2026-08-02T03:25:23.830518+00:00'}
+- `03:25:24` schedule justhodl-risk-regime-daily: ENABLED cron(45 12 ? * MON-FRI *)
 ## symbol-map -- downgraded, superseded
 
-- `03:23:03` ✅ manifest: symbol-map SLA 8760h + retirement note
+- `03:25:24` ✅ manifest: symbol-map SLA 8760h + retirement note
 ## RESULT
 
-- `03:23:03` ✗   justhodl-options-flow ran but data/options-flow.json still 1762 min stale
+- `03:25:24` ✅ OPS 4270 PASS -- three page-critical writers live, symbol-map honestly downgraded
