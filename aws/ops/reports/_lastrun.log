@@ -1,13 +1,14 @@
-executing-against: 928570d1c1b2cdb1a66ea4fe656aefec2fac7ccb
-ops 4291 -- quantum desk v3: nothing left unrendered
-── 1. engine v2.1.0 + history scores ──
-[21:21:19] ✅ history row now carries per-class scores: {'GOLD': 0.692, 'BONDS_LONG': 0.687, 'SILVER': 0.648, 'CASH': 0.64}
-[21:21:19] weights: {"ladder": {"discount": 0.22, "asymmetry": 0.22, "strategic": 0.14, "regime": 0.16, "plumbing": 0.13, "cycle": 0.13}, "money_map":
-[21:21:19] barometer headline: 102 of 291 canaries firing across 12 mechanisms; early-warning 27.8 (WATCH). 2 cross-mechanism divergences.
-[21:21:19] mm[0] renderable fields: fit=0.633 conv=88.4 verdict=None size=0.45 earn=None x8
-── 2. page v3 on the edge ──
-[21:23:40] ✅ page v3 LIVE (18779 bytes) -- history fetch, weights line, full audit, evidence tables all present
+executing-against: dbebe50a6bc05645fae7fa2369e689f1c47a8210
+ops 4292 -- one page, whole decision
+[21:33:39] sources 23/23
+[21:33:39] DECISION: GOLD ACCUMULATE score=0.692 -- 4/6 legs clear; blockers=['risk-gate RISK_OFF: size x0.45']
+[21:33:39]   deltas: [] | in: None out: None
+[21:33:39] MACRO: nowcast top-z [] | us_cycle None | credit [] | bond_vol_z -0.13
+[21:33:39] RISK: gate_legs=0 veto_stack=[('risk-gate', True), ('canary-barometer', False)]
+[21:33:39] ladder ETF flow badges: ['INFLOW', 'INFLOW', 'INFLOW', 'INFLOW', 'OUTFLOW', 'INFLOW']
+[21:35:40] ✅ page v4 LIVE (23748 bytes)
 ── RESULT ──
-[21:23:40] ✅ OPS 4291 PASS -- the desk shows everything it knows
+[21:35:40] ✗   macro_board nowcast empty
 
-→ Report written to aws/ops/reports/latest/4291_desk_v3.md
+→ Report written to aws/ops/reports/latest/4292_decision_terminal.md
+❌ OPS-FAIL: aws/ops/pending/ops_4292_decision_terminal.py
