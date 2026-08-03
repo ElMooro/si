@@ -237,15 +237,95 @@ def aggregate():
         n = len(data["systems"])
         score = sum(data["scores"].values())
         compound = score * (1 + 0.5 * (n - 1))
+        _sys = sorted(list(data["systems"]))
+        _triad = {"options flow", "smart-money funds buying",
+                  "rev accel"}
         ranked.append({
             "symbol": sym,
             "n_systems": n,
-            "systems": sorted(list(data["systems"])),
+            "systems": _sys,
+            "combo": "+".join(_sys),
+            "core_triad": _triad.issubset(set(_sys)),
+            "prime_convergence": (n >= 5
+                                  and _triad.issubset(set(_sys))),
             "scores": data["scores"],
             "details": data["details"],
             "compound_score": round(compound, 1),
         })
     ranked.sort(key=lambda x: (-x["n_systems"], -x["compound_score"]))
+    # ── ops 4334: archetype (reversal join), 90d percentile, prime
+    # artifact — the fingerprint that called AAPL/GOOGL/MSFT, encoded.
+    try:
+        _rv = json.loads(s3.get_object(
+            Bucket=S3_BUCKET, Key="data/trend-reversal.json"
+        )["Body"].read())
+        _rvm = {str(x.get("ticker")).upper():
+                (x.get("direction"), x.get("reversal_score") or 0)
+                for x in _rv.get("rows") or []}
+    except Exception:
+        _rvm = {}
+    for r in ranked:
+        d0, sc0 = _rvm.get(r["symbol"], (None, 0))
+        r["archetype"] = ("SQUEEZE_POP" if d0 == "TOP_FORMING"
+                          and sc0 >= 25 else
+                          "DIP_CONVERGENCE" if d0 ==
+                          "BOTTOM_FORMING" and sc0 >= 25 else
+                          "CLEAN_TAPE")
+        r["reversal_context"] = ({"direction": d0, "score": sc0}
+                                 if d0 else None)
+    try:
+        _h = json.loads(s3.get_object(
+            Bucket=S3_BUCKET, Key="data/compound-history.json"
+        )["Body"].read())
+    except Exception:
+        _h = {"days": []}
+    _prior_vals = [v for day in _h.get("days") or []
+                   for v in (day.get("scores") or {}).values()]
+    _prior_by = {}
+    for day in _h.get("days") or []:
+        for k2, v in (day.get("scores") or {}).items():
+            _prior_by.setdefault(k2, []).append(v)
+    for r in ranked:
+        cs = r["compound_score"]
+        if _prior_vals:
+            r["pctile_90d_all"] = round(
+                100.0 * sum(1 for v in _prior_vals if v <= cs)
+                / len(_prior_vals), 1)
+        mine = _prior_by.get(r["symbol"]) or []
+        if mine:
+            r["pctile_90d_self"] = round(
+                100.0 * sum(1 for v in mine if v <= cs)
+                / len(mine), 1)
+    from datetime import datetime as _dt, timezone as _tz
+    _today = _dt.now(_tz.utc).strftime("%Y-%m-%d")
+    _days = [d for d in _h.get("days") or []
+             if d.get("d") != _today][-89:]
+    _days.append({"d": _today,
+                  "scores": {r["symbol"]: r["compound_score"]
+                             for r in ranked[:400]}})
+    s3.put_object(Bucket=S3_BUCKET,
+                  Key="data/compound-history.json",
+                  Body=json.dumps({"days": _days}).encode(),
+                  ContentType="application/json")
+    _prime = [r for r in ranked if r.get("prime_convergence")]
+    s3.put_object(
+        Bucket=S3_BUCKET, Key="data/prime-convergence.json",
+        Body=json.dumps({
+            "generated_at": _dt.now(_tz.utc).isoformat(),
+            "note": "n_systems>=5 with the core triad (options "
+                    "flow + smart-money + rev accel) — the "
+                    "fingerprint validated 2026-08-03 on "
+                    "AAPL/GOOGL/MSFT",
+            "n": len(_prime),
+            "rows": [{k: r[k] for k in
+                      ("symbol", "compound_score", "n_systems",
+                       "combo", "archetype", "reversal_context",
+                       "pctile_90d_all", "pctile_90d_self")
+                      if k in r} for r in _prime[:40]],
+        }, default=str).encode(),
+        ContentType="application/json", CacheControl="no-cache")
+    print("[prime] %d prime-convergence names: %s"
+          % (len(_prime), [r["symbol"] for r in _prime[:8]]))
 
     return {
         "feed_stats": feed_stats,
