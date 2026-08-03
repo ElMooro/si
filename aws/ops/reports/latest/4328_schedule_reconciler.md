@@ -1,0 +1,31 @@
+# ops 4328 -- cadence as code; the cluster breathes
+
+**Status:** success  
+**Duration:** 617.8s  
+**Finished:** 2026-08-03T19:44:01+00:00  
+
+## Log
+- `19:33:45` credit-stress | rule:OK | perm:ADDED | fired
+- `19:33:46` bond-trace | rule:OK | perm:ADDED | fired
+- `19:33:47` crisis-knowledge-base | rule:OK | perm:ADDED | fired
+- `19:33:47` cross-asset-rv | rule:OK | perm:ADDED | fired
+- `19:33:48` event-study | rule:OK | perm:ADDED | fired
+- `19:33:48` global-macro | rule:OK | perm:ADDED | fired
+- `19:33:49` historical-analogs | rule:OK | perm:ADDED | fired
+- `19:33:50` implied-prob | rule:OK | perm:ADDED | fired
+- `19:33:50` liquidity-flow | rule:OK | perm:ADDED | fired
+- `19:33:51` feed-catalog | rule:OK | perm:ADDED | fired
+## revival poll -- artifacts must CHANGE
+
+- `19:34:16` ✅ credit-stress ALIVE -- generated_at 2026-08-03T19:33:48.695804+00:00
+- `19:34:16` ✅ bond-trace ALIVE -- generated_at 2026-08-03T19:33:47.412457+00:00
+- `19:34:16` ✅ crisis-knowledge-base ALIVE -- generated_at 2026-08-03T19:33:49+00:00
+- `19:34:16` ✅ cross-asset-rv ALIVE -- generated_at 2026-08-03T19:33:50.674700+00:00
+- `19:34:17` ✅ event-study ALIVE -- generated_at 2026-08-03T19:33:50.613664+00:00
+- `19:34:17` ✅ global-macro ALIVE -- generated_at 2026-08-03T19:34:03+00:00
+- `19:34:17` ✅ implied-prob ALIVE -- generated_at 2026-08-03T19:34:04+00:00
+- `19:35:08` ✅ historical-analogs ALIVE -- generated_at 2026-08-03T19:34:47.570074+00:00
+- `19:44:01` revived 8/10 in 610s · still dead: ['liquidity-flow', 'feed-catalog']
+- `19:44:01` ⚠ liquidity-flow did not refresh -- its own runtime error is next (known: event-study FRED 400, implied-prob rogue polygon key)
+- `19:44:01` ⚠ feed-catalog did not refresh -- its own runtime error is next (known: event-study FRED 400, implied-prob rogue polygon key)
+- `19:44:01` ✅ OPS 4328 PASS -- schedules are code; drift is now a detector class, not a surprise
