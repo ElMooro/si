@@ -1,0 +1,9 @@
+# ops 4322 -- growth block, verbatim
+
+**Status:** success  
+**Duration:** 0.2s  
+**Finished:** 2026-08-03T16:30:27+00:00  
+
+## Log
+- `16:30:27` generated_at=2026-08-03T16:13:08.894678+00:00
+- `16:30:27` ✅ growth_vs_mcap: {"available": true, "market_cap_b": 2091.3, "rev_yoy_pct": 33.0, "rev_cagr_3y_pct": 19.3, "rev_cagr_5y_pct": 23.5, "fcf_cagr_3y_pct": 28.2, "fcf_margin_pct": 28.5, "fwd_rev_growth_pct": 202.8, "fwd_eps_growth_pct": 230.4, "pe_ttm": 27.5, "ev_to_sales": 13.4, "peg": 0.12, "ev_s_per_growth": 0.69, "fcf_yield_pct": 52.48, "rule_of_40": 61.5, "read": "GROWTH AT A DISCOUNT \u2014 you are paying less than 1x P/E per point of growth."}
