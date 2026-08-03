@@ -256,8 +256,8 @@ def aggregate():
     # ── ops 4334: archetype (reversal join), 90d percentile, prime
     # artifact — the fingerprint that called AAPL/GOOGL/MSFT, encoded.
     try:
-        _rv = json.loads(s3.get_object(
-            Bucket=S3_BUCKET, Key="data/trend-reversal.json"
+        _rv = json.loads(S3.get_object(
+            Bucket=BUCKET, Key="data/trend-reversal.json"
         )["Body"].read())
         _rvm = {str(x.get("ticker")).upper():
                 (x.get("direction"), x.get("reversal_score") or 0)
@@ -274,8 +274,8 @@ def aggregate():
         r["reversal_context"] = ({"direction": d0, "score": sc0}
                                  if d0 else None)
     try:
-        _h = json.loads(s3.get_object(
-            Bucket=S3_BUCKET, Key="data/compound-history.json"
+        _h = json.loads(S3.get_object(
+            Bucket=BUCKET, Key="data/compound-history.json"
         )["Body"].read())
     except Exception:
         _h = {"days": []}
@@ -303,13 +303,13 @@ def aggregate():
     _days.append({"d": _today,
                   "scores": {r["symbol"]: r["compound_score"]
                              for r in ranked[:400]}})
-    s3.put_object(Bucket=S3_BUCKET,
+    S3.put_object(Bucket=BUCKET,
                   Key="data/compound-history.json",
                   Body=json.dumps({"days": _days}).encode(),
                   ContentType="application/json")
     _prime = [r for r in ranked if r.get("prime_convergence")]
-    s3.put_object(
-        Bucket=S3_BUCKET, Key="data/prime-convergence.json",
+    S3.put_object(
+        Bucket=BUCKET, Key="data/prime-convergence.json",
         Body=json.dumps({
             "generated_at": _dt.now(_tz.utc).isoformat(),
             "note": "n_systems>=5 with the core triad (options "

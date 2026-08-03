@@ -71,15 +71,24 @@ with report("4334_prime_convergence") as r:
             fails.append("ORCL falsely prime")
         else:
             r.ok("ORCL correctly not prime")
-        pr = json.loads(s3.get_object(
-            Bucket=B, Key="data/prime-convergence.json"
-        )["Body"].read())
+        try:
+            pr = json.loads(s3.get_object(
+                Bucket=B, Key="data/prime-convergence.json"
+            )["Body"].read())
+        except Exception as e:
+            fails.append("prime artifact unreadable: %s"
+                         % str(e)[:70])
+            pr = {}
         r.ok("prime artifact: n=%s rows=%s"
              % (pr.get("n"),
                 [x["symbol"] for x in pr.get("rows") or []][:8]))
-        hh = json.loads(s3.get_object(
-            Bucket=B, Key="data/compound-history.json"
-        )["Body"].read())
+        try:
+            hh = json.loads(s3.get_object(
+                Bucket=B, Key="data/compound-history.json"
+            )["Body"].read())
+        except Exception as e:
+            fails.append("history unreadable: %s" % str(e)[:70])
+            hh = {}
         r.log("history days: %d" % len(hh.get("days") or []))
         if not (pr.get("rows") and hh.get("days")):
             fails.append("prime/history artifacts thin")
@@ -89,3 +98,5 @@ with report("4334_prime_convergence") as r:
         sys.exit(1)
     r.ok("OPS 4334 PASS -- the engine that called it now knows "
          "exactly what its winning hand looks like")
+
+# retrigger: engine identifiers corrected (S3/BUCKET)
