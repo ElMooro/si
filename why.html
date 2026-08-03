@@ -481,12 +481,20 @@ async function fetchAndRender(ticker){
     setStep("checking cached research…");
     const cached = await tryDoc(readUrl(), 12000);
     if(isFresh(cached)){ renderReport(cached); return; }
+    if(cached && cached.generated_at){
+      // ops 4320: stale snapshot renders NOW (with banner + live overlays),
+      // fresh doc hot-swaps in when generation lands
+      renderReport(cached);
+      markStale(cached, ticker);
+    }
 
     // ── Phase 2: cold/stale → trigger background generation through the proxy, then poll S3.
     // The browser only ever talks to the Cloudflare proxy; it never calls the raw
     // *.lambda-url.on.aws domain (ad-blockers / firewalls drop it → "Failed to fetch").
-    setStep("no fresh report yet — generating institutional-grade research…");
-    startStepAnimation();
+    if(!(cached && cached.generated_at)){
+      setStep("no fresh report yet — generating institutional-grade research…");
+      startStepAnimation();
+    }
     fetchWithTimeout(genUrl(), 15000).catch(() => {});   // fire-and-forget trigger (202)
 
     const t0 = Date.now(), DEADLINE = 285000;            // ~4.75 min ceiling
@@ -496,7 +504,14 @@ async function fetchAndRender(ticker){
       const secs = Math.round((Date.now() - t0) / 1000);
       setStep(`generating institutional-grade research… ${secs}s elapsed (first run for a ticker is typically 90–220s)`);
       const doc = await tryDoc(readUrl(), 12000);
-      if(doc && doc.generated_at){ stopStepAnimation(); renderReport(doc); return; }
+      // ops 4320: the old poll accepted the SAME stale file back from S3;
+      // require a CHANGED generated_at (or genuinely fresh) before swapping
+      if(doc && doc.generated_at &&
+         ((!cached) || doc.generated_at !== cached.generated_at || isFresh(doc))){
+        stopStepAnimation(); renderReport(doc);
+        const bn=document.getElementById('jh-stale-banner'); if(bn) bn.remove();
+        return;
+      }
       // safety net: re-fire the trigger once if nothing has landed by ~2 min
       if(!reFired && secs > 120){ reFired = true; fetchWithTimeout(genUrl(), 15000).catch(() => {}); }
     }
@@ -4201,8 +4216,8 @@ async function fixInstCounts(t){
     var labels=document.querySelectorAll('#content *');
     var hitB=null,hitS=null;
     for(var i=0;i<labels.length;i++){var tx=(labels[i].textContent||'').trim();
-      if(tx==='INSTITUTIONS BUYING')hitB=labels[i];
-      if(tx==='INSTITUTIONS SELLING')hitS=labels[i];}
+      if(tx==='≥5% FILERS · LAST 24M')hitB=labels[i];
+      if(tx==='SELLERS (THIS FEED)</span><span style='font-size:9px;color:#5d6b82;display:block'>13D/13G reports ≥5% crossings only — sellers structurally invisible; real $ selling in Dollar Flows')hitS=labels[i];}
     function setv(lbl,val,note){if(!lbl)return;var v=lbl.nextElementSibling||lbl.parentElement.querySelector('div:last-child');
       if(v){v.innerHTML=val+(note?' <span style="font-size:10px;color:#5d6b82">'+note+'</span>':'');}}
     if(!f){setv(hitB,'n/a','(not in 13F flow feed)');setv(hitS,'n/a','(not in 13F flow feed)');return;}
@@ -4265,6 +4280,25 @@ async function composeFleetBoard(ticker){
         +'<div style="margin-top:9px;font-size:10.5px;color:#5d6b82">each line joined live from its engine\\u2019s own artifact — nothing cached, nothing invented; absent = honestly absent</div>';
     }catch(e){sec.style.display='';bd.textContent='fleet join failed: '+e;}
   });
+}
+
+/* ops 4320 — stale-snapshot truth layer */
+async function markStale(d, ticker){
+  try{
+    var age=Math.round((Date.now()-new Date(d.generated_at).getTime())/864e5);
+    var bn=document.createElement('div');bn.id='jh-stale-banner';
+    bn.style.cssText='position:sticky;top:0;z-index:50;background:#2a1d10;border:1px solid #e8b34a;color:#e8b34a;padding:9px 14px;border-radius:10px;margin:10px 0;font-family:var(--font-mono,monospace);font-size:12.5px';
+    bn.innerHTML='⏳ <b>SNAPSHOT '+esc(String(d.generated_at).slice(0,10))+'</b> ('+age+'d old) — prices & price-derived ratios below are from that date. Fresh research is generating now and will replace this page automatically.';
+    var c=document.getElementById('content');if(c)c.prepend(bn);
+    var rv=await (await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/trend-reversal.json',{cache:'no-store'})).json();
+    var row=(rv.rows||[]).find(function(x){return x.ticker===String(ticker).toUpperCase()});
+    if(row&&row.close){
+      var dp=(d.quote||{}).price, pe=((d.valuation||{}).pe_ttm);
+      var scaled=(pe&&dp)?(pe*row.close/dp):null;
+      bn.innerHTML+='<div style="margin-top:5px;color:#e8ebf0">last close <b>$'+row.close+'</b> ('+esc(row.as_of||'')+') vs snapshot $'+dp
+        +(scaled?' · P/E TTM ≈ <b>'+scaled.toFixed(1)+'x</b> at last close (snapshot showed '+pe+'x)':'')+'</div>';
+    }
+  }catch(e){console.warn('markStale',e);}
 }
 </script>
 </body>
