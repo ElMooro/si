@@ -1,68 +1,75 @@
-# ops 4319 -- why.html data-truth audit
+# ops 4319 v2 -- the real research docs, audited
 
-**Status:** failure  
-**Duration:** 0.4s  
-**Finished:** 2026-08-03T16:01:17+00:00  
-
-## Error
-
-```
-SystemExit: 1
-```
+**Status:** success  
+**Duration:** 9.3s  
+**Finished:** 2026-08-03T16:05:55+00:00  
 
 ## Log
-- `16:01:16` keys:
-27:OUT_KEY = "data/alpha-scoreboard-research.json"
-28-TOP_N = 35
-29-THESIS_CACHE_HRS = 20
+- `16:05:46` prefix holds 81 docs; 6 freshest: [('VOO.json', '2026-08-03 08:06'), ('QQQ.json', '2026-08-03 08:05'), ('SPY.json', '2026-08-03 08:05'), ('T.json', '2026-08-03 08:05'), ('DIS.json', '2026-08-03 08:05'), ('VZ.json', '2026-08-03 08:05')]
+- `16:05:54` ✅ MISPRICED DOC: TSM (S3 LastModified 2026-07-07 19:31:11+00:00, doc generated_at=2026-07-07T19:31:10.864762+00:00)
+- `16:05:54` stored quote: {"price": 430.1, "change_pct": -4.8009, "volume": 11247737.0, "avg_volume": null, "day_low": 428.12, "day_high": 439.8, "year_low": 223.7, "year_high": 479.0}
+- `16:05:54` valuation keys: ['pe_ttm', 'pe_5yr_avg', 'pb_ttm', 'ps_ttm', 'pfcf_ttm', 'ev_ebitda', 'peg_ratio', 'fcf_yield_pct', 'div_yield_pct', 'roe_ttm_pct', 'roic_ttm_pct', 'dcf_estimate', 'dcf_upside_pct', 'analyst_pt_median', 'analyst_pt_high', 'analyst_pt_low'] | pe_ttm=32.8 pe=None
+- `16:05:54` ownership: {}
+- `16:05:55` ✅ LIVE quote: price=403.65 day=398.2001-406.67 52w=223.7-479
+- `16:05:55` ✅ LIVE ratios: peTTM=27.471890576098296 | fields matching stored pe_ttm=32.8 -> {}
+## writer forensics (repo-wide)
+
+- `16:05:55` writers of the prefix:
+aws/lambdas/justhodl-research-backtest/source/lambda_function.py
+aws/lambdas/justhodl-analytics-snapshot/source/lambda_function.py
+aws/lambdas/justhodl-analytics-snapshot/config.json
+aws/lambdas/justhodl-equity-research/source/lambda_function.py
+aws/lambdas/justhodl-research-critique/source/lambda_function.py
+aws/lambdas/justhodl-flows-ai-analysis/source/lambda_function.py
+
+- `16:05:55` quote build:
+171-            if entry_doc:
+172-                gen_at = entry_doc.get("generated_at") or f"{oldest_date}T00:00:00+00:00"
+173:                entry_price = (entry_doc.get("quote") or {}).get("price")
+174-                # Verdict from oldest (the original call to evaluate)
+175-                verdict = entry_doc.get("verdict") or {}
+176-            else:
+177-                gen_at = latest_doc.get("generated_at")
+178:                entry_price = (latest_doc.get("quote") or {}).get("price")
+179-                verdict = latest_doc.get("verdict") or {}
+180-        else:
+181-            # No history — use latest (will show 0% return)
+182-            gen_at = latest_doc.get("generated_at")
+183:            entry_price = (latest_doc.get("quote") or {}).get("price")
+184-            verdict = latest_doc.get("verdict") or {}
+185-
+186-        if not entry_price or not gen_at:
+187-            continue
+188-
+
+- `16:05:55` pe_ttm build:
+
+- `16:05:55` ownership build:
+
+- `16:05:55` cache policy:
+135-
+136-def build_per_call_attribution(now_prices: dict, spy_now: Optional[float],
+137:                                spy_then_cache: dict) -> list:
+138-    """For each research file, compute return + alpha attribution.
+139-
+140-    Returns list of dicts, one per (ticker, generated_at) pair.
+141-
+142-    Strategy: use the OLDEST historical snapshot as the "entry" point so
 --
-143:        cache = json.loads(S3.get_object(Bucket=BUCKET, Key=OUT_KEY)["Body"].read()).get("by_ticker", {})
-144-    except Exception:
-145-        cache = {}
+210-        days = days_between(gen_at, datetime.now(timezone.utc).isoformat())
+211-
+212:        spy_then = spy_then_cache.get(gen_at[:10])
+213-        spy_ret = pct_change(spy_then, spy_now) if (spy_then and spy_now) else None
+214-        alpha = round(ticker_ret - spy_ret, 2) if (ticker_ret is not None and spy_ret is not None) else None
+215-
+216-        # Capture regime stamp from entry snapshot (the regime active when
+217-        # the call was made). Falls back to latest if no entry doc.
 --
-287:    S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(payload, default=str).encode(),
-288-                  ContentType="application/json", CacheControl="public, max-age=1800")
-289-    print(f"[alpha-research] {len(out)} tickers, {new_theses} theses, {n_logged} logged, {round(time.time()-t0,1)}s")
-
-- `16:01:17` doc data/alpha-scoreboard-research.json: 35 tickers, top keys ['engine', 'version', 'generated_at', 'source_generated_at', 'n', 'new_theses']
-## writer forensics -- where these fields are born
-
-- `16:01:17` quote build:
-
-- `16:01:17` pe_ttm build:
-
-- `16:01:17` ownership counts build:
-
-- `16:01:17` freshness/cache policy:
-98-                "status": "pending", "schema_version": "2", "horizon_days_primary": 21,
-99:                "ttl": int(now.timestamp()) + 120 * 86400,
-100-                "signal_value": str(r.get("compound_score")),
-101-                "metadata": {"n_systems": str(r.get("n_systems")), "engine": "alpha-scoreboard"},
-102-            })
---
-142-    try:
-143:        cache = json.loads(S3.get_object(Bucket=BUCKET, Key=OUT_KEY)["Body"].read()).get("by_ticker", {})
-144-    except Exception:
-145:        cache = {}
-146-    now = datetime.now(timezone.utc)
-147-
-148-    ind_pe, sec_pe = EE.fetch_peer_pe()
---
-234-
-235:        cached = cache.get(tk, {})
-236:        ts = cached.get("thesis_at"); fresh = False
-237-        if ts:
-238-            try:
-239:                fresh = (now - datetime.fromisoformat(ts)).total_seconds() < THESIS_CACHE_HRS * 3600
-240-            except Exception:
-241:         
-## page-side -- the HOLDERS tile template
-
-- `16:01:17` 928-    banner=`<div style="margin:2px 0 12px;padding:14px 16px;border-radius:10px;background:linear-gradient(90deg,#3a0d0d,#2a0808);border:2px solid #ff2d2d;box-shadow:0 0 18px #ff2d2d44;display:flex;flex-wrap:wrap;gap:14px;align-items:center">
-929-      <span style="font-size:22px">⚠</span>
-930-      <div style="flex:1;min-width:220px">
-931:        <div style="font-family:var(--font-mono);font-size:14px;font-weight:800;letter-spacing:1.5px;color:#ff5c5c">DILUTION RISK — SHAREHOLDERS ARE BEING DILUTED</div>
-932-        <div style="font-size:12.5px;color:#ffb3b3;margin-top:3px">Share count ${gRate!=null?('growing <b>'+f(gRate,1)+'/yr</b>'):'expanding fast'}${mult&&mult>1.15?(' — <b>'+mult+'×</b> more shares than 10 years ago'):''}. Every rally is being sold into new paper; per-share value is shrinking under you.</div>
-933-      </div>
-934-      <span class="jh-flashred" style="font-famil
-- `16:01:17` ✗ no ticker with stored price ~430 found
+510-
+511-    # 4. Build per-call attribution
+512:    spy_then_cache = {}  # date -> SPY price
+513-    for k in research_keys:
+514-        doc = read_s3_json(k)
+515-        if doc and doc.get("generated_at"):
+516-        
+- `16:05:55` ✅ AUDIT v2 COMPLETE
