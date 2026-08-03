@@ -47,6 +47,11 @@ def eng_of(it):
     return str(md.get("engine") or it.get("engine") or st0 or "?")
 
 
+def is_down(pd):
+    return any(t in str(pd).upper() for t in
+               ("DOWN", "UNDER", "SHORT", "SELL", "BEAR"))
+
+
 def sym_of(it):
     md = it.get("metadata")
     md = md if isinstance(md, dict) else {}
@@ -81,7 +86,7 @@ def outcome(it):
         hit = hit.lower() in ("true", "1")
     if hit is None and ret is not None:
         pd = str(it.get("predicted_direction") or "UP").upper()
-        hit = (ret > 0) if pd != "DOWN" else (ret < 0)
+        hit = (ret < 0) if is_down(pd) else (ret > 0)
     return (hit, ret)
 
 
@@ -171,6 +176,19 @@ def lambda_handler(event=None, context=None):
                            if regtab else "n/a"))})
     council.sort(key=lambda x: -x["wilson_lb"])
     seats = {c["engine"]: c for c in council}
+    # latest-any-status call per engine (accountability fallback)
+    latest = {}
+    for it in items:
+        e = eng_of(it)
+        if e not in seats:
+            continue
+        sym = sym_of(it)
+        if not sym:
+            continue
+        ep = F(it.get("logged_epoch")) or 0
+        cur = latest.get(e)
+        if cur is None or ep > cur[0]:
+            latest[e] = (ep, it, sym)
     # open-signal pass: council votes
     now_ep = time.time()
     votes = {}
@@ -224,12 +242,41 @@ def lambda_handler(event=None, context=None):
                                "regime_fit": rf, "w": w0}
     for c in council:
         tc = c.pop("_top", None)
-        if tc and tc["expected_return_pct"] is None:
-            aw = c.get("avg_win_move_pct")
+        if tc:
+            tc["state"] = "OPEN"
+        else:
+            lt = latest.get(c["engine"])
+            if lt:
+                ep0, it0, sym0 = lt
+                w0h, r0h = outcome(it0)
+                pd0 = str(it0.get("predicted_direction")
+                          or "UP")
+                tc = {"symbol": sym0, "direction": pd0,
+                      "state": ("GRADED"
+                                if w0h is not None else "OPEN"),
+                      "hit": w0h,
+                      "realized_return_pct": (round(r0h, 1)
+                                              if r0h is not None
+                                              else None),
+                      "confidence": F(it0.get("confidence")),
+                      "logged_at": str(it0.get("logged_at"))[:16],
+                      "age_d": round((now_ep - ep0) / 86400, 1),
+                      "horizon_days": int(
+                          F(it0.get("horizon_days_primary"))
+                          or 21),
+                      "expected_return_pct": None,
+                      "expected_basis": "latest_call"}
+        if tc and tc.get("expected_return_pct") is None:
+            aw = (c.get("avg_win_move_pct")
+                  or c.get("avg_move_pct"))
             if aw is not None:
                 tc["expected_return_pct"] = round(
-                    abs(aw) * (1 if tc["direction"] != "DOWN"
-                               else -1), 1)
+                    abs(aw) * (-1 if is_down(tc["direction"])
+                               else 1), 1)
+                if tc.get("expected_basis") != "logged":
+                    tc["expected_basis"] = "engine_avg"
+            else:
+                tc["expected_basis"] = "insufficient_history"
         c["top_call"] = tc
     consensus = []
     for sym, v0 in votes.items():
