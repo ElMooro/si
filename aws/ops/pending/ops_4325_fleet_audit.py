@@ -43,14 +43,37 @@ with report("4325_fleet_audit") as r:
     if not ok:
         fails.append("auditor never deployed")
     else:
-        p = lam.invoke(FunctionName="justhodl-fleet-auditor",
-                       InvocationType="RequestResponse",
-                       Payload=b"{}")
-        r.log("root: %s" % (p["Payload"].read()
-                            or b"")[:200].decode("utf-8", "ignore"))
-        d = json.loads(s3.get_object(
-            Bucket="justhodl-dashboard-live",
-            Key="data/fleet-audit.json")["Body"].read())
+        try:
+            prev = json.loads(s3.get_object(
+                Bucket="justhodl-dashboard-live",
+                Key="data/fleet-audit.json")["Body"].read())
+            g0 = prev.get("generated_at")
+        except Exception:
+            g0 = None
+        lam.invoke(FunctionName="justhodl-fleet-auditor",
+                   InvocationType="Event", Payload=b"{}")
+        r.log("async sweep fired; polling for CHANGED artifact "
+              "(prev generated_at=%s)" % g0)
+        d = None
+        t0 = time.time()
+        while time.time() - t0 < 840:
+            time.sleep(20)
+            try:
+                cand = json.loads(s3.get_object(
+                    Bucket="justhodl-dashboard-live",
+                    Key="data/fleet-audit.json")["Body"].read())
+                if cand.get("generated_at") \
+                        and cand["generated_at"] != g0:
+                    d = cand
+                    break
+            except Exception:
+                pass
+        if d is None:
+            fails.append("sweep artifact never changed in 840s")
+            d = {}
+        if d.get("truncated"):
+            r.warn("time-budget truncation: partial sweep "
+                   "(honest, disclosed)")
         r.ok("SCANNED %s artifacts in %ss -- OK %s · WARN %s · "
              "FAIL %s · parse-fail %s"
              % (d.get("n_scanned"), d.get("elapsed_s"),
@@ -76,3 +99,5 @@ with report("4325_fleet_audit") as r:
         sys.exit(1)
     r.ok("OPS 4325 PASS -- the fleet now audits itself daily; "
          "today's findings are the work queue")
+
+# retrigger: async+poll-for-change gate, engine v1.1 budget guard

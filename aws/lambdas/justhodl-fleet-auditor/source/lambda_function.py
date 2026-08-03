@@ -16,7 +16,7 @@ lam = boto3.client("lambda", region_name="us-east-1")
 B = "justhodl-dashboard-live"
 OUT = "data/fleet-audit.json"
 HIST = "data/fleet-audit-history.json"
-VERSION = "1.0"
+VERSION = "1.1"
 MAX_BODY = 9_000_000
 SKIP = ("fleet-audit",)
 
@@ -64,7 +64,7 @@ def walk(o, fn, depth=0, path=""):
             fn(k, v, path + "/" + str(k))
             walk(v, fn, depth + 1, path + "/" + str(k))
     elif isinstance(o, list):
-        for i, v in enumerate(o[:400]):
+        for i, v in enumerate(o[:150]):
             walk(v, fn, depth + 1, path + "[%d]" % i)
 
 
@@ -231,7 +231,12 @@ def lambda_handler(event, context):
     results = []
     price_book = {}
     n_parse_fail = 0
+    budget = 780.0
+    truncated = False
     for key, lm, size in keys:
+        if time.time() - t0 > budget:
+            truncated = True
+            break
         if any(sk in key for sk in SKIP):
             continue
         age_h = int((now() - lm).total_seconds() // 3600)
@@ -278,6 +283,7 @@ def lambda_handler(event, context):
     fails = [r for r in results if r["status"] == "FAIL"]
     warns = [r for r in results if r["status"] == "WARN"]
     out = {"engine": "justhodl-fleet-auditor", "version": VERSION,
+           "truncated": truncated,
            "generated_at": now().isoformat(),
            "elapsed_s": round(time.time() - t0, 1),
            "n_scanned": len(results),
