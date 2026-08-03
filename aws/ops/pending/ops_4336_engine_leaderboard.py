@@ -75,7 +75,8 @@ with report("4336_engine_leaderboard") as r:
         st0 = str(it.get("signal_type") or "")
         if st0.startswith("eng:"):
             return st0[4:]
-        md = it.get("metadata") or {}
+        md = it.get("metadata")
+        md = md if isinstance(md, dict) else {}
         return str(md.get("engine") or it.get("engine")
                    or st0 or "?")
 
@@ -101,7 +102,9 @@ with report("4336_engine_leaderboard") as r:
             return (None, None)
         prim = str(it.get("horizon_days_primary") or "")
         wkeys = list(oc.keys())
-        wk = prim if prim in oc else (wkeys[-1] if wkeys else None)
+        wk = ("day_" + prim if ("day_" + prim) in oc
+              else prim if prim in oc
+              else (sorted(wkeys)[-1] if wkeys else None))
         w0 = oc.get(wk)
         if not isinstance(w0, dict):
             return (None, None)
@@ -190,3 +193,5 @@ with report("4336_engine_leaderboard") as r:
 # retrigger: ddb ledger scan
 
 # retrigger: outcomes-dict parser v3 + schema receipt
+
+# retrigger: string-metadata guard + day_-prefixed windows
