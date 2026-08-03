@@ -1,7 +1,8 @@
-executing-against: f912e8acc732f02a5da51e88016a090f261e7728
-ops 4314 -- visuals, exponentially
-[04:26:29] artifact: 636 rows · v2.2.2
-[04:29:09] ✅ page v5 LIVE (26866 bytes) -- all visual markers
-[04:29:09] ✅ OPS 4314 PASS -- the map finally looks like the market
+executing-against: 09d5058ef08e9fcb07a706c4d7ccff51625e73e6
+ops 4315 -- the wire, verified where it can be
+[04:44:32] fetched 26919 bytes
+[04:44:32] const HMODE @ 16067 · renderHeat sites @ [16466, 24398, 24420]
+[04:44:32] ✅ declaration precedes all 3 call sites -- TDZ dead on the wire
+[04:44:32] ✅ OPS 4315 PASS -- heatmap + grid render path clean
 
-→ Report written to aws/ops/reports/latest/4314_visuals.md
+→ Report written to aws/ops/reports/latest/4315_runtime_seal.md
