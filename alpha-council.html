@@ -1,0 +1,58 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alpha Council — JustHodl.AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>:root{--bg:#0a0d12;--bg1:#10141b;--bg2:#161b24;--brd:#232a36;--tx:#e8ebf0;--tx2:#9aa3b2;--acc:#e8b34a;--buy:#3fd08c;--avd:#ff6b6b;--flow:#22d3ee;--mono:"IBM Plex Mono",monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px var(--mono)}a{color:inherit}
+.wrap{max-width:1200px;margin:0 auto;padding:18px}h1{font-family:Fraunces,serif;font-size:30px;margin:6px 0 2px}
+.sub{color:var(--tx2);font-size:12.5px}h2{font-family:Fraunces,serif;margin:22px 0 6px}
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:14px 0}
+.stat{background:var(--bg1);border:1px solid var(--brd);border-radius:14px;padding:13px}
+.stat b{font-family:Fraunces,serif;font-size:26px;color:var(--acc)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{border-bottom:1px solid var(--brd);padding:7px 8px;text-align:left;white-space:nowrap;color:var(--tx2)}th{color:var(--tx)}td a{color:var(--tx);text-decoration:none}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.card{background:var(--bg1);border:1px solid var(--brd);border-radius:14px;padding:13px}
+.tk{font-family:Fraunces,serif;font-size:20px;font-weight:700;text-decoration:none}
+.pill{display:inline-block;border:1px solid var(--brd);border-radius:999px;padding:2px 9px;font-size:11px;margin:2px 3px 0 0;color:var(--tx2)}
+.pill.UP{border-color:var(--buy);color:var(--buy)}.pill.DOWN{border-color:var(--avd);color:var(--avd)}
+.zero{background:var(--bg1);border:1px dashed var(--brd);border-radius:14px;padding:18px;color:var(--tx2)}
+details{margin:14px 0;color:var(--tx2);font-size:12.5px}summary{cursor:pointer;color:var(--tx)}
+.why{font-size:11.5px;color:var(--tx2);white-space:normal}
+</style></head><body><div class="wrap">
+<div class="sub"><a href="/" style="text-decoration:none">← JUSTHODL·AI</a> · <a href="/engine-leaderboard.html">leaderboard</a> · <a href="/convergence-desk.html">convergence desk</a></div>
+<h1>Alpha Council</h1>
+<div class="sub">The fleet's statistically <b>proven</b> engines — Wilson 95% lower-bound ≥55%, n≥10, luck can't buy a seat — voting one-engine-one-vote on live signals, regime-filtered, and <b>logging their own consensus into the ledger</b> to be graded like everyone else.</div>
+<div class="hero" id="hero"></div>
+<h2>Consensus board</h2><div id="board"></div>
+<h2>Founding council — and <i>why</i> each one wins</h2>
+<div style="overflow-x:auto"><table id="council"><tr><th>engine</th><th>wilson LB</th><th>raw win%</th><th>n</th><th>bias</th><th>fit (now)</th><th>regime slices</th><th class="why">why it's seated</th></tr></table></div>
+<h2>Accountability</h2>
+<div class="sub" id="acct"></div>
+<details><summary>Methodology — how the ultimate engine avoids fooling itself</summary>
+<p><b>Membership by proof, not luck.</b> A 5-for-5 engine has a Wilson lower bound near 57% at best; seats require the 95% floor ≥55% with n≥10 — the streaks that survive statistics.</p>
+<p><b>One engine, one vote.</b> Re-logged daily signals are not new evidence; each member casts a single strongest vote per symbol, and consensus requires ≥2 <i>distinct</i> members, unanimous in direction, weighted by wilson×regime-fit.</p>
+<p><b>Regime filtering.</b> Members unfit in the current regime (&lt;52% there) abstain. Slices deepen daily as the ledger's regime_at_log matures.</p>
+<p><b>Self-grading.</b> Every consensus call is written back to dynamodb:justhodl-signals as <code>eng:alpha-council</code> with a 21-day primary window — the council appears on the same <a href="/engine-leaderboard.html">leaderboard</a> it draws from, founding mistakes on the books forever.</p>
+</details>
+<div class="sub">Artifact: <a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/alpha-council.json">alpha-council.json</a> · regenerates daily 23:55 UTC after the leaderboard.</div>
+<script>
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+(async()=>{const d=await (await fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/alpha-council.json?ts="+Date.now(),{cache:"no-store"})).json();
+document.getElementById("hero").innerHTML=`
+ <div class="stat"><b>${d.n_council}</b><div class="sub">proven seats · ${esc(d.membership_rule)}</div></div>
+ <div class="stat"><b>${d.n_consensus}</b><div class="sub">consensus calls open</div></div>
+ <div class="stat"><b>${esc(d.current_regime)}</b><div class="sub">regime · posture ${esc(d.risk_posture??"—")}</div></div>
+ <div class="stat"><b>${(d.generated_at||"").slice(11,16)}Z</b><div class="sub">last convened ${(d.generated_at||"").slice(0,10)}</div></div>`;
+const cc=d.consensus_calls||[];
+document.getElementById("board").innerHTML=cc.length?`<div class="grid">`+cc.map(x=>`<div class="card">
+ <div style="display:flex;justify-content:space-between;align-items:baseline"><a class="tk" href="/why.html?t=${esc(x.symbol)}" target="_blank">${esc(x.symbol)}</a><span class="pill ${esc(x.direction)}">${esc(x.direction)}</span></div>
+ <div class="sub">${x.council_n} distinct proven engines · weighted ${x.weighted_score}</div>
+ <div style="margin-top:6px">${(x.engines||[]).map(e=>`<span class="pill" title="wilson ${e.wilson_lb}${e.regime_fit!=null?" · fit "+e.regime_fit:""}">${esc(e.engine)} ${e.wilson_lb}</span>`).join("")}</div>
+</div>`).join("")+`</div>`
+:`<div class="zero"><b>Honest zero.</b> No symbol currently has ≥2 distinct proven engines in unanimous agreement among open signals. That is the bar working — the board fills as members log fresh calls; the council reconvenes daily at 23:55 UTC.</div>`;
+document.getElementById("council").innerHTML+=(d.council||[]).map(c=>{
+ const rs=Object.entries(c.win_by_regime||{}).map(([k,v])=>`${esc(k)} ${v.win_pct}%(${v.n})`).join(" · ")||"—";
+ return `<tr><td>${esc(c.engine)}</td><td style="color:var(--acc)">${c.wilson_lb}%</td><td>${c.win_pct}%</td><td>${c.n}</td><td class="${c.direction_bias==="UP"?"":""}" style="color:${c.direction_bias==="DOWN"?"var(--avd)":"var(--buy)"}">${esc(c.direction_bias)}</td><td>${c.regime_fit_now??"—"}</td><td class="sub">${rs}</td><td class="why">${esc(c.why)}</td></tr>`}).join("");
+document.getElementById("acct").innerHTML=`${d.self_logged??0} consensus call(s) self-logged this run as <b>eng:alpha-council</b> — pending 7/14/21-day grading in the ledger. ${esc(d.note||"")}`;
+})();
+</script></div></body></html>
