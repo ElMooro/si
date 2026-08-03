@@ -1,21 +1,8 @@
-executing-against: 67e74ac2477153801bbeb19f6d5e6ed34a03e4a9
-ops 4323 -- the chart's 1.10x, sourced
-[16:39:25] fundgraph writers:
-aws/lambdas/justhodl-screen-backtest/source/lambda_function.py
-aws/lambdas/justhodl-fundamental-graphs/source/lambda_function.py
-aws/lambdas/justhodl-fundamental-census/source/lambda_function.py
+executing-against: 0eb195dff1ef08cb789e52c2b4f20e04352ea0e6
+ops 4324 -- the chart learns currencies
+[16:44:59] ✅ TSM pe_ttm tail: [["2020-12-31", 1.107], ["2021-12-31", 1.053], ["2022-12-31", 0.389], ["2023-12-31", 0.633], ["2024-12-31", 0.884], ["2025-12-31", 0.908]]
+[16:45:00] ✅ AAPL control pe_ttm tail: [["2020-09-26", 34.28], ["2021-09-25", 26.17], ["2022-09-24", 24.607], ["2023-09-30", 27.911], ["2024-09-28", 37.444], ["2025-09-27", 34.221]]
+[16:45:00] ✗   TSM pe last=0.908 not in [15,45]
 
-[16:39:25] ✅ ENGINE: aws/lambdas/justhodl-screen-backtest/source/lambda_function.py
-[16:39:25] pe_ttm lines:
-
-[16:39:25] eps usage:
-
-[16:39:25] currency handling:
-
-[16:39:25] metric table:
-
-[16:39:31] API top keys: ['ok', 'engine', 'version', 'marker', 'symbol', 'period', 'generated_at', 'profile', 'n_periods', 'vintage_days', 'flags', 'verdicts']
-[16:39:31] ✅ pe series at /points/pe_ttm -- last points: [["2022-12-31", 0.389], ["2023-12-31", 0.633], ["2024-12-31", 0.884], ["2025-12-31", 0.908]]
-[16:39:31] ✅ forensics done
-
-→ Report written to aws/ops/reports/latest/4323_fg_forensics.md
+→ Report written to aws/ops/reports/latest/4324_fg_fx_seal.md
+❌ OPS-FAIL: aws/ops/pending/ops_4324_fg_fx_seal.py
