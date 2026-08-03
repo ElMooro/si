@@ -1,7 +1,14 @@
-executing-against: 90410cd22e5af1dd31bc82255e3ba75fd9ee92d5
-ops 4303 -- treasury-rehypo + trend-reversal pages
-[00:22:24] ✅ treasury-rehypo.html LIVE (8268 bytes)
-[00:22:24] ✅ trend-reversal.html LIVE (7258 bytes)
-[00:22:24] ✅ OPS 4303 PASS
+executing-against: e1ae0ed1e0756b89c4b93fc0b9e7d85db13de0b9
+ops 4304 -- endpoint truth for FR2004 + OFR
+[00:27:24] probe keyid: PDFTR-USTET (U.S. TREASURY SECURITIES (EXCLUDING TREASURY INFLATION-PROTE)
+[00:27:24] catalog row keys: ['seriesbreak', 'keyid', 'description']
+[00:27:24] seriesbreaks: ['SBP2001', 'SBP2013', 'SBN2013', 'SBN2015', 'SBN2022', 'SBN2024']
+[00:27:25] all        -> 0 rows {"pd": {"timeseries": []}}
+[00:27:25] bare       -> ERR HTTP Error 400: Bad Request
+[00:27:26] sb:SBN2015 -> 365 rows sample {"asofdate": "2021-12-29", "keyid": "PDFTR-USTET", "value": "83906"}
+[00:27:27] sb:SBN2022 -> 130 rows sample {"asofdate": "2024-06-26", "keyid": "PDFTR-USTET", "value": "122550"}
+[00:27:28] sb:SBN2024 -> 108 rows sample {"asofdate": "2026-07-22", "keyid": "PDFTR-USTET", "value": "94605"}
+[00:27:28] ⚠ OFR metadata: Not a gzipped file (b'["')
+[00:27:28] ✅ probe complete
 
-→ Report written to aws/ops/reports/latest/4303_engine_pages.md
+→ Report written to aws/ops/reports/latest/4304_nyfed_probe.md
