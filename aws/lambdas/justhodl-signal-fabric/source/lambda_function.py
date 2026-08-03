@@ -63,10 +63,11 @@ def st_compound(r0):
 
 
 def st_rerating(r0):
-    if not _g(r0, "is_candidate"):
+    comp = _g(r0, "composite")
+    if comp is None or float(comp) < 55:
         return None
-    return ("rerating", "composite %s" % _g(r0, "composite"),
-            "UP", min(1.0, (_g(r0, "composite") or 50) / 100.0))
+    return ("rerating", "composite %s" % comp, "UP",
+            min(1.0, float(comp) / 100.0))
 
 
 def st_magic(r0):
@@ -124,23 +125,40 @@ def st_13f(sym, tf):
 
 
 ADAPTERS = [
-    ("data/best-setups.json", "top_setups", st_best_setups,
+    ("data/best-setups.json", ("top_setups",), st_best_setups,
      "best-setups"),
-    ("data/trend-reversal.json", "rows", st_reversal,
+    ("data/trend-reversal.json", ("rows",), st_reversal,
      "trend-reversal"),
-    ("data/compound-signals.json", "compound", st_compound,
+    ("data/compound-signals.json", ("compound",), st_compound,
      "compound-aggregator"),
-    ("data/ai-rerating-radar.json", "rows", st_rerating,
-     "ai-rerating"),
-    ("data/magic-formula.json", "rows", st_magic, "magic-formula"),
-    ("data/opportunities.json", "rows", st_opps, "opportunities"),
-    ("data/insider-clusters.json", "rows", st_insider,
-     "insider-clusters"),
-    ("data/congress-direct.json", "rows", st_congress,
-     "congress-direct"),
-    ("data/squeeze-fuel.json", "rows", st_squeeze, "squeeze-fuel"),
+    ("data/ai-rerating-radar.json", ("all_ranked", "rows"),
+     st_rerating, "ai-rerating"),
+    ("data/magic-formula.json",
+     ("rows", "top", "ranked", "top_50", "stocks"),
+     st_magic, "magic-formula"),
+    ("data/opportunities.json",
+     ("rows", "opportunities", "ranked", "results"),
+     st_opps, "opportunities"),
+    ("data/insider-clusters.json", ("clusters", "rows"),
+     st_insider, "insider-clusters"),
+    ("data/squeeze-fuel.json",
+     ("rows", "scored", "ranked", "candidates"),
+     st_squeeze, "squeeze-fuel"),
 ]
-PAGE = {"best-setups": "/best-setups.html",
+
+
+def resolve_rows(d, keys):
+    for k in keys:
+        v = (d or {}).get(k)
+        if isinstance(v, list) and v and isinstance(v[0], dict):
+            return v
+    for k, v in (d or {}).items():
+        if isinstance(v, list) and v and isinstance(v[0], dict) \
+                and any(x in v[0] for x in ("ticker", "symbol")):
+            return v
+    return []
+PAGE = {"short-interest": "/short-interest.html",
+        "best-setups": "/best-setups.html",
         "trend-reversal": "/trend-reversal.html",
         "compound-aggregator": "/convergence-desk.html",
         "ai-rerating": "/ai-rerating.html",
@@ -193,9 +211,9 @@ def lambda_handler(event=None, context=None):
             "link": "https://justhodl.ai"
                     + PAGE.get(engine, "/engine-leaderboard.html")})
     src_stats = {}
-    for key, rows_key, fn, engine in ADAPTERS:
+    for key, rows_keys, fn, engine in ADAPTERS:
         d = rd(key)
-        rows = (d or {}).get(rows_key) or []
+        rows = resolve_rows(d, rows_keys)
         n0 = 0
         for r0 in rows[:600]:
             if not isinstance(r0, dict):
@@ -209,6 +227,31 @@ def lambda_handler(event=None, context=None):
                 add(sym, engine, *st)
                 n0 += 1
         src_stats[engine] = n0
+    # congress-direct: nested senate/house
+    cg = rd("data/congress-direct.json") or {}
+    ncg = 0
+    for chamber in ("senate", "house"):
+        ch = cg.get(chamber) or {}
+        for r0 in resolve_rows(ch, ("rows", "transactions",
+                                    "filings"))[:300]:
+            sym = str(_g(r0, "ticker", "symbol") or "").upper()
+            st = st_congress(r0)
+            if st:
+                add(sym, "congress-direct", *st)
+                ncg += 1
+    src_stats["congress-direct"] = ncg
+    # short-interest: by_ticker map beats squeeze-fuel when empty
+    si = (rd("data/short-interest.json") or {}).get("by_ticker") \
+        or {}
+    nsi = 0
+    for sym, r0 in list(si.items())[:800]:
+        if not isinstance(r0, dict):
+            continue
+        st = st_squeeze(r0)
+        if st:
+            add(str(sym).upper(), "short-interest", *st)
+            nsi += 1
+    src_stats["short-interest"] = nsi
     tf = (rd("data/13f-flows-by-ticker.json") or {}).get("t") or {}
     n13 = 0
     for sym in list(FAB.keys()):

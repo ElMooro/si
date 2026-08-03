@@ -116,3 +116,5 @@ with report("4344_signal_fabric") as r:
         sys.exit(1)
     r.ok("OPS 4344 PASS -- N-squared wiring is dead; the fleet "
          "speaks one language, and disagreement is on the record")
+
+# retrigger: v1.1 adapters (recon-corrected keys, congress+SI custom)
