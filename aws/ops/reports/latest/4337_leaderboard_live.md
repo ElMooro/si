@@ -1,28 +1,51 @@
 # ops 4337 -- the distribution answers despair
 
-**Status:** failure  
-**Duration:** 0.8s  
-**Finished:** 2026-08-03T22:03:10+00:00  
-
-## Error
-
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4337_leaderboard_live.py", line 79, in <module>
-    lam.invoke(FunctionName="justhodl-engine-leaderboard",
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the Invoke operation: The operation cannot be performed at this time. The function is currently in the following state: Pending
-
-```
+**Status:** success  
+**Duration:** 80.3s  
+**Finished:** 2026-08-03T22:13:47+00:00  
 
 ## Log
-- `22:03:10` ✅ daily cadence installed: 23:40 UTC
+- `22:12:27` ✅ daily cadence installed: 23:40 UTC
+- `22:13:47` ✅ THE DISTRIBUTION: pooled 38.0% over 34283 graded calls · median engine 41.4% · 61 engines >=55% (19.1% of 320)
+- `22:13:47` histogram: {"0-10": 20, "10-20": 21, "20-30": 51, "30-40": 58, "40-50": 78, "50-60": 51, "60-70": 24, "70-80": 7, "80-90": 2, "90-100": 8}
+## autopsy A: wl-engines writer
+
+- `22:13:47` writers: aws/lambdas/justhodl-alpha-daily-brief/source/lambda_function.py aws/lambdas/justhodl-wl-engines/source/lambda_function.py aws/lambdas/justhodl-wl-engines/config.json aws/lambdas/justhodl-wl-fusion/source/lambda_function.py 
+- `22:13:47` 93-    divergence. Never raises."""
+94-    try:
+95-        fus = load_sidecar("data/wl-fusion.json", {}) or {}
+96:        idx = load_sidecar("data/wl-engines.json", {}) or {}
+97-        themes = fus.get("themes") or {}
+98-        tops = sorted(themes.items(),
+99-                      key=lambda kv: -(kv[1].get("pressure_pctile") or 0)
+100-                      )[:3]
+101-        eng = idx.get("engines") or []
+102-        firing = [e for e in eng if e.get("firing")][:6]
+
+## autopsy B: auction-decisive-call units
+
+- `22:13:47` writers: aws/lambdas/justhodl-auction-interpreter/source/lambda_function.py aws/lambdas/justhodl-auction-interpreter/config.json 
+- `22:13:47` 14-  - Episode reference           (data/episode-reference.json)
+15-  - Crisis KB framework excerpts (via jhcore.kb)
+16-
+17:Output: data/auction-decisive-call.json — schema described below.
+18-
+19-USES jhcore LAYER.
+20-
+21-Schema:
+22-{
+23-  "version": "1.0",
+--
+402-        "kb_frameworks_used": [c.get("framework") for c in kb_chunks],
+403-    }
+404-
+405:    s3io.put_json("data/auction-decisive-call.json", brief,
+406-                   cache_control="public, max-age=900")
+407-
+408-    duration = round(time.time() - started, 2)
+409-    print(f"[auction-interp] OK — regime={brief.get('regime')} confidence={brief.get('confidence')} "
+410-          f"trades={len(brief.get('trade_ideas') or [])} tripwires={len(brief.get('tripwires') or [])} "
+411-          f"predictions={len(brief.get('historical_predictions') or [])} {duration}s")
+
+- `22:13:47` ✅ PAGE LIVE: https://justhodl.ai/engine-leaderboard.html (6822 bytes)
+- `22:13:47` ✅ OPS 4337 PASS -- the fleet grades itself daily, in public, with the whole distribution on the table
