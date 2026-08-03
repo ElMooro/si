@@ -36,7 +36,7 @@ sch = boto3.client("scheduler", region_name=REGION)
 RUN_START = datetime.now(timezone.utc)
 
 def ensure(fn, timeout_s, env=None):
-    for _ in range(45):
+    for _ in range(20):
         try:
             c = lam.get_function_configuration(FunctionName=fn)
             if c.get("State") == "Active" and \
@@ -62,6 +62,12 @@ def ensure(fn, timeout_s, env=None):
                     z.write(fp, os.path.relpath(fp, sdir))
         donor = lam.get_function_configuration(
             FunctionName="justhodl-quantum-desk")
+        kd = lam.get_function_configuration(
+            FunctionName="justhodl-commodity-curves")
+        keyenv = {k: v for k, v in ((kd.get("Environment") or {})
+                                    .get("Variables") or {}).items()
+                  if k.startswith(("FMP", "FRED"))}
+        env = {**keyenv, **(env or {})}
         try:
             lam.create_function(
                 FunctionName=fn, Runtime="python3.12",

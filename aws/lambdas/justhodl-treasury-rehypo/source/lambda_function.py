@@ -35,7 +35,7 @@ OUT_KEY = "data/treasury-rehypo.json"
 FRED_KEY = os.environ.get("FRED_API_KEY") or os.environ.get("FRED_KEY", "")
 UA = {"User-Agent": "JustHodl-research/1.0 (github.com/ElMooro)"}
 s3 = boto3.client("s3", region_name="us-east-1")
-VERSION = "1.0"
+VERSION = "1.0.1"
 
 
 def http_json(url, timeout=40, gz=False):
@@ -100,10 +100,31 @@ def sum_series(list_of_series):
 OFR = ("https://data.financialresearch.gov/v1/series/timeseries"
        "?mnemonic={m}")
 OFR_CANDIDATES = {
-    "gcf_rate": ["REPO-GCF_AR_AG-P", "REPO-GCF_AR_OO-P"],
-    "tri_rate": ["REPO-TRI_AR_OO-P", "REPO-TRI_AR_AG-P"],
-    "dvp_vol": ["REPO-DVP_TV_OO-P", "REPO-DVP_TV_TOT-P"],
+    "gcf_rate": ["REPO-GCF_AR_AG-P", "REPO-GCF_AR_OO-P",
+                 "REPO-GCF_AR_TOT-P"],
+    "tri_rate": ["REPO-TRI_AR_OO-P", "REPO-TRI_AR_AG-P",
+                 "REPO-TRI_AR_TOT-P"],
+    "dvp_vol": ["REPO-DVP_TV_OO-P", "REPO-DVP_TV_TOT-P",
+                "REPO-DVP_TV_AG-P"],
 }
+OFR_LIST = ("https://data.financialresearch.gov/v1/metadata/"
+            "mnemonics")
+
+
+def ofr_discover(notes):
+    try:
+        doc = http_json(OFR_LIST, gz=True)
+        rows = doc if isinstance(doc, list) else \
+            doc.get("mnemonics") or []
+        ms = [str(r if isinstance(r, str) else r.get("mnemonic"))
+              for r in rows]
+        repo = [m for m in ms if m and m.startswith("REPO-")]
+        notes.append(f"ofr catalog: {len(repo)} REPO-* mnemonics; "
+                     f"sample {repo[:8]}")
+        return repo
+    except Exception as e:
+        notes.append(f"ofr discover: {str(e)[:60]}")
+        return []
 
 
 def ofr_series(mnemonic, n=180):
@@ -149,12 +170,24 @@ def lambda_handler(event=None, context=None):
         notes.append(f"nyfed catalog: {len(cat)} keyids")
         fails_c = pick(cat, ("FAIL", "TREASUR"), ("MBS", "AGENCY",
                                                   "CORPORATE"))
-        repo_in = pick(cat, ("SECURITIES IN", "TREASUR"),
-                       ("MBS", "AGENCY"))
-        repo_out = pick(cat, ("SECURITIES OUT", "TREASUR"),
-                        ("MBS", "AGENCY"))
-        netpos = pick(cat, ("NET", "POSITION", "TREASUR"),
-                      ("MBS", "AGENCY", "FORWARD", "TIPS", "FRN"))
+        # FR2004 vocabulary: financing legs are (REVERSE) REPURCHASE
+        # lines; positions are "NET OUTRIGHT" Treasury lines.
+        repo_in = pick(cat, ("REVERSE REPURCHASE",),
+                       ("MBS", "AGENCY", "CORPORATE"))
+        repo_out = pick(cat, ("REPURCHASE",),
+                        ("REVERSE", "MBS", "AGENCY", "CORPORATE"))
+        netpos = pick(cat, ("TREASUR", "NET"),
+                      ("MBS", "AGENCY", "FORWARD", "FAIL",
+                       "REPURCHASE"))
+        if not netpos:
+            netpos = pick(cat, ("TREASUR", "OUTRIGHT"),
+                          ("MBS", "AGENCY"))
+        for lbl, lst in (("repo_in", repo_in), ("repo_out", repo_out),
+                         ("netpos", netpos), ("fails", fails_c)):
+            if not lst:
+                samp = [c["desc"][:60] for c in cat
+                        if "TREASUR" in c["desc"]][:3]
+                notes.append(f"{lbl}=0; sample TREASUR descs: {samp}")
         picked = {"fails": [c["keyid"] for c in fails_c][:6],
                   "sec_in": [c["keyid"] for c in repo_in][:8],
                   "sec_out": [c["keyid"] for c in repo_out][:8],
@@ -162,25 +195,27 @@ def lambda_handler(event=None, context=None):
         notes.append("picked: " + json.dumps(
             {k: len(v) for k, v in picked.items()}))
 
-        def agg(ids):
+        def agg(ids, lbl=""):
             ss = []
             for kid in ids:
                 try:
-                    ss.append(nyfed_series(kid))
-                except Exception:
-                    continue
+                    s_ = nyfed_series(kid)
+                    if s_:
+                        ss.append(s_)
+                except Exception as e_:
+                    notes.append(f"{lbl}/{kid}: {str(e_)[:50]}")
             return sum_series(ss) if ss else []
 
-        fails_s = agg(picked["fails"])
+        fails_s = agg(picked["fails"], "fails")
         if fails_s:
             z, n = zscore(fails_s)
             legs["fails"] = {
                 "source": "NYFed FR2004 (catalog-discovered)",
                 "keyids": picked["fails"], "latest": fails_s[-1][1],
                 "as_of": fails_s[-1][0], "z": z, "n": n}
-        fin_in, fin_out = agg(picked["sec_in"]), agg(
-            picked["sec_out"])
-        pos = agg(picked["net_pos"])
+        fin_in = agg(picked["sec_in"], "in")
+        fin_out = agg(picked["sec_out"], "out")
+        pos = agg(picked["net_pos"], "pos")
         gross = sum_series([s for s in (fin_in, fin_out) if s])
         if gross and pos:
             pd_, pv = dict(pos), dict(gross)
@@ -220,7 +255,26 @@ def lambda_handler(event=None, context=None):
                 "latest_bps": round(spread[-1][1] * 100, 1),
                 "as_of": spread[-1][0], "z": z, "n": n}
         else:
-            missing.append("ofr: gcf/tri unresolved from candidates")
+            repo_all = ofr_discover(notes)
+            def by_pat(sub):
+                return [m for m in repo_all if sub in m and
+                        "_AR_" in m][:3]
+            mg2, gcf = first_ok(by_pat("GCF") or
+                                OFR_CANDIDATES["gcf_rate"])
+            mt2, tri = first_ok(by_pat("TRI") or
+                                OFR_CANDIDATES["tri_rate"])
+            if gcf and tri:
+                gd, td = dict(gcf), dict(tri)
+                common = sorted(set(gd) & set(td))
+                spread = [(d, gd[d] - td[d]) for d in common]
+                z, n = zscore(spread)
+                legs["specialness"] = {
+                    "source": f"OFR STFM {mg2} - {mt2} (discovered)",
+                    "latest_bps": round(spread[-1][1] * 100, 1),
+                    "as_of": spread[-1][0], "z": z, "n": n}
+            else:
+                missing.append("ofr: gcf/tri unresolved even after "
+                               "catalog discovery")
         md, dvp = first_ok(OFR_CANDIDATES["dvp_vol"])
         if dvp:
             z, n = zscore(dvp)
