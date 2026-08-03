@@ -1,31 +1,25 @@
 # ops 4344 -- the engines finally talk
 
-**Status:** failure  
-**Duration:** 4.1s  
-**Finished:** 2026-08-03T23:44:29+00:00  
-
-## Error
-
-```
-SystemExit: 1
-```
+**Status:** success  
+**Duration:** 3.9s  
+**Finished:** 2026-08-03T23:57:56+00:00  
 
 ## Log
-- `23:44:26` ✅ cadence 00:10 UTC (after leaderboard+council)
-- `23:44:29` ✅ FABRIC: 421 tickers · 35 conflicts · sources={"best-setups": 50, "trend-reversal": 322, "compound-aggregator": 133, "ai-rerating": 0, "magic-formula": 0, "opportunities": 0, "insider-clusters": 0, "congress-direct": 0, "squeeze-fuel": 0, "13f-flows": 114}
+- `23:57:53` ✅ cadence 00:10 UTC (after leaderboard+council)
+- `23:57:56` ✅ FABRIC: 662 tickers · 43 conflicts · sources={"best-setups": 50, "trend-reversal": 322, "compound-aggregator": 133, "ai-rerating": 18, "magic-formula": 1, "opportunities": 0, "insider-clusters": 0, "squeeze-fuel": 57, "congress-direct": 208, "short-interest": 126, "13f-flows": 129}
 ## densest weave (most engines on one name)
 
-- `23:44:29` TSM: 4 engines · fabric=0.97 UP · agree=75.0% · ['compound-aggregator', '13f-flows', 'best-setups', 'trend-reversal']
-- `23:44:29` MU: 4 engines · fabric=0.75 UP · agree=75.0% · ['compound-aggregator', 'best-setups', 'trend-reversal', '13f-flows']
-- `23:44:29` PLTR: 4 engines · fabric=0.61 UP · agree=75.0% · ['best-setups', 'compound-aggregator', 'trend-reversal', '13f-flows']
-- `23:44:29` ABT: 4 engines · fabric=0.58 UP · agree=100.0% · ['compound-aggregator', 'trend-reversal', 'best-setups', '13f-flows']
-- `23:44:29` AMAT: 4 engines · fabric=0.55 UP · agree=75.0% · ['compound-aggregator', '13f-flows', 'trend-reversal', 'best-setups']
-- `23:44:29` AVGO: 4 engines · fabric=0.34 UP · agree=75.0% · ['compound-aggregator', 'trend-reversal', 'best-setups', '13f-flows']
+- `23:57:56` MU: 6 engines · fabric=1.25 UP · agree=83.0% · ['compound-aggregator', 'best-setups', 'congress-direct', 'trend-reversal', '13f-flows', 'ai-rerating']
+- `23:57:56` AAPL: 5 engines · fabric=-1.22 DOWN · agree=80.0% · ['13f-flows', 'compound-aggregator', 'congress-direct', 'congress-direct', 'trend-reversal']
+- `23:57:56` TSM: 5 engines · fabric=1.12 UP · agree=80.0% · ['compound-aggregator', '13f-flows', 'best-setups', 'trend-reversal', 'ai-rerating']
+- `23:57:56` NVDA: 5 engines · fabric=-0.62 DOWN · agree=60.0% · ['13f-flows', 'compound-aggregator', 'trend-reversal', 'congress-direct', 'best-setups']
+- `23:57:56` AVGO: 5 engines · fabric=0.48 UP · agree=80.0% · ['compound-aggregator', 'trend-reversal', 'ai-rerating', 'best-setups', '13f-flows']
+- `23:57:56` DDOG: 5 engines · fabric=0.28 UP · agree=60.0% · ['trend-reversal', 'congress-direct', 'compound-aggregator', 'best-setups', '13f-flows']
 ## the debate floor (conflicts)
 
-- `23:44:29` MU: UP=['best-setups', 'compound-aggregator', '13f-flows'] vs DOWN=['trend-reversal']
-- `23:44:29` NVDA: UP=['best-setups', 'compound-aggregator'] vs DOWN=['trend-reversal', '13f-flows']
-- `23:44:29` PLTR: UP=['best-setups', 'trend-reversal', 'compound-aggregator'] vs DOWN=['13f-flows']
-- `23:44:29` TSM: UP=['best-setups', 'compound-aggregator', '13f-flows'] vs DOWN=['trend-reversal']
-- `23:44:29` META: UP=['best-setups', 'trend-reversal', 'compound-aggregator'] vs DOWN=['13f-flows']
-- `23:44:29` ✗   only 4 adapters produced rows
+- `23:57:56` MU: UP=['best-setups', 'compound-aggregator', 'ai-rerating', 'congress-direct', '13f-flows'] vs DOWN=['trend-reversal']
+- `23:57:56` NVDA: UP=['best-setups', 'compound-aggregator'] vs DOWN=['trend-reversal', 'congress-direct', '13f-flows']
+- `23:57:56` TSM: UP=['best-setups', 'compound-aggregator', 'ai-rerating', '13f-flows'] vs DOWN=['trend-reversal']
+- `23:57:56` META: UP=['best-setups', 'trend-reversal', 'compound-aggregator', 'ai-rerating'] vs DOWN=['13f-flows']
+- `23:57:56` AMD: UP=['best-setups', 'compound-aggregator', 'ai-rerating'] vs DOWN=['trend-reversal', '13f-flows']
+- `23:57:56` ✅ OPS 4344 PASS -- N-squared wiring is dead; the fleet speaks one language, and disagreement is on the record

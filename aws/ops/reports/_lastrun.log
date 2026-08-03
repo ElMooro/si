@@ -1,16 +1,20 @@
-executing-against: 52e54744f66401c5d9f14c48bba8fa8ffde9b0e3
-ops 4345 -- what the artifacts actually say
-[23:53:38] ai-rerating-radar.json tops=['engine', 'version', 'generated_at', 'thesis', 'methodology', 'coverage', 'summary', 'all_ranked', 'sources']
-[23:53:38]    rows@'all_ranked' r0keys=['symbol', 'name', 'layer', 'sector', 'industry', 'peer_group', 'peer_group_kind', 'in_ai_cohort', 'cap_bucket', 'market_cap', 'is_small_mid', 'growth_pct', 'growth_basis', 'trailing_growth_pct', 'margin_pct', 'ev_sales']
-[23:53:38]    sample={"symbol": "BA", "name": "The Boeing Company", "layer": "None", "sector": "Industrials", "industry": "Aerospace & Defense", "peer_group": "Aerospace & Defense", "peer_group_kind": "industry", "in_ai_cohort": "False"}
-[23:53:38] magic-formula.json tops=['version', 'generated_at', 'universe', 'regime', 'n_universe_eligible', 'median_earnings_yield_pct', 'median_roic_pct', 'top_10_avg_earnings_yield_pct', 'top_10_avg_roic_pct']
-[23:53:38] opportunities.json tops=['schema_version', 'method', 'generated_at', 'risk_gate', 'elapsed_s', 'n_covered', 'factor_weights', 'verdict_counts', 'changes']
-[23:53:38] insider-clusters.json tops=['schema_version', 'method', 'generated_at', 'lookback_days', 'duration_s', 'stats', 'thresholds', 'clusters', 'all_ticker_buys']
-[23:53:38]    rows@'clusters' r0keys=['ticker', 'company', 'cik', 'n_insiders', 'n_transactions', 'total_shares', 'total_value', 'avg_price', 'first_buy', 'last_buy', 'highest_role', 'has_ceo', 'has_cfo', 'has_chairman', 'has_director', 'insiders']
-[23:53:38]    sample={"ticker": "ACI", "company": "Albertsons Companies, Inc.", "cik": "0001646972", "n_insiders": "2", "n_transactions": "3", "total_shares": "209909", "total_value": "2412222.3", "avg_price": "11.49"}
-[23:53:38] congress-direct.json tops=['ok', 'version', 'generated_at', 'elapsed_s', 'source', 'senate', 'house']
-[23:53:38] squeeze-fuel.json tops=['engine', 'version', 'ok', 'generated_at', 'thesis', 'si_settlement_date', 'ftd_file', 'n_finra_universe', 'n_scored']
-[23:53:38] short-interest.json tops=['version', 'generated_at', 'watchlist_size', 'n_tickers_with_data', 'n_tickers_finra', 'n_tickers_polygon', 'n_tickers_short_interest', 'n_tickers_priced', 'by_ticker']
-[23:53:38] ✅ recon complete
+executing-against: 252a47ba5821e5a2846529510121e3ee04460de0
+ops 4344 -- the engines finally talk
+[23:57:53] ✅ cadence 00:10 UTC (after leaderboard+council)
+[23:57:56] ✅ FABRIC: 662 tickers · 43 conflicts · sources={"best-setups": 50, "trend-reversal": 322, "compound-aggregator": 133, "ai-rerating": 18, "magic-formula": 1, "opportunities": 0, "insider-clusters": 0, "squeeze-fuel": 57, "congress-direct": 208, "short-interest": 126, "13f-flows": 129}
+── densest weave (most engines on one name) ──
+[23:57:56] MU: 6 engines · fabric=1.25 UP · agree=83.0% · ['compound-aggregator', 'best-setups', 'congress-direct', 'trend-reversal', '13f-flows', 'ai-rerating']
+[23:57:56] AAPL: 5 engines · fabric=-1.22 DOWN · agree=80.0% · ['13f-flows', 'compound-aggregator', 'congress-direct', 'congress-direct', 'trend-reversal']
+[23:57:56] TSM: 5 engines · fabric=1.12 UP · agree=80.0% · ['compound-aggregator', '13f-flows', 'best-setups', 'trend-reversal', 'ai-rerating']
+[23:57:56] NVDA: 5 engines · fabric=-0.62 DOWN · agree=60.0% · ['13f-flows', 'compound-aggregator', 'trend-reversal', 'congress-direct', 'best-setups']
+[23:57:56] AVGO: 5 engines · fabric=0.48 UP · agree=80.0% · ['compound-aggregator', 'trend-reversal', 'ai-rerating', 'best-setups', '13f-flows']
+[23:57:56] DDOG: 5 engines · fabric=0.28 UP · agree=60.0% · ['trend-reversal', 'congress-direct', 'compound-aggregator', 'best-setups', '13f-flows']
+── the debate floor (conflicts) ──
+[23:57:56] MU: UP=['best-setups', 'compound-aggregator', 'ai-rerating', 'congress-direct', '13f-flows'] vs DOWN=['trend-reversal']
+[23:57:56] NVDA: UP=['best-setups', 'compound-aggregator'] vs DOWN=['trend-reversal', 'congress-direct', '13f-flows']
+[23:57:56] TSM: UP=['best-setups', 'compound-aggregator', 'ai-rerating', '13f-flows'] vs DOWN=['trend-reversal']
+[23:57:56] META: UP=['best-setups', 'trend-reversal', 'compound-aggregator', 'ai-rerating'] vs DOWN=['13f-flows']
+[23:57:56] AMD: UP=['best-setups', 'compound-aggregator', 'ai-rerating'] vs DOWN=['trend-reversal', '13f-flows']
+[23:57:56] ✅ OPS 4344 PASS -- N-squared wiring is dead; the fleet speaks one language, and disagreement is on the record
 
-→ Report written to aws/ops/reports/latest/4345_adapter_recon.md
+→ Report written to aws/ops/reports/latest/4344_signal_fabric.md
