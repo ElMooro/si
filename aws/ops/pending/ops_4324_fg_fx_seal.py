@@ -63,3 +63,7 @@ with report("4324_fg_fx_seal") as r:
 # retrigger: reportedCurrency-derived FX (profile.currency was the ADR listing USD)
 
 # retrigger: all epsDiluted whitelists carry reportedCurrency; fx-debug print; v24
+
+# retrigger: direct income-statement currency probe (v25) + page mode-aware chip
+
+# retrigger: v25 authoritative currency probe (indent-repaired)
