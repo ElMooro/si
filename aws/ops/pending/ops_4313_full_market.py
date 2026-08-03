@@ -56,11 +56,11 @@ with report("4313_full_market") as r:
                 doc = json.loads(s3.get_object(
                     Bucket="justhodl-dashboard-live",
                     Key="data/trend-reversal.json")["Body"].read())
-                if doc.get("version") == "2.2.1":
+                if doc.get("version") == "2.2.2":
                     break
             except Exception:
                 pass
-        if doc.get("version") != "2.2.1":
+        if doc.get("version") != "2.2.2":
             fails.append("v2.2 never finalized (saw %s)"
                          % doc.get("version"))
         else:
@@ -87,10 +87,13 @@ with report("4313_full_market") as r:
             bb = b.get("by_class") or {}
             if (b.get("n") or 0) < 600:
                 fails.append("built %s < 600" % b.get("n"))
-            if bb.get("FX", 0) < 11 or bb.get("CRYPTO", 0) < 12 \
+            if bb.get("FX", 0) < 11 or bb.get("CRYPTO", 0) < 10 \
                     or bb.get("FUTURES", 0) < 5 \
                     or bb.get("ETF", 0) < 60:
                 fails.append("built classes thin: %s" % bb)
+            if len(rows) != (doc.get("universe_n") or 0):
+                fails.append("rows truncated: %d vs universe %s"
+                             % (len(rows), doc.get("universe_n")))
             if (doc.get("universe_n") or 0) < 590:
                 fails.append("analyzed %s < 590"
                              % doc.get("universe_n"))
@@ -141,3 +144,5 @@ if fails:
     sys.exit(1)
 
 # retrigger: v2.2.1 built/dropped + calibrated gates + real markers
+
+# retrigger (for real this time): v2.2.2 seal — crypto dict-truth >=10, rows==universe uncap assert
