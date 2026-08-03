@@ -1,23 +1,29 @@
 # ops 4336 -- the fleet grades the fleet (ddb ledger)
 
 **Status:** failure  
-**Duration:** 10.0s  
-**Finished:** 2026-08-03T21:40:12+00:00  
+**Duration:** 24.2s  
+**Finished:** 2026-08-03T21:46:38+00:00  
 
 ## Error
 
 ```
-SystemExit: 1
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4336_engine_leaderboard.py", line 145, in <module>
+    e = eng_of(it)
+        ^^^^^^^^^^
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4336_engine_leaderboard.py", line 79, in eng_of
+    return str(md.get("engine") or it.get("engine")
+               ^^^^^^
+AttributeError: 'str' object has no attribute 'get'
+
 ```
 
 ## Log
-- `21:40:11` ledger items scanned: 30277
-- `21:40:11` attr frequency (top): [('signal_id', 400), ('logged_at', 400), ('baseline_price', 400), ('metadata', 398), ('check_windows', 396), ('horizon_days_primary', 377), ('signal_type', 260), ('status', 260), ('ttl', 260), ('logged_epoch', 260), ('predicted_direction', 258), ('signal_value', 258), ('outcomes', 258), ('measure_against', 256), ('confidence', 248), ('check_timestamps', 248)]
-- `21:40:11` status sample dist: {'None': 140, 'partial': 101, 'complete': 114, 'pending': 42, 'unscoreable': 3}
-- `21:40:11` sample item: {"benchmark": "None", "signal_type": "eng:strategist", "metadata": "{'trust_weight': Decimal('0'), 'raw_score': None, 'engine': ", "logged_at": "2026-07-15T23:15:30.834183+00:00", "check_windows": "['7', '14', '30']", "horizon_days_primary": "30", "predicted_direction": "UP", "regime_at_log": "SLOWING", "status": "partial", "ttl": "1815693330", "predicted_magnitude_pct": "None", "supporting_signals": "None", "last_checked": "2026-07-30T21:29:02.987115+00:00", "logged_epoch": "1784157330", "signal_value": "PICK", "c
-- `21:40:11` graded items usable: 0 across 0 engines
-## TOP SUCCESS ENGINES
-
-## TOP FAILURE ENGINES
-
-- `21:40:12` ✗ no graded items with n>=5 -- schema printed above
+- `21:46:38` ledger items scanned: 30277
+- `21:46:38` attr frequency (top): [('signal_id', 400), ('logged_at', 400), ('baseline_price', 400), ('metadata', 398), ('check_windows', 396), ('horizon_days_primary', 377), ('signal_type', 260), ('status', 260), ('ttl', 260), ('logged_epoch', 260), ('predicted_direction', 258), ('signal_value', 258), ('outcomes', 258), ('measure_against', 256), ('confidence', 248), ('check_timestamps', 248)]
+- `21:46:38` status sample dist: {'None': 140, 'partial': 101, 'complete': 114, 'pending': 42, 'unscoreable': 3}
+- `21:46:38` sample item: {"benchmark": "None", "signal_type": "eng:strategist", "metadata": "{'trust_weight': Decimal('0'), 'raw_score': None, 'engine': ", "logged_at": "2026-07-15T23:15:30.834183+00:00", "check_windows": "['7', '14', '30']", "horizon_days_primary": "30", "predicted_direction": "UP", "regime_at_log": "SLOWING", "status": "partial", "ttl": "1815693330", "predicted_magnitude_pct": "None", "supporting_signals": "None", "last_checked": "2026-07-30T21:29:02.987115+00:00", "logged_epoch": "1784157330", "signal_value": "PICK", "c
+- `21:46:38` outcomes sample [strategist/partial]: {"day_14": {"correct": false, "price_at_check": "333.66", "checked_at": "2026-07-30T21:29:02.987115+00:00", "regime_at_log": "UNKNOWN", "return_pct": "-10.045293", "actual_direction": "DOWN", "price_at_signal": "370.92"}, "day_7": {"return_pct": "-14.350803", "price_at_check": "317.69", "regime_at_log": "UNKNOWN", "correct": false, "price_at_signal": "370.92", "actual_direction": "DOWN", "checked_at": "2026-07-23T21:
+- `21:46:38` outcomes sample [liquidity-capacity/complete]: {"day_30": {"actual_direction": "UP", "checked_at": "2026-07-31T21:29:03.248760+00:00", "price_at_check": "11.7", "regime_at_log": "UNKNOWN", "price_at_signal": "11.13", "correct": true, "return_pct": "5.121294"}, "day_14": {"price_at_signal": "11.13", "checked_at": "2026-07-15T21:29:02.993890+00:00", "actual_direction": "UP", "price_at_check": "11.4", "correct": true, "return_pct": "2.425876"}, "day_7": {"checked_at
