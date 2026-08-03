@@ -47,7 +47,7 @@ SELF_FN = os.environ.get("AWS_LAMBDA_FUNCTION_NAME",
                          "justhodl-trend-reversal")
 lam = __import__("boto3").client("lambda", region_name="us-east-1")
 s3 = boto3.client("s3", region_name="us-east-1")
-VERSION = "2.0"
+VERSION = "2.1"
 
 
 def closes(sym, days=280):
@@ -311,7 +311,15 @@ def analyze(sym, series, sector=None):
     stage = (None if not direction else
              "CONFIRMED" if {"trend", "structure"} <= set(fams)
              else "DEVELOPING" if len(fams) >= 2 else "EARLY")
+    def _ds(xs, k=24):
+        xs = [x for x in xs if x is not None][-46:]
+        if len(xs) < 4:
+            return None
+        step = max(1, len(xs) // k)
+        pts = xs[::step][-k:]
+        return [float(f"{x:.5g}") for x in pts]
     return {"ticker": sym, "as_of": dates[-1],
+            "spk": _ds(c), "spk50": _ds(s50),
             "close": round(c[i], 2), "sector": sector,
             "prevailing_trend": prevail,
             "reversal_score": score, "direction": direction,
@@ -494,6 +502,9 @@ def lambda_handler(event=None, context=None):
                if good else None,
                "note": "share of universe with score>=20 by "
                        "direction -- the market-turn gauge"}
+    for r in good:  # cross-asset rows tile under their class
+        if not r.get("sector"):
+            r["sector"] = r.get("asset_class")
     sec_map = {}
     for r in good:
         se = r.get("sector") or "—"
