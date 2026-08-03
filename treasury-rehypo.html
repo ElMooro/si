@@ -57,7 +57,7 @@ Promise.all([
   <div class="card"><div class="k">Catalog picks</div><div class="v" style="font-size:16px;font-family:var(--mono)">${esc(JSON.stringify(Object.fromEntries(Object.entries(d.picked_keyids||{}).map(([k,v])=>[k,(v||[]).length]))))}</div>
    <div class="vs">FR2004 keyids discovered, not guessed</div></div>`;
  document.getElementById("legs").innerHTML=Object.entries(legs).map(([k,v])=>`
-  <div class="leg"><b>${esc(k)}</b><div class="z">${v.latest_bps!=null?v.latest_bps+" bps":esc(String(v.latest??"—"))} · z ${v.z>0?"+":""}${v.z??"—"}</div>
+  <div class="leg"><b>${esc(k)}</b><div class="z">${v.latest_bps!=null?Number(v.latest_bps).toFixed(2)+" bps":esc(String(v.latest??"—"))} · z ${v.z>0?"+":""}${v.z??"—"}</div>
    <div class="vs">n=${v.n??"—"} · as of ${esc(v.as_of||"—")}</div>
    <div class="vs">${esc(v.source||"")}</div>${v.keyids?`<div class="vs">${(v.keyids||[]).length} keyids</div>`:""}</div>`).join("")||"<div class='note'>no legs readable this run</div>";
  if(d.legs_missing)document.getElementById("missing").innerHTML="Missing legs (disclosed): <span class='err'>"+d.legs_missing.map(esc).join(" · ")+"</span>";

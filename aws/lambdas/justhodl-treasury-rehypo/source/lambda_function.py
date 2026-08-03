@@ -35,10 +35,10 @@ OUT_KEY = "data/treasury-rehypo.json"
 FRED_KEY = os.environ.get("FRED_API_KEY") or os.environ.get("FRED_KEY", "")
 UA = {"User-Agent": "JustHodl-research/1.0 (github.com/ElMooro)"}
 s3 = boto3.client("s3", region_name="us-east-1")
-VERSION = "1.0.1"
+VERSION = "1.1"
 
 
-def http_json(url, timeout=40, gz=False):
+def http_json(url, timeout=40, gz=False):  # gz kept for signature
     req = urllib.request.Request(url, headers=UA)
     raw = urllib.request.urlopen(req, timeout=timeout).read()
     if gz or raw[:2] == b"\x1f\x8b":
@@ -64,6 +64,7 @@ def nyfed_catalog():
     rows = (doc.get("pd") or {}).get("timeseries") or doc.get(
         "timeseries") or []
     return [{"keyid": r.get("keyid"),
+             "sb": r.get("seriesbreak"),
              "desc": (r.get("description") or "").upper()}
             for r in rows if r.get("keyid")]
 
@@ -75,8 +76,10 @@ def pick(cat, must, forbid=()):
     return hits
 
 
-def nyfed_series(keyid, n=140):
-    doc = http_json(f"{NYFED}/get/all/timeseries/{keyid}.json")
+def nyfed_series(keyid, sb, n=140):
+    # ops 4304 truth: /get/all/ is an empty stub; each keyid's own
+    # seriesbreak (catalog field) is the working segment.
+    doc = http_json(f"{NYFED}/get/{sb}/timeseries/{keyid}.json")
     rows = (doc.get("pd") or {}).get("timeseries") or []
     out = []
     for r in rows:
@@ -113,7 +116,7 @@ OFR_LIST = ("https://data.financialresearch.gov/v1/metadata/"
 
 def ofr_discover(notes):
     try:
-        doc = http_json(OFR_LIST, gz=True)
+        doc = http_json(OFR_LIST)  # plain JSON; auto-detect only
         rows = doc if isinstance(doc, list) else \
             doc.get("mnemonics") or []
         ms = [str(r if isinstance(r, str) else r.get("mnemonic"))
@@ -128,7 +131,7 @@ def ofr_discover(notes):
 
 
 def ofr_series(mnemonic, n=180):
-    doc = http_json(OFR.format(m=mnemonic), gz=True)
+    doc = http_json(OFR.format(m=mnemonic))  # auto-detect gzip
     rows = doc if isinstance(doc, list) else doc.get("timeseries") or \
         doc.get("data") or []
     out = []
@@ -188,22 +191,28 @@ def lambda_handler(event=None, context=None):
                 samp = [c["desc"][:60] for c in cat
                         if "TREASUR" in c["desc"]][:3]
                 notes.append(f"{lbl}=0; sample TREASUR descs: {samp}")
-        picked = {"fails": [c["keyid"] for c in fails_c][:6],
-                  "sec_in": [c["keyid"] for c in repo_in][:8],
-                  "sec_out": [c["keyid"] for c in repo_out][:8],
-                  "net_pos": [c["keyid"] for c in netpos][:8]}
+        picked = {"fails": [(c["keyid"], c["sb"])
+                            for c in fails_c][:6],
+                  "sec_in": [(c["keyid"], c["sb"])
+                             for c in repo_in][:8],
+                  "sec_out": [(c["keyid"], c["sb"])
+                              for c in repo_out][:8],
+                  "net_pos": [(c["keyid"], c["sb"])
+                              for c in netpos][:8]}
         notes.append("picked: " + json.dumps(
             {k: len(v) for k, v in picked.items()}))
 
-        def agg(ids, lbl=""):
+        def agg(pairs, lbl=""):
             ss = []
-            for kid in ids:
+            for kid, sb in pairs:
                 try:
-                    s_ = nyfed_series(kid)
+                    s_ = nyfed_series(kid, sb or "SBN2024")
                     if s_:
                         ss.append(s_)
+                    else:
+                        notes.append(f"{lbl}/{kid}@{sb}: 0 rows")
                 except Exception as e_:
-                    notes.append(f"{lbl}/{kid}: {str(e_)[:50]}")
+                    notes.append(f"{lbl}/{kid}@{sb}: {str(e_)[:46]}")
             return sum_series(ss) if ss else []
 
         fails_s = agg(picked["fails"], "fails")
@@ -211,7 +220,8 @@ def lambda_handler(event=None, context=None):
             z, n = zscore(fails_s)
             legs["fails"] = {
                 "source": "NYFed FR2004 (catalog-discovered)",
-                "keyids": picked["fails"], "latest": fails_s[-1][1],
+                "keyids": [k for k, _ in picked["fails"]],
+                "latest": fails_s[-1][1],
                 "as_of": fails_s[-1][0], "z": z, "n": n}
         fin_in = agg(picked["sec_in"], "in")
         fin_out = agg(picked["sec_out"], "out")
@@ -252,7 +262,7 @@ def lambda_handler(event=None, context=None):
             z, n = zscore(spread)
             legs["specialness"] = {
                 "source": f"OFR STFM {mg} - {mt}",
-                "latest_bps": round(spread[-1][1] * 100, 1),
+                "latest_bps": round(spread[-1][1] * 100, 2),
                 "as_of": spread[-1][0], "z": z, "n": n}
         else:
             repo_all = ofr_discover(notes)
@@ -270,7 +280,7 @@ def lambda_handler(event=None, context=None):
                 z, n = zscore(spread)
                 legs["specialness"] = {
                     "source": f"OFR STFM {mg2} - {mt2} (discovered)",
-                    "latest_bps": round(spread[-1][1] * 100, 1),
+                    "latest_bps": round(spread[-1][1] * 100, 2),
                     "as_of": spread[-1][0], "z": z, "n": n}
             else:
                 missing.append("ofr: gcf/tri unresolved even after "
@@ -294,7 +304,7 @@ def lambda_handler(event=None, context=None):
         if sp:
             z, n = zscore(sp)
             legs["sofr_iorb"] = {"source": "FRED SOFR-IORB (bps)",
-                                 "latest_bps": round(sp[-1][1], 1),
+                                 "latest_bps": round(sp[-1][1], 2),
                                  "as_of": sp[-1][0], "z": z, "n": n}
         rrp = fred_series("RRPONTSYD")
         if len(rrp) > 25:
@@ -303,7 +313,7 @@ def lambda_handler(event=None, context=None):
             z, n = zscore(delta)
             legs["rrp_drain_4w"] = {"source": "FRED RRPONTSYD Δ4w "
                                               "($bn)",
-                                    "latest": round(delta[-1][1], 1),
+                                    "latest": round(delta[-1][1], 2),
                                     "as_of": delta[-1][0], "z": z,
                                     "n": n}
     except Exception as e:
