@@ -4257,7 +4257,7 @@ async function composeFleetBoard(ticker){
         if(typeof o==='object'){for(var k in o){scanC(o[k],d+1);}}})(cg,0);
       if(trades.length){trades.sort(function(a,b){return String(b.date||b.tx_date||'').localeCompare(String(a.date||a.tx_date||''))});
         var tt=trades.slice(0,3).map(function(x){var side=String(x.side||x.type||x.transaction||'');
-          return '<span style="color:'+(/BUY|PURCHASE/i.test(side)?'#3fd08c':/SELL|SALE/i.test(side)?'#ff6b6b':'#9aa3b2')+'">'+E9(side||'?')+'</span> '+E9(x.member||x.name||x.representative||'?')+' '+E9(String(x.date||x.tx_date||'').slice(0,10))}).join(' · ');
+          return '<span style="color:'+(/BUY|PURCHASE/i.test(side)?'#3fd08c':/SELL|SALE/i.test(side)?'#ff6b6b':'#9aa3b2')+'">'+E9(side||'?')+'</span> '+E9(x.filer||x.member||x.name||x.representative||'?')+' '+E9(String(x.date||x.tx_date||'').slice(0,10))}).join(' · ');
         lines.push('<div><b style="color:#e8ebf0">CONGRESS</b> — '+trades.length+' official filing'+(trades.length>1?'s':'')+': '+tt+' <span style="color:#5d6b82">(Senate eFD + House Clerk)</span></div>');
       } else lines.push('<div><b style="color:#e8ebf0">CONGRESS</b> — no official House/Senate filings on this name</div>');
       sec.style.display='';
