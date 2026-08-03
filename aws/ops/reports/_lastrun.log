@@ -1,14 +1,19 @@
-executing-against: d0d6d6d8d223d06876fde59da3cd5bbc004c5d53
-ops 4310 -- reversal, exponentially
-[02:17:04] root: {"ok": true, "chained": 110, "of": 197}
-[02:27:27] ✅ UNIVERSE 196 · hot 38 · breadth top 15.8% / bottom 12.8%
-[02:27:27] stages: {'EARLY': 73, 'DEVELOPING': 25, 'CONFIRMED': 29}
-[02:27:27] sectors (9): [('Healthcare', 0.0, 36.4), ('Technology', 27.3, 6.8), ('Energy', 33.3, 0.0), ('—', 15.6, 14.4), ('Consumer Cyclical', 0.0, 25.0), ('Utilities', 25.0, 0.0)]
-[02:27:27] top5: [('SHOP', 53.0, 'CONFIRMED', True), ('XOP', 50.0, 'DEVELOPING', False), ('EWJ', 50.0, 'CONFIRMED', True), ('EWJ', 50.0, 'CONFIRMED', True), ('BSX', 47.5, 'CONFIRMED', True)]
-[02:27:27] movers: []
-[02:27:27] weekly-confirm present on >=1 name: True
-── RESULT ──
-[02:27:27] ✗   universe 196 < 420
+executing-against: 2fb2ceebeecffdb4acd0d511e64692d66fecda25
+ops 4311 -- what the census matrix actually is
+[02:37:58] top-level type=dict keys=['generated_at', 'n_tickers', 'n_metrics', 'tickers', 'sectors', 'industries', 'quality', 'turn', 'flagged', 'metrics']
+[02:37:58]   generated_at: str len=32 sample=2026-08-01T06:48:07.865126+00:00
+[02:37:58]   n_tickers: int len=- sample=498
+[02:37:58]   n_metrics: int len=- sample=293
+[02:37:58]   tickers: list len=498 sample=["SMCI"]
+[02:37:58]   sectors: list len=498 sample=["Technology"]
+[02:37:58]   industries: list len=498 sample=["Computer Hardware"]
+[02:37:58]   quality: list len=498 sample=[-10]
+[02:37:58]   turn: list len=498 sample=[19.5]
+[02:37:58]   flagged: list len=498 sample=[1]
+[02:37:58]   metrics: list len=293 sample=["above_ma40w"]
+[02:37:58] reversal artifact: 196 rows, 8 duplicate tickers
+[02:37:59] log: [universe] census +0 (keys tried: rows/companies/matrix/data; top=['generated_at', 'n_tickers', 'n_metrics', 'tickers', 'sectors', 'industries'])
+[02:37:59] log: [universe] ndx +93
+[02:37:59] ✅ shape captured
 
-→ Report written to aws/ops/reports/latest/4310_reversal_v2.md
-❌ OPS-FAIL: aws/ops/pending/ops_4310_reversal_v2.py
+→ Report written to aws/ops/reports/latest/4311_census_shape.md

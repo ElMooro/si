@@ -1,0 +1,22 @@
+# ops 4311 -- what the census matrix actually is
+
+**Status:** success  
+**Duration:** 1.1s  
+**Finished:** 2026-08-03T02:37:59+00:00  
+
+## Log
+- `02:37:58` top-level type=dict keys=['generated_at', 'n_tickers', 'n_metrics', 'tickers', 'sectors', 'industries', 'quality', 'turn', 'flagged', 'metrics']
+- `02:37:58`   generated_at: str len=32 sample=2026-08-01T06:48:07.865126+00:00
+- `02:37:58`   n_tickers: int len=- sample=498
+- `02:37:58`   n_metrics: int len=- sample=293
+- `02:37:58`   tickers: list len=498 sample=["SMCI"]
+- `02:37:58`   sectors: list len=498 sample=["Technology"]
+- `02:37:58`   industries: list len=498 sample=["Computer Hardware"]
+- `02:37:58`   quality: list len=498 sample=[-10]
+- `02:37:58`   turn: list len=498 sample=[19.5]
+- `02:37:58`   flagged: list len=498 sample=[1]
+- `02:37:58`   metrics: list len=293 sample=["above_ma40w"]
+- `02:37:58` reversal artifact: 196 rows, 8 duplicate tickers
+- `02:37:59` log: [universe] census +0 (keys tried: rows/companies/matrix/data; top=['generated_at', 'n_tickers', 'n_metrics', 'tickers', 'sectors', 'industries'])
+- `02:37:59` log: [universe] ndx +93
+- `02:37:59` ✅ shape captured
