@@ -175,7 +175,7 @@ fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/trend-reversal.json
 vs MAs: 20d ${ma.d20??"—"}% · 50d ${ma.d50??"—"}% · 100d ${ma.d100??"—"}% · 200d ${ma.d200??"—"}%
 ${r.n_signals} signals: ${(r.signals||[]).map(s0=>s0.signal).join(", ")}</title></rect>`;
     const fs=Math.max(9,Math.min(14,tw/5.2,th/2.4));
-    if(tw>26&&th>13)sv+=`<text class="hm-lbl" x="${(t.x+tw/2).toFixed(1)}" y="${(t.y+th/2+(th>26?--1:3.2)).toFixed(1)}" text-anchor="middle" style="font-size:${fs.toFixed(1)}px">${esc(r.ticker)}</text>`;
+    if(tw>26&&th>13)sv+=`<text class="hm-lbl" x="${(t.x+tw/2).toFixed(1)}" y="${(t.y+th/2+(th>26?-1:3.2)).toFixed(1)}" text-anchor="middle" style="font-size:${fs.toFixed(1)}px">${esc(r.ticker)}</text>`;
     if(tw>26&&th>27)sv+=`<text class="hm-lbl" x="${(t.x+tw/2).toFixed(1)}" y="${(t.y+th/2+fs*.95).toFixed(1)}" text-anchor="middle" style="font-size:${(fs*.82).toFixed(1)}px;font-weight:400;opacity:.9">${r.reversal_score}</text>`;}}
   svg.setAttribute("viewBox",`0 0 ${W} ${Hh}`);svg.innerHTML=sv;}
  const keyOf=r=>SORT==="delta"?-Math.abs(r.score_delta||0):SORT==="dist"?-Math.abs(r.px_vs_200dma_pct||0):SORT==="fresh"?Math.min(...((r.signals||[]).map(s0=>s0.bars_ago||0)),99):-(r.reversal_score||0);
