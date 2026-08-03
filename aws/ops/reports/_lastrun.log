@@ -1,17 +1,22 @@
-executing-against: 8460aa5da76381a0a658cc934f530f6330eae2c0
+executing-against: 92d3be5be2614203118f22911b05c3f22f1c9975
 ops 4308 -- rehypo barometer + 1996 long history
-[01:34:15] function: fresh+keyed
-[01:34:25] run: {"ok": true, "composite": 50.6, "band": "WATCH", "legs": ["fails", "velocity", "specialness", "dvp_volume", "sofr_iorb", "rrp_drain_4w"], "missing": []}
-[01:34:25] COMPOSITE 50.6 (WATCH)
-[01:34:25] missing: None
-[01:34:25] note: nyfed catalog: 1539 keyids
-[01:34:25] note: picked: {"fails": 6, "sec_in": 8, "sec_out": 8, "net_pos": 8}
-[01:34:25] long_history: {}
-[01:34:25] ✅ LONG: 2020-03-09 -> 2026-07-31 · 1600 weekly pts · legs_from={'fails': '2024-07-03', 'sofr_iorb': '2021-07-29', 'rrp_drain_4w': '2008-09-24'}
-[01:34:25] era_coverage: {'fails': {'SBN2024': 108}, 'financing_in': {'SBN2024': 108}, 'financing_out': {'SBN2024': 108}, 'positions': {}}
-[01:34:25] sample: [('2020-03-09', 46.8, 1), ('2021-06-17', 3.9, 1), ('2022-09-27', 34.7, 2), ('2024-01-10', 47.2, 2), ('2025-04-21', 51.1, 2)]
+[01:39:48] function: fresh+keyed
+[01:41:26] run: {"ok": true, "composite": 50.6, "band": "WATCH", "legs": ["fails", "velocity", "specialness", "dvp_volume", "sofr_iorb", "rrp_drain_4w"], "missing": []}
+[01:41:26] COMPOSITE 50.6 (WATCH)
+[01:41:26] missing: None
+[01:41:26] note: nyfed catalog: 1539 keyids
+[01:41:26] note: picked: {"fails": 6, "sec_in": 8, "sec_out": 8, "net_pos": 8}
+[01:41:26] long_history: {}
+[01:41:27] ✅ LONG: 2013-04-05 -> 2026-07-31 · 1340 weekly pts · legs_from={'fails': '2013-04-03', 'velocity': '2022-01-05', 'sofr_iorb': '2021-07-30', 'rrp_drain_4w': '2008-09-26'}
+[01:41:27] era_coverage: {'fails': {'SBN2013': 92, 'SBN2015': 365, 'SBN2022': 130, 'SBN2024': 108}, 'financing_in': {'SBN2013': 92, 'SBN2015': 365, 'SBN2022': 130, 'SBN2024': 108}, 'financing_out': {'SBN2013': 92, 'SBN2015': 365, 'SBN2022': 130, 'SBN2024': 108}, 'positions': {'SBN2022': 130, 'SBN2024': 108}}
+[01:41:27] sample: [('2013-04-05', 61.0, 1), ('2016-04-15', 55.5, 1), ('2018-11-16', 48.9, 1), ('2021-06-16', 46.6, 1), ('2024-01-10', 44.7, 2)]
+[01:41:27] ✅ page v2 LIVE: barometer + long chart (12798 bytes)
+── desk v2.3.3 -- rehypo panel + reversal chips + RRG ──
+[01:41:32] desk 2.3.3 · sources 32/32
+[01:41:32] rehypo panel: {'composite': 50.6, 'band': 'WATCH', 'legs': {'fails': -0.4, 'velocity': 0.68, 'specialness': -0.68, 'dvp_volume': -0.67, 'sofr_iorb': 0.66, 'rrp_drain_4w': 0.02}, 'missing': None}
+[01:41:32] reversal chips: [('EM', {'score': 25.0, 'direction': 'TOP_FORMING', 'top': 'slope_flip'}), ('US_SMALL_VALUE', {'score': 28.0, 'direction': 'TOP_FORMING', 'top': 'ma_break'})]
+[01:41:32] RRG: []
 ── RESULT ──
-[01:34:25] ✗   actual_start 2020-03-09 later than 2014 -- even proven-keyid segments unreachable
+[01:41:32] ✅ OPS 4305 PASS -- barometer + 1996 history live; desk carrying both new engines
 
 → Report written to aws/ops/reports/latest/4308_long_stitched.md
-❌ OPS-FAIL: aws/ops/pending/ops_4308_long_stitched.py
