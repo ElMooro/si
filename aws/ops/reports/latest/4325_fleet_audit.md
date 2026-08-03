@@ -1,7 +1,12 @@
-executing-against: dca33785dda945d4dacc481da347e05c83cf471c
-ops 4325 -- the whole fleet, on the table
+# ops 4325 -- the whole fleet, on the table
 
-→ Report written to aws/ops/reports/latest/4325_fleet_audit.md
+**Status:** failure  
+**Duration:** 547.6s  
+**Finished:** 2026-08-03T18:17:06+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
     response = self._make_request(
@@ -56,6 +61,8 @@ urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Re
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4325_fleet_audit.py", line 46, in <module>
     p = lam.invoke(FunctionName="justhodl-fleet-auditor",
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -115,4 +122,8 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 516, in send
     raise ConnectionClosedError(
 botocore.exceptions.ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-fleet-auditor/invocations".
-❌ OPS-FAIL: aws/ops/pending/ops_4325_fleet_audit.py
+
+```
+
+## Log
+
