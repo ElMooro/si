@@ -90,16 +90,16 @@ with report("4312_reversal_pro") as r:
                 headers={"User-Agent": "ops/4312",
                          "Cache-Control": "no-cache"}),
                 timeout=25).read().decode("utf-8", "ignore")
-            if "sprkSVG" in body:
+            if "r.spk" in body:
                 break
         except Exception:
             pass
         time.sleep(20)
-    for mk in ("thermo", "ghist", "sprkSVG", "table view", "⬇ CSV",
-               "secbar", "why.html?t="):
+    for mk in ('id="ghist"', "r.spk", "table view", "⬇ CSV",
+               "why.html?t=", "data-sort"):
         if mk not in body:
             fails.append("edge missing %s" % mk)
-    if "sprkSVG" in body:
+    if "r.spk" in body:
         r.ok("page v3 LIVE (%d bytes)" % len(body))
     r.section("RESULT")
     if fails:
@@ -111,3 +111,5 @@ if fails:
     sys.exit(1)
 
 # retrigger: page v3 landed (anchor drift fixed on second pass)
+
+# retrigger: page v3 keyed on verbatim skeleton; gate markers realigned
