@@ -367,8 +367,24 @@ def build_universe():
         cm = json.loads(s3.get_object(
             Bucket=BUCKET,
             Key="data/fundamental-census-matrix.json")["Body"].read())
-        rows = (cm.get("rows") or cm.get("companies")
-                or cm.get("matrix") or cm.get("data") or [])
+        tick_col = cm.get("tickers")
+        if isinstance(tick_col, list) and tick_col and \
+                isinstance(tick_col[0], str):
+            # 4311 truth: the matrix is COLUMNAR -- parallel lists
+            sec_col = cm.get("sectors") or []
+            n0 = len(uni)
+            for i2, t in enumerate(tick_col):
+                t = str(t).upper()
+                if t and t not in uni:
+                    uni.append(t)
+                    tag(t, "SP500")
+                if t and i2 < len(sec_col) and sec_col[i2]:
+                    sectors[t] = sec_col[i2]
+            print(f"[universe] census(columnar) +{len(uni)-n0}")
+            rows = []
+        else:
+            rows = (cm.get("rows") or cm.get("companies")
+                    or cm.get("matrix") or cm.get("data") or [])
         if isinstance(rows, dict):  # {ticker: {cols...}} shape
             rows = [dict(v, ticker=k) if isinstance(v, dict)
                     else {"ticker": k} for k, v in rows.items()]
@@ -455,6 +471,13 @@ def lambda_handler(event=None, context=None):
     rows = [r for r in part["rows"]
             if r.get("status") != "insufficient_history"
             or True]
+    best = {}
+    for r in rows:  # chain-overlap dedupe: keep max score per ticker
+        t = r.get("ticker")
+        if t not in best or (r.get("reversal_score") or 0) > \
+                (best[t].get("reversal_score") or 0):
+            best[t] = r
+    rows = list(best.values())
     good = [r for r in rows if "reversal_score" in r]
     good.sort(key=lambda r: -(r.get("reversal_score") or 0))
     hot = [r for r in good if (r.get("reversal_score") or 0) >= 30]

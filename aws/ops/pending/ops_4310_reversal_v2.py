@@ -125,3 +125,5 @@ if fails:
     sys.exit(1)
 
 # retrigger: universe sourcing fixed (census multi-key incl matrix{}, +NDX constituents, +ETF/FX/FUT/CRYPTO classes tagged through chain)
+
+# retrigger: columnar census zip (tickers/sectors parallel lists) + finalize dedupe
