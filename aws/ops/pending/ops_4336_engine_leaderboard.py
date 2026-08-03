@@ -72,37 +72,69 @@ with report("4336_engine_leaderboard") as r:
                            default=str)[:520])
 
     def eng_of(it):
+        st0 = str(it.get("signal_type") or "")
+        if st0.startswith("eng:"):
+            return st0[4:]
         md = it.get("metadata") or {}
-        return str(it.get("engine") or md.get("engine")
-                   or it.get("source") or md.get("source")
-                   or it.get("system") or "?")
+        return str(md.get("engine") or it.get("engine")
+                   or st0 or "?")
+
+    def F(v):
+        try:
+            return float(v)
+        except Exception:
+            return None
+
+    # schema receipt: two live outcomes dicts, verbatim
+    _shown = 0
+    for it in items:
+        oc = it.get("outcomes")
+        if isinstance(oc, dict) and oc and _shown < 2:
+            r.log("outcomes sample [%s/%s]: %s"
+                  % (eng_of(it), it.get("status"),
+                     json.dumps(oc, default=str)[:420]))
+            _shown += 1
 
     def outcome(it):
-        # returns (win_bool, move_float) or (None, None)
-        for k in ("alpha_pct", "alpha", "return_pct",
-                  "fwd_return_pct", "ret_pct", "pnl_pct",
-                  "primary_alpha", "alpha_21d", "return_21d"):
-            v = it.get(k)
-            try:
-                v = float(v)
-                return (v > 0, v)
-            except Exception:
-                pass
-        c = it.get("correct")
-        if c is not None:
-            try:
-                return (bool(int(c)), None)
-            except Exception:
-                return (str(c).lower() in
-                        ("true", "1", "yes", "win"), None)
-        g = it.get("grade") or it.get("outcome") or it.get("result")
-        if g is not None:
-            gs = str(g).upper()
-            if gs in ("WIN", "PASS", "CORRECT", "HIT", "TRUE"):
-                return (True, None)
-            if gs in ("LOSS", "FAIL", "WRONG", "MISS", "FALSE"):
-                return (False, None)
-        return (None, None)
+        oc = it.get("outcomes")
+        if not isinstance(oc, dict) or not oc:
+            return (None, None)
+        prim = str(it.get("horizon_days_primary") or "")
+        wkeys = list(oc.keys())
+        wk = prim if prim in oc else (wkeys[-1] if wkeys else None)
+        w0 = oc.get(wk)
+        if not isinstance(w0, dict):
+            return (None, None)
+        ret = None
+        for k, v in w0.items():
+            lk = str(k).lower()
+            if any(t in lk for t in ("return", "alpha", "chg",
+                                     "pct", "move")):
+                fv = F(v)
+                if fv is not None:
+                    ret = fv
+                    if "alpha" in lk:
+                        break
+        hit = None
+        for k, v in w0.items():
+            lk = str(k).lower()
+            if any(t in lk for t in ("hit", "correct", "win",
+                                     "success")):
+                if isinstance(v, bool):
+                    hit = v
+                else:
+                    sv = str(v).lower()
+                    if sv in ("true", "1", "yes", "win", "hit"):
+                        hit = True
+                    elif sv in ("false", "0", "no", "loss",
+                                "miss"):
+                        hit = False
+                break
+        if hit is None and ret is not None:
+            pd = str(it.get("predicted_direction")
+                     or "UP").upper()
+            hit = (ret > 0) if pd != "DOWN" else (ret < 0)
+        return (hit, ret)
     stats = {}
     n_graded = 0
     for it in items:
@@ -156,3 +188,5 @@ with report("4336_engine_leaderboard") as r:
          "(%d engines)" % len(board))
 
 # retrigger: ddb ledger scan
+
+# retrigger: outcomes-dict parser v3 + schema receipt
