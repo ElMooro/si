@@ -1,0 +1,21 @@
+# ops 4335 -- the desk goes live
+
+**Status:** success  
+**Duration:** 173.1s  
+**Finished:** 2026-08-03T21:21:22+00:00  
+
+## Log
+- `21:18:41` ranked[0] TSM: {"desk_score": 1593.3, "n_families": 3, "families": ["flow", "fundamental", "technical"], "evidence_weight": 6.95, "freshness": 1.0, "entry_quality": "FRESH", "regime": {"posture": "NEUTRAL", "turn_net": -6.4}, "prime_convergence": true}
+- `21:18:41` ✅ prime v2 (3-family) consistent across 133 rows
+## TODAY'S DESK BOARD (top by desk_score)
+
+- `21:18:41` TSM desk=1593.3 fam=3/6 fresh=1.0 entry=FRESH arch=CLEAN_TAPE
+- `21:18:41` INTC desk=1055.5 fam=3/5 fresh=1.0 entry=FRESH arch=SQUEEZE_POP
+- `21:18:41` MU desk=809.7 fam=3/4 fresh=1.0 entry=PULLBACK arch=SQUEEZE_POP
+- `21:18:41` DELL desk=766.7 fam=3/4 fresh=1.0 entry=FRESH arch=CLEAN_TAPE
+- `21:18:41` BABA desk=688.0 fam=3/4 fresh=1.0 entry=FRESH arch=CLEAN_TAPE
+- `21:18:41` AVGO desk=679.1 fam=3/4 fresh=1.0 entry=FRESH arch=SQUEEZE_POP
+- `21:18:41` PRIME today: ['TSM', 'INTC', 'MU', 'DELL', 'BABA', 'AVGO', 'GOOGL', 'NVDA']
+- `21:18:41` ✅ first-seen state: 325 (symbol,system) pairs banked
+- `21:21:22` ✅ PAGE LIVE: https://justhodl.ai/convergence-desk.html (13101 bytes)
+- `21:21:22` ✅ OPS 4335 PASS -- the winning engine now has a desk, and the desk has discipline

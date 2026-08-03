@@ -1,18 +1,17 @@
-executing-against: cba2c99cc1a45abff24f239c686a33458ea15319
-ops 4334 -- the fingerprint becomes a tier
-[21:07:36] root: {"statusCode": 200, "body": "{\"n_compound\": 133, \"n_3_plus\": 41, \"n_alerts\": 25, \"duration_s\": 1.55}"}
-[21:07:36] ranked located: 133 rows · top keys=['schema_version', 'generated_at', 'duration_s', 'feed_stats', 'stats', 'compound', 'new_alerts']
-[21:07:36] mechanism fields on ranked[0] TSM: {'combo': 'deep_value+eps_velocity+nobrainers+rev_accel+smart_money+vol_squeeze', 'prime_convergence': False, 'core_triad': False, 'archetype': 'CLEAN_TAPE', 'reversal_context': {'direction': 'TOP_FORMING', 'score': 16.2}, 'pctile_90d_all': 100.0}
-[21:07:36] ✅ prime logic consistent across 133 rows
-[21:07:36] temporal truth: AAPL/GOOGL/MSFT absent from TODAY's ranked -- Aug-2 flags expired post-pump, exactly as a pre-move system should behave
-── TODAY'S forward watchlist (top convergences) ──
-[21:07:36] TSM n=6 score=1375.5 prime=False arch=CLEAN_TAPE combo=deep_value+eps_velocity+nobrainers+rev_accel+smart_money+vol
-[21:07:36] INTC n=5 score=909.9 prime=False arch=SQUEEZE_POP combo=eps_velocity+nobrainers+pead+smart_money+vol_squeeze
-[21:07:36] MU n=4 score=696.5 prime=False arch=SQUEEZE_POP combo=eps_velocity+pead+smart_money+vol_squeeze
-[21:07:36] DELL n=4 score=659.5 prime=False arch=CLEAN_TAPE combo=eps_velocity+pead+pre_pump+smart_money
-[21:07:36] BABA n=4 score=591.8 prime=False arch=CLEAN_TAPE combo=deep_value+eps_velocity+momentum+smart_money
-[21:07:36] AVGO n=4 score=584.2 prime=False arch=SQUEEZE_POP combo=eps_velocity+rev_accel+smart_money+vol_squeeze
-[21:07:36] prime today n=0 (legit zero post-pump) · history days=1
-[21:07:36] ✅ OPS 4334 PASS -- the engine that called it now knows exactly what its winning hand looks like
+executing-against: 68df10c6b70e79c6b00e06ea3dd6c7a07a3d2b47
+ops 4335 -- the desk goes live
+[21:18:41] ranked[0] TSM: {"desk_score": 1593.3, "n_families": 3, "families": ["flow", "fundamental", "technical"], "evidence_weight": 6.95, "freshness": 1.0, "entry_quality": "FRESH", "regime": {"posture": "NEUTRAL", "turn_net": -6.4}, "prime_convergence": true}
+[21:18:41] ✅ prime v2 (3-family) consistent across 133 rows
+── TODAY'S DESK BOARD (top by desk_score) ──
+[21:18:41] TSM desk=1593.3 fam=3/6 fresh=1.0 entry=FRESH arch=CLEAN_TAPE
+[21:18:41] INTC desk=1055.5 fam=3/5 fresh=1.0 entry=FRESH arch=SQUEEZE_POP
+[21:18:41] MU desk=809.7 fam=3/4 fresh=1.0 entry=PULLBACK arch=SQUEEZE_POP
+[21:18:41] DELL desk=766.7 fam=3/4 fresh=1.0 entry=FRESH arch=CLEAN_TAPE
+[21:18:41] BABA desk=688.0 fam=3/4 fresh=1.0 entry=FRESH arch=CLEAN_TAPE
+[21:18:41] AVGO desk=679.1 fam=3/4 fresh=1.0 entry=FRESH arch=SQUEEZE_POP
+[21:18:41] PRIME today: ['TSM', 'INTC', 'MU', 'DELL', 'BABA', 'AVGO', 'GOOGL', 'NVDA']
+[21:18:41] ✅ first-seen state: 325 (symbol,system) pairs banked
+[21:21:22] ✅ PAGE LIVE: https://justhodl.ai/convergence-desk.html (13101 bytes)
+[21:21:22] ✅ OPS 4335 PASS -- the winning engine now has a desk, and the desk has discipline
 
-→ Report written to aws/ops/reports/latest/4334_prime_convergence.md
+→ Report written to aws/ops/reports/latest/4335_convergence_desk.md
