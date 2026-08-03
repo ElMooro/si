@@ -190,25 +190,33 @@ def lambda_handler(event=None, context=None):
         pd = str(it.get("predicted_direction") or "UP").upper()
         w0 = c["wilson_lb"] / 100.0 * (1.0 if rf is None
                                        else min(1.2, rf / 60.0))
-        v0 = votes.setdefault(sym, {"score": 0.0, "engines": [],
-                                    "up": 0, "dn": 0})
-        v0["score"] += w0 if pd != "DOWN" else -w0
-        v0["up" if pd != "DOWN" else "dn"] += 1
-        v0["engines"].append({"engine": e,
-                              "direction": pd,
-                              "wilson_lb": c["wilson_lb"],
-                              "regime_fit": rf})
+        # ops 4339: ONE vote per engine per symbol -- independence
+        # is the whole point; stacked re-logs are not new evidence.
+        v0 = votes.setdefault(sym, {"by_eng": {}})
+        prev = v0["by_eng"].get(e)
+        if prev is None or c["wilson_lb"] > prev["wilson_lb"]:
+            v0["by_eng"][e] = {"engine": e, "direction": pd,
+                               "wilson_lb": c["wilson_lb"],
+                               "regime_fit": rf, "w": w0}
     consensus = []
     for sym, v0 in votes.items():
-        n_e = len(v0["engines"])
-        if n_e >= 2 and (v0["up"] == 0 or v0["dn"] == 0):
+        evs = list(v0["by_eng"].values())
+        n_e = len(evs)
+        ups = [x for x in evs if x["direction"] != "DOWN"]
+        dns = [x for x in evs if x["direction"] == "DOWN"]
+        if n_e >= 2 and (not ups or not dns):
+            score = sum(x["w"] for x in evs)
             consensus.append({
                 "symbol": sym,
-                "direction": "UP" if v0["score"] > 0 else "DOWN",
+                "direction": "UP" if ups else "DOWN",
                 "council_n": n_e,
-                "weighted_score": round(abs(v0["score"]), 3),
-                "engines": sorted(v0["engines"],
-                                  key=lambda x: -x["wilson_lb"]),
+                "weighted_score": round(score, 3),
+                "engines": sorted(
+                    ({k: x[k] for k in ("engine", "direction",
+                                        "wilson_lb",
+                                        "regime_fit")}
+                     for x in evs),
+                    key=lambda x: -x["wilson_lb"]),
                 "regime": cur_regime})
     consensus.sort(key=lambda x: (-x["council_n"],
                                   -x["weighted_score"]))
