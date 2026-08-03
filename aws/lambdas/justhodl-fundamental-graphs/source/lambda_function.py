@@ -160,6 +160,36 @@ def fetch_profile(sym):
                 "mktCap": None, "price": None, "exchange": ""}
 
 
+def fetch_fx_map(cur):
+    """Daily {CUR}USD closes -> {'YYYY-MM-DD': rate}. ops 4324:
+    foreign filers' statements are in filing currency while mc/EV are
+    USD -- every mixed ratio needs this factor."""
+    if not cur or cur == "USD":
+        return None, None
+    try:
+        rows = _fmp("historical-price-eod/light?symbol=%sUSD&limit=12000"
+                    % cur) or []
+        if isinstance(rows, dict):
+            rows = rows.get("historical") or []
+        mp = {str(r.get("date"))[:10]: r.get("close") or r.get("price")
+              for r in rows if r.get("date")}
+        mp = {k: v for k, v in mp.items() if v}
+        if not mp:
+            return None, None
+        ks = sorted(mp)
+        def at(d):
+            d = str(d)[:10]
+            if d in mp:
+                return mp[d]
+            import bisect
+            j = bisect.bisect_right(ks, d) - 1
+            return mp[ks[j]] if j >= 0 else mp[ks[0]]
+        return at, mp[ks[-1]]
+    except Exception as e:
+        print("[fx] %s: %s" % (cur, e))
+        return None, None
+
+
 # ── TA_ENGINE_OPS3500: pure daily-bar technicals ─────────────────────
 def _sma(cs, n):
     out, acc = [None] * len(cs), 0.0
@@ -653,6 +683,11 @@ def build_doc(sym, period):
         raise RuntimeError(f"no income data for {sym}")
     est_rows = fetch_estimates(sym, period)
     profile = fetch_profile(sym)
+    _cur = ((profile or {}).get("currency") or "USD").upper()
+    _fx_at, _fx_last = fetch_fx_map(_cur)
+    if _cur != "USD":
+        print("[fx] %s normalization active, last rate %s"
+              % (_cur, _fx_last))
     daily_px, weekly_px, vol_px = fetch_price(sym)
     tech_doc = None
     try:
@@ -1008,21 +1043,28 @@ def build_doc(sym, period):
         put("goodwill_to_assets_pct", i, div_(r.get("goodwill"), TA, 100), 3)
         put("intangibles_to_assets_pct", i, div_(r.get("gwIntang"), TA, 100), 3)
 
-        # valuation
-        pe_v = div_(mc, ni_t[i])
+        # valuation — ops 4324: statements are filing-currency; mc/EV
+        # are USD. Scale statement-side by the period FX (or last-known
+        # flat rate) so P/E for a TWD filer reads 27x, not 0.9x.
+        _d = r.get("date") if isinstance(r, dict) else None
+        _k = 1.0
+        if _cur != "USD":
+            _k = (_fx_at(_d) if (_fx_at and _d) else _fx_last) or 1.0
+        _S = (lambda x: (x * _k) if x is not None else None)
+        pe_v = div_(mc, _S(ni_t[i]))
         put("pe_ttm", i, pe_v, 3)
-        put("ps_ttm", i, div_(mc, rev_t[i]), 3)
-        put("pb", i, div_(mc, EQ), 3)
-        put("ptb", i, div_(mc, tang_eq), 3)
-        put("p_fcf_ttm", i, div_(mc, fcf_t[i]), 3)
-        put("p_cfo_ttm", i, div_(mc, cfo_t[i]), 3)
-        put("ev_ebitda_ttm", i, div_(evv, ebitda_t[i]), 3)
-        put("ev_ebit_ttm", i, div_(evv, ebit_t[i]), 3)
-        put("ev_sales_ttm", i, div_(evv, rev_t[i]), 3)
-        put("ev_gp_ttm", i, div_(evv, gp_t[i]), 3)
-        put("ev_fcf_ttm", i, div_(evv, fcf_t[i]), 3)
-        put("earnings_yield_pct", i, div_(ni_t[i], mc, 100), 3)
-        put("earnings_yield_ebit_pct", i, div_(ebit_t[i], evv, 100), 3)
+        put("ps_ttm", i, div_(mc, _S(rev_t[i])), 3)
+        put("pb", i, div_(mc, _S(EQ)), 3)
+        put("ptb", i, div_(mc, _S(tang_eq)), 3)
+        put("p_fcf_ttm", i, div_(mc, _S(fcf_t[i])), 3)
+        put("p_cfo_ttm", i, div_(mc, _S(cfo_t[i])), 3)
+        put("ev_ebitda_ttm", i, div_(evv, _S(ebitda_t[i])), 3)
+        put("ev_ebit_ttm", i, div_(evv, _S(ebit_t[i])), 3)
+        put("ev_sales_ttm", i, div_(evv, _S(rev_t[i])), 3)
+        put("ev_gp_ttm", i, div_(evv, _S(gp_t[i])), 3)
+        put("ev_fcf_ttm", i, div_(evv, _S(fcf_t[i])), 3)
+        put("earnings_yield_pct", i, div_(_S(ni_t[i]), mc, 100), 3)
+        put("earnings_yield_ebit_pct", i, div_(_S(ebit_t[i]), evv, 100), 3)
         put("fcf_yield_pct", i, div_(fcf_t[i], mc, 100), 3)
         put("fcf_ev_yield_pct", i, div_(fcf_t[i], evv, 100), 3)
         dy = div_(-div_t[i] if div_t[i] is not None else None, mc, 100)
