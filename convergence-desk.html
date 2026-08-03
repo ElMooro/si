@@ -1,0 +1,93 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Convergence Desk — JustHodl.AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0d12;--bg1:#10141b;--bg2:#161b24;--brd:#232a36;--tx:#e8ebf0;--tx2:#9aa3b2;--acc:#e8b34a;--buy:#3fd08c;--avd:#ff6b6b;--neu:#8fa3c0;--flow:#22d3ee;--fund:#a78bfa;--tech:#e8b34a;--mono:"IBM Plex Mono",monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px var(--mono)}
+a{color:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:18px}
+h1{font-family:Fraunces,serif;font-size:30px;margin:6px 0 2px}
+.sub{color:var(--tx2);font-size:12.5px}
+.strip{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0;padding:10px 14px;background:var(--bg1);border:1px solid var(--brd);border-radius:12px;font-size:12.5px;color:var(--tx2)}
+.strip b{color:var(--tx)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;margin:14px 0}
+.card{background:var(--bg1);border:1px solid var(--brd);border-radius:14px;padding:14px}
+.tk{font-family:Fraunces,serif;font-size:22px;font-weight:700;text-decoration:none}
+.ds{font-family:Fraunces,serif;font-size:26px;color:var(--acc)}
+.pill{display:inline-block;border:1px solid var(--brd);border-radius:999px;padding:2px 9px;font-size:11px;margin:2px 3px 0 0;color:var(--tx2)}
+.pill.flow{border-color:var(--flow);color:var(--flow)}.pill.fundamental{border-color:var(--fund);color:var(--fund)}.pill.technical{border-color:var(--tech);color:var(--tech)}
+.pill.EXTENDED{border-color:var(--avd);color:var(--avd)}.pill.FRESH{border-color:var(--buy);color:var(--buy)}.pill.PULLBACK{border-color:var(--flow);color:var(--flow)}
+.pill.SQUEEZE_POP{border-color:var(--avd);color:var(--avd)}.pill.DIP_CONVERGENCE{border-color:var(--buy);color:var(--buy)}.pill.CLEAN_TAPE{border-color:var(--neu);color:var(--neu)}
+.fbar{height:6px;border-radius:4px;background:var(--bg2);overflow:hidden;margin-top:6px}.fbar i{display:block;height:100%;background:var(--acc)}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+th,td{border-bottom:1px solid var(--brd);padding:7px 8px;text-align:left;white-space:nowrap;color:var(--tx2)}
+th{color:var(--tx);cursor:pointer}
+td a{color:var(--tx);text-decoration:none}
+.btn{border:1px solid var(--brd);background:var(--bg2);color:var(--tx2);border-radius:8px;padding:4px 11px;font:12px var(--mono);cursor:pointer}
+.btn.on{border-color:var(--acc);color:var(--acc)}
+details{margin:14px 0;color:var(--tx2);font-size:12.5px}summary{cursor:pointer;color:var(--tx)}
+#hist{width:100%;max-width:900px}
+.warnnote{font-size:11px;color:var(--avd)}
+</style></head><body><div class="wrap">
+<div class="sub"><a href="/" style="text-decoration:none">← JUSTHODL·AI</a></div>
+<h1>Convergence Desk</h1>
+<div class="sub">Multi-system agreement, institutional-grade: orthogonal <b style="color:var(--flow)">flow</b> · <b style="color:var(--fund)">fundamental</b> · <b style="color:var(--tech)">technical</b> families, evidence-weighted, freshness-decayed, regime-stamped, chase-guarded. The layer that flagged AAPL/GOOGL/MSFT a session before the 2026-08-03 pump.</div>
+<div class="strip" id="regime">loading regime…</div>
+<h2 style="font-family:Fraunces,serif;margin:18px 0 4px" id="heroTitle">Prime convergences</h2>
+<div class="sub" id="heroSub"></div>
+<div class="grid" id="hero"></div>
+<h2 style="font-family:Fraunces,serif;margin:20px 0 4px">Full board</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+ sort <button class="btn on" data-s="desk_score">desk</button><button class="btn" data-s="compound_score">compound</button><button class="btn" data-s="n_families">families</button><button class="btn" data-s="freshness">freshest</button>
+ <button class="btn" id="csv">⬇ CSV</button><span class="sub" id="count"></span>
+</div>
+<div style="overflow-x:auto"><table id="tbl"></table></div>
+<h2 style="font-family:Fraunces,serif;margin:20px 0 4px">Top desk-score, daily</h2>
+<svg id="hist" viewBox="0 0 900 130"></svg>
+<details><summary>Methodology — how a desk reads this board</summary>
+<p><b>Families.</b> Systems are normalized and mapped to three orthogonal families — flow (options flow, smart-money/13F, insider, congress, dark-pool), fundamental (rev-accel, eps-velocity, PEAD, deep-value, no-brainers), technical (momentum, vol-squeeze, pre-pump). Two cousins in one family can't fake independent confirmation; <b>PRIME = all three families present with ≥4 systems</b> — the generalized form of the triad that called AAPL/GOOGL/MSFT.</p>
+<p><b>Desk score</b> = compound × freshness × avg family prior (flow 1.35 · fundamental 1.15 · technical 1.00; basis disclosed per row as family_priors_v1 — realized-alpha weights join from signal-backtest as it accrues combo grades). <b>Freshness</b> decays each (symbol,system) from its first-seen date with family half-lives (flow 5d · technical 4d · fundamental 30d).</p>
+<p><b>Chase guard.</b> entry_quality uses the reversal radar's 5-day tape proxy: <span class="warnnote">EXTENDED (≥+8% in ~5d)</span> is flagged because the house event-study measured chasing at 38.7% hit-rate and −148bps — the desk buys FRESH or PULLBACK, watches EXTENDED. <b>Regime</b> stamps risk-gate posture and the market-turn net so every flag is conditioned on its environment.</p>
+</details>
+<div class="sub">Live artifacts: <a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/compound-signals.json">compound-signals</a> · <a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/prime-convergence.json">prime</a> · history · first-seen — all auto-updating; nothing cached, nothing invented.</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.amazonaws.com/";
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let ROWS=[],SORT="desk_score";
+function famPills(r){return (r.families||[]).map(f=>`<span class="pill ${f}">${f}</span>`).join("")}
+function comboPills(r){return (r.systems||[]).slice(0,7).map(x=>`<span class="pill">${esc(x)}</span>`).join("")}
+function card(r){return `<div class="card">
+ <div style="display:flex;justify-content:space-between;align-items:baseline">
+  <a class="tk" href="/why.html?t=${esc(r.symbol)}" target="_blank">${esc(r.symbol)}</a>
+  <span class="ds">${r.desk_score??r.compound_score}</span></div>
+ <div class="sub">compound ${r.compound_score} · ${r.n_systems} systems · ${r.n_families||0}/3 families${r.pctile_90d_all!=null?` · p${r.pctile_90d_all}`:""}</div>
+ <div style="margin-top:6px">${famPills(r)} <span class="pill ${esc(r.archetype)}">${esc(r.archetype||"")}</span> <span class="pill ${esc(r.entry_quality)}">${esc(r.entry_quality||"")}${r.chg5_proxy_pct!=null?` ${r.chg5_proxy_pct>0?"+":""}${r.chg5_proxy_pct}%/5d`:""}</span></div>
+ <div style="margin-top:6px">${comboPills(r)}</div>
+ <div class="fbar" title="freshness ${r.freshness}"><i style="width:${Math.round((r.freshness||0)*100)}%"></i></div>
+ ${r.entry_quality==="EXTENDED"?'<div class="warnnote" style="margin-top:5px">chase-guard: house event-study — chasing = 38.7% hit, −148bps</div>':""}
+</div>`}
+function draw(){ROWS.sort((a,b)=>(b[SORT]??-1)-(a[SORT]??-1));
+ const primes=ROWS.filter(r=>r.prime_convergence);
+ const heroRows=primes.length?primes:ROWS.slice(0,6);
+ document.getElementById("heroTitle").textContent=primes.length?`Prime convergences (${primes.length})`:"Top convergences (no PRIME today — all-three-family setups are rare by design)";
+ document.getElementById("heroSub").textContent=primes.length?"all three orthogonal families agree — the generalized winning hand":"";
+ document.getElementById("hero").innerHTML=heroRows.map(card).join("");
+ document.getElementById("tbl").innerHTML="<tr><th>sym</th><th>desk</th><th>compound</th><th>sys</th><th>fam</th><th>fresh</th><th>entry</th><th>arch</th><th>p90d</th><th>combo</th></tr>"
+  +ROWS.map(r=>`<tr><td><a href="/why.html?t=${esc(r.symbol)}" target="_blank">${esc(r.symbol)}</a></td><td style="color:var(--acc)">${r.desk_score??""}</td><td>${r.compound_score}</td><td>${r.n_systems}</td><td>${r.n_families??""}</td><td>${r.freshness??""}</td><td class="${esc(r.entry_quality)}" style="color:${r.entry_quality==="EXTENDED"?"var(--avd)":r.entry_quality==="FRESH"?"var(--buy)":"var(--flow)"}">${esc(r.entry_quality||"")}</td><td>${esc(r.archetype||"")}</td><td>${r.pctile_90d_all??""}</td><td class="sub">${esc((r.combo||"").slice(0,52))}</td></tr>`).join("");
+ document.getElementById("count").textContent=`${ROWS.length} names · ${primes.length} prime`;}
+(async()=>{try{
+ const d=await (await fetch(S3+"data/compound-signals.json?ts="+Date.now(),{cache:"no-store"})).json();
+ ROWS=(Array.isArray(d.compound)?d.compound:(d.ranked||[]));
+ const rg=(ROWS[0]||{}).regime||{};
+ document.getElementById("regime").innerHTML=`<span>generated <b>${esc((d.generated_at||"").slice(0,16).replace("T"," "))}Z</b></span><span>risk-gate posture <b>${esc(rg.posture??"—")}</b></span><span>market-turn net <b>${rg.turn_net>0?"+":""}${rg.turn_net??"—"}</b> (bottoms−tops)</span><span>evidence basis <b>family_priors_v1</b></span>`;
+ draw();
+ document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{SORT=b.dataset.s;document.querySelectorAll("[data-s]").forEach(x=>x.classList.toggle("on",x===b));draw();});
+ document.getElementById("csv").onclick=()=>{const cs=["symbol,desk,compound,n_systems,n_families,freshness,entry,archetype,combo"].concat(ROWS.map(r=>[r.symbol,r.desk_score,r.compound_score,r.n_systems,r.n_families,r.freshness,r.entry_quality,r.archetype,'"'+(r.combo||"")+'"'].join(","))).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([cs],{type:"text/csv"}));a.download="convergence-desk.csv";a.click();};
+ const H=await (await fetch(S3+"data/compound-history.json?ts="+Date.now(),{cache:"no-store"})).json().catch(()=>null);
+ const ds=((H||{}).days||[]).slice(-60);const svg=document.getElementById("hist");
+ if(ds.length){const vals=ds.map(x=>Math.max(...Object.values(x.scores||{0:0})));const W=900,Hh=130,mn=0,mx=Math.max(...vals)||1;
+  const X=i=>20+i*(W-40)/Math.max(1,ds.length-1),Y=v=>Hh-18-(Hh-34)*v/mx;
+  svg.innerHTML=`<polygon points="20,${Hh-18} ${vals.map((v,i)=>X(i)+","+Y(v)).join(" ")} ${X(ds.length-1)},${Hh-18}" fill="var(--acc)" opacity=".12"/><polyline points="${vals.map((v,i)=>X(i)+","+Y(v)).join(" ")}" fill="none" stroke="var(--acc)" stroke-width="1.8"/>`+ds.map((x,i)=>`<circle cx="${X(i)}" cy="${Y(vals[i])}" r="3" fill="transparent"><title>${x.d} · top ${Math.round(vals[i])}</title></circle>`).join("")+`<text x="20" y="${Hh-4}" fill="var(--tx2)" font-size="10">${ds[0].d}</text><text x="${W-20}" y="${Hh-4}" fill="var(--tx2)" font-size="10" text-anchor="end">${ds[ds.length-1].d}</text>`;
+ } else svg.innerHTML=`<text x="450" y="65" fill="var(--tx2)" font-size="12" text-anchor="middle">history compounds daily from today</text>`;
+}catch(e){document.getElementById("regime").textContent="load failed: "+e;}})();
+</script></div></body></html>

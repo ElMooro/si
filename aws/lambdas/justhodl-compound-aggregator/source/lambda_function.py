@@ -273,6 +273,111 @@ def aggregate():
                           "CLEAN_TAPE")
         r["reversal_context"] = ({"direction": d0, "score": sc0}
                                  if d0 else None)
+    # ── ops 4335: the institutional layer ─────────────────────────
+    # (1) orthogonal FAMILY taxonomy (normalized -> label-drift-proof)
+    # (2) evidence weights = declared family priors v1 (backtest join
+    #     staged; basis disclosed on every row)
+    # (3) freshness decay via per-(symbol,system) first_seen state
+    # (4) regime stamp (risk-gate posture + market-turn net)
+    # (5) chase-guard entry_quality from reversal 5d proxy — Khalid's
+    #     own event-study: chasing = 38.7% hit, -148bps.
+    import re as _re
+    from datetime import datetime as _dt2, timezone as _tz2
+
+    def _norm(x):
+        return _re.sub(r"[^a-z0-9]", "", str(x).lower())
+    FAMS = {"flow": ("optionsflow", "smartmoney", "fundsbuying",
+                     "13f", "insider", "congress", "darkpool",
+                     "whale"),
+            "fundamental": ("revaccel", "epsvelocity", "pead",
+                            "nobrainer", "deepvalue",
+                            "magicformula", "earnings", "guidance"),
+            "technical": ("momentum", "volsqueeze", "prepump",
+                          "breakout", "squeeze", "trend", "gap")}
+    PRIORS = {"flow": 1.35, "fundamental": 1.15, "technical": 1.0}
+    HALF_LIFE = {"flow": 5.0, "fundamental": 30.0,
+                 "technical": 4.0}
+    try:
+        _fs = json.loads(S3.get_object(
+            Bucket=BUCKET, Key="data/compound-firstseen.json"
+        )["Body"].read())
+    except Exception:
+        _fs = {}
+    _today2 = _dt2.now(_tz2.utc).strftime("%Y-%m-%d")
+    try:
+        _rg = json.loads(S3.get_object(
+            Bucket=BUCKET, Key="data/risk-gate.json"
+        )["Body"].read())
+        _posture = _rg.get("posture")
+    except Exception:
+        _posture = None
+    _br = (_rv.get("breadth") or {}) if isinstance(_rv, dict)         else {}
+    _turn = None
+    try:
+        _turn = round((_br.get("bottom_pct") or 0)
+                      - (_br.get("top_pct") or 0), 1)
+    except Exception:
+        pass
+    _spk = {}
+    try:
+        for x in _rv.get("rows") or []:
+            sp = x.get("spk") or []
+            if len(sp) >= 4 and sp[-3]:
+                _spk[str(x.get("ticker")).upper()] = round(
+                    100.0 * (sp[-1] / sp[-3] - 1), 1)
+    except Exception:
+        pass
+    for r in ranked:
+        fams = set()
+        ew = 0.0
+        fresh_f = []
+        for sysname in r["systems"]:
+            ns = _norm(sysname)
+            fam = None
+            for f2, keys in FAMS.items():
+                if any(k in ns for k in keys):
+                    fam = f2
+                    break
+            if fam:
+                fams.add(fam)
+            ew += PRIORS.get(fam, 1.0)
+            fk = "%s|%s" % (r["symbol"], ns)
+            if fk not in _fs:
+                _fs[fk] = _today2
+            try:
+                age_d = ( _dt2.strptime(_today2, "%Y-%m-%d")
+                         - _dt2.strptime(_fs[fk], "%Y-%m-%d")
+                         ).days
+            except Exception:
+                age_d = 0
+            hl = HALF_LIFE.get(fam, 10.0)
+            fresh_f.append(0.5 ** (age_d / hl))
+        r["families"] = sorted(fams)
+        r["n_families"] = len(fams)
+        r["prime_convergence"] = (r["n_systems"] >= 4
+                                  and len(fams) == 3)
+        r["evidence_weight"] = round(ew, 2)
+        r["evidence_basis"] = ("family_priors_v1 "
+                               "(backtest join staged)")
+        r["freshness"] = round(sum(fresh_f)
+                               / max(1, len(fresh_f)), 3)
+        r["desk_score"] = round(
+            r["compound_score"] * r["freshness"]
+            * (ew / max(1, r["n_systems"])), 1)
+        r["regime"] = {"posture": _posture, "turn_net": _turn}
+        c5 = _spk.get(r["symbol"])
+        r["chg5_proxy_pct"] = c5
+        r["entry_quality"] = ("EXTENDED" if c5 is not None
+                              and c5 >= 8 else
+                              "PULLBACK" if c5 is not None
+                              and c5 <= -5 else "FRESH")
+    _keep = {k: v for k, v in _fs.items()}
+    S3.put_object(Bucket=BUCKET,
+                  Key="data/compound-firstseen.json",
+                  Body=json.dumps(_keep).encode(),
+                  ContentType="application/json")
+    ranked.sort(key=lambda x: (-x.get("desk_score", 0),
+                               -x["compound_score"]))
     try:
         _h = json.loads(S3.get_object(
             Bucket=BUCKET, Key="data/compound-history.json"
@@ -318,8 +423,10 @@ def aggregate():
                     "AAPL/GOOGL/MSFT",
             "n": len(_prime),
             "rows": [{k: r[k] for k in
-                      ("symbol", "compound_score", "n_systems",
-                       "combo", "archetype", "reversal_context",
+                      ("symbol", "compound_score", "desk_score",
+                       "n_systems", "n_families", "families",
+                       "combo", "archetype", "entry_quality",
+                       "freshness", "regime", "reversal_context",
                        "pctile_90d_all", "pctile_90d_self")
                       if k in r} for r in _prime[:40]],
         }, default=str).encode(),
