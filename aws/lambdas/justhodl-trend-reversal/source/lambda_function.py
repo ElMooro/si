@@ -47,7 +47,7 @@ SELF_FN = os.environ.get("AWS_LAMBDA_FUNCTION_NAME",
                          "justhodl-trend-reversal")
 lam = __import__("boto3").client("lambda", region_name="us-east-1")
 s3 = boto3.client("s3", region_name="us-east-1")
-VERSION = "2.2.1"
+VERSION = "2.2.2"
 
 
 def closes(sym, days=280):
@@ -602,7 +602,7 @@ def lambda_handler(event=None, context=None):
                               if r.get("stage") == st)
                       for st in ("EARLY", "DEVELOPING",
                                  "CONFIRMED")},
-           "rows": good[:400],
+           "rows": good,  # full universe (400-cap removed, ops 4313c)
            "errors": part["errors"][:25] or None,
            "methodology": ("v2: 14-signal ensemble across "
                            "trend/structure/momentum/volatility/"
