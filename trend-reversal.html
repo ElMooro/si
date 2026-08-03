@@ -128,7 +128,6 @@ fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/trend-reversal.json
    <div class="bb"><div style="width:${s0.top_pct}%;background:var(--avd)" title="top ${s0.top_pct}%"></div><div style="flex:1"></div><div style="width:${s0.bottom_pct}%;background:var(--buy)" title="bottom ${s0.bottom_pct}%"></div></div>
    <div class="vs" style="margin-top:6px">${(s0.leaders||[]).map(l=>`${l.t} ${l.s}`).join(" · ")||"&nbsp;"}</div></div>`).join("");
  document.getElementById("movers").innerHTML=(d.movers||[]).map(m0=>`<span class="mv">${esc(m0.t)} <b style="color:${m0.delta>0?"var(--avd)":"var(--buy)"}">${m0.delta>0?"+":""}${m0.delta}</b> → ${m0.score}${m0.dir?` <span class="vs">${m0.dir==="TOP_FORMING"?"top":"bot"}</span>`:""}</span>`).join("")||'<span class="vs">deltas appear from the second daily run</span>';
- renderHeat(rows);
  const F={dir:"",stage:"",sec:"",min:0,q:""};let SORT="score",VIEW="cards";
  function squarify(items,X,Y,W,H){ // Bruls et al., correct aspect math
   const out=[];items=items.filter(a=>a.v>0);const tot=items.reduce((a,b)=>a+b.v,0);if(!tot||W<=0||H<=0)return out;
@@ -210,6 +209,7 @@ ${r.n_signals} signals: ${(r.signals||[]).map(s0=>s0.signal).join(", ")}</title>
  document.getElementById("fstage").onchange=e=>{F.stage=e.target.value;apply()};
  document.getElementById("fsec").onchange=e=>{F.sec=e.target.value;apply()};
  document.querySelectorAll("[data-hm]").forEach(b=>b.onclick=()=>{HMODE.dir=b.dataset.hm;document.querySelectorAll("[data-hm]").forEach(x=>x.classList.toggle("on",x===b));renderHeat(rows);});
+ renderHeat(rows);  // initial paint — post-declaration (TDZ, ops 4314c)
  document.getElementById("fmin").oninput=e=>{F.min=+e.target.value;document.getElementById("fminv").textContent=F.min;apply()};
  document.querySelectorAll("[data-sort]").forEach(b=>b.onclick=()=>{SORT=b.dataset.sort;document.querySelectorAll("[data-sort]").forEach(x=>x.classList.toggle("on",x===b));apply()});
  document.getElementById("vtoggle").onclick=()=>{VIEW=VIEW==="cards"?"table":"cards";document.getElementById("vtoggle").textContent=VIEW==="cards"?"table view":"card view";apply()};
