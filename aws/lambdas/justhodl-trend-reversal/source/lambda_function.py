@@ -24,6 +24,7 @@ import json
 import os
 import time
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
 import boto3
@@ -323,10 +324,34 @@ def analyze(sym, series, sector=None):
             if s200[i] else None}
 
 
+ETF_GRID = ["QQQ", "DIA", "RSP", "MDY", "SMH", "XBI", "ITB", "KRE",
+            "XME", "GDX", "GDXJ", "IWD", "IWF", "MTUM", "QUAL",
+            "USMV", "TLT", "SHY", "LQD", "EMB", "TIP", "USO", "UNG",
+            "DBA", "DBB", "CPER", "URA", "EWJ", "FXI", "EWZ", "INDA",
+            "EWG", "EWU", "ARKK", "BITO"]
+FX = {"EURUSD": "EURUSD", "USDJPY": "USDJPY", "GBPUSD": "GBPUSD",
+      "AUDUSD": "AUDUSD", "USDCAD": "USDCAD", "USDCHF": "USDCHF",
+      "USDMXN": "USDMXN"}
+FUT = {"GOLD_FUT": "GCUSD", "SILVER_FUT": "SIUSD",
+       "COPPER_FUT": "HGUSD", "WTI_FUT": "CLUSD",
+       "NATGAS_FUT": "NGUSD"}
+CRYPTO.update({"SOL": "SOLUSD", "XRP": "XRPUSD", "BNB": "BNBUSD"})
+FETCH_MAP = {**FX, **FUT, **CRYPTO}
+
+
 def build_universe():
-    uni, sectors = [], {}
-    for t in LADDER + SECTOR_ETFS + list(CRYPTO):
+    uni, sectors, cls = [], {}, {}
+
+    def tag(t, c):
+        if t not in cls:
+            cls[t] = c
+    for t in LADDER + SECTOR_ETFS + ETF_GRID:
         uni.append(t)
+        tag(t, "ETF")
+    for t in list(FX) + list(FUT) + list(CRYPTO):
+        uni.append(t)
+        tag(t, "FX" if t in FX else "FUTURES" if t in FUT
+            else "CRYPTO")
     try:
         bs = json.loads(s3.get_object(
             Bucket=BUCKET, Key="data/best-setups.json")["Body"].read())
@@ -342,19 +367,44 @@ def build_universe():
         cm = json.loads(s3.get_object(
             Bucket=BUCKET,
             Key="data/fundamental-census-matrix.json")["Body"].read())
-        rows = cm.get("rows") or cm.get("companies") or []
-        if isinstance(rows, dict):
-            rows = list(rows.values())
+        rows = (cm.get("rows") or cm.get("companies")
+                or cm.get("matrix") or cm.get("data") or [])
+        if isinstance(rows, dict):  # {ticker: {cols...}} shape
+            rows = [dict(v, ticker=k) if isinstance(v, dict)
+                    else {"ticker": k} for k, v in rows.items()]
+        n0 = len(uni)
         for r0 in rows:
             t = str(r0.get("ticker") or r0.get("symbol")
                     or "").upper()
             if t and t not in uni:
                 uni.append(t)
-            if t and (r0.get("sector") or r0.get("gics_sector")):
-                sectors[t] = r0.get("sector") or r0["gics_sector"]
+                tag(t, "SP500")
+            sec = r0.get("sector") or r0.get("gics_sector") \
+                or r0.get("Sector")
+            if t and sec:
+                sectors[t] = sec
+        print(f"[universe] census +{len(uni)-n0} "
+              f"(keys tried: rows/companies/matrix/data; "
+              f"top={list(cm)[:6]})")
     except Exception as e:
         print(f"[reversal] census skip: {str(e)[:60]}")
-    return uni[:620], sectors
+    try:  # Nasdaq-100 constituents
+        d = json.loads(urllib.request.urlopen(
+            "https://financialmodelingprep.com/stable/"
+            f"nasdaq-constituent?apikey={FMP_KEY}",
+            timeout=25).read())
+        n0 = len(uni)
+        for r0 in d if isinstance(d, list) else []:
+            t = str(r0.get("symbol") or "").upper()
+            if t and t not in uni:
+                uni.append(t)
+                tag(t, "NDX")
+            if t and r0.get("sector") and t not in sectors:
+                sectors[t] = r0["sector"]
+        print(f"[universe] ndx +{len(uni)-n0}")
+    except Exception as e:
+        print(f"[reversal] ndx skip: {str(e)[:60]}")
+    return uni[:660], sectors, cls
 
 
 def lambda_handler(event=None, context=None):
@@ -363,8 +413,9 @@ def lambda_handler(event=None, context=None):
     cursor = int(event.get("cursor", 0))
     universe = event.get("universe")
     sectors = event.get("sectors") or {}
+    cls_map = event.get("cls") or {}
     if universe is None:
-        universe, sectors = build_universe()
+        universe, sectors, cls_map = build_universe()
         try:  # fresh chain: clear partial
             s3.delete_object(Bucket=BUCKET, Key=PART_KEY)
         except Exception:
@@ -372,10 +423,11 @@ def lambda_handler(event=None, context=None):
     batch = universe[cursor:cursor + BATCH]
     rows, errs = [], []
     for sym in batch:
-        fs = CRYPTO.get(sym, sym)
+        fs = FETCH_MAP.get(sym, sym)
         try:
-            rows.append(analyze(sym, closes(fs),
-                                sectors.get(sym)))
+            r_ = analyze(sym, closes(fs), sectors.get(sym))
+            r_["asset_class"] = cls_map.get(sym, "SP500")
+            rows.append(r_)
         except Exception as e:
             errs.append(f"{sym}:{str(e)[:46]}")
     try:
@@ -393,7 +445,8 @@ def lambda_handler(event=None, context=None):
         lam.invoke(FunctionName=SELF_FN, InvocationType="Event",
                    Payload=json.dumps({
                        "cursor": nxt, "universe": universe,
-                       "sectors": sectors}).encode())
+                       "sectors": sectors,
+                       "cls": cls_map}).encode())
         print(f"[reversal] chain {cursor}->{nxt}/{len(universe)} "
               f"(+{len(rows)} rows, {len(errs)} errs) "
               f"{time.time()-t0:.0f}s")

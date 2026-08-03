@@ -123,3 +123,5 @@ with report("4310_reversal_v2") as r:
         r.ok("OPS 4310 PASS -- reversal radar at census scale")
 if fails:
     sys.exit(1)
+
+# retrigger: universe sourcing fixed (census multi-key incl matrix{}, +NDX constituents, +ETF/FX/FUT/CRYPTO classes tagged through chain)
