@@ -53,7 +53,26 @@ with report("4334_prime_convergence") as r:
         d = json.loads(s3.get_object(
             Bucket=B, Key="data/compound-signals.json"
         )["Body"].read())
-        ranked = d.get("ranked") or []
+        ranked = (d.get("ranked")
+                  or (d.get("compound") or {}).get("ranked")
+                  or (d.get("multi") or {}).get("ranked")
+                  or [])
+        if not ranked:  # last resort: any list of dicts w/ n_systems
+            for v in d.values():
+                if isinstance(v, list) and v \
+                        and isinstance(v[0], dict) \
+                        and "n_systems" in v[0]:
+                    ranked = v
+                    break
+                if isinstance(v, dict):
+                    for v2 in v.values():
+                        if isinstance(v2, list) and v2 \
+                                and isinstance(v2[0], dict) \
+                                and "n_systems" in v2[0]:
+                            ranked = v2
+                            break
+        r.log("ranked located: %d rows · top keys=%s"
+              % (len(ranked), list(d)[:8]))
         rk = {x["symbol"]: x for x in ranked}
         r0 = ranked[0] if ranked else {}
         r.log("mechanism fields on ranked[0] %s: %s"
@@ -117,3 +136,5 @@ with report("4334_prime_convergence") as r:
          "exactly what its winning hand looks like")
 
 # retrigger: clean tail rebuild
+
+# retrigger: ranked path discovery (handler wraps compute return)
