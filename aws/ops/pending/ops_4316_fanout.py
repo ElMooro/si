@@ -109,3 +109,5 @@ with report("4316_fanout") as r:
              "gate risk, see collateral")
 if fails:
     sys.exit(1)
+
+# retrigger: risk-gate bucket/client identifiers corrected

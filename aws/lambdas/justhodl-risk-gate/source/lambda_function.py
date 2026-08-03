@@ -319,7 +319,7 @@ def compute_posture(F, calendar, i):
     # adjusts the gate only at STRAINED/SEIZING, fully disclosed.
     try:
         _rh = json.loads(s3.get_object(
-            Bucket=BUCKET, Key="data/treasury-rehypo.json"
+            Bucket="justhodl-dashboard-live", Key="data/treasury-rehypo.json"
         )["Body"].read())
         _c, _b = _rh.get("composite"), _rh.get("band")
         _sc = max(-2.0, min(2.0, -((_c or 50) - 50) / 12.5))
