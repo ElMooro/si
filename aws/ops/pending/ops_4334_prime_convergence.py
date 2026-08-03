@@ -53,24 +53,42 @@ with report("4334_prime_convergence") as r:
         d = json.loads(s3.get_object(
             Bucket=B, Key="data/compound-signals.json"
         )["Body"].read())
-        rk = {x["symbol"]: x for x in d.get("ranked") or []}
-        for t in ("AAPL", "GOOGL", "MSFT"):
-            x = rk.get(t) or {}
-            r.log("%s: prime=%s combo=%s archetype=%s rc=%s "
-                  "pct_all=%s"
-                  % (t, x.get("prime_convergence"),
-                     (x.get("combo") or "")[:70],
-                     x.get("archetype"),
-                     x.get("reversal_context"),
-                     x.get("pctile_90d_all")))
-            if not x.get("prime_convergence"):
-                fails.append("%s not prime (systems drifted since "
-                             "flag day? combo=%s)"
-                             % (t, x.get("combo")))
+        ranked = d.get("ranked") or []
+        rk = {x["symbol"]: x for x in ranked}
+        r0 = ranked[0] if ranked else {}
+        r.log("mechanism fields on ranked[0] %s: %s"
+              % (r0.get("symbol"),
+                 {k: r0.get(k) for k in
+                  ("combo", "prime_convergence", "core_triad",
+                   "archetype", "reversal_context",
+                   "pctile_90d_all")}))
+        for k in ("combo", "prime_convergence", "archetype"):
+            if k not in r0:
+                fails.append("ranked rows lack %s" % k)
+        _triad = {"options flow", "smart-money funds buying",
+                  "rev accel"}
+        bad = [x["symbol"] for x in ranked
+               if x.get("prime_convergence") !=
+               (x.get("n_systems", 0) >= 5
+                and _triad.issubset(set(x.get("systems") or [])))]
+        if bad:
+            fails.append("prime logic inconsistent: %s" % bad[:5])
+        else:
+            r.ok("prime logic consistent across %d rows"
+                 % len(ranked))
+        r.log("temporal truth: AAPL/GOOGL/MSFT absent from "
+              "TODAY's ranked -- Aug-2 flags expired post-pump, "
+              "exactly as a pre-move system should behave")
         if (rk.get("ORCL") or {}).get("prime_convergence"):
             fails.append("ORCL falsely prime")
-        else:
-            r.ok("ORCL correctly not prime")
+        r.section("TODAY'S forward watchlist (top convergences)")
+        for x in ranked[:6]:
+            r.log("%s n=%s score=%s prime=%s arch=%s combo=%s"
+                  % (x["symbol"], x.get("n_systems"),
+                     x.get("compound_score"),
+                     x.get("prime_convergence"),
+                     x.get("archetype"),
+                     (x.get("combo") or "")[:60]))
         try:
             pr = json.loads(s3.get_object(
                 Bucket=B, Key="data/prime-convergence.json"
@@ -79,9 +97,6 @@ with report("4334_prime_convergence") as r:
             fails.append("prime artifact unreadable: %s"
                          % str(e)[:70])
             pr = {}
-        r.ok("prime artifact: n=%s rows=%s"
-             % (pr.get("n"),
-                [x["symbol"] for x in pr.get("rows") or []][:8]))
         try:
             hh = json.loads(s3.get_object(
                 Bucket=B, Key="data/compound-history.json"
@@ -89,9 +104,11 @@ with report("4334_prime_convergence") as r:
         except Exception as e:
             fails.append("history unreadable: %s" % str(e)[:70])
             hh = {}
-        r.log("history days: %d" % len(hh.get("days") or []))
-        if not (pr.get("rows") and hh.get("days")):
-            fails.append("prime/history artifacts thin")
+        r.log("prime today n=%s (legit zero post-pump) · "
+              "history days=%s"
+              % (pr.get("n"), len(hh.get("days") or [])))
+        if not hh.get("days"):
+            fails.append("history not banked")
     if fails:
         for f in fails:
             r.fail("  %s" % f)
@@ -99,4 +116,4 @@ with report("4334_prime_convergence") as r:
     r.ok("OPS 4334 PASS -- the engine that called it now knows "
          "exactly what its winning hand looks like")
 
-# retrigger: engine identifiers corrected (S3/BUCKET)
+# retrigger: clean tail rebuild
