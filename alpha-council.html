@@ -25,7 +25,7 @@ details{margin:14px 0;color:var(--tx2);font-size:12.5px}summary{cursor:pointer;c
 <div class="hero" id="hero"></div>
 <h2>Consensus board</h2><div id="board"></div>
 <h2>Founding council — and <i>why</i> each one wins</h2>
-<div style="overflow-x:auto"><table id="council"><tr><th>engine</th><th>wilson LB</th><th>raw win%</th><th>n</th><th>bias</th><th>fit (now)</th><th>top call</th><th>regime slices</th><th class="why">why it's seated</th></tr></table></div>
+<div style="overflow-x:auto"><table id="council"><tr><th>engine</th><th>wilson LB</th><th>raw win%</th><th>n</th><th>bias</th><th>fit (now)</th><th>avg move</th><th>avg win</th><th>top call</th><th>regime slices</th><th class="why">why it's seated</th></tr></table></div>
 <h2>Accountability</h2>
 <div class="sub" id="acct"></div>
 <details><summary>Methodology — how the ultimate engine avoids fooling itself</summary>
@@ -56,8 +56,8 @@ document.getElementById("council").innerHTML+=(d.council||[]).map(c=>{
 const exp=tc.expected_return_pct!=null?`${tc.expected_return_pct>0?"+":""}${tc.expected_return_pct}% <span class="sub">/ ${tc.horizon_days}d</span>`:`<span class="sub">— / ${tc.horizon_days}d</span>`;
 const st=tc.state==="GRADED"?`<span class="pill" style="border-color:${tc.hit?"var(--buy)":"var(--avd)"};color:${tc.hit?"var(--buy)":"var(--avd)"}" title="latest call, graded ${esc(tc.logged_at)}">${tc.hit?"✓":"✗"} ${tc.realized_return_pct!=null?(tc.realized_return_pct>0?"+":"")+tc.realized_return_pct+"%":""}</span>`:`<span class="pill" title="open · basis ${esc(tc.expected_basis)} · logged ${esc(tc.logged_at)} (${tc.age_d}d)">OPEN·${tc.expected_basis==="logged"?"logged":"hist"}</span>`;
 const symEl=tc.tradable!==false?`<a href="/why.html?t=${esc(tc.symbol)}" target="_blank" style="text-decoration:none"><b style="color:${col}">${esc(tc.symbol)} ${arrow}</b></a>`:`<b style="color:${col}">${esc(tc.symbol)} ${arrow}</b>`;
-return `${symEl} ${exp} ${st}`})():`<span class="sub">no open call</span>`;
- return `<tr><td>${esc(c.engine)}</td><td style="color:var(--acc)">${c.wilson_lb}%</td><td>${c.win_pct}%</td><td>${c.n}</td><td class="${c.direction_bias==="UP"?"":""}" style="color:${c.direction_bias==="DOWN"?"var(--avd)":"var(--buy)"}">${esc(c.direction_bias)}</td><td>${c.regime_fit_now??"—"}</td><td>${tcell}</td><td class="sub">${rs}</td><td class="why">${esc(c.why)}</td></tr>`}).join("");
+return `${symEl} ${exp} ${st} <span class="sub" style="font-size:10.5px">conf ${tc.confidence??"—"} · ${tc.age_d}d</span>`})():`<span class="sub">no open call</span>`;
+ return `<tr><td>${esc(c.engine)}</td><td style="color:var(--acc)">${c.wilson_lb}%</td><td>${c.win_pct}%</td><td>${c.n}</td><td class="${c.direction_bias==="UP"?"":""}" style="color:${c.direction_bias==="DOWN"?"var(--avd)":"var(--buy)"}">${esc(c.direction_bias)}</td><td>${c.regime_fit_now??"—"}</td><td>${c.avg_move_pct??"—"}%</td><td style="color:var(--buy)">${c.avg_win_move_pct??"—"}%</td><td>${tcell}</td><td class="sub">${rs}</td><td class="why">${esc(c.why)}</td></tr>`}).join("");
 document.getElementById("acct").innerHTML=`${d.self_logged??0} consensus call(s) self-logged this run as <b>eng:alpha-council</b> — pending 7/14/21-day grading in the ledger. ${esc(d.note||"")}`;
 })();
 </script></div></body></html>

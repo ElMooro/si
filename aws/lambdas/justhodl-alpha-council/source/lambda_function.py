@@ -59,8 +59,11 @@ def sym_of(it):
               md.get("ticker"), it.get("signal_value")):
         cs = str(c or "").upper().strip()
         if cs and TICK_RX.match(cs) and cs not in ("UP", "DOWN",
-                                                   "PICK", "NONE",
-                                                   "TRUE", "FALSE"):
+                                                   "NONE", "TRUE",
+                                                   "FALSE"):
+            # ops 4342: PICK is a real ticker (iShares Metals &
+            # Mining) -- the placeholder blacklist wrongly muted
+            # five proven seats' votes.
             return cs
     return None
 
