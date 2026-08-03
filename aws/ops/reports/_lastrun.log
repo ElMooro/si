@@ -1,47 +1,17 @@
-executing-against: 1d52060dbb2bf5326014c7306b696784cab8fe67
-ops 4307 -- what each FR2004 era calls things
-── SBP2001 -- 0 keyids ──
-[01:29:52] FAIL        0 | 
-[01:29:52] REPURCHASE  0 | 
-[01:29:52] NET         0 | 
-[01:29:52] SECURITIES  0 | 
-[01:29:52] GOVERNMENT  0 | 
-[01:29:52] TREASUR     0 | 
-── SBP2013 -- 0 keyids ──
-[01:29:52] FAIL        0 | 
-[01:29:52] REPURCHASE  0 | 
-[01:29:52] NET         0 | 
-[01:29:52] SECURITIES  0 | 
-[01:29:52] GOVERNMENT  0 | 
-[01:29:52] TREASUR     0 | 
-── SBN2013 -- 0 keyids ──
-[01:29:52] FAIL        0 | 
-[01:29:52] REPURCHASE  0 | 
-[01:29:52] NET         0 | 
-[01:29:52] SECURITIES  0 | 
-[01:29:52] GOVERNMENT  0 | 
-[01:29:52] TREASUR     0 | 
-── SBN2015 -- 0 keyids ──
-[01:29:52] FAIL        0 | 
-[01:29:52] REPURCHASE  0 | 
-[01:29:52] NET         0 | 
-[01:29:52] SECURITIES  0 | 
-[01:29:52] GOVERNMENT  0 | 
-[01:29:52] TREASUR     0 | 
-── SBN2022 -- 0 keyids ──
-[01:29:52] FAIL        0 | 
-[01:29:52] REPURCHASE  0 | 
-[01:29:52] NET         0 | 
-[01:29:52] SECURITIES  0 | 
-[01:29:52] GOVERNMENT  0 | 
-[01:29:52] TREASUR     0 | 
-── SBN2024 -- 1539 keyids ──
-[01:29:52] FAIL        288 | TOTAL - CLASS A, 30-YEAR FEDERAL AGENCY AND GSE PASS-THROU ||| TOTAL - CLASS A, 30-YEAR FEDERAL AGENCY AND GSE PASS-THROU ||| TOTAL - CLASS A, 30-YEAR FEDERAL AGENCY AND GSE PASS-THROU ||| TOTAL - CLASS A, 30-YEAR FEDERAL AGENCY AND GSE PASS-THROU
-[01:29:52] REPURCHASE  467 | TOTAL - REPURCHASE AGREEMENTS: ASSET-BACKED SECURITIES - T ||| TOTAL - REPURCHASE AGREEMENTS: CORPORATE DEBT - TRIPARTY ( ||| TOTAL - REPURCHASE AGREEMENTS: EQUITIES - TRIPARTY (EXCLUD ||| TOTAL - REPURCHASE AGREEMENTS: FEDERAL AGENCY AND GSE CMBS
-[01:29:52] NET         22 | SECURITY NET SETTLED POSITION ||| SECURITY NET SETTLED POSITION ||| SECURITY NET SETTLED POSITION ||| SECURITY NET SETTLED POSITION
-[01:29:52] SECURITIES  683 | TOTAL - MORTGAGE-BACKED SECURITIES: FEDERAL AGENCY AND GSE ||| TOTAL - ASSET-BACKED SECURITIES - LONG. - ASSET-BACKED SEC ||| TOTAL - CORPORATE SECURITIES DEALER POSITION - LONG. - COR ||| TOTAL - FEDERAL AGENCY AND GSE SECURITIES (EXCLUDING MBS) 
-[01:29:52] GOVERNMENT  30 | TOTAL - STATE AND MUNICIPAL GOVERNMENT OBLIGATIONS : DEALE ||| TOTAL - STATE AND MUNICIPAL GOVERNMENT OBLIGATIONS WITH IN ||| TOTAL - STATE AND MUNICIPAL GOVERNMENT OBLIGATIONS WITH IN ||| STATE AND MUNICIPAL GOVERNMENT OBLIGATIONS DUE IN LESS THA
-[01:29:52] TREASUR     196 | TOTAL - U.S. TREASURY SECURITIES (EXCLUDING TREASURY INFLA ||| TOTAL - U.S. TREASURY INFLATION-PROTECTED SECURITIES (TIPS ||| TOTAL - U.S. TREASURY INFLATION-PROTECTED SECURITIES (TIPS ||| TOTAL - U.S. TREASURY SECURITIES (EXCLUDING TREASURY INFLA
-[01:29:52] ✅ era vocab probe complete
+executing-against: 8460aa5da76381a0a658cc934f530f6330eae2c0
+ops 4308 -- rehypo barometer + 1996 long history
+[01:34:15] function: fresh+keyed
+[01:34:25] run: {"ok": true, "composite": 50.6, "band": "WATCH", "legs": ["fails", "velocity", "specialness", "dvp_volume", "sofr_iorb", "rrp_drain_4w"], "missing": []}
+[01:34:25] COMPOSITE 50.6 (WATCH)
+[01:34:25] missing: None
+[01:34:25] note: nyfed catalog: 1539 keyids
+[01:34:25] note: picked: {"fails": 6, "sec_in": 8, "sec_out": 8, "net_pos": 8}
+[01:34:25] long_history: {}
+[01:34:25] ✅ LONG: 2020-03-09 -> 2026-07-31 · 1600 weekly pts · legs_from={'fails': '2024-07-03', 'sofr_iorb': '2021-07-29', 'rrp_drain_4w': '2008-09-24'}
+[01:34:25] era_coverage: {'fails': {'SBN2024': 108}, 'financing_in': {'SBN2024': 108}, 'financing_out': {'SBN2024': 108}, 'positions': {}}
+[01:34:25] sample: [('2020-03-09', 46.8, 1), ('2021-06-17', 3.9, 1), ('2022-09-27', 34.7, 2), ('2024-01-10', 47.2, 2), ('2025-04-21', 51.1, 2)]
+── RESULT ──
+[01:34:25] ✗   actual_start 2020-03-09 later than 2014 -- even proven-keyid segments unreachable
 
-→ Report written to aws/ops/reports/latest/4307_era_vocab.md
+→ Report written to aws/ops/reports/latest/4308_long_stitched.md
+❌ OPS-FAIL: aws/ops/pending/ops_4308_long_stitched.py
