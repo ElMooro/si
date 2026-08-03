@@ -47,7 +47,7 @@ SELF_FN = os.environ.get("AWS_LAMBDA_FUNCTION_NAME",
                          "justhodl-trend-reversal")
 lam = __import__("boto3").client("lambda", region_name="us-east-1")
 s3 = boto3.client("s3", region_name="us-east-1")
-VERSION = "2.1"
+VERSION = "2.2"
 
 
 def closes(sym, days=280):
@@ -121,6 +121,7 @@ def analyze(sym, series, sector=None):
     c = [x[1] for x in series]
     vol = [x[2] for x in series]
     s20, s50, s200 = sma(c, 20), sma(c, 50), sma(c, 200)
+    s100 = sma(c, 100)
     r14 = rsi(c)
     macd = [a - b for a, b in zip(ema(c, 12), ema(c, 26))]
     hist = [m - s for m, s in zip(macd, ema(macd, 9))]
@@ -320,6 +321,10 @@ def analyze(sym, series, sector=None):
         return [float(f"{x:.5g}") for x in pts]
     return {"ticker": sym, "as_of": dates[-1],
             "spk": _ds(c), "spk50": _ds(s50),
+            "ma": {"d20": round(100*(c[i]/s20[i]-1),1) if s20[i] else None,
+                   "d50": round(100*(c[i]/s50[i]-1),1) if s50[i] else None,
+                   "d100": round(100*(c[i]/s100[i]-1),1) if s100[i] else None,
+                   "d200": round(100*(c[i]/s200[i]-1),1) if s200[i] else None},
             "close": round(c[i], 2), "sector": sector,
             "prevailing_trend": prevail,
             "reversal_score": score, "direction": direction,
@@ -332,18 +337,25 @@ def analyze(sym, series, sector=None):
             if s200[i] else None}
 
 
-ETF_GRID = ["QQQ", "DIA", "RSP", "MDY", "SMH", "XBI", "ITB", "KRE",
-            "XME", "GDX", "GDXJ", "IWD", "IWF", "MTUM", "QUAL",
-            "USMV", "TLT", "SHY", "LQD", "EMB", "TIP", "USO", "UNG",
-            "DBA", "DBB", "CPER", "URA", "EWJ", "FXI", "EWZ", "INDA",
-            "EWG", "EWU", "ARKK", "BITO"]
+ETF_GRID = ["QQQ", "DIA", "RSP", "MDY", "IVV", "VTI", "VT", "ACWI",
+            "VEA", "VWO", "SMH", "SOXX", "XBI", "ITB", "XHB", "KRE",
+            "XME", "GDX", "GDXJ", "SLX", "OIH", "IWD", "IWF", "MTUM",
+            "QUAL", "USMV", "SPLV", "TLT", "IEI", "SHY", "LQD",
+            "EMB", "TIP", "BND", "AGG", "USO", "UNG", "DBA", "DBB",
+            "CPER", "URA", "WEAT", "CORN", "PALL", "UVXY", "EWJ",
+            "FXI", "KWEB", "EWZ", "INDA", "EWG", "EWU", "EWA", "EWC",
+            "EWY", "EWT", "EWH", "EWQ", "EWI", "EWP", "EWL", "EWW",
+            "ARKK", "BITO", "IBIT"]
 FX = {"EURUSD": "EURUSD", "USDJPY": "USDJPY", "GBPUSD": "GBPUSD",
       "AUDUSD": "AUDUSD", "USDCAD": "USDCAD", "USDCHF": "USDCHF",
-      "USDMXN": "USDMXN"}
+      "USDMXN": "USDMXN", "NZDUSD": "NZDUSD", "EURJPY": "EURJPY",
+      "EURGBP": "EURGBP", "USDBRL": "USDBRL", "USDINR": "USDINR"}
 FUT = {"GOLD_FUT": "GCUSD", "SILVER_FUT": "SIUSD",
        "COPPER_FUT": "HGUSD", "WTI_FUT": "CLUSD",
        "NATGAS_FUT": "NGUSD"}
-CRYPTO.update({"SOL": "SOLUSD", "XRP": "XRPUSD", "BNB": "BNBUSD"})
+CRYPTO.update({"SOL": "SOLUSD", "XRP": "XRPUSD", "BNB": "BNBUSD",
+               "ADA": "ADAUSD", "DOGE": "DOGEUSD", "AVAX": "AVAXUSD",
+               "LINK": "LINKUSD", "DOT": "DOTUSD"})
 FETCH_MAP = {**FX, **FUT, **CRYPTO}
 
 
@@ -428,7 +440,7 @@ def build_universe():
         print(f"[universe] ndx +{len(uni)-n0}")
     except Exception as e:
         print(f"[reversal] ndx skip: {str(e)[:60]}")
-    return uni[:660], sectors, cls
+    return uni[:820], sectors, cls
 
 
 def lambda_handler(event=None, context=None):
