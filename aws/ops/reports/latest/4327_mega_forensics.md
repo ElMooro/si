@@ -1,0 +1,87 @@
+# ops 4327 -- evidence for the whole triage board
+
+**Status:** success  
+**Duration:** 9.8s  
+**Finished:** 2026-08-03T19:28:49+00:00  
+
+## Log
+## A. frozen cluster -- run/schedule/error matrix
+
+- `19:28:41` credit-stress | fn:EXISTS | lastlog:69h | rule:NONE
+- `19:28:42` bond-trace | fn:EXISTS | lastlog:69h | rule:bond-trace-daily=ENABLED(cron(0 21 ? * MON-FRI )
+- `19:28:43` crisis-knowledge-base | fn:EXISTS | lastlog:61h | rule:NONE
+- `19:28:43` cross-asset-rv | fn:EXISTS | lastlog:69h | rule:cross-asset-rv-daily=ENABLED(cron(45 22 ? * MON-FRI)
+- `19:28:44` event-study | fn:EXISTS | lastlog:56h | ERR:[fred] WILL5000PR failed: HTTP Error 400: Bad Request | rule:NONE
+- `19:28:45` global-macro | fn:EXISTS | lastlog:69h | rule:NONE
+- `19:28:46` historical-analogs | fn:EXISTS | lastlog:56h | rule:NONE
+- `19:28:47` implied-prob | fn:EXISTS | lastlog:73h | ERR:[implied] HTTP fail: https://api.polygon.io/v2/last/trade/IBIT?apiKey=zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_ → HTTP E | ERR:[implied] HTTP fail: https://api.polygon.io/v2/last/trade/IBIT?apiKey=zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_ → HTTP E | rule:NONE
+- `19:28:48` liquidity-flow | fn:EXISTS | lastlog:69h | rule:NONE
+- `19:28:48` interpretations/yield-curve writer: aws/lambdas/justhodl-feed-catalog/source/lambda_function.py
+
+## B. negative-price key-paths
+
+- `19:28:48` data/macro-nowcast.json:
+- `19:28:48`   /global_confidence/series/cci_de/last=-17.3 sib={'symbol': 'ECONOMICS:DECCI', 'label': 'Germany consumer conf'}
+- `19:28:48`   /global_confidence/series/cci_fr/last=-11.5 sib={'symbol': 'ECONOMICS:FRCCI', 'label': 'France consumer conf'}
+- `19:28:48`   /global_confidence/series/cci_gb/last=-13.25 sib={'symbol': 'ECONOMICS:GBCCI', 'label': 'UK consumer conf'}
+- `19:28:48`   /global_confidence/series/cci_kr/last=-0.5 sib={'symbol': 'ECONOMICS:KRCCI', 'label': 'Korea consumer conf'}
+- `19:28:48`   /global_confidence/series/cci_it/last=-16.0 sib={'symbol': 'ECONOMICS:ITCCI', 'label': 'Italy consumer conf'}
+- `19:28:48`   /global_confidence/series/cci_es/last=-18.8 sib={'symbol': 'ECONOMICS:ESCCI', 'label': 'Spain consumer conf'}
+- `19:28:48`   /global_confidence/series/bcoi_gb/last=-9491.1558 sib={'symbol': 'ECONOMICS:GBBCOI', 'label': 'UK business conf'}
+- `19:28:48`   /global_confidence/series/bcoi_cn/last=-34434.0849 sib={'symbol': 'ECONOMICS:CNBCOI', 'label': 'China business conf'}
+- `19:28:48`   /global_confidence/series/bcoi_eu/last=-7.6 sib={'symbol': 'ECONOMICS:EUBCOI', 'label': 'EA industry conf'}
+- `19:28:48` data/crisis-composite.json:
+- `19:28:48`   /btp_bund_canary/series/es_it/last=-0.3689 sib={'symbol': 'TVC:ES10Y-TVC:IT10Y', 'label': 'Bono–BTP 10y spread'}
+## C. dead-leg compute sites
+
+- `19:28:48` buildout_threat -> files: aws/lambdas/justhodl-best-setups/source/lambda_function.py 
+- `19:28:48` 1044-        # ── BUILDOUT THREAT: the specific 'cheap + buying back stock + AI/power
+1045-        # capex surging' stack — self-funded compounding into a demand buildout. ──
+1046:        buildout_threat = (cheap and "BUYBACK" in keys and "CAPEX_ACCEL" in keys)
+1047-        if quad_threat:
+1048-            verdict = "QUAD THREAT"
+1049-            composite = min(100.0, composite * 1.30)
+1050-        elif triple_threat:
+1051-            verdict = "TRIPLE THREAT"
+1052-            composite = min(100.0, composite * 1.15)
+1053:        elif buildout_threat:
+1054-            verdict = "BUILDOUT THREAT"
+1055-            composite = min(100.0, composite * 1.18)
+1056-
+1057-        # ── Universal explainability: a plain-language "why" chain ──
+--
+1172-            "verdict": verdict,
+1173-           
+- `19:28:49` short_squeeze -> files: aws/lambdas/justhodl-ai-rerating-radar/source/lambda_function.py aws/lambdas/justhodl-signal-portfolio/source/lambda_function.py 
+- `19:28:49` 529-            "red_flags": rflags, "contagion": contagion,
+530-            "peer_leader": peer_leader, "peer_leader_rising": peer_hot,
+531:            "short_squeeze": sq, "ai_deal": deal, "smart_money_backed": smbk,
+532-            "insider_buying": ins_buy, "analyst_upgrading": anl_up,
+533-            "composite": composite, "why": "; ".join(why),
+534-        })
+535-
+
+- `19:28:49` expected_to_outgrow_industry -> files: aws/lambdas/justhodl-opportunities-research/source/lambda_function.py aws/lambdas/justhodl-opportunity-engine/source/lambda_function.py 
+- `19:28:49` 162-                "forward revenue revised up" if rec["fwd_rev_growth"] > 0 else "forward revenue revised down")
+163-        g = r.get("growth_intel") or {}
+164:        if g.get("expected_to_outgrow_industry"): bull.append("expected to outgrow its industry")
+165-        gmt = rec.get("gm_trend")
+166-        if gmt is not None and gmt > 0.5: bull.append("gross margins expanding")
+167-        if gmt is not None and gmt < -0.5: bearf.append("gross margins compressing")
+168-        if rec.get("acq_driven"): bearf.append("acquisition-driven growth")
+
+- `19:28:49` out_tok -> files: aws/lambdas/justhodl-ai-brief/source/lambda_function.py aws/lambdas/justhodl-llm-cost-dashboard/source/lambda_function.py aws/lambdas/justhodl-research-critique/source/lambda_function.py 
+- `19:28:49` 58-    for idx, d in enumerate(days):
+59-        items = _query_day(d)
+60:        dc = dict(date=d, cost=0.0, calls=0, real_calls=0, cache_hits=0, in_tok=0, out_tok=0)
+61-        for it in items:
+62-            em = it["engine_model"]["S"]
+63-            eng, mod = (em.split("|", 1) + ["?"])[:2] if "|" in em else (em, "?")
+64-            cost, calls = _n(it, "cost_usd"), _n(it, "calls")
+65-            rc, ch = _n(it, "real_calls"), _n(it, "cache_hits")
+66:            itok, otok = _n(it, "in_tok"), _n(it, "out_tok")
+67-            dc["cost"] += cost; dc["calls"] += calls; dc["real_calls"] += rc
+68:            dc["cache_hits"] += ch; dc["in_tok"] += itok; dc["out_tok"] += otok
+69-            if idx == 0:  # today -> per-engine + per-model breakdowns
+70-                e = per_engine.setdefau
+- `19:28:49` ✅ forensics complete -- fix wave 4328/4329 ships on this
