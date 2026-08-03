@@ -45,7 +45,7 @@ FMP_BASE = "https://financialmodelingprep.com/stable"
 FMP_KEY = os.environ.get("FMP_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CACHE_PREFIX = "data/fundgraph/cache/"
-CACHE_VER = "v24"  # v22: FX normalization for foreign filers (ops 4324)  # v21: FULL history (statements to inception, price from 1962, deep NBER)  # v12: + earnings layer (report dates, beat/miss)
+CACHE_VER = "v25"  # v22: FX normalization for foreign filers (ops 4324)  # v21: FULL history (statements to inception, price from 1962, deep NBER)  # v12: + earnings layer (report dates, beat/miss)
 CACHE_TTL_SEC = int(os.environ.get("CACHE_TTL_SEC", 20 * 3600))
 MAX_Q = 220   # full history — matches FETCH_Q (ops 3518)
 MAX_A = 65
@@ -872,11 +872,18 @@ def build_doc(sym, period):
 
     sh_arr = [(r.get("shsDil") or r.get("shs")) for r in R]
     mcap, ev = [None] * n, [None] * n
-    _cur = ((next((x.get("reportedCurrency") for x in R if x.get("reportedCurrency")), None)) or ((profile or {}).get("currency")) or "USD").upper()
+    # ops 4324e: authoritative filing currency (one income row)
+    _cur = "USD"
+    try:
+        _inc0 = _fmp("income-statement?symbol="
+                     + urllib.parse.quote(sym) + "&limit=1") or []
+        _r0 = (_inc0[0] if isinstance(_inc0, list) and _inc0
+               else (_inc0 or {}))
+        _cur = (_r0.get("reportedCurrency") or "USD").upper()
+    except Exception as _e:
+        print("[fx] probe err: " + str(_e)[:80])
     _fx_at, _fx_last = fetch_fx_map(_cur)
-    print("[fx-debug] cur=%s r0keys=%s" % (_cur, sorted(list((R[0] if R else {}).keys()))[:24]))
-    if _cur != "USD":
-        print("[fx] %s active, last rate %s" % (_cur, _fx_last))
+    print("[fx] cur=" + _cur + " last_rate=" + str(_fx_last))
     for i, r in enumerate(R):
         sh = sh_arr[i]
         px = price_at(daily_px, r["date"])

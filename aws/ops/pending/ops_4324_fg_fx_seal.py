@@ -43,6 +43,18 @@ with report("4324_fg_fx_seal") as r:
         fails.append("deploy floor")
     else:
         d, tail = pe_last("TSM")
+        try:
+            import boto3 as _b3
+            _lg = _b3.client("logs", region_name="us-east-1")
+            import time as _t
+            ev = _lg.filter_log_events(
+                logGroupName="/aws/lambda/justhodl-fundamental-graphs",
+                startTime=int((_t.time() - 600) * 1000),
+                filterPattern='"[fx]"')
+            for e in (ev.get("events") or [])[-4:]:
+                r.log("engine says: " + e["message"].strip()[:120])
+        except Exception as _e:
+            r.warn("logs: " + str(_e)[:80])
         r.ok("TSM pe_ttm tail: %s" % json.dumps(tail))
         last = tail[-1][1] if tail else None
         if not (last and 15 <= last <= 45):
@@ -67,3 +79,5 @@ with report("4324_fg_fx_seal") as r:
 # retrigger: direct income-statement currency probe (v25) + page mode-aware chip
 
 # retrigger: v25 authoritative currency probe (indent-repaired)
+
+# retrigger: v25 plain-built probe + engine [fx] testimony in gate
