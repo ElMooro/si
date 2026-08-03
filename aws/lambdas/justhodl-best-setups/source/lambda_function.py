@@ -130,6 +130,42 @@ SIGNAL_PRIORS = {
 
 # riskgate-wire-v1 — brain-constitutional Master Risk Gate (Khalid 2026-07-26:
 # macro gates SIZING before selection). data/risk-gate.json, 48h stale guard.
+
+def _join_reversal(rows):
+    """Annotate setups with the radar's read; flag verdict conflicts."""
+    try:
+        rv = read_json("data/trend-reversal.json") or {}
+        m = {str(x.get("ticker")).upper(): x
+             for x in rv.get("rows") or [] if isinstance(x, dict)}
+    except Exception as e:
+        return {"n": 0, "note": "radar unreadable: %s" % str(e)[:60]}
+    n = 0
+    conflicts = []
+    for r in rows:
+        x = m.get(str(r.get("ticker") or "").upper())
+        if not x:
+            continue
+        r["reversal"] = {"score": x.get("reversal_score"),
+                         "direction": x.get("direction"),
+                         "stage": x.get("stage"),
+                         "weekly": bool(x.get("weekly_confirm")),
+                         "ma": x.get("ma")}
+        n += 1
+        v = str(r.get("verdict") or "").upper()
+        if (("BUY" in v or "STRONG" in v)
+                and x.get("direction") == "TOP_FORMING"
+                and (x.get("reversal_score") or 0) >= 25):
+            r["reversal_conflict"] = ("bullish verdict vs TOP_FORMING "
+                                      "%s (score %s%s)"
+                                      % (x.get("stage"),
+                                         x.get("reversal_score"),
+                                         ", weekly ✓"
+                                         if x.get("weekly_confirm")
+                                         else ""))
+            conflicts.append(r.get("ticker"))
+    return {"n": n, "conflicts": conflicts[:12],
+            "radar_universe": rv.get("universe_n")}
+
 def _risk_gate_doc():
     if not hasattr(_risk_gate_doc, "_c"):
         try:
@@ -1549,7 +1585,10 @@ def lambda_handler(event, context):
             "buy": len(by_verdict["BUY"]),
             "watch": len(by_verdict["WATCH"]),
         },
-        "top_setups": setups[:50],
+        "top_setups": (lambda _s: _s)(setups[:50]),
+        # ops 4316: reversal standing joined onto every setup, with an
+        # explicit conflict flag when trend tells oppose the verdict.
+        "reversal_join": _join_reversal(setups[:50]),
         "quad_threats": [s for s in setups if s.get("quad_threat")][:15],
         "triple_threats": [s for s in setups if s.get("triple_threat")][:20],
         "buildout_threats": [s for s in setups if s.get("buildout_threat")][:20],

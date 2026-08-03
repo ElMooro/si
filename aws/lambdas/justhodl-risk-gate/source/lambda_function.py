@@ -314,7 +314,34 @@ def compute_posture(F, calendar, i):
 
     W = {"funding": .25, "credit": .25, "dollar": .20, "carry": .10,
          "growth": .10, "structure": .10}
+    # ops 4316 — collateral leg (advisory; weights untouched): the
+    # treasury-rehypo desk's composite enters as a recorded leg and
+    # adjusts the gate only at STRAINED/SEIZING, fully disclosed.
+    try:
+        _rh = json.loads(s3.get_object(
+            Bucket=BUCKET, Key="data/treasury-rehypo.json"
+        )["Body"].read())
+        _c, _b = _rh.get("composite"), _rh.get("band")
+        _sc = max(-2.0, min(2.0, -((_c or 50) - 50) / 12.5))
+        legs["collateral"] = {
+            "score": round(_sc, 2), "advisory": True,
+            "why": ["treasury-rehypo composite %s (%s): fails/"
+                    "velocity/specialness/funding/RRP proxy stack "
+                    "(ops 4302-4308)" % (_c, _b)],
+            "cite": "ops4302/rehypo"}
+    except Exception as _e:
+        legs["collateral"] = {"score": None, "advisory": True,
+                              "why": ["rehypo unreadable: %s"
+                                      % str(_e)[:60]]}
     composite = sum(legs[k]["score"] * W[k] for k in W)
+    _b = (legs.get("collateral") or {}).get("why", [""])[0]
+    _band = _rh.get("band") if "_rh" in dir() else None
+    if _band == "STRAINED":
+        composite -= 0.15
+        legs["collateral"]["applied"] = "-0.15 (STRAINED)"
+    elif _band == "SEIZING":
+        composite -= 0.35
+        legs["collateral"]["applied"] = "-0.35 (SEIZING)"
 
     # Posture bands + the plumbing override (nmq5vhvebjob6: never touch stocks
     # when plumbing is shaky — a broken funding leg confirmed by credit is

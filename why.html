@@ -573,6 +573,7 @@ function renderReport(d){
   html += renderPriceChart(d);          // price history + PT / fair-value bands
   html += renderTechnicals(d);          // v2: full TA — MAs, Bollinger, RSI, MACD, volume
   html += renderMomentum(d);            // v2.1: explicit momentum reads + 50/200 golden-death cross
+  html += '<section class="block" id="jh-reversal" style="display:none"><div class="sub"><span class="ico">~</span> Trend &amp; Reversal &mdash; where this name stands on every timeframe</div><div id="jh-reversal-body" style="font-family:var(--mono,monospace);font-size:12px;color:var(--fg3,#5d6b82)">reading the radar&hellip;</div></section>';
   html += '<section class="block" id="jh-conviction"><div class="sub"><span class="ico">::</span> Fleet Conviction &mdash; what every system says about this name</div><div style="color:var(--fg3,#5d6b82);font-family:var(--mono,monospace);font-size:11px">composing live boards&hellip;</div></section>';
   html += '<div id="jh-rspair"></div>';
   html += renderRiskTrade(d);           // v2.1: drawdown/vol/Sortino + tradability
@@ -614,6 +615,7 @@ function renderReport(d){
   html += renderTriggers(d);
   html += renderMeta(d);
   $("content").innerHTML = html;
+  try { composeReversal(ticker); } catch(e) { console.warn("reversal panel:", e); }
 
   // Kick off async insider data fetch (non-blocking — paints when ready)
   if(d.ticker){
@@ -4141,6 +4143,34 @@ fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/fundamental-census-
       v.insertBefore(d, v.children[1]||null);}
     else if(tries>40)clearInterval(tm);},250);
 });}catch(e){}})();
+
+/* ops 4316 — Trend & Reversal panel: live join against the 636-name radar */
+async function composeReversal(ticker){
+  var sec=document.getElementById('jh-reversal'),bd=document.getElementById('jh-reversal-body');
+  if(!sec||!bd)return;
+  try{
+    var d=await (await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/trend-reversal.json',{cache:'no-store'})).json();
+    var r=(d.rows||[]).find(function(x){return x.ticker===String(ticker).toUpperCase()});
+    sec.style.display='';
+    if(!r){bd.innerHTML='not in the '+(d.universe_n||'')+'-name radar universe (S&amp;P 500 + NDX + majors) &mdash; no trend read available, nothing invented.';return;}
+    var ma=r.ma||{},dirc=r.direction==='TOP_FORMING'?'#ff6b6b':r.direction==='BOTTOM_FORMING'?'#3fd08c':'#8fa3c0';
+    var rib=[['20d',ma.d20],['50d',ma.d50],['100d',ma.d100],['200d',ma.d200]].map(function(p){
+      return p[1]==null?'':'<span style="border:1px solid #2a3140;border-radius:6px;padding:1px 7px;margin-right:6px;color:'+(p[1]>=0?'#3fd08c':'#ff6b6b')+'">'+p[0]+' '+(p[1]>0?'+':'')+p[1]+'%</span>'}).join('');
+    var spark='';
+    if(r.spk&&r.spk.length>3){var cs=r.spk,b=r.spk50||[],all=b.length?cs.concat(b):cs,mn=Math.min.apply(0,all),mx=Math.max.apply(0,all),W=170,H=36;
+      var pt=function(a){return a.map(function(v,i){return (i/(a.length-1)*W).toFixed(1)+','+(H-2-(v-mn)/((mx-mn)||1)*(H-4)).toFixed(1)}).join(' ')};
+      spark='<svg width="'+W+'" height="'+H+'" style="vertical-align:middle;margin-left:10px"><polygon points="0,'+H+' '+pt(cs)+' '+W+','+H+'" fill="'+dirc+'" opacity=".10"/>'+(b.length>3?'<polyline points="'+pt(b)+'" fill="none" stroke="#5d6b82" stroke-width="1" stroke-dasharray="3 3"/>':'')+'<polyline points="'+pt(cs)+'" fill="none" stroke="'+dirc+'" stroke-width="1.5"/></svg>';}
+    var sigs=(r.signals||[]).map(function(s){return '<div style="margin-top:3px"><b style="color:#e8ebf0">'+s.signal+'</b> '+s.detail+(s.bars_ago?' · '+s.bars_ago+' bars ago':'')+'</div>'}).join('');
+    bd.innerHTML='<div><span style="font-family:Fraunces,serif;font-size:22px;color:#e8ebf0">'+(r.reversal_score||0)+'</span>'
+      +(r.direction?' <span style="border:1px solid '+dirc+';color:'+dirc+';border-radius:999px;padding:2px 10px;margin-left:6px">'+r.direction+'</span>':'')
+      +(r.stage?' <span style="border:1px solid #2a3140;border-radius:999px;padding:2px 10px;margin-left:4px">'+r.stage+'</span>':'')
+      +(r.weekly_confirm?' <span style="color:#e8b34a;margin-left:4px">weekly ✓</span>':'')
+      +' <span style="margin-left:8px;color:#5d6b82">'+(r.prevailing_trend||'')+' trend · $'+r.close+'</span>'+spark+'</div>'
+      +'<div style="margin-top:8px">'+rib+'</div>'
+      +(sigs?'<div style="margin-top:8px;color:#9aa3b2">'+sigs+'</div>':'<div style="margin-top:8px;color:#5d6b82">no reversal tells firing &mdash; trend intact</div>')
+      +'<div style="margin-top:8px;font-size:11px;color:#5d6b82">from the Early Trend-Reversal Radar ('+(d.universe_n||'?')+' instruments) · <a href="/trend-reversal.html" style="color:#8fa3c0">open radar →</a></div>';
+  }catch(e){sec.style.display='';bd.textContent='radar unavailable: '+e;}
+}
 </script>
 </body>
 </html>
