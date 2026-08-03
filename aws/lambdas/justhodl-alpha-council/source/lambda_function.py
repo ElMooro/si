@@ -110,6 +110,8 @@ def lambda_handler(event=None, context=None):
         g0["w"] += 1 if w else 0
         if mv is not None:
             g0["mv"].append(mv)
+            if w:
+                g0.setdefault("wins", []).append(mv)
         if str(it.get("predicted_direction")
                or "UP").upper() == "DOWN":
             g0["dn"] += 1
@@ -140,8 +142,12 @@ def lambda_handler(event=None, context=None):
         lb = wilson_lb(g0["w"], g0["n"])
         if g0["n"] >= 10 and lb >= 55.0:
             wr = round(100.0 * g0["w"] / g0["n"], 1)
-            wins = [x for x in g0["mv"] if x is not None]
-            avg = round(sum(wins) / len(wins), 2) if wins else None
+            allmv = [x for x in g0["mv"] if x is not None]
+            avg = (round(sum(allmv) / len(allmv), 2)
+                   if allmv else None)
+            wmv = g0.get("wins") or []
+            avg_win = (round(sum(wmv) / len(wmv), 2)
+                       if wmv else None)
             regtab = {k: {"n": v["n"],
                           "win_pct": round(100.0 * v["w"]
                                            / v["n"], 1)}
@@ -188,6 +194,24 @@ def lambda_handler(event=None, context=None):
         if now_ep - ep > hz * 86400:
             continue
         pd = str(it.get("predicted_direction") or "UP").upper()
+        conf = F(it.get("confidence")) or 0.0
+        mag = F(it.get("predicted_magnitude_pct"))
+        cand = {"symbol": sym, "direction": pd,
+                "confidence": conf,
+                "logged_at": str(it.get("logged_at"))[:16],
+                "age_d": round((now_ep - ep) / 86400, 1),
+                "horizon_days": int(hz),
+                "expected_return_pct": (round(mag, 1)
+                                        if mag is not None
+                                        else None),
+                "expected_basis": ("logged"
+                                   if mag is not None
+                                   else "engine_avg_win")}
+        tc = c.get("_top")
+        if (tc is None or conf > tc["confidence"]
+                or (conf == tc["confidence"]
+                    and cand["age_d"] < tc["age_d"])):
+            c["_top"] = cand
         w0 = c["wilson_lb"] / 100.0 * (1.0 if rf is None
                                        else min(1.2, rf / 60.0))
         # ops 4339: ONE vote per engine per symbol -- independence
@@ -198,6 +222,15 @@ def lambda_handler(event=None, context=None):
             v0["by_eng"][e] = {"engine": e, "direction": pd,
                                "wilson_lb": c["wilson_lb"],
                                "regime_fit": rf, "w": w0}
+    for c in council:
+        tc = c.pop("_top", None)
+        if tc and tc["expected_return_pct"] is None:
+            aw = c.get("avg_win_move_pct")
+            if aw is not None:
+                tc["expected_return_pct"] = round(
+                    abs(aw) * (1 if tc["direction"] != "DOWN"
+                               else -1), 1)
+        c["top_call"] = tc
     consensus = []
     for sym, v0 in votes.items():
         evs = list(v0["by_eng"].values())
