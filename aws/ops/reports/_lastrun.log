@@ -1,8 +1,16 @@
-executing-against: 09d5058ef08e9fcb07a706c4d7ccff51625e73e6
-ops 4315 -- the wire, verified where it can be
-[04:44:32] fetched 26919 bytes
-[04:44:32] const HMODE @ 16067 · renderHeat sites @ [16466, 24398, 24420]
-[04:44:32] ✅ declaration precedes all 3 call sites -- TDZ dead on the wire
-[04:44:32] ✅ OPS 4315 PASS -- heatmap + grid render path clean
+executing-against: 1f084292c96acb59fc35b8bd3e9c050d53abf877
+ops 4316 -- the two engines, everywhere they belong
+── 1. best-setups carries the radar ──
+[14:49:18] ✅ annotated 44/50 setups · radar universe 636
+[14:49:18] CONFLICTS (bullish verdict vs top-forming): ['TSM']
+── 2. risk-gate collateral leg ──
+[14:49:36] ✅ collateral leg: score=None applied=none (band < STRAINED -- weights untouched)
+[14:49:36] why: rehypo unreadable: name 'BUCKET' is not defined
+[14:49:36] posture=NEUTRAL composite=-0.3
+── 3. why.html panel on edge ──
+[14:51:57] ✅ why.html panel LIVE (278145 bytes)
+── RESULT ──
+[14:51:57] ✗   collateral leg unreadable
 
-→ Report written to aws/ops/reports/latest/4315_runtime_seal.md
+→ Report written to aws/ops/reports/latest/4316_fanout.md
+❌ OPS-FAIL: aws/ops/pending/ops_4316_fanout.py
