@@ -109,3 +109,5 @@ with report("4312_reversal_pro") as r:
         r.ok("OPS 4312 PASS -- the radar reads like a product")
 if fails:
     sys.exit(1)
+
+# retrigger: page v3 landed (anchor drift fixed on second pass)
