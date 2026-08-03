@@ -45,7 +45,7 @@ FMP_BASE = "https://financialmodelingprep.com/stable"
 FMP_KEY = os.environ.get("FMP_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CACHE_PREFIX = "data/fundgraph/cache/"
-CACHE_VER = "v22"  # v22: FX normalization for foreign filers (ops 4324)  # v21: FULL history (statements to inception, price from 1962, deep NBER)  # v12: + earnings layer (report dates, beat/miss)
+CACHE_VER = "v23"  # v22: FX normalization for foreign filers (ops 4324)  # v21: FULL history (statements to inception, price from 1962, deep NBER)  # v12: + earnings layer (report dates, beat/miss)
 CACHE_TTL_SEC = int(os.environ.get("CACHE_TTL_SEC", 20 * 3600))
 MAX_Q = 220   # full history — matches FETCH_Q (ops 3518)
 MAX_A = 65
@@ -683,11 +683,9 @@ def build_doc(sym, period):
         raise RuntimeError(f"no income data for {sym}")
     est_rows = fetch_estimates(sym, period)
     profile = fetch_profile(sym)
-    _cur = ((profile or {}).get("currency") or "USD").upper()
-    _fx_at, _fx_last = fetch_fx_map(_cur)
-    if _cur != "USD":
-        print("[fx] %s normalization active, last rate %s"
-              % (_cur, _fx_last))
+    # ops 4324b: filing currency comes from the STATEMENTS
+    # (reportedCurrency); profile.currency is the ADR's listing
+    # currency and reads USD for TSM. FX init moves below, after R.
     daily_px, weekly_px, vol_px = fetch_price(sym)
     tech_doc = None
     try:
@@ -874,6 +872,10 @@ def build_doc(sym, period):
 
     sh_arr = [(r.get("shsDil") or r.get("shs")) for r in R]
     mcap, ev = [None] * n, [None] * n
+    _cur = ((next((x.get("reportedCurrency") for x in R if x.get("reportedCurrency")), None)) or ((profile or {}).get("currency")) or "USD").upper()
+    _fx_at, _fx_last = fetch_fx_map(_cur)
+    if _cur != "USD":
+        print("[fx] %s active, last rate %s" % (_cur, _fx_last))
     for i, r in enumerate(R):
         sh = sh_arr[i]
         px = price_at(daily_px, r["date"])
@@ -950,6 +952,7 @@ def build_doc(sym, period):
         "revenue", "costOfRevenue", "grossProfit", "rnd", "sgna", "opex",
         "operatingIncome", "ebitda", "interestExpense", "interestIncome",
         "pretaxIncome", "taxExpense", "netIncome", "eps", "epsDiluted",
+        "reportedCurrency",
         "shs", "shsDil",
         "cash", "sti", "cashSTI", "receivables", "inventory",
         "totalCurrentAssets", "ppeNet", "goodwill", "intangibles", "gwIntang",

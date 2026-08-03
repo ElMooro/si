@@ -59,3 +59,5 @@ with report("4324_fg_fx_seal") as r:
     r.ok("OPS 4324 PASS -- TSM finally charts like a 27x business")
 
 # retrigger: refresh=1 + CACHE_VER v22 (cached series was answering)
+
+# retrigger: reportedCurrency-derived FX (profile.currency was the ADR listing USD)
