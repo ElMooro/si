@@ -1,13 +1,15 @@
-executing-against: e55f7488603c4161fd20d546f572a8b62ce82b54
-ops 4334 -- the fingerprint becomes a tier
-[20:48:28] root: {"errorMessage": "name 's3' is not defined", "errorType": "NameError", "requestId": "ee88c82a-2dbf-4701-bf58-23cabf87fd13", "stackTrace": ["  File \"/var/task/l
-[20:48:28] AAPL: prime=None combo= archetype=None rc=None pct_all=None
-[20:48:28] GOOGL: prime=None combo= archetype=None rc=None pct_all=None
-[20:48:28] MSFT: prime=None combo= archetype=None rc=None pct_all=None
-[20:48:28] ✅ ORCL correctly not prime
+# ops 4334 -- the fingerprint becomes a tier
 
-→ Report written to aws/ops/reports/latest/4334_prime_convergence.md
+**Status:** failure  
+**Duration:** 2.7s  
+**Finished:** 2026-08-03T20:48:28+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4334_prime_convergence.py", line 74, in <module>
     pr = json.loads(s3.get_object(
                     ^^^^^^^^^^^^^^
@@ -20,4 +22,12 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
     raise error_class(parsed_response, operation_name)
 botocore.errorfactory.NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
-❌ OPS-FAIL: aws/ops/pending/ops_4334_prime_convergence.py
+
+```
+
+## Log
+- `20:48:28` root: {"errorMessage": "name 's3' is not defined", "errorType": "NameError", "requestId": "ee88c82a-2dbf-4701-bf58-23cabf87fd13", "stackTrace": ["  File \"/var/task/l
+- `20:48:28` AAPL: prime=None combo= archetype=None rc=None pct_all=None
+- `20:48:28` GOOGL: prime=None combo= archetype=None rc=None pct_all=None
+- `20:48:28` MSFT: prime=None combo= archetype=None rc=None pct_all=None
+- `20:48:28` ✅ ORCL correctly not prime
