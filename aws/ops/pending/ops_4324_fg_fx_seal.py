@@ -6,7 +6,7 @@ import boto3
 from ops_report import report
 lam = boto3.client("lambda", region_name="us-east-1")
 API = ("https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy"
-       ".lambda-url.us-east-1.on.aws/?symbol=%s&period=annual")
+       ".lambda-url.us-east-1.on.aws/?symbol=%s&period=annual&refresh=1")
 RUN_START = datetime.now(timezone.utc)
 def floor_ok():
     try:
@@ -33,7 +33,7 @@ def floor_ok():
     return False
 def pe_last(sym):
     d = json.loads(urllib.request.urlopen(API % sym,
-                                          timeout=60).read())
+                                          timeout=90).read())
     pts = ((d.get("points") or {}).get("pe_ttm")) or []
     return d, pts[-6:]
 fails = []
@@ -57,3 +57,5 @@ with report("4324_fg_fx_seal") as r:
             r.fail("  %s" % f)
         sys.exit(1)
     r.ok("OPS 4324 PASS -- TSM finally charts like a 27x business")
+
+# retrigger: refresh=1 + CACHE_VER v22 (cached series was answering)
