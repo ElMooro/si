@@ -573,6 +573,7 @@ function renderReport(d){
   html += renderPriceChart(d);          // price history + PT / fair-value bands
   html += renderTechnicals(d);          // v2: full TA — MAs, Bollinger, RSI, MACD, volume
   html += renderMomentum(d);            // v2.1: explicit momentum reads + 50/200 golden-death cross
+  html += '<section class="block" id="jh-fleetboard" style="display:none"><div class="sub"><span class="ico">≡</span> Fleet Decision Board &mdash; every engine\'s read on this name</div><div id="jh-fleetboard-body" style="font-family:var(--mono,monospace);font-size:12px;color:var(--fg3,#5d6b82)">joining the fleet&hellip;</div></section>';
   html += '<section class="block" id="jh-reversal" style="display:none"><div class="sub"><span class="ico">~</span> Trend &amp; Reversal &mdash; where this name stands on every timeframe</div><div id="jh-reversal-body" style="font-family:var(--mono,monospace);font-size:12px;color:var(--fg3,#5d6b82)">reading the radar&hellip;</div></section>';
   html += '<section class="block" id="jh-conviction"><div class="sub"><span class="ico">::</span> Fleet Conviction &mdash; what every system says about this name</div><div style="color:var(--fg3,#5d6b82);font-family:var(--mono,monospace);font-size:11px">composing live boards&hellip;</div></section>';
   html += '<div id="jh-rspair"></div>';
@@ -616,6 +617,8 @@ function renderReport(d){
   html += renderMeta(d);
   $("content").innerHTML = html;
   try { composeReversal(ticker); } catch(e) { console.warn("reversal panel:", e); }
+  try { composeFleetBoard(ticker); } catch(e) { console.warn("fleet board:", e); }
+  try { fixInstCounts(ticker); } catch(e) {}
 
   // Kick off async insider data fetch (non-blocking — paints when ready)
   if(d.ticker){
@@ -4169,8 +4172,7 @@ async function composeReversal(ticker){
       +'<div style="margin-top:8px">'+rib+'</div>'
       +(sigs?'<div style="margin-top:8px;color:#9aa3b2">'+sigs+'</div>':'<div style="margin-top:8px;color:#5d6b82">no reversal tells firing &mdash; trend intact</div>')
       +'<div style="margin-top:8px;font-size:11px;color:#5d6b82">from the Early Trend-Reversal Radar ('+(d.universe_n||'?')+' instruments) · <a href="/trend-reversal.html" style="color:#8fa3c0">open radar →</a></div>';
-    var mo=document.getElementById('jh-momo-reversal');
-    if(mo){
+    fillWhenReady('jh-momo-reversal',40,function(mo){
       if(r&&r.direction&&(r.reversal_score||0)>=15){
         var mc=r.direction==='TOP_FORMING'?'#ff6b6b':'#3fd08c';
         mo.innerHTML='<span style="border:1px solid '+mc+';color:'+mc+';border-radius:999px;padding:2px 10px">'
@@ -4181,8 +4183,88 @@ async function composeReversal(ticker){
       } else {
         mo.innerHTML='<span style="color:#5d6b82">reversal radar: ticker outside universe</span>';
       }
-    }
+    });
   }catch(e){sec.style.display='';bd.textContent='radar unavailable: '+e;}
+}
+
+/* ops 4318 — shared resilient fill (async composers build sections late) */
+function fillWhenReady(id,tries,fn){var el=document.getElementById(id);
+  if(el){try{fn(el)}catch(e){console.warn(id,e)}return;}
+  if(tries>0)setTimeout(function(){fillWhenReady(id,tries-1,fn)},400);}
+
+/* ops 4318 — ownership-count honesty: counts were tracked TOP MOVERS,
+   not a census; render them as what they are, from 13f-flows-by-ticker */
+async function fixInstCounts(t){
+  try{
+    var tf=await gj9('data/13f-flows-by-ticker.json');
+    var f=(((tf||{}).t)||{})[String(t).toUpperCase()];
+    var labels=document.querySelectorAll('#content *');
+    var hitB=null,hitS=null;
+    for(var i=0;i<labels.length;i++){var tx=(labels[i].textContent||'').trim();
+      if(tx==='INSTITUTIONS BUYING')hitB=labels[i];
+      if(tx==='INSTITUTIONS SELLING')hitS=labels[i];}
+    function setv(lbl,val,note){if(!lbl)return;var v=lbl.nextElementSibling||lbl.parentElement.querySelector('div:last-child');
+      if(v){v.innerHTML=val+(note?' <span style="font-size:10px;color:#5d6b82">'+note+'</span>':'');}}
+    if(!f){setv(hitB,'n/a','(not in 13F flow feed)');setv(hitS,'n/a','(not in 13F flow feed)');return;}
+    var nb=(f.fb||[]).length,ns=(f.fs||[]).length;
+    setv(hitB,String(nb),'tracked top movers');
+    if(ns>0)setv(hitS,String(ns),'tracked top movers');
+    else if((f.s||0)>0)setv(hitS,'≥1','$-selling present; seller names below top-mover cut');
+    else setv(hitS,'0','no tracked $-selling this quarter');
+    if(hitS&&hitS.parentElement){var pe=hitS.parentElement.parentElement||hitS.parentElement;
+      if(!document.getElementById('jh-inst-note')){var d2=document.createElement('div');d2.id='jh-inst-note';
+        d2.style.cssText='grid-column:1/-1;font-size:10.5px;color:#5d6b82;margin-top:4px;font-family:var(--mono,monospace)';
+        d2.textContent='counts = tracked top movers in the 13F complex feed; full $ deltas in Dollar Flows below ('+(f.nf||0)+' funds hold)';
+        pe.appendChild(d2);}}
+  }catch(e){console.warn('fixInstCounts',e);}
+}
+
+/* ops 4318 — Fleet Decision Board: setups + backtest + industry boom +
+   short interest + congress, joined live per ticker, honest n/a lines */
+async function composeFleetBoard(ticker){
+  var T=String(ticker).toUpperCase();
+  fillWhenReady('jh-fleetboard-body',40,async function(bd){
+    var sec=document.getElementById('jh-fleetboard');
+    try{
+      var r=await Promise.all([gj9('data/best-setups.json'),gj9('data/industry-boom.json'),gj9('data/short-interest.json'),gj9('data/congress-direct.json'),gj9('data/signal-backtest.json')]);
+      var bs=r[0]||{},ib=r[1]||{},si=r[2]||{},cg=r[3]||{},bt=r[4]||{};
+      var lines=[];
+      var srow=(bs.top_setups||[]).find(function(x){return String(x.ticker||'').toUpperCase()===T});
+      if(srow){var idx=(bs.top_setups||[]).indexOf(srow)+1;
+        var win=null;try{var bv=bt.by_verdict||{};var vu=String(srow.verdict||'').toUpperCase();
+          win=(bv[vu]||{}).win_rate;if(win==null){for(var k in bv){if(k.toUpperCase().split(' ')[0]===vu.split(' ')[0]){win=bv[k].win_rate;break;}}}}catch(e){}
+        lines.push('<div><b style="color:#e8ebf0">BEST-SETUPS</b> — rank #'+idx+'/50 · <span style="color:#3fd08c">'+E9(srow.verdict||'')+'</span>'
+          +(srow.conviction!=null?' · conviction '+srow.conviction:'')
+          +(win!=null?' · <span title="historical win-rate of this verdict class (signal-backtest)">verdict hist win '+win+'%</span>':'')
+          +(srow.reversal_conflict?'<br><span style="color:#ff6b6b">⚠ CONFLICT: '+E9(srow.reversal_conflict)+'</span>':'')
+          +(srow.why?'<br><span style="color:#9aa3b2">'+E9(String(srow.why).slice(0,180))+'</span>':'')
+          +' <a href="/best-setups.html" style="color:#8fa3c0">board →</a></div>');
+      } else lines.push('<div><b style="color:#e8ebf0">BEST-SETUPS</b> — not in the current top-50 (no forced narrative)</div>');
+      var sector=(srow&&(srow.sector||srow.industry))||null;
+      if(sector){var lg=(ib.league||[]);var hitI=null,su=String(sector).toUpperCase();
+        for(var i=0;i<lg.length;i++){var nm=String(lg[i].industry||lg[i].sector||'').toUpperCase();
+          if(nm===su||nm.indexOf(su)>=0||su.indexOf(nm)>=0){hitI=lg[i];break;}}
+        if(hitI)lines.push('<div><b style="color:#e8ebf0">INDUSTRY BOOM</b> — '+E9(hitI.industry||hitI.sector)+' score '+(hitI.boom_score!=null?hitI.boom_score:hitI.score)+'</div>');
+      }
+      var sirow=null;(function scan(o,d){if(sirow||d>3||o==null)return;
+        if(Array.isArray(o)&&o.length&&typeof o[0]==='object'){for(var i=0;i<o.length;i++){if(String(o[i].ticker||o[i].symbol||'').toUpperCase()===T){sirow=o[i];return;}}}
+        if(typeof o==='object'){for(var k in o){scan(o[k],d+1);if(sirow)return;}}})(si,0);
+      if(sirow){var siv=sirow.short_interest||sirow.shortInterest||sirow.si,d2c=sirow.days_to_cover||sirow.daysToCover,fp=sirow.pct_float||sirow.short_pct_float||sirow.percentOfFloat;
+        lines.push('<div><b style="color:#e8ebf0">SHORT INTEREST</b> — '+(siv!=null?Number(siv).toLocaleString()+' sh':'')+(fp!=null?' · '+fp+'% float':'')+(d2c!=null?' · '+Number(d2c).toFixed(1)+'d to cover':'')+' <span style="color:#5d6b82">(FINRA settlement)</span></div>');
+      } else lines.push('<div><b style="color:#e8ebf0">SHORT INTEREST</b> — no FINRA row for this name</div>');
+      var trades=[];(function scanC(o,d){if(d>3||o==null)return;
+        if(Array.isArray(o)&&o.length&&typeof o[0]==='object'&&('ticker' in o[0]||'symbol' in o[0])){for(var i=0;i<o.length;i++){if(String(o[i].ticker||o[i].symbol||'').toUpperCase()===T)trades.push(o[i]);}return;}
+        if(typeof o==='object'){for(var k in o){scanC(o[k],d+1);}}})(cg,0);
+      if(trades.length){trades.sort(function(a,b){return String(b.date||b.tx_date||'').localeCompare(String(a.date||a.tx_date||''))});
+        var tt=trades.slice(0,3).map(function(x){var side=String(x.side||x.type||x.transaction||'');
+          return '<span style="color:'+(/BUY|PURCHASE/i.test(side)?'#3fd08c':/SELL|SALE/i.test(side)?'#ff6b6b':'#9aa3b2')+'">'+E9(side||'?')+'</span> '+E9(x.member||x.name||x.representative||'?')+' '+E9(String(x.date||x.tx_date||'').slice(0,10))}).join(' · ');
+        lines.push('<div><b style="color:#e8ebf0">CONGRESS</b> — '+trades.length+' official filing'+(trades.length>1?'s':'')+': '+tt+' <span style="color:#5d6b82">(Senate eFD + House Clerk)</span></div>');
+      } else lines.push('<div><b style="color:#e8ebf0">CONGRESS</b> — no official House/Senate filings on this name</div>');
+      sec.style.display='';
+      bd.innerHTML=lines.map(function(l){return '<div style="margin-top:7px">'+l+'</div>'}).join('')
+        +'<div style="margin-top:9px;font-size:10.5px;color:#5d6b82">each line joined live from its engine\\u2019s own artifact — nothing cached, nothing invented; absent = honestly absent</div>';
+    }catch(e){sec.style.display='';bd.textContent='fleet join failed: '+e;}
+  });
 }
 </script>
 </body>
