@@ -1,14 +1,17 @@
-executing-against: f848e51bc47264993c41d4d4ed76a3089aca5dc3
-ops 4310 -- reversal, exponentially
-[02:42:20] root: {"ok": true, "chained": 110, "of": 615}
-[02:43:05] ✅ UNIVERSE 600 · hot 100 · breadth top 14.8% / bottom 13.7%
-[02:43:05] stages: {'EARLY': 221, 'DEVELOPING': 92, 'CONFIRMED': 73}
-[02:43:05] sectors (12): [('Utilities', 31.2, 12.5), ('Technology', 23.2, 15.8), ('Energy', 38.1, 0.0), ('Consumer Cyclical', 11.1, 24.1), ('Industrials', 19.2, 9.6), ('Basic Materials', 22.7, 4.5)]
-[02:43:05] top5: [('WY', 71.2, 'CONFIRMED', True), ('HUM', 63.8, 'CONFIRMED', True), ('APO', 59.7, 'CONFIRMED', True), ('NTAP', 53.8, 'DEVELOPING', True), ('SHOP', 53.0, 'CONFIRMED', True)]
-[02:43:05] movers: []
-[02:43:05] weekly-confirm present on >=1 name: True
-[02:43:05] ✅ page v2 LIVE (13087 bytes)
+executing-against: 8df31b9e60a79ecf4e2b29480b8c7f407f5c64ad
+ops 4312 -- radar, finished
+[03:18:27] root: {"ok": true, "chained": 110, "of": 615}
+[03:19:12] ✅ UNIVERSE 600 · hot 99 · movers [('EURUSD', -17.6)]
+[03:19:12] spk lens (top5): [24, 24, 24, 24, 24]
+[03:19:12] sector tiles: ['CRYPTO', 'Utilities', 'Technology', 'Energy', 'Consumer Cyclical', 'Industrials', 'Basic Materials', 'ETF', 'Communication Services', 'Healthcare', 'Consumer Defensive', 'Financial Services', 'FX', 'Real Estate', 'SP500', 'FUTURES']
 ── RESULT ──
-[02:43:05] ✅ OPS 4310 PASS -- reversal radar at census scale
+[03:23:13] ✗   edge missing thermo
+[03:23:13] ✗   edge missing ghist
+[03:23:13] ✗   edge missing sprkSVG
+[03:23:13] ✗   edge missing table view
+[03:23:13] ✗   edge missing ⬇ CSV
+[03:23:13] ✗   edge missing secbar
+[03:23:13] ✗   edge missing why.html?t=
 
-→ Report written to aws/ops/reports/latest/4310_reversal_v2.md
+→ Report written to aws/ops/reports/latest/4312_reversal_pro.md
+❌ OPS-FAIL: aws/ops/pending/ops_4312_reversal_pro.py
