@@ -32,10 +32,13 @@ import boto3
 
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/treasury-rehypo.json"
+LONG_KEY = "data/treasury-rehypo-long.json"
+ERA_ORDER = ["SBP2001", "SBP2013", "SBN2013", "SBN2015", "SBN2022",
+             "SBN2024"]
 FRED_KEY = os.environ.get("FRED_API_KEY") or os.environ.get("FRED_KEY", "")
 UA = {"User-Agent": "JustHodl-research/1.0 (github.com/ElMooro)"}
 s3 = boto3.client("s3", region_name="us-east-1")
-VERSION = "1.1"
+VERSION = "1.2"
 
 
 def http_json(url, timeout=40, gz=False):  # gz kept for signature
@@ -89,6 +92,32 @@ def nyfed_series(keyid, sb, n=140):
             continue
     out.sort()
     return out[-n:]
+
+
+def stitch(per_break):
+    """Concatenate era segments; on overlap dates the LATEST break
+    wins (breaks are sequential FR2004 format regimes)."""
+    acc = {}
+    for sb in ERA_ORDER:
+        for d, v in per_break.get(sb, []):
+            acc[d] = v
+    return sorted(acc.items())
+
+
+def rolling_z(series, win=156):
+    out = []
+    vals = [v for _, v in series]
+    for i, (d, v) in enumerate(series):
+        lo = max(0, i - win + 1)
+        xs = vals[lo:i + 1]
+        if len(xs) < 26:
+            out.append((d, None))
+            continue
+        mu = sum(xs) / len(xs)
+        sd = math.sqrt(sum((x - mu) ** 2 for x in xs) / len(xs)) \
+            or 1e-9
+        out.append((d, round((v - mu) / sd, 2)))
+    return out
 
 
 def sum_series(list_of_series):
@@ -363,6 +392,117 @@ def lambda_handler(event=None, context=None):
     s3.put_object(Bucket=BUCKET, Key="data/treasury-rehypo-history.json",
                   Body=json.dumps(h).encode(),
                   ContentType="application/json")
+    # ── ops 4306: long history (target 1996; actual start disclosed)
+    try:
+        def agg_long(pairs_all, must, forbid, per_break_cap=4):
+            per_break = {}
+            for sb in ERA_ORDER:
+                rows_ = [c for c in cat if c["sb"] == sb
+                         and all(m in c["desc"] for m in must)
+                         and not any(f in c["desc"] for f in forbid)]
+                ss = []
+                for c in rows_[:per_break_cap]:
+                    try:
+                        s_ = nyfed_series(c["keyid"], sb, n=2000)
+                        if s_:
+                            ss.append(s_)
+                    except Exception:
+                        continue
+                if ss:
+                    per_break[sb] = sum_series(ss)
+            return stitch(per_break), {sb: len(v) for sb, v in
+                                       per_break.items()}
+        f_long, f_cov = agg_long(None, ("FAIL", "TREASUR"),
+                                 ("MBS", "AGENCY", "CORPORATE"))
+        in_long, i_cov = agg_long(None, ("REVERSE REPURCHASE",),
+                                  ("MBS", "AGENCY", "CORPORATE"))
+        out_long, o_cov = agg_long(None, ("REPURCHASE",),
+                                   ("REVERSE", "MBS", "AGENCY",
+                                    "CORPORATE"))
+        pos_long, p_cov = agg_long(None, ("TREASUR", "NET"),
+                                   ("MBS", "AGENCY", "FORWARD",
+                                    "FAIL", "REPURCHASE"))
+        gross_l = sum_series([x for x in (in_long, out_long) if x])
+        vel_l = []
+        if gross_l and pos_long:
+            gd, pd_ = dict(gross_l), dict(pos_long)
+            vel_l = [(d, gd[d] / abs(pd_[d]))
+                     for d in sorted(set(gd) & set(pd_))
+                     if abs(pd_[d]) > 1e-6]
+        legs_long = {}
+        if f_long:
+            legs_long["fails"] = rolling_z(f_long)
+        if vel_l:
+            legs_long["velocity"] = rolling_z(vel_l)
+        # modern legs, full length where the data exists
+        try:
+            sofr_f, iorb_f = fred_series("SOFR", 99999), \
+                fred_series("IORB", 99999)
+            sd2, id2 = dict(sofr_f), dict(iorb_f)
+            sp2 = [(d, (sd2[d] - id2[d]) * 100)
+                   for d in sorted(set(sd2) & set(id2))]
+            if sp2:
+                legs_long["sofr_iorb"] = rolling_z(sp2)
+        except Exception:
+            pass
+        try:
+            rrp_f = fred_series("RRPONTSYD", 99999)
+            if len(rrp_f) > 25:
+                dl = [(rrp_f[i][0], rrp_f[i][1] - rrp_f[i - 20][1])
+                      for i in range(20, len(rrp_f))]
+                legs_long["rrp_drain_4w"] = rolling_z(dl)
+        except Exception:
+            pass
+        # weekly composite over PRESENT legs per date
+        allz = {}
+        for name, ts in legs_long.items():
+            sgn = SIGN.get(name, 0)
+            if not sgn:
+                continue
+            for d, z in ts:
+                if z is None:
+                    continue
+                allz.setdefault(d, {})[name] = sgn * z
+        weekly = []
+        for d in sorted(allz):
+            zz = list(allz[d].values())
+            cmp_ = round(min(100, max(0, 50 + 12.5 *
+                                      (sum(zz) / len(zz)))), 1)
+            weekly.append({"d": d, "c": cmp_, "n": len(zz),
+                           "z": {k: round(v, 2) for k, v in
+                                 allz[d].items()}})
+        weekly = weekly[-1600:]
+        long_doc = {
+            "engine": "justhodl-treasury-rehypo",
+            "version": VERSION,
+            "generated_at": out["generated_at"],
+            "target_start": "1996-01-01",
+            "actual_start": weekly[0]["d"] if weekly else None,
+            "n_weekly": len(weekly),
+            "era_coverage": {"fails": f_cov, "financing_in": i_cov,
+                             "financing_out": o_cov,
+                             "positions": p_cov},
+            "legs_available": {k: {"from": v[0][0],
+                                   "to": v[-1][0]}
+                               for k, v in legs_long.items() if v},
+            "weekly": weekly,
+            "note": ("Composite per week over legs PRESENT that "
+                     "week (era-renormalized rolling-156w z). "
+                     "FR2004 stitched across seriesbreaks, latest "
+                     "break wins on overlap; pre-API history does "
+                     "not exist through this endpoint and is shown "
+                     "as absent, never interpolated.")}
+        s3.put_object(Bucket=BUCKET, Key=LONG_KEY,
+                      Body=json.dumps(long_doc).encode(),
+                      ContentType="application/json",
+                      CacheControl="public, max-age=3600")
+        out["long_history"] = {"actual_start": long_doc[
+            "actual_start"], "n_weekly": len(weekly)}
+        notes.append(f"long: {long_doc['actual_start']} -> "
+                     f"{len(weekly)}w")
+    except Exception as e:
+        notes.append(f"long-history: {str(e)[:90]}")
+
     print(f"[rehypo] composite={comp} {band} legs={list(legs)} "
           f"missing={len(missing)} {out['elapsed_s']}s")
     return {"ok": True, "composite": comp, "band": band,
