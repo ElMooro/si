@@ -44,6 +44,7 @@ with report("4337_leaderboard_live") as r:
                                    "%Y-%m-%dT%H:%M:%S").replace(
                 tzinfo=timezone.utc)
             if c.get("LastUpdateStatus") in (None, "Successful") \
+                    and c.get("State") in (None, "Active") \
                     and lm >= fl:
                 ok = True
                 break
@@ -76,8 +77,18 @@ with report("4337_leaderboard_live") as r:
             r.ok("daily cadence installed: 23:40 UTC")
         except Exception as e:
             fails.append("cadence: %s" % str(e)[:80])
-        lam.invoke(FunctionName="justhodl-engine-leaderboard",
-                   InvocationType="RequestResponse", Payload=b"{}")
+        for _try in range(6):
+            try:
+                lam.invoke(
+                    FunctionName="justhodl-engine-leaderboard",
+                    InvocationType="RequestResponse",
+                    Payload=b"{}")
+                break
+            except Exception as _e:
+                if "Pending" in str(_e) and _try < 5:
+                    time.sleep(20)
+                    continue
+                raise
         d = json.loads(s3.get_object(
             Bucket=B, Key="data/engine-leaderboard.json"
         )["Body"].read())
@@ -138,3 +149,5 @@ with report("4337_leaderboard_live") as r:
         sys.exit(1)
     r.ok("OPS 4337 PASS -- the fleet grades itself daily, in "
          "public, with the whole distribution on the table")
+
+# retrigger: State=Active floor + pending-retry invoke
