@@ -1,0 +1,52 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Engine Leaderboard — JustHodl.AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>:root{--bg:#0a0d12;--bg1:#10141b;--bg2:#161b24;--brd:#232a36;--tx:#e8ebf0;--tx2:#9aa3b2;--acc:#e8b34a;--buy:#3fd08c;--avd:#ff6b6b;--mono:"IBM Plex Mono",monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px var(--mono)}a{color:inherit}
+.wrap{max-width:1200px;margin:0 auto;padding:18px}h1{font-family:Fraunces,serif;font-size:30px;margin:6px 0 2px}
+.sub{color:var(--tx2);font-size:12.5px}
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0}
+.stat{background:var(--bg1);border:1px solid var(--brd);border-radius:14px;padding:14px}
+.stat b{font-family:Fraunces,serif;font-size:28px;color:var(--acc)}
+.hist{display:flex;align-items:flex-end;gap:6px;height:120px;margin:10px 0 4px}
+.hist div{flex:1;background:var(--acc);opacity:.85;border-radius:4px 4px 0 0;position:relative}
+.hist span{position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:10px;color:var(--tx2)}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
+th,td{border-bottom:1px solid var(--brd);padding:7px 8px;text-align:left;white-space:nowrap;color:var(--tx2)}th{color:var(--tx);cursor:pointer}td a{color:var(--tx);text-decoration:none}
+h2{font-family:Fraunces,serif;margin:22px 0 4px}
+.g{color:var(--buy)}.r{color:var(--avd)}
+.note{font-size:12px;color:var(--tx2);margin:8px 0}
+.btn{border:1px solid var(--brd);background:var(--bg2);color:var(--tx2);border-radius:8px;padding:4px 11px;font:12px var(--mono);cursor:pointer}
+</style></head><body><div class="wrap">
+<div class="sub"><a href="/" style="text-decoration:none">← JUSTHODL·AI</a></div>
+<h1>Engine Leaderboard</h1>
+<div class="sub">Every engine's logged calls, graded per-window against real prices by the fleet signals loop — the system judging itself, daily. Extremes mislead; the distribution is the truth.</div>
+<div class="hero" id="hero"></div>
+<h2>Win-rate distribution (engines, n≥5)</h2>
+<div class="hist" id="hist"></div>
+<div class="note">Reading guide: DOWN-predictors show <i>negative</i> avg moves when correct (they called the drop). ≥55% directional at real n is institutionally tradeable; the play is weight the right tail, sign-flip-test or retire the left.</div>
+<h2 class="g">Top success engines</h2><div style="overflow-x:auto"><table id="top"></table></div>
+<h2 class="r">Top failure engines</h2><div style="overflow-x:auto"><table id="bot"></table></div>
+<h2>Full board <button class="btn" id="csv">⬇ CSV</button> <span class="sub" id="cnt"></span></h2>
+<div style="overflow-x:auto"><table id="all"></table></div>
+<div class="sub" style="margin-top:14px">Artifact: <a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/engine-leaderboard.json">engine-leaderboard.json</a> · regenerates daily from dynamodb:justhodl-signals · min n=5.</div>
+<script>
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const row=x=>`<tr><td><a href="${esc(x.link)}" target="_blank">${esc(x.engine)}</a></td><td style="color:${x.win_pct>=55?"var(--buy)":x.win_pct<=45?"var(--avd)":"var(--tx)"}">${x.win_pct}%</td><td>${x.n}</td><td>${x.avg_move_pct??""}</td></tr>`;
+const HDR="<tr><th>engine</th><th>win%</th><th>n</th><th>avg move %</th></tr>";
+(async()=>{const d=await (await fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/engine-leaderboard.json?ts="+Date.now(),{cache:"no-store"})).json();
+const D=d.distribution||{};
+document.getElementById("hero").innerHTML=`
+ <div class="stat"><b>${D.pooled_win_pct??"—"}%</b><div class="sub">pooled win-rate · ${d.n_graded} graded calls</div></div>
+ <div class="stat"><b>${D.median_engine_win_pct??"—"}%</b><div class="sub">median engine win-rate</div></div>
+ <div class="stat"><b>${D.engines_ge_55_pct??"—"}</b><div class="sub">engines ≥55% (${D.engines_ge_55_share??"—"}% of ${d.n_engines})</div></div>
+ <div class="stat"><b>${d.n_engines}</b><div class="sub">engines graded (n≥5) · ${(d.generated_at||"").slice(0,10)}</div></div>`;
+const H=D.histogram||{};const mx=Math.max(...Object.values(H),1);
+document.getElementById("hist").innerHTML=Object.entries(H).map(([b,v])=>`<div style="height:${Math.max(3,100*v/mx)}%" title="${b}%: ${v} engines"><span>${b.split("-")[0]}</span></div>`).join("");
+document.getElementById("top").innerHTML=HDR+(d.top||[]).map(row).join("");
+document.getElementById("bot").innerHTML=HDR+(d.bottom||[]).map(row).join("");
+const all=(d.board||[]);document.getElementById("all").innerHTML=HDR+all.map(row).join("");
+document.getElementById("cnt").textContent=all.length+" engines";
+document.getElementById("csv").onclick=()=>{const cs=["engine,win_pct,n,avg_move_pct,link"].concat(all.map(x=>[x.engine,x.win_pct,x.n,x.avg_move_pct,x.link].join(","))).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([cs],{type:"text/csv"}));a.download="engine-leaderboard.csv";a.click();};
+})();
+</script></div></body></html>
