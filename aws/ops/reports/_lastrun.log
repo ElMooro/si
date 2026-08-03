@@ -1,8 +1,15 @@
-executing-against: e51530c0d74446b9fc02915b94d8f95e3a2c997d
-ops 4309 -- the whole engine on the page
-[01:46:48] long: start 2013-04-05 · 1340 wk · legs_available=['fails', 'velocity', 'sofr_iorb', 'rrp_drain_4w']
-[01:46:48] z-sample 2026-07-22: {'fails': -0.43, 'velocity': -0.42}
-[01:49:09] ✅ page v3 LIVE (18836 bytes) -- all markers
-[01:49:09] ✅ OPS 4309 PASS
+executing-against: ff2c10e530a32fe610a83c44f5d7bc413d977e17
+ops 4310 -- reversal, exponentially
+[01:59:33] root: {"ok": true, "final": true, "n": 54, "hot": 14, "breadth": {"n": 54, "top_pct": 16.7, "bottom_pct": 14.8, "note": "share of universe with score>=20 by direction
+[02:10:00] ✅ UNIVERSE 54 · hot 14 · breadth top 16.7% / bottom 14.8%
+[02:10:00] stages: {'EARLY': 17, 'DEVELOPING': 4, 'CONFIRMED': 11}
+[02:10:00] sectors (3): [('Healthcare', 0.0, 66.7), ('—', 17.5, 15.0), ('Technology', 28.6, 0.0)]
+[02:10:00] top5: [('XOP', 50.0, 'DEVELOPING', False), ('EWJ', 50.0, 'CONFIRMED', True), ('BSX', 47.5, 'CONFIRMED', True), ('GILD', 41.2, 'CONFIRMED', True), ('NVDA', 39.1, 'CONFIRMED', True)]
+[02:10:00] movers: []
+[02:10:00] weekly-confirm present on >=1 name: True
+── RESULT ──
+[02:10:00] ✗   universe 54 < 420
+[02:10:00] ✗   sectors 3 < 8
 
-→ Report written to aws/ops/reports/latest/4309_page_v3.md
+→ Report written to aws/ops/reports/latest/4310_reversal_v2.md
+❌ OPS-FAIL: aws/ops/pending/ops_4310_reversal_v2.py
