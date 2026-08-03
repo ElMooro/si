@@ -3016,7 +3016,7 @@ window.renderMomentum=function(d){
   if(gx!=null)xr='<b style="color:#26ffaf" title="SMA50 crossed above SMA200 &mdash; Stage-2 institutional trend confirmation">GOLDEN CROSS '+gx+' session'+(gx>1?'s':'')+' ago</b>';
   else if(dx!=null)xr='<b style="color:#ff5577" title="SMA50 crossed below SMA200 &mdash; the downtrend is structural">DEATH CROSS '+dx+' session'+(dx>1?'s':'')+' ago</b>';
   else xr='<span style="color:var(--fg3,#5d6b82)">no 50/200 cross in the last 60 sessions</span>';
-  h+='<div style="background:var(--bg1,#10151f);border:1px solid var(--border,#1d2636);border-radius:10px;padding:9px 13px"><div style="font-size:9.5px;letter-spacing:1px;color:var(--fg3,#5d6b82);text-transform:uppercase">Trend &amp; 50/200 cross</div><div style="font-size:12px;margin-top:3px">'+trend.join(' &middot; ')+'<br>'+xr+'</div></div>';
+  h+='<div style="background:var(--bg1,#10151f);border:1px solid var(--border,#1d2636);border-radius:10px;padding:9px 13px"><div style="font-size:9.5px;letter-spacing:1px;color:var(--fg3,#5d6b82);text-transform:uppercase">Trend &amp; 50/200 cross</div><div id="jh-momo-reversal" style="margin-top:6px;font-family:var(--mono,monospace);font-size:12px"></div><div style="font-size:12px;margin-top:3px">'+trend.join(' &middot; ')+'<br>'+xr+'</div></div>';
   var ds=(t.series.dates||[]);var lastD=ds.length?String(ds[ds.length-1]).slice(0,10):null;
   var staleS='';
   if(lastD){var ageD=(Date.now()-new Date(lastD+'T00:00:00Z').getTime())/864e5;
@@ -4169,6 +4169,19 @@ async function composeReversal(ticker){
       +'<div style="margin-top:8px">'+rib+'</div>'
       +(sigs?'<div style="margin-top:8px;color:#9aa3b2">'+sigs+'</div>':'<div style="margin-top:8px;color:#5d6b82">no reversal tells firing &mdash; trend intact</div>')
       +'<div style="margin-top:8px;font-size:11px;color:#5d6b82">from the Early Trend-Reversal Radar ('+(d.universe_n||'?')+' instruments) · <a href="/trend-reversal.html" style="color:#8fa3c0">open radar →</a></div>';
+    var mo=document.getElementById('jh-momo-reversal');
+    if(mo){
+      if(r&&r.direction&&(r.reversal_score||0)>=15){
+        var mc=r.direction==='TOP_FORMING'?'#ff6b6b':'#3fd08c';
+        mo.innerHTML='<span style="border:1px solid '+mc+';color:'+mc+';border-radius:999px;padding:2px 10px">'
+          +(r.direction==='TOP_FORMING'?'▼ TOP FORMING':'▲ BOTTOM FORMING')+'</span>'
+          +' <span style="color:#9aa3b2">'+(r.stage||'')+' · score '+(r.reversal_score||0)+(r.weekly_confirm?' · weekly ✓':'')+' — from the reversal radar</span>';
+      } else if(r){
+        mo.innerHTML='<span style="color:#5d6b82">no top/bottom forming — trend intact per the '+(d.universe_n||'')+'-name reversal radar</span>';
+      } else {
+        mo.innerHTML='<span style="color:#5d6b82">reversal radar: ticker outside universe</span>';
+      }
+    }
   }catch(e){sec.style.display='';bd.textContent='radar unavailable: '+e;}
 }
 </script>
