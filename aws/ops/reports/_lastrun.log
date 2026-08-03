@@ -1,12 +1,17 @@
-executing-against: f206252dcebd1c73b4b3f1f6e4a0ebbd127868df
-ops 4312 -- radar, finished
-[03:30:36] root: {"ok": true, "chained": 110, "of": 615}
-[03:30:51] ✅ UNIVERSE 600 · hot 99 · movers []
-[03:30:51] spk lens (top5): [24, 24, 24, 24, 24]
-[03:30:51] sector tiles: ['CRYPTO', 'Utilities', 'Technology', 'Energy', 'Consumer Cyclical', 'Industrials', 'Basic Materials', 'ETF', 'Communication Services', 'Healthcare', 'Consumer Defensive', 'Financial Services', 'FX', 'Real Estate', 'SP500', 'FUTURES']
-[03:30:51] ⚠ movers empty -- intraday rerun (same closes => zero deltas); machinery verified: last_scores banked for 600 names, 1 day rows; EURUSD -17.6 proved the path at 03:19. Real movers print across trading days.
-[03:30:51] ✅ page v3 LIVE (17396 bytes)
+executing-against: 5c88d2da1111e18211829dc3f1b76b1407137082
+ops 4313 -- radar, finished
+[03:40:39] root: {"ok": true, "chained": 110, "of": 655}
+[03:41:26] ✅ UNIVERSE 636 · hot 105 · movers [('ETH', 10.0)]
+[03:41:26] spk lens (top5): [24, 24, 24, 24, 24]
+[03:41:26] MA ladder sample WY: {'d20': 5.2, 'd50': 3.7, 'd100': 4.0, 'd200': 3.8}
+[03:41:26] by_class: {'SP500': 313, 'CRYPTO': 9, 'NDX': 12, 'ETF': 56, 'FX': 7, 'FUTURES': 3}
+[03:41:26] sector tiles: ['CRYPTO', 'Utilities', 'Technology', 'Energy', 'Consumer Cyclical', 'Industrials', 'Basic Materials', 'ETF', 'Communication Services', 'Healthcare', 'Consumer Defensive', 'Financial Services', 'Real Estate', 'FX', 'SP500', 'FUTURES']
 ── RESULT ──
-[03:30:51] ✅ OPS 4312 PASS -- the radar reads like a product
+[03:45:27] ✗   universe 636 < 720
+[03:45:27] ✗   crypto/fx thin
+[03:45:27] ✗   edge missing thermo
+[03:45:27] ✗   edge missing sprkSVG
+[03:45:27] ✗   edge missing secbar
 
-→ Report written to aws/ops/reports/latest/4312_reversal_pro.md
+→ Report written to aws/ops/reports/latest/4313_full_market.md
+❌ OPS-FAIL: aws/ops/pending/ops_4313_full_market.py
