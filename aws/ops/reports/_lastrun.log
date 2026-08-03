@@ -1,21 +1,16 @@
-executing-against: 647c8e67268ff4f80aac8574d217c60d80ee12b1
-ops 4344 -- the engines finally talk
-[23:44:26] ✅ cadence 00:10 UTC (after leaderboard+council)
-[23:44:29] ✅ FABRIC: 421 tickers · 35 conflicts · sources={"best-setups": 50, "trend-reversal": 322, "compound-aggregator": 133, "ai-rerating": 0, "magic-formula": 0, "opportunities": 0, "insider-clusters": 0, "congress-direct": 0, "squeeze-fuel": 0, "13f-flows": 114}
-── densest weave (most engines on one name) ──
-[23:44:29] TSM: 4 engines · fabric=0.97 UP · agree=75.0% · ['compound-aggregator', '13f-flows', 'best-setups', 'trend-reversal']
-[23:44:29] MU: 4 engines · fabric=0.75 UP · agree=75.0% · ['compound-aggregator', 'best-setups', 'trend-reversal', '13f-flows']
-[23:44:29] PLTR: 4 engines · fabric=0.61 UP · agree=75.0% · ['best-setups', 'compound-aggregator', 'trend-reversal', '13f-flows']
-[23:44:29] ABT: 4 engines · fabric=0.58 UP · agree=100.0% · ['compound-aggregator', 'trend-reversal', 'best-setups', '13f-flows']
-[23:44:29] AMAT: 4 engines · fabric=0.55 UP · agree=75.0% · ['compound-aggregator', '13f-flows', 'trend-reversal', 'best-setups']
-[23:44:29] AVGO: 4 engines · fabric=0.34 UP · agree=75.0% · ['compound-aggregator', 'trend-reversal', 'best-setups', '13f-flows']
-── the debate floor (conflicts) ──
-[23:44:29] MU: UP=['best-setups', 'compound-aggregator', '13f-flows'] vs DOWN=['trend-reversal']
-[23:44:29] NVDA: UP=['best-setups', 'compound-aggregator'] vs DOWN=['trend-reversal', '13f-flows']
-[23:44:29] PLTR: UP=['best-setups', 'trend-reversal', 'compound-aggregator'] vs DOWN=['13f-flows']
-[23:44:29] TSM: UP=['best-setups', 'compound-aggregator', '13f-flows'] vs DOWN=['trend-reversal']
-[23:44:29] META: UP=['best-setups', 'trend-reversal', 'compound-aggregator'] vs DOWN=['13f-flows']
-[23:44:29] ✗   only 4 adapters produced rows
+executing-against: 52e54744f66401c5d9f14c48bba8fa8ffde9b0e3
+ops 4345 -- what the artifacts actually say
+[23:53:38] ai-rerating-radar.json tops=['engine', 'version', 'generated_at', 'thesis', 'methodology', 'coverage', 'summary', 'all_ranked', 'sources']
+[23:53:38]    rows@'all_ranked' r0keys=['symbol', 'name', 'layer', 'sector', 'industry', 'peer_group', 'peer_group_kind', 'in_ai_cohort', 'cap_bucket', 'market_cap', 'is_small_mid', 'growth_pct', 'growth_basis', 'trailing_growth_pct', 'margin_pct', 'ev_sales']
+[23:53:38]    sample={"symbol": "BA", "name": "The Boeing Company", "layer": "None", "sector": "Industrials", "industry": "Aerospace & Defense", "peer_group": "Aerospace & Defense", "peer_group_kind": "industry", "in_ai_cohort": "False"}
+[23:53:38] magic-formula.json tops=['version', 'generated_at', 'universe', 'regime', 'n_universe_eligible', 'median_earnings_yield_pct', 'median_roic_pct', 'top_10_avg_earnings_yield_pct', 'top_10_avg_roic_pct']
+[23:53:38] opportunities.json tops=['schema_version', 'method', 'generated_at', 'risk_gate', 'elapsed_s', 'n_covered', 'factor_weights', 'verdict_counts', 'changes']
+[23:53:38] insider-clusters.json tops=['schema_version', 'method', 'generated_at', 'lookback_days', 'duration_s', 'stats', 'thresholds', 'clusters', 'all_ticker_buys']
+[23:53:38]    rows@'clusters' r0keys=['ticker', 'company', 'cik', 'n_insiders', 'n_transactions', 'total_shares', 'total_value', 'avg_price', 'first_buy', 'last_buy', 'highest_role', 'has_ceo', 'has_cfo', 'has_chairman', 'has_director', 'insiders']
+[23:53:38]    sample={"ticker": "ACI", "company": "Albertsons Companies, Inc.", "cik": "0001646972", "n_insiders": "2", "n_transactions": "3", "total_shares": "209909", "total_value": "2412222.3", "avg_price": "11.49"}
+[23:53:38] congress-direct.json tops=['ok', 'version', 'generated_at', 'elapsed_s', 'source', 'senate', 'house']
+[23:53:38] squeeze-fuel.json tops=['engine', 'version', 'ok', 'generated_at', 'thesis', 'si_settlement_date', 'ftd_file', 'n_finra_universe', 'n_scored']
+[23:53:38] short-interest.json tops=['version', 'generated_at', 'watchlist_size', 'n_tickers_with_data', 'n_tickers_finra', 'n_tickers_polygon', 'n_tickers_short_interest', 'n_tickers_priced', 'by_ticker']
+[23:53:38] ✅ recon complete
 
-→ Report written to aws/ops/reports/latest/4344_signal_fabric.md
-❌ OPS-FAIL: aws/ops/pending/ops_4344_signal_fabric.py
+→ Report written to aws/ops/reports/latest/4345_adapter_recon.md
