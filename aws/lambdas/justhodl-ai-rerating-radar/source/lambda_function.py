@@ -308,9 +308,33 @@ def lambda_handler(event, context):
         if isinstance(r, dict) and r.get("ticker"):
             revising_up.add(r["ticker"])
     shrt = {}
-    for r in (_read("data/finra-short.json") or {}).get("squeeze_candidates", []) or []:
-        if isinstance(r, dict) and r.get("symbol"):
-            shrt[r["symbol"]] = _num(r.get("squeeze_score"))
+    # ops 4332: finra-short.json is dead — multi-source loader with
+    # provenance print so an empty map can never be silent again.
+    _src = "none"
+    for _key, _rows, _sym, _val in (
+        ("data/finra-short.json",
+         (_read("data/finra-short.json") or {}).get(
+             "squeeze_candidates"), "symbol", "squeeze_score"),
+        ("data/squeeze-fuel.json",
+         (_read("data/squeeze-fuel.json") or {}).get("rows"),
+         "ticker", "squeeze_score"),
+        ("data/short-interest.json",
+         (_read("data/short-interest.json") or {}).get("rows"),
+         "ticker", "days_to_cover"),
+    ):
+        for r in _rows or []:
+            if isinstance(r, dict) and r.get(_sym):
+                v = _num(r.get(_val))
+                if v is not None and _val == "days_to_cover":
+                    v = min(100.0, v * 10.0)  # dtc proxy -> 0-100
+                if v is not None:
+                    shrt[str(r[_sym]).upper()] = v
+        if shrt:
+            _src = _key
+            break
+    print("[shrt] source=%s n=%d max=%s"
+          % (_src, len(shrt),
+             max(shrt.values()) if shrt else None))
     ai_deal_syms = {x.get("symbol") for x in
                     ((_read("data/deal-scanner.json") or {}).get("summary", {}) or {}).get("ai_deals", []) or []
                     if isinstance(x, dict)}

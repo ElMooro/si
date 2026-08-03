@@ -930,7 +930,15 @@ def lambda_handler(event, context):
                 "industry_pe": ind_pe,
                 "pe_vs_industry_pct": (round((pe / ind_pe - 1) * 100) if (pe and ind_pe and ind_pe > 0) else None),
                 "outgrowing_industry": (cg is not None and ind_g is not None and cg > ind_g),
-                "expected_to_outgrow_industry": (exp_co is not None and exp_ind is not None and exp_co > exp_ind),
+                "expected_to_outgrow_industry": (
+                    exp_co is not None
+                    and (exp_ind if exp_ind is not None else ind_g)
+                    is not None
+                    and exp_co > (exp_ind if exp_ind is not None
+                                  else ind_g)),
+                "outgrow_basis": ("fwd_vs_fwd" if exp_ind is not None
+                                  else "fwd_vs_trailing"
+                                  if ind_g is not None else None),
                 "peg_forward": (round(pe / exp_co, 2) if (pe and exp_co and exp_co > 0) else None),
                 "range_position_52w": s.get("range_position_52w"),
             }

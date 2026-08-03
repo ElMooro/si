@@ -94,7 +94,8 @@ def audit_doc(key, doc, age_h, fn_ages):
     # long files exempt at 14d)
     stem = key.split("/")[-1].replace(".json", "")
     lim = CADENCE_H.get(stem, 48)
-    if any(t in key for t in ("-history", "-long", "archive")):
+    if any(t in key for t in ("-history", "-long", "archive",
+                              "/interpretations/", ".plain.")):
         lim = 336
     if age_h is not None and age_h > lim:
         cls0 = "SCHEDULE_DEAD" if stem in CADENCE_H \
@@ -246,7 +247,8 @@ def lambda_handler(event, context):
         r = s3.list_objects_v2(**kw)
         keys += [(o["Key"], o["LastModified"], o["Size"])
                  for o in r.get("Contents", [])
-                 if o["Key"].endswith(".json")]
+                 if o["Key"].endswith(".json")
+                 and not o["Key"].endswith(".json.gz")]
         tok = r.get("NextContinuationToken")
         if not tok:
             break

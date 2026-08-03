@@ -62,7 +62,7 @@ except Exception:
     pass
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
-S3_KEY = os.environ.get("S3_KEY", "data/liquidity-flow.json")
+S3_KEY = "data/liquidity-flow.json"  # ops 4332: env indirection caused silent key drift
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 USER_AGENT = os.environ.get("USER_AGENT", "JustHodl Research raafouis@gmail.com")
 
@@ -267,6 +267,7 @@ def lambda_handler(event, context):
         "fetch_duration_s": round(time.time() - started, 1),
     }
 
+    print("[liq] writing %s" % S3_KEY)
     s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
                   Body=json.dumps(output).encode(),
                   ContentType="application/json", CacheControl="no-cache")

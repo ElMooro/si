@@ -246,7 +246,14 @@ def lambda_handler(event, context):
     summary["elapsed_sec"] = round(time.time() - t0, 2)
 
     # Write gzipped — readers must support gzip (browsers do automatically)
-    n_bytes = put_gzipped(OUTPUT_KEY, summary, max_age=300)
+    # ops 4332: fleet norm — plain JSON primary (boto/SDK readers see
+    # bytes as-is; S3 never auto-decodes for them); gz as sibling.
+    plain_body = json.dumps(summary, default=str,
+                            separators=(",", ":")).encode("utf-8")
+    s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY, Body=plain_body,
+                  ContentType="application/json",
+                  CacheControl="public, max-age=300")
+    n_bytes = put_gzipped(OUTPUT_KEY + ".gz", summary, max_age=300)
 
     # Also write a non-gzipped fallback to a sibling key in case some
     # downstream tool can't handle gzip. Cheap to do (~3 KB).
