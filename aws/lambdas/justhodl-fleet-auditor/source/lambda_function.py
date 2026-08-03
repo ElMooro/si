@@ -16,9 +16,12 @@ lam = boto3.client("lambda", region_name="us-east-1")
 B = "justhodl-dashboard-live"
 OUT = "data/fleet-audit.json"
 HIST = "data/fleet-audit-history.json"
-VERSION = "1.1"
+VERSION = "1.2"
 MAX_BODY = 9_000_000
 SKIP = ("fleet-audit",)
+ARCHIVE_RX = re.compile(
+    r"/(archive|_preview|snapshots?)/|/\d{8}[_-]\d{2,4}\.json$"
+    r"|-history\.json$|-long\.json$")
 
 TS_KEYS = ("generated_at", "as_of", "updated_at", "timestamp", "ts",
            "run_at", "computed_at", "generated", "last_updated")
@@ -156,7 +159,8 @@ def audit_doc(key, doc, age_h, fn_ages):
             cls, lo, hi, v = last
             add(cls, "%s: %d/%d outside [%s,%s], e.g. %s"
                 % (k, oob, n, lo, hi, v))
-        if n >= 15 and zeros == n and re.search(
+        if n >= 15 and zeros == n and age_h is not None \
+                and age_h < 168 and re.search(
                 r"sell|sold|out|short", str(k), re.I):
             add("ZERO_SCOPE",
                 "%s is 0 across all %d rows — scope smell" % (k, n))
@@ -231,6 +235,10 @@ def lambda_handler(event, context):
     results = []
     price_book = {}
     n_parse_fail = 0
+    live = [k for k in keys if not ARCHIVE_RX.search(k[0])]
+    arch = [k for k in keys if ARCHIVE_RX.search(k[0])]
+    keys = live + arch
+    n_archive = len(arch)
     budget = 780.0
     truncated = False
     for key, lm, size in keys:
@@ -255,7 +263,13 @@ def lambda_handler(event, context):
                             "findings": [{"cls": "PARSE",
                                           "msg": str(e)[:120]}]})
             continue
-        finds = audit_doc(key, doc, age_h, fn_ages)
+        is_arch = bool(ARCHIVE_RX.search(key))
+        finds = audit_doc(key, doc,
+                          None if is_arch else age_h,
+                          {} if is_arch else fn_ages)
+        if is_arch:
+            finds = [f for f in finds
+                     if f["cls"] in ("PARSE", "NAN", "TIME")]
         collect_prices(key, doc, price_book)
         st = ("FAIL" if any(f["cls"] in
                             ("UNITS", "PARSE", "NAN", "FROZEN")
@@ -284,6 +298,7 @@ def lambda_handler(event, context):
     warns = [r for r in results if r["status"] == "WARN"]
     out = {"engine": "justhodl-fleet-auditor", "version": VERSION,
            "truncated": truncated,
+           "n_archive": n_archive,
            "generated_at": now().isoformat(),
            "elapsed_s": round(time.time() - t0, 1),
            "n_scanned": len(results),
