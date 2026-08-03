@@ -1,19 +1,14 @@
-executing-against: 2fb2ceebeecffdb4acd0d511e64692d66fecda25
-ops 4311 -- what the census matrix actually is
-[02:37:58] top-level type=dict keys=['generated_at', 'n_tickers', 'n_metrics', 'tickers', 'sectors', 'industries', 'quality', 'turn', 'flagged', 'metrics']
-[02:37:58]   generated_at: str len=32 sample=2026-08-01T06:48:07.865126+00:00
-[02:37:58]   n_tickers: int len=- sample=498
-[02:37:58]   n_metrics: int len=- sample=293
-[02:37:58]   tickers: list len=498 sample=["SMCI"]
-[02:37:58]   sectors: list len=498 sample=["Technology"]
-[02:37:58]   industries: list len=498 sample=["Computer Hardware"]
-[02:37:58]   quality: list len=498 sample=[-10]
-[02:37:58]   turn: list len=498 sample=[19.5]
-[02:37:58]   flagged: list len=498 sample=[1]
-[02:37:58]   metrics: list len=293 sample=["above_ma40w"]
-[02:37:58] reversal artifact: 196 rows, 8 duplicate tickers
-[02:37:59] log: [universe] census +0 (keys tried: rows/companies/matrix/data; top=['generated_at', 'n_tickers', 'n_metrics', 'tickers', 'sectors', 'industries'])
-[02:37:59] log: [universe] ndx +93
-[02:37:59] ✅ shape captured
+executing-against: f848e51bc47264993c41d4d4ed76a3089aca5dc3
+ops 4310 -- reversal, exponentially
+[02:42:20] root: {"ok": true, "chained": 110, "of": 615}
+[02:43:05] ✅ UNIVERSE 600 · hot 100 · breadth top 14.8% / bottom 13.7%
+[02:43:05] stages: {'EARLY': 221, 'DEVELOPING': 92, 'CONFIRMED': 73}
+[02:43:05] sectors (12): [('Utilities', 31.2, 12.5), ('Technology', 23.2, 15.8), ('Energy', 38.1, 0.0), ('Consumer Cyclical', 11.1, 24.1), ('Industrials', 19.2, 9.6), ('Basic Materials', 22.7, 4.5)]
+[02:43:05] top5: [('WY', 71.2, 'CONFIRMED', True), ('HUM', 63.8, 'CONFIRMED', True), ('APO', 59.7, 'CONFIRMED', True), ('NTAP', 53.8, 'DEVELOPING', True), ('SHOP', 53.0, 'CONFIRMED', True)]
+[02:43:05] movers: []
+[02:43:05] weekly-confirm present on >=1 name: True
+[02:43:05] ✅ page v2 LIVE (13087 bytes)
+── RESULT ──
+[02:43:05] ✅ OPS 4310 PASS -- reversal radar at census scale
 
-→ Report written to aws/ops/reports/latest/4311_census_shape.md
+→ Report written to aws/ops/reports/latest/4310_reversal_v2.md
