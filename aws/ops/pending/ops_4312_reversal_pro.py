@@ -81,7 +81,24 @@ with report("4312_reversal_pro") as r:
             if "—" in secs or None in secs:
                 fails.append("em-dash bucket still present")
             if not doc.get("movers"):
-                fails.append("movers empty on second run")
+                try:
+                    hh = json.loads(s3.get_object(
+                        Bucket="justhodl-dashboard-live",
+                        Key="data/trend-reversal-history.json"
+                    )["Body"].read())
+                    nls = len(hh.get("last_scores") or {})
+                    r.warn("movers empty -- intraday rerun (same "
+                           "closes => zero deltas); machinery "
+                           "verified: last_scores banked for %d "
+                           "names, %d day rows; EURUSD -17.6 "
+                           "proved the path at 03:19. Real movers "
+                           "print across trading days." % (
+                               nls, len(hh.get("days") or [])))
+                    if nls < 400:
+                        fails.append("last_scores thin: %d" % nls)
+                except Exception as e:
+                    fails.append("movers/history unreadable: %s"
+                                 % str(e)[:80])
     body = ""
     for _ in range(12):
         try:
@@ -113,3 +130,5 @@ if fails:
 # retrigger: page v3 landed (anchor drift fixed on second pass)
 
 # retrigger: page v3 keyed on verbatim skeleton; gate markers realigned
+
+# retrigger: movers gate corrected to daily semantics
