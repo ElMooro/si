@@ -1,0 +1,34 @@
+# ops 4338 -- the council convenes
+
+**Status:** success  
+**Duration:** 77.7s  
+**Finished:** 2026-08-03T22:23:39+00:00  
+
+## Log
+- `22:22:22` ✅ daily cadence: 23:55 UTC (after leaderboard)
+- `22:23:39` ✅ COUNCIL: 12 members (rule wilson_lb>=55 & n>=10) · regime=UNKNOWN posture=NEUTRAL
+## founding council (top 10 by wilson)
+
+- `22:23:39` crisis_dfii10_vs_gld       wilson=86.6% (wr 92.1% n=151) bias=DOWN fit_now=None
+- `22:23:39` crypto_cot_assetmgr        wilson=75.7% (wr 100.0% n=12) bias=UP fit_now=None
+- `22:23:39` attention_distribution     wilson=73.0% (wr 79.4% n=189) bias=UP fit_now=None
+- `22:23:39` crypto_options_rr          wilson=73.0% (wr 94.1% n=17) bias=UP fit_now=None
+- `22:23:39` capital-return             wilson=72.5% (wr 84.6% n=52) bias=UP fit_now=None
+- `22:23:39` political-intel            wilson=65.1% (wr 77.8% n=54) bias=UP fit_now=None
+- `22:23:39` buyback-yield-ranking      wilson=60.4% (wr 73.6% n=53) bias=UP fit_now=None
+- `22:23:39` nobrainer_BOTZ             wilson=59.6% (wr 90.0% n=10) bias=UP fit_now=None
+- `22:23:39` gf-value                   wilson=59.4% (wr 71.0% n=69) bias=UP fit_now=None
+- `22:23:39` squeeze_risk               wilson=58.6% (wr 65.0% n=223) bias=UP fit_now=65.0
+## first consensus board
+
+- `22:23:39` PLAB UP · council_n=20 · score=14.6 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+- `22:23:39` KOPN UP · council_n=16 · score=11.68 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+- `22:23:39` OCC UP · council_n=14 · score=10.22 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+- `22:23:39` GSIT UP · council_n=13 · score=9.49 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+- `22:23:39` DKS UP · council_n=12 · score=8.76 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+- `22:23:39` INDI UP · council_n=11 · score=8.03 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+- `22:23:39` ACMR UP · council_n=10 · score=7.3 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+- `22:23:39` AOSL UP · council_n=8 · score=5.84 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+- `22:23:39` self_logged=12 consensus calls into the ledger as eng:alpha-council
+- `22:23:39` ✅ ledger verified: council's own PLAB call is pending grade
+- `22:23:39` ✅ OPS 4338 PASS -- the ultimate engine exists, and it will be judged by the same scoreboard as everyone else

@@ -1,46 +1,29 @@
-executing-against: 716401075ab18d0077b834a82f9f9852d2b9e457
-ops 4337 -- the distribution answers despair
-[22:12:27] ✅ daily cadence installed: 23:40 UTC
-[22:13:47] ✅ THE DISTRIBUTION: pooled 38.0% over 34283 graded calls · median engine 41.4% · 61 engines >=55% (19.1% of 320)
-[22:13:47] histogram: {"0-10": 20, "10-20": 21, "20-30": 51, "30-40": 58, "40-50": 78, "50-60": 51, "60-70": 24, "70-80": 7, "80-90": 2, "90-100": 8}
-── autopsy A: wl-engines writer ──
-[22:13:47] writers: aws/lambdas/justhodl-alpha-daily-brief/source/lambda_function.py aws/lambdas/justhodl-wl-engines/source/lambda_function.py aws/lambdas/justhodl-wl-engines/config.json aws/lambdas/justhodl-wl-fusion/source/lambda_function.py 
-[22:13:47] 93-    divergence. Never raises."""
-94-    try:
-95-        fus = load_sidecar("data/wl-fusion.json", {}) or {}
-96:        idx = load_sidecar("data/wl-engines.json", {}) or {}
-97-        themes = fus.get("themes") or {}
-98-        tops = sorted(themes.items(),
-99-                      key=lambda kv: -(kv[1].get("pressure_pctile") or 0)
-100-                      )[:3]
-101-        eng = idx.get("engines") or []
-102-        firing = [e for e in eng if e.get("firing")][:6]
+executing-against: c8a186ebe4c2f76c62563da981e22282a36fa1ec
+ops 4338 -- the council convenes
+[22:22:22] ✅ daily cadence: 23:55 UTC (after leaderboard)
+[22:23:39] ✅ COUNCIL: 12 members (rule wilson_lb>=55 & n>=10) · regime=UNKNOWN posture=NEUTRAL
+── founding council (top 10 by wilson) ──
+[22:23:39] crisis_dfii10_vs_gld       wilson=86.6% (wr 92.1% n=151) bias=DOWN fit_now=None
+[22:23:39] crypto_cot_assetmgr        wilson=75.7% (wr 100.0% n=12) bias=UP fit_now=None
+[22:23:39] attention_distribution     wilson=73.0% (wr 79.4% n=189) bias=UP fit_now=None
+[22:23:39] crypto_options_rr          wilson=73.0% (wr 94.1% n=17) bias=UP fit_now=None
+[22:23:39] capital-return             wilson=72.5% (wr 84.6% n=52) bias=UP fit_now=None
+[22:23:39] political-intel            wilson=65.1% (wr 77.8% n=54) bias=UP fit_now=None
+[22:23:39] buyback-yield-ranking      wilson=60.4% (wr 73.6% n=53) bias=UP fit_now=None
+[22:23:39] nobrainer_BOTZ             wilson=59.6% (wr 90.0% n=10) bias=UP fit_now=None
+[22:23:39] gf-value                   wilson=59.4% (wr 71.0% n=69) bias=UP fit_now=None
+[22:23:39] squeeze_risk               wilson=58.6% (wr 65.0% n=223) bias=UP fit_now=65.0
+── first consensus board ──
+[22:23:39] PLAB UP · council_n=20 · score=14.6 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+[22:23:39] KOPN UP · council_n=16 · score=11.68 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+[22:23:39] OCC UP · council_n=14 · score=10.22 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+[22:23:39] GSIT UP · council_n=13 · score=9.49 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+[22:23:39] DKS UP · council_n=12 · score=8.76 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+[22:23:39] INDI UP · council_n=11 · score=8.03 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+[22:23:39] ACMR UP · council_n=10 · score=7.3 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+[22:23:39] AOSL UP · council_n=8 · score=5.84 · ['attention_distribution', 'attention_distribution', 'attention_distribution', 'attention_distribution']
+[22:23:39] self_logged=12 consensus calls into the ledger as eng:alpha-council
+[22:23:39] ✅ ledger verified: council's own PLAB call is pending grade
+[22:23:39] ✅ OPS 4338 PASS -- the ultimate engine exists, and it will be judged by the same scoreboard as everyone else
 
-── autopsy B: auction-decisive-call units ──
-[22:13:47] writers: aws/lambdas/justhodl-auction-interpreter/source/lambda_function.py aws/lambdas/justhodl-auction-interpreter/config.json 
-[22:13:47] 14-  - Episode reference           (data/episode-reference.json)
-15-  - Crisis KB framework excerpts (via jhcore.kb)
-16-
-17:Output: data/auction-decisive-call.json — schema described below.
-18-
-19-USES jhcore LAYER.
-20-
-21-Schema:
-22-{
-23-  "version": "1.0",
---
-402-        "kb_frameworks_used": [c.get("framework") for c in kb_chunks],
-403-    }
-404-
-405:    s3io.put_json("data/auction-decisive-call.json", brief,
-406-                   cache_control="public, max-age=900")
-407-
-408-    duration = round(time.time() - started, 2)
-409-    print(f"[auction-interp] OK — regime={brief.get('regime')} confidence={brief.get('confidence')} "
-410-          f"trades={len(brief.get('trade_ideas') or [])} tripwires={len(brief.get('tripwires') or [])} "
-411-          f"predictions={len(brief.get('historical_predictions') or [])} {duration}s")
-
-[22:13:47] ✅ PAGE LIVE: https://justhodl.ai/engine-leaderboard.html (6822 bytes)
-[22:13:47] ✅ OPS 4337 PASS -- the fleet grades itself daily, in public, with the whole distribution on the table
-
-→ Report written to aws/ops/reports/latest/4337_leaderboard_live.md
+→ Report written to aws/ops/reports/latest/4338_alpha_council.md
