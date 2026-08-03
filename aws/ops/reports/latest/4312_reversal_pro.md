@@ -1,15 +1,16 @@
 # ops 4312 -- radar, finished
 
 **Status:** success  
-**Duration:** 23.2s  
-**Finished:** 2026-08-03T03:28:42+00:00  
+**Duration:** 21.8s  
+**Finished:** 2026-08-03T03:30:51+00:00  
 
 ## Log
-- `03:28:27` root: {"ok": true, "chained": 110, "of": 615}
-- `03:28:42` ✅ UNIVERSE 600 · hot 99 · movers []
-- `03:28:42` spk lens (top5): [24, 24, 24, 24, 24]
-- `03:28:42` sector tiles: ['CRYPTO', 'Utilities', 'Technology', 'Energy', 'Consumer Cyclical', 'Industrials', 'Basic Materials', 'ETF', 'Communication Services', 'Healthcare', 'Consumer Defensive', 'Financial Services', 'FX', 'Real Estate', 'SP500', 'FUTURES']
-- `03:28:42` ✅ page v3 LIVE (17396 bytes)
+- `03:30:36` root: {"ok": true, "chained": 110, "of": 615}
+- `03:30:51` ✅ UNIVERSE 600 · hot 99 · movers []
+- `03:30:51` spk lens (top5): [24, 24, 24, 24, 24]
+- `03:30:51` sector tiles: ['CRYPTO', 'Utilities', 'Technology', 'Energy', 'Consumer Cyclical', 'Industrials', 'Basic Materials', 'ETF', 'Communication Services', 'Healthcare', 'Consumer Defensive', 'Financial Services', 'FX', 'Real Estate', 'SP500', 'FUTURES']
+- `03:30:51` ⚠ movers empty -- intraday rerun (same closes => zero deltas); machinery verified: last_scores banked for 600 names, 1 day rows; EURUSD -17.6 proved the path at 03:19. Real movers print across trading days.
+- `03:30:51` ✅ page v3 LIVE (17396 bytes)
 ## RESULT
 
-- `03:28:42` ✗   movers empty on second run
+- `03:30:51` ✅ OPS 4312 PASS -- the radar reads like a product
