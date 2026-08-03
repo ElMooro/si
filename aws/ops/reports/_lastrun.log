@@ -1,14 +1,17 @@
-executing-against: e1ae0ed1e0756b89c4b93fc0b9e7d85db13de0b9
-ops 4304 -- endpoint truth for FR2004 + OFR
-[00:27:24] probe keyid: PDFTR-USTET (U.S. TREASURY SECURITIES (EXCLUDING TREASURY INFLATION-PROTE)
-[00:27:24] catalog row keys: ['seriesbreak', 'keyid', 'description']
-[00:27:24] seriesbreaks: ['SBP2001', 'SBP2013', 'SBN2013', 'SBN2015', 'SBN2022', 'SBN2024']
-[00:27:25] all        -> 0 rows {"pd": {"timeseries": []}}
-[00:27:25] bare       -> ERR HTTP Error 400: Bad Request
-[00:27:26] sb:SBN2015 -> 365 rows sample {"asofdate": "2021-12-29", "keyid": "PDFTR-USTET", "value": "83906"}
-[00:27:27] sb:SBN2022 -> 130 rows sample {"asofdate": "2024-06-26", "keyid": "PDFTR-USTET", "value": "122550"}
-[00:27:28] sb:SBN2024 -> 108 rows sample {"asofdate": "2026-07-22", "keyid": "PDFTR-USTET", "value": "94605"}
-[00:27:28] ⚠ OFR metadata: Not a gzipped file (b'["')
-[00:27:28] ✅ probe complete
+executing-against: 0ab5d179c0caff5905d25ff18f9578f5d5f07a2e
+ops 4305 -- rehypo legs sealed + desk verdict
+[00:31:51] function: fresh+keyed
+[00:32:19] run: {"ok": true, "composite": 50.6, "band": "WATCH", "legs": ["fails", "velocity", "specialness", "dvp_volume", "sofr_iorb", "rrp_drain_4w"], "missing": []}
+[00:32:19] COMPOSITE 50.6 (WATCH)
+[00:32:19] missing: None
+[00:32:19] note: nyfed catalog: 1539 keyids
+[00:32:19] note: picked: {"fails": 6, "sec_in": 8, "sec_out": 8, "net_pos": 8}
+── desk v2.3.3 -- rehypo panel + reversal chips + RRG ──
+[00:32:23] desk 2.3.3 · sources 32/32
+[00:32:23] rehypo panel: {'composite': 50.6, 'band': 'WATCH', 'legs': {'fails': -0.4, 'velocity': 0.68, 'specialness': -0.68, 'dvp_volume': -0.67, 'sofr_iorb': 0.66, 'rrp_drain_4w': 0.02}, 'missing': None}
+[00:32:23] reversal chips: [('EM', {'score': 25.0, 'direction': 'TOP_FORMING', 'top': 'slope_flip'}), ('US_SMALL_VALUE', {'score': 28.0, 'direction': 'TOP_FORMING', 'top': 'ma_break'})]
+[00:32:23] RRG: []
+── RESULT ──
+[00:32:23] ✅ OPS 4305 PASS -- rehypo full-legged, desk carrying both new engines
 
-→ Report written to aws/ops/reports/latest/4304_nyfed_probe.md
+→ Report written to aws/ops/reports/latest/4305_rehypo_seal.md

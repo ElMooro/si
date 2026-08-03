@@ -1,0 +1,33 @@
+# ops 4305 -- rehypo legs sealed + desk verdict
+
+**Status:** success  
+**Duration:** 42.1s  
+**Finished:** 2026-08-03T00:32:23+00:00  
+
+## Data
+
+| latest | leg | n | z |
+|---|---|---|---|
+| 175175.0 | fails | 104 | -0.4 |
+| 4.64 | velocity | 104 | 0.68 |
+| 6.0 | specialness | 104 | -0.68 |
+| 2816966347720. | dvp_volume | 104 | -0.67 |
+| 0.0 | sofr_iorb | 104 | 0.66 |
+| -0.02 | rrp_drain_4w | 104 | 0.02 |
+
+## Log
+- `00:31:51` function: fresh+keyed
+- `00:32:19` run: {"ok": true, "composite": 50.6, "band": "WATCH", "legs": ["fails", "velocity", "specialness", "dvp_volume", "sofr_iorb", "rrp_drain_4w"], "missing": []}
+- `00:32:19` COMPOSITE 50.6 (WATCH)
+- `00:32:19` missing: None
+- `00:32:19` note: nyfed catalog: 1539 keyids
+- `00:32:19` note: picked: {"fails": 6, "sec_in": 8, "sec_out": 8, "net_pos": 8}
+## desk v2.3.3 -- rehypo panel + reversal chips + RRG
+
+- `00:32:23` desk 2.3.3 · sources 32/32
+- `00:32:23` rehypo panel: {'composite': 50.6, 'band': 'WATCH', 'legs': {'fails': -0.4, 'velocity': 0.68, 'specialness': -0.68, 'dvp_volume': -0.67, 'sofr_iorb': 0.66, 'rrp_drain_4w': 0.02}, 'missing': None}
+- `00:32:23` reversal chips: [('EM', {'score': 25.0, 'direction': 'TOP_FORMING', 'top': 'slope_flip'}), ('US_SMALL_VALUE', {'score': 28.0, 'direction': 'TOP_FORMING', 'top': 'ma_break'})]
+- `00:32:23` RRG: []
+## RESULT
+
+- `00:32:23` ✅ OPS 4305 PASS -- rehypo full-legged, desk carrying both new engines
