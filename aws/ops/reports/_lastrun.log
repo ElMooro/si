@@ -1,17 +1,12 @@
-executing-against: 731e2834e2f5e5c5a6cb1309fa6afdc5367848f9
+executing-against: 992847a06eb6bfed7e9cec3067ad4db93c5720b5
 ops 4312 -- radar, finished
-[03:23:42] root: {"ok": true, "chained": 110, "of": 615}
-[03:23:57] ✅ UNIVERSE 600 · hot 99 · movers [('EURUSD', -17.6)]
-[03:23:57] spk lens (top5): [24, 24, 24, 24, 24]
-[03:23:57] sector tiles: ['CRYPTO', 'Utilities', 'Technology', 'Energy', 'Consumer Cyclical', 'Industrials', 'Basic Materials', 'ETF', 'Communication Services', 'Healthcare', 'Consumer Defensive', 'Financial Services', 'FX', 'Real Estate', 'SP500', 'FUTURES']
+[03:28:27] root: {"ok": true, "chained": 110, "of": 615}
+[03:28:42] ✅ UNIVERSE 600 · hot 99 · movers []
+[03:28:42] spk lens (top5): [24, 24, 24, 24, 24]
+[03:28:42] sector tiles: ['CRYPTO', 'Utilities', 'Technology', 'Energy', 'Consumer Cyclical', 'Industrials', 'Basic Materials', 'ETF', 'Communication Services', 'Healthcare', 'Consumer Defensive', 'Financial Services', 'FX', 'Real Estate', 'SP500', 'FUTURES']
+[03:28:42] ✅ page v3 LIVE (17396 bytes)
 ── RESULT ──
-[03:27:57] ✗   edge missing thermo
-[03:27:57] ✗   edge missing ghist
-[03:27:57] ✗   edge missing sprkSVG
-[03:27:57] ✗   edge missing table view
-[03:27:57] ✗   edge missing ⬇ CSV
-[03:27:57] ✗   edge missing secbar
-[03:27:57] ✗   edge missing why.html?t=
+[03:28:42] ✗   movers empty on second run
 
 → Report written to aws/ops/reports/latest/4312_reversal_pro.md
 ❌ OPS-FAIL: aws/ops/pending/ops_4312_reversal_pro.py
