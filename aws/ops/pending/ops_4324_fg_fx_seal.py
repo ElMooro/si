@@ -61,3 +61,5 @@ with report("4324_fg_fx_seal") as r:
 # retrigger: refresh=1 + CACHE_VER v22 (cached series was answering)
 
 # retrigger: reportedCurrency-derived FX (profile.currency was the ADR listing USD)
+
+# retrigger: all epsDiluted whitelists carry reportedCurrency; fx-debug print; v24
