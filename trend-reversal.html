@@ -24,11 +24,37 @@ h1{font-family:Fraunces,serif;font-weight:900;font-size:32px;margin:6px 0 2px}
 .sig{display:block;font:12px var(--mono);color:var(--tx2);margin-top:4px}
 .sig b{color:var(--tx)}
 .err{color:var(--avd);font:12px var(--mono)}
+
+.xsel{background:var(--bg2);border:1px solid var(--brd);color:var(--tx);border-radius:8px;padding:5px 10px;font:12.5px var(--mono)}
+.sect{background:var(--bg1);border:1px solid var(--brd);border-radius:12px;padding:11px 13px;cursor:pointer}
+.sect:hover{border-color:var(--acc)}
+.sect .nm{font-weight:600;font-size:13px}
+.sect .bb{display:flex;height:7px;border-radius:5px;overflow:hidden;background:var(--bg2);margin-top:7px}
+.mv{display:inline-block;border:1px solid var(--brd);background:var(--bg1);border-radius:10px;padding:5px 11px;margin:0 6px 6px 0;font:12.5px var(--mono)}
+.spark{margin-top:6px}
+.stg{border-color:#8fd3ff;color:#8fd3ff}
+.wk{border-color:var(--acc);color:var(--acc)}
 </style></head><body><div class="wrap">
 <h1>Early Trend-Reversal Radar</h1>
 <div class="meta" id="meta">loading…</div>
-<div class="sub">Classical early-reversal tells computed on real daily closes for the desk's ladder ETFs plus the current best-setups names: MA breaks against trend, 50dma slope flips, 50/200 crosses, RSI divergence at fresh 20-day extremes, MACD histogram flips, Donchian breaks, higher-high/lower-low structure breaks, and ATR compression releases. Score = recency-decayed weighted signals; <b>TOP_FORMING</b> means bearish tells inside a defined uptrend, <b>BOTTOM_FORMING</b> the mirror. Every fired signal shows its actual values.</div>
+<div class="sub">v2 — a fourteen-signal ensemble on real closes and volume across the full S&P-census universe, every sector ETF, the ladder, and the live best-setups names. Families: MA breaks against trend, 50dma slope flips, 50/200 crosses, RSI divergence at fresh 20-day extremes, MACD histogram flips, Donchian breaks, higher-high/lower-low structure breaks, and ATR compression releases. Score = recency-decayed weighted signals; <b>TOP_FORMING</b> means bearish tells inside a defined uptrend, <b>BOTTOM_FORMING</b> the mirror. Every fired signal shows its actual values.</div>
 <div class="hero" id="hero"></div>
+<h2>Market-turn gauge & sector reversal breadth</h2>
+<div class="note">Share of the full universe printing scored reversal tells by direction, then each sector's breadth — the map of <b>where</b> trends are cracking. Click a sector tile to filter the cards.</div>
+<div class="card" id="gaugebar" style="margin-bottom:12px"></div>
+<div class="hero" id="secgrid" style="grid-template-columns:repeat(auto-fill,minmax(168px,1fr))"></div>
+<h2 style="margin-top:26px">Movers — biggest score changes since yesterday</h2>
+<div id="movers" style="margin-bottom:6px"></div>
+<h2 style="margin-top:26px">Names</h2>
+<div class="note" id="fltnote"></div>
+<div class="card" style="margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+ <select id="fdir" class="xsel"><option value="">direction: all</option><option>TOP_FORMING</option><option>BOTTOM_FORMING</option></select>
+ <select id="fstage" class="xsel"><option value="">stage: all</option><option>EARLY</option><option>DEVELOPING</option><option>CONFIRMED</option></select>
+ <select id="fsec" class="xsel"><option value="">sector: all</option></select>
+ <label class="vs">min score <input id="fmin" type="range" min="0" max="60" value="0" style="vertical-align:-3px"> <span id="fminv">0</span></label>
+ <input id="fq" placeholder="search ticker…" style="background:var(--bg2);border:1px solid var(--brd);color:var(--tx);border-radius:8px;padding:5px 10px;font:13px var(--mono);width:130px">
+ <span class="vs" id="fcount"></span>
+</div>
 <div class="grid" id="grid"></div>
 <div class="err" id="err" style="margin-top:16px"></div>
 </div>
@@ -44,15 +70,49 @@ fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/trend-reversal.json
   <div class="card"><div class="k">Hot (≥30)</div><div class="v">${d.hot_n??hot.length}</div><div class="vs">${hot.map(r=>r.ticker).join(", ")||"none"}</div></div>
   <div class="card"><div class="k">Top forming</div><div class="v" style="font-size:16px;font-family:var(--mono)">${rows.filter(r=>r.direction==="TOP_FORMING").slice(0,4).map(r=>`${r.ticker} ${r.reversal_score}`).join(" · ")||"—"}</div><div class="vs">bearish tells in uptrends</div></div>
   <div class="card"><div class="k">Bottom forming</div><div class="v" style="font-size:16px;font-family:var(--mono)">${rows.filter(r=>r.direction==="BOTTOM_FORMING").slice(0,4).map(r=>`${r.ticker} ${r.reversal_score}`).join(" · ")||"—"}</div><div class="vs">bullish tells in downtrends</div></div>`;
- document.getElementById("grid").innerHTML=rows.map(r=>{
-  if(r.status==="insufficient_history")return `<div class="rc"><span class="tk">${esc(r.ticker)}</span><div class="vs">insufficient history (${r.n} bars) — no signal invented</div></div>`;
+ const secs=[...new Set(rows.map(r=>r.sector).filter(Boolean))].sort();
+ document.getElementById("fsec").innerHTML+='<option></option>'+secs.map(s0=>`<option>${esc(s0)}</option>`).join("");
+ const B=d.breadth||{};
+ document.getElementById("gaugebar").innerHTML=`<div style="display:flex;justify-content:space-between" class="vs"><span>TOP_FORMING ${B.top_pct??"—"}%</span><b>market-turn gauge · n=${B.n??"—"}</b><span>BOTTOM_FORMING ${B.bottom_pct??"—"}%</span></div>
+  <div style="display:flex;height:14px;border-radius:8px;overflow:hidden;background:var(--bg2);margin-top:8px">
+   <div style="width:${B.top_pct||0}%;background:var(--avd)" title="tops forming"></div>
+   <div style="flex:1"></div>
+   <div style="width:${B.bottom_pct||0}%;background:var(--buy)" title="bottoms forming"></div></div>
+  <div class="vs" style="margin-top:6px">${esc(B.note||"")} · stages: ${Object.entries(d.stages||{}).map(([k,v])=>`${k} ${v}`).join(" · ")}</div>`;
+ document.getElementById("secgrid").innerHTML=(d.sectors||[]).map(s0=>`<div class="sect" data-sec="${esc(s0.sector)}">
+   <div class="nm">${esc(s0.sector)}</div><div class="vs">n=${s0.n} · avg ${s0.avg_score}</div>
+   <div class="bb"><div style="width:${s0.top_pct}%;background:var(--avd)" title="top ${s0.top_pct}%"></div><div style="flex:1"></div><div style="width:${s0.bottom_pct}%;background:var(--buy)" title="bottom ${s0.bottom_pct}%"></div></div>
+   <div class="vs" style="margin-top:6px">${(s0.leaders||[]).map(l=>`${l.t} ${l.s}`).join(" · ")||"&nbsp;"}</div></div>`).join("");
+ document.getElementById("movers").innerHTML=(d.movers||[]).map(m0=>`<span class="mv">${esc(m0.t)} <b style="color:${m0.delta>0?"var(--avd)":"var(--buy)"}">${m0.delta>0?"+":""}${m0.delta}</b> → ${m0.score}${m0.dir?` <span class="vs">${m0.dir==="TOP_FORMING"?"top":"bot"}</span>`:""}</span>`).join("")||'<span class="vs">deltas appear from the second daily run</span>';
+ const F={dir:"",stage:"",sec:"",min:0,q:""};
+ function card(r){
+  if(r.status==="insufficient_history")return "";
   const dir=r.direction==="TOP_FORMING"?"top":r.direction==="BOTTOM_FORMING"?"bot":"";
-  return `<div class="rc"><span class="score">${r.reversal_score}</span>
-   <span class="tk">${esc(r.ticker)}</span> <span class="vs">$${r.close} · ${esc(r.prevailing_trend)} trend · ${r.px_vs_200dma_pct>0?"+":""}${r.px_vs_200dma_pct}% vs 200dma</span>
+  let spark="";
+  if(r.closes30&&r.closes30.length>2){const cs=r.closes30,mn=Math.min(...cs),mx=Math.max(...cs),W2=140,H2=30;
+   const pts=cs.map((v,i2)=>`${(i2/(cs.length-1)*W2).toFixed(1)},${(H2-(v-mn)/((mx-mn)||1)*H2).toFixed(1)}`).join(" ");
+   spark=`<svg class="spark" width="${W2}" height="${H2}"><polyline points="${pts}" fill="none" stroke="${dir==="top"?"var(--avd)":"var(--buy)"}" stroke-width="1.4"/></svg>`;}
+  return `<div class="rc" data-r="1"><span class="score">${r.reversal_score}${r.score_delta!=null?` <span class="vs">(${r.score_delta>0?"+":""}${r.score_delta})</span>`:""}</span>
+   <span class="tk">${esc(r.ticker)}</span> <span class="vs">$${r.close} · ${esc(r.prevailing_trend)} · ${r.px_vs_200dma_pct>0?"+":""}${r.px_vs_200dma_pct}% vs 200dma${r.sector?` · ${esc(r.sector)}`:""}</span>
    <div class="bar"><i style="width:${Math.min(100,r.reversal_score||0)}%;background:${dir==="top"?"var(--avd)":dir==="bot"?"var(--buy)":"var(--neu)"}"></i></div>
-   ${r.direction?`<span class="pill ${dir}">${esc(r.direction)}</span>`:""}<span class="pill">${r.n_signals} signals</span>
-   ${(r.signals||[]).map(s=>`<span class="sig"><b>${esc(s.signal)}</b> ${esc(s.detail)}${s.bars_ago?` · ${s.bars_ago} bars ago`:""}</span>`).join("")}
-  </div>`}).join("");
+   ${r.direction?`<span class="pill ${dir}">${esc(r.direction)}</span>`:""}${r.stage?`<span class="pill stg">${esc(r.stage)}</span>`:""}${r.weekly_confirm?`<span class="pill wk">weekly ✓</span>`:""}<span class="pill">${r.n_signals} signals</span><span class="pill">${(r.families||[]).join("/")}</span>
+   ${spark}
+   ${(r.signals||[]).map(s0=>`<span class="sig"><b>${esc(s0.signal)}</b> ${esc(s0.detail)}${s0.bars_ago?` · ${s0.bars_ago} bars ago`:""}</span>`).join("")}
+  </div>`;}
+ function apply(){
+  const out=rows.filter(r=>r.reversal_score!=null
+   &&(!F.dir||r.direction===F.dir)&&(!F.stage||r.stage===F.stage)
+   &&(!F.sec||r.sector===F.sec)&&((r.reversal_score||0)>=F.min)
+   &&(!F.q||r.ticker.includes(F.q)));
+  document.getElementById("grid").innerHTML=out.map(card).join("");
+  document.getElementById("fcount").textContent=`${out.length} shown / ${rows.length}`;}
+ document.getElementById("fdir").onchange=e=>{F.dir=e.target.value;apply()};
+ document.getElementById("fstage").onchange=e=>{F.stage=e.target.value;apply()};
+ document.getElementById("fsec").onchange=e=>{F.sec=e.target.value;apply()};
+ document.getElementById("fmin").oninput=e=>{F.min=+e.target.value;document.getElementById("fminv").textContent=F.min;apply()};
+ document.getElementById("fq").oninput=e=>{F.q=e.target.value.toUpperCase();apply()};
+ document.querySelectorAll(".sect").forEach(el=>el.onclick=()=>{F.sec=el.dataset.sec;document.getElementById("fsec").value=F.sec;apply();window.scrollTo({top:document.getElementById("fdir").offsetTop-80,behavior:"smooth"})});
+ apply();
  if(d.errors)document.getElementById("err").textContent="Fetch errors: "+d.errors.join(", ");
 }).catch(e=>document.getElementById("err").textContent="Load failed: "+e);
 </script></body></html>

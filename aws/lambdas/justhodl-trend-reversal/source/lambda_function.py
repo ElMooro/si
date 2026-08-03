@@ -33,10 +33,20 @@ OUT_KEY = "data/trend-reversal.json"
 FMP_KEY = os.environ.get("FMP_KEY") or os.environ.get("FMP_API_KEY", "")
 LADDER = ["SPY", "IWM", "EFA", "EEM", "HYG", "IEF", "GLD", "SLV",
           "DBC", "VNQ"]
+SECTOR_ETFS = ["XLK", "XLE", "XLF", "XLV", "XLI", "XLU", "XLB",
+               "XLY", "XLP", "XLRE", "XLC", "SMH", "XBI", "KRE",
+               "ITB", "XHB", "IYT", "XME", "XOP", "OIH", "TAN",
+               "JETS", "IGV", "SOXX", "KWEB", "EWJ", "EWZ", "FXI"]
 CRYPTO = {"BTC": "BTCUSD", "ETH": "ETHUSD"}
-MAX_NAMES = int(os.environ.get("MAX_NAMES", "14"))
+MAX_NAMES = int(os.environ.get("MAX_NAMES", "20"))
+BATCH = int(os.environ.get("BATCH", "110"))
+PART_KEY = "data/_tmp/trend-reversal-partial.json"
+HIST_KEY = "data/trend-reversal-history.json"
+SELF_FN = os.environ.get("AWS_LAMBDA_FUNCTION_NAME",
+                         "justhodl-trend-reversal")
+lam = __import__("boto3").client("lambda", region_name="us-east-1")
 s3 = boto3.client("s3", region_name="us-east-1")
-VERSION = "1.0"
+VERSION = "2.0"
 
 
 def closes(sym, days=280):
@@ -47,8 +57,9 @@ def closes(sym, days=280):
     out = []
     for r in rows:
         try:
-            out.append((r["date"], float(r.get("close")
-                                         or r.get("adjClose"))))
+            out.append((r["date"],
+                        float(r.get("close") or r.get("adjClose")),
+                        float(r.get("volume") or 0)))
         except Exception:
             continue
     out.sort()
@@ -93,12 +104,21 @@ def atr_proxy(cl, n=14):  # close-to-close TR proxy (no OHLC needed)
     return sma([0] + tr, n)
 
 
-def analyze(sym, series):
+def weekly_close(series):
+    acc = {}
+    for d, v, *_ in series:
+        y, w, _2 = datetime.strptime(d, "%Y-%m-%d").isocalendar()
+        acc[(y, w)] = v
+    return [acc[k] for k in sorted(acc)]
+
+
+def analyze(sym, series, sector=None):
     if len(series) < 210:
         return {"ticker": sym, "status": "insufficient_history",
                 "n": len(series)}
-    dates = [d for d, _ in series]
-    c = [v for _, v in series]
+    dates = [x[0] for x in series]
+    c = [x[1] for x in series]
+    vol = [x[2] for x in series]
     s20, s50, s200 = sma(c, 20), sma(c, 50), sma(c, 200)
     r14 = rsi(c)
     macd = [a - b for a, b in zip(ema(c, 12), ema(c, 26))]
@@ -188,59 +208,306 @@ def analyze(sym, series):
              f"ATRp {a_now:.2f} releasing from compression "
              f"(med {a_med:.2f})")
 
+    # ── v2 families: volume, band-walk, exhaustion, gaps, RSI regime,
+    #    stretch context ──
+    if any(vol[-20:]):
+        obv = [0.0]
+        for j in range(1, len(c)):
+            obv.append(obv[-1] + (vol[j] if c[j] > c[j - 1]
+                                  else -vol[j] if c[j] < c[j - 1]
+                                  else 0))
+        if prevail == "UP" and c[i] >= max(c[i - 19:i + 1]) - 1e-9 \
+                and obv[i] < max(obv[i - 19:i + 1]) * 0.999:
+            fire("obv_diverge", 14, "price 20d high, OBV below its "
+                                    "own 20d peak")
+        if prevail == "DOWN" and c[i] <= min(c[i - 19:i + 1]) + 1e-9 \
+                and obv[i] > min(obv[i - 19:i + 1]) * 1.001:
+            fire("obv_diverge", 14, "price 20d low, OBV above its "
+                                    "own 20d trough")
+    m20 = s20[i]
+    if m20:
+        sdv = (sum((x - m20) ** 2 for x in c[i - 19:i + 1])
+               / 20) ** .5
+        up_b, lo_b = m20 + 2 * sdv, m20 - 2 * sdv
+        walked_up = sum(1 for k in range(i - 6, i)
+                        if s20[k] and c[k] > s20[k] + 2 * sdv * .9)
+        if prevail == "UP" and walked_up >= 3 and c[i] < up_b:
+            fire("bb_walk_fail", 10,
+                 f"upper-band walk broke, close {c[i]:.2f} < "
+                 f"{up_b:.2f}")
+        walked_dn = sum(1 for k in range(i - 6, i)
+                        if s20[k] and c[k] < s20[k] - 2 * sdv * .9)
+        if prevail == "DOWN" and walked_dn >= 3 and c[i] > lo_b:
+            fire("bb_walk_fail", 10,
+                 f"lower-band walk broke, close {c[i]:.2f} > "
+                 f"{lo_b:.2f}")
+    b1, b2, b3 = abs(c[i] - c[i - 1]), abs(c[i - 1] - c[i - 2]), \
+        abs(c[i - 2] - c[i - 3])
+    if prevail == "UP" and c[i] > c[i - 3] and b1 < b2 < b3:
+        fire("momo_exhaust", 8, "three shrinking up-thrusts")
+    if prevail == "DOWN" and c[i] < c[i - 3] and b1 < b2 < b3:
+        fire("momo_exhaust", 8, "three shrinking down-thrusts")
+    gap = (c[i - 1] - c[i - 2]) / c[i - 2] if c[i - 2] else 0
+    if prevail == "UP" and gap > 0.02 and c[i] < c[i - 2]:
+        fire("gap_fail", 9, f"+{gap*100:.1f}% thrust given back "
+                            "next bar")
+    if prevail == "DOWN" and gap < -0.02 and c[i] > c[i - 2]:
+        fire("gap_fail", 9, f"{gap*100:.1f}% flush reclaimed "
+                            "next bar")
+    if r14[i] is not None and r14[i - 15] is not None:
+        held_hi = all((x or 50) > 55 for x in r14[i - 40:i - 10]
+                      if x is not None)
+        held_lo = all((x or 50) < 45 for x in r14[i - 40:i - 10]
+                      if x is not None)
+        if prevail == "UP" and held_hi and r14[i] < 42:
+            fire("rsi_regime", 9,
+                 f"RSI regime shift: held >55, now {r14[i]:.0f}")
+        if prevail == "DOWN" and held_lo and r14[i] > 58:
+            fire("rsi_regime", 9,
+                 f"RSI regime shift: held <45, now {r14[i]:.0f}")
+    if s200[i]:
+        dist = [cc / ss - 1 for cc, ss in zip(c[-160:], s200[-160:])
+                if ss]
+        mu_d = sum(dist) / len(dist)
+        sd_d = (sum((x - mu_d) ** 2 for x in dist)
+                / len(dist)) ** .5 or 1e-9
+        zst = (dist[-1] - mu_d) / sd_d
+        if prevail == "UP" and zst > 2 and fired:
+            fire("stretch", 6, f"px vs 200dma z {zst:+.1f} "
+                               "(exhaustion context)")
+        if prevail == "DOWN" and zst < -2 and fired:
+            fire("stretch", 6, f"px vs 200dma z {zst:+.1f} "
+                               "(capitulation context)")
     score = 0.0
     for f in fired:
         score += f["w"] * (0.85 ** f.get("bars_ago", 0))
+    # weekly higher-timeframe confirmation multiplier
+    wk = weekly_close(series)
+    weekly_conf = False
+    if len(wk) > 30:
+        wm = [a - b for a, b in zip(ema(wk, 6), ema(wk, 13))]
+        wh = [m_ - s_ for m_, s_ in zip(wm, ema(wm, 5))]
+        w_lohi = (max(wk[-4:]) < max(wk[-12:-4])
+                  if prevail == "UP"
+                  else min(wk[-4:]) > min(wk[-12:-4]))
+        w_macd = (wh[-1] < 0 if prevail == "UP" else wh[-1] > 0)
+        if fired and prevail != "FLAT" and (w_lohi or w_macd):
+            weekly_conf = True
+            score *= 1.25
     score = round(min(100, score), 1)
     direction = (None if not fired or prevail == "FLAT" else
                  "TOP_FORMING" if prevail == "UP" else
                  "BOTTOM_FORMING")
-    return {"ticker": sym, "as_of": dates[-1], "close": round(c[i], 2),
+    FAM = {"ma_break": "trend", "slope_flip": "trend",
+           "golden_death": "trend", "donchian_break": "structure",
+           "structure": "structure", "rsi_diverge": "momentum",
+           "macd_flip": "momentum", "rsi_regime": "momentum",
+           "atr_release": "volatility", "bb_walk_fail": "volatility",
+           "obv_diverge": "volume", "momo_exhaust": "momentum",
+           "gap_fail": "structure", "stretch": "context"}
+    fams = sorted({FAM.get(f["signal"], "other") for f in fired}
+                  - {"context"})
+    stage = (None if not direction else
+             "CONFIRMED" if {"trend", "structure"} <= set(fams)
+             else "DEVELOPING" if len(fams) >= 2 else "EARLY")
+    return {"ticker": sym, "as_of": dates[-1],
+            "close": round(c[i], 2), "sector": sector,
             "prevailing_trend": prevail,
             "reversal_score": score, "direction": direction,
+            "stage": stage, "families": fams,
+            "weekly_confirm": weekly_conf,
             "n_signals": len(fired), "signals": fired,
+            "closes30": [round(x, 2) for x in c[-30:]]
+            if score >= 25 else None,
             "px_vs_200dma_pct": round(100 * (c[i] / s200[i] - 1), 1)
             if s200[i] else None}
 
 
-def lambda_handler(event=None, context=None):
-    t0 = time.time()
-    universe = list(LADDER)
+def build_universe():
+    uni, sectors = [], {}
+    for t in LADDER + SECTOR_ETFS + list(CRYPTO):
+        uni.append(t)
     try:
         bs = json.loads(s3.get_object(
             Bucket=BUCKET, Key="data/best-setups.json")["Body"].read())
         for s0 in (bs.get("top_setups") or [])[:MAX_NAMES]:
             t = str(s0.get("ticker") or "").upper()
-            if t and t not in universe:
-                universe.append(t)
+            if t and t not in uni:
+                uni.append(t)
+                if s0.get("sector"):
+                    sectors[t] = s0["sector"]
     except Exception as e:
-        print(f"[reversal] best-setups skip: {str(e)[:70]}")
+        print(f"[reversal] setups skip: {str(e)[:60]}")
+    try:
+        cm = json.loads(s3.get_object(
+            Bucket=BUCKET,
+            Key="data/fundamental-census-matrix.json")["Body"].read())
+        rows = cm.get("rows") or cm.get("companies") or []
+        if isinstance(rows, dict):
+            rows = list(rows.values())
+        for r0 in rows:
+            t = str(r0.get("ticker") or r0.get("symbol")
+                    or "").upper()
+            if t and t not in uni:
+                uni.append(t)
+            if t and (r0.get("sector") or r0.get("gics_sector")):
+                sectors[t] = r0.get("sector") or r0["gics_sector"]
+    except Exception as e:
+        print(f"[reversal] census skip: {str(e)[:60]}")
+    return uni[:620], sectors
+
+
+def lambda_handler(event=None, context=None):
+    t0 = time.time()
+    event = event or {}
+    cursor = int(event.get("cursor", 0))
+    universe = event.get("universe")
+    sectors = event.get("sectors") or {}
+    if universe is None:
+        universe, sectors = build_universe()
+        try:  # fresh chain: clear partial
+            s3.delete_object(Bucket=BUCKET, Key=PART_KEY)
+        except Exception:
+            pass
+    batch = universe[cursor:cursor + BATCH]
     rows, errs = [], []
-    for sym in universe[:26]:
+    for sym in batch:
         fs = CRYPTO.get(sym, sym)
         try:
-            rows.append(analyze(sym, closes(fs)))
+            rows.append(analyze(sym, closes(fs),
+                                sectors.get(sym)))
         except Exception as e:
-            errs.append(f"{sym}:{str(e)[:60]}")
-    rows.sort(key=lambda r: -(r.get("reversal_score") or 0))
-    hot = [r for r in rows if (r.get("reversal_score") or 0) >= 30]
+            errs.append(f"{sym}:{str(e)[:46]}")
+    try:
+        part = json.loads(s3.get_object(
+            Bucket=BUCKET, Key=PART_KEY)["Body"].read())
+    except Exception:
+        part = {"rows": [], "errors": []}
+    part["rows"] += rows
+    part["errors"] += errs
+    s3.put_object(Bucket=BUCKET, Key=PART_KEY,
+                  Body=json.dumps(part).encode(),
+                  ContentType="application/json")
+    nxt = cursor + BATCH
+    if nxt < len(universe):
+        lam.invoke(FunctionName=SELF_FN, InvocationType="Event",
+                   Payload=json.dumps({
+                       "cursor": nxt, "universe": universe,
+                       "sectors": sectors}).encode())
+        print(f"[reversal] chain {cursor}->{nxt}/{len(universe)} "
+              f"(+{len(rows)} rows, {len(errs)} errs) "
+              f"{time.time()-t0:.0f}s")
+        return {"ok": True, "chained": nxt, "of": len(universe)}
+    # ── finalize ──
+    rows = [r for r in part["rows"]
+            if r.get("status") != "insufficient_history"
+            or True]
+    good = [r for r in rows if "reversal_score" in r]
+    good.sort(key=lambda r: -(r.get("reversal_score") or 0))
+    hot = [r for r in good if (r.get("reversal_score") or 0) >= 30]
+    n_top = sum(1 for r in good
+                if r.get("direction") == "TOP_FORMING"
+                and (r.get("reversal_score") or 0) >= 20)
+    n_bot = sum(1 for r in good
+                if r.get("direction") == "BOTTOM_FORMING"
+                and (r.get("reversal_score") or 0) >= 20)
+    breadth = {"n": len(good),
+               "top_pct": round(100 * n_top / len(good), 1)
+               if good else None,
+               "bottom_pct": round(100 * n_bot / len(good), 1)
+               if good else None,
+               "note": "share of universe with score>=20 by "
+                       "direction -- the market-turn gauge"}
+    sec_map = {}
+    for r in good:
+        se = r.get("sector") or "—"
+        d0 = sec_map.setdefault(se, {"sector": se, "n": 0,
+                                     "top": 0, "bot": 0,
+                                     "sum": 0.0, "leaders": []})
+        d0["n"] += 1
+        d0["sum"] += r.get("reversal_score") or 0
+        if (r.get("reversal_score") or 0) >= 20:
+            if r.get("direction") == "TOP_FORMING":
+                d0["top"] += 1
+            elif r.get("direction") == "BOTTOM_FORMING":
+                d0["bot"] += 1
+        if len(d0["leaders"]) < 3 and \
+                (r.get("reversal_score") or 0) >= 20:
+            d0["leaders"].append(
+                {"t": r["ticker"],
+                 "s": r["reversal_score"],
+                 "d": r["direction"]})
+    sectors_out = sorted(
+        ({"sector": v["sector"], "n": v["n"],
+          "top_pct": round(100 * v["top"] / v["n"], 1),
+          "bottom_pct": round(100 * v["bot"] / v["n"], 1),
+          "avg_score": round(v["sum"] / v["n"], 1),
+          "leaders": v["leaders"]}
+         for v in sec_map.values() if v["n"] >= 3),
+        key=lambda x: -(x["top_pct"] + x["bottom_pct"]))
+    try:
+        hist = json.loads(s3.get_object(
+            Bucket=BUCKET, Key=HIST_KEY)["Body"].read())
+    except Exception:
+        hist = {"days": [], "last_scores": {}}
+    prev = hist.get("last_scores") or {}
+    for r in good:
+        pv = prev.get(r["ticker"])
+        if pv is not None:
+            r["score_delta"] = round(
+                (r.get("reversal_score") or 0) - pv, 1)
+    movers = sorted((r for r in good if r.get("score_delta")),
+                    key=lambda r: -abs(r["score_delta"]))[:10]
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    hist["days"] = ([d for d in (hist.get("days") or [])
+                     if d.get("d") != today][-179:]
+                    + [{"d": today, "breadth": breadth,
+                        "hot": [{"t": r["ticker"],
+                                 "s": r["reversal_score"],
+                                 "dir": r["direction"]}
+                                for r in hot[:40]]}])
+    hist["last_scores"] = {r["ticker"]:
+                           r.get("reversal_score") or 0
+                           for r in good}
+    s3.put_object(Bucket=BUCKET, Key=HIST_KEY,
+                  Body=json.dumps(hist).encode(),
+                  ContentType="application/json")
     out = {"engine": "justhodl-trend-reversal", "version": VERSION,
            "generated_at": datetime.now(timezone.utc).isoformat(
                timespec="seconds"),
-           "universe_n": len(rows), "hot_n": len(hot),
-           "rows": rows, "errors": errs or None,
-           "methodology": ("Ensemble of classical early-reversal "
-                           "tells on real closes; score = recency-"
-                           "decayed weighted signals; direction only "
-                           "against a defined prevailing trend."),
+           "universe_n": len(good), "hot_n": len(hot),
+           "breadth": breadth, "sectors": sectors_out,
+           "movers": [{"t": r["ticker"],
+                       "delta": r["score_delta"],
+                       "score": r["reversal_score"],
+                       "dir": r.get("direction")}
+                      for r in movers],
+           "stages": {st: sum(1 for r in good
+                              if r.get("stage") == st)
+                      for st in ("EARLY", "DEVELOPING",
+                                 "CONFIRMED")},
+           "rows": good[:400],
+           "errors": part["errors"][:25] or None,
+           "methodology": ("v2: 14-signal ensemble across "
+                           "trend/structure/momentum/volatility/"
+                           "volume families on real closes+volume; "
+                           "weekly higher-timeframe confirmation "
+                           "x1.25; stage = family confluence; "
+                           "sector breadth and market-turn gauge "
+                           "from the full census universe; "
+                           "self-chained batches."),
            "elapsed_s": round(time.time() - t0, 1)}
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json",
                   CacheControl="public, max-age=900")
-    print(f"[reversal] {len(rows)} names, hot={len(hot)} "
-          f"top={[(r['ticker'], r['reversal_score']) for r in rows[:3]]}"
-          f" errs={len(errs)} {out['elapsed_s']}s")
-    return {"ok": True, "n": len(rows), "hot": len(hot),
-            "top": [(r["ticker"], r["reversal_score"])
-                    for r in rows[:3]]}
+    try:
+        s3.delete_object(Bucket=BUCKET, Key=PART_KEY)
+    except Exception:
+        pass
+    print(f"[reversal] FINAL {len(good)} names hot={len(hot)} "
+          f"breadth top {breadth['top_pct']}% / bot "
+          f"{breadth['bottom_pct']}% "
+          f"top={[(r['ticker'], r['reversal_score']) for r in good[:3]]}")
+    return {"ok": True, "final": True, "n": len(good),
+            "hot": len(hot), "breadth": breadth}
