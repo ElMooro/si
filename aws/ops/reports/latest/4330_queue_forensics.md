@@ -1,14 +1,21 @@
-executing-against: 5c17734ad312025420253cf7ecc64530168c7915
-ops 4330 -- the queue names its bugs
-── A. revival holdouts -- tracebacks ──
-[20:09:50] justhodl-liquidity-flow:
-[20:09:52]   no error-pattern events in window
-[20:09:52] justhodl-feed-catalog:
-[20:09:53]   [jhcore.notify] telegram err: HTTP Error 401: Unauthorized
-── B. pump-radar-summary -- writer + bytes ──
-[20:09:53] first bytes: 1f8b080014ef706a00ff9d53cb8e9b30
-[20:09:53] writers: aws/lambdas/justhodl-prepump-summary/source/lambda_function.py aws/lambdas/justhodl-prepump-summary/config.json 
-[20:09:53] 2-justhodl-prepump-summary
+# ops 4330 -- the queue names its bugs
+
+**Status:** success  
+**Duration:** 3.1s  
+**Finished:** 2026-08-03T20:09:53+00:00  
+
+## Log
+## A. revival holdouts -- tracebacks
+
+- `20:09:50` justhodl-liquidity-flow:
+- `20:09:52`   no error-pattern events in window
+- `20:09:52` justhodl-feed-catalog:
+- `20:09:53`   [jhcore.notify] telegram err: HTTP Error 401: Unauthorized
+## B. pump-radar-summary -- writer + bytes
+
+- `20:09:53` first bytes: 1f8b080014ef706a00ff9d53cb8e9b30
+- `20:09:53` writers: aws/lambdas/justhodl-prepump-summary/source/lambda_function.py aws/lambdas/justhodl-prepump-summary/config.json 
+- `20:09:53` 2-justhodl-prepump-summary
 3-═══════════════════════════
 4:Builds data/pump-radar-summary.json — a slim, hero-card-sized recomposition
 5-of brief + positioning + catalysts + clusters + early.
@@ -32,9 +39,10 @@ ops 4330 -- the queue names its bugs
 259-    except Exception as e:
 260-        print(f"[plain-fallback] {e}")
 
-── C. dead-leg compute sites ──
-[20:09:53] short_squeeze -> aws/lambdas/justhodl-ai-rerating-radar/source/lambda_function.py
-[20:09:53] 528-            "estimates_rising": rising, "estimates_falling": falling,
+## C. dead-leg compute sites
+
+- `20:09:53` short_squeeze -> aws/lambdas/justhodl-ai-rerating-radar/source/lambda_function.py
+- `20:09:53` 528-            "estimates_rising": rising, "estimates_falling": falling,
 529-            "red_flags": rflags, "contagion": contagion,
 530-            "peer_leader": peer_leader, "peer_leader_rising": peer_hot,
 531:            "short_squeeze": sq, "ai_deal": deal, "smart_money_backed": smbk,
@@ -45,8 +53,8 @@ ops 4330 -- the queue names its bugs
 536-    rows.sort(key=lambda x: x["composite"], reverse=True)
 537-    candidates = [r for r in rows if r["is_candidate"]]
 
-[20:09:53] expected_to_outgrow_industry -> aws/lambdas/justhodl-opportunities-research/source/lambda_function.py
-[20:09:53] 161-            (bull if rec["fwd_rev_growth"] > 0 else bearf).append(
+- `20:09:53` expected_to_outgrow_industry -> aws/lambdas/justhodl-opportunities-research/source/lambda_function.py
+- `20:09:53` 161-            (bull if rec["fwd_rev_growth"] > 0 else bearf).append(
 162-                "forward revenue revised up" if rec["fwd_rev_growth"] > 0 else "forward revenue revised down")
 163-        g = r.get("growth_intel") or {}
 164:        if g.get("expected_to_outgrow_industry"): bull.append("expected to outgrow its industry")
@@ -57,8 +65,8 @@ ops 4330 -- the queue names its bugs
 169-        if rec.get("seg_conc") is not None and rec["seg_conc"] > 70: bearf.append("revenue concentration")
 170-        ed = (r.get("estimate_revision") or {}).get("direction")
 
-[20:09:53] out_tok -> aws/lambdas/justhodl-llm-cost-dashboard/source/lambda_function.py
-[20:09:53] 57-
+- `20:09:53` out_tok -> aws/lambdas/justhodl-llm-cost-dashboard/source/lambda_function.py
+- `20:09:53` 57-
 58-    for idx, d in enumerate(days):
 59-        items = _query_day(d)
 60:        dc = dict(date=d, cost=0.0, calls=0, real_calls=0, cache_hits=0, in_tok=0, out_tok=0)
@@ -73,8 +81,8 @@ ops 4330 -- the queue names its bugs
 69-            if idx == 0:  # today -> per-engine + per-model breakdowns
 70-                e = per_engine.setdefault(eng, dict(engine=eng, cost=0.0, calls=0, real_calls=0, cache_hits=0))
 71-                e["cost"] += cost; e["calls"] += calls; e["real_calls"
-[20:09:53] CAPEX_ACCEL -> aws/lambdas/justhodl-best-setups/source/lambda_function.py
-[20:09:53] 99-    "REVISION_UP":          0.78,   # analyst estimate-revision momentum
+- `20:09:53` CAPEX_ACCEL -> aws/lambdas/justhodl-best-setups/source/lambda_function.py
+- `20:09:53` 99-    "REVISION_UP":          0.78,   # analyst estimate-revision momentum
 100-    "DISLOCATION":          0.78,   # relative-value buy-the-laggard
 101-    "BUYBACK":              0.74,   # aggressive share repurchase (price support, ↑EPS)
 102:    "CAPEX_ACCEL":          0.70,   # surging capex in a buildout sector (AI/power demand)
@@ -87,6 +95,4 @@ ops 4330 -- the queue names its bugs
 --
 205-        "COMPOUNDER": "COMPOUNDER", "CAPITAL_FLOW": "CAPITAL_FLOW",
 206-        "REVISION_UP"
-[20:09:53] ✅ forensics complete
-
-→ Report written to aws/ops/reports/latest/4330_queue_forensics.md
+- `20:09:53` ✅ forensics complete
