@@ -1,0 +1,10 @@
+# ops 4343 -- every seat links home
+
+**Status:** success  
+**Duration:** 138.1s  
+**Finished:** 2026-08-03T23:35:40+00:00  
+
+## Log
+- `23:34:40` ✅ seat links: 12/12
+- `23:34:40` sample links: [('crisis_dfii10_vs_gld', 'https://justhodl.ai/risk-gate.html'), ('crypto_cot_assetmgr', 'https://justhodl.ai/crypto.html'), ('attention_distribution', 'https://justhodl.ai/pump-radar.html'), ('crypto_options_rr', 'https://justhodl.ai/crypto.html')]
+- `23:35:40` ✅ OPS 4343 PASS -- twelve seats, twelve doors
