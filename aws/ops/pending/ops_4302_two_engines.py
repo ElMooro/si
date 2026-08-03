@@ -24,11 +24,24 @@ import time
 import zipfile
 from datetime import datetime, timezone
 
+import subprocess
+
 import boto3
 from botocore.config import Config
 from ops_report import report
 
 REGION, B = "us-east-1", "justhodl-dashboard-live"
+
+
+def git_floor(d):
+    try:
+        out = subprocess.run(
+            ["git", "log", "-1", "--format=%ct", "--",
+             "aws/lambdas/%s" % d], capture_output=True, text=True,
+            timeout=30).stdout.strip()
+        return datetime.fromtimestamp(int(out), tz=timezone.utc)
+    except Exception:
+        return None
 lam = boto3.client("lambda", region_name=REGION,
                    config=Config(read_timeout=300, retries={"max_attempts": 1}))
 s3 = boto3.client("s3", region_name=REGION)
@@ -36,23 +49,37 @@ sch = boto3.client("scheduler", region_name=REGION)
 RUN_START = datetime.now(timezone.utc)
 
 def ensure(fn, timeout_s, env=None):
-    for _ in range(20):
-        try:
-            c = lam.get_function_configuration(FunctionName=fn)
-            if c.get("State") == "Active" and \
-                    c.get("LastUpdateStatus") in (None, "Successful"):
-                lm = datetime.strptime(
-                    c["LastModified"].split(".")[0], "%Y-%m-%dT%H:%M:%S"
-                ).replace(tzinfo=timezone.utc)
-                if (RUN_START - lm).total_seconds() < 20 * 60:
-                    return "deployed"
-                break
-        except lam.exceptions.ResourceNotFoundException:
-            break
-        except Exception:
-            pass
-        time.sleep(8)
-    try:
+    """Git-anchored freshness + VERIFIED key-env before any invoke."""
+    floor = git_floor(fn) or RUN_START
+    kd = lam.get_function_configuration(
+        FunctionName="justhodl-commodity-curves")
+    keyenv = {k: v for k, v in ((kd.get("Environment") or {})
+                                .get("Variables") or {}).items()
+              if k.startswith(("FMP", "FRED"))}
+    want = {**keyenv, **(env or {})}
+
+    def code_fresh():
+        for _ in range(55):
+            try:
+                c = lam.get_function_configuration(FunctionName=fn)
+                if c.get("State") == "Active" and \
+                        c.get("LastUpdateStatus") in (None,
+                                                      "Successful"):
+                    lm = datetime.strptime(
+                        c["LastModified"].split(".")[0],
+                        "%Y-%m-%dT%H:%M:%S").replace(
+                        tzinfo=timezone.utc)
+                    if lm >= floor:
+                        return c
+            except lam.exceptions.ResourceNotFoundException:
+                return None
+            except Exception:
+                pass
+            time.sleep(9)
+        return False
+
+    c = code_fresh()
+    if c is None:  # never existed -> self-create (fresh source zip)
         buf = io.BytesIO()
         sdir = "aws/lambdas/%s/source" % fn
         with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
@@ -62,35 +89,34 @@ def ensure(fn, timeout_s, env=None):
                     z.write(fp, os.path.relpath(fp, sdir))
         donor = lam.get_function_configuration(
             FunctionName="justhodl-quantum-desk")
-        kd = lam.get_function_configuration(
-            FunctionName="justhodl-commodity-curves")
-        keyenv = {k: v for k, v in ((kd.get("Environment") or {})
-                                    .get("Variables") or {}).items()
-                  if k.startswith(("FMP", "FRED"))}
-        env = {**keyenv, **(env or {})}
-        try:
-            lam.create_function(
-                FunctionName=fn, Runtime="python3.12",
-                Role=donor["Role"],
-                Handler="lambda_function.lambda_handler",
-                Code={"ZipFile": buf.getvalue()},
-                Timeout=timeout_s, MemorySize=512,
-                Environment={"Variables": env or {}},
-                Architectures=["x86_64"])
-        except Exception as ce:
-            if "exists" in str(ce):
-                lam.update_function_code(FunctionName=fn,
-                                         ZipFile=buf.getvalue())
-            else:
-                raise
-        for _ in range(30):
-            if lam.get_function_configuration(
-                    FunctionName=fn).get("State") == "Active":
-                return "self-created"
+        lam.create_function(
+            FunctionName=fn, Runtime="python3.12",
+            Role=donor["Role"],
+            Handler="lambda_function.lambda_handler",
+            Code={"ZipFile": buf.getvalue()},
+            Timeout=timeout_s, MemorySize=512,
+            Environment={"Variables": want},
+            Architectures=["x86_64"])
+        c = code_fresh()
+    if not c:
+        return "FAIL: code never reached git floor %s" % floor
+    have = ((c.get("Environment") or {}).get("Variables") or {})
+    if any(want.get(k) and have.get(k) != want[k] for k in want):
+        lam.update_function_configuration(
+            FunctionName=fn,
+            Environment={"Variables": {**have, **want}})
+        for _ in range(20):  # gate on ENV VISIBLE + settled
             time.sleep(5)
-    except Exception as e:
-        return "FAIL:%s" % str(e)[:110]
-    return "self-created"
+            c = lam.get_function_configuration(FunctionName=fn)
+            hv = ((c.get("Environment") or {}).get("Variables")
+                  or {})
+            if c.get("LastUpdateStatus") in (None, "Successful") \
+                    and all(hv.get(k) == v for k, v in want.items()
+                            if v):
+                return "env-repaired+verified"
+        return "FAIL: env never became visible"
+    return "fresh+keyed"
+
 
 def schedule(name, cron, fn):
     try:
