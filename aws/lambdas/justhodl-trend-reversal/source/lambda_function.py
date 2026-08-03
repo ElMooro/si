@@ -47,7 +47,7 @@ SELF_FN = os.environ.get("AWS_LAMBDA_FUNCTION_NAME",
                          "justhodl-trend-reversal")
 lam = __import__("boto3").client("lambda", region_name="us-east-1")
 s3 = boto3.client("s3", region_name="us-east-1")
-VERSION = "2.2"
+VERSION = "2.2.1"
 
 
 def closes(sym, days=280):
@@ -571,10 +571,27 @@ def lambda_handler(event=None, context=None):
     s3.put_object(Bucket=BUCKET, Key=HIST_KEY,
                   Body=json.dumps(hist).encode(),
                   ContentType="application/json")
+    built_bc = {}
+    for t_ in (universe or []):
+        c_ = cls_map.get(t_, "SP500")
+        built_bc[c_] = built_bc.get(c_, 0) + 1
+    dropped = ([{"t": x.get("ticker"),
+                 "cls": x.get("asset_class"),
+                 "why": "insufficient_history(%s)" % x.get("n")}
+                for x in part["rows"]
+                if x.get("status") == "insufficient_history"]
+               + [{"t": e.split(":", 1)[0],
+                   "cls": cls_map.get(e.split(":", 1)[0], "?"),
+                   "why": e.split(":", 1)[-1][:60]}
+                  for e in part.get("errors") or []])
     out = {"engine": "justhodl-trend-reversal", "version": VERSION,
            "generated_at": datetime.now(timezone.utc).isoformat(
                timespec="seconds"),
            "universe_n": len(good), "hot_n": len(hot),
+           "built": {"n": len(universe or []),
+                     "by_class": built_bc},
+           "dropped": dropped[:60] or None,
+           "n_dropped": len(dropped),
            "breadth": breadth, "sectors": sectors_out,
            "movers": [{"t": r["ticker"],
                        "delta": r["score_delta"],

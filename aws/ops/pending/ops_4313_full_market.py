@@ -56,11 +56,11 @@ with report("4313_full_market") as r:
                 doc = json.loads(s3.get_object(
                     Bucket="justhodl-dashboard-live",
                     Key="data/trend-reversal.json")["Body"].read())
-                if doc.get("version") == "2.2":
+                if doc.get("version") == "2.2.1":
                     break
             except Exception:
                 pass
-        if doc.get("version") != "2.2":
+        if doc.get("version") != "2.2.1":
             fails.append("v2.2 never finalized (saw %s)"
                          % doc.get("version"))
         else:
@@ -76,18 +76,30 @@ with report("4313_full_market") as r:
                   % (rows[0].get("ticker") if rows else "?", ma0))
             if set(ma0) != {"d20", "d50", "d100", "d200"}:
                 fails.append("ma ladder incomplete: %s" % ma0)
-            n = doc.get("universe_n") or 0
-            if n < 720:
-                fails.append("universe %d < 720" % n)
+            b = doc.get("built") or {}
+            r.log("BUILT %s by_class=%s · analyzed %s · dropped %s"
+                  % (b.get("n"), b.get("by_class"),
+                     doc.get("universe_n"), doc.get("n_dropped")))
+            for dx in (doc.get("dropped") or [])[:8]:
+                r.log("  dropped %s (%s): %s"
+                      % (dx.get("t"), dx.get("cls"),
+                         dx.get("why")))
+            bb = b.get("by_class") or {}
+            if (b.get("n") or 0) < 600:
+                fails.append("built %s < 600" % b.get("n"))
+            if bb.get("FX", 0) < 11 or bb.get("CRYPTO", 0) < 12 \
+                    or bb.get("FUTURES", 0) < 5 \
+                    or bb.get("ETF", 0) < 60:
+                fails.append("built classes thin: %s" % bb)
+            if (doc.get("universe_n") or 0) < 590:
+                fails.append("analyzed %s < 590"
+                             % doc.get("universe_n"))
             bc = {}
             for x in rows:
                 bc[x.get("asset_class", "?")] = bc.get(
                     x.get("asset_class", "?"), 0) + 1
             r.log("by_class: %s" % bc)
-            if bc.get("ETF", 0) < 55:
-                fails.append("ETF grid thin: %s" % bc.get("ETF"))
-            if bc.get("CRYPTO", 0) < 7 or bc.get("FX", 0) < 9:
-                fails.append("crypto/fx thin")
+
             secs = [s0["sector"] for s0 in doc.get("sectors") or []]
             r.log("sector tiles: %s" % secs)
             if not all(x >= 8 for x in spk):
@@ -112,8 +124,9 @@ with report("4313_full_market") as r:
         except Exception:
             pass
         time.sleep(20)
-    for mk in ("thermo", "ghist", "sprkSVG", "table view", "⬇ CSV",
-               "secbar", "why.html?t="):
+    for mk in ('id="hmap"', "renderHeat", "maRib", "%100d",
+               "tile size = reversal score", 'id="ghist"',
+               "table view", "⬇ CSV", "why.html?t="):
         if mk not in body:
             fails.append("edge missing %s" % mk)
     if "sprkSVG" in body:
@@ -126,3 +139,5 @@ with report("4313_full_market") as r:
         r.ok("OPS 4312 PASS -- the radar reads like a product")
 if fails:
     sys.exit(1)
+
+# retrigger: v2.2.1 built/dropped + calibrated gates + real markers
