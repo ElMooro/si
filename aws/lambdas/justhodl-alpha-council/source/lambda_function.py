@@ -18,6 +18,37 @@ s3 = boto3.client("s3", region_name="us-east-1")
 B = "justhodl-dashboard-live"
 OUT = "data/alpha-council.json"
 Z = 1.96
+PAGE = {"best-setups": "/best-setups.html",
+        "setups": "/best-setups.html", "deal": "/deal-scanner.html",
+        "reversal": "/trend-reversal.html",
+        "compound": "/convergence-desk.html",
+        "alpha": "/convergence-desk.html",
+        "congress": "/political-stocks.html",
+        "political": "/political-stocks.html",
+        "insider": "/insiders.html",
+        "squeeze": "/short-interest.html",
+        "boom": "/industry-boom.html", "rotation": "/rotation.html",
+        "risk": "/risk-gate.html", "onchain": "/risk-gate.html",
+        "crisis": "/risk-gate.html", "macro": "/macro.html",
+        "quantum": "/quantum-desk.html",
+        "momentum": "/momentum.html", "magic": "/magic-formula.html",
+        "rerating": "/ai-rerating.html",
+        "opportunit": "/opportunities.html", "13f": "/sectors.html",
+        "buyback": "/best-setups.html",
+        "dividend": "/best-setups.html", "gf-value": "/why.html",
+        "capital-return": "/best-setups.html",
+        "attention": "/pump-radar.html",
+        "crypto": "/crypto.html", "btc": "/crypto.html"}
+
+
+def link_for(e):
+    el = str(e).lower()
+    for k, v in PAGE.items():
+        if k in el:
+            return "https://justhodl.ai" + v
+    return ("https://justhodl-dashboard-live.s3.amazonaws.com/"
+            "data/%s.json" % el)
+
 TICK_RX = re.compile(r"^[A-Z][A-Z0-9.\-]{0,6}$")
 
 
@@ -163,7 +194,7 @@ def lambda_handler(event=None, context=None):
                       if v["n"] >= 3}
             cr = regtab.get(cur_regime, {})
             council.append({
-                "engine": e, "n": g0["n"], "win_pct": wr,
+                "engine": e, "link": link_for(e), "n": g0["n"], "win_pct": wr,
                 "wilson_lb": lb, "avg_move_pct": avg,
                 "direction_bias": ("DOWN" if g0["dn"] > g0["up"]
                                    else "UP"),
@@ -243,7 +274,9 @@ def lambda_handler(event=None, context=None):
         v0 = votes.setdefault(sym, {"by_eng": {}})
         prev = v0["by_eng"].get(e)
         if prev is None or c["wilson_lb"] > prev["wilson_lb"]:
-            v0["by_eng"][e] = {"engine": e, "direction": pd,
+            v0["by_eng"][e] = {"engine": e,
+                               "link": link_for(e),
+                               "direction": pd,
                                "wilson_lb": c["wilson_lb"],
                                "regime_fit": rf, "w": w0}
     for c in council:
@@ -300,8 +333,8 @@ def lambda_handler(event=None, context=None):
                 "council_n": n_e,
                 "weighted_score": round(score, 3),
                 "engines": sorted(
-                    ({k: x[k] for k in ("engine", "direction",
-                                        "wilson_lb",
+                    ({k: x[k] for k in ("engine", "link",
+                                        "direction", "wilson_lb",
                                         "regime_fit")}
                      for x in evs),
                     key=lambda x: -x["wilson_lb"]),
