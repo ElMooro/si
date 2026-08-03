@@ -25,6 +25,19 @@ h2{font-family:Fraunces,serif;font-size:20px;margin:30px 0 8px}
 .tl i{flex:1;min-width:3px;border-radius:2px 2px 0 0;background:var(--neu);opacity:.8}
 .notes{font:12px var(--mono);color:var(--tx2);white-space:pre-wrap;background:var(--bg1);border:1px solid var(--brd);border-radius:12px;padding:12px 14px}
 .err{color:var(--avd)}
+
+.xbtn{cursor:pointer;border:1px solid var(--brd);background:var(--bg2);color:var(--tx);border-radius:8px;padding:4px 12px;font:12px var(--mono)}
+#modal{position:fixed;inset:0;background:rgba(5,7,10,.96);z-index:60;display:none;padding:22px;overflow:auto}
+#modal .inner{max-width:1560px;margin:0 auto}
+.leg-tgl{font:12px var(--mono);color:var(--tx2);margin-right:12px;cursor:pointer;user-select:none}
+.leg-tgl input{vertical-align:-2px}
+table.era{border-collapse:collapse;font:12px var(--mono);width:100%}
+table.era td,table.era th{border:1px solid var(--brd);padding:5px 8px;text-align:left;color:var(--tx2)}
+table.era th{color:var(--tx)}
+details.kd{font:12px var(--mono);color:var(--tx2);margin-top:8px}
+details.kd summary{cursor:pointer;color:var(--tx)}
+.crx{stroke:var(--avd);stroke-dasharray:3 3;opacity:.8}
+.crx-pre{stroke:var(--tx2);stroke-dasharray:2 4;opacity:.6}
 </style></head><body><div class="wrap">
 <h1>Treasury Rehypothecation Stress</h1>
 <div class="meta" id="meta">loading…</div>
@@ -37,13 +50,27 @@ h2{font-family:Fraunces,serif;font-size:20px;margin:30px 0 8px}
 <div id="missing" class="note" style="margin-top:12px"></div>
 <h2>History — 1996 → today</h2>
 <div class="note" id="longnote">Weekly composite from the era-stitched FR2004 record plus modern legs as each was born. The axis starts at the 1996 target; any span before the first real datapoint is shaded "no API data" — disclosed, never interpolated. Coverage strip beneath shows how many legs exist each week.</div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin:2px 0 8px"><span class="vs" id="chartsub"></span><button class="xbtn" id="expand">⤢ Expand — legs & crises</button></div>
 <div class="card"><svg id="chart" viewBox="0 0 1000 300" style="width:100%"></svg></div>
+<h2>Leg availability & era coverage</h2>
+<div class="note">Exactly which legs exist over which spans, and how many FR2004 series each seriesbreak segment contributed — the honesty ledger behind the chart.</div>
+<div class="legs" id="avail"></div>
+<div class="card" style="margin-top:12px;overflow-x:auto"><table class="era" id="eratab"></table></div>
+<details class="kd" id="kids"><summary>FR2004 keyids in use (discovered, per concept)</summary><div id="kidbody"></div></details>
 <h2>Recent runs</h2><div class="tl" id="tl"></div>
 <h2>Engine notes — self-diagnosis</h2>
 <div class="note">The engine writes its own fetch diagnostics (catalog counts, per-keyid errors, discovery samples) so failures are inspectable, not mysterious.</div>
 <div class="notes" id="notes"></div>
 <div class="err" id="err"></div>
 </div>
+<div id="modal"><div class="inner">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+  <b style="font-family:Fraunces,serif;font-size:20px">Rehypothecation Stress — 1996 → today, expanded</b>
+  <button class="xbtn" id="mclose">✕ close</button></div>
+ <div id="mtgls" style="margin-bottom:8px"></div>
+ <div class="card"><svg id="mchart" viewBox="0 0 1600 640" style="width:100%"></svg></div>
+ <div class="vs" style="margin-top:8px">Crisis markers are factual reference events; inside the data span you see the composite's actual reaction (repo spike Sep-2019, COVID dash-for-cash Mar-2020). Markers in the shaded zone predate the NY Fed API's floor and carry no series — context only, never interpolated.</div>
+</div></div>
 <script src="/jh-enhance.js" defer></script><script src="/jh-page-ai.js" defer></script><script src="/jh-nav-drawer.js" defer></script>
 <script>
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -64,27 +91,58 @@ Promise.all([
   sv+=`<text x="${cx}" y="${cy-32}" text-anchor="middle" fill="var(--tx)" font-size="34" font-weight="700" font-family="Fraunces,serif">${v??"—"}</text>`;
   sv+=`<text x="${cx}" y="${cy-10}" text-anchor="middle" fill="var(--tx2)" font-size="13" font-family="var(--mono)">${esc(d.band||"insufficient legs")}</text>`;
   g.innerHTML=sv;})();
- // ── long chart 1996 -> now ──
- (function(){const c=document.getElementById("chart");const W=1000,H=300,padL=34,padR=8,padT=10,padB=44;
-  const rows=(L&&L.weekly)||[];const t0=Date.parse("1996-01-01"),t1=Date.now();
+ // ── long chart 1996 -> now (parameterized, crises, legs) ──
+ const CRISES=[["1997-10-27","Asia crisis"],["1998-09-23","LTCM"],["2001-09-11","9/11 settlement fails"],["2007-08-09","BNP freeze"],["2008-09-15","Lehman — UST fails spike"],["2011-08-05","US downgrade"],["2013-06-19","Taper tantrum"],["2014-10-15","UST flash rally"],["2016-02-11","Funding squeeze"],["2019-09-17","Repo spike — SOFR prints 10%"],["2020-03-12","COVID dash-for-cash"],["2022-09-28","Gilt/LDI spillover"],["2023-03-10","SVB"],["2024-08-05","Yen-carry unwind"]];
+ const LEGCOL={fails:"#ff6b6b",velocity:"#e8b34a",specialness:"#8fd3ff",dvp_volume:"#b58cff",sofr_iorb:"#3fd08c",rrp_drain_4w:"#ff9f43"};
+ function renderChart(el,W,H,opts){
+  const padL=40,padR=12,padT=14,padB=56,rows=(L&&L.weekly)||[];
+  const t0=Date.parse("1996-01-01"),t1=Date.now();
   const X=t=>padL+(W-padL-padR)*(t-t0)/(t1-t0),Y=v=>padT+(H-padT-padB)*(1-v/100);
+  const Yz=z=>padT+(H-padT-padB)*(1-((z+3)/6));
   let sv="";
-  const zones=[[0,45,"var(--buy)"],[45,62,"var(--acc)"],[62,78,"#ff9f43"],[78,100,"var(--avd)"]];
-  for(const[a,b,col]of zones)sv+=`<rect x="${padL}" y="${Y(b)}" width="${W-padL-padR}" height="${Y(a)-Y(b)}" fill="${col}" opacity=".07"/>`;
+  for(const[a,b,col]of[[0,45,"var(--buy)"],[45,62,"var(--acc)"],[62,78,"#ff9f43"],[78,100,"var(--avd)"]])
+   sv+=`<rect x="${padL}" y="${Y(b)}" width="${W-padL-padR}" height="${Y(a)-Y(b)}" fill="${col}" opacity=".07"/>`;
   for(let yr=1996;yr<=2026;yr+=2){const x=X(Date.parse(yr+"-01-01"));sv+=`<line x1="${x}" y1="${padT}" x2="${x}" y2="${H-padB}" stroke="var(--brd)" opacity=".5"/><text x="${x}" y="${H-padB+14}" fill="var(--tx2)" font-size="10" text-anchor="middle">${yr}</text>`;}
-  for(const v of[0,25,50,75,100])sv+=`<text x="4" y="${Y(v)+3}" fill="var(--tx2)" font-size="10">${v}</text>`;
-  if(rows.length){const s0=Date.parse(rows[0].d);
-   if(s0>t0)sv+=`<rect x="${padL}" y="${padT}" width="${X(s0)-padL}" height="${H-padT-padB}" fill="var(--bg2)" opacity=".55"/><text x="${(padL+X(s0))/2}" y="${(padT+H-padB)/2}" fill="var(--tx2)" font-size="11" text-anchor="middle">no API data before ${rows[0].d.slice(0,4)} — disclosed, not interpolated</text>`;
+  for(const v of[0,25,50,75,100])sv+=`<text x="6" y="${Y(v)+3}" fill="var(--tx2)" font-size="10">${v}</text>`;
+  const s0=rows.length?Date.parse(rows[0].d):null;
+  if(s0&&s0>t0)sv+=`<rect x="${padL}" y="${padT}" width="${X(s0)-padL}" height="${H-padT-padB}" fill="var(--bg2)" opacity=".55"/><text x="${(padL+X(s0))/2}" y="${padT+16}" fill="var(--tx2)" font-size="11" text-anchor="middle">no API data before ${rows[0].d.slice(0,4)} — disclosed, not interpolated</text>`;
+  for(const[dd,lab]of CRISES){const t=Date.parse(dd);if(t<t0||t>t1)continue;const x=X(t),pre=s0&&t<s0;
+   sv+=`<line class="${pre?"crx-pre":"crx"}" x1="${x}" y1="${padT}" x2="${x}" y2="${H-padB}"><title>${dd} · ${lab}${pre?" (pre-API — context only)":""}</title></line>`;
+   if(opts.labels)sv+=`<text x="${x+3}" y="${padT+((CRISES.findIndex(c=>c[0]===dd))%6)*13+26}" fill="${pre?"var(--tx2)":"var(--avd)"}" font-size="${opts.big?11:8.5}">${esc(lab)}</text>`;}
+  if(rows.length){
+   if(opts.legs)for(const[name,col]of Object.entries(LEGCOL)){if(opts.legs[name]===false)continue;
+    let p="",started=false;rows.forEach(r=>{const z=r.z&&r.z[name];if(z==null){started=false;return;}
+     const x=X(Date.parse(r.d)),y=Yz(Math.max(-3,Math.min(3,z)));p+=(started?"L":"M")+x.toFixed(1)+","+y.toFixed(1);started=true;});
+    if(p)sv+=`<path d="${p}" fill="none" stroke="${col}" stroke-width="1" opacity=".75"/>`;}
    let path="";rows.forEach((r,i)=>{const x=X(Date.parse(r.d)),y=Y(r.c);path+=(i?"L":"M")+x.toFixed(1)+","+y.toFixed(1);});
-   sv+=`<path d="${path}" fill="none" stroke="var(--tx)" stroke-width="1.6"/>`;
-   const st=rows.length>900?4:1;
+   sv+=`<path d="${path}" fill="none" stroke="var(--tx)" stroke-width="${opts.big?2:1.6}"/>`;
+   const st=opts.big?1:(rows.length>900?4:1);
    rows.forEach((r,i)=>{if(i%st)return;const x=X(Date.parse(r.d)),y=Y(r.c);
-    sv+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="transparent" stroke="none"><title>${r.d} · ${r.c} · ${r.n} legs · ${esc(JSON.stringify(r.z))}</title></circle>`;});
+    sv+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${opts.big?3.4:2.6}" fill="transparent"><title>${r.d} · composite ${r.c} · ${r.n} legs · ${esc(JSON.stringify(r.z))}</title></circle>`;});
    rows.forEach((r,i)=>{if(i%2)return;const x=X(Date.parse(r.d));
-    sv+=`<rect x="${(x-1).toFixed(1)}" y="${H-padB+20}" width="2" height="10" fill="var(--neu)" opacity="${(r.n||0)/6}"><title>${r.d}: ${r.n} legs live</title></rect>`;});
-   sv+=`<text x="${padL}" y="${H-padB+40}" fill="var(--tx2)" font-size="10">leg coverage per week (opacity = legs live / 6) · actual start ${esc(L.actual_start||"—")} · ${L.n_weekly} weekly points</text>`;
+    sv+=`<rect x="${(x-1).toFixed(1)}" y="${H-padB+22}" width="2" height="10" fill="var(--neu)" opacity="${(r.n||0)/6}"><title>${r.d}: ${r.n} legs live</title></rect>`;});
+   if(opts.legs)sv+=`<text x="${W-padR}" y="${Yz(3)-4}" fill="var(--tx2)" font-size="9" text-anchor="end">leg z scale −3…+3 (right)</text>`;
   } else sv+=`<text x="${W/2}" y="${H/2}" fill="var(--tx2)" font-size="12" text-anchor="middle">long history builds on next engine run</text>`;
-  c.innerHTML=sv;})();
+  el.innerHTML=sv;}
+ renderChart(document.getElementById("chart"),1000,300,{labels:false,big:false});
+ document.getElementById("chartsub").textContent=L?`actual start ${L.actual_start} · ${L.n_weekly} weekly points · hover any point; crises marked (dashed) — expand for labels & per-leg z lines`:"";
+ const tglState={};Object.keys(LEGCOL).forEach(k=>tglState[k]=true);
+ function renderModal(){renderChart(document.getElementById("mchart"),1600,640,{labels:true,big:true,legs:tglState});}
+ document.getElementById("expand").onclick=()=>{document.getElementById("modal").style.display="block";
+  document.getElementById("mtgls").innerHTML=Object.entries(LEGCOL).map(([k,c])=>`<label class="leg-tgl"><input type="checkbox" data-k="${k}" checked> <span style="color:${c}">■</span> ${k}</label>`).join("");
+  document.querySelectorAll('#mtgls input').forEach(cb=>cb.onchange=()=>{tglState[cb.dataset.k]=cb.checked;renderModal();});
+  renderModal();};
+ document.getElementById("mclose").onclick=()=>document.getElementById("modal").style.display="none";
+ // ── availability + era coverage + keyids (the honesty ledger) ──
+ if(L){
+  const la=L.legs_available||{};
+  document.getElementById("avail").innerHTML=Object.entries(la).map(([k,v])=>`<div class="leg"><b style="color:${LEGCOL[k]||"var(--tx)"}">${esc(k)}</b><div class="vs">${esc(v.from)} → ${esc(v.to)}</div></div>`).join("")||"";
+  const ec=L.era_coverage||{};const sbs=["SBP2001","SBP2013","SBN2013","SBN2015","SBN2022","SBN2024"];
+  document.getElementById("eratab").innerHTML=`<tr><th>concept \\\\ seriesbreak</th>${sbs.map(s=>`<th>${s}</th>`).join("")}</tr>`+
+   Object.entries(ec).map(([c,m])=>`<tr><td>${esc(c)}</td>${sbs.map(s=>`<td>${m&&m[s]?m[s]+" wk":"—"}</td>`).join("")}</tr>`).join("");
+ }
+ const pk=d.picked_keyids||{};
+ document.getElementById("kidbody").innerHTML=Object.entries(pk).map(([c,arr])=>`<div style="margin-top:6px"><b>${esc(c)}</b>: ${(arr||[]).map(x=>Array.isArray(x)?`${esc(x[0])}<span style="opacity:.55">@${esc(x[1])}</span>`:esc(x)).join(" · ")}</div>`).join("");
  document.getElementById("meta").textContent=`v${d.version} · ${d.generated_at} · ${d.elapsed_s}s`;
  const legs=d.legs||{};
  document.getElementById("hero").innerHTML=`
@@ -95,7 +153,7 @@ Promise.all([
   <div class="card"><div class="k">Catalog picks</div><div class="v" style="font-size:16px;font-family:var(--mono)">${esc(JSON.stringify(Object.fromEntries(Object.entries(d.picked_keyids||{}).map(([k,v])=>[k,(v||[]).length]))))}</div>
    <div class="vs">FR2004 keyids discovered, not guessed</div></div>`;
  document.getElementById("legs").innerHTML=Object.entries(legs).map(([k,v])=>`
-  <div class="leg"><b>${esc(k)}</b><div class="z">${v.latest_bps!=null?Number(v.latest_bps).toFixed(2)+" bps":esc(String(v.latest??"—"))} · z ${v.z>0?"+":""}${v.z??"—"}</div>
+  <div class="leg"><b>${esc(k)}</b><div class="z">${v.latest_bps!=null?Number(v.latest_bps).toFixed(2)+" bps":(k==="fails"?"$"+(v.latest/1000).toFixed(1)+"bn":k==="dvp_volume"?"$"+(v.latest/1e12).toFixed(2)+"tn":k==="velocity"?Number(v.latest).toFixed(2)+"×":esc(String(v.latest??"—")))} · z ${v.z>0?"+":""}${v.z??"—"}</div>
    <div class="vs">n=${v.n??"—"} · as of ${esc(v.as_of||"—")}</div>
    <div class="vs">${esc(v.source||"")}</div>${v.keyids?`<div class="vs">${(v.keyids||[]).length} keyids</div>`:""}</div>`).join("")||"<div class='note'>no legs readable this run</div>";
  if(d.legs_missing)document.getElementById("missing").innerHTML="Missing legs (disclosed): <span class='err'>"+d.legs_missing.map(esc).join(" · ")+"</span>";
