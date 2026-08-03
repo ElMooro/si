@@ -1,6 +1,21 @@
-executing-against: 8b703630ce7e69504693e335de099b1fe8518528
-ops 4322 -- growth block, verbatim
-[16:30:27] generated_at=2026-08-03T16:13:08.894678+00:00
-[16:30:27] ✅ growth_vs_mcap: {"available": true, "market_cap_b": 2091.3, "rev_yoy_pct": 33.0, "rev_cagr_3y_pct": 19.3, "rev_cagr_5y_pct": 23.5, "fcf_cagr_3y_pct": 28.2, "fcf_margin_pct": 28.5, "fwd_rev_growth_pct": 202.8, "fwd_eps_growth_pct": 230.4, "pe_ttm": 27.5, "ev_to_sales": 13.4, "peg": 0.12, "ev_s_per_growth": 0.69, "fcf_yield_pct": 52.48, "rule_of_40": 61.5, "read": "GROWTH AT A DISCOUNT \u2014 you are paying less than 1x P/E per point of growth."}
+executing-against: 67e74ac2477153801bbeb19f6d5e6ed34a03e4a9
+ops 4323 -- the chart's 1.10x, sourced
+[16:39:25] fundgraph writers:
+aws/lambdas/justhodl-screen-backtest/source/lambda_function.py
+aws/lambdas/justhodl-fundamental-graphs/source/lambda_function.py
+aws/lambdas/justhodl-fundamental-census/source/lambda_function.py
 
-→ Report written to aws/ops/reports/latest/4322_growth_block.md
+[16:39:25] ✅ ENGINE: aws/lambdas/justhodl-screen-backtest/source/lambda_function.py
+[16:39:25] pe_ttm lines:
+
+[16:39:25] eps usage:
+
+[16:39:25] currency handling:
+
+[16:39:25] metric table:
+
+[16:39:31] API top keys: ['ok', 'engine', 'version', 'marker', 'symbol', 'period', 'generated_at', 'profile', 'n_periods', 'vintage_days', 'flags', 'verdicts']
+[16:39:31] ✅ pe series at /points/pe_ttm -- last points: [["2022-12-31", 0.389], ["2023-12-31", 0.633], ["2024-12-31", 0.884], ["2025-12-31", 0.908]]
+[16:39:31] ✅ forensics done
+
+→ Report written to aws/ops/reports/latest/4323_fg_forensics.md
