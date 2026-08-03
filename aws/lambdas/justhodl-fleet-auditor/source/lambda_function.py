@@ -16,16 +16,28 @@ lam = boto3.client("lambda", region_name="us-east-1")
 B = "justhodl-dashboard-live"
 OUT = "data/fleet-audit.json"
 HIST = "data/fleet-audit-history.json"
-VERSION = "1.2"
+VERSION = "1.3"
 MAX_BODY = 9_000_000
 SKIP = ("fleet-audit",)
+CADENCE_H = {  # engine artifact -> expected refresh hours
+    "credit-stress": 26, "bond-trace": 26,
+    "crisis-knowledge-base": 26, "cross-asset-rv": 26,
+    "event-study": 26, "global-macro": 26,
+    "historical-analogs": 26, "implied-prob": 26,
+    "liquidity-flow": 26, "trend-reversal": 26,
+    "best-setups": 26, "risk-gate": 26, "macro-nowcast": 26,
+}
 ARCHIVE_RX = re.compile(
     r"/(archive|_preview|snapshots?)/|/\d{8}[_-]\d{2,4}\.json$"
     r"|-history\.json$|-long\.json$")
 
 TS_KEYS = ("generated_at", "as_of", "updated_at", "timestamp", "ts",
            "run_at", "computed_at", "generated", "last_updated")
-PRICE_KEYS = ("price", "close", "last", "px", "latest_price")
+PRICE_KEYS = ("price", "close", "px", "latest_price")
+
+def equity_ctx(sib):
+    t = str(sib or "")
+    return bool(t) and ":" not in t and len(t) <= 12
 RULES = [  # (key-regex, lo, hi, class-label)
     (re.compile(r"(^|_)pe(_ttm|_ratio)?$|price_?to_?earnings", re.I),
      3.0, 250.0, "UNITS"),
@@ -59,16 +71,17 @@ def parse_ts(v):
         return None
 
 
-def walk(o, fn, depth=0, path=""):
+def walk(o, fn, depth=0, path="", sib_cb=None):
     if depth > 6:
         return
     if isinstance(o, dict):
+        if sib_cb:
+            sib_cb(o.get("ticker") or o.get("symbol"))
         for k, v in o.items():
             fn(k, v, path + "/" + str(k))
-            walk(v, fn, depth + 1, path + "/" + str(k))
     elif isinstance(o, list):
         for i, v in enumerate(o[:150]):
-            walk(v, fn, depth + 1, path + "[%d]" % i)
+            walk(v, fn, depth + 1, path + "[%d]" % i, sib_cb)
 
 
 def audit_doc(key, doc, age_h, fn_ages):
@@ -79,10 +92,14 @@ def audit_doc(key, doc, age_h, fn_ages):
             finds.append({"cls": cls, "msg": msg[:170]})
     # STALE — vs generic cadence expectation (48h default; history/
     # long files exempt at 14d)
-    lim = 336 if any(t in key for t in ("-history", "-long",
-                                        "archive")) else 48
+    stem = key.split("/")[-1].replace(".json", "")
+    lim = CADENCE_H.get(stem, 48)
+    if any(t in key for t in ("-history", "-long", "archive")):
+        lim = 336
     if age_h is not None and age_h > lim:
-        add("STALE", "artifact %dh old (limit %dh)" % (age_h, lim))
+        cls0 = "SCHEDULE_DEAD" if stem in CADENCE_H \
+            and age_h > 2 * lim else "STALE"
+        add(cls0, "artifact %dh old (limit %dh)" % (age_h, lim))
     # FROZEN — engine deployed/ran after artifact yet artifact older
     eng = key.split("/")[-1].replace(".json", "")
     fa = fn_ages.get("justhodl-" + eng)
@@ -127,6 +144,8 @@ def audit_doc(key, doc, age_h, fn_ages):
     nan_hits = [0]
     neg_price = [0]
 
+    cur_sib = [None]
+
     def probe(k, v, path):
         if isinstance(v, float) and (math.isnan(v)
                                      or math.isinf(v)):
@@ -134,13 +153,19 @@ def audit_doc(key, doc, age_h, fn_ages):
             return
         if isinstance(v, (int, float)):
             lk = str(k).lower()
-            if lk in PRICE_KEYS and v is not None and v < 0:
+            if lk in PRICE_KEYS and v is not None and v < 0 \
+                    and equity_ctx(cur_sib[0]):
                 neg_price[0] += 1
             st = stats.setdefault(k, [0, 0, 0, None])
             st[0] += 1
             if v == 0:
                 st[1] += 1
             for rx, lo, hi, cls in RULES:
+                lk2 = str(k).lower()
+                if lk2.startswith(("rank_", "idx_", "pos_")) \
+                        or lk2.endswith(("_rank", "_idx",
+                                         "_pctile", "_percentile")):
+                    break
                 if rx.search(str(k)):
                     if not (lo <= v <= hi) and v != 0:
                         st[2] += 1
@@ -149,7 +174,7 @@ def audit_doc(key, doc, age_h, fn_ages):
         elif v is None:
             st = stats.setdefault(k, [0, 0, 0, None])
             st[0] += 1
-    walk(doc, probe)
+    walk(doc, probe, sib_cb=lambda t: cur_sib.__setitem__(0, t))
     if nan_hits[0]:
         add("NAN", "%d NaN/Inf values" % nan_hits[0])
     if neg_price[0]:
@@ -202,6 +227,14 @@ def collect_prices(key, doc, book):
                         break
 
 
+def out_offenders(results):
+    return sorted((r for r in results if r["findings"]),
+                  key=lambda r: (-len([f for f in r["findings"]
+                                       if f["cls"] not in
+                                       ("STALE",)]),
+                                 -len(r["findings"])))
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     keys = []
@@ -237,7 +270,7 @@ def lambda_handler(event, context):
     n_parse_fail = 0
     live = [k for k in keys if not ARCHIVE_RX.search(k[0])]
     arch = [k for k in keys if ARCHIVE_RX.search(k[0])]
-    keys = live + arch
+    keys = live  # v1.3: archives are counted, never fetched
     n_archive = len(arch)
     budget = 780.0
     truncated = False
@@ -316,6 +349,16 @@ def lambda_handler(event, context):
                {"key": r["key"], "status": r["status"],
                 "age_h": r["age_h"], "n": len(r["findings"])}
                for r in results]}
+    queue = [{"key": o["key"], "status": o["status"],
+              "age_h": o["age_h"],
+              "findings": o["findings"][:4]}
+             for o in out_offenders(results)][:40]
+    s3.put_object(Bucket=B, Key="data/fleet-audit-queue.json",
+                  Body=json.dumps({"generated_at":
+                                   now().isoformat(),
+                                   "queue": queue}).encode(),
+                  ContentType="application/json",
+                  CacheControl="no-cache")
     s3.put_object(Bucket=B, Key=OUT,
                   Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json",
