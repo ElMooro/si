@@ -1,0 +1,58 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Early Trend-Reversal Radar · JustHodl.AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0d12;--bg1:#10141b;--bg2:#161b24;--brd:#232a36;--tx:#e8ebf0;--tx2:#9aa3b2;--acc:#e8b34a;--buy:#3fd08c;--avd:#ff6b6b;--neu:#8fa3c0;--mono:"IBM Plex Mono",monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 "IBM Plex Sans",sans-serif}
+.wrap{max-width:1140px;margin:0 auto;padding:26px 18px 80px}
+h1{font-family:Fraunces,serif;font-weight:900;font-size:32px;margin:6px 0 2px}
+.meta{color:var(--tx2);font:12px var(--mono)}.sub{color:var(--tx2);max-width:880px;margin-top:6px}
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:20px 0}
+.card{background:var(--bg1);border:1px solid var(--brd);border-radius:12px;padding:14px 16px}
+.k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx2)}
+.v{font-family:Fraunces,serif;font-size:26px;font-weight:700;margin-top:4px}
+.vs{color:var(--tx2);font-size:12.5px;margin-top:3px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.rc{background:var(--bg1);border:1px solid var(--brd);border-radius:12px;padding:13px 15px;position:relative}
+.rc .tk{font-family:Fraunces,serif;font-size:20px;font-weight:700}
+.score{position:absolute;top:12px;right:14px;font:13px var(--mono);color:var(--acc)}
+.bar{height:8px;background:var(--bg2);border-radius:6px;overflow:hidden;margin:8px 0 6px}
+.bar i{display:block;height:100%}
+.pill{display:inline-block;border:1px solid var(--brd);background:var(--bg2);border-radius:999px;padding:2px 9px;font:11.5px var(--mono);margin:2px 4px 0 0}
+.top{border-color:var(--avd);color:var(--avd)}.bot{border-color:var(--buy);color:var(--buy)}
+.sig{display:block;font:12px var(--mono);color:var(--tx2);margin-top:4px}
+.sig b{color:var(--tx)}
+.err{color:var(--avd);font:12px var(--mono)}
+</style></head><body><div class="wrap">
+<h1>Early Trend-Reversal Radar</h1>
+<div class="meta" id="meta">loading…</div>
+<div class="sub">Classical early-reversal tells computed on real daily closes for the desk's ladder ETFs plus the current best-setups names: MA breaks against trend, 50dma slope flips, 50/200 crosses, RSI divergence at fresh 20-day extremes, MACD histogram flips, Donchian breaks, higher-high/lower-low structure breaks, and ATR compression releases. Score = recency-decayed weighted signals; <b>TOP_FORMING</b> means bearish tells inside a defined uptrend, <b>BOTTOM_FORMING</b> the mirror. Every fired signal shows its actual values.</div>
+<div class="hero" id="hero"></div>
+<div class="grid" id="grid"></div>
+<div class="err" id="err" style="margin-top:16px"></div>
+</div>
+<script src="/jh-enhance.js" defer></script><script src="/jh-page-ai.js" defer></script><script src="/jh-nav-drawer.js" defer></script>
+<script>
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/trend-reversal.json",{cache:"no-store"}).then(r=>r.json()).then(d=>{
+ document.getElementById("meta").textContent=`v${d.version} · ${d.generated_at} · ${d.elapsed_s}s`;
+ const rows=(d.rows||[]);
+ const hot=rows.filter(r=>(r.reversal_score||0)>=30);
+ document.getElementById("hero").innerHTML=`
+  <div class="card"><div class="k">Universe</div><div class="v">${d.universe_n??rows.length}</div><div class="vs">ladder ETFs + best-setups names</div></div>
+  <div class="card"><div class="k">Hot (≥30)</div><div class="v">${d.hot_n??hot.length}</div><div class="vs">${hot.map(r=>r.ticker).join(", ")||"none"}</div></div>
+  <div class="card"><div class="k">Top forming</div><div class="v" style="font-size:16px;font-family:var(--mono)">${rows.filter(r=>r.direction==="TOP_FORMING").slice(0,4).map(r=>`${r.ticker} ${r.reversal_score}`).join(" · ")||"—"}</div><div class="vs">bearish tells in uptrends</div></div>
+  <div class="card"><div class="k">Bottom forming</div><div class="v" style="font-size:16px;font-family:var(--mono)">${rows.filter(r=>r.direction==="BOTTOM_FORMING").slice(0,4).map(r=>`${r.ticker} ${r.reversal_score}`).join(" · ")||"—"}</div><div class="vs">bullish tells in downtrends</div></div>`;
+ document.getElementById("grid").innerHTML=rows.map(r=>{
+  if(r.status==="insufficient_history")return `<div class="rc"><span class="tk">${esc(r.ticker)}</span><div class="vs">insufficient history (${r.n} bars) — no signal invented</div></div>`;
+  const dir=r.direction==="TOP_FORMING"?"top":r.direction==="BOTTOM_FORMING"?"bot":"";
+  return `<div class="rc"><span class="score">${r.reversal_score}</span>
+   <span class="tk">${esc(r.ticker)}</span> <span class="vs">$${r.close} · ${esc(r.prevailing_trend)} trend · ${r.px_vs_200dma_pct>0?"+":""}${r.px_vs_200dma_pct}% vs 200dma</span>
+   <div class="bar"><i style="width:${Math.min(100,r.reversal_score||0)}%;background:${dir==="top"?"var(--avd)":dir==="bot"?"var(--buy)":"var(--neu)"}"></i></div>
+   ${r.direction?`<span class="pill ${dir}">${esc(r.direction)}</span>`:""}<span class="pill">${r.n_signals} signals</span>
+   ${(r.signals||[]).map(s=>`<span class="sig"><b>${esc(s.signal)}</b> ${esc(s.detail)}${s.bars_ago?` · ${s.bars_ago} bars ago`:""}</span>`).join("")}
+  </div>`}).join("");
+ if(d.errors)document.getElementById("err").textContent="Fetch errors: "+d.errors.join(", ");
+}).catch(e=>document.getElementById("err").textContent="Load failed: "+e);
+</script></body></html>
