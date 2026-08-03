@@ -248,3 +248,5 @@ with report("4308_long_stitched") as r:
              "both new engines")
 if fails:
     sys.exit(1)
+
+# retrigger: v1.3 truly landed (prior patch script had a quote-nesting SyntaxError)

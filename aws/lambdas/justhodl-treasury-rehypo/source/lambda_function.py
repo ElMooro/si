@@ -38,7 +38,7 @@ ERA_ORDER = ["SBP2001", "SBP2013", "SBN2013", "SBN2015", "SBN2022",
 FRED_KEY = os.environ.get("FRED_API_KEY") or os.environ.get("FRED_KEY", "")
 UA = {"User-Agent": "JustHodl-research/1.0 (github.com/ElMooro)"}
 s3 = boto3.client("s3", region_name="us-east-1")
-VERSION = "1.2"
+VERSION = "1.3"
 
 
 def http_json(url, timeout=40, gz=False):  # gz kept for signature
@@ -102,6 +102,19 @@ def stitch(per_break):
         for d, v in per_break.get(sb, []):
             acc[d] = v
     return sorted(acc.items())
+
+
+def weekly_last(series):
+    """Resample any cadence to weekly (ISO year-week, last obs)."""
+    acc = {}
+    for d, v in series:
+        try:
+            y, w, _ = datetime.strptime(str(d)[:10],
+                                        "%Y-%m-%d").isocalendar()
+        except Exception:
+            continue
+        acc[(y, w)] = (d, v)
+    return [acc[k] for k in sorted(acc)]
 
 
 def rolling_z(series, win=156):
@@ -394,16 +407,19 @@ def lambda_handler(event=None, context=None):
                   ContentType="application/json")
     # ── ops 4306: long history (target 1996; actual start disclosed)
     try:
-        def agg_long(pairs_all, must, forbid, per_break_cap=4):
+        # 4307 truth: catalog carries ONLY modern (SBN2024) keyids;
+        # older eras publish no entries of their own -- but modern
+        # keyids fetch across old break segments. So: the proven
+        # short-pass keyid sets x all six segments; latest break
+        # wins on overlap.
+        def agg_long(pairs, cap=5):
             per_break = {}
+            kids = [k for k, _ in pairs][:cap]
             for sb in ERA_ORDER:
-                rows_ = [c for c in cat if c["sb"] == sb
-                         and all(m in c["desc"] for m in must)
-                         and not any(f in c["desc"] for f in forbid)]
                 ss = []
-                for c in rows_[:per_break_cap]:
+                for kid in kids:
                     try:
-                        s_ = nyfed_series(c["keyid"], sb, n=2000)
+                        s_ = nyfed_series(kid, sb, n=3000)
                         if s_:
                             ss.append(s_)
                     except Exception:
@@ -412,16 +428,10 @@ def lambda_handler(event=None, context=None):
                     per_break[sb] = sum_series(ss)
             return stitch(per_break), {sb: len(v) for sb, v in
                                        per_break.items()}
-        f_long, f_cov = agg_long(None, ("FAIL", "TREASUR"),
-                                 ("MBS", "AGENCY", "CORPORATE"))
-        in_long, i_cov = agg_long(None, ("REVERSE REPURCHASE",),
-                                  ("MBS", "AGENCY", "CORPORATE"))
-        out_long, o_cov = agg_long(None, ("REPURCHASE",),
-                                   ("REVERSE", "MBS", "AGENCY",
-                                    "CORPORATE"))
-        pos_long, p_cov = agg_long(None, ("TREASUR", "NET"),
-                                   ("MBS", "AGENCY", "FORWARD",
-                                    "FAIL", "REPURCHASE"))
+        f_long, f_cov = agg_long(picked["fails"])
+        in_long, i_cov = agg_long(picked["sec_in"])
+        out_long, o_cov = agg_long(picked["sec_out"])
+        pos_long, p_cov = agg_long(picked["net_pos"])
         gross_l = sum_series([x for x in (in_long, out_long) if x])
         vel_l = []
         if gross_l and pos_long:
@@ -431,9 +441,9 @@ def lambda_handler(event=None, context=None):
                      if abs(pd_[d]) > 1e-6]
         legs_long = {}
         if f_long:
-            legs_long["fails"] = rolling_z(f_long)
+            legs_long["fails"] = rolling_z(weekly_last(f_long))
         if vel_l:
-            legs_long["velocity"] = rolling_z(vel_l)
+            legs_long["velocity"] = rolling_z(weekly_last(vel_l))
         # modern legs, full length where the data exists
         try:
             sofr_f, iorb_f = fred_series("SOFR", 99999), \
@@ -442,7 +452,7 @@ def lambda_handler(event=None, context=None):
             sp2 = [(d, (sd2[d] - id2[d]) * 100)
                    for d in sorted(set(sd2) & set(id2))]
             if sp2:
-                legs_long["sofr_iorb"] = rolling_z(sp2)
+                legs_long["sofr_iorb"] = rolling_z(weekly_last(sp2))
         except Exception:
             pass
         try:
@@ -450,7 +460,7 @@ def lambda_handler(event=None, context=None):
             if len(rrp_f) > 25:
                 dl = [(rrp_f[i][0], rrp_f[i][1] - rrp_f[i - 20][1])
                       for i in range(20, len(rrp_f))]
-                legs_long["rrp_drain_4w"] = rolling_z(dl)
+                legs_long["rrp_drain_4w"] = rolling_z(weekly_last(dl))
         except Exception:
             pass
         # weekly composite over PRESENT legs per date
