@@ -1,0 +1,28 @@
+# ops 4341 -- every seat shows its hand
+
+**Status:** failure  
+**Duration:** 228.3s  
+**Finished:** 2026-08-03T22:58:30+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `22:56:09` ✅ council=12 · seats with open top_call=2
+- `22:56:09` crisis_dfii10_vs_gld     -> no open call (disclosed)
+- `22:56:09` crypto_cot_assetmgr      -> no open call (disclosed)
+- `22:56:09` attention_distribution   -> COF UNDERPERFORM exp=None% / 30d (engine_avg_win, conf=0.85, 0.1d old)
+- `22:56:09` crypto_options_rr        -> no open call (disclosed)
+- `22:56:09` capital-return           -> no open call (disclosed)
+- `22:56:09` political-intel          -> no open call (disclosed)
+- `22:56:09` buyback-yield-ranking    -> no open call (disclosed)
+- `22:56:09` nobrainer_BOTZ           -> MELI UP exp=7.9% / 180d (logged, conf=0.794, 90.3d old)
+- `22:56:09` gf-value                 -> no open call (disclosed)
+- `22:56:09` squeeze_risk             -> no open call (disclosed)
+- `22:56:09` dividend-growth          -> no open call (disclosed)
+- `22:56:09` macro_composite_z        -> no open call (disclosed)
+- `22:58:30` ✅ page column live (9151 bytes)
+- `22:58:30` ✗   attention_distribution top_call incomplete: {'symbol': 'COF', 'direction': 'UNDERPERFORM', 'confidence': 0.85, 'logged_at': '2026-08-03T21:00', 'age_d': 0.1, 'horizon_days': 30, 'expected_return_pct': None, 'expected_basis': 'engine_avg_win'}
