@@ -1,9 +1,15 @@
-executing-against: da2095a3439e113140871609f2247b796e7df9d2
-ops 4337 -- the distribution answers despair
-[22:03:10] ✅ daily cadence installed: 23:40 UTC
+# ops 4337 -- the distribution answers despair
 
-→ Report written to aws/ops/reports/latest/4337_leaderboard_live.md
+**Status:** failure  
+**Duration:** 0.8s  
+**Finished:** 2026-08-03T22:03:10+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4337_leaderboard_live.py", line 79, in <module>
     lam.invoke(FunctionName="justhodl-engine-leaderboard",
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
@@ -15,4 +21,8 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
     raise error_class(parsed_response, operation_name)
 botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the Invoke operation: The operation cannot be performed at this time. The function is currently in the following state: Pending
-❌ OPS-FAIL: aws/ops/pending/ops_4337_leaderboard_live.py
+
+```
+
+## Log
+- `22:03:10` ✅ daily cadence installed: 23:40 UTC
