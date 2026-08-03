@@ -183,12 +183,15 @@ def lambda_handler(event=None, context=None):
         if e not in seats:
             continue
         sym = sym_of(it)
-        if not sym:
+        lbl = sym or str(it.get("signal_value")
+                         or str(it.get("signal_id")
+                                or "?").split("#")[0])[:16].upper()
+        if not lbl or lbl in ("NONE", "?"):
             continue
         ep = F(it.get("logged_epoch")) or 0
         cur = latest.get(e)
         if cur is None or ep > cur[0]:
-            latest[e] = (ep, it, sym)
+            latest[e] = (ep, it, lbl, bool(sym))
     # open-signal pass: council votes
     now_ep = time.time()
     votes = {}
@@ -244,14 +247,16 @@ def lambda_handler(event=None, context=None):
         tc = c.pop("_top", None)
         if tc:
             tc["state"] = "OPEN"
+            tc["tradable"] = True
         else:
             lt = latest.get(c["engine"])
             if lt:
-                ep0, it0, sym0 = lt
+                ep0, it0, sym0, trad0 = lt
                 w0h, r0h = outcome(it0)
                 pd0 = str(it0.get("predicted_direction")
                           or "UP")
-                tc = {"symbol": sym0, "direction": pd0,
+                tc = {"symbol": sym0, "tradable": trad0,
+                      "direction": pd0,
                       "state": ("GRADED"
                                 if w0h is not None else "OPEN"),
                       "hit": w0h,

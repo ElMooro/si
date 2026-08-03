@@ -106,3 +106,5 @@ with report("4341_top_calls") as r:
          "every proven seat")
 
 # retrigger: graded-fallback + relaxed completeness
+
+# retrigger: label-honest fallback (macro calls display as expressed)
