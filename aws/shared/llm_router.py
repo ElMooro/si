@@ -336,7 +336,28 @@ def council(question, providers=None, system=None, max_tokens=1400,
                 rec["error"] = (f"{type(e).__name__}: {str(e)[:120]} "
                                 f"| body: {body}" if body
                                 else f"{type(e).__name__}: {str(e)[:160]}")
+                rec["error_class"] = classify_provider_error(
+                    rec["error"] + " " + body)
         rec["latency_s"] = round(_t.time() - t0, 1)
         out[p] = rec
     return out
 # ═══════════ end AI COUNCIL ═══════════
+
+
+def classify_provider_error(err):
+    """Route-able error taxonomy (A2A spec): config_missing | auth_failed |
+    quota_exhausted | rate_limited | provider_5xx | timeout | unknown."""
+    e = (err or "").lower()
+    if "parameternotfound" in e or "config" in e and "missing" in e:
+        return "config_missing"
+    if "credit balance" in e or "insufficient balance" in e or        "recharge" in e or "quota" in e or "1113" in e:
+        return "quota_exhausted"
+    if "401" in e or "403" in e or "invalid x-api-key" in e or        "authentication" in e or "unauthorized" in e:
+        return "auth_failed"
+    if "429" in e or "too many requests" in e or "rate" in e:
+        return "rate_limited"
+    if "timed out" in e or "timeout" in e:
+        return "timeout"
+    if "500" in e or "502" in e or "503" in e or "504" in e:
+        return "provider_5xx"
+    return "unknown"

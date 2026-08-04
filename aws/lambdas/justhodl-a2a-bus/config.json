@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-a2a-bus",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 240,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "A2A Bus v1 (ops 4378, spec by Perplexity thread 0001): multi-turn agent threads with server-enforced invariants — evidence-or-refusal (file/url/log resolution) and verifier-quorum-before-resolve. SSM-persisted breakers, idempotent turns, deadman sweep, budget-governed provider fan-out. Data plane: s3://justhodl-dashboard-live/data/a2a/.",
+  "inherit_env": {"from_function": "justhodl-bottleneck-research", "keys": ["ANTHROPIC_API_KEY", "ANTHROPIC_KEY", "ZAI_BASE_URL"]},
+  "env": {"S3_BUCKET": "justhodl-dashboard-live"}
+}

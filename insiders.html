@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com; connect-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'; frame-ancestors 'self'">
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Insider Trades · JustHodl.AI</title>
@@ -300,11 +302,23 @@ const fmtN = v => v == null ? '—' : v.toLocaleString();
 const fmtDate = s => { try { return new Date(s).toLocaleDateString(undefined,{month:'short',day:'numeric'}); } catch { return s||'—'; } };
 const escape = s => (s||'').toString().replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
 
+let __lastGood=null;
+async function fetchJSON(url,{timeoutMs=8000,retries=3}={}){
+  let err;
+  for(let a=0;a<=retries;a++){
+    try{
+      const r=await fetch(url,{cache:'no-cache',signal:AbortSignal.timeout(timeoutMs)});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const j=await r.json(); __lastGood=j; return j;
+    }catch(e){err=e;
+      if(a<retries) await new Promise(res=>setTimeout(res,300*Math.pow(2,a)+Math.random()*250));}
+  }
+  if(__lastGood){console.warn('fetchJSON: serving last-good after failures',err); return __lastGood;}
+  throw err;
+}
 async function load(){
   try{
-    const r = await fetch(BUCKET + SOURCE, {cache:'no-cache'});
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    return await r.json();
+    return await fetchJSON(BUCKET + SOURCE);
   }catch(e){
     document.getElementById('err').textContent = 'Could not reach SEC EDGAR data. ' + e.message + '. The pipeline runs every 30 min and may not have populated yet.';
     document.getElementById('err').classList.add('show');
@@ -436,7 +450,7 @@ function v3Table(rows,id){
   h+='</tbody></table></div>';
   if(view.length>n)h+='<div class="v3-dim" style="font-size:11px;padding:5px 2px">showing '+n+' of '+view.length+' — click headers to sort</div>';
   else h+='<div class="v3-dim" style="font-size:11px;padding:5px 2px">click headers to sort</div>';
-  if(tr)h+='<div class="v3-warn">engine truncated: '+tr.toLocaleString()+' total items · full store in insider-trades-full.json</div>';
+  if(tr)h+='<div class="v3-warn">engine truncated: '+tr.toLocaleString()+' total items · <a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/insider-trades-full.json" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">full store ↗</a></div>';
   return h;}
 function v3DayChart(days){
   if(!days||!days.length)return '';
@@ -474,7 +488,7 @@ function renderAutoSurface(d){
   h+='<div class="v3-hud">';
   h+='<div class="v3-chip"><div class="v3-cl">COVERAGE CONTRACT</div><div class="v3-cv">'+((cov.total_leaves||0).toLocaleString())+'</div><div class="v3-cs">fields · '+(cov.sections||0)+' sections · '+((cov.truncated_paths||[]).length)+' truncations</div></div>';
   h+='<div class="v3-chip"><div class="v3-cl">RATCHET</div><div class="v3-cv '+(rt.regression?'v3-neg':'v3-pos')+'">'+(rt.regression?'REGRESSION':'OK')+'</div><div class="v3-cs">'+(rt.prev!=null?rt.prev.toLocaleString():'first run')+' → '+(rt.now!=null?rt.now.toLocaleString():'—')+'</div></div>';
-  h+='<div class="v3-chip"><div class="v3-cl">WINDOW STORE</div><div class="v3-cv">'+((st.buys||0).toLocaleString())+' <span class="v3-dim">/</span> '+((st.sells||0).toLocaleString())+'</div><div class="v3-cs">buys / sells · hydration '+(cov.backfill_days_complete??'—')+'/'+(cov.backfill_days_target??30)+' days</div></div>';
+  h+='<div class="v3-chip"><div class="v3-cl">WINDOW STORE</div><div class="v3-cv">'+((st.buys||0).toLocaleString())+' <span class="v3-dim">/</span> '+((st.sells||0).toLocaleString())+'</div><div class="v3-cs"><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/insider-trades-full.json" target="_blank" rel="noopener" style="color:inherit">buys / sells ↗</a> · hydration '+(cov.backfill_days_complete??'—')+'/'+(cov.backfill_days_target??30)+' days</div></div>';
   h+='</div>';
   h+='<div class="v3-tabs">'+tabs.map(t=>'<button class="v3-tab'+(V3S.tab===t[0]?' v3-on':'')+'" data-tab="'+t[0]+'">'+t[1]+'</button>').join('')+'</div>';
   h+='<div class="v3-pane">';
