@@ -197,3 +197,5 @@ with report("4347_learning_loop") as r:
         sys.exit(1)
     r.ok("OPS 4347 PASS -- the platform now learns its own "
          "weights; tomorrow's constants are tonight's grades")
+
+# retrigger: emitter-level stamping (signals_emit shared module)
