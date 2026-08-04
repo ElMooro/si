@@ -1,0 +1,53 @@
+{
+ "ops": 4355,
+ "ts": "2026-08-04T03:52:55.519554+00:00",
+ "engine": "justhodl-crypto-intel",
+ "feed_before": {
+  "last_modified": "2026-07-31T14:55:53+00:00",
+  "age_hours": 85.0,
+  "bytes": 51582
+ },
+ "function": {
+  "state": "Active",
+  "last_update": "Successful",
+  "code_last_modified": "2026-07-12T06:22:42.000+0000",
+  "timeout": 180,
+  "runtime": "python3.12",
+  "env_present": {
+   "ANTHROPIC_API_KEY": true,
+   "CMC_API_KEY": true,
+   "S3_BUCKET": true
+  }
+ },
+ "schedules": {
+  "justhodl-crypto-15min": {
+   "state": "RULE_MISSING"
+  },
+  "justhodl-crypto-intel-schedule": {
+   "state": "RULE_MISSING"
+  }
+ },
+ "binding_heals": [],
+ "metrics": {
+  "last_invocation_bin": "2026-07-31T14:52:00+00:00",
+  "inv_24h": 0,
+  "err_24h": 0,
+  "inv_4d": 1,
+  "err_4d": 0
+ },
+ "last_stream_signal_lines": [
+  "beaconchain gas err: HTTP Error 401: Unauthorized",
+  "REPORT RequestId: 8193ccb0-5d5f-46fe-8670-90f9e6a1e2d4\tDuration: 4710.66 ms\tBilled Duration: 5247 ms\tMemory Size: 1024 MB\tMax Memory Used: 184 MB\tInit Duration: 535.47 ms\t\nXRAY TraceId: 1-6a6cb772-538d74d1629d9b2f1e9d6138\tSegmentId: 9dea8852fcb7af33\tSampled: true"
+ ],
+ "invoke": {
+  "status": 200,
+  "function_error": null,
+  "report": "REPORT RequestId: e6895f42-3983-4cc0-a38b-9002202a5158\tDuration: 4667.08 ms\tBilled Duration: 5198 ms\tMemory Size: 1024 MB\tMax Memory Used: 182 MB\tInit Duration: 530.62 ms\t",
+  "payload_head": "{\"statusCode\": 200, \"body\": \"{\\\"status\\\": \\\"published\\\", \\\"risk\\\": 66, \\\"regime\\\": \\\"HIGH\\\", \\\"ok\\\": 12, \\\"total\\\": 27, \\\"ai\\\": true, \\\"tfs\\\": 3, \\\"time\\\": 4.7}\"}"
+ },
+ "verdict": {
+  "fresh": true,
+  "last_modified": "2026-08-04T03:53:04+00:00",
+  "bytes": 51245
+ }
+}

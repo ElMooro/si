@@ -1,0 +1,43 @@
+# ops 4355 — crypto-intel feed freeze: evidence, heal, verify
+
+**Status:** success  
+**Duration:** 12.1s  
+**Finished:** 2026-08-04T03:53:07+00:00  
+
+## Data
+
+| code_last_modified | env_keys | errors_24h | errors_4d | function_error | invocations_24h | invocations_4d | last_invocation_bin | state | status | timeout |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2026-07-12T06:22:42.000+0000 | ANTHROPIC_API_KEY,CMC_API_KEY,S3_BUCKET |  |  |  |  |  |  | Active |  | 180 |
+|  |  | 0 | 0 |  | 0 | 1 | 2026-07-31T14:52:00+00:00 |  |  |  |
+|  |  |  |  | none |  |  |  |  | 200 |  |
+
+## Log
+## 1. feed ground truth
+
+- `03:52:55` crypto-intel.json: LastModified=2026-07-31T14:55:53+00:00  age=85.0h  bytes=51582
+## 2. function state
+
+- `03:52:56` ✅ env S3_BUCKET: present
+- `03:52:56` ✅ env CMC_API_KEY: present
+- `03:52:56` ✅ env ANTHROPIC_API_KEY: present
+## 3. schedule bindings (rule -> target -> permission)
+
+- `03:52:56` ✗ justhodl-crypto-15min: rule does not exist
+- `03:52:56` ✗ justhodl-crypto-intel-schedule: rule does not exist
+- `03:52:56` ✅ binding heals applied: none needed
+## 4. invocation evidence (CW metrics + last log tail)
+
+- `03:52:57`    beaconchain gas err: HTTP Error 401: Unauthorized
+- `03:52:57`    REPORT RequestId: 8193ccb0-5d5f-46fe-8670-90f9e6a1e2d4	Duration: 4710.66 ms	Billed Duration: 5247 ms	Memory Size: 1024 MB	Max Memory Used: 184 MB	Init Duration: 535.47 ms	
+XRAY TraceId: 1-6a6cb772-538d74d1629d9b2f1e9d6138	SegmentId: 9dea8852fcb7af33	Sampled: true
+## 5. force invoke
+
+- `03:53:03`    REPORT RequestId: e6895f42-3983-4cc0-a38b-9002202a5158	Duration: 4667.08 ms	Billed Duration: 5198 ms	Memory Size: 1024 MB	Max Memory Used: 182 MB	Init Duration: 530.62 ms	
+- `03:53:03` ✅ invoke completed without FunctionError
+## 6. verify
+
+- `03:53:07` ✅ FRESH — crypto-intel.json LastModified=2026-08-04T03:53:04+00:00 (51245 bytes)
+## verdict
+
+- `03:53:07` {"fresh": true, "last_modified": "2026-08-04T03:53:04+00:00", "bytes": 51245}
