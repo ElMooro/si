@@ -1,19 +1,13 @@
-executing-against: 58db09ef076e1a78bb877f20d4f6cfb41644c800
+executing-against: 2450088577eba19a68438ac4d5e776fe79eab906
 {
- "ops": 4376,
- "started": "2026-08-04T19:09:44.767987+00:00",
- "pre_existing": false,
- "env_inherited": [
-  "ANTHROPIC_API_KEY"
- ],
- "created": true,
- "state": "Active",
- "function_ready": true,
+ "ops": 4377,
+ "started": "2026-08-04T19:14:52.284040+00:00",
+ "code_updated": true,
  "invoke": {
   "code": 200,
   "fn_err": null,
   "summary": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"tag\\\": \\\"insiders-frontend-critique-v31\\\", \\\"ok_count\\\": 0, \\\"answers\\\": {\\\"perplexity\\\": {\\\"ok\\\": false, \\\"model\\\": null, \\\"latency_s\\\": 0.2, \\\"error\\\": \\\"ParameterNotFound: An error occurred (ParameterNotFound) when calling the GetParameter operation: \\\", \\\"chars\\\": "
  },
  "verdict": "PARTIAL",
- "finished": "2026-08-04T19:09:53.456044+00:00"
+ "finished": "2026-08-04T19:15:06.114665+00:00"
 }

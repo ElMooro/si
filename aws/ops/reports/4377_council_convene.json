@@ -1,0 +1,45 @@
+{
+ "ops": 4377,
+ "started": "2026-08-04T19:14:52.284040+00:00",
+ "code_updated": true,
+ "invoke": {
+  "code": 200,
+  "fn_err": null,
+  "summary": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"tag\\\": \\\"insiders-frontend-critique-v31\\\", \\\"ok_count\\\": 0, \\\"answers\\\": {\\\"perplexity\\\": {\\\"ok\\\": false, \\\"model\\\": null, \\\"latency_s\\\": 0.2, \\\"error\\\": \\\"ParameterNotFound: An error occurred (ParameterNotFound) when calling the GetParameter operation: \\\", \\\"chars\\\": "
+ },
+ "consultation": {
+  "generated_at": "2026-08-04T19:15:05+00:00",
+  "tag": "insiders-frontend-critique-v31",
+  "question": "You are reviewing the frontend of a live institutional finance\npage: justhodl.ai/insiders.html (SEC Form 4 insider intelligence, dark\ntheme, part of a 400-page quant platform).\n\nCURRENT v3.1 STRUCTURE: (1) hero KPI cards + top-20 transaction bars;\n(2) prose explainers; (3) cluster-buys and $1M+ single-buys cards;\n(4) sector heat bars; (5) fleet cards joining 5 sibling engines;\n(6) FULL DATA SURFACE: tabbed explorer (Tickers/Sectors/Industries/Daily\nFlow/Top Insiders/Roles/Size Bands/Selling/More) over the entire engine\npayload \u2014 click-to-sort sticky-header tables, monospace right-aligned\nnumerics, net +/- coloring, daily buy-vs-sell bar chart, coverage HUD\n(contract leaves / ratchet / hydration). Unknown future payload fields\nauto-render under More.\n\nCONSTRAINTS: vanilla single-file HTML/CSS/JS, no libs, dark institutional\naesthetic, the zero-edit auto-render property must survive.\n\nCRITIQUE + PRESCRIBE the 5 highest-impact NEXT frontend improvements\n(what is still missing vs a Bloomberg/Koyfin desk page). Be specific\nenough to implement directly.",
+  "context_keys": [],
+  "providers_requested": [
+   "perplexity",
+   "glm",
+   "claude"
+  ],
+  "answers": {
+   "perplexity": {
+    "ok": false,
+    "provider": "perplexity",
+    "error": "ParameterNotFound: An error occurred (ParameterNotFound) when calling the GetParameter operation: ",
+    "latency_s": 0.2
+   },
+   "glm": {
+    "ok": false,
+    "provider": "glm",
+    "error": "HTTPError: HTTP Error 429: Too Many Requests | body: {\"error\":{\"code\":\"1113\",\"message\":\"Insufficient balance or no resource package. Please recharge.\"}}",
+    "latency_s": 5.3
+   },
+   "claude": {
+    "ok": false,
+    "provider": "claude",
+    "error": "HTTPError: HTTP Error 400: Bad Request | body: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i",
+    "latency_s": 0.5
+   }
+  },
+  "synthesis": null,
+  "ok_count": 0
+ },
+ "verdict": "PARTIAL",
+ "finished": "2026-08-04T19:15:06.114665+00:00"
+}
