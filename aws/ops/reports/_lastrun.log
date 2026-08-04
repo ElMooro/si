@@ -1,13 +1,124 @@
-executing-against: 2450088577eba19a68438ac4d5e776fe79eab906
+executing-against: 9936f38bcc9706510306229771571002388d12b6
 {
- "ops": 4377,
- "started": "2026-08-04T19:14:52.284040+00:00",
- "code_updated": true,
- "invoke": {
-  "code": 200,
-  "fn_err": null,
-  "summary": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"tag\\\": \\\"insiders-frontend-critique-v31\\\", \\\"ok_count\\\": 0, \\\"answers\\\": {\\\"perplexity\\\": {\\\"ok\\\": false, \\\"model\\\": null, \\\"latency_s\\\": 0.2, \\\"error\\\": \\\"ParameterNotFound: An error occurred (ParameterNotFound) when calling the GetParameter operation: \\\", \\\"chars\\\": "
+ "ops": 4378,
+ "started": "2026-08-04T19:34:20.591643+00:00",
+ "bus": "created",
+ "council": "updated",
+ "negative_proofs": {
+  "unevidenced_turn": "rejected_no_evidence",
+  "premature_resolve": "rejected_no_quorum"
  },
- "verdict": "PARTIAL",
- "finished": "2026-08-04T19:15:06.114665+00:00"
+ "deadman": {
+  "ok": true,
+  "newly_stalled": []
+ },
+ "seed": [
+  [
+   "0001 turn1(perplexity)",
+   {
+    "ok": true,
+    "error": null,
+    "thread_id": "0001-build-the-bus",
+    "turn_id": null,
+    "queued_for": null,
+    "first_turn": {
+     "ok": true,
+     "turn_id": "bbc6fe20b25d5905",
+     "queued_for": [
+      "claude"
+     ]
+    }
+   }
+  ],
+  [
+   "0001 turn2(claude)",
+   {
+    "ok": true,
+    "error": null,
+    "thread_id": null,
+    "turn_id": "28050730355ca9d0",
+    "queued_for": [
+     "perplexity"
+    ],
+    "first_turn": null
+   }
+  ],
+  [
+   "0002-xss-uniformity",
+   {
+    "ok": true,
+    "error": null,
+    "thread_id": "0002-xss-uniformity",
+    "turn_id": null,
+    "queued_for": null,
+    "first_turn": {
+     "ok": true,
+     "turn_id": "32c8c0c27e5db6f6",
+     "queued_for": [
+      "perplexity"
+     ]
+    }
+   }
+  ],
+  [
+   "0003-csp-meta",
+   {
+    "ok": true,
+    "error": null,
+    "thread_id": "0003-csp-meta",
+    "turn_id": null,
+    "queued_for": null,
+    "first_turn": {
+     "ok": true,
+     "turn_id": "a17f299ad26e80da",
+     "queued_for": [
+      "perplexity"
+     ]
+    }
+   }
+  ],
+  [
+   "0004-fetch-resilience",
+   {
+    "ok": true,
+    "error": null,
+    "thread_id": "0004-fetch-resilience",
+    "turn_id": null,
+    "queued_for": null,
+    "first_turn": {
+     "ok": true,
+     "turn_id": "b20c67fc9ca62adf",
+     "queued_for": [
+      "perplexity"
+     ]
+    }
+   }
+  ],
+  [
+   "0005-error-classes",
+   {
+    "ok": true,
+    "error": null,
+    "thread_id": "0005-error-classes",
+    "turn_id": null,
+    "queued_for": null,
+    "first_turn": {
+     "ok": true,
+     "turn_id": "434e2ccefc97f019",
+     "queued_for": [
+      "perplexity"
+     ]
+    }
+   }
+  ]
+ ],
+ "perplexity_inbox": [
+  "0001-build-the-bus",
+  "0002-xss-uniformity",
+  "0003-csp-meta",
+  "0004-fetch-resilience",
+  "0005-error-classes"
+ ],
+ "verdict": "PASS \u2014 bus live, invariants enforced on Claude's own turns, 5 threads queued for Perplexity",
+ "finished": "2026-08-04T19:34:38.446408+00:00"
 }
