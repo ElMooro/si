@@ -88,6 +88,17 @@ def _find(target, layer, check, severity, detail, evidence):
             "evidence": evidence[:4]}
 
 
+_EXEMPT = None
+
+
+def _exempt():
+    global _EXEMPT
+    if _EXEMPT is None:
+        _EXEMPT = set((_get("data/audit/exemptions.json") or {})
+                      .get("stale_exempt") or [])
+    return _EXEMPT
+
+
 def audit_engine(fn, manifest_fns):
     out = []
     try:
@@ -140,7 +151,8 @@ def audit_engine(fn, manifest_fns):
                            "snippet": fn}]))
     guess = fn.replace("justhodl-", "")
     feed_age = _head_age(f"data/{guess}.json")
-    if scheduled and feed_age is not None and feed_age > 26:
+    if (scheduled and feed_age is not None and feed_age > 26
+            and f"data/{guess}.json" not in _exempt()):
         out.append(_find(fn, "engine", "stale_feed", "warn",
                          f"data/{guess}.json age {feed_age}h with live "
                          "schedule",
@@ -177,7 +189,7 @@ def audit_page(path):
             out.append(_find(path, "page", f"feed_missing:{f}", "critical",
                              f"references {f} which does not exist on S3",
                              [{"kind": "url", "ref": url, "snippet": f}]))
-        elif age > 48:
+        elif age > 48 and f not in _exempt():
             out.append(_find(path, "page", f"feed_stale:{f}", "warn",
                              f"{f} is {age}h old",
                              [{"kind": "log", "ref": f}]))
