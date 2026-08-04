@@ -1,0 +1,49 @@
+# ops 4351 -- learning from other minds, with receipts
+
+**Status:** failure  
+**Duration:** 2.3s  
+**Finished:** 2026-08-04T02:01:55+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `02:01:53` ✅ weekly cadence installed
+- `02:01:55` ✅ KB: 50 indicators · 21 data sources · teachers=[{"teacher": "microsoft/qlib", "indicators": 11, "data_sources": 1}, {"teacher": "bukosabino/ta", "indicators": 33, "data_sources": 0}, {"teacher": "TA-Lib/ta-lib", "error": "HTTP Error 404: Not Found"}, {"teacher": "OpenBB-finance/OpenBB", "indicators": 0, "data_sources": 0}, {"teacher": "wilsonfreitas/awesome-quant", "indicators": 20, "data_sources": 21}]
+## consensus indicators (most teachers)
+
+- `02:01:55`   PPO                x3 momentum ours=True
+- `02:01:55`   ADX                x2 trend ours=False
+- `02:01:55`   ATR                x2 volatility ours=False
+- `02:01:55`   BOLLINGER          x2 volatility ours=False
+- `02:01:55`   EMA                x2 trend ours=False
+- `02:01:55`   IC                 x2 stat-ml ours=True
+- `02:01:55`   LIGHTGBM           x2 stat-ml ours=False
+- `02:01:55`   MACD               x2 momentum ours=False
+## data-source atlas (top)
+
+- `02:01:55`   Yahoo Finance            via ['microsoft/qlib', 'wilsonfreitas/awesome-quant']
+- `02:01:55`   Alpaca                   via ['wilsonfreitas/awesome-quant']
+- `02:01:55`   Alpha Vantage            via ['wilsonfreitas/awesome-quant']
+- `02:01:55`   Binance                  via ['wilsonfreitas/awesome-quant']
+- `02:01:55`   Bloomberg                via ['wilsonfreitas/awesome-quant']
+- `02:01:55`   CoinGecko                via ['wilsonfreitas/awesome-quant']
+- `02:01:55`   Coinbase                 via ['wilsonfreitas/awesome-quant']
+- `02:01:55`   EDGAR                    via ['wilsonfreitas/awesome-quant']
+## THE GAP LIST -- borrowed-idea proposals
+
+- `02:01:55` ✅ gaps=44 (shadow-candidate constitution attached)
+- `02:01:55`   ADX                  x2 trend via ['bukosabino/ta', 'wilsonfreitas/awesome-quant']
+- `02:01:55`   ATR                  x2 volatility via ['bukosabino/ta', 'wilsonfreitas/awesome-quant']
+- `02:01:55`   BOLLINGER            x2 volatility via ['bukosabino/ta', 'wilsonfreitas/awesome-quant']
+- `02:01:55`   EMA                  x2 trend via ['bukosabino/ta', 'wilsonfreitas/awesome-quant']
+- `02:01:55`   LIGHTGBM             x2 stat-ml via ['microsoft/qlib', 'wilsonfreitas/awesome-quant']
+- `02:01:55`   MACD                 x2 momentum via ['bukosabino/ta', 'wilsonfreitas/awesome-quant']
+- `02:01:55`   MAX_DRAWDOWN         x2 risk-perf via ['microsoft/qlib', 'wilsonfreitas/awesome-quant']
+- `02:01:55`   OBV                  x2 volume via ['bukosabino/ta', 'wilsonfreitas/awesome-quant']
+- `02:01:55`   XGBOOST              x2 stat-ml via ['microsoft/qlib', 'wilsonfreitas/awesome-quant']
+- `02:01:55`   ACCUMULATION/DISTRIBUTION x1 trend via ['bukosabino/ta']
+- `02:01:55` ✗   harvest thin: 50 indicators
