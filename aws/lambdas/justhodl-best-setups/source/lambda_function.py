@@ -81,6 +81,9 @@ OUTPUT_KEY = "data/best-setups.json"
 s3 = boto3.client("s3", region_name="us-east-1")
 
 
+_FB_STAMP = {}
+
+
 def read_json(key, default=None):
     try:
         return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
@@ -994,6 +997,11 @@ def lambda_handler(event, context):
 
         # ── Fleet Fabric gate (ops 4346): cross-engine context ──
         _fctx = feature_bus.get(tk) or {}
+        if _fctx:
+            _FB_STAMP[tk] = {
+                "fabric_agreement": _fctx.get("agreement_pct"),
+                "fabric_score": _fctx.get("fabric_score"),
+                "fabric_conflict": _fctx.get("conflict")}
         _fb_mult = 1.0
         _fb_tag = None
         if _fctx:
@@ -1563,7 +1571,21 @@ def lambda_handler(event, context):
                 _s["suggested_structure"] = ("shares first; sell 30-45d covered "
                                              "calls after entry confirms")
         try:
-            from signals_emit import log_signal, yprice
+            from signals_emit import log_signal as _ls_raw, yprice
+
+            def log_signal(*a, **k):
+                # ops 4347c: fabric stamp at the emitter call
+                try:
+                    _sy = str(k.get("symbol") or k.get("ticker")
+                              or (a[1] if len(a) > 1 else a[0])
+                              ).upper()
+                    _fbx = _FB_STAMP.get(_sy)
+                    if _fbx:
+                        k["metadata"] = {**(k.get("metadata")
+                                            or {}), **_fbx}
+                except Exception:
+                    pass
+                return _ls_raw(*a, **k)
             _tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
             _logged = 0
             for _s in setups[:15]:

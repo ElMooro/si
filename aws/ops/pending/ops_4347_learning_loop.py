@@ -199,3 +199,5 @@ with report("4347_learning_loop") as r:
          "weights; tomorrow's constants are tonight's grades")
 
 # retrigger: emitter-level stamping (signals_emit shared module)
+
+# retrigger: call-site emitter wrapper (layer module untouched)
