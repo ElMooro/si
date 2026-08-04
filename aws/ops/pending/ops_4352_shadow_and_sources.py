@@ -97,8 +97,13 @@ with report("4352_shadow_and_sources") as r:
             fn = "justhodl-shadow-lab"
             donor = lam.get_function_configuration(
                 FunctionName="justhodl-commodity-curves")
-            key = (donor.get("Environment", {})
-                   .get("Variables", {}) or {}).get("FMP_API_KEY")
+            dvars = (donor.get("Environment", {})
+                     .get("Variables", {}) or {})
+            key = next((v for k, v in dvars.items()
+                        if "FMP" in k.upper() and v), None)
+            r.log("donor FMP-ish vars: %s -> key_len=%s"
+                  % ([k for k in dvars if "FMP" in k.upper()],
+                     len(key or "")))
             if key:
                 cur = lam.get_function_configuration(
                     FunctionName=fn)
@@ -144,6 +149,8 @@ with report("4352_shadow_and_sources") as r:
         inv("justhodl-shadow-lab")
         d = json.loads(s3.get_object(
             Bucket=B, Key="data/shadow-lab.json")["Body"].read())
+        r.log("engine debug_key_len=%s"
+              % d.get("debug_key_len"))
         r.ok("SHADOW-LAB: computed=%s · logged=%s · roster=%s"
              % (d.get("n_computed"), d.get("n_logged"),
                 (d.get("gap_roster_next") or [])[:6]))
@@ -190,3 +197,5 @@ with report("4352_shadow_and_sources") as r:
          "the source atlas prices Khalid's next unlocks")
 
 # retrigger: env-propagation wait + dual-endpoint ohlc
+
+# retrigger: name-agnostic FMP env discovery

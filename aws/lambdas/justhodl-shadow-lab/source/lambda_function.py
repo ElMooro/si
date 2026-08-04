@@ -13,7 +13,8 @@ from signals_emit import log_signal
 
 s3 = boto3.client("s3", region_name="us-east-1")
 B = "justhodl-dashboard-live"
-FMP = os.environ.get("FMP_API_KEY", "")
+FMP = next((v for k, v in os.environ.items()
+            if "FMP" in k.upper() and v), "")
 
 
 def rd(key):
@@ -135,6 +136,7 @@ def lambda_handler(event=None, context=None):
                 print("[shadow] log fail %s: %s"
                       % (sym, str(e)[:60]))
     out = {"engine": "justhodl-shadow-lab", "version": "1.0",
+           "debug_key_len": len(FMP),
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "elapsed_s": round(time.time() - t0, 1),
            "constitution": ("shadow candidates; adoption only by "
