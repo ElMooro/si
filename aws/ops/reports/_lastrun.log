@@ -1,38 +1,37 @@
-executing-against: ff57e5a4753d8ad9c267e639db36873d056a3894
+executing-against: d192550865f4df6a12b3ac5190515e55cc2c71f7
 ops 4351 -- learning from other minds, with receipts
-[02:01:53] ✅ weekly cadence installed
-[02:01:55] ✅ KB: 50 indicators · 21 data sources · teachers=[{"teacher": "microsoft/qlib", "indicators": 11, "data_sources": 1}, {"teacher": "bukosabino/ta", "indicators": 33, "data_sources": 0}, {"teacher": "TA-Lib/ta-lib", "error": "HTTP Error 404: Not Found"}, {"teacher": "OpenBB-finance/OpenBB", "indicators": 0, "data_sources": 0}, {"teacher": "wilsonfreitas/awesome-quant", "indicators": 20, "data_sources": 21}]
+[02:11:09] ✅ weekly cadence installed
+[02:11:11] ✅ KB: 63 indicators · 21 data sources · teachers=[{"teacher": "microsoft/qlib", "indicators": 11, "data_sources": 1}, {"teacher": "bukosabino/ta", "indicators": 33, "data_sources": 0}, {"teacher": "TA-Lib/ta-lib-python", "indicators": 34, "data_sources": 0}, {"teacher": "twopirllc/pandas-ta", "error": "HTTP Error 404: Not Found"}, {"teacher": "OpenBB-finance/OpenBB", "indicators": 0, "data_sources": 0}, {"
 ── consensus indicators (most teachers) ──
-[02:01:55]   PPO                x3 momentum ours=True
-[02:01:55]   ADX                x2 trend ours=False
-[02:01:55]   ATR                x2 volatility ours=False
-[02:01:55]   BOLLINGER          x2 volatility ours=False
-[02:01:55]   EMA                x2 trend ours=False
-[02:01:55]   IC                 x2 stat-ml ours=True
-[02:01:55]   LIGHTGBM           x2 stat-ml ours=False
-[02:01:55]   MACD               x2 momentum ours=False
+[02:11:11]   PPO                x4 momentum ours=True
+[02:11:11]   ADX                x3 trend ours=False
+[02:11:11]   ATR                x3 volatility ours=False
+[02:11:11]   BOLLINGER          x3 volatility ours=False
+[02:11:11]   EMA                x3 trend ours=False
+[02:11:11]   MACD               x3 momentum ours=False
+[02:11:11]   OBV                x3 volume ours=False
+[02:11:11]   RSI                x3 momentum ours=True
 ── data-source atlas (top) ──
-[02:01:55]   Yahoo Finance            via ['microsoft/qlib', 'wilsonfreitas/awesome-quant']
-[02:01:55]   Alpaca                   via ['wilsonfreitas/awesome-quant']
-[02:01:55]   Alpha Vantage            via ['wilsonfreitas/awesome-quant']
-[02:01:55]   Binance                  via ['wilsonfreitas/awesome-quant']
-[02:01:55]   Bloomberg                via ['wilsonfreitas/awesome-quant']
-[02:01:55]   CoinGecko                via ['wilsonfreitas/awesome-quant']
-[02:01:55]   Coinbase                 via ['wilsonfreitas/awesome-quant']
-[02:01:55]   EDGAR                    via ['wilsonfreitas/awesome-quant']
+[02:11:11]   Yahoo Finance            via ['microsoft/qlib', 'wilsonfreitas/awesome-quant']
+[02:11:11]   Alpaca                   via ['wilsonfreitas/awesome-quant']
+[02:11:11]   Alpha Vantage            via ['wilsonfreitas/awesome-quant']
+[02:11:11]   Binance                  via ['wilsonfreitas/awesome-quant']
+[02:11:11]   Bloomberg                via ['wilsonfreitas/awesome-quant']
+[02:11:11]   CoinGecko                via ['wilsonfreitas/awesome-quant']
+[02:11:11]   Coinbase                 via ['wilsonfreitas/awesome-quant']
+[02:11:11]   EDGAR                    via ['wilsonfreitas/awesome-quant']
 ── THE GAP LIST -- borrowed-idea proposals ──
-[02:01:55] ✅ gaps=44 (shadow-candidate constitution attached)
-[02:01:55]   ADX                  x2 trend via ['bukosabino/ta', 'wilsonfreitas/awesome-quant']
-[02:01:55]   ATR                  x2 volatility via ['bukosabino/ta', 'wilsonfreitas/awesome-quant']
-[02:01:55]   BOLLINGER            x2 volatility via ['bukosabino/ta', 'wilsonfreitas/awesome-quant']
-[02:01:55]   EMA                  x2 trend via ['bukosabino/ta', 'wilsonfreitas/awesome-quant']
-[02:01:55]   LIGHTGBM             x2 stat-ml via ['microsoft/qlib', 'wilsonfreitas/awesome-quant']
-[02:01:55]   MACD                 x2 momentum via ['bukosabino/ta', 'wilsonfreitas/awesome-quant']
-[02:01:55]   MAX_DRAWDOWN         x2 risk-perf via ['microsoft/qlib', 'wilsonfreitas/awesome-quant']
-[02:01:55]   OBV                  x2 volume via ['bukosabino/ta', 'wilsonfreitas/awesome-quant']
-[02:01:55]   XGBOOST              x2 stat-ml via ['microsoft/qlib', 'wilsonfreitas/awesome-quant']
-[02:01:55]   ACCUMULATION/DISTRIBUTION x1 trend via ['bukosabino/ta']
-[02:01:55] ✗   harvest thin: 50 indicators
+[02:11:11] ✅ gaps=57 (shadow-candidate constitution attached)
+[02:11:11]   ADX                  x3 trend via ['TA-Lib/ta-lib-python', 'bukosabino/ta', 'wilsonfreitas/awesome-quant']
+[02:11:11]   ATR                  x3 volatility via ['TA-Lib/ta-lib-python', 'bukosabino/ta', 'wilsonfreitas/awesome-quant']
+[02:11:11]   BOLLINGER            x3 volatility via ['TA-Lib/ta-lib-python', 'bukosabino/ta', 'wilsonfreitas/awesome-quant']
+[02:11:11]   EMA                  x3 trend via ['TA-Lib/ta-lib-python', 'bukosabino/ta', 'wilsonfreitas/awesome-quant']
+[02:11:11]   MACD                 x3 momentum via ['TA-Lib/ta-lib-python', 'bukosabino/ta', 'wilsonfreitas/awesome-quant']
+[02:11:11]   OBV                  x3 volume via ['TA-Lib/ta-lib-python', 'bukosabino/ta', 'wilsonfreitas/awesome-quant']
+[02:11:11]   AROON                x2 trend via ['TA-Lib/ta-lib-python', 'bukosabino/ta']
+[02:11:11]   CCI                  x2 other via ['TA-Lib/ta-lib-python', 'bukosabino/ta']
+[02:11:11]   CHAIKIN              x2 volume via ['TA-Lib/ta-lib-python', 'bukosabino/ta']
+[02:11:11]   DX                   x2 trend via ['TA-Lib/ta-lib-python', 'wilsonfreitas/awesome-quant']
+[02:11:11] ✅ OPS 4351 PASS -- the organism now studies other minds weekly, and everything it borrows must still earn its seat
 
 → Report written to aws/ops/reports/latest/4351_methodology_scout.md
-❌ OPS-FAIL: aws/ops/pending/ops_4351_methodology_scout.py
