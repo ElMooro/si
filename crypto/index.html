@@ -507,11 +507,12 @@ ylds.forEach(function(y){h+="<tr><td><strong>"+y.project+"</strong></td><td styl
 else{h+="<div style='color:var(--t3);text-align:center;padding:20px'>Loading...</div>";}
 h+="</div></div>";
 
-h+=paneCQ();h+=paneFleetAll();h+=paneHealth();
+function _iso(fn,nm){try{return fn();}catch(_pe){console.error(nm,_pe);return "<div class='pane' id='pane-"+nm+"'><div class='card'><div class='card-title'>"+nm.toUpperCase()+"</div><div class='stat-sm dn'>pane error: "+String(_pe.message||_pe).slice(0,120)+"</div></div></div>";}}
+h+=_iso(paneCQ,"cq");h+=_iso(paneFleetAll,"fleet");h+=_iso(paneHealth,"health");
 document.getElementById("main").innerHTML=h;
 
 // Render full history chart after DOM update
-renderFullHistoryChart();
+try{renderFullHistoryChart();}catch(_ce){console.error("chart isolated:",_ce);}
 }catch(e){console.error("RENDER ERROR:",e);document.getElementById("main").innerHTML="<div class='loading' style='color:var(--red)'>Render Error: "+e.message+"<br><pre style='font-size:10px;text-align:left;margin-top:12px'>"+e.stack+"</pre><br><br>Debug: coins="+Object.keys((D.technicals||{}).coins||{}).join(",")+", tvl_chains="+(((D.tvl||{}).chains||[]).length)+", funding_longed="+(((D.funding||{}).most_longed||[]).length)+"</div>";}
 }
 
