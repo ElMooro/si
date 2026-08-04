@@ -1,16 +1,9 @@
-executing-against: cf0e7961006d288f15ed2d304e3979a0f715c2c3
-ops 4347 -- constants die; the loop learns
-[01:15:07] ✅ LEARNED: 290 engines · 395 (engine,regime) pairs
-[01:15:07]   corr_break_top_pair|CRISIS lift=+50.0 (win 100.0%, n=9)
-[01:15:07]   edge_composite|UNKNOWN lift=-50.0 (win 0.0%, n=105)
-[01:15:07]   wl-engines|UNKNOWN lift=-50.0 (win 0.0%, n=79)
-[01:15:07]   edge_regime|UNKNOWN lift=-50.0 (win 0.0%, n=85)
-[01:15:07]   corr_break_composite_vs_vxx|NEUTRAL lift=-50.0 (win 0.0%, n=104)
-[01:15:07]   khalid_index|UNKNOWN lift=-50.0 (win 0.0%, n=96)
-[01:15:11] ✅ BUS v2.1: 600 tickers · 121 carry peer_fabric_score
-[01:15:11] ✅ fusion now runs on learned weights: 49 envelopes (sample of 80 tickers)
-[01:15:11] ✅ bus archived: data/archive/feature-bus/20260804.json
-[01:15:40] ✗   no fabric-stamped best-setups signal found today (scanned 12417)
+executing-against: ec287d5cbfda64ce8404b6b749070e12c30709aa
+ops 4348 -- the stamp, beyond doubt
+[01:31:10] invoke anchor: 2026-08-04T01:31:10.667626+00:00 -- only signals logged after this instant count
+[01:31:36] ✅ fresh run 2026-08-04T01:31:19+00:00 · tags={'FLEET_ALIGNED_UP': 9, 'FLEET_CONTESTED': 10}
+[01:31:36] MU precedence check: tag=FLEET_ALIGNED_UP mult=1.08 (ag=83.0%, n=6)
+[01:31:43] ✗   no post-anchor stamped signal (scanned 16542)
 
-→ Report written to aws/ops/reports/latest/4347_learning_loop.md
-❌ OPS-FAIL: aws/ops/pending/ops_4347_learning_loop.py
+→ Report written to aws/ops/reports/latest/4348_stamp_seal.md
+❌ OPS-FAIL: aws/ops/pending/ops_4348_stamp_seal.py
