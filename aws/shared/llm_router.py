@@ -205,3 +205,86 @@ def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, s
     return txt
 
 # deploy-nudge: 2026-07-05 circuit-breaker propagation to ALL transitive importers (ops 2897).
+
+
+# ═══════════ ops 4374: AI COUNCIL — cross-provider consultation rail ═══════════
+# The March-2026 workflow (Khalid manually bridging Claude<->Perplexity audits)
+# becomes machine-bridged: any engine or ops script can convene a council of
+# independent AIs and get per-provider answers + an auditable record.
+PPLX_SSM_NAME = "/justhodl/perplexity/api-key"
+PPLX_MODEL = os.environ.get("PPLX_MODEL", "sonar-pro")
+_pplx_key_cache = None
+
+
+def _pplx_key():
+    global _pplx_key_cache
+    if _pplx_key_cache is None:
+        import boto3
+        ssm = boto3.client("ssm", region_name="us-east-1")
+        _pplx_key_cache = ssm.get_parameter(
+            Name=PPLX_SSM_NAME, WithDecryption=True)["Parameter"]["Value"]
+    return _pplx_key_cache
+
+
+def _perplexity(prompt, model=None, max_tokens=1400, system=None):
+    """Perplexity chat/completions (OpenAI-compatible). Returns
+    (text, citations)."""
+    msgs = _msgs(prompt)
+    if system:
+        msgs = [{"role": "system", "content": system}] + msgs
+    payload = {"model": model or PPLX_MODEL, "max_tokens": max_tokens,
+               "messages": msgs}
+    req = urllib.request.Request(
+        "https://api.perplexity.ai/chat/completions",
+        data=json.dumps(payload).encode(),
+        headers={"Content-Type": "application/json",
+                 "Authorization": "Bearer " + _pplx_key()},
+    )
+    with urllib.request.urlopen(req, timeout=60) as r:
+        d = json.loads(r.read().decode())
+    txt = (((d.get("choices") or [{}])[0].get("message") or {})
+           .get("content") or "")
+    cites = d.get("citations") or []
+    return txt, cites
+
+
+def council(question, providers=None, system=None, max_tokens=1400,
+            context=""):
+    """Fan a question out to independent AIs; return per-provider answers.
+
+    providers: subset of ("perplexity", "glm", "claude"). Missing keys or
+    provider outages degrade to per-provider errors, never a crash — the
+    council convenes with whoever shows up.
+    """
+    import time as _t
+    providers = list(providers or ("perplexity", "glm", "claude"))
+    q = (context + "\n\n" + question).strip() if context else question
+    out = {}
+    for p in providers:
+        t0 = _t.time()
+        rec = {"ok": False, "provider": p}
+        try:
+            if _tripped(p):
+                raise RuntimeError("circuit-open (recent failure)")
+            if p == "perplexity":
+                txt, cites = _perplexity(q, max_tokens=max_tokens,
+                                         system=system)
+                rec.update(ok=bool(txt), answer=txt, citations=cites[:12],
+                           model=PPLX_MODEL)
+            elif p == "glm":
+                txt, ti, to = _glm(q, GLM_REASON, max_tokens, system=system)
+                rec.update(ok=bool(txt), answer=txt, model=GLM_REASON)
+            elif p == "claude":
+                txt, ti, to = _claude(q, SONNET, max_tokens, system=system)
+                rec.update(ok=bool(txt), answer=txt, model=SONNET)
+            else:
+                raise ValueError("unknown provider")
+            if not rec["ok"]:
+                rec["error"] = "empty answer"
+        except Exception as e:
+            _trip(p)
+            rec["error"] = f"{type(e).__name__}: {str(e)[:160]}"
+        rec["latency_s"] = round(_t.time() - t0, 1)
+        out[p] = rec
+    return out
+# ═══════════ end AI COUNCIL ═══════════

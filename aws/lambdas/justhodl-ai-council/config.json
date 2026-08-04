@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-ai-council",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 240,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "AI Council (ops 4374): cross-provider consultation rail — Perplexity + GLM-5.1 + Claude answer one question independently, optional Claude synthesis. Writes data/ai-council.json + rolling data/_council/log.json. Invoke-only; the ops rail is Claude's own channel to other AIs.",
+  "inherit_env": {"from_function": "justhodl-bottleneck-research", "keys": ["ANTHROPIC_API_KEY", "ANTHROPIC_KEY", "ZAI_BASE_URL"]},
+  "env": {"S3_BUCKET": "justhodl-dashboard-live"}
+}
