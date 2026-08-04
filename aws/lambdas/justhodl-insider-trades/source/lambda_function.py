@@ -413,13 +413,140 @@ def parse_form4(xml_bytes: bytes):
     return txns
 
 
+# ═══════════ v2.0 (ops 4372): daily-index backfill · sector join · fleet ═══════════
+BACKFILL_BUDGET = int(os.environ.get("INSIDER_BACKFILL_BUDGET", "350"))
+CURSOR_KEY = "data/_insider/backfill-cursor.json"
+
+def _s3_json_v2(s3, key):
+    try:
+        o = s3.get_object(Bucket=S3_BUCKET, Key=key)
+        d = json.loads(o["Body"].read())
+        lm = o.get("LastModified")
+        age = round((datetime.now(timezone.utc)-lm).total_seconds()/3600, 1) if lm else None
+        return d, age
+    except Exception as e:
+        return None, f"{type(e).__name__}"[:40]
+
+def load_universe_map(s3):
+    """symbol -> {sector, industry} from universe-builder v4 output."""
+    d, _ = _s3_json_v2(s3, "data/universe.json")
+    mp = {}
+    rows = (d or {}).get("stocks") or (d or {}).get("rows") or (d or {}).get("universe") or []
+    if isinstance(rows, dict):
+        rows = list(rows.values())
+    for r in rows:
+        if isinstance(r, dict) and r.get("symbol"):
+            mp[str(r["symbol"]).upper()] = {"sector": r.get("sector"),
+                                             "industry": r.get("industry")}
+    return mp
+
+def backfill_from_daily_index(s3):
+    """Heal the window: EDGAR daily form.idx lists EVERY Form 4 for a day
+    (getcurrent atom caps at ~200 and has zero lookback, so outages lose days
+    forever). Newest-first, budgeted per run, cursor-persisted; the full
+    submission .txt embeds the ownershipDocument XML -> existing parse_form4.
+    Self-heals complete WINDOW_DAYS coverage over a few runs, stays complete."""
+    cursor, _ = _s3_json_v2(s3, CURSOR_KEY)
+    cursor = cursor if isinstance(cursor, dict) else {}
+    done = cursor.get("done") or {}
+    txns, scanned, budget = [], 0, BACKFILL_BUDGET
+    now = datetime.now(timezone.utc)
+    for back in range(0, WINDOW_DAYS + 1):
+        if budget <= 0:
+            break
+        day = now - timedelta(days=back)
+        if day.weekday() >= 5:
+            continue
+        ymd = day.strftime("%Y%m%d")
+        q = (day.month - 1) // 3 + 1
+        st = done.get(ymd) or {}
+        if st.get("complete"):
+            continue
+        try:
+            idx = _fetch(f"https://www.sec.gov/Archives/edgar/daily-index/"
+                         f"{day.year}/QTR{q}/form.{ymd}.idx",
+                         accept="text/plain").decode("latin-1", "replace")
+        except Exception as e:
+            if back == 0:
+                continue          # today's idx may not exist yet — not an error
+            done[ymd] = {"complete": True, "err": str(e)[:60]}
+            continue
+        paths = []
+        for line in idx.splitlines():
+            if line[:12].strip() == "4":
+                pth = line.split()[-1]
+                if pth.startswith("edgar/"):
+                    paths.append(pth)
+        start = int(st.get("next", 0))
+        todo = paths[start:start + budget]
+        for pth in todo:
+            scanned += 1
+            try:
+                body = _fetch("https://www.sec.gov/Archives/" + pth,
+                              accept="text/plain").decode("utf-8", "replace")
+                mx = re.search(r"<ownershipDocument[\s\S]*?</ownershipDocument>", body)
+                if not mx:
+                    continue
+                accession = pth.rsplit("/", 1)[-1].replace(".txt", "")
+                recs = parse_form4(mx.group(0).encode("utf-8", "replace")) or []
+                for rec in recs:
+                    rec.setdefault("accession", accession)
+                    rec.setdefault("filed_at",
+                                   day.strftime("%Y-%m-%dT00:00:00+00:00"))
+                    txns.append(rec)
+            except Exception:
+                continue
+            time.sleep(0.04)
+        budget -= len(todo)
+        nxt = start + len(todo)
+        done[ymd] = {"complete": nxt >= len(paths), "next": nxt, "total": len(paths)}
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key=CURSOR_KEY,
+                      Body=json.dumps({"done": done,
+                                       "updated": now.isoformat()}).encode(),
+                      ContentType="application/json")
+    except Exception as e:
+        print("cursor write err:", str(e)[:60])
+    complete_days = sum(1 for v in done.values() if v.get("complete"))
+    return txns, {"filings_scanned_this_run": scanned,
+                  "backfill_days_complete": complete_days,
+                  "backfill_days_target": WINDOW_DAYS}
+
+FLEET_JOINS = [("radar", "data/insider-radar.json", 26),
+               ("industry_cluster", "data/insider-industry-cluster.json", 26),
+               ("sell_cluster", "data/insider-sell-cluster.json", 26),
+               ("aggregate", "data/insider-aggregate.json", 26),
+               ("buyback_confluence", "data/insider-buyback-confluence.json", 26)]
+
+def _slim_v2(v):
+    if isinstance(v, list) and len(v) > 400:
+        return v[:60] + [{"_truncated": len(v)}]
+    if isinstance(v, dict):
+        return {k: _slim_v2(x) for k, x in v.items()}
+    return v
+
+def fetch_insider_fleet(s3):
+    out = {"sections": {}, "ledger": []}
+    for name, key, maxh in FLEET_JOINS:
+        d, age = _s3_json_v2(s3, key)
+        if d is None:
+            out["ledger"].append({"feed": name, "status": "missing", "note": age})
+            continue
+        stale = isinstance(age, (int, float)) and age > maxh
+        out["sections"][name] = {"age_h": age, "stale": stale, "data": _slim_v2(d)}
+        out["ledger"].append({"feed": name,
+                              "status": "stale" if stale else "ok", "age_h": age})
+    return out
+# ═══════════ end v2.0 block ═══════════
+
 # ─── S3 rolling-window helpers ────────────────────────────────────────────
 def load_existing(s3) -> list:
     """Return list of prior transactions from S3 (or empty)."""
     try:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=S3_KEY)
         body = json.loads(obj["Body"].read())
-        return body.get("transactions", [])
+        return (body.get("transactions", []) +
+                body.get("sell_transactions", []))   # v2: sells persist too
     except s3.exceptions.NoSuchKey:
         return []
     except Exception as e:
@@ -700,9 +827,32 @@ def lambda_handler(event, context):
     print(f"DIAG: {json.dumps(diag)}")
     print(f"Parsed {len(fresh_txns)} kept transactions; fetch_errors={fetch_errors}")
 
+    # 3a. v2 backfill from EDGAR daily index (heals outage gaps + storms)
+    try:
+        back_txns, coverage = backfill_from_daily_index(s3)
+        fresh_txns.extend(back_txns)
+        print(f"backfill: +{len(back_txns)} txns, {coverage}")
+    except Exception as e:
+        coverage = {"backfill_error": str(e)[:100]}
+        print("backfill err:", str(e)[:80])
+
     # 3. Merge with rolling 30-day window from S3
     prior = load_existing(s3)
     all_txns = merge_and_window(prior, fresh_txns)
+
+    # 3b. v2 real sectors from universe.json (page was alphabet-bucketing)
+    try:
+        umap = load_universe_map(s3)
+        hit = 0
+        for tx in all_txns:
+            u = umap.get(str(tx.get("ticker", "")).upper())
+            if u:
+                tx["sector"] = u.get("sector"); tx["industry"] = u.get("industry")
+                hit += 1
+        coverage["sector_mapped"] = hit
+        coverage["universe_size"] = len(umap)
+    except Exception as e:
+        print("universe join err:", str(e)[:80])
     print(f"After merge+window: {len(all_txns)} transactions in window")
 
     # 4. Aggregate
@@ -730,9 +880,12 @@ def lambda_handler(event, context):
             "fetch_errlog": errlog,
             "atom_feed_count": len(filings),
         },
+        "version": "2.0",
+        "coverage": coverage,
+        "fleet": fetch_insider_fleet(s3),
         "clusters": clusters[:30],
         "big_buys": big_buys[:30],
-        "transactions": [t for t in all_txns if t["side"] == "buy"][:500],   # cap for size
+        "transactions": [t for t in all_txns if t["side"] == "buy"][:1200],   # cap for size
         # management SELLING (share-flows joins this; parsed all along,
         # was dropped at output until 2026-07-11)
         "sell_transactions": [t for t in all_txns if t["side"] == "sell"][:500],

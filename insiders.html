@@ -232,6 +232,7 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,230,118,.04),tr
 
   <footer class="foot">
     <div class="foot-section">
+      <div id="fleet-intel"></div>
       <span class="foot-label">Source</span>
       <span><strong>SEC EDGAR</strong> Form 4 atom feed</span>
       <span>justhodl-insider-trades · 30 min</span>
@@ -356,6 +357,38 @@ function renderBigBuys(buys){
   `;
 }
 
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function fmtUsd(v){v=+v||0;return v>=1e6?'$'+(v/1e6).toFixed(1)+'M':'$'+Math.round(v/1e3)+'K';}
+function renderFleet(d){
+  const el=document.getElementById('fleet-intel'); if(!el) return;
+  const F=(d.fleet&&d.fleet.sections)||{}; const cov=d.coverage||{};
+  let h='<div style="margin:28px 0;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)">';
+  h+='<div style="font-size:11px;letter-spacing:2px;opacity:.55;margin-bottom:4px">FLEET INSIDER INTELLIGENCE</div>';
+  h+='<div style="font-size:12px;opacity:.6;margin-bottom:14px">Coverage: '+(cov.backfill_days_complete??'—')+'/'+(cov.backfill_days_target??d.window_days??30)+' days deep-scanned via EDGAR daily index · '+(cov.filings_scanned_this_run??0)+' filings this run · '+(cov.sector_mapped??0)+' sector-mapped'+(cov.backfill_error?' · <span style="color:#ff6b6b">'+esc(cov.backfill_error)+'</span>':'')+'</div>';
+  const card=(title,inner)=>'<div style="margin:0 0 14px 0;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:8px"><div style="font-size:11px;letter-spacing:1px;opacity:.55;margin-bottom:8px">'+title+'</div>'+inner+'</div>';
+  const age=s=>s&&s.age_h!=null?' <span style="opacity:.4;font-size:10px">'+s.age_h+'h'+(s.stale?' STALE':'')+'</span>':'';
+  const R=F.radar&&F.radar.data;
+  if(R){const rows=(R.clusters||R.rows||R.buys||[]).slice(0,6);
+    h+=card('INSIDER RADAR · cluster buys &amp; decline accumulation'+age(F.radar),
+      rows.length?rows.map(r=>'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span>'+esc(r.ticker||r.symbol)+' <span style="opacity:.5">'+esc(r.insiders||r.n_insiders||'')+'</span></span><span>'+fmtUsd(r.total_value||r.value)+'</span></div>').join(''):'<span style="opacity:.5;font-size:12px">no active radar clusters</span>');}
+  const IC=F.industry_cluster&&F.industry_cluster.data;
+  if(IC){const rows=(IC.clusters||IC.industries||IC.rows||[]).slice(0,5);
+    h+=card('INDUSTRY CLUSTERS · peer-group conviction (canary #16)'+age(F.industry_cluster),
+      rows.length?rows.map(r=>'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span>'+esc(r.industry||r.name)+' <span style="opacity:.5">'+esc(r.companies||r.n_companies||'')+' cos</span></span><span>'+fmtUsd(r.total_value||r.value)+'</span></div>').join(''):'<span style="opacity:.5;font-size:12px">no industry clusters firing</span>');}
+  const SC=F.sell_cluster&&F.sell_cluster.data;
+  if(SC){const rows=(SC.clusters||SC.rows||[]).slice(0,5);
+    h+=card('SELL CLUSTERS · defensive warnings (ex-10b5-1)'+age(F.sell_cluster),
+      rows.length?rows.map(r=>'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:#ff9f9f"><span>'+esc(r.ticker||r.symbol)+' <span style="opacity:.6">'+esc(r.sellers||r.n_insiders||'')+' sellers</span></span><span>'+fmtUsd(r.total_value||r.value)+'</span></div>').join(''):'<span style="opacity:.5;font-size:12px">no sell clusters</span>');}
+  const AG=F.aggregate&&F.aggregate.data;
+  if(AG){const v=AG.ratio??AG.buy_sell_ratio??AG.insider_ratio;
+    h+=card('MARKET-WIDE INSIDER RATIO · contrarian timing'+age(F.aggregate),
+      '<div style="font-size:20px">'+(v!=null?(+v).toFixed(2):'—')+' <span style="font-size:11px;opacity:.5">'+esc(AG.regime||AG.signal||'')+'</span></div>');}
+  const BC=F.buyback_confluence&&F.buyback_confluence.data;
+  if(BC){const rows=(BC.confluence||BC.tickers||BC.rows||[]).slice(0,5);
+    h+=card('INSIDER × BUYBACK CONFLUENCE'+age(F.buyback_confluence),
+      rows.length?rows.map(r=>'<div style="font-size:12px;padding:3px 0">'+esc(r.ticker||r.symbol)+' <span style="opacity:.5">'+esc(r.note||r.signal||'')+'</span></div>').join(''):'<span style="opacity:.5;font-size:12px">no double-signals this window</span>');}
+  h+='</div>'; el.innerHTML=h;
+}
 function renderSectors(transactions){
   const el = document.getElementById('sectors');
   if(!transactions || !transactions.length){ el.innerHTML = ''; return; }
@@ -369,7 +402,7 @@ function renderSectors(transactions){
   for(const t of transactions){
     if(t.side !== 'buy') continue;
     const k = (t.ticker||'').charAt(0).toUpperCase();
-    const bucket = !k ? 'Other' : (k <= 'D' ? 'A–D' : k <= 'H' ? 'E–H' : k <= 'L' ? 'I–L' : k <= 'P' ? 'M–P' : k <= 'T' ? 'Q–T' : 'U–Z');
+    const bucket = t.sector ? t.sector : (!k ? 'Other' : (k <= 'D' ? 'A–D' : k <= 'H' ? 'E–H' : k <= 'L' ? 'I–L' : k <= 'P' ? 'M–P' : k <= 'T' ? 'Q–T' : 'U–Z'));
     if(!buckets[bucket]) buckets[bucket] = {count:0, value:0};
     buckets[bucket].count++;
     buckets[bucket].value += t.value || 0;
@@ -397,6 +430,7 @@ async function refresh(){
   renderClusters(data.clusters);
   renderBigBuys(data.big_buys);
   renderSectors(data.transactions);
+  try{renderFleet(data);}catch(e){console.error('fleet',e);}
   document.getElementById('foot-refresh').textContent = new Date().toLocaleString();
 }
 
