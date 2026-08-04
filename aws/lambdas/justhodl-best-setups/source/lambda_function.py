@@ -1008,13 +1008,15 @@ def lambda_handler(event, context):
             _ag = _fctx.get("agreement_pct") or 0
             _ne = _fctx.get("n_engines") or 0
             _nd = _fctx.get("net_direction")
-            if _fctx.get("conflict"):
-                _fb_mult = 0.94
-                _fb_tag = "FLEET_CONTESTED"
-            elif _ne >= 4 and _ag >= 75:
+            # ops 4348: strong alignment outranks a lone
+            # dissenter -- contested only when the room is split.
+            if _ne >= 4 and _ag >= 75:
                 _fb_mult = 1.08 if _nd == "UP" else 0.90
                 _fb_tag = ("FLEET_ALIGNED_UP" if _nd == "UP"
                            else "FLEET_ALIGNED_DOWN")
+            elif _fctx.get("conflict"):
+                _fb_mult = 0.94
+                _fb_tag = "FLEET_CONTESTED"
             if _fb_mult != 1.0:
                 composite = round(min(100.0,
                                       composite * _fb_mult), 1)
