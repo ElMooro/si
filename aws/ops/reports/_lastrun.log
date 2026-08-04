@@ -1,7 +1,183 @@
-executing-against: 7ccc7cbe1c6ed4616eba30f89bd31d12d3b4c3ad
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/4370_rule_resurrect.py", line 54, in <module>
-    if rule in seen: continue
-       ^^^^^^^^^^^^
-TypeError: unhashable type: 'dict'
-❌ OPS-FAIL: aws/ops/pending/4370_rule_resurrect.py
+executing-against: 9dca06dbe75ce9eba750d0684256425b86e00370
+{
+ "ops": 4371,
+ "started": "2026-08-04T16:43:27.528540+00:00",
+ "recreated": [
+  {
+   "rule": "justhodl-crypto-funding-hourly",
+   "fn": "justhodl-crypto-funding",
+   "expr": "rate(1 hour)"
+  },
+  {
+   "rule": "justhodl-intel-daily",
+   "fn": "justhodl-intelligence",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-intel-hourly",
+   "fn": "justhodl-intelligence",
+   "expr": "rate(1 hour)"
+  },
+  {
+   "rule": "justhodl-aaii-sentiment-daily",
+   "fn": "justhodl-aaii-sentiment",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "fmp-movers-hourly",
+   "fn": "fmp-stock-picks-agent",
+   "expr": "rate(1 hour)"
+  },
+  {
+   "rule": "fmp-stock-picks-daily",
+   "fn": "fmp-stock-picks-agent",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-liquidity-flow-daily",
+   "fn": "justhodl-liquidity-flow",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-sec-13f-daily",
+   "fn": "justhodl-sec-13f",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-dex-scanner-15min",
+   "fn": "justhodl-dex-scanner",
+   "expr": "rate(15 minutes)"
+  },
+  {
+   "rule": "justhodl-vix-curve-30min",
+   "fn": "justhodl-vix-curve",
+   "expr": "rate(30 minutes)"
+  },
+  {
+   "rule": "justhodl-crypto-enricher-daily",
+   "fn": "justhodl-crypto-enricher",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-insider-trades-30min",
+   "fn": "justhodl-insider-trades",
+   "expr": "rate(30 minutes)"
+  },
+  {
+   "rule": "macro-financial-daily-execution",
+   "fn": "macro-financial-intelligence",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-gdelt-sentiment-30min",
+   "fn": "justhodl-gdelt-sentiment",
+   "expr": "rate(30 minutes)"
+  },
+  {
+   "rule": "justhodl-morning-brief-daily",
+   "fn": "justhodl-morning-intelligence",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-options-gamma-30min",
+   "fn": "justhodl-options-gamma",
+   "expr": "rate(30 minutes)"
+  },
+  {
+   "rule": "justhodl-nyfed-dealer-survey-weekly",
+   "fn": "justhodl-nyfed-dealer-survey",
+   "expr": "rate(7 days)"
+  },
+  {
+   "rule": "justhodl-sentiment-daily",
+   "fn": "justhodl-news-sentiment",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "repo-metrics-15min",
+   "fn": "enhanced-repo-agent",
+   "expr": "rate(15 minutes)"
+  },
+  {
+   "rule": "justhodl-redflag-alerter-30min",
+   "fn": "justhodl-redflag-alerter",
+   "expr": "rate(30 minutes)"
+  },
+  {
+   "rule": "divergence-interpreter-4hourly",
+   "fn": "justhodl-divergence-interpreter",
+   "expr": "cron(30 0/4 * * ? *)"
+  },
+  {
+   "rule": "justhodl-stock-screener-4h",
+   "fn": "justhodl-stock-screener",
+   "expr": "rate(4 hours)"
+  },
+  {
+   "rule": "justhodl-price-redundancy-15min",
+   "fn": "justhodl-price-redundancy",
+   "expr": "rate(15 minutes)"
+  },
+  {
+   "rule": "justhodl-sec-10kq-4h",
+   "fn": "justhodl-sec-10kq",
+   "expr": "rate(4 hours)"
+  },
+  {
+   "rule": "justhodl-repo-30min",
+   "fn": "justhodl-repo-monitor",
+   "expr": "rate(30 minutes)"
+  },
+  {
+   "rule": "justhodl-repo-daily",
+   "fn": "justhodl-repo-monitor",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-oecd-cli-weekly",
+   "fn": "justhodl-oecd-cli",
+   "expr": "rate(7 days)"
+  },
+  {
+   "rule": "justhodl-labor-leading-daily",
+   "fn": "justhodl-labor-leading",
+   "expr": "rate(1 day)"
+  }
+ ],
+ "manifest_covered_missing": [],
+ "missing_ambiguous": [
+  {
+   "rule": "justhodl-v9-auto-refresh",
+   "fn": "justhodl-daily-report-v3"
+  },
+  {
+   "rule": "justhodl-v9-evening",
+   "fn": "justhodl-daily-report-v3"
+  },
+  {
+   "rule": "justhodl-v9-morning",
+   "fn": "justhodl-daily-report-v3"
+  },
+  {
+   "rule": "bls-friday-update",
+   "fn": "bls-employment-api-v2"
+  },
+  {
+   "rule": "bls-tuesday-update",
+   "fn": "bls-employment-api-v2"
+  },
+  {
+   "rule": "justhodl-flow-refresh",
+   "fn": "justhodl-options-flow"
+  },
+  {
+   "rule": "news-sentiment-update",
+   "fn": "news-sentiment-agent"
+  },
+  {
+   "rule": "valuations-monthly-update",
+   "fn": "justhodl-valuations-agent"
+  },
+  {
+   "rule": "justhodl-ml-predictions-schedule",
+   "fn": "justhodl-ml-predictio

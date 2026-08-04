@@ -1,0 +1,568 @@
+{
+ "ops": 4371,
+ "started": "2026-08-04T16:43:27.528540+00:00",
+ "recreated": [
+  {
+   "rule": "justhodl-crypto-funding-hourly",
+   "fn": "justhodl-crypto-funding",
+   "expr": "rate(1 hour)"
+  },
+  {
+   "rule": "justhodl-intel-daily",
+   "fn": "justhodl-intelligence",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-intel-hourly",
+   "fn": "justhodl-intelligence",
+   "expr": "rate(1 hour)"
+  },
+  {
+   "rule": "justhodl-aaii-sentiment-daily",
+   "fn": "justhodl-aaii-sentiment",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "fmp-movers-hourly",
+   "fn": "fmp-stock-picks-agent",
+   "expr": "rate(1 hour)"
+  },
+  {
+   "rule": "fmp-stock-picks-daily",
+   "fn": "fmp-stock-picks-agent",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-liquidity-flow-daily",
+   "fn": "justhodl-liquidity-flow",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-sec-13f-daily",
+   "fn": "justhodl-sec-13f",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-dex-scanner-15min",
+   "fn": "justhodl-dex-scanner",
+   "expr": "rate(15 minutes)"
+  },
+  {
+   "rule": "justhodl-vix-curve-30min",
+   "fn": "justhodl-vix-curve",
+   "expr": "rate(30 minutes)"
+  },
+  {
+   "rule": "justhodl-crypto-enricher-daily",
+   "fn": "justhodl-crypto-enricher",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-insider-trades-30min",
+   "fn": "justhodl-insider-trades",
+   "expr": "rate(30 minutes)"
+  },
+  {
+   "rule": "macro-financial-daily-execution",
+   "fn": "macro-financial-intelligence",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-gdelt-sentiment-30min",
+   "fn": "justhodl-gdelt-sentiment",
+   "expr": "rate(30 minutes)"
+  },
+  {
+   "rule": "justhodl-morning-brief-daily",
+   "fn": "justhodl-morning-intelligence",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-options-gamma-30min",
+   "fn": "justhodl-options-gamma",
+   "expr": "rate(30 minutes)"
+  },
+  {
+   "rule": "justhodl-nyfed-dealer-survey-weekly",
+   "fn": "justhodl-nyfed-dealer-survey",
+   "expr": "rate(7 days)"
+  },
+  {
+   "rule": "justhodl-sentiment-daily",
+   "fn": "justhodl-news-sentiment",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "repo-metrics-15min",
+   "fn": "enhanced-repo-agent",
+   "expr": "rate(15 minutes)"
+  },
+  {
+   "rule": "justhodl-redflag-alerter-30min",
+   "fn": "justhodl-redflag-alerter",
+   "expr": "rate(30 minutes)"
+  },
+  {
+   "rule": "divergence-interpreter-4hourly",
+   "fn": "justhodl-divergence-interpreter",
+   "expr": "cron(30 0/4 * * ? *)"
+  },
+  {
+   "rule": "justhodl-stock-screener-4h",
+   "fn": "justhodl-stock-screener",
+   "expr": "rate(4 hours)"
+  },
+  {
+   "rule": "justhodl-price-redundancy-15min",
+   "fn": "justhodl-price-redundancy",
+   "expr": "rate(15 minutes)"
+  },
+  {
+   "rule": "justhodl-sec-10kq-4h",
+   "fn": "justhodl-sec-10kq",
+   "expr": "rate(4 hours)"
+  },
+  {
+   "rule": "justhodl-repo-30min",
+   "fn": "justhodl-repo-monitor",
+   "expr": "rate(30 minutes)"
+  },
+  {
+   "rule": "justhodl-repo-daily",
+   "fn": "justhodl-repo-monitor",
+   "expr": "rate(1 day)"
+  },
+  {
+   "rule": "justhodl-oecd-cli-weekly",
+   "fn": "justhodl-oecd-cli",
+   "expr": "rate(7 days)"
+  },
+  {
+   "rule": "justhodl-labor-leading-daily",
+   "fn": "justhodl-labor-leading",
+   "expr": "rate(1 day)"
+  }
+ ],
+ "manifest_covered_missing": [],
+ "missing_ambiguous": [
+  {
+   "rule": "justhodl-v9-auto-refresh",
+   "fn": "justhodl-daily-report-v3"
+  },
+  {
+   "rule": "justhodl-v9-evening",
+   "fn": "justhodl-daily-report-v3"
+  },
+  {
+   "rule": "justhodl-v9-morning",
+   "fn": "justhodl-daily-report-v3"
+  },
+  {
+   "rule": "bls-friday-update",
+   "fn": "bls-employment-api-v2"
+  },
+  {
+   "rule": "bls-tuesday-update",
+   "fn": "bls-employment-api-v2"
+  },
+  {
+   "rule": "justhodl-flow-refresh",
+   "fn": "justhodl-options-flow"
+  },
+  {
+   "rule": "news-sentiment-update",
+   "fn": "news-sentiment-agent"
+  },
+  {
+   "rule": "valuations-monthly-update",
+   "fn": "justhodl-valuations-agent"
+  },
+  {
+   "rule": "justhodl-ml-predictions-schedule",
+   "fn": "justhodl-ml-predictions"
+  },
+  {
+   "rule": "justhodl-ml-schedule",
+   "fn": "justhodl-ml-predictions"
+  },
+  {
+   "rule": "justhodl-khalid-metrics-refresh",
+   "fn": "justhodl-khalid-metrics"
+  },
+  {
+   "rule": "bloomberg-terminal-refresh",
+   "fn": "justhodl-bloomberg-v8"
+  },
+  {
+   "rule": "justhodl-8am",
+   "fn": "justhodl-email-reports"
+  },
+  {
+   "rule": "test-immediate",
+   "fn": "chatgpt-agent-api"
+  },
+  {
+   "rule": "fedliquidityapi-auto-update",
+   "fn": "fedliquidityapi"
+  }
+ ],
+ "already_ok": 14,
+ "errors": [],
+ "central_scheduler": {
+  "functions_in_manifest": [
+   "activity-nowcast-sched",
+   "alpha-alerts-sched",
+   "alpha-calibrator-sched",
+   "alpha-confluence-sched",
+   "alpha-daily-brief-sched",
+   "alpha-decay-sched",
+   "auction-grader-sched",
+   "behavior-mirror-sched",
+   "benzinga-earnings-sched",
+   "best-ideas-sched",
+   "beta-laggard-sched",
+   "capital-inflows-sched",
+   "capital-return-sched",
+   "causality-scanner-sched",
+   "cb-stance-sched",
+   "chokepoint-sched",
+   "coinbase-premium-sched",
+   "commodity-curves-sched",
+   "concentration-liquidity-sched",
+   "convexity-scorer-sched",
+   "cot-feed-daily",
+   "cot-tracker-sched",
+   "cq-feed-daily",
+   "credit-stress-sched",
+   "crypto-basis-sched",
+   "crypto-confluence-sched",
+   "crypto-cot-sched",
+   "crypto-dvol-sched",
+   "crypto-etf-flows-sched",
+   "crypto-exchange-flows-sched",
+   "crypto-funding-sched",
+   "crypto-gex-sched",
+   "crypto-miners-sched",
+   "crypto-narratives-sched",
+   "crypto-options-sched",
+   "crypto-options-surface-sched",
+   "crypto-stablecoin-peg-sched",
+   "cyclical-bagger-sched",
+   "data-census-daily",
+   "debate-engine-sched",
+   "dix-sched",
+   "domain-barometers-daily",
+   "dr-snapshot-sched",
+   "earnings-nlp-sched",
+   "earnings-sentiment-sched",
+   "engine-contribution-sched",
+   "engine-robustness-sched",
+   "equity-ftd-sched",
+   "etf-census-sched",
+   "families-feed-daily",
+   "fedwatch-rate-probability-sched",
+   "fi-census-sched",
+   "finra-short-sched",
+   "finviz-signals-sched",
+   "finviz-universe-sched",
+   "fleet-error-monitor-sched",
+   "fleet-freshness-monitor-sched",
+   "fleet-monitor-sched",
+   "fundamental-census-sched",
+   "fundamental-graphs-warmer-sched",
+   "fundamentals-engine-sched",
+   "fx-intelligence-sched",
+   "global-markets-sched",
+   "global-recession-sched",
+   "google-trends-sched",
+   "gov-sources-daily",
+   "hot-stocks-digest-sched",
+   "hyperliquid-perps-sched",
+   "indicator-bus-daily",
+   "inventory-drawdown-sched",
+   "justhodl-13f-clone-alpha-weekly",
+   "justhodl-13f-price-divergence-weekly",
+   "justhodl-52wk-quality-breakout-daily",
+   "justhodl-ai-brief-router-6h",
+   "justhodl-ai-website-synthesis-hourly",
+   "justhodl-air-cargo-daily",
+   "justhodl-asia-leads-daily",
+   "justhodl-asset-compass-daily",
+   "justhodl-auction-crisis-ai-hourly",
+   "justhodl-auction-tail-daily",
+   "justhodl-beneish-weekly",
+   "justhodl-bis-crossborder-weekly",
+   "justhodl-bond-vol-hourly",
+   "justhodl-boom-stage-daily",
+   "justhodl-breadth-divergence-daily",
+   "justhodl-buyback-yield-ranking-weekly",
+   "justhodl-calibration-fleet-daily",
+   "justhodl-cannibals-daily",
+   "justhodl-catalyst-classifier-daily",
+   "justhodl-catalyst-clusters-daily",
+   "justhodl-catalyst-skew-premove-daily",
+   "justhodl-cef-discount-daily",
+   "justhodl-cftc-deep-view-fri",
+   "justhodl-chart-patterns-daily",
+   "justhodl-comeback-screener-daily",
+   "justhodl-congress-alpha-daily",
+   "justhodl-congress-direct-daily",
+   "justhodl-consensus-bottom-weekly",
+   "justhodl-convergence-radar-30min",
+   "justhodl-corr-break-trades-2h",
+   "justhodl-credit-composite-daily",
+   "justhodl-credit-equity-divergence-daily",
+   "justhodl-cro-digest-daily",
+   "justhodl-cro-escalation-intraday",
+   "justhodl-crypto-etf-arb-30min",
+   "justhodl-crypto-opportunities-4h",
+   "justhodl-cta-trend-exhaust-weekly",
+   "justhodl-desk-allocator-daily",
+   "justhodl-desk-returns-daily",
+   "justhodl-divcut-warning-weekly",
+   "justhodl-dividend-growth-daily",
+   "justhodl-dollar-radar-6h",
+   "justhodl-dxy-equity-divergence-daily",
+   "justhodl-earnings-cascade-daily",
+   "justhodl-earnings-iv-crush-daily",
+   "justhodl-earnings-quality-weekly",
+   "justhodl-earnings-tone-velocity-daily",
+   "justhodl-econ-calendar-daily",
+   "justhodl-eva-spread-daily",
+   "justhodl-factor-decomposition-weekly",
+   "justhodl-factor-risk-daily",
+   "justhodl-failed-pattern-reversal-daily",
+   "justhodl-fed-pivot-factor-router-hourly",
+   "justhodl-fedwatch-rate-probability-daily",
+   "justhodl-feed-registry-daily",
+   "justhodl-fifx-vol-daily",
+   "justhodl-firm-book-daily",
+   "justhodl-firm-risk-board-daily",
+   "justhodl-firm-stress-daily",
+   "justhodl-forced-selling-bounce-30min",
+   "justhodl-forward-orders-daily",
+   "justhodl-freight-pulse-daily",
+   "justhodl-fx-decomposition-daily",
+   "justhodl-gap-fill-confirm-daily",
+   "justhodl-gap-metrics-daily",
+   "justhodl-geopolitical-risk-daily",
+   "justhodl-gf-value-daily",
+   "justhodl-global-stress-6h",
+   "justhodl-gold-equity-rotation-daily",
+   "justhodl-grid-queue-daily",
+   "justhodl-gsi-calibrator-weekly",
+   "justhodl-gsi-horizons-weekly",
+   "justhodl-hedge-planner-daily",
+   "justhodl-hedge-pnl-daily",
+   "justhodl-index-recon-daily",
+   "justhodl-industry-boom-daily",
+   "justhodl-insider-buyback-confluence-daily",
+   "justhodl-insider-industry-cluster-daily",
+   "justhodl-insider-sell-cluster-daily",
+   "justhodl-inverse-harvester-daily",
+   "justhodl-ipo-pipeline-daily",
+   "justhodl-liquidity-capacity-daily",
+   "justhodl-live-pulse-15m",
+   "justhodl-lockup-expiration-daily",
+   "justhodl-ma-target-predictor-weekly",
+   "justhodl-magic-formula-daily",
+   "justhodl-market-extremes-daily",
+   "justhodl-market-tape-5min",
+   "justhodl-master-allocator-3h",
+   "justhodl-merger-arb-2x",
+   "justhodl-merger-arb-risk-daily",
+   "justhodl-metals-miners-daily",
+   "justhodl-momentum-leaders-hourly",
+   "justhodl-multi-tf-convergence-daily",
+   "justhodl-ndx-spx-spread-daily",
+   "justhodl-ofr-stfm-daily",
+   "justhodl-options-analytics-daily",
+   "justhodl-pair-trades-hourly",
+   "justhodl-pairs-arb-daily",
+   "justhodl-peer-comparison-daily",
+   "justhodl-phase-detector-daily",
+   "justhodl-playbook-weekly",
+   "justhodl-pnl-attribution-daily",
+   "justhodl-portfolio-analytics-daily",
+   "justhodl-portwatch-daily",
+   "justhodl-post-earnings-mean-rev-daily",
+   "justhodl-powell-pivot-4h",
+   "justhodl-precatalyst-vol-expansion-daily",
+   "justhodl-predictability-daily",
+   "justhodl-prepump-summary-30min",
+   "justhodl-proven-portfolio-daily",
+   "justhodl-pump-earnings-nlp-daily",
+   "justhodl-pump-mechanics-hourly",
+   "justhodl-pump-positioning-hourly",
+   "justhodl-pump-radar-brief-daily",
+   "justhodl-put-call-extreme-daily",
+   "justhodl-quality-on-sale-daily",
+   "justhodl-radar-backtest-daily",
+   "justhodl-rating-change-cluster-daily",
+   "justhodl-readthrough-sched",
+   "justhodl-regime-conditional-router-2h",
+   "justhodl-reit-nav-discount-weekly",
+   "justhodl-repo-market-daily",
+   "justhodl-risk-monitor-daily",
+   "justhodl-risk-radar-daily",
+   "justhodl-risk-ratios-daily",
+   "justhodl-screen-builder-universe-daily",
+   "justhodl-sec-filing-diff-daily",
+   "justhodl-sequence-alpha-detector-daily",
+   "justhodl-share-flows-daily",
+   "justhodl-short-book-daily",
+   "justhodl-signal-orthogonality-weekly",
+   "justhodl-skew-tail-hedging-daily",
+   "justhodl-smart-beta-daily",
+   "justhodl-spac-floor-warrant-weekly",
+   "justhodl-spinoff-desk-daily",
+   "justhodl-spx-ma-daily",
+   "justhodl-squeeze-fuel-daily",
+   "justhodl-squeeze-pretrigger-daily",
+   "justhodl-starmine-daily",
+   "justhodl-stealth-accumulation-daily",
+   "justhodl-stealth-flow-daily",
+   "justhodl-streaming-fanout-1min",
+   "justhodl-supply-chain-graph-daily",
+   "justhodl-supply-chain-linkage-daily",
+   "justhodl-symbol-dictionary-daily",
+   "justhodl-sympathetic-momentum-daily",
+   "justhodl-tail-hedge-daily",
+   "justhodl-tail-risk-daily",
+   "justhodl-theme-classifier-6h",
+   "justhodl-thesis-engine-daily",
+   "justhodl-ticker-deep-research-hourly",
+   "justhodl-trade-nowcast-daily",
+   "justhodl-transcript-indexer-daily",
+   "justhodl-treasury-noise-daily",
+   "justhodl-trend-engine-daily",
+   "justhodl-tv-watchlist-tracker-daily",
+   "justhodl-us10y-sentinel-5x",
+   "justhodl-velocity-acceleration-hourly",
+   "justhodl-vix9d-vix-inversion-daily",
+   "justhodl-vol-radar-6h",
+   "justhodl-vrp-daily",
+   "justhodl-vvix-vov-regime-daily",
+   "justhodl-warroom-weights-monthly",
+   "justhodl-whales-weekly",
+   "khalid-adaptive-sched",
+   "ma-tracker-sched",
+   "macro-attribution-daily",
+   "macro-calendar-sched",
+   "mean-reversion-sched",
+   "meta-improver-sched",
+   "news-velocity-sched",
+   "news-wire-sched",
+   "opportunity-calibrator-sched",
+   "opportunity-screener-sched",
+   "options-confluence-sched",
+   "page-ai-sched",
+   "political-trades-sched",
+   "portfolio-risk-sched",
+   "portfolio-sizer-sched",
+   "portfolio-snapshot-sched",
+   "portwatch-sched",
+   "premortem-engine-sched",
+   "proven-alpha-sched",
+   "regime-anomaly-sched",
+   "reversal-radar-sched",
+   "risk-gate-daily",
+   "risk-regime-sched",
+   "rotation-dashboard-sched",
+   "scarcity-radar-sched",
+   "short-pressure-sched",
+   "smart-money-holdings-sched",
+   "smart-money-tracker-sched",
+   "source-map-daily",
+   "spx-history-sched",
+   "stress-scenarios-sched",
+   "symbol-feed-daily",
+   "symbol-resolver-daily",
+   "tax-plan-sched",
+   "te-feed-daily",
+   "trade-evaluator-sched",
+   "trade-logger-sched",
+   "tradingview-vault-daily",
+   "tv-workbench-daily",
+   "vix-curve-sched",
+   "wl-fusion-sched"
+  ],
+  "manifest_entries": 276,
+  "sample": [
+   {
+    "kind": "scheduler",
+    "name": "crypto-options-surface-sched",
+    "group": "default",
+    "expr": "cron(20 * * * ? *)",
+    "state": "ENABLED",
+    "targets": [
+     {
+      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-crypto-options-surface",
+      "input": null,
+      "path": null
+     }
+    ]
+   },
+   {
+    "kind": "scheduler",
+    "name": "cyclical-bagger-sched",
+    "group": "default",
+    "expr": "cron(0 15 * * ? *)",
+    "state": "ENABLED",
+    "targets": [
+     {
+      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-cyclical-bagger",
+      "input": null,
+      "path": null
+     }
+    ]
+   },
+   {
+    "kind": "scheduler",
+    "name": "data-census-daily",
+    "group": "default",
+    "expr": "cron(45 12 * * ? *)",
+    "state": "ENABLED",
+    "targets": [
+     {
+      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-data-census",
+      "input": "{\"source\": \"schedule\"}",
+      "path": null
+     }
+    ]
+   },
+   {
+    "kind": "scheduler",
+    "name": "fleet-monitor-sched",
+    "group": "default",
+    "expr": "rate(6 hours)",
+    "state": "ENABLED",
+    "targets": [
+     {
+      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fleet-monitor",
+      "input": null,
+      "path": null
+     }
+    ]
+   }
+  ],
+  "scheduler_rules": [],
+  "scheduler_invocations_12h": 6
+ },
+ "configured_rule_bindings": 58,
+ "insider_trades_rule": {
+  "state": "ENABLED",
+  "expr": "rate(30 minutes)",
+  "targets": 1
+ },
+ "insider_trades_feed": {
+  "age_h": 0.3,
+  "kb": 4.0
+ },
+ "insider_clusters_feed": {
+  "age_h": 0.1,
+  "kb": 49.1
+ },
+ "verdict": "PASS",
+ "finished": "2026-08-04T16:44:08.095116+00:00"
+}

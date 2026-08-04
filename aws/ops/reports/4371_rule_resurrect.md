@@ -1,0 +1,10 @@
+# ops 4371 — rule resurrection v2 — PASS
+- central scheduler: rules=[] invocations_12h=6 manifest_entries=276
+- bindings scanned: 58 | alive: 14
+- RECREATED (28): [('justhodl-crypto-funding-hourly', 'rate(1 hour)'), ('justhodl-intel-daily', 'rate(1 day)'), ('justhodl-intel-hourly', 'rate(1 hour)'), ('justhodl-aaii-sentiment-daily', 'rate(1 day)'), ('fmp-movers-hourly', 'rate(1 hour)'), ('fmp-stock-picks-daily', 'rate(1 day)'), ('justhodl-liquidity-flow-daily', 'rate(1 day)'), ('justhodl-sec-13f-daily', 'rate(1 day)'), ('justhodl-dex-scanner-15min', 'rate(15 minutes)'), ('justhodl-vix-curve-30min', 'rate(30 minutes)'), ('justhodl-crypto-enricher-daily', 'rate(1 day)'), ('justhodl-insider-trades-30min', 'rate(30 minutes)'), ('macro-financial-daily-execution', 'rate(1 day)'), ('justhodl-gdelt-sentiment-30min', 'rate(30 minutes)'), ('justhodl-morning-brief-daily', 'rate(1 day)'), ('justhodl-options-gamma-30min', 'rate(30 minutes)'), ('justhodl-nyfed-dealer-survey-weekly', 'rate(7 days)'), ('justhodl-sentiment-daily', 'rate(1 day)'), ('repo-metrics-15min', 'rate(15 minutes)'), ('justhodl-redflag-alerter-30min', 'rate(30 minutes)'), ('divergence-interpreter-4hourly', 'cron(30 0/4 * * ? *)'), ('justhodl-stock-screener-4h', 'rate(4 hours)'), ('justhodl-price-redundancy-15min', 'rate(15 minutes)'), ('justhodl-sec-10kq-4h', 'rate(4 hours)'), ('justhodl-repo-30min', 'rate(30 minutes)')]
+- manifest-covered missing (no per-rule needed): 0
+- ambiguous: ['justhodl-v9-auto-refresh', 'justhodl-v9-evening', 'justhodl-v9-morning', 'bls-friday-update', 'bls-tuesday-update', 'justhodl-flow-refresh', 'news-sentiment-update', 'valuations-monthly-update', 'justhodl-ml-predictions-schedule', 'justhodl-ml-schedule', 'justhodl-khalid-metrics-refresh', 'bloomberg-terminal-refresh', 'justhodl-8am', 'test-immediate', 'fedliquidityapi-auto-update']
+- errors: []
+- insider-trades rule: {"state": "ENABLED", "expr": "rate(30 minutes)", "targets": 1}
+- feeds: trades={"age_h": 0.3, "kb": 4.0} clusters={"age_h": 0.1, "kb": 49.1}
+- fatal: none
