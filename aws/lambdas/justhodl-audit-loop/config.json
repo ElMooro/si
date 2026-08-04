@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-audit-loop",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 240,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Perpetual estate audit (ops 4380): every 2h audits a shard of engines (state/env/schedule/logs/feed-age) + pages (reachability/feeds/CSP/xss-heuristic/bare-fetch), dedupes findings with auto-close into data/audit/findings.json, files new critical+warn findings on A2A thread audit-loop-main for Perplexity verification, maintains data/audit/handoff.json continuation brief, daily Telegram nudge. Full estate cycle ~2-3 days, forever.",
+  "eventbridge_rules": ["justhodl-audit-loop-2h"],
+  "env": {"S3_BUCKET": "justhodl-dashboard-live", "AUDIT_ENGINES_PER_RUN": "25", "AUDIT_PAGES_PER_RUN": "15"}
+}

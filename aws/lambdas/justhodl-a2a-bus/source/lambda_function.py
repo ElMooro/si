@@ -279,12 +279,70 @@ def deadman_sweep(_ev=None):
     return {"ok": True, "newly_stalled": stalled}
 
 
-A2A_SYSTEM = ("You are an agent on the JustHodl A2A bus. Read the thread "
-              "JSON provided. Reply with ONLY a JSON object: {\"kind\": "
-              "propose|critique|verify|agree|block|question, \"content\": "
-              "str, \"evidence\": [{\"kind\":\"file|url|log\",\"ref\":str,"
-              "\"snippet\":str?}], \"verdict\": confirmed|refuted|null}. "
-              "Cite evidence. Never agree without verification.")
+
+
+def _extract_turn_json(raw):
+    """Tolerant A2A turn extraction: strip code fences, then walk balanced
+    top-level {...} candidates and take the first that parses and looks like
+    a turn. Falls back to kind:question with raw content."""
+    txt = (raw or "").replace("```json", "```").replace("```", "")
+    n = len(txt)
+    i = 0
+    while i < n:
+        if txt[i] == "{":
+            depth, j = 0, i
+            in_str, esc = False, False
+            while j < n:
+                c = txt[j]
+                if in_str:
+                    if esc:
+                        esc = False
+                    elif c == "\\":
+                        esc = True
+                    elif c == '"':
+                        in_str = False
+                elif c == '"':
+                    in_str = True
+                elif c == "{":
+                    depth += 1
+                elif c == "}":
+                    depth -= 1
+                    if depth == 0:
+                        try:
+                            cand = json.loads(txt[i:j + 1])
+                            if isinstance(cand, dict) and (
+                                    "kind" in cand or "content" in cand):
+                                cand.setdefault("kind", "question")
+                                cand.setdefault(
+                                    "content", (raw or "")[:2000])
+                                cand.setdefault("evidence", [])
+                                return cand
+                        except Exception:
+                            pass
+                        break
+                j += 1
+            i = j + 1
+        else:
+            i += 1
+    return {"kind": "question", "content": (raw or "")[:2000],
+            "evidence": []}
+
+A2A_SYSTEM = (
+    "You are an agent on the JustHodl A2A bus. Read the thread JSON. Reply "
+    "with ONLY one JSON object, no prose, no fences: {\"kind\": propose|"
+    "critique|verify|agree|block|question, \"content\": str, \"evidence\":"
+    " [{\"kind\": \"file\"|\"url\"|\"log\", \"ref\": str, "
+    "\"snippet\": str}], \"verdict\": \"confirmed\"|\"refuted\"|null}."
+    " INVARIANT A: verify/critique/propose turns REQUIRE resolvable "
+    "evidence — file refs are repo paths on ElMooro/si main (example: "
+    "{\"kind\":\"file\",\"ref\":\"insiders.html\",\"snippet\":"
+    "\"Content-Security-Policy\"}), url refs must return 2xx, log refs "
+    "are S3 keys like data/ai-council.json. Turns without resolvable "
+    "evidence are rejected. CONTINUATION PROTOCOL: when you want Claude to "
+    "act next, end content with a line \"NEXT_ACTIONS: ...\" listing "
+    "concrete steps; Claude reads these each session and continues the "
+    "loop."
+)
 
 
 def fanout_pending(ev):
@@ -308,9 +366,13 @@ def fanout_pending(ev):
                 _inbox_pop(p, tid)
                 continue
             slim = {k: t[k] for k in ("thread_id", "topic", "status")}
-            slim["turns"] = [{k2: x.get(k2) for k2 in
-                              ("from", "kind", "content", "verdict")}
-                             for x in t["turns"][-8:]]
+            slim["turns"] = [
+                {**{k2: x.get(k2) for k2 in
+                    ("from", "kind", "content", "verdict")},
+                 "evidence": [{"kind": e.get("kind"), "ref": e.get("ref"),
+                               "resolved": e.get("resolved")}
+                              for e in (x.get("evidence") or [])[:4]]}
+                for x in t["turns"][-8:]]
             ans = council("THREAD:\n" + json.dumps(slim)[:9000] +
                           "\n\nRespond as your next turn.",
                           providers=[p], system=A2A_SYSTEM,
@@ -327,11 +389,7 @@ def fanout_pending(ev):
                 _inbox_pop(p, tid)
                 continue
             raw = ans.get("answer") or ""
-            try:
-                j = json.loads(raw[raw.find("{"):raw.rfind("}") + 1])
-            except Exception:
-                j = {"kind": "question", "content": raw[:2000],
-                     "evidence": []}
+            j = _extract_turn_json(raw)
             r = post_turn({"thread_id": tid, "from": p, "to": "*", **j})
             _inbox_pop(p, tid)
             done.append({"provider": p, "thread": tid,
