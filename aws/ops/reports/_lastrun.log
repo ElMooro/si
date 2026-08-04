@@ -1,124 +1,88 @@
-executing-against: 9936f38bcc9706510306229771571002388d12b6
+executing-against: 8a28ee656c515c0bf1f4d81d36f77e70e01c8f38
 {
- "ops": 4378,
- "started": "2026-08-04T19:34:20.591643+00:00",
- "bus": "created",
- "council": "updated",
- "negative_proofs": {
-  "unevidenced_turn": "rejected_no_evidence",
-  "premature_resolve": "rejected_no_quorum"
- },
- "deadman": {
-  "ok": true,
-  "newly_stalled": []
- },
- "seed": [
+ "ops": 4379,
+ "started": "2026-08-04T19:49:32.209012+00:00",
+ "key_in_env": true,
+ "ssm_written": true,
+ "breaker_cleared": "none existed",
+ "registry": "healed",
+ "fanout": [
   [
-   "0001 turn1(perplexity)",
    {
-    "ok": true,
-    "error": null,
-    "thread_id": "0001-build-the-bus",
-    "turn_id": null,
-    "queued_for": null,
-    "first_turn": {
-     "ok": true,
-     "turn_id": "bbc6fe20b25d5905",
-     "queued_for": [
-      "claude"
-     ]
-    }
+    "provider": "perplexity",
+    "thread": "0001-build-the-bus",
+    "posted": true,
+    "rejected": null
+   },
+   {
+    "provider": "glm",
+    "thread": "0001-build-the-bus",
+    "error_class": "quota_exhausted"
    }
   ],
   [
-   "0001 turn2(claude)",
    {
-    "ok": true,
-    "error": null,
-    "thread_id": null,
-    "turn_id": "28050730355ca9d0",
-    "queued_for": [
-     "perplexity"
-    ],
-    "first_turn": null
+    "provider": "perplexity",
+    "thread": "0002-xss-uniformity",
+    "posted": false,
+    "rejected": "rejected_no_evidence"
+   },
+   {
+    "provider": "glm",
+    "skipped": "breaker_open"
    }
   ],
   [
-   "0002-xss-uniformity",
    {
-    "ok": true,
-    "error": null,
-    "thread_id": "0002-xss-uniformity",
-    "turn_id": null,
-    "queued_for": null,
-    "first_turn": {
-     "ok": true,
-     "turn_id": "32c8c0c27e5db6f6",
-     "queued_for": [
-      "perplexity"
-     ]
-    }
+    "provider": "perplexity",
+    "thread": "0003-csp-meta",
+    "posted": true,
+    "rejected": null
+   },
+   {
+    "provider": "glm",
+    "skipped": "breaker_open"
    }
   ],
   [
-   "0003-csp-meta",
    {
-    "ok": true,
-    "error": null,
-    "thread_id": "0003-csp-meta",
-    "turn_id": null,
-    "queued_for": null,
-    "first_turn": {
-     "ok": true,
-     "turn_id": "a17f299ad26e80da",
-     "queued_for": [
-      "perplexity"
-     ]
-    }
+    "provider": "perplexity",
+    "thread": "0004-fetch-resilience",
+    "posted": false,
+    "rejected": "rejected_no_evidence"
+   },
+   {
+    "provider": "glm",
+    "skipped": "breaker_open"
    }
   ],
   [
-   "0004-fetch-resilience",
    {
-    "ok": true,
-    "error": null,
-    "thread_id": "0004-fetch-resilience",
-    "turn_id": null,
-    "queued_for": null,
-    "first_turn": {
-     "ok": true,
-     "turn_id": "b20c67fc9ca62adf",
-     "queued_for": [
-      "perplexity"
-     ]
-    }
+    "provider": "perplexity",
+    "thread": "0005-error-classes",
+    "posted": false,
+    "rejected": "rejected_no_evidence"
+   },
+   {
+    "provider": "glm",
+    "skipped": "breaker_open"
    }
   ],
   [
-   "0005-error-classes",
    {
-    "ok": true,
-    "error": null,
-    "thread_id": "0005-error-classes",
-    "turn_id": null,
-    "queued_for": null,
-    "first_turn": {
-     "ok": true,
-     "turn_id": "434e2ccefc97f019",
-     "queued_for": [
-      "perplexity"
-     ]
-    }
+    "provider": "perplexity",
+    "thread": "0001-build-the-bus",
+    "posted": true,
+    "rejected": null
+   },
+   {
+    "provider": "glm",
+    "skipped": "breaker_open"
    }
   ]
  ],
- "perplexity_inbox": [
-  "0001-build-the-bus",
-  "0002-xss-uniformity",
-  "0003-csp-meta",
-  "0004-fetch-resilience",
-  "0005-error-classes"
- ],
- "verdict": "PASS \u2014 bus live, invariants enforced on Claude's own turns, 5 threads queued for Perplexity",
- "finished": "2026-08-04T19:34:38.446408+00:00"
+ "inbox_after": [],
+ "perplexity_autonomous_turns": 2,
+ "verdict": "PASS \u2014 Perplexity live on the bus, 2 autonomous turns",
+ "finished": "2026-08-04T19:51:18.176922+00:00"
 }
