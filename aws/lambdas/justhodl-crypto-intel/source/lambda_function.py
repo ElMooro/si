@@ -3587,6 +3587,138 @@ def risk(fg,fn,st,gl,tech):
 
 
 @track_errors
+# ==================== v5.0 JOIN LAYER (ops 4357) ====================
+# Real data only. Joins the fleet's own engine feeds (CryptoQuant cluster,
+# vol/gex/options desks, altseason, ETF flows) instead of re-scraping, with
+# per-feed age + honest stale flags. One canonical price authority.
+
+def _s3_json_v5(key):
+    try:
+        o = s3.get_object(Bucket=S3_BUCKET, Key=key)
+        d = json.loads(o['Body'].read())
+        lm = o.get('LastModified')
+        age = round((datetime.now(timezone.utc)-lm).total_seconds()/3600,1) if lm else None
+        return d, age
+    except Exception as e:
+        return None, f"{type(e).__name__}"[:40]
+
+def fetch_cryptoquant():
+    out = {'status':'error','source':'cryptoquant fleet (cq-feed + cryptoquant-onchain)'}
+    fd, fage = _s3_json_v5('data/cq-feed.json')
+    oc, oage = _s3_json_v5('data/cryptoquant-onchain.json')
+    if not fd and not oc:
+        out['error'] = f'cq-feed:{fage} onchain:{oage}'; return out
+    m = {}
+    if fd:
+        pr = fd.get('prices') or {}
+        for bare in ('BTC_MVRV','BTC_SOPR','BTC_NUPL','BTC_REALIZED_PRICE',
+                     'BTC_EXCH_RESERVE','BTC_EXCH_NETFLOW','BTC_WHALE_RATIO',
+                     'BTC_MPI','BTC_SSR','BTC_HASHRATE'):
+            r = pr.get(bare)
+            if isinstance(r, dict) and r.get('value') is not None:
+                m[bare[4:].lower()] = {'value': r.get('value'), 'asof': r.get('asof')}
+        out['n_catalog_metrics'] = fd.get('n_metrics')
+        out['feed_generated_at'] = fd.get('generated_at')
+        out['feed_age_h'] = fage
+    sig = {}
+    v = (m.get('sopr') or {}).get('value')
+    if isinstance(v,(int,float)):
+        sig['sopr_read'] = ('CAPITULATION (<1: coins moving at loss)' if v < 1
+                            else 'PROFIT-TAKING' if v > 1.03 else 'NEUTRAL')
+    v = (m.get('nupl') or {}).get('value')
+    if isinstance(v,(int,float)):
+        sig['nupl_zone'] = ('CAPITULATION' if v < 0 else 'HOPE/FEAR' if v < .25
+                            else 'OPTIMISM' if v < .5 else 'BELIEF' if v < .75 else 'EUPHORIA')
+    v = (m.get('mpi') or {}).get('value')
+    if isinstance(v,(int,float)):
+        sig['miner_read'] = ('MINER DISTRIBUTION (MPI>2)' if v > 2
+                             else 'MINERS HOLDING' if v < 0 else 'NEUTRAL')
+    v = (m.get('exch_netflow') or {}).get('value')
+    if isinstance(v,(int,float)):
+        sig['netflow_read'] = 'INFLOW (sell-side risk)' if v > 0 else 'OUTFLOW (accumulation)'
+    out['signals'] = sig
+    if oc:
+        out['composite_onchain_risk_z'] = oc.get('composite_onchain_risk_z')
+        out['ai_master_brief'] = (oc.get('ai_master_brief') or '')[:1600]
+        out['onchain_generated_at'] = oc.get('generated_at')
+        out['onchain_age_h'] = oage
+        fc = oc.get('forecasts')
+        out['forecasts'] = fc if isinstance(fc, dict) else None
+        out['plan_note'] = oc.get('plan_note')
+    out['metrics'] = m
+    out['stale'] = bool(isinstance(fage,(int,float)) and fage > 30)
+    out['status'] = 'ok'
+    return out
+
+FLEET_FEEDS_V5 = [
+    ('altseason','data/altseason.json',6),
+    ('basis','data/crypto-basis.json',3),
+    ('dvol','data/crypto-dvol.json',3),
+    ('funding_engine','data/crypto-funding.json',3),
+    ('crypto_gex','data/crypto-gex.json',3),
+    ('dealer_gex','data/dealer-gex.json',3),
+    ('options_surface','data/crypto-options-surface.json',6),
+    ('options','data/crypto-options.json',6),
+    ('options_confluence','data/options-confluence.json',6),
+    ('etf_flows','data/finviz-etf-flows.json',26),
+    ('narratives','data/crypto-narratives.json',26),
+]
+
+def fetch_fleet():
+    out = {'status':'ok','source':'fleet joins','sections':{},'ledger':[]}
+    got = 0
+    for name, key, maxh in FLEET_FEEDS_V5:
+        d, age = _s3_json_v5(key)
+        if d is None:
+            out['ledger'].append({'feed':name,'key':key,'status':'missing','note':age})
+            continue
+        stale = isinstance(age,(int,float)) and age > maxh
+        slim = {k:v for k,v in d.items() if not (isinstance(v,list) and len(v) > 120)}
+        out['sections'][name] = {'age_h':age,'stale':stale,'data':slim}
+        out['ledger'].append({'feed':name,'key':key,'status':'stale' if stale else 'ok','age_h':age})
+        got += 1
+    if not got:
+        out['status'] = 'error'; out['error'] = 'no fleet feeds readable'
+    return out
+
+def fetch_prices_canon():
+    syms = ['BTC','ETH','SOL','XRP','DOGE']
+    try:
+        if CMC_API_KEY:
+            req = urllib.request.Request(
+                'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol='
+                + ','.join(syms) + '&convert=USD',
+                headers={'X-CMC_PRO_API_KEY': CMC_API_KEY, 'User-Agent': 'JustHodl/2.0'})
+            with urllib.request.urlopen(req, timeout=10) as r:
+                d = json.loads(r.read().decode())
+            data = d.get('data') or {}
+            px = {}
+            for s in syms:
+                q = ((data.get(s) or {}).get('quote') or {}).get('USD') or {}
+                if q.get('price'):
+                    px[s] = {'price': q['price'], 'chg_24h': q.get('percent_change_24h'), 'src': 'cmc'}
+            if px:
+                return {'status':'ok','authority':'coinmarketcap','prices':px,
+                        'asof': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}
+    except Exception as e:
+        print('canon cmc err', str(e)[:60])
+    try:
+        req = urllib.request.Request(
+            'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,dogecoin&vs_currencies=usd&include_24hr_change=true',
+            headers={'User-Agent': 'JustHodl/2.0'})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            d = json.loads(r.read().decode())
+        mp = {'bitcoin':'BTC','ethereum':'ETH','solana':'SOL','ripple':'XRP','dogecoin':'DOGE'}
+        px = {mp[k]: {'price': v.get('usd'), 'chg_24h': v.get('usd_24h_change'), 'src':'coingecko'}
+              for k, v in d.items() if k in mp and v.get('usd')}
+        if px:
+            return {'status':'ok','authority':'coingecko','prices':px,
+                    'asof': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}
+    except Exception as e:
+        return {'status':'error','error':str(e)[:80]}
+    return {'status':'error','error':'no price source'}
+# ================== end v5.0 JOIN LAYER ==================
+
 def lambda_handler(event, context):
 
 
@@ -3599,7 +3731,7 @@ def lambda_handler(event, context):
 
 
 
-    print("       CRYPTO INTELLIGENCE v4.1       ")
+    print("       CRYPTO INTELLIGENCE v5.0       ")
 
 
 
@@ -3611,7 +3743,7 @@ def lambda_handler(event, context):
 
 
 
-    print("  Phase 1: 14 data sources...")
+    print("  Phase 1: 17 data sources...")
 
 
 
@@ -3623,7 +3755,7 @@ def lambda_handler(event, context):
 
 
 
-        fs={ex.submit(fetch_stablecoins):'stablecoins',ex.submit(fetch_tvl):'tvl',ex.submit(fetch_dex):'dex',ex.submit(fetch_yields):'yields',ex.submit(fetch_funding):'funding',ex.submit(fetch_oi):'open_interest',ex.submit(fetch_global):'global_market',ex.submit(fetch_top_coins):'top_coins',ex.submit(fetch_onchain):'btc_onchain',ex.submit(fetch_fg):'fear_greed',ex.submit(fetch_cmc):'cmc_movers',ex.submit(fetch_gas):'eth_gas',ex.submit(fetch_whales):'whale_txs',ex.submit(fetch_mvrv):'onchain_ratios'}
+        fs={ex.submit(fetch_stablecoins):'stablecoins',ex.submit(fetch_tvl):'tvl',ex.submit(fetch_dex):'dex',ex.submit(fetch_yields):'yields',ex.submit(fetch_funding):'funding',ex.submit(fetch_oi):'open_interest',ex.submit(fetch_global):'global_market',ex.submit(fetch_top_coins):'top_coins',ex.submit(fetch_onchain):'btc_onchain',ex.submit(fetch_fg):'fear_greed',ex.submit(fetch_cmc):'cmc_movers',ex.submit(fetch_gas):'eth_gas',ex.submit(fetch_whales):'whale_txs',ex.submit(fetch_mvrv):'onchain_ratios',ex.submit(fetch_cryptoquant):'cryptoquant',ex.submit(fetch_fleet):'fleet',ex.submit(fetch_prices_canon):'prices_canonical'}
 
 
 
@@ -3836,7 +3968,12 @@ def lambda_handler(event, context):
 
 
 
-    out={'generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'fetch_time':round(time.time()-start,1),'version':'4.5',**R}
+    _led=[]
+    for _k,_v in R.items():
+        if isinstance(_v,dict):
+            _led.append({'section':_k,'status':_v.get('status','ok' if _v else 'empty'),'error':(str(_v.get('error') or ''))[:90]})
+    R['source_health']={'sections':_led,'ok':sum(1 for e in _led if e['status']=='ok'),'total':len(_led)}
+    out={'generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'fetch_time':round(time.time()-start,1),'version':'5.0',**R}
 
 
 

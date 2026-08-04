@@ -42,8 +42,10 @@ table{width:100%;border-collapse:collapse;font-size:11px}th{text-align:left;padd
 <div class="tab" data-tab="sentiment">Sentiment</div>
 <div class="tab" data-tab="global">Global</div>
 <div class="tab" data-tab="onchain">On-Chain</div>
+<div class="tab" data-tab="cq">CryptoQuant</div>
 <div class="tab" data-tab="dex">DEX</div>
 <div class="tab" data-tab="yields">Yields</div>
+<div class="tab" data-tab="health">Sources</div>
 </div>
 <div class="container" id="main"><div class="loading"><div class="spinner"></div>Loading Crypto Intelligence v4.2...</div></div>
 <script>
@@ -63,6 +65,7 @@ function gauge(val,max,label,clr){var p=Math.min(val/max,1);var a=-90+180*p;retu
 function arc(score){var a=180*score/100;var r=a*Math.PI/180;var x=90-75*Math.cos(r);var y=90-75*Math.sin(r);var c=score>=75?"#ff1744":score>=60?"#ff6d00":score>=40?"#ffc400":"#00e676";return "<svg viewBox='0 0 180 100' style='width:180px;height:100px'><path d='M 15 90 A 75 75 0 0 1 165 90' fill='none' stroke='"+c+"' stroke-width='12' stroke-linecap='round' stroke-opacity='.15'/><path d='M 15 90 A 75 75 0 "+(a>180?1:0)+" 1 "+x.toFixed(1)+" "+y.toFixed(1)+"' fill='none' stroke='"+c+"' stroke-width='12' stroke-linecap='round'/><circle cx='"+x.toFixed(1)+"' cy='"+y.toFixed(1)+"' r='6' fill='#fff' stroke='"+c+"' stroke-width='2'/></svg>"}
 function ring(pct,sz,clr,lbl,sub){var r=sz/2-6;var ci=2*Math.PI*r;var da=ci*pct/100;return "<div style='position:relative;display:inline-block'><svg width='"+sz+"' height='"+sz+"' style='transform:rotate(-90deg)'><circle cx='"+sz/2+"' cy='"+sz/2+"' r='"+r+"' fill='none' stroke='var(--bg4)' stroke-width='8'/><circle cx='"+sz/2+"' cy='"+sz/2+"' r='"+r+"' fill='none' stroke='"+clr+"' stroke-width='8' stroke-dasharray='"+da.toFixed(1)+" "+ci.toFixed(1)+"' stroke-linecap='round'/></svg><div style='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center'><div style='font-size:14px;font-weight:700;color:"+clr+"'>"+lbl+"</div><div style='font-size:9px;color:var(--t3)'>"+sub+"</div></div></div>"}
 function bar(v,mx,clr){var w=mx>0?Math.max(3,v/mx*100):3;return "<div style='height:6px;background:var(--bg4);border-radius:3px'><div style='height:100%;width:"+w+"%;background:"+clr+";border-radius:3px'></div></div>"}
+function canonPx(sym,fb){try{var c=(D.prices_canonical||{}).prices||{};if(c[sym]&&c[sym].price)return c[sym].price;}catch(e){}return fb}
 function priceFmt(p){if(!p)return"$0";return"$"+p.toLocaleString(undefined,{maximumFractionDigits:p>=1?2:6})}
 
 function render(){
@@ -148,7 +151,7 @@ var data=coins[coin];var cc=data.consensus||"MIXED";
 var bc=cc.indexOf("BUY")>=0?"var(--green)":cc.indexOf("SELL")>=0?"var(--red)":"var(--yellow)";
 h+="<div class='card' style='text-align:center;border-color:"+bc+"44'>";
 h+="<div style='font-size:16px;font-weight:700'>"+coin+"</div>";
-h+="<div class='mono' style='font-size:13px;margin:2px 0'>"+priceFmt(data.price)+"</div>";
+h+="<div class='mono' style='font-size:13px;margin:2px 0'>"+priceFmt(canonPx(coin,data.price))+"</div>";
 h+="<div style='display:flex;gap:4px;justify-content:center;margin:6px 0'>";
 ["4h","1d","1w"].forEach(function(tf){
 var tfd=data.timeframes?data.timeframes[tf]:null;
@@ -174,7 +177,7 @@ h+="<div class='pane' id='pane-technicals'>";
 if(coinKeys.length>0){
 coinKeys.forEach(function(coin){
 var data=coins[coin];
-h+="<div class='card' style='margin-bottom:12px'><div class='card-title'>"+coin+" &mdash; "+priceFmt(data.price)+" | "+bias(data.consensus)+"</div>";
+h+="<div class='card' style='margin-bottom:12px'><div class='card-title'>"+coin+" &mdash; "+priceFmt(canonPx(coin,data.price))+" | "+bias(data.consensus)+"</div>";
 h+="<table><thead><tr><th>TF</th><th>RSI</th><th>MACD</th><th>EMA Trend</th><th>SuperTrend</th><th>BB%</th><th>StochRSI</th><th>ATR%</th><th style='text-align:right'>Score</th><th>Bias</th></tr></thead><tbody>";
 ["4h","1d","1w"].forEach(function(tf){
 var tfd=data.timeframes?data.timeframes[tf]:null;
@@ -499,12 +502,67 @@ ylds.forEach(function(y){h+="<tr><td><strong>"+y.project+"</strong></td><td styl
 else{h+="<div style='color:var(--t3);text-align:center;padding:20px'>Loading...</div>";}
 h+="</div></div>";
 
+h+=paneCQ();h+=paneHealth();
 document.getElementById("main").innerHTML=h;
 
 // Render full history chart after DOM update
 renderFullHistoryChart();
 }catch(e){console.error("RENDER ERROR:",e);document.getElementById("main").innerHTML="<div class='loading' style='color:var(--red)'>Render Error: "+e.message+"<br><pre style='font-size:10px;text-align:left;margin-top:12px'>"+e.stack+"</pre><br><br>Debug: coins="+Object.keys((D.technicals||{}).coins||{}).join(",")+", tvl_chains="+(((D.tvl||{}).chains||[]).length)+", funding_longed="+(((D.funding||{}).most_longed||[]).length)+"</div>";}
 }
+
+
+// ===== v5 panes (ops 4357): CryptoQuant join + honest source health =====
+function cqv(v,kind){if(v==null||isNaN(v))return "-";v=Number(v);
+ if(kind==="usd")return "$"+v.toLocaleString(undefined,{maximumFractionDigits:0});
+ if(Math.abs(v)>=1e6)return v.toLocaleString(undefined,{maximumFractionDigits:0});
+ return v.toLocaleString(undefined,{maximumFractionDigits:4});}
+function ageTag(a){if(a==null)return "";var c=a>30?"var(--red)":a>8?"var(--yellow)":"var(--green)";
+ return "<span class='mono' style='font-size:9px;color:"+c+"'> "+(typeof a==="number"?a+"h":a)+"</span>";}
+function paneCQ(){
+ var q=D.cryptoquant||{};var m=q.metrics||{};var s=q.signals||{};
+ var h="<div class='pane' id='pane-cq'>";
+ if(q.status!=="ok"){return h+"<div class='card'><div class='card-title'>CRYPTOQUANT</div><div class='stat-sm'>feed unavailable: "+(q.error||"no data")+"</div></div></div>";}
+ var rows=[["MVRV","mvrv","","Market/Realized value"],["SOPR","sopr","","Spent-output profit ratio"],
+  ["NUPL","nupl","","Net unrealized P/L"],["Realized Price","realized_price","usd","Aggregate cost basis"],
+  ["Exchange Reserve","exch_reserve","","BTC on exchanges"],["Exchange Netflow","exch_netflow","","BTC net to exchanges"],
+  ["Whale Ratio","whale_ratio","","Top10 inflow share"],["MPI","mpi","","Miner position index"],
+  ["SSR","ssr","","Stablecoin supply ratio"],["Hashrate","hashrate","","Network hashrate"]];
+ h+="<div class='grid g5' style='margin-bottom:12px'>";
+ rows.forEach(function(r){var mm=m[r[1]]||{};
+  h+="<div class='card'><div class='card-title'>"+r[0]+"</div><div class='stat-big mono'>"+cqv(mm.value,r[2])+"</div><div class='stat-sm'>"+r[3]+(mm.asof?" &middot; "+mm.asof:"")+"</div></div>";});
+ h+="</div>";
+ var sb=[["sopr_read",s.sopr_read],["nupl_zone",s.nupl_zone],["miner_read",s.miner_read],["netflow_read",s.netflow_read]].filter(function(x){return x[1]});
+ if(sb.length){h+="<div class='card' style='margin-bottom:12px'><div class='card-title'>ON-CHAIN SIGNALS</div>";
+  sb.forEach(function(x){var v=String(x[1]);var col=/CAPITUL|INFLOW|DISTRIB/.test(v)?"var(--red)":/OUTFLOW|HOLDING|PROFIT/.test(v)?"var(--green)":"var(--yellow)";
+   h+="<span class='badge' style='background:transparent;border:1px solid "+col+";color:"+col+";margin:0 6px 6px 0'>"+v+"</span>";});
+  h+="</div>";}
+ h+="<div class='grid g2'>";
+ h+="<div class='card'><div class='card-title'>COMPOSITE ON-CHAIN RISK (z)</div><div class='stat-xl mono'>"+cqv(q.composite_onchain_risk_z)+"</div><div class='stat-sm'>cryptoquant-onchain engine"+(q.onchain_generated_at?" &middot; "+String(q.onchain_generated_at).slice(0,16).replace("T"," "):"")+ageTag(q.onchain_age_h)+"</div>"+(q.plan_note?"<div class='stat-sm' style='margin-top:6px'>"+q.plan_note+"</div>":"")+"</div>";
+ h+="<div class='card'><div class='card-title'>FEED STATUS</div>";
+ h+="<div class='metric'><span class='metric-name'>cq-feed catalog</span><span class='metric-val mono'>"+(q.n_catalog_metrics!=null?q.n_catalog_metrics+" paths":"-")+"</span></div>";
+ h+="<div class='metric'><span class='metric-name'>cq-feed generated</span><span class='metric-val mono'>"+(q.feed_generated_at?String(q.feed_generated_at).slice(0,16).replace("T"," "):"-")+ageTag(q.feed_age_h)+"</span></div>";
+ h+="<div class='metric'><span class='metric-name'>stale</span><span class='metric-val "+(q.stale?"dn":"up")+"'>"+(q.stale?"YES":"NO")+"</span></div></div>";
+ h+="</div>";
+ if(q.ai_master_brief){h+="<div class='card' style='margin-top:12px'><div class='card-title'>CRYPTOQUANT AI MASTER BRIEF</div><div class='ai-report'>"+q.ai_master_brief.replace(/</g,"&lt;")+"</div></div>";}
+ return h+"</div>";}
+function paneHealth(){
+ var sh=(D.source_health||{});var secs=sh.sections||[];var fl=(D.fleet||{});var led=fl.ledger||[];
+ var h="<div class='pane' id='pane-health'>";
+ h+="<div class='grid g3' style='margin-bottom:12px'>";
+ h+="<div class='card'><div class='card-title'>ENGINE SECTIONS OK</div><div class='stat-xl mono "+((sh.ok||0)>=(sh.total||1)*0.8?"up":"nt")+"'>"+(sh.ok||0)+"/"+(sh.total||0)+"</div><div class='stat-sm'>v"+(D.version||"?")+" &middot; fetch "+(D.fetch_time||"?")+"s</div></div>";
+ h+="<div class='card'><div class='card-title'>PRICE AUTHORITY</div><div class='stat-big'>"+(((D.prices_canonical||{}).authority)||"-")+"</div><div class='stat-sm'>"+(((D.prices_canonical||{}).asof)||"")+"</div></div>";
+ h+="<div class='card'><div class='card-title'>GENERATED</div><div class='stat-big mono' style='font-size:18px'>"+String(D.generated_at||"").replace("T"," ").replace("Z"," UTC")+"</div></div>";
+ h+="</div>";
+ h+="<div class='grid g2'>";
+ h+="<div class='card'><div class='card-title'>FLEET FEED JOINS</div><table><tr><th>feed</th><th>age</th><th>status</th></tr>";
+ led.forEach(function(e){var col=e.status==="ok"?"up":e.status==="stale"?"nt":"dn";
+  h+="<tr><td class='mono'>"+e.feed+"</td><td class='mono'>"+(e.age_h!=null?e.age_h+"h":"-")+"</td><td class='"+col+"'>"+e.status+(e.note?" ("+e.note+")":"")+"</td></tr>";});
+ h+="</table></div>";
+ h+="<div class='card'><div class='card-title'>ENGINE SOURCE LEDGER</div><table><tr><th>section</th><th>status</th><th>error</th></tr>";
+ secs.forEach(function(e){var col=e.status==="ok"?"up":"dn";
+  h+="<tr><td class='mono'>"+e.section+"</td><td class='"+col+"'>"+e.status+"</td><td class='stat-sm'>"+(e.error||"")+"</td></tr>";});
+ h+="</table></div></div>";
+ return h+"</div>";}
 
 function renderFullHistoryChart(){
 var el=document.getElementById("fg-full-chart");if(!el)return;
