@@ -130,3 +130,5 @@ with report("4351_methodology_scout") as r:
     r.ok("OPS 4351 PASS -- the organism now studies other minds "
          "weekly, and everything it borrows must still earn "
          "its seat")
+
+# retrigger: pandas-ta teacher + talib-python funcs url

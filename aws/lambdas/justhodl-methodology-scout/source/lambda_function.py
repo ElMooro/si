@@ -21,9 +21,12 @@ TEACHERS = [
     ("bukosabino/ta",
      "https://raw.githubusercontent.com/bukosabino/ta/master/"
      "README.md"),
-    ("TA-Lib/ta-lib",
-     "https://raw.githubusercontent.com/TA-Lib/ta-lib/main/"
-     "docs/functions.md"),
+    ("TA-Lib/ta-lib-python",
+     "https://raw.githubusercontent.com/TA-Lib/ta-lib-python/"
+     "master/docs/funcs.md"),
+    ("twopirllc/pandas-ta",
+     "https://raw.githubusercontent.com/twopirllc/pandas-ta/"
+     "main/README.md"),
     ("OpenBB-finance/OpenBB",
      "https://raw.githubusercontent.com/OpenBB-finance/OpenBB/"
      "develop/README.md"),
