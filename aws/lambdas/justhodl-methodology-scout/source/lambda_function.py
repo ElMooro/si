@@ -26,10 +26,10 @@ TEACHERS = [
      "master/docs/funcs.md"),
     ("twopirllc/pandas-ta",
      "https://raw.githubusercontent.com/twopirllc/pandas-ta/"
-     "main/README.md"),
-    ("OpenBB-finance/OpenBB",
+     "master/README.md"),
+    ("OpenBB-finance/OpenBB-providers",
      "https://raw.githubusercontent.com/OpenBB-finance/OpenBB/"
-     "develop/README.md"),
+     "develop/openbb_platform/PROVIDERS.md"),
     ("wilsonfreitas/awesome-quant",
      "https://raw.githubusercontent.com/wilsonfreitas/"
      "awesome-quant/master/README.md"),
@@ -173,7 +173,93 @@ def lambda_handler(event=None, context=None):
                       default=str).encode(),
                   ContentType="application/json",
                   CacheControl="no-cache")
+    OURS_SRC = {"FMP": "core fundamentals+prices",
+                "FRED": "macro", "SEC EDGAR": "filings",
+                "EDGAR": "filings", "FINRA": "short interest",
+                "CoinMetrics": "crypto", "Polygon": "options",
+                "Yahoo Finance": "prices", "IMF": "gov",
+                "OECD": "gov", "ECB": "gov", "BIS": "gov",
+                "World Bank": "gov", "Eurostat": "gov"}
+    PRICING = {"Alpha Vantage": ("FREE", 0, "free key; 25 req/d"),
+               "Stooq": ("FREE", 0, "free EOD CSV, no key"),
+               "CoinGecko": ("FREE", 0, "free tier 10k/mo"),
+               "Finnhub": ("FREEMIUM", 0,
+                           "free tier 60/min; paid $50+"),
+               "Tiingo": ("CHEAP", 10,
+                          "$10/mo EOD+news+fundamentals"),
+               "EODHD": ("CHEAP", 20,
+                         "$20/mo global EOD+fundamentals"),
+               "Polygon.io": ("CHEAP", 29,
+                              "$29/mo stocks starter; "
+                              "options higher"),
+               "Polygon": ("CHEAP", 29, "see Polygon.io"),
+               "Intrinio": ("PAID", 150, "institutional"),
+               "Quandl": ("MIXED", 0,
+                          "Nasdaq Data Link; many free sets"),
+               "Nasdaq Data": ("MIXED", 0, "see Quandl"),
+               "Glassnode": ("PAID", 39, "on-chain tiers"),
+               "Kaiko": ("PAID", 500, "institutional crypto"),
+               "Refinitiv": ("PAID", 1000, "enterprise"),
+               "Bloomberg": ("PAID", 2000, "terminal"),
+               "Barchart": ("PAID", 84, "onDemand APIs"),
+               "Alpaca": ("FREE", 0, "free IEX-feed data w/ "
+                                     "brokerage acct"),
+               "Binance": ("FREE", 0, "free public API"),
+               "Coinbase": ("FREE", 0, "free public API"),
+               "Ken French": ("FREE", 0, "factor library CSV"),
+               "Wharton": ("PAID", 0, "academic access"),
+               "IEX Cloud": ("DEAD", 0, "shut down 2024")}
+    PROBE = {"Stooq": "https://stooq.com/q/d/l/?s=aapl.us&i=d",
+             "CoinGecko":
+                 "https://api.coingecko.com/api/v3/ping",
+             "Ken French":
+                 "https://mba.tuck.dartmouth.edu/pages/faculty/"
+                 "ken.french/data_library.html"}
+    intel = []
+    for x in kb_src:
+        nm = x["source"]
+        tier, usd, note = PRICING.get(
+            nm, ("UNKNOWN", None, "verify pricing"))
+        integrated = any(k.lower() in nm.lower()
+                         or nm.lower() in k.lower()
+                         for k in OURS_SRC)
+        row = {"source": nm, "teachers": x["teachers"],
+               "tier": tier, "usd_mo": usd, "note": note,
+               "already_integrated": integrated}
+        if not integrated and tier == "FREE" and nm in PROBE:
+            try:
+                rq = urllib.request.Request(PROBE[nm],
+                                            headers=UA)
+                code = urllib.request.urlopen(
+                    rq, timeout=12).status
+                row["probe"] = "LIVE(%s)" % code
+            except Exception as e2:
+                row["probe"] = "FAIL:" + str(e2)[:40]
+        intel.append(row)
+    free_unused = [r for r in intel
+                   if r["tier"] == "FREE"
+                   and not r["already_integrated"]]
+    cheap = sorted((r for r in intel
+                    if r["tier"] in ("CHEAP", "FREEMIUM")
+                    and not r["already_integrated"]),
+                   key=lambda r: (r["usd_mo"] or 0))
+    s3.put_object(Bucket=B, Key="data/source-intel.json",
+                  Body=json.dumps({
+                      "generated_at": kb["generated_at"],
+                      "pricing_asof": ("curated knowledge "
+                                       "~Jan-2026; verify "
+                                       "before purchase"),
+                      "already_integrated":
+                          [r for r in intel
+                           if r["already_integrated"]],
+                      "free_unused": free_unused,
+                      "cheap_worth_it": cheap,
+                      "all": intel}, default=str).encode(),
+                  ContentType="application/json",
+                  CacheControl="no-cache")
     print(json.dumps({"ok": True, "indicators": len(kb_ind),
+                      "src_free_unused": len(free_unused),
+                      "src_cheap": len(cheap),
                       "sources": len(kb_src),
                       "gaps": len(gaps),
                       "teachers_ok": sum(1 for t in tlog
