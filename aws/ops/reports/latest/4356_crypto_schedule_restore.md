@@ -1,31 +1,66 @@
 # ops 4356 — restore crypto-intel schedule + prove natural fire
 
-**Status:** failure  
-**Duration:** 0.9s  
-**Finished:** 2026-08-04T03:56:58+00:00  
-
-## Error
-
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4356_crypto_schedule_restore.py", line 95, in <module>
-    a = ((sname.get("target") or {}).get("arn")) or json.dumps(sname)
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'str' object has no attribute 'get'
-
-```
+**Status:** success  
+**Duration:** 1141.7s  
+**Finished:** 2026-08-04T04:17:45+00:00  
 
 ## Data
 
-| expr | rule | state | target_ok | targets |
-|---|---|---|---|---|
-| rate(15 minutes) | justhodl-crypto-15min | ENABLED | True | 1 |
+| expr | orphaned | rule | stale_declarations | state | target_ok | targets |
+|---|---|---|---|---|---|---|
+| rate(15 minutes) |  | justhodl-crypto-15min |  | ENABLED | True | 1 |
+|  | 33 |  | 6 |  |  |  |
 
 ## Log
 ## 1. rule -> target -> permission
 
-- `03:56:58` ✅ permission added
+- `03:58:44` ✅ permission already present
 ## 2. fleet triage: declared-but-missing rules (no mutations)
 
+- `03:58:45` ⚠ ORPHANED  bls-employment-api-v2: ['bls-friday-update', 'bls-tuesday-update']
+- `03:58:45` ⚠ ORPHANED  chatgpt-agent-api: ['test-immediate']
+- `03:58:45` ⚠ ORPHANED  enhanced-repo-agent: ['repo-metrics-15min']
+- `03:58:45` ⚠ ORPHANED  fedliquidityapi: ['fedliquidityapi-auto-update']
+- `03:58:45` ⚠ ORPHANED  fmp-stock-picks-agent: ['fmp-movers-hourly', 'fmp-stock-picks-daily']
+- `03:58:45` ⚠ ORPHANED  justhodl-bloomberg-v8: ['bloomberg-terminal-refresh']
+- `03:58:45` ⚠ ORPHANED  justhodl-crypto-enricher: ['justhodl-crypto-enricher-daily']
+- `03:58:45` ⚠ ORPHANED  justhodl-daily-report-v3: ['justhodl-daily-8am', 'justhodl-daily-v3', 'justhodl-v9-auto-refresh', 'justhodl-v9-evening', 'justhodl-v9-morning']
+- `03:58:45` ⚠ ORPHANED  justhodl-dex-scanner: ['justhodl-dex-scanner-15min']
+- `03:58:45` ⚠ ORPHANED  justhodl-divergence-interpreter: ['divergence-interpreter-4hourly']
+- `03:58:45` ⚠ ORPHANED  justhodl-email-reports: ['justhodl-8am']
+- `03:58:45` ⚠ ORPHANED  justhodl-gdelt-sentiment: ['justhodl-gdelt-sentiment-30min']
+- `03:58:45` ⚠ ORPHANED  justhodl-insider-trades: ['justhodl-insider-trades-30min']
+- `03:58:45` ⚠ ORPHANED  justhodl-intelligence: ['justhodl-intel-daily', 'justhodl-intel-hourly']
+- `03:58:45` ⚠ ORPHANED  justhodl-ka-metrics: ['justhodl-khalid-metrics-refresh']
+- `03:58:45` ⚠ ORPHANED  justhodl-khalid-metrics: ['justhodl-khalid-metrics-refresh']
+- `03:58:45` ⚠ ORPHANED  justhodl-labor-leading: ['justhodl-labor-leading-daily']
+- `03:58:45` ⚠ ORPHANED  justhodl-liquidity-flow: ['justhodl-liquidity-flow-daily']
+- `03:58:45` ⚠ ORPHANED  justhodl-ml-predictions: ['justhodl-ml-predictions-schedule', 'justhodl-ml-schedule']
+- `03:58:45` ⚠ ORPHANED  justhodl-morning-intelligence: ['justhodl-morning-brief-daily']
+- `03:58:45` ⚠ ORPHANED  justhodl-news-sentiment: ['justhodl-sentiment-daily']
+- `03:58:45` ⚠ ORPHANED  justhodl-nyfed-dealer-survey: ['justhodl-nyfed-dealer-survey-weekly']
+- `03:58:45` ⚠ ORPHANED  justhodl-oecd-cli: ['justhodl-oecd-cli-weekly']
+- `03:58:45` ⚠ ORPHANED  justhodl-price-redundancy: ['justhodl-price-redundancy-15min']
+- `03:58:45` ⚠ ORPHANED  justhodl-redflag-alerter: ['justhodl-redflag-alerter-30min']
+- `03:58:45` ⚠ ORPHANED  justhodl-repo-monitor: ['justhodl-repo-30min', 'justhodl-repo-daily']
+- `03:58:45` ⚠ ORPHANED  justhodl-sec-10kq: ['justhodl-sec-10kq-4h']
+- `03:58:45` ⚠ ORPHANED  justhodl-sec-13f: ['justhodl-sec-13f-daily']
+- `03:58:45` ⚠ ORPHANED  justhodl-sec-8k: ['justhodl-sec-8k-30min']
+- `03:58:45` ⚠ ORPHANED  justhodl-stock-screener: ['justhodl-stock-screener-4h']
+- `03:58:45` ⚠ ORPHANED  justhodl-valuations-agent: ['valuations-monthly-update']
+- `03:58:45` ⚠ ORPHANED  macro-financial-intelligence: ['macro-financial-daily-execution']
+- `03:58:45` ⚠ ORPHANED  news-sentiment-agent: ['news-sentiment-update']
+- `03:58:45` stale-cfg justhodl-aaii-sentiment: ['justhodl-aaii-sentiment-daily']
+- `03:58:45` stale-cfg justhodl-crypto-funding: ['justhodl-crypto-funding-hourly']
+- `03:58:45` stale-cfg justhodl-financial-secretary: ['secretary-4h-scan']
+- `03:58:45` stale-cfg justhodl-options-flow: ['justhodl-flow-refresh']
+- `03:58:45` stale-cfg justhodl-options-gamma: ['justhodl-options-gamma-30min']
+- `03:58:45` stale-cfg justhodl-vix-curve: ['justhodl-vix-curve-30min']
+## 3. natural-fire proof (no manual invoke)
+
+- `03:58:45` feed before wait: 2026-08-04T03:57:27+00:00
+- `03:58:45` sleeping 1140s for one full period + grace ...
+- `04:17:45` ✅ PROVEN — feed advanced to 2026-08-04T04:12:27+00:00 on its own (2 scheduled invocation[s] during the window)
+## verdict
+
+- `04:17:45` SCHEDULE_RESTORED_AND_PROVEN
