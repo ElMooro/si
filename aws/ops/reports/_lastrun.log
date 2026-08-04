@@ -1,88 +1,57 @@
-executing-against: 8a28ee656c515c0bf1f4d81d36f77e70e01c8f38
+executing-against: 371403f4853ace233aacea017fc6c12c2c01660d
 {
- "ops": 4379,
- "started": "2026-08-04T19:49:32.209012+00:00",
- "key_in_env": true,
- "ssm_written": true,
- "breaker_cleared": "none existed",
- "registry": "healed",
- "fanout": [
-  [
-   {
-    "provider": "perplexity",
-    "thread": "0001-build-the-bus",
-    "posted": true,
-    "rejected": null
+ "ops": 4380,
+ "started": "2026-08-04T21:06:15.210861+00:00",
+ "bus": "updated",
+ "loop": "created",
+ "schedule": "bound rate(2 hours)",
+ "inventory": {
+  "engines": 0,
+  "pages": 476,
+  "manifest_fns": 276
+ },
+ "registry": "claude-audit registered",
+ "shard_runs": [
+  {
+   "shard": {
+    "engines": 0,
+    "pages": 15
    },
-   {
-    "provider": "glm",
-    "thread": "0001-build-the-bus",
-    "error_class": "quota_exhausted"
-   }
-  ],
-  [
-   {
-    "provider": "perplexity",
-    "thread": "0002-xss-uniformity",
-    "posted": false,
-    "rejected": "rejected_no_evidence"
+   "new_findings": 36,
+   "open_total": 36,
+   "critical": 0,
+   "filed_to_bus": [
+    {
+     "id": "247b557e9ceb",
+     "posted": true,
+     "err": null
+    },
+    {
+     "id": "aafde21c9450",
+     "posted": true,
+     "err": null
+    },
+    {
+     "id": "db3b42d153e5",
+     "posted": true,
+     "err": null
+    }
+   ],
+   "telegram": false
+  },
+  {
+   "shard": {
+    "engines": 0,
+    "pages": 15
    },
-   {
-    "provider": "glm",
-    "skipped": "breaker_open"
-   }
-  ],
-  [
-   {
-    "provider": "perplexity",
-    "thread": "0003-csp-meta",
-    "posted": true,
-    "rejected": null
-   },
-   {
-    "provider": "glm",
-    "skipped": "breaker_open"
-   }
-  ],
-  [
-   {
-    "provider": "perplexity",
-    "thread": "0004-fetch-resilience",
-    "posted": false,
-    "rejected": "rejected_no_evidence"
-   },
-   {
-    "provider": "glm",
-    "skipped": "breaker_open"
-   }
-  ],
-  [
-   {
-    "provider": "perplexity",
-    "thread": "0005-error-classes",
-    "posted": false,
-    "rejected": "rejected_no_evidence"
-   },
-   {
-    "provider": "glm",
-    "skipped": "breaker_open"
-   }
-  ],
-  [
-   {
-    "provider": "perplexity",
-    "thread": "0001-build-the-bus",
-    "posted": true,
-    "rejected": null
-   },
-   {
-    "provider": "glm",
-    "skipped": "breaker_open"
-   }
-  ]
+   "new_findings": 0,
+   "open_total": 72,
+   "critical": 0,
+   "filed_to_bus": [],
+   "telegram": false
+  }
  ],
- "inbox_after": [],
- "perplexity_autonomous_turns": 2,
- "verdict": "PASS \u2014 Perplexity live on the bus, 2 autonomous turns",
- "finished": "2026-08-04T19:51:18.176922+00:00"
+ "findings_total": 72,
+ "verdict": "PASS \u2014 loop live on rate(2 hours), 72 findings banked, handoff active",
+ "finished": "2026-08-04T21:07:39.103576+00:00"
 }

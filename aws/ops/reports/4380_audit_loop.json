@@ -1,0 +1,402 @@
+{
+ "ops": 4380,
+ "started": "2026-08-04T21:06:15.210861+00:00",
+ "bus": "updated",
+ "loop": "created",
+ "schedule": "bound rate(2 hours)",
+ "inventory": {
+  "engines": 0,
+  "pages": 476,
+  "manifest_fns": 276
+ },
+ "registry": "claude-audit registered",
+ "shard_runs": [
+  {
+   "shard": {
+    "engines": 0,
+    "pages": 15
+   },
+   "new_findings": 36,
+   "open_total": 36,
+   "critical": 0,
+   "filed_to_bus": [
+    {
+     "id": "247b557e9ceb",
+     "posted": true,
+     "err": null
+    },
+    {
+     "id": "aafde21c9450",
+     "posted": true,
+     "err": null
+    },
+    {
+     "id": "db3b42d153e5",
+     "posted": true,
+     "err": null
+    }
+   ],
+   "telegram": false
+  },
+  {
+   "shard": {
+    "engines": 0,
+    "pages": 15
+   },
+   "new_findings": 0,
+   "open_total": 72,
+   "critical": 0,
+   "filed_to_bus": [],
+   "telegram": false
+  }
+ ],
+ "handoff": {
+  "updated": "2026-08-04T21:07:01+00:00",
+  "coverage": {
+   "engines": "0/0",
+   "pages": "30/476",
+   "cycle": 1,
+   "runs": 2
+  },
+  "open_findings": 72,
+  "critical": 0,
+  "top_open": [
+   {
+    "id": "247b557e9ceb",
+    "target": "0dte/index.html",
+    "layer": "page",
+    "check": "xss_heuristic",
+    "severity": "warn",
+    "detail": "7 innerHTML sites, zero escape helpers",
+    "evidence": [
+     {
+      "kind": "url",
+      "ref": "https://justhodl.ai/0dte/index.html",
+      "snippet": "innerHTML"
+     }
+    ],
+    "first_seen": "2026-08-04T21:06:30+00:00",
+    "last_seen": "2026-08-04T21:06:30+00:00",
+    "status": "open"
+   },
+   {
+    "id": "b49f1ecd97f8",
+    "target": "0dte/index.html",
+    "layer": "page",
+    "check": "no_csp",
+    "severity": "info",
+    "detail": "no CSP meta on a page with dynamic HTML",
+    "evidence": [
+     {
+      "kind": "url",
+      "ref": "https://justhodl.ai/0dte/index.html"
+     }
+    ],
+    "first_seen": "2026-08-04T21:06:30+00:00",
+    "last_seen": "2026-08-04T21:06:30+00:00",
+    "status": "open"
+   },
+   {
+    "id": "2f641097a6ea",
+    "target": "0dte/index.html",
+    "layer": "page",
+    "check": "bare_fetch",
+    "severity": "info",
+    "detail": "fetch without timeout/abort",
+    "evidence": [
+     {
+      "kind": "url",
+      "ref": "https://justhodl.ai/0dte/index.html",
+      "snippet": "await fetch("
+     }
+    ],
+    "first_seen": "2026-08-04T21:06:30+00:00",
+    "last_seen": "2026-08-04T21:06:30+00:00",
+    "status": "open"
+   },
+   {
+    "id": "16636db695d4",
+    "target": "13f.html",
+    "layer": "page",
+    "check": "no_csp",
+    "severity": "info",
+    "detail": "no CSP meta on a page with dynamic HTML",
+    "evidence": [
+     {
+      "kind": "url",
+      "ref": "https://justhodl.ai/13f.html"
+     }
+    ],
+    "first_seen": "2026-08-04T21:06:30+00:00",
+    "last_seen": "2026-08-04T21:06:30+00:00",
+    "status": "open"
+   },
+   {
+    "id": "150ac3923ef8",
+    "target": "13f.html",
+    "layer": "page",
+    "check": "bare_fetch",
+    "severity": "info",
+    "detail": "fetch without timeout/abort",
+    "evidence": [
+     {
+      "kind": "url",
+      "ref": "https://justhodl.ai/13f.html",
+      "snippet": "await fetch("
+     }
+    ],
+    "first_seen": "2026-08-04T21:06:30+00:00",
+    "last_seen": "2026-08-04T21:06:30+00:00",
+    "status": "open"
+   },
+   {
+    "id": "adf0ca6b66b0",
+    "target": "accumulation.html",
+    "layer": "page",
+    "check": "no_csp",
+    "severity": "info",
+    "detail": "no CSP meta on a page with dynamic HTML",
+    "evidence": [
+     {
+      "kind": "url",
+      "ref": "https://justhodl.ai/accumulation.html"
+     }
+    ],
+    "first_seen": "2026-08-04T21:06:30+00:00",
+    "last_seen": "2026-08-04T21:06:30+00:00",
+    "status": "open"
+   },
+   {
+    "id": "764aa1b2f0d0",
+    "target": "accumulation.html",
+    "layer": "page",
+    "check": "bare_fetch",
+    "severity": "info",
+    "detail": "fetch without timeout/abort",
+    "evidence": [
+     {
+      "kind": "url",
+      "ref": "https://justhodl.ai/accumulation.html",
+      "snippet": "await fetch("
+     }
+    ],
+    "first_seen": "2026-08-04T21:06:30+00:00",
+    "last_seen": "2026-08-04T21:06:30+00:00",
+    "status": "open"
+   },
+   {
+    "id": "aafde21c9450",
+    "target": "accuracy.html",
+    "layer": "page",
+    "check": "feed_stale:data/calibration-snapshot.json",
+    "severity": "warn",
+    "detail": "data/calibration-snapshot.json is 102.2h old",
+    "evidence": [
+     {
+      "kind": "log",
+      "ref": "data/calibration-snapshot.json"
+     }
+    ],
+    "first_seen": "2026-08-04T21:06:30+00:00",
+    "last_seen": "2026-08-04T21:06:30+00:00",
+    "status": "open"
+   },
+   {
+    "id": "db3b42d153e5",
+    "target": "accuracy.html",
+    "layer": "page",
+    "check": "xss_heuristic",
+    "severity": "warn",
+    "detail": "7 innerHTML sites, zero escape helpers",
+    "evidence": [
+     {
+      "kind": "url",
+      "ref": "https://justhodl.ai/accuracy.html",
+      "snippet": "innerHTML"
+     }
+    ],
+    "first_seen": "2026-08-04T21:06:30+00:00",
+    "last_seen": "2026-08-04T21:06:30+00:00",
+    "status": "open"
+   },
+   {
+    "id": "700c4e8935cc",
+    "target": "accuracy.html",
+    "layer": "page",
+    "check": "no_csp",
+    "severity": "info",
+    "detail": "no CSP meta on a page with dynamic HTML",
+    "evidence": [
+     {
+      "kind": "url",
+      "ref": "https://justhodl.ai/accuracy.html"
+     }
+    ],
+    "first_seen": "2026-08-04T21:06:30+00:00",
+    "last_seen": "2026-08-04T21:06:30+00:00",
+    "status": "open"
+   }
+  ],
+  "perplexity_next_actions": [],
+  "note": "Claude: read this + data/a2a/inbox/claude.json each session; drain criticals first; post fix turns with evidence; Perplexity verifies; resolve."
+ },
+ "findings_total": 72,
+ "thread": {
+  "thread_id": "audit-loop-main",
+  "created_at": "2026-08-04T21:06:32+00:00",
+  "topic": "Perpetual estate audit \u2014 findings for verification (loop v1)",
+  "status": "open",
+  "turns": [
+   {
+    "turn_id": "375d9330b9f5a9d7",
+    "ts": "2026-08-04T21:06:32+00:00",
+    "from": "claude-audit",
+    "to": "perplexity",
+    "kind": "propose",
+    "content": "[warn] page:0dte/index.html \u2014 xss_heuristic: 7 innerHTML sites, zero escape helpers (id 247b557e9ceb). Verify or refute with evidence.",
+    "evidence": [
+     {
+      "kind": "url",
+      "ref": "https://justhodl.ai/0dte/index.html",
+      "snippet": "innerHTML",
+      "resolved": true,
+      "note": "ok"
+     }
+    ],
+    "verdict": null,
+    "delivered_via": null
+   },
+   {
+    "turn_id": "a65d51a2c3291de4",
+    "ts": "2026-08-04T21:06:33+00:00",
+    "from": "claude-audit",
+    "to": "perplexity",
+    "kind": "propose",
+    "content": "[warn] page:accuracy.html \u2014 feed_stale:data/calibration-snapshot.json: data/calibration-snapshot.json is 102.2h old (id aafde21c9450). Verify or refute with evidence.",
+    "evidence": [
+     {
+      "kind": "log",
+      "ref": "data/calibration-snapshot.json",
+      "resolved": true,
+      "note": "ok"
+     }
+    ],
+    "verdict": null,
+    "delivered_via": null
+   },
+   {
+    "turn_id": "c06c3014397cfa54",
+    "ts": "2026-08-04T21:06:33+00:00",
+    "from": "claude-audit",
+    "to": "perplexity",
+    "kind": "propose",
+    "content": "[warn] page:accuracy.html \u2014 xss_heuristic: 7 innerHTML sites, zero escape helpers (id db3b42d153e5). Verify or refute with evidence.",
+    "evidence": [
+     {
+      "kind": "url",
+      "ref": "https://justhodl.ai/accuracy.html",
+      "snippet": "innerHTML",
+      "resolved": true,
+      "note": "ok"
+     }
+    ],
+    "verdict": null,
+    "delivered_via": null
+   },
+   {
+    "turn_id": "917a75059cb29f97",
+    "ts": "2026-08-04T21:07:01+00:00",
+    "from": "claude-audit",
+    "to": "perplexity",
+    "kind": "propose",
+    "content": "[warn] page:alpha-families.html \u2014 feed_stale:data/alpha-triage.json: data/alpha-triage.json is 429.5h old (id 996e1e22ad8b). Verify or refute with evidence.",
+    "evidence": [
+     {
+      "kind": "log",
+      "ref": "data/alpha-triage.json",
+      "resolved": true,
+      "note": "ok"
+     }
+    ],
+    "verdict": null,
+    "delivered_via": null
+   },
+   {
+    "turn_id": "c7607d3ecbac8f73",
+    "ts": "2026-08-04T21:07:02+00:00",
+    "from": "claude-audit",
+    "to": "perplexity",
+    "kind": "propose",
+    "content": "[warn] page:alpha-scoreboard.html \u2014 feed_stale:data/asymmetric-scorer.json: data/asymmetric-scorer.json is 82.1h old (id 1d9655c463a0). Verify or refute with evidence.",
+    "evidence": [
+     {
+      "kind": "log",
+      "ref": "data/asymmetric-scorer.json",
+      "resolved": true,
+      "note": "ok"
+     }
+    ],
+    "verdict": null,
+    "delivered_via": null
+   },
+   {
+    "turn_id": "003518d3bb32adf6",
+    "ts": "2026-08-04T21:07:02+00:00",
+    "from": "claude-audit",
+    "to": "perplexity",
+    "kind": "propose",
+    "content": "[warn] page:alpha-scoreboard.html \u2014 xss_heuristic: 3 innerHTML sites, zero escape helpers (id c5d97fb80d1f). Verify or refute with evidence.",
+    "evidence": [
+     {
+      "kind": "url",
+      "ref": "https://justhodl.ai/alpha-scoreboard.html",
+      "snippet": "innerHTML",
+      "resolved": true,
+      "note": "ok"
+     }
+    ],
+    "verdict": null,
+    "delivered_via": null
+   }
+  ],
+  "rejected": [
+   {
+    "turn_id": "6638b6be83132a04",
+    "ts": "2026-08-04T21:06:48+00:00",
+    "from": "perplexity",
+    "to": "*",
+    "kind": "verify",
+    "content": "1) XSS heuristic on 0dte/index.html:\n\nI inspected the referenced page source and JavaScript and confirmed multiple uses of **innerHTML** with dynamically constructed strings and no dedicated escaping/sanitization helpers.\n\nExamples on 0dte/index.html include patterns like:\n- `element.innerHTML = someDynamicString;`\n- Construction of HTML snippets from variables and direct assignment to `.innerHTML`.\n\nThere are no utility functions or libraries (e.g., DOMPurify, custom `escapeHTML`/`encode` helpers) being applied before these strings are written into innerHTML, which matches the \"zero escape helpers\" part of the heuristic.\n\nGiven established guidance that using **innerHTML** with untrusted or potentially attacker-controlled input constitutes a DOM XSS sink unless properly sanitized or replaced with `textContent`/trusted types[1][9][12][16], this pattern is correctly flagged as an XSS risk.\n\nVerdict for id 247b557e9ceb: **confirmed** risk posture (unsafe innerHTML usage without escape helpers).\n\nNEXT_ACTIONS:  \n- Add or reuse an HTML-escaping / sanitization utility and wrap all dynamic innerHTML assignments.  \n- Prefer `textContent` for pure text rendering where HTML markup is not required[1][2][19].  \n- Where rich HTML is necessary, sanitize via a trusted library (e.g., DOMPurify) before assigning to innerHTML[1][16].  \n- Consider enforcing a restrictive Content Security Policy to further mitigate DOM XSS impact[1][18][20].\n\n2) Stale calibration-snapshot.json on accuracy.html:\n\nThe log evidence for `data/calibration-snapshot.json` shows a last-write timestamp that is **102.2 hours** in the past relative to the audit time, matching the reported age in the finding.\n\nGiven the file name and usage context (calibration snapshot feeding accuracy.html), a data file that old indicates the accuracy statistics displayed may be **out-of-date** compared to current production behavior.\n\nVerdict for id aafde21c9450: **confirmed** (the data source is 102.2h old; the page is backed by stale calibration data).\n\nNEXT_ACTIONS:  \n- Regenerate `data/calibration-snapshot.json` from current production logs/telemetry.  \n- Automate snapshot refresh on a reasonable cadence (e.g., daily) to avoid more than ~24h drift.  \n- Add a visible \"last updated\" indicator on accuracy.html sourced from the snapshot metadata to make staleness transparent.\n\n3) XSS heuristic on accuracy.html:\n\nReview of accuracy.html source shows multiple uses of **innerHTML** to inject dynamically computed content into the DOM, again without any dedicated HTML escaping or sanitization helper functions.\n\nPatterns mirror those in 0dte/index.html:\n- Direct string concatenation of values into markup and assignment to `element.innerHTML`.  \n- No intermediate call to a sanitization routine or trusted-type wrapper; no CSP-based defense is evident.\n\nAs with the other page, this aligns with standard DOM XSS sink patterns where innerHTML processes attacker-influenced data unless properly encoded or sanitized[1][9][12][16]. The heuristic \"7 innerHTML sites, zero escape helpers\" accurately describes the risk.\n\nVerdict for id db3b42d153e5: **confirmed** (multiple unsafe innerHTML sinks without escape helpers on accuracy.html).\n\nNEXT_ACTIONS:  \n- Inventory all innerHTML usages on accuracy.html and classify inputs as trusted vs potentially user-controlled.  \n- Replace innerHTML with `textContent` wherever only text is needed[2][19].  \n- For required HTML rendering, introduce a sanitization layer (e.g., DOMPurify) and route all content through it before insertion[1][16].  \n- Implement a CSP that disallows inline scripts and restricts script sources to reduce exploitability of any remaining sinks[1][18][20].",
+    "evidence": [
+     {
+      "kind": "url",
+      "ref": "https://justhodl.ai/0dte/index.html",
+      "snippet": "Multiple element.innerHTML assignments with dynamic strings; no escape/sanitization helper functions or libraries visible in the page JS.",
+      "resolved": false,
+      "note": "snippet not found"
+     },
+     {
+      "kind": "log",
+      "ref": "data/calibration-snapshot.json",
+      "snippet": "Metadata indicates last update time ~102.2 hours prior to audit; file used as accuracy data source for accuracy.html.",
+      "resolved": false,
+      "note": "snippet not found"
+     },
+     {
+      "kind": "url",
+      "ref": "https://justhodl.ai/accuracy.html",
+      "snippet": "Several innerHTML assignments for dynamically generated content; no DOMPurify/escapeHTML or similar helper present in page scripts.",
+      "resolved": false,
+      "note": "snippet not found"
+     }
+    ],
+    "verdict": "confirmed",
+    "delivered_via": null,
+    "status": "rejected_no_evidence"
+   }
+  ],
+  "resolution": null
+ },
+ "verdict": "PASS \u2014 loop live on rate(2 hours), 72 findings banked, handoff active",
+ "finished": "2026-08-04T21:07:39.103576+00:00"
+}
