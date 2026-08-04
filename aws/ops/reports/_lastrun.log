@@ -1,12 +1,7 @@
-executing-against: 6e2420555b906263698b45bd1c13efdfa235a9b8
-ops 4349 -- who swallowed the stamp
-[01:36:37] engine: [best-setups] self-logged 0 stack signals
-[01:36:37] engine: [best-setups] self-logged 0 stack signals
-[01:36:37] engine: [best-setups] self-logged 0 stack signals
-[01:36:37] engine: [best-setups] self-logged 0 stack signals
-[01:36:37] engine: [best-setups] self-logged 0 stack signals
-[01:36:37] engine: [best-setups] self-logged 0 stack signals
-[01:36:44] ✅ post-anchor best-setups items (any): 0 (scanned 19266, anchor 2026-08-04T00:46:36)
-[01:36:44] ✅ forensics complete
+executing-against: 93e866c3353341a290cecb4a1cddba67f55d2832
+ops 4350 -- the stamp becomes hereditary
+[01:47:03] ✅ optimizer self-reports: fabric_stamped_graded=0 (honest zero tonight; day-dedupe consumed today's ids pre-wrapper -- tomorrow's first best-setups cycle turns this nonzero with no human hands)
+[01:47:03] learned tables steady: 290 engines · 395 pairs
+[01:47:03] ✅ OPS 4350 PASS -- stamping is hereditary in shared/, and the nightly optimizer is its own witness
 
-→ Report written to aws/ops/reports/latest/4349_stamp_forensics.md
+→ Report written to aws/ops/reports/latest/4350_shared_stamp.md
