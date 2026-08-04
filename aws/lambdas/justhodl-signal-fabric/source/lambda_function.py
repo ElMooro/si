@@ -289,7 +289,7 @@ def lambda_handler(event=None, context=None):
                         "the fleet is debating this name"})
     tickers.sort(key=lambda x: -abs(x["fabric_score"]))
     conflicts.sort(key=lambda x: -x["n_engines"])
-    out = {"engine": "justhodl-signal-fabric", "version": "1.0",
+    out = {"engine": "justhodl-signal-fabric", "version": "2.0",
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "elapsed_s": round(time.time() - t0, 1),
            "architecture": ("N-to-1 fabric: adapters distill each "
@@ -303,11 +303,80 @@ def lambda_handler(event=None, context=None):
            "conflicts": conflicts[:60],
            "by_ticker": {t["ticker"]: t["engines"]
                          for t in tickers[:400]}}
+    # ── FEATURE BUS: one flat vector per ticker, engine-consumable
+    bus = {}
+    for t in tickers[:600]:
+        env_by = {}
+        for e in t["engines"]:
+            env_by.setdefault(e["engine"], e)
+        g2 = lambda en, f, d=None: (env_by.get(en) or {}).get(f, d)
+        bus[t["ticker"]] = {
+            "fabric_score": t["fabric_score"],
+            "net_direction": t["net_direction"],
+            "agreement_pct": t["agreement_pct"],
+            "n_engines": t["n_engines"],
+            "conflict": bool([c for c in conflicts
+                              if c["ticker"] == t["ticker"]]),
+            "reversal": g2("trend-reversal", "value"),
+            "congress": g2("congress-direct", "direction"),
+            "flow_13f": g2("13f-flows", "direction"),
+            "squeeze": g2("short-interest", "value")
+            or g2("squeeze-fuel", "value"),
+            "insider": g2("insider-clusters", "value"),
+            "compound": g2("compound-aggregator", "value"),
+            "setups": g2("best-setups", "value"),
+        }
+    prev = rd("data/feature-bus.json") or {}
+    pt = prev.get("tickers") or {}
+    events = []
+    for sym, f in bus.items():
+        pf = pt.get(sym) or {}
+        if f["conflict"] and not pf.get("conflict"):
+            events.append({"type": "NEW_CONFLICT", "ticker": sym})
+        if pf.get("net_direction") and \
+                pf["net_direction"] != f["net_direction"]:
+            events.append({"type": "DIRECTION_FLIP",
+                           "ticker": sym,
+                           "from": pf["net_direction"],
+                           "to": f["net_direction"]})
+        if (pf.get("agreement_pct") or 0) < 80 <= \
+                f["agreement_pct"] and f["n_engines"] >= 4:
+            events.append({"type": "CONSENSUS_FORMED",
+                           "ticker": sym,
+                           "agreement": f["agreement_pct"]})
+    s3.put_object(Bucket=B, Key="data/feature-bus.json",
+                  Body=json.dumps({
+                      "generated_at": datetime.now(
+                          timezone.utc).isoformat(),
+                      "n_tickers": len(bus),
+                      "integration": {
+                          "note": "engine-side SDK, six lines:",
+                          "code": ("BUS=json.loads(s3.get_object("
+                                   "Bucket='justhodl-dashboard-"
+                                   "live',Key='data/feature-bus"
+                                   ".json')['Body'].read())"
+                                   "['tickers']; "
+                                   "ctx=BUS.get(sym) or {}")},
+                      "tickers": bus}, default=str).encode(),
+                  ContentType="application/json",
+                  CacheControl="no-cache")
+    s3.put_object(Bucket=B, Key="data/fabric-events.json",
+                  Body=json.dumps({
+                      "generated_at": datetime.now(
+                          timezone.utc).isoformat(),
+                      "n": len(events),
+                      "events": events[:120]},
+                      default=str).encode(),
+                  ContentType="application/json",
+                  CacheControl="no-cache")
+    out_extra_note = len(events)
     s3.put_object(Bucket=B, Key=OUT,
                   Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json",
                   CacheControl="no-cache")
-    print(json.dumps({"ok": True, "tickers": len(tickers),
+    print(json.dumps({"ok": True, "bus": len(bus),
+                      "events": out_extra_note,
+                      "tickers": len(tickers),
                       "conflicts": len(conflicts),
                       "sources": src_stats}))
     return {"ok": True}

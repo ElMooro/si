@@ -282,6 +282,9 @@ def lambda_handler(event, context):
     options = read_json("data/polygon-options-flow.json") or {}
     insider = read_json("data/insider-clusters.json") or {}
     finra_short = read_json("data/finra-short.json") or {}
+    # ops 4346: FEATURE BUS — the fleet's per-ticker context vector
+    feature_bus = (read_json("data/feature-bus.json")
+                   or {}).get("tickers") or {}
     catalysts = read_json("data/catalyst-calendar.json") or {}
     # ops 3145 fusion (additive): earnings dates + squeeze fuel
     _ecal = read_json("data/benzinga-earnings-calendar.json") or {}
@@ -989,6 +992,25 @@ def lambda_handler(event, context):
         if _fa_mult != 1.0:
             composite = round(min(100.0, composite * _fa_mult), 1)
 
+        # ── Fleet Fabric gate (ops 4346): cross-engine context ──
+        _fctx = feature_bus.get(tk) or {}
+        _fb_mult = 1.0
+        _fb_tag = None
+        if _fctx:
+            _ag = _fctx.get("agreement_pct") or 0
+            _ne = _fctx.get("n_engines") or 0
+            _nd = _fctx.get("net_direction")
+            if _fctx.get("conflict"):
+                _fb_mult = 0.94
+                _fb_tag = "FLEET_CONTESTED"
+            elif _ne >= 4 and _ag >= 75:
+                _fb_mult = 1.08 if _nd == "UP" else 0.90
+                _fb_tag = ("FLEET_ALIGNED_UP" if _nd == "UP"
+                           else "FLEET_ALIGNED_DOWN")
+            if _fb_mult != 1.0:
+                composite = round(min(100.0,
+                                      composite * _fb_mult), 1)
+
         # ── CYCLE gate (accumulation-radar): a buy signal on a name distributing at a
         # top is lower quality. Tag the phase; gently haircut only the strongest tell
         # (LIKELY_TOP + bearish OBV divergence). Confirmation only, proven math otherwise intact. ──
@@ -1163,6 +1185,12 @@ def lambda_handler(event, context):
                              or ("CROWDED" if (_ind_row or {})
                                  .get("crowded") else None)),
             "factor_regime_mult": _fa_mult,
+            "fabric_score": _fctx.get("fabric_score"),
+            "fabric_agreement": _fctx.get("agreement_pct"),
+            "fabric_n_engines": _fctx.get("n_engines"),
+            "fabric_conflict": _fctx.get("conflict"),
+            "fabric_mult": _fb_mult,
+            "fabric_tag": _fb_tag,
             "nowcast_regime_mult": _nc_mult,
             "cycle_phase": (_cyc or {}).get("phase"),
             "cycle_flag": (_cyc or {}).get("flag"),
