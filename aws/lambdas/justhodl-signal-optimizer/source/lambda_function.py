@@ -74,11 +74,15 @@ def lambda_handler(event=None, context=None):
             break
         kw["ExclusiveStartKey"] = resp["LastEvaluatedKey"]
     BE, BER = {}, {}
+    n_stamped = 0
     for it in items:
         h = outcome(it)
         if h is None:
             continue
         e = eng_of(it)
+        md0 = it.get("metadata")
+        if isinstance(md0, dict) and "fabric_agreement" in md0:
+            n_stamped += 1
         rg = str(it.get("regime_at_log") or "UNKNOWN").upper()
         a = BE.setdefault(e, [0, 0])
         a[0] += 1
@@ -108,6 +112,7 @@ def lambda_handler(event=None, context=None):
                      "by_engine_regime_min_n": 8,
                      "weight_formula":
                          "clip(0.6 + lift/50, 0.2, 1.6)"},
+           "fabric_stamped_graded": n_stamped,
            "n_engines": len(by_e),
            "n_engine_regime_pairs": len(by_er),
            "by_engine": by_e,

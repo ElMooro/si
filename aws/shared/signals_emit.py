@@ -151,6 +151,34 @@ def _regime_snapshot():
     return out
 
 
+
+_FB_CACHE = {"t": 0, "d": {}}
+
+
+def _fabric_ctx(sym):
+    """ops 4350: per-ticker fleet context from the feature bus."""
+    try:
+        import time as _t
+        if _t.time() - _FB_CACHE["t"] > 900:
+            import json as _j
+            import boto3 as _b
+            _FB_CACHE["d"] = _j.loads(_b.client(
+                "s3", region_name="us-east-1").get_object(
+                Bucket="justhodl-dashboard-live",
+                Key="data/feature-bus.json")["Body"].read()
+            ).get("tickers") or {}
+            _FB_CACHE["t"] = _t.time()
+        c = _FB_CACHE["d"].get(str(sym).upper()) or {}
+        if not c:
+            return {}
+        return {"fabric_agreement": c.get("agreement_pct"),
+                "fabric_score": c.get("fabric_score"),
+                "fabric_conflict": c.get("conflict"),
+                "fabric_peer": c.get("peer_fabric_score")}
+    except Exception:
+        return {}
+
+
 def log_signal(table, signal_type, ticker, direction, windows, baseline_price,
                confidence=0.55, rationale="", metadata=None, benchmark=None,
                signal_value=""):
@@ -168,6 +196,12 @@ def log_signal(table, signal_type, ticker, direction, windows, baseline_price,
     metadata = md
     now = datetime.now(timezone.utc)
     windows = [int(w) for w in windows]
+    try:  # ops 4350: every logged signal carries the fleet's mind
+        _fbx = _fabric_ctx(ticker)
+        if _fbx:
+            metadata = {**(metadata or {}), **_fbx}
+    except Exception:
+        pass
     item = {
         "signal_id": f"{signal_type}#{ticker}#{now.date().isoformat()}",
         "signal_type": signal_type,
