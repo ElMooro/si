@@ -30,7 +30,24 @@ GLM_REASON = "glm-5.1"
 
 ZAI_BASE_URL = os.environ.get("ZAI_BASE_URL", "https://api.z.ai/api/paas/v4")
 ZAI_SSM_NAME = "/justhodl/zai-api-key"
-_ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_KEY", "")
+_ANTHROPIC_KEY = (os.environ.get("ANTHROPIC_API_KEY")
+                  or os.environ.get("ANTHROPIC_KEY", "")).strip()
+_anthropic_ssm_cache = None
+
+
+def _anthropic_key():
+    """Env key (stripped) with SSM fallback — some functions carry stale or
+    whitespace-polluted env copies; /justhodl/anthropic/api-key is truth."""
+    global _anthropic_ssm_cache
+    if _ANTHROPIC_KEY:
+        return _ANTHROPIC_KEY
+    if _anthropic_ssm_cache is None:
+        import boto3
+        ssm = boto3.client("ssm", region_name="us-east-1")
+        _anthropic_ssm_cache = ssm.get_parameter(
+            Name="/justhodl/anthropic/api-key",
+            WithDecryption=True)["Parameter"]["Value"].strip()
+    return _anthropic_ssm_cache
 
 _zai_key_cache = None
 
@@ -69,7 +86,7 @@ def _claude(prompt, model, max_tokens, system=None):
     req = urllib.request.Request(
         "https://api.anthropic.com/v1/messages",
         data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json", "x-api-key": _ANTHROPIC_KEY,
+        headers={"Content-Type": "application/json", "x-api-key": _anthropic_key(),
                  "anthropic-version": "2023-06-01", "x-jh-internal": "router"},
     )
     with urllib.request.urlopen(req, timeout=35) as r:
@@ -282,8 +299,43 @@ def council(question, providers=None, system=None, max_tokens=1400,
             if not rec["ok"]:
                 rec["error"] = "empty answer"
         except Exception as e:
-            _trip(p)
-            rec["error"] = f"{type(e).__name__}: {str(e)[:160]}"
+            body = ""
+            try:
+                body = e.read().decode()[:200]        # HTTPError detail
+            except Exception:
+                pass
+            retried = False
+            if "429" in str(e):
+                _t.sleep(4)
+                try:
+                    if p == "glm":
+                        txt, ti, to = _glm(q, GLM_REASON, max_tokens,
+                                           system=system)
+                        rec.update(ok=bool(txt), answer=txt,
+                                   model=GLM_REASON)
+                        retried = rec["ok"]
+                except Exception as e2:
+                    e = e2
+            if p == "claude" and "400" in str(e) and not retried:
+                try:
+                    global _ANTHROPIC_KEY, _anthropic_ssm_cache
+                    _ANTHROPIC_KEY = ""
+                    _anthropic_ssm_cache = None       # force SSM truth
+                    txt, ti, to = _claude(q, SONNET, max_tokens,
+                                          system=system)
+                    rec.update(ok=bool(txt), answer=txt, model=SONNET)
+                    retried = rec["ok"]
+                except Exception as e3:
+                    e = e3
+                    try:
+                        body = e3.read().decode()[:200]
+                    except Exception:
+                        pass
+            if not retried:
+                _trip(p)
+                rec["error"] = (f"{type(e).__name__}: {str(e)[:120]} "
+                                f"| body: {body}" if body
+                                else f"{type(e).__name__}: {str(e)[:160]}")
         rec["latency_s"] = round(_t.time() - t0, 1)
         out[p] = rec
     return out
