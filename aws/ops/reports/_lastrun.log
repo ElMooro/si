@@ -1,9 +1,12 @@
-executing-against: ec287d5cbfda64ce8404b6b749070e12c30709aa
-ops 4348 -- the stamp, beyond doubt
-[01:31:10] invoke anchor: 2026-08-04T01:31:10.667626+00:00 -- only signals logged after this instant count
-[01:31:36] ✅ fresh run 2026-08-04T01:31:19+00:00 · tags={'FLEET_ALIGNED_UP': 9, 'FLEET_CONTESTED': 10}
-[01:31:36] MU precedence check: tag=FLEET_ALIGNED_UP mult=1.08 (ag=83.0%, n=6)
-[01:31:43] ✗   no post-anchor stamped signal (scanned 16542)
+executing-against: 6e2420555b906263698b45bd1c13efdfa235a9b8
+ops 4349 -- who swallowed the stamp
+[01:36:37] engine: [best-setups] self-logged 0 stack signals
+[01:36:37] engine: [best-setups] self-logged 0 stack signals
+[01:36:37] engine: [best-setups] self-logged 0 stack signals
+[01:36:37] engine: [best-setups] self-logged 0 stack signals
+[01:36:37] engine: [best-setups] self-logged 0 stack signals
+[01:36:37] engine: [best-setups] self-logged 0 stack signals
+[01:36:44] ✅ post-anchor best-setups items (any): 0 (scanned 19266, anchor 2026-08-04T00:46:36)
+[01:36:44] ✅ forensics complete
 
-→ Report written to aws/ops/reports/latest/4348_stamp_seal.md
-❌ OPS-FAIL: aws/ops/pending/ops_4348_stamp_seal.py
+→ Report written to aws/ops/reports/latest/4349_stamp_forensics.md
