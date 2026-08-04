@@ -1,0 +1,16 @@
+# ops 4346 -- engines that read the room
+
+**Status:** success  
+**Duration:** 50.9s  
+**Finished:** 2026-08-04T00:35:52+00:00  
+
+## Log
+- `00:35:31` ✅ BUS: 600 tickers · SDK published in-artifact
+- `00:35:31` sample vector (MU): {"fabric_score": 1.25, "net_direction": "UP", "agreement_pct": 83.0, "n_engines": 6, "conflict": true, "reversal": "TOP_FORMING 26", "congress": "UP", "flow_13f": "UP", "squeeze": null, "insider": null, "compound": "n=4 desk=809.7", "setups": "STRONG BUY"}
+- `00:35:31` ✅ EVENTS: n=35 · sample=[{"type": "NEW_CONFLICT", "ticker": "MU"}, {"type": "CONSENSUS_FORMED", "ticker": "MU", "agreement": 83.0}, {"type": "NEW_CONFLICT", "ticker": "AAPL"}]
+- `00:35:52` ✅ best-setups fabric-aware: 35/50 rows carry context · tags={'FLEET_CONTESTED': 18, 'FLEET_ALIGNED_UP': 1}
+- `00:35:52` MSFT comp=None fab=0.3 ag=67.0% n=3 mult=0.94 tag=FLEET_CONTESTED
+- `00:35:52` MU comp=None fab=1.25 ag=83.0% n=6 mult=0.94 tag=FLEET_CONTESTED
+- `00:35:52` OTIS comp=None fab=0.88 ag=100.0% n=2 mult=1.0 tag=None
+- `00:35:52` NVDA comp=None fab=-0.62 ag=60.0% n=5 mult=0.94 tag=FLEET_CONTESTED
+- `00:35:52` ✅ OPS 4346 PASS -- the bus runs, and the flagship reads the room before it speaks

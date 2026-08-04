@@ -1,20 +1,13 @@
-executing-against: 252a47ba5821e5a2846529510121e3ee04460de0
-ops 4344 -- the engines finally talk
-[23:57:53] ✅ cadence 00:10 UTC (after leaderboard+council)
-[23:57:56] ✅ FABRIC: 662 tickers · 43 conflicts · sources={"best-setups": 50, "trend-reversal": 322, "compound-aggregator": 133, "ai-rerating": 18, "magic-formula": 1, "opportunities": 0, "insider-clusters": 0, "squeeze-fuel": 57, "congress-direct": 208, "short-interest": 126, "13f-flows": 129}
-── densest weave (most engines on one name) ──
-[23:57:56] MU: 6 engines · fabric=1.25 UP · agree=83.0% · ['compound-aggregator', 'best-setups', 'congress-direct', 'trend-reversal', '13f-flows', 'ai-rerating']
-[23:57:56] AAPL: 5 engines · fabric=-1.22 DOWN · agree=80.0% · ['13f-flows', 'compound-aggregator', 'congress-direct', 'congress-direct', 'trend-reversal']
-[23:57:56] TSM: 5 engines · fabric=1.12 UP · agree=80.0% · ['compound-aggregator', '13f-flows', 'best-setups', 'trend-reversal', 'ai-rerating']
-[23:57:56] NVDA: 5 engines · fabric=-0.62 DOWN · agree=60.0% · ['13f-flows', 'compound-aggregator', 'trend-reversal', 'congress-direct', 'best-setups']
-[23:57:56] AVGO: 5 engines · fabric=0.48 UP · agree=80.0% · ['compound-aggregator', 'trend-reversal', 'ai-rerating', 'best-setups', '13f-flows']
-[23:57:56] DDOG: 5 engines · fabric=0.28 UP · agree=60.0% · ['trend-reversal', 'congress-direct', 'compound-aggregator', 'best-setups', '13f-flows']
-── the debate floor (conflicts) ──
-[23:57:56] MU: UP=['best-setups', 'compound-aggregator', 'ai-rerating', 'congress-direct', '13f-flows'] vs DOWN=['trend-reversal']
-[23:57:56] NVDA: UP=['best-setups', 'compound-aggregator'] vs DOWN=['trend-reversal', 'congress-direct', '13f-flows']
-[23:57:56] TSM: UP=['best-setups', 'compound-aggregator', 'ai-rerating', '13f-flows'] vs DOWN=['trend-reversal']
-[23:57:56] META: UP=['best-setups', 'trend-reversal', 'compound-aggregator', 'ai-rerating'] vs DOWN=['13f-flows']
-[23:57:56] AMD: UP=['best-setups', 'compound-aggregator', 'ai-rerating'] vs DOWN=['trend-reversal', '13f-flows']
-[23:57:56] ✅ OPS 4344 PASS -- N-squared wiring is dead; the fleet speaks one language, and disagreement is on the record
+executing-against: 3b8926485b116604ec1b3b741b845916325b94f7
+ops 4346 -- engines that read the room
+[00:35:31] ✅ BUS: 600 tickers · SDK published in-artifact
+[00:35:31] sample vector (MU): {"fabric_score": 1.25, "net_direction": "UP", "agreement_pct": 83.0, "n_engines": 6, "conflict": true, "reversal": "TOP_FORMING 26", "congress": "UP", "flow_13f": "UP", "squeeze": null, "insider": null, "compound": "n=4 desk=809.7", "setups": "STRONG BUY"}
+[00:35:31] ✅ EVENTS: n=35 · sample=[{"type": "NEW_CONFLICT", "ticker": "MU"}, {"type": "CONSENSUS_FORMED", "ticker": "MU", "agreement": 83.0}, {"type": "NEW_CONFLICT", "ticker": "AAPL"}]
+[00:35:52] ✅ best-setups fabric-aware: 35/50 rows carry context · tags={'FLEET_CONTESTED': 18, 'FLEET_ALIGNED_UP': 1}
+[00:35:52] MSFT comp=None fab=0.3 ag=67.0% n=3 mult=0.94 tag=FLEET_CONTESTED
+[00:35:52] MU comp=None fab=1.25 ag=83.0% n=6 mult=0.94 tag=FLEET_CONTESTED
+[00:35:52] OTIS comp=None fab=0.88 ag=100.0% n=2 mult=1.0 tag=None
+[00:35:52] NVDA comp=None fab=-0.62 ag=60.0% n=5 mult=0.94 tag=FLEET_CONTESTED
+[00:35:52] ✅ OPS 4346 PASS -- the bus runs, and the flagship reads the room before it speaks
 
-→ Report written to aws/ops/reports/latest/4344_signal_fabric.md
+→ Report written to aws/ops/reports/latest/4346_feature_bus.md
