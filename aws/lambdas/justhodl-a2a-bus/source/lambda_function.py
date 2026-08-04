@@ -405,14 +405,65 @@ ACTIONS = {"open_thread": open_thread, "post_turn": post_turn,
                THREADS + e["thread_id"] + ".json")}}
 
 
+_token_cache = {}
+
+
+def _agent_for_token(tok):
+    """Map bearer token -> agent name via SSM /justhodl/a2a/token/<agent>."""
+    if not tok:
+        return None
+    if tok in _token_cache:
+        return _token_cache[tok]
+    try:
+        resp = ssm.get_parameters_by_path(Path="/justhodl/a2a/token/",
+                                          Recursive=True,
+                                          WithDecryption=True)
+        for p in resp.get("Parameters", []):
+            _token_cache[p["Value"]] = p["Name"].rsplit("/", 1)[-1]
+    except Exception as e:
+        print("token load err:", str(e)[:80])
+    return _token_cache.get(tok)
+
+
 @track_errors
 def lambda_handler(event, context):
     event = event or {}
-    if isinstance(event.get("body"), str):
+    http = (event.get("requestContext") or {}).get("http") or {}
+    is_http = bool(http)
+    qs = event.get("queryStringParameters") or {}
+    raw_body = event.get("body")
+    if isinstance(raw_body, str):
         try:
-            event = json.loads(event["body"])
+            body = json.loads(raw_body)
         except Exception:
-            pass
+            body = {}
+        merged = {**qs, **body}
+    else:
+        merged = {**qs, **{k: v for k, v in event.items()
+                           if k not in ("requestContext", "headers",
+                                        "queryStringParameters")}}
+    if is_http:
+        hdrs = {k.lower(): v for k, v in
+                (event.get("headers") or {}).items()}
+        tok = (hdrs.get("authorization") or "").replace("Bearer ", "").strip()
+        agent = _agent_for_token(tok)
+        method = (http.get("method") or "GET").upper()
+        act_req = merged.get("action")
+        if method == "GET" and act_req in (None, "get_thread"):
+            merged["action"] = "get_thread"
+        elif not agent:
+            return {"statusCode": 401,
+                    "headers": {"Content-Type": "application/json"},
+                    "body": json.dumps({"ok": False,
+                                        "error": "invalid or missing "
+                                                 "bearer token"})}
+        else:
+            # identity is the token, never the claim — spoof-proof
+            merged["from"] = agent
+            merged.setdefault("delivered_via", "http")
+        event = merged
+    else:
+        event = merged if merged else event
     act = event.get("action")
     fn = ACTIONS.get(act)
     if not fn:
