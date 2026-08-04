@@ -43,6 +43,11 @@ table{width:100%;border-collapse:collapse;font-size:11px}th{text-align:left;padd
 <div class="tab" data-tab="global">Global</div>
 <div class="tab" data-tab="onchain">On-Chain</div>
 <div class="tab" data-tab="cq">CryptoQuant</div>
+<div class="tab" data-tab="altseason">Altseason</div>
+<div class="tab" data-tab="narratives">Narratives</div>
+<div class="tab" data-tab="etf">ETF Flows</div>
+<div class="tab" data-tab="optdesk">Options Desk</div>
+<div class="tab" data-tab="basisvol">Basis &middot; Vol</div>
 <div class="tab" data-tab="dex">DEX</div>
 <div class="tab" data-tab="yields">Yields</div>
 <div class="tab" data-tab="health">Sources</div>
@@ -502,7 +507,7 @@ ylds.forEach(function(y){h+="<tr><td><strong>"+y.project+"</strong></td><td styl
 else{h+="<div style='color:var(--t3);text-align:center;padding:20px'>Loading...</div>";}
 h+="</div></div>";
 
-h+=paneCQ();h+=paneHealth();
+h+=paneCQ();h+=paneFleetAll();h+=paneHealth();
 document.getElementById("main").innerHTML=h;
 
 // Render full history chart after DOM update
@@ -543,15 +548,94 @@ function paneCQ(){
  h+="<div class='metric'><span class='metric-name'>cq-feed generated</span><span class='metric-val mono'>"+(q.feed_generated_at?String(q.feed_generated_at).slice(0,16).replace("T"," "):"-")+ageTag(q.feed_age_h)+"</span></div>";
  h+="<div class='metric'><span class='metric-name'>stale</span><span class='metric-val "+(q.stale?"dn":"up")+"'>"+(q.stale?"YES":"NO")+"</span></div></div>";
  h+="</div>";
+ h+=cqCatalog(q);
  if(q.ai_master_brief){h+="<div class='card' style='margin-top:12px'><div class='card-title'>CRYPTOQUANT AI MASTER BRIEF</div><div class='ai-report'>"+q.ai_master_brief.replace(/</g,"&lt;")+"</div></div>";}
  return h+"</div>";}
+
+// ===== v5.1 data-driven auto-renderer (ops 4360): structural full coverage =====
+function esc5(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function nice5(k){return esc5(String(k).replace(/_/g," ").replace(/\b\w/g,function(c){return c.toUpperCase();}));}
+function val5(v){
+ if(v==null)return "<span class='stat-sm'>-</span>";
+ if(typeof v==="number"){var a=Math.abs(v);
+  if(a>=1e12)return "$"===""?"":(v/1e12).toFixed(2)+"T";
+  if(a>=1e9)return (v/1e9).toFixed(2)+"B";
+  if(a>=1e6)return (v/1e6).toFixed(2)+"M";
+  return v.toLocaleString(undefined,{maximumFractionDigits:4});}
+ if(typeof v==="boolean")return v?"<span class='up'>true</span>":"<span class='dn'>false</span>";
+ var s=String(v);if(s.length>300)s=s.slice(0,300)+"…";
+ return esc5(s);}
+function autoWalk(v,depth){
+ depth=depth||0;
+ if(v==null)return "";
+ if(Array.isArray(v)){
+  if(!v.length)return "<div class='stat-sm'>empty</div>";
+  var tr=null;if(typeof v[v.length-1]==="object"&&v[v.length-1]&&v[v.length-1]._truncated){tr=v[v.length-1]._truncated;v=v.slice(0,-1);}
+  if(typeof v[0]==="object"&&v[0]&&!Array.isArray(v[0])){
+   var cols={},i;for(i=0;i<v.length&&i<60;i++){for(var k in v[i])cols[k]=1;}
+   var ck=Object.keys(cols).slice(0,8);
+   var h="<table><tr>";ck.forEach(function(c){h+="<th>"+nice5(c)+"</th>";});h+="</tr>";
+   var n=Math.min(v.length,40);
+   for(i=0;i<n;i++){h+="<tr>";ck.forEach(function(c){var cv=v[i][c];
+     h+="<td class='mono'>"+(typeof cv==="object"&&cv!=null?esc5(JSON.stringify(cv)).slice(0,60):val5(cv))+"</td>";});h+="</tr>";}
+   h+="</table>";
+   if(v.length>n)h+="<div class='stat-sm'>showing "+n+" of "+v.length+" rows</div>";
+   if(tr)h+="<div class='stat-sm nt'>source array truncated by engine: "+tr+" total items</div>";
+   return h;}
+  var h2="<div class='mono' style='font-size:11px;word-break:break-all'>"+v.slice(0,30).map(val5).join(", ")+(v.length>30?" … ("+v.length+")":"")+"</div>";
+  if(tr)h2+="<div class='stat-sm nt'>truncated: "+tr+" total</div>";
+  return h2;}
+ if(typeof v==="object"){
+  var h3="";
+  for(var k2 in v){var vv=v[k2];
+   if(vv!=null&&typeof vv==="object"){
+    if(depth>=3){h3+="<div class='metric'><span class='metric-name'>"+nice5(k2)+"</span><span class='metric-val mono'>"+esc5(JSON.stringify(vv)).slice(0,80)+"</span></div>";}
+    else{h3+="<div style='margin:8px 0'><div class='card-title'>"+nice5(k2)+"</div>"+autoWalk(vv,depth+1)+"</div>";}}
+   else{h3+="<div class='metric'><span class='metric-name'>"+nice5(k2)+"</span><span class='metric-val mono'>"+val5(vv)+"</span></div>";}}
+  return h3;}
+ return val5(v);}
+function autoPane(id,title,sec){
+ var h="<div class='pane' id='pane-"+id+"'>";
+ if(!sec||!sec.data){return h+"<div class='card'><div class='card-title'>"+esc5(title)+"</div><div class='stat-sm'>feed not joined this run</div></div></div>";}
+ h+="<div class='card' style='margin-bottom:12px'><div class='card-title'>"+esc5(title)+ageTag(sec.age_h)+(sec.stale?" <span class='badge dn' style='border:1px solid var(--red)'>STALE</span>":"")+"</div>";
+ if(sec.truncated_paths&&sec.truncated_paths.length)h+="<div class='stat-sm nt'>engine truncated: "+esc5(sec.truncated_paths.join(", "))+"</div>";
+ h+="</div><div class='card'>"+autoWalk(sec.data,0)+"</div>";
+ return h+"</div>";}
+function paneFleetAll(){
+ var S=((D.fleet||{}).sections)||{};
+ var h="";
+ h+=autoPane("altseason","ALTSEASON ENGINE",S.altseason);
+ h+=autoPane("narratives","CRYPTO NARRATIVES",S.narratives);
+ h+=autoPane("etf","ETF FLOWS",S.etf_flows);
+ var od="<div class='pane' id='pane-optdesk'>";
+ [["CRYPTO GEX",S.crypto_gex],["DEALER GEX",S.dealer_gex],["OPTIONS",S.options],["OPTIONS SURFACE",S.options_surface],["OPTIONS CONFLUENCE",S.options_confluence]].forEach(function(x){
+  od+="<div class='card' style='margin-bottom:12px'><div class='card-title'>"+x[0]+(x[1]?ageTag(x[1].age_h):"")+((x[1]&&x[1].stale)?" <span class='dn'>STALE</span>":"")+"</div>"+(x[1]?autoWalk(x[1].data,0):"<div class='stat-sm'>not joined</div>")+"</div>";});
+ h+=od+"</div>";
+ var bv="<div class='pane' id='pane-basisvol'>";
+ [["FUTURES BASIS",S.basis],["DVOL",S.dvol],["FUNDING ENGINE",S.funding_engine]].forEach(function(x){
+  bv+="<div class='card' style='margin-bottom:12px'><div class='card-title'>"+x[0]+(x[1]?ageTag(x[1].age_h):"")+((x[1]&&x[1].stale)?" <span class='dn'>STALE</span>":"")+"</div>"+(x[1]?autoWalk(x[1].data,0):"<div class='stat-sm'>not joined</div>")+"</div>";});
+ h+=bv+"</div>";
+ return h;}
+function cqCatalog(q){
+ var cat=q.catalog_metrics||{};var ks=Object.keys(cat);if(!ks.length)return "";
+ var h="<div class='card' style='margin-top:12px'><div class='card-title'>FULL CRYPTOQUANT CATALOG ("+ks.length+" metrics &middot; every entitled path)</div><table><tr><th>metric</th><th>asof</th><th>fields</th><th>&Delta; vs prev</th></tr>";
+ ks.sort().forEach(function(k){var mm=cat[k]||{};var f=mm.fields||{};var pv=mm.prev||{};
+  var fs=Object.keys(f).map(function(fk){return fk+": "+val5(f[fk]);}).join("  ");
+  var ds=Object.keys(f).filter(function(fk){return typeof f[fk]==="number"&&typeof pv[fk]==="number";}).map(function(fk){var d=f[fk]-pv[fk];var c=d>0?"up":d<0?"dn":"";return "<span class='"+c+"'>"+fk+" "+(d>0?"+":"")+val5(d)+"</span>";}).join("  ");
+  h+="<tr><td class='mono'>"+esc5(k)+"</td><td class='mono'>"+esc5(mm.asof||"-")+"</td><td class='mono' style='font-size:10px'>"+fs+"</td><td class='mono' style='font-size:10px'>"+ds+"</td></tr>";});
+ h+="</table></div>";
+ if(q.onchain_metrics){h+="<div class='card' style='margin-top:12px'><div class='card-title'>CRYPTOQUANT-ONCHAIN ENGINE &middot; FULL METRIC MAP</div>"+autoWalk(q.onchain_metrics,0)+"</div>";}
+ if(q.grading){h+="<div class='card' style='margin-top:12px'><div class='card-title'>ON-CHAIN GRADING</div>"+autoWalk(q.grading,0)+"</div>";}
+ if(q.forecasts){h+="<div class='card' style='margin-top:12px'><div class='card-title'>FORECASTS</div>"+autoWalk(q.forecasts,0)+"</div>";}
+ return h;}
+
 function paneHealth(){
  var sh=(D.source_health||{});var secs=sh.sections||[];var fl=(D.fleet||{});var led=fl.ledger||[];
  var h="<div class='pane' id='pane-health'>";
  h+="<div class='grid g3' style='margin-bottom:12px'>";
  h+="<div class='card'><div class='card-title'>ENGINE SECTIONS OK</div><div class='stat-xl mono "+((sh.ok||0)>=(sh.total||1)*0.8?"up":"nt")+"'>"+(sh.ok||0)+"/"+(sh.total||0)+"</div><div class='stat-sm'>v"+(D.version||"?")+" &middot; fetch "+(D.fetch_time||"?")+"s</div></div>";
  h+="<div class='card'><div class='card-title'>PRICE AUTHORITY</div><div class='stat-big'>"+(((D.prices_canonical||{}).authority)||"-")+"</div><div class='stat-sm'>"+(((D.prices_canonical||{}).asof)||"")+"</div></div>";
- h+="<div class='card'><div class='card-title'>GENERATED</div><div class='stat-big mono' style='font-size:18px'>"+String(D.generated_at||"").replace("T"," ").replace("Z"," UTC")+"</div></div>";
+ var cv=D.coverage||{};h+="<div class='card'><div class='card-title'>DATA COVERAGE CONTRACT</div><div class='stat-xl mono up'>"+(cv.total_leaves!=null?cv.total_leaves.toLocaleString():"-")+"</div><div class='stat-sm'>fields emitted across "+(cv.sections||0)+" sections &middot; "+(cv.truncated_paths||0)+" engine truncations (marked on-page)</div><div class='stat-sm' style='margin-top:6px'>"+esc5(cv.contract||"")+"</div></div>";h+="<div class='card'><div class='card-title'>GENERATED</div><div class='stat-big mono' style='font-size:18px'>"+String(D.generated_at||"").replace("T"," ").replace("Z"," UTC")+"</div></div>";
  h+="</div>";
  h+="<div class='grid g2'>";
  h+="<div class='card'><div class='card-title'>FLEET FEED JOINS</div><table><tr><th>feed</th><th>age</th><th>status</th></tr>";

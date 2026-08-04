@@ -2064,52 +2064,26 @@ def fetch_funding():
     }
 
 def fetch_oi():
-
-
-
-
-
-    syms=['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','DOGEUSDT']
-
-
-
-
-
-    oi=[]
-
-
-
-
-
-    for s in syms:
-
-
-
-
-
-        d=http_mirror(f"/v5/market/open-interest?category=linear&symbol={s}&intervalTime=1h&limit=1", ["https://api.bybit.com"], timeout=8); d=_bybit_oi_to_binance_shape(d) if d else None
-
-
-
-
-
-        if d: oi.append({'symbol':s.replace('USDT',''),'open_interest':round(float(d.get('openInterest',0)),2)})
-
-
-
-
-
-    return {'status':'ok' if oi else 'error','open_interest':oi}
-
-
-
-
-
-
-
-
-
-
+    # v5.1: OKX public OI (Bybit 403s from AWS us-east-1 — probe-verified)
+    insts=['BTC-USDT-SWAP','ETH-USDT-SWAP','SOL-USDT-SWAP','XRP-USDT-SWAP','DOGE-USDT-SWAP']
+    rows=[]
+    for inst in insts:
+        try:
+            req=urllib.request.Request('https://www.okx.com/api/v5/public/open-interest?instId='+inst,
+                                       headers={'User-Agent':'JustHodl/2.0'})
+            with urllib.request.urlopen(req,timeout=8) as r:
+                d=json.loads(r.read().decode())
+            if d.get('code')=='0' and d.get('data'):
+                it=d['data'][0]
+                rows.append({'symbol':inst.replace('-USDT-SWAP',''),
+                             'open_interest':float(it.get('oi') or 0),
+                             'oi_coin':float(it.get('oiCcy') or 0),
+                             'venue':'okx'})
+        except Exception:
+            continue
+    if rows:
+        return {'status':'ok','source':'okx','list':rows}
+    return {'status':'error','error':'okx oi unavailable'}
 
 def fetch_global():
 
@@ -3591,6 +3565,29 @@ def risk(fg,fn,st,gl,tech):
 # vol/gex/options desks, altseason, ETF flows) instead of re-scraping, with
 # per-feed age + honest stale flags. One canonical price authority.
 
+def _v5_trim(v, collect=False, _path="", _cut=None, _depth=0):
+    """Full-fidelity passthrough. Only genuinely huge arrays are shortened,
+    each replaced by head+{'_truncated':N} and recorded so coverage stays honest."""
+    if _cut is None: _cut = []
+    if isinstance(v, list):
+        if len(v) > 600:
+            _cut.append(_path or "root")
+            v = v[:60] + [{"_truncated": len(v)}]
+        out = [_v5_trim(x, False, _path+"[]", _cut, _depth+1) for x in v]
+    elif isinstance(v, dict):
+        out = {k: _v5_trim(x, False, (_path+"."+str(k)).lstrip("."), _cut, _depth+1)
+               for k, x in v.items()}
+    elif isinstance(v, str) and len(v) > 4000:
+        _cut.append(_path); out = v[:2000] + "…[_truncated]"
+    else:
+        out = v
+    return (out, _cut) if collect else out
+
+def _v5_leaves(v):
+    if isinstance(v, dict):  return sum(_v5_leaves(x) for x in v.values())
+    if isinstance(v, list):  return sum(_v5_leaves(x) for x in v)
+    return 1
+
 def _s3_json_v5(key):
     try:
         o = s3.get_object(Bucket=S3_BUCKET, Key=key)
@@ -3644,6 +3641,25 @@ def fetch_cryptoquant():
         fc = oc.get('forecasts')
         out['forecasts'] = fc if isinstance(fc, dict) else None
         out['plan_note'] = oc.get('plan_note')
+    # v5.1 full fidelity: EVERY catalog metric (fields + prev + asof), not just aliases
+    if fd:
+        cat = {}
+        for slug, mm in (fd.get('metrics') or {}).items():
+            if isinstance(mm, dict):
+                cat[slug] = {'path': mm.get('path'), 'asof': mm.get('asof'),
+                             'fields': mm.get('fields'), 'prev': mm.get('prev')}
+        out['catalog_metrics'] = cat
+        # hashrate direct from catalog when the alias is absent
+        if 'hashrate' not in m:
+            hr = cat.get('btc_network-data_hashrate') or cat.get('btc_network-indicator_hashrate')
+            if hr and isinstance(hr.get('fields'), dict):
+                for fk, fv in hr['fields'].items():
+                    if isinstance(fv, (int, float)):
+                        m['hashrate'] = {'value': fv, 'asof': hr.get('asof')}; break
+    if oc:
+        out['onchain_metrics'] = _v5_trim(oc.get('metrics'))
+        out['grading'] = _v5_trim(oc.get('grading'))
+        out['categories'] = _v5_trim(oc.get('categories'))
     out['metrics'] = m
     out['stale'] = bool(isinstance(fage,(int,float)) and fage > 30)
     out['status'] = 'ok'
@@ -3672,9 +3688,11 @@ def fetch_fleet():
             out['ledger'].append({'feed':name,'key':key,'status':'missing','note':age})
             continue
         stale = isinstance(age,(int,float)) and age > maxh
-        slim = {k:v for k,v in d.items() if not (isinstance(v,list) and len(v) > 120)}
-        out['sections'][name] = {'age_h':age,'stale':stale,'data':slim}
-        out['ledger'].append({'feed':name,'key':key,'status':'stale' if stale else 'ok','age_h':age})
+        slim, cut = _v5_trim(d, collect=True)
+        out['sections'][name] = {'age_h':age,'stale':stale,'data':slim,
+                                 'truncated_paths':cut}
+        out['ledger'].append({'feed':name,'key':key,'status':'stale' if stale else 'ok',
+                              'age_h':age,'truncated':len(cut)})
         got += 1
     if not got:
         out['status'] = 'error'; out['error'] = 'no fleet feeds readable'
@@ -3731,7 +3749,7 @@ def lambda_handler(event, context):
 
 
 
-    print("       CRYPTO INTELLIGENCE v5.0       ")
+    print("       CRYPTO INTELLIGENCE v5.1       ")
 
 
 
@@ -3973,7 +3991,12 @@ def lambda_handler(event, context):
         if isinstance(_v,dict):
             _led.append({'section':_k,'status':_v.get('status','ok' if _v else 'empty'),'error':(str(_v.get('error') or ''))[:90]})
     R['source_health']={'sections':_led,'ok':sum(1 for e in _led if e['status']=='ok'),'total':len(_led)}
-    out={'generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'fetch_time':round(time.time()-start,1),'version':'5.0',**R}
+    _cov={k:_v5_leaves(v) for k,v in R.items() if k!='source_health'}
+    _tr=sum(len((s or {}).get('truncated_paths') or []) for s in ((R.get('fleet') or {}).get('sections') or {}).values())
+    R['coverage']={'leaves_by_section':_cov,'total_leaves':sum(_cov.values()),
+                   'sections':len(_cov),'truncated_paths':_tr,
+                   'contract':'every upstream field is emitted; only arrays>600 are head-truncated with markers'}
+    out={'generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'fetch_time':round(time.time()-start,1),'version':'5.1',**R}
 
 
 
