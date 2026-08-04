@@ -1,0 +1,18 @@
+# ops 4353 -- the fleet gains eyes for news
+
+**Status:** success  
+**Duration:** 104.5s  
+**Finished:** 2026-08-04T03:09:08+00:00  
+
+## Log
+- `03:08:34` ✅ justhodl-tiingo-news: key installed (len=40, readback-verified, tail ...01f4)
+- `03:08:50` ✅ justhodl-shadow-lab: key installed (len=40, readback-verified, tail ...01f4)
+- `03:08:59` ✅ NEWS: covered=103/120 · mean7d=60.5
+- `03:08:59`   NVDA   7d=1043 24h=644 burst=4.32 · 3 Reasons AVO is Risky and 1 Stock to Buy Instead
+- `03:08:59`   C      7d=687 24h=256 burst=2.61 · AMZN Stock Dips Overnight After Breaching $3 Trillion Market Cap: Reta
+- `03:08:59`   GOOGL  7d=635 24h=489 burst=5.39 · Telegram’s Apple App Store mystery continues, but it’s still available
+- `03:08:59`   RJF    7d=330 24h=49 burst=1.04 · ETF League Tables: Invesco Loses $5.6B
+- `03:08:59`   PLTR   7d=256 24h=164 burst=4.48 · Q2 2026 Palantir Technologies Inc Earnings Call Transcript
+- `03:09:03` ✅ BUS carries news: NVDA -> news_7d=1043 burst=4.32
+- `03:09:08` ✅ shadow-lab triple-source: computed=40
+- `03:09:08` ✅ OPS 4353 PASS -- Tiingo aboard: news velocity on the bus, prices triple-sourced; rotate the key anytime, one line swaps it

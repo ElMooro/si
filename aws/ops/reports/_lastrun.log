@@ -1,26 +1,15 @@
-executing-against: c78f75c100ef5196b4d01b58dd815376c07b1626
-ops 4352 -- shadows born, sources mapped
-[02:54:09] ✅ SOURCE-INTEL: integrated=9 · free_unused=5 · cheap=2
-── free & unused (auto-adopt queue) ──
-[02:54:09]   Alpaca           free IEX-feed data w/ brokerage acct probe=-
-[02:54:09]   Alpha Vantage    free key; 25 req/d probe=-
-[02:54:09]   Binance          free public API probe=-
-[02:54:09]   CoinGecko        free tier 10k/mo probe=LIVE(200)
-[02:54:09]   Coinbase         free public API probe=-
-── cheap & worth it (Khalid's buy list) ──
-[02:54:09]   Finnhub        $0/mo -- free tier 60/min; paid $50+
-[02:54:09]   Tiingo         $10/mo -- $10/mo EOD+news+fundamentals
-[02:54:09] teachers readable: 4/6 · indicators=63
-[02:54:10] donor FMP-ish vars: ['FMP_KEY'] -> key_len=32
-[02:54:25] env verified on readback (key_len=32)
-[02:54:30] engine debug_key_len=32
-[02:54:30] ✅ SHADOW-LAB: computed=40 · logged=11 · roster=['ADX', 'ATR', 'BOLLINGER', 'EMA', 'MACD', 'OBV']
-[02:54:30]   AFRI   ADX=62.4 +DI/-DI=25.8/8.2 ATRpct=3.6 pctile=93.0 sig=shadow-adx-trend
-[02:54:30]   WIZEY  ADX=43.4 +DI/-DI=29.8/9.9 ATRpct=4.67 pctile=100.0 sig=shadow-adx-trend
-[02:54:30]   ARCT   ADX=31.1 +DI/-DI=12.9/24.6 ATRpct=5.83 pctile=2.0 sig=shadow-adx-trend
-[02:54:30]   AAPL   ADX=29.0 +DI/-DI=24.7/34.2 ATRpct=3.23 pctile=100.0 sig=shadow-adx-trend
-[02:54:30]   ZURVY  ADX=26.4 +DI/-DI=35.3/23.4 ATRpct=1.17 pctile=13.0 sig=shadow-adx-trend
-[02:54:30] ✅ LEDGER: shadow-adx-trend#AFRI#2026-08-04 born, stamped=True (fabric_agreement=100)
-[02:54:30] ✅ OPS 4352 PASS -- borrowed ideas now compute, sign the ledger at birth, and queue for their Wilson trial; the source atlas prices Khalid's next unlocks
+executing-against: ba0e49be2f244f9e578fe2b0cd1704d8ae927bb7
+ops 4353 -- the fleet gains eyes for news
+[03:08:34] ✅ justhodl-tiingo-news: key installed (len=40, readback-verified, tail ...01f4)
+[03:08:50] ✅ justhodl-shadow-lab: key installed (len=40, readback-verified, tail ...01f4)
+[03:08:59] ✅ NEWS: covered=103/120 · mean7d=60.5
+[03:08:59]   NVDA   7d=1043 24h=644 burst=4.32 · 3 Reasons AVO is Risky and 1 Stock to Buy Instead
+[03:08:59]   C      7d=687 24h=256 burst=2.61 · AMZN Stock Dips Overnight After Breaching $3 Trillion Market Cap: Reta
+[03:08:59]   GOOGL  7d=635 24h=489 burst=5.39 · Telegram’s Apple App Store mystery continues, but it’s still available
+[03:08:59]   RJF    7d=330 24h=49 burst=1.04 · ETF League Tables: Invesco Loses $5.6B
+[03:08:59]   PLTR   7d=256 24h=164 burst=4.48 · Q2 2026 Palantir Technologies Inc Earnings Call Transcript
+[03:09:03] ✅ BUS carries news: NVDA -> news_7d=1043 burst=4.32
+[03:09:08] ✅ shadow-lab triple-source: computed=40
+[03:09:08] ✅ OPS 4353 PASS -- Tiingo aboard: news velocity on the bus, prices triple-sourced; rotate the key anytime, one line swaps it
 
-→ Report written to aws/ops/reports/latest/4352_shadow_and_sources.md
+→ Report written to aws/ops/reports/latest/4353_tiingo_rail.md
