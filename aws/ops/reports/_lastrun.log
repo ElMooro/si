@@ -1,48 +1,8 @@
-executing-against: 176967ff9d711b73072338981affe9febae12437
+executing-against: f22b4e8d1ad9eee48b3307a059abc75ab1fe7c51
 {
- "ops": 4365,
- "started": "2026-08-04T15:34:18.305158+00:00",
- "tries": [
-  {
-   "n": 1,
-   "fn_err": null,
-   "n_metrics": 39,
-   "marker": "cq-feed v2.1 ops4365"
-  }
- ],
- "cq_feed": {
-  "n_metrics": 39,
-  "marker": "cq-feed v2.1 ops4365"
- },
- "engine": {
-  "catalog_metrics": 39,
-  "headline": 9,
-  "new_paths_present": [
-   "btc_network-data_blockreward",
-   "eth_network-data_supply",
-   "btc_network-indicator_nvt",
-   "btc_network-indicator_nvt-golden-cross",
-   "btc_network-indicator_puell-multiple",
-   "btc_network-indicator_stock-to-flow",
-   "btc_market-data_coinbase-premium-index",
-   "btc_network-data_addresses-count",
-   "btc_network-data_transactions-count",
-   "btc_network-data_tokens-transferred",
-   "btc_network-data_fees",
-   "btc_network-data_difficulty",
-   "btc_network-data_block-interval",
-   "btc_network-data_utxo-count",
-   "btc_network-data_supply"
-  ],
-  "leaves": 15403,
-  "ratchet": {
-   "prev": 15238,
-   "now": 15403,
-   "regression": false
-  },
-  "anomaly_points": 8,
-  "generated_at": "2026-08-04T15:36:12Z"
- },
- "verdict": "PASS \u2014 39-path expansion live end-to-end",
- "finished": "2026-08-04T15:36:13.304656+00:00"
+ "ops": 4367,
+ "bytes": 308827,
+ "version": "5.2",
+ "generated_at": "2026-08-04T15:57:26Z",
+ "sections": 37
 }
