@@ -3736,6 +3736,117 @@ def fetch_prices_canon():
     return {'status':'error','error':'no price source'}
 # ================== end v5.0 JOIN LAYER ==================
 
+# ==================== v5.2 RAILS (ops 4361) ====================
+# History lake seed + per-KPI z-rail anomalies + coverage ratchet + push.
+_V52_TG = {}
+def _v52_ssm(name):
+    import boto3 as _b
+    return _b.client('ssm', region_name='us-east-1').get_parameter(
+        Name=name, WithDecryption=True)['Parameter']['Value']
+
+def _v52_kpis(out):
+    k = {}
+    def g(*path):
+        v = out
+        for p in path:
+            if not isinstance(v, dict): return None
+            v = v.get(p)
+        return v if isinstance(v, (int, float)) else None
+    k['risk_score'] = g('risk_score', 'score')
+    k['composite_onchain_z'] = g('cryptoquant', 'composite_onchain_risk_z')
+    for mkey in ('mvrv','sopr','nupl','realized_price','exch_reserve','exch_netflow',
+                 'whale_ratio','mpi','ssr','hashrate'):
+        k['cq_'+mkey] = g('cryptoquant', 'metrics', mkey, 'value')
+    k['btc_price'] = g('prices_canonical', 'prices', 'BTC', 'price')
+    k['eth_price'] = g('prices_canonical', 'prices', 'ETH', 'price')
+    try:
+        k['oi_btc_coin'] = next((r.get('oi_coin') for r in (out.get('open_interest') or {}).get('list', [])
+                                 if r.get('symbol') == 'BTC'), None)
+    except Exception:
+        pass
+    return {a: b for a, b in k.items() if isinstance(b, (int, float))}
+
+def _v52_post(out):
+    now = datetime.now(timezone.utc)
+    kp = _v52_kpis(out)
+    leaves = ((out.get('coverage') or {}).get('total_leaves')) or 0
+    hist, _ = _s3_json_v5('data/crypto-intel-history.json')
+    if not isinstance(hist, dict): hist = {}
+    pts = hist.get('points') or []
+    alerts = hist.get('last_alerts') or {}
+    prev_leaves = pts[-1].get('leaves') if pts else None
+    # ---- coverage ratchet (10% jitter tolerance) ----
+    regression = bool(prev_leaves and leaves < prev_leaves * 0.9)
+    out.setdefault('coverage', {})['ratchet'] = {'prev': prev_leaves, 'now': leaves,
+                                                 'regression': regression}
+    # ---- z-rail: each KPI vs its own history ----
+    anos = []
+    for name, cur in kp.items():
+        hs = [p['k'].get(name) for p in pts if isinstance(p.get('k'), dict)
+              and isinstance(p['k'].get(name), (int, float))]
+        if len(hs) < 20: continue
+        mu = sum(hs)/len(hs)
+        var = sum((x-mu)**2 for x in hs)/len(hs)
+        sd = var ** 0.5
+        if sd <= 1e-12: continue
+        z = (cur-mu)/sd
+        if abs(z) >= 2:
+            anos.append({'kpi': name, 'value': round(cur, 6), 'z': round(z, 2), 'n': len(hs)})
+    anos.sort(key=lambda a: -abs(a['z']))
+    out['anomaly'] = {'anomalies': anos, 'kpis_tracked': len(kp),
+                      'history_points': len(pts),
+                      'status': 'ok' if len(pts) >= 20 else 'warming',
+                      'method': 'z vs own rolling history (pop std), flag |z|>=2'}
+    # ---- push events (dedupe 6h) ----
+    events = []
+    def fire(key, msg):
+        last = alerts.get(key)
+        if last:
+            try:
+                if (now - datetime.fromisoformat(last)).total_seconds() < 6*3600: return
+            except Exception: pass
+        events.append((key, msg)); alerts[key] = now.isoformat()
+    if regression:
+        fire('coverage_regression', f'coverage regression {prev_leaves} -> {leaves} leaves')
+    for a in anos:
+        if abs(a['z']) >= 2.5:
+            fire('anomaly:'+a['kpi'], f"{a['kpi']} z={a['z']} value={a['value']} (n={a['n']})")
+    if (out.get('cryptoquant') or {}).get('stale'):
+        fire('cq_stale', 'cryptoquant feed stale >30h')
+    out['push_events'] = [e[0] for e in events]
+    if events:
+        try:
+            if not _V52_TG:
+                _V52_TG['tok'] = _v52_ssm('/justhodl/telegram/bot_token')
+                _V52_TG['chat'] = _v52_ssm('/justhodl/telegram/chat_id')
+            body = '\n'.join('• '+m for _, m in events)[:3500]
+            data = json.dumps({'chat_id': _V52_TG['chat'],
+                                'text': ' CRYPTO INTEL v5.2\n'+body}).encode()
+            req = urllib.request.Request(
+                'https://api.telegram.org/bot'+_V52_TG['tok']+'/sendMessage',
+                data=data, headers={'Content-Type': 'application/json'})
+            urllib.request.urlopen(req, timeout=8).read()
+            out['push_sent'] = True
+        except Exception as e:
+            out['push_sent'] = False; out['push_error'] = str(e)[:100]
+    # ---- append history (rolling 2880 = 30d @ 15min) + lake partition ----
+    pts.append({'t': now.strftime('%Y-%m-%dT%H:%M:%SZ'), 'leaves': leaves, 'k': kp})
+    hist = {'points': pts[-2880:], 'last_alerts': alerts}
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key='data/crypto-intel-history.json',
+                      Body=json.dumps(hist).encode(), ContentType='application/json',
+                      CacheControl='max-age=300')
+    except Exception as e:
+        print('  hist write err:', str(e)[:60])
+    try:
+        s3.put_object(Bucket=S3_BUCKET,
+                      Key=now.strftime('lake/crypto-intel/dt=%Y-%m-%d/%H%M.json'),
+                      Body=json.dumps({'t': now.isoformat(), 'leaves': leaves, 'k': kp}).encode(),
+                      ContentType='application/json')
+    except Exception as e:
+        print('  lake write err:', str(e)[:60])
+# ================== end v5.2 RAILS ==================
+
 @track_errors
 def lambda_handler(event, context):
 
@@ -3749,7 +3860,7 @@ def lambda_handler(event, context):
 
 
 
-    print("       CRYPTO INTELLIGENCE v5.1       ")
+    print("       CRYPTO INTELLIGENCE v5.2       ")
 
 
 
@@ -3996,7 +4107,11 @@ def lambda_handler(event, context):
     R['coverage']={'leaves_by_section':_cov,'total_leaves':sum(_cov.values()),
                    'sections':len(_cov),'truncated_paths':_tr,
                    'contract':'every upstream field is emitted; only arrays>600 are head-truncated with markers'}
-    out={'generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'fetch_time':round(time.time()-start,1),'version':'5.1',**R}
+    out={'generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'fetch_time':round(time.time()-start,1),'version':'5.2',**R}
+    try:
+        _v52_post(out)   # history, z-rail anomalies, coverage ratchet, push, lake
+    except Exception as _e52:
+        out['v52_post_error']=str(_e52)[:120]; print('  v52 post err:',str(_e52)[:80])
 
 
 
