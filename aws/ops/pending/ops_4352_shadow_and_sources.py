@@ -114,13 +114,21 @@ with report("4352_shadow_and_sources") as r:
                     lam.update_function_configuration(
                         FunctionName=fn,
                         Environment={"Variables": envv})
-                    for _w in range(10):
-                        time.sleep(8)
+                    time.sleep(15)
+                    for _w in range(12):
                         cc = lam.get_function_configuration(
                             FunctionName=fn)
-                        if cc.get("LastUpdateStatus") == \
-                                "Successful":
+                        ev2 = (cc.get("Environment", {})
+                               .get("Variables", {}) or {})
+                        if len(ev2.get("FMP_API_KEY") or "") \
+                                >= 20 \
+                                and cc.get("LastUpdateStatus") \
+                                == "Successful":
+                            r.log("env verified on readback "
+                                  "(key_len=%d)"
+                                  % len(ev2["FMP_API_KEY"]))
                             break
+                        time.sleep(8)
         except Exception as e:
             r.warn("env inherit: %s" % str(e)[:60])
         try:
@@ -199,3 +207,5 @@ with report("4352_shadow_and_sources") as r:
 # retrigger: env-propagation wait + dual-endpoint ohlc
 
 # retrigger: name-agnostic FMP env discovery
+
+# retrigger: env READBACK verification before invoke
