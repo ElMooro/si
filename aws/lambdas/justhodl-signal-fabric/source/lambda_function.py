@@ -181,12 +181,38 @@ def rd(key):
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     lb = rd("data/engine-leaderboard.json") or {}
+    LW = rd("data/learned-weights.json") or {}
+    LW_E = LW.get("by_engine") or {}
+    LW_ER = LW.get("by_engine_regime") or {}
+    try:
+        _uc = rd("data/us-cycle.json") or {}
+        CUR_REG = str(_uc.get("regime") or _uc.get("phase")
+                      or "UNKNOWN").upper()
+    except Exception:
+        CUR_REG = "UNKNOWN"
     W = {}
     for x in lb.get("board") or []:
         W[str(x["engine"]).lower()] = {
             "win": x.get("win_pct"), "n": x.get("n")}
 
     def wt(engine):
+        # ops 4347: LEARNED weights first (regime-conditional),
+        # then learned overall, then empirical, then neutral.
+        for lk, tab, tag in ((engine + "|" + CUR_REG, LW_ER,
+                              "learned:" + CUR_REG),
+                             (engine, LW_E, "learned")):
+            for k2, v2 in tab.items():
+                if k2.split("|")[0].lower() in engine.lower() \
+                        or engine.lower() in k2.split("|")[0] \
+                        .lower():
+                    if (tag.startswith("learned:")
+                            and not k2.endswith("|" + CUR_REG)):
+                        continue
+                    w0 = max(0.2, min(1.6,
+                                      0.6 + v2["lift"] / 50.0))
+                    return (round(w0, 2),
+                            "%s:%s%%(n=%s)" % (tag, v2["win"],
+                                               v2["n"]))
         # empirical weight: (win%-50)/50 clipped [0.2, 1.5];
         # ungraded engines get neutral 0.6 (disclosed)
         for k, v in W.items():
@@ -287,6 +313,28 @@ def lambda_handler(event=None, context=None):
                 "down": [e["engine"] for e in dns],
                 "note": "proven complementarity surface -- "
                         "the fleet is debating this name"})
+    # ops 4347: PEER GRAPH propagation (entity-graph v0)
+    _rr2 = rd("data/ai-rerating-radar.json") or {}
+    _pg = {}
+    for r2 in (_rr2.get("all_ranked") or [])[:900]:
+        sy2 = str(r2.get("symbol") or "").upper()
+        gp2 = r2.get("peer_group")
+        if sy2 and gp2:
+            _pg[sy2] = gp2
+    _by_grp = {}
+    for t2 in tickers:
+        g3 = _pg.get(t2["ticker"])
+        if g3:
+            _by_grp.setdefault(g3, []).append(
+                t2["fabric_score"])
+    for t2 in tickers:
+        g3 = _pg.get(t2["ticker"])
+        vals = [v for v in (_by_grp.get(g3) or [])]
+        if g3 and len(vals) >= 3:
+            t2["peer_group"] = g3
+            t2["peer_fabric_score"] = round(
+                (sum(vals) - t2["fabric_score"])
+                / (len(vals) - 1), 2)
     tickers.sort(key=lambda x: -abs(x["fabric_score"]))
     conflicts.sort(key=lambda x: -x["n_engines"])
     out = {"engine": "justhodl-signal-fabric", "version": "2.0",
@@ -325,6 +373,8 @@ def lambda_handler(event=None, context=None):
             "insider": g2("insider-clusters", "value"),
             "compound": g2("compound-aggregator", "value"),
             "setups": g2("best-setups", "value"),
+            "peer_group": t.get("peer_group"),
+            "peer_fabric_score": t.get("peer_fabric_score"),
         }
     prev = rd("data/feature-bus.json") or {}
     pt = prev.get("tickers") or {}
@@ -360,6 +410,16 @@ def lambda_handler(event=None, context=None):
                       "tickers": bus}, default=str).encode(),
                   ContentType="application/json",
                   CacheControl="no-cache")
+    s3.put_object(Bucket=B,
+                  Key="data/archive/feature-bus/%s.json"
+                      % datetime.now(timezone.utc
+                                     ).strftime("%Y%m%d"),
+                  Body=json.dumps({"generated_at":
+                                   datetime.now(timezone.utc
+                                                ).isoformat(),
+                                   "tickers": bus},
+                                  default=str).encode(),
+                  ContentType="application/json")
     s3.put_object(Bucket=B, Key="data/fabric-events.json",
                   Body=json.dumps({
                       "generated_at": datetime.now(
