@@ -1,37 +1,52 @@
-executing-against: 4ebe0dd20f26ec67c67a2c9c9bbc87269b73cc60
+executing-against: da9170bc0aa76f30475bf6268d19fec68af5ab4d
 {
- "ops": 4384,
- "started": "2026-08-04T21:35:59.745927+00:00",
- "alpha_triage_writer": "NOT FOUND (candidates scanned: 784)",
- "fires": {
-  "data/calibration-snapshot.json": {
-   "fn": "justhodl-calibration-snapshot",
-   "fn_err": null,
-   "payload_head": "{\"statusCode\": 200, \"body\": \"{\\\"n_signal_types\\\": 386, \\\"n_outcomes_60d\\\": 13209, \\\"n_rated\\\": 295, \\\"weighted_avg_accuracy_60d\\\": 0.4551, \\\"duration_s\\\": 7.36}\"}",
-   "error_class": "no_errors_captured",
-   "log_tail": "INIT_START Runtime Version: python:3.12.mainlinev2.v14\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:40182b778d40c8bdb13a6ef86990df74f5066cdb7d40aac1845f6f3fa5a1b20f\nSTART RequestId: 11438357-37eb-4462-b437-a8f72ae35b79 Version: $LATEST\n"
+ "ops": 4385,
+ "started": "2026-08-04T21:51:31.069231+00:00",
+ "breakers_cleared": [
+  "glm"
+ ],
+ "council_invoke": {
+  "code": 200,
+  "fn_err": null
+ },
+ "providers": {
+  "perplexity": {
+   "ok": true,
+   "model": "sonar-pro",
+   "latency_s": 11.5,
+   "error_class": null,
+   "error": ""
   },
-  "data/asymmetric-scorer.json": {
-   "fn": "justhodl-asymmetric-scorer",
-   "fn_err": null,
-   "payload_head": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"n_setups\\\": 113, \\\"n_value_traps\\\": 11, \\\"n_new_this_week\\\": 3, \\\"n_dropped_this_week\\\": 3, \\\"top_5",
-   "error_class": "no_errors_captured",
-   "log_tail": ""
+  "glm": {
+   "ok": true,
+   "model": "glm-5.1",
+   "latency_s": 17.9,
+   "error_class": null,
+   "error": ""
   },
-  "data/alpha-triage.json": {
-   "skipped": "no writer found"
+  "claude": {
+   "ok": true,
+   "model": "claude-sonnet-4-6",
+   "latency_s": 21.1,
+   "error_class": null,
+   "error": ""
   }
  },
- "ages_after": {
-  "data/calibration-snapshot.json": 0.01,
-  "data/asymmetric-scorer.json": 0.01,
-  "data/alpha-triage.json": 430.03
+ "ok_count": 3,
+ "engine_refires": {
+  "justhodl-ai-brief": {
+   "fired": true,
+   "error_class": "clean"
+  },
+  "justhodl-ciss-ai": {
+   "fired": true,
+   "error_class": "clean"
+  },
+  "justhodl-crypto-intel": {
+   "fired": true,
+   "error_class": "rate_limited"
+  }
  },
- "turns": {
-  "self_correction": true,
-  "csp_block": true
- },
- "quota_blocked_feeds": [],
- "verdict": "PASS \u2014 corrections on the ledger; 0 feeds credit-blocked",
- "finished": "2026-08-04T21:36:52.657657+00:00"
+ "verdict": "PASS \u2014 full council 3/3, synthesis live, fleet resuming",
+ "finished": "2026-08-04T21:55:02.153021+00:00"
 }
