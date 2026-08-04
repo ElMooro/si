@@ -413,6 +413,133 @@ def parse_form4(xml_bytes: bytes):
     return txns
 
 
+# ═══════════ v3.0 (ops 4373): structural coverage — the crypto doctrine ═══════════
+def _leaves_v3(v):
+    if isinstance(v, dict):
+        return sum(_leaves_v3(x) for x in v.values())
+    if isinstance(v, list):
+        return sum(_leaves_v3(x) for x in v)
+    return 1
+
+
+def _trim_v3(v, collect=False, _path="", _cut=None):
+    """Full fidelity; only huge arrays head-truncate with in-band markers."""
+    if _cut is None:
+        _cut = []
+    if isinstance(v, list):
+        if len(v) > 600:
+            _cut.append(_path or "root")
+            v = v[:60] + [{"_truncated": len(v)}]
+        out = [_trim_v3(x, False, _path + "[]", _cut) for x in v]
+    elif isinstance(v, dict):
+        out = {k: _trim_v3(x, False, (_path + "." + str(k)).lstrip("."), _cut)
+               for k, x in v.items()}
+    else:
+        out = v
+    return (out, _cut) if collect else out
+
+
+def build_full_surface(all_txns):
+    """Emit the ENTIRE analytical surface — every rollup the store supports."""
+    buys = [x for x in all_txns if x.get("side") == "buy"]
+
+    def roll(txns, key):
+        d = defaultdict(lambda: {"n": 0, "value": 0.0,
+                                 "insiders": set(), "tickers": set()})
+        for x in txns:
+            k = x.get(key) or "Unknown"
+            r = d[k]
+            r["n"] += 1
+            r["value"] += float(x.get("value") or 0)
+            if x.get("insider"):
+                r["insiders"].add(x["insider"])
+            if x.get("ticker"):
+                r["tickers"].add(x["ticker"])
+        rows = [{key: k, "n": v["n"], "value": round(v["value"], 0),
+                 "insiders": len(v["insiders"]), "tickers": len(v["tickers"])}
+                for k, v in d.items()]
+        return sorted(rows, key=lambda r: -r["value"])
+
+    bt = defaultdict(lambda: {"buys": 0, "buy_value": 0.0, "sells": 0,
+                              "sell_value": 0.0, "insiders": set(),
+                              "roles": set(), "sector": None,
+                              "industry": None, "first": None, "last": None})
+    for x in all_txns:
+        tk = x.get("ticker") or "?"
+        r = bt[tk]
+        if x.get("side") == "buy":
+            r["buys"] += 1
+            r["buy_value"] += float(x.get("value") or 0)
+        else:
+            r["sells"] += 1
+            r["sell_value"] += float(x.get("value") or 0)
+        if x.get("insider"):
+            r["insiders"].add(x["insider"])
+        if x.get("role"):
+            r["roles"].add(str(x["role"])[:24])
+        r["sector"] = r["sector"] or x.get("sector")
+        r["industry"] = r["industry"] or x.get("industry")
+        d = (x.get("txn_date") or x.get("filed_at") or "")[:10]
+        if d:
+            r["first"] = min(r["first"] or d, d)
+            r["last"] = max(r["last"] or d, d)
+    by_ticker = [{"ticker": k, "buys": v["buys"],
+                  "buy_value": round(v["buy_value"], 0),
+                  "sells": v["sells"],
+                  "sell_value": round(v["sell_value"], 0),
+                  "net_value": round(v["buy_value"] - v["sell_value"], 0),
+                  "insiders": len(v["insiders"]),
+                  "roles": sorted(v["roles"])[:4],
+                  "sector": v["sector"], "industry": v["industry"],
+                  "first": v["first"], "last": v["last"]}
+                 for k, v in bt.items()]
+    by_ticker.sort(key=lambda r: -r["buy_value"])
+
+    bd = defaultdict(lambda: {"buys": 0, "buy_value": 0.0,
+                              "sells": 0, "sell_value": 0.0})
+    for x in all_txns:
+        d = (x.get("txn_date") or x.get("filed_at") or "")[:10]
+        if not d:
+            continue
+        r = bd[d]
+        if x.get("side") == "buy":
+            r["buys"] += 1
+            r["buy_value"] += float(x.get("value") or 0)
+        else:
+            r["sells"] += 1
+            r["sell_value"] += float(x.get("value") or 0)
+    by_day = [{"date": k,
+               "buys": v["buys"], "buy_value": round(v["buy_value"], 0),
+               "sells": v["sells"], "sell_value": round(v["sell_value"], 0)}
+              for k, v in sorted(bd.items())]
+
+    bands = [(25e3, "25-100K"), (100e3, "100-500K"), (500e3, "500K-1M"),
+             (1e6, "1-5M"), (5e6, "5M+")]
+    dist = defaultdict(lambda: {"n": 0, "value": 0.0})
+    for x in buys:
+        v = float(x.get("value") or 0)
+        lab = "<25K"
+        for lo, name in bands:
+            if v >= lo:
+                lab = name
+        dist[lab]["n"] += 1
+        dist[lab]["value"] += v
+    size_distribution = [{"band": k, "n": v["n"],
+                          "value": round(v["value"], 0)}
+                         for k, v in dist.items()]
+
+    return {"by_ticker": by_ticker,
+            "by_sector": roll(buys, "sector"),
+            "by_industry": roll(buys, "industry")[:60],
+            "by_role": roll(buys, "role"),
+            "by_day": by_day,
+            "size_distribution": size_distribution,
+            "top_insiders": roll(buys, "insider")[:40],
+            "sell_by_ticker": sorted(
+                [r for r in by_ticker if r["sells"] > 0],
+                key=lambda r: -r["sell_value"])[:80]}
+# ═══════════ end v3.0 helpers ═══════════
+
 # ═══════════ v2.0 (ops 4372): daily-index backfill · sector join · fleet ═══════════
 BACKFILL_BUDGET = int(os.environ.get("INSIDER_BACKFILL_BUDGET", "350"))
 CURSOR_KEY = "data/_insider/backfill-cursor.json"
@@ -890,6 +1017,47 @@ def lambda_handler(event, context):
         # was dropped at output until 2026-07-11)
         "sell_transactions": [t for t in all_txns if t["side"] == "sell"][:500],
     }
+
+    # ── v3.0 structural coverage: full surface + honest caps + ledger + ratchet ──
+    try:
+        buys_all = [x for x in all_txns if x.get("side") == "buy"]
+        sells_all = [x for x in all_txns if x.get("side") == "sell"]
+        output["transactions"] = buys_all[:5000]
+        if len(buys_all) > 5000:
+            output["transactions"].append({"_truncated": len(buys_all)})
+        output["sell_transactions"] = sells_all[:3000]
+        if len(sells_all) > 3000:
+            output["sell_transactions"].append({"_truncated": len(sells_all)})
+        surf, surf_cut = _trim_v3(build_full_surface(all_txns), collect=True)
+        output["surface"] = surf
+        output["version"] = "3.0"
+        prev_doc, _ = _s3_json_v2(s3, S3_KEY)
+        prev_leaves = ((prev_doc or {}).get("coverage") or {}).get("total_leaves")
+        cov_leaves = {k: _leaves_v3(v) for k, v in output.items()
+                      if k != "coverage"}
+        total = sum(cov_leaves.values())
+        output["coverage"].update({
+            "leaves_by_section": cov_leaves,
+            "total_leaves": total,
+            "sections": len(cov_leaves),
+            "truncated_paths": (surf_cut
+                + (["transactions"] if len(buys_all) > 5000 else [])
+                + (["sell_transactions"] if len(sells_all) > 3000 else [])),
+            "store_totals": {"buys": len(buys_all), "sells": len(sells_all)},
+            "ratchet": {"prev": prev_leaves, "now": total,
+                        "regression": bool(prev_leaves
+                                           and total < prev_leaves * 0.9)},
+            "contract": ("every store field is emitted or marker-truncated; "
+                         "full store in data/insider-trades-full.json")})
+        s3.put_object(Bucket=S3_BUCKET, Key="data/insider-trades-full.json",
+                      Body=json.dumps({"generated_at": output["generated_at"],
+                                       "transactions": all_txns},
+                                      default=str).encode(),
+                      ContentType="application/json",
+                      CacheControl="max-age=600")
+    except Exception as _e3:
+        output["v3_error"] = str(_e3)[:120]
+        print("v3 surface err:", str(_e3)[:100])
 
     body = json.dumps(output).encode("utf-8")
     s3.put_object(

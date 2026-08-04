@@ -233,6 +233,7 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,230,118,.04),tr
   <footer class="foot">
     <div class="foot-section">
       <div id="fleet-intel"></div>
+      <div id="auto-surface"></div>
       <span class="foot-label">Source</span>
       <span><strong>SEC EDGAR</strong> Form 4 atom feed</span>
       <span>justhodl-insider-trades · 30 min</span>
@@ -359,6 +360,73 @@ function renderBigBuys(buys){
 
 function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;');}
 function fmtUsd(v){v=+v||0;return v>=1e6?'$'+(v/1e6).toFixed(1)+'M':'$'+Math.round(v/1e3)+'K';}
+// ═══ v3 auto-renderer (ops 4373): display is structural, not curated ═══
+function nice(k){return esc(String(k).replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()));}
+function val(v){
+  if(v==null)return '<span style="opacity:.35">—</span>';
+  if(typeof v==='number'){const a=Math.abs(v);
+    if(a>=1e9)return (v/1e9).toFixed(2)+'B';
+    if(a>=1e6)return (v/1e6).toFixed(2)+'M';
+    if(a>=1e3)return (v/1e3).toFixed(1)+'K';
+    return (''+v).length>8?v.toFixed(3):String(v);}
+  if(typeof v==='boolean')return v?'true':'false';
+  const s=String(v);return esc(s.length>200?s.slice(0,200)+'…':s);}
+function walk(v,depth=0){
+  if(v==null)return '';
+  if(Array.isArray(v)){
+    if(!v.length)return '<div style="opacity:.4;font-size:12px">empty</div>';
+    let tr=null;
+    if(typeof v[v.length-1]==='object'&&v[v.length-1]&&v[v.length-1]._truncated){tr=v[v.length-1]._truncated;v=v.slice(0,-1);}
+    if(typeof v[0]==='object'&&v[0]&&!Array.isArray(v[0])){
+      const cols={};for(let i=0;i<Math.min(v.length,60);i++)for(const k in v[i])cols[k]=1;
+      const ck=Object.keys(cols).slice(0,9);
+      let h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px"><tr>'
+        +ck.map(c=>'<th style="text-align:left;padding:4px 8px;opacity:.5;font-size:10px;letter-spacing:.5px;border-bottom:1px solid rgba(255,255,255,.1)">'+nice(c)+'</th>').join('')+'</tr>';
+      const n=Math.min(v.length,50);
+      for(let i=0;i<n;i++){const row=v[i]||{};
+        h+='<tr>'+ck.map(c=>{const cv=row[c];
+          return '<td style="padding:3px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-family:ui-monospace,monospace">'
+            +(typeof cv==='object'&&cv!=null?esc(JSON.stringify(cv)).slice(0,50):val(cv))+'</td>';}).join('')+'</tr>';}
+      h+='</table></div>';
+      if(v.length>n)h+='<div style="opacity:.45;font-size:11px;padding:4px 0">showing '+n+' of '+v.length+' rows</div>';
+      if(tr)h+='<div style="color:#f0b86e;font-size:11px">engine truncated: '+tr+' total items (full store in insider-trades-full.json)</div>';
+      return h;}
+    let h2='<div style="font-family:ui-monospace,monospace;font-size:11px;word-break:break-all">'
+      +v.slice(0,30).map(val).join(', ')+(v.length>30?' … ('+v.length+')':'')+'</div>';
+    if(tr)h2+='<div style="color:#f0b86e;font-size:11px">truncated: '+tr+' total</div>';
+    return h2;}
+  if(typeof v==='object'){
+    let h='';
+    for(const k in v){const vv=v[k];
+      if(vv!=null&&typeof vv==='object'){
+        if(depth>=3){h+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0"><span style="opacity:.6">'+nice(k)+'</span><span style="font-family:ui-monospace,monospace">'+esc(JSON.stringify(vv)).slice(0,70)+'</span></div>';}
+        else{h+='<div style="margin:10px 0"><div style="font-size:10px;letter-spacing:1px;opacity:.5;margin-bottom:5px">'+nice(k)+'</div>'+walk(vv,depth+1)+'</div>';}}
+      else{h+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0"><span style="opacity:.6">'+nice(k)+'</span><span style="font-family:ui-monospace,monospace">'+val(vv)+'</span></div>';}}
+    return h;}
+  return val(v);}
+function renderAutoSurface(d){
+  const el=document.getElementById('auto-surface'); if(!el)return;
+  const cov=d.coverage||{}; const rt=cov.ratchet||{};
+  const HERO=new Set(['transactions','sell_transactions','clusters','big_buys','stats','fleet','generated_at','window_days','cluster_window_days','thresholds','version','coverage','sector_heat']);
+  let h='<div style="margin:28px 0;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)">';
+  h+='<div style="font-size:11px;letter-spacing:2px;opacity:.55;margin-bottom:10px">FULL DATA SURFACE · structural coverage v'+esc(d.version||'?')+'</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px">';
+  h+='<div style="padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:8px"><div style="font-size:10px;opacity:.5;letter-spacing:1px">COVERAGE CONTRACT</div><div style="font-size:22px;font-family:ui-monospace,monospace">'+((cov.total_leaves||0).toLocaleString())+'</div><div style="font-size:11px;opacity:.55">fields emitted / '+(cov.sections||0)+' sections / '+((cov.truncated_paths||[]).length)+' marker-truncations</div></div>';
+  h+='<div style="padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:8px"><div style="font-size:10px;opacity:.5;letter-spacing:1px">COVERAGE RATCHET</div><div style="font-size:22px;font-family:ui-monospace,monospace;color:'+(rt.regression?'#ff6b6b':'#7ee787')+'">'+(rt.regression?'REGRESSION':'OK')+'</div><div style="font-size:11px;opacity:.55">prev '+(rt.prev!=null?rt.prev.toLocaleString():'first run')+' → '+(rt.now!=null?rt.now.toLocaleString():'—')+'</div></div>';
+  const st=cov.store_totals||{};
+  h+='<div style="padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:8px"><div style="font-size:10px;opacity:.5;letter-spacing:1px">STORE</div><div style="font-size:22px;font-family:ui-monospace,monospace">'+((st.buys||0).toLocaleString())+' / '+((st.sells||0).toLocaleString())+'</div><div style="font-size:11px;opacity:.55">buys / sells in window · full store sidecar on S3</div></div>';
+  h+='</div>';
+  const S=d.surface||{};
+  const order=['by_ticker','by_sector','by_industry','by_role','by_day','size_distribution','top_insiders','sell_by_ticker'];
+  const keys=[...order.filter(k=>k in S),...Object.keys(S).filter(k=>!order.includes(k))];
+  for(const k of keys){
+    h+='<div style="margin:0 0 14px 0;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:8px"><div style="font-size:11px;letter-spacing:1px;opacity:.55;margin-bottom:8px">'+nice(k)+'</div>'+walk(S[k])+'</div>';}
+  for(const k of Object.keys(d)){
+    if(HERO.has(k)||k==='surface')continue;
+    h+='<div style="margin:0 0 14px 0;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:8px"><div style="font-size:11px;letter-spacing:1px;opacity:.55;margin-bottom:8px">'+nice(k)+'</div>'+walk(d[k])+'</div>';}
+  h+='</div>'; el.innerHTML=h;}
+// ═══ end v3 auto-renderer ═══
+
 function renderFleet(d){
   const el=document.getElementById('fleet-intel'); if(!el) return;
   const F=(d.fleet&&d.fleet.sections)||{}; const cov=d.coverage||{};
@@ -431,6 +499,7 @@ async function refresh(){
   renderBigBuys(data.big_buys);
   renderSectors(data.transactions);
   try{renderFleet(data);}catch(e){console.error('fleet',e);}
+  try{renderAutoSurface(data);}catch(e){console.error('auto',e);}
   document.getElementById('foot-refresh').textContent = new Date().toLocaleString();
 }
 
