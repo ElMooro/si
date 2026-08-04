@@ -15,6 +15,7 @@ s3 = boto3.client("s3", region_name="us-east-1")
 B = "justhodl-dashboard-live"
 FMP = next((v for k, v in os.environ.items()
             if "FMP" in k.upper() and v), "")
+TIINGO = os.environ.get("TIINGO_API_KEY", "")
 
 
 def rd(key):
@@ -32,7 +33,10 @@ def ohlc(sym, n=60):
             % (sym, FMP),
             "https://financialmodelingprep.com/api/v3/"
             "historical-price-full/%s?timeseries=%d&apikey=%s"
-            % (sym, n + 5, FMP)):
+            % (sym, n + 5, FMP),
+            "https://api.tiingo.com/tiingo/daily/%s/prices"
+            "?startDate=2026-04-01&token=%s"
+            % (sym.lower(), TIINGO)):
         try:
             d = json.loads(urllib.request.urlopen(
                 url, timeout=20).read().decode())

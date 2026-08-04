@@ -376,6 +376,14 @@ def lambda_handler(event=None, context=None):
             "peer_group": t.get("peer_group"),
             "peer_fabric_score": t.get("peer_fabric_score"),
         }
+    tnews = (rd("data/tiingo-news.json") or {}
+             ).get("by_ticker") or {}
+    for sym2, v2 in bus.items():
+        nw = tnews.get(sym2)
+        if nw:
+            v2["news_24h"] = nw.get("n_24h")
+            v2["news_7d"] = nw.get("n_7d")
+            v2["news_burst"] = nw.get("burst")
     prev = rd("data/feature-bus.json") or {}
     pt = prev.get("tickers") or {}
     events = []
