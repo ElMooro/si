@@ -201,3 +201,5 @@ with report("4347_learning_loop") as r:
 # retrigger: emitter-level stamping (signals_emit shared module)
 
 # retrigger: call-site emitter wrapper (layer module untouched)
+
+# retrigger: positional-symbol discovery in emitter wrapper

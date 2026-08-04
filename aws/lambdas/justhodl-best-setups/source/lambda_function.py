@@ -1576,9 +1576,17 @@ def lambda_handler(event, context):
             def log_signal(*a, **k):
                 # ops 4347c: fabric stamp at the emitter call
                 try:
-                    _sy = str(k.get("symbol") or k.get("ticker")
-                              or (a[1] if len(a) > 1 else a[0])
-                              ).upper()
+                    import re as _re2
+                    _sy = str(k.get("symbol")
+                              or k.get("ticker") or "").upper()
+                    if not _sy:
+                        for _cand in a:
+                            _cs = str(_cand).upper()
+                            if _re2.match(
+                                    r"^[A-Z][A-Z0-9.\-]{0,6}$",
+                                    _cs) and _cs in _FB_STAMP:
+                                _sy = _cs
+                                break
                     _fbx = _FB_STAMP.get(_sy)
                     if _fbx:
                         k["metadata"] = {**(k.get("metadata")
