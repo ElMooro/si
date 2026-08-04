@@ -96,6 +96,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ANTHROPIC_API_KEY_NEW: ${{ secrets.ANTHROPIC_API_KEY_NEW }}
+          PPLX_API_KEY: ${{ secrets.PPLX_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           FINVIZ_AUTH: ${{ secrets.FINVIZ_AUTH }}
           MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
