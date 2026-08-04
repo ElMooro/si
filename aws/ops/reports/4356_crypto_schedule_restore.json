@@ -1,0 +1,266 @@
+{
+ "ops": 4356,
+ "ts": "2026-08-04T03:58:44.236414+00:00",
+ "engine": "justhodl-crypto-intel",
+ "binding": {
+  "state": "ENABLED",
+  "expr": "rate(15 minutes)",
+  "target_ok": true
+ },
+ "triage": {
+  "orphaned_no_live_schedule": [
+   {
+    "fn": "bls-employment-api-v2",
+    "missing_declared": [
+     "bls-friday-update",
+     "bls-tuesday-update"
+    ]
+   },
+   {
+    "fn": "chatgpt-agent-api",
+    "missing_declared": [
+     "test-immediate"
+    ]
+   },
+   {
+    "fn": "enhanced-repo-agent",
+    "missing_declared": [
+     "repo-metrics-15min"
+    ]
+   },
+   {
+    "fn": "fedliquidityapi",
+    "missing_declared": [
+     "fedliquidityapi-auto-update"
+    ]
+   },
+   {
+    "fn": "fmp-stock-picks-agent",
+    "missing_declared": [
+     "fmp-movers-hourly",
+     "fmp-stock-picks-daily"
+    ]
+   },
+   {
+    "fn": "justhodl-bloomberg-v8",
+    "missing_declared": [
+     "bloomberg-terminal-refresh"
+    ]
+   },
+   {
+    "fn": "justhodl-crypto-enricher",
+    "missing_declared": [
+     "justhodl-crypto-enricher-daily"
+    ]
+   },
+   {
+    "fn": "justhodl-daily-report-v3",
+    "missing_declared": [
+     "justhodl-daily-8am",
+     "justhodl-daily-v3",
+     "justhodl-v9-auto-refresh",
+     "justhodl-v9-evening",
+     "justhodl-v9-morning"
+    ]
+   },
+   {
+    "fn": "justhodl-dex-scanner",
+    "missing_declared": [
+     "justhodl-dex-scanner-15min"
+    ]
+   },
+   {
+    "fn": "justhodl-divergence-interpreter",
+    "missing_declared": [
+     "divergence-interpreter-4hourly"
+    ]
+   },
+   {
+    "fn": "justhodl-email-reports",
+    "missing_declared": [
+     "justhodl-8am"
+    ]
+   },
+   {
+    "fn": "justhodl-gdelt-sentiment",
+    "missing_declared": [
+     "justhodl-gdelt-sentiment-30min"
+    ]
+   },
+   {
+    "fn": "justhodl-insider-trades",
+    "missing_declared": [
+     "justhodl-insider-trades-30min"
+    ]
+   },
+   {
+    "fn": "justhodl-intelligence",
+    "missing_declared": [
+     "justhodl-intel-daily",
+     "justhodl-intel-hourly"
+    ]
+   },
+   {
+    "fn": "justhodl-ka-metrics",
+    "missing_declared": [
+     "justhodl-khalid-metrics-refresh"
+    ]
+   },
+   {
+    "fn": "justhodl-khalid-metrics",
+    "missing_declared": [
+     "justhodl-khalid-metrics-refresh"
+    ]
+   },
+   {
+    "fn": "justhodl-labor-leading",
+    "missing_declared": [
+     "justhodl-labor-leading-daily"
+    ]
+   },
+   {
+    "fn": "justhodl-liquidity-flow",
+    "missing_declared": [
+     "justhodl-liquidity-flow-daily"
+    ]
+   },
+   {
+    "fn": "justhodl-ml-predictions",
+    "missing_declared": [
+     "justhodl-ml-predictions-schedule",
+     "justhodl-ml-schedule"
+    ]
+   },
+   {
+    "fn": "justhodl-morning-intelligence",
+    "missing_declared": [
+     "justhodl-morning-brief-daily"
+    ]
+   },
+   {
+    "fn": "justhodl-news-sentiment",
+    "missing_declared": [
+     "justhodl-sentiment-daily"
+    ]
+   },
+   {
+    "fn": "justhodl-nyfed-dealer-survey",
+    "missing_declared": [
+     "justhodl-nyfed-dealer-survey-weekly"
+    ]
+   },
+   {
+    "fn": "justhodl-oecd-cli",
+    "missing_declared": [
+     "justhodl-oecd-cli-weekly"
+    ]
+   },
+   {
+    "fn": "justhodl-price-redundancy",
+    "missing_declared": [
+     "justhodl-price-redundancy-15min"
+    ]
+   },
+   {
+    "fn": "justhodl-redflag-alerter",
+    "missing_declared": [
+     "justhodl-redflag-alerter-30min"
+    ]
+   },
+   {
+    "fn": "justhodl-repo-monitor",
+    "missing_declared": [
+     "justhodl-repo-30min",
+     "justhodl-repo-daily"
+    ]
+   },
+   {
+    "fn": "justhodl-sec-10kq",
+    "missing_declared": [
+     "justhodl-sec-10kq-4h"
+    ]
+   },
+   {
+    "fn": "justhodl-sec-13f",
+    "missing_declared": [
+     "justhodl-sec-13f-daily"
+    ]
+   },
+   {
+    "fn": "justhodl-sec-8k",
+    "missing_declared": [
+     "justhodl-sec-8k-30min"
+    ]
+   },
+   {
+    "fn": "justhodl-stock-screener",
+    "missing_declared": [
+     "justhodl-stock-screener-4h"
+    ]
+   },
+   {
+    "fn": "justhodl-valuations-agent",
+    "missing_declared": [
+     "valuations-monthly-update"
+    ]
+   },
+   {
+    "fn": "macro-financial-intelligence",
+    "missing_declared": [
+     "macro-financial-daily-execution"
+    ]
+   },
+   {
+    "fn": "news-sentiment-agent",
+    "missing_declared": [
+     "news-sentiment-update"
+    ]
+   }
+  ],
+  "stale_declaration_live_elsewhere": [
+   {
+    "fn": "justhodl-aaii-sentiment",
+    "missing_declared": [
+     "justhodl-aaii-sentiment-daily"
+    ]
+   },
+   {
+    "fn": "justhodl-crypto-funding",
+    "missing_declared": [
+     "justhodl-crypto-funding-hourly"
+    ]
+   },
+   {
+    "fn": "justhodl-financial-secretary",
+    "missing_declared": [
+     "secretary-4h-scan"
+    ]
+   },
+   {
+    "fn": "justhodl-options-flow",
+    "missing_declared": [
+     "justhodl-flow-refresh"
+    ]
+   },
+   {
+    "fn": "justhodl-options-gamma",
+    "missing_declared": [
+     "justhodl-options-gamma-30min"
+    ]
+   },
+   {
+    "fn": "justhodl-vix-curve",
+    "missing_declared": [
+     "justhodl-vix-curve-30min"
+    ]
+   }
+  ]
+ },
+ "natural_fire": {
+  "feed_before": "2026-08-04T03:57:27+00:00",
+  "feed_after": "2026-08-04T04:12:27+00:00",
+  "invocations_during_wait": 2,
+  "moved": true
+ },
+ "verdict": "SCHEDULE_RESTORED_AND_PROVEN"
+}
