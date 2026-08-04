@@ -3586,7 +3586,6 @@ def risk(fg,fn,st,gl,tech):
 
 
 
-@track_errors
 # ==================== v5.0 JOIN LAYER (ops 4357) ====================
 # Real data only. Joins the fleet's own engine feeds (CryptoQuant cluster,
 # vol/gex/options desks, altseason, ETF flows) instead of re-scraping, with
@@ -3719,6 +3718,7 @@ def fetch_prices_canon():
     return {'status':'error','error':'no price source'}
 # ================== end v5.0 JOIN LAYER ==================
 
+@track_errors
 def lambda_handler(event, context):
 
 
