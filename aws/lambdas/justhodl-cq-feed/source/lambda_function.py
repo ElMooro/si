@@ -3,11 +3,12 @@
 import json
 import time
 import urllib.request
+import urllib.error
 from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "cq-feed v2.0 ops4221"
+MARKER = "cq-feed v2.1 ops4365"
 S3 = boto3.client("s3")
 SSM = boto3.client("ssm")
 BUCKET = "justhodl-dashboard-live"
@@ -41,15 +42,25 @@ def lambda_handler(event, context):
             break
         url = ("https://api.cryptoquant.com/v1/" + path
                + "?window=day&limit=2" + str(meta.get("extra") or ""))
-        try:
-            req = urllib.request.Request(
-                url, headers={"Authorization": "Bearer " + key,
-                              "User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=12) as r:
-                rows = ((json.loads(r.read().decode())
-                         .get("result") or {}).get("data")) or []
-        except Exception:
-            continue
+        rows = []
+        for attempt in (1, 2):   # ops4365: quota-aware — retry once on 429
+            try:
+                req = urllib.request.Request(
+                    url, headers={"Authorization": "Bearer " + key,
+                                  "User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(req, timeout=12) as r:
+                    rows = ((json.loads(r.read().decode())
+                             .get("result") or {}).get("data")) or []
+                break
+            except urllib.error.HTTPError as e:
+                if e.code == 429 and attempt == 1:
+                    time.sleep(21)
+                    continue
+                break
+            except Exception:
+                break
+        if not rows and False:
+            pass
         if not rows:
             continue
         cur = rows[0]
@@ -73,7 +84,7 @@ def lambda_handler(event, context):
                 for p2 in ("GLASSNODE", "INTOTHEBLOCK",
                            "COINMETRICS", "CRYPTOQUANT"):
                     prices[p2 + ":" + bare] = rec
-        time.sleep(0.15)
+        time.sleep(2.6)   # ops4365: ~23 req/min fits CQ per-minute quota
     doc = {"generated_at": datetime.now(timezone.utc).isoformat(),
            "marker": MARKER, "n_metrics": len(metrics),
            "metrics": metrics, "prices": prices,
