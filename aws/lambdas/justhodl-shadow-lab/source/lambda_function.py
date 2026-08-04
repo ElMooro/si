@@ -25,20 +25,28 @@ def rd(key):
 
 
 def ohlc(sym, n=60):
-    url = ("https://financialmodelingprep.com/stable/"
-           "historical-price-eod/full?symbol=%s&apikey=%s"
-           % (sym, FMP))
-    try:
-        d = json.loads(urllib.request.urlopen(
-            url, timeout=20).read().decode())
-        rows = d if isinstance(d, list) else d.get("historical",
-                                                   [])
-        rows = sorted(rows, key=lambda r: r.get("date", ""))[-n:]
-        return [(float(r["high"]), float(r["low"]),
-                 float(r["close"])) for r in rows
-                if r.get("close")]
-    except Exception:
-        return []
+    for url in (
+            "https://financialmodelingprep.com/stable/"
+            "historical-price-eod/full?symbol=%s&apikey=%s"
+            % (sym, FMP),
+            "https://financialmodelingprep.com/api/v3/"
+            "historical-price-full/%s?timeseries=%d&apikey=%s"
+            % (sym, n + 5, FMP)):
+        try:
+            d = json.loads(urllib.request.urlopen(
+                url, timeout=20).read().decode())
+            rows = (d if isinstance(d, list)
+                    else d.get("historical", []))
+            rows = sorted(rows,
+                          key=lambda r: r.get("date", ""))[-n:]
+            out = [(float(r["high"]), float(r["low"]),
+                    float(r["close"])) for r in rows
+                   if r.get("close")]
+            if out:
+                return out
+        except Exception:
+            continue
+    return []
 
 
 def atr_adx(bars, per=14):

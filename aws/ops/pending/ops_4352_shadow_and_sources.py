@@ -109,7 +109,13 @@ with report("4352_shadow_and_sources") as r:
                     lam.update_function_configuration(
                         FunctionName=fn,
                         Environment={"Variables": envv})
-                    time.sleep(12)
+                    for _w in range(10):
+                        time.sleep(8)
+                        cc = lam.get_function_configuration(
+                            FunctionName=fn)
+                        if cc.get("LastUpdateStatus") == \
+                                "Successful":
+                            break
         except Exception as e:
             r.warn("env inherit: %s" % str(e)[:60])
         try:
@@ -182,3 +188,5 @@ with report("4352_shadow_and_sources") as r:
     r.ok("OPS 4352 PASS -- borrowed ideas now compute, sign the "
          "ledger at birth, and queue for their Wilson trial; "
          "the source atlas prices Khalid's next unlocks")
+
+# retrigger: env-propagation wait + dual-endpoint ohlc
