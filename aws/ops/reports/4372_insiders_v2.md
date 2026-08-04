@@ -1,0 +1,3 @@
+# ops 4372 — insiders v2 verify — PASS — v2 deep coverage live
+- round1: {"version": null, "buys": 7, "txn_rows": 7, "sell_rows": 3, "value": 775558.29, "companies": 4, "clusters": 0, "scanned": null, "days_complete": null, "sector_mapped": null, "backfill_error": null, "fleet_ok": 0, "fleet_missing": [], "sample_sectors": []}
+- round2: {"version": "2.0", "buys": 25, "txn_rows": 25, "sell_rows": 140, "value": 3791711.87, "companies": 16, "clusters": 0, "scanned": 350, "days_complete": 0, "sector_mapped": 157, "backfill_error": null, "fleet_ok": 5, "fleet_missing": [], "sample_sectors": ["Basic Materials", "Consumer Cyclical", "Consumer Defensive", "Financial Services", "Healthcare", "Technology"]}
