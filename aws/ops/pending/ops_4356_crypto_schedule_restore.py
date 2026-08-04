@@ -91,9 +91,13 @@ with report("4356_crypto_schedule_restore") as rep:
     for r in man["rules"]:
         for t in r.get("targets", []) or []:
             arn_targets.add(t.get("arn", ""))
-    for sname in man.get("schedules", []):
-        a = ((sname.get("target") or {}).get("arn")) or json.dumps(sname)
-        arn_targets.add(a if isinstance(a, str) else "")
+    for sch in man.get("schedules", []):
+        if isinstance(sch, dict):
+            t = sch.get("target")
+            if isinstance(t, dict):
+                arn_targets.add(t.get("arn") or "")
+            elif isinstance(t, str):
+                arn_targets.add(t)
     sched_blob = json.dumps(man.get("schedules", []))
     orphaned, stale = [], []
     import glob
