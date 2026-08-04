@@ -1,0 +1,28 @@
+{
+ "ops": 4361,
+ "started": "2026-08-04T15:23:06.582022+00:00",
+ "existing_notification_keys": [
+  "EventBridgeConfiguration",
+  "LambdaFunctionConfigurations"
+ ],
+ "eventbridge_enabled": "already",
+ "rule": {
+  "arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-crypto-fanin",
+  "watch": [
+   "data/cq-feed.json",
+   "data/cryptoquant-onchain.json",
+   "data/altseason.json",
+   "data/crypto-dvol.json",
+   "data/crypto-funding.json",
+   "data/dealer-gex.json",
+   "data/fanin-canary"
+  ]
+ },
+ "canary": {
+  "event_driven_starts_observed": 2,
+  "window_s": 35,
+  "doc_generated_at": "2026-08-04T15:23:13Z"
+ },
+ "verdict": "PASS \u2014 fan-in live",
+ "finished": "2026-08-04T15:23:43.045626+00:00"
+}
