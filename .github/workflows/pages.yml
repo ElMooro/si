@@ -14,6 +14,7 @@ on:
     branches: [main]
     paths:
       - "*.html"
+      - "**/*.html"
       - "nav-manifest.json"
       - "*.js"
       - "*.css"
@@ -53,7 +54,20 @@ jobs:
           python3 scripts/gen_nav_manifest.py  # ops 3269: never stale
           cp -f nav-manifest.json _site/ 2>/dev/null || true
           for f in _redirects CNAME .nojekyll favicon.ico; do [ -f "$f" ] && cp -f "$f" _site/; done
-          for d in assets js css img fonts tools; do [ -d "$d" ] && cp -r "$d" _site/; done
+          for d in assets js css img fonts tools data; do [ -d "$d" ] && cp -r "$d" _site/; done
+          # ops 4354: serve ALL page subdirectories (crypto/, intel/, screener/, ...).
+          # The lean whitelist above shipped root *.html only — every /dir/ page
+          # 404'd at the edge (crypto/index.html existed in repo, not in artifact).
+          # Rule: any top-level dir containing .html is a site page dir, minus the
+          # infra denylist. Dynamic — new page dirs deploy with zero workflow edits.
+          DENY=" aws .github scripts ci config cloudflare ops docs supabase tools-src chrome-extension node_modules _partials _site "
+          for d in */; do
+            d="${d%/}"
+            case "$DENY" in *" $d "*) continue ;; esac
+            if find "$d" -name "*.html" -print -quit 2>/dev/null | grep -q .; then
+              cp -r "$d" _site/
+            fi
+          done
           echo "site files: $(find _site -type f | wc -l), bytes: $(du -sb _site | cut -f1)"
       - name: Bake last-known values into homepage (zero em-dash first paint)
         run: python3 scripts/bake_homepage.py _site/index.html || true
