@@ -264,3 +264,72 @@ def estimate_tokens(text):
         return max(1, len(text) // 4)
     except Exception:
         return 1
+
+
+# ── ops 4434 (SPEC C2+C7): per-engine attribution + projection primitives ──
+def est_usd(model, tokens_in, tokens_out):
+    """USD estimate from the (SSM-overridable) per-1M price table."""
+    try:
+        pin, pout = _price_for(model)
+        return tokens_in/1e6*pin + tokens_out/1e6*pout
+    except Exception:
+        try:
+            prices = _config().get("prices") or {}
+            for k, v in prices.items():
+                if k in (model or ""):
+                    return tokens_in/1e6*float(v[0]) + tokens_out/1e6*float(v[1])
+        except Exception:
+            pass
+        return 0.0
+
+
+def attribute(engine, model, usd, tokens_in=0, tokens_out=0):
+    """Emit an alarmable, zero-race attribution record via CloudWatch EMF.
+    Every router call should pass through here so spend is attributable to
+    the ENGINE and MODEL that incurred it — the C2 acceptance requirement.
+    S3 ledgers stay for daily totals; EMF carries the per-engine dimension.
+    """
+    try:
+        import json as _j
+        print(_j.dumps({
+            "_aws": {"CloudWatchMetrics": [{
+                "Namespace": "JustHodl/LLM",
+                "Dimensions": [["engine", "model"]],
+                "Metrics": [
+                    {"Name": "SpendUSD", "Unit": "None"},
+                    {"Name": "TokensIn", "Unit": "Count"},
+                    {"Name": "TokensOut", "Unit": "Count"}]}]},
+            "engine": (engine or "unknown")[:80],
+            "model": (model or "unknown")[:60],
+            "SpendUSD": round(float(usd or 0), 6),
+            "TokensIn": int(tokens_in or 0),
+            "TokensOut": int(tokens_out or 0)}))
+    except Exception as e:
+        print("[llm_cost.attribute]", str(e)[:80])
+
+
+def project_month(daily_ledger):
+    """C7: naive-but-honest projection — trailing-7d mean x days remaining.
+    Input: {date_iso: usd}. Returns dict with projection + basis, or
+    data_unavailable when history is too thin (no invented numbers).
+    """
+    try:
+        from datetime import datetime, timezone
+        import calendar
+        days = sorted(daily_ledger or {})
+        if len(days) < 3:
+            return {"data_unavailable": True,
+                    "reason": f"only {len(days)}d of spend history"}
+        last7 = [float(daily_ledger[d]) for d in days[-7:]]
+        avg = sum(last7) / len(last7)
+        now = datetime.now(timezone.utc)
+        dim = calendar.monthrange(now.year, now.month)[1]
+        mtd = sum(float(v) for d, v in daily_ledger.items()
+                  if d.startswith(now.strftime("%Y-%m")))
+        rem = dim - now.day
+        return {"mtd_usd": round(mtd, 2),
+                "avg_daily_7d_usd": round(avg, 4),
+                "projected_month_usd": round(mtd + avg * rem, 2),
+                "days_remaining": rem, "basis": "trailing-7d mean"}
+    except Exception as e:
+        return {"data_unavailable": True, "reason": str(e)[:80]}

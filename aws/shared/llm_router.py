@@ -215,6 +215,13 @@ def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, s
     if llm_cost is not None:
         try:
             llm_cost.log_cost(model, it, ot, cached=False)
+            # ops 4434 C2: per-engine attribution (EMF, alarmable)
+            try:
+                import os as _os
+                _usd = llm_cost.est_usd(model, it, ot) if hasattr(llm_cost, 'est_usd') else 0.0
+                llm_cost.attribute(_os.environ.get('AWS_LAMBDA_FUNCTION_NAME'), model, _usd, it, ot)
+            except Exception:
+                pass
             if key and txt and txt.strip():
                 llm_cost.cache_put(key, txt, model)
         except Exception:

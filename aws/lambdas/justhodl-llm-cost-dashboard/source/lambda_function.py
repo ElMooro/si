@@ -105,6 +105,19 @@ def handler(event=None, context=None):
             cache_hit_rate=round(100 * tot_hits / (tot_real + tot_hits), 1) if (tot_real + tot_hits) else 0.0,
             est_cache_savings_usd=round(est_savings, 4)),
     )
+    # ops 4434 C7: month projection from the daily ledger (honest when thin)
+    try:
+        from llm_cost import project_month
+        daily = {d.get("date"): d.get("usd") for d in out.get("daily", [])
+                 if isinstance(d, dict) and d.get("date")} or \
+                out.get("daily_usd") or {}
+        out["projection"] = project_month(daily)
+        out["attribution_note"] = ("per-engine/model spend: CloudWatch "
+                                   "JustHodl/LLM SpendUSD by [engine,model] "
+                                   "(C2 EMF; accrues as engines redeploy "
+                                   "with the hooked router)")
+    except Exception as _e:
+        out["projection"] = {"data_unavailable": True, "reason": str(_e)[:80]}
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="max-age=60")
     return {"ok": True, "today_cost": today_c["cost"], "engines": len(out["per_engine"]),
