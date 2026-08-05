@@ -341,7 +341,10 @@ A2A_SYSTEM = (
     "evidence are rejected. CONTINUATION PROTOCOL: when you want Claude to "
     "act next, end content with a line \"NEXT_ACTIONS: ...\" listing "
     "concrete steps; Claude reads these each session and continues the "
-    "loop."
+    "loop. CODE: you may also ship fixes via action:propose_patch "
+    "{title, rationale, files:[{path,content}], evidence[]} -> becomes a "
+    "real GitHub PR; Claude reviews+tests+merges; .github/ and aws/ops/ "
+    "paths are denied by policy."
 )
 
 
@@ -398,9 +401,149 @@ def fanout_pending(ev):
     return {"ok": True, "fanout": done}
 
 
+
+
+# ═══════════ v1.3 (ops 4388): propose_patch — agents ship code safely ═══════
+# External agents (Perplexity, GLM, future seats) contribute code the only
+# institutional way: as pull requests. propose_patch turns an authenticated
+# bus call into a real branch + PR on ElMooro/si. Guardrails: path denylist
+# (no workflow/CI tampering, no self-executing ops), size caps, per-agent
+# open-PR quota. Claude reviews, tests, merges via ops — the human-grade
+# gate. Merge -> auto-deploy pipeline does the rest.
+GH_REPO = "ElMooro/si"
+GH_TOKEN_SSM = "/justhodl/github/bus-pat"
+PATCH_DENY = (".github/", "aws/ops/", "cloudflare/", "supabase/")
+PATCH_MAX_FILES = 8
+PATCH_MAX_BYTES = 200_000
+PATCH_MAX_OPEN_PRS = 3
+_gh_token_cache = None
+
+
+def _gh_token():
+    global _gh_token_cache
+    if _gh_token_cache is None:
+        _gh_token_cache = ssm.get_parameter(
+            Name=GH_TOKEN_SSM, WithDecryption=True)["Parameter"]["Value"]
+    return _gh_token_cache
+
+
+def _gh(path, method="GET", body=None):
+    req = urllib.request.Request(
+        "https://api.github.com" + path, method=method,
+        data=json.dumps(body).encode() if body is not None else None,
+        headers={"Authorization": "token " + _gh_token(),
+                 "Accept": "application/vnd.github+json",
+                 "Content-Type": "application/json",
+                 "User-Agent": "justhodl-a2a-bus"})
+    with urllib.request.urlopen(req, timeout=25) as r:
+        raw = r.read().decode()
+        return json.loads(raw) if raw else {}
+
+
+def propose_patch(ev):
+    """Agent-authored code proposal -> branch a2a/<agent>-<id> + PR.
+
+    ev: {from, title, rationale, files:[{path, content}], thread_id?,
+        evidence[]}
+    """
+    agent = (ev.get("from") or "unknown").lower()
+    title = (ev.get("title") or "").strip()[:120]
+    rationale = (ev.get("rationale") or "").strip()
+    files = ev.get("files") or []
+    if not title or not rationale or not files:
+        return {"ok": False,
+                "error": "title, rationale and files[] required"}
+    if len(files) > PATCH_MAX_FILES:
+        return {"ok": False,
+                "error": f"max {PATCH_MAX_FILES} files per patch"}
+    total = 0
+    for f in files:
+        p = (f.get("path") or "").lstrip("/")
+        c = f.get("content")
+        if not p or c is None:
+            return {"ok": False, "error": "each file needs path+content"}
+        if ".." in p or p.startswith("/"):
+            return {"ok": False, "error": f"illegal path {p}"}
+        for deny in PATCH_DENY:
+            if p.startswith(deny):
+                return {"ok": False,
+                        "error": f"path denied by policy: {p} "
+                                 f"(denylist {PATCH_DENY})"}
+        total += len(str(c).encode("utf-8", "replace"))
+    if total > PATCH_MAX_BYTES:
+        return {"ok": False,
+                "error": f"patch too large: {total}b > {PATCH_MAX_BYTES}b"}
+    ok_ev, annotated = resolve_evidence(ev.get("evidence") or [])
+    if not ok_ev:
+        return {"ok": False, "error": "rejected_no_evidence",
+                "evidence": annotated}
+    try:
+        open_prs = _gh(f"/repos/{GH_REPO}/pulls?state=open&per_page=50")
+        mine = [p for p in open_prs
+                if (p.get("head", {}).get("ref") or "")
+                .startswith(f"a2a/{agent}-")]
+        if len(mine) >= PATCH_MAX_OPEN_PRS:
+            return {"ok": False,
+                    "error": f"quota: {len(mine)} open PRs for {agent} "
+                             f"(max {PATCH_MAX_OPEN_PRS}); await review"}
+        main_sha = _gh(f"/repos/{GH_REPO}/git/ref/heads/main"
+                       )["object"]["sha"]
+        pid = hashlib.sha256(
+            (agent + title + str(time.time())).encode()).hexdigest()[:8]
+        branch = f"a2a/{agent}-{pid}"
+        _gh(f"/repos/{GH_REPO}/git/refs", "POST",
+            {"ref": "refs/heads/" + branch, "sha": main_sha})
+        import base64
+        for f in files:
+            p = f["path"].lstrip("/")
+            body = {"message": f"a2a patch {pid}: {p} (by {agent})",
+                    "content": base64.b64encode(
+                        str(f["content"]).encode()).decode(),
+                    "branch": branch}
+            try:
+                cur = _gh(f"/repos/{GH_REPO}/contents/{p}?ref={branch}")
+                if isinstance(cur, dict) and cur.get("sha"):
+                    body["sha"] = cur["sha"]
+            except Exception:
+                pass
+            _gh(f"/repos/{GH_REPO}/contents/{p}", "PUT", body)
+        pr = _gh(f"/repos/{GH_REPO}/pulls", "POST",
+                 {"title": f"[a2a/{agent}] {title}",
+                  "head": branch, "base": "main",
+                  "body": (f"Agent-proposed patch via A2A bus.\n\n"
+                           f"**Author:** {agent}\n**Patch id:** {pid}\n"
+                           f"**Thread:** {ev.get('thread_id') or '-'}\n\n"
+                           f"## Rationale\n{rationale[:3000]}\n\n"
+                           f"Evidence: {json.dumps(annotated)[:800]}\n\n"
+                           f"Merge gate: Claude reviews + tests via ops; "
+                           f"merge triggers auto-deploy.")})
+        rec = {"patch_id": pid, "agent": agent, "title": title,
+               "branch": branch, "pr": pr.get("number"),
+               "pr_url": pr.get("html_url"),
+               "files": [f["path"] for f in files],
+               "ts": _now(), "status": "open"}
+        led = _get("data/a2a/patches.json", {"patches": []})
+        led["patches"] = (led["patches"] + [rec])[-100:]
+        _put("data/a2a/patches.json", led)
+        if ev.get("thread_id"):
+            post_turn({"thread_id": ev["thread_id"], "from": agent,
+                       "to": "claude", "kind": "propose",
+                       "content": f"[patch {pid}] PR #{pr.get('number')} "
+                                  f"{pr.get('html_url')} — {title}. "
+                                  f"Rationale: {rationale[:500]}",
+                       "evidence": ev.get("evidence") or []})
+        return {"ok": True, **rec}
+    except Exception as e:
+        return {"ok": False,
+                "error": f"{type(e).__name__}: {str(e)[:200]}"}
+# ═══════════ end v1.3 ═══════════
+
+
 ACTIONS = {"open_thread": open_thread, "post_turn": post_turn,
            "resolve": resolve, "deadman_sweep": deadman_sweep,
            "fanout_pending": fanout_pending,
+           "propose_patch": propose_patch,
+           "list_patches": lambda e: {"ok": True, **(_get("data/a2a/patches.json", {"patches": []}))},
            "get_thread": lambda e: {"ok": True, "thread": _get(
                THREADS + e["thread_id"] + ".json")}}
 
