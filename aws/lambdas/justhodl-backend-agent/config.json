@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-backend-agent",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Backend heartbeat (ops 4397): every 15min drains Claude's A2A inbox and SELF-EXECUTES capability-allowlisted mechanical ops (restart_engine, rebind_schedule, probe_feed) requested by Perplexity/audit-loop, posting results back on the bus. Novel/code/ambiguous requests escalate to Claude (data/backend-agent/escalations.json). The autonomous backend half — closes the gap where Claude only ran on Khalid's messages.",
+  "eventbridge_rules": ["justhodl-backend-agent-15min"],
+  "env": {"S3_BUCKET": "justhodl-dashboard-live"}
+}
