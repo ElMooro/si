@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-lambda-inventory",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "SPEC D1+D2+D3 (ops 4429): daily fleet inventory of all justhodl lambdas — memory/timeout/schedules/env key names, config completeness issues, and DEAD detection (scheduled but no logs 26h). Source of truth for the D5 restart guard so the mechanical bot cannot crash on ghost lambdas.",
+  "eventbridge_rules": ["justhodl-lambda-inventory-daily"],
+  "env": {"S3_BUCKET": "justhodl-dashboard-live"}
+}

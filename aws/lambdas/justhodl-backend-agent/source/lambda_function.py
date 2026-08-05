@@ -88,8 +88,20 @@ def bus(payload):
 
 # ── capability allowlist ──
 def _cap_restart_engine(fn):
+    # ops 4429 — D5 restart guard: refuse unknown lambdas. The bot previously
+    # crashed with ResourceNotFoundException trying to restart a ghost. The
+    # fleet inventory (D1) is the source of truth; if the name is not in it,
+    # we escalate instead of throwing.
     if not fn or not fn.startswith("justhodl-"):
         return {"ok": False, "detail": "not a justhodl engine"}
+    inv = _get("data/audit/lambda-inventory.json") or {}
+    known = inv.get("functions") or {}
+    if known and fn not in known:
+        near = [k for k in known if fn.split("-")[-1] in k][:3]
+        return {"ok": False,
+                "detail": f"unknown lambda '{fn}' — not in fleet inventory "
+                          f"(D5 guard). Did you mean: {near}?",
+                "escalate": True}
     try:
         lam.invoke(FunctionName=fn, InvocationType="Event", Payload=b"{}")
         return {"ok": True, "detail": f"invoked {fn}"}
