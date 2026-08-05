@@ -492,6 +492,29 @@ def _sfeed(key):
             return None
 
 
+
+def _find_cb_map(obj, _d=0):
+    """ops 4423: locate a {CB-name: usd_bn} map anywhere in the feed."""
+    CBS = {"fed", "ecb", "boj", "pboc", "boe", "snb"}
+    if _d > 4 or obj is None:
+        return None
+    if isinstance(obj, dict):
+        keys = {str(k).lower() for k in obj.keys()}
+        if len(keys & CBS) >= 2 and any(
+                isinstance(v, (int, float)) for v in obj.values()):
+            return obj
+        for v in obj.values():
+            r = _find_cb_map(v, _d + 1)
+            if r:
+                return r
+    elif isinstance(obj, list):
+        for v in obj[:15]:
+            r = _find_cb_map(v, _d + 1)
+            if r:
+                return r
+    return None
+
+
 def build_part4(catalog):
     out = {}
     # (A) global 4-CB stack
@@ -499,10 +522,20 @@ def build_part4(catalog):
     cn = _sfeed("data/china-liquidity.json")
     stack, notes = {}, []
     if isinstance(gl, dict):
-        comp = (gl.get("components_usd_bn") or gl.get("components")
-                or gl.get("cb_components"))
+        # ops 4423: DISCOVER the component map rather than guessing its key —
+        # the same technique that found treasury-noise:noise_bps.
+        comp = None
+        for k in ("components_usd_bn", "components", "cb_components",
+                  "by_cb", "central_banks", "stack"):
+            v = gl.get(k)
+            if isinstance(v, dict) and any(
+                    isinstance(x, (int, float)) for x in v.values()):
+                comp = v
+                break
+        if comp is None:
+            comp = _find_cb_map(gl)
         if isinstance(comp, dict):
-            stack.update({k: v for k, v in comp.items()
+            stack.update({str(k): float(v) for k, v in comp.items()
                           if isinstance(v, (int, float))})
         for k in ("total_usd_bn", "global_total_usd_bn", "total"):
             if isinstance(gl.get(k), (int, float)):
@@ -560,21 +593,36 @@ def build_part4(catalog):
     out["dxy"] = dxy
 
     # (C) credit-first sequencing — the brain's ordering rule
+    # ops 4423: fetch HY OAS DIRECTLY. Depending on catalog["credit"] failed —
+    # that category never materialised, so stage 1 read null.
     hy = (catalog.get("credit") or {}).get("BAMLH0A0HYM2") or {}
+    hy_val, hy_z = hy.get("value"), hy.get("z")
+    if hy_val is None:
+        hh = get_series_history("BAMLH0A0HYM2", limit=1300) or []
+        hv = [x["value"] for x in hh if x.get("value") is not None]
+        if hv:
+            hy_val = round(hv[-1], 3)
+            m = sum(hv) / len(hv)
+            sd = (sum((v - m) ** 2 for v in hv) / max(1, len(hv) - 1)) ** 0.5
+            hy_z = round((hy_val - m) / sd, 2) if sd > 1e-9 else 0.0
     seq_stages = []
-    hy_z = hy.get("z")
     seq_stages.append({"stage": 1, "name": "Credit stress (HY OAS)",
-                       "value": hy.get("value"), "z": hy_z,
+                       "value": hy_val, "z": hy_z, "unit": "%",
                        "fired": bool(hy_z is not None and hy_z > 1.0)})
     d_z = dxy.get("z")
     seq_stages.append({"stage": 2, "name": "Dollar spike (DXY)",
                        "value": dxy.get("level"), "z": d_z,
                        "fired": bool(d_z is not None and d_z > 1.0)})
-    spx = _sfeed("data/market-data.json") or _sfeed("data/spx-ma.json")
+    # ops 4423: compute SPX 60d from FRED SP500 directly — the fleet-feed
+    # probe missed, so stage 3 read null.
     spx_60d = None
-    if isinstance(spx, dict):
-        f = _deep_num(spx, ("chg_60d", "return_60d", "pct_60d", "spx_60d"))
-        spx_60d = f
+    try:
+        sp = get_series_history("SP500", limit=200) or []
+        sv = [x["value"] for x in sp if x.get("value") is not None]
+        if len(sv) >= 61:
+            spx_60d = round((sv[-1] / sv[-61] - 1) * 100, 2)
+    except Exception as _e:
+        print("[part4] SP500 60d:", type(_e).__name__)
     seq_stages.append({"stage": 3, "name": "Equity drawdown (SPX 60d)",
                        "value": spx_60d,
                        "fired": bool(spx_60d is not None and spx_60d < -5)})
