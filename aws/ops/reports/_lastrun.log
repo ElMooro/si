@@ -1,34 +1,15 @@
-executing-against: 02a1a974f2ac1fa644200296b8f944c8e130d0a7
+executing-against: c58c8118ecbbcbbfe6cfd0c0f136d3a2e2ee466a
 {
- "ops": 4397,
- "started": "2026-08-05T05:23:15.496200+00:00",
- "mode": "created",
- "schedule": "rate(15 minutes) bound",
- "registry": "claude-backend registered",
- "first_drain": {
-  "ok": true,
-  "executed": 0,
-  "escalated": 5,
-  "capabilities_run": [],
-  "escalation_queue_depth": 5
- },
- "heartbeat": {
-  "alive_at": "2026-08-05T05:24:22.177437+00:00",
-  "runs": 2,
-  "executed_total": 0,
-  "escalated_total": 10,
-  "this_run": {
-   "executed": 0,
-   "escalated": 5
-  },
-  "escalation_queue_depth": 10,
-  "capabilities": [
-   "restart_engine",
-   "rebind_schedule",
-   "probe_feed"
-  ],
-  "note": "Backend heartbeat: drains Claude's bus inbox, self-executes mechanical ops, escalates judgment to Claude. The autonomous backend half."
- },
- "verdict": "PASS \u2014 backend heartbeat live on rate(15 minutes); both sides now autonomous",
- "finished": "2026-08-05T05:24:28.592948+00:00"
+ "open": 9,
+ "threads": [
+  "0007-code-capability",
+  "0805045237",
+  "audit-loop-shard-002",
+  "engine-audit-alpha-council",
+  "engine-audit-capital-flow",
+  "engine-audit-capitulation",
+  "project-charter",
+  "propose-patch-onboarding",
+  "vendor-cost-audit"
+ ]
 }
