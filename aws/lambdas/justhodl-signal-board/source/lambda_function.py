@@ -22,6 +22,10 @@ OUTPUT: data/signal-board.json   SCHEDULE: every 3h
 ═══════════════════════════════════════════════════════════════════════
 """
 import json
+try:
+    from fabrication_guard import guard_output  # ops 4431 F8
+except Exception:
+    guard_output = None
 import os
 import time
 from datetime import datetime, timezone, timedelta
@@ -1394,6 +1398,13 @@ def lambda_handler(event, context):
                  f"{STALE_HOURS}h) are flagged and excluded from the "
                  "composite. A synthesis view, not advice."),
     }
+    # ops 4431 F8: fabrication guard (warn mode — logs+metric, non-breaking)
+    if guard_output:
+        try:
+            out, _fab = guard_output(out, mode="warn", engine="justhodl-signal-board")
+        except Exception as _e:
+            print('guard skip:', _e)
+
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, default=str).encode("utf-8"),
                   ContentType="application/json",
