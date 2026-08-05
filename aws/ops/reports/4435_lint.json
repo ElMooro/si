@@ -1,0 +1,26 @@
+{
+ "ops": 4435,
+ "started": "2026-08-05T23:10:28.791867+00:00",
+ "lint": {
+  "n": 178,
+  "by_kind": {
+   "direct_sdk_bypass": 70,
+   "hardcoded_model": 93,
+   "bad_model_id": 15
+  }
+ },
+ "run": {
+  "code": 200,
+  "fn_err": null
+ },
+ "projection": {
+  "data_unavailable": true,
+  "reason": "float() argument must be a string or a real number, not 'NoneType'"
+ },
+ "posted": {
+  "ok": true,
+  "err": null
+ },
+ "verdict": "PASS \u2014 lint 178 findings published, projection={\"data_unavailable\": true, \"reason\": \"float() argument must ",
+ "finished": "2026-08-05T23:11:03.642777+00:00"
+}
