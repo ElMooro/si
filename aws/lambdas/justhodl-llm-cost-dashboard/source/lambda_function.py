@@ -109,7 +109,7 @@ def handler(event=None, context=None):
     try:
         from llm_cost import project_month
         per_day = out.get("per_day") or {}
-        daily = ({d: (v.get("usd") if isinstance(v, dict) else v)
+        daily = ({d: ((v.get("usd") or v.get("cost_usd") or v.get("spend_usd") or v.get("total_usd")) if isinstance(v, dict) else v)
                   for d, v in per_day.items()} if isinstance(per_day, dict)
                  else {d.get("date"): d.get("usd") for d in per_day
                        if isinstance(d, dict)})
