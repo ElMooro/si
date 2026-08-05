@@ -594,6 +594,166 @@
    "title": "CRYPTO EXCHANGE FLOWS",
    "freshness_at_wiring": "FRESH",
    "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-13f-positions",
+   "feed": "data/13f-positions.json",
+   "page": "13f.html",
+   "title": "13F POSITIONS (buys / sells / new / exit)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-consensus-bottom",
+   "feed": "data/consensus-bottom.json",
+   "page": "accumulation.html",
+   "title": "MULTI-MANAGER CONSENSUS BOTTOM",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-sequence-alpha-detector",
+   "feed": "data/sequence-alpha.json",
+   "page": "accumulation.html",
+   "title": "3-STEP ACCUMULATION SEQUENCE",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-quality-on-sale",
+   "feed": "data/quality-on-sale.json",
+   "page": "opportunities.html",
+   "title": "QUALITY ON SALE (Buffett 5-condition)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-forced-selling-bounce",
+   "feed": "data/forced-selling-bounce.json",
+   "page": "opportunities.html",
+   "title": "FORCED-SELLING BOUNCE (5-condition V-bottom)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-earnings-cascade",
+   "feed": "data/earnings-cascade.json",
+   "page": "confluence.html",
+   "title": "EARNINGS MOMENTUM CASCADE",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-fed-pivot-factor-router",
+   "feed": "data/fed-pivot-factor-trades.json",
+   "page": "convergence-desk.html",
+   "title": "FED-PIVOT FACTOR ROUTER",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-macro-confluence",
+   "feed": "data/macro-confluence.json",
+   "page": "convergence-desk.html",
+   "title": "MACRO CONFLUENCE",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-regime-conditional-router",
+   "feed": "data/regime-conditional-router.json",
+   "page": "regime.html",
+   "title": "REGIME-CONDITIONAL SLEEVE ALLOCATOR",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-regime-conditional-trust",
+   "feed": "data/regime-conditional-trust.json",
+   "page": "regime.html",
+   "title": "REGIME-CONDITIONAL ENGINE TRUST",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-theme-second-wave",
+   "feed": "data/theme-second-wave.json",
+   "page": "themes.html",
+   "title": "THEME SECOND-WAVE (picks-and-shovels)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-attention-signals",
+   "feed": "data/attention-signals.json",
+   "page": "attention.html",
+   "title": "PRE-PUMP ATTENTION SIGNALS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-correlation-break-trade-router",
+   "feed": "data/correlation-break-trades.json",
+   "page": "correlation.html",
+   "title": "CORRELATION-BREAK TRADE ROUTER",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-chart-vision",
+   "feed": "data/chart-vision.json",
+   "page": "patterns.html",
+   "title": "CHART VISION (H&S, cup&handle, flags)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-signal-fabric",
+   "feed": "data/signal-fabric.json",
+   "page": "signals.html",
+   "title": "SIGNAL FABRIC (canonical envelope)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-convexity-scorer",
+   "feed": "data/convexity-scores.json",
+   "page": "portfolio.html",
+   "title": "CONVEXITY (gamma) SCORER",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-concentration-liquidity",
+   "feed": "data/concentration-liquidity.json",
+   "page": "portfolio.html",
+   "title": "POSITION CONCENTRATION & LIQUIDITY RISK",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-cro-digest",
+   "feed": "data/cro-digest.json",
+   "page": "risk-desk.html",
+   "title": "CRO MORNING DIGEST",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-failure-library",
+   "feed": "data/pre-disaster-watchlist.json",
+   "page": "forensic.html",
+   "title": "PRE-DISASTER WATCHLIST (bankruptcy fingerprint)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-sec-filing-diff",
+   "feed": "data/sec-filing-diff.json",
+   "page": "forensic.html",
+   "title": "SEC 10-K RISK FACTOR CHANGES",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
   }
  ],
  "internal": [
