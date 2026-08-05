@@ -83,6 +83,13 @@ SERIES = {
     "DCPN3M":          "nmrdt9tk992wt",       # 3M CP (CP-FFR spread, fuse-list)
     "DFF":             "nmrdt9tk992wt",       # fed funds for the CP spread
     "RIFSPPNA2P2D90NB": "nmq5x1qrkm0cn",     # A2/P2 spread (graceful if ID wrong)
+    # ── indicators (ops 4396) ──
+    "BAMLC0A0CM":      "indicator-ig-oas",       # IG OAS (HY-IG skew)
+    "VXVCLS":          "indicator-vix3m",        # 3M VIX (term structure)
+    "T10Y2Y":          "indicator-2s10s",        # ACM proxy
+    "DGS2":            "indicator-2y",
+    "UNRATE":          "indicator-sahm",         # Sahm rule
+    "TRUCKD11":        "indicator-truck",        # freight canary
     "SP500":           "event-study-benchmark",
 }
 
@@ -136,6 +143,200 @@ def _win(vals_by_day, calendar, i, back):
     if j < 0:
         return None
     return vals_by_day.get(calendar[j])
+
+
+# ── 9 BRAIN-CITED INDICATORS (ops 4396, Perplexity spec ae9048ad) ──────────
+# Requested on the bus for risk-gate.json exposure. Each returns:
+#   {value, z, signal, unit, cite, source, asof, pending?}
+# FRED-derived indicators compute live now; those needing non-FRED data
+# (Howell Global Liquidity, CDX/sovereign-CDS, truck tonnage cadence) emit
+# pending_source honestly so the frontend renders a labeled placeholder
+# instead of a fake number. z uses trailing window mean/std on the series.
+IND_SERIES = {
+    "BAMLC0A0CM": None,        # IG OAS (for HY-IG skew) — fetched below
+    "BAMLH0A0HYM2": None,      # HY OAS (already in SERIES)
+    "VIXCLS": None,            # spot VIX (already fetched)
+    "VXVCLS": None,            # 3M VIX (term structure)
+    "T10Y2Y": None,            # 2s10s (ACM proxy leg)
+    "T10Y3M": None,            # 10y-3m
+    "DGS10": None, "DGS2": None,
+    "SOFR": None, "IORB": None,
+    "UNRATE": None,            # Sahm rule
+    "TRUCKD11": None,          # truck transport (FRED cadence, monthly)
+}
+
+
+def _zlast(series_map, calendar, i, back=252):
+    """z-score of the latest value vs trailing `back` observations."""
+    d = calendar[i]
+    cur = series_map.get(d)
+    if cur is None:
+        return None, None
+    vals = []
+    for j in range(max(0, i - back), i + 1):
+        v = series_map.get(calendar[j])
+        if v is not None:
+            vals.append(v)
+    if len(vals) < 20:
+        return cur, None
+    m = sum(vals) / len(vals)
+    var = sum((x - m) ** 2 for x in vals) / (len(vals) - 1)
+    sd = var ** 0.5
+    z = round((cur - m) / sd, 2) if sd > 1e-9 else 0.0
+    return cur, z
+
+
+def compute_indicators(F, calendar, i):
+    """9 brain-cited risk indicators as a clean render contract."""
+    d = calendar[i]
+    out = {}
+
+    # 1 — HY-IG skew (credit-quality dispersion): HY OAS - IG OAS, z-scored
+    hy = F.get("BAMLH0A0HYM2", {}).get(d)
+    ig = F.get("BAMLC0A0CM", {}).get(d)
+    if hy is not None and ig is not None:
+        skew = round(hy - ig, 2)
+        # z of the skew series
+        sk_map = {}
+        for j in range(max(0, i - 252), i + 1):
+            dj = calendar[j]
+            a = F.get("BAMLH0A0HYM2", {}).get(dj)
+            b = F.get("BAMLC0A0CM", {}).get(dj)
+            if a is not None and b is not None:
+                sk_map[dj] = a - b
+        _, z = _zlast(sk_map, calendar, i)
+        out["hy_ig_skew"] = {
+            "value": skew, "z": z, "unit": "pp",
+            "signal": ("STRESS" if (z or 0) > 1.5 else
+                       "CALM" if (z or 0) < -0.5 else "NEUTRAL"),
+            "cite": "credit-quality dispersion — HY vs IG risk appetite",
+            "source": "FRED BAMLH0A0HYM2 - BAMLC0A0CM", "asof": d}
+    else:
+        out["hy_ig_skew"] = {"pending_source": "FRED IG OAS join", "asof": d}
+
+    # 2 — VIX term structure + SKEW: VIX3M/VIX ratio (backwardation = stress)
+    v1 = F.get("VIXCLS", {}).get(d)
+    v3 = F.get("VXVCLS", {}).get(d)
+    if v1 and v3:
+        ratio = round(v3 / v1, 3)
+        out["vix_term_structure"] = {
+            "value": ratio, "z": None, "unit": "3M/spot",
+            "signal": ("BACKWARDATION/STRESS" if ratio < 1.0 else
+                       "CONTANGO/CALM"),
+            "spot_vix": v1, "vix_3m": v3,
+            "cite": "vol term structure — backwardation flags near-term fear",
+            "source": "FRED VIXCLS, VXVCLS", "asof": d,
+            "note": "CBOE SKEW index needs non-FRED source (pending)"}
+    else:
+        out["vix_term_structure"] = {"pending_source": "FRED VXVCLS",
+                                     "asof": d}
+
+    # 3 — ACM term premium proxy: 2s10s slope (ACM model data is non-FRED)
+    cur, z = _zlast(F.get("T10Y2Y", {}), calendar, i)
+    if cur is not None:
+        out["acm_term_premium"] = {
+            "value": round(cur, 2), "z": z, "unit": "pp (2s10s proxy)",
+            "signal": ("INVERTED" if cur < 0 else "POSITIVE"),
+            "cite": "term premium proxy — NY Fed ACM is non-FRED; 2s10s "
+                    "slope stands in",
+            "source": "FRED T10Y2Y (proxy)", "asof": d,
+            "note": "true ACM decomposition pending non-FRED source"}
+    else:
+        out["acm_term_premium"] = {"pending_source": "FRED T10Y2Y",
+                                   "asof": d}
+
+    # 4 — XCC basis: already computed in fleet layer (crisis-plumbing);
+    # surface a pointer so the page can cross-link
+    out["xcc_basis"] = {
+        "pending_source": "cross-currency basis lives in crisis-plumbing "
+                          "fleet feed (xcc_basis_signals); wire join",
+        "cite": "dollar funding stress — negative basis = USD shortage",
+        "asof": d}
+
+    # 5 — sovereign CDS basket: non-FRED (needs CDX/markit); honest pending
+    out["sovereign_cds_basket"] = {
+        "pending_source": "sovereign CDS (Italy/Spain/EM) needs Markit/"
+                          "CDX feed — not on FRED",
+        "cite": "sovereign stress basket", "asof": d}
+
+    # 6 — Howell Global Liquidity: proprietary (CrossBorder Capital) —
+    # approximate with Fed+ECB+BOJ balance-sheet composite if available
+    wres = F.get("WRESBAL", {}).get(d)
+    out["howell_global_liquidity"] = {
+        "pending_source": "CrossBorder Capital GLI is proprietary; "
+                          "approximate via central-bank balance-sheet "
+                          "composite (Fed WRESBAL live; ECB/BOJ join "
+                          "pending)",
+        "fed_reserves_bn": wres, "cite": "global liquidity tide", "asof": d}
+
+    # 7 — SOFR-IORB spread (funding stress canary): live from FRED
+    sofr = F.get("SOFR", {}).get(d)
+    iorb = F.get("IORB", {}).get(d)
+    if sofr is not None and iorb is not None:
+        spread_bp = round((sofr - iorb) * 100, 1)
+        out["sofr_iorb"] = {
+            "value": spread_bp, "z": None, "unit": "bp",
+            "signal": ("FUNDING STRESS" if spread_bp > 5 else
+                       "SOFT" if spread_bp < -3 else "NORMAL"),
+            "sofr": sofr, "iorb": iorb,
+            "cite": "repo funding stress — SOFR above IORB = collateral "
+                    "scarcity",
+            "source": "FRED SOFR - IORB", "asof": d}
+    else:
+        out["sofr_iorb"] = {"pending_source": "FRED SOFR/IORB", "asof": d}
+
+    # 8 — Sahm Rule (recession trigger): 3mo-avg UNRATE minus trailing-12mo
+    # low; >= 0.50 triggers
+    ur = F.get("UNRATE", {})
+    if ur.get(d) is not None:
+        # monthly series: gather last ~15 monthly points
+        pts = sorted((k, v) for k, v in ur.items() if k <= d)[-15:]
+        if len(pts) >= 13:
+            recent3 = sum(v for _, v in pts[-3:]) / 3
+            low12 = min(v for _, v in pts[-12:])
+            sahm = round(recent3 - low12, 2)
+            out["sahm_rule"] = {
+                "value": sahm, "z": None, "unit": "pp",
+                "signal": ("RECESSION TRIGGERED" if sahm >= 0.50 else
+                           "WATCH" if sahm >= 0.30 else "CLEAR"),
+                "recent_3mo_avg": round(recent3, 2), "trailing_low": low12,
+                "cite": "Sahm recession rule — real-time downturn trigger",
+                "source": "FRED UNRATE", "asof": pts[-1][0]}
+        else:
+            out["sahm_rule"] = {"pending_source": "UNRATE history depth",
+                                "asof": d}
+    else:
+        out["sahm_rule"] = {"pending_source": "FRED UNRATE", "asof": d}
+
+    # 9 — truck transport (freight recession canary): FRED TRUCKD11 YoY
+    tr = F.get("TRUCKD11", {})
+    if tr.get(d) is not None or tr:
+        pts = sorted((k, v) for k, v in tr.items())[-15:]
+        if len(pts) >= 13:
+            cur_v = pts[-1][1]
+            yoy = round((cur_v / pts[-13][1] - 1) * 100, 1) \
+                if pts[-13][1] else None
+            out["truck_transport"] = {
+                "value": yoy, "z": None, "unit": "% YoY",
+                "signal": ("FREIGHT RECESSION" if (yoy or 0) < -5 else
+                           "SOFT" if (yoy or 0) < 0 else "EXPANDING"),
+                "level": cur_v,
+                "cite": "freight/truck tonnage — real-economy demand canary",
+                "source": "FRED TRUCKD11", "asof": pts[-1][0]}
+        else:
+            out["truck_transport"] = {"pending_source": "TRUCKD11 history",
+                                      "asof": d}
+    else:
+        out["truck_transport"] = {"pending_source": "FRED TRUCKD11",
+                                  "asof": d}
+
+    live = sum(1 for v in out.values() if "pending_source" not in v)
+    return {"indicators": out, "live_count": live, "total": len(out),
+            "spec": "Perplexity ae9048ad — 9 brain-cited indicators",
+            "note": "FRED-derived live now; non-FRED (Howell GLI, sovereign "
+                    "CDS, CBOE SKEW, true ACM) emit pending_source for "
+                    "honest placeholder rendering — no fabricated values"}
+# ── end indicators block ──
 
 
 def compute_posture(F, calendar, i):
@@ -762,6 +963,7 @@ def lambda_handler(event, context):
         "legs": live_legs,
         "fleet_context": fleet_context,
         "event_study": es,
+        "indicators": compute_indicators(F, calendar, li),
         "recent_timeline": timeline,
         "consume_as": "multiply position size / conviction by sizing_multiplier; "
                       "RISK_OFF tightens verdict thresholds; SEVERE = distressed-"
