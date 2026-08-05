@@ -1,482 +1,759 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Master Risk Gate · JustHodl AI</title>
+<title>Master Risk Gate · JustHodl AI · v4</title>
+<meta name="description" content="Institutional macro risk-gate with 1996+ crisis history, DEFCON composite, and brain-inheriting barometers.">
 <style>
-:root{--bg:#0d1117;--card:#161b22;--card2:#0f1319;--line:#30363d;--tx:#e8e8e8;--dim:#9aa4b2;--dim2:#6b7480;--amber:#F0B429;--amber2:#c99418;--green:#6fce8a;--red:#E07A6A;--sev:#ff9c8a}
+:root{
+  --bg:#0d1117;--card:#161b22;--card2:#0f1319;--card3:#0b0e13;
+  --line:#30363d;--line2:#1e242c;
+  --tx:#e8e8e8;--dim:#9aa4b2;--dim2:#6b7480;
+  --amber:#F0B429;--amber2:#c99418;--green:#6fce8a;--red:#E07A6A;--sev:#ff9c8a;--blue:#5bb0ea;--cyan:#38bdf8;--violet:#c084fc;
+  /* DEFCON palette */
+  --d1:#ff3232; --d2:#ff9c8a; --d3:#F0B429; --d4:#5bb0ea; --d5:#6fce8a;
+  /* Regime palette (Goldilocks / Reflation / Stagflation / Deflation-bust) */
+  --r-g:#6fce8a; --r-r:#38bdf8; --r-s:#F0B429; --r-d:#ff5a5a;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;padding:18px}
-a{color:var(--amber)}
-h1{font-size:22px;margin:0 0 4px}
-h2{font-size:15px;margin:22px 0 8px;color:var(--amber);border-bottom:1px solid var(--line);padding-bottom:4px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin:10px 0}
-.card2{background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:10px}
-.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-.grid-legs{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
-.big{font-size:34px;font-weight:800}
-.dim{color:var(--dim)}.dim2{color:var(--dim2)}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{padding:20px;max-width:1500px;margin:0 auto}
+a{color:var(--amber);text-decoration:none}
+a:hover{text-decoration:underline}
+h1{font-size:24px;margin:0 0 4px;font-weight:700;letter-spacing:-.5px}
+h2{font-size:15px;margin:26px 0 10px;color:var(--amber);border-bottom:1px solid var(--line);padding-bottom:5px;text-transform:uppercase;letter-spacing:1px}
+h3{font-size:13px;margin:0 0 8px;color:var(--tx);font-weight:600}
+.sub{color:var(--dim);font-size:13px;margin:0 0 14px}
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.dim{color:var(--dim)}.dim2{color:var(--dim2)}
+small{color:var(--dim);font-size:11.5px}
+/* Cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin:10px 0}
+.card2{background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:12px}
+.card3{background:var(--card3);border:1px solid var(--line2);border-radius:6px;padding:10px}
+.grid{display:grid;gap:10px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g5{grid-template-columns:repeat(5,1fr)}
+.g-legs{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.g-auto{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+@media(max-width:900px){.g2,.g3,.g4,.g5{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.g2,.g3,.g4,.g5{grid-template-columns:1fr}}
+/* Tables */
 table{width:100%;border-collapse:collapse;font-size:13px}
-td,th{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left}
-th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px}
+td,th{padding:6px 8px;border-bottom:1px solid var(--line2);text-align:left;vertical-align:top}
+th{color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+tr:last-child td{border-bottom:none}
+/* Badges & pills */
 .badge{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:700;font-size:12px}
 .p-RISK_ON{background:#12331d;color:var(--green)}
 .p-NEUTRAL{background:#2a2a14;color:var(--amber)}
 .p-RISK_OFF{background:#33170f;color:var(--red)}
 .p-SEVERE{background:#4a120a;color:var(--sev)}
-.leg-neg{color:var(--red)}.leg-pos{color:var(--green)}.leg-zero{color:var(--dim)}
 .stale{background:#2a2a14;color:var(--amber);padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700}
 .missing{background:#33170f;color:var(--red);padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700}
 .ok{background:#12331d;color:var(--green);padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700}
 .age-fresh{color:var(--green)}.age-stale{color:var(--amber)}.age-old{color:var(--red)}
-small{color:var(--dim)}
-/* leg score gauge */
+.big{font-size:34px;font-weight:800;line-height:1.1}
+/* DEFCON gauge */
+.defcon-wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.defcon-arc{width:200px;height:120px;position:relative;flex:0 0 200px}
+.defcon-arc svg{width:200px;height:120px;overflow:visible}
+.defcon-label{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+.defcon-num{font-size:44px;font-weight:800;line-height:1}
+.defcon-name{font-size:15px;font-weight:700;margin-top:4px;letter-spacing:1px}
+.defcon-score{font-family:ui-monospace,monospace;font-size:12px;color:var(--dim);margin-top:4px}
+/* Barometer bars */
+.baro{margin:8px 0}
+.baro-track{position:relative;height:16px;background:linear-gradient(90deg,var(--d1) 0%,var(--d2) 20%,var(--d3) 40%,var(--d4) 60%,var(--d5) 80%,var(--d5) 100%);border-radius:8px;overflow:visible}
+.baro-mark{position:absolute;top:-4px;width:3px;height:24px;background:var(--tx);border-radius:2px;box-shadow:0 0 0 1px #000}
+.baro-label{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-top:4px;font-family:ui-monospace,monospace}
+.baro-title{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.baro-title .name{font-size:12px;font-weight:600;color:var(--tx)}
+.baro-title .val{font-family:ui-monospace,monospace;font-size:13px;font-weight:700;color:var(--tx)}
+/* Legs */
+.leg-neg{color:var(--red)}.leg-pos{color:var(--green)}.leg-zero{color:var(--dim)}
 .gauge{position:relative;width:100%;height:8px;background:linear-gradient(90deg,#33170f 0%,#33170f 25%,#2a2a14 25%,#2a2a14 75%,#12331d 75%,#12331d 100%);border-radius:4px;margin:10px 0 4px;overflow:visible}
 .gauge-mark{position:absolute;top:-3px;width:2px;height:14px;background:var(--tx);border-radius:1px}
 .gauge-mark-fused{position:absolute;top:-3px;width:2px;height:14px;background:var(--amber);border-radius:1px}
 .gauge-mid{position:absolute;top:-1px;left:50%;width:1px;height:10px;background:#00000055}
-/* posture timeline chart */
-.tlchart{position:relative;height:60px;background:var(--card2);border-radius:6px;padding:8px;overflow:hidden}
-.tlbar{position:absolute;bottom:8px;width:calc((100% - 16px)/31 - 1px);border-radius:2px}
-/* fleet input rows */
-.fi{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;padding:3px 0;border-bottom:1px dashed #1e242c;font-size:11.5px}
+/* Fleet input rows */
+.fi{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;padding:3px 0;border-bottom:1px dashed var(--line2);font-size:11.5px}
 .fi:last-child{border-bottom:none}
 .fi .k{color:var(--tx);font-weight:600}
 .fi .v{color:var(--dim);font-family:ui-monospace,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
 .fi .adj{font-family:ui-monospace,monospace;font-size:11px;text-align:right;min-width:60px}
-/* indicator row inside leg card */
+/* Indicator rows */
 .ind{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:baseline;padding:4px 0;font-size:12px}
 .ind .lbl{color:var(--dim)}
 .ind .val{font-family:ui-monospace,monospace;font-weight:600}
 .ind .ctx{font-size:10.5px;color:var(--dim2)}
-/* section rules */
-.rule{border-left:2px solid var(--amber);padding:4px 8px;margin:6px 0;background:#1a1704;border-radius:0 4px 4px 0;font-size:12.5px}
-/* SVG chart container */
-.chart{width:100%;background:var(--card2);border-radius:6px;padding:6px;margin:6px 0}
-.legend{display:flex;gap:14px;font-size:11px;color:var(--dim);margin-top:4px;flex-wrap:wrap}
-.legend .sw{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:middle;margin-right:4px}
-.pill{display:inline-block;padding:1px 8px;border-radius:999px;background:#1e242c;color:var(--dim);font-size:11px;margin-right:6px}
-.crisis-lbl{fill:var(--red);font-size:9px;font-weight:700}
-.crisis-band{fill:rgba(224,122,106,0.10)}
-.zero-line{stroke:var(--dim2);stroke-dasharray:3,3;stroke-width:1}
-/* summary strip */
-.summary{display:grid;grid-template-columns:1.2fr 1fr 1.2fr;gap:10px;margin-bottom:12px}
-@media (max-width:800px){.summary{grid-template-columns:1fr}}
-/* age banner */
-.age-banner{padding:10px 14px;border-radius:8px;margin-bottom:10px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.age-banner.fresh{background:#12331d33;border:1px solid var(--green)}
-.age-banner.stale{background:#2a2a1444;border:1px solid var(--amber)}
-.age-banner.old{background:#33170f55;border:1px solid var(--red)}
-/* leg score display */
-.leg-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
-.leg-name{font-weight:800;font-size:14px;letter-spacing:0.5px}
-.leg-score-block{text-align:right;font-family:ui-monospace,monospace;font-size:13px;min-width:110px}
-.leg-score-block .raw{font-size:11px;color:var(--dim)}
-.leg-score-block .fused{font-size:18px;font-weight:800}
-/* percentile bar for indicators */
-.pctbar{position:relative;width:80px;height:5px;background:#1e242c;border-radius:3px;display:inline-block;vertical-align:middle}
-.pctbar-fill{position:absolute;top:0;left:0;height:100%;background:var(--amber);border-radius:3px}
-.pctbar-mark{position:absolute;top:-2px;width:1px;height:9px;background:var(--tx)}
-/* event-study bar chart */
-.esrow{display:grid;grid-template-columns:80px 90px 1fr 60px;gap:8px;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px dashed #1e242c}
-.esrow:last-child{border:none}
-.esbar-wrap{position:relative;height:16px;background:#0b0b0b;border-radius:3px;overflow:hidden}
-.esbar{position:absolute;top:0;height:100%;border-radius:3px}
-.esbar-pos{background:linear-gradient(90deg,#6fce8a55,#6fce8a);left:50%}
-.esbar-neg{background:linear-gradient(270deg,#E07A6A55,#E07A6A);right:50%}
-.eszero{position:absolute;top:0;left:50%;width:1px;height:100%;background:var(--dim2)}
-/* series-to-note table with description */
-.s2n-row td{padding:6px 8px;vertical-align:top}
-.s2n-code{font-family:ui-monospace,monospace;color:var(--amber);font-weight:600}
-.s2n-desc{font-size:12px;color:var(--dim)}
-.s2n-note{font-family:ui-monospace,monospace;font-size:11px;color:var(--dim2)}
-/* action strip */
-.action-strip{background:linear-gradient(90deg,#2a2a14 0%,#161b22 60%);border:1px solid var(--amber);border-radius:8px;padding:12px 16px;margin:10px 0;font-size:14px}
-.action-strip .lbl{color:var(--amber);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:1px}
-.action-strip .body{color:var(--tx);margin-top:2px}
-</style></head><body>
-<h1>🚦 Master Risk Gate</h1>
-<div class="dim">Brain-constitutional 7-leg macro risk gate. Sizing gate before selection. Data drives every rule from Khalid's brain.</div>
-<div id="root" class="card">Loading data/risk-gate.json…</div>
-<script>
-const SRC=['https://justhodl.ai/data/risk-gate.json',
-           'https://justhodl-dashboard-live.s3.amazonaws.com/data/risk-gate.json'];
+/* Regime strip */
+.regstrip{position:relative;height:20px;background:var(--card3);border-radius:4px;overflow:hidden;margin:6px 0 4px}
+.regcell{position:absolute;top:0;bottom:0}
+.regcell.g{background:var(--r-g)}
+.regcell.r{background:var(--r-r)}
+.regcell.s{background:var(--r-s)}
+.regcell.d{background:var(--r-d)}
+.reglegend{display:flex;gap:12px;font-size:11px;color:var(--dim);flex-wrap:wrap;margin-top:6px}
+.reglegend b{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:middle;margin-right:4px}
+/* Component contribution tornado */
+.tor{display:grid;grid-template-columns:180px 1fr auto;gap:6px;align-items:center;padding:3px 0;font-size:12px}
+.tor .label{color:var(--tx);font-size:11.5px;line-height:1.3}
+.tor .bar{position:relative;height:14px;background:transparent}
+.tor .bar-fill{position:absolute;top:0;bottom:0;background:var(--amber2);opacity:.85;border-radius:2px}
+.tor .val{font-family:ui-monospace,monospace;font-size:11px;color:var(--dim);text-align:right;min-width:44px}
+/* Feed age banner */
+.age-banner{background:linear-gradient(90deg,#2a2a14,#33170f);color:var(--tx);padding:8px 14px;border-radius:8px;margin:0 0 12px;font-size:12.5px;border:1px solid var(--line)}
+.age-banner strong{color:var(--amber)}
+.age-banner.fresh{background:linear-gradient(90deg,#12331d,#0f2a19);border-color:#1e4a2b}
+.age-banner.fresh strong{color:var(--green)}
+/* Section anchor */
+.anchor{color:var(--dim2);font-size:11px;margin-left:8px}
+/* SVG chart tooltip */
+.jh-tt{position:absolute;background:#000c;color:var(--tx);padding:4px 8px;border-radius:4px;font-size:11px;pointer-events:none;font-family:ui-monospace,monospace;border:1px solid var(--line);white-space:nowrap}
+.crisis-tag{fill:#f87171;font-size:9.5px;font-weight:700}
+.crisis-band{fill:rgba(239,68,68,0.09);stroke:rgba(239,68,68,0.35);stroke-width:.5}
+.nber-band{fill:rgba(128,128,128,0.22)}
+/* Recent posture timeline */
+.tlchart{position:relative;height:80px;background:var(--card3);border-radius:6px;padding:6px 8px;overflow:hidden}
+.tlbar{position:absolute;bottom:6px;width:6px;border-radius:1px;opacity:.9}
+/* Event study bar chart */
+.eschart{display:flex;align-items:flex-end;gap:4px;height:120px;margin-top:8px}
+.eschart .esbar{flex:1;min-width:6px;border-radius:2px 2px 0 0;background:var(--amber2);position:relative}
+.eschart .esbar.pos{background:var(--green)}
+.eschart .esbar.neg{background:var(--red)}
+.eschart .esbar .lbl{position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--dim);font-family:ui-monospace,monospace;white-space:nowrap}
+/* Crisis KB accordion */
+.kb-item{border:1px solid var(--line);border-radius:6px;margin:6px 0;background:var(--card3);overflow:hidden}
+.kb-item summary{padding:10px 14px;cursor:pointer;font-weight:600;color:var(--tx);list-style:none;display:flex;align-items:center;gap:8px}
+.kb-item summary::-webkit-details-marker{display:none}
+.kb-item summary:before{content:'▸';display:inline-block;font-size:10px;color:var(--dim);transition:transform .15s}
+.kb-item[open] summary:before{transform:rotate(90deg)}
+.kb-item .kb-body{padding:0 14px 12px;font-size:12.5px;color:var(--tx2);line-height:1.55}
+.kb-item .kb-body ul{padding-left:18px;margin:6px 0}
+.kb-item .kb-body .kb-sec{margin-top:8px}
+.kb-item .kb-body .kb-sec b{color:var(--tx);font-size:11.5px;text-transform:uppercase;letter-spacing:.03em}
+.kb-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;background:var(--amber2);color:#111;font-weight:700;letter-spacing:.03em}
+/* 7-leg gauges */
+.g-legs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.leg{background:var(--card3);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.leg .lh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12px}
+.leg .lh .name{font-weight:600;color:var(--tx);text-transform:capitalize}
+.leg .lh .score{font-family:ui-monospace,monospace;color:var(--tx)}
+.leg .lb{position:relative;height:8px;background:linear-gradient(90deg,var(--red) 0%,var(--amber2) 50%,var(--green) 100%);border-radius:4px}
+.leg .lb .lm{position:absolute;top:-3px;width:2.5px;height:14px;background:var(--tx);border-radius:2px}
+.leg .ll{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:4px;font-family:ui-monospace,monospace}
+.leg .desc{font-size:11px;color:var(--dim);margin-top:6px;line-height:1.4}
+/* Diagnostics */
+#diag{font-family:ui-monospace,monospace;font-size:11.5px;color:var(--dim);white-space:pre-wrap;line-height:1.55}
+/* Fleet inputs */
+#fleet .fleet-row{display:grid;grid-template-columns:120px 1fr 100px 80px;gap:8px;padding:4px 0;border-bottom:1px solid var(--line2);font-size:12px;font-family:ui-monospace,monospace}
+#fleet .fleet-row:last-child{border-bottom:none}
+#fleet .fleet-row .fs-name{color:var(--tx);font-weight:600}
+</style>
+</head>
+<body>
+<h1>Master Risk Gate</h1>
+<div class="sub">Institutional-grade macro risk barometer · brain-inheriting · v4 · <a href="/">← Home</a></div>
 
-/* --- historical crisis windows (matches jh-enhance.js) --- */
-const CRISES = [
-  ["1997-07","1998-10","Asian/LTCM"],
-  ["2000-03","2002-10","Dot-com"],
-  ["2007-08","2009-06","GFC"],
-  ["2011-07","2012-07","Euro debt"],
-  ["2015-08","2016-02","China/oil"],
-  ["2020-02","2020-05","COVID"],
-  ["2022-01","2022-10","Rate shock"],
-  ["2023-03","2023-05","SVB"]
-];
+<div id="ageBanner" class="age-banner">Loading engine feed…</div>
 
-/* --- indicator context (thresholds + descriptions from brain) --- */
-const IND = {
-  cp_ffr_bp:      {label:"CP–FFR spread",       unit:"bp",   good:"<25", bad:">75",  brain:"nmq5x1qrkm0cn", desc:"A2/P2 short paper stress vs Fed funds. Widens in liquidity crunches."},
-  rrp_bn:         {label:"Fed RRP balance",     unit:"$B",   good:">100",bad:"<10",  brain:"nmq5x1e4os92j", desc:"Reverse repo cash buffer. Approaching zero = liquidity thinning fast."},
-  reserves_13w_pct:{label:"Bank reserves 13w",  unit:"%",    good:">0",  bad:"<-3",  brain:"nmq5x1e4os92j", desc:"Banking system reserves 13-week change. QT draining is bearish."},
-  sofr_iorb_bp:   {label:"SOFR–IORB",           unit:"bp",   good:"<3",  bad:">10",  brain:"tv-a56315720e79a9ea", desc:"Overnight funding vs Fed's ceiling. Elevated = repo dysfunction."},
-  ccc_level:      {label:"CCC HY yield",        unit:"%",    good:"<8",  bad:">14",  brain:"tv-8711fbee989cf1eb", desc:"Junk-rated credit spread level. Rising = default risk repricing."},
-  ccc_21d_pct:    {label:"CCC 21d change",      unit:"%",    good:"<0",  bad:">10",  brain:"tv-8711fbee989cf1eb", desc:"CCC yield 21-day move. Sharp spikes precede risk-off."},
-  euro_hy_21d_pct:{label:"Euro HY 21d",         unit:"%",    good:"<0",  bad:">10",  brain:"tv-e38d57bffedb366a", desc:"European high-yield 21d move — global credit sync check."},
-  dxy_63d_pct:    {label:"DXY 63d change",      unit:"%",    good:"<2",  bad:">6",   brain:"tv-ab761f92999efe68", desc:"Dollar index 63-day move. Rising DXY tightens global liquidity."},
-  dgs10_63d_bp:   {label:"10Y yield 63d",       unit:"bp",   good:"<25", bad:">80",  brain:"nmq5x00zhe98n", desc:"US 10-year yield 63-day change. Rate shocks in bp."},
-  usdjpy_21d_pct: {label:"USD/JPY 21d",         unit:"%",    good:"|<2|",bad:">5 or <-5", brain:"tv-f58a44fc2f839aac", desc:"Yen carry proxy. Sharp yen strength = carry unwind."},
-  indpro_yoy_pct: {label:"IP YoY growth",       unit:"%",    good:">1",  bad:"<-1",  brain:"nmq5x00zh27pq", desc:"Industrial production year/year. Negative = recession signal."},
-  vix:            {label:"VIX",                 unit:"",     good:"<20", bad:">30",  brain:"tv-14a76b6087dc80eb", desc:"S&P implied vol. >20 stressed, >30 crisis-adjacent, >40 panic."}
-};
-
-/* --- series-to-note enrichment (what each FRED/TV series measures) --- */
-const SERIES_DESC = {
-  RRPONTSYD:      "Fed reverse repo (RRP) balance — overnight parking of excess cash",
-  WRESBAL:        "Aggregate reserves held by depository institutions at Fed",
-  TOTRESNS:       "Total reserves of depository institutions",
-  BOGMBBM:        "Board of Governors monetary base",
-  CASACBW027SBOG: "Cash assets of commercial banks",
-  SOFR:           "Secured Overnight Financing Rate",
-  IORB:           "Interest on reserve balances (Fed ceiling)",
-  BAMLH0A3HYC:    "BofA CCC-rated high-yield OAS",
-  BAMLC0A4CBBB:   "BofA BBB corporate OAS",
-  BAMLH0A0HYM2:   "BofA US high-yield master OAS",
-  BAMLHE00EHYIOAS:"BofA Euro high-yield OAS",
-  DTWEXBGS:       "Trade-weighted dollar (broad, goods)",
-  DGS10:          "10-year Treasury constant maturity yield",
-  DEXJPUS:        "USD/JPY exchange rate",
-  INDPRO:         "Industrial production index (level)",
-  VIXCLS:         "CBOE volatility index (close)",
-  DCPN3M:         "3-month nonfinancial commercial paper rate",
-  DFF:            "Effective federal funds rate",
-  RIFSPPNA2P2D90NB:"A2/P2 spread — 90-day tier-2 commercial paper",
-  SP500:          "S&P 500 total return index"
-};
-
-const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const fmt=(v,d=2)=>v==null?'—':(typeof v==='number'?(Math.abs(v)>=1e3?v.toLocaleString('en-US',{maximumFractionDigits:d}):v.toFixed(d)):esc(v));
-const fmtVal=(v,d=2)=>{
-  if(v==null) return '—';
-  if(typeof v==='object') return '<span class="dim mono" style="font-size:10px">(composite)</span>';
-  return fmt(v,d);
-};
-
-function ageHours(iso){
-  if(!iso) return null;
-  try{ return (Date.now()-new Date(iso).getTime())/3600000; }catch(e){return null;}
-}
-function ageLabel(h){
-  if(h==null) return '—';
-  if(h<1) return Math.round(h*60)+'m';
-  if(h<24) return h.toFixed(1)+'h';
-  return (h/24).toFixed(1)+'d';
-}
-function ageClass(h){
-  if(h==null) return 'age-old';
-  if(h<6) return 'age-fresh';
-  if(h<24) return 'age-stale';
-  return 'age-old';
-}
-
-/* Leg score gauge: -2 to +2 scale */
-function gauge(raw, fused){
-  const clamp=v=>Math.max(-2,Math.min(2,v??0));
-  const pos=v=>((clamp(v)+2)/4)*100;
-  const r=pos(raw), f=fused!=null?pos(fused):null;
-  return `<div class="gauge" title="Score scale: -2 (risk-off) to +2 (risk-on)">
-    <div class="gauge-mid"></div>
-    <div class="gauge-mark" style="left:calc(${r}% - 1px)" title="raw score ${fmt(raw,2)}"></div>
-    ${f!=null?`<div class="gauge-mark-fused" style="left:calc(${f}% - 1px)" title="fused (with fleet) ${fmt(fused,2)}"></div>`:''}
+<!-- ================================================================ -->
+<h2>Composite Read <span class="anchor">DEFCON · brain-inheriting posture · fleet-fused</span></h2>
+<div class="card">
+  <div class="grid g2">
+    <!-- LEFT: DEFCON arc gauge + posture -->
+    <div>
+      <div class="defcon-wrap">
+        <div class="defcon-arc" id="defconArc"><svg viewBox="0 0 200 120"></svg></div>
+        <div>
+          <div class="defcon-label">Master Crisis Score</div>
+          <div class="defcon-num" id="defconNum">–</div>
+          <div class="defcon-name" id="defconName">–</div>
+          <div class="defcon-score" id="defconScore">–</div>
+        </div>
+      </div>
+      <div style="margin-top:14px" class="dim" id="defconPlaybook"></div>
+    </div>
+    <!-- RIGHT: composite posture + sizing -->
+    <div class="card2">
+      <h3>Fleet-Fused Posture</h3>
+      <div id="postureBlock"></div>
+    </div>
   </div>
-  <div class="dim mono" style="font-size:9.5px;display:flex;justify-content:space-between;margin-top:1px">
-    <span>−2</span><span>−1</span><span>0</span><span>+1</span><span>+2</span>
-  </div>`;
-}
+  <div class="card2" style="margin-top:12px">
+    <h3>Sanity Check · OFR Financial Stress Index <small id="ofrAsof"></small></h3>
+    <div id="ofrBlock" class="dim">Loading…</div>
+  </div>
+</div>
 
-/* Fleet input renderer with clean value display */
-function fleetInputRow(x){
-  const statCls = x.status==='OK'?'ok':x.status==='STALE'?'stale':x.status==='MISSING'?'missing':'stale';
-  const isObj = typeof x.value==='object' && x.value!==null;
-  let valDisplay;
-  if(x.value==null){ valDisplay='<span class="dim">null</span>'; }
-  else if(isObj){
-    // Show first 1-2 meaningful keys, not raw JSON
-    const keys=Object.keys(x.value).slice(0,2);
-    const parts=keys.map(k=>{
-      const v=x.value[k];
-      const shown=typeof v==='number'?fmt(v,2):typeof v==='string'?(v.length>15?v.slice(0,15)+'…':v):JSON.stringify(v).slice(0,12);
-      return `<span class="dim2">${esc(k)}=</span>${esc(shown)}`;
-    });
-    valDisplay=`<span title='${esc(JSON.stringify(x.value))}'>${parts.join(' · ')}</span>`;
-  } else {
-    valDisplay=fmt(x.value,2);
-  }
-  const adjCls = x.score_adj<0?'leg-neg':x.score_adj>0?'leg-pos':'dim';
-  const ageStr = x.age_h!=null ? ` <span class="dim2" style="font-size:10px">${ageLabel(x.age_h)}</span>` : '';
-  return `<div class="fi">
-    <span class="${statCls}">${esc(x.status||'?')}</span>
-    <div><span class="k">${esc(x.input)}</span>${ageStr}
-      <div class="v" title="${esc(x.note||'')}">${valDisplay}</div>
-    </div>
-    <span class="adj ${adjCls}">adj ${fmt(x.score_adj,2)}</span>
-  </div>`;
-}
+<!-- ================================================================ -->
+<h2>Three Domain Barometers <span class="anchor">MACRO · LIQUIDITY · RISK · built directly from Khalid's brain</span></h2>
+<div class="card" id="baroCard">
+  <div class="dim" style="font-size:12px;margin-bottom:10px" id="baroDirective">Loading…</div>
+  <div class="grid g3" id="baroGrid"></div>
+</div>
 
-/* Per-indicator row with brain-cited threshold context */
-function indicatorRow(key, val){
-  const meta = IND[key];
-  if(!meta) return `<div class="ind"><span class="lbl mono">${esc(key)}</span><span class="val">${fmtVal(val)}</span><span class="ctx"></span></div>`;
-  return `<div class="ind" title="${esc(meta.desc)}">
-    <div><span class="lbl">${esc(meta.label)}</span> <span class="dim2 mono" style="font-size:10px">[${esc(meta.brain)}]</span></div>
-    <span class="val">${fmtVal(val)}${esc(meta.unit)}</span>
-    <span class="ctx">good ${esc(meta.good)} · bad ${esc(meta.bad)}</span>
-  </div>`;
-}
+<!-- ================================================================ -->
+<h2>Composite Contribution <span class="anchor">what's moving the crisis score right now (KC Fed tornado pattern)</span></h2>
+<div class="card">
+  <div class="dim" style="font-size:12px;margin-bottom:8px">Bar length = each engine's contribution to the master crisis score. Sorted by absolute contribution. Grey bars = data unavailable.</div>
+  <div id="tornado"></div>
+</div>
 
-/* Leg card renderer */
-function legCard(name, l){
-  const s = l.score ?? 0;
-  const f = l.score_fused;
-  const sCls = s<0?'leg-neg':(s>0?'leg-pos':'leg-zero');
-  const fCls = f==null?'leg-zero':f<0?'leg-neg':f>0?'leg-pos':'leg-zero';
+<!-- ================================================================ -->
+<h2>Crisis History <span class="anchor">1996+ regime strip · every Khalid-referenced crisis window</span></h2>
+<div class="card">
+  <div class="dim" style="font-size:12px;margin-bottom:10px">Growth × inflation × liquidity quadrant classification computed monthly since 1963-07 (showing 1996+). Each column is one month. Anchor windows highlighted in red.</div>
+  <div id="regimeStrip" class="card3"></div>
+  <div id="regimeLegend" class="reglegend"></div>
+</div>
 
-  // Extract numeric indicators (not meta fields)
-  const meta = new Set(['score','why','fleet_inputs','fleet_adj','score_fused','advisory','cite']);
-  const inds = Object.entries(l).filter(([k])=>!meta.has(k));
-  const indHtml = inds.length ? inds.map(([k,v])=>indicatorRow(k,v)).join('') : '<div class="dim2" style="font-size:11px;padding:6px 0">no direct indicators</div>';
+<!-- ================================================================ -->
+<h2>Crisis Knowledge Base <span class="anchor">13 crisis patterns · trigger signals · playbook per pattern</span></h2>
+<div class="card">
+  <div class="dim" style="font-size:12px;margin-bottom:10px">Every pattern below is a shape the engine can pattern-match against live indicators. Each expands to show trigger signals + historical examples + the Khalid-brain playbook.</div>
+  <div id="crisisKB"></div>
+</div>
 
-  const whys = (l.why||[]);
-  const whyHtml = whys.length ? whys.map(w=>`<div class="rule">${esc(w)}</div>`).join('') : '';
+<!-- ================================================================ -->
+<h2>Live 7-Leg Risk Gate <span class="anchor">brain constitution 2.3 · fleet-fused</span></h2>
+<div class="dim" style="font-size:12.5px;margin-bottom:10px">Seven legs Khalid's brain requires. Each shows engine-emitted score −2..+2, fused fleet score, and named indicators with brain-cited thresholds.</div>
+<div class="grid g-legs" id="legs"></div>
 
-  const fis = (l.fleet_inputs||[]);
-  const fiHtml = fis.length ? `<div style="margin-top:8px"><div class="dim" style="font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Fleet Inputs (${fis.length})</div>${fis.map(fleetInputRow).join('')}</div>` : '';
+<!-- ================================================================ -->
+<h2>Fleet Inputs <span class="anchor">deltas contributing to fleet-fused posture</span></h2>
+<div class="card2" id="fleet">Loading…</div>
 
-  const advisoryTag = l.advisory ? ' <span class="pill" style="background:#2a2a14;color:var(--amber)">ADVISORY</span>' : '';
-  const citeTag = l.cite ? ` <span class="dim2 mono" style="font-size:10px">cite: ${esc(l.cite)}</span>` : '';
+<!-- ================================================================ -->
+<h2>Event Study <span class="anchor">forward-return conditioned on posture flips (out-of-sample)</span></h2>
+<div class="card">
+  <div class="dim" style="font-size:12px;margin-bottom:10px" id="esNote">Loading…</div>
+  <div id="esChart"></div>
+</div>
 
-  return `<div class="card">
-    <div class="leg-header">
-      <div>
-        <div class="leg-name">${esc(name.toUpperCase())}${advisoryTag}</div>
-        ${citeTag}
-      </div>
-      <div class="leg-score-block">
-        <div class="raw">raw <span class="${sCls}">${fmt(s,1)}</span> ${l.fleet_adj!=null?`· fleet ${fmt(l.fleet_adj,2)}`:''}</div>
-        <div class="fused ${fCls}">${f!=null?fmt(f,2):fmt(s,2)}</div>
-      </div>
-    </div>
-    ${gauge(s, f)}
-    <div style="margin-top:8px">${indHtml}</div>
-    ${whyHtml ? `<div style="margin-top:8px">${whyHtml}</div>` : ''}
-    ${fiHtml}
-  </div>`;
-}
+<!-- ================================================================ -->
+<h2>Recent Timeline <span class="anchor">31-day posture history</span></h2>
+<div class="card">
+  <div class="tlchart" id="tlchart"></div>
+</div>
 
-/* SVG: recent posture timeline as a proper composite chart */
-function timelineChart(tl){
-  if(!tl || !tl.length) return '<div class="dim">no timeline data</div>';
-  const W=1200,H=120,PL=42,PR=12,PT=8,PB=22;
-  const w=W-PL-PR, h=H-PT-PB;
-  const n=tl.length;
-  const vs=tl.map(t=>t.composite);
-  const mn=Math.min(...vs, -1.5), mx=Math.max(...vs, 1.5);
-  const rg=mx-mn;
-  const X=i=>PL + (i/(n-1))*w;
-  const Y=v=>PT + h - ((v-mn)/rg)*h;
-  const zeroY=Y(0);
-  // Posture-colored bars
-  const bars = tl.map((t,i)=>{
-    const color = t.posture==='RISK_ON'?'#6fce8a':t.posture==='NEUTRAL'?'#F0B429':t.posture==='SEVERE'?'#8a1e0e':'#E07A6A';
-    const xL = X(i)-((w/(n-1))*0.4);
-    const xR = X(i)+((w/(n-1))*0.4);
-    const y0 = Math.min(Y(t.composite), zeroY);
-    const y1 = Math.max(Y(t.composite), zeroY);
-    return `<rect x="${xL.toFixed(1)}" y="${y0.toFixed(1)}" width="${(xR-xL).toFixed(1)}" height="${(y1-y0).toFixed(1)}" fill="${color}" opacity="0.85"><title>${esc(t.date)}: ${esc(t.posture)} composite ${fmt(t.composite,2)}</title></rect>`;
-  }).join('');
-  // Y-axis
-  let yaxis='';
-  for(let i=0;i<=4;i++){
-    const v=mn+rg*i/4, py=Y(v);
-    yaxis += `<line x1="${PL}" y1="${py.toFixed(1)}" x2="${PL+w}" y2="${py.toFixed(1)}" stroke="#1a2029" stroke-width="0.5"/><text x="${PL-6}" y="${(py+3).toFixed(1)}" fill="#6b7480" font-size="10" text-anchor="end" font-family="ui-monospace,monospace">${fmt(v,1)}</text>`;
-  }
-  // Zero line
-  yaxis += `<line x1="${PL}" y1="${zeroY.toFixed(1)}" x2="${PL+w}" y2="${zeroY.toFixed(1)}" class="zero-line"/>`;
-  // X labels (first, middle, last)
-  const xlbl = [0, Math.floor(n/2), n-1].map(i=>{
-    const d=String(tl[i].date).slice(5); // MM-DD
-    return `<text x="${X(i).toFixed(1)}" y="${H-6}" fill="#6b7480" font-size="10" text-anchor="middle" font-family="ui-monospace,monospace">${esc(d)}</text>`;
-  }).join('');
-  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="height:130px">${yaxis}${bars}${xlbl}</svg>
-    <div class="legend">
-      <span><span class="sw" style="background:#6fce8a"></span>RISK_ON</span>
-      <span><span class="sw" style="background:#F0B429"></span>NEUTRAL</span>
-      <span><span class="sw" style="background:#E07A6A"></span>RISK_OFF</span>
-      <span><span class="sw" style="background:#8a1e0e"></span>SEVERE</span>
-      <span class="dim2">${n} days · ${tl[0].date} → ${tl[n-1].date}</span>
-    </div>`;
-}
+<!-- ================================================================ -->
+<h2>Brain Constitution <span class="anchor">the 20-series Khalid's engine is required to consume</span></h2>
+<div class="card2">
+  <table id="bcTable"><thead><tr><th>Series</th><th>Meaning</th><th>Where it enters</th></tr></thead><tbody></tbody></table>
+</div>
 
-/* SVG: event-study flip results — SPX fwd 21d & 63d visualization */
-function flipsChart(flips){
-  if(!flips || !flips.length) return '<div class="dim">no flip events</div>';
-  const rows = flips.map(f=>{
-    const p21 = f.spx_fwd_21d_pct;
-    const p63 = f.spx_fwd_63d_pct;
-    const max = 8; // % scale
-    const barPos = v=>{
-      if(v==null) return '<span class="dim2">n/a</span>';
-      const w = Math.min(Math.abs(v)/max*50, 50);
-      const cls = v>=0 ? 'esbar-pos' : 'esbar-neg';
-      return `<div class="esbar-wrap"><div class="eszero"></div><div class="esbar ${cls}" style="width:${w.toFixed(1)}%"></div></div>`;
-    };
-    return `<div class="esrow">
-      <span class="mono dim">${esc(f.date)}</span>
-      <span><span class="badge p-${esc(f.posture)}">${esc(f.posture)}</span></span>
-      ${barPos(p21)}
-      <span class="mono ${p21==null?'dim':(p21<0?'leg-neg':'leg-pos')}" style="text-align:right">${p21==null?'—':fmt(p21,2)+'%'}</span>
-    </div>`;
-  }).join('');
-  return `<div class="esrow" style="border-bottom:1px solid var(--line);color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:1px">
-    <span>FLIP DATE</span><span>POSTURE</span><span>SPX 21D FWD →</span><span style="text-align:right">21D %</span>
-  </div>${rows}
-  <div class="dim2" style="font-size:11px;margin-top:6px">Bars centered at zero. Green = gate was right (avoided loss / caught upside). Red = SPX rallied while gate was off — cost of caution.</div>`;
-}
+<!-- ================================================================ -->
+<h2>Diagnostics <span class="anchor">provenance · staleness · methodology</span></h2>
+<div class="card2 mono" id="diag" style="font-size:11.5px;color:var(--dim);white-space:pre-wrap;line-height:1.55">Loading…</div>
 
-/* series-to-note enriched table */
-function seriesTable(s2n){
-  const rows = Object.entries(s2n||{}).map(([code, note])=>{
-    const desc = SERIES_DESC[code] || '<span class="dim2">(no local description)</span>';
-    return `<tr class="s2n-row">
-      <td><span class="s2n-code">${esc(code)}</span></td>
-      <td><span class="s2n-desc">${desc}</span></td>
-      <td class="s2n-note">${esc(note)}</td>
-    </tr>`;
-  }).join('');
-  return `<table>
-    <tr><th>Series</th><th>What it measures</th><th>Brain note</th></tr>
-    ${rows}
-  </table>`;
-}
+<div style="text-align:center;color:var(--dim2);font-size:11px;margin:30px 0 10px">
+  JustHodl AI · Risk Gate v4 · every barometer, every crisis anchor, every rule below comes straight from Khalid's brain (12,744 notes) and the engines derived from it.
+</div>
 
-async function load(){
-  let d=null,srcUrl=null;
-  for(const u of SRC){
+<script>
+/* =============================================================================
+   Data loading — resilient fallback across justhodl.ai, worker, and S3
+============================================================================= */
+const FEEDS = {
+  primary: '/data/risk-gate.json',
+  fallbacks: [
+    'https://justhodl-data-proxy.raafouis.workers.dev/data/risk-gate.json',
+    'https://justhodl-dashboard-live.s3.amazonaws.com/data/risk-gate.json'
+  ]
+};
+const SIDECAR = {
+  domain:      ['/data/domain-barometers.json','https://justhodl-data-proxy.raafouis.workers.dev/data/domain-barometers.json'],
+  crisis:      ['/data/crisis-composite.json','https://justhodl-data-proxy.raafouis.workers.dev/data/crisis-composite.json'],
+  regime:      ['/data/regime.json','https://justhodl-data-proxy.raafouis.workers.dev/data/regime.json'],
+  crisisKB:    ['/data/crisis-knowledge-base.json','https://justhodl-data-proxy.raafouis.workers.dev/data/crisis-knowledge-base.json'],
+  ofr:         ['/data/ofr-fsi.json','https://justhodl-data-proxy.raafouis.workers.dev/data/ofr-fsi.json']
+};
+async function tryFetch(urls){
+  for(const u of urls){
     try{
-      const r=await fetch(u+'?v='+Date.now());
-      if(r.ok){ d=await r.json(); srcUrl=u; break; }
+      const r = await fetch(u + (u.includes('?')?'&':'?') + '_=' + Date.now());
+      if(r.ok) return await r.json();
     }catch(e){}
   }
-  if(!d){document.getElementById('root').innerHTML='<div class="card" style="border-color:var(--red)"><b class="leg-neg">Feed unreachable.</b><div class="dim" style="margin-top:4px">Both primary and fallback feeds failed. Check justhodl.ai/data/risk-gate.json and s3 mirror.</div></div>';return}
-  render(d, srcUrl);
+  return null;
+}
+function fmt(v, d=1){ if(v==null||!isFinite(v)) return '–'; const a=Math.abs(v); return (v>=0?'':'')+(+v).toFixed(a>=100?0:a>=10?1:d); }
+function ageBadge(ts){
+  if(!ts) return {cls:'missing', txt:'no data'};
+  const h = (Date.now() - new Date(ts).getTime())/3.6e6;
+  if(h<2) return {cls:'ok', txt:'fresh · '+h.toFixed(1)+'h'};
+  if(h<6) return {cls:'ok', txt:h.toFixed(1)+'h old'};
+  if(h<24) return {cls:'stale', txt:h.toFixed(1)+'h old'};
+  return {cls:'missing', txt:h.toFixed(0)+'h old — STALE'};
+}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* =============================================================================
+   Age banner
+============================================================================= */
+function updateBanner(rg){
+  const el = document.getElementById('ageBanner');
+  const ts = rg && (rg.generated_at || rg.asof);
+  const b = ageBadge(ts);
+  const fresh = b.cls === 'ok';
+  el.className = 'age-banner' + (fresh?' fresh':'');
+  el.innerHTML = 'Engine feed: <strong>'+b.txt+'</strong> · generated ' + (ts ? new Date(ts).toISOString().replace('T',' ').slice(0,16)+' UTC' : '–') + ' · schema ' + esc(rg && rg.marker || rg && rg.version || '?');
 }
 
-function render(d, srcUrl){
-  const es = d.event_study || {};
-  const oc = es.october_2025_replay || {};
-  const bc = d.brain_constitution || {};
-  const fc = d.fleet_context || {};
-  const legs = d.legs || {};
-  const ageH = ageHours(d.generated_at);
-  const ageStr = ageLabel(ageH);
-  const ageCls = ageH==null?'age-old':ageH<6?'fresh':ageH<24?'stale':'old';
+/* =============================================================================
+   DEFCON arc gauge (Fear & Greed pattern, only where it makes sense)
+============================================================================= */
+function renderDefcon(cc){
+  const svg = document.querySelector('#defconArc svg');
+  const s = cc && cc.master_crisis_score;
+  const lvl = cc && cc.defcon_level;
+  const name = cc && cc.defcon_name || '';
+  const play = cc && cc.playbook || '';
+  document.getElementById('defconNum').textContent = s==null?'–':s.toFixed(1);
+  document.getElementById('defconName').textContent = 'DEFCON '+(lvl||'?')+' · '+name;
+  document.getElementById('defconScore').textContent = 'scale: 5 all-clear · 4 normal · 3 elevated · 2 high stress · 1 crisis';
+  document.getElementById('defconPlaybook').textContent = play;
+  // Arc from -180° to 0° (bottom half)
+  const cx=100, cy=100, r=80;
+  const arcs = [
+    {a0:180, a1:216, c:'var(--d5)'}, // 0-20 all clear (DEFCON 5)
+    {a0:216, a1:252, c:'var(--d4)'}, // 20-40 normal (DEFCON 4)
+    {a0:252, a1:288, c:'var(--d3)'}, // 40-60 elevated (DEFCON 3)
+    {a0:288, a1:324, c:'var(--d2)'}, // 60-80 high (DEFCON 2)
+    {a0:324, a1:360, c:'var(--d1)'}  // 80-100 crisis (DEFCON 1)
+  ];
+  function polar(cx,cy,r,a){return [cx+r*Math.cos(a*Math.PI/180), cy+r*Math.sin(a*Math.PI/180)];}
+  function arcPath(cx,cy,r,a0,a1,w){
+    const [x0,y0]=polar(cx,cy,r,a0),[x1,y1]=polar(cx,cy,r,a1);
+    const [xi0,yi0]=polar(cx,cy,r-w,a0),[xi1,yi1]=polar(cx,cy,r-w,a1);
+    const large = (a1-a0)>180?1:0;
+    return `M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1} L ${xi1} ${yi1} A ${r-w} ${r-w} 0 ${large} 0 ${xi0} ${yi0} Z`;
+  }
+  let html = '';
+  arcs.forEach(a=>{ html += `<path d="${arcPath(cx,cy,r,a.a0,a.a1,18)}" fill="${a.c}" opacity=".85"/>`; });
+  // Needle
+  if(s!=null){
+    const clamp = Math.max(0,Math.min(100,s));
+    const ang = 180 + (clamp/100)*180;
+    const [nx,ny]=polar(cx,cy,r-4,ang);
+    const [tx,ty]=polar(cx,cy,10,ang+180);
+    html += `<line x1="${tx}" y1="${ty}" x2="${nx}" y2="${ny}" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`;
+    html += `<circle cx="${cx}" cy="${cy}" r="5" fill="#fff"/>`;
+  }
+  // Tick labels
+  html += `<text x="20" y="112" fill="#6fce8a" font-size="10" font-weight="700">0</text>`;
+  html += `<text x="100" y="20" fill="#F0B429" font-size="10" font-weight="700" text-anchor="middle">50</text>`;
+  html += `<text x="180" y="112" fill="#ff5a5a" font-size="10" font-weight="700" text-anchor="end">100</text>`;
+  svg.innerHTML = html;
+}
 
-  // Posture summary
-  const postureBadge = `<span class="badge p-${esc(d.posture)}" style="font-size:22px;padding:6px 16px">${esc(d.posture)}</span>`;
-
-  // Replay-only info
-  const replayNote = (d.replay_posture_fred_only && d.replay_posture_fred_only !== d.posture)
-    ? `<div class="dim" style="font-size:11px;margin-top:4px">FRED-only replay: <b class="mono">${esc(d.replay_posture_fred_only)}</b> composite ${fmt(d.replay_composite_fred_only,2)}</div>`
-    : `<div class="dim2" style="font-size:11px;margin-top:4px">FRED-only replay confirms: ${fmt(d.replay_composite_fred_only,2)}</div>`;
-
-  // Fleet context — handle null crisis_composite explicitly
-  const crisisComp = fc.crisis_composite;
-  const crisisDisplay = crisisComp==null
-    ? '<span class="dim2">not computed</span>'
-    : `<span class="mono">${fmt(crisisComp)}</span>`;
-
-  // Age banner
-  const ageBanner = `<div class="age-banner ${ageCls}">
-    <div>
-      <b>Feed age: <span class="mono">${esc(ageStr)}</span></b>
-      <span class="dim" style="margin-left:8px">generated ${esc((d.generated_at||'').slice(0,19))}Z · engine took ${fmt(d.elapsed_s,1)}s</span>
+/* =============================================================================
+   Posture block
+============================================================================= */
+function renderPosture(rg){
+  const el = document.getElementById('postureBlock');
+  if(!rg || !rg.posture){ el.innerHTML='<div class="dim">no posture</div>'; return; }
+  const p = rg.posture;
+  const cls = 'p-' + (p==='RISK-ON'?'RISK_ON': p==='RISK-OFF'?'RISK_OFF': p==='SEVERE'?'SEVERE':'NEUTRAL');
+  const sm = rg.sizing_multiplier;
+  const co = rg.composite;
+  el.innerHTML = `
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+      <span class="badge ${cls}">${esc(p)}</span>
+      <span class="big" style="color:${co<0?'var(--red)':co>0?'var(--green)':'var(--amber)'}">${fmt(co,2)}</span>
+      <span class="dim mono">/ ±2</span>
     </div>
-    <div class="dim2 mono" style="font-size:11px">source: ${esc((srcUrl||'').replace('https://',''))}</div>
-  </div>`;
-
-  document.getElementById('root').outerHTML = `
-${ageBanner}
-<div class="summary">
-  <div class="card">
-    <div class="dim" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Master Posture</div>
-    <div style="margin:8px 0">${postureBadge}</div>
-    <div class="mono" style="font-size:16px">composite <b>${fmt(d.composite,2)}</b></div>
-    ${replayNote}
-  </div>
-  <div class="card">
-    <div class="dim" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Sizing Multiplier</div>
-    <div class="big mono" style="color:var(--amber);margin:4px 0">×${fmt(d.sizing_multiplier)}</div>
-    <div class="dim" style="font-size:11px">${esc(d.consume_as||'')}</div>
-  </div>
-  <div class="card">
-    <div class="dim" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Fleet Context</div>
-    <div style="font-size:12px;margin-top:6px"><b class="dim">yen-carry:</b> ${fmt(fc.yen_carry_composite)}</div>
-    <div style="font-size:12px;margin-top:4px"><b class="dim">crisis-composite:</b> ${crisisDisplay}</div>
-    <div class="dim2 mono" style="font-size:10px;margin-top:8px">v${esc(d.version)} · ${esc(d.engine)} · ${esc(d.marker||'')}</div>
-  </div>
-</div>
-
-<div class="action-strip">
-  <span class="lbl">Playbook</span>
-  <div class="body">${esc(d.consume_as||'')}</div>
-</div>
-
-<h2>Seven Legs — Brain-Cited Score Cards</h2>
-<div class="dim" style="font-size:12px;margin-bottom:8px">Each leg scored −2..+2. White tick = raw score. Amber tick = fused score (with fleet inputs applied). Score bands: risk-off (red) → neutral (amber) → risk-on (green).</div>
-<div class="grid-legs">${Object.entries(legs).map(([n,l])=>legCard(n,l)).join('')}</div>
-
-<h2>Recent Posture Timeline (~90 trading days)</h2>
-<div class="card">
-  ${timelineChart(d.recent_timeline)}
-</div>
-
-<h2>Event Study — Was the Gate Right?</h2>
-<div class="card">
-  <div style="font-size:12.5px">${esc(es.methodology||'')}</div>
-  <div style="margin:10px 0;display:flex;gap:16px;flex-wrap:wrap;font-family:ui-monospace,monospace;font-size:13px">
-    <div><span class="dim">Flips to risk-off:</span> <b>${fmt(es.n_flips_to_risk_off_or_worse,0)}</b></div>
-    <div><span class="dim">SPX fwd-21d baseline:</span> <b>${fmt(es.spx_baseline_fwd_21d_pct)}%</b></div>
-    <div><span class="dim">While risk-off:</span> <b class="${es.avg_spx_fwd_21d_while_risk_off_pct > es.spx_baseline_fwd_21d_pct ? 'leg-neg':'leg-pos'}">${fmt(es.avg_spx_fwd_21d_while_risk_off_pct)}%</b></div>
-    <div class="dim2">${es.avg_spx_fwd_21d_while_risk_off_pct > es.spx_baseline_fwd_21d_pct ? '⚠ gate hurt returns' : '✓ gate added value'}</div>
-  </div>
-  <div class="dim" style="font-size:12px">${esc(es.gate_adds_value_if||'')}</div>
-  <div style="margin-top:10px">${flipsChart(es.flips)}</div>
-</div>
-
-<h2>October 2025 Replay — Khalid's Historical Call</h2>
-<div class="card">
-  <div style="font-family:ui-monospace,monospace;font-size:13px">
-    <b>Window:</b> ${esc(oc.window)} ·
-    <b>RRP min:</b> <span style="color:var(--amber)">$${fmt(oc.rrp_min_in_window_bn)}B</span>
-  </div>
-  <div style="margin:8px 0;display:flex;gap:12px;flex-wrap:wrap;font-size:13px">
-    ${Object.entries(oc.posture_day_counts||{}).map(([k,v])=>`<div><span class="badge p-${esc(k)}">${esc(k)}</span> <b class="mono">${v}</b> days</div>`).join('')}
-  </div>
-  <div class="rule" style="border-left-color:var(--amber);font-size:12.5px">${esc(oc.khalid_call||'')}</div>
-</div>
-
-<h2>Brain Constitution — Directive & Series Registry</h2>
-<div class="card">
-  <div class="rule">${esc(bc.directive||'')}</div>
-  <div class="dim" style="font-size:12px;margin:8px 0"><b>Hierarchy:</b> ${esc(bc.hierarchy||'')}</div>
-  <div style="margin-top:10px">${seriesTable(bc.series_to_note)}</div>
-</div>
-
-<div style="margin-top:16px;padding:12px;background:var(--card2);border-radius:8px;font-size:11px;color:var(--dim2);text-align:center">
-  Every rule cites a Khalid brain note. Every input is validated. Feed refreshes every ~5 minutes.
-  Source: <span class="mono">${esc(srcUrl||'')}</span>
-</div>
-`;
+    <div style="margin-top:8px;font-size:12px;color:var(--dim)">Sizing multiplier: <b style="color:var(--tx)">${fmt(sm,2)}×</b> · composite = ${fmt(co,2)} · FRED-only replay: ${fmt(rg.replay_composite_fred_only,2)} (${esc(rg.replay_posture_fred_only||'?')})</div>
+  `;
 }
 
-load();
-</script></body></html>
+/* =============================================================================
+   Barometer bars (MACRO/LIQUIDITY/RISK 0..100)
+============================================================================= */
+function renderBaros(dom){
+  const el = document.getElementById('baroGrid');
+  const d = document.getElementById('baroDirective');
+  if(!dom || !dom.barometers){ el.innerHTML='<div class="dim">no domain data</div>'; return; }
+  const bc = dom.brain_constitution || {};
+  if(bc.directive){ d.textContent = bc.directive; }
+  const kinds = ['MACRO','LIQUIDITY','RISK'];
+  el.innerHTML = kinds.map(k=>{
+    const b = dom.barometers[k]||{};
+    const score = b.score_0_100;
+    const state = b.state || 'UNKNOWN';
+    const gate = b.gate_component, breadth = b.breadth_component;
+    const stateColor = state==='EASY'||state==='RISK-ON'?'var(--green)': state==='TIGHTENING'||state==='RISK-OFF'?'var(--red)': state==='NEUTRAL'?'var(--amber)':'var(--dim)';
+    const lp = score==null? '?' : Math.max(0,Math.min(100,score)).toFixed(1);
+    const disagree = b.disagreement ? `<div style="color:var(--amber);font-size:11px;margin-top:4px">⚠ ${esc(b.disagreement_note||'gate/breadth disagree — treat as unstable')}</div>`:'';
+    return `<div class="card3">
+      <div class="baro-title"><span class="name">${k}</span><span class="val" style="color:${stateColor}">${esc(state)}</span></div>
+      <div class="baro-track"><div class="baro-mark" style="left:${lp}%"></div></div>
+      <div class="baro-label"><span>0 · risk-off</span><span style="color:var(--tx)">${lp}</span><span>100 · risk-on</span></div>
+      <div style="font-size:11.5px;color:var(--dim);margin-top:8px">Gate: <b style="color:var(--tx)">${fmt(gate,1)}</b> · Breadth: <b style="color:var(--tx)">${fmt(breadth,1)}</b> · Drivers live: ${b.n_drivers_live||0} (${b.n_favourable||0}↑ / ${b.n_adverse||0}↓)</div>
+      ${b.interpretation? `<div style="font-size:11px;color:var(--dim2);margin-top:6px;line-height:1.5">${esc(b.interpretation).slice(0,300)}</div>`:''}
+      ${disagree}
+    </div>`;
+  }).join('');
+}
+
+/* =============================================================================
+   Tornado (component contribution)
+============================================================================= */
+function renderTornado(cc){
+  const el = document.getElementById('tornado');
+  if(!cc || !cc.components){ el.innerHTML='<div class="dim">no components</div>'; return; }
+  const comps = cc.components.slice().sort((a,b)=>{
+    const av = a.crisis_contribution==null?-1:a.crisis_contribution;
+    const bv = b.crisis_contribution==null?-1:b.crisis_contribution;
+    return bv - av;
+  });
+  const maxContrib = Math.max(...comps.map(c=>c.crisis_contribution||0));
+  el.innerHTML = comps.map(c=>{
+    const contrib = c.crisis_contribution;
+    const has = contrib != null;
+    const w = has ? Math.max(1,(contrib/maxContrib)*100) : 4;
+    const color = contrib>=60?'var(--d1)': contrib>=40?'var(--d2)': contrib>=20?'var(--d3)': 'var(--d4)';
+    const bar = has ? `<div class="bar-fill" style="width:${w}%;background:${color}"></div>` : `<div class="bar-fill" style="width:100%;background:#333;opacity:.3"></div>`;
+    const val = has ? contrib.toFixed(1) : '—';
+    const age = c.age_hours!=null ? `<span class="mono" style="color:${c.age_hours<6?'var(--green)':c.age_hours<24?'var(--amber)':'var(--red)'};font-size:10px;margin-left:6px">${c.age_hours.toFixed(1)}h</span>`:'';
+    return `<div class="tor">
+      <div class="label">${esc(c.label||c.source||'?')} <span class="dim" style="font-size:10px">w=${fmt(c.weight,2)}</span>${age}</div>
+      <div class="bar">${bar}</div>
+      <div class="val">${val}</div>
+    </div>`;
+  }).join('');
+}
+
+/* =============================================================================
+   Crisis-anchored regime strip 1996+ with Khalid-referenced crisis bands
+============================================================================= */
+const CRISES = [
+  ['1997-07','1998-10','Asian / LTCM'],
+  ['2000-03','2002-10','Dot-com'],
+  ['2007-08','2009-06','GFC'],
+  ['2011-07','2012-07','Euro debt'],
+  ['2015-08','2016-02','China / oil'],
+  ['2020-02','2020-05','COVID'],
+  ['2022-01','2022-10','Rate shock'],
+  ['2023-03','2023-05','SVB / banks']
+];
+const REGIME_CLASS = { 'GOLDILOCKS':'g','REFLATION':'r','STAGFLATION':'s','DEFLATION-BUST':'d' };
+function renderRegimeStrip(rg){
+  const el = document.getElementById('regimeStrip');
+  if(!rg || !rg.regime_strip){ el.innerHTML='<div class="dim" style="padding:10px">no regime data</div>'; return; }
+  const strip = rg.regime_strip.filter(x=>x[0]>='1996-01');
+  const n = strip.length;
+  const W = 1400, H = 90;
+  const cw = W / n;
+  // Compute crisis band positions
+  function idxFor(ym){ return strip.findIndex(r=>r[0]>=ym); }
+  let bandsSvg = '';
+  CRISES.forEach(c=>{
+    const ia = idxFor(c[0]); if(ia<0) return;
+    let ib = idxFor(c[1]); if(ib<0) ib = n-1;
+    const xa = ia*cw, xb = ib*cw;
+    bandsSvg += `<rect x="${xa.toFixed(1)}" y="0" width="${Math.max(2,(xb-xa)).toFixed(1)}" height="${H}" class="crisis-band"/><text x="${(xa+(xb-xa)/2).toFixed(1)}" y="12" class="crisis-tag" text-anchor="middle">${esc(c[2])}</text>`;
+  });
+  // Cells
+  let cellsSvg = '';
+  strip.forEach((r,i)=>{
+    const cls = REGIME_CLASS[r[1]] || 'd';
+    const color = {g:'#6fce8a',r:'#38bdf8',s:'#F0B429',d:'#ff5a5a'}[cls];
+    cellsSvg += `<rect x="${(i*cw).toFixed(2)}" y="20" width="${cw.toFixed(2)}" height="60" fill="${color}"><title>${r[0]}: ${r[1]}</title></rect>`;
+  });
+  // Year markers
+  let yearsSvg = '';
+  for(let y=1996; y<=2026; y+=2){
+    const ym = y+'-01';
+    const i = idxFor(ym); if(i<0) continue;
+    const x = i*cw;
+    yearsSvg += `<line x1="${x.toFixed(1)}" y1="80" x2="${x.toFixed(1)}" y2="86" stroke="#555" stroke-width=".7"/><text x="${x.toFixed(1)}" y="90" fill="#6b7480" font-size="9" text-anchor="middle" font-family="ui-monospace,monospace">${y}</text>`;
+  }
+  el.innerHTML = `<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="display:block">
+    ${cellsSvg}${bandsSvg}${yearsSvg}
+  </svg>`;
+  // Legend
+  const leg = document.getElementById('regimeLegend');
+  leg.innerHTML = `
+    <span><b style="background:var(--r-g)"></b>Goldilocks (risk-on)</span>
+    <span><b style="background:var(--r-r)"></b>Reflation</span>
+    <span><b style="background:var(--r-s)"></b>Stagflation</span>
+    <span><b style="background:var(--r-d)"></b>Deflation-bust (risk-off)</span>
+    <span style="margin-left:20px;color:var(--dim2)">shaded pink bands = every crisis window Khalid references</span>
+    <span style="margin-left:auto;color:var(--dim2)">current: <b style="color:var(--tx)">${esc(rg.current?rg.current.quadrant:'?')}</b> — next 3m probs: ${rg.current && rg.current.next_3m_probabilities ? Object.entries(rg.current.next_3m_probabilities).map(([k,v])=>`${k[0]}=${v.toFixed(0)}%`).join(' · '):'?'}</span>
+  `;
+}
+
+/* =============================================================================
+   Crisis Knowledge Base
+============================================================================= */
+function renderCrisisKB(kb){
+  const el = document.getElementById('crisisKB');
+  if(!kb || !kb.patterns){ el.innerHTML='<div class="dim">no KB</div>'; return; }
+  el.innerHTML = kb.patterns.map(p=>{
+    const trig = (p.trigger_signals||[]).map(t=>{
+      if(typeof t === 'string') return esc(t);
+      if(t && t.signal) return esc(t.signal);
+      return esc(JSON.stringify(t)).slice(0,120);
+    }).slice(0,6).join(' · ');
+    const hex = (p.historical_examples||[]).slice(0,5).map(h=>{
+      if(typeof h==='string') return esc(h);
+      if(h && h.event) return esc(h.event) + (h.year?' ('+h.year+')':'');
+      return esc(JSON.stringify(h)).slice(0,60);
+    }).join(' · ');
+    const play = typeof p.playbook==='string'? p.playbook : (p.playbook && p.playbook.action) || (p.playbook && p.playbook.stance) || '';
+    return `<details style="border-top:1px solid var(--line2);padding:8px 0">
+      <summary style="cursor:pointer;color:var(--amber);font-weight:600;font-size:13px">${esc(p.name||p.id||'?')} <span class="dim" style="font-size:11px;font-weight:400">· ${esc(p.category||'')}</span></summary>
+      <div style="padding:8px 0 0 4px;font-size:12px;line-height:1.6">
+        <div><b class="dim">Trigger signals:</b> ${trig||'<span class="dim2">none</span>'}</div>
+        <div style="margin-top:4px"><b class="dim">Historical examples:</b> ${hex||'<span class="dim2">none</span>'}</div>
+        ${play?`<div style="margin-top:4px"><b class="dim">Playbook:</b> ${esc(String(play)).slice(0,500)}</div>`:''}
+        ${p.watch_for_resolution?`<div style="margin-top:4px"><b class="dim">Watch for resolution:</b> ${esc(typeof p.watch_for_resolution==='string'?p.watch_for_resolution:JSON.stringify(p.watch_for_resolution)).slice(0,300)}</div>`:''}
+      </div>
+    </details>`;
+  }).join('');
+}
+
+/* =============================================================================
+   7 Legs
+============================================================================= */
+const LEG_META = {
+  FUNDING:    {emoji:'💵', title:'Funding & Plumbing', bs:'Pillar 1 · SOFR-IORB, repo, dealer T-bills, cross-currency basis'},
+  CREDIT:     {emoji:'💳', title:'Credit', bs:'Pillar 2 · HY/IG OAS, credit dispersion — Khalid: "most important leading indicator, period"'},
+  DOLLAR:     {emoji:'💲', title:'Dollar', bs:'Pillar 3 · DXY posture — Khalid: "DXY is the most important chart to watch. Period."'},
+  CARRY:      {emoji:'🌏', title:'Carry & Vol Regime', bs:'Pillar 4 · USDJPY, EM carry, VIX term structure — Aug 2024 blueprint'},
+  GROWTH:     {emoji:'📈', title:'Growth', bs:'Pillar 5 · ISM/PMI, Sahm rule, truck-transport employment'},
+  STRUCTURE:  {emoji:'🏗️', title:'Structure & Breadth', bs:'Pillar 6 · SPX vs SMH/QQQE, cross-asset regime coherence'},
+  COLLATERAL: {emoji:'🔗', title:'Collateral', bs:'Pillar 7 · Fails-to-deliver/receive, treasury auction Bid-to-Cover, Allotted-at-High%, Tail'}
+};
+function scoreColor(v){ if(v==null) return 'var(--dim)'; if(v<=-1.2) return 'var(--red)'; if(v<=-0.4) return 'var(--sev)'; if(v>=1.2) return 'var(--green)'; if(v>=0.4) return '#a8dfaf'; return 'var(--amber)'; }
+function scorePct(v){ if(v==null) return 50; return 50 + Math.max(-2,Math.min(2,v))/2*50; }
+function renderLegs(rg){
+  const el = document.getElementById('legs');
+  if(!rg || !rg.legs){ el.innerHTML='<div class="dim">no legs</div>'; return; }
+  el.innerHTML = Object.entries(rg.legs).map(([name,leg])=>{
+    const meta = LEG_META[name] || {emoji:'⚙️', title:name, bs:''};
+    const engine = leg.engine_score;
+    const fused = leg.fleet_fused_score;
+    const state = leg.state || '?';
+    const ind = leg.indicators || [];
+    const drivers = leg.drivers || [];
+    const engineColor = scoreColor(engine);
+    const fusedColor = scoreColor(fused);
+    const engMark = scorePct(engine);
+    const fusMark = scorePct(fused);
+    // indicators section
+    let indHtml = '';
+    if(ind.length){
+      indHtml = ind.map(i=>{
+        const val = i.value ?? i.raw ?? i.reading;
+        const th = i.threshold_text || i.desc || '';
+        const emoji = i.status==='ok'?'✅': i.status==='warn'?'⚠️': i.status==='alert'?'🚨':'';
+        return `<div class="ind"><span class="lbl">${emoji} ${esc(i.label||i.name||'?')}</span><span class="val" style="color:${scoreColor(i.z_score||0)}">${esc(typeof val==='number'?val.toFixed(2):val||'?')}</span><span class="ctx">${esc(th).slice(0,60)}</span></div>`;
+      }).join('');
+    } else if(drivers.length){
+      indHtml = drivers.map(d=>{
+        return `<div class="ind"><span class="lbl">${esc(d.source||d.name||'?')}</span><span class="val" style="color:${scoreColor(d.delta)}">${fmt(d.delta,2)}</span><span class="ctx">weight ${fmt(d.weight,2)}</span></div>`;
+      }).join('');
+    }
+    return `<div class="card2">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
+        <div><h3 style="margin:0;font-size:14px">${meta.emoji} ${esc(meta.title)}</h3><div class="dim" style="font-size:10.5px;margin-top:2px">${esc(meta.bs)}</div></div>
+        <span class="badge p-${state==='RISK-ON'?'RISK_ON':state==='RISK-OFF'?'RISK_OFF':state==='SEVERE'?'SEVERE':'NEUTRAL'}">${esc(state)}</span>
+      </div>
+      <div class="gauge"><div class="gauge-mid"></div><div class="gauge-mark" style="left:${engMark}%" title="engine ${fmt(engine,2)}"></div><div class="gauge-mark-fused" style="left:${fusMark}%" title="fleet-fused ${fmt(fused,2)}"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--dim);font-family:ui-monospace,monospace">
+        <span>−2</span>
+        <span>engine: <b style="color:${engineColor}">${fmt(engine,2)}</b> · fleet-fused: <b style="color:${fusedColor}">${fmt(fused,2)}</b></span>
+        <span>+2</span>
+      </div>
+      ${indHtml?`<div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--line2)">${indHtml}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+/* =============================================================================
+   Fleet inputs
+============================================================================= */
+function renderFleet(rg){
+  const el = document.getElementById('fleet');
+  const fc = rg && rg.fleet_context;
+  if(!fc || !fc.inputs){ el.innerHTML='<div class="dim">no fleet data</div>'; return; }
+  const inputs = Object.entries(fc.inputs);
+  el.innerHTML = `<div class="dim" style="font-size:12px;margin-bottom:8px">${inputs.length} fleet inputs · fused method: ${esc(fc.method||'?')}</div>
+    <div style="max-height:400px;overflow-y:auto;padding-right:6px">${inputs.slice(0,80).map(([k,v])=>{
+      const val = typeof v==='object'? (v.value ?? v.reading ?? JSON.stringify(v).slice(0,60)) : v;
+      const adj = v && v.delta!=null ? fmt(v.delta,2) : (v && v.contribution!=null ? fmt(v.contribution,2) : '');
+      const adjClass = adj && parseFloat(adj)>0 ? 'leg-pos' : adj && parseFloat(adj)<0 ? 'leg-neg' : 'leg-zero';
+      return `<div class="fi"><span class="k">${esc(k)}</span><span class="v">${esc(String(val)).slice(0,80)}</span><span class="adj ${adjClass}">${adj||'—'}</span></div>`;
+    }).join('')}</div>`;
+}
+
+/* =============================================================================
+   Event Study bar chart
+============================================================================= */
+function renderES(rg){
+  const el = document.getElementById('esChart');
+  const note = document.getElementById('esNote');
+  const es = rg && rg.event_study;
+  if(!es){ el.innerHTML='<div class="dim">no event study</div>'; note.textContent=''; return; }
+  const flips = es.flips || [];
+  const avg1m = es.avg_spx_fwd_21d_while_risk_off_pct;
+  const baseline = es.spx_baseline_fwd_21d_pct;
+  note.innerHTML = `${flips.length} posture flips backtested · avg SPX fwd 21d when RISK_OFF: <b style="color:${avg1m<baseline?'var(--red)':'var(--green)'}">${fmt(avg1m,2)}%</b> · SPX baseline: <b>${fmt(baseline,2)}%</b> · <span class="dim">gate adds value if gap &gt; 0</span>`;
+  if(!flips.length){ el.innerHTML='<div class="dim">no flips yet</div>'; return; }
+  const W=1400, H=140, PT=20, PB=24;
+  const bw = (W-40)/flips.length - 6;
+  const values = flips.map(f=>f.spx_fwd_21d_pct || 0);
+  const mx = Math.max(...values.map(Math.abs),1);
+  const mid = PT + (H-PT-PB)/2;
+  let bars = '';
+  flips.forEach((f,i)=>{
+    const v = f.spx_fwd_21d_pct || 0;
+    const h = (Math.abs(v)/mx)*((H-PT-PB)/2);
+    const x = 20 + i*(bw+6);
+    const y = v>=0 ? mid-h : mid;
+    const c = v>=0?'#6fce8a':'#E07A6A';
+    bars += `<rect x="${x}" y="${y}" width="${bw}" height="${h}" fill="${c}" opacity=".9"><title>${esc(f.date||'?')} · flip to ${esc(f.posture||'')} · SPX 21d: ${fmt(v,2)}%</title></rect>`;
+    bars += `<text x="${x+bw/2}" y="${H-6}" text-anchor="middle" font-size="9" fill="var(--dim)" font-family="ui-monospace,monospace">${(f.date||'').slice(2,7)}</text>`;
+    bars += `<text x="${x+bw/2}" y="${v>=0?y-3:y+h+11}" text-anchor="middle" font-size="9.5" fill="${c}" font-family="ui-monospace,monospace">${fmt(v,1)}%</text>`;
+  });
+  el.innerHTML = `<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="display:block">
+    <line x1="10" x2="${W-10}" y1="${mid}" y2="${mid}" stroke="#30363d" stroke-width=".7"/>
+    ${bars}
+  </svg>`;
+}
+
+/* =============================================================================
+   Recent timeline
+============================================================================= */
+function renderTL(rg){
+  const el = document.getElementById('tlchart');
+  const tl = rg && rg.recent_timeline;
+  if(!tl || !tl.length){ el.innerHTML='<div class="dim">no timeline</div>'; return; }
+  const n = tl.length;
+  el.innerHTML = tl.map((t,i)=>{
+    const c = t.composite;
+    const posture = t.posture;
+    const color = posture==='RISK-ON'?'#6fce8a': posture==='RISK-OFF'?'#E07A6A': posture==='SEVERE'?'#ff5a5a':'#F0B429';
+    const h = Math.min(48,Math.max(4,Math.abs(c)*22+6));
+    const pct = (i/(n-1||1))*100;
+    return `<div class="tlbar" style="left:calc(${pct}% - 3px);height:${h}px;background:${color}" title="${esc(t.date||'?')}: ${fmt(c,2)} · ${esc(posture||'')}"></div>`;
+  }).join('');
+}
+
+/* =============================================================================
+   Brain Constitution table
+============================================================================= */
+const BC_META = {
+  DXY:{m:'Dollar strength / global liquidity', use:'Dollar leg + carry regime · Khalid: THE most important chart'},
+  SPX:{m:'Broad US equity health', use:'Structure leg · risk-appetite baseline'},
+  VIX:{m:'Implied 30d equity vol', use:'Carry & Vol regime · fear pricing'},
+  MOVE:{m:'Treasury implied vol', use:'Funding · bond-market fear (Khalid: HQM predicts MOVE)'},
+  HYG:{m:'High-yield credit ETF proxy', use:'Credit leg · Khalid: "the leading indicator for market stress"'},
+  LQD:{m:'IG credit ETF proxy', use:'Credit leg · IG/HY skew'},
+  SMH:{m:'Semi/AI risk appetite', use:'Structure leg · leadership stress'},
+  QQQE:{m:'Equal-weight Nasdaq breadth', use:'Structure leg · SPX vs QQQE divergence'},
+  RRP:{m:'Reverse Repo Facility balance', use:'Funding · Khalid: "RRP dry = shit hit the fan"'},
+  SOFR_IORB:{m:'Repo funding stress spread', use:'Funding · Khalid: >50bp = crisis warning'},
+  T10Y2Y:{m:'2s10s Treasury curve', use:'Rates · Khalid: <-50bp = warning'},
+  T10Y3M:{m:'3m10y Treasury curve', use:'Rates · recession model'},
+  US01MY:{m:'1-month bill yield', use:'Collateral · Khalid: spike = crypto bull start'},
+  USDJPY:{m:'Yen carry proxy', use:'Carry · Aug 2024 blueprint'},
+  BTP_BUND:{m:'Italy-Germany 10y spread', use:'Sovereign canary · EU-crisis lens'},
+  DGS10:{m:'US 10y yield', use:'Rates · risk-free-rate anchor'},
+  DGS30:{m:'US 30y yield', use:'Rates · Khalid: "QE follows big dumps in 30y"'},
+  BAMLH0A0HYM2:{m:'ICE BofA HY OAS', use:'Credit · absolute spread level'},
+  NFCI:{m:'Chicago Fed Financial Conditions', use:'Composite · Khalid: on "predict black swans" short-list'},
+  STLFSI4:{m:'St Louis Fed Stress Index', use:'Composite · sanity-check series'}
+};
+function renderBC(rg, dom){
+  const tb = document.querySelector('#bcTable tbody');
+  const series = (rg && rg.brain_constitution && rg.brain_constitution.series) || Object.keys(BC_META);
+  tb.innerHTML = series.map(s=>{
+    const m = BC_META[s] || {m:'—',use:'—'};
+    return `<tr><td class="mono" style="font-weight:600;color:var(--amber)">${esc(s)}</td><td>${esc(m.m)}</td><td class="dim">${esc(m.use)}</td></tr>`;
+  }).join('');
+}
+
+/* =============================================================================
+   OFR FSI sanity check
+============================================================================= */
+function renderOFR(ofr){
+  const el = document.getElementById('ofrBlock');
+  const asof = document.getElementById('ofrAsof');
+  if(!ofr || ofr.fsi==null){ el.innerHTML='<span class="dim">unavailable</span>'; return; }
+  asof.textContent = '· ' + esc(ofr.date||'') + ' · ' + esc(ofr.source||'');
+  const s = ofr.fsi;
+  const z = ofr.z_1y;
+  const p = ofr.pctile_10y;
+  const cls = s>1?'p-RISK_OFF': s>0?'p-NEUTRAL': s<-1?'p-RISK_ON':'p-NEUTRAL';
+  el.innerHTML = `<div style="display:flex;gap:16px;align-items:baseline;flex-wrap:wrap">
+    <span class="big" style="color:${s>0?'var(--red)':'var(--green)'};font-size:22px">${fmt(s,2)}</span>
+    <span class="badge ${cls}">${s>0?'above avg stress':'below avg stress'}</span>
+    <span class="dim">1y z-score <b style="color:var(--tx)">${fmt(z,2)}σ</b></span>
+    <span class="dim">10y percentile <b style="color:var(--tx)">${fmt(p,0)}</b></span>
+  </div>
+  <div class="dim" style="font-size:11.5px;margin-top:6px">${esc(ofr.read||'')}</div>`;
+}
+
+/* =============================================================================
+   Diagnostics
+============================================================================= */
+function renderDiag(rg, dom, cc, reg, kb, ofr){
+  const el = document.getElementById('diag');
+  const bits = [];
+  bits.push(`Engine  : ${esc(rg&&rg.engine||'?')} · ${esc(rg&&rg.version||'?')}`);
+  bits.push(`Marker  : ${esc(rg&&rg.marker||'?')}`);
+  bits.push(`Feed    : /data/risk-gate.json · generated ${esc(rg&&rg.generated_at||'?')}`);
+  bits.push(`Fleet   : ${(rg&&rg.fleet_context&&Object.keys(rg.fleet_context.inputs||{}).length)||0} inputs, method=${esc(rg&&rg.fleet_context&&rg.fleet_context.method||'?')}`);
+  bits.push(`Domain  : ${dom?`3 barometers built from ${dom.symbols?dom.symbols.length:'?'} classified symbols · ${esc(dom.marker||dom.version||'?')}`:'—'}`);
+  bits.push(`Crisis  : ${cc?`DEFCON ${cc.defcon_level} · ${cc.components_available}/${(cc.components||[]).length} engines live · methodology: ${esc(cc.methodology||'').slice(0,220)}`:'—'}`);
+  bits.push(`Regime  : ${reg?`${reg.n_months_classified} months classified since ${esc(reg.first_month)} · current ${esc(reg.current&&reg.current.quadrant||'?')}`:'—'}`);
+  bits.push(`KB      : ${kb?`${kb.n_patterns} crisis patterns · ${kb.n_frameworks} frameworks · gen ${esc(kb.generated_at||'?')}`:'—'}`);
+  bits.push(`OFR FSI : ${ofr?`${fmt(ofr.fsi,2)} on ${esc(ofr.date||'?')} · ${esc(ofr.source||'')}`:'—'}`);
+  bits.push('');
+  bits.push('Methodology:');
+  bits.push('  · 7-leg score aggregation uses -2..+2 range per Khalid brain-constitution v2.3');
+  bits.push('  · fleet-fusion: engine + calibrated fleet inputs weighted by historical hit rate');
+  bits.push('  · DEFCON scale: 5 all-clear (0-20) · 4 normal (20-40) · 3 elevated (40-60) · 2 high stress (60-80) · 1 crisis (80-100)');
+  bits.push('  · regime quadrant: growth × inflation × liquidity classified from >12,000 brain notes');
+  bits.push('  · domain barometers: multinomial Naive Bayes trained on Khalid\'s notes with anchor-note supervision');
+  el.textContent = bits.join('\n');
+}
+
+/* =============================================================================
+   Boot
+============================================================================= */
+(async function(){
+  const [rg, dom, cc, reg, kb, ofr] = await Promise.all([
+    tryFetch([FEEDS.primary, ...FEEDS.fallbacks]),
+    tryFetch(SIDECAR.domain),
+    tryFetch(SIDECAR.crisis),
+    tryFetch(SIDECAR.regime),
+    tryFetch(SIDECAR.crisisKB),
+    tryFetch(SIDECAR.ofr)
+  ]);
+  if(!rg){
+    document.getElementById('ageBanner').innerHTML = 'Engine feed <strong>unreachable</strong> — check /data/risk-gate.json';
+    return;
+  }
+  updateBanner(rg);
+  renderDefcon(cc);
+  renderPosture(rg);
+  renderOFR(ofr);
+  renderBaros(dom);
+  renderTornado(cc);
+  renderRegimeStrip(reg);
+  renderCrisisKB(kb);
+  renderLegs(rg);
+  renderFleet(rg);
+  renderES(rg);
+  renderTL(rg);
+  renderBC(rg, dom);
+  renderDiag(rg, dom, cc, reg, kb, ofr);
+})();
+</script>
+</body></html>
