@@ -1,282 +1,482 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Plumbing Desk · JustHodl AI</title>
-<meta name="description" content="Institutional funding-stress desk: SOFR-IORB, FRA-OIS, XCC basis, fails-to-deliver, GC repo, OFR FSI + 5 components, with 1996+ regime overlay.">
-<link rel="stylesheet" href="/jh-institutional.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plumbing & Stress · JustHodl.AI</title>
+<meta name="description" content="4-layer liquidity & risk plumbing composite — eurodollar, bank risk, real-side damage, cross-border stress.">
+<style>
+  :root {
+    --bg: #0a0a0a; --bg-card: #131313; --bg-card-elev: #181818;
+    --border: #262626; --border-light: #2e2e2e;
+    --text: #e5e5e5; --text-dim: #888; --text-muted: #555;
+    --accent: #facc15; --green: #22c55e; --amber: #f59e0b;
+    --red: #ef4444; --crimson: #dc2626; --blue: #3b82f6; --purple: #a78bfa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.5; }
+  .container { max-width: 1700px; margin: 0 auto; padding: 18px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;
+            flex-wrap: wrap; gap: 8px; }
+  .header h1 { font-size: 22px; font-weight: 600; }
+  .header h1 .sub { color: var(--text-dim); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .meta { color: var(--text-dim); font-size: 12px; }
+  .meta a { color: var(--accent); text-decoration: none; }
+
+  /* Composite banner */
+  .composite { padding: 22px 26px; border-radius: 10px; margin-bottom: 14px;
+                text-align: center; border-left: 5px solid var(--text-dim);
+                background: var(--bg-card); }
+  .composite.ABUNDANT { background: rgba(34,197,94,0.10); border-left-color: var(--green); }
+  .composite.NORMAL   { background: rgba(59,130,246,0.06); border-left-color: var(--blue); }
+  .composite.ELEVATED { background: rgba(245,158,11,0.10); border-left-color: var(--amber); }
+  .composite.CRITICAL { background: rgba(239,68,68,0.12); border-left-color: var(--red); }
+  .composite.CRISIS   { background: rgba(220,38,38,0.18); border-left-color: var(--crimson); }
+  .composite h2 { font-size: 24px; font-weight: 700; letter-spacing: 0.02em; }
+  .composite .score { font-size: 48px; font-weight: 800; margin: 4px 0;
+                       font-variant-numeric: tabular-nums; }
+  .composite .meta-line { font-size: 12px; color: var(--text-dim); }
+
+  /* Layer grid */
+  .layers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .layer { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+            overflow: hidden; cursor: pointer; transition: border-color 0.1s; }
+  .layer:hover { border-color: var(--accent); }
+  .layer.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .layer-header { padding: 12px 14px; border-bottom: 1px solid var(--border-light);
+                   display: flex; justify-content: space-between; align-items: center; }
+  .layer-header .name { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .layer-header .weight { font-size: 10px; color: var(--text-muted); }
+  .layer-body { padding: 14px; text-align: center; }
+  .layer-score { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .layer-label { font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+                  text-transform: uppercase; margin-top: 4px; }
+  .layer-coverage { font-size: 10px; color: var(--text-dim); margin-top: 6px; }
+  .score-ABUNDANT { color: var(--green); }
+  .score-NORMAL   { color: var(--blue); }
+  .score-ELEVATED { color: var(--amber); }
+  .score-CRITICAL { color: var(--red); }
+  .score-CRISIS   { color: var(--crimson); }
+
+  /* Alerts */
+  .alerts { background: var(--bg-card); border: 1px solid var(--border);
+             border-radius: 8px; margin-bottom: 14px; overflow: hidden; }
+  .alerts-header { background: var(--bg-card-elev); padding: 10px 14px;
+                    border-bottom: 1px solid var(--border-light);
+                    font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .alert-row { display: grid; grid-template-columns: 90px 1fr 60px 80px 80px;
+                gap: 10px; align-items: center; padding: 9px 14px;
+                border-bottom: 1px solid var(--border-light); font-size: 12px; }
+  .alert-row:last-child { border-bottom: none; }
+  .alert-row:hover { background: var(--bg-card-elev); }
+  .severity-pill { display: inline-block; padding: 2px 8px; border-radius: 3px;
+                    font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-align: center; }
+  .severity-pill.CRITICAL { background: rgba(239,68,68,0.22); color: var(--red); }
+  .severity-pill.ELEVATED { background: rgba(245,158,11,0.20); color: var(--amber); }
+  .alert-label { font-weight: 600; }
+  .alert-message { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .alert-layer { color: var(--purple); font-weight: 600; font-size: 10px; text-align: center; }
+  .alert-score { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Indicator detail table */
+  .panel { background: var(--bg-card); border: 1px solid var(--border);
+           border-radius: 8px; overflow: hidden; margin-bottom: 14px; }
+  .panel-header { background: var(--bg-card-elev); padding: 10px 14px;
+                   border-bottom: 1px solid var(--border-light);
+                   font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+                   display: flex; justify-content: space-between; align-items: center; }
+  .panel-header .layer-tag { font-weight: 700; padding: 3px 8px; border-radius: 3px;
+                              background: rgba(168,85,247,0.16); color: var(--purple);
+                              font-size: 10px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead { background: var(--bg-card-elev); }
+  th { text-align: left; padding: 7px 10px; color: var(--text-dim);
+       font-weight: 500; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+       border-bottom: 1px solid var(--border-light); white-space: nowrap; cursor: pointer; }
+  th:hover { color: var(--accent); }
+  th.sort-asc::after { content: ' ↑'; color: var(--accent); }
+  th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border-light);
+       font-variant-numeric: tabular-nums; vertical-align: middle; }
+  tr:hover td { background: var(--bg-card-elev); }
+  .ind-id { font-family: monospace; font-weight: 600; color: var(--accent); font-size: 11px; }
+  .ind-label { font-weight: 600; }
+  .ind-interp { font-size: 11px; color: var(--text-dim); margin-top: 2px; line-height: 1.4; }
+  .stress-cell { display: inline-block; padding: 3px 8px; border-radius: 3px;
+                  min-width: 50px; text-align: center; font-weight: 600; font-size: 11px; }
+  .s0   { background: rgba(34,197,94,0.18); color: var(--green); }
+  .s25  { background: rgba(59,130,246,0.16); color: var(--blue); }
+  .s50  { background: rgba(245,158,11,0.18); color: var(--amber); }
+  .s75  { background: rgba(239,68,68,0.18); color: var(--red); }
+  .s90  { background: rgba(220,38,38,0.30); color: #fff; }
+  .sNA  { background: var(--bg-card-elev); color: var(--text-muted); }
+
+  /* Layer descriptions */
+  .layer-desc { background: var(--bg-card); border-left: 3px solid var(--purple);
+                 padding: 12px 16px; margin-bottom: 12px; font-size: 12px; line-height: 1.6;
+                 color: var(--text-dim); }
+  .layer-desc strong { color: var(--text); }
+
+  .loader { text-align: center; padding: 40px; color: var(--text-dim); }
+
+  @media (max-width: 900px) {
+    .layers { grid-template-columns: repeat(2, 1fr); }
+    table { font-size: 10px; } th, td { padding: 4px 5px; }
+  }
+  .cmodal{position:fixed;inset:0;background:rgba(0,0,0,.86);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .cbox{background:var(--bg-card);border:1px solid var(--accent);border-radius:14px;padding:18px 20px;max-width:1240px;width:100%;max-height:93vh;overflow:auto;position:relative;}
+  .cx{position:absolute;top:12px;right:16px;color:var(--text-dim);cursor:pointer;font-size:20px;line-height:1;}
+  .cx:hover{color:var(--accent);}
+  tr.ind-clickable{cursor:pointer;}
+  tr.ind-clickable:hover td{background:#1a1a1a;}
+</style>
+<script src="/liquidity-pulse.js" defer></script>
 </head>
-<body class="ins-page">
-<div class="ins-wrap">
-
-  <h1 class="ins-h1">Plumbing Desk <span class="dim mono" style="font-size:12px;font-weight:400">· FUNDING STRESS</span></h1>
-  <p class="ins-sub">Where the pipes creak first. Fails-to-deliver, cross-currency basis, repo, OFR FSI. In a credit crisis, hedges disappear and the plumbing is what breaks first.</p>
-
-  <!-- BAROMETER + FSI -->
-  <div class="ins-grid ins-g2">
-    <div class="ins-card">
-      <h3 class="mono dim" style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:1px">Crisis-plumbing composite (0-100)</h3>
-      <div id="plumb-gauge"></div>
-    </div>
-    <div class="ins-card">
-      <h3 class="mono dim" style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:1px">OFR Financial Stress Index</h3>
-      <div style="display:flex;flex-direction:column;gap:6px;justify-content:center;height:100%">
-        <div class="big" id="fsi-latest">—</div>
-        <div class="dim mono" style="font-size:12px">Δ1d <span id="fsi-d1">—</span> · <span id="fsi-pctile">—</span> pctile · <span id="fsi-nobs">—</span> daily obs (2000-present)</div>
-        <div class="dim" style="font-size:12px">Negative = calm · Positive = stress. Historical crisis peaks (GFC ~10, COVID ~7).</div>
-        <div id="fsi-components" class="dim" style="font-size:11.5px;line-height:1.7"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- KHALID QUOTE -->
-  <div class="brain-quote">
-    In a credit crisis hedges suddenly disappear. Fails = collateral scramble.
-    <span class="cite">— Khalid brain L34</span>
-  </div>
-
-  <!-- 1996+ REGIME CONTEXT -->
-  <h2 class="ins-h2">Historical context · 1996 → today</h2>
-  <div class="ins-card">
-    <div id="regime-strip"></div>
-    <p class="dim" style="font-size:12px;margin:10px 0 0">
-      All 9 crisis periods marked. Plumbing usually leads equity by 30-90 days — every one of those bands had funding-stress signals firing first.
-    </p>
-  </div>
-
-  <!-- FUNDING/CREDIT SIGNAL TABLE -->
-  <h2 class="ins-h2">Live funding & credit signals</h2>
-  <div class="ins-card">
-    <div id="plumb-signals"></div>
-    <p class="dim" style="font-size:12px;margin:8px 0 0">
-      From crisis-plumbing.funding_credit_signals. Each cell shows current value, z-score, and NORMAL / WATCH / STRESS status.
-    </p>
-  </div>
-
-  <!-- XCC BASIS (F4 gap) -->
-  <h2 class="ins-h2">Cross-currency basis proxy</h2>
-  <div class="ins-card">
-    <p class="dim" style="font-size:12px;margin:0 0 10px">
-      True XCC basis needs forward FX (not on FRED); we approximate via rate differentials (per crisis-plumbing engine methodology). Wide basis = USD hoarding = funding crisis (Sep 2019 repo blowout, March 2020 COVID).
-    </p>
-    <div id="xcc-table"></div>
-  </div>
-
-  <!-- FAILS-TO-DELIVER (F1) -->
-  <h2 class="ins-h2">Fails-to-deliver · brain L34 canary</h2>
-  <div class="ins-card">
-    <div style="display:flex;flex-direction:column;gap:10px">
+<body>
+  <div class="container">
+    <div class="header">
       <div>
-        <div class="big" id="ftd-latest">—</div>
-        <div class="dim" style="font-size:12px">NYFRB primary-dealer fails-to-deliver, total across products.</div>
+        <h1>Plumbing & Stress <span class="sub">4-layer liquidity & risk composite — eurodollar / bank risk / real damage / cross-border</span></h1>
+        <div class="meta" id="metaLine">Loading…</div>
       </div>
-      <div id="ftd-provenance" class="dim mono" style="font-size:11px"></div>
+      <div class="meta">
+        <a href="/">← Desk</a> ·
+        <a href="/crisis.html">Crisis</a> ·
+        <a href="/liquidity.html">Liquidity</a> ·
+        <a href="/auction-crisis.html">Auctions</a> ·
+        <a href="/master-rank.html">Action Items</a>
+      </div>
     </div>
-    <p class="dim" style="font-size:12px;margin:12px 0 0">
-      Historical trigger threshold: sustained daily fails &gt; $150 B or 3σ z-score. Fails spiked to record highs during Sep 2019 (repo blowout), March 2020 (COVID), March 2023 (SVB).
-    </p>
-  </div>
 
-  <!-- TIER 2 PLUMBING (levels/change) -->
-  <h2 class="ins-h2">Tier-2 plumbing series</h2>
-  <div class="ins-card">
-    <p class="dim" style="font-size:12px;margin:0 0 10px">
-      Levels + change for the four wholesale-money series that ride under crisis composite: depository loans, RRP, TGA, business loans.
-    </p>
-    <div id="tier2-table"></div>
-  </div>
+    <div id="composite" class="composite NORMAL">
+      <h2 id="compLabel">—</h2>
+      <div class="score" id="compScore">—</div>
+      <div class="meta-line">Composite weighted: L1 35% · L2 25% · L3 20% · L4 20%</div>
+    </div>
 
-  <!-- YIELD CURVE (part of crisis-plumbing feed) -->
-  <div id="ycurve-block" style="display:none">
-    <h2 class="ins-h2">Yield-curve snapshot</h2>
-    <div class="ins-card">
-      <div id="ycurve"></div>
+    <div class="layers">
+      <div class="layer" data-layer="L1" onclick="setActiveLayer('L1')">
+        <div class="layer-header">
+          <span class="name">L1 — Eurodollar Plumbing</span>
+          <span class="weight">35%</span>
+        </div>
+        <div class="layer-body">
+          <div class="layer-score" id="L1score">—</div>
+          <div class="layer-label" id="L1label">—</div>
+          <div class="layer-coverage" id="L1coverage">—</div>
+        </div>
+      </div>
+      <div class="layer" data-layer="L2" onclick="setActiveLayer('L2')">
+        <div class="layer-header">
+          <span class="name">L2 — Bank Risk Appetite</span>
+          <span class="weight">25%</span>
+        </div>
+        <div class="layer-body">
+          <div class="layer-score" id="L2score">—</div>
+          <div class="layer-label" id="L2label">—</div>
+          <div class="layer-coverage" id="L2coverage">—</div>
+        </div>
+      </div>
+      <div class="layer" data-layer="L3" onclick="setActiveLayer('L3')">
+        <div class="layer-header">
+          <span class="name">L3 — Real-Side Damage</span>
+          <span class="weight">20%</span>
+        </div>
+        <div class="layer-body">
+          <div class="layer-score" id="L3score">—</div>
+          <div class="layer-label" id="L3label">—</div>
+          <div class="layer-coverage" id="L3coverage">—</div>
+        </div>
+      </div>
+      <div class="layer" data-layer="L4" onclick="setActiveLayer('L4')">
+        <div class="layer-header">
+          <span class="name">L4 — Cross-Border Stress</span>
+          <span class="weight">20%</span>
+        </div>
+        <div class="layer-body">
+          <div class="layer-score" id="L4score">—</div>
+          <div class="layer-label" id="L4label">—</div>
+          <div class="layer-coverage" id="L4coverage">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="alertsHost"></div>
+
+    <div id="layerDesc" class="layer-desc"></div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span id="indPanelTitle">All Indicators</span>
+        <span id="indCountTag" style="font-size:11px;color:var(--text-dim);">—</span>
+      </div>
+      <div id="indTableHost"><div class="loader">Loading indicators…</div></div>
     </div>
   </div>
 
-  <!-- CROSS-DESK LINKS -->
-  <h2 class="ins-h2">Drill in</h2>
-  <div class="ins-grid ins-g3">
-    <a href="/crisis.html" class="ins-card2" style="display:block;text-decoration:none;color:inherit">
-      <div class="mono dim" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Composite</div>
-      <div class="big" style="font-size:20px;margin-top:4px">Crisis desk →</div>
-    </a>
-    <a href="/credit-desk.html" class="ins-card2" style="display:block;text-decoration:none;color:inherit">
-      <div class="mono dim" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Credit leg</div>
-      <div class="big" style="font-size:20px;margin-top:4px">Credit desk →</div>
-    </a>
-    <a href="/liquidity.html" class="ins-card2" style="display:block;text-decoration:none;color:inherit">
-      <div class="mono dim" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Fuel</div>
-      <div class="big" style="font-size:20px;margin-top:4px">Liquidity desk →</div>
-    </a>
-  </div>
-
-  <!-- PROVENANCE -->
-  <h2 class="ins-h2">Data provenance</h2>
-  <div class="ins-card">
-    <div id="plumb-provenance"></div>
-  </div>
-
-</div>
-
-<script src="/jh-institutional.js"></script>
 <script>
-(function(){
-  var paths = [
-    "data/crisis-plumbing.json",
-    "data/ofr-stfm.json",
-    "data/regime.json",
-    "data/eurodollar-plumbing.json",
-    "data/treasury-noise.json"
-  ];
-  JHI.fetchAll(paths).then(function(D){
-    var cp   = D["data/crisis-plumbing.json"] || {};
-    var ofr  = D["data/ofr-stfm.json"] || {};
-    var reg  = D["data/regime.json"] || {};
-    var edp  = D["data/eurodollar-plumbing.json"] || {};
-    var tn   = D["data/treasury-noise.json"] || {};
+const URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/plumbing-stress.json';
+let DATA = null;
+let ACTIVE_LAYER = 'ALL';
+let SORT = { col: 'stress_score', dir: 'desc' };
 
-    // gauge from composite
-    var pgv = (cp.composite && typeof cp.composite.composite_stress_score === "number") ? cp.composite.composite_stress_score : null;
-    JHI.gauge(document.getElementById("plumb-gauge"), {
-      value: pgv,
-      label: "Plumbing stress composite",
-      verdict: (cp.composite && cp.composite.agreement_signal) || "—",
-      thresholds: [25, 50, 75, 90]
-    });
+const LAYER_DESC = {
+  'ALL': '',
+  'L1': '<strong>L1 EURODOLLAR PLUMBING</strong> — Fast-moving funding stress in offshore dollar system. Tracks Fed swap line activations, Eurosystem foreign-currency claims, and primary dealer Treasury settlement fails. ~70% of global USD activity happens outside US borders. When non-US banks can\'t source dollars, they sell what they can (Treasuries, gold, equities). This is what actually moved markets in March 2020 — not the virus, the dollar shortage. SWP1690 spike + ILM claims rising = late-stage stress (Fed already intervening).',
+  'L2': '<strong>L2 BANK RISK APPETITE</strong> — Slow but leading indicator of recession. Tracks bank willingness to lend (loan officer survey spreads/collateral), foreign-related institution behavior (cash hoarding, deposit flight), and money-market fund flows. When banks tighten, real economy slows ~6 months later. Banks see truth before any macro print. SBCACBW + RMFSL both rising = institutional + retail in defensive crouch simultaneously = high-quality recession signal.',
+  'L3': '<strong>L3 REAL-SIDE DAMAGE</strong> — Lagging confirmation of regime change. Tracks employment quality (long-term unemployed, permanent layoffs vs cyclical), industrial production, capacity utilization, and broker-dealer leverage. By the time these move, recession is no longer hypothetical. TEMPHELPS turning negative YoY = 6mo recession warning (8/10 hit rate). UEMP27OV + LNS13025699 both accelerating = recession in progress, position defensively.',
+  'L4': '<strong>L4 CROSS-BORDER STRESS</strong> — Capital flow direction + sovereign credit risk + global liquidity regime. Dollar regime is the best macro variable for risk assets. Strong USD = global liquidity contraction = risk-off. Tracks broad dollar (nominal+real), EM-specific dollar (real/nominal), Advanced Foreign Economies dollar, and ECB CISS for US/EU/China. RTWEXEMEGS > +3% in 6mo = EM crisis incoming. CISS_EA > CISS_US by 0.3 = European-specific stress.',
+};
 
-    // FSI
-    var fsi = ofr.fsi || {};
-    document.getElementById("fsi-latest").innerHTML = JHI.fmt(fsi.latest, "num2") + ' <span class="dim mono" style="font-size:13px;font-weight:400">σ-scaled</span>';
-    document.getElementById("fsi-d1").textContent = JHI.fmt(fsi.d1, "num2");
-    document.getElementById("fsi-pctile").textContent = JHI.fmt(fsi.pctile_full, "num1") + "th";
-    document.getElementById("fsi-nobs").textContent = JHI.fmt(fsi.n_obs, "int");
-    if (fsi.components) {
-      var compLines = Object.keys(fsi.components).map(function(k){
-        var c = fsi.components[k];
-        var v = (c && typeof c === "object") ? (c.latest !== undefined ? c.latest : c.value) : c;
-        return '<div>' + k + ': <span class="mono" style="color:var(--ins-tx)">'+JHI.fmt(v,"num2")+'</span></div>';
-      }).join("");
-      document.getElementById("fsi-components").innerHTML = compLines || "";
-    }
-
-    // regime strip
-    JHI.regimeStrip(document.getElementById("regime-strip"), reg.regime_strip || []);
-
-    // funding/credit signals
-    var fs = cp.funding_credit_signals || {};
-    var rows = Object.keys(fs).map(function(k){
-      var s = fs[k] || {};
-      var cls = (s.signal === "STRESS" || s.signal === "ELEVATED") ? "conj-fired" : (s.signal === "WATCH" ? "" : "conj-armed");
-      // producer publishes one of: spread_bps, level_pct, latest_bps, latest_pct, latest_value
-      // For latest_value, infer unit from key name (OAS/YIE/DFII/SLOOS = %; others num).
-      var pctKey = /(OAS|YIE|DFII|SLOOS|_PCT$)/i.test(k);
-      var val = (s.spread_bps !== undefined) ? JHI.fmt(s.spread_bps,"bp")
-              : (s.latest_bps !== undefined) ? JHI.fmt(s.latest_bps,"bp")
-              : (s.level_pct !== undefined)  ? JHI.fmt(s.level_pct,"pct")
-              : (s.latest_pct !== undefined) ? JHI.fmt(s.latest_pct,"pct")
-              : (s.value_pct !== undefined)  ? JHI.fmt(s.value_pct,"pct")
-              : (s.latest_value !== undefined) ? JHI.fmt(s.latest_value, pctKey ? "pct" : "num2")
-              : (s.value !== undefined) ? JHI.fmt(s.value,"num2") : "—";
-      return '<tr>' +
-        '<td class="mono">'+ (s.name || k) +'</td>' +
-        '<td class="r mono">'+val+'</td>' +
-        '<td class="r mono">'+JHI.fmt(s.z_score_1y,"z")+'</td>' +
-        '<td class="'+cls+'">'+(s.signal||"—")+'</td>' +
-        '<td class="dim">'+(s.interpretation||"")+'</td>' +
-      '</tr>';
-    }).join("");
-    document.getElementById("plumb-signals").innerHTML =
-      '<table class="comp-table"><thead><tr><th>Signal</th><th class="r">Value</th><th class="r">z(1y)</th><th>State</th><th>Read</th></tr></thead><tbody>'+
-      (rows || '<tr><td colspan="5" class="dim">No signals published.</td></tr>')+'</tbody></table>';
-
-    // XCC basis
-    var xcc = cp.xcc_basis_proxy || {};
-    // filter out non-row metadata
-    var xkeys = Object.keys(xcc).filter(function(k){
-      var v = xcc[k];
-      return v && typeof v === "object" && (v.current_pct !== undefined || v.spread_bps !== undefined || v.level !== undefined || v.latest_value !== undefined || v.signal !== undefined);
-    });
-    var xrows = xkeys.map(function(k){
-      var x = xcc[k] || {};
-      var cls = (x.signal === "STRESS" || x.signal === "ELEVATED") ? "conj-fired" : (x.signal === "WATCH" ? "" : "conj-armed");
-      var lvl = x.current_pct !== undefined ? JHI.fmt(x.current_pct,"pct")
-              : x.spread_bps !== undefined ? JHI.fmt(x.spread_bps,"bp")
-              : x.latest_value !== undefined ? JHI.fmt(x.latest_value,"num2")
-              : x.level !== undefined ? JHI.fmt(x.level,"num2") : "—";
-      return '<tr>' +
-        '<td class="mono">'+k+'</td>' +
-        '<td class="r mono">'+lvl+'</td>' +
-        '<td class="r mono">'+JHI.fmt(x.z_score_1y,"z")+'</td>' +
-        '<td class="'+cls+'">'+(x.signal||"—")+'</td>' +
-        '<td class="dim">'+(x.interpretation||"")+'</td>' +
-      '</tr>';
-    }).join("");
-    document.getElementById("xcc-table").innerHTML =
-      '<table class="comp-table"><thead><tr><th>Pair</th><th class="r">Level / spread</th><th class="r">z(1y)</th><th>State</th><th>Read</th></tr></thead><tbody>'+
-      (xrows || '<tr><td colspan="5" class="dim">No XCC data.</td></tr>')+'</tbody></table>';
-
-    // fails
-    var fails = (ofr.nypd_fails_cross && ofr.nypd_fails_cross.ftd_tot) || {};
-    var ftdVal = fails.latest;
-    var ftdEl = document.getElementById("ftd-latest");
-    ftdEl.innerHTML = (typeof ftdVal === "number") ?
-      ('$'+(ftdVal/1e9).toFixed(1)+' <span class="dim mono" style="font-size:14px;font-weight:400">B</span>')
-      : '<span class="dim">— (feed not publishing)</span>';
-    document.getElementById("ftd-provenance").textContent = "as of " + (fails.as_of || fails.asof || fails.last_updated || "—") + " · z₁y " + JHI.fmt(fails.z_1y,"z") + " · from ofr-stfm.nypd_fails_cross.ftd_tot";
-
-    // tier2
-    var t2 = cp.plumbing_tier2 || {};
-    var t2rows = Object.keys(t2).filter(function(k){ return t2[k] && typeof t2[k] === "object" && (t2[k].latest_value !== undefined || t2[k].delta_30d_pct !== undefined); }).map(function(k){
-      var s = t2[k] || {};
-      return '<tr><td class="mono">'+ (s.name || k) +'</td>' +
-             '<td class="r mono">'+JHI.fmt(s.latest_value,"num2")+'</td>' +
-             '<td class="r mono">'+JHI.fmt(s.delta_30d_pct,"pct")+'</td>' +
-             '<td class="r mono">'+JHI.fmt(s.delta_90d_pct,"pct")+'</td>' +
-             '<td class="dim">'+(s.interpretation||"")+'</td></tr>';
-    }).join("");
-    document.getElementById("tier2-table").innerHTML =
-      '<table class="comp-table"><thead><tr><th>Series</th><th class="r">Level</th><th class="r">Δ 30d</th><th class="r">Δ 90d</th><th>Read</th></tr></thead><tbody>'+
-      (t2rows || '<tr><td colspan="5" class="dim">No tier-2 data.</td></tr>')+'</tbody></table>';
-
-    // yield curve
-    var yc = cp.yield_curve || {};
-    var ykeys = Object.keys(yc).filter(function(k){
-      var v = yc[k];
-      return v && typeof v === "object" && (v.spread_bps !== undefined || v.signal !== undefined);
-    });
-    if (ykeys.length){
-      var yrows = ykeys.map(function(k){
-        var s = yc[k] || {};
-        return '<tr><td class="mono">'+k+'</td>' +
-               '<td class="r mono">'+JHI.fmt(s.spread_bps,"bp")+'</td>' +
-               '<td class="r mono">'+JHI.fmt(s.z_score_1y,"z")+'</td>' +
-               '<td>'+(s.signal||"—")+'</td>' +
-               '<td class="dim">'+(s.interpretation||"")+'</td></tr>';
-      }).join("");
-      document.getElementById("ycurve").innerHTML =
-        '<table class="comp-table"><thead><tr><th>Spread</th><th class="r">bps</th><th class="r">z(1y)</th><th>State</th><th>Read</th></tr></thead><tbody>'+yrows+'</tbody></table>';
-      document.getElementById("ycurve-block").style.display = "block";
-    }
-
-    // provenance
-    JHI.provenance(document.getElementById("plumb-provenance"), [
-      {path:"data/crisis-plumbing.json", name:"justhodl-crisis-plumbing · funding/credit signals + XCC + tier-2", iso: cp.generated_at},
-      {path:"data/ofr-stfm.json", name:"justhodl-ofr-stfm · OFR FSI + NYFRB fails cross", iso: ofr.generated_at},
-      {path:"data/eurodollar-plumbing.json", name:"justhodl-eurodollar-plumbing · BIS cross-border + policy corridor", iso: edp.generated_at},
-      {path:"data/treasury-noise.json", name:"justhodl-treasury-noise · bill-SOFR, repo P99, funding stress", iso: tn.generated_at},
-      {path:"data/regime.json", name:"justhodl-regime-engine · regime strip 1996+", iso: reg.generated_at}
-    ]);
-
-  }).catch(function(err){
-    document.body.insertAdjacentHTML("beforeend",
-      '<div class="ins-card" style="border-color:var(--ins-red);margin:20px">Feed load failed: '+String(err).slice(0,200)+'</div>');
+function setActiveLayer(layer) {
+  ACTIVE_LAYER = ACTIVE_LAYER === layer ? 'ALL' : layer;
+  document.querySelectorAll('.layer').forEach(el => {
+    el.classList.toggle('active', el.dataset.layer === ACTIVE_LAYER);
   });
-})();
+  document.getElementById('layerDesc').innerHTML = LAYER_DESC[ACTIVE_LAYER] || '';
+  document.getElementById('layerDesc').style.display = ACTIVE_LAYER === 'ALL' ? 'none' : 'block';
+  renderIndicators();
+}
+
+function scoreLabel(score) {
+  if (score === null || score === undefined) return 'NO DATA';
+  if (score < 25) return 'ABUNDANT';
+  if (score < 50) return 'NORMAL';
+  if (score < 70) return 'ELEVATED';
+  if (score < 85) return 'CRITICAL';
+  return 'CRISIS';
+}
+
+function stressCellClass(score) {
+  if (score === null || score === undefined) return 'sNA';
+  if (score < 25) return 's0';
+  if (score < 50) return 's25';
+  if (score < 75) return 's50';
+  if (score < 90) return 's75';
+  return 's90';
+}
+
+function applySort(rows, col, dir) {
+  return [...rows].sort((a, b) => {
+    let av = a[col], bv = b[col];
+    if (av === undefined || av === null) av = dir === 'asc' ? Infinity : -Infinity;
+    if (bv === undefined || bv === null) bv = dir === 'asc' ? Infinity : -Infinity;
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    if (av < bv) return dir === 'asc' ? -1 : 1;
+    if (av > bv) return dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+}
+
+function fmtNum(v, decimals = 2) {
+  if (v === null || v === undefined) return '—';
+  return Number(v).toFixed(decimals);
+}
+
+function fmtPct(v) {
+  if (v === null || v === undefined) return '—';
+  return Number(v).toFixed(1) + '%';
+}
+
+function fmtZ(v) {
+  if (v === null || v === undefined) return '—';
+  const sign = v >= 0 ? '+' : '';
+  return sign + Number(v).toFixed(2) + 'σ';
+}
+
+function renderComposite() {
+  const score = DATA.composite_score;
+  const label = DATA.composite_label || 'UNKNOWN';
+  document.getElementById('composite').className = 'composite ' + label;
+  document.getElementById('compLabel').textContent = label;
+  document.getElementById('compScore').textContent = score !== null && score !== undefined ? Number(score).toFixed(1) : '—';
+}
+
+function renderLayers() {
+  for (const lid of ['L1', 'L2', 'L3', 'L4']) {
+    const layer = (DATA.layers || {})[lid] || {};
+    const score = layer.score;
+    const label = scoreLabel(score);
+    const labelEl = document.getElementById(lid + 'label');
+    const scoreEl = document.getElementById(lid + 'score');
+    scoreEl.textContent = score !== null && score !== undefined ? Number(score).toFixed(1) : '—';
+    scoreEl.className = 'layer-score score-' + label;
+    labelEl.textContent = label;
+    labelEl.className = 'layer-label score-' + label;
+    document.getElementById(lid + 'coverage').textContent =
+      `${layer.n_with_data || 0}/${layer.n_indicators || 0} indicators`;
+  }
+}
+
+function renderAlerts() {
+  const alerts = DATA.alerts || [];
+  if (!alerts.length) {
+    document.getElementById('alertsHost').innerHTML = '';
+    return;
+  }
+  document.getElementById('alertsHost').innerHTML = `
+    <div class="alerts">
+      <div class="alerts-header">⚠️ Active Stress Signals (${alerts.length})</div>
+      ${alerts.map(a => `
+        <div class="alert-row">
+          <span class="severity-pill ${a.severity}">${a.severity}</span>
+          <div>
+            <div class="alert-label">${a.label}</div>
+            <div class="alert-message">${a.message || ''}</div>
+          </div>
+          <span class="alert-layer">${a.layer}</span>
+          <span class="alert-score">z=${fmtZ(a.z_score)}</span>
+          <span class="alert-score">${fmtNum(a.stress_score, 0)}/100</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderIndicators() {
+  if (!DATA) return;
+  const raw = DATA.raw_indicators || {};
+  let rows = Object.entries(raw).map(([id, v]) => ({ id, ...v }));
+  if (ACTIVE_LAYER !== 'ALL') {
+    rows = rows.filter(r => r.layer === ACTIVE_LAYER);
+  }
+  rows = applySort(rows, SORT.col, SORT.dir);
+
+  const cols = [
+    { k: 'id', label: 'ID' },
+    { k: 'label', label: 'Indicator' },
+    { k: 'layer', label: 'Layer' },
+    { k: 'value', label: 'Latest' },
+    { k: 'date', label: 'As Of' },
+    { k: 'z_score', label: 'Z-Score' },
+    { k: 'percentile', label: 'Pctile' },
+    { k: 'stress_score', label: 'Stress' },
+  ];
+
+  const thead = cols.map(c => {
+    const cls = c.k === SORT.col ? `sort-${SORT.dir}` : '';
+    return `<th data-col="${c.k}" class="${cls}">${c.label}</th>`;
+  }).join('') + '<th>History (click \u2192 chart)</th>';
+
+  document.getElementById('indPanelTitle').textContent =
+    ACTIVE_LAYER === 'ALL' ? 'All Indicators' : `${ACTIVE_LAYER} Indicators`;
+  document.getElementById('indCountTag').textContent =
+    `${rows.length} ${ACTIVE_LAYER === 'ALL' ? 'total' : 'in ' + ACTIVE_LAYER}`;
+
+  const tbody = rows.map(r => `
+    <tr class="ind-clickable" onclick="openChart('${r.id}')">
+      <td><span class="ind-id">${r.id}</span></td>
+      <td>
+        <div class="ind-label">${r.label || '—'}</div>
+        ${r.interp ? `<div class="ind-interp">${r.interp}</div>` : ''}
+      </td>
+      <td><span style="color:var(--purple);font-weight:700">${r.layer || '—'}</span></td>
+      <td>${r.value !== null && r.value !== undefined ? fmtNum(r.value, r.value > 1000 ? 0 : 2) : (r.err ? `<span style="color:var(--red);font-size:10px">${r.err}</span>` : '—')}</td>
+      <td style="color:var(--text-dim);font-size:11px">${r.date || '—'}</td>
+      <td>${fmtZ(r.z_score)}</td>
+      <td>${fmtPct(r.percentile)}</td>
+      <td><span class="stress-cell ${stressCellClass(r.stress_score)}">${r.stress_score !== null && r.stress_score !== undefined ? Number(r.stress_score).toFixed(0) : '—'}</span></td>
+      <td>${miniSpark(r.id)}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('indTableHost').innerHTML =
+    `<table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>`;
+
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const c = th.dataset.col;
+      SORT.dir = (SORT.col === c && SORT.dir === 'desc') ? 'asc' : 'desc';
+      SORT.col = c;
+      renderIndicators();
+    });
+  });
+}
+
+let HIST = null;
+const HIST_URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/plumbing-history.json';
+async function loadHistory(){ try{ const r=await fetch(HIST_URL+'?_='+Date.now()); if(r.ok) HIST=await r.json(); }catch(e){ console.warn('history load failed',e); } }
+
+function miniSpark(id){
+  const h=HIST&&HIST.indicators&&HIST.indicators[id];
+  if(!h||!h.history||h.history.length<2) return '<span style="color:var(--text-muted);font-size:10px">—</span>';
+  const pts=h.history, vs=pts.map(p=>p[1]), mn=Math.min(...vs), mx=Math.max(...vs), rg=(mx-mn)||1, n=pts.length, W=140, H=30;
+  const d=pts.map((p,i)=>`${(i/(n-1)*W).toFixed(1)},${(H-(p[1]-mn)/rg*H).toFixed(1)}`).join(' ');
+  let sh='';(HIST.crises||[]).forEach(([a,b])=>{let ia=pts.findIndex(p=>p[0].slice(0,7)>=a);if(ia<0)return;let ib=pts.findIndex(p=>p[0].slice(0,7)>=b);if(ib<0)ib=n-1;const xa=ia/(n-1)*W,xb=ib/(n-1)*W;sh+=`<rect x="${xa.toFixed(1)}" y="0" width="${Math.max(1,xb-xa).toFixed(1)}" height="${H}" fill="rgba(239,68,68,0.18)"/>`;});
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="vertical-align:middle;background:#0b0b0b;border-radius:4px">${sh}<polyline points="${d}" fill="none" stroke="var(--accent)" stroke-width="1.3"/></svg>`;
+}
+function fmtTick(v){const a=Math.abs(v);return a>=1000?(v/1000).toFixed(1)+'k':a>=100?v.toFixed(0):a>=1?v.toFixed(1):v.toFixed(2);}
+function fmtVal(v){const a=Math.abs(v);return a>=1000?v.toLocaleString(undefined,{maximumFractionDigits:0}):a>=1?v.toFixed(2):v.toFixed(3);}
+
+function openChart(id){
+  const h=HIST&&HIST.indicators&&HIST.indicators[id];
+  if(!h||!h.history||h.history.length<2){ return; }
+  const pts=h.history;
+  const W=1180,H=520,PL=80,PR=26,PT=34,PB=46,w=W-PL-PR,hh=H-PT-PB;
+  const vs=pts.map(p=>p[1]); let mn=Math.min(...vs),mx=Math.max(...vs); if(mn===mx){mn-=1;mx+=1;} const rg=mx-mn,n=pts.length;
+  const X=i=>PL+i/(n-1)*w, Y=v=>PT+hh-(v-mn)/rg*hh;
+  const line=pts.map((p,i)=>`${X(i).toFixed(1)},${Y(p[1]).toFixed(1)}`).join(' ');
+  const area=`${PL},${(PT+hh).toFixed(1)} ${line} ${(PL+w).toFixed(1)},${(PT+hh).toFixed(1)}`;
+  let sh='';(HIST.crises||[]).forEach(([a,b,lab])=>{let ia=pts.findIndex(p=>p[0].slice(0,7)>=a);if(ia<0)return;let ib=pts.findIndex(p=>p[0].slice(0,7)>=b);if(ib<0)ib=n-1;const xa=X(ia),xb=X(ib),bw=Math.max(2,xb-xa);sh+=`<rect x="${xa.toFixed(1)}" y="${PT}" width="${bw.toFixed(1)}" height="${hh}" fill="rgba(239,68,68,0.13)"/><text x="${(xa+bw/2).toFixed(1)}" y="${PT-5}" fill="#f87171" font-size="9.5" font-weight="700" text-anchor="middle">${lab}</text>`;});
+  let xt='';const ys={};pts.forEach((p,i)=>{const y=p[0].slice(0,4);if(!(y in ys))ys[y]=i;});const yl=Object.keys(ys),step=Math.max(1,Math.ceil(yl.length/16));yl.forEach((y,k)=>{if(k%step===0){const px=X(ys[y]);xt+=`<line x1="${px}" y1="${PT}" x2="${px}" y2="${PT+hh}" stroke="#1b1b1b"/><text x="${px}" y="${H-14}" fill="#888" font-size="11" text-anchor="middle">${y}</text>`;}});
+  let yt='';for(let k=0;k<=5;k++){const v=mn+rg*k/5,py=Y(v);yt+=`<line x1="${PL}" y1="${py.toFixed(1)}" x2="${PL+w}" y2="${py.toFixed(1)}" stroke="#171717"/><text x="${PL-8}" y="${(py+4).toFixed(1)}" fill="#888" font-size="11" text-anchor="end">${fmtTick(v)}</text>`;}
+  const svg=`<svg id="bigSvg" width="100%" viewBox="0 0 ${W} ${H}" style="display:block;width:100%;cursor:crosshair"><rect x="${PL}" y="${PT}" width="${w}" height="${hh}" fill="#0b0b0b"/>${sh}${yt}${xt}<polygon points="${area}" fill="var(--accent)" fill-opacity="0.08"/><polyline points="${line}" fill="none" stroke="var(--accent)" stroke-width="1.7"/><line id="chX" y1="${PT}" y2="${PT+hh}" stroke="#facc15" stroke-width="1" stroke-dasharray="3,3" style="display:none"/><circle id="chDot" r="4" fill="#facc15" style="display:none"/><rect id="chOv" x="${PL}" y="${PT}" width="${w}" height="${hh}" fill="transparent"/></svg><div id="chTip" style="position:absolute;display:none;background:#1c1c1c;border:1px solid var(--accent);border-radius:6px;padding:5px 9px;font-family:ui-monospace,monospace;font-size:11px;color:#eee;pointer-events:none;white-space:nowrap;z-index:5"></div>`;
+  const pol = h.polarity===1?'higher = more stress':h.polarity===-1?'lower = more stress':'';
+  document.getElementById('chartHead').innerHTML=`<div style="font-size:15px;font-weight:600">${h.label||id} <span style="color:var(--text-dim);font-size:12px">· ${id} · ${h.layer}</span></div><div style="font-family:ui-monospace,monospace;font-size:11px;color:var(--text-dim);margin:3px 0 8px">${pts.length} mo · ${pts[0][0]} → ${pts[pts.length-1][0]}${pol?' · '+pol:''}${h.interp?' · '+h.interp:''}</div>`;
+  document.getElementById('chartWrap').innerHTML=svg;
+  document.getElementById('chartFoot').innerHTML=`<div style="font-family:ui-monospace,monospace;font-size:10px;color:var(--text-muted);margin-top:8px">Red bands = historical crises (Asian/LTCM, dot-com, GFC, euro debt, China/oil, COVID, rate shock, SVB). Move your mouse over the chart to read the exact date &amp; value. Monthly sampling; series shown from its earliest available date.</div>`;
+  document.getElementById('chartModal').style.display='flex';
+  const svgEl=document.getElementById('bigSvg'), ov=document.getElementById('chOv');
+  ov.addEventListener('mousemove',function(ev){
+    const r=svgEl.getBoundingClientRect(), ratio=W/r.width, sx=(ev.clientX-r.left)*ratio;
+    let i=Math.round((sx-PL)/w*(n-1)); i=Math.max(0,Math.min(n-1,i));
+    const p=pts[i], px=X(i), py=Y(p[1]);
+    const cx=document.getElementById('chX'), dot=document.getElementById('chDot'), tip=document.getElementById('chTip');
+    cx.setAttribute('x1',px); cx.setAttribute('x2',px); cx.style.display='block';
+    dot.setAttribute('cx',px); dot.setAttribute('cy',py); dot.style.display='block';
+    const wrap=document.getElementById('chartWrap');
+    tip.style.display='block'; tip.innerHTML=`<b>${p[0]}</b> &nbsp; ${fmtVal(p[1])}`;
+    tip.style.left=Math.min(wrap.clientWidth-140,Math.max(0,(px/W)*wrap.clientWidth+10))+'px';
+    tip.style.top=Math.max(0,(py/H)*wrap.clientHeight-12)+'px';
+  });
+  svgEl.addEventListener('mouseleave',function(){['chX','chDot','chTip'].forEach(x=>{const el=document.getElementById(x);if(el)el.style.display='none';});});
+}
+function closeChart(){document.getElementById('chartModal').style.display='none';}
+
+async function load() {
+  try {
+    const r = await fetch(URL + '?_=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    DATA = await r.json();
+    if (!HIST) await loadHistory();
+    document.getElementById('metaLine').innerHTML =
+      `As of <strong>${new Date(DATA.as_of).toLocaleString()}</strong> · ` +
+      `${DATA.n_with_data}/${DATA.n_indicators} indicators with data · ${DATA.duration_s}s`;
+    renderComposite();
+    renderLayers();
+    renderAlerts();
+    renderIndicators();
+  } catch (e) {
+    document.getElementById('indTableHost').innerHTML =
+      `<div class="loader">Failed: ${e.message}</div>`;
+    console.error(e);
+  }
+}
+
+document.getElementById('layerDesc').style.display = 'none';
+load();
+setInterval(load, 5*60*1000);
 </script>
 
+<div style="max-width:1500px; margin:18px auto; padding:0 18px;">
+  <div id="liquidity-pulse-panel"></div>
+</div>
+<div id="chartModal" class="cmodal" onclick="if(event.target===this)closeChart()"><div class="cbox"><span class="cx" onclick="closeChart()">✕</span><div id="chartHead"></div><div id="chartWrap" style="position:relative"></div><div id="chartFoot"></div></div></div>
+  <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
-<script src="/jh-page-ai.js" defer></script>
 </body>
 </html>
