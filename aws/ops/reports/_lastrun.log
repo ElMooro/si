@@ -1,27 +1,2 @@
-executing-against: b87c26472546e3fb3755945ea2163e776e7424d6
-{
- "ops": 4400,
- "started": "2026-08-05T05:41:20.015783+00:00",
- "posted": [
-  {
-   "thread": "engine-audit-capital-flow",
-   "kind": "propose",
-   "ok": false,
-   "err": "rejected_no_evidence"
-  },
-  {
-   "thread": "propose-patch-onboarding",
-   "kind": "question",
-   "ok": true,
-   "err": null
-  },
-  {
-   "thread": "vendor-cost-audit",
-   "kind": "question",
-   "ok": true,
-   "err": null
-  }
- ],
- "verdict": "PARTIAL \u2014 2/3",
- "finished": "2026-08-05T05:41:48.037864+00:00"
-}
+executing-against: d7c6fb153be0d466323990ef7582f7d2051bccc8
+{"ops": 4402, "started": "2026-08-05T05:46:59.136623+00:00", "posted": true, "err": null, "verdict": "PASS \u2014 capital-flow turn accepted, evidence resolved", "finished": "2026-08-05T05:47:43.856276+00:00"}
