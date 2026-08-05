@@ -123,6 +123,36 @@ def fetch_spy_history(years=20):
                     out.setdefault(dt, {"date": dt, "close": a["c"]})
         except Exception as e:
             print("polygon SPY fallback fail: %s" % e)
+    # ops 4415: third fallback — FRED SP500 daily index. FMP chunking and the
+    # Polygon 5y entitlement have both regressed to empty before (see docstring:
+    # "forwards n=0, episodes []"). FRED SP500 is a different vendor entirely,
+    # so a single-vendor outage can no longer zero out forward returns. Used as
+    # an INDEX PROXY for forward-return math (levels differ from SPY, but the
+    # percentage forward returns — which is all compute_forward_returns uses —
+    # are equivalent). Flagged in the report as price_source.
+    if len(out) < 350:
+        try:
+            fred_key = os.environ.get("FRED_API_KEY",
+                                      "2f057499936072679d8843d7fce99989")
+            frm = (now - timedelta(days=365 * 10)).strftime("%Y-%m-%d")
+            u = ("https://api.stlouisfed.org/fred/series/observations?"
+                 "series_id=SP500&api_key=%s&file_type=json&"
+                 "observation_start=%s" % (fred_key, frm))
+            rq = urllib.request.Request(u, headers={"User-Agent":
+                                                    "justhodl/1.0"})
+            with urllib.request.urlopen(rq, timeout=25) as r:
+                for o in (json.loads(r.read()).get("observations") or []):
+                    v = o.get("value")
+                    if v in (None, ".", ""):
+                        continue
+                    try:
+                        out.setdefault(o["date"],
+                                       {"date": o["date"], "close": float(v)})
+                    except Exception:
+                        continue
+            print("FRED SP500 fallback rows: %d" % len(out))
+        except Exception as e:
+            print("FRED SP500 fallback fail: %s" % e)
     print("spy_history rows: %d" % len(out))
     return sorted(out.values(), key=lambda x: x["date"])
 
