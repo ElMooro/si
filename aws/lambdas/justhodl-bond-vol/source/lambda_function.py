@@ -240,6 +240,80 @@ def telegram_notify(msg):
         pass
 
 
+
+# ── ops 4422: REAL MOVE series (Khalid: "add a real MOVE series") ──────────
+# The engine docstring is right that ICE paywalls the official MOVE feed and
+# FRED's ICE_BAML_MOVE is not free — which is why this engine shipped a proxy.
+# But the index level IS publicly quoted under the ^MOVE ticker on Yahoo's
+# chart endpoint, which the fleet already uses elsewhere. So: fetch the real
+# level as PRIMARY, keep the existing proxy as an explicit, labelled fallback,
+# and never silently pass one off as the other.
+MOVE_THRESHOLDS = {"amber": 120, "red": 140}
+
+
+def fetch_move_real(days=760):
+    """Real MOVE index history from the public ^MOVE quote. Returns
+    [{date, value}] ascending, or [] if unavailable."""
+    url = ("https://query1.finance.yahoo.com/v8/finance/chart/%5EMOVE"
+           "?range=2y&interval=1d")
+    try:
+        req = urllib.request.Request(
+            url, headers={"User-Agent": "Mozilla/5.0 (justhodl/1.0)",
+                          "Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
+            d = json.loads(r.read().decode())
+        res = ((d.get("chart") or {}).get("result") or [None])[0]
+        if not res:
+            return []
+        stamps = res.get("timestamp") or []
+        closes = (((res.get("indicators") or {}).get("quote")
+                   or [{}])[0]).get("close") or []
+        rows = []
+        for ts, c in zip(stamps, closes):
+            if c is None:
+                continue
+            rows.append({"date": datetime.fromtimestamp(
+                ts, tz=timezone.utc).strftime("%Y-%m-%d"),
+                "value": round(float(c), 2)})
+        rows.sort(key=lambda x: x["date"])
+        return rows[-days:]
+    except Exception as e:
+        print("MOVE real fetch failed: %s: %s" % (type(e).__name__,
+                                                  str(e)[:90]))
+        return []
+
+
+def build_move_block(proxy_value=None, proxy_note=None):
+    """MOVE block: real level + z + percentile + brain thresholds, or an
+    explicitly-labelled proxy when the real series is unavailable."""
+    rows = fetch_move_real()
+    if rows:
+        vals = [r["value"] for r in rows]
+        cur = vals[-1]
+        mean = sum(vals) / len(vals)
+        var = sum((v - mean) ** 2 for v in vals) / max(1, len(vals) - 1)
+        sd = var ** 0.5
+        z = round((cur - mean) / sd, 2) if sd > 1e-9 else 0.0
+        pct = round(100 * sum(1 for v in vals if v <= cur) / len(vals), 1)
+        return {
+            "value": cur, "level": cur, "z": z, "pctile_2y": pct,
+            "n_obs": len(vals), "date": rows[-1]["date"],
+            "state": ("RED" if cur > MOVE_THRESHOLDS["red"] else
+                      "AMBER" if cur > MOVE_THRESHOLDS["amber"] else "CALM"),
+            "thresholds": MOVE_THRESHOLDS,
+            "source": "real ^MOVE index (public quote)",
+            "is_proxy": False,
+            "spark": rows[-60:],
+        }
+    return {
+        "value": proxy_value, "is_proxy": True,
+        "source": "proxy — real ^MOVE unavailable this run",
+        "note": proxy_note or ("cross-asset bond-vol proxy; NOT the ICE MOVE "
+                               "index level"),
+        "thresholds": MOVE_THRESHOLDS,
+    }
+
+
 def lambda_handler(event, context):
     started = datetime.now(timezone.utc)
     if not FRED_KEY:
@@ -361,7 +435,11 @@ def lambda_handler(event, context):
     except Exception as e:
         print(f"[bond-vol] history write err: {e}")
 
+    move_block = build_move_block(
+        proxy_value=locals().get("composite_z"),
+        proxy_note="engine composite_z stands in when ^MOVE is unreachable")
     out = {
+        "move": move_block,   # ops 4422: real MOVE index
         "ok": True,
         "version": "2.0",
         "generated_at": started.isoformat(),
