@@ -90,4 +90,8 @@ function draw(){ROWS.sort((a,b)=>(b[SORT]??-1)-(a[SORT]??-1));
   svg.innerHTML=`<polygon points="20,${Hh-18} ${vals.map((v,i)=>X(i)+","+Y(v)).join(" ")} ${X(ds.length-1)},${Hh-18}" fill="var(--acc)" opacity=".12"/><polyline points="${vals.map((v,i)=>X(i)+","+Y(v)).join(" ")}" fill="none" stroke="var(--acc)" stroke-width="1.8"/>`+ds.map((x,i)=>`<circle cx="${X(i)}" cy="${Y(vals[i])}" r="3" fill="transparent"><title>${x.d} · top ${Math.round(vals[i])}</title></circle>`).join("")+`<text x="20" y="${Hh-4}" fill="var(--tx2)" font-size="10">${ds[0].d}</text><text x="${W-20}" y="${Hh-4}" fill="var(--tx2)" font-size="10" text-anchor="end">${ds[ds.length-1].d}</text>`;
  } else svg.innerHTML=`<text x="450" y="65" fill="var(--tx2)" font-size="12" text-anchor="middle">history compounds daily from today</text>`;
 }catch(e){document.getElementById("regime").textContent="load failed: "+e;}})();
-</script></div></body></html>
+</script>
+<!-- P0-7 wave 2 · dark engines wired (perplexity, 2026-08-05) -->
+<script src="/jh-wire.js" defer
+  data-feeds="data/fed-pivot-factor-trades.json|justhodl-fed-pivot-factor-router|FED-PIVOT FACTOR ROUTER;data/macro-confluence.json|justhodl-macro-confluence|MACRO CONFLUENCE"></script>
+</div></body></html>
