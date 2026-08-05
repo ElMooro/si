@@ -1,7 +1,7 @@
 {
  "v": 1,
  "generated_by": "scripts/gen_engine_wiring.py",
- "note": "Canonical engine\u2192page wiring for previously-orphaned feeds (ops 2944/2945 audit, corrected matcher). WIRED = displayed via jh-wire.js on that page. INTERNAL = feeds other engines by design. DEAD = engine output missing in S3; fix engine, then assign.",
+ "note": "Canonical engine\u2192page wiring for previously-orphaned feeds (ops 2944/2945 audit, corrected matcher). WIRED = displayed via jh-wire.js on that page. INTERNAL = feeds other engines by design. DEAD = engine output missing in S3; fix engine, then assign. \u00b7 P0-7 audit follow-up wired 6 dark macro engines (perplexity, 2026-08-05).",
  "wired": [
   {
    "engine": "justhodl-activist-filings-scanner",
@@ -544,6 +544,54 @@
    "feed": "data/schedule-liveness.json",
    "page": "uptime.html",
    "title": "SCHEDULE LIVENESS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-canary-grid",
+   "feed": "data/canary-grid.json",
+   "page": "risk-gate.html",
+   "title": "CANARY GRID (early-warning strip)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-risk-ratios",
+   "feed": "data/risk-ratios.json",
+   "page": "credit-desk.html",
+   "title": "RISK RATIOS (credit-leg detail)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-auction-decisive-call",
+   "feed": "data/auction-decisive-call.json",
+   "page": "auctions.html",
+   "title": "TREASURY AUCTION DECISIVE CALL",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-refining-stress",
+   "feed": "data/refining-stress.json",
+   "page": "supply-chain.html",
+   "title": "REFINING STRESS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-miners",
+   "feed": "data/crypto-miners.json",
+   "page": "crypto/index.html",
+   "title": "CRYPTO MINERS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-exchange-flows",
+   "feed": "data/crypto-exchange-flows.json",
+   "page": "crypto/index.html",
+   "title": "CRYPTO EXCHANGE FLOWS",
    "freshness_at_wiring": "FRESH",
    "via": "jh-wire.js"
   }
