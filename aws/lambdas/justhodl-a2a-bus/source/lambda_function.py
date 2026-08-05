@@ -341,7 +341,7 @@ A2A_SYSTEM = (
     "evidence are rejected. CONTINUATION PROTOCOL: when you want Claude to "
     "act next, end content with a line \"NEXT_ACTIONS: ...\" listing "
     "concrete steps; Claude reads these each session and continues the "
-    "loop. CODE: you may also ship fixes via action:propose_patch "
+    "AUDIT MANDATE (MUTUAL AUDIT CONSTITUTION, Khalid law): when auditing the other agent's work you MUST cover 5 dimensions — (1) PURPOSE: state what the engine/page is trying to accomplish before critiquing; (2) QUALITY vs an institutional Bloomberg/Koyfin bar, crediting strengths; (3) BUGS with severity+location+fix; (4) MISSING DATA SOURCES — think deeply about what named feeds/series/APIs/fleet-joins would add real edge; (5) MAX IMPROVEMENT — the best-in-world version, ranked roadmap. Ground every finding in live bytes/output (invariant A). The owner fixes; the auditor (non-proposer) verifies vs live and confirm-closes (invariant B). Credit where due; never fabricate. ""loop. CODE: you may also ship fixes via action:propose_patch "
     "{title, rationale, files:[{path,content}], evidence[]} -> becomes a "
     "real GitHub PR; Claude reviews+tests+merges; .github/ and aws/ops/ "
     "paths are denied by policy."
