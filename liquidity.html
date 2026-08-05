@@ -1,1077 +1,290 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Liquidity Intelligence | JustHodl.AI</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
-<style>
-  :root {
-    --bg:          #080b10;
-    --bg2:         #0d1117;
-    --bg3:         #131920;
-    --border:      #1e2832;
-    --border2:     #263040;
-    --green:       #00ff88;
-    --green2:      #00cc6a;
-    --red:         #ff3d5a;
-    --yellow:      #ffd700;
-    --orange:      #ff8c42;
-    --blue:        #4fc3f7;
-    --purple:      #ab7df8;
-    --text:        #e2e8f0;
-    --text2:       #8899aa;
-    --text3:       #4a5568;
-    --mono:        'IBM Plex Mono', monospace;
-    --sans:        'IBM Plex Sans', sans-serif;
-    --glow-green:  0 0 20px rgba(0,255,136,0.25);
-    --glow-red:    0 0 20px rgba(255,61,90,0.25);
-  }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 13px;
-    line-height: 1.5;
-    min-height: 100vh;
-  }
-
-  /* ── NAV ── */
-  nav {
-    display: flex;
-    align-items: center;
-    padding: 12px 24px;
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
-    gap: 8px;
-    flex-wrap: wrap;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .nav-brand {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--green);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-right: 16px;
-    text-decoration: none;
-  }
-  nav a {
-    color: var(--text2);
-    text-decoration: none;
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 3px;
-    transition: all 0.15s;
-  }
-  nav a:hover, nav a.active { color: var(--green); background: rgba(0,255,136,0.08); }
-
-  /* ── HEADER ── */
-  .page-header {
-    padding: 28px 24px 20px;
-    border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, rgba(0,255,136,0.04) 0%, transparent 100%);
-  }
-  .page-header h1 {
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--green);
-  }
-  .page-header p {
-    color: var(--text2);
-    font-size: 11px;
-    margin-top: 4px;
-    letter-spacing: 1px;
-  }
-  .header-meta {
-    display: flex;
-    gap: 24px;
-    margin-top: 12px;
-    flex-wrap: wrap;
-  }
-  .header-meta span {
-    font-size: 11px;
-    color: var(--text3);
-  }
-  .header-meta .val { color: var(--text2); }
-
-  /* ── GRID ── */
-  .container { padding: 20px 24px; }
-
-  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
-  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
-  .grid-12 { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 16px; }
-  .grid-21 { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 16px; }
-
-  @media(max-width: 1100px) {
-    .grid-3, .grid-4, .grid-12, .grid-21 { grid-template-columns: 1fr 1fr; }
-  }
-  @media(max-width: 700px) {
-    .grid-3, .grid-4, .grid-2, .grid-12, .grid-21 { grid-template-columns: 1fr; }
-  }
-
-  /* ── CARDS ── */
-  .card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 16px;
-  }
-  .card-label {
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text3);
-    margin-bottom: 8px;
-  }
-  .card-value {
-    font-size: 26px;
-    font-weight: 600;
-    line-height: 1.1;
-  }
-  .card-sub {
-    font-size: 11px;
-    color: var(--text2);
-    margin-top: 4px;
-  }
-  .card-delta {
-    font-size: 12px;
-    margin-top: 6px;
-  }
-
-  /* ── HERO NET LIQUIDITY ── */
-  .hero-card {
-    background: var(--bg2);
-    border-radius: 4px;
-    padding: 24px;
-    display: flex;
-    gap: 32px;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-    border: 1px solid var(--border);
-    position: relative;
-    overflow: hidden;
-  }
-  .hero-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(0,255,136,0.03) 0%, transparent 60%);
-    pointer-events: none;
-  }
-  .hero-main { flex: 1; min-width: 180px; }
-  .hero-label {
-    font-size: 10px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text3);
-    margin-bottom: 8px;
-  }
-  .hero-value {
-    font-size: 52px;
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: -1px;
-  }
-  .hero-unit { font-size: 18px; color: var(--text2); vertical-align: super; }
-  .hero-sublabel {
-    font-size: 13px;
-    margin-top: 8px;
-    letter-spacing: 1px;
-  }
-  .hero-formula {
-    font-size: 11px;
-    color: var(--text3);
-    margin-top: 12px;
-    line-height: 1.8;
-  }
-  .hero-score-ring {
-    width: 120px;
-    height: 120px;
-    position: relative;
-    flex-shrink: 0;
-  }
-  .hero-score-ring svg { transform: rotate(-90deg); }
-  .hero-score-label {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    font-weight: 600;
-    line-height: 1;
-  }
-  .hero-score-label span { font-size: 10px; color: var(--text3); letter-spacing: 1px; }
-  .hero-stats { display: flex; gap: 24px; flex-wrap: wrap; }
-  .hero-stat-item { min-width: 100px; }
-  .hero-stat-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); }
-  .hero-stat-val { font-size: 16px; font-weight: 500; margin-top: 4px; }
-
-  /* ── SIGNAL BADGE ── */
-  .signal-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    border-radius: 3px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-top: 8px;
-  }
-  .signal-badge .dot { width: 6px; height: 6px; border-radius: 50%; animation: pulse 1.5s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-  .sig-BULLISH, .sig-VERY_BULLISH { background: rgba(0,255,136,0.12); color: var(--green); border: 1px solid rgba(0,255,136,0.3); }
-  .sig-BULLISH .dot, .sig-VERY_BULLISH .dot { background: var(--green); }
-  .sig-BEARISH, .sig-VERY_BEARISH { background: rgba(255,61,90,0.12); color: var(--red); border: 1px solid rgba(255,61,90,0.3); }
-  .sig-BEARISH .dot, .sig-VERY_BEARISH .dot { background: var(--red); }
-  .sig-NEUTRAL { background: rgba(255,215,0,0.08); color: var(--yellow); border: 1px solid rgba(255,215,0,0.25); }
-  .sig-NEUTRAL .dot { background: var(--yellow); }
-
-  /* ── TABLE ── */
-  .data-table { width: 100%; border-collapse: collapse; }
-  .data-table th {
-    text-align: left;
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--text3);
-    padding: 6px 10px;
-    border-bottom: 1px solid var(--border);
-    text-transform: uppercase;
-  }
-  .data-table td {
-    padding: 8px 10px;
-    border-bottom: 1px solid rgba(30,40,50,0.5);
-    font-size: 12px;
-    color: var(--text2);
-  }
-  .data-table tr:last-child td { border-bottom: none; }
-  .data-table .val { color: var(--text); font-weight: 500; }
-  .data-table .pos { color: var(--green); }
-  .data-table .neg { color: var(--red); }
-  .data-table .neutral { color: var(--yellow); }
-
-  /* ── SECTION TITLES ── */
-  .section-title {
-    font-size: 10px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text3);
-    padding-bottom: 10px;
-    margin-bottom: 12px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  /* ── CHART ── */
-  .chart-container { height: 320px; }
-  .chart-container-sm { height: 200px; }
-
-  /* ── PROGRESS BAR ── */
-  .progress-bar-wrap { margin-top: 8px; }
-  .progress-bar-track {
-    height: 4px;
-    background: var(--bg3);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .progress-bar-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 0.8s ease;
-  }
-
-  /* ── INDICATORS ── */
-  .indicator-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(30,40,50,0.5);
-  }
-  .indicator-row:last-child { border-bottom: none; }
-  .indicator-name { color: var(--text2); font-size: 12px; }
-  .indicator-value { font-size: 12px; font-weight: 500; }
-
-  /* ── REGIME BANNER ── */
-  .regime-banner {
-    padding: 14px 18px;
-    border-radius: 4px;
-    border-left: 3px solid;
-    margin-bottom: 16px;
-    background: var(--bg2);
-    font-size: 12px;
-  }
-  .regime-EXPANDING_FAST, .regime-EXPANDING { border-color: var(--green); }
-  .regime-CONTRACTING_FAST, .regime-CONTRACTING { border-color: var(--red); }
-  .regime-NEUTRAL { border-color: var(--yellow); }
-  .regime-banner .regime-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-  .regime-banner .regime-sub { color: var(--text2); line-height: 1.6; }
-
-  /* ── SPY LEAD INDICATOR ── */
-  .spy-lead-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 18px;
-  }
-  .spy-lead-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-  .spy-lead-icon { font-size: 24px; }
-  .spy-lead-title { font-size: 14px; font-weight: 600; }
-  .spy-lead-sub { font-size: 11px; color: var(--text3); letter-spacing: 1px; }
-
-  /* ── STATUS ── */
-  .status-row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text3); margin-top: 12px; }
-  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
-
-  /* ── LOADING ── */
-  #loading {
-    position: fixed; inset: 0; background: var(--bg);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center; z-index: 999;
-  }
-  .loader-text { color: var(--green); font-size: 13px; letter-spacing: 3px; animation: pulse 1.5s infinite; }
-  .loader-sub { color: var(--text3); font-size: 11px; margin-top: 8px; }
-
-  /* ── ERROR ── */
-  .error-banner {
-    background: rgba(255,61,90,0.08);
-    border: 1px solid rgba(255,61,90,0.2);
-    color: var(--red);
-    padding: 12px 16px;
-    border-radius: 4px;
-    font-size: 12px;
-    margin-bottom: 16px;
-    display: none;
-  }
-</style>
-<!-- auto-wrapped-table-2026-05-06 -->
-<script src="/liquidity-pulse.js" defer></script>
-<script src="/tenor-signals.js" defer></script>
-<script src="/liquidity-credit.js" defer></script>
-<script src="/ai-brief-kit.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Liquidity Desk · JustHodl AI</title>
+<meta name="description" content="Global liquidity: 4 central banks + TGA + RRP + Howell GLI proxy. Regime, marginal impulse, and predictive read on SPX.">
+<link rel="stylesheet" href="/jh-institutional.css">
 </head>
-<body>
+<body class="ins-page">
+<div class="ins-wrap">
 
-<div id="loading">
-  <div class="loader-text">LOADING LIQUIDITY INTELLIGENCE</div>
-  <div class="loader-sub">Fetching Fed Balance Sheet · TGA · RRP · FRED Data</div>
+  <h1 class="ins-h1">Liquidity Desk <span class="dim mono" style="font-size:12px;font-weight:400">· GLOBAL TIDE</span></h1>
+  <p class="ins-sub">Fuel for every risk asset. Fed + ECB + BOJ stock net of TGA/RRP, PBOC M2, plus Howell GLI proxy, NFCI, and 13w impulse. <em>Liquidity rules and nothing else matters.</em></p>
+
+  <!-- BAROMETER + REGIME -->
+  <div class="ins-grid ins-g2">
+    <div class="ins-card">
+      <h3 class="mono dim" style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:1px">Global tide gauge (0-100)</h3>
+      <div id="tide-gauge"></div>
+    </div>
+    <div class="ins-card">
+      <h3 class="mono dim" style="margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:1px">Global liquidity headline</h3>
+      <div style="display:flex;flex-direction:column;gap:6px;justify-content:center;height:100%">
+        <div class="big" id="gl-tot">—</div>
+        <div class="dim mono" style="font-size:12px">
+          13w change <span id="gl-c13" class="mono" style="color:var(--ins-tx)">—</span> ·
+          52w change <span id="gl-c52" class="mono" style="color:var(--ins-tx)">—</span>
+        </div>
+        <div>Regime: <span id="gl-regime" class="badge">—</span></div>
+        <div id="gl-verdict" class="dim" style="font-size:12.5px">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KHALID QUOTE -->
+  <div class="brain-quote">
+    LIQUIDITY RULES AND NOTHING ELSE MATTERS. DXY is the most important chart.
+    <span class="cite">— Khalid brain L2, L14</span>
+  </div>
+
+  <!-- 4 CENTRAL BANKS -->
+  <h2 class="ins-h2">Four central banks · balance-sheet composition</h2>
+  <div class="ins-grid ins-g4" id="cb-cards">
+    <div class="ins-card2 dim">Loading…</div>
+  </div>
+
+  <!-- MARGINAL LIQUIDITY -->
+  <h2 class="ins-h2">Marginal liquidity · near-term vs cyclical</h2>
+  <div class="ins-card">
+    <div class="ins-grid ins-g2">
+      <div>
+        <div class="mono dim" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Fed net liquidity · Δ13w</div>
+        <div class="big" id="marg-4w">—</div>
+        <div class="dim" style="font-size:12px">Near-term US-domestic impulse. Bulls run when this is +.</div>
+      </div>
+      <div>
+        <div class="mono dim" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Global stock · Δ52w</div>
+        <div class="big" id="marg-52w">—</div>
+        <div class="dim" style="font-size:12px">Cyclical trend across Fed + ECB + BOJ. Secular tailwind or headwind.</div>
+      </div>
+    </div>
+    <p class="dim" style="font-size:12px;margin:12px 0 0">
+      Near-term &gt; cyclical = accelerating (Q4 2023, 2H 2020 style). Near-term &lt; cyclical = decelerating (Q1 2022 QT rug-pull).
+    </p>
+  </div>
+
+  <!-- 1996+ REGIME CONTEXT -->
+  <h2 class="ins-h2">Historical context · 1996 → today</h2>
+  <div class="ins-card">
+    <div id="regime-strip"></div>
+    <p class="dim" style="font-size:12px;margin:10px 0 0">
+      Every crisis outline was a liquidity accident. Look at 2008 and 2020: policy response = flip regime overnight.
+    </p>
+  </div>
+
+  <!-- HISTORICAL PERCENTILE -->
+  <h2 class="ins-h2">Where today's tide sits vs 104-week history</h2>
+  <div class="ins-card">
+    <div id="tide-pctile"></div>
+    <p class="dim" style="font-size:12px;margin:6px 0 0">
+      Uses global-liquidity.net_liq_points (104 weekly observations). Marker = today's level; ends show 2-year min / max.
+    </p>
+  </div>
+
+  <!-- FED NET + GLOBAL IMPULSE -->
+  <h2 class="ins-h2">Fed net liquidity + global impulse</h2>
+  <div class="ins-card">
+    <div id="tga-rrp"></div>
+    <p class="dim" style="font-size:12px;margin:8px 0 0">
+      Fed net liquidity = Fed balance sheet − TGA − RRP (composite). Global impulse = 13-week rate of change of the Fed+ECB+BOJ stock.
+      TGA up drains reserves; RRP down releases MM cash; both are already netted inside the Fed net-liq series.
+    </p>
+  </div>
+
+  <!-- HOWELL GLI proxy + NFCI + SPX60 -->
+  <h2 class="ins-h2">Cross-checks</h2>
+  <div class="ins-grid ins-g3">
+    <div class="ins-card2">
+      <div class="mono dim" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Howell GLI proxy (G4 stock, USD)</div>
+      <div class="big" id="gli-g4">—</div>
+      <div class="dim" style="font-size:12px" id="gli-verdict">—</div>
+    </div>
+    <div class="ins-card2">
+      <div class="mono dim" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Chicago Fed NFCI</div>
+      <div class="big" id="nfci-val">—</div>
+      <div class="dim" style="font-size:12px" id="nfci-verdict">Negative = accommodative</div>
+    </div>
+    <div class="ins-card2">
+      <div class="mono dim" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">SPX 60-day change</div>
+      <div class="big" id="spx-60d">—</div>
+      <div class="dim" style="font-size:12px">Predictive: liquidity leads SPX by ~90 days.</div>
+    </div>
+  </div>
+
+  <!-- CROSS-DESK LINKS -->
+  <h2 class="ins-h2">Drill in</h2>
+  <div class="ins-grid ins-g3">
+    <a href="/crisis.html" class="ins-card2" style="display:block;text-decoration:none;color:inherit">
+      <div class="mono dim" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Composite</div>
+      <div class="big" style="font-size:20px;margin-top:4px">Crisis desk →</div>
+    </a>
+    <a href="/plumbing.html" class="ins-card2" style="display:block;text-decoration:none;color:inherit">
+      <div class="mono dim" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Funding</div>
+      <div class="big" style="font-size:20px;margin-top:4px">Plumbing desk →</div>
+    </a>
+    <a href="/risk-gate.html" class="ins-card2" style="display:block;text-decoration:none;color:inherit">
+      <div class="mono dim" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Risk composite</div>
+      <div class="big" style="font-size:20px;margin-top:4px">Risk-gate →</div>
+    </a>
+  </div>
+
+  <!-- PROVENANCE -->
+  <h2 class="ins-h2">Data provenance</h2>
+  <div class="ins-card">
+    <div id="liq-provenance"></div>
+  </div>
+
 </div>
 
-<nav>
-  <a href="/" class="nav-brand">JustHodl.AI</a>
-  <a href="/">Terminal</a>
-  <a href="/charts.html">Charts</a>
-  <a href="/stock/">Stocks</a>
-  <a href="/screener/">Screener</a>
-  <a href="/valuations.html">Valuations</a>
-  
-  <a href="/liquidity.html" class="active">Liquidity</a>
-  <a href="/crypto/">Crypto</a>
-  <a href="https://t.me/Justhodl_bot" target="_blank">Bot</a>
-</nav>
-
-<div class="page-header">
-  <h1>TGA + Fed Liquidity Intelligence</h1>
-<script>window.__AI_BRIEF_PAGE__ = "liquidity";</script>
-<!-- ═════ AI INTELLIGENCE BRIEF — auto-generated daily by Claude ═════ -->
-<style>
-.ai-brief{background:linear-gradient(180deg,#0f131a 0%,#0a0e14 100%);border:1px solid #1c2433;border-radius:10px;padding:18px 22px;margin:16px 0 24px;position:relative;overflow:hidden}
-.ai-brief::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#7c3aed,transparent)}
-.ai-brief-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.ai-brief-badge{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;letter-spacing:1px;color:#a78bfa;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.35);padding:4px 9px;border-radius:99px;text-transform:uppercase;font-weight:700}
-.ai-brief-badge .pulse{width:6px;height:6px;background:#a78bfa;border-radius:50%;animation:aiPulse 2s ease-in-out infinite}
-@keyframes aiPulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(124,58,237,0.6)}50%{opacity:0.6;box-shadow:0 0 0 6px rgba(124,58,237,0)}}
-.ai-brief-meta{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;color:#6f7b91;letter-spacing:0.5px;margin-left:auto}
-.ai-brief-headline{font-size:15.5px;font-weight:600;color:#e6eaf2;line-height:1.45;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #1c2433}
-.ai-brief-grid{display:grid;grid-template-columns:repeat(3,1fr) 140px;gap:16px}
-@media(max-width:900px){.ai-brief-grid{grid-template-columns:1fr}}
-.ai-brief-card{padding:0}
-.ai-brief-label{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9.5px;letter-spacing:1.2px;color:#6f7b91;text-transform:uppercase;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px}
-.ai-brief-body{color:#cbd2dc;font-size:12.5px;line-height:1.6}
-.ai-brief-score{display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.2);border-radius:8px;padding:14px}
-.ai-brief-score .val{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:42px;font-weight:800;line-height:1;color:#a78bfa}
-.ai-brief-score .lbl{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9px;letter-spacing:1px;color:#6f7b91;text-transform:uppercase;margin-top:6px}
-.ai-brief-loading{color:#6f7b91;font-size:12.5px;font-style:italic;padding:8px 0}
-</style>
-<div id="ai-brief-panel" class="ai-brief">
-  <div class="ai-brief-hdr">
-    <div class="ai-brief-badge"><span class="pulse"></span>AI Intelligence Brief</div>
-    <div class="ai-brief-meta" id="ai-brief-meta">loading…</div>
-  </div>
-  <div class="ai-brief-headline" id="ai-brief-headline">
-    <span class="ai-brief-loading">AI commentary loading… first run after deployment populates within 2 minutes.</span>
-  </div>
-  <div class="ai-brief-grid" id="ai-brief-grid"></div>
-</div>
+<script src="/jh-institutional.js"></script>
 <script>
-(function() {
-  const PAGE = window.__AI_BRIEF_PAGE__ || "default";
-  const PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
-  const ICONS = { "pre-pump-radar": {a:"🎯", b:"📊", c:"⚠️", scoreLbl:"Conviction"},
-                   "signal-board": {a:"📡", b:"🔀", c:"🎚️", scoreLbl:"Regime"},
-                   "risk-desk":   {a:"⚠️", b:"🛡️", c:"🔮", scoreLbl:"Risk Lvl"},
-                   "liquidity":   {a:"💧", b:"📈", c:"🏛️", scoreLbl:"Liquidity"},
-                   "fundamentals":{a:"💎", b:"🚩", c:"👁️", scoreLbl:"Value"} };
-  const SCHEMA = { "pre-pump-radar": {a:"top_pick_analysis", b:"regime_context", c:"what_to_watch", score:"confidence_score"},
-                    "signal-board": {a:"regime_analysis", b:"key_divergences", c:"positioning_view", score:"regime_score"},
-                    "risk-desk":   {a:"primary_risks", b:"hedge_recommendation", c:"leading_indicators", score:"risk_score"},
-                    "liquidity":   {a:"liquidity_flow", b:"implications", c:"policy_outlook", score:"liquidity_score"},
-                    "fundamentals":{a:"best_value", b:"warning_flags", c:"watch_list", score:"value_score"} };
-  const LABELS = { "pre-pump-radar": {a:"TOP PICK", b:"REGIME", c:"WATCH"},
-                    "signal-board": {a:"REGIME", b:"DIVERGENCES", c:"POSITIONING"},
-                    "risk-desk":   {a:"TOP RISKS", b:"HEDGES", c:"WATCH"},
-                    "liquidity":   {a:"FLOWS", b:"IMPLICATIONS", c:"POLICY"},
-                    "fundamentals":{a:"BEST VALUE", b:"WARNINGS", c:"WATCH LIST"} };
+(function(){
+  var paths = [
+    "data/global-liquidity.json",
+    "data/global-tide.json",
+    "data/regime.json",
+    "data/fred-cache.json"
+  ];
+  JHI.fetchAll(paths).then(function(D){
+    var gl  = D["data/global-liquidity.json"] || {};
+    var gt  = D["data/global-tide.json"] || {};
+    var reg = D["data/regime.json"] || {};
+    var gli_idx = gl.global_liquidity_index || {};
+    var fed_net = gl.fed_net_liquidity || {};
 
-  async function load() {
-    try {
-      const r = await fetch(`${PROXY}/data/ai-commentary/${PAGE}.json?t=${Date.now()}`);
-      if (!r.ok) return;
-      const doc = await r.json();
-      render(doc);
-    } catch (e) { console.warn("ai-brief", e); }
-  }
-
-  function render(doc) {
-    const c = (doc && doc.commentary) || {};
-    if (!c || c.error || c.fallback || c.parse_error) {
-      document.getElementById("ai-brief-meta").textContent = "awaiting next run";
-      return;
+    // ---- global tide gauge ----
+    // Derive tide score from net_liq_points percentile
+    var tideScore = null;
+    var ptsRaw = gl.net_liq_points || [];
+    var arr = ptsRaw.map(function(p){ return (p && typeof p==="object") ? (p.net_liq_usd_bn || p.value || p.y) : p; }).filter(function(v){ return typeof v==="number" && isFinite(v); });
+    if (arr.length > 4){
+      var last = arr[arr.length-1], min = Math.min.apply(null, arr), max = Math.max.apply(null, arr);
+      if (max > min) tideScore = 100 * (last - min) / (max - min);
     }
-    const meta = `Generated ${(doc.generated_at || "").slice(0,16).replace("T"," ")} · ${doc.model || ""}`;
-    document.getElementById("ai-brief-meta").textContent = meta;
-    document.getElementById("ai-brief-headline").innerHTML = c.headline || "<i>—</i>";
+    JHI.gauge(document.getElementById("tide-gauge"), {
+      value: tideScore,
+      label: "Global tide (fuel percentile · 2yr)",
+      verdict: gl.regime || (gt.gli && gt.gli.regime) || "—",
+      thresholds: [15, 35, 55, 75],
+      invertColor: true
+    });
 
-    const sch = SCHEMA[PAGE] || {};
-    const lbls = LABELS[PAGE] || {a:"INSIGHT", b:"DETAIL", c:"WATCH"};
-    const ics = ICONS[PAGE] || {a:"💡", b:"📍", c:"👁️", scoreLbl:"SCORE"};
-    const score = c[sch.score];
+    // ---- headline ----
+    document.getElementById("gl-tot").innerHTML = JHI.fmt(gli_idx.total_usd_trillions, "usd_tn") + ' <span class="dim mono" style="font-size:13px;font-weight:400">3-CB stock (Fed+ECB+BOJ)</span>';
+    var c13 = gli_idx.change_13w_pct, c52 = gli_idx.change_52w_pct;
+    document.getElementById("gl-c13").innerHTML = (typeof c13==="number") ? ((c13>=0?"+":"") + c13.toFixed(2) + "%") : "—";
+    document.getElementById("gl-c52").innerHTML = (typeof c52==="number") ? ((c52>=0?"+":"") + c52.toFixed(2) + "%") : "—";
+    document.getElementById("gl-c13").style.color = (typeof c13==="number" && c13 >= 0) ? "var(--ins-green)" : "var(--ins-red)";
+    document.getElementById("gl-c52").style.color = (typeof c52==="number" && c52 >= 0) ? "var(--ins-green)" : "var(--ins-red)";
 
-    document.getElementById("ai-brief-grid").innerHTML = `
-      <div class="ai-brief-card">
-        <div class="ai-brief-label">${ics.a} ${lbls.a}</div>
-        <div class="ai-brief-body">${c[sch.a] || "<i>—</i>"}</div>
-      </div>
-      <div class="ai-brief-card">
-        <div class="ai-brief-label">${ics.b} ${lbls.b}</div>
-        <div class="ai-brief-body">${c[sch.b] || "<i>—</i>"}</div>
-      </div>
-      <div class="ai-brief-card">
-        <div class="ai-brief-label">${ics.c} ${lbls.c}</div>
-        <div class="ai-brief-body">${c[sch.c] || "<i>—</i>"}</div>
-      </div>
-      ${score != null ? `<div class="ai-brief-score">
-        <div class="val">${score}</div>
-        <div class="lbl">${ics.scoreLbl}</div>
-      </div>` : ""}`;
-  }
-  load();
-  setInterval(load, 5 * 60 * 1000);
+    var regEl = document.getElementById("gl-regime");
+    regEl.textContent = gl.regime || "—";
+    if (gl.regime === "EXPANDING")       regEl.style.background = "#12331d", regEl.style.color = "var(--ins-green)";
+    else if (gl.regime === "CONTRACTING") regEl.style.background = "#33170f", regEl.style.color = "var(--ins-red)";
+    else if (gl.regime === "STABLE")      regEl.style.background = "#2a2a14", regEl.style.color = "var(--ins-amber)";
+    else                                  regEl.style.background = "#1e242c", regEl.style.color = "var(--ins-dim)";
+    document.getElementById("gl-verdict").textContent = gl.regime_read || (gt.headline || "");
+
+    // ---- 4 central banks ----
+    // Data lives on global-tide.json (fed/ecb/boj/china) with bs_usd_bn + stance
+    var banks = [
+      {key:"fed",   label:"Federal Reserve", d: gt.fed || {}},
+      {key:"ecb",   label:"ECB",             d: gt.ecb || {}},
+      {key:"boj",   label:"Bank of Japan",   d: gt.boj || {}},
+      {key:"china", label:"PBOC / China",    d: gt.china || {}}
+    ];
+    var cbHtml = banks.map(function(b){
+      var stance = b.d.stance || (b.d.injection_score !== undefined ? (b.d.injection_score>0?"INJECTING":b.d.injection_score<0?"DRAINING":"NEUTRAL") : "—");
+      var bs_bn = b.d.bs_usd_bn;
+      var tn = (typeof bs_bn === "number") ? bs_bn/1000 : null;
+      var change = b.d.bs_chg_6m_pct;
+      // stance chip class
+      var stanceLC = String(stance||"").toLowerCase();
+      var chipCls = stanceLC.indexOf("inject")>=0 || stanceLC.indexOf("dov")>=0 ? "ok"
+                  : stanceLC.indexOf("drain")>=0 || stanceLC.indexOf("hawk")>=0 || stanceLC.indexOf("qt")>=0 ? "stale"
+                  : "warn";
+      var extra = "";
+      if (b.key === "china" && typeof b.d.m2_yoy_pct === "number") {
+        extra = '<div class="dim mono" style="font-size:11px;margin-top:4px">M2 yoy '+ (b.d.m2_yoy_pct>=0?"+":"") + b.d.m2_yoy_pct.toFixed(2) + '%</div>';
+      }
+      return '<div class="ins-card2">' +
+        '<div class="mono dim" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">'+b.label+'</div>' +
+        '<div class="big" style="font-size:24px;margin-top:4px">'+ (tn!==null ? "$"+tn.toFixed(2)+"T" : (b.key==="china"?"— (M2)":"—")) +'</div>' +
+        '<div class="dim mono" style="font-size:11px;margin-top:2px">6m Δ '+ (typeof change==="number" ? ((change>=0?"+":"")+change.toFixed(2)+"%") : "—") +'</div>' +
+        '<div style="margin-top:6px"><span class="chip '+chipCls+'">'+stance+'</span></div>' +
+        extra +
+      '</div>';
+    }).join("");
+    document.getElementById("cb-cards").innerHTML = cbHtml;
+
+    // ---- marginal (best available: 13w for global, 13w for Fed-net) ----
+    // No 4w series published; show 13w impulse for both scales.
+    document.getElementById("marg-4w").innerHTML = (typeof fed_net.change_13w_pct === "number") ? ((fed_net.change_13w_pct>=0?"+":"")+fed_net.change_13w_pct.toFixed(2)+"%") : "—";
+    document.getElementById("marg-4w").style.color = (typeof fed_net.change_13w_pct==="number" && fed_net.change_13w_pct >= 0) ? "var(--ins-green)" : "var(--ins-red)";
+    document.getElementById("marg-52w").innerHTML = (typeof c52 === "number") ? ((c52>=0?"+":"")+c52.toFixed(2)+"%") : "—";
+    document.getElementById("marg-52w").style.color = (typeof c52==="number" && c52 >= 0) ? "var(--ins-green)" : "var(--ins-red)";
+
+    // regime strip
+    JHI.regimeStrip(document.getElementById("regime-strip"), reg.regime_strip || []);
+
+    // percentile from net_liq_points 104pts
+    if (arr.length){
+      JHI.percentileBar(document.getElementById("tide-pctile"), {
+        current: arr[arr.length-1],
+        samples: arr
+      });
+    } else {
+      document.getElementById("tide-pctile").innerHTML = '<div class="dim">net_liq_points empty.</div>';
+    }
+
+    // TGA + RRP + Fed-net snapshot (dedicated block instead of stale tga/rrp keys)
+    // fed_net_liquidity = Fed BS - TGA - RRP; the components aren't published individually
+    // so display Fed-net-liquidity headline + explain where TGA/RRP flow enters via fed BS
+    document.getElementById("tga-rrp").innerHTML =
+      '<table class="comp-table"><thead><tr><th>Series</th><th class="r">Level</th><th class="r">Δ 13w</th><th class="r">As of</th><th>Read</th></tr></thead><tbody>' +
+      '<tr><td class="mono">Fed net liquidity</td>' +
+        '<td class="r mono">'+JHI.fmt(fed_net.value_usd_bn,"usd_bn")+'</td>' +
+        '<td class="r mono">'+ (typeof fed_net.change_13w_pct==="number" ? (fed_net.change_13w_pct>=0?"+":"")+fed_net.change_13w_pct.toFixed(2)+"%" : "—") +'</td>' +
+        '<td class="r mono dim">'+ (fed_net.as_of || "—") +'</td>' +
+        '<td class="dim">'+(fed_net.formula || "Fed BS − TGA − RRP")+'</td></tr>' +
+      '<tr><td class="mono">Global impulse (13w)</td>' +
+        '<td class="r mono">'+ JHI.fmt(gl.global_impulse_13w_pct,"pct") +'</td>' +
+        '<td class="r mono dim">—</td>' +
+        '<td class="r mono dim">'+ (gli_idx.as_of || "—") +'</td>' +
+        '<td class="dim">Rate-of-change of 3-CB stock; negative = draining globally.</td></tr>' +
+      '</tbody></table>';
+
+    // GLI + NFCI + SPX60 (from global-tide.json)
+    var gliBlock = gt.gli || {};
+    document.getElementById("gli-g4").textContent = (typeof gliBlock.g4_stock_usd_tn === "number") ? ("$"+gliBlock.g4_stock_usd_tn.toFixed(2)+"T") : "—";
+    document.getElementById("gli-verdict").textContent = gliBlock.regime ? (gliBlock.regime + " · impulse " + (gliBlock.impulse_score||"—")) : "";
+    document.getElementById("nfci-val").textContent = JHI.fmt(gt.nfci, "num2");
+    if (typeof gt.nfci === "number"){
+      document.getElementById("nfci-val").style.color = gt.nfci < 0 ? "var(--ins-green)" : "var(--ins-red)";
+    }
+    document.getElementById("spx-60d").innerHTML = (typeof gt.spx_60d_pct === "number") ? ((gt.spx_60d_pct>=0?"+":"")+gt.spx_60d_pct.toFixed(2)+"%") : "—";
+    if (typeof gt.spx_60d_pct === "number"){
+      document.getElementById("spx-60d").style.color = gt.spx_60d_pct >= 0 ? "var(--ins-green)" : "var(--ins-red)";
+    }
+
+    // provenance
+    JHI.provenance(document.getElementById("liq-provenance"), [
+      {path:"data/global-liquidity.json", name:"justhodl-global-liquidity · 4-CB balance sheets + TGA/RRP net", iso: gl.generated_at},
+      {path:"data/global-tide.json", name:"justhodl-global-tide · Howell GLI proxy + NFCI + SPX ctx", iso: gt.generated_at},
+      {path:"data/regime.json", name:"justhodl-regime-engine · regime strip 1996+", iso: reg.generated_at},
+      {path:"data/fred-cache.json", name:"justhodl-fred-cache · rates & policy series", iso: (D["data/fred-cache.json"]||{}).generated_at}
+    ]);
+
+  }).catch(function(err){
+    document.body.insertAdjacentHTML("beforeend",
+      '<div class="ins-card" style="border-color:var(--ins-red);margin:20px">Feed load failed: '+String(err).slice(0,200)+'</div>');
+  });
 })();
 </script>
-<!-- ═════ END AI INTELLIGENCE BRIEF ═════ -->
 
-<div id="ai-decisive-call" style="max-width:1280px;margin:14px auto 8px;padding:0 18px"></div>
-<script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","liquidity-decisive-call");</script>
-  <p>HEDGE FUND NET LIQUIDITY MODEL · FED BALANCE SHEET – TGA – RRP · SPY 3-5 DAY LEADING INDICATOR</p>
-  <div class="header-meta">
-    <span>FORMULA: <span class="val">Fed BS − Treasury TGA − Fed RRP = Net Liquidity</span></span>
-    <span>UPDATE: <span class="val" id="last-updated">Loading...</span></span>
-    <span>SOURCE: <span class="val">FRED / St. Louis Fed</span></span>
-  </div>
-</div>
-
-<div class="container">
-  <div id="error-banner" class="error-banner">⚠ Error loading liquidity data. Retrying...</div>
-
-  <!-- Hero Net Liquidity -->
-  <div class="hero-card" id="hero-card">
-    <div class="hero-main">
-      <div class="hero-label">Net System Liquidity</div>
-      <div class="hero-value">
-        <span class="hero-unit">$</span><span id="hero-net-liq">—</span><span style="font-size:20px;color:var(--text2)">B</span>
-      </div>
-      <div id="hero-signal-badge" class="signal-badge sig-NEUTRAL">
-        <div class="dot"></div>
-        <span id="hero-signal-text">Loading...</span>
-      </div>
-      <div class="hero-formula">
-        Fed Balance Sheet: <span id="formula-walcl" style="color:var(--blue)">—</span><br>
-        − TGA: <span id="formula-tga" style="color:var(--red)">—</span><br>
-        − RRP: <span id="formula-rrp" style="color:var(--orange)">—</span><br>
-        = Net Liquidity: <span id="formula-nl" style="color:var(--green)">—</span>
-      </div>
-    </div>
-
-    <div class="hero-score-ring" id="score-ring">
-      <svg width="120" height="120" viewBox="0 0 120 120">
-        <circle cx="60" cy="60" r="50" fill="none" stroke="#1e2832" stroke-width="8"/>
-        <circle id="score-arc" cx="60" cy="60" r="50" fill="none"
-                stroke="#00ff88" stroke-width="8" stroke-linecap="round"
-                stroke-dasharray="314" stroke-dashoffset="314"
-                style="transition:stroke-dashoffset 1.2s ease"/>
-      </svg>
-      <div class="hero-score-label">
-        <span id="score-num">—</span>
-        <span>/100</span>
-      </div>
-    </div>
-
-    <div>
-      <div class="hero-stats">
-        <div class="hero-stat-item">
-          <div class="hero-stat-label">Regime</div>
-          <div class="hero-stat-val" id="stat-regime">—</div>
-        </div>
-        <div class="hero-stat-item">
-          <div class="hero-stat-label">4-Week Δ</div>
-          <div class="hero-stat-val" id="stat-4w">—</div>
-        </div>
-        <div class="hero-stat-item">
-          <div class="hero-stat-label">13-Week Δ</div>
-          <div class="hero-stat-val" id="stat-13w">—</div>
-        </div>
-        <div class="hero-stat-item">
-          <div class="hero-stat-label">Structure</div>
-          <div class="hero-stat-val" id="stat-structure">—</div>
-        </div>
-        <div class="hero-stat-item">
-          <div class="hero-stat-label">Yield Curve</div>
-          <div class="hero-stat-val" id="stat-curve">—</div>
-        </div>
-        <div class="hero-stat-item">
-          <div class="hero-stat-label">SOFR</div>
-          <div class="hero-stat-val" id="stat-sofr">—</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Regime Banner -->
-  <div id="regime-banner" class="regime-banner regime-NEUTRAL">
-    <div class="regime-title" id="regime-title">—</div>
-    <div class="regime-sub" id="regime-sub">—</div>
-  </div>
-
-  <!-- Net Liquidity Chart + SPY Signal -->
-  <div class="grid-21">
-    <div class="card">
-      <div class="section-title">Net Liquidity History (52 Weeks) — Fed BS minus TGA minus RRP</div>
-      <div id="chart-net-liq" class="chart-container"></div>
-    </div>
-    <div class="spy-lead-card">
-      <div class="spy-lead-header">
-        <div class="spy-lead-icon">📈</div>
-        <div>
-          <div class="spy-lead-title">SPY Leading Indicator</div>
-          <div class="spy-lead-sub">3-5 DAY LEAD · LIQUIDITY-DRIVEN</div>
-        </div>
-      </div>
-      <div class="section-title" style="margin-top:4px">Signal Components</div>
-      <div id="spy-components">
-        <!-- populated by JS -->
-      </div>
-      <div style="margin-top:14px">
-        <div class="card-label">Composite Direction</div>
-        <div id="spy-direction-badge" class="signal-badge sig-NEUTRAL" style="font-size:15px">
-          <div class="dot"></div><span id="spy-dir-text">—</span>
-        </div>
-        <div style="margin-top:8px;font-size:11px;color:var(--text3)" id="spy-basis">—</div>
-      </div>
-      <div style="margin-top:14px">
-        <div class="card-label">Confidence</div>
-        <div class="progress-bar-wrap">
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px">
-            <span id="spy-conf-val">—</span><span>100%</span>
-          </div>
-          <div class="progress-bar-track">
-            <div id="spy-conf-bar" class="progress-bar-fill" style="width:0%;background:var(--green)"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Core Triad Cards -->
-  <div class="grid-3">
-    <div class="card">
-      <div class="card-label">Fed Balance Sheet (WALCL)</div>
-      <div class="card-value" style="color:var(--blue)" id="walcl-val">—</div>
-      <div class="card-sub">Total Fed Assets · Billions USD</div>
-      <div class="card-delta" id="walcl-date">—</div>
-    </div>
-    <div class="card">
-      <div class="card-label">Treasury TGA (WTREGEN)</div>
-      <div class="card-value" style="color:var(--red)" id="tga-val">—</div>
-      <div class="card-sub">Drains Liquidity When Rising · Billions USD</div>
-      <div class="card-delta" id="tga-signal">—</div>
-    </div>
-    <div class="card">
-      <div class="card-label">Fed RRP (RRPONTSYD)</div>
-      <div class="card-value" style="color:var(--orange)" id="rrp-val">—</div>
-      <div class="card-sub">Parked Cash at Fed · Billions USD</div>
-      <div class="card-delta" id="rrp-signal">—</div>
-    </div>
-  </div>
-
-  <!-- Fed BS / TGA / RRP Charts -->
-  <div class="grid-3">
-    <div class="card">
-      <div class="section-title">Fed Balance Sheet</div>
-      <div id="chart-fed-bs" class="chart-container-sm"></div>
-    </div>
-    <div class="card">
-      <div class="section-title">Treasury General Account (TGA)</div>
-      <div id="chart-tga" class="chart-container-sm"></div>
-    </div>
-    <div class="card">
-      <div class="section-title">Fed Reverse Repo (RRP)</div>
-      <div id="chart-rrp" class="chart-container-sm"></div>
-    </div>
-  </div>
-
-  <!-- Money Supply + Dollar -->
-  <div class="grid-2">
-    <div class="card">
-      <div class="section-title">Money Supply</div>
-      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">
-<table class="data-table">
-        <thead><tr><th>Metric</th><th>Value</th><th>Unit</th></tr></thead>
-        <tbody id="money-table"></tbody>
-      </table>
-</div>
-    </div>
-    <div class="card">
-      <div class="section-title">Dollar Index & FX</div>
-      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">
-<table class="data-table">
-        <thead><tr><th>Metric</th><th>Value</th><th>Signal</th></tr></thead>
-        <tbody id="dollar-table"></tbody>
-      </table>
-</div>
-    </div>
-  </div>
-
-  <!-- Yields + Funding -->
-  <div class="grid-2">
-    <div class="card">
-      <div class="section-title">Treasury Yield Curve</div>
-      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">
-<table class="data-table">
-        <thead><tr><th>Tenor</th><th>Yield</th><th>Spread / Status</th></tr></thead>
-        <tbody id="yields-table"></tbody>
-      </table>
-</div>
-    </div>
-    <div class="card">
-      <div class="section-title">Funding Markets & Reserves</div>
-      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">
-<table class="data-table">
-        <thead><tr><th>Metric</th><th>Value</th><th>Note</th></tr></thead>
-        <tbody id="funding-table"></tbody>
-      </table>
-</div>
-    </div>
-  </div>
-
-  <!-- M2 Chart -->
-  <div class="card" style="margin-bottom:16px">
-    <div class="section-title">M2 Money Supply (24 Months)</div>
-    <div id="chart-m2" class="chart-container-sm"></div>
-  </div>
-
-  <div class="status-row">
-    <div class="status-dot"></div>
-    <span>Data from Federal Reserve Economic Data (FRED) · Updated daily 7:30 AM ET</span>
-    <span style="margin-left:auto;color:var(--text3)" id="footer-ts">—</span>
-  </div>
-</div>
-
-<script>
-const S3_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/liquidity-data.json';
-
-const COLOR_GREEN  = '#00ff88';
-const COLOR_RED    = '#ff3d5a';
-const COLOR_BLUE   = '#4fc3f7';
-const COLOR_ORANGE = '#ff8c42';
-const COLOR_YELLOW = '#ffd700';
-const COLOR_PURPLE = '#ab7df8';
-const COLOR_BG     = '#0d1117';
-const COLOR_TEXT2  = '#8899aa';
-const COLOR_BORDER = '#1e2832';
-
-function fmt(v, dec=1) {
-  if (v === null || v === undefined || v === 'N/A') return '—';
-  const n = parseFloat(v);
-  if (isNaN(n)) return '—';
-  return n.toFixed(dec);
-}
-
-function fmtB(v) {
-  if (!v && v !== 0) return '—';
-  const n = parseFloat(v);
-  if (isNaN(n)) return '—';
-  return '$' + n.toFixed(1) + 'B';
-}
-
-function colorVal(v) {
-  if (!v && v !== 0) return '';
-  const n = parseFloat(v);
-  if (n > 0) return 'var(--green)';
-  if (n < 0) return 'var(--red)';
-  return 'var(--yellow)';
-}
-
-function signalColor(sig) {
-  if (!sig) return 'var(--text2)';
-  const s = sig.toUpperCase();
-  if (s.includes('BULL') || s.includes('DRAIN')) return COLOR_GREEN;
-  if (s.includes('BEAR') || s.includes('REBUILD')) return COLOR_RED;
-  return COLOR_YELLOW;
-}
-
-function setEl(id, html) {
-  const el = document.getElementById(id);
-  if (el) el.innerHTML = html;
-}
-
-function echartsDefaults() {
-  return {
-    backgroundColor: 'transparent',
-    grid: { top:30, right:20, bottom:30, left:60, containLabel: false },
-    xAxis: {
-      type: 'category',
-      axisLine: { lineStyle: { color: COLOR_BORDER } },
-      axisTick: { show: false },
-      axisLabel: { color: COLOR_TEXT2, fontSize: 10 },
-      splitLine: { show: false }
-    },
-    yAxis: {
-      type: 'value',
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: { color: COLOR_TEXT2, fontSize: 10 },
-      splitLine: { lineStyle: { color: COLOR_BORDER, type: 'dashed' } }
-    },
-    tooltip: {
-      trigger: 'axis',
-      backgroundColor: '#131920',
-      borderColor: COLOR_BORDER,
-      textStyle: { color: '#e2e8f0', fontSize: 12, fontFamily: "'IBM Plex Mono', monospace" },
-    }
-  };
-}
-
-function renderMiniChart(elId, series_data, color, label) {
-  const el = document.getElementById(elId);
-  if (!el || !series_data || !series_data.length) return;
-  const chart = echarts.init(el, null, { renderer: 'canvas' });
-  const dates = series_data.map(d => d.date ? d.date.substring(0, 7) : d.date);
-  const vals  = series_data.map(d => d.value);
-  const opt = {
-    ...echartsDefaults(),
-    grid: { top:20, right:16, bottom:28, left:64 },
-    xAxis: { ...echartsDefaults().xAxis, data: dates },
-    yAxis: { ...echartsDefaults().yAxis, scale: true },
-    series: [{
-      name: label,
-      type: 'line',
-      data: vals,
-      smooth: true,
-      lineStyle: { color, width: 2 },
-      areaStyle: { color: { type:'linear', x:0,y:0,x2:0,y2:1,
-        colorStops:[{offset:0,color:color+'40'},{offset:1,color:color+'05'}] } },
-      symbol: 'none',
-    }],
-    tooltip: {
-      ...echartsDefaults().tooltip,
-      formatter: p => `${p[0].name}<br/>${label}: ${fmt(p[0].value, 2)}`,
-    }
-  };
-  chart.setOption(opt);
-  window.addEventListener('resize', () => chart.resize());
-}
-
-function renderNetLiqChart(elId, net_liq, fed_bs, tga, rrp) {
-  const el = document.getElementById(elId);
-  if (!el || !net_liq || !net_liq.length) return;
-  const chart = echarts.init(el, null, { renderer: 'canvas' });
-  const dates = net_liq.map(d => d.date ? d.date.substring(0,7) : d.date);
-  const opt = {
-    ...echartsDefaults(),
-    legend: {
-      data: ['Net Liquidity', 'Fed BS', 'TGA', 'RRP'],
-      textStyle: { color: COLOR_TEXT2, fontSize: 10 },
-      top: 0
-    },
-    tooltip: {
-      ...echartsDefaults().tooltip,
-      trigger: 'axis',
-      formatter: params => {
-        let s = `${params[0].name}<br/>`;
-        params.forEach(p => { s += `${p.marker}${p.seriesName}: $${fmt(p.value,1)}B<br/>`; });
-        return s;
-      }
-    },
-    xAxis: { ...echartsDefaults().xAxis, data: dates },
-    yAxis: { ...echartsDefaults().yAxis, scale: true },
-    series: [
-      {
-        name: 'Net Liquidity',
-        type: 'line',
-        data: net_liq.map(d => d.value),
-        lineStyle: { color: COLOR_GREEN, width: 3 },
-        areaStyle: { color: { type:'linear', x:0,y:0,x2:0,y2:1,
-          colorStops:[{offset:0,color:'#00ff8840'},{offset:1,color:'#00ff8805'}] } },
-        symbol: 'none', smooth: true,
-      },
-      {
-        name: 'Fed BS',
-        type: 'line',
-        data: (fed_bs || []).map(d => d.value),
-        lineStyle: { color: COLOR_BLUE, width: 1.5, type: 'dashed' },
-        symbol: 'none', smooth: true,
-      },
-      {
-        name: 'TGA',
-        type: 'line',
-        data: (tga || []).map(d => d.value),
-        lineStyle: { color: COLOR_RED, width: 1.5, type: 'dashed' },
-        symbol: 'none', smooth: true,
-      },
-      {
-        name: 'RRP',
-        type: 'line',
-        data: (rrp || []).map(d => d.value),
-        lineStyle: { color: COLOR_ORANGE, width: 1.5, type: 'dashed' },
-        symbol: 'none', smooth: true,
-      }
-    ]
-  };
-  chart.setOption(opt);
-  window.addEventListener('resize', () => chart.resize());
-}
-
-function render(data) {
-  const core    = data.core    || {};
-  const regime  = data.regime  || {};
-  const sig     = data.spy_signal || {};
-  const comps   = data.components || {};
-  const tgaA    = comps.tga_analysis || {};
-  const rrpA    = comps.rrp_analysis || {};
-  const money   = data.money_supply || {};
-  const dollar  = data.dollar || {};
-  const yields  = data.yields || {};
-  const funding = data.funding || {};
-  const soma    = data.soma || {};
-  const reserves= data.reserves || {};
-  const nl      = core.net_liquidity || {};
-  const charts  = data.chart_data || {};
-
-  // Last updated
-  const genAt = data.meta && data.meta.generated_at ? new Date(data.meta.generated_at) : new Date();
-  setEl('last-updated', genAt.toLocaleString('en-US', {month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}));
-  setEl('footer-ts', `Generated ${genAt.toISOString().replace('T',' ').substring(0,19)} UTC`);
-
-  // Hero
-  const nlVal = parseFloat(nl.value_bn) || 0;
-  setEl('hero-net-liq', Math.abs(nlVal) >= 1000 ? (nlVal/1000).toFixed(2)+'T' : fmt(nlVal, 1));
-  setEl('formula-walcl', fmtB(core.fed_balance_sheet && core.fed_balance_sheet.value_bn));
-  setEl('formula-tga',   fmtB(core.tga && core.tga.value_bn));
-  setEl('formula-rrp',   fmtB(core.rrp && core.rrp.value_bn));
-  setEl('formula-nl',    fmtB(nl.value_bn));
-
-  // Signal badge
-  const sigLabel = nl.label || 'NEUTRAL';
-  const sigBadge = document.getElementById('hero-signal-badge');
-  if (sigBadge) {
-    sigBadge.className = `signal-badge sig-${sigLabel}`;
-    setEl('hero-signal-text', `${sigLabel.replace(/_/g,' ')} · SCORE ${nl.score}/100`);
-  }
-
-  // Score ring
-  const score = parseInt(nl.score) || 50;
-  const arc = document.getElementById('score-arc');
-  if (arc) {
-    const scoreColor = score >= 60 ? COLOR_GREEN : score >= 45 ? COLOR_YELLOW : COLOR_RED;
-    arc.style.stroke = scoreColor;
-    const circumference = 314;
-    const offset = circumference - (score / 100) * circumference;
-    setTimeout(() => { arc.style.strokeDashoffset = offset; }, 200);
-  }
-  setEl('score-num', score);
-
-  // Stats
-  setEl('stat-regime', (regime.trend || '—').replace(/_/g,' '));
-  const d4w = parseFloat(regime.delta_4w_bn);
-  const d13w = parseFloat(regime.delta_13w_bn);
-  setEl('stat-4w', `<span style="color:${d4w>=0?COLOR_GREEN:COLOR_RED}">${d4w>=0?'+':''}${fmt(d4w,1)}B</span>`);
-  setEl('stat-13w', `<span style="color:${d13w>=0?COLOR_GREEN:COLOR_RED}">${d13w>=0?'+':''}${fmt(d13w,1)}B</span>`);
-  setEl('stat-structure', (regime.structure || '—').replace(/_/g,' '));
-  setEl('stat-curve', `<span style="color:${yields.curve_status==='INVERTED'?COLOR_RED:COLOR_GREEN}">${yields.curve_status||'—'}</span>`);
-  setEl('stat-sofr', funding.sofr ? fmt(funding.sofr,2)+'%' : '—');
-
-  // Regime banner
-  const banner = document.getElementById('regime-banner');
-  if (banner) {
-    banner.className = `regime-banner regime-${regime.trend || 'NEUTRAL'}`;
-    const isExpanding = (regime.trend||'').includes('EXPANDING');
-    const isBullish = sig.direction === 'BULLISH';
-    setEl('regime-title',
-      `${(regime.trend||'').replace(/_/g,' ')} REGIME · ${(regime.structure||'').replace(/_/g,' ')}`
-    );
-    setEl('regime-sub',
-      `Net liquidity has ${isExpanding ? 'expanded' : 'contracted'} <strong>$${Math.abs(d4w).toFixed(1)}B</strong> over 4 weeks and <strong>$${Math.abs(d13w).toFixed(1)}B</strong> over 13 weeks. ` +
-      `TGA signal: <strong>${(tgaA.signal||'N/A').replace(/_/g,' ')}</strong>. ` +
-      `RRP signal: <strong>${(rrpA.signal||'N/A').replace(/_/g,' ')}</strong>. ` +
-      `SPY 3-5 day leading signal: <strong style="color:${isBullish?COLOR_GREEN:COLOR_RED}">${sig.direction||'NEUTRAL'} (${sig.strength||''})</strong>.`
-    );
-  }
-
-  // Core triad
-  setEl('walcl-val', fmtB(core.fed_balance_sheet && core.fed_balance_sheet.value_bn));
-  setEl('walcl-date', core.fed_balance_sheet ? `As of ${core.fed_balance_sheet.date}` : '—');
-  setEl('tga-val', fmtB(core.tga && core.tga.value_bn));
-  setEl('tga-signal', `<span style="color:${signalColor(tgaA.signal)}">${(tgaA.note||'—')}</span>`);
-  setEl('rrp-val', fmtB(core.rrp && core.rrp.value_bn));
-  setEl('rrp-signal', `<span style="color:${signalColor(rrpA.signal)}">${(rrpA.note||'—')}</span>`);
-
-  // SPY Signal panel
-  const spyComps = sig.components || {};
-  const spyCompHtml = Object.entries(spyComps).map(([k,v]) => `
-    <div class="indicator-row">
-      <span class="indicator-name">${k.replace(/_/g,' ').toUpperCase()}</span>
-      <span class="indicator-value" style="color:${signalColor(String(v))}">${String(v).replace(/_/g,' ')}</span>
-    </div>`).join('');
-  setEl('spy-components', spyCompHtml);
-
-  const spyBadge = document.getElementById('spy-direction-badge');
-  if (spyBadge) {
-    spyBadge.className = `signal-badge sig-${sig.direction||'NEUTRAL'}`;
-    setEl('spy-dir-text', `${(sig.direction||'NEUTRAL').replace(/_/g,' ')} · ${sig.strength||''} · ${sig.lead_days||'3-5'}D`);
-  }
-  setEl('spy-basis', sig.basis || '—');
-  const conf = parseInt(sig.confidence) || 50;
-  setEl('spy-conf-val', conf + '%');
-  const confBar = document.getElementById('spy-conf-bar');
-  if (confBar) {
-    confBar.style.width = conf + '%';
-    confBar.style.background = sig.direction === 'BULLISH' ? COLOR_GREEN : sig.direction === 'BEARISH' ? COLOR_RED : COLOR_YELLOW;
-  }
-
-  // Money supply table
-  const moneyRows = [
-    ['M2 Money Supply', fmtB(money.m2_bn), money.date],
-    ['M1 Money Supply', fmtB(money.m1_bn), ''],
-    ['Monetary Base',   fmtB(money.monetary_base), ''],
-    ['M2 YoY Growth',  money.m2_yoy_pct != null ? `${fmt(money.m2_yoy_pct,2)}%` : '—', ''],
-  ];
-  setEl('money-table', moneyRows.map(r => `
-    <tr>
-      <td>${r[0]}</td>
-      <td class="val">${r[1]}</td>
-      <td style="color:var(--text3)">${r[2]}</td>
-    </tr>`).join(''));
-
-  // Dollar table
-  const dollarRows = [
-    ['Broad DXY Proxy',  fmt(dollar.broad_index,2),  dollar.trend_4w_pct != null ? `${fmt(dollar.trend_4w_pct,2)}% 4w` : '—'],
-    ['vs Advanced Econ', fmt(dollar.advanced_econ,2), ''],
-    ['vs Emerging Mkt',  fmt(dollar.emerging_mkt,2),  ''],
-  ];
-  setEl('dollar-table', dollarRows.map(r => `
-    <tr>
-      <td>${r[0]}</td>
-      <td class="val">${r[1]}</td>
-      <td style="color:var(--text2)">${r[2]}</td>
-    </tr>`).join(''));
-
-  // Yields table
-  const yieldRows = [
-    ['2-Year',   fmt(yields.y2,3)+'%',   ''],
-    ['10-Year',  fmt(yields.y10,3)+'%',  ''],
-    ['30-Year',  fmt(yields.y30,3)+'%',  ''],
-    ['10Y-2Y Spread', fmt(yields.spread_10_2,3)+'%', `<span style="color:${(yields.spread_10_2||0)<0?COLOR_RED:COLOR_GREEN}">${yields.curve_status||'—'}</span>`],
-    ['10Y-3M Spread', fmt(yields.spread_10_3m,3)+'%', ''],
-    ['TIPS 10Y Real',  fmt(yields.tips_real,3)+'%', ''],
-  ];
-  setEl('yields-table', yieldRows.map(r => `
-    <tr>
-      <td>${r[0]}</td>
-      <td class="val">${r[1]}</td>
-      <td>${r[2]}</td>
-    </tr>`).join(''));
-
-  // Funding table
-  const fundRows = [
-    ['SOFR',          fmt(funding.sofr,3)+'%',    ''],
-    ['Fed Funds',     fmt(funding.fed_funds,3)+'%', ''],
-    ['Reserves (Fed)',fmtB(reserves.total_bn),    reserves.date || ''],
-    ['Excess Reserves',fmtB(reserves.excess_bn),  ''],
-    ['SOMA Total',    fmtB(soma.total_bn),         ''],
-    ['SOMA Treasuries',fmtB(soma.treasuries_bn),  ''],
-    ['SOMA MBS',      fmtB(soma.mbs_bn),           ''],
-  ];
-  setEl('funding-table', fundRows.map(r => `
-    <tr>
-      <td>${r[0]}</td>
-      <td class="val">${r[1]}</td>
-      <td style="color:var(--text3)">${r[2]}</td>
-    </tr>`).join(''));
-
-  // Charts
-  renderNetLiqChart('chart-net-liq', charts.net_liquidity, charts.fed_bs, charts.tga, charts.rrp);
-  renderMiniChart('chart-fed-bs', charts.fed_bs,   COLOR_BLUE,   'Fed BS ($B)');
-  renderMiniChart('chart-tga',    charts.tga,       COLOR_RED,    'TGA ($B)');
-  renderMiniChart('chart-rrp',    charts.rrp,       COLOR_ORANGE, 'RRP ($B)');
-  renderMiniChart('chart-m2',     charts.m2,        COLOR_PURPLE, 'M2 ($B)');
-}
-
-async function loadData() {
-  try {
-    const res = await fetch(S3_URL + '?t=' + Date.now(), {cache:'no-store'});
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('error-banner').style.display = 'none';
-    render(data);
-  } catch (err) {
-    console.error('Liquidity load error:', err);
-    document.getElementById('loading').style.display = 'none';
-    const banner = document.getElementById('error-banner');
-    if (banner) { banner.style.display = 'block'; banner.textContent = `⚠ ${err.message} — retrying in 30s`; }
-    setTimeout(loadData, 30000);
-  }
-}
-
-loadData();
-// Auto-refresh every 10 minutes
-setInterval(loadData, 600000);
-</script>
-
-<div style="max-width:1500px; margin:18px auto; padding:0 18px;">
-  <div id="liquidity-pulse-panel"></div>
-</div>
-
-<div style="max-width:1500px; margin:18px auto; padding:0 18px;">
-  <div id="liquidity-credit-panel"></div>
-</div>
-  <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
-<script src="/jh-enhance.js" data-feed="data/liquidity-inflection.json" data-line="usd.impulse_tail_180d" data-title="USD impulse tail (180d)" data-crisis="1"></script>
+<script src="/jh-page-ai.js" defer></script>
 </body>
 </html>
