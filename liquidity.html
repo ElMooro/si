@@ -696,9 +696,24 @@
 
   <div class="status-row">
     <div class="status-dot"></div>
+
+<!-- ops 4409: institutional series catalog (Perplexity dimension-4, Khalid) -->
+<div style="max-width:1500px;margin:18px auto;padding:0 18px">
+  <div id="catalog-section"></div>
+</div>
     <span>Data from Federal Reserve Economic Data (FRED) · Updated daily 7:30 AM ET</span>
     <span style="margin-left:auto;color:var(--text3)" id="footer-ts">—</span>
   </div>
+
+<!-- ops 4409: institutional series catalog (Perplexity dimension-4, Khalid) -->
+<div style="max-width:1500px;margin:18px auto;padding:0 18px">
+  <div id="catalog-section"></div>
+</div>
+</div>
+
+<!-- ops 4409: institutional series catalog (Perplexity dimension-4, Khalid) -->
+<div style="max-width:1500px;margin:18px auto;padding:0 18px">
+  <div id="catalog-section"></div>
 </div>
 
 <script>
@@ -867,6 +882,7 @@ function renderNetLiqChart(elId, net_liq, fed_bs, tga, rrp) {
 }
 
 function render(data) {
+  try { renderCatalog(data.catalog || {}); } catch(e){ console.error('catalog render', e); }
   const core    = data.core    || {};
   const regime  = data.regime  || {};
   const sig     = data.spy_signal || {};
@@ -1056,6 +1072,53 @@ async function loadData() {
     if (banner) { banner.style.display = 'block'; banner.textContent = `⚠ ${err.message} — retrying in 30s`; }
     setTimeout(loadData, 30000);
   }
+}
+
+
+// ops 4409: institutional catalog renderer — credit OAS ladder, TIPS/breakevens,
+// SLOOS, stress indices, dollar pairs, Fed holdings. Value + 5y z + percentile.
+const CAT_META = {
+  credit:        {title:"Credit — ICE BofA OAS Ladder", unit:"bp",  desc:"IG rating cuts, sector OAS, HY BB/B/CCC, EM & Euro HY. HY OAS is the cleanest canary."},
+  yields:        {title:"Rates & Real Yields — Valuation Anchor", unit:"%", desc:"TIPS real yields, breakevens, 5y5y forward, ACM term premium, curve."},
+  stress:        {title:"Financial Stress & Bank Lending (SLOOS)", unit:"", desc:"NFCI/ANFCI, STLFSI, OFR FSI, and SLOOS tightening standards."},
+  dollar:        {title:"Dollar Complex", unit:"", desc:"Broad USD, AFE/EME, and bilateral pairs (EUR/JPY/CNY/KRW/BRL)."},
+  soma:          {title:"Fed Securities Held (H.4.1 / SOMA)", unit:"B USD", desc:"Treasury maturity/type ladder, TIPS, bills, agency, MBS."},
+  fed_balance_sheet:{title:"Fed Balance Sheet & Backstops", unit:"B USD", desc:"Total assets, repo, swap lines, foreign official holdings."},
+  money_supply:  {title:"Money Supply & Velocity", unit:"", desc:"M1, M2, monetary base, M2 velocity, currency in circulation."},
+  reserves:      {title:"Reserve Balances", unit:"B USD", desc:"Reserves at Fed, excess reserves — the ample-reserves regime."},
+  funding:       {title:"Funding Rates", unit:"%", desc:"SOFR, EFFR, OBFR, IORB, discount window."}
+};
+function zColor(z){ if(z==null) return 'var(--text3)'; if(z>=1.5) return 'var(--red)'; if(z>=0.75) return 'var(--amber,#e0a030)'; if(z<=-1.5) return 'var(--green)'; return 'var(--text2)'; }
+function renderCatalog(catalog){
+  const host=document.getElementById('catalog-section');
+  if(!host) return;
+  if(!catalog||!Object.keys(catalog).length){ host.innerHTML=''; return; }
+  const order=['credit','yields','stress','dollar','soma','fed_balance_sheet','money_supply','reserves','funding'];
+  let html='<h2 style="font-size:18px;margin:8px 0 4px">Institutional Series Catalog</h2>'+
+           '<div style="color:var(--text3);font-size:12px;margin-bottom:12px">Every series with latest value, 5-year z-score, and historical percentile. Absolute levels are meaningless without regime context.</div>';
+  for(const cat of order){
+    const rows=catalog[cat]; if(!rows||!Object.keys(rows).length) continue;
+    const m=CAT_META[cat]||{title:cat,unit:'',desc:''};
+    html+=`<div style="margin:16px 0 6px"><div style="font-weight:600;font-size:14px">${esc(m.title)}</div><div style="color:var(--text3);font-size:11px">${esc(m.desc)}</div></div>`;
+    html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">';
+    for(const sid of Object.keys(rows)){
+      const r=rows[sid];
+      const zc=zColor(r.z);
+      html+=`<div style="background:var(--card,#12161c);border:1px solid var(--border,#222);border-radius:8px;padding:10px" title="${esc(sid)} · ${esc(r.label)} · ${esc(r.date||'')}">
+        <div style="font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.label)}</div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:4px">
+          <span style="font-size:18px;font-weight:600">${fmt(r.value, r.unit==='bp'?0:2)}<span style="font-size:10px;color:var(--text3)"> ${esc(r.unit||'')}</span></span>
+          <span style="font-size:12px;color:${zc}">z ${r.z==null?'—':(r.z>0?'+':'')+r.z}</span>
+        </div>
+        <div style="height:4px;background:var(--border,#222);border-radius:2px;margin-top:6px;overflow:hidden">
+          <div style="height:100%;width:${Math.max(0,Math.min(100,r.pctile_5y||0))}%;background:${zc}"></div>
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">${r.pctile_5y==null?'':r.pctile_5y+'%ile (5y)'}</div>
+      </div>`;
+    }
+    html+='</div>';
+  }
+  host.innerHTML=html;
 }
 
 loadData();

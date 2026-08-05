@@ -79,6 +79,54 @@ FRED_SERIES = [
     ("DFF",         "Fed Funds Effective Rate",            "funding",           "%",     "d"),
     ("DPCREDIT",    "Discount Window Primary Credit",      "funding",           "%",     "d"),
     ("WORAL",       "Fed Overnight RRP Awards",            "rrp",               "B USD", "d"),
+    # ── ops 4409: Perplexity dimension-4 additions (Khalid: engine+page) ──
+    ("TREAST", "US Treasury Securities Held (total)"      "soma", "B USD", "w"),
+    ("WSHONBIILB", "SOMA TIPS Holdings"                       "soma", "B USD", "w"),
+    ("WSHOBL", "SOMA Treasury Bills"                      "soma", "B USD", "w"),
+    ("WSHOFADSL", "SOMA Federal Agency Debt"                 "soma", "B USD", "w"),
+    ("WSHOMBLS", "SOMA MBS Holdings (total)"                "soma", "B USD", "w"),
+    ("H41RESPPALDKNWA", "Fed Repo Agreements (H.4.1)"              "fed_balance_sheet", "B USD", "w"),
+    ("WCBSL", "Central Bank Swap Lines"                  "fed_balance_sheet", "B USD", "w"),
+    ("TRESEGUSM052N", "Foreign Official Treasury Holdings"       "fed_balance_sheet", "B USD", "m"),
+    ("IORB", "Interest on Reserve Balances"             "funding", "%", "d"),
+    ("EFFR", "Effective Fed Funds Rate"                 "funding", "%", "d"),
+    ("OBFR", "Overnight Bank Funding Rate"              "funding", "%", "d"),
+    ("M2V", "Velocity of M2"                           "money_supply", "ratio", "q"),
+    ("CURRCIR", "Currency in Circulation"                  "money_supply", "B USD", "w"),
+    ("DEXUSEU", "USD/EUR"                                  "dollar", "rate", "d"),
+    ("DEXJPUS", "JPY/USD"                                  "dollar", "rate", "d"),
+    ("DEXCHUS", "CNY/USD"                                  "dollar", "rate", "d"),
+    ("DEXKOUS", "KRW/USD"                                  "dollar", "rate", "d"),
+    ("DEXBZUS", "BRL/USD"                                  "dollar", "rate", "d"),
+    ("DFII5", "5Y TIPS Real Yield"                       "yields", "%", "d"),
+    ("DFII30", "30Y TIPS Real Yield"                      "yields", "%", "d"),
+    ("T10YIE", "10Y Breakeven Inflation"                  "yields", "%", "d"),
+    ("T5YIE", "5Y Breakeven Inflation"                   "yields", "%", "d"),
+    ("T5YIFR", "5y5y Forward Breakeven"                   "yields", "%", "d"),
+    ("THREEFYTP10", "ACM 10Y Term Premium"                     "yields", "%", "m"),
+    ("DGS3MO", "3-Month Treasury Yield"                   "yields", "%", "d"),
+    ("BAMLC0A0CM", "IG Corporate Master OAS"                  "credit", "bp", "d"),
+    ("BAMLC0A1CAAA", "IG AAA OAS"                               "credit", "bp", "d"),
+    ("BAMLC0A2CAA", "IG AA OAS"                                "credit", "bp", "d"),
+    ("BAMLC0A3CA", "IG A OAS"                                 "credit", "bp", "d"),
+    ("BAMLC0A4CBBB", "IG BBB OAS"                               "credit", "bp", "d"),
+    ("BAMLC0A0CMFOAS", "IG Financial OAS"                         "credit", "bp", "d"),
+    ("BAMLC0A0CMIOAS", "IG Industrial OAS"                        "credit", "bp", "d"),
+    ("BAMLC0A0CMUOAS", "IG Utility OAS"                           "credit", "bp", "d"),
+    ("BAMLH0A0HYM2", "HY Master II OAS"                         "credit", "bp", "d"),
+    ("BAMLH0A1HYBB", "HY BB OAS"                                "credit", "bp", "d"),
+    ("BAMLH0A2HYB", "HY Single-B OAS"                          "credit", "bp", "d"),
+    ("BAMLH0A3HYC", "HY CCC & Lower OAS"                       "credit", "bp", "d"),
+    ("BAMLEMCBPIOAS", "EM Corporate Plus OAS"                    "credit", "bp", "d"),
+    ("BAMLEMHBHYCRPIOAS", "EM HY Corporate OAS"                      "credit", "bp", "d"),
+    ("BAMLHE00EHYIOAS", "Euro HY OAS"                              "credit", "bp", "d"),
+    ("DRTSCILM", "SLOOS: C&I Standards Tightening"          "stress", "%", "q"),
+    ("DRTSCLCC", "SLOOS: Credit Card Tightening"            "stress", "%", "q"),
+    ("DRTSCLM", "SLOOS: Mortgage Tightening"               "stress", "%", "q"),
+    ("NFCI", "Chicago Fed NFCI"                         "stress", "index", "w"),
+    ("ANFCI", "Adjusted NFCI"                            "stress", "index", "w"),
+    ("STLFSI4", "St. Louis Fed Financial Stress"           "stress", "index", "w"),
+    ("OFRFSI", "OFR Financial Stress Index"               "stress", "index", "d"),
 ]
 
 # Series where value is already in billions (no conversion needed)
@@ -548,6 +596,37 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
     ts_end  = datetime.now(timezone.utc)
     elapsed = round((ts_end - ts_start).total_seconds(), 1)
 
+    # ── ops 4409: generic catalog fetch — every FRED_SERIES entry gets a
+    # latest value + 5y z-score + 52pt history, grouped by category, so the
+    # 47 new institutional series (credit OAS ladder, SLOOS, TIPS/breakevens,
+    # bilateral USD, term premium, stress indices) reach the feed and page.
+    catalog = {}
+    for sid, label, cat, unit, freq in FRED_SERIES:
+        try:
+            hist = get_series_history(sid, limit=260)
+            if not hist:
+                continue
+            vals = [h["value"] for h in hist if h.get("value") is not None]
+            if not vals:
+                continue
+            latest = vals[-1]
+            mean = sum(vals) / len(vals)
+            var = sum((v - mean) ** 2 for v in vals) / max(1, len(vals) - 1)
+            sd = var ** 0.5
+            z = round((latest - mean) / sd, 2) if sd > 1e-9 else 0.0
+            pct = round(100 * sum(1 for v in vals if v <= latest) / len(vals), 1)
+            catalog.setdefault(cat, {})[sid] = {
+                "label": label, "value": round(latest, 4), "unit": unit,
+                "z": z, "pctile_5y": pct, "freq": freq,
+                "date": hist[-1].get("date"),
+                "spark": [{"date": h["date"], "value": h["value"]}
+                          for h in hist[-52:]],
+            }
+        except Exception as _e:
+            print(f"[catalog] {sid} skipped: {type(_e).__name__}")
+    print(f"[LiqAgent] catalog built: {sum(len(v) for v in catalog.values())} "
+          f"series across {len(catalog)} categories")
+
     output = {
         "meta": {
             "generated_at":  ts_end.isoformat(),
@@ -555,6 +634,9 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
             "agent_version": "2.0.0",
             "data_sources":  ["FRED"],
         },
+
+        # ── ops 4409: full institutional series catalog by category ──
+        "catalog": catalog,
 
         # ── Core Liquidity Triad ──────────────────────────────────────────
         "core": {
