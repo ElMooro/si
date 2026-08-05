@@ -130,12 +130,21 @@ FRED_SERIES = [
 ]
 
 # Series where value is already in billions (no conversion needed)
+# ops 4411: FRED publishes H.4.1 / SOMA / money-stock series in MILLIONS.
+# The prior set wrongly listed them as billions, so the page rendered
+# "$6738190.0B" instead of "$6738.19B" (Khalid caught it on the live page).
 ALREADY_BILLIONS = {
-    "WALCL", "WTREGEN", "RRPONTSYD", "WSHOSHO", "WSHOTSL", "WSHOMCB",
-    "WRESBAL", "TOTRESNS", "EXCSRESNW", "BOGMBASE", "WORAL"
+    "RRPONTSYD",   # FRED: Billions of USD
+    "TOTRESNS",    # FRED: Billions of USD
 }
-# Series in millions → divide by 1000
-IN_MILLIONS = {"M2SL", "M1SL"}
+# Series in millions -> divide by 1000 to get billions
+IN_MILLIONS = {
+    "M2SL", "M1SL", "WALCL", "WTREGEN", "WSHOSHO", "WSHOTSL", "WSHOMCB",
+    "WRESBAL", "EXCSRESNW", "BOGMBASE", "WORAL", "CURRCIR", "WCURCIR",
+    "TREAST", "WSHONBIILB", "WSHOBL", "WSHOFADSL", "WSHOMBLS", "WSHOFCDN",
+    "H41RESPPALDKNWA", "WCBSL", "WLRRAL", "RESPPALGUONNWW",
+    "RESPPNTEPNWW",
+}
 
 
 # ─── FRED FETCH ────────────────────────────────────────────────────────────
@@ -601,12 +610,22 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
     # 47 new institutional series (credit OAS ladder, SLOOS, TIPS/breakevens,
     # bilateral USD, term premium, stress indices) reach the feed and page.
     catalog = {}
+    KNOWN_CATS = {"fed_balance_sheet", "tga", "rrp", "soma", "reserves",
+                  "money_supply", "dollar", "yields", "funding", "credit",
+                  "stress"}
     for _entry in FRED_SERIES:
         sid = _entry[0]
         label = _entry[1] if len(_entry) > 1 else sid
-        cat = _entry[2] if len(_entry) > 2 else "other"
-        unit = _entry[3] if len(_entry) > 3 else ""
-        freq = _entry[4] if len(_entry) > 4 else "d"
+        _p2 = _entry[2] if len(_entry) > 2 else ""
+        if _p2 in KNOWN_CATS:
+            cat = _p2
+            unit = _entry[3] if len(_entry) > 3 else ""
+            freq = _entry[4] if len(_entry) > 4 else "d"
+        else:
+            # 4-tuple shape (id, label, unit, freq) — no category declared
+            cat = "other"
+            unit = _p2
+            freq = _entry[3] if len(_entry) > 3 else "d"
         try:
             hist = get_series_history(sid, limit=260)
             if not hist:
