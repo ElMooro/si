@@ -1,20 +1,26 @@
-executing-against: f47de8c32bb113bfa739ac8f3ac950e8068c847a
+executing-against: abaaf248d8db4bba92294d62a16885ed26b3b11e
 {
- "ops": 4390,
- "started": "2026-08-05T02:51:30.772280+00:00",
- "pat_in_env": true,
- "ssm_written": true,
- "live_pr": {
-  "ok": true,
-  "pr": 1,
-  "pr_url": "https://github.com/ElMooro/si/pull/1",
-  "branch": "a2a/perplexity-1e60c015",
-  "files": [
-   "docs/a2a-capability-proof.md"
-  ],
-  "error": null
- },
- "patches_ledger": [
+ "ops": 4391,
+ "started": "2026-08-05T03:28:31.328568+00:00",
+ "inbox_claude": [
+  "0001-build-the-bus",
+  "0003-csp-meta",
+  "audit-loop-main",
+  "project-charter",
+  "vendor-cost-audit",
+  "external-ai-council",
+  "research-indicators-new",
+  "0006-alpha-triage-retirement",
+  "backtest-infra",
+  "engine-audit-breadth-thrust",
+  "engine-audit-capitulation",
+  "engine-audit-risk-gate",
+  "engine-audit-alpha-council",
+  "engine-audit-capital-flow",
+  "propose-patch-onboarding",
+  "0007-code-capability"
+ ],
+ "patches": [
   {
    "patch_id": "1e60c015",
    "agent": "perplexity",
@@ -27,8 +33,43 @@ executing-against: f47de8c32bb113bfa739ac8f3ac950e8068c847a
    ],
    "ts": "2026-08-05T02:51:36+00:00",
    "status": "open"
+  },
+  {
+   "patch_id": "9baf9cdc",
+   "agent": "perplexity",
+   "title": "fix(alpha-council): filter PICK placeholder symbols from consensus + guard per-engine top_call",
+   "branch": "a2a/perplexity-9baf9cdc",
+   "pr": 2,
+   "pr_url": "https://github.com/ElMooro/si/pull/2",
+   "files": [
+    "alpha-council.html"
+   ],
+   "ts": "2026-08-05T02:57:40+00:00",
+   "status": "open"
+  },
+  {
+   "patch_id": "af8fd581",
+   "agent": "perplexity",
+   "title": "hotfix(risk-gate): swap fetch SRC to CSP-allowed hosts (fixes 'Feed unreachable')",
+   "branch": "a2a/perplexity-af8fd581",
+   "pr": 3,
+   "pr_url": "https://github.com/ElMooro/si/pull/3",
+   "files": [
+    "risk-gate.html"
+   ],
+   "ts": "2026-08-05T03:02:44+00:00",
+   "status": "open"
   }
  ],
- "verdict": "PASS \u2014 agent authored a live PR; code-deploy loop closed",
- "finished": "2026-08-05T02:52:33.204974+00:00"
+ "registry": "roles set",
+ "assignment": null,
+ "pr1_review": {
+  "paths": [
+   "docs/a2a-capability-proof.md"
+  ],
+  "safe_docs_only": true
+ },
+ "pr1_merged": true,
+ "verdict": "PARTIAL \u2014 see fields",
+ "finished": "2026-08-05T03:29:54.179531+00:00"
 }
