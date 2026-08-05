@@ -108,9 +108,11 @@ def handler(event=None, context=None):
     # ops 4434 C7: month projection from the daily ledger (honest when thin)
     try:
         from llm_cost import project_month
-        daily = {d.get("date"): d.get("usd") for d in out.get("daily", [])
-                 if isinstance(d, dict) and d.get("date")} or \
-                out.get("daily_usd") or {}
+        per_day = out.get("per_day") or {}
+        daily = ({d: (v.get("usd") if isinstance(v, dict) else v)
+                  for d, v in per_day.items()} if isinstance(per_day, dict)
+                 else {d.get("date"): d.get("usd") for d in per_day
+                       if isinstance(d, dict)})
         out["projection"] = project_month(daily)
         out["attribution_note"] = ("per-engine/model spend: CloudWatch "
                                    "JustHodl/LLM SpendUSD by [engine,model] "
