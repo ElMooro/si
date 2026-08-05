@@ -1,8 +1,8 @@
-import json
+import json, time, boto3, urllib.request
 try:
-    from fabrication_guard import guard_output  # ops 4438 F8w2
+    from fabrication_guard import guard_output  # ops 4440 F8 (fixed header)
 except Exception:
-    guard_output = None, time, boto3, urllib.request
+    guard_output = None
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
