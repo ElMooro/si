@@ -414,6 +414,10 @@ GH_REPO = "ElMooro/si"
 GH_TOKEN_SSM = "/justhodl/github/bus-pat"
 PATCH_DENY = (".github/", "aws/ops/", "cloudflare/", "supabase/")
 PATCH_DENY_EXEMPT = ("perplexity",)  # Khalid: full-push agents bypass path denylist (ledger still records)
+# Ownership Arbitration (Khalid, 2026-08-05): protected artifacts cannot be
+# patched by a non-owner without Khalid's ruling. Owner may still patch.
+PROTECTED_ARTIFACTS = {"crisis.html": "claude", "liquidity.html": "claude",
+                       "plumbing.html": "claude"}
 PATCH_MAX_FILES = 8
 PATCH_MAX_BYTES = 200_000
 PATCH_MAX_OPEN_PRS = 3
@@ -471,6 +475,13 @@ def propose_patch(ev):
                     return {"ok": False,
                             "error": f"path denied by policy: {p} "
                                      f"(denylist {PATCH_DENY})"}
+        owner = PROTECTED_ARTIFACTS.get(p.split("/")[-1])
+        if owner and owner != agent:
+            return {"ok": False,
+                    "error": f"ownership_protected: {p} is {owner}-owned "
+                             f"and Khalid-protected; open an "
+                             f"ownership-dispute thread for his ruling "
+                             f"(agent {agent} may not overwrite it)"}
         total += len(str(c).encode("utf-8", "replace"))
     if total > PATCH_MAX_BYTES:
         return {"ok": False,

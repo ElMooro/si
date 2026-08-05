@@ -1,0 +1,27 @@
+{
+  "amendment": "Ownership Arbitration v1.0",
+  "authority": "Khalid, 2026-08-05",
+  "principle": "Khalid is the final arbiter of whose version of any page or engine ships. Neither agent overwrites the other's work unilaterally. When both agents have a version, or when one wants to change a protected artifact, Khalid decides.",
+  "rationale": "Observed: on some artifacts Perplexity's rebuild was better (Claude yielded); on others (crisis, liquidity, plumbing) Claude's tuned version was better after many iterations (Perplexity's rebuild would have regressed them). Neither agent is universally better. So authorship is decided per-artifact by Khalid, and protected artifacts cannot be overwritten without his ruling.",
+  "protected_artifacts": {
+    "claude_owned_pages": [
+      "crisis.html",
+      "liquidity.html",
+      "plumbing.html"
+    ],
+    "note": "These three are Claude-authored and Khalid-confirmed superior. A propose_patch or push targeting them from any agent other than the owner is BLOCKED by the bus and routed to Khalid as an ownership dispute. The owner (Claude) may still patch them; anyone else needs Khalid's ruling."
+  },
+  "conflict_workflow": {
+    "1": "If an agent wants to change a protected artifact it doesn't own, it opens an ownership-dispute-<artifact> thread with a kind:propose turn: what it wants to change, why, and evidence the change is an improvement (not just different).",
+    "2": "The owning agent responds with its position.",
+    "3": "KHALID DECIDES — he posts the ruling (or tells Claude to). The decision writes to data/a2a/ownership-ledger.json.",
+    "4": "Only after Khalid's ruling may the protected artifact change hands or be modified by the non-owner.",
+    "5": "Unprotected artifacts follow normal charter rules (Perplexity owns frontend, Claude owns backend), but either agent can still escalate a disagreement to Khalid."
+  },
+  "enforcement": {
+    "bus": "propose_patch rejects patches whose files[] touch a protected artifact when the proposing agent is not the owner — error: ownership_protected, routed to Khalid.",
+    "direct_push": "Cannot be blocked at the git layer without branch protection; enforced by rule + the audit loop, which flags any change to a protected artifact by a non-owner as a P0 finding for Khalid's review.",
+    "audit_loop": "Watches protected_artifacts for non-owner modifications and reports them immediately."
+  },
+  "amendable": "Only by Khalid. He can add/remove protected artifacts, reassign ownership, or override any ruling at any time."
+}

@@ -161,6 +161,37 @@ def audit_engine(fn, manifest_fns):
                  "feed_age_h": feed_age}
 
 
+PROTECTED_ARTIFACTS = {"crisis.html": "claude", "liquidity.html": "claude",
+                       "plumbing.html": "claude"}
+
+
+def check_protected(path):
+    """Flag protected-artifact changes by non-owners (Khalid ownership law).
+    Direct push can't be git-blocked without branch protection, so the loop
+    reports any modification to a protected page as a P0 for Khalid."""
+    fname = path.split("/")[-1]
+    owner = PROTECTED_ARTIFACTS.get(fname)
+    if not owner:
+        return []
+    # who last touched it? read git blame proxy via the patches ledger +
+    # a marker file the owner writes. Heuristic: check data/a2a/patches.json
+    # for a non-owner PR touching this file recently.
+    out = []
+    patches = _get("data/a2a/patches.json", {"patches": []}).get("patches", [])
+    for pt in patches[-30:]:
+        if fname in (pt.get("files") or []) and pt.get("agent") != owner:
+            out.append(_find(fname, "governance",
+                             f"protected_modified_by_{pt.get('agent')}",
+                             "critical",
+                             f"{fname} is {owner}-owned+Khalid-protected but "
+                             f"patch {pt.get('patch_id')} by "
+                             f"{pt.get('agent')} touched it (PR "
+                             f"#{pt.get('pr')}) — Khalid ruling required",
+                             [{"kind": "log", "ref": "data/a2a/patches.json",
+                               "snippet": pt.get("patch_id", "")}]))
+    return out
+
+
 def audit_page(path):
     out = []
     url = SITE + path.lstrip("/")
@@ -286,6 +317,7 @@ def lambda_handler(event, context):
     for pg in page_shard:
         f, h = audit_page(pg)
         findings += f
+        findings += check_protected(pg)
 
     store = _get("data/audit/findings.json") or {"findings": {}}
     fmap = store["findings"]
