@@ -213,8 +213,26 @@ def post_turn(ev):
     for p in targets:
         if reg.get(p, {}).get("kind") != "human":
             _inbox_push(p, tid)
+    # ops 4418: IMMEDIATE ping — no 15-minute wait. Any turn addressed to
+    # Claude (or broadcast) wakes the backend agent right now.
+    woke = False
+    if frm != "claude" and not frm.startswith("claude"):
+        if turn["to"] in ("claude", "claude-audit", "claude-backend", "*"):
+            woke = _wake_claude(tid, f"{frm} posted {turn['kind']}")
+            try:
+                doc = _tasks()
+                if tid not in doc["tasks"]:
+                    doc["tasks"][tid] = {
+                        "thread_id": tid, "created_at": _now(),
+                        "state": "FILED", "history": [
+                            {"state": "FILED", "by": frm, "ts": _now(),
+                             "note": (turn.get("content") or "")[:200]}],
+                        "title": (turn.get("content") or "")[:120]}
+                    _task_put(doc)
+            except Exception as _e:
+                print("task init:", str(_e)[:60])
     return {"ok": True, "turn_id": turn["turn_id"],
-            "queued_for": targets}
+            "queued_for": targets, "claude_woken": woke}
 
 
 def resolve(ev):
@@ -341,7 +359,14 @@ A2A_SYSTEM = (
     "evidence are rejected. CONTINUATION PROTOCOL: when you want Claude to "
     "act next, end content with a line \"NEXT_ACTIONS: ...\" listing "
     "concrete steps; Claude reads these each session and continues the "
-    "AUDIT MANDATE (MUTUAL AUDIT CONSTITUTION, Khalid law): when auditing the other agent's work you MUST cover 5 dimensions — (1) PURPOSE: state what the engine/page is trying to accomplish before critiquing; (2) QUALITY vs an institutional Bloomberg/Koyfin bar, crediting strengths; (3) BUGS with severity+location+fix; (4) MISSING DATA SOURCES — think deeply about what named feeds/series/APIs/fleet-joins would add real edge; (5) MAX IMPROVEMENT — the best-in-world version, ranked roadmap. Ground every finding in live bytes/output (invariant A). The owner fixes; the auditor (non-proposer) verifies vs live and confirm-closes (invariant B). Credit where due; never fabricate. ""loop. CODE: you may also ship fixes via action:propose_patch "
+    "AUDIT MANDATE (MUTUAL AUDIT CONSTITUTION, Khalid law): when auditing the other agent's work you MUST cover 5 dimensions — (1) PURPOSE: state what the engine/page is trying to accomplish before critiquing; (2) QUALITY vs an institutional Bloomberg/Koyfin bar, crediting strengths; (3) BUGS with severity+location+fix; (4) MISSING DATA SOURCES — think deeply about what named feeds/series/APIs/fleet-joins would add real edge; (5) MAX IMPROVEMENT — the best-in-world version, ranked roadmap. Ground every finding in live bytes/output (invariant A). The owner fixes; the auditor (non-proposer) verifies vs live and confirm-closes (invariant B). Credit where due; never fabricate. ""loop. HANDSHAKE PROTOCOL (Khalid law, no waiting): every task walks "
+    "FILED -> ACK -> DONE -> VERIFIED -> PUBLISHED -> SEALED, and each step "
+    "is pinged immediately. When you file work, Claude ACKs receipt at once; "
+    "when Claude finishes it pings DONE; you VERIFY and ping back; Claude "
+    "PUBLISHES (engine AND page) and pings; you confirm the published state "
+    "matches your suggestions and post SEALED — only then is the task "
+    "complete and you move to the next. Advance state with action:task_update {thread_id, state, note}. Check the board with action:get_tasks. "
+    "CODE: you may also ship fixes via action:propose_patch "
     "{title, rationale, files:[{path,content}], evidence[]} -> becomes a "
     "real GitHub PR; Claude reviews+tests+merges; .github/ and aws/ops/ "
     "paths are denied by policy."
@@ -556,10 +581,94 @@ def propose_patch(ev):
 # ═══════════ end v1.3 ═══════════
 
 
+
+
+# ═══════ ops 4418: HANDSHAKE PROTOCOL (Khalid's rule, no 15-min waiting) ═══
+# Lifecycle every task walks, each step pinged immediately:
+#   FILED      Perplexity posts work  -> bus WAKES Claude's agent instantly
+#   ACK        Claude confirms receipt + "working on it"
+#   DONE       Claude finishes, pings back
+#   VERIFIED   Perplexity checks the work, pings Claude
+#   PUBLISHED  Claude publishes (engine + page), pings back
+#   SEALED     Perplexity confirms published state matches intent -> complete
+# Ledger: data/a2a/tasks.json. Nothing advances without an explicit ping.
+TASKS_KEY = "data/a2a/tasks.json"
+BACKEND_AGENT = "justhodl-backend-agent"
+STATES = ["FILED", "ACK", "DONE", "VERIFIED", "PUBLISHED", "SEALED"]
+
+
+def _tasks():
+    return _get(TASKS_KEY, {"tasks": {}, "sealed": []})
+
+
+def _task_put(doc):
+    _put(TASKS_KEY, doc)
+
+
+def task_update(ev):
+    """Advance a task's handshake state. Args: thread_id, state, by, note."""
+    tid = ev.get("thread_id")
+    state = (ev.get("state") or "").upper()
+    by = (ev.get("from") or "unknown").lower()
+    if not tid or state not in STATES:
+        return {"ok": False, "error": f"thread_id + state in {STATES}"}
+    doc = _tasks()
+    task = doc["tasks"].get(tid) or {
+        "thread_id": tid, "created_at": _now(), "state": "FILED",
+        "history": [], "title": (ev.get("title") or "")[:200]}
+    task["state"] = state
+    task["updated_at"] = _now()
+    task["history"].append({"state": state, "by": by, "ts": _now(),
+                            "note": (ev.get("note") or "")[:400]})
+    doc["tasks"][tid] = task
+    if state == "SEALED":
+        doc["sealed"] = (doc.get("sealed") or [])[-99:] + [
+            {"thread_id": tid, "sealed_at": _now(), "by": by,
+             "title": task.get("title")}]
+    _task_put(doc)
+    return {"ok": True, "task": task,
+            "next_expected": _next_state(state, by)}
+
+
+def _next_state(state, by):
+    nxt = {"FILED": "ACK (claude confirms receipt)",
+           "ACK": "DONE (claude finishes and pings back)",
+           "DONE": "VERIFIED (perplexity checks the work)",
+           "VERIFIED": "PUBLISHED (claude publishes engine+page)",
+           "PUBLISHED": "SEALED (perplexity confirms published state)",
+           "SEALED": "complete — move to next task"}
+    return nxt.get(state)
+
+
+def get_tasks(_ev=None):
+    doc = _tasks()
+    open_tasks = {k: v for k, v in doc.get("tasks", {}).items()
+                  if v.get("state") != "SEALED"}
+    return {"ok": True, "open": open_tasks,
+            "n_open": len(open_tasks),
+            "sealed_recent": (doc.get("sealed") or [])[-10:]}
+
+
+def _wake_claude(thread_id, reason):
+    """IMMEDIATE ping — invoke Claude's backend agent now instead of waiting
+    for its 15-minute schedule (Khalid: 'no 15 minutes waiting')."""
+    try:
+        boto3.client("lambda", region_name="us-east-1").invoke(
+            FunctionName=BACKEND_AGENT, InvocationType="Event",
+            Payload=json.dumps({"wake": True, "thread_id": thread_id,
+                                "reason": reason}).encode())
+        return True
+    except Exception as e:
+        print("wake failed:", str(e)[:100])
+        return False
+
+
 ACTIONS = {"open_thread": open_thread, "post_turn": post_turn,
            "resolve": resolve, "deadman_sweep": deadman_sweep,
            "fanout_pending": fanout_pending,
            "propose_patch": propose_patch,
+           "task_update": task_update,
+           "get_tasks": get_tasks,
            "list_patches": lambda e: {"ok": True, **(_get("data/a2a/patches.json", {"patches": []}))},
            "get_thread": lambda e: {"ok": True, "thread": _get(
                THREADS + e["thread_id"] + ".json")}}

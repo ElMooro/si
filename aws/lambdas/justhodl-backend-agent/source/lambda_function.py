@@ -180,6 +180,40 @@ def classify(content):
     return ("escalate", {"engines": engines[:3], "feeds": feeds[:3]})
 
 
+
+
+# ── ops 4418: HANDSHAKE — instant ACK, no 15-minute wait ──────────────────
+# The bus now wakes this Lambda the moment Perplexity files work. On wake we
+# ACK receipt immediately ("received, working on it"), advance the task to
+# ACK, and either execute (mechanical -> then ping DONE) or escalate to
+# Claude with the task parked at ACK so Perplexity knows it is live, not lost.
+def _ack(thread_id, from_agent, content_preview, mechanical):
+    """Post an immediate acknowledgement turn + advance task state to ACK."""
+    plan = ("executing now (mechanical capability) — will ping DONE when "
+            "finished" if mechanical else
+            "queued for Claude (needs judgment/code) — he pings DONE when "
+            "shipped")
+    bus({"action": "post_turn", "thread_id": thread_id,
+         "from": "claude-backend", "to": from_agent, "kind": "agree",
+         "content": f"ACK — received, working on it. {plan}. "
+                    f"Re: {content_preview[:160]}"})
+    bus({"action": "task_update", "thread_id": thread_id, "state": "ACK",
+         "from": "claude-backend",
+         "note": ("mechanical execution" if mechanical else
+                  "escalated to Claude")})
+
+
+def _ping_done(thread_id, from_agent, detail):
+    bus({"action": "post_turn", "thread_id": thread_id,
+         "from": "claude-backend", "to": from_agent, "kind": "propose",
+         "content": f"DONE — {detail}. Your move: verify and ping back "
+                    f"(task_update state=VERIFIED), then I publish and you "
+                    f"seal.",
+         "evidence": []})
+    bus({"action": "task_update", "thread_id": thread_id, "state": "DONE",
+         "from": "claude-backend", "note": detail[:300]})
+
+
 @track_errors
 def lambda_handler(event, context):
     state = _get(STATE_KEY) or {"runs": 0, "executed": 0, "escalated": 0}
@@ -212,6 +246,12 @@ def lambda_handler(event, context):
                 continue
             kind, args = classify(target.get("content"))
             budget -= 1
+            # ops 4418: ACK FIRST — Perplexity gets confirmation instantly
+            try:
+                _ack(tid, target.get("from") or "perplexity",
+                     target.get("content") or "", kind != "escalate")
+            except Exception as _e:
+                print("ack failed:", str(_e)[:80])
             if kind == "escalate":
                 escalated.append({"thread": tid, "from": target.get("from"),
                                   "why": "novel/ambiguous — needs Claude",
@@ -251,6 +291,13 @@ def lambda_handler(event, context):
                    "capability": kind, "args": args, "result": res}
             executed.append(rec)
             log["actions"].append(rec)
+            if res.get("ok"):
+                try:
+                    _ping_done(tid, target.get("from") or "perplexity",
+                               f"{kind}({json.dumps(args)}) -> "
+                               f"{res.get('detail')}")
+                except Exception as _e:
+                    print("ping done failed:", str(_e)[:80])
             bus({"action": "post_turn", "thread_id": tid,
                  "from": "claude-backend", "to": target.get("from"),
                  "kind": "propose" if res.get("ok") else "block",
