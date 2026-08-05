@@ -1,13 +1,39 @@
-executing-against: 11ed2911ada5a4207bc0b0b9d89d32b8d099acd6
+executing-against: 79dfa573450d6d8552b1d2d31795549ed60e4d40
 {
- "pre": {
-  "state": "Active",
-  "desc": "",
-  "last_modified": "2026-05-22T11:00:48.000+0000"
+ "shipped": [
+  "D1",
+  "D2",
+  "D3",
+  "D5",
+  "F1",
+  "F2",
+  "F3"
+ ],
+ "f2": {
+  "engines_flagged": 645,
+  "by_kind": {
+   "random_value": 22,
+   "swallowed_error": 1193,
+   "silent_fallback": 1604,
+   "mock_marker": 132
+  },
+  "top": [
+   "aiapi-market-analyzer",
+   "justhodl-signal-board",
+   "justhodl-13f-positions",
+   "justhodl-stock-screener",
+   "justhodl-chokepoint",
+   "justhodl-prepump-alerts-router"
+  ]
  },
- "rules_found": [],
- "concurrency": "0 (execution blocked)",
- "stamped": true,
+ "inv": {
+  "ok": true,
+  "n_functions": 786,
+  "n_scheduled": 428,
+  "config_issues": 664,
+  "dead": 29,
+  "alive": 399
+ },
  "posted": {
   "ok": true,
   "err": null

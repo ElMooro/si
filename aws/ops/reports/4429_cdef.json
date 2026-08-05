@@ -1,0 +1,43 @@
+{
+ "ops": 4429,
+ "started": "2026-08-05T22:18:29.713850+00:00",
+ "shipped": [
+  "D1",
+  "D2",
+  "D3",
+  "D5",
+  "F1",
+  "F2",
+  "F3"
+ ],
+ "inventory_engine": "created",
+ "schedule": "cron(0 6 * * ? *)",
+ "inventory_run": {
+  "statusCode": 200,
+  "body": "{\"ok\": true, \"n_functions\": 786, \"n_scheduled\": 428, \"config_issues\": 664, \"dead\": 29, \"alive\": 399}"
+ },
+ "d5": "deployed",
+ "f2_scan": {
+  "engines_flagged": 645,
+  "by_kind": {
+   "random_value": 22,
+   "swallowed_error": 1193,
+   "silent_fallback": 1604,
+   "mock_marker": 132
+  },
+  "top": [
+   "aiapi-market-analyzer",
+   "justhodl-signal-board",
+   "justhodl-13f-positions",
+   "justhodl-stock-screener",
+   "justhodl-chokepoint",
+   "justhodl-prepump-alerts-router"
+  ]
+ },
+ "posted": {
+  "ok": true,
+  "err": null
+ },
+ "verdict": "PASS \u2014 7 deliverables shipped: ['D1', 'D2', 'D3', 'D5', 'F1', 'F2', 'F3']",
+ "finished": "2026-08-05T22:22:05.298403+00:00"
+}
