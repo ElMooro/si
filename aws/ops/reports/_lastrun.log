@@ -1,19 +1,2 @@
-executing-against: a06977b874c9a7d0165124d46eaf0f8244907366
-/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: '_fred_shim.py'
-  return self._open_to_write(zinfo, force_zip64=force_zip64)
-{
- "ops": 4409,
- "started": "2026-08-05T15:58:39.790465+00:00",
- "deployed": true,
- "invoke": {
-  "code": 200,
-  "fn_err": "Unhandled",
-  "head": "{\"errorMessage\": \"not enough values to unpack (expected 5, got 4)\", \"errorType\": \"ValueError\", \"requestId\": \"bc251356-2100-4f58-8866-e659897b2ecb\", \"s"
- },
- "catalog_categories": [],
- "catalog_series_count": 0,
- "spot_check": {},
- "feed_generated_at": "2026-08-01T11:00:31.767144+00:00",
- "verdict": "PARTIAL \u2014 see fields",
- "finished": "2026-08-05T15:59:32.779668+00:00"
-}
+executing-against: 36c474aa2908c494cb84013b305c6d5af4118b52
+{"ops": 4410, "started": "2026-08-05T16:03:32.576897+00:00", "invoke": {"code": 200, "fn_err": null, "head": "{\"statusCode\": 200, \"body\": \"{\\\"net_liquidity_bn\\\": 5827411.87, \\\"score\\\": 38, \\\"label\\\": \\\"BEARISH\\\", \\\"spy_signal\\\": \\\"NEUTRAL\\\", \\\"regime\\\": \\\"NEUTRAL\\\", \\\"elapsed_sec\\\": 1.2}\"}"}, "categories": ["%", "B USD", "bp", "dollar", "fed_balance_sheet", "funding", "index", "money_supply", "rate", "ratio", "reserves", "rrp", "soma", "tga", "yields"], "series_count": 63, "spot": {"BAMLH0A0HYM2": {"value": 2.85, "z": -0.15}, "DFII10": {"value": 2.47, "z": 2.1}, "THREEFYTP10": {"value": 0.8681, "z": 2.21}, "NFCI": {"value": -0.554, "z": -1.54}, "DEXJPUS": {"value": 159.16, "z": -0.14}, "TREAST": {"value": 4519654.0, "z": -0.6}}, "generated_at": "2026-08-05T16:03:53.319487+00:00", "verdict": "PASS \u2014 63 catalog series live", "finished": "2026-08-05T16:04:39.318082+00:00"}
