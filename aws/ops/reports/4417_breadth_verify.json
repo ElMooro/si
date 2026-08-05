@@ -1,0 +1,75 @@
+{
+ "ops": 4417,
+ "started": "2026-08-05T17:28:50.745476+00:00",
+ "deployed": true,
+ "invoke": {
+  "code": 200,
+  "fn_err": null
+ },
+ "after": {
+  "n_triggers": 5,
+  "distinct_prices": 5,
+  "sample": [
+   {
+    "date": "2009-03-23",
+    "label": "GFC March 2009 bottom",
+    "spy_at_trigger": 82.22,
+    "fwd_12m_pct": 42.8
+   },
+   {
+    "date": "2015-10-05",
+    "label": "Sept 2015 V-bottom",
+    "spy_at_trigger": 198.47,
+    "fwd_12m_pct": 8.17
+   },
+   {
+    "date": "2019-01-09",
+    "label": "Q4 2018 recovery",
+    "spy_at_trigger": 257.97,
+    "fwd_12m_pct": 26.62
+   },
+   {
+    "date": "2020-04-08",
+    "label": "COVID V-bottom",
+    "spy_at_trigger": 274.03,
+    "fwd_12m_pct": 49.08
+   },
+   {
+    "date": "2023-11-03",
+    "label": "Oct 2023 reversal",
+    "spy_at_trigger": 434.69,
+    "fwd_12m_pct": 31.08
+   }
+  ],
+  "forward": {
+   "1m": {
+    "return_pct": 5.09,
+    "win_rate_pct": 100.0,
+    "n": 5,
+    "worst_pct": 2.82
+   },
+   "3m": {
+    "return_pct": 9.66,
+    "win_rate_pct": 100.0,
+    "n": 5,
+    "worst_pct": 1.28
+   },
+   "6m": {
+    "return_pct": 17.51,
+    "win_rate_pct": 100.0,
+    "n": 5,
+    "worst_pct": 3.92
+   },
+   "12m": {
+    "return_pct": 31.55,
+    "win_rate_pct": 100.0,
+    "n": 5,
+    "worst_pct": 8.17
+   }
+  },
+  "state": "NULL"
+ },
+ "pack": true,
+ "verdict": "PASS \u2014 5 triggers, 5 distinct prices, 12m win 100.0%",
+ "finished": "2026-08-05T17:29:22.508213+00:00"
+}
