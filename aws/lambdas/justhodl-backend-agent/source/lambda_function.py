@@ -287,10 +287,27 @@ def post_verified(thread_id, to, kind, content, evidence, retries=3):
 def bus_health_sweep():
     """Read the whole bus, find what is going wrong, repair what we can."""
     findings, repairs = [], []
+    # ops 4424: SHARDED sweep — the first version scanned every thread each
+    # run and timed out at 180s. Now it walks a rotating cursor over the
+    # newest threads, bounded per run, so the whole bus is still covered
+    # continuously without any single invocation blowing its budget.
+    SWEEP_N = 12
     try:
         resp = s3.list_objects_v2(Bucket=BUCKET, Prefix="data/a2a/threads/",
-                                  MaxKeys=200)
-        keys = [o["Key"] for o in resp.get("Contents", [])]
+                                  MaxKeys=300)
+        objs = sorted(resp.get("Contents", []),
+                      key=lambda o: o.get("LastModified"), reverse=True)
+        allkeys = [o["Key"] for o in objs]
+        cur = (_get("data/backend-agent/sweep-cursor.json")
+               or {"i": 0})
+        i = int(cur.get("i", 0)) % max(1, len(allkeys))
+        keys = allkeys[i:i + SWEEP_N]
+        if len(keys) < SWEEP_N:
+            keys += allkeys[:SWEEP_N - len(keys)]
+        _put("data/backend-agent/sweep-cursor.json",
+             {"i": (i + SWEEP_N) % max(1, len(allkeys)),
+              "total_threads": len(allkeys), "swept": keys,
+              "updated": _now().isoformat()})
     except Exception as e:
         return {"error": str(e)[:120]}
     now = _now()
