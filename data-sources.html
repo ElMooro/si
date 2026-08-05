@@ -1,0 +1,47 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Data Sources — JustHodl.AI</title>
+<style>
+:root{--bg:#0b0e13;--card:#12161c;--border:#232a33;--text:#e8ecf1;--text2:#aab4bf;--text3:#788492;--accent:#4a7dbf}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1200px;margin:0 auto;padding:22px 18px}
+h1{font-size:20px;margin:0 0 4px}.sub{color:var(--text3);font-size:12px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px}
+.bar{display:flex;height:26px;border-radius:6px;overflow:hidden;margin:10px 0}
+.leg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px}
+.leg span i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border)}
+th{color:var(--text3);font-weight:500}
+.pct{color:var(--text2)}
+</style></head><body><div class="wrap">
+<h1>Data Sources</h1>
+<div class="sub">Provider mix across the platform — E12 rollup, updated nightly. v1 is feed-level (which provider feeds each dataset); value-level provenance upgrades in place as F1 envelope coverage grows.</div>
+<div class="card"><div style="font-weight:600">Global provider mix</div>
+<div class="bar" id="gbar"></div><div class="leg" id="gleg"></div>
+<div class="sub" id="gmeta" style="margin-top:8px"></div></div>
+<div class="card"><div style="font-weight:600;margin-bottom:8px">Per-page mix (top pages)</div>
+<table id="ptab"><thead><tr><th>Page</th><th>Top sources</th></tr></thead><tbody></tbody></table></div>
+<script>
+const COLS={fred:'#4a7dbf',polygon:'#7d5abf',sec:'#4caf7d',nyfed:'#c98b3a',yahoo:'#a05aa0',treasury:'#3aa3a3',cftc:'#bf5a5a',ecb:'#5a8abf',boj:'#bf8a5a',imf:'#8abf5a',bls:'#bf5a8a',census:'#5abfbf',eia:'#9a9a4a',coinmetrics:'#4a9abf','llm-anthropic':'#d0863a','fleet-feed':'#607080','computed/internal':'#3d4854',unmapped:'#2a333d'};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function go(){
+ try{
+  const r=await fetch('/data/audit/data-source-rollup.json?t='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(9000)});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const d=await r.json();
+  const g=d.global||{};const bar=document.getElementById('gbar'),leg=document.getElementById('gleg');
+  let bh='',lh='';
+  for(const[k,v]of Object.entries(g)){const c=COLS[k]||'#555';
+   bh+=`<div title="${esc(k)} ${(v*100).toFixed(1)}%" style="width:${Math.max(.6,v*100)}%;background:${c}"></div>`;
+   lh+=`<span><i style="background:${c}"></i>${esc(k)} <b>${(v*100).toFixed(1)}%</b></span>`;}
+  bar.innerHTML=bh;leg.innerHTML=lh;
+  document.getElementById('gmeta').textContent=`${d.n_feeds} feeds · ${d.n_pages} pages · as of ${d.as_of} · ${d.method}`;
+  const tb=document.querySelector('#ptab tbody');const rows=Object.entries(d.by_page||{}).slice(0,40);
+  tb.innerHTML=rows.map(([p,mix])=>{
+   const top=Object.entries(mix).slice(0,4).map(([k,v])=>`${esc(k)} <span class="pct">${(v*100).toFixed(0)}%</span>`).join(' · ');
+   return `<tr><td>${esc(p)}</td><td>${top}</td></tr>`;}).join('');
+ }catch(e){document.getElementById('gmeta').textContent='rollup unavailable: '+e.message;}
+}
+go();
+</script></div></body></html>
