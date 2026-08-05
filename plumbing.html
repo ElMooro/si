@@ -218,7 +218,7 @@
   </div>
 
 <script>
-const URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/plumbing-stress.json';
+const URL = '/data/plumbing-stress.json';
 let DATA = null;
 let ACTIVE_LAYER = 'ALL';
 let SORT = { col: 'stress_score', dir: 'desc' };
@@ -398,7 +398,7 @@ function renderIndicators() {
 }
 
 let HIST = null;
-const HIST_URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/plumbing-history.json';
+const HIST_URL = '/data/plumbing-history.json';
 async function loadHistory(){ try{ const r=await fetch(HIST_URL+'?_='+Date.now()); if(r.ok) HIST=await r.json(); }catch(e){ console.warn('history load failed',e); } }
 
 function miniSpark(id){
