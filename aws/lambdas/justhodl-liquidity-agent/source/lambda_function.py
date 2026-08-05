@@ -468,6 +468,148 @@ def compute_composite_liquidity_score(
 
 
 # ─── MAIN HANDLER ──────────────────────────────────────────────────────────
+
+
+# ── ops 4421: Perplexity Part-4 structural additions for liquidity.html ──
+# (A) Global vs US: Fed+ECB+BOJ+PBOC stack from global-liquidity/china feeds.
+# (B) DXY first-class (brain: "DXY is the most important chart").
+# (C) Credit-first sequencing (brain rule: "credit stress first, dollar spike
+#     second, stock crash third") — HY OAS z -> DXY z -> SPX 60d, with the
+#     current stage highlighted. All joins are honest: missing inputs are
+#     reported, never faked.
+def _sfeed(key):
+    try:
+        return json.loads(S3.get_object(Bucket=S3_BUCKET,
+                                        Key=key)["Body"].read())
+    except Exception:
+        try:
+            import boto3 as _b
+            c = _b.client("s3", region_name="us-east-1")
+            return json.loads(c.get_object(Bucket="justhodl-dashboard-live",
+                                           Key=key)["Body"].read())
+        except Exception as e:
+            print(f"[part4] {key}: {type(e).__name__}")
+            return None
+
+
+def build_part4(catalog):
+    out = {}
+    # (A) global 4-CB stack
+    gl = _sfeed("data/global-liquidity.json")
+    cn = _sfeed("data/china-liquidity.json")
+    stack, notes = {}, []
+    if isinstance(gl, dict):
+        comp = (gl.get("components_usd_bn") or gl.get("components")
+                or gl.get("cb_components"))
+        if isinstance(comp, dict):
+            stack.update({k: v for k, v in comp.items()
+                          if isinstance(v, (int, float))})
+        for k in ("total_usd_bn", "global_total_usd_bn", "total"):
+            if isinstance(gl.get(k), (int, float)):
+                out["global_total_usd_bn"] = gl[k]
+                break
+        for k in ("change_13w_pct", "change_52w_pct"):
+            if isinstance(gl.get(k), (int, float)):
+                out[k] = gl[k]
+    else:
+        notes.append("global-liquidity.json unavailable")
+    if isinstance(cn, dict):
+        for k in ("pboc_assets_usd_bn", "pboc_balance_sheet_usd_bn",
+                  "china_m2_usd_bn"):
+            if isinstance(cn.get(k), (int, float)):
+                stack.setdefault("PBOC", cn[k])
+                break
+        ci = cn.get("credit_impulse")
+        if isinstance(ci, (int, float)):
+            out["china_credit_impulse"] = ci
+        elif isinstance(cn.get("credit_impulse_flow_yoy_pct"), (int, float)):
+            out["china_credit_impulse"] = cn["credit_impulse_flow_yoy_pct"]
+    else:
+        notes.append("china-liquidity.json unavailable")
+    out["global_stack_usd_bn"] = stack
+    out["global_stack_note"] = ("Fed+ECB+BOJ+PBOC balance sheets in USD; "
+                               "page was US-only before (Perplexity Part-4 A)")
+
+    # (B) DXY first-class
+    dr = _sfeed("data/dollar-radar.json")
+    dxy = {}
+    if isinstance(dr, dict):
+        for k in ("dxy", "broad_dollar", "index", "level"):
+            v = dr.get(k)
+            if isinstance(v, (int, float)):
+                dxy["level"] = v
+                break
+            if isinstance(v, dict) and isinstance(v.get("level"),
+                                                  (int, float)):
+                dxy["level"] = v["level"]
+                break
+        for k in ("regime", "verdict", "breadth_verdict", "state"):
+            if isinstance(dr.get(k), str):
+                dxy["regime"] = dr[k]
+                break
+        if isinstance(dr.get("as_of"), str):
+            dxy["as_of"] = dr["as_of"]
+    cd = (catalog.get("dollar") or {}).get("DTWEXBGS") or {}
+    if cd:
+        dxy.setdefault("level", cd.get("value"))
+        dxy["z"] = cd.get("z")
+        dxy["pctile_5y"] = cd.get("pctile_5y")
+    if not dxy:
+        notes.append("dollar-radar.json unavailable and DTWEXBGS missing")
+    dxy["note"] = "brain: DXY is the most important chart — promoted to hero"
+    out["dxy"] = dxy
+
+    # (C) credit-first sequencing — the brain's ordering rule
+    hy = (catalog.get("credit") or {}).get("BAMLH0A0HYM2") or {}
+    seq_stages = []
+    hy_z = hy.get("z")
+    seq_stages.append({"stage": 1, "name": "Credit stress (HY OAS)",
+                       "value": hy.get("value"), "z": hy_z,
+                       "fired": bool(hy_z is not None and hy_z > 1.0)})
+    d_z = dxy.get("z")
+    seq_stages.append({"stage": 2, "name": "Dollar spike (DXY)",
+                       "value": dxy.get("level"), "z": d_z,
+                       "fired": bool(d_z is not None and d_z > 1.0)})
+    spx = _sfeed("data/market-data.json") or _sfeed("data/spx-ma.json")
+    spx_60d = None
+    if isinstance(spx, dict):
+        f = _deep_num(spx, ("chg_60d", "return_60d", "pct_60d", "spx_60d"))
+        spx_60d = f
+    seq_stages.append({"stage": 3, "name": "Equity drawdown (SPX 60d)",
+                       "value": spx_60d,
+                       "fired": bool(spx_60d is not None and spx_60d < -5)})
+    fired = [s["stage"] for s in seq_stages if s["fired"]]
+    out["credit_first_sequence"] = {
+        "stages": seq_stages, "stages_fired": fired,
+        "current_stage": (max(fired) if fired else 0),
+        "verdict": ("CLEAR — no stage firing" if not fired else
+                    f"STAGE {max(fired)} firing"),
+        "brain_rule": "credit stress first, dollar spike second, "
+                      "stock crash third"}
+    if notes:
+        out["join_notes"] = notes
+    return out
+
+
+def _deep_num(obj, patterns, _d=0):
+    if _d > 4 or obj is None:
+        return None
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if any(p in str(k).lower() for p in patterns) and \
+                    isinstance(v, (int, float)):
+                return float(v)
+            r = _deep_num(v, patterns, _d + 1)
+            if r is not None:
+                return r
+    elif isinstance(obj, list):
+        for v in obj[:15]:
+            r = _deep_num(v, patterns, _d + 1)
+            if r is not None:
+                return r
+    return None
+
+
 def lambda_handler(event: Dict, context: Any) -> Dict:
     print("[LiqAgent] Starting TGA + Fed Liquidity analysis...")
     ts_start = datetime.now(timezone.utc)
@@ -661,6 +803,7 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
 
         # ── ops 4409: full institutional series catalog by category ──
         "catalog": catalog,
+        "part4": build_part4(catalog),   # ops 4421 structural additions
 
         # ── Core Liquidity Triad ──────────────────────────────────────────
         "core": {

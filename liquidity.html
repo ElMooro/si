@@ -696,19 +696,14 @@
 
   <div class="status-row">
     <div class="status-dot"></div>
-
-<!-- ops 4409: institutional series catalog (Perplexity dimension-4, Khalid) -->
-<div style="max-width:1500px;margin:18px auto;padding:0 18px">
-  <div id="catalog-section"></div>
-</div>
     <span>Data from Federal Reserve Economic Data (FRED) · Updated daily 7:30 AM ET</span>
     <span style="margin-left:auto;color:var(--text3)" id="footer-ts">—</span>
   </div>
-
-<!-- ops 4409: institutional series catalog (Perplexity dimension-4, Khalid) -->
-<div style="max-width:1500px;margin:18px auto;padding:0 18px">
-  <div id="catalog-section"></div>
 </div>
+
+<!-- ops 4421: Part-4 structural (global 4-CB stack · DXY hero · credit-first) -->
+<div style="max-width:1500px;margin:18px auto;padding:0 18px">
+  <div id="part4-section"></div>
 </div>
 
 <!-- ops 4409: institutional series catalog (Perplexity dimension-4, Khalid) -->
@@ -882,6 +877,7 @@ function renderNetLiqChart(elId, net_liq, fed_bs, tga, rrp) {
 }
 
 function render(data) {
+  try { renderPart4(data.part4 || {}); } catch(e){ console.error("part4",e); }
   try { renderCatalog(data.catalog || {}); } catch(e){ console.error('catalog render', e); }
   const core    = data.core    || {};
   const regime  = data.regime  || {};
@@ -1119,6 +1115,62 @@ function renderCatalog(catalog){
     html+='</div>';
   }
   host.innerHTML=html;
+}
+
+// ops 4421: Part-4 renderer — DXY hero · credit-first sequencing · global 4-CB stack
+function renderPart4(p4){
+  const host=document.getElementById('part4-section'); if(!host) return;
+  if(!p4||!Object.keys(p4).length){host.innerHTML='';return;}
+  const e=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const n=(v,d)=>(v==null||!isFinite(v))?'\u2014':Number(v).toLocaleString(undefined,{maximumFractionDigits:d==null?1:d});
+  let h='';
+  const d=p4.dxy||{};
+  if(d.level!=null||d.z!=null){
+    const zc=d.z==null?'var(--text2,#aaa)':(d.z>=1.5?'#e05252':d.z<=-1.5?'#4caf7d':'#e0a030');
+    h+='<div style="border:1px solid var(--border,#222);border-radius:10px;padding:14px;margin-bottom:12px;background:var(--card,#12161c)">'
+      +'<div style="font-size:11px;color:var(--text3,#888);text-transform:uppercase;letter-spacing:.5px">Dollar \u2014 first-class</div>'
+      +'<div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-top:4px">'
+      +'<span style="font-size:30px;font-weight:700">'+n(d.level,2)+'</span>'
+      +'<span style="font-size:13px;color:'+zc+'">z '+(d.z==null?'\u2014':(d.z>0?'+':'')+d.z)+'</span>'
+      +(d.pctile_5y!=null?'<span style="font-size:12px;color:var(--text3,#888)">'+d.pctile_5y+'th pctile (5y)</span>':'')
+      +(d.regime?'<span style="font-size:12px;padding:2px 8px;border:1px solid var(--border,#222);border-radius:12px">'+e(d.regime)+'</span>':'')
+      +'</div><div style="font-size:10px;color:var(--text3,#888);margin-top:6px;font-style:italic">'+e(d.note||'')+'</div></div>';
+  }
+  const cs=p4.credit_first_sequence;
+  if(cs&&cs.stages){
+    h+='<div style="border:1px solid var(--border,#222);border-radius:10px;padding:14px;margin-bottom:12px;background:var(--card,#12161c)">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'
+      +'<span style="font-weight:600;font-size:14px">Credit-First Sequencing</span>'
+      +'<span style="font-size:12px;color:'+(cs.current_stage>0?'#e0a030':'#4caf7d')+'">'+e(cs.verdict||'')+'</span></div>'
+      +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:10px">';
+    cs.stages.forEach(function(s){
+      const c=s.fired?'#e05252':'var(--border,#222)';
+      h+='<div style="border:1px solid '+c+';border-radius:8px;padding:9px">'
+        +'<div style="font-size:10px;color:var(--text3,#888)">STAGE '+s.stage+'</div>'
+        +'<div style="font-size:12px;margin-top:2px">'+e(s.name)+'</div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:4px">'
+        +'<span style="font-size:16px;font-weight:600">'+n(s.value,2)+'</span>'
+        +'<span style="font-size:11px;color:'+(s.fired?'#e05252':'#4caf7d')+'">'+(s.fired?'FIRING':'clear')+(s.z!=null?' \u00b7 z '+s.z:'')+'</span>'
+        +'</div></div>';
+    });
+    h+='</div><div style="font-size:10px;color:var(--text3,#888);margin-top:8px;font-style:italic">'+e(cs.brain_rule||'')+'</div></div>';
+  }
+  const st=p4.global_stack_usd_bn||{};
+  if(Object.keys(st).length){
+    let tot=0; Object.keys(st).forEach(function(k){ if(isFinite(st[k])) tot+=st[k]; }); if(!tot) tot=1;
+    const cols=['#4a7dbf','#4caf7d','#c98b3a','#a05aa0','#777'];
+    h+='<div style="border:1px solid var(--border,#222);border-radius:10px;padding:14px;background:var(--card,#12161c)">'
+      +'<div style="font-weight:600;font-size:14px">Global Liquidity \u2014 Fed \u00b7 ECB \u00b7 BOJ \u00b7 PBOC</div>'
+      +(p4.global_total_usd_bn!=null?'<div style="font-size:22px;font-weight:700;margin-top:4px">$'+n(p4.global_total_usd_bn,0)+'B</div>':'')
+      +'<div style="display:flex;height:22px;border-radius:5px;overflow:hidden;margin-top:10px">';
+    Object.keys(st).forEach(function(k,i){ const w=Math.max(1,(st[k]/tot)*100);
+      h+='<div title="'+e(k)+'" style="width:'+w+'%;background:'+cols[i%cols.length]+'"></div>'; });
+    h+='</div><div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">';
+    Object.keys(st).forEach(function(k,i){ h+='<span style="font-size:11px"><span style="display:inline-block;width:9px;height:9px;background:'+cols[i%cols.length]+';border-radius:2px;margin-right:4px"></span>'+e(k)+' $'+n(st[k],0)+'B</span>'; });
+    h+='</div>'+(p4.china_credit_impulse!=null?'<div style="font-size:11px;color:var(--text3,#888);margin-top:8px">China credit impulse: '+n(p4.china_credit_impulse,2)+'</div>':'')+'</div>';
+  }
+  if(p4.join_notes&&p4.join_notes.length) h+='<div style="font-size:10px;color:var(--text3,#888);margin-top:8px">joins pending: '+e(p4.join_notes.join(' \u00b7 '))+'</div>';
+  host.innerHTML=h;
 }
 
 loadData();

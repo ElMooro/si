@@ -462,6 +462,85 @@ CANARY_THRESHOLDS = {
 }
 
 
+
+
+# ── ops 4421: four-canary joins — MOVE + on/off-the-run from fleet feeds ──
+# Perplexity asked for the full 4/4 panel. MOVE and the on/off-the-run spread
+# are not on FRED, so they must come from sibling engines. Field names are
+# NOT assumed: we fetch the feeds and DISCOVER matching keys, reporting what
+# was actually found (or an honest pending_source naming the feed we searched).
+def _deep_find(obj, patterns, max_depth=5, _d=0):
+    """Return (path, value) for the first numeric leaf whose key matches."""
+    if _d > max_depth or obj is None:
+        return None
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            kl = str(k).lower()
+            if any(p in kl for p in patterns):
+                if isinstance(v, (int, float)):
+                    return (k, float(v))
+                if isinstance(v, dict):
+                    for vk in ("value", "level", "latest", "current", "last"):
+                        if isinstance(v.get(vk), (int, float)):
+                            return (f"{k}.{vk}", float(v[vk]))
+            r = _deep_find(v, patterns, max_depth, _d + 1)
+            if r:
+                return r
+    elif isinstance(obj, list):
+        for v in obj[:20]:
+            r = _deep_find(v, patterns, max_depth, _d + 1)
+            if r:
+                return r
+    return None
+
+
+def _feed(key):
+    try:
+        return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+    except Exception as e:
+        print(f"[canary-join] {key}: {type(e).__name__}")
+        return None
+
+
+def join_canaries(canaries):
+    """Populate MOVE and on/off-the-run from sibling feeds, honestly."""
+    bv = _feed("data/bond-vol.json")
+    hit = _deep_find(bv, ("move",)) if bv else None
+    if hit:
+        k, v = hit
+        canaries["move"] = {
+            "label": "MOVE (bond vol)", "value": round(v, 2),
+            "source": f"bond-vol.json:{k}",
+            "state": ("RED" if v > 140 else "AMBER" if v > 120 else "CALM"),
+            "thresholds": {"amber": 120, "red": 140}}
+    else:
+        canaries["move"] = {
+            "label": "MOVE (bond vol)",
+            "pending_source": ("searched data/bond-vol.json for a MOVE key "
+                               "and found none — engine emits composite_z / "
+                               "composite_percentile instead; needs a MOVE "
+                               "level series or an explicit proxy decision"),
+            "thresholds": {"amber": 120, "red": 140}}
+    tn = _feed("data/treasury-noise.json")
+    hit2 = _deep_find(tn, ("on_off", "onoff", "off_the_run", "otr",
+                           "noise")) if tn else None
+    if hit2:
+        k, v = hit2
+        canaries["on_off_run"] = {
+            "label": "On/off-the-run 10Y spread (proxy)",
+            "value": round(v, 3), "source": f"treasury-noise.json:{k}",
+            "state": ("RED" if abs(v) > 8 else
+                      "AMBER" if abs(v) > 4 else "CALM"),
+            "note": "treasury-noise dispersion proxy for the OTR spread"}
+    else:
+        canaries["on_off_run"] = {
+            "label": "On/off-the-run 10Y spread",
+            "pending_source": ("searched data/treasury-noise.json — no "
+                               "on/off-run key; engine emits bill_sofr / "
+                               "cp_bill stress percentiles")}
+    return canaries
+
+
 def build_plumb_enrichment():
     """Enrichment catalog + the four-canary convergence panel."""
     cat, latest = {}, {}
@@ -513,13 +592,7 @@ def build_plumb_enrichment():
             "label": "HY OAS", "value": hy["value"], "z": hy["z"],
             "state": ("RED" if (hy["z"] or 0) > 2 else
                       "AMBER" if (hy["z"] or 0) > 1 else "CALM")}
-    canaries["move"] = {"label": "MOVE (bond vol)",
-                        "pending_source": "MOVE is not on FRED — join from "
-                                          "bond-vol.json fleet feed",
-                        "thresholds": {"amber": 120, "red": 140}}
-    canaries["on_off_run"] = {"label": "On/off-the-run 10Y spread",
-                              "pending_source": "NY Fed, not FRED — join "
-                                                "from treasury-noise.json"}
+    canaries = join_canaries(canaries)   # ops 4421: real fleet joins
     firing = [k for k, v in canaries.items()
               if v.get("state") in ("AMBER", "RED")]
     convergence = {
