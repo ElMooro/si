@@ -356,6 +356,10 @@ def fanout_pending(ev):
     for p, meta in reg.items():
         if budget <= 0:
             break
+        # ops 4414: honour registry status — disabled providers get no fan-out
+        # (GLM was disabled at ops 4394 but kept receiving calls and posting)
+        if meta.get("status") in ("disabled", "quota_exhausted"):
+            continue
         if meta.get("kind") == "human" or meta.get("transport") != "llm":
             continue
         if _breaker_open(p):
