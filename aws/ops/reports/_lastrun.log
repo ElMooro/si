@@ -1,9 +1,10 @@
-executing-against: 71454c8bb45848d16592b00cc5f6593522a58662
+executing-against: 639b9ea893984a72c5ee96b268c7aff5d9712138
 {
- "issues": {},
- "repairs": null,
- "posted": {
-  "ok": true,
-  "err": null
- }
+ "elapsed": 73.8,
+ "issues": {
+  "rejected_no_evidence": 1,
+  "duplicate_acks": 4,
+  "stuck_task": 8
+ },
+ "repairs": 8
 }

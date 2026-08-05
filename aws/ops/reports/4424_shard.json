@@ -1,0 +1,166 @@
+{
+ "ops": 4424,
+ "started": "2026-08-05T19:12:58.830500+00:00",
+ "timeout": 300,
+ "elapsed_s": 73.8,
+ "result": {
+  "ok": true,
+  "bus_health": {
+   "findings": 13,
+   "repairs": 8
+  },
+  "executed": 0,
+  "escalated": 4,
+  "capabilities_run": [],
+  "escalation_queue_depth": 30
+ },
+ "health": {
+  "swept_at": "2026-08-05 19:13:13.862606+00:00",
+  "n_findings": 13,
+  "n_repairs": 8,
+  "findings": [
+   {
+    "thread": "verify-batch-4407-4412",
+    "issue": "rejected_no_evidence",
+    "by": "claude"
+   },
+   {
+    "thread": "verify-batch-4407-4412",
+    "issue": "duplicate_acks",
+    "count": 5
+   },
+   {
+    "thread": "0805175702",
+    "issue": "duplicate_acks",
+    "count": 6
+   },
+   {
+    "thread": "evidence-packs",
+    "issue": "duplicate_acks",
+    "count": 5
+   },
+   {
+    "thread": "0805174930",
+    "issue": "duplicate_acks",
+    "count": 5
+   },
+   {
+    "thread": "verify-batch-4407-4412",
+    "issue": "stuck_task",
+    "state": "ACK",
+    "minutes": 79
+   },
+   {
+    "thread": "evidence-packs",
+    "issue": "stuck_task",
+    "state": "ACK",
+    "minutes": 80
+   },
+   {
+    "thread": "0805174930",
+    "issue": "stuck_task",
+    "state": "ACK",
+    "minutes": 79
+   },
+   {
+    "thread": "handshake-demo",
+    "issue": "stuck_task",
+    "state": "DONE",
+    "minutes": 79
+   },
+   {
+    "thread": "0805162503",
+    "issue": "stuck_task",
+    "state": "ACK",
+    "minutes": 80
+   },
+   {
+    "thread": "handshake-protocol",
+    "issue": "stuck_task",
+    "state": "FILED",
+    "minutes": 79
+   },
+   {
+    "thread": "0805175702",
+    "issue": "stuck_task",
+    "state": "ACK",
+    "minutes": 76
+   },
+   {
+    "thread": "0805181818",
+    "issue": "stuck_task",
+    "state": "ACK",
+    "minutes": 56
+   }
+  ],
+  "repairs": [
+   {
+    "thread": "verify-batch-4407-4412",
+    "action": "repost",
+    "ok": true
+   },
+   {
+    "thread": "verify-batch-4407-4412",
+    "action": "nudge",
+    "state": "ACK"
+   },
+   {
+    "thread": "evidence-packs",
+    "action": "nudge",
+    "state": "ACK"
+   },
+   {
+    "thread": "0805174930",
+    "action": "nudge",
+    "state": "ACK"
+   },
+   {
+    "thread": "0805162503",
+    "action": "nudge",
+    "state": "ACK"
+   },
+   {
+    "thread": "handshake-protocol",
+    "action": "nudge",
+    "state": "FILED"
+   },
+   {
+    "thread": "0805175702",
+    "action": "nudge",
+    "state": "ACK"
+   },
+   {
+    "thread": "0805181818",
+    "action": "nudge",
+    "state": "ACK"
+   }
+  ],
+  "note": "Self-supervision sweep \u2014 runs every heartbeat, no prompting required (Khalid, ops 4423)."
+ },
+ "cursor": {
+  "i": 36,
+  "total_threads": 37,
+  "swept": [
+   "data/a2a/threads/backtest-infra.json",
+   "data/a2a/threads/audit-loop-shard-002.json",
+   "data/a2a/threads/external-ai-council.json",
+   "data/a2a/threads/0007-code-capability.json",
+   "data/a2a/threads/research-indicators-new.json",
+   "data/a2a/threads/0001-build-the-bus.json",
+   "data/a2a/threads/engine-audit-capitulation.json",
+   "data/a2a/threads/engine-audit-alpha-council.json",
+   "data/a2a/threads/0009-two-wide-quorum-check.json",
+   "data/a2a/threads/0006-alpha-triage-retirement.json",
+   "data/a2a/threads/0003-csp-meta.json",
+   "data/a2a/threads/0004-fetch-resilience.json"
+  ],
+  "updated": "2026-08-05T19:14:26.378052+00:00"
+ },
+ "issues": {
+  "rejected_no_evidence": 1,
+  "duplicate_acks": 4,
+  "stuck_task": 8
+ },
+ "verdict": "PASS \u2014 sweep completed in 73.8s, 13 findings, 8 repairs, cursor 36/37",
+ "finished": "2026-08-05T19:14:29.807104+00:00"
+}
