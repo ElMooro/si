@@ -1,4 +1,4 @@
-"""ops 4388 — code-deploy capability for agents goes live (safely).
+"""ops 4389 — code-deploy capability for agents goes live (safely).
 
 Deploys bus v1.3 (propose_patch), checks SSM /justhodl/github/bus-pat for
 a repo-scoped GitHub token, updates the registry to advertise the
@@ -27,7 +27,7 @@ lam = boto3.client("lambda", region_name=REGION,
                    config=Config(read_timeout=280, retries={"max_attempts": 0}))
 s3 = boto3.client("s3", region_name=REGION)
 ssm = boto3.client("ssm", region_name=REGION)
-R = {"ops": 4388, "started": datetime.now(timezone.utc).isoformat()}
+R = {"ops": 4389, "started": datetime.now(timezone.utc).isoformat()}
 
 # deploy v1.3
 buf = io.BytesIO()
@@ -38,10 +38,22 @@ with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
         p = "aws/shared/" + sh
         if os.path.exists(p):
             z.write(p, sh)
-lam.update_function_code(FunctionName=BUS, ZipFile=buf.getvalue())
+# wait for any in-flight update (mega-deploy race) before touching code
+for _ in range(30):
+    c = lam.get_function_configuration(FunctionName=BUS)
+    if c.get("State") == "Active" and \
+            c.get("LastUpdateStatus") in (None, "Successful"):
+        break
+    time.sleep(6)
+for attempt in range(6):
+    try:
+        lam.update_function_code(FunctionName=BUS, ZipFile=buf.getvalue())
+        break
+    except lam.exceptions.ResourceConflictException:
+        time.sleep(15)
 for _ in range(24):
-    if lam.get_function_configuration(FunctionName=BUS).get(
-            "LastUpdateStatus") == "Successful":
+    c = lam.get_function_configuration(FunctionName=BUS)
+    if c.get("LastUpdateStatus") == "Successful":
         break
     time.sleep(5)
 R["code"] = "v1.3 deployed"
@@ -138,10 +150,10 @@ R["verdict"] = ("PASS — capability live, PR proven"
                  if R["bus_pat"] != "present" else "PARTIAL — see live_pr"))
 R["finished"] = datetime.now(timezone.utc).isoformat()
 os.makedirs("aws/ops/reports", exist_ok=True)
-json.dump(R, open("aws/ops/reports/4388_code_capability.json", "w"),
+json.dump(R, open("aws/ops/reports/4389_code_capability.json", "w"),
           indent=1, default=str)
-open("aws/ops/reports/4388_code_capability.md", "w").write(
-    f"# ops 4388 — agent code-deploy capability — {R['verdict']}\n"
+open("aws/ops/reports/4389_code_capability.md", "w").write(
+    f"# ops 4389 — agent code-deploy capability — {R['verdict']}\n"
     f"- code: {R['code']} | bus_pat: {R['bus_pat']} | "
     f"registry: {R.get('registry')}\n"
     f"- live PR: {json.dumps(R.get('live_pr'))}\n")
