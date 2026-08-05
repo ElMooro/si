@@ -1,23 +1,2 @@
-executing-against: cc7c0c7555d65d486376659c207051cf7ba61fcb
-{
- "d4v2": {
-  "feeds": 1022,
-  "true_orphans": 74,
-  "dead_ends": 287,
-  "live_resolved": 151,
-  "orphan_sample": [
-   "data/13f-aggregate.json",
-   "data/_cache/chokepoint-irreplaceability.json",
-   "data/_state/signal-alpha-map.json",
-   "data/aaii.json",
-   "data/apac.json",
-   "data/askdesk-config.json",
-   "data/asymmetric-setups.json",
-   "data/beneish-m-score.json"
-  ]
- },
- "posted": {
-  "ok": false,
-  "err": "rejected_no_evidence"
- }
-}
+executing-against: 7d36ab2be7eb8eed998a1af7b22da24407b25cc6
+{"rollup": {"global": {"fleet-feed": 0.5083, "unmapped": 0.1435, "fred": 0.1103, "polygon": 0.095, "llm-anthropic": 0.0453, "yahoo": 0.0261, "ecb": 0.023, "sec": 0.0198, "nyfed": 0.0077, "cftc": 0.0057, "treasury": 0.0057, "imf": 0.0026, "coinmetrics": 0.0026, "eia": 0.0019, "boj": 0.0013, "census": 0.0013}, "n_feeds": 1022, "n_pages": 179, "crisis": {"fleet-feed": 0.5, "fred": 0.5}, "liquidity": {"treasury": 0.25, "fleet-feed": 0.25, "polygon": 0.25, "fred": 0.25}}, "posted": {"ok": true, "err": null}}
