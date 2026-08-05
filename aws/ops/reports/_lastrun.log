@@ -1,23 +1,15 @@
-executing-against: 5e15c798b6c50ab0c4dbdd6c66a0c049a54a4aa2
+executing-against: 11ed2911ada5a4207bc0b0b9d89d32b8d099acd6
 {
- "stats": {
-  "engines_total": 785,
-  "with_numeric": 731,
-  "with_provenance": 178,
-  "with_mock": 63,
-  "with_hedge": 276,
-  "fallback_sites": 898,
-  "engines_with_fallback": 235
+ "pre": {
+  "state": "Active",
+  "desc": "",
+  "last_modified": "2026-05-22T11:00:48.000+0000"
  },
- "prov_pct": 24.4,
- "top": [
-  "aiapi-market-analyzer",
-  "justhodl-signal-board",
-  "justhodl-prepump-alerts-router",
-  "justhodl-stock-screener",
-  "justhodl-cds-monitor",
-  "justhodl-crypto-opportunities",
-  "justhodl-equity-research",
-  "justhodl-chokepoint"
- ]
+ "rules_found": [],
+ "concurrency": "0 (execution blocked)",
+ "stamped": true,
+ "posted": {
+  "ok": true,
+  "err": null
+ }
 }
