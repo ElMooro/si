@@ -1,25 +1,23 @@
-executing-against: 0d11115031fb553cc439643112c9e287a7f56132
+executing-against: 5e15c798b6c50ab0c4dbdd6c66a0c049a54a4aa2
 {
- "open": 15,
- "threads": [
-  "0805181116",
-  "vendor-cost-audit",
-  "propose-patch-onboarding",
-  "0805162503",
-  "0805191433",
-  "0002-xss-uniformity",
-  "page-audit-crisis-plumbing-liq",
-  "0805174350",
-  "engine-audit-breadth-thrust",
-  "engine-audit-risk-gate-deep",
-  "frontend-audit-risk-gate",
-  "project-charter",
-  "backtest-infra",
-  "external-ai-council",
-  "research-indicators-new"
- ],
- "mirror": {
-  "ok": true,
-  "err": null
- }
+ "stats": {
+  "engines_total": 785,
+  "with_numeric": 731,
+  "with_provenance": 178,
+  "with_mock": 63,
+  "with_hedge": 276,
+  "fallback_sites": 898,
+  "engines_with_fallback": 235
+ },
+ "prov_pct": 24.4,
+ "top": [
+  "aiapi-market-analyzer",
+  "justhodl-signal-board",
+  "justhodl-prepump-alerts-router",
+  "justhodl-stock-screener",
+  "justhodl-cds-monitor",
+  "justhodl-crypto-opportunities",
+  "justhodl-equity-research",
+  "justhodl-chokepoint"
+ ]
 }
