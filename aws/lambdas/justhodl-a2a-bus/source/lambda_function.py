@@ -666,11 +666,59 @@ def _wake_claude(thread_id, reason):
         return False
 
 
+
+
+# ═══ ops 4425: /claude-hook — Claude Code session -> bus (Perplexity spec) ═══
+# The bridge that ends Khalid's relaying. A Claude Code hook POSTs each of his
+# turns here; the route maps session_id -> thread_id (ledger
+# data/a2a/cli-sessions.json), posts the content as from="claude", and ALWAYS
+# returns 200 so a bus hiccup can never block his CLI. Content truncated at
+# 60KB; transcript_path preserved as evidence.
+CLI_SESSIONS_KEY = "data/a2a/cli-sessions.json"
+HOOK_MAX_BYTES = 60000
+
+
+def claude_hook(ev):
+    sid = str(ev.get("session_id") or ev.get("sessionId") or "default")
+    content = (ev.get("content") or ev.get("message") or ev.get("prompt")
+               or "")
+    if isinstance(content, (dict, list)):
+        content = json.dumps(content, default=str)
+    content = str(content)[:HOOK_MAX_BYTES]
+    transcript = ev.get("transcript_path") or ev.get("transcriptPath")
+    if not content.strip():
+        return {"ok": True, "skipped": "empty content"}
+    ledger = _get(CLI_SESSIONS_KEY, {"sessions": {}})
+    entry = ledger["sessions"].get(sid)
+    if not entry:
+        tid = "cli-" + hashlib.sha256(sid.encode()).hexdigest()[:10]
+        open_thread({"thread_id": tid,
+                     "topic": f"Claude Code session {sid[:12]}"})
+        entry = {"thread_id": tid, "opened_at": _now(), "turns": 0}
+        ledger["sessions"][sid] = entry
+    entry["turns"] = entry.get("turns", 0) + 1
+    entry["last_seen"] = _now()
+    if transcript:
+        entry["transcript_path"] = transcript
+    _put(CLI_SESSIONS_KEY, ledger)
+    ev2 = {"thread_id": entry["thread_id"], "from": "claude", "to": "*",
+           "kind": ev.get("kind") or "question", "content": content,
+           "delivered_via": "claude-code-hook"}
+    if transcript:
+        ev2["evidence"] = [{"kind": "url", "ref": str(transcript)}] \
+            if str(transcript).startswith("http") else []
+    r = post_turn(ev2)
+    return {"ok": True, "thread_id": entry["thread_id"],
+            "posted": r.get("ok"), "detail": r.get("error"),
+            "session_turns": entry["turns"]}
+
+
 ACTIONS = {"open_thread": open_thread, "post_turn": post_turn,
            "resolve": resolve, "deadman_sweep": deadman_sweep,
            "fanout_pending": fanout_pending,
            "propose_patch": propose_patch,
            "task_update": task_update,
+           "claude_hook": claude_hook,
            "get_tasks": get_tasks,
            "list_patches": lambda e: {"ok": True, **(_get("data/a2a/patches.json", {"patches": []}))},
            "get_thread": lambda e: {"ok": True, "thread": _get(
@@ -715,6 +763,18 @@ def lambda_handler(event, context):
                            if k not in ("requestContext", "headers",
                                         "queryStringParameters")}}
     if is_http:
+        # ops 4425: /claude-hook is path-routed and ALWAYS 200 — a bus issue
+        # must never block Khalid's Claude Code session.
+        _path = (http.get("path") or "").lower()
+        if "claude-hook" in _path or merged.get("action") == "claude_hook":
+            try:
+                res = claude_hook(merged)
+            except Exception as e:
+                res = {"ok": True, "error": f"{type(e).__name__}: "
+                                            f"{str(e)[:120]}"}
+            return {"statusCode": 200,
+                    "headers": {"Content-Type": "application/json"},
+                    "body": json.dumps(res, default=str)}
         hdrs = {k.lower(): v for k, v in
                 (event.get("headers") or {}).items()}
         tok = (hdrs.get("authorization") or "").replace("Bearer ", "").strip()

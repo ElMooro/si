@@ -154,11 +154,42 @@ RULE_RE = re.compile(r"\b(justhodl-[a-z0-9\-]+-(?:\d+min|\d+h|hourly|daily|"
 FEED_RE = re.compile(r"\b(data/[a-z0-9\-_/]+\.json)\b")
 
 
+# ops 4425: control-plane functions are NEVER mechanical targets. Perplexity
+# filed a SPEC that mentioned "deploy" and "schedule"; the classifier read
+# those as an imperative and ran rebind_schedule on the BUS LAMBDA ITSELF.
+# Two guards now: (a) never touch control-plane infra, (b) refuse anything
+# that looks like a specification/design document rather than a request.
+PROTECTED_FUNCTIONS = {
+    "justhodl-a2a-bus", "justhodl-backend-agent", "justhodl-audit-loop",
+    "justhodl-scheduler", "justhodl-ai-council",
+}
+SPEC_MARKERS = ("spec", "specification", "route", "~", "```", "endpoint",
+                "payload shape", "schema", "proposal", "design",
+                "additive to", "lines)", "I propose")
+
+
+def _looks_like_spec(c):
+    lc = (c or "").lower()
+    hits = sum(1 for m in SPEC_MARKERS if m in lc)
+    return hits >= 2 or len(c or "") > 1200
+
+
 def classify(content):
     c = (content or "").lower()
     engines = ENGINE_RE.findall(content or "")
     rules = RULE_RE.findall(content or "")
     feeds = FEED_RE.findall(content or "")
+    # ops 4425 guard (b): a design document is not an instruction
+    if _looks_like_spec(content):
+        return ("escalate", {"reason": "reads as a spec/design document, "
+                             "not an imperative request",
+                             "engines": engines[:3]})
+    # ops 4425 guard (a): never act on control-plane infrastructure
+    engines = [e for e in engines if e not in PROTECTED_FUNCTIONS]
+    if not engines and any(e in PROTECTED_FUNCTIONS
+                           for e in ENGINE_RE.findall(content or "")):
+        return ("escalate", {"reason": "targets control-plane infra "
+                             f"({sorted(PROTECTED_FUNCTIONS)}) — refused"})
     # restart / heal a stale engine
     if any(k in c for k in ("restart", "re-invoke", "reinvoke", "force-run",
                             "force run", "kick", "heal", "stale feed",
