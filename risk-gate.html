@@ -21,8 +21,8 @@ small{color:var(--dim)}
 <div class="dim">Brain-constitutional: every rule implements a cited note from Khalid's brain. Macro gates sizing before selection.</div>
 <div id="root" class="card">Loading data/risk-gate.json…</div>
 <script>
-const SRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/risk-gate.json',
-           'https://s3.amazonaws.com/justhodl-dashboard-live/data/risk-gate.json'];
+const SRC=['https://justhodl.ai/data/risk-gate.json',
+           'https://justhodl-dashboard-live.s3.amazonaws.com/data/risk-gate.json'];
 const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const fmt=(v,d=2)=>v==null?'—':(typeof v==='number'?v.toFixed(d):esc(v));
 async function load(){let d=null;for(const u of SRC){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){d=await r.json();break}}catch(e){}}
