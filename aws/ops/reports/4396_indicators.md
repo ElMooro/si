@@ -1,0 +1,73 @@
+# ops 4396 — 9 brain-cited indicators — PASS — 6/9 indicators live in risk-gate.json, contract handed to Perplexity
+- deployed: True | invoke: {"code": 200, "fn_err": null, "head": "{\"ok\": true, \"posture\": \"NEUTRAL\", \"composite\": -0.23, \"sizing_multiplier\": 0.75, \"n_flips\": 35}"}
+- indicators live: {
+ "live_count": 6,
+ "total": 9,
+ "keys": [
+  "acm_term_premium",
+  "howell_global_liquidity",
+  "hy_ig_skew",
+  "sahm_rule",
+  "sofr_iorb",
+  "sovereign_cds_basket",
+  "truck_transport",
+  "vix_term_structure",
+  "xcc_basis"
+ ],
+ "sample": {
+  "hy_ig_skew": {
+   "value": 2.0,
+   "z": -0.58,
+   "signal": "CALM",
+   "pending_source": null
+  },
+  "vix_term_structure": {
+   "value": 1.194,
+   "z": null,
+   "signal": "CONTANGO/CALM",
+   "pending_source": null
+  },
+  "acm_term_premium": {
+   "value": 0.43,
+   "z": -0.8,
+   "signal": "POSITIVE",
+   "pending_source": null
+  },
+  "xcc_basis": {
+   "value": null,
+   "z": null,
+   "signal": null,
+   "pending_source": "cross-currency basis lives in crisis-plumbing fleet feed (xcc_basis_signals); wire join"
+  },
+  "sovereign_cds_basket": {
+   "value": null,
+   "z": null,
+   "signal": null,
+   "pending_source": "sovereign CDS (Italy/Spain/EM) needs Markit/CDX feed \u2014 not on FRED"
+  },
+  "howell_global_liquidity": {
+   "value": null,
+   "z": null,
+   "signal": null,
+   "pending_source": "CrossBorder Capital GLI is proprietary; approximate via central-bank balance-sheet composite (Fed WRESBAL live; ECB/BOJ join pending)"
+  },
+  "sofr_iorb": {
+   "value": 0.0,
+   "z": null,
+   "signal": "NORMAL",
+   "pending_source": null
+  },
+  "sahm_rule": {
+   "value": 0.0,
+   "z": null,
+   "signal": "CLEAR",
+   "pending_source": null
+  },
+  "truck_transport": {
+   "value": 0.0,
+   "z": null,
+   "signal": "EXPANDING",
+   "pending_source": null
+  }
+ }
+}
