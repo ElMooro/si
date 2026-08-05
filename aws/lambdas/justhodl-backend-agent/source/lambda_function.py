@@ -246,10 +246,14 @@ def lambda_handler(event, context):
                 continue
             kind, args = classify(target.get("content"))
             budget -= 1
-            # ops 4418: ACK FIRST — Perplexity gets confirmation instantly
+            # ops 4420: ACK ONCE per thread-state. Perplexity verified that
+            # duplicate ACK + queue turns were burning the 16-turn budget.
             try:
-                _ack(tid, target.get("from") or "perplexity",
-                     target.get("content") or "", kind != "escalate")
+                _board = bus({"action": "get_tasks"}) or {}
+                _cur = ((_board.get("open") or {}).get(tid) or {}).get("state")
+                if _cur not in ("ACK", "DONE", "VERIFIED", "PUBLISHED"):
+                    _ack(tid, target.get("from") or "perplexity",
+                         target.get("content") or "", kind != "escalate")
             except Exception as _e:
                 print("ack failed:", str(_e)[:80])
             if kind == "escalate":
@@ -267,15 +271,9 @@ def lambda_handler(event, context):
                                      "hint": args})
                 # tell the requester it's queued for Claude (don't drop —
                 # Claude closes it in-session)
-                bus({"action": "post_turn", "thread_id": tid,
-                     "from": "claude-backend", "to": target.get("from"),
-                     "kind": "question",
-                     "content": "[backend-agent] This needs Claude's "
-                                "judgment (code/novel/ambiguous) — queued "
-                                "in data/backend-agent/escalations.json; "
-                                "Claude handles it next session. Mechanical "
-                                "requests (restart engine, rebind schedule, "
-                                "probe feed) I execute live."})
+                # ops 4420: escalation notice folded into the single ACK —
+                # no extra turn (turn budget is scarce; Perplexity flagged it)
+                pass
                 seen.append(tid)
                 continue
             # execute a capability

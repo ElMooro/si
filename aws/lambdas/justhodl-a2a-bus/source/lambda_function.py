@@ -45,7 +45,10 @@ INBOX = "data/a2a/inbox/"
 REGISTRY = "data/a2a/registry.json"
 DECISIONS = "data/a2a/decisions.json"
 STALLED = "data/a2a/stalled.json"
-MAX_TURNS_PER_THREAD = int(os.environ.get("A2A_MAX_TURNS", "16"))
+# ops 4420: raised from 16 — Perplexity verified the ceiling was being burned
+# by handshake chatter. Handshake STATE now lives in data/a2a/tasks.json (not
+# in turns), so turns carry only substantive content and 48 is ample.
+MAX_TURNS_PER_THREAD = int(os.environ.get("A2A_MAX_TURNS", "48"))
 MAX_FANOUT_PER_INVOKE = 3
 STALL_MIN = 30
 EVIDENCE_KINDS = {"propose", "critique", "verify"}
