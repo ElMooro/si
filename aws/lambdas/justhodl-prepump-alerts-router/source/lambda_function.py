@@ -22,6 +22,10 @@ Sends HTML-formatted messages to @Justhodl_bot.
 Runs every 30 minutes via EventBridge.
 """
 import json
+try:
+    from fabrication_guard import guard_output  # ops 4438 F8w2
+except Exception:
+    guard_output = None
 import time
 import urllib.request
 import urllib.parse
@@ -205,6 +209,12 @@ def _load_state() -> dict:
 
 
 def _save_state(state: dict):
+    if guard_output:
+        try:
+            state, _fab = guard_output(state, mode="warn", engine="justhodl-prepump-alerts-router")
+        except Exception as _e:
+            print('guard skip:', _e)
+
     s3.put_object(
         Bucket=S3_BUCKET, Key=STATE_KEY,
         Body=json.dumps(state, default=str).encode(),

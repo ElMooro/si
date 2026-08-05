@@ -1,4 +1,8 @@
-import json, time, boto3, urllib.request
+import json
+try:
+    from fabrication_guard import guard_output  # ops 4438 F8w2
+except Exception:
+    guard_output = None, time, boto3, urllib.request
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -1292,6 +1296,12 @@ def lambda_handler(event, context):
         "count":             len(stocks),
         "stocks":            stocks,
     }
+    if guard_output:
+        try:
+            payload, _fab = guard_output(payload, mode="warn", engine="justhodl-stock-screener")
+        except Exception as _e:
+            print('guard skip:', _e)
+
     s3.put_object(
         Bucket=S3_BUCKET, Key=CACHE_KEY,
         Body=json.dumps(payload, separators=(",",":")),

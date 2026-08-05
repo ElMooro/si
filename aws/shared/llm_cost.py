@@ -317,15 +317,16 @@ def project_month(daily_ledger):
         from datetime import datetime, timezone
         import calendar
         days = sorted(daily_ledger or {})
-        if len(days) < 3:
+        if len([d for d in days if daily_ledger[d] is not None]) < 3:
             return {"data_unavailable": True,
                     "reason": f"only {len(days)}d of spend history"}
-        last7 = [float(daily_ledger[d]) for d in days[-7:]]
+        last7 = [float(daily_ledger[d]) for d in days[-7:]
+                 if daily_ledger[d] is not None]
         avg = sum(last7) / len(last7)
         now = datetime.now(timezone.utc)
         dim = calendar.monthrange(now.year, now.month)[1]
         mtd = sum(float(v) for d, v in daily_ledger.items()
-                  if d.startswith(now.strftime("%Y-%m")))
+                  if v is not None and d.startswith(now.strftime("%Y-%m")))
         rem = dim - now.day
         return {"mtd_usd": round(mtd, 2),
                 "avg_daily_7d_usd": round(avg, 4),

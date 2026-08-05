@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fleet Map — JustHodl.AI</title><style>
+:root{--bg:#0b0e13;--card:#12161c;--border:#232a33;--text:#e8ecf1;--text2:#aab4bf;--text3:#788492}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1200px;margin:0 auto;padding:22px 18px}h1{font-size:20px;margin:0 0 4px}
+.sub{color:var(--text3);font-size:12px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px}
+.k{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.v{font-size:26px;font-weight:700;margin-top:2px}.v.red{color:#e05252}.v.green{color:#4caf7d}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--border)}
+th{color:var(--text3);font-weight:500}.dead{color:#e05252}
+</style></head><body><div class="wrap">
+<h1>Fleet Map</h1>
+<div class="sub">SPEC D6 — living view of the lambda fleet: inventory (D1), health (D3), dependency hubs (D4), parasite audit (Khalid review). Nightly refresh.</div>
+<div class="grid" id="kpis"></div>
+<div class="card" style="margin-bottom:14px"><div class="k" style="margin-bottom:6px">DEAD lambdas (scheduled, no logs 26h+)</div>
+<table id="dead"><thead><tr><th>Function</th><th>Schedule</th><th>Verdict</th></tr></thead><tbody></tbody></table></div>
+<div class="card"><div class="k" style="margin-bottom:6px">Top fan-out hubs (most-consumed feeds)</div>
+<table id="hubs"><thead><tr><th>Feed</th><th>Engine readers</th><th>Page readers</th><th>Producers</th></tr></thead><tbody></tbody></table></div>
+<script>
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function j(u){const r=await fetch(u+'?t='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(9000)});if(!r.ok)throw new Error(u+' '+r.status);return r.json();}
+(async()=>{try{
+ const[h,g,d]=await Promise.all([j('/data/audit/lambda-health.json'),j('/data/audit/lambda-graph.json'),j('/data/audit/deadend-review.json').catch(()=>({}))]);
+ const kept=d.kept_total??'—',rev=d.reviewed_total??'—';
+ document.getElementById('kpis').innerHTML=
+  `<div class="card"><div class="k">Functions</div><div class="v">${g.n_engines??'—'}</div></div>`+
+  `<div class="card"><div class="k">Alive (scheduled)</div><div class="v green">${h.alive??'—'}</div></div>`+
+  `<div class="card"><div class="k">DEAD</div><div class="v red">${h.dead??'—'}</div></div>`+
+  `<div class="card"><div class="k">Feeds</div><div class="v">${g.n_feeds??'—'}</div></div>`+
+  `<div class="card"><div class="k">Parasite audit</div><div class="v green">${kept}/${rev} kept</div></div>`;
+ document.querySelector('#dead tbody').innerHTML=(h.dead_functions||[]).slice(0,40).map(x=>
+  `<tr><td class="dead">${esc(x.name)}</td><td>${esc((x.schedules||[]).map(s=>s.schedule).join(', '))}</td><td>${esc(x.verdict)}</td></tr>`).join('')||'<tr><td colspan=3>none 🎉</td></tr>';
+ const feeds=Object.entries(g.feeds||{}).map(([k,v])=>({k,e:(v.engine_consumers||[]).length,p:(v.page_consumers||[]).length,pr:(v.producers||[]).length}))
+  .sort((a,b)=>(b.e+b.p)-(a.e+a.p)).slice(0,20);
+ document.querySelector('#hubs tbody').innerHTML=feeds.map(f=>
+  `<tr><td>${esc(f.k)}</td><td>${f.e}</td><td>${f.p}</td><td>${f.pr}</td></tr>`).join('');
+}catch(e){document.getElementById('kpis').innerHTML='<div class="card"><div class="k">error</div><div class="v" style="font-size:13px">'+esc(e.message)+'</div></div>';}})();
+</script></div></body></html>
