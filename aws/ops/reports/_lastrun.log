@@ -1,24 +1,14 @@
-executing-against: e92f25d42f2a6e045fe8506eb0dfa872e5e59bfe
-{
- "ops": 4387,
- "started": "2026-08-04T22:21:49.586321+00:00",
- "pre": {
-  "keys": [
-   "cost_bps",
-   "families",
-   "generated_at",
-   "method",
-   "ok"
-  ],
-  "families": 10,
-  "verdicts": 0
- },
- "frozen": true,
- "exemptions": [
-  "data/alpha-triage.json"
- ],
- "loop": "exemption support deployed",
- "thread_0006": true,
- "verdict": "PASS \u2014 frozen with verdicts intact, exempted, self-correction on the ledger",
- "finished": "2026-08-04T22:22:19.956662+00:00"
-}
+executing-against: de08da106b1935d3e591636167c114f6128ad5ba
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/4388_code_capability.py", line 41, in <module>
+    lam.update_function_code(FunctionName=BUS, ZipFile=buf.getvalue())
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-a2a-bus
+❌ OPS-FAIL: aws/ops/pending/4388_code_capability.py
