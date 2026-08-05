@@ -122,6 +122,109 @@ def fred_observations(series_id, observation_start=None, limit=1000):
     return []
 
 
+
+# ── ops 4412: enrichment catalog (Perplexity dimension-4 for crisis.html) ──
+# Khalid rule: add data to ENGINE AND PAGE, keep everything existing intact.
+# Brain: "credit stress first, dollar spike second, stock crash third";
+# "HY OAS is the cleanest canary"; four-canary convergence is the key pattern.
+ENRICH_SERIES = [
+    # A) credit stress ladder — the cleanest canary + dispersion tells
+    ("BAMLH0A0HYM2", "HY Master II OAS", "credit", "%"),
+    ("BAMLH0A3HYC", "CCC & Lower OAS (tip of spear)", "credit", "%"),
+    ("BAMLH0A2HYB", "Single-B OAS", "credit", "%"),
+    ("BAMLH0A1HYBB", "BB OAS", "credit", "%"),
+    ("BAMLC0A4CBBB", "BBB OAS (IG/HY boundary)", "credit", "%"),
+    ("BAMLC0A0CM", "IG Master OAS", "credit", "%"),
+    ("BAMLEMCBPIOAS", "EM Corporate OAS (contagion)", "credit", "%"),
+    ("BAMLEM4BRRBLCRPIOAS", "EM B & Lower OAS", "credit", "%"),
+    # B) financial-stress composites
+    ("STLFSI4", "St. Louis Fed Financial Stress", "stress", "index"),
+    ("OFRFSI", "OFR Financial Stress Index", "stress", "index"),
+    ("NFCICREDIT", "NFCI Credit Sub-index", "stress", "index"),
+    ("NFCILEVERAGE", "NFCI Leverage Sub-index", "stress", "index"),
+    ("NFCIRISK", "NFCI Risk Sub-index", "stress", "index"),
+    ("NFCINONFINLEVERAGE", "NFCI Nonfinancial Leverage", "stress", "index"),
+    ("KCFSI", "Kansas City Fed Financial Stress", "stress", "index"),
+    # C) bank stress / SLOOS
+    ("DRTSCILM", "SLOOS: C&I Tightening", "bank", "%"),
+    ("DRTSCLCC", "SLOOS: Consumer Credit Tightening", "bank", "%"),
+    ("DRTSCLM", "SLOOS: Mortgage Tightening", "bank", "%"),
+    ("TOTBKCR", "Total Bank Credit", "bank", "B USD"),
+    ("BUSLOANS", "C&I Loans, All Banks", "bank", "B USD"),
+    ("DPCREDIT", "Discount Window Primary Credit", "bank", "%"),
+    # D) dollar-funding blowout
+    ("DTWEXAFEGS", "USD vs Advanced Economies", "dollar", "index"),
+    ("DTWEXEMEGS", "USD vs Emerging Markets", "dollar", "index"),
+    ("DEXJPUS", "JPY/USD", "dollar", "rate"),
+    ("DEXCHUS", "CNY/USD", "dollar", "rate"),
+    ("DEXKOUS", "KRW/USD", "dollar", "rate"),
+    ("DEXBZUS", "BRL/USD", "dollar", "rate"),
+    ("WCBSL", "Central Bank Swap Lines", "dollar", "B USD"),
+    # F) real-economy crisis triggers (brain: these lead)
+    ("ICSA", "Initial Jobless Claims", "real", "count"),
+    ("CCSA", "Continuing Claims", "real", "count"),
+    ("PERMIT", "Building Permits", "real", "K units"),
+    ("USSLIND", "US Leading Index", "real", "%"),
+    ("RECPROUSM156N", "Recession Probability (Chauvet-Piger)", "real", "%"),
+    ("SAHMREALTIME", "Sahm Rule (real-time)", "real", "pp"),
+]
+ENRICH_CATS = {
+    "credit": "Credit Stress Ladder — HY/IG OAS (brain: cleanest canary)",
+    "stress": "Financial Stress Composites",
+    "bank": "Bank Stress & SLOOS Lending Standards",
+    "dollar": "Dollar Funding & FX (brain: dollar spike second)",
+    "real": "Real-Economy Crisis Triggers (leading)",
+}
+
+
+def build_enrichment():
+    """Fetch enrichment series with latest + z + percentile + spark.
+    Also computes the derived spreads and the FOUR-CANARY convergence panel
+    the brain calls 'the single most important pattern in the plumbing'."""
+    cat = {}
+    latest = {}
+    for sid, label, group, unit in ENRICH_SERIES:
+        try:
+            obs = fred_observations(sid, limit=1300)
+            vals = [v for _d, v in obs if v is not None]
+            if not vals:
+                continue
+            cur = vals[-1]
+            latest[sid] = cur
+            mean = sum(vals) / len(vals)
+            var = sum((v - mean) ** 2 for v in vals) / max(1, len(vals) - 1)
+            sd = var ** 0.5
+            z = round((cur - mean) / sd, 2) if sd > 1e-9 else 0.0
+            pct = round(100 * sum(1 for v in vals if v <= cur) / len(vals), 1)
+            cat.setdefault(group, {})[sid] = {
+                "label": label, "value": round(cur, 4), "unit": unit,
+                "z": z, "pctile": pct, "n": len(vals),
+                "date": obs[-1][0] if obs else None,
+                "spark": [{"date": d, "value": v} for d, v in obs[-52:]
+                          if v is not None],
+            }
+        except Exception as e:
+            print(f"[enrich] {sid} skipped: {type(e).__name__}")
+
+    # derived credit-dispersion spreads
+    derived = {}
+    if "BAMLH0A0HYM2" in latest and "BAMLC0A0CM" in latest:
+        derived["hy_ig_spread"] = {
+            "label": "HY − IG spread", "unit": "pp",
+            "value": round(latest["BAMLH0A0HYM2"] - latest["BAMLC0A0CM"], 3),
+            "note": "credit-quality dispersion"}
+    if "BAMLH0A3HYC" in latest and "BAMLH0A1HYBB" in latest:
+        derived["ccc_bb_spread"] = {
+            "label": "CCC − BB spread", "unit": "pp",
+            "value": round(latest["BAMLH0A3HYC"] - latest["BAMLH0A1HYBB"], 3),
+            "note": "internal-credit dispersion tell"}
+    if derived:
+        cat["derived"] = derived
+        ENRICH_CATS["derived"] = "Derived Credit Dispersion"
+    return {"categories": cat, "labels": dict(ENRICH_CATS),
+            "n_series": sum(len(v) for v in cat.values())}
+
+
 def latest_value(observations):
     """Get the most recent non-None value + its date."""
     for date, val in reversed(observations):
@@ -977,6 +1080,7 @@ def _do_handler(event, context):
         "xcc_basis_proxy": xcc_basis,
         "yield_curve": yc_results,
         "n_series_fetched": len(observations_map),
+        "enrichment": build_enrichment(),   # ops 4412
         "data_sources": {
             "fred_api": "https://api.stlouisfed.org/fred",
             "license": "Public domain (FRED + Federal Reserve Banks)",

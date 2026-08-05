@@ -478,5 +478,98 @@ setInterval(load, 5*60*1000);
 <div id="chartModal" class="cmodal" onclick="if(event.target===this)closeChart()"><div class="cbox"><span class="cx" onclick="closeChart()">✕</span><div id="chartHead"></div><div id="chartWrap" style="position:relative"></div><div id="chartFoot"></div></div></div>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+
+<!-- ops 4412: enrichment section (engine+page, existing panels untouched) -->
+<div style="max-width:1500px;margin:18px auto;padding:0 18px">
+  <div id="enrichment-section"></div>
+</div>
+<script>
+// ── ops 4412: enrichment renderer (Khalid: add to engine AND page, keep all) ──
+function jhEnrichZColor(z){ if(z==null) return 'var(--text3,#888)'; if(z>=2) return '#e05252'; if(z>=1) return '#e0a030'; if(z<=-1.5) return '#4caf7d'; return 'var(--text2,#aaa)'; }
+function jhRenderEnrichment(enr, hostId){
+  const host=document.getElementById(hostId);
+  if(!host) return;
+  if(!enr || !enr.categories || !Object.keys(enr.categories).length){ host.innerHTML=''; return; }
+  const esc2 = (s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const num = (v,d)=> (v==null||!isFinite(v)) ? '—' : Number(v).toFixed(d==null?2:d);
+  const labels = enr.labels||{};
+  let html='<h2 style="font-size:17px;margin:14px 0 2px">Enrichment · Institutional Series</h2>'+
+    '<div style="color:var(--text3,#888);font-size:11px;margin-bottom:10px">Latest value with historical z-score and percentile placement — absolute levels are meaningless without regime context.</div>';
+  // four-canary panel first when present
+  const fc = enr.four_canary;
+  if(fc && fc.canaries){
+    const vc = fc.verdict||'';
+    const vcol = vc.indexOf('CONVERGENCE')===0 ? '#e05252' : (vc.indexOf('PARTIAL')===0 ? '#e0a030' : '#4caf7d');
+    html+=`<div style="border:1px solid ${vcol};border-radius:10px;padding:12px;margin-bottom:14px;background:var(--card,#12161c)">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-weight:600;font-size:14px">Four-Canary Convergence</span>
+        <span style="color:${vcol};font-weight:600;font-size:12px">${esc2(vc)}</span>
+        <span style="color:var(--text3,#888);font-size:11px">${fc.n_firing||0} firing</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:10px">`;
+    for(const k of Object.keys(fc.canaries)){
+      const c=fc.canaries[k];
+      const st=c.state||'';
+      const sc= st==='RED'?'#e05252': st==='AMBER'?'#e0a030': st==='CALM'?'#4caf7d':'var(--text3,#888)';
+      const val = c.value_bp!=null ? num(c.value_bp,1)+' bp' : (c.value!=null ? num(c.value,2) : '—');
+      html+=`<div style="border:1px solid var(--border,#222);border-radius:8px;padding:8px">
+        <div style="font-size:11px;color:var(--text3,#888)">${esc2(c.label||k)}</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:3px">
+          <span style="font-size:15px;font-weight:600">${c.pending_source?'—':val}</span>
+          <span style="font-size:11px;color:${sc}">${esc2(st||(c.pending_source?'pending':''))}</span>
+        </div>
+        ${c.pending_source?`<div style="font-size:10px;color:var(--text3,#888);margin-top:3px">${esc2(c.pending_source)}</div>`:''}
+      </div>`;
+    }
+    html+=`</div><div style="font-size:10px;color:var(--text3,#888);margin-top:8px;font-style:italic">${esc2(fc.brain_rule||'')}</div></div>`;
+  }
+  for(const grp of Object.keys(enr.categories)){
+    const rows=enr.categories[grp]; if(!rows||!Object.keys(rows).length) continue;
+    html+=`<div style="margin:14px 0 6px;font-weight:600;font-size:13px">${esc2(labels[grp]||grp)}</div>`;
+    html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px">';
+    for(const sid of Object.keys(rows)){
+      const r=rows[sid]; const zc=jhEnrichZColor(r.z);
+      const dec = (r.unit==='count'||r.unit==='B USD'||r.unit==='M USD') ? 0 : 2;
+      html+=`<div style="background:var(--card,#12161c);border:1px solid var(--border,#222);border-radius:8px;padding:9px" title="${esc2(sid)} · ${esc2(r.date||'')}">
+        <div style="font-size:11px;color:var(--text3,#888);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc2(r.label||sid)}</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:4px">
+          <span style="font-size:16px;font-weight:600">${r.value!=null?Number(r.value).toLocaleString(undefined,{maximumFractionDigits:dec}):'—'}<span style="font-size:9px;color:var(--text3,#888)"> ${esc2(r.unit||'')}</span></span>
+          <span style="font-size:11px;color:${zc}">z ${r.z==null?'—':(r.z>0?'+':'')+r.z}</span>
+        </div>
+        <div style="height:3px;background:var(--border,#222);border-radius:2px;margin-top:6px;overflow:hidden">
+          <div style="height:100%;width:${Math.max(0,Math.min(100,r.pctile||0))}%;background:${zc}"></div>
+        </div>
+        <div style="font-size:9px;color:var(--text3,#888);margin-top:3px">${r.pctile==null?'':r.pctile+'th pctile'}</div>
+      </div>`;
+    }
+    html+='</div>';
+  }
+  // derived spreads render inside categories automatically (value/label only)
+  host.innerHTML=html;
+}
+
+// self-contained: fetch the page feed same-origin (CSP-safe) with timeout+retry
+(function(){
+  var FEED='/data/plumbing-stress.json';
+  async function fetchJSON(url,tries){
+    tries=tries||3;
+    for(var a=0;a<tries;a++){
+      try{
+        var r=await fetch(url+'?t='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(8000)});
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        return await r.json();
+      }catch(e){ if(a===tries-1) throw e; await new Promise(function(s){setTimeout(s,400*Math.pow(2,a)+Math.random()*200)}); }
+    }
+  }
+  async function go(){
+    try{
+      var d=await fetchJSON(FEED);
+      if(d && d.enrichment) jhRenderEnrichment(d.enrichment,'enrichment-section');
+    }catch(e){ console.warn('enrichment load failed',e); }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go();
+  setInterval(go, 600000);
+})();
+</script>
 </body>
 </html>

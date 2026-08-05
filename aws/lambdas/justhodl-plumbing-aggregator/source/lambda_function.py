@@ -407,6 +407,136 @@ def yoy_pct_change(obs):
     return (cur - yr_ago) / abs(yr_ago) * 100
 
 
+
+# ── ops 4412: enrichment catalog (Perplexity dimension-4 for plumbing.html) ──
+# Khalid rule: engine AND page, keep existing intact. Brain: the FOUR-CANARY
+# convergence (HY OAS widening + SOFR-IORB widening + MOVE spiking + on/off-run
+# spread widening on a non-quarter-end day) is "the signature of a basis-trade /
+# repo unwind beginning — the single most important pattern in the plumbing."
+PLUMB_ENRICH = [
+    # A) L1 raw funding rates + reserves regime
+    ("SOFR", "SOFR", "l1_funding", "%"),
+    ("IORB", "Interest on Reserve Balances", "l1_funding", "%"),
+    ("EFFR", "Effective Fed Funds Rate", "l1_funding", "%"),
+    ("OBFR", "Overnight Bank Funding Rate", "l1_funding", "%"),
+    ("DPRIME", "Bank Prime Rate", "l1_funding", "%"),
+    ("SOFR30DAYAVG", "SOFR 30-Day Average", "l1_funding", "%"),
+    ("SOFR90DAYAVG", "SOFR 90-Day Average", "l1_funding", "%"),
+    ("SOFR180DAYAVG", "SOFR 180-Day Average", "l1_funding", "%"),
+    ("WRESBAL", "Reserve Balances (ample-regime marker)", "l1_funding", "M USD"),
+    ("WCBSL", "Central Bank Swap Lines", "l1_funding", "M USD"),
+    ("DPCREDIT", "Discount Window Primary Credit", "l1_funding", "%"),
+    # B) L2 bank risk appetite — H.8 + SLOOS
+    ("DRTSCILM", "SLOOS: C&I Tightening", "l2_bank", "%"),
+    ("DRTSCLCC", "SLOOS: Consumer Credit Tightening", "l2_bank", "%"),
+    ("DRTSCLM", "SLOOS: Mortgage Tightening", "l2_bank", "%"),
+    ("TOTBKCR", "Total Bank Credit", "l2_bank", "B USD"),
+    ("BUSLOANS", "C&I Loans, All Banks", "l2_bank", "B USD"),
+    ("REALLN", "Real Estate Loans, All Banks", "l2_bank", "B USD"),
+    ("CONSUMER", "Consumer Loans, All Banks", "l2_bank", "B USD"),
+    ("TLAACBW027SBOG", "Total Assets, All Commercial Banks", "l2_bank", "B USD"),
+    ("DPSACBW027SBOG", "Deposits, All Commercial Banks", "l2_bank", "B USD"),
+    # C) L3 real-side damage (brain weekly set)
+    ("ICSA", "Initial Jobless Claims", "l3_real", "count"),
+    ("CCSA", "Continuing Claims", "l3_real", "count"),
+    ("ICNSA", "Initial Claims (NSA)", "l3_real", "count"),
+    # D) L4 cross-border / offshore dollar
+    ("WGRESUS", "Foreign Official Holdings of Treasuries", "l4_cross", "M USD"),
+    ("DTWEXBGS", "Broad Dollar Index", "l4_cross", "index"),
+    ("DTWEXEMEGS", "USD vs Emerging Markets", "l4_cross", "index"),
+    # canary inputs
+    ("BAMLH0A0HYM2", "HY Master II OAS (canary 1)", "canary", "%"),
+    ("DGS10", "10Y Treasury Yield", "canary", "%"),
+]
+PLUMB_CATS = {
+    "l1_funding": "L1 · Raw Funding Rates & Reserves Regime",
+    "l2_bank": "L2 · Bank Risk Appetite (H.8 + SLOOS)",
+    "l3_real": "L3 · Real-Side Damage (weekly leads)",
+    "l4_cross": "L4 · Cross-Border / Offshore Dollar",
+    "canary": "Four-Canary Inputs",
+}
+# brain-stated thresholds
+CANARY_THRESHOLDS = {
+    "sofr_iorb_bp": {"amber": 5, "red": 10,
+                     "note": "brain: >+5bp amber, >+10bp red"},
+}
+
+
+def build_plumb_enrichment():
+    """Enrichment catalog + the four-canary convergence panel."""
+    cat, latest = {}, {}
+    for sid, label, group, unit in PLUMB_ENRICH:
+        try:
+            obs = fetch_fred(sid, n=1300)
+            # fetch_fred returns desc-sorted; normalise to ascending pairs
+            pairs = []
+            for o in obs:
+                v = o.get("value") if isinstance(o, dict) else None
+                d = o.get("date") if isinstance(o, dict) else None
+                if v in (None, ".", ""):
+                    continue
+                try:
+                    pairs.append((d, float(v)))
+                except Exception:
+                    continue
+            pairs.sort(key=lambda x: x[0] or "")
+            vals = [v for _d, v in pairs]
+            if not vals:
+                continue
+            cur = vals[-1]
+            latest[sid] = cur
+            mean = sum(vals) / len(vals)
+            var = sum((v - mean) ** 2 for v in vals) / max(1, len(vals) - 1)
+            sd = var ** 0.5
+            z = round((cur - mean) / sd, 2) if sd > 1e-9 else 0.0
+            pct = round(100 * sum(1 for v in vals if v <= cur) / len(vals), 1)
+            cat.setdefault(group, {})[sid] = {
+                "label": label, "value": round(cur, 4), "unit": unit,
+                "z": z, "pctile": pct, "n": len(vals),
+                "date": pairs[-1][0],
+                "spark": [{"date": d, "value": v} for d, v in pairs[-52:]],
+            }
+        except Exception as e:
+            print(f"[plumb-enrich] {sid} skipped: {type(e).__name__}")
+
+    # FOUR-CANARY CONVERGENCE — brain's most important pattern
+    canaries = {}
+    if "SOFR" in latest and "IORB" in latest:
+        sp = round((latest["SOFR"] - latest["IORB"]) * 100, 1)
+        canaries["sofr_iorb"] = {
+            "label": "SOFR − IORB", "value_bp": sp,
+            "state": ("RED" if sp > 10 else "AMBER" if sp > 5 else "CALM"),
+            "thresholds": CANARY_THRESHOLDS["sofr_iorb_bp"]}
+    hy = cat.get("canary", {}).get("BAMLH0A0HYM2")
+    if hy:
+        canaries["hy_oas"] = {
+            "label": "HY OAS", "value": hy["value"], "z": hy["z"],
+            "state": ("RED" if (hy["z"] or 0) > 2 else
+                      "AMBER" if (hy["z"] or 0) > 1 else "CALM")}
+    canaries["move"] = {"label": "MOVE (bond vol)",
+                        "pending_source": "MOVE is not on FRED — join from "
+                                          "bond-vol.json fleet feed",
+                        "thresholds": {"amber": 120, "red": 140}}
+    canaries["on_off_run"] = {"label": "On/off-the-run 10Y spread",
+                              "pending_source": "NY Fed, not FRED — join "
+                                                "from treasury-noise.json"}
+    firing = [k for k, v in canaries.items()
+              if v.get("state") in ("AMBER", "RED")]
+    convergence = {
+        "canaries": canaries, "n_firing": len(firing), "firing": firing,
+        "verdict": ("CONVERGENCE — possible basis-trade/repo unwind "
+                    "signature" if len(firing) >= 3 else
+                    "PARTIAL — monitor" if len(firing) == 2 else "CALM"),
+        "brain_rule": "If all four move together on a non-quarter-end day, "
+                      "that is the signature of a basis-trade / repo unwind "
+                      "beginning — the single most important pattern in the "
+                      "plumbing.",
+    }
+    return {"categories": cat, "labels": dict(PLUMB_CATS),
+            "four_canary": convergence,
+            "n_series": sum(len(v) for v in cat.values())}
+
+
 def z_score_and_percentile(obs, window=1300):
     """Compute z-score and percentile of latest value vs trailing window."""
     if len(obs) < 30:
@@ -723,6 +853,7 @@ def lambda_handler(event, context):
         "composite_label": label,
         "layers": layers,
         "raw_indicators": raw_dict,
+        "enrichment": build_plumb_enrichment(),   # ops 4412
         "alerts": alerts,
         "duration_s": round(time.time() - started, 1),
     }
