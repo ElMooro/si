@@ -1,0 +1,67 @@
+{
+ "ops": 4422,
+ "started": "2026-08-05T18:40:24.806482+00:00",
+ "bondvol_invoke": {
+  "code": 200,
+  "fn_err": null
+ },
+ "move": {
+  "value": 70.88,
+  "z": -0.92,
+  "pctile_2y": 21.9,
+  "state": "CALM",
+  "source": "real ^MOVE index (public quote)",
+  "is_proxy": false,
+  "date": "2026-07-17",
+  "n_obs": 485
+ },
+ "plumb_invoke": {
+  "code": 200,
+  "fn_err": null
+ },
+ "four_canary": {
+  "verdict": "CALM",
+  "n_firing": 0,
+  "canaries": {
+   "sofr_iorb": {
+    "label": "SOFR \u2212 IORB",
+    "value": null,
+    "value_bp": 1.0,
+    "state": "CALM",
+    "source": null,
+    "pending_source": null
+   },
+   "hy_oas": {
+    "label": "HY OAS",
+    "value": 2.73,
+    "value_bp": null,
+    "state": "CALM",
+    "source": null,
+    "pending_source": null
+   },
+   "move": {
+    "label": "MOVE (bond vol)",
+    "value": 70.88,
+    "value_bp": null,
+    "state": "CALM",
+    "source": "bond-vol.json:move.value",
+    "pending_source": null
+   },
+   "on_off_run": {
+    "label": "On/off-the-run 10Y spread (proxy)",
+    "value": 2.795,
+    "value_bp": null,
+    "state": "CALM",
+    "source": "treasury-noise.json:noise_bps",
+    "pending_source": null
+   }
+  }
+ },
+ "live_count": 4,
+ "posted": {
+  "ok": false,
+  "err": "rejected_no_evidence"
+ },
+ "verdict": "PASS \u2014 real MOVE 70.88 (CALM), four-canary 4/4",
+ "finished": "2026-08-05T18:41:05.873416+00:00"
+}
