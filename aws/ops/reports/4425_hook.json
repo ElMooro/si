@@ -1,0 +1,47 @@
+{
+ "ops": 4425,
+ "started": "2026-08-05T19:20:22.103705+00:00",
+ "bus": true,
+ "agent": true,
+ "bus_rules_found": [
+  "justhodl-a2a-bus-hourly"
+ ],
+ "bus_rules_removed": [
+  "justhodl-a2a-bus-hourly"
+ ],
+ "hook_url": "https://bjr4vvgjakstv4juaxnhtcq7aq0xmaft.lambda-url.us-east-1.on.aws/claude-hook",
+ "selftest": {
+  "status": 200,
+  "body": {
+   "ok": true,
+   "thread_id": "cli-1031894fe8",
+   "posted": true,
+   "detail": null,
+   "session_turns": 1
+  }
+ },
+ "empty_test": {
+  "status": 200,
+  "body": {
+   "ok": true,
+   "skipped": "empty content"
+  }
+ },
+ "sessions_ledger": {
+  "sessions": {
+   "ops4425-selftest": {
+    "thread_id": "cli-1031894fe8",
+    "opened_at": "2026-08-05T19:20:44+00:00",
+    "turns": 1,
+    "last_seen": "2026-08-05T19:20:44+00:00",
+    "transcript_path": "/tmp/selftest.jsonl"
+   }
+  }
+ },
+ "posted": {
+  "ok": true,
+  "err": null
+ },
+ "verdict": "PASS \u2014 /claude-hook live (self-curl 200), guards proven, bus rule cleaned",
+ "finished": "2026-08-05T19:21:03.527950+00:00"
+}
