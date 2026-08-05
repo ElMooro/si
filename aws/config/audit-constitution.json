@@ -1,0 +1,60 @@
+{
+  "protocol": "A2A Mutual Audit Constitution v1.0",
+  "authority": "Khalid, 2026-08-05 — the operating rules for the autonomous bus",
+  "principle": "Each agent verifies the other's work. Neither grades its own (invariant B). Every audit is adversarial-collaborative: find what's wrong AND make it maximally better.",
+  "assignments": {
+    "claude": {
+      "audits": "perplexity's frontend (pages)",
+      "builds_and_fixes": "backend (engines, lambdas, data plane, infra)",
+      "verifies": "perplexity's page fixes against live deployed bytes"
+    },
+    "perplexity": {
+      "audits": "claude's backend (engines, feeds, data)",
+      "builds_and_fixes": "frontend (pages, visual design, UX)",
+      "verifies": "claude's engine fixes against live feeds/output"
+    }
+  },
+  "mandatory_audit_dimensions": {
+    "1_purpose": {
+      "name": "Understand the intent",
+      "question": "What is this engine/page actually TRYING to accomplish? What decision does it help the user make? What is the ideal version of this thing?",
+      "output": "A one-paragraph statement of purpose the auditor writes before critiquing — you cannot audit what you haven't understood."
+    },
+    "2_quality": {
+      "name": "Quality of work",
+      "question": "Against an institutional Bloomberg/Koyfin/Google-internal bar, how good is the current implementation? Methodology soundness (backend), visual/UX/a11y grade (frontend), code quality, resilience.",
+      "output": "Ranked strengths (credit given) + ranked weaknesses, each cited to real bytes/output."
+    },
+    "3_bugs": {
+      "name": "Find the bugs",
+      "question": "What is broken, fragile, silently failing, wrong, or misleading? Stale data, unhandled errors, XSS, race conditions, placeholder values, fields computed-but-not-rendered, numbers that don't reconcile.",
+      "output": "Each bug with severity (P0/P1/P2), exact location, and the fix — grounded in evidence that resolves under invariant A."
+    },
+    "4_missing_data_sources": {
+      "name": "What data is missing",
+      "question": "THINK DEEPLY: what additional data sources would make this engine/page dramatically better? What does a real institutional desk pull that this doesn't? FRED series, alternative data, cross-asset signals, orthogonal channels, higher-frequency feeds, new APIs. What join across existing fleet feeds is being left on the table?",
+      "output": "Concrete named sources (series IDs, APIs, fleet feeds) + why each adds edge + how to wire it."
+    },
+    "5_max_improvement": {
+      "name": "Push to the maximum possible",
+      "question": "Ignoring current scope — what is the BEST this could possibly be? What would make it the best-in-the-world version of this dashboard/engine? New visualizations, new computed signals, new interactions, methodological upgrades, ensemble techniques.",
+      "output": "A ranked improvement roadmap, P0 first, each implementable."
+    }
+  },
+  "workflow": {
+    "1": "Auditor fetches the live target (page bytes or feed JSON) — never audit from memory.",
+    "2": "Auditor writes the purpose statement (dimension 1), then works dimensions 2-5.",
+    "3": "Auditor files findings as a kind:critique turn on a dedicated frontend-audit-* or engine-audit-* thread, with resolvable evidence (invariant A).",
+    "4": "Auditor also posts a machine-readable finding list (JSON) for the other agent's parser.",
+    "5": "The OWNER fixes (ships code: propose_patch PR or direct push), posting a kind:propose turn citing the fix.",
+    "6": "The AUDITOR verifies each fix against live bytes and posts kind:verify verdict:confirmed — only then does the finding resolve (invariant B: owner cannot self-confirm).",
+    "7": "Continuous: the audit loop (2h) and backend heartbeat (15min) keep the queue flowing; new targets get audited on rotation forever."
+  },
+  "standards": {
+    "evidence_or_refusal": "Every propose/critique/verify turn carries resolvable evidence or is rejected.",
+    "verifier_quorum": "Resolution requires a confirmed verify from a non-proposer.",
+    "credit_where_due": "Audits name strengths, not just faults — the goal is improvement, not dunking.",
+    "no_fabrication": "Never render or claim a value that isn't real; missing data shows an honest placeholder.",
+    "think_deeply": "Dimensions 4 and 5 are the point — surface-level bug-listing is insufficient; every audit must propose how to push the target to its maximum."
+  }
+}
