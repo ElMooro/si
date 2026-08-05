@@ -601,7 +601,12 @@ def lambda_handler(event: Dict, context: Any) -> Dict:
     # 47 new institutional series (credit OAS ladder, SLOOS, TIPS/breakevens,
     # bilateral USD, term premium, stress indices) reach the feed and page.
     catalog = {}
-    for sid, label, cat, unit, freq in FRED_SERIES:
+    for _entry in FRED_SERIES:
+        sid = _entry[0]
+        label = _entry[1] if len(_entry) > 1 else sid
+        cat = _entry[2] if len(_entry) > 2 else "other"
+        unit = _entry[3] if len(_entry) > 3 else ""
+        freq = _entry[4] if len(_entry) > 4 else "d"
         try:
             hist = get_series_history(sid, limit=260)
             if not hist:
