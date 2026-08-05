@@ -1,0 +1,39 @@
+{
+ "ops": 4414,
+ "started": "2026-08-05T17:13:58.294204+00:00",
+ "bus_deployed": true,
+ "packs": {
+  "risk-gate": {
+   "key": "data/a2a/evidence/risk-gate.json",
+   "kb": 24.8
+  },
+  "breadth-thrust": {
+   "key": "data/a2a/evidence/breadth-thrust.json",
+   "kb": 10.1
+  },
+  "crisis-plumbing": {
+   "key": "data/a2a/evidence/crisis-plumbing.json",
+   "kb": 0.5
+  },
+  "plumbing-stress": {
+   "key": "data/a2a/evidence/plumbing-stress.json",
+   "kb": 58.4
+  },
+  "liquidity-data": {
+   "key": "data/a2a/evidence/liquidity-data.json",
+   "kb": 1.0
+  }
+ },
+ "bt_invoke": {
+  "code": 200,
+  "fn_err": null
+ },
+ "bt_after": {
+  "n_episodes": 0,
+  "spy_at_trigger_sample": [],
+  "fwd_sample": [],
+  "all_same": null
+ },
+ "verdict": "PASS \u2014 5 evidence packs published, GLM disable enforced",
+ "finished": "2026-08-05T17:14:23.613805+00:00"
+}
