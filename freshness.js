@@ -66,7 +66,11 @@
 
   function fromUrl(targetId, url, opts) {
     opts = opts || {};
-    var full = (url.indexOf("http") === 0 ? url : PROXY + (url[0] === "/" ? url : "/" + url)) + "?t=" + Date.now();
+    // ops 4401: self-origin fetch — workers.dev PROXY is CSP-blocked
+    // (connect-src), silently failing the freshness badge. Same-origin
+    // and S3 are CSP-allowed; /data/ is served from justhodl.ai directly.
+    var self_origin_base = url.indexOf("http") === 0 ? url : (url[0] === "/" ? url : "/" + url);
+    var full = self_origin_base + "?t=" + Date.now();
     return fetch(full).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
       var iso = d ? (d[opts.field || "generated_at"] || d.generated_at || d.updated_at || d.as_of) : null;
       return badge(targetId, iso, opts);
