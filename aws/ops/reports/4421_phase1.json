@@ -1,0 +1,99 @@
+{
+ "ops": 4421,
+ "started": "2026-08-05T18:32:32.138230+00:00",
+ "justhodl-plumbing-aggregator_invoke": {
+  "code": 200,
+  "fn_err": null
+ },
+ "justhodl-liquidity-agent_invoke": {
+  "code": 200,
+  "fn_err": null
+ },
+ "inline": {
+  "four_canary": {
+   "verdict": "CALM",
+   "n_firing": 0,
+   "canaries": {
+    "sofr_iorb": {
+     "label": "SOFR \u2212 IORB",
+     "value": null,
+     "value_bp": 1.0,
+     "state": "CALM",
+     "source": null,
+     "pending_source": null
+    },
+    "hy_oas": {
+     "label": "HY OAS",
+     "value": 2.73,
+     "value_bp": null,
+     "state": "CALM",
+     "source": null,
+     "pending_source": null
+    },
+    "move": {
+     "label": "MOVE (bond vol)",
+     "value": null,
+     "value_bp": null,
+     "state": null,
+     "source": null,
+     "pending_source": "searched data/bond-vol.json for a MOVE key and found none \u2014 engine emits composite_z / composite_percentile instead; needs a MOVE level series or an explicit proxy decision"
+    },
+    "on_off_run": {
+     "label": "On/off-the-run 10Y spread (proxy)",
+     "value": 2.795,
+     "value_bp": null,
+     "state": "CALM",
+     "source": "treasury-noise.json:noise_bps",
+     "pending_source": null
+    }
+   }
+  },
+  "part4": {
+   "dxy": {
+    "regime": "NEUTRAL",
+    "level": 119.7034,
+    "z": 0.14,
+    "pctile_5y": 55.2,
+    "note": "brain: DXY is the most important chart \u2014 promoted to hero"
+   },
+   "credit_first_sequence": {
+    "verdict": "CLEAR \u2014 no stage firing",
+    "current_stage": 0,
+    "stages": [
+     {
+      "stage": 1,
+      "name": "Credit stress (HY OAS)",
+      "value": null,
+      "z": null,
+      "fired": false
+     },
+     {
+      "stage": 2,
+      "name": "Dollar spike (DXY)",
+      "value": 119.7034,
+      "z": 0.14,
+      "fired": false
+     },
+     {
+      "stage": 3,
+      "name": "Equity drawdown (SPX 60d)",
+      "value": null,
+      "z": null,
+      "fired": false
+     }
+    ]
+   },
+   "global_stack_usd_bn": {},
+   "global_total_usd_bn": null,
+   "china_credit_impulse": null,
+   "join_notes": null
+  }
+ },
+ "canaries_live": "3/4",
+ "done_posted": {
+  "ok": false,
+  "err": "rejected_no_evidence"
+ },
+ "verdict": "PARTIAL \u2014 see fields",
+ "finished": "2026-08-05T18:33:31.277374+00:00"
+}

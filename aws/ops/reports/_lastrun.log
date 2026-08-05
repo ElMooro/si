@@ -1,10 +1,9 @@
-executing-against: 66dcd5dda951d9c95a7c753e5f092c02497e3b0a
+executing-against: 6740184f39454e86658686bef646886e93b4815d
+/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: '_fred_shim.py'
+  return self._open_to_write(zinfo, force_zip64=force_zip64)
 {
- "answer": {
-  "ok": true,
-  "err": null
- },
- "verify": {
+ "canaries": "3/4",
+ "done": {
   "ok": false,
   "err": "rejected_no_evidence"
  }
