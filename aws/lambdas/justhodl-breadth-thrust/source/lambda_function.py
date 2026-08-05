@@ -158,6 +158,15 @@ def fetch_spy_history(years=20):
 
 
 def price_at_or_after(history, target_iso):
+    # ops 4415b: never extrapolate BACKWARDS. If the target predates the
+    # history window, the old loop returned the earliest row — so a trigger
+    # and its +12m exit both resolved to the SAME price, fabricating a 0.0%
+    # forward return that diluted the win rate (Perplexity's ~12.5% finding).
+    # Out-of-range targets must be None so summarise_forwards excludes them.
+    if not history:
+        return None
+    if target_iso < history[0].get("date", ""):
+        return None
     for row in history:
         if row.get("date", "") >= target_iso:
             return row.get("close") or row.get("price")
@@ -651,6 +660,9 @@ def lambda_handler(event, context):
     history_rows = compute_forward_returns(
         spy_hist, HISTORICAL_TRIGGER_DATES)
     forward_expectations = summarise_forwards(history_rows)
+    # ops 4415b: expose the per-trigger rows (Perplexity could not see
+    # spy_at_trigger per episode; now they are in the feed explicitly)
+    trigger_history = history_rows
 
     # ---- 6. Trade ticket + explainer ----
     trade = build_trade_ticket(zweig_state, forward_expectations)
@@ -674,6 +686,11 @@ def lambda_handler(event, context):
 
     body = {
         "engine": "breadth-thrust",
+        "trigger_history": trigger_history,
+        "price_source_note": ("forward returns use SPY where available, "
+                              "FRED SP500 index as vendor-independent "
+                              "fallback; triggers predating the price "
+                              "window are excluded, not zero-filled"),
         "version": "1.0",
         "as_of": as_of,
         "state": zweig_state,
