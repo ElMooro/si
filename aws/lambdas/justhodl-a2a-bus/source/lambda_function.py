@@ -413,6 +413,7 @@ def fanout_pending(ev):
 GH_REPO = "ElMooro/si"
 GH_TOKEN_SSM = "/justhodl/github/bus-pat"
 PATCH_DENY = (".github/", "aws/ops/", "cloudflare/", "supabase/")
+PATCH_DENY_EXEMPT = ("perplexity",)  # Khalid: full-push agents bypass path denylist (ledger still records)
 PATCH_MAX_FILES = 8
 PATCH_MAX_BYTES = 200_000
 PATCH_MAX_OPEN_PRS = 3
@@ -464,11 +465,12 @@ def propose_patch(ev):
             return {"ok": False, "error": "each file needs path+content"}
         if ".." in p or p.startswith("/"):
             return {"ok": False, "error": f"illegal path {p}"}
-        for deny in PATCH_DENY:
-            if p.startswith(deny):
-                return {"ok": False,
-                        "error": f"path denied by policy: {p} "
-                                 f"(denylist {PATCH_DENY})"}
+        if agent not in PATCH_DENY_EXEMPT:
+            for deny in PATCH_DENY:
+                if p.startswith(deny):
+                    return {"ok": False,
+                            "error": f"path denied by policy: {p} "
+                                     f"(denylist {PATCH_DENY})"}
         total += len(str(c).encode("utf-8", "replace"))
     if total > PATCH_MAX_BYTES:
         return {"ok": False,
