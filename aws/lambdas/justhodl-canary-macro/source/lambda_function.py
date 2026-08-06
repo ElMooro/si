@@ -8,6 +8,7 @@ import gzip
 import io
 import json
 import os
+import time
 import urllib.request
 from datetime import datetime, timezone
 
@@ -196,38 +197,16 @@ def _xlsx(name, urls, key, S):
     S[name] = {"data_unavailable": True, "reason": last}
 
 
-def lambda_handler(event, context):
-    now = datetime.now(timezone.utc)
-    S = {"as_of": now.isoformat(timespec="seconds")}
-    hot = {"as_of": S["as_of"],
-           "source": "canary-macro (FRED keyless CSV + BLS v2 + "
-                     "Cleveland/Atlanta/DOL)"}
-    for name, ids in PANELS.items():
-        _fred_panel(name, ids, hot, S)
-    _bls(hot, S)
-    _xlsx("cleveland_model",
-          ["https://www.clevelandfed.org/-/media/files/webcharts/"
-           "yieldcurvepremium/yield-curve-predicted-gdp-growth.xlsx"],
-          "data/warm/fred-canary/cleveland-yieldcurve.xlsx", S)
-    _xlsx("atlanta_gdpnow",
-          ["https://www.atlantafed.org/-/media/documents/cqer/"
-           "researchcq/gdpnow/nowcast-tracking.xlsx",
-           "https://www.atlantafed.org/-/media/documents/cqer/"
-           "researchcq/gdpnow/GDPTrackingModelDataAndForecasts.xlsx"],
-          "data/warm/fred-canary/atlanta-gdpnow.xlsx", S)
-    try:
-        raw = _fetch("https://oui.doleta.gov/unemploy/csv/ar539.csv",
-                     timeout=120)
-        s3.put_object(Bucket=BUCKET,
-                      Key="data/warm/fred-canary/dol-ar539.csv.gz",
-                      Body=gzip.compress(raw))
-        S["dol_ar539"] = {"ok": True,
-                          "lines": raw.count(b"\n")}
-    except Exception as e:
-        S["dol_ar539"] = {"data_unavailable": True,
-                          "reason": f"{type(e).__name__}: "
-                                    f"{str(e)[:60]}"}
 
+def _budget(t0, S, name, cap=420):
+    if time.time() - t0 > cap:
+        S[name] = {"data_unavailable": True,
+                   "reason": "time-budget: deferred to next run"}
+        return False
+    return True
+
+
+def _finalize(hot, S):
     def _v(sid):
         e = hot.get(sid) or {}
         return e.get("value") if isinstance(e, dict) else None
@@ -237,17 +216,61 @@ def lambda_handler(event, context):
     flags["sahm_value"] = sv
     tv = _v("T10Y3M")
     flags["curve_10y3m_inverted"] = (tv is not None and tv < 0)
-    ic, icp = _v("IC4WSA"), (hot.get("IC4WSA") or {}).get("prev")
+    ic = _v("IC4WSA")
+    icp = (hot.get("IC4WSA") or {}).get("prev")
     flags["claims_4wk_rising"] = (ic is not None and icp is not None
                                   and ic > icp)
     hot["flags"] = flags
     s3.put_object(Bucket=BUCKET, Key="data/canary-macro.json",
                   Body=json.dumps(hot, default=str).encode(),
-                  ContentType="application/json", CacheControl="no-cache")
+                  ContentType="application/json",
+                  CacheControl="no-cache")
     s3.put_object(Bucket=BUCKET,
                   Key="data/warm/canary-macro-summary.json",
                   Body=json.dumps(S, default=str).encode(),
-                  ContentType="application/json", CacheControl="no-cache")
+                  ContentType="application/json",
+                  CacheControl="no-cache")
+
+
+def lambda_handler(event, context):
+    _t0 = time.time()
+    now = datetime.now(timezone.utc)
+    S = {"as_of": now.isoformat(timespec="seconds")}
+    hot = {"as_of": S["as_of"],
+           "source": "canary-macro (FRED keyless CSV + BLS v2 + "
+                     "Cleveland/Atlanta/DOL)"}
+    for name, ids in PANELS.items():
+        _fred_panel(name, ids, hot, S)
+    _bls(hot, S)
+    _finalize(hot, S)  # ops 4510: hot feed lands EARLY, tail can't kill it
+    if _budget(_t0, S, "cleveland_model"):
+        _xlsx("cleveland_model",
+          ["https://www.clevelandfed.org/-/media/files/webcharts/"
+           "yieldcurvepremium/yield-curve-predicted-gdp-growth.xlsx"],
+          "data/warm/fred-canary/cleveland-yieldcurve.xlsx", S)
+    if _budget(_t0, S, "atlanta_gdpnow"):
+        _xlsx("atlanta_gdpnow",
+          ["https://www.atlantafed.org/-/media/documents/cqer/"
+           "researchcq/gdpnow/nowcast-tracking.xlsx",
+           "https://www.atlantafed.org/-/media/documents/cqer/"
+           "researchcq/gdpnow/GDPTrackingModelDataAndForecasts.xlsx"],
+          "data/warm/fred-canary/atlanta-gdpnow.xlsx", S)
+    if _budget(_t0, S, "dol_ar539"):
+     try:
+        raw = _fetch("https://oui.doleta.gov/unemploy/csv/ar539.csv",
+                     timeout=60)
+        s3.put_object(Bucket=BUCKET,
+                      Key="data/warm/fred-canary/dol-ar539.csv.gz",
+                      Body=gzip.compress(raw))
+        S["dol_ar539"] = {"ok": True,
+                          "lines": raw.count(b"\n")}
+     except Exception as e:
+        S["dol_ar539"] = {"data_unavailable": True,
+                          "reason": f"{type(e).__name__}: "
+                                    f"{str(e)[:60]}"}
+
+    _finalize(hot, S)  # refresh incl tail statuses
+    flags = hot.get("flags") or {}
     n_hot = sum(1 for v in hot.values()
                 if isinstance(v, dict) and "value" in v
                 and v.get("value") is not None)
