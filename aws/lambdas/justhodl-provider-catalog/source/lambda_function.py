@@ -218,6 +218,9 @@ def _load_rollup_feeds():
             continue
         prov = pv.lower().strip()
         for feed in (rec.get("writes") or []):
+            if isinstance(feed, dict):
+                feed = (feed.get("key") or feed.get("feed")
+                        or feed.get("path") or feed.get("name"))
             if isinstance(feed, str):
                 out.setdefault(prov, []).append(feed)
     for k in out:
