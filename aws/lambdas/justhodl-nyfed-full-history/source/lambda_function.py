@@ -29,13 +29,33 @@ def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
     summary = {"as_of": now.isoformat(timespec="seconds"), "rates": {}}
     for rate, kind in RATES.items():
-        url = (f"https://markets.newyorkfed.org/api/rates/{kind}/"
-               f"{rate}/last/2600.json")
+        # ops 4445: the API rejected last/2600 (400 on all five). Discover
+        # the working shape per rate instead of assuming: bounded last/N,
+        # then the search endpoint with an explicit 10y window.
+        base = f"https://markets.newyorkfed.org/api/rates/{kind}/{rate}"
+        end = now.strftime("%Y-%m-%d")
+        start = now.replace(year=now.year - 10).strftime("%Y-%m-%d")
+        candidates = [f"{base}/last/500.json",
+                      f"{base}/search.json?startDate={start}&endDate={end}",
+                      f"{base}/last/100.json"]
+        raw = None
+        url = None
+        last_err = "no candidate tried"
+        for cu in candidates:
+            try:
+                req = urllib.request.Request(cu, headers={
+                    "User-Agent": "JustHodl research admin@justhodl.ai"})
+                with urllib.request.urlopen(req, timeout=45) as r:
+                    raw = r.read()
+                url = cu
+                break
+            except Exception as ce:
+                last_err = f"{type(ce).__name__}: {str(ce)[:60]}"
+                continue
         try:
-            req = urllib.request.Request(url, headers={
-                "User-Agent": "JustHodl research admin@justhodl.ai"})
-            with urllib.request.urlopen(req, timeout=45) as r:
-                raw = r.read()
+            if raw is None:
+                raise RuntimeError(f"all candidates failed; last: "
+                                   f"{last_err}")
             raw_key = snapshot("nyfed", url, raw) if snapshot else None
             obs = (json.loads(raw).get("refRates") or [])
             rows = [{"date": o.get("effectiveDate"),
