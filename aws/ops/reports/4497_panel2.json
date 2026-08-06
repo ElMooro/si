@@ -1,0 +1,32 @@
+{
+ "ops": 4497,
+ "started": "2026-08-06T17:39:20.101905+00:00",
+ "run": {
+  "as_of": "2026-08-06T17:39:28+00:00",
+  "pd_one_call": {
+   "ok": true,
+   "break": "SBN2024",
+   "rows": 1539,
+   "fails_to_deliver_rows": 12,
+   "fails_to_receive_rows": 12,
+   "kb": 56,
+   "raw_snapshot_key": "data/raw/nyfed/2026-08-06/cbf0090a3642.json.gz"
+  },
+  "ofr_mmf": {
+   "ok": true,
+   "n_series": 42,
+   "mb": 0.2
+  },
+  "ofr_nypd": {
+   "ok": true,
+   "n_series": 194,
+   "mb": 3.6
+  },
+  "nfci_xlsx": {
+   "data_unavailable": true,
+   "reason": "ValueError: HTTPError: HTTP Error 404: Not Found"
+  }
+ },
+ "verdict": "PASS \u2014 pd={\"ok\": true, \"break\": \"SBN2024\", \"rows\": 1539, \"fails_to_deliver_rows\": 12, \"fails_to_receive_rows\": 12, \"kb\": 56, \"raw_snapshot_k mmf={\"ok\": true, \"n_series\": 42, \"mb\": 0.2} nypd={\"ok\": true, \"n_series\": 194, \"mb\": 3.6} xlsx={\"data_unavailable\": true, \"reason\": \"ValueError: HTTPError:",
+ "finished": "2026-08-06T17:39:44.511184+00:00"
+}

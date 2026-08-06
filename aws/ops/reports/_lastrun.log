@@ -1,2 +1,5 @@
-executing-against: b48a367758ad36de44c58e361a61d77ac9799d77
-PARTIAL — {"ok": true, "wrapped": {"ofr": 5, "soma": 0, "treasury": 0, "bls": 0, "bea": 0}, "total_enveloped": 5}
+executing-against: 382c10bff191eddf4ff8156144fcfe95604b3c8e
+{"ops": 4499, "as_of": "2026-08-06T17:38:03.385893+00:00", "data/soma-holdings.json": ["no missing markers?"], "data/treasury-fiscal.json": ["debt_to_penny: source unavailable", "tga_operating_cash: source unavailable", "avg_interest_rates: source unavailable"], "data/bls-macro.json": ["cpi_headline: source unavailable", "cpi_core: source unavailable", "ppi_final_demand: source unavailable"], "data/bea-gdp.json": ["no missing markers?"]}
+PASS — feed 1.0h->fresh, composite=50.1, sched=existing
+PASS — pd={"ok": true, "break": "SBN2024", "rows": 1539, "fails_to_deliver_rows": 12, "fails_to_receive_rows": 12, "kb": 56, "raw_snapshot_k mmf={"ok": true, "n_series": 42, "mb": 0.2} nypd={"ok": true, "n_series": 194, "mb": 3.6} xlsx={"data_unavailable": true, "reason": "ValueError: HTTPError:
+{"4499_read_reasons.py": "OK", "4500_p0_resurrect.py": "OK", "4497_panel2.py": "OK"}

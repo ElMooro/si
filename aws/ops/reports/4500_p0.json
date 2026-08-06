@@ -1,0 +1,22 @@
+{
+ "ops": 4500,
+ "started": "2026-08-06T17:38:04.067820+00:00",
+ "feed_age_h_before": 1.0,
+ "diag_run": {
+  "fn_err": null,
+  "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"composite_score\\\": 49.1, \\\"composite_label\\\": \\\"NORMAL\\\", \\\"n_with_data\\\": 29, \\\"n_alerts\\\": 11, \\\"duration_s\\\": 19.0}\"}"
+ },
+ "schedule_before": [
+  "justhodl-plumbing-aggregator-hourly"
+ ],
+ "post_run": {
+  "fn_err": null,
+  "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"composite_score\\\": 50.1, \\\"composite_label\\\": \\\"ELEVATED\\\", \\\"n_with_data\\\": 29, \\\"n_alerts\\\": 11, \\\"duration_s\\\": 13.9}\"}"
+ },
+ "feed_after": {
+  "as_of": "2026-08-06T17:38:45+00:00",
+  "composite": 50.1
+ },
+ "verdict": "PASS \u2014 feed 1.0h->fresh, composite=50.1, sched=existing",
+ "finished": "2026-08-06T17:39:20.090025+00:00"
+}

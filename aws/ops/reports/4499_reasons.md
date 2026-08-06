@@ -1,0 +1,13 @@
+# ops 4499 — wing reasons
+- data/soma-holdings.json:
+  no missing markers?
+- data/treasury-fiscal.json:
+  debt_to_penny: source unavailable
+  tga_operating_cash: source unavailable
+  avg_interest_rates: source unavailable
+- data/bls-macro.json:
+  cpi_headline: source unavailable
+  cpi_core: source unavailable
+  ppi_final_demand: source unavailable
+- data/bea-gdp.json:
+  no missing markers?
