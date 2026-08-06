@@ -1,0 +1,25 @@
+{
+ "ops": 4442,
+ "started": "2026-08-06T00:17:26.149150+00:00",
+ "ssm": "stored (SecureString)",
+ "run": {
+  "code": 200,
+  "fn_err": null
+ },
+ "figi": {
+  "stats": {
+   "enriched": 2485,
+   "no_match": 15,
+   "errors": 0,
+   "remaining_null": 7898
+  },
+  "n_with_figi": 2485,
+  "AAPL": {
+   "ticker": "AAPL",
+   "figi": "BBG000B9XRY4",
+   "figi_name": "APPLE INC"
+  }
+ },
+ "verdict": "PASS \u2014 2485 FIGIs, AAPL={\"ticker\": \"AAPL\", \"figi\": \"BBG000B9XRY4\", \"figi_name\": \"APPLE INC\"}",
+ "finished": "2026-08-06T00:18:21.734255+00:00"
+}
