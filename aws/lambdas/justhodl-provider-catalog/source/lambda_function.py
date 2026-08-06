@@ -50,7 +50,9 @@ REG = {
  "fed-board": {"name": "Federal Reserve Board — DDP",
   "api": "federalreserve.gov/datadownload",
   "engines": ["justhodl-usgov-direct"],
-  "prefixes": ["data/warm/usgov/ddp/"]},
+  "prefixes": ["data/warm/usgov/ddp/", "data/warm/usgov/fed-ddp/",
+               "data/warm/ddp/", "data/warm/fed-ddp/",
+               "data/warm/usgov/frb"]},
  "fred": {"name": "FRED — St. Louis Fed",
   "api": "fred.stlouisfed.org",
   "engines": ["justhodl-canary-macro", "many legacy engines"],
@@ -141,7 +143,7 @@ REG = {
  "ecb": {"name": "ECB — SDMX",
   "api": "data-api.ecb.europa.eu",
   "engines": ["justhodl-ecb-catalog"],
-  "prefixes": ["data/warm/ecb/"]},
+  "prefixes": ["data/warm/ecb/", "data/warm/ecb-", "data/ecb"]},
 }
 
 
@@ -173,6 +175,17 @@ def _series_list(spec):
 
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
+    try:  # ops 4508 discovery: real subfolder names, printed once
+        r1 = s3.list_objects_v2(Bucket=BUCKET,
+                                Prefix="data/warm/usgov/",
+                                Delimiter="/")
+        print("USGOV_SUBS:", [c["Prefix"] for c in
+                              r1.get("CommonPrefixes", [])])
+        r2 = s3.list_objects_v2(Bucket=BUCKET, Prefix="data/warm/ec",
+                                MaxKeys=15)
+        print("EC_KEYS:", [o["Key"] for o in r2.get("Contents", [])])
+    except Exception as _e:
+        print("disc_err", _e)
     hub = {"as_of": now.isoformat(timespec="seconds"), "providers": []}
     for slug, r in REG.items():
         keys = []
