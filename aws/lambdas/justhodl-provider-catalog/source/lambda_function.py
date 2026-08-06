@@ -140,6 +140,27 @@ REG = {
   "engines": ["cftc-futures-positioning-agent",
               "justhodl-cftc-deep"],
   "prefixes": ["data/warm/cftc/"]},
+ "yahoo": {"name": "Yahoo Finance", "api": "query1.finance.yahoo.com",
+  "engines": ["legacy fleet (signature-mapped)"], "prefixes": []},
+ "coinmetrics": {"name": "CoinMetrics — community",
+  "api": "community-api.coinmetrics.io",
+  "engines": ["legacy fleet"], "prefixes": []},
+ "imf": {"name": "IMF — SDMX/MFS", "api": "dataservices.imf.org",
+  "engines": ["families-feed"], "prefixes": ["data/warm/imf"]},
+ "worldbank": {"name": "World Bank", "api": "api.worldbank.org",
+  "engines": ["families-feed"], "prefixes": ["data/warm/worldbank"]},
+ "dbnomics": {"name": "DBnomics", "api": "api.db.nomics.world",
+  "engines": ["legacy fleet"], "prefixes": []},
+ "snb": {"name": "Swiss National Bank", "api": "data.snb.ch",
+  "engines": ["gov-sources"], "prefixes": []},
+ "bcb": {"name": "Banco Central do Brasil", "api": "api.bcb.gov.br",
+  "engines": ["gov-sources"], "prefixes": []},
+ "cboe": {"name": "Cboe", "api": "cdn.cboe.com",
+  "engines": ["legacy fleet"], "prefixes": []},
+ "boj": {"name": "Bank of Japan", "api": "stat-search.boj.or.jp",
+  "engines": ["gov-sources"], "prefixes": []},
+ "other": {"name": "Other / mixed-signature",
+  "api": "(various)", "engines": ["fleet"], "prefixes": []},
  "ecb": {"name": "ECB — SDMX",
   "api": "data-api.ecb.europa.eu",
   "engines": ["justhodl-ecb-catalog"],
@@ -173,8 +194,64 @@ def _series_list(spec):
     return None
 
 
+def _load_rollup_feeds():
+    """ops 4511 v3: feed->provider truth from the E12 rollup. Shape-
+    flexible: find a dict whose values are provider strings."""
+    try:
+        d = _get_json("data/audit/data-source-rollup.json")
+    except Exception:
+        return {}
+    best = {}
+    def scan(o, depth=0):
+        nonlocal best
+        if depth > 3 or not isinstance(o, dict):
+            return
+        vals = list(o.values())
+        if (len(o) > 50 and
+                sum(1 for v in vals[:80] if isinstance(v, str)) >
+                len(vals[:80]) * 0.8):
+            if len(o) > len(best):
+                best = {k: v for k, v in o.items()
+                        if isinstance(v, str)}
+            return
+        for v in vals:
+            scan(v, depth + 1)
+    scan(d)
+    out = {}
+    for feed, prov in best.items():
+        out.setdefault(str(prov).lower(), []).append(feed)
+    return out
+
+
+def _hot_index():
+    """Size/age for every object directly under data/ (hot feeds)."""
+    now = datetime.now(timezone.utc)
+    idx = {}
+    tok = None
+    while True:
+        kw = {"Bucket": BUCKET, "Prefix": "data/", "Delimiter": "/",
+              "MaxKeys": 1000}
+        if tok:
+            kw["ContinuationToken"] = tok
+        r = s3.list_objects_v2(**kw)
+        for o in r.get("Contents", []):
+            idx[o["Key"]] = (o["Size"], round(
+                (now - o["LastModified"]).total_seconds() / 3600, 1))
+        if not r.get("IsTruncated"):
+            break
+        tok = r.get("NextContinuationToken")
+    return idx
+
+
+ALIAS = {"llm-anthropic": "other", "transform-agent": "other",
+         "fleet-feed": None, "unmapped": "other",
+         "fed-board": "fed-board", "nasdaq": "other"}
+
+
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
+    roll = _load_rollup_feeds()
+    hotidx = _hot_index()
     try:  # ops 4508 discovery: real subfolder names, printed once
         r1 = s3.list_objects_v2(Bucket=BUCKET,
                                 Prefix="data/warm/usgov/",
@@ -220,7 +297,24 @@ def lambda_handler(event, context):
             except Exception:
                 keys.append({"key": hk, "missing": True,
                              "hot": True})
-        keys.sort(key=lambda x: x.get("bytes", 0), reverse=True)
+        # v3: rollup-attributed hot feeds for this provider
+        rslugs = [slug] + [k for k, v in ALIAS.items() if v == slug]
+        seen = {k["key"] for k in keys}
+        n_roll = 0
+        for rs in rslugs:
+            for feed in roll.get(rs, []):
+                fk = feed if feed.startswith("data/") else (
+                    "data/" + feed.lstrip("/"))
+                if fk in seen:
+                    continue
+                sz, age = hotidx.get(fk, (None, None))
+                keys.append({"key": fk, "bytes": sz, "age_h": age,
+                             "hot": True, "via": "rollup"})
+                if sz:
+                    tot += sz
+                seen.add(fk)
+                n_roll += 1
+        keys.sort(key=lambda x: (x.get("bytes") or 0), reverse=True)
         ser = _series_list(r.get("series_from"))
         doc = {"slug": slug, "name": r["name"], "api": r["api"],
                "engines": r["engines"],
@@ -241,6 +335,7 @@ def lambda_handler(event, context):
         hub["providers"].append(
             {"slug": slug, "name": r["name"], "api": r["api"],
              "n_keys": doc["n_keys"], "total_mb": doc["total_mb"],
+             "hot_feeds": n_roll,
              "series_count": (ser or {}).get("count"),
              "freshest_h": doc["freshest_h"]})
     hub["providers"].sort(key=lambda p: -(p["total_mb"] or 0))
