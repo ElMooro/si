@@ -1,0 +1,102 @@
+{
+ "ops": 4513,
+ "started": "2026-08-06T22:41:49.464709+00:00",
+ "canary_hot": {
+  "exists": true,
+  "age_min": 0.8,
+  "kb": 18.0
+ },
+ "fred_canary_keys": 0,
+ "inv": {
+  "ok": true,
+  "providers": 39,
+  "keys": 1076,
+  "gb": 2.24
+ },
+ "totals": {
+  "providers": 39,
+  "keys": 1076,
+  "gb": 2.24
+ },
+ "top": [
+  [
+   "ofr",
+   447,
+   0
+  ],
+  [
+   "nyfed",
+   431,
+   0
+  ],
+  [
+   "ecb",
+   96,
+   0
+  ],
+  [
+   "bls",
+   16,
+   0
+  ],
+  [
+   "bea",
+   14,
+   0
+  ],
+  [
+   "statcan",
+   11,
+   0
+  ],
+  [
+   "oecd",
+   10,
+   0
+  ],
+  [
+   "eurostat",
+   9,
+   0
+  ],
+  [
+   "bis",
+   9,
+   0
+  ],
+  [
+   "treasury",
+   8,
+   0
+  ]
+ ],
+ "fred_row": {
+  "slug": "fred",
+  "name": "FRED \u2014 St. Louis Fed",
+  "api": "fred.stlouisfed.org",
+  "n_keys": 1,
+  "total_mb": 0.02,
+  "hot_feeds": 0,
+  "series_count": null,
+  "freshest_h": 0.0
+ },
+ "still_zero": [
+  "sec-midas",
+  "dol",
+  "chicagofed",
+  "clevelandfed",
+  "atlantafed",
+  "occ",
+  "yahoo",
+  "coinmetrics",
+  "imf",
+  "worldbank",
+  "dbnomics",
+  "snb",
+  "bcb",
+  "cboe",
+  "boj",
+  "other"
+ ],
+ "verdict": "totals={\"providers\": 39, \"keys\": 1076, \"gb\": 2.24} fred={\"slug\": \"fred\", \"name\": \"FRED \\u2014 St. Louis Fed\", \"api\": \"fred.stlouisfed.org\", \"n_keys\": 1, \"to canary={\"exists\": true, \"age_min\": 0.8, \"kb\": 18.0} fkeys=0"
+}
