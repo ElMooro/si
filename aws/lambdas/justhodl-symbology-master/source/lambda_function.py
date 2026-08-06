@@ -95,7 +95,8 @@ def enrich_cusip_chain(by_ticker):
         if isinstance(v, dict):
             cus = (v.get("cusip") or (k if k and len(str(k)) == 9
                                       else None))
-            tkr = (v.get("ticker") or v.get("symbol") or "")
+            tkr = (v.get("ticker") or v.get("symbol")
+                   or (str(k) if str(k).upper() in by_ticker else ""))
         else:
             cus, tkr = k, str(v)
         tkr = (tkr or "").upper().strip()
