@@ -28,7 +28,10 @@ def _fetch(u, timeout=120):
     req = urllib.request.Request(u, headers={
         "User-Agent": "JustHodl research admin@justhodl.ai"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read()
+        b = r.read()
+    if b[:2] == b"\x1f\x8b":
+        b = gzip.decompress(b)
+    return b
 
 
 def lambda_handler(event, context):
@@ -49,10 +52,20 @@ def lambda_handler(event, context):
                 rk = (snapshot("nyfed", cu, raw[:400000])
                       if snapshot else None)
                 d = json.loads(raw)
-                ops = (d.get("repo", {}).get("operations")
-                       or d.get("operations") or [])
+                ops_all = (d.get("repo", {}).get("operations")
+                           or d.get("operations") or [])
+                # ops 4495: server ignored operationType — split
+                # client-side; keep only this op's rows
+                ops = [o for o in ops_all
+                       if op.rstrip("s") in str(
+                           o.get("operationType", "")).lower()
+                       .replace(" ", "")]
+                if not ops:
+                    ops = ops_all  # shape drift: keep full, labelled
                 if not ops:
                     raise ValueError("zero operations parsed")
+                ops.sort(key=lambda o: o.get("operationDate", ""),
+                         reverse=True)
                 s3.put_object(
                     Bucket=BUCKET,
                     Key=f"data/warm/nyfed-markets/rp-{op}-history"
@@ -68,8 +81,11 @@ def lambda_handler(event, context):
                 S[f"rp_{op}"] = {
                     "ok": True, "n_ops": len(ops),
                     "latest_date": latest.get("operationDate"),
-                    "latest_accepted_bn": latest.get(
-                        "totalAmtAccepted")}
+                    "latest_accepted": (latest.get("totalAmtAccepted")
+                                        or latest.get("amtAccepted")
+                                        or latest.get(
+                                            "totalAccepted")),
+                    "row_keys": sorted(latest.keys())[:12]}
                 break
             except Exception as e:
                 last = f"{cu[:70]} -> {type(e).__name__}: {str(e)[:50]}"
