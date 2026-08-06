@@ -1,4 +1,4 @@
-executing-against: cf9a205a5d0984068460c44591ecde783c68fb9f
+executing-against: c49f409bc27c48820c1bb188f31ef46760ae919c
 Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
     response = conn.getresponse()
@@ -51,7 +51,7 @@ urllib3.exceptions.ReadTimeoutError: AWSHTTPSConnectionPool(host='lambda.us-east
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/4509_canary_diag.py", line 11, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/4510_canary_v2.py", line 31, in <module>
     inv=lam.invoke(FunctionName=FN,InvocationType="RequestResponse",Payload=b"{}")
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
@@ -110,4 +110,4 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 514, in send
     raise ReadTimeoutError(endpoint_url=request.url, error=e)
 botocore.exceptions.ReadTimeoutError: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-canary-macro/invocations"
-❌ OPS-FAIL: aws/ops/pending/4509_canary_diag.py
+❌ OPS-FAIL: aws/ops/pending/4510_canary_v2.py
