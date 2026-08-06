@@ -1,0 +1,27 @@
+{
+ "ops": 4448,
+ "started": "2026-08-06T01:19:41.416726+00:00",
+ "mode": "created",
+ "run": {
+  "code": 200,
+  "fn_err": null
+ },
+ "summary": {
+  "debt_to_penny": {
+   "current": 39828435390891.55,
+   "date": "2026-08-04",
+   "unit": "USD",
+   "n_obs": 2500,
+   "span": "2016-08-17..2026-08-04"
+  },
+  "tga_operating_cash": {
+   "current": 924219.0,
+   "date": "2026-08-04",
+   "unit": "USD millions",
+   "n_obs": 1077,
+   "span": "2022-04-18..2026-08-04"
+  }
+ },
+ "verdict": "PASS \u2014 {\"debt_to_penny\": 2500, \"tga_operating_cash\": 1077}",
+ "finished": "2026-08-06T01:20:11.234673+00:00"
+}
