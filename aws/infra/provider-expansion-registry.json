@@ -1,0 +1,30 @@
+{
+ "spec": "Council-derived 100%-of-provider expansion registry (ops 4462)",
+ "goal": "For each provider: ingest 100% of the catalog THAT THE LICENSE PERMITS — license-illegal bytes are not coverage, they are liability",
+ "as_of": "2026-08-06",
+ "council": ["opus5","fable5","sonnet5","gpt5.6-sol","gemini3.1"],
+ "already_built_today": {
+  "validated_by_council": ["OpenFIGI+SEC symbology spine (unanimous)","NY Fed under-use thesis (E8)","warm/raw 3-tier (E9)","backfill orchestrator pattern (E10)","unmapped=classification-not-sourcing (E12 lineage view)"],
+  "council_error_corrected": "gemini3.1 assumed '99% parity, 320k tickers' — actual honest baseline is 10,398 tickers = 3.25% of 320k (E11)"
+ },
+ "license_risks_CRITICAL": [
+  {"provider":"FRED","risk":"2024 ToU prohibits storing/caching/archiving API content and AI/ML use — conflicts with F4 raw layer + llm feeds","action":"re-point ~70% of series to ORIGINATING agencies (BLS/BEA/Treasury/Fed DDP = public domain); FRED becomes discovery+fallback only; F4 snapshots of FRED bytes SUSPENDED pending this migration","status":"OPEN — top priority"},
+  {"provider":"CoinMetrics Community","risk":"CC BY-NC 4.0 non-commercial","action":"replace with exchange-direct or licensed tier; flag feeds","status":"OPEN"},
+  {"provider":"Yahoo","risk":"no commercial license; MOVE canary depends on it","action":"migrate MOVE to Cboe free CSVs / FRED VXTLT-class alternates","status":"OPEN"}
+ ],
+ "free_tier_worklist_100pct": [
+  {"provider":"OFR STFM","base":"https://data.financialresearch.gov/v1/","auth":"none","catalog":"442 mnemonics / 5 datasets (repo, NYPD, MMF, rates, yields)","fit":"THE plumbing dataset — unanimous council #1","engine":"justhodl-ofr-stfm (ops 4462)","target":"100% mnemonics full-history via cursor","status":"BUILDING"},
+  {"provider":"FRED release-bulk","base":"fred/v2/release/observations","note":"one call = entire release; pair with ALFRED vintages; SUBJECT to license action above","target":"all releases feeding rates/employment/inflation/housing","status":"blocked-on-license-action"},
+  {"provider":"NY Fed full","note":"beyond E8's 5 rates: Primary Dealer Statistics, SOMA holdings, repo ops, fails, swap lines — free keyless","target":"100% of markets API endpoints","status":"queued-E10"},
+  {"provider":"SEC bulk","note":"companyfacts.zip + Frames + FTD + N-PORT/N-MFP","target":"100% of bulk zips nightly","status":"queued-E10"},
+  {"provider":"GLEIF","note":"Golden Copy free S3 mirror s3://gleif/ — LEI universe + ISIN-LEI map","target":"100% golden copy weekly","status":"queued-E10"},
+  {"provider":"Treasury fiscaldata","note":"E7 has 2 datasets; API lists ~100+","target":"100% dataset walk via E10","status":"queued-E10"},
+  {"provider":"CFTC Socrata","note":"E6 has 2; full COT family + swaps reports","target":"100% dataset ids","status":"queued-E10"},
+  {"provider":"ECB SDMX","note":"E5 catalog landing; per-dataflow series pulls","target":"100% of key dataflows (EXR/BSI/MIR/ICP/YC/FM)","status":"queued-E10"},
+  {"provider":"BIS SDMX","base":"https://stats.bis.org/api/v1/","target":"CBTA, credit, property, effective FX — 100% of core stat sets","status":"planned"},
+  {"provider":"Polygon Flat Files","note":"S3-native bulk (s3://flatfiles) bypasses REST limits — fits warm tier natively","target":"100% day-aggregates history all assets","status":"planned"},
+  {"provider":"Eurostat/OECD/WorldBank/StatCan/SNB/BCB/Banxico/DBnomics","note":"SDMX/REST rail; DBnomics = discovery+backfill with ORIGIN attribution only (gpt5.6 rule: transport≠origin)","target":"catalog-first then cursor walks","status":"planned"}
+ ],
+ "paid_tier_APR": {"id":"APR-0002","items":[{"FINRA TRACE":"$1,650/mo — corporate bond ticks"},{"Cboe All Access T3":"$2,499/mo — options chains/IV"},{"Nasdaq Data Link premium":"varies"},{"DTCC/OCC":"enterprise quote"}],"decision":"KHALID via approvals.html button"},
+ "provenance_rule_upgrade": "E12 v2: store transport_provider AND origin_provider (gpt5.6); llm-anthropic reclassified as transform_agent not data provider (unanimous)"
+}

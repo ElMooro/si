@@ -1,16 +1,1 @@
-{
-  "function_name": "justhodl-ofr-stfm",
-  "region": "us-east-1",
-  "runtime": "python3.12",
-  "handler": "lambda_function.lambda_handler",
-  "memory": 1024,
-  "timeout": 300,
-  "architectures": ["x86_64"],
-  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "OFR Short-Term Funding Monitor extractor: repo market (DVP/GCF/triparty volumes+rates), money market funds, FR2004 fails cross-check + full mnemonic catalog for the fleet.",
-  "scheduler": {
-    "name": "justhodl-ofr-stfm-daily",
-    "expression": "cron(30 11 ? * TUE-SAT *)",
-    "description": "OFR STFM updates ~9am ET with prior-day repo data"
-  }
-}
+{"function_name":"justhodl-ofr-stfm","region":"us-east-1","runtime":"python3.12","handler":"lambda_function.lambda_handler","memory":1024,"timeout":600,"role":"arn:aws:iam::857687956942:role/lambda-execution-role","description":"Council #1 (ops 4462): OFR STFM — 100%-of-provider pattern: discover full mnemonic catalog, pull full history in cursored tranches to data/warm/ofr/, converge to every mnemonic; F4 snapshots.","eventbridge_rules":["justhodl-ofr-stfm-hourly"],"env":{"S3_BUCKET":"justhodl-dashboard-live","TRANCHE":"30"}}
