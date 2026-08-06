@@ -564,6 +564,10 @@ function jhRenderEnrichment(enr, hostId){
   async function go(){
     try{
       var d=await fetchJSON(FEED);
+      try{var _a=(Date.now()-new Date(d.as_of||d.generated_at||d.updated_at).getTime())/36e5;
+        if(_a>6){var _c=document.createElement('div');
+          _c.style.cssText='position:fixed;top:10px;right:10px;z-index:999;background:#3a1414;color:#e05252;border:1px solid #5c2020;border-radius:14px;padding:4px 12px;font:600 11px monospace';
+          _c.textContent='DATA '+_a.toFixed(1)+'h OLD';document.body.appendChild(_c);}}catch(_e){}
       if(d && d.enrichment) jhRenderEnrichment(d.enrichment,'enrichment-section');
     }catch(e){ console.warn('enrichment load failed',e); }
   }
