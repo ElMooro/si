@@ -1,0 +1,39 @@
+{
+ "ops": 4466,
+ "started": "2026-08-06T03:32:41.030583+00:00",
+ "e7": {
+  "ok": true,
+  "loaded": {
+   "debt_to_penny": 2500,
+   "rates_of_exchange": 2500,
+   "avg_interest_rates": 2500,
+   "interest_expense": 2500,
+   "debt_outstanding": 237,
+   "tga_operating_cash": 1077
+  },
+  "failed": []
+ },
+ "usgov": {
+  "as_of": "2026-08-06T03:33:11+00:00",
+  "bea": {
+   "ok": true,
+   "datasets": 13,
+   "gdp_rows": 7925
+  },
+  "bls": {
+   "ok": true,
+   "status": "REQUEST_SUCCEEDED",
+   "series": 15,
+   "obs": 2814,
+   "keyed": true
+  },
+  "fed_ddp": {
+   "ok": true,
+   "candidate": "H15_zip",
+   "bytes": 4275567,
+   "raw_snapshot_key": "data/raw/fed-ddp/2026-08-06/560d3fc1b922.json.gz"
+  }
+ },
+ "verdict": "PASS \u2014 bea={\"ok\": true, \"datasets\": 13, \"gdp_rows\": 7925} bls={\"ok\": true, \"status\": \"REQUEST_SUCCEEDED\", \"series\": 15, \"obs\": 2814, \"keyed\":  ddp={\"ok\": true, \"candidate\": \"H15_zip\", \"bytes\": 4275567, \"raw_",
+ "finished": "2026-08-06T03:33:33.282697+00:00"
+}
