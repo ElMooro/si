@@ -1,7 +1,2 @@
-executing-against: abcfc4203f24a5efbf486db24308c3a5ce45d95b
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/4451_e9.py", line 43, in <module>
-    open("aws/infra/s3-lifecycle.json","w").write(json.dumps(
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: 'aws/infra/s3-lifecycle.json'
-❌ OPS-FAIL: aws/ops/pending/4451_e9.py
+executing-against: cf94c47a591cf41e480814da4d8a80002e569553
+PARTIAL — {"as_of": "2026-08-06T01:54:12+00:00", "n_series": 0, "pages_ok": 5, "errors": [], "top10": []}
