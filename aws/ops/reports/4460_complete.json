@@ -1,0 +1,15 @@
+{
+ "ops": 4460,
+ "started": "2026-08-06T02:50:19.496760+00:00",
+ "bus": "deployed",
+ "apr0001": "approved",
+ "key_source": "SSM fallback",
+ "e2_run": {
+  "ok": false,
+  "data_unavailable": true,
+  "reason": "no POLYGON_API_KEY in env or SSM"
+ },
+ "warm_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist",
+ "verdict": "PARTIAL \u2014 {\"e2_run\": {\"ok\": false, \"data_unavailable\": true, \"reason\": \"no POLYGON_API_KEY in env or SSM\"}, \"e2_err\": null, \"warm_err\": \"An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist\"}",
+ "finished": "2026-08-06T02:51:16.789699+00:00"
+}
