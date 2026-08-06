@@ -1,0 +1,32 @@
+{
+ "ops": 4468,
+ "started": "2026-08-06T03:45:21.962608+00:00",
+ "run": {
+  "as_of": "2026-08-06T03:45:30+00:00",
+  "bis": {
+   "ok": true,
+   "n_dataflows": 29,
+   "sample": [
+    "BIS_REL_CAL",
+    "WS_CBPOL",
+    "WS_CBS_PUB",
+    "WS_CBTA",
+    "WS_CPMI_CASHLESS",
+    "WS_CPMI_CT1",
+    "WS_CPMI_CT2",
+    "WS_CPMI_DEVICES"
+   ],
+   "source": "https://stats.bis.org/api/v1/dataflow/BIS/all/latest"
+  },
+  "gleif": {
+   "ok": true,
+   "bytes": 31945886,
+   "mb": 31.9,
+   "source": "https://mapping.gleif.org/api/v2/isin-lei/latest/download",
+   "raw_snapshot_key": "data/raw/gleif/2026-08-06/4135d0802211.json.gz",
+   "note": "full Golden Copy = stated E10 follow-up"
+  }
+ },
+ "verdict": "PASS \u2014 bis={\"ok\": true, \"n_dataflows\": 29, \"sample\": [\"BIS_REL_CAL\", \"WS_CBPOL\", \"WS_CBS_PUB\", \"WS_CBTA\", \"WS_C gleif={\"ok\": true, \"bytes\": 31945886, \"mb\": 31.9, \"source\": \"https://mapping.gleif.org/api/v2/isin-lei/lat",
+ "finished": "2026-08-06T03:45:53.233365+00:00"
+}

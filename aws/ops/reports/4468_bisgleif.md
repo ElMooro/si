@@ -1,0 +1,1 @@
+# ops 4463 — nyfed-full — PASS — bis={"ok": true, "n_dataflows": 29, "sample": ["BIS_REL_CAL", "WS_CBPOL", "WS_CBS_PUB", "WS_CBTA", "WS_C gleif={"ok": true, "bytes": 31945886, "mb": 31.9, "source": "https://mapping.gleif.org/api/v2/isin-lei/lat
