@@ -1,0 +1,41 @@
+{
+ "ops": 4503,
+ "started": "2026-08-06T19:23:55.616554+00:00",
+ "run": {
+  "as_of": "2026-08-06T19:24:04+00:00",
+  "bis": {
+   "pulled": 2,
+   "of_run": 2,
+   "progress_pct": 6.9,
+   "status": "converging",
+   "n_total": 29,
+   "n_failures": 0
+  },
+  "eurostat": {
+   "pulled": 2,
+   "of_run": 2,
+   "progress_pct": 0.02,
+   "status": "converging",
+   "n_total": 8146,
+   "n_failures": 0
+  },
+  "oecd": {
+   "pulled": 2,
+   "of_run": 2,
+   "progress_pct": 0.13,
+   "status": "converging",
+   "n_total": 1542,
+   "n_failures": 0
+  },
+  "statcan": {
+   "pulled": 2,
+   "of_run": 2,
+   "progress_pct": 0.02,
+   "status": "converging",
+   "n_total": 8216,
+   "n_failures": 0
+  }
+ },
+ "verdict": "PASS \u2014 {\"bis\": {\"pulled\": 2, \"pct\": 6.9}, \"eurostat\": {\"pulled\": 2, \"pct\": 0.02}, \"oecd\": {\"pulled\": 2, \"pct\": 0.13}, \"statcan\": {\"pulled\": 2, \"pct\": 0.02}}",
+ "finished": "2026-08-06T19:26:14.925702+00:00"
+}

@@ -1,0 +1,1 @@
+# ops 4505 chain B — {"4501_canary.py": "OK", "4502_fixes_batch.py": "ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/ju", "4503_walker.py": "OK"}
