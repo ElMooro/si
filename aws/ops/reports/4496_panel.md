@@ -1,0 +1,1 @@
+# ops 4463 — nyfed-full — PASS — pd={"ok": true, "break": "SBP2013", "rows": 148, "fails_to_deliver_rows": 0, "fails_to_receive_rows": 0, "kb": 5, "raw_snapshot_key": mmf={"ok": true, "n_series": 42, "mb": 0.2} nypd={"ok": true, "n_series": 194, "mb": 3.6} xlsx={"data_unavailable": true, "reason": "HTTPError: HTTP Error 
