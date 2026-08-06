@@ -1,0 +1,37 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Approvals — JustHodl.AI</title><style>
+:root{--bg:#0b0e13;--card:#12161c;--border:#232a33;--text:#e8ecf1;--text2:#aab4bf;--text3:#788492}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:22px 18px}h1{font-size:20px;margin:0 0 4px}
+.sub{color:var(--text3);font-size:12px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
+.k{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.badge{font-size:11px;padding:2px 8px;border:1px solid var(--border);border-radius:12px;margin-left:8px}
+.p{color:#e0a030}.a{color:#4caf7d}.r{color:#e05252}
+pre{background:#0e1218;border:1px solid var(--border);border-radius:6px;padding:10px;font-size:11px;overflow:auto;max-height:180px}
+</style></head><body><div class="wrap">
+<h1>Approvals — Two-Gate</h1>
+<div class="sub">F6: nothing self-applies. Gate 1 = a scout/observer files a proposal here (write-only). Gate 2 = <b>Khalid alone</b> approves — by telling Claude in chat or posting <code>action:task_update</code> on the bus with the proposal id. Approved items become <code>propose_patch</code> PRs; rejected items are archived with the reason. This page is read-only visibility; there is deliberately no approve button (the gate is Khalid, not a click).</div>
+<div class="card"><div class="k">Pending</div><div id="pending">—</div></div>
+<div class="card"><div class="k">Recently decided</div><div id="decided">—</div></div>
+<script>
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+(async()=>{try{
+ const r=await fetch('/data/audit/approvals.json?t='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(9000)});
+ if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();
+ const P=d.pending||[],D=(d.decided||[]).slice(-10).reverse();
+ document.getElementById('pending').innerHTML=P.length?P.map(x=>
+  `<div style="border-top:1px solid var(--border);padding:8px 0">
+   <b>${esc(x.id)}</b><span class="badge p">PENDING</span>
+   <span style="color:var(--text3);font-size:11px;margin-left:8px">${esc(x.proposed_by)} · ${esc(x.filed_at)}</span>
+   <div style="font-size:12px;margin-top:4px">${esc(x.title)}</div>
+   <pre>${esc(JSON.stringify(x.detail||{},null,1))}</pre></div>`).join('')
+  :'<div style="color:var(--text3);font-size:12px;padding:6px 0">none — scouts file here; nothing auto-applies</div>';
+ document.getElementById('decided').innerHTML=D.length?D.map(x=>
+  `<div style="border-top:1px solid var(--border);padding:6px 0;font-size:12px">
+   <b>${esc(x.id)}</b><span class="badge ${x.decision==='approved'?'a':'r'}">${esc((x.decision||'').toUpperCase())}</span>
+   <span style="color:var(--text3);font-size:11px;margin-left:8px">by ${esc(x.decided_by)} · ${esc(x.decided_at)}</span>
+   <div style="color:var(--text2)">${esc(x.title)} — ${esc(x.reason||'')}</div></div>`).join('')
+  :'<div style="color:var(--text3);font-size:12px;padding:6px 0">none yet</div>';
+}catch(e){document.getElementById('pending').textContent='ledger unavailable: '+e.message;}})();
+</script></div></body></html>
