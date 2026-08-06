@@ -1,0 +1,7 @@
+# ops 4512 — discover+chain
+- rollup: {"as_of": "str", "method": "str", "global": {"fleet-feed": "float", "unmapped": "float", "fred": "float", "polygon": "float", "llm-anthropic": "float", "yahoo": "float", "__more__": 16}, "global_feed_counts": {"fred": "int", "polygon": "int", "fleet-feed": "int", "cftc": "int", "eia": "int", "sec": "int", "__more__": 16}, "by_page": {"13f.html": {"unmapped": "float"}, "accumulation.html": {"fleet-feed": "float", "polygon": "float"}, "accuracy.html": {"fleet-feed": "float"}, "activist-13d.html": {"fleet-feed": "float", "sec": "float"}, "ai-rerating.html": {"fleet-feed": "float"}, "alerts.html":
+- graph_key: data/audit/lambda-graph.json
+- graph: {"generated_at": "str", "spec": "str", "n_engines": "int", "n_pages": "int", "n_feeds": "int", "engines": {"cftc-futures-positioning-agent": {"writes": "list", "reads": "list"}, "eia-energy-agent": {"writes": "list", "reads": "list"}, "justhodl-13f-clone-alpha": {"writes": "list", "reads": "list"}, "justhodl-13f-positions": {"writes": "list", "reads": "list"}, "justhodl-13f-price-divergence": {"wr
+- engine_keys: null
+- audit: ["data/audit/engine-provider-map.json", "data/audit/lambda-config-issues.json", "data/audit/lambda-graph.json", "data/audit/lambda-health.json", "data/audit/lambda-inventory.json"]
+- canary_chain: ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/201
