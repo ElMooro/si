@@ -56,10 +56,13 @@ def lambda_handler(event, context):
                            or d.get("operations") or [])
                 # ops 4495: server ignored operationType — split
                 # client-side; keep only this op's rows
-                ops = [o for o in ops_all
-                       if op.rstrip("s") in str(
-                           o.get("operationType", "")).lower()
-                       .replace(" ", "")]
+                def _match(o):
+                    ot = str(o.get("operationType", "")).lower() \
+                        .replace(" ", "")
+                    return (ot.startswith("reverse")
+                            if op == "reverserepo"
+                            else ot.startswith("repo"))
+                ops = [o for o in ops_all if _match(o)]
                 if not ops:
                     ops = ops_all  # shape drift: keep full, labelled
                 if not ops:
