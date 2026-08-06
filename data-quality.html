@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Data Quality — JustHodl.AI</title><style>
+:root{--bg:#0b0e13;--card:#12161c;--border:#232a33;--text:#e8ecf1;--text2:#aab4bf;--text3:#788492}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:22px 18px}h1{font-size:20px;margin:0 0 4px}
+.sub{color:var(--text3);font-size:12px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px}
+.k{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.v{font-size:24px;font-weight:700;margin-top:2px}.v.amber{color:#e0a030}.v.green{color:#4caf7d}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--border)}
+th{color:var(--text3);font-weight:500}.na{color:#e0a030}
+</style></head><body><div class="wrap">
+<h1>Data Quality</h1>
+<div class="sub">F9 weekly report — founding rule: real data only. Detector totals (F2), runtime-guard adoption (F3/F8), and live provenance coverage (F1) on flagship feeds. Absences are stated, never zero-filled.</div>
+<div class="grid" id="kpis"></div>
+<div class="card" style="margin-bottom:14px"><div class="k" style="margin-bottom:6px">Flagship provenance coverage</div>
+<table id="cov"><thead><tr><th>Feed</th><th>Numeric leaves</th><th>With provenance</th><th>Coverage</th></tr></thead><tbody></tbody></table></div>
+<div class="card"><div class="k" style="margin-bottom:6px">Detector — top offenders (F2 static scan)</div>
+<table id="off"><thead><tr><th>Engine</th><th>Findings</th><th>Risk</th></tr></thead><tbody></tbody></table></div>
+<script>
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+(async()=>{try{
+ const r=await fetch('/data/audit/fabrication-weekly.json?t='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(9000)});
+ if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();
+ const det=d.detector||{},kinds=det.by_kind||{},ga=d.guard_adoption||{};
+ const tot=Object.values(kinds).reduce((a,b)=>a+b,0);
+ document.getElementById('kpis').innerHTML=
+  `<div class="card"><div class="k">Fabrication sites (F2)</div><div class="v amber">${tot.toLocaleString()}</div></div>`+
+  `<div class="card"><div class="k">Engines flagged</div><div class="v amber">${det.engines_flagged??'—'}</div></div>`+
+  `<div class="card"><div class="k">Guarded engines (F3)</div><div class="v green">${ga.n??0}</div></div>`+
+  `<div class="card"><div class="k">Flagship coverage avg</div><div class="v">${d.flagship_coverage_avg_pct??'—'}%</div></div>`;
+ const cov=d.flagship_provenance||{};
+ document.querySelector('#cov tbody').innerHTML=Object.entries(cov).map(([f,c])=>
+  c.data_unavailable?`<tr><td>${esc(f)}</td><td colspan=3 class="na">data unavailable — ${esc(c.reason)}</td></tr>`
+  :`<tr><td>${esc(f)}</td><td>${c.numeric_leaves}</td><td>${c.with_provenance}</td><td>${c.coverage_pct}%</td></tr>`).join('');
+ document.querySelector('#off tbody').innerHTML=(det.top||[]).slice(0,10).map(e=>
+  `<tr><td>${esc(e.engine)}</td><td>${e.n}</td><td>${e.risk}</td></tr>`).join('');
+}catch(e){document.getElementById('kpis').innerHTML='<div class="card"><div class="k">error</div><div class="v" style="font-size:13px">'+esc(e.message)+'</div></div>';}})();
+</script></div></body></html>
