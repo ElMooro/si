@@ -203,7 +203,10 @@ def _load_rollup_feeds():
         graph = _get_json("data/audit/lambda-graph.json")
     except Exception:
         return {}
-    if isinstance(emap, dict) and "engines" in emap and             isinstance(emap["engines"], dict):
+    if isinstance(emap, dict) and isinstance(emap.get("map"), dict):
+        emap = emap["map"]  # ops 4520: THE unwrap
+    elif isinstance(emap, dict) and isinstance(emap.get("engines"),
+                                               dict):
         emap = emap["engines"]
     engines = (graph.get("engines") or {}) if isinstance(graph, dict)         else {}
     out = {}
