@@ -1,0 +1,112 @@
+{
+ "ops": 4516,
+ "started": "2026-08-06T23:08:15.649453+00:00",
+ "panels": {
+  "labor_claims": true,
+  "leading": true,
+  "recession_prob": true,
+  "consumer_housing": true,
+  "credit_cycle": true,
+  "fed_liquidity": true,
+  "bls_labor": true,
+  "cleveland_model": "HTTPError: HTTP Error 404: Not Fou",
+  "atlanta_gdpnow": true,
+  "dol_ar539": true
+ },
+ "canary_hot": {
+  "exists": true,
+  "age_min": 2.6,
+  "kb": 22.2
+ },
+ "fred_canary_keys": 9,
+ "inv": {
+  "ok": true,
+  "providers": 39,
+  "keys": 1088,
+  "gb": 2.25
+ },
+ "totals": {
+  "providers": 39,
+  "keys": 1088,
+  "gb": 2.25
+ },
+ "top": [
+  [
+   "ofr",
+   447,
+   0
+  ],
+  [
+   "nyfed",
+   431,
+   0
+  ],
+  [
+   "ecb",
+   96,
+   0
+  ],
+  [
+   "bls",
+   17,
+   0
+  ],
+  [
+   "bea",
+   14,
+   0
+  ],
+  [
+   "statcan",
+   11,
+   0
+  ],
+  [
+   "oecd",
+   10,
+   0
+  ],
+  [
+   "fred",
+   10,
+   0
+  ],
+  [
+   "eurostat",
+   9,
+   0
+  ],
+  [
+   "bis",
+   9,
+   0
+  ]
+ ],
+ "fred_row": {
+  "slug": "fred",
+  "name": "FRED \u2014 St. Louis Fed",
+  "api": "fred.stlouisfed.org",
+  "n_keys": 10,
+  "total_mb": 4.34,
+  "hot_feeds": 0,
+  "series_count": null,
+  "freshest_h": 0.0
+ },
+ "still_zero": [
+  "sec-midas",
+  "chicagofed",
+  "clevelandfed",
+  "occ",
+  "yahoo",
+  "coinmetrics",
+  "imf",
+  "worldbank",
+  "dbnomics",
+  "snb",
+  "bcb",
+  "cboe",
+  "boj",
+  "other"
+ ],
+ "verdict": "totals={\"providers\": 39, \"keys\": 1088, \"gb\": 2.25} fred={\"slug\": \"fred\", \"name\": \"FRED \\u2014 St. Louis Fed\", \"api\": \"fred.stlouisfed.org\", \"n_keys\": 10, \"t canary={\"exists\": true, \"age_min\": 2.6, \"kb\": 22.2} panels={\"labor_claims\": true, \"leading\": true, \"recession_prob\": true, \"consumer_housing\": true, \"credit_cycle\": true, \"fed_liquidity\": true, \"bls_labor\": true, \"cleveland_model\": \"HTTPError: HTTP Error 404: Not Fou\", \"atlanta_ fkeys=9"
+}
