@@ -20,13 +20,42 @@ import boto3
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 s3 = boto3.client("s3", region_name="us-east-1")
 try:
-    from provenance import wrap, missing
+    from provenance import wrap as _lib_wrap, missing as _lib_missing
 except Exception:
-    def wrap(v, **kw):
-        return {"value": v, **kw}
+    _lib_wrap = _lib_missing = None
 
-    def missing(reason, **kw):
-        return {"data_unavailable": True, "reason": reason, **kw}
+
+def wrap(v, **kw):
+    """ops 4485: adapter — the real library is stricter than my fallback;
+    call it with whatever it accepts, merge the rest into the envelope."""
+    if _lib_wrap:
+        try:
+            env = _lib_wrap(v, **kw)
+        except TypeError:
+            try:
+                env = _lib_wrap(v, source_url=kw.get("source_url"),
+                                raw_snapshot_key=kw.get(
+                                    "raw_snapshot_key"))
+            except TypeError:
+                env = _lib_wrap(v)
+        if isinstance(env, dict):
+            for k2, v2 in kw.items():
+                env.setdefault(k2, v2)
+            return env
+    return {"value": v, **kw}
+
+
+def missing(reason, **kw):
+    if _lib_missing:
+        try:
+            env = _lib_missing(reason, **kw)
+        except TypeError:
+            env = _lib_missing(reason)
+        if isinstance(env, dict):
+            for k2, v2 in kw.items():
+                env.setdefault(k2, v2)
+            return env
+    return {"data_unavailable": True, "reason": reason, **kw}
 
 
 def _get(k):
