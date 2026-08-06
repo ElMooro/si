@@ -111,13 +111,19 @@ def enrich_cusip_chain(by_ticker):
             name_to_t.setdefault(n, []).append(tkr)
     name_joined = 0
     for k, v in items:
-        if not isinstance(v, dict):
-            continue
-        cus = (v.get("cusip") or (k if k and len(str(k)) == 9 else None))
+        # ops 4471: map values are NAME STRINGS keyed by cusip — handle
+        # both shapes (pass 1 had mistaken names for tickers).
+        if isinstance(v, dict):
+            cus = (v.get("cusip") or (k if k and len(str(k)) == 9
+                                      else None))
+            nm_raw = (v.get("name") or v.get("issuer")
+                      or v.get("company"))
+        else:
+            cus = k if k and len(str(k)) == 9 else None
+            nm_raw = str(v)
         if not cus or len(str(cus)) != 9:
             continue
-        nm = _norm_name(v.get("name") or v.get("issuer")
-                        or v.get("company"))
+        nm = _norm_name(nm_raw)
         cands = name_to_t.get(nm) or []
         if len(cands) == 1 and cands[0] not in cus_by_t:
             cus_by_t[cands[0]] = str(cus).upper()
