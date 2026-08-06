@@ -1,0 +1,14 @@
+{
+ "spec": "F5 immutability posture (ops 4458)",
+ "as_of": "2026-08-06",
+ "posture": {
+  "content_addressing": "F4: data/raw/{provider}/{date}/{sha256_12}.json.gz — identical bytes map to identical keys; overwrites are structurally meaningless (a changed byte is a NEW key)",
+  "storage_class": "E9: data/raw/ transitions GLACIER_IR@45d — cheap, instantly retrievable, delete-hostile",
+  "attic": "E9: data/attic/ IA@30d, NO expiry ever — Khalid's reversibility rule",
+  "verification": "provenance.raw_snapshot_key on wrapped values lets any published number be re-derived from archived provider bytes"
+ },
+ "honest_limits": {
+  "s3_object_lock": "TRUE WORM (Object Lock) requires versioning enabled at bucket creation — cannot be retrofitted to justhodl-dashboard-live. Stated, not hidden.",
+  "mitigation": "deletion requires deliberate credentialed action against content-addressed keys nothing references by mutable name; F4 + E9 + IAM is the practical WORM for this bucket. If regulatory-grade lock is ever required: new locked bucket + replication (filed as future APR)."
+ }
+}
