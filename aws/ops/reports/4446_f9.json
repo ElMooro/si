@@ -1,0 +1,33 @@
+{
+ "ops": 4446,
+ "started": "2026-08-06T01:00:57.071769+00:00",
+ "mode": "updated",
+ "run": {
+  "code": 200,
+  "fn_err": null
+ },
+ "report": {
+  "avg_cov": 0.8,
+  "guarded": 3,
+  "flagged": 645,
+  "sample": {
+   "liquidity-data.json": {
+    "numeric_leaves": 3673,
+    "with_provenance": 0,
+    "coverage_pct": 0.0
+   },
+   "data/plumbing-stress.json": {
+    "numeric_leaves": 1639,
+    "with_provenance": 32,
+    "coverage_pct": 2.0
+   },
+   "data/crisis-plumbing.json": {
+    "numeric_leaves": 1807,
+    "with_provenance": 0,
+    "coverage_pct": 0.0
+   }
+  }
+ },
+ "verdict": "PASS \u2014 F9 live: cov_avg=0.8%, guarded=3, flagged=645",
+ "finished": "2026-08-06T01:01:29.291341+00:00"
+}
