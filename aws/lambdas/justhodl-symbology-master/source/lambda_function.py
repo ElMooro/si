@@ -83,8 +83,17 @@ def enrich_cusip_chain(by_ticker):
     ISIN->LEI file). Shape-flexible on the 13F map; explicit no_match."""
     stats = {"cusip": 0, "isin": 0, "lei": 0, "map_shape": None}
     try:
+        # ops 4473: v2 (full-holdings rebuild) overlays v1
         m = json.loads(s3.get_object(
             Bucket=BUCKET, Key="data/13f-cusip-map.json")["Body"].read())
+        try:
+            v2 = json.loads(s3.get_object(
+                Bucket=BUCKET,
+                Key="data/13f-cusip-map-v2.json")["Body"].read())
+            if isinstance(m, dict) and isinstance(v2, dict):
+                m = {**m, **v2}
+        except Exception:
+            pass
     except Exception as e:
         stats["error"] = f"13f map: {type(e).__name__}: {str(e)[:60]}"
         return stats
