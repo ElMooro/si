@@ -109,11 +109,71 @@ def _gleif(summary):
     summary["gleif"] = {"data_unavailable": True, "reason": last}
 
 
+
+
+def _golden(summary):
+    """ops 4477: GLEIF Golden Copy FULL (Level-1 LEI records) — the stated
+    E10 follow-up, now real via the proven sec-bulk streaming pattern
+    (4GB ephemeral). Publish-API first for the canonical link, direct
+    concatenated-file as fallback; sha256-stamped; explicit failure."""
+    import hashlib
+    cands = []
+    try:
+        meta = json.loads(_fetch(
+            "https://goldencopy.gleif.org/api/v2/golden-copies/"
+            "publishes/lei2/latest", timeout=60))
+        d = meta.get("data") or meta
+        link = ((d.get("golden_copy") or {}).get("full_file") or {})             .get("csv") or (d.get("full_file") or {}).get("csv")             or d.get("csv_url")
+        if link:
+            cands.append(link)
+    except Exception as e:
+        summary.setdefault("golden_notes", []).append(
+            f"publish-api: {type(e).__name__}: {str(e)[:50]}")
+    cands.append("https://leidata.gleif.org/api/v1/concatenated-files/"
+                 "lei2/get/latest")
+    tmp = "/tmp/golden-lei2.zip"
+    for u in cands:
+        try:
+            req = urllib.request.Request(u, headers={
+                "User-Agent": "JustHodl research admin@justhodl.ai"})
+            h = hashlib.sha256()
+            size = 0
+            with urllib.request.urlopen(req, timeout=180) as r,                     open(tmp, "wb") as f:
+                while True:
+                    chunk = r.read(8 * 1024 * 1024)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    h.update(chunk)
+                    size += len(chunk)
+            if size < 50_000_000:
+                raise ValueError(f"too small: {size}b")
+            s3.upload_file(tmp, BUCKET,
+                           "data/warm/gleif/golden-copy-lei2.zip")
+            summary["golden"] = {"ok": True, "bytes": size,
+                                 "gb": round(size / 1e9, 2),
+                                 "sha256": h.hexdigest()[:16],
+                                 "source": u[:90]}
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+            return
+        except Exception as e:
+            last = f"{u[:60]} -> {type(e).__name__}: {str(e)[:50]}"
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+    summary["golden"] = {"data_unavailable": True, "reason": last}
+
+
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     summary = {"as_of": now}
     _bis(summary)
     _gleif(summary)
+    _golden(summary)
     s3.put_object(Bucket=BUCKET,
                   Key="data/warm/bis-gleif-summary.json",
                   Body=json.dumps(summary, default=str).encode(),
