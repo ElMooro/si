@@ -1,0 +1,31 @@
+{
+ "ops": 4492,
+ "started": "2026-08-06T07:45:57.946349+00:00",
+ "resolve_old": {
+  "ok": false,
+  "error": "rejected_no_quorum",
+  "detail": "needs kind:verify verdict:confirmed from a provider != proposer (invariant B)"
+ },
+ "open_new": {
+  "ok": true,
+  "thread_id": "0806-master"
+ },
+ "post1": {
+  "ok": true,
+  "turn_id": "bc54164bb2d36901",
+  "queued_for": [
+   "perplexity"
+  ],
+  "claude_woken": false
+ },
+ "turns_after_wait": [
+  {
+   "from": "claude",
+   "kind": "propose",
+   "c": "TURN 1 \u2014 INCIDENT DIGEST + BOARD. AWS Health flagged our intentional b"
+  }
+ ],
+ "agent_alive": false,
+ "verdict": "PASS \u2014 rolled to 0806-master; post ok=True; agent not yet (Event fired; heartbeat also covers)",
+ "finished": "2026-08-06T07:47:45.208893+00:00"
+}
