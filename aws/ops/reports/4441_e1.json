@@ -1,0 +1,33 @@
+{
+ "ops": 4441,
+ "started": "2026-08-06T00:06:57.781930+00:00",
+ "mode": "updated",
+ "run": {
+  "code": 200,
+  "fn_err": null
+ },
+ "master": {
+  "n_tickers": 10398,
+  "n_ciks": 7999,
+  "coverage": {
+   "vs_bloomberg_320k_pct": 3.25,
+   "note": "320k includes global+delisted+funds; SEC registrants are the US-listed operating spine"
+  },
+  "AAPL": {
+   "ticker": "AAPL",
+   "cik": "0000320193",
+   "name": "Apple Inc.",
+   "cusip": null,
+   "isin": null,
+   "figi": null,
+   "sedol": null,
+   "source": {
+    "kind": "sec",
+    "url": "https://www.sec.gov/files/company_tickers.json",
+    "raw_snapshot_key": "data/raw/sec/2026-08-06/091a782b9832.json.gz"
+   }
+  }
+ },
+ "verdict": "PASS \u2014 E1 live: 10398 tickers, 7999 CIKs",
+ "finished": "2026-08-06T00:07:34.525039+00:00"
+}
