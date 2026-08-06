@@ -1188,5 +1188,61 @@ setInterval(loadData, 600000);
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-enhance.js" data-feed="data/liquidity-inflection.json" data-line="usd.impulse_tail_180d" data-title="USD impulse tail (180d)" data-crisis="1"></script>
+
+<script>
+/* ops 4501: generic NaN guard — sweep text nodes, replace NaN/Infinity/undefined with em-dash */
+(function(){function sweep(){try{var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT),n;
+while((n=w.nextNode())){if(/\b(NaN|Infinity|undefined)\b/.test(n.nodeValue)){n.nodeValue=n.nodeValue.replace(/\b(NaN|Infinity|undefined)\b/g,'\u2014');}}}catch(e){}}
+if(document.readyState!=='loading')sweep();else document.addEventListener('DOMContentLoaded',sweep);
+setTimeout(sweep,3000);setTimeout(sweep,8000);})();
+</script>
+<script>
+/* ops 4501: P1 wiring — fresh institutional feeds auto-panel (GLOBAL LIQUIDITY FEEDS) */
+(function(){
+var FEEDS=["global-liquidity.json", "global-m2.json", "global-tide.json", "china-liquidity.json", "dollar-radar.json", "dxy-equity-divergence.json", "liquidity-capacity.json", "liquidity-flow.json", "liquidity-decisive-call.json", "liquidity-inflection-decisive-call.json", "crypto-liquidity.json", "concentration-liquidity.json", "bis-crossborder.json", "canary-macro.json"];
+function pick(o,keys,d){d=d||0;if(d>4||o==null)return null;
+ if(typeof o==='number'&&isFinite(o))return o;
+ if(typeof o!=='object')return null;
+ for(var i=0;i<keys.length;i++){var v=o[keys[i]];
+  if(typeof v==='number'&&isFinite(v))return v;
+  if(v&&typeof v==='object'){var r=pick(v,keys,d+1);if(r!=null)return r;}}
+ for(var k in o){var r2=pick(o[k],keys,d+1);if(r2!=null)return r2;}return null;}
+function pickS(o,keys,d){d=d||0;if(d>4||o==null||typeof o!=='object')return null;
+ for(var i=0;i<keys.length;i++){var v=o[keys[i]];
+  if(typeof v==='string'&&v.length<28)return v;}
+ for(var k in o){var r=pickS(o[k],keys,d+1);if(r)return r;}return null;}
+var NK=['composite','composite_score','score','index','value','level','z_score','z','latest','current'];
+var SK=['decisive_call','call','decision','signal','regime','defcon','state','status','verdict'];
+var wrap=document.createElement('section');
+wrap.style.cssText='margin:26px auto;max-width:1200px;padding:0 14px;font-family:monospace';
+wrap.innerHTML='<div style="color:#8fa3b8;font:700 12px monospace;letter-spacing:2px;border-bottom:1px solid #1c2733;padding-bottom:6px;margin-bottom:12px">'+"GLOBAL LIQUIDITY FEEDS"+' \u2014 LIVE WIRING ('+FEEDS.length+' feeds)</div><div id="jhAutoGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px"></div>';
+document.body.appendChild(wrap);
+var g=document.getElementById('jhAutoGrid');
+FEEDS.forEach(function(f){
+ var c=document.createElement('div');
+ c.style.cssText='background:#0d141c;border:1px solid #1c2733;border-radius:8px;padding:10px 12px;min-height:74px';
+ c.innerHTML='<div style="color:#5d7285;font-size:10px;letter-spacing:1px">'+f.replace('.json','').toUpperCase()+'</div><div class="v" style="color:#dfe9f2;font-size:20px;font-weight:700;margin:5px 0 2px">\u2026</div><div class="s" style="color:#69808f;font-size:10px"></div>';
+ g.appendChild(c);
+ fetch('/data/'+f+'?t='+Date.now()).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(d){
+  var n=pick(d,NK),s=pickS(d,SK);
+  var ts=d.as_of||d.generated_at||d.updated_at||d.timestamp;
+  var age=ts?((Date.now()-new Date(ts).getTime())/36e5):null;
+  c.querySelector('.v').textContent=(n!=null?(Math.abs(n)>=1000?n.toLocaleString(undefined,{maximumFractionDigits:0}):n.toFixed(2)):(s||'\u2014'));
+  c.querySelector('.s').innerHTML=(s&&n!=null?('<span style="color:#9fb4c7">'+s+'</span> \u00b7 '):'')+(age!=null&&isFinite(age)?('<span style="color:'+(age>26?'#e05252':'#4f6a7d')+'">'+age.toFixed(1)+'h</span>'):'');
+ }).catch(function(){c.querySelector('.v').textContent='\u2014';c.querySelector('.s').textContent='unavailable';});
+});
+
+/* P2: DXY first-class hero + credit-first sequencing chain */
+var hz=document.createElement('div');
+hz.style.cssText='margin:14px auto 0;max-width:1200px;padding:12px 16px;background:#0b1420;border:1px solid #223246;border-radius:10px;font-family:monospace;display:flex;flex-wrap:wrap;gap:22px;align-items:center';
+hz.innerHTML='<div><div style="color:#5d7285;font-size:10px">DXY \u2014 DOLLAR RADAR (first-class per brain)</div><div id="jhDXY" style="color:#e8f1f8;font-size:28px;font-weight:800">\u2026</div><div id="jhDXR" style="color:#8fa3b8;font-size:11px"></div></div><div style="margin-left:auto"><div style="color:#5d7285;font-size:10px">CREDIT-FIRST SEQUENCE (HY \u2192 DXY \u2192 SPX)</div><div id="jhSEQ" style="color:#c7d6e2;font-size:14px;font-weight:700;margin-top:4px">\u2026</div></div>';
+document.body.insertBefore(hz,document.body.firstChild);
+var hyz=null,dxz=null;
+function seq(){var e=document.getElementById('jhSEQ');var f=function(x){return x==null?'\u2014':(x>=0?'+':'')+x.toFixed(2)+'z'};e.textContent='HY '+f(hyz)+' \u2192 DXY '+f(dxz)+' \u2192 SPX (see market desk)';}
+fetch('/data/dollar-radar.json?t='+Date.now()).then(r=>r.json()).then(function(d){var v=pick(d,['dxy','value','level','index','last']);var s=pickS(d,SK);dxz=pick(d,['z_score','z','zscore']);document.getElementById('jhDXY').textContent=(v!=null?v.toFixed(2):'\u2014');document.getElementById('jhDXR').textContent=(s||'')+(dxz!=null?(' \u00b7 z '+dxz.toFixed(2)):'');seq();}).catch(function(){document.getElementById('jhDXY').textContent='\u2014';seq();});
+fetch('/data/credit-stress.json?t='+Date.now()).then(r=>r.json()).then(function(d){hyz=pick(d,['z_score','z','hy_z','zscore']);seq();}).catch(function(){seq();});
+
+})();
+</script>
 </body>
 </html>

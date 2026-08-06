@@ -575,5 +575,51 @@ function jhRenderEnrichment(enr, hostId){
   setInterval(go, 600000);
 })();
 </script>
+
+<script>
+/* ops 4501: generic NaN guard — sweep text nodes, replace NaN/Infinity/undefined with em-dash */
+(function(){function sweep(){try{var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT),n;
+while((n=w.nextNode())){if(/\b(NaN|Infinity|undefined)\b/.test(n.nodeValue)){n.nodeValue=n.nodeValue.replace(/\b(NaN|Infinity|undefined)\b/g,'\u2014');}}}catch(e){}}
+if(document.readyState!=='loading')sweep();else document.addEventListener('DOMContentLoaded',sweep);
+setTimeout(sweep,3000);setTimeout(sweep,8000);})();
+</script>
+<script>
+/* ops 4501: P1 wiring — fresh institutional feeds auto-panel (PLUMBING FEEDS \u00b7 L5 RATES LEG INCLUDED) */
+(function(){
+var FEEDS=["eurodollar-plumbing.json", "eurodollar-decisive-call.json", "eurodollar-stress.json", "repo-market.json", "repo-lending.json", "treasury-noise.json", "funding-plumbing.json", "term-premium.json", "yield-curve.json", "crypto-basis.json", "crypto-funding.json", "ofr-funding.json"];
+function pick(o,keys,d){d=d||0;if(d>4||o==null)return null;
+ if(typeof o==='number'&&isFinite(o))return o;
+ if(typeof o!=='object')return null;
+ for(var i=0;i<keys.length;i++){var v=o[keys[i]];
+  if(typeof v==='number'&&isFinite(v))return v;
+  if(v&&typeof v==='object'){var r=pick(v,keys,d+1);if(r!=null)return r;}}
+ for(var k in o){var r2=pick(o[k],keys,d+1);if(r2!=null)return r2;}return null;}
+function pickS(o,keys,d){d=d||0;if(d>4||o==null||typeof o!=='object')return null;
+ for(var i=0;i<keys.length;i++){var v=o[keys[i]];
+  if(typeof v==='string'&&v.length<28)return v;}
+ for(var k in o){var r=pickS(o[k],keys,d+1);if(r)return r;}return null;}
+var NK=['composite','composite_score','score','index','value','level','z_score','z','latest','current'];
+var SK=['decisive_call','call','decision','signal','regime','defcon','state','status','verdict'];
+var wrap=document.createElement('section');
+wrap.style.cssText='margin:26px auto;max-width:1200px;padding:0 14px;font-family:monospace';
+wrap.innerHTML='<div style="color:#8fa3b8;font:700 12px monospace;letter-spacing:2px;border-bottom:1px solid #1c2733;padding-bottom:6px;margin-bottom:12px">'+"PLUMBING FEEDS \\u00b7 L5 RATES LEG INCLUDED"+' \u2014 LIVE WIRING ('+FEEDS.length+' feeds)</div><div id="jhAutoGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px"></div>';
+document.body.appendChild(wrap);
+var g=document.getElementById('jhAutoGrid');
+FEEDS.forEach(function(f){
+ var c=document.createElement('div');
+ c.style.cssText='background:#0d141c;border:1px solid #1c2733;border-radius:8px;padding:10px 12px;min-height:74px';
+ c.innerHTML='<div style="color:#5d7285;font-size:10px;letter-spacing:1px">'+f.replace('.json','').toUpperCase()+'</div><div class="v" style="color:#dfe9f2;font-size:20px;font-weight:700;margin:5px 0 2px">\u2026</div><div class="s" style="color:#69808f;font-size:10px"></div>';
+ g.appendChild(c);
+ fetch('/data/'+f+'?t='+Date.now()).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(d){
+  var n=pick(d,NK),s=pickS(d,SK);
+  var ts=d.as_of||d.generated_at||d.updated_at||d.timestamp;
+  var age=ts?((Date.now()-new Date(ts).getTime())/36e5):null;
+  c.querySelector('.v').textContent=(n!=null?(Math.abs(n)>=1000?n.toLocaleString(undefined,{maximumFractionDigits:0}):n.toFixed(2)):(s||'\u2014'));
+  c.querySelector('.s').innerHTML=(s&&n!=null?('<span style="color:#9fb4c7">'+s+'</span> \u00b7 '):'')+(age!=null&&isFinite(age)?('<span style="color:'+(age>26?'#e05252':'#4f6a7d')+'">'+age.toFixed(1)+'h</span>'):'');
+ }).catch(function(){c.querySelector('.v').textContent='\u2014';c.querySelector('.s').textContent='unavailable';});
+});
+
+})();
+</script>
 </body>
 </html>

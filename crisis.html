@@ -1155,5 +1155,66 @@ function jhRenderEnrichment(enr, hostId){
   setInterval(go, 600000);
 })();
 </script>
+
+<script>
+/* ops 4501: generic NaN guard — sweep text nodes, replace NaN/Infinity/undefined with em-dash */
+(function(){function sweep(){try{var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT),n;
+while((n=w.nextNode())){if(/\b(NaN|Infinity|undefined)\b/.test(n.nodeValue)){n.nodeValue=n.nodeValue.replace(/\b(NaN|Infinity|undefined)\b/g,'\u2014');}}}catch(e){}}
+if(document.readyState!=='loading')sweep();else document.addEventListener('DOMContentLoaded',sweep);
+setTimeout(sweep,3000);setTimeout(sweep,8000);})();
+</script>
+<script>
+/* ops 4501: P1 wiring — fresh institutional feeds auto-panel (CRISIS INTELLIGENCE FEEDS) */
+(function(){
+var FEEDS=["crisis-composite.json", "crisis-decisive-call.json", "crisis-knowledge-base.json", "bank-stress.json", "firm-stress.json", "credit-stress.json", "global-stress.json", "eurodollar-stress.json", "bond-vol.json", "bond-vol-decisive-call.json", "cds-monitor.json", "cds-proxy.json", "ciss-stress.json", "ofr-fsi.json", "auction-crisis.json", "crisis-canaries.json", "inventory-drawdown.json", "canary-macro.json"];
+function pick(o,keys,d){d=d||0;if(d>4||o==null)return null;
+ if(typeof o==='number'&&isFinite(o))return o;
+ if(typeof o!=='object')return null;
+ for(var i=0;i<keys.length;i++){var v=o[keys[i]];
+  if(typeof v==='number'&&isFinite(v))return v;
+  if(v&&typeof v==='object'){var r=pick(v,keys,d+1);if(r!=null)return r;}}
+ for(var k in o){var r2=pick(o[k],keys,d+1);if(r2!=null)return r2;}return null;}
+function pickS(o,keys,d){d=d||0;if(d>4||o==null||typeof o!=='object')return null;
+ for(var i=0;i<keys.length;i++){var v=o[keys[i]];
+  if(typeof v==='string'&&v.length<28)return v;}
+ for(var k in o){var r=pickS(o[k],keys,d+1);if(r)return r;}return null;}
+var NK=['composite','composite_score','score','index','value','level','z_score','z','latest','current'];
+var SK=['decisive_call','call','decision','signal','regime','defcon','state','status','verdict'];
+var wrap=document.createElement('section');
+wrap.style.cssText='margin:26px auto;max-width:1200px;padding:0 14px;font-family:monospace';
+wrap.innerHTML='<div style="color:#8fa3b8;font:700 12px monospace;letter-spacing:2px;border-bottom:1px solid #1c2733;padding-bottom:6px;margin-bottom:12px">'+"CRISIS INTELLIGENCE FEEDS"+' \u2014 LIVE WIRING ('+FEEDS.length+' feeds)</div><div id="jhAutoGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px"></div>';
+document.body.appendChild(wrap);
+var g=document.getElementById('jhAutoGrid');
+FEEDS.forEach(function(f){
+ var c=document.createElement('div');
+ c.style.cssText='background:#0d141c;border:1px solid #1c2733;border-radius:8px;padding:10px 12px;min-height:74px';
+ c.innerHTML='<div style="color:#5d7285;font-size:10px;letter-spacing:1px">'+f.replace('.json','').toUpperCase()+'</div><div class="v" style="color:#dfe9f2;font-size:20px;font-weight:700;margin:5px 0 2px">\u2026</div><div class="s" style="color:#69808f;font-size:10px"></div>';
+ g.appendChild(c);
+ fetch('/data/'+f+'?t='+Date.now()).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(d){
+  var n=pick(d,NK),s=pickS(d,SK);
+  var ts=d.as_of||d.generated_at||d.updated_at||d.timestamp;
+  var age=ts?((Date.now()-new Date(ts).getTime())/36e5):null;
+  c.querySelector('.v').textContent=(n!=null?(Math.abs(n)>=1000?n.toLocaleString(undefined,{maximumFractionDigits:0}):n.toFixed(2)):(s||'\u2014'));
+  c.querySelector('.s').innerHTML=(s&&n!=null?('<span style="color:#9fb4c7">'+s+'</span> \u00b7 '):'')+(age!=null&&isFinite(age)?('<span style="color:'+(age>26?'#e05252':'#4f6a7d')+'">'+age.toFixed(1)+'h</span>'):'');
+ }).catch(function(){c.querySelector('.v').textContent='\u2014';c.querySelector('.s').textContent='unavailable';});
+});
+
+/* P2: dual-composite banner + decisive chip + 26y percentile bar */
+var bn=document.createElement('div');
+bn.style.cssText='margin:14px auto 0;max-width:1200px;padding:12px 16px;background:#0b1420;border:1px solid #223246;border-radius:10px;font-family:monospace;display:flex;flex-wrap:wrap;gap:18px;align-items:center';
+bn.innerHTML='<div><div style="color:#5d7285;font-size:10px">MASTER COMPOSITE</div><div id="jhMC" style="color:#e8f1f8;font-size:26px;font-weight:800">\u2026</div></div><div><div style="color:#5d7285;font-size:10px">PLUMBING COMPOSITE</div><div id="jhPC" style="color:#c7d6e2;font-size:26px;font-weight:800">\u2026</div></div><div><div style="color:#5d7285;font-size:10px">\u0394</div><div id="jhDL" style="font-size:22px;font-weight:700;color:#9fb4c7">\u2026</div></div><div id="jhDC" style="margin-left:auto;background:#14263a;border:1px solid #2a4666;border-radius:16px;padding:6px 14px;color:#bcd7f0;font:700 12px monospace">DECISIVE: \u2026</div><div style="flex-basis:100%"><div style="color:#5d7285;font-size:10px;margin-bottom:3px">HISTORICAL PERCENTILE (1996+)</div><div style="position:relative;height:10px;background:linear-gradient(90deg,#123422,#3a3414,#43141a);border-radius:6px"><div id="jhPB" style="position:absolute;top:-3px;width:3px;height:16px;background:#fff;border-radius:2px;left:0%"></div></div><div id="jhPT" style="color:#69808f;font-size:10px;margin-top:3px">\u2026</div></div>';
+document.body.insertBefore(bn,document.body.firstChild);
+var mc=null,pc=null;function dl(){if(mc!=null&&pc!=null){var d=document.getElementById('jhDL');d.textContent=(mc-pc>=0?'+':'')+(mc-pc).toFixed(1);}}
+fetch('/data/crisis-composite.json?t='+Date.now()).then(r=>r.json()).then(function(d){mc=pick(d,NK);var s=pickS(d,['defcon','regime','state']);document.getElementById('jhMC').textContent=(mc!=null?mc.toFixed(1):'\u2014')+(s?(' \u00b7 '+s):'');dl();}).catch(function(){document.getElementById('jhMC').textContent='\u2014';});
+fetch('/data/crisis-plumbing.json?t='+Date.now()).then(r=>r.json()).then(function(d){pc=pick(d,NK);document.getElementById('jhPC').textContent=(pc!=null?pc.toFixed(1):'\u2014');dl();}).catch(function(){document.getElementById('jhPC').textContent='\u2014';});
+fetch('/data/crisis-decisive-call.json?t='+Date.now()).then(r=>r.json()).then(function(d){var s=pickS(d,SK)||pickS(d,['text','message','note']);document.getElementById('jhDC').textContent='DECISIVE: '+(s||'\u2014');}).catch(function(){});
+fetch('/data/crisis-composite-history.json?t='+Date.now()).then(r=>r.json()).then(function(d){
+ var vals=[];(function coll(o,dd){if(dd>4||o==null)return;if(typeof o==='number'&&isFinite(o)){vals.push(o);return;}if(Array.isArray(o)){o.forEach(function(x){coll(x,dd+1)});return;}if(typeof o==='object'){for(var k in o)coll(o[k],dd+1);}})(d,0);
+ if(vals.length>20&&mc!=null){var below=vals.filter(function(v){return v<=mc}).length;var p=100*below/vals.length;document.getElementById('jhPB').style.left=Math.max(0,Math.min(99,p))+'%';document.getElementById('jhPT').textContent='p'+p.toFixed(0)+' of '+vals.length+' obs \u00b7 GFC/COVID/SVB sit right of p95';}
+ else if(vals.length>20){setTimeout(arguments.callee.caller,1500);}
+}).catch(function(){document.getElementById('jhPT').textContent='history unavailable';});
+
+})();
+</script>
 </body>
 </html>
