@@ -1,0 +1,37 @@
+{
+ "ops": 4443,
+ "started": "2026-08-06T00:24:49.493285+00:00",
+ "mode": "updated",
+ "run": {
+  "code": 200,
+  "fn_err": null
+ },
+ "summary": {
+  "as_of": "2026-08-06T00:24:56+00:00",
+  "quarter": "2026-QTR3",
+  "n_filings": 107574,
+  "warm_key": "data/warm/edgar-filings/2026/QTR3.json.gz",
+  "size_gz_mb": 1.51,
+  "top_forms": {
+   "4": 25887,
+   "424B2": 20268,
+   "8-K": 5977,
+   "144": 5256,
+   "13F-HR": 4281,
+   "D": 3972,
+   "3": 3320,
+   "FWP": 2897,
+   "SCHEDULE 13G/A": 2742,
+   "NPORT-P": 2731,
+   "6-K": 2539,
+   "N-PX": 2306,
+   "497K": 2148,
+   "D/A": 2054,
+   "SCHEDULE 13G": 1886
+  },
+  "format_note": "gz-JSON v1; parquet upgrade pending pyarrow layer (stated, not silent)",
+  "raw_snapshot_key": "data/raw/sec/2026-08-06/7d00a999afd5.json.gz"
+ },
+ "verdict": "PASS \u2014 107574 filings, 1.51MB gz, 2026-QTR3",
+ "finished": "2026-08-06T00:25:13.353172+00:00"
+}
