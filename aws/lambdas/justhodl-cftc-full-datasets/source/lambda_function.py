@@ -42,9 +42,11 @@ def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
     summary = {"as_of": now.isoformat(timespec="seconds"), "datasets": {}}
     for name, cfg in DATASETS.items():
-        url = (f"{BASE}{cfg['id']}.json?$select="
-               + ",".join(cfg["fields"])
-               + "&$order=report_date_as_yyyy_mm_dd%20DESC&$limit=5000")
+        # ops 4450: disaggregated (72hh-3qpy) 400'd on $select — its column
+        # names differ from legacy. Discover-don't-assume: pull the FULL
+        # schema (no projection); fields list kept only as documentation.
+        url = (f"{BASE}{cfg['id']}.json"
+               "?$order=report_date_as_yyyy_mm_dd%20DESC&$limit=5000")
         try:
             req = urllib.request.Request(url, headers={
                 "User-Agent": "JustHodl research admin@justhodl.ai"})
