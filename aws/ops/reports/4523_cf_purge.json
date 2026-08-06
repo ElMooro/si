@@ -1,0 +1,38 @@
+{
+ "ops": 4523,
+ "started": "2026-08-06T23:53:47.765583+00:00",
+ "before": {
+  "totals": {
+   "providers": 39,
+   "keys": 1108,
+   "gb": 2.25
+  },
+  "as_of": "2026-08-06T23:19:53+00:00",
+  "cf_cache_status": "HIT",
+  "age": "1716"
+ },
+ "zone_lookup": {
+  "zid_found": true,
+  "err": null
+ },
+ "purge_files": {
+  "ok": null,
+  "err": "HTTP Error 401: Unauthorized",
+  "errs": null
+ },
+ "purge_everything": {
+  "ok": null,
+  "err": "HTTP Error 401: Unauthorized"
+ },
+ "after": {
+  "totals": {
+   "providers": 39,
+   "keys": 1108,
+   "gb": 2.25
+  },
+  "as_of": "2026-08-06T23:19:53+00:00",
+  "cf_cache_status": "HIT"
+ },
+ "fixed": true,
+ "verdict": "FIXED=True before={'totals': {'providers': 39, 'keys': 1108, 'gb': 2.25}, 'as_of': '2026-08-06T23:19:53+00:00', 'cf_cache_status': 'HIT', 'age': '1716'} after={'totals': {'providers': 39, 'keys': 1108, 'gb': 2.25}, 'as_of': '2026-08-06T23:19:53+00:00', 'cf_cache_status': 'HIT'} purged=False"
+}
