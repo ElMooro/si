@@ -1,0 +1,54 @@
+{
+ "ops": 4495,
+ "started": "2026-08-06T15:00:16.208147+00:00",
+ "run": {
+  "as_of": "2026-08-06T15:00:24+00:00",
+  "rp_reverserepo": {
+   "ok": true,
+   "n_ops": 3184,
+   "latest_date": "2026-08-05",
+   "latest_accepted": 1650000000,
+   "row_keys": [
+    "acceptedCpty",
+    "auctionStatus",
+    "closeTime",
+    "details",
+    "lastUpdated",
+    "maturityDate",
+    "note",
+    "operationDate",
+    "operationId",
+    "operationMethod",
+    "operationType",
+    "participatingCpty"
+   ]
+  },
+  "rp_repo": {
+   "ok": true,
+   "n_ops": 5377,
+   "latest_date": "2026-08-06",
+   "latest_accepted": null,
+   "row_keys": [
+    "auctionStatus",
+    "closeTime",
+    "details",
+    "lastUpdated",
+    "maturityDate",
+    "note",
+    "operationDate",
+    "operationId",
+    "operationMethod",
+    "operationType",
+    "releaseTime",
+    "settlementDate"
+   ]
+  },
+  "ofr_dataset": {
+   "ok": true,
+   "n_series": 164,
+   "mb": 9.3
+  }
+ },
+ "verdict": "PASS \u2014 rrp={\"ok\": true, \"n_ops\": 3184, \"latest_date\": \"2026-08-05\", \"latest_accepted\": 1650000000, \"row_keys\": [\"accepted repo={\"ok\": true, \"n_ops\": 5377, \"latest_date\": \"2026-08-06\", \"latest_accepted\": null, \"row_key ofr={\"ok\": true, \"n_series\": 164, \"mb\": 9.3}",
+ "finished": "2026-08-06T15:00:44.744150+00:00"
+}
