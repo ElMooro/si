@@ -53,6 +53,19 @@ import io as _io
 import zipfile as _zipfile
 
 
+
+
+def _norm_name(s):
+    s = (s or "").upper()
+    for ch in ".,'&/()-":
+        s = s.replace(ch, " ")
+    drop = {"INC", "CORP", "CORPORATION", "CO", "COMPANY", "LTD", "PLC",
+            "HOLDINGS", "HOLDING", "GROUP", "THE", "CLASS", "A", "B", "C",
+            "COM", "NEW", "DEL", "TRUST", "LP", "SA", "NV", "AG"}
+    toks = [w for w in s.split() if w and w not in drop]
+    return " ".join(toks[:3])
+
+
 def _isin_check_digit(body11):
     s = "".join(str(int(c, 36)) for c in body11)
     digits = [int(c) for c in s]
@@ -88,6 +101,28 @@ def enrich_cusip_chain(by_ticker):
         tkr = (tkr or "").upper().strip()
         if cus and tkr and len(str(cus)) == 9 and tkr in by_ticker:
             cus_by_t.setdefault(tkr, str(cus).upper())
+    # ops 4470: pass 2 — name-normalized join for map rows whose ticker
+    # field is absent (the AAPL cohort). Unique-match only; ambiguity
+    # stays null rather than approximately right.
+    name_to_t = {}
+    for tkr, r in by_ticker.items():
+        n = _norm_name(r.get("name"))
+        if n:
+            name_to_t.setdefault(n, []).append(tkr)
+    name_joined = 0
+    for k, v in items:
+        if not isinstance(v, dict):
+            continue
+        cus = (v.get("cusip") or (k if k and len(str(k)) == 9 else None))
+        if not cus or len(str(cus)) != 9:
+            continue
+        nm = _norm_name(v.get("name") or v.get("issuer")
+                        or v.get("company"))
+        cands = name_to_t.get(nm) or []
+        if len(cands) == 1 and cands[0] not in cus_by_t:
+            cus_by_t[cands[0]] = str(cus).upper()
+            name_joined += 1
+    stats["name_joined"] = name_joined
     stats["map_shape"] = (type(m).__name__ + f"/{len(cus_by_t)} joinable")
     want_isin = {}
     for tkr, cus in cus_by_t.items():
