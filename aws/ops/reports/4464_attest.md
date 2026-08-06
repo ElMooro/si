@@ -1,0 +1,2 @@
+# ops 4464 — no-change attestation — PASS — all 3 flagged-provider engines live+scheduled+unthrottled; APR-0003 filed
+- proof: {"justhodl-fred-tag-crawler": {"exists": true, "schedules": ["justhodl-fred-catalog-daily"], "concurrency_zeroed": false}, "justhodl-breadth-thrust": {"exists": true, "schedules": ["justhodl-breadth-thrust-daily", "justhodl-breadth-thrust-sched"], "concurrency_zeroed": false}, "justhodl-crypto-ma200": {"exists": true, "schedules": ["justhodl-crypto-ma200-daily"], "concurrency_zeroed": false}}
