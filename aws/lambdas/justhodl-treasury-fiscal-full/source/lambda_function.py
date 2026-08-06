@@ -28,6 +28,26 @@ DATASETS = {
         "fields": {"date": "record_date",
                    "value": "tot_pub_debt_out_amt"},
         "unit": "USD"},
+    "rates_of_exchange": {
+        "path": "/v1/accounting/od/rates_of_exchange",
+        "params": "?sort=-record_date&page[size]=2500",
+        "fields": {"date": "record_date", "value": "exchange_rate"},
+        "unit": "per USD (multi-currency rows)"},
+    "avg_interest_rates": {
+        "path": "/v2/accounting/od/avg_interest_rates",
+        "params": "?sort=-record_date&page[size]=2500",
+        "fields": {"date": "record_date", "value": "avg_interest_rate_amt"},
+        "unit": "percent (by security class rows)"},
+    "interest_expense": {
+        "path": "/v2/accounting/od/interest_expense",
+        "params": "?sort=-record_date&page[size]=2500",
+        "fields": {"date": "record_date", "value": "month_expense_amt"},
+        "unit": "USD"},
+    "debt_outstanding": {
+        "path": "/v2/accounting/od/debt_outstanding",
+        "params": "?sort=-record_date&page[size]=2500",
+        "fields": {"date": "record_date", "value": "debt_outstanding_amt"},
+        "unit": "USD"},
     "tga_operating_cash": {
         "path": "/v1/accounting/dts/operating_cash_balance",
         "params": ("?filter=account_type:eq:Treasury General Account "
