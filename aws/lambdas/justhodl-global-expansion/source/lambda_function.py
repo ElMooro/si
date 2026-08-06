@@ -168,12 +168,16 @@ def lambda_handler(event, context):
     if want("occ"):
         S["occ"] = _csv_store(
             "occ",
-            ["https://marketdata.theocc.com/mdapi/daily-volume",
-             "https://marketdata.theocc.com/mdapi/volume-query"
-             "?format=csv&reportType=D",
-             "https://www.theocc.com/market-data/volume/"
-             "default-download?type=daily"],
-            "data/warm/occ/daily-volume.csv.gz")
+            ["https://marketdata.theocc.com/mdapi/download-daily"
+             "-volume",
+             "https://marketdata.theocc.com/mdapi/daily-volume",
+             "https://www.theocc.com/api/market-data/volume/daily",
+             "https://marketdata.theocc.com/mdapi/volume-totals"],
+            "data/warm/occ/daily-volume.csv.gz",
+            headers={"Accept": "text/csv,application/json,*/*",
+                     "Referer": "https://www.theocc.com/"
+                                "market-data/volume",
+                     "Origin": "https://www.theocc.com"})
     if want("sec_dera"):
         qy = []
         y, q = now.year, (now.month - 1) // 3 + 1
