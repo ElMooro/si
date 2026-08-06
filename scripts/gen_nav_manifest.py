@@ -46,7 +46,9 @@ def title_of(p):
     return t or None
 
 
-FORCE = {  # ops 3302: explicit category pins (beat keyword collisions)
+FORCE = {  # ops 3302
+    "/data.html": "System & Meta",           # ops 4506 Data hub
+    "/provider.html": "System & Meta",       # ops 4506 provider template: explicit category pins (beat keyword collisions)
     "/readthrough.html": "Portfolio & Execution",   # ops 3699 read-through radar
     "etf-census.html": "Research & Tools",
     "fixed-income-census.html": "Research & Tools",

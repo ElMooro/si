@@ -1,0 +1,42 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Data Providers — JustHodl.AI</title>
+<style>
+body{margin:0;background:#070b10;color:#dfe9f2;font-family:'SF Mono',Consolas,monospace}
+.wrap{max-width:1240px;margin:0 auto;padding:26px 16px}
+h1{font-size:20px;letter-spacing:3px;color:#8fd0ff;margin:0 0 4px}
+.sub{color:#5d7285;font-size:11px;margin-bottom:18px}
+.tot{display:flex;gap:26px;margin:14px 0 22px;flex-wrap:wrap}
+.tot div{background:#0d141c;border:1px solid #1c2733;border-radius:10px;padding:10px 18px}
+.tot b{display:block;font-size:22px;color:#e8f1f8}.tot span{font-size:10px;color:#5d7285;letter-spacing:1px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+a.card{display:block;background:#0d141c;border:1px solid #1c2733;border-radius:10px;padding:14px 16px;text-decoration:none;color:inherit;transition:border-color .15s}
+a.card:hover{border-color:#2f4a6a}
+.nm{color:#cfe3f5;font-weight:700;font-size:13px}
+.api{color:#4f6a7d;font-size:10px;margin:3px 0 8px;word-break:break-all}
+.stats{display:flex;gap:14px;font-size:11px}
+.stats b{color:#9fd0a8}.stats i{font-style:normal;color:#69808f}
+.fr{font-size:10px;margin-top:6px}
+</style></head><body><div class="wrap">
+<h1>DATA</h1><div class="sub">Every provider · every dataset we pull · auto-inventoried daily by justhodl-provider-catalog</div>
+<div class="tot" id="tot"></div><div class="grid" id="g">Loading…</div></div>
+<script>
+fetch('/data/provider-catalog.json?t='+Date.now()).then(r=>r.json()).then(function(d){
+var t=d.totals||{};document.getElementById('tot').innerHTML=
+ '<div><b>'+(t.providers||0)+'</b><span>PROVIDERS</span></div>'+
+ '<div><b>'+(t.keys||0).toLocaleString()+'</b><span>DATASETS / KEYS</span></div>'+
+ '<div><b>'+(t.gb||0)+' GB</b><span>WARM + HOT</span></div>'+
+ '<div><b>'+new Date(d.as_of).toUTCString().slice(5,22)+'</b><span>INVENTORIED</span></div>';
+var g=document.getElementById('g');g.innerHTML='';
+(d.providers||[]).forEach(function(p){
+ var a=document.createElement('a');a.className='card';a.href='/provider.html?p='+p.slug;
+ var fh=p.freshest_h,fc=fh==null?'#5d7285':(fh<=26?'#5fbf7f':'#e05252');
+ a.innerHTML='<div class="nm">'+p.name+'</div><div class="api">'+p.api+'</div>'+
+  '<div class="stats"><span><b>'+p.n_keys+'</b> <i>keys</i></span>'+
+  (p.series_count?'<span><b>'+p.series_count.toLocaleString()+'</b> <i>series</i></span>':'')+
+  '<span><b>'+p.total_mb+'</b> <i>MB</i></span></div>'+
+  '<div class="fr" style="color:'+fc+'">freshest '+(fh==null?'—':fh+'h')+'</div>';
+ g.appendChild(a);});
+}).catch(function(e){document.getElementById('g').textContent='catalog unavailable — first inventory runs with ops 4506';});
+</script>
+<script src="/jh-nav-drawer.js" defer></script></body></html>

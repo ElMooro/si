@@ -1,0 +1,53 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Data Provider — JustHodl.AI</title>
+<style>
+body{margin:0;background:#070b10;color:#dfe9f2;font-family:'SF Mono',Consolas,monospace}
+.wrap{max-width:1240px;margin:0 auto;padding:26px 16px}
+a.back{color:#4fc3f7;text-decoration:none;font-size:11px}
+h1{font-size:19px;color:#e8f1f8;margin:8px 0 2px}
+.api{color:#5d7285;font-size:11px}.eng{color:#7d95a8;font-size:10px;margin:6px 0 14px}
+.tot{display:flex;gap:22px;margin:12px 0 18px;flex-wrap:wrap}
+.tot div{background:#0d141c;border:1px solid #1c2733;border-radius:10px;padding:9px 16px}
+.tot b{display:block;font-size:19px}.tot span{font-size:10px;color:#5d7285}
+h2{font-size:12px;letter-spacing:2px;color:#8fa3b8;border-bottom:1px solid #1c2733;padding-bottom:5px;margin:22px 0 10px}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{color:#5d7285;text-align:left;font-weight:600;padding:5px 8px;border-bottom:1px solid #1c2733;letter-spacing:1px}
+td{padding:5px 8px;border-bottom:1px solid #121b25;color:#c3d3e0;word-break:break-all}
+td.n{text-align:right;color:#9fd0a8;white-space:nowrap}
+.hot{color:#ffd479}.miss{color:#e05252}
+.series{display:flex;flex-wrap:wrap;gap:5px}
+.series span{background:#0d141c;border:1px solid #1c2733;border-radius:5px;padding:2px 7px;font-size:10px;color:#9fb4c7}
+</style></head><body><div class="wrap">
+<a class="back" href="/data.html">← DATA</a>
+<h1 id="nm">…</h1><div class="api" id="api"></div><div class="eng" id="eng"></div>
+<div class="tot" id="tot"></div>
+<h2>EVERY DATASET / KEY PULLED FROM THIS PROVIDER</h2>
+<table><thead><tr><th>KEY</th><th style="text-align:right">SIZE</th><th style="text-align:right">AGE</th></tr></thead><tbody id="tb"><tr><td colspan="3">Loading…</td></tr></tbody></table>
+<div id="serwrap" style="display:none"><h2>FULL SERIES INVENTORY (<span id="serc"></span>)</h2><div class="series" id="ser"></div></div>
+</div>
+<script>
+var slug=new URLSearchParams(location.search).get('p');
+function sz(b){return b>=1e9?(b/1e9).toFixed(2)+' GB':b>=1e6?(b/1e6).toFixed(1)+' MB':b>=1024?(b/1024).toFixed(0)+' KB':b+' B';}
+fetch('/data/providers/'+slug+'.json?t='+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then(function(d){
+document.title=d.name+' — Data — JustHodl.AI';
+document.getElementById('nm').textContent=d.name;
+document.getElementById('api').textContent='API: '+d.api;
+document.getElementById('eng').textContent='Pulled by: '+(d.engines||[]).join(' · ');
+document.getElementById('tot').innerHTML=
+ '<div><b>'+d.n_keys+'</b><span>KEYS</span></div>'+
+ '<div><b>'+d.total_mb+' MB</b><span>STORED</span></div>'+
+ (d.series&&d.series.count?'<div><b>'+d.series.count.toLocaleString()+'</b><span>SERIES CATALOGUED</span></div>':'')+
+ '<div><b>'+(d.freshest_h==null?'—':d.freshest_h+'h')+'</b><span>FRESHEST</span></div>';
+var tb=document.getElementById('tb');tb.innerHTML='';
+(d.keys||[]).forEach(function(k){var tr=document.createElement('tr');
+ tr.innerHTML='<td class="'+(k.hot?'hot':'')+(k.missing?' miss':'')+'">'+k.key+(k.hot?' ·HOT':'')+(k.missing?' ·MISSING':'')+'</td>'+
+ '<td class="n">'+(k.bytes!=null?sz(k.bytes):'—')+'</td><td class="n">'+(k.age_h!=null?k.age_h+'h':'—')+'</td>';
+ tb.appendChild(tr);});
+if(d.series&&d.series.ids){document.getElementById('serwrap').style.display='block';
+ document.getElementById('serc').textContent=d.series.count.toLocaleString();
+ var s=document.getElementById('ser');
+ d.series.ids.forEach(function(i){var e=document.createElement('span');e.textContent=i;s.appendChild(e);});}
+}).catch(function(){document.getElementById('nm').textContent='Provider "'+slug+'" not inventoried yet — ops 4506 builds it';document.getElementById('tb').innerHTML='';});
+</script>
+<script src="/jh-nav-drawer.js" defer></script></body></html>
