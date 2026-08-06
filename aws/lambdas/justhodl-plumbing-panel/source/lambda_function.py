@@ -23,9 +23,14 @@ except Exception:
     snapshot = None
 
 
-def _fetch(u, timeout=120):
-    req = urllib.request.Request(u, headers={
-        "User-Agent": "JustHodl research admin@justhodl.ai"})
+def _fetch(u, timeout=120, browser=False):
+    hdr = ({"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                          "AppleWebKit/537.36 Chrome/126 Safari/537.36",
+            "Accept": "*/*",
+            "Referer": "https://www.chicagofed.org/research/data/nfci/"
+                       "current-data"} if browser else
+           {"User-Agent": "JustHodl research admin@justhodl.ai"})
+    req = urllib.request.Request(u, headers=hdr)
     with urllib.request.urlopen(req, timeout=timeout) as r:
         b = r.read()
     if b[:2] == b"\x1f\x8b":
@@ -42,9 +47,13 @@ def lambda_handler(event, context):
                                "list/seriesbreaks.json"))
         breaks = (sb.get("pd", {}).get("seriesbreaks")
                   or sb.get("seriesbreaks") or [])
-        ids = [b.get("seriesbreak") or b.get("id") for b in breaks
-               if isinstance(b, dict)]
-        brk = sorted([i for i in ids if i])[-1] if ids else "SBN2024"
+        # ops 4497: alphabetical picked SBP2013 (P>N) — the CURRENT
+        # break is the one with the latest startDate / open endDate.
+        def _start(b):
+            return str(b.get("startDate") or b.get("startdate") or "")
+        cur = sorted([b for b in breaks if isinstance(b, dict)],
+                     key=_start)[-1] if breaks else {}
+        brk = (cur.get("seriesbreak") or cur.get("id") or "SBN2024")
         u = f"https://markets.newyorkfed.org/api/pd/latest/{brk}.csv"
         raw = _fetch(u, timeout=180)
         rk = snapshot("nyfed", u, raw[:400000]) if snapshot else None
@@ -96,9 +105,20 @@ def lambda_handler(event, context):
                                         f"{str(e)[:60]}"}
     # 3) Chicago NFCI xlsx
     try:
-        u = ("https://www.chicagofed.org/-/media/publications/nfci/"
-             "nfci-data-series-xlsx.xlsx")
-        raw = _fetch(u, timeout=120)
+        last = "none"
+        for u in ("https://www.chicagofed.org/-/media/publications/"
+                  "nfci/nfci-data-series-xlsx.xlsx",
+                  "https://www.chicagofed.org/-/media/publications/"
+                  "nfci/nfci-data-series-xlsx.xlsx?la=en",
+                  "https://www.chicagofed.org/~/media/publications/"
+                  "nfci/nfci-data-series-xlsx.xlsx"):
+            try:
+                raw = _fetch(u, timeout=120, browser=True)
+                break
+            except Exception as e:
+                last = f"{type(e).__name__}: {str(e)[:40]}"
+        else:
+            raise ValueError(last)
         if len(raw) < 50_000:
             raise ValueError(f"small {len(raw)}b")
         rk = snapshot("chicagofed", u, raw[:200000]) if snapshot else None
