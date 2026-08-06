@@ -195,31 +195,33 @@ def _series_list(spec):
 
 
 def _load_rollup_feeds():
-    """ops 4511 v3: feed->provider truth from the E12 rollup. Shape-
-    flexible: find a dict whose values are provider strings."""
+    """ops 4513 v4: provider->feeds via the two-file join —
+    engine-provider-map (engine->provider) x lambda-graph
+    (engine->writes[feeds]). Shape-flexible on the map values."""
     try:
-        d = _get_json("data/audit/data-source-rollup.json")
+        emap = _get_json("data/audit/engine-provider-map.json")
+        graph = _get_json("data/audit/lambda-graph.json")
     except Exception:
         return {}
-    best = {}
-    def scan(o, depth=0):
-        nonlocal best
-        if depth > 3 or not isinstance(o, dict):
-            return
-        vals = list(o.values())
-        if (len(o) > 50 and
-                sum(1 for v in vals[:80] if isinstance(v, str)) >
-                len(vals[:80]) * 0.8):
-            if len(o) > len(best):
-                best = {k: v for k, v in o.items()
-                        if isinstance(v, str)}
-            return
-        for v in vals:
-            scan(v, depth + 1)
-    scan(d)
+    if isinstance(emap, dict) and "engines" in emap and             isinstance(emap["engines"], dict):
+        emap = emap["engines"]
+    engines = (graph.get("engines") or {}) if isinstance(graph, dict)         else {}
     out = {}
-    for feed, prov in best.items():
-        out.setdefault(str(prov).lower(), []).append(feed)
+    for eng, rec in engines.items():
+        pv = emap.get(eng)
+        if isinstance(pv, dict):
+            pv = (pv.get("provider") or
+                  (pv.get("providers") or [None])[0])
+        if isinstance(pv, list):
+            pv = pv[0] if pv else None
+        if not isinstance(pv, str):
+            continue
+        prov = pv.lower().strip()
+        for feed in (rec.get("writes") or []):
+            if isinstance(feed, str):
+                out.setdefault(prov, []).append(feed)
+    for k in out:
+        out[k] = sorted(set(out[k]))
     return out
 
 
