@@ -1,0 +1,15 @@
+# ops 4493 — overnight audit — 14 FRESH / 0 stale / 0 err
+- ofr: age=0.7h fresh=True :: 100.0% (442/442) COMPLETE-maintaining
+- nyfed_pd: age=0.6h fresh=True :: 15.6% (240/1539)
+- cusip_rebuild: age=0.3h fresh=True :: 4.2% filings 180/4281
+- tga_backfill: age=0.5h fresh=True :: pages 7 span 2022-04-18..2026-08-04 running
+- bea_walk: age=0.0h fresh=True :: 4.0% (10/253)
+- symbology: age=9.5h fresh=True :: figi=9211 cusip=4829 lei=2572 AAPL_cusip=037833100
+- polygon_daily: age=11.9h fresh=True :: session 2026-08-05 n=12392
+- global_expansion: age=8.8h fresh=True :: live=['banxico']
+- usgov: age=2.1h fresh=True :: bea_ok=True bls_obs=2814 ddp=6/6
+- edgar: age=9.2h fresh=True :: 113058 filings 2026-QTR3
+- self_critique: age=12.2h fresh=True :: counts {'held': 0, 'flipped': 0, 'unavailable': 6}
+- coverage_grader: age=8.1h fresh=True :: tickers=10398 nyfed=5/5
+- warm_bridge: age=0.3h fresh=True :: sofr=None obs None
+- banxico: age=Noneh fresh=True :: FIX 17.2317 @ 05/08/2026 n=8729
