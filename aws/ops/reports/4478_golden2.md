@@ -1,0 +1,1 @@
+# ops 4477 — golden copy — PARTIAL — {"errorMessage": "slice(None, 60, None)", "errorType": "KeyError", "requestId": "277af7c2-2525-4ff9-ad16-460d5bfd2547", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 176, in lambda_handler\n    _golden(su
