@@ -1,0 +1,69 @@
+{
+ "ops": 4467,
+ "started": "2026-08-06T03:39:10.130675+00:00",
+ "e7": "done-4466",
+ "usgov": {
+  "as_of": "2026-08-06T03:39:18+00:00",
+  "bea": {
+   "ok": true,
+   "datasets": 13,
+   "gdp_rows": 7925,
+   "param_map": {
+    "NIPA": 5,
+    "NIUnderlyingDetail": 4,
+    "MNE": 12,
+    "FixedAssets": 2,
+    "ITA": 4,
+    "IIP": 4,
+    "InputOutput": 2,
+    "IntlServTrade": 5,
+    "IntlServSTA": 5,
+    "GDPbyIndustry": 4,
+    "Regional": 4,
+    "UnderlyingGDPbyIndustry": 4,
+    "APIDatasetMetaData": 0
+   }
+  },
+  "bls": {
+   "ok": true,
+   "status": "REQUEST_SUCCEEDED",
+   "series": 15,
+   "obs": 2814,
+   "keyed": true
+  },
+  "fed_ddp": {
+   "H15": {
+    "ok": true,
+    "bytes": 4275567,
+    "raw_snapshot_key": "data/raw/fed-ddp/2026-08-06/560d3fc1b922.json.gz"
+   },
+   "H41": {
+    "ok": true,
+    "bytes": 9003813,
+    "raw_snapshot_key": "data/raw/fed-ddp/2026-08-06/50ea5f7c6816.json.gz"
+   },
+   "H8": {
+    "ok": true,
+    "bytes": 8385290,
+    "raw_snapshot_key": "data/raw/fed-ddp/2026-08-06/e471e399bdbb.json.gz"
+   },
+   "G19": {
+    "ok": true,
+    "bytes": 603715,
+    "raw_snapshot_key": "data/raw/fed-ddp/2026-08-06/67679e89acbd.json.gz"
+   },
+   "H10": {
+    "ok": true,
+    "bytes": 2074663,
+    "raw_snapshot_key": "data/raw/fed-ddp/2026-08-06/d03322461d0b.json.gz"
+   },
+   "CP": {
+    "ok": true,
+    "bytes": 6261452,
+    "raw_snapshot_key": "data/raw/fed-ddp/2026-08-06/703cb36fcde1.json.gz"
+   }
+  }
+ },
+ "verdict": "PASS \u2014 bea={\"ok\": true, \"datasets\": 13, \"gdp_rows\": 7925, \"param_map\": {\"NIPA\": 5, \"NIUnder bls={\"ok\": true, \"status\": \"REQUEST_SUCCEEDED\", \"series\": 15, \"obs\": 2814, \"keyed\":  ddp={\"H15\": {\"ok\": true, \"bytes\": 4275567, \"raw_snapshot_key\": \"",
+ "finished": "2026-08-06T03:39:46.386342+00:00"
+}
