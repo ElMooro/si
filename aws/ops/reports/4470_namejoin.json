@@ -1,0 +1,29 @@
+{
+ "ops": 4470,
+ "started": "2026-08-06T04:00:40.174993+00:00",
+ "run": {
+  "code": 200,
+  "fn_err": null
+ },
+ "figi": {
+  "chain": {
+   "cusip": 21,
+   "isin": 21,
+   "lei": 6,
+   "map_shape": "dict/4768 joinable",
+   "name_joined": 21
+  },
+  "n_figi": 7357,
+  "n_cusip": 4768,
+  "n_lei": 2521,
+  "AAPL": {
+   "ticker": "AAPL",
+   "cusip": null,
+   "isin": null,
+   "lei": null,
+   "figi": "BBG000B9XRY4"
+  }
+ },
+ "verdict": "PASS \u2014 cusip=4768 isin~same lei=2521 AAPL={\"ticker\": \"AAPL\", \"cusip\": null, \"isin\": null, \"lei\": null, \"figi\": \"BBG000B9XRY4\"}",
+ "finished": "2026-08-06T04:02:06.626793+00:00"
+}
