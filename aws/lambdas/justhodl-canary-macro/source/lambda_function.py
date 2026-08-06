@@ -31,7 +31,13 @@ def wrap(v, **kw):
         try:
             env = _lw(v, **kw)
         except TypeError:
-            env = _lw(v)
+            try:
+                env = _lw(v, kw.get("source_url"))
+            except TypeError:
+                try:
+                    env = _lw(v)
+                except TypeError:
+                    env = None
         if isinstance(env, dict):
             for k, x in kw.items():
                 env.setdefault(k, x)
@@ -53,8 +59,7 @@ def missing(reason, **kw):
 
 
 def _fetch(u, headers=None, timeout=120, data=None):
-    h = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                       "AppleWebKit/537.36 Chrome/126 Safari/537.36"}
+    h = {"User-Agent": "JustHodl research admin@justhodl.ai"}
     h.update(headers or {})
     req = urllib.request.Request(u, headers=h, data=data)
     with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -90,7 +95,34 @@ def _fred_panel(name, ids, hot, S):
     u = ("https://fred.stlouisfed.org/graph/fredgraph.csv?id="
          + ",".join(ids))
     try:
-        raw = _fetch(u, timeout=120)
+        try:
+            raw = _fetch(u, timeout=60)
+        except Exception:
+            # ops 4515 fallback: per-id sequential (multi-id stalls)
+            parts = {}
+            for sid in ids:
+                try:
+                    r1 = _fetch("https://fred.stlouisfed.org/graph/"
+                                "fredgraph.csv?id=" + sid, timeout=30)
+                    parts[sid] = r1
+                except Exception:
+                    pass
+            if not parts:
+                raise
+            first = next(iter(parts.values())).decode(
+                "utf-8", "replace").splitlines()
+            hdr = ["DATE"] + list(parts)
+            rows = {}
+            for sid, rb in parts.items():
+                for ln in rb.decode("utf-8",
+                                    "replace").splitlines()[1:]:
+                    d0, _, v0 = ln.partition(",")
+                    rows.setdefault(d0, {})[sid] = v0
+            out = [",".join(hdr)]
+            for d0 in sorted(rows):
+                out.append(",".join([d0] + [rows[d0].get(s, ".")
+                                            for s in parts]))
+            raw = "\n".join(out).encode()
         rk = snapshot("fred", u, raw[:300000]) if snapshot else None
         s3.put_object(Bucket=BUCKET,
                       Key=f"data/warm/fred-canary/{name}.csv.gz",
