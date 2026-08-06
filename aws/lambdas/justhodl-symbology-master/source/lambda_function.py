@@ -46,6 +46,93 @@ def _figi_key():
     return _ssm_cache["k"]
 
 
+
+
+# ── ops 4469: CUSIP→ISIN→LEI chain (13F map + GLEIF cross-walk) ──────────
+import io as _io
+import zipfile as _zipfile
+
+
+def _isin_check_digit(body11):
+    s = "".join(str(int(c, 36)) for c in body11)
+    digits = [int(c) for c in s]
+    total = 0
+    dbl = True
+    for d in reversed(digits):
+        v = d * 2 if dbl else d
+        total += v - 9 if v > 9 else v
+        dbl = not dbl
+    return str((10 - total % 10) % 10)
+
+
+def enrich_cusip_chain(by_ticker):
+    """Fill cusip (13F filings map), isin (US+cusip+check), lei (GLEIF
+    ISIN->LEI file). Shape-flexible on the 13F map; explicit no_match."""
+    stats = {"cusip": 0, "isin": 0, "lei": 0, "map_shape": None}
+    try:
+        m = json.loads(s3.get_object(
+            Bucket=BUCKET, Key="data/13f-cusip-map.json")["Body"].read())
+    except Exception as e:
+        stats["error"] = f"13f map: {type(e).__name__}: {str(e)[:60]}"
+        return stats
+    cus_by_t = {}
+    items = (m.items() if isinstance(m, dict) else
+             [(None, x) for x in m] if isinstance(m, list) else [])
+    for k, v in items:
+        if isinstance(v, dict):
+            cus = (v.get("cusip") or (k if k and len(str(k)) == 9
+                                      else None))
+            tkr = (v.get("ticker") or v.get("symbol") or "")
+        else:
+            cus, tkr = k, str(v)
+        tkr = (tkr or "").upper().strip()
+        if cus and tkr and len(str(cus)) == 9 and tkr in by_ticker:
+            cus_by_t.setdefault(tkr, str(cus).upper())
+    stats["map_shape"] = (type(m).__name__ + f"/{len(cus_by_t)} joinable")
+    want_isin = {}
+    for tkr, cus in cus_by_t.items():
+        r = by_ticker[tkr]
+        if r.get("cusip") is None:
+            r["cusip"] = cus
+            stats["cusip"] += 1
+        body = "US" + cus
+        isin = body + _isin_check_digit(body)
+        if r.get("isin") is None:
+            r["isin"] = isin
+            stats["isin"] += 1
+        want_isin[isin] = tkr
+    if want_isin:
+        try:
+            zb = s3.get_object(Bucket=BUCKET,
+                               Key="data/warm/gleif/isin-lei-latest.zip"
+                               )["Body"].read()
+            zf = _zipfile.ZipFile(_io.BytesIO(zb))
+            name = zf.namelist()[0]
+            with zf.open(name) as fh:
+                header = fh.readline().decode("utf-8",
+                                              "replace").strip()
+                cols = [c.strip().strip('"').upper()
+                        for c in header.split(",")]
+                try:
+                    ii = cols.index("ISIN")
+                    li = cols.index("LEI")
+                except ValueError:
+                    ii, li = 1, 0
+                for line in fh:
+                    parts = line.decode("utf-8", "replace")                         .strip().split(",")
+                    if len(parts) <= max(ii, li):
+                        continue
+                    isin = parts[ii].strip().strip('"')
+                    tkr = want_isin.get(isin)
+                    if tkr and by_ticker[tkr].get("lei") is None:
+                        by_ticker[tkr]["lei"] =                             parts[li].strip().strip('"')
+                        stats["lei"] += 1
+        except Exception as e:
+            stats["gleif_error"] = (f"{type(e).__name__}: "
+                                    f"{str(e)[:60]}")
+    return stats
+
+
 def enrich_figi(by_ticker, limit=2500):
     """Fill null FIGIs via OpenFIGI v3 mapping. Batch 100 jobs/request,
     polite pacing, bounded per run — converges to full coverage across
@@ -107,6 +194,7 @@ def lambda_handler(event, context):
             continue
         row = {"ticker": t, "cik": cik, "name": rec.get("title"),
                "cusip": None, "isin": None, "figi": None, "sedol": None,
+               "lei": None,
                "source": {"kind": "sec", "url": url,
                           "raw_snapshot_key": raw_key}}
         by_ticker[t] = row
@@ -118,12 +206,13 @@ def lambda_handler(event, context):
         for tkr, old_r in (prev.get("by_ticker") or {}).items():
             if tkr in by_ticker:
                 for f in ("figi", "figi_name", "figi_status", "cusip",
-                          "isin", "sedol"):
+                          "isin", "sedol", "lei"):
                     if old_r.get(f) is not None:
                         by_ticker[tkr][f] = old_r[f]
     except Exception:
         pass
     figi_stats = enrich_figi(by_ticker)
+    cusip_stats = enrich_cusip_chain(by_ticker)
     n = len(by_ticker)
     doc = {"as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "spec": "E1 v1 — SEC spine; OpenFIGI/CUSIP enrichment in later "
@@ -133,8 +222,7 @@ def lambda_handler(event, context):
                "vs_bloomberg_320k_pct": round(100 * n / 320000, 2),
                "note": "320k includes global+delisted+funds; SEC registrants "
                        "are the US-listed operating spine"},
-           "enrichment_status": {"cik": "complete", "cusip": "pending "
-                                 "(13f cusip-map join)", "figi": figi_stats, "isin": "pending",
+           "enrichment_status": {"cik": "complete", "cusip_chain": cusip_stats, "figi": figi_stats, "isin": "pending",
                                  "sedol": "pending"},
            "by_ticker": by_ticker}
     s3.put_object(Bucket=BUCKET, Key="data/symbology/master.json",
