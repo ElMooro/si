@@ -1,0 +1,25 @@
+{
+ "ops": 4491,
+ "started": "2026-08-06T07:41:02.998248+00:00",
+ "dropped_24h": {
+  "justhodl-backend-agent": 1
+ },
+ "culprits": [
+  "justhodl-backend-agent"
+ ],
+ "recursion_config_before": {
+  "justhodl-a2a-bus": "Terminate",
+  "justhodl-backend-agent": "Terminate"
+ },
+ "recursion_config_applied": {
+  "justhodl-a2a-bus": "Allow",
+  "justhodl-backend-agent": "Allow"
+ },
+ "test_post": {
+  "ok": false,
+  "err": "budget_exceeded: max turns"
+ },
+ "post_wake_tail": [],
+ "verdict": "REMEDIATED \u2014 culprits=['justhodl-backend-agent']; Allow applied ['justhodl-a2a-bus', 'justhodl-backend-agent']; wake-test posted ok=False; agent-visible-after=pending (watchdog cycle)",
+ "finished": "2026-08-06T07:42:30.878926+00:00"
+}
