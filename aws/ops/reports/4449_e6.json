@@ -1,0 +1,23 @@
+{
+ "ops": 4449,
+ "started": "2026-08-06T01:26:33.884791+00:00",
+ "mode": "updated",
+ "run": {
+  "code": 200,
+  "fn_err": null
+ },
+ "summary": {
+  "legacy_futures": {
+   "n_rows": 5000,
+   "latest_report": "2026-07-28",
+   "oldest_in_pull": "2026-04-28",
+   "n_report_dates": 14
+  },
+  "disaggregated_futures": {
+   "data_unavailable": true,
+   "reason": "HTTPError: HTTP Error 400: Bad Request"
+  }
+ },
+ "verdict": "PASS \u2014 {\"legacy_futures\": 5000, \"disaggregated_futures\": null}",
+ "finished": "2026-08-06T01:27:04.842020+00:00"
+}
