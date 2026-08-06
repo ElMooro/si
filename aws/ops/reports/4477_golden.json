@@ -1,0 +1,15 @@
+{
+ "ops": 4477,
+ "started": "2026-08-06T04:49:10.768518+00:00",
+ "run": {
+  "errorMessage": "slice(None, 60, None)",
+  "errorType": "KeyError",
+  "requestId": "eb275f81-fb71-4011-a03c-ba49344b636e",
+  "stackTrace": [
+   "  File \"/var/task/lambda_function.py\", line 176, in lambda_handler\n    _golden(summary)\n",
+   "  File \"/var/task/lambda_function.py\", line 163, in _golden\n    last = f\"{u[:60]} -> {type(e).__name__}: {str(e)[:50]}\"\n"
+  ]
+ },
+ "verdict": "PARTIAL \u2014 {\"errorMessage\": \"slice(None, 60, None)\", \"errorType\": \"KeyError\", \"requestId\": \"eb275f81-fb71-4011-a03c-ba49344b636e\", \"stackTrace\": [\"  File \\\"/var/task/lambda_function.py\\\", line 176, in lambda_handler\\n    _golden(su",
+ "finished": "2026-08-06T04:50:01.420540+00:00"
+}
