@@ -1,0 +1,55 @@
+{
+ "ops": 4447,
+ "started": "2026-08-06T01:09:27.199873+00:00",
+ "mode": "updated",
+ "run": {
+  "code": 200,
+  "fn_err": null
+ },
+ "metrics": [
+  {
+   "metric": "us_tickers",
+   "actual": 10398,
+   "target": 320000,
+   "pct_of_target": 3.25,
+   "method": "E1 symbology master (SEC registrants) vs Bloomberg global universe incl. delisted+funds"
+  },
+  {
+   "metric": "figi_ids",
+   "actual": 2485,
+   "target": 10398,
+   "pct_of_target": 23.9,
+   "method": "FIGIs resolved vs E1 spine (converges ~2500/night)"
+  },
+  {
+   "metric": "cusips",
+   "actual": 0,
+   "target": 500000,
+   "pct_of_target": 0.0,
+   "method": "HONEST ZERO \u2014 13F cusip-map join not yet landed"
+  },
+  {
+   "metric": "edgar_filings_qtd",
+   "actual": 107574,
+   "target": null,
+   "pct_of_target": null,
+   "method": "E3 full-index, complete for current quarter (no external target: completeness is the target and it is met)"
+  },
+  {
+   "metric": "nyfed_reference_rates",
+   "actual": 0,
+   "target": 5,
+   "pct_of_target": 0.0,
+   "method": "E8 histories loaded of SOFR/EFFR/OBFR/TGCR/BGCR"
+  },
+  {
+   "metric": "fred_feeds_in_use",
+   "actual": 173,
+   "target": 45000,
+   "pct_of_target": 0.38,
+   "method": "PROXY: E12 rollup feed-count, not a series census \u2014 series-level census is a stated TODO (E4)"
+  }
+ ],
+ "verdict": "PASS \u2014 6 metrics live",
+ "finished": "2026-08-06T01:09:58.293908+00:00"
+}
