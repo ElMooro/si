@@ -27,8 +27,9 @@ except Exception:
 PROG_KEY = "data/audit/backfill-progress.json"
 BASE = ("https://api.fiscaldata.treasury.gov/services/api/fiscal_service"
         "/v1/accounting/dts/operating_cash_balance")
-FILTER = ("?filter=account_type:eq:Treasury General Account (TGA) "
-          "Closing Balance&sort=-record_date&page[size]=2500")
+# ops 4456: filter+page[number] combined -> 400. Paginate UNFILTERED,
+# filter client-side (discover-don't-assume #8).
+FILTER = "?sort=-record_date&page[size]=2500"
 
 
 def _get(k, default=None):
@@ -80,6 +81,9 @@ def lambda_handler(event, context):
                  "unit": "USD millions", "observations": []}
             have = {o["date"] for o in warm.get("observations", [])}
             for o in data:
+                if "Treasury General Account" not in \
+                        str(o.get("account_type", "")):
+                    continue
                 d = o.get("record_date")
                 try:
                     v = float(o.get("open_today_bal"))
