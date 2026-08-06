@@ -80,10 +80,32 @@ def _ofr(now):
                       ("FNYR-SOFR-A", "sofr")]:
         try:
             d = _get(f"data/warm/ofr/series/{mn}.json.gz")
-            ts = (d.get("payload", {}).get("timeseries", {})
-                  .get("aggregation") or [])
-            last = ts[-1] if ts else None
-            if last and len(last) >= 2:
+            # ops 4498: OFR file shape drifted at 100%-completion —
+            # adaptive extractor over the known containers, last
+            # non-null observation wins.
+            pl = d.get("payload", {})
+            ts = []
+            node = pl.get("timeseries", pl)
+            for k in ("aggregation", "data", "observations",
+                      "values", "series"):
+                v = node.get(k) if isinstance(node, dict) else None
+                if isinstance(v, list) and v:
+                    ts = v
+                    break
+            if not ts and isinstance(pl, list):
+                ts = pl
+            last = None
+            for row in reversed(ts):
+                if isinstance(row, (list, tuple)) and len(row) >= 2 \
+                        and row[1] is not None:
+                    last = row
+                    break
+                if isinstance(row, dict) and row.get("value") \
+                        is not None:
+                    last = [row.get("date") or row.get("d"),
+                            row.get("value")]
+                    break
+            if last:
                 out[label] = wrap(
                     last[1], source_url=d.get("source_url"),
                     raw_snapshot_key=d.get("raw_snapshot_key"),
