@@ -123,8 +123,22 @@ def _golden(summary):
             "https://goldencopy.gleif.org/api/v2/golden-copies/"
             "publishes/lei2/latest", timeout=60))
         d = meta.get("data") or meta
-        link = ((d.get("golden_copy") or {}).get("full_file") or {})             .get("csv") or (d.get("full_file") or {}).get("csv")             or d.get("csv_url")
-        if link:
+        def _walk(o):
+            if isinstance(o, str) and o.startswith("http"):
+                return o
+            if isinstance(o, dict):
+                for v in o.values():
+                    r = _walk(v)
+                    if r:
+                        return r
+            if isinstance(o, list):
+                for v in o:
+                    r = _walk(v)
+                    if r:
+                        return r
+            return None
+        link = _walk(d)
+        if isinstance(link, str):
             cands.append(link)
     except Exception as e:
         summary.setdefault("golden_notes", []).append(
@@ -132,7 +146,9 @@ def _golden(summary):
     cands.append("https://leidata.gleif.org/api/v1/concatenated-files/"
                  "lei2/get/latest")
     tmp = "/tmp/golden-lei2.zip"
+    last = "no candidates yielded"
     for u in cands:
+        u = str(u)
         try:
             req = urllib.request.Request(u, headers={
                 "User-Agent": "JustHodl research admin@justhodl.ai"})
