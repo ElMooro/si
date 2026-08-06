@@ -47,6 +47,10 @@ BLS_SERIES = ["CUUR0000SA0", "CUUR0000SA0L1E", "CUSR0000SA0",
               "JTS000000000000000HIL", "CES0500000003"]
 
 
+def _now_iso():
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
 def _bea(summary):
     k = _key("/justhodl/bea-api-key")
     if not k:
@@ -82,8 +86,30 @@ def _bea(summary):
                       Body=json.dumps({"datasets": names,
                                        "raw_snapshot_key": rk}).encode(),
                       ContentType="application/json")
+        # ops 4467: 100%-worklist materialization — per-dataset
+        # parameter map (the walkable universe, stored once)
+        pmap = {}
+        for dn in names:
+            try:
+                u3 = (f"{base}?UserID={k}&method=GetParameterList"
+                      f"&datasetname={dn}&ResultFormat=JSON")
+                r3 = json.loads(urllib.request.urlopen(
+                    u3, timeout=30).read())
+                params = (r3.get("BEAAPI", {}).get("Results", {})
+                          .get("Parameter") or [])
+                pmap[dn] = [p.get("ParameterName") for p in params
+                            if isinstance(p, dict)]
+            except Exception as e:
+                pmap[dn] = [f"err: {type(e).__name__}"]
+        s3.put_object(Bucket=BUCKET,
+                      Key="data/warm/usgov/bea/parameter-map.json",
+                      Body=json.dumps({"as_of": _now_iso(),
+                                       "map": pmap}).encode(),
+                      ContentType="application/json")
         summary["bea"] = {"ok": True, "datasets": len(names),
-                          "gdp_rows": len(rows)}
+                          "gdp_rows": len(rows),
+                          "param_map": {d: len(v) for d, v in
+                                        pmap.items()}}
     except Exception as e:
         summary["bea"] = {"data_unavailable": True,
                           "reason": f"{type(e).__name__}: {str(e)[:70]}"}
@@ -126,30 +152,32 @@ def _bls(summary):
                           "reason": f"{type(e).__name__}: {str(e)[:70]}"}
 
 
+DDP_RELEASES = ["H15", "H41", "H8", "G19", "H10", "CP"]
+
+
 def _fed_ddp(summary):
-    cands = [("H15_zip", "https://www.federalreserve.gov/datadownload/"
-              "Output.aspx?rel=H15&filetype=zip"),
-             ("H15_csv_pkg", "https://www.federalreserve.gov/datadownload/"
-              "Output.aspx?rel=H15&series=all&filetype=csv"
-              "&label=include&layout=seriescolumn")]
-    for name, u in cands:
+    """ops 4467: full core-release sweep — H.15 rates, H.4.1 balance
+    sheet, H.8 bank credit, G.19 consumer credit, H.10 FX, CP paper."""
+    out = {}
+    for rel in DDP_RELEASES:
+        u = ("https://www.federalreserve.gov/datadownload/"
+             f"Output.aspx?rel={rel}&filetype=zip")
         try:
             req = urllib.request.Request(u, headers={
                 "User-Agent": "JustHodl research admin@justhodl.ai"})
-            raw = urllib.request.urlopen(req, timeout=60).read()
+            raw = urllib.request.urlopen(req, timeout=90).read()
             if len(raw) < 2000:
                 raise ValueError(f"too small ({len(raw)}b)")
             rk = snapshot("fed-ddp", u, raw) if snapshot else None
             s3.put_object(Bucket=BUCKET,
-                          Key=f"data/warm/usgov/fed-ddp/{name}",
+                          Key=f"data/warm/usgov/fed-ddp/{rel}.zip",
                           Body=raw)
-            summary["fed_ddp"] = {"ok": True, "candidate": name,
-                                  "bytes": len(raw),
-                                  "raw_snapshot_key": rk}
-            return
+            out[rel] = {"ok": True, "bytes": len(raw),
+                        "raw_snapshot_key": rk}
         except Exception as e:
-            last = f"{name}: {type(e).__name__}: {str(e)[:60]}"
-    summary["fed_ddp"] = {"data_unavailable": True, "reason": last}
+            out[rel] = {"data_unavailable": True,
+                        "reason": f"{type(e).__name__}: {str(e)[:60]}"}
+    summary["fed_ddp"] = out
 
 
 def lambda_handler(event, context):
