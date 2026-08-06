@@ -1,0 +1,24 @@
+{
+ "ops": 4463,
+ "started": "2026-08-06T03:13:04.196862+00:00",
+ "run": {
+  "ok": true,
+  "bounded_ok": [
+   "soma_summary",
+   "repo_ops_latest"
+  ],
+  "bounded_failed": [
+   "seclending_latest",
+   "ambs_latest"
+  ],
+  "pd": {
+   "catalog": 1539,
+   "catalog_source": "/pd/list/timeseries.json",
+   "pulled_this_run": 20,
+   "done_total": 20,
+   "progress_pct": 1.3
+  }
+ },
+ "verdict": "PASS \u2014 bounded_ok=['soma_summary', 'repo_ops_latest'] pd={\"catalog\": 1539, \"catalog_source\": \"/pd/list/timeseries.json\", \"pulled_this_run\": 20, \"done_total\": 20, \"progress_pct\":",
+ "finished": "2026-08-06T03:14:47.641487+00:00"
+}
