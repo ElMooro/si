@@ -155,45 +155,58 @@ def lambda_handler(event, context):
             wrap_note="full cube catalog = 100% worklist")
     if want("eiopa"):
         ym = (now.replace(day=1) - timedelta(days=1))
-        tag = ym.strftime("%Y%m") + str(ym.day)
+        tag = ym.strftime("%Y%m%d")
+        folders = [now.strftime("%Y-%m"), ym.strftime("%Y-%m")]
+        names = [f"eiopa_rfr_{tag}.zip", f"eiopa_rfr_{tag}_0.zip",
+                 f"EIOPA_RFR_{tag}.zip",
+                 f"eiopa_rfr_term_structures_{tag}.zip"]
         S["eiopa"] = _csv_store(
             "eiopa",
-            [f"https://www.eiopa.europa.eu/system/files/"
-             f"{ym.strftime('%Y-%m')}/eiopa_rfr_{tag}.zip",
-             f"https://www.eiopa.europa.eu/system/files/"
-             f"{now.strftime('%Y-%m')}/eiopa_rfr_{tag}.zip"],
+            [f"https://www.eiopa.europa.eu/system/files/{f}/{n}"
+             for f in folders for n in names],
             "data/warm/eiopa/rfr-latest.zip.gz", min_bytes=100_000)
     if want("occ"):
         S["occ"] = _csv_store(
             "occ",
-            ["https://marketdata.theocc.com/mdapi/daily-volume"
-             "?format=csv",
-             "https://www.theocc.com/api/volume/daily?format=csv",
-             "https://marketdata.theocc.com/mdapi/download?report="
-             "volume"],
+            ["https://marketdata.theocc.com/mdapi/daily-volume",
+             "https://marketdata.theocc.com/mdapi/volume-query"
+             "?format=csv&reportType=D",
+             "https://www.theocc.com/market-data/volume/"
+             "default-download?type=daily"],
             "data/warm/occ/daily-volume.csv.gz")
     if want("sec_dera"):
-        q = (now.month - 1) // 3 or 4
-        y = now.year if (now.month - 1) // 3 else now.year - 1
-        try:
-            S["sec_dera"] = _stream_zip(
-                f"https://www.sec.gov/files/dera/data/"
-                f"financial-statement-data-sets/{y}q{q}.zip",
-                f"data/warm/sec-dera/fsds-{y}q{q}.zip",
-                min_bytes=5_000_000)
-        except Exception as e:
-            S["sec_dera"] = {"data_unavailable": True,
-                             "reason": f"{type(e).__name__}: "
-                                       f"{str(e)[:60]}"}
+        qy = []
+        y, q = now.year, (now.month - 1) // 3 + 1
+        for _ in range(5):
+            q -= 1
+            if q == 0:
+                q, y = 4, y - 1
+            qy.append((y, q))
+        last = "none"
+        for y2, q2 in qy:
+            try:
+                S["sec_dera"] = _stream_zip(
+                    f"https://www.sec.gov/files/dera/data/"
+                    f"financial-statement-data-sets/{y2}q{q2}.zip",
+                    f"data/warm/sec-dera/fsds-{y2}q{q2}.zip",
+                    min_bytes=5_000_000)
+                break
+            except Exception as e:
+                last = f"{y2}q{q2}: {type(e).__name__}: {str(e)[:40]}"
+        else:
+            S["sec_dera"] = {"data_unavailable": True, "reason": last}
+    qy2 = qy if "qy" in dir() else []
     if want("sec_midas"):
         S["sec_midas"] = _csv_store(
             "sec_midas",
-            ["https://www.sec.gov/files/opa/data/market-structure/"
-             "metrics-individual-security-and-exchange/"
-             "individual_security_exchange_2026_q2.zip",
-             "https://www.sec.gov/files/data/market-structure/"
-             "metrics-by-individual-security/"
-             "individual_security_2026_q2.zip"],
+            [f"https://www.sec.gov/files/opa/data/market-structure/"
+             f"metrics-individual-security-and-exchange/"
+             f"individual_security_exchange_{yy}_q{qq}.zip"
+             for yy, qq in (qy if want("sec_dera") else [(now.year,1),(now.year-1,4),(now.year-1,3)])] +
+            [f"https://www.sec.gov/files/data/market-structure/"
+             f"metrics-by-individual-security/"
+             f"individual_security_{yy}_q{qq}.zip"
+             for yy, qq in (qy if want("sec_dera") else [(now.year,1),(now.year-1,4),(now.year-1,3)])],
             "data/warm/sec-midas/latest.zip.gz", min_bytes=500_000)
     if want("gdelt"):
         try:
@@ -205,7 +218,7 @@ def lambda_handler(event, context):
                 raise ValueError("no export url in pointer")
             S["gdelt"] = _stream_zip(
                 url, "data/warm/gdelt/latest-export.zip",
-                min_bytes=100_000)
+                min_bytes=5_000)
         except Exception as e:
             S["gdelt"] = {"data_unavailable": True,
                           "reason": f"{type(e).__name__}: "
