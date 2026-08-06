@@ -147,7 +147,7 @@ def _bls(hot, S):
     except Exception:
         key = None
     try:
-        body = json.dumps({"seriesid": BLS_EXTRA, "startyear": "2023",
+        body = json.dumps({"seriesid": BLS_EXTRA, "startyear": "2006",
                            "endyear": str(datetime.now().year),
                            **({"registrationkey": key} if key else {})}
                           ).encode()

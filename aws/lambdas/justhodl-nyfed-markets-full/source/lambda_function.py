@@ -27,8 +27,13 @@ BASE = "https://markets.newyorkfed.org/api"
 BOUNDED = {
     "soma_summary": "/soma/summary.json",
     "repo_ops_latest": "/rp/all/all/results/latest.json",
-    "seclending_latest": "/seclending/all/results/latest.json",
-    "ambs_latest": "/ambs/all/results/latest.json",
+    # ops 4502: real shapes vary — candidate lists, first-hit wins
+    "seclending_latest": ["/seclending/all/results/latest.json",
+                          "/seclending/all/results/lastTwoWeeks.json",
+                          "/seclending/all/all/results/latest.json"],
+    "ambs_latest": ["/ambs/all/all/results/latest.json",
+                    "/ambs/all/results/latest.json",
+                    "/ambs/all/all/results/lastTwoWeeks.json"],
 }
 PD_CATALOG_CANDS = ["/pd/list/timeseries.json",
                     "/pd/list/seriesbreaks.json"]
@@ -46,22 +51,32 @@ def lambda_handler(event, context):
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     summary = {"as_of": now, "bounded": {}, "pd": {}}
     for name, path in BOUNDED.items():
-        try:
-            raw = _fetch(path)
-            rk = snapshot("nyfed", BASE + path, raw) if snapshot else None
-            s3.put_object(Bucket=BUCKET,
-                          Key=f"data/warm/nyfed-markets/{name}.json.gz",
-                          Body=gzip.compress(json.dumps(
-                              {"endpoint": path, "as_of": now,
-                               "raw_snapshot_key": rk,
-                               "payload": json.loads(raw)}).encode()),
-                          ContentType="application/gzip")
-            summary["bounded"][name] = {"ok": True,
-                                        "bytes": len(raw)}
-        except Exception as e:
-            summary["bounded"][name] = {
-                "data_unavailable": True,
-                "reason": f"{type(e).__name__}: {str(e)[:70]}"}
+        cands = path if isinstance(path, list) else [path]
+        last = "none"
+        for cp in cands:
+            try:
+                raw = _fetch(cp)
+                d = json.loads(raw)
+                rk = (snapshot("nyfed", BASE + cp, raw)
+                      if snapshot else None)
+                s3.put_object(Bucket=BUCKET,
+                              Key=f"data/warm/nyfed-markets/{name}"
+                                  f".json.gz",
+                              Body=gzip.compress(json.dumps(
+                                  {"endpoint": cp, "as_of": now,
+                                   "raw_snapshot_key": rk,
+                                   "payload": d}).encode()),
+                              ContentType="application/gzip")
+                summary["bounded"][name] = {"ok": True,
+                                            "endpoint": cp,
+                                            "bytes": len(raw)}
+                break
+            except Exception as e:
+                last = (f"{cp} -> {type(e).__name__}: "
+                        f"{str(e)[:50]}")
+        else:
+            summary["bounded"][name] = {"data_unavailable": True,
+                                        "reason": last}
     # PD catalog discovery + cursored tranche
     state_key = "data/warm/nyfed-markets/pd-state.json"
     try:

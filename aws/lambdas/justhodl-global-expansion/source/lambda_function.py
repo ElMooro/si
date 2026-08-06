@@ -124,6 +124,42 @@ def _csv_store(name, cands, out_key, headers=None, min_bytes=2000):
     return {"data_unavailable": True, "reason": last}
 
 
+
+
+def _scrape_follow(name, pages, href_re, out_key, min_bytes=2000,
+                   base=""):
+    """ops 4502: fetch landing page(s), regex the real file href,
+    follow it. Kills guessed-URL 403/404s at the source."""
+    import re as _re
+    last = "no pages"
+    for pg in pages:
+        try:
+            html = _fetch(pg, timeout=60).decode("utf-8", "replace")
+            m = _re.search(href_re, html, _re.I)
+            if not m:
+                last = f"{pg[:60]} -> no href match"
+                continue
+            href = m.group(1) if m.groups() else m.group(0)
+            if href.startswith("//"):
+                href = "https:" + href
+            elif href.startswith("/"):
+                href = (base or pg.split("/", 3)[0] + "//"
+                        + pg.split("/", 3)[2]) + href
+            raw = _fetch(href, timeout=180)
+            if len(raw) < min_bytes:
+                raise ValueError(f"small {len(raw)}b")
+            s3.put_object(Bucket=BUCKET, Key=out_key,
+                          Body=(raw if out_key.endswith(".zip")
+                                else gzip.compress(raw)),
+                          ContentType="application/octet-stream")
+            return {"ok": True, "bytes": len(raw),
+                    "kb": round(len(raw) / 1024),
+                    "followed": href[:110], "landing": pg[:80]}
+        except Exception as e:
+            last = f"{pg[:55]} -> {type(e).__name__}: {str(e)[:45]}"
+    return {"data_unavailable": True, "reason": last}
+
+
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
     S = {"as_of": now.isoformat(timespec="seconds")}
@@ -166,18 +202,14 @@ def lambda_handler(event, context):
              for f in folders for n in names],
             "data/warm/eiopa/rfr-latest.zip.gz", min_bytes=100_000)
     if want("occ"):
-        S["occ"] = _csv_store(
+        S["occ"] = _scrape_follow(
             "occ",
-            ["https://marketdata.theocc.com/mdapi/download-daily"
-             "-volume",
-             "https://marketdata.theocc.com/mdapi/daily-volume",
-             "https://www.theocc.com/api/market-data/volume/daily",
-             "https://marketdata.theocc.com/mdapi/volume-totals"],
-            "data/warm/occ/daily-volume.csv.gz",
-            headers={"Accept": "text/csv,application/json,*/*",
-                     "Referer": "https://www.theocc.com/"
-                                "market-data/volume",
-                     "Origin": "https://www.theocc.com"})
+            ["https://www.theocc.com/market-data/market-data-reports/"
+             "volume-and-open-interest/daily-volume-statistics",
+             "https://www.theocc.com/market-data/volume",
+             "https://marketdata.theocc.com/mdapi/download-links"],
+            r'href="([^"]+(?:volume|Volume)[^"]*\.(?:csv|xlsx?))"',
+            "data/warm/occ/daily-volume.csv.gz")
     if want("sec_dera"):
         qy = []
         y, q = now.year, (now.month - 1) // 3 + 1
@@ -201,17 +233,16 @@ def lambda_handler(event, context):
             S["sec_dera"] = {"data_unavailable": True, "reason": last}
     qy2 = qy if "qy" in dir() else []
     if want("sec_midas"):
-        S["sec_midas"] = _csv_store(
+        S["sec_midas"] = _scrape_follow(
             "sec_midas",
-            [f"https://www.sec.gov/files/opa/data/market-structure/"
-             f"metrics-individual-security-and-exchange/"
-             f"individual_security_exchange_{yy}_q{qq}.zip"
-             for yy, qq in (qy if want("sec_dera") else [(now.year,1),(now.year-1,4),(now.year-1,3)])] +
-            [f"https://www.sec.gov/files/data/market-structure/"
-             f"metrics-by-individual-security/"
-             f"individual_security_{yy}_q{qq}.zip"
-             for yy, qq in (qy if want("sec_dera") else [(now.year,1),(now.year-1,4),(now.year-1,3)])],
-            "data/warm/sec-midas/latest.zip.gz", min_bytes=500_000)
+            ["https://www.sec.gov/data-research/sec-markets-data/"
+             "midas-market-structure-data-downloads",
+             "https://www.sec.gov/opa/data/market-structure/"
+             "marketstructuredownloadshtml.html",
+             "https://www.sec.gov/marketstructure/downloads.html"],
+            r'href="([^"]*individual_security[^"]*\.zip)"',
+            "data/warm/sec-midas/latest.zip", min_bytes=200_000,
+            base="https://www.sec.gov")
     if want("gdelt"):
         try:
             ptr = _fetch("http://data.gdeltproject.org/gdeltv2/"
