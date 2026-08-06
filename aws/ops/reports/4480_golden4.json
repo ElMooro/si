@@ -1,0 +1,39 @@
+{
+ "ops": 4480,
+ "started": "2026-08-06T04:58:18.271419+00:00",
+ "run": {
+  "as_of": "2026-08-06T04:58:32+00:00",
+  "bis": {
+   "ok": true,
+   "n_dataflows": 29,
+   "sample": [
+    "BIS_REL_CAL",
+    "WS_CBPOL",
+    "WS_CBS_PUB",
+    "WS_CBTA",
+    "WS_CPMI_CASHLESS",
+    "WS_CPMI_CT1",
+    "WS_CPMI_CT2",
+    "WS_CPMI_DEVICES"
+   ],
+   "source": "https://stats.bis.org/api/v1/dataflow/BIS/all/latest"
+  },
+  "gleif": {
+   "ok": true,
+   "bytes": 31945886,
+   "mb": 31.9,
+   "source": "https://mapping.gleif.org/api/v2/isin-lei/latest/download",
+   "raw_snapshot_key": "data/raw/gleif/2026-08-06/4135d0802211.json.gz",
+   "note": "full Golden Copy = stated E10 follow-up"
+  },
+  "golden": {
+   "ok": true,
+   "bytes": 497906061,
+   "gb": 0.5,
+   "sha256": "e18b166aeae345c9",
+   "source": "https://goldencopy.gleif.org/storage/golden-copy-files/2026/08/06/1260287/20260806-0000-gl"
+  }
+ },
+ "verdict": "PASS \u2014 golden 0.5GB sha e18b166aeae345c9",
+ "finished": "2026-08-06T04:59:41.253532+00:00"
+}
