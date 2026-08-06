@@ -225,6 +225,23 @@ def _load_rollup_feeds():
                 out.setdefault(prov, []).append(feed)
     for k in out:
         out[k] = sorted(set(out[k]))
+    try:  # ops 4519: self-debug — no more guessing
+        s3.put_object(Bucket=BUCKET,
+                      Key="data/audit/provider-join-debug.json",
+                      Body=json.dumps({
+                          "n_map": len(emap),
+                          "n_graph_engines": len(engines),
+                          "map_sample": dict(list(emap.items())[:2]),
+                          "graph_sample": {k: v for k, v in
+                                           list(engines.items())[:1]},
+                          "n_out_providers": len(out),
+                          "out_sizes": {k: len(v) for k, v in
+                                        list(out.items())[:12]}},
+                          default=str).encode(),
+                      ContentType="application/json",
+                      CacheControl="no-cache")
+    except Exception:
+        pass
     return out
 
 
