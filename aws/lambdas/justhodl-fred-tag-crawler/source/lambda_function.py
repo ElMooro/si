@@ -28,8 +28,11 @@ def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
     rows, raw_keys, errs = [], [], []
     for page in range(5):
-        url = ("https://api.stlouisfed.org/fred/series/search"
-               f"?search_text=the&api_key={KEY}&file_type=json"
+        # ops 4453: series/search returned 0 for 'the' (stopword-filtered
+        # despite 5 clean pages) — the tags endpoint is the enumeration
+        # API. tag_names=usa is the broadest tag; popularity-ordered.
+        url = ("https://api.stlouisfed.org/fred/tags/series"
+               f"?tag_names=usa&api_key={KEY}&file_type=json"
                "&order_by=popularity&sort_order=desc"
                f"&limit=1000&offset={page * 1000}")
         try:
@@ -57,8 +60,8 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/warm/fred-catalog.json.gz",
                   Body=gzip.compress(json.dumps(
                       {"as_of": now.isoformat(timespec="seconds"),
-                       "method": "top-by-popularity, 5x1000 pages, "
-                                 "search_text='the' (broadest indexable); "
+                       "method": "tags/series tag_names=usa by popularity, "
+                                 "5x1000 pages; "
                                  "full 800k census = E10",
                        "raw_snapshot_keys": raw_keys,
                        "n_series": len(uniq),
