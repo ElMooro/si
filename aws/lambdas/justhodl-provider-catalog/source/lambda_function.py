@@ -349,7 +349,9 @@ def lambda_handler(event, context):
                "total_bytes": tot,
                "total_mb": round(tot / 1e6, 2),
                "freshest_h": min([k["age_h"] for k in keys
-                                  if "age_h" in k] or [None]),
+                                  if k.get("age_h") is not None]
+                                 or [None],
+                                 key=lambda x: (x is None, x)),
                "series": ser,
                "keys": keys[:600]}
         s3.put_object(Bucket=BUCKET,
