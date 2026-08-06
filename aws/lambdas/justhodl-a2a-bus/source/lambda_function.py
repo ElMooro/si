@@ -713,12 +713,57 @@ def claude_hook(ev):
             "session_turns": entry["turns"]}
 
 
+
+
+# ── ops 4460: Khalid's approve button (F6 Gate-2 console action) ──────────
+# GET-reachable (no bearer) BY DESIGN: this is Khalid's own console button on
+# approvals.html. Tradeoff stated in the ledger: convenience endpoint; the
+# authoritative gate remains Khalid's word (chat/bus), and every decision is
+# logged with source=page-button + posted to the master thread for audit.
+APPROVALS_KEY = "data/audit/approvals.json"
+
+
+def approval_decide(ev):
+    aid = (ev.get("id") or "").strip()
+    decision = (ev.get("decision") or "").strip().lower()
+    reason = (ev.get("reason") or "")[:300]
+    if decision not in ("approved", "rejected") or not aid:
+        return {"ok": False, "error": "need id + decision=approved|rejected"}
+    doc = _get(APPROVALS_KEY, {"pending": [], "decided": []})
+    hit = None
+    for x in doc.get("pending", []):
+        if x.get("id") == aid:
+            hit = x
+            break
+    if not hit:
+        return {"ok": False, "error": f"{aid} not pending"}
+    doc["pending"] = [x for x in doc["pending"] if x.get("id") != aid]
+    hit.update({"decision": decision,
+                "decided_by": "khalid (approvals.html button)",
+                "decided_at": _now(), "reason": reason,
+                "source": "page-button"})
+    doc.setdefault("decided", []).append(hit)
+    doc["as_of"] = _now()
+    _put(APPROVALS_KEY, doc)
+    try:
+        post_turn({"thread_id": "0805201645", "from": "khalid",
+                   "to": "*", "kind": "agree",
+                   "content": f"APPROVAL {decision.upper()}: {aid} — "
+                              f"{hit.get('title','')[:160]} "
+                              f"(via approvals.html button). "
+                              f"{('Reason: ' + reason) if reason else ''}"})
+    except Exception as e:
+        print("approval post:", str(e)[:60])
+    return {"ok": True, "id": aid, "decision": decision}
+
+
 ACTIONS = {"open_thread": open_thread, "post_turn": post_turn,
            "resolve": resolve, "deadman_sweep": deadman_sweep,
            "fanout_pending": fanout_pending,
            "propose_patch": propose_patch,
            "task_update": task_update,
            "claude_hook": claude_hook,
+           "approval_decide": approval_decide,
            "get_tasks": get_tasks,
            "list_patches": lambda e: {"ok": True, **(_get("data/a2a/patches.json", {"patches": []}))},
            "get_thread": lambda e: {"ok": True, "thread": _get(
@@ -766,6 +811,16 @@ def lambda_handler(event, context):
         # ops 4425: /claude-hook is path-routed and ALWAYS 200 — a bus issue
         # must never block Khalid's Claude Code session.
         _path = (http.get("path") or "").lower()
+        # ops 4460: Khalid's approve button — GET, no bearer, this action only
+        if merged.get("action") == "approval_decide":
+            try:
+                res = approval_decide(merged)
+            except Exception as e:
+                res = {"ok": False, "error": str(e)[:120]}
+            return {"statusCode": 200,
+                    "headers": {"Content-Type": "application/json",
+                                "Access-Control-Allow-Origin": "*"},
+                    "body": json.dumps(res, default=str)}
         if "claude-hook" in _path or merged.get("action") == "claude_hook":
             try:
                 res = claude_hook(merged)

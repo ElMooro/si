@@ -11,7 +11,7 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system
 pre{background:#0e1218;border:1px solid var(--border);border-radius:6px;padding:10px;font-size:11px;overflow:auto;max-height:180px}
 </style></head><body><div class="wrap">
 <h1>Approvals — Two-Gate</h1>
-<div class="sub">F6: nothing self-applies. Gate 1 = a scout/observer files a proposal here (write-only). Gate 2 = <b>Khalid alone</b> approves — by telling Claude in chat or posting <code>action:task_update</code> on the bus with the proposal id. Approved items become <code>propose_patch</code> PRs; rejected items are archived with the reason. This page is read-only visibility; there is deliberately no approve button (the gate is Khalid, not a click).</div>
+<div class="sub">F6: nothing self-applies. Gate 1 = a scout/observer files a proposal here (write-only). Gate 2 = <b>Khalid alone</b> approves — by telling Claude in chat or posting <code>action:task_update</code> on the bus with the proposal id. Approved items become <code>propose_patch</code> PRs; rejected items are archived with the reason. This page is Khalid's console: the Approve/Reject buttons below post straight to the bus, move the item to decided, and audit the decision onto the master thread. (Convenience endpoint — the authoritative gate is still you.)</div>
 <div class="card"><div class="k">Pending</div><div id="pending">—</div></div>
 <div class="card"><div class="k">Recently decided</div><div id="decided">—</div></div>
 <script>
@@ -25,7 +25,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
    <b>${esc(x.id)}</b><span class="badge p">PENDING</span>
    <span style="color:var(--text3);font-size:11px;margin-left:8px">${esc(x.proposed_by)} · ${esc(x.filed_at)}</span>
    <div style="font-size:12px;margin-top:4px">${esc(x.title)}</div>
-   <pre>${esc(JSON.stringify(x.detail||{},null,1))}</pre></div>`).join('')
+   <pre>${esc(JSON.stringify(x.detail||{},null,1))}</pre><div style='margin-top:6px'><button onclick="decide('${esc(x.id)}','approved')" style='background:#1e3a2a;color:#4caf7d;border:1px solid #2c5c40;border-radius:6px;padding:6px 14px;cursor:pointer'>Approve</button> <button onclick="decide('${esc(x.id)}','rejected')" style='background:#3a1e1e;color:#e05252;border:1px solid #5c2c2c;border-radius:6px;padding:6px 14px;margin-left:8px;cursor:pointer'>Reject</button></div></div>`).join('')
   :'<div style="color:var(--text3);font-size:12px;padding:6px 0">none — scouts file here; nothing auto-applies</div>';
  document.getElementById('decided').innerHTML=D.length?D.map(x=>
   `<div style="border-top:1px solid var(--border);padding:6px 0;font-size:12px">
@@ -34,4 +34,13 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
    <div style="color:var(--text2)">${esc(x.title)} — ${esc(x.reason||'')}</div></div>`).join('')
   :'<div style="color:var(--text3);font-size:12px;padding:6px 0">none yet</div>';
 }catch(e){document.getElementById('pending').textContent='ledger unavailable: '+e.message;}})();
+
+const BUS='https://bjr4vvgjakstv4juaxnhtcq7aq0xmaft.lambda-url.us-east-1.on.aws/';
+async function decide(id,decision){
+ const reason=decision==='rejected'?(prompt('Reason (optional)')||''):'';
+ try{const r=await fetch(BUS+'?action=approval_decide&id='+encodeURIComponent(id)+'&decision='+decision+'&reason='+encodeURIComponent(reason));
+  const d=await r.json();
+  alert(d.ok?('✓ '+id+' '+decision):('✗ '+(d.error||'failed')));
+  if(d.ok)location.reload();
+ }catch(e){alert('✗ '+e.message);}}
 </script></div></body></html>
