@@ -106,6 +106,7 @@ def _bea(summary):
                       Body=json.dumps({"as_of": _now_iso(),
                                        "map": pmap}).encode(),
                       ContentType="application/json")
+        _bea_walk(summary, k)
         summary["bea"] = {"ok": True, "datasets": len(names),
                           "gdp_rows": len(rows),
                           "param_map": {d: len(v) for d, v in
@@ -113,6 +114,67 @@ def _bea(summary):
     except Exception as e:
         summary["bea"] = {"data_unavailable": True,
                           "reason": f"{type(e).__name__}: {str(e)[:70]}"}
+
+
+
+
+def _bea_walk(summary, k):
+    """ops 4476: the promised table-walk — NIPA's full table list via
+    GetParameterValues, then cursor-pull 5 tables/run (Q, Year=ALL) to
+    data/warm/usgov/bea/tables/NIPA/. 100%-of-dataset convergence."""
+    base = "https://apps.bea.gov/api/data/"
+    st_key = "data/_state/bea-walk.json"
+    try:
+        st = json.loads(s3.get_object(Bucket=BUCKET,
+                                      Key=st_key)["Body"].read())
+    except Exception:
+        st = {"tables": None, "done": []}
+    if not st.get("tables"):
+        try:
+            u = (f"{base}?UserID={k}&method=GetParameterValues"
+                 "&datasetname=NIPA&ParameterName=TableName"
+                 "&ResultFormat=JSON")
+            r = json.loads(urllib.request.urlopen(u, timeout=45).read())
+            vals = (r.get("BEAAPI", {}).get("Results", {})
+                    .get("ParamValue") or [])
+            st["tables"] = sorted({v.get("TableName") for v in vals
+                                   if isinstance(v, dict)} - {None})
+        except Exception as e:
+            summary["bea_walk"] = {"data_unavailable": True,
+                                   "reason": f"{type(e).__name__}: "
+                                             f"{str(e)[:60]}"}
+            return
+    todo = [x for x in st["tables"] if x not in set(st["done"])][:5]
+    got = 0
+    for tb in todo:
+        try:
+            u = (f"{base}?UserID={k}&method=GetData&datasetname=NIPA"
+                 f"&TableName={tb}&Frequency=Q&Year=ALL"
+                 "&ResultFormat=JSON")
+            raw = urllib.request.urlopen(u, timeout=90).read()
+            rows = (json.loads(raw).get("BEAAPI", {}).get("Results", {})
+                    .get("Data") or [])
+            s3.put_object(Bucket=BUCKET,
+                          Key=f"data/warm/usgov/bea/tables/NIPA/"
+                              f"{tb}.json.gz",
+                          Body=gzip.compress(json.dumps(
+                              {"table": tb, "n_rows": len(rows),
+                               "rows": rows}).encode()),
+                          ContentType="application/gzip")
+            st["done"].append(tb)
+            got += 1
+        except Exception as e:
+            st.setdefault("failures", {})[tb] =                 f"{type(e).__name__}: {str(e)[:50]}"
+    n = len(st["tables"] or [])
+    nd = len(set(st["done"]))
+    st["progress_pct"] = round(100 * nd / n, 1) if n else 0
+    st["status"] = "COMPLETE" if nd >= n else "converging"
+    s3.put_object(Bucket=BUCKET, Key=st_key,
+                  Body=json.dumps(st, default=str).encode(),
+                  ContentType="application/json", CacheControl="no-cache")
+    summary["bea_walk"] = {"tables_total": n, "pulled_this_run": got,
+                           "done": nd, "progress_pct":
+                               st["progress_pct"]}
 
 
 def _bls(summary):
