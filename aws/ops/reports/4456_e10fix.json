@@ -1,0 +1,34 @@
+{
+ "ops": 4456,
+ "started": "2026-08-06T02:24:12.219969+00:00",
+ "mode": "updated",
+ "run1": {
+  "ok": true,
+  "page_fetched": 2,
+  "rows_added": 136,
+  "status": "running",
+  "n_obs_total": 1213,
+  "span": "2021-10-01..2026-08-04"
+ },
+ "run2": {
+  "ok": true,
+  "page_fetched": 3,
+  "rows_added": 0,
+  "status": "running",
+  "n_obs_total": 1213,
+  "span": "2021-10-01..2026-08-04"
+ },
+ "progress": {
+  "dataset": "tga_operating_cash",
+  "next_page": 4,
+  "status": "running",
+  "pages_done": 3,
+  "note": "page 1 = E7's live pull; walking older pages",
+  "last_error": "HTTPError: HTTP Error 400: Bad Request",
+  "updated_at": "2026-08-06T02:24:24+00:00",
+  "last_span": "2021-10-01..2026-08-04",
+  "n_obs_total": 1213
+ },
+ "verdict": "PASS \u2014 pages_done=3, n_obs=1213, span=2021-10-01..2026-08-04",
+ "finished": "2026-08-06T02:24:47.485450+00:00"
+}
