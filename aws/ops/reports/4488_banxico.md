@@ -1,0 +1,1 @@
+# ops 4488 — banxico — PASS — 3 series: [{"id": "SF43718", "title": "Tipo de cambio                          ", "n_obs": 8729, "latest": {"fecha": "05/08/2026", "dato": "17.2317"}}, {"id": "SP68257", "title": "Valor de U

@@ -1,0 +1,43 @@
+{
+ "ops": 4488,
+ "started": "2026-08-06T06:01:12.065305+00:00",
+ "ssm": "stored SecureString",
+ "run": {
+  "ok": true,
+  "live": [
+   "banxico"
+  ],
+  "missing": {}
+ },
+ "series": [
+  {
+   "id": "SF43718",
+   "title": "Tipo de cambio                          ",
+   "n_obs": 8729,
+   "latest": {
+    "fecha": "05/08/2026",
+    "dato": "17.2317"
+   }
+  },
+  {
+   "id": "SP68257",
+   "title": "Valor de UDIS",
+   "n_obs": 11452,
+   "latest": {
+    "fecha": "10/08/2026",
+    "dato": "8.797743"
+   }
+  },
+  {
+   "id": "SF61745",
+   "title": "Tasa objetivo",
+   "n_obs": 6677,
+   "latest": {
+    "fecha": "06/08/2026",
+    "dato": "6.5000"
+   }
+  }
+ ],
+ "verdict": "PASS \u2014 3 series: [{\"id\": \"SF43718\", \"title\": \"Tipo de cambio                          \", \"n_obs\": 8729, \"latest\": {\"fecha\": \"05/08/2026\", \"dato\": \"17.2317\"}}, {\"id\": \"SP68257\", \"title\": \"Valor de U",
+ "finished": "2026-08-06T06:01:29.713663+00:00"
+}
