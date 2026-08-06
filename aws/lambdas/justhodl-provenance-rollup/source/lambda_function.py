@@ -38,7 +38,17 @@ SIGS = {
     "coinmetrics": r"coinmetrics\.io",
     "census": r"census\.gov",
     "eia": r"eia\.gov",
-    "llm-anthropic": r"api\.anthropic\.com|claude-",
+    # ops 4482: tonight's eight new agencies + gpt5.6 reclass rule
+    "ofr": r"financialresearch\.gov",
+    "bea": r"bea\.gov",
+    "fed-board": r"federalreserve\.gov",
+    "bis": r"stats\.bis\.org",
+    "gleif": r"gleif\.org",
+    "eurostat": r"ec\.europa\.eu/eurostat",
+    "oecd": r"sdmx\.oecd\.org",
+    "openfigi": r"openfigi\.com",
+    # council-unanimous: LLM output is transform, not a data provider
+    "transform-agent": r"api\.anthropic\.com|claude-",
     "fleet-feed": r"justhodl-dashboard-live|justhodl\.ai/data",
 }
 
