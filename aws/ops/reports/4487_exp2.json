@@ -1,0 +1,24 @@
+{
+ "ops": 4487,
+ "started": "2026-08-06T05:52:07.172503+00:00",
+ "run": {
+  "ok": true,
+  "live": [
+   "statcan",
+   "eiopa",
+   "sec_dera",
+   "gdelt",
+   "boe",
+   "nasa_power"
+  ],
+  "missing": {
+   "banxico": "no token at /justhodl/banxico-token (free signup)",
+   "occ": "https://www.theocc.com/market-data/volume/default-download?t -> HTTPError: HTTP Error 403: Forbidden",
+   "sec_midas": "https://www.sec.gov/files/data/market-structure/metrics-by-i -> HTTPError: HTTP Error 404: Not Found",
+   "entsoe": "no token at /justhodl/entsoe-token (free signup)",
+   "copernicus": "needs CDS key at /justhodl/cds-key + heavy retrieval \u2014 filed as APR path, not faked"
+  }
+ },
+ "verdict": "PASS \u2014 live=['statcan', 'eiopa', 'sec_dera', 'gdelt', 'boe', 'nasa_power'] missing=['banxico', 'occ', 'sec_midas', 'entsoe', 'copernicus']",
+ "finished": "2026-08-06T05:52:44.412724+00:00"
+}
