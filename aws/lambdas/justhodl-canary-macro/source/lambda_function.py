@@ -301,12 +301,22 @@ def lambda_handler(event, context):
                                     "reason": f"{type(e).__name__}: "
                                               f"{str(e)[:60]}"}
     if _budget(_t0, S, "atlanta_gdpnow"):
-        _xlsx("atlanta_gdpnow",
-          ["https://www.atlantafed.org/-/media/documents/cqer/"
-           "researchcq/gdpnow/nowcast-tracking.xlsx",
-           "https://www.atlantafed.org/-/media/documents/cqer/"
-           "researchcq/gdpnow/GDPTrackingModelDataAndForecasts.xlsx"],
-          "data/warm/fred-canary/atlanta-gdpnow.xlsx", S)
+        # ops 4536: Atlanta xlsx serves HTML (assertion caught it) — use
+        # the official GDPNow series on FRED instead.
+        try:
+            raw = _fetch("https://fred.stlouisfed.org/graph/"
+                         "fredgraph.csv?id=GDPNOW", timeout=45)
+            s3.put_object(Bucket=BUCKET,
+                          Key="data/warm/fred-canary/"
+                              "atlanta-gdpnow.csv.gz",
+                          Body=gzip.compress(raw),
+                          ContentType="application/gzip")
+            S["atlanta_gdpnow"] = {"ok": True, "via": "FRED",
+                                   "bytes": len(raw)}
+        except Exception as e:
+            S["atlanta_gdpnow"] = {"data_unavailable": True,
+                                   "reason": f"{type(e).__name__}: "
+                                             f"{str(e)[:60]}"}
     if _budget(_t0, S, "dol_ar539"):
      try:
         raw = _fetch("https://oui.doleta.gov/unemploy/csv/ar539.csv",

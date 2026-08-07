@@ -392,8 +392,8 @@ def lambda_handler(event, context):
              "series_count": (ser or {}).get("count"),
              "freshest_h": doc["freshest_h"]})
     hub["providers"].sort(key=lambda p: -(p["total_mb"] or 0))
-    hub["breakdown"]["keys"] = sum(p["n_keys"]
-                                   for p in hub["providers"])
+    hub.setdefault("breakdown", {})["keys"] = sum(
+        p["n_keys"] for p in hub["providers"])
     # ops 4534: Khalid — "a LOT more datasets": count at the SERIES level.
     # keys = S3 objects (containers); datasets = the series/symbols/flows
     # the platform actually tracks inside them.
@@ -442,7 +442,7 @@ def lambda_handler(event, context):
     hub["breakdown"] = {
         "series": series_sum,
         "instruments": sum(extras.values()),
-        "keys": None}  # filled below from totals
+        "keys": hub.get("breakdown", {}).get("keys")}
     hub["datasets_total"] = series_sum + sum(extras.values())
     hub["totals"] = {"providers": len(hub["providers"]),
                      "datasets": hub["datasets_total"],
