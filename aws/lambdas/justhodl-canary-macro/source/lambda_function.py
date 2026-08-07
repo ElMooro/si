@@ -97,8 +97,14 @@ def _fred_panel(name, ids, hot, S):
     try:
         try:
             raw = _fetch(u, timeout=60)
+            if raw.startswith(b"PK"):
+                # ops 4537 (Perplexity P0): mixed-frequency batches
+                # return a ZIP, not CSV — the 40-dead-series bug. HARD
+                # failure here routes into the per-id fallback below,
+                # which is frequency-proof (one series per call).
+                raise ValueError("mixed-frequency ZIP (PK magic)")
         except Exception:
-            # ops 4515 fallback: per-id sequential (multi-id stalls)
+            # per-id sequential fallback (frequency-proof)
             parts = {}
             for sid in ids:
                 try:
@@ -247,15 +253,22 @@ def _finalize(hot, S):
         e = hot.get(sid) or {}
         return e.get("value") if isinstance(e, dict) else None
     flags = {}
+    # ops 4537 (Perplexity P0): a missing input must NEVER read as
+    # all-clear. Tri-state: True / False / None(=UNKNOWN).
     sv = _v("SAHMREALTIME")
-    flags["sahm_triggered"] = (sv is not None and sv >= 0.50)
+    flags["sahm_triggered"] = (None if sv is None else sv >= 0.50)
     flags["sahm_value"] = sv
     tv = _v("T10Y3M")
-    flags["curve_10y3m_inverted"] = (tv is not None and tv < 0)
+    flags["curve_10y3m_inverted"] = (None if tv is None else tv < 0)
     ic = _v("IC4WSA")
     icp = (hot.get("IC4WSA") or {}).get("prev")
-    flags["claims_4wk_rising"] = (ic is not None and icp is not None
-                                  and ic > icp)
+    flags["claims_4wk_rising"] = (None if (ic is None or icp is None)
+                                  else ic > icp)
+    flags["status"] = ("UNKNOWN" if any(
+        flags[k] is None for k in ("sahm_triggered",
+                                   "curve_10y3m_inverted",
+                                   "claims_4wk_rising"))
+        else "COMPUTED")
     hot["flags"] = flags
     s3.put_object(Bucket=BUCKET, Key="data/canary-macro.json",
                   Body=json.dumps(hot, default=str).encode(),
@@ -296,6 +309,18 @@ def lambda_handler(event, context):
                           ContentType="application/gzip")
             S["cleveland_model"] = {"ok": True, "via": "FRED",
                                     "bytes": len(raw)}
+            try:
+                _lines = raw.decode("utf-8", "replace").splitlines()
+                _hdr = _lines[0].split(",")
+                _ix = _hdr.index("RECPROUSM156N")
+                for _ln in reversed(_lines[1:]):
+                    _cs = _ln.split(",")
+                    if len(_cs) > _ix and _cs[_ix] not in (".", ""):
+                        hot["RECPROUSM156N"] = {"value": float(_cs[_ix]),
+                                        "date": _cs[0]}
+                        break
+            except Exception:
+                pass
         except Exception as e:
             S["cleveland_model"] = {"data_unavailable": True,
                                     "reason": f"{type(e).__name__}: "
@@ -313,6 +338,18 @@ def lambda_handler(event, context):
                           ContentType="application/gzip")
             S["atlanta_gdpnow"] = {"ok": True, "via": "FRED",
                                    "bytes": len(raw)}
+            try:
+                _lines = raw.decode("utf-8", "replace").splitlines()
+                _hdr = _lines[0].split(",")
+                _ix = _hdr.index("GDPNOW")
+                for _ln in reversed(_lines[1:]):
+                    _cs = _ln.split(",")
+                    if len(_cs) > _ix and _cs[_ix] not in (".", ""):
+                        hot["GDPNOW"] = {"value": float(_cs[_ix]),
+                                        "date": _cs[0]}
+                        break
+            except Exception:
+                pass
         except Exception as e:
             S["atlanta_gdpnow"] = {"data_unavailable": True,
                                    "reason": f"{type(e).__name__}: "
