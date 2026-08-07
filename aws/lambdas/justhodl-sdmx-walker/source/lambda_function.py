@@ -19,7 +19,7 @@ import boto3
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 # ops 4538 (Khalid: expedite): 2/agency/hour was ~170 days for Eurostat.
 # 12/agency + 15-min cadence + elapsed budget = ~50x, still polite.
-PER = int(os.environ.get("FLOWS_PER_AGENCY", "12"))
+PER = int(os.environ.get("FLOWS_PER_AGENCY", "40"))
 BUDGET_S = int(os.environ.get("WALK_BUDGET_S", "700"))
 CAP = 40 * 1024 * 1024
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -102,7 +102,7 @@ def _walk_generic(agency, ids, url_fn, out_prefix, S):
 
     def _dl_one(_fid):
         return _fetch_capped(url_fn(_fid))
-    _pool = ThreadPoolExecutor(max_workers=4)
+    _pool = ThreadPoolExecutor(max_workers=10)  # ops 4540: Khalid unlocked budget
     _futs = {_pool.submit(_dl_one, f2): f2 for f2 in todo}
     _results = {}
     for _fu in as_completed(_futs, timeout=BUDGET_S):
