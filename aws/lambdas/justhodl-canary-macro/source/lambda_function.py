@@ -157,11 +157,22 @@ def _fred_panel(name, ids, hot, S):
                     continue
                 if latest is None:
                     latest = (p[0], fv)
+                    _win = [fv]
                 elif prev is None:
                     prev = (p[0], fv)
+                    _win.append(fv)
+                elif len(_win) < 252:
+                    _win.append(fv)  # ops 4543: trailing window for z
+                else:
                     break
             if latest:
+                _n = len(_win)
+                _mu = sum(_win) / _n
+                _sd = ((sum((x - _mu) ** 2 for x in _win) / _n) ** 0.5
+                       if _n > 20 else None)
                 hot[sid] = wrap(latest[1], observed=latest[0],
+                                mean252=round(_mu, 4),
+                                std252=(round(_sd, 4) if _sd else None),
                                 prev=(prev[1] if prev else None),
                                 prev_date=(prev[0] if prev else None),
                                 panel=name, provider="fred",
@@ -264,6 +275,44 @@ def _finalize(hot, S):
     icp = (hot.get("IC4WSA") or {}).get("prev")
     flags["claims_4wk_rising"] = (None if (ic is None or icp is None)
                                   else ic > icp)
+    def _z(sid):
+        e = hot.get(sid) or {}
+        v, m_, s_ = e.get("value"), e.get("mean252"), e.get("std252")
+        return (None if (v is None or not s_)
+                else round((v - m_) / s_, 2))
+
+    def _c(name, val, inputs):
+        flags[name] = val
+        flags.setdefault("_inputs", {})[name] = inputs
+    sofr, iorb = _v("SOFR"), _v("IORB")
+    _c("floor_breach_bp",
+       (None if (sofr is None or iorb is None)
+        else round((sofr - iorb) * 100, 1)), ["SOFR", "IORB"])
+    wres, wal, tga, rrp = (_v("WRESBAL"), _v("WALCL"),
+                            _v("WTREGEN"), _v("RRPONTSYD"))
+    _c("reserve_scarcity",
+       (None if None in (wres, wal, tga, rrp) or not (wal - tga - rrp)
+        else round(wres / (wal - tga - rrp), 3)),
+       ["WRESBAL", "WALCL", "WTREGEN", "RRPONTSYD"])
+    _c("real_rate_shock_z", _z("DFII10"), ["DFII10"])
+    s2, s10, tv2 = _v("DGS2"), _v("DGS10"), _v("T10Y2Y")
+    _c("curve_regime",
+       (None if None in (s2, s10, tv2) else
+        ("bull_steepener" if (tv2 > 0 and _z("DGS2") is not None
+                              and _z("DGS2") < 0) else
+         "bear_steepener" if tv2 > 0 else
+         "inverted")), ["DGS2", "DGS10", "T10Y2Y"])
+    drt, nf = _v("DRTSCILM"), _v("NFCI")
+    _c("credit_cycle_phase",
+       (None if None in (drt, nf) else
+        ("LATE_tightening" if drt > 10 else
+         "MID_complacent" if (abs(drt) <= 10 and nf < 0) else
+         "EARLY_easing" if drt < -10 else "NEUTRAL")),
+       ["DRTSCILM", "NFCI"])
+    no_z, ip_z = _z("NEWORDER"), _z("INDPRO")
+    _c("orders_production_gap",
+       (None if None in (no_z, ip_z) else round(no_z - ip_z, 2)),
+       ["NEWORDER", "INDPRO"])
     flags["status"] = ("UNKNOWN" if any(
         flags[k] is None for k in ("sahm_triggered",
                                    "curve_10y3m_inverted",
@@ -291,6 +340,9 @@ def lambda_handler(event, context):
     for name, ids in PANELS.items():
         _fred_panel(name, ids, hot, S)
     _bls(hot, S)
+    _fred_panel("floor_reserves",
+                ["SOFR", "IORB", "WRESBAL", "DFII10", "DGS2",
+                 "DGS10"], hot, S)  # ops 4543: Perplexity 23-series
     _fred_panel("nfci", ["NFCI", "ANFCI", "NFCIRISK", "NFCICREDIT",
                           "NFCILEVERAGE", "NFCINONFINLEVERAGE"],
                 hot, S)  # ops 4535: chicagofed via FRED (xlsx dead)
