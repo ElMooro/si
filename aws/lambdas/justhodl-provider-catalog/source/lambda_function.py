@@ -100,7 +100,8 @@ REG = {
  "statcan": {"name": "Statistics Canada",
   "api": "www150.statcan.gc.ca/t1/wds",
   "engines": ["justhodl-global-expansion", "justhodl-sdmx-walker"],
-  "prefixes": ["data/warm/statcan/"]},
+  "prefixes": ["data/warm/statcan/"],
+  "series_from": ("data/warm/statcan/cube-list.json.gz", "cubes")},
  "banxico": {"name": "Banxico — SIE API",
   "api": "banxico.org.mx/SieAPIRest",
   "engines": ["justhodl-global-expansion"],
@@ -164,7 +165,8 @@ REG = {
  "ecb": {"name": "ECB — SDMX",
   "api": "data-api.ecb.europa.eu",
   "engines": ["justhodl-ecb-catalog"],
-  "prefixes": ["data/warm/ecb/", "data/warm/ecb-", "data/ecb"]},
+  "prefixes": ["data/warm/ecb/", "data/warm/ecb-", "data/ecb"],
+  "series_from": ("data/warm/ecb/catalog.json.gz", "dataflows")},
 }
 
 
@@ -387,7 +389,51 @@ def lambda_handler(event, context):
              "series_count": (ser or {}).get("count"),
              "freshest_h": doc["freshest_h"]})
     hub["providers"].sort(key=lambda p: -(p["total_mb"] or 0))
+    # ops 4534: Khalid — "a LOT more datasets": count at the SERIES level.
+    # keys = S3 objects (containers); datasets = the series/symbols/flows
+    # the platform actually tracks inside them.
+    series_sum = sum((p.get("series_count") or 0)
+                     for p in hub["providers"])
+    extras = {}
+    try:  # canonical indicator bus (18k+ indicators)
+        ib = _get_json("data/indicator-bus.json")
+        n_ib = (ib.get("n") or ib.get("count") or
+                len(ib.get("indicators") or ib.get("items") or []))
+        if n_ib:
+            extras["indicator_bus"] = n_ib
+    except Exception:
+        pass
+    try:  # per-ticker equity research universe (count objects)
+        n_eq, tok2 = 0, None
+        while True:
+            kw2 = {"Bucket": BUCKET, "Prefix": "equity-research/",
+                   "MaxKeys": 1000}
+            if tok2:
+                kw2["ContinuationToken"] = tok2
+            r2 = s3.list_objects_v2(**kw2)
+            n_eq += len(r2.get("Contents", []))
+            if not r2.get("IsTruncated"):
+                break
+            tok2 = r2.get("NextContinuationToken")
+        if n_eq:
+            extras["equity_research_tickers"] = n_eq
+    except Exception:
+        pass
+    try:  # TradingView vault LIVE symbols
+        tv = _get_json("data/tradingview.json")
+        n_tv = (tv.get("n_live") or tv.get("live") or
+                len([s for s in (tv.get("symbols") or {}).values()
+                     if isinstance(s, dict)
+                     and s.get("status") == "LIVE"])
+                if isinstance(tv, dict) else 0)
+        if isinstance(n_tv, int) and n_tv:
+            extras["tradingview_vault_live"] = n_tv
+    except Exception:
+        pass
+    hub["series_extras"] = extras
+    hub["datasets_total"] = series_sum + sum(extras.values())
     hub["totals"] = {"providers": len(hub["providers"]),
+                     "datasets": hub["datasets_total"],
                      "keys": sum(p["n_keys"]
                                  for p in hub["providers"]),
                      "gb": round(sum(p["total_mb"]
