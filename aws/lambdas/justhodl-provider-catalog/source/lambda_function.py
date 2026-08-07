@@ -385,11 +385,18 @@ def lambda_handler(event, context):
                       CacheControl="no-cache")
         _sc = (ser or {}).get("count") or 0
         n_live = len([k for k in keys if not k.get("missing")])
-        ds = _sc if _sc else n_live
+        # ops 4543 (Perplexity P1): the catalog count is a TARGET, not a
+        # holding. datasets = what we actually have; target + coverage
+        # ride alongside. Eurostat is 3.6%, not done.
+        ds = n_live
+        tgt = _sc if _sc and _sc > n_live else None
+        cov = (round(100.0 * n_live / _sc, 1)
+               if _sc and _sc > 0 else None)
         hub["providers"].append(
             {"slug": slug, "name": r["name"], "api": r["api"],
-             "datasets": ds,
-             "unit": ("series" if _sc else "keys"),
+             "datasets": ds, "datasets_target": tgt,
+             "coverage_pct": cov,
+             "unit": "keys",
              "n_keys": doc["n_keys"], "total_mb": doc["total_mb"],
              "hot_feeds": n_roll,
              "series_count": (ser or {}).get("count"),
