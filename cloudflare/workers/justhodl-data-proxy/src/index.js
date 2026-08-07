@@ -1432,6 +1432,26 @@ export default {
       return new Response("invalid path", { status: 400, headers: corsHeaders() });
     }
 
+    // ops 4526: native cache-clear — no CLOUDFLARE_API_TOKEN needed, this
+    // runs inside the Worker with direct caches.default access. Clears a
+    // specific already-cached entry stuck under a stale TTL (the zone-wide
+    // purge_cache REST endpoint 401s — token lacks that scope, confirmed
+    // ops 3309/3338/4523 — this sidesteps it entirely). GET only, path
+    // allowlisted to /data/ to prevent abuse as an open cache-buster.
+    if (safePath === "__cache-clear" ) {
+      const targets = (url.searchParams.get("paths") || "")
+        .split(",").map(s => s.trim()).filter(Boolean);
+      const cache = caches.default;
+      const results = [];
+      for (const tp of targets) {
+        if (!tp.startsWith("data/")) { results.push({ path: tp, skipped: "not under data/" }); continue; }
+        const key = new Request(`${url.origin}/${tp}`, { method: "GET" });
+        const deleted = await cache.delete(key);
+        results.push({ path: tp, deleted });
+      }
+      return jsonResp({ ok: true, results });
+    }
+
     const ttl = ttlFor(safePath);
     const cacheKey = new Request(url.toString().split("?")[0], { method: "GET" });
     const cache = caches.default;
