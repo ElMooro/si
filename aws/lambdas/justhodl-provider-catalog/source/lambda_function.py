@@ -213,7 +213,16 @@ def _load_rollup_feeds():
     elif isinstance(emap, dict) and isinstance(emap.get("engines"),
                                                dict):
         emap = emap["engines"]
-    engines = (graph.get("engines") or {}) if isinstance(graph, dict)         else {}
+    engines = (graph.get("engines") or {}) if isinstance(graph, dict) \
+        else {}
+    try:  # ops 4532: runner-grepped writes the graph regex missed
+        ov = _get_json("data/audit/engine-writes-overrides.json")
+        for e2, ws in (ov.get("writes") or {}).items():
+            rec2 = engines.setdefault(e2, {"writes": [], "reads": []})
+            rec2["writes"] = sorted(set(rec2.get("writes") or []) |
+                                    set(ws))
+    except Exception:
+        pass
     out = {}
     for eng, rec in engines.items():
         pv = emap.get(eng)
