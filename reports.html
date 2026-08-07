@@ -401,7 +401,7 @@ function renderAll(D) {
   html += `<div class="section-hdr">📈 KA Index Timeline <span class="badge">SECTION 3 · LAST 90 DAYS</span></div>`;
   html += `<div class="chart-wrap" id="ki-chart-wrap"></div>`;
   html += `<div class="footer">
-    <span>Source: <a href="${URL}" style="color:var(--cyan);text-decoration:none" target="_blank">reports/scorecard.json</a></span>
+    <span>Source: <a href="${FEED_URL}" style="color:var(--cyan);text-decoration:none" target="_blank">reports/scorecard.json</a></span>
     <span>Auto-refresh every 5 min · Generated ${ts || "?"}</span>
   </div>`;
 
@@ -420,7 +420,7 @@ async function loadData() {
     document.getElementById("main").innerHTML = `<div class="empty-state">
       <h3>⚠️ Couldn't load reports data</h3>
       <p>${e.message || e}</p>
-      <p style="margin-top:12px"><a href="${URL}" style="color:var(--cyan)">Try the source JSON directly</a></p>
+      <p style="margin-top:12px"><a href="${FEED_URL}" style="color:var(--cyan)">Try the source JSON directly</a></p>
     </div>`;
   }
 }
