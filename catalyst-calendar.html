@@ -142,7 +142,7 @@
   </div>
 
 <script>
-const URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/catalyst-calendar.json';
+const FEED_URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/catalyst-calendar.json';
 let DATA = null;
 const FILTERS = {
   types: new Set(['ALL']),       // 'ALL' or specific types
@@ -280,7 +280,7 @@ function setupFilterChips() {
 
 async function load() {
   try {
-    const r = await fetch(URL + '?_=' + Date.now());
+    const r = await fetch(FEED_URL + '?_=' + Date.now());
     if (!r.ok) throw new Error('HTTP ' + r.status);
     DATA = await r.json();
     document.getElementById('metaLine').innerHTML =

@@ -145,7 +145,7 @@
   </div>
 
 <script>
-const URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/vol-regime.json';
+const FEED_URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/vol-regime.json';
 let DATA = null;
 let SORT = { col: 'rv_z', dir: 'desc' };
 
@@ -255,7 +255,7 @@ function render() {
 
 async function load() {
   try {
-    const r = await fetch(URL + '?_=' + Date.now());
+    const r = await fetch(FEED_URL + '?_=' + Date.now());
     if (!r.ok) throw new Error('HTTP ' + r.status);
     DATA = await r.json();
     document.getElementById('metaLine').innerHTML =

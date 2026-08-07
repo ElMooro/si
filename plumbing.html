@@ -218,7 +218,7 @@
   </div>
 
 <script>
-const URL = '/data/plumbing-stress.json';
+const FEED_URL = '/data/plumbing-stress.json';
 let DATA = null;
 let ACTIVE_LAYER = 'ALL';
 let SORT = { col: 'stress_score', dir: 'desc' };
@@ -449,7 +449,7 @@ function closeChart(){document.getElementById('chartModal').style.display='none'
 
 async function load() {
   try {
-    const r = await fetch(URL + '?_=' + Date.now());
+    const r = await fetch(FEED_URL + '?_=' + Date.now());
     if (!r.ok) throw new Error('HTTP ' + r.status);
     DATA = await r.json();
     if (!HIST) await loadHistory();

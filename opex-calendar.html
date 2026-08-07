@@ -184,7 +184,7 @@ td.red{color:var(--red)}
 </div>
 
 <script>
-const URL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/opex-calendar.json";
+const FEED_URL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/opex-calendar.json";
 
 function fmtPct(x, signed=true){ if(x===null||x===undefined||isNaN(x)) return "--"; return (signed && x>=0 ? "+" : "") + Number(x).toFixed(2) + "%"; }
 function fmt(x, d=2){ if(x===null||x===undefined) return "--"; return Number(x).toFixed(d); }
@@ -202,7 +202,7 @@ function colorClass(v){ return v>0 ? "green" : (v<0 ? "red" : "mute"); }
 
 async function load(){
   try{
-    const r = await fetch(URL + "?t=" + Date.now());
+    const r = await fetch(FEED_URL + "?t=" + Date.now());
     if(!r.ok) throw new Error("HTTP "+r.status);
     render(await r.json());
   }catch(e){

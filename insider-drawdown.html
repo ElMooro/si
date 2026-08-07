@@ -198,7 +198,7 @@
   </div>
 
 <script>
-const URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/insider-clusters.json';
+const FEED_URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/insider-clusters.json';
 
 let CLUSTERS = [];
 let SORT = { col: 'conviction_score', dir: 'desc' };
@@ -361,7 +361,7 @@ function render() {
 
 async function load() {
   try {
-    const r = await fetch(URL + '?_=' + Date.now());
+    const r = await fetch(FEED_URL + '?_=' + Date.now());
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
     const clusters = d.clusters || [];

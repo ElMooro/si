@@ -424,7 +424,7 @@ footer a{margin:0 10px}
 </main>
 
 <script>
-const URL = '/data/crisis-plumbing.json?t=' + Date.now();
+const FEED_URL = '/data/crisis-plumbing.json?t=' + Date.now();
 
 function fmtNum(v, decimals = 2) {
   if (v == null || isNaN(v)) return '—';
@@ -879,7 +879,7 @@ function buildWatchlist(data) {
 
 async function loadData() {
   try {
-    const res = await fetch(URL);
+    const res = await fetch(FEED_URL);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
 

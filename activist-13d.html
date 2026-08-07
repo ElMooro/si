@@ -178,7 +178,7 @@ h2{font-size:14px;color:var(--mute);text-transform:uppercase;letter-spacing:0.05
 </div>
 
 <script>
-const URL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/activist-13d.json";
+const FEED_URL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/activist-13d.json";
 let allSetups = [];
 let activeFilter = "all";
 
@@ -197,7 +197,7 @@ function mdToHtml(s){
 
 async function load(){
   try{
-    const r = await fetch(URL + "?t=" + Date.now());
+    const r = await fetch(FEED_URL + "?t=" + Date.now());
     if(!r.ok) throw new Error("HTTP "+r.status);
     render(await r.json());
   }catch(e){

@@ -205,7 +205,7 @@
   </div>
 
 <script>
-const URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/pairs-scanner.json';
+const FEED_URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/pairs-scanner.json';
 
 let PAIRS = [];
 let SORT = { col: 'abs_z', dir: 'desc' };
@@ -370,7 +370,7 @@ function populateCategoryFilter() {
 
 async function load() {
   try {
-    const r = await fetch(URL + '?_=' + Date.now());
+    const r = await fetch(FEED_URL + '?_=' + Date.now());
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
     PAIRS = (d.pairs || []).map(p => ({ ...p, abs_z: Math.abs(p.spread_z || 0) }));

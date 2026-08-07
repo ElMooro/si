@@ -130,7 +130,7 @@ body{background:var(--bg);color:var(--t1);font-family:'IBM Plex Sans',system-ui,
 </div>
 
 <script>
-const URL = "https://justhodl-dashboard-live.s3.amazonaws.com/reports/scorecard.json";
+const FEED_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/reports/scorecard.json";
 const REFRESH_MS = 5 * 60 * 1000;
 let chartInstance = null;
 let lastData = null;
@@ -412,7 +412,7 @@ function renderAll(D) {
 
 async function loadData() {
   try {
-    const r = await fetch(URL + "?t=" + Date.now());
+    const r = await fetch(FEED_URL + "?t=" + Date.now());
     if (!r.ok) throw new Error("HTTP " + r.status);
     const D = await r.json();
     renderAll(D);
