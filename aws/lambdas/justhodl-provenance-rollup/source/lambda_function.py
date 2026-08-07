@@ -47,6 +47,22 @@ SIGS = {
     "eurostat": r"ec\.europa\.eu/eurostat",
     "oecd": r"sdmx\.oecd\.org",
     "openfigi": r"openfigi\.com",
+    # ops 4530 (Khalid: missing datasets — the six hub zeros + fleet-wide
+    # agencies whose engines exist but had no signature, so the map could
+    # never name them):
+    "worldbank": r"api\.worldbank\.org|worldbank\.org",
+    "dbnomics": r"db\.nomics\.world|dbnomics",
+    "snb": r"data\.snb\.ch|snb\.ch",
+    "bcb": r"api\.bcb\.gov\.br|bcb\.gov\.br",
+    "cboe": r"cdn\.cboe\.com|ww2\.cboe\.com|cboe\.com",
+    "statcan": r"statcan\.gc\.ca",
+    "banxico": r"banxico\.org\.mx",
+    "boe": r"bankofengland\.co\.uk",
+    "gdelt": r"gdeltproject\.org",
+    "eiopa": r"eiopa\.europa\.eu",
+    "nasa": r"power\.larc\.nasa\.gov",
+    "dol": r"oui\.doleta\.gov|doleta\.gov",
+    "occ": r"theocc\.com",
     # council-unanimous: LLM output is transform, not a data provider
     "transform-agent": r"api\.anthropic\.com|claude-",
     "fleet-feed": r"justhodl-dashboard-live|justhodl\.ai/data",
