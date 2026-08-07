@@ -1,0 +1,59 @@
+{
+ "ops": 4538,
+ "started": "2026-08-07T14:48:06.098853+00:00",
+ "walker_rules": [
+  "justhodl-sdmx-walker-hourly"
+ ],
+ "catalog_rules": [
+  "justhodl-provider-catalog-hourly"
+ ],
+ "before": {
+  "bis": {
+   "done": 29,
+   "pct": null
+  },
+  "eurostat": {
+   "done": 40,
+   "pct": null
+  },
+  "oecd": {
+   "done": 42,
+   "pct": null
+  },
+  "statcan": {
+   "done": 38,
+   "pct": null
+  }
+ },
+ "runs": [
+  null,
+  null,
+  null
+ ],
+ "after": {
+  "bis": {
+   "done": 29,
+   "pct": null
+  },
+  "eurostat": {
+   "done": 76,
+   "pct": null
+  },
+  "oecd": {
+   "done": 78,
+   "pct": null
+  },
+  "statcan": {
+   "done": 74,
+   "pct": null
+  }
+ },
+ "totals": {
+  "providers": 42,
+  "datasets": 36792,
+  "keys": 2944,
+  "gb": 3.1
+ },
+ "flows_gained_3runs": 108,
+ "verdict": "gain3runs=108 after={\"bis\": {\"done\": 29, \"pct\": null}, \"eurostat\": {\"done\": 76, \"pct\": null}, \"oecd\": {\"done\": 78, \"pct\": null}, \"statcan\": {\"done\": 74, \"pct\": null}} totals={\"providers\": 42, \"datasets\": 36792, \"keys\": 2944, \"gb\": 3.1} rules10m=['justhodl-sdmx-walker-hourly'] cat_hourly=['justhodl-provider-catalog-hourly']"
+}
