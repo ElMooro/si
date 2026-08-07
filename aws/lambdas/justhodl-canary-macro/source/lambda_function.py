@@ -80,7 +80,7 @@ PANELS = {
                          "MORTGAGE30US", "MSACSR", "HSN1F",
                          "EXHOSLUSM495S"],
     "credit_cycle": ["DRTSCILM", "TOTALSL", "REVOLSL", "DRCCLACBS",
-                     "DRCLACBS", "BAMLH0A0HYM2", "NFCICREDIT",
+                     "DRCLACBS", "BAMLH0A0HYM2", "BAMLC0A0CM", "NFCICREDIT",
                      "NFCILEVERAGE", "NFCINONFINLEVERAGE", "INDPRO"],
     "fed_liquidity": ["WALCL", "WTREGEN", "RRPONTSYD", "RESPPANWW",
                       "WLCFLPCL", "M2SL", "DTWEXBGS", "VIXCLS"],
@@ -167,10 +167,22 @@ def _fred_panel(name, ids, hot, S):
                     break
             if latest:
                 _n = len(_win)
+                _dfs = [_win[i] - _win[i + 1]
+                        for i in range(min(60, _n - 1))]
+                _dm = (sum(_dfs) / len(_dfs)) if _dfs else None
+                _ds = ((sum((x - _dm) ** 2 for x in _dfs)
+                        / len(_dfs)) ** 0.5
+                       if _dfs and len(_dfs) > 10 else None)
                 _mu = sum(_win) / _n
                 _sd = ((sum((x - _mu) ** 2 for x in _win) / _n) ** 0.5
                        if _n > 20 else None)
                 hot[sid] = wrap(latest[1], observed=latest[0],
+                                d1=(round(_win[0] - _win[1], 5)
+                                    if _n > 1 else None),
+                                dmean60=(round(_dm, 5)
+                                         if _dm is not None else None),
+                                dstd60=(round(_ds, 5)
+                                        if _ds else None),
                                 mean252=round(_mu, 4),
                                 std252=(round(_sd, 4) if _sd else None),
                                 prev=(prev[1] if prev else None),
@@ -341,8 +353,11 @@ def lambda_handler(event, context):
         _fred_panel(name, ids, hot, S)
     _bls(hot, S)
     _fred_panel("floor_reserves",
-                ["SOFR", "IORB", "WRESBAL", "DFII10", "DGS2",
+                ["SOFR", "IORB", "EFFR", "DFII10", "DGS2",
                  "DGS10"], hot, S)  # ops 4543: Perplexity 23-series
+    _fred_panel("reserves_w", ["WRESBAL", "STLFSI4", "KCFSI"],
+                hot, S)  # weekly lane (4546)
+    _fred_panel("macro_q", ["GDP"], hot, S)  # quarterly lane (4546)
     _fred_panel("nfci", ["NFCI", "ANFCI", "NFCIRISK", "NFCICREDIT",
                           "NFCILEVERAGE", "NFCINONFINLEVERAGE"],
                 hot, S)  # ops 4535: chicagofed via FRED (xlsx dead)
