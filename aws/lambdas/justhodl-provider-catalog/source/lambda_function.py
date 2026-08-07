@@ -126,7 +126,8 @@ REG = {
   "prefixes": ["data/warm/fred-canary/dol-"]},
  "chicagofed": {"name": "Chicago Fed — NFCI",
   "api": "chicagofed.org", "engines": ["justhodl-plumbing-panel"],
-  "prefixes": ["data/warm/chicagofed/"]},
+  "prefixes": ["data/warm/chicagofed/",
+               "data/warm/fred-canary/nfci"]},
  "clevelandfed": {"name": "Cleveland Fed — yield-curve model",
   "api": "clevelandfed.org", "engines": ["justhodl-canary-macro"],
   "prefixes": ["data/warm/fred-canary/cleveland-"]},
@@ -382,13 +383,17 @@ def lambda_handler(event, context):
                       Body=json.dumps(doc, default=str).encode(),
                       ContentType="application/json",
                       CacheControl="no-cache")
+        ds = (ser or {}).get("count") or 0
         hub["providers"].append(
             {"slug": slug, "name": r["name"], "api": r["api"],
+             "datasets": ds, "unit": ("series" if ds else "keys"),
              "n_keys": doc["n_keys"], "total_mb": doc["total_mb"],
              "hot_feeds": n_roll,
              "series_count": (ser or {}).get("count"),
              "freshest_h": doc["freshest_h"]})
     hub["providers"].sort(key=lambda p: -(p["total_mb"] or 0))
+    hub["breakdown"]["keys"] = sum(p["n_keys"]
+                                   for p in hub["providers"])
     # ops 4534: Khalid — "a LOT more datasets": count at the SERIES level.
     # keys = S3 objects (containers); datasets = the series/symbols/flows
     # the platform actually tracks inside them.
@@ -431,6 +436,13 @@ def lambda_handler(event, context):
     except Exception:
         pass
     hub["series_extras"] = extras
+    # ops 4535 (Perplexity P1): auditable reconcile —
+    # sum(provider.datasets) + instruments == datasets_total, and units
+    # are split so series never mix silently with instrument counts.
+    hub["breakdown"] = {
+        "series": series_sum,
+        "instruments": sum(extras.values()),
+        "keys": None}  # filled below from totals
     hub["datasets_total"] = series_sum + sum(extras.values())
     hub["totals"] = {"providers": len(hub["providers"]),
                      "datasets": hub["datasets_total"],
