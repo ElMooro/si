@@ -415,6 +415,18 @@ def fanout_pending(ev):
             if not ans.get("ok"):
                 ec = classify_provider_error(ans.get("error") or "")
                 _breaker_trip(p)
+                _emsg = str(ans.get("error") or "")
+                if any(x in _emsg for x in
+                       ("401", "insufficient_quota", "quota")):
+                    # ops 4535 (Perplexity P0): 401/quota is
+                    # NON-RETRYABLE — permanent trip until a human
+                    # re-enables in the registry.
+                    reg[p]["status"] = "quota_exhausted"
+                    reg[p]["quota_tripped"] = _emsg[:120]
+                    try:
+                        _put(REGISTRY, {"providers": reg})
+                    except Exception:
+                        pass
                 r = post_turn({"thread_id": tid, "from": p, "to": "*",
                                "kind": "block",
                                "content": f"[auto] provider unavailable "
