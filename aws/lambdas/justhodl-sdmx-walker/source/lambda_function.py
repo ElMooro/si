@@ -90,29 +90,44 @@ def _order(ids, pri_prefixes):
     return pri + rest
 
 
-def _walk_generic(agency, ids, url_fn, out_prefix, S):
+def _walk_generic(agency, ids, url_fn, out_prefix, S,
+                  _budget=None):
     k, st = _state(agency)
     done = set(st["done"])
+    _budget = _budget or BUDGET_S
+    # ops 4542 lease: long-budget agencies may outlive the 5-min cadence
+    # — skip if a sibling holds the lease (overlap-safe).
+    if (st.get("lease_until") or 0) > time.time():
+        S[agency] = {"skipped": "lease_held"}
+        return
+    st["lease_until"] = time.time() + _budget + 90
+    _save(k, st, len(ids))
     todo = [i for i in ids if i not in done][:PER]
     _wt0 = time.time()
-    # ops 4539: 4-way parallel fetch — Eurostat flows are 5-50MB TSVs;
-    # serial pulls wasted the budget on wire time. Fetch in threads,
-    # ledger sequentially (state stays race-free).
-    from concurrent.futures import ThreadPoolExecutor, as_completed
+    # ops 4542: as_completed(timeout=) RAISED past the deadline and
+    # DISCARDED every finished download — the Eurostat-blitz-gained-0
+    # bug. Salvage loop: wait() in slices, keep everything that
+    # finished, budget from the event (Eurostat's server prepares big
+    # extractions slowly and needs a longer lane).
+    from concurrent.futures import (ThreadPoolExecutor, wait,
+                                    FIRST_COMPLETED)
 
     def _dl_one(_fid):
         return _fetch_capped(url_fn(_fid))
-    _pool = ThreadPoolExecutor(max_workers=24)  # ops 4541: 10GB/6vCPU ceiling
+    _pool = ThreadPoolExecutor(max_workers=24)
     _futs = {_pool.submit(_dl_one, f2): f2 for f2 in todo}
     _results = {}
-    for _fu in as_completed(_futs, timeout=BUDGET_S):
-        _fid2 = _futs[_fu]
-        try:
-            _results[_fid2] = ("ok", _fu.result())
-        except Exception as _e:
-            _results[_fid2] = ("err", _e)
-        if time.time() - _wt0 > BUDGET_S:
-            break
+    _pend = set(_futs)
+    _deadline = _wt0 + _budget
+    while _pend and time.time() < _deadline:
+        _done, _pend = wait(_pend, timeout=8,
+                            return_when=FIRST_COMPLETED)
+        for _fu in _done:
+            _fid2 = _futs[_fu]
+            try:
+                _results[_fid2] = ("ok", _fu.result())
+            except Exception as _e:
+                _results[_fid2] = ("err", _e)
     _pool.shutdown(wait=False, cancel_futures=True)
     got = 0
     for fid in todo:
@@ -142,6 +157,7 @@ def _walk_generic(agency, ids, url_fn, out_prefix, S):
             st.setdefault("failures", {})[str(fid)] = \
                 f"{type(e).__name__}: {str(e)[:60]}"
             st["done"].append(fid)  # advance; failures ledger keeps it
+    st["lease_until"] = 0
     pct, status = _save(k, st, len(ids))
     S[agency] = {"pulled": got, "of_run": len(todo),
                  "progress_pct": pct, "status": status,
@@ -164,10 +180,14 @@ def lambda_handler(event, context):
         for _a in AGENTS:
             _lam.invoke(FunctionName=context.function_name,
                         InvocationType="Event",
-                        Payload=json.dumps({"agency": _a}).encode())
+                        Payload=json.dumps(
+                            {"agency": _a,
+                             "budget": (700 if _a == "eurostat"
+                                        else 230)}).encode())
         return {"statusCode": 200,
                 "body": json.dumps({"fanout": list(AGENTS)})}
     S["agency_mode"] = ag
+    _ebud = int((event or {}).get("budget") or 0) or None
     try:
         bis_ids = [f["id"] for f in _get_json(
             "data/warm/bis/catalog.json.gz")["dataflows"]]
@@ -176,7 +196,7 @@ def lambda_handler(event, context):
             "bis", bis_ids,
             lambda f: (f"https://stats.bis.org/api/v1/data/{f}/all/all"
                        f"?format=csv"),
-            "data/warm/bis/data", S)
+            "data/warm/bis/data", S, _budget=_ebud)
     except Exception as e:
         S["bis"] = {"data_unavailable": True,
                     "reason": f"{type(e).__name__}: {str(e)[:60]}"}
@@ -190,7 +210,7 @@ def lambda_handler(event, context):
             lambda f: ("https://ec.europa.eu/eurostat/api/"
                        "dissemination/sdmx/2.1/data/"
                        f"{f}?format=TSV&compressed=true"),
-            "data/warm/eurostat/data", S)
+            "data/warm/eurostat/data", S, _budget=_ebud)
     except Exception as e:
         S["eurostat"] = {"data_unavailable": True,
                          "reason": f"{type(e).__name__}: "
@@ -203,7 +223,7 @@ def lambda_handler(event, context):
             "oecd", oe_ids,
             lambda f: (f"https://sdmx.oecd.org/public/rest/data/{f}"
                        f"/all?format=csvfile"),
-            "data/warm/oecd/data", S)
+            "data/warm/oecd/data", S, _budget=_ebud)
     except Exception as e:
         S["oecd"] = {"data_unavailable": True,
                      "reason": f"{type(e).__name__}: {str(e)[:60]}"}
@@ -225,7 +245,7 @@ def lambda_handler(event, context):
           _walk_generic(
             "statcan", pids,
             lambda pid: sc_fetch(pid),
-            "data/warm/statcan/data", S)
+            "data/warm/statcan/data", S, _budget=_ebud)
     except Exception as e:
         S["statcan"] = {"data_unavailable": True,
                         "reason": f"{type(e).__name__}: "
