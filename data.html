@@ -37,7 +37,8 @@ var g=document.getElementById('g');g.innerHTML='';
   '<div class="stats"><span><b>'+p.n_keys+'</b> <i>keys</i></span>'+
   (p.series_count?'<span><b>'+p.series_count.toLocaleString()+'</b> <i>series</i></span>':'')+
   '<span><b>'+p.total_mb+'</b> <i>MB</i></span></div>'+
-  '<div class="fr" style="color:'+fc+'">freshest '+(fh==null?'—':fh+'h')+'</div>';
+  '<div class="fr" style="color:'+fc+'">freshest '+(fh==null?'—':fh+'h')+'</div>'+
+  (p.coverage_pct!=null?'<div style="height:4px;background:#141d27;border-radius:3px;margin-top:6px"><div style="height:4px;border-radius:3px;width:'+Math.min(100,p.coverage_pct)+'%;background:'+(p.coverage_pct>=99?'#5fbf7f':p.coverage_pct>=25?'#e0b552':'#e05252')+'"></div></div><div style="font-size:9px;color:#5d7285;margin-top:2px">'+p.coverage_pct+'% of '+(p.datasets_target||0).toLocaleString()+' target</div>':'');
  g.appendChild(a);});
 }).catch(function(e){document.getElementById('g').textContent='catalog unavailable — first inventory runs with ops 4506';});
 </script>
