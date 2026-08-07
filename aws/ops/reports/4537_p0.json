@@ -1,0 +1,52 @@
+{
+ "ops": 4537,
+ "started": "2026-08-07T14:39:45.377209+00:00",
+ "canary": {
+  "total": 63,
+  "live": 63,
+  "dead": 0,
+  "dead_sample": [],
+  "T10Y3M": 0.79,
+  "SAHM": -0.03,
+  "VIX": 15.15,
+  "GDPNOW": 5.8334,
+  "flags": {
+   "sahm_triggered": false,
+   "sahm_value": -0.03,
+   "curve_10y3m_inverted": false,
+   "claims_4wk_rising": false,
+   "status": "COMPUTED"
+  }
+ },
+ "cat_fn_err": null,
+ "hub": {
+  "datasets_total": 36756,
+  "rowsum": 36756,
+  "reconcile_key": true,
+  "match": true,
+  "breakdown": {
+   "series": 11951,
+   "instruments": 23451,
+   "keys_as_datasets": 1354
+  },
+  "instr_rows": [
+   [
+    "indicator-bus",
+    17772
+   ],
+   [
+    "equity-research-tickers",
+    81
+   ],
+   [
+    "tradingview-vault-live",
+    5598
+   ]
+  ]
+ },
+ "smoke": {
+  "exit": 0,
+  "out": "{\n \"checked\": 9,\n \"failures\": []\n}\n"
+ },
+ "verdict": "canary 63/63 live flags={\"sahm_triggered\": false, \"sahm_value\": -0.03, \"curve_10y3m_inverted\": false, \"claims_4wk_rising\": false, \"status\": \"COM | hub match=True reconcile_key=True instr=[('indicator-bus', 17772), ('equity-research-tickers', 81), ('tradingview-vault-live', 5598)] | smoke=0"
+}
