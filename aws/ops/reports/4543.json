@@ -1,0 +1,34 @@
+{
+ "ops": 4543,
+ "started": "2026-08-07T17:40:10.687865+00:00",
+ "eurostat_blitz": {
+  "before": 306,
+  "after": 786,
+  "gained": 480
+ },
+ "composites": {
+  "floor_breach_bp": 0.0,
+  "reserve_scarcity": 0.512,
+  "real_rate_shock_z": 2.47,
+  "curve_regime": "bear_steepener",
+  "credit_cycle_phase": "MID_complacent",
+  "orders_production_gap": 1.81
+ },
+ "SOFR": 3.65,
+ "IORB": 3.65,
+ "cat_fn_err": null,
+ "eurostat_row": {
+  "datasets": 949,
+  "datasets_target": 8146,
+  "coverage_pct": 11.6
+ },
+ "totals": {
+  "providers": 42,
+  "datasets": 29987,
+  "keys": 6536,
+  "gb": 14.46
+ },
+ "datasets_total": 29987,
+ "smoke_exit": 0,
+ "verdict": "blitz={\"before\": 306, \"after\": 786, \"gained\": 480} eu_row={\"datasets\": 949, \"datasets_target\": 8146, \"coverage_pct\": 11.6} comp={\"floor_breach_bp\": 0.0, \"reserve_scarcity\": 0.512, \"real_rate_shock_z\": 2.47, \"curve_regime\": \"bear_steepener\", \"credit_cycle_phase\": \"MID_complacent\", \"orders_production_gap\": 1.81} total=29987 smoke=0"
+}
