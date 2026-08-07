@@ -95,13 +95,35 @@ def _walk_generic(agency, ids, url_fn, out_prefix, S):
     done = set(st["done"])
     todo = [i for i in ids if i not in done][:PER]
     _wt0 = time.time()
+    # ops 4539: 4-way parallel fetch — Eurostat flows are 5-50MB TSVs;
+    # serial pulls wasted the budget on wire time. Fetch in threads,
+    # ledger sequentially (state stays race-free).
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    def _dl_one(_fid):
+        return _fetch_capped(url_fn(_fid))
+    _pool = ThreadPoolExecutor(max_workers=4)
+    _futs = {_pool.submit(_dl_one, f2): f2 for f2 in todo}
+    _results = {}
+    for _fu in as_completed(_futs, timeout=BUDGET_S):
+        _fid2 = _futs[_fu]
+        try:
+            _results[_fid2] = ("ok", _fu.result())
+        except Exception as _e:
+            _results[_fid2] = ("err", _e)
+        if time.time() - _wt0 > BUDGET_S:
+            break
+    _pool.shutdown(wait=False, cancel_futures=True)
     got = 0
     for fid in todo:
-        if time.time() - _wt0 > BUDGET_S:
-            break  # budget: remainder resumes next run
+        if fid not in _results:
+            break  # budget cut the tail; resumes next run
         u = url_fn(fid)
         try:
-            raw, trunc = _fetch_capped(u)
+            _tag, _payload = _results[fid]
+            if _tag == "err":
+                raise _payload
+            raw, trunc = _payload
             if len(raw) < 200:
                 raise ValueError(f"tiny {len(raw)}b")
             s3.put_object(
