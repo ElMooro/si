@@ -302,11 +302,31 @@ def _finalize(hot, S):
         else round((sofr - iorb) * 100, 1)), ["SOFR", "IORB"])
     wres, wal, tga, rrp = (_v("WRESBAL"), _v("WALCL"),
                             _v("WTREGEN"), _v("RRPONTSYD"))
-    _c("reserve_scarcity",
-       (None if None in (wres, wal, tga, rrp) or not (wal - tga - rrp)
-        else round(wres / (wal - tga - rrp), 3)),
+    # ops 4546 (Perplexity self-correction): the balance-sheet ratio is
+    # a COMPOSITION metric — renamed, no zones. Scarcity = reserves/GDP.
+    _c("reserve_share_of_fed_liabilities",
+       (None if None in (wres, wal, tga, rrp)
+        or not (wal - tga - rrp)
+        else round(100.0 * wres / (wal - tga - rrp), 1)),
        ["WRESBAL", "WALCL", "WTREGEN", "RRPONTSYD"])
-    _c("real_rate_shock_z", _z("DFII10"), ["DFII10"])
+    gdp = _v("GDP")
+    rsi = (None if (wres is None or not gdp)
+           else round(100.0 * (wres / 1000.0) / gdp, 2))
+    _c("reserve_scarcity_pct", rsi, ["WRESBAL", "GDP"])
+    _c("reserve_regime",
+       (None if rsi is None else
+        ("ABUNDANT" if rsi > 12 else "AMPLE" if rsi >= 10 else
+         "TIGHT" if rsi >= 8 else "SCARCE")),
+       ["WRESBAL", "GDP"])
+    # ops 4546: shock = Δ-z (60d), not level-z. Level kept as context
+    # with NO flag — a lamp, not an alarm.
+    _e10 = hot.get("DFII10") or {}
+    _d1, _dm, _ds = (_e10.get("d1"), _e10.get("dmean60"),
+                     _e10.get("dstd60"))
+    _c("real_rate_shock_z",
+       (None if (_d1 is None or not _ds)
+        else round((_d1 - _dm) / _ds, 2)), ["DFII10"])
+    flags["real_rate_level_z"] = _z("DFII10")
     s2, s10, tv2 = _v("DGS2"), _v("DGS10"), _v("T10Y2Y")
     _c("curve_regime",
        (None if None in (s2, s10, tv2) else
@@ -317,14 +337,22 @@ def _finalize(hot, S):
     drt, nf = _v("DRTSCILM"), _v("NFCI")
     _c("credit_cycle_phase",
        (None if None in (drt, nf) else
-        ("LATE_tightening" if drt > 10 else
-         "MID_complacent" if (abs(drt) <= 10 and nf < 0) else
+        ("NEUTRAL_survey_flat" if abs(drt) < 0.5 else
+         "LATE_tightening" if drt > 10 else
+         "MID_complacent" if (drt > 0 and nf < 0) else
          "EARLY_easing" if drt < -10 else "NEUTRAL")),
        ["DRTSCILM", "NFCI"])
     no_z, ip_z = _z("NEWORDER"), _z("INDPRO")
     _c("orders_production_gap",
        (None if None in (no_z, ip_z) else round(no_z - ip_z, 2)),
        ["NEWORDER", "INDPRO"])
+    flags["per_flag_status"] = {
+        k: ("UNKNOWN" if flags.get(k) is None else "COMPUTED")
+        for k in ("sahm_triggered", "curve_10y3m_inverted",
+                  "claims_4wk_rising", "floor_breach_bp",
+                  "reserve_scarcity_pct", "reserve_regime",
+                  "real_rate_shock_z", "curve_regime",
+                  "credit_cycle_phase", "orders_production_gap")}
     flags["status"] = ("UNKNOWN" if any(
         flags[k] is None for k in ("sahm_triggered",
                                    "curve_10y3m_inverted",
