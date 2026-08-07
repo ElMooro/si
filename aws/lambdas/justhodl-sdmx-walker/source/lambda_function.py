@@ -127,13 +127,30 @@ def _walk_generic(agency, ids, url_fn, out_prefix, S):
                  "n_failures": len(st.get("failures", {}))}
 
 
+AGENTS = ("bis", "eurostat", "oecd", "statcan")
+
+
 def lambda_handler(event, context):
     S = {"as_of": datetime.now(timezone.utc).isoformat(
         timespec="seconds")}
+    ag = (event or {}).get("agency")
+    if not ag:
+        # ops 4539: cron fans out one async invoke PER agency — each
+        # gets its own full 700s budget instead of sharing one.
+        import boto3 as _b3
+        _lam = _b3.client("lambda", region_name="us-east-1")
+        for _a in AGENTS:
+            _lam.invoke(FunctionName=context.function_name,
+                        InvocationType="Event",
+                        Payload=json.dumps({"agency": _a}).encode())
+        return {"statusCode": 200,
+                "body": json.dumps({"fanout": list(AGENTS)})}
+    S["agency_mode"] = ag
     try:
         bis_ids = [f["id"] for f in _get_json(
             "data/warm/bis/catalog.json.gz")["dataflows"]]
-        _walk_generic(
+        if ag == "bis":
+          _walk_generic(
             "bis", bis_ids,
             lambda f: (f"https://stats.bis.org/api/v1/data/{f}/all/all"
                        f"?format=csv"),
@@ -145,7 +162,8 @@ def lambda_handler(event, context):
         eu_ids = _order([f["id"] for f in _get_json(
             "data/warm/eurostat/catalog.json.gz")["dataflows"]],
             EURO_PRI)
-        _walk_generic(
+        if ag == "eurostat":
+          _walk_generic(
             "eurostat", eu_ids,
             lambda f: ("https://ec.europa.eu/eurostat/api/"
                        "dissemination/sdmx/2.1/data/"
@@ -158,7 +176,8 @@ def lambda_handler(event, context):
     try:
         oe_ids = _order([f["id"] for f in _get_json(
             "data/warm/oecd/catalog.json.gz")["dataflows"]], OECD_PRI)
-        _walk_generic(
+        if ag == "oecd":
+          _walk_generic(
             "oecd", oe_ids,
             lambda f: (f"https://sdmx.oecd.org/public/rest/data/{f}"
                        f"/all?format=csvfile"),
@@ -180,7 +199,8 @@ def lambda_handler(event, context):
             return meta.get("object")
         def sc_fetch(pid):
             return sc_url(pid)
-        _walk_generic(
+        if ag == "statcan":
+          _walk_generic(
             "statcan", pids,
             lambda pid: sc_fetch(pid),
             "data/warm/statcan/data", S)
