@@ -1453,7 +1453,12 @@ export default {
     }
 
     const ttl = ttlFor(safePath);
-    const cacheKey = new Request(url.toString().split("?")[0], { method: "GET" });
+    // ops 4528: version-keyed cache — bumping CACHE_VER orphans every
+    // stale entry on EVERY Cloudflare PoP at once (per-colo caches meant
+    // Khalid's PoP kept serving a pre-fix 6h entry while the runner's PoP
+    // verified fresh; query-param busting is useless since we strip it).
+    const CACHE_VER = "v4528";
+    const cacheKey = new Request(`${url.origin}/__${CACHE_VER}__/${safePath}`, { method: "GET" });
     const cache = caches.default;
     let response = await cache.match(cacheKey);
     let cacheStatus = "HIT";
