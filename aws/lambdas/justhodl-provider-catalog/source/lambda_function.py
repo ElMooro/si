@@ -302,6 +302,16 @@ def lambda_handler(event, context):
     roll = _load_rollup_feeds()
     hotidx = _hot_index()
     key_engines = {}  # ops 4544: reverse index for the drill-down
+    KEY_PROVIDER_SKIP = {  # 4546: misattributions (Perplexity)
+        "data/finviz-universe.json": {"fred"}}
+    PREFIX_ENGINES = {  # walker/dynamic keys the graph can't see
+        "data/warm/eurostat/": ["justhodl-sdmx-walker"],
+        "data/warm/oecd/": ["justhodl-sdmx-walker"],
+        "data/warm/statcan/": ["justhodl-sdmx-walker",
+                               "justhodl-global-expansion"],
+        "data/warm/bis/": ["justhodl-sdmx-walker",
+                           "justhodl-bis-gleif"],
+        "data/warm/fred-canary/": ["justhodl-canary-macro"]}
     try:
         g2 = _get_json("data/audit/lambda-graph.json")
         ov2 = _get_json("data/audit/engine-writes-overrides.json")
@@ -371,6 +381,8 @@ def lambda_handler(event, context):
             for feed in roll.get(rs, []):
                 fk = feed if feed.startswith("data/") else (
                     "data/" + feed.lstrip("/"))
+                if slug in KEY_PROVIDER_SKIP.get(fk, ()):  # 4546
+                    continue
                 if fk in seen:
                     continue
                 sz, age = hotidx.get(fk, (None, None))
@@ -399,7 +411,11 @@ def lambda_handler(event, context):
                "keys": [dict(k, status=("missing" if k.get("missing")
                                         else "live" if k.get("age_h")
                                         is not None else "cold"),
-                             engines=key_engines.get(k["key"], []))
+                             engines=(key_engines.get(k["key"])
+                                      or next((v for pf, v in
+                                               PREFIX_ENGINES.items()
+                                               if k["key"]
+                                               .startswith(pf)), [])))
                         for k in keys[:100]]}
         for _pi in range(doc["n_pages"]):
             _chunk = keys[100 + _pi * 500:100 + (_pi + 1) * 500]
@@ -410,7 +426,11 @@ def lambda_handler(event, context):
                     dict(k, status=("missing" if k.get("missing")
                                     else "live" if k.get("age_h")
                                     is not None else "cold"),
-                         engines=key_engines.get(k["key"], []))
+                         engines=(key_engines.get(k["key"])
+                                  or next((v for pf, v in
+                                           PREFIX_ENGINES.items()
+                                           if k["key"]
+                                           .startswith(pf)), [])))
                     for k in _chunk]}, default=str).encode(),
                 ContentType="application/json",
                 CacheControl="no-cache")
@@ -425,9 +445,13 @@ def lambda_handler(event, context):
         # holding. datasets = what we actually have; target + coverage
         # ride alongside. Eurostat is 3.6%, not done.
         ds = n_live
-        tgt = _sc if _sc and _sc > n_live else None
-        cov = (round(100.0 * n_live / _sc, 1)
-               if _sc and _sc > 0 else None)
+        TARGET_OVERRIDE = {"statcan": 6335}  # walker-discovered
+        tgt = TARGET_OVERRIDE.get(slug) or (
+            _sc if _sc and _sc > n_live else None)
+        # 4546 (Perplexity): coverage>100% = unit mixing. Only report
+        # when actual<=target; otherwise None + note.
+        cov = (round(100.0 * n_live / tgt, 1)
+               if tgt and n_live <= tgt else None)
         hub["providers"].append(
             {"slug": slug, "name": r["name"], "api": r["api"],
              "datasets": ds, "datasets_target": tgt,
