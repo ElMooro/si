@@ -202,7 +202,12 @@ def _load_rollup_feeds():
         emap = _get_json("data/audit/engine-provider-map.json")
         graph = _get_json("data/audit/lambda-graph.json")
     except Exception:
-        return {}
+        # ops 4530: last-good fallback — nightly graph rewrites raced the
+        # join and flapped totals 1,108<->1,627; never lose the attribution
+        try:
+            return _get_json("data/audit/provider-join-lastgood.json")
+        except Exception:
+            return {}
     if isinstance(emap, dict) and isinstance(emap.get("map"), dict):
         emap = emap["map"]  # ops 4520: THE unwrap
     elif isinstance(emap, dict) and isinstance(emap.get("engines"),
@@ -228,6 +233,14 @@ def _load_rollup_feeds():
                 out.setdefault(prov, []).append(feed)
     for k in out:
         out[k] = sorted(set(out[k]))
+    if out:  # ops 4530: persist last-good
+        try:
+            s3.put_object(Bucket=BUCKET,
+                          Key="data/audit/provider-join-lastgood.json",
+                          Body=json.dumps(out, default=str).encode(),
+                          ContentType="application/json")
+        except Exception:
+            pass
     try:  # ops 4519: self-debug — no more guessing
         s3.put_object(Bucket=BUCKET,
                       Key="data/audit/provider-join-debug.json",
