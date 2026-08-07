@@ -418,17 +418,47 @@ def bus_health_sweep():
                              "state": task.get("state"),
                              "minutes": round(mins)})
             if task.get("state") in ("FILED", "ACK"):
-                bus({"action": "post_turn", "thread_id": tid,
-                     "from": "claude-backend", "to": "perplexity",
-                     "kind": "question",
-                     "content": f"[auto-repair] This task has sat at "
-                                f"{task.get('state')} for {round(mins)}m. "
-                                "Still live on my side — flagging so it is "
-                                "not silently dropped. If you are waiting on "
-                                "me, say what you need; if I am waiting on "
-                                "you, this is the nudge."})
-                repairs.append({"thread": tid, "action": "nudge",
-                                "state": task.get("state")})
+                # ops 4535 (Perplexity P0): the old fixed-interval nudge
+                # was a self-DoS — 40/48 turns of identical spam. Now:
+                # exponential ladder (45m/90m/3h/6h), dedupe per
+                # (thread,state) generation via a persistent ledger,
+                # hard cap 3 nudges then ONE escalation and silence,
+                # and never spend the last 20% of the turn ceiling.
+                led = _get("data/a2a/nudge-ledger.json", {})
+                lk = f"{tid}:{task.get('state')}"
+                ent = led.get(lk) or {"fired": 0, "escalated": False}
+                LADDER = [STUCK_MIN, STUCK_MIN * 2, STUCK_MIN * 4,
+                          STUCK_MIN * 8]
+                due = sum(1 for th in LADDER if mins >= th)
+                n_turns = task.get("n_turns") or task.get("turns") or 0
+                if isinstance(n_turns, int) and n_turns >= 38:
+                    pass  # turn-budget guard: last 20% is for real work
+                elif due > ent["fired"] and ent["fired"] < 3:
+                    bus({"action": "post_turn", "thread_id": tid,
+                         "from": "claude-backend", "to": "perplexity",
+                         "kind": "question",
+                         "content": f"[auto-repair {ent['fired']+1}/3] "
+                                    f"Task at {task.get('state')} for "
+                                    f"{round(mins)}m. Next nudge only at "
+                                    "the next backoff step; after 3 this "
+                                    "escalates once and goes quiet."})
+                    ent["fired"] = due
+                    repairs.append({"thread": tid, "action": "nudge",
+                                    "n": ent["fired"],
+                                    "state": task.get("state")})
+                elif due > 3 and not ent["escalated"]:
+                    bus({"action": "post_turn", "thread_id": tid,
+                         "from": "claude-backend", "to": "*",
+                         "kind": "escalation",
+                         "content": f"[escalation] {lk} exhausted 3 "
+                                    f"nudges over {round(mins)}m — "
+                                    "handing to the human queue and "
+                                    "going silent on this task."})
+                    ent["escalated"] = True
+                    repairs.append({"thread": tid,
+                                    "action": "escalate"})
+                led[lk] = ent
+                _put("data/a2a/nudge-ledger.json", led)
     doc = {"swept_at": now, "n_findings": len(findings),
            "n_repairs": len(repairs), "findings": findings[-40:],
            "repairs": repairs[-40:],
