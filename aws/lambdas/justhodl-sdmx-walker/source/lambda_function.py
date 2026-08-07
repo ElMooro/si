@@ -8,6 +8,7 @@ computed fact, not a claim."""
 import gzip
 import io
 import json
+import time
 import os
 import urllib.request
 import zipfile
@@ -16,7 +17,10 @@ from datetime import datetime, timezone
 import boto3
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
-PER = int(os.environ.get("FLOWS_PER_AGENCY", "2"))
+# ops 4538 (Khalid: expedite): 2/agency/hour was ~170 days for Eurostat.
+# 12/agency + 15-min cadence + elapsed budget = ~50x, still polite.
+PER = int(os.environ.get("FLOWS_PER_AGENCY", "12"))
+BUDGET_S = int(os.environ.get("WALK_BUDGET_S", "700"))
 CAP = 40 * 1024 * 1024
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -90,8 +94,11 @@ def _walk_generic(agency, ids, url_fn, out_prefix, S):
     k, st = _state(agency)
     done = set(st["done"])
     todo = [i for i in ids if i not in done][:PER]
+    _wt0 = time.time()
     got = 0
     for fid in todo:
+        if time.time() - _wt0 > BUDGET_S:
+            break  # budget: remainder resumes next run
         u = url_fn(fid)
         try:
             raw, trunc = _fetch_capped(u)
