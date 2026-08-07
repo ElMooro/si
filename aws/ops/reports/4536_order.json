@@ -1,0 +1,43 @@
+{
+ "ops": 4536,
+ "started": "2026-08-07T14:26:33.643957+00:00",
+ "deployed": [
+  "justhodl-a2a-bus",
+  "justhodl-backend-agent",
+  "justhodl-canary-macro",
+  "justhodl-provider-catalog"
+ ],
+ "plumbing_rules": [
+  "justhodl-plumbing-aggregator-hourly"
+ ],
+ "crisis_writers": {
+  "justhodl-crisis-plumbing": null,
+  "justhodl-crisis-composite": null
+ },
+ "plumbing_run": {
+  "fn_err": null
+ },
+ "plumbing_age_min": 0.7,
+ "canary": {
+  "bls_labor": true,
+  "nfci": true,
+  "cleveland_model": true,
+  "atlanta_gdpnow": true
+ },
+ "NFCI": -0.529,
+ "cat_fn_err": null,
+ "breakdown": {
+  "series": 11951,
+  "instruments": 23451,
+  "keys": 2836
+ },
+ "datasets_total": 35402,
+ "chicagofed": 1,
+ "clevelandfed": 1,
+ "reconcile_ok": true,
+ "smoke": {
+  "exit": 0,
+  "out": "{\n \"checked\": 9,\n \"failures\": []\n}\n"
+ },
+ "verdict": "cw={\"justhodl-crisis-plumbing\": null, \"justhodl-crisis-composite\": null} | NFCI=-0.529 canary={\"bls_labor\": true, \"nfci\": true, \"cleveland_model\": true, \"atlanta_gdpnow\": true} plumbing_age=0.7 breakdown={\"series\": 11951, \"instruments\": 23451, \"keys\": 2836} reconcile=True chi=1 clev=1 smoke_exit=0"
+}

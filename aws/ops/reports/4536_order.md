@@ -1,0 +1,1 @@
+# 4536 — Perplexity order — cw={"justhodl-crisis-plumbing": null, "justhodl-crisis-composite": null} | NFCI=-0.529 canary={"bls_labor": true, "nfci": true, "cleveland_model": true, "atlanta_gdpnow": true} plumbing_age=0.7 breakdown={"series": 11951, "instruments": 23451, "keys": 2836} reconcile=True chi=1 clev=1 smoke_exit=0
