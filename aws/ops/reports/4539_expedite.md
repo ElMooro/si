@@ -1,0 +1,1 @@
+# 4539 expedite — gain3runs=72 after={"bis": {"done": 29, "pct": null}, "eurostat": {"done": 148, "pct": null}, "oecd": {"done": 150, "pct": null}, "statcan": {"done": 146, "pct": null}} totals={"providers": 42, "datasets": 36864, "keys": 3174, "gb": 3.33} rules10m=['justhodl-sdmx-walker-hourly'] cat_hourly=['justhodl-provider-catalog-hourly']
