@@ -220,6 +220,10 @@ def _xlsx(name, urls, key, S):
             raw = _fetch(u, timeout=120)
             if len(raw) < 8000:
                 raise ValueError(f"small {len(raw)}b")
+            if not raw.startswith(b"PK"):
+                # ops 4535 (Perplexity P1): first-fetch assertion — an
+                # xlsx MUST be a zip; a 404/HTML page never registers ok
+                raise ValueError("content-type assertion: not xlsx")
             s3.put_object(Bucket=BUCKET, Key=key, Body=raw)
             S[name] = {"ok": True, "kb": round(len(raw) / 1024),
                        "source": u[:90]}
@@ -274,12 +278,28 @@ def lambda_handler(event, context):
     for name, ids in PANELS.items():
         _fred_panel(name, ids, hot, S)
     _bls(hot, S)
+    _fred_panel("nfci", ["NFCI", "ANFCI", "NFCIRISK", "NFCICREDIT",
+                          "NFCILEVERAGE", "NFCINONFINLEVERAGE"],
+                hot, S)  # ops 4535: chicagofed via FRED (xlsx dead)
     _finalize(hot, S)  # ops 4510: hot feed lands EARLY, tail can't kill it
     if _budget(_t0, S, "cleveland_model"):
-        _xlsx("cleveland_model",
-          ["https://www.clevelandfed.org/-/media/files/webcharts/"
-           "yieldcurvepremium/yield-curve-predicted-gdp-growth.xlsx"],
-          "data/warm/fred-canary/cleveland-yieldcurve.xlsx", S)
+        # ops 4535: Cleveland xlsx 404s (Perplexity-verified). Substitute
+        # the model inputs from FRED: recession prob + 10y-3m slope.
+        try:
+            raw = _fetch("https://fred.stlouisfed.org/graph/"
+                         "fredgraph.csv?id=RECPROUSM156N,T10Y3M",
+                         timeout=45)
+            s3.put_object(Bucket=BUCKET,
+                          Key="data/warm/fred-canary/"
+                              "cleveland-model.csv.gz",
+                          Body=gzip.compress(raw),
+                          ContentType="application/gzip")
+            S["cleveland_model"] = {"ok": True, "via": "FRED",
+                                    "bytes": len(raw)}
+        except Exception as e:
+            S["cleveland_model"] = {"data_unavailable": True,
+                                    "reason": f"{type(e).__name__}: "
+                                              f"{str(e)[:60]}"}
     if _budget(_t0, S, "atlanta_gdpnow"):
         _xlsx("atlanta_gdpnow",
           ["https://www.atlantafed.org/-/media/documents/cqer/"
