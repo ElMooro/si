@@ -1,0 +1,35 @@
+{
+ "ops": 4541,
+ "started": "2026-08-07T16:43:34.592048+00:00",
+ "rules": [
+  "justhodl-sdmx-walker-hourly"
+ ],
+ "before": {
+  "eurostat": 186,
+  "oecd": 190,
+  "statcan": 186,
+  "bis": 29
+ },
+ "blitz": {
+  "eurostat": 6,
+  "oecd": 3,
+  "statcan": 3
+ },
+ "after": {
+  "eurostat": 186,
+  "oecd": 1390,
+  "statcan": 1146,
+  "bis": 29
+ },
+ "gain_one_round": {
+  "eurostat": 0,
+  "oecd": 1200,
+  "statcan": 960,
+  "bis": 0
+ },
+ "eta": {
+  "eurostat_full_h": 5.5,
+  "oecd_full_h": 0.1
+ },
+ "verdict": "gain={\"eurostat\": 0, \"oecd\": 1200, \"statcan\": 960, \"bis\": 0} after={\"eurostat\": 186, \"oecd\": 1390, \"statcan\": 1146, \"bis\": 29} eta_h={\"eurostat_full_h\": 5.5, \"oecd_full_h\": 0.1} rules5m=['justhodl-sdmx-walker-hourly']"
+}
