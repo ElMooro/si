@@ -24,6 +24,13 @@
 const BUCKET_BASE = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
 
 const CACHE_RULES = [
+  // ops 4524: MUST precede the broad "catalog" rule below — Khalid saw a
+  // 19:08 snapshot for hours because /data/provider-catalog.json and
+  // /data/providers/*.json matched the 6h historical-catalog bucket by
+  // accident of filename. This engine's outputs change every few minutes
+  // during active work; pin them short, checked first (ttlFor returns on
+  // FIRST match).
+  { pattern: /^data\/provider-catalog\.json$|^data\/providers\//, ttl: 60 },
   { pattern: /(live|intraday|5min|streaming|tick|realtime)/i, ttl: 30 },
   { pattern: /(hourly|morning|sentiment|news|crypto-intel|options-flow|pump-positioning|pump-radar|catalyst|velocity|momentum)/i, ttl: 300 },
   { pattern: /(episode-reference|historical|crisis-knowledge|forward-returns|catalog|reference|themes)/i, ttl: 21600 },
