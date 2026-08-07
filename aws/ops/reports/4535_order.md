@@ -1,0 +1,1 @@
+# 4535 — Perplexity order — NFCI=-0.529 canary={"bls_labor": true, "nfci": true, "cleveland_model": true, "atlanta_gdpnow": "ValueError: content-type asser"} plumbing_age=1402.3 breakdown=null reconcile=False chi=0 clev=0 smoke_exit=1

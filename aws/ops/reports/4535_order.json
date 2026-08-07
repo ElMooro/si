@@ -1,0 +1,35 @@
+{
+ "ops": 4535,
+ "started": "2026-08-07T14:14:39.675637+00:00",
+ "deployed": [
+  "justhodl-a2a-bus",
+  "justhodl-backend-agent",
+  "justhodl-canary-macro",
+  "justhodl-provider-catalog"
+ ],
+ "plumbing_rules": [
+  "justhodl-plumbing-aggregator-hourly"
+ ],
+ "plumbing_run": {
+  "fn_err": null
+ },
+ "plumbing_age_min": 1402.3,
+ "canary": {
+  "bls_labor": true,
+  "nfci": true,
+  "cleveland_model": true,
+  "atlanta_gdpnow": "ValueError: content-type asser"
+ },
+ "NFCI": -0.529,
+ "cat_fn_err": "Unhandled",
+ "breakdown": null,
+ "datasets_total": 35402,
+ "chicagofed": 0,
+ "clevelandfed": 0,
+ "reconcile_ok": false,
+ "smoke": {
+  "exit": 1,
+  "out": "{\n \"checked\": 9,\n \"failures\": [\n  [\n   \"data/provider-catalog.json\",\n   \"HTTPError: HTTP Error 403: Forbidden\"\n  ],\n  [\n   \"data/canary-macro.json\",\n   \"HTTPError: HTTP Error 403: Forbidden\"\n  ],\n  [\n   \"data/crisis-plumbing.json\",\n   \"HTTPError: HTTP Error 403: Forbidden\"\n  ],\n  [\n   \"data/rotation"
+ },
+ "verdict": "NFCI=-0.529 canary={\"bls_labor\": true, \"nfci\": true, \"cleveland_model\": true, \"atlanta_gdpnow\": \"ValueError: content-type asser\"} plumbing_age=1402.3 breakdown=null reconcile=False chi=0 clev=0 smoke_exit=1"
+}
