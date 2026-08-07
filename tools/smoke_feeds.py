@@ -78,6 +78,13 @@ def main():
         if ur > max_ur:
             bad.append((key, f"data_unavailable {ur:.0%} > "
                              f"{max_ur:.0%}"))
+        if key.endswith("provider-catalog.json"):
+            for pr in (d.get("providers") or []):
+                tg = pr.get("datasets_target")
+                if tg and (pr.get("datasets") or 0) > tg:
+                    bad.append((key, f"{pr.get('slug')}: datasets "
+                                     f"{pr.get('datasets')} > target "
+                                     f"{tg} (unit mix)"))
         if key.endswith("canary-macro.json"):
             fl = d.get("flags") or {}
             pairs = [("SAHMREALTIME", "sahm_triggered"),
