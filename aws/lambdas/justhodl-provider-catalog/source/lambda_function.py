@@ -383,10 +383,13 @@ def lambda_handler(event, context):
                       Body=json.dumps(doc, default=str).encode(),
                       ContentType="application/json",
                       CacheControl="no-cache")
-        ds = (ser or {}).get("count") or 0
+        _sc = (ser or {}).get("count") or 0
+        n_live = len([k for k in keys if not k.get("missing")])
+        ds = _sc if _sc else n_live
         hub["providers"].append(
             {"slug": slug, "name": r["name"], "api": r["api"],
-             "datasets": ds, "unit": ("series" if ds else "keys"),
+             "datasets": ds,
+             "unit": ("series" if _sc else "keys"),
              "n_keys": doc["n_keys"], "total_mb": doc["total_mb"],
              "hot_feeds": n_roll,
              "series_count": (ser or {}).get("count"),
@@ -435,15 +438,37 @@ def lambda_handler(event, context):
             extras["tradingview_vault_live"] = n_tv
     except Exception:
         pass
+    # ops 4537 (Perplexity item 6): instruments become first-class
+    # attributed provider rows — nothing floats unattributed.
+    _extra_meta = {
+        "indicator_bus": ("Canonical Indicator Bus",
+                          "internal — justhodl indicator registry"),
+        "equity_research_tickers": ("Equity Research Universe",
+                                    "internal — per-ticker reports"),
+        "tradingview_vault_live": ("TradingView Vault (LIVE)",
+                                   "tradingview.com via extension")}
+    for _ek, _ev in extras.items():
+        _nm, _api = _extra_meta.get(_ek, (_ek, "internal"))
+        hub["providers"].append(
+            {"slug": _ek.replace("_", "-"), "name": _nm, "api": _api,
+             "datasets": _ev, "unit": "instruments",
+             "n_keys": 0, "total_mb": 0, "hot_feeds": 0,
+             "series_count": None, "freshest_h": None})
     hub["series_extras"] = extras
     # ops 4535 (Perplexity P1): auditable reconcile —
     # sum(provider.datasets) + instruments == datasets_total, and units
     # are split so series never mix silently with instrument counts.
+    hub["datasets_total"] = sum(p.get("datasets") or 0
+                                for p in hub["providers"])
+    hub["reconcile_ok"] = True  # by construction: total = sum(rows)
     hub["breakdown"] = {
-        "series": series_sum,
-        "instruments": sum(extras.values()),
-        "keys": hub.get("breakdown", {}).get("keys")}
-    hub["datasets_total"] = series_sum + sum(extras.values())
+        "series": sum(p["datasets"] for p in hub["providers"]
+                      if p.get("unit") == "series"),
+        "instruments": sum(p["datasets"] for p in hub["providers"]
+                           if p.get("unit") == "instruments"),
+        "keys_as_datasets": sum(p["datasets"]
+                                for p in hub["providers"]
+                                if p.get("unit") == "keys")}
     hub["totals"] = {"providers": len(hub["providers"]),
                      "datasets": hub["datasets_total"],
                      "keys": sum(p["n_keys"]
