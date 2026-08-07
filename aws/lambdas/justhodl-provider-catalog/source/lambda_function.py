@@ -227,19 +227,18 @@ def _load_rollup_feeds():
     for eng, rec in engines.items():
         pv = emap.get(eng)
         if isinstance(pv, dict):
-            pv = (pv.get("provider") or
-                  (pv.get("providers") or [None])[0])
-        if isinstance(pv, list):
-            pv = pv[0] if pv else None
-        if not isinstance(pv, str):
+            pv = pv.get("providers") or [pv.get("provider")]
+        pvs = pv if isinstance(pv, list) else [pv]
+        pvs = [x.lower().strip() for x in pvs if isinstance(x, str)]
+        if not pvs:
             continue
-        prov = pv.lower().strip()
         for feed in (rec.get("writes") or []):
             if isinstance(feed, dict):
                 feed = (feed.get("key") or feed.get("feed")
                         or feed.get("path") or feed.get("name"))
             if isinstance(feed, str):
-                out.setdefault(prov, []).append(feed)
+                for prov in pvs:  # ops 4533: shared feeds -> EVERY provider
+                    out.setdefault(prov, []).append(feed)
     for k in out:
         out[k] = sorted(set(out[k]))
     if out:  # ops 4530: persist last-good
