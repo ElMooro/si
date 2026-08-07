@@ -301,6 +301,23 @@ def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
     roll = _load_rollup_feeds()
     hotidx = _hot_index()
+    key_engines = {}  # ops 4544: reverse index for the drill-down
+    try:
+        g2 = _get_json("data/audit/lambda-graph.json")
+        ov2 = _get_json("data/audit/engine-writes-overrides.json")
+        for _e, _rec in ((g2.get("engines") or {}) | {}).items():
+            for _w in (_rec.get("writes") or []):
+                if isinstance(_w, dict):
+                    _w = _w.get("key") or _w.get("feed")
+                if isinstance(_w, str):
+                    key_engines.setdefault(_w, []).append(_e)
+        for _e, _ws in (ov2.get("writes") or {}).items():
+            for _w in _ws:
+                key_engines.setdefault(_w, []).append(_e)
+        for _k in key_engines:
+            key_engines[_k] = sorted(set(key_engines[_k]))[:4]
+    except Exception:
+        pass
     try:  # ops 4508 discovery: real subfolder names, printed once
         r1 = s3.list_objects_v2(Bucket=BUCKET,
                                 Prefix="data/warm/usgov/",
@@ -377,7 +394,26 @@ def lambda_handler(event, context):
                                  or [None],
                                  key=lambda x: (x is None, x)),
                "series": ser,
-               "keys": keys[:600]}
+               "page_size": 500,
+               "n_pages": max(0, (len(keys) - 100 + 499) // 500),
+               "keys": [dict(k, status=("missing" if k.get("missing")
+                                        else "live" if k.get("age_h")
+                                        is not None else "cold"),
+                             engines=key_engines.get(k["key"], []))
+                        for k in keys[:100]]}
+        for _pi in range(doc["n_pages"]):
+            _chunk = keys[100 + _pi * 500:100 + (_pi + 1) * 500]
+            s3.put_object(
+                Bucket=BUCKET,
+                Key=f"data/providers/{slug}/page-{_pi:03d}.json",
+                Body=json.dumps({"page": _pi, "keys": [
+                    dict(k, status=("missing" if k.get("missing")
+                                    else "live" if k.get("age_h")
+                                    is not None else "cold"),
+                         engines=key_engines.get(k["key"], []))
+                    for k in _chunk]}, default=str).encode(),
+                ContentType="application/json",
+                CacheControl="no-cache")
         s3.put_object(Bucket=BUCKET,
                       Key=f"data/providers/{slug}.json",
                       Body=json.dumps(doc, default=str).encode(),
