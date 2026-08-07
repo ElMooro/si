@@ -23,6 +23,8 @@ td.n{text-align:right;color:#9fd0a8;white-space:nowrap}
 <h1 id="nm">…</h1><div class="api" id="api"></div><div class="eng" id="eng"></div>
 <div class="tot" id="tot"></div>
 <h2>EVERY DATASET / KEY PULLED FROM THIS PROVIDER</h2>
+<div style="margin:8px 0"><input id="q" placeholder="filter keys… (2+ chars)" style="background:#0d141c;border:1px solid #1c2733;color:#dfe9f2;padding:6px 10px;border-radius:7px;font-family:inherit;width:260px">
+<select id="stf" style="background:#0d141c;border:1px solid #1c2733;color:#dfe9f2;padding:6px;border-radius:7px;font-family:inherit"><option value="">all status</option><option>live</option><option>cold</option><option>missing</option></select></div>
 <table><thead><tr><th>KEY</th><th style="text-align:right">SIZE</th><th style="text-align:right">AGE</th></tr></thead><tbody id="tb"><tr><td colspan="3">Loading…</td></tr></tbody></table>
 <div id="serwrap" style="display:none"><h2>FULL SERIES INVENTORY (<span id="serc"></span>)</h2><div class="series" id="ser"></div></div>
 </div>
@@ -60,6 +62,12 @@ if(d.series&&d.series.ids){document.getElementById('serwrap').style.display='blo
  document.getElementById('serc').textContent=d.series.count.toLocaleString();
  var s=document.getElementById('ser');
  d.series.ids.forEach(function(i){var e=document.createElement('span');e.textContent=i;s.appendChild(e);});}
-}).catch(function(){document.getElementById('nm').textContent='Provider "'+slug+'" not inventoried yet — ops 4506 builds it';document.getElementById('tb').innerHTML='';});
+function _flt(){var q=(document.getElementById('q').value||'').toLowerCase();var st=document.getElementById('stf').value;
+ Array.prototype.forEach.call(tb.children,function(tr){var txt=tr.textContent.toLowerCase();
+  var ok=(q.length<2||txt.indexOf(q)>=0)&&(!st||txt.indexOf('·'+st)>=0||tr.firstChild.className.indexOf(st==='missing'?'miss':'')>=0&&st!=='live'||st==='live'&&tr.children[2].textContent!=='—');
+  tr.style.display=ok?'':'none';});}
+document.getElementById('q').addEventListener('input',_flt);
+document.getElementById('stf').addEventListener('change',_flt);
+}).catch(function(){document.getElementById('nm').textContent='Provider "'+slug+'" not inventoried yet — next hourly catalog run adds it';document.getElementById('tb').innerHTML='';});
 </script>
 <script src="/jh-nav-drawer.js" defer></script></body></html>
