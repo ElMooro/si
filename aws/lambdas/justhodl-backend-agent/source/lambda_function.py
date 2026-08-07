@@ -424,14 +424,24 @@ def bus_health_sweep():
                 # (thread,state) generation via a persistent ledger,
                 # hard cap 3 nudges then ONE escalation and silence,
                 # and never spend the last 20% of the turn ceiling.
-                led = _get("data/a2a/nudge-ledger.json", {})
+                _letag = None
+                try:
+                    _lo = s3.get_object(Bucket=BUCKET,
+                                        Key="data/a2a/nudge-ledger.json")
+                    led = json.loads(_lo["Body"].read())
+                    _letag = _lo.get("ETag")
+                except Exception:
+                    led = {}
                 lk = f"{tid}:{task.get('state')}"
                 ent = led.get(lk) or {"fired": 0, "escalated": False}
                 LADDER = [STUCK_MIN, STUCK_MIN * 2, STUCK_MIN * 4,
                           STUCK_MIN * 8]
                 due = sum(1 for th in LADDER if mins >= th)
-                n_turns = task.get("n_turns") or task.get("turns") or 0
-                if isinstance(n_turns, int) and n_turns >= 38:
+                # ops 4537 (Perplexity): the task doc never carried
+                # n_turns — read the THREAD doc's real turn count.
+                _th = _get("data/a2a/threads/" + tid + ".json", {})
+                n_turns = len(_th.get("turns") or [])
+                if n_turns >= 38:
                     pass  # turn-budget guard: last 20% is for real work
                 elif due > ent["fired"] and ent["fired"] < 3:
                     bus({"action": "post_turn", "thread_id": tid,
@@ -446,7 +456,7 @@ def bus_health_sweep():
                     repairs.append({"thread": tid, "action": "nudge",
                                     "n": ent["fired"],
                                     "state": task.get("state")})
-                elif due > 3 and not ent["escalated"]:
+                elif ent["fired"] >= 3 and not ent["escalated"]:
                     bus({"action": "post_turn", "thread_id": tid,
                          "from": "claude-backend", "to": "*",
                          "kind": "escalation",
@@ -458,7 +468,20 @@ def bus_health_sweep():
                     repairs.append({"thread": tid,
                                     "action": "escalate"})
                 led[lk] = ent
-                _put("data/a2a/nudge-ledger.json", led)
+                # conditional write: lose the race -> skip this beat
+                # (next heartbeat re-reads; counter never regresses)
+                try:
+                    _kw = {"Bucket": BUCKET,
+                           "Key": "data/a2a/nudge-ledger.json",
+                           "Body": json.dumps(led).encode(),
+                           "ContentType": "application/json"}
+                    if _letag:
+                        _kw["IfMatch"] = _letag
+                    else:
+                        _kw["IfNoneMatch"] = "*"
+                    s3.put_object(**_kw)
+                except Exception:
+                    pass  # precondition failed = concurrent sweep won
     doc = {"swept_at": now, "n_findings": len(findings),
            "n_repairs": len(repairs), "findings": findings[-40:],
            "repairs": repairs[-40:],
