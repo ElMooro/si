@@ -1,1 +1,7 @@
-executing-against: d4c6108faf07750e2ac1e0278f3e8e4cbca7791d
+executing-against: 078229baa4ee6187e565e3ed474f2823dede6cc2
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/4544_drill.py", line 60, in <module>
+    f"{json.dumps(R['eurostat_blitz'])}. P1 actual-vs-target: eurostat row {json.dumps(R['eurostat_row'])}, "
+                  ~^^^^^^^^^^^^^^^^^^
+KeyError: 'eurostat_blitz'
+❌ OPS-FAIL: aws/ops/pending/4544_drill.py
