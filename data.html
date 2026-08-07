@@ -24,7 +24,8 @@ a.card:hover{border-color:#2f4a6a}
 fetch('/data/provider-catalog.json?t='+Date.now()).then(r=>r.json()).then(function(d){
 var t=d.totals||{};document.getElementById('tot').innerHTML=
  '<div><b>'+(t.providers||0)+'</b><span>PROVIDERS</span></div>'+
- '<div><b>'+(t.keys||0).toLocaleString()+'</b><span>DATASETS / KEYS</span></div>'+
+ '<div><b>'+((d.datasets_total||t.datasets||t.keys)||0).toLocaleString()+'</b><span>DATASETS / SERIES</span></div>'+
+ '<div><b>'+(t.keys||0).toLocaleString()+'</b><span>S3 KEYS</span></div>'+
  '<div><b>'+(t.gb||0)+' GB</b><span>WARM + HOT</span></div>'+
  '<div><b>'+new Date(d.as_of).toUTCString().slice(5,22)+'</b><span>INVENTORIED</span></div>';
 var g=document.getElementById('g');g.innerHTML='';
