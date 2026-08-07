@@ -27,6 +27,7 @@ var t=d.totals||{};document.getElementById('tot').innerHTML=
  '<div><b>'+((d.datasets_total||t.datasets||t.keys)||0).toLocaleString()+'</b><span>DATASETS / SERIES</span></div>'+
  '<div><b>'+(t.keys||0).toLocaleString()+'</b><span>S3 KEYS</span></div>'+
  '<div><b>'+(t.gb||0)+' GB</b><span>WARM + HOT</span></div>'+
+ (d.breakdown?'<div style="flex-basis:100%;font-size:10px;color:#5d7285;margin-top:-8px">reconcile: '+(d.breakdown.series||0).toLocaleString()+' series + '+(d.breakdown.instruments||0).toLocaleString()+' instruments = '+((d.datasets_total)||0).toLocaleString()+' datasets · '+(d.breakdown.keys||0).toLocaleString()+' S3 keys</div>':'')+
  '<div><b>'+new Date(d.as_of).toUTCString().slice(5,22)+'</b><span>INVENTORIED</span></div>';
 var g=document.getElementById('g');g.innerHTML='';
 (d.providers||[]).forEach(function(p){
