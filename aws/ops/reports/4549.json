@@ -1,0 +1,49 @@
+{
+ "ops": 4549,
+ "started": "2026-08-09T02:52:20.892325+00:00",
+ "ecb_catalog_err": "HTTP Error 406: Not Acceptable",
+ "cat_fn_err": null,
+ "hub_breakdown": {
+  "provider_datasets": 20093,
+  "instruments": 23355
+ },
+ "hub_totals": {
+  "providers": 42,
+  "datasets": 43448,
+  "keys": 20093,
+  "gb": 40.07
+ },
+ "rows": {
+  "eurostat": {
+   "datasets": 8185,
+   "datasets_target": 8146,
+   "coverage_pct": 100.0,
+   "coverage_note": "at_or_above_target"
+  },
+  "statcan": {
+   "datasets": 7962,
+   "datasets_target": 8221,
+   "coverage_pct": 96.8,
+   "coverage_note": null
+  },
+  "bis": {
+   "datasets": 56,
+   "datasets_target": 29,
+   "coverage_pct": 100.0,
+   "coverage_note": "at_or_above_target"
+  },
+  "oecd": {
+   "datasets": 556,
+   "datasets_target": 1542,
+   "coverage_pct": 36.1,
+   "coverage_note": null
+  },
+  "ecb": {
+   "datasets": 174,
+   "datasets_target": null,
+   "coverage_pct": null,
+   "coverage_note": null
+  }
+ },
+ "verdict": "ecb=null rows={\"eurostat\": {\"datasets\": 8185, \"datasets_target\": 8146, \"coverage_pct\": 100.0, \"coverage_note\": \"at_or_above_target\"}, \"statcan\": {\"datasets\": 7962, \"datasets_target\": 8221, \"coverage_pct\": 96.8, \"coverage_note\": null}, \"bis\": {\"datasets\": 56, \"datasets_target\": 29, \"coverage_pct\": 100.0, \"coverage_note\": \"at_or_above_target\"}, \"oecd\": {\"datasets\": 556, \"datasets_target\": 1542, \"coverage_pct\": 36.1, \"coverage_note\": null}, \"ecb\": {\"datasets\": 174, \"datasets_target\": null, \"coverage_pct\": null, \"coverage_note\": null}} breakdown={\"provider_datasets\": 20093, \"instruments\": 23355}"
+}
