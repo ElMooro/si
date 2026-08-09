@@ -1,0 +1,18 @@
+{
+ "ops": 4559,
+ "at": "2026-08-09T15:04:16.497472+00:00",
+ "fred_cron": "DISABLED",
+ "ssm_param": "already exists (leaving Khalid's value intact)",
+ "files_with_hardcoded_key": 156,
+ "untouched": {
+  "eurostat": {
+   "done": 8146,
+   "status": "COMPLETE"
+  },
+  "statcan": {
+   "done": 8221,
+   "status": "COMPLETE"
+  }
+ },
+ "verdict": "fred_cron=DISABLED ssm=already exists (leaving Khalid's value intact) untouched={\"eurostat\": {\"done\": 8146, \"status\": \"COMPLETE\"}, \"statcan\": {\"done\": 8221, \"status\": \"COMPLETE\"}}"
+}
