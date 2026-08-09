@@ -1,0 +1,57 @@
+{
+ "ops": 4551,
+ "at": "2026-08-09T03:05:45.944132+00:00",
+ "safety_verification": {
+  "eurostat": {
+   "done": 8146,
+   "n_total": 8146,
+   "status": "COMPLETE",
+   "has_new_ecb_error": false
+  },
+  "statcan": {
+   "done": 8221,
+   "n_total": 8221,
+   "status": "COMPLETE",
+   "has_new_ecb_error": false
+  },
+  "oecd": {
+   "done": 1542,
+   "n_total": 1542,
+   "status": "converging",
+   "has_new_ecb_error": false
+  },
+  "bis": {
+   "done": 29,
+   "n_total": 29,
+   "status": "COMPLETE",
+   "has_new_ecb_error": false
+  },
+  "hub_totals": {
+   "providers": 42,
+   "datasets": 43448,
+   "keys": 20093,
+   "gb": 40.07
+  },
+  "hub_row_check": {
+   "statcan": 7962,
+   "eurostat": 8185,
+   "oecd": 556,
+   "polygon": 258,
+   "bis": 56,
+   "yahoo": 66,
+   "fred": 298,
+   "ofr": 482,
+   "nyfed": 1510
+  },
+  "walker_state": "Active",
+  "walker_last_error_status": "Successful"
+ },
+ "all_existing_data_intact": false,
+ "ecb_attempt": {
+  "url": "https://data-api.ecb.europa.eu/service/dataflow/ECB/all/latest?references=none",
+  "accept": "application/vnd.sdmx.structure+json;version=1.0",
+  "err": "HTTPError: HTTP Error 406: Not Acceptable"
+ },
+ "ecb_stopped_guessing": true,
+ "verdict": "SAFE=False hub={\"providers\": 42, \"datasets\": 43448, \"keys\": 20093, \"gb\": 40.07} ecb_ok=None ecb_n=0"
+}
