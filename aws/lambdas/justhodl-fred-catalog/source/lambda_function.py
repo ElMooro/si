@@ -303,7 +303,7 @@ def _run_scoped_import(t0, now):
                 + st["series_excluded_stale"]
                 + st.get("series_excluded_discontinued", 0)
                 + st.get("series_skipped_already", 0)
-                + len(buf) + n_err)
+                + n_err)  # ops 4564: buf rows already in imported
     st["accounting"] = {"seen": st["series_seen"],
                        "accounted": accounted,
                        "reconciles": accounted == st["series_seen"]}
