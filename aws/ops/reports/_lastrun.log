@@ -1,13 +1,10 @@
-executing-against: 13f83553bd1b739fdecf259e004b2790df2aecc8
-ops 4569 — disk-true FRED accounting verify
-── 1. settle both engines by marker ──
-[19:33:18] ✅ both settled after 0s
-── 2. importer dedup proof (state before/after fire) ──
-── 3. hub regen + gates (independent disk recount) ──
-[19:36:38] ✅ hub refreshed after 18s
-── 4. served hub proof (edge) ──
-[19:36:38] ✅ edge hub carries disk-true note (attempt 1): 1341 series
-[19:36:38] ✅ PASS_ALL — disk is the source of truth end to end
+executing-against: ca78f6f65e6ee5dd6d3202bdc73089c55279c8b1
+ops 4570 — import checkpoint vs 22:48 snapshot
+── 1. disk truth ──
+── 2. importer state + schedule + fires ──
+── 3. hub freshness + page parity + regressions ──
+── 4. served hub (what the page fetches) ──
+[23:52:15] ✅ IMPORTING_AND_PAGE_TRUE banked=5967 (+938 in 1.1h, 876.1/hr) cats=81/179 rule=ENABLED inv2h=71
 
-→ Report written to aws/ops/reports/latest/4569_disk_truth_verify.md
-PASS_ALL
+→ Report written to aws/ops/reports/latest/4570_import_checkpoint.md
+IMPORTING_AND_PAGE_TRUE banked=5967 (+938 in 1.1h, 876.1/hr) cats=81/179 rule=ENABLED inv2h=71

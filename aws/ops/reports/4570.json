@@ -1,0 +1,43 @@
+{
+ "ops": 4570,
+ "at": "2026-08-09T23:52:14.208980+00:00",
+ "disk": {
+  "banked_now": 5967,
+  "page_snapshot": 5029,
+  "delta": 938,
+  "hours": 1.07,
+  "per_hr": 876.1
+ },
+ "state": {
+  "cats_done": 81,
+  "of": 179,
+  "queued": 375782,
+  "skipped_already": 125814,
+  "status": "walking",
+  "blocked_at": null,
+  "state_age_min": 3.5
+ },
+ "schedule": {
+  "rule": "ENABLED",
+  "inv_2h": 71
+ },
+ "hub": {
+  "as_of": "2026-08-09T23:48:53+00:00",
+  "age_min": 3.4,
+  "fred_series": 5892,
+  "fred_keys": 8442,
+  "note": "scoped import: 5,892 series banked \u00b7 81/179 categories \u00b7 walking",
+  "totals": {
+   "providers": 42,
+   "datasets": 51792,
+   "keys": 28405,
+   "gb": 44.13
+  }
+ },
+ "served": {
+  "as_of": "2026-08-09T23:48:53+00:00",
+  "fred_series": 5892
+ },
+ "verdict": "IMPORTING_AND_PAGE_TRUE banked=5967 (+938 in 1.1h, 876.1/hr) cats=81/179 rule=ENABLED inv2h=71",
+ "fails": []
+}
