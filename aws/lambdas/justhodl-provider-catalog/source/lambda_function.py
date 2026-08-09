@@ -544,14 +544,16 @@ def lambda_handler(event, context):
     hub["datasets_total"] = sum(p.get("datasets") or 0
                                 for p in hub["providers"])
     hub["reconcile_ok"] = True  # by construction: total = sum(rows)
+    # ops 4548b: every normal provider is unit=="keys" now (by
+    # design, per Perplexity's actual/target split) — the old
+    # "series" bucket was permanently 0 and confusing on the page.
+    # Two honest buckets only.
     hub["breakdown"] = {
-        "series": sum(p["datasets"] for p in hub["providers"]
-                      if p.get("unit") == "series"),
+        "provider_datasets": sum(p["datasets"]
+                                 for p in hub["providers"]
+                                 if p.get("unit") == "keys"),
         "instruments": sum(p["datasets"] for p in hub["providers"]
-                           if p.get("unit") == "instruments"),
-        "keys_as_datasets": sum(p["datasets"]
-                                for p in hub["providers"]
-                                if p.get("unit") == "keys")}
+                           if p.get("unit") == "instruments")}
     hub["totals"] = {"providers": len(hub["providers"]),
                      "datasets": hub["datasets_total"],
                      "keys": sum(p["n_keys"]
