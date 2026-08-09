@@ -1,18 +1,13 @@
-executing-against: 05a6adbc897e5ef42d530249c76c05b4b4b38078
-ops 4568 — data page truth: verify catalog fixes
-── 1. zip-settle the redeployed engine ──
-[19:24:53] ✅ marker present after 0s (zip 100KB)
-── 2. refresh the hub (Event + as_of poll) ──
-[19:25:11] ✅ hub refreshed after 18s -> as_of 2026-08-09T19:24:54+00:00
-── 3. gates on the corrected numbers ──
-── 4. served-page proof (edge) ──
-[19:25:12] attempt 1: stale (cf=None)
-[19:25:34] attempt 2: stale (cf=None)
-[19:25:56] attempt 3: stale (cf=None)
-[19:26:18] attempt 4: stale (cf=None)
-[19:26:40] ✅ edge serves new page (attempt 5, cf=None)
-[19:26:40] ✗ GATES FAILED: totals.keys 23706 < 25000 — fred keys did not land in totals
+executing-against: 13f83553bd1b739fdecf259e004b2790df2aecc8
+ops 4569 — disk-true FRED accounting verify
+── 1. settle both engines by marker ──
+[19:33:18] ✅ both settled after 0s
+── 2. importer dedup proof (state before/after fire) ──
+── 3. hub regen + gates (independent disk recount) ──
+[19:36:38] ✅ hub refreshed after 18s
+── 4. served hub proof (edge) ──
+[19:36:38] ✅ edge hub carries disk-true note (attempt 1): 1341 series
+[19:36:38] ✅ PASS_ALL — disk is the source of truth end to end
 
-→ Report written to aws/ops/reports/latest/4568_data_page_truth.md
-FAIL: totals.keys 23706 < 25000 — fred keys did not land in totals
-❌ OPS-FAIL: aws/ops/pending/ops_4568_data_page_truth.py
+→ Report written to aws/ops/reports/latest/4569_disk_truth_verify.md
+PASS_ALL
