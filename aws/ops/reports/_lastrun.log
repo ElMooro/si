@@ -1,1 +1,11 @@
-executing-against: 9208b32ef00f1d7bd0f2973164def3891b61cc46
+executing-against: cd4e70216157427b96c2606382f76755b22be9c2
+ops 4567 — FRED scoped-import liveness (read-only)
+── state ──
+── delta vs ops-4566 baseline (2057 imported, 68/179 cats) ──
+[19:09:35] ✅ rule justhodl-fred-catalog-5min: ENABLED rate(5 minutes)
+── manifest ──
+── hub ──
+[19:09:35] ✅ IMPORTING imported=6269 (+4212 in 2.6h) cats=68/179 rule=ENABLED inv3h=114 state_age_min=5.8
+
+→ Report written to aws/ops/reports/latest/4567_fred_liveness.md
+IMPORTING imported=6269 (+4212 in 2.6h) cats=68/179 rule=ENABLED inv3h=114 state_age_min=5.8

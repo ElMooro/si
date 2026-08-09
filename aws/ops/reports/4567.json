@@ -1,0 +1,71 @@
+{
+ "ops": 4567,
+ "at": "2026-08-09T19:09:34.416340+00:00",
+ "state": {
+  "cats_done": 68,
+  "of": 179,
+  "series_seen": 11083,
+  "series_queued": 5407,
+  "imported_total": 6269,
+  "excluded_stale": 92,
+  "status": "walking",
+  "blocked_at": null,
+  "updated_at": "2026-08-09T19:03:47+00:00",
+  "state_age_min": 5.8,
+  "accounting": {
+   "seen": 11083,
+   "accounted": 11083,
+   "reconciles": true
+  }
+ },
+ "err_count": 2,
+ "err_sample": [
+  [
+   "RESPPLLOPNWW",
+   "HTTP Error 429: Too Many Requests"
+  ],
+  [
+   "WSHOFADSL",
+   "HTTP Error 500: Internal Server Error"
+  ]
+ ],
+ "delta": {
+  "since": "2026-08-09T16:35:00+00:00",
+  "hours": 2.58,
+  "imported": 4212,
+  "cats": 0,
+  "imported_per_hr": 1634.9
+ },
+ "rule": {
+  "state": "ENABLED",
+  "expr": "rate(5 minutes)"
+ },
+ "cw_3h": {
+  "invocations": 114,
+  "errors": 8
+ },
+ "manifest": {
+  "categories_done": 68,
+  "categories_total": 179,
+  "series_imported": 6269,
+  "updated_at": "2026-08-09T19:03:47+00:00",
+  "status": "walking"
+ },
+ "hub_totals": {
+  "providers": 42,
+  "datasets": 43648,
+  "keys": 20178,
+  "gb": 41.63
+ },
+ "hub_fred": {
+  "n_keys": 298,
+  "total_mb": 31.05,
+  "freshest_h": 0.1
+ },
+ "hub_statcan": {
+  "n_keys": 7962,
+  "datasets_target": 8221,
+  "coverage_pct": 96.8
+ },
+ "verdict": "IMPORTING imported=6269 (+4212 in 2.6h) cats=68/179 rule=ENABLED inv3h=114 state_age_min=5.8"
+}
