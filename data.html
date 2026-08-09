@@ -24,7 +24,7 @@ a.card:hover{border-color:#2f4a6a}
 fetch('/data/provider-catalog.json?t='+Date.now()).then(r=>r.json()).then(function(d){
 var t=d.totals||{};document.getElementById('tot').innerHTML=
  '<div><b>'+(t.providers||0)+'</b><span>PROVIDERS</span></div>'+
- '<div><b>'+((d.datasets_total||t.datasets||t.keys)||0).toLocaleString()+'</b><span>DATASETS / SERIES</span></div>'+
+ '<div><b>'+((d.datasets_total||t.datasets||t.keys)||0).toLocaleString()+'</b><span>DATASETS / FILES</span></div>'+
  '<div><b>'+(t.keys||0).toLocaleString()+'</b><span>S3 KEYS</span></div>'+
  '<div><b>'+(t.gb||0)+' GB</b><span>WARM + HOT</span></div>'+
  (d.breakdown?'<div style="flex-basis:100%;font-size:10px;color:#5d7285;margin-top:-8px">reconcile: '+(d.breakdown.provider_datasets||0).toLocaleString()+' provider datasets + '+(d.breakdown.instruments||0).toLocaleString()+' instruments = '+((d.datasets_total)||0).toLocaleString()+' total</div>':'')+
@@ -38,7 +38,7 @@ var g=document.getElementById('g');g.innerHTML='';
   (p.series_count?'<span><b>'+p.series_count.toLocaleString()+'</b> <i>series</i></span>':'')+
   '<span><b>'+p.total_mb+'</b> <i>MB</i></span></div>'+
   '<div class="fr" style="color:'+fc+'">freshest '+(fh==null?'—':fh+'h')+'</div>'+
-  (p.coverage_pct!=null?'<div style="height:4px;background:#141d27;border-radius:3px;margin-top:6px"><div style="height:4px;border-radius:3px;width:'+Math.min(100,p.coverage_pct)+'%;background:'+(p.coverage_pct>=99?'#5fbf7f':p.coverage_pct>=25?'#e0b552':'#e05252')+'"></div></div><div style="font-size:9px;color:#5d7285;margin-top:2px">'+p.coverage_pct+'% of '+(p.datasets_target||0).toLocaleString()+' target</div>':'');
+  (p.coverage_pct!=null?'<div style="height:4px;background:#141d27;border-radius:3px;margin-top:6px"><div style="height:4px;border-radius:3px;width:'+Math.min(100,p.coverage_pct)+'%;background:'+(p.coverage_pct>=99?'#5fbf7f':p.coverage_pct>=25?'#e0b552':'#e05252')+'"></div></div><div style="font-size:9px;color:#5d7285;margin-top:2px">'+p.coverage_pct+'% of '+(p.datasets_target||0).toLocaleString()+' target'+(p.denied_source_side?' · '+p.denied_source_side+' denied at source':'')+'</div>':'');
  g.appendChild(a);});
 }).catch(function(e){document.getElementById('g').textContent='catalog unavailable — first inventory runs with ops 4506';});
 </script>

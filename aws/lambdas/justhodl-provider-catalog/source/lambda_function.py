@@ -468,10 +468,19 @@ def lambda_handler(event, context):
                if tgt else None)
         cov_note = ("at_or_above_target"
                     if (tgt and n_live >= tgt) else None)
+        denied = None
+        if slug == "oecd":
+            try:
+                denied = len((_get_json(
+                    "data/_state/sdmx-walk-oecd.json")
+                    .get("failures") or {}))
+            except Exception:
+                denied = None
         hub["providers"].append(
             {"slug": slug, "name": r["name"], "api": r["api"],
              "datasets": ds, "datasets_target": tgt,
              "coverage_pct": cov, "coverage_note": cov_note,
+             "denied_source_side": denied,
              "unit": "keys",
              "n_keys": doc["n_keys"], "total_mb": doc["total_mb"],
              "hot_feeds": n_roll,
