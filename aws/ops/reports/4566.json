@@ -1,0 +1,44 @@
+{
+ "ops": 4566,
+ "started": "2026-08-09T16:25:27.423377+00:00",
+ "err_sample": [
+  [
+   "22",
+   "HTTP Error 400: Bad Request"
+  ],
+  [
+   "82",
+   "HTTP Error 400: Bad Request"
+  ],
+  [
+   "115",
+   "HTTP Error 400: Bad Request"
+  ],
+  [
+   "116",
+   "HTTP Error 400: Bad Request"
+  ],
+  [
+   "34003",
+   "HTTP Error 400: Bad Request"
+  ]
+ ],
+ "baseline": 2000,
+ "rounds": [
+  {
+   "cats_done": 68,
+   "of": 179,
+   "seen": 1323,
+   "queued": 277,
+   "imported_total": 2057,
+   "accounting": {
+    "seen": 1323,
+    "accounted": 1323,
+    "reconciles": true
+   },
+   "status": "walking"
+  }
+ ],
+ "both_reconcile": true,
+ "verdict": "both_reconcile=True rounds=[{\"cats_done\": 68, \"of\": 179, \"seen\": 1323, \"queued\": 277, \"imported_total\": 2057, \"accounting\": {\"seen\": 1323, \"accounted\": 1323, \"reconciles\": true}, \"status\": \"walking\"}]"
+}
