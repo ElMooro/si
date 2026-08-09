@@ -186,7 +186,6 @@ def _run_scoped_import(t0, now):
                     f"?category_id={cid}&api_key={FRED_KEY}"
                     "&file_type=json&limit=1000"
                     "&order_by=last_updated&sort_order=desc"
-                    "&exclude_tag_names=discontinued"
                     f"&offset={offset}")
                 serieslist = d.get("seriess", [])
                 for s in serieslist:
