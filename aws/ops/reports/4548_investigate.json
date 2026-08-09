@@ -1,0 +1,156 @@
+{
+ "ops": 4548,
+ "at": "2026-08-09T02:44:56.280049+00:00",
+ "mode": "READ-ONLY",
+ "walkers": {
+  "eurostat": {
+   "done": 8146,
+   "target_known": 8146,
+   "lease_active": false,
+   "lease_until_s_from_now": -1786243496.6,
+   "state_age_min": 0.2,
+   "recent_failures": 6
+  },
+  "oecd": {
+   "done": 1542,
+   "target_known": 1542,
+   "lease_active": false,
+   "lease_until_s_from_now": -1786243496.8,
+   "state_age_min": 0.2,
+   "recent_failures": 991
+  },
+  "statcan": {
+   "done": 8221,
+   "target_known": 6335,
+   "lease_active": false,
+   "lease_until_s_from_now": -1786243496.9,
+   "state_age_min": 0.2,
+   "recent_failures": 293
+  },
+  "bis": {
+   "done": 29,
+   "target_known": 29,
+   "lease_active": false,
+   "lease_until_s_from_now": -1786243497.1,
+   "state_age_min": 0.2,
+   "recent_failures": 1
+  }
+ },
+ "walker_rules": [
+  {
+   "name": "justhodl-sdmx-walker-hourly",
+   "ScheduleExpression": "rate(5 minutes)",
+   "State": "ENABLED"
+  }
+ ],
+ "walker_recent_log_tail": [],
+ "hub_as_of": "2026-08-09T02:38:32+00:00",
+ "hub_totals": {
+  "providers": 42,
+  "datasets": 43448,
+  "keys": 20093,
+  "gb": 40.07
+ },
+ "hub_breakdown": {
+  "series": 0,
+  "instruments": 23355,
+  "keys_as_datasets": 20093
+ },
+ "hub_rows": {
+  "eurostat": {
+   "datasets": 8185,
+   "datasets_target": null,
+   "coverage_pct": null,
+   "n_keys": 8185,
+   "total_mb": 8892.52,
+   "freshest_h": 0.8
+  },
+  "oecd": {
+   "datasets": 556,
+   "datasets_target": 1542,
+   "coverage_pct": 36.1,
+   "n_keys": 556,
+   "total_mb": 486.5,
+   "freshest_h": 0.8
+  },
+  "statcan": {
+   "datasets": 7962,
+   "datasets_target": 6335,
+   "coverage_pct": null,
+   "n_keys": 7962,
+   "total_mb": 28064.0,
+   "freshest_h": 0.8
+  },
+  "bis": {
+   "datasets": 56,
+   "datasets_target": null,
+   "coverage_pct": null,
+   "n_keys": 56,
+   "total_mb": 57.76,
+   "freshest_h": 0.8
+  },
+  "fred": {
+   "datasets": 298,
+   "datasets_target": null,
+   "coverage_pct": null,
+   "n_keys": 298,
+   "total_mb": 32.25,
+   "freshest_h": 0.0
+  },
+  "ecb": {
+   "datasets": 174,
+   "datasets_target": null,
+   "coverage_pct": null,
+   "n_keys": 174,
+   "total_mb": 37.59,
+   "freshest_h": 0.8
+  },
+  "polygon": {
+   "datasets": 258,
+   "datasets_target": null,
+   "coverage_pct": null,
+   "n_keys": 258,
+   "total_mb": 144.65,
+   "freshest_h": 0.1
+  },
+  "yahoo": {
+   "datasets": 66,
+   "datasets_target": null,
+   "coverage_pct": null,
+   "n_keys": 66,
+   "total_mb": 34.38,
+   "freshest_h": 0.4
+  }
+ },
+ "engine_trace": {
+  "justhodl-canary-macro": {
+   "exists": true,
+   "last_modified": "2026-08-09T02:34:49.000+0000",
+   "rules": [
+    {
+     "name": "justhodl-canary-macro-hourly",
+     "sched": "cron(10 11 * * ? *)",
+     "state": "ENABLED"
+    }
+   ]
+  },
+  "justhodl-ecb-catalog": {
+   "exists": false
+  },
+  "justhodl-polygon-daily": {
+   "exists": false
+  },
+  "justhodl-yahoo-proxy": {
+   "exists": false
+  },
+  "justhodl-tradingview": {
+   "exists": true,
+   "last_modified": "2026-08-01T05:12:16.000+0000",
+   "rules": []
+  }
+ },
+ "engine_errors": {
+  "justhodl-ecb-catalog": "ERR An error occurred (ResourceNotFoundException) when calling t",
+  "justhodl-polygon-daily": "ERR An error occurred (ResourceNotFoundException) when calling t"
+ }
+}
