@@ -165,7 +165,7 @@ def _walk_generic(agency, ids, url_fn, out_prefix, S,
                  "n_failures": len(st.get("failures", {}))}
 
 
-AGENTS = ("bis", "eurostat", "oecd", "statcan")
+AGENTS = ("bis", "eurostat", "oecd", "statcan", "ecb")
 
 
 def lambda_handler(event, context):
@@ -182,7 +182,8 @@ def lambda_handler(event, context):
                         InvocationType="Event",
                         Payload=json.dumps(
                             {"agency": _a,
-                             "budget": (700 if _a == "eurostat"
+                             "budget": (700 if _a in
+                                        ("eurostat", "ecb")
                                         else 230)}).encode())
         return {"statusCode": 200,
                 "body": json.dumps({"fanout": list(AGENTS)})}
@@ -215,6 +216,19 @@ def lambda_handler(event, context):
         S["eurostat"] = {"data_unavailable": True,
                          "reason": f"{type(e).__name__}: "
                                    f"{str(e)[:60]}"}
+    try:
+        ecb_ids = _order([f["id"] for f in _get_json(
+            "data/warm/ecb/catalog.json.gz")["dataflows"]],
+            ("BSI", "MIR", "ICP", "STS", "GFS", "BOP", "EXR"))
+        if ag == "ecb":
+          _walk_generic(
+            "ecb", ecb_ids,
+            lambda f: (f"https://data-api.ecb.europa.eu/service/"
+                       f"data/{f}?format=csvdata"),
+            "data/warm/ecb/data", S, _budget=_ebud)
+    except Exception as e:
+        S["ecb"] = {"data_unavailable": True,
+                    "reason": f"{type(e).__name__}: {str(e)[:60]}"}
     try:
         oe_ids = _order([f["id"] for f in _get_json(
             "data/warm/oecd/catalog.json.gz")["dataflows"]], OECD_PRI)
