@@ -55,8 +55,11 @@ REG = {
                "data/warm/usgov/frb"]},
  "fred": {"name": "FRED — St. Louis Fed",
   "api": "fred.stlouisfed.org",
-  "engines": ["justhodl-canary-macro", "many legacy engines"],
-  "prefixes": ["data/warm/fred-canary/"],
+  "engines": ["justhodl-fred-catalog", "justhodl-canary-macro",
+              "many legacy engines"],
+  "prefixes": ["data/warm/fred-canary/", "data/warm/fred-scoped/",
+               "data/warm/fred-catalog/",
+               "data/providers/fred-scoped/"],
   "hot": ["data/canary-macro.json"]},
  "sec-edgar": {"name": "SEC EDGAR — filings index",
   "api": "sec.gov/Archives", "engines": ["justhodl-edgar-index",
@@ -311,7 +314,10 @@ def lambda_handler(event, context):
                                "justhodl-global-expansion"],
         "data/warm/bis/": ["justhodl-sdmx-walker",
                            "justhodl-bis-gleif"],
-        "data/warm/fred-canary/": ["justhodl-canary-macro"]}
+        "data/warm/fred-canary/": ["justhodl-canary-macro"],
+        "data/warm/fred-scoped/": ["justhodl-fred-catalog"],
+        "data/warm/fred-catalog/": ["justhodl-fred-catalog"],
+        "data/providers/fred-scoped/": ["justhodl-fred-catalog"]}
     try:
         g2 = _get_json("data/audit/lambda-graph.json")
         ov2 = _get_json("data/audit/engine-writes-overrides.json")
@@ -459,7 +465,10 @@ def lambda_handler(event, context):
                 tgt = wst.get("n_total")
             except Exception:
                 tgt = None
-        if tgt is None:
+        if tgt is None and slug != "fred":
+            # ops 4568: banked providers hold many series per key —
+            # comparing a series count to container keys fabricates a
+            # coverage %. FRED progress rides catalog_note instead.
             tgt = _sc if _sc and _sc > n_live else None
         # never hide progress: cap the DISPLAYED pct at 100, note if
         # actual exceeds nominal (a few retried/renamed keys, not a
@@ -469,13 +478,32 @@ def lambda_handler(event, context):
         cov_note = ("at_or_above_target"
                     if (tgt and n_live >= tgt) else None)
         denied = None
-        if slug == "oecd":
+        if slug in ("oecd", "statcan"):
+            # ops 4568: StatCan's 8,221-vs-7,962 gap = walker failures;
+            # surface them exactly like OECD's source-side denials.
             try:
                 denied = len((_get_json(
-                    "data/_state/sdmx-walk-oecd.json")
+                    f"data/_state/sdmx-walk-{slug}.json")
                     .get("failures") or {}))
             except Exception:
                 denied = None
+        note = None
+        if slug == "fred":
+            # ops 4568: the scoped importer banks whole series inside
+            # per-series warm keys (imported_ids caps at 2000, so the
+            # manifest count is the truth) — live progress on the row.
+            try:
+                _fm = _get_json(
+                    "data/providers/fred-scoped/manifest.json")
+                _fi = _fm.get("series_imported") or 0
+                note = (f"scoped import: {_fi:,} series · "
+                        f"{_fm.get('categories_done') or 0}/"
+                        f"{_fm.get('categories_total') or 0}"
+                        f" categories · {_fm.get('status') or '—'}")
+                if _fi:
+                    ser = dict(ser or {}, count=_fi)
+            except Exception:
+                note = None
         hub["providers"].append(
             {"slug": slug, "name": r["name"], "api": r["api"],
              "datasets": ds, "datasets_target": tgt,
@@ -485,6 +513,7 @@ def lambda_handler(event, context):
              "n_keys": doc["n_keys"], "total_mb": doc["total_mb"],
              "hot_feeds": n_roll,
              "series_count": (ser or {}).get("count"),
+             "catalog_note": note,
              "freshest_h": doc["freshest_h"]})
     hub["providers"].sort(key=lambda p: -(p["total_mb"] or 0))
     hub.setdefault("breakdown", {})["keys"] = sum(
@@ -495,28 +524,45 @@ def lambda_handler(event, context):
     series_sum = sum((p.get("series_count") or 0)
                      for p in hub["providers"])
     extras = {}
+    _xstat = {}  # ops 4568: extras were shipping 0 keys/0 MB/no
+    # freshness — the page card rendered nothing but zeros while the
+    # real instrument counts sat unrendered in `datasets`.
     try:  # canonical indicator bus (18k+ indicators)
         ib = _get_json("data/indicator-bus.json")
         n_ib = (ib.get("n") or ib.get("count") or
                 len(ib.get("indicators") or ib.get("items") or []))
         if n_ib:
             extras["indicator_bus"] = n_ib
+            _sa = hotidx.get("data/indicator-bus.json")
+            if _sa:
+                _xstat["indicator_bus"] = {
+                    "n_keys": 1, "mb": round(_sa[0] / 1e6, 2),
+                    "freshest_h": _sa[1]}
     except Exception:
         pass
     try:  # per-ticker equity research universe (count objects)
-        n_eq, tok2 = 0, None
+        n_eq, tok2, _teq, _feq = 0, None, 0, None
         while True:
             kw2 = {"Bucket": BUCKET, "Prefix": "equity-research/",
                    "MaxKeys": 1000}
             if tok2:
                 kw2["ContinuationToken"] = tok2
             r2 = s3.list_objects_v2(**kw2)
-            n_eq += len(r2.get("Contents", []))
+            for _o2 in r2.get("Contents", []):
+                n_eq += 1
+                _teq += _o2["Size"]
+                _a2 = round((now - _o2["LastModified"])
+                            .total_seconds() / 3600, 1)
+                if _feq is None or _a2 < _feq:
+                    _feq = _a2
             if not r2.get("IsTruncated"):
                 break
             tok2 = r2.get("NextContinuationToken")
         if n_eq:
             extras["equity_research_tickers"] = n_eq
+            _xstat["equity_research_tickers"] = {
+                "n_keys": n_eq, "mb": round(_teq / 1e6, 2),
+                "freshest_h": _feq}
     except Exception:
         pass
     try:  # TradingView vault LIVE symbols
@@ -528,6 +574,11 @@ def lambda_handler(event, context):
                 if isinstance(tv, dict) else 0)
         if isinstance(n_tv, int) and n_tv:
             extras["tradingview_vault_live"] = n_tv
+            _st2 = hotidx.get("data/tradingview.json")
+            if _st2:
+                _xstat["tradingview_vault_live"] = {
+                    "n_keys": 1, "mb": round(_st2[0] / 1e6, 2),
+                    "freshest_h": _st2[1]}
     except Exception:
         pass
     # ops 4537 (Perplexity item 6): instruments become first-class
@@ -541,11 +592,14 @@ def lambda_handler(event, context):
                                    "tradingview.com via extension")}
     for _ek, _ev in extras.items():
         _nm, _api = _extra_meta.get(_ek, (_ek, "internal"))
+        _xs = _xstat.get(_ek, {})
         hub["providers"].append(
             {"slug": _ek.replace("_", "-"), "name": _nm, "api": _api,
              "datasets": _ev, "unit": "instruments",
-             "n_keys": 0, "total_mb": 0, "hot_feeds": 0,
-             "series_count": None, "freshest_h": None})
+             "n_keys": _xs.get("n_keys", 0),
+             "total_mb": _xs.get("mb", 0), "hot_feeds": 0,
+             "series_count": None,
+             "freshest_h": _xs.get("freshest_h")})
     hub["series_extras"] = extras
     # ops 4535 (Perplexity P1): auditable reconcile —
     # sum(provider.datasets) + instruments == datasets_total, and units
