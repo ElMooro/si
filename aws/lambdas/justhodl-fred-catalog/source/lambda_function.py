@@ -35,7 +35,7 @@ PAGE = 500
 # (persists across the sequential calls within one invoke). Real 429
 # backoff (exponential, capped, limited retries). 403 = STOP touching
 # FRED for the rest of THIS invocation — never retry into a block.
-_MIN_INTERVAL = 60.0 / 90  # 90 req/min ceiling
+_MIN_INTERVAL = 60.0 / 60  # ops 4560: 60/min — headroom for fleet
 _last_call = [0.0]
 _blocked_this_invoke = [False]
 
@@ -80,11 +80,36 @@ def _get(url, tries=4):
 # freshness-filtered import. Only series with last_updated within
 # FRESH_DAYS get their real observations pulled; everything older is
 # explicitly excluded and logged, never silently dropped.
-PRIORITY_CATEGORIES = {
+PRIORITY_ROOTS = {
     22: "Interest Rates", 15: "Exchange Rates", 24: "Monetary Data",
     46: "Financial Indicators", 23: "Banking",
     32360: "Business Lending", 32145: "Foreign Exchange Intervention"}
 FRESH_DAYS = 90
+
+
+def _expand_roots():
+    """ops 4560 (Perplexity): fred/category/series returns only DIRECT
+    children — FRED's site counts are recursive. The finished tree walk
+    already sits in data/_state/fred-categories.json (4,169 nodes with
+    parent_id). Expand the 7 roots through it. No re-crawl."""
+    tree = json.loads(s3.get_object(
+        Bucket=BUCKET,
+        Key="data/_state/fred-categories.json")["Body"].read())
+    cats = tree.get("cats", {})
+    children = {}
+    for cid_s, meta in cats.items():
+        pid = meta.get("parent_id")
+        if pid is not None:
+            children.setdefault(int(pid), []).append(int(cid_s))
+    out = {}  # cid -> (root_name, cat_name)
+    for root, rname in PRIORITY_ROOTS.items():
+        stack = [root]
+        while stack:
+            cid = stack.pop()
+            cname = (cats.get(str(cid), {}) or {}).get("name")                 if cid != root else rname
+            out[cid] = (rname, cname or rname)
+            stack.extend(children.get(cid, []))
+    return out
 
 
 def _is_fresh(series_meta, now):
@@ -118,36 +143,56 @@ def _run_scoped_import(t0, now):
              "series_excluded_stale": 0, "series_imported": 0,
              "excluded_ids": [], "imported_ids": [], "n_pages": 0,
              "buffer": []}
-    todo_cats = [c for c in PRIORITY_CATEGORIES if c not in
-                st["cats_done"]]
+    expanded = _expand_roots()
+    st["n_categories_expanded"] = len(expanded)
+    already = set(st.get("imported_ids") or [])
+    cutoff = (now - __import__("datetime").timedelta(
+        days=FRESH_DAYS)).strftime("%Y-%m-%d")
+    todo_cats = [c for c in expanded if c not in st["cats_done"]]
     buf = st.get("buffer", [])
     for cid in todo_cats:
         if time.time() - t0 > BUDGET_S:
             break
-        cname = PRIORITY_CATEGORIES[cid]
+        rname, cname = expanded[cid]
         fresh_batch = []
         offset = 0
+        page_broke_on_stale = False
         try:
             while True:
                 if _blocked_this_invoke[0]:
                     raise FredBlocked("halted before category/series")
+                # ops 4560 (Perplexity): order by last_updated desc and
+                # BREAK paging on the first stale row — skips the bulk
+                # of every stale subtree.
                 d = _get(
                     "https://api.stlouisfed.org/fred/category/series"
                     f"?category_id={cid}&api_key={FRED_KEY}"
-                    f"&file_type=json&limit=1000&offset={offset}")
+                    "&file_type=json&limit=1000"
+                    "&order_by=last_updated&sort_order=desc"
+                    f"&offset={offset}")
                 serieslist = d.get("seriess", [])
                 for s in serieslist:
                     st["series_seen"] += 1
+                    lu = (s.get("last_updated") or "")[:10]
+                    if lu and lu < cutoff:
+                        st["series_excluded_stale"] += 1
+                        page_broke_on_stale = True
+                        break
+                    title = (s.get("title") or "").upper()
+                    if "DISCONTINUED" in title:
+                        st["series_excluded_discontinued"] = \
+                            st.get("series_excluded_discontinued",
+                                   0) + 1
+                        continue
+                    if s.get("id") in already:
+                        st["series_skipped_already"] = \
+                            st.get("series_skipped_already", 0) + 1
+                        continue
                     if _is_fresh(s, now):
                         fresh_batch.append(s)
                     else:
                         st["series_excluded_stale"] += 1
-                        if len(st["excluded_ids"]) < 500:
-                            st["excluded_ids"].append(
-                                {"id": s.get("id"),
-                                 "last_updated": s.get("last_updated"),
-                                 "category": cname})
-                if len(serieslist) < 1000:
+                if page_broke_on_stale or len(serieslist) < 1000:
                     break
                 offset += 1000
                 if time.time() - t0 > BUDGET_S:
@@ -184,7 +229,7 @@ def _run_scoped_import(t0, now):
                 "id": sm.get("id"), "title": sm.get("title"),
                 "freq": sm.get("frequency_short"),
                 "units": sm.get("units_short"),
-                "category": cname, "category_id": cid,
+                "category": cname, "root": rname, "category_id": cid,
                 "last_updated": sm.get("last_updated"),
                 "last_obs": obs[-1]["date"],
                 "last_value": obs[-1]["value"],
@@ -195,7 +240,7 @@ def _run_scoped_import(t0, now):
             s3.put_object(
                 Bucket=BUCKET,
                 Key=(f"data/warm/fred-scoped/"
-                     f"{cname.replace(' ', '_')}/{sm.get('id')}.json"),
+                     f"{rname.replace(' ', '_')}/{sm.get('id')}.json"),
                 Body=json.dumps({"meta": sm, "observations": obs},
                                default=str).encode(),
                 ContentType="application/json")
@@ -218,19 +263,52 @@ def _run_scoped_import(t0, now):
             st["cats_done"].append(cid)
         if _blocked_this_invoke[0] or time.time() - t0 > BUDGET_S:
             break
+    all_done = len(st["cats_done"]) >= len(expanded)
+    if all_done and buf:
+        # ops 4560 (Perplexity defect 1): never COMPLETE with an
+        # unflushed buffer — flush the final partial page first.
+        s3.put_object(
+            Bucket=BUCKET,
+            Key=("data/providers/fred-scoped/series/"
+                 f"page-{st['n_pages']:04d}.json"),
+            Body=json.dumps({"page": st["n_pages"], "rows": buf},
+                           default=str).encode(),
+            ContentType="application/json", CacheControl="no-cache")
+        st["n_pages"] += 1
+        buf = []
     st["buffer"] = buf
     st["updated_at"] = now.isoformat(timespec="seconds")
-    st["status"] = ("COMPLETE" if len(st["cats_done"]) >=
-                    len(PRIORITY_CATEGORIES) else "walking")
+    # ops 4560 (Perplexity defect 2): strict accounting — every seen
+    # series must land in exactly one bucket, or the run is NOT ok.
+    n_err = len(st.get("errors") or {})
+    accounted = (st["series_imported"]
+                + st["series_excluded_stale"]
+                + st.get("series_excluded_discontinued", 0)
+                + st.get("series_skipped_already", 0)
+                + len(buf) + n_err)
+    st["accounting"] = {"seen": st["series_seen"],
+                       "accounted": accounted,
+                       "reconciles": accounted == st["series_seen"]}
+    st["status"] = ("COMPLETE" if (all_done and not buf and
+                                   st["accounting"]["reconciles"])
+                    else ("COMPLETE_WITH_LEAKS" if all_done
+                          else "walking"))
     s3.put_object(Bucket=BUCKET, Key=state_key,
                   Body=json.dumps(st, default=str).encode(),
                   ContentType="application/json")
     manifest = {"updated_at": st["updated_at"],
-               "categories": PRIORITY_CATEGORIES,
+               "categories": PRIORITY_ROOTS,
                "categories_done": len(st["cats_done"]),
-               "categories_total": len(PRIORITY_CATEGORIES),
+               "categories_total": len(expanded),
                "series_seen": st["series_seen"],
                "series_excluded_stale": st["series_excluded_stale"],
+               "series_excluded_discontinued":
+                   st.get("series_excluded_discontinued", 0),
+               "series_skipped_already":
+                   st.get("series_skipped_already", 0),
+               "accounting": st.get("accounting"),
+               "n_categories_expanded":
+                   st.get("n_categories_expanded"),
                "series_imported": st["series_imported"],
                "freshness_rule": f"last_updated within {FRESH_DAYS} "
                                  "days; older = excluded, never "
