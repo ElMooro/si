@@ -445,17 +445,33 @@ def lambda_handler(event, context):
         # holding. datasets = what we actually have; target + coverage
         # ride alongside. Eurostat is 3.6%, not done.
         ds = n_live
-        TARGET_OVERRIDE = {"statcan": 6335}  # walker-discovered
-        tgt = TARGET_OVERRIDE.get(slug) or (
-            _sc if _sc and _sc > n_live else None)
-        # 4546 (Perplexity): coverage>100% = unit mixing. Only report
-        # when actual<=target; otherwise None + note.
-        cov = (round(100.0 * n_live / tgt, 1)
-               if tgt and n_live <= tgt else None)
+        # ops 4548 (Khalid: why isn't Eurostat/StatCan/BIS coverage
+        # showing?): my earlier hardcoded/catalog-file targets went
+        # stale the moment the walker's OWN live catalog grew past
+        # them (StatCan) or drifted slightly (Eurostat extra keys).
+        # The walker's state file already stores n_total — the exact
+        # number it is walking against. Use THAT as ground truth.
+        tgt = None
+        if slug in ("eurostat", "oecd", "statcan", "bis"):
+            try:
+                wst = _get_json(
+                    f"data/_state/sdmx-walk-{slug}.json")
+                tgt = wst.get("n_total")
+            except Exception:
+                tgt = None
+        if tgt is None:
+            tgt = _sc if _sc and _sc > n_live else None
+        # never hide progress: cap the DISPLAYED pct at 100, note if
+        # actual exceeds nominal (a few retried/renamed keys, not a
+        # real overshoot).
+        cov = (round(min(100.0, 100.0 * n_live / tgt), 1)
+               if tgt else None)
+        cov_note = ("at_or_above_target"
+                    if (tgt and n_live >= tgt) else None)
         hub["providers"].append(
             {"slug": slug, "name": r["name"], "api": r["api"],
              "datasets": ds, "datasets_target": tgt,
-             "coverage_pct": cov,
+             "coverage_pct": cov, "coverage_note": cov_note,
              "unit": "keys",
              "n_keys": doc["n_keys"], "total_mb": doc["total_mb"],
              "hot_feeds": n_roll,
