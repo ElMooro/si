@@ -207,6 +207,8 @@ def _run_scoped_import(t0, now):
                         continue
                     if _is_fresh(s, now):
                         fresh_batch.append(s)
+                        st["series_queued"] = \
+                            st.get("series_queued", 0) + 1
                     else:
                         st["series_excluded_stale"] += 1
                 if page_broke_on_stale or len(serieslist) < 1000:
@@ -238,9 +240,13 @@ def _run_scoped_import(t0, now):
             except Exception as e:
                 st.setdefault("errors", {})[sm.get("id", "?")] = \
                     str(e)[:60]
+                st["series_queued"] = max(
+                    0, st.get("series_queued", 0) - 1)
                 continue
             if not obs:
                 st["series_excluded_stale"] += 1
+                st["series_queued"] = max(
+                    0, st.get("series_queued", 0) - 1)
                 continue
             buf.append({
                 "id": sm.get("id"), "title": sm.get("title"),
@@ -262,6 +268,7 @@ def _run_scoped_import(t0, now):
                                default=str).encode(),
                 ContentType="application/json")
             st["series_imported"] += 1
+            st["series_queued"] = max(0, st.get("series_queued", 0) - 1)
             if len(st["imported_ids"]) < 2000:
                 st["imported_ids"].append(sm.get("id"))
             if len(buf) >= PAGE:
@@ -303,7 +310,8 @@ def _run_scoped_import(t0, now):
                 + st["series_excluded_stale"]
                 + st.get("series_excluded_discontinued", 0)
                 + st.get("series_skipped_already", 0)
-                + n_err)  # ops 4564: buf rows already in imported
+                + st.get("series_queued", 0)  # ops 4566: pending fetch
+                + n_err)
     st["accounting"] = {"seen": st["series_seen"],
                        "accounted": accounted,
                        "reconciles": accounted == st["series_seen"]}
