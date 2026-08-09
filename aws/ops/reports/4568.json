@@ -1,0 +1,49 @@
+{
+ "ops": 4568,
+ "at": "2026-08-09T19:24:53.302426+00:00",
+ "fred_row": {
+  "n_keys": 3743,
+  "series_count": 6680,
+  "catalog_note": "scoped import: 6,680 series \u00b7 68/179 categories \u00b7 walking",
+  "coverage_pct": null,
+  "total_mb": 683.46,
+  "freshest_h": 0.0
+ },
+ "statcan": {
+  "denied": 293,
+  "coverage_pct": 96.8
+ },
+ "instrument_rows": [
+  {
+   "slug": "indicator-bus",
+   "datasets": 17791,
+   "n_keys": 1,
+   "mb": 1.35,
+   "freshest_h": 7.2
+  },
+  {
+   "slug": "equity-research-tickers",
+   "datasets": 81,
+   "n_keys": 81,
+   "mb": 7.87,
+   "freshest_h": 11.4
+  },
+  {
+   "slug": "tradingview-vault-live",
+   "datasets": 5598,
+   "n_keys": 1,
+   "mb": 3.87,
+   "freshest_h": 7.8
+  }
+ ],
+ "totals": {
+  "providers": 42,
+  "datasets": 47093,
+  "keys": 23706,
+  "gb": 42.29
+ },
+ "reconcile_ok": true,
+ "fails": [
+  "totals.keys 23706 < 25000 \u2014 fred keys did not land in totals"
+ ]
+}
