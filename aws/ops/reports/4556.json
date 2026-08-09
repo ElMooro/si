@@ -1,0 +1,31 @@
+{
+ "ops": 4556,
+ "started": "2026-08-09T04:14:59.293952+00:00",
+ "targets_now": "scoped_import ONLY (general discovery removed from schedule)",
+ "single_probe": {
+  "tried": true,
+  "status": 200,
+  "body_ok": true
+ },
+ "cron_reenabled": true,
+ "first_real_round": {
+  "updated_at": "2026-08-09T04:15:09+00:00",
+  "categories": {
+   "22": "Interest Rates",
+   "15": "Exchange Rates",
+   "24": "Monetary Data",
+   "46": "Financial Indicators",
+   "23": "Banking",
+   "32360": "Business Lending",
+   "32145": "Foreign Exchange Intervention"
+  },
+  "categories_done": 7,
+  "categories_total": 7,
+  "series_seen": 190,
+  "series_excluded_stale": 16,
+  "series_imported": 28,
+  "freshness_rule": "last_updated within 90 days; older = excluded, never silently imported",
+  "status": "COMPLETE"
+ },
+ "verdict": "probe={\"tried\": true, \"status\": 200, \"body_ok\": true} reenabled=True round={\"updated_at\": \"2026-08-09T04:15:09+00:00\", \"categories\": {\"22\": \"Interest Rates\", \"15\": \"Exchange Rates\", \"24\": \"Monetary Data\", \"46\": \"Financial Indicators\", \"23\": \"Banking\", \"32360\": \"Business Lending\", \"32145\": \"Foreign Exchange Intervention\"}, \""
+}
