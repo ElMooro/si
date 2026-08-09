@@ -25,18 +25,50 @@ import boto3
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
 s3 = boto3.client("s3", region_name="us-east-1")
-BUDGET_S = 220
+BUDGET_S = 180  # ops 4556: more headroom before next cron tick
 PAGE = 500
 
 
-def _get(url, tries=3):
+# ops 4556 (Khalid: respect the rate limit — the 429->403 incident):
+# FRED's documented limit is ~120 req/min. Run well under it: 90/min =
+# 0.667s minimum gap, enforced via a module-level last-call timestamp
+# (persists across the sequential calls within one invoke). Real 429
+# backoff (exponential, capped, limited retries). 403 = STOP touching
+# FRED for the rest of THIS invocation — never retry into a block.
+_MIN_INTERVAL = 60.0 / 90  # 90 req/min ceiling
+_last_call = [0.0]
+_blocked_this_invoke = [False]
+
+
+class FredBlocked(Exception):
+    pass
+
+
+def _get(url, tries=4):
+    if _blocked_this_invoke[0]:
+        raise FredBlocked("403 seen this invoke — halting FRED calls")
+    wait = _MIN_INTERVAL - (time.time() - _last_call[0])
+    if wait > 0:
+        time.sleep(wait)
+    backoff = 5.0
     for i in range(tries):
         try:
             req = urllib.request.Request(
                 url, headers={"User-Agent":
                               "JustHodl research admin@justhodl.ai"})
             with urllib.request.urlopen(req, timeout=25) as r:
+                _last_call[0] = time.time()
                 return json.loads(r.read())
+        except urllib.error.HTTPError as e:
+            _last_call[0] = time.time()
+            if e.code == 403:
+                _blocked_this_invoke[0] = True
+                raise FredBlocked(f"403 on {url[:80]}") from e
+            if e.code == 429 and i < tries - 1:
+                time.sleep(min(backoff, 60))
+                backoff *= 2
+                continue
+            raise
         except Exception:
             if i == tries - 1:
                 raise
@@ -77,8 +109,6 @@ def _fetch_observations(sid):
 
 
 def _run_scoped_import(t0, now):
-    from concurrent.futures import ThreadPoolExecutor, wait, \
-        FIRST_COMPLETED
     state_key = "data/_state/fred-scoped-import.json"
     try:
         st = json.loads(s3.get_object(Bucket=BUCKET,
@@ -99,6 +129,8 @@ def _run_scoped_import(t0, now):
         offset = 0
         try:
             while True:
+                if _blocked_this_invoke[0]:
+                    raise FredBlocked("halted before category/series")
                 d = _get(
                     "https://api.stlouisfed.org/fred/category/series"
                     f"?category_id={cid}&api_key={FRED_KEY}"
@@ -120,67 +152,71 @@ def _run_scoped_import(t0, now):
                 offset += 1000
                 if time.time() - t0 > BUDGET_S:
                     break
+        except FredBlocked as e:
+            st["blocked_at"] = str(e)
+            st["blocked_ts"] = now.isoformat(timespec="seconds")
+            break
         except Exception as e:
             st.setdefault("errors", {})[str(cid)] = str(e)[:80]
             continue
-        # parallel observation fetch for the fresh batch only
-        pool = ThreadPoolExecutor(max_workers=16)
-        futs = {pool.submit(_fetch_observations, s["id"]): s
-               for s in fresh_batch}
-        pend = set(futs)
-        deadline = t0 + BUDGET_S
-        while pend and time.time() < deadline:
-            done, pend = wait(pend, timeout=8,
-                              return_when=FIRST_COMPLETED)
-            for fu in done:
-                sm = futs[fu]
-                try:
-                    obs = fu.result()
-                    if not obs:
-                        st["series_excluded_stale"] += 1
-                        continue
-                    buf.append({
-                        "id": sm.get("id"), "title": sm.get("title"),
-                        "freq": sm.get("frequency_short"),
-                        "units": sm.get("units_short"),
-                        "category": cname, "category_id": cid,
-                        "last_updated": sm.get("last_updated"),
-                        "last_obs": obs[-1]["date"],
-                        "last_value": obs[-1]["value"],
-                        "n_observations": len(obs),
-                        "source_url": ("https://fred.stlouisfed.org/"
-                                       "series/" + str(sm.get("id"))),
-                    })
-                    s3.put_object(
-                        Bucket=BUCKET,
-                        Key=(f"data/warm/fred-scoped/{cname.replace(' ','_')}/"
-                             f"{sm.get('id')}.json"),
-                        Body=json.dumps({"meta": sm,
-                                        "observations": obs},
-                                       default=str).encode(),
-                        ContentType="application/json")
-                    st["series_imported"] += 1
-                    if len(st["imported_ids"]) < 2000:
-                        st["imported_ids"].append(sm.get("id"))
-                    if len(buf) >= PAGE:
-                        s3.put_object(
-                            Bucket=BUCKET,
-                            Key=("data/providers/fred-scoped/series/"
-                                 f"page-{st['n_pages']:04d}.json"),
-                            Body=json.dumps({"page": st["n_pages"],
-                                            "rows": buf},
-                                           default=str).encode(),
-                            ContentType="application/json",
-                            CacheControl="no-cache")
-                        st["n_pages"] += 1
-                        buf = []
-                except Exception as e:
-                    st.setdefault("errors", {})[sm.get("id", "?")] = \
-                        str(e)[:60]
-        pool.shutdown(wait=False, cancel_futures=True)
-        if not pend:  # category fully drained
+        # ops 4556: SEQUENTIAL, rate-limited fetch — the 16-thread
+        # pool is exactly what triggered the 429->403 incident.
+        drained = True
+        for sm in fresh_batch:
+            if time.time() - t0 > BUDGET_S:
+                drained = False
+                break
+            try:
+                obs = _fetch_observations(sm["id"])
+            except FredBlocked as e:
+                st["blocked_at"] = str(e)
+                st["blocked_ts"] = now.isoformat(timespec="seconds")
+                drained = False
+                break  # stop THIS category, save, and stop the run
+            except Exception as e:
+                st.setdefault("errors", {})[sm.get("id", "?")] = \
+                    str(e)[:60]
+                continue
+            if not obs:
+                st["series_excluded_stale"] += 1
+                continue
+            buf.append({
+                "id": sm.get("id"), "title": sm.get("title"),
+                "freq": sm.get("frequency_short"),
+                "units": sm.get("units_short"),
+                "category": cname, "category_id": cid,
+                "last_updated": sm.get("last_updated"),
+                "last_obs": obs[-1]["date"],
+                "last_value": obs[-1]["value"],
+                "n_observations": len(obs),
+                "source_url": ("https://fred.stlouisfed.org/series/"
+                               + str(sm.get("id"))),
+            })
+            s3.put_object(
+                Bucket=BUCKET,
+                Key=(f"data/warm/fred-scoped/"
+                     f"{cname.replace(' ', '_')}/{sm.get('id')}.json"),
+                Body=json.dumps({"meta": sm, "observations": obs},
+                               default=str).encode(),
+                ContentType="application/json")
+            st["series_imported"] += 1
+            if len(st["imported_ids"]) < 2000:
+                st["imported_ids"].append(sm.get("id"))
+            if len(buf) >= PAGE:
+                s3.put_object(
+                    Bucket=BUCKET,
+                    Key=("data/providers/fred-scoped/series/"
+                         f"page-{st['n_pages']:04d}.json"),
+                    Body=json.dumps({"page": st["n_pages"],
+                                    "rows": buf},
+                                   default=str).encode(),
+                    ContentType="application/json",
+                    CacheControl="no-cache")
+                st["n_pages"] += 1
+                buf = []
+        if drained:
             st["cats_done"].append(cid)
-        if time.time() - t0 > BUDGET_S:
+        if _blocked_this_invoke[0] or time.time() - t0 > BUDGET_S:
             break
     st["buffer"] = buf
     st["updated_at"] = now.isoformat(timespec="seconds")
