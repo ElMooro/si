@@ -1,0 +1,29 @@
+{
+ "ops": 4550,
+ "started": "2026-08-09T02:58:22.683198+00:00",
+ "attempts": [
+  {
+   "url": "https://data-api.ecb.europa.eu/service/dataflow/ECB?format=sdmx-json",
+   "err": "HTTPError: HTTP Error 406: Not Acceptable"
+  },
+  {
+   "url": "https://data-api.ecb.europa.eu/service/dataflow/ECB/all/latest?format=sdmx-json",
+   "err": "HTTPError: HTTP Error 406: Not Acceptable"
+  },
+  {
+   "url": "https://data-api.ecb.europa.eu/service/dataflow/ECB",
+   "err": "HTTPError: HTTP Error 406: Not Acceptable"
+  },
+  {
+   "url": "https://data-api.ecb.europa.eu/service/dataflow",
+   "err": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)"
+  },
+  {
+   "url": "https://sdw-wsrest.ecb.europa.eu/service/dataflow/ECB",
+   "err": "URLError: <urlopen error [Errno -2] Name or service not known>"
+  }
+ ],
+ "used_url": null,
+ "n_ids": 0,
+ "verdict": "used=None n_ids=0 state=null hub=null"
+}
