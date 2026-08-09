@@ -230,6 +230,25 @@ def _run_scoped_import(t0, now):
             if time.time() - t0 > BUDGET_S:
                 drained = False
                 break
+            # ops 4569: disk-true dedup — imported_ids caps at 2000, so
+            # post-4566 epochs re-fetched (and double-counted) every
+            # series past the cap, burning the 60/min FRED budget on
+            # data already banked. One S3 head replaces that re-fetch;
+            # objects older than 7 days still refresh.
+            _dk = ("data/warm/fred-scoped/"
+                   f"{rname.replace(' ', '_')}/{sm.get('id')}.json")
+            try:
+                _h = s3.head_object(Bucket=BUCKET, Key=_dk)
+                _age_d = ((now - _h["LastModified"])
+                          .total_seconds() / 86400)
+                if _age_d < 7:
+                    st["series_skipped_already"] = \
+                        st.get("series_skipped_already", 0) + 1
+                    st["series_queued"] = max(
+                        0, st.get("series_queued", 0) - 1)
+                    continue
+            except Exception:
+                pass
             try:
                 obs = _fetch_observations(sm["id"])
             except FredBlocked as e:

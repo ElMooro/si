@@ -489,21 +489,23 @@ def lambda_handler(event, context):
                 denied = None
         note = None
         if slug == "fred":
-            # ops 4568: the scoped importer banks whole series inside
-            # per-series warm keys (imported_ids caps at 2000, so the
-            # manifest count is the truth) — live progress on the row.
+            # ops 4569: the manifest counter double-counts re-walked
+            # series (its imported_ids dedup list caps at 2000) — the
+            # on-disk scoped objects are the truth. Count those; the
+            # manifest only supplies category progress + status.
+            _fi = len([k for k in keys if k.get("key", "")
+                       .startswith("data/warm/fred-scoped/")])
             try:
                 _fm = _get_json(
                     "data/providers/fred-scoped/manifest.json")
-                _fi = _fm.get("series_imported") or 0
-                note = (f"scoped import: {_fi:,} series · "
+                note = (f"scoped import: {_fi:,} series banked · "
                         f"{_fm.get('categories_done') or 0}/"
                         f"{_fm.get('categories_total') or 0}"
                         f" categories · {_fm.get('status') or '—'}")
-                if _fi:
-                    ser = dict(ser or {}, count=_fi)
             except Exception:
-                note = None
+                note = f"scoped import: {_fi:,} series banked"
+            if _fi:
+                ser = dict(ser or {}, count=_fi)
         hub["providers"].append(
             {"slug": slug, "name": r["name"], "api": r["api"],
              "datasets": ds, "datasets_target": tgt,
