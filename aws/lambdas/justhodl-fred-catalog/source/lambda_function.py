@@ -135,14 +135,31 @@ def _fetch_observations(sid):
 
 def _run_scoped_import(t0, now):
     state_key = "data/_state/fred-scoped-import.json"
+    _etag = None
     try:
-        st = json.loads(s3.get_object(Bucket=BUCKET,
-                                      Key=state_key)["Body"].read())
+        _o = s3.get_object(Bucket=BUCKET, Key=state_key)
+        st = json.loads(_o["Body"].read())
+        _etag = _o.get("ETag")
     except Exception:
         st = {"cats_done": [], "series_seen": 0,
              "series_excluded_stale": 0, "series_imported": 0,
              "excluded_ids": [], "imported_ids": [], "n_pages": 0,
              "buffer": []}
+    # ops 4562: single-writer guarantee (the 4561 counter-salad was a
+    # read-modify-write race between cron rounds and ops writes).
+    if (st.get("lease_until") or 0) > time.time():
+        return {"skipped": "lease_held",
+               "lease_until": st["lease_until"]}
+    st["lease_until"] = time.time() + BUDGET_S + 60
+    try:
+        _kw = {"Bucket": BUCKET, "Key": state_key,
+              "Body": json.dumps(st, default=str).encode(),
+              "ContentType": "application/json"}
+        if _etag:
+            _kw["IfMatch"] = _etag
+        s3.put_object(**_kw)
+    except Exception:
+        return {"skipped": "lost_lease_race"}
     expanded = _expand_roots()
     st["n_categories_expanded"] = len(expanded)
     already = set(st.get("imported_ids") or [])
@@ -295,6 +312,7 @@ def _run_scoped_import(t0, now):
                                    st["accounting"]["reconciles"])
                     else ("COMPLETE_WITH_LEAKS" if all_done
                           else "walking"))
+    st["lease_until"] = 0
     s3.put_object(Bucket=BUCKET, Key=state_key,
                   Body=json.dumps(st, default=str).encode(),
                   ContentType="application/json")
