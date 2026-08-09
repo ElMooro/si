@@ -169,6 +169,7 @@ def _run_scoped_import(t0, now):
                     f"?category_id={cid}&api_key={FRED_KEY}"
                     "&file_type=json&limit=1000"
                     "&order_by=last_updated&sort_order=desc"
+                    "&exclude_tag_names=discontinued"
                     f"&offset={offset}")
                 serieslist = d.get("seriess", [])
                 for s in serieslist:
@@ -281,7 +282,8 @@ def _run_scoped_import(t0, now):
     # ops 4560 (Perplexity defect 2): strict accounting — every seen
     # series must land in exactly one bucket, or the run is NOT ok.
     n_err = len(st.get("errors") or {})
-    accounted = (st["series_imported"]
+    base = st.get("imported_baseline", 0)
+    accounted = ((st["series_imported"] - base)
                 + st["series_excluded_stale"]
                 + st.get("series_excluded_discontinued", 0)
                 + st.get("series_skipped_already", 0)
