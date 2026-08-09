@@ -22,11 +22,22 @@ td.n{text-align:right;color:#9fd0a8;white-space:nowrap}
 <a class="back" href="/data.html">← DATA</a>
 <h1 id="nm">…</h1><div class="api" id="api"></div><div class="eng" id="eng"></div>
 <div class="tot" id="tot"></div>
+<div id="tabs" style="display:none;margin:16px 0 0;border-bottom:1px solid #1c2733">
+ <button id="tabFiles" style="background:none;border:none;color:#8fd0ff;padding:8px 16px;cursor:pointer;font-family:inherit;border-bottom:2px solid #8fd0ff">Files</button>
+ <button id="tabSeries" style="background:none;border:none;color:#5d7285;padding:8px 16px;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent">Series</button>
+</div>
+<div id="filesPane">
 <h2>EVERY DATASET / KEY PULLED FROM THIS PROVIDER</h2>
 <div style="margin:8px 0"><input id="q" placeholder="filter keys… (2+ chars)" style="background:#0d141c;border:1px solid #1c2733;color:#dfe9f2;padding:6px 10px;border-radius:7px;font-family:inherit;width:260px">
 <select id="stf" style="background:#0d141c;border:1px solid #1c2733;color:#dfe9f2;padding:6px;border-radius:7px;font-family:inherit"><option value="">all status</option><option>live</option><option>cold</option><option>missing</option></select></div>
 <table><thead><tr><th>KEY</th><th style="text-align:right">SIZE</th><th style="text-align:right">AGE</th></tr></thead><tbody id="tb"><tr><td colspan="3">Loading…</td></tr></tbody></table>
 <div id="serwrap" style="display:none"><h2>FULL SERIES INVENTORY (<span id="serc"></span>)</h2><div class="series" id="ser"></div></div>
+</div>
+<div id="seriesPane" style="display:none">
+ <div id="serNote" style="font-size:11px;color:#5d7285;margin:8px 0"></div>
+ <div style="margin:8px 0"><input id="sq" placeholder="search series — type 2+ characters to see results" style="background:#0d141c;border:1px solid #1c2733;color:#dfe9f2;padding:8px 12px;border-radius:7px;font-family:inherit;width:340px"></div>
+ <div id="sHint" style="color:#5d7285;font-size:12px;padding:20px 0">Type at least 2 characters to search — this provider may have thousands of series, so nothing renders unfiltered.</div>
+ <table style="width:100%;border-collapse:collapse;font-size:11px" id="sTbl"><thead><tr><th style="text-align:left;color:#5d7285;padding:5px 8px;border-bottom:1px solid #1c2733">SERIES</th><th style="text-align:left;color:#5d7285;padding:5px 8px;border-bottom:1px solid #1c2733">GEO</th><th style="text-align:right;color:#5d7285;padding:5px 8px;border-bottom:1px solid #1c2733">LAST VALUE</th><th style="text-align:right;color:#5d7285;padding:5px 8px;border-bottom:1px solid #1c2733">AS OF</th></tr></thead><tbody id="sBody"></tbody></table>
 </div>
 <script>
 var slug=new URLSearchParams(location.search).get('p');
@@ -68,6 +79,30 @@ function _flt(){var q=(document.getElementById('q').value||'').toLowerCase();var
   tr.style.display=ok?'':'none';});}
 document.getElementById('q').addEventListener('input',_flt);
 document.getElementById('stf').addEventListener('change',_flt);
+var _seriesCache=null,_seriesLoading=false;
+function _loadSeriesManifest(){
+ fetch('/data/providers/'+slug+'/series-manifest.json?t='+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()})
+ .then(function(m){document.getElementById('tabs').style.display='block';
+  document.getElementById('serNote').textContent=m.series_extracted.toLocaleString()+' series extracted from '+m.flows_parsed+'/'+m.flows_total+' files parsed so far (separate from the datasets headline until fully complete).';
+  window._serManifest=m;}).catch(function(){});}
+_loadSeriesManifest();
+document.getElementById('tabFiles').onclick=function(){document.getElementById('filesPane').style.display='block';document.getElementById('seriesPane').style.display='none';this.style.borderBottomColor='#8fd0ff';this.style.color='#8fd0ff';document.getElementById('tabSeries').style.borderBottomColor='transparent';document.getElementById('tabSeries').style.color='#5d7285';};
+document.getElementById('tabSeries').onclick=function(){document.getElementById('filesPane').style.display='none';document.getElementById('seriesPane').style.display='block';this.style.borderBottomColor='#8fd0ff';this.style.color='#8fd0ff';document.getElementById('tabFiles').style.borderBottomColor='transparent';document.getElementById('tabFiles').style.color='#5d7285';};
+async function _ensureSeriesCache(){
+ if(_seriesCache||_seriesLoading||!window._serManifest)return;
+ _seriesLoading=true;var m=window._serManifest;var all=[];
+ for(var i=0;i<m.n_pages;i++){try{var r=await fetch('/data/providers/'+slug+'/series/page-'+String(i).padStart(4,'0')+'.json?t='+Date.now());var d=await r.json();all=all.concat(d.rows||[]);}catch(e){}}
+ _seriesCache=all;_seriesLoading=false;_runSearch();}
+function _runSearch(){var q=(document.getElementById('sq').value||'').trim().toLowerCase();
+ var hint=document.getElementById('sHint'),tbl=document.getElementById('sTbl'),body=document.getElementById('sBody');
+ if(q.length<2){hint.style.display='block';tbl.style.display='none';return;}
+ if(!_seriesCache){hint.textContent='Loading series pages…';hint.style.display='block';tbl.style.display='none';_ensureSeriesCache();return;}
+ hint.style.display='none';tbl.style.display='table';body.innerHTML='';
+ var hits=_seriesCache.filter(function(s){return (s.id+' '+s.name).toLowerCase().indexOf(q)>=0;}).slice(0,300);
+ hits.forEach(function(s){var tr=document.createElement('tr');
+  tr.innerHTML='<td style="padding:5px 8px;border-bottom:1px solid #121b25;color:#c3d3e0">'+s.name+'</td><td style="padding:5px 8px;border-bottom:1px solid #121b25;color:#9fb4c7">'+(s.geo||'—')+'</td><td style="text-align:right;padding:5px 8px;border-bottom:1px solid #121b25;color:#9fd0a8">'+(s.last_value!=null?s.last_value.toLocaleString():'—')+'</td><td style="text-align:right;padding:5px 8px;border-bottom:1px solid #121b25;color:#5d7285">'+(s.last_obs||'—')+'</td>';
+  body.appendChild(tr);});}
+document.getElementById('sq').addEventListener('input',_runSearch);
 }).catch(function(){document.getElementById('nm').textContent='Provider "'+slug+'" not inventoried yet — next hourly catalog run adds it';document.getElementById('tb').innerHTML='';});
 </script>
 <script src="/jh-nav-drawer.js" defer></script></body></html>
