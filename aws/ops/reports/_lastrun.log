@@ -1,89 +1,29 @@
-executing-against: 5f748c11d9b170b840d1fd951c2c983a10109332
-ops 4582 — wo4580 impact-layer verification
-── 1. New engines: create + schedule + settle ──
-[20:30:44]   justhodl-impact-graph exists — updating code from repo (with shared bundle)
-[20:30:51] ✅   schedule created: justhodl-impact-graph-daily (cron(10 5 * * ? *))
-[20:30:51]   justhodl-distribution-composite exists — updating code from repo (with shared bundle)
-[20:30:58] ✅   schedule created: justhodl-distribution-composite-daily (cron(0 22 * * ? *))
-── 2. Patched engines: settle deploys ──
-── 3. impact-graph first (the substrate) ──
-[20:31:12]   justhodl-impact-graph refreshed (12s)
-[20:31:12] ✅   [impact-graph] exposure graph populated (n_tickers=12000)
-[20:31:12] ✅   [impact-graph] field_coverage reported: {'industry': 502, 'sector': 502, 'mcap': 1189, 'adv_usd': 11991, 'shares_out': 1187}
-[20:31:12] ✅   [impact-graph] factor history accruing (1 days)
-[20:31:12] ✅   [impact-graph] betas status honest: BOOTSTRAPPING (pairs={})
-[20:31:12] ✅   [impact-graph] trade_impulse state=MIXED (1 legs); flow rows=5
-── 4. Fire remaining engines (async, parallel poll) ──
-[20:31:25]   justhodl-flow-lookthrough refreshed (12s)
-[20:31:25]   justhodl-etf-true-flows refreshed (12s)
-[20:31:25]   justhodl-stealth-accumulation refreshed (12s)
-[20:31:25]   justhodl-accum-composite refreshed (12s)
-[20:31:26]   justhodl-grid-queue refreshed (12s)
-[20:31:26]   justhodl-accumulation-radar refreshed (12s)
-[20:31:26]   justhodl-distribution-composite refreshed (12s)
-[20:31:50]   justhodl-freight-pulse refreshed (37s)
-[20:32:27]   justhodl-dark-pool refreshed (73s)
-[20:32:51]   justhodl-port-cargo refreshed (98s)
-[20:46:13] ⚠   justhodl-share-flows did not refresh in 900s — asserting on latest available
-── 5. Contract battery ──
-[20:46:13] ✅   [flow-lookthrough] impact-map/1.0 valid (23 ben / 16 suf / 0 insufficient)
-[20:46:13] ✅   [etf-true-flows] impact-map/1.0 valid (1 ben / 18 suf / 8 insufficient)
-[20:46:13] ✗   [share-flows] CONTRACT MISS — impact_map absent or malformed
-[20:46:13] ✅   [dark-pool] impact-map/1.0 valid (22 ben / 19 suf / 0 insufficient)
-[20:46:13] ✅   [stealth-accumulation] impact-map/1.0 valid (0 ben / 0 suf / 0 insufficient)
-[20:46:13] ✅   [accum-composite] impact-map/1.0 valid (0 ben / 0 suf / 0 insufficient)
-[20:46:13] ✅   [port-cargo] impact-map/1.0 valid (0 ben / 1 suf / 10 insufficient)
-[20:46:13] ✅   [grid-queue] impact-map/1.0 valid (4 ben / 0 suf / 3 insufficient)
-[20:46:13] ✅   [freight-pulse] impact-map/1.0 valid (3 ben / 0 suf / 3 insufficient)
-[20:46:13] ✗   [accumulation-radar] CONTRACT MISS — impact_map absent or malformed
-[20:46:13] ✅   [distribution-composite] impact-map/1.0 valid (0 ben / 22 suf / 0 insufficient)
-[20:46:13] ✅   [lookthrough] v2.2.0 live
-[20:46:13] ✅   [lookthrough] passive_concentration board present (25 rows)
-[20:46:13] ✅   [lookthrough] canonical holdings index written (66 ETFs)
-[20:46:13]   lookthrough: 36 inflow leaders carry bps_adv (graph join)
-[20:46:13] ✅   [etf-true-flows] v2.1 live
-[20:46:13] ✅   [etf-true-flows] wrapper complexes netted (7 families)
-[20:46:13] ✅   [etf-true-flows] per-stock lookthrough block present (joined=10)
-[20:46:13] ✅   [etf-true-flows] N-PORT ground truth honest: PENDING_WIRE (0 funds indexed)
-[20:46:13] ✗   [share-flows] CONTRACT MISS — v2.0.0 live
-[20:46:13] ✗   [share-flows] CONTRACT MISS — bluff/ATM/blackout boards present (bluff=0 atm=0 weeks=0)
-[20:46:13] ✅   [dark-pool] v2.6.0 live
-[20:46:13] ✅   [dark-pool] self-history archiving (INSUFFICIENT_HISTORY, 1 wks)
-[20:46:14] ✅   [dark-pool] weekly archive object exists
-[20:46:14]   dark-pool: 60 board rows carry venue_fingerprint
-[20:46:14] ✅   [stealth] v1.2.0 live
-[20:46:14] ✅   [stealth] learned-weight basis honest: prior_only
-[20:46:14] ✅   [stealth] per-combo gradeable signals emitted (0)
-[20:46:14] ✅   [accum-composite] v1.1 live
-[20:46:14] ✅   [accum-composite] weights audit block (basis=prior_only)
-[20:46:14] ✅   [accum-composite] new legs wired (congress=0 activist=0)
-[20:46:14] ✅   [dist-composite] mirror engine live (state=OK, 39 names)
-[20:46:14] ✅   [dist-composite] bearish signals gradeable (10)
-[20:46:14] ✅   [port-cargo] v1.1.0 live
-[20:46:14] ✅   [port-cargo] seasonal baseline status=OK (n_years=3 chg=-13.3%)
-[20:46:14] ✅   [grid-queue] v2.1.0 live
-[20:46:14] ✅   [grid-queue] velocity archive (INSUFFICIENT_HISTORY, 1 snapshots)
-[20:46:14] ✅   [grid-queue] large-load probe honest: UNAVAILABLE
-[20:46:14] ✅   [grid-queue] LBNL fuel-cohort priors carried (vintage=2024 edition — 2000-2018 request cohorts (capacity basis))
-[20:46:14]   grid-queue ISO-NE: ISO-NE IRTT queue unavailable — external?download=csv → HTTP 302; external.csv → HTTP 302; reports?download=csv → HTTP 302
-[20:46:14] ✅   [freight] v2.0.0 live
-[20:46:14] ✅   [freight] rate-vs-volume read=CAPACITY_WITHDRAWAL (rate_yoy=15.7 vol_yoy=-4.1)
-[20:46:14] ✅   [freight] EIA weekly fast leg status=OK (read=DECELERATING yoy=1.8)
-[20:46:14] ✅   [freight] lead-vs-port declared + archive accruing (n=1)
-[20:46:14] ✅   [radar] v1.5 accuracy block live (status=LIVE)
-[20:46:14] ✅   [radar] fixed-contract emitter ran (signals_logged=9)
-── 6. data/impact/* + archive tree ──
-[20:46:14] ✅   [impact-tree] data/impact/exposure-graph.json present
-[20:46:14] ✅   [impact-tree] data/impact/factor-history.json present
-[20:46:14] ✅   [impact-tree] data/impact/betas.json present
-[20:46:14] ✅   [impact-tree] data/impact/convergence.json present
-[20:46:14] ✅   [impact-tree] data/impact/etf-holdings-index.json present
-[20:46:14] ✗   [impact-tree] CONTRACT MISS — grid-queue snapshot archive exists
-── 7. CDN: impact strip on eleven pages + asset ──
-[20:46:14] ✅   [cdn] impact-strip.js live (HTTP 200)
-[20:46:15] ✅   [cdn] strip marker on all 11 pages
+executing-against: 7b2e6753dffb42a1b6e0166fcacaad4298fdf12d
+ops 4583 — wo4580 red clearance
+── 0. Feed-shape recon: the dead accum legs (evidence only) ──
+[21:08:30]   congress.house dict keys: ['error', 'filings', 'n_ptr_filings']
+[21:08:30]   congress.house rows=0 sample_keys=None
+[21:08:30]   congress.senate rows=200 sample_keys=['amount', 'asset', 'filer', 'owner', 'ticker', 'tx_date', 'type']
+[21:08:31]   activist all_setups=0 sample_keys=None
+── 1. Config truth: share-flows Timeout must be 900 ──
+[21:08:31] ✅   [share-flows] live Timeout=900
+── 2. Settle the other two ──
+── 3. Fire + poll ──
+[21:08:32]   fired justhodl-share-flows
+[21:08:32]   fired justhodl-grid-queue
+[21:08:32]   fired justhodl-accumulation-radar
+[21:08:45]   justhodl-grid-queue refreshed (12s)
+[21:08:45]   justhodl-accumulation-radar refreshed (12s)
+[21:24:13] ⚠   justhodl-share-flows did not refresh in 940s
+── 4. Re-assert the five 4582 misses ──
+[21:24:13] ✗   [share-flows] CONTRACT MISS — v2.0.0 live (was v1.4 after the crash)
+[21:24:13] ✗   [share-flows] CONTRACT MISS — bluff/ATM/blackout boards (bluff=0 atm=0 weeks=0)
+[21:24:13] ✗   [share-flows] CONTRACT MISS — impact_map absent or malformed
+[21:24:13]   share-flows warns tail: ['insider join: 69 buy names / 452 sell names (insider-trades tape)', 'universe: 1193 names (opp+ranker+soldiers+insider+phase-ring+valuations)', 'fresh 0 / needed 5 (budget 420)']
+[21:24:13] ✅   [grid-queue] archive object exists AND payload agrees (n_snapshots=1)
+[21:24:13] ✅   [radar] impact-map/1.0 valid (9 ben / 10 suf / 0 insufficient)
 ── verdict ──
-[20:46:15] ✗ wo4580 verification: 5 contract misses — NOT green
+[21:24:13] ✗ red clearance: 4 still red
 
-→ Report written to aws/ops/reports/latest/4582_wo4580_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_4582_wo4580_verify.py
+→ Report written to aws/ops/reports/latest/4583_wo4580_reds.md
+❌ OPS-FAIL: aws/ops/pending/ops_4583_wo4580_reds.py
