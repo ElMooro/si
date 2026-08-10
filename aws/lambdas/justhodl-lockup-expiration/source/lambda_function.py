@@ -51,12 +51,17 @@ FORWARD_WINDOW_DAYS = 35    # surface lockups within next 35 days
 MIN_OFFERING_PRICE = 4      # exclude penny IPOs
 
 
+_HTTP = {"ok": 0, "err": 0}
+
+
 def http_json(url, timeout=15):
     req = urllib.request.Request(url, headers={"User-Agent": UA})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
+            _HTTP["ok"] += 1
             return json.loads(r.read().decode("utf-8", errors="ignore"))
     except Exception as e:
+        _HTTP["err"] += 1
         return {"_error": str(e), "_url": url[:120]}
 
 
@@ -268,6 +273,16 @@ def lambda_handler(event, context):
         else:
             state = "QUIET"
             state_desc = "No lockup expirations in next 35 days"
+        # wo4592 BUG-4 gate: an empty lockup window is unknowable when the
+        # IPO-calendar fetches all errored. Blind says blind, not calm.
+        data_sufficiency = {"http_ok": _HTTP["ok"],
+                            "http_err": _HTTP["err"],
+                            "rule": "QUIET only claimable when >=1 calendar "
+                                    "fetch answered; else INSUFFICIENT_DATA"}
+        if state == "QUIET" and _HTTP["ok"] == 0 and _HTTP["err"] > 0:
+            state = "INSUFFICIENT_DATA"
+            state_desc = ("blind this run — every calendar fetch errored "
+                          "(%d errors)" % _HTTP["err"])
 
         # Telegram on regime entry
         try:
@@ -325,6 +340,7 @@ def lambda_handler(event, context):
             "version": "1.0",
             "as_of": dt.datetime.utcnow().isoformat() + "Z",
             "state": state,
+            "data_sufficiency": data_sufficiency,
             "previous_state": prev_state,
             "state_description": state_desc,
             "signal_strength": min(100, 15 * len(high_conviction) + 5 * len(imminent) + 2 * len(approaching)),
