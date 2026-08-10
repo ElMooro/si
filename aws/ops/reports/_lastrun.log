@@ -1,20 +1,15 @@
-executing-against: ae19d7188e7827de3b92b95adf04d07d0777dd30
-ops 4588 — already-built audit convergence
-[22:23:22]   fired impact-graph
-[22:23:38]   graph refreshed (15s)
-── 1. Coverage above the census ceiling ──
-[22:23:38] ✅   [graph] industry coverage 797 (was 502; reused=0 filled_tonight=295 still_missing_top_adv=11197)
-[22:23:38] ✅   [graph] audit trail on the payload
-── 2. Convergence consumes the prior-art engine ──
-[22:23:38] ✗   [convergence] CONTRACT MISS — relationship note names the authority
-[22:23:38] ✗   [convergence] CONTRACT MISS — flow_confluence votes present (source engine has 40 multi-engine names; voted=False)
-[22:23:38]     Banks - Regional ACCUMULATION score=5.0 sources=['flow_lookthrough', 'dark_pool']
-[22:23:38]     Banks - Diversified ACCUMULATION score=4.0 sources=['flow_lookthrough', 'dark_pool']
-[22:23:38]     Travel Services ACCUMULATION score=2.0 sources=['flow_lookthrough', 'dark_pool']
-[22:23:38]     Asset Management ACCUMULATION score=2.0 sources=['flow_lookthrough', 'dark_pool']
-[22:23:38]     Integrated Freight & Logistics DISTRIBUTION score=0.0 sources=['flow_lookthrough', 'dark_pool']
-── verdict ──
-[22:23:38] ✗ audit convergence: 2 red
+executing-against: 39ccdf4810b5da200cc4edc3e94135269654a6d5
+ops 4589 — convergence key, polled correctly
+[22:29:13] fired; polling data/impact/convergence.json
+[22:29:44] convergence refreshed (30s)
+[22:29:44] ✅ relationship note: name-level authority: justhodl-flow-confluence (pre-existing, trust-gated) — consumed here as a vote source; this board 
+[22:29:44] ✗ no flow_confluence votes despite 40 multi-engine names — rows: [('Software - Infrastructure', ['flow_lookthrough', 'dark_pool']), ('Construction Materials', ['flow_lookthrough', 'dark_pool']), ('REIT - Office', ['flow_lookthrough', 'dark_pool']), ('Railroads', ['flow_lookthrough', 'dark_pool'])]
+[22:29:44]   Software - Infrastructure ACCUMULATION score=2.0 sources=['flow_lookthrough', 'dark_pool']
+[22:29:44]   Construction Materials ACCUMULATION score=1.0 sources=['flow_lookthrough', 'dark_pool']
+[22:29:44]   REIT - Office DISTRIBUTION score=0.0 sources=['flow_lookthrough', 'dark_pool']
+[22:29:44]   Railroads DISTRIBUTION score=0.0 sources=['flow_lookthrough', 'dark_pool']
+[22:29:44]   Travel Services DISTRIBUTION score=0.0 sources=['flow_lookthrough', 'dark_pool']
+[22:29:44] ✗ 1 red
 
-→ Report written to aws/ops/reports/latest/4588_audit_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_4588_audit_verify.py
+→ Report written to aws/ops/reports/latest/4589_convergence_key.md
+❌ OPS-FAIL: aws/ops/pending/ops_4589_convergence_key.py
