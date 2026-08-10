@@ -132,9 +132,15 @@ def classify_sdmx(name, st):
     a = age_min(st.get("updated_at") or st.get("as_of"))
     n_fail = len(st.get("failures") or {})
     done = st.get("n_done") or st.get("done") or st.get("n_imported")
+    if isinstance(done, (list, tuple, set, dict)):
+        done = len(done)          # walkers store done as the id list
     total = st.get("n_total")
+    if isinstance(total, (list, tuple, set, dict)):
+        total = len(total)
     if "COMPLETE" in status.upper() or (
-            total and done and done >= total):
+            isinstance(done, (int, float))
+            and isinstance(total, (int, float))
+            and total > 0 and done >= total):
         return "COMPLETE", "%s/%s%s" % (done, total,
                                         (", %d source-side failures"
                                          % n_fail) if n_fail else "")
