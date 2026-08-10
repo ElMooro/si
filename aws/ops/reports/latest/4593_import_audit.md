@@ -1,24 +1,49 @@
 # ops 4593 — FRED import audit
 
-**Status:** failure  
-**Duration:** 0.3s  
-**Finished:** 2026-08-10T23:37:04+00:00  
-
-## Error
-
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4593_import_audit.py", line 58, in main
-    for name, p in sorted(pipes.items()):
-                          ^^^^^^^^^^^
-AttributeError: 'list' object has no attribute 'items'
-
-```
+**Status:** success  
+**Duration:** 1.0s  
+**Finished:** 2026-08-10T23:39:58+00:00  
 
 ## Log
 ## 1. import-health — the badge and the five incidents
 
-- `23:37:04` ✅   [health] import-health readable (ok)
-- `23:37:04`   overall=ACTION_REQUIRED  sweep=2026-08-10T23:35:04+00:00
+- `23:39:57` ✅   [health] import-health readable (ok)
+- `23:39:57`   overall=ACTION_REQUIRED  sweep=2026-08-10T23:35:04+00:00
+- `23:39:57`     fred               RUNNING — checkpoint 3 min ago
+- `23:39:57`     provider-catalog   OK — hub index freshness
+- `23:39:57`     sdmx-bis           COMPLETE — 29/29, 1 source-side failures
+- `23:39:57`     sdmx-ecb           BLOCKED — state file absent — ECB API 406 content-negotiation block (known; needs Accept-header adapter fix)
+- `23:39:57`     sdmx-eurostat      COMPLETE — 8146/8146, 6 source-side failures
+- `23:39:57`     sdmx-oecd          COMPLETE — 1542/1542, 991 source-side failures
+- `23:39:57`     sdmx-statcan       COMPLETE — 8221/8221, 293 source-side failures
+- `23:39:57`   ACTION_REQUIRED source(s): none
+- `23:39:57` ✅   [health] FRED pipeline itself is RUNNING (badge driven by: n/a)
+- `23:39:57`   incident: 2026-08-10T08:25:04+00:00 [fred/expansion] scoped COMPLETE → full catalog started
+- `23:39:57`   incident: 2026-08-10T04:15:04+00:00 [fred/auto_heal] stalled — async kick queued
+- `23:39:57`   incident: 2026-08-10T04:05:04+00:00 [fred/auto_heal] stalled — async kick queued
+- `23:39:57`   incident: 2026-08-10T03:58:10+00:00 [fred/auto_heal] stalled — async kick queued
+- `23:39:57`   incident: 2026-08-10T03:57:48+00:00 [fred/auto_heal] stalled — async kick queued
+## 2. drain state — counters prove the three rules ran
+
+- `23:39:58` ✅   [state] scoped-import state readable
+- `23:39:58`   scope=full_catalog  discovery_complete=None
+- `23:39:58`     series_seen = 884361
+- `23:39:58`     series_queued = 619306
+- `23:39:58`     series_excluded_stale = 3846
+- `23:39:58`     series_excluded_discontinued = 1555
+- `23:39:58`     series_skipped_already = 203397
+- `23:39:58` ✅   [rules] freshness + discontinued filters demonstrably firing (stale=3846, discontinued=1555 excluded)
+- `23:39:58` ✅   [state] no FRED block active (blocked_at=None)
+## 3. queue ledger — live ordering spot-check
+
+- `23:39:58` ✅   [queue] queue ledger readable
+- `23:39:58`   rows=275105 cursor=51217 remaining=223888 sorted=True sorted_scope=full_catalog built_at=2026-08-10T09:43:20+00:00
+- `23:39:58` ✅   [queue] undrained tail is popularity-descending (0/200 sampled inversions)
+- `23:39:58`   next up (popularity): IPUGN42L020000000(p1), IPUGN4239U101000000(p1), IPUGN424210U110000000(p1), IPUGN42421L000000000(p1), IPUGN42W200000000(p1), IPUGN42421L200000000(p1)
+- `23:39:58`   freshness at build: 201/201 sampled rows have last_updated within 90d(+30d drain lag) — filter was applied at queue build, not re-checked at drain (by design)
+## 4. progress + ETA
+
+- `23:39:58`   remaining=223888; velocity not in health payload (vel=None) — ETA from strip stands
+## verdict
+
+- `23:39:58` ✅ FRED drain healthy and honoring all three rules; ACTION_REQUIRED badge explained above
