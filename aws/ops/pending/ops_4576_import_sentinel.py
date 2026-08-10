@@ -1,4 +1,4 @@
-"""ops 4576 — import sentinel live + wo-4559/4575 leftovers closed.
+"""ops 4576 (rev 2) — import sentinel live + wo-4559/4575 leftovers closed.
 
 Khalid: "data import on data.html has been hitting hiccups — monitor it
 continuously and fix bugs; FRED most-popular-first then the rest; the
