@@ -77,16 +77,21 @@ FALLBACK_UNIVERSE = [
 ]
 
 
+_HTTP = {"ok": 0, "err": 0}
+
+
 def http_get(url, timeout=12, retries=2):
     last = None
     for i in range(retries + 1):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "justhodl/1.0"})
             with urllib.request.urlopen(req, timeout=timeout) as r:
+                _HTTP["ok"] += 1
                 return r.read().decode("utf-8", errors="ignore")
         except Exception as e:
             last = e
             time.sleep(0.5 * (i + 1))
+    _HTTP["err"] += 1
     raise RuntimeError(f"http_get failed: {last}")
 
 
@@ -395,12 +400,21 @@ def lambda_handler(event, context):
             state, strength = "NORMAL", 0.35
         else:
             state, strength = "QUIET", 0.1
+        # wo4592 BUG-4 gate: "no mean-rev setups" is unknowable when every
+        # fetch errored. Blind says blind, not calm.
+        data_sufficiency = {"http_ok": _HTTP["ok"],
+                            "http_err": _HTTP["err"],
+                            "rule": "QUIET only claimable when >=1 fetch "
+                                    "answered; else INSUFFICIENT_DATA"}
+        if state == "QUIET" and _HTTP["ok"] == 0 and _HTTP["err"] > 0:
+            state, strength = "INSUFFICIENT_DATA", 0.0
 
         out = {
             "engine": "post-earnings-mean-rev",
             "version": VERSION,
             "as_of": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "state": state,
+            "data_sufficiency": data_sufficiency,
             "signal_strength": round(strength, 2),
             "n_setups": len(setups),
             "n_high_conviction": n_high,
