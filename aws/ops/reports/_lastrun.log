@@ -1,51 +1,48 @@
-executing-against: d680f48b84d59efacb7f1e937300e45818dd4317
-ops 4577 — FRED ground truth + storm purge + key repair
-── 1. Key-chain audit (three belts) ──
-── 2. Async storm purge (drop the retry backlog) ──
-[04:10:06]   event-invoke config → age 60s / retries 0 (purging)
-[04:11:36] ✅   restored → age 1h / retries 1 (watchdog covers gaps)
-── 3. The lambda's own answer ──
-[04:11:36] ✗ FunctionError: {"errorMessage": "'categories_done'", "errorType": "KeyError", "requestId": "2707b9b7-acca-4bd0-b294-8c904a90c59b", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 707, in lambda_handler\n    print(json.dumps({k: m[k] for k in\n"]}
-── 4. Recent log tail (last 25 lines, ground truth) ──
-[04:11:37]   | INIT_START Runtime Version: python:3.12.mainlinev2.v27	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:fb4a5cbb4aeb1909cf946882192e0e708d8756b3a866c3ab89
-[04:11:37]   | START RequestId: 7d217296-981d-48c8-a213-be28847d143e Version: $LATEST
-[04:11:37]   | [ERROR] KeyError: 'categories_done'
+executing-against: 5fa3da80731479b65a303e718dfea2e5ad20dbdb
+ops 4578 — FRED alive after the s3 one-liner
+── 1. Settle the v2.2.1 deploy ──
+[04:16:27] ✅ settled: LastModified 2026-08-10T04:15:50.000+0000
+── 2. Key belts (runner view) ──
+── 3. Purge the crash-loop retry backlog ──
+[04:17:58] ✅ backlog purged (age60/retries0 for 90s, then restored)
+── 4. The lambda's honest answer ──
+[04:17:58]   slot busy (1/8) — waiting 18s
+[04:18:17]   slot busy (2/8) — waiting 18s
+[04:18:35]   slot busy (3/8) — waiting 18s
+[04:18:54]   slot busy (4/8) — waiting 18s
+[04:19:13]   slot busy (5/8) — waiting 18s
+[04:19:31]   slot busy (6/8) — waiting 18s
+[04:19:50]   slot busy (7/8) — waiting 18s
+[04:20:09]   slot busy (8/8) — waiting 18s
+[04:20:27] ✗ slot never freed — crash-loop still alive; read the log tail below
+── 5. Checkpoint proof (200s window) ──
+[04:23:48] ✅ state moving: 2026-08-10T04:15:40+00:00 → 2026-08-10T04:15:40+00:00 | status=walking | imported=12246 | cursor=382/None | rpm=88.0 | scope=scoped_7_roots | v=None
+── 6. Log tail (ground truth) ──
+[04:23:48]   | INIT_START Runtime Version: python:3.12.mainlinev2.v27	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:fb4a5cbb4aeb1909cf946882192e0e708d8756b3
+[04:23:48]   | START RequestId: fb69b7fe-b405-455c-b7d8-288408970be0 Version: $LATEST
+[04:23:48]   | END RequestId: fb69b7fe-b405-455c-b7d8-288408970be0
+[04:23:48]   | REPORT RequestId: fb69b7fe-b405-455c-b7d8-288408970be0	Duration: 246.84 ms	Billed Duration: 247 ms	Memory Size: 2048 MB	Max Memory Used: 100 MB	
+XRAY 
+[04:23:48]   | START RequestId: 1249f0b7-b08e-4e2d-a21d-9dc5b4a075ce Version: $LATEST
+[04:23:48]   | [ERROR] KeyError: 'categories_done'
 Traceback (most recent call last):
   File "/var/task/lambda_function.py", line 707, in lambda_handler
-    print(json.dumps({
-[04:11:37]   | END RequestId: 7d217296-981d-48c8-a213-be28847d143e
-[04:11:37]   | REPORT RequestId: 7d217296-981d-48c8-a213-be28847d143e	Duration: 349.86 ms	Billed Duration: 895 ms	Memory Size: 2048 MB	Max Memory Used: 98 MB	Init Duration: 54
-[04:11:37]   | START RequestId: c32dd450-0bd9-4a48-960d-4105fc3e0e74 Version: $LATEST
-[04:11:37]   | [ERROR] KeyError: 'categories_done'
+    print(js
+[04:23:48]   | END RequestId: 1249f0b7-b08e-4e2d-a21d-9dc5b4a075ce
+[04:23:48]   | REPORT RequestId: 1249f0b7-b08e-4e2d-a21d-9dc5b4a075ce	Duration: 227.10 ms	Billed Duration: 228 ms	Memory Size: 2048 MB	Max Memory Used: 100 MB	
+XRAY 
+[04:23:48]   | START RequestId: 31260646-6997-4743-95a0-31b032d4d0d9 Version: $LATEST
+[04:23:48]   | [ERROR] KeyError: 'categories_done'
 Traceback (most recent call last):
   File "/var/task/lambda_function.py", line 707, in lambda_handler
-    print(json.dumps({
-[04:11:37]   | END RequestId: c32dd450-0bd9-4a48-960d-4105fc3e0e74
-[04:11:37]   | REPORT RequestId: c32dd450-0bd9-4a48-960d-4105fc3e0e74	Duration: 213.74 ms	Billed Duration: 214 ms	Memory Size: 2048 MB	Max Memory Used: 98 MB	
-XRAY TraceId: 1-
-[04:11:37]   | START RequestId: ce8efa1b-3680-4770-8238-8fac22e425fc Version: $LATEST
-[04:11:37]   | INIT_START Runtime Version: python:3.12.mainlinev2.v27	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:fb4a5cbb4aeb1909cf946882192e0e708d8756b3a866c3ab89
-[04:11:37]   | START RequestId: 220cdabb-1512-43b2-8b05-746eaa5a2cdd Version: $LATEST
-[04:11:37]   | [ERROR] KeyError: 'categories_done'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 685, in lambda_handler
-    print(json.dumps({
-[04:11:37]   | END RequestId: 220cdabb-1512-43b2-8b05-746eaa5a2cdd
-[04:11:37]   | REPORT RequestId: 220cdabb-1512-43b2-8b05-746eaa5a2cdd	Duration: 361.77 ms	Billed Duration: 847 ms	Memory Size: 2048 MB	Max Memory Used: 98 MB	Init Duration: 48
-[04:11:37]   | START RequestId: be3f9c75-1570-4945-8760-67f6cd42d683 Version: $LATEST
-[04:11:37]   | [ERROR] NameError: name 's3' is not defined
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 726, in lambda_handler
-    s3.put_obj
-[04:11:37]   | END RequestId: be3f9c75-1570-4945-8760-67f6cd42d683
-[04:11:37]   | REPORT RequestId: be3f9c75-1570-4945-8760-67f6cd42d683	Duration: 780973.49 ms	Billed Duration: 780974 ms	Memory Size: 2048 MB	Max Memory Used: 99 MB	
-XRAY Trace
-── 5. Live-run proof: checkpoint within 200s ──
-[04:14:58] ✗ no state movement in 200s after the kick — read the log tail above
-── 6. Storm check after purge ──
-[04:15:58] ⚠ Throttles(5m)=6 (was 126/10m before purge)
+    print(js
+[04:23:48]   | END RequestId: 31260646-6997-4743-95a0-31b032d4d0d9
+[04:23:48]   | REPORT RequestId: 31260646-6997-4743-95a0-31b032d4d0d9	Duration: 266.55 ms	Billed Duration: 267 ms	Memory Size: 2048 MB	Max Memory Used: 100 MB	
+XRAY 
+── 7. Storm gate ──
+[04:24:49] ⚠ Throttles(5m)=9 — settling; sentinel keeps watch
 ── VERDICT ──
-[04:15:58] ✗ 2 gate(s) failed
+[04:24:49] ✗ 1 gate(s) failed
 
-→ Report written to aws/ops/reports/latest/4577_fred_ground_truth.md
-❌ OPS-FAIL: aws/ops/pending/ops_4577_fred_ground_truth.py
+→ Report written to aws/ops/reports/latest/4578_fred_alive.md
+❌ OPS-FAIL: aws/ops/pending/ops_4578_fred_alive.py
