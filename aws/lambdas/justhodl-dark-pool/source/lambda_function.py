@@ -34,6 +34,9 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
+from impact_mapper import (build as impact_build, load_graph,
+                           measured_row, industry_rollup)
+
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/dark-pool.json"
@@ -114,8 +117,12 @@ def fetch_offexchange(weeks_back=45):
                 qty = r.get("totalWeeklyShareQuantity")
                 if not sym or not wk or qty is None:
                     continue
-                d = out.setdefault(sym, {}).setdefault(wk, {"ats": 0.0, "otc": 0.0})
+                d = out.setdefault(sym, {}).setdefault(wk, {"ats": 0.0, "otc": 0.0,
+                                                            "ats_tr": 0.0, "otc_tr": 0.0})
                 d[key] += float(qty)
+                tc = r.get("totalWeeklyTradeCount")
+                if tc is not None:
+                    d[key + "_tr"] = d.get(key + "_tr", 0.0) + float(tc)
             if len(rows) < 5000:
                 break
             offset += 5000
@@ -199,9 +206,16 @@ def lambda_handler(event=None, context=None):
         if wk_ret is not None:
             score += 15 * (1.0 if -1.0 <= wk_ret <= 6.0 else 0.3)  # quiet (not yet moved / mild up)
         score = round(score, 1)
+        atr = lw.get("ats_tr") or 0.0
+        avg_sz = round(ats / atr) if atr else None
+        venue = (None if avg_sz is None else
+                 "BLOCK_TILT" if avg_sz >= 5000 else
+                 "MIXED" if avg_sz >= 1500 else "RETAIL_PING")
         rows.append({"ticker": sym, "state": state, "score": score,
                      "dark_pool_pct": dark_pct, "offex_pct": offex_pct,
                      "dark_accel": dark_accel, "week_return_pct": wk_ret,
+                     "ats_avg_trade_size": avg_sz,
+                     "venue_fingerprint": venue,
                      "ats_shares_wk": int(ats), "offex_shares_wk": int(off),
                      "total_vol_wk": int(tvol)})
     rows.sort(key=lambda r: r["score"], reverse=True)
@@ -464,8 +478,76 @@ def lambda_handler(event=None, context=None):
                               "cv": r.get("conviction"), "fl": r.get("flag"),
                               "dv": r.get("daily_off_exch_vol")} for r in rows}
 
+    # wo4580: weekly self-history archive → per-name percentile vs OWN past.
+    # data/archive/dark-pool/week-<date>.json accrues from today; percentile
+    # publishes only at n>=8 weeks — INSUFFICIENT_HISTORY until earned.
+    hist_status = "INSUFFICIENT_HISTORY"
+    n_hist_weeks = 0
+    try:
+        S3.put_object(Bucket=BUCKET,
+                      Key="data/archive/dark-pool/week-%s.json" % latest_week,
+                      Body=json.dumps({"week": latest_week,
+                                       "dark_share_map": dark_share_map}).encode(),
+                      ContentType="application/json")
+        resp = S3.list_objects_v2(Bucket=BUCKET, Prefix="data/archive/dark-pool/",
+                                  MaxKeys=200)
+        keys = sorted(k["Key"] for k in resp.get("Contents", []))
+        n_hist_weeks = len(keys)
+        if n_hist_weeks >= 8:
+            hist = []
+            for k2 in keys[-26:]:
+                d2 = _get_json(k2) or {}
+                if d2.get("week") != latest_week and d2.get("dark_share_map"):
+                    hist.append(d2["dark_share_map"])
+            if len(hist) >= 7:
+                hist_status = "LIVE"
+                for r in rows:
+                    past = [h.get(r["ticker"]) for h in hist]
+                    past = [x for x in past if isinstance(x, (int, float))]
+                    cur = dark_share_map.get(r["ticker"])
+                    if len(past) >= 7 and cur is not None:
+                        r["dark_share_pctile_vs_self"] = round(
+                            100.0 * sum(1 for x in past if x < cur) / len(past), 0)
+    except Exception as _e:
+        print("[dark-pool] archive/percentile: %s" % _e)
+
+    # wo4580 impact_map — measured cross-sectional pp vs the board median,
+    # split by the engine's own accumulation/distribution classification.
+    med = None
+    _ds = sorted(r["dark_pool_pct"] for r in rows if r.get("dark_pool_pct"))
+    if _ds:
+        med = _ds[len(_ds) // 2]
+    ben_r, suf_r = [], []
+    if med is not None:
+        for r in rows[:150]:
+            dp2 = r.get("dark_pool_pct")
+            if dp2 is None:
+                continue
+            pp = dp2 - med
+            if r.get("state") == "ACCUMULATION" and pp > 0:
+                ben_r.append(measured_row(
+                    r["ticker"], "company", pp, "dark_share_pp_vs_market_median",
+                    "ATS share of consolidated weekly volume minus board "
+                    "median (%.1f%%); classified ACCUMULATION" % med))
+            elif r.get("state") == "DISTRIBUTION" and pp > 0:
+                suf_r.append(measured_row(
+                    r["ticker"], "company", pp, "dark_share_pp_vs_market_median",
+                    "ATS share minus board median (%.1f%%); classified "
+                    "DISTRIBUTION (dark supply into weakness)" % med))
+    _graph = load_graph() or {}
+    impact = impact_build(
+        "justhodl-dark-pool", "dark_pool_share",
+        ben_r[:15] + industry_rollup(ben_r, _graph),
+        suf_r[:15] + industry_rollup(suf_r, _graph),
+        "Measured pp of dark (ATS) share of consolidated volume above the "
+        "board median, split by the engine's price-conditioned "
+        "accumulation/distribution read. Level alone is NOT directional "
+        "(ops-4559 BUG-6) — the state classification carries direction.",
+        basis_note="self-history %s (%d wks archived; percentile needs 8)"
+                   % (hist_status, n_hist_weeks))
+
     payload = {
-        "engine": "justhodl-dark-pool", "version": "2.5.0", "ok": True,
+        "engine": "justhodl-dark-pool", "version": "2.6.0", "ok": True,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "thesis": ("Per-name off-exchange accumulation from FINRA ATS transparency. Rising "
                    "dark-pool share of volume while price stays flat = quiet institutional "
@@ -497,6 +579,10 @@ def lambda_handler(event=None, context=None):
         "daily_fusion": {"joined": joined, "of": len(rows), "z_all": _diag["z_all"],
                          "source": "finra-short daily regsho (short + total TRF vol) + rolling-history z (11.9k names)"},
         "high_conviction": hi_all[:40], "distribution_into_strength": dis_all[:40],
+        "self_history": {"status": hist_status, "n_weeks_archived": n_hist_weeks,
+                         "note": "per-name dark_share_pctile_vs_self on board "
+                                 "rows once 8 weekly archives accrue"},
+        "impact_map": impact,
         "dix": dix_block, "monthly_ats": monthly, "quiver": quiver,
         "data_source": "FINRA OTC Transparency weeklySummary (ATS+OTC) + Polygon grouped daily volume",
         "caveats": [
