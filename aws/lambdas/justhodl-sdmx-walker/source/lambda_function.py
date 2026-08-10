@@ -10,6 +10,7 @@ import io
 import json
 import time
 import os
+import urllib.error
 import urllib.request
 import zipfile
 from datetime import datetime, timezone
@@ -91,7 +92,7 @@ def _order(ids, pri_prefixes):
 
 
 def _walk_generic(agency, ids, url_fn, out_prefix, S,
-                  _budget=None):
+                  _budget=None, alt_attempts=None):
     k, st = _state(agency)
     done = set(st["done"])
     _budget = _budget or BUDGET_S
@@ -112,8 +113,31 @@ def _walk_generic(agency, ids, url_fn, out_prefix, S,
     from concurrent.futures import (ThreadPoolExecutor, wait,
                                     FIRST_COMPLETED)
 
+    # ops 4576 (ECB 406): some agencies refuse a representation unless
+    # the Accept header matches — negotiate once per run, remember the
+    # winner, lead with it for every later flow.
+    _neg = {"i": 0}
+
     def _dl_one(_fid):
-        return _fetch_capped(url_fn(_fid))
+        if not alt_attempts:
+            return _fetch_capped(url_fn(_fid))
+        order = list(range(len(alt_attempts)))
+        order.remove(_neg["i"]); order.insert(0, _neg["i"])
+        last = None
+        for ai in order:
+            ufn, hdrs = alt_attempts[ai]
+            try:
+                r = _fetch_capped(ufn(_fid), headers=hdrs)
+                _neg["i"] = ai
+                return r
+            except urllib.error.HTTPError as e:
+                last = e
+                if e.code not in (406, 400, 415, 501):
+                    raise
+            except Exception as e:
+                last = e
+                break
+        raise last
     _pool = ThreadPoolExecutor(max_workers=24)
     _futs = {_pool.submit(_dl_one, f2): f2 for f2 in todo}
     _results = {}
@@ -221,11 +245,21 @@ def lambda_handler(event, context):
             "data/warm/ecb/catalog.json.gz")["dataflows"]],
             ("BSI", "MIR", "ICP", "STS", "GFS", "BOP", "EXR"))
         if ag == "ecb":
+          _ecb_base = "https://data-api.ecb.europa.eu/service/data/"
+          _ecb_alts = [
+            (lambda f: _ecb_base + f + "?format=csvdata",
+             {"Accept": "text/csv"}),
+            (lambda f: _ecb_base + f,
+             {"Accept": "application/vnd.sdmx.data+csv;version=1.0.0"}),
+            (lambda f: _ecb_base + f + "?format=csvdata&detail=dataonly",
+             {"Accept": "text/csv"}),
+            (lambda f: _ecb_base + f + "?format=genericdata",
+             {"Accept": "application/xml"}),
+          ]
           _walk_generic(
-            "ecb", ecb_ids,
-            lambda f: (f"https://data-api.ecb.europa.eu/service/"
-                       f"data/{f}?format=csvdata"),
-            "data/warm/ecb/data", S, _budget=_ebud)
+            "ecb", ecb_ids, _ecb_alts[0][0],
+            "data/warm/ecb/data", S, _budget=_ebud,
+            alt_attempts=_ecb_alts)
     except Exception as e:
         S["ecb"] = {"data_unavailable": True,
                     "reason": f"{type(e).__name__}: {str(e)[:60]}"}
