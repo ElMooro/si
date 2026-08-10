@@ -33,6 +33,10 @@ import json, time
 from datetime import datetime, timezone
 import boto3
 
+from impact_mapper import (build as impact_build, load_graph,
+                           measured_row, structural_row)
+from evidence_weights import blend as ew_blend
+
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/accum-composite.json"
 s3 = boto3.client("s3", region_name=REGION)
@@ -43,18 +47,37 @@ FEEDS = {
     "inst_13f": "data/smart-money-clusters.json",
     "dark_pool": "data/dark-pool.json",
     "radar": "data/accumulation-radar.json",
+    "congress": "data/congress-direct.json",
+    "activist": "data/activist-13d.json",
 }
 WEIGHTS = {  # by evidence tier — not by intuition
-    "form4_opportunistic": 0.35,
-    "short_vol_low": 0.25,
-    "inst_delta_resid": 0.20,
-    "dark_composition": 0.10,
-    "technical_radar": 0.10,
+    "form4_opportunistic": 0.30,
+    "short_vol_low": 0.22,
+    "inst_delta_resid": 0.18,
+    "congress_cluster": 0.08,
+    "activist_13d": 0.07,
+    "dark_composition": 0.08,
+    "technical_radar": 0.07,
+}
+# information half-lives (days) per evidence class — a stale feed's weight
+# decays instead of silently dominating; floor 0.25 keeps it visible
+HALF_LIFE_D = {
+    "form4_opportunistic": 21, "short_vol_low": 10, "inst_delta_resid": 60,
+    "congress_cluster": 30, "activist_13d": 45, "dark_composition": 14,
+    "technical_radar": 7,
+}
+SIGNAL_TYPE_MAP = {
+    "form4_opportunistic": "accum_form4", "short_vol_low": "accum_svr_low",
+    "inst_delta_resid": "accum_13f_resid", "congress_cluster": "accum_congress",
+    "activist_13d": "accum_activist", "dark_composition": "accum_dark",
+    "technical_radar": "accum_radar",
 }
 TIER = {
     "form4_opportunistic": "tier_1_regulatory_validated",
     "short_vol_low": "tier_1_regulatory_validated",
     "inst_delta_resid": "tier_2_disclosed_residualized",
+    "congress_cluster": "tier_1_regulatory_validated",
+    "activist_13d": "tier_1_regulatory_validated",
     "dark_composition": "tier_3_microstructure_estimate",
     "technical_radar": "tier_4_unvalidated_technical",
 }
@@ -206,6 +229,71 @@ def extract_dark(j):
     return out, mode
 
 
+def extract_congress(j):
+    """→ {ticker: recent_buy_usd} from congress-direct (house+senate,
+    official eFD/Clerk source). Purchases only; ranges midpointed upstream."""
+    out = {}
+    if not isinstance(j, dict):
+        return out
+    for side in ("house", "senate"):
+        node = j.get(side)
+        rows = []
+        if isinstance(node, list):
+            rows = node
+        elif isinstance(node, dict):
+            rows = (node.get("trades") or node.get("transactions")
+                    or node.get("rows") or [])
+        for r in rows if isinstance(rows, list) else []:
+            if not isinstance(r, dict):
+                continue
+            tk = (r.get("ticker") or r.get("symbol") or "").upper()
+            side_tx = str(r.get("type") or r.get("transaction")
+                          or r.get("tx_type") or "").lower()
+            if not tk or ("purchase" not in side_tx and "buy" not in side_tx):
+                continue
+            v = (r.get("amount_mid") or r.get("value_mid") or r.get("amount")
+                 or r.get("value") or 0)
+            try:
+                v = float(v)
+            except Exception:
+                v = 0.0
+            if v > 0:
+                out[tk] = out.get(tk, 0.0) + v
+    return out
+
+
+def extract_activist(j):
+    """→ {ticker: setup_score} from activist-13d all_setups."""
+    out = {}
+    if not isinstance(j, dict):
+        return out
+    rows = j.get("all_setups") or j.get("top_setups") or []
+    if isinstance(rows, dict):
+        rows = list(rows.values())
+    for r in rows if isinstance(rows, list) else []:
+        if not isinstance(r, dict):
+            continue
+        tk = (r.get("ticker") or r.get("symbol") or "").upper()
+        v = (r.get("score") or r.get("setup_score") or r.get("conviction")
+             or r.get("stake_pct") or 0)
+        if not tk:
+            continue
+        try:
+            out[tk] = float(v)
+        except Exception:
+            continue
+    return out
+
+
+def feed_age_days(j):
+    try:
+        ts = (j or {}).get("generated_at") or (j or {}).get("as_of")
+        t2 = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+        return max(0.0, (datetime.now(timezone.utc) - t2).total_seconds() / 86400)
+    except Exception:
+        return None
+
+
 def extract_radar(j):
     out = {}
     if not isinstance(j, dict):
@@ -239,8 +327,26 @@ def lambda_handler(event=None, context=None):
     inst = extract_13f(raw["inst_13f"])
     dark, dark_mode = extract_dark(raw["dark_pool"])
     radar = extract_radar(raw["radar"])
+    congress = extract_congress(raw.get("congress"))
+    activist = extract_activist(raw.get("activist"))
+
+    # wo4580: weights = tiered priors, Wilson-shrunk by the calibration
+    # ledger (honest prior_only basis until each family accrues n>=30),
+    # then decayed by each feed's actual age vs its information half-life.
+    learned_w, weights_meta = ew_blend(WEIGHTS, SIGNAL_TYPE_MAP)
+    FEED_OF = {"form4_opportunistic": "insider", "short_vol_low": "finra_short",
+               "inst_delta_resid": "inst_13f", "congress_cluster": "congress",
+               "activist_13d": "activist", "dark_composition": "dark_pool",
+               "technical_radar": "radar"}
+    decay = {}
+    for comp, feed in FEED_OF.items():
+        age = feed_age_days(raw.get(feed))
+        hl = HALF_LIFE_D.get(comp, 30)
+        decay[comp] = (round(max(0.25, 0.5 ** (age / hl)), 3)
+                       if age is not None else 1.0)
+    eff_w = {k: round(learned_w[k] * decay[k], 4) for k in learned_w}
     for name, m in (("insider", insider), ("finra_short", svr), ("inst_13f", inst),
-                    ("radar", radar)):
+                    ("radar", radar), ("congress", congress), ("activist", activist)):
         if raw.get(name if name != "finra_short" else "finra_short") is not None and not m:
             feeds_missing.append({"feed": name, "reason": "read_ok_but_zero_rows"})
     if dark_mode == "unavailable" and raw["dark_pool"] is not None:
@@ -254,6 +360,8 @@ def lambda_handler(event=None, context=None):
         "inst_delta_resid": inst,
         "dark_composition": dark,
         "technical_radar": radar,
+        "congress_cluster": congress,
+        "activist_13d": activist,
     }
     # residualize each on liquidity rank (the anti-volume-costume step)
     comp, resid_applied = {}, {}
@@ -282,7 +390,7 @@ def lambda_handler(event=None, context=None):
     names = []
     for tk in tickers:
         parts, wsum, score = [], 0.0, 0.0
-        for k, w in WEIGHTS.items():
+        for k, w in eff_w.items():
             if tk in norm.get(k, {}):
                 v = norm[k][tk]
                 parts.append({"component": k, "evidence_tier": TIER[k],
@@ -318,8 +426,45 @@ def lambda_handler(event=None, context=None):
             disagreement.append({"ticker": tk, "why": "radar_high_evidence_low",
                                  "radar_rank": round(v, 3)})
 
+    # wo4580 impact_map — top composite names structural; industries carry a
+    # measured pp: % of industry mcap under >=2-component tier-1 evidence.
+    graph = load_graph() or {}
+    gtk = graph.get("tickers") or {}
+    gind = graph.get("industries") or {}
+    ind_flag = {}
+    for n2 in names[:60]:
+        info = gtk.get(n2["ticker"]) or {}
+        ind, mc = info.get("industry"), info.get("mcap")
+        if ind and mc and n2["n_components"] >= 2:
+            d2 = ind_flag.setdefault(ind, {"mc": 0.0, "names": []})
+            d2["mc"] += float(mc)
+            d2["names"].append(n2["ticker"])
+    ind_rows = []
+    for ind, d2 in ind_flag.items():
+        tot = float((gind.get(ind) or {}).get("mcap") or 0)
+        if tot > 0 and len(d2["names"]) >= 2:
+            r2 = measured_row(ind, "industry", d2["mc"] / tot * 100,
+                              "pct_industry_mcap_under_evidence",
+                              "sum(mcap of names with >=2 components) / "
+                              "industry mcap — %s"
+                              % ",".join(sorted(d2["names"])[:6]))
+            r2["n_members"] = len(d2["names"])
+            ind_rows.append(r2)
+    impact = impact_build(
+        "accum-composite", "accumulation_evidence_composite",
+        [structural_row(n2["ticker"], "company",
+                        "%d components, score %.0f, weight_covered %.2f"
+                        % (n2["n_components"], n2["score"],
+                           n2["weight_covered"]), +1)
+         for n2 in names[:15]] + ind_rows, [],
+        "Evidence-tiered composite: company rows are structural (tier-gated "
+        "rank, no pp asserted); industry rows are measured % of industry "
+        "market cap under >=2-component evidence.",
+        basis_note="weights basis: %s; decay floors at 0.25"
+                   % weights_meta["overall_basis"])
+
     out = {
-        "engine": "accum-composite", "version": "1.0",
+        "engine": "accum-composite", "version": "1.1",
         "engine_class": "accumulation_evidence_composite",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
@@ -336,7 +481,10 @@ def lambda_handler(event=None, context=None):
                                 "justhodl-signals graded ledger — standard k-fold "
                                 "leaks across overlapping label windows and is "
                                 "not accepted as evidence")},
-        "weights": WEIGHTS,
+        "weights": {"priors": WEIGHTS, "learned": learned_w,
+                    "effective_after_decay": eff_w, "decay": decay,
+                    "meta": weights_meta},
+        "impact_map": impact,
         "component_coverage": {k: len(v) for k, v in norm.items()},
         "dark_composition_mode": dark_mode,
         "feeds_missing": feeds_missing,
