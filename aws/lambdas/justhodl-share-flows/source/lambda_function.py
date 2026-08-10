@@ -414,6 +414,26 @@ def lambda_handler(event=None, context=None):
         warns.append("no sell rows in tape -- sells omitted "
                      "honestly")
 
+    # rev-4 (4583): these three pulls are independent of per-ticker data —
+    # front-loaded so their latency (worst ~75s serial) overlaps the fetch
+    # budget instead of stacking after it. Each is individually shielded:
+    # a slow/failed pull degrades to {} with a warn, never a crash.
+    try:
+        announced = edgar_fts('"share repurchase program"', "8-K", 270, warns)
+    except Exception as e:
+        announced = {}
+        warns.append("edgar 8-K pull crashed: %s" % str(e)[:90])
+    try:
+        atm = edgar_fts('"at-the-market"', "424B5", 90, warns)
+    except Exception as e:
+        atm = {}
+        warns.append("edgar 424B5 pull crashed: %s" % str(e)[:90])
+    try:
+        cal = fmp_earnings_calendar(warns)
+    except Exception as e:
+        cal = {}
+        warns.append("earnings calendar crashed: %s" % str(e)[:90])
+
     universe = build_universe(warns)
     cached_ok, need = {}, []
     for t in universe:
@@ -438,7 +458,7 @@ def lambda_handler(event=None, context=None):
     # compute, worst-case ~85s) pushed 760+tail past the 840s timeout —
     # the run died BEFORE the S3 put and the fleet kept serving v1.4.
     # 700s fetch budget + 900s timeout leaves honest headroom.
-    deadline = t0 + 700
+    deadline = t0 + 640
     with ThreadPoolExecutor(max_workers=10) as exe:
         futs = {exe.submit(fetch_name, t): t
                 for t in need[:MAX_FRESH_FETCH]}
@@ -514,100 +534,113 @@ def lambda_handler(event=None, context=None):
                      key=lambda r: -(r.get("insider_sell_usd_recent")
                                      or 0))[:20]
 
-    # wo4580 (a): announced vs executed — the buyback bluff detector.
-    # Announcements from EDGAR full-text search (8-K, real+keyless);
-    # execution truth is the TTM cash + share-count trend already on the row.
-    announced = edgar_fts('"share repurchase program"', "8-K", 270, warns)
-    bluff, backed = [], []
-    for t, r in tickers.items():
-        ad = announced.get(t)
-        if not ad:
-            continue
-        r["buyback_announced_8k_date"] = ad
-        exec_ttm = r.get("buyback_ttm_usd") or 0
-        yoy = r.get("sh_yoy_pct")
-        mc = r.get("market_cap") or 0
-        row = {"ticker": t, "announced_8k_date": ad,
-               "buyback_ttm_usd": exec_ttm,
-               "buyback_yield_pct": r.get("buyback_yield_pct"),
-               "sh_yoy_pct": yoy}
-        # bluff: program announced, but <0.3% of mcap executed TTM and the
-        # float has not shrunk. Heuristic labeled as such; announced-$ parse
-        # from the filing body is the declared next step.
-        if mc and exec_ttm < 0.003 * mc and (yoy is None or yoy > -0.3):
-            r.setdefault("flags", []).append("BUYBACK_BLUFF")
-            bluff.append(row)
-        elif exec_ttm >= 0.01 * mc and mc:
-            backed.append(row)
-    bluff.sort(key=lambda x: (x["buyback_yield_pct"] or 0))
-    backed.sort(key=lambda x: -(x["buyback_yield_pct"] or 0))
+    # rev-4 WRITE GUARANTEE: the v1.4->v2 crash left the fleet serving a
+    # stale payload — the worst failure mode. Everything from here to the
+    # impact build runs inside one shield: an exception degrades to empty
+    # boards + a minimal-but-valid impact_map, with the traceback tail in
+    # warns[] so the bug is loud, and the S3 put ALWAYS executes.
+    bluff, backed, atm_active, blackout = [], [], [], []
+    impact = None
+    try:
+        _v2_tail_ok = True
+        # wo4580 (a): announced vs executed — the buyback bluff detector.
+        for t, r in tickers.items():
+            ad = announced.get(t)
+            if not ad:
+                continue
+            r["buyback_announced_8k_date"] = ad
+            exec_ttm = r.get("buyback_ttm_usd") or 0
+            yoy = r.get("sh_yoy_pct")
+            mc = r.get("market_cap") or 0
+            row = {"ticker": t, "announced_8k_date": ad,
+                   "buyback_ttm_usd": exec_ttm,
+                   "buyback_yield_pct": r.get("buyback_yield_pct"),
+                   "sh_yoy_pct": yoy}
+            # bluff: program announced, but <0.3% of mcap executed TTM and the
+            # float has not shrunk. Heuristic labeled as such; announced-$ parse
+            # from the filing body is the declared next step.
+            if mc and exec_ttm < 0.003 * mc and (yoy is None or yoy > -0.3):
+                r.setdefault("flags", []).append("BUYBACK_BLUFF")
+                bluff.append(row)
+            elif exec_ttm >= 0.01 * mc and mc:
+                backed.append(row)
+        bluff.sort(key=lambda x: (x["buyback_yield_pct"] or 0))
+        backed.sort(key=lambda x: -(x["buyback_yield_pct"] or 0))
 
-    # wo4580 (b): ATM shelf tracking — 424B5 at-the-market prospectuses =
-    # standing dilution machinery, the early warning small-cap holders need.
-    atm = edgar_fts('"at-the-market"', "424B5", 90, warns)
-    atm_active = []
-    for t, r in tickers.items():
-        d2 = atm.get(t)
-        if d2:
-            r["atm_shelf_424b5_date"] = d2
-            r.setdefault("flags", []).append("ATM_SHELF_ACTIVE")
-            atm_active.append({"ticker": t, "filed": d2,
-                               "sh_yoy_pct": r.get("sh_yoy_pct"),
-                               "read": r.get("read")})
-    atm_active.sort(key=lambda x: x["filed"] or "", reverse=True)
+        # wo4580 (b): ATM shelf tracking (pre-fetched above; rev-4)
+        for t, r in tickers.items():
+            d2 = atm.get(t)
+            if d2:
+                r["atm_shelf_424b5_date"] = d2
+                r.setdefault("flags", []).append("ATM_SHELF_ACTIVE")
+                atm_active.append({"ticker": t, "filed": d2,
+                                   "sh_yoy_pct": r.get("sh_yoy_pct"),
+                                   "read": r.get("read")})
+        atm_active.sort(key=lambda x: x["filed"] or "", reverse=True)
 
-    # wo4580 (c): buyback blackout calendar — the corporate bid going dark.
-    # Real earnings dates; window convention [E-14d, E+2d] stated, not hidden.
-    cal = fmp_earnings_calendar(warns)
-    heavy = [r for r in rows if r.get("read") in ("BUYBACK_HEAVY", "SHRINKING")
-             and (r.get("buyback_ttm_usd") or 0) > 0]
-    wk = {}
-    for r in heavy:
-        ed = cal.get(r["ticker"])
-        if not ed:
-            continue
-        try:
-            e = datetime.fromisoformat(ed)
-        except Exception:
-            continue
-        start = e - timedelta(days=14)
-        end = e + timedelta(days=2)
-        weekly_usd = (r["buyback_ttm_usd"] or 0) / 52.0
-        d3 = start
-        while d3 <= end:
-            wkey = (d3 - timedelta(days=d3.weekday())).strftime("%Y-%m-%d")
-            w2 = wk.setdefault(wkey, {"usd_dark": 0.0, "names": set()})
-            w2["usd_dark"] += weekly_usd / 7.0 * 1  # per-day slice into its week
-            w2["names"].add(r["ticker"])
-            d3 += timedelta(days=1)
-    blackout = [{"week_of": k2, "buyback_usd_going_dark": round(v2["usd_dark"]),
-                 "n_names": len(v2["names"]),
-                 "names": sorted(v2["names"])[:12]}
-                for k2, v2 in sorted(wk.items())][:8]
+        # wo4580 (c): buyback blackout calendar (cal pre-fetched above; rev-4)
+        heavy = [r for r in rows if r.get("read") in ("BUYBACK_HEAVY", "SHRINKING")
+                 and (r.get("buyback_ttm_usd") or 0) > 0]
+        wk = {}
+        for r in heavy:
+            ed = cal.get(r["ticker"])
+            if not ed:
+                continue
+            try:
+                e = datetime.fromisoformat(ed)
+            except Exception:
+                continue
+            start = e - timedelta(days=14)
+            end = e + timedelta(days=2)
+            weekly_usd = (r["buyback_ttm_usd"] or 0) / 52.0
+            d3 = start
+            while d3 <= end:
+                wkey = (d3 - timedelta(days=d3.weekday())).strftime("%Y-%m-%d")
+                w2 = wk.setdefault(wkey, {"usd_dark": 0.0, "names": set()})
+                w2["usd_dark"] += weekly_usd / 7.0 * 1  # per-day slice into its week
+                w2["names"].add(r["ticker"])
+                d3 += timedelta(days=1)
+        blackout = [{"week_of": k2, "buyback_usd_going_dark": round(v2["usd_dark"]),
+                     "n_names": len(v2["names"]),
+                     "names": sorted(v2["names"])[:12]}
+                    for k2, v2 in sorted(wk.items())][:8]
 
-    # wo4580 impact_map — fully measured float pp per year
-    graph = load_graph() or {}
-    ben = [measured_row(r["ticker"], "company", -(r.get("sh_yoy_pct") or 0),
-                        "float_pct_per_year",
-                        "diluted share count yoy — float shrink is supply "
-                        "removed")
-           for r in rows if (r.get("sh_yoy_pct") or 0) <= -1
-           and not r.get("extreme")][:40]
-    suf = [measured_row(r["ticker"], "company", -(r.get("sh_yoy_pct") or 0),
-                        "float_pct_per_year",
-                        "diluted share count yoy — dilution is supply added")
-           for r in rows if (r.get("sh_yoy_pct") or 0) >= 2
-           and not r.get("extreme")][:40]
-    ben.sort(key=lambda x: -x["pp"]); suf.sort(key=lambda x: x["pp"])
-    impact = impact_build(
-        "share-flows", "float_supply_change",
-        ben[:15] + industry_rollup(ben, graph),
-        suf[:15] + industry_rollup(suf, graph),
-        "Measured float change: negative yoy diluted share count = supply "
-        "removed (benefits holders), positive = dilution. pp is percent of "
-        "float per year. Industry rows are mcap-weighted member means.",
-        basis_note="%d announced programs joined (EDGAR 8-K FTS), %d ATM "
-                   "shelves active (424B5)" % (len(announced), len(atm_active)))
+        # wo4580 impact_map — fully measured float pp per year
+        graph = load_graph() or {}
+        ben = [measured_row(r["ticker"], "company", -(r.get("sh_yoy_pct") or 0),
+                            "float_pct_per_year",
+                            "diluted share count yoy — float shrink is supply "
+                            "removed")
+               for r in rows if (r.get("sh_yoy_pct") or 0) <= -1
+               and not r.get("extreme")][:40]
+        suf = [measured_row(r["ticker"], "company", -(r.get("sh_yoy_pct") or 0),
+                            "float_pct_per_year",
+                            "diluted share count yoy — dilution is supply added")
+               for r in rows if (r.get("sh_yoy_pct") or 0) >= 2
+               and not r.get("extreme")][:40]
+        ben.sort(key=lambda x: -x["pp"]); suf.sort(key=lambda x: x["pp"])
+        impact = impact_build(
+            "share-flows", "float_supply_change",
+            ben[:15] + industry_rollup(ben, graph),
+            suf[:15] + industry_rollup(suf, graph),
+            "Measured float change: negative yoy diluted share count = supply "
+            "removed (benefits holders), positive = dilution. pp is percent of "
+            "float per year. Industry rows are mcap-weighted member means.",
+            basis_note="%d announced programs joined (EDGAR 8-K FTS), %d ATM "
+                       "shelves active (424B5)" % (len(announced), len(atm_active)))
+
+    except Exception:
+        import traceback
+        tb = traceback.format_exc().strip().split("\n")
+        warns.append("V2_TAIL_CRASH: " + " | ".join(tb[-3:])[:400])
+        print("[share-flows] V2 TAIL CRASH\n" + "\n".join(tb[-12:]))
+        bluff, backed, atm_active, blackout = [], [], [], []
+        impact = None
+    if impact is None:
+        impact = impact_build(
+            "share-flows", "float_supply_change", [], [],
+            "impact computation degraded this run — see warns (V2_TAIL_CRASH)",
+            basis_note="degraded")
 
     out = {
         "version": VERSION,
