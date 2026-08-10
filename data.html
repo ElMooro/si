@@ -19,8 +19,21 @@ a.card:hover{border-color:#2f4a6a}
 .fr{font-size:10px;margin-top:6px}
 </style></head><body><div class="wrap">
 <h1>DATA</h1><div class="sub">Every provider · every dataset we pull · auto-inventoried daily by justhodl-provider-catalog</div>
+<div id="ih" style="display:none;margin:10px 0 14px;padding:10px 14px;background:#0d141c;border:1px solid #1c2733;border-radius:10px;font:12px ui-monospace,Menlo,monospace"></div>
 <div class="tot" id="tot"></div><div class="grid" id="g">Loading…</div></div>
 <script>
+fetch('/data/import-health.json?t='+Date.now()).then(r=>r.ok?r.json():null).then(function(h){
+ if(!h)return;var C={HEALTHY:'#6fce8a',DEGRADED:'#F0B429',ACTION_REQUIRED:'#E07A6A'};
+ var PC={OK:'#6fce8a',COMPLETE:'#6fce8a',RUNNING:'#7fb4e0',STALLED:'#F0B429',STALE:'#F0B429',WEDGED:'#E07A6A',BLOCKED:'#E07A6A',BLOCKED_403:'#E07A6A',ACTION_REQUIRED:'#E07A6A',KEY_INVALID:'#E07A6A',NO_STATE:'#5b6479',UNKNOWN:'#5b6479'};
+ var f=(h.pipelines||[]).filter(function(p){return p.name==='fred'})[0]||{};
+ var chips=(h.pipelines||[]).map(function(p){var c=PC[p.status]||'#5b6479';
+  return '<span title="'+((p.detail||'')+(p.age_min!=null?' · '+p.age_min+'m':''))+'" style="display:inline-block;margin:2px 8px 2px 0;color:'+c+'">●&nbsp;'+p.name+' <b>'+p.status+'</b></span>';}).join('');
+ var fr=f.imported!=null?('&nbsp;·&nbsp;FRED '+(f.imported||0).toLocaleString()+' series'+(f.queue_total?(' · queue '+(f.queue_cursor||0)+'/'+f.queue_total):'')+(f.series_per_hour?(' · '+f.series_per_hour+'/h'):'')+(f.eta_hours?(' · ETA '+f.eta_hours+'h'):'')+' · scope '+(f.scope||'')):'';
+ var act=(h.actions_this_sweep&&h.actions_this_sweep.length)?('<div style="color:#F0B429;margin-top:4px">sentinel: '+h.actions_this_sweep.join(' · ')+'</div>'):'';
+ var el=document.getElementById('ih');el.style.display='block';
+ el.innerHTML='<span style="color:'+(C[h.overall]||'#e8e8e8')+';font-weight:800">IMPORT '+h.overall+'</span>'+fr+'<div style="margin-top:6px">'+chips+'</div>'+act+
+ '<div style="color:#5b6479;margin-top:4px">sentinel sweep '+(h.generated_at||'')+' · '+((h.incidents||[]).length)+' incidents logged</div>';
+}).catch(function(){});
 fetch('/data/provider-catalog.json?t='+Date.now()).then(r=>r.json()).then(function(d){
 var t=d.totals||{};document.getElementById('tot').innerHTML=
  '<div><b>'+(t.providers||0)+'</b><span>PROVIDERS</span></div>'+

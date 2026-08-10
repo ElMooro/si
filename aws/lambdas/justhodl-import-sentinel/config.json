@@ -1,0 +1,22 @@
+{
+  "function_name": "justhodl-import-sentinel",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 120,
+  "memory": 512,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "ops 4576: import-pipeline monitor \u2014 classifies FRED/SDMX/catalog health every 10 min, auto-heals safe stalls, flips FRED full-catalog expansion on scoped COMPLETE, publishes data/import-health.json.",
+  "environment": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "schedule": {
+    "name": "justhodl-import-sentinel-10min",
+    "expression": "rate(10 minutes)",
+    "description": "Import pipeline health sweep every 10 minutes"
+  },
+  "tags": {
+    "Project": "JustHodl",
+    "Component": "control-plane",
+    "Tier": "sentinel"
+  }
+}
