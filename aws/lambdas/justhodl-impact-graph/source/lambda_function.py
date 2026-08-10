@@ -434,6 +434,24 @@ def convergence(graph, gaps):
     for r in (dp.get("high_conviction") or [])[:20]:
         tk = (r.get("ticker") or r.get("symbol") or "").upper() if isinstance(r, dict) else str(r).upper()
         vote(tk, "dark_pool", 1.0)
+    # wo4585 audit: justhodl-flow-confluence PRE-EXISTED this board and is
+    # the name-level authority (trust-gated cross-read of the same evidence
+    # classes). Consume it as a vote source — converge, never duplicate.
+    fc = _get_json("data/flow-confluence.json") or {}
+    fc_rows = (fc.get("signals") or fc.get("names") or fc.get("rows") or [])
+    for r in fc_rows[:40] if isinstance(fc_rows, list) else []:
+        if not isinstance(r, dict):
+            continue
+        tk = (r.get("ticker") or r.get("symbol") or "").upper()
+        dr = str(r.get("direction") or r.get("side") or r.get("bias") or "").lower()
+        sc = r.get("score") or r.get("confluence_score") or r.get("net") or 0
+        sgn = (1.0 if any(w in dr for w in ("long", "accum", "bull", "buy"))
+               else -1.0 if any(w in dr for w in ("short", "dist", "bear", "sell"))
+               else (1.0 if (isinstance(sc, (int, float)) and sc > 0)
+                     else -1.0 if (isinstance(sc, (int, float)) and sc < 0)
+                     else 0.0))
+        if tk and sgn:
+            vote(tk, "flow_confluence", sgn)
     et = _get_json("data/etf-true-flows.json") or {}
     cr = et.get("category_rotation") or {}
     rows = []
@@ -450,6 +468,10 @@ def convergence(graph, gaps):
     rows.sort(key=lambda r: -abs(r["score"]))
     flow = {"rows": rows[:15],
             "rule": "industry needs >=2 independent flow evidence classes",
+            "relationship": ("name-level authority: justhodl-flow-confluence "
+                             "(pre-existing, trust-gated) — consumed here as "
+                             "a vote source; this board is the INDUSTRY "
+                             "rollup, not a second name-level detector"),
             "category_rotation_asof": et.get("generated_at"),
             "note": ("etf-true-flows category_rotation joins at the category "
                      "level: %s" % (list(cr)[:6] if isinstance(cr, dict) else "n/a"))}
