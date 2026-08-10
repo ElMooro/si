@@ -479,18 +479,29 @@ def convergence(graph, gaps):
         return True
 
     fc = _get_json("data/flow-confluence.json") or {}
-    fc_records = []
+    fc_records, _seen = [], set()
+    # rev-J (4590 diag): ticker_map entries carry n_engines but NOT the
+    # engines[] LIST — every vote defaulted to the umbrella key and the
+    # >=2-independence gate starved (274 mapped, 274 umbrella votes,
+    # 0 rows). multi_engine_confluence rows DO carry engines[]; they are
+    # primary, ticker_map adds breadth for names multi does not cover.
+    rows0 = fc.get("multi_engine_confluence") or []
+    if isinstance(rows0, list):
+        for r in rows0:
+            if isinstance(r, dict) and r.get("ticker"):
+                fc_records.append(r)
+                _seen.add(str(r["ticker"]).upper())
+    if fc_records:
+        fc_diag["field"] = "multi_engine_confluence"
     tm = fc.get("ticker_map") or {}
     if isinstance(tm, dict) and tm:
-        fc_diag["field"] = "ticker_map"
         for tk, rec in tm.items():
-            if isinstance(rec, dict):
-                fc_records.append({**rec, "ticker": str(tk).upper()})
-    if not fc_records:
-        rows0 = fc.get("multi_engine_confluence") or []
-        if isinstance(rows0, list) and rows0:
-            fc_diag["field"] = "multi_engine_confluence"
-            fc_records = [r for r in rows0 if isinstance(r, dict)]
+            tku = str(tk).upper()
+            if tku in _seen or not isinstance(rec, dict):
+                continue
+            fc_records.append({**rec, "ticker": tku})
+        fc_diag["field"] = ((fc_diag["field"] + "+ticker_map")
+                            if fc_diag["field"] else "ticker_map")
     for rec in fc_records[:400]:
         fc_diag["records_read"] += 1
         po = str(rec.get("posture") or "").upper()
