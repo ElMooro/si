@@ -1,28 +1,19 @@
-executing-against: ffb2129fb58eadf041feec80ff3921955044cb1b
-ops 4575 — FRED priority-drain v2.1 revive
-── 1. Settle the v2.1 deploy ──
-[03:39:01] ✅ settled: LastModified 2026-08-10T03:34:06.000+0000
-── 2. Key probe (runner-side, one call — 403-incident rule) ──
-── 3. Cron repair — existing rule, 15-min watchdog, explicit phase payload ──
-[03:39:03] ✅ rule → rate(15 minutes), target input → {"phase": "scoped_import"}
-── 4. Un-wedge the lease ──
-[03:39:04] ✅ lease cleared
-── 5. Kick one budgeted run (log tail captured) ──
+executing-against: dbc9701a9044ed1ab32f0a53666389a65c69768f
+ops 4576 — import sentinel + leftovers
+── 1. Expansion knob bootstrap ──
+[03:54:27] ✅ created /justhodl/fred/expand-all = 0 (scoped first; the sentinel flips it when scoped COMPLETEs)
+── 2. Sentinel: create + 10-min heartbeat + settle ──
+[03:54:28]   justhodl-import-sentinel exists — code updated from repo
+[03:54:34] ✅   heartbeat created: justhodl-import-sentinel-10min (rate(10 minutes))
+── 3. First sweep + payload contract ──
+[03:54:35] ✗ sentinel FunctionError: {"errorMessage": "'>=' not supported between instances of 'list' and 'int'", "errorType": "TypeError", "requestId": "f4ffae92-f395-40d3-bc46-7168b2d87fb1", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 246, in lambda_handler\n    stt, det = classify_sdmx(name, stx)\n", "  File \"/var/task/lambda_function.py\", line 137, in classify_sdmx\n    total and done and done >= total):\n"]}
+[03:54:35] ✗ health payload missing/incomplete: {}
+── 4. port-cargo v1.0.2 gate (the last 4574 miss) ──
+[03:54:59] ✅ port-cargo v1.0.2: 2065 ports parsed, date types ['iso_string'], global pulse 0.37%
+── 5. Simultaneity (Khalid's question, answered in design) ──
+[03:54:59] providers have independent rate limits — FRED and every SDMX walker already run in parallel; each provider's own lease enforces the only serialization that matters (per-provider single-flight). Nothing to gate.
+── VERDICT ──
+[03:54:59] ✗ 2 gate(s) failed
 
-→ Report written to aws/ops/reports/latest/4575_fred_v21_revive.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4575_fred_v21_revive.py", line 282, in <module>
-    main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4575_fred_v21_revive.py", line 201, in main
-    resp = lam.invoke(FunctionName=FN, InvocationType="RequestResponse",
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.TooManyRequestsException: An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries: 1): Rate Exceeded.
-❌ OPS-FAIL: aws/ops/pending/ops_4575_fred_v21_revive.py
+→ Report written to aws/ops/reports/latest/4576_import_sentinel.md
+❌ OPS-FAIL: aws/ops/pending/ops_4576_import_sentinel.py
