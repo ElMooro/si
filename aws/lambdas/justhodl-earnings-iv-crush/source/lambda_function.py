@@ -91,12 +91,17 @@ MAX_DAYS_TO_EARNINGS = 14
 EARNINGS_IV_EXPANSION = 2.1
 
 
+_HTTP = {"ok": 0, "err": 0}
+
+
 def http_json(url, timeout=20):
     req = urllib.request.Request(url, headers={"User-Agent": UA})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
+            _HTTP["ok"] += 1
             return json.loads(r.read().decode("utf-8", errors="ignore"))
     except Exception as e:
+        _HTTP["err"] += 1
         return {"_error": str(e), "_url": url[:120]}
 
 
@@ -419,6 +424,17 @@ def lambda_handler(event, context):
 
         # 4. State
         state, state_desc = classify_state(len(rich), len(cheap), len(results))
+        # wo4592 BUG-4 gate: "few earnings in window" is unknowable when
+        # the calendar/IV fetches all errored. Blind says blind, not calm.
+        data_sufficiency = {"http_ok": _HTTP["ok"],
+                            "http_err": _HTTP["err"],
+                            "rule": "QUIET only claimable when >=1 HTTP "
+                                    "fetch answered; all-errored runs are "
+                                    "INSUFFICIENT_DATA"}
+        if state == "QUIET" and _HTTP["ok"] == 0 and _HTTP["err"] > 0:
+            state = "INSUFFICIENT_DATA"
+            state_desc = ("blind this run — every upstream fetch errored "
+                  "(%d errors)" % _HTTP["err"])
 
         # 5. Telegram on regime change
         try:
@@ -479,6 +495,7 @@ def lambda_handler(event, context):
             "version": "1.0",
             "as_of": dt.datetime.utcnow().isoformat() + "Z",
             "state": state,
+            "data_sufficiency": data_sufficiency,
             "previous_state": prev_state,
             "state_description": state_desc,
             "signal_strength": min(100, len(rich) * 8 + len(cheap) * 6),
