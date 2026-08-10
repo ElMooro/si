@@ -23,6 +23,9 @@ from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 import boto3
 
+from impact_mapper import (build as impact_build, load_graph,
+                           measured_row, beta_impact)
+
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/port-cargo.json"
 BASE = "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services"
@@ -86,24 +89,27 @@ def negotiate_where(gaps):
     epoch-ms with returnCountOnly and take the first formulation that
     counts >0. Every rejection is recorded — first-fetch assertion."""
     dt_cut = datetime.now(timezone.utc) - timedelta(days=WINDOW_D)
-    cands = ["date >= TIMESTAMP '%s'" % dt_cut.strftime("%Y-%m-%d %H:%M:%S"),
-             "date >= DATE '%s'" % dt_cut.strftime("%Y-%m-%d"),
-             "date >= %d" % int(dt_cut.timestamp() * 1000)]
+    fmts = [
+        ("timestamp", lambda d: "TIMESTAMP '%s'" % d.strftime("%Y-%m-%d %H:%M:%S")),
+        ("date", lambda d: "DATE '%s'" % d.strftime("%Y-%m-%d")),
+        ("epoch_ms", lambda d: "%d" % int(d.timestamp() * 1000)),
+    ]
     errs = []
-    for w in cands:
+    for name, f in fmts:
+        w = "date >= " + f(dt_cut)
         j, err = _q(LAYER, {"where": w, "returnCountOnly": "true", "f": "pjson"})
         cnt = (j or {}).get("count")
         if not err and isinstance(cnt, int) and cnt > 0:
-            return w, cnt
+            return w, cnt, f
         errs.append("%r → %s" % (w[:40], err or "count=%s" % cnt))
     gaps.append("no where-clause formulation returned rows: " + " | ".join(errs))
-    return None, 0
+    return None, 0, None
 
 
 def fetch_window(gaps):
-    where, expected = negotiate_where(gaps)
+    where, expected, fmt = negotiate_where(gaps)
     if not where:
-        return []
+        return [], None
     rows, offset = [], 0
     for _ in range(MAX_PAGES):
         j, err = _q(LAYER, {"where": where, "outFields": "*",
@@ -125,14 +131,52 @@ def fetch_window(gaps):
         gaps.append("pagination hit MAX_PAGES ceiling — window truncated")
     if expected and len(rows) < expected * 0.9:
         gaps.append("fetched %d of %d counted rows — partial window" % (len(rows), expected))
-    return rows
+    return rows, fmt
+
+
+def seasonal_baseline(fmt, latest_date, fi, fe, gaps, years=(1, 2, 3)):
+    """wo4580: same-week-of-year totals via SERVER-SIDE stats (tiny
+    responses) for k years back — the honest answer to Chinese-New-Year /
+    pre-tariff false signals a naive 28d baseline screams on. Global +
+    per-country sums for the matching 7d window, 364-day steps (weekday-
+    aligned). Falls back to a declared gap if outStatistics unsupported."""
+    if not (fmt and latest_date and fi and fe):
+        return None
+    stats = json.dumps([
+        {"statisticType": "sum", "onStatisticField": fi, "outStatisticFieldName": "imp"},
+        {"statisticType": "sum", "onStatisticField": fe, "outStatisticFieldName": "exp"}])
+    out = {"windows": [], "by_country": {}}
+    for k in years:
+        d1 = datetime.combine(latest_date, datetime.min.time(),
+                              tzinfo=timezone.utc) - timedelta(days=364 * k)
+        d0 = d1 - timedelta(days=RECENT_D)
+        where = "date >= %s AND date <= %s" % (fmt(d0), fmt(d1))
+        jg, err = _q(LAYER, {"where": where, "outStatistics": stats, "f": "pjson"})
+        row = ((jg or {}).get("features") or [{}])[0].get("attributes") or {}
+        if err or row.get("imp") is None:
+            gaps.append("seasonal window -%dy stats failed: %s" % (k, err or "no attrs"))
+            continue
+        out["windows"].append({"years_back": k,
+                               "window_end": d1.date().isoformat(),
+                               "import_t": round(float(row.get("imp") or 0)),
+                               "export_t": round(float(row.get("exp") or 0))})
+        jc, err2 = _q(LAYER, {"where": where, "outStatistics": stats,
+                              "groupByFieldsForStatistics": "country", "f": "pjson"})
+        for f2 in ((jc or {}).get("features") or []):
+            a2 = f2.get("attributes") or {}
+            c2 = a2.get("country")
+            if not c2:
+                continue
+            d3 = out["by_country"].setdefault(c2, [])
+            d3.append(float(a2.get("imp") or 0) + float(a2.get("exp") or 0))
+    return out if out["windows"] else None
 
 
 def lambda_handler(event=None, context=None):
     t0 = time.time(); gaps = []
     schema = discover_fields(gaps)
     fetch_status = "OK" if schema else "FAILED"
-    rows = fetch_window(gaps) if schema else []
+    rows, date_fmt = fetch_window(gaps) if schema else ([], None)
     if schema and not rows:
         gaps.append("window fetch returned 0 rows"); fetch_status = "EMPTY"
 
@@ -221,8 +265,96 @@ def lambda_handler(event=None, context=None):
     global_pulse = {"import_tpd_7d": round(g_recent[0]), "export_tpd_7d": round(g_recent[1]),
                     "total_chg_pct": round(((g_recent[0] + g_recent[1]) / gt_b - 1) * 100, 2) if gt_b else None}
 
+    # wo4580: seasonal same-week-of-year comparison (global + country)
+    seasonal = seasonal_baseline(date_fmt, latest_date, fi, fe, gaps) \
+        if latest_ord else None
+    seasonal_block = {"status": "UNAVAILABLE"}
+    if seasonal and seasonal["windows"]:
+        cur_tot = (g_recent[0] + g_recent[1]) * RECENT_D  # daily-rate → window total
+        hist = [w["import_t"] + w["export_t"] for w in seasonal["windows"]]
+        mean_h = sum(hist) / len(hist) if hist else 0
+        seasonal_block = {
+            "status": "OK", "n_years": len(hist),
+            "current_window_t": round(cur_tot),
+            "same_week_prior_years": seasonal["windows"],
+            "seasonal_chg_pct": (round((cur_tot / mean_h - 1) * 100, 1)
+                                 if mean_h > 0 else None),
+            "method": ("current 7d tonnage vs mean of the SAME weekday-aligned "
+                       "7d window 1-3 years back (364-day steps, server-side "
+                       "sums) — kills Chinese-New-Year / pre-tariff false "
+                       "signals the naive 28d baseline screams on")}
+        # country-level seasonal joins onto the existing country rows
+        for c2 in countries:
+            hs = (seasonal["by_country"] or {}).get(c2["country"]) or []
+            if hs:
+                mh = sum(hs) / len(hs)
+                cur_c = (c2["import_tpd_7d"] + c2["export_tpd_7d"]) * RECENT_D
+                if mh > 0:
+                    c2["seasonal_chg_pct"] = round((cur_c / mh - 1) * 100, 1)
+
+    # wo4580: PortWatch industry-exposure + chokepoint join (fleet data reuse)
+    pw = None
+    try:
+        pw = json.loads(s3.get_object(Bucket=BUCKET,
+                                      Key="data/portwatch.json")["Body"].read())
+    except Exception:
+        gaps.append("portwatch.json unreadable — industry exposure join skipped")
+    ind_moves = defaultdict(lambda: {"w": 0.0, "wchg": 0.0, "ports": []})
+    chokepoints_ctx = None
+    if isinstance(pw, dict):
+        exp_by_name = {}
+        for p2 in (pw.get("ports") or []):
+            nm = (p2.get("name") or "").strip().lower()
+            ie = p2.get("industry_exposure")
+            if nm and ie:
+                exp_by_name[nm] = ie
+        for r2 in (accel + decel):
+            ie = exp_by_name.get((r2.get("port") or "").strip().lower())
+            if not ie:
+                continue
+            r2["industry_exposure"] = ie if isinstance(ie, list) else [ie]
+            wt = r2["import_tpd_base"] + r2["export_tpd_base"]
+            for ind in r2["industry_exposure"][:6]:
+                d4 = ind_moves[str(ind)]
+                d4["w"] += wt
+                d4["wchg"] += wt * (r2["total_chg_pct"] or 0)
+                d4["ports"].append(r2["port"])
+        cps = pw.get("chokepoints")
+        if isinstance(cps, list) and cps:
+            chokepoints_ctx = {"n": len(cps),
+                               "disrupted": pw.get("ports_disrupted") or pw.get("n_disrupted"),
+                               "note": ("congestion up while throughput falls = "
+                                        "supply-side; both falling = demand-side "
+                                        "— different trades")}
+    ben_i, suf_i = [], []
+    for ind, d4 in ind_moves.items():
+        if d4["w"] <= 0 or len(d4["ports"]) < 2:
+            continue
+        ppv = d4["wchg"] / d4["w"]
+        row = measured_row(ind, "industry", ppv, "port_throughput_chg_pct",
+                           "tonnage-weighted mean 7d-vs-28d change of %d "
+                           "exposed ports (%s)" % (len(d4["ports"]),
+                                                   ",".join(d4["ports"][:3])))
+        row["n_members"] = len(d4["ports"])
+        (ben_i if ppv > 0 else suf_i).append(row)
+    shock = (global_pulse.get("total_chg_pct") or 0)
+    est_rows, missing = beta_impact(
+        sorted({s2 for s2 in ((load_graph() or {}).get("sector_etf_proxy") or {})}),
+        "port_throughput_pulse", shock, kind="industry")
+    impact = impact_build(
+        "port-cargo", "port_throughput_pulse",
+        ben_i + [r for r in est_rows if r["pp"] > 0],
+        suf_i + [r for r in est_rows if r["pp"] <= 0],
+        "Industry rows: measured tonnage-weighted throughput change of ports "
+        "carrying that PortWatch industry exposure. Sector rows: estimated "
+        "from the accruing beta store (nightly factor history) — absent "
+        "until n_obs>=8, honestly.",
+        insufficient_rows=missing[:10],
+        basis_note="global pulse %+.2f%%; seasonal %s" % (
+            shock, seasonal_block.get("status")))
+
     out = {
-        "engine": "port-cargo", "version": "1.0.2",
+        "engine": "port-cargo", "version": "1.1.0",
         "date_field_type": sorted(date_type_seen) or None,
         "engine_class": "physical_trade_fast_layer",
         "evidence_tier": "tier_1_measured_physical",
@@ -244,6 +376,9 @@ def lambda_handler(event=None, context=None):
                            "class_fields_import": (schema or {}).get("import_class"),
                            "class_fields_export": (schema or {}).get("export_class")},
         "global_pulse": global_pulse,
+        "seasonal_baseline": seasonal_block,
+        "chokepoints_context": chokepoints_ctx,
+        "impact_map": impact,
         "countries": countries[:40],
         "accelerating_ports": accel,
         "decelerating_ports": decel,
