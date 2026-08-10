@@ -58,7 +58,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.3"
+VERSION = "2.0.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/grid-queue.json"
 HIST_KEY = "data/grid-queue-history.json"
@@ -248,6 +248,8 @@ def parse_caiso(gaps):
         c_name = _pick(hdr, "project name", "generation project", "name")
         c_stat = _pick(hdr, "application status",
                        "interconnection request status", "status")
+        c_ia = _pick(hdr, "interconnection agreement", "agreement status",
+                     "ia status", "gia")
         c_date = _pick(hdr, "proposed on-line date", "on-line date",
                        "commercial operation", "queue date")
         # ops 3737 FINDING: 'net mws to grid' is populated on only 2 of 277
@@ -292,6 +294,7 @@ def parse_caiso(gaps):
                 "county": (r[c_cty] if c_cty is not None and c_cty < len(r) else "").strip()[:40],
                 "fuel": (" + ".join(fuels[:3]) if fuels else "Unspecified")[:44],
                 "status": (r[c_stat] if c_stat is not None and c_stat < len(r) else "").strip()[:40],
+                "ia": (r[c_ia] if c_ia is not None and c_ia < len(r) else "").strip()[:40],
                 "online": (r[c_date] if c_date is not None and c_date < len(r) else "").strip()[:24],
             })
         return out
@@ -417,6 +420,300 @@ def eia_industrial_load(gaps):
     return {"period": latest, "states": out}
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# ops-4559 BUG-12 — multi-ISO layer + executed-IA MW + LBNL survival priors
+#
+# LBNL "Queued Up": of all requests entering US queues, ~13% ever reach COD,
+# ~75% withdraw, median request→operation now >5 years. Headline queue MW is
+# therefore mostly vapor; the tradeable figure is MW with an EXECUTED
+# interconnection agreement. Every adapter below is probe-first: a failed
+# fetch lands in gaps[] with the reason, never a hardcoded assumption.
+# Large-load (datacenter) interconnection is NOT in generation queues — that
+# blind spot is declared as unmeasured, not absent.
+# ═══════════════════════════════════════════════════════════════════════════
+
+LBNL_PRIORS = {
+    "source": "LBNL 'Queued Up' (emp.lbl.gov/queues)",
+    "completion_rate_all_requests": 0.13,
+    "withdrawal_rate": 0.75,
+    "median_years_request_to_cod": 5.0,
+    "note": ("headline queue MW × 0.13 approximates realistic eventual COD MW; "
+             "the executed-IA cohort completes at a far higher rate and is the "
+             "primary tradeable figure. Direct LBNL download 403s from Lambda "
+             "IPs (Cloudflare) so the published rates are carried as cited "
+             "constants, refreshed on LBNL's annual release."),
+}
+
+_IA_RX = re.compile(r"(executed|signed|effective)", re.I)
+_IA_CTX = re.compile(r"\b(ia|gia|interconnection\s+agreement|lgia|sgia)\b", re.I)
+
+
+def _classify_ia(row):
+    """True if this row's agreement text says the IA is executed/signed."""
+    ia = str(row.get("ia") or "")
+    if ia and _IA_RX.search(ia):
+        return True
+    st = str(row.get("status") or "")
+    return bool(_IA_CTX.search(st) and _IA_RX.search(st))
+
+
+def _mk_iso(iso, rows, src, ia_detect, gaps, note=None):
+    headline = round(sum(r.get("mw") or 0 for r in rows), 1)
+    ia_mw = None
+    if ia_detect != "none":
+        ia_mw = round(sum((r.get("mw") or 0) for r in rows if _classify_ia(r)), 1)
+    if not rows:
+        gaps.append("%s adapter parsed 0 rows" % iso)
+    by_fuel = {}
+    for r in rows:
+        k = (r.get("fuel") or "?")
+        by_fuel[k] = by_fuel.get(k, 0.0) + (r.get("mw") or 0)
+    return {"iso": iso, "n_projects": len(rows), "headline_mw": headline,
+            "mw_with_executed_ia": ia_mw, "ia_detection": ia_detect,
+            "src": src, "note": note,
+            "by_fuel_mw": dict(sorted(by_fuel.items(), key=lambda kv: -kv[1])[:12]),
+            "large_projects": sorted([r for r in rows if (r.get("mw") or 0) >= LARGE_MW],
+                                     key=lambda r: -r["mw"])[:25]}
+
+
+def _generic_xlsx_rows(blob, needles, mw_cands, gaps, tag):
+    """Any-ISO xlsx → rows using the stdlib parser already in this file."""
+    try:
+        z = zipfile.ZipFile(io.BytesIO(blob))
+    except Exception as e:
+        gaps.append("%s workbook unreadable: %s" % (tag, str(e)[:50])); return []
+    shared = _shared_strings(z)
+    sheets = [n for n in z.namelist() if n.startswith("xl/worksheets/sheet")]
+    best = []
+    for sp in sorted(sheets)[:8]:
+        rows = _sheet_rows(z, sp, shared, max_rows=30000)
+        hi, hdr = _find_header(rows, needles)
+        if hi is None:
+            continue
+        c_mw = _pick(hdr, *mw_cands)
+        if c_mw is None:
+            continue
+        c_name = _pick(hdr, "project name", "generation project", "project", "name")
+        c_st = _pick(hdr, "state")
+        c_cty = _pick(hdr, "county")
+        c_fuel = _pick(hdr, "fuel", "technology", "type", "resource")
+        c_stat = _pick(hdr, "status", "phase", "stage", "availability")
+        c_ia = _pick(hdr, "interconnection agreement", "ia signed", "ia executed",
+                     "gia", "agreement", "ia date", "ia tender")
+        out = []
+        for r in rows[hi + 1:]:
+            mw = _f(r[c_mw]) if c_mw < len(r) else None
+            if not mw or mw <= 0:
+                continue
+            def g(ci):
+                return str(r[ci]).strip() if (ci is not None and ci < len(r)) else ""
+            out.append({"project": g(c_name)[:70], "mw": round(mw, 1),
+                        "state": g(c_st)[:20], "county": g(c_cty)[:40],
+                        "fuel": (g(c_fuel) or "Unspecified")[:44],
+                        "status": g(c_stat)[:60], "ia": g(c_ia)[:60]})
+        if len(out) > len(best):
+            best = out
+            best_ia = c_ia is not None
+    if not best:
+        gaps.append("%s: no parseable sheet (needles=%s)" % (tag, needles))
+        return []
+    best_ia = any(r.get("ia") for r in best)
+    for r in best:
+        r["_ia_col"] = best_ia
+    return best
+
+
+def fetch_nyiso(gaps):
+    url = "https://www.nyiso.com/documents/20142/1407078/NYISO-Interconnection-Queue.xlsx"
+    blob = _get(url, timeout=90, raw=True)
+    if not blob:
+        gaps.append("NYISO queue xlsx unavailable (probe failed)"); return None
+    rows = _generic_xlsx_rows(blob, ["project", "mw", "county"],
+                              ("sp (mw)", "sp(mw)", "capacity", "mw"), gaps, "NYISO")
+    if not rows:
+        return None
+    detect = "column" if rows and rows[0].get("_ia_col") else "status_regex"
+    return _mk_iso("NYISO", rows, url, detect, gaps)
+
+
+def fetch_miso(gaps):
+    url = "https://www.misoenergy.org/api/giqueue/getprojects"
+    b = _get(url, timeout=60)
+    if not b:
+        gaps.append("MISO giqueue API unavailable"); return None
+    try:
+        j = json.loads(b)
+    except Exception:
+        gaps.append("MISO giqueue non-JSON"); return None
+    items = j if isinstance(j, list) else (j.get("rows") or j.get("data") or [])
+    rows = []
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        low = {str(k).lower(): v for k, v in it.items()}
+        def pick(*cands):
+            for c in cands:
+                for k, v in low.items():
+                    if c in k and v not in (None, ""):
+                        return v
+            return ""
+        status = str(pick("applicationstatus", "status"))
+        if status and "active" not in status.lower():
+            continue
+        mw = _f(pick("summernetmw", "netmw", "megawatt", "mw"))
+        if not mw or mw <= 0:
+            continue
+        rows.append({"project": str(pick("projectnumber", "projectname", "j"))[:70],
+                     "mw": round(mw, 1), "state": str(pick("state"))[:20],
+                     "county": str(pick("county"))[:40],
+                     "fuel": (str(pick("fueltype", "fuel")) or "Unspecified")[:44],
+                     "status": status[:60],
+                     "ia": str(pick("giastatus", "gia", "agreementstatus", "giaexecut"))[:60]})
+    if not rows:
+        gaps.append("MISO giqueue parsed 0 active rows"); return None
+    detect = "column" if any(r["ia"] for r in rows) else "status_regex"
+    return _mk_iso("MISO", rows, url, detect, gaps)
+
+
+def fetch_spp(gaps):
+    for url in ("https://opsportal.spp.org/Studies/GenerateActiveCSV",
+                "https://portal.spp.org/file-browser-api/download/generation-interconnection-active-queue?path=%2FGI_ActiveRequests.csv"):
+        b = _get(url, timeout=60)
+        if b and "," in b:
+            try:
+                import csv as _csv
+                rdr = list(_csv.reader(io.StringIO(b)))
+            except Exception:
+                continue
+            hi, hdr = _find_header(rdr, ["mw", "state", "status"])
+            if hi is None:
+                continue
+            c_mw = _pick(hdr, "capacity", "mw"); c_st = _pick(hdr, "state")
+            c_cty = _pick(hdr, "county"); c_fuel = _pick(hdr, "fuel", "generation type")
+            c_stat = _pick(hdr, "status", "stage"); c_ia = _pick(hdr, "gia", "agreement")
+            c_name = _pick(hdr, "request", "project", "name")
+            rows = []
+            for r in rdr[hi + 1:]:
+                mw = _f(r[c_mw]) if (c_mw is not None and c_mw < len(r)) else None
+                if not mw or mw <= 0:
+                    continue
+                def g(ci):
+                    return str(r[ci]).strip() if (ci is not None and ci < len(r)) else ""
+                rows.append({"project": g(c_name)[:70], "mw": round(mw, 1),
+                             "state": g(c_st)[:20], "county": g(c_cty)[:40],
+                             "fuel": (g(c_fuel) or "Unspecified")[:44],
+                             "status": g(c_stat)[:60], "ia": g(c_ia)[:60]})
+            if rows:
+                detect = "column" if any(r["ia"] for r in rows) else "status_regex"
+                return _mk_iso("SPP", rows, url, detect, gaps)
+    gaps.append("SPP active-queue CSV unavailable on both candidate endpoints")
+    return None
+
+
+def fetch_isone(gaps):
+    for url in ("https://irtt.iso-ne.com/reports/external?download=csv",
+                "https://irtt.iso-ne.com/reports/external.csv"):
+        b = _get(url, timeout=60)
+        if b and "," in b and "<html" not in b[:200].lower():
+            try:
+                import csv as _csv
+                rdr = list(_csv.reader(io.StringIO(b)))
+            except Exception:
+                continue
+            hi, hdr = _find_header(rdr, ["mw", "project", "status"])
+            if hi is None:
+                continue
+            c_mw = _pick(hdr, "net mw", "capacity", "mw")
+            c_stat = _pick(hdr, "status", "stage"); c_ia = _pick(hdr, "ia", "agreement")
+            c_name = _pick(hdr, "project", "alternative name", "name")
+            c_fuel = _pick(hdr, "fuel", "type"); c_st = _pick(hdr, "state")
+            rows = []
+            for r in rdr[hi + 1:]:
+                mw = _f(r[c_mw]) if (c_mw is not None and c_mw < len(r)) else None
+                if not mw or mw <= 0:
+                    continue
+                def g(ci):
+                    return str(r[ci]).strip() if (ci is not None and ci < len(r)) else ""
+                rows.append({"project": g(c_name)[:70], "mw": round(mw, 1),
+                             "state": g(c_st)[:20] or "NE", "county": "",
+                             "fuel": (g(c_fuel) or "Unspecified")[:44],
+                             "status": g(c_stat)[:60], "ia": g(c_ia)[:60]})
+            if rows:
+                detect = "column" if any(r["ia"] for r in rows) else "status_regex"
+                return _mk_iso("ISO-NE", rows, url, detect, gaps)
+    gaps.append("ISO-NE IRTT queue CSV unavailable on both candidate endpoints")
+    return None
+
+
+def fetch_ercot(gaps):
+    lst = _get("https://www.ercot.com/misapp/servlets/IceDocListJsonWS?reportTypeId=15933",
+               timeout=60)
+    doc_id = None
+    if lst:
+        try:
+            docs = (json.loads(lst).get("ListDocsByRptTypeRes") or {}).get("DocumentList") or []
+            for d in docs:
+                doc = d.get("Document") or {}
+                if "GIS" in (doc.get("ConstructedName") or "") or True:
+                    doc_id = doc.get("DocID"); break
+        except Exception:
+            pass
+    if not doc_id:
+        gaps.append("ERCOT GIS report list unavailable (reportTypeId 15933)"); return None
+    blob = _get("https://www.ercot.com/misdownload/servlets/mirDownload?doclookupId=%s" % doc_id,
+                timeout=120, raw=True)
+    if not blob:
+        gaps.append("ERCOT GIS report download failed (doc %s)" % doc_id); return None
+    if blob[:2] == b"PK" and b"[Content_Types].xml" not in blob[:4000]:
+        try:  # zip containing the xlsx
+            zz = zipfile.ZipFile(io.BytesIO(blob))
+            inner = [n for n in zz.namelist() if n.lower().endswith(".xlsx")]
+            if inner:
+                blob = zz.read(inner[0])
+        except Exception:
+            pass
+    rows = _generic_xlsx_rows(blob, ["project", "capacity", "county"],
+                              ("capacity (mw)", "capacity", "mw"), gaps, "ERCOT")
+    if not rows:
+        return None
+    for r in rows:
+        r["state"] = r.get("state") or "TX"
+    detect = "column" if any(r.get("ia") for r in rows) else "status_regex"
+    return _mk_iso("ERCOT", rows, "ercot.com GIS report (reportTypeId 15933)", detect, gaps)
+
+
+def fetch_pjm(gaps):
+    url = "https://services.pjm.com/PJMPlanningApi/api/Queue/ExportToXls"
+    blob = _get(url, timeout=90, raw=True)
+    if blob and blob[:2] == b"PK":
+        rows = _generic_xlsx_rows(blob, ["project", "mw", "status"],
+                                  ("mfo", "capacity", "mw"), gaps, "PJM")
+        if rows:
+            detect = "column" if any(r.get("ia") for r in rows) else "status_regex"
+            return _mk_iso("PJM", rows, url, detect, gaps)
+    gaps.append("PJM queue export blocked from Lambda (Planning API). "
+                "Data Miner needs a subscription key — set PJM_API_KEY to enable.")
+    return None
+
+
+def iso_queues_all(gaps):
+    """Run every non-CAISO adapter in parallel; return {iso: block}."""
+    out = {}
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        futs = {ex.submit(fn, gaps): nm for nm, fn in
+                (("NYISO", fetch_nyiso), ("MISO", fetch_miso), ("SPP", fetch_spp),
+                 ("ISO-NE", fetch_isone), ("ERCOT", fetch_ercot), ("PJM", fetch_pjm))}
+        for f in futs:
+            try:
+                blk = f.result(timeout=150)
+            except Exception as e:
+                gaps.append("%s adapter crashed: %s" % (futs[f], str(e)[:60]))
+                blk = None
+            if blk:
+                out[blk["iso"]] = blk
+    return out
+
+
 def lambda_handler(event, context):
     started = datetime.now(timezone.utc)
     gaps = []
@@ -428,6 +725,9 @@ def lambda_handler(event, context):
         caiso = f_caiso.result()
         planned = f_plan.result()
         load = f_load.result()
+
+    # ops-4559 BUG-12: the other six ISOs (own pool; probe-first, gap on fail)
+    iso = iso_queues_all(gaps)
 
     active = caiso.get("active") or []
     withdrawn = caiso.get("withdrawn") or []
@@ -490,34 +790,64 @@ def lambda_handler(event, context):
     hotspots.sort(key=lambda h: (-h["legs"], -(h["industrial_load_yoy_pct"] or 0)))
     hotspots = hotspots[:HOT_STATES]
 
+    # ── ops-4559 BUG-12: national rollup with executed-IA as the PRIMARY ──
+    caiso_ia_mw = round(sum(r["mw"] for r in active if _classify_ia(r)), 1)
+    caiso_blk = {"iso": "CAISO", "n_projects": len(active),
+                 "headline_mw": queue["active_mw"],
+                 "mw_with_executed_ia": caiso_ia_mw,
+                 "ia_detection": ("column" if any(r.get("ia") for r in active)
+                                  else "status_regex"),
+                 "src": CAISO_QUEUE}
+    iso_all = {"CAISO": caiso_blk, **iso}
+    live = sorted(iso_all.keys())
+    missing = sorted(set(("CAISO", "PJM", "ERCOT", "MISO", "SPP", "ISO-NE", "NYISO")) - set(live))
+    headline_nat = round(sum(b["headline_mw"] for b in iso_all.values()), 1)
+    ia_known = [b for b in iso_all.values() if b.get("mw_with_executed_ia") is not None]
+    ia_nat = round(sum(b["mw_with_executed_ia"] for b in ia_known), 1)
+    national = {
+        "primary_metric": "mw_with_executed_ia",
+        "mw_with_executed_ia": ia_nat,
+        "ia_measured_isos": [b["iso"] for b in ia_known],
+        "headline_queue_mw": headline_nat,
+        "headline_risk_adjusted_mw": round(headline_nat * LBNL_PRIORS["completion_rate_all_requests"], 1),
+        "isos_live": live, "isos_missing": missing,
+        "n_isos_live": len(live),
+        "assumption": ("headline_risk_adjusted applies LBNL's ~13%% all-request "
+                       "completion rate; mw_with_executed_ia is reported unhaircut "
+                       "because the executed-IA cohort is the survivor pool"),
+        "blind_spot": ("large-LOAD (datacenter) interconnection is handled outside "
+                       "generation queues — absence of a queue signal for a "
+                       "datacenter region means UNMEASURED, not absent"),
+    }
+
     out = {
         "version": VERSION,
         "generated_at": started.isoformat(),
+        "national": national,
+        "lbnl_priors": LBNL_PRIORS,
+        "iso_queues": iso_all,
         "queue": queue,
         "planned_capacity": planned,
         "industrial_load": load,
         "hotspots": hotspots,
         "gaps": gaps + [
-            "ERCOT GIS queue report ID unresolved (ops 3734) — excluded from v1",
-            "PJM Data Miner 2 requires a subscription key (401)",
-            "MISO public queue endpoint returns 404",
-            "LBNL 'Queued Up' blocked (403) from Lambda IPs",
             "EPA ECHO serves compliance data, not construction permits — "
             "excluded rather than used as a false permit proxy",
         ],
         "coverage": {
-            "iso_queues_live": ["CAISO"],
-            "iso_queues_missing": ["ERCOT", "PJM", "MISO", "ISO-NE", "NYISO", "SPP"],
+            "iso_queues_live": live,
+            "iso_queues_missing": missing,
             "caiso_active_rows": len(active),
             "eia_industrial_plants": planned.get("n_industrial", 0),
             "eia_load_states": len(load.get("states") or []),
         },
-        "method": ("Queue MW from the CAISO public interconnection report; "
-                   "forward capacity from EIA-860M planned uprates; industrial "
-                   "load from EIA-861M retail sales (sectorid=IND). A hotspot "
-                   "requires at least two independent legs to agree — a queue "
-                   "that only grows is an artifact, not demand, so withdrawal "
-                   "and completion ratios are published alongside."),
+        "method": ("v2 (ops-4559): interconnection queues from all seven US ISOs "
+                   "where a public endpoint answers (per-ISO adapters, probe-first, "
+                   "gaps[] on failure). PRIMARY figure is mw_with_executed_ia — "
+                   "LBNL shows only ~13% of headline queue requests ever reach COD, "
+                   "so headline MW is demoted to context with the 13% haircut "
+                   "stated. Forward capacity from EIA-860M; industrial load from "
+                   "EIA-861M (sectorid=IND). Hotspots need 2+ independent legs."),
         "attribution": "CAISO public queue report; U.S. EIA API v2 (Forms 860M/861M)",
     }
 
