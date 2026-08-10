@@ -46,6 +46,11 @@ import urllib.request
 
 import boto3
 
+from impact_mapper import (build as impact_build, load_graph,
+                           measured_row, structural_row)
+from evidence_weights import blend as ew_blend
+from signals_emit import log_signal, yprice
+
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/stealth-accumulation.json"
 SSM_KEY = "/justhodl/stealth-accumulation/state"
@@ -83,6 +88,12 @@ def extract_insider_tickers(data):
                 continue
             tk = (c.get("ticker") or c.get("symbol") or "").upper()
             if not tk:
+                continue
+            # wo4580: scheduled 10b5-1 / routine buying is not information —
+            # exclude when the feed flags it (heuristic labeled; the full
+            # Cohen-Malloy-Pomorski routine-buyer test is the feed's job)
+            if c.get("routine") or c.get("is_routine") or c.get("rule_10b5_1") \
+                    or c.get("plan_sale") or str(c.get("plan") or "").lower() == "10b5-1":
                 continue
             n = c.get("n_insiders") or c.get("cluster_size") or 0
             tval = c.get("total_value_usd") or c.get("net_buy_usd") or 0
@@ -259,6 +270,16 @@ def lambda_handler(event, context):
         n_required_live = sum(1 for f in REQUIRED_FEEDS if f not in missing_names)
         data_sufficient = n_required_live >= len(REQUIRED_FEEDS)
 
+        # wo4580: component weights are learned via the calibration ledger
+        # (Wilson-shrunk toward these priors; basis is honest — prior_only
+        # until each combo family accrues n>=30 graded outcomes)
+        COMBO_PRIORS = {"insider": 0.35, "smart_money": 0.30,
+                        "short_covering": 0.20, "options_flow": 0.15}
+        COMBO_W, weights_meta = ew_blend(COMBO_PRIORS, {
+            "insider": "stealth_insider", "smart_money": "stealth_smart_money",
+            "short_covering": "stealth_short_covering",
+            "options_flow": "stealth_options_flow"})
+
         # 3. Union of all tickers + cross-confirmation
         all_tickers = set(insider_map.keys()) | set(sm_map.keys()) | set(short_map.keys()) | set(opts_map.keys())
         convergence = []
@@ -280,9 +301,9 @@ def lambda_handler(event, context):
             n = len(signals_lit)
             if n < 2:
                 continue
-            composite = int(sum(sub[s]["strength"] for s in [
-                "insider", "smart_money", "short_covering", "options_flow"
-            ] if s in sub) / n)
+            wsum = sum(COMBO_W.get(s2, 0.25) for s2 in signals_lit) or 1.0
+            composite = int(sum(sub[s2]["strength"] * COMBO_W.get(s2, 0.25)
+                                for s2 in signals_lit) / wsum)
             convergence.append({
                 "ticker": tk,
                 "signals_fired": signals_lit,
@@ -294,6 +315,48 @@ def lambda_handler(event, context):
         convergence.sort(key=lambda x: (-x["n_signals"], -x["composite_score"]))
         for i, c in enumerate(convergence, 1):
             c["rank"] = i
+
+        # wo4580: liquidity-residualized, sector-relative framing. Composite
+        # scores are rank-residualized on dollar-ADV rank (the anti-volume-
+        # costume step, same doctrine as accum-composite), then z-scored
+        # within industry where the exposure graph knows >=3 peers.
+        graph = load_graph() or {}
+        gtk = graph.get("tickers") or {}
+
+        def _rankmap(d):
+            items = sorted(d.items(), key=lambda kv: kv[1])
+            m = max(len(items) - 1, 1)
+            return {k2: j / m for j, (k2, _) in enumerate(items)}
+
+        sc = {c["ticker"]: float(c["composite_score"]) for c in convergence}
+        liq = {t2: float((gtk.get(t2) or {}).get("adv_usd") or 0)
+               for t2 in sc if (gtk.get(t2) or {}).get("adv_usd")}
+        resid = dict(sc)
+        if len(liq) >= 8:
+            rs, rl = _rankmap({t2: sc[t2] for t2 in liq}), _rankmap(liq)
+            mx = sum(rl.values()) / len(rl)
+            my = sum(rs.values()) / len(rs)
+            cov = sum((rl[t2] - mx) * (rs[t2] - my) for t2 in rl)
+            var = sum((rl[t2] - mx) ** 2 for t2 in rl) or 1e-9
+            b2 = cov / var
+            for t2 in rl:
+                resid[t2] = rs[t2] - (my + b2 * (rl[t2] - mx))
+        by_ind = {}
+        for t2 in sc:
+            ind = (gtk.get(t2) or {}).get("industry")
+            if ind:
+                by_ind.setdefault(ind, []).append(t2)
+        for c in convergence:
+            t2 = c["ticker"]
+            c["resid_score"] = round(resid.get(t2, 0.0), 3)
+            ind = (gtk.get(t2) or {}).get("industry")
+            peers = by_ind.get(ind) or []
+            if ind and len(peers) >= 3:
+                vals = [resid.get(p2, 0.0) for p2 in peers]
+                mu = sum(vals) / len(vals)
+                sd = (sum((v2 - mu) ** 2 for v2 in vals) / len(vals)) ** 0.5 or 1.0
+                c["sector_rel_z"] = round((resid.get(t2, 0.0) - mu) / sd, 2)
+                c["industry"] = ind
 
         # 4. State machine
         n_4_signal = sum(1 for c in convergence if c["n_signals"] >= 4)
@@ -384,9 +447,67 @@ def lambda_handler(event, context):
                 "primary": "No cross-confirmed setups. Wait for next scan."
             }}
 
+        # wo4580 impact_map: companies are structural (direction, evidence
+        # count); industries carry a MEASURED pp = share of industry mcap
+        # currently under >=2-signal stealth evidence (graph mcaps).
+        ind_flag = {}
+        for c in convergence:
+            info = gtk.get(c["ticker"]) or {}
+            ind, mc = info.get("industry"), info.get("mcap")
+            if ind and mc:
+                d2 = ind_flag.setdefault(ind, {"mc": 0.0, "names": []})
+                d2["mc"] += float(mc)
+                d2["names"].append(c["ticker"])
+        ind_rows = []
+        gind = graph.get("industries") or {}
+        for ind, d2 in ind_flag.items():
+            tot = float((gind.get(ind) or {}).get("mcap") or 0)
+            if tot > 0 and len(d2["names"]) >= 2:
+                r2 = measured_row(ind, "industry", d2["mc"] / tot * 100,
+                                  "pct_industry_mcap_under_evidence",
+                                  "sum(mcap of >=2-signal names) / industry "
+                                  "mcap — %s" % ",".join(sorted(d2["names"])[:6]))
+                r2["n_members"] = len(d2["names"])
+                ind_rows.append(r2)
+        comp_rows = [structural_row(c["ticker"], "company",
+                                    "%d independent evidence classes lit (%s)"
+                                    % (c["n_signals"], ",".join(c["signals_fired"])),
+                                    +1)
+                     for c in convergence[:15]]
+        impact = impact_build(
+            "stealth-accumulation", "stealth_accumulation_evidence",
+            comp_rows + ind_rows, [],
+            "Self-nominating detector: flagged names ARE the beneficiaries. "
+            "Company rows are structural (direction + evidence count, no pp "
+            "asserted). Industry rows are measured: % of industry market cap "
+            "under active >=2-signal evidence.",
+            basis_note="weights basis: %s" % weights_meta["overall_basis"])
+
+        # wo4580: per-combo gradeable signals — the substrate the learned
+        # weights need. Each combo family grades separately in the ledger.
+        signals_logged = 0
+        try:
+            _tbl = boto3.resource("dynamodb", region_name="us-east-1") \
+                        .Table("justhodl-signals")
+            for c in convergence[:12]:
+                bp = yprice(c["ticker"])
+                if not bp:
+                    continue
+                fam = "stealth_combo_" + "_".join(
+                    sorted(x[:2] for x in c["signals_fired"]))
+                if log_signal(_tbl, fam, c["ticker"], "bullish", [21, 63], bp,
+                              confidence=min(0.75, 0.45 + 0.05 * c["n_signals"]),
+                              rationale="stealth %d-signal convergence (%s)"
+                              % (c["n_signals"], ",".join(c["signals_fired"])),
+                              metadata={"composite": c["composite_score"],
+                                        "resid": c.get("resid_score")}):
+                    signals_logged += 1
+        except Exception as _e:
+            print("signal emit: %s" % _e)
+
         output = {
             "engine": "stealth-accumulation",
-            "version": "1.1.1",
+            "version": "1.2.0",
             "as_of": dt.datetime.utcnow().isoformat() + "Z",
             "state": state,
             "previous_state": prev_state,
@@ -411,6 +532,9 @@ def lambda_handler(event, context):
                 "rule": ("state can only be QUIET/NORMAL when every required feed "
                          "yields >0 rows; otherwise INSUFFICIENT_DATA (ops-4559 BUG-4)"),
             },
+            "combo_weights": {"weights": COMBO_W, "meta": weights_meta},
+            "impact_map": impact,
+            "signals_logged": signals_logged,
             "current_readings": {
                 "top_convergence_tickers": [c["ticker"] for c in convergence[:10]],
                 "n_signals_distribution": {
