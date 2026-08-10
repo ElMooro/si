@@ -1,0 +1,22 @@
+{
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 780,
+  "memory": 1536,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "IMF PortWatch Daily_Ports_Data - per-port daily import/export cargo TONNAGE across 2,065 ports (ops-4559 BUG-11). The physical-trade fast layer: cargo tons by vessel class, not vessel counts.",
+  "function_name": "justhodl-port-cargo",
+  "environment": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "schedule": {
+    "name": "justhodl-port-cargo-daily",
+    "expression": "cron(40 12 * * ? *)",
+    "description": "12:40 UTC daily \u2014 after PortWatch upstream refresh"
+  },
+  "tags": {
+    "Project": "JustHodl",
+    "Component": "ops-4559",
+    "Tier": "engine"
+  }
+}
