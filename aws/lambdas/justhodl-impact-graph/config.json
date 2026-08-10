@@ -1,0 +1,22 @@
+{
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 600,
+  "memory": 1536,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Impact layer source of truth (wo4580): exposure graph (ticker->industry/mcap/ADV), append-only factor history, OLS betas vs sector ETFs when n>=8, trade-impulse + flow-convergence boards.",
+  "function_name": "justhodl-impact-graph",
+  "environment": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "schedule": {
+    "name": "justhodl-impact-graph-daily",
+    "expression": "cron(10 5 * * ? *)",
+    "description": "05:10 UTC daily - after the prior day's engine payloads settle"
+  },
+  "tags": {
+    "Project": "JustHodl",
+    "Component": "wo4580",
+    "Tier": "engine"
+  }
+}
