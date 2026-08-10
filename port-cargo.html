@@ -57,5 +57,10 @@ document.getElementById('cty').innerHTML=(p.countries||[]).map(function(x){retur
 document.getElementById('foot').textContent='Source: IMF PortWatch Daily_Ports_Data (keyless public ArcGIS) — estimated import/export metric tons per port per day. Method: '+(p.method||'')+' Generated '+(p.generated_at||'');
 }catch(e){console.error(e);}})();
 </script>
+
+<!-- wo4580: impact layer strip (additive) -->
+<div id="jh-impact-strip" style="max-width:1180px;margin:0 auto;padding:0 18px"></div>
+<script src="/assets/impact-strip.js" defer></script>
+<script>document.addEventListener("DOMContentLoaded",function(){if(window.jhImpactStripAuto)jhImpactStripAuto("jh-impact-strip","https://justhodl-dashboard-live.s3.amazonaws.com/data/port-cargo.json");});</script>
 </body>
 </html>

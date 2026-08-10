@@ -79,5 +79,10 @@ bsEl.innerHTML=bs.pairs.map(function(p){var c=SC[p.stage]||NEU;var v=p.value||{}
 document.getElementById('foot').textContent='US series: FRED (DOT TSI, Cass, ATA, AAR). Air: Airport Authority Hong Kong public monthly figures. Method: '+(fp.method||'')+' Generated '+(fp.generated_at||'');
 }catch(e){console.error(e);}})();
 </script>
+
+<!-- wo4580: impact layer strip (additive) -->
+<div id="jh-impact-strip" style="max-width:1180px;margin:0 auto;padding:0 18px"></div>
+<script src="/assets/impact-strip.js" defer></script>
+<script>document.addEventListener("DOMContentLoaded",function(){if(window.jhImpactStripAuto)jhImpactStripAuto("jh-impact-strip","https://justhodl-dashboard-live.s3.amazonaws.com/data/freight-pulse.json");});</script>
 </body>
 </html>

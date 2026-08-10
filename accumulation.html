@@ -181,4 +181,9 @@ function block(book,kind){
 <!-- P0-7 wave 2 · dark engines wired (perplexity, 2026-08-05) -->
 <script src="/jh-wire.js" defer
   data-feeds="data/consensus-bottom.json|justhodl-consensus-bottom|MULTI-MANAGER CONSENSUS BOTTOM;data/sequence-alpha.json|justhodl-sequence-alpha-detector|3-STEP ACCUMULATION SEQUENCE"></script>
+
+<!-- wo4580: impact layer strip (additive) -->
+<div id="jh-impact-strip" style="max-width:1180px;margin:0 auto;padding:0 18px"></div>
+<script src="/assets/impact-strip.js" defer></script>
+<script>document.addEventListener("DOMContentLoaded",function(){if(window.jhImpactStripAuto)jhImpactStripAuto("jh-impact-strip","https://justhodl-dashboard-live.s3.amazonaws.com/data/accumulation-radar.json");});</script>
 </body></html>
