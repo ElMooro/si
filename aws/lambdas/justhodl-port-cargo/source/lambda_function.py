@@ -38,21 +38,33 @@ s3 = boto3.client("s3", region_name=REGION)
 
 
 def _q(url, params, t=60):
+    """ArcGIS returns errors as HTTP-200 {"error": {...}} — surface, never
+    swallow (ops-4559 follow-up: a where-clause type error looked exactly
+    like an empty layer)."""
     try:
         req = urllib.request.Request(url + "?" + urllib.parse.urlencode(params), headers=UA)
         with urllib.request.urlopen(req, timeout=t) as r:
-            return json.loads(r.read().decode())
-    except Exception:
-        return None
+            j = json.loads(r.read().decode())
+            if isinstance(j, dict) and j.get("error"):
+                e = j["error"]
+                return None, "arcgis error %s: %s" % (e.get("code"),
+                                                      str(e.get("message"))[:120])
+            return j, None
+    except Exception as e:
+        return None, "%s: %s" % (type(e).__name__, str(e)[:100])
 
 
 def discover_fields(gaps):
     """Probe one record; classify tonnage vs portcall fields by name."""
-    j = _q(LAYER, {"where": "1=1", "outFields": "*", "resultRecordCount": 1,
-                   "orderByFields": "date DESC", "f": "pjson"})
+    j, err = _q(LAYER, {"where": "1=1", "outFields": "*", "resultRecordCount": 1,
+                        "orderByFields": "date DESC", "f": "pjson"})
+    if err:  # orderBy on a differently-cased field can itself error — retry bare
+        j, err = _q(LAYER, {"where": "1=1", "outFields": "*",
+                            "resultRecordCount": 1, "f": "pjson"})
     feats = (j or {}).get("features") or []
     if not feats:
-        gaps.append("Daily_Ports_Data probe returned 0 features — layer unreachable or renamed")
+        gaps.append("Daily_Ports_Data probe returned 0 features%s"
+                    % (" — " + err if err else ""))
         return None
     attrs = feats[0].get("attributes") or {}
     fields = sorted(attrs.keys())
@@ -69,20 +81,50 @@ def discover_fields(gaps):
             "sample": {k: attrs.get(k) for k in ("portid", "portname", "country", "date")}}
 
 
+def negotiate_where(gaps):
+    """ArcGIS date predicates vary by backend: probe TIMESTAMP / DATE /
+    epoch-ms with returnCountOnly and take the first formulation that
+    counts >0. Every rejection is recorded — first-fetch assertion."""
+    dt_cut = datetime.now(timezone.utc) - timedelta(days=WINDOW_D)
+    cands = ["date >= TIMESTAMP '%s'" % dt_cut.strftime("%Y-%m-%d %H:%M:%S"),
+             "date >= DATE '%s'" % dt_cut.strftime("%Y-%m-%d"),
+             "date >= %d" % int(dt_cut.timestamp() * 1000)]
+    errs = []
+    for w in cands:
+        j, err = _q(LAYER, {"where": w, "returnCountOnly": "true", "f": "pjson"})
+        cnt = (j or {}).get("count")
+        if not err and isinstance(cnt, int) and cnt > 0:
+            return w, cnt
+        errs.append("%r → %s" % (w[:40], err or "count=%s" % cnt))
+    gaps.append("no where-clause formulation returned rows: " + " | ".join(errs))
+    return None, 0
+
+
 def fetch_window(gaps):
-    cutoff = int((datetime.now(timezone.utc) - timedelta(days=WINDOW_D)).timestamp() * 1000)
+    where, expected = negotiate_where(gaps)
+    if not where:
+        return []
     rows, offset = [], 0
     for _ in range(MAX_PAGES):
-        j = _q(LAYER, {"where": "date >= %d" % cutoff, "outFields": "*",
-                       "resultOffset": offset, "resultRecordCount": PAGE,
-                       "orderByFields": "date ASC", "f": "pjson"})
-        feats = (j or {}).get("features") or []
-        rows.extend(a.get("attributes") or {} for a in feats)
-        if len(feats) < PAGE:
+        j, err = _q(LAYER, {"where": where, "outFields": "*",
+                            "resultOffset": offset, "resultRecordCount": PAGE,
+                            "orderByFields": "date ASC", "f": "pjson"})
+        if err:
+            gaps.append("page fetch failed at offset %d: %s" % (offset, err))
             break
-        offset += PAGE
+        feats = (j or {}).get("features") or []
+        if not feats:
+            break
+        rows.extend(a.get("attributes") or {} for a in feats)
+        # servers cap below the requested count (maxRecordCount) — advance by
+        # what was RETURNED and stop only when the transfer-limit flag clears
+        if not j.get("exceededTransferLimit") and len(feats) < PAGE:
+            break
+        offset += len(feats)
     else:
         gaps.append("pagination hit MAX_PAGES ceiling — window truncated")
+    if expected and len(rows) < expected * 0.9:
+        gaps.append("fetched %d of %d counted rows — partial window" % (len(rows), expected))
     return rows
 
 
@@ -165,7 +207,7 @@ def lambda_handler(event=None, context=None):
                     "total_chg_pct": round(((g_recent[0] + g_recent[1]) / gt_b - 1) * 100, 2) if gt_b else None}
 
     out = {
-        "engine": "port-cargo", "version": "1.0",
+        "engine": "port-cargo", "version": "1.0.1",
         "engine_class": "physical_trade_fast_layer",
         "evidence_tier": "tier_1_measured_physical",
         "lag_months": -4,
