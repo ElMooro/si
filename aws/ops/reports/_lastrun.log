@@ -1,16 +1,15 @@
-executing-against: e813c01a20d3654275b1fe331ec702b530416b79
-ops 4586 — wo4585 final clearance
-── 1. Settle + fire + poll ──
-[22:07:55]   fired justhodl-grid-queue
-[22:07:55]   fired justhodl-etf-true-flows
-[22:08:07]   justhodl-grid-queue refreshed (12s)
-[22:08:07]   justhodl-etf-true-flows refreshed (12s)
-── 2. ISO-NE after the cookie heal ──
-[22:08:07] ✅   [grid-queue] edge still refusing a cookie-carrying client — named honestly: ISO-NE IRTT queue unavailable — external?download=csv → 200 but html_body; external.csv → 200 but html_body; reports?download=csv → 200 but html_body
-── 3. N-PORT after the json.loads fix ──
-[22:08:07] ✗   [etf-true-flows] CONTRACT MISS — N-PORT PENDING_WIRE — 0 funds indexed
-── verdict ──
-[22:08:07] ✗ wo4585: 1 still red
+executing-against: 7cc3f6794b1a2e9be7d4e31487ffdcb800159257
+ops 4587 — N-PORT evidence gate
+[22:15:42] refreshed (10s)
+[22:15:42] status=WIRED_INDEX per_etf=8
+[22:15:42] ✅ N-PORT WIRED_INDEX — 8 funds; wo4585 fully closed
+[22:15:42]   GOVT cik=1100663 latest 2026-07-27
+[22:15:42]   EWY cik=930667 latest 2026-07-27
+[22:15:42]   SGOV cik=1100663 latest 2026-07-27
+[22:15:42]   IVV cik=1100663 latest 2026-07-27
+[22:15:42]   EWT cik=930667 latest 2026-07-27
+[22:15:42]   EWZ cik=930667 latest 2026-07-27
+[22:15:42]   EFA cik=1100663 latest 2026-07-27
+[22:15:42]   HYG cik=1100663 latest 2026-07-27
 
-→ Report written to aws/ops/reports/latest/4586_wo4585_final.md
-❌ OPS-FAIL: aws/ops/pending/ops_4586_wo4585_final.py
+→ Report written to aws/ops/reports/latest/4587_nport_evidence.md
