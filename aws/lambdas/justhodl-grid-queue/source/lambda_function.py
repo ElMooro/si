@@ -904,18 +904,22 @@ def lambda_handler(event, context):
                             "ia_mw": v.get("mw_with_executed_ia")}
                         for k, v in iso_all.items()},
             "national_ia_mw": ia_nat, "national_headline_mw": headline_nat}
-    velocity = {"status": "INSUFFICIENT_HISTORY", "n_snapshots": 1}
+    # rev 4582: the block below said s3 (lowercase) — this module's client is
+    # S3. The NameError was swallowed by the except and the DEFAULT dict
+    # (n_snapshots: 1) masqueraded as a written archive. Default is now 0 so
+    # a failed put can never look like history again.
+    velocity = {"status": "INSUFFICIENT_HISTORY", "n_snapshots": 0}
     try:
-        s3.put_object(Bucket=BUCKET,
+        S3.put_object(Bucket=BUCKET,
                       Key="data/archive/grid-queue/%s.json" % today_s,
                       Body=json.dumps(snap).encode(),
                       ContentType="application/json")
-        resp = s3.list_objects_v2(Bucket=BUCKET,
+        resp = S3.list_objects_v2(Bucket=BUCKET,
                                   Prefix="data/archive/grid-queue/", MaxKeys=400)
         keys = sorted(k2["Key"] for k2 in resp.get("Contents", []))
         velocity["n_snapshots"] = len(keys)
         if len(keys) >= 2:
-            first = json.loads(s3.get_object(Bucket=BUCKET,
+            first = json.loads(S3.get_object(Bucket=BUCKET,
                                              Key=keys[0])["Body"].read())
             span_d = max((datetime.fromisoformat(today_s)
                           - datetime.fromisoformat(first["date"])).days, 1)
