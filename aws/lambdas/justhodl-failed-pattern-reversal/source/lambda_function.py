@@ -341,6 +341,15 @@ def lambda_handler(event, context):
         else:
             state = "QUIET"
             state_desc = "No failed patterns detected on universe today"
+        # wo4592 BUG-4 gate: "no failed patterns" is unknowable when zero
+        # names returned price data. Blind says blind, not calm.
+        data_sufficiency = {
+            "n_scanned_with_data": (scanned) or 0,
+            "rule": "QUIET only claimable when >=1 universe name returned "
+                    "price data; else INSUFFICIENT_DATA"}
+        if state == "QUIET" and not (scanned):
+            state = "INSUFFICIENT_DATA"
+            state_desc = "blind this run — zero universe names returned data"
 
         # 4. Telegram regime change
         try:
@@ -394,6 +403,7 @@ def lambda_handler(event, context):
             "version": "1.0",
             "as_of": dt.datetime.utcnow().isoformat() + "Z",
             "state": state,
+            "data_sufficiency": data_sufficiency,
             "previous_state": prev_state,
             "state_description": state_desc,
             "signal_strength": min(100, 6 * n_long + 6 * n_short),
