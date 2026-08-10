@@ -110,12 +110,17 @@ MCCLELLAN_MAX = -100
 s3 = boto3.client("s3", region_name="us-east-1")
 
 
+_FEEDS = {"ok": 0, "miss": 0}
+
+
 def fetch_s3_json(key):
     try:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
+        _FEEDS["ok"] += 1
         return json.loads(obj["Body"].read().decode("utf-8"))
     except Exception as e:
         print(f"[fetch] {key} failed: {e}")
+        _FEEDS["miss"] += 1
         return None
 
 
@@ -407,6 +412,20 @@ def lambda_handler(event=None, context=None):
         state_desc = (
             "0-1/5 conditions firing — market is in normal regime. "
             "No forced-selling pattern. Standard positioning.")
+    # wo4592 BUG-4 gate: conditions can only "not fire" if their feeds
+    # loaded. Dead feeds looked identical to calm markets. QUIET now
+    # requires >=70% of attempted feeds answered.
+    _ft = _FEEDS["ok"] + _FEEDS["miss"]
+    data_sufficiency = {"feeds_ok": _FEEDS["ok"],
+                        "feeds_miss": _FEEDS["miss"],
+                        "rule": "QUIET only claimable when >=70% of "
+                                "attempted feeds answered; else "
+                                "INSUFFICIENT_DATA"}
+    if state == "QUIET" and _ft and _FEEDS["ok"] < 0.7 * _ft:
+        state = "INSUFFICIENT_DATA"
+        signal_strength = 0
+        state_desc = ("blind this run — %d/%d condition feeds unreadable"
+                      % (_FEEDS["miss"], _ft))
 
     # Trade recommendation
     if state == "V_BOTTOM_CONFIRMED":
@@ -442,6 +461,7 @@ def lambda_handler(event=None, context=None):
         "signal_strength": signal_strength,
         "state_description": state_desc,
         "n_conditions_fired": n_fired,
+        "data_sufficiency": data_sufficiency,
         "conditions_fired": conditions,
         "condition_details": {
             "c1_vix_spike": c1_detail,
