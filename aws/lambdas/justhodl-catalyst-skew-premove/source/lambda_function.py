@@ -245,6 +245,19 @@ def lambda_handler(event, context):
         else:
             state = "QUIET"
             state_desc = "No directional pre-catalyst skews detected"
+        # wo4592 BUG-4 gate: "no skews detected" is unknowable when the
+        # catalyst calendar came back empty or zero names had options
+        # data. Blind says blind, not calm.
+        data_sufficiency = {
+            "n_events_in_window": len(events),
+            "n_with_options_data": len(opts_map),
+            "rule": "QUIET only claimable with catalysts in window AND "
+                    "options data on >=1 name; else INSUFFICIENT_DATA"}
+        if state == "QUIET" and (not events or not opts_map):
+            state = "INSUFFICIENT_DATA"
+            state_desc = ("blind this run — %s" %
+                          ("catalyst calendar empty" if not events
+                           else "no options data returned for any name"))
 
         priors = {
             "BULL_SKEW_RICH": {"1w": 2.5, "1m": 5.5, "wr": 58,
@@ -264,6 +277,7 @@ def lambda_handler(event, context):
             "as_of": dt.datetime.utcnow().isoformat() + "Z",
             "state": state,
             "state_description": state_desc,
+            "data_sufficiency": data_sufficiency,
             "signal_strength": min(100, 5 * len(setups)),
             "summary": {
                 "n_events_in_window": len(events),
