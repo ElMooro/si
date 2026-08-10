@@ -1,0 +1,35 @@
+# ops 4591 — ledger close-out (revs J/K/L)
+
+**Status:** success  
+**Duration:** 27.8s  
+**Finished:** 2026-08-10T23:08:16+00:00  
+
+## Log
+## 1. Settle + fire + poll (last-written keys)
+
+- `23:07:49`   fired justhodl-impact-graph
+- `23:07:50`   fired justhodl-share-flows
+- `23:07:51`   fired justhodl-grid-queue
+- `23:08:03`   justhodl-share-flows refreshed (12s)
+- `23:08:16`   justhodl-impact-graph refreshed (25s)
+- `23:08:16`   justhodl-grid-queue refreshed (25s)
+## 2. impact-graph — engines lists flowing
+
+- `23:08:16` ✅   [impact-graph] per-engine votes real: field=multi_engine_confluence+ticker_map records=400 mapped=283 votes=364
+- `23:08:16`   rows=15 source=justhodl-flow-confluence via multi_engine_confluence+ticker_map (400 records, 283 industry-mapped, 364 votes)
+- `23:08:16`     Semiconductors ACCUMULATION score=19.0 sources=['13f', 'etf-lookthrough', 'flow_confluence', 'short-interest', 'smart-money']
+- `23:08:16`     Aerospace & Defense ACCUMULATION score=13.0 sources=['buyback', 'capital-flow', 'dark-pool', 'flow_confluence', 'smart-money']
+- `23:08:16`     Financial - Credit Services ACCUMULATION score=11.0 sources=['13f', 'buyback', 'etf-lookthrough', 'flow_confluence', 'smart-money']
+- `23:08:16`     Regulated Electric ACCUMULATION score=11.0 sources=['capital-flow', 'flow_confluence', 'smart-money', 'stealth']
+- `23:08:16`     Medical - Diagnostics & Research ACCUMULATION score=10.0 sources=['buyback', 'capital-flow', 'dark-pool', 'flow_confluence', 'short-interest', 'smart-money']
+- `23:08:16`     Biotechnology ACCUMULATION score=10.0 sources=['buyback', 'flow_confluence', 'short-interest', 'smart-money']
+## 3. share-flows — canonical joins
+
+- `23:08:16` ✅   [share-flows] v2.1.1 live
+- `23:08:16` ✅   [share-flows] canonical joins live: 14 announced programs joined (justhodl-buyback-scanner (parsed 8-K authorizations, 2026-08-10T12:00:21.252484Z as_of)), 5 ATM shelves (edgar_fts FALLB
+## 4. grid-queue — ISO-NE after the href mine
+
+- `23:08:16` ✅   [grid-queue] gap carries the mining signature: ISO-NE IRTT queue unavailable — external?download=csv → 200 html, 2 export-ish hrefs, none yielded CSV; external?download=csv → 200 but html_body; external.csv → 200 html, 0 export-ish hrefs, none yielded CSV; external.csv → 200 but html_body; reports?download
+## verdict
+
+- `23:08:16` ✅ ledger CLOSED — engines lists flowing, canonical joins evidence-backed, ISO-NE resolved or precisely named
