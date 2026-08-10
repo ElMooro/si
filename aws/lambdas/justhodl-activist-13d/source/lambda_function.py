@@ -123,15 +123,17 @@ def http_get_text(url, timeout=20):
 
 
 def fetch_recent_filings_for_filer(cik, days_back=14):
-    """Fetch recent SC 13D filings by a specific filer CIK via EDGAR JSON API."""
+    """Fetch recent SC 13D filings by a specific filer CIK via EDGAR JSON API.
+    wo4585: returns (filings, fetch_ok) — a failed GET is not the same fact
+    as an answered-but-empty window, and QUIET may only be claimed on the
+    latter (the BUG-4 confident-negative rule)."""
     if not cik:
-        return []
-    # EDGAR per-filer submissions JSON
+        return [], True
     cik_padded = cik.zfill(10)
     url = f"https://data.sec.gov/submissions/CIK{cik_padded}.json"
     d = http_get_json(url)
     if not d:
-        return []
+        return [], False
 
     recent = d.get("filings", {}).get("recent", {})
     forms = recent.get("form", [])
@@ -160,7 +162,7 @@ def fetch_recent_filings_for_filer(cik, days_back=14):
             "filer_cik": cik,
             "url": f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{acc_clean}/",
         })
-    return out
+    return out, True
 
 
 def fetch_filing_target(filing):
@@ -399,11 +401,20 @@ def lambda_handler(event, context):
 
     all_setups = []
     activist_errors = []
+    n_fetch_ok, n_fetch_fail = 0, 0
 
     for act in ACTIVISTS:
         if not act["cik"]:
             continue
-        filings = fetch_recent_filings_for_filer(act["cik"], days_back=21)
+        filings, fetch_ok = fetch_recent_filings_for_filer(act["cik"],
+                                                           days_back=21)
+        if fetch_ok:
+            n_fetch_ok += 1
+        else:
+            n_fetch_fail += 1
+            activist_errors.append({"activist": act["name"],
+                                    "cik": act["cik"],
+                                    "reason": "edgar_submissions_unreachable"})
         if not filings:
             continue
         for f in filings:
@@ -475,6 +486,18 @@ def lambda_handler(event, context):
     # Top-line state
     fresh_a = [s for s in top if s["tier"] == "A" and s["age_trading_days"] <= 5]
     state = "FRESH_TIER_A" if fresh_a else ("ACTIVE" if top else "QUIET")
+    # wo4585 BUG-4 gate: a QUIET verdict requires that the detector actually
+    # SAW the tape. With every (or nearly every) filer fetch dead, no fresh
+    # 13Ds is unknowable — the state must say blind, not calm.
+    data_sufficiency = {
+        "n_filers_fetched_ok": n_fetch_ok,
+        "n_filers_fetch_failed": n_fetch_fail,
+        "rule": ("QUIET only claimable when >=70% of tracked filers'"
+                 " EDGAR submissions answered; otherwise INSUFFICIENT_DATA"),
+    }
+    total_tried = n_fetch_ok + n_fetch_fail
+    if state == "QUIET" and total_tried and n_fetch_ok < 0.7 * total_tried:
+        state = "INSUFFICIENT_DATA"
     signal_strength = round(min(100, len(top) * 5 + len(fresh_a) * 10), 1)
 
     forward = {
@@ -509,6 +532,7 @@ def lambda_handler(event, context):
         "version": "1.0",
         "as_of": dt.datetime.utcnow().isoformat() + "Z",
         "state": state,
+        "data_sufficiency": data_sufficiency,
         "signal_strength": signal_strength,
         "summary": {
             "n_total_setups": len(all_setups),
