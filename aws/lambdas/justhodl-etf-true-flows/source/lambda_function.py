@@ -516,9 +516,20 @@ def lambda_handler(event=None, context=None):
                               "until then tier-1 numbers carry no stated "
                               "error bound"),
                      "per_etf": wired}
+        if not wired:
+            nport = {"status": "PENDING_WIRE", "per_etf": [],
+                     "diag": {"mf_map_n": len(cm_mf), "op_map_n": len(cm2),
+                              "tops": tops,
+                              "unresolved": [t3 for t3 in tops
+                                             if not (cm_mf.get(t3)
+                                                     or cm2.get(t3))]},
+                     "note": ("wo4585 rev-F: zero funds indexed — diag "
+                              "carries map sizes + the exact unresolved "
+                              "tickers so the next fix is evidence, not "
+                              "a guess")}
     except Exception as _e:
         nport = {"status": "PENDING_WIRE",
-                 "note": "index fetch failed this run: %s" % str(_e)[:120],
+                 "note": "index fetch failed this run: %s" % str(_e)[:160],
                  "per_etf": []}
 
     # wo4580 impact_map — measured per-stock implied demand in bps of ADV
