@@ -30,6 +30,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import defaultdict
 import boto3
 
+from impact_mapper import (build as impact_build, load_graph,
+                           measured_row, industry_rollup)
+from edgar import cik_map
+
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/etf-true-flows.json"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
@@ -65,6 +69,23 @@ ETFS = {
     "LEVERED_INVERSE": ["TQQQ", "SQQQ", "SSO", "SDS", "UPRO", "SPXU", "QLD", "QID", "TBT"],
 }
 PROSHARES = {"TQQQ", "SQQQ", "SSO", "SDS", "UPRO", "SPXU", "QLD", "QID", "TBT", "UVXY", "SVXY", "BITO"}
+# wo4580: same-index wrapper families — flows net across the complex or the
+# read is wrong (the VOO -> IVV share-class-rotation lesson: -$40B fake
+# outflow, +$49.7B real complex net).
+WRAPPER_COMPLEX = {
+    "SP500": ["SPY", "IVV", "VOO", "SPLG"],
+    "NASDAQ100": ["QQQ", "QQQM"],
+    "TOTAL_US": ["VTI", "ITOT", "SCHB"],
+    "RUSSELL2000": ["IWM", "VTWO"],
+    "EMERGING": ["EEM", "IEMG", "VWO"],
+    "DEV_INTL": ["EFA", "IEFA", "VEA"],
+    "GOLD": ["GLD", "IAU", "GLDM", "SGOL"],
+    "BITCOIN": ["IBIT", "FBTC", "GBTC", "ARKB", "BITB"],
+    "US_AGG_BOND": ["AGG", "BND"],
+    "HIGH_YIELD": ["HYG", "JNK"],
+    "LONG_TREASURY": ["TLT", "VGLT"],
+}
+HOLDINGS_INDEX_KEY = "data/impact/etf-holdings-index.json"
 HIST_KEY = "data/etf-shares-history.json"
 SNAP_KEY = "data/etf-shares-snapshots/latest.json"
 HISTORY_DAYS = 90
@@ -372,7 +393,13 @@ def lambda_handler(event=None, context=None):
                 return round((so_now - old) * base, 0)
             return None
         nf5, nf20 = flow_over(5), flow_over(20)
+        mech = []
+        if r.get("category") == "LEVERED_INVERSE":
+            mech.append("daily_rebalance_mechanical")
+        if dist:
+            mech.append("distribution_ex_date_corrected")
         results.append({**r,
+                        "mechanical_flags": mech,
                         "aum_est_b": round((r.get("tna") or (so_now * (nav or 0))) / 1e9, 2) if nav else None,
                         "net_flow_1d_usd": nf1,
                         "net_flow_5d_usd": nf5 if nf5 is not None else nf1,
@@ -394,6 +421,124 @@ def lambda_handler(event=None, context=None):
             by_cat[r["category"]]["n"] += 1
     cat_rotation = sorted([{"category": k, "net_flow_5d_usd": round(v["net_flow_5d_usd"], 0), "n_etfs": v["n"]}
                            for k, v in by_cat.items()], key=lambda x: -x["net_flow_5d_usd"])
+
+    # wo4580 (a): wrapper-complex netting, first-class. Measured.
+    by_tk = {r["ticker"]: r for r in results}
+    complexes = []
+    for fam, members in WRAPPER_COMPLEX.items():
+        rowsf = [(m, fm(by_tk[m])) for m in members if m in by_tk
+                 and fm(by_tk[m]) is not None]
+        if len(rowsf) < 2:
+            continue
+        gross = sum(abs(v) for _, v in rowsf)
+        net = sum(v for _, v in rowsf)
+        signs = {v > 0 for _, v in rowsf if v}
+        rotation = bool(gross and abs(net) < 0.35 * gross and len(signs) > 1)
+        complexes.append({
+            "family": fam, "members": [{"ticker": m, "net_flow_5d_usd": round(v)}
+                                       for m, v in rowsf],
+            "gross_flow_5d_usd": round(gross), "net_flow_5d_usd": round(net),
+            "share_class_rotation": rotation,
+            "read": ("SHARE_CLASS_ROTATION — members swap, complex net is the "
+                     "real signal" if rotation else
+                     "DIRECTIONAL — complex net and members agree")})
+    complexes.sort(key=lambda c: -abs(c["net_flow_5d_usd"]))
+
+    # wo4580 (b): per-stock look-through using THIS engine's measured flows
+    # (Δshares × NAV) through the canonical holdings caches that
+    # flow-lookthrough maintains. Complementary to flow-lookthrough (which
+    # attributes the etf-flows feed); documented as such.
+    hold_idx = read_json(HOLDINGS_INDEX_KEY) or {}
+    stock_agg = {}
+    n_join = 0
+    for etf, meta in (hold_idx.get("etfs") or {}).items():
+        r = by_tk.get(etf)
+        f5 = fm(r) if r else None
+        if not f5:
+            continue
+        cache = read_json("%s%s.json" % (hold_idx.get("cache_prefix",
+                                                      "etf-constituents-v2/"), etf))
+        if not cache or not cache.get("holdings"):
+            continue
+        n_join += 1
+        for h in cache["holdings"]:
+            w = h.get("weight") or 0.0
+            if not w:
+                continue
+            d = stock_agg.setdefault(h["ticker"], {"usd_5d": 0.0, "n_etfs": 0})
+            d["usd_5d"] += f5 * w
+            d["n_etfs"] += 1
+    graph = load_graph() or {}
+    gtk = graph.get("tickers") or {}
+    by_stock = []
+    for tk2, d in stock_agg.items():
+        g = gtk.get(tk2) or {}
+        adv = g.get("adv_usd")
+        by_stock.append({"ticker": tk2, "implied_usd_5d": round(d["usd_5d"]),
+                         "n_etfs": d["n_etfs"], "industry": g.get("industry"),
+                         "bps_adv_day": (round(d["usd_5d"] / 5.0 / adv * 1e4, 1)
+                                         if adv else None)})
+    by_stock.sort(key=lambda x: -abs(x["implied_usd_5d"]))
+    stock_in = [x for x in by_stock if x["implied_usd_5d"] > 0][:40]
+    stock_out = [x for x in by_stock if x["implied_usd_5d"] < 0][:40]
+
+    # wo4580 (c): N-PORT ground-truth wire, index level. Real EDGAR
+    # submissions per top-AUM ETF: latest NPORT-P date + accession. Values
+    # parse is the declared next step; status is honest about that.
+    nport = {"status": "PENDING_WIRE", "per_etf": []}
+    try:
+        cm2 = cik_map()
+        tops = [r["ticker"] for r in results
+                if (r.get("aum_est_b") or 0) > 0][:8]
+        wired = []
+        for tk2 in tops:
+            cik = cm2.get(tk2)
+            if not cik:
+                continue
+            sub = http_json("https://data.sec.gov/submissions/CIK%010d.json"
+                            % int(cik))
+            rec = (sub or {}).get("filings", {}).get("recent", {})
+            forms = rec.get("form") or []
+            for i2, f2 in enumerate(forms):
+                if f2 == "NPORT-P":
+                    wired.append({"etf": tk2, "cik": int(cik),
+                                  "latest_nport_date": (rec.get("filingDate") or [None]*len(forms))[i2],
+                                  "accession": (rec.get("accessionNumber") or [None]*len(forms))[i2]})
+                    break
+        if wired:
+            nport = {"status": "WIRED_INDEX",
+                     "note": ("filing index live for the largest funds; Item "
+                              "B.6 value parse is the declared next step — "
+                              "until then tier-1 numbers carry no stated "
+                              "error bound"),
+                     "per_etf": wired}
+    except Exception as _e:
+        nport = {"status": "PENDING_WIRE",
+                 "note": "index fetch failed this run: %s" % str(_e)[:120],
+                 "per_etf": []}
+
+    # wo4580 impact_map — measured per-stock implied demand in bps of ADV
+    ben = [measured_row(x["ticker"], "company", x["bps_adv_day"],
+                        "bps_adv_day",
+                        "Δshares×NAV 5d flow × holding weight / 5 / dollar ADV")
+           for x in stock_in if x.get("bps_adv_day") is not None][:25]
+    suf = [measured_row(x["ticker"], "company", x["bps_adv_day"],
+                        "bps_adv_day",
+                        "Δshares×NAV 5d flow × holding weight / 5 / dollar ADV")
+           for x in stock_out if x.get("bps_adv_day") is not None][:25]
+    impact = impact_build(
+        "etf-true-flows", "etf_creation_redemption_flow",
+        ben[:15] + industry_rollup(ben, graph),
+        suf[:15] + industry_rollup(suf, graph),
+        "Creation/redemption dollars (Δ shares outstanding × NAV, "
+        "distribution-corrected) attributed to constituents by holding "
+        "weight, in bps of one day's dollar ADV per day. Measured.",
+        insufficient_rows=[{"name": x["ticker"], "kind": "company",
+                            "reason": "no adv_usd in exposure graph yet"}
+                           for x in by_stock[:120]
+                           if x["bps_adv_day"] is None
+                           and abs(x["implied_usd_5d"]) > 2e8][:10],
+        basis_note="holdings joined for %d ETFs via canonical index" % n_join)
 
     # 5) persist snapshot + rolled history
     day_str = datetime.now(timezone.utc).date().isoformat()
@@ -417,7 +562,7 @@ def lambda_handler(event=None, context=None):
     degraded = src_counts.get("PRICE_FALLBACK_DEGRADED", 0)
     bootstrapping = not prev_shares and len(days) < 2
     out = {
-        "engine": "etf-true-flows", "version": "2.0",
+        "engine": "etf-true-flows", "version": "2.1",
         "engine_class": "fund_flow_mechanical",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
@@ -430,15 +575,21 @@ def lambda_handler(event=None, context=None):
                    "first (iShares/SSGA/ProShares-with-history), FMP fallback. TNA-residual "
                    "cross-check per Morningstar; >%sbp disagreement → anomalies[]." % int(ANOMALY_BP)),
         "ground_truth": {"source": "SEC N-PORT Item B.6 (monthly sales/redemptions, ~T+60d)",
-                         "status": "PENDING_WIRE",
-                         "note": ("reconciliation job not yet wired; until it is, tier-1 "
-                                  "numbers carry no stated error bound — treat 5d/20d "
-                                  "windows as more reliable than 1d")},
+                         **nport},
         "nav_source_counts": dict(src_counts),
         "n_price_fallback_degraded": degraded,
         "probes": probes, "gaps": gaps, "anomalies": anomalies,
         "inflows": inflows, "outflows": outflows,
         "category_rotation": cat_rotation,
+        "complexes": complexes,
+        "by_stock": {"inflows": stock_in, "outflows": stock_out,
+                     "n_etfs_joined": n_join,
+                     "method": ("this engine's measured Δshares×NAV flows "
+                                "attributed through the canonical holdings "
+                                "caches (flow-lookthrough maintains them); "
+                                "complementary to flow-lookthrough's "
+                                "etf-flows-feed attribution")},
+        "impact_map": impact,
         "by_etf": {r["ticker"]: r for r in results},
     }
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
