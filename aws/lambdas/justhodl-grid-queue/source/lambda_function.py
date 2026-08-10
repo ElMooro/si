@@ -58,7 +58,10 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "2.0.0"
+from impact_mapper import (build as impact_build,
+                           structural_row, beta_impact)
+
+VERSION = "2.1.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/grid-queue.json"
 HIST_KEY = "data/grid-queue-history.json"
@@ -434,15 +437,21 @@ def eia_industrial_load(gaps):
 
 LBNL_PRIORS = {
     "source": "LBNL 'Queued Up' (emp.lbl.gov/queues)",
+    "vintage": "2024 edition — 2000-2018 request cohorts (capacity basis)",
     "completion_rate_all_requests": 0.13,
     "withdrawal_rate": 0.75,
     "median_years_request_to_cod": 5.0,
-    "note": ("headline queue MW × 0.13 approximates realistic eventual COD MW; "
-             "the executed-IA cohort completes at a far higher rate and is the "
-             "primary tradeable figure. Direct LBNL download 403s from Lambda "
-             "IPs (Cloudflare) so the published rates are carried as cited "
-             "constants, refreshed on LBNL's annual release."),
-}
+    "completion_rate_by_fuel": {"gas": 0.31, "wind": 0.20, "solar": 0.14,
+                                 "battery": 0.11, "storage": 0.11},
+    "fuel_note": ("published LBNL cohort completion rates by fuel; applied "
+                  "per-project where the queue row carries a recognizable "
+                  "fuel, else the 13% all-request rate. cited_static_priors "
+                  "— direct LBNL download 403s from Lambda IPs; refresh "
+                  "manually on new editions"),
+    "note": ("headline queue MW × completion prior approximates realistic "
+             "eventual COD MW; executed-IA MW is the survivor pool and is "
+             "reported unhaircut as the primary tradeable figure. Direct "
+             "LBNL download 403s from Lambda IPs.")}
 
 _IA_RX = re.compile(r"(executed|signed|effective)", re.I)
 _IA_CTX = re.compile(r"\b(ia|gia|interconnection\s+agreement|lgia|sgia)\b", re.I)
@@ -611,9 +620,30 @@ def fetch_spp(gaps):
 
 
 def fetch_isone(gaps):
+    """v2.1: the two historical IRTT endpoints started failing live (4574).
+    Adds a browser UA (IRTT sits behind an Incapsula-style edge that 403s
+    plain clients), a third endpoint variant, and — critically — records
+    the exact response signature per endpoint so the next debugging session
+    starts from evidence, not guesses."""
+    sigs = []
     for url in ("https://irtt.iso-ne.com/reports/external?download=csv",
-                "https://irtt.iso-ne.com/reports/external.csv"):
-        b = _get(url, timeout=60)
+                "https://irtt.iso-ne.com/reports/external.csv",
+                "https://irtt.iso-ne.com/external/reports?download=csv"):
+        try:
+            req = urllib.request.Request(url, headers={
+                "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                               "AppleWebKit/537.36 (KHTML, like Gecko) "
+                               "Chrome/126.0 Safari/537.36"),
+                "Accept": "text/csv,application/csv,*/*"})
+            with urllib.request.urlopen(req, timeout=60, context=CTX) as r:
+                b = r.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            sigs.append("%s → HTTP %s" % (url.split("/")[-1][:28], e.code))
+            continue
+        except Exception as e:
+            sigs.append("%s → %s" % (url.split("/")[-1][:28],
+                                     type(e).__name__))
+            continue
         if b and "," in b and "<html" not in b[:200].lower():
             try:
                 import csv as _csv
@@ -641,7 +671,12 @@ def fetch_isone(gaps):
             if rows:
                 detect = "column" if any(r["ia"] for r in rows) else "status_regex"
                 return _mk_iso("ISO-NE", rows, url, detect, gaps)
-    gaps.append("ISO-NE IRTT queue CSV unavailable on both candidate endpoints")
+        else:
+            sigs.append("%s → 200 but %s" % (
+                url.split("/")[-1][:28],
+                ("html_body" if b and "<html" in b[:200].lower() else
+                 "empty" if not b else "non-csv")))
+    gaps.append("ISO-NE IRTT queue unavailable — %s" % "; ".join(sigs))
     return None
 
 
@@ -694,6 +729,44 @@ def fetch_pjm(gaps):
     gaps.append("PJM queue export blocked from Lambda (Planning API). "
                 "Data Miner needs a subscription key — set PJM_API_KEY to enable.")
     return None
+
+
+def fetch_ercot_large_load(gaps):
+    """wo4580: ERCOT publishes a Large Load Interconnection Status report on
+    MIS — the ONE public window into the datacenter blind spot. Probe-first:
+    candidate reportTypeIds are tried and every miss is recorded; a wrong id
+    lands in gaps[], never a fabricated number."""
+    for rid in (16004, 15964):
+        lst = _get("https://www.ercot.com/misapp/servlets/IceDocListJsonWS"
+                   "?reportTypeId=%d" % rid, timeout=60)
+        if not lst:
+            continue
+        try:
+            docs = (json.loads(lst).get("ListDocsByRptTypeRes") or {})                 .get("DocumentList") or []
+        except Exception:
+            continue
+        for d in docs[:3]:
+            doc = d.get("Document") or {}
+            nm = (doc.get("ConstructedName") or "")
+            if "load" not in nm.lower():
+                continue
+            blob = _get("https://www.ercot.com/misdownload/servlets/mirDownload"
+                        "?doclookupId=%s" % doc.get("DocID"), timeout=120,
+                        raw=True)
+            if not blob:
+                continue
+            rows = _generic_xlsx_rows(blob, ["load", "mw"],
+                                      ("capacity (mw)", "mw", "load"),
+                                      gaps, "ERCOT-LL")
+            if rows:
+                tot = round(sum(r.get("mw") or 0 for r in rows), 1)
+                return {"status": "OK", "report": nm[:80], "n_rows": len(rows),
+                        "total_mw": tot, "source_report_type_id": rid,
+                        "note": ("large-load (datacenter et al) queue MW — "
+                                 "partial daylight on the declared blind spot")}
+    gaps.append("ERCOT large-load report not found on probed reportTypeIds "
+                "(16004, 15964) — blind spot remains UNMEASURED, as declared")
+    return {"status": "UNAVAILABLE"}
 
 
 def iso_queues_all(gaps):
@@ -820,10 +893,89 @@ def lambda_handler(event, context):
                        "datacenter region means UNMEASURED, not absent"),
     }
 
+    # wo4580: large-load probe (the datacenter blind spot, partially lit)
+    large_load = fetch_ercot_large_load(gaps)
+
+    # wo4580: snapshot archive → queue VELOCITY (MW entering executed-IA).
+    # Stock was the v2.0 metric; the tradeable read is the flow.
+    today_s = datetime.now(timezone.utc).date().isoformat()
+    snap = {"date": today_s,
+            "per_iso": {k: {"headline_mw": v.get("headline_mw"),
+                            "ia_mw": v.get("mw_with_executed_ia")}
+                        for k, v in iso_all.items()},
+            "national_ia_mw": ia_nat, "national_headline_mw": headline_nat}
+    velocity = {"status": "INSUFFICIENT_HISTORY", "n_snapshots": 1}
+    try:
+        s3.put_object(Bucket=BUCKET,
+                      Key="data/archive/grid-queue/%s.json" % today_s,
+                      Body=json.dumps(snap).encode(),
+                      ContentType="application/json")
+        resp = s3.list_objects_v2(Bucket=BUCKET,
+                                  Prefix="data/archive/grid-queue/", MaxKeys=400)
+        keys = sorted(k2["Key"] for k2 in resp.get("Contents", []))
+        velocity["n_snapshots"] = len(keys)
+        if len(keys) >= 2:
+            first = json.loads(s3.get_object(Bucket=BUCKET,
+                                             Key=keys[0])["Body"].read())
+            span_d = max((datetime.fromisoformat(today_s)
+                          - datetime.fromisoformat(first["date"])).days, 1)
+            d_ia = ia_nat - (first.get("national_ia_mw") or 0)
+            d_hl = headline_nat - (first.get("national_headline_mw") or 0)
+            per_iso_v = {}
+            for k2, v2 in snap["per_iso"].items():
+                f2 = (first.get("per_iso") or {}).get(k2) or {}
+                if v2.get("ia_mw") is not None and f2.get("ia_mw") is not None:
+                    per_iso_v[k2] = round((v2["ia_mw"] - f2["ia_mw"])
+                                          / span_d * 30.44, 1)
+            velocity = {"status": "LIVE", "n_snapshots": len(keys),
+                        "span_days": span_d,
+                        "national_ia_mw_per_month": round(d_ia / span_d * 30.44, 1),
+                        "national_headline_mw_per_month": round(d_hl / span_d * 30.44, 1),
+                        "per_iso_ia_mw_per_month": per_iso_v,
+                        "method": ("Δ vs oldest archived snapshot, scaled to "
+                                   "MW/month; the archive accrues daily from "
+                                   "today — nothing backfilled")}
+    except Exception as _e:
+        gaps.append("velocity archive failed: %s" % str(_e)[:80])
+
+    # wo4580 impact_map: structural per-MW buildout exposure (direction
+    # honest, no invented pp) + beta-estimated sectors once history earns n.
+    _shock = velocity.get("national_ia_mw_per_month") \
+        if velocity.get("status") == "LIVE" else 0
+    est_rows, est_missing = beta_impact(
+        ["Utilities", "Industrials", "Energy"], "grid_executed_mw",
+        _shock or 0, kind="industry")
+    struct = [
+        structural_row("Electrical Equipment (transformers/switchgear)",
+                       "industry", "per-MW interconnection buildout demand "
+                       "(ETN/PWR/HUBB class)", +1),
+        structural_row("Heavy Electrical Equipment (gas turbines)", "industry",
+                       "gas-fuel queue share drives turbine orders (GEV "
+                       "class)", +1),
+        structural_row("Engineering & Construction (EPC)", "industry",
+                       "executed-IA MW converts to EPC backlog", +1),
+        structural_row("Regulated Electric Utilities", "industry",
+                       "queue growth feeds rate-base CAGR (quasi-measured "
+                       "regulated math — tighter read once betas accrue)", +1),
+    ]
+    impact = impact_build(
+        "grid-queue", "grid_executed_mw",
+        struct + [r for r in est_rows if r["pp"] > 0],
+        [r for r in est_rows if r["pp"] <= 0],
+        "Structural rows: per-MW buildout beneficiaries (direction only — no "
+        "pp asserted without measurement). Estimated rows appear once the "
+        "nightly factor history accrues n_obs>=8 for grid_executed_mw.",
+        insufficient_rows=est_missing[:6],
+        basis_note="velocity %s (%d snapshots)"
+                   % (velocity.get("status"), velocity.get("n_snapshots", 0)))
+
     out = {
         "version": VERSION,
         "generated_at": started.isoformat(),
         "national": national,
+        "large_load_queue": large_load,
+        "queue_velocity": velocity,
+        "impact_map": impact,
         "lbnl_priors": LBNL_PRIORS,
         "iso_queues": iso_all,
         "queue": queue,
