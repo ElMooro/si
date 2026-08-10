@@ -239,6 +239,26 @@ def lambda_handler(event, context):
         print(f"signal counts: insider={len(insider_map)} sm={len(sm_map)} "
               f"short={len(short_map)} opts={len(opts_map)}")
 
+        # ── ops-4559 BUG-4: a feed that reads OK but yields 0 rows IS a missing
+        # feed. feeds_missing must reflect data reality, not HTTP reality, and
+        # the state machine must never emit a confident negative (QUIET) while
+        # blind. Required feeds: insider, smart_money, short_pressure
+        # (options_flow is optional by design).
+        feed_rows = {"insider": len(insider_map), "smart_money": len(sm_map),
+                     "short_covering": len(short_map), "options_flow": len(opts_map)}
+        feed_read_ok = {name: (feeds.get(name) is not None) for name in SOURCES}
+        feeds_missing_v2 = []
+        for name in SOURCES:
+            rows_key = "short_covering" if name == "short_pressure" else name
+            if not feed_read_ok.get(name):
+                feeds_missing_v2.append({"feed": name, "reason": "s3_read_failed_or_absent"})
+            elif feed_rows.get(rows_key, 0) == 0:
+                feeds_missing_v2.append({"feed": name, "reason": "read_ok_but_zero_rows"})
+        REQUIRED_FEEDS = ("insider", "smart_money", "short_pressure")
+        missing_names = {m["feed"] for m in feeds_missing_v2}
+        n_required_live = sum(1 for f in REQUIRED_FEEDS if f not in missing_names)
+        data_sufficient = n_required_live >= len(REQUIRED_FEEDS)
+
         # 3. Union of all tickers + cross-confirmation
         all_tickers = set(insider_map.keys()) | set(sm_map.keys()) | set(short_map.keys()) | set(opts_map.keys())
         convergence = []
@@ -290,6 +310,15 @@ def lambda_handler(event, context):
         else:
             state = "QUIET"
             state_desc = "No cross-confirmed stealth-accumulation setups"
+
+        # ops-4559 BUG-4 hard gate: with any required feed dark, a negative
+        # finding is unknowable. Override any confident-negative state.
+        if not data_sufficient and state in ("QUIET", "NORMAL"):
+            state = "INSUFFICIENT_DATA"
+            dead = [m["feed"] for m in feeds_missing_v2 if m["feed"] in REQUIRED_FEEDS]
+            state_desc = ("Detector blind: required feed(s) %s returned no rows — "
+                          "a QUIET verdict is not possible from this input set"
+                          % ", ".join(dead))
 
         # 5. Telegram alert on entry to STEALTH_RICH / ACTIVE
         try:
@@ -348,7 +377,7 @@ def lambda_handler(event, context):
 
         output = {
             "engine": "stealth-accumulation",
-            "version": "1.0",
+            "version": "1.1",
             "as_of": dt.datetime.utcnow().isoformat() + "Z",
             "state": state,
             "previous_state": prev_state,
@@ -362,8 +391,16 @@ def lambda_handler(event, context):
                 "n_convergence_2plus": len(convergence),
                 "n_convergence_3plus": n_3_signal,
                 "n_convergence_4_all_signals": n_4_signal,
-                "feeds_available": [k for k, v in feeds.items() if v is not None],
-                "feeds_missing": [k for k, v in feeds.items() if v is None],
+                "feeds_available": [k for k in SOURCES if k not in missing_names],
+                "feeds_missing": feeds_missing_v2,
+            },
+            "data_sufficiency": {
+                "sufficient": data_sufficient,
+                "required_feeds": list(REQUIRED_FEEDS),
+                "required_live": n_required_live,
+                "feed_rows": feed_rows,
+                "rule": ("state can only be QUIET/NORMAL when every required feed "
+                         "yields >0 rows; otherwise INSUFFICIENT_DATA (ops-4559 BUG-4)"),
             },
             "current_readings": {
                 "top_convergence_tickers": [c["ticker"] for c in convergence[:10]],
