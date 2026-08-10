@@ -59,6 +59,38 @@ def cik_map():
     return _cik_cache
 
 
+_MF = {}
+
+
+def cik_map_mf():
+    """symbol → CIK for FUNDS (ETFs/mutual funds) from SEC
+    company_tickers_mf.json — the file company_tickers.json barely covers.
+    wo4585: this is why etf-true-flows' N-PORT index showed 0 funds."""
+    if _MF.get("m") is not None:
+        return _MF["m"]
+    out = {}
+    try:
+        j = json.loads(_get("https://www.sec.gov/files/company_tickers_mf.json"))
+        fields = j.get("fields") or []
+        data = j.get("data") or []
+        if fields and data:
+            fi = {f: i for i, f in enumerate(fields)}
+            si, ci = fi.get("symbol"), fi.get("cik")
+            if si is not None and ci is not None:
+                for row in data:
+                    try:
+                        sym = str(row[si]).upper().strip()
+                        cik = int(row[ci])
+                    except Exception:
+                        continue
+                    if sym and sym not in out:
+                        out[sym] = cik
+    except Exception as e:
+        print("[edgar] cik_map_mf failed: %s" % str(e)[:100])
+    _MF["m"] = out
+    return out
+
+
 def frames(concept, unit="USD", periods=None, pause=0.2):
     """{int CIK -> val}, taking the most-recent available period per company
     (periods must be ordered most-recent-first)."""

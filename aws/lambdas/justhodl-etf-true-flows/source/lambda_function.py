@@ -32,7 +32,7 @@ import boto3
 
 from impact_mapper import (build as impact_build, load_graph,
                            measured_row, industry_rollup)
-from edgar import cik_map
+from edgar import cik_map, cik_map_mf
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/etf-true-flows.json"
@@ -487,12 +487,16 @@ def lambda_handler(event=None, context=None):
     # parse is the declared next step; status is honest about that.
     nport = {"status": "PENDING_WIRE", "per_etf": []}
     try:
+        # wo4585: fund CIKs come from the MF map first (company_tickers.json
+        # misses trusts — that is why 4582 indexed 0 funds), operating map
+        # as fallback for the odd structure.
+        cm_mf = cik_map_mf()
         cm2 = cik_map()
         tops = [r["ticker"] for r in results
                 if (r.get("aum_est_b") or 0) > 0][:8]
         wired = []
         for tk2 in tops:
-            cik = cm2.get(tk2)
+            cik = cm_mf.get(tk2) or cm2.get(tk2)
             if not cik:
                 continue
             sub = http_json("https://data.sec.gov/submissions/CIK%010d.json"
