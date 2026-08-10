@@ -445,7 +445,6 @@ def lambda_handler(event, context):
                       Body=json.dumps(doc, default=str).encode(),
                       ContentType="application/json",
                       CacheControl="no-cache")
-        _sc = (ser or {}).get("count") or 0
         n_live = len([k for k in keys if not k.get("missing")])
         # ops 4543 (Perplexity P1): the catalog count is a TARGET, not a
         # holding. datasets = what we actually have; target + coverage
@@ -458,18 +457,20 @@ def lambda_handler(event, context):
         # The walker's state file already stores n_total — the exact
         # number it is walking against. Use THAT as ground truth.
         tgt = None
+        cov_basis = None
         if slug in ("eurostat", "oecd", "statcan", "bis"):
             try:
                 wst = _get_json(
                     f"data/_state/sdmx-walk-{slug}.json")
                 tgt = wst.get("n_total")
+                cov_basis = "keys/keys (walker n_total — same unit)"
             except Exception:
                 tgt = None
-        if tgt is None and slug != "fred":
-            # ops 4568: banked providers hold many series per key —
-            # comparing a series count to container keys fabricates a
-            # coverage %. FRED progress rides catalog_note instead.
-            tgt = _sc if _sc and _sc > n_live else None
+        # ops 4574 (wo-4559 BUG-10, real half): the old fallback compared
+        # banked KEYS to catalog SERIES counts — a fabricated percentage
+        # whenever one key holds many series. A coverage % is only shown
+        # when numerator and denominator share a declared unit; otherwise
+        # datasets and series_count both stay visible, un-ratioed.
         # never hide progress: cap the DISPLAYED pct at 100, note if
         # actual exceeds nominal (a few retried/renamed keys, not a
         # real overshoot).
@@ -510,6 +511,7 @@ def lambda_handler(event, context):
             {"slug": slug, "name": r["name"], "api": r["api"],
              "datasets": ds, "datasets_target": tgt,
              "coverage_pct": cov, "coverage_note": cov_note,
+             "coverage_basis": (cov_basis if cov is not None else None),
              "denied_source_side": denied,
              "unit": "keys",
              "n_keys": doc["n_keys"], "total_mb": doc["total_mb"],
