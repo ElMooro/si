@@ -1,15 +1,20 @@
-executing-against: 7cc3f6794b1a2e9be7d4e31487ffdcb800159257
-ops 4587 — N-PORT evidence gate
-[22:15:42] refreshed (10s)
-[22:15:42] status=WIRED_INDEX per_etf=8
-[22:15:42] ✅ N-PORT WIRED_INDEX — 8 funds; wo4585 fully closed
-[22:15:42]   GOVT cik=1100663 latest 2026-07-27
-[22:15:42]   EWY cik=930667 latest 2026-07-27
-[22:15:42]   SGOV cik=1100663 latest 2026-07-27
-[22:15:42]   IVV cik=1100663 latest 2026-07-27
-[22:15:42]   EWT cik=930667 latest 2026-07-27
-[22:15:42]   EWZ cik=930667 latest 2026-07-27
-[22:15:42]   EFA cik=1100663 latest 2026-07-27
-[22:15:42]   HYG cik=1100663 latest 2026-07-27
+executing-against: ae19d7188e7827de3b92b95adf04d07d0777dd30
+ops 4588 — already-built audit convergence
+[22:23:22]   fired impact-graph
+[22:23:38]   graph refreshed (15s)
+── 1. Coverage above the census ceiling ──
+[22:23:38] ✅   [graph] industry coverage 797 (was 502; reused=0 filled_tonight=295 still_missing_top_adv=11197)
+[22:23:38] ✅   [graph] audit trail on the payload
+── 2. Convergence consumes the prior-art engine ──
+[22:23:38] ✗   [convergence] CONTRACT MISS — relationship note names the authority
+[22:23:38] ✗   [convergence] CONTRACT MISS — flow_confluence votes present (source engine has 40 multi-engine names; voted=False)
+[22:23:38]     Banks - Regional ACCUMULATION score=5.0 sources=['flow_lookthrough', 'dark_pool']
+[22:23:38]     Banks - Diversified ACCUMULATION score=4.0 sources=['flow_lookthrough', 'dark_pool']
+[22:23:38]     Travel Services ACCUMULATION score=2.0 sources=['flow_lookthrough', 'dark_pool']
+[22:23:38]     Asset Management ACCUMULATION score=2.0 sources=['flow_lookthrough', 'dark_pool']
+[22:23:38]     Integrated Freight & Logistics DISTRIBUTION score=0.0 sources=['flow_lookthrough', 'dark_pool']
+── verdict ──
+[22:23:38] ✗ audit convergence: 2 red
 
-→ Report written to aws/ops/reports/latest/4587_nport_evidence.md
+→ Report written to aws/ops/reports/latest/4588_audit_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_4588_audit_verify.py
