@@ -1,22 +1,9 @@
-executing-against: 2d6752b328867223e105d0cffa154ed4bfcf46cc
-ops 4588 — duplication-audit reconciliation
-── 1. Settle + fire + poll ──
-[22:40:41]   fired justhodl-share-flows
-[22:40:42]   fired justhodl-impact-graph
-[22:40:54]   justhodl-share-flows refreshed (12s)
-[22:41:07]   justhodl-impact-graph refreshed (24s)
-── 2. share-flows v2.1 — canonical sources ──
-[22:41:07] ✅   [share-flows] v2.1.0 live
-[22:41:07] ✅   [share-flows] blackout CARRIED from canonical (state=WINDOW_OPEN, now=19.1%)
-[22:41:07] ✅   [share-flows] local weekly re-derivation retired
-[22:41:07] ✅   [share-flows] v2 tail clean
-[22:41:07] ✅   [share-flows] announcement source named: 67 announced programs joined (edgar_fts FALLBACK (scanner feed empty/absent)), 5 ATM shelves (edgar_fts FALLBACK (sec-filings-intel absent/no ATM))
-[22:41:07]   boards: bluff=4 backed=11 atm=5
-── 3. impact-graph v1.1 — flow board as industry lens ──
-[22:41:07] ✅   [impact-graph] v1.1 live
-[22:41:07] ✅   [impact-graph] flow board names its source: justhodl-flow-confluence (canonical per-name fusion)
-[22:41:07]   flow rows=0; trade_impulse=MIXED
-── verdict ──
-[22:41:07] ✅ duplication audit reconciled — one computation per concept; novel work (bluff read, venue fingerprint, seasonal port baseline, wrapper netting, bps-of-ADV, distribution mirror, impact contract) stands
+executing-against: fba4ff1ea3c60a47f83765ba605a62a2283c5080
+ops 4590 — unified flow reader diag
+[22:46:56] convergence refreshed (20s)
+[22:46:56] ✅ diag: field=ticker_map records=400 industry_mapped=274 votes=274
+[22:46:56] source: justhodl-flow-confluence via ticker_map (400 records, 274 industry-mapped, 274 votes)
+[22:46:56] rows=0 — >=2-underlying-engine gate starving; diag above says whether coverage or evidence
+[22:46:56] ✅ wo4585 closed — unified reader live, evidence self-explaining
 
-→ Report written to aws/ops/reports/latest/4588_dedup_verify.md
+→ Report written to aws/ops/reports/latest/4590_flow_diag.md
