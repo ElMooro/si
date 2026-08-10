@@ -26,6 +26,8 @@ from Polygon grouped-daily — ONE call per day covers the whole market. Self-bo
 ~200 trading days on first runs (time-budgeted, idempotent upsert) and self-heals date order.
 """
 import os, json, time, math, boto3
+
+from signals_emit import log_signal
 import urllib.request
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
@@ -35,7 +37,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/accumulation-radar.json"
 BUF_KEY = "data/_cycle/pv.json"
 POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.4.2"
+VERSION = "1.5.0"
 MAXDAYS = 235          # buffer depth (v1.4: +35 so the 50/200 cross scan has a 15-session window)
 MIN_PTS = 60           # minimum history to score a name
 N_STOCKS = 420         # liquid US stocks in the universe (+ ETFs below)
@@ -856,33 +858,88 @@ def lambda_handler(event=None, context=None):
                 "Granville: On-Balance Volume leads price"]},
     }
 
-    # ── closed loop: log LIKELY_BOTTOM (UP) + LIKELY_TOP (DOWN), graded vs benchmark ──
+    # ── closed loop, wo4580 FIX: the prior emitter wrote measure_against
+    # "ticker_vs_benchmark" (a literal the checker tries to PRICE) with no
+    # check_timestamps — every cycle signal since inception was UNSCOREABLE.
+    # Route through signals_emit (the harvester contract); grading clock
+    # starts now, and standalone_accuracy below says so honestly.
     try:
-        nowt = datetime.now(timezone.utc)
         tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
         logged = 0
         cand = ([(r, "UP", "bottom_score") for cl in ("stocks", "etfs", "countries") for r in out["bottoms"][cl][:4]]
                 + [(r, "DOWN", "top_score") for cl in ("stocks", "etfs", "countries") for r in out["tops"][cl][:4]])
         for r, direction, sk in cand:
-            bench = "ACWX" if r["class"] == "country" else "SPY"
-            tbl.put_item(Item={
-                "signal_id": f"cycle-{direction}#{r['ticker']}#{nowt.date().isoformat()}",
-                "signal_type": "cycle_top" if direction == "DOWN" else "cycle_bottom",
-                "predicted_direction": direction, "signal_value": str(r[sk]),
-                "confidence": Decimal("0.55"), "measure_against": "ticker_vs_benchmark",
-                "baseline_price": str(r["price"]), "benchmark": bench,
-                "check_windows": ["day_5", "day_21", "day_63"], "outcomes": {}, "accuracy_scores": {},
-                "status": "pending", "logged_at": nowt.isoformat(), "logged_epoch": int(nowt.timestamp()),
-                "horizon_days_primary": 21, "schema_version": "2",
-                "ttl": int(nowt.timestamp()) + 120 * 86400,
-                "metadata": {"engine": "accumulation-radar", "v": VERSION, "class": r["class"],
-                             "phase": r["phase"], "flag": r["flag"]},
-                "rationale": f"{r['flag']} {r['ticker']} ({r['class']}) phase {r['phase']} "
-                             f"top {r['top_score']} / bottom {r['bottom_score']}"})
-            logged += 1
+            try:
+                bp = float(r.get("price") or 0)
+            except Exception:
+                bp = 0.0
+            if log_signal(tbl,
+                          "cycle_top" if direction == "DOWN" else "cycle_bottom",
+                          r["ticker"], direction, [5, 21, 63], bp,
+                          confidence=0.55,
+                          rationale=f"{r['flag']} {r['ticker']} ({r['class']}) "
+                                    f"phase {r['phase']} top {r['top_score']} "
+                                    f"/ bottom {r['bottom_score']}",
+                          metadata={"engine": "accumulation-radar", "v": VERSION,
+                                    "class": r["class"], "phase": r["phase"],
+                                    "flag": r["flag"]},
+                          signal_value=str(r[sk])):
+                logged += 1
         out["signals_logged"] = logged
     except Exception as e:
         print(f"[loop] {str(e)[:80]}")
+
+    # ── wo4580: standalone accuracy from the graded ledger. Bounded scan;
+    # publishes n/hit/wilson per type×window, or the honest reason there is
+    # nothing to publish yet.
+    def _wilson(h, n, z=1.96):
+        if n <= 0:
+            return 0.0
+        pp = h / n
+        den = 1 + z * z / n
+        c = pp + z * z / (2 * n)
+        m2 = z * ((pp * (1 - pp) + z * z / (4 * n)) / n) ** 0.5
+        return max(0.0, (c - m2) / den)
+
+    acc = {"status": "NO_GRADED_OUTCOMES_YET", "by_type": {},
+           "note": ("pre-v1.5 emissions were unscoreable (measure_against "
+                    "literal + no check_timestamps) — the emitter is fixed "
+                    "above and the grading clock starts from today's "
+                    "signals; false-positive rate publishes as n accrues")}
+    try:
+        otb = boto3.resource("dynamodb", "us-east-1").Table("justhodl-outcomes")
+        items, lek, pages = [], None, 0
+        while pages < 8:
+            kw = {"FilterExpression": "signal_type IN (:a, :b)",
+                  "ExpressionAttributeValues": {":a": "cycle_top",
+                                                ":b": "cycle_bottom"}}
+            if lek:
+                kw["ExclusiveStartKey"] = lek
+            resp = otb.scan(**kw)
+            items += resp.get("Items", [])
+            lek = resp.get("LastEvaluatedKey")
+            pages += 1
+            if not lek:
+                break
+        agg = {}
+        for it in items:
+            if it.get("correct") is None:
+                continue
+            k2 = (str(it.get("signal_type")), str(it.get("window_key")))
+            d2 = agg.setdefault(k2, [0, 0])
+            d2[1] += 1
+            if it.get("correct"):
+                d2[0] += 1
+        for (st2, wk2), (h2, n2) in sorted(agg.items()):
+            acc["by_type"].setdefault(st2, {})[wk2] = {
+                "n": n2, "hit_rate": round(h2 / n2, 3),
+                "wilson_lb95": round(_wilson(h2, n2), 3)}
+        if agg:
+            acc["status"] = "LIVE"
+            acc.pop("note", None)
+    except Exception as e:
+        acc["scan_error"] = str(e)[:90]
+    out["standalone_accuracy"] = acc
 
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
