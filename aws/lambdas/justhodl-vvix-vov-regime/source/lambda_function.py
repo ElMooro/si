@@ -196,7 +196,10 @@ def classify(metrics):
     term_shape = metrics.get("vix_term_shape")  # vix - vix3m; >0 backwardated
 
     if vvix_z is None or ratio is None:
-        return "QUIET", 0.0, "Insufficient data"
+        # wo4592 BUG-4 gate: this branch always KNEW it was blind — it
+        # just labeled the blindness "QUIET". The state now says the truth.
+        return "INSUFFICIENT_DATA", 0.0, ("blind this run — vvix/vix "
+                                          "series unavailable")
 
     # VEGA_RICH (sell vol): VVIX elevated AND ratio extreme AND term backwardated
     if vvix_z >= 1.5 and ratio >= 7.5 and (term_shape is not None and term_shape > 0):
@@ -305,6 +308,10 @@ def lambda_handler(event, context):
             "version": VERSION,
             "as_of": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "state": state,
+            "data_sufficiency": {
+                "rule": "QUIET requires live vvix/vix series; the "
+                        "series-unavailable branch now states "
+                        "INSUFFICIENT_DATA instead of impersonating calm"},
             "signal_strength": round(strength, 2),
             "current_metrics": metrics,
             "regime_explanation": why,
