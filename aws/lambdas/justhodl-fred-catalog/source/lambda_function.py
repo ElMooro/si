@@ -198,7 +198,13 @@ def _expand_roots():
     """ops 4560 (Perplexity): fred/category/series returns only DIRECT
     children — FRED's site counts are recursive. The finished tree walk
     already sits in data/_state/fred-categories.json (4,169 nodes with
-    parent_id). Expand the 7 roots through it. No re-crawl."""
+    parent_id). Expand the roots through it. No re-crawl.
+
+    ops 4576 (Khalid: most popular first, then the rest): the SSM knob
+    /justhodl/fred/expand-all=1 widens scope from the 7 priority roots
+    to EVERY top-level category — same popularity-desc drain, same
+    freshness filter, same AIMD pacing and single-flight lease. Returns
+    (mapping, scope_label)."""
     tree = json.loads(s3.get_object(
         Bucket=BUCKET,
         Key="data/_state/fred-categories.json")["Body"].read())
@@ -208,8 +214,17 @@ def _expand_roots():
         pid = meta.get("parent_id")
         if pid is not None:
             children.setdefault(int(pid), []).append(int(cid_s))
+    full = _knob("/justhodl/fred/expand-all", "0") == "1"
+    if full:
+        roots = {cid: ((cats.get(str(cid), {}) or {}).get("name")
+                       or str(cid))
+                 for cid in children.get(0, [])}
+        scope = "full_catalog"
+    else:
+        roots = PRIORITY_ROOTS
+        scope = "scoped_7_roots"
     out = {}  # cid -> (root_name, cat_name)
-    for root, rname in PRIORITY_ROOTS.items():
+    for root, rname in roots.items():
         stack = [root]
         while stack:
             cid = stack.pop()
@@ -217,7 +232,7 @@ def _expand_roots():
                 if cid != root else rname
             out[cid] = (rname, cname or rname)
             stack.extend(children.get(cid, []))
-    return out
+    return out, scope
 
 
 def _is_fresh(series_meta, now):
@@ -358,7 +373,8 @@ def _run_scoped_import(t0, now):
     # vaporized all counters. Now ANY crash releases the lease, records
     # itself into st["errors"], and persists state before re-raising.
     try:
-        expanded = _expand_roots()
+        expanded, import_scope = _expand_roots()
+        st["import_scope"] = import_scope
         st["n_categories_expanded"] = len(expanded)
         cutoff = (now - __import__("datetime").timedelta(
             days=FRESH_DAYS)).strftime("%Y-%m-%d")
@@ -452,9 +468,14 @@ def _run_scoped_import(t0, now):
                     pass
                 _last_ckpt[0] = time.time()
         discovery_complete = len(st["cats_done"]) >= len(expanded)
-        if discovery_complete and not q.get("sorted"):
-            q["rows"].sort(key=lambda r2: -r2[1])
+        if discovery_complete and q.get("sorted_scope") != import_scope:
+            _c0 = int(q.get("cursor") or 0)
+            _rows = q.get("rows") or []
+            _tail = _rows[_c0:]
+            _tail.sort(key=lambda r2: -r2[1])
+            q["rows"] = _rows[:_c0] + _tail
             q["sorted"] = True
+            q["sorted_scope"] = import_scope
             q["built_at"] = now.isoformat(timespec="seconds")
         q["seen_ids"] = sorted(seen_ids)
 
@@ -572,7 +593,7 @@ def _run_scoped_import(t0, now):
             buf = []
         st["buffer"] = buf
         st["updated_at"] = now.isoformat(timespec="seconds")
-        st["engine_version"] = "2.1"
+        st["engine_version"] = "2.2"
         st["phase2"] = ("drain" if discovery_complete else "discovery")
         st["queue_total"] = len(rows)
         st["queue_cursor"] = cur
@@ -626,8 +647,9 @@ def _run_scoped_import(t0, now):
                                       "days; older = excluded, never "
                                       "silently imported",
                     "priority_rule": "drain order = FRED popularity desc"
-                                     " (priority drain v2.1, ops 4575)",
-                    "engine_version": "2.1",
+                                     " (priority drain v2.2, ops 4576)",
+                    "engine_version": "2.2",
+                    "import_scope": st.get("import_scope"),
                     "status": st["status"]}
         s3.put_object(Bucket=BUCKET,
                       Key="data/providers/fred-scoped/manifest.json",
