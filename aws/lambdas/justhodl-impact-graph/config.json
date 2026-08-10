@@ -1,7 +1,7 @@
 {
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "timeout": 600,
+  "timeout": 780,
   "memory": 1536,
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Impact layer source of truth (wo4580): exposure graph (ticker->industry/mcap/ADV), append-only factor history, OLS betas vs sector ETFs when n>=8, trade-impulse + flow-convergence boards.",

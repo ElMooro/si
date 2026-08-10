@@ -194,6 +194,49 @@ def build_graph(gaps):
     else:
         gaps.append("no massive key — adv_usd absent this run")
 
+    # wo4585 rev-H: incremental industry reuse + bounded FMP backfill
+    prev_g = _get_json(GRAPH_KEY) or {}
+    reused = 0
+    for tk, d0 in (prev_g.get("tickers") or {}).items():
+        cur = tickers.get(tk)
+        if cur is not None and not cur.get("industry") and d0.get("industry"):
+            cur["industry"] = d0["industry"]
+            if d0.get("sector") and not cur.get("sector"):
+                cur["sector"] = d0["sector"]
+            reused += 1
+    missing = [t for t, d1 in tickers.items()
+               if d1.get("adv_usd") and not d1.get("industry")]
+    missing.sort(key=lambda t: -(tickers[t].get("adv_usd") or 0))
+    fmp_key = os.environ.get("FMP_KEY") or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+    filled = 0
+    bf_t0 = time.time()
+    for t in missing[:300]:
+        if time.time() - bf_t0 > 240:   # hard time box — coverage accrues
+            break                        # nightly, never blocks the graph
+        j2 = http_json("https://financialmodelingprep.com/stable/profile"
+                       "?symbol=%s&apikey=%s" % (t, fmp_key), timeout=6)
+        row = j2[0] if isinstance(j2, list) and j2 else             (j2 if isinstance(j2, dict) else None)
+        if not row:
+            continue
+        if row.get("industry"):
+            tickers[t]["industry"] = row["industry"]
+            filled += 1
+        if row.get("sector") and not tickers[t].get("sector"):
+            tickers[t]["sector"] = row["sector"]
+        mc2 = row.get("mktCap") or row.get("marketCap")
+        if mc2 and not tickers[t].get("mcap"):
+            tickers[t]["mcap"] = mc2
+    backfill = {"reused_from_prior_graph": reused,
+                "fmp_filled_tonight": filled,
+                "top_adv_still_missing": max(0, len(missing) - filled),
+                "budget": "300 names / 240s per night — accrues, never blocks",
+                "prior_art_note": ("wo4585 audit: no bulk map pre-existed; "
+                                   "census matrix (S&P) + screener sector "
+                                   "were the ceiling. equity_enrich is the "
+                                   "per-ticker on-demand path; this is the "
+                                   "bulk nightly complement, same FMP "
+                                   "pattern.")}
+
     for d in tickers.values():
         for f in cov:
             if d.get(f):
@@ -213,6 +256,7 @@ def build_graph(gaps):
     return {"generated_at": datetime.now(timezone.utc).isoformat(),
             "version": "1.0", "n_tickers": len(tickers),
             "field_coverage": cov, "adv_sessions_used": adv_days,
+            "industry_backfill": backfill,
             "tickers": tickers,
             "industries": {k2: {"n": v["n"], "mcap": round(v["mcap"]),
                                 "sector": v.get("sector")}
