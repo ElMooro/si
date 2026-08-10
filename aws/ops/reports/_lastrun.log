@@ -1,27 +1,40 @@
-executing-against: 2b67537069fc64c9dbfa279f782277402aabb83a
-ops 4591 — ledger close-out (revs J/K/L)
-── 1. Settle + fire + poll (last-written keys) ──
-[23:07:49]   fired justhodl-impact-graph
-[23:07:50]   fired justhodl-share-flows
-[23:07:51]   fired justhodl-grid-queue
-[23:08:03]   justhodl-share-flows refreshed (12s)
-[23:08:16]   justhodl-impact-graph refreshed (25s)
-[23:08:16]   justhodl-grid-queue refreshed (25s)
-── 2. impact-graph — engines lists flowing ──
-[23:08:16] ✅   [impact-graph] per-engine votes real: field=multi_engine_confluence+ticker_map records=400 mapped=283 votes=364
-[23:08:16]   rows=15 source=justhodl-flow-confluence via multi_engine_confluence+ticker_map (400 records, 283 industry-mapped, 364 votes)
-[23:08:16]     Semiconductors ACCUMULATION score=19.0 sources=['13f', 'etf-lookthrough', 'flow_confluence', 'short-interest', 'smart-money']
-[23:08:16]     Aerospace & Defense ACCUMULATION score=13.0 sources=['buyback', 'capital-flow', 'dark-pool', 'flow_confluence', 'smart-money']
-[23:08:16]     Financial - Credit Services ACCUMULATION score=11.0 sources=['13f', 'buyback', 'etf-lookthrough', 'flow_confluence', 'smart-money']
-[23:08:16]     Regulated Electric ACCUMULATION score=11.0 sources=['capital-flow', 'flow_confluence', 'smart-money', 'stealth']
-[23:08:16]     Medical - Diagnostics & Research ACCUMULATION score=10.0 sources=['buyback', 'capital-flow', 'dark-pool', 'flow_confluence', 'short-interest', 'smart-money']
-[23:08:16]     Biotechnology ACCUMULATION score=10.0 sources=['buyback', 'flow_confluence', 'short-interest', 'smart-money']
-── 3. share-flows — canonical joins ──
-[23:08:16] ✅   [share-flows] v2.1.1 live
-[23:08:16] ✅   [share-flows] canonical joins live: 14 announced programs joined (justhodl-buyback-scanner (parsed 8-K authorizations, 2026-08-10T12:00:21.252484Z as_of)), 5 ATM shelves (edgar_fts FALLB
-── 4. grid-queue — ISO-NE after the href mine ──
-[23:08:16] ✅   [grid-queue] gap carries the mining signature: ISO-NE IRTT queue unavailable — external?download=csv → 200 html, 2 export-ish hrefs, none yielded CSV; external?download=csv → 200 but html_body; external.csv → 200 html, 0 export-ish hrefs, none yielded CSV; external.csv → 200 but html_body; reports?download
+executing-against: a1416cd558edee2c90f1e0778c19b970fa473d8c
+ops 4592 — BUG-4 fleet gates (9 engines)
+── 1. Settle + fire + poll ──
+[23:23:27]   fired 9 engines
+[23:23:39]   13f-price-divergence refreshed (12s)
+[23:23:39]   earnings-iv-crush refreshed (12s)
+[23:23:39]   forced-selling-bounce refreshed (12s)
+[23:23:39]   lockup-expiration refreshed (12s)
+[23:23:39]   post-earnings-mean-rev refreshed (12s)
+[23:23:39]   vvix-vov-regime refreshed (12s)
+[23:24:29]   ma-target-predictor refreshed (62s)
+[23:36:32] ⚠   justhodl-catalyst-skew-premove did not refresh in 780s
+[23:36:32] ⚠   justhodl-failed-pattern-reversal did not refresh in 780s
+── 2. Gate contracts ──
+[23:36:32] ✅   [13f-price-divergence] data_sufficiency published
+[23:36:32] ✅   [13f-price-divergence] state=INSUFFICIENT_DATA (blind_by_numbers=True, ds={'feeder_loaded': True, 'n_feeder_tickers': 0})
+[23:36:32] ✗   [catalyst-skew-premove] CONTRACT MISS — data_sufficiency published
+[23:36:32] ✅   [catalyst-skew-premove] state=QUIET (blind_by_numbers=None, ds={})
+[23:36:32] ✅   [earnings-iv-crush] data_sufficiency published
+[23:36:32] ✅   [earnings-iv-crush] state=QUIET (blind_by_numbers=False, ds={'http_ok': 140, 'http_err': 0})
+[23:36:32] ✗   [failed-pattern-reversal] CONTRACT MISS — data_sufficiency published
+[23:36:32] ✅   [failed-pattern-reversal] state=QUIET (blind_by_numbers=None, ds={})
+[23:36:32] ✅   [forced-selling-bounce] data_sufficiency published
+[23:36:32] ✅   [forced-selling-bounce] state=QUIET (blind_by_numbers=False, ds={'feeds_ok': 10, 'feeds_miss': 2})
+[23:36:32] ✅   [lockup-expiration] data_sufficiency published
+[23:36:32] ✅   [lockup-expiration] state=QUIET (blind_by_numbers=False, ds={'http_ok': 1, 'http_err': 0})
+[23:36:32] ✅   [ma-target-predictor] data_sufficiency published
+[23:36:32] ✅   [ma-target-predictor] state=QUIET (blind_by_numbers=False, ds={'http_ok': 250, 'http_err': 0, 'n_results': 50})
+[23:36:32] ✅   [post-earnings-mean-rev] data_sufficiency published
+[23:36:32] ✅   [post-earnings-mean-rev] state=QUIET (blind_by_numbers=False, ds={'http_ok': 120, 'http_err': 0})
+[23:36:32] ✅   [vvix-vov-regime] data_sufficiency published
+[23:36:32] ✅   [vvix-vov-regime] state=NEUTRAL (blind_by_numbers=None, ds={})
+── 3. Ledger evidence prints ──
+[23:36:32]   share-flows ATM warn: sec-filings-intel join fallback — feed_present=True n_tickers=0
+[23:36:32]   FRED import-health: status=['actions_this_sweep', 'duration_s', 'engine', 'generated_at', 'incidents', 'overall'] as_of=2026-08-10T23:35:04+00:00
 ── verdict ──
-[23:08:16] ✅ ledger CLOSED — engines lists flowing, canonical joins evidence-backed, ISO-NE resolved or precisely named
+[23:36:32] ✗ BUG-4 fleet gates: 4 red
 
-→ Report written to aws/ops/reports/latest/4591_ledger_close.md
+→ Report written to aws/ops/reports/latest/4592_bug4_fleet.md
+❌ OPS-FAIL: aws/ops/pending/ops_4592_bug4_fleet.py
