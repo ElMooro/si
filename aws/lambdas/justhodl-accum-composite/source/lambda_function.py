@@ -253,6 +253,16 @@ def extract_congress(j):
                 continue
             v = (r.get("amount_mid") or r.get("value_mid") or r.get("amount")
                  or r.get("value") or 0)
+            # rev-5 (4583 recon): the senate feed publishes amount as a
+            # RANGE STRING ("$1,001 - $15,000") — float() zeroed every row
+            # and the leg silently read empty. Parse the midpoint.
+            if isinstance(v, str):
+                try:
+                    parts = [float(x.replace("$", "").replace(",", "").strip())
+                             for x in v.split("-") if x.strip()]
+                    v = sum(parts) / len(parts) if parts else 0.0
+                except Exception:
+                    v = 0.0
             try:
                 v = float(v)
             except Exception:
