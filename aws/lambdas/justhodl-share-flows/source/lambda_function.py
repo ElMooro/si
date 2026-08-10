@@ -434,7 +434,11 @@ def lambda_handler(event=None, context=None):
     # threaded fresh fetch -- the sequential 3-call crawl only
     # reached ~65 names inside the time guard (3095 lesson #2)
     fresh = {}
-    deadline = t0 + 760
+    # rev 4582: v2 tail (2x EDGAR FTS + earnings calendar + impact
+    # compute, worst-case ~85s) pushed 760+tail past the 840s timeout —
+    # the run died BEFORE the S3 put and the fleet kept serving v1.4.
+    # 700s fetch budget + 900s timeout leaves honest headroom.
+    deadline = t0 + 700
     with ThreadPoolExecutor(max_workers=10) as exe:
         futs = {exe.submit(fetch_name, t): t
                 for t in need[:MAX_FRESH_FETCH]}
