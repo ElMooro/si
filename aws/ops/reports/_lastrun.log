@@ -1,27 +1,16 @@
-executing-against: d1058c7f05c0c66f1b61b5d575b8906ad8ec1410
-ops 4585 — wo4585 punch-list verification
-── 1. Settle + fire ──
-[22:01:32]   fired justhodl-activist-13d
-[22:01:32]   fired justhodl-grid-queue
-[22:01:32]   fired justhodl-etf-true-flows
-[22:01:33]   fired justhodl-congress-direct
-[22:01:45]   justhodl-activist-13d refreshed (12s)
-[22:01:45]   justhodl-etf-true-flows refreshed (12s)
-[22:01:58]   justhodl-grid-queue refreshed (24s)
-[22:01:58]   justhodl-congress-direct refreshed (24s)
-── 2. activist-13d — BUG-4 gate ──
-[22:01:58] ✅   [activist] data_sufficiency published (ok=14 fail=2)
-[22:01:58] ✅   [activist] state honest: QUIET (blind=False, 0 setups)
-── 3. grid-queue — ISO-NE chain evidence ──
-[22:01:58] ✅   [grid-queue] gap carries the redirect chain: ISO-NE IRTT queue unavailable — external?download=csv → 302→/reports/external?download=csv&AspxAutoDetectCookieSupport=1  | 302→/reports/external?download=csv&AspxAutoDetectCookieSupport=1  | 302→/reports/external?downlo
-[22:01:58]   full ISO-NE gap: ISO-NE IRTT queue unavailable — external?download=csv → 302→/reports/external?download=csv&AspxAutoDetectCookieSupport=1  | 302→/reports/external?download=csv&AspxAutoDetectCookieSupport=1  | 302→/reports/external?download=csv&AspxAutoDetectCookieSupport=1  | 302→/reports/external?download=csv&AspxAutoDetectCookieSupport=1 ; external.csv → 302→/reports/external.csv?AspxAutoDetectCookieSupport=1  |
-── 4. etf-true-flows — N-PORT fund index ──
-[22:01:58] ✗   [etf-true-flows] CONTRACT MISS — N-PORT PENDING_WIRE — 0 funds indexed via MF map
-── 5. congress-direct — house error on the record ──
-[22:01:58]   house n_ptr_filings=200 error='None'
-[22:01:58]   senate n_transactions=263 (the ticker-bearing side)
+executing-against: e813c01a20d3654275b1fe331ec702b530416b79
+ops 4586 — wo4585 final clearance
+── 1. Settle + fire + poll ──
+[22:07:55]   fired justhodl-grid-queue
+[22:07:55]   fired justhodl-etf-true-flows
+[22:08:07]   justhodl-grid-queue refreshed (12s)
+[22:08:07]   justhodl-etf-true-flows refreshed (12s)
+── 2. ISO-NE after the cookie heal ──
+[22:08:07] ✅   [grid-queue] edge still refusing a cookie-carrying client — named honestly: ISO-NE IRTT queue unavailable — external?download=csv → 200 but html_body; external.csv → 200 but html_body; reports?download=csv → 200 but html_body
+── 3. N-PORT after the json.loads fix ──
+[22:08:07] ✗   [etf-true-flows] CONTRACT MISS — N-PORT PENDING_WIRE — 0 funds indexed
 ── verdict ──
-[22:01:58] ✗ punch list: 1 red
+[22:08:07] ✗ wo4585: 1 still red
 
-→ Report written to aws/ops/reports/latest/4585_punchlist.md
-❌ OPS-FAIL: aws/ops/pending/ops_4585_punchlist.py
+→ Report written to aws/ops/reports/latest/4586_wo4585_final.md
+❌ OPS-FAIL: aws/ops/pending/ops_4586_wo4585_final.py
