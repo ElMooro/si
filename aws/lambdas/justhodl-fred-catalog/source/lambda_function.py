@@ -50,6 +50,11 @@ BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 #     /justhodl/fred/min-popularity=N cuts the tail at popularity < N.
 _ssm = boto3.client("ssm", region_name="us-east-1")
 _lambda = boto3.client("lambda", region_name="us-east-1")
+# ops 4578: the v2 rewrite lost this line — 21 call sites, zero
+# definitions. Every v2 run NameError'd on its first S3 touch, the
+# over-broad excepts converted that into "lost_lease_race", and the
+# handler's strict print turned THAT into a Lambda-error retry storm.
+s3 = boto3.client("s3", region_name="us-east-1")
 
 
 def _fred_key():
@@ -366,8 +371,14 @@ def _run_scoped_import(t0, now):
         if _etag:
             _kw["IfMatch"] = _etag
         s3.put_object(**_kw)
-    except Exception:
-        return {"skipped": "lost_lease_race"}
+    except Exception as _le:
+        # ops 4578: only a real IfMatch 412 is a lease race. The old
+        # bare except turned a NameError into "lost_lease_race" and
+        # hid a fleet-stopping bug for an entire arc.
+        if ("PreconditionFailed" in str(_le) or "412" in str(_le)
+                or "ConditionalRequestConflict" in str(_le)):
+            return {"skipped": "lost_lease_race"}
+        raise
     # ── ops 4575 (v2 crash, F4): everything past lease acquisition used
     # to be unprotected — one exception wedged the lease ~14.5 min and
     # vaporized all counters. Now ANY crash releases the lease, records
@@ -593,7 +604,7 @@ def _run_scoped_import(t0, now):
             buf = []
         st["buffer"] = buf
         st["updated_at"] = now.isoformat(timespec="seconds")
-        st["engine_version"] = "2.2"
+        st["engine_version"] = "2.2.1"
         st["phase2"] = ("drain" if discovery_complete else "discovery")
         st["queue_total"] = len(rows)
         st["queue_cursor"] = cur
@@ -648,7 +659,7 @@ def _run_scoped_import(t0, now):
                                       "silently imported",
                     "priority_rule": "drain order = FRED popularity desc"
                                      " (priority drain v2.2, ops 4576)",
-                    "engine_version": "2.2",
+                    "engine_version": "2.2.1",
                     "import_scope": st.get("import_scope"),
                     "status": st["status"]}
         s3.put_object(Bucket=BUCKET,
@@ -704,10 +715,15 @@ def lambda_handler(event, context):
     phase = (event or {}).get("phase", "scoped_import")
     if phase == "scoped_import":
         m = _run_scoped_import(t0, datetime.now(timezone.utc))
-        print(json.dumps({k: m[k] for k in
-                          ("categories_done", "series_seen",
-                           "series_excluded_stale",
-                           "series_imported", "status")}))
+        try:  # ops 4578: .get — skip-path dicts are keyless, and a
+            # print can NEVER be allowed to error a Lambda into the
+            # async retry storm again
+            print(json.dumps({k: m.get(k) for k in
+                              ("skipped", "categories_done",
+                               "series_seen", "series_excluded_stale",
+                               "series_imported", "status")}))
+        except Exception:
+            pass
         return {"statusCode": 200, "body": json.dumps(m, default=str)}
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
