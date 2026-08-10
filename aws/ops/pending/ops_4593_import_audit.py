@@ -51,20 +51,29 @@ def main():
         misses += contract(r, "health", "_error" not in ih,
                            "import-health readable (%s)"
                            % ih.get("_error", "ok"))
-        pipes = ih.get("pipelines") or {}
+        raw = ih.get("pipelines") or {}
+        # shape-agnostic: sentinel publishes a LIST of pipeline dicts
+        if isinstance(raw, dict):
+            pipe_items = [dict(v or {}, name=k) for k, v in raw.items()]
+        else:
+            pipe_items = [dict(p or {}) for p in raw if isinstance(p, dict)]
         overall = ih.get("status") or ih.get("overall")
         r.log("  overall=%s  sweep=%s" % (overall, ih.get("generated_at")))
         worst_src = []
-        for name, p in sorted(pipes.items()):
-            st = (p or {}).get("status") or (p or {}).get("state")
-            r.log("    %-18s %s — %s" % (name, st,
-                                         str((p or {}).get("note")
-                                             or (p or {}).get("detail")
-                                             or "")[:110]))
-            if st == "ACTION_REQUIRED":
+        fred_p = {}
+        for p in sorted(pipe_items,
+                        key=lambda x: str(x.get("name")
+                                          or x.get("pipeline") or "")):
+            name = p.get("name") or p.get("pipeline") or "?"
+            st2 = p.get("status") or p.get("state")
+            r.log("    %-18s %s — %s"
+                  % (name, st2, str(p.get("note") or p.get("detail")
+                                    or p.get("why") or "")[:110]))
+            if st2 == "ACTION_REQUIRED":
                 worst_src.append(name)
+            if str(name).lower() == "fred":
+                fred_p = p
         r.log("  ACTION_REQUIRED source(s): %s" % (worst_src or "none"))
-        fred_p = pipes.get("fred") or {}
         misses += contract(r, "health",
                            (fred_p.get("status") or "") != "ACTION_REQUIRED",
                            "FRED pipeline itself is %s (badge driven by: %s)"
