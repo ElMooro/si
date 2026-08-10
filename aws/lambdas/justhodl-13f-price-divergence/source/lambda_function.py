@@ -310,6 +310,19 @@ def lambda_handler(event, context):
             state, strength = "NORMAL", 0.35
         else:
             state, strength = "QUIET", 0.1
+        # wo4592 BUG-4 gate: QUIET claims "no divergences" — unknowable
+        # when every feeder errored or the universe never loaded. Blind
+        # detectors say blind, not calm.
+        _blind = ((isinstance(feeder, dict) and "_error" in feeder)
+                  or not (len(positions)))
+        data_sufficiency = {
+            "feeder_loaded": not (isinstance(feeder, dict)
+                                  and "_error" in feeder),
+            "n_feeder_tickers": (len(positions)) or 0,
+            "rule": "QUIET only claimable when the 13F feeder loaded and "
+                    "carried tickers; otherwise INSUFFICIENT_DATA"}
+        if state == "QUIET" and _blind:
+            state, strength = "INSUFFICIENT_DATA", 0.0
 
         bullish = [d for d in divergences if d["divergence_type"] == "BULLISH"]
         bearish = [d for d in divergences if d["divergence_type"] == "BEARISH"]
@@ -319,6 +332,7 @@ def lambda_handler(event, context):
             "version": VERSION,
             "as_of": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "state": state,
+            "data_sufficiency": data_sufficiency,
             "signal_strength": round(strength, 2),
             "n_divergences": len(divergences),
             "n_bullish": len(bullish),
