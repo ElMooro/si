@@ -629,20 +629,45 @@ def fetch_isone(gaps):
     for url in ("https://irtt.iso-ne.com/reports/external?download=csv",
                 "https://irtt.iso-ne.com/reports/external.csv",
                 "https://irtt.iso-ne.com/external/reports?download=csv"):
-        try:
-            req = urllib.request.Request(url, headers={
-                "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        # wo4585: the 4582 gap showed bare "HTTP 302" on all endpoints —
+        # urllib's default handler raised instead of following. Walk the
+        # chain manually (<=3 hops): a redirect that lands on CSV self-
+        # heals; an edge challenge gets NAMED in the gap for next time.
+        hdrs = {"User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                                "AppleWebKit/537.36 (KHTML, like Gecko) "
                                "Chrome/126.0 Safari/537.36"),
-                "Accept": "text/csv,application/csv,*/*"})
-            with urllib.request.urlopen(req, timeout=60, context=CTX) as r:
-                b = r.read().decode("utf-8", "replace")
-        except urllib.error.HTTPError as e:
-            sigs.append("%s → HTTP %s" % (url.split("/")[-1][:28], e.code))
-            continue
+                "Accept": "text/csv,application/csv,*/*"}
+
+        class _NoRedirect(urllib.request.HTTPRedirectHandler):
+            def redirect_request(self, *a, **k):
+                return None
+
+        opener = urllib.request.build_opener(_NoRedirect)
+        cur, chain, b = url, [], None
+        try:
+            for _hop in range(4):
+                try:
+                    with opener.open(urllib.request.Request(cur, headers=hdrs),
+                                     timeout=60) as r0:
+                        b = r0.read().decode("utf-8", "replace")
+                        break
+                except urllib.error.HTTPError as e0:
+                    if e0.code in (301, 302, 303, 307, 308):
+                        loc = e0.headers.get("Location") or ""
+                        chain.append("%s→%s %s" % (e0.code,
+                                                   loc[:90] or "<no-Location>",
+                                                   ""))
+                        if not loc:
+                            break
+                        cur = urllib.parse.urljoin(cur, loc)
+                        continue
+                    chain.append("HTTP %s" % e0.code)
+                    break
         except Exception as e:
+            chain.append(type(e).__name__)
+        if b is None:
             sigs.append("%s → %s" % (url.split("/")[-1][:28],
-                                     type(e).__name__))
+                                     " | ".join(chain) or "no-response"))
             continue
         if b and "," in b and "<html" not in b[:200].lower():
             try:
