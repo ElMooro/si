@@ -1,0 +1,51 @@
+# ops 4584 — share-flows evidence + final clearance
+
+**Status:** success  
+**Duration:** 26.2s  
+**Finished:** 2026-08-10T21:28:31+00:00  
+
+## Log
+## 1. CloudWatch: how did the 21:08 run actually die?
+
+- `21:28:05`   last-3h log lines: 26; death signatures: 6
+- `21:28:05`     | [ERROR] NameError: name 'timedelta' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 516, in lambda_handler
+    announced = edgar_fts('"share repurchase program"', "8-K", 270,
+- `21:28:05`     | [ERROR] NameError: name 'timedelta' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 516, in lambda_handler
+    announced = edgar_fts('"share repurchase program"', "8-K", 270,
+- `21:28:05`     | [ERROR] NameError: name 'timedelta' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 516, in lambda_handler
+    announced = edgar_fts('"share repurchase program"', "8-K", 270,
+- `21:28:05`     | [ERROR] NameError: name 'timedelta' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 520, in lambda_handler
+    announced = edgar_fts('"share repurchase program"', "8-K", 270,
+- `21:28:05`     | [ERROR] NameError: name 'timedelta' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 520, in lambda_handler
+    announced = edgar_fts('"share repurchase program"', "8-K", 270,
+- `21:28:05`     | [ERROR] NameError: name 'timedelta' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 520, in lambda_handler
+    announced = edgar_fts('"share repurchase program"', "8-K", 270,
+## 2. Settle rev-4, invoke, poll 960s
+
+- `21:28:06`   fired
+- `21:28:21`   refreshed (15s)
+## 3. Contracts
+
+- `21:28:21` ✅   [share-flows] v2.0.0 live
+- `21:28:21` ✅   [share-flows] bluff/ATM/blackout boards (bluff=4 atm=5 weeks=7)
+- `21:28:21` ✅   [share-flows] impact-map/1.0 valid (18 ben / 17 suf)
+- `21:28:21` ✅   v2 tail ran clean (no shield fire)
+- `21:28:21`   warns tail: ['insider join: 74 buy names / 464 sell names (insider-trades tape)', 'universe: 1152 names (opp+ranker+soldiers+insider+phase-ring+valuations)', 'fresh 418 / needed 1152 (budget 420)']
+## 4. accum-composite congress leg after rev-5
+
+- `21:28:31` ✅   [accum-composite] congress leg reads rows after midpoint parse (coverage=14; activist=0 — that feed is genuinely empty right now, extractor fine)
+## verdict
+
+- `21:28:31` ✅ wo4580 COMPLETE: 4582's 46 greens + 4583's grid-queue/radar + share-flows v2 + congress leg = the full impact-layer contract set holds

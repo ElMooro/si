@@ -1,29 +1,43 @@
-executing-against: 7b2e6753dffb42a1b6e0166fcacaad4298fdf12d
-ops 4583 — wo4580 red clearance
-── 0. Feed-shape recon: the dead accum legs (evidence only) ──
-[21:08:30]   congress.house dict keys: ['error', 'filings', 'n_ptr_filings']
-[21:08:30]   congress.house rows=0 sample_keys=None
-[21:08:30]   congress.senate rows=200 sample_keys=['amount', 'asset', 'filer', 'owner', 'ticker', 'tx_date', 'type']
-[21:08:31]   activist all_setups=0 sample_keys=None
-── 1. Config truth: share-flows Timeout must be 900 ──
-[21:08:31] ✅   [share-flows] live Timeout=900
-── 2. Settle the other two ──
-── 3. Fire + poll ──
-[21:08:32]   fired justhodl-share-flows
-[21:08:32]   fired justhodl-grid-queue
-[21:08:32]   fired justhodl-accumulation-radar
-[21:08:45]   justhodl-grid-queue refreshed (12s)
-[21:08:45]   justhodl-accumulation-radar refreshed (12s)
-[21:24:13] ⚠   justhodl-share-flows did not refresh in 940s
-── 4. Re-assert the five 4582 misses ──
-[21:24:13] ✗   [share-flows] CONTRACT MISS — v2.0.0 live (was v1.4 after the crash)
-[21:24:13] ✗   [share-flows] CONTRACT MISS — bluff/ATM/blackout boards (bluff=0 atm=0 weeks=0)
-[21:24:13] ✗   [share-flows] CONTRACT MISS — impact_map absent or malformed
-[21:24:13]   share-flows warns tail: ['insider join: 69 buy names / 452 sell names (insider-trades tape)', 'universe: 1193 names (opp+ranker+soldiers+insider+phase-ring+valuations)', 'fresh 0 / needed 5 (budget 420)']
-[21:24:13] ✅   [grid-queue] archive object exists AND payload agrees (n_snapshots=1)
-[21:24:13] ✅   [radar] impact-map/1.0 valid (9 ben / 10 suf / 0 insufficient)
+executing-against: ce7d500b67a0e6d095919f1ef638a86d4233d13d
+ops 4584 — share-flows evidence + final clearance
+── 1. CloudWatch: how did the 21:08 run actually die? ──
+[21:28:05]   last-3h log lines: 26; death signatures: 6
+[21:28:05]     | [ERROR] NameError: name 'timedelta' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 516, in lambda_handler
+    announced = edgar_fts('"share repurchase program"', "8-K", 270,
+[21:28:05]     | [ERROR] NameError: name 'timedelta' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 516, in lambda_handler
+    announced = edgar_fts('"share repurchase program"', "8-K", 270,
+[21:28:05]     | [ERROR] NameError: name 'timedelta' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 516, in lambda_handler
+    announced = edgar_fts('"share repurchase program"', "8-K", 270,
+[21:28:05]     | [ERROR] NameError: name 'timedelta' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 520, in lambda_handler
+    announced = edgar_fts('"share repurchase program"', "8-K", 270,
+[21:28:05]     | [ERROR] NameError: name 'timedelta' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 520, in lambda_handler
+    announced = edgar_fts('"share repurchase program"', "8-K", 270,
+[21:28:05]     | [ERROR] NameError: name 'timedelta' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 520, in lambda_handler
+    announced = edgar_fts('"share repurchase program"', "8-K", 270,
+── 2. Settle rev-4, invoke, poll 960s ──
+[21:28:06]   fired
+[21:28:21]   refreshed (15s)
+── 3. Contracts ──
+[21:28:21] ✅   [share-flows] v2.0.0 live
+[21:28:21] ✅   [share-flows] bluff/ATM/blackout boards (bluff=4 atm=5 weeks=7)
+[21:28:21] ✅   [share-flows] impact-map/1.0 valid (18 ben / 17 suf)
+[21:28:21] ✅   v2 tail ran clean (no shield fire)
+[21:28:21]   warns tail: ['insider join: 74 buy names / 464 sell names (insider-trades tape)', 'universe: 1152 names (opp+ranker+soldiers+insider+phase-ring+valuations)', 'fresh 418 / needed 1152 (budget 420)']
+── 4. accum-composite congress leg after rev-5 ──
+[21:28:31] ✅   [accum-composite] congress leg reads rows after midpoint parse (coverage=14; activist=0 — that feed is genuinely empty right now, extractor fine)
 ── verdict ──
-[21:24:13] ✗ red clearance: 4 still red
+[21:28:31] ✅ wo4580 COMPLETE: 4582's 46 greens + 4583's grid-queue/radar + share-flows v2 + congress leg = the full impact-layer contract set holds
 
-→ Report written to aws/ops/reports/latest/4583_wo4580_reds.md
-❌ OPS-FAIL: aws/ops/pending/ops_4583_wo4580_reds.py
+→ Report written to aws/ops/reports/latest/4584_shareflows_final.md
