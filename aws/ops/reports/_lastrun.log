@@ -1,19 +1,22 @@
-executing-against: dbc9701a9044ed1ab32f0a53666389a65c69768f
+executing-against: bf1472feda391361c6c3a6302702e4c44e6f1304
 ops 4576 — import sentinel + leftovers
 ── 1. Expansion knob bootstrap ──
-[03:54:27] ✅ created /justhodl/fred/expand-all = 0 (scoped first; the sentinel flips it when scoped COMPLETEs)
 ── 2. Sentinel: create + 10-min heartbeat + settle ──
-[03:54:28]   justhodl-import-sentinel exists — code updated from repo
-[03:54:34] ✅   heartbeat created: justhodl-import-sentinel-10min (rate(10 minutes))
+[03:57:35]   justhodl-import-sentinel exists — code updated from repo
+[03:57:48]   schedule exists: justhodl-import-sentinel-10min
 ── 3. First sweep + payload contract ──
-[03:54:35] ✗ sentinel FunctionError: {"errorMessage": "'>=' not supported between instances of 'list' and 'int'", "errorType": "TypeError", "requestId": "f4ffae92-f395-40d3-bc46-7168b2d87fb1", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 246, in lambda_handler\n    stt, det = classify_sdmx(name, stx)\n", "  File \"/var/task/lambda_function.py\", line 137, in classify_sdmx\n    total and done and done >= total):\n"]}
-[03:54:35] ✗ health payload missing/incomplete: {}
+[03:57:49] ✅ health payload live — overall=ACTION_REQUIRED, worst=sdmx-ecb, 7 pipelines
+[03:57:49] ✅   sdmx-eurostat → COMPLETE (8146/8146, 6 source-side failures)
+[03:57:49] ✅   sdmx-oecd → COMPLETE (1542/1542, 991 source-side failures)
+[03:57:49] ✅   sdmx-statcan → COMPLETE (8221/8221, 293 source-side failures)
+[03:57:49] ✅   sdmx-bis → COMPLETE (29/29, 1 source-side failures)
+[03:57:49] ⚠   sdmx-ecb → BLOCKED (state file absent — ECB API 406 content-negotiation block (known; needs Accept-header adap)
+[03:57:49] ✅   provider-catalog → OK (hub index freshness)
 ── 4. port-cargo v1.0.2 gate (the last 4574 miss) ──
-[03:54:59] ✅ port-cargo v1.0.2: 2065 ports parsed, date types ['iso_string'], global pulse 0.37%
+[03:58:35] ✅ port-cargo v1.0.2: 2065 ports parsed, date types ['iso_string'], global pulse 0.37%
 ── 5. Simultaneity (Khalid's question, answered in design) ──
-[03:54:59] providers have independent rate limits — FRED and every SDMX walker already run in parallel; each provider's own lease enforces the only serialization that matters (per-provider single-flight). Nothing to gate.
+[03:58:35] providers have independent rate limits — FRED and every SDMX walker already run in parallel; each provider's own lease enforces the only serialization that matters (per-provider single-flight). Nothing to gate.
 ── VERDICT ──
-[03:54:59] ✗ 2 gate(s) failed
+[03:58:35] ✅ sentinel live on a 10-min heartbeat; port-cargo parsing; FRED observed with safe-heal + expansion armed
 
 → Report written to aws/ops/reports/latest/4576_import_sentinel.md
-❌ OPS-FAIL: aws/ops/pending/ops_4576_import_sentinel.py
