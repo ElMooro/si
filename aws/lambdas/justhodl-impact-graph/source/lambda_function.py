@@ -456,8 +456,40 @@ def convergence(graph, gaps):
                        "MIXED" if legs else "NO_DATA"),
              "rule": ">=2 independent physical legs agreeing, none opposing"}
 
-    # flow convergence — industries confirmed by >=2 flow evidence classes
+    # flow convergence / rev-H (wo4585 audit): justhodl-flow-confluence is
+    # the fleet's CANONICAL per-name flow fusion (13F + dark pool + ETF
+    # lookthrough + short + stealth, alpha-gated). This board is its
+    # INDUSTRY lens — roll its per-name postures up through the exposure
+    # graph. The local 3-feed self-fusion demotes to fallback when the
+    # canonical feed is absent.
     votes = {}
+    flow_src = None
+    fc = _get_json("data/flow-confluence.json") or {}
+    tm = fc.get("ticker_map") or {}
+    if tm:
+        flow_src = "justhodl-flow-confluence (canonical per-name fusion)"
+        for tk, rec in tm.items():
+            if not isinstance(rec, dict):
+                continue
+            post = str(rec.get("posture") or "").upper()
+            n_eng = rec.get("n_engines") or 1
+            val = float(n_eng)
+            if any(w in post for w in ("SELL", "DIST", "OUT", "NEG", "BEAR")):
+                val = -val
+            elif not any(w in post for w in ("BUY", "ACC", "IN", "POS",
+                                             "BULL")):
+                continue
+            info = (graph.get("tickers") or {}).get(str(tk).upper()) or {}
+            ind = info.get("industry")
+            if not ind:
+                continue
+            d = votes.setdefault(ind, {"sources": {}, "names": set()})
+            d["sources"].setdefault("flow_confluence", 0.0)
+            d["sources"]["flow_confluence"] += val
+            for eng in (rec.get("engines") or [])[:6]:
+                d["sources"].setdefault(str(eng), 0.0)
+                d["sources"][str(eng)] += val / max(n_eng, 1)
+            d["names"].add(str(tk).upper())
 
     def vote(tk, src, val):
         info = (graph.get("tickers") or {}).get(tk) or {}
@@ -469,12 +501,15 @@ def convergence(graph, gaps):
         d["sources"][src] += val
         d["names"].add(tk)
 
-    fl = _get_json("data/flow-lookthrough.json") or {}
+    if not tm:
+        flow_src = "local 3-feed FALLBACK (flow-confluence feed absent)"
+    fl = _get_json("data/flow-lookthrough.json") if not tm else {}
+    fl = fl or {}
     for r in (fl.get("actual_accumulation") or [])[:20]:
         vote((r.get("ticker") or "").upper(), "flow_lookthrough", 1.0)
     for r in (fl.get("actual_distribution") or [])[:20]:
         vote((r.get("ticker") or "").upper(), "flow_lookthrough", -1.0)
-    dp = _get_json("data/dark-pool.json") or {}
+    dp = (_get_json("data/dark-pool.json") if not tm else {}) or {}
     for r in (dp.get("high_conviction") or [])[:20]:
         tk = (r.get("ticker") or r.get("symbol") or "").upper() if isinstance(r, dict) else str(r).upper()
         vote(tk, "dark_pool", 1.0)
@@ -509,6 +544,7 @@ def convergence(graph, gaps):
                      "names": sorted(d["names"])[:8]})
     rows.sort(key=lambda r: -abs(r["score"]))
     flow = {"rows": rows[:15],
+            "source": flow_src,
             "rule": "industry needs >=2 independent flow evidence classes",
             "relationship": ("name-level authority: justhodl-flow-confluence "
                              "(pre-existing, trust-gated) — consumed here as "
@@ -518,7 +554,7 @@ def convergence(graph, gaps):
             "note": ("etf-true-flows category_rotation joins at the category "
                      "level: %s" % (list(cr)[:6] if isinstance(cr, dict) else "n/a"))}
     out = {"generated_at": datetime.now(timezone.utc).isoformat(),
-           "version": "1.0", "trade_impulse": trade,
+           "version": "1.1", "trade_impulse": trade,
            "flow_convergence": flow, "gaps": gaps}
     _put_json(CONV_KEY, out)
     return out
