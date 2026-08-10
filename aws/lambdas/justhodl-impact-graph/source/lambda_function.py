@@ -482,18 +482,16 @@ def convergence(graph, gaps):
     # the name-level authority (trust-gated cross-read of the same evidence
     # classes). Consume it as a vote source — converge, never duplicate.
     fc = _get_json("data/flow-confluence.json") or {}
-    fc_rows = (fc.get("signals") or fc.get("names") or fc.get("rows") or [])
+    # actual contract (read, not assumed): multi_engine_confluence rows with
+    # ticker + posture (ACCUMULATION / DISTRIBUTION / SHORT_SQUEEZE_SETUP...)
+    fc_rows = fc.get("multi_engine_confluence") or []
     for r in fc_rows[:40] if isinstance(fc_rows, list) else []:
         if not isinstance(r, dict):
             continue
-        tk = (r.get("ticker") or r.get("symbol") or "").upper()
-        dr = str(r.get("direction") or r.get("side") or r.get("bias") or "").lower()
-        sc = r.get("score") or r.get("confluence_score") or r.get("net") or 0
-        sgn = (1.0 if any(w in dr for w in ("long", "accum", "bull", "buy"))
-               else -1.0 if any(w in dr for w in ("short", "dist", "bear", "sell"))
-               else (1.0 if (isinstance(sc, (int, float)) and sc > 0)
-                     else -1.0 if (isinstance(sc, (int, float)) and sc < 0)
-                     else 0.0))
+        tk = (r.get("ticker") or "").upper()
+        po = str(r.get("posture") or "").upper()
+        sgn = (1.0 if ("ACCUM" in po or "SQUEEZE" in po)
+               else -1.0 if "DIST" in po else 0.0)
         if tk and sgn:
             vote(tk, "flow_confluence", sgn)
     et = _get_json("data/etf-true-flows.json") or {}
