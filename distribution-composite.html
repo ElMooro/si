@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Distribution Composite (Evidence-Tiered Mirror) · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:860px){.grid3{grid-template-columns:1fr}}
+.brow{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:11.8px}
+.chip{display:inline-block;border-radius:999px;padding:1px 9px;font-size:10px;margin:0 4px 3px 0;border:1px solid var(--text-mute);color:var(--text-dim)}
+.t1{border-color:#E07A6A;color:#E07A6A}.t2{border-color:#F0B429;color:#F0B429}.t3{border-color:#8b96a8;color:#8b96a8}.t4{border-color:#5b6479;color:#5b6479}
+.foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🩸 Distribution Composite — the Mirror</h1>
+<div class="sub">wo4580: the fleet ranked quiet <b>buying</b> but had no ranked view of quiet <b>selling</b>. Same constitution as accum-composite, mirrored legs: Form-4 SELL clusters (2+ sellers, ≥$500k, 10b5-1 excluded) + HIGH-SVR quintile (the documented short leg — Wang/Yan/Zheng) as tier-1; dark distribution tier-3; radar distributing tier-4 confirmation. Residualized on liquidity; tier-1 required to rank; weights Wilson-shrunk by the graded ledger (basis shown honestly).</div>
+<div class="grid3" id="hero"><div class="card mono">LOADING…</div></div>
+<div class="sec">Board — names require tier-1 selling evidence to rank at all</div>
+<div class="card" id="board"></div>
+<div class="sec">Impact — industries with the most market cap under distribution evidence</div>
+<div class="card" id="impact"></div>
+<div class="foot" id="foot"></div>
+</div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/assets/impact-strip.js" defer></script>
+<script>
+(async function(){try{
+var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/distribution-composite.json?t='+Date.now());
+if(!r.ok){document.getElementById('hero').innerHTML='<div class="card mono">feed unavailable — engine deploying (first run pending)</div>';return;}
+var p=await r.json();
+var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',MUT='#5b6479';
+var TC={tier_1_regulatory_validated:'t1',tier_2_disclosed_residualized:'t2',tier_3_microstructure_estimate:'t3',tier_4_unvalidated_technical:'t4'};
+var TL={insider_sell_cluster:'Form-4 SELL',svr_high:'HIGH SVR',dark_distribution:'dark dist',radar_distributing:'radar'};
+var st=p.state||'?';var sc=st==='OK'?RED:AMB;
+var cov=p.component_coverage||{};
+var wb=((p.weights||{}).meta||{}).overall_basis||'?';
+document.getElementById('hero').innerHTML=
+ '<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">STATE</div><div class="mono" style="font-size:26px;font-weight:800;color:'+sc+'">'+st+'</div><div class="mono" style="font-size:11px;color:'+MUT+'">'+(p.n_names||0)+' ranked names · '+((p.feeds_missing||[]).length)+' feed issues</div></div>'
++'<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">COMPONENT COVERAGE</div><div class="mono" style="font-size:12px;margin-top:6px">'+Object.keys(cov).map(function(k){return '<span class="chip '+(TC[({insider_sell_cluster:'tier_1_regulatory_validated',svr_high:'tier_1_regulatory_validated',dark_distribution:'tier_3_microstructure_estimate',radar_distributing:'tier_4_unvalidated_technical'})[k]]||'t3')+'">'+(TL[k]||k)+' '+cov[k]+'</span>';}).join('')+'</div></div>'
++'<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">WEIGHTS BASIS</div><div class="mono" style="font-size:14px;margin-top:6px;color:'+AMB+'">'+wb+'</div><div class="mono" style="font-size:10.5px;color:'+MUT+'">prior_only until each family accrues n≥30 graded outcomes; every rank emitted as a gradeable bearish signal</div></div>';
+document.getElementById('board').innerHTML=(p.names||[]).slice(0,40).map(function(n){
+ var c=n.score>=70?RED:n.score>=50?AMB:'#e8e8e8';
+ return '<div class="brow mono"><div style="width:34px;color:'+MUT+'">#'+n.rank+'</div><div style="width:76px;font-weight:800;color:'+c+'">'+n.ticker+'</div>'
+ +'<div style="width:64px;text-align:right;font-weight:800;color:'+c+'">'+n.score+'</div>'
+ +'<div style="flex:1;padding-left:14px">'+(n.components||[]).map(function(x){return '<span class="chip '+(TC[x.evidence_tier]||'t3')+'" title="rank '+x.rank+' · w '+x.weight+(x.residualized?' · residualized':'')+'">'+(TL[x.component]||x.component)+'</span>';}).join('')
+ +(n.insider_sell_usd?('<span class="chip t1">'+n.n_sellers+' sellers · $'+(n.insider_sell_usd/1e6).toFixed(1)+'M</span>'):'')+'</div>'
+ +'<div style="width:90px;text-align:right;color:'+MUT+'">w '+n.weight_covered+'</div></div>';
+}).join('')||'<span class="mono" style="color:'+MUT+'">no names pass the tier-1 gate — a quiet tape is a real reading when feeds are live</span>';
+if(window.jhImpactStrip){window.jhImpactStrip(document.getElementById('impact'),p.impact_map);}else{
+document.getElementById('impact').innerHTML='<span class="mono" style="color:'+MUT+'">impact renderer loading…</span>';}
+document.getElementById('foot').textContent='Method: '+(p.method||'')+' Generated '+(p.generated_at||'');
+}catch(e){document.getElementById('hero').innerHTML='<div class="card mono">'+e+'</div>';}})();
+</script>
+</body>
+</html>

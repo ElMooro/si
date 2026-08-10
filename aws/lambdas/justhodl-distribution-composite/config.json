@@ -1,0 +1,22 @@
+{
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 300,
+  "memory": 1024,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Distribution composite (wo4580): the accum-composite mirror. Insider SELL clusters + HIGH-SVR tier-1, dark distribution tier-3, radar tier-4. Tier-gated, liquidity-residualized, ledger-learned weights.",
+  "function_name": "justhodl-distribution-composite",
+  "environment": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "schedule": {
+    "name": "justhodl-distribution-composite-daily",
+    "expression": "cron(0 22 * * ? *)",
+    "description": "22:00 UTC daily - after insider tape, finra-short, dark-pool refresh"
+  },
+  "tags": {
+    "Project": "JustHodl",
+    "Component": "wo4580",
+    "Tier": "engine"
+  }
+}
