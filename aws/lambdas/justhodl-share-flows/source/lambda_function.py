@@ -40,15 +40,19 @@ import json
 import os
 import time
 import urllib.request
+import urllib.parse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
 import boto3
 
+from impact_mapper import (build as impact_build, load_graph,
+                           measured_row, industry_rollup)
+
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/share-flows.json"
-VERSION = "1.4.0"
+VERSION = "2.0.0"
 FMP = (os.environ.get("FMP_API_KEY") or os.environ.get("FMP_KEY")
        or "")
 MAX_FRESH_FETCH = 420          # per-run new-name budget
@@ -75,6 +79,54 @@ def s3_json(key):
             Bucket=BUCKET, Key=key)["Body"].read())
     except Exception:
         return None
+
+
+def edgar_fts(q, forms, days_back, warns, cap=120):
+    """SEC EDGAR full-text search (keyless, real). Returns set of tickers
+    parsed from display_names like 'Apple Inc.  (AAPL)  (CIK 0000320193)'."""
+    import re as _re
+    frm = (datetime.now(timezone.utc)
+           - timedelta(days=days_back)).strftime("%Y-%m-%d")
+    to = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    url = ("https://efts.sec.gov/LATEST/search-index?q=%s&forms=%s"
+           "&dateRange=custom&startdt=%s&enddt=%s"
+           % (urllib.parse.quote(q), forms, frm, to))
+    try:
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "JustHodl research ops@justhodl.ai"})
+        with urllib.request.urlopen(req, timeout=25) as r:
+            j = json.loads(r.read())
+    except Exception as e:
+        warns.append("edgar fts %s/%s failed: %s" % (forms, q[:20], str(e)[:60]))
+        return {}
+    out = {}
+    for h in ((j.get("hits") or {}).get("hits") or [])[:cap]:
+        src = h.get("_source") or {}
+        names = src.get("display_names") or []
+        fdate = src.get("file_date")
+        for nm in names:
+            m = _re.search(r"\(([A-Z][A-Z0-9.\-]{0,6})\)", nm or "")
+            if m:
+                tk = m.group(1)
+                if tk not in out or (fdate and fdate > out[tk]):
+                    out[tk] = fdate
+    return out
+
+
+def fmp_earnings_calendar(warns, days_fwd=45):
+    frm = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    to = (datetime.now(timezone.utc)
+          + timedelta(days=days_fwd)).strftime("%Y-%m-%d")
+    j = _http("https://financialmodelingprep.com/stable/earnings-calendar"
+              "?from=%s&to=%s&apikey=%s" % (frm, to, FMP)) or []
+    cal = {}
+    for r in j if isinstance(j, list) else []:
+        t, d = r.get("symbol"), r.get("date")
+        if t and d and t not in cal:
+            cal[t] = d
+    if not cal:
+        warns.append("fmp earnings-calendar empty — blackout board skipped")
+    return cal
 
 
 def build_universe(warns):
@@ -458,6 +510,101 @@ def lambda_handler(event=None, context=None):
                      key=lambda r: -(r.get("insider_sell_usd_recent")
                                      or 0))[:20]
 
+    # wo4580 (a): announced vs executed — the buyback bluff detector.
+    # Announcements from EDGAR full-text search (8-K, real+keyless);
+    # execution truth is the TTM cash + share-count trend already on the row.
+    announced = edgar_fts('"share repurchase program"', "8-K", 270, warns)
+    bluff, backed = [], []
+    for t, r in tickers.items():
+        ad = announced.get(t)
+        if not ad:
+            continue
+        r["buyback_announced_8k_date"] = ad
+        exec_ttm = r.get("buyback_ttm_usd") or 0
+        yoy = r.get("sh_yoy_pct")
+        mc = r.get("market_cap") or 0
+        row = {"ticker": t, "announced_8k_date": ad,
+               "buyback_ttm_usd": exec_ttm,
+               "buyback_yield_pct": r.get("buyback_yield_pct"),
+               "sh_yoy_pct": yoy}
+        # bluff: program announced, but <0.3% of mcap executed TTM and the
+        # float has not shrunk. Heuristic labeled as such; announced-$ parse
+        # from the filing body is the declared next step.
+        if mc and exec_ttm < 0.003 * mc and (yoy is None or yoy > -0.3):
+            r.setdefault("flags", []).append("BUYBACK_BLUFF")
+            bluff.append(row)
+        elif exec_ttm >= 0.01 * mc and mc:
+            backed.append(row)
+    bluff.sort(key=lambda x: (x["buyback_yield_pct"] or 0))
+    backed.sort(key=lambda x: -(x["buyback_yield_pct"] or 0))
+
+    # wo4580 (b): ATM shelf tracking — 424B5 at-the-market prospectuses =
+    # standing dilution machinery, the early warning small-cap holders need.
+    atm = edgar_fts('"at-the-market"', "424B5", 90, warns)
+    atm_active = []
+    for t, r in tickers.items():
+        d2 = atm.get(t)
+        if d2:
+            r["atm_shelf_424b5_date"] = d2
+            r.setdefault("flags", []).append("ATM_SHELF_ACTIVE")
+            atm_active.append({"ticker": t, "filed": d2,
+                               "sh_yoy_pct": r.get("sh_yoy_pct"),
+                               "read": r.get("read")})
+    atm_active.sort(key=lambda x: x["filed"] or "", reverse=True)
+
+    # wo4580 (c): buyback blackout calendar — the corporate bid going dark.
+    # Real earnings dates; window convention [E-14d, E+2d] stated, not hidden.
+    cal = fmp_earnings_calendar(warns)
+    heavy = [r for r in rows if r.get("read") in ("BUYBACK_HEAVY", "SHRINKING")
+             and (r.get("buyback_ttm_usd") or 0) > 0]
+    wk = {}
+    for r in heavy:
+        ed = cal.get(r["ticker"])
+        if not ed:
+            continue
+        try:
+            e = datetime.fromisoformat(ed)
+        except Exception:
+            continue
+        start = e - timedelta(days=14)
+        end = e + timedelta(days=2)
+        weekly_usd = (r["buyback_ttm_usd"] or 0) / 52.0
+        d3 = start
+        while d3 <= end:
+            wkey = (d3 - timedelta(days=d3.weekday())).strftime("%Y-%m-%d")
+            w2 = wk.setdefault(wkey, {"usd_dark": 0.0, "names": set()})
+            w2["usd_dark"] += weekly_usd / 7.0 * 1  # per-day slice into its week
+            w2["names"].add(r["ticker"])
+            d3 += timedelta(days=1)
+    blackout = [{"week_of": k2, "buyback_usd_going_dark": round(v2["usd_dark"]),
+                 "n_names": len(v2["names"]),
+                 "names": sorted(v2["names"])[:12]}
+                for k2, v2 in sorted(wk.items())][:8]
+
+    # wo4580 impact_map — fully measured float pp per year
+    graph = load_graph() or {}
+    ben = [measured_row(r["ticker"], "company", -(r.get("sh_yoy_pct") or 0),
+                        "float_pct_per_year",
+                        "diluted share count yoy — float shrink is supply "
+                        "removed")
+           for r in rows if (r.get("sh_yoy_pct") or 0) <= -1
+           and not r.get("extreme")][:40]
+    suf = [measured_row(r["ticker"], "company", -(r.get("sh_yoy_pct") or 0),
+                        "float_pct_per_year",
+                        "diluted share count yoy — dilution is supply added")
+           for r in rows if (r.get("sh_yoy_pct") or 0) >= 2
+           and not r.get("extreme")][:40]
+    ben.sort(key=lambda x: -x["pp"]); suf.sort(key=lambda x: x["pp"])
+    impact = impact_build(
+        "share-flows", "float_supply_change",
+        ben[:15] + industry_rollup(ben, graph),
+        suf[:15] + industry_rollup(suf, graph),
+        "Measured float change: negative yoy diluted share count = supply "
+        "removed (benefits holders), positive = dilution. pp is percent of "
+        "float per year. Industry rows are mcap-weighted member means.",
+        basis_note="%d announced programs joined (EDGAR 8-K FTS), %d ATM "
+                   "shelves active (424B5)" % (len(announced), len(atm_active)))
+
     out = {
         "version": VERSION,
         "engine_class": "corporate_share_issuance",
@@ -473,7 +620,12 @@ def lambda_handler(event=None, context=None):
                    "mgmt_selling_into_buyback": selling,
                    "top_diluters": top_dil,
                    "extreme_diluters": extremes,
-                   "insider_conviction": conv},
+                   "insider_conviction": conv,
+                   "buyback_bluff": bluff[:20],
+                   "buyback_backed": backed[:20],
+                   "atm_shelves_active": atm_active[:25],
+                   "buyback_blackout_weeks": blackout},
+        "impact_map": impact,
         "method": {
             "sh_yoy_pct": "diluted weighted-average share count, "
                           "latest quarter vs a year ago -- negative "
@@ -502,6 +654,19 @@ def lambda_handler(event=None, context=None):
                      " insiders dump >=$2M) / INSIDER_CONVICTION"
                      " (2+ insiders, >=$1M open-market) /"
                      " MGMT_BUYING_DESPITE_DILUTION",
+            "buyback_bluff": "8-K repurchase-program announcement on "
+                             "file (EDGAR full-text, 270d) but <0.3% of "
+                             "mcap executed TTM and no float shrink — "
+                             "announced-$ parse is the declared next step",
+            "atm_shelves_active": "424B5 at-the-market prospectus filed "
+                                  "in the last 90d — standing dilution "
+                                  "machinery",
+            "buyback_blackout_weeks": "TTM buyback run-rate of "
+                                      "BUYBACK_HEAVY/SHRINKING names "
+                                      "inside [E-14d, E+2d] around real "
+                                      "earnings dates (window convention "
+                                      "stated) — the corporate bid going "
+                                      "dark, by week",
             "insider": "Form-4 open-market activity from the "
                        "insider desk: management buying with their "
                        "own money vs clustered selling",
