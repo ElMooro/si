@@ -1,0 +1,37 @@
+## 1. Settle + deployed v1.0.2 marker proof
+
+**Status:** success  
+**Duration:** 51.4s  
+**Finished:** 2026-08-10T17:44:24+00:00  
+
+## Data
+
+| contract_misses | finished_utc | n_ports |
+|---|---|---|
+| 0 | 2026-08-10T17:44:24+00:00 | 2065 |
+
+## Log
+- `17:43:33`   justhodl-port-cargo settled (LastModified 2026-08-10T03:54:15.000+0000, timeout=780s, mem=1536MB)
+- `17:43:33` ✅   [deploy] deployed zip carries the v1.0.2 ISO-date parser
+## 2. Fresh invoke (baseline-strict)
+
+- `17:43:34`   pre-invoke data/port-cargo.json LastModified=2026-08-10 12:40:39+00:00
+- `17:44:23`   invoke OK in 49s
+- `17:44:23` ✅   [port-cargo] payload strictly newer than pre-invoke baseline (now 2026-08-10 17:44:24+00:00)
+## 3. Contract assertions (4574 set, verbatim)
+
+- `17:44:23` ✅   [port-cargo] fetch_status separate from data age
+- `17:44:23` ✅   [port-cargo] ports parsed OR gap stated — never silent (n=2065)
+- `17:44:23` ✅   [port-cargo] lag_months declared
+- `17:44:23` ✅   [port-cargo] tonnage rows parsed after where-negotiation (n=2065)
+- `17:44:23` ✅   [port-cargo] country rollups populated when ports parse
+- `17:44:23` ✅   [port-cargo] data_age_days declared (=10; source lag is stated, not hidden)
+- `17:44:23`   version=1.0.2 ports=2065 countries=40 global_pulse=None
+## 4. CDN truth
+
+- `17:44:24` ✅   [cdn] live payload serves 200 with schema key (HTTP 200)
+- `17:44:24` ✅   [cdn] page 200 with marker (HTTP 200)
+## VERDICT — work order ops-4559
+
+- `17:44:24` ✅ wo4559 CLOSED — port-cargo contract green on v1.0.2; supersedes the 4574 failure verdict. 10/10 engines, all ops-4559 contracts passing (4574: 24/25 + this op: port-cargo 8/8).
+- `17:44:24`   open follow-ups carried OUT of this work order: (a) 10 fleet engines flagged by 4574's BUG-4 sweep (confident QUIET on zero inputs) — separate patch arc; (b) grid-queue ISO-NE + PJM adapters (PJM_API_KEY pending Khalid); (c) legacy desk-v2.html sidebar 404 (cosmetic).

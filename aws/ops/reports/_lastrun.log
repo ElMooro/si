@@ -1,48 +1,24 @@
-executing-against: 5fa3da80731479b65a303e718dfea2e5ad20dbdb
-ops 4578 — FRED alive after the s3 one-liner
-── 1. Settle the v2.2.1 deploy ──
-[04:16:27] ✅ settled: LastModified 2026-08-10T04:15:50.000+0000
-── 2. Key belts (runner view) ──
-── 3. Purge the crash-loop retry backlog ──
-[04:17:58] ✅ backlog purged (age60/retries0 for 90s, then restored)
-── 4. The lambda's honest answer ──
-[04:17:58]   slot busy (1/8) — waiting 18s
-[04:18:17]   slot busy (2/8) — waiting 18s
-[04:18:35]   slot busy (3/8) — waiting 18s
-[04:18:54]   slot busy (4/8) — waiting 18s
-[04:19:13]   slot busy (5/8) — waiting 18s
-[04:19:31]   slot busy (6/8) — waiting 18s
-[04:19:50]   slot busy (7/8) — waiting 18s
-[04:20:09]   slot busy (8/8) — waiting 18s
-[04:20:27] ✗ slot never freed — crash-loop still alive; read the log tail below
-── 5. Checkpoint proof (200s window) ──
-[04:23:48] ✅ state moving: 2026-08-10T04:15:40+00:00 → 2026-08-10T04:15:40+00:00 | status=walking | imported=12246 | cursor=382/None | rpm=88.0 | scope=scoped_7_roots | v=None
-── 6. Log tail (ground truth) ──
-[04:23:48]   | INIT_START Runtime Version: python:3.12.mainlinev2.v27	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:fb4a5cbb4aeb1909cf946882192e0e708d8756b3
-[04:23:48]   | START RequestId: fb69b7fe-b405-455c-b7d8-288408970be0 Version: $LATEST
-[04:23:48]   | END RequestId: fb69b7fe-b405-455c-b7d8-288408970be0
-[04:23:48]   | REPORT RequestId: fb69b7fe-b405-455c-b7d8-288408970be0	Duration: 246.84 ms	Billed Duration: 247 ms	Memory Size: 2048 MB	Max Memory Used: 100 MB	
-XRAY 
-[04:23:48]   | START RequestId: 1249f0b7-b08e-4e2d-a21d-9dc5b4a075ce Version: $LATEST
-[04:23:48]   | [ERROR] KeyError: 'categories_done'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 707, in lambda_handler
-    print(js
-[04:23:48]   | END RequestId: 1249f0b7-b08e-4e2d-a21d-9dc5b4a075ce
-[04:23:48]   | REPORT RequestId: 1249f0b7-b08e-4e2d-a21d-9dc5b4a075ce	Duration: 227.10 ms	Billed Duration: 228 ms	Memory Size: 2048 MB	Max Memory Used: 100 MB	
-XRAY 
-[04:23:48]   | START RequestId: 31260646-6997-4743-95a0-31b032d4d0d9 Version: $LATEST
-[04:23:48]   | [ERROR] KeyError: 'categories_done'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 707, in lambda_handler
-    print(js
-[04:23:48]   | END RequestId: 31260646-6997-4743-95a0-31b032d4d0d9
-[04:23:48]   | REPORT RequestId: 31260646-6997-4743-95a0-31b032d4d0d9	Duration: 266.55 ms	Billed Duration: 267 ms	Memory Size: 2048 MB	Max Memory Used: 100 MB	
-XRAY 
-── 7. Storm gate ──
-[04:24:49] ⚠ Throttles(5m)=9 — settling; sentinel keeps watch
-── VERDICT ──
-[04:24:49] ✗ 1 gate(s) failed
+executing-against: aea0ac823439049967b9b5173c346989ff966801
+── 1. Settle + deployed v1.0.2 marker proof ──
+[17:43:33]   justhodl-port-cargo settled (LastModified 2026-08-10T03:54:15.000+0000, timeout=780s, mem=1536MB)
+[17:43:33] ✅   [deploy] deployed zip carries the v1.0.2 ISO-date parser
+── 2. Fresh invoke (baseline-strict) ──
+[17:43:34]   pre-invoke data/port-cargo.json LastModified=2026-08-10 12:40:39+00:00
+[17:44:23]   invoke OK in 49s
+[17:44:23] ✅   [port-cargo] payload strictly newer than pre-invoke baseline (now 2026-08-10 17:44:24+00:00)
+── 3. Contract assertions (4574 set, verbatim) ──
+[17:44:23] ✅   [port-cargo] fetch_status separate from data age
+[17:44:23] ✅   [port-cargo] ports parsed OR gap stated — never silent (n=2065)
+[17:44:23] ✅   [port-cargo] lag_months declared
+[17:44:23] ✅   [port-cargo] tonnage rows parsed after where-negotiation (n=2065)
+[17:44:23] ✅   [port-cargo] country rollups populated when ports parse
+[17:44:23] ✅   [port-cargo] data_age_days declared (=10; source lag is stated, not hidden)
+[17:44:23]   version=1.0.2 ports=2065 countries=40 global_pulse=None
+── 4. CDN truth ──
+[17:44:24] ✅   [cdn] live payload serves 200 with schema key (HTTP 200)
+[17:44:24] ✅   [cdn] page 200 with marker (HTTP 200)
+── VERDICT — work order ops-4559 ──
+[17:44:24] ✅ wo4559 CLOSED — port-cargo contract green on v1.0.2; supersedes the 4574 failure verdict. 10/10 engines, all ops-4559 contracts passing (4574: 24/25 + this op: port-cargo 8/8).
+[17:44:24]   open follow-ups carried OUT of this work order: (a) 10 fleet engines flagged by 4574's BUG-4 sweep (confident QUIET on zero inputs) — separate patch arc; (b) grid-queue ISO-NE + PJM adapters (PJM_API_KEY pending Khalid); (c) legacy desk-v2.html sidebar 404 (cosmetic).
 
-→ Report written to aws/ops/reports/latest/4578_fred_alive.md
-❌ OPS-FAIL: aws/ops/pending/ops_4578_fred_alive.py
+→ Report written to aws/ops/reports/latest/4579_wo4559_closeout.md
