@@ -361,6 +361,15 @@ def lambda_handler(event, context):
                               "basis": "Baseline equity returns + slight cross-signal edge"},
             "QUIET":         {"1m": 0.5, "3m": 1.5,  "6m": 3.0,  "wr": 48,
                               "basis": "No edge; baseline returns"},
+            # ops-4559 BUG-4 follow-up: the INSUFFICIENT_DATA state MUST have
+            # an entry here — priors[state] crashed with KeyError the moment
+            # the gate fired, and the catch-all returned 500 without writing
+            # S3, which made the fix look undeployed. No forward prior is
+            # stateable from missing inputs, and None says exactly that.
+            "INSUFFICIENT_DATA": {"1m": None, "3m": None, "6m": None, "wr": None,
+                                  "basis": ("detector blind — required feeds "
+                                            "empty; no forward prior can be "
+                                            "stated from this input set")},
         }
 
         recommended = None
@@ -377,7 +386,7 @@ def lambda_handler(event, context):
 
         output = {
             "engine": "stealth-accumulation",
-            "version": "1.1",
+            "version": "1.1.1",
             "as_of": dt.datetime.utcnow().isoformat() + "Z",
             "state": state,
             "previous_state": prev_state,
@@ -439,7 +448,8 @@ def lambda_handler(event, context):
                  "current": len(short_map), "threshold": ">=10",
                  "satisfied": len(short_map) >= 10, "weight": 0.10},
             ],
-            "forward_expectations": priors[state],
+            "forward_expectations": priors.get(state, {"1m": None, "3m": None,
+                "6m": None, "wr": None, "basis": "no prior for state %s" % state}),
             "recommended_trade": recommended,
             "historical_episodes": [
                 {"period": "MU (Micron) Q2 2024",
