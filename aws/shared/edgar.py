@@ -70,12 +70,17 @@ def cik_map_mf():
         return _MF["m"]
     out = {}
     try:
-        j = json.loads(_get("https://www.sec.gov/files/company_tickers_mf.json"))
+        # rev-E (4585): _get already returns parsed JSON — json.loads(dict)
+        # raised TypeError and the except turned it into an empty map,
+        # which is exactly how 0 funds indexed while looking like a
+        # coverage problem.
+        j = _get("https://www.sec.gov/files/company_tickers_mf.json") or {}
         fields = j.get("fields") or []
         data = j.get("data") or []
         if fields and data:
-            fi = {f: i for i, f in enumerate(fields)}
-            si, ci = fi.get("symbol"), fi.get("cik")
+            fi = {str(f).lower(): i for i, f in enumerate(fields)}
+            si = fi.get("symbol", fi.get("ticker"))
+            ci = fi.get("cik")
             if si is not None and ci is not None:
                 for row in data:
                     try:
