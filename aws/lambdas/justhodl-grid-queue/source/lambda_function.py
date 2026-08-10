@@ -638,14 +638,30 @@ def fetch_isone(gaps):
                                "Chrome/126.0 Safari/537.36"),
                 "Accept": "text/csv,application/csv,*/*"}
 
+        # wo4585 rev-D: the chain evidence named the culprit — an ASP.NET
+        # AspxAutoDetectCookieSupport self-redirect LOOP. It breaks the
+        # moment the client carries the session cookie: try a cookie-jar
+        # opener (default redirects) first; the no-cookie walker below
+        # stays as the diagnostic pass when even that fails.
+        b = None
+        try:
+            import http.cookiejar as _cj
+            cook = urllib.request.build_opener(
+                urllib.request.HTTPCookieProcessor(_cj.CookieJar()))
+            with cook.open(urllib.request.Request(url, headers=hdrs),
+                           timeout=60) as r0:
+                b = r0.read().decode("utf-8", "replace")
+        except Exception as _e0:
+            print("[isone] cookiejar attempt: %s" % str(_e0)[:100])
+
         class _NoRedirect(urllib.request.HTTPRedirectHandler):
             def redirect_request(self, *a, **k):
                 return None
 
         opener = urllib.request.build_opener(_NoRedirect)
-        cur, chain, b = url, [], None
+        cur, chain = url, []
         try:
-            for _hop in range(4):
+            for _hop in range(4 if b is None else 0):
                 try:
                     with opener.open(urllib.request.Request(cur, headers=hdrs),
                                      timeout=60) as r0:
