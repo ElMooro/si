@@ -163,17 +163,23 @@ def fetch_s3_json(key):
         return None
 
 
+_HTTP = {"ok": 0, "err": 0}
+
+
 def http_json(url, timeout=HTTP_TIMEOUT):
     try:
         req = urllib.request.Request(
             url, headers={"User-Agent": "JustHodl-MAPredict/1.0"})
         with urllib.request.urlopen(req, timeout=timeout) as r:
+            _HTTP["ok"] += 1
             return json.loads(r.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         print(f"[http] {e.code}: {url[:80]}")
+        _HTTP["err"] += 1
         return None
     except Exception as e:
         print(f"[http] err: {e}")
+        _HTTP["err"] += 1
         return None
 
 
@@ -532,12 +538,21 @@ def lambda_handler(event=None, context=None):
         state = "SELECTIVE_OPPORTUNITY"
     else:
         state = "QUIET"
+    # wo4592 BUG-4 gate: "no MA candidates" is unknowable when every
+    # per-symbol fetch errored. Blind says blind, not calm.
+    data_sufficiency = {"http_ok": _HTTP["ok"], "http_err": _HTTP["err"],
+                        "n_results": len(results),
+                        "rule": "QUIET only claimable when >=1 fetch "
+                                "answered; else INSUFFICIENT_DATA"}
+    if state == "QUIET" and _HTTP["ok"] == 0 and _HTTP["err"] > 0:
+        state = "INSUFFICIENT_DATA"
 
     output = {
         "engine": "ma-target-predictor",
         "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "state": state,
+        "data_sufficiency": data_sufficiency,
         "universe_size": len(STATIC_TOP50_SPX),
         "n_evaluated": len(results),
         "n_high_conviction": len(high_conviction),
