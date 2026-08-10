@@ -1,48 +1,89 @@
-executing-against: 7a83ccef7bcd0d78246d4e6451e5bbe9e13d19f7
-ops 4573 — v2 liveness diagnosis
-[00:30:54] ⚠ queue ledger object absent
-── log tail (filtered) ──
-[00:30:55] {"categories_done": 0, "series_seen": 0, "series_excluded_stale": 0, "series_imported": 0, "status": "paused"}
-[00:30:55] REPORT RequestId: 57731f45-ff52-4669-a68f-53fc94c301c4	Duration: 30.31 ms	Billed Duration: 565 ms	Memory Size: 2048 MB	Max Memory Used: 97 MB	Init Duration: 533.77 ms	
-XRAY TraceId: 1-6a7916ea-4e7e08f26b3a1bb94411ad0f	Se
-[00:30:55] [ERROR] KeyError: 'categories_done'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 518, in lambda_handler
-    print(json.dumps({k: m[k] for k in
-[00:30:55] REPORT RequestId: 2b56630c-803b-4350-8f89-947124f4fc76	Duration: 28.77 ms	Billed Duration: 29 ms	Memory Size: 2048 MB	Max Memory Used: 97 MB	
-XRAY TraceId: 1-6a7916ec-3ef775830aff0b7543a87313	SegmentId: 7113798ac3168967	
-[00:30:55] [ERROR] KeyError: 'categories_done'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 518, in lambda_handler
-    print(json.dumps({k: m[k] for k in
-[00:30:55] REPORT RequestId: 2b56630c-803b-4350-8f89-947124f4fc76	Duration: 41.66 ms	Billed Duration: 42 ms	Memory Size: 2048 MB	Max Memory Used: 97 MB	
-XRAY TraceId: 1-6a7916ec-3ef775830aff0b7543a87313	SegmentId: 85ecd013c928a12e	
-[00:30:55] [ERROR] KeyError: 'categories_done'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 518, in lambda_handler
-    print(json.dumps({k: m[k] for k in
-[00:30:55] REPORT RequestId: 2b56630c-803b-4350-8f89-947124f4fc76	Duration: 43.14 ms	Billed Duration: 44 ms	Memory Size: 2048 MB	Max Memory Used: 97 MB	
-XRAY TraceId: 1-6a7916ec-3ef775830aff0b7543a87313	SegmentId: 1af45107a171abc1	
-[00:30:55] [ERROR] NameError: name 's3' is not defined
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 559, in lambda_handler
-    s3.put_object(Bucket=BUCKET,
-[00:30:55] REPORT RequestId: d360ee76-3bcf-4dff-9bea-cce2209c9de6	Duration: 780201.82 ms	Billed Duration: 780202 ms	Memory Size: 2048 MB	Max Memory Used: 99 MB	
-XRAY TraceId: 1-6a7917bb-1116698f724125cd5c12b46e	SegmentId: 668a182db
-[00:30:55] REPORT RequestId: 88108819-395c-4ca0-9584-486ee8a0bcac	Duration: 1.50 ms	Billed Duration: 2 ms	Memory Size: 2048 MB	Max Memory Used: 99 MB	
-XRAY TraceId: 1-6a7917bb-2fdf45e62595c1c961f5ba57	SegmentId: 3d6d4990349839a2	Sa
-[00:30:55] REPORT RequestId: 4f6b90c3-717e-4e00-a6b1-cfcc6b26de04	Duration: 492.28 ms	Billed Duration: 1045 ms	Memory Size: 768 MB	Max Memory Used: 99 MB	Init Duration: 552.13 ms	
-XRAY TraceId: 1-6a7911df-7e6b824b08ea00e55f5c3a5f	S
-[00:30:55] REPORT RequestId: 5d8aad0a-e841-4643-a338-1803012c59d4	Duration: 154.59 ms	Billed Duration: 155 ms	Memory Size: 768 MB	Max Memory Used: 100 MB	
-XRAY TraceId: 1-6a79130b-46f2f24e462d36a21e238a54	SegmentId: 8c5914172fca9f0
-[00:30:55] {"categories_done": 81, "series_seen": 531149, "series_excluded_stale": 163, "series_imported": 11791, "status": "walking"}
-[00:30:55] REPORT RequestId: d9c71f09-270f-4d14-b3c7-d7bb94d3094a	Duration: 190489.34 ms	Billed Duration: 190490 ms	Memory Size: 768 MB	Max Memory Used: 122 MB	
-XRAY TraceId: 1-6a791437-2187152b7f4fe2176f009c01	SegmentId: 68bd2ae14
-[00:30:55] REPORT RequestId: b19e0754-3d79-4edb-92bd-e0cfafedc176	Duration: 172.40 ms	Billed Duration: 173 ms	Memory Size: 768 MB	Max Memory Used: 122 MB	
-XRAY TraceId: 1-6a791563-0eae4e0609381b113b449caa	SegmentId: 0eb79380cc0e4da
-[00:30:55] REPORT RequestId: 72f2198e-9d75-437c-927a-e70ff1fd27cf	Duration: 851.51 ms	Billed Duration: 852 ms	Memory Size: 768 MB	Max Memory Used: 122 MB	
-XRAY TraceId: 1-6a79168f-339f3b9a0038e1a568e5cff2	SegmentId: 5ddc994e8b2fcf6
-[00:30:55] ✅ verdict: V2_CRASHING
+executing-against: 8208692ac6ca54e3011d52ce95371abefdd9ab76
+ops 4574 — work order ops-4559 verification
+── 1. New engines: create + schedule + settle ──
+[02:47:34]   justhodl-port-cargo already exists — updating code from repo
+[02:47:42] ✅   justhodl-port-cargo schedule created via EventBridge Scheduler: justhodl-port-cargo-daily (cron(40 12 * * ? *))
+[02:47:42]   justhodl-accum-composite already exists — updating code from repo
+[02:47:49] ✅   justhodl-accum-composite schedule created via EventBridge Scheduler: justhodl-accum-composite-daily (cron(30 21 * * ? *))
+── 2. Patched engines: settle deploys ──
+[02:47:49]   justhodl-stealth-accumulation settled (LastModified 2026-08-10T02:46:53.000+0000)
+[02:47:49]   justhodl-etf-true-flows settled (LastModified 2026-08-10T02:46:58.000+0000)
+[02:47:49]   justhodl-grid-queue settled (LastModified 2026-08-10T02:47:13.000+0000)
+[02:47:50]   justhodl-dark-pool settled (LastModified 2026-08-10T02:47:43.000+0000)
+[02:47:50]   justhodl-share-flows settled (LastModified 2026-07-11T18:40:41.000+0000)
+[02:47:50]   justhodl-freight-pulse settled (LastModified 2026-07-21T20:46:02.000+0000)
+[02:47:50]   justhodl-accumulation-radar settled (LastModified 2026-08-10T02:47:25.000+0000)
+[02:47:50]   justhodl-flow-lookthrough settled (LastModified 2026-06-20T10:42:22.000+0000)
+── 3. Invoke + contract assertions ──
+[02:47:50] engine justhodl-port-cargo
+[02:48:11]   justhodl-port-cargo output refreshed (0s)
+[02:48:11] engine justhodl-accum-composite
+[02:48:13]   justhodl-accum-composite output refreshed (0s)
+[02:48:13] engine justhodl-stealth-accumulation
+[03:01:17] ⚠   justhodl-stealth-accumulation output did not refresh in 780s — asserting on latest available
+[03:01:18] engine justhodl-etf-true-flows
+[03:01:29]   justhodl-etf-true-flows output refreshed (10s)
+[03:01:29] engine justhodl-grid-queue
+[03:01:43]   justhodl-grid-queue output refreshed (0s)
+[03:01:43] engine justhodl-dark-pool
+[03:02:57]   justhodl-dark-pool output refreshed (73s)
+[03:02:57] engine justhodl-share-flows
+[03:03:09]   justhodl-share-flows output refreshed (10s)
+[03:03:09] engine justhodl-freight-pulse
+[03:03:12]   justhodl-freight-pulse output refreshed (0s)
+[03:03:12] engine justhodl-accumulation-radar
+[03:03:23]   justhodl-accumulation-radar output refreshed (10s)
+[03:03:23] engine justhodl-flow-lookthrough
+[03:03:34]   justhodl-flow-lookthrough output refreshed (10s)
+[03:03:34] ✗   [stealth] CONTRACT MISS — v1.1 live
+[03:03:34] ✗   [stealth] CONTRACT MISS — data_sufficiency block present
+[03:03:34] ✅   [stealth] P0: no confident negative while blind (state=QUIET, sufficient=None)
+[03:03:34] ✅   [stealth] feeds_missing populated when feeds yield zero rows
+[03:03:34] ✅   [etf-true-flows] v2 live
+[03:03:34] ✅   [etf-true-flows] method states NAV multiplier (BUG-1)
+[03:03:34] ✅   [etf-true-flows] nav source chain reporting (BUG-2)
+[03:03:34] ✅   [etf-true-flows] TNA cross-check anomalies channel (BUG-3)
+[03:03:34] ✅   [etf-true-flows] degraded NAV fallback on 0% of funds
+[03:03:34] ✅   [port-cargo] fetch_status separate from data age
+[03:03:34] ✅   [port-cargo] ports parsed OR gap stated — never silent (n=0)
+[03:03:34] ✅   [port-cargo] lag_months declared
+[03:03:34] ✅   [grid-queue] v2 live
+[03:03:34] ✅   [grid-queue] executed-IA MW is the primary (BUG-12)
+[03:03:34] ✅   [grid-queue] multi-ISO coverage (live: ['CAISO', 'ERCOT', 'MISO', 'NYISO', 'SPP']; missing: ['ISO-NE', 'PJM'])
+[03:03:34] ✅   [grid-queue] LBNL survival priors stated
+[03:03:34] ✅   [dark-pool] freshness split fetch vs data (BUG-5)
+[03:03:34] ✅   [dark-pool] share-of-volume denominator live (BUG-6)
+[03:03:34] ✅   [share-flows] engine_class disambiguated (BUG-7)
+[03:03:34] ✅   [freight-pulse] relabeled as confirmation leg (BUG-13)
+[03:03:34] ✅   [accum-radar] demoted to tier-4 confirmation (BUG-8)
+[03:03:34] ✅   [accum-composite] state honest (got OK)
+[03:03:34] ✅   [accum-composite] every component carries evidence_tier
+[03:03:34] ✅   [flow-lookthrough] tier-A fact labeling live (BUG-9 expansion to 300)
+── 4. Fleet sweep — confident-negative-from-empty-input (BUG-4 class) ──
+[03:05:27] ⚠ scanned 893 payloads — 11 flagged for the BUG-4 pattern
+[03:05:27]   ⚠ data/13f-price-divergence.json state=QUIET zeros=['n_divergences', 'n_bullish', 'n_bearish', 'n_high_conviction', 'n_tickers_in_feeder']
+[03:05:27]   ⚠ data/activist-13d.json state=QUIET zeros=['n_total_setups', 'n_fresh_tier_a', 'n_multi_activist', 'n_setups_top20', 'fresh_tier_a_count']
+[03:05:27]   ⚠ data/catalyst-skew-premove.json state=QUIET zeros=['n_with_options_data', 'n_directional_setups', 'n_bull_skew', 'n_bear_skew', 'n_balanced']
+[03:05:27]   ⚠ data/earnings-iv-crush.json state=QUIET zeros=['n_rich']
+[03:05:27]   ⚠ data/failed-pattern-reversal.json state=QUIET zeros=['n_scanned_with_data', 'n_failed_breakdowns_long', 'n_failed_breakouts_short', 'n_total_setups']
+[03:05:27]   ⚠ data/forced-selling-bounce.json state=QUIET zeros=['n_conditions_fired']
+[03:05:27]   ⚠ data/lockup-expiration.json state=QUIET zeros=['n_in_lockup_window', 'n_enriched', 'n_imminent_7d', 'n_approaching_21d', 'n_upcoming_35d', 'n_recently_passed']
+[03:05:27]   ⚠ data/ma-target-predictor.json state=QUIET zeros=['n_high_conviction', 'n_watch']
+[03:05:27]   ⚠ data/post-earnings-mean-rev.json state=QUIET zeros=['n_setups', 'n_high_conviction', 'n_long_setups', 'n_short_setups']
+[03:05:27]   ⚠ data/stealth-accumulation.json state=QUIET zeros=['n_insider_tickers', 'n_options_flow_tickers', 'n_convergence_2plus', 'n_convergence_3plus', 'n_convergence_4_all_signals']
+[03:05:27]   ⚠ data/vvix-vov-regime.json state=QUIET zeros=['n_tickets']
+── 5. BUG-10 — provider inventory 403s ──
+[03:05:27] ⚠   data/providers/_index.json re-put failed: An error occurred (NoSuchKey) when calling the CopyObject operation: The specified key does not exis
+[03:05:28] ⚠   CDN probe data/providers/_index.json → 403
+[03:05:28] ⚠   data/provider-inventory.json re-put failed: An error occurred (NoSuchKey) when calling the CopyObject operation: The specified key does not exis
+[03:05:28] ⚠   CDN probe data/provider-inventory.json → 403
+[03:05:28]   coverage-ratio unit mismatch (n_keys vs series.count) noted for the data-hub line — needs a provider-catalog patch with a single-unit numerator/denominator, not a blind fix here
+── 6. Sidebar + pages live ──
+[03:05:28] ⚠   https://justhodl.ai/_partials/sidebar.html → HTTP 404, marker MISSING (CDN cache?)
+[03:05:28] ✅   https://justhodl.ai/port-cargo.html → HTTP 200, marker FOUND
+[03:05:29] ✅   https://justhodl.ai/accum-composite.html → HTTP 200, marker FOUND
+── VERDICT ──
+[03:05:29] ✗ 2 contract miss(es) — see sections above
 
-→ Report written to aws/ops/reports/latest/4573_v2_liveness_diag.md
-V2_CRASHING
+→ Report written to aws/ops/reports/latest/4574_wo4559_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_4574_wo4559_verify.py
