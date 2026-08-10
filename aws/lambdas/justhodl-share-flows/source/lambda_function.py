@@ -460,6 +460,10 @@ def lambda_handler(event=None, context=None):
 
     out = {
         "version": VERSION,
+        "engine_class": "corporate_share_issuance",
+        "disclaimer": ("ops-4559 BUG-7: this engine measures ISSUER share-count "
+                       "change (buybacks/dilution), NOT investor fund flows. It "
+                       "sits next to etf-flows/flow-lookthrough in name only."),
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "n_tickers": len(tickers),
         "fresh_fetched": fresh_used,

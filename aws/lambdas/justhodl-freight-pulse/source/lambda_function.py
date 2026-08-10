@@ -49,6 +49,13 @@ def _fred(sid):
 def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     out = {"ok": False, "version": VERSION, "generated_at": now.isoformat(),
+           "engine_class": "physical_trade_slow_confirmation",
+           "composite_role": "slow_confirmation_leg",
+           "lag_months": -2,
+           "role_note": ("ops-4559 BUG-13: six US monthly FRED series on a 2-3mo "
+                         "lag cannot lead anything — this is the CONFIRMATION leg. "
+                         "The fast layer is port-cargo (daily tons), Korea 20-day "
+                         "exports and Kiel port calls."),
            "series": {}, "errors": []}
     scores = []
     for key, (sid, name) in SERIES.items():

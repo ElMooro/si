@@ -33,7 +33,7 @@ OUT_KEY = "data/flow-lookthrough.json"
 CACHE_PREFIX = "etf-constituents-v2/"
 CONSTIT_URL = "https://api.polygon.io/etf-global/v1/constituents"
 
-TOP_N_ETFS = 70
+TOP_N_ETFS = 300   # ops-4559 BUG-9: the mechanism scales with coverage
 CACHE_TTL_S = 3 * 86400      # refresh twice a week (capture rebalances)
 MIN_FLOW_USD = 5e7
 
@@ -294,7 +294,9 @@ def lambda_handler(event, context):
 
     out = {
         "engine": "justhodl-flow-lookthrough",
-        "version": "2.0.0",
+        "version": "2.1.0",
+        "evidence_tier": "tier_a_mechanical_fact",
+        "tier_note": ("ops-4559: ETF-implied constituent flow is a FACT, not an estimate — the creation basket mechanically requires these shares. Coverage raised 70 → 300 ETFs (BUG-9: best engine, starved)."),
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "thesis": "ETF creations/redemptions force mechanical buying/selling of "
                   "underlying holdings. Two views: flow attributed by weight, and "

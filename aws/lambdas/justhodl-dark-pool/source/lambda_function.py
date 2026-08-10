@@ -427,18 +427,66 @@ def lambda_handler(event=None, context=None):
     print("[v2.4] quiver:",quiver.get("status"),quiver.get("n") or quiver.get("code") or "")
 
     dark_map = {r["ticker"]: r["ats_shares_wk"] for r in rows}
+    # ops-4559 BUG-6: the thesis is dark SHARE OF VOLUME, and dark_map holds
+    # absolute shares (a volume proxy). Publish the ratio against the same
+    # week's consolidated volume, which this engine already fetches.
+    dark_share_map = {}
+    for r in rows:
+        cv = vol.get(r["ticker"])
+        if cv and cv > 0:
+            dark_share_map[r["ticker"]] = round(r["ats_shares_wk"] / cv, 4)
+    # composition: block vs non-block. FINRA's block-size ATS dataset is
+    # monthly; if the monthly payload carries block fields we split, else we
+    # say so — level of dark share is NOT treated as directional either way.
+    block_share_map, block_mode = {}, "unavailable"
+    try:
+        mrows = (monthly or {}).get("rows") or (monthly or {}).get("tickers") or {}
+        if isinstance(mrows, dict):
+            mit = mrows.items()
+        else:
+            mit = ((x.get("ticker"), x) for x in mrows if isinstance(x, dict))
+        for tk, m in mit:
+            if not isinstance(m, dict):
+                continue
+            bl = None
+            for k, v in m.items():
+                if "block" in str(k).lower() and isinstance(v, (int, float)):
+                    bl = float(v); break
+            tot = m.get("total_shares") or m.get("ats_shares") or m.get("shares")
+            if bl is not None and tot:
+                block_share_map[str(tk)] = round(bl / float(tot), 4)
+        if block_share_map:
+            block_mode = "monthly_ats_block_fields"
+    except Exception:
+        pass
     xray_map = {r["ticker"]: {"dp": r.get("dark_pool_pct"), "acc": r.get("dark_accel"),
                               "st": r.get("state"), "sz": r.get("daily_short_z"),
                               "cv": r.get("conviction"), "fl": r.get("flag"),
                               "dv": r.get("daily_off_exch_vol")} for r in rows}
 
     payload = {
-        "engine": "justhodl-dark-pool", "version": "2.4.1", "ok": True,
+        "engine": "justhodl-dark-pool", "version": "2.5.0", "ok": True,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "thesis": ("Per-name off-exchange accumulation from FINRA ATS transparency. Rising "
                    "dark-pool share of volume while price stays flat = quiet institutional "
                    "build that often precedes the move. Distinct from market-level DIX."),
-        "latest_week": latest_week, "weekly_source": weekly_source, "n_scored": len(rows),
+        "latest_week": latest_week,
+        # ops-4559 BUG-5: "FRESH" described the FETCH, not the data. Split:
+        "fetch_status": ("OK" if weekly_source == "FRESH" else weekly_source),
+        "data_age_days": (lambda lw: (datetime.now(timezone.utc).date()
+                          - datetime.strptime(lw, "%Y-%m-%d").date()).days
+                          if lw else None)(latest_week),
+        "expected_lag_days": 21,
+        "lag_note": ("FINRA ATS weekly publishes ~2wk behind for Tier-1 NMS, "
+                     "~4wk Tier-2; stale only when data_age_days > expected + 7"),
+        "weekly_source": weekly_source, "n_scored": len(rows),
+        "dark_share_map": dark_share_map,
+        "block_share_map": block_share_map,
+        "block_composition_mode": block_mode,
+        "composition_note": ("block-sized dark prints constructive; NON-block dark "
+                             "share >10% of consolidated volume is associated with "
+                             "degraded price discovery — aggregate dark share is "
+                             "not directional on its own (ops-4559 BUG-6)"),
         "distribution": {"accumulation": len(accumulation), "distribution": len(distribution)},
         "board": rows[:60],
         "top_picks": top_picks,

@@ -483,6 +483,13 @@ def lambda_handler(event=None, context=None):
 
     out = {
         "engine": "accumulation-radar", "version": VERSION,
+        "evidence_tier": "tier_4_unvalidated_technical",
+        "role": "confirmation_layer",
+        "evidence_note": ("ops-4559 BUG-8: no located peer-reviewed out-of-sample "
+                          "validation for OBV/CMF/MFI/Wyckoff as accumulation "
+                          "detectors. Primary evidence lives in accum-composite "
+                          "(Form-4 opportunistic, LOW-SVR, residualized 13F); this "
+                          "engine confirms — disagreement is surfaced there."),
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1), "buffer_days": len(buf["dates"]),
         "n_scored": len(rows), "days_added": added,
