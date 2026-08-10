@@ -1,10 +1,10 @@
-executing-against: ca78f6f65e6ee5dd6d3202bdc73089c55279c8b1
-ops 4570 — import checkpoint vs 22:48 snapshot
-── 1. disk truth ──
-── 2. importer state + schedule + fires ──
-── 3. hub freshness + page parity + regressions ──
-── 4. served hub (what the page fetches) ──
-[23:52:15] ✅ IMPORTING_AND_PAGE_TRUE banked=5967 (+938 in 1.1h, 876.1/hr) cats=81/179 rule=ENABLED inv2h=71
+executing-against: 2d39155f0c135fc21c735497ae6b1bca5bf1d814
+ops 4571 — SSM key + knobs for priority-drain v2
+[00:06:49] ✅ already set (len=32, tail ...9989)
+[00:06:49] ✅ /justhodl/fred/rate-ceiling: created = 100
+[00:06:49] ✅ /justhodl/fred/min-popularity: created = -1
+[00:06:49] ✅ /justhodl/fred/paused: created = 0
+[00:06:49] ✅ SSM ready — v2 deploy can drop the key from config/env safely
 
-→ Report written to aws/ops/reports/latest/4570_import_checkpoint.md
-IMPORTING_AND_PAGE_TRUE banked=5967 (+938 in 1.1h, 876.1/hr) cats=81/179 rule=ENABLED inv2h=71
+→ Report written to aws/ops/reports/latest/4571_ssm_provision.md
+PASS
