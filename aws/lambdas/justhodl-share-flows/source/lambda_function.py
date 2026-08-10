@@ -52,7 +52,7 @@ from impact_mapper import (build as impact_build, load_graph,
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/share-flows.json"
-VERSION = "2.1.0"
+VERSION = "2.1.1"
 FMP = (os.environ.get("FMP_API_KEY") or os.environ.get("FMP_KEY")
        or "")
 MAX_FRESH_FETCH = 420          # per-run new-name budget
@@ -407,7 +407,11 @@ def lambda_handler(event=None, context=None):
     announced, announced_src = {}, None
     try:
         _bsc = s3_json("data/buyback-scanner.json") or {}
-        for _o in (_bsc.get("opportunities") or []):
+        # rev-K: the scanner's published list key is top_opportunities
+        # (recon-verified); read both, and say what we saw on fallback.
+        _blist = (_bsc.get("top_opportunities")
+                  or _bsc.get("opportunities") or [])
+        for _o in _blist:
             _t = (_o.get("ticker") or "").upper()
             _d = _o.get("announcement_date") or _o.get("file_date")
             if not _t:
@@ -426,6 +430,9 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         warns.append("buyback-scanner consume failed: %s" % str(e)[:80])
     if not announced:
+        warns.append("scanner join fallback — feed as_of=%s keys_seen=%s "
+                     "list_len=%d" % (_bsc.get("as_of"),
+                                      sorted(_bsc)[:8], len(_blist)))
         try:
             _fts = edgar_fts('"share repurchase program"', "8-K", 270, warns)
             announced = {t: {"date": d} for t, d in _fts.items()}
@@ -439,7 +446,8 @@ def lambda_handler(event=None, context=None):
         for _t, _rec in (_sfi.get("per_ticker") or {}).items():
             for _ev in (_rec.get("events") or []):
                 _hay = " ".join(str(_ev.get(k) or "") for k in
-                                ("id", "signal", "label", "desc")).lower()
+                                ("id", "signal", "signal_id",
+                                 "signal_label", "label", "desc")).lower()
                 if "at-the-market" in _hay or "atm" in _hay.split():
                     _d = _ev.get("filed_at") or _ev.get("file_date")
                     if _t not in atm or (_d or "") > (atm[_t] or ""):
@@ -449,6 +457,10 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         warns.append("sec-filings-intel consume failed: %s" % str(e)[:80])
     if not atm:
+        warns.append("sec-filings-intel join fallback — feed_present=%s "
+                     "n_tickers=%s"
+                     % (bool(_sfi), len((_sfi or {}).get("per_ticker")
+                                        or {})))
         try:
             atm = edgar_fts('"at-the-market"', "424B5", 90, warns)
             atm_src = "edgar_fts FALLBACK (sec-filings-intel absent/no ATM)"
