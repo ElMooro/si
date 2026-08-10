@@ -1,22 +1,59 @@
-executing-against: bf1472feda391361c6c3a6302702e4c44e6f1304
-ops 4576 — import sentinel + leftovers
-── 1. Expansion knob bootstrap ──
-── 2. Sentinel: create + 10-min heartbeat + settle ──
-[03:57:35]   justhodl-import-sentinel exists — code updated from repo
-[03:57:48]   schedule exists: justhodl-import-sentinel-10min
-── 3. First sweep + payload contract ──
-[03:57:49] ✅ health payload live — overall=ACTION_REQUIRED, worst=sdmx-ecb, 7 pipelines
-[03:57:49] ✅   sdmx-eurostat → COMPLETE (8146/8146, 6 source-side failures)
-[03:57:49] ✅   sdmx-oecd → COMPLETE (1542/1542, 991 source-side failures)
-[03:57:49] ✅   sdmx-statcan → COMPLETE (8221/8221, 293 source-side failures)
-[03:57:49] ✅   sdmx-bis → COMPLETE (29/29, 1 source-side failures)
-[03:57:49] ⚠   sdmx-ecb → BLOCKED (state file absent — ECB API 406 content-negotiation block (known; needs Accept-header adap)
-[03:57:49] ✅   provider-catalog → OK (hub index freshness)
-── 4. port-cargo v1.0.2 gate (the last 4574 miss) ──
-[03:58:35] ✅ port-cargo v1.0.2: 2065 ports parsed, date types ['iso_string'], global pulse 0.37%
-── 5. Simultaneity (Khalid's question, answered in design) ──
-[03:58:35] providers have independent rate limits — FRED and every SDMX walker already run in parallel; each provider's own lease enforces the only serialization that matters (per-provider single-flight). Nothing to gate.
+executing-against: f1afeb142682964e7e49b82c4d10c51d1efa1519
+ops 4577 — FRED ground truth + storm purge + key repair
+── 1. Key-chain audit (three belts) ──
+── 2. Async storm purge (drop the retry backlog) ──
+[04:02:11]   event-invoke config → age 60s / retries 0 (purging)
+[04:03:42] ✅   restored → age 1h / retries 1 (watchdog covers gaps)
+── 3. The lambda's own answer ──
+[04:03:42]   slot busy (attempt 1/8) — waiting 18s
+[04:04:01]   slot busy (attempt 2/8) — waiting 18s
+[04:04:19]   slot busy (attempt 3/8) — waiting 18s
+[04:04:38]   slot busy (attempt 4/8) — waiting 18s
+[04:04:56]   slot busy (attempt 5/8) — waiting 18s
+[04:05:15]   slot busy (attempt 6/8) — waiting 18s
+[04:05:34]   slot busy (attempt 7/8) — waiting 18s
+[04:05:52]   slot busy (attempt 8/8) — waiting 18s
+[04:06:10] ✗ slot never freed across the retry window — backlog purge did not take; inspect EventInvokeConfig
+── 4. Recent log tail (last 25 lines, ground truth) ──
+[04:06:10]   | INIT_START Runtime Version: python:3.12.mainlinev2.v27	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:fb4a5cbb4aeb1909cf946882192e0e708d8756b3a866c3ab89
+[04:06:10]   | START RequestId: 7d217296-981d-48c8-a213-be28847d143e Version: $LATEST
+[04:06:10]   | [ERROR] KeyError: 'categories_done'
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 707, in lambda_handler
+    print(json.dumps({
+[04:06:10]   | END RequestId: 7d217296-981d-48c8-a213-be28847d143e
+[04:06:10]   | REPORT RequestId: 7d217296-981d-48c8-a213-be28847d143e	Duration: 349.86 ms	Billed Duration: 895 ms	Memory Size: 2048 MB	Max Memory Used: 98 MB	Init Duration: 54
+[04:06:10]   | START RequestId: c32dd450-0bd9-4a48-960d-4105fc3e0e74 Version: $LATEST
+[04:06:10]   | [ERROR] KeyError: 'categories_done'
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 707, in lambda_handler
+    print(json.dumps({
+[04:06:10]   | END RequestId: c32dd450-0bd9-4a48-960d-4105fc3e0e74
+[04:06:10]   | REPORT RequestId: c32dd450-0bd9-4a48-960d-4105fc3e0e74	Duration: 213.74 ms	Billed Duration: 214 ms	Memory Size: 2048 MB	Max Memory Used: 98 MB	
+XRAY TraceId: 1-
+[04:06:10]   | START RequestId: ce8efa1b-3680-4770-8238-8fac22e425fc Version: $LATEST
+[04:06:11]   | INIT_START Runtime Version: python:3.12.mainlinev2.v27	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:fb4a5cbb4aeb1909cf946882192e0e708d8756b3a866c3ab89
+[04:06:11]   | START RequestId: 220cdabb-1512-43b2-8b05-746eaa5a2cdd Version: $LATEST
+[04:06:11]   | [ERROR] KeyError: 'categories_done'
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 685, in lambda_handler
+    print(json.dumps({
+[04:06:11]   | END RequestId: 220cdabb-1512-43b2-8b05-746eaa5a2cdd
+[04:06:11]   | REPORT RequestId: 220cdabb-1512-43b2-8b05-746eaa5a2cdd	Duration: 361.77 ms	Billed Duration: 847 ms	Memory Size: 2048 MB	Max Memory Used: 98 MB	Init Duration: 48
+[04:06:11]   | START RequestId: be3f9c75-1570-4945-8760-67f6cd42d683 Version: $LATEST
+[04:06:11]   | [ERROR] NameError: name 's3' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 726, in lambda_handler
+    s3.put_obj
+[04:06:11]   | END RequestId: be3f9c75-1570-4945-8760-67f6cd42d683
+[04:06:11]   | REPORT RequestId: be3f9c75-1570-4945-8760-67f6cd42d683	Duration: 780973.49 ms	Billed Duration: 780974 ms	Memory Size: 2048 MB	Max Memory Used: 99 MB	
+XRAY Trace
+── 5. Live-run proof: checkpoint within 150s ──
+[04:08:41] ✗ no state movement in 150s after the kick — read the log tail above
+── 6. Storm check after purge ──
+[04:09:41] ⚠ Throttles(5m)=41 (was 295/10m before purge)
 ── VERDICT ──
-[03:58:35] ✅ sentinel live on a 10-min heartbeat; port-cargo parsing; FRED observed with safe-heal + expansion armed
+[04:09:41] ✗ 2 gate(s) failed
 
-→ Report written to aws/ops/reports/latest/4576_import_sentinel.md
+→ Report written to aws/ops/reports/latest/4577_fred_ground_truth.md
+❌ OPS-FAIL: aws/ops/pending/ops_4577_fred_ground_truth.py
