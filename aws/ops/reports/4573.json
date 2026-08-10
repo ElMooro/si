@@ -1,0 +1,46 @@
+{
+ "ops": 4573,
+ "at": "2026-08-10T00:30:54.467660+00:00",
+ "state": {
+  "phase2": null,
+  "queue_total": null,
+  "queue_cursor": null,
+  "rate_rpm": null,
+  "series_imported": 11927,
+  "last_pop_drained": null,
+  "next_popularity": null,
+  "throttled_429": null,
+  "status": "walking",
+  "blocked_at": null,
+  "updated_at": "2026-08-10T00:08:47+00:00",
+  "lease_until": 0,
+  "cats_done_n": 81,
+  "lease_in_s": -1786321854.6
+ },
+ "queue_obj": null,
+ "cw_45m": {
+  "invocations": 21,
+  "errors": 4,
+  "throttles": 105
+ },
+ "log_tail": [
+  "{\"categories_done\": 0, \"series_seen\": 0, \"series_excluded_stale\": 0, \"series_imported\": 0, \"status\": \"paused\"}",
+  "REPORT RequestId: 57731f45-ff52-4669-a68f-53fc94c301c4\tDuration: 30.31 ms\tBilled Duration: 565 ms\tMemory Size: 2048 MB\tMax Memory Used: 97 MB\tInit Duration: 533.77 ms\t\nXRAY TraceId: 1-6a7916ea-4e7e08f26b3a1bb94411ad0f\tSe",
+  "[ERROR] KeyError: 'categories_done'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 518, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0print(json.dumps({k: m[k] for k in",
+  "REPORT RequestId: 2b56630c-803b-4350-8f89-947124f4fc76\tDuration: 28.77 ms\tBilled Duration: 29 ms\tMemory Size: 2048 MB\tMax Memory Used: 97 MB\t\nXRAY TraceId: 1-6a7916ec-3ef775830aff0b7543a87313\tSegmentId: 7113798ac3168967\t",
+  "[ERROR] KeyError: 'categories_done'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 518, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0print(json.dumps({k: m[k] for k in",
+  "REPORT RequestId: 2b56630c-803b-4350-8f89-947124f4fc76\tDuration: 41.66 ms\tBilled Duration: 42 ms\tMemory Size: 2048 MB\tMax Memory Used: 97 MB\t\nXRAY TraceId: 1-6a7916ec-3ef775830aff0b7543a87313\tSegmentId: 85ecd013c928a12e\t",
+  "[ERROR] KeyError: 'categories_done'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 518, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0print(json.dumps({k: m[k] for k in",
+  "REPORT RequestId: 2b56630c-803b-4350-8f89-947124f4fc76\tDuration: 43.14 ms\tBilled Duration: 44 ms\tMemory Size: 2048 MB\tMax Memory Used: 97 MB\t\nXRAY TraceId: 1-6a7916ec-3ef775830aff0b7543a87313\tSegmentId: 1af45107a171abc1\t",
+  "[ERROR] NameError: name 's3' is not defined\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 559, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0s3.put_object(Bucket=BUCKET,",
+  "REPORT RequestId: d360ee76-3bcf-4dff-9bea-cce2209c9de6\tDuration: 780201.82 ms\tBilled Duration: 780202 ms\tMemory Size: 2048 MB\tMax Memory Used: 99 MB\t\nXRAY TraceId: 1-6a7917bb-1116698f724125cd5c12b46e\tSegmentId: 668a182db",
+  "REPORT RequestId: 88108819-395c-4ca0-9584-486ee8a0bcac\tDuration: 1.50 ms\tBilled Duration: 2 ms\tMemory Size: 2048 MB\tMax Memory Used: 99 MB\t\nXRAY TraceId: 1-6a7917bb-2fdf45e62595c1c961f5ba57\tSegmentId: 3d6d4990349839a2\tSa",
+  "REPORT RequestId: 4f6b90c3-717e-4e00-a6b1-cfcc6b26de04\tDuration: 492.28 ms\tBilled Duration: 1045 ms\tMemory Size: 768 MB\tMax Memory Used: 99 MB\tInit Duration: 552.13 ms\t\nXRAY TraceId: 1-6a7911df-7e6b824b08ea00e55f5c3a5f\tS",
+  "REPORT RequestId: 5d8aad0a-e841-4643-a338-1803012c59d4\tDuration: 154.59 ms\tBilled Duration: 155 ms\tMemory Size: 768 MB\tMax Memory Used: 100 MB\t\nXRAY TraceId: 1-6a79130b-46f2f24e462d36a21e238a54\tSegmentId: 8c5914172fca9f0",
+  "{\"categories_done\": 81, \"series_seen\": 531149, \"series_excluded_stale\": 163, \"series_imported\": 11791, \"status\": \"walking\"}",
+  "REPORT RequestId: d9c71f09-270f-4d14-b3c7-d7bb94d3094a\tDuration: 190489.34 ms\tBilled Duration: 190490 ms\tMemory Size: 768 MB\tMax Memory Used: 122 MB\t\nXRAY TraceId: 1-6a791437-2187152b7f4fe2176f009c01\tSegmentId: 68bd2ae14",
+  "REPORT RequestId: b19e0754-3d79-4edb-92bd-e0cfafedc176\tDuration: 172.40 ms\tBilled Duration: 173 ms\tMemory Size: 768 MB\tMax Memory Used: 122 MB\t\nXRAY TraceId: 1-6a791563-0eae4e0609381b113b449caa\tSegmentId: 0eb79380cc0e4da",
+  "REPORT RequestId: 72f2198e-9d75-437c-927a-e70ff1fd27cf\tDuration: 851.51 ms\tBilled Duration: 852 ms\tMemory Size: 768 MB\tMax Memory Used: 122 MB\t\nXRAY TraceId: 1-6a79168f-339f3b9a0038e1a568e5cff2\tSegmentId: 5ddc994e8b2fcf6"
+ ],
+ "verdict": "V2_CRASHING"
+}
