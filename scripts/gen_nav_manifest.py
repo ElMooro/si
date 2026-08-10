@@ -78,6 +78,11 @@ FORCE = {  # ops 3302
     "/insider-industry-cluster.html": "Research & Tools",  # ops 3745
     "/credit-before-equity.html": "Macro & Liquidity",     # ops 3756
     "/ppi-acceleration.html": "Macro & Liquidity",        # ops 3760
+    "/port-cargo.html": "Macro & Liquidity",              # ops 4559: daily tonnage fast layer, sits with portwatch/freight
+    "/accum-composite.html": "Equity Signals",            # ops 4559: evidence-tiered accumulation board
+    "/flows.html": "Equity Signals",                      # ops 4559: ETF true flows at NAV
+    "/dark-pool.html": "Equity Signals",                  # ops 4559: FINRA ATS share-of-volume
+    "/flow-lookthrough.html": "Equity Signals",           # ops 4559: tier-A mechanical constituent flow
 }
 
 
