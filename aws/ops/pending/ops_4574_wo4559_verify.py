@@ -54,8 +54,10 @@ NEW = {
     "justhodl-port-cargo": "data/port-cargo.json",
     "justhodl-accum-composite": "data/accum-composite.json",
 }
+PATCHED["justhodl-provider-catalog"] = "data/provider-catalog.json"
 # engines too heavy to block on synchronously — async invoke + S3 poll
 ASYNC_FNS = {"justhodl-dark-pool", "justhodl-accumulation-radar",
+             "justhodl-provider-catalog",
              "justhodl-flow-lookthrough", "justhodl-share-flows",
              "justhodl-etf-true-flows"}
 CONFIDENT_NEG = {"QUIET", "CLEAR", "NONE", "CALM", "NO_SIGNAL", "NO_SETUPS",
@@ -151,7 +153,21 @@ def invoke_and_fetch(r, fn, key, max_wait=780):
     before_ts = before.get("generated_at") or before.get("as_of") or ""
     mode = "Event" if fn in ASYNC_FNS else "RequestResponse"
     try:
-        lam.invoke(FunctionName=fn, InvocationType=mode)
+        resp = lam.invoke(FunctionName=fn, InvocationType=mode)
+        if mode == "RequestResponse":
+            body_raw = resp["Payload"].read().decode("utf-8", "replace")
+            if resp.get("FunctionError"):
+                r.fail("  %s FunctionError: %s" % (fn, body_raw[:400]))
+            else:
+                try:
+                    rb = json.loads(body_raw)
+                    inner = json.loads(rb.get("body") or "{}") if isinstance(rb, dict) else {}
+                    if isinstance(rb, dict) and rb.get("statusCode") == 500:
+                        r.fail("  %s handler 500: %s | trace: %s"
+                               % (fn, str(inner.get("error"))[:150],
+                                  str(inner.get("trace"))[-350:]))
+                except Exception:
+                    pass
     except Exception as e:
         r.fail("  %s invoke error: %s" % (fn, str(e)[:120]))
         return before
@@ -198,13 +214,14 @@ def main():
         j = outs["justhodl-stealth-accumulation"]
         ds = j.get("data_sufficiency") or {}
         fm = (j.get("summary") or {}).get("feeds_missing")
-        misses += contract(r, "stealth", j.get("version") == "1.1", "v1.1 live")
+        misses += contract(r, "stealth", j.get("version") == "1.1.1", "v1.1.1 live")
         misses += contract(r, "stealth", isinstance(ds, dict) and "sufficient" in ds,
                            "data_sufficiency block present")
         blind = not ds.get("sufficient", True)
         misses += contract(r, "stealth",
-                           (not blind) or j.get("state") not in CONFIDENT_NEG,
-                           "P0: no confident negative while blind (state=%s, sufficient=%s)"
+                           (not blind) or j.get("state") == "INSUFFICIENT_DATA",
+                           "P0: blind ⇒ state is INSUFFICIENT_DATA, nothing else "
+                           "(state=%s, sufficient=%s)"
                            % (j.get("state"), ds.get("sufficient")))
         misses += contract(r, "stealth",
                            not (blind and fm in ([], None)),
@@ -233,6 +250,14 @@ def main():
                            "ports parsed OR gap stated — never silent (n=%s)"
                            % j.get("n_ports_with_data"))
         misses += contract(r, "port-cargo", "lag_months" in j, "lag_months declared")
+        npc = j.get("n_ports_with_data") or 0
+        misses += contract(r, "port-cargo", npc > 0,
+                           "tonnage rows parsed after where-negotiation (n=%s)" % npc)
+        if 0 < npc < 1500:
+            r.warn("  [port-cargo] only %d of ~2065 ports parsed — check gaps: %s"
+                   % (npc, (j.get("gaps") or [])[:2]))
+        misses += contract(r, "port-cargo", not npc or bool(j.get("countries")),
+                           "country rollups populated when ports parse")
 
         j = outs["justhodl-grid-queue"]
         nat = j.get("national") or {}
@@ -271,6 +296,15 @@ def main():
                            all(("evidence_tier" in c) for n in (j.get("names") or [])[:5]
                                for c in n.get("components", [])),
                            "every component carries evidence_tier")
+        j = outs["justhodl-provider-catalog"]
+        provs = j.get("providers") or []
+        bad_basis = [p.get("slug") for p in provs
+                     if p.get("coverage_pct") is not None
+                     and not p.get("coverage_basis")]
+        misses += contract(r, "provider-catalog", provs and not bad_basis,
+                           "every shown coverage %% declares a single-unit basis "
+                           "(violators: %s)" % (bad_basis or "none"))
+
         j = outs["justhodl-flow-lookthrough"]
         misses += contract(r, "flow-lookthrough",
                            j.get("evidence_tier") == "tier_a_mechanical_fact",
@@ -316,30 +350,37 @@ def main():
         for f in flagged[:15]:
             r.log("  ⚠ %s state=%s zeros=%s" % (f["key"], f["state"], f["zero_fields"]))
 
-        r.section("5. BUG-10 — provider inventory 403s")
-        for k in ("data/providers/_index.json", "data/provider-inventory.json"):
-            try:
-                s3.copy_object(Bucket=B, Key=k, CopySource={"Bucket": B, "Key": k},
-                               MetadataDirective="REPLACE",
-                               ContentType="application/json",
-                               CacheControl="public, max-age=300")
-                r.log("  re-put %s with correct headers" % k)
-            except Exception as e:
-                r.warn("  %s re-put failed: %s" % (k, str(e)[:100]))
-            code, _ = http_probe("https://justhodl.ai/" + k)
-            (r.ok if code == 200 else r.warn)("  CDN probe %s → %s" % (k, code))
-        r.log("  coverage-ratio unit mismatch (n_keys vs series.count) noted for the "
-              "data-hub line — needs a provider-catalog patch with a single-unit "
-              "numerator/denominator, not a blind fix here")
-
-        r.section("6. Sidebar + pages live")
-        for url, needle in (("https://justhodl.ai/_partials/sidebar.html", "port-cargo.html"),
-                            ("https://justhodl.ai/port-cargo.html", "Port Cargo"),
-                            ("https://justhodl.ai/accum-composite.html", "Accumulation Composite")):
+        r.section("5. BUG-10 — provider inventory (real keys)")
+        r.log("  work-order paths data/providers/_index.json and "
+              "data/provider-inventory.json were never written by any engine — "
+              "the external verifier probed guessed paths (S3 answers 403 for "
+              "nonexistent keys). The real index is data/provider-catalog.json "
+              "+ data/providers/{slug}.json.")
+        code, hit = http_probe("https://justhodl.ai/data/provider-catalog.json",
+                               "coverage_basis")
+        misses += contract(r, "provider-catalog-cdn",
+                           code == 200 and hit,
+                           "real index serves 200 with coverage_basis (HTTP %s)" % code)
+        r.section("6. Nav + pages live (manifest-driven drawer)")
+        code, hit1 = http_probe("https://justhodl.ai/nav-manifest.json",
+                                "/port-cargo.html")
+        _, hit2 = http_probe("https://justhodl.ai/nav-manifest.json",
+                             "/accum-composite.html")
+        misses += contract(r, "nav", code == 200 and hit1 and hit2,
+                           "both new pages present in the live drawer manifest "
+                           "(HTTP %s, port-cargo=%s, accum-composite=%s)"
+                           % (code, hit1, hit2))
+        for url, needle in (("https://justhodl.ai/port-cargo.html", "Port Cargo"),
+                            ("https://justhodl.ai/accum-composite.html",
+                             "Accumulation Composite")):
             code, hit = http_probe(url, needle)
             (r.ok if (code == 200 and hit) else r.warn)(
-                "  %s → HTTP %s, marker %s" % (url, code, "FOUND" if hit else "MISSING (CDN cache?)"))
-
+                "  %s → HTTP %s, marker %s" % (url, code,
+                                               "FOUND" if hit else "MISSING"))
+        r.log("  note: _partials/ is DENY-listed from pages deploy; the only "
+              "consumer of /_partials/sidebar.html is legacy desk-v2.html "
+              "(its injected sidebar has been 404ing since the deny — "
+              "known-cosmetic, separate ticket)")
         r.section("VERDICT")
         if misses == 0:
             r.ok("ops-4559 landed: 0 contract misses across %d engines"
