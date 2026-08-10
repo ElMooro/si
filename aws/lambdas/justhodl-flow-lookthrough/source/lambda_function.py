@@ -24,6 +24,9 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
+from impact_mapper import (build as impact_build, load_graph,
+                           measured_row, industry_rollup)
+
 S3 = boto3.client("s3", region_name="us-east-1")
 SSM = boto3.client("ssm", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
@@ -31,6 +34,7 @@ FLOWS_KEY = "etf-flows/daily.json"
 SCREENER_KEY = "screener/data.json"
 OUT_KEY = "data/flow-lookthrough.json"
 CACHE_PREFIX = "etf-constituents-v2/"
+HOLDINGS_INDEX_KEY = "data/impact/etf-holdings-index.json"   # wo4580: canonical
 CONSTIT_URL = "https://api.polygon.io/etf-global/v1/constituents"
 
 TOP_N_ETFS = 300   # ops-4559 BUG-9: the mechanism scales with coverage
@@ -150,6 +154,7 @@ def fetch_constituents(etf):
     adds = [t for t in new if t not in old] if old else []
     dels = [t for t in old if t not in new] if old else []
     out = {"etf": etf, "processed_date": pd_new, "prior_date": pd_old,
+           "total_mv_usd": round(total_mv), 
            "n_holdings": len(holdings), "holdings": holdings,
            "additions": adds, "deletions": dels,
            "has_delta": bool(old), "fetched_at": datetime.now(timezone.utc).isoformat()}
@@ -208,17 +213,25 @@ def lambda_handler(event, context):
         f5 = (f5 if f5 is not None else m.get("daily_flow_usd")) or 0.0
         fd = m.get("daily_flow_usd") or 0.0
         is_broad = etf in BROAD
+        etf_mv = c.get("total_mv_usd") or sum(h["mv"] for h in c["holdings"])
+        hmap = {h["ticker"]: h for h in c["holdings"]}
         for ad in c.get("additions", []):
-            index_events.append({"ticker": ad, "etf": etf, "event": "ADDED"})
+            w_ad = (hmap.get(ad) or {}).get("weight")
+            index_events.append({"ticker": ad, "etf": etf, "event": "ADDED",
+                                 "forced_usd": round(w_ad * etf_mv)
+                                 if isinstance(w_ad, (int, float)) else None})
         for dl in c.get("deletions", []):
-            index_events.append({"ticker": dl, "etf": etf, "event": "DROPPED"})
+            index_events.append({"ticker": dl, "etf": etf, "event": "DROPPED",
+                                 "forced_usd": None})
         for h in c["holdings"]:
             tk = h["ticker"]
             w = h["weight"] or 0.0
             a = agg.setdefault(tk, {"ticker": tk, "flow_5d": 0.0, "daily": 0.0,
                                     "broad_5d": 0.0, "thematic_5d": 0.0,
                                     "shares_delta_usd": 0.0, "delta_seen": False,
+                                    "etf_held_mv": 0.0,
                                     "drivers": []})
+            a["etf_held_mv"] += h.get("mv") or 0.0
             contrib5 = f5 * w
             a["flow_5d"] += contrib5
             a["daily"] += fd * w
@@ -232,11 +245,14 @@ def lambda_handler(event, context):
             a["drivers"].append({"etf": etf, "contrib_5d_usd": round(contrib5, 0),
                                  "weight": round(w, 5), "broad": is_broad})
 
+    graph = load_graph() or {}
+    gtk = graph.get("tickers") or {}
     rows = []
     for tk, a in agg.items():
         a["drivers"].sort(key=lambda d: abs(d["contrib_5d_usd"]), reverse=True)
         a["drivers"] = a["drivers"][:5]
-        mc = mcap.get(tk)
+        g = gtk.get(tk) or {}
+        mc = mcap.get(tk) or g.get("mcap")
         a["net_flow_5d_usd"] = round(a.pop("flow_5d"), 0)
         a["net_flow_daily_usd"] = round(a.pop("daily"), 0)
         a["broad_flow_5d_usd"] = round(a.pop("broad_5d"), 0)
@@ -244,6 +260,19 @@ def lambda_handler(event, context):
         a["shares_delta_usd"] = round(a["shares_delta_usd"], 0) if a.pop("delta_seen") else None
         a["n_etfs"] = len(a["drivers"])
         a["flow_bps_mcap"] = round(a["net_flow_5d_usd"] / mc * 1e4, 2) if mc else None
+        adv = g.get("adv_usd")
+        # wo4580 measured pp: implied demand as bps of one day's dollar ADV,
+        # per day, over the 5d window — the cleanest "how heavy is this
+        # mechanical bid" number on the platform
+        a["flow_bps_adv_day"] = (round(a["net_flow_5d_usd"] / 5.0 / adv * 1e4, 1)
+                                 if adv else None)
+        a["delta_bps_adv"] = (round(a["shares_delta_usd"] / adv * 1e4, 1)
+                              if (adv and a.get("shares_delta_usd") is not None)
+                              else None)
+        a["industry"] = g.get("industry")
+        a["etf_ownership_pct"] = (round(a.get("etf_held_mv", 0.0) / mc * 100, 2)
+                                  if mc else None)
+        a.pop("etf_held_mv", None)
         a["delta_bps_mcap"] = round(a["shares_delta_usd"] / mc * 1e4, 2) if (mc and a["shares_delta_usd"] is not None) else None
         a["market_cap_usd"] = mc
         if abs(a["net_flow_5d_usd"]) > 0:
@@ -285,16 +314,82 @@ def lambda_handler(event, context):
                   "net_flow_5d_usd": r["net_flow_5d_usd"], "flow_type": r["flow_type"],
                   "confirmed": r.get("confirmed")} for r in top_picks]
 
-    # dedup index events (name added/dropped by >=1 ETF), thematic only
+    # dedup index events; ADDED events aggregate their dated forced dollars
     ev_seen = {}
     for e in index_events:
-        ev_seen.setdefault((e["ticker"], e["event"]), []).append(e["etf"])
-    index_events_agg = [{"ticker": t, "event": ev, "etfs": etfs}
-                        for (t, ev), etfs in ev_seen.items()][:30]
+        d = ev_seen.setdefault((e["ticker"], e["event"]),
+                               {"etfs": [], "forced_usd": 0.0, "seen$": False})
+        d["etfs"].append(e["etf"])
+        if e.get("forced_usd"):
+            d["forced_usd"] += e["forced_usd"]
+            d["seen$"] = True
+    index_events_agg = []
+    for (t, ev), d in ev_seen.items():
+        row = {"ticker": t, "event": ev, "etfs": d["etfs"]}
+        if d["seen$"]:
+            row["forced_usd"] = round(d["forced_usd"])
+            g2 = gtk.get(t) or {}
+            if g2.get("adv_usd"):
+                row["forced_bps_adv"] = round(d["forced_usd"] / g2["adv_usd"] * 1e4, 1)
+        row["alpha_note"] = ("index-effect flows are crowded and decay fast — "
+                            "dated mechanical demand, not a discovery")
+        index_events_agg.append(row)
+    index_events_agg = index_events_agg[:30]
+
+    # wo4580: passive-ownership concentration — % of mcap held via the 300
+    # ETFs (measured from constituent MV). High = most passive-flow-sensitive.
+    concentration = sorted(
+        [{"ticker": r["ticker"], "etf_ownership_pct": r["etf_ownership_pct"],
+          "industry": r.get("industry"), "market_cap_usd": r.get("market_cap_usd")}
+         for r in rows if (r.get("etf_ownership_pct") or 0) > 0
+         and (r.get("market_cap_usd") or 0) > 2e9],
+        key=lambda x: -x["etf_ownership_pct"])[:25]
+
+    # wo4580: canonical holdings index — etf-true-flows joins through this
+    try:
+        S3.put_object(Bucket=BUCKET, Key=HOLDINGS_INDEX_KEY,
+                      Body=json.dumps({
+                          "generated_at": datetime.now(timezone.utc).isoformat(),
+                          "cache_prefix": CACHE_PREFIX,
+                          "etfs": {e: {"asof": c.get("processed_date"),
+                                       "n_holdings": c.get("n_holdings"),
+                                       "total_mv_usd": c.get("total_mv_usd"),
+                                       "has_delta": c.get("has_delta")}
+                                   for e, c in constit.items()}},
+                          default=str).encode(),
+                      ContentType="application/json",
+                      CacheControl="public, max-age=600")
+    except Exception as _e:
+        print("[lookthrough] holdings index write failed: %s" % _e)
+
+    # wo4580 impact_map — measured bps of ADV, companies + industry rollup
+    ben_c = [measured_row(r["ticker"], "company", r["flow_bps_adv_day"],
+                          "bps_adv_day",
+                          "net 5d ETF-implied flow / 5 / dollar ADV")
+             for r in rows if (r.get("flow_bps_adv_day") or 0) > 0][:40]
+    suf_c = [measured_row(r["ticker"], "company", r["flow_bps_adv_day"],
+                          "bps_adv_day",
+                          "net 5d ETF-implied flow / 5 / dollar ADV")
+             for r in rows if (r.get("flow_bps_adv_day") or 0) < 0][:40]
+    ben_c.sort(key=lambda x: -x["pp"]); suf_c.sort(key=lambda x: x["pp"])
+    impact = impact_build(
+        "justhodl-flow-lookthrough", "etf_implied_flow",
+        ben_c[:15] + industry_rollup(ben_c, graph),
+        suf_c[:15] + industry_rollup(suf_c, graph),
+        "Mechanical ETF-implied demand per name, expressed in basis points "
+        "of one day's dollar ADV per day (measured: creation baskets force "
+        "these shares). Industry rows are mcap-weighted member means.",
+        insufficient_rows=[{"name": r["ticker"], "kind": "company",
+                            "reason": "no adv_usd in exposure graph yet"}
+                           for r in rows[:200]
+                           if r.get("flow_bps_adv_day") is None
+                           and abs(r.get("net_flow_5d_usd") or 0) > 2e8][:10],
+        basis_note="graph coverage: %s tickers with adv" % sum(
+            1 for v in gtk.values() if v.get("adv_usd")))
 
     out = {
         "engine": "justhodl-flow-lookthrough",
-        "version": "2.1.0",
+        "version": "2.2.0",
         "evidence_tier": "tier_a_mechanical_fact",
         "tier_note": ("ops-4559: ETF-implied constituent flow is a FACT, not an estimate — the creation basket mechanically requires these shares. Coverage raised 70 → 300 ETFs (BUG-9: best engine, starved)."),
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -313,6 +408,8 @@ def lambda_handler(event, context):
         "actual_accumulation": accumulation,
         "actual_distribution": distribution,
         "index_events": index_events_agg,
+        "passive_concentration": concentration,
+        "impact_map": impact,
         "methodology": {
             "flow_attribution": "name_flow = sum over ETFs of (ETF_net_flow_usd * weight)",
             "share_delta": "shares_delta_usd = sum over ETFs of (shares_now - shares_prev) * implied_price",
