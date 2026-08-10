@@ -685,6 +685,37 @@ def fetch_isone(gaps):
             sigs.append("%s → %s" % (url.split("/")[-1][:28],
                                      " | ".join(chain) or "no-response"))
             continue
+        if "<html" in b[:400].lower():
+            # rev-L (wo4585): the cookie gate serves the report PAGE, not
+            # the file — mine it for the export href and follow ONCE with
+            # the same cookie jar. The existing CSV parse below judges the
+            # result; every branch leaves a named signature.
+            import re as _re
+            _links = _re.findall(
+                r"""(?:href|action)=["']([^"']*(?:\.csv|download=csv|"""
+                r"""format=csv|export)[^"']*)["']""", b, _re.I)
+            _mined = None
+            for _lk in _links[:3]:
+                try:
+                    _u2 = urllib.parse.urljoin(url, _lk.replace("&amp;", "&"))
+                    with cook.open(urllib.request.Request(_u2, headers=hdrs),
+                                   timeout=60) as _r2:
+                        _b2 = _r2.read().decode("utf-8", "replace")
+                    if "," in _b2 and "<html" not in _b2[:200].lower():
+                        _mined = _b2
+                        sigs.append("%s → html page, export href followed "
+                                    "→ CSV (%s)" % (url.split("/")[-1][:28],
+                                                    _u2[:80]))
+                        break
+                except Exception as _e2:
+                    sigs.append("export href %s → %s"
+                                % (_lk[:60], type(_e2).__name__))
+            if _mined:
+                b = _mined
+            else:
+                sigs.append("%s → 200 html, %d export-ish hrefs, none "
+                            "yielded CSV" % (url.split("/")[-1][:28],
+                                             len(_links)))
         if b and "," in b and "<html" not in b[:200].lower():
             try:
                 import csv as _csv
