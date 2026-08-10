@@ -137,14 +137,29 @@ def lambda_handler(event=None, context=None):
         gaps.append("window fetch returned 0 rows"); fetch_status = "EMPTY"
 
     ports = defaultdict(lambda: {"days": {}})
-    latest_ms = 0
+    latest_ord = 0
+    date_type_seen = set()
     fi, fe = (schema or {}).get("import_total"), (schema or {}).get("export_total")
+
+    def _day_ord(v):
+        """ISO string ('2026-06-29[..]') or epoch-ms number → ordinal day.
+        v1.0.2 (ops 4576): the live layer serves ISO strings; int(v)
+        crashed the whole run (4574 v2 caught the trace)."""
+        if isinstance(v, (int, float)):
+            date_type_seen.add("epoch_ms")
+            return int(v / 86400000.0) if v > 10_000_000 else int(v)
+        try:
+            date_type_seen.add("iso_string")
+            return datetime.fromisoformat(str(v)[:10]).toordinal()
+        except Exception:
+            return None
+
     for a in rows:
         pid = a.get("portid") or a.get("portname")
-        d = a.get("date")
-        if not pid or not d:
+        od = _day_ord(a.get("date"))
+        if not pid or od is None:
             continue
-        latest_ms = max(latest_ms, d if isinstance(d, (int, float)) else 0)
+        latest_ord = max(latest_ord, od)
         p = ports[pid]
         p["name"] = a.get("portname") or str(pid)
         p["country"] = a.get("country") or a.get("ISO3") or "?"
@@ -152,18 +167,18 @@ def lambda_handler(event=None, context=None):
             imp = float(a.get(fi) or 0); expo = float(a.get(fe) or 0)
         except Exception:
             imp = expo = 0.0
-        p["days"][int(d)] = (imp, expo)
+        p["days"][od] = (imp, expo)
 
-    latest_date = (datetime.fromtimestamp(latest_ms / 1000, tz=timezone.utc).date()
-                   if latest_ms else None)
+    latest_date = (datetime.fromordinal(latest_ord).date()
+                   if latest_ord else None)
     data_age_days = ((datetime.now(timezone.utc).date() - latest_date).days
                      if latest_date else None)
 
     port_rows, ctry = [], defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
     g_recent = [0.0, 0.0]; g_base = [0.0, 0.0]
-    if latest_ms:
-        recent_cut = latest_ms - RECENT_D * 86400000
-        base_cut = recent_cut - BASE_D * 86400000
+    if latest_ord:
+        recent_cut = latest_ord - RECENT_D
+        base_cut = recent_cut - BASE_D
         for pid, p in ports.items():
             ri = re_ = bi = be = 0.0; rn = bn = 0
             for ts, (imp, expo) in p["days"].items():
@@ -207,7 +222,8 @@ def lambda_handler(event=None, context=None):
                     "total_chg_pct": round(((g_recent[0] + g_recent[1]) / gt_b - 1) * 100, 2) if gt_b else None}
 
     out = {
-        "engine": "port-cargo", "version": "1.0.1",
+        "engine": "port-cargo", "version": "1.0.2",
+        "date_field_type": sorted(date_type_seen) or None,
         "engine_class": "physical_trade_fast_layer",
         "evidence_tier": "tier_1_measured_physical",
         "lag_months": -4,
