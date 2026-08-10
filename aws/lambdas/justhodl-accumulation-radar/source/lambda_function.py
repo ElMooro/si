@@ -28,6 +28,8 @@ from Polygon grouped-daily — ONE call per day covers the whole market. Self-bo
 import os, json, time, math, boto3
 
 from signals_emit import log_signal
+from impact_mapper import (build as impact_build, load_graph,
+                           measured_row, structural_row)
 import urllib.request
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
@@ -940,6 +942,59 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         acc["scan_error"] = str(e)[:90]
     out["standalone_accuracy"] = acc
+
+    # ── wo4580 rev: impact_map (the one engine the 4582 battery caught
+    # without it). Tier-4 technical evidence → companies are STRUCTURAL
+    # (direction only, no pp invented); industries carry the measured
+    # %-of-industry-mcap-under-evidence rollup, same doctrine as stealth.
+    try:
+        graph = load_graph() or {}
+        gtk = graph.get("tickers") or {}
+        gind = graph.get("industries") or {}
+
+        def _ind_rows(names_list, label):
+            flag = {}
+            for r in names_list:
+                info = gtk.get(r.get("ticker") or "") or {}
+                ind, mc = info.get("industry"), info.get("mcap")
+                if ind and mc:
+                    d2 = flag.setdefault(ind, {"mc": 0.0, "names": []})
+                    d2["mc"] += float(mc)
+                    d2["names"].append(r["ticker"])
+            rows2 = []
+            for ind, d2 in flag.items():
+                tot = float((gind.get(ind) or {}).get("mcap") or 0)
+                if tot > 0 and len(d2["names"]) >= 2:
+                    r2 = measured_row(ind, "industry", d2["mc"] / tot * 100,
+                                      "pct_industry_mcap_under_evidence",
+                                      "sum(mcap of %s-phase names) / industry "
+                                      "mcap — %s" % (label,
+                                      ",".join(sorted(d2["names"])[:6])))
+                    r2["n_members"] = len(d2["names"])
+                    rows2.append(r2)
+            return rows2
+
+        acc_st = (out.get("accumulating") or {}).get("stocks") or []
+        dis_st = (out.get("distributing") or {}).get("stocks") or []
+        out["impact_map"] = impact_build(
+            "accumulation-radar", "technical_accumulation_phase",
+            [structural_row(r["ticker"], "company",
+                            "phase %s, bottom_score %s (tier-4 technical — "
+                            "confirmation only)" % (r.get("phase"),
+                                                    r.get("bottom_score")), +1)
+             for r in acc_st[:12]] + _ind_rows(acc_st, "ACCUMULATION"),
+            [structural_row(r["ticker"], "company",
+                            "phase %s, top_score %s (tier-4 technical — "
+                            "confirmation only)" % (r.get("phase"),
+                                                    r.get("top_score")), -1)
+             for r in dis_st[:12]] + _ind_rows(dis_st, "DISTRIBUTION"),
+            "Tier-4 technical phases: company rows are structural (direction "
+            "only — a chart pattern earns no pp). Industry rows are measured "
+            "% of industry market cap in the phase.",
+            basis_note="standalone_accuracy %s" % acc.get("status"))
+    except Exception as e:
+        print("[impact] %s" % str(e)[:100])
+        out["impact_map"] = None
 
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
