@@ -456,79 +456,74 @@ def convergence(graph, gaps):
                        "MIXED" if legs else "NO_DATA"),
              "rule": ">=2 independent physical legs agreeing, none opposing"}
 
-    # flow convergence / rev-H (wo4585 audit): justhodl-flow-confluence is
-    # the fleet's CANONICAL per-name flow fusion (13F + dark pool + ETF
-    # lookthrough + short + stealth, alpha-gated). This board is its
-    # INDUSTRY lens — roll its per-name postures up through the exposure
-    # graph. The local 3-feed self-fusion demotes to fallback when the
-    # canonical feed is absent.
+    # flow convergence — UNIFIED (rev-I, wo4585): two parallel audit lanes
+    # each wired flow-confluence consumption and the file briefly carried
+    # BOTH readers (double-count risk). This is the single merged reader.
+    # justhodl-flow-confluence is the name-level authority; this board is
+    # its INDUSTRY rollup. Votes are cast per UNDERLYING engine from fc's
+    # own engines[] — independence stays real for the >=2-source rule (no
+    # umbrella-key double-counting, no fractional sub-split inflation).
     votes = {}
-    flow_src = None
-    fc = _get_json("data/flow-confluence.json") or {}
-    tm = fc.get("ticker_map") or {}
-    if tm:
-        flow_src = "justhodl-flow-confluence (canonical per-name fusion)"
-        for tk, rec in tm.items():
-            if not isinstance(rec, dict):
-                continue
-            post = str(rec.get("posture") or "").upper()
-            n_eng = rec.get("n_engines") or 1
-            val = float(n_eng)
-            if any(w in post for w in ("SELL", "DIST", "OUT", "NEG", "BEAR")):
-                val = -val
-            elif not any(w in post for w in ("BUY", "ACC", "IN", "POS",
-                                             "BULL")):
-                continue
-            info = (graph.get("tickers") or {}).get(str(tk).upper()) or {}
-            ind = info.get("industry")
-            if not ind:
-                continue
-            d = votes.setdefault(ind, {"sources": {}, "names": set()})
-            d["sources"].setdefault("flow_confluence", 0.0)
-            d["sources"]["flow_confluence"] += val
-            for eng in (rec.get("engines") or [])[:6]:
-                d["sources"].setdefault(str(eng), 0.0)
-                d["sources"][str(eng)] += val / max(n_eng, 1)
-            d["names"].add(str(tk).upper())
+    fc_diag = {"records_read": 0, "with_industry": 0, "votes_cast": 0,
+               "field": None}
 
     def vote(tk, src, val):
         info = (graph.get("tickers") or {}).get(tk) or {}
         ind = info.get("industry")
         if not ind:
-            return
+            return False
         d = votes.setdefault(ind, {"sources": {}, "names": set()})
         d["sources"].setdefault(src, 0.0)
         d["sources"][src] += val
         d["names"].add(tk)
+        return True
 
-    if not tm:
-        flow_src = "local 3-feed FALLBACK (flow-confluence feed absent)"
-    fl = _get_json("data/flow-lookthrough.json") if not tm else {}
-    fl = fl or {}
-    for r in (fl.get("actual_accumulation") or [])[:20]:
-        vote((r.get("ticker") or "").upper(), "flow_lookthrough", 1.0)
-    for r in (fl.get("actual_distribution") or [])[:20]:
-        vote((r.get("ticker") or "").upper(), "flow_lookthrough", -1.0)
-    dp = (_get_json("data/dark-pool.json") if not tm else {}) or {}
-    for r in (dp.get("high_conviction") or [])[:20]:
-        tk = (r.get("ticker") or r.get("symbol") or "").upper() if isinstance(r, dict) else str(r).upper()
-        vote(tk, "dark_pool", 1.0)
-    # wo4585 audit: justhodl-flow-confluence PRE-EXISTED this board and is
-    # the name-level authority (trust-gated cross-read of the same evidence
-    # classes). Consume it as a vote source — converge, never duplicate.
     fc = _get_json("data/flow-confluence.json") or {}
-    # actual contract (read, not assumed): multi_engine_confluence rows with
-    # ticker + posture (ACCUMULATION / DISTRIBUTION / SHORT_SQUEEZE_SETUP...)
-    fc_rows = fc.get("multi_engine_confluence") or []
-    for r in fc_rows[:40] if isinstance(fc_rows, list) else []:
-        if not isinstance(r, dict):
-            continue
-        tk = (r.get("ticker") or "").upper()
-        po = str(r.get("posture") or "").upper()
+    fc_records = []
+    tm = fc.get("ticker_map") or {}
+    if isinstance(tm, dict) and tm:
+        fc_diag["field"] = "ticker_map"
+        for tk, rec in tm.items():
+            if isinstance(rec, dict):
+                fc_records.append({**rec, "ticker": str(tk).upper()})
+    if not fc_records:
+        rows0 = fc.get("multi_engine_confluence") or []
+        if isinstance(rows0, list) and rows0:
+            fc_diag["field"] = "multi_engine_confluence"
+            fc_records = [r for r in rows0 if isinstance(r, dict)]
+    for rec in fc_records[:400]:
+        fc_diag["records_read"] += 1
+        po = str(rec.get("posture") or "").upper()
         sgn = (1.0 if ("ACCUM" in po or "SQUEEZE" in po)
                else -1.0 if "DIST" in po else 0.0)
-        if tk and sgn:
-            vote(tk, "flow_confluence", sgn)
+        if not sgn:
+            continue
+        tk = str(rec.get("ticker") or "").upper()
+        engs = [str(e) for e in (rec.get("engines") or [])][:6] \
+            or ["flow_confluence"]
+        hit = False
+        for eng in engs:
+            hit = vote(tk, eng, sgn) or hit
+        if hit:
+            fc_diag["with_industry"] += 1
+            fc_diag["votes_cast"] += len(engs)
+    if fc_records:
+        flow_src = ("justhodl-flow-confluence via %s (%d records, %d "
+                    "industry-mapped, %d votes)"
+                    % (fc_diag["field"], fc_diag["records_read"],
+                       fc_diag["with_industry"], fc_diag["votes_cast"]))
+    else:
+        flow_src = "local 3-feed FALLBACK (flow-confluence absent/empty)"
+        fl = _get_json("data/flow-lookthrough.json") or {}
+        for r in (fl.get("actual_accumulation") or [])[:20]:
+            vote((r.get("ticker") or "").upper(), "flow_lookthrough", 1.0)
+        for r in (fl.get("actual_distribution") or [])[:20]:
+            vote((r.get("ticker") or "").upper(), "flow_lookthrough", -1.0)
+        dp = _get_json("data/dark-pool.json") or {}
+        for r in (dp.get("high_conviction") or [])[:20]:
+            tk = (r.get("ticker") or r.get("symbol") or "").upper() \
+                if isinstance(r, dict) else str(r).upper()
+            vote(tk, "dark_pool", 1.0)
     et = _get_json("data/etf-true-flows.json") or {}
     cr = et.get("category_rotation") or {}
     rows = []
@@ -545,6 +540,7 @@ def convergence(graph, gaps):
     rows.sort(key=lambda r: -abs(r["score"]))
     flow = {"rows": rows[:15],
             "source": flow_src,
+            "diag": fc_diag,
             "rule": "industry needs >=2 independent flow evidence classes",
             "relationship": ("name-level authority: justhodl-flow-confluence "
                              "(pre-existing, trust-gated) — consumed here as "
