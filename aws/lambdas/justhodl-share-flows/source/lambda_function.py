@@ -52,7 +52,7 @@ from impact_mapper import (build as impact_build, load_graph,
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/share-flows.json"
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 FMP = (os.environ.get("FMP_API_KEY") or os.environ.get("FMP_KEY")
        or "")
 MAX_FRESH_FETCH = 420          # per-run new-name budget
@@ -111,22 +111,6 @@ def edgar_fts(q, forms, days_back, warns, cap=120):
                 if tk not in out or (fdate and fdate > out[tk]):
                     out[tk] = fdate
     return out
-
-
-def fmp_earnings_calendar(warns, days_fwd=45):
-    frm = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    to = (datetime.now(timezone.utc)
-          + timedelta(days=days_fwd)).strftime("%Y-%m-%d")
-    j = _http("https://financialmodelingprep.com/stable/earnings-calendar"
-              "?from=%s&to=%s&apikey=%s" % (frm, to, FMP)) or []
-    cal = {}
-    for r in j if isinstance(j, list) else []:
-        t, d = r.get("symbol"), r.get("date")
-        if t and d and t not in cal:
-            cal[t] = d
-    if not cal:
-        warns.append("fmp earnings-calendar empty — blackout board skipped")
-    return cal
 
 
 def build_universe(warns):
@@ -414,25 +398,70 @@ def lambda_handler(event=None, context=None):
         warns.append("no sell rows in tape -- sells omitted "
                      "honestly")
 
-    # rev-4 (4583): these three pulls are independent of per-ticker data —
-    # front-loaded so their latency (worst ~75s serial) overlaps the fetch
-    # budget instead of stacking after it. Each is individually shielded:
-    # a slow/failed pull degrades to {} with a warn, never a crash.
+    # rev-G (wo4585 audit): the fleet ALREADY owns these three concepts —
+    # justhodl-buyback-scanner (parsed 8-K authorizations with sizes),
+    # justhodl-sec-filings-intel (ATM shelf event catalog), and
+    # justhodl-earnings-blackout (mcap-weighted [E-30d,E+2d] curve). One
+    # computation per concept: consume the canonical feeds; my own EDGAR
+    # FTS pulls demote to explicit fallbacks when a feed is absent.
+    announced, announced_src = {}, None
     try:
-        announced = edgar_fts('"share repurchase program"', "8-K", 270, warns)
+        _bsc = s3_json("data/buyback-scanner.json") or {}
+        for _o in (_bsc.get("opportunities") or []):
+            _t = (_o.get("ticker") or "").upper()
+            _d = _o.get("announcement_date") or _o.get("file_date")
+            if not _t:
+                continue
+            if _t not in announced or (_d or "") > (announced[_t].get("date") or ""):
+                announced[_t] = {
+                    "date": _d,
+                    "authorized_usd": (_o.get("authorized_usd")
+                                       or _o.get("size_usd")
+                                       or _o.get("program_size_usd")),
+                    "size_pct_mcap": (_o.get("size_pct_mcap")
+                                      or _o.get("pct_of_mcap"))}
+        if announced:
+            announced_src = ("justhodl-buyback-scanner (parsed 8-K "
+                             "authorizations, %s as_of)" % _bsc.get("as_of"))
     except Exception as e:
-        announced = {}
-        warns.append("edgar 8-K pull crashed: %s" % str(e)[:90])
+        warns.append("buyback-scanner consume failed: %s" % str(e)[:80])
+    if not announced:
+        try:
+            _fts = edgar_fts('"share repurchase program"', "8-K", 270, warns)
+            announced = {t: {"date": d} for t, d in _fts.items()}
+            announced_src = "edgar_fts FALLBACK (scanner feed empty/absent)"
+        except Exception as e:
+            warns.append("edgar 8-K fallback crashed: %s" % str(e)[:80])
+
+    atm, atm_src = {}, None
     try:
-        atm = edgar_fts('"at-the-market"', "424B5", 90, warns)
+        _sfi = s3_json("data/sec-filings-intel.json") or {}
+        for _t, _rec in (_sfi.get("per_ticker") or {}).items():
+            for _ev in (_rec.get("events") or []):
+                _hay = " ".join(str(_ev.get(k) or "") for k in
+                                ("id", "signal", "label", "desc")).lower()
+                if "at-the-market" in _hay or "atm" in _hay.split():
+                    _d = _ev.get("filed_at") or _ev.get("file_date")
+                    if _t not in atm or (_d or "") > (atm[_t] or ""):
+                        atm[str(_t).upper()] = _d
+        if atm:
+            atm_src = "justhodl-sec-filings-intel (ATM event catalog)"
     except Exception as e:
-        atm = {}
-        warns.append("edgar 424B5 pull crashed: %s" % str(e)[:90])
+        warns.append("sec-filings-intel consume failed: %s" % str(e)[:80])
+    if not atm:
+        try:
+            atm = edgar_fts('"at-the-market"', "424B5", 90, warns)
+            atm_src = "edgar_fts FALLBACK (sec-filings-intel absent/no ATM)"
+        except Exception as e:
+            warns.append("edgar 424B5 fallback crashed: %s" % str(e)[:80])
+
+    eb = None
     try:
-        cal = fmp_earnings_calendar(warns)
-    except Exception as e:
-        cal = {}
-        warns.append("earnings calendar crashed: %s" % str(e)[:90])
+        eb = s3_json("data/earnings-blackout.json")
+    except Exception:
+        pass
+    if not eb:
+        warns.append("earnings-blackout feed absent — blackout block degraded")
 
     universe = build_universe(warns)
     cached_ok, need = {}, []
@@ -543,67 +572,68 @@ def lambda_handler(event=None, context=None):
     impact = None
     try:
         _v2_tail_ok = True
-        # wo4580 (a): announced vs executed — the buyback bluff detector.
+        # wo4580 (a) / rev-G: announced vs executed — announcements now
+        # come from the canonical scanner (with authorized sizes when it
+        # parsed them); execution truth stays this engine's TTM cash +
+        # share-count trend. BLUFF = program on file, <0.3% of mcap
+        # executed TTM, no float shrink.
         for t, r in tickers.items():
-            ad = announced.get(t)
-            if not ad:
+            a = announced.get(t)
+            if not a:
                 continue
-            r["buyback_announced_8k_date"] = ad
+            r["buyback_announced_8k_date"] = a.get("date")
+            if a.get("authorized_usd"):
+                r["buyback_authorized_usd"] = a["authorized_usd"]
             exec_ttm = r.get("buyback_ttm_usd") or 0
             yoy = r.get("sh_yoy_pct")
             mc = r.get("market_cap") or 0
-            row = {"ticker": t, "announced_8k_date": ad,
+            row = {"ticker": t, "announced_8k_date": a.get("date"),
+                   "authorized_usd": a.get("authorized_usd"),
                    "buyback_ttm_usd": exec_ttm,
                    "buyback_yield_pct": r.get("buyback_yield_pct"),
                    "sh_yoy_pct": yoy}
-            # bluff: program announced, but <0.3% of mcap executed TTM and the
-            # float has not shrunk. Heuristic labeled as such; announced-$ parse
-            # from the filing body is the declared next step.
             if mc and exec_ttm < 0.003 * mc and (yoy is None or yoy > -0.3):
                 r.setdefault("flags", []).append("BUYBACK_BLUFF")
                 bluff.append(row)
-            elif exec_ttm >= 0.01 * mc and mc:
+            elif mc and exec_ttm >= 0.01 * mc:
                 backed.append(row)
         bluff.sort(key=lambda x: (x["buyback_yield_pct"] or 0))
         backed.sort(key=lambda x: -(x["buyback_yield_pct"] or 0))
 
-        # wo4580 (b): ATM shelf tracking (pre-fetched above; rev-4)
+        # wo4580 (b) / rev-G: ATM shelves from the canonical filings-intel
+        # catalog (S-3/8-K/424B5 breadth beats my 424B5-only pull).
         for t, r in tickers.items():
             d2 = atm.get(t)
             if d2:
-                r["atm_shelf_424b5_date"] = d2
+                r["atm_shelf_date"] = d2
                 r.setdefault("flags", []).append("ATM_SHELF_ACTIVE")
                 atm_active.append({"ticker": t, "filed": d2,
                                    "sh_yoy_pct": r.get("sh_yoy_pct"),
                                    "read": r.get("read")})
         atm_active.sort(key=lambda x: x["filed"] or "", reverse=True)
 
-        # wo4580 (c): buyback blackout calendar (cal pre-fetched above; rev-4)
-        heavy = [r for r in rows if r.get("read") in ("BUYBACK_HEAVY", "SHRINKING")
-                 and (r.get("buyback_ttm_usd") or 0) > 0]
-        wk = {}
-        for r in heavy:
-            ed = cal.get(r["ticker"])
-            if not ed:
-                continue
-            try:
-                e = datetime.fromisoformat(ed)
-            except Exception:
-                continue
-            start = e - timedelta(days=14)
-            end = e + timedelta(days=2)
-            weekly_usd = (r["buyback_ttm_usd"] or 0) / 52.0
-            d3 = start
-            while d3 <= end:
-                wkey = (d3 - timedelta(days=d3.weekday())).strftime("%Y-%m-%d")
-                w2 = wk.setdefault(wkey, {"usd_dark": 0.0, "names": set()})
-                w2["usd_dark"] += weekly_usd / 7.0 * 1  # per-day slice into its week
-                w2["names"].add(r["ticker"])
-                d3 += timedelta(days=1)
-        blackout = [{"week_of": k2, "buyback_usd_going_dark": round(v2["usd_dark"]),
-                     "n_names": len(v2["names"]),
-                     "names": sorted(v2["names"])[:12]}
-                    for k2, v2 in sorted(wk.items())][:8]
+        # wo4580 (c) / rev-G: the blackout DUPLICATE is retired. The fleet
+        # already owns this concept — justhodl-earnings-blackout publishes
+        # the mcap-weighted [E-30d,E+2d] daily forward curve with its own
+        # history. Carry the canonical read; two conventions side-by-side
+        # was exactly the drift class wo4580 exists to kill.
+        if isinstance(eb, dict) and eb.get("now"):
+            _cv = eb.get("curve") or []
+            blackout = {
+                "source": "justhodl-earnings-blackout",
+                "convention": ("[E-30d, E+2d] mcap-weighted street proxy "
+                               "(GS desk convention) — supersedes the "
+                               "retired local [E-14,E+2] weekly"),
+                "now": eb.get("now"),
+                "next_14d": eb.get("next_14d"),
+                "peak": eb.get("peak"), "trough": eb.get("trough"),
+                "n_curve_days": len(_cv),
+                "as_of": eb.get("generated_at")}
+        else:
+            blackout = {"source": "justhodl-earnings-blackout",
+                        "status": "FEED_ABSENT",
+                        "note": "canonical blackout feed unreadable this "
+                                "run — no local re-derivation, honestly"}
 
         # wo4580 impact_map — fully measured float pp per year
         graph = load_graph() or {}
@@ -626,8 +656,9 @@ def lambda_handler(event=None, context=None):
             "Measured float change: negative yoy diluted share count = supply "
             "removed (benefits holders), positive = dilution. pp is percent of "
             "float per year. Industry rows are mcap-weighted member means.",
-            basis_note="%d announced programs joined (EDGAR 8-K FTS), %d ATM "
-                       "shelves active (424B5)" % (len(announced), len(atm_active)))
+            basis_note="%d announced programs joined (%s), %d ATM shelves "
+                   "(%s)" % (len(announced), announced_src,
+                             len(atm_active), atm_src))
 
     except Exception:
         import traceback
@@ -661,7 +692,7 @@ def lambda_handler(event=None, context=None):
                    "buyback_bluff": bluff[:20],
                    "buyback_backed": backed[:20],
                    "atm_shelves_active": atm_active[:25],
-                   "buyback_blackout_weeks": blackout},
+                   "buyback_blackout": blackout},
         "impact_map": impact,
         "method": {
             "sh_yoy_pct": "diluted weighted-average share count, "
@@ -691,19 +722,20 @@ def lambda_handler(event=None, context=None):
                      " insiders dump >=$2M) / INSIDER_CONVICTION"
                      " (2+ insiders, >=$1M open-market) /"
                      " MGMT_BUYING_DESPITE_DILUTION",
-            "buyback_bluff": "8-K repurchase-program announcement on "
-                             "file (EDGAR full-text, 270d) but <0.3% of "
-                             "mcap executed TTM and no float shrink — "
-                             "announced-$ parse is the declared next step",
-            "atm_shelves_active": "424B5 at-the-market prospectus filed "
-                                  "in the last 90d — standing dilution "
+            "buyback_bluff": "program on file (canonical: justhodl-"
+                             "buyback-scanner parsed 8-K authorizations "
+                             "with sizes; edgar_fts fallback) but <0.3% "
+                             "of mcap executed TTM and no float shrink",
+            "atm_shelves_active": "ATM shelf events from the canonical "
+                                  "justhodl-sec-filings-intel catalog "
+                                  "(S-3/8-K/424B5 breadth; 424B5 FTS "
+                                  "fallback) — standing dilution "
                                   "machinery",
-            "buyback_blackout_weeks": "TTM buyback run-rate of "
-                                      "BUYBACK_HEAVY/SHRINKING names "
-                                      "inside [E-14d, E+2d] around real "
-                                      "earnings dates (window convention "
-                                      "stated) — the corporate bid going "
-                                      "dark, by week",
+            "buyback_blackout": "CANONICAL read carried from justhodl-"
+                                "earnings-blackout ([E-30d,E+2d] mcap-"
+                                "weighted daily curve + history); the "
+                                "local weekly re-derivation is retired "
+                                "(wo4585 duplication audit)",
             "insider": "Form-4 open-market activity from the "
                        "insider desk: management buying with their "
                        "own money vs clustered selling",
