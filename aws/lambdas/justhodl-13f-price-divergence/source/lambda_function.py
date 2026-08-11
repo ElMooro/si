@@ -87,9 +87,34 @@ def extract_13f_positions(data):
     out = {}
     if not isinstance(data, dict):
         return out
+    # the live feeder (justhodl-13f-positions) publishes
+    # aggregate_by_ticker as a DICT keyed by ticker — the reason
+    # n_feeder_tickers read 0 while feeder_loaded was True.
+    abt = data.get("aggregate_by_ticker")
+    if isinstance(abt, dict) and abt:
+        for tk, row in abt.items():
+            if not isinstance(row, dict):
+                continue
+            tk = str(row.get("ticker") or tk).upper()
+            if not tk or tk == "NONE":
+                continue
+            bought = float(row.get("bought_usd") or 0)
+            sold = float(row.get("sold_usd") or 0)
+            adding = int(row.get("n_funds_adding") or 0)
+            trimming = int(row.get("n_funds_trimming") or 0)
+            net = (bought - sold) if (bought or sold)                 else float(adding - trimming)
+            out[tk] = {"net_change": net,
+                       "n_funds": int(row.get("n_funds_holding") or 1),
+                       "pct_aum": None,
+                       "value": row.get("total_value")}
+        if out:
+            return out
+    df = data.get("dollar_flows") or {}
     candidates = (data.get("aggregate_positions") or data.get("positions")
                   or data.get("smart_money") or data.get("picks")
-                  or data.get("results") or data.get("hits") or [])
+                  or data.get("results") or data.get("hits")
+                  or ((df.get("most_bought_usd") or [])
+                      + (df.get("most_sold_usd") or [])) or [])
     if not isinstance(candidates, list):
         return out
     for row in candidates:
