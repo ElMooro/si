@@ -37,7 +37,7 @@ BOUNDED = {
 }
 PD_CATALOG_CANDS = ["/pd/list/timeseries.json",
                     "/pd/list/seriesbreaks.json"]
-TRANCHE = int(os.environ.get("PD_TRANCHE", "20"))
+TRANCHE = int(os.environ.get("PD_TRANCHE", "150"))
 
 
 def _fetch(path):
@@ -128,6 +128,17 @@ def lambda_handler(event, context):
                 state["catalog_note"] = (f"{cand}: {type(e).__name__}: "
                                          f"{str(e)[:60]}")
     got = 0
+    # v2 lease: hourly schedule + manual kicks must not race the cursor
+    # (done[] last-write-wins would lose progress)
+    if (state.get("lease_until") or 0) > time.time():
+        state["skipped"] = "lease_held"
+        s3.put_object(Bucket=BUCKET, Key=state_key,
+                      Body=json.dumps(state, default=str).encode(),
+                      ContentType="application/json",
+                      CacheControl="no-cache")
+        return {"pd": "lease_held"}
+    state["lease_until"] = time.time() + 620
+    state.pop("skipped", None)
     if state.get("catalog"):
         todo = [k for k in state["catalog"]
                 if k not in set(state["done"])][:TRANCHE]
@@ -186,6 +197,7 @@ def lambda_handler(event, context):
         state["status"] = ("COMPLETE-maintaining" if nd >= n
                            else "converging")
     state["as_of"] = now
+    state["lease_until"] = 0
     s3.put_object(Bucket=BUCKET, Key=state_key,
                   Body=json.dumps(state, default=str).encode(),
                   ContentType="application/json", CacheControl="no-cache")
