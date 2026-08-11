@@ -1,0 +1,35 @@
+# ops 4601 — NY Fed priority #2
+
+**Status:** success  
+**Duration:** 22.7s  
+**Finished:** 2026-08-11T03:44:24+00:00  
+
+## Log
+## 0. FRED untouched (guard)
+
+- `03:44:02` ✅   [fred-guard] scope=full_catalog ver=2.3.0 rpm=100.0 imported=71084
+## 1. Schedules
+
+- `03:44:02` ✅   created justhodl-nyfed-full-history-nightly (cron(40 4 * * ? *))
+- `03:44:02` ✅   created justhodl-nyfed-markets-full-hourly (rate(1 hour))
+- `03:44:02` ✅   created justhodl-nyfed-repo-deep-daily (cron(22 5 * * ? *))
+## 2. Kick all three + baselines
+
+- `03:44:02`   pd-state keys: ['as_of', 'catalog', 'catalog_source', 'done', 'progress_pct', 'status']
+- `03:44:03`   kicked justhodl-nyfed-full-history
+- `03:44:03`   kicked justhodl-nyfed-markets-full
+- `03:44:03`   kicked justhodl-nyfed-repo-deep
+## 3. Poll outputs (engines 300-600s budgets)
+
+- `03:44:23`   rates history refreshed (20s)
+- `03:44:23`   pd worklist state moved (20s): {'as_of': '2026-08-11T03:44:03+00:00', 'catalog_source': '/pd/list/timeseries.json', 'progress_pct': 100.0, 'status': 'COMPLETE-maintaining'}
+- `03:44:23` ✅   [nyfed] rate full-history run wrote latest-summary
+- `03:44:23` ✅   [nyfed] markets-full advanced the PD worklist
+- `03:44:23`   repo-deep newest: rp-repo-history.json.gz @ 03:44 (0.2 MB)
+## 4. Sentinel sweep — nyfed at position 2
+
+- `03:44:24`   pipeline order: ['fred', 'nyfed', 'sdmx-eurostat', 'sdmx-oecd', 'sdmx-statcan', 'sdmx-bis']
+- `03:44:24` ✅   [sentinel] nyfed at position 2 (status=OK · rates 0.0h · pd 1539/? · repo 0.0h)
+## verdict
+
+- `03:44:24` ✅ NY Fed running as priority #2 — cadences wired, deep pulls moving, strip shows fred then nyfed
