@@ -1,8 +1,8 @@
 # ops 4599 — surfaced feeds closed + fred blended rate
 
 **Status:** failure  
-**Duration:** 14.2s  
-**Finished:** 2026-08-11T00:48:12+00:00  
+**Duration:** 11.3s  
+**Finished:** 2026-08-11T00:54:04+00:00  
 
 ## Error
 
@@ -15,19 +15,21 @@ SystemExit: 1
 
 ## 2. fpr — universe restored
 
-- `00:48:10` ✗   [fpr] CONTRACT MISS — state=INSUFFICIENT_DATA universe=None scanned=0
+- `00:54:02` ✗   [fpr] CONTRACT MISS — state=QUIET universe=None scanned=24
 ## 3. 13f — feeder tickers flowing
 
-- `00:48:12` ✅   [13f] consistency: feed dict=7023 extractor=7023 state=QUIET
+- `00:54:03` ✅   [13f] consistency: feed dict=7023 extractor=7023 state=QUIET
 ## 4. skew — premium rows vs feed truth
 
-- `00:48:12` ✅   [skew] consistency: feed qualifying rows=0 extractor names=0 state=INSUFFICIENT_DATA (feed keys: ['data', 'engine', 'legacy_alias_of', 'meta', 'success', 'timestamp'])
-## 5. fred — v2.3 + blended rate since 00:38
+- `00:54:03` ✅   [skew] consistency: feed qualifying rows=0 extractor names=0 state=INSUFFICIENT_DATA (feed keys: ['data', 'engine', 'legacy_alias_of', 'meta', 'success', 'timestamp'])
+## 5. fred — deploy truth, knob truth, blended rate
 
-- `00:48:12`   ver=2.2.1 rpm=60.0 imported=61551 (+561 in 9 min = 60.1/min = 3604/h) cursor=54561 throttled=270
-- `00:48:12` ✗   [fred] CONTRACT MISS — v2.3 live on the chain
-- `00:48:12` ✅   [fred] blended rate 60.1/min (serial era was 49; ceiling-only was 65.7)
-- `00:48:12`   remaining≈220544 → ETA 61.2 h (~2.5 days)
+- `00:54:04`   live code LastModified=2026-08-11T00:16:21.000+0000 sha=qMCEZwBSrIgc...
+- `00:54:04`   rate-ceiling knob = 100
+- `00:54:04`   ver=2.2.1 rpm=78.0 imported=61888 (+898 in 15 min = 59.1/min = 3544/h) cursor=54898 throttled=271
+- `00:54:04` ⚠   [fred] chain still on 2.2.1 — redeployed above; next self-invoke loads 2.3 (state re-checked next op)
+- `00:54:04` ✗   [fred] CONTRACT MISS — blended rate 59.1/min (serial era was 49; ceiling-only was 65.7)
+- `00:54:04`   remaining≈220207 → ETA 62.1 h (~2.6 days)
 ## verdict
 
-- `00:48:12` ✗ feeds close: 2 red
+- `00:54:04` ✗ feeds close: 2 red
