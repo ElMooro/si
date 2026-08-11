@@ -1,23 +1,17 @@
-executing-against: c7f0ed89ad2e0f32a659c8383a84d06d717f94ec
-ops 4612 — port-cargo self-healing layer resolve
-── raw upstream probes (ground truth) ──
-[22:29:20] old layer → 200, 7773 bytes, head: {   "objectIdFieldName" : "ObjectId",    "uniqueIdField" :    {     "name" : "ObjectId",      "isSystemMaintained" : true   },    "globalIdFieldName" : "",    "fi
-[22:29:21] org directory → 200, 46926 bytes, head: {   "currentVersion" : 12,    "services" : [     {       "name" : "2018_BP_Homepage_Indicator",        "type" : "FeatureServer",        "url" : "https://services9.a
-[22:29:21] services containing 'port': ["disruptions_ExportFeatures", "disruptions_with_ports", "FR24_airports", "portsfacts", "PortWatch_boundaries", "PortWatch_chokepoints_database", "PortWatch_countries", "PortWatch_Countries_Simplified", "portwatch_disruptions_database", "PortWatch_ports", "PortWatch_ports_database", "PortWatchPorts_globe"]
-── deploy-settle v1.2.0 ──
-[22:29:22] v1.2.0 live (attempt 1)
-[22:29:22] ✅   [deploy] port-cargo v1.2.0
-── invoke + healed-fetch contracts ──
-[22:30:52] invoke status=200
-[22:30:53] ✅   [fetch] fetch_status OK (resolver=candidate:Daily_Ports_Data)
-[22:30:53] ✅   [fresh] data date 2026-08-07, age 4 d (PortWatch lag ~4-6d)
-[22:30:53] ✅   [breadth] 2065 ports carrying data
-── fifth leg: physical-economy join ──
-[22:30:57] ✗   [fifth-leg] CONTRACT MISS — physical signal now 4 legs: ["PJM demand momentum (8d)", "PJM power-price shock canary", "Grid buildout quality (executed-IA share)", "Freight pulse"]
+executing-against: c1215daadf571546c8011ef8eee27d54f5cc3514
+ops 4613 — fifth leg: port-cargo exact join
+── deploy-settle v1.0.2 ──
+[22:33:06] v1.0.2 live (attempt 1)
+[22:33:06] ✅   [deploy] physical-econ v1.0.2
+── invoke + 5-leg contracts ──
+[22:33:07] ✅   [invoke] physical-econ invoked
+[22:33:07] ✅   [legs] 5 legs: ["PJM demand momentum (8d)", "PJM power-price shock canary", "Port cargo tonnage momentum", "Grid buildout quality (executed-IA share)", "Freight pulse"]
+[22:33:07] ✅   [port-leg] port leg live: {"name": "Port cargo tonnage momentum", "source": "port-cargo.json", "expansion_0_100": 40.3, "detail": "global tonnage -3.9% (7d vs 28d baseline) \u00b7 2065 ports \u00b7 data 2026-08-07", "found": t
+[22:33:07] ✅   [confidence] signal NEUTRAL at HIGH · composite 45.6
+[22:33:14] ✅   [machine] machine P1 n=4 score=68.4 · composite 67.6
 ── edge ──
-[22:30:58] ✅   [edge] edge port-cargo.json shows OK
+[22:33:14] ✅   [edge] edge shows 5 legs
 ── verdict ──
-[22:30:58] ✗ port-cargo heal: 1 red (raw probes above hold the ground truth for the next patch)
+[22:33:14] ✅ PHYSICAL ECONOMY COMPLETE — all 5 legs live (NEUTRAL, HIGH conf, composite 45.6); port tonnage joined on its exact seasonal basis
 
-→ Report written to aws/ops/reports/latest/4612_portcargo_heal.md
-❌ OPS-FAIL: aws/ops/pending/ops_4612_portcargo_heal.py
+→ Report written to aws/ops/reports/latest/4613_fifth_leg.md
