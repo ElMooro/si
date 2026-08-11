@@ -92,9 +92,16 @@ def _order(ids, pri_prefixes):
 
 
 def _walk_generic(agency, ids, url_fn, out_prefix, S,
-                  _budget=None, alt_attempts=None):
+                  _budget=None, alt_attempts=None, retry=False):
     k, st = _state(agency)
     done = set(st["done"])
+    if retry:
+        # wo4600 (Khalid: accelerate the other providers): the failures
+        # ledger IS the acceleration target — re-attempt exactly those
+        # flows. They already live in done, so done is ignored for
+        # selection and never double-appended below.
+        ids = list(st.get("failures", {}).keys())
+        done = set()
     _budget = _budget or BUDGET_S
     # ops 4542 lease: long-budget agencies may outlive the 5-min cadence
     # — skip if a sibling holds the lease (overlap-safe).
@@ -175,18 +182,33 @@ def _walk_generic(agency, ids, url_fn, out_prefix, S,
                 ContentType="application/gzip")
             if trunc:
                 st.setdefault("truncated", []).append(fid)
-            st["done"].append(fid)
+            if not retry:
+                st["done"].append(fid)
+            else:
+                st.get("failures", {}).pop(str(fid), None)
+                st["retried_ok"] = st.get("retried_ok", 0) + 1
             got += 1
         except Exception as e:
             st.setdefault("failures", {})[str(fid)] = \
                 f"{type(e).__name__}: {str(e)[:60]}"
-            st["done"].append(fid)  # advance; failures ledger keeps it
+            if not retry:
+                st["done"].append(fid)  # advance; ledger keeps it
+            else:
+                st["retried_fail"] = st.get("retried_fail", 0) + 1
     st["lease_until"] = 0
     pct, status = _save(k, st, len(ids))
     S[agency] = {"pulled": got, "of_run": len(todo),
                  "progress_pct": pct, "status": status,
                  "n_total": len(ids),
                  "n_failures": len(st.get("failures", {}))}
+    if retry:
+        from collections import Counter
+        hist = Counter(str(v).split(":")[0]
+                       for v in st.get("failures", {}).values())
+        S[agency]["retry"] = {
+            "ok": st.get("retried_ok", 0),
+            "fail": st.get("retried_fail", 0),
+            "remaining_reasons_top": hist.most_common(5)}
 
 
 AGENTS = ("bis", "eurostat", "oecd", "statcan", "ecb")
@@ -196,6 +218,7 @@ def lambda_handler(event, context):
     S = {"as_of": datetime.now(timezone.utc).isoformat(
         timespec="seconds")}
     ag = (event or {}).get("agency")
+    rf = bool((event or {}).get("retry_failures"))
     if not ag:
         # ops 4539: cron fans out one async invoke PER agency — each
         # gets its own full 700s budget instead of sharing one.
@@ -221,7 +244,7 @@ def lambda_handler(event, context):
             "bis", bis_ids,
             lambda f: (f"https://stats.bis.org/api/v1/data/{f}/all/all"
                        f"?format=csv"),
-            "data/warm/bis/data", S, _budget=_ebud)
+            "data/warm/bis/data", S, _budget=_ebud, retry=rf)
     except Exception as e:
         S["bis"] = {"data_unavailable": True,
                     "reason": f"{type(e).__name__}: {str(e)[:60]}"}
@@ -235,7 +258,7 @@ def lambda_handler(event, context):
             lambda f: ("https://ec.europa.eu/eurostat/api/"
                        "dissemination/sdmx/2.1/data/"
                        f"{f}?format=TSV&compressed=true"),
-            "data/warm/eurostat/data", S, _budget=_ebud)
+            "data/warm/eurostat/data", S, _budget=_ebud, retry=rf)
     except Exception as e:
         S["eurostat"] = {"data_unavailable": True,
                          "reason": f"{type(e).__name__}: "
@@ -259,7 +282,7 @@ def lambda_handler(event, context):
           _walk_generic(
             "ecb", ecb_ids, _ecb_alts[0][0],
             "data/warm/ecb/data", S, _budget=_ebud,
-            alt_attempts=_ecb_alts)
+            alt_attempts=_ecb_alts, retry=rf)
     except Exception as e:
         S["ecb"] = {"data_unavailable": True,
                     "reason": f"{type(e).__name__}: {str(e)[:60]}"}
@@ -267,11 +290,21 @@ def lambda_handler(event, context):
         oe_ids = _order([f["id"] for f in _get_json(
             "data/warm/oecd/catalog.json.gz")["dataflows"]], OECD_PRI)
         if ag == "oecd":
+          _oe_url = lambda f: (
+              f"https://sdmx.oecd.org/public/rest/data/{f}"
+              f"/all?format=csvfile")
+          # retry variants: OECD's classic denial class is size/timeout
+          # on unconstrained pulls — startPeriod bounds clear most of it.
+          _oe_alts = ([
+              (_oe_url, {}),
+              (lambda f: _oe_url(f) + "&startPeriod=2015", {}),
+              (lambda f: _oe_url(f) + "&startPeriod=2020"
+                         "&dimensionAtObservation=AllDimensions", {}),
+          ] if rf else None)
           _walk_generic(
-            "oecd", oe_ids,
-            lambda f: (f"https://sdmx.oecd.org/public/rest/data/{f}"
-                       f"/all?format=csvfile"),
-            "data/warm/oecd/data", S, _budget=_ebud)
+            "oecd", oe_ids, _oe_url,
+            "data/warm/oecd/data", S, _budget=_ebud,
+            alt_attempts=_oe_alts, retry=rf)
     except Exception as e:
         S["oecd"] = {"data_unavailable": True,
                      "reason": f"{type(e).__name__}: {str(e)[:60]}"}
@@ -293,7 +326,7 @@ def lambda_handler(event, context):
           _walk_generic(
             "statcan", pids,
             lambda pid: sc_fetch(pid),
-            "data/warm/statcan/data", S, _budget=_ebud)
+            "data/warm/statcan/data", S, _budget=_ebud, retry=rf)
     except Exception as e:
         S["statcan"] = {"data_unavailable": True,
                         "reason": f"{type(e).__name__}: "
