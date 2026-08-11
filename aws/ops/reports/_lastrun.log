@@ -1,41 +1,31 @@
-executing-against: ea5d15ac97409aeacc9f6f7236e29f4c72f977d6
-ops 4603 — plumbing-aggregator v2.0.0 · L0 Repo Core
-── deploy-settle (v2.0.0 marker in live zip) ──
-[19:48:09] zip carries v2.0.0 marker (attempt 1)
-[19:48:09] ✅   [deploy] deployed zip contains the v2.0.0 L0 marker
-── config floor for the larger v2 pull ──
-[19:48:14] raised to timeout=300s memory=1024MB
-[19:48:14] ✅   [config] timeout>=300s and memory>=1024MB for 40+ pulls
-── warm-store audit — which L0 series data.html already has ──
-[19:48:35] EXISTS on data.html warm store: RRPONTSYD, RRPONTSYAWARD, RPONTSYD, WALCL, WTREGEN, WSHOMCB, WLCFLPCL, SOFR99, SOFR1, DTB4WK, SOFR, IORB, EFFR, WRESBAL, TLAACBW027SBOG
-[19:48:35] MISSING (gap-filling now): TGCR, BGCR
-[19:48:35] gap-filled: none needed
-[19:48:35] ⚠ gap-fill misses (non-fatal, engine pulls live regardless): TGCR:HTTP Error 400: Bad Request; BGCR:HTTP Error 400: Bad Request
-[19:48:35] ✗   [warm] CONTRACT MISS — every missing L0 series banked (or none were missing)
-── invoke v2 + payload contract ──
-[19:49:20] invoke status=200 payload={"statusCode": 200, "body": "{\"ok\": true, \"composite_score\": 48.0, \"composite_label\": \"NORMAL\", \"n_with_data\": 45, \"n_alerts\": 18, \"duration_s\": 2
-[19:49:20] ✗   [invoke] CONTRACT MISS — engine returned ok:true
-[19:49:20] ✅   [schema] schema_version 2.0 (got 2.0)
-[19:49:20] ✅   [L0-score] L0 layer scoring (score=66.8)
-[19:49:20] ✅   [L0-cov] L0 coverage >=12 live contributors (got 16/23)
-[19:49:20] ✅   [L1-regress] L1 still scoring (score=20.3)
-[19:49:20] ✅   [L2-regress] L2 still scoring (score=70.8)
-[19:49:20] ✅   [L3-regress] L3 still scoring (score=47.1)
-[19:49:20] ✅   [L4-regress] L4 still scoring (score=49.5)
-[19:49:20] ✅   [composite] composite in [0,100] (=48.0 · NORMAL)
-[19:49:20] ✅   [canary-srf_usage] srf_usage canary present (state=CALM)
-[19:49:20] ✅   [canary-sofr_tail] sofr_tail canary present (state=CALM)
-[19:49:20] ✅   [canary-bill_rrp] bill_rrp canary present (state=CALM)
-[19:49:20] ✅   [canary-rrp_drain_20d] rrp_drain_20d canary present (state=CALM)
-[19:49:20] ✅   [canary-discount_window] discount_window canary present (state=AMBER)
-[19:49:20] ✅   [concept-map] note_concept_map has 16 concepts
-── catalog kick + CDN purge + edge asserts ──
-[19:49:20] provider-catalog kicked (data.html counts refresh)
-[19:49:20] cf purge ok=False err=HTTP Error 401: Unauthorized
-[19:52:01] ✅   [edge-page] served plumbing.html carries the L0 card + concept map
-[19:52:01] ✗   [edge-payload] CONTRACT MISS — served plumbing-stress.json is schema 2.0
+executing-against: 3f22d0fb1fea1273f9d615bedb34be87e85a6e65
+ops 4604 — plumbing v2.0.1 regate (supersedes 4603)
+── deploy-settle on the v2.0.1 marker ──
+[19:57:09] zip carries v2.0.1 (attempt 1)
+[19:57:09] ✅   [deploy] deployed zip carries v2.0.1 + NYFED_RATES
+── warm gap-fill: TGCR/BGCR from the NY Fed (keyless) ──
+[19:57:09] ⚠ TGCR: HTTP Error 400: Bad Request
+[19:57:09] ⚠ BGCR: HTTP Error 400: Bad Request
+[19:57:09] banked: none
+[19:57:09] ✗   [warm] CONTRACT MISS — TGCR + BGCR banked to the warm store (data.html now carries all 17 L0 series)
+── invoke v2.0.1 + payload contract (proper parse) ──
+[19:58:07] ✅   [invoke] engine returned ok:true (parsed)
+[19:58:07] ✅   [schema] schema 2.0
+[19:58:07] ✗   [L0-cov] CONTRACT MISS — L0 coverage >=18 with TGCR/BGCR live (got 16/23)
+[19:58:07] ✗   [TGCR] CONTRACT MISS — TGCR carrying data (value=None)
+[19:58:07] ✗   [BGCR] CONTRACT MISS — BGCR carrying data (value=None)
+[19:58:07] ✗   [SOFR_TGCR_BP] CONTRACT MISS — SOFR_TGCR_BP carrying data (value=None)
+[19:58:07] ✅   [L1-regress] L1 still scoring (20.3)
+[19:58:07] ✅   [L2-regress] L2 still scoring (70.8)
+[19:58:07] ✅   [L3-regress] L3 still scoring (47.1)
+[19:58:07] ✅   [L4-regress] L4 still scoring (49.5)
+[19:58:07] ✅   [composite] composite 48.0 (NORMAL)
+── edge: payload freshness past the 600s TTL ──
+[19:58:08] edge serving schema 2.0 (attempt 1, as_of=2026-08-11T19:57:19+00:00)
+[19:58:08] ✅   [edge-payload] served plumbing-stress.json is schema 2.0
+[19:58:08] ✅   [edge-page] page still carries L0 card + concept map
 ── verdict ──
-[19:52:01] ✗ plumbing note closeout: 3 red
+[19:58:08] ✗ regate: 5 red (CF token 401 remains a KHALID action item)
 
-→ Report written to aws/ops/reports/latest/4603_plumbing_note.md
-❌ OPS-FAIL: aws/ops/pending/ops_4603_plumbing_note.py
+→ Report written to aws/ops/reports/latest/4604_plumbing_regate.md
+❌ OPS-FAIL: aws/ops/pending/ops_4604_plumbing_regate.py
