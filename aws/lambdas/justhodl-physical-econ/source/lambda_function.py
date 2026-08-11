@@ -1,4 +1,4 @@
-"""justhodl-physical-econ v1.0.2 (ops 4610)
+"""justhodl-physical-econ v1.0.3 (ops 4610)
 
 The Physical Economy TRADE SIGNAL — the cross-engine wiring job flagged
 in the ops-4559 strategic review, now with PJM as the fourth leg.
@@ -154,7 +154,8 @@ def build_components():
     # ── Port cargo ───────────────────────────────────────────────────
     pc = s3_json("data/port-cargo.json")
     if pc is not None and pc.get("fetch_status") == "OK":
-        seas = pc.get("seasonal") or pc.get("seasonal_block") or {}
+        seas = (pc.get("seasonal_baseline") or pc.get("seasonal")
+                or {})
         v = (seas.get("seasonal_chg_pct")
              if seas.get("status") == "OK" else None)
         basis = "same-week vs 1-3y prior (seasonal-true)"
