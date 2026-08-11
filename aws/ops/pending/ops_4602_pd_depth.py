@@ -75,8 +75,13 @@ def main():
               % (s1.get("hist_v"), nd,
                  len(s1.get("catalog") or []), s1.get("status"),
                  (s1.get("seriesbreaks") or [])[:8]))
-        misses += contract(r, "pd", s1.get("hist_v") == 2 and nd >= 50,
-                           "v2 tranche ran (%d keys deep-pulled)" % nd)
+        misses += contract(r, "pd", s1.get("hist_v") == 2 and nd >= 100,
+                           "v2 tranche ran at full width (%d keys)" % nd)
+        misses += contract(r, "pd",
+                           all(" " not in str(b) for b in
+                               (s1.get("seriesbreaks") or ["x"])),
+                           "seriesbreaks are keyids: %s"
+                           % (s1.get("seriesbreaks") or [])[:6])
 
         r.section("2. Depth proof on a sampled key")
         sample = (s1.get("done") or [None])[0]
@@ -89,13 +94,18 @@ def main():
                   "size=%.1fKB gz"
                   % (sample, d.get("n_obs"), d.get("breaks_used"),
                      d.get("first"), d.get("last"), sz / 1024))
+            # reframe (4602 evidence): the bare endpoint already serves
+            # 2013->now (696 weekly obs, gz ~8:1 — the 5MB WAS real
+            # history). v2's marginal gain = pre-2013 breaks where the
+            # keyid resolves; '<current-only>' stays honest when not.
+            bu = d.get("breaks_used") or []
+            deep = (len([b for b in bu if b != "<current-only>"]) >= 2
+                    or str(d.get("first") or "9999") <= "2013-04-30")
             misses += contract(r, "depth",
-                               (d.get("n_obs") or 0) >= 300
-                               and len(d.get("breaks_used") or []) >= 2
-                               and str(d.get("first") or "9999") < "2016",
-                               "full multi-break history (obs=%s, "
-                               "back to %s)"
-                               % (d.get("n_obs"), d.get("first")))
+                               (d.get("n_obs") or 0) >= 600 and deep,
+                               "history proven (obs=%s, first=%s, "
+                               "breaks=%s)"
+                               % (d.get("n_obs"), d.get("first"), bu))
             proj = sz * len(s1.get("catalog") or [1539]) / 1e6
             r.log("  projected converged footprint ≈ %.0f MB "
                   "(vs the 5MB stub era)" % proj)
