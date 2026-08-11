@@ -1,0 +1,49 @@
+# ops 4609 — PJM GRID engine (Data Miner 2)
+
+**Status:** success  
+**Duration:** 168.6s  
+**Finished:** 2026-08-11T22:00:47+00:00  
+
+## Data
+
+| ai_read | canaries | invoke |
+|---|---|---|
+|  |  | {"ok": true, "load_gw": 117.26, "momentum_pct": 0.82, "lmp": 43.79, "lmp_shock": "CALM", "n_load_obs": 2000} |
+| RTO demand +0.82% over 8 days — flat electricity pull (data-center / AI-infra thesis monitor) | {"lmp_spike": {"state": "CALM", "dod_pct": 13.0}, "load_vs_forecast_peak": {"state": "CALM", "pct": 85.0}} |  |
+
+## Log
+## runner secret present
+
+- `21:57:58` ✅   [secret] PJM_API_KEY present in runner env (len=32)
+## deploy-settle (new function)
+
+- `21:57:59` v1.0.0 live (attempt 1)
+- `21:57:59` ✅   [deploy] function live v1.0.0
+## env inject + config floor
+
+- `21:58:05` ✅   [config] key injected, timeout=300s memory=1024MB
+## hourly schedule
+
+- `21:58:05` created rate(1 hour)
+- `21:58:05` ✅   [schedule] hourly schedule set
+## invoke + real-data contracts
+
+- `21:58:15` ✅   [invoke] engine ok:true
+- `21:58:15` ✅   [load] RTO load live: 117.26 GW from 2000 obs
+- `21:58:15` ✅   [momentum] 8-day demand momentum computed: 0.82%
+- `21:58:15` ✅   [lmp] RT LMP live: $43.79/MWh daily avg, DoD 13.0%, shock=CALM
+- `21:58:15` ✅   [fuel] fuel mix live with 10 fuels (top: {"Gas": 45.3, "Nuclear": 23.3, "Coal": 18.4})
+## purge + edge
+
+- `21:58:15` purge ok=True err=None
+- `21:58:16` edge 1: HTTP Error 404: Not Found
+- `21:58:41` edge 2: HTTP Error 404: Not Found
+- `21:59:06` edge 3: HTTP Error 404: Not Found
+- `21:59:31` edge 4: HTTP Error 404: Not Found
+- `21:59:56` edge 5: HTTP Error 404: Not Found
+- `22:00:21` edge 6: HTTP Error 404: Not Found
+- `22:00:47` ✅   [edge-page] pjm-grid.html live
+- `22:00:47` ✅   [edge-payload] pjm-grid.json serving schema 1.0
+## verdict
+
+- `22:00:47` ✅ PJM GRID LIVE — load 117.26 GW, momentum 0.82%, LMP $43.79 (shock CALM), 10 fuels · hourly · https://justhodl.ai/pjm-grid.html
