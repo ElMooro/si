@@ -1,23 +1,23 @@
-executing-against: fe4f7dd52a852c1ae25837ac39c60abaf4b67265
-ops 4611 — physical wiring regate
-── deep shape-dump (depth 2) ──
-[22:22:02] data/port-cargo.json → {"engine": "'port-cargo'", "version": "'1.1.0'", "date_field_type": "NoneType", "engine_class": "'physical_trade_fast_lay", "evidence_tier": "'tier_1_measured_physica", "lag_months": "int", "generated_at": "'2026-08-11T12:40:38.160", "duration_s": "float", "fetch_status": "'FAILED'", "latest_data_date": "NoneType", "data_age_days": "NoneType", "expected_lag_days": "int", "stale": "bool", "method": "'IMF PortWatch Daily_Por", "n_ports_with_data": "int", "n_rows_window": "int", "tonnage_fields": {"import": "NoneType", "export": "NoneType", "class_fields_import": "NoneType", "class_fields_export": "NoneType"}, "global_pulse": {"import_tpd_7d": "int", "export_tpd_7d": "int", "total_chg_pct": "NoneType"}, "seasonal_baseline": {"status": "'UNAVAILABLE'"}, "chokepoints_context": "NoneType"}
-[22:22:02] data/grid-queue.json → {"version": "'2.1.0'", "generated_at": "'2026-08-11T12:50:16.817", "national": {"primary_metric": "'mw_with_executed_ia'", "mw_with_executed_ia": "float", "ia_measured_isos": ["list[5]", "str"], "headline_queue_mw": "float", "headline_risk_adjusted_mw": "float", "isos_live": ["list[5]", "str"], "isos_missing": ["list[2]", "str"], "n_isos_live": "int", "assumption": "\"headline_risk_adjusted ", "blind_spot": "'large-LOAD (datacenter)"}, "large_load_queue": {"status": "'UNAVAILABLE'"}, "queue_velocity": {"status": "'LIVE'", "n_snapshots": "int", "span_days": "int", "national_ia_mw_per_month": "float", "national_headline_mw_per_month": "float", "per_iso_ia_mw_per_month": {"CAISO": "float", "NYISO": "float", "MISO": "float", "SPP": "float", "ERCOT": "float"}, "method": "'\u0394 vs oldest archived sn"}, "impact_map": {"schema": "'impact-map/1.0'", "engine": "'grid-queue'", "factor": "'grid_ex
-── deploy-settle ──
-[22:22:34] justhodl-pjm-grid carries justhodl-pjm-grid v1.0.1
-[22:22:34] justhodl-physical-econ carries justhodl-physical-econ v1.0.1
-[22:22:34] ✅   [deploy-pjm] pjm-grid v1.0.1
-[22:22:34] ✅   [deploy-phys] physical-econ v1.0.1
-── invoke chain (spaced for the PJM rate limit) ──
-[22:22:43] ✅   [pjm-ok] pjm-grid ok:true (lmp shock=CALM)
-[22:22:49] ✅   [phys-ok] physical-econ ok:true
-[22:22:49] ✅   [components] 4 of 5 legs: ["PJM demand momentum (8d)", "PJM power-price shock canary", "Grid buildout quality (executed-IA share)", "Freight pulse"]
-[22:22:49] ✅   [pjm-legs] both PJM legs (found 2)
-[22:22:49] ✅   [signal] signal NEUTRAL at HIGH confidence · composite 46.9
-[22:22:56] ✅   [machine-p1] machine profits pillar n=4 score=68.7
+executing-against: c7f0ed89ad2e0f32a659c8383a84d06d717f94ec
+ops 4612 — port-cargo self-healing layer resolve
+── raw upstream probes (ground truth) ──
+[22:29:20] old layer → 200, 7773 bytes, head: {   "objectIdFieldName" : "ObjectId",    "uniqueIdField" :    {     "name" : "ObjectId",      "isSystemMaintained" : true   },    "globalIdFieldName" : "",    "fi
+[22:29:21] org directory → 200, 46926 bytes, head: {   "currentVersion" : 12,    "services" : [     {       "name" : "2018_BP_Homepage_Indicator",        "type" : "FeatureServer",        "url" : "https://services9.a
+[22:29:21] services containing 'port': ["disruptions_ExportFeatures", "disruptions_with_ports", "FR24_airports", "portsfacts", "PortWatch_boundaries", "PortWatch_chokepoints_database", "PortWatch_countries", "PortWatch_Countries_Simplified", "portwatch_disruptions_database", "PortWatch_ports", "PortWatch_ports_database", "PortWatchPorts_globe"]
+── deploy-settle v1.2.0 ──
+[22:29:22] v1.2.0 live (attempt 1)
+[22:29:22] ✅   [deploy] port-cargo v1.2.0
+── invoke + healed-fetch contracts ──
+[22:30:52] invoke status=200
+[22:30:53] ✅   [fetch] fetch_status OK (resolver=candidate:Daily_Ports_Data)
+[22:30:53] ✅   [fresh] data date 2026-08-07, age 4 d (PortWatch lag ~4-6d)
+[22:30:53] ✅   [breadth] 2065 ports carrying data
+── fifth leg: physical-economy join ──
+[22:30:57] ✗   [fifth-leg] CONTRACT MISS — physical signal now 4 legs: ["PJM demand momentum (8d)", "PJM power-price shock canary", "Grid buildout quality (executed-IA share)", "Freight pulse"]
 ── edge ──
-[22:22:56] ✅   [edge] edge payload shows >=4 components
+[22:30:58] ✅   [edge] edge port-cargo.json shows OK
 ── verdict ──
-[22:22:56] ✅ PHYSICAL SIGNAL COMPLETE — NEUTRAL (HIGH), 4 legs live, both PJM legs joined, machine consuming
+[22:30:58] ✗ port-cargo heal: 1 red (raw probes above hold the ground truth for the next patch)
 
-→ Report written to aws/ops/reports/latest/4611_physical_regate.md
+→ Report written to aws/ops/reports/latest/4612_portcargo_heal.md
+❌ OPS-FAIL: aws/ops/pending/ops_4612_portcargo_heal.py
