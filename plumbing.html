@@ -40,7 +40,7 @@
   .composite .meta-line { font-size: 12px; color: var(--text-dim); }
 
   /* Layer grid */
-  .layers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .layers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px; }
   .layer { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
             overflow: hidden; cursor: pointer; transition: border-color 0.1s; }
   .layer:hover { border-color: var(--accent); }
@@ -154,10 +154,21 @@
     <div id="composite" class="composite NORMAL">
       <h2 id="compLabel">—</h2>
       <div class="score" id="compScore">—</div>
-      <div class="meta-line">Composite weighted: L1 35% · L2 25% · L3 20% · L4 20%</div>
+      <div class="meta-line">Composite weighted: L0 25% · L1 30% · L2 15% · L3 10% · L4 20%</div>
     </div>
 
     <div class="layers">
+      <div class="layer" data-layer="L0" onclick="setActiveLayer('L0')">
+        <div class="layer-header">
+          <span class="name">L0 — Repo Core · The Note</span>
+          <span class="weight">25%</span>
+        </div>
+        <div class="layer-body">
+          <div class="layer-score" id="L0score">—</div>
+          <div class="layer-label" id="L0label">—</div>
+          <div class="layer-coverage" id="L0coverage">—</div>
+        </div>
+      </div>
       <div class="layer" data-layer="L1" onclick="setActiveLayer('L1')">
         <div class="layer-header">
           <span class="name">L1 — Eurodollar Plumbing</span>
@@ -297,7 +308,7 @@ function renderComposite() {
 }
 
 function renderLayers() {
-  for (const lid of ['L1', 'L2', 'L3', 'L4']) {
+  for (const lid of ['L0', 'L1', 'L2', 'L3', 'L4']) {
     const layer = (DATA.layers || {})[lid] || {};
     const score = layer.score;
     const label = scoreLabel(score);
@@ -619,6 +630,38 @@ FEEDS.forEach(function(f){
  }).catch(function(){c.querySelector('.v').textContent='\u2014';c.querySelector('.s').textContent='unavailable';});
 });
 
+})();
+</script>
+<script>
+/* ops 4603 — Note Concept Map: coverage of the plumbing note, self-contained */
+(function(){
+  function esc(t){return String(t==null?'':t).replace(/[&<>"]/g,
+    function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  fetch('data/plumbing-stress.json?cb='+Date.now()).then(function(r){return r.json();})
+  .then(function(d){
+    var cm = d.note_concept_map;
+    if (!cm || !cm.length) return;
+    var host = document.createElement('div');
+    host.id = 'conceptMap';
+    var col = {LIVE:'#4caf7d', PROXY:'#e0a030', NOT_PUBLIC:'#888'};
+    var h = '<h2 style="font-size:17px;margin:18px 0 2px">Repo-Market Note · Concept Coverage</h2>'+
+      '<div style="color:var(--text3,#888);font-size:11px;margin-bottom:10px">Every mechanism in the plumbing note mapped to the live series that monitors it. PROXY = best public shadow of a private market; NOT_PUBLIC = no free real-time feed exists.</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px">';
+    cm.forEach(function(c){
+      var sc = col[c.status]||'#888';
+      h += '<div style="border:1px solid var(--border,#222);border-radius:8px;padding:10px;background:var(--card,#12161c)">'+
+        '<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline">'+
+        '<span style="font-size:12.5px;font-weight:600">'+esc(c.concept)+'</span>'+
+        '<span style="font-size:10.5px;color:'+sc+';font-weight:600;white-space:nowrap">'+esc(c.status)+'</span></div>'+
+        '<div style="font-size:11px;color:var(--text3,#888);margin-top:4px">'+esc((c.indicators||[]).join(' · ')||'—')+'</div>'+
+        '<div style="font-size:11px;margin-top:4px">'+esc(c.note||'')+'</div></div>';
+    });
+    h += '</div>';
+    host.innerHTML = h;
+    var anchor = document.querySelector('.layers');
+    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(host, anchor.nextSibling);
+    else document.body.appendChild(host);
+  }).catch(function(e){console.log('conceptMap skip', e);});
 })();
 </script>
 </body>
