@@ -84,6 +84,33 @@ def lambda_handler(event, context):
             Bucket=BUCKET, Key=state_key)["Body"].read())
     except Exception:
         state = {"catalog": None, "done": []}
+    # ── v2 (Khalid: "1,500 series but only 5MB"): /pd/get/{k}.json
+    # returns ONLY the current seriesbreak (~3KB gz — the whole 5MB
+    # mystery). Full FR2004 history = every break via
+    # /pd/get/{brk}/timeseries/{k}.json. hist_v=2 resets done[] once so
+    # all keys re-pull deep; hourly tranches converge in ~6-7h.
+    if state.get("hist_v") != 2:
+        state["hist_v"] = 2
+        state["done"] = []
+        state["failures"] = {}
+        state["status"] = "converging-v2-full-history"
+    if not state.get("seriesbreaks"):
+        try:
+            sb = json.loads(_fetch("/pd/list/seriesbreaks.json"))
+            labs = []
+            for lst in (sb.get("pd") or {}).values():
+                if isinstance(lst, list):
+                    for x in lst:
+                        if isinstance(x, dict):
+                            lab = (x.get("label") or x.get("keyid")
+                                   or x.get("seriesbreak"))
+                            if lab:
+                                labs.append(str(lab))
+            state["seriesbreaks"] = sorted(set(labs)) or None
+        except Exception as e:
+            state["seriesbreaks_note"] = ("%s: %s"
+                                          % (type(e).__name__,
+                                             str(e)[:60]))
     if not state.get("catalog"):
         for cand in PD_CATALOG_CANDS:
             try:
@@ -104,26 +131,55 @@ def lambda_handler(event, context):
     if state.get("catalog"):
         todo = [k for k in state["catalog"]
                 if k not in set(state["done"])][:TRANCHE]
+        breaks = state.get("seriesbreaks") or []
         for k in todo:
-            path = f"/pd/get/{k}.json"
             try:
-                raw = _fetch(path)
-                rk = (snapshot("nyfed", BASE + path, raw)
-                      if snapshot else None)
+                rows, used = [], []
+                for brk in breaks:
+                    try:
+                        d2 = json.loads(_fetch(
+                            f"/pd/get/{brk}/timeseries/{k}.json"))
+                        r2 = ((d2.get("pd") or {}).get("timeseries")
+                              or [])
+                        if r2:
+                            rows += r2
+                            used.append(brk)
+                        time.sleep(0.15)
+                    except Exception:
+                        continue
+                if not rows:
+                    # fallback: the bare path (current break only) —
+                    # better than nothing, honestly labeled
+                    d2 = json.loads(_fetch(f"/pd/get/{k}.json"))
+                    rows = ((d2.get("pd") or {}).get("timeseries")
+                            or [])
+                    used = ["<current-only>"]
+                seen, dedup = set(), []
+                for r2 in rows:
+                    ad = r2.get("asofdate")
+                    if ad and ad not in seen:
+                        seen.add(ad)
+                        dedup.append(r2)
+                dedup.sort(key=lambda x: str(x.get("asofdate")))
                 s3.put_object(
                     Bucket=BUCKET,
                     Key=f"data/warm/nyfed-markets/pd/{k}.json.gz",
                     Body=gzip.compress(json.dumps(
-                        {"series": k, "as_of": now,
-                         "raw_snapshot_key": rk,
-                         "payload": json.loads(raw)}).encode()),
+                        {"series": k, "as_of": now, "hist_v": 2,
+                         "breaks_used": used,
+                         "n_obs": len(dedup),
+                         "first": (dedup[0].get("asofdate")
+                                   if dedup else None),
+                         "last": (dedup[-1].get("asofdate")
+                                  if dedup else None),
+                         "rows": dedup}).encode()),
                     ContentType="application/gzip")
                 state["done"].append(k)
                 got += 1
             except Exception as e:
                 state.setdefault("failures", {})[k] = \
                     f"{type(e).__name__}: {str(e)[:50]}"
-            time.sleep(0.35)
+            time.sleep(0.2)
         n = len(state["catalog"])
         nd = len(set(state["done"]))
         state["progress_pct"] = round(100 * nd / n, 1) if n else 0
