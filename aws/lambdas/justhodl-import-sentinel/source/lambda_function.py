@@ -246,6 +246,64 @@ def lambda_handler(event=None, context=None):
             incident("fred", "expansion_failed", str(e)[:150])
     pipelines.append(fred)
 
+    # ── NY Fed — priority #2 (Khalid): the deep family (rates history /
+    # markets+PD worklist / repo-op history) reads as one pipeline right
+    # behind FRED. Shape-tolerant, evidence-first.
+    try:
+        ny = {"name": "nyfed", "status": "OK", "detail": ""}
+        parts = []
+        try:
+            ls = s3.get_object(Bucket=BUCKET,
+                               Key="data/warm/nyfed/latest-summary.json")
+            age_h = (datetime.now(timezone.utc)
+                     - ls["LastModified"]).total_seconds() / 3600
+            parts.append("rates %.1fh" % age_h)
+            if age_h > 30:
+                ny["status"] = "STALLED"
+        except Exception:
+            parts.append("rates absent")
+            ny["status"] = "STALLED"
+        try:
+            pdst = json.loads(s3.get_object(
+                Bucket=BUCKET,
+                Key="data/warm/nyfed-markets/pd-state.json")
+                ["Body"].read())
+            wl = (pdst.get("worklist") or pdst.get("timeseries")
+                  or pdst.get("keys") or [])
+            done = (pdst.get("done") or [])
+            cur = pdst.get("cursor")
+            n_t = len(wl) or pdst.get("n_total") or 0
+            n_d = (cur if isinstance(cur, int)
+                   else len(done)) or pdst.get("n_done") or 0
+            parts.append("pd %s/%s" % (n_d, n_t or "?"))
+            if n_t and n_d < n_t:
+                if ny["status"] == "OK":
+                    ny["status"] = "RUNNING"
+        except Exception:
+            parts.append("pd state absent")
+        try:
+            rp = s3.list_objects_v2(
+                Bucket=BUCKET,
+                Prefix="data/warm/nyfed-markets/rp-")
+            newest = max((o["LastModified"]
+                          for o in rp.get("Contents", [])),
+                         default=None)
+            if newest:
+                age_h = (datetime.now(timezone.utc)
+                         - newest).total_seconds() / 3600
+                parts.append("repo %.1fh" % age_h)
+                if age_h > 30 and ny["status"] == "OK":
+                    ny["status"] = "STALLED"
+            else:
+                parts.append("repo history absent")
+        except Exception:
+            pass
+        ny["detail"] = " · ".join(parts)
+        pipelines.append(ny)
+    except Exception as _e:
+        pipelines.append({"name": "nyfed", "status": "UNKNOWN",
+                          "detail": str(_e)[:80]})
+
     # ── SDMX walkers + phase-1 tree + catalog freshness ───────────────
     for name in SDMX:
         stx = read_json("data/_state/sdmx-walk-%s.json" % name)
