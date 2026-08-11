@@ -341,7 +341,7 @@ def lambda_handler(event, context):
         else:
             state = "QUIET"
             state_desc = "No failed patterns detected on universe today"
-        # wo4592 BUG-4 gate: "no failed patterns" is unknowable when zero
+        # wo4592 BUG-4 gate (rev-1: state-keyed lookups hardened — blind maps to no-edge priors): "no failed patterns" is unknowable when zero
         # names returned price data. Blind says blind, not calm.
         data_sufficiency = {
             "n_scanned_with_data": (scanned) or 0,
@@ -428,7 +428,7 @@ def lambda_handler(event, context):
                 {"name": "Universe scanned", "current": scanned,
                  "threshold": ">=100", "satisfied": scanned >= 100, "weight": 0.30},
             ],
-            "forward_expectations": priors[state],
+            "forward_expectations": priors.get(state, priors.get("QUIET") or {}),
             "recommended_trade": recommended,
             "historical_episodes": [
                 {"period": "TSLA Apr 2024",
