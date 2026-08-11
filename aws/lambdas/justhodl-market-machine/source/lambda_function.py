@@ -1,4 +1,4 @@
-"""justhodl-market-machine v1.0.0 (ops 4607)
+"""justhodl-market-machine v1.1.0 (ops 4608)
 
 Khalid's doctrine, verbatim: "The stock market is a machine that relies
 on four things: 1) future profits, 2) interest rates, 3) where money is
@@ -19,6 +19,9 @@ data; contributors that can't be discovered are reported absent, never
 faked.
 
 Output: data/market-machine.json (+ history, 400 pts).
+v1.1.0: multi-key discovery for the pillar-4 joins + two direct
+FRED forced-flow reads (VIX term structure, SPX vs 200dma) so the
+forced pillar never rides on a single series.
 """
 import json
 import math
@@ -58,6 +61,14 @@ def s3_json(key):
     except Exception as e:
         print(f"[machine] s3 {key}: {e}")
         return None
+
+
+def s3_json_multi(keys):
+    for k in keys:
+        d = s3_json(k)
+        if d is not None:
+            return d, k
+    return None, None
 
 
 def walk_find(obj, names, depth=0):
@@ -263,7 +274,9 @@ def pillar_flow():
 # ── Pillar 4 — WHAT TRADERS ARE FORCED TO DO ─────────────────────────
 def pillar_forced():
     c = []
-    vt = s3_json("data/vol-target-unwind.json")
+    vt, vtk = s3_json_multi(["data/vol-target-unwind.json",
+                             "data/vol-target.json",
+                             "data/vol-unwind.json"])
     if vt is not None:
         v = walk_find(vt, ["unwind_score", "unwind_risk", "score",
                            "composite"])
@@ -273,7 +286,10 @@ def pillar_forced():
             c.append(contrib("Vol-target fund unwind pressure "
                              "(inverted)", "vol-target-unwind.json",
                              sup, f"engine reading {v}"))
-    ml = s3_json("data/capital-flow-radar.json")
+    ml, mlk = s3_json_multi(["data/capital-flow-radar.json",
+                             "data/margin-lending.json",
+                             "data/margin-debt.json",
+                             "data/margin.json"])
     if ml is not None:
         v = walk_find(ml, ["margin_yoy_pct", "margin_debt_yoy",
                            "margin_z", "composite", "score"])
@@ -283,20 +299,28 @@ def pillar_forced():
             c.append(contrib("Margin / leverage impulse",
                              "capital-flow-radar.json", sup,
                              f"engine reading {v}"))
-    sm = s3_json("data/spx-ma.json")
+    sm, smk = s3_json_multi(["data/spx-ma.json",
+                             "data/spx-ma-command.json",
+                             "data/spx-breadth.json"])
     if sm is not None:
         v = walk_find(sm, ["pct_above_200dma", "pct_above_200",
-                           "breadth_200", "pct_above_50dma",
-                           "pct_above_50"])
+                           "breadth_200", "above_200_pct",
+                           "pct200", "pctAbove200",
+                           "pct_above_50dma", "pct_above_50"])
         if v is not None:
             v = v * 100 if 0 < v <= 1 else v
             c.append(contrib("CTA trend proxy — members above 200dma",
                              "spx-ma.json", round(clamp(v, 0, 100), 1),
                              f"{v:.0f}% of index above trend"))
-    rg = s3_json("data/risk-gate.json")
+    rg, rgk = s3_json_multi(["data/risk-gate.json",
+                             "data/riskgate.json",
+                             "data/risk_gate.json"])
     if rg is not None:
-        st = walk_find_str(rg, ["state", "gate", "regime", "label"])
-        v = walk_find(rg, ["score", "composite", "gate_score"])
+        st = walk_find_str(rg, ["state", "gate", "regime", "label",
+                                "verdict", "posture", "risk_state",
+                                "mode", "signal"])
+        v = walk_find(rg, ["score", "composite", "gate_score",
+                           "risk_score", "net"])
         if st:
             m = {"RISK_ON": 75, "NEUTRAL": 50, "CAUTION": 38,
                  "RISK_OFF": 20}
@@ -308,6 +332,26 @@ def pillar_forced():
                                  "risk-gate.json", sup,
                                  f"gate {st} (score {v})"))
     vx = fred_series("VIXCLS", 30)
+    v3 = fred_series("VXVCLS", 30)
+    if vx and v3:
+        ratio = vx[-1]["value"] / v3[-1]["value"] if v3[-1]["value"] \
+            else None
+        if ratio:
+            c.append(contrib(
+                "VIX term structure (backwardation = forced zone)",
+                "FRED VIXCLS/VXVCLS",
+                round(clamp((1.02 - ratio) * 500, 0, 100), 1),
+                f"1m/3m ratio {ratio:.3f} "
+                f"({'BACKWARDATION' if ratio >= 1 else 'contango'})"))
+    spx = fred_series("SP500", 320)
+    if len(spx) > 200:
+        ma = sum(o["value"] for o in spx[-200:]) / 200.0
+        dist = (spx[-1]["value"] / ma - 1) * 100
+        c.append(contrib(
+            "SPX vs 200dma (CTA trend trigger)", "FRED SP500",
+            round(clamp(50 + dist * 5, 0, 100), 1),
+            f"{dist:+.1f}% vs 200dma (cross below = systematic "
+            f"selling trigger)"))
     if vx:
         lvl = vx[-1]["value"]
         c.append(contrib("VIX level (forced-deleverage zone >28)",
