@@ -19,6 +19,8 @@ import json
 import os
 import time
 import urllib.request
+from concurrent.futures import (ThreadPoolExecutor,
+                                FIRST_COMPLETED, wait as _fut_wait)
 from datetime import datetime, timezone
 
 import boto3
@@ -496,6 +498,56 @@ def _run_scoped_import(t0, now):
         rows = q.get("rows") or []
         try:
             min_pop = int(_knob("/justhodl/fred/min-popularity", "-1"))
+            # ── v2.3.0 (Khalid: faster drain): the cycle was serial —
+            # paced fetch + json.dumps + put_object ≈ 1.2s/series ≈
+            # 49/min regardless of the rate ceiling (already 100). The
+            # dumps+put now ride a 3-worker pool; the API fetch stays
+            # strictly serial and paced. Counters are applied ONLY on
+            # main-thread reap of a SUCCESSFUL put, and every
+            # checkpoint/exit drains all pending writes before the
+            # cursor persists — durable-before-checkpoint, no lost
+            # series, no cross-thread state mutation.
+            _pool = ThreadPoolExecutor(max_workers=3)
+            _pending = []   # (future, sid, pop, row_dict)
+
+            def _bank_put(key2, doc2):
+                s3.put_object(Bucket=BUCKET, Key=key2,
+                              Body=json.dumps(doc2,
+                                              default=str).encode(),
+                              ContentType="application/json")
+
+            def _reap(block_all=False):
+                nonlocal buf
+                while _pending:
+                    if not block_all:
+                        done_now = [t2 for t2 in _pending
+                                    if t2[0].done()]
+                        if not done_now and len(_pending) < 12:
+                            return
+                        if not done_now:
+                            _fut_wait([t2[0] for t2 in _pending],
+                                      return_when=FIRST_COMPLETED)
+                            continue
+                    else:
+                        done_now = list(_pending)
+                    for t2 in done_now:
+                        fut2, sid2, pop2, row2 = t2
+                        _pending.remove(t2)
+                        try:
+                            fut2.result()
+                        except Exception as e2:
+                            _errs2 = st.setdefault("errors", {})
+                            if len(_errs2) < 500:
+                                _errs2[sid2] = ("bank_put: "
+                                                + str(e2)[:50])
+                            continue
+                        buf.append(row2)
+                        st["series_imported"] += 1
+                        st["last_pop_drained"] = pop2
+                        if len(st["imported_ids"]) < 2000:
+                            st["imported_ids"].append(sid2)
+                    if not block_all:
+                        return
         except Exception:
             min_pop = -1
         cut_hit = False
@@ -547,7 +599,7 @@ def _run_scoped_import(t0, now):
                         0, st.get("series_queued", 0) - 1)
                     cur += 1
                     continue
-                buf.append({
+                _row = {
                     "id": sid, "title": None, "freq": None,
                     "units": None, "popularity": pop,
                     "category": cname, "root": rname,
@@ -557,29 +609,26 @@ def _run_scoped_import(t0, now):
                     "n_observations": len(obs),
                     "source_url": ("https://fred.stlouisfed.org/series/"
                                    + str(sid)),
-                })
-                s3.put_object(
-                    Bucket=BUCKET, Key=_dk,
-                    Body=json.dumps({"meta": {"id": sid,
-                                              "popularity": pop,
-                                              "category": cname,
-                                              "root": rname,
-                                              "last_updated": lu},
-                                     "observations": obs},
-                                    default=str).encode(),
-                    ContentType="application/json")
-                st["series_imported"] += 1
-                st["last_pop_drained"] = pop
+                }
+                _pending.append((
+                    _pool.submit(_bank_put, _dk,
+                                 {"meta": {"id": sid,
+                                           "popularity": pop,
+                                           "category": cname,
+                                           "root": rname,
+                                           "last_updated": lu},
+                                  "observations": obs}),
+                    sid, pop, _row))
+                _reap(block_all=False)   # backpressure at 12 in-flight
                 st["series_queued"] = max(
                     0, st.get("series_queued", 0) - 1)
-                if len(st["imported_ids"]) < 2000:
-                    st["imported_ids"].append(sid)
                 progress += 1
                 cur += 1
                 if len(buf) >= PAGE:
                     _flush_page(st, buf)
                     buf = []
                 if time.time() - _last_ckpt[0] > 90:
+                    _reap(block_all=True)   # durable before checkpoint
                     st["lease_until"] = time.time() + BUDGET_S + 90
                     st["phase2"] = "drain"
                     st["queue_cursor"] = cur
@@ -607,6 +656,8 @@ def _run_scoped_import(t0, now):
         st["engine_version"] = "2.2.1"
         st["phase2"] = ("drain" if discovery_complete else "discovery")
         st["queue_total"] = len(rows)
+        _reap(block_all=True)
+        _pool.shutdown(wait=True)
         st["queue_cursor"] = cur
         st["rate_rpm"] = round(_rate["rpm"], 1)
         st["throttled_429"] = st.get("throttled_429", 0) + \
