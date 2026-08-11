@@ -1,33 +1,15 @@
-executing-against: d184edea6a0c706f0e1f021b5498635dae430452
-ops 4605 — v2.1.0 DoD shock layer (supersedes 4604)
-── deploy-settle on the v2.1.0 marker ──
-[20:34:43] zip carries v2.1.0 (attempt 1)
-[20:34:43] ✅   [deploy] deployed zip carries v2.1.0 shock layer
-── warm gap-fill: TGCR/BGCR via search.json ──
-[20:34:45] banked: TGCR(2087), BGCR(2087)
-[20:34:45] ✅   [warm] TGCR + BGCR banked — data.html carries all 17 L0 series
-── invoke v2.1.0 + shock contracts ──
-[20:35:20] ✅   [invoke] engine ok:true
-[20:35:21] ✅   [schema] schema 2.0
-[20:35:21] ✅   [TGCR] TGCR carrying data (latest=3.61)
-[20:35:21] ✅   [BGCR] BGCR carrying data (latest=3.61)
-[20:35:21] ✅   [SOFR_TGCR_BP] SOFR_TGCR_BP carrying data (latest=2.0)
-[20:35:21] ✅   [SOFR_DOD_BP] SOFR_DOD_BP carrying data (latest=1.0)
-[20:35:21] ✅   [RRP_DOD_PCT] RRP_DOD_PCT carrying data (latest=90.5579)
-[20:35:21] ✅   [REPO_OPS_DOD_BN] REPO_OPS_DOD_BN carrying data (latest=0.1)
-[20:35:21] ✅   [L0-cov] L0 coverage >=21 (got 24/28)
-[20:35:21] ✅   [canary-repo_rate_shock] repo_rate_shock canary live (state=CALM · {"rate": "SOFR", "value_bp": 1.0, "value_pct": 0.28})
-[20:35:21] ✅   [canary-rrp_swing] rrp_swing canary live (state=CALM · {"value_bn": 0.3, "value_pct": 28.21})
-[20:35:21] ✅   [canary-repo_ops_surge] repo_ops_surge canary live (state=CALM · {"value": 0.1, "day_change_bn": 0.1})
-[20:35:21] ✅   [L1-regress] L1 still scoring (20.3)
-[20:35:21] ✅   [L2-regress] L2 still scoring (70.8)
-[20:35:21] ✅   [L3-regress] L3 still scoring (47.1)
-[20:35:21] ✅   [L4-regress] L4 still scoring (49.5)
-[20:35:21] ✅   [composite] composite 49.0 (NORMAL)
-── edge freshness ──
-[20:35:22] edge carries repo_rate_shock (attempt 1)
-[20:35:22] ✅   [edge] served payload carries the DoD shock canaries
+executing-against: 82ffbdf84c5050ff62f34f9a8a0351cea7699cde
+ops 4606 — Cloudflare token restored: purge probe
+── token verify ──
+[21:08:23] ✅   [env] CLOUDFLARE_API_TOKEN present in runner env
+[21:08:23] ✅   [verify] token verifies active (status=active err=None)
+── zone + purge ──
+[21:08:24] ✅   [zone] zone justhodl.ai resolved (id=fb59e2d09c34b648d334696ae5c02a0a err=None)
+[21:08:24] ✗   [purge] CONTRACT MISS — cache purge accepted for the plumbing surfaces
+── edge sanity ──
+[21:08:24] ✅   [edge] post-purge edge serves plumbing.html with the L0 card
 ── verdict ──
-[20:35:22] ✅ Day-over-day shock layer LIVE — repo/RRP daily %-change scored + hard crisis canaries, TGCR/BGCR flowing, composite=49.0 (NORMAL), edge fresh. KHALID items open: rotate CLOUDFLARE_API_TOKEN (401) + leaked FRED key.
+[21:08:24] ✗ cf probe: 1 red
 
-→ Report written to aws/ops/reports/latest/4605_plumbing_shock.md
+→ Report written to aws/ops/reports/latest/4606_cf_token_probe.md
+❌ OPS-FAIL: aws/ops/pending/ops_4606_cf_token_probe.py
