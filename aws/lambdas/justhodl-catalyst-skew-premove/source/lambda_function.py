@@ -64,6 +64,18 @@ def extract_options_skew(data):
         data.get("bearish_flow") or [],
         data.get("flow") or [],
     ]
+    # drift-proofing: if the named keys all miss, scan every top-level
+    # list-of-dicts whose rows carry a symbol and any premium/ratio
+    # field — the feed can rename without blinding this engine again.
+    if not any(isinstance(x, list) and x for x in sources):
+        for k, v in list(data.items())[:40]:
+            if (isinstance(v, list) and v and isinstance(v[0], dict)
+                    and (v[0].get("symbol") or v[0].get("ticker"))
+                    and any(f in v[0] for f in
+                            ("call_put_ratio", "cp_ratio",
+                             "call_premium", "call_premium_usd",
+                             "put_premium", "put_premium_usd"))):
+                sources.append(v)
     for src in sources:
         if not isinstance(src, list):
             continue
