@@ -1,4 +1,4 @@
-"""justhodl-physical-econ v1.0.1 (ops 4610)
+"""justhodl-physical-econ v1.0.2 (ops 4610)
 
 The Physical Economy TRADE SIGNAL — the cross-engine wiring job flagged
 in the ops-4559 strategic review, now with PJM as the fourth leg.
@@ -19,6 +19,10 @@ Output: data/physical-economy.json (+ history 400).
 v1.0.1: LMP-shock leg falls back to the canaries block; regex-deep
 discovery for port-cargo; grid-queue leg = executed-IA share of
 the headline queue (a real 0-100 ratio).
+v1.0.2: port-cargo joined via its EXACT fields (seasonal_chg_pct
+with the same-week prior-year basis, falling back to the 7d-vs-28d
+total_chg_pct), gated on fetch_status OK — the regex path had a
+one-character miss (pct_ch vs chg_pct).
 """
 import json
 import math
@@ -149,22 +153,25 @@ def build_components():
                           f"{lm.get('daily_avg_dod_pct')}% · {shock}"))
     # ── Port cargo ───────────────────────────────────────────────────
     pc = s3_json("data/port-cargo.json")
-    if pc is not None:
-        v = walk_find(pc, ["momentum_pct", "momentum", "yoy_pct",
-                           "composite_score", "composite", "score",
-                           "z", "z_score", "pulse"])
-        fk = None
+    if pc is not None and pc.get("fetch_status") == "OK":
+        seas = pc.get("seasonal") or pc.get("seasonal_block") or {}
+        v = (seas.get("seasonal_chg_pct")
+             if seas.get("status") == "OK" else None)
+        basis = "same-week vs 1-3y prior (seasonal-true)"
         if v is None:
-            v, fk = walk_find_regex(
-                pc, r"(momentum|yoy|pct_ch|_z$|^z$|z_score|pulse|"
-                    r"composite|growth)")
-        st = walk_find_str(pc, ["state", "regime", "label", "signal"])
-        if v is not None:
-            c.append(comp("Port cargo momentum", "port-cargo.json",
-                          to_support(v),
-                          f"engine reading {v}"
-                          + (f" [{fk}]" if fk else "")
-                          + (f" · {st}" if st else "")))
+            v = (pc.get("global_pulse") or {}).get("total_chg_pct")
+            basis = "7d vs 28d baseline"
+        if v is None:
+            v, fk = walk_find_regex(pc, r"(chg_pct|pct_chg|momentum|"
+                                        r"yoy)")
+            basis = f"discovered [{fk}]" if fk else basis
+        if isinstance(v, (int, float)):
+            c.append(comp(
+                "Port cargo tonnage momentum", "port-cargo.json",
+                round(clamp(50 + v * 2.5, 0, 100), 1),
+                f"global tonnage {v:+.1f}% ({basis}) · "
+                f"{pc.get('n_ports_with_data')} ports · data "
+                f"{pc.get('latest_data_date')}"))
     # ── Grid interconnection queue ───────────────────────────────────
     gq = s3_json("data/grid-queue.json")
     if gq is not None:
