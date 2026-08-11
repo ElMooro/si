@@ -1,4 +1,4 @@
-"""justhodl-pjm-grid v1.0.0 (ops 4609)
+"""justhodl-pjm-grid v1.0.1 (ops 4609)
 
 PJM Data Miner 2 → the electricity-demand leg of the AI-infrastructure
 thesis (GEV / EME / NVT) and the newest Physical Economy engine, sitting
@@ -15,6 +15,9 @@ read), forecast-peak headroom, RT LMP daily average day-over-day
 %-change with the house shock doctrine (huge one-day % moves = alarm),
 and fuel-mix shares. Output: data/pjm-grid.json (+ history 400 pts).
 No key → honest ok:false; nothing faked.
+v1.0.1: last-good fallback — if a feed rate-limits (non-member
+~6 req/min), reuse the prior run's block flagged "stale": true
+instead of publishing an empty section.
 """
 import json
 import os
@@ -192,6 +195,25 @@ def lambda_handler(event, context):
                "shock_doctrine": "huge day-over-day %-change in the "
                                  "price of power = grid stress alarm "
                                  "(|Δ|>=50% amber, >=150% red)"}
+
+    # last-good fallback (rate-limit resilience; stale flagged)
+    try:
+        prev = json.loads(s3.get_object(Bucket=BUCKET,
+                                        Key=OUT_KEY)["Body"].read())
+    except Exception:
+        prev = {}
+    def keep(cur, key):
+        if cur:
+            return cur
+        old = prev.get(key) or {}
+        if old:
+            old = dict(old)
+            old["stale"] = True
+        return old
+    load = keep(load, "load")
+    forecast = keep(forecast, "forecast")
+    fuel = keep(fuel, "fuel_mix")
+    lmp = keep(lmp, "lmp")
 
     ai_read = None
     if load.get("momentum_8d_pct") is not None:
