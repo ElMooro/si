@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PJM Grid — JustHodl.AI</title>
+<style>
+  :root{--bg:#0b0e13;--card:#12161f;--line:#1e2430;--txt:#d7dde8;
+        --dim:#8b93a3;--green:#4caf7d;--amber:#e0a030;--red:#e05252;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);
+       font:15px/1.55 -apple-system,'Segoe UI',Roboto,sans-serif;
+       padding:22px 18px 60px;max-width:1180px;margin:0 auto}
+  h1{font-size:21px;letter-spacing:.4px}
+  .sub{color:var(--dim);font-size:12.5px;margin:4px 0 16px}
+  .thesis{background:var(--card);border:1px solid var(--line);
+          border-left:3px solid var(--amber);border-radius:8px;
+          padding:12px 16px;font-size:13.5px;color:var(--dim);
+          margin-bottom:16px;font-style:italic}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:520px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);
+        border-radius:10px;padding:14px 15px}
+  .card h3{font-size:12.5px;color:var(--dim);font-weight:600;
+           text-transform:uppercase;letter-spacing:.5px}
+  .big{font-size:28px;font-weight:700;margin:6px 0 2px}
+  .d{color:var(--dim);font-size:12px}
+  .g{color:var(--green)}.a{color:var(--amber)}.r{color:var(--red)}
+  .bar{height:9px;background:#1a2029;border-radius:5px;overflow:hidden;
+       margin:5px 0 2px}
+  .bar>span{display:block;height:100%;background:var(--amber)}
+  .fuelrow{font-size:12px;margin-top:7px}
+  .foot{color:var(--dim);font-size:11.5px;margin-top:20px}
+</style>
+</head>
+<body>
+<h1>PJM GRID — POWER DEMAND MONITOR</h1>
+<div class="sub">PJM Data Miner 2 · largest US grid · auto-updates
+hourly · <span id="asof">loading…</span></div>
+<div class="thesis" id="thesis">Electricity is the rate-limiter of the
+AI buildout; PJM is where incremental data-center demand prints
+first.</div>
+<div class="grid">
+  <div class="card"><h3>RTO Load Now</h3>
+    <div class="big" id="loadNow">–</div>
+    <div class="d" id="loadSub">…</div></div>
+  <div class="card"><h3>8-Day Demand Momentum</h3>
+    <div class="big" id="mom">–</div>
+    <div class="d" id="aiRead">…</div></div>
+  <div class="card"><h3>RT Power Price (LMP)</h3>
+    <div class="big" id="lmp">–</div>
+    <div class="d" id="lmpSub">…</div></div>
+  <div class="card"><h3>Forecast Peak Headroom</h3>
+    <div class="big" id="peak">–</div>
+    <div class="d" id="peakSub">…</div></div>
+</div>
+<div class="card" style="margin-top:12px"><h3>Generation Fuel Mix
+<span class="d" id="fuelTs"></span></h3><div id="fuel"></div></div>
+<div class="foot">Engine: justhodl-pjm-grid · payload
+<a href="/data/pjm-grid.json" style="color:var(--amber)">
+data/pjm-grid.json</a> · shock doctrine: |day-over-day LMP %| ≥50
+amber · ≥150 red.</div>
+<script>
+function cls(s){return s==='RED'?'r':(s==='AMBER'?'a':'g');}
+fetch('data/pjm-grid.json?cb='+Date.now()).then(r=>r.json()).then(d=>{
+  document.getElementById('asof').textContent='as of '+(d.as_of||'?');
+  if(d.thesis)document.getElementById('thesis').textContent=d.thesis;
+  const L=d.load||{},F=d.forecast||{},M=d.lmp||{},X=d.fuel_mix||{};
+  document.getElementById('loadNow').textContent=
+    L.current_gw!=null?L.current_gw+' GW':'–';
+  document.getElementById('loadSub').textContent=
+    (L.avg_24h_gw?('24h avg '+L.avg_24h_gw+' GW · '):'')+
+    (L.current_ts_ept||'');
+  const m=L.momentum_8d_pct;
+  const me=document.getElementById('mom');
+  me.textContent=m!=null?((m>=0?'+':'')+m+'%'):'–';
+  me.className='big '+(m==null?'':(m>1?'g':(m<-1?'r':'a')));
+  document.getElementById('aiRead').textContent=d.ai_demand_read||'';
+  const le=document.getElementById('lmp');
+  le.textContent=M.daily_avg!=null?('$'+M.daily_avg+'/MWh'):'–';
+  le.className='big '+cls(M.shock_state);
+  document.getElementById('lmpSub').textContent=
+    'DoD '+(M.daily_avg_dod_pct!=null?((M.daily_avg_dod_pct>=0?'+':'')
+    +M.daily_avg_dod_pct+'%'):'?')+' · '+(M.shock_state||'')+
+    ' · spot $'+(M.latest_rt!=null?M.latest_rt:'?');
+  const pe=document.getElementById('peak');
+  pe.textContent=F.current_vs_peak_pct!=null?
+    (F.current_vs_peak_pct+'%'):'–';
+  const pc=(d.canaries||{}).load_vs_forecast_peak||{};
+  pe.className='big '+cls(pc.state);
+  document.getElementById('peakSub').textContent=
+    '7-day peak '+(F.peak_gw||'?')+' GW @ '+(F.peak_at_ept||'?');
+  document.getElementById('fuelTs').textContent=
+    X.as_of_ept?(' · '+X.as_of_ept+' · '+X.total_gw+' GW'):'';
+  const fe=document.getElementById('fuel');
+  const sh=X.shares_pct||{};
+  for(const k of Object.keys(sh)){
+    fe.innerHTML+='<div class="fuelrow">'+k+' — '+sh[k]+'%'+
+      '<div class="bar"><span style="width:'+
+      Math.min(100,sh[k])+'%"></span></div></div>';
+  }
+}).catch(e=>{document.getElementById('loadSub').textContent=
+  'payload unavailable: '+e;});
+</script>
+</body>
+</html>
