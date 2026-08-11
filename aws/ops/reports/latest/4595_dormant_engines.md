@@ -1,0 +1,30 @@
+# ops 4595 — dormant-engine revival
+
+**Status:** failure  
+**Duration:** 4.2s  
+**Finished:** 2026-08-11T00:04:12+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## 1. FRED key path (for the rotation instruction)
+
+- `00:04:08`   fred-catalog env vars: ['FRED_API_KEY', 'S3_BUCKET']
+- `00:04:08`   → rotation: new key goes into this function's FRED_KEY env var (I flip it the moment Khalid provides it)
+## 2. Concurrency evidence + revival
+
+- `00:04:08`   catalyst-skew-premove reserved_concurrency=None payload_as_of=2026-08-10T20:50:34.437806Z
+- `00:04:08`   failed-pattern-reversal reserved_concurrency=None payload_as_of=2026-08-10T22:30:36.164299Z
+## 3. Sync invoke + gate (crashes would be visible now)
+
+- `00:04:11`   catalyst-skew-premove sync ok: {"statusCode": 500, "body": "{\"error\": \"'INSUFFICIENT_DATA'\", \"trace\": \"Traceback (most recent call last):\\n  File \\\"/var/task/lam
+- `00:04:11` ✗   [catalyst-skew-premove] CONTRACT MISS — data_sufficiency published (state=QUIET, as_of=2026-08-10T20:50:34.437806Z, ds=None)
+- `00:04:12`   failed-pattern-reversal sync ok: {"statusCode": 500, "body": "{\"error\": \"'INSUFFICIENT_DATA'\", \"trace\": \"Traceback (most recent call last):\\n  File \\\"/var/task/lam
+- `00:04:12` ✗   [failed-pattern-reversal] CONTRACT MISS — data_sufficiency published (state=QUIET, as_of=2026-08-10T22:30:36.164299Z, ds=None)
+## verdict
+
+- `00:04:12` ✗ revival: 2 red
