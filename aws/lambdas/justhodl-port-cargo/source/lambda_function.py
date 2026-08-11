@@ -29,7 +29,20 @@ from impact_mapper import (build as impact_build, load_graph,
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/port-cargo.json"
 BASE = "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services"
+# v1.2.0 (ops 4612): LAYER + DATEFIELD are resolved at runtime — the
+# hardcoded single service name was the FAILED root: one rename upstream
+# and every probe returns 0 features. Resolution: cached choice ->
+# known candidates -> live org services directory.
+SERVICE_CANDIDATES = [
+    "Daily_Ports_Data",
+    "Daily_Port_Activity_Data_and_Trade_Estimates",
+    "Daily_Trade_and_Ports_Data",
+    "PortWatch_Daily_Ports_Data",
+]
 LAYER = BASE + "/Daily_Ports_Data/FeatureServer/0/query"
+DATEFIELD = "date"
+CHOICE_KEY = "data/warm/portwatch/layer-choice.json"
+RESOLVER_PATH = "unresolved"
 UA = {"User-Agent": "JustHodl/1.0 (ops@justhodl.ai)"}
 WINDOW_D = 42          # pull window
 BASE_D = 28            # baseline window inside it
@@ -57,10 +70,98 @@ def _q(url, params, t=60):
         return None, "%s: %s" % (type(e).__name__, str(e)[:100])
 
 
+def _probe_layer(url):
+    j, err = _q(url, {"where": "1=1", "outFields": "*",
+                      "resultRecordCount": 1, "f": "pjson"}, t=30)
+    feats = (j or {}).get("features") or []
+    if not feats:
+        return None, err or "0 features"
+    return feats[0].get("attributes") or {}, None
+
+
+def _detect_datefield(attrs):
+    for k in attrs:
+        if k.lower() == "date":
+            return k
+    for k in attrs:
+        if "date" in k.lower():
+            return k
+    return "date"
+
+
+def _persist_choice(service, layer_idx):
+    try:
+        s3.put_object(
+            Bucket=BUCKET, Key=CHOICE_KEY,
+            Body=json.dumps({
+                "layer_url": LAYER, "service": service,
+                "layer_index": layer_idx, "datefield": DATEFIELD,
+                "chosen_at": datetime.now(timezone.utc).isoformat(
+                    timespec="seconds")}).encode(),
+            ContentType="application/json")
+    except Exception as e:
+        print("[port] persist choice: %s" % e)
+
+
+def resolve_layer(gaps):
+    """v1.2.0 self-healing layer resolution. Sets module LAYER /
+    DATEFIELD; every rejection recorded (first-fetch assertion)."""
+    global LAYER, DATEFIELD, RESOLVER_PATH
+    tried = []
+    try:
+        ch = json.loads(s3.get_object(Bucket=BUCKET,
+                                      Key=CHOICE_KEY)["Body"].read())
+        url = ch.get("layer_url")
+        if url:
+            attrs, err = _probe_layer(url)
+            if attrs is not None:
+                LAYER = url
+                DATEFIELD = (ch.get("datefield")
+                             or _detect_datefield(attrs))
+                RESOLVER_PATH = "cached:" + str(ch.get("service"))
+                return True
+            tried.append("cached → %s" % err)
+    except Exception:
+        pass
+    for name in SERVICE_CANDIDATES:
+        url = "%s/%s/FeatureServer/0/query" % (BASE, name)
+        attrs, err = _probe_layer(url)
+        if attrs is not None and any("import" in k.lower()
+                                     for k in attrs):
+            LAYER = url
+            DATEFIELD = _detect_datefield(attrs)
+            RESOLVER_PATH = "candidate:" + name
+            _persist_choice(name, 0)
+            return True
+        tried.append("%s → %s" % (name, err or "no import fields"))
+    j, derr = _q(BASE, {"f": "pjson"}, t=30)
+    for svc in (j or {}).get("services", []):
+        nm = (svc.get("name") or "").split("/")[-1]
+        if "port" not in nm.lower():
+            continue
+        for li in (0, 1, 2):
+            url = "%s/%s/FeatureServer/%d/query" % (BASE, nm, li)
+            attrs, perr = _probe_layer(url)
+            if (attrs is not None
+                    and any("import" in k.lower() for k in attrs)
+                    and any("date" in k.lower() for k in attrs)):
+                LAYER = url
+                DATEFIELD = _detect_datefield(attrs)
+                RESOLVER_PATH = "directory:%s/%d" % (nm, li)
+                _persist_choice(nm, li)
+                return True
+        tried.append("dir:" + nm)
+    gaps.append(("layer resolve failed — tried: "
+                 + " | ".join(tried))[:420]
+                + (" | dir err: %s" % derr if derr else ""))
+    RESOLVER_PATH = "failed"
+    return False
+
+
 def discover_fields(gaps):
     """Probe one record; classify tonnage vs portcall fields by name."""
     j, err = _q(LAYER, {"where": "1=1", "outFields": "*", "resultRecordCount": 1,
-                        "orderByFields": "date DESC", "f": "pjson"})
+                        "orderByFields": DATEFIELD + " DESC", "f": "pjson"})
     if err:  # orderBy on a differently-cased field can itself error — retry bare
         j, err = _q(LAYER, {"where": "1=1", "outFields": "*",
                             "resultRecordCount": 1, "f": "pjson"})
@@ -96,7 +197,7 @@ def negotiate_where(gaps):
     ]
     errs = []
     for name, f in fmts:
-        w = "date >= " + f(dt_cut)
+        w = DATEFIELD + " >= " + f(dt_cut)
         j, err = _q(LAYER, {"where": w, "returnCountOnly": "true", "f": "pjson"})
         cnt = (j or {}).get("count")
         if not err and isinstance(cnt, int) and cnt > 0:
@@ -114,7 +215,7 @@ def fetch_window(gaps):
     for _ in range(MAX_PAGES):
         j, err = _q(LAYER, {"where": where, "outFields": "*",
                             "resultOffset": offset, "resultRecordCount": PAGE,
-                            "orderByFields": "date ASC", "f": "pjson"})
+                            "orderByFields": DATEFIELD + " ASC", "f": "pjson"})
         if err:
             gaps.append("page fetch failed at offset %d: %s" % (offset, err))
             break
@@ -150,7 +251,8 @@ def seasonal_baseline(fmt, latest_date, fi, fe, gaps, years=(1, 2, 3)):
         d1 = datetime.combine(latest_date, datetime.min.time(),
                               tzinfo=timezone.utc) - timedelta(days=364 * k)
         d0 = d1 - timedelta(days=RECENT_D)
-        where = "date >= %s AND date <= %s" % (fmt(d0), fmt(d1))
+        where = (DATEFIELD + " >= %s AND " + DATEFIELD
+                 + " <= %s") % (fmt(d0), fmt(d1))
         jg, err = _q(LAYER, {"where": where, "outStatistics": stats, "f": "pjson"})
         row = ((jg or {}).get("features") or [{}])[0].get("attributes") or {}
         if err or row.get("imp") is None:
@@ -174,7 +276,8 @@ def seasonal_baseline(fmt, latest_date, fi, fe, gaps, years=(1, 2, 3)):
 
 def lambda_handler(event=None, context=None):
     t0 = time.time(); gaps = []
-    schema = discover_fields(gaps)
+    resolved = resolve_layer(gaps)
+    schema = discover_fields(gaps) if resolved else None
     fetch_status = "OK" if schema else "FAILED"
     rows, date_fmt = fetch_window(gaps) if schema else ([], None)
     if schema and not rows:
@@ -200,7 +303,7 @@ def lambda_handler(event=None, context=None):
 
     for a in rows:
         pid = a.get("portid") or a.get("portname")
-        od = _day_ord(a.get("date"))
+        od = _day_ord(a.get(DATEFIELD, a.get("date")))
         if not pid or od is None:
             continue
         latest_ord = max(latest_ord, od)
@@ -354,7 +457,7 @@ def lambda_handler(event=None, context=None):
             shock, seasonal_block.get("status")))
 
     out = {
-        "engine": "port-cargo", "version": "1.1.0",
+        "engine": "port-cargo", "version": "1.2.0",
         "date_field_type": sorted(date_type_seen) or None,
         "engine_class": "physical_trade_fast_layer",
         "evidence_tier": "tier_1_measured_physical",
@@ -362,6 +465,9 @@ def lambda_handler(event=None, context=None):
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
         "fetch_status": fetch_status,
+        "layer": {"service_path": RESOLVER_PATH,
+                  "datefield": DATEFIELD,
+                  "url_tail": LAYER[-80:]},
         "latest_data_date": latest_date.isoformat() if latest_date else None,
         "data_age_days": data_age_days,
         "expected_lag_days": EXPECTED_LAG_D,
