@@ -1,0 +1,40 @@
+# ops 4600 — provider acceleration
+
+**Status:** failure  
+**Duration:** 21.3s  
+**Finished:** 2026-08-11T02:50:29+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## 0. FRED untouched (guard, read-only)
+
+- `02:50:08` ✅   [fred-guard] scope=full_catalog knob=100 ver=2.3.0 rpm=66.0 imported=67843 — nothing written
+## 1. Settle walker, launch retry sweeps
+
+- `02:50:09`   oecd before: n_failures=991 retried_ok=0
+- `02:50:09`   oecd retry sweep launched
+- `02:50:09`   statcan before: n_failures=293 retried_ok=0
+- `02:50:09`   statcan retry sweep launched
+## 2. Poll sweeps (walker budget ~700s)
+
+## 3. Sweep results
+
+- `02:50:29`   oecd: recovered=0 refailed=2 failures 991->991; remaining top: [('HTTPError', 991)]
+- `02:50:29` ✅   [oecd] retry pass executed (2 attempted)
+- `02:50:29` ✗   [oecd] CONTRACT MISS — constrained variants recovered 0 of the denied set
+- `02:50:29`   statcan: recovered=2 refailed=0 failures 293->291; remaining top: [('URLError', 156), ('HTTPError', 134), ('ValueError', 1)]
+- `02:50:29` ✅   [statcan] retry pass executed (2 attempted)
+## 4. sec-bulk: schedule + kick
+
+- `02:50:29` ✅   schedule created: Mon 09 UTC
+- `02:50:29`   companyfacts.zip  08-06 04:38  1396.4 MB
+- `02:50:29`   submissions.zip  08-09 04:35  1556.6 MB
+- `02:50:29` ✅   kicked (multi-GB pull — freshness reads next check-in)
+## verdict
+
+- `02:50:29` ✗ provider acceleration: 1 red
