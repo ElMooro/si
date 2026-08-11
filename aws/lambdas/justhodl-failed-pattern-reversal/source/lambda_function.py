@@ -94,7 +94,8 @@ def read_universe(s3):
     try:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=UNIVERSE_S3_KEY)
         d = json.loads(obj["Body"].read())
-        rows = d.get("ranked") or d.get("tickers") or d.get("rows") or []
+        rows = (d.get("top_tickers") or d.get("ranked")
+                or d.get("tickers") or d.get("rows") or [])
         tickers = []
         for r in rows[:MAX_TICKERS * 2]:
             if isinstance(r, dict):
@@ -103,7 +104,13 @@ def read_universe(s3):
                     tickers.append(tk)
             elif isinstance(r, str):
                 tickers.append(r.upper())
-        return tickers[:MAX_TICKERS]
+        if tickers:
+            return tickers[:MAX_TICKERS]
+        # empty-but-loaded used to bypass the fallback entirely — the
+        # "universe size: 0" runs. Empty now falls back too, loudly.
+        print("universe empty after key chain %s -- using fallback"
+              % (list(d.keys())[:8] if isinstance(d, dict) else "?"))
+        raise ValueError("empty universe")
     except Exception as e:
         print(f"universe load failed: {e} -- using fallback")
         # Fallback: top liquid names
