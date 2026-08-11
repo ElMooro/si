@@ -1,4 +1,4 @@
-"""justhodl-physical-econ v1.0.0 (ops 4610)
+"""justhodl-physical-econ v1.0.1 (ops 4610)
 
 The Physical Economy TRADE SIGNAL — the cross-engine wiring job flagged
 in the ops-4559 strategic review, now with PJM as the fourth leg.
@@ -16,6 +16,9 @@ sleeve): EXPANSION / NEUTRAL / CONTRACTION, with confidence = found
 legs. Discovery-based joins report absences honestly; nothing faked.
 
 Output: data/physical-economy.json (+ history 400).
+v1.0.1: LMP-shock leg falls back to the canaries block; regex-deep
+discovery for port-cargo; grid-queue leg = executed-IA share of
+the headline queue (a real 0-100 ratio).
 """
 import json
 import math
@@ -77,6 +80,29 @@ def walk_find_str(obj, names, depth=0):
     return None
 
 
+import re
+
+
+def walk_find_regex(obj, pattern, depth=0):
+    """First numeric whose KEY matches the regex, recursive."""
+    if depth > 7 or obj is None:
+        return None, None
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if isinstance(v, (int, float)) and re.search(pattern, k):
+                return float(v), k
+        for v in obj.values():
+            rv, rk = walk_find_regex(v, pattern, depth + 1)
+            if rv is not None:
+                return rv, rk
+    elif isinstance(obj, list):
+        for v in obj[:24]:
+            rv, rk = walk_find_regex(v, pattern, depth + 1)
+            if rv is not None:
+                return rv, rk
+    return None, None
+
+
 def clamp(v, lo, hi):
     return max(lo, min(hi, v))
 
@@ -111,6 +137,9 @@ def build_components():
                           f"{(pjm.get('load') or {}).get('current_gw')}"
                           f" GW now"))
         shock = ((pjm.get("lmp") or {}).get("shock_state"))
+        if shock not in ("CALM", "AMBER", "RED"):
+            shock = (((pjm.get("canaries") or {}).get("lmp_spike")
+                      or {}).get("state"))
         if shock in ("CALM", "AMBER", "RED"):
             m = {"CALM": 65, "AMBER": 35, "RED": 10}
             lm = pjm.get("lmp") or {}
@@ -124,25 +153,38 @@ def build_components():
         v = walk_find(pc, ["momentum_pct", "momentum", "yoy_pct",
                            "composite_score", "composite", "score",
                            "z", "z_score", "pulse"])
+        fk = None
+        if v is None:
+            v, fk = walk_find_regex(
+                pc, r"(momentum|yoy|pct_ch|_z$|^z$|z_score|pulse|"
+                    r"composite|growth)")
         st = walk_find_str(pc, ["state", "regime", "label", "signal"])
         if v is not None:
             c.append(comp("Port cargo momentum", "port-cargo.json",
                           to_support(v),
                           f"engine reading {v}"
+                          + (f" [{fk}]" if fk else "")
                           + (f" · {st}" if st else "")))
     # ── Grid interconnection queue ───────────────────────────────────
     gq = s3_json("data/grid-queue.json")
     if gq is not None:
         v = walk_find(gq, ["queue_velocity", "velocity",
-                           "momentum_pct", "momentum", "growth_pct",
-                           "composite_score", "composite", "score",
-                           "z", "z_score"])
-        st = walk_find_str(gq, ["state", "regime", "label", "signal"])
+                           "momentum_pct", "momentum", "growth_pct"])
         if v is not None:
             c.append(comp("Grid interconnection queue velocity",
                           "grid-queue.json", to_support(v),
-                          f"engine reading {v}"
-                          + (f" · {st}" if st else "")))
+                          f"engine reading {v}"))
+        else:
+            nat = gq.get("national") or gq
+            ex = walk_find(nat, ["mw_with_executed_ia"])
+            hl = walk_find(nat, ["headline_queue_mw"])
+            if ex is not None and hl:
+                share = clamp(ex / hl * 100.0, 0, 100)
+                c.append(comp(
+                    "Grid buildout quality (executed-IA share)",
+                    "grid-queue.json", round(share, 1),
+                    f"{ex:,.0f} of {hl:,.0f} MW carries an executed "
+                    f"interconnection agreement"))
     # ── Freight pulse ────────────────────────────────────────────────
     fp = s3_json("data/freight-pulse.json")
     if fp is not None:
