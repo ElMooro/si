@@ -351,6 +351,7 @@ def lambda_handler(event, context):
         # wo4592 BUG-4 gate (rev-1: state-keyed lookups hardened — blind maps to no-edge priors): "no failed patterns" is unknowable when zero
         # names returned price data. Blind says blind, not calm.
         data_sufficiency = {
+            "n_universe": len(universe),
             "n_scanned_with_data": (scanned) or 0,
             "rule": "QUIET only claimable when >=1 universe name returned "
                     "price data; else INSUFFICIENT_DATA"}

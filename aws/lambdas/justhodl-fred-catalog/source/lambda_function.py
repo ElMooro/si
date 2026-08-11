@@ -653,7 +653,7 @@ def _run_scoped_import(t0, now):
             buf = []
         st["buffer"] = buf
         st["updated_at"] = now.isoformat(timespec="seconds")
-        st["engine_version"] = "2.2.1"
+        st["engine_version"] = "2.3.0"
         st["phase2"] = ("drain" if discovery_complete else "discovery")
         st["queue_total"] = len(rows)
         _reap(block_all=True)
@@ -710,7 +710,7 @@ def _run_scoped_import(t0, now):
                                       "silently imported",
                     "priority_rule": "drain order = FRED popularity desc"
                                      " (priority drain v2.2, ops 4576)",
-                    "engine_version": "2.2.1",
+                    "engine_version": "2.3.0",
                     "import_scope": st.get("import_scope"),
                     "status": st["status"]}
         s3.put_object(Bucket=BUCKET,
