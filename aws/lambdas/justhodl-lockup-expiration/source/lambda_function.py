@@ -373,7 +373,7 @@ def lambda_handler(event, context):
                 {"name": "Enrichment success", "current": len(results),
                  "threshold": ">=2", "satisfied": len(results) >= 2, "weight": 0.20},
             ],
-            "forward_expectations": priors[state],
+            "forward_expectations": priors.get(state, priors.get("QUIET") or {}),
             "recommended_trade": recommended,
             "historical_episodes": [
                 {"period": "RIVN Nov 2022 lockup",

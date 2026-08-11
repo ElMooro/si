@@ -527,7 +527,7 @@ def lambda_handler(event, context):
                 {"name": "Enrichment yielded data", "current": len(results),
                  "threshold": ">=10", "satisfied": len(results) >= 10, "weight": 0.20},
             ],
-            "forward_expectations": priors[state],
+            "forward_expectations": priors.get(state, priors.get("QUIET") or {}),
             "recommended_trade": recommended,
             "historical_episodes": [
                 {"period": "META Apr 2024 (RICH)",
