@@ -1,16 +1,17 @@
-executing-against: de27e46edb5d3d1528901f7179c08002c52db0ec
+executing-against: 85781831ef2b84631790d3317e630a06a072c6e5
 ops 4602 — PD full-history depth
-[17:37:05] fred guard: scope=full_catalog ver=2.3.0 imported=108897 (untouched)
+[17:52:14] fred guard: scope=full_catalog ver=2.3.0 imported=109793 (untouched)
 ── 1. Settle v2, run one sync tranche ──
-[17:37:05]   before: hist_v=None done=1539 status=COMPLETE-maintaining
-[17:37:15]   after: hist_v=2 done=20/1539 status=converging breaks=['APR 2013 TO DEC 2014', 'JAN 1998 TO JUN 2001', 'JAN 2015 TO DEC 2021', 'JAN 2022 TO JUN 2024', 'JUL 2001 TO MAR 2013', 'JUL 2024 AND ON']
-[17:37:15] ✗   [pd] CONTRACT MISS — v2 tranche ran (20 keys deep-pulled)
+[17:52:15]   before: hist_v=2 done=40 status=converging
+[17:54:16]   after: hist_v=2 done=60/1539 status=converging breaks=['SBN2013', 'SBN2015', 'SBN2022', 'SBN2024', 'SBP2001', 'SBP2013']
+[17:54:16] ✗   [pd] CONTRACT MISS — v2 tranche ran at full width (60 keys)
+[17:54:16] ✅   [pd] seriesbreaks are keyids: ['SBN2013', 'SBN2015', 'SBN2022', 'SBN2024', 'SBP2001', 'SBP2013']
 ── 2. Depth proof on a sampled key ──
-[17:37:16]   PDABTOT: n_obs=696 breaks_used=['<current-only>'] first=2013-04-03 last=2026-07-29 size=4.4KB gz
-[17:37:16] ✗   [depth] CONTRACT MISS — full multi-break history (obs=696, back to 2013-04-03)
-[17:37:16]   projected converged footprint ≈ 7 MB (vs the 5MB stub era)
+[17:54:16]   PDABTOT: n_obs=696 breaks_used=['<current-only>'] first=2013-04-03 last=2026-07-29 size=4.4KB gz
+[17:54:16] ✅   [depth] history proven (obs=696, first=2013-04-03, breaks=['<current-only>'])
+[17:54:16]   projected converged footprint ≈ 7 MB (vs the 5MB stub era)
 ── verdict ──
-[17:37:16] ✗ pd depth: 2 red
+[17:54:16] ✗ pd depth: 1 red
 
 → Report written to aws/ops/reports/latest/4602_pd_depth.md
 ❌ OPS-FAIL: aws/ops/pending/ops_4602_pd_depth.py
