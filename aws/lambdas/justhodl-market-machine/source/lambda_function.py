@@ -1,4 +1,4 @@
-"""justhodl-market-machine v1.1.0 (ops 4608)
+"""justhodl-market-machine v1.2.0 (ops 4610)
 
 Khalid's doctrine, verbatim: "The stock market is a machine that relies
 on four things: 1) future profits, 2) interest rates, 3) where money is
@@ -22,6 +22,9 @@ Output: data/market-machine.json (+ history, 400 pts).
 v1.1.0: multi-key discovery for the pillar-4 joins + two direct
 FRED forced-flow reads (VIX term structure, SPX vs 200dma) so the
 forced pillar never rides on a single series.
+v1.2.0: Physical Economy pulse joined into the profits pillar —
+real activity (power, ports, freight, grid buildout) leads
+earnings.
 """
 import json
 import math
@@ -170,6 +173,17 @@ def pillar_profits():
                              "analyst-actions.json",
                              round(ratio * 100, 1),
                              f"{int(ups)} up vs {int(dns)} down"))
+    pe = s3_json("data/physical-economy.json")
+    if pe is not None:
+        v = pe.get("composite_score")
+        if isinstance(v, (int, float)):
+            sig = (pe.get("trade_signal") or {})
+            c.append(contrib("Physical economy pulse (leads earnings)",
+                             "physical-economy.json",
+                             round(clamp(v, 0, 100), 1),
+                             f"{pe.get('composite_label')} · "
+                             f"{sig.get('confidence')} confidence · "
+                             f"{pe.get('n_components')} engines"))
     rt = s3_json("data/readthrough.json")
     if rt is not None:
         v = walk_find(rt, ["forward_orders_z", "backlog_z", "composite",
