@@ -2,7 +2,8 @@
 
 The runner's CLOUDFLARE_API_TOKEN was 401ing (ops 4603/4604). Khalid's
 token from the April session was re-sealed into the Actions secret via
-the GitHub API (sandbox-side, sealed-box — never committed). This op
+the GitHub API (sandbox-side, sealed-box — never committed). Rerun after Khalid granted Zone > Cache Purge to the token
+(first run: verify+zone green, purge 401 code 10000). This op
 is the ground-truth probe: verify the token, resolve the zone, purge
 the plumbing surfaces, and confirm the edge answers.
 """
