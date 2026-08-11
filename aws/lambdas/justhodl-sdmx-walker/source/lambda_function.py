@@ -290,8 +290,52 @@ def lambda_handler(event, context):
         oe_ids = _order([f["id"] for f in _get_json(
             "data/warm/oecd/catalog.json.gz")["dataflows"]], OECD_PRI)
         if ag == "oecd":
+          # rev-C (ops 4600 evidence: 991/991 uniform HTTPError = bare
+          # flow IDs; OECD's data endpoint wants AGENCY,ID,VERSION).
+          # Resolve triplets once from the structure endpoint, cache
+          # them, and build data URLs from the triplet when known.
+          _trip = {}
+          if rf:
+            try:
+                _trip = (_get_json(
+                    "data/warm/oecd/flow-triplets.json.gz") or {}
+                    ).get("map") or {}
+            except Exception:
+                _trip = {}
+            if not _trip:
+                try:
+                    raw_x, _ = _fetch_capped(
+                        "https://sdmx.oecd.org/public/rest/dataflow/"
+                        "all/all/latest", timeout=90)
+                    import re as _re
+                    for m in _re.finditer(
+                            r'id="([^"]+)"[^>]*agencyID="([^"]+)"'
+                            r'[^>]*version="([^"]+)"',
+                            raw_x.decode("utf-8", "replace")):
+                        _trip[m.group(1)] = "%s,%s,%s" % (
+                            m.group(2), m.group(1), m.group(3))
+                    if not _trip:
+                        for m in _re.finditer(
+                                r'agencyID="([^"]+)"[^>]*id="([^"]+)"'
+                                r'[^>]*version="([^"]+)"',
+                                raw_x.decode("utf-8", "replace")):
+                            _trip[m.group(2)] = "%s,%s,%s" % (
+                                m.group(1), m.group(2), m.group(3))
+                    if _trip:
+                        s3.put_object(
+                            Bucket=BUCKET,
+                            Key="data/warm/oecd/flow-triplets.json.gz",
+                            Body=gzip.compress(json.dumps(
+                                {"map": _trip,
+                                 "n": len(_trip)}).encode()),
+                            ContentType="application/gzip")
+                except Exception as _te:
+                    S["oecd_triplets"] = ("resolve failed: %s"
+                                          % str(_te)[:80])
+            S["oecd_triplets_n"] = len(_trip)
           _oe_url = lambda f: (
-              f"https://sdmx.oecd.org/public/rest/data/{f}"
+              f"https://sdmx.oecd.org/public/rest/data/"
+              f"{_trip.get(f, f)}"
               f"/all?format=csvfile")
           # retry variants: OECD's classic denial class is size/timeout
           # on unconstrained pulls — startPeriod bounds clear most of it.
