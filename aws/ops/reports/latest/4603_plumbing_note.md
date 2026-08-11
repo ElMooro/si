@@ -1,0 +1,63 @@
+# ops 4603 — plumbing-aggregator v2.0.0 · L0 Repo Core
+
+**Status:** failure  
+**Duration:** 232.9s  
+**Finished:** 2026-08-11T19:52:01+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| concept_status | l0_canary_states | l0_have | l0_missing | memory_before | timeout_before | warm_total |
+|---|---|---|---|---|---|---|
+|  |  |  |  | 512 | 240 |  |
+|  |  | 15 | 2 |  |  | 110082 |
+| {"LIVE": 13, "PROXY": 2, "NOT_PUBLIC": 1} | {"srf_usage": "CALM", "sofr_tail": "CALM", "bill_rrp": "CALM", "rrp_drain_20d": "CALM", "discount_window": "AMBER"} |  |  |  |  |  |
+
+## Log
+## deploy-settle (v2.0.0 marker in live zip)
+
+- `19:48:09` zip carries v2.0.0 marker (attempt 1)
+- `19:48:09` ✅   [deploy] deployed zip contains the v2.0.0 L0 marker
+## config floor for the larger v2 pull
+
+- `19:48:14` raised to timeout=300s memory=1024MB
+- `19:48:14` ✅   [config] timeout>=300s and memory>=1024MB for 40+ pulls
+## warm-store audit — which L0 series data.html already has
+
+- `19:48:35` EXISTS on data.html warm store: RRPONTSYD, RRPONTSYAWARD, RPONTSYD, WALCL, WTREGEN, WSHOMCB, WLCFLPCL, SOFR99, SOFR1, DTB4WK, SOFR, IORB, EFFR, WRESBAL, TLAACBW027SBOG
+- `19:48:35` MISSING (gap-filling now): TGCR, BGCR
+- `19:48:35` gap-filled: none needed
+- `19:48:35` ⚠ gap-fill misses (non-fatal, engine pulls live regardless): TGCR:HTTP Error 400: Bad Request; BGCR:HTTP Error 400: Bad Request
+- `19:48:35` ✗   [warm] CONTRACT MISS — every missing L0 series banked (or none were missing)
+## invoke v2 + payload contract
+
+- `19:49:20` invoke status=200 payload={"statusCode": 200, "body": "{\"ok\": true, \"composite_score\": 48.0, \"composite_label\": \"NORMAL\", \"n_with_data\": 45, \"n_alerts\": 18, \"duration_s\": 2
+- `19:49:20` ✗   [invoke] CONTRACT MISS — engine returned ok:true
+- `19:49:20` ✅   [schema] schema_version 2.0 (got 2.0)
+- `19:49:20` ✅   [L0-score] L0 layer scoring (score=66.8)
+- `19:49:20` ✅   [L0-cov] L0 coverage >=12 live contributors (got 16/23)
+- `19:49:20` ✅   [L1-regress] L1 still scoring (score=20.3)
+- `19:49:20` ✅   [L2-regress] L2 still scoring (score=70.8)
+- `19:49:20` ✅   [L3-regress] L3 still scoring (score=47.1)
+- `19:49:20` ✅   [L4-regress] L4 still scoring (score=49.5)
+- `19:49:20` ✅   [composite] composite in [0,100] (=48.0 · NORMAL)
+- `19:49:20` ✅   [canary-srf_usage] srf_usage canary present (state=CALM)
+- `19:49:20` ✅   [canary-sofr_tail] sofr_tail canary present (state=CALM)
+- `19:49:20` ✅   [canary-bill_rrp] bill_rrp canary present (state=CALM)
+- `19:49:20` ✅   [canary-rrp_drain_20d] rrp_drain_20d canary present (state=CALM)
+- `19:49:20` ✅   [canary-discount_window] discount_window canary present (state=AMBER)
+- `19:49:20` ✅   [concept-map] note_concept_map has 16 concepts
+## catalog kick + CDN purge + edge asserts
+
+- `19:49:20` provider-catalog kicked (data.html counts refresh)
+- `19:49:20` cf purge ok=False err=HTTP Error 401: Unauthorized
+- `19:52:01` ✅   [edge-page] served plumbing.html carries the L0 card + concept map
+- `19:52:01` ✗   [edge-payload] CONTRACT MISS — served plumbing-stress.json is schema 2.0
+## verdict
+
+- `19:52:01` ✗ plumbing note closeout: 3 red
