@@ -1,7 +1,19 @@
-executing-against: 0f8b3aaf64a70de53f2a17a877d6d30d0a0e3b08
-ops 4598 — wo4592 final close + fred v2.3 snapshot
-[00:38:52] ✅ honest write: state=INSUFFICIENT_DATA ds={'n_scanned_with_data': 0}
-[00:38:52] fred: ver=2.2.1 rpm=100.0 imported=60990 cursor=54000 status=walking throttled=270
-[00:38:52] ✅ wo4592 CLOSED — all ten flagged engines gated and writing honestly; fred snapshot above
+executing-against: 643dc64ab763f3e6a5502860b4b1aab5571d15c9
+ops 4599 — surfaced feeds closed + fred blended rate
+── 1. Settle + sync-invoke the three ──
+── 2. fpr — universe restored ──
+[00:48:10] ✗   [fpr] CONTRACT MISS — state=INSUFFICIENT_DATA universe=None scanned=0
+── 3. 13f — feeder tickers flowing ──
+[00:48:12] ✅   [13f] consistency: feed dict=7023 extractor=7023 state=QUIET
+── 4. skew — premium rows vs feed truth ──
+[00:48:12] ✅   [skew] consistency: feed qualifying rows=0 extractor names=0 state=INSUFFICIENT_DATA (feed keys: ['data', 'engine', 'legacy_alias_of', 'meta', 'success', 'timestamp'])
+── 5. fred — v2.3 + blended rate since 00:38 ──
+[00:48:12]   ver=2.2.1 rpm=60.0 imported=61551 (+561 in 9 min = 60.1/min = 3604/h) cursor=54561 throttled=270
+[00:48:12] ✗   [fred] CONTRACT MISS — v2.3 live on the chain
+[00:48:12] ✅   [fred] blended rate 60.1/min (serial era was 49; ceiling-only was 65.7)
+[00:48:12]   remaining≈220544 → ETA 61.2 h (~2.5 days)
+── verdict ──
+[00:48:12] ✗ feeds close: 2 red
 
-→ Report written to aws/ops/reports/latest/4598_fpr_close.md
+→ Report written to aws/ops/reports/latest/4599_feeds_close.md
+❌ OPS-FAIL: aws/ops/pending/ops_4599_feeds_close.py
