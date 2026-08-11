@@ -245,7 +245,7 @@ def lambda_handler(event, context):
         else:
             state = "QUIET"
             state_desc = "No directional pre-catalyst skews detected"
-        # wo4592 BUG-4 gate: "no skews detected" is unknowable when the
+        # wo4592 BUG-4 gate (rev-1: state-keyed lookups hardened — blind maps to no-edge priors): "no skews detected" is unknowable when the
         # catalyst calendar came back empty or zero names had options
         # data. Blind says blind, not calm.
         data_sufficiency = {
@@ -298,7 +298,7 @@ def lambda_handler(event, context):
                 {"name": "Upcoming catalysts", "current": len(events),
                  "threshold": ">=10", "satisfied": len(events) >= 10, "weight": 0.25},
             ],
-            "forward_expectations": priors[state],
+            "forward_expectations": priors.get(state, priors.get("QUIET") or {}),
             "recommended_trade": recommended,
             "historical_episodes": [
                 {"period": "NVDA pre-Q1 2024",
