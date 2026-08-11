@@ -1,34 +1,23 @@
-executing-against: 312a656f8446c73ac1bc5dedbd856bd18a7547a2
-ops 4610 — Physical Economy trade signal
-── shape-dump: the three legacy physical artifacts ──
-[22:15:26] data/port-cargo.json → {"engine": "'port-cargo'", "version": "'1.1.0'", "date_field_type": "NoneType", "engine_class": "'physical_trade_fast_layer", "evidence_tier": "'tier_1_measured_physical'", "lag_months": "int", "generated_at": "'2026-08-11T12:40:38.16005", "duration_s": "float", "fetch_status": "'FAILED'", "latest_data_date": "NoneType", "data_age_days": "NoneType", "expected_lag_days": "int", "stale": "bool", "method": "'IMF PortWat
-[22:15:26] data/grid-queue.json → {"version": "'2.1.0'", "generated_at": "'2026-08-11T12:50:16.81702", "national": {"primary_metric": "str", "mw_with_executed_ia": "float", "ia_measured_isos": "list", "headline_queue_mw": "float", "headline_risk_adjusted_mw": "float", "isos_live": "list", "isos_missing": "list", "n_isos_live": "int", "assumption": "str", "blind_spot": "str"}, "large_load_queue": {"status": "str"}, "queue_velocity": {"status": "str", 
-[22:15:26] data/freight-pulse.json → {"ok": "bool", "version": "'2.0.0'", "generated_at": "'2026-08-11T11:50:17.83271", "engine_class": "'physical_trade_slow_confi", "composite_role": "'slow_confirmation_leg'", "lag_months": "int", "role_note": "'ops-4559 BUG-13: six US m", "series": {"tsi_freight": "dict", "cass_shipments": "dict", "cass_expend": "dict", "truck_tonnage": "dict", "rail_carloads": "dict", "rail_intermodal": "dict"}, "errors": ["list[0]",
-── deploy-settle (both functions) ──
-[22:15:26] justhodl-physical-econ attempt 1: not created yet
-[22:15:57] justhodl-physical-econ carries justhodl-physical-econ v1.0.0 (attempt 2)
-[22:15:57] justhodl-market-machine carries v1.2.0 (attempt 1)
-[22:15:57] ✅   [deploy-physical] physical-econ live v1.0.0
-[22:15:57] ✅   [deploy-machine] market-machine live v1.2.0
-── physical-econ config + schedule ──
-[22:15:57] ✅   [schedule] hourly schedule set for physical-econ
-── invoke chain: physical -> machine ──
-[22:15:58] ✅   [invoke-physical] physical-econ ok:true
-[22:15:58] ✗   [components] CONTRACT MISS — 2 of 5 components found: ["PJM demand momentum (8d)", "Freight pulse"]
-[22:15:58] ✗   [pjm-legs] CONTRACT MISS — both PJM legs joined (momentum + LMP shock canary), found 1
-[22:15:58] ✅   [signal] trade signal NEUTRAL (LOW confidence) · composite 52.8
-[22:16:04] ✅   [invoke-machine] market-machine ok:true
-[22:16:04] ✅   [machine-p1] profits pillar carries the physical pulse (n=4, score=70.2)
-── purge + edge (both payloads) ──
-[22:16:04] edge 1: HTTP Error 404: Not Found
-[22:16:29] edge 2: HTTP Error 404: Not Found
-[22:16:54] edge 3: HTTP Error 404: Not Found
-[22:17:19] edge 4: HTTP Error 404: Not Found
-[22:17:44] edge 5: HTTP Error 404: Not Found
-[22:18:10] ✅   [edge-page] physical-economy.html live
-[22:18:10] ✅   [edge-payload] physical-economy.json serving 1.0
+executing-against: fe4f7dd52a852c1ae25837ac39c60abaf4b67265
+ops 4611 — physical wiring regate
+── deep shape-dump (depth 2) ──
+[22:22:02] data/port-cargo.json → {"engine": "'port-cargo'", "version": "'1.1.0'", "date_field_type": "NoneType", "engine_class": "'physical_trade_fast_lay", "evidence_tier": "'tier_1_measured_physica", "lag_months": "int", "generated_at": "'2026-08-11T12:40:38.160", "duration_s": "float", "fetch_status": "'FAILED'", "latest_data_date": "NoneType", "data_age_days": "NoneType", "expected_lag_days": "int", "stale": "bool", "method": "'IMF PortWatch Daily_Por", "n_ports_with_data": "int", "n_rows_window": "int", "tonnage_fields": {"import": "NoneType", "export": "NoneType", "class_fields_import": "NoneType", "class_fields_export": "NoneType"}, "global_pulse": {"import_tpd_7d": "int", "export_tpd_7d": "int", "total_chg_pct": "NoneType"}, "seasonal_baseline": {"status": "'UNAVAILABLE'"}, "chokepoints_context": "NoneType"}
+[22:22:02] data/grid-queue.json → {"version": "'2.1.0'", "generated_at": "'2026-08-11T12:50:16.817", "national": {"primary_metric": "'mw_with_executed_ia'", "mw_with_executed_ia": "float", "ia_measured_isos": ["list[5]", "str"], "headline_queue_mw": "float", "headline_risk_adjusted_mw": "float", "isos_live": ["list[5]", "str"], "isos_missing": ["list[2]", "str"], "n_isos_live": "int", "assumption": "\"headline_risk_adjusted ", "blind_spot": "'large-LOAD (datacenter)"}, "large_load_queue": {"status": "'UNAVAILABLE'"}, "queue_velocity": {"status": "'LIVE'", "n_snapshots": "int", "span_days": "int", "national_ia_mw_per_month": "float", "national_headline_mw_per_month": "float", "per_iso_ia_mw_per_month": {"CAISO": "float", "NYISO": "float", "MISO": "float", "SPP": "float", "ERCOT": "float"}, "method": "'\u0394 vs oldest archived sn"}, "impact_map": {"schema": "'impact-map/1.0'", "engine": "'grid-queue'", "factor": "'grid_ex
+── deploy-settle ──
+[22:22:34] justhodl-pjm-grid carries justhodl-pjm-grid v1.0.1
+[22:22:34] justhodl-physical-econ carries justhodl-physical-econ v1.0.1
+[22:22:34] ✅   [deploy-pjm] pjm-grid v1.0.1
+[22:22:34] ✅   [deploy-phys] physical-econ v1.0.1
+── invoke chain (spaced for the PJM rate limit) ──
+[22:22:43] ✅   [pjm-ok] pjm-grid ok:true (lmp shock=CALM)
+[22:22:49] ✅   [phys-ok] physical-econ ok:true
+[22:22:49] ✅   [components] 4 of 5 legs: ["PJM demand momentum (8d)", "PJM power-price shock canary", "Grid buildout quality (executed-IA share)", "Freight pulse"]
+[22:22:49] ✅   [pjm-legs] both PJM legs (found 2)
+[22:22:49] ✅   [signal] signal NEUTRAL at HIGH confidence · composite 46.9
+[22:22:56] ✅   [machine-p1] machine profits pillar n=4 score=68.7
+── edge ──
+[22:22:56] ✅   [edge] edge payload shows >=4 components
 ── verdict ──
-[22:18:10] ✗ physical wiring: 2 red
+[22:22:56] ✅ PHYSICAL SIGNAL COMPLETE — NEUTRAL (HIGH), 4 legs live, both PJM legs joined, machine consuming
 
-→ Report written to aws/ops/reports/latest/4610_physical_econ.md
-❌ OPS-FAIL: aws/ops/pending/ops_4610_physical_econ.py
+→ Report written to aws/ops/reports/latest/4611_physical_regate.md

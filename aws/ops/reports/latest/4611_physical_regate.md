@@ -1,0 +1,38 @@
+# ops 4611 — physical wiring regate
+
+**Status:** success  
+**Duration:** 54.3s  
+**Finished:** 2026-08-11T22:22:56+00:00  
+
+## Data
+
+| components | machine_composite | pjm_invoke |
+|---|---|---|
+|  |  | {"ok": true, "load_gw": 117.26, "momentum_pct": 0.82, "lmp": 43.79, "lmp_shock": "CALM", "n_load_obs": 2000} |
+| [{"n": "PJM demand momentum (8d)", "v": 58.2}, {"n": "PJM power-price shock canary", "v": 65}, {"n": "Grid buildout quality (executed-IA", "v": 16.9}, {"n": "Freight pulse", "v": 47.4}] | 67.7 |  |
+
+## Log
+## deep shape-dump (depth 2)
+
+- `22:22:02` data/port-cargo.json → {"engine": "'port-cargo'", "version": "'1.1.0'", "date_field_type": "NoneType", "engine_class": "'physical_trade_fast_lay", "evidence_tier": "'tier_1_measured_physica", "lag_months": "int", "generated_at": "'2026-08-11T12:40:38.160", "duration_s": "float", "fetch_status": "'FAILED'", "latest_data_date": "NoneType", "data_age_days": "NoneType", "expected_lag_days": "int", "stale": "bool", "method": "'IMF PortWatch Daily_Por", "n_ports_with_data": "int", "n_rows_window": "int", "tonnage_fields": {"import": "NoneType", "export": "NoneType", "class_fields_import": "NoneType", "class_fields_export": "NoneType"}, "global_pulse": {"import_tpd_7d": "int", "export_tpd_7d": "int", "total_chg_pct": "NoneType"}, "seasonal_baseline": {"status": "'UNAVAILABLE'"}, "chokepoints_context": "NoneType"}
+- `22:22:02` data/grid-queue.json → {"version": "'2.1.0'", "generated_at": "'2026-08-11T12:50:16.817", "national": {"primary_metric": "'mw_with_executed_ia'", "mw_with_executed_ia": "float", "ia_measured_isos": ["list[5]", "str"], "headline_queue_mw": "float", "headline_risk_adjusted_mw": "float", "isos_live": ["list[5]", "str"], "isos_missing": ["list[2]", "str"], "n_isos_live": "int", "assumption": "\"headline_risk_adjusted ", "blind_spot": "'large-LOAD (datacenter)"}, "large_load_queue": {"status": "'UNAVAILABLE'"}, "queue_velocity": {"status": "'LIVE'", "n_snapshots": "int", "span_days": "int", "national_ia_mw_per_month": "float", "national_headline_mw_per_month": "float", "per_iso_ia_mw_per_month": {"CAISO": "float", "NYISO": "float", "MISO": "float", "SPP": "float", "ERCOT": "float"}, "method": "'\u0394 vs oldest archived sn"}, "impact_map": {"schema": "'impact-map/1.0'", "engine": "'grid-queue'", "factor": "'grid_ex
+## deploy-settle
+
+- `22:22:34` justhodl-pjm-grid carries justhodl-pjm-grid v1.0.1
+- `22:22:34` justhodl-physical-econ carries justhodl-physical-econ v1.0.1
+- `22:22:34` ✅   [deploy-pjm] pjm-grid v1.0.1
+- `22:22:34` ✅   [deploy-phys] physical-econ v1.0.1
+## invoke chain (spaced for the PJM rate limit)
+
+- `22:22:43` ✅   [pjm-ok] pjm-grid ok:true (lmp shock=CALM)
+- `22:22:49` ✅   [phys-ok] physical-econ ok:true
+- `22:22:49` ✅   [components] 4 of 5 legs: ["PJM demand momentum (8d)", "PJM power-price shock canary", "Grid buildout quality (executed-IA share)", "Freight pulse"]
+- `22:22:49` ✅   [pjm-legs] both PJM legs (found 2)
+- `22:22:49` ✅   [signal] signal NEUTRAL at HIGH confidence · composite 46.9
+- `22:22:56` ✅   [machine-p1] machine profits pillar n=4 score=68.7
+## edge
+
+- `22:22:56` ✅   [edge] edge payload shows >=4 components
+## verdict
+
+- `22:22:56` ✅ PHYSICAL SIGNAL COMPLETE — NEUTRAL (HIGH), 4 legs live, both PJM legs joined, machine consuming
