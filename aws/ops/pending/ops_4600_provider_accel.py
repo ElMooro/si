@@ -94,15 +94,26 @@ def main():
         t0 = time.time()
         pend = {"oecd", "statcan"}
         after = {}
+        last_move = {ag: time.time() for ag in pend}
+        last_cnt = {ag: before[ag]["ok"] + before[ag]["rfail"]
+                    for ag in pend}
         while pend and time.time() - t0 < 760:
             time.sleep(20)
             for ag in list(pend):
                 s1 = gj("data/_state/sdmx-walk-%s.json" % ag)
-                moved = ((s1.get("retried_ok", 0)
-                          + s1.get("retried_fail", 0))
-                         > (before[ag]["ok"] + before[ag]["rfail"]))
+                cnt = (s1.get("retried_ok", 0)
+                       + s1.get("retried_fail", 0))
+                if cnt > last_cnt[ag]:
+                    last_cnt[ag] = cnt
+                    last_move[ag] = time.time()
+                    r.log("  %s progress: attempted=%d failures_now=%d"
+                          % (ag, cnt - before[ag]["ok"]
+                             - before[ag]["rfail"],
+                             len(s1.get("failures") or {})))
                 lease_free = (s1.get("lease_until") or 0) < time.time()
-                if moved and lease_free:
+                # done = sweep quiet 90s AND lease free AND ran >=120s
+                if (lease_free and time.time() - last_move[ag] > 90
+                        and time.time() - t0 > 120):
                     after[ag] = s1
                     pend.discard(ag)
         for ag in pend:
@@ -117,7 +128,7 @@ def main():
             nf = len(s1.get("failures") or {})
             ok_d = s1.get("retried_ok", 0) - before[ag]["ok"]
             fl_d = s1.get("retried_fail", 0) - before[ag]["rfail"]
-            hist = Counter(str(v).split(":")[0]
+            hist = Counter(str(v)[:34]
                            for v in (s1.get("failures") or {}).values())
             r.log("  %s: recovered=%d refailed=%d failures %d->%d; "
                   "remaining top: %s"
