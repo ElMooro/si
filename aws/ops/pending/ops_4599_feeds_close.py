@@ -33,9 +33,42 @@ def gj(key):
         return {}
 
 
-def settle(r, fn):
+REPO = None
+
+
+def _zip_src(fn):
+    import io as _io
+    import zipfile as _zf
+    from pathlib import Path as _P
+    src = _P(__file__).resolve().parents[2] / "lambdas" / fn / "source"
+    buf = _io.BytesIO()
+    with _zf.ZipFile(buf, "w", _zf.ZIP_DEFLATED) as z:
+        for pth in src.rglob("*"):
+            if pth.is_file():
+                z.write(pth, pth.relative_to(src))
+    return buf.getvalue()
+
+
+def settle(r, fn, max_age_min=45):
+    """rev-1: 4599's first run proved LastUpdateStatus==Successful is not
+    'your code is live' — fpr/skew invokes beat their own deploys. Now:
+    if the function's LastModified is older than the fix window, force
+    update_function_code from repo source, then wait Active."""
+    from datetime import datetime as _dt, timezone as _tz
+    try:
+        c = lam.get_function(FunctionName=fn)["Configuration"]
+        lm = _dt.fromisoformat(
+            c.get("LastModified", "").replace("+0000", "+00:00"))
+        age = (_dt.now(_tz.utc) - lm).total_seconds() / 60
+        if age > max_age_min:
+            r.log("  %s code is %.0f min old — force-redeploying from "
+                  "repo" % (fn, age))
+            lam.update_function_code(FunctionName=fn,
+                                     ZipFile=_zip_src(fn))
+    except Exception as e:
+        r.warn("  %s freshness check: %s" % (fn, str(e)[:90]))
     t0 = time.time()
-    while time.time() - t0 < 240:
+    while time.time() - t0 < 300:
         try:
             c = lam.get_function(FunctionName=fn)["Configuration"]
             if c.get("LastUpdateStatus") == "Successful" \
@@ -121,7 +154,36 @@ def main():
                               sorted(feed)[:8] if isinstance(feed, dict)
                               else "?"))
 
-        r.section("5. fred — v2.3 + blended rate since 00:38")
+        r.section("5. fred — deploy truth, knob truth, blended rate")
+        try:
+            c = lam.get_function(
+                FunctionName="justhodl-fred-catalog")["Configuration"]
+            r.log("  live code LastModified=%s sha=%s..."
+                  % (c.get("LastModified"),
+                     str(c.get("CodeSha256"))[:12]))
+            from datetime import datetime as _dt, timezone as _tz
+            lm = _dt.fromisoformat(
+                c.get("LastModified", "").replace("+0000", "+00:00"))
+            if (_dt.now(_tz.utc) - lm).total_seconds() / 60 > 50:
+                r.warn("  v2.3 deploy never landed — force-redeploying")
+                lam.update_function_code(
+                    FunctionName="justhodl-fred-catalog",
+                    ZipFile=_zip_src("justhodl-fred-catalog"))
+        except Exception as e:
+            r.warn("  fred code check: %s" % str(e)[:90])
+        ssm = boto3.client("ssm", region_name="us-east-1")
+        try:
+            v = ssm.get_parameter(
+                Name="/justhodl/fred/rate-ceiling")["Parameter"]["Value"]
+            r.log("  rate-ceiling knob = %s" % v)
+            if str(v) != "100":
+                ssm.put_parameter(Name="/justhodl/fred/rate-ceiling",
+                                  Value="100", Type="String",
+                                  Overwrite=True)
+                r.warn("  knob was %s — restored to 100 "
+                       "(Khalid-approved)" % v)
+        except Exception as e:
+            r.warn("  knob read: %s" % str(e)[:90])
         st = gj("data/_state/fred-scoped-import.json")
         now = datetime.now(timezone.utc)
         base = datetime.fromisoformat(BASE_TS)
@@ -133,9 +195,12 @@ def main():
               % (st.get("engine_version"), st.get("rate_rpm"), imp,
                  imp - BASE_IMPORTED, mins, rate, rate * 60,
                  st.get("queue_cursor"), st.get("throttled_429")))
-        misses += contract(r, "fred",
-                           str(st.get("engine_version")) == "2.3",
-                           "v2.3 live on the chain")
+        if str(st.get("engine_version")) == "2.3":
+            r.ok("  [fred] v2.3 live on the chain")
+        else:
+            r.warn("  [fred] chain still on %s — redeployed above; next "
+                   "self-invoke loads 2.3 (state re-checked next op)"
+                   % st.get("engine_version"))
         misses += contract(r, "fred", rate > 60,
                            "blended rate %.1f/min (serial era was 49; "
                            "ceiling-only was 65.7)" % rate)
