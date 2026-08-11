@@ -1,1 +1,22 @@
-{"function_name":"justhodl-nyfed-markets-full","region":"us-east-1","runtime":"python3.12","handler":"lambda_function.lambda_handler","memory":1024,"timeout":600,"role":"arn:aws:iam::857687956942:role/lambda-execution-role","description":"Registry item 2 (ops 4463): NY Fed Markets full — SOMA/repo-ops/seclending/aMBS bounded + Primary Dealer catalog-discover with cursored 100% convergence -> data/warm/nyfed-markets/; keyless; F4 snapshots.","eventbridge_rules":["justhodl-nyfed-markets-hourly"],"env":{"S3_BUCKET":"justhodl-dashboard-live","PD_TRANCHE":"20"}}
+{
+  "function_name": "justhodl-nyfed-markets-full",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Registry item 2 (ops 4463): NY Fed Markets full \u2014 SOMA/repo-ops/seclending/aMBS bounded + Primary Dealer catalog-discover with cursored 100% convergence -> data/warm/nyfed-markets/; keyless; F4 snapshots.",
+  "eventbridge_rules": [
+    "justhodl-nyfed-markets-hourly"
+  ],
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "PD_TRANCHE": "20"
+  },
+  "schedule": {
+    "name": "justhodl-nyfed-markets-full-hourly",
+    "expression": "rate(1 hour)",
+    "description": "NY Fed markets endpoints + PD worklist hourly tranches per docstring (was never wired)"
+  }
+}
