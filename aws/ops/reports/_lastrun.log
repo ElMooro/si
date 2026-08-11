@@ -1,41 +1,29 @@
-executing-against: 5b8839261f7a43d43fd653e81a71a8c3c1f99f54
-ops 4593 — FRED import audit
-── 1. import-health — the badge and the five incidents ──
-[23:39:57] ✅   [health] import-health readable (ok)
-[23:39:57]   overall=ACTION_REQUIRED  sweep=2026-08-10T23:35:04+00:00
-[23:39:57]     fred               RUNNING — checkpoint 3 min ago
-[23:39:57]     provider-catalog   OK — hub index freshness
-[23:39:57]     sdmx-bis           COMPLETE — 29/29, 1 source-side failures
-[23:39:57]     sdmx-ecb           BLOCKED — state file absent — ECB API 406 content-negotiation block (known; needs Accept-header adapter fix)
-[23:39:57]     sdmx-eurostat      COMPLETE — 8146/8146, 6 source-side failures
-[23:39:57]     sdmx-oecd          COMPLETE — 1542/1542, 991 source-side failures
-[23:39:57]     sdmx-statcan       COMPLETE — 8221/8221, 293 source-side failures
-[23:39:57]   ACTION_REQUIRED source(s): none
-[23:39:57] ✅   [health] FRED pipeline itself is RUNNING (badge driven by: n/a)
-[23:39:57]   incident: 2026-08-10T08:25:04+00:00 [fred/expansion] scoped COMPLETE → full catalog started
-[23:39:57]   incident: 2026-08-10T04:15:04+00:00 [fred/auto_heal] stalled — async kick queued
-[23:39:57]   incident: 2026-08-10T04:05:04+00:00 [fred/auto_heal] stalled — async kick queued
-[23:39:57]   incident: 2026-08-10T03:58:10+00:00 [fred/auto_heal] stalled — async kick queued
-[23:39:57]   incident: 2026-08-10T03:57:48+00:00 [fred/auto_heal] stalled — async kick queued
-── 2. drain state — counters prove the three rules ran ──
-[23:39:58] ✅   [state] scoped-import state readable
-[23:39:58]   scope=full_catalog  discovery_complete=None
-[23:39:58]     series_seen = 884361
-[23:39:58]     series_queued = 619306
-[23:39:58]     series_excluded_stale = 3846
-[23:39:58]     series_excluded_discontinued = 1555
-[23:39:58]     series_skipped_already = 203397
-[23:39:58] ✅   [rules] freshness + discontinued filters demonstrably firing (stale=3846, discontinued=1555 excluded)
-[23:39:58] ✅   [state] no FRED block active (blocked_at=None)
-── 3. queue ledger — live ordering spot-check ──
-[23:39:58] ✅   [queue] queue ledger readable
-[23:39:58]   rows=275105 cursor=51217 remaining=223888 sorted=True sorted_scope=full_catalog built_at=2026-08-10T09:43:20+00:00
-[23:39:58] ✅   [queue] undrained tail is popularity-descending (0/200 sampled inversions)
-[23:39:58]   next up (popularity): IPUGN42L020000000(p1), IPUGN4239U101000000(p1), IPUGN424210U110000000(p1), IPUGN42421L000000000(p1), IPUGN42W200000000(p1), IPUGN42421L200000000(p1)
-[23:39:58]   freshness at build: 201/201 sampled rows have last_updated within 90d(+30d drain lag) — filter was applied at queue build, not re-checked at drain (by design)
-── 4. progress + ETA ──
-[23:39:58]   remaining=223888; velocity not in health payload (vel=None) — ETA from strip stands
+executing-against: 6e80f65f67d61432feee7533cdb7ad4582c91095
+ops 4594 — FRED 100/min + fleet-red closure
+── 1. The knob ──
+[23:48:53]   prior /justhodl/fred/rate-ceiling = 100
+[23:48:53] ✅   [knob] ceiling now 100 req/min (AIMD climbs to it on clean windows, backs off on any 429, halts on 403 — Khalid-approved raise)
+── 2. Drain kick + advance check ──
+[23:48:54]   fred-catalog kicked (checkpoint was 2026-08-10T23:45:14+00:00)
+[23:53:02] ✗   [drain] CONTRACT MISS — checkpoint advanced (2026-08-10T23:45:14+00:00 → 2026-08-10T23:45:14+00:00)
+[23:53:02] ✅   [drain] no block after raise (blocked_at=None)
+[23:53:02]     rate_rpm = 42.0
+[23:53:02]     throttled_429 = 261
+[23:53:03]   remaining=223278; projected at ceiling-100 effective ~4920/h → ETA ~45.4 h (~1.9 days). The health strip shows the real number within the hour; AIMD finds the true sustainable pace.
+── 3. 4592 reds — deploy evidence + force redeploy ──
+[23:53:03]   catalyst-skew-premove LastModified=2026-08-10T23:20:52.000+0000
+[23:53:04]     cw last-90m: 4 lines, 0 error-sigs
+[23:53:11]     force-redeployed from repo source
+[23:53:11]   failed-pattern-reversal LastModified=2026-08-10T23:21:22.000+0000
+[23:53:12]     cw last-90m: 5 lines, 0 error-sigs
+[23:53:18]     force-redeployed from repo source
+── 4. Re-gate the two ──
+[00:00:21] ⚠   justhodl-catalyst-skew-premove did not refresh in 420s
+[00:00:21] ⚠   justhodl-failed-pattern-reversal did not refresh in 420s
+[00:00:21] ✗   [catalyst-skew-premove] CONTRACT MISS — data_sufficiency published (state=QUIET, ds=None)
+[00:00:21] ✗   [failed-pattern-reversal] CONTRACT MISS — data_sufficiency published (state=QUIET, ds=None)
 ── verdict ──
-[23:39:58] ✅ FRED drain healthy and honoring all three rules; ACTION_REQUIRED badge explained above
+[00:00:21] ✗ rate raise / red closure: 5 red
 
-→ Report written to aws/ops/reports/latest/4593_import_audit.md
+→ Report written to aws/ops/reports/latest/4594_rate_raise.md
+❌ OPS-FAIL: aws/ops/pending/ops_4594_rate_raise.py
