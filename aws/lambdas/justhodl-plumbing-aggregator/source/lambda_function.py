@@ -1,6 +1,9 @@
 """
-justhodl-plumbing-aggregator v2.0.1 — 5-Layer Liquidity & Risk Plumbing Composite.
+justhodl-plumbing-aggregator v2.1.0 — 5-Layer Liquidity & Risk Plumbing Composite.
 
+v2.1.0 (ops 4605): day-over-day SHOCK layer — repo-rate and RRP daily
+%-change alarms (huge one-day moves = the Sept-2019 crisis signature),
+NY Fed URL fixed to the proven search.json pattern.
 v2.0.1 (ops 4604): TGCR/BGCR moved to the NY Fed markets API (not on
 FRED); rates cached into the derived-spread path.
 v2.0.0 (ops 4603): adds L0 REPO CORE — the repurchase-market mechanics layer
@@ -292,7 +295,7 @@ def fetch_nyfed_rate(rate_id, n=1300):
     if hit is not None:
         return hit
     url = ("https://markets.newyorkfed.org/api/rates/secured/"
-           f"{rate_id.lower()}/last/{n}.json")
+           f"{rate_id.lower()}/search.json?startDate=2014-08-01")
     body = http_get(url)
     obs = []
     if body:
@@ -538,6 +541,16 @@ PLUMB_CATS = {
 }
 # brain-stated thresholds
 CANARY_THRESHOLDS = {
+    "repo_rate_shock": {
+        "amber": "≥8% AND ≥10bp DoD", "red": "≥25% AND ≥30bp DoD",
+        "note": "Sept-2019: SOFR +116%/+282bp in one day → deep red; "
+                "a 25bp policy move at normal levels stays calm"},
+    "rrp_swing": {
+        "amber": "|Δ|≥20% AND ≥$25B", "red": "|Δ|≥40% AND ≥$75B",
+        "note": "one-day stampede in/out of ON RRP"},
+    "repo_ops_bn": {
+        "amber": "≥$25B level or Δ", "red": "≥$75B level or Δ",
+        "note": "Fed emergency repo injections from zero"},
     "sofr_iorb_bp": {"amber": 5, "red": 10,
                      "note": "brain: >+5bp amber, >+10bp red"},
     "srf_bn": {"amber": 0.5, "red": 10,
@@ -950,6 +963,68 @@ def _s3_json(key):
         return None
 
 
+def _last_dod(sid):
+    """Latest day-over-day move for a cached series → (chg, pct, prev)."""
+    obs = _FRED_CACHE.get(sid) or []
+    if len(obs) < 2:
+        return None, None, None
+    cur, prev = obs[-1]["value"], obs[-2]["value"]
+    chg = cur - prev
+    pct = (chg / prev * 100.0) if abs(prev) > 1e-9 else None
+    return chg, pct, prev
+
+
+def _dod_series(sid, mode):
+    """Full day-over-day history: mode bp | abs_pct | abs."""
+    obs = _FRED_CACHE.get(sid) or []
+    out = []
+    for i in range(1, len(obs)):
+        cur, prev = obs[i]["value"], obs[i - 1]["value"]
+        if mode == "bp":
+            v = (cur - prev) * 100.0
+        elif mode == "abs_pct":
+            if abs(prev) < 5.0:
+                continue
+            v = abs(cur - prev) / prev * 100.0
+        else:
+            v = abs(cur - prev)
+        out.append({"date": obs[i]["date"], "value": v})
+    return out
+
+
+def l0_shock_indicators():
+    """Khalid's crisis alarm: huge day-to-day %-changes in repo / reverse
+    repo. Sept 17 2019: SOFR 2.43→5.25 (+282bp, +116% in ONE day) while
+    the Fed injected $53B→$75B from zero. Each shock series is z-scored
+    over its own daily-move history, so a violent day pins the
+    percentile at ~100 and lifts L0 directly."""
+    inds = []
+    inds.append(_derived_spec(
+        "SOFR_DOD_BP", "SOFR Day-over-Day Move (bp)",
+        _dod_series("SOFR", "bp"), +1, 0.12, "bp",
+        "Repo-rate one-day jump; Sept-2019 printed +282bp — any spike "
+        "orders of magnitude above the ~1-2bp norm is the alarm"))
+    inds.append(_derived_spec(
+        "TGCR_DOD_BP", "Tri-Party GC Day Move (bp)",
+        _dod_series("TGCR", "bp"), +1, 0.05, "bp",
+        "Tri-party collateral rate one-day jump"))
+    inds.append(_derived_spec(
+        "BGCR_DOD_BP", "Broad GC Day Move (bp)",
+        _dod_series("BGCR", "bp"), +1, 0.05, "bp",
+        "Broad GC rate one-day jump"))
+    inds.append(_derived_spec(
+        "RRP_DOD_PCT", "Reverse Repo Day Swing (|%|)",
+        _dod_series("RRPONTSYD", "abs_pct"), +1, 0.08, "%",
+        "Absolute daily %-swing in ON RRP usage — money funds stampeding "
+        "in OR out of the Fed's doors is instability either way"))
+    inds.append(_derived_spec(
+        "REPO_OPS_DOD_BN", "Fed Repo Ops Day Change (|$B|)",
+        _dod_series("RPONTSYD", "abs"), +1, 0.06, "$B",
+        "Sudden Fed repo injections from zero — the Sept-2019 "
+        "$53B/$75B intervention pattern"))
+    return inds
+
+
 def l0_s3_joins():
     """Report-only joins from sibling engines (weight 0 — context, not
     double-counted score): tri-party/DVP/GCF microstructure, rehypothecation
@@ -1052,10 +1127,62 @@ def l0_extra_canaries():
             "label": "Discount Window ($B)", "value": dwb,
             "state": state(dwb, 2.0, 10.0),
             "thresholds": CANARY_THRESHOLDS["dw_bn"]}
+    # ops 4605 — day-over-day shock alarms (Khalid: huge day-to-day
+    # %-change in repo / reverse repo = financial-crisis alarm)
+    best = None
+    for sid in ("SOFR", "TGCR", "BGCR"):
+        chg, pct, _ = _last_dod(sid)
+        if chg is None:
+            continue
+        bpv = chg * 100.0
+        if best is None or bpv > best[1]:
+            best = (sid, bpv, pct)
+    if best is not None:
+        sid, bpv, pct = best
+        pv = pct if pct is not None else 0.0
+        st = ("RED" if (pv >= 25 and bpv >= 30)
+              else "AMBER" if (pv >= 8 and bpv >= 10) else "CALM")
+        c["repo_rate_shock"] = {
+            "label": "Repo Rate DoD Shock", "rate": sid,
+            "value_bp": round(bpv, 1),
+            "value_pct": round(pv, 2) if pct is not None else None,
+            "state": st,
+            "thresholds": CANARY_THRESHOLDS["repo_rate_shock"]}
+    chg, pct, prev = _last_dod("RRPONTSYD")
+    if chg is not None:
+        ap = abs(pct) if pct is not None else 0.0
+        ac = abs(chg)
+        st = ("RED" if (ap >= 40 and ac >= 75)
+              else "AMBER" if (ap >= 20 and ac >= 25) else "CALM")
+        c["rrp_swing"] = {
+            "label": "Reverse Repo DoD Swing", "value_bn": round(chg, 1),
+            "value_pct": round(pct, 2) if pct is not None else None,
+            "state": st,
+            "thresholds": CANARY_THRESHOLDS["rrp_swing"]}
+    ops_chg, _, _ = _last_dod("RPONTSYD")
+    lvl = None
+    ro = _FRED_CACHE.get("RPONTSYD") or []
+    if ro:
+        lvl = ro[-1]["value"]
+    if lvl is not None:
+        ac = abs(ops_chg) if ops_chg is not None else 0.0
+        st = ("RED" if (lvl >= 75 or ac >= 75)
+              else "AMBER" if (lvl >= 25 or ac >= 25) else "CALM")
+        c["repo_ops_surge"] = {
+            "label": "Fed Repo Ops Surge ($B)", "value": round(lvl, 1),
+            "day_change_bn": round(ops_chg, 1)
+            if ops_chg is not None else None,
+            "state": st,
+            "thresholds": CANARY_THRESHOLDS["repo_ops_bn"]}
     return c
 
 
 NOTE_CONCEPT_MAP = [
+    {"concept": "Day-over-day repo / RRP shock alarm", "status": "LIVE",
+     "indicators": ["SOFR_DOD_BP", "TGCR_DOD_BP", "BGCR_DOD_BP",
+                    "RRP_DOD_PCT", "REPO_OPS_DOD_BN"],
+     "note": "Huge one-day %-moves = crisis; z-scored vs each series' "
+             "own daily-move history + hard canaries"},
     {"concept": "Repo rate spike (Sept 2019 signature)", "status": "LIVE",
      "indicators": ["SOFR", "SOFR_IORB_BP", "SOFR_TAIL_BP", "SOFR99"],
      "note": "Median + 99th-percentile tail vs the IORB floor"},
@@ -1283,6 +1410,10 @@ def lambda_handler(event, context):
     # v2.0.0: L0 repo-core derived spreads + sibling-engine joins
     try:
         enriched.extend(l0_derived_indicators())
+        try:
+            enriched.extend(l0_shock_indicators())   # ops 4605
+        except Exception as e:
+            print(f"[plumbing] shock block: {e}")
     except Exception as e:
         print("[plumbing] l0 derived failed: %s" % e)
     try:
