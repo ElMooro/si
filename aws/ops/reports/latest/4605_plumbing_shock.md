@@ -1,0 +1,47 @@
+# ops 4605 — v2.1.0 DoD shock layer (supersedes 4604)
+
+**Status:** success  
+**Duration:** 39.6s  
+**Finished:** 2026-08-11T20:35:22+00:00  
+
+## Data
+
+| l0_score | rrp_dod_pct | shock_states | sofr_dod_bp |
+|---|---|---|---|
+| 70.7 | 90.5579 | {"repo_rate_shock": "CALM", "rrp_swing": "CALM", "repo_ops_surge": "CALM"} | 1.0 |
+
+## Log
+## deploy-settle on the v2.1.0 marker
+
+- `20:34:43` zip carries v2.1.0 (attempt 1)
+- `20:34:43` ✅   [deploy] deployed zip carries v2.1.0 shock layer
+## warm gap-fill: TGCR/BGCR via search.json
+
+- `20:34:45` banked: TGCR(2087), BGCR(2087)
+- `20:34:45` ✅   [warm] TGCR + BGCR banked — data.html carries all 17 L0 series
+## invoke v2.1.0 + shock contracts
+
+- `20:35:20` ✅   [invoke] engine ok:true
+- `20:35:21` ✅   [schema] schema 2.0
+- `20:35:21` ✅   [TGCR] TGCR carrying data (latest=3.61)
+- `20:35:21` ✅   [BGCR] BGCR carrying data (latest=3.61)
+- `20:35:21` ✅   [SOFR_TGCR_BP] SOFR_TGCR_BP carrying data (latest=2.0)
+- `20:35:21` ✅   [SOFR_DOD_BP] SOFR_DOD_BP carrying data (latest=1.0)
+- `20:35:21` ✅   [RRP_DOD_PCT] RRP_DOD_PCT carrying data (latest=90.5579)
+- `20:35:21` ✅   [REPO_OPS_DOD_BN] REPO_OPS_DOD_BN carrying data (latest=0.1)
+- `20:35:21` ✅   [L0-cov] L0 coverage >=21 (got 24/28)
+- `20:35:21` ✅   [canary-repo_rate_shock] repo_rate_shock canary live (state=CALM · {"rate": "SOFR", "value_bp": 1.0, "value_pct": 0.28})
+- `20:35:21` ✅   [canary-rrp_swing] rrp_swing canary live (state=CALM · {"value_bn": 0.3, "value_pct": 28.21})
+- `20:35:21` ✅   [canary-repo_ops_surge] repo_ops_surge canary live (state=CALM · {"value": 0.1, "day_change_bn": 0.1})
+- `20:35:21` ✅   [L1-regress] L1 still scoring (20.3)
+- `20:35:21` ✅   [L2-regress] L2 still scoring (70.8)
+- `20:35:21` ✅   [L3-regress] L3 still scoring (47.1)
+- `20:35:21` ✅   [L4-regress] L4 still scoring (49.5)
+- `20:35:21` ✅   [composite] composite 49.0 (NORMAL)
+## edge freshness
+
+- `20:35:22` edge carries repo_rate_shock (attempt 1)
+- `20:35:22` ✅   [edge] served payload carries the DoD shock canaries
+## verdict
+
+- `20:35:22` ✅ Day-over-day shock layer LIVE — repo/RRP daily %-change scored + hard crisis canaries, TGCR/BGCR flowing, composite=49.0 (NORMAL), edge fresh. KHALID items open: rotate CLOUDFLARE_API_TOKEN (401) + leaked FRED key.
