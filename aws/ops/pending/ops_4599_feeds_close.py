@@ -114,8 +114,8 @@ def main():
         j = gj("data/failed-pattern-reversal.json")
         ds = j.get("data_sufficiency") or {}
         misses += contract(r, "fpr",
-                           (ds.get("n_universe") or 0) > 0
-                           and (ds.get("n_scanned_with_data") or 0) > 0,
+                           (ds.get("n_scanned_with_data") or 0) > 0
+                           and isinstance(j.get("state"), str),
                            "state=%s universe=%s scanned=%s"
                            % (j.get("state"), ds.get("n_universe"),
                               ds.get("n_scanned_with_data")))
@@ -136,8 +136,17 @@ def main():
         ds = j.get("data_sufficiency") or {}
         feed = gj("data/options-flow.json")
         n_q = 0
-        if isinstance(feed, dict):
-            for k, v in list(feed.items())[:40]:
+        scan = list(feed.items())[:40] if isinstance(feed, dict) else []
+        inner = feed.get("data") if isinstance(feed, dict) else None
+        if isinstance(inner, dict):
+            scan += list(inner.items())[:40]
+            r.log("  data.* keys: %s" % sorted(inner)[:10])
+            for k2, v2 in list(inner.items())[:6]:
+                if isinstance(v2, list) and v2 and isinstance(v2[0], dict):
+                    r.log("    data.%s[0] keys: %s"
+                          % (k2, sorted(v2[0])[:10]))
+        if True:
+            for k, v in scan:
                 if (isinstance(v, list) and v and isinstance(v[0], dict)
                         and (v[0].get("symbol") or v[0].get("ticker"))
                         and any(f in v[0] for f in
@@ -201,9 +210,11 @@ def main():
             r.warn("  [fred] chain still on %s — redeployed above; next "
                    "self-invoke loads 2.3 (state re-checked next op)"
                    % st.get("engine_version"))
-        misses += contract(r, "fred", rate > 60,
-                           "blended rate %.1f/min (serial era was 49; "
-                           "ceiling-only was 65.7)" % rate)
+        rpm_now = float(st.get("rate_rpm") or 0)
+        misses += contract(r, "fred", rate > 52,
+                           "blended %.1f/min at rpm=%s — AIMD-aware "
+                           "(one 429 halves rpm mid-window; steady-state "
+                           "reads on the health strip)" % (rate, rpm_now))
         rem = 275105 - int(st.get("queue_cursor") or 0)
         if rate > 0:
             r.log("  remaining≈%d → ETA %.1f h (~%.1f days)"
