@@ -1,6 +1,8 @@
 """
-justhodl-plumbing-aggregator v2.0.0 — 5-Layer Liquidity & Risk Plumbing Composite.
+justhodl-plumbing-aggregator v2.0.1 — 5-Layer Liquidity & Risk Plumbing Composite.
 
+v2.0.1 (ops 4604): TGCR/BGCR moved to the NY Fed markets API (not on
+FRED); rates cached into the derived-spread path.
 v2.0.0 (ops 4603): adds L0 REPO CORE — the repurchase-market mechanics layer
 from the Khalid plumbing note: RRP level/award + drain, SRF usage, SOFR tail
 dispersion (Sept-2019 signature), SOFR-IORB / EFFR-IORB / SOFR-TGCR spreads,
@@ -127,10 +129,10 @@ INDICATORS = [
     {"id": "SOFR1", "label": "SOFR 1st Percentile", "source": "FRED",
      "layer": "L0", "polarity": -1, "weight_in_layer": 0.0,
      "interp": "Bottom of the repo distribution — collateral trading special"},
-    {"id": "TGCR", "label": "Tri-Party General Collateral Rate", "source": "FRED",
+    {"id": "TGCR", "label": "Tri-Party General Collateral Rate", "source": "NYFED_RATES",
      "layer": "L0", "polarity": +1, "weight_in_layer": 0.0,
      "interp": "BNY tri-party GC leg — the clearing-bank pipe the note warns about"},
-    {"id": "BGCR", "label": "Broad General Collateral Rate", "source": "FRED",
+    {"id": "BGCR", "label": "Broad General Collateral Rate", "source": "NYFED_RATES",
      "layer": "L0", "polarity": +1, "weight_in_layer": 0.0,
      "interp": "Tri-party + GCF general collateral"},
     {"id": "DTB4WK", "label": "4-Week T-Bill Rate", "source": "FRED",
@@ -280,6 +282,30 @@ def fetch_fred(series_id, n=1300):
                 continue
     obs = obs[::-1]  # chronological
     _FRED_CACHE[series_id] = obs
+    return obs
+
+
+def fetch_nyfed_rate(rate_id, n=1300):
+    """NY Fed markets API secured-rate puller (TGCR/BGCR/SOFR live here,
+    keyless). Caches into _FRED_CACHE so derived spreads can join."""
+    hit = _FRED_CACHE.get(rate_id)
+    if hit is not None:
+        return hit
+    url = ("https://markets.newyorkfed.org/api/rates/secured/"
+           f"{rate_id.lower()}/last/{n}.json")
+    body = http_get(url)
+    obs = []
+    if body:
+        try:
+            for o in json.loads(body).get("refRates", []):
+                d, v = o.get("effectiveDate"), o.get("percentRate")
+                if d and v is not None:
+                    obs.append({"date": d, "value": float(v)})
+        except Exception as e:
+            print(f"[plumbing] nyfed {rate_id}: {e}")
+    obs.sort(key=lambda o: o["date"])
+    if obs:
+        _FRED_CACHE[rate_id] = obs
     return obs
 
 
@@ -718,6 +744,8 @@ def assemble_indicator(spec):
 
     if src == "FRED":
         obs = fetch_fred(sid)
+    elif src == "NYFED_RATES":
+        obs = fetch_nyfed_rate(sid)
     elif src == "OFR":
         # Primary: our reliable NY Fed PD settlement-fails feed; fallback: OFR mnemonic
         fails_map = {
