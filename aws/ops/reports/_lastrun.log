@@ -1,14 +1,33 @@
-executing-against: aee8b1ba77c369dd917a8d5e09f023243d1737a4
-ops 4606 — Cloudflare token restored: purge probe
-── token verify ──
-[21:14:55] ✅   [env] CLOUDFLARE_API_TOKEN present in runner env
-[21:14:55] ✅   [verify] token verifies active (status=active err=None)
-── zone + purge ──
-[21:14:55] ✅   [zone] zone justhodl.ai resolved (id=fb59e2d09c34b648d334696ae5c02a0a err=None)
-[21:14:56] ✅   [purge] cache purge accepted for the plumbing surfaces
-── edge sanity ──
-[21:14:56] ✅   [edge] post-purge edge serves plumbing.html with the L0 card
+executing-against: 15c88a4f1a0590a622e2bea209b09dc7575c0ffe
+ops 4607 — MARKET MACHINE (four-pillar doctrine)
+── deploy-settle (new function) ──
+[21:43:02] function live with v1.0.0 (attempt 1)
+[21:43:02] ✅   [deploy] justhodl-market-machine exists with v1.0.0
+── config floor + env ──
+[21:43:08] ✅   [config] timeout=300s memory=512MB env wired
+── hourly schedule (shared scheduler role) ──
+[21:43:08] created rate(1 hour) schedule
+[21:43:08] ✅   [schedule] hourly EventBridge schedule in place
+── invoke + four-pillar contracts ──
+[21:43:11] ✅   [invoke] engine ok:true
+[21:43:12] ✅   [schema] schema 1.0
+[21:43:12] ✅   [pillar-profits] profits scoring with >=2 live contributors (score=76.0 n=3)
+[21:43:12] ✅   [pillar-rates] rates scoring with >=2 live contributors (score=47.7 n=5)
+[21:43:12] ✅   [pillar-flow] flow scoring with >=2 live contributors (score=86.2 n=2)
+[21:43:12] ✗   [pillar-forced] CONTRACT MISS — forced scoring with >=2 live contributors (score=87.6 n=1)
+[21:43:12] ✅   [composite] composite 74.4 (STRONG TAILWIND)
+[21:43:12] ✅   [verdict] verdict: profit expectations rising · rates neutral · money flowing IN · no one is forced to sell
+── purge + edge ──
+[21:43:12] purge ok=True err=None
+[21:43:12] edge 1: HTTP Error 404: Not Found
+[21:43:37] edge 2: HTTP Error 404: Not Found
+[21:44:02] edge 3: HTTP Error 404: Not Found
+[21:44:27] edge 4: HTTP Error 404: Not Found
+[21:44:52] edge 5: HTTP Error 404: Not Found
+[21:45:18] ✅   [edge-page] market-machine.html serving
+[21:45:18] ✅   [edge-payload] market-machine.json serving schema 1.0
 ── verdict ──
-[21:14:56] ✅ Cloudflare purge path RESTORED — token active, zone resolved, purge accepted, edge fresh. Every future ops purge and pages.yml post-deploy purge now works again. Note: this token was once pasted in chat (April); when convenient, roll it and hand me the new value — I will re-seal the secret the same way.
+[21:45:18] ✗ market machine: 1 red
 
-→ Report written to aws/ops/reports/latest/4606_cf_token_probe.md
+→ Report written to aws/ops/reports/latest/4607_market_machine.md
+❌ OPS-FAIL: aws/ops/pending/ops_4607_market_machine.py
