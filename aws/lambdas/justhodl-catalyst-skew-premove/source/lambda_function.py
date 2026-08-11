@@ -68,7 +68,13 @@ def extract_options_skew(data):
     # list-of-dicts whose rows carry a symbol and any premium/ratio
     # field — the feed can rename without blinding this engine again.
     if not any(isinstance(x, list) and x for x in sources):
-        for k, v in list(data.items())[:40]:
+        # 4599 evidence: the live payload nests everything under a
+        # top-level "data" key — descend one level before scanning.
+        scan_space = list(data.items())[:40]
+        inner = data.get("data")
+        if isinstance(inner, dict):
+            scan_space += list(inner.items())[:40]
+        for k, v in scan_space:
             if (isinstance(v, list) and v and isinstance(v[0], dict)
                     and (v[0].get("symbol") or v[0].get("ticker"))
                     and any(f in v[0] for f in
