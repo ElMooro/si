@@ -1,5 +1,12 @@
 """
-justhodl-plumbing-aggregator — 4-Layer Liquidity & Risk Plumbing Composite.
+justhodl-plumbing-aggregator v2.0.0 — 5-Layer Liquidity & Risk Plumbing Composite.
+
+v2.0.0 (ops 4603): adds L0 REPO CORE — the repurchase-market mechanics layer
+from the Khalid plumbing note: RRP level/award + drain, SRF usage, SOFR tail
+dispersion (Sept-2019 signature), SOFR-IORB / EFFR-IORB / SOFR-TGCR spreads,
+bill-RRP collateral-scarcity spread, net liquidity (WALCL-TGA-RRP), reserve
+scarcity ratio, discount-window usage, tri-party/DVP/GCF microstructure join,
+rehypothecation velocity join, daily-TGA join, note_concept_map coverage.
 
 WHAT IT DOES
 ────────────
@@ -62,6 +69,7 @@ INSTITUTIONAL-GRADE
 ✓ NY Fed fails: tries OFR API → Treasury Direct → falls through gracefully
 ✓ Defensive timeout handling (Lambda runs in AWS, endpoints accessible)
 """
+import bisect
 import json
 import math
 import os
@@ -91,6 +99,44 @@ S3 = boto3.client("s3", region_name=REGION)
 # polarity: +1 = rising value indicates more stress; -1 = rising indicates less stress
 # source: FRED | OFR | S3
 INDICATORS = [
+    # ── L0 REPO CORE — the note layer (25% weight) ──
+    {"id": "RRPONTSYD", "label": "Fed ON RRP Usage ($B)", "source": "FRED",
+     "layer": "L0", "polarity": -1, "weight_in_layer": 0.10,
+     "interp": "Cash parked at the Fed = system buffer; a drained RRP means no cushion left when funding tightens"},
+    {"id": "RRPONTSYAWARD", "label": "ON RRP Award Rate", "source": "FRED",
+     "layer": "L0", "polarity": +1, "weight_in_layer": 0.0,
+     "interp": "Floor rate for MMF cash — reference leg of the bill-RRP scarcity spread"},
+    {"id": "RPONTSYD", "label": "Fed Repo / SRF Usage ($B)", "source": "FRED",
+     "layer": "L0", "polarity": +1, "weight_in_layer": 0.14,
+     "interp": "Dealers paying up to borrow from the Fed standing repo facility — the direct Sept-2019 alarm"},
+    {"id": "WALCL", "label": "Fed Balance Sheet ($M)", "source": "FRED",
+     "layer": "L0", "polarity": -1, "weight_in_layer": 0.04,
+     "interp": "QE/QT stock — the note permanent life support; shrinking = collateral returned but reserves drained"},
+    {"id": "WTREGEN", "label": "Treasury General Account ($M)", "source": "FRED",
+     "layer": "L0", "polarity": +1, "weight_in_layer": 0.06,
+     "interp": "TGA rebuild pulls cash out of bank reserves — the tax-date drain that triggered Sept 2019"},
+    {"id": "WSHOMCB", "label": "Fed MBS Holdings ($M)", "source": "FRED",
+     "layer": "L0", "polarity": -1, "weight_in_layer": 0.0,
+     "interp": "Legacy QE mortgage collateral locked on the Fed balance sheet"},
+    {"id": "WLCFLPCL", "label": "Discount Window Primary Credit ($M)", "source": "FRED",
+     "layer": "L0", "polarity": +1, "weight_in_layer": 0.10,
+     "interp": "Banks tapping the lender of last resort — stigma means any usage is information"},
+    {"id": "SOFR99", "label": "SOFR 99th Percentile", "source": "FRED",
+     "layer": "L0", "polarity": +1, "weight_in_layer": 0.0,
+     "interp": "Top of the repo-rate distribution — the desperate tail bid"},
+    {"id": "SOFR1", "label": "SOFR 1st Percentile", "source": "FRED",
+     "layer": "L0", "polarity": -1, "weight_in_layer": 0.0,
+     "interp": "Bottom of the repo distribution — collateral trading special"},
+    {"id": "TGCR", "label": "Tri-Party General Collateral Rate", "source": "FRED",
+     "layer": "L0", "polarity": +1, "weight_in_layer": 0.0,
+     "interp": "BNY tri-party GC leg — the clearing-bank pipe the note warns about"},
+    {"id": "BGCR", "label": "Broad General Collateral Rate", "source": "FRED",
+     "layer": "L0", "polarity": +1, "weight_in_layer": 0.0,
+     "interp": "Tri-party + GCF general collateral"},
+    {"id": "DTB4WK", "label": "4-Week T-Bill Rate", "source": "FRED",
+     "layer": "L0", "polarity": -1, "weight_in_layer": 0.0,
+     "interp": "Pristine-collateral yield — vs RRP award it reveals collateral vs cash scarcity"},
+
     # ── L1 EURODOLLAR PLUMBING (35% weight) ──
     {"id": "SWP1690",    "label": "Fed Liquidity Swaps 16-90d", "source": "FRED",
      "layer": "L1", "polarity": +1, "weight_in_layer": 0.30,
@@ -184,7 +230,8 @@ INDICATORS = [
      "interp": "Chinese financial stress (regime change indicator)"},
 ]
 
-LAYER_WEIGHTS = {"L1": 0.35, "L2": 0.25, "L3": 0.20, "L4": 0.20}
+LAYER_WEIGHTS = {"L0": 0.25, "L1": 0.30, "L2": 0.15,
+                 "L3": 0.10, "L4": 0.20}
 
 
 # ─── Generic HTTP helper ──────────────────────────────────────────────────────
@@ -205,7 +252,13 @@ def http_get(url, timeout=20, retries=2, headers=None):
 
 
 # ─── FRED puller ──────────────────────────────────────────────────────────────
+_FRED_CACHE = {}
+
+
 def fetch_fred(series_id, n=1300):
+    hit = _FRED_CACHE.get(series_id)
+    if hit is not None:
+        return hit
     qs = urllib.parse.urlencode({
         "series_id": series_id, "api_key": FRED_KEY,
         "file_type": "json", "limit": n, "sort_order": "desc",
@@ -225,7 +278,9 @@ def fetch_fred(series_id, n=1300):
                 obs.append({"date": o["date"], "value": float(v)})
             except ValueError:
                 continue
-    return obs[::-1]  # chronological
+    obs = obs[::-1]  # chronological
+    _FRED_CACHE[series_id] = obs
+    return obs
 
 
 # ─── OFR Short-Term Funding Monitor puller ────────────────────────────────────
@@ -459,6 +514,16 @@ PLUMB_CATS = {
 CANARY_THRESHOLDS = {
     "sofr_iorb_bp": {"amber": 5, "red": 10,
                      "note": "brain: >+5bp amber, >+10bp red"},
+    "srf_bn": {"amber": 0.5, "red": 10,
+               "note": "any sustained SRF usage is the Sept-2019 alarm"},
+    "sofr_tail_bp": {"amber": 10, "red": 20,
+                     "note": "99th-minus-median dispersion"},
+    "bill_rrp_bp": {"amber": -5, "red": -15,
+                    "note": "bills rich to floor = collateral scarcity"},
+    "rrp_drain_bn": {"amber": -150, "red": -300,
+                     "note": "20-day RRP drain, $B"},
+    "dw_bn": {"amber": 2, "red": 10,
+              "note": "discount-window usage, $B"},
 }
 
 
@@ -592,6 +657,10 @@ def build_plumb_enrichment():
             "label": "HY OAS", "value": hy["value"], "z": hy["z"],
             "state": ("RED" if (hy["z"] or 0) > 2 else
                       "AMBER" if (hy["z"] or 0) > 1 else "CALM")}
+    try:
+        canaries.update(l0_extra_canaries())   # ops 4603: repo core
+    except Exception as e:
+        print("[plumbing] l0 canaries failed: %s" % e)
     canaries = join_canaries(canaries)   # ops 4421: real fleet joins
     firing = [k for k, v in canaries.items()
               if v.get("state") in ("AMBER", "RED")]
@@ -730,9 +799,295 @@ def hk_funding_indicators():
     return out
 
 
+
+# ─── v2.0.0 L0 REPO CORE — derived spreads, S3 joins, concept map ──────────
+
+def _cached(sid):
+    obs = _FRED_CACHE.get(sid)
+    if obs is None:
+        obs = fetch_fred(sid)
+    return obs or []
+
+
+def _align_join(a_obs, b_obs, fn):
+    """For each date in a_obs, pair with most recent b value <= date."""
+    if not a_obs or not b_obs:
+        return []
+    bd = sorted((o["date"], o["value"]) for o in b_obs)
+    bkeys = [d for d, _v in bd]
+    out = []
+    for o in a_obs:
+        i = bisect.bisect_right(bkeys, o["date"]) - 1
+        if i < 0:
+            continue
+        try:
+            out.append({"date": o["date"], "value": fn(o["value"], bd[i][1])})
+        except Exception:
+            continue
+    return out
+
+
+def _derived_spec(sid, label, obs, polarity, weight, unit, interp):
+    out = {"id": sid, "label": label, "source": "DERIVED", "layer": "L0",
+           "polarity": polarity, "weight_in_layer": weight, "unit": unit,
+           "interp": interp}
+    if not obs:
+        out.update({"value": None, "date": None, "z_score": None,
+                    "percentile": None, "stress_score_0_100": None,
+                    "n_obs": 0, "err": "no data"})
+        return out
+    out["value"] = round(obs[-1]["value"], 4)
+    out["date"] = obs[-1]["date"]
+    out["n_obs"] = len(obs)
+    z, pct = z_score_and_percentile(obs)
+    out["z_score"] = z
+    out["percentile"] = pct
+    if pct is not None:
+        out["stress_score_0_100"] = round(pct if polarity == +1
+                                          else 100 - pct, 1)
+    return out
+
+
+def l0_derived_indicators():
+    """Computed repo-core metrics from component series (all real FRED obs)."""
+    inds = []
+    bp = lambda a, b: (a - b) * 100.0
+    inds.append(_derived_spec(
+        "SOFR_IORB_BP", "SOFR − IORB Spread (bp)",
+        _align_join(_cached("SOFR"), _cached("IORB"), bp), +1, 0.16, "bp",
+        "Repo trading above the reserve floor — the first crack; "
+        "brain: >+5bp amber, >+10bp red"))
+    inds.append(_derived_spec(
+        "SOFR_TAIL_BP", "SOFR 99th − Median Tail (bp)",
+        _align_join(_cached("SOFR99"), _cached("SOFR"), bp), +1, 0.12, "bp",
+        "Dispersion at the top of the repo stack — the Sept-2019 "
+        "signature fires here before the median moves"))
+    inds.append(_derived_spec(
+        "EFFR_IORB_BP", "EFFR − IORB Spread (bp)",
+        _align_join(_cached("EFFR"), _cached("IORB"), bp), +1, 0.06, "bp",
+        "Fed funds pushing above the floor = reserves no longer ample"))
+    inds.append(_derived_spec(
+        "SOFR_TGCR_BP", "SOFR − TGCR Spread (bp)",
+        _align_join(_cached("SOFR"), _cached("TGCR"), bp), +1, 0.06, "bp",
+        "DVP trading over tri-party GC — collateral-specific pressure "
+        "in the cleared bilateral segment"))
+    inds.append(_derived_spec(
+        "BILL_RRP_BP", "4wk Bill − RRP Award (bp)",
+        _align_join(_cached("DTB4WK"), _cached("RRPONTSYAWARD"), bp),
+        -1, 0.06, "bp",
+        "Bills rich to the RRP floor = pristine-collateral scarcity; "
+        "the note collateral-shortage chapter, measured"))
+    walcl = _cached("WALCL")
+    net1 = _align_join(walcl, _cached("WTREGEN"),
+                       lambda a, b: a / 1000.0 - b / 1000.0)
+    netliq = _align_join(net1, _cached("RRPONTSYD"), lambda a, b: a - b)
+    inds.append(_derived_spec(
+        "NET_LIQUIDITY_BN", "Net Liquidity (WALCL−TGA−RRP, $B)",
+        netliq, -1, 0.10, "$B",
+        "The cash actually available to markets after the Treasury and "
+        "the RRP take their cut"))
+    rr = _align_join(_cached("WRESBAL"), _cached("TLAACBW027SBOG"),
+                     lambda a, b: (a / 1000.0) / b * 100.0 if b else None)
+    rr = [o for o in rr if o["value"] is not None]
+    inds.append(_derived_spec(
+        "RESERVES_RATIO_PCT", "Reserves / Bank Assets (%)",
+        rr, -1, 0.10, "%",
+        "Reserve scarcity gauge — the ample-reserves regime frays "
+        "below roughly 10%; Sept 2019 happened in the single digits"))
+    return inds
+
+
+def _discover_numeric(d, patterns, prefix=""):
+    """Walk a dict, return {path: value} for numeric leaves whose key path
+    matches any pattern. Field names are DISCOVERED, never assumed."""
+    hits = {}
+    if not isinstance(d, dict):
+        return hits
+    for k, v in d.items():
+        path = (prefix + "." + str(k)).strip(".").lower()
+        if isinstance(v, dict):
+            hits.update(_discover_numeric(v, patterns, path))
+        elif isinstance(v, (int, float)) and not isinstance(v, bool):
+            if any(p in path for p in patterns):
+                hits[path] = float(v)
+    return hits
+
+
+def _s3_json(key):
+    try:
+        return json.loads(
+            S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+    except Exception as e:
+        print("[plumbing] L0 join miss %s: %s" % (key, type(e).__name__))
+        return None
+
+
+def l0_s3_joins():
+    """Report-only joins from sibling engines (weight 0 — context, not
+    double-counted score): tri-party/DVP/GCF microstructure, rehypothecation
+    velocity, daily TGA."""
+    out = []
+
+    def add(sid, label, value, date, interp, pctile=None, stress=None):
+        out.append({
+            "id": sid, "label": label, "source": "S3_JOIN", "layer": "L0",
+            "polarity": +1, "weight_in_layer": 0.0, "value": value,
+            "date": date, "z_score": None, "percentile": pctile,
+            "stress_score_0_100": stress, "interp": interp})
+
+    rd = _s3_json("data/warm/nyfed-markets/repo-deep-summary.json")
+    if rd:
+        vols = _discover_numeric(rd, ["volume", "vol_"])
+        tri = sum(v for k, v in vols.items() if "tri" in k)
+        tot = sum(v for k, v in vols.items()
+                  if any(seg in k for seg in ("tri", "dvp", "gcf")))
+        asof = rd.get("as_of") or rd.get("date")
+        if tri and tot:
+            add("TRIPARTY_SHARE_PCT", "Tri-Party Share of Repo Volume (%)",
+                round(tri / tot * 100.0, 1), asof,
+                "How much of the market clears through the single "
+                "clearing-bank pipe the note warns about")
+        rates = _discover_numeric(rd, ["rate"])
+        for k, v in sorted(rates.items())[:4]:
+            add("RD_" + k.upper().replace(".", "_")[:38],
+                "Repo Deep · " + k, round(v, 4), asof,
+                "NY Fed repo microstructure (discovered field)")
+    rh = _s3_json("data/treasury-rehypo.json")
+    if rh:
+        hits = _discover_numeric(
+            rh, ["velocity", "reuse", "multiplier", "ratio"])
+        for k, v in sorted(hits.items())[:3]:
+            add("REHYPO_" + k.upper().replace(".", "_")[:34],
+                "Rehypothecation · " + k, round(v, 4),
+                rh.get("as_of") or rh.get("date"),
+                "Collateral reuse — the note single-bond-backing-"
+                "many-loans chapter, proxied from dealer data")
+    tf = _s3_json("data/warm/treasury/latest-summary.json")
+    if tf:
+        hits = _discover_numeric(
+            tf, ["tga", "operating_cash", "cash_balance", "opening_balance"])
+        for k, v in sorted(hits.items())[:1]:
+            add("TGA_DAILY", "TGA Daily (DTS, discovered: %s)" % k,
+                round(v, 1), tf.get("as_of") or tf.get("date"),
+                "Daily Treasury cash — fresher than the weekly "
+                "WTREGEN print")
+    print("[plumbing] L0 s3 joins: %d contributors" % len(out))
+    return out
+
+
+def l0_extra_canaries():
+    """Hard-threshold repo-core canaries (levels, not percentiles)."""
+    c = {}
+
+    def latest(sid):
+        obs = _FRED_CACHE.get(sid) or []
+        return obs[-1]["value"] if obs else None
+
+    def state(v, amber, red, lower_is_stress=False):
+        if v is None:
+            return None
+        if lower_is_stress:
+            return ("RED" if v < red else "AMBER" if v < amber else "CALM")
+        return ("RED" if v > red else "AMBER" if v > amber else "CALM")
+
+    srf = latest("RPONTSYD")
+    if srf is not None:
+        c["srf_usage"] = {
+            "label": "SRF Usage ($B)", "value": round(srf, 1),
+            "state": state(srf, 0.5, 10.0),
+            "thresholds": CANARY_THRESHOLDS["srf_bn"]}
+    s99, smed = latest("SOFR99"), latest("SOFR")
+    if s99 is not None and smed is not None:
+        tail = round((s99 - smed) * 100, 1)
+        c["sofr_tail"] = {
+            "label": "SOFR Tail 99th−Med", "value_bp": tail,
+            "state": state(tail, 10, 20),
+            "thresholds": CANARY_THRESHOLDS["sofr_tail_bp"]}
+    bill, award = latest("DTB4WK"), latest("RRPONTSYAWARD")
+    if bill is not None and award is not None:
+        br = round((bill - award) * 100, 1)
+        c["bill_rrp"] = {
+            "label": "4wk Bill − RRP", "value_bp": br,
+            "state": state(br, -5, -15, lower_is_stress=True),
+            "thresholds": CANARY_THRESHOLDS["bill_rrp_bp"]}
+    rrp = _FRED_CACHE.get("RRPONTSYD") or []
+    if len(rrp) > 20:
+        drain = round(rrp[-1]["value"] - rrp[-21]["value"], 1)
+        c["rrp_drain_20d"] = {
+            "label": "RRP Δ 20d ($B)", "value": drain,
+            "state": state(drain, -150, -300, lower_is_stress=True),
+            "thresholds": CANARY_THRESHOLDS["rrp_drain_bn"]}
+    dw = latest("WLCFLPCL")
+    if dw is not None:
+        dwb = round(dw / 1000.0, 2)
+        c["discount_window"] = {
+            "label": "Discount Window ($B)", "value": dwb,
+            "state": state(dwb, 2.0, 10.0),
+            "thresholds": CANARY_THRESHOLDS["dw_bn"]}
+    return c
+
+
+NOTE_CONCEPT_MAP = [
+    {"concept": "Repo rate spike (Sept 2019 signature)", "status": "LIVE",
+     "indicators": ["SOFR", "SOFR_IORB_BP", "SOFR_TAIL_BP", "SOFR99"],
+     "note": "Median + 99th-percentile tail vs the IORB floor"},
+    {"concept": "Fed ON RRP backstop / cash cushion", "status": "LIVE",
+     "indicators": ["RRPONTSYD", "RRPONTSYAWARD"],
+     "note": "Level, award rate, and 20-day drain canary"},
+    {"concept": "Standing Repo Facility (crisis borrowing)",
+     "status": "LIVE", "indicators": ["RPONTSYD"],
+     "note": "Any sustained usage is the alarm the note describes"},
+    {"concept": "QE / balance-sheet life support", "status": "LIVE",
+     "indicators": ["WALCL", "WSHOMCB"],
+     "note": "Treasury + MBS stock locked at the Fed"},
+    {"concept": "TGA tax-date liquidity drain", "status": "LIVE",
+     "indicators": ["WTREGEN", "TGA_DAILY"],
+     "note": "Weekly H.4.1 plus daily DTS join"},
+    {"concept": "Reserve scarcity regime", "status": "LIVE",
+     "indicators": ["WRESBAL", "RESERVES_RATIO_PCT", "EFFR_IORB_BP"],
+     "note": "Reserves vs bank assets; floor-system fraying"},
+    {"concept": "Net liquidity available to markets", "status": "LIVE",
+     "indicators": ["NET_LIQUIDITY_BN"],
+     "note": "WALCL − TGA − RRP, weekly-aligned"},
+    {"concept": "Collateral shortage vs cash shortage", "status": "LIVE",
+     "indicators": ["BILL_RRP_BP", "SOFR_TGCR_BP", "SOFR1"],
+     "note": "Bills rich to the floor + specials pressure"},
+    {"concept": "Tri-party concentration (clearing-bank pipe)",
+     "status": "LIVE", "indicators": ["TGCR", "TRIPARTY_SHARE_PCT"],
+     "note": "Rate + discovered volume share from repo-deep"},
+    {"concept": "Settlement fails / collateral hoarding", "status": "LIVE",
+     "indicators": ["OFR_FAILS_DELIVER", "OFR_FAILS_RECEIVE"],
+     "note": "Primary-dealer fails, both directions"},
+    {"concept": "Rehypothecation / collateral velocity", "status": "PROXY",
+     "indicators": ["REHYPO_*"],
+     "note": "True chain depth is private; dealer reuse proxied from "
+             "the treasury-rehypo engine"},
+    {"concept": "Haircut spiral on private collateral", "status": "PROXY",
+     "indicators": ["SUBLPDCISTQNQ"],
+     "note": "SLOOS collateral-requirement tightening is the public "
+             "shadow of bilateral haircuts; dealer-level haircuts are "
+             "not published"},
+    {"concept": "Eurodollar / offshore dollar funding", "status": "LIVE",
+     "indicators": ["SWP1690", "ILM_CLAIMS_FX", "HK_HIBOR_SOFR",
+                    "CASFRIW027SBOG"],
+     "note": "L1 + L4 layers carry the offshore chapters"},
+    {"concept": "Central-bank swap lines (global backstop)",
+     "status": "LIVE", "indicators": ["SWP1690"],
+     "note": "Fed USD provision to foreign central banks"},
+    {"concept": "Discount window (lender of last resort)",
+     "status": "LIVE", "indicators": ["WLCFLPCL"],
+     "note": "Usage in dollars, not just the posted rate"},
+    {"concept": "Synthetic collateral / private-label securitization",
+     "status": "NOT_PUBLIC", "indicators": [],
+     "note": "Private ABS/CLO tranche creation has no free real-time "
+             "feed; nearest public shadows are fails, SLOOS collateral "
+             "terms, and broker-dealer margin (BOGZ1FL663067003Q)"},
+]
+
+
 def compute_composite(indicators):
     layers = {}
-    for layer_id in ("L1", "L2", "L3", "L4"):
+    for layer_id in ("L0", "L1", "L2", "L3", "L4"):
         members = [i for i in indicators if i["layer"] == layer_id]
         weighted_sum = 0
         total_weight = 0
@@ -897,6 +1252,16 @@ def lambda_handler(event, context):
     # HK funding sub-layer (offshore-USD/Asia) from the HKMA monitor → L4 cross-border
     enriched.extend(hk_funding_indicators())
 
+    # v2.0.0: L0 repo-core derived spreads + sibling-engine joins
+    try:
+        enriched.extend(l0_derived_indicators())
+    except Exception as e:
+        print("[plumbing] l0 derived failed: %s" % e)
+    try:
+        enriched.extend(l0_s3_joins())
+    except Exception as e:
+        print("[plumbing] l0 joins failed: %s" % e)
+
     composite, label, layers = compute_composite(enriched)
     alerts = generate_alerts(enriched)
 
@@ -917,8 +1282,8 @@ def lambda_handler(event, context):
     } for ind in enriched}
 
     payload = {
-        "schema_version": "1.0",
-        "method": "plumbing_aggregator_v1",
+        "schema_version": "2.0",
+        "method": "plumbing_aggregator_v2",
         "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "n_indicators": len(INDICATORS),
         "n_with_data": sum(1 for i in enriched if i.get("stress_score_0_100") is not None),
@@ -928,6 +1293,7 @@ def lambda_handler(event, context):
         "raw_indicators": raw_dict,
         "enrichment": build_plumb_enrichment(),   # ops 4412
         "alerts": alerts,
+        "note_concept_map": NOTE_CONCEPT_MAP,
         "duration_s": round(time.time() - started, 1),
     }
 
