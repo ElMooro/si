@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Machine — JustHodl.AI</title>
+<style>
+  :root{--bg:#0b0e13;--card:#12161f;--line:#1e2430;--txt:#d7dde8;
+        --dim:#8b93a3;--green:#4caf7d;--amber:#e0a030;--red:#e05252;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);
+       font:15px/1.55 -apple-system,'Segoe UI',Roboto,sans-serif;
+       padding:22px 18px 60px;max-width:1180px;margin:0 auto}
+  h1{font-size:21px;letter-spacing:.4px}
+  .sub{color:var(--dim);font-size:12.5px;margin:4px 0 18px}
+  .doctrine{background:var(--card);border:1px solid var(--line);
+            border-left:3px solid var(--amber);border-radius:8px;
+            padding:12px 16px;font-size:13.5px;color:var(--dim);
+            margin-bottom:18px;font-style:italic}
+  .banner{background:var(--card);border:1px solid var(--line);
+          border-radius:10px;padding:18px 20px;margin-bottom:18px;
+          display:flex;flex-wrap:wrap;gap:18px;align-items:center}
+  .bignum{font-size:40px;font-weight:700}
+  .biglabel{font-size:15px;font-weight:600}
+  .verdict{color:var(--dim);font-size:13px;flex:1;min-width:260px}
+  .pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:900px){.pillars{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:520px){.pillars{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);
+        border-radius:10px;padding:14px 15px}
+  .card h3{font-size:13px;color:var(--dim);font-weight:600;
+           text-transform:uppercase;letter-spacing:.5px}
+  .score{font-size:30px;font-weight:700;margin:6px 0 2px}
+  .lab{font-size:12.5px;font-weight:600;margin-bottom:10px}
+  .contrib{border-top:1px solid var(--line);padding:7px 0 2px;
+           font-size:12px}
+  .contrib .n{color:var(--txt)}
+  .contrib .d{color:var(--dim);font-size:11.5px}
+  .contrib .v{float:right;font-weight:600}
+  .g{color:var(--green)}.a{color:var(--amber)}.r{color:var(--red)}
+  .dimc{color:var(--dim)}
+  .foot{color:var(--dim);font-size:11.5px;margin-top:22px}
+</style>
+</head>
+<body>
+<h1>MARKET MACHINE</h1>
+<div class="sub">Four-pillar machine-read · joins the fleet's live
+engines · auto-updates hourly · <span id="asof">loading…</span></div>
+<div class="doctrine">"The stock market is a machine that relies on
+four things: future profits, interest rates, where money is flowing,
+and what traders are being forced to do right now." — the doctrine
+this page operationalizes. 0–100 support scale; 100 = maximally
+supportive for equities.</div>
+<div class="banner">
+  <div><div class="bignum" id="comp">–</div>
+       <div class="biglabel" id="compLab">loading</div></div>
+  <div class="verdict" id="verdict">…</div>
+</div>
+<div class="pillars" id="pillars"></div>
+<div class="foot">Engine: justhodl-market-machine · payload
+<a href="/data/market-machine.json" style="color:var(--amber)">
+data/market-machine.json</a> · every contributor is a live engine or
+FRED series; absent contributors are reported, never faked.</div>
+<script>
+const TITLES={profits:"1 · Future Profits",rates:"2 · Interest Rates",
+  flow:"3 · Where Money Is Flowing",
+  forced:"4 · What Traders Are Forced To Do"};
+function cls(s){if(s==null)return"dimc";
+  return s>=55?"g":(s>=45?"a":"r");}
+fetch('data/market-machine.json?cb='+Date.now())
+ .then(r=>r.json()).then(d=>{
+  document.getElementById('asof').textContent=
+    'as of '+(d.as_of||'?');
+  const c=d.composite_score;
+  const ce=document.getElementById('comp');
+  ce.textContent=(c==null?'–':c);ce.className='bignum '+cls(c);
+  const cl=document.getElementById('compLab');
+  cl.textContent=d.composite_label||'';cl.className='biglabel '+cls(c);
+  document.getElementById('verdict').textContent=
+    d.machine_verdict||'';
+  const P=document.getElementById('pillars');
+  for(const pid of ['profits','rates','flow','forced']){
+    const p=(d.pillars||{})[pid]||{};
+    const card=document.createElement('div');card.className='card';
+    let h='<h3>'+TITLES[pid]+'</h3>'+
+      '<div class="score '+cls(p.score)+'">'+
+      (p.score==null?'–':p.score)+'</div>'+
+      '<div class="lab '+cls(p.score)+'">'+(p.label||'')+
+      ' · '+(p.n_contributors||0)+' live</div>';
+    for(const x of (p.contributors||[])){
+      h+='<div class="contrib"><span class="v '+
+        cls(x.support_0_100)+'">'+
+        (x.support_0_100==null?'–':x.support_0_100)+
+        '</span><div class="n">'+x.name+'</div>'+
+        '<div class="d">'+(x.detail||'')+' · '+x.source+'</div></div>';
+    }
+    card.innerHTML=h;P.appendChild(card);
+  }
+ }).catch(e=>{document.getElementById('verdict').textContent=
+   'payload unavailable: '+e;});
+</script>
+</body>
+</html>
