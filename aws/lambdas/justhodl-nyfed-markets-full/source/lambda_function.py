@@ -94,6 +94,8 @@ def lambda_handler(event, context):
         state["done"] = []
         state["failures"] = {}
         state["status"] = "converging-v2-full-history"
+    if any(" " in str(b) for b in (state.get("seriesbreaks") or [])):
+        state["seriesbreaks"] = None   # rev-3: cached labels, refetch ids
     if not state.get("seriesbreaks"):
         try:
             sb = json.loads(_fetch("/pd/list/seriesbreaks.json"))
@@ -102,8 +104,11 @@ def lambda_handler(event, context):
                 if isinstance(lst, list):
                     for x in lst:
                         if isinstance(x, dict):
-                            lab = (x.get("label") or x.get("keyid")
-                                   or x.get("seriesbreak"))
+                            # rev-3: the API wants the break KEYID in
+                            # URLs; labels ('APR 2013 TO ...') 404.
+                            lab = (x.get("keyid")
+                                   or x.get("seriesbreak")
+                                   or x.get("key"))
                             if lab:
                                 labs.append(str(lab))
             state["seriesbreaks"] = sorted(set(labs)) or None
