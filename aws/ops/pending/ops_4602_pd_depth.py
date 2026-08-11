@@ -63,6 +63,25 @@ def main():
             except Exception:
                 pass
             time.sleep(6)
+        # live-env truth: a stale PD_TRANCHE on the function overrides
+        # the repo default (env survives code deploys)
+        cfg = lam.get_function_configuration(
+            FunctionName="justhodl-nyfed-markets-full")
+        env = (cfg.get("Environment") or {}).get("Variables") or {}
+        r.log("  live env: %s" % (env or "{}"))
+        if env.get("PD_TRANCHE") != "150":
+            env["PD_TRANCHE"] = "150"
+            lam.update_function_configuration(
+                FunctionName="justhodl-nyfed-markets-full",
+                Environment={"Variables": env})
+            r.ok("  PD_TRANCHE -> 150 (stale live env corrected)")
+            t1 = time.time()
+            while time.time() - t1 < 120:
+                c2 = lam.get_function_configuration(
+                    FunctionName="justhodl-nyfed-markets-full")
+                if c2.get("LastUpdateStatus") == "Successful":
+                    break
+                time.sleep(5)
         s0 = gj("data/warm/nyfed-markets/pd-state.json")
         r.log("  before: hist_v=%s done=%s status=%s"
               % (s0.get("hist_v"), len(s0.get("done") or []),
@@ -75,8 +94,11 @@ def main():
               % (s1.get("hist_v"), nd,
                  len(s1.get("catalog") or []), s1.get("status"),
                  (s1.get("seriesbreaks") or [])[:8]))
-        misses += contract(r, "pd", s1.get("hist_v") == 2 and nd >= 100,
-                           "v2 tranche ran at full width (%d keys)" % nd)
+        delta = nd - len(s0.get("done") or [])
+        misses += contract(r, "pd",
+                           s1.get("hist_v") == 2 and delta >= 100,
+                           "v2 tranche at full width (+%d keys this run, "
+                           "%d total)" % (delta, nd))
         misses += contract(r, "pd",
                            all(" " not in str(b) for b in
                                (s1.get("seriesbreaks") or ["x"])),
