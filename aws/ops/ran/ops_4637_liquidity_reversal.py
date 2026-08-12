@@ -1,13 +1,12 @@
-"""ops 4637 r3 — v1.2.0: full-union cap (1100), H.8/TGA polarities; first-green floors with compounding trajectory.
+"""ops 4637 — GLOBAL LIQUIDITY TREND REVERSAL engine.
 
-Khalid: "now the same way let's build a global liquidity trend
-reversal, that list is on my tradingview too." Doctrine #1.
-Forked from blackswan v1.8.1 (full resolver ladder + SHARED warm
-caches), new analytics: cadence-scaled dual-window OLS slopes,
-MA-cross confirmation, doctrine polarity map, TREND + REVERSAL
-dials. Pre-dumps liquid* list-name candidates (4623 lesson),
-settles engine + signal v2.1.4, schedules hourly, invokes,
-contracts dials + resolution + canary + edge.
+Khalid: same playbook as blackswan, for his TradingView global-
+liquidity list. New engine justhodl-liquidity-reversal v1.0.0:
+full v1.8.1 resolution ladder (shared warm-cache pool with
+blackswan — every series resolved tonight is free), plus a
+reversal analytics core: 1M-vs-3M momentum sign divergence with
+|z(1M)|>=1 force, turn-age, MA50 cross recency, and a Reversal
+Gauge on breadth of fresh turns. Pre-dumps list names first.
 """
 import io
 import json
@@ -21,17 +20,15 @@ from botocore.config import Config
 
 from ops_report import report
 
-LFN = "justhodl-liquidity-reversal"
-PFN = "justhodl-physical-econ"
+FN = "justhodl-liquidity-reversal"
 B = "justhodl-dashboard-live"
 ROLE = "arn:aws:iam::857687956942:role/justhodl-scheduler-role"
-LARN = "arn:aws:lambda:us-east-1:857687956942:function:" + LFN
+ARN = "arn:aws:lambda:us-east-1:857687956942:function:" + FN
 lam = boto3.client("lambda", region_name="us-east-1",
                    config=Config(read_timeout=900,
                                  retries={"max_attempts": 1}))
 s3 = boto3.client("s3", region_name="us-east-1")
 sch = boto3.client("scheduler", region_name="us-east-1")
-ssm = boto3.client("ssm", region_name="us-east-1")
 
 
 def contract(r, name, cond, why):
@@ -59,154 +56,106 @@ def s3j(key):
 def main():
     misses = 0
     with report("4637_liquidity_reversal") as r:
-        r.heading("ops 4637 — global liquidity trend reversal")
+        r.heading("ops 4637 — liquidity trend-reversal engine")
 
         r.section("pre-dump: liquidity list candidates")
         wl = s3j("data/tv-watchlists.json") or {}
         names = [str((it or {}).get("name"))
                  for it in (wl.get("lists") or [])
                  if isinstance(it, dict)]
-        liq = [n for n in names if n and (
-            "liquid" in n.lower() or "gli" in n.lower())]
-        r.kv(n_lists=len(names), liquidity_candidates=liq[:8])
-        misses += contract(r, "list-exists", len(liq) >= 3,
-                           "liquidity FAMILY present: %d lists, "
-                           "e.g. %s" % (len(liq), liq[:3]))
+        liq = [(str(it.get("name")), it.get("n"))
+               for it in (wl.get("lists") or [])
+               if isinstance(it, dict)
+               and "liquid" in str(it.get("name", "")).lower()]
+        r.kv(n_lists=len(names), liquidity_candidates=json.dumps(
+            liq[:6]))
+        misses += contract(r, "list-exists", bool(liq),
+                           "liquidity list present: %s"
+                           % (liq[:3] or "NONE"))
 
-        r.section("deploy-settle + env + schedule")
-        ok_l = ok_p = False
+        r.section("deploy-settle + schedule")
+        settled = False
         for att in range(16):
             try:
-                gf = lam.get_function(FunctionName=LFN)
+                gf = lam.get_function(FunctionName=FN)
                 zb = http_get(gf["Code"]["Location"], 60)
                 src = zipfile.ZipFile(io.BytesIO(zb)).read(
-                    "lambda_function.py").decode("utf-8", "replace")
-                if "justhodl-liquidity-reversal v1.2.0" in src:
-                    ok_l = True
+                    "lambda_function.py").decode("utf-8",
+                                                 "replace")
+                if "justhodl-liquidity-reversal v1.0.0" in src:
+                    settled = True
                     break
             except Exception as e:
-                r.log("settle %d: %s" % (att + 1, str(e)[:60]))
+                r.log("settle %d: %s" % (att + 1, str(e)[:70]))
             time.sleep(30)
-        for att in range(6):
-            try:
-                gf = lam.get_function(FunctionName=PFN)
-                zb = http_get(gf["Code"]["Location"], 60)
-                src = zipfile.ZipFile(io.BytesIO(zb)).read(
-                    "lambda_function.py").decode("utf-8", "replace")
-                if "v2.1.4" in src:
-                    ok_p = True
-                    break
-            except Exception:
-                pass
-            time.sleep(30)
-        misses += contract(r, "deploy", ok_l and ok_p,
-                           "liquidity-reversal v1.2.0 + signal "
-                           "v2.1.4")
-        if not (ok_l and ok_p):
+        misses += contract(r, "deploy", settled, "v1.0.0 live")
+        if not settled:
             sys.exit(1)
         try:
-            tek = ssm.get_parameter(
-                Name="/justhodl/te_api",
-                WithDecryption=True)["Parameter"]["Value"]
-            cfg = lam.get_function_configuration(FunctionName=LFN)
-            ev = (cfg.get("Environment") or {}).get(
-                "Variables") or {}
-            need = {"TE_API_KEY": tek}
-            if any(ev.get(k) != v for k, v in need.items()):
-                ev.update(need)
-                lam.update_function_configuration(
-                    FunctionName=LFN,
-                    Environment={"Variables": ev})
-                for _ in range(20):
-                    st = lam.get_function_configuration(
-                        FunctionName=LFN)
-                    if st.get("LastUpdateStatus") == "Successful":
-                        break
-                    time.sleep(5)
-            r.ok("  [env] TE key present")
-        except Exception as e:
-            r.warn("env: %s" % str(e)[:90])
-        try:
-            sch.get_schedule(Name=LFN)
+            sch.get_schedule(Name=FN)
         except Exception:
             try:
                 sch.create_schedule(
-                    Name=LFN, ScheduleExpression="rate(1 hour)",
+                    Name=FN, ScheduleExpression="rate(1 hour)",
                     FlexibleTimeWindow={"Mode": "OFF"},
-                    Target={"Arn": LARN, "RoleArn": ROLE})
+                    Target={"Arn": ARN, "RoleArn": ROLE})
+                r.log("hourly schedule created")
             except Exception as e:
                 r.warn("schedule: %s" % str(e)[:90])
 
-        r.section("run + dials truth")
-        lam.invoke(FunctionName=LFN, InvocationType="RequestResponse")
+        r.section("run + reversal truth")
+        lam.invoke(FunctionName=FN, InvocationType="RequestResponse")
         pl = s3j("data/liquidity-reversal.json") or {}
-        L = pl.get("liquidity") or {}
-        rows = {x["symbol"]: x for x in pl.get("rows") or []}
+        g = pl.get("gauge") or {}
+        br = g.get("breadth") or {}
+        rows = pl.get("rows") or []
         r.kv(list=pl.get("list_name"), members=pl.get("n_members"),
              resolved=pl.get("n_resolved"),
-             statistical=pl.get("n_with_history"),
-             trend=L.get("trend_score"),
-             trend_label=L.get("trend_label"),
-             reversal=L.get("reversal_score"),
-             reversal_label=L.get("reversal_label"),
-             n_polarity=L.get("n_polarity_rows"),
-             family=json.dumps([f.get("name", "")[:38]
-                                for f in pl.get("family_lists")
-                                or []])[:300],
-             confirmed=L.get("n_confirmed"))
-        r.log("top reversals: %s"
-              % json.dumps(L.get("top_reversals") or [])[:300])
-        for sym in list(rows)[:14]:
-            x = rows[sym]
-            if x.get("trend_state"):
-                r.log("%-26s trend=%-4s rev=%-13s conf=%-9s "
-                      "slope=%s"
-                      % (sym[:26], x.get("trend_state"),
-                         x.get("reversal"),
-                         x.get("reversal_conf"),
-                         x.get("slope_now_pct")))
+             trend_capable=br.get("n_trend_capable"),
+             gauge=g.get("value"), label=g.get("label"),
+             turning_up=br.get("turning_up_pct"),
+             turning_down=br.get("turning_down_pct"),
+             top_turns=json.dumps(g.get("top_fresh_turns")
+                                  or [])[:240])
+        shown = 0
+        for x in rows:
+            if not x.get("reversal_state"):
+                continue
+            r.log("%-26s %-11s 1m=%-7s 3m=%-7s z=%-5s age=%-4s %s"
+                  % (str(x.get("symbol"))[:26],
+                     x.get("reversal_state"),
+                     x.get("ret_1m"), x.get("ret_3m"),
+                     x.get("z_1m"),
+                     x.get("turn_age_days"),
+                     str(x.get("name"))[:28]))
+            shown += 1
+            if shown >= 18:
+                break
+        nm = pl.get("n_members") or 0
+        nr = pl.get("n_resolved") or 0
         misses += contract(r, "list-found",
                            bool(pl.get("list_name")),
                            "list '%s' (%s members)"
-                           % (pl.get("list_name"),
-                              pl.get("n_members")))
-        nm = pl.get("n_members") or 0
-        nr = pl.get("n_resolved") or 0
+                           % (pl.get("list_name"), nm))
         misses += contract(r, "resolution",
-                           nr >= 140,
-                           "%d/%d resolved — union of 45 lists; ~180 fetch-slots/hour compound toward the bank-proxy tail"
-                           % (nr, nm))
-        n_tr = sum(1 for x in (pl.get("rows") or [])
-                   if x.get("trend_state"))
-        misses += contract(r, "trend-coverage",
-                           n_tr >= 85,
-                           "%d rows carry trend/reversal states"
-                           % n_tr)
-        misses += contract(r, "dials",
-                           L.get("trend_label") in
-                           ("EASING", "TIGHTENING", "MIXED")
-                           and isinstance(L.get("trend_score"),
-                                          (int, float))
-                           and (L.get("n_polarity_rows") or 0)
-                           >= 12,
-                           "TREND %s (%s) · REVERSAL %s (%s) on "
-                           "%s polarity rows"
-                           % (L.get("trend_score"),
-                              L.get("trend_label"),
-                              L.get("reversal_score"),
-                              L.get("reversal_label"),
-                              L.get("n_polarity_rows")))
+                           nr >= 40 and (nm == 0
+                                         or nr >= 0.55 * nm),
+                           "%d/%d resolved (shared cache pool "
+                           "with blackswan)" % (nr, nm))
+        misses += contract(r, "trend-capable",
+                           (br.get("n_trend_capable") or 0) >= 30,
+                           "%s rows carry reversal analytics"
+                           % br.get("n_trend_capable"))
+        misses += contract(r, "gauge",
+                           g.get("label") in ("REVERSING_UP",
+                                              "REVERSING_DOWN",
+                                              "TRENDING", "MIXED")
+                           and isinstance(g.get("value"),
+                                          (int, float)),
+                           "gauge %s (%s)" % (g.get("value"),
+                                              g.get("label")))
 
-        r.section("canary + edge")
-        time.sleep(3)
-        lam.invoke(FunctionName=PFN, InvocationType="RequestResponse")
-        pe = s3j("data/physical-economy.json") or {}
-        cb = (pe.get("canaries") or {}).get(
-            "liquidity_reversal") or {}
-        misses += contract(r, "canary",
-                           cb.get("trend") == L.get("trend_label"),
-                           "physical board carries %s"
-                           % json.dumps(cb)[:130])
+        r.section("edge")
         page_ok = pay_ok = False
         for att in range(8):
             try:
@@ -217,9 +166,9 @@ def main():
                 page_ok = "TREND REVERSAL" in pg
                 jd = json.loads(http_get(
                     "https://justhodl.ai/data/"
-                    "liquidity-reversal.json?cb=%d" % time.time()))
-                pay_ok = bool((jd.get("liquidity")
-                               or {}).get("trend_label"))
+                    "liquidity-reversal.json?cb=%d"
+                    % time.time()))
+                pay_ok = bool((jd.get("gauge") or {}).get("label"))
                 if page_ok and pay_ok:
                     break
             except Exception as e:
@@ -234,12 +183,11 @@ def main():
                    "repair evidence)" % misses)
             sys.exit(1)
         r.ok("LIQUIDITY REVERSAL LIVE — list '%s': %s/%s resolved, "
-             "TREND %s (%s), REVERSAL %s (%s), %s confirmed turns "
-             "· https://justhodl.ai/liquidity-reversal.html"
+             "%s trend-capable, gauge %s (%s) · "
+             "https://justhodl.ai/liquidity-reversal.html"
              % (pl.get("list_name"), nr, nm,
-                L.get("trend_score"), L.get("trend_label"),
-                L.get("reversal_score"), L.get("reversal_label"),
-                L.get("n_confirmed")))
+                br.get("n_trend_capable"), g.get("value"),
+                g.get("label")))
 
 
 if __name__ == "__main__":
