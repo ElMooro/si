@@ -1,4 +1,4 @@
-"""ops 4638 — page-audit fixes + the Akamai door.
+"""ops 4638 r2 — RESTORED v1.2.0 base (my clone had buried the evolved union+polarity engine), audit fixes re-ported on top as v1.3.0.
 
 From Khalid's liquidity page paste: (1) INTEGRITY — cross-exchange
 bare-heuristic collisions (EURONEXT:BANK wearing Nasdaq's BANK
@@ -179,7 +179,7 @@ def main():
         ok_l = settle(LFN, "justhodl-liquidity-reversal v1.1.0", r)
         ok_b = settle(BFN, "justhodl-blackswan-watch v1.9.0", r, 8)
         misses += contract(r, "deploy", ok_l and ok_b,
-                           "liq v1.1.0 + blackswan v1.9.0")
+                           "liq v1.3.0 (restored base) + blackswan v1.9.0")
         if not ok_l:
             sys.exit(1)
 

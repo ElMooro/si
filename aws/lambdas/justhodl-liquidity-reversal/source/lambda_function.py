@@ -1,4 +1,15 @@
-"""justhodl-liquidity-reversal v1.1.0 (ops 4623)
+"""justhodl-liquidity-reversal v1.3.0 (ops 4637)
+
+Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
+engine — doctrine #1: liquidity rules over earnings over
+multiples. Forked from blackswan-watch v1.8.1: full resolver
+ladder + SHARED warm caches (data/warm/blackswan/), plus new
+analytics: cadence-scaled dual-window OLS slopes, MA-cross
+confirmation, per-row reversal states, doctrine-polarity map,
+and two dials (TREND breadth, REVERSAL WATCH breadth).
+
+Base machinery docstring follows.
+ (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -520,23 +531,12 @@ def te_hist_fallback(sym, budget):
     return None
 
 
-TENOR_FRED = {"TVC:DE10Y": "IRLTLT01DEM156N",
-              "TVC:IT10Y": "IRLTLT01ITM156N",
-              "TVC:FR10Y": "IRLTLT01FRM156N",
-              "TVC:ES10Y": "IRLTLT01ESM156N",
-              "TVC:JP10Y": "IRLTLT01JPM156N"}
-
-
 def leg_series(leg, budget):
     """v1.7.0 universal composite leg resolver: FRED (incl
     ECONOMICS twins + TVC:US*Y), curated Yahoo, MULTPL."""
-    if re.fullmatch(r"\d+(\.\d+)?", leg):
-        return {"series": [], "const": float(leg)}
     sid = leg_to_fred(leg)
     if sid is None and leg in ECON_FRED:
         sid = ECON_FRED[leg]
-    if sid is None and leg in TENOR_FRED:
-        sid = TENOR_FRED[leg]
     if sid:
         return fred_fallback("FRED:" + sid, budget)
     if leg in CURATED_LEG_YH:
@@ -657,7 +657,7 @@ def find_swan_list(wl):
             if isinstance(v, (list, dict)) and name not in (
                     "watchlists", "lists", "data"):
                 add(name, syms_of(v))
-    for pref in ("liquidity", "liquid"):
+    for pref in ("liquid", "global liq", "gli"):
         for name, syms in cands:
             if pref in name.lower():
                 return name, syms, len(cands)
@@ -907,6 +907,13 @@ COMP_BUDGET = {"n": 40}  # reserved: composite legs (FEDFUNDS-class
 # is never a standalone member, so the shared budget starved them)
 
 
+TENOR_FRED = {"TVC:DE10Y": "IRLTLT01DEM156N",
+              "TVC:IT10Y": "IRLTLT01ITM156N",
+              "TVC:FR10Y": "IRLTLT01FRM156N",
+              "TVC:ES10Y": "IRLTLT01ESM156N",
+              "TVC:JP10Y": "IRLTLT01JPM156N"}
+
+
 def _tok(sym):
     out, cur = [], ""
     for ch in sym:
@@ -926,9 +933,47 @@ def _tok(sym):
     return out
 
 
+def _combine(a, b, op):
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+        if op == "+":
+            return a + b
+        if op == "-":
+            return a - b
+        return a / b if b else None
+    if isinstance(a, (int, float)):
+        a = {d: a for d in b}
+    if isinstance(b, (int, float)):
+        b = {d: b for d in a}
+    cal = sorted(set(a) | set(b))[-300:]
+    ka, kb = sorted(a), sorted(b)
+    fa, fb = {}, {}
+    la = lb = None
+    ia = ib = 0
+    for d in cal:
+        while ia < len(ka) and ka[ia] <= d:
+            la = a[ka[ia]]
+            ia += 1
+        while ib < len(kb) and kb[ib] <= d:
+            lb = b[kb[ib]]
+            ib += 1
+        if la is not None:
+            fa[d] = la
+        if lb is not None:
+            fb[d] = lb
+    out = {}
+    for d in cal:
+        if d in fa and d in fb:
+            x, y = fa[d], fb[d]
+            if op == "+":
+                out[d] = x + y
+            elif op == "-":
+                out[d] = x - y
+            elif y:
+                out[d] = x / y
+    return out or None
+
+
 def _parse(tokens, pos, budget, depth=0):
-    """Recursive-descent over + - / with parentheses and numeric
-    constants. Returns (value_map_or_const, pos) or (None, why)."""
     if depth > 4:
         return None, "depth"
 
@@ -937,17 +982,22 @@ def _parse(tokens, pos, budget, depth=0):
             v, p2 = _parse(tokens, p + 1, budget, depth + 1)
             if v is None:
                 return None, p2
-            if p2 >= len(tokens) or tokens[p2] != ")":
+            if not isinstance(p2, int) or p2 >= len(tokens) \
+                    or tokens[p2] != ")":
                 return None, "unclosed paren"
             return v, p2 + 1
         if p >= len(tokens):
             return None, "eof"
         leg = tokens[p]
-        env = leg_series(leg, budget)
-        if env is None:
+        if re.fullmatch(r"-?\d+(\.\d+)?", leg):
+            return float(leg), p + 1
+        if leg in TENOR_FRED:
+            env = fred_fallback("FRED:" + TENOR_FRED[leg],
+                                COMP_BUDGET)
+        else:
+            env = leg_series(leg, budget)
+        if env is None or not env.get("series"):
             return None, "leg %s unresolvable" % leg[:22]
-        if env.get("const") is not None:
-            return env["const"], p + 1
         return {o["date"]: o["value"]
                 for o in env["series"]}, p + 1
     v, p = prim(pos)
@@ -966,53 +1016,11 @@ def _parse(tokens, pos, budget, depth=0):
     return v, p
 
 
-def _combine(a, b, op):
-    if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-        if op == "+":
-            return a + b
-        if op == "-":
-            return a - b
-        return a / b if b else None
-    if isinstance(a, (int, float)):
-        a = {d: a for d in b}
-    if isinstance(b, (int, float)):
-        b = {d: b for d in a}
-    cal = sorted(set(a) | set(b))[-300:]
-    fa, fb = {}, {}
-    la = lb = None
-    ka, kb = sorted(a), sorted(b)
-    ia = ib = 0
-    for d in cal:
-        while ia < len(ka) and ka[ia] <= d:
-            la = a[ka[ia]]
-            ia += 1
-        while ib < len(kb) and kb[ib] <= d:
-            lb = b[kb[ib]]
-            ib += 1
-        if la is not None:
-            fa[d] = la
-        if lb is not None:
-            fb[d] = lb
-    out = {}
-    for d in cal:
-        if d not in fa or d not in fb:
-            continue
-        x, y = fa[d], fb[d]
-        if op == "+":
-            out[d] = x + y
-        elif op == "-":
-            out[d] = x - y
-        else:
-            if not y:
-                continue
-            out[d] = x / y
-    return out or None
-
-
 def eval_composite(sym, budget):
     budget = COMP_BUDGET
     why = []
-    if "(" in sym or re.match(r"^\d", sym):
+    if "(" in sym or re.match(r"^\d", sym) \
+            or any(k in sym for k in TENOR_FRED):
         toks = _tok(sym)
         v, p = _parse(toks, 0, budget)
         if isinstance(v, dict) and len(v) >= 15:
@@ -1178,78 +1186,71 @@ def cadence_label(se):
     return "QoQ"
 
 
-def trend_metrics(vals, diff_basis):
-    """Reversal core: 1M vs 3M momentum, statistical force of the
-    1M move, sign-flip age, MA50 cross recency. No direction
-    semantics fabricated — the named rows carry meaning."""
-    out = {}
-    if len(vals) < 70:
-        return out
+POLARITY = {
+    # +1: series UP = liquidity EASIER · -1: series UP = TIGHTER
+    "FRED:RRPONTSYD": -1, "FRED:WLCFLPCL": -1,
+    "FRED:WALCL": 1, "FRED:M2SL": 1, "FRED:TOTRESNS": 1,
+    "FRED:BOGMBASE": 1, "FRED:RMFSL": 1, "FRED:MMMFFAQ027S": 1,
+    "TVC:DXY": -1, "ICEUS:DX1!": -1, "FRED:DTWEXBGS": -1,
+    "TVC:MOVE": -1, "TVC:VIX": -1, "CBOE:VIX3M": -1,
+    "FRED:NFCI": -1, "FRED:NFCILEVERAGE": -1,
+    "FRED:BAMLC0A0CM": -1, "FRED:BAMLH0A0HYM2": -1,
+    "FRED:SOFR-FRED:FEDFUNDS": -1, "FRED:CPFF": -1,
+    "FRED:STLFSI4": -1, "FRED:KCFSI": -1,
+    # H.8 / TGA additions from the 4637 first-light truth table
+    "FRED:CASACBW027SBOG": 1, "FRED:DPSACBW027SBOG": 1,
+    "FRED:TOTBKCR": 1, "FRED:WLCFLL": -1,
+    "FRED:TREASURY": -1, "FRED:WTREGEN": -1,
+}
+TREND_WIN = {"DoD": (20, 60), "WoW": (8, 26), "MoM": (3, 12),
+             "QoQ": (2, 6), "chg": (8, 26)}
 
-    def chg(a, b):
-        if diff_basis:
-            return a - b
-        return ((a / b - 1) * 100) if b else None
-    r21 = chg(vals[-1], vals[-22])
-    r63 = chg(vals[-1], vals[-64])
-    hist21 = []
-    for i in range(64, len(vals)):
-        c = chg(vals[i], vals[i - 21])
-        if c is not None:
-            hist21.append(c)
-    z21 = None
-    if len(hist21) >= 30 and r21 is not None:
-        mu = sum(hist21) / len(hist21)
-        sd = math.sqrt(sum((x - mu) ** 2 for x in hist21)
-                       / (len(hist21) - 1))
-        if sd:
-            z21 = (r21 - mu) / sd
-    turn_age = None
-    if len(vals) >= 90:
-        signs = []
-        for i in range(len(vals) - 40, len(vals)):
-            c = chg(vals[i], vals[i - 21])
-            signs.append(1 if (c or 0) > 0 else -1)
-        cur = signs[-1]
-        age = 0
-        for sg in reversed(signs):
-            if sg == cur:
-                age += 1
-            else:
-                break
-        turn_age = age
-    ma50_cross = None
-    if len(vals) >= 56:
-        for k in range(1, 6):
-            wend = len(vals) - k + 1
-            ma_now = sum(vals[wend - 50:wend]) / 50
-            ma_prev = sum(vals[wend - 51:wend - 1]) / 50
-            above = vals[wend - 1] > ma_now
-            was_above = vals[wend - 2] > ma_prev
-            if above != was_above:
-                ma50_cross = {"sessions_ago": k,
-                              "direction": "UP" if above
-                              else "DOWN"}
-                break
-    st = "FLAT"
-    if r21 is not None and r63 is not None:
-        s21 = 1 if r21 > 0 else -1
-        s63 = 1 if r63 > 0 else -1
-        forceful = z21 is not None and abs(z21) >= 1.0
-        if s21 != s63 and forceful:
-            st = "TURN_UP" if s21 > 0 else "TURN_DOWN"
-        elif s63 > 0:
-            st = "TREND_UP"
-        else:
-            st = "TREND_DOWN"
-    rnd = (3 if diff_basis else 2)
-    out = {"ret_1m": round(r21, rnd) if r21 is not None else None,
-           "ret_3m": round(r63, rnd) if r63 is not None else None,
-           "z_1m": round(z21, 2) if z21 is not None else None,
-           "reversal_state": st,
-           "turn_age_days": turn_age,
-           "ma50_cross": ma50_cross}
-    return out
+
+def ols_slope(vals):
+    n = len(vals)
+    if n < 3:
+        return None
+    mx = (n - 1) / 2.0
+    my = sum(vals) / n
+    num = sum((i - mx) * (v - my) for i, v in enumerate(vals))
+    den = sum((i - mx) ** 2 for i in range(n))
+    if not den or not my:
+        return None
+    return (num / den) / abs(my) * 100.0  # %-of-level per obs
+
+
+def trend_block(vals, lab):
+    kS, kL = TREND_WIN.get(lab, (8, 26))
+    if len(vals) < kL + kS + 2:
+        return None
+    maS = sum(vals[-kS:]) / kS
+    maL = sum(vals[-kL:]) / kL
+    sl_now = ols_slope(vals[-kS:])
+    sl_prev = ols_slope(vals[-2 * kS:-kS])
+    if sl_now is None or sl_prev is None:
+        return None
+    cross_age = None
+    for back in range(0, min(10, len(vals) - kL - 1)):
+        w = vals[:len(vals) - back]
+        s2 = sum(w[-kS:]) / kS
+        l2 = sum(w[-kL:]) / kL
+        if (s2 - l2) * (maS - maL) < 0:
+            cross_age = back
+            break
+    if sl_prev < 0 < sl_now:
+        rev = "REVERSAL_UP"
+    elif sl_prev > 0 > sl_now:
+        rev = "REVERSAL_DOWN"
+    else:
+        rev = "NONE"
+    conf = ("CONFIRMED" if rev != "NONE" and cross_age is not None
+            and cross_age <= 6 else
+            "FORMING" if rev != "NONE" else "NONE")
+    return {"trend_state": "UP" if maS > maL else "DOWN",
+            "slope_now_pct": round(sl_now, 3),
+            "slope_prev_pct": round(sl_prev, 3),
+            "ma_cross_age": cross_age,
+            "reversal": rev, "reversal_conf": conf}
 
 
 def analyze(sym, node, name):
@@ -1300,24 +1301,35 @@ def analyze(sym, node, name):
                        tzinfo=timezone.utc)).days
         except Exception:
             age = None
-        row = {"symbol": sym, "name": name, "resolved": True,
+        tb = trend_block(vals, lab) or {}
+        pol = POLARITY.get(sym, 0)
+        liq_dir = None
+        if pol and tb.get("reversal") in ("REVERSAL_UP",
+                                          "REVERSAL_DOWN"):
+            up = tb["reversal"] == "REVERSAL_UP"
+            liq_dir = ("EASING" if (up and pol > 0)
+                       or (not up and pol < 0) else "TIGHTENING")
+        return {"symbol": sym, "name": name, "resolved": True,
                 "last": round(last, 4),
                 "dod_pct": round(dod, 2) if dod is not None else None,
                 "chg_str": chg_str,
+                "source_lists": SRC_OF.get(sym),
+                "polarity": pol or None,
+                "liquidity_reversal_dir": liq_dir,
+                **tb,
                 "basis": "diff-z" if diff_basis else "pct-z",
                 "move_z": round(z, 2) if z is not None else None,
                 "move_state": move_state,
                 "range_pos_pct": round(pos, 1),
                 "range_state": range_state,
                 "n_obs": len(se), "data_age_days": age}
-        row.update(trend_metrics(vals, diff_basis))
         cad_days = {"DoD": 4, "WoW": 10, "MoM": 45,
                     "QoQ": 120}.get(lab, 45)
         if age is not None and age > max(45, 3 * cad_days):
             row["stale"] = True
             row["move_state"] = "STALE"
             row["reversal_state"] = None
-        return row
+            row["trend_state"] = None
     lv, ld = extract_latest(node)
     if lv is not None:
         prev = None
@@ -1364,6 +1376,9 @@ def analyze(sym, node, name):
     return out
 
 
+SRC_OF = {}
+
+
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
     wl = s3_json("data/tv-watchlists.json")
@@ -1371,11 +1386,36 @@ def lambda_handler(event, context):
     wb = s3_json("data/tv-workbench.json")
     dic = s3_json("data/symbol-dictionary.json")
 
-    list_name, syms, n_lists = find_swan_list(wl)
+    # v1.1.0: Khalid runs a liquidity LIST FAMILY, not one list —
+    # union every list whose name mentions liquidity.
+    fam = []
+    seen = set()
+    syms = []
+    SRC_OF.clear()
+    src_of = SRC_OF
+    for it in (wl or {}).get("lists") or []:
+        if not isinstance(it, dict):
+            continue
+        nm0 = str(it.get("name") or "")
+        if "liquid" not in nm0.lower():
+            continue
+        members = [str(x) for x in (it.get("symbols") or [])
+                   if isinstance(x, str)]
+        if not members:
+            continue
+        fam.append({"name": nm0, "n": len(members)})
+        for sy in members:
+            src_of.setdefault(sy, []).append(nm0[:40])
+            if sy not in seen:
+                seen.add(sy)
+                syms.append(sy)
+    list_name = ("LIQUIDITY FAMILY (%d lists)" % len(fam)
+                 if fam else None)
+    n_lists = len(fam)
     rows = []
     budget = {"n": FRED_BUDGET}
     if list_name:
-        for sym in syms[:520]:
+        for sym in syms[:1100]:
             node = vault_lookup(vault, wb, list_name, sym)
             if (node is None or not extract_series(node)) \
                     and sym.startswith("FRED:"):
@@ -1487,6 +1527,8 @@ def lambda_handler(event, context):
                         node = fb
             rows.append(analyze(sym, node, dict_name(dic, sym)))
     resolved = [r for r in rows if r.get("resolved")]
+    resolved = [r for r in resolved
+                if not r.get("stale")]
     with_hist = [r for r in resolved
                  if r.get("move_state") in ("CALM", "AMBER", "RED")]
     n_red = sum(1 for r in with_hist if r["move_state"] == "RED")
@@ -1501,49 +1543,8 @@ def lambda_handler(event, context):
         alarm = "CALM"
     top = sorted(with_hist,
                  key=lambda r: -(r.get("move_z") or 0))[:5]
-    resolved_live = [r for r in resolved if not r.get("stale")]
-    tr = [r for r in resolved_live if r.get("reversal_state")]
-    n_tu = sum(1 for r in tr if r["reversal_state"] == "TURN_UP")
-    n_td = sum(1 for r in tr if r["reversal_state"] == "TURN_DOWN")
-    n_up = sum(1 for r in tr if r["reversal_state"] == "TREND_UP")
-    n_dn = sum(1 for r in tr
-               if r["reversal_state"] == "TREND_DOWN")
-    ntr = max(len(tr), 1)
-    p_tu, p_td = 100.0 * n_tu / ntr, 100.0 * n_td / ntr
-    gv = round(max(0.0, min(100.0, 50 + (p_tu - p_td))), 1)
-    if p_tu >= 15 and p_tu > 2 * p_td:
-        glabel = "REVERSING_UP"
-    elif p_td >= 15 and p_td > 2 * p_tu:
-        glabel = "REVERSING_DOWN"
-    elif (n_up + n_dn) >= 0.6 * ntr:
-        glabel = "TRENDING"
-    else:
-        glabel = "MIXED"
-    fresh = sorted([r for r in tr
-                    if r["reversal_state"] in ("TURN_UP",
-                                               "TURN_DOWN")],
-                   key=lambda r: (r.get("turn_age_days") or 99,
-                                  -abs(r.get("z_1m") or 0)))[:8]
-    gauge = {"value": gv, "label": glabel,
-             "breadth": {"turning_up_pct": round(p_tu, 1),
-                         "turning_down_pct": round(p_td, 1),
-                         "trend_up_pct": round(100.0 * n_up
-                                               / ntr, 1),
-                         "trend_down_pct": round(100.0 * n_dn
-                                                 / ntr, 1),
-                         "n_trend_capable": len(tr)},
-             "top_fresh_turns": [
-                 {"symbol": f["symbol"],
-                  "direction": f["reversal_state"],
-                  "turn_age_days": f.get("turn_age_days"),
-                  "ret_1m": f.get("ret_1m"),
-                  "z_1m": f.get("z_1m")} for f in fresh],
-             "doctrine": "breadth of statistically forceful "
-                         "1M-vs-3M sign divergences; direction "
-                         "semantics live in the named rows"}
-    z_rows = [r for r in resolved_live
-              if r.get("move_z") is not None]
-    rng = [r for r in resolved_live
+    z_rows = [r for r in resolved if r.get("move_z") is not None]
+    rng = [r for r in resolved
            if r.get("range_pos_pct") is not None]
     shock_b = (100.0 * sum(1 for r in z_rows
                            if r["move_z"] >= 2) / len(z_rows)
@@ -1578,17 +1579,75 @@ def lambda_handler(event, context):
         "doctrine": "breadth of >=2-sigma shocks (45%) + breadth "
                     "of 1y range extremes (40%) + stretched (15%) "
                     "across the whole Black Swan strip"}
+    # ── LIQUIDITY DIALS ──────────────────────────────────────────
+    pol_rows = [r for r in resolved if r.get("polarity")
+                and r.get("trend_state")]
+    def liq_sign(r):
+        return (1 if r["trend_state"] == "UP" else -1) \
+            * r["polarity"]
+    n_pol = len(pol_rows)
+    trend_score = (round(100.0 * sum(liq_sign(r)
+                                     for r in pol_rows) / n_pol, 1)
+                   if n_pol else None)
+    rev_rows = [r for r in pol_rows
+                if r.get("liquidity_reversal_dir")]
+    n_ease = sum(1 for r in rev_rows
+                 if r["liquidity_reversal_dir"] == "EASING")
+    n_tight = len(rev_rows) - n_ease
+    reversal_score = (round(100.0 * (n_ease - n_tight)
+                            / n_pol, 1) if n_pol else None)
+    conf_rows = [r for r in rev_rows
+                 if r.get("reversal_conf") == "CONFIRMED"]
+    if trend_score is None:
+        trend_label = "UNKNOWN"
+    elif trend_score >= 25:
+        trend_label = "EASING"
+    elif trend_score <= -25:
+        trend_label = "TIGHTENING"
+    else:
+        trend_label = "MIXED"
+    if reversal_score is None or not rev_rows:
+        rev_label = "NONE"
+    else:
+        side = "EASE" if reversal_score > 0 else "TIGHTEN"
+        rev_label = ("CONFIRMED TURN TO " + side
+                     if len(conf_rows) >= 3
+                     and abs(reversal_score) >= 15 else
+                     "FORMING TURN TO " + side
+                     if abs(reversal_score) >= 8 else "NOISE")
+    liquidity = {
+        "trend_score": trend_score, "trend_label": trend_label,
+        "reversal_score": reversal_score,
+        "reversal_label": rev_label,
+        "n_polarity_rows": n_pol,
+        "n_reversing_ease": n_ease,
+        "n_reversing_tighten": n_tight,
+        "n_confirmed": len(conf_rows),
+        "top_reversals": [
+            {"symbol": r["symbol"],
+             "dir": r["liquidity_reversal_dir"],
+             "conf": r.get("reversal_conf"),
+             "slope_now_pct": r.get("slope_now_pct")}
+            for r in sorted(rev_rows,
+                            key=lambda x: -abs(
+                                x.get("slope_now_pct") or 0))[:8]],
+        "doctrine": "polarity-mapped breadth: trend = share of "
+                    "liquidity rows trending easier minus tighter; "
+                    "reversal = fresh slope flips (MA-cross "
+                    "confirmed) toward ease minus tighten",
+    }
     payload = {
         "schema_version": "1.0",
         "engine": "justhodl-liquidity-reversal",
+        "liquidity": liquidity,
         "as_of": now.isoformat(timespec="seconds"),
         "list_name": list_name,
+        "family_lists": fam,
         "n_lists_seen": n_lists,
         "n_members": len(syms),
         "n_resolved": len(resolved),
         "n_with_history": len(with_hist),
         "barometer": barometer,
-        "gauge": gauge,
         "strip": {"alarm": alarm, "n_red": n_red,
                   "n_amber": n_amber, "n_range_extreme": n_extreme,
                   "top_movers": [
