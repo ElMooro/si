@@ -1,9 +1,13 @@
-executing-against: f40bb8944e304cb7c077c13e2b80f6eb3d119a65
+executing-against: 115072a800bf545e83d717f21a64281fb558c027
 ops 4638 — integrity + grammar + NQ door
+── direct code deploy (ops-side) ──
+[17:43:41] ✅   [code-deploy] justhodl-liquidity-reversal pushed from checkout
+[17:43:46] ✅   [code-deploy] justhodl-blackswan-watch pushed from checkout
 ── NQ egress worker (Cloudflare) ──
-[16:06:52] ⚠ worker deploy: HTTP Error 403: Forbidden
+[17:43:47] proxy reuse probe: HTTP Error 403: Forbidden
+[17:44:02] ✅   [nq-door] worker live + env injected on both engines
 ── deploy-settle both engines ──
-[16:14:58] ✗   [deploy] CONTRACT MISS — liq v1.3.0 (restored base) + blackswan v1.9.0
+[17:52:05] ✗   [deploy] CONTRACT MISS — liq v1.3.0 (restored base) + blackswan v1.9.0
 
 → Report written to aws/ops/reports/latest/4638_integrity_and_nq_gate.md
 ❌ OPS-FAIL: aws/ops/pending/ops_4638_integrity_and_nq_gate.py
