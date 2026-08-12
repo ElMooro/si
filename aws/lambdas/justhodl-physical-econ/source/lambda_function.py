@@ -1,4 +1,4 @@
-"""justhodl-physical-econ v2.0.3 (ops 4614)
+"""justhodl-physical-econ v2.1.0 (ops 4614)
 
 The Physical/Real Economy signal, institutional restructure: five
 weighted SUB-PILLARS computed purely from evidence landed by
@@ -18,6 +18,10 @@ v2.0.0 is the full real-economy build (ops 4614).
 v2.0.1: copper basis bug fixed (FRED fallback is $/tonne MONTHLY -
 the daily window mislabeled it and pinned the leg at 100); rail +
 Destatis toll promoted to scored trade legs.
+v2.1.0 (Wave 4): DTS wage/customs legs, Cushing + NG storage + US
+exports + gas-burn, four FRED cycle legs, regression weather
+adjustment (US-48 ex-weather), WEI replication benchmark with a
+divergence canary, cushing_squeeze + withheld_stall canaries.
 """
 import json
 import math
@@ -227,6 +231,76 @@ def t_rail(env):
     return None, "no data"
 
 
+def t_yoy_sum(env, n=20, center=4.0, k=4.0, unit="$M/d"):
+    """Sum of last n obs vs the n obs ending ~364d earlier, YoY%.
+    Built for DTS daily flows (weekly seasonality washes out)."""
+    se = env["series"]
+    if len(se) < n + 5:
+        return None, "insufficient history"
+    cur = sum(o["value"] for o in se[-n:])
+    end = datetime.fromisoformat(se[-1]["date"]) - timedelta(days=364)
+    idx = None
+    for i2 in range(len(se) - 1, -1, -1):
+        if datetime.fromisoformat(se[i2]["date"]) <= end:
+            idx = i2
+            break
+    if idx is None or idx + 1 < n:
+        return None, "no prior-year window"
+    prev = sum(o["value"] for o in se[idx - n + 1:idx + 1])
+    if not prev:
+        return None, "zero base"
+    y = (cur / prev - 1) * 100
+    return 50 + (y - center) * k, ("%+.1f%% YoY (%dd sums) · latest "
+                                   "%.0f %s"
+                                   % (y, n, se[-1]["value"], unit))
+
+
+def t_ng_storage(env):
+    se = env["series"]
+    if len(se) < 260:
+        return None, "need 5y history"
+    cur = se[-1]["value"]
+    tgt = datetime.fromisoformat(se[-1]["date"])
+    peers = []
+    for yb in (1, 2, 3, 4, 5):
+        want = tgt - timedelta(days=364 * yb)
+        near = min(se, key=lambda o: abs(
+            (datetime.fromisoformat(o["date"]) - want).days))
+        if abs((datetime.fromisoformat(near["date"])
+                - want).days) <= 10:
+            peers.append(near["value"])
+    if len(peers) < 3:
+        return None, "peer weeks missing"
+    avg = sum(peers) / len(peers)
+    dev = (cur / avg - 1) * 100
+    return 50 - dev * 0.6, ("%+.1f%% vs %d-yr same-week avg · "
+                            "%.0f Bcf (deficit = heavy burn = "
+                            "activity)" % (dev, len(peers), cur))
+
+
+def t_cushing(env):
+    se = env["series"]
+    if len(se) < 40:
+        return None, "insufficient history"
+    vals = [o["value"] for o in se]
+    lo, hi = min(vals), max(vals)
+    cur = vals[-1]
+    pos = (cur - lo) / (hi - lo) * 100 if hi > lo else 50
+    return 50 + (50 - pos) * 0.4, ("%.0f kbbl · %.0f%% of %dw range "
+                                   "(low = delivery-point tightness)"
+                                   % (cur, pos, len(vals)))
+
+
+def t_isratio(env):
+    se = env["series"]
+    m = mom_pct(se, 3, 12)
+    if m is None:
+        return None, "insufficient history"
+    return 50 - m * 12, ("ratio %+.1f%% (3m vs 12m, inverted — "
+                         "rising = inventory glut) · %.2f"
+                         % (m, se[-1]["value"]))
+
+
 def t_monthly_mom(env, k=6.0):
     se = env["series"]
     if len(se) < 15:
@@ -418,6 +492,28 @@ REGISTRY = [
      lambda e: t_daily_mom(e, k=6), 15),
     ("fred_claims", "labor", "Initial claims (inverted)",
      t_claims, 14),
+    ("dts_withheld", "labor", "Withheld taxes — daily wage read",
+     lambda e: t_yoy_sum(e, 20, 4.0, 4.0), 8),
+    ("dts_customs", "trade_transport",
+     "Customs duties — daily imports proxy",
+     lambda e: t_yoy_sum(e, 20, 0.0, 1.2, "$M/d"), 8),
+    ("eia_exports", "trade_transport",
+     "US crude + product exports (weekly)",
+     lambda e: t_weekly_mom(e, k=3), 14),
+    ("eia_cushing", "energy", "Cushing stocks (WTI squeeze gauge)",
+     t_cushing, 14),
+    ("eia_ng_storage", "energy", "NG storage vs 5y same-week",
+     t_ng_storage, 14),
+    ("eia930_gasburn", "energy", "Gas burn for power (daily)",
+     lambda e: t_daily_mom(e, k=6), 6),
+    ("fred_neworder", "materials", "Core capex orders (monthly)",
+     lambda e: t_monthly_mom(e, k=5), 60),
+    ("fred_isratio", "materials", "Inventories/sales (inverted)",
+     t_isratio, 75),
+    ("fred_awhman", "labor", "Manufacturing weekly hours",
+     lambda e: t_monthly_mom(e, k=15), 60),
+    ("fred_ttlcons", "construction", "Construction spending",
+     lambda e: t_monthly_mom(e, k=4), 75),
     ("indeed_postings", "labor", "Indeed job postings (daily)",
      t_indeed, 8),
     ("fred_hours", "labor", "Aggregate weekly hours (monthly)",
@@ -428,7 +524,7 @@ REGISTRY = [
      lambda e: t_monthly_mom(e, k=3), 60),
 ]
 
-OBSERVED_ONLY = ["noaa_degree_days", "acc_cab"]
+OBSERVED_ONLY = ["acc_cab", "fbx", "fred_wei"]
 
 
 def label_for(score):
@@ -447,6 +543,41 @@ def lambda_handler(event, context):
     for leg_id, sub, name, tr, gate in REGISTRY:
         legs.append(warm_leg(leg_id, sub, name, tr, gate))
     legs.extend(fleet_legs())
+
+    # Wave-4 weather adjustment: regress US-48 load on national CDD
+    # over ~60 aligned days; score momentum of the RESIDUAL so a heat
+    # wave cannot impersonate a datacenter.
+    try:
+        le = s3_json(WARM + "eia930_us48.json") or {}
+        ce = s3_json(WARM + "noaa_degree_days.json") or {}
+        ls, cs = le.get("series") or [], ce.get("series") or []
+        if len(ls) >= 35 and len(cs) >= 45:
+            cmap = {o["date"]: o["value"] for o in cs}
+            pairs = [(o["value"], cmap[o["date"]]) for o in ls
+                     if o["date"] in cmap][-60:]
+            if len(pairs) >= 30:
+                n0 = len(pairs)
+                mx = sum(p[0] for p in pairs) / n0
+                my = sum(p[1] for p in pairs) / n0
+                var = sum((p[1] - my) ** 2 for p in pairs)
+                beta = (sum((p[0] - mx) * (p[1] - my)
+                            for p in pairs) / var) if var else 0.0
+                resid = [{"date": o["date"],
+                          "value": o["value"]
+                          - beta * cmap[o["date"]]}
+                         for o in ls if o["date"] in cmap]
+                m = mom_pct(resid, 7, 21)
+                if m is not None:
+                    legs.append(leg_row(
+                        "us48_exweather", "energy",
+                        "US-48 demand EX-WEATHER (regression)",
+                        round(clamp(50 + m * 8, 0, 100), 1),
+                        "%+.2f%% (7d vs 21d residual) · beta "
+                        "%.1f GWh/CDD over %d aligned days"
+                        % (m, beta, len(pairs)),
+                        "tier1", "OK", 0))
+    except Exception as e:
+        print(f"[phys] ex-weather: {e}")
 
     observed = []
     for oid in OBSERVED_ONLY:
@@ -519,6 +650,56 @@ def lambda_handler(event, context):
                 "dod_pct": round(dod, 1),
                 "doctrine": "a one-day collapse in chokepoint "
                             "transits = trade-route disruption"}
+    cus = s3_json(WARM + "eia_cushing.json")
+    if cus and cus.get("status") == "OK":
+        se = cus.get("series") or []
+        if len(se) >= 40:
+            vals = [o["value"] for o in se]
+            lo, hi = min(vals), max(vals)
+            pos = ((vals[-1] - lo) / (hi - lo) * 100
+                   if hi > lo else 50)
+            canaries["cushing_squeeze"] = {
+                "state": ("RED" if pos <= 5 else
+                          "AMBER" if pos <= 15 else "CALM"),
+                "range_position_pct": round(pos, 1),
+                "stocks_kbbl": vals[-1],
+                "doctrine": "delivery-point stocks at range lows + "
+                            "backwardation = physical squeeze"}
+    wh = s3_json(WARM + "dts_withheld.json")
+    if wh and wh.get("status") == "OK":
+        env2 = {"series": wh.get("series") or []}
+        try:
+            sup2, det2 = t_yoy_sum(env2, 20, 4.0, 4.0)
+            y2 = None
+            import re as _re
+            m2 = _re.search(r"([+-]?\d+\.\d)% YoY", det2 or "")
+            if m2:
+                y2 = float(m2.group(1))
+            if y2 is not None:
+                canaries["withheld_stall"] = {
+                    "state": ("RED" if y2 <= 0 else
+                              "AMBER" if y2 <= 2 else "CALM"),
+                    "yoy_pct": y2,
+                    "doctrine": "nominal withheld-tax growth under "
+                                "2% = aggregate labor income "
+                                "stalling"}
+        except Exception:
+            pass
+    wei = s3_json(WARM + "fred_wei.json")
+    if wei and wei.get("status") == "OK" and composite is not None:
+        wse = wei.get("series") or []
+        if wse:
+            wv = wse[-1]["value"]
+            implied = clamp(50 + wv * 8, 0, 100)
+            gap = abs(implied - composite)
+            canaries["wei_divergence"] = {
+                "state": ("RED" if gap >= 30 else
+                          "AMBER" if gap >= 18 else "CALM"),
+                "wei": wv, "wei_implied_0_100": round(implied, 1),
+                "our_composite": composite,
+                "doctrine": "independent NY Fed replication check — "
+                            "a wide gap means one of us is wrong; "
+                            "investigate"}
     cl = s3_json(WARM + "fred_claims.json")
     if cl and cl.get("status") == "OK":
         se = cl.get("series") or []
