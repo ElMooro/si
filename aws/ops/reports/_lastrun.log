@@ -1,25 +1,57 @@
-executing-against: 1e174cec34ebbcb3bcb710b39873531f966dc0e5
+executing-against: 3af9b7d0b18ebdb17ff853a41baf0c9ab6d2f420
 ops 4630 — barometer + TE join
 ── deploy-settle ──
-[03:01:29] ✅   [deploy] blackswan v1.5.1 + signal v2.1.3
+[03:12:54] ✅   [deploy] blackswan v1.6.0 + signal v2.1.3
 ── run + barometer truth ──
-[03:02:14] ✅   [barometer] barometer 12.7 (QUIET)
-[03:02:14] TE-joined: ['ECONOMICS:CLGDPYY', 'ECONOMICS:CLUR', 'ECONOMICS:CHUR', 'ECONOMICS:HKUR', 'ECONOMICS:USRSYY', 'ECONOMICS:EURSYY', 'ECONOMICS:NLCU', 'ECONOMICS:USBCOI', 'ECONOMICS:FIGDPYY', 'ECONOMICS:CHBCOI', 'ECONOMICS:FIBCOI', 'ECONOMICS:KYGDPYY']
-[03:02:14] ✅   [te-join] 42 ECONOMICS rows via Trading Economics
-[03:02:14] CBOT:ZB1!        CALM      z=0.5   n=252  
-[03:02:14] FX_IDC:KRWUSD    CALM      z=0.01  n=260  
-[03:02:14] ECONOMICS:CHUR   NO_HISTORY z=None  n=1    TE latest
-[03:02:14] NASDAQ:VXUS      CALM      z=0.46  n=235  
-[03:02:14] CBOE:VXEEM       NO_HISTORY z=None  n=1    
-[03:02:14] AMEX:VEA         CALM      z=0.52  n=235  
-[03:02:14] ✅   [alias-z] 4/5 alias spot-checks on z-basis
-[03:02:14] ✅   [history-depth] 230 rows on statistical basis (steady-state ~330 as the hourly cache compounds)
-[03:02:14] ✅   [ffill-composite] SOFR-FEDFUNDS z-based: z=0.42 +0.01 Δ (DoD)
-[03:02:14] ✅   [resolution] 375/500 — alias routes live; cache compounds ~85+/hour toward ~440 steady state
+[03:13:23] ✅   [barometer] barometer 14.2 (QUIET)
+[03:13:23] TE-joined: ['ECONOMICS:CLGDPYY', 'ECONOMICS:CLUR', 'ECONOMICS:CHUR', 'ECONOMICS:HKUR', 'ECONOMICS:USRSYY', 'ECONOMICS:EURSYY', 'ECONOMICS:NLCU', 'ECONOMICS:USBCOI', 'ECONOMICS:FIGDPYY', 'ECONOMICS:CHBCOI', 'ECONOMICS:FIBCOI', 'ECONOMICS:KYGDPYY']
+[03:13:23] ✅   [te-join] 42 ECONOMICS rows via Trading Economics
+── UNRESOLVED CENSUS (the 125, named) ──
+[03:13:23] NYMEX:CL1!-BLACKBULL:WTI · EUREX:FMOG1! · ECONOMICS:WWOPI · ECONOMICS:WWMPMI · NYSE:C+NYSE:BAC+NYSE:WFC+NYSE:JPM · ECONOMICS:DEIFOCC
+[03:13:23] ECONOMICS:USGDPMAN · ECONOMICS:USFYGDPG · ECONOMICS:USGDPT · ECONOMICS:USINBR-TVC:US01MY · ECONOMICS:USINBR-TVC:US03MY · SGX:SGP2!
+[03:13:23] ECONOMICS:EUIS · FTSE:SS03 · TVC:TRJEFFCRB · EUREX:FMAA1! · ICEEUR:ME32! · FTSE:4GL1
+[03:13:23] FTSE:4EU5 · ICEEUR:MPE2! · NSE:CNXSMALLCAP · ECONOMICS:WWCOMPPMI · ECONOMICS:DENO · ECONOMICS:USDFSRI
+[03:13:23] FTSE:AWHDY01.TR · ECONOMICS:EUEMC · ICEEUR:USW1! · ECONOMICS:USCPMI · ICEUS:AWN1! · ECONOMICS:USBOI
+[03:13:23] ECONOMICS:FIMGDPYY · ECONOMICS:CNNO · TVC:DE10Y-TVC:IT10Y · ECONOMICS:JPMTO · ECONOMICS:EUMPMI · ECONOMICS:EUCOMPPMI
+[03:13:23] ECONOMICS:USKFCOMPI · ECONOMICS:JPCIND · ECONOMICS:USNMEMP · ECONOMICS:USNMBA · NASDAQ:NQUSS50206015N · NASDAQ:NQDXUSMLTCG
+[03:13:23] ECONOMICS:JPJAR · FTSE:SD10 · NASDAQ:NQG50 · NASDAQ:B3010PI · NASDAQ:NQEMASIA3010T · NASDAQ:NQEM3010
+[03:13:23] NASDAQ:NQHKBANK · NASDAQ:NQASPA35 · NASDAQ:NQEMASIA35 · NASDAQ:NQEM35 · NASDAQ:NQEM30 · NASDAQ:NQEM5010
+[03:13:23] NASDAQ:NQEM5020 · NASDAQ:NQEM50 · AMEX:RXI/AMEX:KXI · USI:YRLO.US · ECONOMICS:JPSBSI · TSE:TPXLVG
+[03:13:23] NASDAQ:NQJP35T · NASDAQ:NQUSB50101010 · NASDAQ:NQTW30 · EUREX:FMMG1! · ICEEUR:MWG2! · TVC:CAC40
+[03:13:23] EUREX:FESX2! · NYSE:ADR · FX_IDC:INRUSD · FX_IDC:KRWUSD · FX_IDC:USDKRW · 1-TVC:IN03Y
+[03:13:23] TVC:CN01Y · TVC:US10Y-MULTPL:SP500_EARNINGS_MONTH · MULTPL:SP500_EARNINGS_YEAR · MULTPL:SP500_EARNINGS_MONTH · MULTPL:SP500_EARNINGS_YIELD_MONTH · MULTPL:SHILLER_PE_RATIO_MONTH
+[03:13:23] ICEUS:MWL1! · EUREX:FMEA2! · AMEX:XLP/AMEX:XLY · OANDA:SG30SGD · NASDAQ:NQUSB302010N · EUREX:FMXU2!
+[03:13:23] AMEX:AGG/AMEX:HYG · NASDAQ:TLT/AMEX:SPY · HOSE:VNINDEX · TVC:VN03Y · CBOT:ZB2! · ICEUS:DX1!-TVC:DXY
+[03:13:23] CBOE:VIX1Y · ICEEUR:US31!-TVC:US30Y · NASDAQ:NQMAFIT · FX_IDC:TWDUSD · ICEEUR:I2! · FX:SONIA3M
+[03:13:23] ICEEUR:SA32! · TMX:CRA2! · ICEEUR:EON2! · NASDAQ:NQASIAN · NASDAQ:NQBRICT · NASDAQ:NOMXNIN
+[03:13:23] NASDAQ:NQGRMIT · NASDAQ:NQRSKEM · LUXSE:LU0310511422 · SWB:JSGW · FTSE:FEMCRF · CSEMA:MASID
+[03:13:23] ECONOMICS:USMCEC · ECONOMICS:DEZCC · NASDAQ:NQCN55T · NASDAQ:B55PI · NASDAQ:NQEMEA4050T · FTSE:JAPAN.TR
+[03:13:23] NASDAQ:NQHKBANKN · CBOT:UB2! · EUREX:FVS2! · ASX24:AP1! · ECONOMICS:USRCR
+[03:13:23] ✗   [census-shrunk] CONTRACT MISS — 119 unresolved (was 125)
+[03:13:23] KRX:KOSPI200       CALM      z=1.05  n=227  
+[03:13:23] INDEX:FTSEMIB      CALM      z=0.11  n=253  
+[03:13:23] EURONEXT:N100      CALM      z=0.09  n=256  
+[03:13:23] CBOT:ZB2!          UNRESOLVED z=None  n=-    
+[03:13:23] CME:SR32!          NO_HISTORY z=None  n=1    
+[03:13:23] FX_IDC:INRUSD      UNRESOLVED z=None  n=-    
+[03:13:23] FX_IDC:MXNJPY      CALM      z=0.53  n=260  
+[03:13:23] ECONOMICS:USJO     CALM      z=0.43  n=300  
+[03:13:23] ✗   [class-routes] CONTRACT MISS — 4/7 per-class spot-checks z-based
+[03:13:23] CBOT:ZB1!        NO_HISTORY z=None  n=1    
+[03:13:23] FX_IDC:KRWUSD    UNRESOLVED z=None  n=-    
+[03:13:23] ECONOMICS:CHUR   NO_HISTORY z=None  n=1    TE latest
+[03:13:23] NASDAQ:VXUS      CALM      z=0.46  n=235  
+[03:13:23] CBOE:VXEEM       NO_HISTORY z=None  n=1    
+[03:13:23] AMEX:VEA         CALM      z=0.52  n=235  
+[03:13:23] ✗   [alias-z] CONTRACT MISS — 2/5 alias spot-checks on z-basis
+[03:13:23] ✅   [history-depth] 253 rows on statistical basis (steady-state ~330 as the hourly cache compounds)
+[03:13:23] ✅   [ffill-composite] SOFR-FEDFUNDS z-based: z=0.42 +0.01 Δ (DoD)
+[03:13:23] ✗   [resolution] CONTRACT MISS — 381/500 — census-attacked; residue enumerated below
 ── board + edge ──
-[03:02:18] ✅   [canary-barometer] board carries barometer 12.7 (QUIET)
-[03:02:19] ✅   [edge] edge serves the barometer
+[03:13:29] ✅   [canary-barometer] board carries barometer 14.2 (QUIET)
+[03:13:29] ✅   [edge] edge serves the barometer
 ── verdict ──
-[03:02:19] ✅ BAROMETER LIVE — 12.7 (QUIET): shock 1.7% / extreme 24.2% / stretched 15.4% · 375/500 resolved (+TE join, ffill composites) · on the physical board and the page
+[03:13:29] ✗ barometer: 4 red
 
-→ Report written to aws/ops/reports/latest/4632_alias_steady.md
+→ Report written to aws/ops/reports/latest/4633_census_attack.md
+❌ OPS-FAIL: aws/ops/pending/ops_4633_census_attack.py
