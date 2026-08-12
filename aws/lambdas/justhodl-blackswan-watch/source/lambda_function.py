@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.3.1 (ops 4623)
+"""justhodl-blackswan-watch v1.3.2 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -276,6 +276,13 @@ def fleet_column_series(key, field):
     se = columnar_zip(doc, "dates", field)
     if se:
         return {"series": se}
+    for ck in ("series", "indices", "columns", "data"):
+        sub = doc.get(ck)
+        if isinstance(sub, dict) and field in sub:
+            merged = {"dates": doc.get("dates"), field: sub[field]}
+            se = columnar_zip(merged, "dates", field)
+            if se:
+                return {"series": se}
     rows = find_row_table(doc)
     if not rows:
         return None
