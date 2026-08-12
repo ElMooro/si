@@ -1,9 +1,9 @@
-executing-against: 120521b078bbbfa55aa42c9217c3af565e48fb78
+executing-against: f40bb8944e304cb7c077c13e2b80f6eb3d119a65
 ops 4638 — integrity + grammar + NQ door
 ── NQ egress worker (Cloudflare) ──
-[15:57:10] ✅   [nq-door] worker live + env injected on both engines
+[16:06:52] ⚠ worker deploy: HTTP Error 403: Forbidden
 ── deploy-settle both engines ──
-[16:05:14] ✗   [deploy] CONTRACT MISS — liq v1.3.0 (restored base) + blackswan v1.9.0
+[16:14:58] ✗   [deploy] CONTRACT MISS — liq v1.3.0 (restored base) + blackswan v1.9.0
 
 → Report written to aws/ops/reports/latest/4638_integrity_and_nq_gate.md
 ❌ OPS-FAIL: aws/ops/pending/ops_4638_integrity_and_nq_gate.py
