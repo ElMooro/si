@@ -1,4 +1,4 @@
-"""justhodl-physical-econ v2.0.0 (ops 4614)
+"""justhodl-physical-econ v2.0.1 (ops 4614)
 
 The Physical/Real Economy signal, institutional restructure: five
 weighted SUB-PILLARS computed purely from evidence landed by
@@ -15,6 +15,9 @@ half weight; tier3 are OBSERVED ONLY (shown, never scored).
 Output: data/physical-economy.json (schema 2.0) + history.
 History of this engine: v1.0.x was the flat 5-leg join (ops 4610-13);
 v2.0.0 is the full real-economy build (ops 4614).
+v2.0.1: copper basis bug fixed (FRED fallback is $/tonne MONTHLY -
+the daily window mislabeled it and pinned the leg at 100); rail +
+Destatis toll promoted to scored trade legs.
 """
 import json
 import math
@@ -189,6 +192,14 @@ def t_aisi(env):
 
 def t_copper(env):
     se = env["series"]
+    monthly = "PCOPPUSDM" in str(env.get("source", ""))
+    if monthly:
+        m = mom_pct(se, 3, 12)
+        if m is None:
+            return None, "insufficient history"
+        return 50 + m * 2.5, ("%+.1f%% (3m vs prior 12m, IMF "
+                              "monthly) · $%.0f/tonne"
+                              % (m, se[-1]["value"]))
     m = mom_pct(se, 5, 21)
     if m is None:
         return None, "insufficient history"
@@ -203,6 +214,17 @@ def t_indeed(env):
         return None, "insufficient history"
     return 50 + m * 6, "postings %+.2f%% (7d vs 30d) · index %.1f" % (
         m, se[-1]["value"])
+
+
+def t_rail(env):
+    se = env.get("series")
+    if se:
+        return t_monthly_mom(env, k=5.0)
+    mx = env.get("metrics") or {}
+    if mx.get("weekly_carloads"):
+        return None, ("weekly print only: %.0f carloads"
+                      % mx["weekly_carloads"])
+    return None, "no data"
 
 
 def t_monthly_mom(env, k=6.0):
@@ -382,6 +404,11 @@ REGISTRY = [
      t_aisi, 12),
     ("copper", "materials", "Dr. Copper (priced, tier-2)",
      t_copper, 6),
+    ("aar_rail", "trade_transport", "Rail freight carloads",
+     t_rail, 45),
+    ("destatis_toll", "trade_transport",
+     "DE truck-toll mileage (daily)",
+     lambda e: t_daily_mom(e, k=6), 15),
     ("fred_claims", "labor", "Initial claims (inverted)",
      t_claims, 14),
     ("indeed_postings", "labor", "Indeed job postings (daily)",
@@ -394,8 +421,7 @@ REGISTRY = [
      lambda e: t_monthly_mom(e, k=3), 60),
 ]
 
-OBSERVED_ONLY = ["noaa_degree_days", "aar_rail", "destatis_toll",
-                 "acc_cab"]
+OBSERVED_ONLY = ["noaa_degree_days", "acc_cab"]
 
 
 def label_for(score):
