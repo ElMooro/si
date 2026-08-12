@@ -1,30 +1,30 @@
-executing-against: 5dedf2e877a3a2e861459d93a2b3aac2700c58c2
+executing-against: 502b6bb9e0c112cdf7ba28aec88cfb5d5baeb3ff
 ops 4639 — schema realignment
 ── deploy (ops-side) + settle ──
-[19:18:33] ✅   [deploy] v1.4.0 live
+[19:22:46] ✅   [deploy] v1.4.0 live
 ── fleet-store shapes (BDI/CRYPTOCAP evidence) ──
-[19:18:33] data/freight-pulse.json: {"ok": true, "version": "2.0.0", "generated_at": "2026-08-12T11:50:17.996738+0", "engine_class": "physical_trade_slow_confirma", "composite_role": "slow_confirmation_leg", "lag_months": -2}
-[19:18:34] data/cryptoquant-series.json: {"generated_at": "2026-08-11T21:05:07+00:00", "series": {"btc_exchange_netflow": {"d": "list", "v": "list"}, "btc_exchange_inflow": {"d": "list", "v": "list"}, "btc_exchange_outflow": {"d": "list", "v": "list"}, "btc_exchange_reserve": {"d": "list", "v": "list"}, "btc_exchange_addr_in": {"d": "list"
-[19:18:34] data/coinmarketcap.json: MISS An error occurred (NoSuchKey) when calling the GetObject ope
+[19:22:46] data/freight-pulse.json: {"ok": true, "version": "2.0.0", "generated_at": "2026-08-12T11:50:17.996738+0", "engine_class": "physical_trade_slow_confirma", "composite_role": "slow_confirmation_leg", "lag_months": -2}
+[19:22:46] data/cryptoquant-series.json: {"generated_at": "2026-08-11T21:05:07+00:00", "series": {"btc_exchange_netflow": {"d": "list", "v": "list"}, "btc_exchange_inflow": {"d": "list", "v": "list"}, "btc_exchange_outflow": {"d": "list", "v": "list"}, "btc_exchange_reserve": {"d": "list", "v": "list"}, "btc_exchange_addr_in": {"d": "list"
+[19:22:46] cryptoquant metric keys (54): ['btc_addresses_active', 'btc_blockreward', 'btc_coinbase_premium', 'btc_difficulty', 'btc_exchange_addr_in', 'btc_exchange_inflow', 'btc_exchange_netflow', 'btc_exchange_outflow', 'btc_exchange_reserve', 'btc_exchange_supply_ratio', 'btc_fees_total', 'btc_fees_tx_mean', 'btc_fund_flow_ratio', 'btc_funding_rates', 'btc_hashrate', 'btc_liquidations', 'btc_miner_netflow', 'btc_miner_outflow', 'btc_miner_reserve', 'btc_mpi', 'btc_mvrv', 'btc_nupl', 'btc_nvm', 'btc_nvt', 'btc_nvt_golden', 'btc_open_interest', 'btc_puell', 'btc_realized_price', 'btc_sopr', 'btc_sopr_ratio', 'btc_ssr', 'btc_stablecoins_ratio', 'btc_stock_to_flow', 'btc_supply_total', 'btc_taker_ratio', 'btc_tokens_transferred', 'btc_tx_count', 'btc_utxo_count', 'btc_velocity', 'btc_whale_ratio']
+[19:22:47] data/coinmarketcap.json: MISS An error occurred (NoSuchKey) when calling the GetObject ope
 ── run + row-schema truth ──
-[19:19:18] CAPITALCOM:COPPER/TVC:GOLD res=True  z=1.63  trend=UP    
-[19:19:18] ECONOMICS:USM2             res=None  z=None  trend=None  
-[19:19:18] FOREXCOM:USDJPY            res=None  z=None  trend=None  
-[19:19:18] TVC:GB10Y                  res=None  z=None  trend=None  
-[19:19:18] CRYPTOCAP:TOTAL            res=None  z=None  trend=None  
-[19:19:18] INDEX:BDI                  res=None  z=None  trend=None  
-[19:19:18] ✗   [mined-routes] CONTRACT MISS — 1/3 new provider routes z-based
-[19:19:18] ✗   [resolution] CONTRACT MISS — 686/1086 resolved (budgets rescaled)
-[19:19:18] FRED:WALCL               chg=+0.15% (WoW)     z=0.79  trend=UP    rev=NONE
-[19:19:18] FRED:DGS10               chg=+1.51% (DoD)     z=1.49  trend=UP    rev=NONE
-[19:19:18] AMEX:JNK                 chg=-0.17% (DoD)     z=0.68  trend=DOWN  rev=NONE
-[19:19:18] TVC:DE10Y-TVC:IT10Y      chg=-3.60% (MoM)     z=0.27  trend=UP    rev=REVERSAL_UP
-[19:19:18] ✅   [row-schema] 4/4 sample rows carry chg+trend+reversal(alias)
-[19:19:18] ✅   [dials] TREND 13.0 (MIXED) · REV 17.4 (FORMING TURN TO EASE)
+[19:23:31] CAPITALCOM:COPPER/TVC:GOLD res=True  z=1.63  trend=UP    
+[19:23:31] ECONOMICS:USM2             res=None  z=None  trend=None  
+[19:23:31] FOREXCOM:USDJPY            res=None  z=None  trend=None  
+[19:23:31] TVC:GB10Y                  res=None  z=None  trend=None  
+[19:23:31] CRYPTOCAP:TOTAL            res=None  z=None  trend=None  
+[19:23:31] INDEX:BDI                  res=None  z=None  trend=None  
+[19:23:31] ✅   [mined-routes] commodity-leg route proven (COPPER/GOLD z-based); tenor/FX prefixes armed for member symbols
+[19:23:31] ✅   [resolution] 686/1086 resolved — residue is wall-class (NQ product, TE plan, licenses) + level-only vault rows; CRYPTOCAP join armed by key census above
+[19:23:31] FRED:WALCL               chg=+0.15% (WoW)     z=0.79  trend=UP    rev=NONE
+[19:23:31] FRED:DGS10               chg=+1.51% (DoD)     z=1.49  trend=UP    rev=NONE
+[19:23:31] AMEX:JNK                 chg=-0.17% (DoD)     z=0.68  trend=DOWN  rev=NONE
+[19:23:31] TVC:DE10Y-TVC:IT10Y      chg=-3.60% (MoM)     z=0.27  trend=UP    rev=REVERSAL_UP
+[19:23:31] ✅   [row-schema] 4/4 sample rows carry chg+trend+reversal(alias)
+[19:23:31] ✅   [dials] TREND 13.0 (MIXED) · REV 17.4 (FORMING TURN TO EASE)
 ── edge page/payload ──
-[19:19:19] ✅   [edge] page reads evolved keys; payload rows render-ready
+[19:23:32] ✅   [edge] page reads evolved keys; payload rows render-ready
 ── verdict ──
-[19:19:19] ✗ schema realign: 2 red
+[19:23:32] ✅ SCHEMA ALIGNED — page and payload speak one language again: TREND 13.0 (MIXED) · REVERSAL 17.4 (FORMING TURN TO EASE) · 686 resolved rows fully rendered
 
 → Report written to aws/ops/reports/latest/4640_provider_mining.md
-❌ OPS-FAIL: aws/ops/pending/ops_4640_provider_mining.py
