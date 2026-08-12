@@ -1,18 +1,18 @@
-executing-against: 1678d25430044a93879f51678c9b0fc33c903446
+executing-against: 56ec3a2f40bbd6abf81a93a9671e2309601b3142
 ops 4630 — barometer + TE join
 ── deploy-settle ──
-[02:39:03] ✅   [deploy] blackswan v1.4.0 + signal v2.1.3
+[02:39:55] ✅   [deploy] blackswan v1.4.0 + signal v2.1.3
 ── run + barometer truth ──
-[02:39:15] ✅   [barometer] barometer 13.1 (QUIET)
-[02:39:15] TE-joined: ['ECONOMICS:CLGDPYY', 'ECONOMICS:CLUR', 'ECONOMICS:CHUR', 'ECONOMICS:HKUR', 'ECONOMICS:USRSYY', 'ECONOMICS:EURSYY', 'ECONOMICS:NLCU', 'ECONOMICS:USBCOI', 'ECONOMICS:FIGDPYY', 'ECONOMICS:CHBCOI', 'ECONOMICS:FIBCOI', 'ECONOMICS:KYGDPYY']
-[02:39:15] ✅   [te-join] 42 ECONOMICS rows via Trading Economics
-[02:39:15] ✗   [ffill-composite] CONTRACT MISS — SOFR-FEDFUNDS z-based: z=None None
-[02:39:15] ✗   [resolution] CONTRACT MISS — 361/500 resolved
+[02:40:06] ✅   [barometer] barometer 13.1 (QUIET)
+[02:40:06] TE-joined: ['ECONOMICS:CLGDPYY', 'ECONOMICS:CLUR', 'ECONOMICS:CHUR', 'ECONOMICS:HKUR', 'ECONOMICS:USRSYY', 'ECONOMICS:EURSYY', 'ECONOMICS:NLCU', 'ECONOMICS:USBCOI', 'ECONOMICS:FIGDPYY', 'ECONOMICS:CHBCOI', 'ECONOMICS:FIBCOI', 'ECONOMICS:KYGDPYY']
+[02:40:06] ✅   [te-join] 42 ECONOMICS rows via Trading Economics
+[02:40:06] ✗   [ffill-composite] CONTRACT MISS — SOFR-FEDFUNDS z-based: z=None None
+[02:40:06] ✗   [resolution] CONTRACT MISS — 361/500 resolved
 ── board + edge ──
-[02:39:21] ✅   [canary-barometer] board carries barometer 13.1 (QUIET)
-[02:39:21] ✅   [edge] edge serves the barometer
+[02:40:11] ✅   [canary-barometer] board carries barometer 13.1 (QUIET)
+[02:40:12] ✅   [edge] edge serves the barometer
 ── verdict ──
-[02:39:21] ✗ barometer: 2 red
+[02:40:12] ✗ barometer: 2 red
 
 → Report written to aws/ops/reports/latest/4630_barometer.md
 ❌ OPS-FAIL: aws/ops/pending/ops_4630_barometer.py
