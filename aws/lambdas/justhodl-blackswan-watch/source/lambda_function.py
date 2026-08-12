@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.1.0 (ops 4623)
+"""justhodl-blackswan-watch v1.2.0 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -33,7 +33,7 @@ OUT_KEY = "data/blackswan-watch.json"
 WARM = "data/warm/blackswan/"
 FRED_KEY = os.environ.get("FRED_API_KEY",
                           "2f057499936072679d8843d7fce99989")
-FRED_BUDGET = 60  # bounded per run; cumulative via warm cache
+FRED_BUDGET = 90  # bounded per run; cumulative via warm cache
 s3 = boto3.client("s3")
 
 
@@ -192,6 +192,63 @@ def extract_latest(node, depth=0):
     return None, None
 
 
+TVC_MAP = {"US01MY": "DGS1MO", "US03MY": "DGS3MO",
+           "US06MY": "DGS6MO", "US01Y": "DGS1", "US02Y": "DGS2",
+           "US03Y": "DGS3", "US05Y": "DGS5", "US07Y": "DGS7",
+           "US10Y": "DGS10", "US20Y": "DGS20", "US30Y": "DGS30"}
+
+
+def leg_to_fred(leg):
+    if leg.startswith("FRED:"):
+        return leg.split(":", 1)[1]
+    if leg.startswith("TVC:") and leg.split(":", 1)[1] in TVC_MAP:
+        return TVC_MAP[leg.split(":", 1)[1]]
+    return None
+
+
+def eval_composite(sym, budget):
+    """v1.2.0: evaluate A-B / A/B / A+B formulas whose every leg is
+    FRED-mappable — unlocks the plumbing spreads (SOFR-FF, 30s10s,
+    IG-vs-10Y...) with full z+range basis via the warm cache."""
+    for op in ("-", "/", "+"):
+        parts = sym.split(op)
+        if len(parts) < 2 or any(not p for p in parts):
+            continue
+        sids = [leg_to_fred(p) for p in parts]
+        if any(x is None for x in sids):
+            continue
+        legs = []
+        for sid in sids:
+            env = fred_fallback("FRED:" + sid, budget)
+            if not env or not env.get("series"):
+                return None
+            legs.append({o["date"]: o["value"]
+                         for o in env["series"]})
+        common = sorted(set.intersection(
+            *[set(m.keys()) for m in legs]))[-300:]
+        if len(common) < 15:
+            return None
+        se = []
+        for d0 in common:
+            v = legs[0][d0]
+            for m in legs[1:]:
+                if op == "-":
+                    v = v - m[d0]
+                elif op == "+":
+                    v = v + m[d0]
+                else:
+                    if not m[d0]:
+                        v = None
+                        break
+                    v = v / m[d0]
+            if v is not None:
+                se.append({"date": d0, "value": round(v, 6)})
+        if len(se) >= 15:
+            return {"series": se}
+        return None
+    return None
+
+
 _VIDX = {}
 
 
@@ -262,21 +319,63 @@ def dict_name(dic, sym):
     return ""
 
 
+def cadence_label(se):
+    ds = []
+    for i in range(max(1, len(se) - 12), len(se)):
+        try:
+            ds.append((datetime.fromisoformat(se[i]["date"])
+                       - datetime.fromisoformat(
+                           se[i - 1]["date"])).days)
+        except Exception:
+            continue
+    if not ds:
+        return "chg"
+    ds.sort()
+    med = ds[len(ds) // 2]
+    if med <= 3:
+        return "DoD"
+    if med <= 10:
+        return "WoW"
+    if med <= 45:
+        return "MoM"
+    return "QoQ"
+
+
 def analyze(sym, node, name):
     se = extract_series(node)
     if se and len(se) >= 15:
         vals = [o["value"] for o in se]
         last, prev = vals[-1], vals[-2]
-        dod = ((last / prev - 1) * 100) if prev else None
-        rets = [(vals[i] / vals[i - 1] - 1) * 100
-                for i in range(1, len(vals)) if vals[i - 1]]
-        tail = rets[-90:]
-        mu = sum(tail) / len(tail)
-        sd = math.sqrt(sum((x - mu) ** 2 for x in tail)
-                       / max(len(tail) - 1, 1))
-        z = abs((dod - mu) / sd) if (sd and dod is not None) else None
+        lab = cadence_label(se)
         w = vals[-260:]
         lo, hi = min(w), max(w)
+        # v1.2.0 basis rule: sign-crossing or near-zero series get
+        # DIFFERENCE basis — pct-change there is division-by-noise
+        # (the RRP/NFCI/CFNAI class from Khalid's page audit).
+        diffs = [vals[i] - vals[i - 1] for i in range(1, len(vals))]
+        dmu = sum(diffs[-90:]) / max(len(diffs[-90:]), 1)
+        dsd = math.sqrt(sum((x - dmu) ** 2 for x in diffs[-90:])
+                        / max(len(diffs[-90:]) - 1, 1))
+        mean_lvl = sum(w) / len(w)
+        diff_basis = (lo < 0 < hi) or (
+            dsd > 0 and abs(mean_lvl) < 2 * dsd)
+        if diff_basis:
+            chg = last - prev
+            z = abs((chg - dmu) / dsd) if dsd else None
+            chg_str = "%+.3g Δ (%s)" % (chg, lab)
+            dod = None
+        else:
+            dod = ((last / prev - 1) * 100) if prev else None
+            rets = [(vals[i] / vals[i - 1] - 1) * 100
+                    for i in range(1, len(vals)) if vals[i - 1]]
+            tail = rets[-90:]
+            mu = sum(tail) / len(tail)
+            sd = math.sqrt(sum((x - mu) ** 2 for x in tail)
+                           / max(len(tail) - 1, 1))
+            z = (abs((dod - mu) / sd)
+                 if (sd and dod is not None) else None)
+            chg_str = ("%+.2f%% (%s)" % (dod, lab)
+                       if dod is not None else None)
         pos = ((last - lo) / (hi - lo) * 100) if hi > lo else 50.0
         move_state = ("RED" if z is not None and z >= 3 else
                       "AMBER" if z is not None and z >= 2 else "CALM")
@@ -293,6 +392,8 @@ def analyze(sym, node, name):
         return {"symbol": sym, "name": name, "resolved": True,
                 "last": round(last, 4),
                 "dod_pct": round(dod, 2) if dod is not None else None,
+                "chg_str": chg_str,
+                "basis": "diff-z" if diff_basis else "pct-z",
                 "move_z": round(z, 2) if z is not None else None,
                 "move_state": move_state,
                 "range_pos_pct": round(pos, 1),
@@ -314,9 +415,9 @@ def analyze(sym, node, name):
             dod = (lv / prev - 1) * 100
         ms = "NO_HISTORY"
         if dod is not None:
-            a = abs(dod)
-            ms = "RED" if a >= 15 else ("AMBER" if a >= 7
-                                        else "CALM")
+            # pct-basis (no sigma) can never mint RED — page-audit
+            # lesson: EPU-class daily indexes swing 40%+ normally.
+            ms = "AMBER" if abs(dod) >= 7 else "CALM"
         return {"symbol": sym, "name": name, "resolved": True,
                 "last": round(lv, 4),
                 "dod_pct": round(dod, 2) if dod is not None
@@ -347,6 +448,12 @@ def lambda_handler(event, context):
             if (node is None or not extract_series(node)) \
                     and sym.startswith("FRED:"):
                 fb = fred_fallback(sym, budget)
+                if fb:
+                    node = fb
+            if (node is None or not extract_series(node)) \
+                    and any(op in sym for op in "-/+") \
+                    and ":" in sym:
+                fb = eval_composite(sym, budget)
                 if fb:
                     node = fb
             rows.append(analyze(sym, node, dict_name(dic, sym)))

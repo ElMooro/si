@@ -56,7 +56,7 @@ const R=document.getElementById('rows');
 for(const x of (d.rows||[])){
 R.innerHTML+='<tr><td><b>'+x.symbol+'</b></td><td class="dim">'+
 (x.name||'')+'</td><td>'+(x.last==null?'–':x.last)+'</td><td>'+
-(x.dod_pct==null?'–':x.dod_pct+'%')+'</td><td>'+
+(x.chg_str?x.chg_str:(x.dod_pct==null?'–':x.dod_pct+'%'))+'</td><td>'+
 (x.move_z==null?'–':x.move_z)+'</td><td class="'+C(x.move_state)+
 '">'+(x.move_state||'')+'</td><td>'+
 (x.range_pos_pct==null?'–':x.range_pos_pct+'%')+'</td><td class="'+
