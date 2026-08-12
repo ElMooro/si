@@ -1,4 +1,4 @@
-"""ops 4639 — page/payload schema realignment (Khalid: half the
+"""ops 4639 r2 — page/payload schema realignment (Khalid: half the
 columns dash out; prior-arc fix pattern applied: read the writer's
 schema, patch the reader with tolerant getters, alias in engine).
 

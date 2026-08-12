@@ -27,15 +27,17 @@ td{padding:7px 10px;border-bottom:1px solid var(--line)}
 .foot{color:var(--dim);font-size:11.5px;margin-top:16px}
 </style></head><body>
 <h1>GLOBAL LIQUIDITY — TREND REVERSAL</h1>
-<div class="sub">Khalid's TradingView blackswan list · |z| of daily
-move vs own history + 1y range extremes · no direction semantics
-fabricated · <span id="asof">loading…</span></div>
+<div class="sub">Khalid's TradingView LIQUIDITY FAMILY · dual-window slopes + MA-cross confirmation · doctrine polarity map · z + 1y range context · <span id="asof">loading…</span></div>
 <div class="banner"><div class="alarm" id="alarm">–</div>
 <div><div class="alarm" id="baro" style="font-size:26px">–</div><div class="dim" style="font-size:11px">BAROMETER</div></div>
+<div><div class="alarm" id="trendD" style="font-size:22px">–</div>
+<div class="dim" style="font-size:11px">LIQUIDITY TREND</div></div>
+<div><div class="alarm" id="revD" style="font-size:22px">–</div>
+<div class="dim" style="font-size:11px">REVERSAL WATCH</div></div>
 <div id="counts" class="dim"></div></div>
 <table><thead><tr><th>Symbol</th><th>Name</th><th>Last</th>
-<th>1M</th><th>3M</th><th>z(1M)</th><th>Reversal</th>
-<th>Turn age</th><th>1y range</th></tr></thead><tbody id="rows"></tbody></table>
+<th>&#916;</th><th>|z|</th><th>Trend</th><th>Reversal</th>
+<th>Conf</th><th>1y range</th></tr></thead><tbody id="rows"></tbody></table>
 <div class="foot">Engine: justhodl-liquidity-reversal · payload
 <a href="/data/liquidity-reversal.json" style="color:var(--a)">
 data/liquidity-reversal.json</a> · feeds the physical-economy canary
@@ -49,26 +51,42 @@ document.getElementById('asof').textContent='as of '+(d.as_of||'?')+
 ' · list "'+(d.list_name||'?')+'"';
 const A=document.getElementById('alarm'),s=d.strip||{};
 A.textContent=s.alarm||'–';A.className='alarm '+C(s.alarm);
-const bm=d.gauge||{},BE=document.getElementById('baro');BE.textContent=(bm.value==null?'–':bm.value)+' '+(bm.label||'');BE.className='alarm '+(bm.value>=60?'r':bm.value>=40?'a':'g');
+const bm=d.barometer||{},BE=document.getElementById('baro');BE.textContent=(bm.value==null?'–':bm.value)+' '+(bm.label||'');BE.className='alarm '+(bm.value>=60?'r':bm.value>=40?'a':'g');
+const lq=d.liquidity||{};
+const TD=document.getElementById('trendD'),
+RD=document.getElementById('revD');
+if(TD){TD.textContent=(lq.trend_score==null?'–':lq.trend_score)+
+' '+(lq.trend_label||'');
+TD.className='alarm '+(lq.trend_score<=-25?'r':
+lq.trend_score>=25?'g':'a');}
+if(RD){RD.textContent=(lq.reversal_score==null?'–':
+lq.reversal_score)+' '+(lq.reversal_label||'');
+RD.className='alarm '+((lq.reversal_label||'').indexOf('EASE')>=0
+?'g':(lq.reversal_label||'').indexOf('TIGHT')>=0?'r':'dim');}
 document.getElementById('counts').textContent=
 (d.n_resolved||0)+'/'+(d.n_members||0)+' resolved · '+
 (s.n_red||0)+' RED · '+(s.n_amber||0)+' AMBER · '+
 (s.n_range_extreme||0)+' at range extremes';
 const R=document.getElementById('rows');
-const RC=s=>s==='TURN_DOWN'?'r':(s==='TURN_UP'?'g':
-(s==='TREND_UP'?'g':(s==='TREND_DOWN'?'a':'dim')));
+const RS=x=>x.reversal_state||x.reversal||null;
+const RC=s=>(s&&s.indexOf('UP')>=0)?'g':((s&&s.indexOf('DOWN')>=0)
+?'r':((s==='NONE'||s==='FLAT')?'dim':'a'));
+const TC=s=>s==='UP'?'g':(s==='DOWN'?'r':'dim');
 const rows=(d.rows||[]).slice().sort((a,b)=>{
-const o={TURN_DOWN:0,TURN_UP:1,TREND_DOWN:2,TREND_UP:3};
-return (o[a.reversal_state]??9)-(o[b.reversal_state]??9)||
-(a.turn_age_days??99)-(b.turn_age_days??99);});
+const ra=RS(a)||'',rb=RS(b)||'';
+const w=s=>s.indexOf('REVERSAL')>=0?0:(s.indexOf('TURN')>=0?1:
+(s?2:3));
+return w(ra)-w(rb)||((b.move_z||0)-(a.move_z||0));});
 for(const x of rows){
+const ch=x.chg_str||(x.dod_pct!=null?x.dod_pct+'%':null);
 R.innerHTML+='<tr><td><b>'+x.symbol+'</b></td><td class="dim">'+
 (x.name||'')+'</td><td>'+(x.last==null?'–':x.last)+'</td><td>'+
-(x.ret_1m==null?'–':x.ret_1m)+'</td><td>'+
-(x.ret_3m==null?'–':x.ret_3m)+'</td><td>'+
-(x.z_1m==null?'–':x.z_1m)+'</td><td class="'+RC(x.reversal_state)+
-'">'+(x.reversal_state||(x.resolved?'—':'UNRESOLVED'))+
-'</td><td>'+(x.turn_age_days==null?'–':x.turn_age_days+'d')+
+(ch==null?'–':ch)+'</td><td>'+
+(x.move_z==null?'–':x.move_z)+'</td><td class="'+
+TC(x.trend_state)+'">'+(x.trend_state||'–')+
+'</td><td class="'+RC(RS(x))+'">'+
+(RS(x)||(x.resolved?'—':'UNRESOLVED'))+
+'</td><td class="dim">'+(x.reversal_conf||'–')+
 '</td><td>'+(x.range_pos_pct==null?'–':x.range_pos_pct+'%')+
 '</td></tr>';}
 }).catch(e=>{document.getElementById('counts').textContent=
