@@ -1,47 +1,35 @@
 # ops 4638 — integrity + grammar + NQ door
 
 **Status:** failure  
-**Duration:** 196.5s  
-**Finished:** 2026-08-12T15:49:22+00:00  
+**Duration:** 4.2s  
+**Finished:** 2026-08-12T15:52:51+00:00  
 
 ## Error
 
 ```
-SystemExit: 1
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4638_integrity_and_nq_gate.py", line 166, in main
+    lam.update_function_configuration(
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-liquidity-reversal
+
 ```
 
 ## Data
 
-| barometer | gauge | glabel | n_stale | resolved | trend_capable |
-|---|---|---|---|---|---|
-| 0.0 | 50.0 | TRENDING | 0 | 2 | 2 |
+| bytes | proxy | smoke |
+|---|---|---|
+| 142 | https://justhodl-nq-proxy.raafouis.workers.dev | PASS |
 
 ## Log
 ## NQ egress worker (Cloudflare)
 
-- `15:46:07` ⚠ worker deploy: HTTP Error 404: Not Found
-## deploy-settle both engines
-
-- `15:46:39` ✅   [deploy] liq v1.1.0 + blackswan v1.9.0
-## run + audited truth
-
-- `15:46:42` EURONEXT:BANK                res=None  state=None       z=None  
-- `15:46:42` FRED:TREASURY                res=None  state=None       z=None  
-- `15:46:42` 1/(FRED:TOTLL/FRED:M2SL)     res=None  state=None       z=None  
-- `15:46:42` TVC:DE10Y-TVC:IT10Y          res=None  state=None       z=None  
-- `15:46:42` 1-FRED:BAMLC0A0CMEY          res=None  state=None       z=None  
-- `15:46:42` FX:EURUSD                    res=None  state=None       z=None  
-- `15:46:42` SAXO:JPYEUR                  res=None  state=None       z=None  
-- `15:46:42` NASDAQ:NQEU3010              res=None  state=None       z=None  
-- `15:46:42` ✅   [integrity] EURONEXT:BANK no longer wears the Nasdaq value (res=None via=None)
-- `15:46:42` ✗   [stale-guard] CONTRACT MISS — discontinued TREASURY excluded from dials (stale=None)
-- `15:46:42` ✗   [grammar] CONTRACT MISS — 0/3 grammar-v2 composites live (constants/parens/EZ-tenor legs)
-- `15:46:42` ✗   [fx-prefixes] CONTRACT MISS — 0/2 extended-prefix FX resolved
-- `15:46:42` ⚠ nq-unlock skipped (no worker) — 0 NQ rows
-- `15:46:42` ✅   [dials] gauge 50.0 (TRENDING) on stale-clean rows
-## edge
-
-- `15:49:22` ✗   [edge] CONTRACT MISS — edge serves the audited payload
-## verdict
-
-- `15:49:22` ✗ audit gate: 4 red
