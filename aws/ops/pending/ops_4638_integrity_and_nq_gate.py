@@ -1,4 +1,4 @@
-"""ops 4638 r11 — v1.3.3 stale-live gate; real-schema dials; NQ body forensic (per-symbol isolation + division belts) + COMP_BUDGET guard; settle marker corrected (sed ghost: helper call kept v1.1.0) (workflow skips the fn); proxy reused from lambda env; RESTORED v1.2.0 base (my clone had buried the evolved union+polarity engine), audit fixes re-ported on top as v1.3.0.
+"""ops 4638 r12 — dials under payload['liquidity']; real-schema dials; NQ body forensic (per-symbol isolation + division belts) + COMP_BUDGET guard; settle marker corrected (sed ghost: helper call kept v1.1.0) (workflow skips the fn); proxy reused from lambda env; RESTORED v1.2.0 base (my clone had buried the evolved union+polarity engine), audit fixes re-ported on top as v1.3.0.
 
 From Khalid's liquidity page paste: (1) INTEGRITY — cross-exchange
 bare-heuristic collisions (EURONEXT:BANK wearing Nasdaq's BANK
@@ -294,10 +294,11 @@ def main():
                 r.warn("cw tail: %s" % str(e)[:80])
         pl = s3j("data/liquidity-reversal.json") or {}
         rows = {x["symbol"]: x for x in pl.get("rows") or []}
-        g = {"value": pl.get("trend_score"),
-             "label": pl.get("trend_label")}
-        rv = {"value": pl.get("reversal_score"),
-              "label": pl.get("reversal_label")}
+        lq = pl.get("liquidity") or {}
+        g = {"value": lq.get("trend_score"),
+             "label": lq.get("trend_label")}
+        rv = {"value": lq.get("reversal_score"),
+              "label": lq.get("reversal_label")}
         br = g.get("breadth") or {}
         bm = pl.get("barometer") or {}
         r.kv(row_errors=pl.get("n_row_errors"),
@@ -367,9 +368,10 @@ def main():
                            isinstance(g.get("value"),
                                       (int, float))
                            and bool(g.get("label"))
-                           and isinstance(rv.get("value"),
-                                          (int, float))
-                           and bool(rv.get("label")),
+                           and bool(rv.get("label"))
+                           and (rv.get("label") == "NONE"
+                                or isinstance(rv.get("value"),
+                                              (int, float))),
                            "TREND %s (%s) · REVERSAL %s (%s)"
                            % (g.get("value"), g.get("label"),
                               rv.get("value"), rv.get("label")))
