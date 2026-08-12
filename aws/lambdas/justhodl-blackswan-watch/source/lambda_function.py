@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.4.0 (ops 4623)
+"""justhodl-blackswan-watch v1.4.1 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -349,7 +349,12 @@ def leg_to_fred(leg):
     return None
 
 
+COMP_BUDGET = {"n": 40}  # reserved: composite legs (FEDFUNDS-class
+# is never a standalone member, so the shared budget starved them)
+
+
 def eval_composite(sym, budget):
+    budget = COMP_BUDGET
     """v1.2.0: evaluate A-B / A/B / A+B formulas whose every leg is
     FRED-mappable — unlocks the plumbing spreads (SOFR-FF, 30s10s,
     IG-vs-10Y...) with full z+range basis via the warm cache."""

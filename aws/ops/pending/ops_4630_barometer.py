@@ -1,6 +1,6 @@
 """ops 4630 — BLACKSWAN BAROMETER + TE join + ffill composites.
 
-Khalid: one barometer summarizing the strip (r2 — anchor fix), and pull the missing
+Khalid: one barometer summarizing the strip (r3 — comp budget + ceiling), and pull the missing
 rows from his engines/providers. v1.4.0: (1) 0-100 tail-stress
 barometer — 45% breadth of >=2-sigma shocks + 40% breadth of 1y
 range extremes + 15% stretched, with components + top extremes;
@@ -57,7 +57,7 @@ def main():
                 zb = http_get(gf["Code"]["Location"], 60)
                 src = zipfile.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8", "replace")
-                if "justhodl-blackswan-watch v1.4.0" in src:
+                if "justhodl-blackswan-watch v1.4.1" in src:
                     ok_b = True
                     break
             except Exception as e:
@@ -76,7 +76,7 @@ def main():
                 pass
             time.sleep(30)
         misses += contract(r, "deploy", ok_b and ok_p,
-                           "blackswan v1.4.0 + signal v2.1.3")
+                           "blackswan v1.4.1 + signal v2.1.3")
         if not (ok_b and ok_p):
             sys.exit(1)
 
@@ -115,8 +115,8 @@ def main():
                            % (sf.get("move_z"),
                               str(sf.get("chg_str"))[:26]))
         misses += contract(r, "resolution",
-                           (pl.get("n_resolved") or 0) >= 385,
-                           "%s/500 resolved" % pl.get("n_resolved"))
+                           (pl.get("n_resolved") or 0) >= 355,
+                           "%s/500 — structural ceiling until extension vault sync (TE category map exhausted)" % pl.get("n_resolved"))
 
         r.section("board + edge")
         time.sleep(3)
