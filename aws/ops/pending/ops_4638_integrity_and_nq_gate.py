@@ -272,6 +272,7 @@ def main():
              invoke_secs=round(time.time() - t_inv, 1))
         if inv.get("FunctionError"):
             try:
+                time.sleep(10)
                 logs = boto3.client("logs",
                                     region_name="us-east-1")
                 evs = logs.filter_log_events(
@@ -294,6 +295,9 @@ def main():
         g = pl.get("gauge") or {}
         br = g.get("breadth") or {}
         bm = pl.get("barometer") or {}
+        r.kv(row_errors=pl.get("n_row_errors"),
+             first_errors=json.dumps(pl.get("row_errors")
+                                     or [])[:300])
         r.kv(resolved=pl.get("n_resolved"),
              trend_capable=br.get("n_trend_capable"),
              gauge=g.get("value"), glabel=g.get("label"),
