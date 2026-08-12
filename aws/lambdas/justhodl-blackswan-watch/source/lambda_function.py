@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.4.1 (ops 4623)
+"""justhodl-blackswan-watch v1.4.2 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -355,6 +355,7 @@ COMP_BUDGET = {"n": 40}  # reserved: composite legs (FEDFUNDS-class
 
 def eval_composite(sym, budget):
     budget = COMP_BUDGET
+    why = []
     """v1.2.0: evaluate A-B / A/B / A+B formulas whose every leg is
     FRED-mappable — unlocks the plumbing spreads (SOFR-FF, 30s10s,
     IG-vs-10Y...) with full z+range basis via the warm cache."""
@@ -364,14 +365,21 @@ def eval_composite(sym, budget):
             continue
         sids = [leg_to_fred(p) for p in parts]
         if any(x is None for x in sids):
+            why.append(op + ":leg not FRED-mappable")
             continue
         legs = []
+        bad = None
         for sid in sids:
             env = fred_fallback("FRED:" + sid, budget)
             if not env or not env.get("series"):
-                return None
+                bad = "%s:leg %s fetch empty (budget %d)" % (
+                    op, sid, budget["n"])
+                break
             legs.append({o["date"]: o["value"]
                          for o in env["series"]})
+        if bad:
+            why.append(bad)
+            return {"comp_why": " | ".join(why)[:160]}
         base = max(legs, key=len)
         common = sorted(base.keys())[-300:]
         filled = []
@@ -389,7 +397,8 @@ def eval_composite(sym, budget):
         common = [d0 for d0 in common
                   if all(d0 in m for m in legs)]
         if len(common) < 15:
-            return None
+            return {"comp_why": "%s:only %d ffilled common dates"
+                    % (op, len(common))}
         se = []
         for d0 in common:
             v = legs[0][d0]
@@ -407,8 +416,8 @@ def eval_composite(sym, budget):
                 se.append({"date": d0, "value": round(v, 6)})
         if len(se) >= 15:
             return {"series": se}
-        return None
-    return None
+        return {"comp_why": "%s:series shrank to %d" % (op, len(se))}
+    return {"comp_why": (" | ".join(why) or "no op matched")[:160]}
 
 
 _VIDX = {}
@@ -600,8 +609,11 @@ def analyze(sym, node, name):
                 "via": (node.get("via")
                         if isinstance(node, dict) else None),
                 "data_age_days": age2}
-    return {"symbol": sym, "name": name, "resolved": False,
-            "move_state": "UNRESOLVED", "range_state": "UNRESOLVED"}
+    out = {"symbol": sym, "name": name, "resolved": False,
+           "move_state": "UNRESOLVED", "range_state": "UNRESOLVED"}
+    if isinstance(node, dict) and node.get("comp_why"):
+        out["detail"] = node["comp_why"]
+    return out
 
 
 def lambda_handler(event, context):
@@ -626,8 +638,11 @@ def lambda_handler(event, context):
                     and any(op in sym for op in "-/+") \
                     and ":" in sym:
                 fb = eval_composite(sym, budget)
-                if fb:
+                if fb and fb.get("series"):
                     node = fb
+                elif fb and fb.get("comp_why"):
+                    node = (node if isinstance(node, dict)
+                            else {}) | {"comp_why": fb["comp_why"]}
             if node is None or not extract_series(node):
                 if sym in FLEET_MAP:
                     fb = fleet_column_series(*FLEET_MAP[sym])
