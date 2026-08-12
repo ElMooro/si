@@ -1,4 +1,4 @@
-"""justhodl-real-economy-collector v1.0.0 (ops 4614)
+"""justhodl-real-economy-collector v1.1.0 (ops 4614)
 
 Institutional ingestion layer for the Physical/Real Economy signal —
 the Google/Microsoft separation: this Lambda ONLY fetches and lands
@@ -15,6 +15,9 @@ One leg's failure can never block another. Tiers are evidence classes:
 Keys via env only (EIA_API_KEY, FRED_API_KEY) — never hardcoded.
 Nothing is ever faked: a failed fetch lands status FAILED with the
 verbatim reason.
+v1.1.0 (per the 4614 truth table): EIA-930 on the daily route,
+chokepoints with date-format negotiation, copper with a FRED
+fallback, NOAA parser records its miss reason.
 """
 import csv
 import io
@@ -100,33 +103,37 @@ def leg_eia930(leg_id, respondent):
     if not EIA_KEY:
         return land(leg_id, "tier1", "EIA-930", "FAILED",
                     detail="EIA_API_KEY not set")
+    url = ("https://api.eia.gov/v2/electricity/rto/region-data/data/"
+           "?api_key=%s&frequency=daily&data[0]=value"
+           "&facets[respondent][]=%s&facets[type][]=D"
+           "&sort[0][column]=period&sort[0][direction]=desc"
+           "&length=60" % (EIA_KEY, respondent))
     try:
-        start = (datetime.now(timezone.utc)
-                 - timedelta(days=40)).strftime("%Y-%m-%dT00")
-        qs = ("api_key=%s&frequency=hourly&data[0]=value"
-              "&facets[respondent][]=%s&facets[type][]=D&start=%s"
-              "&sort[0][column]=period&sort[0][direction]=desc"
-              "&length=5000" % (EIA_KEY, respondent, start))
-        d = json.loads(http_get(
-            "https://api.eia.gov/v2/electricity/rto/region-data/data/?"
-            + qs, 40))
-        rows = ((d.get("response") or {}).get("data")) or []
-        daily = {}
+        d = json.loads(http_get(url, 40))
+        resp = d.get("response") or {}
+        rows = resp.get("data") or []
+        se = []
         for x in rows:
-            p, v = str(x.get("period", "")), x.get("value")
-            if len(p) >= 10 and isinstance(v, (int, float)):
-                daily.setdefault(p[:10], 0.0)
-                daily[p[:10]] += float(v)
-        days = sorted(daily)
-        if len(days) >= 3:
-            days = days[:-1]  # drop the partial current day
-        se = [{"date": dd, "value": round(daily[dd] / 1000.0, 2)}
-              for dd in days]  # GWh
+            p, v = str(x.get("period", ""))[:10], x.get("value")
+            if v is None:
+                continue
+            try:
+                se.append({"date": p, "value": round(
+                    float(v) / 1000.0, 2)})
+            except Exception:
+                continue
+        se.sort(key=lambda o: o["date"])
+        if len(se) >= 2:
+            se = se[:-1]  # partial current day off
         if not se:
-            raise RuntimeError("0 daily rows")
+            raise RuntimeError(
+                "0 rows (api total=%s, err=%s)"
+                % (resp.get("total"),
+                   str(d.get("error") or resp.get(
+                       "warnings"))[:80]))
         return land(leg_id, "tier1", "EIA-930 %s demand" % respondent,
-                    "OK", series=se, detail="daily GWh, partial day "
-                    "dropped")
+                    "OK", series=se,
+                    detail="daily GWh (native daily route)")
     except Exception as e:
         return land(leg_id, "tier1", "EIA-930 " + respondent, "FAILED",
                     detail=e)
@@ -184,12 +191,33 @@ def leg_chokepoints():
     url = (ARC + "/PortWatch_chokepoints_database/FeatureServer/0/"
            "query")
     try:
-        cut = (datetime.now(timezone.utc)
-               - timedelta(days=70)).strftime("%Y-%m-%d")
+        cutd = datetime.now(timezone.utc) - timedelta(days=70)
+        probes = [
+            "date >= DATE '%s'" % cutd.strftime("%Y-%m-%d"),
+            "date >= TIMESTAMP '%s'" % cutd.strftime(
+                "%Y-%m-%d %H:%M:%S"),
+            "date >= %d" % int(cutd.timestamp() * 1000),
+            "1=1",
+        ]
+        where, werr = None, []
+        for w in probes:
+            qs0 = urllib.parse.urlencode({
+                "where": w, "returnCountOnly": "true", "f": "pjson"})
+            j0 = json.loads(http_get(url + "?" + qs0, 30))
+            if isinstance(j0, dict) and j0.get("error"):
+                werr.append("%s -> %s" % (
+                    w[:24], j0["error"].get("message", "")[:50]))
+                continue
+            if (j0.get("count") or 0) > 0:
+                where = w
+                break
+            werr.append("%s -> count=0" % w[:24])
+        if not where:
+            raise RuntimeError("no where works: " + " | ".join(werr))
         rows, offset = [], 0
         for _ in range(8):
             qs = urllib.parse.urlencode({
-                "where": "date >= DATE '%s'" % cut, "outFields": "*",
+                "where": where, "outFields": "*",
                 "resultOffset": offset, "resultRecordCount": 2000,
                 "f": "pjson"})
             j = json.loads(http_get(url + "?" + qs, 40))
@@ -219,7 +247,7 @@ def leg_chokepoints():
                 daily.setdefault(d0, 0.0)
                 daily[d0] += float(v)
         se = [{"date": d0, "value": round(daily[d0], 1)}
-              for d0 in sorted(daily)]
+              for d0 in sorted(daily)][-75:]
         return land("chokepoints", "tier1",
                     "IMF PortWatch chokepoints (ArcGIS)", "OK",
                     series=se,
@@ -338,6 +366,26 @@ def leg_copper():
                     series=se, detail="continuous front-month close; "
                     "priced-not-measured — tier-2 by design")
     except Exception as e:
+        try:
+            qs = urllib.parse.urlencode({
+                "series_id": "PCOPPUSDM", "api_key": FRED_KEY,
+                "file_type": "json", "sort_order": "desc",
+                "limit": 60})
+            d = json.loads(http_get(
+                "https://api.stlouisfed.org/fred/series/"
+                "observations?" + qs, 25))
+            se = [{"date": o["date"], "value": float(o["value"])}
+                  for o in d.get("observations", [])
+                  if o.get("value") not in (None, ".", "")]
+            se.reverse()
+            if se:
+                return land("copper", "tier2",
+                            "FRED PCOPPUSDM (fallback)", "OK",
+                            series=se,
+                            detail="stooq empty (%s) — IMF monthly "
+                                   "copper via FRED" % str(e)[:60])
+        except Exception:
+            pass
         return land("copper", "tier2", "copper stooq", "DEGRADED",
                     detail=e)
 
@@ -351,12 +399,22 @@ def leg_noaa_dd():
                 "https://ftp.cpc.ncep.noaa.gov/htdocs/degree_days/"
                 "weighted/daily_data/%d/Population.%s.txt"
                 % (yr, kind), 25).decode("utf-8", "replace")
+            hit = False
             for line in txt.splitlines():
-                if line.strip().upper().startswith("UNITED STATES"):
+                u = line.strip().upper()
+                if (u.startswith("UNITED STATES") or u.startswith(
+                        "CONUS") or u.startswith("US ")):
                     nums = re.findall(r"(\d+)", line)
                     if nums:
-                        got[kind.lower() + "_dd_latest"] = int(nums[-1])
+                        got[kind.lower() + "_dd_latest"] = int(
+                            nums[-1])
+                        hit = True
                     break
+            if not hit:
+                got[kind.lower() + "_err"] = ("US line not found; "
+                                              "head=%s"
+                                              % txt[:60].replace(
+                                                  "\n", " "))
         except Exception as e:
             got[kind.lower() + "_err"] = str(e)[:80]
     if any(k.endswith("_dd_latest") for k in got):
