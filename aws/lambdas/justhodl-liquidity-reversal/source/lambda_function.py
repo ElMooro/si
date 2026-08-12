@@ -1,4 +1,4 @@
-"""justhodl-liquidity-reversal v1.3.2 (ops 4638)
+"""justhodl-liquidity-reversal v1.3.3 (ops 4638)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
@@ -1311,7 +1311,7 @@ def analyze(sym, node, name):
             up = tb["reversal"] == "REVERSAL_UP"
             liq_dir = ("EASING" if (up and pol > 0)
                        or (not up and pol < 0) else "TIGHTENING")
-        return {"symbol": sym, "name": name, "resolved": True,
+        row = {"symbol": sym, "name": name, "resolved": True,
                 "last": round(last, 4),
                 "dod_pct": round(dod, 2) if dod is not None else None,
                 "chg_str": chg_str,
@@ -1332,6 +1332,7 @@ def analyze(sym, node, name):
             row["move_state"] = "STALE"
             row["reversal_state"] = None
             row["trend_state"] = None
+        return row
     lv, ld = extract_latest(node)
     if lv is not None:
         prev = None
