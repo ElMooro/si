@@ -1,4 +1,4 @@
-"""justhodl-physical-econ v2.1.3 (ops 4614)
+"""justhodl-physical-econ v2.1.4 (ops 4614)
 
 The Physical/Real Economy signal, institutional restructure: five
 weighted SUB-PILLARS computed purely from evidence landed by
@@ -713,6 +713,20 @@ def lambda_handler(event, context):
             "list": bs.get("list_name"),
             "doctrine": "Khalid's TV blackswan list as a tail-risk "
                         "alarm strip (observed, never load-bearing)"}
+    lq = s3_json("data/liquidity-reversal.json")
+    if lq and (lq.get("liquidity") or {}).get("trend_label"):
+        L = lq["liquidity"]
+        canaries["liquidity_reversal"] = {
+            "state": ("RED" if "CONFIRMED" in
+                      str(L.get("reversal_label")) else
+                      "AMBER" if "FORMING" in
+                      str(L.get("reversal_label")) else "CALM"),
+            "trend": L.get("trend_label"),
+            "trend_score": L.get("trend_score"),
+            "reversal": L.get("reversal_label"),
+            "reversal_score": L.get("reversal_score"),
+            "doctrine": "global liquidity trend/reversal dials "
+                        "(observed, never load-bearing)"}
     cl = s3_json(WARM + "fred_claims.json")
     if cl and cl.get("status") == "OK":
         se = cl.get("series") or []
