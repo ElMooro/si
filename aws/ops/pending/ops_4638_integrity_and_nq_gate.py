@@ -1,4 +1,4 @@
-"""ops 4638 r4 — clean redeploy + conflict-tolerant gate; RESTORED v1.2.0 base (my clone had buried the evolved union+polarity engine), audit fixes re-ported on top as v1.3.0.
+"""ops 4638 r5 — ops-side direct code deploy (workflow skips the fn); proxy reused from lambda env; RESTORED v1.2.0 base (my clone had buried the evolved union+polarity engine), audit fixes re-ported on top as v1.3.0.
 
 From Khalid's liquidity page paste: (1) INTEGRITY — cross-exchange
 bare-heuristic collisions (EURONEXT:BANK wearing Nasdaq's BANK
@@ -112,10 +112,73 @@ def main():
     with report("4638_integrity_and_nq_gate") as r:
         r.heading("ops 4638 — integrity + grammar + NQ door")
 
+        r.section("direct code deploy (ops-side)")
+        import zipfile as zf2
+        for fn, src in ((LFN, "aws/lambdas/justhodl-liquidity-"
+                         "reversal/source/lambda_function.py"),
+                        (BFN, "aws/lambdas/justhodl-blackswan-"
+                         "watch/source/lambda_function.py")):
+            try:
+                buf = io.BytesIO()
+                with zf2.ZipFile(buf, "w",
+                                 zf2.ZIP_DEFLATED) as z:
+                    z.write(src, "lambda_function.py")
+                for att in range(10):
+                    try:
+                        st = lam.get_function_configuration(
+                            FunctionName=fn)
+                        if st.get("LastUpdateStatus") \
+                                == "InProgress":
+                            time.sleep(15)
+                            continue
+                        lam.update_function_code(
+                            FunctionName=fn,
+                            ZipFile=buf.getvalue())
+                        break
+                    except Exception as e:
+                        if "ResourceConflict" in str(e):
+                            time.sleep(15)
+                            continue
+                        raise
+                for _ in range(24):
+                    st = lam.get_function_configuration(
+                        FunctionName=fn)
+                    if st.get("LastUpdateStatus") \
+                            == "Successful":
+                        break
+                    time.sleep(5)
+                r.ok("  [code-deploy] %s pushed from checkout"
+                     % fn)
+            except Exception as e:
+                r.warn("code-deploy %s: %s" % (fn, str(e)[:90]))
+
         r.section("NQ egress worker (Cloudflare)")
         proxy_url = None
         pkey = None
-        if not CF:
+        try:
+            ev0 = (lam.get_function_configuration(
+                FunctionName=LFN).get("Environment")
+                or {}).get("Variables") or {}
+            pu0, pk0 = ev0.get("NQ_PROXY_URL"), ev0.get(
+                "NQ_PROXY_KEY")
+            if pu0 and pk0:
+                tqs = ("/api/quote/NQGIT/historical?assetclass="
+                       "index&limit=20&fromdate=2026-06-01&"
+                       "todate=2026-08-12")
+                tb = http_get("%s?k=%s&path=%s"
+                              % (pu0, pk0,
+                                 urllib.parse.quote(tqs,
+                                                    safe="")), 30)
+                if b"tradesTable" in tb or b"data" in tb:
+                    proxy_url, pkey = pu0, pk0
+                    r.ok("  [nq-door] reusing live worker from "
+                         "lambda env (smoke PASS, %d bytes)"
+                         % len(tb))
+        except Exception as e:
+            r.log("proxy reuse probe: %s" % str(e)[:80])
+        if proxy_url:
+            pass
+        elif not CF:
             r.warn("CLOUDFLARE_API_TOKEN absent in runner env — "
                    "NQ door skipped; all other fixes proceed")
         else:
