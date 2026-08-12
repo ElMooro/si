@@ -1,4 +1,4 @@
-"""ops 4638 r7 — runtime confession (CloudWatch tail) + COMP_BUDGET guard; settle marker corrected (sed ghost: helper call kept v1.1.0) (workflow skips the fn); proxy reused from lambda env; RESTORED v1.2.0 base (my clone had buried the evolved union+polarity engine), audit fixes re-ported on top as v1.3.0.
+"""ops 4638 r8 — raw traceback capture + COMP_BUDGET guard; settle marker corrected (sed ghost: helper call kept v1.1.0) (workflow skips the fn); proxy reused from lambda env; RESTORED v1.2.0 base (my clone had buried the evolved union+polarity engine), audit fixes re-ported on top as v1.3.0.
 
 From Khalid's liquidity page paste: (1) INTEGRITY — cross-exchange
 bare-heuristic collisions (EURONEXT:BANK wearing Nasdaq's BANK
@@ -276,10 +276,17 @@ def main():
                                     region_name="us-east-1")
                 evs = logs.filter_log_events(
                     logGroupName="/aws/lambda/" + LFN,
-                    startTime=int((time.time() - 900) * 1000),
-                    filterPattern="?ERROR ?Traceback ?Error")
-                for e in (evs.get("events") or [])[-12:]:
-                    r.log("CW: " + e["message"].strip()[:160])
+                    startTime=int((t_inv - 5) * 1000))
+                msgs = [e["message"] for e in
+                        (evs.get("events") or [])]
+                tail = "".join(msgs)[-4000:]
+                for ln in tail.splitlines():
+                    ls = ln.strip()
+                    if ls and ("File \"" in ls or "Error" in ls
+                               or "line " in ls
+                               or ls.startswith("raise")
+                               or "lambda_function" in ls):
+                        r.log("CW| " + ls[:170])
             except Exception as e:
                 r.warn("cw tail: %s" % str(e)[:80])
         pl = s3j("data/liquidity-reversal.json") or {}
