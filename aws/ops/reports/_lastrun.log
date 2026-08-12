@@ -1,33 +1,17 @@
-executing-against: b71855c7c0db8f686079fa0ea5f3156cce376c97
-ops 4638 — integrity + grammar + NQ door
-── direct code deploy (ops-side) ──
-[18:38:05] ✅   [code-deploy] justhodl-liquidity-reversal pushed from checkout
-[18:38:11] ✅   [code-deploy] justhodl-blackswan-watch pushed from checkout
-── NQ egress worker (Cloudflare) ──
-[18:38:13] proxy body[:220]: {"data":null,"message":null,"status":{"rCode":400,"bCodeMessage":[{"code":1001,"errorMessage":"Symbol not exists."}],"developerMessage":null}}
-[18:38:13] ✅   [nq-door] reusing live worker from lambda env (smoke PASS, 142 bytes)
-[18:38:25] ✅   [nq-door] worker live + env injected on both engines
-── deploy-settle both engines ──
-[18:38:25] ✅   [deploy] liq v1.3.0 (restored base) + blackswan v1.9.0
-── run + audited truth ──
-[18:39:35] EURONEXT:BANK                res=True  state=CALM       z=None  
-[18:39:35] FRED:TREASURY                res=True  state=STALE      z=1.05  
-[18:39:35] 1/(FRED:TOTLL/FRED:M2SL)     res=True  state=CALM       z=0.57  
-[18:39:35] TVC:DE10Y-TVC:IT10Y          res=True  state=CALM       z=0.27  
-[18:39:35] 1-FRED:BAMLC0A0CMEY          res=True  state=CALM       z=1.37  
-[18:39:35] FX:EURUSD                    res=True  state=CALM       z=0.24  
-[18:39:35] SAXO:JPYEUR                  res=True  state=CALM       z=0.14  
-[18:39:35] NASDAQ:NQEU3010              res=False state=UNRESOLVED z=None  
-[18:39:35] ✅   [integrity] EURONEXT:BANK no longer wears the Nasdaq value (res=True via=None)
-[18:39:35] ✅   [stale-guard] discontinued TREASURY excluded from dials (stale=True)
-[18:39:35] ✅   [grammar] 3/3 grammar-v2 composites live (constants/parens/EZ-tenor legs)
-[18:39:35] ✅   [fx-prefixes] 2/2 extended-prefix FX resolved
-[18:39:35] ⚠ NQ via door: 0 — probe body above decides wall vs bug; route stays armed
-[18:39:35] ✅   [nq-unlock] 0 NQ rows (armed; body forensic logged)
-[18:39:35] ✅   [dials] TREND 13.0 (MIXED) · REVERSAL 17.4 (FORMING TURN TO EASE)
-── edge ──
-[18:39:35] ✅   [edge] edge serves the audited payload
+executing-against: 4249cc9a64d3d79090c76f48d73bcadcdbc4d694
+ops 4639 — schema realignment
+── deploy (ops-side) + settle ──
+[18:57:27] ✅   [deploy] v1.3.4 live
+── run + row-schema truth ──
+[18:58:20] FRED:WALCL               chg=+0.15% (WoW)     z=0.79  trend=UP    rev=NONE
+[18:58:20] FRED:DGS10               chg=+1.51% (DoD)     z=1.49  trend=UP    rev=NONE
+[18:58:20] AMEX:JNK                 chg=-0.17% (DoD)     z=0.68  trend=DOWN  rev=NONE
+[18:58:20] TVC:DE10Y-TVC:IT10Y      chg=-3.60% (MoM)     z=0.27  trend=UP    rev=REVERSAL_UP
+[18:58:20] ✅   [row-schema] 4/4 sample rows carry chg+trend+reversal(alias)
+[18:58:20] ✅   [dials] TREND 13.0 (MIXED) · REV 17.4 (FORMING TURN TO EASE)
+── edge page/payload ──
+[19:00:01] ✅   [edge] page reads evolved keys; payload rows render-ready
 ── verdict ──
-[18:39:35] ✅ AUDIT SEALED — integrity restored, stale-guarded dials 13.0/MIXED, grammar v2 live (EZ spreads), NQ door OPEN (0 rows) · resolved 685
+[19:00:01] ✅ SCHEMA ALIGNED — page and payload speak one language again: TREND 13.0 (MIXED) · REVERSAL 17.4 (FORMING TURN TO EASE) · 685 resolved rows fully rendered
 
-→ Report written to aws/ops/reports/latest/4638_integrity_and_nq_gate.md
+→ Report written to aws/ops/reports/latest/4639_page_schema.md
