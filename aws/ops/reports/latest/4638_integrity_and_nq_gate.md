@@ -1,8 +1,8 @@
 # ops 4638 — integrity + grammar + NQ door
 
 **Status:** failure  
-**Duration:** 510.0s  
-**Finished:** 2026-08-12T17:52:05+00:00  
+**Duration:** 88.7s  
+**Finished:** 2026-08-12T17:56:52+00:00  
 
 ## Error
 
@@ -12,19 +12,41 @@ SystemExit: 1
 
 ## Data
 
-| bytes | proxy | smoke |
-|---|---|---|
-| 142 | https://justhodl-nq-proxy.raafouis.workers.dev | PASS |
+| barometer | gauge | glabel | n_stale | resolved | trend_capable |
+|---|---|---|---|---|---|
+| 0.0 | 50.0 | TRENDING | 0 | 2 | 2 |
 
 ## Log
 ## direct code deploy (ops-side)
 
-- `17:43:41` ✅   [code-deploy] justhodl-liquidity-reversal pushed from checkout
-- `17:43:46` ✅   [code-deploy] justhodl-blackswan-watch pushed from checkout
+- `17:55:30` ✅   [code-deploy] justhodl-liquidity-reversal pushed from checkout
+- `17:55:36` ✅   [code-deploy] justhodl-blackswan-watch pushed from checkout
 ## NQ egress worker (Cloudflare)
 
-- `17:43:47` proxy reuse probe: HTTP Error 403: Forbidden
-- `17:44:02` ✅   [nq-door] worker live + env injected on both engines
+- `17:55:40` ✅   [nq-door] reusing live worker from lambda env (smoke PASS, 142 bytes)
+- `17:55:51` ✅   [nq-door] worker live + env injected on both engines
 ## deploy-settle both engines
 
-- `17:52:05` ✗   [deploy] CONTRACT MISS — liq v1.3.0 (restored base) + blackswan v1.9.0
+- `17:55:52` ✅   [deploy] liq v1.3.0 (restored base) + blackswan v1.9.0
+## run + audited truth
+
+- `17:56:52` EURONEXT:BANK                res=None  state=None       z=None  
+- `17:56:52` FRED:TREASURY                res=None  state=None       z=None  
+- `17:56:52` 1/(FRED:TOTLL/FRED:M2SL)     res=None  state=None       z=None  
+- `17:56:52` TVC:DE10Y-TVC:IT10Y          res=None  state=None       z=None  
+- `17:56:52` 1-FRED:BAMLC0A0CMEY          res=None  state=None       z=None  
+- `17:56:52` FX:EURUSD                    res=None  state=None       z=None  
+- `17:56:52` SAXO:JPYEUR                  res=None  state=None       z=None  
+- `17:56:52` NASDAQ:NQEU3010              res=None  state=None       z=None  
+- `17:56:52` ✅   [integrity] EURONEXT:BANK no longer wears the Nasdaq value (res=None via=None)
+- `17:56:52` ✗   [stale-guard] CONTRACT MISS — discontinued TREASURY excluded from dials (stale=None)
+- `17:56:52` ✗   [grammar] CONTRACT MISS — 0/3 grammar-v2 composites live (constants/parens/EZ-tenor legs)
+- `17:56:52` ✗   [fx-prefixes] CONTRACT MISS — 0/2 extended-prefix FX resolved
+- `17:56:52` ✗   [nq-unlock] CONTRACT MISS — 0 NQ bank-family rows via the Cloudflare door: []
+- `17:56:52` ✅   [dials] gauge 50.0 (TRENDING) on stale-clean rows
+## edge
+
+- `17:56:52` ✅   [edge] edge serves the audited payload
+## verdict
+
+- `17:56:52` ✗ audit gate: 4 red
