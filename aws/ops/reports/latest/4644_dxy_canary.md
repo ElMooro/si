@@ -1,32 +1,26 @@
 # ops 4644 — dxy canary on the board
 
-**Status:** failure  
-**Duration:** 166.1s  
-**Finished:** 2026-08-12T22:35:54+00:00  
-
-## Error
-
-```
-SystemExit: 1
-```
+**Status:** success  
+**Duration:** 5.0s  
+**Finished:** 2026-08-12T22:38:22+00:00  
 
 ## Data
 
 | canary |
 |---|
-| {} |
+| {"state": "AMBER", "trend": 27.3, "trend_label": "USD_UP", "reversal": -54.5, "reversal_label": "FORMING TURN TO USD-DOWN", "doctrine": "Khalid's DXY-leads family: mechanical polarity dials (observed, never load-bearing) |
 
 ## Log
 ## deploy (ops-side) + settle
 
-- `22:33:09` ✅   [deploy] v2.1.5 live
+- `22:38:18` ✅   [deploy] v2.1.6 live
 ## run + parity
 
-- `22:33:13` ✗   [canary] CONTRACT MISS — board parity: None / None
-- `22:33:13` ✗   [trio] CONTRACT MISS — board carries ['blackswan_strip']
+- `22:38:21` ✅   [canary] board parity: USD_UP / FORMING TURN TO USD-DOWN
+- `22:38:21` ✅   [trio] board carries ['blackswan_strip', 'dxy_predict']
 ## edge
 
-- `22:35:54` ✗   [edge] CONTRACT MISS — edge board carries the dxy dial
+- `22:38:22` ✅   [edge] edge board carries the dxy dial
 ## verdict
 
-- `22:35:54` ✗ dxy canary: 3 red
+- `22:38:22` ✅ TRIO COMPLETE — dxy_predict on the physical board: USD_UP · FORMING TURN TO USD-DOWN (state AMBER)
