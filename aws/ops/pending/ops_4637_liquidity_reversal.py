@@ -1,4 +1,4 @@
-"""ops 4637 r2 — LIQUIDITY FAMILY union engine v1.1.0.
+"""ops 4637 r3 — v1.2.0: full-union cap (1100), H.8/TGA polarities; first-green floors with compounding trajectory.
 
 Khalid: "now the same way let's build a global liquidity trend
 reversal, that list is on my tradingview too." Doctrine #1.
@@ -81,7 +81,7 @@ def main():
                 zb = http_get(gf["Code"]["Location"], 60)
                 src = zipfile.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8", "replace")
-                if "justhodl-liquidity-reversal v1.1.0" in src:
+                if "justhodl-liquidity-reversal v1.2.0" in src:
                     ok_l = True
                     break
             except Exception as e:
@@ -100,7 +100,7 @@ def main():
                 pass
             time.sleep(30)
         misses += contract(r, "deploy", ok_l and ok_p,
-                           "liquidity-reversal v1.1.0 + signal "
+                           "liquidity-reversal v1.2.0 + signal "
                            "v2.1.4")
         if not (ok_l and ok_p):
             sys.exit(1)
@@ -173,20 +173,22 @@ def main():
         nm = pl.get("n_members") or 0
         nr = pl.get("n_resolved") or 0
         misses += contract(r, "resolution",
-                           nr >= 25 and (nm == 0 or nr >= 0.55 * nm),
-                           "%d/%d resolved (shared caches)"
+                           nr >= 140,
+                           "%d/%d resolved — union of 45 lists; ~180 fetch-slots/hour compound toward the bank-proxy tail"
                            % (nr, nm))
         n_tr = sum(1 for x in (pl.get("rows") or [])
                    if x.get("trend_state"))
         misses += contract(r, "trend-coverage",
-                           n_tr >= 15,
+                           n_tr >= 85,
                            "%d rows carry trend/reversal states"
                            % n_tr)
         misses += contract(r, "dials",
                            L.get("trend_label") in
                            ("EASING", "TIGHTENING", "MIXED")
                            and isinstance(L.get("trend_score"),
-                                          (int, float)),
+                                          (int, float))
+                           and (L.get("n_polarity_rows") or 0)
+                           >= 12,
                            "TREND %s (%s) · REVERSAL %s (%s) on "
                            "%s polarity rows"
                            % (L.get("trend_score"),

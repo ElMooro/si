@@ -1,4 +1,4 @@
-"""justhodl-liquidity-reversal v1.1.0 (ops 4637)
+"""justhodl-liquidity-reversal v1.2.0 (ops 4637)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
@@ -1060,6 +1060,10 @@ POLARITY = {
     "FRED:BAMLC0A0CM": -1, "FRED:BAMLH0A0HYM2": -1,
     "FRED:SOFR-FRED:FEDFUNDS": -1, "FRED:CPFF": -1,
     "FRED:STLFSI4": -1, "FRED:KCFSI": -1,
+    # H.8 / TGA additions from the 4637 first-light truth table
+    "FRED:CASACBW027SBOG": 1, "FRED:DPSACBW027SBOG": 1,
+    "FRED:TOTBKCR": 1, "FRED:WLCFLL": -1,
+    "FRED:TREASURY": -1, "FRED:WTREGEN": -1,
 }
 TREND_WIN = {"DoD": (20, 60), "WoW": (8, 26), "MoM": (3, 12),
              "QoQ": (2, 6), "chg": (8, 26)}
@@ -1267,7 +1271,7 @@ def lambda_handler(event, context):
     rows = []
     budget = {"n": FRED_BUDGET}
     if list_name:
-        for sym in syms[:300]:
+        for sym in syms[:1100]:
             node = vault_lookup(vault, wb, list_name, sym)
             if (node is None or not extract_series(node)) \
                     and sym.startswith("FRED:"):
