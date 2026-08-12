@@ -1,4 +1,4 @@
-"""justhodl-real-economy-collector v1.2.1 (ops 4614)
+"""justhodl-real-economy-collector v1.3.0 (ops 4614)
 
 Institutional ingestion layer for the Physical/Real Economy signal —
 the Google/Microsoft separation: this Lambda ONLY fetches and lands
@@ -21,6 +21,10 @@ fallback, NOAA parser records its miss reason.
 v1.2.0: link-follow resolution for AAR (news listing -> release
 page, FRED BTS fallback) and Destatis (CSV href harvested off the
 page); stooq mirror for copper; ACC CAB URL candidates.
+v1.3.0 (Wave 4): DTS withheld taxes + customs (daily wage/import
+reads), EIA Cushing/NG-storage/exports/gas-burn, NOAA upgraded to a
+full daily degree-day series, WEI + four FRED cycle legs, FBX
+observed.
 """
 import csv
 import io
@@ -372,6 +376,120 @@ def leg_indeed():
 
 
 # ── tier-2: structured public files/pages ───────────────────────────
+def leg_dts():
+    """Daily Treasury Statement (fiscaldata, keyless): withheld
+    income/FICA taxes = fastest hard wage read; customs duties =
+    physical imports proxy. One fetch lands two legs."""
+    try:
+        cut = (datetime.now(timezone.utc)
+               - timedelta(days=430)).strftime("%Y-%m-%d")
+        base = ("https://api.fiscaldata.treasury.gov/services/api/"
+                "fiscal_service/v1/accounting/dts/"
+                "deposits_withdrawals_operating_cash")
+        rows = []
+        for page in range(1, 4):
+            qs = ("?fields=record_date,transaction_catg,"
+                  "transaction_type,transaction_today_amt"
+                  "&filter=record_date:gte:%s"
+                  "&sort=-record_date&page[size]=900&page[number]=%d"
+                  % (cut, page))
+            d = json.loads(http_get(base + qs, 40))
+            batch = d.get("data") or []
+            rows.extend(batch)
+            if len(batch) < 900:
+                break
+        wh, cu = {}, {}
+        for x in rows:
+            if x.get("transaction_type") != "Deposits":
+                continue
+            catg = str(x.get("transaction_catg", ""))
+            try:
+                amt = float(x.get("transaction_today_amt"))
+            except Exception:
+                continue
+            d0 = x.get("record_date")
+            if "Withheld" in catg:
+                wh[d0] = wh.get(d0, 0.0) + amt
+            elif "Customs" in catg:
+                cu[d0] = cu.get(d0, 0.0) + amt
+        st_w = "FAILED"
+        if wh:
+            se = [{"date": k, "value": round(v, 1)}
+                  for k, v in sorted(wh.items())]
+            st_w = land("dts_withheld", "tier1",
+                        "DTS withheld income/FICA taxes", "OK",
+                        series=se,
+                        detail="daily $M deposits — aggregate wages")
+        else:
+            st_w = land("dts_withheld", "tier1", "DTS", "FAILED",
+                        detail="no Withheld rows in %d" % len(rows))
+        if cu:
+            se = [{"date": k, "value": round(v, 1)}
+                  for k, v in sorted(cu.items())]
+            land("dts_customs", "tier1", "DTS customs duties", "OK",
+                 series=se, detail="daily $M — physical imports proxy")
+        else:
+            land("dts_customs", "tier1", "DTS", "FAILED",
+                 detail="no Customs rows in %d" % len(rows))
+        return st_w
+    except Exception as e:
+        land("dts_customs", "tier1", "DTS", "FAILED", detail=e)
+        return land("dts_withheld", "tier1", "DTS", "FAILED", detail=e)
+
+
+def leg_eia930_fuel(leg_id, respondent, fuel):
+    if not EIA_KEY:
+        return land(leg_id, "tier1", "EIA-930 fuel", "FAILED",
+                    detail="EIA_API_KEY not set")
+    url = ("https://api.eia.gov/v2/electricity/rto/"
+           "daily-fuel-type-data/data/?api_key=%s&frequency=daily"
+           "&data[0]=value&facets[respondent][]=%s"
+           "&facets[fueltype][]=%s&facets[timezone][]=Eastern"
+           "&sort[0][column]=period&sort[0][direction]=desc"
+           "&length=60" % (EIA_KEY, respondent, fuel))
+    try:
+        d = json.loads(http_get(url, 40))
+        rows = ((d.get("response") or {}).get("data")) or []
+        se = []
+        for x in rows:
+            p, v = str(x.get("period", ""))[:10], x.get("value")
+            if v is None:
+                continue
+            try:
+                se.append({"date": p,
+                           "value": round(float(v) / 1000.0, 2)})
+            except Exception:
+                continue
+        se.sort(key=lambda o: o["date"])
+        if len(se) >= 2:
+            se = se[:-1]
+        if not se:
+            raise RuntimeError("0 rows")
+        return land(leg_id, "tier1",
+                    "EIA-930 %s %s generation" % (respondent, fuel),
+                    "OK", series=se, detail="daily GWh")
+    except Exception as e:
+        return land(leg_id, "tier1", "EIA-930 fuel", "FAILED",
+                    detail=e)
+
+
+def leg_fbx():
+    try:
+        html = http_get("https://fbx.freightos.com/", 25).decode(
+            "utf-8", "replace")
+        m = re.search(r"FBX[^0-9$]{0,60}\$?\s*([\d,]{3,6}"
+                      r"(?:\.\d+)?)", html, re.I | re.S)
+        if not m:
+            raise RuntimeError("headline number not found")
+        return land("fbx", "tier2", "Freightos FBX", "OK",
+                    metrics={"fbx_usd":
+                             float(m.group(1).replace(",", ""))},
+                    detail="global container spot headline $/FEU")
+    except Exception as e:
+        return land("fbx", "tier2", "Freightos FBX", "DEGRADED",
+                    detail=e)
+
+
 def leg_tsa():
     try:
         html = http_get("https://www.tsa.gov/travel/passenger-volumes",
@@ -470,6 +588,62 @@ def leg_copper():
 
 
 def leg_noaa_dd():
+    """v1.3.0: land the FULL daily national CDD/HDD series (dates in
+    the header row, regions down the rows) so the signal layer can
+    weather-adjust the power legs by regression."""
+    yr = datetime.now(timezone.utc).year
+    series = {}
+    for kind in ("Cooling", "Heating"):
+        try:
+            txt = http_get(
+                "https://ftp.cpc.ncep.noaa.gov/htdocs/degree_days/"
+                "weighted/daily_data/%d/Population.%s.txt"
+                % (yr, kind), 30).decode("utf-8", "replace")
+            lines = [l for l in txt.splitlines() if l.strip()]
+            hdr = next((l for l in lines
+                        if re.search(r"\d{8}.*\d{8}", l)), "")
+            dates = re.findall(r"(\d{8})", hdr)
+            usl = next((l for l in lines
+                        if l.strip().upper().startswith(
+                            ("UNITED STATES", "CONUS", "US "))
+                        or "|UNITED STATES" in l.upper()), "")
+            vals = re.findall(r"(\d+)", usl.split("|")[-1]
+                              if "|" in usl else usl)
+            n = min(len(dates), len(vals))
+            if n >= 30:
+                series[kind.lower()] = [
+                    {"date": "%s-%s-%s" % (dates[k][:4],
+                                           dates[k][4:6],
+                                           dates[k][6:8]),
+                     "value": float(vals[len(vals) - n + k])}
+                    for k in range(n)]
+        except Exception as e:
+            series[kind.lower() + "_err"] = str(e)[:80]
+    cdd = series.get("cooling")
+    if cdd:
+        env = {"leg_id": "noaa_degree_days", "tier": "tier2",
+               "source": "NOAA CPC population-weighted degree days",
+               "status": "OK",
+               "fetched_at": datetime.now(timezone.utc).isoformat(
+                   timespec="seconds"),
+               "series": cdd[-400:], "n_obs": len(cdd),
+               "hdd_latest": (series.get("heating") or [{}])[-1]
+               .get("value"),
+               "detail": "daily national CDD series (US line, header "
+                         "dates); HDD latest attached"}
+        s3.put_object(Bucket=BUCKET,
+                      Key=PREFIX + "noaa_degree_days.json",
+                      Body=json.dumps(env).encode(),
+                      ContentType="application/json",
+                      CacheControl="max-age=300")
+        return "OK"
+    return land("noaa_degree_days", "tier2", "NOAA CPC", "DEGRADED",
+                detail=json.dumps({k: v for k, v in series.items()
+                                   if k.endswith("_err")})[:200]
+                or "US row/header not parsed")
+
+
+def _legacy_noaa_unused():
     yr = datetime.now(timezone.utc).year
     got = {}
     for kind in ("Cooling", "Heating"):
@@ -730,6 +904,35 @@ def lambda_handler(event, context):
             "fred_hours", "AWHI",
             "aggregate weekly hours index — labor as quantity", 200)),
         ("indeed_postings", leg_indeed),
+        ("dts_withheld", leg_dts),
+        ("eia_cushing", lambda: leg_eia_weekly(
+            "eia_cushing", "PET.W_EPC0_SAX_YCUOK_MBBL.W",
+            "Cushing OK crude stocks — WTI delivery point")),
+        ("eia_ng_storage", lambda: leg_eia_weekly(
+            "eia_ng_storage", "NG.NW2_EPG0_SWO_R48_BCF.W",
+            "L48 working gas in storage")),
+        ("eia_exports", lambda: leg_eia_weekly(
+            "eia_exports", "PET.WTTEXUS2.W",
+            "US crude + product exports — physical trade")),
+        ("eia930_gasburn", lambda: leg_eia930_fuel(
+            "eia930_gasburn", "US48", "NG")),
+        ("fred_wei", lambda: leg_fred(
+            "fred_wei", "WEI",
+            "NY Fed Weekly Economic Index — replication benchmark",
+            200)),
+        ("fred_neworder", lambda: leg_fred(
+            "fred_neworder", "NEWORDER",
+            "core capex orders (nondef ex-air)", 200)),
+        ("fred_isratio", lambda: leg_fred(
+            "fred_isratio", "ISRATIO",
+            "business inventories/sales (inverted leg)", 200)),
+        ("fred_awhman", lambda: leg_fred(
+            "fred_awhman", "AWHMAN",
+            "manufacturing weekly hours — the classic leader", 200)),
+        ("fred_ttlcons", lambda: leg_fred(
+            "fred_ttlcons", "TTLCONS",
+            "construction spending", 200)),
+        ("fbx", leg_fbx),
         ("tsa", leg_tsa),
         ("aisi_steel", leg_aisi),
         ("copper", leg_copper),
