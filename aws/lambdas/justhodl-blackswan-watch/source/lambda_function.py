@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.7.0 (ops 4623)
+"""justhodl-blackswan-watch v1.7.1 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -36,7 +36,12 @@ WARM = "data/warm/blackswan/"
 FRED_KEY = os.environ.get("FRED_API_KEY",
                           "2f057499936072679d8843d7fce99989")
 FRED_BUDGET = 110  # bounded per run; cumulative via warm cache
-YH_BUDGET = {"n": 85}  # Yahoo-chart alias fallback, same pattern
+YH_BUDGET = {"n": 70}
+CUR_BUDGET = {"n": 25}   # curated symbols + curated composite legs
+CB_BUDGET = {"n": 12}    # CBOE CDN route
+MP_BUDGET = {"n": 12}    # multpl route
+CURATED_FRED = {"FX:SONIA3M": ("IUDSOIA",
+                               "O/N SONIA proxy for 3M")}  # Yahoo-chart alias fallback, same pattern
 s3 = boto3.client("s3")
 
 
@@ -249,9 +254,16 @@ def leg_series(leg, budget):
     if sid:
         return fred_fallback("FRED:" + sid, budget)
     if leg in CURATED_LEG_YH:
-        return yahoo_fallback(CURATED_LEG_YH[leg], YH_BUDGET)
+        return yahoo_fallback(CURATED_LEG_YH[leg], CUR_BUDGET)
     if leg.startswith("MULTPL:"):
-        return multpl_fallback(leg.split(":", 1)[1], YH_BUDGET)
+        return multpl_fallback(leg.split(":", 1)[1], MP_BUDGET)
+    # plain exchange-ticker legs: ma200 buffer (free) then Yahoo
+    if re.fullmatch(r"[A-Z]+:[A-Z0-9]{1,8}", leg):
+        fb = ma200_series(leg)
+        if fb:
+            return fb
+        return yahoo_fallback(leg.split(":", 1)[1], YH_BUDGET,
+                              "leg heuristic")
     return None
 
 
@@ -469,6 +481,8 @@ CURATED_YH = {
     "SPCFD:S5INDU": ("^SP500-20", None),
     "TSE:TOPIX": ("1475.T", "TOPIX ETF proxy"),
     "EUREX:FESX2!": ("^STOXX50E", "index proxy for futures"),
+    "EUREX:FMEA2!": ("EEMA", "EM-Asia ETF proxy"),
+    "EUREX:FMXU2!": ("ACWX", "world-ex-US ETF proxy"),
     "ASX24:AP1!": ("^AXJO", "index proxy for SPI futures"),
     "CBOT:ZB2!": ("ZB=F", "front-month proxy"),
     "CBOT:UB2!": ("UB=F", "front-month proxy"),
@@ -931,8 +945,15 @@ def lambda_handler(event, context):
             if node is None or not extract_series(node):
                 if sym in CURATED_YH:
                     ya, note = CURATED_YH[sym]
-                    fb = yahoo_fallback(ya, YH_BUDGET, note)
+                    fb = yahoo_fallback(ya, CUR_BUDGET, note)
                     if fb:
+                        node = fb
+                elif sym in CURATED_FRED:
+                    fsid2, note2 = CURATED_FRED[sym]
+                    fb = fred_fallback("FRED:" + fsid2, budget)
+                    if fb:
+                        fb = dict(fb)
+                        fb["via"] = "FRED %s · %s" % (fsid2, note2)
                         node = fb
                 elif sym.startswith("FX_IDC:") and len(
                         sym.split(":", 1)[1]) == 6:
@@ -947,12 +968,12 @@ def lambda_handler(event, context):
                         node = fb
                 elif sym.startswith("MULTPL:"):
                     fb = multpl_fallback(sym.split(":", 1)[1],
-                                         YH_BUDGET)
+                                         MP_BUDGET)
                     if fb:
                         node = fb
                 elif sym.startswith("CBOE:"):
                     fb = cboe_fallback(sym.split(":", 1)[1],
-                                       YH_BUDGET)
+                                       CB_BUDGET)
                     if fb:
                         node = fb
                 elif re.fullmatch(r"[A-Z]+:[A-Z0-9]{2,12}", sym) \

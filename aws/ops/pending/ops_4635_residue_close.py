@@ -1,6 +1,6 @@
 """ops 4630 — BLACKSWAN BAROMETER + TE join + ffill composites.
 
-Khalid: one barometer summarizing the strip ops 4633 — v1.6.0 ops 4634 — v1.7.0 residue routes: universal composite legs, MULTPL + CBOE-CDN + DXY-family: cache-first, 429-safe, poisoned-miss purge + FX inversion + FRED twins + negative-cached heuristic.
+Khalid: one barometer summarizing the strip ops 4633 — v1.6.0 ops 4634 — v1.7.1 — ticker legs via ma200 (free), dedicated route budgets, SONIA twin, EUREX ETF proxies: cache-first, 429-safe, poisoned-miss purge + FX inversion + FRED twins + negative-cached heuristic.
 rows from his engines/providers. v1.4.0: (1) 0-100 tail-stress
 barometer — 45% breadth of >=2-sigma shocks + 40% breadth of 1y
 range extremes + 15% stretched, with components + top extremes;
@@ -46,7 +46,7 @@ def http_get(url, timeout=45):
 
 def main():
     misses = 0
-    with report("4634_residue_routes") as r:
+    with report("4635_residue_close") as r:
         r.heading("ops 4630 — barometer + TE join")
 
         r.section("deploy-settle")
@@ -57,7 +57,7 @@ def main():
                 zb = http_get(gf["Code"]["Location"], 60)
                 src = zipfile.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8", "replace")
-                if "justhodl-blackswan-watch v1.7.0" in src:
+                if "justhodl-blackswan-watch v1.7.1" in src:
                     ok_b = True
                     break
             except Exception as e:
@@ -76,7 +76,7 @@ def main():
                 pass
             time.sleep(30)
         misses += contract(r, "deploy", ok_b and ok_p,
-                           "blackswan v1.7.0 + signal v2.1.3")
+                           "blackswan v1.7.1 + signal v2.1.3")
         if not (ok_b and ok_p):
             sys.exit(1)
 
@@ -141,8 +141,23 @@ def main():
              by_prefix=json.dumps(pref.most_common(12)))
         for i in range(0, min(len(unres), 120), 6):
             r.log(" · ".join(unres[i:i + 6]))
-        misses += contract(r, "census-shrunk", len(unres) <= 105,
-                           "%d unresolved (113->target <=105; ~85+ fetch-slots/hour keep compounding)" % len(unres))
+        misses += contract(r, "census-shrunk", len(unres) <= 96,
+                           "%d unresolved (106->target <=96; ~85+ fetch-slots/hour keep compounding)" % len(unres))
+        for sym4 in ("NASDAQ:TLT/AMEX:SPY", "AMEX:XLP/AMEX:XLY",
+                     "AMEX:AGG/AMEX:HYG", "FX:SONIA3M"):
+            x4 = rows.get(sym4) or {}
+            r.log("%-24s %-9s z=%-5s n=%-4s %s"
+                  % (sym4, x4.get("move_state", "?"),
+                     x4.get("move_z"), x4.get("n_obs", "-"),
+                     str(x4.get("via") or "")[:22]))
+        ratio_ok = sum(1 for sym4 in ("NASDAQ:TLT/AMEX:SPY",
+                                      "AMEX:XLP/AMEX:XLY",
+                                      "AMEX:AGG/AMEX:HYG")
+                       if (rows.get(sym4) or {}).get("move_z")
+                       is not None)
+        misses += contract(r, "ratio-legs", ratio_ok >= 2,
+                           "%d/3 ETF ratio composites z-based "
+                           "(ma200 legs)" % ratio_ok)
         for sym3 in ("ICEUS:DX1!-TVC:DXY", "CBOE:VIX1Y",
                      "NSE:CNXSMALLCAP",
                      "ECONOMICS:USINBR-TVC:US03MY",
@@ -160,7 +175,7 @@ def main():
                                     "TVC:DXY")
                      if (rows.get(sym3) or {}).get("move_z")
                      is not None)
-        misses += contract(r, "residue-routes", new_ok >= 3,
+        misses += contract(r, "residue-routes", new_ok >= 4,
                            "%d/5 new residue routes z-based"
                            % new_ok)
         for sym2 in ("KRX:KOSPI200", "INDEX:FTSEMIB",
@@ -200,7 +215,7 @@ def main():
                            "%d/5 alias spot-checks on z-basis"
                            % alias_z)
         nh = pl.get("n_with_history") or 0
-        misses += contract(r, "history-depth", nh >= 300,
+        misses += contract(r, "history-depth", nh >= 315,
                            "%d rows on statistical basis (steady-state ~330 as the hourly cache compounds)" % nh)
         sf = rows.get("FRED:SOFR-FRED:FEDFUNDS") or {}
         misses += contract(r, "ffill-composite",
@@ -209,7 +224,7 @@ def main():
                            % (sf.get("move_z") or sf.get("detail"),
                               str(sf.get("chg_str"))[:26]))
         misses += contract(r, "resolution",
-                           (pl.get("n_resolved") or 0) >= 394,
+                           (pl.get("n_resolved") or 0) >= 404,
                            "%s/500 — census-attacked; residue enumerated below" % pl.get("n_resolved"))
 
         r.section("board + edge")
