@@ -1,4 +1,4 @@
-"""justhodl-liquidity-reversal v1.0.0 (ops 4623)
+"""justhodl-liquidity-reversal v1.1.0 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -296,17 +296,35 @@ def nasdaq_fallback(idx, budget):
     except Exception:
         frm = "2025-06-01"
     try:
-        url = ("https://api.nasdaq.com/api/quote/%s/historical"
-               "?assetclass=index&limit=300&fromdate=%s&todate=%s"
-               % (idx, frm,
-                  datetime.now(timezone.utc).strftime("%Y-%m-%d")))
-        req = urllib.request.Request(url, headers={
-            "User-Agent": "Mozilla/5.0",
-            "Accept": "application/json, text/plain, */*",
-            "Origin": "https://www.nasdaq.com"})
-        time.sleep(0.25)
-        with urllib.request.urlopen(req, timeout=15) as h:
-            d = json.loads(h.read())
+        qs = ("/api/quote/%s/historical?assetclass=index&limit=300"
+              "&fromdate=%s&todate=%s"
+              % (idx, frm,
+                 datetime.now(timezone.utc).strftime("%Y-%m-%d")))
+        d = None
+        try:
+            req = urllib.request.Request(
+                "https://api.nasdaq.com" + qs, headers={
+                    "User-Agent": "Mozilla/5.0",
+                    "Accept": "application/json, text/plain, */*",
+                    "Origin": "https://www.nasdaq.com"})
+            time.sleep(0.25)
+            with urllib.request.urlopen(req, timeout=12) as h:
+                d = json.loads(h.read())
+        except Exception:
+            d = None
+        purl = os.environ.get("NQ_PROXY_URL")
+        pkey = os.environ.get("NQ_PROXY_KEY")
+        if d is None and purl and pkey:
+            req = urllib.request.Request(
+                "%s?k=%s&path=%s" % (purl, pkey,
+                                     urllib.parse.quote(qs,
+                                                        safe="")),
+                headers={"User-Agent": "justhodl-fleet"})
+            time.sleep(0.25)
+            with urllib.request.urlopen(req, timeout=20) as h:
+                d = json.loads(h.read())
+        if d is None:
+            return None
         rows = (((d.get("data") or {}).get("tradesTable")
                  or {}).get("rows")) or []
         se = []
@@ -502,12 +520,23 @@ def te_hist_fallback(sym, budget):
     return None
 
 
+TENOR_FRED = {"TVC:DE10Y": "IRLTLT01DEM156N",
+              "TVC:IT10Y": "IRLTLT01ITM156N",
+              "TVC:FR10Y": "IRLTLT01FRM156N",
+              "TVC:ES10Y": "IRLTLT01ESM156N",
+              "TVC:JP10Y": "IRLTLT01JPM156N"}
+
+
 def leg_series(leg, budget):
     """v1.7.0 universal composite leg resolver: FRED (incl
     ECONOMICS twins + TVC:US*Y), curated Yahoo, MULTPL."""
+    if re.fullmatch(r"\d+(\.\d+)?", leg):
+        return {"series": [], "const": float(leg)}
     sid = leg_to_fred(leg)
     if sid is None and leg in ECON_FRED:
         sid = ECON_FRED[leg]
+    if sid is None and leg in TENOR_FRED:
+        sid = TENOR_FRED[leg]
     if sid:
         return fred_fallback("FRED:" + sid, budget)
     if leg in CURATED_LEG_YH:
@@ -878,9 +907,120 @@ COMP_BUDGET = {"n": 40}  # reserved: composite legs (FEDFUNDS-class
 # is never a standalone member, so the shared budget starved them)
 
 
+def _tok(sym):
+    out, cur = [], ""
+    for ch in sym:
+        if ch in "()+-/":
+            if ch == "-" and (not out or out[-1] in "()+-/") \
+                    and not cur:
+                cur += ch
+                continue
+            if cur:
+                out.append(cur)
+                cur = ""
+            out.append(ch)
+        else:
+            cur += ch
+    if cur:
+        out.append(cur)
+    return out
+
+
+def _parse(tokens, pos, budget, depth=0):
+    """Recursive-descent over + - / with parentheses and numeric
+    constants. Returns (value_map_or_const, pos) or (None, why)."""
+    if depth > 4:
+        return None, "depth"
+
+    def prim(p):
+        if p < len(tokens) and tokens[p] == "(":
+            v, p2 = _parse(tokens, p + 1, budget, depth + 1)
+            if v is None:
+                return None, p2
+            if p2 >= len(tokens) or tokens[p2] != ")":
+                return None, "unclosed paren"
+            return v, p2 + 1
+        if p >= len(tokens):
+            return None, "eof"
+        leg = tokens[p]
+        env = leg_series(leg, budget)
+        if env is None:
+            return None, "leg %s unresolvable" % leg[:22]
+        if env.get("const") is not None:
+            return env["const"], p + 1
+        return {o["date"]: o["value"]
+                for o in env["series"]}, p + 1
+    v, p = prim(pos)
+    if v is None:
+        return None, p
+    while isinstance(p, int) and p < len(tokens) \
+            and tokens[p] in "+-/":
+        op = tokens[p]
+        rhs, p2 = prim(p + 1)
+        if rhs is None:
+            return None, p2
+        v = _combine(v, rhs, op)
+        if v is None:
+            return None, "combine fail"
+        p = p2
+    return v, p
+
+
+def _combine(a, b, op):
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+        if op == "+":
+            return a + b
+        if op == "-":
+            return a - b
+        return a / b if b else None
+    if isinstance(a, (int, float)):
+        a = {d: a for d in b}
+    if isinstance(b, (int, float)):
+        b = {d: b for d in a}
+    cal = sorted(set(a) | set(b))[-300:]
+    fa, fb = {}, {}
+    la = lb = None
+    ka, kb = sorted(a), sorted(b)
+    ia = ib = 0
+    for d in cal:
+        while ia < len(ka) and ka[ia] <= d:
+            la = a[ka[ia]]
+            ia += 1
+        while ib < len(kb) and kb[ib] <= d:
+            lb = b[kb[ib]]
+            ib += 1
+        if la is not None:
+            fa[d] = la
+        if lb is not None:
+            fb[d] = lb
+    out = {}
+    for d in cal:
+        if d not in fa or d not in fb:
+            continue
+        x, y = fa[d], fb[d]
+        if op == "+":
+            out[d] = x + y
+        elif op == "-":
+            out[d] = x - y
+        else:
+            if not y:
+                continue
+            out[d] = x / y
+    return out or None
+
+
 def eval_composite(sym, budget):
     budget = COMP_BUDGET
     why = []
+    if "(" in sym or re.match(r"^\d", sym):
+        toks = _tok(sym)
+        v, p = _parse(toks, 0, budget)
+        if isinstance(v, dict) and len(v) >= 15:
+            se = [{"date": d, "value": round(v[d], 6)}
+                  for d in sorted(v)[-300:]]
+            return {"series": se}
+        return {"comp_why": "grammar: %s"
+                % (p if isinstance(p, str) else "short")}
     """v1.2.0: evaluate A-B / A/B / A+B formulas whose every leg is
     FRED-mappable — unlocks the plumbing spreads (SOFR-FF, 30s10s,
     IG-vs-10Y...) with full z+range basis via the warm cache."""
@@ -1171,6 +1311,12 @@ def analyze(sym, node, name):
                 "range_state": range_state,
                 "n_obs": len(se), "data_age_days": age}
         row.update(trend_metrics(vals, diff_basis))
+        cad_days = {"DoD": 4, "WoW": 10, "MoM": 45,
+                    "QoQ": 120}.get(lab, 45)
+        if age is not None and age > max(45, 3 * cad_days):
+            row["stale"] = True
+            row["move_state"] = "STALE"
+            row["reversal_state"] = None
         return row
     lv, ld = extract_latest(node)
     if lv is not None:
@@ -1291,7 +1437,8 @@ def lambda_handler(event, context):
                         fb = dict(fb)
                         fb["via"] = "FRED %s · %s" % (fsid2, note2)
                         node = fb
-                elif sym.startswith("FX_IDC:") and len(
+                elif sym.split(":", 1)[0] in (
+                        "FX_IDC", "FX", "SAXO", "OANDA") and len(
                         sym.split(":", 1)[1]) == 6:
                     pair = sym.split(":", 1)[1]
                     fb = yahoo_fallback(pair + "=X", YH_BUDGET)
@@ -1331,9 +1478,9 @@ def lambda_handler(event, context):
                     fb = te_hist_fallback(sym, TE_BUDGET)
                     if fb:
                         node = fb
-                elif re.fullmatch(r"[A-Z]+:[A-Z0-9]{2,12}", sym) \
-                        and not sym.startswith(("ECONOMICS:",
-                                                "FRED:")):
+                elif re.fullmatch(r"(NASDAQ|NYSE|AMEX|CBOE|BATS|"
+                                  r"ICEUS|SPCFD|CME|CBOT|NYMEX|"
+                                  r"COMEX):[A-Z0-9]{2,12}", sym):
                     fb = yahoo_fallback(sym.split(":", 1)[1],
                                         YH_BUDGET, "heuristic")
                     if fb:
@@ -1354,7 +1501,8 @@ def lambda_handler(event, context):
         alarm = "CALM"
     top = sorted(with_hist,
                  key=lambda r: -(r.get("move_z") or 0))[:5]
-    tr = [r for r in resolved if r.get("reversal_state")]
+    resolved_live = [r for r in resolved if not r.get("stale")]
+    tr = [r for r in resolved_live if r.get("reversal_state")]
     n_tu = sum(1 for r in tr if r["reversal_state"] == "TURN_UP")
     n_td = sum(1 for r in tr if r["reversal_state"] == "TURN_DOWN")
     n_up = sum(1 for r in tr if r["reversal_state"] == "TREND_UP")
@@ -1393,8 +1541,9 @@ def lambda_handler(event, context):
              "doctrine": "breadth of statistically forceful "
                          "1M-vs-3M sign divergences; direction "
                          "semantics live in the named rows"}
-    z_rows = [r for r in resolved if r.get("move_z") is not None]
-    rng = [r for r in resolved
+    z_rows = [r for r in resolved_live
+              if r.get("move_z") is not None]
+    rng = [r for r in resolved_live
            if r.get("range_pos_pct") is not None]
     shock_b = (100.0 * sum(1 for r in z_rows
                            if r["move_z"] >= 2) / len(z_rows)

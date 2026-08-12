@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.8.1 (ops 4623)
+"""justhodl-blackswan-watch v1.9.0 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -296,17 +296,35 @@ def nasdaq_fallback(idx, budget):
     except Exception:
         frm = "2025-06-01"
     try:
-        url = ("https://api.nasdaq.com/api/quote/%s/historical"
-               "?assetclass=index&limit=300&fromdate=%s&todate=%s"
-               % (idx, frm,
-                  datetime.now(timezone.utc).strftime("%Y-%m-%d")))
-        req = urllib.request.Request(url, headers={
-            "User-Agent": "Mozilla/5.0",
-            "Accept": "application/json, text/plain, */*",
-            "Origin": "https://www.nasdaq.com"})
-        time.sleep(0.25)
-        with urllib.request.urlopen(req, timeout=15) as h:
-            d = json.loads(h.read())
+        qs = ("/api/quote/%s/historical?assetclass=index&limit=300"
+              "&fromdate=%s&todate=%s"
+              % (idx, frm,
+                 datetime.now(timezone.utc).strftime("%Y-%m-%d")))
+        d = None
+        try:
+            req = urllib.request.Request(
+                "https://api.nasdaq.com" + qs, headers={
+                    "User-Agent": "Mozilla/5.0",
+                    "Accept": "application/json, text/plain, */*",
+                    "Origin": "https://www.nasdaq.com"})
+            time.sleep(0.25)
+            with urllib.request.urlopen(req, timeout=12) as h:
+                d = json.loads(h.read())
+        except Exception:
+            d = None
+        purl = os.environ.get("NQ_PROXY_URL")
+        pkey = os.environ.get("NQ_PROXY_KEY")
+        if d is None and purl and pkey:
+            req = urllib.request.Request(
+                "%s?k=%s&path=%s" % (purl, pkey,
+                                     urllib.parse.quote(qs,
+                                                        safe="")),
+                headers={"User-Agent": "justhodl-fleet"})
+            time.sleep(0.25)
+            with urllib.request.urlopen(req, timeout=20) as h:
+                d = json.loads(h.read())
+        if d is None:
+            return None
         rows = (((d.get("data") or {}).get("tradesTable")
                  or {}).get("rows")) or []
         se = []
@@ -1255,9 +1273,9 @@ def lambda_handler(event, context):
                     fb = te_hist_fallback(sym, TE_BUDGET)
                     if fb:
                         node = fb
-                elif re.fullmatch(r"[A-Z]+:[A-Z0-9]{2,12}", sym) \
-                        and not sym.startswith(("ECONOMICS:",
-                                                "FRED:")):
+                elif re.fullmatch(r"(NASDAQ|NYSE|AMEX|CBOE|BATS|"
+                                  r"ICEUS|SPCFD|CME|CBOT|NYMEX|"
+                                  r"COMEX):[A-Z0-9]{2,12}", sym):
                     fb = yahoo_fallback(sym.split(":", 1)[1],
                                         YH_BUDGET, "heuristic")
                     if fb:
