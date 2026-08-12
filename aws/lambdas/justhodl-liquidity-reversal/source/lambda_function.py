@@ -1,4 +1,4 @@
-"""justhodl-liquidity-reversal v1.4.2 (ops 4641)
+"""justhodl-liquidity-reversal v1.4.3 (ops 4641)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
@@ -540,20 +540,56 @@ def te_hist_fallback(sym, budget):
     return None
 
 
-def _cg_global():
-    """One CoinGecko /global fetch per run (keyless)."""
-    if "d" in _CG:
-        return _CG["d"]
+def _http_json(url, timeout=12):
+    req = urllib.request.Request(
+        url, headers={"User-Agent": "justhodl-fleet",
+                      "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as h:
+        return json.loads(h.read())
+
+
+def _cc_snapshot():
+    """Source-redundant crypto-cap snapshot: CoinGecko global,
+    else CoinPaprika(total,btc)+CoinCap(usdt/usdc/eth mcaps)."""
+    if "snap" in _CG:
+        return _CG["snap"]
+    snap = {"src": None, "err": []}
     try:
-        req = urllib.request.Request(
-            "https://api.coingecko.com/api/v3/global",
-            headers={"User-Agent": "justhodl-fleet"})
-        with urllib.request.urlopen(req, timeout=12) as h:
-            _CG["d"] = (json.loads(h.read()) or {}).get("data") \
-                or {}
-    except Exception:
-        _CG["d"] = {}
-    return _CG["d"]
+        g = (_http_json("https://api.coingecko.com/api/v3/"
+                        "global") or {}).get("data") or {}
+        tot = (g.get("total_market_cap") or {}).get("usd")
+        pc = g.get("market_cap_percentage") or {}
+        if tot and pc.get("btc"):
+            snap.update(src="coingecko", total_usd=float(tot),
+                        dom={k: float(pc[k]) for k in
+                             ("btc", "eth", "usdt", "usdc")
+                             if isinstance(pc.get(k),
+                                           (int, float))})
+            _CG["snap"] = snap
+            return snap
+    except Exception as e:
+        snap["err"].append("cg:" + str(e)[:60])
+    try:
+        pj = _http_json("https://api.coinpaprika.com/v1/global")
+        tot = float(pj["market_cap_usd"])
+        dom = {"btc": float(pj.get(
+            "bitcoin_dominance_percentage") or 0)}
+        cc = _http_json("https://api.coincap.io/v2/assets"
+                        "?ids=ethereum,tether,usd-coin")
+        for a in (cc.get("data") or []):
+            mc = float(a.get("marketCapUsd") or 0)
+            key = {"ethereum": "eth", "tether": "usdt",
+                   "usd-coin": "usdc"}.get(a.get("id"))
+            if key and mc and tot:
+                dom[key] = 100.0 * mc / tot
+        snap.update(src="paprika+coincap", total_usd=tot,
+                    dom=dom)
+        _CG["snap"] = snap
+        return snap
+    except Exception as e:
+        snap["err"].append("pk/cc:" + str(e)[:60])
+    _CG["snap"] = snap
+    return snap
 
 
 def cryptocap_fallback(sym, budget):
@@ -571,18 +607,19 @@ def cryptocap_fallback(sym, budget):
                      for o in env["series"][-3:])
     if not have_today and budget["n"] > 0:
         budget["n"] -= 1
-        g = _cg_global()
+        g = _cc_snapshot()
+        dom = g.get("dom") or {}
         v = None
         if kind == "mcap":
-            v = ((g.get("total_market_cap") or {}).get("usd"))
+            v = g.get("total_usd")
         elif kind == "domsum":
-            pc = g.get("market_cap_percentage") or {}
-            parts = [pc.get(k2) for k2 in key]
+            parts = [dom.get(k2) for k2 in key]
             v = (sum(parts) if all(isinstance(p, (int, float))
                                    for p in parts) else None)
         else:
-            v = ((g.get("market_cap_percentage") or {})
-                 .get(key))
+            v = dom.get(key)
+        if v is None and g.get("err"):
+            env["fetch_err"] = " | ".join(g["err"])[:120]
         if isinstance(v, (int, float)):
             env["series"].append({"date": today,
                                   "value": round(float(v), 6)})
@@ -597,8 +634,12 @@ def cryptocap_fallback(sym, budget):
             except Exception:
                 pass
     if env.get("series"):
-        env.setdefault("via", "CoinGecko global (self-building)")
+        env.setdefault("via", "%s (self-building)"
+                       % (_CG.get("snap", {}).get("src")
+                          or "cryptocap"))
         return env
+    if env.get("fetch_err"):
+        return {"comp_why": "cryptocap: " + env["fetch_err"]}
     return None
 
 

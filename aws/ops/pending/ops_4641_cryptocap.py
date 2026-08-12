@@ -1,4 +1,4 @@
-"""ops 4640 — ops 4641 r2 — CRYPTOCAP domsum virtual (member truth); self-building series (CoinGecko global; legs + rows); v1.4.1.
+"""ops 4640 — ops 4641 r3 — source-redundant snapshot (CG→paprika+coincap) with fetch confession (member truth); self-building series (CoinGecko global; legs + rows); v1.4.1.
 columns dash out; prior-arc fix pattern applied: read the writer's
 schema, patch the reader with tolerant getters, alias in engine).
 
@@ -76,13 +76,13 @@ def main():
                 src = zf2.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-liquidity-reversal v1.4.2" in src:
+                if "justhodl-liquidity-reversal v1.4.3" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
-        misses += contract(r, "deploy", settled, "v1.4.2 live")
+        misses += contract(r, "deploy", settled, "v1.4.3 live")
         if not settled:
             sys.exit(1)
 
@@ -139,10 +139,12 @@ def main():
         for sym in ("CRYPTOCAP:TOTAL", "CRYPTOCAP:BTC.D",
                     "CRYPTOCAP:USDT.D+CRYPTOCAP:USDC.D"):
             x = rows.get(sym) or {}
-            r.log("%-36s res=%-5s last=%-14s n=%-3s %s"
+            r.log("%-36s res=%-5s last=%-12s n=%-3s %s%s"
                   % (sym[:36], x.get("resolved"),
                      x.get("last"), x.get("n_obs"),
-                     str(x.get("via") or "")[:26]))
+                     str(x.get("via") or "")[:24],
+                     (" | " + str(x.get("detail"))[:60])
+                     if x.get("detail") else ""))
         tot = rows.get("CRYPTOCAP:TOTAL") or {}
         btc = rows.get("CRYPTOCAP:BTC.D") or {}
         stb = rows.get("CRYPTOCAP:USDT.D+CRYPTOCAP:USDC.D") or {}
