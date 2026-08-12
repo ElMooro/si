@@ -1,0 +1,63 @@
+# ops 4623 — blackswan canary strip
+
+**Status:** failure  
+**Duration:** 11.2s  
+**Finished:** 2026-08-12T01:54:05+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| alarm | engine | list | members | resolved | top | with_history |
+|---|---|---|---|---|---|---|
+|  | {"ok": true, "list": "Black Swan Event", "resolved": 117, "alarm": "RED"} |  |  |  |  |  |
+| RED |  | Black Swan Event | 500 | 117 | [{"symbol": "FRED:T10YIEM", "z": null, "dod_pct": -1.75}, {"symbol": "FRED:T10YIE", "z": null, "dod_pct": -1.76}, {"symbol": "ECONOMICS:USRR", "z": null, "dod_pct": -25.33}, {"symbol": "FRED:MCUMFN",  | 69 |
+
+## Log
+## pre-dump: raw shapes (evidence for any repair)
+
+- `01:53:54` watchlists container top-level: {"generated_at": "2026-08-04T14:13:08.727854+00:00", "source": "tv-extension", "n_lists": 491, "lists": ["len=491", {"id": "str", "name": "str", "symbols": "list", "n": "int", "color": "NoneType"}]}
+- `01:53:54` n_list_names=491 · swan/black candidates: ['Black Swan Event', 'Blackrock ETF', 'ishares ETFs- Owned by BlackRock']
+- `01:53:54` vault top-level shape: {"engine": "justhodl-tradingview", "version": "3.2", "marker": "tradingview-vault v3.30.2 ops4227 sticky", "generated_at": "2026-08-11T11:35:10.875653+00:00", "brain_constitution": "registry parsed live from data/brain.jso", "cadence_model": {"daily_refetch": "every run", "weekly": ">6d", "monthly": ">27d", "quarterly": ">85d", "no_free_source_retry": ">27d", "rationale": "fetch only when the data
+- `01:53:54` ✅   [swan-list-exists] a swan/black list is present: ['Black Swan Event', 'Blackrock ETF', 'ishares ETFs- Owned by BlackRock']
+## deploy-settle + schedule
+
+- `01:53:55` ✅   [deploy] blackswan v1.0.1 + signal v2.1.2
+## engine run + per-symbol truth
+
+- `01:53:58` TVC:US03MY/FRED:BAMLH0A0HYM2 UNRESOLVED z=None  dod=None    range=UNRESOLVED Composite: TVC:US03MY/FRED:BAMLH0A0HYM2
+- `01:53:58` NYMEX:CL1!-BLACKBULL:WTI UNRESOLVED z=None  dod=None    range=UNRESOLVED Composite: NYMEX:CL1!-BLACKBULL:WTI
+- `01:53:58` FRED:T10YIEM   CALM      z=None  dod=-1.75   range=NO_HISTORY 10-Year Breakeven Inflation Rate
+- `01:53:58` FRED:T10YIE    CALM      z=None  dod=-1.76   range=NO_HISTORY 10-Year Breakeven Inflation Rate
+- `01:53:58` ECONOMICS:USRR RED       z=None  dod=-25.33  range=NO_HISTORY United States — RR (TradingView economic
+- `01:53:58` EUREX:FMOG1!   UNRESOLVED z=None  dod=None    range=UNRESOLVED FMOG1! (EUREX)
+- `01:53:58` FRED:MCUMFN    CALM      z=None  dod=-0.08   range=NO_HISTORY Capacity Utilization: Manufacturing (NAI
+- `01:53:58` FRED:USALOLITONOSTSAM CALM      z=None  dod=0.14    range=NO_HISTORY Composite Leading Indicators: Composite 
+- `01:53:58` FRED:PCOPPUSDM CALM      z=None  dod=0.29    range=NO_HISTORY Global price of Copper
+- `01:53:58` NYMEX:AA51!    NO_HISTORY z=None  dod=None    range=NO_HISTORY AA51! (NYMEX)
+- `01:53:58` FX_IDC:KYDUSD  UNRESOLVED z=None  dod=None    range=UNRESOLVED KYDUSD (MARKET: KYDUSD=X)
+- `01:53:58` FX_IDC:BMDUSD  UNRESOLVED z=None  dod=None    range=UNRESOLVED BMDUSD (MARKET: BMDUSD=X)
+- `01:53:58` FRED:CES4348400001 CALM      z=None  dod=-0.09   range=NO_HISTORY All Employees, Truck Transportation
+- `01:53:58` TVC:BTPBUND    NO_HISTORY z=None  dod=None    range=NO_HISTORY BTPBUND (TVC)
+- `01:53:58` FRED:HTRUCKSSAAR RED       z=None  dod=13.38   range=NO_HISTORY Motor Vehicle Retail Sales: Heavy Weight
+- `01:53:58` FRED:WPU09120325 CALM      z=None  dod=4.32    range=NO_HISTORY Producer Price Index by Commodity: Pulp,
+- `01:53:58` ECONOMICS:USWEI UNRESOLVED z=None  dod=None    range=UNRESOLVED United States — WEI (TradingView economi
+- `01:53:58` FRED:TCU       CALM      z=None  dod=-0.01   range=NO_HISTORY Capacity Utilization: Total Index
+- `01:53:58` FRED:AISRSA    CALM      z=None  dod=1.47    range=NO_HISTORY Auto Inventory/Sales Ratio
+- `01:53:58` NASDAQ:TLT     CALM      z=None  dod=-0.85   range=NO_HISTORY iShares 20+ Year Treasury Bond ETF
+- `01:53:58` FRED:TOTALSA   CALM      z=None  dod=3.13    range=NO_HISTORY Total Vehicle Sales
+- `01:53:58` ECONOMICS:USJC RED       z=None  dod=-10.53  range=NO_HISTORY United States — JC (TradingView economic
+- `01:53:58` ✅   [list-found] swan list resolved: Black Swan Event (500 members)
+- `01:53:58` ✗   [resolution] CONTRACT MISS — 117/500 symbols resolved from the vault
+- `01:53:58` ✅   [alarm] strip alarm RED (red=11 amber=2 extremes=0)
+## physical canary + edge
+
+- `01:54:03` ✅   [canary] blackswan_strip on the board: {"state": "RED", "n_red": 11, "n_amber": 2, "n_range_extreme": 0, "list": "Black Swan Event", "doctrine": "Khalid's TV blackswan list as a t
+- `01:54:05` ✅   [edge] page + payload at the edge
+## verdict
+
+- `01:54:05` ✗ blackswan: 1 red (pre-dump above is the repair evidence)
