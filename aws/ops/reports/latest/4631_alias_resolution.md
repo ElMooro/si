@@ -1,0 +1,44 @@
+# ops 4630 — barometer + TE join
+
+**Status:** failure  
+**Duration:** 27.4s  
+**Finished:** 2026-08-12T02:58:58+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| barometer | extreme | label | resolved | shock | stretched | top_extremes |
+|---|---|---|---|---|---|---|
+| 12.5 | 24.3 | QUIET | 375 | 1.1 | 15.5 | [{"symbol": "FRED:PCOPPUSDM", "range_pos_pct": 100.0}, {"symbol": "NASDAQ:TLT", "range_pos_pct": 0.0}, {"symbol": "FRED:HOANBS", "range_pos_pct": 100.0}, {"symbol": "FRED:RRSFS", "range_pos_pct": 100. |
+
+## Log
+## deploy-settle
+
+- `02:58:32` ✅   [deploy] blackswan v1.5.0 + signal v2.1.3
+## run + barometer truth
+
+- `02:58:52` ✅   [barometer] barometer 12.5 (QUIET)
+- `02:58:52` TE-joined: ['ECONOMICS:CLGDPYY', 'ECONOMICS:CLUR', 'ECONOMICS:CHUR', 'ECONOMICS:HKUR', 'ECONOMICS:USRSYY', 'ECONOMICS:EURSYY', 'ECONOMICS:NLCU', 'ECONOMICS:USBCOI', 'ECONOMICS:FIGDPYY', 'ECONOMICS:CHBCOI', 'ECONOMICS:FIBCOI', 'ECONOMICS:KYGDPYY']
+- `02:58:52` ✅   [te-join] 42 ECONOMICS rows via Trading Economics
+- `02:58:52` CBOT:ZB1!        CALM      z=0.5   n=252  
+- `02:58:52` FX_IDC:KRWUSD    CALM      z=0.01  n=260  
+- `02:58:52` ECONOMICS:CHUR   NO_HISTORY z=None  n=1    TE latest
+- `02:58:52` NASDAQ:VXUS      CALM      z=0.46  n=235  
+- `02:58:52` CBOE:VXEEM       NO_HISTORY z=None  n=1    
+- `02:58:52` AMEX:VEA         CALM      z=0.52  n=235  
+- `02:58:52` ✅   [alias-z] 4/5 alias spot-checks on z-basis
+- `02:58:52` ✗   [history-depth] CONTRACT MISS — 229 rows on statistical basis
+- `02:58:52` ✅   [ffill-composite] SOFR-FEDFUNDS z-based: z=0.42 +0.01 Δ (DoD)
+- `02:58:52` ✗   [resolution] CONTRACT MISS — 375/500 — dictionary-alias resolution live (FRED + Yahoo routes)
+## board + edge
+
+- `02:58:57` ✅   [canary-barometer] board carries barometer 12.5 (QUIET)
+- `02:58:58` ✅   [edge] edge serves the barometer
+## verdict
+
+- `02:58:58` ✗ barometer: 2 red
