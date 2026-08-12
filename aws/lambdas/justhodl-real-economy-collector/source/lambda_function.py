@@ -1,4 +1,4 @@
-"""justhodl-real-economy-collector v1.3.0 (ops 4614)
+"""justhodl-real-economy-collector v1.3.1 (ops 4614)
 
 Institutional ingestion layer for the Physical/Real Economy signal —
 the Google/Microsoft separation: this Lambda ONLY fetches and lands
@@ -387,16 +387,16 @@ def leg_dts():
                 "fiscal_service/v1/accounting/dts/"
                 "deposits_withdrawals_operating_cash")
         rows = []
-        for page in range(1, 4):
+        for page in range(1, 6):
             qs = ("?fields=record_date,transaction_catg,"
                   "transaction_type,transaction_today_amt"
                   "&filter=record_date:gte:%s"
-                  "&sort=-record_date&page[size]=900&page[number]=%d"
-                  % (cut, page))
-            d = json.loads(http_get(base + qs, 40))
+                  "&sort=-record_date&page[size]=10000"
+                  "&page[number]=%d" % (cut, page))
+            d = json.loads(http_get(base + qs, 60))
             batch = d.get("data") or []
             rows.extend(batch)
-            if len(batch) < 900:
+            if len(batch) < 10000:
                 break
         wh, cu = {}, {}
         for x in rows:
@@ -607,8 +607,12 @@ def leg_noaa_dd():
                         if l.strip().upper().startswith(
                             ("UNITED STATES", "CONUS", "US "))
                         or "|UNITED STATES" in l.upper()), "")
-            vals = re.findall(r"(\d+)", usl.split("|")[-1]
-                              if "|" in usl else usl)
+            if "|" in usl:
+                cells = [c.strip() for c in usl.split("|")[1:]]
+                vals = [c for c in cells
+                        if c.replace(".", "", 1).isdigit()]
+            else:
+                vals = re.findall(r"(\d+)", usl)[1:]
             n = min(len(dates), len(vals))
             if n >= 30:
                 series[kind.lower()] = [
