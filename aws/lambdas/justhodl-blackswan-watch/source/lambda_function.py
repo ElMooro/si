@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.4.2 (ops 4623)
+"""justhodl-blackswan-watch v1.4.3 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -380,8 +380,13 @@ def eval_composite(sym, budget):
         if bad:
             why.append(bad)
             return {"comp_why": " | ".join(why)[:160]}
-        base = max(legs, key=len)
-        common = sorted(base.keys())[-300:]
+        # union calendar (4630 r4 confession: len-tie picked the
+        # sparse monthly leg — 13 dates). Union guarantees daily
+        # granularity whenever any leg is daily.
+        cal = set()
+        for m in legs:
+            cal |= set(m.keys())
+        common = sorted(cal)[-300:]
         filled = []
         for m in legs:
             keys = sorted(m.keys())
