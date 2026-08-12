@@ -31,6 +31,7 @@ td{padding:7px 10px;border-bottom:1px solid var(--line)}
 move vs own history + 1y range extremes · no direction semantics
 fabricated · <span id="asof">loading…</span></div>
 <div class="banner"><div class="alarm" id="alarm">–</div>
+<div><div class="alarm" id="baro" style="font-size:26px">–</div><div class="dim" style="font-size:11px">BAROMETER</div></div>
 <div id="counts" class="dim"></div></div>
 <table><thead><tr><th>Symbol</th><th>Name</th><th>Last</th>
 <th>DoD %</th><th>|z|</th><th>Move</th><th>1y range pos</th>
@@ -48,6 +49,7 @@ document.getElementById('asof').textContent='as of '+(d.as_of||'?')+
 ' · list "'+(d.list_name||'?')+'"';
 const A=document.getElementById('alarm'),s=d.strip||{};
 A.textContent=s.alarm||'–';A.className='alarm '+C(s.alarm);
+const bm=d.barometer||{},BE=document.getElementById('baro');BE.textContent=(bm.value==null?'–':bm.value)+' '+(bm.label||'');BE.className='alarm '+(bm.value>=60?'r':bm.value>=40?'a':'g');
 document.getElementById('counts').textContent=
 (d.n_resolved||0)+'/'+(d.n_members||0)+' resolved · '+
 (s.n_red||0)+' RED · '+(s.n_amber||0)+' AMBER · '+

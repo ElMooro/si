@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.3.2 (ops 4623)
+"""justhodl-blackswan-watch v1.4.0 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -367,8 +367,22 @@ def eval_composite(sym, budget):
                 return None
             legs.append({o["date"]: o["value"]
                          for o in env["series"]})
-        common = sorted(set.intersection(
-            *[set(m.keys()) for m in legs]))[-300:]
+        base = max(legs, key=len)
+        common = sorted(base.keys())[-300:]
+        filled = []
+        for m in legs:
+            keys = sorted(m.keys())
+            f, j, lastv = {}, 0, None
+            for d0 in common:
+                while j < len(keys) and keys[j] <= d0:
+                    lastv = m[keys[j]]
+                    j += 1
+                if lastv is not None:
+                    f[d0] = lastv
+            filled.append(f)
+        legs = filled
+        common = [d0 for d0 in common
+                  if all(d0 in m for m in legs)]
         if len(common) < 15:
             return None
         se = []
@@ -556,6 +570,14 @@ def analyze(sym, node, name):
             dod = float(node["chg_pct"])
         elif prev:
             dod = (lv / prev - 1) * 100
+        age2 = None
+        if isinstance(node, dict) and node.get("date"):
+            try:
+                age2 = (datetime.now(timezone.utc).date()
+                        - datetime.fromisoformat(
+                            str(node["date"])[:10]).date()).days
+            except Exception:
+                pass
         ms = "NO_HISTORY"
         if dod is not None:
             # pct-basis (no sigma) can never mint RED — page-audit
@@ -570,7 +592,9 @@ def analyze(sym, node, name):
                 if dod is not None else "level-only",
                 "range_pos_pct": None, "range_state": "NO_HISTORY",
                 "n_obs": 2 if prev else 1,
-                "data_age_days": None}
+                "via": (node.get("via")
+                        if isinstance(node, dict) else None),
+                "data_age_days": age2}
     return {"symbol": sym, "name": name, "resolved": False,
             "move_state": "UNRESOLVED", "range_state": "UNRESOLVED"}
 
@@ -609,6 +633,14 @@ def lambda_handler(event, context):
                                        budget)
                     if fb:
                         node = fb
+                elif sym.startswith("ECONOMICS:"):
+                    te = fleet_doc("data/te-feed.json") or {}
+                    hit = (te.get("prices") or {}).get(
+                        sym.split(":", 1)[1])
+                    if hit and hit.get("value") is not None:
+                        node = {"value": hit["value"],
+                                "date": hit.get("asof"),
+                                "via": "TE latest"}
                 else:
                     fb = ma200_series(sym)
                     if fb:
@@ -629,6 +661,42 @@ def lambda_handler(event, context):
         alarm = "CALM"
     top = sorted(with_hist,
                  key=lambda r: -(r.get("move_z") or 0))[:5]
+    z_rows = [r for r in resolved if r.get("move_z") is not None]
+    rng = [r for r in resolved
+           if r.get("range_pos_pct") is not None]
+    shock_b = (100.0 * sum(1 for r in z_rows
+                           if r["move_z"] >= 2) / len(z_rows)
+               if z_rows else 0.0)
+    ext_b = (100.0 * sum(1 for r in rng
+                         if r.get("range_state") == "EXTREME")
+             / len(rng) if rng else 0.0)
+    str_b = (100.0 * sum(1 for r in rng
+                         if r.get("range_state") == "STRETCHED")
+             / len(rng) if rng else 0.0)
+    baro = round(min(100.0, 0.45 * shock_b + 0.40 * ext_b
+                     + 0.15 * str_b), 1)
+    blabel = ("CRITICAL" if baro >= 80 else
+              "HIGH" if baro >= 60 else
+              "ELEVATED" if baro >= 40 else
+              "WATCHFUL" if baro >= 20 else "QUIET")
+    top_ext = sorted(rng, key=lambda r: -abs(
+        r["range_pos_pct"] - 50))[:6]
+    barometer = {
+        "value": baro, "label": blabel,
+        "components": {
+            "shock_breadth_pct": round(shock_b, 1),
+            "range_extreme_pct": round(ext_b, 1),
+            "range_stretched_pct": round(str_b, 1),
+            "weights": {"shock": 0.45, "extreme": 0.40,
+                        "stretched": 0.15},
+            "n_z_rows": len(z_rows), "n_range_rows": len(rng)},
+        "top_extremes": [
+            {"symbol": t["symbol"],
+             "range_pos_pct": t["range_pos_pct"]}
+            for t in top_ext],
+        "doctrine": "breadth of >=2-sigma shocks (45%) + breadth "
+                    "of 1y range extremes (40%) + stretched (15%) "
+                    "across the whole Black Swan strip"}
     payload = {
         "schema_version": "1.0",
         "engine": "justhodl-blackswan-watch",
@@ -638,6 +706,7 @@ def lambda_handler(event, context):
         "n_members": len(syms),
         "n_resolved": len(resolved),
         "n_with_history": len(with_hist),
+        "barometer": barometer,
         "strip": {"alarm": alarm, "n_red": n_red,
                   "n_amber": n_amber, "n_range_extreme": n_extreme,
                   "top_movers": [
