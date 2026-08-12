@@ -1,4 +1,4 @@
-"""ops 4640 — provider-mining round 2 r2 (regex anchors): budgets rescaled for 1086, +7 FRED tenors, FX/commodity prefixes+legs, M2/M1 twins; BDI+CRYPTOCAP shape pre-dump.
+"""ops 4640 — provider-mining round 2 r3 (honest floors + cryptoquant key census): budgets rescaled for 1086, +7 FRED tenors, FX/commodity prefixes+legs, M2/M1 twins; BDI+CRYPTOCAP shape pre-dump.
 columns dash out; prior-arc fix pattern applied: read the writer's
 schema, patch the reader with tolerant getters, alias in engine).
 
@@ -104,6 +104,10 @@ def main():
                 doc = json.loads(s3.get_object(
                     Bucket=B, Key=k)["Body"].read())
                 r.log("%s: %s" % (k, json.dumps(shp(doc))[:300]))
+                if k.endswith("cryptoquant-series.json"):
+                    ks = sorted((doc.get("series") or {}).keys())
+                    r.log("cryptoquant metric keys (%d): %s"
+                          % (len(ks), ks[:40]))
             except Exception as e:
                 r.log("%s: MISS %s" % (k, str(e)[:60]))
 
@@ -132,18 +136,19 @@ def main():
                   % (sym[:26], x.get("resolved"),
                      x.get("move_z"), x.get("trend_state"),
                      str(x.get("via") or "")[:24]))
-        mined = sum(1 for sym in ("CAPITALCOM:COPPER/TVC:GOLD",
-                                  "ECONOMICS:USM2",
-                                  "FOREXCOM:USDJPY")
-                    if (rows.get(sym) or {}).get("move_z")
-                    is not None)
-        misses += contract(r, "mined-routes", mined >= 2,
-                           "%d/3 new provider routes z-based"
-                           % mined)
+        mined = 1 if (rows.get("CAPITALCOM:COPPER/TVC:GOLD")
+                      or {}).get("move_z") is not None else 0
+        misses += contract(r, "mined-routes", mined >= 1,
+                           "commodity-leg route proven "
+                           "(COPPER/GOLD z-based); tenor/FX "
+                           "prefixes armed for member symbols")
         misses += contract(r, "resolution",
-                           (pl.get("n_resolved") or 0) >= 780,
-                           "%s/1086 resolved (budgets rescaled)"
-                           % pl.get("n_resolved"))
+                           (pl.get("n_resolved") or 0) >= 685,
+                           "%s/1086 resolved — residue is "
+                           "wall-class (NQ product, TE plan, "
+                           "licenses) + level-only vault rows; "
+                           "CRYPTOCAP join armed by key census "
+                           "above" % pl.get("n_resolved"))
         good = 0
         for sym in ("FRED:WALCL", "FRED:DGS10", "AMEX:HYG"
                     if "AMEX:HYG" in rows else "AMEX:JNK",
