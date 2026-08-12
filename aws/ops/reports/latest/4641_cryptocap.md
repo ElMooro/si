@@ -1,55 +1,49 @@
 # ops 4639 — schema realignment
 
-**Status:** failure  
-**Duration:** 52.7s  
-**Finished:** 2026-08-12T21:36:05+00:00  
-
-## Error
-
-```
-SystemExit: 1
-```
+**Status:** success  
+**Duration:** 66.1s  
+**Finished:** 2026-08-12T21:42:25+00:00  
 
 ## Data
 
 | barometer | fn_error | resolved | reversal | rlabel | tlabel | trend |
 |---|---|---|---|---|---|---|
 |  | None |  |  |  |  |  |
-| 15.2 |  | 686 | 17.4 | FORMING TURN TO EASE | MIXED | 13.0 |
+| 15.2 |  | 687 | 17.4 | FORMING TURN TO EASE | MIXED | 13.0 |
 
 ## Log
 ## deploy (ops-side) + settle
 
-- `21:35:13` ✅   [deploy] v1.4.3 live
+- `21:41:36` ✅   [deploy] v1.4.4 live
 ## fleet-store shapes (BDI/CRYPTOCAP evidence)
 
-- `21:35:13` data/freight-pulse.json: {"ok": true, "version": "2.0.0", "generated_at": "2026-08-12T11:50:17.996738+0", "engine_class": "physical_trade_slow_confirma", "composite_role": "slow_confirmation_leg", "lag_months": -2}
-- `21:35:14` data/cryptoquant-series.json: {"generated_at": "2026-08-12T21:05:07+00:00", "series": {"btc_exchange_netflow": {"d": "list", "v": "list"}, "btc_exchange_inflow": {"d": "list", "v": "list"}, "btc_exchange_outflow": {"d": "list", "v": "list"}, "btc_exchange_reserve": {"d": "list", "v": "list"}, "btc_exchange_addr_in": {"d": "list"
-- `21:35:14` cryptoquant metric keys (54): ['btc_addresses_active', 'btc_blockreward', 'btc_coinbase_premium', 'btc_difficulty', 'btc_exchange_addr_in', 'btc_exchange_inflow', 'btc_exchange_netflow', 'btc_exchange_outflow', 'btc_exchange_reserve', 'btc_exchange_supply_ratio', 'btc_fees_total', 'btc_fees_tx_mean', 'btc_fund_flow_ratio', 'btc_funding_rates', 'btc_hashrate', 'btc_liquidations', 'btc_miner_netflow', 'btc_miner_outflow', 'btc_miner_reserve', 'btc_mpi', 'btc_mvrv', 'btc_nupl', 'btc_nvm', 'btc_nvt', 'btc_nvt_golden', 'btc_open_interest', 'btc_puell', 'btc_realized_price', 'btc_sopr', 'btc_sopr_ratio', 'btc_ssr', 'btc_stablecoins_ratio', 'btc_stock_to_flow', 'btc_supply_total', 'btc_taker_ratio', 'btc_tokens_transferred', 'btc_tx_count', 'btc_utxo_count', 'btc_velocity', 'btc_whale_ratio']
-- `21:35:14` data/coinmarketcap.json: MISS An error occurred (NoSuchKey) when calling the GetObject ope
+- `21:41:36` data/freight-pulse.json: {"ok": true, "version": "2.0.0", "generated_at": "2026-08-12T11:50:17.996738+0", "engine_class": "physical_trade_slow_confirma", "composite_role": "slow_confirmation_leg", "lag_months": -2}
+- `21:41:37` data/cryptoquant-series.json: {"generated_at": "2026-08-12T21:05:07+00:00", "series": {"btc_exchange_netflow": {"d": "list", "v": "list"}, "btc_exchange_inflow": {"d": "list", "v": "list"}, "btc_exchange_outflow": {"d": "list", "v": "list"}, "btc_exchange_reserve": {"d": "list", "v": "list"}, "btc_exchange_addr_in": {"d": "list"
+- `21:41:37` cryptoquant metric keys (54): ['btc_addresses_active', 'btc_blockreward', 'btc_coinbase_premium', 'btc_difficulty', 'btc_exchange_addr_in', 'btc_exchange_inflow', 'btc_exchange_netflow', 'btc_exchange_outflow', 'btc_exchange_reserve', 'btc_exchange_supply_ratio', 'btc_fees_total', 'btc_fees_tx_mean', 'btc_fund_flow_ratio', 'btc_funding_rates', 'btc_hashrate', 'btc_liquidations', 'btc_miner_netflow', 'btc_miner_outflow', 'btc_miner_reserve', 'btc_mpi', 'btc_mvrv', 'btc_nupl', 'btc_nvm', 'btc_nvt', 'btc_nvt_golden', 'btc_open_interest', 'btc_puell', 'btc_realized_price', 'btc_sopr', 'btc_sopr_ratio', 'btc_ssr', 'btc_stablecoins_ratio', 'btc_stock_to_flow', 'btc_supply_total', 'btc_taker_ratio', 'btc_tokens_transferred', 'btc_tx_count', 'btc_utxo_count', 'btc_velocity', 'btc_whale_ratio']
+- `21:41:37` data/coinmarketcap.json: MISS An error occurred (NoSuchKey) when calling the GetObject ope
 ## run + row-schema truth
 
-- `21:36:04` CAPITALCOM:COPPER/TVC:GOLD res=True  z=1.63  trend=UP    
-- `21:36:04` ECONOMICS:USM2             res=None  z=None  trend=None  
-- `21:36:04` FOREXCOM:USDJPY            res=None  z=None  trend=None  
-- `21:36:04` TVC:GB10Y                  res=None  z=None  trend=None  
-- `21:36:04` CRYPTOCAP:TOTAL            res=None  z=None  trend=None  
-- `21:36:04` INDEX:BDI                  res=None  z=None  trend=None  
-- `21:36:04` CRYPTOCAP:TOTAL                      res=None  last=None         n=None 
-- `21:36:04` CRYPTOCAP:BTC.D                      res=None  last=None         n=None 
-- `21:36:04` CRYPTOCAP:USDT.D+CRYPTOCAP:USDC.D    res=False last=None         n=None 
-- `21:36:04` ✗   [cryptocap] CONTRACT MISS — USDT+USDC dominance None% (n=None) — member row live, series self-building toward trend basis
-- `21:36:04` ✅   [mined-routes] commodity-leg route proven (COPPER/GOLD z-based); tenor/FX prefixes armed for member symbols
-- `21:36:04` ✅   [resolution] 686/1086 resolved — residue is wall-class (NQ product, TE plan, licenses) + level-only vault rows; CRYPTOCAP join armed by key census above
-- `21:36:04` FRED:WALCL               chg=+0.15% (WoW)     z=0.79  trend=UP    rev=NONE
-- `21:36:04` FRED:DGS10               chg=+1.51% (DoD)     z=1.49  trend=UP    rev=NONE
-- `21:36:04` AMEX:JNK                 chg=+0.04% (DoD)     z=0.16  trend=DOWN  rev=NONE
-- `21:36:04` TVC:DE10Y-TVC:IT10Y      chg=-3.60% (MoM)     z=0.27  trend=UP    rev=REVERSAL_UP
-- `21:36:04` ✅   [row-schema] 4/4 sample rows carry chg+trend+reversal(alias)
-- `21:36:04` ✅   [dials] TREND 13.0 (MIXED) · REV 17.4 (FORMING TURN TO EASE)
+- `21:42:24` CAPITALCOM:COPPER/TVC:GOLD res=True  z=1.63  trend=UP    
+- `21:42:24` ECONOMICS:USM2             res=None  z=None  trend=None  
+- `21:42:24` FOREXCOM:USDJPY            res=None  z=None  trend=None  
+- `21:42:24` TVC:GB10Y                  res=None  z=None  trend=None  
+- `21:42:24` CRYPTOCAP:TOTAL            res=None  z=None  trend=None  
+- `21:42:24` INDEX:BDI                  res=None  z=None  trend=None  
+- `21:42:24` CRYPTOCAP:TOTAL                      res=None  last=None         n=None 
+- `21:42:24` CRYPTOCAP:BTC.D                      res=None  last=None         n=None 
+- `21:42:24` CRYPTOCAP:USDT.D+CRYPTOCAP:USDC.D    res=True  last=11.265041    n=1   CoinGecko global (self-b | self-building series: trend basis at 15 obs (~14 days out)
+- `21:42:24` ✅   [cryptocap] USDT+USDC dominance 11.265041% (n=1) — member row live, series self-building toward trend basis
+- `21:42:24` ✅   [mined-routes] commodity-leg route proven (COPPER/GOLD z-based); tenor/FX prefixes armed for member symbols
+- `21:42:24` ✅   [resolution] 687/1086 resolved — residue is wall-class (NQ product, TE plan, licenses) + level-only vault rows; CRYPTOCAP join armed by key census above
+- `21:42:24` FRED:WALCL               chg=+0.15% (WoW)     z=0.79  trend=UP    rev=NONE
+- `21:42:24` FRED:DGS10               chg=+1.51% (DoD)     z=1.49  trend=UP    rev=NONE
+- `21:42:24` AMEX:JNK                 chg=+0.04% (DoD)     z=0.16  trend=DOWN  rev=NONE
+- `21:42:24` TVC:DE10Y-TVC:IT10Y      chg=-3.60% (MoM)     z=0.27  trend=UP    rev=REVERSAL_UP
+- `21:42:24` ✅   [row-schema] 4/4 sample rows carry chg+trend+reversal(alias)
+- `21:42:24` ✅   [dials] TREND 13.0 (MIXED) · REV 17.4 (FORMING TURN TO EASE)
 ## edge page/payload
 
-- `21:36:05` ✅   [edge] page reads evolved keys; payload rows render-ready
+- `21:42:25` ✅   [edge] page reads evolved keys; payload rows render-ready
 ## verdict
 
-- `21:36:05` ✗ schema realign: 1 red
+- `21:42:25` ✅ SCHEMA ALIGNED — page and payload speak one language again: TREND 13.0 (MIXED) · REVERSAL 17.4 (FORMING TURN TO EASE) · 687 resolved rows fully rendered

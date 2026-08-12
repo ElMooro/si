@@ -1,43 +1,34 @@
-executing-against: c79b75f8a6e815d06ff516985377c29c2029ca9e
-ops 4642 — cryptocap forensic
-── deployed-source CC context ──
-[21:38:05] marker: """justhodl-liquidity-reversal v1.4.3 (ops 4641)
-[21:38:05]   597|     self-building daily history (institutional pattern: the
-[21:38:05]   598|     series grows itself into trend basis)."""
-[21:38:05]   599|     if sym not in CC_MAP:
-[21:38:05]   600|         return None
-[21:38:05]   601|     kind, key = CC_MAP[sym]
-[21:38:05]      ---
-[21:38:05]   652|     if sid:
-[21:38:05]   653|         return fred_fallback("FRED:" + sid, budget)
-[21:38:05]   654|     if leg in CC_MAP:
-[21:38:05]   655|         return cryptocap_fallback(leg, CC_BUDGET)
-[21:38:05]   656|     if leg in CURATED_LEG_YH:
-[21:38:05]      ---
-[21:38:05]  1556|             if (node is None or not extract_series(node)) \
-[21:38:05]  1557|                     and any(op in sym for op in "-/+") \
-[21:38:05]  1558|                     and ":" in sym and sym not in CC_MAP:
-[21:38:05]  1559|                 fb = eval_composite(sym, budget)
-[21:38:05]  1560|                 if fb and fb.get("series"):
-[21:38:05]      ---
-[21:38:05]  1623|                     if fb:
-[21:38:05]  1624|                         node = fb
-[21:38:05]  1625|                 elif sym in CC_MAP:
-[21:38:05]  1626|                     fb = cryptocap_fallback(sym, CC_BUDGET)
-[21:38:05]  1627|                     if fb:
-[21:38:05]      ---
-── provider egress from runner ──
-[21:38:05] api.coingecko.com/api/v3/global -> 200 {"data":{"active_cryptocurrencies":18398,"upcoming_icos":0,"ongoing_icos":49,"ended_icos":3376,"markets":1488,
-[21:38:05] api.coinpaprika.com/v1/global -> 200 {"market_cap_usd":2273636285892,"volume_24h_usd":359143516909,"bitcoin_dominance_percentage":55.98,"cryptocurr
-[21:38:05] api.coincap.io/v2/assets?ids=tet -> ERR <urlopen error [Errno -2] Name or service not known>
-── warm cc_* state ──
-[21:38:05] cc_TOTAL.json (150B): {"series": [{"date": "2026-08-12", "value": 2263464565193.103}], "fetched_at": "2026-08-12T21:29:13+00:00", "via": "CoinGecko global (self-b
-[21:38:05] cc_USDC_D.json (141B): {"series": [{"date": "2026-08-12", "value": 3.182656}], "fetched_at": "2026-08-12T21:28:45+00:00", "via": "CoinGecko global (self-building)"
-[21:38:05] cc_USDT_D.json (141B): {"series": [{"date": "2026-08-12", "value": 8.082385}], "fetched_at": "2026-08-12T21:28:45+00:00", "via": "CoinGecko global (self-building)"
-[21:38:06] cc_USDT_D_CRYPTOCAP_USDC_D.json (142B): {"series": [{"date": "2026-08-12", "value": 11.265041}], "fetched_at": "2026-08-12T21:32:04+00:00", "via": "CoinGecko global (self-building)
-── invoke + full row JSON ──
-[21:38:51] fn_error=None
-[21:38:52] row: {"symbol": "CRYPTOCAP:USDT.D+CRYPTOCAP:USDC.D", "name": "Composite: CRYPTOCAP:USDT.D+CRYPTOCAP:USDC.D", "resolved": false, "move_state": "UNRESOLVED", "range_state": "UNRESOLVED"}
-[21:38:52] ✅ forensic complete — evidence above
+executing-against: 31c499e8b20b0189fac401b25a29b4766d1e080f
+ops 4639 — schema realignment
+── deploy (ops-side) + settle ──
+[21:41:36] ✅   [deploy] v1.4.4 live
+── fleet-store shapes (BDI/CRYPTOCAP evidence) ──
+[21:41:36] data/freight-pulse.json: {"ok": true, "version": "2.0.0", "generated_at": "2026-08-12T11:50:17.996738+0", "engine_class": "physical_trade_slow_confirma", "composite_role": "slow_confirmation_leg", "lag_months": -2}
+[21:41:37] data/cryptoquant-series.json: {"generated_at": "2026-08-12T21:05:07+00:00", "series": {"btc_exchange_netflow": {"d": "list", "v": "list"}, "btc_exchange_inflow": {"d": "list", "v": "list"}, "btc_exchange_outflow": {"d": "list", "v": "list"}, "btc_exchange_reserve": {"d": "list", "v": "list"}, "btc_exchange_addr_in": {"d": "list"
+[21:41:37] cryptoquant metric keys (54): ['btc_addresses_active', 'btc_blockreward', 'btc_coinbase_premium', 'btc_difficulty', 'btc_exchange_addr_in', 'btc_exchange_inflow', 'btc_exchange_netflow', 'btc_exchange_outflow', 'btc_exchange_reserve', 'btc_exchange_supply_ratio', 'btc_fees_total', 'btc_fees_tx_mean', 'btc_fund_flow_ratio', 'btc_funding_rates', 'btc_hashrate', 'btc_liquidations', 'btc_miner_netflow', 'btc_miner_outflow', 'btc_miner_reserve', 'btc_mpi', 'btc_mvrv', 'btc_nupl', 'btc_nvm', 'btc_nvt', 'btc_nvt_golden', 'btc_open_interest', 'btc_puell', 'btc_realized_price', 'btc_sopr', 'btc_sopr_ratio', 'btc_ssr', 'btc_stablecoins_ratio', 'btc_stock_to_flow', 'btc_supply_total', 'btc_taker_ratio', 'btc_tokens_transferred', 'btc_tx_count', 'btc_utxo_count', 'btc_velocity', 'btc_whale_ratio']
+[21:41:37] data/coinmarketcap.json: MISS An error occurred (NoSuchKey) when calling the GetObject ope
+── run + row-schema truth ──
+[21:42:24] CAPITALCOM:COPPER/TVC:GOLD res=True  z=1.63  trend=UP    
+[21:42:24] ECONOMICS:USM2             res=None  z=None  trend=None  
+[21:42:24] FOREXCOM:USDJPY            res=None  z=None  trend=None  
+[21:42:24] TVC:GB10Y                  res=None  z=None  trend=None  
+[21:42:24] CRYPTOCAP:TOTAL            res=None  z=None  trend=None  
+[21:42:24] INDEX:BDI                  res=None  z=None  trend=None  
+[21:42:24] CRYPTOCAP:TOTAL                      res=None  last=None         n=None 
+[21:42:24] CRYPTOCAP:BTC.D                      res=None  last=None         n=None 
+[21:42:24] CRYPTOCAP:USDT.D+CRYPTOCAP:USDC.D    res=True  last=11.265041    n=1   CoinGecko global (self-b | self-building series: trend basis at 15 obs (~14 days out)
+[21:42:24] ✅   [cryptocap] USDT+USDC dominance 11.265041% (n=1) — member row live, series self-building toward trend basis
+[21:42:24] ✅   [mined-routes] commodity-leg route proven (COPPER/GOLD z-based); tenor/FX prefixes armed for member symbols
+[21:42:24] ✅   [resolution] 687/1086 resolved — residue is wall-class (NQ product, TE plan, licenses) + level-only vault rows; CRYPTOCAP join armed by key census above
+[21:42:24] FRED:WALCL               chg=+0.15% (WoW)     z=0.79  trend=UP    rev=NONE
+[21:42:24] FRED:DGS10               chg=+1.51% (DoD)     z=1.49  trend=UP    rev=NONE
+[21:42:24] AMEX:JNK                 chg=+0.04% (DoD)     z=0.16  trend=DOWN  rev=NONE
+[21:42:24] TVC:DE10Y-TVC:IT10Y      chg=-3.60% (MoM)     z=0.27  trend=UP    rev=REVERSAL_UP
+[21:42:24] ✅   [row-schema] 4/4 sample rows carry chg+trend+reversal(alias)
+[21:42:24] ✅   [dials] TREND 13.0 (MIXED) · REV 17.4 (FORMING TURN TO EASE)
+── edge page/payload ──
+[21:42:25] ✅   [edge] page reads evolved keys; payload rows render-ready
+── verdict ──
+[21:42:25] ✅ SCHEMA ALIGNED — page and payload speak one language again: TREND 13.0 (MIXED) · REVERSAL 17.4 (FORMING TURN TO EASE) · 687 resolved rows fully rendered
 
-→ Report written to aws/ops/reports/latest/4642_cc_forensic.md
+→ Report written to aws/ops/reports/latest/4641_cryptocap.md
