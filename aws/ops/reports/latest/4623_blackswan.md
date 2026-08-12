@@ -1,0 +1,69 @@
+# ops 4623 — blackswan canary strip
+
+**Status:** failure  
+**Duration:** 163.2s  
+**Finished:** 2026-08-12T01:50:29+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| alarm | engine | list | members | resolved | top | with_history |
+|---|---|---|---|---|---|---|
+|  | {"ok": false, "list": "Black Swan Event", "resolved": 0, "alarm": "CALM"} |  |  |  |  |  |
+| CALM |  | Black Swan Event | 500 | 0 | [] | 0 |
+
+## Log
+## pre-dump: raw shapes (evidence for any repair)
+
+- `01:47:46` watchlists container top-level: {"generated_at": "2026-08-04T14:13:08.727854+00:00", "source": "tv-extension", "n_lists": 491, "lists": ["len=491", {"id": "str", "name": "str", "symbols": "list", "n": "int", "color": "NoneType"}]}
+- `01:47:46` n_list_names=491 · swan/black candidates: ['Black Swan Event', 'Blackrock ETF', 'ishares ETFs- Owned by BlackRock']
+- `01:47:47` vault top-level shape: {"engine": "justhodl-tradingview", "version": "3.2", "marker": "tradingview-vault v3.30.2 ops4227 sticky", "generated_at": "2026-08-11T11:35:10.875653+00:00", "brain_constitution": "registry parsed live from data/brain.jso", "cadence_model": {"daily_refetch": "every run", "weekly": ">6d", "monthly": ">27d", "quarterly": ">85d", "no_free_source_retry": ">27d", "rationale": "fetch only when the data
+- `01:47:47` ✅   [swan-list-exists] a swan/black list is present: ['Black Swan Event', 'Blackrock ETF', 'ishares ETFs- Owned by BlackRock']
+## deploy-settle + schedule
+
+- `01:48:19` ✅   [deploy] blackswan v1.0.0 + signal v2.1.2
+## engine run + per-symbol truth
+
+- `01:48:21` TVC:US03MY/FRED:BAMLH0A0HYM2 UNRESOLVED z=None  dod=None    range=UNRESOLVED Composite: TVC:US03MY/FRED:BAMLH0A0HYM2
+- `01:48:21` NYMEX:CL1!-BLACKBULL:WTI UNRESOLVED z=None  dod=None    range=UNRESOLVED Composite: NYMEX:CL1!-BLACKBULL:WTI
+- `01:48:21` FRED:T10YIEM   UNRESOLVED z=None  dod=None    range=UNRESOLVED 10-Year Breakeven Inflation Rate
+- `01:48:21` FRED:T10YIE    UNRESOLVED z=None  dod=None    range=UNRESOLVED 10-Year Breakeven Inflation Rate
+- `01:48:21` ECONOMICS:USRR UNRESOLVED z=None  dod=None    range=UNRESOLVED United States — RR (TradingView economic
+- `01:48:21` EUREX:FMOG1!   UNRESOLVED z=None  dod=None    range=UNRESOLVED FMOG1! (EUREX)
+- `01:48:21` FRED:MCUMFN    UNRESOLVED z=None  dod=None    range=UNRESOLVED Capacity Utilization: Manufacturing (NAI
+- `01:48:21` FRED:USALOLITONOSTSAM UNRESOLVED z=None  dod=None    range=UNRESOLVED Composite Leading Indicators: Composite 
+- `01:48:21` FRED:PCOPPUSDM UNRESOLVED z=None  dod=None    range=UNRESOLVED Global price of Copper
+- `01:48:21` NYMEX:AA51!    UNRESOLVED z=None  dod=None    range=UNRESOLVED AA51! (NYMEX)
+- `01:48:21` FX_IDC:KYDUSD  UNRESOLVED z=None  dod=None    range=UNRESOLVED KYDUSD (MARKET: KYDUSD=X)
+- `01:48:21` FX_IDC:BMDUSD  UNRESOLVED z=None  dod=None    range=UNRESOLVED BMDUSD (MARKET: BMDUSD=X)
+- `01:48:21` FRED:CES4348400001 UNRESOLVED z=None  dod=None    range=UNRESOLVED All Employees, Truck Transportation
+- `01:48:21` TVC:BTPBUND    UNRESOLVED z=None  dod=None    range=UNRESOLVED BTPBUND (TVC)
+- `01:48:21` FRED:HTRUCKSSAAR UNRESOLVED z=None  dod=None    range=UNRESOLVED Motor Vehicle Retail Sales: Heavy Weight
+- `01:48:21` FRED:WPU09120325 UNRESOLVED z=None  dod=None    range=UNRESOLVED Producer Price Index by Commodity: Pulp,
+- `01:48:21` ECONOMICS:USWEI UNRESOLVED z=None  dod=None    range=UNRESOLVED United States — WEI (TradingView economi
+- `01:48:21` FRED:TCU       UNRESOLVED z=None  dod=None    range=UNRESOLVED Capacity Utilization: Total Index
+- `01:48:21` FRED:AISRSA    UNRESOLVED z=None  dod=None    range=UNRESOLVED Auto Inventory/Sales Ratio
+- `01:48:21` NASDAQ:TLT     UNRESOLVED z=None  dod=None    range=UNRESOLVED iShares 20+ Year Treasury Bond ETF
+- `01:48:21` FRED:TOTALSA   UNRESOLVED z=None  dod=None    range=UNRESOLVED Total Vehicle Sales
+- `01:48:21` ECONOMICS:USJC UNRESOLVED z=None  dod=None    range=UNRESOLVED United States — JC (TradingView economic
+- `01:48:21` ✅   [list-found] swan list resolved: Black Swan Event (500 members)
+- `01:48:21` ✗   [resolution] CONTRACT MISS — 0/500 symbols resolved from the vault
+- `01:48:21` ✅   [alarm] strip alarm CALM (red=0 amber=0 extremes=0)
+## physical canary + edge
+
+- `01:48:28` ✅   [canary] blackswan_strip on the board: {"state": "CALM", "n_red": 0, "n_amber": 0, "n_range_extreme": 0, "list": "Black Swan Event", "doctrine": "Khalid's TV blackswan list as a t
+- `01:48:28` edge 1: HTTP Error 404: Not Found
+- `01:48:48` edge 2: HTTP Error 404: Not Found
+- `01:49:08` edge 3: HTTP Error 404: Not Found
+- `01:49:28` edge 4: HTTP Error 404: Not Found
+- `01:49:48` edge 5: HTTP Error 404: Not Found
+- `01:50:08` edge 6: HTTP Error 404: Not Found
+- `01:50:29` ✅   [edge] page + payload at the edge
+## verdict
+
+- `01:50:29` ✗ blackswan: 1 red (pre-dump above is the repair evidence)
