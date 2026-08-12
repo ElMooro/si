@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.7.1 (ops 4623)
+"""justhodl-blackswan-watch v1.8.0 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -40,6 +40,16 @@ YH_BUDGET = {"n": 70}
 CUR_BUDGET = {"n": 25}   # curated symbols + curated composite legs
 CB_BUDGET = {"n": 12}    # CBOE CDN route
 MP_BUDGET = {"n": 12}    # multpl route
+NQ_BUDGET = {"n": 18}    # api.nasdaq.com index historicals
+MULTPL_SLUGS = {
+    "SHILLER_PE_RATIO": "shiller-pe",
+    "SP500_PE_RATIO": "s-p-500-pe-ratio",
+    "SP500_EARNINGS": "s-p-500-earnings",
+    "SP500_EARNINGS_YIELD": "s-p-500-earnings-yield",
+    "SP500_DIV_YIELD": "s-p-500-dividend-yield",
+    "SP500_SALES": "s-p-500-sales",
+    "SP500_BOOK_VALUE": "s-p-500-book-value",
+}
 CURATED_FRED = {"FX:SONIA3M": ("IUDSOIA",
                                "O/N SONIA proxy for 3M")}  # Yahoo-chart alias fallback, same pattern
 s3 = boto3.client("s3")
@@ -141,11 +151,14 @@ def multpl_fallback(dataset, budget):
     canonical free mirror of the Shiller series)."""
     if budget["n"] <= 0:
         return None
-    slug = dataset.lower()
-    for suf in ("_month", "_year", "_quarter"):
-        if slug.endswith(suf):
-            slug = slug[:-len(suf)]
-    slug = slug.replace("sp500", "s-p-500").replace("_", "-")
+    base = dataset.upper()
+    for suf in ("_MONTH", "_YEAR", "_QUARTER"):
+        if base.endswith(suf):
+            base = base[:-len(suf)]
+    slug = MULTPL_SLUGS.get(base)
+    if not slug:
+        slug = base.lower().replace("sp500", "s-p-500")\
+                   .replace("_", "-")
     wkey = WARM + "mp_" + re.sub(r"[^a-z0-9-]", "_", slug) + ".json"
     cached = s3_json(wkey)
     if cached and cached.get("series"):
@@ -236,6 +249,184 @@ def cboe_fallback(idx, budget):
                    "fetched_at": datetime.now(
                        timezone.utc).isoformat(timespec="seconds"),
                    "via": "CBOE CDN " + idx}
+            s3.put_object(Bucket=BUCKET, Key=wkey,
+                          Body=json.dumps(env).encode(),
+                          ContentType="application/json")
+            return env
+    except Exception:
+        pass
+    return None
+
+
+def nasdaq_fallback(idx, budget):
+    """NASDAQ:NQ* Global Index customs — api.nasdaq.com public
+    historical JSON."""
+    if budget["n"] <= 0:
+        return None
+    wkey = WARM + "nq_" + re.sub(r"[^A-Z0-9]", "_", idx) + ".json"
+    cached = s3_json(wkey)
+    if cached:
+        try:
+            ft = datetime.fromisoformat(cached["fetched_at"])
+            age_s = (datetime.now(timezone.utc) - ft
+                     ).total_seconds()
+            if cached.get("series") and age_s < 72000:
+                return cached
+            if cached.get("miss") and age_s < 86400:
+                return None
+        except Exception:
+            pass
+    budget["n"] -= 1
+    try:
+        frm = (datetime.now(timezone.utc)
+               - timedelta_days(400)).strftime("%Y-%m-%d")
+    except Exception:
+        frm = "2025-06-01"
+    try:
+        url = ("https://api.nasdaq.com/api/quote/%s/historical"
+               "?assetclass=index&limit=300&fromdate=%s&todate=%s"
+               % (idx, frm,
+                  datetime.now(timezone.utc).strftime("%Y-%m-%d")))
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0",
+            "Accept": "application/json, text/plain, */*",
+            "Origin": "https://www.nasdaq.com"})
+        time.sleep(0.25)
+        with urllib.request.urlopen(req, timeout=15) as h:
+            d = json.loads(h.read())
+        rows = (((d.get("data") or {}).get("tradesTable")
+                 or {}).get("rows")) or []
+        se = []
+        for o in rows:
+            try:
+                dt = datetime.strptime(o["date"],
+                                       "%m/%d/%Y").date()
+                se.append({"date": dt.isoformat(),
+                           "value": float(str(o["close"])
+                                          .replace(",", "")
+                                          .replace("$", ""))})
+            except Exception:
+                continue
+        se.sort(key=lambda o: o["date"])
+        if len(se) >= 15:
+            env = {"series": se,
+                   "fetched_at": datetime.now(
+                       timezone.utc).isoformat(timespec="seconds"),
+                   "via": "api.nasdaq.com " + idx}
+            s3.put_object(Bucket=BUCKET, Key=wkey,
+                          Body=json.dumps(env).encode(),
+                          ContentType="application/json")
+            return env
+    except Exception:
+        return None  # transient/blocked: no negative cache
+    try:
+        s3.put_object(Bucket=BUCKET, Key=wkey,
+                      Body=json.dumps({"miss": True,
+                                       "fetched_at":
+                                       datetime.now(timezone.utc)
+                                       .isoformat(
+                                           timespec="seconds")}
+                                      ).encode(),
+                      ContentType="application/json")
+    except Exception:
+        pass
+    return None
+
+
+def timedelta_days(n):
+    from datetime import timedelta as _td
+    return _td(days=n)
+
+
+def stoxx_fallback(budget):
+    """EUREX:FVS* -> V2TX (VSTOXX index proxy) from STOXX's free
+    historical txt (Date;Symbol;Value, DD.MM.YYYY)."""
+    wkey = WARM + "stoxx_V2TX.json"
+    cached = s3_json(wkey)
+    if cached and cached.get("series"):
+        try:
+            ft = datetime.fromisoformat(cached["fetched_at"])
+            if (datetime.now(timezone.utc) - ft
+                    ).total_seconds() < 72000:
+                return cached
+        except Exception:
+            pass
+    if budget["n"] <= 0:
+        return None
+    budget["n"] -= 1
+    try:
+        req = urllib.request.Request(
+            "https://www.stoxx.com/document/Indices/Current/"
+            "HistoricalData/h_v2tx.txt",
+            headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=20) as h:
+            txt = h.read().decode("utf-8", "replace")
+        se = []
+        for line in txt.splitlines():
+            parts = line.strip().split(";")
+            if len(parts) < 3:
+                continue
+            try:
+                dt = datetime.strptime(parts[0].strip(),
+                                       "%d.%m.%Y").date()
+                se.append({"date": dt.isoformat(),
+                           "value": float(parts[2])})
+            except Exception:
+                continue
+        se.sort(key=lambda o: o["date"])
+        if len(se) >= 15:
+            env = {"series": se[-400:],
+                   "fetched_at": datetime.now(
+                       timezone.utc).isoformat(timespec="seconds"),
+                   "via": "STOXX V2TX · VSTOXX index proxy"}
+            s3.put_object(Bucket=BUCKET, Key=wkey,
+                          Body=json.dumps(env).encode(),
+                          ContentType="application/json")
+            return env
+    except Exception:
+        pass
+    return None
+
+
+def tcbs_fallback(budget):
+    """HOSE:VNINDEX via the public TCBS bars endpoint."""
+    wkey = WARM + "vn_VNINDEX.json"
+    cached = s3_json(wkey)
+    if cached and cached.get("series"):
+        try:
+            ft = datetime.fromisoformat(cached["fetched_at"])
+            if (datetime.now(timezone.utc) - ft
+                    ).total_seconds() < 72000:
+                return cached
+        except Exception:
+            pass
+    if budget["n"] <= 0:
+        return None
+    budget["n"] -= 1
+    try:
+        to = int(datetime.now(timezone.utc).timestamp())
+        url = ("https://apipubaws.tcbs.com.vn/stock-insight/v1/"
+               "stock/bars-long-term?ticker=VNINDEX&type=index"
+               "&resolution=D&to=%d&countBack=300" % to)
+        req = urllib.request.Request(
+            url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=15) as h:
+            d = json.loads(h.read())
+        rows = d.get("data") or []
+        se = []
+        for o in rows:
+            try:
+                d0 = str(o.get("tradingDate", ""))[:10]
+                se.append({"date": d0,
+                           "value": float(o["close"])})
+            except Exception:
+                continue
+        se.sort(key=lambda o: o["date"])
+        if len(se) >= 15:
+            env = {"series": se,
+                   "fetched_at": datetime.now(
+                       timezone.utc).isoformat(timespec="seconds"),
+                   "via": "TCBS VNINDEX"}
             s3.put_object(Bucket=BUCKET, Key=wkey,
                           Body=json.dumps(env).encode(),
                           ContentType="application/json")
@@ -482,6 +673,9 @@ CURATED_YH = {
     "TSE:TOPIX": ("1475.T", "TOPIX ETF proxy"),
     "EUREX:FESX2!": ("^STOXX50E", "index proxy for futures"),
     "EUREX:FMEA2!": ("EEMA", "EM-Asia ETF proxy"),
+    "EUREX:FMAA1!": ("AAXJ", "AC-Asia ETF proxy"),
+    "SGX:SGP2!": ("^STI", "STI index proxy"),
+    "OANDA:SG30SGD": ("^STI", "STI index proxy"),
     "EUREX:FMXU2!": ("ACWX", "world-ex-US ETF proxy"),
     "ASX24:AP1!": ("^AXJO", "index proxy for SPI futures"),
     "CBOT:ZB2!": ("ZB=F", "front-month proxy"),
@@ -974,6 +1168,21 @@ def lambda_handler(event, context):
                 elif sym.startswith("CBOE:"):
                     fb = cboe_fallback(sym.split(":", 1)[1],
                                        CB_BUDGET)
+                    if fb:
+                        node = fb
+                elif sym.startswith("NASDAQ:") and \
+                        re.fullmatch(r"NASDAQ:(NQ|B3)[A-Z0-9]+",
+                                     sym):
+                    fb = nasdaq_fallback(sym.split(":", 1)[1],
+                                         NQ_BUDGET)
+                    if fb:
+                        node = fb
+                elif sym.startswith("EUREX:FVS"):
+                    fb = stoxx_fallback(CUR_BUDGET)
+                    if fb:
+                        node = fb
+                elif sym == "HOSE:VNINDEX":
+                    fb = tcbs_fallback(CUR_BUDGET)
                     if fb:
                         node = fb
                 elif re.fullmatch(r"[A-Z]+:[A-Z0-9]{2,12}", sym) \
