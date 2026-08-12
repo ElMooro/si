@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.8.0 (ops 4623)
+"""justhodl-blackswan-watch v1.8.1 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -41,6 +41,19 @@ CUR_BUDGET = {"n": 25}   # curated symbols + curated composite legs
 CB_BUDGET = {"n": 12}    # CBOE CDN route
 MP_BUDGET = {"n": 12}    # multpl route
 NQ_BUDGET = {"n": 18}    # api.nasdaq.com index historicals
+ST_BUDGET = {"n": 2}     # STOXX txt (single cached doc)
+VN_BUDGET = {"n": 2}     # TCBS (single cached doc)
+TE_BUDGET = {"n": 8}     # TE historical per-indicator
+TE_KEY = os.environ.get("TE_API_KEY", "")
+TE_DIRECT = {
+    "ECONOMICS:DEIFOCC": ("germany", "Ifo Current Conditions"),
+    "ECONOMICS:DEZCC": ("germany", "ZEW Current Conditions"),
+    "ECONOMICS:DEZEWS": ("germany", "ZEW Economic Sentiment Index"),
+    "ECONOMICS:DENO": ("germany", "Factory Orders"),
+    "ECONOMICS:JPMTO": ("japan", "Machine Tool Orders"),
+    "ECONOMICS:JPSBSI": ("japan", "Small Business Sentiment"),
+    "ECONOMICS:CNNO": ("china", "New Orders"),
+}
 MULTPL_SLUGS = {
     "SHILLER_PE_RATIO": "shiller-pe",
     "SP500_PE_RATIO": "s-p-500-pe-ratio",
@@ -427,6 +440,59 @@ def tcbs_fallback(budget):
                    "fetched_at": datetime.now(
                        timezone.utc).isoformat(timespec="seconds"),
                    "via": "TCBS VNINDEX"}
+            s3.put_object(Bucket=BUCKET, Key=wkey,
+                          Body=json.dumps(env).encode(),
+                          ContentType="application/json")
+            return env
+    except Exception:
+        pass
+    return None
+
+
+def te_hist_fallback(sym, budget):
+    """ECONOMICS residue via TE /historical per indicator — the
+    4636 category-evidence dump made these names exact."""
+    if not TE_KEY or sym not in TE_DIRECT or budget["n"] <= 0:
+        return None
+    cty, cat = TE_DIRECT[sym]
+    wkey = WARM + "te_" + re.sub(r"[^A-Za-z0-9]", "_",
+                                 sym.split(":", 1)[1]) + ".json"
+    cached = s3_json(wkey)
+    if cached and cached.get("series"):
+        try:
+            ft = datetime.fromisoformat(cached["fetched_at"])
+            if (datetime.now(timezone.utc) - ft
+                    ).total_seconds() < 72000:
+                return cached
+        except Exception:
+            pass
+    budget["n"] -= 1
+    try:
+        url = ("https://api.tradingeconomics.com/historical/"
+               "country/%s/indicator/%s?c=%s&f=json"
+               % (urllib.parse.quote(cty),
+                  urllib.parse.quote(cat), TE_KEY))
+        req = urllib.request.Request(
+            url, headers={"User-Agent": "Mozilla/5.0"})
+        time.sleep(0.3)
+        with urllib.request.urlopen(req, timeout=20) as h:
+            d = json.loads(h.read())
+        se = []
+        for o in d if isinstance(d, list) else []:
+            v = o.get("Value")
+            d0 = str(o.get("DateTime", ""))[:10]
+            if v is None or len(d0) != 10:
+                continue
+            try:
+                se.append({"date": d0, "value": float(v)})
+            except Exception:
+                continue
+        se.sort(key=lambda o: o["date"])
+        if len(se) >= 15:
+            env = {"series": se[-400:],
+                   "fetched_at": datetime.now(
+                       timezone.utc).isoformat(timespec="seconds"),
+                   "via": "TE hist %s/%s" % (cty, cat[:22])}
             s3.put_object(Bucket=BUCKET, Key=wkey,
                           Body=json.dumps(env).encode(),
                           ContentType="application/json")
@@ -1178,11 +1244,15 @@ def lambda_handler(event, context):
                     if fb:
                         node = fb
                 elif sym.startswith("EUREX:FVS"):
-                    fb = stoxx_fallback(CUR_BUDGET)
+                    fb = stoxx_fallback(ST_BUDGET)
                     if fb:
                         node = fb
                 elif sym == "HOSE:VNINDEX":
-                    fb = tcbs_fallback(CUR_BUDGET)
+                    fb = tcbs_fallback(VN_BUDGET)
+                    if fb:
+                        node = fb
+                elif sym in TE_DIRECT:
+                    fb = te_hist_fallback(sym, TE_BUDGET)
                     if fb:
                         node = fb
                 elif re.fullmatch(r"[A-Z]+:[A-Z0-9]{2,12}", sym) \
