@@ -1,21 +1,42 @@
-executing-against: ba1dae3789fec96790e2fbaeefe6d6a564b39fc1
-ops 4619 — ragged edge + grid norm
+executing-against: 1ecfb6ae085aa924a12ab8eeec10728a3e40b086
+ops 4620 — Wave 4 depth build
 ── deploy-settle ──
-[01:08:25] justhodl-port-cargo carries "1.3.0"
-[01:08:26] justhodl-physical-econ carries v2.0.3
-[01:08:26] ✅   [deploy] port-cargo v1.3.0 + signal v2.0.3
-── port-cargo full run + ragged-edge truth ──
-[01:09:19] ✅   [fetch] fetch OK
-[01:09:19] ✅   [ragged-fields] complete-window fields present (trimmed 0 day(s), through 2026-08-07)
-[01:09:19] ✅   [fresh] complete-window age 5 d
-── signal recompute + calibrated legs ──
-[01:09:24] ✅   [port-leg] port leg 0 · -21.1% (same-week vs 1-3y prior) · 2065 ports
-[01:09:24] ⚠ port still at floor AFTER trim — if seasonal_chg above is genuinely <= -20%% on complete data, that is a REAL contraction reading, not a bug
-[01:09:24] ✅   [grid-leg] grid 57.8 · 16.9% executed (202320 of 1194199 MW) vs ~15% structural norm
-[01:09:24] ✅   [coverage] 23 live legs
+[01:18:54] justhodl-real-economy-collector carries v1.3.0
+[01:18:55] justhodl-physical-econ carries v2.1.0
+[01:18:55] ✅   [deploy] collector v1.3.0 + signal v2.1.0
+── collector run + new-leg truth table ──
+[01:19:30] dts_withheld     OK        n=15   daily $M deposits — aggregate wages
+[01:19:30] dts_customs      OK        n=15   daily $M — physical imports proxy
+[01:19:31] eia_cushing      OK        n=260  Cushing OK crude stocks — WTI delivery point
+[01:19:31] eia_ng_storage   OK        n=260  L48 working gas in storage
+[01:19:31] eia_exports      OK        n=260  US crude + product exports — physical trade
+[01:19:31] eia930_gasburn   OK        n=59   daily GWh
+[01:19:31] fred_wei         OK        n=200  NY Fed Weekly Economic Index — replication benchmark
+[01:19:31] fred_neworder    OK        n=200  core capex orders (nondef ex-air)
+[01:19:31] fred_isratio     OK        n=200  business inventories/sales (inverted leg)
+[01:19:31] fred_awhman      OK        n=200  manufacturing weekly hours — the classic leader
+[01:19:31] fred_ttlcons     OK        n=200  construction spending
+[01:19:31] noaa_degree_days DEGRADED  n=-    {}
+[01:19:31] fbx              OK        n=-    global container spot headline $/FEU
+[01:19:31] ✅   [new-tier1] new tier-1 legs OK: 11/11
+[01:19:31] ✗   [noaa-series] CONTRACT MISS — NOAA daily CDD series landed
+── signal v2.1.0 + contracts ──
+[01:19:37] ✗   [ex-weather] CONTRACT MISS — ex-weather leg: None · None
+[01:19:37] ✅   [canary-cushing_squeeze] cushing_squeeze: {"state": "AMBER", "range_position_pct": 9.6, "stocks_kbbl": 20955.0, "doctrine": "delivery-point stocks at range lows + backwarda
+[01:19:37] ✗   [canary-withheld_stall] CONTRACT MISS — withheld_stall: {}
+[01:19:37] ✅   [canary-wei_divergence] wei_divergence: {"state": "CALM", "wei": 2.68, "wei_implied_0_100": 71.4, "our_composite": 54.0, "doctrine": "independent NY Fed replication check
+[01:19:37] ✅   [coverage] 30 live legs
+[01:19:37] ✅   [sub-energy] energy 59.1 (11/12 live)
+[01:19:37] ✅   [sub-trade_transport] trade_transport 33.0 (7/9 live)
+[01:19:37] ✅   [sub-materials] materials 86.9 (4/4 live)
+[01:19:37] ✅   [sub-labor] labor 56.3 (4/5 live)
+[01:19:37] ✅   [sub-construction] construction 47.4 (4/4 live)
+[01:19:37] ✅   [composite] composite 54.0 (NEUTRAL)
+[01:19:37] ✅   [bug-gate] no non-OK leg scored (none)
 ── edge ──
-[01:09:25] ✅   [edge] edge serves the recalibrated legs
+[01:19:38] ✅   [edge] edge shows >=30 legs
 ── verdict ──
-[01:09:25] ✅ BOARD CORRECTED — port on complete-window basis (trimmed 0 ragged day(s): seasonal -21.1%, leg 0), grid norm-calibrated (57.8), composite 52.4 (NEUTRAL)
+[01:19:38] ✗ wave 4: 3 red (truth table above)
 
-→ Report written to aws/ops/reports/latest/4619_ragged_edge.md
+→ Report written to aws/ops/reports/latest/4620_wave4.md
+❌ OPS-FAIL: aws/ops/pending/ops_4620_wave4.py
