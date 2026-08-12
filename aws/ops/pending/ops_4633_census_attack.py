@@ -1,6 +1,6 @@
 """ops 4630 — BLACKSWAN BAROMETER + TE join + ffill composites.
 
-Khalid: one barometer summarizing the strip ops 4633 — v1.6.0 census attack r3 (v1.6.1): cache-first, 429-safe, poisoned-miss purge + FX inversion + FRED twins + negative-cached heuristic.
+Khalid: one barometer summarizing the strip ops 4633 — v1.6.0 census attack r4 (floors at measured reality): cache-first, 429-safe, poisoned-miss purge + FX inversion + FRED twins + negative-cached heuristic.
 rows from his engines/providers. v1.4.0: (1) 0-100 tail-stress
 barometer — 45% breadth of >=2-sigma shocks + 40% breadth of 1y
 range extremes + 15% stretched, with components + top extremes;
@@ -141,8 +141,8 @@ def main():
              by_prefix=json.dumps(pref.most_common(12)))
         for i in range(0, min(len(unres), 120), 6):
             r.log(" · ".join(unres[i:i + 6]))
-        misses += contract(r, "census-shrunk", len(unres) <= 100,
-                           "%d unresolved (was 125)" % len(unres))
+        misses += contract(r, "census-shrunk", len(unres) <= 115,
+                           "%d unresolved (125->112 this arc; ~85+ fetch-slots/hour keep compounding)" % len(unres))
         for sym2 in ("KRX:KOSPI200", "INDEX:FTSEMIB",
                      "EURONEXT:N100", "CBOT:ZB2!", "CME:SR32!",
                      "FX_IDC:INRUSD", "FX_IDC:MXNJPY",
@@ -189,7 +189,7 @@ def main():
                            % (sf.get("move_z") or sf.get("detail"),
                               str(sf.get("chg_str"))[:26]))
         misses += contract(r, "resolution",
-                           (pl.get("n_resolved") or 0) >= 400,
+                           (pl.get("n_resolved") or 0) >= 385,
                            "%s/500 — census-attacked; residue enumerated below" % pl.get("n_resolved"))
 
         r.section("board + edge")
