@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.4.3 (ops 4623)
+"""justhodl-blackswan-watch v1.5.0 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -22,6 +22,7 @@ canary board consumes (observed tier, never load-bearing).
 import json
 import math
 import os
+import re
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
@@ -34,7 +35,78 @@ WARM = "data/warm/blackswan/"
 FRED_KEY = os.environ.get("FRED_API_KEY",
                           "2f057499936072679d8843d7fce99989")
 FRED_BUDGET = 90  # bounded per run; cumulative via warm cache
+YH_BUDGET = {"n": 60}  # Yahoo-chart alias fallback, same pattern
 s3 = boto3.client("s3")
+
+
+def yahoo_fallback(alias, budget):
+    """v1.5.0: the symbol-dictionary embeds '(MARKET: X)' aliases —
+    fetch via Yahoo v8 chart (the fleet's own symbol-feed/fedwatch
+    pattern), bounded + cumulatively cached."""
+    if budget["n"] <= 0 or not alias:
+        return None
+    safe = re.sub(r"[^A-Za-z0-9._^=-]", "_", alias)
+    wkey = WARM + "yh_" + safe + ".json"
+    cached = s3_json(wkey)
+    if cached and cached.get("series"):
+        try:
+            ft = datetime.fromisoformat(cached["fetched_at"])
+            if (datetime.now(timezone.utc) - ft
+                    ).total_seconds() < 72000:
+                return cached
+        except Exception:
+            pass
+    budget["n"] -= 1
+    for cand in (alias, "^" + alias
+                 if not alias.startswith("^")
+                 and "=" not in alias else None):
+        if not cand:
+            continue
+        try:
+            url = ("https://query1.finance.yahoo.com/v8/finance/"
+                   "chart/%s?range=1y&interval=1d"
+                   % urllib.parse.quote(cand))
+            req = urllib.request.Request(
+                url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=12) as h:
+                d = json.loads(h.read())
+            res = ((d.get("chart") or {}).get("result")
+                   or [None])[0]
+            if not res:
+                continue
+            ts = res.get("timestamp") or []
+            cl = (((res.get("indicators") or {}).get("quote")
+                   or [{}])[0].get("close")) or []
+            se = []
+            for i in range(min(len(ts), len(cl))):
+                if cl[i] is None:
+                    continue
+                se.append({"date": datetime.fromtimestamp(
+                    ts[i], tz=timezone.utc).date().isoformat(),
+                    "value": float(cl[i])})
+            if len(se) >= 15:
+                env = {"series": se[-400:],
+                       "fetched_at": datetime.now(
+                           timezone.utc).isoformat(
+                           timespec="seconds"),
+                       "via": "Yahoo " + cand}
+                s3.put_object(Bucket=BUCKET, Key=wkey,
+                              Body=json.dumps(env).encode(),
+                              ContentType="application/json")
+                return env
+        except Exception:
+            continue
+    return None
+
+
+def dict_aliases(dic, sym):
+    """Parse '(FRED: SID)' and '(MARKET: Y)' out of the
+    symbol-dictionary name — the estate's own rosetta stone."""
+    nm = dict_name(dic, sym) or ""
+    fm = re.search(r"\(FRED:\s*([A-Z0-9]+)\)", nm)
+    mm = re.search(r"\(MARKET:\s*([^)]+)\)", nm)
+    return (fm.group(1) if fm else None,
+            mm.group(1).strip() if mm else None)
 
 
 def fred_fallback(sym, budget):
@@ -668,6 +740,17 @@ def lambda_handler(event, context):
                                 "via": "TE latest"}
                 else:
                     fb = ma200_series(sym)
+                    if fb:
+                        node = fb
+            if node is None or not extract_series(node):
+                fsid, yh = dict_aliases(dic, sym)
+                if fsid:
+                    fb = fred_fallback("FRED:" + fsid, budget)
+                    if fb:
+                        node = fb
+                if (node is None or not extract_series(node)) \
+                        and yh:
+                    fb = yahoo_fallback(yh, YH_BUDGET)
                     if fb:
                         node = fb
             rows.append(analyze(sym, node, dict_name(dic, sym)))
