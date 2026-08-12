@@ -1,4 +1,4 @@
-"""justhodl-physical-econ v2.1.1 (ops 4614)
+"""justhodl-physical-econ v2.1.2 (ops 4614)
 
 The Physical/Real Economy signal, institutional restructure: five
 weighted SUB-PILLARS computed purely from evidence landed by
@@ -700,6 +700,16 @@ def lambda_handler(event, context):
                 "doctrine": "independent NY Fed replication check — "
                             "a wide gap means one of us is wrong; "
                             "investigate"}
+    bs = s3_json("data/blackswan-watch.json")
+    if bs and (bs.get("strip") or {}).get("alarm"):
+        st = bs["strip"]
+        canaries["blackswan_strip"] = {
+            "state": st["alarm"],
+            "n_red": st.get("n_red"), "n_amber": st.get("n_amber"),
+            "n_range_extreme": st.get("n_range_extreme"),
+            "list": bs.get("list_name"),
+            "doctrine": "Khalid's TV blackswan list as a tail-risk "
+                        "alarm strip (observed, never load-bearing)"}
     cl = s3_json(WARM + "fred_claims.json")
     if cl and cl.get("status") == "OK":
         se = cl.get("series") or []
