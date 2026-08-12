@@ -1,4 +1,4 @@
-"""justhodl-liquidity-reversal v1.4.3 (ops 4641)
+"""justhodl-liquidity-reversal v1.4.4 (ops 4641)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
@@ -1461,6 +1461,27 @@ def analyze(sym, node, name):
             row["trend_state"] = None
         row.setdefault("reversal_state", row.get("reversal"))
         return row
+    if se:  # 1..14 obs: honest level row (self-building routes)
+        o = se[-1]
+        age3 = None
+        try:
+            age3 = (datetime.now(timezone.utc).date()
+                    - datetime.fromisoformat(
+                        o["date"]).date()).days
+        except Exception:
+            pass
+        return {"symbol": sym, "name": name, "resolved": True,
+                "last": round(float(o["value"]), 6),
+                "dod_pct": None, "chg_str": None,
+                "move_z": None, "move_state": "SEEDING",
+                "range_pos_pct": None,
+                "range_state": "SEEDING",
+                "n_obs": len(se), "data_age_days": age3,
+                "via": (node.get("via")
+                        if isinstance(node, dict) else None),
+                "detail": "self-building series: trend basis "
+                          "at 15 obs (~%d days out)"
+                          % max(0, 15 - len(se))}
     lv, ld = extract_latest(node)
     if lv is not None:
         prev = None

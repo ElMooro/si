@@ -1,4 +1,4 @@
-"""ops 4640 — ops 4641 r3 — source-redundant snapshot (CG→paprika+coincap) with fetch confession (member truth); self-building series (CoinGecko global; legs + rows); v1.4.1.
+"""ops 4640 — ops 4641 r4 — SEEDING level rows for short self-building series (CG→paprika+coincap) with fetch confession (member truth); self-building series (CoinGecko global; legs + rows); v1.4.1.
 columns dash out; prior-arc fix pattern applied: read the writer's
 schema, patch the reader with tolerant getters, alias in engine).
 
@@ -76,13 +76,13 @@ def main():
                 src = zf2.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-liquidity-reversal v1.4.3" in src:
+                if "justhodl-liquidity-reversal v1.4.4" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
-        misses += contract(r, "deploy", settled, "v1.4.3 live")
+        misses += contract(r, "deploy", settled, "v1.4.4 live")
         if not settled:
             sys.exit(1)
 
@@ -152,8 +152,8 @@ def main():
                            stb.get("resolved")
                            and 0.5 <= (stb.get("last") or 0)
                            <= 20
-                           and "self-building" in str(
-                               stb.get("via") or ""),
+                           and stb.get("move_state")
+                           == "SEEDING",
                            "USDT+USDC dominance %s%% (n=%s) — "
                            "member row live, series "
                            "self-building toward trend basis"
