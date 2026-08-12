@@ -1,4 +1,4 @@
-"""justhodl-physical-econ v2.0.1 (ops 4614)
+"""justhodl-physical-econ v2.0.2 (ops 4614)
 
 The Physical/Real Economy signal, institutional restructure: five
 weighted SUB-PILLARS computed purely from evidence landed by
@@ -197,8 +197,8 @@ def t_copper(env):
         m = mom_pct(se, 3, 12)
         if m is None:
             return None, "insufficient history"
-        return 50 + m * 2.5, ("%+.1f%% (3m vs prior 12m, IMF "
-                              "monthly) · $%.0f/tonne"
+        return 50 + m * 1.2, ("%+.1f%% (3m vs prior 12m, IMF "
+                              "monthly, k=1.2) · $%.0f/tonne"
                               % (m, se[-1]["value"]))
     m = mom_pct(se, 5, 21)
     if m is None:

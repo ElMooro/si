@@ -1,4 +1,4 @@
-"""justhodl-real-economy-collector v1.2.0 (ops 4614)
+"""justhodl-real-economy-collector v1.2.1 (ops 4614)
 
 Institutional ingestion layer for the Physical/Real Economy signal —
 the Google/Microsoft separation: this Lambda ONLY fetches and lands
@@ -569,6 +569,49 @@ def leg_aar():
 
 
 def leg_destatis():
+    # candidate 0: GENESIS guest API, table 42191-0001 (the documented
+    # open path — the EXDAT pages carry no CSV href per ops-4617)
+    try:
+        raw = http_get(
+            "https://www-genesis.destatis.de/genesisWS/rest/2020/"
+            "data/tablefile?username=GAST&password=GAST"
+            "&name=42191-0001&area=all&format=ffcsv"
+            "&compress=false", 40).decode("utf-8-sig", "replace")
+        se = []
+        rdr = csv.DictReader(io.StringIO(raw), delimiter=";")
+        for row in rdr:
+            dk = next((k for k in row if k and "zeit" in k.lower()
+                       or (k and "time" in k.lower())), None)
+            vk = next((k for k in row
+                       if k and ("wert" in k.lower()
+                                 or "value" in k.lower())), None)
+            if not dk or not vk:
+                break
+            d0 = str(row[dk]).strip()
+            dt = None
+            for f in ("%d.%m.%Y", "%Y-%m-%d"):
+                try:
+                    dt = datetime.strptime(d0, f).date()
+                    break
+                except Exception:
+                    continue
+            if not dt:
+                continue
+            try:
+                se.append({"date": dt.isoformat(),
+                           "value": float(str(row[vk])
+                                          .replace(",", "."))})
+            except Exception:
+                continue
+        se.sort(key=lambda o: o["date"])
+        if len(se) > 60:
+            return land("destatis_toll", "tier2",
+                        "Destatis GENESIS 42191-0001 (guest)", "OK",
+                        series=se[-400:],
+                        detail="daily truck-toll mileage index via "
+                               "GENESIS guest API")
+    except Exception:
+        pass
     pages = [
         "https://www.destatis.de/EN/Service/EXDAT/Datensaetze/"
         "truck-toll-mileage.html",
