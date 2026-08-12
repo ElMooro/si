@@ -1,4 +1,4 @@
-"""justhodl-dxy-predict v1.0.0 (ops 4643)
+"""justhodl-dxy-predict v1.0.1 (ops 4643)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
@@ -1568,7 +1568,9 @@ def lambda_handler(event, context):
         if not isinstance(it, dict):
             continue
         nm0 = str(it.get("name") or "")
-        if "liquid" not in nm0.lower():
+        if not any(k in nm0.lower() for k in
+                   ("dxy", "dollar", "usd short", "greenback",
+                    "usd predict")):
             continue
         members = [str(x) for x in (it.get("symbols") or [])
                    if isinstance(x, str)]
@@ -1580,7 +1582,7 @@ def lambda_handler(event, context):
             if sy not in seen:
                 seen.add(sy)
                 syms.append(sy)
-    list_name = ("LIQUIDITY FAMILY (%d lists)" % len(fam)
+    list_name = ("DXY FAMILY (%d lists)" % len(fam)
                  if fam else None)
     n_lists = len(fam)
     rows = []
