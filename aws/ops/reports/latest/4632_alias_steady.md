@@ -1,0 +1,38 @@
+# ops 4630 — barometer + TE join
+
+**Status:** success  
+**Duration:** 50.3s  
+**Finished:** 2026-08-12T03:02:19+00:00  
+
+## Data
+
+| barometer | extreme | label | resolved | shock | stretched | top_extremes |
+|---|---|---|---|---|---|---|
+| 12.7 | 24.2 | QUIET | 375 | 1.7 | 15.4 | [{"symbol": "FRED:PCOPPUSDM", "range_pos_pct": 100.0}, {"symbol": "NASDAQ:TLT", "range_pos_pct": 0.0}, {"symbol": "FRED:HOANBS", "range_pos_pct": 100.0}, {"symbol": "FRED:RRSFS", "range_pos_pct": 100. |
+
+## Log
+## deploy-settle
+
+- `03:01:29` ✅   [deploy] blackswan v1.5.1 + signal v2.1.3
+## run + barometer truth
+
+- `03:02:14` ✅   [barometer] barometer 12.7 (QUIET)
+- `03:02:14` TE-joined: ['ECONOMICS:CLGDPYY', 'ECONOMICS:CLUR', 'ECONOMICS:CHUR', 'ECONOMICS:HKUR', 'ECONOMICS:USRSYY', 'ECONOMICS:EURSYY', 'ECONOMICS:NLCU', 'ECONOMICS:USBCOI', 'ECONOMICS:FIGDPYY', 'ECONOMICS:CHBCOI', 'ECONOMICS:FIBCOI', 'ECONOMICS:KYGDPYY']
+- `03:02:14` ✅   [te-join] 42 ECONOMICS rows via Trading Economics
+- `03:02:14` CBOT:ZB1!        CALM      z=0.5   n=252  
+- `03:02:14` FX_IDC:KRWUSD    CALM      z=0.01  n=260  
+- `03:02:14` ECONOMICS:CHUR   NO_HISTORY z=None  n=1    TE latest
+- `03:02:14` NASDAQ:VXUS      CALM      z=0.46  n=235  
+- `03:02:14` CBOE:VXEEM       NO_HISTORY z=None  n=1    
+- `03:02:14` AMEX:VEA         CALM      z=0.52  n=235  
+- `03:02:14` ✅   [alias-z] 4/5 alias spot-checks on z-basis
+- `03:02:14` ✅   [history-depth] 230 rows on statistical basis (steady-state ~330 as the hourly cache compounds)
+- `03:02:14` ✅   [ffill-composite] SOFR-FEDFUNDS z-based: z=0.42 +0.01 Δ (DoD)
+- `03:02:14` ✅   [resolution] 375/500 — alias routes live; cache compounds ~85+/hour toward ~440 steady state
+## board + edge
+
+- `03:02:18` ✅   [canary-barometer] board carries barometer 12.7 (QUIET)
+- `03:02:19` ✅   [edge] edge serves the barometer
+## verdict
+
+- `03:02:19` ✅ BAROMETER LIVE — 12.7 (QUIET): shock 1.7% / extreme 24.2% / stretched 15.4% · 375/500 resolved (+TE join, ffill composites) · on the physical board and the page

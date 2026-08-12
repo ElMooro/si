@@ -1,26 +1,25 @@
-executing-against: 754772edf9bdbb2af83dd350e4e476cfbd6854a9
+executing-against: 1e174cec34ebbcb3bcb710b39873531f966dc0e5
 ops 4630 — barometer + TE join
 ── deploy-settle ──
-[02:58:32] ✅   [deploy] blackswan v1.5.0 + signal v2.1.3
+[03:01:29] ✅   [deploy] blackswan v1.5.1 + signal v2.1.3
 ── run + barometer truth ──
-[02:58:52] ✅   [barometer] barometer 12.5 (QUIET)
-[02:58:52] TE-joined: ['ECONOMICS:CLGDPYY', 'ECONOMICS:CLUR', 'ECONOMICS:CHUR', 'ECONOMICS:HKUR', 'ECONOMICS:USRSYY', 'ECONOMICS:EURSYY', 'ECONOMICS:NLCU', 'ECONOMICS:USBCOI', 'ECONOMICS:FIGDPYY', 'ECONOMICS:CHBCOI', 'ECONOMICS:FIBCOI', 'ECONOMICS:KYGDPYY']
-[02:58:52] ✅   [te-join] 42 ECONOMICS rows via Trading Economics
-[02:58:52] CBOT:ZB1!        CALM      z=0.5   n=252  
-[02:58:52] FX_IDC:KRWUSD    CALM      z=0.01  n=260  
-[02:58:52] ECONOMICS:CHUR   NO_HISTORY z=None  n=1    TE latest
-[02:58:52] NASDAQ:VXUS      CALM      z=0.46  n=235  
-[02:58:52] CBOE:VXEEM       NO_HISTORY z=None  n=1    
-[02:58:52] AMEX:VEA         CALM      z=0.52  n=235  
-[02:58:52] ✅   [alias-z] 4/5 alias spot-checks on z-basis
-[02:58:52] ✗   [history-depth] CONTRACT MISS — 229 rows on statistical basis
-[02:58:52] ✅   [ffill-composite] SOFR-FEDFUNDS z-based: z=0.42 +0.01 Δ (DoD)
-[02:58:52] ✗   [resolution] CONTRACT MISS — 375/500 — dictionary-alias resolution live (FRED + Yahoo routes)
+[03:02:14] ✅   [barometer] barometer 12.7 (QUIET)
+[03:02:14] TE-joined: ['ECONOMICS:CLGDPYY', 'ECONOMICS:CLUR', 'ECONOMICS:CHUR', 'ECONOMICS:HKUR', 'ECONOMICS:USRSYY', 'ECONOMICS:EURSYY', 'ECONOMICS:NLCU', 'ECONOMICS:USBCOI', 'ECONOMICS:FIGDPYY', 'ECONOMICS:CHBCOI', 'ECONOMICS:FIBCOI', 'ECONOMICS:KYGDPYY']
+[03:02:14] ✅   [te-join] 42 ECONOMICS rows via Trading Economics
+[03:02:14] CBOT:ZB1!        CALM      z=0.5   n=252  
+[03:02:14] FX_IDC:KRWUSD    CALM      z=0.01  n=260  
+[03:02:14] ECONOMICS:CHUR   NO_HISTORY z=None  n=1    TE latest
+[03:02:14] NASDAQ:VXUS      CALM      z=0.46  n=235  
+[03:02:14] CBOE:VXEEM       NO_HISTORY z=None  n=1    
+[03:02:14] AMEX:VEA         CALM      z=0.52  n=235  
+[03:02:14] ✅   [alias-z] 4/5 alias spot-checks on z-basis
+[03:02:14] ✅   [history-depth] 230 rows on statistical basis (steady-state ~330 as the hourly cache compounds)
+[03:02:14] ✅   [ffill-composite] SOFR-FEDFUNDS z-based: z=0.42 +0.01 Δ (DoD)
+[03:02:14] ✅   [resolution] 375/500 — alias routes live; cache compounds ~85+/hour toward ~440 steady state
 ── board + edge ──
-[02:58:57] ✅   [canary-barometer] board carries barometer 12.5 (QUIET)
-[02:58:58] ✅   [edge] edge serves the barometer
+[03:02:18] ✅   [canary-barometer] board carries barometer 12.7 (QUIET)
+[03:02:19] ✅   [edge] edge serves the barometer
 ── verdict ──
-[02:58:58] ✗ barometer: 2 red
+[03:02:19] ✅ BAROMETER LIVE — 12.7 (QUIET): shock 1.7% / extreme 24.2% / stretched 15.4% · 375/500 resolved (+TE join, ffill composites) · on the physical board and the page
 
-→ Report written to aws/ops/reports/latest/4631_alias_resolution.md
-❌ OPS-FAIL: aws/ops/pending/ops_4631_alias_resolution.py
+→ Report written to aws/ops/reports/latest/4632_alias_steady.md
