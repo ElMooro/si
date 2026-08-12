@@ -321,6 +321,37 @@ def lambda_handler(event=None, context=None):
     data_age_days = ((datetime.now(timezone.utc).date() - latest_date).days
                      if latest_date else None)
 
+    # v1.3.0 (ops 4619) ragged-edge guard: ports report at different
+    # lags, so trailing days with partial coverage undercount global
+    # tonnage and manufacture phantom collapse (the "port leg pinned
+    # at 0" incident). Trim to the last day carrying >=90% of median
+    # port coverage before ANY window math.
+    true_latest_date = latest_date
+    ragged_trimmed = 0
+    cov_med = cov_last = None
+    cover = defaultdict(int)
+    for p in ports.values():
+        for od0 in p["days"]:
+            cover[od0] += 1
+    if cover and latest_ord:
+        counts = sorted(cover.values())
+        cov_med = counts[len(counts) // 2]
+        complete_ord = max((o for o in cover
+                            if cover[o] >= 0.9 * cov_med),
+                           default=latest_ord)
+        if complete_ord < latest_ord:
+            ragged_trimmed = latest_ord - complete_ord
+            for p in ports.values():
+                for od0 in [d for d in p["days"] if d > complete_ord]:
+                    del p["days"][od0]
+            latest_ord = complete_ord
+            latest_date = datetime.fromordinal(latest_ord).date()
+            data_age_days = (datetime.now(timezone.utc).date()
+                             - latest_date).days
+            gaps.append("ragged edge: trimmed %d trailing day(s) with "
+                        "partial coverage" % ragged_trimmed)
+        cov_last = cover.get(latest_ord)
+
     port_rows, ctry = [], defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
     g_recent = [0.0, 0.0]; g_base = [0.0, 0.0]
     if latest_ord:
@@ -457,7 +488,7 @@ def lambda_handler(event=None, context=None):
             shock, seasonal_block.get("status")))
 
     out = {
-        "engine": "port-cargo", "version": "1.2.0",
+        "engine": "port-cargo", "version": "1.3.0",
         "date_field_type": sorted(date_type_seen) or None,
         "engine_class": "physical_trade_fast_layer",
         "evidence_tier": "tier_1_measured_physical",
@@ -465,6 +496,13 @@ def lambda_handler(event=None, context=None):
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
         "fetch_status": fetch_status,
+        "complete_through": (latest_date.isoformat()
+                             if latest_date else None),
+        "true_latest_date": (true_latest_date.isoformat()
+                             if true_latest_date else None),
+        "ragged_days_trimmed": ragged_trimmed,
+        "coverage": {"median_ports_per_day": cov_med,
+                     "ports_on_last_complete_day": cov_last},
         "layer": {"service_path": RESOLVER_PATH,
                   "datefield": DATEFIELD,
                   "url_tail": LAYER[-80:]},
