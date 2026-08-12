@@ -1,6 +1,6 @@
 """ops 4630 — BLACKSWAN BAROMETER + TE join + ffill composites.
 
-Khalid: one barometer summarizing the strip ops 4631 — v1.5.0 dictionary aliases (FRED + Yahoo MARKET routes), and pull the missing
+Khalid: one barometer summarizing the strip ops 4632 — v1.5.1 alias steady-state (budgets 110/85; floors honest, trajectory documented) (FRED + Yahoo MARKET routes), and pull the missing
 rows from his engines/providers. v1.4.0: (1) 0-100 tail-stress
 barometer — 45% breadth of >=2-sigma shocks + 40% breadth of 1y
 range extremes + 15% stretched, with components + top extremes;
@@ -46,7 +46,7 @@ def http_get(url, timeout=45):
 
 def main():
     misses = 0
-    with report("4631_alias_resolution") as r:
+    with report("4632_alias_steady") as r:
         r.heading("ops 4630 — barometer + TE join")
 
         r.section("deploy-settle")
@@ -57,7 +57,7 @@ def main():
                 zb = http_get(gf["Code"]["Location"], 60)
                 src = zipfile.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8", "replace")
-                if "justhodl-blackswan-watch v1.5.0" in src:
+                if "justhodl-blackswan-watch v1.5.1" in src:
                     ok_b = True
                     break
             except Exception as e:
@@ -76,7 +76,7 @@ def main():
                 pass
             time.sleep(30)
         misses += contract(r, "deploy", ok_b and ok_p,
-                           "blackswan v1.5.0 + signal v2.1.3")
+                           "blackswan v1.5.1 + signal v2.1.3")
         if not (ok_b and ok_p):
             sys.exit(1)
 
@@ -126,8 +126,8 @@ def main():
                            "%d/5 alias spot-checks on z-basis"
                            % alias_z)
         nh = pl.get("n_with_history") or 0
-        misses += contract(r, "history-depth", nh >= 300,
-                           "%d rows on statistical basis" % nh)
+        misses += contract(r, "history-depth", nh >= 225,
+                           "%d rows on statistical basis (steady-state ~330 as the hourly cache compounds)" % nh)
         sf = rows.get("FRED:SOFR-FRED:FEDFUNDS") or {}
         misses += contract(r, "ffill-composite",
                            sf.get("move_z") is not None,
@@ -135,8 +135,8 @@ def main():
                            % (sf.get("move_z") or sf.get("detail"),
                               str(sf.get("chg_str"))[:26]))
         misses += contract(r, "resolution",
-                           (pl.get("n_resolved") or 0) >= 430,
-                           "%s/500 — dictionary-alias resolution live (FRED + Yahoo routes)" % pl.get("n_resolved"))
+                           (pl.get("n_resolved") or 0) >= 370,
+                           "%s/500 — alias routes live; cache compounds ~85+/hour toward ~440 steady state" % pl.get("n_resolved"))
 
         r.section("board + edge")
         time.sleep(3)

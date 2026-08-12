@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.5.0 (ops 4623)
+"""justhodl-blackswan-watch v1.5.1 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -34,8 +34,8 @@ OUT_KEY = "data/blackswan-watch.json"
 WARM = "data/warm/blackswan/"
 FRED_KEY = os.environ.get("FRED_API_KEY",
                           "2f057499936072679d8843d7fce99989")
-FRED_BUDGET = 90  # bounded per run; cumulative via warm cache
-YH_BUDGET = {"n": 60}  # Yahoo-chart alias fallback, same pattern
+FRED_BUDGET = 110  # bounded per run; cumulative via warm cache
+YH_BUDGET = {"n": 85}  # Yahoo-chart alias fallback, same pattern
 s3 = boto3.client("s3")
 
 
