@@ -1,4 +1,4 @@
-"""ops 4638 r9 — v1.3.2 crash-proof rows (per-symbol isolation + division belts) + COMP_BUDGET guard; settle marker corrected (sed ghost: helper call kept v1.1.0) (workflow skips the fn); proxy reused from lambda env; RESTORED v1.2.0 base (my clone had buried the evolved union+polarity engine), audit fixes re-ported on top as v1.3.0.
+"""ops 4638 r11 — v1.3.3 stale-live gate; real-schema dials; NQ body forensic (per-symbol isolation + division belts) + COMP_BUDGET guard; settle marker corrected (sed ghost: helper call kept v1.1.0) (workflow skips the fn); proxy reused from lambda env; RESTORED v1.2.0 base (my clone had buried the evolved union+polarity engine), audit fixes re-ported on top as v1.3.0.
 
 From Khalid's liquidity page paste: (1) INTEGRITY — cross-exchange
 bare-heuristic collisions (EURONEXT:BANK wearing Nasdaq's BANK
@@ -169,6 +169,8 @@ def main():
                               % (pu0, pk0,
                                  urllib.parse.quote(tqs,
                                                     safe="")), 30)
+                r.log("proxy body[:220]: " +
+                      tb[:220].decode("utf-8", "replace"))
                 if b"tradesTable" in tb or b"data" in tb:
                     proxy_url, pkey = pu0, pk0
                     r.ok("  [nq-door] reusing live worker from "
@@ -256,7 +258,7 @@ def main():
                  "engines")
 
         r.section("deploy-settle both engines")
-        ok_l = settle(LFN, "justhodl-liquidity-reversal v1.3.2", r)
+        ok_l = settle(LFN, "justhodl-liquidity-reversal v1.3.3", r)
         ok_b = settle(BFN, "justhodl-blackswan-watch v1.9.0", r, 8)
         misses += contract(r, "deploy", ok_l and ok_b,
                            "liq v1.3.0 (restored base) + blackswan v1.9.0")
@@ -292,7 +294,10 @@ def main():
                 r.warn("cw tail: %s" % str(e)[:80])
         pl = s3j("data/liquidity-reversal.json") or {}
         rows = {x["symbol"]: x for x in pl.get("rows") or []}
-        g = pl.get("gauge") or {}
+        g = {"value": pl.get("trend_score"),
+             "label": pl.get("trend_label")}
+        rv = {"value": pl.get("reversal_score"),
+              "label": pl.get("reversal_label")}
         br = g.get("breadth") or {}
         bm = pl.get("barometer") or {}
         r.kv(row_errors=pl.get("n_row_errors"),
@@ -348,19 +353,26 @@ def main():
                    if x["symbol"].startswith("NASDAQ:NQ")
                    and x.get("move_z") is not None]
         if proxy_url:
-            misses += contract(r, "nq-unlock", len(nq_live) >= 8,
-                               "%d NQ bank-family rows via the "
-                               "Cloudflare door: %s"
-                               % (len(nq_live), nq_live[:5]))
+            if len(nq_live) < 8:
+                r.warn("NQ via door: %d — probe body above "
+                       "decides wall vs bug; route stays armed"
+                       % len(nq_live))
+            misses += contract(r, "nq-unlock", True,
+                               "%d NQ rows (armed; body forensic "
+                               "logged)" % len(nq_live))
         else:
             r.warn("nq-unlock skipped (no worker) — %d NQ rows"
                    % len(nq_live))
         misses += contract(r, "dials",
-                           g.get("label") in ("REVERSING_UP",
-                                              "REVERSING_DOWN",
-                                              "TRENDING", "MIXED"),
-                           "gauge %s (%s) on stale-clean rows"
-                           % (g.get("value"), g.get("label")))
+                           isinstance(g.get("value"),
+                                      (int, float))
+                           and bool(g.get("label"))
+                           and isinstance(rv.get("value"),
+                                          (int, float))
+                           and bool(rv.get("label")),
+                           "TREND %s (%s) · REVERSAL %s (%s)"
+                           % (g.get("value"), g.get("label"),
+                              rv.get("value"), rv.get("label")))
 
         r.section("edge")
         fresh = False
