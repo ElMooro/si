@@ -1,4 +1,4 @@
-"""justhodl-dxy-predict v1.0.1 (ops 4643)
+"""justhodl-dxy-predict v1.1.0 (ops 4645)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
@@ -56,6 +56,9 @@ ST_BUDGET = {"n": 2}     # STOXX txt (single cached doc)
 VN_BUDGET = {"n": 2}     # TCBS (single cached doc)
 TE_BUDGET = {"n": 14}
 CC_BUDGET = {"n": 3}
+BN_BUDGET = {"n": 40}
+CRYPTO_PREFIXES = ("BINANCE", "BYBIT", "CRYPTO", "COINBASE",
+                   "KRAKEN", "BITSTAMP", "OKX", "MEXC")
 CC_MAP = {"CRYPTOCAP:TOTAL": ("mcap", "total_mcap_usd"),
           "CRYPTOCAP:BTC.D": ("dom", "btc"),
           "CRYPTOCAP:ETH.D": ("dom", "eth"),
@@ -643,6 +646,105 @@ def cryptocap_fallback(sym, budget):
     return None
 
 
+def _crypto_base(sym):
+    p = sym.split(":", 1)[1] if ":" in sym else sym
+    p = p.replace(".P", "").replace("PERP", "")
+    for suf in ("USDT", "USD", "USDC", "BUSD"):
+        if p.endswith(suf) and len(p) > len(suf):
+            return p[:-len(suf)], p if p.endswith("USDT") \
+                else p[:-len(suf)] + "USDT"
+    return p, p + "USDT"
+
+
+def crypto_ma200_series(sym):
+    doc = fleet_doc("data/_ma200/crypto-closes.json")
+    if not isinstance(doc, dict):
+        return None
+    ser = doc.get("series") or {}
+    dates = doc.get("dates")
+    base, _pair = _crypto_base(sym)
+    for k in (base, base + "USD", base + "USDT",
+              sym.split(":", 1)[1] if ":" in sym else sym):
+        vals = ser.get(k)
+        if isinstance(vals, list) and isinstance(dates, list):
+            n = min(len(dates), len(vals))
+            se = []
+            for i in range(max(0, n - 400), n):
+                try:
+                    se.append({"date": str(dates[i])[:10],
+                               "value": float(vals[i])})
+                except Exception:
+                    continue
+            if len(se) >= 15:
+                return {"series": se,
+                        "via": "crypto-ma200 " + k}
+    return None
+
+
+def binance_fallback(sym, budget):
+    """BINANCE-class daily klines (keyless), cached + 429-safe."""
+    _b, pair = _crypto_base(sym)
+    wkey = WARM + "bn_" + re.sub(r"[^A-Z0-9]", "_", pair) + ".json"
+    cached = s3_json(wkey)
+    if cached:
+        try:
+            ft = datetime.fromisoformat(cached["fetched_at"])
+            age_s = (datetime.now(timezone.utc) - ft
+                     ).total_seconds()
+            if cached.get("series") and age_s < 72000:
+                return cached
+            if cached.get("miss") and age_s < 86400:
+                return None
+        except Exception:
+            pass
+    if budget["n"] <= 0:
+        return None
+    budget["n"] -= 1
+    try:
+        url = ("https://api.binance.com/api/v3/klines"
+               "?symbol=%s&interval=1d&limit=300" % pair)
+        req = urllib.request.Request(
+            url, headers={"User-Agent": "justhodl-fleet"})
+        time.sleep(0.15)
+        with urllib.request.urlopen(req, timeout=12) as h:
+            d = json.loads(h.read())
+        se = []
+        for k in d if isinstance(d, list) else []:
+            try:
+                se.append({"date": datetime.fromtimestamp(
+                    k[0] / 1000,
+                    tz=timezone.utc).date().isoformat(),
+                    "value": float(k[4])})
+            except Exception:
+                continue
+        if len(se) >= 15:
+            env = {"series": se,
+                   "fetched_at": datetime.now(
+                       timezone.utc).isoformat(
+                       timespec="seconds"),
+                   "via": "Binance " + pair}
+            s3.put_object(Bucket=BUCKET, Key=wkey,
+                          Body=json.dumps(env).encode(),
+                          ContentType="application/json")
+            return env
+    except urllib.error.HTTPError as e9:
+        if e9.code in (418, 429):
+            return None
+    except Exception:
+        return None
+    try:
+        s3.put_object(Bucket=BUCKET, Key=wkey,
+                      Body=json.dumps(
+                          {"miss": True,
+                           "fetched_at": datetime.now(
+                               timezone.utc).isoformat(
+                               timespec="seconds")}).encode(),
+                      ContentType="application/json")
+    except Exception:
+        pass
+    return None
+
+
 def leg_series(leg, budget):
     """v1.7.0 universal composite leg resolver: FRED (incl
     ECONOMICS twins + TVC:US*Y), curated Yahoo, MULTPL."""
@@ -890,6 +992,8 @@ CURATED_YH = {
     "EUREX:FMEA2!": ("EEMA", "EM-Asia ETF proxy"),
     "EUREX:FMAA1!": ("AAXJ", "AC-Asia ETF proxy"),
     "SGX:SGP2!": ("^STI", "STI index proxy"),
+    "TVC:NI225": ("^N225", None),
+    "OSE:NK2251!": ("^N225", "index proxy for futures"),
     "OANDA:SG30SGD": ("^STI", "STI index proxy"),
     "EUREX:FMXU2!": ("ACWX", "world-ex-US ETF proxy"),
     "ASX24:AP1!": ("^AXJO", "index proxy for SPI futures"),
@@ -1662,6 +1766,12 @@ def lambda_handler(event, context):
                             pair[3:] + pair[:3] + "=X",
                             YH_BUDGET, "inverted cross",
                             invert=True)
+                    if fb:
+                        node = fb
+                elif sym.split(":", 1)[0] in CRYPTO_PREFIXES:
+                    fb = crypto_ma200_series(sym)
+                    if not fb:
+                        fb = binance_fallback(sym, BN_BUDGET)
                     if fb:
                         node = fb
                 elif sym in CC_MAP:
