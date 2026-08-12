@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.6.1 (ops 4623)
+"""justhodl-blackswan-watch v1.7.0 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -128,6 +128,130 @@ def yahoo_fallback(alias, budget, note=None, invert=False):
                       ContentType="application/json")
     except Exception:
         pass
+    return None
+
+
+def multpl_fallback(dataset, budget):
+    """MULTPL:* — monthly tables scraped from multpl.com (the
+    canonical free mirror of the Shiller series)."""
+    if budget["n"] <= 0:
+        return None
+    slug = dataset.lower()
+    for suf in ("_month", "_year", "_quarter"):
+        if slug.endswith(suf):
+            slug = slug[:-len(suf)]
+    slug = slug.replace("sp500", "s-p-500").replace("_", "-")
+    wkey = WARM + "mp_" + re.sub(r"[^a-z0-9-]", "_", slug) + ".json"
+    cached = s3_json(wkey)
+    if cached and cached.get("series"):
+        try:
+            ft = datetime.fromisoformat(cached["fetched_at"])
+            if (datetime.now(timezone.utc) - ft
+                    ).total_seconds() < 72000:
+                return cached
+        except Exception:
+            pass
+    budget["n"] -= 1
+    try:
+        req = urllib.request.Request(
+            "https://www.multpl.com/%s/table/by-month" % slug,
+            headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=15) as h:
+            html = h.read().decode("utf-8", "replace")
+        rows = re.findall(
+            r"([A-Z][a-z]{2} \d{1,2}, \d{4})</td>\s*<td[^>]*>"
+            r"[^0-9-]*([\d,]+\.?\d*)", html)
+        se = []
+        for d0, v in rows[:420]:
+            try:
+                dt = datetime.strptime(d0, "%b %d, %Y").date()
+                se.append({"date": dt.isoformat(),
+                           "value": float(v.replace(",", ""))})
+            except Exception:
+                continue
+        se.sort(key=lambda o: o["date"])
+        if len(se) >= 15:
+            env = {"series": se,
+                   "fetched_at": datetime.now(
+                       timezone.utc).isoformat(timespec="seconds"),
+                   "via": "multpl " + slug}
+            s3.put_object(Bucket=BUCKET, Key=wkey,
+                          Body=json.dumps(env).encode(),
+                          ContentType="application/json")
+            return env
+    except Exception:
+        pass
+    return None
+
+
+def cboe_fallback(idx, budget):
+    """CBOE:* — the vix-curve engine's own CDN CSV route."""
+    if budget["n"] <= 0:
+        return None
+    wkey = WARM + "cb_" + re.sub(r"[^A-Z0-9]", "_", idx) + ".json"
+    cached = s3_json(wkey)
+    if cached and cached.get("series"):
+        try:
+            ft = datetime.fromisoformat(cached["fetched_at"])
+            if (datetime.now(timezone.utc) - ft
+                    ).total_seconds() < 72000:
+                return cached
+        except Exception:
+            pass
+    budget["n"] -= 1
+    try:
+        req = urllib.request.Request(
+            "https://cdn.cboe.com/api/global/us_indices/"
+            "daily_prices/%s_History.csv" % idx,
+            headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=15) as h:
+            txt = h.read().decode("utf-8", "replace")
+        se = []
+        for line in txt.splitlines()[1:]:
+            parts = line.split(",")
+            if len(parts) < 5:
+                continue
+            try:
+                dt = datetime.strptime(parts[0].strip(),
+                                       "%m/%d/%Y").date()
+            except Exception:
+                try:
+                    dt = datetime.fromisoformat(
+                        parts[0].strip()[:10]).date()
+                except Exception:
+                    continue
+            try:
+                se.append({"date": dt.isoformat(),
+                           "value": float(parts[4])})
+            except Exception:
+                continue
+        se.sort(key=lambda o: o["date"])
+        if len(se) >= 15:
+            env = {"series": se[-400:],
+                   "fetched_at": datetime.now(
+                       timezone.utc).isoformat(timespec="seconds"),
+                   "via": "CBOE CDN " + idx}
+            s3.put_object(Bucket=BUCKET, Key=wkey,
+                          Body=json.dumps(env).encode(),
+                          ContentType="application/json")
+            return env
+    except Exception:
+        pass
+    return None
+
+
+def leg_series(leg, budget):
+    """v1.7.0 universal composite leg resolver: FRED (incl
+    ECONOMICS twins + TVC:US*Y), curated Yahoo, MULTPL."""
+    sid = leg_to_fred(leg)
+    if sid is None and leg in ECON_FRED:
+        sid = ECON_FRED[leg]
+    if sid:
+        return fred_fallback("FRED:" + sid, budget)
+    if leg in CURATED_LEG_YH:
+        return yahoo_fallback(CURATED_LEG_YH[leg], YH_BUDGET)
+    if leg.startswith("MULTPL:"):
+        return multpl_fallback(leg.split(":", 1)[1], YH_BUDGET)
     return None
 
 
@@ -326,10 +450,15 @@ ECON_FRED = {
     "ECONOMICS:USCJC": "CCSA", "ECONOMICS:USCU": "TCU",
     "ECONOMICS:USBP": "PERMIT",
     "ECONOMICS:USGDPQQ": "A191RL1Q225SBEA",
+    "ECONOMICS:USINBR": "DFF",
     "ECONOMICS:USJO": "JTSJOL", "ECONOMICS:USNO": "AMTMNO",
     "ECONOMICS:USTVS": "TOTALSA", "ECONOMICS:USMEMP": "MANEMP",
 }
+CURATED_LEG_YH = {"ICEUS:DX1!": "DX=F", "TVC:DXY": "DX-Y.NYB"}
 CURATED_YH = {
+    "ICEUS:DX1!": ("DX=F", None),
+    "TVC:DXY": ("DX-Y.NYB", None),
+    "NSE:CNXSMALLCAP": ("^CNXSC", None),
     "KRX:KOSPI200": ("^KS200", None),
     "EURONEXT:N100": ("^N100", None),
     "EURONEXT:PX1": ("^FCHI", None),
@@ -485,17 +614,13 @@ def eval_composite(sym, budget):
         parts = sym.split(op)
         if len(parts) < 2 or any(not p for p in parts):
             continue
-        sids = [leg_to_fred(p) for p in parts]
-        if any(x is None for x in sids):
-            why.append(op + ":leg not FRED-mappable")
-            continue
         legs = []
         bad = None
-        for sid in sids:
-            env = fred_fallback("FRED:" + sid, budget)
+        for p2 in parts:
+            env = leg_series(p2, budget)
             if not env or not env.get("series"):
-                bad = "%s:leg %s fetch empty (budget %d)" % (
-                    op, sid, budget["n"])
+                bad = "%s:leg %s unresolvable (budget %d)" % (
+                    op, p2[:22], budget["n"])
                 break
             legs.append({o["date"]: o["value"]
                          for o in env["series"]})
@@ -818,6 +943,16 @@ def lambda_handler(event, context):
                             pair[3:] + pair[:3] + "=X",
                             YH_BUDGET, "inverted cross",
                             invert=True)
+                    if fb:
+                        node = fb
+                elif sym.startswith("MULTPL:"):
+                    fb = multpl_fallback(sym.split(":", 1)[1],
+                                         YH_BUDGET)
+                    if fb:
+                        node = fb
+                elif sym.startswith("CBOE:"):
+                    fb = cboe_fallback(sym.split(":", 1)[1],
+                                       YH_BUDGET)
                     if fb:
                         node = fb
                 elif re.fullmatch(r"[A-Z]+:[A-Z0-9]{2,12}", sym) \
