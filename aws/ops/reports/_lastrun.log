@@ -1,31 +1,14 @@
-executing-against: a306f08b3dbd0a19f3c007c39e5b7e332b06740b
-ops 4643 — DXY predict-the-future engine
-── pre-dump: dxy/dollar list candidates ──
-[22:17:59] ✅   [list-exists] dxy/dollar list present: [('Bitcoin : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.', 437), ('Crypto : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.', 327), ('Dollar Shortage Indicators', 17)]
-── deploy (ops-side) + settle + schedule ──
-[22:18:00] ✅   [deploy] v1.0.1 live (created=False)
-── run + dxy truth ──
-[22:18:36] FX_IDC:KYDUSD              pol=-1 trend=UP    rev=REVERSAL_DOWN  z=2.47
-[22:18:36] FX_IDC:USDCNY              pol=+1 trend=DOWN  rev=REVERSAL_DOWN  z=1.67
-[22:18:36] FX_IDC:CNYUSD              pol=-1 trend=UP    rev=REVERSAL_UP    z=1.67
-[22:18:36] FRED:DTWEXAFEGS            pol=+1 trend=UP    rev=REVERSAL_DOWN  z=1.24
-[22:18:36] FRED:DTWEXBGS              pol=+1 trend=UP    rev=REVERSAL_DOWN  z=1.11
-[22:18:36] FX:USDCHF                  pol=+1 trend=UP    rev=REVERSAL_DOWN  z=1.02
-[22:18:36] FX_IDC:CHFUSD              pol=-1 trend=DOWN  rev=REVERSAL_UP    z=1.01
-[22:18:36] FRED:DTWEXEMEGS            pol=+1 trend=DOWN  rev=REVERSAL_DOWN  z=0.86
-[22:18:36] FX:NZDUSD                  pol=-1 trend=UP    rev=NONE           z=0.69
-[22:18:36] TVC:US10Y-TVC:DE10Y        pol=+1 trend=UP    rev=NONE           z=0.51
-[22:18:36] FX:USDJPY                  pol=+1 trend=UP    rev=REVERSAL_DOWN  z=0.47
-[22:18:36] TVC:US10Y-TVC:IT10Y        pol=+1 trend=UP    rev=NONE           z=0.46
-[22:18:36] FX:EURUSD                  pol=-1 trend=DOWN  rev=REVERSAL_UP    z=0.24
-[22:18:36] FX_IDC:JPYUSD              pol=-1 trend=UP    rev=REVERSAL_UP    z=0.22
-[22:18:36] ✅   [list-found] list 'DXY FAMILY (21 lists)' (408 members)
-[22:18:36] ✅   [resolution] 229/408 resolved (shared cache pool)
-[22:18:36] ✅   [polarity] 22 mechanically-signed rows
-[22:18:36] ✅   [dials] DXY TREND 27.3 (USD_UP) · REVERSAL -54.5 (FORMING TURN TO USD-DOWN)
+executing-against: 3bac736a0bd55b1c74819a4192fa4316311940e3
+ops 4644 — dxy canary on the board
+── deploy (ops-side) + settle ──
+[22:33:09] ✅   [deploy] v2.1.5 live
+── run + parity ──
+[22:33:13] ✗   [canary] CONTRACT MISS — board parity: None / None
+[22:33:13] ✗   [trio] CONTRACT MISS — board carries ['blackswan_strip']
 ── edge ──
-[22:18:37] ✅   [edge] page + payload at the edge
+[22:35:54] ✗   [edge] CONTRACT MISS — edge board carries the dxy dial
 ── verdict ──
-[22:18:37] ✅ DXY PREDICT LIVE — list 'DXY FAMILY (21 lists)': 229/408 resolved, 22 signed rows · TREND 27.3 (USD_UP) · REVERSAL -54.5 (FORMING TURN TO USD-DOWN) · https://justhodl.ai/dxy-predict.html
+[22:35:54] ✗ dxy canary: 3 red
 
-→ Report written to aws/ops/reports/latest/4643_dxy_predict.md
+→ Report written to aws/ops/reports/latest/4644_dxy_canary.md
+❌ OPS-FAIL: aws/ops/pending/ops_4644_dxy_canary.py
