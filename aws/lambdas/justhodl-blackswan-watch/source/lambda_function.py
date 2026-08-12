@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.0.0 (ops 4623)
+"""justhodl-blackswan-watch v1.0.1 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -142,17 +142,37 @@ def extract_latest(node, depth=0):
     return None, None
 
 
+_VIDX = {}
+
+
+def vault_index(vault):
+    """4623 lesson: vault 'symbols' is a LIST of row dicts, not a
+    map. Index once: exact symbol + base name (prefix stripped)."""
+    if _VIDX.get("done"):
+        return _VIDX
+    rows = (vault or {}).get("symbols")
+    if isinstance(rows, list):
+        for rr in rows:
+            if not isinstance(rr, dict):
+                continue
+            sy = rr.get("symbol")
+            if not isinstance(sy, str):
+                continue
+            _VIDX[sy] = rr
+            if ":" in sy and "/" not in sy and "-" not in sy:
+                _VIDX.setdefault(sy.split(":", 1)[1], rr)
+    _VIDX["done"] = True
+    return _VIDX
+
+
 def vault_lookup(vault, wb, list_name, sym):
-    """Vault first; workbench mirror fallback."""
-    for container in (vault, ):
-        if not isinstance(container, dict):
-            continue
-        for k in ("symbols", "vault", "metrics", "data"):
-            m = container.get(k)
-            if isinstance(m, dict) and sym in m:
-                return m[sym]
-        if sym in container:
-            return container[sym]
+    idx = vault_index(vault)
+    hit = idx.get(sym)
+    if hit is None and ":" in sym and "/" not in sym \
+            and "-" not in sym:
+        hit = idx.get(sym.split(":", 1)[1])
+    if hit is not None:
+        return hit
     if isinstance(wb, dict):
         wls = wb.get("watchlists") or wb.get("lists") or {}
         it = None
@@ -230,12 +250,33 @@ def analyze(sym, node, name):
                 "n_obs": len(se), "data_age_days": age}
     lv, ld = extract_latest(node)
     if lv is not None:
+        prev = None
+        if isinstance(node, dict):
+            for k in ("prev", "previous", "prior"):
+                if isinstance(node.get(k), (int, float)):
+                    prev = float(node[k])
+                    break
+        dod = None
+        if isinstance(node, dict) and isinstance(
+                node.get("chg_pct"), (int, float)):
+            dod = float(node["chg_pct"])
+        elif prev:
+            dod = (lv / prev - 1) * 100
+        ms = "NO_HISTORY"
+        if dod is not None:
+            a = abs(dod)
+            ms = "RED" if a >= 10 else ("AMBER" if a >= 5
+                                        else "CALM")
         return {"symbol": sym, "name": name, "resolved": True,
-                "last": round(lv, 4), "dod_pct": None,
-                "move_z": None, "move_state": "NO_HISTORY",
+                "last": round(lv, 4),
+                "dod_pct": round(dod, 2) if dod is not None
+                else None,
+                "move_z": None, "move_state": ms,
+                "basis": "pct-move (no per-symbol sigma yet)"
+                if dod is not None else "level-only",
                 "range_pos_pct": None, "range_state": "NO_HISTORY",
-                "n_obs": 1, "data_age_days": None,
-                "detail": "level only in vault"}
+                "n_obs": 2 if prev else 1,
+                "data_age_days": None}
     return {"symbol": sym, "name": name, "resolved": False,
             "move_state": "UNRESOLVED", "range_state": "UNRESOLVED"}
 

@@ -1,4 +1,4 @@
-"""ops 4623 — BLACKSWAN WATCH: Khalid's TV list as a canary strip.
+"""ops 4624 — blackswan regate (vault list-index fix): Khalid's TV list as a canary strip.
 
 Khalid: "my tradingview blackswan list have many many more metrics
 you can add." Correct institutional mapping for a list with that
@@ -70,7 +70,7 @@ def shape(o, depth=0):
 
 def main():
     misses = 0
-    with report("4623_blackswan") as r:
+    with report("4624_blackswan_regate") as r:
         r.heading("ops 4623 — blackswan canary strip")
 
         r.section("pre-dump: raw shapes (evidence for any repair)")
@@ -109,7 +109,7 @@ def main():
                 zb = http_get(gf["Code"]["Location"], 60)
                 src = zipfile.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8", "replace")
-                if "justhodl-blackswan-watch v1.0.0" in src:
+                if "justhodl-blackswan-watch v1.0.1" in src:
                     ok_b = True
                     break
             except Exception as e:
@@ -129,7 +129,7 @@ def main():
                 pass
             time.sleep(30)
         misses += contract(r, "deploy", ok_b and ok_p,
-                           "blackswan v1.0.0 + signal v2.1.2")
+                           "blackswan v1.0.1 + signal v2.1.2")
         if not (ok_b and ok_p):
             sys.exit(1)
         try:
