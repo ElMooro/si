@@ -1,4 +1,4 @@
-"""ops 4640 — provider-mining round 2: budgets rescaled for 1086, +7 FRED tenors, FX/commodity prefixes+legs, M2/M1 twins; BDI+CRYPTOCAP shape pre-dump.
+"""ops 4640 — provider-mining round 2 r2 (regex anchors): budgets rescaled for 1086, +7 FRED tenors, FX/commodity prefixes+legs, M2/M1 twins; BDI+CRYPTOCAP shape pre-dump.
 columns dash out; prior-arc fix pattern applied: read the writer's
 schema, patch the reader with tolerant getters, alias in engine).
 

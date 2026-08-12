@@ -1,4 +1,4 @@
-"""justhodl-liquidity-reversal v1.3.4 (ops 4639)
+"""justhodl-liquidity-reversal v1.4.0 (ops 4640)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
@@ -46,15 +46,15 @@ OUT_KEY = "data/liquidity-reversal.json"
 WARM = "data/warm/blackswan/"
 FRED_KEY = os.environ.get("FRED_API_KEY",
                           "2f057499936072679d8843d7fce99989")
-FRED_BUDGET = 110  # bounded per run; cumulative via warm cache
-YH_BUDGET = {"n": 70}
-CUR_BUDGET = {"n": 25}   # curated symbols + curated composite legs
-CB_BUDGET = {"n": 12}    # CBOE CDN route
-MP_BUDGET = {"n": 12}    # multpl route
+FRED_BUDGET = 175  # bounded per run; cumulative via warm cache
+YH_BUDGET = {"n": 135}
+CUR_BUDGET = {"n": 45}   # curated symbols + curated composite legs
+CB_BUDGET = {"n": 16}    # CBOE CDN route
+MP_BUDGET = {"n": 16}    # multpl route
 NQ_BUDGET = {"n": 18}    # api.nasdaq.com index historicals
 ST_BUDGET = {"n": 2}     # STOXX txt (single cached doc)
 VN_BUDGET = {"n": 2}     # TCBS (single cached doc)
-TE_BUDGET = {"n": 8}     # TE historical per-indicator
+TE_BUDGET = {"n": 14}     # TE historical per-indicator
 TE_KEY = os.environ.get("TE_API_KEY", "")
 TE_DIRECT = {
     "ECONOMICS:DEIFOCC": ("germany", "Ifo Current Conditions"),
@@ -749,10 +749,16 @@ ECON_FRED = {
     "ECONOMICS:USBP": "PERMIT",
     "ECONOMICS:USGDPQQ": "A191RL1Q225SBEA",
     "ECONOMICS:USINBR": "DFF",
+    "ECONOMICS:USM2": "M2SL", "ECONOMICS:USM1": "M1SL",
     "ECONOMICS:USJO": "JTSJOL", "ECONOMICS:USNO": "AMTMNO",
     "ECONOMICS:USTVS": "TOTALSA", "ECONOMICS:USMEMP": "MANEMP",
 }
-CURATED_LEG_YH = {"ICEUS:DX1!": "DX=F", "TVC:DXY": "DX-Y.NYB"}
+CURATED_LEG_YH = {"ICEUS:DX1!": "DX=F",
+                  "TVC:DXY": "DX-Y.NYB",
+                  "CAPITALCOM:COPPER": "HG=F",
+                  "CAPITALCOM:NATURALGAS": "NG=F",
+                  "TVC:GOLD": "GC=F", "TVC:SILVER": "SI=F",
+                  "TVC:USOIL": "CL=F", "TVC:UKOIL": "BZ=F"}
 CURATED_YH = {
     "ICEUS:DX1!": ("DX=F", None),
     "TVC:DXY": ("DX-Y.NYB", None),
@@ -903,13 +909,20 @@ def leg_to_fred(leg):
     return None
 
 
-COMP_BUDGET = {"n": 40}  # reserved: composite legs (FEDFUNDS-class
+COMP_BUDGET = {"n": 70}  # reserved: composite legs (FEDFUNDS-class
 # is never a standalone member, so the shared budget starved them)
 
 
 if "COMP_BUDGET" not in globals():
     COMP_BUDGET = {"n": 40}
-TENOR_FRED = {"TVC:DE10Y": "IRLTLT01DEM156N",
+TENOR_FRED = {"TVC:GB10Y": "IRLTLT01GBM156N",
+              "TVC:CA10Y": "IRLTLT01CAM156N",
+              "TVC:AU10Y": "IRLTLT01AUM156N",
+              "TVC:CH10Y": "IRLTLT01CHM156N",
+              "TVC:SE10Y": "IRLTLT01SEM156N",
+              "TVC:NO10Y": "IRLTLT01NOM156N",
+              "TVC:NZ10Y": "IRLTLT01NZM156N",
+              "TVC:DE10Y": "IRLTLT01DEM156N",
               "TVC:IT10Y": "IRLTLT01ITM156N",
               "TVC:FR10Y": "IRLTLT01FRM156N",
               "TVC:ES10Y": "IRLTLT01ESM156N",
@@ -1482,7 +1495,9 @@ def lambda_handler(event, context):
                         fb["via"] = "FRED %s · %s" % (fsid2, note2)
                         node = fb
                 elif sym.split(":", 1)[0] in (
-                        "FX_IDC", "FX", "SAXO", "OANDA") and len(
+                        "FX_IDC", "FX", "SAXO", "OANDA",
+                        "FOREXCOM", "CAPITALCOM",
+                        "PEPPERSTONE", "FXCM", "IDC") and len(
                         sym.split(":", 1)[1]) == 6:
                     pair = sym.split(":", 1)[1]
                     fb = yahoo_fallback(pair + "=X", YH_BUDGET)
