@@ -1,13 +1,9 @@
-executing-against: 4eec34b3d04bf15954f5988da5875652bc5e502e
-ops 4644 — dxy canary on the board
-── deploy (ops-side) + settle ──
-[22:38:18] ✅   [deploy] v2.1.6 live
-── run + parity ──
-[22:38:21] ✅   [canary] board parity: USD_UP / FORMING TURN TO USD-DOWN
-[22:38:21] ✅   [trio] board carries ['blackswan_strip', 'dxy_predict']
-── edge ──
-[22:38:22] ✅   [edge] edge board carries the dxy dial
-── verdict ──
-[22:38:22] ✅ TRIO COMPLETE — dxy_predict on the physical board: USD_UP · FORMING TURN TO USD-DOWN (state AMBER)
+executing-against: b7958f6fa633bd251efcedcf7ac3dae570237131
+ops 4643 — DXY predict-the-future engine
+── pre-dump: dxy/dollar list candidates ──
+[23:50:09] ✅   [list-exists] dxy/dollar list present: [('Bitcoin : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.', 437), ('Crypto : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.', 327), ('Dollar Shortage Indicators', 17)]
+── deploy (ops-side) + settle + schedule ──
+[23:54:55] ✗   [deploy] CONTRACT MISS — v1.0.0 live (created=False)
 
-→ Report written to aws/ops/reports/latest/4644_dxy_canary.md
+→ Report written to aws/ops/reports/latest/4645_dxy_crypto.md
+❌ OPS-FAIL: aws/ops/pending/ops_4645_dxy_crypto.py
