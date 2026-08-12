@@ -1,4 +1,4 @@
-"""ops 4615 — collector v1.1.0 regate; supersedes 4614's single red.
+"""ops 4616 — collector v1.1.1 regate; supersedes 4614-15's single red.
 
 Per the 4614 truth table: EIA-930 moved to the native daily route
 (hourly form returned 0), chokepoints gained date-format negotiation
@@ -44,7 +44,7 @@ def http_get(url, timeout=45):
 
 def main():
     misses = 0
-    with report("4615_collector_fix") as r:
+    with report("4616_collector_fix") as r:
         r.heading("ops 4615 — collector v1.1.0 regate")
 
         r.section("deploy-settle")
@@ -55,14 +55,14 @@ def main():
                 zb = http_get(gf["Code"]["Location"], 60)
                 src = zipfile.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8", "replace")
-                if "v1.1.0" in src and "native daily route" in src:
+                if "v1.1.1" in src and "Daily_Chokepoints_Data" in src:
                     settled = True
                     r.log("v1.1.0 live (attempt %d)" % (att + 1))
                     break
             except Exception as e:
                 r.log("attempt %d: %s" % (att + 1, str(e)[:80]))
             time.sleep(30)
-        misses += contract(r, "deploy", settled, "collector v1.1.0")
+        misses += contract(r, "deploy", settled, "collector v1.1.1")
         if not settled:
             sys.exit(1)
 

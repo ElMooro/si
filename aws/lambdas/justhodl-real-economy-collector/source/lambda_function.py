@@ -1,4 +1,4 @@
-"""justhodl-real-economy-collector v1.1.0 (ops 4614)
+"""justhodl-real-economy-collector v1.1.1 (ops 4614)
 
 Institutional ingestion layer for the Physical/Real Economy signal —
 the Google/Microsoft separation: this Lambda ONLY fetches and lands
@@ -103,9 +103,10 @@ def leg_eia930(leg_id, respondent):
     if not EIA_KEY:
         return land(leg_id, "tier1", "EIA-930", "FAILED",
                     detail="EIA_API_KEY not set")
-    url = ("https://api.eia.gov/v2/electricity/rto/region-data/data/"
-           "?api_key=%s&frequency=daily&data[0]=value"
+    url = ("https://api.eia.gov/v2/electricity/rto/daily-region-data/"
+           "data/?api_key=%s&frequency=daily&data[0]=value"
            "&facets[respondent][]=%s&facets[type][]=D"
+           "&facets[timezone][]=Eastern"
            "&sort[0][column]=period&sort[0][direction]=desc"
            "&length=60" % (EIA_KEY, respondent))
     try:
@@ -125,6 +126,27 @@ def leg_eia930(leg_id, respondent):
         se.sort(key=lambda o: o["date"])
         if len(se) >= 2:
             se = se[:-1]  # partial current day off
+        if not se:
+            # fallback: hourly route, no start filter, aggregate
+            qs2 = ("api_key=%s&frequency=hourly&data[0]=value"
+                   "&facets[respondent][]=%s&facets[type][]=D"
+                   "&sort[0][column]=period&sort[0][direction]=desc"
+                   "&length=5000" % (EIA_KEY, respondent))
+            d2 = json.loads(http_get(
+                "https://api.eia.gov/v2/electricity/rto/region-data/"
+                "data/?" + qs2, 40))
+            daily = {}
+            for x in ((d2.get("response") or {}).get("data") or []):
+                p, v = str(x.get("period", "")), x.get("value")
+                if len(p) >= 10 and v is not None:
+                    try:
+                        daily.setdefault(p[:10], 0.0)
+                        daily[p[:10]] += float(v)
+                    except Exception:
+                        continue
+            days = sorted(daily)[:-1]
+            se = [{"date": dd, "value": round(daily[dd] / 1000.0, 2)}
+                  for dd in days]
         if not se:
             raise RuntimeError(
                 "0 rows (api total=%s, err=%s)"
@@ -188,8 +210,55 @@ def leg_fred(leg_id, sid, label, n=400):
 
 # ── tier-1: PortWatch chokepoints (keyless ArcGIS, discovery) ───────
 def leg_chokepoints():
-    url = (ARC + "/PortWatch_chokepoints_database/FeatureServer/0/"
-           "query")
+    """The daily transit series lives in Daily_Chokepoints_Data —
+    PortWatch_chokepoints_database is the static registry (4615
+    lesson: keys were ISO3/LOCODE/country, no n_* fields)."""
+    candidates = ["Daily_Chokepoints_Data", "Daily_Chokepoint_Data",
+                  "Daily_Chokepoints", "chokepoints_daily"]
+    url = None
+    tried = []
+    for name in candidates:
+        u = ARC + "/%s/FeatureServer/0/query" % name
+        try:
+            j0 = json.loads(http_get(
+                u + "?where=1%3D1&resultRecordCount=1&outFields=*"
+                "&f=pjson", 25))
+            f0 = ((j0.get("features") or [{}])[0].get("attributes")
+                  or {})
+            if any(k.lower().startswith("n_")
+                   and isinstance(f0[k], (int, float)) for k in f0):
+                url = u
+                break
+            tried.append(name + ":no n_* fields")
+        except Exception as e0:
+            tried.append(name + ":" + str(e0)[:40])
+    if url is None:
+        try:
+            jd = json.loads(http_get(ARC + "?f=pjson", 25))
+            for svc in jd.get("services", []):
+                nm = (svc.get("name") or "").split("/")[-1]
+                if "chokepoint" not in nm.lower():
+                    continue
+                u = ARC + "/%s/FeatureServer/0/query" % nm
+                try:
+                    j0 = json.loads(http_get(
+                        u + "?where=1%3D1&resultRecordCount=1"
+                        "&outFields=*&f=pjson", 25))
+                    f0 = ((j0.get("features") or [{}])[0]
+                          .get("attributes") or {})
+                    if any(k.lower().startswith("n_")
+                           and isinstance(f0[k], (int, float))
+                           for k in f0):
+                        url = u
+                        break
+                except Exception:
+                    continue
+        except Exception as e1:
+            tried.append("dir:" + str(e1)[:40])
+    if url is None:
+        return land("chokepoints", "tier1", "PortWatch chokepoints",
+                    "FAILED", detail="no daily layer with n_* "
+                    "fields: " + " | ".join(tried)[:220])
     try:
         cutd = datetime.now(timezone.utc) - timedelta(days=70)
         probes = [
