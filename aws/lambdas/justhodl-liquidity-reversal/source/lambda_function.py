@@ -1,4 +1,4 @@
-"""justhodl-liquidity-reversal v1.4.0 (ops 4640)
+"""justhodl-liquidity-reversal v1.4.1 (ops 4641)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
@@ -54,7 +54,14 @@ MP_BUDGET = {"n": 16}    # multpl route
 NQ_BUDGET = {"n": 18}    # api.nasdaq.com index historicals
 ST_BUDGET = {"n": 2}     # STOXX txt (single cached doc)
 VN_BUDGET = {"n": 2}     # TCBS (single cached doc)
-TE_BUDGET = {"n": 14}     # TE historical per-indicator
+TE_BUDGET = {"n": 14}
+CC_BUDGET = {"n": 3}
+CC_MAP = {"CRYPTOCAP:TOTAL": ("mcap", "total_mcap_usd"),
+          "CRYPTOCAP:BTC.D": ("dom", "btc"),
+          "CRYPTOCAP:ETH.D": ("dom", "eth"),
+          "CRYPTOCAP:USDT.D": ("dom", "usdt"),
+          "CRYPTOCAP:USDC.D": ("dom", "usdc")}
+_CG = {}     # TE historical per-indicator
 TE_KEY = os.environ.get("TE_API_KEY", "")
 TE_DIRECT = {
     "ECONOMICS:DEIFOCC": ("germany", "Ifo Current Conditions"),
@@ -531,6 +538,63 @@ def te_hist_fallback(sym, budget):
     return None
 
 
+def _cg_global():
+    """One CoinGecko /global fetch per run (keyless)."""
+    if "d" in _CG:
+        return _CG["d"]
+    try:
+        req = urllib.request.Request(
+            "https://api.coingecko.com/api/v3/global",
+            headers={"User-Agent": "justhodl-fleet"})
+        with urllib.request.urlopen(req, timeout=12) as h:
+            _CG["d"] = (json.loads(h.read()) or {}).get("data") \
+                or {}
+    except Exception:
+        _CG["d"] = {}
+    return _CG["d"]
+
+
+def cryptocap_fallback(sym, budget):
+    """CRYPTOCAP:* — level from CoinGecko global, with warm
+    self-building daily history (institutional pattern: the
+    series grows itself into trend basis)."""
+    if sym not in CC_MAP:
+        return None
+    kind, key = CC_MAP[sym]
+    wkey = WARM + "cc_" + re.sub(r"[^A-Za-z0-9]", "_",
+                                 sym.split(":", 1)[1]) + ".json"
+    env = s3_json(wkey) or {"series": []}
+    today = datetime.now(timezone.utc).date().isoformat()
+    have_today = any(o.get("date") == today
+                     for o in env["series"][-3:])
+    if not have_today and budget["n"] > 0:
+        budget["n"] -= 1
+        g = _cg_global()
+        v = None
+        if kind == "mcap":
+            v = ((g.get("total_market_cap") or {}).get("usd"))
+        else:
+            v = ((g.get("market_cap_percentage") or {})
+                 .get(key))
+        if isinstance(v, (int, float)):
+            env["series"].append({"date": today,
+                                  "value": round(float(v), 6)})
+            env["series"] = env["series"][-500:]
+            env["fetched_at"] = datetime.now(
+                timezone.utc).isoformat(timespec="seconds")
+            env["via"] = "CoinGecko global (self-building)"
+            try:
+                s3.put_object(Bucket=BUCKET, Key=wkey,
+                              Body=json.dumps(env).encode(),
+                              ContentType="application/json")
+            except Exception:
+                pass
+    if env.get("series"):
+        env.setdefault("via", "CoinGecko global (self-building)")
+        return env
+    return None
+
+
 def leg_series(leg, budget):
     """v1.7.0 universal composite leg resolver: FRED (incl
     ECONOMICS twins + TVC:US*Y), curated Yahoo, MULTPL."""
@@ -539,6 +603,8 @@ def leg_series(leg, budget):
         sid = ECON_FRED[leg]
     if sid:
         return fred_fallback("FRED:" + sid, budget)
+    if leg in CC_MAP:
+        return cryptocap_fallback(leg, CC_BUDGET)
     if leg in CURATED_LEG_YH:
         return yahoo_fallback(CURATED_LEG_YH[leg], CUR_BUDGET)
     if leg.startswith("MULTPL:"):
@@ -1506,6 +1572,10 @@ def lambda_handler(event, context):
                             pair[3:] + pair[:3] + "=X",
                             YH_BUDGET, "inverted cross",
                             invert=True)
+                    if fb:
+                        node = fb
+                elif sym in CC_MAP:
+                    fb = cryptocap_fallback(sym, CC_BUDGET)
                     if fb:
                         node = fb
                 elif sym.startswith("MULTPL:"):
