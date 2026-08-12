@@ -1,6 +1,6 @@
 """ops 4630 — BLACKSWAN BAROMETER + TE join + ffill composites.
 
-Khalid: one barometer summarizing the strip ops 4633 — v1.6.0 census attack r2: curated Yahoo + FX inversion + FRED twins + negative-cached heuristic.
+Khalid: one barometer summarizing the strip ops 4633 — v1.6.0 census attack r3 (v1.6.1): cache-first, 429-safe, poisoned-miss purge + FX inversion + FRED twins + negative-cached heuristic.
 rows from his engines/providers. v1.4.0: (1) 0-100 tail-stress
 barometer — 45% breadth of >=2-sigma shocks + 40% breadth of 1y
 range extremes + 15% stretched, with components + top extremes;
@@ -57,7 +57,7 @@ def main():
                 zb = http_get(gf["Code"]["Location"], 60)
                 src = zipfile.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8", "replace")
-                if "justhodl-blackswan-watch v1.6.0" in src:
+                if "justhodl-blackswan-watch v1.6.1" in src:
                     ok_b = True
                     break
             except Exception as e:
@@ -76,9 +76,32 @@ def main():
                 pass
             time.sleep(30)
         misses += contract(r, "deploy", ok_b and ok_p,
-                           "blackswan v1.6.0 + signal v2.1.3")
+                           "blackswan v1.6.1 + signal v2.1.3")
         if not (ok_b and ok_p):
             sys.exit(1)
+
+        r.section("purge poisoned negative caches")
+        purged = 0
+        try:
+            pag = s3.get_paginator("list_objects_v2")
+            for pg in pag.paginate(Bucket=B,
+                                   Prefix="data/warm/blackswan/"
+                                          "yh_"):
+                for ob in pg.get("Contents") or []:
+                    if ob["Size"] < 200:  # miss stubs are tiny
+                        try:
+                            doc = json.loads(s3.get_object(
+                                Bucket=B, Key=ob["Key"])
+                                ["Body"].read())
+                            if doc.get("miss"):
+                                s3.delete_object(Bucket=B,
+                                                 Key=ob["Key"])
+                                purged += 1
+                        except Exception:
+                            pass
+        except Exception as e:
+            r.warn("purge: %s" % str(e)[:80])
+        r.log("purged %d poisoned miss stubs" % purged)
 
         r.section("run + barometer truth")
         lam.invoke(FunctionName=BFN, InvocationType="RequestResponse")

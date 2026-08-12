@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.6.0 (ops 4623)
+"""justhodl-blackswan-watch v1.6.1 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -23,6 +23,7 @@ import json
 import math
 import os
 import re
+import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
@@ -43,23 +44,26 @@ def yahoo_fallback(alias, budget, note=None, invert=False):
     """v1.5.0: the symbol-dictionary embeds '(MARKET: X)' aliases —
     fetch via Yahoo v8 chart (the fleet's own symbol-feed/fedwatch
     pattern), bounded + cumulatively cached."""
-    if budget["n"] <= 0 or not alias:
+    if not alias:
         return None
     safe = re.sub(r"[^A-Za-z0-9._^=-]", "_", alias)
     wkey = WARM + "yh_" + safe + ".json"
     cached = s3_json(wkey)
-    if cached:
+    if cached:  # cache-first: NEVER gated by budget (4633 lesson)
         try:
             ft = datetime.fromisoformat(cached["fetched_at"])
             age_s = (datetime.now(timezone.utc) - ft
                      ).total_seconds()
             if cached.get("series") and age_s < 72000:
                 return cached
-            if cached.get("miss") and age_s < 7 * 86400:
+            if cached.get("miss") and age_s < 86400:
                 return None
         except Exception:
             pass
+    if budget["n"] <= 0:
+        return None
     budget["n"] -= 1
+    rate_limited = False
     for cand in (alias, "^" + alias
                  if not alias.startswith("^")
                  and "=" not in alias else None):
@@ -71,6 +75,7 @@ def yahoo_fallback(alias, budget, note=None, invert=False):
                    % urllib.parse.quote(cand))
             req = urllib.request.Request(
                 url, headers={"User-Agent": "Mozilla/5.0"})
+            time.sleep(0.25)
             with urllib.request.urlopen(req, timeout=12) as h:
                 d = json.loads(h.read())
             res = ((d.get("chart") or {}).get("result")
@@ -104,8 +109,14 @@ def yahoo_fallback(alias, budget, note=None, invert=False):
                               Body=json.dumps(env).encode(),
                               ContentType="application/json")
                 return env
+        except urllib.error.HTTPError as e9:
+            if e9.code in (429, 999):
+                rate_limited = True
+            continue
         except Exception:
             continue
+    if rate_limited:
+        return None  # transient: no negative cache
     try:
         s3.put_object(Bucket=BUCKET, Key=wkey,
                       Body=json.dumps({"miss": True,
