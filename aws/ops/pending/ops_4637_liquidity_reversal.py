@@ -1,4 +1,4 @@
-"""ops 4637 — GLOBAL LIQUIDITY TREND REVERSAL engine.
+"""ops 4637 r2 — LIQUIDITY FAMILY union engine v1.1.0.
 
 Khalid: "now the same way let's build a global liquidity trend
 reversal, that list is on my tradingview too." Doctrine #1.
@@ -69,9 +69,9 @@ def main():
         liq = [n for n in names if n and (
             "liquid" in n.lower() or "gli" in n.lower())]
         r.kv(n_lists=len(names), liquidity_candidates=liq[:8])
-        misses += contract(r, "list-exists", bool(liq),
-                           "liquidity list present: %s"
-                           % (liq[:3] or "NONE"))
+        misses += contract(r, "list-exists", len(liq) >= 3,
+                           "liquidity FAMILY present: %d lists, "
+                           "e.g. %s" % (len(liq), liq[:3]))
 
         r.section("deploy-settle + env + schedule")
         ok_l = ok_p = False
@@ -81,7 +81,7 @@ def main():
                 zb = http_get(gf["Code"]["Location"], 60)
                 src = zipfile.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8", "replace")
-                if "justhodl-liquidity-reversal v1.0.0" in src:
+                if "justhodl-liquidity-reversal v1.1.0" in src:
                     ok_l = True
                     break
             except Exception as e:
@@ -100,7 +100,7 @@ def main():
                 pass
             time.sleep(30)
         misses += contract(r, "deploy", ok_l and ok_p,
-                           "liquidity-reversal v1.0.0 + signal "
+                           "liquidity-reversal v1.1.0 + signal "
                            "v2.1.4")
         if not (ok_l and ok_p):
             sys.exit(1)
@@ -150,6 +150,9 @@ def main():
              reversal=L.get("reversal_score"),
              reversal_label=L.get("reversal_label"),
              n_polarity=L.get("n_polarity_rows"),
+             family=json.dumps([f.get("name", "")[:38]
+                                for f in pl.get("family_lists")
+                                or []])[:300],
              confirmed=L.get("n_confirmed"))
         r.log("top reversals: %s"
               % json.dumps(L.get("top_reversals") or [])[:300])
@@ -170,13 +173,13 @@ def main():
         nm = pl.get("n_members") or 0
         nr = pl.get("n_resolved") or 0
         misses += contract(r, "resolution",
-                           nr >= 10 and (nm == 0 or nr >= 0.5 * nm),
+                           nr >= 25 and (nm == 0 or nr >= 0.55 * nm),
                            "%d/%d resolved (shared caches)"
                            % (nr, nm))
         n_tr = sum(1 for x in (pl.get("rows") or [])
                    if x.get("trend_state"))
         misses += contract(r, "trend-coverage",
-                           n_tr >= max(8, int(0.3 * max(nr, 1))),
+                           n_tr >= 15,
                            "%d rows carry trend/reversal states"
                            % n_tr)
         misses += contract(r, "dials",

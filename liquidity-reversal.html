@@ -32,6 +32,8 @@ MA-cross confirmation · doctrine polarity map · z + 1y range context
 · <span id="asof">loading…</span></div>
 <div class="banner"><div class="alarm" id="alarm">–</div>
 <div><div class="alarm" id="baro" style="font-size:26px">–</div><div class="dim" style="font-size:11px">BAROMETER</div></div>
+<div><div class="alarm" id="trend" style="font-size:22px">–</div><div class="dim" style="font-size:11px">LIQUIDITY TREND</div></div>
+<div><div class="alarm" id="rev" style="font-size:22px">–</div><div class="dim" style="font-size:11px">REVERSAL WATCH</div></div>
 <div id="counts" class="dim"></div></div>
 <table><thead><tr><th>Symbol</th><th>Name</th><th>Last</th>
 <th>DoD %</th><th>|z|</th><th>Move</th><th>1y range pos</th>
@@ -50,6 +52,7 @@ document.getElementById('asof').textContent='as of '+(d.as_of||'?')+
 const A=document.getElementById('alarm'),s=d.strip||{};
 A.textContent=s.alarm||'–';A.className='alarm '+C(s.alarm);
 const bm=d.barometer||{},BE=document.getElementById('baro');BE.textContent=(bm.value==null?'–':bm.value)+' '+(bm.label||'');BE.className='alarm '+(bm.value>=60?'r':bm.value>=40?'a':'g');
+const L=d.liquidity||{},TE=document.getElementById('trend'),RV=document.getElementById('rev');TE.textContent=(L.trend_score==null?'–':L.trend_score)+' '+(L.trend_label||'');TE.className='alarm '+(L.trend_score>=25?'g':L.trend_score<=-25?'r':'a');RV.textContent=(L.reversal_score==null?'–':L.reversal_score)+' '+(L.reversal_label||'');RV.className='alarm '+(String(L.reversal_label).includes('CONFIRMED')?'r':String(L.reversal_label).includes('FORMING')?'a':'g');
 document.getElementById('counts').textContent=
 (d.n_resolved||0)+'/'+(d.n_members||0)+' resolved · '+
 (s.n_red||0)+' RED · '+(s.n_amber||0)+' AMBER · '+

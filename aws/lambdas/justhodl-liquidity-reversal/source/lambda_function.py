@@ -1,4 +1,4 @@
-"""justhodl-liquidity-reversal v1.0.0 (ops 4637)
+"""justhodl-liquidity-reversal v1.1.0 (ops 4637)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
@@ -1172,6 +1172,7 @@ def analyze(sym, node, name):
                 "last": round(last, 4),
                 "dod_pct": round(dod, 2) if dod is not None else None,
                 "chg_str": chg_str,
+                "source_lists": SRC_OF.get(sym),
                 "polarity": pol or None,
                 "liquidity_reversal_dir": liq_dir,
                 **tb,
@@ -1227,6 +1228,9 @@ def analyze(sym, node, name):
     return out
 
 
+SRC_OF = {}
+
+
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
     wl = s3_json("data/tv-watchlists.json")
@@ -1234,11 +1238,36 @@ def lambda_handler(event, context):
     wb = s3_json("data/tv-workbench.json")
     dic = s3_json("data/symbol-dictionary.json")
 
-    list_name, syms, n_lists = find_swan_list(wl)
+    # v1.1.0: Khalid runs a liquidity LIST FAMILY, not one list —
+    # union every list whose name mentions liquidity.
+    fam = []
+    seen = set()
+    syms = []
+    SRC_OF.clear()
+    src_of = SRC_OF
+    for it in (wl or {}).get("lists") or []:
+        if not isinstance(it, dict):
+            continue
+        nm0 = str(it.get("name") or "")
+        if "liquid" not in nm0.lower():
+            continue
+        members = [str(x) for x in (it.get("symbols") or [])
+                   if isinstance(x, str)]
+        if not members:
+            continue
+        fam.append({"name": nm0, "n": len(members)})
+        for sy in members:
+            src_of.setdefault(sy, []).append(nm0[:40])
+            if sy not in seen:
+                seen.add(sy)
+                syms.append(sy)
+    list_name = ("LIQUIDITY FAMILY (%d lists)" % len(fam)
+                 if fam else None)
+    n_lists = len(fam)
     rows = []
     budget = {"n": FRED_BUDGET}
     if list_name:
-        for sym in syms[:520]:
+        for sym in syms[:300]:
             node = vault_lookup(vault, wb, list_name, sym)
             if (node is None or not extract_series(node)) \
                     and sym.startswith("FRED:"):
@@ -1462,6 +1491,7 @@ def lambda_handler(event, context):
         "liquidity": liquidity,
         "as_of": now.isoformat(timespec="seconds"),
         "list_name": list_name,
+        "family_lists": fam,
         "n_lists_seen": n_lists,
         "n_members": len(syms),
         "n_resolved": len(resolved),
