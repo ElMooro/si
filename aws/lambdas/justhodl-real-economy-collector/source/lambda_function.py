@@ -1,4 +1,4 @@
-"""justhodl-real-economy-collector v1.1.1 (ops 4614)
+"""justhodl-real-economy-collector v1.2.0 (ops 4614)
 
 Institutional ingestion layer for the Physical/Real Economy signal —
 the Google/Microsoft separation: this Lambda ONLY fetches and lands
@@ -18,6 +18,9 @@ verbatim reason.
 v1.1.0 (per the 4614 truth table): EIA-930 on the daily route,
 chokepoints with date-format negotiation, copper with a FRED
 fallback, NOAA parser records its miss reason.
+v1.2.0: link-follow resolution for AAR (news listing -> release
+page, FRED BTS fallback) and Destatis (CSV href harvested off the
+page); stooq mirror for copper; ACC CAB URL candidates.
 """
 import csv
 import io
@@ -418,8 +421,15 @@ def leg_aisi():
 
 def leg_copper():
     try:
-        txt = http_get("https://stooq.com/q/d/l/?s=hg.f&i=d",
-                       25).decode("utf-8", "replace")
+        txt = ""
+        for su in ("https://stooq.com/q/d/l/?s=hg.f&i=d",
+                   "https://stooq.pl/q/d/l/?s=hg.f&i=d"):
+            try:
+                txt = http_get(su, 25).decode("utf-8", "replace")
+                if txt.count("\n") > 30:
+                    break
+            except Exception:
+                continue
         rdr = csv.DictReader(io.StringIO(txt))
         se = []
         for row in rdr:
@@ -496,6 +506,143 @@ def leg_noaa_dd():
 
 
 # ── tier-3: best-effort, never load-bearing ─────────────────────────
+def follow_link(page_url, href_re):
+    html = http_get(page_url, 25).decode("utf-8", "replace")
+    m = re.search(href_re, html, re.I)
+    if not m:
+        return None, html
+    href = m.group(1)
+    if href.startswith("//"):
+        href = "https:" + href
+    elif href.startswith("/"):
+        base = "/".join(page_url.split("/")[:3])
+        href = base + href
+    elif not href.startswith("http"):
+        href = page_url.rsplit("/", 1)[0] + "/" + href
+    return href, html
+
+
+def leg_aar():
+    try:
+        link, _ = follow_link(
+            "https://www.aar.org/news/",
+            r'href="([^"]*rail-traffic[^"]*)"')
+        if link:
+            page = http_get(link, 25).decode("utf-8", "replace")
+            m1 = re.search(r"([\d,]{6,})\s*carloads", page, re.I)
+            m2 = re.search(r"([\d,]{6,})\s*(?:intermodal|containers"
+                           r"\s+and\s+trailers)", page, re.I)
+            if m1:
+                return land(
+                    "aar_rail", "tier2", "AAR weekly rail traffic",
+                    "OK",
+                    metrics={"weekly_carloads":
+                             float(m1.group(1).replace(",", "")),
+                             "weekly_intermodal":
+                             float(m2.group(1).replace(",", ""))
+                             if m2 else None,
+                             "release": link[-80:]},
+                    detail="link-followed weekly release")
+        raise RuntimeError("no traffic link/number on aar.org")
+    except Exception as e:
+        try:
+            qs = urllib.parse.urlencode({
+                "series_id": "RAILFRTCARLOADSD11",
+                "api_key": FRED_KEY, "file_type": "json",
+                "sort_order": "desc", "limit": 60})
+            d = json.loads(http_get(
+                "https://api.stlouisfed.org/fred/series/"
+                "observations?" + qs, 25))
+            se = [{"date": o["date"], "value": float(o["value"])}
+                  for o in d.get("observations", [])
+                  if o.get("value") not in (None, ".", "")]
+            se.reverse()
+            if se:
+                return land("aar_rail", "tier2",
+                            "BTS rail carloads via FRED (fallback)",
+                            "OK", series=se,
+                            detail="monthly SA carloads; AAR page "
+                                   "miss: %s" % str(e)[:60])
+        except Exception:
+            pass
+        return land("aar_rail", "tier2", "AAR", "DEGRADED", detail=e)
+
+
+def leg_destatis():
+    pages = [
+        "https://www.destatis.de/EN/Service/EXDAT/Datensaetze/"
+        "truck-toll-mileage.html",
+        "https://www.destatis.de/DE/Service/EXDAT/Datensaetze/"
+        "lkw-maut.html",
+    ]
+    tried = []
+    for pg in pages:
+        try:
+            link, _ = follow_link(
+                pg, r'href="([^"]+(?:maut|toll)[^"]*\.(?:csv|CSV))"')
+            if not link:
+                tried.append(pg.split("/")[-1] + ":no csv href")
+                continue
+            raw = http_get(link, 30).decode("utf-8-sig", "replace")
+            delim = ";" if raw.count(";") > raw.count(",") else ","
+            se = []
+            for row in csv.reader(io.StringIO(raw), delimiter=delim):
+                if len(row) < 2:
+                    continue
+                d0 = row[0].strip()
+                dt = None
+                for f in ("%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y"):
+                    try:
+                        dt = datetime.strptime(d0, f).date()
+                        break
+                    except Exception:
+                        continue
+                if not dt:
+                    continue
+                try:
+                    se.append({"date": dt.isoformat(),
+                               "value": float(
+                                   row[-1].replace(",", "."))})
+                except Exception:
+                    continue
+            se.sort(key=lambda o: o["date"])
+            if len(se) > 60:
+                return land("destatis_toll", "tier2",
+                            "Destatis truck-toll mileage (CSV)",
+                            "OK", series=se[-400:],
+                            detail="daily DE truck-toll index via "
+                                   "harvested %s" % link[-60:])
+            tried.append("csv parsed %d rows" % len(se))
+        except Exception as e:
+            tried.append(str(e)[:60])
+    return land("destatis_toll", "tier2", "Destatis", "DEGRADED",
+                detail=" | ".join(tried)[:250])
+
+
+def leg_acc():
+    urls = [
+        "https://www.americanchemistry.com/chemistry-in-america/"
+        "data-industry-statistics/resources/"
+        "chemical-activity-barometer",
+        "https://www.americanchemistry.com/chemistry-in-america/"
+        "data-industry-statistics",
+    ]
+    last = ""
+    for u in urls:
+        try:
+            html = http_get(u, 25).decode("utf-8", "replace")
+            m = re.search(r"barometer[^0-9]{0,160}?(1[0-9]{2}\.[0-9])",
+                          html, re.I | re.S)
+            if m:
+                return land("acc_cab", "tier3", "ACC CAB", "OK",
+                            metrics={"value": float(m.group(1))},
+                            detail="Chemical Activity Barometer")
+            last = "no barometer number on " + u.split("/")[-1]
+        except Exception as e:
+            last = str(e)[:80]
+    return land("acc_cab", "tier3", "ACC CAB", "DEGRADED", detail=last)
+
+
 def leg_scrape3(leg_id, url, pattern, label, transform=float):
     try:
         html = http_get(url, 25).decode("utf-8", "replace")
@@ -544,22 +691,9 @@ def lambda_handler(event, context):
         ("aisi_steel", leg_aisi),
         ("copper", leg_copper),
         ("noaa_degree_days", leg_noaa_dd),
-        ("aar_rail", lambda: leg_scrape3(
-            "aar_rail", "https://www.aar.org/news/",
-            r"([\d,]{6,})\s*carloads", "US weekly carloads "
-            "(best-effort)")),
-        ("destatis_toll", lambda: leg_scrape3(
-            "destatis_toll",
-            "https://www.destatis.de/EN/Service/EXDAT/Datensaetze/"
-            "truck-toll-mileage.html",
-            r"toll mileage[^%]{0,160}?(-?[\d.]+)\s*%",
-            "DE truck-toll mileage change (best-effort)")),
-        ("acc_cab", lambda: leg_scrape3(
-            "acc_cab",
-            "https://www.americanchemistry.com/chemistry-in-america/"
-            "data-industry-statistics/chemical-activity-barometer",
-            r"barometer[^0-9]{0,120}?([\d.]{4,6})",
-            "ACC Chemical Activity Barometer (best-effort)")),
+        ("aar_rail", leg_aar),
+        ("destatis_toll", leg_destatis),
+        ("acc_cab", leg_acc),
     ]
     for leg_id, fn in jobs:
         try:
