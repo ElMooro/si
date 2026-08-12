@@ -1,4 +1,4 @@
-"""ops 4638 r2 — RESTORED v1.2.0 base (my clone had buried the evolved union+polarity engine), audit fixes re-ported on top as v1.3.0.
+"""ops 4638 r3 — conflict-tolerant env injection; RESTORED v1.2.0 base (my clone had buried the evolved union+polarity engine), audit fixes re-ported on top as v1.3.0.
 
 From Khalid's liquidity page paste: (1) INTEGRITY — cross-exchange
 bare-heuristic collisions (EURONEXT:BANK wearing Nasdaq's BANK
@@ -157,21 +157,38 @@ def main():
                 proxy_url = None
         if proxy_url:
             for fn in (LFN, BFN):
-                cfg = lam.get_function_configuration(
-                    FunctionName=fn)
-                ev = (cfg.get("Environment") or {}).get(
-                    "Variables") or {}
-                ev["NQ_PROXY_URL"] = proxy_url
-                ev["NQ_PROXY_KEY"] = pkey
-                lam.update_function_configuration(
-                    FunctionName=fn,
-                    Environment={"Variables": ev})
-                for _ in range(20):
-                    st = lam.get_function_configuration(
-                        FunctionName=fn)
-                    if st.get("LastUpdateStatus") == "Successful":
+                done = False
+                for att in range(10):
+                    try:
+                        st = lam.get_function_configuration(
+                            FunctionName=fn)
+                        if st.get("LastUpdateStatus") \
+                                == "InProgress":
+                            time.sleep(15)
+                            continue
+                        ev = (st.get("Environment") or {}).get(
+                            "Variables") or {}
+                        ev["NQ_PROXY_URL"] = proxy_url
+                        ev["NQ_PROXY_KEY"] = pkey
+                        lam.update_function_configuration(
+                            FunctionName=fn,
+                            Environment={"Variables": ev})
+                        done = True
                         break
-                    time.sleep(5)
+                    except Exception as e:
+                        if "ResourceConflict" in str(e):
+                            time.sleep(15)
+                            continue
+                        r.warn("env %s: %s" % (fn, str(e)[:80]))
+                        break
+                if done:
+                    for _ in range(20):
+                        st = lam.get_function_configuration(
+                            FunctionName=fn)
+                        if st.get("LastUpdateStatus") \
+                                == "Successful":
+                            break
+                        time.sleep(5)
             r.ok("  [nq-door] worker live + env injected on both "
                  "engines")
 
