@@ -1,4 +1,4 @@
-"""justhodl-liquidity-reversal v1.3.1 (ops 4638)
+"""justhodl-liquidity-reversal v1.3.2 (ops 4638)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
@@ -1213,7 +1213,7 @@ def ols_slope(vals):
     if n < 3:
         return None
     mx = (n - 1) / 2.0
-    my = sum(vals) / n
+    my = sum(vals) / max(n, 1)
     num = sum((i - mx) * (v - my) for i, v in enumerate(vals))
     den = sum((i - mx) ** 2 for i in range(n))
     if not den or not my:
@@ -1283,7 +1283,7 @@ def analyze(sym, node, name):
             rets = [(vals[i] / vals[i - 1] - 1) * 100
                     for i in range(1, len(vals)) if vals[i - 1]]
             tail = rets[-90:]
-            mu = sum(tail) / len(tail)
+            mu = sum(tail) / max(len(tail), 1)
             sd = math.sqrt(sum((x - mu) ** 2 for x in tail)
                            / max(len(tail) - 1, 1))
             z = (abs((dod - mu) / sd)
@@ -1527,7 +1527,17 @@ def lambda_handler(event, context):
                                         YH_BUDGET, "heuristic")
                     if fb:
                         node = fb
-            rows.append(analyze(sym, node, dict_name(dic, sym)))
+            try:
+                rows.append(analyze(sym, node,
+                                    dict_name(dic, sym)))
+            except Exception as _ae:
+                rows.append({"symbol": sym,
+                             "name": dict_name(dic, sym),
+                             "resolved": False,
+                             "move_state": "UNRESOLVED",
+                             "range_state": "UNRESOLVED",
+                             "detail": "analyze err: "
+                             + str(_ae)[:90]})
     resolved = [r for r in rows if r.get("resolved")]
     resolved = [r for r in resolved
                 if not r.get("stale")]
