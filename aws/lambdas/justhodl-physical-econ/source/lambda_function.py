@@ -1,4 +1,4 @@
-"""justhodl-physical-econ v2.0.2 (ops 4614)
+"""justhodl-physical-econ v2.0.3 (ops 4614)
 
 The Physical/Real Economy signal, institutional restructure: five
 weighted SUB-PILLARS computed purely from evidence landed by
@@ -274,11 +274,18 @@ def fleet_legs():
         ex, hl = nat.get("mw_with_executed_ia"), nat.get(
             "headline_queue_mw")
         if isinstance(ex, (int, float)) and hl:
+            share = ex / hl * 100
+            # ~15% executed is the STRUCTURAL NORM for interconnection
+            # queues (most queued MW never executes) — score deviation
+            # from the norm, not the raw ratio (ops 4619).
             out.append(leg_row("grid_buildout", "construction",
                                "Grid buildout quality "
                                "(executed-IA share)",
-                               round(clamp(ex / hl * 100, 0, 100), 1),
-                               "%.0f of %.0f MW executed" % (ex, hl),
+                               round(clamp(50 + (share - 15.0) * 4.0,
+                                           0, 100), 1),
+                               "%.1f%% executed (%.0f of %.0f MW) vs "
+                               "~15%% structural norm"
+                               % (share, ex, hl),
                                "tier1", "OK", 0))
     fp = s3_json("data/freight-pulse.json")
     if fp:
