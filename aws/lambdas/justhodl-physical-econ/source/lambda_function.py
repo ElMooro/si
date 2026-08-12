@@ -1,4 +1,4 @@
-"""justhodl-physical-econ v2.1.0 (ops 4614)
+"""justhodl-physical-econ v2.1.1 (ops 4614)
 
 The Physical/Real Economy signal, institutional restructure: five
 weighted SUB-PILLARS computed purely from evidence landed by
@@ -26,7 +26,7 @@ divergence canary, cushing_squeeze + withheld_stall canaries.
 import json
 import math
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import boto3
 

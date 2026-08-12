@@ -1,4 +1,4 @@
-"""ops 4621 — Wave-4 regate: NOAA pipe-split + DTS page depth.
+"""ops 4622 — final Wave-4 regate: timedelta import (v2.1.1).
 
 4620: 11/11 new tier-1 OK, but the NOAA parser took only the LAST
 pipe column of the US row (1 value, no series) and DTS paginated at
@@ -42,25 +42,25 @@ def http_get(url, timeout=45):
 
 def main():
     misses = 0
-    with report("4621_wave4_regate") as r:
+    with report("4622_wave4_final") as r:
         r.heading("ops 4621 — Wave-4 regate")
 
         r.section("deploy-settle")
         settled = False
         for att in range(16):
             try:
-                gf = lam.get_function(FunctionName=CFN)
+                gf = lam.get_function(FunctionName=PFN)
                 zb = http_get(gf["Code"]["Location"], 60)
                 src = zipfile.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8", "replace")
-                if "v1.3.1" in src:
+                if "v2.1.1" in src:
                     settled = True
-                    r.log("v1.3.1 live (attempt %d)" % (att + 1))
+                    r.log("signal v2.1.1 live (attempt %d)" % (att + 1))
                     break
             except Exception as e:
                 r.log("attempt %d: %s" % (att + 1, str(e)[:80]))
             time.sleep(30)
-        misses += contract(r, "deploy", settled, "collector v1.3.1")
+        misses += contract(r, "deploy", settled, "signal v2.1.1")
         if not settled:
             sys.exit(1)
 
