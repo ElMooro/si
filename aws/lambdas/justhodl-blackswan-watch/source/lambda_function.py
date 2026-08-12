@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.5.1 (ops 4623)
+"""justhodl-blackswan-watch v1.6.0 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -39,7 +39,7 @@ YH_BUDGET = {"n": 85}  # Yahoo-chart alias fallback, same pattern
 s3 = boto3.client("s3")
 
 
-def yahoo_fallback(alias, budget):
+def yahoo_fallback(alias, budget, note=None, invert=False):
     """v1.5.0: the symbol-dictionary embeds '(MARKET: X)' aliases —
     fetch via Yahoo v8 chart (the fleet's own symbol-feed/fedwatch
     pattern), bounded + cumulatively cached."""
@@ -48,12 +48,15 @@ def yahoo_fallback(alias, budget):
     safe = re.sub(r"[^A-Za-z0-9._^=-]", "_", alias)
     wkey = WARM + "yh_" + safe + ".json"
     cached = s3_json(wkey)
-    if cached and cached.get("series"):
+    if cached:
         try:
             ft = datetime.fromisoformat(cached["fetched_at"])
-            if (datetime.now(timezone.utc) - ft
-                    ).total_seconds() < 72000:
+            age_s = (datetime.now(timezone.utc) - ft
+                     ).total_seconds()
+            if cached.get("series") and age_s < 72000:
                 return cached
+            if cached.get("miss") and age_s < 7 * 86400:
+                return None
         except Exception:
             pass
     budget["n"] -= 1
@@ -85,17 +88,35 @@ def yahoo_fallback(alias, budget):
                     ts[i], tz=timezone.utc).date().isoformat(),
                     "value": float(cl[i])})
             if len(se) >= 15:
+                if invert:
+                    se = [{"date": o["date"],
+                           "value": round(1.0 / o["value"], 8)}
+                          for o in se if o["value"]]
                 env = {"series": se[-400:],
                        "fetched_at": datetime.now(
                            timezone.utc).isoformat(
                            timespec="seconds"),
-                       "via": "Yahoo " + cand}
+                       "via": ("Yahoo " + cand
+                               + (" inv" if invert else "")
+                               + ((" · " + note)
+                                  if note else ""))}
                 s3.put_object(Bucket=BUCKET, Key=wkey,
                               Body=json.dumps(env).encode(),
                               ContentType="application/json")
                 return env
         except Exception:
             continue
+    try:
+        s3.put_object(Bucket=BUCKET, Key=wkey,
+                      Body=json.dumps({"miss": True,
+                                       "fetched_at":
+                                       datetime.now(timezone.utc)
+                                       .isoformat(
+                                           timespec="seconds")}
+                                      ).encode(),
+                      ContentType="application/json")
+    except Exception:
+        pass
     return None
 
 
@@ -294,6 +315,24 @@ ECON_FRED = {
     "ECONOMICS:USCJC": "CCSA", "ECONOMICS:USCU": "TCU",
     "ECONOMICS:USBP": "PERMIT",
     "ECONOMICS:USGDPQQ": "A191RL1Q225SBEA",
+    "ECONOMICS:USJO": "JTSJOL", "ECONOMICS:USNO": "AMTMNO",
+    "ECONOMICS:USTVS": "TOTALSA", "ECONOMICS:USMEMP": "MANEMP",
+}
+CURATED_YH = {
+    "KRX:KOSPI200": ("^KS200", None),
+    "EURONEXT:N100": ("^N100", None),
+    "EURONEXT:PX1": ("^FCHI", None),
+    "TVC:CAC40": ("^FCHI", None),
+    "OMXSTO:OMXS30": ("^OMX", None),
+    "INDEX:FTSEMIB": ("FTSEMIB.MI", None),
+    "PSE:PSEI": ("PSEI.PS", None),
+    "SPCFD:S5INDU": ("^SP500-20", None),
+    "TSE:TOPIX": ("1475.T", "TOPIX ETF proxy"),
+    "EUREX:FESX2!": ("^STOXX50E", "index proxy for futures"),
+    "ASX24:AP1!": ("^AXJO", "index proxy for SPI futures"),
+    "CBOT:ZB2!": ("ZB=F", "front-month proxy"),
+    "CBOT:UB2!": ("UB=F", "front-month proxy"),
+    "CME:SR32!": ("SR3=F", "front-month proxy"),
 }
 _FLEET_CACHE = {}
 
@@ -751,6 +790,30 @@ def lambda_handler(event, context):
                 if (node is None or not extract_series(node)) \
                         and yh:
                     fb = yahoo_fallback(yh, YH_BUDGET)
+                    if fb:
+                        node = fb
+            if node is None or not extract_series(node):
+                if sym in CURATED_YH:
+                    ya, note = CURATED_YH[sym]
+                    fb = yahoo_fallback(ya, YH_BUDGET, note)
+                    if fb:
+                        node = fb
+                elif sym.startswith("FX_IDC:") and len(
+                        sym.split(":", 1)[1]) == 6:
+                    pair = sym.split(":", 1)[1]
+                    fb = yahoo_fallback(pair + "=X", YH_BUDGET)
+                    if not fb:
+                        fb = yahoo_fallback(
+                            pair[3:] + pair[:3] + "=X",
+                            YH_BUDGET, "inverted cross",
+                            invert=True)
+                    if fb:
+                        node = fb
+                elif re.fullmatch(r"[A-Z]+:[A-Z0-9]{2,12}", sym) \
+                        and not sym.startswith(("ECONOMICS:",
+                                                "FRED:")):
+                    fb = yahoo_fallback(sym.split(":", 1)[1],
+                                        YH_BUDGET, "heuristic")
                     if fb:
                         node = fb
             rows.append(analyze(sym, node, dict_name(dic, sym)))
