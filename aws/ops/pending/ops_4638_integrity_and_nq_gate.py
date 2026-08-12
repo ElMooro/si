@@ -1,4 +1,4 @@
-"""ops 4638 r6 — settle marker corrected (sed ghost: helper call kept v1.1.0) (workflow skips the fn); proxy reused from lambda env; RESTORED v1.2.0 base (my clone had buried the evolved union+polarity engine), audit fixes re-ported on top as v1.3.0.
+"""ops 4638 r7 — runtime confession (CloudWatch tail) + COMP_BUDGET guard; settle marker corrected (sed ghost: helper call kept v1.1.0) (workflow skips the fn); proxy reused from lambda env; RESTORED v1.2.0 base (my clone had buried the evolved union+polarity engine), audit fixes re-ported on top as v1.3.0.
 
 From Khalid's liquidity page paste: (1) INTEGRITY — cross-exchange
 bare-heuristic collisions (EURONEXT:BANK wearing Nasdaq's BANK
@@ -256,7 +256,7 @@ def main():
                  "engines")
 
         r.section("deploy-settle both engines")
-        ok_l = settle(LFN, "justhodl-liquidity-reversal v1.3.0", r)
+        ok_l = settle(LFN, "justhodl-liquidity-reversal v1.3.1", r)
         ok_b = settle(BFN, "justhodl-blackswan-watch v1.9.0", r, 8)
         misses += contract(r, "deploy", ok_l and ok_b,
                            "liq v1.3.0 (restored base) + blackswan v1.9.0")
@@ -264,8 +264,24 @@ def main():
             sys.exit(1)
 
         r.section("run + audited truth")
-        lam.invoke(FunctionName=LFN,
-                   InvocationType="RequestResponse")
+        t_inv = time.time()
+        inv = lam.invoke(FunctionName=LFN,
+                         InvocationType="RequestResponse")
+        r.kv(invoke_status=inv.get("StatusCode"),
+             fn_error=inv.get("FunctionError"),
+             invoke_secs=round(time.time() - t_inv, 1))
+        if inv.get("FunctionError"):
+            try:
+                logs = boto3.client("logs",
+                                    region_name="us-east-1")
+                evs = logs.filter_log_events(
+                    logGroupName="/aws/lambda/" + LFN,
+                    startTime=int((time.time() - 900) * 1000),
+                    filterPattern="?ERROR ?Traceback ?Error")
+                for e in (evs.get("events") or [])[-12:]:
+                    r.log("CW: " + e["message"].strip()[:160])
+            except Exception as e:
+                r.warn("cw tail: %s" % str(e)[:80])
         pl = s3j("data/liquidity-reversal.json") or {}
         rows = {x["symbol"]: x for x in pl.get("rows") or []}
         g = pl.get("gauge") or {}

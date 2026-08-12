@@ -1,4 +1,4 @@
-"""justhodl-liquidity-reversal v1.3.0 (ops 4638 redeploy)
+"""justhodl-liquidity-reversal v1.3.1 (ops 4638)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
@@ -907,6 +907,8 @@ COMP_BUDGET = {"n": 40}  # reserved: composite legs (FEDFUNDS-class
 # is never a standalone member, so the shared budget starved them)
 
 
+if "COMP_BUDGET" not in globals():
+    COMP_BUDGET = {"n": 40}
 TENOR_FRED = {"TVC:DE10Y": "IRLTLT01DEM156N",
               "TVC:IT10Y": "IRLTLT01ITM156N",
               "TVC:FR10Y": "IRLTLT01FRM156N",
