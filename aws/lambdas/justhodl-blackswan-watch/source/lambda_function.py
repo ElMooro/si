@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.2.0 (ops 4623)
+"""justhodl-blackswan-watch v1.3.0 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -142,6 +142,21 @@ def extract_series(node, depth=0):
     """Find a [{date-ish, value-ish}] series anywhere under node."""
     if depth > 4 or node is None:
         return None
+    if isinstance(node, list) and node and isinstance(
+            node[0], (list, tuple)) and len(node[0]) == 2:
+        out = []
+        for pr in node[-400:]:
+            try:
+                d0 = pr[0]
+                if isinstance(d0, (int, float)):
+                    d0 = datetime.fromtimestamp(
+                        d0 / (1000 if d0 > 1e11 else 1),
+                        tz=timezone.utc).date().isoformat()
+                out.append({"date": str(d0)[:10],
+                            "value": float(pr[1])})
+            except Exception:
+                continue
+        return out or None
     if isinstance(node, list) and node and isinstance(node[0], dict):
         dk = next((k for k in node[0]
                    if k in ("date", "d", "t", "time", "period")), None)
@@ -190,6 +205,103 @@ def extract_latest(node, depth=0):
             if r[0] is not None:
                 return r
     return None, None
+
+
+# ── fleet-join resolution (Khalid: "find the missing data from
+# other engines") — column-aware history extraction over the
+# fleet's own published stores, loaded once per run. ─────────────
+FLEET_MAP = {
+    "TVC:MOVE": ("data/move-index.json", None),
+    "TVC:VIX": ("data/vix-curve-history.json", "vix"),
+    "CBOE:VIX3M": ("data/vix-curve-history.json", "vix3m"),
+    "CBOE:VXN": ("data/vix-curve-history.json", "vxn"),
+    "TVC:DXY": ("data/dollar-radar-history.json", "dxy"),
+}
+ECON_FRED = {
+    "ECONOMICS:USWEI": "WEI", "ECONOMICS:USJC": "ICSA",
+    "ECONOMICS:USIJC": "ICSA", "ECONOMICS:USJC4W": "IC4WSA",
+    "ECONOMICS:USCJC": "CCSA", "ECONOMICS:USCU": "TCU",
+    "ECONOMICS:USBP": "PERMIT",
+    "ECONOMICS:USGDPQQ": "A191RL1Q225SBEA",
+}
+_FLEET_CACHE = {}
+
+
+def fleet_doc(key):
+    if key not in _FLEET_CACHE:
+        _FLEET_CACHE[key] = s3_json(key)
+    return _FLEET_CACHE[key]
+
+
+def find_row_table(node, depth=0):
+    """First list of dicts carrying a date-ish key, anywhere."""
+    if depth > 3 or node is None:
+        return None
+    if isinstance(node, list) and node and isinstance(node[0], dict):
+        if any(k in node[0] for k in ("date", "d", "t", "time",
+                                      "period")):
+            return node
+    if isinstance(node, dict):
+        for v in node.values():
+            r = find_row_table(v, depth + 1)
+            if r:
+                return r
+    return None
+
+
+def fleet_column_series(key, field):
+    doc = fleet_doc(key)
+    if doc is None:
+        return None
+    if field is None:
+        se = extract_series(doc)
+        return {"series": se} if se else None
+    rows = find_row_table(doc)
+    if not rows:
+        return None
+    dk = next((k for k in rows[0]
+               if k in ("date", "d", "t", "time", "period")), None)
+    if not dk:
+        return None
+    se = []
+    for o in rows[-400:]:
+        v = o.get(field)
+        if v is None:
+            continue
+        try:
+            d0 = o[dk]
+            if isinstance(d0, (int, float)):
+                d0 = datetime.fromtimestamp(
+                    d0 / (1000 if d0 > 1e11 else 1),
+                    tz=timezone.utc).date().isoformat()
+            se.append({"date": str(d0)[:10], "value": float(v)})
+        except Exception:
+            continue
+    return {"series": se} if len(se) >= 15 else None
+
+
+def ma200_series(sym):
+    """Plain exchange-prefixed tickers from the ma200 closes buffer
+    (daily closes for ~700 names)."""
+    if ":" not in sym or any(c in sym for c in "!/-+"):
+        return None
+    tk = sym.split(":", 1)[1]
+    doc = fleet_doc("data/_ma200/closes.json")
+    if doc is None:
+        return None
+    entry = None
+    if isinstance(doc, dict):
+        entry = doc.get(tk)
+        if entry is None:
+            for k in ("closes", "data", "symbols", "buf"):
+                m = doc.get(k)
+                if isinstance(m, dict) and tk in m:
+                    entry = m[tk]
+                    break
+    if entry is None:
+        return None
+    se = extract_series(entry) or extract_series({"x": entry})
+    return {"series": se} if se and len(se) >= 15 else None
 
 
 TVC_MAP = {"US01MY": "DGS1MO", "US03MY": "DGS3MO",
@@ -456,6 +568,20 @@ def lambda_handler(event, context):
                 fb = eval_composite(sym, budget)
                 if fb:
                     node = fb
+            if node is None or not extract_series(node):
+                if sym in FLEET_MAP:
+                    fb = fleet_column_series(*FLEET_MAP[sym])
+                    if fb:
+                        node = fb
+                elif sym in ECON_FRED:
+                    fb = fred_fallback("FRED:" + ECON_FRED[sym],
+                                       budget)
+                    if fb:
+                        node = fb
+                else:
+                    fb = ma200_series(sym)
+                    if fb:
+                        node = fb
             rows.append(analyze(sym, node, dict_name(dic, sym)))
     resolved = [r for r in rows if r.get("resolved")]
     with_hist = [r for r in resolved
