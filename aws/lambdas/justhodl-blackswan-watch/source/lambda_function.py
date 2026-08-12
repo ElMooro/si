@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.3.0 (ops 4623)
+"""justhodl-blackswan-watch v1.3.1 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -215,8 +215,7 @@ FLEET_MAP = {
     "TVC:VIX": ("data/vix-curve-history.json", "vix"),
     "CBOE:VIX3M": ("data/vix-curve-history.json", "vix3m"),
     "CBOE:VXN": ("data/vix-curve-history.json", "vxn"),
-    "TVC:DXY": ("data/dollar-radar-history.json", "dxy"),
-}
+}  # DXY dropped: dollar-radar-history holds derived scores only
 ECON_FRED = {
     "ECONOMICS:USWEI": "WEI", "ECONOMICS:USJC": "ICSA",
     "ECONOMICS:USIJC": "ICSA", "ECONOMICS:USJC4W": "IC4WSA",
@@ -249,6 +248,24 @@ def find_row_table(node, depth=0):
     return None
 
 
+def columnar_zip(doc, dates_key, field):
+    """4627 shape lesson: fleet stores are columnar — parallel
+    'dates' + per-name value arrays."""
+    dates = doc.get(dates_key)
+    vals = doc.get(field)
+    if not (isinstance(dates, list) and isinstance(vals, list)):
+        return None
+    n = min(len(dates), len(vals))
+    se = []
+    for i in range(max(0, n - 400), n):
+        try:
+            se.append({"date": str(dates[i])[:10],
+                       "value": float(vals[i])})
+        except Exception:
+            continue
+    return se if len(se) >= 15 else None
+
+
 def fleet_column_series(key, field):
     doc = fleet_doc(key)
     if doc is None:
@@ -256,6 +273,9 @@ def fleet_column_series(key, field):
     if field is None:
         se = extract_series(doc)
         return {"series": se} if se else None
+    se = columnar_zip(doc, "dates", field)
+    if se:
+        return {"series": se}
     rows = find_row_table(doc)
     if not rows:
         return None
@@ -289,19 +309,23 @@ def ma200_series(sym):
     doc = fleet_doc("data/_ma200/closes.json")
     if doc is None:
         return None
-    entry = None
-    if isinstance(doc, dict):
-        entry = doc.get(tk)
-        if entry is None:
-            for k in ("closes", "data", "symbols", "buf"):
-                m = doc.get(k)
-                if isinstance(m, dict) and tk in m:
-                    entry = m[tk]
-                    break
-    if entry is None:
-        return None
-    se = extract_series(entry) or extract_series({"x": entry})
-    return {"series": se} if se and len(se) >= 15 else None
+    ser = doc.get("series") if isinstance(doc, dict) else None
+    if isinstance(ser, dict) and tk in ser:
+        se = columnar_zip(doc, "dates", None) if False else None
+        vals = ser[tk]
+        dates = doc.get("dates")
+        if isinstance(dates, list) and isinstance(vals, list):
+            n = min(len(dates), len(vals))
+            se = []
+            for i in range(max(0, n - 400), n):
+                try:
+                    se.append({"date": str(dates[i])[:10],
+                               "value": float(vals[i])})
+                except Exception:
+                    continue
+            if len(se) >= 15:
+                return {"series": se}
+    return None
 
 
 TVC_MAP = {"US01MY": "DGS1MO", "US03MY": "DGS3MO",
