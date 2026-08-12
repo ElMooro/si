@@ -1,4 +1,4 @@
-"""justhodl-liquidity-reversal v1.3.0 (ops 4637)
+"""justhodl-liquidity-reversal v1.3.0 (ops 4638 redeploy)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
