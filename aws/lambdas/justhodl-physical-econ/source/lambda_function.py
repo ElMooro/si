@@ -1,4 +1,4 @@
-"""justhodl-physical-econ v2.1.5 (ops 4614)
+"""justhodl-physical-econ v2.1.6 (ops 4614)
 
 The Physical/Real Economy signal, institutional restructure: five
 weighted SUB-PILLARS computed purely from evidence landed by
@@ -713,6 +713,19 @@ def lambda_handler(event, context):
             "list": bs.get("list_name"),
             "doctrine": "Khalid's TV blackswan list as a tail-risk "
                         "alarm strip (observed, never load-bearing)"}
+    dxp = s3_json("data/dxy-predict.json")
+    if dxp and (dxp.get("dxy") or {}).get("trend_label"):
+        dd = dxp["dxy"]
+        rsc = dd.get("reversal_score") or 0
+        canaries["dxy_predict"] = {
+            "state": "AMBER" if abs(rsc) >= 50 else "CALM",
+            "trend": dd.get("trend_score"),
+            "trend_label": dd.get("trend_label"),
+            "reversal": dd.get("reversal_score"),
+            "reversal_label": dd.get("reversal_label"),
+            "doctrine": "Khalid's DXY-leads family: mechanical "
+                        "polarity dials (observed, never "
+                        "load-bearing)"}
     lq = s3_json("data/liquidity-reversal.json")
     if lq and (lq.get("liquidity") or {}).get("trend_label"):
         L = lq["liquidity"]
@@ -727,19 +740,6 @@ def lambda_handler(event, context):
             "reversal_score": L.get("reversal_score"),
             "doctrine": "global liquidity trend/reversal dials "
                         "(observed, never load-bearing)"}
-    dxp = s3_json("data/dxy-predict.json")
-    if dxp and (dxp.get("dxy") or {}).get("trend_label"):
-        dd = dxp["dxy"]
-        rsc = dd.get("reversal_score") or 0
-        canaries["dxy_predict"] = {
-            "state": "AMBER" if abs(rsc) >= 50 else "CALM",
-            "trend": dd.get("trend_score"),
-            "trend_label": dd.get("trend_label"),
-            "reversal": dd.get("reversal_score"),
-            "reversal_label": dd.get("reversal_label"),
-            "doctrine": "Khalid's DXY-leads family: mechanical "
-                        "polarity dials (observed, never "
-                        "load-bearing)"}
     cl = s3_json(WARM + "fred_claims.json")
     if cl and cl.get("status") == "OK":
         se = cl.get("series") or []

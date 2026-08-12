@@ -1,4 +1,4 @@
-"""ops 4644 — dxy_predict canary on the physical board (trio
+"""ops 4644 r2 — dxy canary relocated into canary scope (trio
 symmetry with blackswan_strip + liquidity): signal v2.1.5.
 """
 import io
@@ -69,13 +69,13 @@ def main():
                 src = zf2.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-physical-econ v2.1.5" in src:
+                if "justhodl-physical-econ v2.1.6" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
-        misses += contract(r, "deploy", settled, "v2.1.5 live")
+        misses += contract(r, "deploy", settled, "v2.1.6 live")
         if not settled:
             sys.exit(1)
 
