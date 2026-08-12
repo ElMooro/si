@@ -1,4 +1,4 @@
-"""justhodl-blackswan-watch v1.0.1 (ops 4623)
+"""justhodl-blackswan-watch v1.1.0 (ops 4623)
 
 Khalid's TradingView "blackswan" watchlist, run as an institutional
 TAIL-RISK CANARY STRIP — the correct mapping for a list with that
@@ -22,13 +22,63 @@ canary board consumes (observed tier, never load-bearing).
 import json
 import math
 import os
+import urllib.parse
+import urllib.request
 from datetime import datetime, timezone
 
 import boto3
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/blackswan-watch.json"
+WARM = "data/warm/blackswan/"
+FRED_KEY = os.environ.get("FRED_API_KEY",
+                          "2f057499936072679d8843d7fce99989")
+FRED_BUDGET = 60  # bounded per run; cumulative via warm cache
 s3 = boto3.client("s3")
+
+
+def fred_fallback(sym, budget):
+    """v1.1.0: FRED: members absent from the vault get real series
+    (z + range basis) via a bounded, cached direct fetch."""
+    if not sym.startswith("FRED:") or budget["n"] <= 0:
+        return None
+    sid = sym.split(":", 1)[1]
+    wkey = WARM + sid + ".json"
+    cached = s3_json(wkey)
+    if cached and cached.get("series"):
+        try:
+            ft = datetime.fromisoformat(cached["fetched_at"])
+            if (datetime.now(timezone.utc) - ft
+                    ).total_seconds() < 72000:
+                return cached
+        except Exception:
+            pass
+    budget["n"] -= 1
+    try:
+        qs = urllib.parse.urlencode({
+            "series_id": sid, "api_key": FRED_KEY,
+            "file_type": "json", "sort_order": "desc",
+            "limit": 300})
+        req = urllib.request.Request(
+            "https://api.stlouisfed.org/fred/series/observations?"
+            + qs, headers={"User-Agent": "justhodl-blackswan"})
+        with urllib.request.urlopen(req, timeout=12) as h:
+            d = json.loads(h.read())
+        se = [{"date": o["date"], "value": float(o["value"])}
+              for o in d.get("observations", [])
+              if o.get("value") not in (None, ".", "")]
+        se.reverse()
+        if not se:
+            return None
+        env = {"series": se,
+               "fetched_at": datetime.now(
+                   timezone.utc).isoformat(timespec="seconds")}
+        s3.put_object(Bucket=BUCKET, Key=wkey,
+                      Body=json.dumps(env).encode(),
+                      ContentType="application/json")
+        return env
+    except Exception:
+        return None
 
 
 def s3_json(key):
@@ -265,7 +315,7 @@ def analyze(sym, node, name):
         ms = "NO_HISTORY"
         if dod is not None:
             a = abs(dod)
-            ms = "RED" if a >= 10 else ("AMBER" if a >= 5
+            ms = "RED" if a >= 15 else ("AMBER" if a >= 7
                                         else "CALM")
         return {"symbol": sym, "name": name, "resolved": True,
                 "last": round(lv, 4),
@@ -290,9 +340,15 @@ def lambda_handler(event, context):
 
     list_name, syms, n_lists = find_swan_list(wl)
     rows = []
+    budget = {"n": FRED_BUDGET}
     if list_name:
-        for sym in syms[:150]:
+        for sym in syms[:520]:
             node = vault_lookup(vault, wb, list_name, sym)
+            if (node is None or not extract_series(node)) \
+                    and sym.startswith("FRED:"):
+                fb = fred_fallback(sym, budget)
+                if fb:
+                    node = fb
             rows.append(analyze(sym, node, dict_name(dic, sym)))
     resolved = [r for r in rows if r.get("resolved")]
     with_hist = [r for r in resolved
