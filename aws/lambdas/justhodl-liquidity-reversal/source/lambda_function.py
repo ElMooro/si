@@ -1,4 +1,4 @@
-"""justhodl-liquidity-reversal v1.4.1 (ops 4641)
+"""justhodl-liquidity-reversal v1.4.2 (ops 4641)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
@@ -60,7 +60,9 @@ CC_MAP = {"CRYPTOCAP:TOTAL": ("mcap", "total_mcap_usd"),
           "CRYPTOCAP:BTC.D": ("dom", "btc"),
           "CRYPTOCAP:ETH.D": ("dom", "eth"),
           "CRYPTOCAP:USDT.D": ("dom", "usdt"),
-          "CRYPTOCAP:USDC.D": ("dom", "usdc")}
+          "CRYPTOCAP:USDC.D": ("dom", "usdc"),
+          "CRYPTOCAP:USDT.D+CRYPTOCAP:USDC.D":
+              ("domsum", ("usdt", "usdc"))}
 _CG = {}     # TE historical per-indicator
 TE_KEY = os.environ.get("TE_API_KEY", "")
 TE_DIRECT = {
@@ -573,6 +575,11 @@ def cryptocap_fallback(sym, budget):
         v = None
         if kind == "mcap":
             v = ((g.get("total_market_cap") or {}).get("usd"))
+        elif kind == "domsum":
+            pc = g.get("market_cap_percentage") or {}
+            parts = [pc.get(k2) for k2 in key]
+            v = (sum(parts) if all(isinstance(p, (int, float))
+                                   for p in parts) else None)
         else:
             v = ((g.get("market_cap_percentage") or {})
                  .get(key))
@@ -1507,7 +1514,7 @@ def lambda_handler(event, context):
                     node = fb
             if (node is None or not extract_series(node)) \
                     and any(op in sym for op in "-/+") \
-                    and ":" in sym:
+                    and ":" in sym and sym not in CC_MAP:
                 fb = eval_composite(sym, budget)
                 if fb and fb.get("series"):
                     node = fb

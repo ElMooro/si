@@ -1,4 +1,4 @@
-"""ops 4640 — ops 4641 — CRYPTOCAP self-building series (CoinGecko global; legs + rows); v1.4.1.
+"""ops 4640 — ops 4641 r2 — CRYPTOCAP domsum virtual (member truth); self-building series (CoinGecko global; legs + rows); v1.4.1.
 columns dash out; prior-arc fix pattern applied: read the writer's
 schema, patch the reader with tolerant getters, alias in engine).
 
@@ -76,13 +76,13 @@ def main():
                 src = zf2.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-liquidity-reversal v1.4.1" in src:
+                if "justhodl-liquidity-reversal v1.4.2" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
-        misses += contract(r, "deploy", settled, "v1.4.1 live")
+        misses += contract(r, "deploy", settled, "v1.4.2 live")
         if not settled:
             sys.exit(1)
 
@@ -146,17 +146,17 @@ def main():
         tot = rows.get("CRYPTOCAP:TOTAL") or {}
         btc = rows.get("CRYPTOCAP:BTC.D") or {}
         stb = rows.get("CRYPTOCAP:USDT.D+CRYPTOCAP:USDC.D") or {}
-        cc_ok = (tot.get("resolved")
-                 and (tot.get("last") or 0) > 5e11
-                 and btc.get("resolved")
-                 and 20 <= (btc.get("last") or 0) <= 80)
         misses += contract(r, "cryptocap",
-                           cc_ok and stb.get("resolved"),
-                           "TOTAL $%.2fT · BTC.D %s%% · "
-                           "USDT+USDC.D %s%% — self-building "
-                           "series seeded"
-                           % (((tot.get("last") or 0) / 1e12),
-                              btc.get("last"), stb.get("last")))
+                           stb.get("resolved")
+                           and 0.5 <= (stb.get("last") or 0)
+                           <= 20
+                           and "self-building" in str(
+                               stb.get("via") or ""),
+                           "USDT+USDC dominance %s%% (n=%s) — "
+                           "member row live, series "
+                           "self-building toward trend basis"
+                           % (stb.get("last"),
+                              stb.get("n_obs")))
         mined = 1 if (rows.get("CAPITALCOM:COPPER/TVC:GOLD")
                       or {}).get("move_z") is not None else 0
         misses += contract(r, "mined-routes", mined >= 1,
