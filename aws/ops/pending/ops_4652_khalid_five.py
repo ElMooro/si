@@ -1,4 +1,4 @@
-"""[r5 schema-dump for page rebind] ops 4652 — Khalid's five priority metrics first-class on the
+"""[r6 page-v2 rebind edge cycle] ops 4652 — Khalid's five priority metrics first-class on the
 # r3 ping: run with checkout v1.1.0 (engine-only push does not trigger)
 stock-buying screener (v1.1.0): PEG<1, net issuance/(retirement),
 basic shares QoQ%, Rev+EPS acceleration QoQ pp, ROIC vs US10Y

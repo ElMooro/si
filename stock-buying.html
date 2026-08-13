@@ -7,7 +7,7 @@ Segoe UI,Roboto,sans-serif;margin:0;padding:18px}
 h1{font-size:17px;letter-spacing:.4px;margin:0 0 2px}
 .sub{color:#7f8b99;font-size:11px;margin-bottom:12px}
 .strip{display:flex;gap:26px;margin:10px 0 14px;flex-wrap:wrap}
-.alarm{font-size:22px;font-weight:700}
+.alarm{font-size:20px;font-weight:700}
 .dim{color:#7f8b99}.g{color:#3ddc84}.r{color:#ff5d5d}
 .a{color:#ffb648}
 table{border-collapse:collapse;width:100%;font-size:12px}
@@ -16,59 +16,81 @@ th{color:#7f8b99;text-align:left;padding:6px 8px;border-bottom:
 td{padding:6px 8px;border-bottom:1px solid #131a23;
 white-space:nowrap}
 tr.row:hover{background:#111a26;cursor:pointer}
-.score{font-weight:700}
+.score{font-weight:700}.k5 b{margin-right:3px}
 </style></head><body>
 <h1>STOCK BUYING — ACCUMULATION SCREENER</h1>
-<div class="sub">under SMA250 · RSI&lt;35 · no dilution · Khalid's
-9-factor institutional composite (growth+accel, FCF, PEG/PE-vs-
-sector, margins, ROIC, booming industry, RS + double bottom) +
-catalyst/backlog bonus · double-click any row for the full
-why.html analysis</div>
+<div class="sub">under SMA250 · RSI&lt;35 · no dilution ·
+Khalid's pillars + the FIVE (PEG&lt;1 · net retirement ·
+QoQ accel · Buffett ROIC−10Y · shares) · double-click a row
+for full why.html analysis</div>
 <div class="strip">
-<div><div class="alarm" id="nC">–</div>
-<div class="dim" style="font-size:11px">CANDIDATES</div></div>
-<div><div class="alarm" id="nG">–</div>
+<div><div class="alarm" id="nS">–</div>
+<div class="dim" style="font-size:11px">SCORED / UNIVERSE</div></div>
+<div><div class="alarm" id="tiers">–</div>
+<div class="dim" style="font-size:11px">TIERS E/S/W</div></div>
+<div><div class="alarm" id="funnel" style="font-size:13px">–</div>
 <div class="dim" style="font-size:11px">GATE FUNNEL</div></div>
+<div><div class="alarm" id="u10" style="font-size:16px">–</div>
+<div class="dim" style="font-size:11px">US10Y (BUFFETT HURDLE)
+</div></div>
 <div><div class="alarm dim" id="asof" style="font-size:13px">–
 </div><div class="dim" style="font-size:11px">AS OF</div></div>
 </div>
 <table><thead><tr>
-<th>Score</th><th>Tkr</th><th>Sector</th><th>Px</th>
-<th>ΔSMA250</th><th>RSI</th><th>EPS y/y</th><th>Rev y/y</th>
-<th>PEG</th><th>P/E vs sec</th><th>ROIC</th><th>Marg edge</th>
-<th>Boom</th><th>RS63</th><th>DB</th><th>Catalysts</th>
+<th>Score</th><th>Tier</th><th>Tkr</th><th>Sector</th>
+<th>ΔSMA</th><th>PEG</th><th>P/E</th><th>ROIC</th>
+<th>FIVE</th><th>RS3m</th><th>DB</th><th>Catalysts / reasons</th>
 </tr></thead><tbody id="R"></tbody></table>
 <script>
+const V=(o,...ks)=>{for(const k of ks){const v=o&&o[k];
+if(v!==undefined&&v!==null)return v}return null};
 fetch('data/stock-buying.json?cb='+Date.now()).then(r=>r.json())
 .then(d=>{
 document.getElementById('asof').textContent=(d.as_of||'')
 .slice(0,16).replace('T',' ');
-document.getElementById('nC').textContent=d.n_candidates??'–';
-const gc=d.gate_census||{};
-document.getElementById('nG').textContent=
-(gc.universe??'?')+'→'+(gc.under_sma250??'?')+'→'+
-(gc.rsi_lt_35??'?')+'→'+(gc.passed_all??'?');
+document.getElementById('nS').textContent=
+(d.n_scored??'–')+' / '+(d.n_universe??'–');
+const t=d.tiers||{};
+document.getElementById('tiers').textContent=
+(t['EXPLOSIVE-SETUP']??0)+' / '+(t['SETUP']??0)+' / '+
+(t['WATCH']??0);
+const gs=d.gates_summary||{};
+document.getElementById('funnel').textContent=
+Object.keys(gs).length?Object.entries(gs).map(([k,v])=>
+k.replace(/_/g,' ')+':'+v).join(' → '):'–';
+document.getElementById('u10').textContent=
+(d.us10y_pct!=null?d.us10y_pct+'%':'–');
 const R=document.getElementById('R');
-for(const x of (d.rows||[])){
+for(const x of (d.top||[])){
 const tr=document.createElement('tr');tr.className='row';
 tr.ondblclick=()=>{window.location=x.why||
-('why.html?ticker='+x.ticker);};
-const pe=(x.pe!=null&&x.sector_pe_med!=null)?
-(x.pe+' / '+x.sector_pe_med):(x.pe??'–');
+('why.html?ticker='+x.symbol);};
+const sma=x.sma||{};const gap=V(sma,'gap_pct','dist_pct',
+'below_pct');
+const k5=x.khalid_five||{};
+const dot=(ok,l)=>'<b class="'+(ok?'g':'dim')+'" title="'+l+
+'">'+(ok?'●':'○')+'</b>';
+const five=dot(k5.peg_lt_1,'PEG<1')+dot(k5.retiring_shares,
+'net retirement')+dot(k5.accelerating,'QoQ accel')+
+dot(k5.buffett_pass,'ROIC-10Y≥5pp');
+const reasons=(x.catalysts&&x.catalysts.length?
+x.catalysts.join(', '):(x.gate_reasons||[]).join('; '))
+.slice(0,46);
 tr.innerHTML='<td class="score '+(x.score>=70?'g':
-x.score>=55?'a':'dim')+'">'+x.score+'</td><td><b>'+x.ticker+
-'</b></td><td class="dim">'+(x.sector||'').slice(0,14)+
-'</td><td>'+x.last+'</td><td class="r">'+x.sma250_gap_pct+
-'%</td><td>'+x.rsi14+'</td><td class="'+(x.eps_yoy_pct>25?'g':
-'')+'">'+(x.eps_yoy_pct??'–')+'</td><td>'+(x.rev_yoy_pct??'–')+
-'</td><td class="'+((x.peg&&x.peg<1)?'g':'')+'">'+(x.peg??'–')+
-'</td><td>'+pe+'</td><td class="'+((x.roic_pct>15)?'g':'')+'">'+
-(x.roic_pct??'–')+'</td><td>'+(x.margin_edge_pp??'–')+
-'</td><td>'+(x.boom_score??'–')+'</td><td>'+(x.rs_63_pp??'–')+
-'</td><td class="'+(x.double_bottom==='CONFIRMED'?'g':
-x.double_bottom==='FORMING'?'a':'dim')+'">'+
-(x.double_bottom||'–')+'</td><td class="dim">'+
-((x.catalysts||[]).join(', ').slice(0,34)||'–')+'</td>';
+x.score>=55?'a':'dim')+'">'+(x.score??'–')+
+'</td><td class="'+(x.tier==='EXPLOSIVE-SETUP'?'g':
+x.tier==='SETUP'?'a':'dim')+'">'+(x.tier||'').slice(0,9)+
+'</td><td><b>'+x.symbol+'</b></td><td class="dim">'+
+(x.sector||x.industry||'').slice(0,13)+'</td><td>'+
+(gap!=null?gap+'%':'–')+'</td><td class="'+
+((x.peg&&x.peg<1)?'g':'')+'">'+(x.peg??'–')+'</td><td>'+
+(x.pe??'–')+'</td><td class="'+((x.roic>15)?'g':'')+'">'+
+(x.roic??'–')+'</td><td class="k5">'+five+'</td><td>'+
+(V(x,'rs_3m_vs_spy')??'–')+'</td><td class="'+
+(x.double_bottom==='CONFIRMED'?'g':x.double_bottom===
+'FORMING'?'a':'dim')+'">'+(x.double_bottom||'–')+
+'</td><td class="dim" title="'+((x.gate_reasons||[])
+.join('; '))+'">'+reasons+'</td>';
 R.appendChild(tr);}
 });
 </script>
