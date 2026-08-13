@@ -1,4 +1,5 @@
 """ops 4643 — DXY PREDICT THE FUTURE engine (Khalid's list, same
+# r5 ping: re-run with H1 + structural check in place
 playbook): fork of the fully-evolved liquidity engine with a
 mechanical-only DXY polarity brain (FX pairs by USD side, currency
 indexes, US-vs-foreign tenor spreads by leg order), USD_UP/USD_DOWN
