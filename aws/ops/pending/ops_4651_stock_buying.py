@@ -1,4 +1,4 @@
-"""ops 4651 r5 (ping; their v1.0.3 restored after my overwrite) — cols|metrics alias, v1.0.3 settled rerun; columnar loader (consumer-verified shape) + scalar fallbacks.
+"""ops 4651 r6 — authority probes: best-setups census_idx replica + S3 object listing; cols|metrics alias, v1.0.3 settled rerun; columnar loader (consumer-verified shape) + scalar fallbacks.
 
 FMP key injected from fmp-fundamentals-agent env; create-capable
 deploy; hourly schedule; invoke; truth table with pillar scores;
@@ -68,6 +68,29 @@ def main():
         if not fmpk:
             r.warn("no FMP key found in donors — revisions "
                    "pillar will read n/a")
+
+        r.section("authority probes")
+        try:
+            pg2 = s3.list_objects_v2(
+                Bucket=B, Prefix="data/fundamental")
+            for ob in (pg2.get("Contents") or [])[:10]:
+                r.log("S3: %s (%d B, %s)"
+                      % (ob["Key"], ob["Size"],
+                         str(ob["LastModified"])[:16]))
+        except Exception as e:
+            r.warn("list: %s" % str(e)[:80])
+        try:
+            ns = {"json": json}
+            exec(compile('def census_idx(s3_client, bucket):\n    global _CENSUS_CACHE\n    if _CENSUS_CACHE is not None:\n        return _CENSUS_CACHE\n    import json as _cj\n    out = {}\n    try:\n        mx = _cj.loads(s3_client.get_object(\n            Bucket=bucket,\n            Key="data/fundamental-census-matrix.json")["Body"].read())\n        C = mx.get("cols") or {}\n        rk = C.get("risk_score") or []\n        xs = sorted(v for v in rk if isinstance(v, (int, float)))\n        lo = xs[len(xs)//3] if len(xs) >= 3 else None\n        hi = xs[2*len(xs)//3] if len(xs) >= 3 else None\n        col = lambda k: C.get(k) or [None] * len(mx.get("tickers") or [])\n        for i, t in enumerate(mx.get("tickers") or []):\n            pats = [lbl for lbl, k in\n                    (("double_bottom", "double_bottom"),\n                     ("double_top", "double_top"),\n                     ("golden_cross", "golden_cross_10_40w"),\n                     ("breakout_20w", "breakout_20w"))\n                    if col(k)[i] == 1]\n            rv = col("risk_score")[i]\n            tier = (None if not isinstance(rv, (int, float)) or lo is None\n                    else "LOW" if rv <= lo else "HIGH" if rv >= hi\n                    else "MED")\n            out[t] = {"conviction": col("conviction_score")[i],\n                      "combo": col("combo_score")[i],\n                      "risk": rv, "risk_tier": tier,\n                      "turn": (mx.get("turn") or [None]*(i+1))[i]\n                      if i < len(mx.get("turn") or []) else None,\n                      "patterns": pats,\n                      "whale_usd_m": col("whale_net_usd_m")[i]}\n    except Exception as _e:  # noqa: BLE001\n        print("[census-overlay]", str(_e)[:80])\n    _CENSUS_CACHE = out\n    return out\n\nOUTPUT_KEY = "data/best-setups.json"\ns3 = boto3.client("s3", region_name="us-east-1")\n\n\n_FB_STAMP = {}\n\n\ndef read_json(key, default=None):\n    try:\n        return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())\n    except Exception:\n        return default\n\n\n# ── Signal priors (institutional judgment; blended with learned hit rates) ──\n# Each maps to a self-improvement tier so we can swap in the learned hit rate.\nSIGNAL_PRIORS = {\n    "POLITICIAN_COMMITTEE": 0.85,   # committee jurisdiction edge — strongest\n    "DEEP_VALUE_OVERLAP":   0.84,   # cheap on multiple lenses + catalysts + inflection\n    "CAPITAL_FLOW":         0.82,   # institutions + capital accumulating (13F+inst+ETF)\n    "SECTOR_CAPITAL_FLOW":  0.72,   # sector ETF-complex capital ACCELERATING in (radar pump-setup)\n    "COMPOUNDER":           0.80,   # durable quality growth (ROIC+margin+growth)\n    "REVISION_UP":          0.78,   # analyst estimate-revision momentum\n    "DISLOCATION":          0.78,   # relative-value buy-the-laggard\n    "BUYBACK":              0.74,   # aggressive share repurchase (price support, ↑EPS)\n    "CAPEX_ACCEL":          0.70,   # surging capex in a buildout sector (AI/power demand)\n    "BOTTLENECK_BOOM":      0.70,   # demand outrunning supply (Census M3 backlog + revenue acceleration)\n    "CAPITAL_CYCLE_EARLY":  0.55,   # Druckenmiller: money-losing cyclical cutting capacity (18-24mo)\n    "INSIDER_CLUSTER":      0.80,   # multi-insider buying\n    "SHORT_SQUEEZE":        0.66,   # FINRA short-volume z-score + squeeze setup\n    "FDA_CATALYST":         0.62,   # upcoming PDUFA/AdCom binary event\n',
+                         "cidx", "exec"), ns)
+            idx = ns["census_idx"](s3, B)
+            r.log("census_idx replica: %d tickers" % len(idx))
+            if idx:
+                k0 = sorted(idx.keys())[0]
+                r.log("sample %s keys: %s"
+                      % (k0, sorted(list(idx[k0].keys()))[:20]))
+        except Exception as e:
+            r.warn("census_idx replica: %s" % str(e)[:120])
 
         r.section("deploy (create-capable) + schedule")
         buf = io.BytesIO()
