@@ -639,6 +639,8 @@ def lambda_handler(event=None, context=None):
            ).get("by_ticker") or {}
     _bx = (s3_json("data/backlog.json") or {}
            ).get("by_ticker") or {}
+    _cm = {str(x.get("symbol") or "").upper(): x
+           for x in crows}
     _bl_n = 0
     _kinds = {"RPO": 0, "DEFERRED": 0, "MINED": 0, "n/d": 0}
     for r0 in rows_out:
@@ -650,9 +652,9 @@ def lambda_handler(event=None, context=None):
             r0["eps_qoq_pct"] = xb.get("eps_qoq")
             r0["eps_yoy_pct2"] = xb.get("eps_yoy")
         if r0.get("eps") is None:
-            r0["eps"] = (cmap.get(sym0) or {}).get("eps_ttm")
+            r0["eps"] = (_cm.get(sym0) or {}).get("eps_ttm")
         if r0.get("eps_yoy_pct2") is None:
-            r0["eps_yoy_pct2"] = (cmap.get(sym0)
+            r0["eps_yoy_pct2"] = (_cm.get(sym0)
                                   or {}).get("eps_yoy_pct")
         if xb.get("rpo"):
             r0.update(backlog_usd=xb["rpo"],
