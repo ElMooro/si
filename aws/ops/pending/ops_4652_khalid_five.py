@@ -121,6 +121,47 @@ def main():
                 k0 = (eps_have or sorted(bt0.keys()))[0]
                 r.log("sample %s: %s"
                       % (k0, json.dumps(bt0[k0])[:300]))
+            if not eps_have:
+                r.log("eps absent -> ops-side redeploy of "
+                      "justhodl-backlog from checkout + "
+                      "re-invoke")
+                buf2 = io.BytesIO()
+                with zipfile.ZipFile(buf2, "w",
+                                     zipfile.ZIP_DEFLATED) as z2:
+                    z2.write("aws/lambdas/justhodl-backlog/"
+                             "source/lambda_function.py",
+                             "lambda_function.py")
+                for att2 in range(8):
+                    try:
+                        st2 = lam.get_function_configuration(
+                            FunctionName="justhodl-backlog")
+                        if st2.get("LastUpdateStatus") \
+                                == "InProgress":
+                            time.sleep(15)
+                            continue
+                        lam.update_function_code(
+                            FunctionName="justhodl-backlog",
+                            ZipFile=buf2.getvalue())
+                        break
+                    except Exception as e2:
+                        if "ResourceConflict" in str(e2):
+                            time.sleep(15)
+                            continue
+                        raise
+                time.sleep(20)
+                inv1 = lam.invoke(
+                    FunctionName="justhodl-backlog",
+                    InvocationType="RequestResponse")
+                r.log("re-invoke fn_error=%s"
+                      % inv1.get("FunctionError"))
+                bx1 = json.loads(s3.get_object(
+                    Bucket=B, Key="data/backlog.json")
+                    ["Body"].read())
+                bt1 = bx1.get("by_ticker") or {}
+                r.log("post-redeploy with_eps=%d"
+                      % sum(1 for v in bt1.values()
+                            if isinstance(v, dict)
+                            and v.get("eps") is not None))
         except Exception as e:
             r.warn("backlog invoke: %s" % str(e)[:80])
 
