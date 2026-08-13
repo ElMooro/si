@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.0.0 (ops 4650)
+"""justhodl-stock-buying v1.0.1 (ops 4651)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -133,38 +133,24 @@ def growth_seq(vals):
 
 
 def load_census():
-    for k in ("data/fundamental-census-matrix.json",
-              "data/fundamental-census.json"):
-        doc = s3_json(k)
-        if not isinstance(doc, dict):
-            continue
-        for kk in ("rows", "companies", "data", "universe",
-                   "matrix"):
-            v = doc.get(kk)
-            if isinstance(v, list) and v and \
-                    isinstance(v[0], dict) and (
-                    "symbol" in v[0] or "ticker" in v[0]):
-                return k, kk, v
-            if isinstance(v, dict) and v:
-                sample = next(iter(v.values()))
-                if isinstance(sample, dict):
-                    rows = []
-                    for sym, rr in v.items():
-                        r2 = dict(rr)
-                        r2.setdefault("symbol", sym)
-                        rows.append(r2)
-                    return k, kk + "(dict)", rows
-        if all(isinstance(x, dict) for x in
-               list(doc.values())[:3]) and len(doc) > 50:
+    """Columnar matrix: {tickers:[...], cols:{name:[aligned]}}
+    (shape read from the fleet's own consumers)."""
+    k = "data/fundamental-census-matrix.json"
+    doc = s3_json(k)
+    if isinstance(doc, dict):
+        tk = doc.get("tickers") or []
+        C = doc.get("cols") or {}
+        if tk and isinstance(C, dict) and C:
             rows = []
-            for sym, rr in doc.items():
-                if not isinstance(rr, dict):
-                    continue
-                r2 = dict(rr)
-                r2.setdefault("symbol", sym)
+            names = list(C.keys())
+            for i, t in enumerate(tk):
+                r2 = {"symbol": t}
+                for nm in names:
+                    col = C[nm]
+                    if isinstance(col, list) and i < len(col):
+                        r2[nm] = col[i]
                 rows.append(r2)
-            if rows:
-                return k, "(root-dict)", rows
+            return k, "columnar(%d cols)" % len(names), rows
     return None, None, []
 
 
@@ -238,7 +224,7 @@ def lambda_handler(event=None, context=None):
                      or d.get("class") or "deal",
                      "headline": str(d.get("headline")
                                      or d.get("title"))[:90]})
-    field_census = sorted(crows[0].keys())[:60] if crows else []
+    field_census = sorted(crows[0].keys()) if crows else []
     rows_out = []
     n_gate = {"below_sma": 0, "eps_seq": 0, "dilution": 0,
               "margin_floor": 0}
@@ -267,13 +253,17 @@ def lambda_handler(event=None, context=None):
                               "sharesOutstanding_q"))
         margin_now = fnum(row.get("operating_margin")
                           or row.get("opMargin")
-                          or row.get("operatingMarginTTM"))
+                          or row.get("op_margin")
+                          or row.get("operatingMarginTTM")
+                          or row.get("op_margin_ttm"))
         margin_q = qseq(row, ("op_margin_q", "opMargin_q",
                               "operatingMargin_q"))
         roic = fnum(row.get("roic") or row.get("ROIC")
+                    or row.get("roic_ttm")
                     or row.get("roicTTM"))
         pe = fnum(row.get("pe") or row.get("peTTM")
-                  or row.get("pe_ttm"))
+                  or row.get("pe_ttm") or row.get("pe_fwd")
+                  or row.get("p_e"))
         fpe = fnum(row.get("forward_pe") or row.get("fwdPE")
                    or row.get("forwardPE")) or pe
         ind_pe = fnum(row.get("industry_pe")
@@ -284,7 +274,10 @@ def lambda_handler(event=None, context=None):
                        or row.get("backlog_usd")
                        or row.get("backlogUSD"))
         fcf_yield = fnum(row.get("fcf_yield")
+                         or row.get("fcf_yield_pct")
                          or row.get("fcfYield"))
+        peg_col = fnum(row.get("peg") or row.get("peg_fwd")
+                       or row.get("peg_ratio"))
 
         gates = {}
         reasons = []
@@ -301,6 +294,12 @@ def lambda_handler(event=None, context=None):
             prev4 = eps_q[-5:-1]
             g_eps = all(last4[i] > prev4[i]
                         for i in range(4))
+        if g_eps is None:
+            sg = fnum(row.get("eps_yoy")
+                      or row.get("eps_g_yoy")
+                      or row.get("eps_growth_yoy"))
+            if sg is not None:
+                g_eps = sg > 0
         gates["eps_up_every_q"] = bool(g_eps)
         if g_eps:
             n_gate["eps_seq"] += 1
@@ -312,6 +311,10 @@ def lambda_handler(event=None, context=None):
         dil = None
         if shares_q and len(shares_q) >= 5 and shares_q[-5]:
             dil = (shares_q[-1] / shares_q[-5] - 1) * 100
+        if dil is None:
+            dil = fnum(row.get("shares_chg_1y_pct")
+                       or row.get("share_count_chg_yoy")
+                       or row.get("dilution_1y_pct"))
         gates["dilution_ok"] = (dil is None) or dil <= 4.0
         if dil is not None and dil > 4.0:
             reasons.append("diluted shares +%.1f%%/yr" % dil)
@@ -349,6 +352,16 @@ def lambda_handler(event=None, context=None):
         else:
             pillars["revisions_beats"] = None
         acc = None
+        if acc is None and not (eps_q and len(eps_q) >= 4):
+            sg = fnum(row.get("eps_yoy")
+                      or row.get("eps_g_yoy"))
+            rg = fnum(row.get("rev_yoy")
+                      or row.get("revenue_yoy")
+                      or row.get("rev_g_yoy"))
+            if sg is not None or rg is not None:
+                acc = round(clamp(
+                    (clamp(sg or 0, -20, 60))
+                    + (clamp(rg or 0, -10, 30))), 1)
         if eps_q and len(eps_q) >= 4:
             ge = growth_seq(eps_q[-4:])
             gr = growth_seq(rev_q[-4:]) if rev_q and \
@@ -365,14 +378,24 @@ def lambda_handler(event=None, context=None):
             acc = round(clamp(sc), 1)
         pillars["accel"] = acc
         f = None
+        if not (fcfps_q and len(fcfps_q) >= 5):
+            fg2 = fnum(row.get("fcf_yoy")
+                       or row.get("fcf_growth_yoy")
+                       or row.get("fcfps_yoy"))
+            if fg2 is not None:
+                f = round(clamp(fg2 + 25, 0, 100), 1)
         if fcfps_q and len(fcfps_q) >= 5 and fcfps_q[-5]:
             fg = (fcfps_q[-1] / abs(fcfps_q[-5]) - 1) * 100
             f = round(clamp(fg + 25, 0, 100), 1)
         pillars["fcf_growth"] = f
         val = 0.0
         vparts = 0
-        peg = None
-        if fpe and eps_q and len(eps_q) >= 5 and eps_q[-5]:
+        peg = peg_col
+        if peg is not None:
+            val += clamp((1.5 - peg) * 60, 0, 60)
+            vparts += 1
+        if peg is None and fpe and eps_q and len(eps_q) >= 5 \
+                and eps_q[-5]:
             gy = (eps_q[-1] / abs(eps_q[-5]) - 1) * 100
             if gy > 0:
                 peg = fpe / gy
@@ -387,7 +410,10 @@ def lambda_handler(event=None, context=None):
         pillars["valuation_vs_growth"] = round(val, 1) \
             if vparts else None
         rs = rel_strength(closes, spy)
-        db = double_bottom(closes)
+        db_col = row.get("double_bottom")
+        db = ({"formed": bool(db_col), "src": "census"}
+              if db_col is not None
+              else double_bottom(closes))
         cats = []
         if deal_by_sym.get(sym):
             for d in deal_by_sym[sym][:3]:

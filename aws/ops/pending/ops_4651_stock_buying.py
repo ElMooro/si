@@ -1,4 +1,4 @@
-"""ops 4651 — STOCK-BUYING engine build gate (recon was 4650).
+"""ops 4651 r2 — columnar matrix loader (consumer-verified shape) + scalar fallbacks.
 
 FMP key injected from fmp-fundamentals-agent env; create-capable
 deploy; hourly schedule; invoke; truth table with pillar scores;
@@ -139,14 +139,14 @@ def main():
                 src = zipfile.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-stock-buying v1.0.0" in src:
+                if "justhodl-stock-buying v1.0.1" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
         misses += contract(r, "deploy", settled,
-                           "v1.0.0 live (created=%s)" % created)
+                           "v1.0.1 live (created=%s)" % created)
         if not settled:
             sys.exit(1)
         try:
