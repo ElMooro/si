@@ -90,13 +90,13 @@ def main():
                 src = zf2.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-stock-buying v1.1.0" in src:
+                if "justhodl-stock-buying v1.1.1" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
-        misses += contract(r, "deploy", settled, "v1.1.0 live")
+        misses += contract(r, "deploy", settled, "v1.1.1 live")
         if not settled:
             sys.exit(1)
 

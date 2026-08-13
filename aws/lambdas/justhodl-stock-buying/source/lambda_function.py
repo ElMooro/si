@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.1.0 (ops 4652)
+"""justhodl-stock-buying v1.1.1 (ops 4652)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -216,11 +216,21 @@ def _knum(row, *names):
 
 
 def khalid_five(row, us10y, kmiss):
-    peg = _knum(row, "peg", "peg_ratio", "forward_peg",
-                "fwd_peg", "peg_fwd")
+    peg = _knum(row, "peg_ttm", "peg", "peg_ratio",
+                "forward_peg", "fwd_peg", "peg_fwd")
     iss = _knum(row, "net_issuance", "net_stock_issuance",
                 "issuance_retirement_net", "stock_issuance_net",
-                "net_share_issuance", "buyback_net", "net_buyback")
+                "net_share_issuance", "buyback_net",
+                "net_buyback")
+    if iss is None:
+        nb = _knum(row, "net_buyback_ttm")
+        if nb is None:
+            si = _knum(row, "stockIssued")
+            sr = _knum(row, "stockRepurchased")
+            if si is not None or sr is not None:
+                nb = (sr or 0) - (si or 0)
+        if nb is not None:
+            iss = -nb
     shq = _knum(row, "shares_qoq_pct", "basic_shares_qoq_pct",
                 "avg_basic_shares_qoq_pct", "shares_out_qoq_pct",
                 "share_count_qoq_pct", "wavg_shares_qoq_pct")
@@ -231,6 +241,12 @@ def khalid_five(row, us10y, kmiss):
             shq = round(y / 4.0, 2)
             kmiss["shares_qoq(from_yoy/4)"] = \
                 kmiss.get("shares_qoq(from_yoy/4)", 0) + 1
+    if row.get("_fmpq"):
+        q = row["_fmpq"]
+        row.setdefault("eps_qoq_accel_pp",
+                       q.get("eps_qoq_accel_pp"))
+        row.setdefault("revenue_qoq_accel_pp",
+                       q.get("rev_qoq_accel_pp"))
     eacc = _knum(row, "eps_qoq_accel_pp", "eps_accel_qoq_pp",
                  "eps_growth_accel_pp", "eps_qoq_pct_chg",
                  "eps_yoy_pct_chg", "eps_yoy_chg_pp")
@@ -541,6 +557,42 @@ def lambda_handler(event=None, context=None):
                 den += w
         score = round((num / den if den else 0) + q, 1)
         all_gates = all(gates.values())
+        if FMP_KEY and gates.get("below_sma") \
+                and gates.get("peg_lt1", True) \
+                and gates.get("dilution_ok"):
+            inc = fmp("income-statement/" + sym,
+                      "period=quarter&limit=6")
+            if isinstance(inc, list) and len(inc) >= 3:
+                def _fv(q, a, b=None):
+                    v = q.get(a)
+                    if not isinstance(v, (int, float)) and b:
+                        v = q.get(b)
+                    return float(v) if isinstance(
+                        v, (int, float)) else None
+                e0, e1, e2 = (_fv(inc[0], "epsdiluted", "eps"),
+                              _fv(inc[1], "epsdiluted", "eps"),
+                              _fv(inc[2], "epsdiluted", "eps"))
+                v0, v1, v2 = (_fv(inc[0], "revenue"),
+                              _fv(inc[1], "revenue"),
+                              _fv(inc[2], "revenue"))
+
+                def _gq(a, b):
+                    return ((a / b - 1) * 100
+                            if a is not None and b
+                            and b > 0 else None)
+                eg0, eg1 = _gq(e0, e1), _gq(e1, e2)
+                rg0, rg1 = _gq(v0, v1), _gq(v1, v2)
+                row["_fmpq"] = {
+                    "eps_qoq_pct": round(eg0, 1)
+                    if eg0 is not None else None,
+                    "eps_qoq_accel_pp": round(eg0 - eg1, 1)
+                    if None not in (eg0, eg1) else None,
+                    "rev_qoq_pct": round(rg0, 1)
+                    if rg0 is not None else None,
+                    "rev_qoq_accel_pp": round(rg0 - rg1, 1)
+                    if None not in (rg0, rg1) else None}
+                globals().setdefault("_QOQ", {})[sym] = \
+                    row["_fmpq"]
         k5 = khalid_five(row, globals().get("_US10Y"), {})
         tier = ("EXPLOSIVE-SETUP" if all_gates and score >= 70
                 and k5["peg_lt_1"] and k5["retiring_shares"]
