@@ -83,7 +83,7 @@ def concept_series(cik, tag):
     d = http_json(f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik}/us-gaap/{tag}.json")
     if not d:
         return []
-    units = (d.get("units") or {}).get("USD") or []
+    units = (lambda U: (U.get("USD") or U.get("USD/shares") or (list(U.values())[0] if U else [])))((d.get("units") or {}))
     rows = []
     for u in units:
         v = u.get("val"); end = u.get("end")
