@@ -1719,8 +1719,7 @@ def lambda_handler(event, context):
         nm0 = str(it.get("name") or "")
         nml = nm0.lower()
         if not (nml.startswith("bottom") or " bottom" in nml
-                or ": bottom" in nml
-                or "top and bottom" in nml):
+                or ": bottom" in nml):
             continue
         members = [str(x) for x in (it.get("symbols") or [])
                    if isinstance(x, str)]
