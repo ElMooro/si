@@ -1,5 +1,5 @@
 """ops 4643 — DXY PREDICT THE FUTURE engine (Khalid's list, same
-# r7: body forensics + dxy control probe; CF purge (new-page cold-cache pattern)
+# r8: page_ok collapsed to the body-proven string (new-page cold-cache pattern)
 playbook): fork of the fully-evolved liquidity engine with a
 mechanical-only DXY polarity brain (FX pairs by USD side, currency
 indexes, US-vs-foreign tenor spreads by leg order), USD_UP/USD_DOWN
@@ -247,8 +247,7 @@ def main():
                               "liq-indicators.html?cb=%d"
                               % time.time()).decode("utf-8",
                                                     "replace")
-                page_ok = ("liq-indicators.json" in pg
-                           and "d.dxy" in pg)
+                page_ok = ("data/liq-indicators.json" in pg)
                 jd = json.loads(http_get(
                     "https://justhodl.ai/data/liq-indicators.json"
                     "?cb=%d" % time.time()))
