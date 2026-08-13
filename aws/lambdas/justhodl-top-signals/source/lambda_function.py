@@ -1,4 +1,4 @@
-"""justhodl-top-signals v1.0.1 (ops 4648)
+"""justhodl-top-signals v1.0.2 (ops 4648)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
@@ -65,7 +65,20 @@ CC_MAP = {"CRYPTOCAP:TOTAL": ("mcap", "total_mcap_usd"),
           "CRYPTOCAP:USDT.D": ("dom", "usdt"),
           "CRYPTOCAP:USDC.D": ("dom", "usdc"),
           "CRYPTOCAP:USDT.D+CRYPTOCAP:USDC.D":
-              ("domsum", ("usdt", "usdc"))}
+              ("domsum", ("usdt", "usdc")),
+          "CRYPTOCAP:USDC.D+CRYPTOCAP:USDT.D":
+              ("domsum", ("usdt", "usdc")),
+          "CRYPTOCAP:TOTAL3": ("total3", None),
+          "CRYPTOCAP:OTHERS.D": ("others_dom", None),
+          "CRYPTOCAP:BTC": ("coin_mcap", "btc"),
+          "CRYPTOCAP:ETH": ("coin_mcap", "eth")}
+ONCHAIN_MAP = {
+    "INTOTHEBLOCK:BTC_HASHRATE": "btc_hashrate",
+    "GLASSNODE:BTC_SOPR": "btc_sopr",
+    "GLASSNODE:BTC_MVRV": "btc_mvrv",
+    "GLASSNODE:BTC_NUPL": "btc_nupl",
+    "INTOTHEBLOCK:BTC_TXCOUNT": "btc_tx_count",
+}
 _CG = {}     # TE historical per-indicator
 TE_KEY = os.environ.get("TE_API_KEY", "")
 TE_DIRECT = {
@@ -615,6 +628,23 @@ def cryptocap_fallback(sym, budget):
         v = None
         if kind == "mcap":
             v = g.get("total_usd")
+        elif kind == "total3":
+            tot = g.get("total_usd")
+            d2 = g.get("dom") or {}
+            if tot and d2.get("btc") is not None \
+                    and d2.get("eth") is not None:
+                v = tot * (100.0 - d2["btc"] - d2["eth"]) / 100.0
+        elif kind == "others_dom":
+            d2 = g.get("dom") or {}
+            if d2.get("btc") is not None:
+                v = max(0.0, 100.0 - sum(
+                    x for x in d2.values()
+                    if isinstance(x, (int, float))))
+        elif kind == "coin_mcap":
+            tot = g.get("total_usd")
+            d2 = g.get("dom") or {}
+            if tot and d2.get(key) is not None:
+                v = tot * d2[key] / 100.0
         elif kind == "domsum":
             parts = [dom.get(k2) for k2 in key]
             v = (sum(parts) if all(isinstance(p, (int, float))
@@ -742,6 +772,27 @@ def binance_fallback(sym, budget):
                       ContentType="application/json")
     except Exception:
         pass
+    return None
+
+
+def cryptoquant_series(metric):
+    doc = fleet_doc("data/cryptoquant-series.json")
+    node = ((doc or {}).get("series") or {}).get(metric)
+    if not isinstance(node, dict):
+        return None
+    dd, vv = node.get("d"), node.get("v")
+    if not (isinstance(dd, list) and isinstance(vv, list)):
+        return None
+    n = min(len(dd), len(vv))
+    se = []
+    for i in range(max(0, n - 400), n):
+        try:
+            se.append({"date": str(dd[i])[:10],
+                       "value": float(vv[i])})
+        except Exception:
+            continue
+    if len(se) >= 15:
+        return {"series": se, "via": "cryptoquant " + metric}
     return None
 
 
@@ -1772,6 +1823,10 @@ def lambda_handler(event, context):
                     fb = crypto_ma200_series(sym)
                     if not fb:
                         fb = binance_fallback(sym, BN_BUDGET)
+                    if fb:
+                        node = fb
+                elif sym in ONCHAIN_MAP:
+                    fb = cryptoquant_series(ONCHAIN_MAP[sym])
                     if fb:
                         node = fb
                 elif sym in CC_MAP:

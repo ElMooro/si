@@ -107,14 +107,14 @@ def main():
                 src = zf2.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-top-signals v1.0.1" in src:
+                if "justhodl-top-signals v1.0.2" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
         misses += contract(r, "deploy", settled,
-                           "v1.0.1 live (created=%s)" % created)
+                           "v1.0.2 live (created=%s)" % created)
         if not settled:
             sys.exit(1)
         try:
@@ -191,6 +191,20 @@ def main():
                and x.get("move_z") is not None]
         r.log("crypto z-based: %d (e.g. %s)"
               % (len(cry), [c["symbol"] for c in cry[:6]]))
+        ccf = [x for x in rows
+               if str(x.get("symbol", "")).startswith(
+                   "CRYPTOCAP") and x.get("resolved")]
+        oc = [x for x in rows
+              if x.get("symbol") in
+              ("INTOTHEBLOCK:BTC_HASHRATE",
+               "GLASSNODE:BTC_SOPR", "GLASSNODE:BTC_MVRV")
+              and x.get("move_z") is not None]
+        r.log("cryptocap resolved: %d · onchain z-based: %s"
+              % (len(ccf), [o["symbol"] for o in oc]))
+        misses += contract(r, "cryptocap-fam", len(ccf) >= 8,
+                           "%d CRYPTOCAP rows resolved "
+                           "(TOTAL3/OTHERS.D/mcaps seeding)"
+                           % len(ccf))
         misses += contract(r, "crypto-route", len(cry) >= 1,
                            "%d crypto-class rows z-based (route "
                            "production test)" % len(cry))
