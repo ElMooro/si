@@ -1,27 +1,37 @@
-executing-against: c5ea757c24d44792e64b4209c5e54dc5ce75fb86
+executing-against: 11a3b3a1d23fc2cb5e77cb0dc3fb20de91f37ef8
 ops 4651 — stock-buying flagship
 ── FMP key donor -> engine env ──
-[17:21:13] key from fmp-fundamentals-agent.FMP_API_KEY (len=32)
+[17:26:16] key from fmp-fundamentals-agent.FMP_API_KEY (len=32)
+── authority probes ──
+[17:26:16] S3: data/fundamental-census-history.json (226 B, 2026-08-01 06:48)
+[17:26:16] S3: data/fundamental-census-matrix.json (1180010 B, 2026-08-01 06:48)
+[17:26:16] S3: data/fundamental-census.json (78138 B, 2026-08-01 06:48)
+[17:26:16] S3: data/fundamentals-decisive-call.json (657 B, 2026-08-13 13:20)
+[17:26:16] S3: data/fundamentals.json (13646 B, 2026-08-13 13:00)
+[17:26:16] ⚠ census_idx replica: '{' was never closed (cidx, line 56)
 ── deploy (create-capable) + schedule ──
-[17:21:27] ✅   [deploy] v1.0.3 live (created=False)
+[17:26:30] ✅   [deploy] v1.0.3 live (created=False)
 ── matrix probe (runner-side) ──
-[17:21:28] top_keys=['generated_at', 'n_tickers', 'n_metrics', 'tickers', 'sectors', 'industries', 'quality', 'turn', 'flagged', 'metrics'] n_tickers=498 n_cols=293
-[17:21:28] first cols: ['above_ma40w', 'accountsPayable', 'acquisitions', 'altman_z', 'altman_z_prime', 'aoci', 'asset_turnover', 'asset_turnover_ttm', 'assets_per_employee', 'beneish_m', 'beta_2y', 'book_value_per_share', 'book_value_ps', 'breakout_20w', 'buyback_yield_gross_pct', 'buyback_yield_pct', 'bvps_yoy_pct', 'capLeaseObligations', 'capex', 'capex_to_da']
+[17:26:31] top_keys=['generated_at', 'n_tickers', 'n_metrics', 'tickers', 'sectors', 'industries', 'quality', 'turn', 'flagged', 'metrics'] n_tickers=498 n_cols=293
+[17:26:31] first cols: ['above_ma40w', 'accountsPayable', 'acquisitions', 'altman_z', 'altman_z_prime', 'aoci', 'asset_turnover', 'asset_turnover_ttm', 'assets_per_employee', 'beneish_m', 'beta_2y', 'book_value_per_share', 'book_value_ps', 'breakout_20w', 'buyback_yield_gross_pct', 'buyback_yield_pct', 'bvps_yoy_pct', 'capLeaseObligations', 'capex', 'capex_to_da']
 ── run + institutional truth ──
-[17:21:40] CW| [ERROR] TypeError: unsupported operand type(s) for +: 'int' and 'NoneType'
-[17:21:40] CW| File "/var/task/lambda_function.py", line 249, in lambda_handler
-[17:21:40] CW| File "/var/task/lambda_function.py", line 169, in sma_state
-[17:21:41] engine matrix_probe: null
-[17:21:41] census fields: []
-[17:21:41] ✗   [universe] CONTRACT MISS — 0 companies in census universe
-[17:21:41] ✗   [scored] CONTRACT MISS — 0 scored rows
-[17:21:41] ✗   [row-integrity] CONTRACT MISS — top row carries pillars+gates+why link (None)
-[17:21:41] ✅   [tiers] tier partition sums: {'EXPLOSIVE-SETUP': 0, 'SETUP': 0, 'WATCH': 0, 'SCREENED': 0}
+[17:26:43] CW| [ERROR] TypeError: unsupported operand type(s) for +: 'int' and 'NoneType'
+[17:26:43] CW| File "/var/task/lambda_function.py", line 249, in lambda_handler
+[17:26:43] CW| File "/var/task/lambda_function.py", line 169, in sma_state
+[17:26:43] CW| [ERROR] TypeError: unsupported operand type(s) for +: 'int' and 'NoneType'
+[17:26:43] CW| File "/var/task/lambda_function.py", line 249, in lambda_handler
+[17:26:43] CW| File "/var/task/lambda_function.py", line 169, in sma_state
+[17:26:44] engine matrix_probe: null
+[17:26:44] census fields: []
+[17:26:44] ✗   [universe] CONTRACT MISS — 0 companies in census universe
+[17:26:44] ✗   [scored] CONTRACT MISS — 0 scored rows
+[17:26:44] ✗   [row-integrity] CONTRACT MISS — top row carries pillars+gates+why link (None)
+[17:26:44] ✅   [tiers] tier partition sums: {'EXPLOSIVE-SETUP': 0, 'SETUP': 0, 'WATCH': 0, 'SCREENED': 0}
 ── edge (CF purge + structural) ──
-[17:21:41] CF purge issued
-[17:24:47] ✗   [edge] CONTRACT MISS — page structural + dblclick->why + payload at edge
+[17:26:44] CF purge issued
+[17:29:50] ✗   [edge] CONTRACT MISS — page structural + dblclick->why + payload at edge
 ── verdict ──
-[17:24:47] ✗ stock-buying: 4 red
+[17:29:50] ✗ stock-buying: 4 red
 
 → Report written to aws/ops/reports/latest/4651_stock_buying.md
 ❌ OPS-FAIL: aws/ops/pending/ops_4651_stock_buying.py
