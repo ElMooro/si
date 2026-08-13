@@ -1,4 +1,4 @@
-"""ops 4653 — backlog-miner r4 v1.1.0 (targets = shipped payload: belts on cached too): SEC-primary backlog levels +
+"""[fresh-cycle ping] ops 4653 — backlog-miner r4 v1.1.0 (targets = shipped payload: belts on cached too): SEC-primary backlog levels +
 QoQ/YoY per ticker (anchors + screener candidates), warm 7d,
 honest NOT_DISCLOSED. Create-capable deploy, hourly, truth table.
 """
