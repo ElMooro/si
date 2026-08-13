@@ -1,4 +1,4 @@
-"""justhodl-macro-predict v1.0.0 (ops 4647)
+"""justhodl-macro-predict v1.0.1 (ops 4647)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
@@ -1796,7 +1796,7 @@ def lambda_handler(event, context):
     payload = {
         "schema_version": "1.0",
         "engine": "justhodl-macro-predict",
-        "liquidity": liquidity,
+        "macro": liquidity,
         "as_of": now.isoformat(timespec="seconds"),
         "list_name": list_name,
         "family_lists": fam,
