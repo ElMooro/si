@@ -1,25 +1,9 @@
-executing-against: be7839db5f78295010b55d8f564572e81b8c21e8
+executing-against: 4f41c6576356efec1d83d3e6059d7416b6a45d22
 ops 4643 — DXY predict-the-future engine
 ── pre-dump: bottom list candidates ──
-[15:44:31] ✅   [list-exists] bottom list present: [('Bitcoin - Global Liquidity: GOLD ALWAYS BOTTOM BEFORE BITCOIN', 248), ('Bitcoin : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.', 437), ('Bottom Indicators', 500)]
+[15:48:17] ✅   [list-exists] bottom list present: [('Bitcoin - Global Liquidity: GOLD ALWAYS BOTTOM BEFORE BITCOIN', 248), ('Bitcoin : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.', 437), ('Bottom Indicators', 500)]
 ── deploy (ops-side) + settle + schedule ──
-[15:44:32] ✅   [deploy] v1.0.0 live (created=False)
-[15:44:33] hourly schedule created
-── run + dxy truth ──
-[15:46:01] ✅   [list-found] list 'BOTTOM FAMILY (6 lists)' (1063 members)
-[15:46:01] ✅   [resolution] 593/1063 resolved (shared cache pool)
-[15:46:01] unsigned-by-design: 0 rows carry mechanical polarity
-[15:46:01] crypto z-based: 1 (e.g. ['COINBASE:LINKUSD'])
-[15:46:01] ✅   [crypto-route] 1 crypto-class rows z-based (route production test)
-[15:46:01] ✅   [dials] BOTTOM TREND -1.0 (MIXED) · REVERSAL 0.0 (NONE)
-── edge (with CF purge) ──
-[15:46:01] CF purge: True
-[15:46:07] CONTROL dxy: len=6609 has_json=True
-[15:46:07] LIQ body: len=6565 count(liq)=0 fetch@3169 liq@-1
-[15:46:07] slice@fetch: :'dim')); fetch('data/bottom-signals.json?cb='+Date.now()).then(r=>r.json()) .then(d=>{ document.getElementById('asof').
-[15:46:07] ⚠ CLOUDFLARE_API_TOKEN absent — probing without purge
-[15:46:07] ✅   [edge] page + payload at the edge
-── verdict ──
-[15:46:07] ✅ BOTTOM SIGNALS LIVE — list 'BOTTOM FAMILY (6 lists)': 593/1063 resolved, 0 signed rows · TREND -1.0 (MIXED) · REVERSAL 0.0 (NONE) · https://justhodl.ai/bottom-signals.html
+[15:53:01] ✗   [deploy] CONTRACT MISS — v1.0.1 live (created=False)
 
 → Report written to aws/ops/reports/latest/4649_bottom_signals.md
+❌ OPS-FAIL: aws/ops/pending/ops_4649_bottom_signals.py
