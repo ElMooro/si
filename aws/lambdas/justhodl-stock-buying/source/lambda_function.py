@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.1.1 (ops 4652)
+"""justhodl-stock-buying v1.2.0 (ops 4652)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
