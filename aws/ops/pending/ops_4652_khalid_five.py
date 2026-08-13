@@ -106,6 +106,21 @@ def main():
                               InvocationType="RequestResponse")
             r.log("backlog engine fn_error=%s"
                   % inv0.get("FunctionError"))
+            bx0 = json.loads(s3.get_object(
+                Bucket=B, Key="data/backlog.json")
+                ["Body"].read())
+            bt0 = bx0.get("by_ticker") or {}
+            eps_have = [k for k, v in bt0.items()
+                        if isinstance(v, dict)
+                        and v.get("eps") is not None]
+            r.log("backlog.json: entries=%d with_eps=%d "
+                  "gen=%s" % (len(bt0), len(eps_have),
+                              str(bx0.get("generated_at")
+                                  )[:19]))
+            if bt0:
+                k0 = (eps_have or sorted(bt0.keys()))[0]
+                r.log("sample %s: %s"
+                      % (k0, json.dumps(bt0[k0])[:300]))
         except Exception as e:
             r.warn("backlog invoke: %s" % str(e)[:80])
 
