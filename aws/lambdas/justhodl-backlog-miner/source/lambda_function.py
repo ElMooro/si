@@ -1,4 +1,4 @@
-"""justhodl-backlog-miner v1.0.0 (ops 4653)
+"""justhodl-backlog-miner v1.0.1 (ops 4653)
 
 Mines disclosed backlog dollars from primary sources — SEC EDGAR
 full-text search over 10-Q/10-K filings — for the stock-buying
@@ -159,6 +159,12 @@ def mine(tk):
                 if x["value"] is not None]) >= 5:
             break
     vals = [x for x in series if x["value"] is not None]
+    if len(vals) >= 3:
+        import math as _m
+        med = sorted(x["value"] for x in vals)[len(vals) // 2]
+        vals = [x for x in vals
+                if abs(_m.log10(x["value"]) - _m.log10(med))
+                <= 0.7]
     out = {"ticker": tk,
            "fetched_at": datetime.now(timezone.utc).isoformat(
                timespec="seconds"),
@@ -168,11 +174,15 @@ def mine(tk):
         out["backlog_usd"] = vals[0]["value"]
         out["asof"] = vals[0]["date"]
         out["src"] = vals[0]["src"]
-        if len(vals) >= 2 and vals[1]["value"]:
+        if len(vals) >= 2 and vals[1]["value"] \
+                and 0.25 <= (vals[0]["value"]
+                             / vals[1]["value"]) <= 4.0:
             out["backlog_qoq_pct"] = round(
                 (vals[0]["value"] / vals[1]["value"] - 1) * 100,
                 1)
-        if len(vals) >= 5 and vals[4]["value"]:
+        if len(vals) >= 5 and vals[4]["value"] \
+                and 0.25 <= (vals[0]["value"]
+                             / vals[4]["value"]) <= 4.0:
             out["backlog_yoy_pct"] = round(
                 (vals[0]["value"] / vals[4]["value"] - 1) * 100,
                 1)

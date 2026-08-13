@@ -68,6 +68,9 @@ for the full why.html workup.</div>
 <th data-k="five">FIVE<b class="q">?</b></th>
 <th data-k="rs">RS3m<b class="q">?</b></th>
 <th data-k="db">DB<b class="q">?</b></th>
+<th data-k="bl">Bklg $B<b class="q">?</b></th>
+<th data-k="blq">BkQoQ%<b class="q">?</b></th>
+<th data-k="bly">BkYoY%<b class="q">?</b></th>
 <th data-k="cat">Catalysts / reasons<b class="q">?</b></th>
 </tr></thead><tbody id="R"></tbody></table>
 <div id="tip"></div>
@@ -84,6 +87,9 @@ roic:"Return on Invested Capital, %. The Buffett test compares it to the US 10-y
 five:"Khalid's FIVE badges, left to right: PEG under 1 - net share retirement - QoQ EPS and revenue acceleration - ROIC beats US10Y by 5pp or more. Filled dot = pass.",
 rs:"RS3m = this stock's 3-month return minus SPY's 3-month return, in percentage points. Positive means beating the market: relative strength.",
 db:"Double bottom: a W-shaped base. Sourced from the census pattern column when present, else the price detector. CONFIRMED = neckline broken.",
+bl:"Disclosed backlog in USD billions, mined from the company\u2019s own SEC 10-Q/10-K text. Blank = company does not disclose (never guessed).",
+blq:"Backlog change vs the previous filing (quarter over quarter, %). Guarded against unit-mix parses.",
+bly:"Backlog change vs four filings back (year over year, %).",
 cat:"Catalysts from the deal-scanner event tape when present; otherwise the exact gate reasons currently blocking the name."};
 const tip=document.getElementById('tip');
 document.body.addEventListener('click',()=>tip.style.display='none');
@@ -99,6 +105,9 @@ case 'five':{const f=x.khalid_five||{};return (f.peg_lt_1?1:0)+
 case 'db':{const d=x.double_bottom;if(!d)return 0;
 if(d==='CONFIRMED')return 3;if(d==='FORMING')return 2;
 if(d.formed)return 3;return 1;}
+case 'bl':return num(x.backlog_usd);
+case 'blq':return num(x.backlog_qoq_pct);
+case 'bly':return num(x.backlog_yoy_pct);
 case 'cat':return (x.catalysts||[]).length;
 case 'symbol':return x.symbol||'';
 case 'sector':return x.sector||'';
@@ -139,7 +148,8 @@ tr.innerHTML='<td class="score n '+(x.score>=70?'g':x.score>=55?
 (x.roic??'–')+'</td><td class="k5">'+five+'</td><td class="n">'+
 (x.rs_3m_vs_spy??'–')+'</td><td class="'+
 (getv(x,'db')>=3?'g':getv(x,'db')===2?'a':'dim')+'">'+
-dbTxt(x.double_bottom)+'</td><td class="dim" title="'+
+dbTxt(x.double_bottom)+'</td><td class="n">'+
+(x.backlog_usd!=null?(x.backlog_usd/1e9).toFixed(1):'\u2013')+'</td><td class="n '+((x.backlog_qoq_pct>0)?'g':(x.backlog_qoq_pct<0)?'r':'')+'">'+(x.backlog_qoq_pct??'\u2013')+'</td><td class="n '+((x.backlog_yoy_pct>0)?'g':(x.backlog_yoy_pct<0)?'r':'')+'">'+(x.backlog_yoy_pct??'\u2013')+'</td><td class="dim" title="'+
 ((x.gate_reasons||[]).join('; '))+'">'+(reasons||'–')+'</td>';
 R.appendChild(tr);}
 document.querySelectorAll('th').forEach(th=>{th.classList.remove(

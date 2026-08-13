@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.2.0 (ops 4652)
+"""justhodl-stock-buying v1.3.0 (ops 4652)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -634,6 +634,18 @@ def lambda_handler(event=None, context=None):
         globals()["_FV"] = _fvdoc.get("by_ticker") or {}
     except Exception:
         globals()["_FV"] = {}
+    _bl = (s3_json("data/backlog-mined.json") or {}
+           ).get("by_ticker") or {}
+    _bl_n = 0
+    for r0 in rows_out:
+        bx = _bl.get(r0["symbol"])
+        if bx and bx.get("status") == "MINED":
+            r0["backlog_usd"] = bx.get("backlog_usd")
+            r0["backlog_qoq_pct"] = bx.get("backlog_qoq_pct")
+            r0["backlog_yoy_pct"] = bx.get("backlog_yoy_pct")
+            r0["backlog_src"] = bx.get("src")
+            _bl_n += 1
+    globals()["_BLN"] = _bl_n
     seen = {r0["symbol"] for r0 in rows_out}
     seen |= {str(x.get("symbol") or "") for x in crows}
     nb = nb_pass = 0
@@ -697,6 +709,7 @@ def lambda_handler(event=None, context=None):
         "khalid_five_missing": globals().get("_KMISS"),
         "census_fields_sample": field_census,
         "lanes": globals().get("_LANES"),
+        "backlog_join_n": globals().get("_BLN"),
         "n_universe": len(crows), "n_scored": len(rows_out),
         "gates_summary": n_gate,
         "fmp_key": bool(FMP_KEY),
