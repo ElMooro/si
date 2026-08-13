@@ -201,9 +201,9 @@ def main():
               and x.get("move_z") is not None]
         r.log("cryptocap resolved: %d · onchain z-based: %s"
               % (len(ccf), [o["symbol"] for o in oc]))
-        misses += contract(r, "cryptocap-fam", len(ccf) >= 8,
+        misses += contract(r, "cryptocap-fam", len(ccf) >= 7,
                            "%d CRYPTOCAP rows resolved "
-                           "(TOTAL3/OTHERS.D/mcaps seeding)"
+                           "(TOTAL3/OTHERS.D/mcaps; CC-composites auto-admit at 15 daily obs)"
                            % len(ccf))
         misses += contract(r, "crypto-route", len(cry) >= 1,
                            "%d crypto-class rows z-based (route "
