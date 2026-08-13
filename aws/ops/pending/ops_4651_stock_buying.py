@@ -1,4 +1,4 @@
-"""ops 4651 r6 — authority probes: best-setups census_idx replica + S3 object listing; cols|metrics alias, v1.0.3 settled rerun; columnar loader (consumer-verified shape) + scalar fallbacks.
+"""ops 4651 r7 — verbatim matrix keys + engine matrix_probe dump: best-setups census_idx replica + S3 object listing; cols|metrics alias, v1.0.3 settled rerun; columnar loader (consumer-verified shape) + scalar fallbacks.
 
 FMP key injected from fmp-fundamentals-agent env; create-capable
 deploy; hourly schedule; invoke; truth table with pillar scores;
@@ -91,6 +91,23 @@ def main():
                       % (k0, sorted(list(idx[k0].keys()))[:20]))
         except Exception as e:
             r.warn("census_idx replica: %s" % str(e)[:120])
+
+        r.section("verbatim matrix truth")
+        try:
+            doc0 = json.loads(s3.get_object(
+                Bucket=B, Key="data/fundamental-census-matrix"
+                ".json")["Body"].read())
+            r.log("top keys: %s" % list(doc0.keys()))
+            for k0 in list(doc0.keys())[:8]:
+                v0 = doc0[k0]
+                r.log("  %s -> %s len=%s" % (
+                    k0, type(v0).__name__,
+                    len(v0) if hasattr(v0, "__len__") else "-"))
+                if isinstance(v0, dict):
+                    r.log("    subkeys: %s"
+                          % list(v0.keys())[:12])
+        except Exception as e:
+            r.warn("matrix read: %s" % str(e)[:100])
 
         r.section("deploy (create-capable) + schedule")
         buf = io.BytesIO()
@@ -198,6 +215,16 @@ def main():
                   % list((mx.get("cols") or {}).keys())[:20])
         except Exception as e:
             r.log("matrix read ERR: %s" % str(e)[:110])
+
+        r.section("engine matrix_probe (last payload)")
+        try:
+            pl0 = json.loads(s3.get_object(
+                Bucket=B, Key="data/stock-buying.json")
+                ["Body"].read())
+            r.log("matrix_probe: %s"
+                  % json.dumps(pl0.get("matrix_probe"))[:300])
+        except Exception as e:
+            r.warn("probe read: %s" % str(e)[:80])
 
         r.section("run + institutional truth")
         inv = lam.invoke(FunctionName=FN,
