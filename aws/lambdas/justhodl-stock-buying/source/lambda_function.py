@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.3.4 (ops 4652)
+"""justhodl-stock-buying v1.3.5 (ops 4652)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -639,6 +639,9 @@ def lambda_handler(event=None, context=None):
            ).get("by_ticker") or {}
     _bx = (s3_json("data/backlog.json") or {}
            ).get("by_ticker") or {}
+    _cat = (s3_json("data/catalyst.json") or {}
+            ).get("by_ticker") or {}
+    _cat_n = 0
     _cm = {str(x.get("symbol") or "").upper(): x
            for x in crows}
     _bl_n = 0
@@ -647,6 +650,14 @@ def lambda_handler(event=None, context=None):
         sym0 = r0["symbol"]
         xb = _bx.get(sym0) or {}
         mb = _bl.get(sym0) or {}
+        ce = _cat.get(sym0)
+        if ce and ce.get("catalysts"):
+            r0["catalysts"] = [c["class"]
+                               for c in ce["catalysts"][:4]]
+            r0["catalyst_score"] = ce.get("score")
+            r0["catalyst_evidence"] = \
+                ce["catalysts"][0].get("evidence")
+            _cat_n += 1
         if xb.get("eps") is not None:
             r0["eps"] = xb.get("eps")
             r0["eps_qoq_pct"] = xb.get("eps_qoq")
@@ -689,6 +700,7 @@ def lambda_handler(event=None, context=None):
             r0["backlog_status"] = "NOT_DISCLOSED"
             _kinds["n/d"] += 1
     globals()["_BLN"] = _bl_n
+    globals()["_CATN"] = _cat_n
     globals()["_BLK"] = _kinds
     seen = {r0["symbol"] for r0 in rows_out}
     seen |= {str(x.get("symbol") or "") for x in crows}
@@ -757,6 +769,7 @@ def lambda_handler(event=None, context=None):
         "lanes": globals().get("_LANES"),
         "backlog_join_n": globals().get("_BLN"),
         "backlog_kinds": globals().get("_BLK"),
+        "catalyst_join_n": globals().get("_CATN"),
         "n_universe": len(crows), "n_scored": len(rows_out),
         "gates_summary": n_gate,
         "fmp_key": bool(FMP_KEY),
