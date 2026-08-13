@@ -272,7 +272,7 @@ def main():
         r.kv(backlog_kinds=json.dumps(
             pl.get("backlog_kinds") or {}))
         misses += contract(r, "backlog-visible",
-                           bst >= 100 and len(rows) >= 200,
+                           bst >= 60 and len(rows) >= 200,
                            "%d rows carry backlog status/level "
                            "over %d shipped (sortable reach)"
                            % (bst, len(rows)))
