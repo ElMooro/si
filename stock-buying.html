@@ -5,51 +5,165 @@
 body{background:#0b0f14;color:#d7dee7;font:13px/1.45 -apple-system,
 Segoe UI,Roboto,sans-serif;margin:0;padding:18px}
 h1{font-size:17px;letter-spacing:.4px;margin:0 0 2px}
-.sub{color:#7f8b99;font-size:11px;margin-bottom:12px}
+.sub{color:#7f8b99;font-size:11px;margin-bottom:12px;max-width:980px}
 .strip{display:flex;gap:26px;margin:10px 0 14px;flex-wrap:wrap}
 .alarm{font-size:20px;font-weight:700}
-.dim{color:#7f8b99}.g{color:#3ddc84}.r{color:#ff5d5d}
-.a{color:#ffb648}
+.dim{color:#7f8b99}.g{color:#3ddc84}.r{color:#ff5d5d}.a{color:#ffb648}
 table{border-collapse:collapse;width:100%;font-size:12px}
-th{color:#7f8b99;text-align:left;padding:6px 8px;border-bottom:
-1px solid #1d2733;position:sticky;top:0;background:#0b0f14}
-td{padding:6px 8px;border-bottom:1px solid #131a23;
-white-space:nowrap}
-tr.row:hover{background:#111a26;cursor:pointer}
-.score{font-weight:700}.k5 b{margin-right:3px}
+th{color:#7f8b99;text-align:left;padding:6px 8px;border-bottom:1px
+solid #1d2733;position:sticky;top:0;background:#0b0f14;cursor:pointer;
+user-select:none;white-space:nowrap}
+th .q{display:inline-block;margin-left:5px;width:13px;height:13px;
+line-height:12px;text-align:center;border:1px solid #3a4656;
+border-radius:50%;color:#7f8b99;font-size:10px;font-weight:700;
+cursor:help}
+th.sa:after{content:" ▲";color:#3ddc84}
+th.sd:after{content:" ▼";color:#ff5d5d}
+td{padding:6px 8px;border-bottom:1px solid #131a23;white-space:nowrap}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.row:nth-child(even){background:#0e141b}
+tr.row:hover{background:#152030;cursor:pointer}
+.score{font-weight:700}.k5 b{margin-right:3px;font-size:13px}
+#tip{position:fixed;max-width:310px;background:#141c26;border:1px
+solid #2a3644;border-radius:8px;padding:10px 12px;font-size:12px;
+color:#c8d2dd;display:none;z-index:9;box-shadow:0 6px 24px
+rgba(0,0,0,.5)}
+.chip{display:inline-block;padding:1px 7px;border-radius:9px;
+font-size:10px;font-weight:700}
+.cE{background:#123524;color:#3ddc84}.cS{background:#33260e;
+color:#ffb648}.cW{background:#15202e;color:#8fb4e3}
+.cT{background:#241530;color:#c79bf2}.cX{background:#161d26;
+color:#7f8b99}
 </style></head><body>
 <h1>STOCK BUYING — ACCUMULATION SCREENER</h1>
-<div class="sub">under SMA250 · RSI&lt;35 · no dilution ·
-Khalid's pillars + the FIVE (PEG&lt;1 · net retirement ·
-QoQ accel · Buffett ROIC−10Y · shares) · double-click a row
-for full why.html analysis</div>
+<div class="sub">Census lane (498 deep fundamentals) + BROAD lane
+(1,200-ticker technical universe; fundamentals auto-join when the
+FMP key renews). Gates: under SMA250 · no dilution/net retirement ·
+PEG&lt;1 for the FIVE. Click any <b class="q">?</b> for the exact
+definition · click a column header to sort ▲▼ · double-click a row
+for the full why.html workup.</div>
 <div class="strip">
 <div><div class="alarm" id="nS">–</div>
 <div class="dim" style="font-size:11px">SCORED / UNIVERSE</div></div>
+<div><div class="alarm" id="lanes" style="font-size:14px">–</div>
+<div class="dim" style="font-size:11px">LANES census+broad</div></div>
 <div><div class="alarm" id="tiers">–</div>
 <div class="dim" style="font-size:11px">TIERS E/S/W</div></div>
-<div><div class="alarm" id="funnel" style="font-size:13px">–</div>
+<div><div class="alarm" id="funnel" style="font-size:12px">–</div>
 <div class="dim" style="font-size:11px">GATE FUNNEL</div></div>
 <div><div class="alarm" id="u10" style="font-size:16px">–</div>
-<div class="dim" style="font-size:11px">US10Y (BUFFETT HURDLE)
-</div></div>
-<div><div class="alarm dim" id="asof" style="font-size:13px">–
-</div><div class="dim" style="font-size:11px">AS OF</div></div>
+<div class="dim" style="font-size:11px">US10Y HURDLE</div></div>
+<div><div class="alarm dim" id="asof" style="font-size:13px">–</div>
+<div class="dim" style="font-size:11px">AS OF</div></div>
 </div>
 <table><thead><tr>
-<th>Score</th><th>Tier</th><th>Tkr</th><th>Sector</th>
-<th>ΔSMA</th><th>PEG</th><th>P/E</th><th>ROIC</th>
-<th>FIVE</th><th>RS3m</th><th>DB</th><th>Catalysts / reasons</th>
+<th data-k="score">Score<b class="q">?</b></th>
+<th data-k="tier">Tier<b class="q">?</b></th>
+<th data-k="symbol">Tkr<b class="q">?</b></th>
+<th data-k="sector">Sector<b class="q">?</b></th>
+<th data-k="gap">dSMA<b class="q">?</b></th>
+<th data-k="peg">PEG<b class="q">?</b></th>
+<th data-k="pe">P/E<b class="q">?</b></th>
+<th data-k="roic">ROIC<b class="q">?</b></th>
+<th data-k="five">FIVE<b class="q">?</b></th>
+<th data-k="rs">RS3m<b class="q">?</b></th>
+<th data-k="db">DB<b class="q">?</b></th>
+<th data-k="cat">Catalysts / reasons<b class="q">?</b></th>
 </tr></thead><tbody id="R"></tbody></table>
+<div id="tip"></div>
 <script>
+const DEFS={
+score:"Composite 0-100: pillars (growth, acceleration, FCF, valuation-vs-growth, margins, ROIC, booming industry, technicals) plus catalyst/backlog bonus. BROAD-lane scores are technical-only until fundamentals join.",
+tier:"EXPLOSIVE-SETUP = all FIVE plus every gate. SETUP / WATCH = partial. SCREENED = in universe, gates not met. TECH-WATCH = broad lane, technicals only.",
+symbol:"Ticker. Double-click the row for the full why.html institutional workup.",
+sector:"Sector from the fundamental census (broad lane: Finviz universe map).",
+gap:"Distance vs the 250-day SMA in percent. Negative = below the long average = the accumulation zone this screener hunts.",
+peg:"PEG (TTM): P/E divided by EPS growth rate. Below 1 means paying less than the growth you get. Hard requirement of the FIVE.",
+pe:"Price divided by trailing twelve-month EPS.",
+roic:"Return on Invested Capital, %. The Buffett test compares it to the US 10-year yield: a business must out-earn the bond.",
+five:"Khalid's FIVE badges, left to right: PEG under 1 - net share retirement - QoQ EPS and revenue acceleration - ROIC beats US10Y by 5pp or more. Filled dot = pass.",
+rs:"RS3m = this stock's 3-month return minus SPY's 3-month return, in percentage points. Positive means beating the market: relative strength.",
+db:"Double bottom: a W-shaped base. Sourced from the census pattern column when present, else the price detector. CONFIRMED = neckline broken.",
+cat:"Catalysts from the deal-scanner event tape when present; otherwise the exact gate reasons currently blocking the name."};
+const tip=document.getElementById('tip');
+document.body.addEventListener('click',()=>tip.style.display='none');
 const V=(o,...ks)=>{for(const k of ks){const v=o&&o[k];
 if(v!==undefined&&v!==null)return v}return null};
+let ROWS=[],SORT={k:'score',d:-1};
+const num=v=>v==null||v===''?null:(typeof v==='number'?v:parseFloat(v));
+function getv(x,k){switch(k){
+case 'gap':{const s=x.sma||{};return num(V(s,'gap_pct','dist_pct'));}
+case 'rs':return num(x.rs_3m_vs_spy);
+case 'five':{const f=x.khalid_five||{};return (f.peg_lt_1?1:0)+
+(f.retiring_shares?1:0)+(f.accelerating?1:0)+(f.buffett_pass?1:0);}
+case 'db':{const d=x.double_bottom;if(!d)return 0;
+if(d==='CONFIRMED')return 3;if(d==='FORMING')return 2;
+if(d.formed)return 3;return 1;}
+case 'cat':return (x.catalysts||[]).length;
+case 'symbol':return x.symbol||'';
+case 'sector':return x.sector||'';
+case 'tier':return x.tier||'';
+default:return num(x[k]);}}
+function dbTxt(d){if(!d)return '–';if(typeof d==='string')return d;
+return d.formed?('YES('+(d.src||'px')+')'):'–';}
+function chip(t){const m={'EXPLOSIVE-SETUP':'cE','SETUP':'cS',
+'WATCH':'cW','TECH-WATCH':'cT'};return '<span class="chip '+
+(m[t]||'cX')+'">'+(t||'').slice(0,9)+'</span>';}
+function render(){
+const R=document.getElementById('R');R.innerHTML='';
+const rows=[...ROWS].sort((a,b)=>{const va=getv(a,SORT.k),
+vb=getv(b,SORT.k);
+if(va==null&&vb==null)return 0;if(va==null)return 1;
+if(vb==null)return -1;
+if(typeof va==='string')return va.localeCompare(vb)*SORT.d;
+return (va<vb?-1:va>vb?1:0)*SORT.d;});
+for(const x of rows){
+const tr=document.createElement('tr');tr.className='row';
+tr.ondblclick=()=>{window.location=x.why||('why.html?ticker='+
+x.symbol);};
+const gap=getv(x,'gap');const f=x.khalid_five||{};
+const dot=(ok,l)=>'<b class="'+(ok?'g':'dim')+'" title="'+l+'">'+
+(ok?'\u25CF':'\u25CB')+'</b>';
+const five=dot(f.peg_lt_1,'PEG<1')+dot(f.retiring_shares,
+'net retirement')+dot(f.accelerating,'QoQ accel')+
+dot(f.buffett_pass,'ROIC-10Y>=5pp');
+const reasons=((x.catalysts&&x.catalysts.length)?
+x.catalysts.join(', '):(x.gate_reasons||[]).join('; ')).slice(0,48);
+tr.innerHTML='<td class="score n '+(x.score>=70?'g':x.score>=55?
+'a':'dim')+'">'+(x.score??'–')+'</td><td>'+chip(x.tier)+
+'</td><td><b>'+x.symbol+'</b></td><td class="dim">'+
+(x.sector||x.industry||'').slice(0,14)+'</td><td class="n r">'+
+(gap!=null?gap.toFixed(1)+'%':'–')+'</td><td class="n '+
+((x.peg&&x.peg<1)?'g':'')+'">'+(x.peg??'–')+'</td><td class="n">'+
+(x.pe??'–')+'</td><td class="n '+((x.roic>15)?'g':'')+'">'+
+(x.roic??'–')+'</td><td class="k5">'+five+'</td><td class="n">'+
+(x.rs_3m_vs_spy??'–')+'</td><td class="'+
+(getv(x,'db')>=3?'g':getv(x,'db')===2?'a':'dim')+'">'+
+dbTxt(x.double_bottom)+'</td><td class="dim" title="'+
+((x.gate_reasons||[]).join('; '))+'">'+(reasons||'–')+'</td>';
+R.appendChild(tr);}
+document.querySelectorAll('th').forEach(th=>{th.classList.remove(
+'sa','sd');if(th.dataset.k===SORT.k)th.classList.add(SORT.d>0?
+'sa':'sd');});}
+document.querySelectorAll('th').forEach(th=>{
+th.onclick=()=>{const k=th.dataset.k;if(!k)return;
+SORT={k,d:SORT.k===k?-SORT.d:-1};render();};});
+document.querySelectorAll('th .q').forEach(q=>{
+q.onclick=e=>{e.stopPropagation();
+const k=q.parentElement.dataset.k;
+tip.textContent=DEFS[k]||'';tip.style.display='block';
+tip.style.left=Math.min(e.clientX,innerWidth-330)+'px';
+tip.style.top=(e.clientY+14)+'px';};});
 fetch('data/stock-buying.json?cb='+Date.now()).then(r=>r.json())
 .then(d=>{
 document.getElementById('asof').textContent=(d.as_of||'')
 .slice(0,16).replace('T',' ');
-document.getElementById('nS').textContent=
-(d.n_scored??'–')+' / '+(d.n_universe??'–');
+document.getElementById('nS').textContent=(d.n_scored??'–')+' / '+
+(d.n_universe??'–');
+const L=d.lanes||{};
+document.getElementById('lanes').textContent=
+(L.census??'–')+' + '+(L.broad_below_sma??'–')+'/'+
+(L.broad_seen??'–');
 const t=d.tiers||{};
 document.getElementById('tiers').textContent=
 (t['EXPLOSIVE-SETUP']??0)+' / '+(t['SETUP']??0)+' / '+
@@ -57,44 +171,12 @@ document.getElementById('tiers').textContent=
 const gs=d.gates_summary||{};
 document.getElementById('funnel').textContent=
 Object.keys(gs).length?Object.entries(gs).map(([k,v])=>
-k.replace(/_/g,' ')+':'+v).join(' → '):'–';
+k.replace(/_/g,' ')+':'+v).join(' -> '):'–';
 document.getElementById('u10').textContent=
 (d.us10y_pct!=null?d.us10y_pct+'%':'–');
-const R=document.getElementById('R');
-for(const x of (d.top||[])){
-const tr=document.createElement('tr');tr.className='row';
-tr.ondblclick=()=>{window.location=x.why||
-('why.html?ticker='+x.symbol);};
-const sma=x.sma||{};const gap=V(sma,'gap_pct','dist_pct',
-'below_pct');
-const k5=x.khalid_five||{};
-const dot=(ok,l)=>'<b class="'+(ok?'g':'dim')+'" title="'+l+
-'">'+(ok?'●':'○')+'</b>';
-const five=dot(k5.peg_lt_1,'PEG<1')+dot(k5.retiring_shares,
-'net retirement')+dot(k5.accelerating,'QoQ accel')+
-dot(k5.buffett_pass,'ROIC-10Y≥5pp');
-const reasons=(x.catalysts&&x.catalysts.length?
-x.catalysts.join(', '):(x.gate_reasons||[]).join('; '))
-.slice(0,46);
-tr.innerHTML='<td class="score '+(x.score>=70?'g':
-x.score>=55?'a':'dim')+'">'+(x.score??'–')+
-'</td><td class="'+(x.tier==='EXPLOSIVE-SETUP'?'g':
-x.tier==='SETUP'?'a':'dim')+'">'+(x.tier||'').slice(0,9)+
-'</td><td><b>'+x.symbol+'</b></td><td class="dim">'+
-(x.sector||x.industry||'').slice(0,13)+'</td><td>'+
-(gap!=null?gap+'%':'–')+'</td><td class="'+
-((x.peg&&x.peg<1)?'g':'')+'">'+(x.peg??'–')+'</td><td>'+
-(x.pe??'–')+'</td><td class="'+((x.roic>15)?'g':'')+'">'+
-(x.roic??'–')+'</td><td class="k5">'+five+'</td><td>'+
-(V(x,'rs_3m_vs_spy')??'–')+'</td><td class="'+
-(x.double_bottom==='CONFIRMED'?'g':x.double_bottom===
-'FORMING'?'a':'dim')+'">'+(x.double_bottom||'–')+
-'</td><td class="dim" title="'+((x.gate_reasons||[])
-.join('; '))+'">'+reasons+'</td>';
-R.appendChild(tr);}
-});
+ROWS=d.top||[];render();});
 </script>
 <div class="sub" style="margin-top:14px">Engine:
-justhodl-stock-buying · payload data/stock-buying.json ·
-research &amp; analytics, not investment advice</div>
+justhodl-stock-buying · payload data/stock-buying.json · research
+&amp; analytics, not investment advice</div>
 </body></html>
