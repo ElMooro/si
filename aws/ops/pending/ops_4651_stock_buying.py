@@ -1,4 +1,4 @@
-"""ops 4651 r7 — verbatim matrix keys + engine matrix_probe dump: best-setups census_idx replica + S3 object listing; cols|metrics alias, v1.0.3 settled rerun; columnar loader (consumer-verified shape) + scalar fallbacks.
+"""ops 4651 r8 — v1.0.4 probe-on-every-write keys + engine matrix_probe dump: best-setups census_idx replica + S3 object listing; cols|metrics alias, v1.0.3 settled rerun; columnar loader (consumer-verified shape) + scalar fallbacks.
 
 FMP key injected from fmp-fundamentals-agent env; create-capable
 deploy; hourly schedule; invoke; truth table with pillar scores;
@@ -179,14 +179,14 @@ def main():
                 src = zipfile.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-stock-buying v1.0.3" in src:
+                if "justhodl-stock-buying v1.0.4" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
         misses += contract(r, "deploy", settled,
-                           "v1.0.3 live (created=%s)" % created)
+                           "v1.0.4 live (created=%s)" % created)
         if not settled:
             sys.exit(1)
         try:

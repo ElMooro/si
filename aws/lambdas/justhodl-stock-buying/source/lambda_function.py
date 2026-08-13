@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.0.3 (ops 4651)
+"""justhodl-stock-buying v1.0.4 (ops 4651)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -208,7 +208,15 @@ def clamp(x, lo=0.0, hi=100.0):
 
 
 def lambda_handler(event=None, context=None):
-    ck, cmode, crows = load_census()
+    try:
+        ck, cmode, crows = load_census()
+        load_err = None
+    except Exception as _le:
+        ck, cmode, crows = None, None, []
+        load_err = "%s: %s" % (type(_le).__name__,
+                               str(_le)[:120])
+        globals().setdefault("_MXP", {})
+        globals()["_MXP"]["load_err"] = load_err
     closes_doc = s3_json("data/_ma200/closes.json") or {}
     ser = closes_doc.get("series") or {}
     spy = ser.get("SPY")
@@ -490,6 +498,9 @@ def lambda_handler(event=None, context=None):
     payload = {
         "schema_version": 1,
         "engine": "justhodl-stock-buying",
+        "matrix_probe": globals().get("_MXP"),
+        "crows_len": len(crows),
+        "cmode": cmode,
         "as_of": datetime.now(timezone.utc).isoformat(
             timespec="seconds"),
         "census_source": ck, "census_mode": cmode,
