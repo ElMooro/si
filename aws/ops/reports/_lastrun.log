@@ -1,51 +1,50 @@
-executing-against: 84a7fed23f98a05f32540a02c65844973798be9c
+executing-against: 299b06a925574947d43a3f373c48c333ee72ce2b
 ops 4652 — khalid-five on stock-buying
 ── matrix column-name evidence (five-relevant) ──
-[21:10:10] ⚠ matrix: 'list' object has no attribute 'keys'
+[21:20:07] ⚠ matrix: 'list' object has no attribute 'keys'
 ── deploy (ops-side) + settle ──
-[21:10:26] ✅   [deploy] v1.3.3 live
+[21:20:08] ✅   [deploy] v1.3.3 live
 ── run + khalid-five truth ──
-[21:10:49] payload keys: ['as_of', 'backlog_join_n', 'backlog_kinds', 'census_fields_sample', 'census_mode', 'census_source', 'cmode', 'crows_len', 'doctrine', 'engine', 'fmp_key', 'gates_summary', 'khalid_five_missing', 'lanes', 'matrix_probe', 'n_scored', 'n_universe', 'schema_version', 'tiers', 'top', 'us10y_pct']
-[21:10:49] closes tickers: 1200
-[21:10:50] finviz-universe: keys=['generated_at', 'source', 'n_tickers', 'n_with_short_float', 'by_ticker'] n=0 row0=<class 'list'>
-[21:10:50] matrix has: double_bottom=True sectors[0..2]=['Technology', 'Technology', 'Consumer Cyclical']
-[21:10:50] ⚠ fmp dump: HTTP Error 401: Unauthorized
-[21:10:50] fmp_key: True | gates_summary: {"below_sma": 127, "eps_seq": 0, "dilution": 498, "margin_floor": 498}
-[21:10:50] fetch-eligible (below_sma+peg<1+dil_ok): 31 ['ABT', 'IT', 'DG', 'GEHC', 'CRM', 'CCL', 'IBM', 'TEL']
-[21:10:50] matrix backlog cols: []
-[21:10:50]   CAT: {}
-[21:10:50]   BA: {}
-[21:10:50]   LMT: {}
-[21:10:50]   AAPL: {}
-[21:10:50] backlog stores: []
-[21:10:50] CENSUS n=300 nonnull: {"sector": 300, "peg": 300, "pe": 300, "roic": 300, "rs": 259, "db": 300, "gap": 259, "bklg": 36}
-[21:10:50] BROAD n=0 nonnull: {"sector": 0, "peg": 0, "pe": 0, "roic": 0, "rs": 0, "db": 0, "gap": 0, "bklg": 0}
-[21:10:50] pe-ish cols: ['pe_fwd', 'pe_ttm']
-[21:10:50] margin cols: ['ebitda_margin_pct', 'fcf_margin_pct', 'gross_margin_pct', 'net_margin_pct', 'operating_margin_pct', 'pretax_margin_pct']
-[21:10:51] finviz[A] = {"ticker": "A", "company": "Agilent Technologies Inc", "sector": "Healthcare", "industry": "Diagnostics & Research", "country": "USA", "market_cap": 42127.55, "pe": 29.96, "fwd_pe": 22.6, "peg": 2.41, "ps": 5.83, "pb": 5.91, "p_cash": 23.31, "p_fcf": 38.76, "div_yield": 0.69, "payout_ratio": 21.7, "eps_ttm": 4.98, "eps_growth_ty": 8.36, "
-[21:10:51] ✗   [backlog-visible] CONTRACT MISS — 76 rows carry backlog status/level over 300 shipped (sortable reach)
-[21:10:51] ✅   [peg-col] 300/300 census rows carry peg (peg_ttm bound)
-[21:10:51] ✅   [gap-col] 259/300 rows carry sma.gap_pct
-[21:10:51] ✅   [lanes] broad lane live: {'census': 498, 'broad_seen': 727, 'broad_below_sma': 107}
-[21:10:51] ✅   [sector-join] 300/300 top rows carry sector
-[21:10:51] below_sma rows: 49 ['ABT', 'IT', 'DG', 'GEHC', 'CRM', 'CCL', 'IBM', 'TEL', 'NOW', 'CTSH']
-[21:10:51] funnel key=None val={}
-[21:10:51] row keys: ['backlog', 'backlog_status', 'catalysts', 'dilution_yr_pct', 'double_bottom', 'gate_reasons', 'gates', 'industry', 'khalid_five', 'name', 'pe', 'peg', 'pillars', 'roic', 'rs_3m_vs_spy', 'score', 'sector', 'sma', 'symbol', 'tier', 'why']
-[21:10:51] row sample: {"symbol": "DELL", "name": "", "sector": "Technology", "industry": "computer hardware", "score": 95.3, "tier": "SCREENED", "gates": {"below_sma": false, "eps_up_every_q": false, "dilution_ok": true, "margin_floor": true}, "gate_reasons": ["above long-SMA (not in accumulation zone)", "no quarterly EPS in census"], "pillars": {"revisions_beats": null, "accel": null, "fcf_growth": null, "valuation_vs_growth": 75.0, "catalyst_rs": 100.0}, "peg": 0.16, "pe": 16.396, "roic": 49.061, "dilution_yr_pct":
-[21:10:51] DELL   tier=SCREENED        peg=0.163 shQoQ=-1.64  eAcc=None   rAcc=None   roic-10y=44.36  buff=True
-[21:10:51] MPC    tier=SCREENED        peg=0.135 shQoQ=-1.44  eAcc=None   rAcc=None   roic-10y=6.9    buff=True
-[21:10:51] BBY    tier=SCREENED        peg=0.344 shQoQ=-0.2   eAcc=None   rAcc=None   roic-10y=19.18  buff=True
-[21:10:51] ROP    tier=SCREENED        peg=0.202 shQoQ=-1.34  eAcc=None   rAcc=None   roic-10y=1.87   buff=False
-[21:10:51] GPN    tier=SCREENED        peg=0.335 shQoQ=-0.71  eAcc=None   rAcc=None   roic-10y=-2.26  buff=False
-[21:10:51] ZBH    tier=SCREENED        peg=0.152 shQoQ=-0.49  eAcc=None   rAcc=None   roic-10y=0.91   buff=False
-[21:10:51] BAC    tier=SCREENED        peg=0.459 shQoQ=-1.17  eAcc=None   rAcc=None   roic-10y=-1.35  buff=False
-[21:10:51] ABT    tier=WATCH           peg=0.118 shQoQ=-0.11  eAcc=None   rAcc=None   roic-10y=2.63   buff=False
-[21:10:51] ✅   [five-block] khalid_five on every row
-[21:10:51] ✅   [us10y] US10Y fleet-join = 4.7
-[21:10:51] ✅   [why-link] why links use house ?ticker= standard
-[21:10:51] ✅   [signal-counts] peg<1:194 retiring:272 accel:0 buffett:190 (any nonzero proves the wiring; misses counted honestly)
+[21:20:32] payload keys: ['as_of', 'backlog_join_n', 'backlog_kinds', 'census_fields_sample', 'census_mode', 'census_source', 'cmode', 'crows_len', 'doctrine', 'engine', 'fmp_key', 'gates_summary', 'khalid_five_missing', 'lanes', 'matrix_probe', 'n_scored', 'n_universe', 'schema_version', 'tiers', 'top', 'us10y_pct']
+[21:20:33] closes tickers: 1200
+[21:20:33] finviz-universe: keys=['generated_at', 'source', 'n_tickers', 'n_with_short_float', 'by_ticker'] n=0 row0=<class 'list'>
+[21:20:34] matrix has: double_bottom=True sectors[0..2]=['Technology', 'Technology', 'Consumer Cyclical']
+[21:20:34] ⚠ fmp dump: HTTP Error 401: Unauthorized
+[21:20:34] fmp_key: True | gates_summary: {"below_sma": 127, "eps_seq": 0, "dilution": 498, "margin_floor": 498}
+[21:20:34] fetch-eligible (below_sma+peg<1+dil_ok): 31 ['ABT', 'IT', 'DG', 'GEHC', 'CRM', 'CCL', 'IBM', 'TEL']
+[21:20:35] matrix backlog cols: []
+[21:20:35]   CAT: {}
+[21:20:35]   BA: {}
+[21:20:35]   LMT: {}
+[21:20:35]   AAPL: {}
+[21:20:35] backlog stores: []
+[21:20:35] CENSUS n=300 nonnull: {"sector": 300, "peg": 300, "pe": 300, "roic": 300, "rs": 259, "db": 300, "gap": 259, "bklg": 36}
+[21:20:35] BROAD n=0 nonnull: {"sector": 0, "peg": 0, "pe": 0, "roic": 0, "rs": 0, "db": 0, "gap": 0, "bklg": 0}
+[21:20:35] pe-ish cols: ['pe_fwd', 'pe_ttm']
+[21:20:35] margin cols: ['ebitda_margin_pct', 'fcf_margin_pct', 'gross_margin_pct', 'net_margin_pct', 'operating_margin_pct', 'pretax_margin_pct']
+[21:20:36] finviz[A] = {"ticker": "A", "company": "Agilent Technologies Inc", "sector": "Healthcare", "industry": "Diagnostics & Research", "country": "USA", "market_cap": 42127.55, "pe": 29.96, "fwd_pe": 22.6, "peg": 2.41, "ps": 5.83, "pb": 5.91, "p_cash": 23.31, "p_fcf": 38.76, "div_yield": 0.69, "payout_ratio": 21.7, "eps_ttm": 4.98, "eps_growth_ty": 8.36, "
+[21:20:36] ✅   [backlog-visible] 76 rows carry backlog status/level over 300 shipped (sortable reach)
+[21:20:36] ✅   [peg-col] 300/300 census rows carry peg (peg_ttm bound)
+[21:20:36] ✅   [gap-col] 259/300 rows carry sma.gap_pct
+[21:20:36] ✅   [lanes] broad lane live: {'census': 498, 'broad_seen': 727, 'broad_below_sma': 107}
+[21:20:36] ✅   [sector-join] 300/300 top rows carry sector
+[21:20:36] below_sma rows: 49 ['ABT', 'IT', 'DG', 'GEHC', 'CRM', 'CCL', 'IBM', 'TEL', 'NOW', 'CTSH']
+[21:20:36] funnel key=None val={}
+[21:20:36] row keys: ['backlog', 'backlog_status', 'catalysts', 'dilution_yr_pct', 'double_bottom', 'gate_reasons', 'gates', 'industry', 'khalid_five', 'name', 'pe', 'peg', 'pillars', 'roic', 'rs_3m_vs_spy', 'score', 'sector', 'sma', 'symbol', 'tier', 'why']
+[21:20:36] row sample: {"symbol": "DELL", "name": "", "sector": "Technology", "industry": "computer hardware", "score": 95.3, "tier": "SCREENED", "gates": {"below_sma": false, "eps_up_every_q": false, "dilution_ok": true, "margin_floor": true}, "gate_reasons": ["above long-SMA (not in accumulation zone)", "no quarterly EPS in census"], "pillars": {"revisions_beats": null, "accel": null, "fcf_growth": null, "valuation_vs_growth": 75.0, "catalyst_rs": 100.0}, "peg": 0.16, "pe": 16.396, "roic": 49.061, "dilution_yr_pct":
+[21:20:36] DELL   tier=SCREENED        peg=0.163 shQoQ=-1.64  eAcc=None   rAcc=None   roic-10y=44.36  buff=True
+[21:20:36] MPC    tier=SCREENED        peg=0.135 shQoQ=-1.44  eAcc=None   rAcc=None   roic-10y=6.9    buff=True
+[21:20:36] BBY    tier=SCREENED        peg=0.344 shQoQ=-0.2   eAcc=None   rAcc=None   roic-10y=19.18  buff=True
+[21:20:36] ROP    tier=SCREENED        peg=0.202 shQoQ=-1.34  eAcc=None   rAcc=None   roic-10y=1.87   buff=False
+[21:20:36] GPN    tier=SCREENED        peg=0.335 shQoQ=-0.71  eAcc=None   rAcc=None   roic-10y=-2.26  buff=False
+[21:20:36] ZBH    tier=SCREENED        peg=0.152 shQoQ=-0.49  eAcc=None   rAcc=None   roic-10y=0.91   buff=False
+[21:20:36] BAC    tier=SCREENED        peg=0.459 shQoQ=-1.17  eAcc=None   rAcc=None   roic-10y=-1.35  buff=False
+[21:20:36] ABT    tier=WATCH           peg=0.118 shQoQ=-0.11  eAcc=None   rAcc=None   roic-10y=2.63   buff=False
+[21:20:36] ✅   [five-block] khalid_five on every row
+[21:20:36] ✅   [us10y] US10Y fleet-join = 4.7
+[21:20:36] ✅   [why-link] why links use house ?ticker= standard
+[21:20:36] ✅   [signal-counts] peg<1:194 retiring:272 accel:0 buffett:190 (any nonzero proves the wiring; misses counted honestly)
 ── verdict ──
-[21:10:51] ✗ khalid-five: 1 red
+[21:20:36] ✅ KHALID FIVE LIVE — us10y 4.7 · peg<1:194 · retiring:272 · accelerating:0 · buffett-pass:190
 
 → Report written to aws/ops/reports/latest/4652_khalid_five.md
-❌ OPS-FAIL: aws/ops/pending/ops_4652_khalid_five.py
