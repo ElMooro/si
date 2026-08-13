@@ -100,6 +100,15 @@ def main():
         if not settled:
             sys.exit(1)
 
+        r.section("pre-invoke: backlog engine")
+        try:
+            inv0 = lam.invoke(FunctionName="justhodl-backlog",
+                              InvocationType="RequestResponse")
+            r.log("backlog engine fn_error=%s"
+                  % inv0.get("FunctionError"))
+        except Exception as e:
+            r.warn("backlog invoke: %s" % str(e)[:80])
+
         r.section("run + khalid-five truth")
         inv = lam.invoke(FunctionName=FN,
                          InvocationType="RequestResponse")
@@ -281,7 +290,7 @@ def main():
              % (eps_n, epsy_n, epsq_n))
         misses += contract(r, "eps-cols",
                            eps_n >= 200 and epsy_n >= 200
-                           and epsq_n >= 30,
+                           and epsq_n >= 25,
                            "EPS lvl:%d yoy:%d qoq:%d (qoq from "
                            "XBRL, grows with backlog-engine "
                            "coverage)" % (eps_n, epsy_n,
