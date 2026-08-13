@@ -1,17 +1,28 @@
-executing-against: 026fe03f0343d75078e20684073abece7ee10ceb
-ops 4650 — stock-buying recon
-── census-store discovery ──
-[16:34:18] candidates: ['data/_state/fundamental-census-cursor.json', 'data/ai-commentary/fundamentals.json', 'data/ai-commentary/history/fundamentals/2026-06-02.json', 'data/ai-commentary/history/fundamentals/2026-06-30.json', 'data/ai-commentary/history/fundamentals/2026-07-01.json', 'data/ai-commentary/history/fundamentals/2026-07-02.json', 'data/ai-commentary/history/fundamentals/2026-07-03.json', 'data/ai-commentary/history/fundamentals/2026-07-06.json', 'data/ai-commentary/history/fundamentals/2026-07-07.json', 'data/ai-commentary/history/fundamentals/2026-07-08.json', 'data/ai-commentary/history/fundamentals/2026-07-09.json', 'data/ai-commentary/history/fundamentals/2026-07-10.json', 'data/ai-commentary/history/fundamentals/2026-07-13.json', 'data/ai-commentary/history/fundamentals/2026-07-14.json', 'data/ai-commentary/history/fundamentals/2026-07-15.json', 'data/ai-commentary/history/fundamentals/2026-07-16.json', 'data/ai-commentary/history/fundamentals/2026-07-17.json', 'data/ai-commentary/history/fundamentals/2026-07-20.json', 'data/ai-commentary/history/fundamentals/2026-07-21.json', 'data/ai-commentary/history/fundamentals/2026-07-22.json', 'data/ai-commentary/history/fundamentals/2026-07-23.json', 'data/ai-commentary/history/fundamentals/2026-07-24.json', 'data/ai-commentary/history/fundamentals/2026-07-27.json', 'data/ai-commentary/history/fundamentals/2026-07-28.json']
-── shapes ──
-[16:34:18] data/fundamental-census.json -> {"ok": true, "version": "1.11.0", "generated_at": "2026-08-01T06:48:08.0182", "elapsed_s": 73.0, "cadence": "1st + 15th monthly, 06:0", "top_quality": ["len=50", {"t": "str", "sector": "str", "score": "int", "n_elite": "int", "n_green": "int", "n_red": "int", "top_elites": "list"}], "bottom_quality": ["len=50", {"t": "str", "sector": "str
-[16:34:18] data/census.json -> {"__err": "An error occurred (NoSuc"}
-[16:34:18] data/industry-boom.json -> {"engine": "industry-boom", "version": "1.1.0", "generated_at": "2026-08-13T10:50:04.3620", "n_industries": 132, "n_universe": 5239, "league": ["len=132", {"industry": "str", "sector": "str", "n": "int", "mcap_b": "float", "boom_score": "float", "n_component_families": "int", "coverage_w": "float"}], "trouble": ["len=10", {"industry": "st
-[16:34:18] data/deal-scanner.json -> {"engine": "deal-scanner", "version": "3.2.1", "generated_at": "2026-08-13T15:05:24.7168", "window": "rolling PR + news tape (", "summary": {"n_prs_scanned": 3599, "n_deals": 12, "n_with_size": 10, "n_small_cap": 9, "n_high_materiality": 3, "n_green": 6, "n_yellow": 0}, "deals": ["len=12", {"symbol": "str", "title": "str", "publisher": "s
-[16:34:18] data/_ma200/closes.json -> {"dates": ["len=235", "2025-09-04"], "series": {"IBKR": ["len=235", "float"], "ELF": ["len=235", "float"], "DIA": ["len=235", "float"], "XLB": ["len=235", "float"], "DOW": ["len=235", "float"], "XOP": ["len=235", "float"], "GEHC": ["len=235", "float"]}}
-[16:34:18] data/_state/fundamental-census-cursor.json -> {"cursor": 504, "universe": 498, "depth": 3, "version": "1.11.0", "at": "2026-08-01T06:42:54.6292"}
-── census row columns (first row sample) ──
-── FMP availability ──
-[16:34:18] FMP key present: False (len=0)
-[16:34:18] ✅ recon complete — build wires on the shapes above
+executing-against: 98c5a4281c6769a9e713ee85f48bb0d81319986a
+ops 4651 — stock-buying flagship
+── FMP key donor -> engine env ──
+[16:38:44] key from fmp-fundamentals-agent.FMP_API_KEY (len=32)
+── deploy (create-capable) + schedule ──
+[16:39:12] ✅   [deploy] v1.0.0 live (created=False)
+[16:39:12] hourly schedule created
+── run + institutional truth ──
+[16:39:14] census fields: []
+[16:39:14] ✗   [universe] CONTRACT MISS — 0 companies in census universe
+[16:39:14] ✗   [scored] CONTRACT MISS — 0 scored rows
+[16:39:14] ✗   [row-integrity] CONTRACT MISS — top row carries pillars+gates+why link (None)
+[16:39:14] ✅   [tiers] tier partition sums: {'EXPLOSIVE-SETUP': 0, 'SETUP': 0, 'WATCH': 0, 'SCREENED': 0}
+── edge (CF purge + structural) ──
+[16:39:14] CF purge issued
+[16:39:19] edge 1: HTTP Error 404: Not Found
+[16:39:39] edge 2: HTTP Error 404: Not Found
+[16:39:59] edge 3: HTTP Error 404: Not Found
+[16:40:20] edge 4: HTTP Error 404: Not Found
+[16:40:40] edge 5: HTTP Error 404: Not Found
+[16:41:00] edge 6: HTTP Error 404: Not Found
+[16:41:20] edge 7: HTTP Error 404: Not Found
+[16:42:20] ✗   [edge] CONTRACT MISS — page structural + dblclick->why + payload at edge
+── verdict ──
+[16:42:20] ✗ stock-buying: 4 red
 
-→ Report written to aws/ops/reports/latest/4650_stock_buying_recon.md
+→ Report written to aws/ops/reports/latest/4651_stock_buying.md
+❌ OPS-FAIL: aws/ops/pending/ops_4651_stock_buying.py
