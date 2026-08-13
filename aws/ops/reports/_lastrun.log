@@ -1,22 +1,26 @@
-executing-against: 0d5959daf35ea82622239dc6701d1f891f16e326
+executing-against: af4b1bd531b0e88cd010002c7f1a6d3fe24100a1
 ops 4643 — DXY predict-the-future engine
-── pre-dump: macro-predict list candidates ──
-[01:50:19] ✅   [list-exists] macro-predict list present: [('Bitcoin : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.', 437), ('Bonds - Sovereign : Bonds dumping especially sovereign bonds dumping is a major Warning signal that macro is deteriorati', 11), ('BONDS : Fixed income tends to lean itself toward macro more than equities thats more micro', 103)]
+── pre-dump: top list candidates ──
+[02:10:49] ✅   [list-exists] top list present: [('Bitcoin : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.', 437), ('Crypto : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.', 327), ('Dollar Shortage Indicators', 17)]
 ── deploy (ops-side) + settle + schedule ──
-[01:50:20] ✅   [deploy] v1.0.1 live (created=False)
+[02:10:50] ✅   [deploy] v1.0.0 live (created=False)
+[02:10:50] hourly schedule created
 ── run + dxy truth ──
-[01:50:25] ✅   [list-found] list 'MACRO PREDICT (1 lists)' (65 members)
-[01:50:25] ✅   [resolution] 47/65 resolved (shared cache pool)
-[01:50:25] unsigned-by-design: 0 rows carry mechanical polarity
-[01:50:25] ✅   [dials] MACRO TREND 6.2 (MIXED) · REVERSAL 0.0 (NONE)
+[02:13:18] ✅   [list-found] list 'TOP FAMILY (6 lists)' (1132 members)
+[02:13:18] ✅   [resolution] 626/1132 resolved (shared cache pool)
+[02:13:18] unsigned-by-design: 0 rows carry mechanical polarity
+[02:13:18] crypto z-based: 1 (e.g. ['COINBASE:LINKUSD'])
+[02:13:18] ✗   [crypto-route] CONTRACT MISS — 1 crypto-class rows z-based (route production test)
+[02:13:18] ✅   [dials] TOP TREND -2.3 (MIXED) · REVERSAL 0.0 (NONE)
 ── edge (with CF purge) ──
-[01:50:25] CF purge: True
-[01:50:30] CONTROL dxy: len=6610 has_json=True
-[01:50:30] LIQ body: len=6646 count(liq)=0 fetch@3154 liq@-1
-[01:50:30] slice@fetch: :'dim')); fetch('data/macro-predict.json?cb='+Date.now()).then(r=>r.json()) .then(d=>{ document.getElementById('asof').t
-[01:50:30] ⚠ CLOUDFLARE_API_TOKEN absent — probing without purge
-[01:50:30] ✅   [edge] page + payload at the edge
+[02:13:18] CF purge: True
+[02:13:23] CONTROL dxy: len=6609 has_json=True
+[02:13:24] LIQ body: len=6608 count(liq)=0 fetch@3137 liq@-1
+[02:13:24] slice@fetch: :'dim')); fetch('data/top-signals.json?cb='+Date.now()).then(r=>r.json()) .then(d=>{ document.getElementById('asof').tex
+[02:13:24] ⚠ CLOUDFLARE_API_TOKEN absent — probing without purge
+[02:13:24] ✅   [edge] page + payload at the edge
 ── verdict ──
-[01:50:30] ✅ MACRO PREDICT LIVE — list 'MACRO PREDICT (1 lists)': 47/65 resolved, 0 signed rows · TREND 6.2 (MIXED) · REVERSAL 0.0 (NONE) · https://justhodl.ai/macro-predict.html
+[02:13:24] ✗ liq-indicators: 1 red
 
-→ Report written to aws/ops/reports/latest/4647_macro_predict.md
+→ Report written to aws/ops/reports/latest/4648_top_signals.md
+❌ OPS-FAIL: aws/ops/pending/ops_4648_top_signals.py
