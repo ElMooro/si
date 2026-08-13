@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.3.0 (ops 4652)
+"""justhodl-stock-buying v1.3.1 (ops 4652)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -173,6 +173,7 @@ def sma_state(closes):
     sma = sum(closes[-n:]) / n
     last = closes[-1]
     return {"sma_n": n, "sma": round(sma, 2),
+            "gap_pct": round((last / sma - 1) * 100, 1),
             "below": last <= sma,
             "dist_pct": round((last / sma - 1) * 100, 1)}
 
@@ -382,7 +383,7 @@ def lambda_handler(event=None, context=None):
         fcf_yield = fnum(row.get("fcf_yield")
                          or row.get("fcf_yield_pct")
                          or row.get("fcfYield"))
-        peg_col = fnum(row.get("peg") or row.get("peg_fwd")
+        peg_col = fnum(row.get("peg_ttm") or (row.get("peg")) or row.get("peg_fwd")
                        or row.get("peg_ratio"))
 
         gates = {}
@@ -684,7 +685,9 @@ def lambda_handler(event=None, context=None):
             "pillars": {}, "khalid_five": khalid_five(
                 {"roic_pct": None}, globals().get("_US10Y"),
                 globals().setdefault("_KMISS", {})),
-            "pe": None, "peg": None, "roic": None,
+            "pe": fvj.get("pe"),
+            "peg": fvj.get("peg"),
+            "roic": None,
             "sma": sst2, "rs_3m_vs_spy": rs2,
             "double_bottom": db2,
             "catalysts": [], "backlog": None,
