@@ -1,4 +1,4 @@
-"""ops 4651 r10 — v1.0.5 None-safe closes (root cause: null gaps in ma200 store) (invoke-scoped) keys + engine matrix_probe dump: best-setups census_idx replica + S3 object listing; cols|metrics alias, v1.0.3 settled rerun; columnar loader (consumer-verified shape) + scalar fallbacks.
+"""ops 4651 r11 — edge check param-tolerant (?ticker|?symbol) (root cause: null gaps in ma200 store) (invoke-scoped) keys + engine matrix_probe dump: best-setups census_idx replica + S3 object listing; cols|metrics alias, v1.0.3 settled rerun; columnar loader (consumer-verified shape) + scalar fallbacks.
 
 FMP key injected from fmp-fundamentals-agent env; create-capable
 deploy; hourly schedule; invoke; truth table with pillar scores;
@@ -357,8 +357,9 @@ def main():
                               % time.time()).decode("utf-8",
                                                     "replace")
                 page_ok = "data/stock-buying.json" in pg
-                dbl_ok = "ondblclick" in pg and \
-                    "why.html?symbol=" in pg
+                dbl_ok = "ondblclick" in pg and (
+                    "why.html?ticker=" in pg
+                    or "why.html?symbol=" in pg)
                 jd = json.loads(http_get(
                     "https://justhodl.ai/data/"
                     "stock-buying.json?cb=%d" % time.time()))
