@@ -1,4 +1,4 @@
-"""[fresh-cycle ping] [r9d seal run: v1.2.0 deployed via deploy-lambdas] ops 4652 — Khalid's five priority metrics first-class on the
+"""[r14 backlog fusion gate] [r9d seal run: v1.2.0 deployed via deploy-lambdas] ops 4652 — Khalid's five priority metrics first-class on the
 # r3 ping: run with checkout v1.1.0 (engine-only push does not trigger)
 stock-buying screener (v1.1.0): PEG<1, net issuance/(retirement),
 basic shares QoQ%, Rev+EPS acceleration QoQ pp, ROIC vs US10Y
@@ -90,13 +90,13 @@ def main():
                 src = zf2.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-stock-buying v1.3.2" in src:
+                if "justhodl-stock-buying v1.3.3" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
-        misses += contract(r, "deploy", settled, "v1.3.2 live")
+        misses += contract(r, "deploy", settled, "v1.3.3 live")
         if not settled:
             sys.exit(1)
 
@@ -269,8 +269,10 @@ def main():
                    or x.get("backlog_usd") is not None)
         r.kv(backlog_status_rows=bst,
              top_len=len(rows))
+        r.kv(backlog_kinds=json.dumps(
+            pl.get("backlog_kinds") or {}))
         misses += contract(r, "backlog-visible",
-                           bst >= 20 and len(rows) >= 200,
+                           bst >= 100 and len(rows) >= 200,
                            "%d rows carry backlog status/level "
                            "over %d shipped (sortable reach)"
                            % (bst, len(rows)))

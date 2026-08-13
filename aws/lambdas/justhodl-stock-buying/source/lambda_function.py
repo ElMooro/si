@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.3.2 (ops 4652)
+"""justhodl-stock-buying v1.3.3 (ops 4652)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -637,18 +637,48 @@ def lambda_handler(event=None, context=None):
         globals()["_FV"] = {}
     _bl = (s3_json("data/backlog-mined.json") or {}
            ).get("by_ticker") or {}
+    _bx = (s3_json("data/backlog.json") or {}
+           ).get("by_ticker") or {}
     _bl_n = 0
+    _kinds = {"RPO": 0, "DEFERRED": 0, "MINED": 0, "n/d": 0}
     for r0 in rows_out:
-        bx = _bl.get(r0["symbol"])
-        if bx:
-            r0["backlog_status"] = bx.get("status")
-        if bx and bx.get("status") == "MINED":
-            r0["backlog_usd"] = bx.get("backlog_usd")
-            r0["backlog_qoq_pct"] = bx.get("backlog_qoq_pct")
-            r0["backlog_yoy_pct"] = bx.get("backlog_yoy_pct")
-            r0["backlog_src"] = bx.get("src")
+        sym0 = r0["symbol"]
+        xb = _bx.get(sym0) or {}
+        mb = _bl.get(sym0) or {}
+        if xb.get("rpo"):
+            r0.update(backlog_usd=xb["rpo"],
+                      backlog_qoq_pct=xb.get("rpo_qoq"),
+                      backlog_yoy_pct=xb.get("rpo_yoy"),
+                      backlog_kind="RPO",
+                      backlog_status="MINED",
+                      backlog_asof=xb.get("rpo_asof"))
+            _kinds["RPO"] += 1
             _bl_n += 1
+        elif xb.get("deferred_rev"):
+            r0.update(backlog_usd=xb["deferred_rev"],
+                      backlog_qoq_pct=xb.get("deferred_qoq"),
+                      backlog_yoy_pct=xb.get("deferred_yoy"),
+                      backlog_kind="DEFERRED",
+                      backlog_status="MINED",
+                      backlog_asof=xb.get("deferred_asof"))
+            _kinds["DEFERRED"] += 1
+            _bl_n += 1
+        elif mb.get("status") == "MINED":
+            r0.update(backlog_usd=mb.get("backlog_usd"),
+                      backlog_qoq_pct=mb.get(
+                          "backlog_qoq_pct"),
+                      backlog_yoy_pct=mb.get(
+                          "backlog_yoy_pct"),
+                      backlog_kind="MINED",
+                      backlog_status="MINED",
+                      backlog_src=mb.get("src"))
+            _kinds["MINED"] += 1
+            _bl_n += 1
+        elif mb.get("status") == "NOT_DISCLOSED":
+            r0["backlog_status"] = "NOT_DISCLOSED"
+            _kinds["n/d"] += 1
     globals()["_BLN"] = _bl_n
+    globals()["_BLK"] = _kinds
     seen = {r0["symbol"] for r0 in rows_out}
     seen |= {str(x.get("symbol") or "") for x in crows}
     nb = nb_pass = 0
@@ -715,6 +745,7 @@ def lambda_handler(event=None, context=None):
         "census_fields_sample": field_census,
         "lanes": globals().get("_LANES"),
         "backlog_join_n": globals().get("_BLN"),
+        "backlog_kinds": globals().get("_BLK"),
         "n_universe": len(crows), "n_scored": len(rows_out),
         "gates_summary": n_gate,
         "fmp_key": bool(FMP_KEY),
