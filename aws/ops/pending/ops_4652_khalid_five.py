@@ -90,13 +90,13 @@ def main():
                 src = zf2.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-stock-buying v1.3.1" in src:
+                if "justhodl-stock-buying v1.3.2" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
-        misses += contract(r, "deploy", settled, "v1.3.1 live")
+        misses += contract(r, "deploy", settled, "v1.3.2 live")
         if not settled:
             sys.exit(1)
 
@@ -264,6 +264,16 @@ def main():
         gap_nn = sum(1 for x in cen60
                      if (x.get("sma") or {}).get("gap_pct")
                      is not None)
+        bst = sum(1 for x in rows
+                   if x.get("backlog_status")
+                   or x.get("backlog_usd") is not None)
+        r.kv(backlog_status_rows=bst,
+             top_len=len(rows))
+        misses += contract(r, "backlog-visible",
+                           bst >= 20 and len(rows) >= 200,
+                           "%d rows carry backlog status/level "
+                           "over %d shipped (sortable reach)"
+                           % (bst, len(rows)))
         misses += contract(r, "peg-col",
                            peg_nn >= 50,
                            "%d/%d census rows carry peg "

@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.3.1 (ops 4652)
+"""justhodl-stock-buying v1.3.2 (ops 4652)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -640,6 +640,8 @@ def lambda_handler(event=None, context=None):
     _bl_n = 0
     for r0 in rows_out:
         bx = _bl.get(r0["symbol"])
+        if bx:
+            r0["backlog_status"] = bx.get("status")
         if bx and bx.get("status") == "MINED":
             r0["backlog_usd"] = bx.get("backlog_usd")
             r0["backlog_qoq_pct"] = bx.get("backlog_qoq_pct")
@@ -720,7 +722,7 @@ def lambda_handler(event=None, context=None):
                          if r["tier"] == t)
                   for t in ("EXPLOSIVE-SETUP", "SETUP",
                             "WATCH", "SCREENED")},
-        "top": rows_out[:60],
+        "top": rows_out[:300],
         "doctrine": ("largest POSITIVE CHANGE not yet priced: "
                      "gates(≤long-SMA, EPS up every q, no "
                      "dilution, margin floor) · five-core "

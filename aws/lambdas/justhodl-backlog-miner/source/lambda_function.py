@@ -1,4 +1,4 @@
-"""justhodl-backlog-miner v1.0.2 (ops 4653)
+"""justhodl-backlog-miner v1.1.0 (ops 4653)
 
 Mines disclosed backlog dollars from primary sources — SEC EDGAR
 full-text search over 10-Q/10-K filings — for the stock-buying
@@ -233,8 +233,10 @@ def mine(tk):
 
 def lambda_handler(event=None, context=None):
     sb = s3_json("data/stock-buying.json") or {}
-    cands = [x.get("symbol") for x in (sb.get("top") or [])
-             if (x.get("gates") or {}).get("below_sma")][:30]
+    tops = [x.get("symbol") for x in (sb.get("top") or [])]
+    unders = [x.get("symbol") for x in (sb.get("top") or [])
+              if (x.get("gates") or {}).get("below_sma")]
+    cands = (tops[:80] + unders)[:120]
     targets = []
     for t in ANCHORS + cands:
         t = str(t or "").upper()
