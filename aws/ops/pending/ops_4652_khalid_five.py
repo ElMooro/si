@@ -107,7 +107,7 @@ def main():
         pl = json.loads(s3.get_object(
             Bucket=B,
             Key="data/stock-buying.json")["Body"].read())
-        rows = pl.get("rows") or []
+        rows = pl.get("top") or pl.get("rows") or []
         r.kv(us10y=pl.get("us10y_pct"),
              k5_missing=json.dumps(
                  pl.get("khalid_five_missing") or {})[:240],
