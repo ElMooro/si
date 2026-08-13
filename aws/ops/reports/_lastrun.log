@@ -1,28 +1,23 @@
-executing-against: 98c5a4281c6769a9e713ee85f48bb0d81319986a
+executing-against: 5a384cf1992e60fdcd8f8dc61eaf6c58508c3761
 ops 4651 — stock-buying flagship
 ── FMP key donor -> engine env ──
-[16:38:44] key from fmp-fundamentals-agent.FMP_API_KEY (len=32)
+[16:45:15] key from fmp-fundamentals-agent.FMP_API_KEY (len=32)
 ── deploy (create-capable) + schedule ──
-[16:39:12] ✅   [deploy] v1.0.0 live (created=False)
-[16:39:12] hourly schedule created
+[16:45:28] ✅   [deploy] v1.0.1 live (created=False)
 ── run + institutional truth ──
-[16:39:14] census fields: []
-[16:39:14] ✗   [universe] CONTRACT MISS — 0 companies in census universe
-[16:39:14] ✗   [scored] CONTRACT MISS — 0 scored rows
-[16:39:14] ✗   [row-integrity] CONTRACT MISS — top row carries pillars+gates+why link (None)
-[16:39:14] ✅   [tiers] tier partition sums: {'EXPLOSIVE-SETUP': 0, 'SETUP': 0, 'WATCH': 0, 'SCREENED': 0}
+[16:45:40] CW| [ERROR] TypeError: unsupported operand type(s) for +: 'int' and 'NoneType'
+[16:45:40] CW| File "/var/task/lambda_function.py", line 241, in lambda_handler
+[16:45:40] CW| File "/var/task/lambda_function.py", line 161, in sma_state
+[16:45:40] census fields: []
+[16:45:40] ✗   [universe] CONTRACT MISS — 0 companies in census universe
+[16:45:40] ✗   [scored] CONTRACT MISS — 0 scored rows
+[16:45:40] ✗   [row-integrity] CONTRACT MISS — top row carries pillars+gates+why link (None)
+[16:45:40] ✅   [tiers] tier partition sums: {'EXPLOSIVE-SETUP': 0, 'SETUP': 0, 'WATCH': 0, 'SCREENED': 0}
 ── edge (CF purge + structural) ──
-[16:39:14] CF purge issued
-[16:39:19] edge 1: HTTP Error 404: Not Found
-[16:39:39] edge 2: HTTP Error 404: Not Found
-[16:39:59] edge 3: HTTP Error 404: Not Found
-[16:40:20] edge 4: HTTP Error 404: Not Found
-[16:40:40] edge 5: HTTP Error 404: Not Found
-[16:41:00] edge 6: HTTP Error 404: Not Found
-[16:41:20] edge 7: HTTP Error 404: Not Found
-[16:42:20] ✗   [edge] CONTRACT MISS — page structural + dblclick->why + payload at edge
+[16:45:41] CF purge issued
+[16:48:48] ✗   [edge] CONTRACT MISS — page structural + dblclick->why + payload at edge
 ── verdict ──
-[16:42:20] ✗ stock-buying: 4 red
+[16:48:48] ✗ stock-buying: 4 red
 
 → Report written to aws/ops/reports/latest/4651_stock_buying.md
 ❌ OPS-FAIL: aws/ops/pending/ops_4651_stock_buying.py
