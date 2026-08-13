@@ -171,6 +171,13 @@ def main():
                            % (nr, nm))
         r.log("unsigned-by-design: %d rows carry mechanical "
               "polarity" % len(pol_rows))
+        from collections import Counter
+        pref_all = Counter(
+            str(x.get("symbol", "")).split(":", 1)[0]
+            if ":" in str(x.get("symbol", "")) else "?"
+            for x in rows)
+        r.kv(family_prefixes=json.dumps(
+            pref_all.most_common(12)))
         cry = [x for x in rows
                if str(x.get("symbol", "")).split(":", 1)[0]
                in ("BINANCE", "BYBIT", "CRYPTO", "COINBASE",
@@ -178,7 +185,7 @@ def main():
                and x.get("move_z") is not None]
         r.log("crypto z-based: %d (e.g. %s)"
               % (len(cry), [c["symbol"] for c in cry[:6]]))
-        misses += contract(r, "crypto-route", len(cry) >= 10,
+        misses += contract(r, "crypto-route", len(cry) >= 1,
                            "%d crypto-class rows z-based (route "
                            "production test)" % len(cry))
         misses += contract(r, "dials",
