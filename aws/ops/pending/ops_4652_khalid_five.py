@@ -211,6 +211,48 @@ def main():
                           % json.dumps(rws[0])[:220])
         except Exception as e:
             r.warn("backlog stores: %s" % str(e)[:80])
+        cols_chk = [("sector", lambda x: (x.get("sector")
+                                          or "").strip()),
+                    ("peg", lambda x: x.get("peg")),
+                    ("pe", lambda x: x.get("pe")),
+                    ("roic", lambda x: x.get("roic")),
+                    ("rs", lambda x: x.get("rs_3m_vs_spy")),
+                    ("db", lambda x: x.get("double_bottom")),
+                    ("gap", lambda x: (x.get("sma") or {})
+                     .get("gap_pct")),
+                    ("bklg", lambda x: x.get("backlog_usd"))]
+        for lane_name, pred in (
+                ("CENSUS", lambda x: x.get("lane") != "BROAD"),
+                ("BROAD", lambda x: x.get("lane") == "BROAD")):
+            sub = [x for x in rows if pred(x)]
+            counts = {nm: sum(1 for x in sub
+                              if fn(x) not in (None, ""))
+                      for nm, fn in cols_chk}
+            r.log("%s n=%d nonnull: %s"
+                  % (lane_name, len(sub), json.dumps(counts)))
+        try:
+            mxc = json.loads(s3.get_object(
+                Bucket=B, Key="data/fundamental-census-matrix"
+                ".json")["Body"].read()).get("cols") or {}
+            import re as _re
+            r.log("pe-ish cols: %s"
+                  % [k for k in sorted(mxc)
+                     if _re.search(r"(^|_)pe($|_)|price_earn",
+                                   k)][:10])
+            r.log("margin cols: %s"
+                  % [k for k in sorted(mxc)
+                     if "margin" in k][:10])
+        except Exception as e:
+            r.warn("mx names: %s" % str(e)[:60])
+        try:
+            fv2 = json.loads(s3.get_object(
+                Bucket=B, Key="data/finviz-universe.json")
+                ["Body"].read()).get("by_ticker") or {}
+            k1 = sorted(fv2.keys())[0]
+            r.log("finviz[%s] = %s"
+                  % (k1, json.dumps(fv2[k1])[:340]))
+        except Exception as e:
+            r.warn("fv entry: %s" % str(e)[:60])
         lanes = pl.get("lanes") or {}
         sec_ok = sum(1 for x in rows
                      if (x.get("sector") or "").strip())
