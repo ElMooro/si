@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.0.5 (ops 4651)
+"""justhodl-stock-buying v1.1.0 (ops 4652)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -17,7 +17,7 @@ accel(EPS+rev) 25 · FCF/share 15 · valuation-vs-growth (fwd PEG,
 P/E vs industry, FCF yield) 15 · catalyst+RS+volume 20. Quality
 (ROIC, margin expansion, backlog) modulates ±10.
 Every row carries pillar scores, gate verdicts with reasons, and
-why: why.html?symbol=SYM. Missing inputs mark pillars n/a — never
+why: why.html?ticker=SYM. Missing inputs mark pillars n/a — never
 fabricated. Davis double-play framing in doctrine.
 """
 import json
@@ -207,7 +207,75 @@ def clamp(x, lo=0.0, hi=100.0):
     return max(lo, min(hi, x))
 
 
+def _knum(row, *names):
+    for n in names:
+        v = row.get(n)
+        if isinstance(v, (int, float)):
+            return float(v)
+    return None
+
+
+def khalid_five(row, us10y, kmiss):
+    peg = _knum(row, "peg", "peg_ratio", "forward_peg",
+                "fwd_peg", "peg_fwd")
+    iss = _knum(row, "net_issuance", "net_stock_issuance",
+                "issuance_retirement_net", "stock_issuance_net",
+                "net_share_issuance", "buyback_net", "net_buyback")
+    shq = _knum(row, "shares_qoq_pct", "basic_shares_qoq_pct",
+                "avg_basic_shares_qoq_pct", "shares_out_qoq_pct",
+                "share_count_qoq_pct", "wavg_shares_qoq_pct")
+    if shq is None:
+        y = _knum(row, "shares_out_yoy_pct",
+                  "share_count_yoy_pct", "dilution_yoy_pct")
+        if y is not None:
+            shq = round(y / 4.0, 2)
+            kmiss["shares_qoq(from_yoy/4)"] = \
+                kmiss.get("shares_qoq(from_yoy/4)", 0) + 1
+    eacc = _knum(row, "eps_qoq_accel_pp", "eps_accel_qoq_pp",
+                 "eps_growth_accel_pp", "eps_qoq_pct_chg",
+                 "eps_yoy_pct_chg", "eps_yoy_chg_pp")
+    racc = _knum(row, "revenue_qoq_accel_pp", "rev_accel_qoq_pp",
+                 "revenue_qoq_pct_chg", "revenue_yoy_pct_chg",
+                 "rev_yoy_chg_pp")
+    roic = _knum(row, "roic_pct", "roic")
+    for nm, v in (("peg", peg), ("net_issuance", iss),
+                  ("shares_qoq", shq), ("eps_accel", eacc),
+                  ("rev_accel", racc), ("roic", roic)):
+        if v is None:
+            kmiss[nm] = kmiss.get(nm, 0) + 1
+    spread = (round(roic - us10y, 2)
+              if roic is not None and us10y is not None else None)
+    return {"peg": peg,
+            "peg_lt_1": (peg is not None and 0 < peg < 1.0),
+            "net_issuance": iss,
+            "shares_qoq_pct": shq,
+            "retiring_shares": ((iss is not None and iss < 0)
+                                or (shq is not None
+                                    and shq <= 0.1)),
+            "eps_accel_qoq_pp": eacc,
+            "rev_accel_qoq_pp": racc,
+            "accelerating": (eacc is not None and eacc > 0
+                             and racc is not None and racc > 0),
+            "roic_pct": roic, "us10y_pct": us10y,
+            "roic_minus_10y_pp": spread,
+            "buffett_pass": (spread is not None
+                             and spread >= 5.0)}
+
+
+def fetch_us10y():
+    for key in ("data/liquidity-reversal.json",
+                "data/blackswan-watch.json"):
+        d = s3_json(key) or {}
+        for x in d.get("rows") or []:
+            if x.get("symbol") == "FRED:DGS10" and \
+                    isinstance(x.get("last"), (int, float)):
+                return float(x["last"])
+    return None
+
+
 def lambda_handler(event=None, context=None):
+    globals()["_US10Y"] = fetch_us10y()
+    globals()["_KMISS"] = {}
     try:
         ck, cmode, crows = load_census()
         load_err = None
@@ -473,7 +541,10 @@ def lambda_handler(event=None, context=None):
                 den += w
         score = round((num / den if den else 0) + q, 1)
         all_gates = all(gates.values())
+        k5 = khalid_five(row, globals().get("_US10Y"), {})
         tier = ("EXPLOSIVE-SETUP" if all_gates and score >= 70
+                and k5["peg_lt_1"] and k5["retiring_shares"]
+                and k5["accelerating"] and k5["buffett_pass"]
                 and cats else
                 "SETUP" if all_gates and score >= 55 else
                 "WATCH" if gates["below_sma"] and score >= 45
@@ -491,7 +562,9 @@ def lambda_handler(event=None, context=None):
             "sma": sst, "rs_3m_vs_spy": rs,
             "double_bottom": db,
             "catalysts": cats[:4],
-            "why": "why.html?symbol=" + sym})
+            "khalid_five": khalid_five(row, globals().get("_US10Y"),
+                                       globals().get("_KMISS")),
+            "why": "why.html?ticker=" + sym})
     rows_out.sort(key=lambda r: (-(r["tier"] ==
                                    "EXPLOSIVE-SETUP"),
                                  -(r["tier"] == "SETUP"),
@@ -500,12 +573,16 @@ def lambda_handler(event=None, context=None):
         "schema_version": 1,
         "engine": "justhodl-stock-buying",
         "matrix_probe": globals().get("_MXP"),
+        "us10y_pct": globals().get("_US10Y"),
+        "khalid_five_missing": globals().get("_KMISS"),
         "crows_len": len(crows),
         "cmode": cmode,
         "as_of": datetime.now(timezone.utc).isoformat(
             timespec="seconds"),
         "census_source": ck, "census_mode": cmode,
         "matrix_probe": globals().get("_MXP"),
+        "us10y_pct": globals().get("_US10Y"),
+        "khalid_five_missing": globals().get("_KMISS"),
         "census_fields_sample": field_census,
         "n_universe": len(crows), "n_scored": len(rows_out),
         "gates_summary": n_gate,
