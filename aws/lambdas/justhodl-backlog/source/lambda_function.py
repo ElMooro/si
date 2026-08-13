@@ -1,4 +1,4 @@
-"""justhodl-backlog — structured backlog / RPO / deferred-revenue signal from SEC XBRL.
+"""justhodl-backlog — structured backlog / RPO / deferred-revenue signal from SEC XBRL.  [v+EPS: diluted-EPS concept fused, eps/eps_qoq/eps_yoy per covered name]
 
 The audit's #1 gap: backlog as a QUANTIFIED signal, not narrative. Pulls free
 SEC XBRL company facts and computes the metrics that lead earnings by 1-2 quarters:
@@ -43,6 +43,7 @@ SEED = ["CRM","NOW","SNOW","DDOG","CRWD","ZS","NET","PANW","WDAY","MDB","OKTA","
         "SLB","HAL","BKR","FTI","NOV"]
 
 RPO_TAGS = ["RevenueRemainingPerformanceObligation"]
+EPS_TAGS = ["EarningsPerShareDiluted", "EarningsPerShareBasic"]
 DEF_TAGS = ["ContractWithCustomerLiability", "ContractWithCustomerLiabilityCurrent",
             "DeferredRevenueCurrent", "ContractWithCustomerLiabilityNoncurrent"]
 
@@ -124,11 +125,20 @@ def analyze(sym, cik_map, meta):
         return None
     rpo_tag, rpo = first_series(cik, RPO_TAGS)
     def_tag, defr = first_series(cik, DEF_TAGS)
+    _et, epss = first_series(cik, EPS_TAGS)
     if not rpo and not defr:
         return None   # no backlog disclosure → skip (this is the natural filter)
     m = meta.get(sym, {})
     rec = {"ticker": sym, "sector": m.get("sector"), "cap_bucket": m.get("cap_bucket"),
            "group": SECTOR_GROUP.get(m.get("sector"), m.get("sector")), "cik": cik}
+    if epss:
+        ev = epss[-1]["val"]
+        rec["eps"] = ev
+        if len(epss) >= 2 and epss[-2]["val"] > 0:
+            rec["eps_qoq"] = pct(ev, epss[-2]["val"])
+        if len(epss) >= 5 and epss[-5]["val"] > 0:
+            rec["eps_yoy"] = pct(ev, epss[-5]["val"])
+        rec["eps_asof"] = epss[-1].get("end")
     if rpo:
         latest = rpo[-1]["val"]
         rec["rpo"] = latest

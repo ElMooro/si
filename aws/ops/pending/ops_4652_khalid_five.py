@@ -1,4 +1,4 @@
-"""[r14 backlog fusion gate] [r9d seal run: v1.2.0 deployed via deploy-lambdas] ops 4652 — Khalid's five priority metrics first-class on the
+"""[r16 EPS fusion + confluence page] [r9d seal run: v1.2.0 deployed via deploy-lambdas] ops 4652 — Khalid's five priority metrics first-class on the
 # r3 ping: run with checkout v1.1.0 (engine-only push does not trigger)
 stock-buying screener (v1.1.0): PEG<1, net issuance/(retirement),
 basic shares QoQ%, Rev+EPS acceleration QoQ pp, ROIC vs US10Y
@@ -90,13 +90,13 @@ def main():
                 src = zf2.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-stock-buying v1.3.3" in src:
+                if "justhodl-stock-buying v1.3.4" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
-        misses += contract(r, "deploy", settled, "v1.3.3 live")
+        misses += contract(r, "deploy", settled, "v1.3.4 live")
         if not settled:
             sys.exit(1)
 
@@ -271,6 +271,21 @@ def main():
              top_len=len(rows))
         r.kv(backlog_kinds=json.dumps(
             pl.get("backlog_kinds") or {}))
+        eps_n = sum(1 for x in rows
+                    if x.get("eps") is not None)
+        epsy_n = sum(1 for x in rows
+                     if x.get("eps_yoy_pct2") is not None)
+        epsq_n = sum(1 for x in rows
+                     if x.get("eps_qoq_pct") is not None)
+        r.kv(eps_cols="lvl=%d yoy=%d qoq=%d"
+             % (eps_n, epsy_n, epsq_n))
+        misses += contract(r, "eps-cols",
+                           eps_n >= 200 and epsy_n >= 200
+                           and epsq_n >= 30,
+                           "EPS lvl:%d yoy:%d qoq:%d (qoq from "
+                           "XBRL, grows with backlog-engine "
+                           "coverage)" % (eps_n, epsy_n,
+                                          epsq_n))
         misses += contract(r, "backlog-visible",
                            bst >= 60 and len(rows) >= 200,
                            "%d rows carry backlog status/level "

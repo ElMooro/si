@@ -68,6 +68,9 @@ for the full why.html workup.</div>
 <th data-k="five">FIVE<b class="q">?</b></th>
 <th data-k="rs">RS3m<b class="q">?</b></th>
 <th data-k="db">DB<b class="q">?</b></th>
+<th data-k="eps">EPS<b class="q">?</b></th>
+<th data-k="epsq">EPSQoQ%<b class="q">?</b></th>
+<th data-k="epsy">EPSYoY%<b class="q">?</b></th>
 <th data-k="bl">Bklg $B<b class="q">?</b></th>
 <th data-k="blq">BkQoQ%<b class="q">?</b></th>
 <th data-k="bly">BkYoY%<b class="q">?</b></th>
@@ -87,6 +90,9 @@ roic:"Return on Invested Capital, %. The Buffett test compares it to the US 10-y
 five:"Khalid's FIVE badges, left to right: PEG under 1 - net share retirement - QoQ EPS and revenue acceleration - ROIC beats US10Y by 5pp or more. Filled dot = pass.",
 rs:"RS3m = this stock's 3-month return minus SPY's 3-month return, in percentage points. Positive means beating the market: relative strength.",
 db:"Double bottom: a W-shaped base. Sourced from the census pattern column when present, else the price detector. CONFIRMED = neckline broken.",
+eps:"Diluted EPS, latest quarter (SEC XBRL via the backlog engine); census TTM as fallback.",
+epsq:"EPS change vs prior quarter, %. Null when prior quarter EPS is not positive (sign-safe, never faked).",
+epsy:"EPS change vs the same quarter last year, %. XBRL first, census YoY fallback.",
 bl:"Order-book in USD billions, best available per company: RPO (Remaining Performance Obligations, SEC XBRL - the SaaS/cloud backlog), else Deferred Revenue (XBRL), else text-mined backlog from the company\u2019s own SEC 10-Q/10-K text. Blank = company does not disclose (never guessed).",
 blq:"Backlog change vs the previous filing (quarter over quarter, %). Guarded against unit-mix parses.",
 bly:"Backlog change vs four filings back (year over year, %).",
@@ -95,6 +101,25 @@ const tip=document.getElementById('tip');
 document.body.addEventListener('click',()=>tip.style.display='none');
 const V=(o,...ks)=>{for(const k of ks){const v=o&&o[k];
 if(v!==undefined&&v!==null)return v}return null};
+const CONF_METRICS=[["score","Score",1],["peg","PEG",-1],
+["pe","P/E",-1],["roic","ROIC",1],["rs","RS3m",1],
+["gap","Depth vs SMA",-1],["eps","EPS",1],["epsq","EPS QoQ",1],
+["epsy","EPS YoY",1],["bl","Backlog $",1],["blq","Bklg QoQ",1],
+["bly","Bklg YoY",1],["five","FIVE count",1]];
+let CONF_ON=new Set(["epsy","peg","roic"]);
+function confRank(rows){
+const ranks={};
+for(const [k,,dir] of CONF_METRICS){if(!CONF_ON.has(k))continue;
+const vals=rows.map(x=>getv(x,k));
+const idx=vals.map((v,i)=>[v,i]).filter(p=>p[0]!=null)
+.sort((a,b)=>(a[0]-b[0])*dir);
+const rk=new Array(rows.length).fill(null);
+idx.forEach((p,r)=>{rk[p[1]]=r/(idx.length-1||1);});
+ranks[k]=rk;}
+return rows.map((x,i)=>{let s=0,n=0;
+for(const k of CONF_ON){const r=(ranks[k]||[])[i];
+if(r!=null){s+=r;n++;}}
+return n?Math.round(100*s/n)/1:null;});}
 let ROWS=[],SORT={k:'score',d:-1};
 const num=v=>v==null||v===''?null:(typeof v==='number'?v:parseFloat(v));
 function getv(x,k){switch(k){
@@ -105,6 +130,9 @@ case 'five':{const f=x.khalid_five||{};return (f.peg_lt_1?1:0)+
 case 'db':{const d=x.double_bottom;if(!d)return 0;
 if(d==='CONFIRMED')return 3;if(d==='FORMING')return 2;
 if(d.formed)return 3;return 1;}
+case 'eps':return num(x.eps);
+case 'epsq':return num(x.eps_qoq_pct);
+case 'epsy':return num(x.eps_yoy_pct2);
 case 'bl':return num(x.backlog_usd);
 case 'blq':return num(x.backlog_qoq_pct);
 case 'bly':return num(x.backlog_yoy_pct);
@@ -112,6 +140,7 @@ case 'cat':return (x.catalysts||[]).length;
 case 'symbol':return x.symbol||'';
 case 'sector':return x.sector||'';
 case 'tier':return x.tier||'';
+case '__conf':return num(x.__conf);
 default:return num(x[k]);}}
 function dbTxt(d){if(!d)return '–';if(typeof d==='string')return d;
 return d.formed?('YES('+(d.src||'px')+')'):'–';}
@@ -148,7 +177,7 @@ tr.innerHTML='<td class="score n '+(x.score>=70?'g':x.score>=55?
 (x.roic??'–')+'</td><td class="k5">'+five+'</td><td class="n">'+
 (x.rs_3m_vs_spy??'–')+'</td><td class="'+
 (getv(x,'db')>=3?'g':getv(x,'db')===2?'a':'dim')+'">'+
-dbTxt(x.double_bottom)+'</td><td class="n" title="'+(x.backlog_kind||'')+'">'+
+dbTxt(x.double_bottom)+'</td><td class="n">'+(x.eps??'\u2013')+'</td><td class="n '+((x.eps_qoq_pct>0)?'g':(x.eps_qoq_pct<0)?'r':'')+'">'+(x.eps_qoq_pct??'\u2013')+'</td><td class="n '+((x.eps_yoy_pct2>0)?'g':(x.eps_yoy_pct2<0)?'r':'')+'">'+(x.eps_yoy_pct2??'\u2013')+'</td><td class="n" title="'+(x.backlog_kind||'')+'">'+
 (x.backlog_usd!=null?(x.backlog_usd/1e9).toFixed(1):(x.backlog_status==='NOT_DISCLOSED'?'n/d':'\u2013'))+'</td><td class="n '+((x.backlog_qoq_pct>0)?'g':(x.backlog_qoq_pct<0)?'r':'')+'">'+(x.backlog_qoq_pct??'\u2013')+'</td><td class="n '+((x.backlog_yoy_pct>0)?'g':(x.backlog_yoy_pct<0)?'r':'')+'">'+(x.backlog_yoy_pct??'\u2013')+'</td><td class="dim" title="'+
 ((x.gate_reasons||[]).join('; '))+'">'+(reasons||'–')+'</td>';
 R.appendChild(tr);}
@@ -184,7 +213,29 @@ Object.keys(gs).length?Object.entries(gs).map(([k,v])=>
 k.replace(/_/g,' ')+':'+v).join(' -> '):'–';
 document.getElementById('u10').textContent=
 (d.us10y_pct!=null?d.us10y_pct+'%':'–');
-ROWS=d.top||[];render();});
+ROWS=d.top||[];
+const pan=document.createElement('div');
+pan.style.cssText='margin:8px 0 12px;padding:8px 10px;'+
+'background:#0e141b;border:1px solid #1d2733;border-radius:8px;'+
+'font-size:11px;color:#9fb0c0';
+pan.innerHTML='<b style="color:#d7dee7">RANK BY (confluence)'+
+'</b> — check metrics, ranks are percentile-blended '+
+'(direction-aware): '+CONF_METRICS.map(([k,l])=>
+'<label style="margin-right:10px;white-space:nowrap">'+
+'<input type="checkbox" data-c="'+k+'" '+
+(CONF_ON.has(k)?'checked':'')+'> '+l+'</label>').join('')+
+' <button id="confGo" style="background:#1b2735;color:#d7dee7;'+
+'border:1px solid #2a3644;border-radius:6px;padding:2px 10px;'+
+'cursor:pointer">Apply confluence</button>';
+document.querySelector('table').before(pan);
+pan.querySelectorAll('input[data-c]').forEach(cb=>{
+cb.onchange=()=>{cb.checked?CONF_ON.add(cb.dataset.c):
+CONF_ON.delete(cb.dataset.c);};});
+document.getElementById('confGo').onclick=()=>{
+const cf=confRank(ROWS);
+ROWS.forEach((x,i)=>x.__conf=cf[i]);
+SORT={k:'__conf',d:-1};render();};
+render();});
 </script>
 <div class="sub" style="margin-top:14px">Engine:
 justhodl-stock-buying · payload data/stock-buying.json · research
