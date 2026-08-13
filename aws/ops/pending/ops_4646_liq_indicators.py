@@ -191,7 +191,7 @@ def main():
                               "liq-indicators.html?cb=%d"
                               % time.time()).decode("utf-8",
                                                     "replace")
-                page_ok = ("LIQUIDITY INDICATORS" in pg
+                page_ok = ("liq-indicators.json" in pg
                            and "d.dxy" in pg)
                 jd = json.loads(http_get(
                     "https://justhodl.ai/data/liq-indicators.json"
