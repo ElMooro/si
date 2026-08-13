@@ -1,4 +1,4 @@
-"""[r7 accel-zero forensics] ops 4652 — Khalid's five priority metrics first-class on the
+"""[r8 broad-universe recon + FMP field dump] ops 4652 — Khalid's five priority metrics first-class on the
 # r3 ping: run with checkout v1.1.0 (engine-only push does not trigger)
 stock-buying screener (v1.1.0): PEG<1, net issuance/(retirement),
 basic shares QoQ%, Rev+EPS acceleration QoQ pp, ROIC vs US10Y
@@ -109,6 +109,57 @@ def main():
             Key="data/stock-buying.json")["Body"].read())
         rows = pl.get("top") or pl.get("rows") or []
         r.log("payload keys: %s" % sorted(pl.keys()))
+        try:
+            clo = json.loads(s3.get_object(
+                Bucket=B, Key="data/_ma200/closes.json")
+                ["Body"].read())
+            r.log("closes tickers: %d"
+                  % len(clo.get("series") or {}))
+        except Exception as e:
+            r.warn("closes: %s" % str(e)[:60])
+        try:
+            fv = json.loads(s3.get_object(
+                Bucket=B, Key="data/finviz-universe.json")
+                ["Body"].read())
+            fvr = fv.get("rows") or fv.get("tickers") or                 fv.get("universe") or []
+            r.log("finviz-universe: keys=%s n=%s row0=%s"
+                  % (list(fv.keys())[:8],
+                     len(fvr) if hasattr(fvr, "__len__")
+                     else "?",
+                     json.dumps(fvr[0])[:160]
+                     if isinstance(fvr, list) and fvr
+                     else str(type(fvr))))
+        except Exception as e:
+            r.warn("finviz: %s" % str(e)[:60])
+        try:
+            mx0 = json.loads(s3.get_object(
+                Bucket=B, Key="data/fundamental-census-matrix"
+                ".json")["Body"].read())
+            c0 = mx0.get("cols") or {}
+            r.log("matrix has: double_bottom=%s sectors[0..2]=%s"
+                  % ("double_bottom" in c0,
+                     (mx0.get("sectors") or [])[:3]))
+        except Exception as e:
+            r.warn("mx: %s" % str(e)[:60])
+        try:
+            cfg = lam.get_function_configuration(
+                FunctionName="fmp-fundamentals-agent")
+            kk = (cfg.get("Environment") or {}).get(
+                "Variables", {}).get("FMP_API_KEY", "")
+            if kk:
+                for path in ("ratios-ttm/AAPL",
+                             "key-metrics-ttm/AAPL"):
+                    u = ("https://financialmodelingprep.com/"
+                         "api/v3/%s?apikey=%s" % (path, kk))
+                    jd0 = json.loads(http_get(u, 25))
+                    if isinstance(jd0, list) and jd0:
+                        r.log("%s fields: %s"
+                              % (path.split("/")[0],
+                                 sorted(jd0[0].keys())[:36]))
+            else:
+                r.warn("donor FMP key empty")
+        except Exception as e:
+            r.warn("fmp dump: %s" % str(e)[:90])
         r.log("fmp_key: %s | gates_summary: %s"
               % (pl.get("fmp_key"),
                  json.dumps(pl.get("gates_summary") or {})))
