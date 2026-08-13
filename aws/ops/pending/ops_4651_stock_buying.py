@@ -1,4 +1,4 @@
-"""ops 4651 r2 — columnar matrix loader (consumer-verified shape) + scalar fallbacks.
+"""ops 4651 r3 — matrix probes both sides; columnar loader (consumer-verified shape) + scalar fallbacks.
 
 FMP key injected from fmp-fundamentals-agent env; create-capable
 deploy; hourly schedule; invoke; truth table with pillar scores;
@@ -139,14 +139,14 @@ def main():
                 src = zipfile.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-stock-buying v1.0.1" in src:
+                if "justhodl-stock-buying v1.0.2" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
         misses += contract(r, "deploy", settled,
-                           "v1.0.1 live (created=%s)" % created)
+                           "v1.0.2 live (created=%s)" % created)
         if not settled:
             sys.exit(1)
         try:
@@ -160,6 +160,21 @@ def main():
                 r.log("hourly schedule created")
             except Exception as e:
                 r.warn("schedule: %s" % str(e)[:90])
+
+        r.section("matrix probe (runner-side)")
+        try:
+            mx = json.loads(s3.get_object(
+                Bucket=B,
+                Key="data/fundamental-census-matrix.json")
+                ["Body"].read())
+            r.log("top_keys=%s n_tickers=%s n_cols=%s"
+                  % (list(mx.keys())[:10],
+                     len(mx.get("tickers") or []),
+                     len(mx.get("cols") or {})))
+            r.log("first cols: %s"
+                  % list((mx.get("cols") or {}).keys())[:20])
+        except Exception as e:
+            r.log("matrix read ERR: %s" % str(e)[:110])
 
         r.section("run + institutional truth")
         inv = lam.invoke(FunctionName=FN,
@@ -184,6 +199,8 @@ def main():
         pl = json.loads(s3.get_object(
             Bucket=B, Key="data/stock-buying.json")
             ["Body"].read())
+        r.log("engine matrix_probe: %s"
+              % json.dumps(pl.get("matrix_probe"))[:200])
         r.kv(census=pl.get("census_source"),
              mode=pl.get("census_mode"),
              universe=pl.get("n_universe"),

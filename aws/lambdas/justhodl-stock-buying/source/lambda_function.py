@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.0.1 (ops 4651)
+"""justhodl-stock-buying v1.0.2 (ops 4651)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -137,6 +137,14 @@ def load_census():
     (shape read from the fleet's own consumers)."""
     k = "data/fundamental-census-matrix.json"
     doc = s3_json(k)
+    globals()["_MXP"] = {
+        "loaded": isinstance(doc, dict),
+        "top_keys": list(doc.keys())[:10]
+        if isinstance(doc, dict) else None,
+        "n_tickers": len(doc.get("tickers") or [])
+        if isinstance(doc, dict) else None,
+        "n_cols": len(doc.get("cols") or {})
+        if isinstance(doc, dict) else None}
     if isinstance(doc, dict):
         tk = doc.get("tickers") or []
         C = doc.get("cols") or {}
@@ -485,6 +493,7 @@ def lambda_handler(event=None, context=None):
         "as_of": datetime.now(timezone.utc).isoformat(
             timespec="seconds"),
         "census_source": ck, "census_mode": cmode,
+        "matrix_probe": globals().get("_MXP"),
         "census_fields_sample": field_census,
         "n_universe": len(crows), "n_scored": len(rows_out),
         "gates_summary": n_gate,
