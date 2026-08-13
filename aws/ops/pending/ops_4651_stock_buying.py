@@ -1,4 +1,4 @@
-"""ops 4651 r4 — cols|metrics alias, v1.0.3 settled rerun; columnar loader (consumer-verified shape) + scalar fallbacks.
+"""ops 4651 r5 (ping; their v1.0.3 restored after my overwrite) — cols|metrics alias, v1.0.3 settled rerun; columnar loader (consumer-verified shape) + scalar fallbacks.
 
 FMP key injected from fmp-fundamentals-agent env; create-capable
 deploy; hourly schedule; invoke; truth table with pillar scores;

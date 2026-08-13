@@ -1,25 +1,41 @@
-"""justhodl-stock-buying v1.0.1 (ops 4651)
+"""justhodl-stock-buying v1.0.3 (ops 4651)
 
-Khalid's institutional accumulation screener: buy-zone technicals
-(under SMA250, RSI<35, relative strength, double-bottom), hard
-quality gates (no dilution, positive EPS), and a 9-factor weighted
-composite in his rank order — EPS/rev growth + acceleration, FCF,
-valuation-vs-growth (PEG, P/E vs sector), margin edge + expansion,
-ROIC, booming-industry score, technical confirmation — plus a
-catalyst layer joined from the deal-scanner event taxonomy and the
-census backlog column. Every row deep-links why.html?ticker=.
-All inputs are in-fleet real stores; missing fields degrade the
-factor to neutral and are reported, never faked.
+Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
+market hasn't priced — not the cheapest stock. Institutional
+multi-factor composite over the fleet's own stores:
+
+  fundamental-census-matrix (fundam['damentals'] quarters),
+  _ma200/closes (SMA~250d, RS, double-bottom, accumulation),
+  industry-boom (booming-industry gate + AI-class catalyst),
+  deal-scanner (catalyst tape), FMP surprises/estimates
+  (revisions + beat streak; warm-cached, key injected by ops).
+
+HARD GATES: price ≤ long-SMA (accumulation zone), EPS up every
+quarter (last 4 q/q), dilution ≤ +4%/yr, margin ≥ industry floor.
+PILLARS (Khalid's ranks → five-core weights): revisions 25 ·
+accel(EPS+rev) 25 · FCF/share 15 · valuation-vs-growth (fwd PEG,
+P/E vs industry, FCF yield) 15 · catalyst+RS+volume 20. Quality
+(ROIC, margin expansion, backlog) modulates ±10.
+Every row carries pillar scores, gate verdicts with reasons, and
+why: why.html?symbol=SYM. Missing inputs mark pillars n/a — never
+fabricated. Davis double-play framing in doctrine.
 """
 import json
 import math
+import os
+import re
+import time
+import urllib.request
 from datetime import datetime, timezone
 
 import boto3
 
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/stock-buying.json"
+WARM = "data/warm/blackswan/"
 s3 = boto3.client("s3", region_name="us-east-1")
+FMP_KEY = os.environ.get("FMP_API_KEY", "")
+FMP_BUDGET = {"n": 120}
 
 
 def s3_json(key):
@@ -30,331 +46,471 @@ def s3_json(key):
         return None
 
 
-def g(row, *names):
-    for n in names:
-        v = row.get(n)
-        if isinstance(v, (int, float)):
-            return float(v)
+def fmp(path, qs=""):
+    if not FMP_KEY or FMP_BUDGET["n"] <= 0:
+        return None
+    FMP_BUDGET["n"] -= 1
+    try:
+        url = ("https://financialmodelingprep.com/api/v3/%s?%s"
+               "apikey=%s" % (path, (qs + "&") if qs else "",
+                              FMP_KEY))
+        req = urllib.request.Request(
+            url, headers={"User-Agent": "justhodl-fleet"})
+        time.sleep(0.12)
+        with urllib.request.urlopen(req, timeout=14) as h:
+            return json.loads(h.read())
+    except Exception:
+        return None
+
+
+def warm_fmp(sym, kind, path, qs=""):
+    wkey = WARM + "sb_%s_%s.json" % (kind,
+                                     re.sub(r"[^A-Z0-9]", "_",
+                                            sym))
+    c = s3_json(wkey)
+    if c is not None:
+        try:
+            ft = datetime.fromisoformat(c["fetched_at"])
+            if (datetime.now(timezone.utc) - ft
+                    ).total_seconds() < 64800:
+                return c.get("data")
+        except Exception:
+            pass
+    d = fmp(path, qs)
+    if d is not None:
+        try:
+            s3.put_object(Bucket=BUCKET, Key=wkey,
+                          Body=json.dumps(
+                              {"data": d,
+                               "fetched_at": datetime.now(
+                                   timezone.utc).isoformat(
+                                   timespec="seconds")}).encode(),
+                          ContentType="application/json")
+        except Exception:
+            pass
+        return d
+    return (c or {}).get("data")
+
+
+def fnum(x):
+    try:
+        if x is None or x == "":
+            return None
+        return float(x)
+    except Exception:
+        return None
+
+
+def qseq(row, names):
+    """Pull a quarterly sequence (oldest->newest) from whichever
+    field name/shape the census uses."""
+    for nm in names:
+        v = row.get(nm)
+        if isinstance(v, list) and len(v) >= 3:
+            out = [fnum(x) for x in v]
+            out = [x for x in out if x is not None]
+            if len(out) >= 3:
+                return out[-8:]
+        if isinstance(v, dict):
+            try:
+                ks = sorted(v.keys())
+                out = [fnum(v[k]) for k in ks]
+                out = [x for x in out if x is not None]
+                if len(out) >= 3:
+                    return out[-8:]
+            except Exception:
+                pass
     return None
 
 
-def rsi14(vals):
-    if len(vals) < 20:
-        return None
-    gains = losses = 0.0
-    for i in range(-14, 0):
-        d = vals[i] - vals[i - 1]
-        if d >= 0:
-            gains += d
-        else:
-            losses -= d
-    if losses == 0:
-        return 100.0
-    rs = (gains / 14) / (losses / 14)
-    return 100 - 100 / (1 + rs)
+def growth_seq(vals):
+    g = []
+    for i in range(1, len(vals)):
+        a, b = vals[i], vals[i - 1]
+        if b and b != 0:
+            g.append((a / abs(b) - 1) * 100.0)
+    return g
 
 
-def double_bottom(vals):
-    n = len(vals)
-    if n < 60:
+def load_census():
+    """Columnar matrix: {tickers:[...], cols:{name:[aligned]}}
+    (shape read from the fleet's own consumers)."""
+    k = "data/fundamental-census-matrix.json"
+    doc = s3_json(k)
+    globals()["_MXP"] = {
+        "loaded": isinstance(doc, dict),
+        "top_keys": list(doc.keys())[:10]
+        if isinstance(doc, dict) else None,
+        "n_tickers": len(doc.get("tickers") or [])
+        if isinstance(doc, dict) else None,
+        "n_cols": len(doc.get("cols") or {})
+        if isinstance(doc, dict) else None}
+    if isinstance(doc, dict):
+        tk = doc.get("tickers") or []
+        C = doc.get("cols") or doc.get("metrics") or {}
+        if tk and isinstance(C, dict) and C:
+            rows = []
+            names = list(C.keys())
+            for i, t in enumerate(tk):
+                r2 = {"symbol": t}
+                for nm in names:
+                    col = C[nm]
+                    if isinstance(col, list) and i < len(col):
+                        r2[nm] = col[i]
+                rows.append(r2)
+            return k, "columnar(%d cols)" % len(names), rows
+    return None, None, []
+
+
+def sma_state(closes):
+    if not closes or len(closes) < 60:
         return None
-    w = vals[-160:] if n >= 160 else vals
+    n = min(250, len(closes))
+    sma = sum(closes[-n:]) / n
+    last = closes[-1]
+    return {"sma_n": n, "sma": round(sma, 2),
+            "below": last <= sma,
+            "dist_pct": round((last / sma - 1) * 100, 1)}
+
+
+def rel_strength(closes, spy):
+    if not closes or not spy or len(closes) < 64 \
+            or len(spy) < 64:
+        return None
+    r = (closes[-1] / closes[-63] - 1) - (spy[-1] / spy[-63] - 1)
+    return round(r * 100, 1)
+
+
+def double_bottom(closes):
+    if not closes or len(closes) < 90:
+        return None
+    w = closes[-120:]
     lows = []
     for i in range(3, len(w) - 3):
         if w[i] == min(w[i - 3:i + 4]):
             lows.append((i, w[i]))
-    for a in range(len(lows)):
-        for b in range(a + 1, len(lows)):
-            i1, l1 = lows[a]
-            i2, l2 = lows[b]
-            if not (12 <= i2 - i1 <= 90):
-                continue
-            if abs(l1 - l2) / max(l1, l2) > 0.035:
-                continue
-            neck = max(w[i1:i2 + 1])
-            if (neck - min(l1, l2)) / min(l1, l2) < 0.05:
-                continue
-            last = w[-1]
-            if i2 >= len(w) - 45 and last >= min(l1, l2):
-                if last > neck:
-                    return "CONFIRMED"
-                if last > min(l1, l2) * 1.01:
-                    return "FORMING"
-    return None
+    for i in range(len(lows) - 1):
+        for j in range(i + 1, len(lows)):
+            d1, v1 = lows[i]
+            d2, v2 = lows[j]
+            if 15 <= d2 - d1 <= 100 and v1 > 0:
+                if abs(v2 - v1) / v1 <= 0.04 and v2 >= v1 * 0.97:
+                    if w[-1] > max(v1, v2) * 1.02:
+                        return {"formed": True,
+                                "lows": [round(v1, 2),
+                                         round(v2, 2)],
+                                "sep_days": d2 - d1}
+    return {"formed": False}
 
 
-def clamp(x, lo=0.0, hi=1.0):
+def clamp(x, lo=0.0, hi=100.0):
     return max(lo, min(hi, x))
 
 
 def lambda_handler(event=None, context=None):
-    clo = s3_json("data/_ma200/closes.json") or {}
-    mx = s3_json("data/fundamental-census-matrix.json") or {}
-    cen = s3_json("data/fundamental-census.json") or {}
-    boom = s3_json("data/industry-boom.json") or {}
-    deals = s3_json("data/deal-scanner.json") or {}
-
-    cmap = {}
-    cols = mx.get("cols") or {}
-    tkey = next((k for k in ("ticker", "t", "symbol")
-                 if isinstance(cols.get(k), list)), None)
-    if tkey:
-        ticks = cols[tkey]
-        names = [k for k in cols
-                 if isinstance(cols[k], list)
-                 and len(cols[k]) == len(ticks)]
-        for i, t in enumerate(ticks):
-            if not t:
-                continue
-            cmap[str(t).upper()] = {c: cols[c][i]
-                                    for c in names}
-    if not cmap:
-        crows = cen.get("rows") or cen.get("companies") or []
-        for r in crows:
-            t = r.get("ticker") or r.get("symbol")
-            if t:
-                cmap[str(t).upper()] = r
-    dates = clo.get("dates") or []
-    ser = clo.get("series") or {}
+    ck, cmode, crows = load_census()
+    closes_doc = s3_json("data/_ma200/closes.json") or {}
+    ser = closes_doc.get("series") or {}
     spy = ser.get("SPY")
-
-    boom_rows = boom.get("league") or boom.get("rows") or boom.get("industries") or []
-    boom_by_name = {}
-    for b in boom_rows:
-        nm = str(b.get("industry") or b.get("name") or "").lower()
-        sc = b.get("boom_score")
-        if not isinstance(sc, (int, float)):
-            sc = b.get("score")
-        if not isinstance(sc, (int, float)):
-            sc = b.get("velocity")
-        if nm and isinstance(sc, (int, float)):
-            boom_by_name[nm] = float(sc)
-
-    drows = deals.get("deals") or deals.get("rows") or deals.get("events") or []
-    cat_by_t = {}
-    for d in drows:
-        t = str(d.get("ticker") or d.get("symbol") or "").upper()
-        cls = d.get("event_class") or d.get("class") or \
-            d.get("category")
-        if t and cls:
-            cat_by_t.setdefault(t, [])
-            if cls not in cat_by_t[t]:
-                cat_by_t[t].append(str(cls))
-
-    sect_pe, sect_om = {}, {}
-    for t, r in cmap.items():
-        sec = str(r.get("sector") or r.get("industry") or "?")
-        pe = g(r, "pe", "pe_ratio", "pe_ttm", "price_earnings")
-        om = g(r, "operating_margin_pct")
-        if pe and 0 < pe < 300:
-            sect_pe.setdefault(sec, []).append(pe)
-        if om is not None:
-            sect_om.setdefault(sec, []).append(om)
-
-    def med(xs):
-        xs = sorted(xs)
-        return xs[len(xs) // 2] if xs else None
-
-    sect_pe = {k: med(v) for k, v in sect_pe.items()}
-    sect_om = {k: med(v) for k, v in sect_om.items()}
-
-    gate_census = {"universe": 0, "have_prices": 0,
-                   "under_sma250": 0, "rsi_lt_35": 0,
-                   "no_dilution": 0, "eps_positive": 0,
-                   "passed_all": 0}
-    out_rows = []
-    missing = {}
-
-    for t, r in cmap.items():
-        vals = ser.get(t)
-        gate_census["universe"] += 1
-        if not (isinstance(vals, list) and len(vals) >= 60):
+    boom = s3_json("data/industry-boom.json") or {}
+    league = {str(x.get("industry", "")).lower():
+              fnum(x.get("score") or x.get("boom_score")
+                   or x.get("composite")) or 0.0
+              for x in boom.get("league") or []
+              if isinstance(x, dict)}
+    boom_med = sorted(league.values())[len(league) // 2] \
+        if league else 0.0
+    deals = s3_json("data/deal-scanner.json") or {}
+    deal_by_sym = {}
+    for d in (deals.get("deals") or []):
+        for symk in ("symbol", "ticker"):
+            sy = d.get(symk)
+            if sy:
+                deal_by_sym.setdefault(str(sy).upper(),
+                                       []).append(
+                    {"class": d.get("event_class")
+                     or d.get("class") or "deal",
+                     "headline": str(d.get("headline")
+                                     or d.get("title"))[:90]})
+    field_census = sorted(crows[0].keys()) if crows else []
+    rows_out = []
+    n_gate = {"below_sma": 0, "eps_seq": 0, "dilution": 0,
+              "margin_floor": 0}
+    for row in crows:
+        sym = str(row.get("symbol") or row.get("ticker")
+                  or "").upper()
+        if not sym or sym in ("SPY",):
             continue
-        vals = [float(x) for x in vals if
-                isinstance(x, (int, float))]
-        if len(vals) < 60:
-            continue
-        gate_census["have_prices"] += 1
-        last = vals[-1]
-        w = min(250, len(vals))
-        sma = sum(vals[-w:]) / w
-        under = last < sma
-        if under:
-            gate_census["under_sma250"] += 1
-        rsi = rsi14(vals)
-        rsi_ok = rsi is not None and rsi < 35
-        if rsi_ok:
-            gate_census["rsi_lt_35"] += 1
-        dil = g(r, "shares_out_yoy_pct", "share_count_yoy_pct",
-                "shares_yoy_pct", "diluted_shares_yoy_pct")
-        no_dil = dil is None or dil <= 2.5
-        if no_dil:
-            gate_census["no_dilution"] += 1
-        eps_y = g(r, "eps_yoy_pct")
-        eps_ok = eps_y is not None and eps_y > 0
-        if eps_ok:
-            gate_census["eps_positive"] += 1
-        if not (under and rsi_ok and no_dil and eps_ok):
-            continue
-        gate_census["passed_all"] += 1
+        name = row.get("name") or row.get("companyName") or ""
+        industry = str(row.get("industry")
+                       or row.get("Industry") or "").lower()
+        sector = row.get("sector") or ""
+        closes = ser.get(sym)
+        sst = sma_state(closes)
+        eps_q = qseq(row, ("eps_q", "epsQuarters", "eps_quarterly",
+                           "dilutedEPS_q", "eps_dil_q", "epsQ",
+                           "eps_ttm_q", "eps"))
+        rev_q = qseq(row, ("revenue_q", "revenueQuarters",
+                           "revenue_quarterly", "revQ",
+                           "revenue"))
+        fcfps_q = qseq(row, ("fcf_ps_q", "fcfPerShare_q",
+                             "fcf_q", "freeCashFlowPerShare_q",
+                             "fcfps"))
+        shares_q = qseq(row, ("shares_q", "sharesDiluted_q",
+                              "dilutedShares_q", "shares",
+                              "sharesOutstanding_q"))
+        margin_now = fnum(row.get("operating_margin")
+                          or row.get("opMargin")
+                          or row.get("op_margin")
+                          or row.get("operatingMarginTTM")
+                          or row.get("op_margin_ttm"))
+        margin_q = qseq(row, ("op_margin_q", "opMargin_q",
+                              "operatingMargin_q"))
+        roic = fnum(row.get("roic") or row.get("ROIC")
+                    or row.get("roic_ttm")
+                    or row.get("roicTTM"))
+        pe = fnum(row.get("pe") or row.get("peTTM")
+                  or row.get("pe_ttm") or row.get("pe_fwd")
+                  or row.get("p_e"))
+        fpe = fnum(row.get("forward_pe") or row.get("fwdPE")
+                   or row.get("forwardPE")) or pe
+        ind_pe = fnum(row.get("industry_pe")
+                      or row.get("industryPE"))
+        ind_margin = fnum(row.get("industry_margin")
+                          or row.get("industryOpMargin"))
+        backlog = fnum(row.get("backlog")
+                       or row.get("backlog_usd")
+                       or row.get("backlogUSD"))
+        fcf_yield = fnum(row.get("fcf_yield")
+                         or row.get("fcf_yield_pct")
+                         or row.get("fcfYield"))
+        peg_col = fnum(row.get("peg") or row.get("peg_fwd")
+                       or row.get("peg_ratio"))
 
-        rev_y = g(r, "revenue_yoy_pct")
-        eps_acc = g(r, "eps_yoy_pct_chg", "eps_yoy_chg_pp",
-                    "eps_growth_accel_pp")
-        rev_acc = g(r, "revenue_yoy_pct_chg",
-                    "revenue_yoy_chg_pp")
-        fcfm = g(r, "fcf_margin_pct")
-        fcf_y = g(r, "fcf_yield_pct")
-        peg = g(r, "peg", "peg_ratio", "forward_peg")
-        pe = g(r, "pe", "pe_ratio", "pe_ttm")
-        om = g(r, "operating_margin_pct")
-        om_chg = g(r, "operating_margin_pct_chg",
-                   "op_margin_chg_pp")
-        roic = g(r, "roic_pct")
-        roic_chg = g(r, "roic_pct_chg")
-        backlog = g(r, "backlog_usd", "backlog", "backlog_bn")
-        sec = str(r.get("sector") or r.get("industry") or "?")
-        pe_med = sect_pe.get(sec)
-        om_med = sect_om.get(sec)
-        ind = str(r.get("industry") or r.get("sector")
-                  or "").lower()
-        bsc = None
-        for nm, sc in boom_by_name.items():
-            if nm and (nm in ind or ind in nm):
-                bsc = sc
-                break
-        rs63 = None
-        if spy and len(spy) >= 64 and len(vals) >= 64:
-            try:
-                rs63 = ((vals[-1] / vals[-64] - 1)
-                        - (float(spy[-1]) / float(spy[-64]) - 1)
-                        ) * 100
-            except Exception:
-                rs63 = None
-        db = double_bottom(vals)
-
-        def track(name, v):
-            if v is None:
-                missing[name] = missing.get(name, 0) + 1
-                return 0.5
-            return None
-
-        f = {}
-        f["eps_growth"] = track("eps_growth", eps_y) or \
-            clamp(eps_y / 50.0)
-        f["rev_growth"] = track("rev_growth", rev_y)
-        if f["rev_growth"] is None:
-            f["rev_growth"] = clamp(rev_y / 30.0)
-        f["accel"] = track("accel", eps_acc)
-        if f["accel"] is None:
-            f["accel"] = clamp(0.5 + eps_acc / 40.0)
-        if rev_acc is not None:
-            f["accel"] = clamp(0.6 * f["accel"]
-                               + 0.4 * clamp(0.5 + rev_acc / 30.0))
-        f["fcf"] = track("fcf", fcfm)
-        if f["fcf"] is None:
-            f["fcf"] = clamp(fcfm / 25.0)
-        if fcf_y is not None:
-            f["fcf"] = clamp(0.6 * f["fcf"]
-                             + 0.4 * clamp(fcf_y / 8.0))
-        v_pe = None
-        if pe and pe_med and pe > 0:
-            v_pe = clamp((pe_med - pe) / pe_med + 0.5)
-        v_peg = None
-        if peg and peg > 0:
-            v_peg = clamp((1.5 - peg) / 1.5 + 0.25)
-        if v_pe is None and v_peg is None:
-            missing["valuation"] = missing.get("valuation",
-                                              0) + 1
-            f["valuation"] = 0.5
+        gates = {}
+        reasons = []
+        gates["below_sma"] = bool(sst and sst["below"])
+        if not gates["below_sma"]:
+            reasons.append("above long-SMA (not in "
+                           "accumulation zone)" if sst
+                           else "no price history")
         else:
-            parts = [x for x in (v_pe, v_peg) if x is not None]
-            f["valuation"] = sum(parts) / len(parts)
-        f["margin"] = 0.5
-        if om is not None and om_med is not None:
-            f["margin"] = clamp(0.5 + (om - om_med) / 30.0)
-        elif om is not None:
-            f["margin"] = clamp(om / 25.0)
+            n_gate["below_sma"] += 1
+        g_eps = None
+        if eps_q and len(eps_q) >= 5:
+            last4 = eps_q[-4:]
+            prev4 = eps_q[-5:-1]
+            g_eps = all(last4[i] > prev4[i]
+                        for i in range(4))
+        if g_eps is None:
+            sg = fnum(row.get("eps_yoy")
+                      or row.get("eps_g_yoy")
+                      or row.get("eps_growth_yoy"))
+            if sg is not None:
+                g_eps = sg > 0
+        gates["eps_up_every_q"] = bool(g_eps)
+        if g_eps:
+            n_gate["eps_seq"] += 1
+        elif eps_q:
+            reasons.append("EPS not up every quarter (y/y "
+                           "by qtr)")
         else:
-            missing["margin"] = missing.get("margin", 0) + 1
-        if om_chg is not None:
-            f["margin"] = clamp(0.7 * f["margin"]
-                                + 0.3 * clamp(0.5 + om_chg / 8))
-        f["roic"] = track("roic", roic)
-        if f["roic"] is None:
-            f["roic"] = clamp(roic / 25.0)
-        if roic_chg is not None:
-            f["roic"] = clamp(0.75 * f["roic"]
-                              + 0.25 * clamp(0.5 + roic_chg / 8))
-        f["boom"] = 0.5 if bsc is None else clamp(bsc / 100.0)
-        if bsc is None:
-            missing["boom"] = missing.get("boom", 0) + 1
-        tech = 0.5
-        if rs63 is not None:
-            tech = clamp(0.5 + rs63 / 30.0)
-        if db == "CONFIRMED":
-            tech = clamp(tech + 0.25)
-        elif db == "FORMING":
-            tech = clamp(tech + 0.12)
-        f["technical"] = tech
+            reasons.append("no quarterly EPS in census")
+        dil = None
+        if shares_q and len(shares_q) >= 5 and shares_q[-5]:
+            dil = (shares_q[-1] / shares_q[-5] - 1) * 100
+        if dil is None:
+            dil = fnum(row.get("shares_chg_1y_pct")
+                       or row.get("share_count_chg_yoy")
+                       or row.get("dilution_1y_pct"))
+        gates["dilution_ok"] = (dil is None) or dil <= 4.0
+        if dil is not None and dil > 4.0:
+            reasons.append("diluted shares +%.1f%%/yr" % dil)
+        else:
+            n_gate["dilution"] += 1
+        gates["margin_floor"] = True
+        if margin_now is not None and ind_margin is not None \
+                and margin_now < ind_margin * 0.9:
+            gates["margin_floor"] = False
+            reasons.append("margin below industry")
+        else:
+            n_gate["margin_floor"] += 1
 
-        W = {"eps_growth": 14, "rev_growth": 12, "accel": 13,
-             "fcf": 12, "valuation": 14, "margin": 9,
-             "roic": 10, "boom": 8, "technical": 8}
-        score = sum(f[k] * W[k] for k in W)
-        cats = cat_by_t.get(t, [])
-        cat_bonus = min(6, 3 * len(cats))
+        pillars = {}
+        beats = warm_fmp(sym, "sur", "earnings-surprises/" + sym)\
+            if gates["below_sma"] else None
+        if isinstance(beats, list) and beats:
+            b4 = beats[:4]
+            n_beat = sum(1 for b in b4
+                         if fnum(b.get("actualEarningResult"))
+                         is not None
+                         and fnum(b.get("estimatedEarning"))
+                         is not None
+                         and fnum(b["actualEarningResult"])
+                         > fnum(b["estimatedEarning"]))
+            mag = []
+            for b in b4:
+                a, e = fnum(b.get("actualEarningResult")), \
+                    fnum(b.get("estimatedEarning"))
+                if a is not None and e not in (None, 0):
+                    mag.append((a / abs(e) - 1) * 100)
+            pillars["revisions_beats"] = round(clamp(
+                n_beat * 15 + (sum(mag) / len(mag) if mag
+                               else 0)), 1)
+        else:
+            pillars["revisions_beats"] = None
+        acc = None
+        if acc is None and not (eps_q and len(eps_q) >= 4):
+            sg = fnum(row.get("eps_yoy")
+                      or row.get("eps_g_yoy"))
+            rg = fnum(row.get("rev_yoy")
+                      or row.get("revenue_yoy")
+                      or row.get("rev_g_yoy"))
+            if sg is not None or rg is not None:
+                acc = round(clamp(
+                    (clamp(sg or 0, -20, 60))
+                    + (clamp(rg or 0, -10, 30))), 1)
+        if eps_q and len(eps_q) >= 4:
+            ge = growth_seq(eps_q[-4:])
+            gr = growth_seq(rev_q[-4:]) if rev_q and \
+                len(rev_q) >= 4 else []
+            sc = 0.0
+            if len(ge) >= 2:
+                sc += clamp(ge[-1], -20, 60)
+                if ge[-1] > ge[0]:
+                    sc += 20
+            if len(gr) >= 2:
+                sc += clamp(gr[-1], -10, 30)
+                if gr[-1] > gr[0]:
+                    sc += 15
+            acc = round(clamp(sc), 1)
+        pillars["accel"] = acc
+        f = None
+        if not (fcfps_q and len(fcfps_q) >= 5):
+            fg2 = fnum(row.get("fcf_yoy")
+                       or row.get("fcf_growth_yoy")
+                       or row.get("fcfps_yoy"))
+            if fg2 is not None:
+                f = round(clamp(fg2 + 25, 0, 100), 1)
+        if fcfps_q and len(fcfps_q) >= 5 and fcfps_q[-5]:
+            fg = (fcfps_q[-1] / abs(fcfps_q[-5]) - 1) * 100
+            f = round(clamp(fg + 25, 0, 100), 1)
+        pillars["fcf_growth"] = f
+        val = 0.0
+        vparts = 0
+        peg = peg_col
+        if peg is not None:
+            val += clamp((1.5 - peg) * 60, 0, 60)
+            vparts += 1
+        if peg is None and fpe and eps_q and len(eps_q) >= 5 \
+                and eps_q[-5]:
+            gy = (eps_q[-1] / abs(eps_q[-5]) - 1) * 100
+            if gy > 0:
+                peg = fpe / gy
+                val += clamp((1.5 - peg) * 60, 0, 60)
+                vparts += 1
+        if pe and ind_pe and ind_pe > 0:
+            val += clamp((1 - pe / ind_pe) * 60, 0, 25)
+            vparts += 1
+        if fcf_yield is not None:
+            val += clamp(fcf_yield * 4, 0, 15)
+            vparts += 1
+        pillars["valuation_vs_growth"] = round(val, 1) \
+            if vparts else None
+        rs = rel_strength(closes, spy)
+        db_col = row.get("double_bottom")
+        db = ({"formed": bool(db_col), "src": "census"}
+              if db_col is not None
+              else double_bottom(closes))
+        cats = []
+        if deal_by_sym.get(sym):
+            for d in deal_by_sym[sym][:3]:
+                cats.append(d)
+        bsc = league.get(industry)
+        if bsc is not None and bsc >= boom_med * 1.15:
+            cats.append({"class": "booming-industry",
+                         "headline": "%s boom score %.0f"
+                         % (industry[:28], bsc)})
+        if acc and acc >= 60:
+            cats.append({"class": "earnings-inflection",
+                         "headline": "EPS/revenue growth "
+                                     "accelerating"})
+        px = 0.0
+        if rs is not None:
+            px += clamp(50 + rs * 3)
+        if db and db.get("formed"):
+            px += 25
+        if cats:
+            px += 15
+        pillars["catalyst_rs"] = round(clamp(px), 1) \
+            if (rs is not None or cats) else None
+        q = 0.0
+        if roic is not None:
+            q += clamp(roic * 2.5, 0, 6)
+        if margin_q and len(margin_q) >= 4 and \
+                margin_q[-1] > margin_q[-4]:
+            q += 2
         if backlog:
-            cat_bonus = min(8, cat_bonus + 2)
-        score = round(min(100.0, score + cat_bonus), 1)
-
-        out_rows.append({
-            "ticker": t,
-            "name": r.get("name") or r.get("company"),
-            "sector": sec,
-            "score": score,
-            "last": round(last, 2),
-            "sma250_gap_pct": round((last / sma - 1) * 100, 1),
-            "rsi14": round(rsi, 1),
-            "eps_yoy_pct": eps_y,
-            "rev_yoy_pct": rev_y,
-            "peg": peg, "pe": pe,
-            "sector_pe_med": (round(pe_med, 1)
-                              if pe_med else None),
-            "roic_pct": roic,
-            "op_margin_pct": om,
-            "margin_edge_pp": (round(om - om_med, 1)
-                               if om is not None
-                               and om_med is not None else None),
-            "fcf_margin_pct": fcfm,
-            "boom_score": bsc,
-            "rs_63_pp": (round(rs63, 1)
-                         if rs63 is not None else None),
+            q += 2
+        wts = {"revisions_beats": 0.25, "accel": 0.25,
+               "fcf_growth": 0.15,
+               "valuation_vs_growth": 0.15,
+               "catalyst_rs": 0.20}
+        num = den = 0.0
+        for k2, w in wts.items():
+            v = pillars.get(k2)
+            if v is not None:
+                num += v * w
+                den += w
+        score = round((num / den if den else 0) + q, 1)
+        all_gates = all(gates.values())
+        tier = ("EXPLOSIVE-SETUP" if all_gates and score >= 70
+                and cats else
+                "SETUP" if all_gates and score >= 55 else
+                "WATCH" if gates["below_sma"] and score >= 45
+                else "SCREENED")
+        rows_out.append({
+            "symbol": sym, "name": str(name)[:48],
+            "sector": sector, "industry": industry[:36],
+            "score": score, "tier": tier,
+            "gates": gates, "gate_reasons": reasons[:4],
+            "pillars": pillars,
+            "peg": round(peg, 2) if peg else None,
+            "pe": pe, "roic": roic, "dilution_yr_pct":
+                round(dil, 1) if dil is not None else None,
+            "backlog": backlog,
+            "sma": sst, "rs_3m_vs_spy": rs,
             "double_bottom": db,
             "catalysts": cats[:4],
-            "backlog": backlog,
-            "factors": {k: round(v, 2) for k, v in f.items()},
-            "why": "why.html?ticker=" + t,
-        })
-
-    out_rows.sort(key=lambda x: -x["score"])
+            "why": "why.html?symbol=" + sym})
+    rows_out.sort(key=lambda r: (-(r["tier"] ==
+                                   "EXPLOSIVE-SETUP"),
+                                 -(r["tier"] == "SETUP"),
+                                 -r["score"]))
     payload = {
-        "schema_version": "1.0",
+        "schema_version": 1,
         "engine": "justhodl-stock-buying",
         "as_of": datetime.now(timezone.utc).isoformat(
             timespec="seconds"),
-        "doctrine": "accumulation screener: buy-zone technicals "
-                    "(under SMA250 + RSI<35) gated by quality "
-                    "(no dilution, positive EPS), ranked by "
-                    "Khalid's 9-factor institutional composite "
-                    "with catalyst/backlog bonus; missing fields "
-                    "score neutral and are counted, never faked",
-        "gate_census": gate_census,
-        "missing_factor_counts": missing,
-        "n_candidates": len(out_rows),
-        "rows": out_rows[:60],
-    }
+        "census_source": ck, "census_mode": cmode,
+        "matrix_probe": globals().get("_MXP"),
+        "census_fields_sample": field_census,
+        "n_universe": len(crows), "n_scored": len(rows_out),
+        "gates_summary": n_gate,
+        "fmp_key": bool(FMP_KEY),
+        "tiers": {t: sum(1 for r in rows_out
+                         if r["tier"] == t)
+                  for t in ("EXPLOSIVE-SETUP", "SETUP",
+                            "WATCH", "SCREENED")},
+        "top": rows_out[:60],
+        "doctrine": ("largest POSITIVE CHANGE not yet priced: "
+                     "gates(≤long-SMA, EPS up every q, no "
+                     "dilution, margin floor) · five-core "
+                     "weights(revisions 25/accel 25/FCF 15/"
+                     "val-vs-growth 15/catalyst+RS 20) · Davis "
+                     "double play: EPS +40% with P/E 12→20 = "
+                     "+133%")}
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                   Body=json.dumps(payload).encode(),
                   ContentType="application/json")
-    return {"ok": True, "candidates": len(out_rows)}
+    return {"n": len(rows_out)}
