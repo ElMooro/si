@@ -1,4 +1,4 @@
-"""ops 4654 — CATALYST engine v1.0.0: Khalid's revaluation-forcer
+"""ops 4654 r2 — Active-state wait after create (Pending-invoke race) + conflict-retry invoke. CATALYST engine v1.0.0: Khalid's revaluation-forcer
 taxonomy fused from in-fleet primaries (PR tape, XBRL backlog/EPS,
 census buyback/debt/margin, industry boom, commodity/rate macro).
 Create-capable, hourly, evidence-truth table, stock-buying join.
@@ -115,9 +115,34 @@ def main():
             except Exception as e:
                 r.warn("schedule: %s" % str(e)[:90])
 
+        for att in range(15):
+            try:
+                st2 = lam.get_function_configuration(
+                    FunctionName=FN)
+                if st2.get("State") == "Active" \
+                        and st2.get("LastUpdateStatus") \
+                        != "InProgress":
+                    break
+            except Exception:
+                pass
+            time.sleep(10)
+        r.log("function state: %s" % st2.get("State"))
+
         r.section("run + catalyst truth")
-        inv = lam.invoke(FunctionName=FN,
-                         InvocationType="RequestResponse")
+        inv = None
+        for att in range(8):
+            try:
+                inv = lam.invoke(
+                    FunctionName=FN,
+                    InvocationType="RequestResponse")
+                break
+            except Exception as e:
+                if "ResourceConflict" in str(e) \
+                        or "Pending" in str(e):
+                    time.sleep(15)
+                    continue
+                raise
+        assert inv is not None, "invoke never succeeded"
         r.kv(fn_error=inv.get("FunctionError"))
         pl = json.loads(s3.get_object(
             Bucket=B, Key="data/catalyst.json")["Body"].read())
