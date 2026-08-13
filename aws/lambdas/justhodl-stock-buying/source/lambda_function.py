@@ -152,7 +152,11 @@ def load_census():
             rows = []
             names = list(C.keys())
             for i, t in enumerate(tk):
-                r2 = {"symbol": t}
+                r2 = {"symbol": t,
+                      "sector": (doc.get("sectors")
+                                 or [None] * len(tk))[i],
+                      "industry": (doc.get("industries")
+                                   or [None] * len(tk))[i]}
                 for nm in names:
                     col = C[nm]
                     if isinstance(col, list) and i < len(col):
@@ -359,7 +363,8 @@ def lambda_handler(event=None, context=None):
                           or row.get("op_margin_ttm"))
         margin_q = qseq(row, ("op_margin_q", "opMargin_q",
                               "operatingMargin_q"))
-        roic = fnum(row.get("roic") or row.get("ROIC")
+        roic = fnum(row.get("roic_pct")
+                    or row.get("roic") or row.get("ROIC")
                     or row.get("roic_ttm")
                     or row.get("roicTTM"))
         pe = fnum(row.get("pe") or row.get("peTTM")
@@ -621,6 +626,61 @@ def lambda_handler(event=None, context=None):
                                    "EXPLOSIVE-SETUP"),
                                  -(r["tier"] == "SETUP"),
                                  -r["score"]))
+    # ── LANE B: broad technical universe (closes-store tickers
+    # beyond the census). Real technicals now; fundamentals via
+    # FMP the moment the key renews (fmp_status is honest).
+    try:
+        _fvdoc = s3_json("data/finviz-universe.json") or {}
+        globals()["_FV"] = _fvdoc.get("by_ticker") or {}
+    except Exception:
+        globals()["_FV"] = {}
+    seen = {r0["symbol"] for r0 in rows_out}
+    seen |= {str(x.get("symbol") or "") for x in crows}
+    nb = nb_pass = 0
+    for tk2, closes2 in (ser or {}).items():
+        t2 = str(tk2).upper()
+        if t2 in seen or t2 in ("SPY",):
+            continue
+        nb += 1
+        if not isinstance(closes2, list) or len(closes2) < 60:
+            continue
+        cl2 = [float(x) for x in closes2
+               if isinstance(x, (int, float))]
+        sst2 = sma_state(cl2)
+        if not (sst2 and sst2.get("below")):
+            continue
+        rs2 = rel_strength(cl2, spy)
+        db2 = double_bottom(cl2)
+        fvj = (globals().get("_FV") or {}).get(t2) or {}
+        nb_pass += 1
+        tech_score = round(50
+                           + (rs2 or 0) * 0.6
+                           + (12 if db2 else 0)
+                           - min(20, abs(sst2.get("gap_pct")
+                                         or 0) * 0.3), 1)
+        rows_out.append({
+            "symbol": t2,
+            "name": fvj.get("company") or fvj.get("name") or "",
+            "sector": fvj.get("sector") or "",
+            "industry": (fvj.get("industry") or "")[:36],
+            "lane": "BROAD",
+            "score": tech_score,
+            "tier": "TECH-WATCH",
+            "gates": {"below_sma": True},
+            "gate_reasons": ["broad lane: technicals real; "
+                            "fundamentals pending FMP key"],
+            "pillars": {}, "khalid_five": khalid_five(
+                {"roic_pct": None}, globals().get("_US10Y"),
+                globals().setdefault("_KMISS", {})),
+            "pe": None, "peg": None, "roic": None,
+            "sma": sst2, "rs_3m_vs_spy": rs2,
+            "double_bottom": db2,
+            "catalysts": [], "backlog": None,
+            "why": "why.html?ticker=" + t2})
+    globals()["_LANES"] = {"census": len(crows),
+                           "broad_seen": nb,
+                           "broad_below_sma": nb_pass}
+
     payload = {
         "schema_version": 1,
         "engine": "justhodl-stock-buying",
@@ -636,6 +696,7 @@ def lambda_handler(event=None, context=None):
         "us10y_pct": globals().get("_US10Y"),
         "khalid_five_missing": globals().get("_KMISS"),
         "census_fields_sample": field_census,
+        "lanes": globals().get("_LANES"),
         "n_universe": len(crows), "n_scored": len(rows_out),
         "gates_summary": n_gate,
         "fmp_key": bool(FMP_KEY),

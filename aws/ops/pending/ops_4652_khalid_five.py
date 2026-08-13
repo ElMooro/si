@@ -1,4 +1,4 @@
-"""[r8 broad-universe recon + FMP field dump] ops 4652 — Khalid's five priority metrics first-class on the
+"""[r9 v1.2.0 lanes+joins gate] ops 4652 — Khalid's five priority metrics first-class on the
 # r3 ping: run with checkout v1.1.0 (engine-only push does not trigger)
 stock-buying screener (v1.1.0): PEG<1, net issuance/(retirement),
 basic shares QoQ%, Rev+EPS acceleration QoQ pp, ROIC vs US10Y
@@ -90,13 +90,13 @@ def main():
                 src = zf2.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-stock-buying v1.1.1" in src:
+                if "justhodl-stock-buying v1.2.0" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
-        misses += contract(r, "deploy", settled, "v1.1.1 live")
+        misses += contract(r, "deploy", settled, "v1.2.0 live")
         if not settled:
             sys.exit(1)
 
@@ -173,6 +173,18 @@ def main():
                  [e.get("symbol") for e in elig[:8]]))
         und = [x for x in rows
                if (x.get("gates") or {}).get("below_sma")]
+        lanes = pl.get("lanes") or {}
+        sec_ok = sum(1 for x in rows
+                     if (x.get("sector") or "").strip())
+        r.kv(lanes=json.dumps(lanes), sectors_nonblank=sec_ok)
+        misses += contract(r, "lanes",
+                           (lanes.get("broad_below_sma") or 0)
+                           >= 40,
+                           "broad lane live: %s" % lanes)
+        misses += contract(r, "sector-join",
+                           sec_ok >= 40,
+                           "%d/%d top rows carry sector"
+                           % (sec_ok, len(rows)))
         r.log("below_sma rows: %d %s"
               % (len(und), [u.get("symbol") for u in und[:10]]))
         gk = next((k for k in ("gates", "gate_census",
