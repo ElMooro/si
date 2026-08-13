@@ -1,4 +1,4 @@
-"""justhodl-top-signals v1.0.0 (ops 4648)
+"""justhodl-top-signals v1.0.1 (ops 4648)
 
 Khalid's TradingView GLOBAL LIQUIDITY list as a TREND-REVERSAL
 engine — doctrine #1: liquidity rules over earnings over
@@ -56,7 +56,7 @@ ST_BUDGET = {"n": 2}     # STOXX txt (single cached doc)
 VN_BUDGET = {"n": 2}     # TCBS (single cached doc)
 TE_BUDGET = {"n": 14}
 CC_BUDGET = {"n": 3}
-BN_BUDGET = {"n": 40}
+BN_BUDGET = {"n": 60}
 CRYPTO_PREFIXES = ("BINANCE", "BYBIT", "CRYPTO", "COINBASE",
                    "KRAKEN", "BITSTAMP", "OKX", "MEXC")
 CC_MAP = {"CRYPTOCAP:TOTAL": ("mcap", "total_mcap_usd"),
@@ -1693,6 +1693,12 @@ def lambda_handler(event, context):
                 fb = fred_fallback(sym, budget)
                 if fb:
                     node = fb
+            if sym.split(":", 1)[0] in CRYPTO_PREFIXES \
+                    and len(extract_series(node) or []) < 15:
+                up = crypto_ma200_series(sym) \
+                    or binance_fallback(sym, BN_BUDGET)
+                if up:
+                    node = up
             if (node is None or not extract_series(node)) \
                     and any(op in sym for op in "-/+") \
                     and ":" in sym and sym not in CC_MAP:

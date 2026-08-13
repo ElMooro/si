@@ -107,14 +107,14 @@ def main():
                 src = zf2.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-top-signals v1.0.0" in src:
+                if "justhodl-top-signals v1.0.1" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
         misses += contract(r, "deploy", settled,
-                           "v1.0.0 live (created=%s)" % created)
+                           "v1.0.1 live (created=%s)" % created)
         if not settled:
             sys.exit(1)
         try:
