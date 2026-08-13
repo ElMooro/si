@@ -1,4 +1,4 @@
-"""[r6 page-v2 rebind edge cycle] ops 4652 — Khalid's five priority metrics first-class on the
+"""[r7 accel-zero forensics] ops 4652 — Khalid's five priority metrics first-class on the
 # r3 ping: run with checkout v1.1.0 (engine-only push does not trigger)
 stock-buying screener (v1.1.0): PEG<1, net issuance/(retirement),
 basic shares QoQ%, Rev+EPS acceleration QoQ pp, ROIC vs US10Y
@@ -109,6 +109,21 @@ def main():
             Key="data/stock-buying.json")["Body"].read())
         rows = pl.get("top") or pl.get("rows") or []
         r.log("payload keys: %s" % sorted(pl.keys()))
+        r.log("fmp_key: %s | gates_summary: %s"
+              % (pl.get("fmp_key"),
+                 json.dumps(pl.get("gates_summary") or {})))
+        elig = [x for x in rows
+                if (x.get("gates") or {}).get("below_sma")
+                and ((x.get("khalid_five") or {})
+                     .get("peg_lt_1"))
+                and (x.get("gates") or {}).get("dilution_ok")]
+        r.log("fetch-eligible (below_sma+peg<1+dil_ok): %d %s"
+              % (len(elig),
+                 [e.get("symbol") for e in elig[:8]]))
+        und = [x for x in rows
+               if (x.get("gates") or {}).get("below_sma")]
+        r.log("below_sma rows: %d %s"
+              % (len(und), [u.get("symbol") for u in und[:10]]))
         gk = next((k for k in ("gates", "gate_census",
                                "n_gate", "funnel")
                    if isinstance(pl.get(k), dict)), None)
