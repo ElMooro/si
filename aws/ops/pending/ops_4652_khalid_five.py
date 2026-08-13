@@ -173,6 +173,44 @@ def main():
                  [e.get("symbol") for e in elig[:8]]))
         und = [x for x in rows
                if (x.get("gates") or {}).get("below_sma")]
+        try:
+            mxb = json.loads(s3.get_object(
+                Bucket=B, Key="data/fundamental-census-matrix"
+                ".json")["Body"].read())
+            cb = mxb.get("cols") or {}
+            bl_hits = sorted(k for k in cb
+                             if "backlog" in k.lower())
+            r.log("matrix backlog cols: %s" % bl_hits)
+            tks = mxb.get("tickers") or []
+            for probe_t in ("CAT", "BA", "LMT", "AAPL"):
+                if probe_t in tks:
+                    i2 = tks.index(probe_t)
+                    vals = {h: cb[h][i2] for h in bl_hits[:5]}
+                    r.log("  %s: %s" % (probe_t,
+                                        json.dumps(vals)[:160]))
+        except Exception as e:
+            r.warn("backlog matrix: %s" % str(e)[:80])
+        try:
+            pg3 = s3.list_objects_v2(Bucket=B, Prefix="data/",
+                                     MaxKeys=1000)
+            bks = [o["Key"] for o in pg3.get("Contents") or []
+                   if "backlog" in o["Key"].lower()]
+            r.log("backlog stores: %s" % bks[:6])
+            for bk in bks[:2]:
+                bd = json.loads(s3.get_object(
+                    Bucket=B, Key=bk)["Body"].read())
+                r.log("  %s keys=%s" % (bk,
+                                        list(bd.keys())[:10]))
+                rws = bd.get("rows") or bd.get("by_ticker")                     or bd.get("companies") or []
+                if isinstance(rws, dict):
+                    k0 = sorted(rws.keys())[0]
+                    r.log("  by_ticker[%s]=%s"
+                          % (k0, json.dumps(rws[k0])[:200]))
+                elif isinstance(rws, list) and rws:
+                    r.log("  row0=%s"
+                          % json.dumps(rws[0])[:220])
+        except Exception as e:
+            r.warn("backlog stores: %s" % str(e)[:80])
         lanes = pl.get("lanes") or {}
         sec_ok = sum(1 for x in rows
                      if (x.get("sector") or "").strip())
