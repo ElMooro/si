@@ -1,4 +1,4 @@
-"""ops 4651 r8 — v1.0.4 probe-on-every-write keys + engine matrix_probe dump: best-setups census_idx replica + S3 object listing; cols|metrics alias, v1.0.3 settled rerun; columnar loader (consumer-verified shape) + scalar fallbacks.
+"""ops 4651 r9 — CloudWatch crash confession (invoke-scoped) keys + engine matrix_probe dump: best-setups census_idx replica + S3 object listing; cols|metrics alias, v1.0.3 settled rerun; columnar loader (consumer-verified shape) + scalar fallbacks.
 
 FMP key injected from fmp-fundamentals-agent env; create-capable
 deploy; hourly schedule; invoke; truth table with pillar scores;
@@ -227,8 +227,28 @@ def main():
             r.warn("probe read: %s" % str(e)[:80])
 
         r.section("run + institutional truth")
+        t_inv = time.time()
         inv = lam.invoke(FunctionName=FN,
                          InvocationType="RequestResponse")
+        if inv.get("FunctionError"):
+            try:
+                time.sleep(10)
+                logs = boto3.client("logs",
+                                    region_name="us-east-1")
+                evs = logs.filter_log_events(
+                    logGroupName="/aws/lambda/" + FN,
+                    startTime=int((t_inv - 5) * 1000))
+                tail = "".join(e["message"] for e in
+                               (evs.get("events")
+                                or []))[-3500:]
+                for ln in tail.splitlines():
+                    ls = ln.strip()
+                    if ls and ("Error" in ls
+                               or "File \"" in ls
+                               or ls.startswith("raise")):
+                        r.log("CW| " + ls[:170])
+            except Exception as e:
+                r.warn("cw: %s" % str(e)[:80])
         r.kv(fn_error=inv.get("FunctionError"))
         if inv.get("FunctionError"):
             time.sleep(10)
