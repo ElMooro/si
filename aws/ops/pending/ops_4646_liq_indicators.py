@@ -202,6 +202,19 @@ def main():
                     break
             except Exception as e:
                 r.log("edge %d: %s" % (att + 1, str(e)[:70]))
+            if not (page_ok and pay_ok):
+                try:
+                    r.log("edge probe %d: page_ok=%s len=%s "
+                          "head=%s | pay_ok=%s keys=%s"
+                          % (att + 1, page_ok,
+                             len(pg) if 'pg' in dir() else '?',
+                             (pg[:60].replace(chr(10), ' ')
+                              if 'pg' in dir() else '?'),
+                             pay_ok,
+                             list(jd.keys())[:6]
+                             if 'jd' in dir() else '?'))
+                except Exception:
+                    pass
             time.sleep(20)
         misses += contract(r, "edge", page_ok and pay_ok,
                            "page + payload at the edge")
