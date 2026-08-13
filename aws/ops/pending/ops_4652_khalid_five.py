@@ -1,4 +1,5 @@
 """ops 4652 — Khalid's five priority metrics first-class on the
+# r3 ping: run with checkout v1.1.0 (engine-only push does not trigger)
 stock-buying screener (v1.1.0): PEG<1, net issuance/(retirement),
 basic shares QoQ%, Rev+EPS acceleration QoQ pp, ROIC vs US10Y
 (Buffett hurdle via fleet-join FRED:DGS10). EXPLOSIVE tier now
