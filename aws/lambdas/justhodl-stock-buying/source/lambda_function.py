@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.0.2 (ops 4651)
+"""justhodl-stock-buying v1.0.3 (ops 4651)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -147,7 +147,7 @@ def load_census():
         if isinstance(doc, dict) else None}
     if isinstance(doc, dict):
         tk = doc.get("tickers") or []
-        C = doc.get("cols") or {}
+        C = doc.get("cols") or doc.get("metrics") or {}
         if tk and isinstance(C, dict) and C:
             rows = []
             names = list(C.keys())
