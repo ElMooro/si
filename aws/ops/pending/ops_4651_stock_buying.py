@@ -351,6 +351,16 @@ def main():
                      p.get("catalyst_rs"), x.get("peg"),
                      (x.get("catalysts") or [{}])[0].get(
                          "class", "")[:18]))
+        r.kv(us10y=pl.get("us10y"),
+             n_qoq=len(pl.get("qoq_by_symbol") or {}))
+        gts = pl.get("gates") or pl.get("gate_census") or {}
+        r.log("gate funnel: %s" % json.dumps(gts))
+        misses += contract(r, "buffett",
+                           isinstance(pl.get("us10y"),
+                                      (int, float))
+                           and 2.0 <= pl["us10y"] <= 7.0,
+                           "US10Y %s wired into ROIC spread"
+                           % pl.get("us10y"))
         misses += contract(r, "universe",
                            (pl.get("n_universe") or 0) >= 300,
                            "%s companies in census universe"
