@@ -208,7 +208,7 @@ def main():
 
         r.section("verdict")
         if misses:
-            r.fail("dxy-predict: %d red" % misses)
+            r.fail("liq-indicators: %d red" % misses)
             sys.exit(1)
         r.ok("LIQ INDICATORS LIVE — list '%s': %s/%s resolved, %d "
              "signed rows · TREND %s (%s) · REVERSAL %s (%s) · "
