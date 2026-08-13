@@ -1,34 +1,38 @@
-executing-against: f79a1b31a33a6696e8f9651c99775af548b7ccab
+executing-against: c8fb4d96557bdc1b93c25a70e64e31f2fd854327
 ops 4643 — DXY predict-the-future engine
-── pre-dump: liquidity-indicator list candidates ──
-[01:19:25] ✅   [list-exists] liquidity-indicator list present: [('10 YR High Quality Market (HQM)  - PREDICT FUTURE LIQUIDITY TREND REVERSAL', 2), ('Bank Reserves - Great Barometer of Liquidity in the System', 2), ('Banking Sector : Banks = Liquidity Proxy Everywhere. Bank stocks follow bitcoin and  liquidity trends.', 129)]
+── pre-dump: macro-predict list candidates ──
+[01:39:08] ✅   [list-exists] macro-predict list present: [('Bitcoin : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.', 437), ('Bonds - Sovereign : Bonds dumping especially sovereign bonds dumping is a major Warning signal that macro is deteriorati', 11), ('BONDS : Fixed income tends to lean itself toward macro more than equities thats more micro', 103)]
 ── deploy (ops-side) + settle + schedule ──
-[01:19:26] ✅   [deploy] v1.0.0 live (created=False)
+[01:39:24] ✅   [deploy] v1.0.0 live (created=False)
+[01:39:25] hourly schedule created
 ── run + dxy truth ──
-[01:19:38] FRED:CPFF                  pol=-1 trend=UP    rev=REVERSAL_DOWN  z=1.59
-[01:19:38] FRED:CASACBW027SBOG        pol=+1 trend=UP    rev=NONE           z=1.55
-[01:19:38] FRED:WLCFLL                pol=-1 trend=UP    rev=REVERSAL_DOWN  z=1.29
-[01:19:38] FRED:NFCILEVERAGE          pol=-1 trend=UP    rev=REVERSAL_DOWN  z=1.0
-[01:19:38] FRED:BAMLH0A0HYM2          pol=-1 trend=UP    rev=NONE           z=0.67
-[01:19:38] TVC:MOVE                   pol=-1 trend=UP    rev=REVERSAL_DOWN  z=0.6
-[01:19:38] FRED:TOTBKCR               pol=+1 trend=UP    rev=NONE           z=0.52
-[01:19:38] FRED:TOTRESNS              pol=+1 trend=DOWN  rev=NONE           z=0.45
-[01:19:38] FRED:BOGMBASE              pol=+1 trend=UP    rev=NONE           z=0.42
-[01:19:38] FRED:RRPONTSYD             pol=-1 trend=DOWN  rev=REVERSAL_UP    z=0.28
-[01:19:38] FRED:NFCI                  pol=-1 trend=DOWN  rev=NONE           z=0.19
-[01:19:38] FRED:WTREGEN               pol=-1 trend=DOWN  rev=NONE           z=0.09
-[01:19:38] ✅   [list-found] list 'LIQUIDITY INDICATORS (2 lists)' (202 members)
-[01:19:38] ✅   [resolution] 153/202 resolved (shared cache pool)
-[01:19:38] ✅   [polarity] 12 mechanically-signed rows
-[01:19:38] ✅   [dials] LIQ TREND 0.0 (MIXED) · REVERSAL 25.0 (FORMING TURN TO EASE)
+[01:39:32] ✅   [list-found] list 'MACRO PREDICT (1 lists)' (65 members)
+[01:39:32] ✅   [resolution] 47/65 resolved (shared cache pool)
+[01:39:32] ✗   [polarity] CONTRACT MISS — 0 mechanically-signed rows
+[01:39:32] ✗   [dials] CONTRACT MISS — MACRO TREND None (None) · REVERSAL None (None)
 ── edge (with CF purge) ──
-[01:19:38] CF purge: True
-[01:19:43] CONTROL dxy: len=6612 has_json=True
-[01:19:44] LIQ body: len=6426 count(liq)=8 fetch@3208 liq@326
-[01:19:44] slice@fetch: :'dim')); fetch('data/liq-indicators.json?cb='+Date.now()).then(r=>r.json()) .then(d=>{ document.getElementById('asof').
-[01:19:44] slice@liq: al" href="https://justhodl.ai/liq-indicators.html"> <meta property="og:title" content="Liquidity Indicators — JustHodl.A
-[01:19:45] ✅   [edge] page + payload at the edge
+[01:39:32] CF purge: True
+[01:39:37] CONTROL dxy: len=6612 has_json=True
+[01:39:37] ⚠ purge: HTTP Error 404: Not Found
+[01:39:38] edge 1: HTTP Error 404: Not Found
+[01:39:38] edge probe 1: page_ok=False len=? head=? | pay_ok=False keys=?
+[01:39:58] edge 2: HTTP Error 404: Not Found
+[01:39:58] edge probe 2: page_ok=False len=? head=? | pay_ok=False keys=?
+[01:40:18] edge 3: HTTP Error 404: Not Found
+[01:40:18] edge probe 3: page_ok=False len=? head=? | pay_ok=False keys=?
+[01:40:38] edge 4: HTTP Error 404: Not Found
+[01:40:38] edge probe 4: page_ok=False len=? head=? | pay_ok=False keys=?
+[01:40:58] edge 5: HTTP Error 404: Not Found
+[01:40:58] edge probe 5: page_ok=False len=? head=? | pay_ok=False keys=?
+[01:41:18] edge 6: HTTP Error 404: Not Found
+[01:41:18] edge probe 6: page_ok=False len=? head=? | pay_ok=False keys=?
+[01:41:38] edge 7: HTTP Error 404: Not Found
+[01:41:38] edge probe 7: page_ok=False len=? head=? | pay_ok=False keys=?
+[01:41:58] edge probe 8: page_ok=True len=6646 head=<!DOCTYPE html> <html lang="en"><head><script src="/jh-chart | pay_ok=False keys=['schema_version', 'engine', 'liquidity', 'as_of', 'list_name', 'family_lists']
+[01:42:18] edge probe 9: page_ok=True len=6646 head=<!DOCTYPE html> <html lang="en"><head><script src="/jh-chart | pay_ok=False keys=['schema_version', 'engine', 'liquidity', 'as_of', 'list_name', 'family_lists']
+[01:42:38] ✗   [edge] CONTRACT MISS — page + payload at the edge
 ── verdict ──
-[01:19:45] ✅ LIQ INDICATORS LIVE — list 'LIQUIDITY INDICATORS (2 lists)': 153/202 resolved, 12 signed rows · TREND 0.0 (MIXED) · REVERSAL 25.0 (FORMING TURN TO EASE) · https://justhodl.ai/liq-indicators.html
+[01:42:38] ✗ liq-indicators: 3 red
 
-→ Report written to aws/ops/reports/latest/4646_liq_indicators.md
+→ Report written to aws/ops/reports/latest/4647_macro_predict.md
+❌ OPS-FAIL: aws/ops/pending/ops_4647_macro_predict.py
