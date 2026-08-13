@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.0.0 (ops 4650)
+"""justhodl-stock-buying v1.0.1 (ops 4651)
 
 Khalid's institutional accumulation screener: buy-zone technicals
 (under SMA250, RSI<35, relative strength, double-bottom), hard
@@ -88,32 +88,49 @@ def clamp(x, lo=0.0, hi=1.0):
 
 
 def lambda_handler(event=None, context=None):
-    cen = s3_json("data/fundamental-census.json") or {}
     clo = s3_json("data/_ma200/closes.json") or {}
+    mx = s3_json("data/fundamental-census-matrix.json") or {}
+    cen = s3_json("data/fundamental-census.json") or {}
     boom = s3_json("data/industry-boom.json") or {}
     deals = s3_json("data/deal-scanner.json") or {}
 
-    crows = cen.get("rows") or cen.get("companies") or []
     cmap = {}
-    for r in crows:
-        t = r.get("ticker") or r.get("symbol")
-        if t:
-            cmap[str(t).upper()] = r
+    cols = mx.get("cols") or {}
+    tkey = next((k for k in ("ticker", "t", "symbol")
+                 if isinstance(cols.get(k), list)), None)
+    if tkey:
+        ticks = cols[tkey]
+        names = [k for k in cols
+                 if isinstance(cols[k], list)
+                 and len(cols[k]) == len(ticks)]
+        for i, t in enumerate(ticks):
+            if not t:
+                continue
+            cmap[str(t).upper()] = {c: cols[c][i]
+                                    for c in names}
+    if not cmap:
+        crows = cen.get("rows") or cen.get("companies") or []
+        for r in crows:
+            t = r.get("ticker") or r.get("symbol")
+            if t:
+                cmap[str(t).upper()] = r
     dates = clo.get("dates") or []
     ser = clo.get("series") or {}
     spy = ser.get("SPY")
 
-    boom_rows = boom.get("rows") or boom.get("industries") or []
+    boom_rows = boom.get("league") or boom.get("rows") or boom.get("industries") or []
     boom_by_name = {}
     for b in boom_rows:
         nm = str(b.get("industry") or b.get("name") or "").lower()
-        sc = b.get("score")
+        sc = b.get("boom_score")
+        if not isinstance(sc, (int, float)):
+            sc = b.get("score")
         if not isinstance(sc, (int, float)):
             sc = b.get("velocity")
         if nm and isinstance(sc, (int, float)):
             boom_by_name[nm] = float(sc)
 
-    drows = deals.get("rows") or deals.get("events") or []
+    drows = deals.get("deals") or deals.get("rows") or deals.get("events") or []
     cat_by_t = {}
     for d in drows:
         t = str(d.get("ticker") or d.get("symbol") or "").upper()
