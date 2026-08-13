@@ -1,19 +1,63 @@
 # ops 4652 — khalid-five on stock-buying
 
-**Status:** failure  
-**Duration:** 283.4s  
-**Finished:** 2026-08-13T20:37:31+00:00  
+**Status:** success  
+**Duration:** 7.6s  
+**Finished:** 2026-08-13T20:41:07+00:00  
 
-## Error
+## Data
 
-```
-SystemExit: 1
-```
+| accelerating | buffett_pass | fn_error | k5_missing | lanes | peg_lt_1 | retiring | sectors_nonblank | universe | us10y |
+|---|---|---|---|---|---|---|---|---|---|
+|  |  | None |  |  |  |  |  |  |  |
+|  |  |  |  | {"census": 498, "broad_seen": 727, "broad_below_sma": 107} |  |  | 60 |  |  |
+|  |  |  | {"shares_qoq(from_yoy/4)": 498, "eps_accel": 605, "rev_accel": 605, "peg": 112, "net_issuance": 107, "shares_qoq": 107, "roic": 107} |  |  |  |  | 60 | 4.7 |
+| 0 | 38 |  |  |  | 29 | 56 |  |  |  |
 
 ## Log
 ## matrix column-name evidence (five-relevant)
 
-- `20:32:48` ⚠ matrix: 'list' object has no attribute 'keys'
+- `20:40:59` ⚠ matrix: 'list' object has no attribute 'keys'
 ## deploy (ops-side) + settle
 
-- `20:37:31` ✗   [deploy] CONTRACT MISS — v1.2.0 live
+- `20:41:00` ✅   [deploy] v1.3.0 live
+## run + khalid-five truth
+
+- `20:41:05` payload keys: ['as_of', 'backlog_join_n', 'census_fields_sample', 'census_mode', 'census_source', 'cmode', 'crows_len', 'doctrine', 'engine', 'fmp_key', 'gates_summary', 'khalid_five_missing', 'lanes', 'matrix_probe', 'n_scored', 'n_universe', 'schema_version', 'tiers', 'top', 'us10y_pct']
+- `20:41:05` closes tickers: 1200
+- `20:41:06` finviz-universe: keys=['generated_at', 'source', 'n_tickers', 'n_with_short_float', 'by_ticker'] n=0 row0=<class 'list'>
+- `20:41:06` matrix has: double_bottom=True sectors[0..2]=['Technology', 'Technology', 'Consumer Cyclical']
+- `20:41:06` ⚠ fmp dump: HTTP Error 401: Unauthorized
+- `20:41:06` fmp_key: True | gates_summary: {"below_sma": 127, "eps_seq": 0, "dilution": 498, "margin_floor": 498}
+- `20:41:06` fetch-eligible (below_sma+peg<1+dil_ok): 1 ['ABT']
+- `20:41:06` matrix backlog cols: []
+- `20:41:06`   CAT: {}
+- `20:41:06`   BA: {}
+- `20:41:06`   LMT: {}
+- `20:41:06`   AAPL: {}
+- `20:41:06` backlog stores: []
+- `20:41:06` CENSUS n=60 nonnull: {"sector": 60, "peg": 0, "pe": 60, "roic": 60, "rs": 60, "db": 60, "gap": 0, "bklg": 2}
+- `20:41:06` BROAD n=0 nonnull: {"sector": 0, "peg": 0, "pe": 0, "roic": 0, "rs": 0, "db": 0, "gap": 0, "bklg": 0}
+- `20:41:06` pe-ish cols: ['pe_fwd', 'pe_ttm']
+- `20:41:06` margin cols: ['ebitda_margin_pct', 'fcf_margin_pct', 'gross_margin_pct', 'net_margin_pct', 'operating_margin_pct', 'pretax_margin_pct']
+- `20:41:07` finviz[A] = {"ticker": "A", "company": "Agilent Technologies Inc", "sector": "Healthcare", "industry": "Diagnostics & Research", "country": "USA", "market_cap": 42127.55, "pe": 29.96, "fwd_pe": 22.6, "peg": 2.41, "ps": 5.83, "pb": 5.91, "p_cash": 23.31, "p_fcf": 38.76, "div_yield": 0.69, "payout_ratio": 21.7, "eps_ttm": 4.98, "eps_growth_ty": 8.36, "
+- `20:41:07` ✅   [lanes] broad lane live: {'census': 498, 'broad_seen': 727, 'broad_below_sma': 107}
+- `20:41:07` ✅   [sector-join] 60/60 top rows carry sector
+- `20:41:07` below_sma rows: 5 ['ABT', 'NOW', 'CTSH', 'CDW', 'DPZ']
+- `20:41:07` funnel key=None val={}
+- `20:41:07` row keys: ['backlog', 'catalysts', 'dilution_yr_pct', 'double_bottom', 'gate_reasons', 'gates', 'industry', 'khalid_five', 'name', 'pe', 'peg', 'pillars', 'roic', 'rs_3m_vs_spy', 'score', 'sector', 'sma', 'symbol', 'tier', 'why']
+- `20:41:07` row sample: {"symbol": "DELL", "name": "", "sector": "Technology", "industry": "computer hardware", "score": 69.6, "tier": "SCREENED", "gates": {"below_sma": false, "eps_up_every_q": false, "dilution_ok": true, "margin_floor": true}, "gate_reasons": ["above long-SMA (not in accumulation zone)", "no quarterly EPS in census"], "pillars": {"revisions_beats": null, "accel": null, "fcf_growth": null, "valuation_vs_growth": 15.0, "catalyst_rs": 100.0}, "peg": null, "pe": 16.396, "roic": 49.061, "dilution_yr_pct":
+- `20:41:07` DELL   tier=SCREENED        peg=0.163 shQoQ=-1.64  eAcc=None   rAcc=None   roic-10y=44.36  buff=True
+- `20:41:07` ADP    tier=SCREENED        peg=2.109 shQoQ=-0.51  eAcc=None   rAcc=None   roic-10y=39.72  buff=True
+- `20:41:07` MPC    tier=SCREENED        peg=0.135 shQoQ=-1.44  eAcc=None   rAcc=None   roic-10y=6.9    buff=True
+- `20:41:07` HPQ    tier=SCREENED        peg=1.5   shQoQ=-0.81  eAcc=None   rAcc=None   roic-10y=48.23  buff=True
+- `20:41:07` BBY    tier=SCREENED        peg=0.344 shQoQ=-0.2   eAcc=None   rAcc=None   roic-10y=19.18  buff=True
+- `20:41:07` TMO    tier=SCREENED        peg=3.598 shQoQ=-0.46  eAcc=None   rAcc=None   roic-10y=3.58   buff=False
+- `20:41:07` DHR    tier=SCREENED        peg=1.752 shQoQ=-0.4   eAcc=None   rAcc=None   roic-10y=1.06   buff=False
+- `20:41:07` SYK    tier=SCREENED        peg=1.172 shQoQ=-0.03  eAcc=None   rAcc=None   roic-10y=7.18   buff=True
+- `20:41:07` ✅   [five-block] khalid_five on every row
+- `20:41:07` ✅   [us10y] US10Y fleet-join = 4.7
+- `20:41:07` ✅   [why-link] why links use house ?ticker= standard
+- `20:41:07` ✅   [signal-counts] peg<1:29 retiring:56 accel:0 buffett:38 (any nonzero proves the wiring; misses counted honestly)
+## verdict
+
+- `20:41:07` ✅ KHALID FIVE LIVE — us10y 4.7 · peg<1:29 · retiring:56 · accelerating:0 · buffett-pass:38
