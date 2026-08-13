@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.0.4 (ops 4651)
+"""justhodl-stock-buying v1.0.5 (ops 4651)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -253,7 +253,8 @@ def lambda_handler(event=None, context=None):
         industry = str(row.get("industry")
                        or row.get("Industry") or "").lower()
         sector = row.get("sector") or ""
-        closes = ser.get(sym)
+        closes = [float(c) for c in (ser.get(sym) or [])
+                  if isinstance(c, (int, float))]
         sst = sma_state(closes)
         eps_q = qseq(row, ("eps_q", "epsQuarters", "eps_quarterly",
                            "dilutedEPS_q", "eps_dil_q", "epsQ",
