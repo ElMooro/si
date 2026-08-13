@@ -1,16 +1,29 @@
-executing-against: 05ec5c68603ea6e740d633152453cdc6b2124b10
-ops 4652 — khalid-five on stock-buying
-── matrix column-name evidence (five-relevant) ──
-[18:15:08] ⚠ matrix: 'list' object has no attribute 'keys'
-── deploy (ops-side) + settle ──
-[18:15:09] ✅   [deploy] v1.1.0 live
-── run + khalid-five truth ──
-[18:15:30] ✗   [five-block] CONTRACT MISS — khalid_five on every row
-[18:15:30] ✅   [us10y] US10Y fleet-join = 4.7
-[18:15:30] ✗   [why-link] CONTRACT MISS — why links use house ?ticker= standard
-[18:15:30] ✗   [signal-counts] CONTRACT MISS — peg<1:0 retiring:0 accel:0 buffett:0 (any nonzero proves the wiring; misses counted honestly)
-── verdict ──
-[18:15:30] ✗ khalid-five: 3 red
+executing-against: a24553220528486384d3c196ddb13b2ea9371c0a
+ops 4651 — stock-buying flagship
+── FMP key donor -> engine env ──
+[18:21:38] key from fmp-fundamentals-agent.FMP_API_KEY (len=32)
+── authority probes ──
+[18:21:38] S3: data/fundamental-census-history.json (226 B, 2026-08-01 06:48)
+[18:21:38] S3: data/fundamental-census-matrix.json (1180010 B, 2026-08-01 06:48)
+[18:21:38] S3: data/fundamental-census.json (78138 B, 2026-08-01 06:48)
+[18:21:38] S3: data/fundamentals-decisive-call.json (657 B, 2026-08-13 13:20)
+[18:21:38] S3: data/fundamentals.json (13646 B, 2026-08-13 13:00)
+[18:21:38] ⚠ census_idx replica: '{' was never closed (cidx, line 56)
+── verbatim matrix truth ──
+[18:21:38] top keys: ['generated_at', 'n_tickers', 'n_metrics', 'tickers', 'sectors', 'industries', 'quality', 'turn', 'flagged', 'metrics', 'cols']
+[18:21:38]   generated_at -> str len=32
+[18:21:38]   n_tickers -> int len=-
+[18:21:38]   n_metrics -> int len=-
+[18:21:38]   tickers -> list len=498
+[18:21:38]   sectors -> list len=498
+[18:21:38]   industries -> list len=498
+[18:21:38]   quality -> list len=498
+[18:21:38]   turn -> list len=498
+── column census (293) + concept samples ──
+[18:21:38] ⚠ col census: 'list' object has no attribute 'keys'
+[18:21:38] US10Y via blackswan: last=None age=Noned
+── deploy (create-capable) + schedule ──
+[18:26:33] ✗   [deploy] CONTRACT MISS — v1.0.5 live (created=False)
 
-→ Report written to aws/ops/reports/latest/4652_khalid_five.md
-❌ OPS-FAIL: aws/ops/pending/ops_4652_khalid_five.py
+→ Report written to aws/ops/reports/latest/4651_stock_buying.md
+❌ OPS-FAIL: aws/ops/pending/ops_4651_stock_buying.py
