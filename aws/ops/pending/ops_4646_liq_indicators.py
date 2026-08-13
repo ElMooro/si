@@ -1,5 +1,5 @@
 """ops 4643 — DXY PREDICT THE FUTURE engine (Khalid's list, same
-# r6: Cloudflare purge before edge probes (new-page cold-cache pattern)
+# r7: body forensics + dxy control probe; CF purge (new-page cold-cache pattern)
 playbook): fork of the fully-evolved liquidity engine with a
 mechanical-only DXY polarity brain (FX pairs by USD side, currency
 indexes, US-vs-foreign tenor spreads by leg order), USD_UP/USD_DOWN
@@ -211,6 +211,30 @@ def main():
                     ok = json.loads(h.read()).get("success")
                 r.log("CF purge: %s" % ok)
                 time.sleep(5)
+        except Exception as e:
+            r.warn("purge: %s" % str(e)[:90])
+        try:
+            ctl = http_get("https://justhodl.ai/dxy-predict.html"
+                           "?cb=%d" % time.time()).decode(
+                "utf-8", "replace")
+            r.log("CONTROL dxy: len=%d has_json=%s"
+                  % (len(ctl), "dxy-predict.json" in ctl))
+            pg0 = http_get("https://justhodl.ai/"
+                           "liq-indicators.html?cb=%d"
+                           % time.time()).decode("utf-8",
+                                                 "replace")
+            i = pg0.find("fetch(")
+            j = pg0.find("liq")
+            r.log("LIQ body: len=%d count(liq)=%d "
+                  "fetch@%d liq@%d"
+                  % (len(pg0), pg0.count("liq"), i, j))
+            r.log("slice@fetch: " + pg0[max(0, i - 10):
+                                        i + 110].replace(
+                "\n", " ")[:150])
+            if j >= 0:
+                r.log("slice@liq: " + pg0[max(0, j - 30):
+                                          j + 90].replace(
+                    "\n", " ")[:150])
             else:
                 r.warn("CLOUDFLARE_API_TOKEN absent — probing "
                        "without purge")
