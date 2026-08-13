@@ -1,5 +1,5 @@
 """ops 4643 — DXY PREDICT THE FUTURE engine (Khalid's list, same
-# r5 ping: re-run with H1 + structural check in place
+# r6: Cloudflare purge before edge probes (new-page cold-cache pattern)
 playbook): fork of the fully-evolved liquidity engine with a
 mechanical-only DXY polarity brain (FX pairs by USD side, currency
 indexes, US-vs-foreign tenor spreads by leg order), USD_UP/USD_DOWN
@@ -184,7 +184,38 @@ def main():
                               dx.get("reversal_score"),
                               dx.get("reversal_label")))
 
-        r.section("edge")
+        r.section("edge (with CF purge)")
+        try:
+            import os as _os
+            cf = _os.environ.get("CLOUDFLARE_API_TOKEN", "")
+            if cf:
+                zreq = urllib.request.Request(
+                    "https://api.cloudflare.com/client/v4/zones"
+                    "?name=justhodl.ai",
+                    headers={"Authorization": "Bearer " + cf})
+                with urllib.request.urlopen(zreq,
+                                            timeout=20) as h:
+                    zid = json.loads(h.read())["result"][0]["id"]
+                preq = urllib.request.Request(
+                    "https://api.cloudflare.com/client/v4/zones/"
+                    + zid + "/purge_cache", method="POST",
+                    headers={"Authorization": "Bearer " + cf,
+                             "Content-Type": "application/json"},
+                    data=json.dumps({"files": [
+                        "https://justhodl.ai/"
+                        "liq-indicators.html",
+                        "https://justhodl.ai/data/"
+                        "liq-indicators.json"]}).encode())
+                with urllib.request.urlopen(preq,
+                                            timeout=20) as h:
+                    ok = json.loads(h.read()).get("success")
+                r.log("CF purge: %s" % ok)
+                time.sleep(5)
+            else:
+                r.warn("CLOUDFLARE_API_TOKEN absent — probing "
+                       "without purge")
+        except Exception as e:
+            r.warn("purge: %s" % str(e)[:90])
         page_ok = pay_ok = False
         for att in range(9):
             try:
