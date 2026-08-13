@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stock Buying — JustHodl.AI</title>
+<link rel="canonical" href="https://justhodl.ai/stock-buying.html">
+<style>
+body{background:#0b0f14;color:#dbe4ee;font:14px/1.45 -apple-system,
+Segoe UI,Roboto,sans-serif;margin:0;padding:18px}
+h1{font-size:19px;margin:0 0 4px}.sub{color:#7d8ea3;font-size:12px}
+.bar{display:flex;gap:26px;margin:14px 0;flex-wrap:wrap}
+.alarm{font-weight:700}.g{color:#3ddc84}.r{color:#ff5d5d}
+.a{color:#ffb84d}.dim{color:#7d8ea3}
+table{border-collapse:collapse;width:100%;margin-top:8px}
+th,td{padding:5px 8px;border-bottom:1px solid #1c2733;
+text-align:left;font-size:12.5px}
+th{color:#9fb2c8;position:sticky;top:0;background:#0b0f14}
+tr.rowx{cursor:pointer}tr.rowx:hover{background:#121a24}
+.tE{color:#3ddc84;font-weight:700}.tS{color:#8bd17c}
+.tW{color:#ffb84d}.tX{color:#5a6b7f}
+.pill{font-size:10.5px;color:#7d8ea3}
+</style></head><body>
+<h1>STOCK BUYING — LARGEST POSITIVE CHANGE</h1>
+<div class="sub">Khalid's flagship: gates(&le;long-SMA · EPS up
+every q · no dilution · margin floor) · five-core(revisions/
+accel/FCF/val-vs-growth/catalyst+RS) · Davis double play ·
+double-click a row for full analysis</div>
+<div class="bar">
+<div><div class="alarm" id="tE" style="font-size:22px">–</div>
+<div class="dim" style="font-size:11px">EXPLOSIVE-SETUP</div></div>
+<div><div class="alarm" id="tS" style="font-size:22px">–</div>
+<div class="dim" style="font-size:11px">SETUP</div></div>
+<div><div class="alarm" id="tW" style="font-size:22px">–</div>
+<div class="dim" style="font-size:11px">WATCH</div></div>
+<div><div class="alarm dim" id="uni" style="font-size:22px">–</div>
+<div class="dim" style="font-size:11px">UNIVERSE</div></div>
+<div><div class="alarm dim" id="asof" style="font-size:14px">–</div>
+<div class="dim" style="font-size:11px">AS OF</div></div>
+</div>
+<table><thead><tr>
+<th>Sym</th><th>Name</th><th>Tier</th><th>Score</th>
+<th>Beats/Rev</th><th>Accel</th><th>FCF</th><th>Val/Gr</th>
+<th>Cat+RS</th><th>PEG</th><th>ROIC</th><th>SMA</th>
+<th>DblBtm</th><th>Catalysts</th></tr></thead>
+<tbody id="R"></tbody></table>
+<div class="sub" style="margin-top:14px">Engine:
+justhodl-stock-buying · payload data/stock-buying.json ·
+double-click any row &rarr; why.html full institutional
+analysis</div>
+<script>
+fetch('data/stock-buying.json?cb='+Date.now())
+.then(r=>r.json()).then(d=>{
+document.getElementById('asof').textContent=(d.as_of||'').slice(0,16);
+const t=d.tiers||{};
+document.getElementById('tE').textContent=t['EXPLOSIVE-SETUP']??'–';
+document.getElementById('tS').textContent=t['SETUP']??'–';
+document.getElementById('tW').textContent=t['WATCH']??'–';
+document.getElementById('uni').textContent=d.n_universe??'–';
+const R=document.getElementById('R');
+const TC={'EXPLOSIVE-SETUP':'tE','SETUP':'tS','WATCH':'tW',
+'SCREENED':'tX'};
+const P=(x,k)=>{const v=(x.pillars||{})[k];
+return v==null?'–':v;};
+for(const x of (d.top||[])){
+const tr=document.createElement('tr');
+tr.className='rowx';
+tr.ondblclick=()=>{window.location=x.why||
+('why.html?symbol='+x.symbol);};
+tr.innerHTML='<td><b>'+x.symbol+'</b></td><td class="dim">'+
+(x.name||'')+'</td><td class="'+(TC[x.tier]||'tX')+'">'+
+x.tier+'</td><td><b>'+x.score+'</b></td><td>'+
+P(x,'revisions_beats')+'</td><td>'+P(x,'accel')+'</td><td>'+
+P(x,'fcf_growth')+'</td><td>'+P(x,'valuation_vs_growth')+
+'</td><td>'+P(x,'catalyst_rs')+'</td><td>'+
+(x.peg==null?'–':x.peg)+'</td><td>'+
+(x.roic==null?'–':x.roic)+'</td><td class="'+
+((x.sma&&x.sma.below)?'g':'r')+'">'+
+(x.sma?x.sma.dist_pct+'%':'–')+'</td><td>'+
+((x.double_bottom&&x.double_bottom.formed)?'&#10003;':'–')+
+'</td><td class="pill">'+
+((x.catalysts||[]).map(c=>c.class).join(' · ')||'–')+
+'</td>';
+R.appendChild(tr);}});
+</script></body></html>
