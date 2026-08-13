@@ -1,24 +1,28 @@
-executing-against: bc3d741ffbd2d05c0451c3cfb36b076acdc4e133
+executing-against: d14e6be593c40bc900e5800ec114aa93652f2253
 ops 4643 — DXY predict-the-future engine
 ── pre-dump: top list candidates ──
-[02:21:50] ✅   [list-exists] top list present: [('Bitcoin : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.', 437), ('Crypto : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.', 327), ('Dollar Shortage Indicators', 17)]
+[02:27:47] ✅   [list-exists] top list present: [('Bitcoin : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.', 437), ('Crypto : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom.', 327), ('Dollar Shortage Indicators', 17)]
 ── deploy (ops-side) + settle + schedule ──
-[02:21:52] ✅   [deploy] v1.0.1 live (created=False)
+[02:27:48] ✅   [deploy] v1.0.1 live (created=False)
 ── run + dxy truth ──
-[02:22:32] ✅   [list-found] list 'TOP FAMILY (6 lists)' (1132 members)
-[02:22:32] ✅   [resolution] 626/1132 resolved (shared cache pool)
-[02:22:32] unsigned-by-design: 0 rows carry mechanical polarity
-[02:22:32] crypto z-based: 1 (e.g. ['COINBASE:LINKUSD'])
-[02:22:32] ✅   [crypto-route] 1 crypto-class rows z-based (route production test)
-[02:22:32] ✅   [dials] TOP TREND -2.3 (MIXED) · REVERSAL 0.0 (NONE)
+[02:28:26] ✅   [list-found] list 'TOP FAMILY (6 lists)' (1132 members)
+[02:28:26] ✅   [resolution] 626/1132 resolved (shared cache pool)
+[02:28:26] unsigned-by-design: 0 rows carry mechanical polarity
+[02:28:26] GLASSNODE samples: ['GLASSNODE:USDT_UNISWAPLIQUIDITYUSD', 'GLASSNODE:USDC_UNISWAPLIQUIDITYUSD', 'GLASSNODE:USDT_UNISWAPLIQUIDITY', 'GLASSNODE:MATIC_SUPPLY', 'GLASSNODE:CRV_RECEIVINGADDRESSES', 'GLASSNODE:CRV_ATHDRAWDOWN', 'GLASSNODE:CRV_NEWADDRESSES', 'GLASSNODE:CRV_ADDRESSES', 'GLASSNODE:CRV_MEANVOLUME', 'GLASSNODE:CRV_MEDIANVOLUME', 'GLASSNODE:CRV_TOTALVOLUME', 'GLASSNODE:CRV_MARKETCAP']
+[02:28:26] INTOTHEBLOCK samples: ['INTOTHEBLOCK:BTC_MINERTOTALFLOWSUSD', 'INTOTHEBLOCK:ETH_MINERTOTALFLOWSUSD', 'INTOTHEBLOCK:BTC_INFLOWTXCOUNT', 'INTOTHEBLOCK:BTC_HASHRATE', 'INTOTHEBLOCK:BTC_MINEROUTFLOWSUSD', 'INTOTHEBLOCK:CUSDC_AVGTX', 'INTOTHEBLOCK:CAG_WHALESPERCENTAGE', 'INTOTHEBLOCK:CAG_RETAILPERCENTAGE', 'INTOTHEBLOCK:REAL_RETAIL', 'INTOTHEBLOCK:REAL_RETAILPERCENTAGE', 'INTOTHEBLOCK:WHALE_WHALES', 'INTOTHEBLOCK:WHALE_WHALESPERCENTAGE']
+[02:28:26] CRYPTOCAP samples: ['CRYPTOCAP:USDC.D+CRYPTOCAP:USDT.D', 'CRYPTOCAP:USDT.D', 'CRYPTOCAP:USDC.D', 'CRYPTOCAP:BTC.D', 'CRYPTOCAP:TOTAL3', 'CRYPTOCAP:OTHERS.D', 'CRYPTOCAP:USDT.D+CRYPTOCAP:USDC.D', 'CRYPTOCAP:TOTAL3-CRYPTOCAP:BTC', 'CRYPTOCAP:OTHERS', 'CRYPTOCAP:TOTAL3ES', 'CRYPTOCAP:BTC/TVC:BTPBUND', 'CRYPTOCAP:USDC+CRYPTOCAP:USDT']
+[02:28:26] USI samples: ['USI:YRLO.NQ', 'USI:YRHI.NQ', 'USI:YRLO.US', 'USI:YRHI.US', 'USI:YRLO.DJ', 'USI:YRHI.NY', 'USI:VOL.DNTK.US', 'USI:VAL.ASK.US', 'USI:TVOL.NY', 'USI:VOLD', 'USI:VOL.UPTK.NY', 'USI:ACTV.NY']
+[02:28:26] crypto z-based: 1 (e.g. ['COINBASE:LINKUSD'])
+[02:28:26] ✅   [crypto-route] 1 crypto-class rows z-based (route production test)
+[02:28:26] ✅   [dials] TOP TREND -2.3 (MIXED) · REVERSAL 0.0 (NONE)
 ── edge (with CF purge) ──
-[02:22:32] CF purge: True
-[02:22:38] CONTROL dxy: len=6609 has_json=True
-[02:22:38] LIQ body: len=6608 count(liq)=0 fetch@3137 liq@-1
-[02:22:38] slice@fetch: :'dim')); fetch('data/top-signals.json?cb='+Date.now()).then(r=>r.json()) .then(d=>{ document.getElementById('asof').tex
-[02:22:38] ⚠ CLOUDFLARE_API_TOKEN absent — probing without purge
-[02:22:38] ✅   [edge] page + payload at the edge
+[02:28:27] CF purge: True
+[02:28:32] CONTROL dxy: len=6609 has_json=True
+[02:28:32] LIQ body: len=6608 count(liq)=0 fetch@3137 liq@-1
+[02:28:32] slice@fetch: :'dim')); fetch('data/top-signals.json?cb='+Date.now()).then(r=>r.json()) .then(d=>{ document.getElementById('asof').tex
+[02:28:32] ⚠ CLOUDFLARE_API_TOKEN absent — probing without purge
+[02:28:33] ✅   [edge] page + payload at the edge
 ── verdict ──
-[02:22:38] ✅ TOP SIGNALS LIVE — list 'TOP FAMILY (6 lists)': 626/1132 resolved, 0 signed rows · TREND -2.3 (MIXED) · REVERSAL 0.0 (NONE) · https://justhodl.ai/top-signals.html
+[02:28:33] ✅ TOP SIGNALS LIVE — list 'TOP FAMILY (6 lists)': 626/1132 resolved, 0 signed rows · TREND -2.3 (MIXED) · REVERSAL 0.0 (NONE) · https://justhodl.ai/top-signals.html
 
 → Report written to aws/ops/reports/latest/4648_top_signals.md
