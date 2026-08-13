@@ -1,34 +1,9 @@
-executing-against: 510f782135a34a517ef0c4ae120b35ca3af4e2ed
+executing-against: f4bd9cf08b246bfecad2e4cdd50b3b7b13c7dbdd
 ops 4652 — khalid-five on stock-buying
 ── matrix column-name evidence (five-relevant) ──
-[19:31:44] ⚠ matrix: 'list' object has no attribute 'keys'
+[19:36:30] ⚠ matrix: 'list' object has no attribute 'keys'
 ── deploy (ops-side) + settle ──
-[19:31:46] ✅   [deploy] v1.1.1 live
-── run + khalid-five truth ──
-[19:32:08] payload keys: ['as_of', 'census_fields_sample', 'census_mode', 'census_source', 'cmode', 'crows_len', 'doctrine', 'engine', 'fmp_key', 'gates_summary', 'khalid_five_missing', 'matrix_probe', 'n_scored', 'n_universe', 'schema_version', 'tiers', 'top', 'us10y_pct']
-[19:32:09] closes tickers: 1200
-[19:32:10] finviz-universe: keys=['generated_at', 'source', 'n_tickers', 'n_with_short_float', 'by_ticker'] n=0 row0=<class 'list'>
-[19:32:10] matrix has: double_bottom=True sectors[0..2]=['Technology', 'Technology', 'Consumer Cyclical']
-[19:32:11] ⚠ fmp dump: HTTP Error 401: Unauthorized
-[19:32:11] fmp_key: True | gates_summary: {"below_sma": 127, "eps_seq": 0, "dilution": 498, "margin_floor": 498}
-[19:32:11] fetch-eligible (below_sma+peg<1+dil_ok): 2 ['ABT', 'IT']
-[19:32:11] below_sma rows: 6 ['ABT', 'NOW', 'CTSH', 'CDW', 'DPZ', 'IT']
-[19:32:11] funnel key=None val={}
-[19:32:11] row keys: ['backlog', 'catalysts', 'dilution_yr_pct', 'double_bottom', 'gate_reasons', 'gates', 'industry', 'khalid_five', 'name', 'pe', 'peg', 'pillars', 'roic', 'rs_3m_vs_spy', 'score', 'sector', 'sma', 'symbol', 'tier', 'why']
-[19:32:11] row sample: {"symbol": "DELL", "name": "", "sector": "", "industry": "", "score": 63.6, "tier": "SCREENED", "gates": {"below_sma": false, "eps_up_every_q": false, "dilution_ok": true, "margin_floor": true}, "gate_reasons": ["above long-SMA (not in accumulation zone)", "no quarterly EPS in census"], "pillars": {"revisions_beats": null, "accel": null, "fcf_growth": null, "valuation_vs_growth": 15.0, "catalyst_rs": 100.0}, "peg": null, "pe": 16.396, "roic": null, "dilution_yr_pct": null, "backlog": null, "sma"
-[19:32:11] DELL   tier=SCREENED        peg=0.163 shQoQ=-1.64  eAcc=None   rAcc=None   roic-10y=44.36  buff=True
-[19:32:11] ADP    tier=SCREENED        peg=2.109 shQoQ=-0.51  eAcc=None   rAcc=None   roic-10y=39.72  buff=True
-[19:32:11] MPC    tier=SCREENED        peg=0.135 shQoQ=-1.44  eAcc=None   rAcc=None   roic-10y=6.9    buff=True
-[19:32:11] HPQ    tier=SCREENED        peg=1.5   shQoQ=-0.81  eAcc=None   rAcc=None   roic-10y=48.23  buff=True
-[19:32:11] BBY    tier=SCREENED        peg=0.344 shQoQ=-0.2   eAcc=None   rAcc=None   roic-10y=19.18  buff=True
-[19:32:11] TMO    tier=SCREENED        peg=3.598 shQoQ=-0.46  eAcc=None   rAcc=None   roic-10y=3.58   buff=False
-[19:32:11] DHR    tier=SCREENED        peg=1.752 shQoQ=-0.4   eAcc=None   rAcc=None   roic-10y=1.06   buff=False
-[19:32:11] BDX    tier=SCREENED        peg=13.548 shQoQ=-0.74  eAcc=None   rAcc=None   roic-10y=-0.17  buff=False
-[19:32:11] ✅   [five-block] khalid_five on every row
-[19:32:11] ✅   [us10y] US10Y fleet-join = 4.7
-[19:32:11] ✅   [why-link] why links use house ?ticker= standard
-[19:32:11] ✅   [signal-counts] peg<1:26 retiring:56 accel:0 buffett:41 (any nonzero proves the wiring; misses counted honestly)
-── verdict ──
-[19:32:11] ✅ KHALID FIVE LIVE — us10y 4.7 · peg<1:26 · retiring:56 · accelerating:0 · buffett-pass:41
+[19:41:14] ✗   [deploy] CONTRACT MISS — v1.2.0 live
 
 → Report written to aws/ops/reports/latest/4652_khalid_five.md
+❌ OPS-FAIL: aws/ops/pending/ops_4652_khalid_five.py
