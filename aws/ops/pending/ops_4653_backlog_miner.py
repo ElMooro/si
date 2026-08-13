@@ -1,4 +1,4 @@
-"""ops 4653 — backlog-miner r2 v1.0.1 (log-median + 4x delta guards): SEC-primary backlog levels +
+"""ops 4653 — backlog-miner r3 v1.0.2 (read-time derive: belts on cached too): SEC-primary backlog levels +
 QoQ/YoY per ticker (anchors + screener candidates), warm 7d,
 honest NOT_DISCLOSED. Create-capable deploy, hourly, truth table.
 """
@@ -91,14 +91,14 @@ def main():
                 src = zipfile.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-backlog-miner v1.0.1" in src:
+                if "justhodl-backlog-miner v1.0.2" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
         misses += contract(r, "deploy", settled,
-                           "v1.0.1 live (created=%s)" % created)
+                           "v1.0.2 live (created=%s)" % created)
         if not settled:
             sys.exit(1)
         try:

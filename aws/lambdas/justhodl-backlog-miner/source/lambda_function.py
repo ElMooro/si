@@ -1,4 +1,4 @@
-"""justhodl-backlog-miner v1.0.1 (ops 4653)
+"""justhodl-backlog-miner v1.0.2 (ops 4653)
 
 Mines disclosed backlog dollars from primary sources — SEC EDGAR
 full-text search over 10-Q/10-K filings — for the stock-buying
@@ -123,6 +123,37 @@ def filings_for(cik, n=6):
         return []
 
 
+def derive(series):
+    """Belted level+deltas from a filing series (applies to
+    fresh AND cached rows — single source of truth)."""
+    import math as _m
+    vals = [x for x in (series or [])
+            if x.get("value") is not None]
+    if not vals:
+        return {}
+    if len(vals) >= 3:
+        med = sorted(x["value"] for x in vals)[len(vals) // 2]
+        vals = [x for x in vals
+                if abs(_m.log10(x["value"]) - _m.log10(med))
+                <= 0.7]
+    if not vals:
+        return {}
+    out = {"backlog_usd": vals[0]["value"],
+           "asof": vals[0].get("date"),
+           "src": vals[0].get("src")}
+    if len(vals) >= 2 and vals[1]["value"] \
+            and 0.25 <= vals[0]["value"] / vals[1]["value"] \
+            <= 4.0:
+        out["backlog_qoq_pct"] = round(
+            (vals[0]["value"] / vals[1]["value"] - 1) * 100, 1)
+    if len(vals) >= 5 and vals[4]["value"] \
+            and 0.25 <= vals[0]["value"] / vals[4]["value"] \
+            <= 4.0:
+        out["backlog_yoy_pct"] = round(
+            (vals[0]["value"] / vals[4]["value"] - 1) * 100, 1)
+    return out
+
+
 def mine(tk):
     wkey = WARM + tk + ".json"
     c = s3_json(wkey)
@@ -215,9 +246,11 @@ def lambda_handler(event=None, context=None):
         r = mine(tk)
         if not r:
             continue
-        by[tk] = {k: r.get(k) for k in
-                  ("status", "backlog_usd", "backlog_qoq_pct",
-                   "backlog_yoy_pct", "asof", "src")}
+        d = derive(r.get("series"))
+        by[tk] = {"status": ("MINED" if d.get("backlog_usd")
+                             else r.get("status")
+                             or "NOT_DISCLOSED")}
+        by[tk].update(d)
         if r.get("status") == "MINED":
             mined += 1
         else:
