@@ -1,34 +1,39 @@
 # ops 4654 — catalyst engine
 
-**Status:** failure  
-**Duration:** 1.2s  
-**Finished:** 2026-08-13T22:05:16+00:00  
+**Status:** success  
+**Duration:** 39.5s  
+**Finished:** 2026-08-13T23:36:13+00:00  
 
-## Error
+## Data
 
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4654_catalyst.py", line 119, in main
-    inv = lam.invoke(FunctionName=FN,
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the Invoke operation: The operation cannot be performed at this time. The function is currently in the following state: Pending
-
-```
+| catalyst_join_n | fn_error | macro | n_classes | n_tickers | top_rows_with |
+|---|---|---|---|---|---|
+|  | None |  |  |  |  |
+|  |  | {"fedfunds_trend": "DOWN", "rate_cuts": true} | 8 | 197 |  |
+| 173 |  |  |  |  | 130 |
 
 ## Log
 ## deploy (create-capable) + settle + schedule
 
-- `22:05:15` ✅   [deploy] v1.0.0 live (created=True)
-- `22:05:16` hourly schedule created
+- `23:35:35` ✅   [deploy] v1.0.0 live (created=False)
+- `23:35:45` function state: Active
 ## run + catalyst truth
 
+- `23:35:47` class census: [["LARGE_BUYBACK", 103], ["INDUSTRY_TAILWIND", 59], ["MAJOR_BACKLOG", 41], ["EARNINGS_INFLECTION", 16], ["BACKLOG_ACCEL", 5], ["MAJOR_CONTRACT", 4], ["AI_DATACENTER", 1], ["NEW_PRODUCT", 1]]
+- `23:35:47` MU    s=5.4   MAJOR_BACKLOG        RPO +904.0% YoY (XBRL 2026-05-28)
+- `23:35:47` AVGO  s=5.4   MAJOR_BACKLOG        RPO +566.4% YoY (XBRL 2026-05-03)
+- `23:35:47` LMT   s=5.4   MAJOR_BACKLOG        RPO +38.4% YoY (XBRL 2026-06-28)
+- `23:35:47` GE    s=5.4   MAJOR_BACKLOG        RPO +20.9% YoY (XBRL 2026-06-30)
+- `23:35:47` LRCX  s=4.8   EARNINGS_INFLECTION  EPS +297.2% QoQ (XBRL diluted)
+- `23:35:47` PLTR  s=4.2   MAJOR_BACKLOG        RPO +104.2% YoY (XBRL 2026-06-30)
+- `23:35:47` MSFT  s=4.2   MAJOR_BACKLOG        RPO +82.4% YoY (XBRL 2026-06-30)
+- `23:35:47` GOOGL s=4.2   MAJOR_BACKLOG        RPO +380.1% YoY (XBRL 2026-06-30)
+- `23:35:47` ✅   [coverage] 197 tickers carry catalysts
+- `23:35:47` ✅   [taxonomy-breadth] 8 distinct classes live: ['AI_DATACENTER', 'MAJOR_CONTRACT', 'NEW_PRODUCT', 'MAJOR_BACKLOG', 'EARNINGS_INFLECTION', 'INDUSTRY_TAILWIND', 'BACKLOG_ACCEL', 'LARGE_BUYBACK']
+- `23:35:47` ✅   [evidence] every top catalyst carries evidence + source
+## stock-buying join
+
+- `23:36:13` ✅   [join] join_n=173, 130 shipped rows carry catalyst classes
+## verdict
+
+- `23:36:13` ✅ CATALYST LIVE — 197 tickers, 8 classes, macro {"fedfunds_trend": "DOWN", "rate_cuts": true} · data/catalyst.json · joined into stock-buying
