@@ -90,13 +90,13 @@ def main():
                 src = zf2.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-stock-buying v1.3.0" in src:
+                if "justhodl-stock-buying v1.3.1" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
-        misses += contract(r, "deploy", settled, "v1.3.0 live")
+        misses += contract(r, "deploy", settled, "v1.3.1 live")
         if not settled:
             sys.exit(1)
 
@@ -257,6 +257,22 @@ def main():
         sec_ok = sum(1 for x in rows
                      if (x.get("sector") or "").strip())
         r.kv(lanes=json.dumps(lanes), sectors_nonblank=sec_ok)
+        cen60 = [x for x in rows
+                 if x.get("lane") != "BROAD"]
+        peg_nn = sum(1 for x in cen60
+                     if x.get("peg") is not None)
+        gap_nn = sum(1 for x in cen60
+                     if (x.get("sma") or {}).get("gap_pct")
+                     is not None)
+        misses += contract(r, "peg-col",
+                           peg_nn >= 50,
+                           "%d/%d census rows carry peg "
+                           "(peg_ttm bound)" % (peg_nn,
+                                                len(cen60)))
+        misses += contract(r, "gap-col",
+                           gap_nn >= 55,
+                           "%d/%d rows carry sma.gap_pct"
+                           % (gap_nn, len(cen60)))
         misses += contract(r, "lanes",
                            (lanes.get("broad_below_sma") or 0)
                            >= 40,
