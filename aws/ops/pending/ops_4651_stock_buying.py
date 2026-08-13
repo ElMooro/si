@@ -114,7 +114,10 @@ def main():
             doc0 = json.loads(s3.get_object(
                 Bucket=B, Key="data/fundamental-census-matrix"
                 ".json")["Body"].read())
-            M = doc0.get("metrics") or doc0.get("cols") or {}
+            M = doc0.get("cols")                 if isinstance(doc0.get("cols"), dict) else {}
+            if not M:
+                mm = doc0.get("metrics")
+                M = mm if isinstance(mm, dict) else {}
             names = sorted(M.keys())
             r.kv(n_cols=len(names))
             for i in range(0, len(names), 10):
@@ -147,9 +150,19 @@ def main():
                 Bucket=B, Key="data/blackswan-watch.json")
                 ["Body"].read())
             d10 = next((x for x in bs.get("rows") or []
-                        if x.get("symbol") == "FRED:DGS10"), {})
-            r.log("US10Y via blackswan: last=%s age=%sd"
-                  % (d10.get("last"), d10.get("data_age_days")))
+                        if x.get("symbol") == "FRED:DGS10"),
+                       None)
+            if not d10 or d10.get("last") is None:
+                lq0 = json.loads(s3.get_object(
+                    Bucket=B, Key="data/liquidity-reversal"
+                    ".json")["Body"].read())
+                d10 = next((x for x in lq0.get("rows") or []
+                            if x.get("symbol") == "FRED:DGS10"),
+                           None)
+            r.log("US10Y: found=%s last=%s age=%sd src-rows"
+                  % (bool(d10),
+                     (d10 or {}).get("last"),
+                     (d10 or {}).get("data_age_days")))
         except Exception as e:
             r.warn("us10y: %s" % str(e)[:80])
 
