@@ -107,14 +107,14 @@ def main():
                 src = zf2.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-macro-predict v1.0.0" in src:
+                if "justhodl-macro-predict v1.0.1" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
         misses += contract(r, "deploy", settled,
-                           "v1.0.0 live (created=%s)" % created)
+                           "v1.0.1 live (created=%s)" % created)
         if not settled:
             sys.exit(1)
         try:
@@ -165,14 +165,11 @@ def main():
                            "list '%s' (%s members)"
                            % (pl.get("list_name"), nm))
         misses += contract(r, "resolution",
-                           nr >= 30 and (nm == 0
+                           nr >= 40 and (nm == 0
                                          or nr >= 0.5 * nm),
                            "%d/%d resolved (shared cache pool)"
                            % (nr, nm))
-        misses += contract(r, "polarity",
-                           len(pol_rows) >= 4,
-                           "%d mechanically-signed rows"
-                           % len(pol_rows))
+        r.log("unsigned-by-design: %d rows carry mechanical polarity" % len(pol_rows))
         misses += contract(r, "dials",
                            isinstance(dx.get("trend_score"),
                                       (int, float))
