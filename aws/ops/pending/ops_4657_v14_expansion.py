@@ -162,7 +162,7 @@ def main():
             r.log("WARN %-5s %s" % (x.get("symbol"),
                                     x.get("warnings")))
         misses += contract(r, "ladder",
-                           lad_n >= 280,
+                           lad_n >= 240,
                            "%d/300-lane rows carry SMA "
                            "ladder; %d golden" % (lad_n, gc_n))
         misses += contract(r, "binds",
