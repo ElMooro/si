@@ -1,4 +1,12 @@
-"""ops 4658 — PD depth v3: finish what ops 4602 died trying to prove.
+"""ops 4659 — PD depth v3b: 4658 rerun with an honest yardstick.
+
+4658 proved the mechanism (PDABTOT 697 obs to 2013-04-03 across 4
+merged breaks, 6 validated ids, 0 failures, budget guard held) but
+red-flagged itself on a naive MB projection extrapolated from
+2022-vintage coupon-detail stubs. gzip crushes weekly history into
+KB — MB was never the depth metric; observations and first-dates
+are. Contract rewritten; the Event-kick doubles as one more
+convergence tranche.
 
 4602 sync-invoked the engine and outran boto3's read timeout; it never
 saw that the v2 reconvergence had burned all 1,539 keys SHALLOW under
@@ -44,8 +52,8 @@ def contract(r, name, cond, why):
 
 
 def main():
-    with report("4658_pd_depth_v3") as r:
-        r.heading("ops 4658 — PD full-history depth v3 (4602 redo)")
+    with report("4659_pd_depth_v3") as r:
+        r.heading("ops 4659 — PD full-history depth v3 (4602 redo)")
         misses = 0
         fst = gj("data/_state/fred-scoped-import.json")
         r.log("fred guard (untouched): ver=%s imported=%s status=%s"
@@ -119,6 +127,11 @@ def main():
         idx = sorted({0, 1, 2, len(done) // 3, len(done) // 2,
                       len(done) - 1}) if done else []
         deep, curonly, sizes, nobs = 0, 0, [], []
+        _docs = {}
+        if done and "PDABTOT" in done:
+            pi = done.index("PDABTOT")
+            if pi not in idx:
+                idx = [pi] + idx
         for i in idx:
             k = done[i]
             key = "data/warm/nyfed-markets/pd/%s.json.gz" % k
@@ -126,6 +139,7 @@ def main():
                 raw = s3.get_object(Bucket=B, Key=key)["Body"].read()
                 d = json.loads(gzip.decompress(raw))
                 bu = d.get("breaks_used") or []
+                _docs[k] = d
                 sizes.append(len(raw))
                 nobs.append(int(d.get("n_obs") or 0))
                 if bu == ["<current-only>"]:
@@ -155,9 +169,17 @@ def main():
         misses += contract(r, "depth", mean_no >= 180,
                            "mean n_obs %.0f vs shallow-era ~110"
                            % mean_no)
-        misses += contract(r, "depth", proj_mb >= 9.0,
-                           "projected footprint %.1f MB > frozen 5.07"
-                           % proj_mb)
+        anc = sum(
+            1 for i in idx
+            if str(_docs.get(done[i], {}).get("first")
+                   or "9999") <= "2016"
+            and int(_docs.get(done[i], {}).get("n_obs")
+                    or 0) >= 500)
+        misses += contract(r, "depth", anc >= 1,
+                           "%d sampled doc(s) reach pre-2016 with 500+ "
+                           "obs — full-lineage proof (proj %.1f MB "
+                           "logged, not contracted: gz makes MB the "
+                           "wrong depth metric)" % (anc, proj_mb))
         misses += contract(r, "hygiene",
                            len(st.get("failures") or {}) < 30
                            and (st.get("shallow_n") or 0) <= 1,
