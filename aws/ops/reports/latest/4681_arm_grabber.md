@@ -1,13 +1,15 @@
-executing-against: ccad7a0d8b3bd35d1b026720998f9a2f86ad0b06
-ops 4681 — arm + publish the browser grabber
-── 1. Settle the ingest deploy ──
-[23:33:16] ✅   ingest live
-── 2. Verify kind='series' with a synthetic post ──
+# ops 4681 — arm + publish the browser grabber
 
-→ Report written to aws/ops/reports/latest/4681_arm_grabber.md
+**Status:** failure  
+**Duration:** 0.4s  
+**Finished:** 2026-08-14T23:33:17+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4681_arm_grabber.py", line 126, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4681_arm_grabber.py", line 61, in main
     url = ssm.get_parameter(
           ^^^^^^^^^^^^^^^^^^
@@ -20,4 +22,12 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
     raise error_class(parsed_response, operation_name)
 botocore.errorfactory.ParameterNotFound: An error occurred (ParameterNotFound) when calling the GetParameter operation: 
-❌ OPS-FAIL: aws/ops/pending/ops_4681_arm_grabber.py
+
+```
+
+## Log
+## 1. Settle the ingest deploy
+
+- `23:33:16` ✅   ingest live
+## 2. Verify kind='series' with a synthetic post
+
