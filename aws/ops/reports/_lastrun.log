@@ -1,21 +1,14 @@
-executing-against: baa167237e0f4134f95971c28b652244c9458595
-ops 4679 — unmask rev-2 socket error
-── 1. Quiesce: disable schedule, clear stale state ──
-[23:08:19]   schedule disabled for the test window
-[23:08:19]   cleared 14 stale failure entries
-── 2. Invoke rev-2 on 3 symbols ──
-[23:08:22]   3s · handler: {"statusCode": 200, "body": "{\"ok\": true, \"pulled\": 0, \"failed\": 3, \"done\": 0, \"catalog\": 192, \"status\": \"converging\", \"recent_failures\": {\"BAMLH0A0HYM2\": \"RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/\", \"BAMLC0A2CAA\": 
-── 3. The REAL rev-2 errors (per endpoint) ──
-[23:08:22]   BAMLH0A0HYM2:
-[23:08:22]       RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/
-[23:08:22]   BAMLC0A2CAA:
-[23:08:22]       RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/
-[23:08:22]   BAMLH0A3HYC:
-[23:08:22]       RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/
-── 4. Restore schedule ──
-[23:08:22]   schedule LEFT DISABLED — a broken rail should not burn hourly invokes or hammer TV with a failing handshake
-── verdict ──
-[23:08:22] ✗ socket still refused — full per-endpoint evidence above; TV may reject non-browser TLS/JA3 fingerprints from AWS, which no header change fixes
+executing-against: 043c963a69dfea18189e7afdaba8535a0238f7ec
+ops 4680 — Wayback ICE recovery (autonomous)
+── 1. Locate banked docs ──
+[23:22:17]   banked docs found: 20/20
+── 2. Probe: which capture form works? ──
+[23:22:23]   txt@20250601     ERR HTTP Error 498: 
+[23:22:23]   txt@20240901     ERR HTTP Error 498: 
+[23:22:23]   txt@20240330     ERR HTTP Error 498: 
+[23:22:23]   txt@20230901     ERR HTTP Error 498: 
+[23:22:23]   csv@20250601     ERR HTTP Error 498: 
+[23:22:23] ✗   no Wayback capture yielded a deep series — lane closed with evidence
 
-→ Report written to aws/ops/reports/latest/4679_tv_unmask.md
-❌ OPS-FAIL: aws/ops/pending/ops_4679_tv_unmask.py
+→ Report written to aws/ops/reports/latest/4680_wayback_ice.md
+❌ OPS-FAIL: aws/ops/pending/ops_4680_wayback_ice.py
