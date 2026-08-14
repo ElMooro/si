@@ -1,4 +1,4 @@
-"""ops 4657 — stock-buying v1.4.0 + page v5 expansion gate:
+"""[r8 settle-ping v1.5.1] ops 4657 — stock-buying v1.4.0 + page v5 expansion gate:
 SMA ladder (20/50/100/200/250 + golden cross), warnings
 (dilution/rev/eps contraction/double-top), census binds
 (net-bb-yield, P/S, FCF yield/sh/CAGR3, inventory), catalyst
