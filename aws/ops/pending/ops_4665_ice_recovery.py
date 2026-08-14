@@ -1,4 +1,4 @@
-"""ops 4664 — ICE BofA history: recover what is recoverable NOW,
+"""ops 4665 — ICE BofA history: recover what is recoverable NOW,
 probe the routes for the rest (Khalid: data stays on my system forever).
 
 RECOVER (hard contracts): three independently cross-validated GitHub
@@ -56,25 +56,36 @@ def fred_key():
 
 
 def main():
-    with report("4664_ice_recovery") as r:
-        r.heading("ops 4664 — ICE BofA recovery + route probes")
+    with report("4665_ice_recovery") as r:
+        r.heading("ops 4665 — ICE BofA recovery + route probes")
         misses = 0
 
         r.section("1. RECOVER 3 series from verified archives")
-        q = json.loads(gzip.decompress(s3.get_object(
-            Bucket=B,
-            Key="data/_state/fred-queue.json.gz")["Body"].read()))
-        rmap = {row[0]: row[2] for row in (q.get("rows") or [])
-                if row and len(row) >= 3}
+        # 4664 lesson: BAML banked via the category walk, not the
+        # scoped queue — locate docs by listing, not queue map.
+        want = {x + ".json" for x in RECOVER}
+        kmap, tok, t0 = {}, None, time.time()
+        while True:
+            kw = {"Bucket": B, "Prefix": "data/warm/fred-scoped/",
+                  "MaxKeys": 1000}
+            if tok:
+                kw["ContinuationToken"] = tok
+            resp = s3.list_objects_v2(**kw)
+            for o in resp.get("Contents") or []:
+                bn = o["Key"].rsplit("/", 1)[-1]
+                if bn in want:
+                    kmap[bn[:-5]] = o["Key"]
+            if not resp.get("IsTruncated") or len(kmap) == 3:
+                break
+            tok = resp.get("NextContinuationToken")
+        r.log("  located %d/3 docs in %.0fs: %s"
+              % (len(kmap), time.time() - t0, kmap))
         for sid in RECOVER:
-            rname = rmap.get(sid)
-            if not rname:
+            key = kmap.get(sid)
+            if not key:
                 misses += 1
-                r.fail("  [%s] not in queue map — cannot locate doc"
-                       % sid)
+                r.fail("  [%s] doc not found by listing" % sid)
                 continue
-            key = ("data/warm/fred-scoped/%s/%s.json"
-                   % (rname.replace(" ", "_"), sid))
             doc = json.loads(s3.get_object(
                 Bucket=B, Key=key)["Body"].read())
             cur = doc.get("observations") or []
@@ -127,7 +138,11 @@ def main():
                 r.ok("  [%s] full lineage 1996-12-31 -> present, "
                      "splice clean" % sid)
 
-        r.section("2. PROBE — ALFRED pre-truncation vintages")
+        r.section("2. ALFRED — settled by 4664: window enforced "
+                  "retroactively across vintages (rolling, front at "
+                  "2023-08-15 today); loophole CLOSED")
+        if False:
+            r.section("2. PROBE — ALFRED pre-truncation vintages")
         k = fred_key()
         if not k:
             r.warn("  no FRED key — ALFRED probe skipped")
@@ -154,20 +169,35 @@ def main():
         r.section("3. PROBE — DBnomics FRED mirror")
         for sid in ("BAMLH0A0HYM2", "BAMLC0A0CM",
                     "BAMLEMRLCRPILAOAS"):
-            try:
-                d = json.loads(get(
-                    "https://api.db.nomics.world/v22/series/FRED/"
-                    + sid + "?observations=1"))
-                doc0 = ((d.get("series") or {}).get("docs")
-                        or [{}])[0]
-                per = doc0.get("period") or []
-                r.log("  %s: %d obs, %s -> %s"
-                      % (sid, len(per),
-                         per[0] if per else None,
-                         per[-1] if per else None))
-            except Exception as e:
-                r.warn("  %s: %s" % (sid, str(e)[:80]))
-            time.sleep(0.5)
+            got_it = False
+            for path in ("series/FRED/%s/%s?observations=1"
+                         % (sid, sid),
+                         "series/FRED/%s?observations=1" % sid,
+                         "search?q=%s&limit=3" % sid):
+                try:
+                    d = json.loads(get(
+                        "https://api.db.nomics.world/v22/" + path))
+                    if path.startswith("search"):
+                        hits = [(x.get("provider_code"),
+                                 x.get("code"))
+                                for x in ((d.get("results") or {})
+                                          .get("docs") or [])[:3]]
+                        r.log("  %s search: %s" % (sid, hits))
+                        break
+                    doc0 = ((d.get("series") or {}).get("docs")
+                            or [{}])[0]
+                    per = doc0.get("period") or []
+                    r.log("  %s via %s: %d obs, %s -> %s"
+                          % (sid, path.split("?")[0], len(per),
+                             per[0] if per else None,
+                             per[-1] if per else None))
+                    got_it = True
+                    break
+                except Exception as e:
+                    last_e = str(e)[:60]
+                time.sleep(0.4)
+            if not got_it and "search" not in path:
+                r.warn("  %s: %s" % (sid, last_e))
 
         r.section("4. PROBE — TradingView vault BAML coverage")
         try:
