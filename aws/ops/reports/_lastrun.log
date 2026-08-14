@@ -1,21 +1,21 @@
-executing-against: 7b8a474f988f04f307fe5b9362222658c37a7681
-ops 4678 — tv-bars rev-2 (handshake nonce fix)
-── 1. Push rev-2 code ──
-[23:02:46] ✅   [deploy] rev-2 code live
-── 2. Pull 3 ICE symbols ──
-[23:02:50]   handler: {"statusCode": 200, "body": "{\"ok\": true, \"pulled\": 0, \"failed\": 3, \"done\": 0, \"catalog\": 192, \"status\": \"converging\", \"recent_failures\": {\"BAMLC0A0CM\": \"RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'\", \"BAMLC0A0CMEY\": \"RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'\", \"BAMLC0A0CMSYTW\": \"RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'\", \"BAMLC0A1CAAA\": \"RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'\", \"BAMLC0A1CAAAEY\": \"RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'\"}}"}
-── 3. What landed ──
-[23:02:50]   BAMLH0A0HYM2: nothing banked
-[23:02:50]   BAMLC0A2CAA: nothing banked
-[23:02:50]   BAMLH0A3HYC: nothing banked
-[23:02:50]   fail BAMLC0A0CM: RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'
-[23:02:50]   fail BAMLC0A0CMEY: RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'
-[23:02:50]   fail BAMLC0A0CMSYTW: RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'
-[23:02:50]   fail BAMLC0A1CAAA: RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'
-[23:02:50] ✗   [socket] CONTRACT MISS — socket opened (no handshake rejection)
-[23:02:50] ✗   [depth] CONTRACT MISS — 0/3 symbols carry pre-2020 history
+executing-against: baa167237e0f4134f95971c28b652244c9458595
+ops 4679 — unmask rev-2 socket error
+── 1. Quiesce: disable schedule, clear stale state ──
+[23:08:19]   schedule disabled for the test window
+[23:08:19]   cleared 14 stale failure entries
+── 2. Invoke rev-2 on 3 symbols ──
+[23:08:22]   3s · handler: {"statusCode": 200, "body": "{\"ok\": true, \"pulled\": 0, \"failed\": 3, \"done\": 0, \"catalog\": 192, \"status\": \"converging\", \"recent_failures\": {\"BAMLH0A0HYM2\": \"RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/\", \"BAMLC0A2CAA\": 
+── 3. The REAL rev-2 errors (per endpoint) ──
+[23:08:22]   BAMLH0A0HYM2:
+[23:08:22]       RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/
+[23:08:22]   BAMLC0A2CAA:
+[23:08:22]       RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/
+[23:08:22]   BAMLH0A3HYC:
+[23:08:22]       RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/
+── 4. Restore schedule ──
+[23:08:22]   schedule LEFT DISABLED — a broken rail should not burn hourly invokes or hammer TV with a failing handshake
 ── verdict ──
-[23:02:50] ✗ rev-2: 2 red — endpoint rejections above are the next lead
+[23:08:22] ✗ socket still refused — full per-endpoint evidence above; TV may reject non-browser TLS/JA3 fingerprints from AWS, which no header change fixes
 
-→ Report written to aws/ops/reports/latest/4678_tv_bars_rev2.md
-❌ OPS-FAIL: aws/ops/pending/ops_4678_tv_bars_rev2.py
+→ Report written to aws/ops/reports/latest/4679_tv_unmask.md
+❌ OPS-FAIL: aws/ops/pending/ops_4679_tv_unmask.py

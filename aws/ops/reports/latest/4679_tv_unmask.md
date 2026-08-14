@@ -1,0 +1,34 @@
+# ops 4679 — unmask rev-2 socket error
+
+**Status:** failure  
+**Duration:** 3.7s  
+**Finished:** 2026-08-14T23:08:22+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## 1. Quiesce: disable schedule, clear stale state
+
+- `23:08:19`   schedule disabled for the test window
+- `23:08:19`   cleared 14 stale failure entries
+## 2. Invoke rev-2 on 3 symbols
+
+- `23:08:22`   3s · handler: {"statusCode": 200, "body": "{\"ok\": true, \"pulled\": 0, \"failed\": 3, \"done\": 0, \"catalog\": 192, \"status\": \"converging\", \"recent_failures\": {\"BAMLH0A0HYM2\": \"RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/\", \"BAMLC0A2CAA\": 
+## 3. The REAL rev-2 errors (per endpoint)
+
+- `23:08:22`   BAMLH0A0HYM2:
+- `23:08:22`       RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/
+- `23:08:22`   BAMLC0A2CAA:
+- `23:08:22`       RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/
+- `23:08:22`   BAMLH0A3HYC:
+- `23:08:22`       RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/
+## 4. Restore schedule
+
+- `23:08:22`   schedule LEFT DISABLED — a broken rail should not burn hourly invokes or hammer TV with a failing handshake
+## verdict
+
+- `23:08:22` ✗ socket still refused — full per-endpoint evidence above; TV may reject non-browser TLS/JA3 fingerprints from AWS, which no header change fixes
