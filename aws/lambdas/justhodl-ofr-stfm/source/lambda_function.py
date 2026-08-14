@@ -72,15 +72,36 @@ def lambda_handler(event, context):
             Bucket=BUCKET, Key=state_key)["Body"].read())
     except Exception:
         state = {"done": [], "catalog": None}
-    if not state.get("catalog"):
-        mns, src, err = _catalog()
+    # rev (Khalid: repo completeness is critical): discovery used to run
+    # ONCE and cache forever — mnemonics OFR added later (the NCCBR
+    # haircut releases are recent) were never discovered. Now every run
+    # rediscovers and MERGES; new mnemonics enter the worklist
+    # automatically, and repo-family names drain first.
+    mns, src, err = _catalog()
+    prev = set(state.get("catalog") or [])
+    if mns:
+        newly = sorted(set(mns) - prev)
+        state["catalog"] = sorted(prev | set(mns))
+        state["catalog_source"] = src
+        if newly:
+            state["catalog_new_last_run"] = newly[:50]
+            state["catalog_added_total"] = \
+                (state.get("catalog_added_total") or 0) + len(newly)
+    elif not state.get("catalog"):
         state["catalog"] = mns
         state["catalog_source"] = src
-        if err:
-            state["catalog_note"] = ("discovery fell back to seed; "
-                                     f"last err: {err}")
-    todo = [m for m in state["catalog"]
-            if m not in set(state["done"])][:TRANCHE]
+    if err and not mns:
+        state["catalog_note"] = ("discovery fell back; "
+                                 f"last err: {err}")
+    state["catalog_checked_at"] = now
+    _REPO_TAGS = ("REPO", "NCCBR", "TRI", "GCF", "DVP", "BILAT",
+                  "HAIRCUT")
+    todo = [m for m in (state.get("catalog") or [])
+            if m not in set(state["done"])]
+    todo.sort(key=lambda m: (0 if any(t in str(m).upper()
+                                      for t in _REPO_TAGS) else 1,
+                             str(m)))
+    todo = todo[:TRANCHE]
     got = failed = 0
     for m in todo:
         url = f"{BASE}/series/full?mnemonic={m}"
