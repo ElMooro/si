@@ -84,34 +84,63 @@ def lambda_handler(event, context):
             Bucket=BUCKET, Key=state_key)["Body"].read())
     except Exception:
         state = {"catalog": None, "done": []}
-    # ── v2 (Khalid: "1,500 series but only 5MB"): /pd/get/{k}.json
-    # returns ONLY the current seriesbreak (~3KB gz — the whole 5MB
-    # mystery). Full FR2004 history = every break via
-    # /pd/get/{brk}/timeseries/{k}.json. hist_v=2 resets done[] once so
-    # all keys re-pull deep; hourly tranches converge in ~6-7h.
-    if state.get("hist_v") != 2:
-        state["hist_v"] = 2
+    # ── v3 (Khalid, 2nd report of the 5MB freeze): the v2 reconvergence
+    # ran under rev-2's label URLs — every historical break 404'd into
+    # the silent continue, every key fell to the <current-only> fallback
+    # and was marked done SHALLOW. rev-3 fixed the URLs but never bumped
+    # hist_v, so nothing ever re-queued (ops 4602, the depth proof, died
+    # on a sync-invoke read timeout before it could catch this).
+    # hist_v=3 resets done[] once; hourly tranches re-pull deep.
+    if state.get("hist_v") != 3:
+        state["hist_v"] = 3
         state["done"] = []
         state["failures"] = {}
-        state["status"] = "converging-v2-full-history"
-    if any(" " in str(b) for b in (state.get("seriesbreaks") or [])):
-        state["seriesbreaks"] = None   # rev-3: cached labels, refetch ids
-    if not state.get("seriesbreaks"):
+        state["shallow"] = []
+        state["shallow_n"] = 0
+        state["status"] = "converging-v3-full-history"
+    # rev-4: rev-3 GUESSED the id field and zero deep files ever landed,
+    # so the guess is unproven. Discovery now takes every candidate
+    # string a seriesbreaks entry carries and keeps only ids that pass a
+    # LIVE probe fetch (probe-then-wire): a real break id returns
+    # parseable JSON for a known key; labels and wrong fields 404 (or
+    # InvalidURL on spaces) out of the list. Validated set cached once.
+    if (state.get("seriesbreaks_v") != 3
+            or not state.get("seriesbreaks")
+            or any(" " in str(b) for b in state["seriesbreaks"])):
         try:
             sb = json.loads(_fetch("/pd/list/seriesbreaks.json"))
-            labs = []
+            cands = []
             for lst in (sb.get("pd") or {}).values():
                 if isinstance(lst, list):
                     for x in lst:
                         if isinstance(x, dict):
-                            # rev-3: the API wants the break KEYID in
-                            # URLs; labels ('APR 2013 TO ...') 404.
-                            lab = (x.get("keyid")
-                                   or x.get("seriesbreak")
-                                   or x.get("key"))
-                            if lab:
-                                labs.append(str(lab))
-            state["seriesbreaks"] = sorted(set(labs)) or None
+                            for v in x.values():
+                                v = str(v)
+                                if v and v.lower() != "none" \
+                                        and len(v) < 40:
+                                    cands.append(v)
+            ordered = sorted(set(cands),
+                             key=lambda z: (" " in z, len(z), z))
+            probes_k = [(state.get("catalog") or ["PDABTOT"])[0],
+                        "PDPOSGS-B"]
+            valid, probes = [], {}
+            for c in ordered[:24]:
+                verdict = None
+                for pk in probes_k:
+                    try:
+                        json.loads(_fetch(
+                            "/pd/get/%s/timeseries/%s.json" % (c, pk)))
+                        verdict = "ok"
+                        break
+                    except Exception as e2:
+                        verdict = type(e2).__name__
+                    time.sleep(0.12)
+                probes[c] = verdict
+                if verdict == "ok":
+                    valid.append(c)
+            state["seriesbreaks"] = valid or None
+            state["seriesbreaks_probe"] = probes
+            state["seriesbreaks_v"] = 3
         except Exception as e:
             state["seriesbreaks_note"] = ("%s: %s"
                                           % (type(e).__name__,
@@ -148,7 +177,13 @@ def lambda_handler(event, context):
         todo = [k for k in state["catalog"]
                 if k not in set(state["done"])][:TRANCHE]
         breaks = state.get("seriesbreaks") or []
+        if not breaks:
+            todo = []   # blocked-honest: retry discovery next run
         for k in todo:
+            if context.get_remaining_time_in_millis() < 90000:
+                state["budget_break"] = ("stopped after %d this run "
+                                         "(90s headroom kept)" % got)
+                break
             try:
                 rows, used = [], []
                 for brk in breaks:
@@ -170,6 +205,10 @@ def lambda_handler(event, context):
                     rows = ((d2.get("pd") or {}).get("timeseries")
                             or [])
                     used = ["<current-only>"]
+                    sh = state.setdefault("shallow", [])
+                    if len(sh) < 50:
+                        sh.append(k)
+                    state["shallow_n"] = state.get("shallow_n", 0) + 1
                 seen, dedup = set(), []
                 for r2 in rows:
                     ad = r2.get("asofdate")
@@ -181,7 +220,7 @@ def lambda_handler(event, context):
                     Bucket=BUCKET,
                     Key=f"data/warm/nyfed-markets/pd/{k}.json.gz",
                     Body=gzip.compress(json.dumps(
-                        {"series": k, "as_of": now, "hist_v": 2,
+                        {"series": k, "as_of": now, "hist_v": 3,
                          "breaks_used": used,
                          "n_obs": len(dedup),
                          "first": (dedup[0].get("asofdate")
@@ -199,8 +238,9 @@ def lambda_handler(event, context):
         n = len(state["catalog"])
         nd = len(set(state["done"]))
         state["progress_pct"] = round(100 * nd / n, 1) if n else 0
-        state["status"] = ("COMPLETE-maintaining" if nd >= n
-                           else "converging")
+        state["status"] = ("blocked-no-valid-breaks" if not breaks
+                           else "COMPLETE-maintaining" if nd >= n
+                           else "converging-v3")
     state["as_of"] = now
     state["lease_until"] = 0
     s3.put_object(Bucket=BUCKET, Key=state_key,
