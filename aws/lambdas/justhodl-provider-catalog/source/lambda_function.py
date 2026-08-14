@@ -192,9 +192,16 @@ def _series_list(spec):
             ids = [(x.get("id") if isinstance(x, dict) else x)
                    for x in v]
             ids = [str(i) for i in ids if i]
-            return {"count": len(ids),
-                    "ids": ids if len(ids) <= 2000 else
-                    ids[:400] + ["…+" + str(len(ids) - 400) + " more"]}
+            out = {"count": len(ids),
+                   "ids": ids if len(ids) <= 2000 else
+                   ids[:400] + ["…+" + str(len(ids) - 400) + " more"]}
+            # depth lift-through: providers whose series_from doc
+            # carries a depth ledger (nyfed pd-state) surface it on
+            # the card — bytes were never the depth metric
+            if isinstance(d.get("depth"), dict) \
+                    and d["depth"].get("keys"):
+                out["depth"] = d["depth"]
+            return out
     except Exception as e:
         return {"error": f"{type(e).__name__}: {str(e)[:50]}"}
     return None
