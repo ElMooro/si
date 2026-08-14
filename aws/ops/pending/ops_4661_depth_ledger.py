@@ -1,4 +1,4 @@
-"""ops 4660 — depth ledger live: state -> catalog -> card.
+"""ops 4661 — depth ledger live: state -> catalog -> card.
 
 Closes the 5MB confusion at its display root: nyfed engine now keeps a
 depth ledger (backfilled once from stored docs), provider-catalog lifts
@@ -15,7 +15,7 @@ from botocore.config import Config
 from ops_report import report
 
 B = "justhodl-dashboard-live"
-SLUG = "NOT_FOUND"
+SLUG = "nyfed"
 lam = boto3.client("lambda", region_name="us-east-1",
                    config=Config(read_timeout=90,
                                  retries={"max_attempts": 1}))
@@ -52,8 +52,8 @@ def settle(fn, cap=300):
 
 
 def main():
-    with report("4660_depth_ledger") as r:
-        r.heading("ops 4660 — depth ledger: state -> catalog -> card")
+    with report("4661_depth_ledger") as r:
+        r.heading("ops 4661 — depth ledger: state -> catalog -> card")
         misses = 0
         fst = gj("data/_state/fred-scoped-import.json")
         r.log("fred guard (untouched): imported=%s status=%s"
