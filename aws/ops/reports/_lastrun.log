@@ -1,10 +1,34 @@
-executing-against: 378ca85e6d9a69d6529b7e7dbd53e8c71271c9ac
-ops 4657 — v1.4.0 expansion
-── evidence: 13F 't' sample + options discovery ──
-[02:06:43] 13F t[AAPL] = {"b": 3568974207, "s": 9007628327, "n": -5438654120, "wb": 794441234, "ws": 0, "wn": 794441234, "nf": 14, "na": 4, "tv": 78650336796, "fb": ["Two Sigma", "Duration Capital", "Renaissance Technologies"], "fs": ["Citadel Advisors", "Berkshire Hathaway"]}
-[02:07:46] options stores: ['data/crypto-options-history.json', 'data/crypto-options-surface-history.json', 'data/crypto-options-surface.json', 'data/crypto-options.json', 'data/engines/wl-fear-greed-in-mkt-put-call-ratio.json', 'data/engines/wl-index-option-settlement.json', 'data/options-analytics-iv-history.json', 'data/options-analytics.json']
-── deploy + settle ──
-[02:11:49] ✗   [deploy] CONTRACT MISS — v1.4.2 live
+executing-against: 29f4af8d2e6c6362f7819a3d803d11bc70b69215
+ops 4658 — PD full-history depth v3 (4602 redo)
+[17:06:07] fred guard (untouched): ver=2.3.0 imported=281947 status=COMPLETE_WITH_LEAKS
+── 1. Deploy settle — env PD_TRANCHE=150 is the signal ──
+[17:06:07]   live env: {'S3_BUCKET': 'justhodl-dashboard-live', 'PD_TRANCHE': '150'}
+[17:06:07] ✅   [deploy] v3 config applied (PD_TRANCHE=150)
+── 2. Event-kick + wait out the full first v3 cycle ──
+[17:06:07]   before: hist_v=2 status=COMPLETE-maintaining done=1539
+[17:06:07]   kicked (Event — 4602's sync-invoke death not repeated)
+[17:14:44]   after 517s: hist_v=3 status=converging-v3 done=83 failures=0 shallow_n=0 budget=stopped after 83 this run (90s headroom kept)
+[17:14:44]   validated breaks (6): ['SBN2013', 'SBN2015', 'SBN2022', 'SBN2024', 'SBP2001', 'SBP2013']
+[17:14:44]   probe map: 6 ok, 18 rejected (e.g. {'1998-01-28': 'HTTPError', '2001-06-30': 'HTTPError', '2001-07-01': 'HTTPError', '2013-03-31': 'HTTPError'})
+[17:14:44] ✅   [flip] hist_v=3 live — worklist re-queued
+[17:14:44] ✅   [breaks] 6 live-validated break ids, none are labels
+[17:14:44] ✅   [block] not blocked (status=converging-v3)
+── 3. Depth proof from actual per-key docs ──
+[17:14:44]   PDABTOT: hist_v=3 n_obs=697 first=2013-04-03 last=2026-08-05 breaks=['SBN2013', 'SBN2015', 'SBN2022', 'SBN2024'] gz=4510B
+[17:14:44]   PDABTOTC: hist_v=3 n_obs=697 first=2013-04-03 last=2026-08-05 breaks=['SBN2013', 'SBN2015', 'SBN2022', 'SBN2024'] gz=4417B
+[17:14:44]   PDCAFHLMCNONUMBS-DR25: hist_v=3 n_obs=55 first=2022-01-13 last=2026-07-13 breaks=['SBN2022', 'SBN2024'] gz=401B
+[17:14:44]   PDCAFHLMCNONUMBS-FR40: hist_v=3 n_obs=55 first=2022-01-13 last=2026-07-13 breaks=['SBN2022', 'SBN2024'] gz=470B
+[17:14:45]   PDCAFHLMCNONUMBS-OUT55: hist_v=3 n_obs=55 first=2022-01-13 last=2026-07-13 breaks=['SBN2022', 'SBN2024'] gz=576B
+[17:14:45]   PDCAFNMAFHLMC-OUT40: hist_v=3 n_obs=55 first=2022-01-13 last=2026-07-13 breaks=['SBN2022', 'SBN2024'] gz=638B
+[17:14:45]   sample: 6 deep / 0 current-only · mean n_obs=269 (shallow era ~110) · mean gz=1835B -> projected fleet footprint 2.7 MB (was 5.07; tranche-1 skews young MBS-detail vintages, ancient cores land later)
+[17:14:45] ✅   [depth] 6 of 6 sampled docs merged >=2 breaks
+[17:14:45] ✅   [depth] current-only fallbacks in sample: 0
+[17:14:45] ✅   [depth] mean n_obs 269 vs shallow-era ~110
+[17:14:45] ✗   [depth] CONTRACT MISS — projected footprint 2.7 MB > frozen 5.07
+[17:14:45] ✅   [hygiene] failures=0 shallow_n=0
+[17:14:45]   ETA: 1456 remaining / 150 per hourly tranche ≈ 10 h to full v3 depth
+── verdict ──
+[17:14:45] ✗ pd depth v3: 1 red — see contracts
 
-→ Report written to aws/ops/reports/latest/4657_v14_expansion.md
-❌ OPS-FAIL: aws/ops/pending/ops_4657_v14_expansion.py
+→ Report written to aws/ops/reports/latest/4658_pd_depth_v3.md
+❌ OPS-FAIL: aws/ops/pending/ops_4658_pd_depth_v3.py
