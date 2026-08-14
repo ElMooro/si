@@ -1,32 +1,25 @@
-executing-against: c284daae69d430c502c579377d78d14b92159c1f
-ops 4675 — provider ICE audit + 2017-2023 bridge
-── A. Probe providers for ICE availability ──
-[22:37:26]   DBnomics FRED/BAML (retest)      ERR HTTP Error 404: NOT FOUND
-[22:37:26]   DBnomics provider list           OK   22281 | {"_meta":{"args":{"limit":1000,"offset":0},"version":"22.1.17"},"nb_datasets":47062,"nb_series":1725529719,"providers":{"docs":[{"
-[22:37:26]   Yahoo ^BAMLH0A0HYM2              ERR HTTP Error 404: Not Found
-[22:37:26]   ECB corporate spread dataflow    OK    8297 | {"header":{"id":"e7bc9ee8-6844-485e-9788-624e63ddf1f7","test":false,"prepared":"2026-08-15T00:37:25.858+02:00","sender":{"id":"ECB
-[22:37:26]   BIS credit dataflows             OK   16687 | <?xml version="1.0" ?><mes:Structure xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mes="http://www.sdmx.org/resource
-[22:37:26]   Fed Board DDP H15 (Moody's)      ERR HTTP Error 400: Bad Request
-[22:37:26]   IMF dataflow                     ERR <urlopen error [Errno 16] Device or resource busy>
-[22:37:26]   World Bank indicator search      OK     465 | [{"page":1,"pages":29544,"per_page":"1","total":29544},[{"id":"1.0.HCount.1.90usd","name":"Poverty Headcount ($1.90 a day)","unit"
-[22:37:26]   [ice] NO provider in our stack redistributes ICE BofA — consistent with its licence. FRED is the only public channel, and it is truncated.
-── B. Bridge hunt — what we hold across 2017-2023 ──
-[22:38:10]   located 12/13 bridge candidates
-[22:38:10]   AAA            n=1291   1919-01-01 -> 2026-07-01 · 2017-2023 rows=79 
-[22:38:10]   AAA10Y         n=10896  1983-01-03 -> 2026-08-06 · 2017-2023 rows=1643 COVERS THE HOLE
-[22:38:10]   BAA            n=1291   1919-01-01 -> 2026-07-01 · 2017-2023 rows=79 
-[22:38:10]   BAA10Y         n=10149  1986-01-02 -> 2026-08-06 · 2017-2023 rows=1643 COVERS THE HOLE
-[22:38:11]   BAA10YM        n=880    1953-04-01 -> 2026-07-01 · 2017-2023 rows=79 
-[22:38:11]   DAAA           n=10944  1983-01-03 -> 2026-08-06 · 2017-2023 rows=1647 COVERS THE HOLE
-[22:38:11]   DBAA           n=10185  1986-01-02 -> 2026-08-06 · 2017-2023 rows=1647 COVERS THE HOLE
-[22:38:11]   DCOILWTICO     n=10215  1986-01-02 -> 2026-08-03 · 2017-2023 rows=1649 COVERS THE HOLE
-[22:38:11]   DGS10          n=16134  1962-01-02 -> 2026-08-06 · 2017-2023 rows=1647 COVERS THE HOLE
-[22:38:11]   HQMCB10YR      n=511    1984-01-01 -> 2026-07-01 · 2017-2023 rows=79 
-[22:38:11]   MORTGAGE30US   n=2889   1971-04-02 -> 2026-08-06 · 2017-2023 rows=343 
-[22:38:11]   T10Y2Y         n=12543  1976-06-01 -> 2026-08-07 · 2017-2023 rows=1647 COVERS THE HOLE
-[22:38:11] ✅   [bridge] 7 series span the ICE hole continuously (['AAA10Y', 'BAA10Y', 'DAAA', 'DBAA', 'DCOILWTICO', 'DGS10']) — the 2017-2023 credit regime is observable even without ICE
-[22:38:11] ✅   audit recorded in data/repo-coverage.json
-── verdict ──
-[22:38:11] ✅ provider audit complete — ICE availability answered with evidence, bridge series identified
+executing-against: 2f2773c745a6cd4d636a8126a497881a9b934bba
+ops 4676 — every provider probed for ICE history
+[22:43:53]   (temp probe deleted)
+── Results — earliest date each source will serve ──
+[22:43:53]   dbnomics FRED/BAMLH0A0HYM2         ERR HTTP Error 404: NOT FOUND
+[22:43:53]   dbnomics search BAML               137 bytes · earliest=None | {"_meta":{"args":{"limit":5,"offset":0,"q":"BAMLH0A0HYM2"},"version":"22.1.17"},"results":{"docs":[],"limit":5,"num_found":0,"offset":0}}
+[22:43:53]   dbnomics provider list             22281 bytes · earliest=None | {"_meta":{"args":{"limit":1000,"offset":0},"version":"22.1.17"},"nb_datasets":47062,"nb_series":1725529719,"providers":{"docs":[{"code":"ACOSS","index
+[22:43:53]   fed-board DDP corporate            479140 bytes · earliest=None | "Series Description","Market yield on U.S. Treasury securities at 1-month   constant maturity, quoted on investment basis","Market yield on U.S. Treas
+[22:43:53]   ecb SDMX corporate spread flow     ERR HTTP Error 404: Not Found
+[22:43:53]   bis stats dataflows                16687 bytes · earliest=None | <?xml version="1.0" ?><mes:Structure xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mes="http://www.sdmx.org/resources/sdmxml/schemas/v2_
+[22:43:53]   boe IADB corporate                 16717 bytes · earliest=None | <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> <html xmlns="http://www.w3.o
+[22:43:53]   yahoo HYG history (proxy)          441808 bytes · earliest=None | {"chart":{"result":[{"meta":{"currency":"USD","symbol":"HYG","exchangeName":"PCX","fullExchangeName":"NYSEArca","instrumentType":"ETF","firstTradeDate
+[22:43:53]   stlouisfed fredgraph.csv direct    ERR The read operation timed out
+[22:43:53]   stlouisfed fredgraph BAMLC0A2CAA   ERR The read operation timed out
+[22:43:53]   nasdaq data link FRED table        ERR HTTP Error 403: Forbidden
+[22:43:53]   stooq mirror                       796 bytes · earliest=None | <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript t
+[22:43:53]   econdb FRED mirror                 ERR HTTP Error 401: Unauthorized
+[22:43:53]   wayback fredgraph 2022             311 bytes · earliest=None | {"url": "fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2", "archived_snapshots": {"closest": {"status": "200", "available": true, "url": "http
+── Verdict ──
+[22:43:53]   No provider in our fleet serves pre-2020 ICE history. The 2017-2023 hole is not closable from existing rails — TradingView (session-auth, in build) and ICE's own trial remain the routes.
+[22:43:53] ✅   published data/ice-source-sweep.json
+[22:43:53] ✗ no usable provider found — recorded honestly
 
-→ Report written to aws/ops/reports/latest/4675_provider_ice_audit.md
+→ Report written to aws/ops/reports/latest/4676_provider_ice_sweep.md
+❌ OPS-FAIL: aws/ops/pending/ops_4676_provider_ice_sweep.py

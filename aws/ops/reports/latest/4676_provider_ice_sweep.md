@@ -1,0 +1,35 @@
+# ops 4676 — every provider probed for ICE history
+
+**Status:** failure  
+**Duration:** 77.4s  
+**Finished:** 2026-08-14T22:43:53+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `22:43:53`   (temp probe deleted)
+## Results — earliest date each source will serve
+
+- `22:43:53`   dbnomics FRED/BAMLH0A0HYM2         ERR HTTP Error 404: NOT FOUND
+- `22:43:53`   dbnomics search BAML               137 bytes · earliest=None | {"_meta":{"args":{"limit":5,"offset":0,"q":"BAMLH0A0HYM2"},"version":"22.1.17"},"results":{"docs":[],"limit":5,"num_found":0,"offset":0}}
+- `22:43:53`   dbnomics provider list             22281 bytes · earliest=None | {"_meta":{"args":{"limit":1000,"offset":0},"version":"22.1.17"},"nb_datasets":47062,"nb_series":1725529719,"providers":{"docs":[{"code":"ACOSS","index
+- `22:43:53`   fed-board DDP corporate            479140 bytes · earliest=None | "Series Description","Market yield on U.S. Treasury securities at 1-month   constant maturity, quoted on investment basis","Market yield on U.S. Treas
+- `22:43:53`   ecb SDMX corporate spread flow     ERR HTTP Error 404: Not Found
+- `22:43:53`   bis stats dataflows                16687 bytes · earliest=None | <?xml version="1.0" ?><mes:Structure xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mes="http://www.sdmx.org/resources/sdmxml/schemas/v2_
+- `22:43:53`   boe IADB corporate                 16717 bytes · earliest=None | <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> <html xmlns="http://www.w3.o
+- `22:43:53`   yahoo HYG history (proxy)          441808 bytes · earliest=None | {"chart":{"result":[{"meta":{"currency":"USD","symbol":"HYG","exchangeName":"PCX","fullExchangeName":"NYSEArca","instrumentType":"ETF","firstTradeDate
+- `22:43:53`   stlouisfed fredgraph.csv direct    ERR The read operation timed out
+- `22:43:53`   stlouisfed fredgraph BAMLC0A2CAA   ERR The read operation timed out
+- `22:43:53`   nasdaq data link FRED table        ERR HTTP Error 403: Forbidden
+- `22:43:53`   stooq mirror                       796 bytes · earliest=None | <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript t
+- `22:43:53`   econdb FRED mirror                 ERR HTTP Error 401: Unauthorized
+- `22:43:53`   wayback fredgraph 2022             311 bytes · earliest=None | {"url": "fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2", "archived_snapshots": {"closest": {"status": "200", "available": true, "url": "http
+## Verdict
+
+- `22:43:53`   No provider in our fleet serves pre-2020 ICE history. The 2017-2023 hole is not closable from existing rails — TradingView (session-auth, in build) and ICE's own trial remain the routes.
+- `22:43:53` ✅   published data/ice-source-sweep.json
+- `22:43:53` ✗ no usable provider found — recorded honestly
