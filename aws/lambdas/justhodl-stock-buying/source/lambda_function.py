@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.4.2 (ops 4657)
+"""justhodl-stock-buying v1.5.0 (ops 4658)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -692,6 +692,15 @@ def lambda_handler(event=None, context=None):
     _f13 = (s3_json("data/13f-flows-by-ticker.json") or {}
             ).get("t") or {}
     _f13n = 0
+    _boomL = (s3_json("data/industry-boom.json") or {}
+              ).get("league") or []
+    _boomN = {}
+    for _b in _boomL:
+        _nm = str(_b.get("industry") or "").lower()
+        if _nm:
+            _boomN[_nm] = _b
+    _sp500 = {str(x.get("symbol") or "").upper()
+              for x in crows}
     _cat_n = 0
     _cm = {str(x.get("symbol") or "").upper(): x
            for x in crows}
@@ -710,6 +719,41 @@ def lambda_handler(event=None, context=None):
                 ce["catalysts"][0].get("evidence")
             _cat_n += 1
         cm0 = _cm.get(sym0) or {}
+        fv0 = (globals().get("_FV") or {}).get(sym0) or {}
+        mc = fv0.get("market_cap") or cm0.get("market_cap")
+        if isinstance(mc, (int, float)):
+            r0["market_cap"] = mc
+            r0["cap_bucket"] = ("mega" if mc >= 2e11 else
+                                "large" if mc >= 1e10 else
+                                "mid" if mc >= 2e9 else
+                                "small" if mc >= 3e8 else
+                                "micro")
+        exch = fv0.get("exchange") or fv0.get("exch")
+        if exch:
+            r0["exchange"] = str(exch)[:8]
+        r0["idx_sp500"] = sym0 in _sp500
+        ind0 = str(r0.get("industry") or "").lower()
+        _bm = None
+        if ind0:
+            _bm = _boomN.get(ind0)
+            if _bm is None:
+                for _nm, _bb in _boomN.items():
+                    if _nm and (_nm in ind0 or ind0 in _nm):
+                        _bm = _bb
+                        break
+        if _bm:
+            r0["industry_boom"] = _bm.get("boom_score")
+            for _mk in ("momentum", "velocity", "chg_7d",
+                        "boom_chg", "delta", "trend"):
+                _mv = _bm.get(_mk)
+                if isinstance(_mv, (int, float)):
+                    r0["industry_momentum"] = _mv
+                    r0["ind_mom_field"] = _mk
+                    break
+            if "industry_momentum" not in r0 and isinstance(
+                    _bm.get("boom_score"), (int, float)):
+                r0["industry_momentum"] = _bm["boom_score"]
+                r0["ind_mom_field"] = "boom_score"
         for src_k, dst_k in (
                 ("net_buyback_yield_pct", "net_bb_yield_pct"),
                 ("ps_ttm", "ps"),
