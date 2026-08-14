@@ -1,11 +1,20 @@
-executing-against: 06314f19cb2a86c9d058f0720cad45488cbf8175
-ops 4673 — server-side TV bar rail, 3-symbol proof
-── 1. Session present? ──
-[22:18:42]   SSM lengths (values never printed): {'sessionid': 33, 'sessionid_sign': 47, 'device_t': 52, 'auth_token': 0}
-[22:18:42] ✅   [session] sessionid present (len=33)
-── 2. Settle deploy ──
-[22:23:45] ✗   [deploy] CONTRACT MISS — justhodl-tv-bars is Active
-[22:23:45] ✗   engine not deployed — cannot prove the rail
+executing-against: 208c6feea00ebcb7280b4406ff34988f204f16d6
+ops 4674 — create tv-bars engine + prove the rail
+── 1. Create or update the function from repo source ──
+[22:29:09] ✅   CREATED justhodl-tv-bars (deploy-lambdas skips new functions outside MISSING-mode dispatch)
+[22:29:17] ✅   [deploy] justhodl-tv-bars Active
+── 2. Schedule (hourly) so convergence is autonomous ──
+[22:29:18] ✅   schedule justhodl-tv-bars-hourly -> rate(1 hour)
+── 3. Pull 3 ICE symbols (sync) ──
+[22:30:39]   handler: {"statusCode": 200, "body": "{\"ok\": true, \"pulled\": 0, \"failed\": 3, \"done\": 0, \"catalog\": 192, \"status\": \"converging\", \"recent_failures\": {\"BAMLH0A0HYM2\": \"RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'\", \"BAMLC0A2CAA\": \"RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'\", \"BAMLH0A3HYC\": \"RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'\"}}"}
+── 4. What landed ──
+[22:30:39]   BAMLH0A0HYM2: nothing banked
+[22:30:39]   BAMLC0A2CAA: nothing banked
+[22:30:39]   BAMLH0A3HYC: nothing banked
+[22:30:39]   failures: {'BAMLH0A0HYM2': "RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'", 'BAMLC0A2CAA': "RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'", 'BAMLH0A3HYC': "RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'"}
+[22:30:39] ✗   [depth] CONTRACT MISS — 0/3 symbols carry pre-2020 history
+── verdict ──
+[22:30:39] ✗ tv rail: 1 red — protocol evidence above drives the next revision
 
-→ Report written to aws/ops/reports/latest/4673_tv_bars_proof.md
-❌ OPS-FAIL: aws/ops/pending/ops_4673_tv_bars_proof.py
+→ Report written to aws/ops/reports/latest/4674_tv_bars_create.md
+❌ OPS-FAIL: aws/ops/pending/ops_4674_tv_bars_create.py
