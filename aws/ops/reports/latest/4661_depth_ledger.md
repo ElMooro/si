@@ -1,0 +1,27 @@
+# ops 4661 — depth ledger: state -> catalog -> card
+
+**Status:** success  
+**Duration:** 382.2s  
+**Finished:** 2026-08-14T17:54:04+00:00  
+
+## Log
+- `17:47:42` fred guard (untouched): imported=281947 status=COMPLETE_WITH_LEAKS
+## 1. Settle deploys, kick nyfed
+
+- `17:47:42`   nyfed settled=True catalog settled=True
+- `17:47:42`   before: done=305 depth=305
+- `17:53:44`   after 361s: done=390 depth={'keys': 390, 'n_obs_sum': 74296, 'first_min': '2013-04-03', 'multi': 390, 'ge500': 81}
+- `17:53:44` ✅   [ledger] depth ledger present (keys=390)
+- `17:53:44` ✅   [ledger] ledger keys 390 == done 390 (backfill + incremental consistent)
+- `17:53:44` ✅   [ledger] mean n_obs 191 (shallow era ~110)
+- `17:53:44` ✅   [ledger] multi-break 390/390
+- `17:53:44` ✅   [ledger] earliest first 2013-04-03 (full lineage reached)
+## 2. Kick provider-catalog, contract the card payload
+
+- `17:54:04`   card payload depth: {'keys': 390, 'n_obs_sum': 74296, 'first_min': '2013-04-03', 'multi': 390, 'ge500': 81}
+- `17:54:04` ✅   [card] depth reached the provider payload (keys=390)
+- `17:54:04`   chip renders: '191 obs · MEAN DEPTH · since 2013'
+- `17:54:04`   convergence: 390 done, 1149 remaining ≈ 8 h
+## verdict
+
+- `17:54:04` ✅ depth is now a card metric — bytes demoted to what they are; ledger self-maintains through convergence and beyond
