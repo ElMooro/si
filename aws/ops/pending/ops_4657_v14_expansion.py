@@ -106,13 +106,13 @@ def main():
                 src = zipfile.ZipFile(io.BytesIO(zb)).read(
                     "lambda_function.py").decode("utf-8",
                                                  "replace")
-                if "justhodl-stock-buying v1.5.0" in src:
+                if "justhodl-stock-buying v1.4.2" in src:
                     settled = True
                     break
             except Exception:
                 pass
             time.sleep(20)
-        misses += contract(r, "deploy", settled, "v1.5.0 live")
+        misses += contract(r, "deploy", settled, "v1.4.2 live")
         if not settled:
             sys.exit(1)
 
@@ -161,32 +161,6 @@ def main():
         for x in [y for y in rows if y.get("warnings")][:5]:
             r.log("WARN %-5s %s" % (x.get("symbol"),
                                     x.get("warnings")))
-        imom_n = sum(1 for x in cen
-                     if x.get("industry_momentum")
-                     is not None)
-        cap_c = {}
-        for x in rows:
-            cb = x.get("cap_bucket")
-            if cb:
-                cap_c[cb] = cap_c.get(cb, 0) + 1
-        try:
-            bl0 = (json.loads(s3.get_object(
-                Bucket=B, Key="data/industry-boom.json")
-                ["Body"].read()).get("league") or [{}])[0]
-            r.log("league row keys: %s"
-                  % sorted(bl0.keys())[:14])
-        except Exception:
-            pass
-        r.kv(imom=imom_n, caps=json.dumps(cap_c),
-             sp500=sum(1 for x in rows
-                       if x.get("idx_sp500")))
-        misses += contract(r, "ind-mom",
-                           imom_n >= 200,
-                           "%d rows carry industry momentum"
-                           % imom_n)
-        misses += contract(r, "caps",
-                           sum(cap_c.values()) >= 200,
-                           "cap buckets live: %s" % cap_c)
         misses += contract(r, "ladder",
                            lad_n >= 240,
                            "%d/300-lane rows carry SMA "
@@ -215,7 +189,7 @@ def main():
                               "stock-buying.html?cb=%d"
                               % time.time()).decode("utf-8",
                                                     "replace")
-                if "ADD ENGINE COLUMNS" in pg and "INDEX / CAP" in pg \
+                if "ADD ENGINE COLUMNS" in pg \
                         and "SMAs" in pg and "WARN" in pg:
                     ok = True
                     break

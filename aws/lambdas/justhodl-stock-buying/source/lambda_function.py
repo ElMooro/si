@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.5.0 (ops 4658)
+"""justhodl-stock-buying v1.5.1 (ops 4658)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -721,6 +721,8 @@ def lambda_handler(event=None, context=None):
         cm0 = _cm.get(sym0) or {}
         fv0 = (globals().get("_FV") or {}).get(sym0) or {}
         mc = fv0.get("market_cap") or cm0.get("market_cap")
+        if isinstance(mc, (int, float)) and 0 < mc < 1e8:
+            mc = mc * 1e6  # finviz denominates in $MM
         if isinstance(mc, (int, float)):
             r0["market_cap"] = mc
             r0["cap_bucket"] = ("mega" if mc >= 2e11 else
@@ -743,8 +745,9 @@ def lambda_handler(event=None, context=None):
                         break
         if _bm:
             r0["industry_boom"] = _bm.get("boom_score")
-            for _mk in ("momentum", "velocity", "chg_7d",
-                        "boom_chg", "delta", "trend"):
+            for _mk in ("score_delta_20d", "momentum",
+                        "velocity", "chg_7d", "boom_chg",
+                        "delta", "trend"):
                 _mv = _bm.get(_mk)
                 if isinstance(_mv, (int, float)):
                     r0["industry_momentum"] = _mv
