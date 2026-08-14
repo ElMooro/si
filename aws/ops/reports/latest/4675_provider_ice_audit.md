@@ -1,0 +1,38 @@
+# ops 4675 — provider ICE audit + 2017-2023 bridge
+
+**Status:** success  
+**Duration:** 54.4s  
+**Finished:** 2026-08-14T22:38:11+00:00  
+
+## Log
+## A. Probe providers for ICE availability
+
+- `22:37:26`   DBnomics FRED/BAML (retest)      ERR HTTP Error 404: NOT FOUND
+- `22:37:26`   DBnomics provider list           OK   22281 | {"_meta":{"args":{"limit":1000,"offset":0},"version":"22.1.17"},"nb_datasets":47062,"nb_series":1725529719,"providers":{"docs":[{"
+- `22:37:26`   Yahoo ^BAMLH0A0HYM2              ERR HTTP Error 404: Not Found
+- `22:37:26`   ECB corporate spread dataflow    OK    8297 | {"header":{"id":"e7bc9ee8-6844-485e-9788-624e63ddf1f7","test":false,"prepared":"2026-08-15T00:37:25.858+02:00","sender":{"id":"ECB
+- `22:37:26`   BIS credit dataflows             OK   16687 | <?xml version="1.0" ?><mes:Structure xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mes="http://www.sdmx.org/resource
+- `22:37:26`   Fed Board DDP H15 (Moody's)      ERR HTTP Error 400: Bad Request
+- `22:37:26`   IMF dataflow                     ERR <urlopen error [Errno 16] Device or resource busy>
+- `22:37:26`   World Bank indicator search      OK     465 | [{"page":1,"pages":29544,"per_page":"1","total":29544},[{"id":"1.0.HCount.1.90usd","name":"Poverty Headcount ($1.90 a day)","unit"
+- `22:37:26`   [ice] NO provider in our stack redistributes ICE BofA — consistent with its licence. FRED is the only public channel, and it is truncated.
+## B. Bridge hunt — what we hold across 2017-2023
+
+- `22:38:10`   located 12/13 bridge candidates
+- `22:38:10`   AAA            n=1291   1919-01-01 -> 2026-07-01 · 2017-2023 rows=79 
+- `22:38:10`   AAA10Y         n=10896  1983-01-03 -> 2026-08-06 · 2017-2023 rows=1643 COVERS THE HOLE
+- `22:38:10`   BAA            n=1291   1919-01-01 -> 2026-07-01 · 2017-2023 rows=79 
+- `22:38:10`   BAA10Y         n=10149  1986-01-02 -> 2026-08-06 · 2017-2023 rows=1643 COVERS THE HOLE
+- `22:38:11`   BAA10YM        n=880    1953-04-01 -> 2026-07-01 · 2017-2023 rows=79 
+- `22:38:11`   DAAA           n=10944  1983-01-03 -> 2026-08-06 · 2017-2023 rows=1647 COVERS THE HOLE
+- `22:38:11`   DBAA           n=10185  1986-01-02 -> 2026-08-06 · 2017-2023 rows=1647 COVERS THE HOLE
+- `22:38:11`   DCOILWTICO     n=10215  1986-01-02 -> 2026-08-03 · 2017-2023 rows=1649 COVERS THE HOLE
+- `22:38:11`   DGS10          n=16134  1962-01-02 -> 2026-08-06 · 2017-2023 rows=1647 COVERS THE HOLE
+- `22:38:11`   HQMCB10YR      n=511    1984-01-01 -> 2026-07-01 · 2017-2023 rows=79 
+- `22:38:11`   MORTGAGE30US   n=2889   1971-04-02 -> 2026-08-06 · 2017-2023 rows=343 
+- `22:38:11`   T10Y2Y         n=12543  1976-06-01 -> 2026-08-07 · 2017-2023 rows=1647 COVERS THE HOLE
+- `22:38:11` ✅   [bridge] 7 series span the ICE hole continuously (['AAA10Y', 'BAA10Y', 'DAAA', 'DBAA', 'DCOILWTICO', 'DGS10']) — the 2017-2023 credit regime is observable even without ICE
+- `22:38:11` ✅   audit recorded in data/repo-coverage.json
+## verdict
+
+- `22:38:11` ✅ provider audit complete — ICE availability answered with evidence, bridge series identified
