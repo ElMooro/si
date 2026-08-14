@@ -1,0 +1,38 @@
+# ops 4662 — nyfed depth note · repo completeness · FRED leak-only recovery
+
+**Status:** success  
+**Duration:** 411.4s  
+**Finished:** 2026-08-14T19:04:53+00:00  
+
+## Log
+## 1. nyfed — convergence + depth
+
+- `18:58:02`   done=663/1539 mean=253 obs first=2013-04-03 ge500=191 multi=663 status=converging-v3
+- `18:58:02` ✅   [nyfed] ledger 663 == done 663
+- `18:58:02` ✅   [nyfed] convergence advancing (663, was 390 at 4661)
+- `18:58:03`   provider-catalog kicked (note check at the end)
+## 2. repo — NY Fed history freshness + OFR rediscovery
+
+- `18:58:03` ✅   [repo] rp-repo-history.json.gz 13.6h old (61 KB)
+- `18:58:03` ✅   [repo] rp-reverserepo-history.json.gz 13.6h old (147 KB)
+- `18:58:23`   catalog=442 checked_at=2026-08-14T18:58:04+00:00 added_total=None new=[]
+- `18:58:23`   repo-family mnemonics: 164 in catalog · 0 pending (e.g. [])
+- `18:58:23` ✅   [repo] rediscovery ran this op (checked_at=2026-08-14T18:58:04+00:00)
+- `18:58:23` ✅   [repo] 164 repo-family mnemonics in catalog
+- `18:58:23` ✅   [repo] ofr failures=0
+## 3. FRED — leak-only recovery (S3-diff requeue)
+
+- `18:58:24`   status=COMPLETE_WITH_LEAKS imported=281947 errors=201 accounting={'seen': 884361, 'accounted': 884364, 'reconciles': False}
+- `18:59:39`   banked docs: 276195 (listed in 75s) · queue ids: 275105
+- `18:59:39`   MISSING (queue - banked): 194 · errors-dict: 201 (197 of them unbanked, 4 banked anyway)
+- `18:59:39` ✅   [fred] diff plausible (194 missing)
+- `18:59:42` ✅   requeued 194 missing rows (tail of queue; head_object skip makes re-import impossible)
+- `19:04:33`   after 290s: +152 imported, +152 cursor, status=COMPLETE_WITH_LEAKS
+- `19:04:33` ✅   [fred] leak drain moving (+152 imported, +152 cursor)
+## 4. index card — depth note live
+
+- `19:04:53`   nyfed catalog_note: depth 253 obs/series · since 2013 · 663/1539 @v3
+- `19:04:53` ✅   [card] depth note on the INDEX card: 'depth 253 obs/series · since 2013 · 663/1539 @v3'
+## verdict
+
+- `19:04:53` ✅ nyfed depth visible where you look · repo lane rediscovering + fresh · FRED leaks recovered by diff, not re-import
