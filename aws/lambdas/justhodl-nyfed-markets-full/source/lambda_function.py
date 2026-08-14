@@ -97,6 +97,7 @@ def lambda_handler(event, context):
         state["failures"] = {}
         state["shallow"] = []
         state["shallow_n"] = 0
+        state["depth"] = None
         state["status"] = "converging-v3-full-history"
     # rev-4: rev-3 GUESSED the id field and zero deep files ever landed,
     # so the guess is unproven. Discovery now takes every candidate
@@ -174,6 +175,32 @@ def lambda_handler(event, context):
     state["lease_until"] = time.time() + 620
     state.pop("skipped", None)
     if state.get("catalog"):
+        # depth ledger backfill (once): keys converged before the ledger
+        # existed get counted from their own stored docs
+        if state.get("done") and not state.get("depth"):
+            dep = {"keys": 0, "n_obs_sum": 0, "first_min": None,
+                   "multi": 0, "ge500": 0}
+            for k in list(state["done"]):
+                if context.get_remaining_time_in_millis() < 120000:
+                    break
+                try:
+                    d0 = json.loads(gzip.decompress(s3.get_object(
+                        Bucket=BUCKET,
+                        Key=f"data/warm/nyfed-markets/pd/{k}.json.gz"
+                    )["Body"].read()))
+                    dep["keys"] += 1
+                    dep["n_obs_sum"] += int(d0.get("n_obs") or 0)
+                    f0 = d0.get("first")
+                    if f0 and (dep["first_min"] is None
+                               or str(f0) < str(dep["first_min"])):
+                        dep["first_min"] = str(f0)
+                    if len(d0.get("breaks_used") or []) >= 2:
+                        dep["multi"] += 1
+                    if int(d0.get("n_obs") or 0) >= 500:
+                        dep["ge500"] += 1
+                except Exception:
+                    continue
+            state["depth"] = dep
         todo = [k for k in state["catalog"]
                 if k not in set(state["done"])][:TRANCHE]
         breaks = state.get("seriesbreaks") or []
@@ -229,6 +256,20 @@ def lambda_handler(event, context):
                                   if dedup else None),
                          "rows": dedup}).encode()),
                     ContentType="application/gzip")
+                dep = state.get("depth") or {
+                    "keys": 0, "n_obs_sum": 0, "first_min": None,
+                    "multi": 0, "ge500": 0}
+                dep["keys"] += 1
+                dep["n_obs_sum"] += len(dedup)
+                f0 = dedup[0].get("asofdate") if dedup else None
+                if f0 and (dep["first_min"] is None
+                           or str(f0) < str(dep["first_min"])):
+                    dep["first_min"] = str(f0)
+                if len(used) >= 2:
+                    dep["multi"] += 1
+                if len(dedup) >= 500:
+                    dep["ge500"] += 1
+                state["depth"] = dep
                 state["done"].append(k)
                 got += 1
             except Exception as e:
@@ -250,7 +291,13 @@ def lambda_handler(event, context):
                      "catalog_source": state.get("catalog_source"),
                      "pulled_this_run": got,
                      "done_total": len(set(state.get("done", []))),
-                     "progress_pct": state.get("progress_pct")}
+                     "progress_pct": state.get("progress_pct"),
+                     "depth": (dict(state["depth"],
+                                    mean_n_obs=round(
+                                        state["depth"]["n_obs_sum"]
+                                        / max(1, state["depth"]["keys"]),
+                                        1))
+                               if state.get("depth") else None)}
     s3.put_object(Bucket=BUCKET,
                   Key="data/warm/nyfed-markets/latest-summary.json",
                   Body=json.dumps(summary, default=str).encode(),
