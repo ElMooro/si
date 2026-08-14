@@ -1,87 +1,86 @@
-/* JustHodl — archived FRED history grabber (paste into DevTools console)
+/* JustHodl — archived FRED history grabber v2 (paste into DevTools console)
  *
- * Why this exists: every automated egress we have is blocked — archive.org
- * returns 498 to AWS Lambda, TradingView refuses the socket on TLS
- * fingerprint, investing.com 403s. Khalid's browser is not blocked. This
- * runs there, pulls the history out of the archived FRED chart, and POSTs
- * it straight into S3 via the existing authenticated ingest endpoint.
- * No files, no downloads, no uploads.
+ * v1 assumed Highcharts; FRED changed charting libs, so v1 correctly
+ * reported "no Highcharts object". v2 doesn't touch the chart at all:
+ * it fetches the ARCHIVED RAW DATA FILES straight from web.archive.org
+ * — which our AWS Lambdas cannot do (archive.org returns 498 to cloud
+ * IPs) but Khalid's browser can. Then it posts each series to S3.
  *
- * USE: open an archived FRED series page on web.archive.org, click MAX,
- * wait for the chart, then paste this and press Enter.
+ * USE: open ANY page on web.archive.org (so the fetches are same-origin),
+ *      then paste this once. It walks all 27 series itself.
  */
 (async () => {
-  const INGEST = 'https://w4osroryszvlifgk4boofkh7cm0selzf.lambda-url.us-east-1.on.aws/';
-  const TOKEN  = '__TOKEN__';           // injected below by the setup line
-  const CUTOFF = '2023-08-14';          // our banked FRED window starts 08-15
+  const INGEST = '__INGEST__';
+  const TOKEN  = '__TOKEN__';
+  const CUTOFF = '2023-08-14';        // our authentic FRED window starts 08-15
 
-  const id = (location.href.match(/\/series\/([A-Za-z0-9]+)/i) || [])[1]
-          || (location.href.match(/[?&]id=([A-Za-z0-9]+)/i) || [])[1];
-  if (!id) { console.error('[JH] no series id in URL'); return; }
+  const IDS = ['BAMLH0A0HYM2','BAMLC0A0CM','BAMLC0A1CAAA','BAMLC0A2CAA',
+    'BAMLC0A3CA','BAMLC0A4CBBB','BAMLH0A1HYBB','BAMLH0A2HYB','BAMLH0A3HYC',
+    'BAMLC0A0CMEY','BAMLC0A1CAAAEY','BAMLC0A2CAAEY','BAMLC0A3CAEY',
+    'BAMLC0A4CBBBEY','BAMLH0A0HYM2EY','BAMLH0A1HYBBEY','BAMLH0A2HYBEY',
+    'BAMLH0A3HYCEY','BAMLCC0A0CMTRIV','BAMLCC0A1AAATRIV','BAMLCC0A2AATRIV',
+    'BAMLCC0A3ATRIV','BAMLCC0A4BBBTRIV','BAMLHYH0A0HYM2TRIV',
+    'BAMLHYH0A1BBTRIV','BAMLHYH0A2BTRIV','BAMLHYH0A3CMTRIV'];
 
-  const capture = (location.href.match(/web\/(\d{8,14})/) || [])[1] || '';
+  const STAMPS = ['20250601','20240901','20240301','20231001'];
 
-  /* ── find the chart ──────────────────────────────────────────────── */
-  const charts = (window.Highcharts && Highcharts.charts || []).filter(Boolean);
-  if (!charts.length) {
-    console.error('[JH] no Highcharts object — let the chart finish loading, click MAX, retry');
-    return;
-  }
-  let picked = null, best = 0;
-  charts.forEach(c => (c.series || []).forEach(s => {
-    const n = (s.options && s.options.data ? s.options.data.length : 0)
-            || (s.processedXData ? s.processedXData.length : 0)
-            || (s.data ? s.data.length : 0);
-    if (n > best) { best = n; picked = s; }
-  }));
-  if (!picked) { console.error('[JH] no data series found'); return; }
+  // Several archived shapes; first one that yields rows wins.
+  const forms = (ts, id) => [
+    `https://web.archive.org/web/${ts}id_/https://fred.stlouisfed.org/data/${id}.txt`,
+    `https://web.archive.org/web/${ts}id_/https://fred.stlouisfed.org/graph/fredgraph.csv?id=${id}`,
+    `https://web.archive.org/web/${ts}id_/https://fred.stlouisfed.org/graph/fredgraph.csv?bgcolor=%23e1e9f0&chart_type=line&id=${id}`
+  ];
 
-  /* ── extract points, tolerating every Highcharts point shape ─────── */
-  const iso = t => {
-    const d = new Date(Number(t));
-    return isFinite(d) ? d.toISOString().slice(0, 10) : null;
+  const parse = (txt) => {
+    const out = [];
+    for (const ln of txt.split(/\r?\n/)) {
+      if (!/^(19|20)\d\d-\d\d-\d\d/.test(ln)) continue;
+      const p = ln.replace(/,/g, ' ').trim().split(/\s+/);
+      if (p.length >= 2 && p[1] !== '.' && isFinite(Number(p[1])) && p[0] <= CUTOFF)
+        out.push([p[0], Number(p[1])]);
+    }
+    return out;
   };
-  const rows = new Map();
-  const opts = picked.options || {};
-  const start = opts.pointStart != null ? opts.pointStart
-              : (picked.userOptions || {}).pointStart;
-  const step  = opts.pointInterval != null ? opts.pointInterval
-              : (picked.userOptions || {}).pointInterval;
 
-  const raw = (opts.data && opts.data.length) ? opts.data
-            : (picked.processedXData
-               ? picked.processedXData.map((x, i) => [x, picked.processedYData[i]])
-               : (picked.data || []).map(p => [p.x, p.y]));
+  const post = async (batch) => {
+    const r = await fetch(INGEST, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: TOKEN, kind: 'series', series: batch })
+    }).then(x => x.json()).catch(e => ({ ok: false, error: String(e) }));
+    return r;
+  };
 
-  raw.forEach((p, i) => {
-    let x = null, y = null;
-    if (Array.isArray(p))            { x = p[0]; y = p[1]; }
-    else if (p && typeof p === 'object') { x = p.x; y = (p.y != null ? p.y : p.value); }
-    else if (typeof p === 'number' && start != null && step != null) { x = start + i * step; y = p; }
-    const d = iso(x);
-    if (d && y != null && isFinite(Number(y)) && d <= CUTOFF) rows.set(d, Number(y));
-  });
+  console.log('%c[JH] fetching ' + IDS.length + ' archived series…',
+              'color:#7fb0d0;font-weight:bold');
+  let batch = [], done = 0, failed = [];
 
-  const obs = [...rows.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  console.log('[JH] series:', id, '· capture:', capture,
-              '· points:', raw.length, '· usable (<=' + CUTOFF + '):', obs.length);
-  if (obs.length) console.log('[JH] range:', obs[0][0], '->', obs[obs.length - 1][0]);
-  if (obs.length < 50) { console.error('[JH] too few points — click MAX and let it load fully'); return; }
-
-  /* ── post straight to S3 ─────────────────────────────────────────── */
-  const res = await fetch(INGEST, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token: TOKEN, kind: 'series', series: [{
-      id: id, rows: obs, source: 'wayback-highcharts',
-      capture: capture, url: location.href }] })
-  }).then(r => r.json()).catch(e => ({ ok: false, error: String(e) }));
-
-  console.log('[JH] ingest:', res);
-  if (res && res.ok) {
-    console.log('%c[JH] ' + id + ' BANKED — ' + obs.length + ' observations in S3',
-                'color:#5fbf7f;font-weight:bold');
-  } else {
-    console.error('[JH] ingest failed:', res);
+  for (const id of IDS) {
+    let got = null, usedTs = '', usedUrl = '';
+    outer:
+    for (const ts of STAMPS) {
+      for (const u of forms(ts, id)) {
+        try {
+          const res = await fetch(u);
+          if (!res.ok) continue;
+          const txt = await res.text();
+          const rows = parse(txt);
+          if (rows.length > 500) { got = rows; usedTs = ts; usedUrl = u; break outer; }
+        } catch (e) { /* try next form */ }
+      }
+    }
+    if (!got) { failed.push(id); console.warn('[JH] ' + id + ' — no archived copy found'); continue; }
+    console.log('[JH] ' + id + ': ' + got.length + ' rows ' + got[0][0] + ' -> ' +
+                got[got.length - 1][0] + '  (capture ' + usedTs + ')');
+    batch.push({ id, rows: got, source: 'wayback-raw', capture: usedTs, url: usedUrl });
+    done++;
+    if (batch.length >= 4) {
+      console.log('[JH] posting batch…', await post(batch));
+      batch = [];
+    }
   }
+  if (batch.length) console.log('[JH] posting final batch…', await post(batch));
+
+  console.log('%c[JH] DONE — ' + done + '/' + IDS.length + ' series banked to S3',
+              'color:#5fbf7f;font-weight:bold');
+  if (failed.length) console.log('[JH] not found in archive:', failed.join(' '));
 })();
