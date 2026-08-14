@@ -1,4 +1,4 @@
-"""ops 4681 — arm the browser grabber + publish it ready-to-paste.
+"""ops 4682 — arm the browser grabber + publish it ready-to-paste.
 
 Deploys the kind="series" ingest route, verifies it end-to-end with a
 synthetic post, injects the live ingest token into the console script,
@@ -36,8 +36,8 @@ CORE = ["BAMLH0A0HYM2", "BAMLC0A0CM", "BAMLC0A1CAAA", "BAMLC0A2CAA",
 
 
 def main():
-    with report("4681_arm_grabber") as r:
-        r.heading("ops 4681 — arm + publish the browser grabber")
+    with report("4682_arm_grabber") as r:
+        r.heading("ops 4682 — arm + publish the browser grabber")
         misses = 0
 
         r.section("1. Settle the ingest deploy")
@@ -55,11 +55,36 @@ def main():
         r.ok("  ingest live")
 
         r.section("2. Verify kind='series' with a synthetic post")
-        token = ssm.get_parameter(
-            Name="/justhodl/tvnotes/ingest-token",
-            WithDecryption=True)["Parameter"]["Value"]
-        url = ssm.get_parameter(
-            Name="/justhodl/tvnotes/ingest-url")["Parameter"]["Value"]
+        # 4681 rev: /justhodl/tvnotes/ingest-url does not exist —
+        # resolve the same way the handler does (SSM token) and take
+        # the URL from Lambda itself, which is authoritative.
+        token = ""
+        for pn in ("/justhodl/tvnotes/ingest-token",
+                   "/justhodl/tv-notes/ingest-token"):
+            try:
+                token = ssm.get_parameter(
+                    Name=pn, WithDecryption=True)["Parameter"]["Value"]
+                break
+            except Exception:
+                continue
+        if not token:
+            env = (lam.get_function(FunctionName=FN)["Configuration"]
+                   .get("Environment") or {}).get("Variables") or {}
+            token = env.get("INGEST_TOKEN") or ""
+        if not token:
+            r.fail("  no ingest token resolvable")
+            sys.exit(1)
+        url = ""
+        try:
+            url = lam.get_function_url_config(
+                FunctionName=FN)["FunctionUrl"]
+        except Exception as e:
+            r.warn("  url config: %s" % str(e)[:80])
+        if not url:
+            r.fail("  no function URL on %s" % FN)
+            sys.exit(1)
+        r.log("  ingest URL: %s (token len=%d, never printed)"
+              % (url, len(token)))
         rows = [["1999-%02d-%02d" % (m, d), 1.0 + m * 0.01]
                 for m in range(1, 13) for d in range(1, 6)]
         body = json.dumps({"token": token, "kind": "series",
@@ -94,6 +119,9 @@ def main():
         r.section("3. Publish the ARMED script")
         js = open("tools/wayback-ice-grab.js").read()
         js = js.replace("__TOKEN__", token)
+        js = js.replace(
+            "https://w4osroryszvlifgk4boofkh7cm0selzf.lambda-url."
+            "us-east-1.on.aws/", url)
         key = "tools/wayback-ice-grab.js"
         s3.put_object(Bucket=B, Key=key, Body=js.encode(),
                       ContentType="application/javascript",
