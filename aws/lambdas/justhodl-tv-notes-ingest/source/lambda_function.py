@@ -225,6 +225,88 @@ def _save_watchlists(watchlists):
                   ContentType="application/json")
     return len(clean)
 
+def _save_bars(bars):
+    """Store TV chart bars raw, append-only, one doc per symbol.
+
+    Deliberately does NOT touch data/warm/fred-scoped/* — a browser can
+    post anything, so bars land in their own prefix and an ops pass with
+    splice-validation decides what is trustworthy enough to merge.
+    """
+    if not isinstance(bars, list) or not bars:
+        return {"ok": False, "error": "no bars"}
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    n_series = n_new = 0
+    index = []
+    for it in bars[:400]:
+        if not isinstance(it, dict):
+            continue
+        sym = str(it.get("symbol") or "").strip()[:60]
+        rows = it.get("bars")
+        if not sym or not isinstance(rows, list) or not rows:
+            continue
+        safe = "".join(c if (c.isalnum() or c in "-_.") else "_"
+                       for c in sym)
+        key = "data/warm/tv-bars/%s.json" % safe
+        try:
+            cur = json.loads(S3.get_object(Bucket=BUCKET,
+                                           Key=key)["Body"].read())
+            have = {int(b[0]): b for b in (cur.get("bars") or [])
+                    if isinstance(b, list) and b}
+        except Exception:
+            cur, have = {"symbol": sym, "source": "tradingview-ws"}, {}
+        before = len(have)
+        for b in rows:
+            if isinstance(b, list) and len(b) >= 5:
+                try:
+                    have[int(b[0])] = [int(b[0])] + [
+                        (None if v is None else float(v))
+                        for v in b[1:5]]
+                except Exception:
+                    continue
+        merged = [have[k] for k in sorted(have)]
+        cur["bars"] = merged
+        cur["n"] = len(merged)
+        cur["updated_at"] = now
+        if merged:
+            cur["first_ts"] = merged[0][0]
+            cur["last_ts"] = merged[-1][0]
+            cur["first_date"] = datetime.fromtimestamp(
+                merged[0][0], tz=timezone.utc).strftime("%Y-%m-%d")
+            cur["last_date"] = datetime.fromtimestamp(
+                merged[-1][0], tz=timezone.utc).strftime("%Y-%m-%d")
+        S3.put_object(Bucket=BUCKET, Key=key,
+                      Body=json.dumps(cur, default=str).encode(),
+                      ContentType="application/json",
+                      CacheControl="no-cache")
+        n_series += 1
+        n_new += len(have) - before
+        index.append({"symbol": sym, "key": key, "n": cur["n"],
+                      "first": cur.get("first_date"),
+                      "last": cur.get("last_date")})
+        print("[tv-bars] %s n=%d (+%d) %s -> %s"
+              % (sym, cur["n"], len(have) - before,
+                 cur.get("first_date"), cur.get("last_date")))
+    try:
+        idx_key = "data/warm/tv-bars/_index.json"
+        try:
+            idx = json.loads(S3.get_object(
+                Bucket=BUCKET, Key=idx_key)["Body"].read())
+        except Exception:
+            idx = {"symbols": {}}
+        for e in index:
+            idx["symbols"][e["symbol"]] = e
+        idx["updated_at"] = now
+        idx["n_symbols"] = len(idx["symbols"])
+        S3.put_object(Bucket=BUCKET, Key=idx_key,
+                      Body=json.dumps(idx, default=str).encode(),
+                      ContentType="application/json",
+                      CacheControl="no-cache")
+    except Exception as e:
+        print("[tv-bars] index: %s" % str(e)[:120])
+    return {"ok": True, "series": n_series, "new_bars": n_new,
+            "index": index[:40]}
+
+
 def lambda_handler(event, context):
     method = (event.get("requestContext", {}).get("http", {})
               .get("method") or event.get("httpMethod") or "POST").upper()
@@ -246,6 +328,15 @@ def lambda_handler(event, context):
     if str(req.get("token") or "") != token:
         return _resp(403, {"ok": False, "error": "bad token"})
     uid = _ssm("/justhodl/brain/uid", "BRAIN_UID")
+
+    # ── v-bars (Khalid: "TradingView has all ICE data since inception —
+    # I can see it in my account"). TV streams chart bars over a
+    # WebSocket, which the fetch/XHR taps could never see; extension
+    # v1.9.0 mines them and posts kind="bars". Landing zone is raw and
+    # append-only — merging into banked FRED docs happens in a separate
+    # audited ops pass, never blind from a browser payload.
+    if str(req.get("kind") or "") == "bars":
+        return _resp(200, _save_bars(req.get("bars")))
 
     wl_saved = 0
     try:
