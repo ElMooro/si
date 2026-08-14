@@ -1,0 +1,31 @@
+# ops 4672 — ICE deep backfill 1996-2017 (144 series)
+
+**Status:** success  
+**Duration:** 173.1s  
+**Finished:** 2026-08-14T22:08:44+00:00  
+
+## Log
+## 1. Locate banked docs for the 144 ids
+
+- `22:06:56`   matched 144/144 banked docs in 65s
+## 2. Fetch, splice-check, merge
+
+- `22:06:57`   BAMLC0A0CMEY           +5229 rows -> 6015 obs since 1996-12-31 [GAP]
+- `22:06:57`   BAMLC0A0CMSYTW         +5229 rows -> 6016 obs since 1996-12-31 [GAP]
+- `22:06:59`   BAMLC0A1CAAAEY         +5229 rows -> 6016 obs since 1996-12-31 [GAP]
+- `22:06:59`   BAMLC0A1CAAASYTW       +5229 rows -> 6016 obs since 1996-12-31 [GAP]
+- `22:07:00`   BAMLC0A2CAA            +5229 rows -> 6016 obs since 1996-12-31 [GAP]
+- `22:07:01`   BAMLC0A2CAAEY          +5229 rows -> 6016 obs since 1996-12-31 [GAP]
+- `22:07:02`   BAMLC0A2CAASYTW        +5229 rows -> 6016 obs since 1996-12-31 [GAP]
+- `22:07:02`   BAMLC0A3CA             +5229 rows -> 6016 obs since 1996-12-31 [GAP]
+- `22:07:03`   BAMLC0A3CAEY           +5229 rows -> 6016 obs since 1996-12-31 [GAP]
+- `22:07:04`   BAMLC0A3CASYTW         +5229 rows -> 6016 obs since 1996-12-31 [GAP]
+- `22:07:06`   BAMLC0A4CBBBEY         +5229 rows -> 6016 obs since 1996-12-31 [GAP]
+- `22:07:06`   BAMLC0A4CBBBSYTW       +5229 rows -> 6016 obs since 1996-12-31 [GAP]
+## 3. Result
+
+- `22:08:44`   merged=140 (spliced=0 gap-marked=140) skipped=4 failed=0 earliest=1996-12-31
+- `22:08:44` ✅   140 ICE series now carry 1996-era history
+## verdict
+
+- `22:08:44` ✅ ICE family recovered to 1996-12-31 across 140 series; the 2017-2023 hole is marked, not hidden
