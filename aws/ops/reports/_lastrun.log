@@ -1,20 +1,23 @@
-executing-against: c9f2bcd45a0845f4d4a70ba5926516cf3eef064a
-ops 4664 — ICE BofA recovery + route probes
+executing-against: 5e54107ab68da1e03ca9aa1cc97f1cb4745e3ed1
+ops 4665 — ICE BofA recovery + route probes
 ── 1. RECOVER 3 series from verified archives ──
-[20:09:06] ✗   [BAMLC0A0CM] not in queue map — cannot locate doc
-[20:09:06] ✗   [BAMLC0A4CBBB] not in queue map — cannot locate doc
-[20:09:06] ✗   [BAMLH0A0HYM2] not in queue map — cannot locate doc
-── 2. PROBE — ALFRED pre-truncation vintages ──
-[20:09:06]   vintage 2025-06-02: first obs 2023-08-15 (count field 477) -> window enforced retroactively
-[20:09:07]   vintage 2026-03-02: first obs 2023-08-15 (count field 676) -> window enforced retroactively
+[20:13:33]   located 3/3 docs in 5s: {'BAMLC0A0CM': 'data/warm/fred-scoped/Interest_Rates/BAMLC0A0CM.json', 'BAMLC0A4CBBB': 'data/warm/fred-scoped/Interest_Rates/BAMLC0A4CBBB.json', 'BAMLH0A0HYM2': 'data/warm/fred-scoped/Interest_Rates/BAMLH0A0HYM2.json'}
+[20:13:34]   BAMLC0A0CM: archive=7638 overlap=695 splice-mm=0 recovered=6943 -> doc now 7729 obs since 1996-12-31
+[20:13:34] ✅   [BAMLC0A0CM] full lineage 1996-12-31 -> present, splice clean
+[20:13:35]   BAMLC0A4CBBB: archive=7639 overlap=696 splice-mm=0 recovered=6943 -> doc now 7730 obs since 1996-12-31
+[20:13:35] ✅   [BAMLC0A4CBBB] full lineage 1996-12-31 -> present, splice clean
+[20:13:35]   BAMLH0A0HYM2: archive=7639 overlap=696 splice-mm=0 recovered=6943 -> doc now 7730 obs since 1996-12-31
+[20:13:35] ✅   [BAMLH0A0HYM2] full lineage 1996-12-31 -> present, splice clean
+── 2. ALFRED — settled by 4664: window enforced retroactively across vintages (rolling, front at 2023-08-15 today); loophole CLOSED ──
+[20:13:36]   vintage 2025-06-02: first obs 2023-08-15 (count field 477) -> window enforced retroactively
+[20:13:37]   vintage 2026-03-02: first obs 2023-08-15 (count field 676) -> window enforced retroactively
 ── 3. PROBE — DBnomics FRED mirror ──
-[20:09:08] ⚠   BAMLH0A0HYM2: HTTP Error 404: NOT FOUND
-[20:09:09] ⚠   BAMLC0A0CM: HTTP Error 404: NOT FOUND
-[20:09:10] ⚠   BAMLEMRLCRPILAOAS: HTTP Error 404: NOT FOUND
+[20:13:41]   BAMLH0A0HYM2 search: []
+[20:13:43]   BAMLC0A0CM search: []
+[20:13:45]   BAMLEMRLCRPILAOAS search: []
 ── 4. PROBE — TradingView vault BAML coverage ──
-[20:09:10] ⚠   vault probe: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does
+[20:13:46] ⚠   vault probe: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does
 ── verdict ──
-[20:09:10] ✗ recovery: 3 red
+[20:13:46] ✅ 3/3 recovered to 1996 with clean splices; probes on record for the other 189; engine merge-guard makes the recovered rows permanent
 
-→ Report written to aws/ops/reports/latest/4664_ice_recovery.md
-❌ OPS-FAIL: aws/ops/pending/ops_4664_ice_recovery.py
+→ Report written to aws/ops/reports/latest/4665_ice_recovery.md
