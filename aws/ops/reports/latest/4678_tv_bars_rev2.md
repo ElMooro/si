@@ -1,0 +1,33 @@
+# ops 4678 — tv-bars rev-2 (handshake nonce fix)
+
+**Status:** failure  
+**Duration:** 12.6s  
+**Finished:** 2026-08-14T23:02:50+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## 1. Push rev-2 code
+
+- `23:02:46` ✅   [deploy] rev-2 code live
+## 2. Pull 3 ICE symbols
+
+- `23:02:50`   handler: {"statusCode": 200, "body": "{\"ok\": true, \"pulled\": 0, \"failed\": 3, \"done\": 0, \"catalog\": 192, \"status\": \"converging\", \"recent_failures\": {\"BAMLC0A0CM\": \"RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'\", \"BAMLC0A0CMEY\": \"RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'\", \"BAMLC0A0CMSYTW\": \"RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'\", \"BAMLC0A1CAAA\": \"RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'\", \"BAMLC0A1CAAAEY\": \"RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'\"}}"}
+## 3. What landed
+
+- `23:02:50`   BAMLH0A0HYM2: nothing banked
+- `23:02:50`   BAMLC0A2CAA: nothing banked
+- `23:02:50`   BAMLH0A3HYC: nothing banked
+- `23:02:50`   fail BAMLC0A0CM: RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'
+- `23:02:50`   fail BAMLC0A0CMEY: RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'
+- `23:02:50`   fail BAMLC0A0CMSYTW: RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'
+- `23:02:50`   fail BAMLC0A1CAAA: RuntimeError: handshake: b'HTTP/1.1 400 Bad Request'
+- `23:02:50` ✗   [socket] CONTRACT MISS — socket opened (no handshake rejection)
+- `23:02:50` ✗   [depth] CONTRACT MISS — 0/3 symbols carry pre-2020 history
+## verdict
+
+- `23:02:50` ✗ rev-2: 2 red — endpoint rejections above are the next lead
