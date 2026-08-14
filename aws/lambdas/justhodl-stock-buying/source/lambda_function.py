@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.3.5 (ops 4652)
+"""justhodl-stock-buying v1.4.0 (ops 4657)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -172,8 +172,26 @@ def sma_state(closes):
     n = min(250, len(closes))
     sma = sum(closes[-n:]) / n
     last = closes[-1]
+    lad = {}
+    for w2 in (20, 50, 100, 200, 250):
+        if len(vals) >= w2:
+            s2 = sum(vals[-w2:]) / w2
+            lad["below%d" % w2] = last < s2
+            lad["sma%d" % w2] = round(s2, 2)
+    gc = None
+    if len(vals) >= 210:
+        s50 = [sum(vals[i - 50:i]) / 50
+               for i in range(len(vals) - 12, len(vals) + 1)]
+        s200 = [sum(vals[i - 200:i]) / 200
+                for i in range(len(vals) - 12, len(vals) + 1)]
+        gc = s50[-1] > s200[-1]
+        lad["golden"] = gc
+        lad["golden_cross_recent"] = any(
+            s50[i] <= s200[i] and s50[i + 1] > s200[i + 1]
+            for i in range(len(s50) - 1))
     return {"sma_n": n, "sma": round(sma, 2),
             "gap_pct": round((last / sma - 1) * 100, 1),
+            "ladder": lad,
             "below": last <= sma,
             "dist_pct": round((last / sma - 1) * 100, 1)}
 
@@ -184,6 +202,33 @@ def rel_strength(closes, spy):
         return None
     r = (closes[-1] / closes[-63] - 1) - (spy[-1] / spy[-63] - 1)
     return round(r * 100, 1)
+
+
+def double_top(closes):
+    """Mirror of double_bottom: two highs within 3.5%,
+    12-90 bars apart, valley >=5% below; warn when price
+    is at/under the second high (topping risk)."""
+    if not closes or len(closes) < 60:
+        return None
+    w = closes[-160:] if len(closes) >= 160 else closes
+    highs = []
+    for i in range(3, len(w) - 3):
+        if w[i] == max(w[i - 3:i + 4]):
+            highs.append((i, w[i]))
+    for a in range(len(highs)):
+        for b in range(a + 1, len(highs)):
+            i1, h1 = highs[a]
+            i2, h2 = highs[b]
+            if not (12 <= i2 - i1 <= 90):
+                continue
+            if abs(h1 - h2) / max(h1, h2) > 0.035:
+                continue
+            valley = min(w[i1:i2 + 1])
+            if (min(h1, h2) - valley) / min(h1, h2) < 0.05:
+                continue
+            if i2 >= len(w) - 45 and w[-1] <= max(h1, h2):
+                return True
+    return None
 
 
 def double_bottom(closes):
@@ -518,6 +563,8 @@ def lambda_handler(event=None, context=None):
             if vparts else None
         rs = rel_strength(closes, spy)
         db_col = row.get("double_bottom")
+        dtp = double_top(closes)
+
         db = ({"formed": bool(db_col), "src": "census"}
               if db_col is not None
               else double_bottom(closes))
@@ -619,6 +666,7 @@ def lambda_handler(event=None, context=None):
             "backlog": backlog,
             "sma": sst, "rs_3m_vs_spy": rs,
             "double_bottom": db,
+            "double_top": dtp,
             "catalysts": cats[:4],
             "khalid_five": khalid_five(row, globals().get("_US10Y"),
                                        globals().get("_KMISS")),
@@ -641,6 +689,9 @@ def lambda_handler(event=None, context=None):
            ).get("by_ticker") or {}
     _cat = (s3_json("data/catalyst.json") or {}
             ).get("by_ticker") or {}
+    _f13 = (s3_json("data/13f-flows-by-ticker.json") or {}
+            ).get("t") or {}
+    _f13n = 0
     _cat_n = 0
     _cm = {str(x.get("symbol") or "").upper(): x
            for x in crows}
@@ -653,11 +704,50 @@ def lambda_handler(event=None, context=None):
         ce = _cat.get(sym0)
         if ce and ce.get("catalysts"):
             r0["catalysts"] = [c["class"]
-                               for c in ce["catalysts"][:4]]
+                               for c in ce["catalysts"][:6]]
             r0["catalyst_score"] = ce.get("score")
             r0["catalyst_evidence"] = \
                 ce["catalysts"][0].get("evidence")
             _cat_n += 1
+        cm0 = _cm.get(sym0) or {}
+        for src_k, dst_k in (
+                ("net_buyback_yield_pct", "net_bb_yield_pct"),
+                ("ps_ttm", "ps"),
+                ("fcf_ev_yield_pct", "fcf_yield_pct"),
+                ("fcf_ps_ttm", "fcf_ps"),
+                ("fcf_cagr_3y_pct", "fcf_cagr3_pct"),
+                ("inventory_to_revenue_pct", "inv_rev_pct"),
+                ("days_inventory", "days_inv"),
+                ("share_count_yoy_pct", "shares_yoy_pct")):
+            v0 = cm0.get(src_k)
+            if isinstance(v0, (int, float)):
+                r0[dst_k] = v0
+        warns = []
+        sy = r0.get("shares_yoy_pct")
+        if isinstance(sy, (int, float)) and sy > 10:
+            warns.append("MAJOR_DILUTION +%.1f%%/yr" % sy)
+        rv = cm0.get("revenue_yoy_pct")
+        if isinstance(rv, (int, float)) and rv < -15:
+            warns.append("REV_CONTRACTION %.1f%%" % rv)
+        ey0 = cm0.get("eps_yoy_pct")
+        if isinstance(ey0, (int, float)) and ey0 < -25:
+            warns.append("EPS_CONTRACTION %.1f%%" % ey0)
+        if r0.get("double_top"):
+            warns.append("DOUBLE_TOP")
+        if warns:
+            r0["warnings"] = warns
+        fe = _f13.get(sym0)
+        if isinstance(fe, dict):
+            nums = {k: v for k, v in fe.items()
+                    if isinstance(v, (int, float))}
+            if nums:
+                r0["flows13f"] = dict(sorted(
+                    nums.items())[:6])
+                _f13n += 1
+            if fe.get("whale") or fe.get("whales") \
+                    or fe.get("whale_net"):
+                r0["whale"] = fe.get("whale") \
+                    or fe.get("whales") or fe.get("whale_net")
         if xb.get("eps") is not None:
             r0["eps"] = xb.get("eps")
             r0["eps_qoq_pct"] = xb.get("eps_qoq")
@@ -701,6 +791,7 @@ def lambda_handler(event=None, context=None):
             _kinds["n/d"] += 1
     globals()["_BLN"] = _bl_n
     globals()["_CATN"] = _cat_n
+    globals()["_F13N"] = _f13n
     globals()["_BLK"] = _kinds
     seen = {r0["symbol"] for r0 in rows_out}
     seen |= {str(x.get("symbol") or "") for x in crows}
@@ -719,6 +810,8 @@ def lambda_handler(event=None, context=None):
             continue
         rs2 = rel_strength(cl2, spy)
         db2 = double_bottom(cl2)
+        if double_top(cl2):
+            pass  # broad lane: topping names simply not added
         fvj = (globals().get("_FV") or {}).get(t2) or {}
         nb_pass += 1
         tech_score = round(50
@@ -770,6 +863,7 @@ def lambda_handler(event=None, context=None):
         "backlog_join_n": globals().get("_BLN"),
         "backlog_kinds": globals().get("_BLK"),
         "catalyst_join_n": globals().get("_CATN"),
+        "f13_join_n": globals().get("_F13N"),
         "n_universe": len(crows), "n_scored": len(rows_out),
         "gates_summary": n_gate,
         "fmp_key": bool(FMP_KEY),
