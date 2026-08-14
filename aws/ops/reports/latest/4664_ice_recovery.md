@@ -1,0 +1,33 @@
+# ops 4664 — ICE BofA recovery + route probes
+
+**Status:** failure  
+**Duration:** 5.4s  
+**Finished:** 2026-08-14T20:09:10+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## 1. RECOVER 3 series from verified archives
+
+- `20:09:06` ✗   [BAMLC0A0CM] not in queue map — cannot locate doc
+- `20:09:06` ✗   [BAMLC0A4CBBB] not in queue map — cannot locate doc
+- `20:09:06` ✗   [BAMLH0A0HYM2] not in queue map — cannot locate doc
+## 2. PROBE — ALFRED pre-truncation vintages
+
+- `20:09:06`   vintage 2025-06-02: first obs 2023-08-15 (count field 477) -> window enforced retroactively
+- `20:09:07`   vintage 2026-03-02: first obs 2023-08-15 (count field 676) -> window enforced retroactively
+## 3. PROBE — DBnomics FRED mirror
+
+- `20:09:08` ⚠   BAMLH0A0HYM2: HTTP Error 404: NOT FOUND
+- `20:09:09` ⚠   BAMLC0A0CM: HTTP Error 404: NOT FOUND
+- `20:09:10` ⚠   BAMLEMRLCRPILAOAS: HTTP Error 404: NOT FOUND
+## 4. PROBE — TradingView vault BAML coverage
+
+- `20:09:10` ⚠   vault probe: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does
+## verdict
+
+- `20:09:10` ✗ recovery: 3 red
