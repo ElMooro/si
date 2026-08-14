@@ -1,23 +1,37 @@
-executing-against: 5e54107ab68da1e03ca9aa1cc97f1cb4745e3ed1
-ops 4665 — ICE BofA recovery + route probes
-── 1. RECOVER 3 series from verified archives ──
-[20:13:33]   located 3/3 docs in 5s: {'BAMLC0A0CM': 'data/warm/fred-scoped/Interest_Rates/BAMLC0A0CM.json', 'BAMLC0A4CBBB': 'data/warm/fred-scoped/Interest_Rates/BAMLC0A4CBBB.json', 'BAMLH0A0HYM2': 'data/warm/fred-scoped/Interest_Rates/BAMLH0A0HYM2.json'}
-[20:13:34]   BAMLC0A0CM: archive=7638 overlap=695 splice-mm=0 recovered=6943 -> doc now 7729 obs since 1996-12-31
-[20:13:34] ✅   [BAMLC0A0CM] full lineage 1996-12-31 -> present, splice clean
-[20:13:35]   BAMLC0A4CBBB: archive=7639 overlap=696 splice-mm=0 recovered=6943 -> doc now 7730 obs since 1996-12-31
-[20:13:35] ✅   [BAMLC0A4CBBB] full lineage 1996-12-31 -> present, splice clean
-[20:13:35]   BAMLH0A0HYM2: archive=7639 overlap=696 splice-mm=0 recovered=6943 -> doc now 7730 obs since 1996-12-31
-[20:13:35] ✅   [BAMLH0A0HYM2] full lineage 1996-12-31 -> present, splice clean
-── 2. ALFRED — settled by 4664: window enforced retroactively across vintages (rolling, front at 2023-08-15 today); loophole CLOSED ──
-[20:13:36]   vintage 2025-06-02: first obs 2023-08-15 (count field 477) -> window enforced retroactively
-[20:13:37]   vintage 2026-03-02: first obs 2023-08-15 (count field 676) -> window enforced retroactively
-── 3. PROBE — DBnomics FRED mirror ──
-[20:13:41]   BAMLH0A0HYM2 search: []
-[20:13:43]   BAMLC0A0CM search: []
-[20:13:45]   BAMLEMRLCRPILAOAS search: []
-── 4. PROBE — TradingView vault BAML coverage ──
-[20:13:46] ⚠   vault probe: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does
+executing-against: 184f9e9b14a7346c02f1d6580c3ab13cf30c227c
+ops 4666 — S3 permanence + ICE recovery + repo official probes
+── A1. Versioning ──
+[20:44:37]   status=Enabled mfa_delete=None
+[20:44:37] ✅   [protect] versioning Enabled (deletes become markers, prior versions survive)
+── A2. Lifecycle — strip anything that expires banked history ──
+[20:44:37]   DROPPING expiry: id=expire-old-versions-after-30d prefix='' noncurrent={'NoncurrentDays': 30} current=None
+[20:44:37]   DROPPING expiry: id=noncurrent-30d prefix='' noncurrent={'NoncurrentDays': 30} current=None
+[20:44:37]   DROPPING expiry: id=jh-noncurrent-14d prefix='' noncurrent={'NoncurrentDays': 14} current=None
+[20:44:40]   rules now: 7 (dropped 3 expiries)
+[20:44:40] ✅   [protect] no expiry rule can reach banked history (offenders: [])
+── A3. Deny-delete bucket policy on banked prefixes ──
+[20:44:45] ✅   [protect] deny-Delete* statement live on data/warm/* and data/providers/*
+── A4. LIVE PROOF — deletion must actually fail ──
+[20:44:45]   delete attempt -> An error occurred (AccessDenied) when calling the DeleteObject operation: User: arn:aws:iam::857687956942:user
+[20:44:45] ✅   [protect] a real delete against banked prefix was REJECTED by the policy
+── B. ICE recovery — 4 more series ──
+[20:44:50]   located 4/4 banked docs
+[20:44:51] ✅   BAMLC0A1CAAA: +6943 rows (splice mm=0/150) -> 7730 obs since 1996-12-31
+[20:44:51] ⚠   BAMLH0A0HYM2EY: fetch HTTP Error 404: Not Found
+[20:44:52] ✅   BAMLCC0A0CMTRIV: +6159 rows (splice mm=0/150) -> 6946 obs since 2000-01-03
+[20:44:53] ✅   BAMLHYH0A0HYM2TRIV: +1169 rows (splice mm=0/138) -> 1956 obs since 2019-02-15
+[20:44:53] ✅   [ice] 3/4 archives merged
+── C. Repo official sources — reachability from AWS ──
+[20:48:54] ⚠   engine probe: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/
+[20:48:54]   QUEUED for bulk importer: OFR datasets metadata -> https://data.financialresearch.gov/v1/metadata/datasets
+[20:48:54]   QUEUED for bulk importer: OFR repo series (NCCBR vol) -> https://data.financialresearch.gov/v1/series/timeseries?mnemonic=REPO-NCCBR_AR_TV-FRB&start_date=2000-01-01
+[20:48:54]   QUEUED for bulk importer: OFR FSI -> https://data.financialresearch.gov/v1/series/timeseries?mnemonic=FSI-OFR_FSI&start_date=2000-01-01
+[20:48:54]   QUEUED for bulk importer: NYFed PD 1998 (fails) -> https://markets.newyorkfed.org/api/pd/get/SBP2001/timeseries/PDFTD-UST.json
+[20:48:54]   QUEUED for bulk importer: NYFed tri-party (2010+) -> https://markets.newyorkfed.org/api/tripartyRepo/get/all/results/latest.json
+[20:48:54]   QUEUED for bulk importer: NYFed RRP history -> https://markets.newyorkfed.org/api/rp/reverserepo/all/results/lastTwoWeeks.json
+[20:48:54]   QUEUED for bulk importer: NYFed SRF/repo ops -> https://markets.newyorkfed.org/api/rp/repo/all/results/lastTwoWeeks.json
+[20:48:54]   NOTE: sandbox egress blocks OFR; these run inside AWS in the follow-up importer op
 ── verdict ──
-[20:13:46] ✅ 3/3 recovered to 1996 with clean splices; probes on record for the other 189; engine merge-guard makes the recovered rows permanent
+[20:48:54] ✅ banked history is delete-proof (policy-enforced, proven by a rejected delete), expiry rules stripped, 3 more ICE series recovered
 
-→ Report written to aws/ops/reports/latest/4665_ice_recovery.md
+→ Report written to aws/ops/reports/latest/4666_permanence.md
