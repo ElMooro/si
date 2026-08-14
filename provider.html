@@ -51,7 +51,8 @@ document.getElementById('tot').innerHTML=
  '<div><b>'+d.n_keys+'</b><span>KEYS</span></div>'+
  '<div><b>'+d.total_mb+' MB</b><span>STORED</span></div>'+
  (d.series&&d.series.count?'<div><b>'+d.series.count.toLocaleString()+'</b><span>SERIES CATALOGUED</span></div>':'')+
- '<div><b>'+(d.freshest_h==null?'—':d.freshest_h+'h')+'</b><span>FRESHEST</span></div>';
+ '<div><b>'+(d.freshest_h==null?'—':d.freshest_h+'h')+'</b><span>FRESHEST</span></div>'+
+ (d.series&&d.series.depth&&d.series.depth.keys?'<div><b>'+Math.round(d.series.depth.n_obs_sum/d.series.depth.keys)+' obs</b><span>MEAN DEPTH · since '+String(d.series.depth.first_min||'—').slice(0,4)+'</span></div>':'');
 var tb=document.getElementById('tb');tb.innerHTML='';
 (d.keys||[]).forEach(function(k){var tr=document.createElement('tr');
  tr.innerHTML='<td class="'+(k.hot?'hot':'')+(k.missing?' miss':'')+'">'+k.key+(k.hot?' ·HOT':'')+(k.missing?' ·MISSING':'')+'</td>'+
