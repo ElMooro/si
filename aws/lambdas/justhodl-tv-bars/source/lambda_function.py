@@ -22,6 +22,7 @@ Worklist: the ICE ids whose banked docs carry a history_gap marker
 data/warm/tv-bars/; merging into banked FRED docs stays a separate
 audited ops pass — a puller never rewrites history unattended.
 """
+import base64
 import gzip
 import json
 import os
@@ -60,13 +61,18 @@ def _rand(n=12):
 class WS:
     """Minimal RFC6455 client — no third-party deps in the Lambda zip."""
 
-    def __init__(self, host, origin, cookie):
+    def __init__(self, host, origin, cookie, path=None):
         raw = socket.create_connection((host, 443), timeout=25)
         ctx = ssl.create_default_context()
         self.s = ctx.wrap_socket(raw, server_hostname=host)
-        key = "dGhlIHNhbXBsZSBub25jZQ=="
+        # rev-2: the handshake 400'd because Sec-WebSocket-Key was the
+        # static RFC6455 EXAMPLE nonce. Servers that validate the
+        # accept-hash reject a reused/known nonce outright. It must be
+        # 16 fresh random bytes, base64'd, per connection.
+        key = base64.b64encode(os.urandom(16)).decode()
         req = (
-            "GET /socket.io/websocket?from=chart%%2F&type=chart HTTP/1.1\r\n"
+            "GET " + (path or "/socket.io/websocket?from=chart%2F"
+                              "&type=chart") + " HTTP/1.1\r\n"
             "Host: %s\r\n"
             "Upgrade: websocket\r\n"
             "Connection: Upgrade\r\n"
@@ -76,6 +82,8 @@ class WS:
             "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 "
             "Safari/537.36\r\n"
+            "Sec-WebSocket-Extensions: permessage-deflate; "
+            "client_max_window_bits\r\n"
             "Cookie: %s\r\n\r\n" % (host, key, origin, cookie))
         self.s.sendall(req.encode())
         buf = b""
@@ -85,8 +93,9 @@ class WS:
                 raise RuntimeError("handshake closed")
             buf += c
         if b"101" not in buf.split(b"\r\n")[0]:
-            raise RuntimeError("handshake: %s"
-                               % buf.split(b"\r\n")[0][:120])
+            raise RuntimeError("handshake %s [%s]"
+                               % (buf.split(b"\r\n")[0][:90],
+                                  host + (path or "")[:40]))
         self.buf = b""
 
     def send(self, msg):
@@ -156,9 +165,33 @@ def unframe(raw):
     return re.findall(r"~m~\d+~m~(\{.*?\})(?=~m~|\Z)", raw)
 
 
+ENDPOINTS = [
+    ("data.tradingview.com", "/socket.io/websocket?from=chart%2F"
+                             "&type=chart"),
+    ("prodata.tradingview.com", "/socket.io/websocket?from=chart%2F"
+                                "&type=chart"),
+    ("widgetdata.tradingview.com", "/socket.io/websocket?from=widget"
+                                   "embed%2F&type=chart"),
+    ("data.tradingview.com", "/socket.io/websocket"),
+]
+
+
+def _connect(cookie):
+    """rev-2: try each known socket endpoint; report every rejection so
+    a future failure is diagnosable instead of a bare 400."""
+    errs = []
+    for host, path in ENDPOINTS:
+        try:
+            return WS(host, "https://www.tradingview.com", cookie,
+                      path), host
+        except Exception as e:
+            errs.append("%s%s -> %s" % (host, path[:26], str(e)[:70]))
+    raise RuntimeError("all endpoints refused: " + " | ".join(errs))
+
+
 def pull(symbol, token, cookie, countback=20000, budget=45):
     """One symbol -> [[unix_ts, o, h, l, c], ...] oldest-first."""
-    ws = WS(WS_HOST, "https://www.tradingview.com", cookie)
+    ws, _host = _connect(cookie)
     bars, t0 = {}, time.time()
     try:
         cs, sid = "cs_" + _rand(), "sds_sym_1"
