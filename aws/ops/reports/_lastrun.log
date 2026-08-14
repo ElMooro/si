@@ -1,30 +1,205 @@
-executing-against: 056d8f3066fdb65df7a4a8113a861f46dd8bb821
-ops 4662 — nyfed depth note · repo completeness · FRED leak-only recovery
-── 1. nyfed — convergence + depth ──
-[18:58:02]   done=663/1539 mean=253 obs first=2013-04-03 ge500=191 multi=663 status=converging-v3
-[18:58:02] ✅   [nyfed] ledger 663 == done 663
-[18:58:02] ✅   [nyfed] convergence advancing (663, was 390 at 4661)
-[18:58:03]   provider-catalog kicked (note check at the end)
-── 2. repo — NY Fed history freshness + OFR rediscovery ──
-[18:58:03] ✅   [repo] rp-repo-history.json.gz 13.6h old (61 KB)
-[18:58:03] ✅   [repo] rp-reverserepo-history.json.gz 13.6h old (147 KB)
-[18:58:23]   catalog=442 checked_at=2026-08-14T18:58:04+00:00 added_total=None new=[]
-[18:58:23]   repo-family mnemonics: 164 in catalog · 0 pending (e.g. [])
-[18:58:23] ✅   [repo] rediscovery ran this op (checked_at=2026-08-14T18:58:04+00:00)
-[18:58:23] ✅   [repo] 164 repo-family mnemonics in catalog
-[18:58:23] ✅   [repo] ofr failures=0
-── 3. FRED — leak-only recovery (S3-diff requeue) ──
-[18:58:24]   status=COMPLETE_WITH_LEAKS imported=281947 errors=201 accounting={'seen': 884361, 'accounted': 884364, 'reconciles': False}
-[18:59:39]   banked docs: 276195 (listed in 75s) · queue ids: 275105
-[18:59:39]   MISSING (queue - banked): 194 · errors-dict: 201 (197 of them unbanked, 4 banked anyway)
-[18:59:39] ✅   [fred] diff plausible (194 missing)
-[18:59:42] ✅   requeued 194 missing rows (tail of queue; head_object skip makes re-import impossible)
-[19:04:33]   after 290s: +152 imported, +152 cursor, status=COMPLETE_WITH_LEAKS
-[19:04:33] ✅   [fred] leak drain moving (+152 imported, +152 cursor)
-── 4. index card — depth note live ──
-[19:04:53]   nyfed catalog_note: depth 253 obs/series · since 2013 · 663/1539 @v3
-[19:04:53] ✅   [card] depth note on the INDEX card: 'depth 253 obs/series · since 2013 · 663/1539 @v3'
+executing-against: a6e4c41842a4f024de4da11cf49870268753b445
+ops 4663 — ICE BofA inception audit (read-only)
+[19:48:40] fred key resolved: True (never printed)
+── 1. Find every banked BAML* doc ──
+[19:49:54]   192 BAML series banked (listed in 74s)
+── 2. Per-series: banked first obs vs FRED inception ──
+[19:53:22]   BAMLC0A0CM · since 2023-08-08 · 786 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US Corporate Index Option-Adjusted Spread
+[19:53:22]   BAMLC0A0CMEY · since 2023-08-08 · 786 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US Corporate Index Effective Yield
+[19:53:22]   BAMLC0A0CMSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US Corporate Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLC0A1CAAA · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AAA US Corporate Index Option-Adjusted Spread
+[19:53:22]   BAMLC0A1CAAAEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AAA US Corporate Index Effective Yield
+[19:53:22]   BAMLC0A1CAAASYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AAA US Corporate Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLC0A2CAA · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AA US Corporate Index Option-Adjusted Spread
+[19:53:22]   BAMLC0A2CAAEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AA US Corporate Index Effective Yield
+[19:53:22]   BAMLC0A2CAASYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AA US Corporate Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLC0A3CA · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Single-A US Corporate Index Option-Adjusted Spread
+[19:53:22]   BAMLC0A3CAEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Single-A US Corporate Index Effective Yield
+[19:53:22]   BAMLC0A3CASYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Single-A US Corporate Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLC0A4CBBB · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BBB US Corporate Index Option-Adjusted Spread
+[19:53:22]   BAMLC0A4CBBBEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BBB US Corporate Index Effective Yield
+[19:53:22]   BAMLC0A4CBBBSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BBB US Corporate Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLC1A0C13Y · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 1-3 Year US Corporate Index Option-Adjusted Spread
+[19:53:22]   BAMLC1A0C13YEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 1-3 Year US Corporate Index Effective Yield
+[19:53:22]   BAMLC1A0C13YSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 1-3 Year US Corporate Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLC2A0C35Y · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 3-5 Year US Corporate Index Option-Adjusted Spread
+[19:53:22]   BAMLC2A0C35YEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 3-5 Year US Corporate Index Effective Yield
+[19:53:22]   BAMLC2A0C35YSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 3-5 Year US Corporate Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLC3A0C57Y · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 5-7 Year US Corporate Index Option-Adjusted Spread
+[19:53:22]   BAMLC3A0C57YEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 5-7 Year US Corporate Index Effective Yield
+[19:53:22]   BAMLC3A0C57YSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 5-7 Year US Corporate Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLC4A0C710Y · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 7-10 Year US Corporate Index Option-Adjusted Spread
+[19:53:22]   BAMLC4A0C710YEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 7-10 Year US Corporate Index Effective Yield
+[19:53:22]   BAMLC4A0C710YSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 7-10 Year US Corporate Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLC7A0C1015Y · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 10-15 Year US Corporate Index Option-Adjusted Spread
+[19:53:22]   BAMLC7A0C1015YEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 10-15 Year US Corporate Index Effective Yield
+[19:53:22]   BAMLC7A0C1015YSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 10-15 Year US Corporate Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLC8A0C15PY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 15+ Year US Corporate Index Option-Adjusted Spread
+[19:53:22]   BAMLC8A0C15PYEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 15+ Year US Corporate Index Effective Yield
+[19:53:22]   BAMLC8A0C15PYSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 15+ Year US Corporate Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLCC0A0CMTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US Corporate Index Total Return Index Value
+[19:53:22]   BAMLCC0A1AAATRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AAA US Corporate Index Total Return Index Value
+[19:53:22]   BAMLCC0A2AATRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AA US Corporate Index Total Return Index Value
+[19:53:22]   BAMLCC0A3ATRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Single-A US Corporate Index Total Return Index Value
+[19:53:22]   BAMLCC0A4BBBTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BBB US Corporate Index Total Return Index Value
+[19:53:22]   BAMLCC1A013YTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 1-3 Year US Corporate Index Total Return Index Value
+[19:53:22]   BAMLCC2A035YTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 3-5 Year US Corporate Index Total Return Index Value
+[19:53:22]   BAMLCC3A057YTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 5-7 Year US Corporate Index Total Return Index Value
+[19:53:22]   BAMLCC4A0710YTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 7-10 Year US Corporate Index Total Return Index Value
+[19:53:22]   BAMLCC7A01015YTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 10-15 Year US Corporate Index Total Return Index Value
+[19:53:22]   BAMLCC8A015PYTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA 15+ Year US Corporate Index Total Return Index Value
+[19:53:22]   BAMLEM1BRRAAA2ACRPIEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AAA-A Emerging Markets Corporate Plus Index Effective Yield
+[19:53:22]   BAMLEM1BRRAAA2ACRPIOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AAA-A Emerging Markets Corporate Plus Index Option-Adjusted S
+[19:53:22]   BAMLEM1BRRAAA2ACRPISYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AAA-A Emerging Markets Corporate Plus Index Semi-Annual Yield
+[19:53:22]   BAMLEM1BRRAAA2ACRPITRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AAA-A Emerging Markets Corporate Plus Index Total Return Inde
+[19:53:22]   BAMLEM1RAAA2ALCRPIUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AAA-A US Emerging Markets Liquid Corporate Plus Index Effecti
+[19:53:22]   BAMLEM1RAAA2ALCRPIUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AAA-A US Emerging Markets Liquid Corporate Plus Index Option-
+[19:53:22]   BAMLEM1RAAA2ALCRPIUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AAA-A US Emerging Markets Liquid Corporate Plus Index Semi-An
+[19:53:22]   BAMLEM1RAAA2ALCRPIUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA AAA-A US Emerging Markets Liquid Corporate Plus Index Total R
+[19:53:22]   BAMLEM2BRRBBBCRPIEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BBB Emerging Markets Corporate Plus Index Effective Yield
+[19:53:22]   BAMLEM2BRRBBBCRPIOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BBB Emerging Markets Corporate Plus Index Option-Adjusted Spr
+[19:53:22]   BAMLEM2BRRBBBCRPISYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BBB Emerging Markets Corporate Plus Index Semi-Annual Yield t
+[19:53:22]   BAMLEM2BRRBBBCRPITRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BBB Emerging Markets Corporate Plus Index Total Return Index 
+[19:53:22]   BAMLEM2RBBBLCRPIUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BBB US Emerging Markets Liquid Corporate Plus Index Effective
+[19:53:22]   BAMLEM2RBBBLCRPIUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BBB US Emerging Markets Liquid Corporate Plus Index Option-Ad
+[19:53:22]   BAMLEM2RBBBLCRPIUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BBB US Emerging Markets Liquid Corporate Plus Index Semi-Annu
+[19:53:22]   BAMLEM2RBBBLCRPIUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BBB US Emerging Markets Liquid Corporate Plus Index Total Ret
+[19:53:22]   BAMLEM3BRRBBCRPIEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BB Emerging Markets Corporate Plus Index Effective Yield
+[19:53:22]   BAMLEM3BRRBBCRPIOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BB Emerging Markets Corporate Plus Index Option-Adjusted Spre
+[19:53:22]   BAMLEM3BRRBBCRPISYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BB Emerging Markets Corporate Plus Index Semi-Annual Yield to
+[19:53:22]   BAMLEM3BRRBBCRPITRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BB Emerging Markets Corporate Plus Index Total Return Index V
+[19:53:22]   BAMLEM3RBBLCRPIUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BB US Emerging Markets Liquid Corporate Plus Index Effective 
+[19:53:22]   BAMLEM3RBBLCRPIUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BB US Emerging Markets Liquid Corporate Plus Index Option-Adj
+[19:53:22]   BAMLEM3RBBLCRPIUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BB US Emerging Markets Liquid Corporate Plus Index Semi-Annua
+[19:53:22]   BAMLEM3RBBLCRPIUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BB US Emerging Markets Liquid Corporate Plus Index Total Retu
+[19:53:22]   BAMLEM4BRRBLCRPIEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA B & Lower Emerging Markets Corporate Plus Index Effective Yie
+[19:53:22]   BAMLEM4BRRBLCRPIOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA B & Lower Emerging Markets Corporate Plus Index Option-Adjust
+[19:53:22]   BAMLEM4BRRBLCRPISYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA B & Lower Emerging Markets Corporate Plus Index Semi-Annual Y
+[19:53:22]   BAMLEM4BRRBLCRPITRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA B & Lower Emerging Markets Corporate Plus Index Total Return 
+[19:53:22]   BAMLEM4RBLLCRPIUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA B & Lower US Emerging Markets Liquid Corporate Plus Index Eff
+[19:53:22]   BAMLEM4RBLLCRPIUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA B & Lower US Emerging Markets Liquid Corporate Plus Index Opt
+[19:53:22]   BAMLEM4RBLLCRPIUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA B & Lower US Emerging Markets Liquid Corporate Plus Index Sem
+[19:53:22]   BAMLEM4RBLLCRPIUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA B & Lower US Emerging Markets Liquid Corporate Plus Index Tot
+[19:53:22]   BAMLEM5BCOCRPIEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Crossover Emerging Markets Corporate Plus Index Effective Yie
+[19:53:22]   BAMLEM5BCOCRPIOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Crossover Emerging Markets Corporate Plus Index Option-Adjust
+[19:53:22]   BAMLEM5BCOCRPISYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Crossover Emerging Markets Corporate Plus Index Semi-Annual Y
+[19:53:22]   BAMLEM5BCOCRPITRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Crossover Emerging Markets Corporate Plus Index Total Return 
+[19:53:22]   BAMLEMALLCRPIASIAUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Asia US Emerging Markets Liquid Corporate Plus Index Effectiv
+[19:53:22]   BAMLEMALLCRPIASIAUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Asia US Emerging Markets Liquid Corporate Plus Index Option-A
+[19:53:22]   BAMLEMALLCRPIASIAUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Asia US Emerging Markets Liquid Corporate Plus Index Semi-Ann
+[19:53:22]   BAMLEMALLCRPIASIAUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Asia US Emerging Markets Liquid Corporate Plus Index Total Re
+[19:53:22]   BAMLEMCBPIEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Emerging Markets Corporate Plus Index Effective Yield
+[19:53:22]   BAMLEMCBPIOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Emerging Markets Corporate Plus Index Option-Adjusted Spread
+[19:53:22]   BAMLEMCBPISYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Emerging Markets Corporate Plus Index Semi-Annual Yield to Wo
+[19:53:22]   BAMLEMCBPITRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Emerging Markets Corporate Plus Index Total Return Index Valu
+[19:53:22]   BAMLEMCLLCRPIUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US Emerging Markets Liquid Corporate Plus Index Effective Yie
+[19:53:22]   BAMLEMCLLCRPIUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US Emerging Markets Liquid Corporate Plus Index Option-Adjust
+[19:53:22]   BAMLEMCLLCRPIUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US Emerging Markets Liquid Corporate Plus Index Semi-Annual Y
+[19:53:22]   BAMLEMCLLCRPIUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US Emerging Markets Liquid Corporate Plus Index Total Return 
+[19:53:22]   BAMLEMEBCRPIEEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Euro Emerging Markets Corporate Plus Index Effective Yield
+[19:53:22]   BAMLEMEBCRPIEOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Euro Emerging Markets Corporate Plus Index Option-Adjusted Sp
+[19:53:22]   BAMLEMEBCRPIESYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Euro Emerging Markets Corporate Plus Index Semi-Annual Yield 
+[19:53:22]   BAMLEMEBCRPIETRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Euro Emerging Markets Corporate Plus Index Total Return Index
+[19:53:22]   BAMLEMELLCRPIEMEAUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA EMEA US Emerging Markets Liquid Corporate Plus Index Effectiv
+[19:53:22]   BAMLEMELLCRPIEMEAUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA EMEA US Emerging Markets Liquid Corporate Plus Index Option-A
+[19:53:22]   BAMLEMELLCRPIEMEAUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA EMEA US Emerging Markets Liquid Corporate Plus Index Semi-Ann
+[19:53:22]   BAMLEMELLCRPIEMEAUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA EMEA US Emerging Markets Liquid Corporate Plus Index Total Re
+[19:53:22]   BAMLEMFLFLCRPIUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Financial US Emerging Markets Liquid Corporate Plus Index Eff
+[19:53:22]   BAMLEMFLFLCRPIUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Financial US Emerging Markets Liquid Corporate Plus Index Opt
+[19:53:22]   BAMLEMFLFLCRPIUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Financial US Emerging Markets Liquid Corporate Plus Index Sem
+[19:53:22]   BAMLEMFLFLCRPIUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Financial US Emerging Markets Liquid Corporate Plus Index Tot
+[19:53:22]   BAMLEMFSFCRPIEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Private Sector Financial Emerging Markets Corporate Plus Inde
+[19:53:22]   BAMLEMFSFCRPIOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Private Sector Financial Emerging Markets Corporate Plus Inde
+[19:53:22]   BAMLEMFSFCRPISYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Private Sector Financial Emerging Markets Corporate Plus Inde
+[19:53:22]   BAMLEMFSFCRPITRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Private Sector Financial Emerging Markets Corporate Plus Inde
+[19:53:22]   BAMLEMHBHYCRPIEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Yield Emerging Markets Corporate Plus Index Effective Yi
+[19:53:22]   BAMLEMHBHYCRPIOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Yield Emerging Markets Corporate Plus Index Option-Adjus
+[19:53:22]   BAMLEMHBHYCRPISYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Yield Emerging Markets Corporate Plus Index Semi-Annual 
+[19:53:22]   BAMLEMHBHYCRPITRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Yield Emerging Markets Corporate Plus Index Total Return
+[19:53:22]   BAMLEMHGHGLCRPIUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Grade US Emerging Markets Liquid Corporate Plus Index Ef
+[19:53:22]   BAMLEMHGHGLCRPIUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Grade US Emerging Markets Liquid Corporate Plus Index Op
+[19:53:22]   BAMLEMHGHGLCRPIUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Grade US Emerging Markets Liquid Corporate Plus Index Se
+[19:53:22]   BAMLEMHGHGLCRPIUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Grade US Emerging Markets Liquid Corporate Plus Index To
+[19:53:22]   BAMLEMHYHYLCRPIUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Yield US Emerging Markets Liquid Corporate Plus Index Ef
+[19:53:22]   BAMLEMHYHYLCRPIUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Yield US Emerging Markets Liquid Corporate Plus Index Op
+[19:53:22]   BAMLEMHYHYLCRPIUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Yield US Emerging Markets Liquid Corporate Plus Index Se
+[19:53:22]   BAMLEMHYHYLCRPIUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Yield US Emerging Markets Liquid Corporate Plus Index To
+[19:53:22]   BAMLEMIBHGCRPIEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Grade Emerging Markets Corporate Plus Index Effective Yi
+[19:53:22]   BAMLEMIBHGCRPIOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Grade Emerging Markets Corporate Plus Index Option-Adjus
+[19:53:22]   BAMLEMIBHGCRPISYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Grade Emerging Markets Corporate Plus Index Semi-Annual 
+[19:53:22]   BAMLEMIBHGCRPITRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA High Grade Emerging Markets Corporate Plus Index Total Return
+[19:53:22]   BAMLEMLLLCRPILAUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Latin America US Emerging Markets Liquid Corporate Plus Index
+[19:53:22]   BAMLEMLLLCRPILAUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Latin America US Emerging Markets Liquid Corporate Plus Index
+[19:53:22]   BAMLEMLLLCRPILAUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Latin America US Emerging Markets Liquid Corporate Plus Index
+[19:53:22]   BAMLEMLLLCRPILAUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Latin America US Emerging Markets Liquid Corporate Plus Index
+[19:53:22]   BAMLEMNFNFLCRPIUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Non-Financial US Emerging Markets Liquid Corporate Plus Index
+[19:53:22]   BAMLEMNFNFLCRPIUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Non-Financial US Emerging Markets Liquid Corporate Plus Index
+[19:53:22]   BAMLEMNFNFLCRPIUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Non-Financial US Emerging Markets Liquid Corporate Plus Index
+[19:53:22]   BAMLEMNFNFLCRPIUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Non-Financial US Emerging Markets Liquid Corporate Plus Index
+[19:53:22]   BAMLEMNSNFCRPIEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Non-Financial Emerging Markets Corporate Plus Index Effective
+[19:53:22]   BAMLEMNSNFCRPIOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Non-Financial Emerging Markets Corporate Plus Index Option-Ad
+[19:53:22]   BAMLEMNSNFCRPISYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Non-Financial Emerging Markets Corporate Plus Index Semi-Annu
+[19:53:22]   BAMLEMNSNFCRPITRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Non-Financial Emerging Markets Corporate Plus Index Total Ret
+[19:53:22]   BAMLEMPBPUBSICRPIEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Public Sector Issuers Emerging Markets Corporate Plus Index E
+[19:53:22]   BAMLEMPBPUBSICRPIOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Public Sector Issuers Emerging Markets Corporate Plus Index O
+[19:53:22]   BAMLEMPBPUBSICRPISYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Public Sector Issuers Emerging Markets Corporate Plus Index S
+[19:53:22]   BAMLEMPBPUBSICRPITRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Public Sector Issuers Emerging Markets Corporate Plus Index T
+[19:53:22]   BAMLEMPTPRVICRPIEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Private Sector Issuers Emerging Markets Corporate Plus Index 
+[19:53:22]   BAMLEMPTPRVICRPIOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Private Sector Issuers Emerging Markets Corporate Plus Index 
+[19:53:22]   BAMLEMPTPRVICRPISYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Private Sector Issuers Emerging Markets Corporate Plus Index 
+[19:53:22]   BAMLEMPTPRVICRPITRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Private Sector Issuers Emerging Markets Corporate Plus Index 
+[19:53:22]   BAMLEMPUPUBSLCRPIUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Public Sector Issuers US Emerging Markets Liquid Corporate Pl
+[19:53:22]   BAMLEMPUPUBSLCRPIUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Public Sector Issuers US Emerging Markets Liquid Corporate Pl
+[19:53:22]   BAMLEMPUPUBSLCRPIUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Public Sector Issuers US Emerging Markets Liquid Corporate Pl
+[19:53:22]   BAMLEMPUPUBSLCRPIUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Public Sector Issuers US Emerging Markets Liquid Corporate Pl
+[19:53:22]   BAMLEMPVPRIVSLCRPIUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Private Sector Issuers US Emerging Markets Liquid Corporate P
+[19:53:22]   BAMLEMPVPRIVSLCRPIUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Private Sector Issuers US Emerging Markets Liquid Corporate P
+[19:53:22]   BAMLEMPVPRIVSLCRPIUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Private Sector Issuers US Emerging Markets Liquid Corporate P
+[19:53:22]   BAMLEMPVPRIVSLCRPIUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Private Sector Issuers US Emerging Markets Liquid Corporate P
+[19:53:22]   BAMLEMRACRPIASIAEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Asia Emerging Markets Corporate Plus Index Effective Yield
+[19:53:22]   BAMLEMRACRPIASIAOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Asia Emerging Markets Corporate Plus Index Option-Adjusted Sp
+[19:53:22]   BAMLEMRACRPIASIASYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Asia Emerging Markets Corporate Plus Index Semi-Annual Yield 
+[19:53:22]   BAMLEMRACRPIASIATRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Asia Emerging Markets Corporate Plus Index Total Return Index
+[19:53:22]   BAMLEMRECRPIEMEAEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA EMEA Emerging Markets Corporate Plus Index Effective Yield
+[19:53:22]   BAMLEMRECRPIEMEAOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA EMEA Emerging Markets Corporate Plus Index Option-Adjusted Sp
+[19:53:22]   BAMLEMRECRPIEMEASYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA EMEA Emerging Markets Corporate Plus Index Semi-Annual Yield 
+[19:53:22]   BAMLEMRECRPIEMEATRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA EMEA Emerging Markets Corporate Plus Index Total Return Index
+[19:53:22]   BAMLEMRLCRPILAEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Latin America Emerging Markets Corporate Plus Index Effective
+[19:53:22]   BAMLEMRLCRPILAOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Latin America Emerging Markets Corporate Plus Index Option-Ad
+[19:53:22]   BAMLEMRLCRPILASYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Latin America Emerging Markets Corporate Plus Index Semi-Annu
+[19:53:22]   BAMLEMRLCRPILATRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Latin America Emerging Markets Corporate Plus Index Total Ret
+[19:53:22]   BAMLEMUBCRPIUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US Emerging Markets Corporate Plus Index Effective Yield
+[19:53:22]   BAMLEMUBCRPIUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US Emerging Markets Corporate Plus Index Option-Adjusted Spre
+[19:53:22]   BAMLEMUBCRPIUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US Emerging Markets Corporate Plus Index Semi-Annual Yield to
+[19:53:22]   BAMLEMUBCRPIUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US Emerging Markets Corporate Plus Index Total Return Index V
+[19:53:22]   BAMLEMXOCOLCRPIUSEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Crossover US Emerging Markets Liquid Corporate Plus Index Eff
+[19:53:22]   BAMLEMXOCOLCRPIUSOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Crossover US Emerging Markets Liquid Corporate Plus Index Opt
+[19:53:22]   BAMLEMXOCOLCRPIUSSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Crossover US Emerging Markets Liquid Corporate Plus Index Sem
+[19:53:22]   BAMLEMXOCOLCRPIUSTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Crossover US Emerging Markets Liquid Corporate Plus Index Tot
+[19:53:22]   BAMLH0A0HYM2 · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US High Yield Index Option-Adjusted Spread
+[19:53:22]   BAMLH0A0HYM2EY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US High Yield Index Effective Yield
+[19:53:22]   BAMLH0A0HYM2SYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US High Yield Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLH0A1HYBB · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BB US High Yield Index Option-Adjusted Spread
+[19:53:22]   BAMLH0A1HYBBEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BB US High Yield Index Effective Yield
+[19:53:22]   BAMLH0A1HYBBSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BB US High Yield Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLH0A2HYB · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Single-B US High Yield Index Option-Adjusted Spread
+[19:53:22]   BAMLH0A2HYBEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Single-B US High Yield Index Effective Yield
+[19:53:22]   BAMLH0A2HYBSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Single-B US High Yield Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLH0A3HYC · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA CCC & Lower US High Yield Index Option-Adjusted Spread
+[19:53:22]   BAMLH0A3HYCEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA CCC & Lower US High Yield Index Effective Yield
+[19:53:22]   BAMLH0A3HYCSYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA CCC & Lower US High Yield Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLHE00EHYIEY · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Euro High Yield Index Effective Yield
+[19:53:22]   BAMLHE00EHYIOAS · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Euro High Yield Index Option-Adjusted Spread
+[19:53:22]   BAMLHE00EHYISYTW · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Euro High Yield Index Semi-Annual Yield to Worst
+[19:53:22]   BAMLHE00EHYITRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Euro High Yield Index Total Return Index Value
+[19:53:22]   BAMLHYH0A0HYM2TRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA US High Yield Index Total Return Index Value
+[19:53:22]   BAMLHYH0A1BBTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA BB US High Yield Index Total Return Index Value
+[19:53:22]   BAMLHYH0A2BTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA Single-B US High Yield Index Total Return Index Value
+[19:53:22]   BAMLHYH0A3CMTRIV · since 2023-08-08 · 787 obs · to 2026-08-06 · FRED inception 2023-08-15 OK · ICE BofA CCC & Lower US High Yield Index Total Return Index Value
+── 3. Grouped by inception year ──
+[19:53:22]   2023 (192): BAMLC0A0CM BAMLC0A0CMEY BAMLC0A0CMSYTW BAMLC0A1CAAA BAMLC0A1CAAAEY BAMLC0A1CAAASYTW BAMLC0A2CAA BAMLC0A2CAAEY BAMLC0A2CAASYTW BAMLC0A3CA BAMLC0A3CAEY BAMLC0A3CASYTW BAMLC0A4CBBB BAMLC0A4CBBBEY BAMLC0A4CBBBSYTW BAMLC1A0C13Y BAMLC1A0C13YEY BAMLC1A0C13YSYTW BAMLC2A0C35Y BAMLC2A0C35YEY BAMLC2A0C35YSYTW BAMLC3A0C57Y BAMLC3A0C57YEY BAMLC3A0C57YSYTW BAMLC4A0C710Y BAMLC4A0C710YEY BAMLC4A0C710YSYTW BAMLC7A0C1015Y BAMLC7A0C1015YEY BAMLC7A0C1015YSYTW BAMLC8A0C15PY BAMLC8A0C15PYEY BAMLC8A0C15PYSYTW BAMLCC0A0CMTRIV BAMLCC0A1AAATRIV BAMLCC0A2AATRIV BAMLCC0A3ATRIV BAMLCC0A4BBBTRIV BAMLCC1A013YTRIV BAMLCC2A035YTRIV BAMLCC3A057YTRIV BAMLCC4A0710YTRIV BAMLCC7A01015YTRIV BAMLCC8A015PYTRIV BAMLEM1BRRAAA2ACRPIEY BAMLEM1BRRAAA2ACRPIOAS BAMLEM1BRRAAA2ACRPISYTW BAMLEM1BRRAAA2ACRPITRIV BAMLEM1RAAA2ALCRPIUSEY BAMLEM1RAAA2ALCRPIUSOAS BAMLEM1RAAA2ALCRPIUSSYTW BAMLEM1RAAA2ALCRPIUSTRIV BAMLEM2BRRBBBCRPIEY BAMLEM2BRRBBBCRPIOAS BAMLEM2BRRBBBCRPISYTW BAMLEM2BRRBBBCRPITRIV BAMLEM2RBBBLCRPIUSEY BAMLEM2RBBBLCRPIUSOAS BAMLEM2RBBBLCRPIUSSYTW BAMLEM2RBBBLCRPIUSTRIV BAMLEM3BRRBBCRPIEY BAMLEM3BRRBBCRPIOAS BAMLEM3BRRBBCRPISYTW BAMLEM3BRRBBCRPITRIV BAMLEM3RBBLCRPIUSEY BAMLEM3RBBLCRPIUSOAS BAMLEM3RBBLCRPIUSSYTW BAMLEM3RBBLCRPIUSTRIV BAMLEM4BRRBLCRPIEY BAMLEM4BRRBLCRPIOAS BAMLEM4BRRBLCRPISYTW BAMLEM4BRRBLCRPITRIV BAMLEM4RBLLCRPIUSEY BAMLEM4RBLLCRPIUSOAS BAMLEM4RBLLCRPIUSSYTW BAMLEM4RBLLCRPIUSTRIV BAMLEM5BCOCRPIEY BAMLEM5BCOCRPIOAS BAMLEM5BCOCRPISYTW BAMLEM5BCOCRPITRIV BAMLEMALLCRPIASIAUSEY BAMLEMALLCRPIASIAUSOAS BAMLEMALLCRPIASIAUSSYTW BAMLEMALLCRPIASIAUSTRIV BAMLEMCBPIEY BAMLEMCBPIOAS BAMLEMCBPISYTW BAMLEMCBPITRIV BAMLEMCLLCRPIUSEY BAMLEMCLLCRPIUSOAS BAMLEMCLLCRPIUSSYTW BAMLEMCLLCRPIUSTRIV BAMLEMEBCRPIEEY BAMLEMEBCRPIEOAS BAMLEMEBCRPIESYTW BAMLEMEBCRPIETRIV BAMLEMELLCRPIEMEAUSEY BAMLEMELLCRPIEMEAUSOAS BAMLEMELLCRPIEMEAUSSYTW BAMLEMELLCRPIEMEAUSTRIV BAMLEMFLFLCRPIUSEY BAMLEMFLFLCRPIUSOAS BAMLEMFLFLCRPIUSSYTW BAMLEMFLFLCRPIUSTRIV BAMLEMFSFCRPIEY BAMLEMFSFCRPIOAS BAMLEMFSFCRPISYTW BAMLEMFSFCRPITRIV BAMLEMHBHYCRPIEY BAMLEMHBHYCRPIOAS BAMLEMHBHYCRPISYTW BAMLEMHBHYCRPITRIV BAMLEMHGHGLCRPIUSEY BAMLEMHGHGLCRPIUSOAS BAMLEMHGHGLCRPIUSSYTW BAMLEMHGHGLCRPIUSTRIV BAMLEMHYHYLCRPIUSEY BAMLEMHYHYLCRPIUSOAS BAMLEMHYHYLCRPIUSSYTW BAMLEMHYHYLCRPIUSTRIV BAMLEMIBHGCRPIEY BAMLEMIBHGCRPIOAS BAMLEMIBHGCRPISYTW BAMLEMIBHGCRPITRIV BAMLEMLLLCRPILAUSEY BAMLEMLLLCRPILAUSOAS BAMLEMLLLCRPILAUSSYTW BAMLEMLLLCRPILAUSTRIV BAMLEMNFNFLCRPIUSEY BAMLEMNFNFLCRPIUSOAS BAMLEMNFNFLCRPIUSSYTW BAMLEMNFNFLCRPIUSTRIV BAMLEMNSNFCRPIEY BAMLEMNSNFCRPIOAS BAMLEMNSNFCRPISYTW BAMLEMNSNFCRPITRIV BAMLEMPBPUBSICRPIEY BAMLEMPBPUBSICRPIOAS BAMLEMPBPUBSICRPISYTW BAMLEMPBPUBSICRPITRIV BAMLEMPTPRVICRPIEY BAMLEMPTPRVICRPIOAS BAMLEMPTPRVICRPISYTW BAMLEMPTPRVICRPITRIV BAMLEMPUPUBSLCRPIUSEY BAMLEMPUPUBSLCRPIUSOAS BAMLEMPUPUBSLCRPIUSSYTW BAMLEMPUPUBSLCRPIUSTRIV BAMLEMPVPRIVSLCRPIUSEY BAMLEMPVPRIVSLCRPIUSOAS BAMLEMPVPRIVSLCRPIUSSYTW BAMLEMPVPRIVSLCRPIUSTRIV BAMLEMRACRPIASIAEY BAMLEMRACRPIASIAOAS BAMLEMRACRPIASIASYTW BAMLEMRACRPIASIATRIV BAMLEMRECRPIEMEAEY BAMLEMRECRPIEMEAOAS BAMLEMRECRPIEMEASYTW BAMLEMRECRPIEMEATRIV BAMLEMRLCRPILAEY BAMLEMRLCRPILAOAS BAMLEMRLCRPILASYTW BAMLEMRLCRPILATRIV BAMLEMUBCRPIUSEY BAMLEMUBCRPIUSOAS BAMLEMUBCRPIUSSYTW BAMLEMUBCRPIUSTRIV BAMLEMXOCOLCRPIUSEY BAMLEMXOCOLCRPIUSOAS BAMLEMXOCOLCRPIUSSYTW BAMLEMXOCOLCRPIUSTRIV BAMLH0A0HYM2 BAMLH0A0HYM2EY BAMLH0A0HYM2SYTW BAMLH0A1HYBB BAMLH0A1HYBBEY BAMLH0A1HYBBSYTW BAMLH0A2HYB BAMLH0A2HYBEY BAMLH0A2HYBSYTW BAMLH0A3HYC BAMLH0A3HYCEY BAMLH0A3HYCSYTW BAMLHE00EHYIEY BAMLHE00EHYIOAS BAMLHE00EHYISYTW BAMLHE00EHYITRIV BAMLHYH0A0HYM2TRIV BAMLHYH0A1BBTRIV BAMLHYH0A2BTRIV BAMLHYH0A3CMTRIV
 ── verdict ──
-[19:04:53] ✅ nyfed depth visible where you look · repo lane rediscovering + fresh · FRED leaks recovered by diff, not re-import
+[19:53:22]   banked=192 verified-at-inception=192 mismatches=0 unverifiable=0
+[19:53:22] ✅ every banked ICE BofA series reaches FRED inception (7d tolerance for stripped '.' head rows)
 
-→ Report written to aws/ops/reports/latest/4662_three_lanes.md
+→ Report written to aws/ops/reports/latest/4663_baml_inception.md
