@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.4.0 (ops 4657)
+"""justhodl-stock-buying v1.4.1 (ops 4657)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -738,16 +738,19 @@ def lambda_handler(event=None, context=None):
             r0["warnings"] = warns
         fe = _f13.get(sym0)
         if isinstance(fe, dict):
-            nums = {k: v for k, v in fe.items()
-                    if isinstance(v, (int, float))}
-            if nums:
-                r0["flows13f"] = dict(sorted(
-                    nums.items())[:6])
+            r0["inst_net_usd"] = fe.get("n")
+            r0["inst_buys_usd"] = fe.get("b")
+            r0["inst_sells_usd"] = fe.get("s")
+            r0["whale_net_usd"] = fe.get("wn")
+            r0["inst_n_funds"] = fe.get("nf")
+            fb = fe.get("fb") or []
+            fs2 = fe.get("fs") or []
+            if fb or fs2:
+                r0["funds_note"] = ("+" + ",".join(fb[:2])
+                                    if fb else "") + \
+                    (" | -" + ",".join(fs2[:2]) if fs2 else "")
+            if fe.get("n") is not None:
                 _f13n += 1
-            if fe.get("whale") or fe.get("whales") \
-                    or fe.get("whale_net"):
-                r0["whale"] = fe.get("whale") \
-                    or fe.get("whales") or fe.get("whale_net")
         if xb.get("eps") is not None:
             r0["eps"] = xb.get("eps")
             r0["eps_qoq_pct"] = xb.get("eps_qoq")
