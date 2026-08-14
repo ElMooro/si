@@ -147,7 +147,7 @@ def main():
             return n
         lad_n = sum(1 for x in cen
                     if ((x.get("sma") or {}).get("ladder")
-                        or {}).get("below250") is not None)
+                        or {}).get("below200") is not None)
         gc_n = sum(1 for x in cen
                    if ((x.get("sma") or {}).get("ladder")
                        or {}).get("golden"))
@@ -163,7 +163,7 @@ def main():
                                     x.get("warnings")))
         misses += contract(r, "ladder",
                            lad_n >= 280,
-                           "%d/300-lane rows carry 5-SMA "
+                           "%d/300-lane rows carry SMA "
                            "ladder; %d golden" % (lad_n, gc_n))
         misses += contract(r, "binds",
                            min(nn("net_bb_yield_pct"),
