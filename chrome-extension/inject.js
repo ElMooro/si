@@ -44,6 +44,95 @@
     return p;
   };
 
+  /* ── WebSocket tap (v1.9.0) ─────────────────────────────────────────
+   * Khalid: "TradingView has all ICE data since inception — I can see it
+   * in my account." He's right, and the fetch/XHR taps above could never
+   * capture it: TV streams CHART BARS over wss://data.tradingview.com,
+   * not HTTP. That is exactly why the vault only ever held last-values
+   * resolved from FRED/Yahoo, never TV's own history.
+   *
+   * This wraps WebSocket and mines `timescale_update` / `du` frames,
+   * which carry {i, v:[unix_ts, open, high, low, close, volume]} arrays.
+   * Only bar payloads are forwarded; nothing is injected or requested —
+   * we read frames the page already receives when YOU open a chart.
+   */
+  var SERIES_RX = /timescale_update|"du"|series_completed/;
+  var BARS = {};          // symbol -> {ts: [o,h,l,c]}
+  var SYMOF = {};         // series id -> resolved symbol
+
+  function noteSymbol(txt) {
+    try {
+      var m = /"(?:symbol|full_name|pro_name|short_name)"\s*:\s*"([^"]{2,40})"/.exec(txt);
+      var s2 = /"(s[0-9]+|sds_sym_[0-9]+)"/.exec(txt);
+      if (m && s2) SYMOF[s2[1]] = m[1];
+    } catch (e) {}
+  }
+
+  function mineBars(txt) {
+    try {
+      if (!SERIES_RX.test(txt)) return;
+      noteSymbol(txt);
+      var rx = /"(s[0-9]+|sds_sym_[0-9]+)"\s*:\s*\{\s*"s"\s*:\s*\[([\s\S]*?)\]\s*\}/g, m2;
+      while ((m2 = rx.exec(txt)) !== null) {
+        var sid = m2[1], blob = m2[2];
+        var sym = SYMOF[sid] || sid;
+        var brx = /"v"\s*:\s*\[([^\]]+)\]/g, b;
+        var store = BARS[sym] || (BARS[sym] = {});
+        var n = 0;
+        while ((b = brx.exec(blob)) !== null) {
+          var p2 = b[1].split(",").map(parseFloat);
+          if (p2.length >= 5 && isFinite(p2[0]) && isFinite(p2[4])) {
+            store[Math.round(p2[0])] = [p2[1], p2[2], p2[3], p2[4]];
+            n++;
+          }
+        }
+        if (n) {
+          var keys = Object.keys(store);
+          post("ws:" + sym, { symbol: sym, n_total: keys.length, added: n },
+               "bars-progress");
+        }
+      }
+    } catch (e) {}
+  }
+
+  window.__JH_BARS = BARS;   // popup/content can flush this
+  window.addEventListener("message", function (e) {
+    try {
+      if (!e.data || e.data.__jh_cmd !== "flush-bars") return;
+      var out = [];
+      Object.keys(BARS).forEach(function (sym) {
+        var st = BARS[sym], ks = Object.keys(st).sort(function (a, b) { return a - b; });
+        if (!ks.length) return;
+        out.push({ symbol: sym, n: ks.length,
+                   first: ks[0], last: ks[ks.length - 1],
+                   bars: ks.map(function (k) { return [Number(k)].concat(st[k]); }) });
+      });
+      window.postMessage({ __jh: "bars-flush", data: out }, "*");
+    } catch (e2) {}
+  }, false);
+
+  var OrigWS = window.WebSocket;
+  if (OrigWS) {
+    window.WebSocket = function (url, protos) {
+      var ws = protos === undefined ? new OrigWS(url) : new OrigWS(url, protos);
+      try {
+        if (/tradingview|widgetdata/i.test(String(url))) {
+          ws.addEventListener("message", function (ev) {
+            try {
+              if (typeof ev.data === "string" && ev.data.length > 60) mineBars(ev.data);
+            } catch (e) {}
+          });
+        }
+      } catch (e) {}
+      return ws;
+    };
+    window.WebSocket.prototype = OrigWS.prototype;
+    window.WebSocket.CONNECTING = OrigWS.CONNECTING;
+    window.WebSocket.OPEN = OrigWS.OPEN;
+    window.WebSocket.CLOSING = OrigWS.CLOSING;
+    window.WebSocket.CLOSED = OrigWS.CLOSED;
+  }
+
   /* ── XHR tap ────────────────────────────────────────────────────── */
   var oOpen = XMLHttpRequest.prototype.open;
   var oSend = XMLHttpRequest.prototype.send;
