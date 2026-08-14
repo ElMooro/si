@@ -1,24 +1,19 @@
-executing-against: b06dcb3760ba51e311059b814360b68a4e73bdef
-ops 4654 — catalyst engine
-── deploy (create-capable) + settle + schedule ──
-[23:35:35] ✅   [deploy] v1.0.0 live (created=False)
-[23:35:45] function state: Active
-── run + catalyst truth ──
-[23:35:47] class census: [["LARGE_BUYBACK", 103], ["INDUSTRY_TAILWIND", 59], ["MAJOR_BACKLOG", 41], ["EARNINGS_INFLECTION", 16], ["BACKLOG_ACCEL", 5], ["MAJOR_CONTRACT", 4], ["AI_DATACENTER", 1], ["NEW_PRODUCT", 1]]
-[23:35:47] MU    s=5.4   MAJOR_BACKLOG        RPO +904.0% YoY (XBRL 2026-05-28)
-[23:35:47] AVGO  s=5.4   MAJOR_BACKLOG        RPO +566.4% YoY (XBRL 2026-05-03)
-[23:35:47] LMT   s=5.4   MAJOR_BACKLOG        RPO +38.4% YoY (XBRL 2026-06-28)
-[23:35:47] GE    s=5.4   MAJOR_BACKLOG        RPO +20.9% YoY (XBRL 2026-06-30)
-[23:35:47] LRCX  s=4.8   EARNINGS_INFLECTION  EPS +297.2% QoQ (XBRL diluted)
-[23:35:47] PLTR  s=4.2   MAJOR_BACKLOG        RPO +104.2% YoY (XBRL 2026-06-30)
-[23:35:47] MSFT  s=4.2   MAJOR_BACKLOG        RPO +82.4% YoY (XBRL 2026-06-30)
-[23:35:47] GOOGL s=4.2   MAJOR_BACKLOG        RPO +380.1% YoY (XBRL 2026-06-30)
-[23:35:47] ✅   [coverage] 197 tickers carry catalysts
-[23:35:47] ✅   [taxonomy-breadth] 8 distinct classes live: ['AI_DATACENTER', 'MAJOR_CONTRACT', 'NEW_PRODUCT', 'MAJOR_BACKLOG', 'EARNINGS_INFLECTION', 'INDUSTRY_TAILWIND', 'BACKLOG_ACCEL', 'LARGE_BUYBACK']
-[23:35:47] ✅   [evidence] every top catalyst carries evidence + source
-── stock-buying join ──
-[23:36:13] ✅   [join] join_n=173, 130 shipped rows carry catalyst classes
+executing-against: befdab6a9ced30705e9b47e09b62e1806f84f2b6
+ops 4655 — catalyst desk page
+── cloudflare purge (page + payload) ──
+[00:49:56] ⚠ purge: HTTP Error 404: Not Found
+── edge verification ──
+[00:49:56] edge 1: HTTP Error 404: Not Found
+[00:50:16] edge 2: HTTP Error 404: Not Found
+[00:50:37] edge 3: HTTP Error 404: Not Found
+[00:50:57] edge 4: HTTP Error 404: Not Found
+[00:51:17] edge 5: HTTP Error 404: Not Found
+[00:51:37] edge 6: HTTP Error 404: Not Found
+[00:51:57] edge 7: HTTP Error 404: Not Found
+[00:52:17] edge 8: HTTP Error 404: Not Found
+[00:52:37] ✅   [page_ok] structural: payload path + doctrine + why-links in served HTML
+[00:52:37] ✅   [payload] catalyst payload live at edge with tickers
 ── verdict ──
-[23:36:13] ✅ CATALYST LIVE — 197 tickers, 8 classes, macro {"fedfunds_trend": "DOWN", "rate_cuts": true} · data/catalyst.json · joined into stock-buying
+[00:52:37] ✅ CATALYST PAGE LIVE — https://justhodl.ai/catalyst.html
 
-→ Report written to aws/ops/reports/latest/4654_catalyst.md
+→ Report written to aws/ops/reports/latest/4655_catalyst_page.md
