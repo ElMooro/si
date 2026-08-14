@@ -307,6 +307,88 @@ def _save_bars(bars):
             "index": index[:40]}
 
 
+def _save_series(series):
+    """Store archived observations, one doc per series, append-only."""
+    if not isinstance(series, list) or not series:
+        return {"ok": False, "error": "no series"}
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    out, idx_add = [], {}
+    for it in series[:60]:
+        if not isinstance(it, dict):
+            continue
+        sid = "".join(c for c in str(it.get("id") or "").strip()
+                      if c.isalnum())[:40]
+        rows = it.get("rows")
+        if not sid or not isinstance(rows, list) or len(rows) < 50:
+            out.append({"id": sid, "ok": False,
+                        "error": "need >=50 rows, got %s"
+                                 % (len(rows) if isinstance(rows, list)
+                                    else None)})
+            continue
+        clean = {}
+        for row in rows:
+            try:
+                d = str(row[0])[:10]
+                v = row[1]
+                if len(d) == 10 and d[4] == "-" and v is not None:
+                    float(v)
+                    clean[d] = str(v)
+            except Exception:
+                continue
+        if len(clean) < 50:
+            out.append({"id": sid, "ok": False,
+                        "error": "only %d parseable" % len(clean)})
+            continue
+        key = "data/warm/archived-fred/%s.json" % sid
+        try:
+            cur = json.loads(S3.get_object(Bucket=BUCKET,
+                                           Key=key)["Body"].read())
+            have = dict((o["date"], o["value"])
+                        for o in cur.get("observations") or [])
+        except Exception:
+            cur, have = {}, {}
+        before = len(have)
+        have.update(clean)          # append-only union
+        obs = [{"date": d, "value": have[d]} for d in sorted(have)]
+        doc = {"id": sid, "source": it.get("source") or "wayback",
+               "capture": str(it.get("capture") or "")[:40],
+               "page_url": str(it.get("url") or "")[:300],
+               "updated_at": now, "n": len(obs),
+               "first": obs[0]["date"], "last": obs[-1]["date"],
+               "observations": obs}
+        S3.put_object(Bucket=BUCKET, Key=key,
+                      Body=json.dumps(doc, default=str).encode(),
+                      ContentType="application/json",
+                      CacheControl="no-cache")
+        idx_add[sid] = {"n": len(obs), "first": obs[0]["date"],
+                        "last": obs[-1]["date"],
+                        "capture": doc["capture"]}
+        out.append({"id": sid, "ok": True, "n": len(obs),
+                    "added": len(have) - before,
+                    "first": obs[0]["date"], "last": obs[-1]["date"]})
+        print("[archived-fred] %s n=%d (+%d) %s -> %s"
+              % (sid, len(obs), len(have) - before,
+                 obs[0]["date"], obs[-1]["date"]))
+    try:
+        ik = "data/warm/archived-fred/_index.json"
+        try:
+            idx = json.loads(S3.get_object(Bucket=BUCKET,
+                                           Key=ik)["Body"].read())
+        except Exception:
+            idx = {"series": {}}
+        idx["series"].update(idx_add)
+        idx["updated_at"] = now
+        idx["n_series"] = len(idx["series"])
+        S3.put_object(Bucket=BUCKET, Key=ik,
+                      Body=json.dumps(idx, default=str).encode(),
+                      ContentType="application/json",
+                      CacheControl="no-cache")
+    except Exception as e:
+        print("[archived-fred] index: %s" % str(e)[:120])
+    return {"ok": True, "results": out,
+            "banked": sum(1 for x in out if x.get("ok"))}
+
+
 def lambda_handler(event, context):
     method = (event.get("requestContext", {}).get("http", {})
               .get("method") or event.get("httpMethod") or "POST").upper()
@@ -337,6 +419,15 @@ def lambda_handler(event, context):
     # audited ops pass, never blind from a browser payload.
     if str(req.get("kind") or "") == "bars":
         return _resp(200, _save_bars(req.get("bars")))
+
+    # kind="series" — Khalid's browser posts archived FRED history
+    # straight in. Every automated egress (Lambda) is blocked by
+    # archive.org (498), TradingView (TLS fingerprint) and
+    # investing.com (403); his residential browser is not. Landing zone
+    # is raw + append-only; an ops pass does the checksum + merge, so a
+    # browser payload still never rewrites banked history unaudited.
+    if str(req.get("kind") or "") == "series":
+        return _resp(200, _save_series(req.get("series")))
 
     wl_saved = 0
     try:
