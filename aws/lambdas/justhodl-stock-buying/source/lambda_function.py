@@ -1,4 +1,4 @@
-"""justhodl-stock-buying v1.4.1 (ops 4657)
+"""justhodl-stock-buying v1.4.2 (ops 4657)
 
 Khalid's flagship screener: hunt the LARGEST POSITIVE CHANGE the
 market hasn't priced — not the cheapest stock. Institutional
@@ -174,16 +174,16 @@ def sma_state(closes):
     last = closes[-1]
     lad = {}
     for w2 in (20, 50, 100, 200, 250):
-        if len(vals) >= w2:
-            s2 = sum(vals[-w2:]) / w2
+        if len(closes) >= w2:
+            s2 = sum(closes[-w2:]) / w2
             lad["below%d" % w2] = last < s2
             lad["sma%d" % w2] = round(s2, 2)
     gc = None
-    if len(vals) >= 210:
-        s50 = [sum(vals[i - 50:i]) / 50
-               for i in range(len(vals) - 12, len(vals) + 1)]
-        s200 = [sum(vals[i - 200:i]) / 200
-                for i in range(len(vals) - 12, len(vals) + 1)]
+    if len(closes) >= 210:
+        s50 = [sum(closes[i - 50:i]) / 50
+               for i in range(len(closes) - 12, len(closes) + 1)]
+        s200 = [sum(closes[i - 200:i]) / 200
+                for i in range(len(closes) - 12, len(closes) + 1)]
         gc = s50[-1] > s200[-1]
         lad["golden"] = gc
         lad["golden_cross_recent"] = any(
