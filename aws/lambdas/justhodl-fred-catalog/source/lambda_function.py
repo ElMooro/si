@@ -511,6 +511,32 @@ def _run_scoped_import(t0, now):
             _pending = []   # (future, sid, pop, row_dict)
 
             def _bank_put(key2, doc2):
+                # append-only history guard (Khalid: downloaded data
+                # stays forever). Licensed-window families shrink at
+                # the source — ICE BofA rolls a 3-year window since
+                # Apr-2026 — so a rewrite must never lose rows we
+                # already hold. Union by date: upstream wins on shared
+                # dates (revisions), dates absent upstream are
+                # PRESERVED from our copy.
+                try:
+                    po = (json.loads(s3.get_object(
+                        Bucket=BUCKET, Key=key2)["Body"].read())
+                        .get("observations") or [])
+                except Exception:
+                    po = []
+                if po:
+                    nd = {o.get("date")
+                          for o in doc2.get("observations") or []}
+                    keep = [o for o in po if o.get("date") not in nd]
+                    if keep:
+                        merged = keep + list(
+                            doc2.get("observations") or [])
+                        merged.sort(
+                            key=lambda o: str(o.get("date")))
+                        doc2 = dict(doc2, observations=merged)
+                        doc2["meta"] = dict(
+                            doc2.get("meta") or {},
+                            preserved_rows=len(keep), merge_v=1)
                 s3.put_object(Bucket=BUCKET, Key=key2,
                               Body=json.dumps(doc2,
                                               default=str).encode(),
