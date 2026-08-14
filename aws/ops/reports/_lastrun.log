@@ -1,19 +1,16 @@
-executing-against: befdab6a9ced30705e9b47e09b62e1806f84f2b6
-ops 4655 — catalyst desk page
-── cloudflare purge (page + payload) ──
-[00:49:56] ⚠ purge: HTTP Error 404: Not Found
-── edge verification ──
-[00:49:56] edge 1: HTTP Error 404: Not Found
-[00:50:16] edge 2: HTTP Error 404: Not Found
-[00:50:37] edge 3: HTTP Error 404: Not Found
-[00:50:57] edge 4: HTTP Error 404: Not Found
-[00:51:17] edge 5: HTTP Error 404: Not Found
-[00:51:37] edge 6: HTTP Error 404: Not Found
-[00:51:57] edge 7: HTTP Error 404: Not Found
-[00:52:17] edge 8: HTTP Error 404: Not Found
-[00:52:37] ✅   [page_ok] structural: payload path + doctrine + why-links in served HTML
-[00:52:37] ✅   [payload] catalyst payload live at edge with tickers
-── verdict ──
-[00:52:37] ✅ CATALYST PAGE LIVE — https://justhodl.ai/catalyst.html
+executing-against: 0530c4518e0e76c239e5e36c69a8edf600817136
+ops 4656 — v1.4 evidence probe
+[01:15:50] [ps] ['book_value_ps', 'cash_ps', 'cfo_ps_ttm', 'fcf_ps_ttm', 'ncav_ps', 'ps_fwd', 'ps_ttm', 'revenue_ps_ttm'] · book_value_ps=7.2893 ; cash_ps=4.2304 ; cfo_ps_ttm=9.9472 ; fcf_ps_ttm=9.7274
+[01:15:50] [fcf] ['ev_fcf_ttm', 'fcf', 'fcf_cagr_3y_pct', 'fcf_cagr_5y_pct', 'fcf_conversion_pct', 'fcf_ev_yield_pct', 'fcf_margin_pct', 'fcf_per_employee'] · ev_fcf_ttm=29.326 ; fcf=38713000000.0 ; fcf_cagr_3y_pct=12.42 ; fcf_cagr_5y_pct=8.649
+[01:15:50] [inventory] ['days_inventory', 'inventory', 'inventory_to_revenue_pct', 'inventory_turnover', 'inventory_turnover_ttm'] · days_inventory=16.89 ; inventory=11092000000.0 ; inventory_to_revenue_pct=2.376 ; inventory_turnover=21.61
+[01:15:50] [revenue-chg] [] · 
+[01:15:50] [eps-chg] [] · 
+[01:15:50] [shares] ['share_count_yoy_pct'] · share_count_yoy_pct=-1.324
+── store discovery ──
+[01:16:58] stores: ['data/13f-clone-alpha.json', 'data/13f-cusip-map-v2.json', 'data/13f-cusip-map.json', 'data/13f-flows-by-ticker.json', 'data/13f-positions.json', 'data/13f-price-anchors.json', 'data/13f-price-divergence.json', 'data/_archive/institutional-convergence.json', 'data/a2a/threads/engine-audit-capital-flow.json', 'data/ai-commentary/13f.json', 'data/ai-commentary/history/13f/2026-06-02.json', 'data/ai-commentary/history/13f/2026-06-30.json', 'data/ai-commentary/history/13f/2026-07-01.json', 'data/ai-commentary/history/13f/2026-07-02.json', 'data/ai-commentary/history/13f/2026-07-03.json', 'data/ai-commentary/history/13f/2026-07-06.json']
+[01:16:58] data/13f-flows-by-ticker.json top-keys=['as_of', 'whale_rule', 'whale_funds', 'n_tickers', 't']
+[01:16:58] data/dark-pool.json top-keys=['engine', 'version', 'ok', 'generated_at', 'thesis', 'latest_week', 'fetch_status', 'data_age_days']
+[01:16:59] data/etf-true-flows.json top-keys=['engine', 'version', 'engine_class', 'generated_at', 'duration_s', 'n_etfs', 'maturity', 'evidence_tier']
+[01:16:59] ✅ probe complete
 
-→ Report written to aws/ops/reports/latest/4655_catalyst_page.md
+→ Report written to aws/ops/reports/latest/4656_expansion_probe.md
