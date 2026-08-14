@@ -514,6 +514,15 @@ def lambda_handler(event, context):
                 note = f"scoped import: {_fi:,} series banked"
             if _fi:
                 ser = dict(ser or {}, count=_fi)
+        _dep = (ser or {}).get("depth") or {}
+        if _dep.get("keys"):
+            _note_d = ("depth %d obs/series · since %s · %d/%s @v3"
+                       % (round(_dep["n_obs_sum"]
+                                / max(1, _dep["keys"])),
+                          str(_dep.get("first_min") or "—")[:4],
+                          _dep["keys"],
+                          (ser or {}).get("count") or _dep["keys"]))
+            note = (note + " · " + _note_d) if note else _note_d
         hub["providers"].append(
             {"slug": slug, "name": r["name"], "api": r["api"],
              "datasets": ds, "datasets_target": tgt,
