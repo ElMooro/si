@@ -17,6 +17,8 @@
   var TICKERS = new Set();
   var LISTS = new Map();   // list id -> {id,name,symbols[]}
   var SRCS = new Map();    // symbol -> {source, description} (v1.5.0)
+  var BARSEEN = new Map(); // symbol -> bar count captured (v1.9.0)
+  var BARSTAT = "";        // last bar-send status (v1.9.0)
   var SRC_KEYS = ["source", "source_id", "source-logoid", "source_description", "source-description",
                   "provider", "provider_id", "exchange_source"];
   function keepSource(sym, src, desc) {
@@ -257,6 +259,29 @@
     var d = e && e.data;
     if (!d || !d.__jh) return;
     if (d.__jh === "tap-ready") { paint(); return; }
+    if (d.__jh === "bars-progress") {          // v1.9.0
+      try {
+        BARSEEN.set(d.data.symbol, d.data.n_total);
+        paint();
+      } catch (_) {}
+      return;
+    }
+    if (d.__jh === "bars-flush") {             // v1.9.0
+      try {
+        chrome.runtime.sendMessage(
+          { type: "jh-bars", bars: d.data },
+          function (res) {
+            try {
+              BARSTAT = (res && res.ok)
+                ? ("bars sent: " + (res.n_series || 0) + " series, "
+                   + (res.n_bars || 0) + " bars")
+                : ("bars FAILED: " + ((res && res.err) || "no response"));
+              paint();
+            } catch (_) {}
+          });
+      } catch (_) {}
+      return;
+    }
     if (d.__jh === "tap-err") {
       SEEN.set(short(d.url), { err: (d.data && (d.data.__err || ("HTTP " + d.data.__http))) || "err" });
       paint(); return;

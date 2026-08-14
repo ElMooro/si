@@ -42,7 +42,33 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 // ── Message handler ───────────────────────────────────────────────────────────
+/* ── v1.9.0: chart-bar upload ─────────────────────────────────────────
+ * TV streams bars over WebSocket; inject.js mines them, content.js
+ * flushes them here. Posted with kind:"bars" so the ingest lambda can
+ * route them to the historical merge path (never overwrites — the
+ * union-merge guard preserves whatever we already hold).
+ */
+async function sendBars(bars) {
+  const cfg = await getConfig();
+  const n_bars = (bars || []).reduce((a, b) => a + (b.n || 0), 0);
+  const res = await fetch(cfg.url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: cfg.token, kind: "bars", bars: bars })
+  });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const j = await res.json().catch(() => ({}));
+  return { ok: true, n_series: (bars || []).length, n_bars: n_bars,
+           server: j };
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg && msg.type === "jh-bars") {
+    sendBars(msg.bars).then(sendResponse)
+      .catch(e => sendResponse({ ok: false, err: String(e).slice(0, 120) }));
+    return true;   // async
+  }
+
   if (msg && msg.action === "ssfetch") {
     // v1.7.6: MV3 content scripts lost cross-origin fetch — symsearch was
     // 0/2142 with "Failed to fetch". The service worker has the
