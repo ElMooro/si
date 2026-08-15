@@ -1,18 +1,16 @@
-executing-against: b6fe3e297a070786a5e6a883eb6692335e17c751
-ops 4692 — corrected CORS check + page byte audit
-── 1. Re-verify Cors policy with the FIXED check ──
-[03:07:39]   live policy: {'AllowCredentials': False, 'AllowHeaders': ['content-type'], 'AllowMethods': ['*'], 'AllowOrigins': ['*'], 'MaxAge': 86400}
-[03:07:39]   status=200 ACAO=* ACAM=* ACAH=content-type
-[03:07:39] ✅   [cors] preflight genuinely succeeds under the real CORS spec (4691's verdict was a bug in MY check, not the server)
-── 2. Byte audit of the LIVE deployed page ──
-[03:07:40]   INGEST line: var INGEST = 'https://w4osroryszvlifgk4boofkh7cm0selzf.lambda-url.us-east-1.on.aws/';
-[03:07:40]   TOKEN line: var TOKEN = '********************************';
-[03:07:40] ✅   [page] INGEST constant contains the exact live Function URL
-[03:07:40] ✅   [page] TOKEN constant is populated, not a leftover placeholder
-── 3. Full unsigned POST — exactly what the browser attempts after preflight ──
-[03:07:41]   POST status=200 ACAO=* body={"ok": true, "results": [{"id": "CORSPROBE2", "ok": false, "error": "need >=50 rows, got 3"}], "banked": 0}
-[03:07:41] ✅   [post] server accepted and banked the probe series
+executing-against: b89ce0a72c77bbd2503ae7eee01ed0b5ec200d3f
+ops 4693 — Macrotrends / Trading Economics / MacroMicro for the 2017-2023 ICE gap
+[03:56:28]   (temp probe deleted)
+── Results ──
+[03:56:28]   macrotrends HY spread page       ERR HTTP Error 500: Internal Server Error
+[03:56:28]   macrotrends corp bond spread     72997 bytes ct=text/html; charset=UTF-8 dates=[] |   <!DOCTYPE html> <html lang="en"> <head> 	<meta charset="UTF-8"> 	<meta name="viewport" content="width=device-width, initial-scale=1"> 	<link rel="canonical" href="https://
+[03:56:28]   tradingeconomics HY page         321709 bytes ct=text/html; charset=utf-8 dates=[] |  <!doctype html> <html > <head id="ctl00_Head1"><meta charset="utf-8" /><title> 	TRADING ECONOMICS | 20 Million Indicators for 196 Countries </title><meta id="metaDesc" name="
+[03:56:28]   tradingeconomics api probe (no key) ERR URL can't contain control characters. '/historical/country/united states/indicator/high yield bond s
+[03:56:28]   macromicro BAML HY               ERR HTTP Error 403: Forbidden
+[03:56:28]   macromicro search                ERR HTTP Error 403: Forbidden
 ── verdict ──
-[03:07:41] ✅ server is fully correct: CORS policy valid, page bytes clean, unsigned browser-style POST succeeds end to end. The failure Khalid saw is NOT reproducible server-side -- it points at something local to that browser session (extension, privacy tool, or corporate/AV network filter blocking *.lambda-url.*.on.aws)
+[03:56:28] none of the three surfaced usable pre-2020 dated data server-side. Macrotrends/TE render charts via JS after load (no embedded data in raw HTML) or gate behind their own bot protection; MacroMicro needs the right series id, not guessed. These three are not quick wins -- the ICE trial or your S&P Global access are the stronger remaining paths.
+[03:56:28] ✗ no server-side alt source found — honest negative
 
-→ Report written to aws/ops/reports/latest/4692_cors_recheck.md
+→ Report written to aws/ops/reports/latest/4693_alt_sources.md
+❌ OPS-FAIL: aws/ops/pending/ops_4693_alt_sources.py

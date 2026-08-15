@@ -1,0 +1,26 @@
+# ops 4693 — Macrotrends / Trading Economics / MacroMicro for the 2017-2023 ICE gap
+
+**Status:** failure  
+**Duration:** 7.2s  
+**Finished:** 2026-08-15T03:56:28+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `03:56:28`   (temp probe deleted)
+## Results
+
+- `03:56:28`   macrotrends HY spread page       ERR HTTP Error 500: Internal Server Error
+- `03:56:28`   macrotrends corp bond spread     72997 bytes ct=text/html; charset=UTF-8 dates=[] |   <!DOCTYPE html> <html lang="en"> <head> 	<meta charset="UTF-8"> 	<meta name="viewport" content="width=device-width, initial-scale=1"> 	<link rel="canonical" href="https://
+- `03:56:28`   tradingeconomics HY page         321709 bytes ct=text/html; charset=utf-8 dates=[] |  <!doctype html> <html > <head id="ctl00_Head1"><meta charset="utf-8" /><title> 	TRADING ECONOMICS | 20 Million Indicators for 196 Countries </title><meta id="metaDesc" name="
+- `03:56:28`   tradingeconomics api probe (no key) ERR URL can't contain control characters. '/historical/country/united states/indicator/high yield bond s
+- `03:56:28`   macromicro BAML HY               ERR HTTP Error 403: Forbidden
+- `03:56:28`   macromicro search                ERR HTTP Error 403: Forbidden
+## verdict
+
+- `03:56:28` none of the three surfaced usable pre-2020 dated data server-side. Macrotrends/TE render charts via JS after load (no embedded data in raw HTML) or gate behind their own bot protection; MacroMicro needs the right series id, not guessed. These three are not quick wins -- the ICE trial or your S&P Global access are the stronger remaining paths.
+- `03:56:28` ✗ no server-side alt source found — honest negative
