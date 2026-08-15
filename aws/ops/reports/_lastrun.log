@@ -1,25 +1,16 @@
-executing-against: b0b280dccb0142e991db359403afbebb9a8ad421
-ops 4700 — multi-series fredgraph · TE guest:guest · Common Crawl Feb-2026 · Wayback Data List
-── 1. LIVE multi-series fredgraph.csv — does a Data-List-style comma query bypass the per-series cap? (untested tonight, cheap to check) ──
-[15:56:29]   multi-series csv failed: The read operation timed out
-── 2. Trading Economics guest:guest — the historically-proven bridge, tested across plausible endpoint shapes ──
-[15:56:29]   [historical/country/indicator] HTTP 410: <p>We are sorry, but the guest account has been discontinued.</p>
-<p>Please subscribe to a plan at <a href="https://tradingeconomics.com/api/pricing.a
-[15:56:30]   [historical w/ dates] HTTP 410: <p>We are sorry, but the guest account has been discontinued.</p>
-<p>Please subscribe to a plan at <a href="https://tradingeconomics.com/api/pricing.a
-[15:56:31]   [markets/bonds] HTTP 410: <p>We are sorry, but the guest account has been discontinued.</p>
-<p>Please subscribe to a plan at <a href="https://tradingeconomics.com/api/pricing.a
-[15:56:31]   [search high yield] HTTP 410: <p>We are sorry, but the guest account has been discontinued.</p>
-<p>Please subscribe to a plan at <a href="https://tradingeconomics.com/api/pricing.a
-[15:56:32]   [indicators list US] HTTP 410: <p>We are sorry, but the guest account has been discontinued.</p>
-<p>Please subscribe to a plan at <a href="https://tradingeconomics.com/api/pricing.a
-── 3. Common Crawl (Feb 2026) — different infrastructure than Wayback, untested tonight ──
-[15:56:33]   crawls near Feb-2026: ['CC-MAIN-2026-30', 'CC-MAIN-2026-25', 'CC-MAIN-2026-21', 'CC-MAIN-2026-17', 'CC-MAIN-2026-12']
-[15:56:38]     CDX query failed: HTTP Error 404: Not Found
-── 4. ONE gentle Wayback Data-List probe (not a sweep — archive.org throttle should have cleared by now, treated calmly either way) ──
-[15:56:38]   wayback multi-series: HTTP 498 (throttle or not archived — not alarming, single gentle try)
+executing-against: 1ff0470f34f8284842889f2905924a25ad768040
+ops 4701 — real paid TE key vs the historical credit-spread endpoint
+── 1. Confirm the real key resolves ──
+[16:16:28]   key resolved, len=31 (never printed)
+── 2. Minimal validity check — one cheap call, exactly what te-feed already calls successfully ──
+[16:16:28]   status=200 rows=405 (matches te-feed's own working call shape)
+[16:16:28] ✅   key is LIVE and valid
+── 3. THE REAL TEST — historical endpoint for a credit-spread indicator (te-feed never calls this path) ──
+[16:16:29]   [historical/indicator (spread)] status=200 rows=0 dates=None..None sample=[]
+[16:16:30]   [historical w/ explicit date range] status=200 rows=0 dates=None..None sample=[]
+[16:16:31]   [markets bond-spread search] status=200 rows=0 dates=None..None sample=[]
 ── verdict ──
-[15:56:38] ✗ none of the four lanes produced a confirmed deep-history hit this pass — see per-lane log for exact evidence
+[16:16:33] ✗ real paid key works for country-snapshots (as te-feed already proves) but the historical credit-spread endpoint did not return deep dated data on this pass
 
-→ Report written to aws/ops/reports/latest/4700_reranked_lanes.md
-❌ OPS-FAIL: aws/ops/pending/ops_4700_reranked_lanes.py
+→ Report written to aws/ops/reports/latest/4701_te_real_key.md
+❌ OPS-FAIL: aws/ops/pending/ops_4701_te_real_key.py
