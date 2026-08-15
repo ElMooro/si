@@ -1,16 +1,84 @@
-executing-against: 44219bce38ecec5792a4d628c2821c863f72f20e
-ops 4701 — real paid TE key vs the historical credit-spread endpoint
-── 1. Confirm the real key resolves ──
-[16:16:57]   key resolved, len=31 (never printed)
-── 2. Minimal validity check — one cheap call, exactly what te-feed already calls successfully ──
-[16:16:57]   status=200 rows=405 (matches te-feed's own working call shape)
-[16:16:57] ✅   key is LIVE and valid
-── 3. THE REAL TEST — historical endpoint for a credit-spread indicator (te-feed never calls this path) ──
-[16:16:57]   [historical/indicator (spread)] status=200 rows=0 dates=None..None sample=[]
-[16:16:58]   [historical w/ explicit date range] status=200 rows=0 dates=None..None sample=[]
-[16:16:59]   [markets bond-spread search] status=200 rows=0 dates=None..None sample=[]
+executing-against: 32d694c09660edc7d0a9ba86ac9fdbead56f4239
+ops 4702 — find TE's real credit-spread category name, then re-test historical
+── 1. Raw, UNFILTERED country snapshot — every category, not just te-feed's ~170-entry allowlist ──
+[16:22:39]   total rows: 405
+[16:22:39]   categories matching spread/yield/credit/bond/junk: 63
+[16:22:39]     Category='Average House Prices' Title='United States New Home Average Sales Price' LatestValue=475400.0 LatestValueDate=2026-06-30T00:00:00 Unit='USD'
+[16:22:39]     Category='Case Shiller Home Price Index' Title='United States Case-Shiller 20-City Composite Home Price Index' LatestValue=348.62 LatestValueDate=2026-05-31T00:00:00 Unit='points'
+[16:22:39]     Category='Case Shiller Home Price Index MoM' Title='United States Case-Shiller 20-City Composite Home Price Index MoM' LatestValue=0.9 LatestValueDate=2026-05-31T00:00:00 Unit='percent'
+[16:22:39]     Category='Case Shiller Home Price Index YoY' Title='United States Case-Shiller 20-City Composite Home Price Index YoY' LatestValue=1.6 LatestValueDate=2026-05-31T00:00:00 Unit='percent'
+[16:22:39]     Category='Consumer Credit' Title='United States Consumer Credit Change' LatestValue=14.17 LatestValueDate=2026-06-30T00:00:00 Unit='USD Billion'
+[16:22:39]     Category='Consumer Price Index CPI' Title='United States Consumer Price Index (CPI)' LatestValue=333.92 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='Core Consumer Prices' Title='United States Core Consumer Prices' LatestValue=337.13 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='Core PCE Price Index' Title='United States Core Personal Consumption Expenditure Price Index' LatestValue=130.27 LatestValueDate=2026-06-30T00:00:00 Unit='points'
+[16:22:39]     Category='Core PCE Price Index Annual Change' Title='United States Core PCE Price Index Annual Change' LatestValue=3.3 LatestValueDate=2026-06-30T00:00:00 Unit='percent'
+[16:22:39]     Category='Core PCE Price Index MoM' Title='United States Core PCE Price Index MoM' LatestValue=0.1 LatestValueDate=2026-06-30T00:00:00 Unit='percent'
+[16:22:39]     Category='Core PCE Prices QoQ' Title='United States Core PCE Prices QoQ' LatestValue=3.4 LatestValueDate=2026-06-30T00:00:00 Unit='percent'
+[16:22:39]     Category='Core Producer Prices' Title='United States Producer Prices Final Demand Less Foods and Energy' LatestValue=154.45 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='Core Producer Prices MoM' Title='United States Producer Prices Final Demand Less Foods and Energy MoM' LatestValue=0.2 LatestValueDate=2026-07-31T00:00:00 Unit='percent'
+[16:22:39]     Category='Core Producer Prices YoY' Title='United States Producer Prices Final Demand Less Foods and Energy YoY' LatestValue=4.2 LatestValueDate=2026-07-31T00:00:00 Unit='percent'
+[16:22:39]     Category='Corporate Profits' Title='United States Corporate Profits' LatestValue=3623.72 LatestValueDate=2026-03-31T00:00:00 Unit='USD Billion'
+[16:22:39]     Category='Corporate Tax Rate' Title='United States Federal Corporate Tax Rate' LatestValue=21.0 LatestValueDate=2026-12-31T00:00:00 Unit='percent'
+[16:22:39]     Category='Credit Card Accounts' Title='United States Credit Card Accounts' LatestValue=653.63 LatestValueDate=2026-06-30T00:00:00 Unit='Million'
+[16:22:39]     Category='Current Account Services' Title='United States Current Account Services' LatestValue=85.11 LatestValueDate=2026-03-31T00:00:00 Unit='USD Billion'
+[16:22:39]     Category='Dallas Fed Manufacturing Prices Paid Index' Title='United States Dallas Fed Manufacturing Prices Paid for Raw Materials Index' LatestValue=41.3 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='Dallas Fed Services Index' Title='United States Dallas Fed Services Index' LatestValue=6.6 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='Dallas Fed Services Revenues Index' Title='United States Dallas Fed Services Revenues Index' LatestValue=9.5 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='Debt Balance Credit Cards' Title='United States Debt Balance Credit Cards' LatestValue=1.26 LatestValueDate=2026-06-30T00:00:00 Unit='Trillion USD'
+[16:22:39]     Category='Export Prices' Title='United States Export Prices' LatestValue=167.8 LatestValueDate=2026-06-30T00:00:00 Unit='points'
+[16:22:39]     Category='Export Prices MoM' Title='United States Export Prices MoM' LatestValue=-0.6 LatestValueDate=2026-06-30T00:00:00 Unit='percent'
+[16:22:39]     Category='Export Prices YoY' Title='United States Export Prices YoY' LatestValue=10.2 LatestValueDate=2026-06-30T00:00:00 Unit='percent'
+[16:22:39]     Category='Foreign Bond Investment' Title='United States Net Purchases of US Treasury Bonds and Notes' LatestValue=56600.0 LatestValueDate=2026-05-31T00:00:00 Unit='USD Million'
+[16:22:39]     Category='Gasoline Prices' Title='United States Gasoline Prices' LatestValue=1.04 LatestValueDate=2026-07-31T00:00:00 Unit='USD/Liter'
+[16:22:39]     Category='GDP Constant Prices' Title='United States GDP Constant Prices' LatestValue=24270.6 LatestValueDate=2026-06-30T00:00:00 Unit='USD Billion'
+[16:22:39]     Category='GDP from Services' Title='United States GDP From Private Services Producing Industries' LatestValue=17664.6 LatestValueDate=2026-03-31T00:00:00 Unit='USD Billion'
+[16:22:39]     Category='Government Bond 10Y' Title='US 10 Year Treasury Note Yield' LatestValue=4.7 LatestValueDate=2026-08-14T00:00:00 Unit='percent'
+[16:22:39]     Category='House Price Index MoM' Title='United States House Price Index MoM' LatestValue=0.3 LatestValueDate=2026-05-31T00:00:00 Unit='percent'
+[16:22:39]     Category='House Price Index YoY' Title='United States House Price Index YoY' LatestValue=2.2 LatestValueDate=2026-05-31T00:00:00 Unit='percent'
+[16:22:39]     Category='Import Prices' Title='United States Import Prices' LatestValue=150.8 LatestValueDate=2026-06-30T00:00:00 Unit='points'
+[16:22:39]     Category='Import Prices MoM' Title='United States Import Prices MoM' LatestValue=0.3 LatestValueDate=2026-06-30T00:00:00 Unit='percent'
+[16:22:39]     Category='Import Prices YoY' Title='United States Import Prices YoY' LatestValue=7.1 LatestValueDate=2026-06-30T00:00:00 Unit='percent'
+[16:22:39]     Category='ISM Manufacturing Prices' Title='United States ISM Manufacturing Prices Paid' LatestValue=71.1 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='ISM Non Manufacturing Prices' Title='United States ISM Services Prices' LatestValue=70.3 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='Kansas Fed Prices Paid Index' Title='United States Kansas Fed Prices Paid Index' LatestValue=52.0 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='LMI Transportation Prices' Title='United States LMI Transportation Prices Current' LatestValue=86.9 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='LMI Warehouse Prices' Title='United States LMI Warehouse Prices Current' LatestValue=75.5 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='National Home Price Index' Title='United States S&P Case-Shiller National Home Price Index' LatestValue=331.02 LatestValueDate=2026-05-31T00:00:00 Unit='points'
+[16:22:39]     Category='NY Empire State Prices Paid Index' Title='United States NY Empire State Prices Paid Index' LatestValue=52.3 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='NY Fed Services Activity Index' Title='United States NY Fed Services Activity Index' LatestValue=8.7 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='PCE Price Index' Title='United States Personal Consumption Expenditure Price Index' LatestValue=131.39 LatestValueDate=2026-06-30T00:00:00 Unit='points'
+[16:22:39]     Category='PCE Price Index Annual Change' Title='United States PCE Price Index Annual Change' LatestValue=3.7 LatestValueDate=2026-06-30T00:00:00 Unit='percent'
+[16:22:39]     Category='PCE Price Index Monthly Change' Title='United States PCE Price Index Monthly Change' LatestValue=-0.1 LatestValueDate=2026-06-30T00:00:00 Unit='percent'
+[16:22:39]     Category='PCE Prices QoQ' Title='United States PCE Prices QoQ' LatestValue=5.1 LatestValueDate=2026-06-30T00:00:00 Unit='percent'
+[16:22:39]     Category='Philly Fed Prices Paid' Title='United States Philly Fed Prices Paid' LatestValue=53.9 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='PPI Ex Food Energy and Trade Services' Title='United States Producer Prices Final Demand Less Foods, Energy, and Trade Services' LatestValue=142.91 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='PPI Ex Food Energy and Trade Services MoM' Title='United States Producer Prices Final Demand Less Foods, Energy, and Trade Services MoM' LatestValue=0.4 LatestValueDate=2026-07-31T00:00:00 Unit='percent'
+[16:22:39]     Category='PPI Ex Food Energy and Trade Services YoY' Title='United States Producer Prices Final Demand Less Foods, Energy, and Trade Services YoY' LatestValue=4.7 LatestValueDate=2026-07-31T00:00:00 Unit='percent'
+[16:22:39]     Category='Price to Rent Ratio' Title='United States Price to Rent Ratio' LatestValue=133.6 LatestValueDate=2024-12-31T00:00:00 Unit=''
+[16:22:39]     Category='Private Sector Credit' Title='United States Loans and Leases in Bank Credit' LatestValue=13854.1 LatestValueDate=2026-06-30T00:00:00 Unit='USD Billion'
+[16:22:39]     Category='Producer Price Inflation MoM' Title='United States Producer Price Inflation MoM' LatestValue=0.0 LatestValueDate=2026-07-31T00:00:00 Unit='percent'
+[16:22:39]     Category='Producer Prices' Title='United States Producer Prices' LatestValue=156.56 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='Producer Prices Change' Title='United States Producer Prices Change' LatestValue=4.7 LatestValueDate=2026-07-31T00:00:00 Unit='percent'
+[16:22:39]     Category='Professional and Business Services Payrolls' Title='United States Professional And Business Services Payrolls' LatestValue=18.0 LatestValueDate=2026-07-31T00:00:00 Unit='Thousand'
+[16:22:39]     Category='Residential Property Prices' Title='United States Residential Property Prices' LatestValue=0.56 LatestValueDate=2026-03-31T00:00:00 Unit='Percent'
+[16:22:39]     Category='Richmond Fed Services Index' Title='United States Richmond Fed Services Revenues Index' LatestValue=-3.0 LatestValueDate=2026-07-31T00:00:00 Unit='points'
+[16:22:39]     Category='Services Inflation' Title='United States Services Inflation' LatestValue=3.1 LatestValueDate=2026-07-31T00:00:00 Unit='Percent'
+[16:22:39]     Category='Single Family Home Prices' Title='United States Existing Home Sales Prices' LatestValue=434100.0 LatestValueDate=2026-07-31T00:00:00 Unit='USD'
+[16:22:39]     Category='Used Car Prices MoM' Title='United States Used Car Prices MoM' LatestValue=-1.4 LatestValueDate=2026-07-31T00:00:00 Unit='percent'
+[16:22:39]     Category='Used Car Prices YoY' Title='United States Used Car Prices YoY' LatestValue=1.3 LatestValueDate=2026-07-31T00:00:00 Unit='percent'
+── 2. Re-test historical endpoint with the REAL category name(s) found ──
+[16:22:39]   historical['Average House Prices']: HTTP 409
+[16:22:40]   historical['average house prices']: status=200 rows=618 dates=None..None
+[16:22:40]   historical['Case Shiller Home Price Index']: status=200 rows=317 dates=None..None
+[16:22:41]   historical['case shiller home price index']: status=200 rows=317 dates=None..None
+[16:22:42]   historical['Case Shiller Home Price Index MoM']: status=200 rows=316 dates=None..None
+[16:22:43]   historical['case shiller home price index mom']: status=200 rows=316 dates=None..None
+[16:22:44]   historical['Case Shiller Home Price Index YoY']: status=200 rows=305 dates=None..None
+[16:22:44]   historical['case shiller home price index yoy']: status=200 rows=305 dates=None..None
+[16:22:45]   historical['Consumer Credit']: status=200 rows=1001 dates=None..None
+[16:22:46]   historical['consumer credit']: status=200 rows=1001 dates=None..None
 ── verdict ──
-[16:17:00] ✗ real paid key works for country-snapshots (as te-feed already proves) but the historical credit-spread endpoint did not return deep dated data on this pass
+[16:22:47] ✗ no matching category on this plan returned deep historical data — see categories_found for what IS actually on the plan
 
-→ Report written to aws/ops/reports/latest/4701_te_real_key.md
-❌ OPS-FAIL: aws/ops/pending/ops_4701_te_real_key.py
+→ Report written to aws/ops/reports/latest/4702_te_find_real_name.md
+❌ OPS-FAIL: aws/ops/pending/ops_4702_te_find_real_name.py
