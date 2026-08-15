@@ -1,0 +1,150 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Invest · Why Leave SPX? · JustHodl AI</title>
+<meta name="description" content="Leading trade/commodity signal -> confirmed end-use industry -> risk-adjusted excess return over SPX -> stock vs. industry-ETF ranking. An industry or stock only earns a place here by beating SPX on a risk-adjusted basis; otherwise the honest answer is the index.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 24px 70px}
+.hero h1{font-size:28px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:6px 0 16px;max-width:820px}
+.sec{margin-top:30px}
+.sec h2{font-size:15px;font-family:var(--mono);color:var(--fg-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec h2 .n{background:var(--bg-2);border:1px solid var(--border);border-radius:12px;padding:1px 9px;font-size:11px;color:var(--fg-3)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.card{background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:16px}
+.card h3{font-size:13.5px;color:var(--fg-0);font-weight:700;margin-bottom:6px}
+.badge{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:11px;letter-spacing:.3px}
+.b-confirmed{background:rgba(38,255,175,.13);color:var(--green);border:1px solid var(--green)}
+.b-turning{background:rgba(251,191,36,.13);color:var(--amber);border:1px solid var(--amber)}
+.b-conflicting{background:rgba(255,85,119,.13);color:var(--red);border:1px solid var(--red)}
+.b-insufficient{background:rgba(111,123,145,.13);color:var(--fg-3);border:1px solid var(--border-bright)}
+.b-outperform{background:rgba(38,255,175,.13);color:var(--green);border:1px solid var(--green)}
+.b-neutral{background:rgba(168,179,199,.13);color:var(--fg-2);border:1px solid var(--border-bright)}
+.b-underperform{background:rgba(255,85,119,.13);color:var(--red);border:1px solid var(--red)}
+.legs{margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--fg-3)}
+.leg-row{display:flex;justify-content:space-between;padding:3px 0;border-top:1px solid var(--border)}
+.leg-row .z-pos{color:var(--green)}.leg-row .z-neg{color:var(--red)}.leg-row .diag{opacity:.55;font-style:italic}
+table{width:100%;border-collapse:collapse;margin-top:4px}
+th,td{text-align:right;padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;font-family:var(--mono)}
+th{font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.5px}
+td.l,th.l{text-align:left}
+.tk{font-weight:700;color:var(--fg-0)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.thesis{font-family:var(--sans);font-size:12px;color:var(--fg-2);margin-top:10px;line-height:1.5;border-top:1px solid var(--border);padding-top:10px}
+.gate-fail{opacity:.6}
+.loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
+.disc{margin-top:30px;font-size:11px;color:var(--fg-3);font-family:var(--mono);line-height:1.7;border-top:1px solid var(--border);padding-top:16px}
+.method{background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:8px;font-size:12.5px;color:var(--fg-2);line-height:1.6}
+</style></head><body>
+<header class="header"><div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+<nav class="nav"><a href="/">Home</a><a href="/rotation-dashboard.html">Rotation</a><a href="/industry-rotation.html">Industry Boom</a><a href="/compass.html">Capital Compass</a><a href="/invest.html" class="active">Invest</a><a href="/canaries.html">Canaries</a><a href="/backlog.html">Backlog</a><a href="/ask.html">Ask</a>
+  </nav><div id="fresh-slot" style="padding:6px 24px"></div>
+  <div data-auth-slot style="margin-left:auto"></div></header>
+<div class="wrap">
+<div class="hero"><h1>Invest <span class="grad">— Why Leave SPX?</span></h1>
+<p>Every industry and stock below had to earn its place. <b>Tier 1</b> requires a real, multi-leg-corroborated leading trade/commodity signal — one noisy print doesn't count. <b>Tier 2</b> requires the industry's risk-adjusted expected return over SPX to clear <i>both</i> an information-ratio floor and a minimum excess-return floor — SPX is the default; the industry has to beat it, not just match it. <b>Tier 3</b> only ranks stocks inside industries that passed Tier 2, and a stock has to clearly beat its <i>own</i> industry ETF to be picked over just buying that ETF.</p></div>
+
+<div class="sec"><h2>Tier 1 · Leading Indicators <span class="n" id="t1-n">—</span></h2>
+<div class="grid" id="t1-grid"><div class="loading">Loading leading-indicator confirmations…</div></div></div>
+
+<div class="sec"><h2>Tier 2 · Industry vs. SPX Gate <span class="n" id="t2-n">—</span></h2>
+<div id="t2-table"></div></div>
+
+<div class="sec"><h2>Tier 3 · Stock vs. Industry ETF <span class="n" id="t3-n">—</span></h2>
+<div id="t3-table"></div></div>
+
+<div class="sec"><h2>Method</h2>
+<div class="method" id="method-box">—</div></div>
+
+<div class="disc">Research only, not advice. pp figures marked "estimated" are model output (forward-looking expected return), not measured fact — they always carry a confidence interval and observation count; treat a thin n_obs as exactly that. This engine defaults to SPX: an industry or stock with no confirmed edge is intentionally absent, not scored zero.</div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function pp(v){return v==null?'—':(v>=0?'+':'')+v.toFixed(2)+'pp';}
+function num(v,d=2){return v==null?'—':Number(v).toFixed(d);}
+function badge(status,map){const cls=map[status]||'b-insufficient';return `<span class="badge ${cls}">${esc(status)}</span>`;}
+
+const T1_MAP={CONFIRMED:'b-confirmed',TURNING:'b-turning',CONFLICTING:'b-conflicting',
+  NOT_CONFIRMED:'b-insufficient',INSUFFICIENT_DATA:'b-insufficient'};
+const T2_MAP={OUTPERFORM_EXPECTED:'b-outperform',NEUTRAL:'b-neutral',
+  UNDERPERFORM_EXPECTED:'b-underperform',INSUFFICIENT_DATA:'b-insufficient'};
+const T3_MAP={OUTPERFORM_EXPECTED:'b-outperform',IN_LINE_BUY_THE_ETF:'b-neutral',
+  UNDERPERFORM_EXPECTED:'b-underperform',INSUFFICIENT_DATA:'b-insufficient',
+  INSUFFICIENT_DATA_STOCK:'b-insufficient'};
+
+let DATA=null;
+
+async function load(){
+  try{const r=await fetch(`${PROXY}/data/invest.json?t=${Date.now()}`);if(r.ok)DATA=await r.json();}catch(e){}
+  if(!DATA){
+    document.getElementById('t1-grid').innerHTML='<div class="loading">justhodl-invest has not shipped output yet — runs every 4h once deployed (ops 4717).</div>';
+    document.getElementById('t2-table').innerHTML='';document.getElementById('t3-table').innerHTML='';
+    return;
+  }
+  renderTier1();renderTier2();renderTier3();renderMethod();
+}
+
+function renderTier1(){
+  const inds=DATA.leading_indicators||[];
+  document.getElementById('t1-n').textContent=inds.length;
+  document.getElementById('t1-grid').innerHTML=inds.map(ind=>`
+    <div class="card">
+      <h3>${esc(ind.label)}</h3>
+      ${badge(ind.status,T1_MAP)}
+      <span style="font-family:var(--mono);font-size:11px;color:var(--fg-3);margin-left:8px">
+        ${ind.confirmed_legs!=null?ind.confirmed_legs+'/'+ind.available_legs+' legs confirm':''}</span>
+      <div class="legs">${(ind.detail||[]).map(d=>`
+        <div class="leg-row ${d.voting===false?'diag':''}">
+          <span>${esc(d.leg_id)}${d.voting===false?' (diagnostic)':''}</span>
+          <span class="${d.signed_z==null?'':(d.signed_z>=0?'z-pos':'z-neg')}">${d.signed_z==null?'no data':num(d.signed_z)+'σ'}</span>
+        </div>`).join('')}</div>
+      <div class="thesis">→ candidate industries: ${(ind.candidate_industries||[]).join(', ')||'—'}</div>
+    </div>`).join('') || '<div class="loading">No leading indicators configured.</div>';
+}
+
+function renderTier2(){
+  const gates=DATA.industry_gates||{};
+  const keys=Object.keys(gates);
+  document.getElementById('t2-n').textContent=keys.length;
+  if(!keys.length){document.getElementById('t2-table').innerHTML='<div class="loading">No industry passed Tier 1 this run.</div>';return;}
+  document.getElementById('t2-table').innerHTML=`<table><thead><tr>
+    <th class="l">Industry</th><th class="l">Proxy ETF</th><th>Excess vs SPX</th><th>Info Ratio</th>
+    <th>n_obs</th><th class="l">Verdict</th></tr></thead><tbody>
+    ${keys.map(k=>{const g=gates[k];return `<tr class="${g.pass?'':'gate-fail'}">
+      <td class="l">${esc(g.industry||k)}</td><td class="l">${esc(g.proxy_etf||'—')}</td>
+      <td class="${g.excess_return_pp>=0?'pos':'neg'}">${pp(g.excess_return_pp)}</td>
+      <td>${num(g.information_ratio)}</td><td>${g.n_obs??'—'}</td>
+      <td class="l">${badge(g.status==='OK'?(g.verdict||'—'):g.status,T2_MAP)}</td></tr>`;}).join('')}
+    </tbody></table>`;
+}
+
+function renderTier3(){
+  const picks=(DATA.stock_picks||[]).filter(p=>p.status==='OK');
+  document.getElementById('t3-n').textContent=picks.length;
+  if(!picks.length){document.getElementById('t3-table').innerHTML='<div class="loading">No stock cleared its industry gate this run — the honest answer is the proxy ETF, not a stock pick.</div>';return;}
+  document.getElementById('t3-table').innerHTML=`<table><thead><tr>
+    <th class="l">Ticker</th><th class="l">Industry</th><th>Composite</th><th>Industry Median</th>
+    <th class="l">vs Industry ETF</th><th class="l">Cycle</th></tr></thead><tbody>
+    ${picks.sort((a,b)=>(b.composite_score||0)-(a.composite_score||0)).map(p=>`<tr>
+      <td class="l tk">${esc(p.ticker)}</td><td class="l">${esc(p.industry||'')}</td>
+      <td>${num(p.composite_score,1)}</td><td>${num(p.industry_median_score,1)}</td>
+      <td class="l">${badge(p.vs_industry_etf,T3_MAP)}</td>
+      <td class="l" style="font-size:10.5px;color:${p.cycle_flag==='PEAK_MARGIN_TRAP'?'var(--red)':'var(--fg-3)'}">${esc(p.cycle_flag||'—')}</td>
+      </tr><tr><td colspan="6" class="thesis" style="text-align:left;border-bottom:1px solid var(--border)">${esc(p.thesis||'')}</td></tr>`).join('')}
+    </tbody></table>`;
+}
+
+function renderMethod(){
+  document.getElementById('method-box').textContent=DATA.method_notes||'—';
+}
+load();
+</script>
+</body></html>

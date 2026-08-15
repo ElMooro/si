@@ -1,0 +1,18 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 300,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Tier1 leading-indicator confirm -> Tier2 SPX opportunity-cost gate -> Tier3 stock-vs-industry-ETF ranking. v0.1.0",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-invest-daily",
+    "cron": "cron(0 15 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "justhodl-invest daily refresh, 15:00 UTC (after canary-grid/asia-leads/forward-returns have updated)"
+  }
+}
