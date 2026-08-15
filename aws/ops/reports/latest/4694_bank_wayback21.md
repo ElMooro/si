@@ -1,0 +1,41 @@
+# ops 4694 — bank 21 Wayback ICE series (uploaded direct)
+
+**Status:** success  
+**Duration:** 7.0s  
+**Finished:** 2026-08-15T04:11:35+00:00  
+
+## Log
+## 1. Load the uploaded file
+
+- `04:11:28` ✅   [load] 21 series loaded
+## 2. Locate banked docs
+
+- `04:11:32` ✅   [locate] 21/21 banked docs found
+## 3. Per-series: real overlap check, correct validation, merge
+
+- `04:11:32` ✅   BAMLH0A0HYM2         +6948 rows -> 14678 obs, 1996-12-31 -> 2026-08-06  [checksum 6948/6948 agree]
+- `04:11:32` ✅   BAMLC0A0CM           +6948 rows -> 14677 obs, 1996-12-31 -> 2026-08-06  [checksum 6948/6948 agree]
+- `04:11:32` ✅   BAMLC0A1CAAA         +6849 rows -> 14579 obs, 1996-12-31 -> 2026-08-06  [checksum 6849/6849 agree]
+- `04:11:32` ✅   BAMLC0A3CA           +6332 rows -> 12348 obs, 1996-12-31 -> 2026-08-06  [checksum 5229/5229 agree]
+- `04:11:33` ✅   BAMLC0A4CBBB         +6948 rows -> 14678 obs, 1996-12-31 -> 2026-08-06  [checksum 6948/6948 agree]
+- `04:11:33` ✅   BAMLH0A1HYBB         +6948 rows -> 12964 obs, 1996-12-31 -> 2026-08-06  [checksum 5234/5234 agree]
+- `04:11:33` ✅   BAMLH0A2HYB          +6946 rows -> 12962 obs, 1996-12-31 -> 2026-08-06  [checksum 5232/5232 agree]
+- `04:11:33` ✅   BAMLH0A3HYC          +6948 rows -> 12964 obs, 1996-12-31 -> 2026-08-06  [checksum 5234/5234 agree]
+- `04:11:33` ✅   BAMLC0A2CAAEY        +6948 rows -> 12964 obs, 1996-12-31 -> 2026-08-06  [checksum 5234/5234 agree]
+- `04:11:33` ✅   BAMLC0A3CAEY         +6336 rows -> 12352 obs, 1996-12-31 -> 2026-08-06  [checksum 5229/5229 agree]
+- `04:11:34` ✅   BAMLC0A4CBBBEY       +6843 rows -> 12859 obs, 1996-12-31 -> 2026-08-06  [checksum 5229/5229 agree]
+- `04:11:34` ✅   BAMLH0A0HYM2EY       +6948 rows -> 12964 obs, 1996-12-31 -> 2026-08-06  [checksum 5234/5234 agree]
+- `04:11:34` ✅   BAMLH0A1HYBBEY       +6915 rows -> 12931 obs, 1996-12-31 -> 2026-08-06  [checksum 5229/5229 agree]
+- `04:11:34` ✅   BAMLH0A2HYBEY        +6948 rows -> 12964 obs, 1996-12-31 -> 2026-08-06  [checksum 5234/5234 agree]
+- `04:11:34` ✅   BAMLH0A3HYCEY        +6691 rows -> 12707 obs, 1996-12-31 -> 2026-08-06  [checksum 5229/5229 agree]
+- `04:11:35` ✅   BAMLCC0A3ATRIV       +9005 rows -> 9792 obs, 1988-12-16 -> 2026-08-06  [checksum 5/5 agree]
+- `04:11:35` ✅   BAMLHYH0A0HYM2TRIV   +8654 rows -> 10610 obs, 1986-08-31 -> 2026-08-06  [checksum 1174/1174 agree]
+- `04:11:35` ✅   BAMLHYH0A2BTRIV      +6948 rows -> 7735 obs, 1996-12-31 -> 2026-08-06  [checksum 5/5 agree]
+- `04:11:35` ⚠   BAMLCC0A2AATRIV      REJECTED — bad adjacency: archived ends 2022-11-28, banked starts 2023-08-08 (253 day gap)
+- `04:11:35` ⚠   BAMLCC0A4BBBTRIV     REJECTED — bad adjacency: archived ends 2021-04-01, banked starts 2023-08-08 (859 day gap)
+- `04:11:35` ⚠   BAMLHYH0A1BBTRIV     REJECTED — bad adjacency: archived ends 2023-03-28, banked starts 2023-08-08 (133 day gap)
+## verdict
+
+- `04:11:35`   merged=18 (checksum-validated=18, continuity-validated=0) rejected=3
+- `04:11:35` ✅   [result] 18/21 series merged
+- `04:11:35` ✅ 21-series Wayback recovery banked — 18 exact-checksum validated, 0 adjacency+continuity validated (honestly labeled as weaker evidence), permanent under the delete-proof policy
