@@ -1,0 +1,14 @@
+# ops 4715 — recheck with the correct field (catalog_note, not coverage_note)
+
+**Status:** success  
+**Duration:** 0.1s  
+**Finished:** 2026-08-15T19:28:48+00:00  
+
+## Log
+- `19:28:48`   ALL fred fields: ['api', 'catalog_note', 'coverage_basis', 'coverage_note', 'coverage_pct', 'datasets', 'datasets_target', 'denied_source_side', 'freshest_h', 'hot_feeds', 'n_keys', 'name', 'series_count', 'slug', 'total_mb', 'unit']
+- `19:28:48`   catalog_note (the real field): 'scoped import: 276,404 series banked · 4169/4169 categories · COMPLETE_WITH_LEAKS · + 92 ICE BofA series independently cross-validated via Trading Economics mirror (100.0% agree)'
+- `19:28:48`   coverage_note (what 4714 wrongly checked): None
+- `19:28:48` ✅   [original] original FRED note content present: 'scoped import: 276,404 series banked · 4169/4169 categories · COMPLETE_WITH_LEAKS · + 92 ICE BofA series independently cross-validated via Trading Economics mirror (100.0% agree)'
+- `19:28:48` ✅   [additive] ICE-via-TE annotation present as an append: 'scoped import: 276,404 series banked · 4169/4169 categories · COMPLETE_WITH_LEAKS · + 92 ICE BofA series independently cross-validated via Trading Economics mirror (100.0% agree)'
+- `19:28:48` ✅   [count_unchanged] FRED n_keys still 279497 (matches 4714's before/after proof, which WAS correct — count identity was verified on the right fields)
+- `19:28:48` ✅ CONFIRMED: 4714's failure was its own wrong-field-name bug. The real catalog_note has BOTH the original FRED text and the additive ICE annotation, exactly as built: 'scoped import: 276,404 series banked · 4169/4169 categories · COMPLETE_WITH_LEAKS · + 92 ICE BofA series independently cross-validated via Trading Economics mirror (100.0% agree)'

@@ -1,18 +1,11 @@
-executing-against: fb96f69af6feee10bb06013b79aabf24141efdc2
-ops 4714 — additive ICE note on FRED card, FRED count PROVEN unchanged
-── 1. BEFORE snapshot ──
-[19:22:57]   FRED before: n_keys=279497 total_mb=11230.24 note=None
-[19:22:57] ✅   [before] FRED entry found in current hub
-── 2. Kick provider-catalog ──
-── 3. AFTER snapshot — wait for the new note to appear ──
-[19:26:59]   FRED after: n_keys=279497 total_mb=11230.24 note=None
-── 4. THE PROOF — count identical, ICE note present ──
-[19:26:59] ✅   [unchanged] FRED n_keys IDENTICAL before/after (279497 == 279497)
-[19:26:59] ✅   [unchanged] FRED total_mb IDENTICAL before/after (11230.24 == 11230.24)
-[19:26:59] ✗   [additive] CONTRACT MISS — FRED note now contains the additive ICE annotation: None
-[19:26:59] ✗   [additive] CONTRACT MISS — the ORIGINAL fred note content is still present (this was an append, not a replace)
-── verdict ──
-[19:26:59] ✗ fred-ice-note: 2 red
+executing-against: 5d5de826d70ae80b89c22c96b2469bd181a10c2d
+ops 4715 — recheck with the correct field (catalog_note, not coverage_note)
+[19:28:48]   ALL fred fields: ['api', 'catalog_note', 'coverage_basis', 'coverage_note', 'coverage_pct', 'datasets', 'datasets_target', 'denied_source_side', 'freshest_h', 'hot_feeds', 'n_keys', 'name', 'series_count', 'slug', 'total_mb', 'unit']
+[19:28:48]   catalog_note (the real field): 'scoped import: 276,404 series banked · 4169/4169 categories · COMPLETE_WITH_LEAKS · + 92 ICE BofA series independently cross-validated via Trading Economics mirror (100.0% agree)'
+[19:28:48]   coverage_note (what 4714 wrongly checked): None
+[19:28:48] ✅   [original] original FRED note content present: 'scoped import: 276,404 series banked · 4169/4169 categories · COMPLETE_WITH_LEAKS · + 92 ICE BofA series independently cross-validated via Trading Economics mirror (100.0% agree)'
+[19:28:48] ✅   [additive] ICE-via-TE annotation present as an append: 'scoped import: 276,404 series banked · 4169/4169 categories · COMPLETE_WITH_LEAKS · + 92 ICE BofA series independently cross-validated via Trading Economics mirror (100.0% agree)'
+[19:28:48] ✅   [count_unchanged] FRED n_keys still 279497 (matches 4714's before/after proof, which WAS correct — count identity was verified on the right fields)
+[19:28:48] ✅ CONFIRMED: 4714's failure was its own wrong-field-name bug. The real catalog_note has BOTH the original FRED text and the additive ICE annotation, exactly as built: 'scoped import: 276,404 series banked · 4169/4169 categories · COMPLETE_WITH_LEAKS · + 92 ICE BofA series independently cross-validated via Trading Economics mirror (100.0% agree)'
 
-→ Report written to aws/ops/reports/latest/4714_fred_ice_note_proof.md
-❌ OPS-FAIL: aws/ops/pending/ops_4714_fred_ice_note_proof.py
+→ Report written to aws/ops/reports/latest/4715_fred_ice_note_recheck.md
