@@ -1,0 +1,36 @@
+# ops 4696 — gap hunt rev-2 (bugs fixed, full evidence logged)
+
+**Status:** failure  
+**Duration:** 262.6s  
+**Finished:** 2026-08-15T04:30:53+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## 1. Real gap list from LIVE banked state
+
+- `04:27:57`   192 banked, 44 shallow (the real gap)
+## 2. GitHub — auth header fixed (no bogus empty value)
+
+- `04:29:46`   GitHub: 0 hits / 44 searched
+## 3. Wayback — .txt AND .csv, first hit wins, EVERY miss reason logged
+
+- `04:30:13`   WB miss: BAMLCC0A1AAATRIV     last reason: ERR HTTP Error 498: 
+- `04:30:15`   WB miss: BAMLCC0A2AATRIV      last reason: ERR HTTP Error 498: 
+- `04:30:18`   WB miss: BAMLCC0A4BBBTRIV     last reason: ERR HTTP Error 498: 
+- `04:30:18`   WB miss: BAMLCC1A013YTRIV     last reason: ERR <urlopen error [Errno 111] Connection refused>
+- `04:30:19`   WB miss: BAMLCC2A035YTRIV     last reason: ERR <urlopen error [Errno 111] Connection refused>
+- `04:30:19`   WB miss: BAMLCC3A057YTRIV     last reason: ERR <urlopen error [Errno 111] Connection refused>
+- `04:30:20`   WB miss: BAMLCC4A0710YTRIV    last reason: ERR <urlopen error [Errno 111] Connection refused>
+- `04:30:20`   WB miss: BAMLCC7A01015YTRIV   last reason: ERR <urlopen error [Errno 111] Connection refused>
+- `04:30:53`   Wayback attempt tally across all 44 series: ok=0 short=0 err=264
+- `04:30:53`   Wayback: 0 hits / 44 searched
+## verdict
+
+- `04:30:53`   union: 0/44 gap series have a candidate
+- `04:30:53`   still unfound (44): ['BAMLCC0A1AAATRIV', 'BAMLCC0A2AATRIV', 'BAMLCC0A4BBBTRIV', 'BAMLCC1A013YTRIV', 'BAMLCC2A035YTRIV', 'BAMLCC3A057YTRIV', 'BAMLCC4A0710YTRIV', 'BAMLCC7A01015YTRIV', 'BAMLCC8A015PYTRIV', 'BAMLEM1BRRAAA2ACRPITRIV', 'BAMLEM1RAAA2ALCRPIUSTRIV', 'BAMLEM2BRRBBBCRPITRIV', 'BAMLEM2RBBBLCRPIUSTRIV', 'BAMLEM3BRRBBCRPITRIV', 'BAMLEM3RBBLCRPIUSTRIV']
+- `04:30:53` ✗ genuinely 0 candidates after fixing both probe bugs -- see the tally above for why
