@@ -1,96 +1,122 @@
-<!DOCTYPE html><html><head><meta charset="utf-8">
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
 <title>JustHodl — ICE history recovery</title>
 <style>
  body{background:#0d1117;color:#c9d1d9;font:14px/1.55 ui-monospace,Menlo,Consolas,monospace;margin:0;padding:28px 22px;}
  h1{font-size:17px;color:#e6edf3;margin:0 0 4px;letter-spacing:.02em}
- p.sub{color:#7d8590;margin:0 0 20px;font-size:12.5px}
- button{background:#1f6feb;color:#fff;border:0;border-radius:6px;padding:10px 20px;font:600 14px ui-monospace,monospace;cursor:pointer}
- button:disabled{background:#30363d;color:#7d8590;cursor:default}
- #bar{height:4px;background:#21262d;border-radius:2px;margin:18px 0 12px;overflow:hidden}
+ p.sub{color:#7d8590;margin:0 0 18px;font-size:12.5px}
+ input[type=file]{color:#c9d1d9;font-size:13px;margin-bottom:14px}
+ #bar{height:4px;background:#21262d;border-radius:2px;margin:14px 0 12px;overflow:hidden}
  #fill{height:100%;width:0;background:#2ea043;transition:width .3s}
  #log{white-space:pre-wrap;font-size:12.5px;max-height:62vh;overflow:auto;border-top:1px solid #21262d;padding-top:12px}
  .ok{color:#3fb950}.warn{color:#d29922}.err{color:#f85149}.dim{color:#6e7681}
-</style></head><body>
+</style>
+</head>
+<body>
 <h1>ICE BofA history recovery</h1>
-<p class="sub">Reads pre-truncation FRED history from the Wayback Machine and banks it to your S3.
-This page runs on your own origin — archive.org's replay wrapper can't rewrite the upload from here.</p>
-<p class="sub">Step 1 &mdash; on an <b>archive.org</b> page, run the grabber script (it saves <code>jh-ice.json</code>).<br>
-Step 2 &mdash; choose that file here. Archive reads only work on their pages; uploads only work off them, so the file is the bridge.</p>
+<p class="sub">Choose the <code>jh-ice.json</code> file saved by the grabber script.
+This page runs on your own origin, so the upload is not intercepted.</p>
 <input type="file" id="pick" accept=".json,application/json">
-<button id="go" style="display:none">Start recovery</button>
 <div id="bar"><div id="fill"></div></div>
 <div id="log"></div>
 <script>
-const INGEST='__INGEST__', TOKEN='__TOKEN__', CUTOFF='2023-08-14';
-const IDS=['BAMLH0A0HYM2','BAMLC0A0CM','BAMLC0A1CAAA','BAMLC0A2CAA','BAMLC0A3CA',
- 'BAMLC0A4CBBB','BAMLH0A1HYBB','BAMLH0A2HYB','BAMLH0A3HYC','BAMLC0A0CMEY',
- 'BAMLC0A1CAAAEY','BAMLC0A2CAAEY','BAMLC0A3CAEY','BAMLC0A4CBBBEY','BAMLH0A0HYM2EY',
- 'BAMLH0A1HYBBEY','BAMLH0A2HYBEY','BAMLH0A3HYCEY','BAMLCC0A0CMTRIV','BAMLCC0A1AAATRIV',
- 'BAMLCC0A2AATRIV','BAMLCC0A3ATRIV','BAMLCC0A4BBBTRIV','BAMLHYH0A0HYM2TRIV',
- 'BAMLHYH0A1BBTRIV','BAMLHYH0A2BTRIV','BAMLHYH0A3CMTRIV'];
-const STAMPS=['20250601','20240901','20240301','20231001'];
-const L=document.getElementById('log'),F=document.getElementById('fill');
-const say=(m,c)=>{const d=document.createElement('div');if(c)d.className=c;d.textContent=m;L.appendChild(d);L.scrollTop=L.scrollHeight;};
-const forms=(ts,id)=>[
- `https://web.archive.org/web/${ts}id_/https://fred.stlouisfed.org/data/${id}.txt`,
- `https://web.archive.org/web/${ts}id_/https://fred.stlouisfed.org/graph/fredgraph.csv?id=${id}`];
-const parse=t=>{const o=[];for(const ln of t.split(/\r?\n/)){if(!/^(19|20)\d\d-\d\d-\d\d/.test(ln))continue;
- const p=ln.replace(/,/g,' ').trim().split(/\s+/);
- if(p.length>=2&&p[1]!=='.'&&isFinite(Number(p[1]))&&p[0]<=CUTOFF)o.push([p[0],Number(p[1])]);}return o;};
-document.getElementById('pick').onchange=async function(e){
- const f=e.target.files[0]; if(!f) return;
- this.disabled=true; say('reading '+f.name+' ('+Math.round(f.size/1024)+' KB)…');
- let data; try{ data=JSON.parse(await f.text()); }
- catch(err){ say('could not parse file: '+err,'err'); return; }
- if(!Array.isArray(data)||!data.length){ say('file has no series','err'); return; }
- say(data.length+' series in file'); 
- const send=async b=>{try{const r=await fetch(INGEST,{method:'POST',
-   headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({token:TOKEN,kind:'series',series:b})});return await r.json();}
-   catch(er){return{ok:false,error:String(er)};}};
- let banked=0,batch=[],n=0;
- for(const s of data){
-  n++; F.style.width=(100*n/data.length)+'%';
-  if(!s||!s.id||!Array.isArray(s.rows)||s.rows.length<50){say('  '+(s&&s.id)+' — too few rows','dim');continue;}
-  say('  '+s.id+': '+s.rows.length+' rows  '+s.rows[0][0]+' → '+s.rows[s.rows.length-1][0]);
-  batch.push(s);
-  if(batch.length>=3){const r=await send(batch);
-   if(r&&r.ok){banked+=r.banked||batch.length;say('    ↑ banked '+(r.banked||batch.length),'ok');}
-   else say('    ↑ failed: '+JSON.stringify(r).slice(0,160),'err');
-   batch=[];}
- }
- if(batch.length){const r=await send(batch);
-  if(r&&r.ok){banked+=r.banked||batch.length;say('    ↑ banked '+(r.banked||batch.length),'ok');}
-  else say('    ↑ failed: '+JSON.stringify(r).slice(0,160),'err');}
- say(''); say('DONE — '+banked+' series banked to S3', banked?'ok':'err');
-};
-document.getElementById('go').onclick=async function(){
- this.disabled=true;this.textContent='Running…';
- let banked=0,missing=[],batch=[],n=0;
- const send=async b=>{try{const r=await fetch(INGEST,{method:'POST',
-   headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({token:TOKEN,kind:'series',series:b})});return await r.json();}
-   catch(e){return{ok:false,error:String(e)};}};
- for(const id of IDS){
-  n++;F.style.width=(100*n/IDS.length)+'%';
-  let rows=null,ts='';
-  for(const s of STAMPS){for(const u of forms(s,id)){
-    try{const r=await fetch(u);if(!r.ok)continue;const x=parse(await r.text());
-      if(x.length>500){rows=x;ts=s;break;}}catch(e){}}
-   if(rows)break;}
-  if(!rows){missing.push(id);say('  '+id+' — not in archive','dim');continue;}
-  say('  '+id+': '+rows.length+' rows  '+rows[0][0]+' → '+rows[rows.length-1][0]+'  (capture '+ts+')');
-  batch.push({id,rows,source:'wayback-raw',capture:ts,url:'archive'});
-  if(batch.length>=3){const r=await send(batch);
-    if(r&&r.ok){banked+=r.banked||batch.length;say('    ↑ banked '+(r.banked||batch.length)+' series','ok');}
-    else say('    ↑ upload failed: '+JSON.stringify(r).slice(0,160),'err');
-    batch=[];}
- }
- if(batch.length){const r=await send(batch);
-   if(r&&r.ok){banked+=r.banked||batch.length;say('    ↑ banked '+(r.banked||batch.length)+' series','ok');}
-   else say('    ↑ upload failed: '+JSON.stringify(r).slice(0,160),'err');}
- say('');say('DONE — '+banked+' series banked to S3',banked?'ok':'err');
- if(missing.length)say('not in archive ('+missing.length+'): '+missing.join(' '),'warn');
- this.textContent='Finished';
-};
-</script></body></html>
+(function () {
+  'use strict';
+  var INGEST = '__INGEST__';
+  var TOKEN = '__TOKEN__';
+
+  var logEl = document.getElementById('log');
+  var fillEl = document.getElementById('fill');
+  var pickEl = document.getElementById('pick');
+
+  function say(msg, cls) {
+    var d = document.createElement('div');
+    if (cls) d.className = cls;
+    d.textContent = msg;
+    logEl.appendChild(d);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  async function postBatch(batch) {
+    try {
+      var res = await fetch(INGEST, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: TOKEN, kind: 'series',
+                               series: batch })
+      });
+      return await res.json();
+    } catch (err) {
+      return { ok: false, error: String(err) };
+    }
+  }
+
+  pickEl.addEventListener('change', async function (ev) {
+    var file = ev.target.files[0];
+    if (!file) return;
+    pickEl.disabled = true;
+
+    say('reading ' + file.name + ' (' +
+        Math.round(file.size / 1024) + ' KB)…');
+
+    var text = await file.text();
+    var data;
+    try {
+      data = JSON.parse(text);
+    } catch (err) {
+      say('could not parse file: ' + err, 'err');
+      return;
+    }
+    if (!Array.isArray(data) || !data.length) {
+      say('file contains no series', 'err');
+      return;
+    }
+    say(data.length + ' series in file');
+
+    var banked = 0;
+    var batch = [];
+
+    for (var i = 0; i < data.length; i++) {
+      var s = data[i];
+      fillEl.style.width = (100 * (i + 1) / data.length) + '%';
+      if (!s || !s.id || !Array.isArray(s.rows) || s.rows.length < 50) {
+        say('  ' + (s && s.id) + ' — too few rows, skipped', 'dim');
+        continue;
+      }
+      say('  ' + s.id + ': ' + s.rows.length + ' rows  ' +
+          s.rows[0][0] + ' -> ' + s.rows[s.rows.length - 1][0]);
+      batch.push(s);
+      if (batch.length >= 3) {
+        var r = await postBatch(batch);
+        if (r && r.ok) {
+          banked += (r.banked || batch.length);
+          say('    uploaded ' + (r.banked || batch.length), 'ok');
+        } else {
+          say('    upload failed: ' + JSON.stringify(r).slice(0, 160),
+              'err');
+        }
+        batch = [];
+      }
+    }
+    if (batch.length) {
+      var r2 = await postBatch(batch);
+      if (r2 && r2.ok) {
+        banked += (r2.banked || batch.length);
+        say('    uploaded ' + (r2.banked || batch.length), 'ok');
+      } else {
+        say('    upload failed: ' + JSON.stringify(r2).slice(0, 160),
+            'err');
+      }
+    }
+
+    say('');
+    say('DONE — ' + banked + ' series banked to S3',
+        banked ? 'ok' : 'err');
+    pickEl.disabled = false;
+  });
+})();
+</script>
+</body>
+</html>
