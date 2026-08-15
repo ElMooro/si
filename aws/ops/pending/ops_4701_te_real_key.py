@@ -37,7 +37,6 @@ def main():
     with report("4701_te_real_key") as r:
         r.heading("ops 4701 — real paid TE key vs the historical "
                   "credit-spread endpoint")
-        misses = 0
 
         r.section("1. Confirm the real key resolves")
         try:
