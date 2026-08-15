@@ -115,21 +115,32 @@ def _te_fetch(sid, te_key):
     return rows, None
 
 
-def _cross_check(sid, te_rows):
-    """READ-ONLY against the FRED-sourced doc. Never writes here."""
-    tok, key = None, None
+def _build_fred_index():
+    """Bug caught before ship: the original per-series version did a
+    FULL paginated list of the 276k+ object fred-scoped prefix for
+    EVERY series in the tranche -- up to 60x redundant full scans in
+    one invocation. Build the {series_id: key} map ONCE per
+    invocation instead, cache it in the state doc for reuse across
+    tranches within the same convergence run."""
+    idx, tok = {}, None
     while True:
         kw = {"Bucket": BUCKET, "Prefix": FRED_PREFIX, "MaxKeys": 1000}
         if tok:
             kw["ContinuationToken"] = tok
         resp = s3.list_objects_v2(**kw)
         for o in resp.get("Contents") or []:
-            if o["Key"].rsplit("/", 1)[-1] == sid + ".json":
-                key = o["Key"]
-                break
-        if key or not resp.get("IsTruncated"):
+            bn = o["Key"].rsplit("/", 1)[-1]
+            if bn.endswith(".json"):
+                idx[bn[:-5]] = o["Key"]
+        if not resp.get("IsTruncated"):
             break
         tok = resp.get("NextContinuationToken")
+    return idx
+
+
+def _cross_check(sid, te_rows, fred_idx):
+    """READ-ONLY against the FRED-sourced doc. Never writes here."""
+    key = fred_idx.get(sid)
     if not key:
         return {"fred_doc_found": False}
     doc = _gj(key)
@@ -176,6 +187,7 @@ def lambda_handler(event, context):
         st["done"] = []   # converged -> restart maintenance sweep
 
     idx = _gj(IDX_KEY, {"symbols": {}})
+    fred_idx = _build_fred_index()   # ONE scan for the whole tranche
     got = row_cap_hits = failed = 0
     for sid in todo:
         rows, err = _te_fetch(sid, te_key)
@@ -188,7 +200,7 @@ def lambda_handler(event, context):
         near_cap = len(rows) >= ROW_CAP_WARN
         if near_cap:
             row_cap_hits += 1
-        xcheck = _cross_check(sid, rows)
+        xcheck = _cross_check(sid, rows, fred_idx)
         doc = {"id": sid, "source": "tradingeconomics /fred/historical/"
                                     " mirror", "as_of": now,
                "n": len(rows), "first": rows[0][0], "last": rows[-1][0],
