@@ -1,18 +1,50 @@
-executing-against: e0985c32abda99095cd1b7087c2713c0a02fca34
-ops 4707 — core series test: licensing wall vs wrong symbol
-[17:07:12]   bamlh0a0hym2     status=200 bytes=549388 parsed_rows=7734
-[17:07:12]     sample row: {'symbol': 'bamlh0a0hym2', 'date': '1996-12-31T00:00:00', 'value': 3.13}
-[17:07:12]     last row: {'symbol': 'bamlh0a0hym2', 'date': '2026-08-12T00:00:00', 'value': 2.71}
-[17:07:13]   bamlc0a0cm       status=200 bytes=533578 parsed_rows=7733
-[17:07:13]     sample row: {'symbol': 'bamlc0a0cm', 'date': '1996-12-31T00:00:00', 'value': 0.6}
-[17:07:13]     last row: {'symbol': 'bamlc0a0cm', 'date': '2026-08-12T00:00:00', 'value': 0.79}
-[17:07:14]   baa10y           status=200 bytes=650001 parsed_rows=10000
-[17:07:14]     sample row: {'symbol': 'baa10y', 'date': '1986-01-02T00:00:00', 'value': 2.34}
-[17:07:14]     last row: {'symbol': 'baa10y', 'date': '2025-12-31T00:00:00', 'value': 1.72}
-[17:07:15]   dgs10            status=200 bytes=641489 parsed_rows=10000
-[17:07:15]     sample row: {'symbol': 'dgs10', 'date': '1962-01-02T00:00:00', 'value': 4.06}
-[17:07:15]     last row: {'symbol': 'dgs10', 'date': '2002-01-29T00:00:00', 'value': 5.02}
+executing-against: 1b21c1609e83f64b89d29f2a005e0f8921a88efd
+ops 4708 — TE /fred/historical/ bulk close: the full remaining ICE gap
+── 1. Resolve Khalid's exact EM series against the REAL FRED release-209 list (already banked) ──
+[17:11:47]   release-209 real ids: 192
+[17:11:47]   EM + private-issuer + SYTW matches: ['BAMLEMPTPRVICRPISYTW']
+── 2. Load the precise gap worklist from tonight's own audit ──
+[17:11:47]   gap worklist: 179 series (135 open-gap + 44 shallow, deduped + EM matches added)
+── 3. Locate banked docs for the worklist ──
+[17:12:40]   179/179 banked docs located
+── 4. Pull, checksum, merge — the full sweep ──
+[17:12:40] ✅   BAMLC0A0CMEY           +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6015/6015 agree]
+[17:12:41] ✅   BAMLC0A0CMSYTW         +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+[17:12:41] ✅   BAMLC0A1CAAAEY         +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+[17:12:42] ✅   BAMLC0A1CAAASYTW       +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+[17:12:42] ✅   BAMLC0A2CAA            +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+[17:12:43] ✅   BAMLC0A2CAASYTW        +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+[17:12:44] ✅   BAMLC0A3CA             +615 rows -> 1996-12-31 -> 2026-08-12 [checksum 7119/7119 agree]
+[17:12:44] ✅   BAMLC0A3CAEY           +611 rows -> 1996-12-31 -> 2026-08-12 [checksum 7123/7123 agree]
+[17:12:45] ✅   BAMLC0A3CASYTW         +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+[17:12:46] ✅   BAMLC0A4CBBBEY         +104 rows -> 1996-12-31 -> 2026-08-12 [checksum 7630/7630 agree]
+[17:12:46] ✅   BAMLC0A4CBBBSYTW       +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+[17:12:47] ✅   BAMLC1A0C13Y           +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+[17:12:48] ✅   BAMLC1A0C13YEY         +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+[17:12:48] ✅   BAMLC1A0C13YSYTW       +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+[17:12:49] ✅   BAMLC2A0C35Y           +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+[17:12:49] ✅   BAMLC2A0C35YEY         +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+[17:12:50] ✅   BAMLC2A0C35YSYTW       +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+[17:12:51] ✅   BAMLC3A0C57Y           +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+[17:12:51] ✅   BAMLC3A0C57YEY         +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+[17:12:52] ✅   BAMLC3A0C57YSYTW       +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
 ── verdict ──
-[17:07:15] ✅ real data confirmed on at least one core series -- the endpoint IS entitled; Khalid's specific symbol needs checking
+[17:14:12]   CLOSED: 112 | no TE data: 67 | checksum failed: 0 | no banked doc: 0 | elapsed=92s
+[17:14:12]   no-te-data: BAMLEM1BRRAAA2ACRPIEY (empty or too short (0))
+[17:14:12]   no-te-data: BAMLEM1BRRAAA2ACRPIOAS (empty or too short (0))
+[17:14:12]   no-te-data: BAMLEM1BRRAAA2ACRPISYTW (empty or too short (0))
+[17:14:12]   no-te-data: BAMLEM1BRRAAA2ACRPITRIV (empty or too short (0))
+[17:14:12]   no-te-data: BAMLEM1RAAA2ALCRPIUSEY (empty or too short (0))
+[17:14:12]   no-te-data: BAMLEM1RAAA2ALCRPIUSOAS (empty or too short (0))
+[17:14:12]   no-te-data: BAMLEM1RAAA2ALCRPIUSSYTW (empty or too short (0))
+[17:14:12]   no-te-data: BAMLEM1RAAA2ALCRPIUSTRIV (empty or too short (0))
+[17:14:12]   no-te-data: BAMLEM2BRRBBBCRPIOAS (empty or too short (0))
+[17:14:12]   no-te-data: BAMLEM2BRRBBBCRPISYTW (empty or too short (0))
+[17:14:12]   no-te-data: BAMLEM2BRRBBBCRPITRIV (empty or too short (0))
+[17:14:12]   no-te-data: BAMLEM2RBBBLCRPIUSEY (empty or too short (0))
+[17:14:12]   no-te-data: BAMLEM2RBBBLCRPIUSOAS (empty or too short (0))
+[17:14:12]   no-te-data: BAMLEM2RBBBLCRPIUSSYTW (empty or too short (0))
+[17:14:12]   no-te-data: BAMLEM2RBBBLCRPIUSTRIV (empty or too short (0))
+[17:14:12] ✅ 112 series CLOSED via Trading Economics' FRED mirror — checksum-validated, permanent under the delete-proof policy
 
-→ Report written to aws/ops/reports/latest/4707_te_fred_mirror_decisive.md
+→ Report written to aws/ops/reports/latest/4708_te_bulk_close.md

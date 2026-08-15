@@ -1,0 +1,58 @@
+# ops 4708 — TE /fred/historical/ bulk close: the full remaining ICE gap
+
+**Status:** success  
+**Duration:** 145.9s  
+**Finished:** 2026-08-15T17:14:12+00:00  
+
+## Log
+## 1. Resolve Khalid's exact EM series against the REAL FRED release-209 list (already banked)
+
+- `17:11:47`   release-209 real ids: 192
+- `17:11:47`   EM + private-issuer + SYTW matches: ['BAMLEMPTPRVICRPISYTW']
+## 2. Load the precise gap worklist from tonight's own audit
+
+- `17:11:47`   gap worklist: 179 series (135 open-gap + 44 shallow, deduped + EM matches added)
+## 3. Locate banked docs for the worklist
+
+- `17:12:40`   179/179 banked docs located
+## 4. Pull, checksum, merge — the full sweep
+
+- `17:12:40` ✅   BAMLC0A0CMEY           +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6015/6015 agree]
+- `17:12:41` ✅   BAMLC0A0CMSYTW         +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+- `17:12:41` ✅   BAMLC0A1CAAAEY         +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+- `17:12:42` ✅   BAMLC0A1CAAASYTW       +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+- `17:12:42` ✅   BAMLC0A2CAA            +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+- `17:12:43` ✅   BAMLC0A2CAASYTW        +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+- `17:12:44` ✅   BAMLC0A3CA             +615 rows -> 1996-12-31 -> 2026-08-12 [checksum 7119/7119 agree]
+- `17:12:44` ✅   BAMLC0A3CAEY           +611 rows -> 1996-12-31 -> 2026-08-12 [checksum 7123/7123 agree]
+- `17:12:45` ✅   BAMLC0A3CASYTW         +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+- `17:12:46` ✅   BAMLC0A4CBBBEY         +104 rows -> 1996-12-31 -> 2026-08-12 [checksum 7630/7630 agree]
+- `17:12:46` ✅   BAMLC0A4CBBBSYTW       +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+- `17:12:47` ✅   BAMLC1A0C13Y           +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+- `17:12:48` ✅   BAMLC1A0C13YEY         +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+- `17:12:48` ✅   BAMLC1A0C13YSYTW       +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+- `17:12:49` ✅   BAMLC2A0C35Y           +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+- `17:12:49` ✅   BAMLC2A0C35YEY         +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+- `17:12:50` ✅   BAMLC2A0C35YSYTW       +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+- `17:12:51` ✅   BAMLC3A0C57Y           +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+- `17:12:51` ✅   BAMLC3A0C57YEY         +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+- `17:12:52` ✅   BAMLC3A0C57YSYTW       +1718 rows -> 1996-12-31 -> 2026-08-12 [checksum 6016/6016 agree]
+## verdict
+
+- `17:14:12`   CLOSED: 112 | no TE data: 67 | checksum failed: 0 | no banked doc: 0 | elapsed=92s
+- `17:14:12`   no-te-data: BAMLEM1BRRAAA2ACRPIEY (empty or too short (0))
+- `17:14:12`   no-te-data: BAMLEM1BRRAAA2ACRPIOAS (empty or too short (0))
+- `17:14:12`   no-te-data: BAMLEM1BRRAAA2ACRPISYTW (empty or too short (0))
+- `17:14:12`   no-te-data: BAMLEM1BRRAAA2ACRPITRIV (empty or too short (0))
+- `17:14:12`   no-te-data: BAMLEM1RAAA2ALCRPIUSEY (empty or too short (0))
+- `17:14:12`   no-te-data: BAMLEM1RAAA2ALCRPIUSOAS (empty or too short (0))
+- `17:14:12`   no-te-data: BAMLEM1RAAA2ALCRPIUSSYTW (empty or too short (0))
+- `17:14:12`   no-te-data: BAMLEM1RAAA2ALCRPIUSTRIV (empty or too short (0))
+- `17:14:12`   no-te-data: BAMLEM2BRRBBBCRPIOAS (empty or too short (0))
+- `17:14:12`   no-te-data: BAMLEM2BRRBBBCRPISYTW (empty or too short (0))
+- `17:14:12`   no-te-data: BAMLEM2BRRBBBCRPITRIV (empty or too short (0))
+- `17:14:12`   no-te-data: BAMLEM2RBBBLCRPIUSEY (empty or too short (0))
+- `17:14:12`   no-te-data: BAMLEM2RBBBLCRPIUSOAS (empty or too short (0))
+- `17:14:12`   no-te-data: BAMLEM2RBBBLCRPIUSSYTW (empty or too short (0))
+- `17:14:12`   no-te-data: BAMLEM2RBBBLCRPIUSTRIV (empty or too short (0))
+- `17:14:12` ✅ 112 series CLOSED via Trading Economics' FRED mirror — checksum-validated, permanent under the delete-proof policy
