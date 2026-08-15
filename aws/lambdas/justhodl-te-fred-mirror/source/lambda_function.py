@@ -194,6 +194,15 @@ def lambda_handler(event, context):
         if err or not rows:
             st.setdefault("failures", {})[sid] = err or "empty"
             failed += 1
+            # bug caught tonight (ops 4711): a failed series was
+            # NEVER marked done, so it re-occupied every future
+            # tranche forever -- 60 permanent EM-family failures
+            # saturated the entire 60-item TRANCHE for 5 straight
+            # rounds, blocking ~40 genuinely-untried series behind
+            # them. Marking failures done lets the queue move on;
+            # the existing full-convergence reset (below) naturally
+            # retries them on the next sweep.
+            st.setdefault("done", []).append(sid)
             time.sleep(0.3)
             continue
         st.get("failures", {}).pop(sid, None)
