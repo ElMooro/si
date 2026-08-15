@@ -66,15 +66,18 @@ class FakeFleet:
             "construction_housing_pmi": 0.9,
         }
 
-        self.docs["data/forward-returns.json"] = {"assets": [
-            {"symbol": "SPY", "er_1y_pct": 2.66, "sigma_pct": 15.0},
-            {"name": "Industrials (XLI)", "symbol": "XLI",
-             "er_1y_pct": 12.0, "sigma_pct": 19.0},
-            # deliberately NO SMH row -> semis_memory Tier2 must come back
+        self.docs["data/forward-returns.json"] = {"assets": {
+            "SPY": {"forward_er_10y_pct": 2.66, "risk": {"vol_pct_annualized": 15.0}},
+            "XLI": {"forward_er_10y_pct": 12.0, "risk": {"vol_pct_annualized": 19.0}},
+            # deliberately NO SMH key -> semis_memory Tier2 must come back
             # INSUFFICIENT_DATA, proving the honest-gap path works.
-        ]}
+            # Shape matches the real, confirmed-live schema (2026-08-15
+            # smoke test): assets is a dict KEYED BY TICKER, not a list --
+            # the first draft got this wrong and crashed on first live
+            # invoke ('str' object has no attribute 'get').
+        }}
         self.docs["data/industry-boom.json"] = {"league": [
-            {"industry": "Industrial Machinery", "top_names": ["ETN", "VRT", "PWR"]},
+            {"industry": "Electrical Equipment & Parts", "top_names": ["ETN", "VRT", "PWR"]},
         ]}
         self.docs["data/backlog-miner.json"] = {"rows": [
             {"ticker": "ETN", "backlog_yoy_pct": 24.0},
@@ -167,3 +170,39 @@ def test_full_pipeline_wiring(monkeypatch):
     grading = lf.build_grading_candidates(tier2, tier3)
     assert any(g["signal_type"] == "invest_industry_outperform" for g in grading)
     assert any(g["signal_type"].startswith("invest_stock_") for g in grading)
+
+
+def test_lookup_handles_both_by_ticker_dict_and_rows_list_shapes():
+    """_lookup's fallback chain was extended (2026-08-15 live-data fix) to
+    check by_ticker first -- confirmed the real shape for backlog.json and
+    catalyst.json -- while staying backward-compatible with a plain
+    rows-list shape for docs not yet confirmed. Exercise both directly."""
+    import lambda_function as lf
+
+    by_ticker_doc = {"by_ticker": {"ETN": {"weight": 0.8}, "VRT": {"weight": 0.9}}}
+    assert lf._lookup(by_ticker_doc, "ETN", "weight") == 0.8
+    assert lf._lookup(by_ticker_doc, "ZZZ", "weight") is None
+
+    rows_doc = {"rows": [{"ticker": "ETN", "weight": 0.5}]}
+    assert lf._lookup(rows_doc, "ETN", "weight") == 0.5
+
+    assert lf._lookup(None, "ETN", "weight") is None
+    assert lf._lookup({}, "ETN", "weight") is None
+
+
+def test_dig_bracket_search_resolves_tagged_list_rows():
+    """canary-grid's signals / portwatch's exporters publish a LIST of
+    tagged dict rows rather than a dict keyed by name -- confirmed live
+    2026-08-15. dig() needed a bracket-search step to address these:
+    'signals[key=korea_exports].value'."""
+    doc = {"signals": [
+        {"key": "korea_exports", "value": 47.96, "available": False},
+        {"key": "copper", "value": 37.79, "available": True},
+    ]}
+    assert fleet_io.dig(doc, "signals[key=copper].value") == 37.79
+    assert fleet_io.dig(doc, "signals[key=korea_exports].available") is False
+    assert fleet_io.dig(doc, "signals[key=does_not_exist].value") is None
+    assert fleet_io.dig(doc, "no_such_field[key=copper].value") is None
+    assert fleet_io.dig({"signals": "not_a_list"}, "signals[key=copper].value") is None
+    # still backward-compatible with a plain dotted path
+    assert fleet_io.dig({"a": {"b": 3}}, "a.b") == 3

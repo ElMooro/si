@@ -103,14 +103,12 @@ LEADING_INDICATORS: tuple = (
         indicator_id="copper_demand_pulse",
         label="Copper / Dr. Copper demand pulse",
         legs=(
-            Leg("copper_price_yoy", "Copper price (Dr. Copper, PCOPPUSDM) YoY",
-                "fleet:data/canary-grid.json:signals.copper.yoy_pct"),
-            Leg("chile_copper_export", "Chile copper export value YoY",
-                "fleet:data/divergence-engine-v2.json:chile.export_value_yoy_pct",
-                note="divergence-engine-v2 is built around the Chile/copper pair; "
-                     "confirm exact field on first live run, see fleet_io fallback"),
-            Leg("peru_copper_production", "Peru copper production YoY",
-                "fleet:data/peru-copper.json:production_yoy_pct"),
+            Leg("copper_price_yoy", "Copper price (Dr. Copper) YoY",
+                "fleet:data/canary-grid.json:signals[key=copper].value"),
+            Leg("chile_copper_export", "Chile exports YoY (Dr. Copper supply side)",
+                "fleet:data/canary-grid.json:signals[key=chile_exports].value"),
+            Leg("peru_copper_production", "Peru copper production YoY (Dr. Copper supply side)",
+                "fleet:data/canary-grid.json:signals[key=peru_copper].value"),
         ),
         candidate_industries=("semis_memory", "ev_battery_grid", "electrical_infra",
                                "data_center_buildout", "construction_housing"),
@@ -119,16 +117,19 @@ LEADING_INDICATORS: tuple = (
         indicator_id="korea_semiconductor_exports",
         label="Korea semiconductor/memory export pulse (Khalid's worked example)",
         legs=(
-            Leg("korea_export_value_yoy", "Korea total export value YoY (XTEXVA01KRM664S, lead ~3mo)",
-                "fleet:data/canary-grid.json:signals.korea_exports.yoy_pct"),
-            Leg("korea_export_value_yoy_flash", "Korea 20-day export flash (value)",
+            Leg("korea_export_value_yoy", "Korea total export value YoY (canary-grid, lead ~3mo)",
+                "fleet:data/canary-grid.json:signals[key=korea_exports].value"),
+            Leg("korea_export_value_yoy_flash", "Korea export value YoY (asia-leads, FRED XTEXVA01KRM667N)",
                 "fleet:data/asia-leads.json:korea_exports.yoy_pct"),
-            Leg("korea_port_volume", "Korea port throughput volume YoY (the value/volume divergence check)",
-                "fleet:data/portwatch.json:korea.volume_yoy_pct", voting=False,
+            Leg("korea_port_volume", "Korea port throughput vs baseline (the value/volume divergence check)",
+                "fleet:data/portwatch.json:exporters[code=KOR].avg_vs_baseline_pct", voting=False,
                 note="boom-stage doctrine: value +52.3% / volume -4.3% proved price-driven, "
                      "not a plateau. Diagnostic, not a vote -- a soft volume print next to "
                      "a strong value print is the SIGNATURE of this pattern, not evidence "
-                     "against it. Carried in output for audit; see scoring.confirm_indicator."),
+                     "against it. Carried in output for audit; see scoring.confirm_indicator. "
+                     "exporters[code=KOR] unconfirmed as of the 2026-08-15 probe (sample only "
+                     "showed SAU/ARE/MEX/FIN) -- degrades to unavailable if the code differs, "
+                     "never fabricates a reading; being non-voting this never blocks CONFIRMED."),
         ),
         candidate_industries=("semis_memory",),
     ),
@@ -136,10 +137,10 @@ LEADING_INDICATORS: tuple = (
         indicator_id="taiwan_export_orders",
         label="Taiwan export orders (foundry/logic/electronics forward look)",
         legs=(
-            Leg("taiwan_export_orders_yoy", "Taiwan export orders YoY (MOEA)",
-                "fleet:data/asia-leads.json:taiwan_orders.yoy_pct"),
-            Leg("taiwan_moea_detail", "Taiwan MOEA detail series",
-                "fleet:data/taiwan-moea.json:orders_yoy_pct"),
+            Leg("taiwan_export_orders_yoy", "Taiwan export orders YoY (canary-grid, MOEA-sourced)",
+                "fleet:data/canary-grid.json:signals[key=taiwan_export_orders].value"),
+            Leg("taiwan_moea_detail", "Taiwan semiconductor production YoY (MOEA detail -- a different metric)",
+                "fleet:data/taiwan-moea.json:semiconductor.production.yoy_pct"),
         ),
         candidate_industries=("semis_foundry_logic", "electronics_hardware"),
     ),
@@ -147,10 +148,10 @@ LEADING_INDICATORS: tuple = (
         indicator_id="china_credit_impulse",
         label="China TSF / credit impulse (broad industrial lead, ~6-9mo per liquidity-first doctrine)",
         legs=(
-            Leg("china_tsf_yoy", "China Total Social Financing YoY",
-                "fleet:data/asia-leads.json:china_tsf.yoy_pct"),
-            Leg("china_liquidity_impulse", "China credit impulse (China-liquidity engine)",
-                "fleet:data/china-liquidity.json:credit_impulse_z"),
+            Leg("china_tsf_yoy", "China PBoC TSF cumulative-flow YoY delta (trn CNY)",
+                "fleet:data/china-liquidity.json:tsf.pboc_cn.yoy_delta_trn"),
+            Leg("china_liquidity_impulse", "China credit impulse, pp (China-liquidity engine)",
+                "fleet:data/china-liquidity.json:credit_impulse.value_pp"),
         ),
         candidate_industries=("industrials_broad", "materials_broad", "china_exposed_discretionary"),
     ),
@@ -158,10 +159,10 @@ LEADING_INDICATORS: tuple = (
         indicator_id="global_port_freight_pulse",
         label="Global port throughput + freight composite (confirming/denying leg only)",
         legs=(
-            Leg("port_throughput_pulse", "port-cargo global 7d-vs-28d pulse",
-                "fleet:data/port-cargo.json:global_pulse_pct"),
-            Leg("freight_composite_z", "freight-pulse composite z",
-                "fleet:data/freight-pulse.json:composite_z"),
+            Leg("port_throughput_pulse", "port-cargo global 7d-vs-28d throughput change",
+                "fleet:data/port-cargo.json:global_pulse.total_chg_pct"),
+            Leg("freight_composite_z", "freight-pulse composite reading",
+                "fleet:data/freight-pulse.json:composite"),
         ),
         candidate_industries=("industrials_broad", "transportation"),
         # NOTE: these two ARE already impact-graph factors (port_throughput_pulse,
@@ -173,12 +174,15 @@ LEADING_INDICATORS: tuple = (
         indicator_id="grid_buildout_pulse",
         label="Grid interconnection queue execution (power/AI-infra capex lead)",
         legs=(
-            Leg("grid_executed_mw", "grid-queue national executed-IA MW",
-                "fleet:data/grid-queue.json:executed_mw_yoy_pct"),
-            Leg("pjm_queue_detail", "PJM queue detail (6th ISO pending PJM_API_KEY per STATE.md)",
-                "fleet:data/pjm-grid.json:executed_mw_yoy_pct",
-                note="known-pending key per Khalid's standing item list; leg degrades "
-                     "gracefully to the national grid-queue figure alone until live"),
+            Leg("grid_executed_mw", "grid-queue national interconnection-agreement execution velocity, MW/month",
+                "fleet:data/grid-queue.json:queue_velocity.national_ia_mw_per_month"),
+            Leg("pjm_queue_detail", "PJM realized load 8-day momentum (approximation until PJM_API_KEY lands)",
+                "fleet:data/pjm-grid.json:load.momentum_8d_pct",
+                note="known-pending key per Khalid's standing item list -- pjm-grid.json "
+                     "currently surfaces realized LOAD momentum, not interconnection-queue "
+                     "execution like the primary leg; conceptually adjacent (grid capacity "
+                     "pull), not identical. Revisit once PJM_API_KEY unblocks the same "
+                     "queue-execution metric grid-queue.json carries."),
         ),
         candidate_industries=("grid_electrical_infra", "utilities", "data_center_buildout"),
     ),
@@ -186,10 +190,10 @@ LEADING_INDICATORS: tuple = (
         indicator_id="lumber_housing_pulse",
         label="Lumber price + housing-adjacent bellwether pulse",
         legs=(
-            Leg("lumber_price_yoy", "Lumber price YoY (canary-grid Phase 1 bellwether)",
-                "fleet:data/canary-grid.json:signals.lumber.yoy_pct"),
-            Leg("construction_housing_pmi", "Construction/housing industrial production proxy",
-                "fleet:data/construction-housing.json:production_yoy_pct"),
+            Leg("lumber_price_yoy", "Lumber & wood PPI YoY (canary-grid Phase 1 bellwether)",
+                "fleet:data/canary-grid.json:signals[key=lumber].value"),
+            Leg("construction_housing_pmi", "Construction/housing cycle score (starts/sales/supply/costs composite)",
+                "fleet:data/construction-housing.json:cycle_score"),
         ),
         candidate_industries=("construction_housing",),
     ),
@@ -250,7 +254,7 @@ INDUSTRY_PROXY: dict = {
         industry="Construction & Housing",
         proxy_etf="ITB",
         spdr_sector=None,
-        industry_boom_label="Homebuilding",
+        industry_boom_label="Residential Construction",
     ),
     "industrials_broad": IndustryProxy(
         industry="Industrials (broad)",
@@ -279,11 +283,9 @@ INDUSTRY_PROXY: dict = {
         industry="Grid & Electrical Equipment",
         proxy_etf="XLI",
         spdr_sector="Industrials (XLI)",
-        industry_boom_label="Industrial Machinery",
-        notes="industry_boom_label is a best-guess cross-walk to industry-boom "
-              "league's taxonomy string -- CONFIRM AGAINST LIVE data/industry-boom.json "
-              "league[].industry values on first run (see ops_4716_invest_probe_fields.py) and "
-              "correct if the fleet's actual label differs, e.g. 'Electrical Equipment'.",
+        industry_boom_label="Electrical Equipment & Parts",
+        notes="Confirmed against live data/industry-boom.json league[].industry "
+              "values (2026-08-15 probe, 132 labels) — exact match.",
     ),
     "utilities": IndustryProxy(
         industry="Utilities",

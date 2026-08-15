@@ -71,11 +71,35 @@ def parse_source(source: str):
     return m.group("key"), m.group("path")
 
 
+_BRACKET_RE = re.compile(r"^(?P<field>\w+)\[(?P<skey>\w+)=(?P<sval>[^\]]+)\]$")
+
+
 def dig(obj, dotted_path: str):
+    """Dotted-path walker. Supports one extra step shape beyond plain
+    dict-key / list-index: `field[key=value]` selects the first dict in
+    the list at `field` whose `key` stringifies to `value` -- needed
+    because several fleet engines (canary-grid's `signals`, portwatch's
+    `exporters`) publish a LIST of tagged rows rather than a dict keyed
+    by name. e.g. "signals[key=korea_exports].value" on a doc shaped
+    {"signals": [{"key": "korea_exports", "value": 47.96}, ...]}."""
     cur = obj
     for part in dotted_path.split("."):
         if cur is None:
             return None
+        m = _BRACKET_RE.match(part)
+        if m:
+            if not isinstance(cur, dict):
+                return None
+            lst = cur.get(m.group("field"))
+            if not isinstance(lst, list):
+                return None
+            skey, sval = m.group("skey"), m.group("sval")
+            match = next((item for item in lst if isinstance(item, dict)
+                          and str(item.get(skey)) == sval), None)
+            if match is None:
+                return None
+            cur = match
+            continue
         if isinstance(cur, dict):
             cur = cur.get(part)
         elif isinstance(cur, list):

@@ -132,44 +132,47 @@ def run_tier1():
 
 # ── Tier 2 ──────────────────────────────────────────────────────────────
 
-def get_spx_er(horizon: str = "1y") -> dict:
+def _asset_row(ticker: str):
+    """forward-returns' `assets` field is a dict KEYED BY TICKER (confirmed
+    live 2026-08-15: assets["SPY"]["forward_er_10y_pct"], NOT a list of
+    row dicts as first assumed -- that assumption crashed the first live
+    invoke with 'str' object has no attribute 'get', since iterating a
+    dict yields its keys). Ticker-keyed lookup also means the SAME helper
+    works for both SPDR-sector-mapped and narrow thematic proxies -- no
+    name-string matching needed at all."""
     doc = fleet_io.get_json(FORWARD_RETURNS_KEY)
     if not doc:
+        return None
+    row = (doc.get("assets") or {}).get(ticker)
+    return row if isinstance(row, dict) else None
+
+
+def get_spx_er(horizon: str = "10y") -> dict:
+    row = _asset_row(SPY_LABEL)
+    if not row:
         return {}
-    for row in doc.get("assets", doc.get("compass_table", [])):
-        if row.get("symbol") == SPY_LABEL or row.get("name") == SPY_LABEL:
-            return {"er_pp": row.get(f"er_{horizon}_pct") or row.get("er_1y_pct"),
-                    "sigma_pp": row.get("sigma_pct") or row.get("vol_pct")}
-    return {}
+    return {"er_pp": row.get(f"forward_er_{horizon}_pct"),
+            "sigma_pp": (row.get("risk") or {}).get("vol_pct_annualized")}
 
 
-def get_sector_er(proxy, horizon: str = "1y") -> dict:
-    """Prefer forward-returns' own ER for anything mapped to an SPDR sector
-    (single source of truth). For narrow thematic proxies not carried by
-    forward-returns, this returns INSUFFICIENT_DATA today -- see module
-    docstring; computing a second, parallel ER methodology inside this
-    engine would fork the fleet's ER logic instead of extending it."""
-    doc = fleet_io.get_json(FORWARD_RETURNS_KEY)
-    if not doc:
-        return {"status": "INSUFFICIENT_DATA", "reason": "forward-returns output unavailable"}
-
-    label = proxy.spdr_sector
-    if label:
-        for row in doc.get("assets", doc.get("compass_table", [])):
-            if row.get("name") == label or row.get("symbol") == proxy.proxy_etf:
-                return {"status": "OK",
-                        "er_pp": row.get(f"er_{horizon}_pct") or row.get("er_1y_pct"),
-                        "sigma_pp": row.get("sigma_pct") or row.get("vol_pct"),
-                        "source": "forward-returns (single source of truth)"}
-        return {"status": "INSUFFICIENT_DATA",
-                "reason": f"{label} not found in forward-returns output — "
-                          f"confirm row key name on first live run"}
-
+def get_sector_er(proxy, horizon: str = "10y") -> dict:
+    """Reads forward-returns' assets[ticker] row directly -- one ER source
+    of truth fleet-wide, for BOTH SPDR-sector-mapped and narrow thematic
+    proxies alike, since `assets` is keyed by ticker regardless of asset
+    kind. INSUFFICIENT_DATA only when the ticker genuinely isn't covered
+    yet (true today for SMH/SOXX/LIT/ITB/IYT -- see INVEST_DOCTRINE.md
+    open items recommending forward-returns' ASSETS map be extended)."""
+    row = _asset_row(proxy.proxy_etf)
+    if row:
+        return {"status": "OK",
+                "er_pp": row.get(f"forward_er_{horizon}_pct"),
+                "sigma_pp": (row.get("risk") or {}).get("vol_pct_annualized"),
+                "source": "forward-returns (single source of truth)"}
     return {"status": "INSUFFICIENT_DATA",
-            "reason": f"{proxy.proxy_etf} has no forward-returns coverage (narrow "
-                      f"thematic proxy). Recommended fix: extend forward-returns' "
-                      f"ASSETS map to include {proxy.proxy_etf}, not fork the ER "
-                      f"formula here — see INVEST_DOCTRINE.md open items."}
+            "reason": f"{proxy.proxy_etf} not in forward-returns' assets map. "
+                      f"Recommended fix: extend forward-returns' ASSETS to "
+                      f"include {proxy.proxy_etf}, not fork the ER formula "
+                      f"here — see INVEST_DOCTRINE.md open items."}
 
 
 def run_tier2(tier1_results):
@@ -234,7 +237,13 @@ def get_stock_universe(proxy, limit: int = 25) -> list:
 def _lookup(doc, ticker, *keys):
     if not doc:
         return None
-    rows = doc.get("rows", doc.get("results", doc.get("data", [])))
+    # Confirmed live 2026-08-15: data/backlog.json and data/catalyst.json
+    # both key their per-ticker rows under "by_ticker" (a dict), not
+    # "rows"/"results"/"data". Kept those three as a fallback chain for
+    # docs this engine hasn't smoke-tested against yet (stock-buying.json's
+    # per-ticker container name is still unconfirmed as of this probe
+    # round -- see INVEST_DOCTRINE.md).
+    rows = doc.get("by_ticker", doc.get("rows", doc.get("results", doc.get("data", []))))
     if isinstance(rows, dict):
         row = rows.get(ticker)
     else:
