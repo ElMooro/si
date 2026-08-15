@@ -49,7 +49,7 @@ td.l,th.l{text-align:left}
   <div data-auth-slot style="margin-left:auto"></div></header>
 <div class="wrap">
 <div class="hero"><h1>Invest <span class="grad">— Why Leave SPX?</span></h1>
-<p>Every industry and stock below had to earn its place. <b>Tier 1</b> requires a real, multi-leg-corroborated leading trade/commodity signal — one noisy print doesn't count. <b>Tier 2</b> requires the industry's risk-adjusted expected return over SPX to clear <i>both</i> an information-ratio floor and a minimum excess-return floor — SPX is the default; the industry has to beat it, not just match it. <b>Tier 3</b> only ranks stocks inside industries that passed Tier 2, and a stock has to clearly beat its <i>own</i> industry ETF to be picked over just buying that ETF.</p></div>
+<p>Every industry and stock below had to earn its place. <b>Tier 1</b> requires a real, multi-leg-corroborated leading trade/commodity signal — one noisy print doesn't count. <b>Tier 2</b> requires the industry's risk-adjusted expected return over SPX to clear <i>both</i> an information-ratio floor and a minimum excess-return floor — SPX is the default; the industry has to beat it, not just match it — cross-checked against real institutional positioning (sector fund-flow conviction, industry-level insider buying). <b>Tier 3</b> only ranks stocks inside industries that passed Tier 2, blending fundamentals (backlog, valuation, catalysts) with the same institutional-edge signals hedge funds track: smart-money convergence, credit-leads-equity, short-squeeze setups, hiring velocity, and estimate-revision momentum — and a stock has to clearly beat its <i>own</i> industry ETF to be picked over just buying it.</p></div>
 
 <div class="sec"><h2>Tier 1 · Leading Indicators <span class="n" id="t1-n">—</span></h2>
 <div class="grid" id="t1-grid"><div class="loading">Loading leading-indicator confirmations…</div></div></div>
@@ -117,11 +117,17 @@ function renderTier2(){
   if(!keys.length){document.getElementById('t2-table').innerHTML='<div class="loading">No industry passed Tier 1 this run.</div>';return;}
   document.getElementById('t2-table').innerHTML=`<table><thead><tr>
     <th class="l">Industry</th><th class="l">Proxy ETF</th><th>Excess vs SPX</th><th>Info Ratio</th>
-    <th>n_obs</th><th class="l">Verdict</th></tr></thead><tbody>
-    ${keys.map(k=>{const g=gates[k];return `<tr class="${g.pass?'':'gate-fail'}">
+    <th>n_obs</th><th class="l">Institutional</th><th class="l">Verdict</th></tr></thead><tbody>
+    ${keys.map(k=>{const g=gates[k];const ic=g.institutional_confirmation||{};
+      const sf=ic.sector_flow,insc=ic.insider_cluster;
+      const icParts=[];
+      if(sf)icParts.push(`SF ${num(sf.conviction)} ${esc(sf.posture||'')}`);
+      if(insc)icParts.push(`Insider ${insc.z_vs_own_history!=null?(insc.z_vs_own_history>=0?'+':'')+num(insc.z_vs_own_history)+'σ':'—'}`);
+      return `<tr class="${g.pass?'':'gate-fail'}">
       <td class="l">${esc(g.industry||k)}</td><td class="l">${esc(g.proxy_etf||'—')}</td>
       <td class="${g.excess_return_pp>=0?'pos':'neg'}">${pp(g.excess_return_pp)}</td>
       <td>${num(g.information_ratio)}</td><td>${g.n_obs??'—'}</td>
+      <td class="l" style="font-size:10.5px;color:var(--fg-3)">${icParts.join(' · ')||'—'}</td>
       <td class="l">${badge(g.status==='OK'?(g.verdict||'—'):g.status,T2_MAP)}</td></tr>`;}).join('')}
     </tbody></table>`;
 }
@@ -130,16 +136,23 @@ function renderTier3(){
   const picks=(DATA.stock_picks||[]).filter(p=>p.status==='OK');
   document.getElementById('t3-n').textContent=picks.length;
   if(!picks.length){document.getElementById('t3-table').innerHTML='<div class="loading">No stock cleared its industry gate this run — the honest answer is the proxy ETF, not a stock pick.</div>';return;}
+  const INST_LABELS={smart_money_convergence:'Smart$',credit_signal:'Credit',
+    short_squeeze_setup:'Squeeze',hiring_velocity:'Hiring',estimate_revision_direction:'Estimates'};
   document.getElementById('t3-table').innerHTML=`<table><thead><tr>
     <th class="l">Ticker</th><th class="l">Industry</th><th>Composite</th><th>Industry Median</th>
-    <th class="l">vs Industry ETF</th><th class="l">Cycle</th></tr></thead><tbody>
-    ${picks.sort((a,b)=>(b.composite_score||0)-(a.composite_score||0)).map(p=>`<tr>
+    <th class="l">Institutional</th><th class="l">vs Industry ETF</th><th class="l">Cycle</th></tr></thead><tbody>
+    ${picks.sort((a,b)=>(b.composite_score||0)-(a.composite_score||0)).map(p=>{
+      const used=new Set(p.components_used||[]);
+      const instTags=Object.keys(INST_LABELS).filter(k=>used.has(k)).map(k=>INST_LABELS[k]);
+      return `<tr>
       <td class="l tk">${esc(p.ticker)}</td><td class="l">${esc(p.industry||'')}</td>
-      <td>${num(p.composite_score,1)}</td><td>${num(p.industry_median_score,1)}</td>
+      <td>${p.reweighted?'~':''}${num(p.composite_score,1)}</td><td>${num(p.industry_median_score,1)}</td>
+      <td class="l" style="font-size:10.5px;color:var(--green)">${instTags.join(', ')||'<span style="color:var(--fg-3)">none</span>'}</td>
       <td class="l">${badge(p.vs_industry_etf,T3_MAP)}</td>
       <td class="l" style="font-size:10.5px;color:${p.cycle_flag==='PEAK_MARGIN_TRAP'?'var(--red)':'var(--fg-3)'}">${esc(p.cycle_flag||'—')}</td>
-      </tr><tr><td colspan="6" class="thesis" style="text-align:left;border-bottom:1px solid var(--border)">${esc(p.thesis||'')}</td></tr>`).join('')}
-    </tbody></table>`;
+      </tr><tr><td colspan="7" class="thesis" style="text-align:left;border-bottom:1px solid var(--border)">${esc(p.thesis||'')}</td></tr>`;}).join('')}
+    </tbody></table>
+    <div style="font-size:10.5px;color:var(--fg-3);margin-top:6px;font-family:var(--mono)">~ = score is reweighted across fewer than the full component set (some data unavailable for this name, weight redistributed proportionally — never coerced to zero)</div>`;
 }
 
 function renderMethod(){

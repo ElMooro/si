@@ -107,6 +107,28 @@ CATALYST_KEY = "data/catalyst.json"
 STOCK_BUYING_KEY = "data/stock-buying.json"
 OPPORTUNITY_ENGINE_KEY = "data/opportunity-engine.json"
 
+# Institutional-edge sources -- what hedge funds/institutions actually
+# track for early industry/stock conviction. Added 2026-08-15, every key
+# and field path grounded in a live probe before use (see
+# aws/ops/ran/ops_4727_invest_institutional_edge_probe.py), not guessed.
+SECTOR_FLOW_STATE_KEY = "data/sector-flow-state.json"        # canonical fused
+                                                                # per-SPDR-sector
+                                                                # institutional conviction
+INSIDER_INDUSTRY_CLUSTER_KEY = "data/insider-industry-cluster.json"  # canary #16 (closed/proven)
+CREDIT_BEFORE_EQUITY_KEY = "data/credit-before-equity.json"          # canary #17: credit
+                                                                        # reprices before equity
+STEALTH_ACCUMULATION_KEY = "data/stealth-accumulation.json"  # fused insider+13F+
+                                                                # short-covering+options
+FINRA_SHORT_KEY = "data/finra-short.json"              # systematic S&P500 short-squeeze scan
+HIRING_VELOCITY_KEY = "data/hiring-velocity.json"      # headcount-inflection leading growth
+ESTIMATE_REVISIONS_KEY = "data/estimate-revisions.json"  # pre-earnings EPS revision momentum
+DEALER_GEX_KEY = "data/dealer-gex.json"                # narrow (~10 names) gamma
+                                                          # positioning -- informational only,
+                                                          # not weighted (too sparse a
+                                                          # universe to score fairly)
+SMART_MONEY_13F_KEY = "data/smart-money-13f.json"      # narrow (AI-infra-thematic funds) --
+                                                          # informational only, same reason
+
 SPY_LABEL = "SPY"
 
 
@@ -186,6 +208,39 @@ def get_sector_er(proxy, horizon: str = "10y") -> dict:
                       f"here — see INVEST_DOCTRINE.md open items."}
 
 
+def get_institutional_sector_confirmation(proxy) -> dict:
+    """Cross-check an already-commodity-confirmed industry against real
+    institutional positioning: sector_flow_state's fused per-SPDR-sector
+    conviction (rotation + RRG + ETF-flow + money-flow, already fused
+    upstream -- reused, not recomputed) and insider_industry_cluster's
+    per-industry Form-4 buying z-score (canary #16, closed/proven).
+    Purely additive context on the gate output -- does NOT affect
+    pass/fail, because institutional coverage is sparser than the
+    commodity/ER data the actual gate runs on, and a thin institutional
+    read must never look like an industry failing the gate."""
+    out = {"sector_flow": None, "insider_cluster": None}
+    if proxy.spdr_sector:
+        doc = fleet_io.get_json(SECTOR_FLOW_STATE_KEY)
+        row = fleet_io.dig(doc, f"sectors[symbol={proxy.proxy_etf}]") if doc else None
+        if isinstance(row, dict):
+            out["sector_flow"] = {
+                "conviction": row.get("conviction"), "posture": row.get("posture"),
+                "quadrant": row.get("quadrant"), "confluence": row.get("confluence"),
+                "dollar_confirms": row.get("dollar_confirms"),
+            }
+    if proxy.industry_boom_label:
+        doc = fleet_io.get_json(INSIDER_INDUSTRY_CLUSTER_KEY)
+        row = fleet_io.dig(doc, f"industries[industry={proxy.industry_boom_label}]") if doc else None
+        if isinstance(row, dict):
+            out["insider_cluster"] = {
+                "z_vs_own_history": row.get("z_vs_own_history"),
+                "participation_pct": row.get("participation_pct"),
+                "has_exec_conviction": row.get("has_exec_conviction"),
+                "n_companies": row.get("n_companies"),
+            }
+    return out
+
+
 def run_tier2(tier1_results):
     """For every CONFIRMED or TURNING indicator's candidate industries,
     gate expected sector-ETF return vs SPX. Returns industry_key -> gate dict."""
@@ -222,6 +277,7 @@ def run_tier2(tier1_results):
                 sec.get("er_pp"), spx.get("er_pp"), tracking_error,
                 n_obs=r.get("available_legs"),
             )
+            gate["institutional_confirmation"] = get_institutional_sector_confirmation(proxy)
             gate["industry"] = proxy.industry
             gate["proxy_etf"] = proxy.proxy_etf
             gate["industry_boom_label"] = proxy.industry_boom_label
@@ -267,7 +323,22 @@ def _lookup(doc, ticker, *keys):
     return None
 
 
-def score_stock(ticker, industry_key, backlog_doc, backlog_xbrl_doc, catalyst_doc, stock_buying_doc):
+def _first_available_list(doc, *list_keys):
+    """Return the first non-empty list found at any of list_keys in doc,
+    for documents (like stealth-accumulation) that publish the same shape
+    of ticker-keyed rows under several named lists in priority order."""
+    if not doc:
+        return []
+    for k in list_keys:
+        v = doc.get(k)
+        if isinstance(v, list) and v:
+            return v
+    return []
+
+
+def score_stock(ticker, industry_key, backlog_doc, backlog_xbrl_doc, catalyst_doc,
+                 stock_buying_doc, stealth_doc=None, credit_doc=None, squeeze_doc=None,
+                 hiring_doc=None, estimate_doc=None, gex_doc=None, smart13f_doc=None):
     backlog_growth = _lookup(backlog_doc, ticker, "backlog_yoy_pct", "yoy_pct") \
         or _lookup(backlog_xbrl_doc, ticker, "rpo_yoy_pct", "deferred_revenue_yoy_pct")
     catalyst_strength = _lookup(catalyst_doc, ticker, "weight", "score")
@@ -276,6 +347,31 @@ def score_stock(ticker, industry_key, backlog_doc, backlog_xbrl_doc, catalyst_do
     qoq_accel = _lookup(stock_buying_doc, ticker, "qoq_acceleration_pct")
     pe_pctile = _lookup(stock_buying_doc, ticker, "pe_5y_percentile")
     margin_pctile = _lookup(stock_buying_doc, ticker, "margin_percentile")
+
+    # ── institutional positioning (2026-08-15 addition) ──
+    stealth_rows = _first_available_list(
+        stealth_doc, "convergence", "top_smart_money_only", "top_short_covering_only")
+    smart_money_strength = _lookup({"rows": stealth_rows}, ticker, "strength", "score")
+
+    credit_delta = _lookup({"rows": (credit_doc or {}).get("names") or []},
+                            ticker, "d_distance_to_default")
+    squeeze_score_raw = _lookup(
+        {"rows": (squeeze_doc or {}).get("squeeze_candidates") or []}, ticker, "squeeze_score")
+    if squeeze_score_raw is None:
+        squeeze_score_raw = _lookup(
+            {"rows": (squeeze_doc or {}).get("top_svr") or []}, ticker, "svr_pct")
+    hiring_score_raw = _lookup({"rows": (hiring_doc or {}).get("top_50") or []},
+                                ticker, "expansion_score")
+    est_direction = (estimate_doc or {}).get("direction_map", {}).get(ticker)
+    est_direction_num = {"UP": 100.0, "FLAT": 50.0, "DOWN": 0.0}.get(est_direction)
+
+    # informational-only (too narrow a universe to weight fairly): dealer
+    # gamma (~10 names) and AI-infra-thematic 13F confluence
+    gex_row = (gex_doc or {}).get("underlyings", {}).get(ticker)
+    smart13f_row = _lookup(
+        {"rows": (smart13f_doc or {}).get("confluence_cheap_and_backed") or []},
+        ticker, "n_funds_long")
+    shorted_by_conviction_funds = ticker in ((smart13f_doc or {}).get("shorting_signal") or [])
 
     def to_0_100(x, lo, hi, invert=False):
         if x is None:
@@ -290,12 +386,28 @@ def score_stock(ticker, industry_key, backlog_doc, backlog_xbrl_doc, catalyst_do
         and catalyst_strength <= 1 else catalyst_strength,
         "net_share_retirement": to_0_100(net_retirement, -5, 10),
         "qoq_acceleration": to_0_100(qoq_accel, -10, 20),
+        "smart_money_convergence": to_0_100(smart_money_strength, 1, 4),
+        "credit_signal": to_0_100(credit_delta, -2, 2),
+        "short_squeeze_setup": (max(0.0, min(100.0, squeeze_score_raw))
+                                 if squeeze_score_raw is not None else None),
+        "hiring_velocity": (max(0.0, min(100.0, hiring_score_raw))
+                             if hiring_score_raw is not None else None),
+        "estimate_revision_direction": est_direction_num,
     }
     result = scoring.stock_composite_score(components)
     result["ticker"] = ticker
     result["cycle_flag"] = scoring.cycle_awareness_flag(None, pe_pctile, margin_pctile)
     result["raw"] = {"backlog_yoy_pct": backlog_growth, "peg": peg,
-                      "net_buyback_yield": net_retirement, "qoq_acceleration_pct": qoq_accel}
+                      "net_buyback_yield": net_retirement, "qoq_acceleration_pct": qoq_accel,
+                      "credit_direction_delta": credit_delta,
+                      "squeeze_score": squeeze_score_raw,
+                      "hiring_expansion_score": hiring_score_raw,
+                      "estimate_revision_direction": est_direction,
+                      "dealer_gex": ({"regime": gex_row.get("regime"),
+                                      "gex_billions": gex_row.get("total_dealer_gex_billions")}
+                                     if gex_row else None),
+                      "smart_money_13f_funds_long": smart13f_row,
+                      "shorted_by_ai_conviction_funds": shorted_by_conviction_funds}
     return result
 
 
@@ -304,6 +416,15 @@ def run_tier3(tier2_gates):
     backlog_xbrl_doc = fleet_io.get_json(BACKLOG_XBRL_KEY)
     catalyst_doc = fleet_io.get_json(CATALYST_KEY)
     stock_buying_doc = fleet_io.get_json(STOCK_BUYING_KEY)
+    # institutional-edge sources (2026-08-15) -- fetched once per run, not
+    # per ticker, same pattern as the fundamentals docs above
+    stealth_doc = fleet_io.get_json(STEALTH_ACCUMULATION_KEY)
+    credit_doc = fleet_io.get_json(CREDIT_BEFORE_EQUITY_KEY)
+    squeeze_doc = fleet_io.get_json(FINRA_SHORT_KEY)
+    hiring_doc = fleet_io.get_json(HIRING_VELOCITY_KEY)
+    estimate_doc = fleet_io.get_json(ESTIMATE_REVISIONS_KEY)
+    gex_doc = fleet_io.get_json(DEALER_GEX_KEY)
+    smart13f_doc = fleet_io.get_json(SMART_MONEY_13F_KEY)
 
     picks = []
     for industry_key, gate in tier2_gates.items():
@@ -319,7 +440,9 @@ def run_tier3(tier2_gates):
             continue
 
         scored = [score_stock(t, industry_key, backlog_doc, backlog_xbrl_doc,
-                               catalyst_doc, stock_buying_doc) for t in universe]
+                               catalyst_doc, stock_buying_doc, stealth_doc, credit_doc,
+                               squeeze_doc, hiring_doc, estimate_doc, gex_doc, smart13f_doc)
+                  for t in universe]
         ok_scores = [s["score"] for s in scored if s["status"] == "OK"]
         median = sorted(ok_scores)[len(ok_scores) // 2] if ok_scores else None
 
@@ -334,6 +457,7 @@ def run_tier3(tier2_gates):
                 "cycle_flag": s.get("cycle_flag"),
                 "components_used": s.get("components_used"),
                 "missing_components": s.get("missing_components"),
+                "reweighted": s.get("reweighted"),
                 "raw": s.get("raw"),
                 "thesis": build_thesis(gate, proxy, s, verdict),
             })

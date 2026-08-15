@@ -183,11 +183,22 @@ def spx_opportunity_cost_gate(
 # ── Tier 3: stock-level composite (only run for industries that passed Tier 2) ──
 
 DEFAULT_WEIGHTS = {
-    "backlog_growth": 0.30,
-    "valuation_discount": 0.25,   # PEG / P-E discount to industry median
-    "catalyst_strength": 0.20,    # trailing 90d contract/8-K catalyst weight
-    "net_share_retirement": 0.15,
-    "qoq_acceleration": 0.10,
+    # fundamentals -- the original core (Khalid's "the FIVE"-derived backbone)
+    "backlog_growth": 0.20,
+    "valuation_discount": 0.18,   # PEG / P-E discount to industry median
+    "catalyst_strength": 0.14,    # trailing 90d contract/8-K catalyst weight
+    "net_share_retirement": 0.10,
+    "qoq_acceleration": 0.08,
+    # institutional positioning -- what hedge funds/institutions actually
+    # track for early conviction, added 2026-08-15 (grounded in probed
+    # real S3 shapes: aws/ops/ran/ops_4727_invest_institutional_edge_probe.py)
+    "smart_money_convergence": 0.10,      # stealth-accumulation fused signal
+                                            # (insider+13F+short-covering+options)
+    "credit_signal": 0.06,                # credit-before-equity per-name:
+                                            # credit reprices before the stock does
+    "short_squeeze_setup": 0.05,          # finra-short systematic S&P500 squeeze score
+    "hiring_velocity": 0.05,              # headcount-inflection leading-growth detector
+    "estimate_revision_direction": 0.04,  # pre-earnings consensus EPS revision momentum
 }
 
 

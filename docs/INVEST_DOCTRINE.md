@@ -38,7 +38,41 @@ Before writing any code, the live repo (`github.com/ElMooro/si`, `SYSTEM_CATALOG
 | SPX opportunity-cost gate (IR + minimum excess return, two-part) | **Genuinely new.** `scoring.spx_opportunity_cost_gate`. |
 | Stock-vs-own-industry-ETF composite ranking, gated by the industry passing first | **Genuinely new.** `scoring.stock_composite_score` + `vs_industry_etf_verdict`. |
 
-## Honest gaps (do not paper over these)
+## Institutional-edge data (added 2026-08-15)
+
+Extended per Khalid's request to wire in the data hedge funds/institutions actually use for early industry/stock detection — checked the live fleet (836 lambdas) first: over 100 directly relevant engines already exist (CFTC/COT, 13F, insider clusters, options/gamma, short interest, credit spreads, ETF flows, congressional trading, estimate revisions, hiring velocity...). Nothing here duplicates that infrastructure; this wires a deliberately-curated subset — one canonical engine per category, picked by richness/coverage, not every overlapping variant — into `justhodl-invest`'s existing Tier 2/Tier 3 structure. Every field path below is grounded in a live probe (`aws/ops/ran/ops_4727_invest_institutional_edge_probe.py`), not a guess.
+
+**Tier 2 — additive, non-gating context** (`institutional_confirmation` on each industry gate):
+- `sector-flow-state.json` — canonical fused per-SPDR-sector conviction (rotation + RRG quadrant + ETF-flow-confirm + money-flow, already fused upstream). Read by `symbol`, matching `proxy_etf`.
+- `insider-industry-cluster.json` — canary #16 (closed, proven): industry-level Form-4 buying z-score, CEO/CFO conviction flag, participation rate. Read by `industry`, matching `industry_boom_label`.
+
+These cross-check an already-commodity-confirmed industry against real institutional positioning. They do **not** affect pass/fail — institutional coverage is sparser than the commodity/ER data the gate itself runs on (today: only 3 of ~149 industries have enough insider activity to report at all), and a thin institutional read must never look like an industry failing the gate.
+
+**Tier 3 — five new weighted components** (`DEFAULT_WEIGHTS` rebalanced, fundamentals still the majority):
+
+| Component | Weight | Source | What it captures |
+|---|---|---|---|
+| backlog_growth | 0.20 | backlog-miner / backlog.json | (unchanged, reweighted down from 0.30) |
+| valuation_discount | 0.18 | stock-buying.json | (unchanged, from 0.25) |
+| catalyst_strength | 0.14 | catalyst.json | (unchanged, from 0.20) |
+| net_share_retirement | 0.10 | stock-buying.json | (unchanged, from 0.15) |
+| qoq_acceleration | 0.08 | stock-buying.json | (unchanged, from 0.10) |
+| **smart_money_convergence** | **0.10** | stealth-accumulation.json | fused insider+13F+short-covering+options convergence (2+ signals agreeing) |
+| **credit_signal** | **0.06** | credit-before-equity.json | canary #17: per-name distance-to-default delta — credit reprices before the stock does |
+| **short_squeeze_setup** | **0.05** | finra-short.json | systematic S&P500 FINRA short-volume-ratio squeeze score |
+| **hiring_velocity** | **0.05** | hiring-velocity.json | headcount-inflection leading-growth detector |
+| **estimate_revision_direction** | **0.04** | estimate-revisions.json | pre-earnings consensus EPS revision momentum (UP/FLAT/DOWN) |
+
+Same reweighting-on-missing-data mechanics as before (`stock_composite_score` was not touched — it was already fully generic over named components): a ticker missing some institutional signals gets its weight redistributed across what it does have, never coerced to zero, and `reweighted: true` is now surfaced on every Tier 3 pick so a partial-data score is visibly marked (`~` prefix on `invest.html`), not silently blended in as if it were complete.
+
+**Informational-only, not weighted** (surfaced in `raw`, deliberately excluded from the composite): `dealer-gex.json` (only ~10 names covered — SPY/QQQ/IWM + megacaps — too narrow a universe to weight fairly across a general stock pick) and `smart-money-13f.json` (AI-infra-thematic funds specifically, not a general-purpose signal; also flags if a pick is in that engine's `shorting_signal` list as a caution).
+
+**Deliberately not wired this round** (documented, not silently dropped):
+- **CFTC/COT** (`cftc-deep-view.json`) — real, rich (smart/dumb divergence z-scores by futures contract), but keying by the right futures symbol per commodity/industry needs another probe round to get right, and today's read shows `n_contracts_analyzed: 0` (thin). Good next addition once symbol mapping is confirmed.
+- **Congressional trading** (`congress-direct.json`) — real official Senate/House data, but it's raw transaction-level (256 senate + 200 house rows), not pre-aggregated by ticker; needs a small aggregation step (count/net by ticker) rather than a simple lookup. Scoped out to avoid a half-built integration.
+- **ETF composite flow signals** (`etf-flows/composite.json`, e.g. `smart_vs_dumb`) — genuinely institutional (Polygon paid data, $99/mo) but market-wide, not sector-specific, so it doesn't cleanly fit Tier 1/2's industry-specific taxonomy or Tier 3's per-ticker scoring. Natural fit for a future "Tier 0: market regime gate" that modulates confidence fleet-wide rather than gating one industry.
+
+
 
 - **The engine will report `INSUFFICIENT_DATA` for every indicator for roughly the first week after initial deploy — this is expected, not broken.** `confirm_indicator()` only counts a leg as available once it has both a live reading *and* ≥8 days of accrued history to compute a z-score against (mirrors the fleet's own `n_obs ≥ 8` floor). Verified live on 2026-08-15: `read_leg_value()` correctly resolved real numbers from S3 while `available_legs` stayed at 0 for lack of history — five diagnostic ops scripts (4721–4725) ruled out IAM, VPC, bucket policy, code staleness, and environment variables one at a time before landing on the actual, mundane, correct explanation. Once `data/invest/leg-history.json` has 8+ days of rows (one accrues per scheduled run, daily at 15:00 UTC), this resolves on its own.
 

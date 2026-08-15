@@ -99,6 +99,40 @@ class FakeFleet:
              "qoq_acceleration_pct": -2.0, "pe_5y_percentile": 20, "margin_percentile": 88},
         ]}
 
+        # institutional-edge fixtures (2026-08-15 addition) -- shapes match
+        # the real probed schemas (ops 4727), not simplified stand-ins:
+        # VRT gets a strong institutional convergence read, PWR gets none,
+        # so VRT's lead over PWR should widen once these are wired in.
+        self.docs["data/stealth-accumulation.json"] = {
+            "convergence": [{"ticker": "VRT", "strength": 4, "pattern": "full_convergence"}],
+            "top_smart_money_only": [], "top_short_covering_only": [],
+        }
+        self.docs["data/credit-before-equity.json"] = {"names": [
+            {"ticker": "VRT", "d_distance_to_default": 1.2, "signal": "CREDIT_LEADS_UP"},
+            {"ticker": "PWR", "d_distance_to_default": -0.8, "signal": None},
+        ]}
+        self.docs["data/finra-short.json"] = {"squeeze_candidates": [
+            {"symbol": "VRT", "squeeze_score": 70},
+        ], "top_svr": []}
+        self.docs["data/hiring-velocity.json"] = {"top_50": [
+            {"symbol": "VRT", "expansion_score": 82.0},
+        ]}
+        self.docs["data/estimate-revisions.json"] = {
+            "direction_map": {"VRT": "UP", "PWR": "DOWN"},
+        }
+        self.docs["data/dealer-gex.json"] = {"underlyings": {}}
+        self.docs["data/smart-money-13f.json"] = {
+            "confluence_cheap_and_backed": [], "shorting_signal": [],
+        }
+        self.docs["data/sector-flow-state.json"] = {"sectors": [
+            {"symbol": "XLI", "conviction": 0.62, "posture": "ACCUMULATE",
+             "quadrant": "LEADING", "confluence": 3, "dollar_confirms": True},
+        ]}
+        self.docs["data/insider-industry-cluster.json"] = {"industries": [
+            {"industry": "Electrical Equipment & Parts", "z_vs_own_history": 1.8,
+             "participation_pct": 12.0, "has_exec_conviction": True, "n_companies": 5},
+        ]}
+
     # fleet_io-compatible surface
     def get_json(self, key):
         return self.docs.get(key)
@@ -206,3 +240,52 @@ def test_dig_bracket_search_resolves_tagged_list_rows():
     assert fleet_io.dig({"signals": "not_a_list"}, "signals[key=copper].value") is None
     # still backward-compatible with a plain dotted path
     assert fleet_io.dig({"a": {"b": 3}}, "a.b") == 3
+
+
+def test_institutional_edge_sources_wire_into_tier3_and_tier2(monkeypatch):
+    """Dedicated test for the 2026-08-15 institutional-edge addition
+    (stealth-accumulation, credit-before-equity, finra-short,
+    hiring-velocity, estimate-revisions, sector-flow-state,
+    insider-industry-cluster) -- proves these real, probed sources
+    actually change the output, not just that they're imported without
+    crashing."""
+    import lambda_function as lf
+
+    fake = FakeFleet()
+    for target in (fleet_io, lf.fleet_io):
+        monkeypatch.setattr(target, "get_json", fake.get_json)
+        monkeypatch.setattr(target, "load_history", fake.load_history)
+        monkeypatch.setattr(target, "read_leg_value", fake.read_leg_value)
+        monkeypatch.setattr(target, "save_history", lambda h: None)
+        monkeypatch.setattr(target, "put_json", lambda k, v: None)
+
+    tier1, _ = lf.run_tier1()
+    tier2 = lf.run_tier2(tier1)
+    gate = tier2["grid_electrical_infra"]
+
+    # Tier 2: institutional_confirmation is additive context, present
+    # alongside the existing IR/excess-return gate, not replacing it
+    conf = gate["institutional_confirmation"]
+    assert conf["sector_flow"]["conviction"] == 0.62
+    assert conf["insider_cluster"]["z_vs_own_history"] == 1.8
+    assert gate["pass"] is True  # unaffected by institutional_confirmation being present
+
+    tier3 = lf.run_tier3(tier2)
+    vrt = next(p for p in tier3 if p["ticker"] == "VRT")
+    pwr = next(p for p in tier3 if p["ticker"] == "PWR")
+
+    assert "smart_money_convergence" in vrt["components_used"]
+    assert "credit_signal" in vrt["components_used"]
+    assert "short_squeeze_setup" in vrt["components_used"]
+    assert "hiring_velocity" in vrt["components_used"]
+    assert "estimate_revision_direction" in vrt["components_used"]
+    # PWR has no stealth/squeeze/hiring fixture rows -- those components
+    # are correctly absent for it, not coerced to zero
+    assert "smart_money_convergence" not in pwr["components_used"]
+    assert pwr["reweighted"] is True
+
+    # VRT's institutional read is uniformly strong (full convergence,
+    # improving credit, hot squeeze, hot hiring, upward estimates) on top
+    # of already-better fundamentals -- the composite gap over PWR should
+    # be wide, not marginal
+    assert vrt["composite_score"] - pwr["composite_score"] > 15

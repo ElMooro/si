@@ -189,11 +189,14 @@ def test_tier3_reweights_when_some_components_present():
 def test_tier3_full_components_no_reweight():
     components = {"backlog_growth": 80, "valuation_discount": 70,
                    "catalyst_strength": 90, "net_share_retirement": 50,
-                   "qoq_acceleration": 60}
+                   "qoq_acceleration": 60, "smart_money_convergence": 75,
+                   "credit_signal": 55, "short_squeeze_setup": 40,
+                   "hiring_velocity": 65, "estimate_revision_direction": 100}
     r = scoring.stock_composite_score(components)
     assert r["status"] == "OK"
     assert r["reweighted"] is False
-    expected = (80 * .30 + 70 * .25 + 90 * .20 + 50 * .15 + 60 * .10)
+    expected = (80 * .20 + 70 * .18 + 90 * .14 + 50 * .10 + 60 * .08
+                + 75 * .10 + 55 * .06 + 40 * .05 + 65 * .05 + 100 * .04)
     assert abs(r["score"] - round(expected, 1)) < 0.05
 
 
