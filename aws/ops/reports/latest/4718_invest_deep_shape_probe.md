@@ -1,7 +1,13 @@
-executing-against: 3b6b108bb5fb6df139fb08b4a996b20b8b6feb41
-ops 4718 — deep structural probe for justhodl-invest fixes
-── forward-returns.json — the get_spx_er() crash site ──
-[21:00:29]   data/forward-returns.json :: assets =
+# ops 4718 — deep structural probe for justhodl-invest fixes
+
+**Status:** success  
+**Duration:** 1.5s  
+**Finished:** 2026-08-15T21:00:30+00:00  
+
+## Log
+## forward-returns.json — the get_spx_er() crash site
+
+- `21:00:29`   data/forward-returns.json :: assets =
 {
   "SPY": {
     "ticker": "str: 'SPY'",
@@ -96,7 +102,7 @@ ops 4718 — deep structural probe for justhodl-invest fixes
       "sharpe_vs_cash": "<float>"
     },
     "ten_k_in_10yr_usd": {
-[21:00:29]   data/forward-returns.json :: rankings =
+- `21:00:29`   data/forward-returns.json :: rankings =
 {
   "by_forward_er": [
     "str: 'BTC'",
@@ -120,8 +126,9 @@ ops 4718 — deep structural probe for justhodl-invest fixes
     "...+13 more"
   ]
 }
-── canary-grid.json — signals + sub_grids (copper, lumber, korea) ──
-[21:00:29]   data/canary-grid.json :: signals =
+## canary-grid.json — signals + sub_grids (copper, lumber, korea)
+
+- `21:00:29`   data/canary-grid.json :: signals =
 [
   {
     "key": "str: 'korea_exports'",
@@ -183,7 +190,7 @@ ops 4718 — deep structural probe for justhodl-invest fixes
   },
   "...+61 more"
 ]
-[21:00:29]   data/canary-grid.json :: sub_grids =
+- `21:00:29`   data/canary-grid.json :: sub_grids =
 {
   "trade_shipping": {
     "label": "str: 'Trade & Shipping'",
@@ -228,8 +235,9 @@ ops 4718 — deep structural probe for justhodl-invest fixes
     "lead_months": 0.9
   }
 }
-── portwatch.json — where does Korea live? ──
-[21:00:29]   data/portwatch.json :: ports =
+## portwatch.json — where does Korea live?
+
+- `21:00:29`   data/portwatch.json :: ports =
 [
   {
     "id": "str: 'port1188'",
@@ -317,7 +325,7 @@ ops 4718 — deep structural probe for justhodl-invest fixes
   },
   "...+85 more"
 ]
-[21:00:29]   data/portwatch.json :: exporters =
+- `21:00:29`   data/portwatch.json :: exporters =
 [
   {
     "code": "str: 'SAU'",
@@ -373,7 +381,7 @@ ops 4718 — deep structural probe for justhodl-invest fixes
   },
   "...+20 more"
 ]
-[21:00:29]   data/portwatch.json :: chokepoints =
+- `21:00:29`   data/portwatch.json :: chokepoints =
 [
   {
     "id": "str: 'chokepoint28'",
@@ -429,8 +437,9 @@ ops 4718 — deep structural probe for justhodl-invest fixes
   },
   "...+24 more"
 ]
-── asia-leads.json — taiwan_orders full shape (korea_exports already proven working) ──
-[21:00:29]   data/asia-leads.json :: taiwan_orders =
+## asia-leads.json — taiwan_orders full shape (korea_exports already proven working)
+
+- `21:00:29`   data/asia-leads.json :: taiwan_orders =
 {
   "source": "str: 'https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713'",
   "label": "str: 'Taiwan export orders (MOEA via DGBAS point page)'",
@@ -546,7 +555,7 @@ ops 4718 — deep structural probe for justhodl-invest fixes
   },
   "levels_cached": 2
 }
-[21:00:29]   data/asia-leads.json :: taiwan_exports =
+- `21:00:29`   data/asia-leads.json :: taiwan_exports =
 {
   "source": "str: 'FRED VALEXPTWM052N'",
   "label": "str: 'Taiwan goods exports (monthly)'",
@@ -577,7 +586,7 @@ ops 4718 — deep structural probe for justhodl-invest fixes
   ],
   "note": "str: 'Proxy for MOEA export ORDERS (orders lead shipments); direct'"
 }
-[21:00:29]   data/asia-leads.json :: korea_exports =
+- `21:00:29`   data/asia-leads.json :: korea_exports =
 {
   "source": "str: 'FRED XTEXVA01KRM667N'",
   "label": "str: 'Korea merchandise exports (monthly, NSA)'",
@@ -608,8 +617,9 @@ ops 4718 — deep structural probe for justhodl-invest fixes
   ],
   "note": "str: '20-day customs flash (the true nowcast) requires a free Bank'"
 }
-── china-liquidity.json — tsf ──
-[21:00:29]   data/china-liquidity.json :: tsf =
+## china-liquidity.json — tsf
+
+- `21:00:29`   data/china-liquidity.json :: tsf =
 {
   "source_annual": "str: 'DBnomics NBS/A_A0L08'",
   "annual_composition": [
@@ -691,25 +701,28 @@ ops 4718 — deep structural probe for justhodl-invest fixes
     "cumulative": true
   }
 }
-[21:00:29]   data/china-liquidity.json :: credit_impulse =
+- `21:00:29`   data/china-liquidity.json :: credit_impulse =
 {
   "value_pp": -5.52,
   "is_proxy": true,
   "definition": "str: 'acceleration of money-supply YoY growth (pp change). A free '",
   "signal": "str: 'credit decelerating \u2014 forward headwind'"
 }
-── port-cargo.json — global_pulse ──
-[21:00:29]   data/port-cargo.json :: global_pulse =
+## port-cargo.json — global_pulse
+
+- `21:00:29`   data/port-cargo.json :: global_pulse =
 {
   "import_tpd_7d": 32038460,
   "export_tpd_7d": 29811782,
   "total_chg_pct": -3.89
 }
-── freight-pulse.json — composite ──
-[21:00:29]   data/freight-pulse.json :: composite =
+## freight-pulse.json — composite
+
+- `21:00:29`   data/freight-pulse.json :: composite =
 47.4
-── grid-queue.json — national, queue_velocity, planned_capacity ──
-[21:00:29]   data/grid-queue.json :: national =
+## grid-queue.json — national, queue_velocity, planned_capacity
+
+- `21:00:29`   data/grid-queue.json :: national =
 {
   "primary_metric": "str: 'mw_with_executed_ia'",
   "mw_with_executed_ia": 202469.5,
@@ -737,7 +750,7 @@ ops 4718 — deep structural probe for justhodl-invest fixes
   "assumption": "str: \"headline_risk_adjusted applies LBNL's ~13%% all-request comp\"",
   "blind_spot": "str: 'large-LOAD (datacenter) interconnection is handled outside g'"
 }
-[21:00:29]   data/grid-queue.json :: queue_velocity =
+- `21:00:29`   data/grid-queue.json :: queue_velocity =
 {
   "status": "str: 'LIVE'",
   "n_snapshots": 6,
@@ -753,7 +766,7 @@ ops 4718 — deep structural probe for justhodl-invest fixes
   },
   "method": "str: '\u0394 vs oldest archived snapshot, scaled to MW/month; the archi'"
 }
-[21:00:29]   data/grid-queue.json :: planned_capacity =
+- `21:00:29`   data/grid-queue.json :: planned_capacity =
 {
   "period": "str: '2026-05'",
   "uprate_by_state": {
@@ -828,8 +841,9 @@ ops 4718 — deep structural probe for justhodl-invest fixes
   "n_industrial": 5,
   "upcoming_uprates": []
 }
-── pjm-grid.json — load, forecast, ai_demand_read ──
-[21:00:29]   data/pjm-grid.json :: load =
+## pjm-grid.json — load, forecast, ai_demand_read
+
+- `21:00:29`   data/pjm-grid.json :: load =
 {
   "current_gw": 112.52,
   "current_ts_ept": "str: '2026-08-13T23:05'",
@@ -837,26 +851,28 @@ ops 4718 — deep structural probe for justhodl-invest fixes
   "momentum_8d_pct": -4.79,
   "n_obs": 2000
 }
-[21:00:29]   data/pjm-grid.json :: forecast =
+- `21:00:29`   data/pjm-grid.json :: forecast =
 {
   "peak_gw": 137.42,
   "peak_at_ept": "str: '2026-08-17T17:00:00'",
   "current_vs_peak_pct": 81.9
 }
-[21:00:29]   data/pjm-grid.json :: ai_demand_read =
+- `21:00:29`   data/pjm-grid.json :: ai_demand_read =
 "str: 'RTO demand -4.79% over 8 days \u2014 contracting electricity pull'"
-── construction-housing.json — signals, cycle_score ──
-[21:00:30]   data/construction-housing.json :: signals =
+## construction-housing.json — signals, cycle_score
+
+- `21:00:30`   data/construction-housing.json :: signals =
 [
   "str: 'Starts +3.5% YoY'",
   "str: 'New-home sales -5.6% YoY \u2014 demand soft'",
   "str: \"Months' supply 9.3 \u2014 inventory heavy\"",
   "str: 'Builder input costs +10.5% YoY'"
 ]
-[21:00:30]   data/construction-housing.json :: cycle_score =
+- `21:00:30`   data/construction-housing.json :: cycle_score =
 -1
-── taiwan-moea.json — export_orders, semiconductor ──
-[21:00:30]   data/taiwan-moea.json :: export_orders =
+## taiwan-moea.json — export_orders, semiconductor
+
+- `21:00:30`   data/taiwan-moea.json :: export_orders =
 {
   "latest_period": "str: '2026-06'",
   "latest_value": 95262.0,
@@ -887,7 +903,7 @@ ops 4718 — deep structural probe for justhodl-invest fixes
   "series": "str: 'Taiwan export orders \u2014 grand total (US$)'",
   "read": "str: 'EXPANDING \u2014 global tech demand firm'"
 }
-[21:00:30]   data/taiwan-moea.json :: semiconductor =
+- `21:00:30`   data/taiwan-moea.json :: semiconductor =
 {
   "production": {
     "latest_period": "str: '2026-05'",
@@ -923,8 +939,9 @@ ops 4718 — deep structural probe for justhodl-invest fixes
     "series": "str: 'Taiwan electronic-components inventory (scarcity/glut tell)'"
   }
 }
-── industry-boom.json — full label list (need Homebuilding/Industrial-Machinery equivalents) ──
-[21:00:30]   132 labels:
+## industry-boom.json — full label list (need Homebuilding/Industrial-Machinery equivalents)
+
+- `21:00:30`   132 labels:
 Advertising Agencies
 Aerospace & Defense
 Agricultural - Machinery
@@ -1057,7 +1074,6 @@ Travel Services
 Trucking
 Uranium
 Waste Management
-── Done ──
-[21:00:30] ✅ deep shape probe complete — fix causal_graph.py / lambda_function.py from the Log above
+## Done
 
-→ Report written to aws/ops/reports/latest/4718_invest_deep_shape_probe.md
+- `21:00:30` ✅ deep shape probe complete — fix causal_graph.py / lambda_function.py from the Log above
