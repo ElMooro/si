@@ -1,4 +1,4 @@
-"""ops 4711 — drive the ICE board to completion NOW (Khalid: "run
+"""ops 4712 — drive the ICE board to completion NOW (Khalid: "run
 and download... complete history... ice data from te ... for now").
 
 Re-prioritizes the te-fred-mirror worklist so all 192 BAML/ICE series
@@ -37,8 +37,8 @@ def gj(key, dflt=None):
 
 
 def main():
-    with report("4711_te_ice_priority_drive") as r:
-        r.heading("ops 4711 — re-prioritize ICE-first, drive to "
+    with report("4712_te_ice_priority_drive") as r:
+        r.heading("ops 4712 — re-prioritize ICE-first, drive to "
                   "completion this session")
 
 
