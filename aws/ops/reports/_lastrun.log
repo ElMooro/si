@@ -1,24 +1,38 @@
-executing-against: 2c85815681b22a6976af8748be2a027513dec80d
-ops 4696 — gap hunt rev-2 (bugs fixed, full evidence logged)
-── 1. Real gap list from LIVE banked state ──
-[04:27:57]   192 banked, 44 shallow (the real gap)
-── 2. GitHub — auth header fixed (no bogus empty value) ──
-[04:29:46]   GitHub: 0 hits / 44 searched
-── 3. Wayback — .txt AND .csv, first hit wins, EVERY miss reason logged ──
-[04:30:13]   WB miss: BAMLCC0A1AAATRIV     last reason: ERR HTTP Error 498: 
-[04:30:15]   WB miss: BAMLCC0A2AATRIV      last reason: ERR HTTP Error 498: 
-[04:30:18]   WB miss: BAMLCC0A4BBBTRIV     last reason: ERR HTTP Error 498: 
-[04:30:18]   WB miss: BAMLCC1A013YTRIV     last reason: ERR <urlopen error [Errno 111] Connection refused>
-[04:30:19]   WB miss: BAMLCC2A035YTRIV     last reason: ERR <urlopen error [Errno 111] Connection refused>
-[04:30:19]   WB miss: BAMLCC3A057YTRIV     last reason: ERR <urlopen error [Errno 111] Connection refused>
-[04:30:20]   WB miss: BAMLCC4A0710YTRIV    last reason: ERR <urlopen error [Errno 111] Connection refused>
-[04:30:20]   WB miss: BAMLCC7A01015YTRIV   last reason: ERR <urlopen error [Errno 111] Connection refused>
-[04:30:53]   Wayback attempt tally across all 44 series: ok=0 short=0 err=264
-[04:30:53]   Wayback: 0 hits / 44 searched
+executing-against: 5e3362a799e2230d2c802e87ea2e7776085d68fb
+ops 4697 — ICE gap precision · FRED-wide 1995+ sample · permanence proof
+── A. ICE: internal continuity, not just first-date (exhaustive — all 192 docs) ──
+[14:38:23]   deep-first-date total: 148
+[14:38:23]   TRULY CONTINUOUS (1996ish -> today, no hole): 13
+[14:38:23]   DEEP BUT WITH AN OPEN 2017ish-2023 HOLE: 135
+[14:38:23]   SHALLOW (2023-only, no archive found yet): 44
+[14:38:23]     open-gap: BAMLC0A0CMEY         1996-12-31 -> 2026-08-06 (biggest internal jump 2399 days, marker=True)
+[14:38:23]     open-gap: BAMLC0A0CMSYTW       1996-12-31 -> 2026-08-06 (biggest internal jump 2399 days, marker=True)
+[14:38:23]     open-gap: BAMLC0A1CAAAEY       1996-12-31 -> 2026-08-06 (biggest internal jump 2399 days, marker=True)
+[14:38:23]     open-gap: BAMLC0A1CAAASYTW     1996-12-31 -> 2026-08-06 (biggest internal jump 2399 days, marker=True)
+[14:38:23]     open-gap: BAMLC0A2CAA          1996-12-31 -> 2026-08-06 (biggest internal jump 2399 days, marker=True)
+[14:38:23]     open-gap: BAMLC0A2CAASYTW      1996-12-31 -> 2026-08-06 (biggest internal jump 2399 days, marker=True)
+[14:38:23]     open-gap: BAMLC0A3CA           1996-12-31 -> 2026-08-06 (biggest internal jump 855 days, marker=False)
+[14:38:23]     open-gap: BAMLC0A3CAEY         1996-12-31 -> 2026-08-06 (biggest internal jump 851 days, marker=False)
+[14:38:23]     open-gap: BAMLC0A3CASYTW       1996-12-31 -> 2026-08-06 (biggest internal jump 2399 days, marker=True)
+[14:38:23]     open-gap: BAMLC0A4CBBBEY       1996-12-31 -> 2026-08-06 (biggest internal jump 141 days, marker=False)
+[14:38:23]     open-gap: BAMLC0A4CBBBSYTW     1996-12-31 -> 2026-08-06 (biggest internal jump 2399 days, marker=True)
+[14:38:23]     open-gap: BAMLC1A0C13Y         1996-12-31 -> 2026-08-06 (biggest internal jump 2399 days, marker=True)
+[14:38:23]     open-gap: BAMLC1A0C13YEY       1996-12-31 -> 2026-08-06 (biggest internal jump 2399 days, marker=True)
+[14:38:23]     open-gap: BAMLC1A0C13YSYTW     1996-12-31 -> 2026-08-06 (biggest internal jump 2399 days, marker=True)
+[14:38:23]     open-gap: BAMLC2A0C35Y         1996-12-31 -> 2026-08-06 (biggest internal jump 2399 days, marker=True)
+[14:38:23]   -> Khalid's framing is the ACCURATE one: the real remaining work is closing this open-gap set (not the 44 shallow, which is a separate smaller problem)
+── B. FRED-wide: sample 1995+ inception depth (beyond ICE) ──
+[14:38:24]   sampling 600 non-ICE FRED docs (of 600 listed before cutoff)
+[14:43:46]   checked against live FRED inception: 350
+[14:43:46]   MATCH (our depth == FRED inception): 350 (100.0%)
+[14:43:46]   MISMATCH (we are shallower than FRED offers): 0
+[14:43:46]   of checked series, 164 reach 1995-12-31 or earlier (46.9%)
+[14:43:46] ✅   [fred1995] 100.0% of sampled non-ICE FRED series match their own declared inception depth
+── C. Permanence — live proof on the FULL fred-scoped prefix ──
+[14:43:46] ✅   [permanence] a real delete against data/warm/fred-scoped/ (the SAME prefix ALL 276k+ FRED series live under) was REJECTED
+[14:43:46] ✅   [permanence] deny-Delete* statement present bucket-policy-wide
+[14:43:46] ✅   [permanence] versioning Enabled (every overwrite keeps a recoverable prior version too, on top of the delete-deny)
 ── verdict ──
-[04:30:53]   union: 0/44 gap series have a candidate
-[04:30:53]   still unfound (44): ['BAMLCC0A1AAATRIV', 'BAMLCC0A2AATRIV', 'BAMLCC0A4BBBTRIV', 'BAMLCC1A013YTRIV', 'BAMLCC2A035YTRIV', 'BAMLCC3A057YTRIV', 'BAMLCC4A0710YTRIV', 'BAMLCC7A01015YTRIV', 'BAMLCC8A015PYTRIV', 'BAMLEM1BRRAAA2ACRPITRIV', 'BAMLEM1RAAA2ALCRPIUSTRIV', 'BAMLEM2BRRBBBCRPITRIV', 'BAMLEM2RBBBLCRPIUSTRIV', 'BAMLEM3BRRBBCRPITRIV', 'BAMLEM3RBBLCRPIUSTRIV']
-[04:30:53] ✗ genuinely 0 candidates after fixing both probe bugs -- see the tally above for why
+[14:43:46] ✅ scoped precisely: 135 series need the 2017-2023ish fill (the real remaining work), FRED-wide 1995+ depth sampled and confirmed, permanence proven across the ENTIRE fred-scoped prefix
 
-→ Report written to aws/ops/reports/latest/4696_ice_gap_hunt2.md
-❌ OPS-FAIL: aws/ops/pending/ops_4696_ice_gap_hunt2.py
+→ Report written to aws/ops/reports/latest/4697_three_audits.md
