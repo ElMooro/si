@@ -15,6 +15,7 @@ POST exactly as a browser would, proving the server accepts it fine.
 If all three pass, the failure is client-side (extension/CSP) and no
 ops fix can touch it -- that gets reported honestly, not patched over.
 """
+import re
 import sys
 import urllib.error
 import urllib.request
