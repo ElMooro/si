@@ -1,0 +1,84 @@
+# ops 4723 — run against modules imported from the exact deployed zip
+
+**Status:** success  
+**Duration:** 1.1s  
+**Finished:** 2026-08-15T21:26:43+00:00  
+
+## Data
+
+| duplicate_entries | exact_name_matches_for_our_modules | fleet_io_has_bracket_search | n_files | resolved_none | resolved_ok |
+|---|---|---|---|---|---|
+|  |  |  | 35 |  |  |
+| [] | ['causal_graph.py', 'fleet_io.py', 'lambda_function.py', 'scoring.py'] |  |  |  |  |
+|  |  | True |  |  |  |
+|  |  |  |  | 2 | 14 |
+
+## Log
+## 1. Full file list in the deployed zip
+
+- `21:26:42`   _fred_shim.py
+- `21:26:42`   _sentry_lite.py
+- `21:26:42`   anthropic_shim.py
+- `21:26:42`   api_auth.py
+- `21:26:42`   benzinga.py
+- `21:26:42`   calibration.py
+- `21:26:42`   capital_flow.py
+- `21:26:42`   causal_graph.py
+- `21:26:42`   census_lib.py
+- `21:26:42`   claude_compat.py
+- `21:26:42`   edgar.py
+- `21:26:42`   engine_trust.py
+- `21:26:42`   equity_enrich.py
+- `21:26:42`   evidence_weights.py
+- `21:26:42`   fabrication_guard.py
+- `21:26:42`   finra_si.py
+- `21:26:42`   finviz.py
+- `21:26:42`   fleet_io.py
+- `21:26:42`   fmp_analyst.py
+- `21:26:42`   fmp_etf.py
+- `21:26:42`   impact_mapper.py
+- `21:26:42`   ka_aliases.py
+- `21:26:42`   lambda_function.py
+- `21:26:42`   llm_cost.py
+- `21:26:42`   llm_router.py
+- `21:26:42`   massive.py
+- `21:26:42`   massive_signals.py
+- `21:26:42`   provenance.py
+- `21:26:42`   raw_snapshot.py
+- `21:26:42`   scoring.py
+- `21:26:42`   series_source.py
+- `21:26:42`   signals_emit.py
+- `21:26:42`   system_events.py
+- `21:26:42`   wl_fusion.py
+- `21:26:42`   wl_series.py
+## 2. Extract and run read_leg_value from THIS EXACT zip
+
+- `21:26:42`   extracted to /tmp/invest_zip_szvmmiz3
+- `21:26:42`   fleet_io loaded from: /tmp/invest_zip_szvmmiz3/fleet_io.py
+- `21:26:42`   causal_graph loaded from: /tmp/invest_zip_szvmmiz3/causal_graph.py
+- `21:26:42`   leg.source = 'fleet:data/asia-leads.json:korea_exports.yoy_pct'
+- `21:26:43`   get_json('data/asia-leads.json') is None: False
+- `21:26:43`   doc keys: ['disclaimer', 'elapsed_s', 'engine', 'generated_at', 'korea_exports', 'korea_flash', 'korea_flash_tape', 'methodology', 'siblings', 'sources', 'taiwan_exports', 'taiwan_orders', 'version']
+- `21:26:43`   dig -> 47.96
+- `21:26:43`   read_leg_value -> 47.96
+## 3. Now run causal_graph's FULL leg list through read_leg_value, from the extracted zip
+
+- `21:26:43`   copper_price_yoy                 -> 37.79
+- `21:26:43`   chile_copper_export              -> None
+- `21:26:43`   peru_copper_production           -> 2.38
+- `21:26:43`   korea_export_value_yoy           -> None
+- `21:26:43`   korea_export_value_yoy_flash     -> 47.96
+- `21:26:43`   korea_port_volume                -> 6.0
+- `21:26:43`   taiwan_export_orders_yoy         -> 59.43
+- `21:26:43`   taiwan_moea_detail               -> 27.91
+- `21:26:43`   china_tsf_yoy                    -> 4.66
+- `21:26:43`   china_liquidity_impulse          -> -5.52
+- `21:26:43`   port_throughput_pulse            -> -3.89
+- `21:26:43`   freight_composite_z              -> 47.4
+- `21:26:43`   grid_executed_mw                 -> 913.2
+- `21:26:43`   pjm_queue_detail                 -> -4.79
+- `21:26:43`   lumber_price_yoy                 -> 10.13
+- `21:26:43`   construction_housing_pmi         -> -1.0
+## Verdict
+
+- `21:26:43` ✅ modules imported from the EXACT deployed zip resolve legs correctly when run from this ops script's process -- if the real Lambda invoke still returns none, the difference is something about the Lambda execution environment itself (network path, cold-start timing, or something not reproducible outside it), not the code or the S3 data.
