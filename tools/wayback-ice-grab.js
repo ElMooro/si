@@ -81,7 +81,6 @@
   let batch = [], done = 0, failed = [];
 
   for (const id of IDS) {
-    if (HAVE.has(id)) { done++; continue; }   // already collected
     let got = null, usedTs = '', usedUrl = '';
     outer:
     for (const ts of STAMPS) {
