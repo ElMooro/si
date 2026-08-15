@@ -1,0 +1,36 @@
+# ops 4703 — TE live public page (Khalid's screenshot) — Markets territory, not Indicators
+
+**Status:** success  
+**Duration:** 1.7s  
+**Finished:** 2026-08-15T16:47:14+00:00  
+
+## Log
+## 1. Fetch the exact page
+
+- `16:47:12`   fetched 235320 bytes, status=200
+## 2. Hunt for embedded chart data (hydration JSON)
+
+- `16:47:12`   raw date-like substrings found in HTML: 4 (sample: ['1976-01-01', '2026-12-31', '2026-08-14', '2026-08-14'])
+- `16:47:12`   unix-timestamp-like tokens: 0 (sample: [])
+- `16:47:12`   <script> blocks on page: 23
+- `16:47:12`   biggest script block: 36026 chars, contains 'chart'=True contains 'data'=True
+## 3. Locate the Export/API buttons' real targets
+
+- `16:47:12`   export/download hrefs: ['/united-states/gdp-growth-contribution-exports', '/united-states/export-prices', '/united-states/export-prices-mom', '/united-states/export-prices-yoy', '/united-states/auto-exports', '/united-states/exports', '/united-states/exports-by-category', '/united-states/exports-by-country', '/united-states/goods-exports', '/united-states/oil-exports']
+- `16:47:12`   api hrefs: ['/api/', '/api/?source=menu', '/country-list/gdp-per-capita', '/api/', '/api/customers.aspx', '/united-states/gdp-per-capita', '/united-states/gdp-per-capita-ppp', '/united-states/gross-fixed-capital-formation', '/united-states/fed-capital-account-surplus', '/united-states/capital-flows']
+- `16:47:12`   export-related onclick/data-* attrs: []
+## 4. Direct XHR-style probe — TE's own chart-data endpoint convention
+
+- `16:47:12`   https://markets.tradingeconomics.com/chart?s=bofa-merrill-lynch-private-sector-issuers-emerging-markets-corporate-plus-sub-index-semi-annual-yield-to-worst -> <urlopen error [Errno -5] No address associated with hostname>
+- `16:47:13`   https://tradingeconomics.com/chart/bofa-merrill-lynch-private-sector-issuers-emerging-markets-corporate-plus-sub-index-semi-annual-yield-to-worst -> 200 bytes=2211 ct=text/html; charset=utf-8
+- `16:47:13`     sample: 
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>
+	PAGE NOT F
+- `16:47:13`   https://tradingeconomics.com/ws/stream.ashx?s=bofa-merrill-lynch-private-sector-issuers-emerging-markets-corporate-plus-sub-index-semi-annual-yield-to-worst -> 200 bytes=0 ct=text/plain
+## verdict
+
+- `16:47:14` ✅ page inspected — see log for embedded data / real export mechanism, if any
