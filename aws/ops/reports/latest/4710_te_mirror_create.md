@@ -1,0 +1,32 @@
+# ops 4710 — create te-fred-mirror + prove FRED separation
+
+**Status:** success  
+**Duration:** 420.9s  
+**Finished:** 2026-08-15T17:39:52+00:00  
+
+## Log
+## 1. Create/update the function
+
+- `17:32:52` ✅   CREATED justhodl-te-fred-mirror
+- `17:33:00` ✅   [deploy] justhodl-te-fred-mirror Active
+## 2. Hourly schedule
+
+- `17:33:01` ✅   schedule justhodl-te-fred-mirror-hourly -> rate(1 hour)
+## 3. THE CRITICAL PROOF — fred-scoped is UNTOUCHED and stays delete-proof after this engine exists
+
+- `17:33:02` ✅   [separation] fred-scoped delete-proof STILL enforced — the new engine's existence changed nothing about FRED's protection
+## 4. Run the first tranche (sync)
+
+- `17:37:34`   handler: {"ok": true, "pulled": 47, "failed": 13, "row_cap_hits": 11, "done": 47, "catalog": 225, "status": "converging", "mean_agree_pct": 100.0}
+## 5. Verify: wrote ONLY to te-mirror, cross-check populated, FRED docs byte-identical
+
+- `17:37:34`   te-mirror index: n_symbols=47 mean_agree_pct=100.0
+- `17:37:34`   sample AAA10Y: n=10000 cross_check={'fred_doc_found': True, 'shared_dates': 10000, 'agree': 10000, 'agree_pct': 100.0}
+- `17:37:34` ✅   [crosscheck] cross-check found and compared against the REAL FRED doc (agree_pct=100.0 on 10000 shared dates)
+## 6. data.html surfacing — kick provider-catalog, confirm the note appears
+
+- `17:39:52`   te-mirror note on data.html: independent copy: 47 series · mean cross-check vs FRED 100.0% agree
+- `17:39:52` ✅   [surface] provider card note is live
+## verdict
+
+- `17:39:52` ✅ standing engine live: hourly schedule, FRED separation PROVEN (not assumed), cross-check populated, data.html surfacing confirmed
