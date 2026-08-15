@@ -1,1063 +1,126 @@
-executing-against: 3b6b108bb5fb6df139fb08b4a996b20b8b6feb41
-ops 4718 — deep structural probe for justhodl-invest fixes
-── forward-returns.json — the get_spx_er() crash site ──
-[21:00:29]   data/forward-returns.json :: assets =
+executing-against: 306ee5d8a9f09d045b452ff637ee0eaeac18a5d9
+ops 4719 — canary-grid signal keys + portwatch chile_trace
+── All canary-grid signal keys ──
+[21:03:11]   'korea_exports'                  avail=False value=None       unit=%YoY     name=South Korea exports
+[21:03:11]   'china_exports'                  avail=False value=None       unit=%YoY     name=China exports
+[21:03:11]   'singapore_nodx'                 avail=True  value=20.71      unit=%YoY     name=Singapore NODX (trade + chip hub)
+[21:03:11]   'semiconductor_ip'               avail=True  value=11.47      unit=%YoY     name=Semiconductor production (chip cycle)
+[21:03:11]   'taiwan_export_orders'           avail=True  value=59.43      unit=%YoY     name=Taiwan export orders (tech-demand lead)
+[21:03:11]   'taiwan_semiconductor'           avail=True  value=27.91      unit=%YoY     name=Taiwan semiconductor production (chip cycle)
+[21:03:11]   'copper'                         avail=True  value=37.79      unit=%YoY     name=Copper price (Dr. Copper)
+[21:03:11]   'chile_exports'                  avail=False value=None       unit=%YoY     name=Chile exports (Dr. Copper supply side)
+[21:03:11]   'peru_copper'                    avail=True  value=2.38       unit=%YoY     name=Peru copper production (Dr. Copper supply)
+[21:03:11]   'lumber'                         avail=True  value=10.13      unit=%YoY     name=Lumber & wood (PPI)
+[21:03:11]   'chf_haven'                      avail=True  value=3.87       unit=%3m (CHF/USD) name=Swiss franc (haven bid)
+[21:03:11]   'mfg_hours'                      avail=True  value=1.46       unit=%YoY     name=US mfg average weekly hours
+[21:03:11]   'temp_help'                      avail=True  value=0.43       unit=%YoY     name=US temp-help employment
+[21:03:11]   'swiss_unemp'                    avail=False value=None       unit=ppt 6m   name=Switzerland unemployment
+[21:03:11]   'japan_mfg_orders'               avail=False value=None       unit=%YoY     name=Japan manufacturing orders (capex lead)
+[21:03:11]   'initial_claims'                 avail=True  value=199000.0   unit=claims   name=US initial jobless claims (4wk avg)
+[21:03:11]   'building_permits'               avail=True  value=-1.79      unit=%YoY     name=US building permits (housing lead)
+[21:03:11]   'yield_curve'                    avail=True  value=0.51       unit=ppt      name=Yield curve 10y-2y (recession lead)
+[21:03:11]   'hy_credit_oas'                  avail=True  value=2.71       unit=ppt      name=High-yield credit spread (OAS)
+[21:03:11]   'real_m2'                        avail=True  value=2.23       unit=%YoY     name=Real M2 money growth (monetary lead)
+[21:03:11]   'lending_standards'              avail=True  value=0.0        unit=net % tightening name=Bank lending standards (SLOOS)
+[21:03:11]   'finland_exports'                avail=False value=None       unit=%YoY     name=Finland exports (euro cyclical bellwether)
+[21:03:11]   'ppi_pulp_paper'                 avail=True  value=-5.19      unit=%YoY     name=PPI pulp & paper (packaging demand)
+[21:03:11]   'hqm_credit_spread'              avail=True  value=0.97       unit=ppt      name=HQM 10y - Treasury 10y credit spread
+[21:03:11]   'cfnai_activity'                 avail=True  value=-0.05      unit=index    name=Chicago Fed activity index (ISM/PMI proxy)
+[21:03:11]   'swap_line_usage'                avail=True  value=132.0      unit=$mn      name=Fed central-bank swap lines (offshore USD stress)
+[21:03:11]   'repo_sofr_iorb'                 avail=True  value=-0.03      unit=ppt      name=Repo rate stress (SOFR - IORB)
+[21:03:11]   'rrp_parking'                    avail=True  value=-1.78      unit=$bn 13w  name=Reverse repo 13w change (cash parking at the Fed)
+[21:03:11]   'bank_reserves'                  avail=True  value=-11.32     unit=%52wk    name=Bank reserves (system cash cushion)
+[21:03:11]   'cp3m_ff'                        avail=True  value=0.14       unit=ppt      name=3m commercial paper - fed funds (credit access)
+[21:03:11]   'bill4w_floor'                   avail=True  value=-0.01      unit=ppt      name=4-week T-bill vs IORB (flight to bills)
+[21:03:11]   'global_fx_reserves'             avail=True  value=0.97       unit=%12m     name=Global CB FX reserves ex-gold (CN+US+JP)
+[21:03:11]   'euribor3m'                      avail=True  value=0.4        unit=ppt 6m   name=3m Euribor repricing (euro rate path)
+[21:03:11]   'hyg_lqd'                        avail=True  value=2.11       unit=%3m      name=Junk vs IG credit (HYG/LQD)
+[21:03:11]   'fallen_angels_rs'               avail=True  value=0.28       unit=%3m      name=Fallen angels vs broad HY (ANGL/HYG)
+[21:03:11]   'hy_etf'                         avail=True  value=-0.18      unit=%3m      name=High-yield bond ETF tape (HYG)
+[21:03:11]   'acwi_tape'                      avail=True  value=3.6        unit=%3m      name=Global equity tape (MSCI ACWI)
+[21:03:11]   'em_vol'                         avail=True  value=25.48      unit=% ann.   name=Emerging-market volatility (EEM 21d realized)
+[21:03:11]   'global_consumer'                avail=True  value=2.01       unit=%3m      name=Global consumer discretionary (RXI proxy)
+[21:03:11]   'btp_bund'                       avail=True  value=0.76       unit=ppt      name=BTP-Bund spread (euro sovereign stress)
+[21:03:11]   'euro_hy_oas'                    avail=True  value=2.57       unit=ppt      name=Euro high-yield OAS (ICE BofA)
+[21:03:11]   'em_corp_oas'                    avail=True  value=1.39       unit=ppt      name=EM corporate bond OAS (ICE BofA)
+[21:03:11]   'em_hy_oas'                      avail=True  value=2.84       unit=ppt      name=EM high-yield OAS (ICE BofA)
+[21:03:11]   'us_hy_ytw'                      avail=True  value=7.13       unit=%        name=US HY semi-annual yield to worst
+[21:03:11]   'em_hy_ytw'                      avail=True  value=7.2        unit=%        name=EM HY semi-annual yield to worst
+[21:03:11]   'eu_curve_30_5'                  avail=True  value=0.8        unit=ppt      name=Euro AAA curve 30y-5y slope
+[21:03:11]   'global_metals'                  avail=True  value=27.6       unit=%YoY     name=Global metals price index (IMF)
+[21:03:11]   'chile_tot_proxy'                avail=True  value=13.91      unit=%YoY     name=Chile terms-of-trade proxy (copper/Brent)
+[21:03:11]   'peru_tot_proxy'                 avail=True  value=5.49       unit=%YoY     name=Peru terms-of-trade proxy (metals/Brent)
+[21:03:11]   'oil_term'                       avail=True  value=0.91       unit=$/bbl    name=Oil term structure (WTI front-2nd)
+[21:03:11]   'core_capex_orders'              avail=True  value=12.94      unit=%YoY     name=Core capex orders (nondef ex-aircraft)
+[21:03:11]   'mfg_capacity'                   avail=True  value=75.68      unit=%        name=Manufacturing capacity utilization
+[21:03:11]   'mfg_employment'                 avail=True  value=-0.11      unit=%YoY     name=Manufacturing employment
+[21:03:11]   'igrea_global'                   avail=True  value=45.18      unit=index    name=Global real activity (IGREA / dry-bulk shipping)
+[21:03:11]   'discount_window'                avail=True  value=5644.0     unit=$mn      name=Fed discount-window borrowing (stigma tell)
+[21:03:11]   'fin_cp_bill'                    avail=True  value=0.08       unit=ppt      name=Financial CP - 3m T-bill (TED successor)
+[21:03:11]   'bbb_aaa'                        avail=True  value=0.57       unit=ppt      name=BBB - AAA spread (fallen-angel pipeline)
+[21:03:11]   'curve_velocity'                 avail=True  value=0.04       unit=ppt 3m   name=2s10s bull-steepening velocity (the trigger)
+[21:03:11]   'bkln_hyg'                       avail=True  value=-0.26      unit=%3m      name=Leveraged loans vs HY (BKLN/HYG)
+[21:03:11]   'copper_gold'                    avail=True  value=6.38       unit=%3m      name=Copper/Gold ratio (growth vs fear)
+[21:03:11]   'smh_acwi'                       avail=True  value=-1.89      unit=%3m      name=Semiconductors vs world (SMH/ACWI)
+[21:03:11]   'move_vix'                       avail=True  value=3.78       unit=ratio    name=Bond vol vs equity vol (MOVE/VIX)
+[21:03:11]   'swiss_reserves'                 avail=True  value=15.31      unit=%12m     name=Swiss FX reserve assets (SNB, via IMF)
+[21:03:11]   'ea_reserves'                    avail=True  value=26.3       unit=%12m     name=Euro-area reserve assets (ECB, via IMF)
+[21:03:11]   'eurodollar_stress'              avail=True  value=15.4       unit=0-100 composite name=Eurodollar / USD funding stress
+── portwatch.json chile_trace ──
+[21:03:11]   chile_trace =
 {
-  "SPY": {
-    "ticker": "str: 'SPY'",
-    "name": "str: 'US Large-Cap Stocks (S&P 500)'",
-    "current_price": 773.26,
-    "trailing_dividend_yield_pct": 0.97,
-    "buyback_yield_assumption_pct": 2.0,
-    "nominal_growth_assumption_pct": 4.25,
-    "forward_er_10y_pct": 7.22,
-    "history_30y": {
-      "realized_cagr_pct": "<float>",
-      "er_median_pct": "<float>",
-      "er_p10_pct": "<float>",
-      "er_p90_pct": "<float>"
-    },
-    "current_vs_history_percentile": 53,
-    "verdict": "str: 'FAIR'",
-    "verdict_color": "str: '#fbbf24'",
-    "verdict_text": "str: 'Near the historical median (53th pct) \u2014 fairly priced.'",
-    "risk": {
-      "vol_pct_annualized": "<float>",
-      "worst_12mo_drawdown_pct": "<float>",
-      "prob_negative_10y_pct": "<float>",
-      "sharpe_vs_cash": "<float>"
-    },
-    "ten_k_in_10yr_usd": {
-      "central": "<int>",
-      "p10_bear": "<int>",
-      "p90_bull": "<int>"
-    },
-    "explainer_retail": "str: \"What you get from owning America's biggest companies. The lo\"",
-    "model_inputs": {
-      "macro": "<dict>"
-    }
-  },
-  "QQQ": {
-    "ticker": "str: 'QQQ'",
-    "name": "str: 'US Tech / NASDAQ-100'",
-    "current_price": 723.03,
-    "trailing_dividend_yield_pct": 0.42,
-    "buyback_yield_assumption_pct": 2.5,
-    "nominal_growth_assumption_pct": 5.25,
-    "forward_er_10y_pct": 8.17,
-    "history_30y": {
-      "realized_cagr_pct": "<float>",
-      "er_median_pct": "<float>",
-      "er_p10_pct": "<float>",
-      "er_p90_pct": "<float>"
-    },
-    "current_vs_history_percentile": 54,
-    "verdict": "str: 'FAIR'",
-    "verdict_color": "str: '#fbbf24'",
-    "verdict_text": "str: 'Near the historical median (54th pct) \u2014 fairly priced.'",
-    "risk": {
-      "vol_pct_annualized": "<float>",
-      "worst_12mo_drawdown_pct": "<float>",
-      "prob_negative_10y_pct": "<float>",
-      "sharpe_vs_cash": "<float>"
-    },
-    "ten_k_in_10yr_usd": {
-      "central": "<int>",
-      "p10_bear": "<int>",
-      "p90_bull": "<int>"
-    },
-    "explainer_retail": "str: 'Concentrated tech bet. Higher long-run growth than SPY but w'",
-    "model_inputs": {
-      "macro": "<dict>"
-    }
-  },
-  "IWM": {
-    "ticker": "str: 'IWM'",
-    "name": "str: 'US Small-Cap (Russell 2000)'",
-    "current_price": 301.56,
-    "trailing_dividend_yield_pct": 0.88,
-    "buyback_yield_assumption_pct": 1.0,
-    "nominal_growth_assumption_pct": 4.75,
-    "forward_er_10y_pct": 6.63,
-    "history_30y": {
-      "realized_cagr_pct": "<float>",
-      "er_median_pct": "<float>",
-      "er_p10_pct": "<float>",
-      "er_p90_pct": "<float>"
-    },
-    "current_vs_history_percentile": 34,
-    "verdict": "str: 'POOR'",
-    "verdict_color": "str: '#f97316'",
-    "verdict_text": "str: 'Bottom 66% of history \u2014 paying you less than usual.'",
-    "risk": {
-      "vol_pct_annualized": "<float>",
-      "worst_12mo_drawdown_pct": "<float>",
-      "prob_negative_10y_pct": "<float>",
-      "sharpe_vs_cash": "<float>"
-    },
-    "ten_k_in_10yr_usd": {
-[21:00:29]   data/forward-returns.json :: rankings =
-{
-  "by_forward_er": [
-    "str: 'BTC'",
-    "str: 'ETH'",
-    "str: 'QQQ'",
-    "str: 'EEM'",
-    "...+13 more"
+  "in_cand": [
+    "port56",
+    "port89",
+    "port90",
+    "port92",
+    "port208",
+    "port263",
+    "port499",
+    "port652",
+    "port728",
+    "port1031",
+    "port1058"
   ],
-  "by_sharpe": [
-    "str: 'BTC'",
-    "str: 'EFA'",
-    "str: 'EEM'",
-    "str: 'SPY'",
-    "...+13 more"
+  "in_query": [
+    "port56",
+    "port89",
+    "port90",
+    "port92",
+    "port208",
+    "port263",
+    "port499",
+    "port652",
+    "port728",
+    "port1031",
+    "port1058"
   ],
-  "by_opportunity_percentile": [
-    "str: 'BIL'",
-    "str: 'GLD'",
-    "str: 'SLV'",
-    "str: 'QQQ'",
-    "...+13 more"
+  "rows_returned": {
+    "port56": 393,
+    "port89": 393,
+    "port90": 393,
+    "port92": 393,
+    "port208": 393,
+    "port263": 393,
+    "port499": 393,
+    "port652": 393
+  },
+  "sample": [
+    [
+      "2026-08-05",
+      0.0
+    ],
+    [
+      "2026-08-06",
+      1.0
+    ],
+    [
+      "2026-08-07",
+      1.0
+    ]
   ]
 }
-── canary-grid.json — signals + sub_grids (copper, lumber, korea) ──
-[21:00:29]   data/canary-grid.json :: signals =
-[
-  {
-    "key": "str: 'korea_exports'",
-    "name": "str: 'South Korea exports'",
-    "sub_grid": "str: 'trade_shipping'",
-    "lead_months": 3,
-    "unit": "str: '%YoY'",
-    "available": false,
-    "as_of": "str: '2026-04-01'",
-    "age_days": 136,
-    "fred_series": "str: 'XTEXVA01KRM664S'",
-    "reason": "str: 'stale \u2014 latest reading is 136d old (>95d); excluded to keep '"
-  },
-  {
-    "key": "str: 'china_exports'",
-    "name": "str: 'China exports'",
-    "sub_grid": "str: 'trade_shipping'",
-    "lead_months": 3,
-    "unit": "str: '%YoY'",
-    "available": false,
-    "as_of": "str: '2026-04-01'",
-    "age_days": 136,
-    "fred_series": "str: 'XTEXVA01CNM664S'",
-    "reason": "str: 'stale \u2014 latest reading is 136d old (>95d); excluded to keep '"
-  },
-  {
-    "key": "str: 'singapore_nodx'",
-    "name": "str: 'Singapore NODX (trade + chip hub)'",
-    "sub_grid": "str: 'trade_shipping'",
-    "lead_months": 2,
-    "unit": "str: '%YoY'",
-    "available": true,
-    "value": 20.71,
-    "as_of": "str: '2026-06-28'",
-    "age_days": 48,
-    "stale_warning": false,
-    "fred_series": "str: 'feed:singapore-nodx:nodx_total.history'",
-    "transform": "str: 'yoy'",
-    "zscore": 1.48,
-    "stress": 17.4,
-    "read": "str: \"Singapore's NODX is growing \u2014 global trade and the electroni\""
-  },
-  {
-    "key": "str: 'semiconductor_ip'",
-    "name": "str: 'Semiconductor production (chip cycle)'",
-    "sub_grid": "str: 'trade_shipping'",
-    "lead_months": 3,
-    "unit": "str: '%YoY'",
-    "available": true,
-    "value": 11.47,
-    "as_of": "str: '2026-06-01'",
-    "age_days": 75,
-    "stale_warning": true,
-    "fred_series": "str: 'IPG3344S'",
-    "transform": "str: 'yoy'",
-    "zscore": 0.54,
-    "stress": 38.2,
-    "read": "str: 'Semiconductor output is expanding \u2014 the chip cycle is in an '"
-  },
-  "...+61 more"
-]
-[21:00:29]   data/canary-grid.json :: sub_grids =
-{
-  "trade_shipping": {
-    "label": "str: 'Trade & Shipping'",
-    "score": 21.4,
-    "band": "str: 'WATCH'",
-    "n_signals": 4,
-    "lead_months": 2.9
-  },
-  "commodity_cycle": {
-    "label": "str: 'Commodity Cycle'",
-    "score": 43.4,
-    "band": "str: 'ELEVATED'",
-    "n_signals": 9,
-    "lead_months": 2.5
-  },
-  "funding_plumbing": {
-    "label": "str: 'Funding Plumbing'",
-    "score": 44.8,
-    "band": "str: 'ELEVATED'",
-    "n_signals": 14,
-    "lead_months": 1.5
-  },
-  "labor_industrial": {
-    "label": "str: 'Labour & Industrial'",
-    "score": 41.0,
-    "band": "str: 'ELEVATED'",
-    "n_signals": 8,
-    "lead_months": 2.1
-  },
-  "rates_credit": {
-    "label": "str: 'Rates & Credit'",
-    "score": 34.7,
-    "band": "str: 'WATCH'",
-    "n_signals": 14,
-    "lead_months": 4.6
-  },
-  "global_risk": {
-    "label": "str: 'Global Risk Appetite'",
-    "score": 45.7,
-    "band": "str: 'ELEVATED'",
-    "n_signals": 10,
-    "lead_months": 0.9
-  }
-}
-── portwatch.json — where does Korea live? ──
-[21:00:29]   data/portwatch.json :: ports =
-[
-  {
-    "id": "str: 'port1188'",
-    "name": "str: 'Shanghai'",
-    "country": "str: 'China'",
-    "latest_7d_avg": 67.6,
-    "prev_30d_avg": 80.4,
-    "baseline_1y": 108.8,
-    "z": -1.95,
-    "vs_baseline_pct": -37.9,
-    "yoy_pct": -49.6,
-    "n_days": 393,
-    "last_date": "str: '2026-08-07'",
-    "status": "str: 'DISRUPTED'",
-    "industry_exposure": {
-      "available": "<bool>",
-      "country_matched": "<str>",
-      "port_yoy_pct": "<float>",
-      "n_industries": "<int>",
-      "top_industry": "<str>",
-      "industries": "<list>",
-      "method": "<str>",
-      "limits": "<str>"
-    }
-  },
-  {
-    "id": "str: 'port518'",
-    "name": "str: 'Jeddah'",
-    "country": "str: 'Saudi Arabia'",
-    "latest_7d_avg": 3.0,
-    "prev_30d_avg": 7.3,
-    "baseline_1y": 8.7,
-    "z": -1.88,
-    "vs_baseline_pct": -65.4,
-    "yoy_pct": -66.1,
-    "n_days": 393,
-    "last_date": "str: '2026-08-07'",
-    "status": "str: 'DISRUPTED'",
-    "industry_exposure": {
-      "available": "<bool>",
-      "reason": "<str>"
-    }
-  },
-  {
-    "id": "str: 'port2027'",
-    "name": "str: 'Shanghai (Yangshan)'",
-    "country": "str: 'China'",
-    "latest_7d_avg": 9.1,
-    "prev_30d_avg": 10.9,
-    "baseline_1y": 15.5,
-    "z": -1.8,
-    "vs_baseline_pct": -40.9,
-    "yoy_pct": -46.7,
-    "n_days": 393,
-    "last_date": "str: '2026-08-07'",
-    "status": "str: 'DISRUPTED'",
-    "industry_exposure": {
-      "available": "<bool>",
-      "country_matched": "<str>",
-      "port_yoy_pct": "<float>",
-      "n_industries": "<int>",
-      "top_industry": "<str>",
-      "industries": "<list>",
-      "method": "<str>",
-      "limits": "<str>"
-    }
-  },
-  {
-    "id": "str: 'port570'",
-    "name": "str: 'Yanbu (King Fahd Port)'",
-    "country": "str: 'Saudi Arabia'",
-    "latest_7d_avg": 0.3,
-    "prev_30d_avg": 4.8,
-    "baseline_1y": 4.4,
-    "z": -1.66,
-    "vs_baseline_pct": -93.5,
-    "yoy_pct": -92.3,
-    "n_days": 393,
-    "last_date": "str: '2026-08-07'",
-    "status": "str: 'DISRUPTED'",
-    "industry_exposure": {
-      "available": "<bool>",
-      "reason": "<str>"
-    }
-  },
-  "...+85 more"
-]
-[21:00:29]   data/portwatch.json :: exporters =
-[
-  {
-    "code": "str: 'SAU'",
-    "country": "str: 'Saudi Arabia'",
-    "n_ports": 6,
-    "ports": [
-      "<str>",
-      "<str>",
-      "<str>",
-      "<str>"
-    ],
-    "avg_vs_baseline_pct": -72.5,
-    "avg_z": -1.12,
-    "verdict": "str: 'SLOWING'"
-  },
-  {
-    "code": "str: 'ARE'",
-    "country": "str: 'UAE'",
-    "n_ports": 2,
-    "ports": [
-      "<str>",
-      "<str>"
-    ],
-    "avg_vs_baseline_pct": -49.5,
-    "avg_z": -0.72,
-    "verdict": "str: 'SLOWING'"
-  },
-  {
-    "code": "str: 'MEX'",
-    "country": "str: 'Mexico'",
-    "n_ports": 3,
-    "ports": [
-      "<str>",
-      "<str>",
-      "<str>"
-    ],
-    "avg_vs_baseline_pct": -32.6,
-    "avg_z": -0.11,
-    "verdict": "str: 'SLOWING'"
-  },
-  {
-    "code": "str: 'FIN'",
-    "country": "str: 'Finland'",
-    "n_ports": 3,
-    "ports": [
-      "<str>",
-      "<str>",
-      "<str>"
-    ],
-    "avg_vs_baseline_pct": -26.9,
-    "avg_z": -0.41,
-    "verdict": "str: 'SLOWING'"
-  },
-  "...+20 more"
-]
-[21:00:29]   data/portwatch.json :: chokepoints =
-[
-  {
-    "id": "str: 'chokepoint28'",
-    "name": "str: 'Kerch Strait'",
-    "latest_7d_avg": 0.1,
-    "prev_30d_avg": 2.2,
-    "baseline_1y": 13.7,
-    "z": -1.58,
-    "vs_baseline_pct": -99.0,
-    "yoy_pct": -99.2,
-    "n_days": 395,
-    "last_date": "str: '2026-08-09'",
-    "status": "str: 'DISRUPTED'"
-  },
-  {
-    "id": "str: 'chokepoint4'",
-    "name": "str: 'Bab el-Mandeb Strait'",
-    "latest_7d_avg": 25.1,
-    "prev_30d_avg": 32.6,
-    "baseline_1y": 35.0,
-    "z": -1.49,
-    "vs_baseline_pct": -28.1,
-    "yoy_pct": -29.2,
-    "n_days": 395,
-    "last_date": "str: '2026-08-09'",
-    "status": "str: 'DISRUPTED'"
-  },
-  {
-    "id": "str: 'chokepoint3'",
-    "name": "str: 'Bosporus Strait'",
-    "latest_7d_avg": 62.9,
-    "prev_30d_avg": 71.7,
-    "baseline_1y": 87.6,
-    "z": -1.4,
-    "vs_baseline_pct": -28.2,
-    "yoy_pct": -27.3,
-    "n_days": 395,
-    "last_date": "str: '2026-08-09'",
-    "status": "str: 'DISRUPTED'"
-  },
-  {
-    "id": "str: 'chokepoint6'",
-    "name": "str: 'Strait of Hormuz'",
-    "latest_7d_avg": 4.4,
-    "prev_30d_avg": 6.4,
-    "baseline_1y": 39.9,
-    "z": -1.05,
-    "vs_baseline_pct": -88.9,
-    "yoy_pct": -93.8,
-    "n_days": 395,
-    "last_date": "str: '2026-08-09'",
-    "status": "str: 'DISRUPTED'"
-  },
-  "...+24 more"
-]
-── asia-leads.json — taiwan_orders full shape (korea_exports already proven working) ──
-[21:00:29]   data/asia-leads.json :: taiwan_orders =
-{
-  "source": "str: 'https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713'",
-  "label": "str: 'Taiwan export orders (MOEA via DGBAS point page)'",
-  "latest_usd_bn": 95.26,
-  "yoy_pct": null,
-  "period": "str: 'Jun. 2026'",
-  "error": null,
-  "via_stage1": "str: 'edge'",
-  "stage2": "str: 'https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713&'",
-  "via_stage2": "str: 'edge'",
-  "raw_head": "str: '       Import on customs basis Growth Rate       Export on c'",
-  "stage3_candidates": [
-    {
-      "u": "<str>",
-      "label": "<str>"
-    },
-    {
-      "u": "<str>",
-      "label": "<str>"
-    },
-    {
-      "u": "<str>",
-      "label": "<str>"
-    },
-    {
-      "u": "<str>",
-      "label": "<str>"
-    },
-    "...+2 more"
-  ],
-  "stage3_tried": [
-    {
-      "u": "<str>",
-      "label": "<str>",
-      "via": "<str>",
-      "bytes": "<int>",
-      "hit": "<bool>"
-    },
-    {
-      "u": "<str>",
-      "label": "<str>",
-      "via": "<str>",
-      "bytes": "<int>",
-      "hit": "<bool>"
-    },
-    {
-      "u": "<str>",
-      "label": "<str>",
-      "via": "<str>",
-      "bytes": "<int>",
-      "hit": "<bool>"
-    }
-  ],
-  "stage4_tried": [
-    {
-      "u": "<str>",
-      "via": "<str>",
-      "bytes": "<int>",
-      "hit": "<bool>"
-    },
-    {
-      "u": "<str>",
-      "via": "<str>",
-      "bytes": "<int>",
-      "hit": "<bool>"
-    }
-  ],
-  "stage5_endpoints": [
-    {
-      "u": "<str>",
-      "src_frame": "<str>"
-    },
-    {
-      "u": "<str>",
-      "src_frame": "<str>"
-    }
-  ],
-  "stage5_tried": [
-    {
-      "u": "<str>",
-      "via": "<str>",
-      "bytes": "<int>",
-      "json": "<bool>",
-      "hit": "<bool>",
-      "head": "<str>"
-    },
-    {
-      "u": "<str>",
-      "via": "<str>",
-      "bytes": "<int>",
-      "json": "<bool>",
-      "hit": "<bool>",
-      "head": "<str>"
-    }
-  ],
-  "stage6_sitesns": [
-    "str: '464'"
-  ],
-  "stage6_tried": [
-    {
-      "sn": "<str>",
-      "via": "<str>",
-      "bytes": "<int>",
-      "hit": "<bool>",
-      "titles": "<list>",
-      "item_blob": "<str>"
-    }
-  ],
-  "v17": true,
-  "stage6_hit": {
-    "sn": "str: '464'",
-    "title": "str: 'Value of Export Orders'"
-  },
-  "levels_cached": 2
-}
-[21:00:29]   data/asia-leads.json :: taiwan_exports =
-{
-  "source": "str: 'FRED VALEXPTWM052N'",
-  "label": "str: 'Taiwan goods exports (monthly)'",
-  "frequency": "str: 'M'",
-  "last_period": "str: '2026-05-01'",
-  "last_value": 78596.0,
-  "yoy_pct": 48.33,
-  "chg_3m_pct": 57.36,
-  "n_obs": 137,
-  "history_24m": [
-    {
-      "p": "<str>",
-      "v": "<float>"
-    },
-    {
-      "p": "<str>",
-      "v": "<float>"
-    },
-    {
-      "p": "<str>",
-      "v": "<float>"
-    },
-    {
-      "p": "<str>",
-      "v": "<float>"
-    },
-    "...+20 more"
-  ],
-  "note": "str: 'Proxy for MOEA export ORDERS (orders lead shipments); direct'"
-}
-[21:00:29]   data/asia-leads.json :: korea_exports =
-{
-  "source": "str: 'FRED XTEXVA01KRM667N'",
-  "label": "str: 'Korea merchandise exports (monthly, NSA)'",
-  "frequency": "str: 'M'",
-  "last_period": "str: '2026-04-01'",
-  "last_value": 85867480000.0,
-  "yoy_pct": 47.96,
-  "chg_3m_pct": 30.41,
-  "n_obs": 136,
-  "history_24m": [
-    {
-      "p": "<str>",
-      "v": "<float>"
-    },
-    {
-      "p": "<str>",
-      "v": "<float>"
-    },
-    {
-      "p": "<str>",
-      "v": "<float>"
-    },
-    {
-      "p": "<str>",
-      "v": "<float>"
-    },
-    "...+20 more"
-  ],
-  "note": "str: '20-day customs flash (the true nowcast) requires a free Bank'"
-}
-── china-liquidity.json — tsf ──
-[21:00:29]   data/china-liquidity.json :: tsf =
-{
-  "source_annual": "str: 'DBnomics NBS/A_A0L08'",
-  "annual_composition": [
-    {
-      "code": "<str>",
-      "name": "<str>",
-      "frequency": "<str>",
-      "last_period": "<str>",
-      "last_value": "<float>",
-      "yoy_pct": "<float>"
-    },
-    {
-      "code": "<str>",
-      "name": "<str>",
-      "frequency": "<str>",
-      "last_period": "<str>",
-      "last_value": "<float>",
-      "yoy_pct": "<float>"
-    },
-    {
-      "code": "<str>",
-      "name": "<str>",
-      "frequency": "<str>",
-      "last_period": "<str>",
-      "last_value": "<float>",
-      "yoy_pct": "<float>"
-    },
-    {
-      "code": "<str>",
-      "name": "<str>",
-      "frequency": "<str>",
-      "last_period": "<str>",
-      "last_value": "<float>",
-      "yoy_pct": "<float>"
-    },
-    "...+4 more"
-  ],
-  "monthly": null,
-  "note": "str: 'Real NBS Total Social Financing \u2014 replaces the money-acceler'",
-  "pboc_monthly": {
-    "source": "str: 'http://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html'",
-    "latest_report": {
-      "title": "<str>",
-      "url": "<str>",
-      "attachment": "<NoneType>",
-      "header": "<NoneType>",
-      "n_rows_parsed": "<int>"
-    },
-    "series": null,
-    "error": null,
-    "note": "str: 'PBoC EN monthly AFRE Flow report (units: 100 million yuan). '",
-    "rows": []
-  },
-  "pboc_cn": {
-    "label": "str: 'PBoC CN TSF monthly flow (\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf)'",
-    "period": "str: '2025-01..08 (cum)'",
-    "flow_trn_cny": 26.56,
-    "yoy_delta_trn": 4.66,
-    "title": "str: '2025\u5e748\u6708\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u6570\u636e\u62a5\u544a'",
-    "url": "str: 'http://www.pbc.gov.cn/diaochatongjisi/116219/116225/523c260b'",
-    "via": "str: 'edge'",
-    "candidates": [
-      "<dict>",
-      "<dict>",
-      "<dict>",
-      "<dict>",
-      "...+3 more"
-    ],
-    "error": null,
-    "js_files": [],
-    "body_probe": "str: '<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E'",
-    "content_refs": [
-      "<str>",
-      "<str>",
-      "<str>",
-      "<str>",
-      "...+4 more"
-    ],
-    "cumulative": true
-  }
-}
-[21:00:29]   data/china-liquidity.json :: credit_impulse =
-{
-  "value_pp": -5.52,
-  "is_proxy": true,
-  "definition": "str: 'acceleration of money-supply YoY growth (pp change). A free '",
-  "signal": "str: 'credit decelerating \u2014 forward headwind'"
-}
-── port-cargo.json — global_pulse ──
-[21:00:29]   data/port-cargo.json :: global_pulse =
-{
-  "import_tpd_7d": 32038460,
-  "export_tpd_7d": 29811782,
-  "total_chg_pct": -3.89
-}
-── freight-pulse.json — composite ──
-[21:00:29]   data/freight-pulse.json :: composite =
-47.4
-── grid-queue.json — national, queue_velocity, planned_capacity ──
-[21:00:29]   data/grid-queue.json :: national =
-{
-  "primary_metric": "str: 'mw_with_executed_ia'",
-  "mw_with_executed_ia": 202469.5,
-  "ia_measured_isos": [
-    "str: 'CAISO'",
-    "str: 'NYISO'",
-    "str: 'MISO'",
-    "str: 'SPP'",
-    "...+1 more"
-  ],
-  "headline_queue_mw": 1195315.0,
-  "headline_risk_adjusted_mw": 155391.0,
-  "isos_live": [
-    "str: 'CAISO'",
-    "str: 'ERCOT'",
-    "str: 'MISO'",
-    "str: 'NYISO'",
-    "...+1 more"
-  ],
-  "isos_missing": [
-    "str: 'ISO-NE'",
-    "str: 'PJM'"
-  ],
-  "n_isos_live": 5,
-  "assumption": "str: \"headline_risk_adjusted applies LBNL's ~13%% all-request comp\"",
-  "blind_spot": "str: 'large-LOAD (datacenter) interconnection is handled outside g'"
-}
-[21:00:29]   data/grid-queue.json :: queue_velocity =
-{
-  "status": "str: 'LIVE'",
-  "n_snapshots": 6,
-  "span_days": 5,
-  "national_ia_mw_per_month": 913.2,
-  "national_headline_mw_per_month": 8317.4,
-  "per_iso_ia_mw_per_month": {
-    "CAISO": -1522.0,
-    "NYISO": 0.0,
-    "MISO": 0.0,
-    "SPP": 2435.2,
-    "ERCOT": 0.0
-  },
-  "method": "str: '\u0394 vs oldest archived snapshot, scaled to MW/month; the archi'"
-}
-[21:00:29]   data/grid-queue.json :: planned_capacity =
-{
-  "period": "str: '2026-05'",
-  "uprate_by_state": {
-    "NJ": 206.7,
-    "WA": 162.0,
-    "CA": 61.3,
-    "AL": 55.9,
-    "SC": 53.0,
-    "OR": 51.6,
-    "OK": 34.0,
-    "MO": 22.0,
-    "KS": 18.0,
-    "AZ": 17.0,
-    "ID": 12.0,
-    "MT": 10.1,
-    "CT": 7.5,
-    "AK": 0.0,
-    "TX": 0.0,
-    "MN": 0.0,
-    "KY": 0.0,
-    "NE": 0.0,
-    "NY": 0.0,
-    "FL": 0.0
-  },
-  "uprate_by_sector": {
-    "electric-utility": 496.89999999999986,
-    "ipp-non-chp": 214.2,
-    "commercial-non-chp": 0.0,
-    "ipp-chp": 0.0,
-    "industrial-chp": 0.0,
-    "commercial-chp": 0.0
-  },
-  "industrial_plants": [
-    {
-      "state": "<str>",
-      "entity": "<str>",
-      "plant": "<str>",
-      "county": "<NoneType>",
-      "tech": "<str>",
-      "capacity_mw": "<float>",
-      "sector": "<str>"
-    },
-    {
-      "state": "<str>",
-      "entity": "<str>",
-      "plant": "<str>",
-      "county": "<NoneType>",
-      "tech": "<str>",
-      "capacity_mw": "<float>",
-      "sector": "<str>"
-    },
-    {
-      "state": "<str>",
-      "entity": "<str>",
-      "plant": "<str>",
-      "county": "<NoneType>",
-      "tech": "<str>",
-      "capacity_mw": "<float>",
-      "sector": "<str>"
-    },
-    {
-      "state": "<str>",
-      "entity": "<str>",
-      "plant": "<str>",
-      "county": "<NoneType>",
-      "tech": "<str>",
-      "capacity_mw": "<float>",
-      "sector": "<str>"
-    },
-    "...+1 more"
-  ],
-  "n_industrial": 5,
-  "upcoming_uprates": []
-}
-── pjm-grid.json — load, forecast, ai_demand_read ──
-[21:00:29]   data/pjm-grid.json :: load =
-{
-  "current_gw": 112.52,
-  "current_ts_ept": "str: '2026-08-13T23:05'",
-  "avg_24h_gw": 113.19,
-  "momentum_8d_pct": -4.79,
-  "n_obs": 2000
-}
-[21:00:29]   data/pjm-grid.json :: forecast =
-{
-  "peak_gw": 137.42,
-  "peak_at_ept": "str: '2026-08-17T17:00:00'",
-  "current_vs_peak_pct": 81.9
-}
-[21:00:29]   data/pjm-grid.json :: ai_demand_read =
-"str: 'RTO demand -4.79% over 8 days \u2014 contracting electricity pull'"
-── construction-housing.json — signals, cycle_score ──
-[21:00:30]   data/construction-housing.json :: signals =
-[
-  "str: 'Starts +3.5% YoY'",
-  "str: 'New-home sales -5.6% YoY \u2014 demand soft'",
-  "str: \"Months' supply 9.3 \u2014 inventory heavy\"",
-  "str: 'Builder input costs +10.5% YoY'"
-]
-[21:00:30]   data/construction-housing.json :: cycle_score =
--1
-── taiwan-moea.json — export_orders, semiconductor ──
-[21:00:30]   data/taiwan-moea.json :: export_orders =
-{
-  "latest_period": "str: '2026-06'",
-  "latest_value": 95262.0,
-  "yoy_pct": 59.43,
-  "yoy_3mma_pct": 51.57,
-  "yoy_z_5y": 2.24,
-  "history": [
-    {
-      "p": "<str>",
-      "v": "<float>"
-    },
-    {
-      "p": "<str>",
-      "v": "<float>"
-    },
-    {
-      "p": "<str>",
-      "v": "<float>"
-    },
-    {
-      "p": "<str>",
-      "v": "<float>"
-    },
-    "...+56 more"
-  ],
-  "n": 510,
-  "unit": "str: '\u767e\u842c\u7f8e\u5143'",
-  "series": "str: 'Taiwan export orders \u2014 grand total (US$)'",
-  "read": "str: 'EXPANDING \u2014 global tech demand firm'"
-}
-[21:00:30]   data/taiwan-moea.json :: semiconductor =
-{
-  "production": {
-    "latest_period": "str: '2026-05'",
-    "latest_value": 855718330.0,
-    "yoy_pct": 27.91,
-    "yoy_3mma_pct": 26.15,
-    "yoy_z_5y": 1.0,
-    "history": [
-      "<dict>",
-      "<dict>",
-      "<dict>",
-      "<dict>",
-      "...+56 more"
-    ],
-    "n": 533,
-    "series": "str: 'Taiwan electronic-components production (semiconductor bellw'",
-    "read": "str: 'UP-LEG \u2014 chip cycle expanding'"
-  },
-  "inventory": {
-    "latest_period": "str: '2026-05'",
-    "latest_value": 586417422.0,
-    "yoy_pct": 64.4,
-    "yoy_3mma_pct": 52.29,
-    "yoy_z_5y": 1.38,
-    "history": [
-      "<dict>",
-      "<dict>",
-      "<dict>",
-      "<dict>",
-      "...+56 more"
-    ],
-    "n": 533,
-    "series": "str: 'Taiwan electronic-components inventory (scarcity/glut tell)'"
-  }
-}
-── industry-boom.json — full label list (need Homebuilding/Industrial-Machinery equivalents) ──
-[21:00:30]   132 labels:
-Advertising Agencies
-Aerospace & Defense
-Agricultural - Machinery
-Agricultural Farm Products
-Agricultural Inputs
-Airlines, Airports & Air Services
-Apparel - Footwear & Accessories
-Apparel - Manufacturers
-Apparel - Retail
-Asset Management - Cryptocurrency
-Auto - Dealerships
-Auto - Manufacturers
-Auto - Parts
-Banks - Diversified
-Banks - Regional
-Beverages - Alcoholic
-Beverages - Non-Alcoholic
-Beverages - Wineries & Distilleries
-Biotechnology
-Broadcasting
-Chemicals
-Chemicals - Specialty
-Communication Equipment
-Computer Hardware
-Conglomerates
-Construction
-Construction Materials
-Consulting Services
-Consumer Electronics
-Copper
-Department Stores
-Discount Stores
-Diversified Utilities
-Drug Manufacturers - General
-Drug Manufacturers - Specialty & Generic
-Education & Training Services
-Electrical Equipment & Parts
-Electronic Gaming & Multimedia
-Engineering & Construction
-Entertainment
-Financial - Capital Markets
-Financial - Credit Services
-Financial - Data & Stock Exchanges
-Financial - Mortgages
-Food Confectioners
-Food Distribution
-Furnishings, Fixtures & Appliances
-Gambling, Resorts & Casinos
-Gold
-Grocery Stores
-Hardware, Equipment & Parts
-Home Improvement
-Household & Personal Products
-Independent Power Producers
-Industrial - Distribution
-Industrial - Machinery
-Industrial - Pollution & Treatment Controls
-Industrial Materials
-Information Technology Services
-Insurance - Brokers
-Insurance - Diversified
-Insurance - Life
-Insurance - Property & Casualty
-Insurance - Reinsurance
-Insurance - Specialty
-Integrated Freight & Logistics
-Internet Content & Information
-Investment - Banking & Investment Services
-Leisure
-Luxury Goods
-Manufacturing - Metal Fabrication
-Manufacturing - Tools & Accessories
-Marine Shipping
-Medical - Care Facilities
-Medical - Devices
-Medical - Diagnostics & Research
-Medical - Distribution
-Medical - Equipment & Services
-Medical - Healthcare Information Services
-Medical - Healthcare Plans
-Medical - Instruments & Supplies
-Medical - Pharmaceuticals
-Medical - Specialties
-Oil & Gas Equipment & Services
-Oil & Gas Exploration & Production
-Oil & Gas Integrated
-Oil & Gas Midstream
-Oil & Gas Refining & Marketing
-Other Precious Metals
-Packaged Foods
-Packaging & Containers
-Paper, Lumber & Forest Products
-Personal Products & Services
-Publishing
-REIT - Diversified
-REIT - Healthcare Facilities
-REIT - Hotel & Motel
-REIT - Industrial
-REIT - Mortgage
-REIT - Office
-REIT - Residential
-REIT - Retail
-REIT - Specialty
-Railroads
-Real Estate - Development
-Real Estate - Services
-Regulated Electric
-Regulated Gas
-Regulated Water
-Renewable Utilities
-Rental & Leasing Services
-Residential Construction
-Restaurants
-Security & Protection Services
-Semiconductors
-Silver
-Software - Application
-Software - Infrastructure
-Software - Services
-Solar
-Specialty Business Services
-Specialty Retail
-Staffing & Employment Services
-Steel
-Technology Distributors
-Telecommunications Services
-Tobacco
-Travel Lodging
-Travel Services
-Trucking
-Uranium
-Waste Management
 ── Done ──
-[21:00:30] ✅ deep shape probe complete — fix causal_graph.py / lambda_function.py from the Log above
+[21:03:11] ✅ final shapes captured
 
-→ Report written to aws/ops/reports/latest/4718_invest_deep_shape_probe.md
+→ Report written to aws/ops/reports/latest/4719_invest_final_shapes.md
