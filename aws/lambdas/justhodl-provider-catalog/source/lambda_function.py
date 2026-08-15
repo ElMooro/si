@@ -529,6 +529,31 @@ def lambda_handler(event, context):
                           _dep["keys"],
                           (ser or {}).get("count") or _dep["keys"]))
             note = (note + " · " + _note_d) if note else _note_d
+        if slug == "fred":
+            # Khalid: surface the TE-mirrored ICE data AS EXTRA
+            # datasets under the FRED card, never overwriting the
+            # direct-FRED count (_fi/ser["count"] above are untouched
+            # by this block — this only appends a note fragment).
+            try:
+                _tm = _get_json("data/warm/te-mirror/_index.json")
+                _syms = _tm.get("symbols") or {}
+                _baml = {k: v for k, v in _syms.items()
+                        if k.startswith("BAML")}
+                if _baml:
+                    _ap = [v.get("agree_pct") for v in _baml.values()
+                          if v.get("agree_pct") is not None]
+                    _mean_ap = (round(sum(_ap) / len(_ap), 1)
+                               if _ap else None)
+                    _note_te = ("+ %d ICE BofA series independently "
+                               "cross-validated via Trading Economics "
+                               "mirror (%s%% agree)"
+                               % (len(_baml),
+                                  _mean_ap if _mean_ap is not None
+                                  else "—"))
+                    note = (note + " · " + _note_te) if note \
+                        else _note_te
+            except Exception:
+                pass
         if slug == "te-mirror":
             try:
                 _tx = json.loads(s3.get_object(
