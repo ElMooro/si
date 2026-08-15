@@ -1,7 +1,12 @@
-executing-against: 7e41e09d58fcd2a1795bc507d0e1df0c2754a2e1
-ops 4727 — probe institutional-edge engine outputs
-[23:42:04] ── insider_industry_cluster (guessed: data/insider-industry-cluster.json) ──
-[23:42:04] ✅   data/insider-industry-cluster.json: FOUND. Shape:
+# ops 4727 — probe institutional-edge engine outputs
+
+**Status:** success  
+**Duration:** 0.7s  
+**Finished:** 2026-08-15T23:42:05+00:00  
+
+## Log
+- `23:42:04` ── insider_industry_cluster (guessed: data/insider-industry-cluster.json) ──
+- `23:42:04` ✅   data/insider-industry-cluster.json: FOUND. Shape:
 {
   "version": "str: '1.1.0'",
   "generated_at": "str: '2026-08-15T14:20:48.291987+00:00'",
@@ -91,8 +96,8 @@ ops 4727 — probe institutional-edge engine outputs
   "method": "str: 'Breadth is DISTINCT COMPANIES, not transactions or dollars \u2014'",
   "attribution": "str: 'SEC EDGAR Form 4 via justhodl-insider-cluster-scanner; indus'"
 }
-[23:42:04] ── credit_before_equity (guessed: data/credit-before-equity.json) ──
-[23:42:04] ✅   data/credit-before-equity.json: FOUND. Shape:
+- `23:42:04` ── credit_before_equity (guessed: data/credit-before-equity.json) ──
+- `23:42:04` ✅   data/credit-before-equity.json: FOUND. Shape:
 {
   "version": "str: '1.0.0'",
   "generated_at": "str: '2026-08-15T22:35:41.862666+00:00'",
@@ -215,8 +220,8 @@ ops 4727 — probe institutional-edge engine outputs
       "equity_flat": "<bool>",
       "signal": "<str>",
       "prior_obs_da
-[23:42:04] ── sector_flow_state (guessed: data/sector-flow-state.json) ──
-[23:42:04] ✅   data/sector-flow-state.json: FOUND. Shape:
+- `23:42:04` ── sector_flow_state (guessed: data/sector-flow-state.json) ──
+- `23:42:04` ✅   data/sector-flow-state.json: FOUND. Shape:
 {
   "engine": "str: 'justhodl-sector-flow-state'",
   "version": "str: '1.1.0'",
@@ -321,8 +326,8 @@ ops 4727 — probe institutional-edge engine outputs
   "methodology": "str: 'Fused per-sector conviction = rotation_score + RRG-quadrant '",
   "consumers": "str: 'deal-scanner, master-ranker, best-setups, bottleneck-boom (m'"
 }
-[23:42:04] ── cftc_deep_view (guessed: data/cftc-deep-view.json) ──
-[23:42:04] ✅   data/cftc-deep-view.json: FOUND. Shape:
+- `23:42:04` ── cftc_deep_view (guessed: data/cftc-deep-view.json) ──
+- `23:42:04` ✅   data/cftc-deep-view.json: FOUND. Shape:
 {
   "engine": "str: 'cftc-deep-view'",
   "version": "str: '1.0.0'",
@@ -437,8 +442,8 @@ ops 4727 — probe institutional-edge engine outputs
     "str: 'Wang (2003). The behavior and performance of major types of '",
     "str: 'de Roon, Nijman, Veld (2000). Hedging pressure effects in fu'",
     "str: 'Bessembinder & Chan (1992). Time-varying risk p
-[23:42:04] ── cot_extremes (guessed: data/cot-extremes.json) ──
-[23:42:04] ✅   data/cot-extremes.json: FOUND. Shape:
+- `23:42:04` ── cot_extremes (guessed: data/cot-extremes.json) ──
+- `23:42:04` ✅   data/cot-extremes.json: FOUND. Shape:
 {
   "engine": "str: 'cot-extremes'",
   "version": "str: '1.0.0'",
@@ -449,8 +454,8 @@ ops 4727 — probe institutional-edge engine outputs
   "extremes": [],
   "divergences": []
 }
-[23:42:04] ── etf_fund_flows (guessed: etf-flows/composite.json) ──
-[23:42:04] ✅   etf-flows/composite.json: FOUND. Shape:
+- `23:42:04` ── etf_fund_flows (guessed: etf-flows/composite.json) ──
+- `23:42:04` ✅   etf-flows/composite.json: FOUND. Shape:
 {
   "generated_at": "str: '2026-08-15T22:00:25.726840+00:00'",
   "universe_size": 300,
@@ -520,8 +525,8 @@ ops 4727 — probe institutional-edge engine outputs
   },
   "divergence_signals_logged": 2
 }
-[23:42:04] ── stealth_accumulation (guessed: data/stealth-accumulation.json) ──
-[23:42:04] ✅   data/stealth-accumulation.json: FOUND. Shape:
+- `23:42:04` ── stealth_accumulation (guessed: data/stealth-accumulation.json) ──
+- `23:42:04` ✅   data/stealth-accumulation.json: FOUND. Shape:
 {
   "engine": "str: 'stealth-accumulation'",
   "version": "str: '1.2.0'",
@@ -667,8 +672,8 @@ ops 4727 — probe institutional-edge engine outputs
     },
     {
       "ticker": "<str>"
-[23:42:04] ── dealer_gex (guessed: data/dealer-gex.json) ──
-[23:42:04] ✅   data/dealer-gex.json: FOUND. Shape:
+- `23:42:04` ── dealer_gex (guessed: data/dealer-gex.json) ──
+- `23:42:04` ✅   data/dealer-gex.json: FOUND. Shape:
 {
   "generated_at": "str: '2026-08-14T21:07:22.984329+00:00'",
   "generated_at_unix": 1786741642,
@@ -789,8 +794,8 @@ ops 4727 — probe institutional-edge engine outputs
       "total_call_volume": "<int>",
       "total_put_volume": "<int>",
       "pcr_oi":
-[23:42:04] ── finra_short (guessed: data/finra-short.json) ──
-[23:42:04] ✅   data/finra-short.json: FOUND. Shape:
+- `23:42:04` ── finra_short (guessed: data/finra-short.json) ──
+- `23:42:04` ✅   data/finra-short.json: FOUND. Shape:
 {
   "generated_at": "str: '2026-08-15T01:00:33.810763+00:00'",
   "generated_at_unix": 1786755633,
@@ -930,8 +935,8 @@ ops 4727 — probe institutional-edge engine outputs
       "z_score": "<float>",
       "short_volume": "<float>",
  
-[23:42:04] ── squeeze_fuel (guessed: data/squeeze-fuel.json) ──
-[23:42:05] ✅   data/squeeze-fuel.json: FOUND. Shape:
+- `23:42:04` ── squeeze_fuel (guessed: data/squeeze-fuel.json) ──
+- `23:42:05` ✅   data/squeeze-fuel.json: FOUND. Shape:
 {
   "engine": "str: 'justhodl-squeeze-fuel'",
   "version": "str: '1.0.0'",
@@ -1067,8 +1072,8 @@ ops 4727 — probe institutional-edge engine outputs
     "short_interest": "str: 'FINRA Consolidated Short Interest API (official, bi-monthly)'",
     "fails_to_deliver": "str: 'SEC CNS fails-to-deliver (semi-monthly)'",
     "daily_short_volume": "str: 'justhodl-finra-short (FINRA Reg
-[23:42:05] ── congress_direct (guessed: data/congress-direct.json) ──
-[23:42:05] ✅   data/congress-direct.json: FOUND. Shape:
+- `23:42:05` ── congress_direct (guessed: data/congress-direct.json) ──
+- `23:42:05` ✅   data/congress-direct.json: FOUND. Shape:
 {
   "ok": true,
   "version": "str: '1.0.2'",
@@ -1110,8 +1115,8 @@ ops 4727 — probe institutional-edge engine outputs
     "error": null
   }
 }
-[23:42:05] ── hiring_velocity (guessed: data/hiring-velocity.json) ──
-[23:42:05] ✅   data/hiring-velocity.json: FOUND. Shape:
+- `23:42:05` ── hiring_velocity (guessed: data/hiring-velocity.json) ──
+- `23:42:05` ✅   data/hiring-velocity.json: FOUND. Shape:
 {
   "schema_version": "str: '1.0'",
   "method": "str: 'hiring_velocity_v1'",
@@ -1235,8 +1240,8 @@ ops 4727 — probe institutional-edge engine outputs
       "sector": "<str>",
       "cap_bucket": "<str>",
       "market_ca
-[23:42:05] ── estimate_revisions (guessed: data/estimate-revisions.json) ──
-[23:42:05] ✅   data/estimate-revisions.json: FOUND. Shape:
+- `23:42:05` ── estimate_revisions (guessed: data/estimate-revisions.json) ──
+- `23:42:05` ✅   data/estimate-revisions.json: FOUND. Shape:
 {
   "engine": "str: 'justhodl-estimate-revisions'",
   "version": "str: '2.1.0'",
@@ -1356,8 +1361,8 @@ ops 4727 — probe institutional-edge engine outputs
       "n_obs": "<int>",
       "fwd_eps_growth_pct": "<float>",
       "n_analysts": "<int
-[23:42:05] ── smart_money_13f (guessed: data/smart-money-13f.json) ──
-[23:42:05] ✅   data/smart-money-13f.json: FOUND. Shape:
+- `23:42:05` ── smart_money_13f (guessed: data/smart-money-13f.json) ──
+- `23:42:05` ✅   data/smart-money-13f.json: FOUND. Shape:
 {
   "engine": "str: 'smart-money-13f'",
   "version": "str: '1.0.0'",
@@ -1458,7 +1463,6 @@ ops 4727 — probe institutional-edge engine outputs
   "source": "str: 'SEC EDGAR Form 13F-HR (free, public)'",
   "elapsed_s": 0.78
 }
-── Done ──
-[23:42:05] ✅ probe complete -- wire causal_graph.py from the real shapes above, not guesses
+## Done
 
-→ Report written to aws/ops/reports/latest/4727_invest_institutional_edge_probe.md
+- `23:42:05` ✅ probe complete -- wire causal_graph.py from the real shapes above, not guesses
