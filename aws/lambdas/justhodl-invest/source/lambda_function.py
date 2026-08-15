@@ -384,6 +384,26 @@ def build_grading_candidates(tier2_gates, tier3_picks) -> list:
 def lambda_handler(event, context):
     t0 = datetime.now(timezone.utc)
     try:
+        # Diagnostic sample: resolve one confirmed-independently-working
+        # leg (asia-leads.korea_exports.yoy_pct = 47.96 per repeated ops
+        # probes) with full intermediate values, captured from INSIDE the
+        # real Lambda execution -- CloudWatch showed no application log
+        # lines at all (logging.basicConfig is commonly a no-op under the
+        # Lambda Python runtime, which pre-attaches its own root handler),
+        # so this rides along in the S3 output instead, which is already
+        # proven to work as a channel.
+        _dbg_source = "fleet:data/asia-leads.json:korea_exports.yoy_pct"
+        _dbg_key, _dbg_path = fleet_io.parse_source(_dbg_source)
+        _dbg_doc = fleet_io.get_json(_dbg_key)
+        _dbg_val = fleet_io.dig(_dbg_doc, _dbg_path) if _dbg_doc is not None else None
+        debug_sample_leg_read = {
+            "source": _dbg_source, "parsed_key": _dbg_key, "parsed_path": _dbg_path,
+            "doc_is_none": _dbg_doc is None,
+            "doc_top_level_keys": sorted(_dbg_doc.keys()) if isinstance(_dbg_doc, dict) else None,
+            "dig_result": _dbg_val,
+            "read_leg_value_result": fleet_io.read_leg_value(_dbg_source),
+        }
+
         tier1_results, updated_history = run_tier1()
         fleet_io.save_history(updated_history)
 
@@ -413,6 +433,7 @@ def lambda_handler(event, context):
                 "buying the proxy ETF."
             ),
             "elapsed_s": round((datetime.now(timezone.utc) - t0).total_seconds(), 2),
+            "_debug_sample_leg_read": debug_sample_leg_read,
         }
         fleet_io.put_json(OUT_KEY, out)
 
