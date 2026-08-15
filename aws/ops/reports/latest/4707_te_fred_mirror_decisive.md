@@ -1,0 +1,22 @@
+# ops 4707 — core series test: licensing wall vs wrong symbol
+
+**Status:** success  
+**Duration:** 3.7s  
+**Finished:** 2026-08-15T17:07:15+00:00  
+
+## Log
+- `17:07:12`   bamlh0a0hym2     status=200 bytes=549388 parsed_rows=7734
+- `17:07:12`     sample row: {'symbol': 'bamlh0a0hym2', 'date': '1996-12-31T00:00:00', 'value': 3.13}
+- `17:07:12`     last row: {'symbol': 'bamlh0a0hym2', 'date': '2026-08-12T00:00:00', 'value': 2.71}
+- `17:07:13`   bamlc0a0cm       status=200 bytes=533578 parsed_rows=7733
+- `17:07:13`     sample row: {'symbol': 'bamlc0a0cm', 'date': '1996-12-31T00:00:00', 'value': 0.6}
+- `17:07:13`     last row: {'symbol': 'bamlc0a0cm', 'date': '2026-08-12T00:00:00', 'value': 0.79}
+- `17:07:14`   baa10y           status=200 bytes=650001 parsed_rows=10000
+- `17:07:14`     sample row: {'symbol': 'baa10y', 'date': '1986-01-02T00:00:00', 'value': 2.34}
+- `17:07:14`     last row: {'symbol': 'baa10y', 'date': '2025-12-31T00:00:00', 'value': 1.72}
+- `17:07:15`   dgs10            status=200 bytes=641489 parsed_rows=10000
+- `17:07:15`     sample row: {'symbol': 'dgs10', 'date': '1962-01-02T00:00:00', 'value': 4.06}
+- `17:07:15`     last row: {'symbol': 'dgs10', 'date': '2002-01-29T00:00:00', 'value': 5.02}
+## verdict
+
+- `17:07:15` ✅ real data confirmed on at least one core series -- the endpoint IS entitled; Khalid's specific symbol needs checking
