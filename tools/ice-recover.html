@@ -14,7 +14,10 @@
 <h1>ICE BofA history recovery</h1>
 <p class="sub">Reads pre-truncation FRED history from the Wayback Machine and banks it to your S3.
 This page runs on your own origin — archive.org's replay wrapper can't rewrite the upload from here.</p>
-<button id="go">Start recovery</button>
+<p class="sub">Step 1 &mdash; on an <b>archive.org</b> page, run the grabber script (it saves <code>jh-ice.json</code>).<br>
+Step 2 &mdash; choose that file here. Archive reads only work on their pages; uploads only work off them, so the file is the bridge.</p>
+<input type="file" id="pick" accept=".json,application/json">
+<button id="go" style="display:none">Start recovery</button>
 <div id="bar"><div id="fill"></div></div>
 <div id="log"></div>
 <script>
@@ -34,6 +37,33 @@ const forms=(ts,id)=>[
 const parse=t=>{const o=[];for(const ln of t.split(/\r?\n/)){if(!/^(19|20)\d\d-\d\d-\d\d/.test(ln))continue;
  const p=ln.replace(/,/g,' ').trim().split(/\s+/);
  if(p.length>=2&&p[1]!=='.'&&isFinite(Number(p[1]))&&p[0]<=CUTOFF)o.push([p[0],Number(p[1])]);}return o;};
+document.getElementById('pick').onchange=async function(e){
+ const f=e.target.files[0]; if(!f) return;
+ this.disabled=true; say('reading '+f.name+' ('+Math.round(f.size/1024)+' KB)…');
+ let data; try{ data=JSON.parse(await f.text()); }
+ catch(err){ say('could not parse file: '+err,'err'); return; }
+ if(!Array.isArray(data)||!data.length){ say('file has no series','err'); return; }
+ say(data.length+' series in file'); 
+ const send=async b=>{try{const r=await fetch(INGEST,{method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({token:TOKEN,kind:'series',series:b})});return await r.json();}
+   catch(er){return{ok:false,error:String(er)};}};
+ let banked=0,batch=[],n=0;
+ for(const s of data){
+  n++; F.style.width=(100*n/data.length)+'%';
+  if(!s||!s.id||!Array.isArray(s.rows)||s.rows.length<50){say('  '+(s&&s.id)+' — too few rows','dim');continue;}
+  say('  '+s.id+': '+s.rows.length+' rows  '+s.rows[0][0]+' → '+s.rows[s.rows.length-1][0]);
+  batch.push(s);
+  if(batch.length>=3){const r=await send(batch);
+   if(r&&r.ok){banked+=r.banked||batch.length;say('    ↑ banked '+(r.banked||batch.length),'ok');}
+   else say('    ↑ failed: '+JSON.stringify(r).slice(0,160),'err');
+   batch=[];}
+ }
+ if(batch.length){const r=await send(batch);
+  if(r&&r.ok){banked+=r.banked||batch.length;say('    ↑ banked '+(r.banked||batch.length),'ok');}
+  else say('    ↑ failed: '+JSON.stringify(r).slice(0,160),'err');}
+ say(''); say('DONE — '+banked+' series banked to S3', banked?'ok':'err');
+};
 document.getElementById('go').onclick=async function(){
  this.disabled=true;this.textContent='Running…';
  let banked=0,missing=[],batch=[],n=0;

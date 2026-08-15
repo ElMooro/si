@@ -68,29 +68,14 @@
     } catch (e) { resolve({ ok: false, error: String(e) }); }
   });
 
-  const post = async (batch) => {
-    const payload = JSON.stringify({ token: TOKEN, kind: 'series',
-      series: batch.map(b => ({ id: b.id, rows: b.rows, source: b.source,
-                                capture: b.capture, url: b.url })) });
-    if (cleanFetch) {
-      try {
-        const r = await cleanFetch(INGEST, { method: 'POST',
-          headers: { 'Content-Type': 'application/json' }, body: payload });
-        return await r.json();
-      } catch (e) { /* fall through */ }
-    }
-    return await viaXHR(payload);
-  };
+  /* v5: the network is a dead end from here. archive.org's wombat
+   * rewrites every outbound request on its own pages (fetch, XHR, and
+   * iframe natives), and off-page origins can't read the archive because
+   * the raw replays carry no CORS headers. So we don't upload from here
+   * at all — we write ONE file, and the S3 recovery page ingests it.
+   */
+  const post = async () => ({ ok: true, deferred: true });
 
-  if (!/^https:\/\//.test(INGEST)) {
-    console.error('[JH] ingest URL not injected — aborting rather than '
-                + 'posting into the void'); return;
-  }
-  // v3: keep everything in memory first. A failed POST must never cost
-  // a re-fetch of 27 series — window.__JH_ICE survives, and
-  // window.__JH_RETRY() re-posts whatever has not landed.
-  window.__JH_ICE = window.__JH_ICE || [];
-  const HAVE = new Set(window.__JH_ICE.map(x => x.id));
   console.log('%c[JH] fetching ' + IDS.length + ' archived series…',
               'color:#7fb0d0;font-weight:bold');
   let batch = [], done = 0, failed = [];
@@ -147,10 +132,17 @@
 
   console.log('%c[JH] DONE — ' + done + '/' + IDS.length + ' series banked to S3',
               'color:#5fbf7f;font-weight:bold');
-  try { _fr.remove(); } catch (e) {}
-  const unsent = window.__JH_ICE.filter(x => !x.__sent).length;
-  if (unsent) console.log('%c[JH] ' + unsent + ' collected but UNSENT — '
-    + 'run  __JH_RETRY()  to post them (no re-fetch needed)',
-    'color:#e0b552;font-weight:bold');
+  /* save everything to a single file for the S3 uploader */
+  try {
+    const blob = new Blob([JSON.stringify(window.__JH_ICE.map(x => ({
+      id: x.id, rows: x.rows, source: x.source, capture: x.capture })))],
+      { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'jh-ice.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    console.log('%c[JH] saved jh-ice.json to your Downloads — open the '
+      + 'recovery page and choose that file', 'color:#5fbf7f;font-weight:bold');
+  } catch (e) { console.error('[JH] save failed:', e); }
   if (failed.length) console.log('[JH] not found in archive:', failed.join(' '));
 })();
