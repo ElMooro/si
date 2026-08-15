@@ -1,16 +1,16 @@
-executing-against: 1ff0470f34f8284842889f2905924a25ad768040
+executing-against: 44219bce38ecec5792a4d628c2821c863f72f20e
 ops 4701 — real paid TE key vs the historical credit-spread endpoint
 ── 1. Confirm the real key resolves ──
-[16:16:28]   key resolved, len=31 (never printed)
+[16:16:57]   key resolved, len=31 (never printed)
 ── 2. Minimal validity check — one cheap call, exactly what te-feed already calls successfully ──
-[16:16:28]   status=200 rows=405 (matches te-feed's own working call shape)
-[16:16:28] ✅   key is LIVE and valid
+[16:16:57]   status=200 rows=405 (matches te-feed's own working call shape)
+[16:16:57] ✅   key is LIVE and valid
 ── 3. THE REAL TEST — historical endpoint for a credit-spread indicator (te-feed never calls this path) ──
-[16:16:29]   [historical/indicator (spread)] status=200 rows=0 dates=None..None sample=[]
-[16:16:30]   [historical w/ explicit date range] status=200 rows=0 dates=None..None sample=[]
-[16:16:31]   [markets bond-spread search] status=200 rows=0 dates=None..None sample=[]
+[16:16:57]   [historical/indicator (spread)] status=200 rows=0 dates=None..None sample=[]
+[16:16:58]   [historical w/ explicit date range] status=200 rows=0 dates=None..None sample=[]
+[16:16:59]   [markets bond-spread search] status=200 rows=0 dates=None..None sample=[]
 ── verdict ──
-[16:16:33] ✗ real paid key works for country-snapshots (as te-feed already proves) but the historical credit-spread endpoint did not return deep dated data on this pass
+[16:17:00] ✗ real paid key works for country-snapshots (as te-feed already proves) but the historical credit-spread endpoint did not return deep dated data on this pass
 
 → Report written to aws/ops/reports/latest/4701_te_real_key.md
 ❌ OPS-FAIL: aws/ops/pending/ops_4701_te_real_key.py
