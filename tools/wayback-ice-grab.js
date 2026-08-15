@@ -50,11 +50,21 @@
     return r;
   };
 
+  if (!/^https:\/\//.test(INGEST)) {
+    console.error('[JH] ingest URL not injected — aborting rather than '
+                + 'posting into the void'); return;
+  }
+  // v3: keep everything in memory first. A failed POST must never cost
+  // a re-fetch of 27 series — window.__JH_ICE survives, and
+  // window.__JH_RETRY() re-posts whatever has not landed.
+  window.__JH_ICE = window.__JH_ICE || [];
+  const HAVE = new Set(window.__JH_ICE.map(x => x.id));
   console.log('%c[JH] fetching ' + IDS.length + ' archived series…',
               'color:#7fb0d0;font-weight:bold');
   let batch = [], done = 0, failed = [];
 
   for (const id of IDS) {
+    if (HAVE.has(id)) { done++; continue; }   // already collected
     let got = null, usedTs = '', usedUrl = '';
     outer:
     for (const ts of STAMPS) {
@@ -71,16 +81,43 @@
     if (!got) { failed.push(id); console.warn('[JH] ' + id + ' — no archived copy found'); continue; }
     console.log('[JH] ' + id + ': ' + got.length + ' rows ' + got[0][0] + ' -> ' +
                 got[got.length - 1][0] + '  (capture ' + usedTs + ')');
-    batch.push({ id, rows: got, source: 'wayback-raw', capture: usedTs, url: usedUrl });
+    const rec = { id, rows: got, source: 'wayback-raw', capture: usedTs, url: usedUrl };
+    window.__JH_ICE.push(rec);
+    batch.push(rec);
     done++;
     if (batch.length >= 4) {
-      console.log('[JH] posting batch…', await post(batch));
+      const r = await post(batch);
+      console.log('[JH] posting batch…', r);
+      if (r && r.ok) batch.forEach(b => b.__sent = 1);
       batch = [];
     }
   }
-  if (batch.length) console.log('[JH] posting final batch…', await post(batch));
+  if (batch.length) {
+    const r = await post(batch);
+    console.log('[JH] posting final batch…', r);
+    if (r && r.ok) batch.forEach(b => b.__sent = 1);
+  }
+
+  // Retry helper: re-post anything still unsent, no re-fetching.
+  window.__JH_RETRY = async () => {
+    const left = window.__JH_ICE.filter(x => !x.__sent);
+    console.log('[JH] retrying ' + left.length + ' unsent series…');
+    for (let i = 0; i < left.length; i += 4) {
+      const chunk = left.slice(i, i + 4);
+      const r = await post(chunk);
+      console.log('[JH] retry batch:', r);
+      if (r && r.ok) chunk.forEach(b => b.__sent = 1);
+    }
+    const still = window.__JH_ICE.filter(x => !x.__sent).length;
+    console.log('%c[JH] retry done — ' + still + ' still unsent',
+                still ? 'color:#e05252' : 'color:#5fbf7f;font-weight:bold');
+  };
 
   console.log('%c[JH] DONE — ' + done + '/' + IDS.length + ' series banked to S3',
               'color:#5fbf7f;font-weight:bold');
+  const unsent = window.__JH_ICE.filter(x => !x.__sent).length;
+  if (unsent) console.log('%c[JH] ' + unsent + ' collected but UNSENT — '
+    + 'run  __JH_RETRY()  to post them (no re-fetch needed)',
+    'color:#e0b552;font-weight:bold');
   if (failed.length) console.log('[JH] not found in archive:', failed.join(' '));
 })();
