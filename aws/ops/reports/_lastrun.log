@@ -1,9 +1,9 @@
-executing-against: 1a4a6643c955011a22eef6590c6634a371302155
-ops 4728 — smoke test institutional-edge wiring against live data
-[23:57:32] ✅   invoke succeeded in 1.8s: {"ok": true, "confirmed": 0, "gates_pass": 0, "picks": 0}
-── Tier 2: institutional_confirmation presence ──
-── Tier 3: institutional components in stock_picks ──
-── Verdict ──
-[23:57:32] ✅ justhodl-invest ran end-to-end with the institutional-edge extension against live data, no crash. Whether any component actually POPULATED depends on today's real coverage in each source engine (see logs above) -- this is expected to be sparse/absent for most names today, same honest-gap behavior as the rest of the engine, not a defect.
-
-→ Report written to aws/ops/reports/latest/4728_invest_institutional_edge_smoke.md
+executing-against: b6c30c926c838a68b76c39072ccfbd54868402d4
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4729_invest_institutional_direct_verify.py", line 25, in <module>
+    import lambda_function as lf  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/si/si/aws/lambdas/justhodl-invest/source/lambda_function.py", line 91, in <module>
+    import impact_mapper
+ModuleNotFoundError: No module named 'impact_mapper'
+❌ OPS-FAIL: aws/ops/pending/ops_4729_invest_institutional_direct_verify.py
