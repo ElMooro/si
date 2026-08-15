@@ -1,29 +1,18 @@
-executing-against: 73ce577a346264f9f754c0eaf1b962d939df0dc3
-ops 4691 — real browser CORS: diagnose + fix
-── 1. Current Function URL config (the AWS-managed policy, not the code's own headers) ──
-[02:54:59]   URL: https://w4osroryszvlifgk4boofkh7cm0selzf.lambda-url.us-east-1.on.aws/
-[02:54:59]   AuthType: NONE
-[02:54:59]   Cors (AWS-enforced, pre-empts the Lambda code): {'AllowCredentials': False, 'AllowHeaders': ['content-type'], 'AllowMethods': ['*'], 'AllowOrigins': ['*'], 'MaxAge': 86400}
-[02:54:59] ✅   [auth] AuthType=NONE (browser calls need this — IAM auth would block every unsigned browser request)
-── 2. REAL preflight — exactly what Khalid's browser sent ──
-[02:55:00]   OPTIONS status: 200
-[02:55:00]   response headers: {'Date': 'Sat, 15 Aug 2026 02:55:00 GMT', 'Content-Type': 'application/json', 'Content-Length': '0', 'Connection': 'close', 'x-amzn-RequestId': '959a7690-1137-4d26-92b4-a1e60c5dbb8a', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type', 'Access-Control-Allow-Methods': '*', 'Access-Control-Max-Age': '86400'}
-[02:55:00]   VERDICT: preflight WOULD BE REJECTED by the browser — this is the 'Failed to fetch' cause
-── 3. Fix: set the Function URL's own Cors policy ──
+executing-against: bc2faa0a9bf99aaefe2af14b0859ad908c982b2a
+ops 4692 — corrected CORS check + page byte audit
+── 1. Re-verify Cors policy with the FIXED check ──
+[03:01:25]   live policy: {'AllowCredentials': False, 'AllowHeaders': ['content-type'], 'AllowMethods': ['*'], 'AllowOrigins': ['*'], 'MaxAge': 86400}
+[03:01:25]   status=200 ACAO=* ACAM=* ACAH=content-type
+[03:01:25] ✅   [cors] preflight genuinely succeeds under the real CORS spec (4691's verdict was a bug in MY check, not the server)
+── 2. Byte audit of the LIVE deployed page ──
+[03:01:25]   INGEST line: var INGEST = 'https://w4osroryszvlifgk4boofkh7cm0selzf.lambda-url.us-east-1.on.aws/';
 
-→ Report written to aws/ops/reports/latest/4691_cors_fix.md
+→ Report written to aws/ops/reports/latest/4692_cors_recheck.md
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4691_cors_fix.py", line 154, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4692_cors_recheck.py", line 156, in <module>
     main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4691_cors_fix.py", line 95, in main
-    lam.update_function_url_config(
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.exceptions.ClientError: An error occurred (ValidationException) when calling the UpdateFunctionUrlConfig operation: 1 validation error detected: Value '[POST, OPTIONS, GET]' at 'cors.allowMethods' failed to satisfy constraint: Member must satisfy constraint: [Member must have length less than or equal to 6, Member must have length greater than or equal to 0, Member must satisfy regular expression pattern: .*, Member must not be null]
-❌ OPS-FAIL: aws/ops/pending/ops_4691_cors_fix.py
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4692_cors_recheck.py", line 97, in main
+    % (re.sub(r"'[^']{4}([^']*)[^']{2}'",
+       ^^
+NameError: name 're' is not defined. Did you mean: 'r'? Or did you forget to import 're'?
+❌ OPS-FAIL: aws/ops/pending/ops_4692_cors_recheck.py
