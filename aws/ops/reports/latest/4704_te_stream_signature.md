@@ -1,0 +1,36 @@
+# ops 4704 — extract the real stream.ashx call signature from the page's own JS
+
+**Status:** failure  
+**Duration:** 3.6s  
+**Finished:** 2026-08-15T16:53:19+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## 1. Refetch the page, isolate every script block
+
+- `16:53:16`   23 script blocks, 45426 bytes total
+## 2. Find every .ashx / stream reference across ALL blocks, with real context
+
+- `16:53:16`   no .ashx reference found in any script block — checking for other chart-data call patterns (fetch/ajax/XMLHttpRequest/symbol=)
+- `16:53:16`   [block 2, generic] var TECountry = ''; var TECategory = ''; var TEFrequency = ''; var TELanguage = ''; var TELastUpdate = '20260731000000'; var TEChartVersion = ''; var symbol = ''; var symbolType = ''; var hasCalendar = false; var isLoggedIn = document.cookie.indexOf('.ASPXAUTH') > -1; var TERole = (document.cookie.match(/(?
+- `16:53:16`   [block 18, generic] equired"); this.limit = t.limit || 5; this.sorter = l(t.sorter); this.dupDetector = t.dupDetector || a; this.local = i.local(t); this.prefetch = i.prefetch(t); this.remote = i.remote(t); this.cacheKey = this.prefetch ? this.prefetch.cacheKey || this.prefetch.url : null; this.index = new s({ datumTokenizer
+- `16:53:16`   [block 18, generic] _initialize: function () { function f() { e.add(t.isFunction(i) ? i() : i) } var r, e = this, i = this.local; return r = this.prefetch ? this._loadPrefetch(this.prefetch) : n.Deferred().resolve(), i && r.done(f), this.transport = this.remote ? new u(this.remote) : null, this.initPromise = r.promise() }, i
+## 3. Look specifically at the biggest block (36KB — confirmed chart+data keywords)
+
+- `16:53:16`   length=36026
+- `16:53:16`   found 'symbol' at offset 24983: ...omics.com" + r.the_url), t.find("a > .iec-dd-val").html(i.highlighter(r.name)), t.find("a > .iec-dd-symbol").html(r.symbol), u = !1, r.url && r.url.indexOf(":") > 0 && ("GOV" != (u = r.url.split(":")[1].toUpperCase()) && "IND" != u && "CUR" != u && "COM" != u || (u = !1)), r.origin = u || r.origin, ...
+## 4. Re-probe stream.ashx with parameter variants informed by whatever the JS scan revealed (falls back to educated guesses if JS scan found nothing usable)
+
+- `16:53:16`   ?s=bofaml-em-corp-plus-sytw -> 200 bytes=0
+- `16:53:17`   ?symbol=bofa-merrill-lynch-private-sector-issuers-emerging-markets-corporate-plus-sub-index-semi-annual-yield-to-worst -> 200 bytes=0
+- `16:53:17`   ?s=bofa-merrill-lynch-private-sector-issuers-emerging-markets-corporate-plus-sub-index-semi-annual-yield-to-worst&span=max -> 200 bytes=0
+- `16:53:18`   ?s=bofa-merrill-lynch-private-sector-issuers-emerging-markets-corporate-plus-sub-index-semi-annual-yield-to-worst&d1=1996-01-01&d2=2023-08-14 -> 200 bytes=15
+- `16:53:18`     sample: Dates not valid
+## verdict
+
+- `16:53:19` ✗ no .ashx call signature found in page JS — parameter variants tried blind, see results above
