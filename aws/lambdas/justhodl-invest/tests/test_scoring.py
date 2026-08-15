@@ -68,6 +68,29 @@ def test_tier1_direction_flips_confirmation():
     assert r["status"] == "CONFIRMED"
 
 
+def test_tier1_insufficient_when_data_is_live_but_history_too_short_for_zscore():
+    """The real-world cold-start case (found live, 2026-08-15): a leg can
+    have available=True (fleet_io.read_leg_value returned a real number
+    today) while z is still None, because zscore() needs >=8 days of
+    accrued history and a brand-new engine hasn't run that many times
+    yet. confirm_indicator's `available` list requires BOTH -- a leg
+    with live data but no z history does not count toward
+    MIN_LEGS_AVAILABLE. This is correct: it means every indicator
+    honestly reports INSUFFICIENT_DATA for roughly the first week after
+    initial deploy, not a bug. (test_tier1_insufficient_when_too_few_legs_
+    available above only exercises available=False; this isolates the
+    available=True-but-z=None case specifically, since that's the one
+    that actually happened live and took several diagnostic round-trips
+    to pin down precisely because it looks identical from the outside.)"""
+    legs = [_leg("a", None, available=True), _leg("b", None, available=True)]
+    r = scoring.confirm_indicator(legs)
+    assert r["status"] == "INSUFFICIENT_DATA"
+    assert r["available_legs"] == 0
+    # detail still carries the live-but-unscored legs for audit, distinct
+    # from a leg that's genuinely unavailable
+    assert all(d["available"] is True for d in r["detail"])
+
+
 def test_tier1_boom_stage_value_volume_divergence_shape():
     """Regression-style test mirroring Khalid's own worked case: Korea
     export VALUE up strongly while port VOLUME is soft. Value leg should

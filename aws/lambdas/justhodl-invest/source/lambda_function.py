@@ -51,15 +51,26 @@ ships):
     small, separate, explicitly-flagged follow-up ops task, not guessed
     here against an unconfirmed DynamoDB schema.
 
-FIELD NAMES FLAGGED "CONFIRM ON FIRST RUN": every fleet_io.read_leg_value()
-source string in causal_graph.py was written from the 2026-08-15 repo audit
-but NOT from a live invocation of each upstream engine. Per the fleet's own
-standing discipline ("every column bind preceded by a census probe dumping
-real column names and sample values before any code was written"), run
-`aws/ops/pending/ops_4716_invest_probe_fields.py` through the pipeline once
-against live S3 BEFORE trusting Tier 1 output, and fix any renamed field in
-causal_graph.py. This engine fails safe either way -- an unresolvable field
-reads as an unavailable leg, never a fabricated zero.
+FIELD NAMES: every fleet_io.read_leg_value() source string in
+causal_graph.py was corrected against a live 2026-08-15 field probe
+(aws/ops/ran/ops_4716/4718/4719_invest_*.py) and re-verified end to end
+against the real deployed Lambda (aws/ops/ran/ops_4721-4725_invest_*.py)
+-- 14/16 legs confirmed resolving to real numbers, the other 2
+(chile_exports, korea_exports via canary-grid specifically) are
+genuinely stale in their source engine today, not a bug here.
+
+BOOTSTRAP PERIOD: Tier 1 requires >=8 days of accrued leg-history.json
+before it can compute a z-score for any leg (scoring.zscore, mirroring
+the fleet's own n_obs>=8 floor) -- confirm_indicator's `available` count
+requires a leg to have BOTH live data AND a computable z, not just live
+data. For roughly the first week after initial deploy every indicator
+will honestly report INSUFFICIENT_DATA even though the underlying reads
+are all resolving correctly -- this is by design, not a fault; verified
+live via aws/ops/ran/ops_4725_invest_debug_sample_read.py, which showed
+read_leg_value() correctly returning real values while available_legs
+was still 0 for lack of z-history. This engine fails safe either way --
+an unresolvable field or a too-short history reads as an unavailable
+leg, never a fabricated zero.
 """
 from __future__ import annotations
 import json
@@ -384,26 +395,6 @@ def build_grading_candidates(tier2_gates, tier3_picks) -> list:
 def lambda_handler(event, context):
     t0 = datetime.now(timezone.utc)
     try:
-        # Diagnostic sample: resolve one confirmed-independently-working
-        # leg (asia-leads.korea_exports.yoy_pct = 47.96 per repeated ops
-        # probes) with full intermediate values, captured from INSIDE the
-        # real Lambda execution -- CloudWatch showed no application log
-        # lines at all (logging.basicConfig is commonly a no-op under the
-        # Lambda Python runtime, which pre-attaches its own root handler),
-        # so this rides along in the S3 output instead, which is already
-        # proven to work as a channel.
-        _dbg_source = "fleet:data/asia-leads.json:korea_exports.yoy_pct"
-        _dbg_key, _dbg_path = fleet_io.parse_source(_dbg_source)
-        _dbg_doc = fleet_io.get_json(_dbg_key)
-        _dbg_val = fleet_io.dig(_dbg_doc, _dbg_path) if _dbg_doc is not None else None
-        debug_sample_leg_read = {
-            "source": _dbg_source, "parsed_key": _dbg_key, "parsed_path": _dbg_path,
-            "doc_is_none": _dbg_doc is None,
-            "doc_top_level_keys": sorted(_dbg_doc.keys()) if isinstance(_dbg_doc, dict) else None,
-            "dig_result": _dbg_val,
-            "read_leg_value_result": fleet_io.read_leg_value(_dbg_source),
-        }
-
         tier1_results, updated_history = run_tier1()
         fleet_io.save_history(updated_history)
 
@@ -424,7 +415,13 @@ def lambda_handler(event, context):
             "method_notes": (
                 "Tier 1 requires >=2 independently-sourced legs with real S3 data "
                 "and >=60% voting the same direction to CONFIRM; a single leg is "
-                "TURNING at most. Tier 2 requires BOTH information_ratio >= "
+                "TURNING at most. A leg only counts as available once it has both "
+                "a live reading AND >=8 days of accrued history to compute a "
+                "z-score against (mirrors the fleet's own n_obs>=8 floor) -- "
+                "expect INSUFFICIENT_DATA fleet-wide for roughly the first week "
+                "after initial deploy while history accrues; this is honest "
+                "bootstrap behavior, not missing data. Tier 2 requires BOTH "
+                "information_ratio >= "
                 f"{scoring.IR_MIN_DEFAULT} AND excess_return_pp >= "
                 f"{scoring.MIN_EXCESS_RETURN_PP_DEFAULT} to pass — SPX is the "
                 "explicit default; an industry must earn its way out. Tier 3 only "
@@ -433,7 +430,6 @@ def lambda_handler(event, context):
                 "buying the proxy ETF."
             ),
             "elapsed_s": round((datetime.now(timezone.utc) - t0).total_seconds(), 2),
-            "_debug_sample_leg_read": debug_sample_leg_read,
         }
         fleet_io.put_json(OUT_KEY, out)
 
