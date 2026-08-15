@@ -1,14 +1,14 @@
-executing-against: d46f40bc14bb4252e3ac1b0583143614b834a591
-ops 4705 — isolate the real date format stream.ashx wants
-[16:58:48]   [YYYY-MM-DD narrow (2022-2023)] status=200 bytes=15 body=b'Dates not valid'
-[16:58:49]   [MM/DD/YYYY] status=200 bytes=15 body=b'Dates not valid'
-[16:58:50]   [MM-DD-YYYY] status=200 bytes=15 body=b'Dates not valid'
-[16:58:50]   [no d1, only d2] status=200 bytes=0 body=b''
-[16:58:51]   [span=10y (no explicit dates)] status=200 bytes=0 body=b''
-[16:58:52]   [span=max (no explicit dates)] status=200 bytes=0 body=b''
-[16:58:54]   [d1 only, YYYY-MM-DD, very recent] status=200 bytes=31395451 body=b'[{"iD":575552,"title":"Agricultural Commodities Updates: Oat Rises by 3.48%","description":"Top commodity gainers are Oat (3.48%) and Wheat (3.26%). Biggest losers are Rice (-1.37%) and Sugar (-1.25%).","url":"/commodities","author":"CALCULATOR","country":"Commodity","category":"Commodity","importan'
-[16:58:54] ✅     ^ looks like real data, not an error!
+executing-against: 908258108f0aa0f2776502e24fd28f747c068904
+ops 4706 — TE's dedicated /fred/historical/ mirror endpoint
+[17:01:31]   stored key length=31 (never printed; testing whether it's already key:secret formatted)
+── 1. THE EXACT test — Khalid's symbol, existing key ──
+[17:01:31]   status=200 bytes=2
+[17:01:31]   parsed 0 rows, dates None -> None
+── verdict 1 ──
+[17:01:31] Did not confirm on the first shape — see raw response above for the real reason before abandoning (auth error vs symbol error vs format error all look different)
+── 2. If it worked — does the pattern generalize? Test 2 more: a core-27 series and a still-gap series ──
 ── verdict ──
-[16:58:55] ✅ found a working format: d1 only, YYYY-MM-DD, very recent
+[17:01:32] ✗ existing key did not unlock the /fred/historical/ endpoint on this pass — raw response above shows exactly why
 
-→ Report written to aws/ops/reports/latest/4705_te_date_format.md
+→ Report written to aws/ops/reports/latest/4706_te_fred_mirror.md
+❌ OPS-FAIL: aws/ops/pending/ops_4706_te_fred_mirror.py
