@@ -32,6 +32,12 @@ REG = {
   "prefixes": ["data/warm/nyfed-markets/"],
   "hot": ["data/soma-holdings.json"],
   "series_from": ("data/warm/nyfed-markets/pd-state.json", "catalog")},
+ "te-mirror": {"name": "Trading Economics — FRED Mirror",
+  "api": "api.tradingeconomics.com/fred",
+  "engines": ["justhodl-te-fred-mirror"],
+  "prefixes": ["data/warm/te-mirror/"],
+  "hot": ["data/te-mirror-status.json"],
+  "series_from": ("data/warm/te-mirror/_state.json", "catalog")},
  "treasury": {"name": "US Treasury — FiscalData",
   "api": "api.fiscaldata.treasury.gov",
   "engines": ["justhodl-usgov-direct", "justhodl-warm-bridge"],
@@ -523,6 +529,21 @@ def lambda_handler(event, context):
                           _dep["keys"],
                           (ser or {}).get("count") or _dep["keys"]))
             note = (note + " · " + _note_d) if note else _note_d
+        if slug == "te-mirror":
+            try:
+                _tx = json.loads(s3.get_object(
+                    Bucket=BUCKET,
+                    Key="data/warm/te-mirror/_index.json"
+                )["Body"].read())
+                if _tx.get("n_symbols"):
+                    _note_x = ("independent copy: %d series · mean "
+                              "cross-check vs FRED %s%% agree"
+                              % (_tx["n_symbols"],
+                                 _tx.get("mean_agree_pct") or "—"))
+                    note = (note + " · " + _note_x) if note \
+                        else _note_x
+            except Exception:
+                pass
         hub["providers"].append(
             {"slug": slug, "name": r["name"], "api": r["api"],
              "datasets": ds, "datasets_target": tgt,
@@ -543,6 +564,7 @@ def lambda_handler(event, context):
     # the platform actually tracks inside them.
     series_sum = sum((p.get("series_count") or 0)
                      for p in hub["providers"])
+    hub["breakdown"]["datasets"] = series_sum
     extras = {}
     _xstat = {}  # ops 4568: extras were shipping 0 keys/0 MB/no
     # freshness — the page card rendered nothing but zeros while the
