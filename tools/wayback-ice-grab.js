@@ -42,12 +42,44 @@
     return out;
   };
 
+  /* v4: archive.org injects wombat.js, which monkey-patches window.fetch
+   * and rewrites absolute URLs back through web.archive.org — that is why
+   * v3's POSTs became web.archive.org/web/<ts>/https://...lambda-url and
+   * 404'd. A freshly created about:blank iframe has PRISTINE natives, so
+   * we borrow its fetch/XHR for the upload only. Page fetches keep using
+   * the wombat-wrapped fetch, which is what makes the archive reads work.
+   */
+  const _fr = document.createElement('iframe');
+  _fr.style.display = 'none';
+  document.body.appendChild(_fr);
+  const _w = _fr.contentWindow;
+  const cleanFetch = _w.fetch ? _w.fetch.bind(_w) : null;
+  const CleanXHR = _w.XMLHttpRequest;
+
+  const viaXHR = (payload) => new Promise((resolve) => {
+    try {
+      const x = new CleanXHR();
+      x.open('POST', INGEST, true);
+      x.setRequestHeader('Content-Type', 'application/json');
+      x.onload  = () => { try { resolve(JSON.parse(x.responseText)); }
+                          catch (e) { resolve({ ok: false, error: 'parse ' + x.status }); } };
+      x.onerror = () => resolve({ ok: false, error: 'xhr ' + x.status });
+      x.send(payload);
+    } catch (e) { resolve({ ok: false, error: String(e) }); }
+  });
+
   const post = async (batch) => {
-    const r = await fetch(INGEST, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: TOKEN, kind: 'series', series: batch })
-    }).then(x => x.json()).catch(e => ({ ok: false, error: String(e) }));
-    return r;
+    const payload = JSON.stringify({ token: TOKEN, kind: 'series',
+      series: batch.map(b => ({ id: b.id, rows: b.rows, source: b.source,
+                                capture: b.capture, url: b.url })) });
+    if (cleanFetch) {
+      try {
+        const r = await cleanFetch(INGEST, { method: 'POST',
+          headers: { 'Content-Type': 'application/json' }, body: payload });
+        return await r.json();
+      } catch (e) { /* fall through */ }
+    }
+    return await viaXHR(payload);
   };
 
   if (!/^https:\/\//.test(INGEST)) {
@@ -115,6 +147,7 @@
 
   console.log('%c[JH] DONE — ' + done + '/' + IDS.length + ' series banked to S3',
               'color:#5fbf7f;font-weight:bold');
+  try { _fr.remove(); } catch (e) {}
   const unsent = window.__JH_ICE.filter(x => !x.__sent).length;
   if (unsent) console.log('%c[JH] ' + unsent + ' collected but UNSENT — '
     + 'run  __JH_RETRY()  to post them (no re-fetch needed)',
