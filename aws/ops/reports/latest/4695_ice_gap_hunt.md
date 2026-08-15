@@ -1,0 +1,220 @@
+# ops 4695 — real gap list + GitHub/Wayback hunt
+
+**Status:** failure  
+**Duration:** 231.5s  
+**Finished:** 2026-08-15T04:23:50+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## 1. Real gap list from LIVE banked state (not memory)
+
+- `04:21:04`   192 BAML docs banked
+- `04:21:29`   DEEP (pre-2018): 148  |  SHALLOW (2023-only): 44
+- `04:21:29`     deep: BAMLC0A0CM             since 1996-12-31
+- `04:21:29`     deep: BAMLC0A0CMEY           since 1996-12-31
+- `04:21:29`     deep: BAMLC0A0CMSYTW         since 1996-12-31
+- `04:21:29`     deep: BAMLC0A1CAAA           since 1996-12-31
+- `04:21:29`     deep: BAMLC0A1CAAAEY         since 1996-12-31
+- `04:21:29`     deep: BAMLC0A1CAAASYTW       since 1996-12-31
+- `04:21:29`     deep: BAMLC0A2CAA            since 1996-12-31
+- `04:21:29`     deep: BAMLC0A2CAAEY          since 1996-12-31
+- `04:21:29`     deep: BAMLC0A2CAASYTW        since 1996-12-31
+- `04:21:29`     deep: BAMLC0A3CA             since 1996-12-31
+- `04:21:29`     deep: BAMLC0A3CAEY           since 1996-12-31
+- `04:21:29`     deep: BAMLC0A3CASYTW         since 1996-12-31
+- `04:21:29`     deep: BAMLC0A4CBBB           since 1996-12-31
+- `04:21:29`     deep: BAMLC0A4CBBBEY         since 1996-12-31
+- `04:21:29`     deep: BAMLC0A4CBBBSYTW       since 1996-12-31
+- `04:21:29`     deep: BAMLC1A0C13Y           since 1996-12-31
+- `04:21:29`     deep: BAMLC1A0C13YEY         since 1996-12-31
+- `04:21:29`     deep: BAMLC1A0C13YSYTW       since 1996-12-31
+- `04:21:29`     deep: BAMLC2A0C35Y           since 1996-12-31
+- `04:21:29`     deep: BAMLC2A0C35YEY         since 1996-12-31
+- `04:21:29`     deep: BAMLC2A0C35YSYTW       since 1996-12-31
+- `04:21:29`     deep: BAMLC3A0C57Y           since 1996-12-31
+- `04:21:29`     deep: BAMLC3A0C57YEY         since 1996-12-31
+- `04:21:29`     deep: BAMLC3A0C57YSYTW       since 1996-12-31
+- `04:21:29`     deep: BAMLC4A0C710Y          since 1996-12-31
+- `04:21:29`     deep: BAMLC4A0C710YEY        since 1996-12-31
+- `04:21:29`     deep: BAMLC4A0C710YSYTW      since 1996-12-31
+- `04:21:29`     deep: BAMLC7A0C1015Y         since 1996-12-31
+- `04:21:29`     deep: BAMLC7A0C1015YEY       since 1996-12-31
+- `04:21:29`     deep: BAMLC7A0C1015YSYTW     since 1996-12-31
+- `04:21:29`     deep: BAMLC8A0C15PY          since 1996-12-31
+- `04:21:29`     deep: BAMLC8A0C15PYEY        since 1996-12-31
+- `04:21:29`     deep: BAMLC8A0C15PYSYTW      since 1996-12-31
+- `04:21:29`     deep: BAMLCC0A0CMTRIV        since 2000-01-03
+- `04:21:29`     deep: BAMLCC0A3ATRIV         since 1988-12-16
+- `04:21:29`     deep: BAMLEM1BRRAAA2ACRPIEY  since 1998-12-31
+- `04:21:29`     deep: BAMLEM1BRRAAA2ACRPIOAS since 1998-12-31
+- `04:21:29`     deep: BAMLEM1BRRAAA2ACRPISYTW since 1998-12-31
+- `04:21:29`     deep: BAMLEM1RAAA2ALCRPIUSEY since 2003-12-31
+- `04:21:29`     deep: BAMLEM1RAAA2ALCRPIUSOAS since 2003-12-31
+- `04:21:29`     deep: BAMLEM1RAAA2ALCRPIUSSYTW since 2003-12-31
+- `04:21:29`     deep: BAMLEM2BRRBBBCRPIEY    since 1998-12-31
+- `04:21:29`     deep: BAMLEM2BRRBBBCRPIOAS   since 1998-12-31
+- `04:21:29`     deep: BAMLEM2BRRBBBCRPISYTW  since 1998-12-31
+- `04:21:29`     deep: BAMLEM2RBBBLCRPIUSEY   since 2003-12-31
+- `04:21:29`     deep: BAMLEM2RBBBLCRPIUSOAS  since 2003-12-31
+- `04:21:29`     deep: BAMLEM2RBBBLCRPIUSSYTW since 2003-12-31
+- `04:21:29`     deep: BAMLEM3BRRBBCRPIEY     since 1998-12-31
+- `04:21:29`     deep: BAMLEM3BRRBBCRPIOAS    since 1998-12-31
+- `04:21:29`     deep: BAMLEM3BRRBBCRPISYTW   since 1998-12-31
+- `04:21:29`     deep: BAMLEM3RBBLCRPIUSEY    since 2003-12-31
+- `04:21:29`     deep: BAMLEM3RBBLCRPIUSOAS   since 2003-12-31
+- `04:21:29`     deep: BAMLEM3RBBLCRPIUSSYTW  since 2003-12-31
+- `04:21:29`     deep: BAMLEM4BRRBLCRPIEY     since 1998-12-31
+- `04:21:29`     deep: BAMLEM4BRRBLCRPIOAS    since 1998-12-31
+- `04:21:29`     deep: BAMLEM4BRRBLCRPISYTW   since 1998-12-31
+- `04:21:29`     deep: BAMLEM4RBLLCRPIUSEY    since 2003-12-31
+- `04:21:29`     deep: BAMLEM4RBLLCRPIUSOAS   since 2003-12-31
+- `04:21:29`     deep: BAMLEM4RBLLCRPIUSSYTW  since 2003-12-31
+- `04:21:29`     deep: BAMLEM5BCOCRPIEY       since 1998-12-31
+- `04:21:29`     deep: BAMLEM5BCOCRPIOAS      since 1998-12-31
+- `04:21:29`     deep: BAMLEM5BCOCRPISYTW     since 1998-12-31
+- `04:21:29`     deep: BAMLEMALLCRPIASIAUSEY  since 2003-12-31
+- `04:21:29`     deep: BAMLEMALLCRPIASIAUSOAS since 2003-12-31
+- `04:21:29`     deep: BAMLEMALLCRPIASIAUSSYTW since 2003-12-31
+- `04:21:29`     deep: BAMLEMCBPIEY           since 1998-12-31
+- `04:21:29`     deep: BAMLEMCBPIOAS          since 1998-12-31
+- `04:21:29`     deep: BAMLEMCBPISYTW         since 1998-12-31
+- `04:21:29`     deep: BAMLEMCLLCRPIUSEY      since 2003-12-31
+- `04:21:29`     deep: BAMLEMCLLCRPIUSOAS     since 2003-12-31
+- `04:21:29`     deep: BAMLEMCLLCRPIUSSYTW    since 2003-12-31
+- `04:21:29`     deep: BAMLEMEBCRPIEEY        since 1998-12-31
+- `04:21:29`     deep: BAMLEMEBCRPIEOAS       since 1998-12-31
+- `04:21:29`     deep: BAMLEMEBCRPIESYTW      since 1998-12-31
+- `04:21:29`     deep: BAMLEMELLCRPIEMEAUSEY  since 2003-12-31
+- `04:21:29`     deep: BAMLEMELLCRPIEMEAUSOAS since 2003-12-31
+- `04:21:29`     deep: BAMLEMELLCRPIEMEAUSSYTW since 2003-12-31
+- `04:21:29`     deep: BAMLEMFLFLCRPIUSEY     since 2003-12-31
+- `04:21:29`     deep: BAMLEMFLFLCRPIUSOAS    since 2003-12-31
+- `04:21:29`     deep: BAMLEMFLFLCRPIUSSYTW   since 2003-12-31
+- `04:21:29`     deep: BAMLEMFSFCRPIEY        since 1998-12-31
+- `04:21:29`     deep: BAMLEMFSFCRPIOAS       since 1998-12-31
+- `04:21:29`     deep: BAMLEMFSFCRPISYTW      since 1998-12-31
+- `04:21:29`     deep: BAMLEMHBHYCRPIEY       since 1998-12-31
+- `04:21:29`     deep: BAMLEMHBHYCRPIOAS      since 1998-12-31
+- `04:21:29`     deep: BAMLEMHBHYCRPISYTW     since 1998-12-31
+- `04:21:29`     deep: BAMLEMHGHGLCRPIUSEY    since 2003-12-31
+- `04:21:29`     deep: BAMLEMHGHGLCRPIUSOAS   since 2003-12-31
+- `04:21:29`     deep: BAMLEMHGHGLCRPIUSSYTW  since 2003-12-31
+- `04:21:29`     deep: BAMLEMHYHYLCRPIUSEY    since 2003-12-31
+- `04:21:29`     deep: BAMLEMHYHYLCRPIUSOAS   since 2003-12-31
+- `04:21:29`     deep: BAMLEMHYHYLCRPIUSSYTW  since 2003-12-31
+- `04:21:29`     deep: BAMLEMIBHGCRPIEY       since 1998-12-31
+- `04:21:29`     deep: BAMLEMIBHGCRPIOAS      since 1998-12-31
+- `04:21:29`     deep: BAMLEMIBHGCRPISYTW     since 1998-12-31
+- `04:21:29`     deep: BAMLEMLLLCRPILAUSEY    since 2003-12-31
+- `04:21:29`     deep: BAMLEMLLLCRPILAUSOAS   since 2003-12-31
+- `04:21:29`     deep: BAMLEMLLLCRPILAUSSYTW  since 2003-12-31
+- `04:21:29`     deep: BAMLEMNFNFLCRPIUSEY    since 2003-12-31
+- `04:21:29`     deep: BAMLEMNFNFLCRPIUSOAS   since 2003-12-31
+- `04:21:29`     deep: BAMLEMNFNFLCRPIUSSYTW  since 2003-12-31
+- `04:21:29`     deep: BAMLEMNSNFCRPIEY       since 1998-12-31
+- `04:21:29`     deep: BAMLEMNSNFCRPIOAS      since 1998-12-31
+- `04:21:29`     deep: BAMLEMNSNFCRPISYTW     since 1998-12-31
+- `04:21:29`     deep: BAMLEMPBPUBSICRPIEY    since 1998-12-31
+- `04:21:29`     deep: BAMLEMPBPUBSICRPIOAS   since 1998-12-31
+- `04:21:29`     deep: BAMLEMPBPUBSICRPISYTW  since 1998-12-31
+- `04:21:29`     deep: BAMLEMPTPRVICRPIEY     since 1998-12-31
+- `04:21:29`     deep: BAMLEMPTPRVICRPIOAS    since 1998-12-31
+- `04:21:29`     deep: BAMLEMPTPRVICRPISYTW   since 1998-12-31
+- `04:21:29`     deep: BAMLEMPUPUBSLCRPIUSEY  since 2003-12-31
+- `04:21:29`     deep: BAMLEMPUPUBSLCRPIUSOAS since 2003-12-31
+- `04:21:29`     deep: BAMLEMPUPUBSLCRPIUSSYTW since 2003-12-31
+- `04:21:29`     deep: BAMLEMPVPRIVSLCRPIUSEY since 2003-12-31
+- `04:21:29`     deep: BAMLEMPVPRIVSLCRPIUSOAS since 2003-12-31
+- `04:21:29`     deep: BAMLEMPVPRIVSLCRPIUSSYTW since 2003-12-31
+- `04:21:29`     deep: BAMLEMRACRPIASIAEY     since 1998-12-31
+- `04:21:29`     deep: BAMLEMRACRPIASIAOAS    since 1998-12-31
+- `04:21:29`     deep: BAMLEMRACRPIASIASYTW   since 1998-12-31
+- `04:21:29`     deep: BAMLEMRECRPIEMEAEY     since 1998-12-31
+- `04:21:29`     deep: BAMLEMRECRPIEMEAOAS    since 1998-12-31
+- `04:21:29`     deep: BAMLEMRECRPIEMEASYTW   since 1998-12-31
+- `04:21:29`     deep: BAMLEMRLCRPILAEY       since 1998-12-31
+- `04:21:29`     deep: BAMLEMRLCRPILAOAS      since 1998-12-31
+- `04:21:29`     deep: BAMLEMRLCRPILASYTW     since 1998-12-31
+- `04:21:29`     deep: BAMLEMUBCRPIUSEY       since 1998-12-31
+- `04:21:29`     deep: BAMLEMUBCRPIUSOAS      since 1998-12-31
+- `04:21:29`     deep: BAMLEMUBCRPIUSSYTW     since 1998-12-31
+- `04:21:29`     deep: BAMLEMXOCOLCRPIUSEY    since 2003-12-31
+- `04:21:29`     deep: BAMLEMXOCOLCRPIUSOAS   since 2003-12-31
+- `04:21:29`     deep: BAMLEMXOCOLCRPIUSSYTW  since 2003-12-31
+- `04:21:29`     deep: BAMLH0A0HYM2           since 1996-12-31
+- `04:21:29`     deep: BAMLH0A0HYM2EY         since 1996-12-31
+- `04:21:29`     deep: BAMLH0A0HYM2SYTW       since 1996-12-31
+- `04:21:29`     deep: BAMLH0A1HYBB           since 1996-12-31
+- `04:21:29`     deep: BAMLH0A1HYBBEY         since 1996-12-31
+- `04:21:29`     deep: BAMLH0A1HYBBSYTW       since 1996-12-31
+- `04:21:29`     deep: BAMLH0A2HYB            since 1996-12-31
+- `04:21:29`     deep: BAMLH0A2HYBEY          since 1996-12-31
+- `04:21:29`     deep: BAMLH0A2HYBSYTW        since 1996-12-31
+- `04:21:29`     deep: BAMLH0A3HYC            since 1996-12-31
+- `04:21:29`     deep: BAMLH0A3HYCEY          since 1996-12-31
+- `04:21:29`     deep: BAMLH0A3HYCSYTW        since 1996-12-31
+- `04:21:29`     deep: BAMLHE00EHYIEY         since 1997-12-31
+- `04:21:29`     deep: BAMLHE00EHYIOAS        since 1997-12-31
+- `04:21:29`     deep: BAMLHE00EHYISYTW       since 1997-12-31
+- `04:21:29`     deep: BAMLHYH0A0HYM2TRIV     since 1986-08-31
+- `04:21:29`     deep: BAMLHYH0A2BTRIV        since 1996-12-31
+- `04:21:29`   hunting for 44 shallow series
+## 2. GitHub code search across the full gap
+
+- `04:21:29`   GH BAMLCC0A1AAATRIV     search err: HTTP Error 401: Unauthorized
+- `04:21:32`   GH BAMLCC0A2AATRIV      search err: HTTP Error 401: Unauthorized
+- `04:21:34`   GH BAMLCC0A4BBBTRIV     search err: HTTP Error 401: Unauthorized
+- `04:21:36`   GH BAMLCC1A013YTRIV     search err: HTTP Error 401: Unauthorized
+- `04:21:39`   GH BAMLCC2A035YTRIV     search err: HTTP Error 401: Unauthorized
+- `04:21:41`   GH BAMLCC3A057YTRIV     search err: HTTP Error 401: Unauthorized
+- `04:21:43`   GH BAMLCC4A0710YTRIV    search err: HTTP Error 401: Unauthorized
+- `04:21:45`   GH BAMLCC7A01015YTRIV   search err: HTTP Error 401: Unauthorized
+- `04:21:48`   GH BAMLCC8A015PYTRIV    search err: HTTP Error 401: Unauthorized
+- `04:21:50`   GH BAMLEM1BRRAAA2ACRPITRIV search err: HTTP Error 401: Unauthorized
+- `04:21:52`   GH BAMLEM1RAAA2ALCRPIUSTRIV search err: HTTP Error 401: Unauthorized
+- `04:21:55`   GH BAMLEM2BRRBBBCRPITRIV search err: HTTP Error 401: Unauthorized
+- `04:21:57`   GH BAMLEM2RBBBLCRPIUSTRIV search err: HTTP Error 401: Unauthorized
+- `04:21:59`   GH BAMLEM3BRRBBCRPITRIV search err: HTTP Error 401: Unauthorized
+- `04:22:01`   GH BAMLEM3RBBLCRPIUSTRIV search err: HTTP Error 401: Unauthorized
+- `04:22:04`   GH BAMLEM4BRRBLCRPITRIV search err: HTTP Error 401: Unauthorized
+- `04:22:06`   GH BAMLEM4RBLLCRPIUSTRIV search err: HTTP Error 401: Unauthorized
+- `04:22:08`   GH BAMLEM5BCOCRPITRIV   search err: HTTP Error 401: Unauthorized
+- `04:22:11`   GH BAMLEMALLCRPIASIAUSTRIV search err: HTTP Error 401: Unauthorized
+- `04:22:13`   GH BAMLEMCBPITRIV       search err: HTTP Error 401: Unauthorized
+- `04:22:15`   GH BAMLEMCLLCRPIUSTRIV  search err: HTTP Error 401: Unauthorized
+- `04:22:17`   GH BAMLEMEBCRPIETRIV    search err: HTTP Error 401: Unauthorized
+- `04:22:20`   GH BAMLEMELLCRPIEMEAUSTRIV search err: HTTP Error 401: Unauthorized
+- `04:22:22`   GH BAMLEMFLFLCRPIUSTRIV search err: HTTP Error 401: Unauthorized
+- `04:22:24`   GH BAMLEMFSFCRPITRIV    search err: HTTP Error 401: Unauthorized
+- `04:22:26`   GH BAMLEMHBHYCRPITRIV   search err: HTTP Error 401: Unauthorized
+- `04:22:29`   GH BAMLEMHGHGLCRPIUSTRIV search err: HTTP Error 401: Unauthorized
+- `04:22:31`   GH BAMLEMHYHYLCRPIUSTRIV search err: HTTP Error 401: Unauthorized
+- `04:22:33`   GH BAMLEMIBHGCRPITRIV   search err: HTTP Error 401: Unauthorized
+- `04:22:36`   GH BAMLEMLLLCRPILAUSTRIV search err: HTTP Error 401: Unauthorized
+- `04:22:38`   GH BAMLEMNFNFLCRPIUSTRIV search err: HTTP Error 401: Unauthorized
+- `04:22:40`   GH BAMLEMNSNFCRPITRIV   search err: HTTP Error 401: Unauthorized
+- `04:22:42`   GH BAMLEMPBPUBSICRPITRIV search err: HTTP Error 401: Unauthorized
+- `04:22:45`   GH BAMLEMPTPRVICRPITRIV search err: HTTP Error 401: Unauthorized
+- `04:22:47`   GH BAMLEMPUPUBSLCRPIUSTRIV search err: HTTP Error 401: Unauthorized
+- `04:22:49`   GH BAMLEMPVPRIVSLCRPIUSTRIV search err: HTTP Error 401: Unauthorized
+- `04:22:52`   GH BAMLEMRACRPIASIATRIV search err: HTTP Error 401: Unauthorized
+- `04:22:54`   GH BAMLEMRECRPIEMEATRIV search err: HTTP Error 401: Unauthorized
+- `04:22:56`   GH BAMLEMRLCRPILATRIV   search err: HTTP Error 401: Unauthorized
+- `04:22:58`   GH BAMLEMUBCRPIUSTRIV   search err: HTTP Error 401: Unauthorized
+- `04:23:01`   GH BAMLEMXOCOLCRPIUSTRIV search err: HTTP Error 401: Unauthorized
+- `04:23:03`   GH BAMLHE00EHYITRIV     search err: HTTP Error 401: Unauthorized
+- `04:23:05`   GH BAMLHYH0A1BBTRIV     search err: HTTP Error 401: Unauthorized
+- `04:23:08`   GH BAMLHYH0A3CMTRIV     search err: HTTP Error 401: Unauthorized
+## 3. Wayback direct-fetch (the method that worked for the 27)
+
+- `04:23:49`   (temp probe deleted)
+## verdict
+
+- `04:23:49`   GitHub candidates: 0 | Wayback candidates: 0 | union: 0 of 44 gap series
+- `04:23:50`   still unfound (44): ['BAMLCC0A1AAATRIV', 'BAMLCC0A2AATRIV', 'BAMLCC0A4BBBTRIV', 'BAMLCC1A013YTRIV', 'BAMLCC2A035YTRIV', 'BAMLCC3A057YTRIV', 'BAMLCC4A0710YTRIV', 'BAMLCC7A01015YTRIV', 'BAMLCC8A015PYTRIV', 'BAMLEM1BRRAAA2ACRPITRIV', 'BAMLEM1RAAA2ALCRPIUSTRIV', 'BAMLEM2BRRBBBCRPITRIV', 'BAMLEM2RBBBLCRPIUSTRIV', 'BAMLEM3BRRBBCRPITRIV', 'BAMLEM3RBBLCRPIUSTRIV', 'BAMLEM4BRRBLCRPITRIV', 'BAMLEM4RBLLCRPIUSTRIV', 'BAMLEM5BCOCRPITRIV', 'BAMLEMALLCRPIASIAUSTRIV', 'BAMLEMCBPITRIV']
+- `04:23:50` ✗ no candidates found for any gap series
