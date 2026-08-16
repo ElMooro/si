@@ -1,15 +1,12 @@
-executing-against: 7a9c20bdeb511ce89a51f69e877d21e30b3961bb
-ops 4789 -- haircut workbooks -> monthly series
-[22:42:21] hist sheet='volume_haircut_concentration' header_row=0 cols=13
-[22:42:21] hist header:  |  |  |  |  |  |  |  |  |  |  |  | 
-[22:42:21] curr sheet='volume_haircut_concentration' header_row=0 cols=12
-[22:42:21] curr header:  |  |  |  |  |  |  |  |  |  |  | 
+# ops 4790 -- external audit: 14-block closure table
 
-→ Report written to aws/ops/reports/latest/4789_haircut_series.md
-ops 4790 -- external audit: 14-block closure table
+**Status:** failure  
+**Duration:** 261.4s  
+**Finished:** 2026-08-16T22:46:43+00:00  
 
-→ Report written to aws/ops/reports/latest/4790_audit_closure.md
-ERROR:
+## Error
+
+```
 Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
     response = self._make_request(
@@ -64,8 +61,8 @@ urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Re
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4790_audit_closure.py", line 130, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4790_audit_closure.py", line 37, in main
     r = lam.invoke(FunctionName="justhodl-repo",
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -126,4 +123,7 @@ Traceback (most recent call last):
     raise ConnectionClosedError(
 botocore.exceptions.ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-repo/invocations".
 
-❌ OPS-FAIL: aws/ops/pending/ops_4790_audit_closure.py
+```
+
+## Log
+
