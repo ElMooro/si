@@ -1,13 +1,9 @@
-executing-against: cd46b231862ee9e61c8877286d6297b21cdae6db
-ops 4745 -- Swagger spec hunt for ambs/tsy/seclending
-── A. Fetch the Swagger UI shell -- with full logging this time ──
-[15:55:09] shell first 300 chars: '<!-- HTML for static distribution bundle build -->\r\n<!DOCTYPE html>\r\n<html lang="en">\r\n  <head>\r\n    <meta charset="UTF-8" />\r\n    <title>Markets Data APIs</title>\r\n    <link rel="stylesheet" type="text/css" href="./swagger-ui.css" />\r\n    <link rel="icon" type="image/x-icon" href="./favicon.ico" si'
-── B. Locate + fetch the spec file ──
-[15:55:09] docs/./markets-api.yml -> status=200 bytes=143732 kind=yaml
-── C. Extract templates + enums for the locked families ──
-── D. Validate + bank ──
-[15:55:09] ⚠ ambs: no spec template validated with rows
-[15:55:09] ⚠ tsy: no spec template validated with rows
-[15:55:09] ⚠ seclending: no spec template validated with rows
+executing-against: 146106775dbea39f9f2e5f5bb6bbfb624dcebb66
+ops 4746 -- PyYAML parse of markets-api.yml -> validate -> bank
+[15:57:36] ✅ spec itself banked to warm (the contract is data too)
+[15:57:36] TRUE family list from the contract: api=55
+[15:57:36] ⚠ ambs: every spec template failed even with real enum substitutions -- exact attempts logged above
+[15:57:36] ⚠ tsy: every spec template failed even with real enum substitutions -- exact attempts logged above
+[15:57:36] ⚠ seclending: every spec template failed even with real enum substitutions -- exact attempts logged above
 
-→ Report written to aws/ops/reports/latest/4745_nyfed_swagger_spec_hunt.md
+→ Report written to aws/ops/reports/latest/4746_nyfed_spec_pyyaml_bank.md
