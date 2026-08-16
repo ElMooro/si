@@ -1,29 +1,42 @@
-executing-against: 449d9d5dc00412353d799f27a1776bc6e107bcf6
-ops 4734 -- Census depth probe with the real key (value never printed)
-── 1. Range-query syntax -- does 'time=from X to Y' work with a real key? ──
-[04:19:10] range probe result: status=200 is_json=True elapsed_ms=5339
-[04:19:10]   body preview: [["GEN_VAL_MO","COMM_LVL","I_COMMODITY","time"],
-["1167461768","HS6","854231","2013-01"],
-["1196050876","HS6","854231","2013-02"],
-["1260593174","HS6","854231","2013-03"],
-["1307322176","HS6","854231","2013-04"],
-["1608099447","HS6","854231","2013-05"],
-["1419086979","HS6","854231","2013-06"]]
-── 2. How far back does real (non-null) monthly data exist -- single-month probes ──
-[04:19:30]   1992-01: is_json=False has_data_row=False status=204 body[:150]=
-[04:19:33]   2000-01: is_json=False has_data_row=False status=204 body[:150]=
-[04:19:52]   2005-01: is_json=False has_data_row=False status=204 body[:150]=
-[04:19:55]   2010-01: is_json=True has_data_row=True status=200 body[:150]=[["GEN_VAL_MO","COMM_LVL","I_COMMODITY","time"],
-["388466943","HS6","854231","2010-01"]]
-[04:19:58]   2013-01: is_json=True has_data_row=True status=200 body[:150]=[["GEN_VAL_MO","COMM_LVL","I_COMMODITY","time"],
-["1167461768","HS6","854231","2013-01"]]
-[04:20:02]   2020-01: is_json=True has_data_row=True status=200 body[:150]=[["GEN_VAL_MO","COMM_LVL","I_COMMODITY","time"],
-["1624108686","HS6","854231","2020-01"]]
-── 3. NAICS endpoint too -- same COMM_LVL/HS shape doesn't apply, confirm its own earliest ──
-[04:20:03]   NAICS 2005-01: is_json=False body[:150]=
-[04:20:03]   NAICS 2013-01: is_json=True body[:150]=[["GEN_VAL_MO","time","NAICS"],
-["3031577614","2013-01","334413"]]
-── Summary ──
-[04:20:03] Key value never printed. This gives the real earliest usable month and confirms whether range queries work, so the backfill script can be written against measured behavior instead of assumption.
+executing-against: 1a4bc4efeb1a3780de2faf4d56df2d6290043e85
+ops 4735 -- import-canary real backfill (2013-01 -> present)
+── Backfilling HS lines ──
+[04:24:41] ✅   HS6:854231 (Processors & controllers (CPU/GPU)): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:25:32] ✅   HS6:854232 (Memory (DRAM/NAND)): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:27:32] ✅   HS6:854233 (Amplifiers): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:28:06] ✅   HS4:8542 (Electronic integrated circuits (all)): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:30:22] ✅   HS4:8486 (Semiconductor mfg equipment): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:31:23] ✅   HS6:848620 (Semiconductor device mfg machines): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:32:59] ✅   HS4:8471 (Computers & data-processing units): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:35:12] ✅   HS4:8473 (Computer parts & accessories): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:36:45] ✅   HS4:8504 (Transformers & power converters): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:38:59] ✅   HS6:850440 (Static converters (PSU/inverter)): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:40:59] ✅   HS4:8544 (Insulated wire & optical fiber cable): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:43:28] ✅   HS4:9013 (Optical devices / LCD modules): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:45:34] ✅   HS4:8507 (Electric accumulators (batteries)): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:47:31] ✅   HS6:850760 (Lithium-ion batteries): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:49:23] ✅   HS4:2836 (Carbonates (incl. lithium carbonate)): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:50:59] ✅   HS4:7403 (Refined copper): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:52:53] ✅   HS4:7601 (Unwrought aluminium): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:54:22] ✅   HS4:2844 (Radioactive elements (uranium)): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:55:43] ✅   HS4:8541 (Diodes/transistors/PV cells): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:57:12] ✅   HS4:3004 (Medicaments, dosed): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[04:58:41] ✅   HS4:9018 (Medical instruments): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[05:00:41] ✅   HS4:8479 (Industrial machinery n.e.s.): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[05:02:27] ✅   HS4:8703 (Motor cars): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[05:03:53] ✅   HS4:8708 (Motor vehicle parts): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[05:05:32] ⚠   HS4:6403 chunk 2013-01..2015-12 error: The read operation timed out
+[05:06:53] ✅   HS4:6403 (Leather footwear): 126 raw months fetched, 114 yoy points computed, ledger now 114 months (was 2)
+[05:08:04] ✅   HS4:9403 (Furniture): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+── Backfilling NAICS lines ──
+[05:08:39] ✅   N:3344 (Semiconductor & electronic components): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[05:08:53] ✅   N:334413 (Semiconductor & related devices): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[05:09:02] ✅   N:3341 (Computer & peripheral equipment): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[05:09:16] ✅   N:3359 (Other electrical equipment): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[05:09:30] ✅   N:3254 (Pharmaceutical & medicine): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[05:10:10] ✅   N:3361 (Motor vehicles): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+[05:10:23] ✅   N:3311 (Iron & steel mills): 162 raw months fetched, 150 yoy points computed, ledger now 150 months (was 2)
+── Write merged ledger back ──
+[05:10:23] ✅ wrote data/import-canary-history.json -- 33 lines, depth range 114-150 months
 
-→ Report written to aws/ops/reports/latest/4734_census_probe_with_real_key.md
+→ Report written to aws/ops/reports/latest/4735_import_canary_real_backfill.md
