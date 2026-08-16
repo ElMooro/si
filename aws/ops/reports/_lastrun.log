@@ -1,9 +1,12 @@
-executing-against: 146106775dbea39f9f2e5f5bb6bbfb624dcebb66
+executing-against: c2cc0691f52471370de759657929274e83471693
 ops 4746 -- PyYAML parse of markets-api.yml -> validate -> bank
-[15:57:36] ✅ spec itself banked to warm (the contract is data too)
-[15:57:36] TRUE family list from the contract: api=55
-[15:57:36] ⚠ ambs: every spec template failed even with real enum substitutions -- exact attempts logged above
-[15:57:36] ⚠ tsy: every spec template failed even with real enum substitutions -- exact attempts logged above
-[15:57:36] ⚠ seclending: every spec template failed even with real enum substitutions -- exact attempts logged above
+[15:59:06] ✅ spec itself banked to warm (the contract is data too)
+[15:59:06] TRUE family list from the contract: ambs=4, fxs=4, guidesheets=2, marketshare=2, pd=8, rates=8, rp=5, seclending=4, soma=14, tsy=4
+[15:59:07] ambs: /api/ambs/{operation}/results/{include}/search.{format} subs={'operation': 'all', 'include': 'summary', 'format': 'json'} q={} -> status=200 rows=19
+[15:59:20] ✅ ambs: banked 2875 rows, 2013-11-21 -> 2026-08-20
+[15:59:21] tsy: /api/tsy/{operation}/results/{include}/search.{format} subs={'operation': 'all', 'include': 'summary', 'format': 'json'} q={} -> status=200 rows=18
+[15:59:36] ✅ tsy: banked 1894 rows, 2005-08-25 -> 2055-08-15
+[15:59:36] seclending: /api/seclending/{operation}/results/{include}/search.{format} subs={'operation': 'all', 'include': 'summary', 'format': 'json'} q={} -> status=200 rows=424
+[15:59:50] ✅ seclending: banked 9302 rows, 2000-01-03 -> 2026-08-17
 
-→ Report written to aws/ops/reports/latest/4746_nyfed_spec_pyyaml_bank.md
+→ Report written to aws/ops/reports/latest/4747_nyfed_spec_fam_fix.md
