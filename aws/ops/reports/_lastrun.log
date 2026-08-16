@@ -1,15 +1,19 @@
-executing-against: 96100d3b96ac42d065a2f7ec83eece38afa0aac5
-ops 4740 -- SEC CNS fails-to-deliver: full archive -> permanent warm
-[15:15:31]   progress: 25 banked this run (latest 201806b, 55807 rows)
-[15:15:54]   progress: 50 banked this run (latest 201907a, 41026 rows)
-[15:16:22]   progress: 75 banked this run (latest 202011a, 45357 rows)
-[15:16:44]   progress: 100 banked this run (latest 202111b, 67349 rows)
-[15:17:07]   progress: 125 banked this run (latest 202212a, 57945 rows)
-[15:17:30]   progress: 150 banked this run (latest 202312b, 55140 rows)
-[15:17:52]   progress: 175 banked this run (latest 202501a, 44302 rows)
-[15:18:14]   progress: 200 banked this run (latest 202601b, 60729 rows)
+executing-against: 01c88c48f014ae497d4836221c57e904dced9b44
+ops 4741 -- pre-2017 FTD files via SEC's own index pages
+[15:20:14] https://www.sec.gov/data/foiadocsfailsdatahtm -> 409 cnsfails hrefs
+[15:20:14] https://www.sec.gov/data-research/sec-markets-data/fails-deliver-data -> 409 cnsfails hrefs
+[15:20:14] https://www.sec.gov/foia/docs/failsdata.htm -> 409 cnsfails hrefs
+[15:20:14] sample new: 200907a, 200907b, 200908a, 200908b, 200909a, 200909b
+[15:20:14] sample url: https://www.sec.gov/files/data/frequently-requested-foia-document-fails-deliver-data/cnsfails200907a.zip
+[15:20:46]   progress: 25 (latest 201007a, 55123 rows)
+[15:21:19]   progress: 50 (latest 201107b, 66417 rows)
+[15:21:50]   progress: 75 (latest 201208a, 61607 rows)
+[15:22:21]   progress: 100 (latest 201308b, 65662 rows)
+[15:22:52]   progress: 125 (latest 201409a, 52529 rows)
+[15:23:24]   progress: 150 (latest 201509b, 70476 rows)
+[15:23:54]   progress: 175 (latest 201610a, 39389 rows)
+[15:24:24]   progress: 200 (latest 202605b, 55391 rows)
 ── Result ──
-[15:18:25] 404 tags by year (naming-scheme gaps to chase against SEC's own index page, NOT assumed absent): 2004=24, 2005=24, 2006=24, 2007=24, 2008=24, 2009=24, 2010=24, 2011=24, 2012=24, 2013=24, 2014=24, 2015=24, 2016=24, 2017=11, 2019=1, 2020=6, 2026=5
-[15:18:25] ✅ warm bank now holds 209 half-month files, 11332197 raw rows, 263.9 MB gz -- under deny-Delete, versioned, permanent
+[15:24:25] ✅ archive now 409 files / 23328640 rows, permanent
 
-→ Report written to aws/ops/reports/latest/4740_sec_ftd_full_archive_bank.md
+→ Report written to aws/ops/reports/latest/4741_sec_ftd_pre2017_via_index.md
