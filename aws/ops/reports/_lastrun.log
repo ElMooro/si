@@ -1,10 +1,13 @@
-executing-against: 4d8acbbc4fbaf6326a59f47287ab26c827e771f4
-ops 4749 -- final two families: marketshare + guidesheets
-[16:05:23] marketshare: /api/marketshare/ytd/latest.{format} subs={'format': 'json'} -> status=200 rows=0
-[16:05:24] marketshare: /api/marketshare/qtrly/latest.{format} subs={'format': 'json'} -> status=200 rows=0
-[16:05:24] ⚠ marketshare: no template validated
-[16:05:24] guidesheets: /api/guidesheets/{guidesheetType}/latest.{format} subs={'guidesheetType': 'si', 'format': 'json'} -> status=200 rows=0
-[16:05:24] guidesheets: /api/guidesheets/{guidesheetType}/previous.{format} subs={'guidesheetType': 'si', 'format': 'json'} -> status=200 rows=0
-[16:05:24] ⚠ guidesheets: no template validated
+executing-against: 0b876c2ffdd9e3aea2b7375a992ba825b45c76f3
+ops 4750 -- marketshare + guidesheets as documents (10/10)
+[16:07:41] marketshare/default/latest: status=200 bytes=64733 -> skipped (no usable JSON)
+[16:07:41] marketshare/default/latest: status=200 bytes=64807 -> skipped (no usable JSON)
+[16:07:41] ✅ guidesheets/si-latest: 2603 bytes, top-level: guidesheet
+[16:07:41] ✅ guidesheets/wi-latest: 1611 bytes, top-level: guidesheet
+[16:07:41] ✅ guidesheets/fs-latest: 657 bytes, top-level: guidesheet
+[16:07:41] ✅ guidesheets/si-previous: 2603 bytes, top-level: guidesheet
+[16:07:42] ✅ guidesheets/wi-previous: 1166 bytes, top-level: guidesheet
+[16:07:42] ✅ guidesheets/fs-previous: 655 bytes, top-level: guidesheet
+[16:07:42] ✅ 6 reference documents banked -- all 10 NY Fed API families now held
 
-→ Report written to aws/ops/reports/latest/4749_nyfed_marketshare_guidesheets.md
+→ Report written to aws/ops/reports/latest/4750_nyfed_docs_bank_final_two.md
