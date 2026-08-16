@@ -53,7 +53,7 @@ import boto3
 # Sequential = ~5 min and a dropped runner connection. Pool them.
 WORKERS = int(os.environ.get("CANARY_WORKERS", "16"))
 
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/import-canary.json"
 HIST_KEY = "data/import-canary-history.json"
@@ -415,14 +415,17 @@ def lambda_handler(event, context):
         rec = hist["lines"].setdefault(hk, {})
         if a["yoy_pct"] is not None:
             rec[ym] = a["yoy_pct"]
-        a["z_yoy"] = zscore(list(rec.values()), a["yoy_pct"])
+        # z vs trailing 36m (docstring's stated design); ledger itself now
+        # retains full history for model training, so the baseline must be
+        # windowed explicitly rather than "whatever survived the prune".
+        a["z_yoy"] = zscore([rec[k] for k in sorted(rec)[-36:]], a["yoy_pct"])
         a["hist_n"] = len(rec)
     for a in naics_out:
         hk = "N:%s" % a["code"]
         rec = hist["lines"].setdefault(hk, {})
         if a["yoy_pct"] is not None:
             rec[ym] = a["yoy_pct"]
-        a["z_yoy"] = zscore(list(rec.values()), a["yoy_pct"])
+        a["z_yoy"] = zscore([rec[k] for k in sorted(rec)[-36:]], a["yoy_pct"])
         a["hist_n"] = len(rec)
 
     lines_out.sort(key=lambda x: (x["basis"], x["code"]))
@@ -509,10 +512,14 @@ def lambda_handler(event, context):
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, separators=(",", ":")),
                   ContentType="application/json")
-    # prune ledger to 60 months/line
+    # prune ledger to 600 months/line — safety valve only. Was 60, which
+    # silently deleted the 2013->present backfill (ops 4735) on every
+    # daily run. Full retained history is a hard requirement for model
+    # training; 600 (50y) is unreachable for monthly Census data and
+    # exists only to bound pathological growth.
     for k, v in hist["lines"].items():
-        if len(v) > 60:
-            for old in sorted(v)[:-60]:
+        if len(v) > 600:
+            for old in sorted(v)[:-600]:
                 v.pop(old, None)
     hist["updated_at"] = started.isoformat()
     S3.put_object(Bucket=BUCKET, Key=HIST_KEY,
