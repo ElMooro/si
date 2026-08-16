@@ -1,28 +1,30 @@
-executing-against: 04d58a0496225e64e38ba24306550237fcd87008
-ops 4742 -- NY Fed full-coverage audit + bank missing families
-── A. What's actually banked under warm/nyfed-markets/ ──
-[15:45:28] banked groups: pd=1543, rp=2, latest=1, repo=1, repo_ops_latest=1, soma_summary=1
-── B. Doc-extracted endpoint families ──
-[15:45:29] markets-api.html -> 0 paths
-[15:45:29] swagger.json -> status=400
-[15:45:29] openapi.json -> status=404
-── C. Validate + bank each missing family (full history) ──
-[15:45:29] ambs: candidate ambs/all/results/search.json -> status=400 rows=0
-[15:45:29] ambs: candidate ambs/all/search.json -> status=400 rows=0
-[15:45:29] ⚠ ambs: no candidate produced real rows -- NOT banked, flagged for dedicated follow-up
-[15:45:29] fxs: candidate fxs/all/results/search.json -> status=400 rows=0
-[15:45:29] fxs: VALIDATED fxs/all/search.json (94 rows in 2024 probe) [docs-or-mirror]
-[15:45:41] ✅ fxs: banked 1596 rows, 2010-05-18 -> 2026-08-20 -> data/warm/nyfed-markets/fxs-history.json.gz
-[15:45:41] seclending: candidate seclending/all/results/search.json -> status=400 rows=0
-[15:45:41] seclending: candidate seclending/all/search.json -> status=400 rows=0
-[15:45:41] ⚠ seclending: no candidate produced real rows -- NOT banked, flagged for dedicated follow-up
-[15:45:41] soma: candidate soma/all/results/search.json -> status=400 rows=0
-[15:45:41] soma: candidate soma/all/search.json -> status=400 rows=0
-[15:45:41] ⚠ soma: no candidate produced real rows -- NOT banked, flagged for dedicated follow-up
-[15:45:42] tsy: candidate tsy/all/results/search.json -> status=400 rows=0
-[15:45:42] tsy: candidate tsy/all/search.json -> status=400 rows=0
-[15:45:42] ⚠ tsy: no candidate produced real rows -- NOT banked, flagged for dedicated follow-up
-── Summary ──
-[15:45:42] Every newly banked family lands under data/warm/nyfed-markets/ -- already covered by the verified deny-Delete bucket policy, versioning, and the existing nyfed REG entry, so it is permanent and visible on data.html with zero extra wiring.
+executing-against: 157e5383426db7bf484a958f79c1e6d9c8d758ad
+ops 4743 -- segment-depth grid for ambs/tsy/seclending + soma special-case
+── A. Grid search: ambs / tsy / seclending ──
+[15:47:44] ambs: ambs/all/all/results/search.json -> status=400 rows=0
+[15:47:45] ambs: ambs/all/all/search.json -> status=400 rows=0
+[15:47:45] ambs: ambs/all/all/all/results/search.json -> status=400 rows=0
+[15:47:45] ambs: ambs/all/all/all/search.json -> status=400 rows=0
+[15:47:45] ambs: ambs/all/all/all/all/results/search.json -> status=400 rows=0
+[15:47:45] ambs: ambs/all/all/all/all/search.json -> status=400 rows=0
+[15:47:45] ⚠ ambs: grid exhausted 2-4 segments -- next escalation is the site's JS bundle route strings, not more guessing
+[15:47:45] tsy: tsy/all/all/results/search.json -> status=400 rows=0
+[15:47:46] tsy: tsy/all/all/search.json -> status=400 rows=0
+[15:47:46] tsy: tsy/all/all/all/results/search.json -> status=400 rows=0
+[15:47:46] tsy: tsy/all/all/all/search.json -> status=400 rows=0
+[15:47:46] tsy: tsy/all/all/all/all/results/search.json -> status=400 rows=0
+[15:47:46] tsy: tsy/all/all/all/all/search.json -> status=400 rows=0
+[15:47:46] ⚠ tsy: grid exhausted 2-4 segments -- next escalation is the site's JS bundle route strings, not more guessing
+[15:47:46] seclending: seclending/all/all/results/search.json -> status=400 rows=0
+[15:47:46] seclending: seclending/all/all/search.json -> status=400 rows=0
+[15:47:47] seclending: seclending/all/all/all/results/search.json -> status=400 rows=0
+[15:47:47] seclending: seclending/all/all/all/search.json -> status=400 rows=0
+[15:47:47] seclending: seclending/all/all/all/all/results/search.json -> status=400 rows=0
+[15:47:47] seclending: seclending/all/all/all/all/search.json -> status=400 rows=0
+[15:47:47] ⚠ seclending: grid exhausted 2-4 segments -- next escalation is the site's JS bundle route strings, not more guessing
+── B. soma special-case ──
+[15:47:47] soma/summary.json -> status=200 rows=1206
+[15:47:47] ✅ soma summary: banked 1206 rows, 2003-07-09 -> 2026-08-12
+[15:47:47] per-CUSIP holdings exist for 1206 as-of dates -- that is a dedicated-engine build (row volume), flagged, never half-banked here
 
-→ Report written to aws/ops/reports/latest/4742_nyfed_full_coverage_audit_and_bank.md
+→ Report written to aws/ops/reports/latest/4743_nyfed_grammar_grid_and_soma.md
