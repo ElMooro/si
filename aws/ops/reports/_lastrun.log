@@ -1,22 +1,29 @@
-executing-against: 3f71c490dace47fbef5ca74b1c08cbc2515ce16f
-ops 4762 -- soma / v2 / HFM triple-verify (on-demand ticks)
-── Invoke the three engines ──
-[18:04:03] justhodl-ofr-stfm payload[:300]: {"statusCode": 200, "body": "{\"ok\": true, \"catalog\": 442, \"catalog_source\": \"https://data.financialresearch.gov/v1/metadata/mnemonics\", \"pulled_this_run\": 0, \"failed\": 0, \"done_total\": 442, \"progress_pct\": 100.0, \"hf\": {\"catalog\": 497, \"pulled\": 25, \"failed\": 0, \"done_total\
-[18:04:17] justhodl-nyfed-repo-deep payload[:300]: {"statusCode": 200, "body": "{\"as_of\": \"2026-08-16T18:04:03+00:00\", \"rp_reverserepo\": {\"ok\": true, \"n_ops\": 3191, \"latest_date\": \"2026-08-14\", \"latest_accepted\": 250000000, \"row_keys\": [\"acceptedCpty\", \"auctionStatus\", \"closeTime\", \"details\", \"lastUpdated\", \"maturityDate
-[18:04:54] justhodl-soma-cusip payload[:300]: {"statusCode": 200, "body": "{\"as_of\": \"2026-08-16T18:04:18+00:00\", \"asof_catalog\": 1206, \"pending_before\": 2412, \"banked_this_run\": 120, \"errors_this_run\": 0, \"done_pairs\": 120, \"total_pairs\": 2412, \"progress_pct\": 5.0, \"endpoint\": {\"tsy\": \"/api/soma/tsy/get/asof/{d}.json\"},
-── HFM extension -- fresh state ──
-[18:04:54] hf new mnemonics last run: FICC-SPONSORED_REPO_VOL, FICC-SPONSORED_REVREPO_VOL, FPF-ALLQHF_ALTERNATE_COUNT, FPF-ALLQHF_CANGATE_PERCENT, FPF-ALLQHF_CANSUSPEND_PERCENT, FPF-ALLQHF_CDSDOWN250BPS_P5, FPF-ALLQHF_CDSDOWN250BPS_P50, FPF-ALLQHF_CDSUP250BPS_P5, FPF-ALLQHF_CDSUP250BPS_P50, FPF-ALLQHF_COUNT
-[18:04:54] ✅ HFM self-extension state is live
-── repo-deep v2 -- fresh summary + tsy 'latest' fix proof ──
-[18:04:54]   fxs: {"ok": true, "n_rows": 1596, "added": 0, "latest": "2026-08-12"}
-[18:04:54]   ambs: {"ok": true, "n_rows": 2875, "added": 0, "latest": "2026-08-14"}
-[18:04:54]   tsy: {"ok": true, "n_rows": 1894, "added": 0, "latest": "2026-08-11"}
-[18:04:54]   seclending: {"ok": true, "n_rows": 9302, "added": 0, "latest": "2026-08-14"}
-[18:04:54]   soma_summary: {"ok": true, "n_rows": 1206, "added": 0, "latest": "2026-08-12"}
-[18:04:54] ✅ tsy 'latest' now an operation date (2026-08-11) -- the 2055 maturity artifact is retired
-── soma-cusip -- fresh status + sample depth ──
-[18:04:54] soma endpoints: {"tsy": "/api/soma/tsy/get/asof/{d}.json"}
-[18:04:54] ✅ tsy 2026-08-12: 432 per-CUSIP rows banked
-── data.html -- nyfed-research row ──
+executing-against: d449e5556dda57ceafa378fa184cf59a2e958e38
+ops 4763 -- justhodl-repo: wait for deploy, invoke, verify
+── Wait for the function (parallel deploy) ──
+[18:28:41] ✅ function present after 0s
+── Invoke synchronously ──
+[18:29:15] payload[:350]: {"statusCode": 200, "body": "{\"ok\": true, \"series\": 296, \"skipped\": 4, \"barometer\": 54.6, \"label\": \"NORMAL\", \"secs\": 33.4}"}
+── Verify data/repo.json ──
+[18:29:16]   comp SOFR−TGCR spread: 2.0 bps z=0.67
+[18:29:16]   comp DVP−Triparty rate: -2.0 bps z=-0.5
+[18:29:16]   comp Corp−Tsy collateral spread: 23.0 bps z=2.5
+[18:29:16]   comp Total fails Δ30d: -0.099 % z=-0.0
+[18:29:16]   comp Treasury fails Δ30d: -0.083 % z=-0.0
+[18:29:16]   comp Overnight triparty volume Δ30d: -0.637 % z=0.08
+[18:29:16]   comp Broad dollar Δ30d: None % z=None
+[18:29:16]   group 'DVP bilateral cleared': 36 series
+[18:29:16]   group 'GCF': 44 series
+[18:29:16]   group 'Primary dealer FAILS': 18 series
+[18:29:16]   group 'Primary dealer financing': 88 series
+[18:29:16]   group 'Reference rates & volumes': 30 series
+[18:29:16]   group 'Tri-party (TRI legacy)': 40 series
+[18:29:16]   group 'Tri-party (TRIV1, ex-Fed)': 40 series
+[18:29:16]   skipped: REPO-GCF_AR_B27-F -- no_pairs_extracted
+[18:29:16]   skipped: REPO-GCF_AR_B27-P -- no_pairs_extracted
+[18:29:16]   skipped: REPO-GCF_TV_B27-F -- no_pairs_extracted
+[18:29:16]   skipped: REPO-GCF_TV_B27-P -- no_pairs_extracted
+── Verify one history file + the dollar rows ──
+[18:29:16] ✅ engine + page data path verified end-to-end -- repo.html renders from these exact files
 
-→ Report written to aws/ops/reports/latest/4762_triple_verify_by_invocation.md
+→ Report written to aws/ops/reports/latest/4763_repo_engine_invoke_verify.md
