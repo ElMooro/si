@@ -1,16 +1,16 @@
-executing-against: b0f3b8d1ff7ff4f66c9362ff590b81e76561c278
-ops 4760 -- first ticks + triparty completeness + data.html
-── A. soma-cusip engine ──
-[17:50:31] ⚠ soma status: NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
-── B. repo-deep v2 first self-extend ──
-── C. HFM /hf/v1 extension ──
-[17:50:31]   ofr-hfm/state.json not written yet (NoSuchKey) -- stfm tick pending
-── D. Triparty -- every source ──
-[17:50:31] TRI sample: REPO-TRIV1_AR_AG-F, REPO-TRIV1_AR_AG-P, REPO-TRIV1_AR_B27-F, REPO-TRIV1_AR_B27-P, REPO-TRIV1_AR_B830-F, REPO-TRIV1_AR_B830-P, REPO-TRIV1_AR_CORD-F, REPO-TRIV1_AR_CORD-P, REPO-TRIV1_AR_G30-F, REPO-TRIV1_AR_G30-P, REPO-TRIV1_AR_LE30-F, REPO-TRIV1_AR_LE30-P
-[17:50:31] ✅ REPO-TRIV1_AR_TOT-P: 2960 obs, 2014-08-22 -> 2026-08-06
-[17:50:31] ✅ REPO-TRIV1_TV_TOT-P: 2960 obs, 2014-08-22 -> 2026-08-06
-[17:50:32] ✅ haircut file on S3: haircuts/tri-party-repo_data_current.xlsx (215434 bytes, office_verified=True)
-[17:50:32] ✅ haircut file on S3: haircuts/tri-party-repo_preNov25_history.xlsx (439002 bytes, office_verified=True)
-── E. data.html -- what the page shows right now ──
+executing-against: 9f1d6804731c76bb4a43136290433de3f89dfaeb
+ops 4761 -- combined repo master inventory (built from the bank)
+── Names from OFR metadata (live, per-dataset) ──
+── Depth scan (real spans from the warm bank) ──
+── Tenor-break proof from the bank (doc claims 2025-08-13) ──
+[17:58:35] ✅ REPO-TRIV1_TV_LE30-P ends 2026-08-06 -> REPO-TRIV1_TV_B27-P begins 2025-08-13 (doc: 2025-08-13)
+[17:58:35] ✅ REPO-TRIV1_AR_LE30-P ends 2026-08-06 -> REPO-TRIV1_AR_B27-P begins 2025-08-13 (doc: 2025-08-13)
+── Haircut + metadata file entries ──
+[17:58:35] ✅ file entry: NY Fed tri-party haircuts (current, post-Nov-2025) (215434 bytes)
+[17:58:35] ✅ file entry: NY Fed tri-party haircuts (May 2010 - Oct 2025) (439002 bytes)
+[17:58:35] ✅ file entry: PD series-break definitions (212 bytes)
+[17:58:35] ✅ inventory written: 300 series + 3 files -> data/repo-master-inventory.json (hot) + warm permanent copy
+── soma-cusip fresh check (first tick due 18:41 UTC) ──
+[17:58:35] still pre-first-tick at op runtime
 
-→ Report written to aws/ops/reports/latest/4760_first_ticks_and_triparty_audit.md
+→ Report written to aws/ops/reports/latest/4761_repo_master_inventory.md
