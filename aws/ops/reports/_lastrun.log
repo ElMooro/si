@@ -1,7 +1,29 @@
-executing-against: 7113fe9980951aca9bf9a10eb86facf2b640d274
-ops 4733 -- locate import-canary's real Census key (read-only, no value printed)
-[04:17:36] ✅ CENSUS_API_KEY IS set directly as a Lambda env var (40 chars, non-empty=True) -- value not printed
+executing-against: 449d9d5dc00412353d799f27a1776bc6e107bcf6
+ops 4734 -- Census depth probe with the real key (value never printed)
+── 1. Range-query syntax -- does 'time=from X to Y' work with a real key? ──
+[04:19:10] range probe result: status=200 is_json=True elapsed_ms=5339
+[04:19:10]   body preview: [["GEN_VAL_MO","COMM_LVL","I_COMMODITY","time"],
+["1167461768","HS6","854231","2013-01"],
+["1196050876","HS6","854231","2013-02"],
+["1260593174","HS6","854231","2013-03"],
+["1307322176","HS6","854231","2013-04"],
+["1608099447","HS6","854231","2013-05"],
+["1419086979","HS6","854231","2013-06"]]
+── 2. How far back does real (non-null) monthly data exist -- single-month probes ──
+[04:19:30]   1992-01: is_json=False has_data_row=False status=204 body[:150]=
+[04:19:33]   2000-01: is_json=False has_data_row=False status=204 body[:150]=
+[04:19:52]   2005-01: is_json=False has_data_row=False status=204 body[:150]=
+[04:19:55]   2010-01: is_json=True has_data_row=True status=200 body[:150]=[["GEN_VAL_MO","COMM_LVL","I_COMMODITY","time"],
+["388466943","HS6","854231","2010-01"]]
+[04:19:58]   2013-01: is_json=True has_data_row=True status=200 body[:150]=[["GEN_VAL_MO","COMM_LVL","I_COMMODITY","time"],
+["1167461768","HS6","854231","2013-01"]]
+[04:20:02]   2020-01: is_json=True has_data_row=True status=200 body[:150]=[["GEN_VAL_MO","COMM_LVL","I_COMMODITY","time"],
+["1624108686","HS6","854231","2020-01"]]
+── 3. NAICS endpoint too -- same COMM_LVL/HS shape doesn't apply, confirm its own earliest ──
+[04:20:03]   NAICS 2005-01: is_json=False body[:150]=
+[04:20:03]   NAICS 2013-01: is_json=True body[:150]=[["GEN_VAL_MO","time","NAICS"],
+["3031577614","2013-01","334413"]]
 ── Summary ──
-[04:17:36] Read-only, no secret values written. This determines whether the backfill just needs a wider time range with the existing working key, or whether Khalid needs to register a free Census API key first (census.gov/data/developers.html).
+[04:20:03] Key value never printed. This gives the real earliest usable month and confirms whether range queries work, so the backfill script can be written against measured behavior instead of assumption.
 
-→ Report written to aws/ops/reports/latest/4733_import_canary_census_key_location.md
+→ Report written to aws/ops/reports/latest/4734_census_probe_with_real_key.md
