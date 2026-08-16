@@ -19,6 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "ops"))
 sys.path.insert(0, str(ROOT / "lambdas" / "justhodl-invest" / "source"))
+sys.path.insert(0, str(ROOT / "shared"))  # lambda_function.py needs impact_mapper
 
 from ops_report import report  # noqa: E402
 import causal_graph  # noqa: E402
