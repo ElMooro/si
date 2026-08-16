@@ -167,6 +167,8 @@ def group_of(e):
         return "Primary dealer financing"
     if e.get("family") == "DOLLAR":
         return "Dollar (FRED trade-weighted)"
+    if e.get("family") == "ICEBOFA":
+        return "ICE BofA option-adjusted spreads (FRED)"
     return "Other"
 
 
@@ -253,6 +255,86 @@ def lambda_handler(event, context):
                       ).get("verified") or {}
     except Exception:
         _spl = {}
+
+    # v1.6: ICE BofA option-adjusted spread complex. Source of truth =
+    # the recovered archive (data/warm/archived-fred/BAML*.json, incl
+    # Wayback-restored history); self-heal keeps it CURRENT: when the
+    # merged copy is stale >21d and FRED_API_KEY is present, fetch the
+    # tail from FRED and bank the merged doc to
+    # data/warm/fred-scoped/ICE_BofA_OAS/{ID}.json (read first next runs).
+    ICE_DIR = "data/warm/fred-scoped/ICE_BofA_OAS"
+    ice_ids = []
+    _tok = None
+    while True:
+        _kw = dict(Bucket=BUCKET, Prefix="data/warm/archived-fred/BAML",
+                    MaxKeys=1000)
+        if _tok:
+            _kw["ContinuationToken"] = _tok
+        _r = s3.list_objects_v2(**_kw)
+        for _o in _r.get("Contents") or []:
+            _id = _o["Key"].rsplit("/", 1)[-1].replace(".json", "")
+            if _id:
+                ice_ids.append(_id)
+        _tok = _r.get("NextContinuationToken")
+        if not _tok:
+            break
+    ice_added = 0
+    for _id in ice_ids:
+        merged_key = f"{ICE_DIR}/{_id}.json"
+        src_key = merged_key
+        try:
+            s3.head_object(Bucket=BUCKET, Key=merged_key)
+        except Exception:
+            src_key = f"data/warm/archived-fred/{_id}.json"
+        try:
+            _doc = sread(src_key)
+        except Exception:
+            continue
+        _pairs = extract_pairs(_doc)
+        _last = _pairs[-1][0] if _pairs else "1900-01-01"
+        _stale = (datetime.now(timezone.utc) -
+                   datetime.strptime(_last, "%Y-%m-%d")
+                   .replace(tzinfo=timezone.utc)).days > 21
+        if _stale and fred_key:
+            try:
+                import urllib.request as _ur
+                _u = ("https://api.stlouisfed.org/fred/series/observations"
+                      f"?series_id={_id}&api_key={fred_key}"
+                      f"&file_type=json&observation_start={_last}")
+                _rq = _ur.Request(_u, headers={
+                    "User-Agent": "JustHodl raafouis@gmail.com"})
+                with _ur.urlopen(_rq, timeout=45) as _r2:
+                    _obs = json.loads(_r2.read()).get("observations") or []
+                _newp = dict(_pairs)
+                for _o in _obs:
+                    try:
+                        _newp[_o["date"]] = float(_o["value"])
+                    except Exception:
+                        pass
+                _pairs = sorted(_newp.items())
+                s3.put_object(Bucket=BUCKET, Key=merged_key,
+                               Body=json.dumps(
+                                   {"id": _id, "source":
+                                     "archived-fred + FRED API self-heal",
+                                     "banked_at": now,
+                                     "observations":
+                                         [{"date": d0, "value": v0}
+                                          for d0, v0 in _pairs]},
+                                   separators=(",", ":")).encode(),
+                               ContentType="application/json")
+            except Exception:
+                pass
+        _nm = ""
+        if isinstance(_doc, dict):
+            _nm = str(_doc.get("title") or _doc.get("name") or "")[:150]
+        scope.append({"mnemonic": _id,
+                       "name": _nm or f"ICE BofA {_id} (OAS/yield, FRED)",
+                       "family": "ICEBOFA",
+                       "s3_key": (merged_key if src_key == merged_key
+                                   or _stale else src_key),
+                       "api_url": f"https://fred.stlouisfed.org/series/{_id}",
+                       "tier": 2})
+        ice_added += 1
 
     values = {}
     rows = []
@@ -384,7 +466,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "1.5", "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "1.6", "ice": ice_added, "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))
