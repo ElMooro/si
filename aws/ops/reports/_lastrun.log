@@ -1,8 +1,31 @@
-executing-against: 6fb7094c4180e32a66de26a6a7b4f2d573666f2c
-ops 4770 -- flagged holes vs the live publisher
-[18:55:49]   REPO-DVP_AR_OO-P live dates in window: 2024-12-18, 2024-12-19, 2024-12-20, 2024-12-23, 2024-12-24, 2024-12-26, 2024-12-27, 2024-12-30, 2024-12-31, 2025-01-02, 2025-01-03, 2025-01-06
-[18:55:49]   REPO-GCF_AR_LE30-P live dates in window: 2020-03-25, 2020-03-26, 2020-03-27, 2020-03-30, 2020-03-31, 2020-04-01, 2020-04-02, 2020-04-03, 2020-04-06, 2020-04-07, 2020-04-08, 2020-04-09 ...
-[18:55:50]   REPO-GCF_OV_B27-P live dates in window: 2025-12-22, 2025-12-23, 2025-12-24, 2025-12-26, 2025-12-29, 2025-12-30, 2025-12-31, 2026-01-02, 2026-01-05, 2026-01-06, 2026-01-07, 2026-01-08 ...
-[18:55:50] ✅ all flagged windows: bank == publisher exactly -- the holes are the source's own record (closures / zero-trade days), not banking gaps
+executing-against: 047c7f2725b28470bd381a4332a54eef7d5e5791
+ops 4771 -- PD splice toward 1998 (verified joins only)
+── A. break table + keyid universe ──
+[19:49:18] seriesbreaks.csv RAW:
+"Label","Series Break","Start date","End date"
+"JAN 1998 TO JUN 2001","SBP2001","1998-01-28","2001-06-30"
+"JUL 2001 TO MAR 2013","SBP2013","2001-07-01","2013-03-31"
+"APR 2013 TO DEC 2014","SBN2013","2013-04-01","2014-12-31"
+"JAN 2015 TO DEC 2021","SBN2015","2015-01-01","2022-01-04"
+"JAN 2022 TO JUN 2024","SBN2022","2022-01-05","2024-07-02"
+"JUL 2024 AND ON","SBN2024","2024-07-03","9999-12-31"
 
-→ Report written to aws/ops/reports/latest/4770_holes_source_proof.md
+[19:49:18] timeseries columns: Key Id, Label, Series Break
+[19:49:18] sample fails rows: PDFTD-USTET=PDFTD-USTET U.S. TREASURY SECURITIES (EXCLUDING TREASURY INF; PDFTD-UST=PDFTD-UST TREASURY INFLATION-PROTECTED SECURITIES (TIPS) : D; PDFTD-FGEM=PDFTD-FGEM FEDERAL AGENCY AND GSE SECURITIES (EXCLUDING MBS)
+── B+C. map candidates and VERIFY by value overlap ──
+[19:49:51]   unverified: NYPD-PD_AFtD_AG-A -- no value-verified candidate
+[19:49:51]   unverified: NYPD-PD_AFtD_AG_MBS-A -- no value-verified candidate
+[19:49:51]   unverified: NYPD-PD_AFtD_AG_eMBS-A -- no value-verified candidate
+[19:49:51]   unverified: NYPD-PD_AFtD_CORS-A -- no value-verified candidate
+[19:49:51]   unverified: NYPD-PD_AFtD_OMBS-A -- no value-verified candidate
+[19:49:51]   unverified: NYPD-PD_AFtD_T-A -- no value-verified candidate
+[19:49:51]   unverified: NYPD-PD_AFtD_TIPS-A -- no value-verified candidate
+[19:49:51]   unverified: NYPD-PD_AFtD_TOT-A -- no value-verified candidate
+[19:49:51]   unverified: NYPD-PD_AFtD_T_eTIPS-A -- no value-verified candidate
+[19:49:51]   unverified: NYPD-PD_AFtR_AG-A -- no value-verified candidate
+[19:49:51]   unverified: NYPD-PD_AFtR_AG_MBS-A -- no value-verified candidate
+[19:49:51]   unverified: NYPD-PD_AFtR_AG_eMBS-A -- no value-verified candidate
+── D. cross-break keyid probe ──
+── E. fetch older breaks, merge, bank ──
+
+→ Report written to aws/ops/reports/latest/4771_pd_1998_splice.md
