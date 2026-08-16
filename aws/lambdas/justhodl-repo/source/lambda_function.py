@@ -171,6 +171,8 @@ def group_of(e):
         return "ICE BofA option-adjusted spreads (FRED)"
     if e.get("family") == "HAIRCUT":
         return "Tri-party haircuts (NY Fed monthly)"
+    if e.get("family") == "SFTR":
+        return "SFTR EU/UK repo (ICMA weekly)"
     if e.get("family") == "EUROREPO":
         return "European sovereign collateral (ECB MMSR)"
     if e.get("family") == "EUYIELD":
@@ -844,6 +846,200 @@ def lambda_handler(event, context):
                 "api_url": f"https://fred.stlouisfed.org/series/{_fid}",
                 "tier": 2})
 
+    # v2.3-A: DAILY EU sovereign 10Y via Trading Economics (key
+    # inherited at runtime by ops 4797; grammar proven by dxy-predict)
+    te_key = os.environ.get("TE_API_KEY", "")
+    TECN = {"germany": "DE10Y_TE", "italy": "IT10Y_TE",
+             "france": "FR10Y_TE", "spain": "ES10Y_TE"}
+    for _cty, _tid in TECN.items():
+        _wk = f"data/warm/te-yields/{_cty}-10y.json"
+        _pp = []
+        _stale = True
+        try:
+            _pp = extract_pairs(sread(_wk))
+            if _pp:
+                _stale = (datetime.now(timezone.utc) -
+                           datetime.strptime(_pp[-1][0], "%Y-%m-%d")
+                           .replace(tzinfo=timezone.utc)).days > 3
+        except Exception:
+            pass
+        if _stale and te_key:
+            try:
+                import urllib.request as _ur
+                import urllib.parse as _up
+                _u = ("https://api.tradingeconomics.com/historical/"
+                      "country/%s/indicator/%s?c=%s&f=json"
+                      % (_up.quote(_cty),
+                          _up.quote("government bond 10y"), te_key))
+                with _ur.urlopen(_ur.Request(_u, headers={
+                        "User-Agent": "Mozilla/5.0"}), timeout=50) as _r:
+                    _js = json.loads(_r.read())
+                _d2 = dict(_pp)
+                for _row in _js if isinstance(_js, list) else []:
+                    _dt = str(_row.get("DateTime") or "")[:10]
+                    _v = _row.get("Value")
+                    if len(_dt) == 10 and _v is not None:
+                        try:
+                            _d2[_dt] = float(_v)
+                        except Exception:
+                            pass
+                if _d2:
+                    _pp = sorted(_d2.items())
+                    s3.put_object(Bucket=BUCKET, Key=_wk,
+                        Body=json.dumps({"id": _tid,
+                            "source": "TradingEconomics historical",
+                            "banked_at": now,
+                            "observations": [{"date": a, "value": b}
+                                              for a, b in _pp]},
+                            separators=(",", ":")).encode(),
+                        ContentType="application/json")
+            except Exception:
+                pass
+        if _pp:
+            scope.append({"mnemonic": _tid,
+                "name": f"{_cty.title()} 10Y yield (daily, TE)",
+                "family": "EUYIELD", "bucket": "Daily (TE)",
+                "s3_key": _wk,
+                "api_url": "https://tradingeconomics.com/bonds",
+                "tier": 2})
+
+    # v2.3-B: ICMA SFTR weekly public files -- self-extending: find
+    # the two newest EU/UK xlsx links on the page, bank any new raw
+    # file, parse with the house zipfile+xml mini-reader (no openpyxl
+    # in Lambda), melt numeric metrics to weekly series.
+    def _xlsx_rows(raw):
+        import zipfile as _zf
+        import io as _io
+        import re as _re
+        z = _zf.ZipFile(_io.BytesIO(raw))
+        shared = []
+        if "xl/sharedStrings.xml" in z.namelist():
+            sx = z.read("xl/sharedStrings.xml").decode("utf-8", "replace")
+            shared = [_re.sub(r"<[^>]+>", "", m)
+                       for m in _re.findall(r"<si>(.*?)</si>", sx,
+                                             _re.S)]
+        sheet = next((n for n in z.namelist()
+                       if _re.match(r"xl/worksheets/sheet1\.xml", n)),
+                      None)
+        if not sheet:
+            return []
+        xml = z.read(sheet).decode("utf-8", "replace")
+        rows = []
+        for rm in _re.findall(r"<row[^>]*>(.*?)</row>", xml, _re.S):
+            cells = []
+            for cm in _re.finditer(
+                    r'<c[^>]*?(?:t="(\w+)")?[^>]*>'
+                    r'(?:<is><t[^>]*>(.*?)</t></is>|'
+                    r'<v>(.*?)</v>)?</c>', rm, _re.S):
+                t, inl, v = cm.group(1), cm.group(2), cm.group(3)
+                if t == "s" and v is not None:
+                    try:
+                        cells.append(shared[int(v)])
+                    except Exception:
+                        cells.append("")
+                else:
+                    cells.append(inl if inl is not None else (v or ""))
+            rows.append(cells)
+        return rows
+
+    try:
+        import urllib.request as _ur
+        _pg = _ur.urlopen(_ur.Request(
+            "https://www.icmagroup.org/market-practice-and-regulatory-"
+            "policy/repo-and-collateral-markets/market-data/"
+            "sftr-public-data/",
+            headers={"User-Agent": "Mozilla/5.0"}), timeout=45
+            ).read().decode("utf-8", "replace")
+        import re as _re
+        _links = sorted(set(_re.findall(
+            r'href="([^"]*SFTR-Public-Data-(?:EU|UK)[^"]*\.xlsx)"',
+            _pg)))
+        for _lk in _links[-2:]:
+            _full = _lk if _lk.startswith("http") else                 "https://www.icmagroup.org" + _lk
+            _fn = _full.rsplit("/", 1)[-1]
+            _rk = f"data/warm/icma-sftr/files/{_fn}"
+            try:
+                s3.head_object(Bucket=BUCKET, Key=_rk)
+            except Exception:
+                _raw = _ur.urlopen(_ur.Request(_full, headers={
+                    "User-Agent": "Mozilla/5.0"}), timeout=60).read()
+                s3.put_object(Bucket=BUCKET, Key=_rk, Body=_raw,
+                    ContentType="application/vnd.openxmlformats-"
+                                 "officedocument.spreadsheetml.sheet")
+                _region = "EU" if "-EU-" in _fn else "UK"
+                _m = _re.search(r"we-(\d{1,2})-(\w+)-(\d{4})", _fn)
+                _months = {m0: i for i, m0 in enumerate(
+                    ["January", "February", "March", "April", "May",
+                      "June", "July", "August", "September", "October",
+                      "November", "December"], 1)}
+                _wdate = (f"{_m.group(3)}-"
+                           f"{_months.get(_m.group(2), 1):02d}-"
+                           f"{int(_m.group(1)):02d}") if _m else                     now[:10]
+                for _row in _xlsx_rows(_raw):
+                    _lab = next((c for c in _row
+                                  if isinstance(c, str) and
+                                  len(c.strip()) > 3 and
+                                  not _re.match(r"^[\d.,eE+-]+$",
+                                                 c.strip())), None)
+                    _val = None
+                    for c in _row:
+                        try:
+                            _val = float(str(c).replace(",", ""))
+                            if abs(_val) > 0.0001:
+                                break
+                        except Exception:
+                            continue
+                    if not _lab or _val is None:
+                        continue
+                    _slug = _re.sub(r"[^a-z0-9]+", "-",
+                                     _lab.lower()).strip("-")[:60]
+                    _sk = (f"data/warm/icma-sftr/{_region.lower()}/"
+                            f"{_slug}.json")
+                    try:
+                        _doc = sread(_sk)
+                    except Exception:
+                        _doc = {"id": f"SFTR-{_region}-{_slug}",
+                                 "title": f"SFTR {_region}: {_lab[:110]}",
+                                 "observations": []}
+                    if not any(o.get("date") == _wdate
+                                for o in _doc["observations"]):
+                        _doc["observations"].append(
+                            {"date": _wdate, "value": _val})
+                        _doc["observations"].sort(
+                            key=lambda o: o["date"])
+                        s3.put_object(Bucket=BUCKET, Key=_sk,
+                            Body=json.dumps(_doc, separators=(",", ":")
+                                             ).encode(),
+                            ContentType="application/json")
+        # scope all banked sftr series
+        for _region in ("eu", "uk"):
+            _tok = None
+            while True:
+                _kw = dict(Bucket=BUCKET,
+                            Prefix=f"data/warm/icma-sftr/{_region}/",
+                            MaxKeys=1000)
+                if _tok:
+                    _kw["ContinuationToken"] = _tok
+                _r3 = s3.list_objects_v2(**_kw)
+                for _o in _r3.get("Contents") or []:
+                    _sid = _o["Key"].rsplit("/", 1)[-1
+                            ].replace(".json", "")
+                    scope.append({"mnemonic":
+                                    f"SFTR-{_region.upper()}-{_sid}",
+                        "name": f"SFTR {_region.upper()} weekly: "
+                                 + _sid.replace("-", " ")[:110],
+                        "family": "SFTR", "s3_key": _o["Key"],
+                        "api_url": "https://www.icmagroup.org/market-"
+                                    "practice-and-regulatory-policy/"
+                                    "repo-and-collateral-markets/"
+                                    "market-data/sftr-public-data/",
+                        "tier": 2})
+                _tok = _r3.get("NextContinuationToken")
+                if not _tok:
+                    break
+    except Exception as _e:
+        print("[repo] sftr block:", type(_e).__name__, str(_e)[:80])
+
     values = {}
     rows = []
     skipped = []
@@ -948,6 +1144,12 @@ def lambda_handler(event, context):
     _emit("D_SOFR_P75_P25", "SOFR P75 − P25 (bps): repo-rate "
            "dispersion, tails widen before the median moves",
            {d: (_p75[d] - _p25[d]) * 100 for d in _p75 if d in _p25})
+    _emit("D_BTP_BUND_D", "BTP − Bund 10Y DAILY (bps, TE)",
+           _spread("IT10Y_TE", "DE10Y_TE"))
+    _emit("D_OAT_BUND_D", "OAT − Bund 10Y DAILY (bps, TE)",
+           _spread("FR10Y_TE", "DE10Y_TE"))
+    _emit("D_BONO_BUND_D", "Bono − Bund 10Y DAILY (bps, TE)",
+           _spread("ES10Y_TE", "DE10Y_TE"))
     _emit("D_BTP_BUND", "BTP − Bund 10Y (bps, monthly OECD; daily "
            "feed = MTS/RFR, source-recon flagged)",
            _spread("IRLTLT01ITM156N", "IRLTLT01DEM156N"))
@@ -1057,7 +1259,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "2.2", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "2.3", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))
