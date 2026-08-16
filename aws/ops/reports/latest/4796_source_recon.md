@@ -1,0 +1,56 @@
+# ops 4796 -- RFR / SFTR / DTCC / FIMA / TE recon
+
+**Status:** success  
+**Duration:** 6.6s  
+**Finished:** 2026-08-16T23:26:10+00:00  
+
+## Data
+
+| check | te_watch | value |
+|---|---|---|
+| rfr_page_bytes |  | 276877 |
+| sftr_file_links |  | 2 |
+| fred_key_present |  | True |
+|  | TE_API_KEY |  |
+
+## Log
+## A. ICMA RepoFunds Rate free endpoint hunt
+
+- `23:26:05`   relpath: />
+
+    
+
+    <script data-cookieconsent=
+- `23:26:05`   relpath: /executive-education/debt-capital-market/
+- `23:26:05`   relpath: /fintech-and-digitalisation/fintech-advisory-committee-and-related-groups/artificial-intelligence-in-capital-markets-aicm-working-group/
+- `23:26:05`   relpath: /fintech-and-digitalisation/fintech-advisory-committee-and-related-groups/bond-data-taxonomy/
+- `23:26:05`   relpath: /market-practice-and-regulatory-policy/capital-markets-union-2/
+- `23:26:05`   relpath: /market-practice-and-regulatory-policy/international-capital-market-fragmentation/
+- `23:26:05`   relpath: /market-practice-and-regulatory-policy/primary-markets/primary-market-products/bank-capital/
+- `23:26:05`   relpath: /market-practice-and-regulatory-policy/repo-and-collateral-markets/market-data/
+- `23:26:05`   relpath: /market-practice-and-regulatory-policy/repo-and-collateral-markets/market-data/euro-repo-funds-rate/
+- `23:26:05`   relpath: /market-practice-and-regulatory-policy/repo-and-collateral-markets/market-data/euro-repo-funds-rate/#
+- `23:26:05`   relpath: /market-practice-and-regulatory-policy/repo-and-collateral-markets/market-data/euro-repo-funds-rate/#Eurozone Repo Index
+- `23:26:05`   relpath: /market-practice-and-regulatory-policy/repo-and-collateral-markets/market-data/euro-repo-funds-rate/#RFR GC Rates (2021)
+## B. ICMA SFTR public data files
+
+- `23:26:06`   /assets/documents/Regulatory/Repo/SFTR/SFTR-Public-Data-EU-we-7-August-2026-110826.xlsx
+- `23:26:06`   /assets/documents/Regulatory/Repo/SFTR/SFTR-Public-Data-UK-we-7-August-2026-110826.xlsx
+- `23:26:07` ✅   newest fetched: 23937B magic=b'PK\x03\x04'
+## C. DTCC daily Treasury fails probes
+
+- `23:26:08` ✅   https://www.dtcc.com/charts/daily-total-us-treasury-trade-fails -> 348056B head=b'\r\n\r\n<!DOCTYPE html>\r\n<html>\r\n<head>\r\n   <meta\xc3\x82\xc2\xa0name="viewport"\xc3\x82\xc2\xa0co'
+- `23:26:09` ✅   https://www.dtcc.com/-/media/Files/Downloads/Settlement-Asset-Services/Settlemen -> 314023B head=b'\r\n\r\n\r\n<!DOCTYPE html>\r\n<html>\r\n<head><meta name="viewport" content="wi'
+- `23:26:09`     ^ CSV-ish!
+- `23:26:09`   https://www.dtcc.com/api/charts/treasury-fails -> HTTPError
+## D. FIMA / foreign-official RRP FRED id
+
+- `23:26:10` ✅   WLRRAFOIAL: Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: Foreign Official and  [W] 2002-12-18->
+- `23:26:10` ✅   WREPOFOR: Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: Foreign Official and  [W] 2002-12-18->
+- `23:26:10` ✅   WLRRA: Liabilities: Reverse Repurchase Agreements (DISCONTINUED) [W] 2002-12-18->
+- `23:26:10` ✅   RESPPLLRFXAWXCH1NWW: Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: Foreign Official and  [W] 2002-12-18->
+- `23:26:10` ✅   RESPPLLRFXAWXCH52NWW: Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: Foreign Official and  [W] 2002-12-18->
+## E. TE key holder (names only)
+
+- `23:26:10`   justhodl-dxy-predict: KeyError
+- `23:26:10`   justhodl-bottom-signals: KeyError
