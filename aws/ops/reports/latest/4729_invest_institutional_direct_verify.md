@@ -1,0 +1,45 @@
+# ops 4729 — direct-call verification against real data
+
+**Status:** success  
+**Duration:** 1.9s  
+**Finished:** 2026-08-16T00:01:32+00:00  
+
+## Data
+
+| tickers_tested | tickers_with_at_least_one_institutional_component |
+|---|---|
+| 6 | 0 |
+
+## Log
+## get_institutional_sector_confirmation() for every industry proxy
+
+- `00:01:30`   semis_memory (SMH): {"sector_flow": null, "insider_cluster": null}
+- `00:01:30`   semis_foundry_logic (SOXX): {"sector_flow": null, "insider_cluster": null}
+- `00:01:30`   electronics_hardware (XLK): {"sector_flow": {"conviction": 59.5, "posture": "NEUTRAL", "quadrant": "Leading", "confluence": 4, "dollar_confirms": null}, "insider_cluster": null}
+- `00:01:30`   ev_battery_grid (LIT): {"sector_flow": null, "insider_cluster": null}
+- `00:01:30`   electrical_infra (XLI): {"sector_flow": {"conviction": 62.4, "posture": "NEUTRAL", "quadrant": "Weakening", "confluence": 2, "dollar_confirms": true}, "insider_cluster": null}
+- `00:01:30`   data_center_buildout (XLK): {"sector_flow": {"conviction": 59.5, "posture": "NEUTRAL", "quadrant": "Leading", "confluence": 4, "dollar_confirms": null}, "insider_cluster": null}
+- `00:01:30`   construction_housing (ITB): {"sector_flow": null, "insider_cluster": null}
+- `00:01:30`   industrials_broad (XLI): {"sector_flow": {"conviction": 62.4, "posture": "NEUTRAL", "quadrant": "Weakening", "confluence": 2, "dollar_confirms": true}, "insider_cluster": null}
+- `00:01:30`   materials_broad (XLB): {"sector_flow": {"conviction": 53.6, "posture": "NEUTRAL", "quadrant": "Lagging", "confluence": 2, "dollar_confirms": true}, "insider_cluster": null}
+- `00:01:30`   transportation (IYT): {"sector_flow": null, "insider_cluster": null}
+- `00:01:30`   china_exposed_discretionary (XLY): {"sector_flow": {"conviction": 37.4, "posture": "UNDERWEIGHT", "quadrant": "Improving", "confluence": 3, "dollar_confirms": null}, "insider_cluster": null}
+- `00:01:30`   grid_electrical_infra (XLI): {"sector_flow": {"conviction": 62.4, "posture": "NEUTRAL", "quadrant": "Weakening", "confluence": 2, "dollar_confirms": true}, "insider_cluster": null}
+- `00:01:30`   utilities (XLU): {"sector_flow": {"conviction": 15.1, "posture": "UNDERWEIGHT", "quadrant": "Lagging", "confluence": 0, "dollar_confirms": null}, "insider_cluster": null}
+## score_stock() institutional components for real tickers
+
+- `00:01:32`   AAPL: status=INSUFFICIENT_DATA institutional_used=none
+- `00:01:32`        raw: credit_delta=0.02 squeeze=None hiring=None est_dir=None gex={'regime': 'POSITIVE_GAMMA', 'gex_billions': 0.564} 13f_funds=None shorted_by_conviction_funds=False
+- `00:01:32`   NVDA: status=INSUFFICIENT_DATA institutional_used=none
+- `00:01:32`        raw: credit_delta=0.01 squeeze=None hiring=None est_dir=None gex={'regime': 'POSITIVE_GAMMA', 'gex_billions': 2.894} 13f_funds=None shorted_by_conviction_funds=True
+- `00:01:32`   MSFT: status=INSUFFICIENT_DATA institutional_used=none
+- `00:01:32`        raw: credit_delta=-0.01 squeeze=None hiring=None est_dir=FLAT gex={'regime': 'POSITIVE_GAMMA', 'gex_billions': 0.597} 13f_funds=None shorted_by_conviction_funds=False
+- `00:01:32`   ETN: status=INSUFFICIENT_DATA institutional_used=none
+- `00:01:32`        raw: credit_delta=None squeeze=None hiring=None est_dir=None gex=None 13f_funds=None shorted_by_conviction_funds=False
+- `00:01:32`   VRT: status=INSUFFICIENT_DATA institutional_used=none
+- `00:01:32`        raw: credit_delta=None squeeze=None hiring=None est_dir=None gex=None 13f_funds=None shorted_by_conviction_funds=False
+- `00:01:32`   PWR: status=INSUFFICIENT_DATA institutional_used=none
+- `00:01:32`        raw: credit_delta=None squeeze=None hiring=None est_dir=None gex=None 13f_funds=None shorted_by_conviction_funds=False
+## Verdict
+
+- `00:01:32` ⚠ Zero test tickers picked up any institutional component. Given these are broadly-covered mega-caps, this is worth a closer look rather than assuming it's just sparse coverage -- check the per-industry log above for whether get_json() resolved each source doc at all.
