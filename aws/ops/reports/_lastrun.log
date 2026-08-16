@@ -1,57 +1,7 @@
-executing-against: edae8a6afb469a368bce7d969278d5e97a81e4b4
-ops 4732 -- import-canary backfill recon (read-only)
-── 1. Real current depth of the self-building ledger (data/import-canary-history.json) ──
-[04:15:59] deepest line: HS6:854231 -- 2 months, 2026-05 -> 2026-06
-[04:15:59] shallowest line: N:3311 -- 2 months, 2026-05 -> 2026-06
-[04:15:59]   HS6:854231: 2 months banked, 2026-05 -> 2026-06
-[04:15:59]   HS6:854232: 2 months banked, 2026-05 -> 2026-06
-[04:15:59]   HS6:854233: 2 months banked, 2026-05 -> 2026-06
-[04:15:59]   HS4:8542: 2 months banked, 2026-05 -> 2026-06
-[04:15:59]   HS4:8486: 2 months banked, 2026-05 -> 2026-06
-[04:15:59]   HS6:848620: 2 months banked, 2026-05 -> 2026-06
-[04:15:59]   HS4:8471: 2 months banked, 2026-05 -> 2026-06
-[04:15:59]   HS4:8473: 2 months banked, 2026-05 -> 2026-06
-── 2. Census API key -- is one configured, or running keyless? ──
-[04:15:59] ⚠ no /justhodl/census_api_key in SSM (ParameterNotFound) -- live lambda's CENSUS_API_KEY env default is empty, so it's running keyless right now (Census allows limited keyless access)
-── 3. Does Census's timeseries API accept a real date RANGE (one call vs. hundreds)? ──
-[04:16:02] range probe (2013-01..2013-06, HS6 854231): {"ok": true, "status": 200, "elapsed_ms": 2777}
-[04:16:02]   body sample: <html style="font-size: 14px;">
-
-<head>
-    <title>Missing Key</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="stylesheet" type="text/css" href="assets/styles.css">
-    <script type="text/javascript" src="assets/jquery-1.4.4.min.js"></script>
-    <script type="text/javascript">
-        $(document).ready(function () {
-            function getCookie(name) {
-      
-── 4. How far back does real (non-null) monthly data actually exist for this line? ──
-[04:16:03]   1995-01: {"ok": true, "status": 200, "elapsed_ms": 600} body: <html style="font-size: 14px;">
-
-<head>
-    <title>Missing Key</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="stylesheet" type="text/css" href="assets/styles.css">
-[04:16:03]   2002-01: {"ok": true, "status": 200, "elapsed_ms": 573} body: <html style="font-size: 14px;">
-
-<head>
-    <title>Missing Key</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="stylesheet" type="text/css" href="assets/styles.css">
-[04:16:04]   2008-01: {"ok": true, "status": 200, "elapsed_ms": 585} body: <html style="font-size: 14px;">
-
-<head>
-    <title>Missing Key</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="stylesheet" type="text/css" href="assets/styles.css">
-[04:16:04]   2013-01: {"ok": true, "status": 200, "elapsed_ms": 601} body: <html style="font-size: 14px;">
-
-<head>
-    <title>Missing Key</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="stylesheet" type="text/css" href="assets/styles.css">
+executing-against: 7113fe9980951aca9bf9a10eb86facf2b640d274
+ops 4733 -- locate import-canary's real Census key (read-only, no value printed)
+[04:17:36] ✅ CENSUS_API_KEY IS set directly as a Lambda env var (40 chars, non-empty=True) -- value not printed
 ── Summary ──
-[04:16:04] Read-only recon only. If the range query in section 3 works, the backfill script becomes one call per line for the whole available span instead of hundreds of serial monthly calls. Section 1's real depths replace the wrong 'zero history' conclusion from checking the wrong file in ops 4731.
+[04:17:36] Read-only, no secret values written. This determines whether the backfill just needs a wider time range with the existing working key, or whether Khalid needs to register a free Census API key first (census.gov/data/developers.html).
 
-→ Report written to aws/ops/reports/latest/4732_import_canary_backfill_recon.md
+→ Report written to aws/ops/reports/latest/4733_import_canary_census_key_location.md
