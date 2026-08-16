@@ -42,9 +42,8 @@ s3 = boto3.client("s3", region_name="us-east-1")
 DOLLAR_IDS = ["DTWEXBGS", "RTWEXBGS", "DTWEXAFEGS", "DTWEXEMEGS",
                "DTWEXM", "DTWEXB", "TWEXBGSMTH", "TWEXAFEGSMTH",
                "TWEXEMEGSMTH"]
-FRED_KEY_CANDS = ["data/providers/fred-scoped/series/{id}.json.gz",
-                    "data/providers/fred-scoped/{id}.json.gz",
-                    "data/warm/fred/series/{id}.json.gz"]
+FRED_META_KEY = "data/_state/fred-series-meta.json"
+FRED_WARM_TPL = "data/warm/fred-scoped/{cat}/{id}.json"
 DATE_KEYS = ("date", "d", "asofdate", "as_of_date", "observation_date",
               "DATE", "period")
 VAL_KEYS = ("value", "v", "val", "rate", "close", "VALUE", "obs_value")
@@ -167,14 +166,37 @@ def lambda_handler(event, context):
     inv = sread("data/repo-master-inventory.json")
     scope = list(inv.get("series") or [])
 
-    # add the dollar complex from the FRED bank
-    fred_tpl_hit = None
+    # add the dollar complex from the FRED bank (v1.1: meta-driven --
+    # per-series files live at data/warm/fred-scoped/{Category}/{ID}.json,
+    # id->category from the fred importer's own series-meta state)
+    dollar_miss = []
+    try:
+        meta = sread(FRED_META_KEY)
+    except Exception:
+        meta = {}
+    def _cat_of(fid):
+        e = meta.get(fid) if isinstance(meta, dict) else None
+        if e is None and isinstance(meta, dict):
+            for v in meta.values():
+                if isinstance(v, dict) and v.get("id") == fid:
+                    e = v
+                    break
+        cands = []
+        if isinstance(e, dict):
+            for f in ("category", "category_name", "cat", "folder",
+                       "category_dir", "path"):
+                cv = e.get(f)
+                if isinstance(cv, str) and cv:
+                    cands.append(cv.strip("/").split("/")[-1])
+        out = []
+        for c in cands:
+            out += [c, c.replace(" ", "_"), c.replace(" ", "_")
+                     .replace(",", "").replace("&", "and")]
+        return list(dict.fromkeys(out))
     for fid in DOLLAR_IDS:
         entry = None
-        cands = ([fred_tpl_hit] if fred_tpl_hit else []) + \
-            [c for c in FRED_KEY_CANDS if c != fred_tpl_hit]
-        for tpl in cands:
-            key = tpl.format(id=fid)
+        for cat in _cat_of(fid):
+            key = FRED_WARM_TPL.format(cat=cat, id=fid)
             try:
                 s3.head_object(Bucket=BUCKET, Key=key)
                 entry = {"mnemonic": fid, "name": f"FRED {fid}",
@@ -182,12 +204,14 @@ def lambda_handler(event, context):
                           "api_url": ("https://fred.stlouisfed.org/series/"
                                        + fid),
                           "tier": 1 if fid == "DTWEXBGS" else 2}
-                fred_tpl_hit = tpl
                 break
             except Exception:
                 continue
         if entry:
             scope.append(entry)
+        else:
+            dollar_miss.append({"id": fid,
+                                 "cats_tried": _cat_of(fid)[:4]})
 
     values = {}
     rows = []
@@ -298,11 +322,11 @@ def lambda_handler(event, context):
                            "components": comps},
             "groups": [{"name": g, "series": groups[g]}
                         for g in sorted(groups)],
-            "skipped": skipped[:40]}
+            "skipped": skipped[:40], "dollar_missing": dollar_miss}
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "1.1", "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))
