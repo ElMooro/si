@@ -169,6 +169,8 @@ def group_of(e):
         return "Dollar (FRED trade-weighted)"
     if e.get("family") == "ICEBOFA":
         return "ICE BofA option-adjusted spreads (FRED)"
+    if e.get("family") == "HAIRCUT":
+        return "Tri-party haircuts (NY Fed monthly)"
     if e.get("family") == "FREDREPO":
         return "FRED repo & SOFR complex"
     if e.get("family") == "MMFRP":
@@ -720,6 +722,22 @@ def lambda_handler(event, context):
             continue
     print(f"[repo] dtcc: {dtcc_status}")
 
+    # v2.1: tri-party haircut monthly series (parsed by ops 4789)
+    try:
+        _hix = sread("data/warm/nyfed-research/haircuts-series/"
+                      "_index.json").get("series") or []
+    except Exception:
+        _hix = []
+    for _e in _hix:
+        scope.append({"mnemonic": "HAIRCUT-" + _e["id"],
+                       "name": _e["title"], "family": "HAIRCUT",
+                       "bucket": _e["title"].split("—")[-1].strip()
+                       if "—" in _e["title"] else "haircuts",
+                       "s3_key": "data/warm/nyfed-research/"
+                                  f"haircuts-series/{_e['id']}.json",
+                       "api_url": "https://www.newyorkfed.org/data-and-statistics/data-visualization/tri-party-repo",
+                       "tier": 2})
+
     values = {}
     rows = []
     skipped = []
@@ -926,7 +944,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "2.0", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "2.1", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))
