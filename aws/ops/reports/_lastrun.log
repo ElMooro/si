@@ -1,40 +1,21 @@
-executing-against: 9ab15895c322e2bc9c576fbe7ac59305aa285c6f
-ops 4775 -- splice v3 (1e6 factor + semantic fails)
-── fails: explicit map, verified, spliced ──
-── financing: brute rerun with full factor set ──
-[20:00:41] ✅   NYPD-PD_AFtD_TIPS-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtD_T_eTIPS-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtD_AG_MBS-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtD_AG_eMBS-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtD_CORS-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtD_OMBS-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtD_T-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtD_AG-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtD_TOT-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtR_TIPS-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtR_T_eTIPS-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtR_AG_MBS-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtR_AG_eMBS-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtR_CORS-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtR_OMBS-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtR_T-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtR_AG-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_AFtR_TOT-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_RP_AG_MBS_TOT-A: floor 2013-04-03
-[20:00:41] ✅   NYPD-PD_RP_AG_eMBS_TOT-A: floor 2013-04-03
+executing-against: d37de2c3122f839ec559ccfde09cc0e385e106cd
+ops 4777 -- pre-2013 keyid vocabulary recon
+── pd paths in the banked spec ──
+[20:39:46]   /api/pd/get/all/timeseries.csv
+[20:39:46]   /api/pd/get/asof/2020-12-14.xml</link>
+[20:39:46]   /api/pd/get/asof/2020-12-16.xml</link>
+[20:39:46]   /api/pd/get/asof/{date}.{format}
+[20:39:46]   /api/pd/get/{seriesbreak}/timeseries/{timeseries}.{format}
+[20:39:46]   /api/pd/get/{timeseries}.{format}
+[20:39:46]   /api/pd/latest/{seriesbreak}.{format}
+[20:39:46]   /api/pd/list/asof.{format}
+[20:39:46]   /api/pd/list/seriesbreaks.{format}
+[20:39:46]   /api/pd/list/timeseries.{format}
+── per-break timeseries lists ──
+[20:39:46] ⚠ SBP2001: no list endpoint answered
+[20:39:47] ⚠ SBP2013: no list endpoint answered
+[20:39:47] ⚠ SBN2013: no list endpoint answered
+── legacy data probes ──
+[20:39:48] ⚠ legacy probe: HTTPError: HTTP Error 400: Bad Request
 
-→ Report written to aws/ops/reports/latest/4775_pd_splice_v3.md
-ops 4776 -- splice live on the board?
-[20:01:12] attempt 0: v=1.3 series=305
-[20:01:12] ✅   NYPD-PD_AFtD_AG-A: 2013-04-03 -> 2026-07-22 n=695
-[20:01:12] ✅   NYPD-PD_AFtD_AG_MBS-A: 2013-04-03 -> 2026-07-22 n=695
-[20:01:12] ✅   NYPD-PD_AFtD_AG_eMBS-A: 2013-04-03 -> 2026-07-22 n=695
-[20:01:12] ✅   NYPD-PD_AFtD_CORS-A: 2013-04-03 -> 2026-07-22 n=695
-[20:01:12] ✅   NYPD-PD_AFtD_OMBS-A: 2013-04-03 -> 2026-07-22 n=695
-[20:01:12] ✅   NYPD-PD_AFtD_T-A: 2013-04-03 -> 2026-07-22 n=695
-[20:01:12] ✅   NYPD-PD_AFtD_TIPS-A: 2013-04-03 -> 2026-07-22 n=695
-[20:01:12] ✅   NYPD-PD_AFtD_TOT-A: 2013-04-03 -> 2026-07-22 n=695
-[20:01:12] ✅   NYPD-PD_AFtD_T_eTIPS-A: 2013-04-03 -> 2026-07-22 n=695
-[20:01:12] ✅   NYPD-PD_AFtR_AG-A: 2013-04-03 -> 2026-07-22 n=695
-
-→ Report written to aws/ops/reports/latest/4776_pd_splice_live_verify2.md
+→ Report written to aws/ops/reports/latest/4777_legacy_keyid_recon.md
