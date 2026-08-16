@@ -1,0 +1,76 @@
+# ops 4752 -- NYPD fails verified + HFM/BSRM discovery+bank
+
+**Status:** success  
+**Duration:** 324.9s  
+**Finished:** 2026-08-16T16:23:39+00:00  
+
+## Data
+
+| check | earliest | latest | mnemonic | n | value |
+|---|---|---|---|---|---|
+|  | 2015-01-07 | 2026-08-06 | NYPD-PD_AFtR_TOT-A | 605 |  |
+| nypd_total_banked |  |  |  |  | 194 |
+| nypd_fails_mnemonics |  |  |  |  | 18 |
+|  | 2015-01-07 | 2026-08-06 | NYPD-PD_AFtD_AG-A | 605 |  |
+|  | 2015-01-07 | 2026-08-06 | NYPD-PD_AFtD_AG_MBS-A | 605 |  |
+| stfm_live_catalog |  |  |  |  | 442 |
+| stfm_banked |  |  |  |  | 442 |
+| HFM_script_tags |  |  |  |  | 7 |
+| HFM_candidate_urls |  |  |  |  | 1 |
+| HFM_catalog_series_banked |  |  |  |  | 497 |
+| BSRM_script_tags |  |  |  |  | 8 |
+| BSRM_candidate_urls |  |  |  |  | 3 |
+| BSRM_catalog_series_banked |  |  |  |  | 497 |
+
+## Log
+## A. Khalid's exact linked series
+
+- `16:18:14` ✅ NYPD-PD_AFtR_TOT-A: ALREADY BANKED -- 605 obs, 2015-01-07 -> 2026-08-06
+## B. The whole NYPD fails family
+
+- `16:18:14`   NYPD-PD_AFtD_AG-A
+- `16:18:14`   NYPD-PD_AFtD_AG_MBS-A
+- `16:18:14`   NYPD-PD_AFtD_AG_eMBS-A
+- `16:18:14`   NYPD-PD_AFtD_CORS-A
+- `16:18:14`   NYPD-PD_AFtD_OMBS-A
+- `16:18:14`   NYPD-PD_AFtD_T-A
+- `16:18:14`   NYPD-PD_AFtD_TIPS-A
+- `16:18:14`   NYPD-PD_AFtD_TOT-A
+- `16:18:14`   NYPD-PD_AFtD_T_eTIPS-A
+- `16:18:14`   NYPD-PD_AFtR_AG-A
+- `16:18:14`   NYPD-PD_AFtR_AG_MBS-A
+- `16:18:14`   NYPD-PD_AFtR_AG_eMBS-A
+- `16:18:14`   NYPD-PD_AFtR_CORS-A
+- `16:18:14`   NYPD-PD_AFtR_OMBS-A
+- `16:18:14`   NYPD-PD_AFtR_T-A
+- `16:18:14`   NYPD-PD_AFtR_TIPS-A
+- `16:18:14`   NYPD-PD_AFtR_TOT-A
+- `16:18:14`   NYPD-PD_AFtR_T_eTIPS-A
+## C. Live catalog recount
+
+## HFM: discovery via page + bundles
+
+- `16:18:15` https://www.financialresearch.gov/hedge-fund-monitor/ -> status=200 bytes=37156
+- `16:18:15` bundle jquery.min.js -> status=200 bytes=87533
+- `16:18:15` bundle bootstrap.min.js -> status=200 bytes=59401
+- `16:18:15` bundle Universal-Federated-Analytics-Min.js?agency=TRE&subagen -> status=200 bytes=30229
+- `16:18:15` bundle index-e9be130c.js -> status=200 bytes=53074
+- `16:18:16` bundle ofr.min.js?202608141349 -> status=200 bytes=43578
+- `16:18:16` bundle jquery-ui.min.js -> status=200 bytes=254961
+- `16:18:16`   cand: https://touchpoints.app.cloud.gov/touchpoints/5fc4d26d/submissions.json
+- `16:18:16` catalog probe /hf/v1/metadata/mnemonics -> status=200 bytes=16479
+- `16:18:16` ✅ HFM: sibling catalog VALIDATED -- 497 mnemonics; banking each
+## BSRM: discovery via page + bundles
+
+- `16:21:01` https://www.financialresearch.gov/bank-systemic-risk-monitor/ -> status=200 bytes=41431
+- `16:21:01` bundle jquery.min.js -> status=200 bytes=87533
+- `16:21:01` bundle bootstrap.min.js -> status=200 bytes=59401
+- `16:21:02` bundle Universal-Federated-Analytics-Min.js?agency=TRE&subagen -> status=200 bytes=30229
+- `16:21:02` bundle index-e9be130c.js -> status=200 bytes=53074
+- `16:21:02` bundle ofr.min.js?202608141349 -> status=200 bytes=43578
+- `16:21:02` bundle jquery-ui.min.js -> status=200 bytes=254961
+- `16:21:02`   cand: /bank-systemic-risk-monitor/data/ofr_bsrm.xlsx
+- `16:21:02`   cand: /bank-systemic-risk-monitor/data/ofr_bsrm_international_scores.xlsx
+- `16:21:02`   cand: https://touchpoints.app.cloud.gov/touchpoints/5fc4d26d/submissions.json
+- `16:21:02` catalog probe /hf/v1/metadata/mnemonics -> status=200 bytes=16479
+- `16:21:02` ✅ BSRM: sibling catalog VALIDATED -- 497 mnemonics; banking each
