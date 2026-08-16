@@ -1,0 +1,53 @@
+# ops 4742 -- NY Fed full-coverage audit + bank missing families
+
+**Status:** success  
+**Duration:** 14.4s  
+**Finished:** 2026-08-16T15:45:42+00:00  
+
+## Data
+
+| banked | check | earliest | family | latest | n_rows | reason | value |
+|---|---|---|---|---|---|---|---|
+|  | warm_keys_total |  |  |  |  |  | 1549 |
+|  | reverserepo_key |  |  |  |  |  | rp-reverserepo-history.json.gz |
+|  | reverserepo_dates |  |  |  |  |  | 3154 |
+|  | reverserepo_earliest |  |  |  |  |  | 2014-01-02 |
+|  | reverserepo_latest |  |  |  |  |  | 2026-08-17 |
+|  | doc_paths_found |  |  |  |  |  | 0 |
+|  | doc_families |  |  |  |  |  |  |
+|  | families_to_bank |  |  |  |  |  | ambs,fxs,seclending,soma,tsy |
+| False |  |  | ambs |  |  | no_valid_endpoint |  |
+| True |  | 2010-05-18 | fxs | 2026-08-20 | 1596 |  |  |
+| False |  |  | seclending |  |  | no_valid_endpoint |  |
+| False |  |  | soma |  |  | no_valid_endpoint |  |
+| False |  |  | tsy |  |  | no_valid_endpoint |  |
+
+## Log
+## A. What's actually banked under warm/nyfed-markets/
+
+- `15:45:28` banked groups: pd=1543, rp=2, latest=1, repo=1, repo_ops_latest=1, soma_summary=1
+## B. Doc-extracted endpoint families
+
+- `15:45:29` markets-api.html -> 0 paths
+- `15:45:29` swagger.json -> status=400
+- `15:45:29` openapi.json -> status=404
+## C. Validate + bank each missing family (full history)
+
+- `15:45:29` ambs: candidate ambs/all/results/search.json -> status=400 rows=0
+- `15:45:29` ambs: candidate ambs/all/search.json -> status=400 rows=0
+- `15:45:29` ⚠ ambs: no candidate produced real rows -- NOT banked, flagged for dedicated follow-up
+- `15:45:29` fxs: candidate fxs/all/results/search.json -> status=400 rows=0
+- `15:45:29` fxs: VALIDATED fxs/all/search.json (94 rows in 2024 probe) [docs-or-mirror]
+- `15:45:41` ✅ fxs: banked 1596 rows, 2010-05-18 -> 2026-08-20 -> data/warm/nyfed-markets/fxs-history.json.gz
+- `15:45:41` seclending: candidate seclending/all/results/search.json -> status=400 rows=0
+- `15:45:41` seclending: candidate seclending/all/search.json -> status=400 rows=0
+- `15:45:41` ⚠ seclending: no candidate produced real rows -- NOT banked, flagged for dedicated follow-up
+- `15:45:41` soma: candidate soma/all/results/search.json -> status=400 rows=0
+- `15:45:41` soma: candidate soma/all/search.json -> status=400 rows=0
+- `15:45:41` ⚠ soma: no candidate produced real rows -- NOT banked, flagged for dedicated follow-up
+- `15:45:42` tsy: candidate tsy/all/results/search.json -> status=400 rows=0
+- `15:45:42` tsy: candidate tsy/all/search.json -> status=400 rows=0
+- `15:45:42` ⚠ tsy: no candidate produced real rows -- NOT banked, flagged for dedicated follow-up
+## Summary
+
+- `15:45:42` Every newly banked family lands under data/warm/nyfed-markets/ -- already covered by the verified deny-Delete bucket policy, versioning, and the existing nyfed REG entry, so it is permanent and visible on data.html with zero extra wiring.
