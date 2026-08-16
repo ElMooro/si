@@ -65,7 +65,7 @@ def main():
         rep.heading("ops 4731 -- REG coverage gap + historical depth audit (read-only)")
 
         rep.section("Part A -- REG coverage: what's producing real data but invisible on data.html")
-        src = open(ROOT / "aws/lambdas/justhodl-provider-catalog/source/lambda_function.py").read()
+        src = open(ROOT / "lambdas/justhodl-provider-catalog/source/lambda_function.py").read()
         reg_block_match = re.search(r"^REG = \{(.*?)\n\}\n", src, re.S | re.M)
         reg_block = reg_block_match.group(1) if reg_block_match else ""
         registered_paths = set(re.findall(r'"(data/[a-zA-Z0-9_/.\-]+)"', reg_block))
