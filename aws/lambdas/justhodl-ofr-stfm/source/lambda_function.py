@@ -6,7 +6,12 @@ plumbing platform, at 0% share until today. 100%-of-provider pattern:
 (1) discover the full mnemonic catalog (candidate-chain over metadata
 endpoints — never assume shape), (2) pull FULL history for a bounded
 tranche per run (cursor in the doc itself), (3) converge to every mnemonic
-over runs, COMPLETE-and-maintain. Explicit failures; F4 snapshots."""
+over runs, COMPLETE-and-maintain. Explicit failures; F4 snapshots.
+
+ops 4759: also converges the sibling Hedge Fund Monitor catalog
+(/hf/v1, 497+ mnemonics, discovered ops 4752) with its own state at
+data/warm/ofr-hfm/state.json -- new HFM series auto-bank, and the
+held set refreshes on a rolling 10-per-run cursor once complete."""
 import gzip
 import json
 import os
@@ -132,9 +137,86 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key=state_key,
                   Body=json.dumps(state, default=str).encode(),
                   ContentType="application/json", CacheControl="no-cache")
+    # ── ops 4759: sibling catalog /hf/v1 (Hedge Fund Monitor) ──────
+    # ops 4752 discovered data.financialresearch.gov/hf/v1 (497
+    # mnemonics, bigger than STFM) and one-shot banked it. Same
+    # rediscover-merge-converge pattern here, own state, so new HFM
+    # series auto-bank exactly like STFM's do, and the whole set
+    # refreshes on a rolling tranche.
+    HF_BASE = "https://data.financialresearch.gov/hf/v1"
+    hf_key = "data/warm/ofr-hfm/state.json"
+    try:
+        hf = json.loads(s3.get_object(
+            Bucket=BUCKET, Key=hf_key)["Body"].read())
+    except Exception:
+        hf = {"done": [], "catalog": None}
+    hf_pulled = hf_failed = 0
+    try:
+        d = json.loads(_fetch(f"{HF_BASE}/metadata/mnemonics"))
+        mns_hf = []
+        if isinstance(d, list):
+            mns_hf = [x if isinstance(x, str) else
+                      (x.get("mnemonic") or x.get("id")) for x in d]
+        elif isinstance(d, dict):
+            mns_hf = [x.get("mnemonic") for x in
+                      (d.get("mnemonics") or d.get("results") or [])
+                      if isinstance(x, dict)]
+        mns_hf = sorted({m for m in mns_hf
+                          if m and isinstance(m, str)})
+        prev_hf = set(hf.get("catalog") or [])
+        if mns_hf:
+            newly_hf = sorted(set(mns_hf) - prev_hf)
+            hf["catalog"] = sorted(prev_hf | set(mns_hf))
+            if newly_hf:
+                hf["catalog_new_last_run"] = newly_hf[:50]
+    except Exception as e:
+        hf["catalog_note"] = f"{type(e).__name__}: {str(e)[:60]}"
+    hf_todo = [m for m in (hf.get("catalog") or [])
+               if m not in set(hf["done"])]
+    hf_todo = hf_todo[:int(os.environ.get("HF_TRANCHE", "25"))]
+    if not hf_todo and hf.get("catalog"):
+        # COMPLETE-maintaining: rolling refresh, oldest cursor first
+        cur = hf.get("refresh_cursor") or 0
+        cat = hf["catalog"]
+        hf_todo = cat[cur:cur + 10]
+        hf["refresh_cursor"] = (cur + 10) % max(1, len(cat))
+        hf["done_refresh"] = True
+    for m in hf_todo:
+        url = f"{HF_BASE}/series/full?mnemonic={m}"
+        try:
+            raw = _fetch(url)
+            json.loads(raw)
+            s3.put_object(Bucket=BUCKET,
+                          Key=f"data/warm/ofr-hfm/series/{m}.json.gz",
+                          Body=gzip.compress(raw),
+                          ContentType="application/json",
+                          ContentEncoding="gzip")
+            if m not in hf["done"]:
+                hf["done"].append(m)
+            hf_pulled += 1
+        except Exception as e:
+            hf_failed += 1
+            hf.setdefault("failures", {})[m] = \
+                f"{type(e).__name__}: {str(e)[:60]}"
+        time.sleep(0.3)
+    hf["done"] = sorted(set(hf["done"]))
+    hf["as_of"] = now
+    n_hf_cat = len(hf.get("catalog") or [])
+    hf["progress_pct"] = (round(100 * len(hf["done"]) / n_hf_cat, 1)
+                           if n_hf_cat else 0)
+    hf["status"] = ("COMPLETE-maintaining"
+                     if n_hf_cat and len(hf["done"]) >= n_hf_cat
+                     else "converging")
+    s3.put_object(Bucket=BUCKET, Key=hf_key,
+                  Body=json.dumps(hf, default=str).encode(),
+                  ContentType="application/json", CacheControl="no-cache")
     res = {"ok": True, "catalog": n_cat,
            "catalog_source": state.get("catalog_source"),
            "pulled_this_run": got, "failed": failed,
-           "done_total": n_done, "progress_pct": state["progress_pct"]}
+           "done_total": n_done, "progress_pct": state["progress_pct"],
+           "hf": {"catalog": n_hf_cat, "pulled": hf_pulled,
+                  "failed": hf_failed, "done_total": len(hf["done"]),
+                  "progress_pct": hf["progress_pct"],
+                  "status": hf["status"]}}
     print(json.dumps(res))
     return {"statusCode": 200, "body": json.dumps(res)}
