@@ -1,13 +1,7 @@
-executing-against: 0b876c2ffdd9e3aea2b7375a992ba825b45c76f3
-ops 4750 -- marketshare + guidesheets as documents (10/10)
-[16:07:41] marketshare/default/latest: status=200 bytes=64733 -> skipped (no usable JSON)
-[16:07:41] marketshare/default/latest: status=200 bytes=64807 -> skipped (no usable JSON)
-[16:07:41] ✅ guidesheets/si-latest: 2603 bytes, top-level: guidesheet
-[16:07:41] ✅ guidesheets/wi-latest: 1611 bytes, top-level: guidesheet
-[16:07:41] ✅ guidesheets/fs-latest: 657 bytes, top-level: guidesheet
-[16:07:41] ✅ guidesheets/si-previous: 2603 bytes, top-level: guidesheet
-[16:07:42] ✅ guidesheets/wi-previous: 1166 bytes, top-level: guidesheet
-[16:07:42] ✅ guidesheets/fs-previous: 655 bytes, top-level: guidesheet
-[16:07:42] ✅ 6 reference documents banked -- all 10 NY Fed API families now held
+executing-against: abfb15391798335825b8b9871f1277adf15b9162
+ops 4751 -- marketshare banked as the real files
+[16:09:27] ✅ ytd: 64807 bytes banked as json-after-all -> data/warm/nyfed-markets/marketshare/ytd-latest.json
+[16:09:27] ✅ qtrly: 64733 bytes banked as json-after-all -> data/warm/nyfed-markets/marketshare/qtrly-latest.json
+[16:09:27] ✅ 10/10 NY Fed families now held with real data on disk
 
-→ Report written to aws/ops/reports/latest/4750_nyfed_docs_bank_final_two.md
+→ Report written to aws/ops/reports/latest/4751_nyfed_marketshare_binary_bank.md
