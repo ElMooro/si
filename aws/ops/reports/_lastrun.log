@@ -1,33 +1,24 @@
-executing-against: 7397d2de7b943fee82875a9e243454d60704b8fa
-ops 4729 — direct-call verification against real data
-── get_institutional_sector_confirmation() for every industry proxy ──
-[00:01:30]   semis_memory (SMH): {"sector_flow": null, "insider_cluster": null}
-[00:01:30]   semis_foundry_logic (SOXX): {"sector_flow": null, "insider_cluster": null}
-[00:01:30]   electronics_hardware (XLK): {"sector_flow": {"conviction": 59.5, "posture": "NEUTRAL", "quadrant": "Leading", "confluence": 4, "dollar_confirms": null}, "insider_cluster": null}
-[00:01:30]   ev_battery_grid (LIT): {"sector_flow": null, "insider_cluster": null}
-[00:01:30]   electrical_infra (XLI): {"sector_flow": {"conviction": 62.4, "posture": "NEUTRAL", "quadrant": "Weakening", "confluence": 2, "dollar_confirms": true}, "insider_cluster": null}
-[00:01:30]   data_center_buildout (XLK): {"sector_flow": {"conviction": 59.5, "posture": "NEUTRAL", "quadrant": "Leading", "confluence": 4, "dollar_confirms": null}, "insider_cluster": null}
-[00:01:30]   construction_housing (ITB): {"sector_flow": null, "insider_cluster": null}
-[00:01:30]   industrials_broad (XLI): {"sector_flow": {"conviction": 62.4, "posture": "NEUTRAL", "quadrant": "Weakening", "confluence": 2, "dollar_confirms": true}, "insider_cluster": null}
-[00:01:30]   materials_broad (XLB): {"sector_flow": {"conviction": 53.6, "posture": "NEUTRAL", "quadrant": "Lagging", "confluence": 2, "dollar_confirms": true}, "insider_cluster": null}
-[00:01:30]   transportation (IYT): {"sector_flow": null, "insider_cluster": null}
-[00:01:30]   china_exposed_discretionary (XLY): {"sector_flow": {"conviction": 37.4, "posture": "UNDERWEIGHT", "quadrant": "Improving", "confluence": 3, "dollar_confirms": null}, "insider_cluster": null}
-[00:01:30]   grid_electrical_infra (XLI): {"sector_flow": {"conviction": 62.4, "posture": "NEUTRAL", "quadrant": "Weakening", "confluence": 2, "dollar_confirms": true}, "insider_cluster": null}
-[00:01:30]   utilities (XLU): {"sector_flow": {"conviction": 15.1, "posture": "UNDERWEIGHT", "quadrant": "Lagging", "confluence": 0, "dollar_confirms": null}, "insider_cluster": null}
-── score_stock() institutional components for real tickers ──
-[00:01:32]   AAPL: status=INSUFFICIENT_DATA institutional_used=none
-[00:01:32]        raw: credit_delta=0.02 squeeze=None hiring=None est_dir=None gex={'regime': 'POSITIVE_GAMMA', 'gex_billions': 0.564} 13f_funds=None shorted_by_conviction_funds=False
-[00:01:32]   NVDA: status=INSUFFICIENT_DATA institutional_used=none
-[00:01:32]        raw: credit_delta=0.01 squeeze=None hiring=None est_dir=None gex={'regime': 'POSITIVE_GAMMA', 'gex_billions': 2.894} 13f_funds=None shorted_by_conviction_funds=True
-[00:01:32]   MSFT: status=INSUFFICIENT_DATA institutional_used=none
-[00:01:32]        raw: credit_delta=-0.01 squeeze=None hiring=None est_dir=FLAT gex={'regime': 'POSITIVE_GAMMA', 'gex_billions': 0.597} 13f_funds=None shorted_by_conviction_funds=False
-[00:01:32]   ETN: status=INSUFFICIENT_DATA institutional_used=none
-[00:01:32]        raw: credit_delta=None squeeze=None hiring=None est_dir=None gex=None 13f_funds=None shorted_by_conviction_funds=False
-[00:01:32]   VRT: status=INSUFFICIENT_DATA institutional_used=none
-[00:01:32]        raw: credit_delta=None squeeze=None hiring=None est_dir=None gex=None 13f_funds=None shorted_by_conviction_funds=False
-[00:01:32]   PWR: status=INSUFFICIENT_DATA institutional_used=none
-[00:01:32]        raw: credit_delta=None squeeze=None hiring=None est_dir=None gex=None 13f_funds=None shorted_by_conviction_funds=False
-── Verdict ──
-[00:01:32] ⚠ Zero test tickers picked up any institutional component. Given these are broadly-covered mega-caps, this is worth a closer look rather than assuming it's just sparse coverage -- check the per-industry log above for whether get_json() resolved each source doc at all.
+executing-against: b8932114694610288420e00be136ad41926f35ca
+ops 4730 -- new-provider reconnaissance (read-only)
+[03:02:04] Scope: OECD finish-out, BOJ/MOF expansion, Chile copper, Finland exports/IP/mfg, Korea mfg/IP, Taiwan mfg/IP expansion, TE full-history beyond the FRED-mirror. FRED + StatCan left as-is per Khalid -- not touched by this op.
+── 1. OECD triplet-fix (rev-C) -- live cache state ──
+[03:02:05] ✅ triplet cache has 1545 resolved flow IDs
+[03:02:05] sample failure [DF_SDG_GLC]: HTTPError: HTTP Error 404: Not Found
+── 2. Taiwan MOEA -- open-data catalog, looking for more mfg/IP files ──
+[03:02:06] catalog root: {"ok": false, "status": 404, "elapsed_ms": 1000, "sample": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>Not Found</h1>\n<p>The requested URL was not found"}
+── 3. Korea -- Bank of Korea ECOS + KOSIS reachability ──
+[03:02:06] ECOS sample-key probe: {"ok": true, "status": 200, "bytes": 222, "elapsed_ms": 573, "sample": "{\"RESULT\":{\"CODE\":\"ERROR-100\",\"MESSAGE\":\"\ud544\uc218 \uac12\uc774 \ub204\ub77d\ub418\uc5b4 \uc788\uc2b5\ub2c8\ub2e4. \ud544\uc218 \uac12\uc744 \ud655\uc778\ud558\uc2ed\uc2dc\uc624!\\n \ud544\uc218 \
+[03:02:10] KOSIS root: {"ok": true, "status": 200, "bytes": 20575, "elapsed_ms": 4079, "sample": "\r\n<!DOCTYPE html>\r\n<html lang=\"ko\">\r\n<head>\r\n\t<meta charset=\"UTF-8\"><!-- *YP \uc694\uc18c \ucd94\uac00 HTML5 \uc9c0\uc6d0 -->\r\n\t<meta http-equiv=\"X-UA-Compatible\" cont
+── 4. Chile -- Cochilco (no-auth alt) + BCCh reachability ──
+[03:02:11] Cochilco: {"ok": false, "status": 404, "elapsed_ms": 778, "sample": "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>Not Found</h1>\n<p>The requested URL was not found on this server.</p>\n<p>Additiona
+[03:02:13] BCCh (dummy creds -- just checking the domain answers, per gov-sources note this needs Khalid to register a real account): {"ok": true, "status": 200, "bytes": 203, "elapsed_ms": 1681, "sample": "{\r\n  \"Codigo\": -5,\r\n  \"Descripcion\": \"Invalid username or password\",\r\n  \"Series\": {\r\n    \"descripEsp\": null,\r\n    \"descripIng\": null,\r\n    \"seriesId\": null,\r\n 
+── 5. Finland -- Statistics Finland (StatFin PxWeb) reachability ──
+[03:02:14] StatFin PxWeb root: {"ok": true, "status": 200, "bytes": 8492, "elapsed_ms": 1271, "sample": "[{\"id\":\"matk\",\"type\":\"l\",\"text\":\"Accommodation statistics\"},{\"id\":\"adopt\",\"type\":\"l\",\"text\":\"Adoptions\"},{\"id\":\"tilma\",\"type\":\"l\",\"text\":\"Air emission accounts\"},{\"id\":\"ilma\",\"type\":\"
+── 6. BOJ -- sanity ping (headroom is 792 MD11 series vs 24 keys banked) ──
+── 7. Are peru-copper / taiwan-moea actually fresh right now? ──
+[03:02:15] ✅ peru_copper: last written 23.0h ago
+[03:02:15] ✅ taiwan_moea: last written 23.5h ago
+── Summary ──
+[03:02:15] Read-only recon only -- nothing deployed or written to production in this op. Next ops act on whichever sources above came back reachable, in priority order, and will call out anything that genuinely needs Khalid to register an account (BCCh already looks like one, per gov-sources' own note).
 
-→ Report written to aws/ops/reports/latest/4729_invest_institutional_direct_verify.md
+→ Report written to aws/ops/reports/latest/4730_new_provider_recon.md
