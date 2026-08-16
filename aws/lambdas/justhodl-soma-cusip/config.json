@@ -1,0 +1,22 @@
+{
+ "function_name": "justhodl-soma-cusip",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 1024,
+ "timeout": 900,
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "ops 4757: security-level SOMA holdings (per-CUSIP, tsy+agency) across all ~1,206 weekly as-of dates -- paced convergence, runtime-validated endpoints, permanent warm bank; converges in ~10 tranches then tracks each new week.",
+ "eventbridge_rules": [
+  "justhodl-soma-cusip-3h"
+ ],
+ "env": {
+  "S3_BUCKET": "justhodl-dashboard-live",
+  "SOMA_TRANCHE": "120"
+ },
+ "schedule": {
+  "name": "justhodl-soma-cusip-3h",
+  "expression": "cron(41 */3 * * ? *)",
+  "description": "SOMA per-CUSIP convergence -- every 3h until 1,206x2 pairs done, then weekly upkeep"
+ }
+}
