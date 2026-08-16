@@ -907,110 +907,135 @@ def lambda_handler(event, context):
     # the two newest EU/UK xlsx links on the page, bank any new raw
     # file, parse with the house zipfile+xml mini-reader (no openpyxl
     # in Lambda), melt numeric metrics to weekly series.
-    def _xlsx_rows(raw):
+    def _xlsx_sheets(raw):
         import zipfile as _zf
         import io as _io
         import re as _re
         z = _zf.ZipFile(_io.BytesIO(raw))
         shared = []
-        if "xl/sharedStrings.xml" in z.namelist():
-            sx = z.read("xl/sharedStrings.xml").decode("utf-8", "replace")
-            shared = [_re.sub(r"<[^>]+>", "", m)
-                       for m in _re.findall(r"<si>(.*?)</si>", sx,
+        if 'xl/sharedStrings.xml' in z.namelist():
+            sx = z.read('xl/sharedStrings.xml').decode('utf-8',
+                                                         'replace')
+            shared = [_re.sub(r'<[^>]+>', '', m)
+                       for m in _re.findall(r'<si>(.*?)</si>', sx,
                                              _re.S)]
-        sheet = next((n for n in z.namelist()
-                       if _re.match(r"xl/worksheets/sheet1\.xml", n)),
-                      None)
-        if not sheet:
-            return []
-        xml = z.read(sheet).decode("utf-8", "replace")
-        rows = []
-        for rm in _re.findall(r"<row[^>]*>(.*?)</row>", xml, _re.S):
-            cells = []
-            for cm in _re.finditer(
-                    r'<c[^>]*?(?:t="(\w+)")?[^>]*>'
-                    r'(?:<is><t[^>]*>(.*?)</t></is>|'
-                    r'<v>(.*?)</v>)?</c>', rm, _re.S):
-                t, inl, v = cm.group(1), cm.group(2), cm.group(3)
-                if t == "s" and v is not None:
-                    try:
-                        cells.append(shared[int(v)])
-                    except Exception:
-                        cells.append("")
-                else:
-                    cells.append(inl if inl is not None else (v or ""))
-            rows.append(cells)
-        return rows
+        wbxml = z.read('xl/workbook.xml').decode('utf-8', 'replace')
+        names = _re.findall(r'<sheet[^>]*name="([^"]+)"', wbxml)
+        out_sheets = {}
+        snames = sorted(n for n in z.namelist()
+                         if _re.match(r'xl/worksheets/sheet\d+\.xml',
+                                       n))
+        for _si, sheet in enumerate(snames):
+            xml = z.read(sheet).decode('utf-8', 'replace')
+            rows = []
+            for rm in _re.findall(r'<row[^>]*>(.*?)</row>', xml,
+                                    _re.S):
+                cells = []
+                pat = (r'<c[^>]*?(?:t="(\w+)")?[^>]*>'
+                        r'(?:<is><t[^>]*>(.*?)</t></is>|'
+                        r'<v>(.*?)</v>)?</c>')
+                for cm in _re.finditer(pat, rm, _re.S):
+                    t, inl, v = cm.group(1), cm.group(2), cm.group(3)
+                    if t == 's' and v is not None:
+                        try:
+                            cells.append(shared[int(v)])
+                        except Exception:
+                            cells.append('')
+                    else:
+                        cells.append(inl if inl is not None
+                                      else (v or ''))
+                rows.append(cells)
+            out_sheets[names[_si] if _si < len(names)
+                        else sheet] = rows
+        return out_sheets
 
     try:
         import urllib.request as _ur
-        _pg = _ur.urlopen(_ur.Request(
-            "https://www.icmagroup.org/market-practice-and-regulatory-"
-            "policy/repo-and-collateral-markets/market-data/"
-            "sftr-public-data/",
-            headers={"User-Agent": "Mozilla/5.0"}), timeout=45
-            ).read().decode("utf-8", "replace")
         import re as _re
+        _pg = _ur.urlopen(_ur.Request(
+            'https://www.icmagroup.org/market-practice-and-regulatory-'
+            'policy/repo-and-collateral-markets/market-data/'
+            'sftr-public-data/',
+            headers={'User-Agent': 'Mozilla/5.0'}), timeout=45
+            ).read().decode('utf-8', 'replace')
         _links = sorted(set(_re.findall(
             r'href="([^"]*SFTR-Public-Data-(?:EU|UK)[^"]*\.xlsx)"',
             _pg)))
         for _lk in _links[-2:]:
-            _full = _lk if _lk.startswith("http") else                 "https://www.icmagroup.org" + _lk
-            _fn = _full.rsplit("/", 1)[-1]
-            _rk = f"data/warm/icma-sftr/files/{_fn}"
+            _full = _lk if _lk.startswith('http') else \
+                'https://www.icmagroup.org' + _lk
+            _fn = _full.rsplit('/', 1)[-1]
+            _rk = 'data/warm/icma-sftr/files/' + _fn
             try:
                 s3.head_object(Bucket=BUCKET, Key=_rk)
+                continue
             except Exception:
-                _raw = _ur.urlopen(_ur.Request(_full, headers={
-                    "User-Agent": "Mozilla/5.0"}), timeout=60).read()
-                s3.put_object(Bucket=BUCKET, Key=_rk, Body=_raw,
-                    ContentType="application/vnd.openxmlformats-"
-                                 "officedocument.spreadsheetml.sheet")
-                _region = "EU" if "-EU-" in _fn else "UK"
-                _m = _re.search(r"we-(\d{1,2})-(\w+)-(\d{4})", _fn)
-                _months = {m0: i for i, m0 in enumerate(
-                    ["January", "February", "March", "April", "May",
-                      "June", "July", "August", "September", "October",
-                      "November", "December"], 1)}
-                _wdate = (f"{_m.group(3)}-"
-                           f"{_months.get(_m.group(2), 1):02d}-"
-                           f"{int(_m.group(1)):02d}") if _m else                     now[:10]
-                for _row in _xlsx_rows(_raw):
-                    _lab = next((c for c in _row
-                                  if isinstance(c, str) and
-                                  len(c.strip()) > 3 and
-                                  not _re.match(r"^[\d.,eE+-]+$",
-                                                 c.strip())), None)
-                    _val = None
-                    for c in _row:
+                pass
+            _raw = _ur.urlopen(_ur.Request(_full, headers={
+                'User-Agent': 'Mozilla/5.0'}), timeout=60).read()
+            s3.put_object(Bucket=BUCKET, Key=_rk, Body=_raw,
+                ContentType='application/vnd.openxmlformats-'
+                             'officedocument.spreadsheetml.sheet')
+            _region = 'EU' if '-EU-' in _fn else 'UK'
+            _m = _re.search(r'we-(\d{1,2})-(\w+)-(\d{4})', _fn)
+            _months = {m0: i for i, m0 in enumerate(
+                ['January', 'February', 'March', 'April', 'May',
+                  'June', 'July', 'August', 'September', 'October',
+                  'November', 'December'], 1)}
+            _wdate = ('%s-%02d-%02d' % (_m.group(3),
+                       _months.get(_m.group(2), 1),
+                       int(_m.group(1)))) if _m else now[:10]
+            for _shname, _rows in _xlsx_sheets(_raw).items():
+                _kind = ('newt' if 'NEWT' in _shname.upper()
+                          else 'outstanding' if 'OUTSTANDING'
+                          in _shname.upper() else None)
+                if not _kind:
+                    continue
+                _section = ''
+                for _row in _rows:
+                    _c = list(_row) + [None] * 12
+                    if isinstance(_c[1], str) and _c[1].strip():
+                        _section = _c[1].strip()
+                    _item = (_c[3].strip() if isinstance(_c[3], str)
+                              and _c[3].strip() else None)
+                    if not _item:
+                        continue
+                    for _ci, _stat in ((6, 'cash-value-eur-mn'),
+                                         (8, 'n-transactions'),
+                                         (10, 'collateral-mv-eur-mn')):
                         try:
-                            _val = float(str(c).replace(",", ""))
-                            if abs(_val) > 0.0001:
-                                break
+                            _v = float(str(_c[_ci]).replace(',', ''))
                         except Exception:
                             continue
-                    if not _lab or _val is None:
-                        continue
-                    _slug = _re.sub(r"[^a-z0-9]+", "-",
-                                     _lab.lower()).strip("-")[:60]
-                    _sk = (f"data/warm/icma-sftr/{_region.lower()}/"
-                            f"{_slug}.json")
-                    try:
-                        _doc = sread(_sk)
-                    except Exception:
-                        _doc = {"id": f"SFTR-{_region}-{_slug}",
-                                 "title": f"SFTR {_region}: {_lab[:110]}",
-                                 "observations": []}
-                    if not any(o.get("date") == _wdate
-                                for o in _doc["observations"]):
-                        _doc["observations"].append(
-                            {"date": _wdate, "value": _val})
-                        _doc["observations"].sort(
-                            key=lambda o: o["date"])
-                        s3.put_object(Bucket=BUCKET, Key=_sk,
-                            Body=json.dumps(_doc, separators=(",", ":")
-                                             ).encode(),
-                            ContentType="application/json")
+                        _slug = _re.sub(r'[^a-z0-9]+', '-',
+                                         (_kind + '-' + _section + '-'
+                                           + _item + '-' + _stat)
+                                         .lower()).strip('-')[:80]
+                        _sk = ('data/warm/icma-sftr/'
+                                + _region.lower() + '/' + _slug
+                                + '.json')
+                        try:
+                            _doc = sread(_sk)
+                        except Exception:
+                            _doc = {'id': 'SFTR-' + _region + '-'
+                                     + _slug,
+                                     'title': ('SFTR ' + _region + ' '
+                                       + _kind.title() + ': '
+                                       + _section + ' / ' + _item
+                                       + ' -- '
+                                       + _stat.replace('-', ' '))[:150],
+                                     'observations': []}
+                        if not any(o.get('date') == _wdate for o
+                                    in _doc['observations']):
+                            _doc['observations'].append(
+                                {'date': _wdate, 'value': _v})
+                            _doc['observations'].sort(
+                                key=lambda o: o['date'])
+                            s3.put_object(Bucket=BUCKET, Key=_sk,
+                                Body=json.dumps(
+                                    _doc, separators=(',', ':')
+                                    ).encode(),
+                                ContentType='application/json')
         # scope all banked sftr series
         for _region in ("eu", "uk"):
             _tok = None
@@ -1246,7 +1271,7 @@ def lambda_handler(event, context):
     groups = {}
     for r in rows:
         groups.setdefault(r["group"], []).append(r)
-    out = {"as_of": now,
+    out = {"as_of": now, "engine_v": "2.4",
             "note": ("barometer is a labeled heuristic: score = 50 + "
                      "10*mean(clipped z), components listed in full"),
             "counts": {"series": len(rows), "skipped": len(skipped),
@@ -1259,7 +1284,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "2.3", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "2.4", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))
