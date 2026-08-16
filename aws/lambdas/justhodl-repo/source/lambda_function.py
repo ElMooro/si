@@ -169,6 +169,8 @@ def group_of(e):
         return "Dollar (FRED trade-weighted)"
     if e.get("family") == "ICEBOFA":
         return "ICE BofA option-adjusted spreads (FRED)"
+    if e.get("family") == "FREDREPO":
+        return "FRED repo & SOFR complex"
     return "Other"
 
 
@@ -374,6 +376,118 @@ def lambda_handler(event, context):
                        "tier": 2})
         ice_added += 1
 
+    # v1.8: FRED repo & SOFR complex -- ids DISCOVERED, not hardcoded:
+    # the 'repurchase agreements' tag inventory + the SOFR family, each
+    # banked permanently on first touch (FRED_Repo_Complex/{ID}.json)
+    # and tail-refreshed when stale >3d. Server-side buckets for the
+    # page: SOFR / Fed RRP ops / Fed repo ops / balances / other.
+    FREPO_DIR = "data/warm/fred-scoped/FRED_Repo_Complex"
+    have_ids = {e["mnemonic"] for e in scope}
+    frepo_meta = {}
+    if fred_key:
+        try:
+            import urllib.request as _ur
+            import urllib.parse as _up
+            for _off in range(0, 1000, 500):
+                _u = ("https://api.stlouisfed.org/fred/tags/series?"
+                      + _up.urlencode({"tag_names":
+                                        "repurchase agreements",
+                                        "api_key": fred_key,
+                                        "file_type": "json",
+                                        "limit": 500, "offset": _off}))
+                with _ur.urlopen(_ur.Request(_u, headers={
+                        "User-Agent": "JustHodl raafouis@gmail.com"}),
+                        timeout=45) as _r:
+                    _js = json.loads(_r.read())
+                for _sr in _js.get("seriess") or []:
+                    frepo_meta[_sr["id"]] = str(
+                        _sr.get("title") or "")[:150]
+                if len(_js.get("seriess") or []) < 500:
+                    break
+            _u2 = ("https://api.stlouisfed.org/fred/series/search?"
+                   + _up.urlencode({"search_text": "SOFR",
+                                     "api_key": fred_key,
+                                     "file_type": "json", "limit": 60}))
+            with _ur.urlopen(_ur.Request(_u2, headers={
+                    "User-Agent": "JustHodl raafouis@gmail.com"}),
+                    timeout=45) as _r:
+                for _sr in json.loads(_r.read()).get("seriess") or []:
+                    if _sr["id"].startswith("SOFR"):
+                        frepo_meta.setdefault(_sr["id"], str(
+                            _sr.get("title") or "")[:150])
+        except Exception as _e:
+            print("[repo] frepo discovery failed:", type(_e).__name__)
+
+    def _bucket(fid, title):
+        t = (title or "").lower()
+        if fid.startswith("SOFR"):
+            return "SOFR"
+        if fid.startswith("RRP") or "reverse repurchase" in t:
+            return "Fed reverse repo (ON RRP)"
+        if fid.startswith("RP") or ("repurchase" in t and "reverse"
+                                      not in t and "operation" in t):
+            return "Fed repo ops (incl SRF)"
+        if any(w in t for w in ("liabilit", "assets", "h.4.1", "held")):
+            return "Balance-sheet lines"
+        return "Other repo series"
+
+    frepo_added = 0
+    for fid, title in sorted(frepo_meta.items()):
+        if fid in have_ids or time.time() - t0 > 600:
+            continue
+        wkey = f"{FREPO_DIR}/{fid}.json"
+        pairs = []
+        stale = True
+        try:
+            _d = sread(wkey)
+            pairs = extract_pairs(_d)
+            if pairs:
+                stale = (datetime.now(timezone.utc) -
+                          datetime.strptime(pairs[-1][0], "%Y-%m-%d")
+                          .replace(tzinfo=timezone.utc)).days > 3
+        except Exception:
+            pass
+        if stale and fred_key:
+            try:
+                import urllib.request as _ur
+                _st = pairs[-1][0] if pairs else "1970-01-01"
+                _u = ("https://api.stlouisfed.org/fred/series/"
+                      f"observations?series_id={fid}&api_key={fred_key}"
+                      f"&file_type=json&observation_start={_st}")
+                with _ur.urlopen(_ur.Request(_u, headers={
+                        "User-Agent": "JustHodl raafouis@gmail.com"}),
+                        timeout=45) as _r:
+                    _obs = json.loads(_r.read()).get(
+                        "observations") or []
+                _pp = dict(pairs)
+                for _o in _obs:
+                    try:
+                        _pp[_o["date"]] = float(_o["value"])
+                    except Exception:
+                        pass
+                if _pp:
+                    pairs = sorted(_pp.items())
+                    s3.put_object(Bucket=BUCKET, Key=wkey,
+                                   Body=json.dumps(
+                                       {"id": fid, "title": title,
+                                         "source": "FRED tag discovery",
+                                         "banked_at": now,
+                                         "observations":
+                                             [{"date": d0, "value": v0}
+                                              for d0, v0 in pairs]},
+                                       separators=(",", ":")).encode(),
+                                   ContentType="application/json")
+            except Exception:
+                pass
+        if not pairs:
+            continue
+        scope.append({"mnemonic": fid, "name": title or f"FRED {fid}",
+                       "family": "FREDREPO", "bucket": _bucket(fid, title),
+                       "s3_key": wkey,
+                       "api_url": f"https://fred.stlouisfed.org/series/{fid}",
+                       "tier": 1 if fid in ("SOFR", "RRPONTSYD") else 2})
+        frepo_added += 1
+
     values = {}
     rows = []
     skipped = []
@@ -418,6 +532,7 @@ def lambda_handler(event, context):
             rows.append({"id": e["mnemonic"], "sid": sid,
                           "label": names.get(e["mnemonic"]) or e.get("name") or "",
                           "tenor": e.get("tenor"),
+                          "bucket": e.get("bucket"),
                           "collateral": e.get("collateral"),
                           "group": group_of(e),
                           "tier": e.get("tier", 2),
@@ -504,7 +619,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "1.7", "ice": ice_added, "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "1.8", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))

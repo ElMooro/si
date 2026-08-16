@@ -110,16 +110,17 @@ const saveFav=()=>localStorage.setItem('repoFavs',JSON.stringify(FAV));
 const COLORS=[null,'red','amber','green'];
 const dot=c=>c==='red'?'#E07A6A':c==='amber'?'#F0B429':c==='green'?'#6fce8a':'#3a4250';
 
-const GORDER=["Reference rates & volumes","Tri-party (TRIV1, ex-Fed)","DVP bilateral cleared",
+const GORDER=["FRED repo & SOFR complex","Reference rates & volumes","Tri-party (TRIV1, ex-Fed)","DVP bilateral cleared",
 "GCF","Primary dealer FAILS","Primary dealer financing","Tri-party (TRI legacy)",
 "Dollar (FRED trade-weighted)","ICE BofA option-adjusted spreads (FRED)"];
 const SHORT={"Reference rates & volumes":"Ref rates","Tri-party (TRIV1, ex-Fed)":"Tri-party",
 "DVP bilateral cleared":"DVP","GCF":"GCF","Primary dealer FAILS":"PD fails",
 "Primary dealer financing":"PD financing","Tri-party (TRI legacy)":"TRI legacy",
-"Dollar (FRED trade-weighted)":"Dollar","ICE BofA option-adjusted spreads (FRED)":"ICE BofA"};
+"Dollar (FRED trade-weighted)":"Dollar","FRED repo & SOFR complex":"FRED repo/SOFR","ICE BofA option-adjusted spreads (FRED)":"ICE BofA"};
 
 function subgroup(r){
   const id=r.id, g=r.group;
+  if(r.bucket)return r.bucket;
   if(g.startsWith("ICE BofA")){
     if(/^BAMLH0|^BAMLHYH/.test(id))return"US High Yield";
     if(/^BAMLC/.test(id))return"US Investment Grade";
