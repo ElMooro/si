@@ -1,24 +1,1224 @@
-executing-against: e4647b81dbea93835ff6a8207ed32ddef26651b7
-ops 4757 -- newyorkfed.org research + data-hub sweep
-── seed: sce ──
-[17:05:35] https://www.newyorkfed.org/microeconomics/sce -> status=200 bytes=118727
-[17:05:36]   cand: https://www.newyorkfed.org/medialibrary/interactives/sce/sce/downloads/data/frbny-sce-data.xlsx
-[17:05:36]   cand: https://www.newyorkfed.org/medialibrary/interactives/sce/sce/downloads/data/frbny-sce-public-microdata-20-24.xlsx
-[17:05:36]   cand: https://www.newyorkfed.org/medialibrary/interactives/sce/sce/downloads/data/frbny-sce-public-microdata-complete-13-
-[17:05:36]   cand: https://www.newyorkfed.org/medialibrary/interactives/sce/sce/downloads/data/frbny-sce-public-microdata-complete-17-
-[17:05:38] ✅   banked sce/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-data.xlsx (1225415 bytes)
-[17:05:41] ✅   banked sce/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-public-microdata-20-24.xlsx (26000000 bytes)
-[17:05:45] ✅   banked sce/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-public-microdata-complete-13-16.xlsx (26000000 bytes)
-[17:05:47] ✅   banked sce/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-public-microdata-complete-17-19.xlsx (26000000 bytes)
-── seed: hhdc ──
-[17:05:48] https://www.newyorkfed.org/microeconomics/hhdc -> status=200 bytes=104696
-── seed: dsge ──
-[17:05:48] https://www.newyorkfed.org/research/policy/dsge -> status=200 bytes=99125
-── seed: datahub ──
-[17:05:50] https://www.newyorkfed.org/markets/data-hub -> status=200 bytes=106005
-[17:05:51]   cand: https://www.newyorkfed.org/medialibrary/interactives/markets/data/assets/data/contingency.json
-[17:05:51] ✅   banked datahub/medialibrary_interactives_markets_data_assets_data_contingency.json (10675 bytes)
-── seed: research-data ──
-[17:05:52] https://www.newyorkfed.org/research/data_indicators -> status=200 bytes=116815
+executing-against: c1f4b09ef7a94601ddc767dc0817cfe6960458a9
+ops 4758 -- truncation fix + integrity audit + one level deeper
+── A. Re-bank the three truncated SCE microdata files (streaming) ──
+[17:09:44] ✅   banked sce/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-public-microdata-20-24.xlsx (75333602 bytes, verified)
+[17:09:47] ✅   banked sce/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-public-microdata-complete-13-16.xlsx (52214657 bytes, verified)
+[17:09:51] ✅   banked sce/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-public-microdata-complete-17-19.xlsx (54192088 bytes, verified)
+── B. Integrity audit of everything banked ──
+── C. One level deeper: hhdc / dsge / research-data ──
+[17:10:08]   cand: https://libertystreeteconomics.newyorkfed.org/wp-content/uploads/sites/2/2025/02/LSE_2025_Scally_autos-data.xlsx
+[17:10:08]   cand: https://libertystreeteconomics.newyorkfed.org/wp-content/uploads/sites/2/2025/03/LSE_2025_default-priorities-plosse
+[17:10:08]   cand: https://libertystreeteconomics.newyorkfed.org/wp-content/uploads/sites/2/2025/05/LSE_2025Q1_MangrumDQ_data.xlsx
+[17:10:08]   cand: https://libertystreeteconomics.newyorkfed.org/wp-content/uploads/sites/2/2025/08/Lee_CheckInOnMortgage_charts.xlsx
+[17:10:08]   cand: https://libertystreeteconomics.newyorkfed.org/wp-content/uploads/sites/2/2026/04/LSE_2026_Kosar_AI-training_additio
+[17:10:08]   cand: https://libertystreeteconomics.newyorkfed.org/wp-content/uploads/sites/2/2026/04/LSE_2026_Kosar_AI-training_charts_
+[17:10:08]   cand: https://www.newyorkfed.org/medialibrary/interactives/householdcredit/blog_graphs_2013_q2.xlsx
+[17:10:08]   cand: https://www.newyorkfed.org/medialibrary/interactives/householdcredit/data/xls/201708_hdc_credit_card_data.xlsx
+[17:10:08]   cand: https://www.newyorkfed.org/medialibrary/interactives/householdcredit/data/xls/area_report_by_year.xlsx
+[17:10:08]   cand: https://www.newyorkfed.org/medialibrary/interactives/householdcredit/data/xls/first-time-homebuyer-age-statistics-y
+[17:10:08]   cand: https://www.newyorkfed.org/medialibrary/interactives/householdcredit/data/xls/hhd_c_report_2024q3.xlsx
+[17:10:08]   cand: https://www.newyorkfed.org/medialibrary/interactives/householdcredit/data/xls/hhd_c_report_2025q4.xlsx
+[17:10:08]   cand: https://www.newyorkfed.org/medialibrary/interactives/householdcredit/data/xls/hhd_c_report_2026q1.xlsx
+[17:10:08]   cand: https://www.newyorkfed.org/medialibrary/interactives/householdcredit/data/xls/hhd_c_report_2026q2.xlsx
+[17:10:08]   cand: https://www.newyorkfed.org/medialibrary/interactives/householdcredit/data/xls/report_by_age.xls
+[17:10:09] ✅   banked hhdc/wp-content_uploads_sites_2_2025_02_LSE_2025_Scally_autos-data.xlsx (78903 bytes, verified)
+[17:10:09] ✅   banked hhdc/wp-content_uploads_sites_2_2025_03_LSE_2025_default-priorities-plosser_data.xlsx (73694 bytes, verified)
+[17:10:10] ✅   banked hhdc/wp-content_uploads_sites_2_2025_05_LSE_2025Q1_MangrumDQ_data.xlsx (69023 bytes, verified)
+[17:10:11] ✅   banked hhdc/wp-content_uploads_sites_2_2025_08_Lee_CheckInOnMortgage_charts.xlsx (106079 bytes, verified)
+[17:10:11] ✅   banked hhdc/wp-content_uploads_sites_2_2026_04_LSE_2026_Kosar_AI-training_additional_data.xlsx (58167 bytes, verified)
+[17:10:12] ✅   banked hhdc/wp-content_uploads_sites_2_2026_04_LSE_2026_Kosar_AI-training_charts_5467e5.xlsx (71116 bytes, verified)
+[17:10:13] ✅   banked hhdc/medialibrary_interactives_householdcredit_blog_graphs_2013_q2.xlsx (17794 bytes, verified)
+[17:10:13] ✅   banked hhdc/medialibrary_interactives_householdcredit_data_xls_201708_hdc_credit_card_data.xlsx (19823 bytes, verified)
+[17:10:14] ✅   banked hhdc/medialibrary_interactives_householdcredit_data_xls_area_report_by_year.xlsx (171511 bytes, verified)
+[17:10:15] ✅   banked hhdc/medialibrary_interactives_householdcredit_data_xls_first-time-homebuyer-age-statistics-yearly_data.xlsx (57667 bytes, verified)
+[17:10:16] ✅   banked hhdc/medialibrary_interactives_householdcredit_data_xls_hhd_c_report_2024q3.xlsx (852637 bytes, verified)
+[17:10:18] ✅   banked hhdc/medialibrary_interactives_householdcredit_data_xls_hhd_c_report_2025q4.xlsx (939774 bytes, verified)
+[17:10:19] ✅   banked hhdc/medialibrary_interactives_householdcredit_data_xls_hhd_c_report_2026q1.xlsx (949317 bytes, verified)
+[17:10:21] ✅   banked hhdc/medialibrary_interactives_householdcredit_data_xls_hhd_c_report_2026q2.xlsx (962992 bytes, verified)
+[17:10:22] ⚠   https://www.newyorkfed.org/medialibrary/interactives/householdcredit/data/xls/report_by_ag failed zip end-signature check (208384 bytes) -- NOT banked
+[17:10:23] ✅   banked hhdc/medialibrary_interactives_householdcredit_data_xls_student-loan-by-state.xlsx (31209 bytes, verified)
+[17:10:24] ✅   banked hhdc/medialibrary_interactives_householdcredit_data_xls_student-loan-update-2025-mangrum.xlsx (205008 bytes, verified)
+[17:10:24] ✅   banked hhdc/medialibrary_interactives_householdcredit_data_xls_studentloandata_by_age.xlsx (10433 bytes, verified)
+[17:10:25] ⚠   https://www.newyorkfed.org/medialibrary/interactives/microeconomics/microeconomics/data/xl failed zip end-signature check (160256 bytes) -- NOT banked
+[17:10:26] ✅   banked hhdc/medialibrary_interactives_microeconomics_microeconomics_data_xls_jr_mortgageborrowing_5-12-2015.xlsx (41682 bytes, verified)
+[17:10:27] ⚠   https://www.newyorkfed.org/medialibrary/interactives/microeconomics/microeconomics/data/xl failed zip end-signature check (27648 bytes) -- NOT banked
+[17:10:27] ✅   banked hhdc/medialibrary_interactives_sce_sce_downloads_data_052014-household-debt.xlsx (10502 bytes, verified)
+[17:10:29] ✅   banked hhdc/medialibrary_interactives_sce_sce_downloads_data_frbbos-siwp-i-informal-work-module-public-microdata-complete. (11733521 bytes, verified)
+[17:10:31] ✅   banked hhdc/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-credit-access-complete_microdata.xlsx (15940767 bytes, verified)
+[17:10:32] ✅   banked hhdc/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-credit-access-data.xlsx (107143 bytes, verified)
+[17:10:34] ✅   banked hhdc/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-housing-survey-public-microdata-complete.xlsx (7360527 bytes, verified)
+[17:10:36] ✅   banked hhdc/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-public-microdata-latest.xlsx (12365907 bytes, verified)
+[17:10:36] ✅   banked hhdc/medialibrary_interactives_sce_sce_downloads_data_frbny_sce_housing_chartdata.xlsx (200294 bytes, verified)
+[17:10:37] ✅   banked hhdc/medialibrary_interactives_sce_sce_downloads_data_negwealthchartdata.xlsx (26595 bytes, verified)
+[17:10:41] ✅   banked hhdc/medialibrary_interactives_sce_sce_downloads_data_sce-public-lm-quarterly-microdata.xlsx (22574017 bytes, verified)
+[17:10:43] ✅   banked hhdc/medialibrary_interactives_sce_sce_downloads_data_sce_public_hh-finance_quarterly_microdata.xlsx (8808653 bytes, verified)
+[17:10:44] ✅   banked hhdc/medialibrary_media_change-in-debt_downloads_xls_frbny-change-in-debt-data.xlsx (31329 bytes, verified)
+[17:10:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q1.xls failed zip end-signature check (402944 bytes) -- NOT banked
+[17:10:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q2.xls failed zip end-signature check (386048 bytes) -- NOT banked
+[17:10:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q3.xls failed zip end-signature check (322560 bytes) -- NOT banked
+[17:10:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q4.xls failed zip end-signature check (312832 bytes) -- NOT banked
+[17:10:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2021_q1.xls failed zip end-signature check (329728 bytes) -- NOT banked
+[17:10:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2010_q3.xls failed zip end-signature check (110592 bytes) -- NOT banked
+[17:10:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2010_q4.xls failed zip end-signature check (115712 bytes) -- NOT banked
+[17:10:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q1.xls failed zip end-signature check (123392 bytes) -- NOT banked
+[17:10:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q2.xls failed zip end-signature check (80896 bytes) -- NOT banked
+[17:10:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q3.xls failed zip end-signature check (87552 bytes) -- NOT banked
+[17:10:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q4.xls failed zip end-signature check (135168 bytes) -- NOT banked
+[17:10:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q1.xls failed zip end-signature check (141312 bytes) -- NOT banked
+[17:10:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q2.xls failed zip end-signature check (138752 bytes) -- NOT banked
+[17:10:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q3.xls failed zip end-signature check (70144 bytes) -- NOT banked
+[17:10:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q4.xls failed zip end-signature check (101888 bytes) -- NOT banked
+[17:10:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2013_q1.xls failed zip end-signature check (111104 bytes) -- NOT banked
+[17:10:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2013_q2.xls failed zip end-signature check (117760 bytes) -- NOT banked
+[17:10:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2013_q3.xls failed zip end-signature check (123904 bytes) -- NOT banked
+[17:10:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2013_q4.xls failed zip end-signature check (119808 bytes) -- NOT banked
+[17:10:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2014_q1.xls failed zip end-signature check (124928 bytes) -- NOT banked
+[17:10:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2014_q2.xls failed zip end-signature check (116224 bytes) -- NOT banked
+[17:10:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2014_q3.xls failed zip end-signature check (93184 bytes) -- NOT banked
+[17:10:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2014_q4.xls failed zip end-signature check (93184 bytes) -- NOT banked
+[17:10:57] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2015_q1.xls failed zip end-signature check (92160 bytes) -- NOT banked
+[17:10:57] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2015_q2.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:10:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2015_q3.xls failed zip end-signature check (92160 bytes) -- NOT banked
+[17:10:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2015_q4.xls failed zip end-signature check (92160 bytes) -- NOT banked
+[17:10:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2016_q1.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:11:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2016_q2.xls failed zip end-signature check (91136 bytes) -- NOT banked
+[17:11:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2016_q3.xls failed zip end-signature check (91136 bytes) -- NOT banked
+[17:11:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2016_q4.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:11:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2017_q1.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:11:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2017_q2.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:11:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2017_q3.xls failed zip end-signature check (91136 bytes) -- NOT banked
+[17:11:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2017_q4.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:11:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2018_q1.xls failed zip end-signature check (91136 bytes) -- NOT banked
+[17:11:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2018_q3.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:11:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2019_q1.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:11:05] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2019_q3.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:11:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2020_q2.xls failed zip end-signature check (92160 bytes) -- NOT banked
+[17:11:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2020_q4.xls failed zip end-signature check (92160 bytes) -- NOT banked
+[17:11:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2021_q1.xls failed zip end-signature check (86016 bytes) -- NOT banked
+[17:11:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2021_q2.xls failed zip end-signature check (102400 bytes) -- NOT banked
+[17:11:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2021_q4.xls failed zip end-signature check (84480 bytes) -- NOT banked
+[17:11:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2022_q1.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:11:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2022_q3.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:11:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2022_q4.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:11:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2023_q1.xls failed zip end-signature check (101376 bytes) -- NOT banked
+[17:11:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2023_q2.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:11:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2023_q3.xls failed zip end-signature check (103424 bytes) -- NOT banked
+[17:11:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2023_q4.xls failed zip end-signature check (103936 bytes) -- NOT banked
+[17:11:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2024_q1.xls failed zip end-signature check (101376 bytes) -- NOT banked
+[17:11:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2024_q2.xls failed zip end-signature check (156672 bytes) -- NOT banked
+[17:11:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2010_q3.xl failed zip end-signature check (94720 bytes) -- NOT banked
+[17:11:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2010_q4.xl failed zip end-signature check (36864 bytes) -- NOT banked
+[17:11:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2011_q1.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:11:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2011_q2.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:11:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2011_q3.xl failed zip end-signature check (33792 bytes) -- NOT banked
+[17:11:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2011_q4.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:11:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2012_q1.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:11:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2012_q2.xl failed zip end-signature check (36352 bytes) -- NOT banked
+[17:11:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2012_q3.xl failed zip end-signature check (35328 bytes) -- NOT banked
+[17:11:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2012_q4.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:11:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2013_q1.xl failed zip end-signature check (34816 bytes) -- NOT banked
+[17:11:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2013_q2.xl failed zip end-signature check (34304 bytes) -- NOT banked
+[17:11:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2013_q3.xl failed zip end-signature check (34304 bytes) -- NOT banked
+[17:11:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2013_q4.xl failed zip end-signature check (34304 bytes) -- NOT banked
+[17:11:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2014_q1.xl failed zip end-signature check (34304 bytes) -- NOT banked
+[17:11:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2014_q2.xl failed zip end-signature check (34816 bytes) -- NOT banked
+[17:11:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2014_q3.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:11:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2014_q4.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:11:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2015_q1.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:11:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2015_q2.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:11:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2015_q3.xl failed zip end-signature check (36864 bytes) -- NOT banked
+[17:11:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2015_q4.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:11:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2016_q1.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:11:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2016_q2.xl failed zip end-signature check (34304 bytes) -- NOT banked
+[17:11:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2016_q4.xl failed zip end-signature check (69120 bytes) -- NOT banked
+[17:11:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2017_q1.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:11:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2017_q2.xl failed zip end-signature check (32768 bytes) -- NOT banked
+[17:11:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2017_q4.xl failed zip end-signature check (35328 bytes) -- NOT banked
+[17:11:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2018_q2.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:11:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2018_q4.xl failed zip end-signature check (38400 bytes) -- NOT banked
+[17:11:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2019_q2.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:11:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2019_q3.xl failed zip end-signature check (28672 bytes) -- NOT banked
+[17:11:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2019_q4.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:11:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2020_q1.xl failed zip end-signature check (31744 bytes) -- NOT banked
+[17:11:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2020_q2.xl failed zip end-signature check (31744 bytes) -- NOT banked
+[17:11:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2020_q3.xl failed zip end-signature check (36352 bytes) -- NOT banked
+[17:11:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2020_q4.xl failed zip end-signature check (45568 bytes) -- NOT banked
+[17:11:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2021_q1.xl failed zip end-signature check (32768 bytes) -- NOT banked
+[17:11:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2021_q2.xl failed zip end-signature check (30720 bytes) -- NOT banked
+[17:11:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2021_q3.xl failed zip end-signature check (32256 bytes) -- NOT banked
+[17:11:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2021_q4.xl failed zip end-signature check (31232 bytes) -- NOT banked
+[17:11:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2022_q1.xl failed zip end-signature check (40960 bytes) -- NOT banked
+[17:11:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2022_q2.xl failed zip end-signature check (40960 bytes) -- NOT banked
+[17:11:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2022_q3.xl failed zip end-signature check (41984 bytes) -- NOT banked
+[17:11:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2022_q4.xl failed zip end-signature check (36352 bytes) -- NOT banked
+[17:11:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2023_q1.xl failed zip end-signature check (47104 bytes) -- NOT banked
+[17:11:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2023_q2.xl failed zip end-signature check (48128 bytes) -- NOT banked
+[17:11:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2023_q3.xl failed zip end-signature check (46592 bytes) -- NOT banked
+[17:11:38] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2023_q4.xl failed zip end-signature check (49152 bytes) -- NOT banked
+[17:11:38] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2024_q1.xl failed zip end-signature check (48128 bytes) -- NOT banked
+[17:11:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2024_q2.xl failed zip end-signature check (48128 bytes) -- NOT banked
+[17:11:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2010_q3.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:11:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2010_q4.xls failed zip end-signature check (97792 bytes) -- NOT banked
+[17:11:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2011_q1.xls failed zip end-signature check (99328 bytes) -- NOT banked
+[17:11:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2011_q2.xls failed zip end-signature check (57856 bytes) -- NOT banked
+[17:11:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2011_q3.xls failed zip end-signature check (56320 bytes) -- NOT banked
+[17:11:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2011_q4.xls failed zip end-signature check (57856 bytes) -- NOT banked
+[17:11:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2012_q1.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:11:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2012_q2.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:11:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2012_q3.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:11:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2012_q4.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:11:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2013_q1.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:11:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2013_q2.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:11:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2013_q3.xls failed zip end-signature check (94208 bytes) -- NOT banked
+[17:11:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2013_q4.xls failed zip end-signature check (93696 bytes) -- NOT banked
+[17:11:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2014_q1.xls failed zip end-signature check (93696 bytes) -- NOT banked
+[17:11:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2014_q2.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:11:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2014_q3.xls failed zip end-signature check (92672 bytes) -- NOT banked
+[17:11:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2014_q4.xls failed zip end-signature check (94208 bytes) -- NOT banked
+[17:11:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2015_q1.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:11:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2015_q2.xls failed zip end-signature check (93696 bytes) -- NOT banked
+[17:11:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2015_q3.xls failed zip end-signature check (90624 bytes) -- NOT banked
+[17:11:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2015_q4.xls failed zip end-signature check (88576 bytes) -- NOT banked
+[17:11:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2016_q1.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:11:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2016_q2.xls failed zip end-signature check (96768 bytes) -- NOT banked
+[17:11:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2016_q3.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:11:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2016_q4.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:11:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2017_q1.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:11:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2017_q2.xls failed zip end-signature check (94208 bytes) -- NOT banked
+[17:11:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2017_q3.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:11:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2017_q4.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:11:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2018_q1.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:11:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2018_q2.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:11:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2018_q3.xls failed zip end-signature check (90624 bytes) -- NOT banked
+[17:11:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2018_q4.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:11:57] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2019_q1.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:11:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2019_q2.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:11:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2019_q3.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:11:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2019_q4.xls failed zip end-signature check (96768 bytes) -- NOT banked
+[17:11:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2020_q1.xls failed zip end-signature check (96768 bytes) -- NOT banked
+[17:12:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2020_q2.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:12:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2020_q3.xls failed zip end-signature check (93696 bytes) -- NOT banked
+[17:12:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2020_q4.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:12:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2021_q1.xls failed zip end-signature check (104960 bytes) -- NOT banked
+[17:12:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2021_q2.xls failed zip end-signature check (89600 bytes) -- NOT banked
+[17:12:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2021_q3.xls failed zip end-signature check (91136 bytes) -- NOT banked
+[17:12:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2021_q4.xls failed zip end-signature check (90624 bytes) -- NOT banked
+[17:12:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2022_q1.xls failed zip end-signature check (98816 bytes) -- NOT banked
+[17:12:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2022_q2.xls failed zip end-signature check (98816 bytes) -- NOT banked
+[17:12:05] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2022_q3.xls failed zip end-signature check (98816 bytes) -- NOT banked
+[17:12:05] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2022_q4.xls failed zip end-signature check (98304 bytes) -- NOT banked
+[17:12:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2023_q1.xls failed zip end-signature check (105472 bytes) -- NOT banked
+[17:12:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2023_q2.xls failed zip end-signature check (107008 bytes) -- NOT banked
+[17:12:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2023_q3.xls failed zip end-signature check (106496 bytes) -- NOT banked
+[17:12:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2023_q4.xls failed zip end-signature check (105984 bytes) -- NOT banked
+[17:12:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2024_q1.xls failed zip end-signature check (107008 bytes) -- NOT banked
+[17:12:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2024_q2.xls failed zip end-signature check (106496 bytes) -- NOT banked
+[17:12:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2011_q4.xls failed zip end-signature check (392192 bytes) -- NOT banked
+[17:12:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2012_q1.xls failed zip end-signature check (402432 bytes) -- NOT banked
+[17:12:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2012_q2.xls failed zip end-signature check (383488 bytes) -- NOT banked
+[17:12:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2012_q3.xls failed zip end-signature check (342528 bytes) -- NOT banked
+[17:12:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2012_q4.xls failed zip end-signature check (476672 bytes) -- NOT banked
+[17:12:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2013_q1.xls failed zip end-signature check (561664 bytes) -- NOT banked
+[17:12:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2013_q2.xls failed zip end-signature check (534016 bytes) -- NOT banked
+[17:12:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2013_q3.xls failed zip end-signature check (494080 bytes) -- NOT banked
+[17:12:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2013_q4.xls failed zip end-signature check (468992 bytes) -- NOT banked
+[17:12:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2014_q1.xls failed zip end-signature check (465408 bytes) -- NOT banked
+[17:12:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2014_q2.xls failed zip end-signature check (551424 bytes) -- NOT banked
+[17:12:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2014_q3.xls failed zip end-signature check (553984 bytes) -- NOT banked
+[17:12:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2014_q4.xls failed zip end-signature check (523776 bytes) -- NOT banked
+[17:12:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2015_q1.xls failed zip end-signature check (554496 bytes) -- NOT banked
+[17:12:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2015_q2.xls failed zip end-signature check (544768 bytes) -- NOT banked
+[17:12:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2015_q3.xls failed zip end-signature check (515072 bytes) -- NOT banked
+[17:12:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2015_q4.xls failed zip end-signature check (483328 bytes) -- NOT banked
+[17:12:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2016_q1.xls failed zip end-signature check (475648 bytes) -- NOT banked
+[17:12:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2016_q2.xls failed zip end-signature check (347136 bytes) -- NOT banked
+[17:12:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2016_q3.xls failed zip end-signature check (522752 bytes) -- NOT banked
+[17:12:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2016_q4.xls failed zip end-signature check (614400 bytes) -- NOT banked
+[17:12:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2017_q1.xls failed zip end-signature check (559616 bytes) -- NOT banked
+[17:12:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2017_q2.xls failed zip end-signature check (521728 bytes) -- NOT banked
+[17:12:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2017_q3.xls failed zip end-signature check (526848 bytes) -- NOT banked
+[17:12:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2017_q4.xls failed zip end-signature check (477184 bytes) -- NOT banked
+[17:12:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2018_q1.xls failed zip end-signature check (442368 bytes) -- NOT banked
+[17:12:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2018_q2.xls failed zip end-signature check (415744 bytes) -- NOT banked
+[17:12:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2018_q3.xls failed zip end-signature check (382464 bytes) -- NOT banked
+[17:12:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2018_q4.xls failed zip end-signature check (337408 bytes) -- NOT banked
+[17:12:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2019_q1.xls failed zip end-signature check (327680 bytes) -- NOT banked
+[17:12:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2019_q2.xls failed zip end-signature check (332288 bytes) -- NOT banked
+[17:12:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2019_q3.xls failed zip end-signature check (390656 bytes) -- NOT banked
+[17:12:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2019_q4.xls failed zip end-signature check (395776 bytes) -- NOT banked
+[17:12:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2020_q1.xls failed zip end-signature check (621568 bytes) -- NOT banked
+[17:12:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2020_q2.xls failed zip end-signature check (1119744 bytes) -- NOT banked
+[17:12:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2020_q3.xls failed zip end-signature check (854016 bytes) -- NOT banked
+[17:12:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2020_q4.xls failed zip end-signature check (985088 bytes) -- NOT banked
+[17:12:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2021_q1.xls failed zip end-signature check (1029632 bytes) -- NOT banked
+[17:12:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2021_q2.xls failed zip end-signature check (933888 bytes) -- NOT banked
+[17:12:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2021_q3.xls failed zip end-signature check (794624 bytes) -- NOT banked
+[17:12:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2021_q4.xls failed zip end-signature check (855040 bytes) -- NOT banked
+[17:12:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2022_q1.xls failed zip end-signature check (716288 bytes) -- NOT banked
+[17:12:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2022_q2.xls failed zip end-signature check (609792 bytes) -- NOT banked
+[17:12:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2022_q3.xls failed zip end-signature check (399872 bytes) -- NOT banked
+[17:12:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2022_q4.xls failed zip end-signature check (336384 bytes) -- NOT banked
+[17:12:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2023_q1.xls failed zip end-signature check (325632 bytes) -- NOT banked
+[17:12:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2023_q2.xls failed zip end-signature check (325632 bytes) -- NOT banked
+[17:12:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2023_q3.xls failed zip end-signature check (324096 bytes) -- NOT banked
+[17:12:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2023_q4.xls failed zip end-signature check (325632 bytes) -- NOT banked
+[17:12:38] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2024_q1.xls failed zip end-signature check (325632 bytes) -- NOT banked
+[17:12:38] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2024_q2.xls failed zip end-signature check (326144 bytes) -- NOT banked
+[17:12:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2010_q3.xls failed zip end-signature check (83968 bytes) -- NOT banked
+[17:12:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2010_q4.xls failed zip end-signature check (112640 bytes) -- NOT banked
+[17:12:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2011_q1.xls failed zip end-signature check (210944 bytes) -- NOT banked
+[17:12:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2011_q2.xls failed zip end-signature check (436736 bytes) -- NOT banked
+[17:12:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2011_q3.xls failed zip end-signature check (193024 bytes) -- NOT banked
+[17:12:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2012_q1.xls failed zip end-signature check (201216 bytes) -- NOT banked
+[17:12:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2012_q3.xls failed zip end-signature check (147456 bytes) -- NOT banked
+[17:12:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2012_q4.xls failed zip end-signature check (124416 bytes) -- NOT banked
+[17:12:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2013_q1.xls failed zip end-signature check (86016 bytes) -- NOT banked
+[17:12:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2013_q2.xls failed zip end-signature check (226816 bytes) -- NOT banked
+[17:12:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2013_q3.xls failed zip end-signature check (266752 bytes) -- NOT banked
+[17:12:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2013_q4.xls failed zip end-signature check (229376 bytes) -- NOT banked
+[17:12:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2014_q1.xls failed zip end-signature check (588800 bytes) -- NOT banked
+[17:12:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2014_q2.xls failed zip end-signature check (586240 bytes) -- NOT banked
+[17:12:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2014_q4.xls failed zip end-signature check (543232 bytes) -- NOT banked
+[17:12:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2015_q1.xls failed zip end-signature check (581632 bytes) -- NOT banked
+[17:12:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2015_q2.xls failed zip end-signature check (544768 bytes) -- NOT banked
+[17:12:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2015_q3.xls failed zip end-signature check (515584 bytes) -- NOT banked
+[17:12:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2015_q4.xls failed zip end-signature check (574464 bytes) -- NOT banked
+[17:12:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2016_q1.xls failed zip end-signature check (494080 bytes) -- NOT banked
+[17:12:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2016_q2.xls failed zip end-signature check (410624 bytes) -- NOT banked
+[17:12:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2016_q3.xls failed zip end-signature check (495616 bytes) -- NOT banked
+[17:12:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2016_q4.xls failed zip end-signature check (625152 bytes) -- NOT banked
+[17:12:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2017_q1.xls failed zip end-signature check (580608 bytes) -- NOT banked
+[17:12:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2017_q2.xls failed zip end-signature check (616960 bytes) -- NOT banked
+[17:12:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2017_q3.xls failed zip end-signature check (674816 bytes) -- NOT banked
+[17:12:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2017_q4.xls failed zip end-signature check (540672 bytes) -- NOT banked
+[17:12:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2018_q1.xls failed zip end-signature check (416256 bytes) -- NOT banked
+[17:12:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2018_q2.xls failed zip end-signature check (245760 bytes) -- NOT banked
+[17:12:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2018_q3.xls failed zip end-signature check (212992 bytes) -- NOT banked
+[17:12:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2018_q4.xls failed zip end-signature check (235520 bytes) -- NOT banked
+[17:12:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2019_q1.xls failed zip end-signature check (205824 bytes) -- NOT banked
+[17:12:57] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2019_q2.xls failed zip end-signature check (232960 bytes) -- NOT banked
+[17:12:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2019_q3.xls failed zip end-signature check (348160 bytes) -- NOT banked
+[17:12:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2019_q4.xls failed zip end-signature check (445952 bytes) -- NOT banked
+[17:12:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2020_q1.xls failed zip end-signature check (660992 bytes) -- NOT banked
+[17:13:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2020_q2.xls failed zip end-signature check (272896 bytes) -- NOT banked
+[17:13:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2020_q3.xls failed zip end-signature check (274944 bytes) -- NOT banked
+[17:13:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2020_q4.xls failed zip end-signature check (438784 bytes) -- NOT banked
+[17:13:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2021_q1.xls failed zip end-signature check (302080 bytes) -- NOT banked
+[17:13:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2021_q2.xls failed zip end-signature check (663040 bytes) -- NOT banked
+[17:13:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2021_q3.xls failed zip end-signature check (1038336 bytes) -- NOT banked
+[17:13:05] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2021_q4.xls failed zip end-signature check (1057280 bytes) -- NOT banked
+[17:13:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2022_q1.xls failed zip end-signature check (4781568 bytes) -- NOT banked
+[17:13:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2022_q2.xls failed zip end-signature check (1209344 bytes) -- NOT banked
+[17:13:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2022_q3.xls failed zip end-signature check (4815872 bytes) -- NOT banked
+[17:13:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2022_q4.xls failed zip end-signature check (4732416 bytes) -- NOT banked
+[17:13:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2023_q1.xls failed zip end-signature check (4759040 bytes) -- NOT banked
+[17:13:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2023_q2.xls failed zip end-signature check (4777984 bytes) -- NOT banked
+[17:13:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2023_q3.xls failed zip end-signature check (4745216 bytes) -- NOT banked
+[17:13:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2023_q4.xls failed zip end-signature check (4724224 bytes) -- NOT banked
+[17:13:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2024_q1.xls failed zip end-signature check (1004032 bytes) -- NOT banked
+[17:13:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2024_q2.xls failed zip end-signature check (4704768 bytes) -- NOT banked
+[17:13:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rr_rrp_data_2014_q3.xls failed zip end-signature check (484864 bytes) -- NOT banked
+[17:13:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2010_q3.xls failed zip end-signature check (1519616 bytes) -- NOT banked
+[17:13:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2010_q4.xls failed zip end-signature check (1857536 bytes) -- NOT banked
+[17:13:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2011_q1.xls failed zip end-signature check (2260992 bytes) -- NOT banked
+[17:13:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2011_q2.xls failed zip end-signature check (2839552 bytes) -- NOT banked
+[17:13:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2011_q3.xls failed zip end-signature check (2722304 bytes) -- NOT banked
+[17:13:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2011_q4.xls failed zip end-signature check (2929152 bytes) -- NOT banked
+[17:13:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2012_q1.xls failed zip end-signature check (2903552 bytes) -- NOT banked
+[17:13:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2012_q2.xls failed zip end-signature check (2607104 bytes) -- NOT banked
+[17:13:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2012_q3.xls failed zip end-signature check (2379264 bytes) -- NOT banked
+[17:13:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2012_q4.xls failed zip end-signature check (2006016 bytes) -- NOT banked
+[17:13:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2013_q1.xls failed zip end-signature check (2099200 bytes) -- NOT banked
+[17:13:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2013_q2.xls failed zip end-signature check (2656768 bytes) -- NOT banked
+[17:13:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2013_q3.xls failed zip end-signature check (2172928 bytes) -- NOT banked
+[17:13:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2013_q4.xls failed zip end-signature check (2339328 bytes) -- NOT banked
+[17:13:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2014_q1.xls failed zip end-signature check (2308096 bytes) -- NOT banked
+[17:13:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2014_q2.xls failed zip end-signature check (2279936 bytes) -- NOT banked
+[17:13:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2014_q3.xls failed zip end-signature check (2390528 bytes) -- NOT banked
+[17:13:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2014_q4.xls failed zip end-signature check (9123328 bytes) -- NOT banked
+[17:13:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2015_q1.xls failed zip end-signature check (9017344 bytes) -- NOT banked
+[17:13:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2015_q2.xls failed zip end-signature check (2474496 bytes) -- NOT banked
+[17:13:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2015_q3.xls failed zip end-signature check (2503680 bytes) -- NOT banked
+[17:13:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2015_q4.xls failed zip end-signature check (2544128 bytes) -- NOT banked
+[17:13:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2016_q1.xls failed zip end-signature check (2553344 bytes) -- NOT banked
+[17:13:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2016_q2.xls failed zip end-signature check (3203072 bytes) -- NOT banked
+[17:13:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2016_q3.xls failed zip end-signature check (3681280 bytes) -- NOT banked
+[17:13:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2016_q4.xls failed zip end-signature check (3678720 bytes) -- NOT banked
+[17:13:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2017_q1.xls failed zip end-signature check (3601920 bytes) -- NOT banked
+[17:13:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2017_q2.xls failed zip end-signature check (4220416 bytes) -- NOT banked
+[17:13:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2017_q3.xls failed zip end-signature check (4354560 bytes) -- NOT banked
+[17:13:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2017_q4.xls failed zip end-signature check (4146176 bytes) -- NOT banked
+[17:13:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2018_q1.xls failed zip end-signature check (4219392 bytes) -- NOT banked
+[17:13:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2018_q2.xls failed zip end-signature check (4397056 bytes) -- NOT banked
+[17:13:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2018_q3.xls failed zip end-signature check (4050944 bytes) -- NOT banked
+[17:13:38] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2018_q4.xls failed zip end-signature check (3560960 bytes) -- NOT banked
+[17:13:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2019_q1.xls failed zip end-signature check (3339776 bytes) -- NOT banked
+[17:13:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2019_q2.xls failed zip end-signature check (3629568 bytes) -- NOT banked
+[17:13:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2019_q3.xls failed zip end-signature check (4025344 bytes) -- NOT banked
+[17:13:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2019_q4.xls failed zip end-signature check (4123648 bytes) -- NOT banked
+[17:13:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2020_q1.xls failed zip end-signature check (4866048 bytes) -- NOT banked
+[17:13:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2020_q2.xls failed zip end-signature check (4739072 bytes) -- NOT banked
+[17:13:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2020_q3.xls failed zip end-signature check (3823104 bytes) -- NOT banked
+[17:13:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2020_q4.xls failed zip end-signature check (3889664 bytes) -- NOT banked
+[17:13:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2021_q1.xls failed zip end-signature check (3923968 bytes) -- NOT banked
+[17:13:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2021_q2.xls failed zip end-signature check (4223488 bytes) -- NOT banked
+[17:13:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2021_q3.xls failed zip end-signature check (4362752 bytes) -- NOT banked
+[17:13:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2021_q4.xls failed zip end-signature check (5109248 bytes) -- NOT banked
+[17:13:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2022_q1.xls failed zip end-signature check (6002176 bytes) -- NOT banked
+[17:13:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2022_q2.xls failed zip end-signature check (6381568 bytes) -- NOT banked
+[17:13:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2022_q3.xls failed zip end-signature check (7178752 bytes) -- NOT banked
+[17:13:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2022_q4.xls failed zip end-signature check (5859840 bytes) -- NOT banked
+[17:13:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2023_q1.xls failed zip end-signature check (6078976 bytes) -- NOT banked
+[17:13:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2023_q2.xls failed zip end-signature check (7043584 bytes) -- NOT banked
+[17:13:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2023_q3.xls failed zip end-signature check (6586880 bytes) -- NOT banked
+[17:13:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2023_q4.xls failed zip end-signature check (6503424 bytes) -- NOT banked
+[17:13:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2024_q1.xls failed zip end-signature check (6388736 bytes) -- NOT banked
+[17:13:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2024_q2.xls failed zip end-signature check (6319104 bytes) -- NOT banked
+[17:13:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2010_q3.xls failed zip end-signature check (398848 bytes) -- NOT banked
+[17:13:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2010_q4.xls failed zip end-signature check (796160 bytes) -- NOT banked
+[17:13:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2011_q1.xls failed zip end-signature check (3095552 bytes) -- NOT banked
+[17:13:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2011_q2.xls failed zip end-signature check (940544 bytes) -- NOT banked
+[17:13:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2011_q3.xls failed zip end-signature check (218112 bytes) -- NOT banked
+[17:13:57] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2011_q4.xls failed zip end-signature check (3307008 bytes) -- NOT banked
+[17:13:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2012_q1.xls failed zip end-signature check (3194368 bytes) -- NOT banked
+[17:13:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2012_q2.xls failed zip end-signature check (3238912 bytes) -- NOT banked
+[17:13:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2012_q3.xls failed zip end-signature check (3428352 bytes) -- NOT banked
+[17:14:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2012_q4.xls failed zip end-signature check (3367936 bytes) -- NOT banked
+[17:14:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2013_q1.xls failed zip end-signature check (3028992 bytes) -- NOT banked
+[17:14:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2013_q2.xls failed zip end-signature check (2985472 bytes) -- NOT banked
+[17:14:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2013_q3.xls failed zip end-signature check (3037696 bytes) -- NOT banked
+[17:14:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2013_q4.xls failed zip end-signature check (2884096 bytes) -- NOT banked
+[17:14:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2014_q1.xls failed zip end-signature check (2727424 bytes) -- NOT banked
+[17:14:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2014_q2.xls failed zip end-signature check (2673664 bytes) -- NOT banked
+[17:14:05] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2014_q3.xls failed zip end-signature check (2521600 bytes) -- NOT banked
+[17:14:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2014_q4.xls failed zip end-signature check (2391552 bytes) -- NOT banked
+[17:14:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2016_q1.xls failed zip end-signature check (2330112 bytes) -- NOT banked
+[17:14:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2016_q2.xls failed zip end-signature check (365056 bytes) -- NOT banked
+[17:14:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2016_q3.xls failed zip end-signature check (2328576 bytes) -- NOT banked
+[17:14:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2016_q4.xls failed zip end-signature check (2329600 bytes) -- NOT banked
+[17:14:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2017_q1.xls failed zip end-signature check (2329088 bytes) -- NOT banked
+[17:14:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2017_q2.xls failed zip end-signature check (2327040 bytes) -- NOT banked
+[17:14:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2017_q3.xls failed zip end-signature check (2327040 bytes) -- NOT banked
+[17:14:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2017_q4.xls failed zip end-signature check (2326528 bytes) -- NOT banked
+[17:14:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2018_q1.xls failed zip end-signature check (2325504 bytes) -- NOT banked
+[17:14:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2018_q2.xls failed zip end-signature check (2325504 bytes) -- NOT banked
+[17:14:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2018_q3.xls failed zip end-signature check (2327552 bytes) -- NOT banked
+[17:14:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2018_q4.xls failed zip end-signature check (373248 bytes) -- NOT banked
+[17:14:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2019_q1.xls failed zip end-signature check (2324992 bytes) -- NOT banked
+[17:14:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2019_q2.xls failed zip end-signature check (2327552 bytes) -- NOT banked
+[17:14:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2019_q3.xls failed zip end-signature check (2454016 bytes) -- NOT banked
+[17:14:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2019_q4.xls failed zip end-signature check (2575872 bytes) -- NOT banked
+[17:14:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2020_q1.xls failed zip end-signature check (4122112 bytes) -- NOT banked
+[17:14:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2020_q2.xls failed zip end-signature check (4125184 bytes) -- NOT banked
+[17:14:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2020_q3.xls failed zip end-signature check (2765312 bytes) -- NOT banked
+[17:14:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2020_q4.xls failed zip end-signature check (2728448 bytes) -- NOT banked
+[17:14:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2021_q1.xls failed zip end-signature check (2730496 bytes) -- NOT banked
+[17:14:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2021_q2.xls failed zip end-signature check (2705920 bytes) -- NOT banked
+[17:14:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2021_q3.xls failed zip end-signature check (2679296 bytes) -- NOT banked
+[17:14:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2021_q4.xls failed zip end-signature check (2694144 bytes) -- NOT banked
+[17:14:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2022_q1.xls failed zip end-signature check (2496000 bytes) -- NOT banked
+[17:14:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2022_q2.xls failed zip end-signature check (2330112 bytes) -- NOT banked
+[17:14:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2022_q4.xls failed zip end-signature check (2332672 bytes) -- NOT banked
+[17:14:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2023_q1.xls failed zip end-signature check (2337792 bytes) -- NOT banked
+[17:14:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2023_q2.xls failed zip end-signature check (2339840 bytes) -- NOT banked
+[17:14:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2023_q3.xls failed zip end-signature check (2338304 bytes) -- NOT banked
+[17:14:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2023_q4.xls failed zip end-signature check (2339328 bytes) -- NOT banked
+[17:14:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2024_q1.xls failed zip end-signature check (2341888 bytes) -- NOT banked
+[17:14:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2024_q2.xls failed zip end-signature check (2339328 bytes) -- NOT banked
+[17:14:32] ✅   banked hhdc/medialibrary_media_research_blog_2015_data_lse_2015_student-loan-landscape_data.xlsx (62838 bytes, verified)
+[17:14:33] ✅   banked hhdc/medialibrary_media_research_blog_2015_jr_blog_data_2015_11_19_autos.xlsx (58152 bytes, verified)
+[17:14:33] ✅   banked hhdc/medialibrary_media_research_blog_2015_lse_2015_student-loan-default_data.xlsx (22526 bytes, verified)
+[17:14:34] ✅   banked hhdc/medialibrary_media_research_blog_2015_lse_2015_student-loan-payback_data.xlsx (30308 bytes, verified)
+[17:14:35] ✅   banked hhdc/medialibrary_media_research_blog_2016_chartdata_grayingofamericandebt.xlsx (476440 bytes, verified)
+[17:14:37] ✅   banked hhdc/medialibrary_media_research_blog_2016_lse_2016_jr_chartdata_oilcounties_201603.xlsx (25679 bytes, verified)
+[17:14:38] ✅   banked hhdc/medialibrary_media_research_blog_2016_lse_2016_jr_household_debt_grew_slowly_2015.xlsx (15548 bytes, verified)
+[17:14:38] ✅   banked hhdc/medialibrary_media_research_blog_2016_lse_2016q3_new-autos-scally_data.xlsx (43281 bytes, verified)
+[17:14:39] ✅   banked hhdc/medialibrary_media_research_blog_2016_lse_blog_creditcard_chart_data.xlsx (22267 bytes, verified)
+[17:14:40] ✅   banked hhdc/medialibrary_media_research_blog_2017_lse_2017_default_chakrabarti_data.xlsx (83806 bytes, verified)
+[17:14:41] ✅   banked hhdc/medialibrary_media_research_blog_2017_lse_hdc_auto_20171114_data.xlsx (42086 bytes, verified)
+[17:14:42] ✅   banked hhdc/medialibrary_media_research_blog_2019_blog_charts_jr_delinquency_2019august.xlsx (192990 bytes, verified)
+[17:14:43] ✅   banked hhdc/medialibrary_media_research_blog_2019_blog_charts_participation_2019q1.xlsx (548090 bytes, verified)
+[17:14:43] ✅   banked hhdc/medialibrary_media_research_blog_2020_2020_lse_following_forbearance_chart_data.xlsx (22736 bytes, verified)
+[17:14:44] ✅   banked hhdc/medialibrary_media_research_blog_2020_lse_20200211-young_consumers_chart_data.xlsx (11108 bytes, verified)
+[17:14:45] ✅   banked hhdc/medialibrary_media_research_blog_2021_2021_lse_cuny_debt_blogs_data.xlsx (56132 bytes, verified)
+[17:14:46] ✅   banked hhdc/medialibrary_media_research_blog_2021_lse_2021_hdc-mortgage_scally_data_2020q4.xlsx (32762 bytes, verified)
+[17:14:46] ✅   banked hhdc/medialibrary_media_research_blog_2021_lse_2021_who_received_forbearance_relief-data.xlsx (55669 bytes, verified)
+[17:14:47] ✅   banked hhdc/medialibrary_media_research_blog_2021_lse_forbearance_08032021_data.xlsx (18872 bytes, verified)
+[17:14:48] ✅   banked hhdc/medialibrary_media_research_blog_2023_lse_2023_credit-card-delinquencies_mangrum_data.xlsx (88957 bytes, verified)
+[17:14:49] ✅   banked hhdc/medialibrary_media_research_blog_2023_lse_2023_health-us-consumer_data.xlsx (171047 bytes, verified)
+[17:14:59]   cand: https://www.newyorkfed.org/medialibrary/interactives/markets/data/assets/data/contingency.json
+[17:14:59]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q1.xls
+[17:14:59]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q2.xls
+[17:14:59]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q3.xls
+[17:14:59]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q4.xls
+[17:14:59]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2021_q1.xls
+[17:14:59]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2010_q3.xls
+[17:14:59]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2010_q4.xls
+[17:14:59]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q1.xls
+[17:14:59]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q2.xls
+[17:14:59]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q3.xls
+[17:14:59]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q4.xls
+[17:14:59]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q1.xls
+[17:14:59]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q2.xls
+[17:14:59]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q3.xls
+[17:15:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q1.xls failed zip end-signature check (402944 bytes) -- NOT banked
+[17:15:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q2.xls failed zip end-signature check (386048 bytes) -- NOT banked
+[17:15:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q3.xls failed zip end-signature check (322560 bytes) -- NOT banked
+[17:15:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q4.xls failed zip end-signature check (312832 bytes) -- NOT banked
+[17:15:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2021_q1.xls failed zip end-signature check (329728 bytes) -- NOT banked
+[17:15:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2010_q3.xls failed zip end-signature check (110592 bytes) -- NOT banked
+[17:15:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2010_q4.xls failed zip end-signature check (115712 bytes) -- NOT banked
+[17:15:05] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q1.xls failed zip end-signature check (123392 bytes) -- NOT banked
+[17:15:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q2.xls failed zip end-signature check (80896 bytes) -- NOT banked
+[17:15:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q3.xls failed zip end-signature check (87552 bytes) -- NOT banked
+[17:15:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q4.xls failed zip end-signature check (135168 bytes) -- NOT banked
+[17:15:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q1.xls failed zip end-signature check (141312 bytes) -- NOT banked
+[17:15:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q2.xls failed zip end-signature check (138752 bytes) -- NOT banked
+[17:15:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q3.xls failed zip end-signature check (70144 bytes) -- NOT banked
+[17:15:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q4.xls failed zip end-signature check (101888 bytes) -- NOT banked
+[17:15:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2013_q1.xls failed zip end-signature check (111104 bytes) -- NOT banked
+[17:15:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2013_q2.xls failed zip end-signature check (117760 bytes) -- NOT banked
+[17:15:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2013_q3.xls failed zip end-signature check (123904 bytes) -- NOT banked
+[17:15:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2013_q4.xls failed zip end-signature check (119808 bytes) -- NOT banked
+[17:15:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2014_q1.xls failed zip end-signature check (124928 bytes) -- NOT banked
+[17:15:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2014_q2.xls failed zip end-signature check (116224 bytes) -- NOT banked
+[17:15:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2014_q3.xls failed zip end-signature check (93184 bytes) -- NOT banked
+[17:15:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2014_q4.xls failed zip end-signature check (93184 bytes) -- NOT banked
+[17:15:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2015_q1.xls failed zip end-signature check (92160 bytes) -- NOT banked
+[17:15:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2015_q2.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:15:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2015_q3.xls failed zip end-signature check (92160 bytes) -- NOT banked
+[17:15:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2015_q4.xls failed zip end-signature check (92160 bytes) -- NOT banked
+[17:15:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2016_q1.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:15:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2016_q2.xls failed zip end-signature check (91136 bytes) -- NOT banked
+[17:15:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2016_q3.xls failed zip end-signature check (91136 bytes) -- NOT banked
+[17:15:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2016_q4.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:15:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2017_q1.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:15:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2017_q2.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:15:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2017_q3.xls failed zip end-signature check (91136 bytes) -- NOT banked
+[17:15:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2017_q4.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:15:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2018_q1.xls failed zip end-signature check (91136 bytes) -- NOT banked
+[17:15:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2018_q3.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:15:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2019_q1.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:15:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2019_q3.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:15:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2020_q2.xls failed zip end-signature check (92160 bytes) -- NOT banked
+[17:15:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2020_q4.xls failed zip end-signature check (92160 bytes) -- NOT banked
+[17:15:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2021_q1.xls failed zip end-signature check (86016 bytes) -- NOT banked
+[17:15:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2021_q2.xls failed zip end-signature check (102400 bytes) -- NOT banked
+[17:15:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2021_q4.xls failed zip end-signature check (84480 bytes) -- NOT banked
+[17:15:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2022_q1.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:15:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2022_q3.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:15:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2022_q4.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:15:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2023_q1.xls failed zip end-signature check (101376 bytes) -- NOT banked
+[17:15:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2023_q2.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:15:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2023_q3.xls failed zip end-signature check (103424 bytes) -- NOT banked
+[17:15:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2023_q4.xls failed zip end-signature check (103936 bytes) -- NOT banked
+[17:15:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2024_q1.xls failed zip end-signature check (101376 bytes) -- NOT banked
+[17:15:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2024_q2.xls failed zip end-signature check (156672 bytes) -- NOT banked
+[17:15:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2010_q3.xl failed zip end-signature check (94720 bytes) -- NOT banked
+[17:15:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2010_q4.xl failed zip end-signature check (36864 bytes) -- NOT banked
+[17:15:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2011_q1.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:15:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2011_q2.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:15:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2011_q3.xl failed zip end-signature check (33792 bytes) -- NOT banked
+[17:15:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2011_q4.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:15:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2012_q1.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:15:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2012_q2.xl failed zip end-signature check (36352 bytes) -- NOT banked
+[17:15:38] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2012_q3.xl failed zip end-signature check (35328 bytes) -- NOT banked
+[17:15:38] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2012_q4.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:15:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2013_q1.xl failed zip end-signature check (34816 bytes) -- NOT banked
+[17:15:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2013_q2.xl failed zip end-signature check (34304 bytes) -- NOT banked
+[17:15:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2013_q3.xl failed zip end-signature check (34304 bytes) -- NOT banked
+[17:15:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2013_q4.xl failed zip end-signature check (34304 bytes) -- NOT banked
+[17:15:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2014_q1.xl failed zip end-signature check (34304 bytes) -- NOT banked
+[17:15:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2014_q2.xl failed zip end-signature check (34816 bytes) -- NOT banked
+[17:15:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2014_q3.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:15:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2014_q4.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:15:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2015_q1.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:15:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2015_q2.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:15:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2015_q3.xl failed zip end-signature check (36864 bytes) -- NOT banked
+[17:15:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2015_q4.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:15:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2016_q1.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:15:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2016_q2.xl failed zip end-signature check (34304 bytes) -- NOT banked
+[17:15:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2016_q4.xl failed zip end-signature check (69120 bytes) -- NOT banked
+[17:15:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2017_q1.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:15:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2017_q2.xl failed zip end-signature check (32768 bytes) -- NOT banked
+[17:15:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2017_q4.xl failed zip end-signature check (35328 bytes) -- NOT banked
+[17:15:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2018_q2.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:15:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2018_q4.xl failed zip end-signature check (38400 bytes) -- NOT banked
+[17:15:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2019_q2.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:15:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2019_q3.xl failed zip end-signature check (28672 bytes) -- NOT banked
+[17:15:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2019_q4.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:15:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2020_q1.xl failed zip end-signature check (31744 bytes) -- NOT banked
+[17:15:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2020_q2.xl failed zip end-signature check (31744 bytes) -- NOT banked
+[17:15:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2020_q3.xl failed zip end-signature check (36352 bytes) -- NOT banked
+[17:15:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2020_q4.xl failed zip end-signature check (45568 bytes) -- NOT banked
+[17:15:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2021_q1.xl failed zip end-signature check (32768 bytes) -- NOT banked
+[17:15:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2021_q2.xl failed zip end-signature check (30720 bytes) -- NOT banked
+[17:15:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2021_q3.xl failed zip end-signature check (32256 bytes) -- NOT banked
+[17:15:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2021_q4.xl failed zip end-signature check (31232 bytes) -- NOT banked
+[17:15:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2022_q1.xl failed zip end-signature check (40960 bytes) -- NOT banked
+[17:15:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2022_q2.xl failed zip end-signature check (40960 bytes) -- NOT banked
+[17:15:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2022_q3.xl failed zip end-signature check (41984 bytes) -- NOT banked
+[17:15:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2022_q4.xl failed zip end-signature check (36352 bytes) -- NOT banked
+[17:15:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2023_q1.xl failed zip end-signature check (47104 bytes) -- NOT banked
+[17:15:57] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2023_q2.xl failed zip end-signature check (48128 bytes) -- NOT banked
+[17:15:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2023_q3.xl failed zip end-signature check (46592 bytes) -- NOT banked
+[17:15:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2023_q4.xl failed zip end-signature check (49152 bytes) -- NOT banked
+[17:15:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2024_q1.xl failed zip end-signature check (48128 bytes) -- NOT banked
+[17:15:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2024_q2.xl failed zip end-signature check (48128 bytes) -- NOT banked
+[17:15:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2010_q3.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:16:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2010_q4.xls failed zip end-signature check (97792 bytes) -- NOT banked
+[17:16:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2011_q1.xls failed zip end-signature check (99328 bytes) -- NOT banked
+[17:16:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2011_q2.xls failed zip end-signature check (57856 bytes) -- NOT banked
+[17:16:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2011_q3.xls failed zip end-signature check (56320 bytes) -- NOT banked
+[17:16:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2011_q4.xls failed zip end-signature check (57856 bytes) -- NOT banked
+[17:16:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2012_q1.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:16:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2012_q2.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:16:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2012_q3.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:16:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2012_q4.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:16:05] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2013_q1.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:16:05] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2013_q2.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:16:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2013_q3.xls failed zip end-signature check (94208 bytes) -- NOT banked
+[17:16:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2013_q4.xls failed zip end-signature check (93696 bytes) -- NOT banked
+[17:16:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2014_q1.xls failed zip end-signature check (93696 bytes) -- NOT banked
+[17:16:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2014_q2.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:16:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2014_q3.xls failed zip end-signature check (92672 bytes) -- NOT banked
+[17:16:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2014_q4.xls failed zip end-signature check (94208 bytes) -- NOT banked
+[17:16:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2015_q1.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:16:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2015_q2.xls failed zip end-signature check (93696 bytes) -- NOT banked
+[17:16:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2015_q3.xls failed zip end-signature check (90624 bytes) -- NOT banked
+[17:16:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2015_q4.xls failed zip end-signature check (88576 bytes) -- NOT banked
+[17:16:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2016_q1.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:16:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2016_q2.xls failed zip end-signature check (96768 bytes) -- NOT banked
+[17:16:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2016_q3.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:16:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2016_q4.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:16:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2017_q1.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:16:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2017_q2.xls failed zip end-signature check (94208 bytes) -- NOT banked
+[17:16:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2017_q3.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:16:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2017_q4.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:16:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2018_q1.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:16:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2018_q2.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:16:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2018_q3.xls failed zip end-signature check (90624 bytes) -- NOT banked
+[17:16:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2018_q4.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:16:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2019_q1.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:16:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2019_q2.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:16:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2019_q3.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:16:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2019_q4.xls failed zip end-signature check (96768 bytes) -- NOT banked
+[17:16:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2020_q1.xls failed zip end-signature check (96768 bytes) -- NOT banked
+[17:16:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2020_q2.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:16:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2020_q3.xls failed zip end-signature check (93696 bytes) -- NOT banked
+[17:16:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2020_q4.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:16:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2021_q1.xls failed zip end-signature check (104960 bytes) -- NOT banked
+[17:16:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2021_q2.xls failed zip end-signature check (89600 bytes) -- NOT banked
+[17:16:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2021_q3.xls failed zip end-signature check (91136 bytes) -- NOT banked
+[17:16:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2021_q4.xls failed zip end-signature check (90624 bytes) -- NOT banked
+[17:16:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2022_q1.xls failed zip end-signature check (98816 bytes) -- NOT banked
+[17:16:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2022_q2.xls failed zip end-signature check (98816 bytes) -- NOT banked
+[17:16:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2022_q3.xls failed zip end-signature check (98816 bytes) -- NOT banked
+[17:16:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2022_q4.xls failed zip end-signature check (98304 bytes) -- NOT banked
+[17:16:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2023_q1.xls failed zip end-signature check (105472 bytes) -- NOT banked
+[17:16:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2023_q2.xls failed zip end-signature check (107008 bytes) -- NOT banked
+[17:16:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2023_q3.xls failed zip end-signature check (106496 bytes) -- NOT banked
+[17:16:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2023_q4.xls failed zip end-signature check (105984 bytes) -- NOT banked
+[17:16:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2024_q1.xls failed zip end-signature check (107008 bytes) -- NOT banked
+[17:16:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2024_q2.xls failed zip end-signature check (106496 bytes) -- NOT banked
+[17:16:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2011_q4.xls failed zip end-signature check (392192 bytes) -- NOT banked
+[17:16:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2012_q1.xls failed zip end-signature check (402432 bytes) -- NOT banked
+[17:16:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2012_q2.xls failed zip end-signature check (383488 bytes) -- NOT banked
+[17:16:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2012_q3.xls failed zip end-signature check (342528 bytes) -- NOT banked
+[17:16:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2012_q4.xls failed zip end-signature check (476672 bytes) -- NOT banked
+[17:16:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2013_q1.xls failed zip end-signature check (561664 bytes) -- NOT banked
+[17:16:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2013_q2.xls failed zip end-signature check (534016 bytes) -- NOT banked
+[17:16:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2013_q3.xls failed zip end-signature check (494080 bytes) -- NOT banked
+[17:16:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2013_q4.xls failed zip end-signature check (468992 bytes) -- NOT banked
+[17:16:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2014_q1.xls failed zip end-signature check (465408 bytes) -- NOT banked
+[17:16:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2014_q2.xls failed zip end-signature check (551424 bytes) -- NOT banked
+[17:16:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2014_q3.xls failed zip end-signature check (553984 bytes) -- NOT banked
+[17:16:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2014_q4.xls failed zip end-signature check (523776 bytes) -- NOT banked
+[17:16:38] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2015_q1.xls failed zip end-signature check (554496 bytes) -- NOT banked
+[17:16:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2015_q2.xls failed zip end-signature check (544768 bytes) -- NOT banked
+[17:16:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2015_q3.xls failed zip end-signature check (515072 bytes) -- NOT banked
+[17:16:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2015_q4.xls failed zip end-signature check (483328 bytes) -- NOT banked
+[17:16:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2016_q1.xls failed zip end-signature check (475648 bytes) -- NOT banked
+[17:16:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2016_q2.xls failed zip end-signature check (347136 bytes) -- NOT banked
+[17:16:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2016_q3.xls failed zip end-signature check (522752 bytes) -- NOT banked
+[17:16:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2016_q4.xls failed zip end-signature check (614400 bytes) -- NOT banked
+[17:16:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2017_q1.xls failed zip end-signature check (559616 bytes) -- NOT banked
+[17:16:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2017_q2.xls failed zip end-signature check (521728 bytes) -- NOT banked
+[17:16:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2017_q3.xls failed zip end-signature check (526848 bytes) -- NOT banked
+[17:16:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2017_q4.xls failed zip end-signature check (477184 bytes) -- NOT banked
+[17:16:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2018_q1.xls failed zip end-signature check (442368 bytes) -- NOT banked
+[17:16:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2018_q2.xls failed zip end-signature check (415744 bytes) -- NOT banked
+[17:16:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2018_q3.xls failed zip end-signature check (382464 bytes) -- NOT banked
+[17:16:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2018_q4.xls failed zip end-signature check (337408 bytes) -- NOT banked
+[17:16:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2019_q1.xls failed zip end-signature check (327680 bytes) -- NOT banked
+[17:16:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2019_q2.xls failed zip end-signature check (332288 bytes) -- NOT banked
+[17:16:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2019_q3.xls failed zip end-signature check (390656 bytes) -- NOT banked
+[17:16:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2019_q4.xls failed zip end-signature check (395776 bytes) -- NOT banked
+[17:16:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2020_q1.xls failed zip end-signature check (621568 bytes) -- NOT banked
+[17:16:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2020_q2.xls failed zip end-signature check (1119744 bytes) -- NOT banked
+[17:16:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2020_q3.xls failed zip end-signature check (854016 bytes) -- NOT banked
+[17:16:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2020_q4.xls failed zip end-signature check (985088 bytes) -- NOT banked
+[17:16:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2021_q1.xls failed zip end-signature check (1029632 bytes) -- NOT banked
+[17:16:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2021_q2.xls failed zip end-signature check (933888 bytes) -- NOT banked
+[17:16:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2021_q3.xls failed zip end-signature check (794624 bytes) -- NOT banked
+[17:16:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2021_q4.xls failed zip end-signature check (855040 bytes) -- NOT banked
+[17:16:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2022_q1.xls failed zip end-signature check (716288 bytes) -- NOT banked
+[17:16:57] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2022_q2.xls failed zip end-signature check (609792 bytes) -- NOT banked
+[17:16:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2022_q3.xls failed zip end-signature check (399872 bytes) -- NOT banked
+[17:16:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2022_q4.xls failed zip end-signature check (336384 bytes) -- NOT banked
+[17:16:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2023_q1.xls failed zip end-signature check (325632 bytes) -- NOT banked
+[17:16:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2023_q2.xls failed zip end-signature check (325632 bytes) -- NOT banked
+[17:17:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2023_q3.xls failed zip end-signature check (324096 bytes) -- NOT banked
+[17:17:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2023_q4.xls failed zip end-signature check (325632 bytes) -- NOT banked
+[17:17:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2024_q1.xls failed zip end-signature check (325632 bytes) -- NOT banked
+[17:17:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2024_q2.xls failed zip end-signature check (326144 bytes) -- NOT banked
+[17:17:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2010_q3.xls failed zip end-signature check (83968 bytes) -- NOT banked
+[17:17:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2010_q4.xls failed zip end-signature check (112640 bytes) -- NOT banked
+[17:17:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2011_q1.xls failed zip end-signature check (210944 bytes) -- NOT banked
+[17:17:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2011_q2.xls failed zip end-signature check (436736 bytes) -- NOT banked
+[17:17:05] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2011_q3.xls failed zip end-signature check (193024 bytes) -- NOT banked
+[17:17:05] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2012_q1.xls failed zip end-signature check (201216 bytes) -- NOT banked
+[17:17:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2012_q3.xls failed zip end-signature check (147456 bytes) -- NOT banked
+[17:17:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2012_q4.xls failed zip end-signature check (124416 bytes) -- NOT banked
+[17:17:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2013_q1.xls failed zip end-signature check (86016 bytes) -- NOT banked
+[17:17:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2013_q2.xls failed zip end-signature check (226816 bytes) -- NOT banked
+[17:17:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2013_q3.xls failed zip end-signature check (266752 bytes) -- NOT banked
+[17:17:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2013_q4.xls failed zip end-signature check (229376 bytes) -- NOT banked
+[17:17:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2014_q1.xls failed zip end-signature check (588800 bytes) -- NOT banked
+[17:17:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2014_q2.xls failed zip end-signature check (586240 bytes) -- NOT banked
+[17:17:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2014_q4.xls failed zip end-signature check (543232 bytes) -- NOT banked
+[17:17:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2015_q1.xls failed zip end-signature check (581632 bytes) -- NOT banked
+[17:17:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2015_q2.xls failed zip end-signature check (544768 bytes) -- NOT banked
+[17:17:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2015_q3.xls failed zip end-signature check (515584 bytes) -- NOT banked
+[17:17:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2015_q4.xls failed zip end-signature check (574464 bytes) -- NOT banked
+[17:17:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2016_q1.xls failed zip end-signature check (494080 bytes) -- NOT banked
+[17:17:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2016_q2.xls failed zip end-signature check (410624 bytes) -- NOT banked
+[17:17:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2016_q3.xls failed zip end-signature check (495616 bytes) -- NOT banked
+[17:17:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2016_q4.xls failed zip end-signature check (625152 bytes) -- NOT banked
+[17:17:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2017_q1.xls failed zip end-signature check (580608 bytes) -- NOT banked
+[17:17:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2017_q2.xls failed zip end-signature check (616960 bytes) -- NOT banked
+[17:17:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2017_q3.xls failed zip end-signature check (674816 bytes) -- NOT banked
+[17:17:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2017_q4.xls failed zip end-signature check (540672 bytes) -- NOT banked
+[17:17:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2018_q1.xls failed zip end-signature check (416256 bytes) -- NOT banked
+[17:17:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2018_q2.xls failed zip end-signature check (245760 bytes) -- NOT banked
+[17:17:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2018_q3.xls failed zip end-signature check (212992 bytes) -- NOT banked
+[17:17:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2018_q4.xls failed zip end-signature check (235520 bytes) -- NOT banked
+[17:17:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2019_q1.xls failed zip end-signature check (205824 bytes) -- NOT banked
+[17:17:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2019_q2.xls failed zip end-signature check (232960 bytes) -- NOT banked
+[17:17:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2019_q3.xls failed zip end-signature check (348160 bytes) -- NOT banked
+[17:17:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2019_q4.xls failed zip end-signature check (445952 bytes) -- NOT banked
+[17:17:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2020_q1.xls failed zip end-signature check (660992 bytes) -- NOT banked
+[17:17:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2020_q2.xls failed zip end-signature check (272896 bytes) -- NOT banked
+[17:17:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2020_q3.xls failed zip end-signature check (274944 bytes) -- NOT banked
+[17:17:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2020_q4.xls failed zip end-signature check (438784 bytes) -- NOT banked
+[17:17:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2021_q1.xls failed zip end-signature check (302080 bytes) -- NOT banked
+[17:17:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2021_q2.xls failed zip end-signature check (663040 bytes) -- NOT banked
+[17:17:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2021_q3.xls failed zip end-signature check (1038336 bytes) -- NOT banked
+[17:17:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2021_q4.xls failed zip end-signature check (1057280 bytes) -- NOT banked
+[17:17:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2022_q1.xls failed zip end-signature check (4781568 bytes) -- NOT banked
+[17:17:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2022_q2.xls failed zip end-signature check (1209344 bytes) -- NOT banked
+[17:17:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2022_q3.xls failed zip end-signature check (4815872 bytes) -- NOT banked
+[17:17:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2022_q4.xls failed zip end-signature check (4732416 bytes) -- NOT banked
+[17:17:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2023_q1.xls failed zip end-signature check (4759040 bytes) -- NOT banked
+[17:17:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2023_q2.xls failed zip end-signature check (4777984 bytes) -- NOT banked
+[17:17:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2023_q3.xls failed zip end-signature check (4745216 bytes) -- NOT banked
+[17:17:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2023_q4.xls failed zip end-signature check (4724224 bytes) -- NOT banked
+[17:17:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2024_q1.xls failed zip end-signature check (1004032 bytes) -- NOT banked
+[17:17:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2024_q2.xls failed zip end-signature check (4704768 bytes) -- NOT banked
+[17:17:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rr_rrp_data_2014_q3.xls failed zip end-signature check (484864 bytes) -- NOT banked
+[17:17:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2010_q3.xls failed zip end-signature check (1519616 bytes) -- NOT banked
+[17:17:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2010_q4.xls failed zip end-signature check (1857536 bytes) -- NOT banked
+[17:17:38] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2011_q1.xls failed zip end-signature check (2260992 bytes) -- NOT banked
+[17:17:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2011_q2.xls failed zip end-signature check (2839552 bytes) -- NOT banked
+[17:17:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2011_q3.xls failed zip end-signature check (2722304 bytes) -- NOT banked
+[17:17:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2011_q4.xls failed zip end-signature check (2929152 bytes) -- NOT banked
+[17:17:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2012_q1.xls failed zip end-signature check (2903552 bytes) -- NOT banked
+[17:17:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2012_q2.xls failed zip end-signature check (2607104 bytes) -- NOT banked
+[17:17:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2012_q3.xls failed zip end-signature check (2379264 bytes) -- NOT banked
+[17:17:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2012_q4.xls failed zip end-signature check (2006016 bytes) -- NOT banked
+[17:17:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2013_q1.xls failed zip end-signature check (2099200 bytes) -- NOT banked
+[17:17:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2013_q2.xls failed zip end-signature check (2656768 bytes) -- NOT banked
+[17:17:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2013_q3.xls failed zip end-signature check (2172928 bytes) -- NOT banked
+[17:17:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2013_q4.xls failed zip end-signature check (2339328 bytes) -- NOT banked
+[17:17:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2014_q1.xls failed zip end-signature check (2308096 bytes) -- NOT banked
+[17:17:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2014_q2.xls failed zip end-signature check (2279936 bytes) -- NOT banked
+[17:17:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2014_q3.xls failed zip end-signature check (2390528 bytes) -- NOT banked
+[17:17:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2014_q4.xls failed zip end-signature check (9123328 bytes) -- NOT banked
+[17:17:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2015_q1.xls failed zip end-signature check (9017344 bytes) -- NOT banked
+[17:17:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2015_q2.xls failed zip end-signature check (2474496 bytes) -- NOT banked
+[17:17:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2015_q3.xls failed zip end-signature check (2503680 bytes) -- NOT banked
+[17:17:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2015_q4.xls failed zip end-signature check (2544128 bytes) -- NOT banked
+[17:17:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2016_q1.xls failed zip end-signature check (2553344 bytes) -- NOT banked
+[17:17:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2016_q2.xls failed zip end-signature check (3203072 bytes) -- NOT banked
+[17:17:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2016_q3.xls failed zip end-signature check (3681280 bytes) -- NOT banked
+[17:17:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2016_q4.xls failed zip end-signature check (3678720 bytes) -- NOT banked
+[17:17:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2017_q1.xls failed zip end-signature check (3601920 bytes) -- NOT banked
+[17:17:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2017_q2.xls failed zip end-signature check (4220416 bytes) -- NOT banked
+[17:17:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2017_q3.xls failed zip end-signature check (4354560 bytes) -- NOT banked
+[17:17:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2017_q4.xls failed zip end-signature check (4146176 bytes) -- NOT banked
+[17:17:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2018_q1.xls failed zip end-signature check (4219392 bytes) -- NOT banked
+[17:17:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2018_q2.xls failed zip end-signature check (4397056 bytes) -- NOT banked
+[17:17:57] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2018_q3.xls failed zip end-signature check (4050944 bytes) -- NOT banked
+[17:17:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2018_q4.xls failed zip end-signature check (3560960 bytes) -- NOT banked
+[17:17:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2019_q1.xls failed zip end-signature check (3339776 bytes) -- NOT banked
+[17:18:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2019_q2.xls failed zip end-signature check (3629568 bytes) -- NOT banked
+[17:18:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2019_q3.xls failed zip end-signature check (4025344 bytes) -- NOT banked
+[17:18:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2019_q4.xls failed zip end-signature check (4123648 bytes) -- NOT banked
+[17:18:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2020_q1.xls failed zip end-signature check (4866048 bytes) -- NOT banked
+[17:18:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2020_q2.xls failed zip end-signature check (4739072 bytes) -- NOT banked
+[17:18:05] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2020_q3.xls failed zip end-signature check (3823104 bytes) -- NOT banked
+[17:18:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2020_q4.xls failed zip end-signature check (3889664 bytes) -- NOT banked
+[17:18:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2021_q1.xls failed zip end-signature check (3923968 bytes) -- NOT banked
+[17:18:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2021_q2.xls failed zip end-signature check (4223488 bytes) -- NOT banked
+[17:18:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2021_q3.xls failed zip end-signature check (4362752 bytes) -- NOT banked
+[17:18:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2021_q4.xls failed zip end-signature check (5109248 bytes) -- NOT banked
+[17:18:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2022_q1.xls failed zip end-signature check (6002176 bytes) -- NOT banked
+[17:18:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2022_q2.xls failed zip end-signature check (6381568 bytes) -- NOT banked
+[17:18:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2022_q3.xls failed zip end-signature check (7178752 bytes) -- NOT banked
+[17:18:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2022_q4.xls failed zip end-signature check (5859840 bytes) -- NOT banked
+[17:18:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2023_q1.xls failed zip end-signature check (6078976 bytes) -- NOT banked
+[17:18:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2023_q2.xls failed zip end-signature check (7043584 bytes) -- NOT banked
+[17:18:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2023_q3.xls failed zip end-signature check (6586880 bytes) -- NOT banked
+[17:18:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2023_q4.xls failed zip end-signature check (6503424 bytes) -- NOT banked
+[17:18:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2024_q1.xls failed zip end-signature check (6388736 bytes) -- NOT banked
+[17:18:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2024_q2.xls failed zip end-signature check (6319104 bytes) -- NOT banked
+[17:18:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2010_q3.xls failed zip end-signature check (398848 bytes) -- NOT banked
+[17:18:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2010_q4.xls failed zip end-signature check (796160 bytes) -- NOT banked
+[17:18:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2011_q1.xls failed zip end-signature check (3095552 bytes) -- NOT banked
+[17:18:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2011_q2.xls failed zip end-signature check (940544 bytes) -- NOT banked
+[17:18:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2011_q3.xls failed zip end-signature check (218112 bytes) -- NOT banked
+[17:18:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2011_q4.xls failed zip end-signature check (3307008 bytes) -- NOT banked
+[17:18:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2012_q1.xls failed zip end-signature check (3194368 bytes) -- NOT banked
+[17:18:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2012_q2.xls failed zip end-signature check (3238912 bytes) -- NOT banked
+[17:18:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2012_q3.xls failed zip end-signature check (3428352 bytes) -- NOT banked
+[17:18:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2012_q4.xls failed zip end-signature check (3367936 bytes) -- NOT banked
+[17:18:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2013_q1.xls failed zip end-signature check (3028992 bytes) -- NOT banked
+[17:18:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2013_q2.xls failed zip end-signature check (2985472 bytes) -- NOT banked
+[17:18:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2013_q3.xls failed zip end-signature check (3037696 bytes) -- NOT banked
+[17:18:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2013_q4.xls failed zip end-signature check (2884096 bytes) -- NOT banked
+[17:18:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2014_q1.xls failed zip end-signature check (2727424 bytes) -- NOT banked
+[17:18:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2014_q2.xls failed zip end-signature check (2673664 bytes) -- NOT banked
+[17:18:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2014_q3.xls failed zip end-signature check (2521600 bytes) -- NOT banked
+[17:18:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2014_q4.xls failed zip end-signature check (2391552 bytes) -- NOT banked
+[17:18:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2016_q1.xls failed zip end-signature check (2330112 bytes) -- NOT banked
+[17:18:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2016_q2.xls failed zip end-signature check (365056 bytes) -- NOT banked
+[17:18:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2016_q3.xls failed zip end-signature check (2328576 bytes) -- NOT banked
+[17:18:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2016_q4.xls failed zip end-signature check (2329600 bytes) -- NOT banked
+[17:18:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2017_q1.xls failed zip end-signature check (2329088 bytes) -- NOT banked
+[17:18:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2017_q2.xls failed zip end-signature check (2327040 bytes) -- NOT banked
+[17:18:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2017_q3.xls failed zip end-signature check (2327040 bytes) -- NOT banked
+[17:18:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2017_q4.xls failed zip end-signature check (2326528 bytes) -- NOT banked
+[17:18:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2018_q1.xls failed zip end-signature check (2325504 bytes) -- NOT banked
+[17:18:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2018_q2.xls failed zip end-signature check (2325504 bytes) -- NOT banked
+[17:18:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2018_q3.xls failed zip end-signature check (2327552 bytes) -- NOT banked
+[17:18:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2018_q4.xls failed zip end-signature check (373248 bytes) -- NOT banked
+[17:18:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2019_q1.xls failed zip end-signature check (2324992 bytes) -- NOT banked
+[17:18:38] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2019_q2.xls failed zip end-signature check (2327552 bytes) -- NOT banked
+[17:18:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2019_q3.xls failed zip end-signature check (2454016 bytes) -- NOT banked
+[17:18:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2019_q4.xls failed zip end-signature check (2575872 bytes) -- NOT banked
+[17:18:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2020_q1.xls failed zip end-signature check (4122112 bytes) -- NOT banked
+[17:18:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2020_q2.xls failed zip end-signature check (4125184 bytes) -- NOT banked
+[17:18:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2020_q3.xls failed zip end-signature check (2765312 bytes) -- NOT banked
+[17:18:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2020_q4.xls failed zip end-signature check (2728448 bytes) -- NOT banked
+[17:18:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2021_q1.xls failed zip end-signature check (2730496 bytes) -- NOT banked
+[17:18:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2021_q2.xls failed zip end-signature check (2705920 bytes) -- NOT banked
+[17:18:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2021_q3.xls failed zip end-signature check (2679296 bytes) -- NOT banked
+[17:18:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2021_q4.xls failed zip end-signature check (2694144 bytes) -- NOT banked
+[17:18:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2022_q1.xls failed zip end-signature check (2496000 bytes) -- NOT banked
+[17:18:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2022_q2.xls failed zip end-signature check (2330112 bytes) -- NOT banked
+[17:18:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2022_q4.xls failed zip end-signature check (2332672 bytes) -- NOT banked
+[17:18:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2023_q1.xls failed zip end-signature check (2337792 bytes) -- NOT banked
+[17:18:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2023_q2.xls failed zip end-signature check (2339840 bytes) -- NOT banked
+[17:18:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2023_q3.xls failed zip end-signature check (2338304 bytes) -- NOT banked
+[17:18:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2023_q4.xls failed zip end-signature check (2339328 bytes) -- NOT banked
+[17:18:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2024_q1.xls failed zip end-signature check (2341888 bytes) -- NOT banked
+[17:18:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2024_q2.xls failed zip end-signature check (2339328 bytes) -- NOT banked
+[17:19:06]   cand: https://www.newyorkfed.org/medialibrary/interactives/markets/data/assets/data/contingency.json
+[17:19:06]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q1.xls
+[17:19:06]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q2.xls
+[17:19:06]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q3.xls
+[17:19:06]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q4.xls
+[17:19:06]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2021_q1.xls
+[17:19:06]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2010_q3.xls
+[17:19:06]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2010_q4.xls
+[17:19:06]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q1.xls
+[17:19:06]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q2.xls
+[17:19:06]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q3.xls
+[17:19:06]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q4.xls
+[17:19:06]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q1.xls
+[17:19:06]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q2.xls
+[17:19:06]   cand: https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q3.xls
+[17:19:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q1.xls failed zip end-signature check (402944 bytes) -- NOT banked
+[17:19:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q2.xls failed zip end-signature check (386048 bytes) -- NOT banked
+[17:19:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q3.xls failed zip end-signature check (322560 bytes) -- NOT banked
+[17:19:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2020_q4.xls failed zip end-signature check (312832 bytes) -- NOT banked
+[17:19:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/cmbs_data_2021_q1.xls failed zip end-signature check (329728 bytes) -- NOT banked
+[17:19:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2010_q3.xls failed zip end-signature check (110592 bytes) -- NOT banked
+[17:19:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2010_q4.xls failed zip end-signature check (115712 bytes) -- NOT banked
+[17:19:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q1.xls failed zip end-signature check (123392 bytes) -- NOT banked
+[17:19:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q2.xls failed zip end-signature check (80896 bytes) -- NOT banked
+[17:19:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q3.xls failed zip end-signature check (87552 bytes) -- NOT banked
+[17:19:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2011_q4.xls failed zip end-signature check (135168 bytes) -- NOT banked
+[17:19:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q1.xls failed zip end-signature check (141312 bytes) -- NOT banked
+[17:19:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q2.xls failed zip end-signature check (138752 bytes) -- NOT banked
+[17:19:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q3.xls failed zip end-signature check (70144 bytes) -- NOT banked
+[17:19:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2012_q4.xls failed zip end-signature check (101888 bytes) -- NOT banked
+[17:19:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2013_q1.xls failed zip end-signature check (111104 bytes) -- NOT banked
+[17:19:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2013_q2.xls failed zip end-signature check (117760 bytes) -- NOT banked
+[17:19:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_repo_data_2013_q3.xls failed zip end-signature check (123904 bytes) -- NOT banked
+[17:19:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2013_q4.xls failed zip end-signature check (119808 bytes) -- NOT banked
+[17:19:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2014_q1.xls failed zip end-signature check (124928 bytes) -- NOT banked
+[17:19:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2014_q2.xls failed zip end-signature check (116224 bytes) -- NOT banked
+[17:19:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2014_q3.xls failed zip end-signature check (93184 bytes) -- NOT banked
+[17:19:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2014_q4.xls failed zip end-signature check (93184 bytes) -- NOT banked
+[17:19:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2015_q1.xls failed zip end-signature check (92160 bytes) -- NOT banked
+[17:19:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2015_q2.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:19:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2015_q3.xls failed zip end-signature check (92160 bytes) -- NOT banked
+[17:19:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2015_q4.xls failed zip end-signature check (92160 bytes) -- NOT banked
+[17:19:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2016_q1.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:19:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2016_q2.xls failed zip end-signature check (91136 bytes) -- NOT banked
+[17:19:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2016_q3.xls failed zip end-signature check (91136 bytes) -- NOT banked
+[17:19:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2016_q4.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:19:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2017_q1.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:19:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2017_q2.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:19:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2017_q3.xls failed zip end-signature check (91136 bytes) -- NOT banked
+[17:19:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2017_q4.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:19:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2018_q1.xls failed zip end-signature check (91136 bytes) -- NOT banked
+[17:19:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2018_q3.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:19:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2019_q1.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:19:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2019_q3.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:19:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2020_q2.xls failed zip end-signature check (92160 bytes) -- NOT banked
+[17:19:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2020_q4.xls failed zip end-signature check (92160 bytes) -- NOT banked
+[17:19:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2021_q1.xls failed zip end-signature check (86016 bytes) -- NOT banked
+[17:19:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2021_q2.xls failed zip end-signature check (102400 bytes) -- NOT banked
+[17:19:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2021_q4.xls failed zip end-signature check (84480 bytes) -- NOT banked
+[17:19:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2022_q1.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:19:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2022_q3.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:19:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2022_q4.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:19:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2023_q1.xls failed zip end-signature check (101376 bytes) -- NOT banked
+[17:19:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2023_q2.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:19:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2023_q3.xls failed zip end-signature check (103424 bytes) -- NOT banked
+[17:19:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2023_q4.xls failed zip end-signature check (103936 bytes) -- NOT banked
+[17:19:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2024_q1.xls failed zip end-signature check (101376 bytes) -- NOT banked
+[17:19:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/euro_rp_rrp_data_2024_q2.xls failed zip end-signature check (156672 bytes) -- NOT banked
+[17:19:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2010_q3.xl failed zip end-signature check (94720 bytes) -- NOT banked
+[17:19:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2010_q4.xl failed zip end-signature check (36864 bytes) -- NOT banked
+[17:19:38] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2011_q1.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:19:38] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2011_q2.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:19:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2011_q3.xl failed zip end-signature check (33792 bytes) -- NOT banked
+[17:19:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2011_q4.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:19:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2012_q1.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:19:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2012_q2.xl failed zip end-signature check (36352 bytes) -- NOT banked
+[17:19:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2012_q3.xl failed zip end-signature check (35328 bytes) -- NOT banked
+[17:19:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2012_q4.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:19:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2013_q1.xl failed zip end-signature check (34816 bytes) -- NOT banked
+[17:19:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2013_q2.xl failed zip end-signature check (34304 bytes) -- NOT banked
+[17:19:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2013_q3.xl failed zip end-signature check (34304 bytes) -- NOT banked
+[17:19:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2013_q4.xl failed zip end-signature check (34304 bytes) -- NOT banked
+[17:19:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2014_q1.xl failed zip end-signature check (34304 bytes) -- NOT banked
+[17:19:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2014_q2.xl failed zip end-signature check (34816 bytes) -- NOT banked
+[17:19:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2014_q3.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:19:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2014_q4.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:19:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2015_q1.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:19:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2015_q2.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:19:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2015_q3.xl failed zip end-signature check (36864 bytes) -- NOT banked
+[17:19:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2015_q4.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:19:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2016_q1.xl failed zip end-signature check (35840 bytes) -- NOT banked
+[17:19:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2016_q2.xl failed zip end-signature check (34304 bytes) -- NOT banked
+[17:19:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2016_q4.xl failed zip end-signature check (69120 bytes) -- NOT banked
+[17:19:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2017_q1.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:19:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2017_q2.xl failed zip end-signature check (32768 bytes) -- NOT banked
+[17:19:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2017_q4.xl failed zip end-signature check (35328 bytes) -- NOT banked
+[17:19:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2018_q2.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:19:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2018_q4.xl failed zip end-signature check (38400 bytes) -- NOT banked
+[17:19:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2019_q2.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:19:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2019_q3.xl failed zip end-signature check (28672 bytes) -- NOT banked
+[17:19:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2019_q4.xl failed zip end-signature check (33280 bytes) -- NOT banked
+[17:19:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2020_q1.xl failed zip end-signature check (31744 bytes) -- NOT banked
+[17:19:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2020_q2.xl failed zip end-signature check (31744 bytes) -- NOT banked
+[17:19:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2020_q3.xl failed zip end-signature check (36352 bytes) -- NOT banked
+[17:19:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2020_q4.xl failed zip end-signature check (45568 bytes) -- NOT banked
+[17:19:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2021_q1.xl failed zip end-signature check (32768 bytes) -- NOT banked
+[17:19:57] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2021_q2.xl failed zip end-signature check (30720 bytes) -- NOT banked
+[17:19:57] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2021_q3.xl failed zip end-signature check (32256 bytes) -- NOT banked
+[17:19:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2021_q4.xl failed zip end-signature check (31232 bytes) -- NOT banked
+[17:19:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2022_q1.xl failed zip end-signature check (40960 bytes) -- NOT banked
+[17:19:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2022_q2.xl failed zip end-signature check (40960 bytes) -- NOT banked
+[17:20:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2022_q3.xl failed zip end-signature check (41984 bytes) -- NOT banked
+[17:20:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2022_q4.xl failed zip end-signature check (36352 bytes) -- NOT banked
+[17:20:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2023_q1.xl failed zip end-signature check (47104 bytes) -- NOT banked
+[17:20:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2023_q2.xl failed zip end-signature check (48128 bytes) -- NOT banked
+[17:20:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2023_q3.xl failed zip end-signature check (46592 bytes) -- NOT banked
+[17:20:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2023_q4.xl failed zip end-signature check (49152 bytes) -- NOT banked
+[17:20:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2024_q1.xl failed zip end-signature check (48128 bytes) -- NOT banked
+[17:20:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/foreign_sov_debt_data_2024_q2.xl failed zip end-signature check (48128 bytes) -- NOT banked
+[17:20:05] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2010_q3.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:20:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2010_q4.xls failed zip end-signature check (97792 bytes) -- NOT banked
+[17:20:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2011_q1.xls failed zip end-signature check (99328 bytes) -- NOT banked
+[17:20:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2011_q2.xls failed zip end-signature check (57856 bytes) -- NOT banked
+[17:20:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2011_q3.xls failed zip end-signature check (56320 bytes) -- NOT banked
+[17:20:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2011_q4.xls failed zip end-signature check (57856 bytes) -- NOT banked
+[17:20:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2012_q1.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:20:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2012_q2.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:20:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2012_q3.xls failed zip end-signature check (91648 bytes) -- NOT banked
+[17:20:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2012_q4.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:20:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2013_q1.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:20:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2013_q2.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:20:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2013_q3.xls failed zip end-signature check (94208 bytes) -- NOT banked
+[17:20:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2013_q4.xls failed zip end-signature check (93696 bytes) -- NOT banked
+[17:20:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2014_q1.xls failed zip end-signature check (93696 bytes) -- NOT banked
+[17:20:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2014_q2.xls failed zip end-signature check (94720 bytes) -- NOT banked
+[17:20:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2014_q3.xls failed zip end-signature check (92672 bytes) -- NOT banked
+[17:20:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2014_q4.xls failed zip end-signature check (94208 bytes) -- NOT banked
+[17:20:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2015_q1.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:20:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2015_q2.xls failed zip end-signature check (93696 bytes) -- NOT banked
+[17:20:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2015_q3.xls failed zip end-signature check (90624 bytes) -- NOT banked
+[17:20:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2015_q4.xls failed zip end-signature check (88576 bytes) -- NOT banked
+[17:20:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2016_q1.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:20:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2016_q2.xls failed zip end-signature check (96768 bytes) -- NOT banked
+[17:20:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2016_q3.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:20:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2016_q4.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:20:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2017_q1.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:20:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2017_q2.xls failed zip end-signature check (94208 bytes) -- NOT banked
+[17:20:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2017_q3.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:20:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2017_q4.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:20:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2018_q1.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:20:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2018_q2.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:20:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2018_q3.xls failed zip end-signature check (90624 bytes) -- NOT banked
+[17:20:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2018_q4.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:20:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2019_q1.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:20:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2019_q2.xls failed zip end-signature check (95744 bytes) -- NOT banked
+[17:20:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2019_q3.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:20:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2019_q4.xls failed zip end-signature check (96768 bytes) -- NOT banked
+[17:20:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2020_q1.xls failed zip end-signature check (96768 bytes) -- NOT banked
+[17:20:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2020_q2.xls failed zip end-signature check (95232 bytes) -- NOT banked
+[17:20:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2020_q3.xls failed zip end-signature check (93696 bytes) -- NOT banked
+[17:20:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2020_q4.xls failed zip end-signature check (96256 bytes) -- NOT banked
+[17:20:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2021_q1.xls failed zip end-signature check (104960 bytes) -- NOT banked
+[17:20:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2021_q2.xls failed zip end-signature check (89600 bytes) -- NOT banked
+[17:20:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2021_q3.xls failed zip end-signature check (91136 bytes) -- NOT banked
+[17:20:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2021_q4.xls failed zip end-signature check (90624 bytes) -- NOT banked
+[17:20:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2022_q1.xls failed zip end-signature check (98816 bytes) -- NOT banked
+[17:20:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2022_q2.xls failed zip end-signature check (98816 bytes) -- NOT banked
+[17:20:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2022_q3.xls failed zip end-signature check (98816 bytes) -- NOT banked
+[17:20:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2022_q4.xls failed zip end-signature check (98304 bytes) -- NOT banked
+[17:20:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2023_q1.xls failed zip end-signature check (105472 bytes) -- NOT banked
+[17:20:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2023_q2.xls failed zip end-signature check (107008 bytes) -- NOT banked
+[17:20:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2023_q3.xls failed zip end-signature check (106496 bytes) -- NOT banked
+[17:20:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2023_q4.xls failed zip end-signature check (105984 bytes) -- NOT banked
+[17:20:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2024_q1.xls failed zip end-signature check (107008 bytes) -- NOT banked
+[17:20:38] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/fx_data_2024_q2.xls failed zip end-signature check (106496 bytes) -- NOT banked
+[17:20:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2011_q4.xls failed zip end-signature check (392192 bytes) -- NOT banked
+[17:20:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2012_q1.xls failed zip end-signature check (402432 bytes) -- NOT banked
+[17:20:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2012_q2.xls failed zip end-signature check (383488 bytes) -- NOT banked
+[17:20:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2012_q3.xls failed zip end-signature check (342528 bytes) -- NOT banked
+[17:20:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2012_q4.xls failed zip end-signature check (476672 bytes) -- NOT banked
+[17:20:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2013_q1.xls failed zip end-signature check (561664 bytes) -- NOT banked
+[17:20:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2013_q2.xls failed zip end-signature check (534016 bytes) -- NOT banked
+[17:20:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2013_q3.xls failed zip end-signature check (494080 bytes) -- NOT banked
+[17:20:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2013_q4.xls failed zip end-signature check (468992 bytes) -- NOT banked
+[17:20:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2014_q1.xls failed zip end-signature check (465408 bytes) -- NOT banked
+[17:20:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2014_q2.xls failed zip end-signature check (551424 bytes) -- NOT banked
+[17:20:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2014_q3.xls failed zip end-signature check (553984 bytes) -- NOT banked
+[17:20:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2014_q4.xls failed zip end-signature check (523776 bytes) -- NOT banked
+[17:20:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2015_q1.xls failed zip end-signature check (554496 bytes) -- NOT banked
+[17:20:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2015_q2.xls failed zip end-signature check (544768 bytes) -- NOT banked
+[17:20:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2015_q3.xls failed zip end-signature check (515072 bytes) -- NOT banked
+[17:20:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2015_q4.xls failed zip end-signature check (483328 bytes) -- NOT banked
+[17:20:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2016_q1.xls failed zip end-signature check (475648 bytes) -- NOT banked
+[17:20:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2016_q2.xls failed zip end-signature check (347136 bytes) -- NOT banked
+[17:20:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2016_q3.xls failed zip end-signature check (522752 bytes) -- NOT banked
+[17:20:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2016_q4.xls failed zip end-signature check (614400 bytes) -- NOT banked
+[17:20:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2017_q1.xls failed zip end-signature check (559616 bytes) -- NOT banked
+[17:20:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2017_q2.xls failed zip end-signature check (521728 bytes) -- NOT banked
+[17:20:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2017_q3.xls failed zip end-signature check (526848 bytes) -- NOT banked
+[17:20:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2017_q4.xls failed zip end-signature check (477184 bytes) -- NOT banked
+[17:20:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2018_q1.xls failed zip end-signature check (442368 bytes) -- NOT banked
+[17:20:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2018_q2.xls failed zip end-signature check (415744 bytes) -- NOT banked
+[17:20:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2018_q3.xls failed zip end-signature check (382464 bytes) -- NOT banked
+[17:20:57] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2018_q4.xls failed zip end-signature check (337408 bytes) -- NOT banked
+[17:20:57] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2019_q1.xls failed zip end-signature check (327680 bytes) -- NOT banked
+[17:20:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2019_q2.xls failed zip end-signature check (332288 bytes) -- NOT banked
+[17:20:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2019_q3.xls failed zip end-signature check (390656 bytes) -- NOT banked
+[17:20:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/mbs_data_2019_q4.xls failed zip end-signature check (395776 bytes) -- NOT banked
+[17:21:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2020_q1.xls failed zip end-signature check (621568 bytes) -- NOT banked
+[17:21:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2020_q2.xls failed zip end-signature check (1119744 bytes) -- NOT banked
+[17:21:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2020_q3.xls failed zip end-signature check (854016 bytes) -- NOT banked
+[17:21:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2020_q4.xls failed zip end-signature check (985088 bytes) -- NOT banked
+[17:21:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2021_q1.xls failed zip end-signature check (1029632 bytes) -- NOT banked
+[17:21:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2021_q2.xls failed zip end-signature check (933888 bytes) -- NOT banked
+[17:21:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2021_q3.xls failed zip end-signature check (794624 bytes) -- NOT banked
+[17:21:05] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2021_q4.xls failed zip end-signature check (855040 bytes) -- NOT banked
+[17:21:05] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2022_q1.xls failed zip end-signature check (716288 bytes) -- NOT banked
+[17:21:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2022_q2.xls failed zip end-signature check (609792 bytes) -- NOT banked
+[17:21:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2022_q3.xls failed zip end-signature check (399872 bytes) -- NOT banked
+[17:21:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2022_q4.xls failed zip end-signature check (336384 bytes) -- NOT banked
+[17:21:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2023_q1.xls failed zip end-signature check (325632 bytes) -- NOT banked
+[17:21:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2023_q2.xls failed zip end-signature check (325632 bytes) -- NOT banked
+[17:21:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2023_q3.xls failed zip end-signature check (324096 bytes) -- NOT banked
+[17:21:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2023_q4.xls failed zip end-signature check (325632 bytes) -- NOT banked
+[17:21:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2024_q1.xls failed zip end-signature check (325632 bytes) -- NOT banked
+[17:21:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rmbs_data_2024_q2.xls failed zip end-signature check (326144 bytes) -- NOT banked
+[17:21:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2010_q3.xls failed zip end-signature check (83968 bytes) -- NOT banked
+[17:21:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2010_q4.xls failed zip end-signature check (112640 bytes) -- NOT banked
+[17:21:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2011_q1.xls failed zip end-signature check (210944 bytes) -- NOT banked
+[17:21:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2011_q2.xls failed zip end-signature check (436736 bytes) -- NOT banked
+[17:21:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2011_q3.xls failed zip end-signature check (193024 bytes) -- NOT banked
+[17:21:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2012_q1.xls failed zip end-signature check (201216 bytes) -- NOT banked
+[17:21:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2012_q3.xls failed zip end-signature check (147456 bytes) -- NOT banked
+[17:21:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2012_q4.xls failed zip end-signature check (124416 bytes) -- NOT banked
+[17:21:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2013_q1.xls failed zip end-signature check (86016 bytes) -- NOT banked
+[17:21:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2013_q2.xls failed zip end-signature check (226816 bytes) -- NOT banked
+[17:21:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2013_q3.xls failed zip end-signature check (266752 bytes) -- NOT banked
+[17:21:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2013_q4.xls failed zip end-signature check (229376 bytes) -- NOT banked
+[17:21:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2014_q1.xls failed zip end-signature check (588800 bytes) -- NOT banked
+[17:21:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2014_q2.xls failed zip end-signature check (586240 bytes) -- NOT banked
+[17:21:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2014_q4.xls failed zip end-signature check (543232 bytes) -- NOT banked
+[17:21:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2015_q1.xls failed zip end-signature check (581632 bytes) -- NOT banked
+[17:21:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2015_q2.xls failed zip end-signature check (544768 bytes) -- NOT banked
+[17:21:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2015_q3.xls failed zip end-signature check (515584 bytes) -- NOT banked
+[17:21:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2015_q4.xls failed zip end-signature check (574464 bytes) -- NOT banked
+[17:21:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2016_q1.xls failed zip end-signature check (494080 bytes) -- NOT banked
+[17:21:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2016_q2.xls failed zip end-signature check (410624 bytes) -- NOT banked
+[17:21:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2016_q3.xls failed zip end-signature check (495616 bytes) -- NOT banked
+[17:21:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2016_q4.xls failed zip end-signature check (625152 bytes) -- NOT banked
+[17:21:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2017_q1.xls failed zip end-signature check (580608 bytes) -- NOT banked
+[17:21:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2017_q2.xls failed zip end-signature check (616960 bytes) -- NOT banked
+[17:21:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2017_q3.xls failed zip end-signature check (674816 bytes) -- NOT banked
+[17:21:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2017_q4.xls failed zip end-signature check (540672 bytes) -- NOT banked
+[17:21:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2018_q1.xls failed zip end-signature check (416256 bytes) -- NOT banked
+[17:21:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2018_q2.xls failed zip end-signature check (245760 bytes) -- NOT banked
+[17:21:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2018_q3.xls failed zip end-signature check (212992 bytes) -- NOT banked
+[17:21:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2018_q4.xls failed zip end-signature check (235520 bytes) -- NOT banked
+[17:21:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2019_q1.xls failed zip end-signature check (205824 bytes) -- NOT banked
+[17:21:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2019_q2.xls failed zip end-signature check (232960 bytes) -- NOT banked
+[17:21:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2019_q3.xls failed zip end-signature check (348160 bytes) -- NOT banked
+[17:21:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2019_q4.xls failed zip end-signature check (445952 bytes) -- NOT banked
+[17:21:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2020_q1.xls failed zip end-signature check (660992 bytes) -- NOT banked
+[17:21:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2020_q2.xls failed zip end-signature check (272896 bytes) -- NOT banked
+[17:21:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2020_q3.xls failed zip end-signature check (274944 bytes) -- NOT banked
+[17:21:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2020_q4.xls failed zip end-signature check (438784 bytes) -- NOT banked
+[17:21:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2021_q1.xls failed zip end-signature check (302080 bytes) -- NOT banked
+[17:21:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2021_q2.xls failed zip end-signature check (663040 bytes) -- NOT banked
+[17:21:38] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2021_q3.xls failed zip end-signature check (1038336 bytes) -- NOT banked
+[17:21:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2021_q4.xls failed zip end-signature check (1057280 bytes) -- NOT banked
+[17:21:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2022_q1.xls failed zip end-signature check (4781568 bytes) -- NOT banked
+[17:21:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2022_q2.xls failed zip end-signature check (1209344 bytes) -- NOT banked
+[17:21:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2022_q3.xls failed zip end-signature check (4815872 bytes) -- NOT banked
+[17:21:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2022_q4.xls failed zip end-signature check (4732416 bytes) -- NOT banked
+[17:21:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2023_q1.xls failed zip end-signature check (4759040 bytes) -- NOT banked
+[17:21:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2023_q2.xls failed zip end-signature check (4777984 bytes) -- NOT banked
+[17:21:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2023_q3.xls failed zip end-signature check (4745216 bytes) -- NOT banked
+[17:21:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2023_q4.xls failed zip end-signature check (4724224 bytes) -- NOT banked
+[17:21:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2024_q1.xls failed zip end-signature check (1004032 bytes) -- NOT banked
+[17:21:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rp_rrp_data_2024_q2.xls failed zip end-signature check (4704768 bytes) -- NOT banked
+[17:21:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/rr_rrp_data_2014_q3.xls failed zip end-signature check (484864 bytes) -- NOT banked
+[17:21:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2010_q3.xls failed zip end-signature check (1519616 bytes) -- NOT banked
+[17:21:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2010_q4.xls failed zip end-signature check (1857536 bytes) -- NOT banked
+[17:21:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2011_q1.xls failed zip end-signature check (2260992 bytes) -- NOT banked
+[17:21:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2011_q2.xls failed zip end-signature check (2839552 bytes) -- NOT banked
+[17:21:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2011_q3.xls failed zip end-signature check (2722304 bytes) -- NOT banked
+[17:21:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2011_q4.xls failed zip end-signature check (2929152 bytes) -- NOT banked
+[17:21:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2012_q1.xls failed zip end-signature check (2903552 bytes) -- NOT banked
+[17:21:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2012_q2.xls failed zip end-signature check (2607104 bytes) -- NOT banked
+[17:21:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2012_q3.xls failed zip end-signature check (2379264 bytes) -- NOT banked
+[17:21:57] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2012_q4.xls failed zip end-signature check (2006016 bytes) -- NOT banked
+[17:21:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2013_q1.xls failed zip end-signature check (2099200 bytes) -- NOT banked
+[17:21:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2013_q2.xls failed zip end-signature check (2656768 bytes) -- NOT banked
+[17:21:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2013_q3.xls failed zip end-signature check (2172928 bytes) -- NOT banked
+[17:22:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2013_q4.xls failed zip end-signature check (2339328 bytes) -- NOT banked
+[17:22:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2014_q1.xls failed zip end-signature check (2308096 bytes) -- NOT banked
+[17:22:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2014_q2.xls failed zip end-signature check (2279936 bytes) -- NOT banked
+[17:22:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2014_q3.xls failed zip end-signature check (2390528 bytes) -- NOT banked
+[17:22:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2014_q4.xls failed zip end-signature check (9123328 bytes) -- NOT banked
+[17:22:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2015_q1.xls failed zip end-signature check (9017344 bytes) -- NOT banked
+[17:22:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2015_q2.xls failed zip end-signature check (2474496 bytes) -- NOT banked
+[17:22:05] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2015_q3.xls failed zip end-signature check (2503680 bytes) -- NOT banked
+[17:22:06] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2015_q4.xls failed zip end-signature check (2544128 bytes) -- NOT banked
+[17:22:07] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2016_q1.xls failed zip end-signature check (2553344 bytes) -- NOT banked
+[17:22:08] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2016_q2.xls failed zip end-signature check (3203072 bytes) -- NOT banked
+[17:22:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2016_q3.xls failed zip end-signature check (3681280 bytes) -- NOT banked
+[17:22:09] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2016_q4.xls failed zip end-signature check (3678720 bytes) -- NOT banked
+[17:22:10] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2017_q1.xls failed zip end-signature check (3601920 bytes) -- NOT banked
+[17:22:11] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2017_q2.xls failed zip end-signature check (4220416 bytes) -- NOT banked
+[17:22:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2017_q3.xls failed zip end-signature check (4354560 bytes) -- NOT banked
+[17:22:12] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2017_q4.xls failed zip end-signature check (4146176 bytes) -- NOT banked
+[17:22:13] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2018_q1.xls failed zip end-signature check (4219392 bytes) -- NOT banked
+[17:22:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2018_q2.xls failed zip end-signature check (4397056 bytes) -- NOT banked
+[17:22:14] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2018_q3.xls failed zip end-signature check (4050944 bytes) -- NOT banked
+[17:22:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2018_q4.xls failed zip end-signature check (3560960 bytes) -- NOT banked
+[17:22:15] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2019_q1.xls failed zip end-signature check (3339776 bytes) -- NOT banked
+[17:22:16] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2019_q2.xls failed zip end-signature check (3629568 bytes) -- NOT banked
+[17:22:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2019_q3.xls failed zip end-signature check (4025344 bytes) -- NOT banked
+[17:22:17] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2019_q4.xls failed zip end-signature check (4123648 bytes) -- NOT banked
+[17:22:18] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2020_q1.xls failed zip end-signature check (4866048 bytes) -- NOT banked
+[17:22:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2020_q2.xls failed zip end-signature check (4739072 bytes) -- NOT banked
+[17:22:19] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2020_q3.xls failed zip end-signature check (3823104 bytes) -- NOT banked
+[17:22:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2020_q4.xls failed zip end-signature check (3889664 bytes) -- NOT banked
+[17:22:20] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2021_q1.xls failed zip end-signature check (3923968 bytes) -- NOT banked
+[17:22:21] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2021_q2.xls failed zip end-signature check (4223488 bytes) -- NOT banked
+[17:22:22] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2021_q3.xls failed zip end-signature check (4362752 bytes) -- NOT banked
+[17:22:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2021_q4.xls failed zip end-signature check (5109248 bytes) -- NOT banked
+[17:22:23] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2022_q1.xls failed zip end-signature check (6002176 bytes) -- NOT banked
+[17:22:24] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2022_q2.xls failed zip end-signature check (6381568 bytes) -- NOT banked
+[17:22:25] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2022_q3.xls failed zip end-signature check (7178752 bytes) -- NOT banked
+[17:22:26] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2022_q4.xls failed zip end-signature check (5859840 bytes) -- NOT banked
+[17:22:27] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2023_q1.xls failed zip end-signature check (6078976 bytes) -- NOT banked
+[17:22:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2023_q2.xls failed zip end-signature check (7043584 bytes) -- NOT banked
+[17:22:28] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2023_q3.xls failed zip end-signature check (6586880 bytes) -- NOT banked
+[17:22:29] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2023_q4.xls failed zip end-signature check (6503424 bytes) -- NOT banked
+[17:22:30] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2024_q1.xls failed zip end-signature check (6388736 bytes) -- NOT banked
+[17:22:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/sec_lending_data_2024_q2.xls failed zip end-signature check (6319104 bytes) -- NOT banked
+[17:22:31] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2010_q3.xls failed zip end-signature check (398848 bytes) -- NOT banked
+[17:22:32] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2010_q4.xls failed zip end-signature check (796160 bytes) -- NOT banked
+[17:22:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2011_q1.xls failed zip end-signature check (3095552 bytes) -- NOT banked
+[17:22:33] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2011_q2.xls failed zip end-signature check (940544 bytes) -- NOT banked
+[17:22:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2011_q3.xls failed zip end-signature check (218112 bytes) -- NOT banked
+[17:22:34] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2011_q4.xls failed zip end-signature check (3307008 bytes) -- NOT banked
+[17:22:35] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2012_q1.xls failed zip end-signature check (3194368 bytes) -- NOT banked
+[17:22:36] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2012_q2.xls failed zip end-signature check (3238912 bytes) -- NOT banked
+[17:22:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2012_q3.xls failed zip end-signature check (3428352 bytes) -- NOT banked
+[17:22:37] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2012_q4.xls failed zip end-signature check (3367936 bytes) -- NOT banked
+[17:22:38] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2013_q1.xls failed zip end-signature check (3028992 bytes) -- NOT banked
+[17:22:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2013_q2.xls failed zip end-signature check (2985472 bytes) -- NOT banked
+[17:22:39] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2013_q3.xls failed zip end-signature check (3037696 bytes) -- NOT banked
+[17:22:40] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2013_q4.xls failed zip end-signature check (2884096 bytes) -- NOT banked
+[17:22:41] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2014_q1.xls failed zip end-signature check (2727424 bytes) -- NOT banked
+[17:22:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2014_q2.xls failed zip end-signature check (2673664 bytes) -- NOT banked
+[17:22:42] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2014_q3.xls failed zip end-signature check (2521600 bytes) -- NOT banked
+[17:22:43] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2014_q4.xls failed zip end-signature check (2391552 bytes) -- NOT banked
+[17:22:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2016_q1.xls failed zip end-signature check (2330112 bytes) -- NOT banked
+[17:22:44] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2016_q2.xls failed zip end-signature check (365056 bytes) -- NOT banked
+[17:22:45] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2016_q3.xls failed zip end-signature check (2328576 bytes) -- NOT banked
+[17:22:46] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2016_q4.xls failed zip end-signature check (2329600 bytes) -- NOT banked
+[17:22:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2017_q1.xls failed zip end-signature check (2329088 bytes) -- NOT banked
+[17:22:47] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2017_q2.xls failed zip end-signature check (2327040 bytes) -- NOT banked
+[17:22:48] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2017_q3.xls failed zip end-signature check (2327040 bytes) -- NOT banked
+[17:22:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2017_q4.xls failed zip end-signature check (2326528 bytes) -- NOT banked
+[17:22:49] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2018_q1.xls failed zip end-signature check (2325504 bytes) -- NOT banked
+[17:22:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2018_q2.xls failed zip end-signature check (2325504 bytes) -- NOT banked
+[17:22:50] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2018_q3.xls failed zip end-signature check (2327552 bytes) -- NOT banked
+[17:22:51] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2018_q4.xls failed zip end-signature check (373248 bytes) -- NOT banked
+[17:22:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2019_q1.xls failed zip end-signature check (2324992 bytes) -- NOT banked
+[17:22:52] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2019_q2.xls failed zip end-signature check (2327552 bytes) -- NOT banked
+[17:22:53] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2019_q3.xls failed zip end-signature check (2454016 bytes) -- NOT banked
+[17:22:54] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2019_q4.xls failed zip end-signature check (2575872 bytes) -- NOT banked
+[17:22:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2020_q1.xls failed zip end-signature check (4122112 bytes) -- NOT banked
+[17:22:55] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2020_q2.xls failed zip end-signature check (4125184 bytes) -- NOT banked
+[17:22:56] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2020_q3.xls failed zip end-signature check (2765312 bytes) -- NOT banked
+[17:22:57] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2020_q4.xls failed zip end-signature check (2728448 bytes) -- NOT banked
+[17:22:57] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2021_q1.xls failed zip end-signature check (2730496 bytes) -- NOT banked
+[17:22:58] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2021_q2.xls failed zip end-signature check (2705920 bytes) -- NOT banked
+[17:22:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2021_q3.xls failed zip end-signature check (2679296 bytes) -- NOT banked
+[17:22:59] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2021_q4.xls failed zip end-signature check (2694144 bytes) -- NOT banked
+[17:23:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2022_q1.xls failed zip end-signature check (2496000 bytes) -- NOT banked
+[17:23:00] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2022_q2.xls failed zip end-signature check (2330112 bytes) -- NOT banked
+[17:23:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2022_q4.xls failed zip end-signature check (2332672 bytes) -- NOT banked
+[17:23:01] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2023_q1.xls failed zip end-signature check (2337792 bytes) -- NOT banked
+[17:23:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2023_q2.xls failed zip end-signature check (2339840 bytes) -- NOT banked
+[17:23:02] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2023_q3.xls failed zip end-signature check (2338304 bytes) -- NOT banked
+[17:23:03] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2023_q4.xls failed zip end-signature check (2339328 bytes) -- NOT banked
+[17:23:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2024_q1.xls failed zip end-signature check (2341888 bytes) -- NOT banked
+[17:23:04] ⚠   https://www.newyorkfed.org/medialibrary/media/markets/DFA/tsy_data_2024_q2.xls failed zip end-signature check (2339328 bytes) -- NOT banked
 
-→ Report written to aws/ops/reports/latest/4757_nyfed_research_data_sweep.md
+→ Report written to aws/ops/reports/latest/4758_nyfed_research_integrity_and_depth.md
