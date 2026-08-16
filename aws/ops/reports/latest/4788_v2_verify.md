@@ -1,8 +1,12 @@
-executing-against: 59610f9d469bfb32ad77ec08d15e032a4cee5201
-ops 4788 -- splice live on the board?
+# ops 4788 -- splice live on the board?
 
-→ Report written to aws/ops/reports/latest/4788_v2_verify.md
-ERROR:
+**Status:** failure  
+**Duration:** 900.2s  
+**Finished:** 2026-08-16T22:41:53+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
     response = conn.getresponse()
@@ -55,8 +59,8 @@ urllib3.exceptions.ReadTimeoutError: AWSHTTPSConnectionPool(host='lambda.us-east
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4788_v2_verify.py", line 88, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4788_v2_verify.py", line 36, in main
     r = lam.invoke(FunctionName="justhodl-repo",
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -117,4 +121,7 @@ Traceback (most recent call last):
     raise ReadTimeoutError(endpoint_url=request.url, error=e)
 botocore.exceptions.ReadTimeoutError: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-repo/invocations"
 
-❌ OPS-FAIL: aws/ops/pending/ops_4788_v2_verify.py
+```
+
+## Log
+
