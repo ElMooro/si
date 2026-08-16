@@ -1,76 +1,24 @@
-executing-against: 01312a991f0469869f74e5bf28d48f8e42f38c6c
-ops 4756 -- the complete PD fails census (OFR mirror + NY Fed full)
-── A. OFR NYPD mirror -- is 18 the whole fails subset? ──
-[16:55:26] OFR fails grid: NYPD-PD_AFtD_AG-A, NYPD-PD_AFtD_AG_MBS-A, NYPD-PD_AFtD_AG_eMBS-A, NYPD-PD_AFtD_CORS-A, NYPD-PD_AFtD_OMBS-A, NYPD-PD_AFtD_T-A, NYPD-PD_AFtD_TIPS-A, NYPD-PD_AFtD_TOT-A, NYPD-PD_AFtD_T_eTIPS-A, NYPD-PD_AFtR_AG-A, NYPD-PD_AFtR_AG_MBS-A, NYPD-PD_AFtR_AG_eMBS-A, NYPD-PD_AFtR_CORS-A, NYPD-PD_AFtR_OMBS-A, NYPD-PD_AFtR_T-A, NYPD-PD_AFtR_TIPS-A, NYPD-PD_AFtR_TOT-A, NYPD-PD_AFtR_T_eTIPS-A
-── B. NY Fed full PD catalog -- the real fails universe ──
-[16:55:26]   PDFTD-CS
-[16:55:26]   PDFTD-CSC
-[16:55:26]   PDFTD-FGEM
-[16:55:26]   PDFTD-FGEMC
-[16:55:26]   PDFTD-FGM
-[16:55:26]   PDFTD-FGMC
-[16:55:26]   PDFTD-OM
-[16:55:26]   PDFTD-OMC
-[16:55:26]   PDFTD-UST
-[16:55:26]   PDFTD-USTC
-[16:55:26]   PDFTD-USTET
-[16:55:26]   PDFTD-USTETC
-[16:55:26]   PDFTR-CS
-[16:55:26]   PDFTR-CSC
-[16:55:26]   PDFTR-FGEM
-[16:55:26]   PDFTR-FGEMC
-[16:55:26]   PDFTR-FGM
-[16:55:26]   PDFTR-FGMC
-[16:55:26]   PDFTR-OM
-[16:55:26]   PDFTR-OMC
-[16:55:26]   PDFTR-UST
-[16:55:26]   PDFTR-USTC
-[16:55:26]   PDFTR-USTET
-[16:55:26]   PDFTR-USTETC
-[16:55:26]   PDSIOSB-UTSETTA30
-[16:55:26]   PDSIOSB-UTSETTAG30
-[16:55:26]   PDSIOSB-UTSETTOT
-[16:55:26]   PDSIRRA-CBGUTSETTAG30
-[16:55:26]   PDSIRRA-CBGUTSETTAL30
-[16:55:26]   PDSIRRA-CBSPUTSETTAG30
-[16:55:26]   PDSIRRA-CBSPUTSETTAL30
-[16:55:26]   PDSIRRA-CBSUTSETTAG30
-[16:55:26]   PDSIRRA-CBSUTSETTAL30
-[16:55:26]   PDSIRRA-GCFUTSETTAG30
-[16:55:26]   PDSIRRA-GCFUTSETTAL30
-[16:55:26]   PDSIRRA-TRIGUTSETTAG30
-[16:55:26]   PDSIRRA-TRIGUTSETTAL30
-[16:55:26]   PDSIRRA-TRISPUTSETTAG30
-[16:55:26]   PDSIRRA-TRISPUTSETTAL30
-[16:55:26]   PDSIRRA-UBGUTSETTAG30
-[16:55:26]   PDSIRRA-UBGUTSETTAL30
-[16:55:26]   PDSIRRA-UBSUTSETTAG30
-[16:55:26]   PDSIRRA-UBSUTSETTAL30
-[16:55:26]   PDSIRRA-UTSETTOT
-[16:55:26]   PDSOOS-UTSETTAG30
-[16:55:26]   PDSOOS-UTSETTAL30
-[16:55:26]   PDSOOS-UTSETTOT
-[16:55:26]   PDSORA-CBGUTSETTAG30
-[16:55:26]   PDSORA-CBGUTSETTAL30
-[16:55:26]   PDSORA-CBSPUTSETTAG30
-[16:55:26]   PDSORA-CBSPUTSETTAL30
-[16:55:26]   PDSORA-CBSUTSETTAG30
-[16:55:26]   PDSORA-CBSUTSETTAL30
-[16:55:26]   PDSORA-GCFUTSETTAG30
-[16:55:26]   PDSORA-GCFUTSETTAL30
-[16:55:26]   PDSORA-TRIGUTSETTAG30
-[16:55:26]   PDSORA-TRIGUTSETTAL30
-[16:55:26]   PDSORA-TRISPUTSETTAG30
-[16:55:26]   PDSORA-TRISPUTSETTAL30
-[16:55:26]   PDSORA-UBGUTSETTAG30
-[16:55:26]   PDSORA-UBGUTSETTAL30
-[16:55:26]   PDSORA-UBSUTSETTAG30
-[16:55:26]   PDSORA-UBSUTSETTAL30
-[16:55:26]   PDSORA-UTSETTOT
-── C. Bank-verify every NY Fed fails keyid on S3 ──
-── D. Depth proof -- current, legacy, MBS-class ──
-[16:55:28] ✅ PDFTD-CS: 698 obs, 2013-04-03 -> 2026-08-14
-── E. Bank stragglers via the engine's own path ──
-[16:55:28] ✅ no stragglers -- every fails series in the full NY Fed catalog is already banked; nothing to write
+executing-against: e4647b81dbea93835ff6a8207ed32ddef26651b7
+ops 4757 -- newyorkfed.org research + data-hub sweep
+── seed: sce ──
+[17:05:35] https://www.newyorkfed.org/microeconomics/sce -> status=200 bytes=118727
+[17:05:36]   cand: https://www.newyorkfed.org/medialibrary/interactives/sce/sce/downloads/data/frbny-sce-data.xlsx
+[17:05:36]   cand: https://www.newyorkfed.org/medialibrary/interactives/sce/sce/downloads/data/frbny-sce-public-microdata-20-24.xlsx
+[17:05:36]   cand: https://www.newyorkfed.org/medialibrary/interactives/sce/sce/downloads/data/frbny-sce-public-microdata-complete-13-
+[17:05:36]   cand: https://www.newyorkfed.org/medialibrary/interactives/sce/sce/downloads/data/frbny-sce-public-microdata-complete-17-
+[17:05:38] ✅   banked sce/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-data.xlsx (1225415 bytes)
+[17:05:41] ✅   banked sce/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-public-microdata-20-24.xlsx (26000000 bytes)
+[17:05:45] ✅   banked sce/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-public-microdata-complete-13-16.xlsx (26000000 bytes)
+[17:05:47] ✅   banked sce/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-public-microdata-complete-17-19.xlsx (26000000 bytes)
+── seed: hhdc ──
+[17:05:48] https://www.newyorkfed.org/microeconomics/hhdc -> status=200 bytes=104696
+── seed: dsge ──
+[17:05:48] https://www.newyorkfed.org/research/policy/dsge -> status=200 bytes=99125
+── seed: datahub ──
+[17:05:50] https://www.newyorkfed.org/markets/data-hub -> status=200 bytes=106005
+[17:05:51]   cand: https://www.newyorkfed.org/medialibrary/interactives/markets/data/assets/data/contingency.json
+[17:05:51] ✅   banked datahub/medialibrary_interactives_markets_data_assets_data_contingency.json (10675 bytes)
+── seed: research-data ──
+[17:05:52] https://www.newyorkfed.org/research/data_indicators -> status=200 bytes=116815
 
-→ Report written to aws/ops/reports/latest/4756_pd_fails_complete_census.md
+→ Report written to aws/ops/reports/latest/4757_nyfed_research_data_sweep.md
