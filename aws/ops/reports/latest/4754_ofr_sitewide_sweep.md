@@ -1,0 +1,41 @@
+# ops 4754 -- financialresearch.gov site-wide sweep
+
+**Status:** success  
+**Duration:** 3.5s  
+**Finished:** 2026-08-16T16:35:12+00:00  
+
+## Data
+
+| check | earliest | latest | mnemonic | n | value |
+|---|---|---|---|---|---|
+| nypd_series_banked |  |  |  |  | 194 |
+|  | 2015-01-07 | 2026-08-06 | NYPD-PD_RP_ABS_GE30-A | 367 |  |
+|  | 2015-01-07 | 2026-08-06 | NYPD-PD_RP_ABS_L30-A | 367 |  |
+| fsi_banked |  |  |  |  | fsi.csv |
+| site_files_discovered |  |  |  |  | 0 |
+| site_files_banked |  |  |  |  | 0 |
+
+## Log
+## A. Primary Dealer re-proof (already banked; fresh evidence)
+
+- `16:35:09` ✅ NYPD-PD_RP_ABS_GE30-A: 367 obs, 2015-01-07 -> 2026-08-06
+- `16:35:09` ✅ NYPD-PD_RP_ABS_L30-A: 367 obs, 2015-01-07 -> 2026-08-06
+## B. FSI full-history file
+
+- `16:35:09` /financial-stress-index/data/fsi.csv -> status=200 bytes=513145
+- `16:35:10` ✅ FSI fsi.csv: 513145 bytes banked, 6735 distinct dates, span 2000-01-03 -> 2026-08-12
+## C. Sibling API roots -- per-tag this time
+
+- `16:35:10` mmf/v1/metadata/mnemonics -> status=403 bytes=0
+- `16:35:10` bsrm/v1/metadata/mnemonics -> status=403 bytes=0
+- `16:35:10` fsi/v1/metadata/mnemonics -> status=403 bytes=0
+- `16:35:10` nccbr/v1/metadata/mnemonics -> status=403 bytes=0
+- `16:35:10` fird/v1/metadata/mnemonics -> status=403 bytes=0
+## D. Site vacuum -- every first-party data file linked
+
+- `16:35:11` /monitoring-tools/ -> status=200 bytes=45882
+- `16:35:11` /short-term-funding-monitor/datasets/ -> status=404 bytes=0
+- `16:35:11` /data/ -> status=200 bytes=30417
+- `16:35:12` /hedge-fund-monitor/ -> status=200 bytes=37156
+- `16:35:12` /bank-systemic-risk-monitor/ -> status=200 bytes=41431
+- `16:35:12` /money-market-fund-monitor/ -> status=404 bytes=0
