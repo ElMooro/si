@@ -1,37 +1,18 @@
-executing-against: c1bdd15416ed78242e42fbeb94f310f60303f958
-ops 4764 -- fred-scoped key shape (read-only)
-── root sample ──
-[18:30:59]   data/providers/fred-scoped/manifest.json
-[18:30:59]   data/providers/fred-scoped/series/page-0000.json
-[18:30:59]   data/providers/fred-scoped/series/page-0001.json
-[18:30:59]   data/providers/fred-scoped/series/page-0002.json
-[18:30:59]   data/providers/fred-scoped/series/page-0003.json
-[18:30:59]   data/providers/fred-scoped/series/page-0004.json
-[18:30:59]   data/providers/fred-scoped/series/page-0005.json
-[18:30:59]   data/providers/fred-scoped/series/page-0006.json
-── targeted DTWEXBGS across plausible roots ──
-── if nothing hit: where do 279k fred keys live at all? ──
-[18:30:59] data/providers/ fred-ish subdirs: ['data/providers/fred-scoped/', 'data/providers/fred/']
-[18:30:59]    sample data/providers/fred-scoped/manifest.json
-[18:30:59]    sample data/providers/fred-scoped/series/page-0000.json
-[18:30:59]    sample data/providers/fred-scoped/series/page-0001.json
-[18:30:59]    sample data/providers/fred-scoped/series/page-0002.json
-[18:30:59]    sample data/providers/fred-scoped/series/page-0003.json
-[18:30:59]    sample data/providers/fred/catalog-manifest.json
-[18:30:59]    sample data/providers/fred/page-000.json
-[18:30:59]    sample data/providers/fred/page-001.json
-[18:30:59]    sample data/providers/fred/page-002.json
-[18:30:59]    sample data/providers/fred/page-003.json
-[18:31:00] data/warm/ fred-ish subdirs: ['data/warm/archived-fred/', 'data/warm/fred-canary/', 'data/warm/fred-catalog/', 'data/warm/fred-scoped/']
-[18:31:00]    sample data/warm/archived-fred/BAMLC0A0CM.json
-[18:31:00]    sample data/warm/archived-fred/BAMLC0A1CAAA.json
-[18:31:00]    sample data/warm/archived-fred/BAMLC0A2CAAEY.json
-[18:31:00]    sample data/warm/archived-fred/BAMLC0A3CA.json
-[18:31:00]    sample data/warm/archived-fred/BAMLC0A3CAEY.json
-[18:31:00]    sample data/warm/fred-canary/atlanta-gdpnow.csv.gz
-[18:31:00]    sample data/warm/fred-canary/atlanta-gdpnow.xlsx
-[18:31:00]    sample data/warm/fred-canary/bls-labor.json.gz
-[18:31:00]    sample data/warm/fred-canary/cleveland-model.csv.gz
-[18:31:00]    sample data/warm/fred-canary/consumer_housing.csv.gz
+executing-against: c10a34b953b1a24e449fda6b34997d56a930f445
+ops 4765 -- fred resolver facts
+── warm/fred-scoped shape ──
+[18:32:51]   data/warm/fred-scoped/Academic_Data/CANEPUINDXM.json
+[18:32:51]   data/warm/fred-scoped/Academic_Data/CATEPUINDXM.json
+[18:32:51]   data/warm/fred-scoped/Academic_Data/CHNMAINLANDEPU.json
+[18:32:51]   data/warm/fred-scoped/Academic_Data/CHNMAINLANDTPU.json
+[18:32:51]   data/warm/fred-scoped/Academic_Data/DEEPUFEARINDX.json
+[18:32:51]   data/warm/fred-scoped/Academic_Data/DEEPUINDXM.json
+── manifest structure ──
+[18:32:51] manifest keys: updated_at, categories, categories_done, categories_total, series_seen, series_excluded_stale, series_excluded_discontinued, series_skipped_already, accounting, n_categories_expanded, series_imported, phase2
+[18:32:51]   updated_at: "2026-08-16T18:24:19+00:00"
+[18:32:51]   categories: {"22": "Interest Rates", "15": "Exchange Rates", "24": "Monetary Data", "46": "Financial Indicators", "23": "Banking", "32360": "Business Lending", "32145": "Foreign Exchange Intervention"}
+[18:32:51]   categories_done: 4169
+── one page file: first record shape ──
+[18:32:52] first record: ["page", 0]
 
-→ Report written to aws/ops/reports/latest/4764_fred_key_shape_discovery.md
+→ Report written to aws/ops/reports/latest/4765_fred_resolver_facts.md
