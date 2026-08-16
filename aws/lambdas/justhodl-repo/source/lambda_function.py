@@ -166,52 +166,57 @@ def lambda_handler(event, context):
     inv = sread("data/repo-master-inventory.json")
     scope = list(inv.get("series") or [])
 
-    # add the dollar complex from the FRED bank (v1.1: meta-driven --
-    # per-series files live at data/warm/fred-scoped/{Category}/{ID}.json,
-    # id->category from the fred importer's own series-meta state)
+    # add the dollar complex (v1.2): warm-first at
+    # data/warm/fred-scoped/Dollar_TradeWeighted/{ID}.json; if a series
+    # was outside the scoped FRED import, self-heal ONCE from the FRED
+    # API (key inherited via deploy inherit_env) and bank it to warm
+    # permanently -- thereafter it reads from the bank like everything.
+    import urllib.request
     dollar_miss = []
-    try:
-        meta = sread(FRED_META_KEY)
-    except Exception:
-        meta = {}
-    def _cat_of(fid):
-        e = meta.get(fid) if isinstance(meta, dict) else None
-        if e is None and isinstance(meta, dict):
-            for v in meta.values():
-                if isinstance(v, dict) and v.get("id") == fid:
-                    e = v
-                    break
-        cands = []
-        if isinstance(e, dict):
-            for f in ("category", "category_name", "cat", "folder",
-                       "category_dir", "path"):
-                cv = e.get(f)
-                if isinstance(cv, str) and cv:
-                    cands.append(cv.strip("/").split("/")[-1])
-        out = []
-        for c in cands:
-            out += [c, c.replace(" ", "_"), c.replace(" ", "_")
-                     .replace(",", "").replace("&", "and")]
-        return list(dict.fromkeys(out))
+    fred_key = os.environ.get("FRED_API_KEY", "")
+    DOLLAR_DIR = "data/warm/fred-scoped/Dollar_TradeWeighted"
     for fid in DOLLAR_IDS:
-        entry = None
-        for cat in _cat_of(fid):
-            key = FRED_WARM_TPL.format(cat=cat, id=fid)
-            try:
-                s3.head_object(Bucket=BUCKET, Key=key)
-                entry = {"mnemonic": fid, "name": f"FRED {fid}",
-                          "family": "DOLLAR", "s3_key": key,
-                          "api_url": ("https://fred.stlouisfed.org/series/"
-                                       + fid),
-                          "tier": 1 if fid == "DTWEXBGS" else 2}
-                break
-            except Exception:
+        wkey = f"{DOLLAR_DIR}/{fid}.json"
+        ok = False
+        try:
+            s3.head_object(Bucket=BUCKET, Key=wkey)
+            ok = True
+        except Exception:
+            if not fred_key:
+                dollar_miss.append({"id": fid, "reason": "no_api_key"})
                 continue
-        if entry:
-            scope.append(entry)
-        else:
-            dollar_miss.append({"id": fid,
-                                 "cats_tried": _cat_of(fid)[:4]})
+            try:
+                u = ("https://api.stlouisfed.org/fred/series/observations"
+                     f"?series_id={fid}&api_key={fred_key}"
+                     "&file_type=json&observation_start=1970-01-01")
+                req = urllib.request.Request(u, headers={
+                    "User-Agent": "JustHodl research raafouis@gmail.com"})
+                with urllib.request.urlopen(req, timeout=60) as r:
+                    doc = json.loads(r.read())
+                obs = doc.get("observations") or []
+                if not obs:
+                    dollar_miss.append({"id": fid,
+                                         "reason": "fred_zero_obs"})
+                    continue
+                s3.put_object(Bucket=BUCKET, Key=wkey,
+                               Body=json.dumps(
+                                   {"id": fid,
+                                    "source": "FRED API via justhodl-repo",
+                                    "banked_at": now,
+                                    "observations": obs},
+                                   separators=(",", ":")).encode(),
+                               ContentType="application/json")
+                ok = True
+            except Exception as ex:
+                dollar_miss.append({"id": fid,
+                                     "reason": f"{type(ex).__name__}: "
+                                               f"{str(ex)[:60]}"})
+        if ok:
+            scope.append({"mnemonic": fid, "name": f"FRED {fid}",
+                           "family": "DOLLAR", "s3_key": wkey,
+                           "api_url": ("https://fred.stlouisfed.org/series/"
+                                        + fid),
+                           "tier": 1 if fid == "DTWEXBGS" else 2})
 
     values = {}
     rows = []
@@ -326,7 +331,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "1.1", "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "1.2", "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))

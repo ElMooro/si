@@ -17,5 +17,11 @@
   "name": "justhodl-repo-daily",
   "expression": "cron(10 6 * * ? *)",
   "description": "repo master board refresh -- after OFR/NY Fed morning updates"
+ },
+ "inherit_env": {
+  "from_function": "dollar-strength-agent",
+  "keys": [
+   "FRED_API_KEY"
+  ]
  }
 }
