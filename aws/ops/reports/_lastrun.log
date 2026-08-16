@@ -1,31 +1,33 @@
-executing-against: 047c7f2725b28470bd381a4332a54eef7d5e5791
-ops 4771 -- PD splice toward 1998 (verified joins only)
-── A. break table + keyid universe ──
-[19:49:18] seriesbreaks.csv RAW:
-"Label","Series Break","Start date","End date"
-"JAN 1998 TO JUN 2001","SBP2001","1998-01-28","2001-06-30"
-"JUL 2001 TO MAR 2013","SBP2013","2001-07-01","2013-03-31"
-"APR 2013 TO DEC 2014","SBN2013","2013-04-01","2014-12-31"
-"JAN 2015 TO DEC 2021","SBN2015","2015-01-01","2022-01-04"
-"JAN 2022 TO JUN 2024","SBN2022","2022-01-05","2024-07-02"
-"JUL 2024 AND ON","SBN2024","2024-07-03","9999-12-31"
+executing-against: 9061ef2316a4e628b8f928b3ba55dc9c53632e06
+ops 4772 -- PD splice v2: value-brute joins + splice
+── brute-force value joins ──
+[19:54:07]   ✓ NYPD-PD_RRP_EQT_GE30-A <-> PDSIOSB-ABSTAG30 f=1.0 (24/24)
+[19:54:07]   ✓ NYPD-PD_RRP_EQT_L30-A <-> PDSIOSB-ABSTAL30 f=1.0 (24/24)
+[19:54:07]   ✓ NYPD-PD_RRP_EQT_OO-A <-> PDSIOSB-OTAL30 f=1.0 (22/24)
+[19:54:07]   unverified: NYPD-PD_AFtD_AG-A
+[19:54:07]   unverified: NYPD-PD_AFtD_AG_MBS-A
+[19:54:07]   unverified: NYPD-PD_AFtD_AG_eMBS-A
+[19:54:07]   unverified: NYPD-PD_AFtD_CORS-A
+[19:54:07]   unverified: NYPD-PD_AFtD_OMBS-A
+[19:54:07]   unverified: NYPD-PD_AFtD_T-A
+[19:54:07]   unverified: NYPD-PD_AFtD_TIPS-A
+[19:54:07]   unverified: NYPD-PD_AFtD_TOT-A
+[19:54:07]   unverified: NYPD-PD_AFtD_T_eTIPS-A
+[19:54:07]   unverified: NYPD-PD_AFtR_AG-A
+── older-break fetch + permanent splice bank ──
 
-[19:49:18] timeseries columns: Key Id, Label, Series Break
-[19:49:18] sample fails rows: PDFTD-USTET=PDFTD-USTET U.S. TREASURY SECURITIES (EXCLUDING TREASURY INF; PDFTD-UST=PDFTD-UST TREASURY INFLATION-PROTECTED SECURITIES (TIPS) : D; PDFTD-FGEM=PDFTD-FGEM FEDERAL AGENCY AND GSE SECURITIES (EXCLUDING MBS)
-── B+C. map candidates and VERIFY by value overlap ──
-[19:49:51]   unverified: NYPD-PD_AFtD_AG-A -- no value-verified candidate
-[19:49:51]   unverified: NYPD-PD_AFtD_AG_MBS-A -- no value-verified candidate
-[19:49:51]   unverified: NYPD-PD_AFtD_AG_eMBS-A -- no value-verified candidate
-[19:49:51]   unverified: NYPD-PD_AFtD_CORS-A -- no value-verified candidate
-[19:49:51]   unverified: NYPD-PD_AFtD_OMBS-A -- no value-verified candidate
-[19:49:51]   unverified: NYPD-PD_AFtD_T-A -- no value-verified candidate
-[19:49:51]   unverified: NYPD-PD_AFtD_TIPS-A -- no value-verified candidate
-[19:49:51]   unverified: NYPD-PD_AFtD_TOT-A -- no value-verified candidate
-[19:49:51]   unverified: NYPD-PD_AFtD_T_eTIPS-A -- no value-verified candidate
-[19:49:51]   unverified: NYPD-PD_AFtR_AG-A -- no value-verified candidate
-[19:49:51]   unverified: NYPD-PD_AFtR_AG_MBS-A -- no value-verified candidate
-[19:49:51]   unverified: NYPD-PD_AFtR_AG_eMBS-A -- no value-verified candidate
-── D. cross-break keyid probe ──
-── E. fetch older breaks, merge, bank ──
+→ Report written to aws/ops/reports/latest/4772_pd_splice_v2.md
+ops 4773 -- splice live on the board?
+[19:54:52] attempt 0: v=1.3 series=305
+[19:54:52] ✅   NYPD-PD_RRP_EQT_OO-A: 2013-07-03 -> 2021-12-29 n=128
+[19:54:52] ✅   NYPD-PD_AFtD_AG-A: 2015-01-07 -> 2026-07-22 n=603
+[19:54:52] ✅   NYPD-PD_AFtD_AG_MBS-A: 2015-01-07 -> 2026-07-22 n=603
+[19:54:52] ✅   NYPD-PD_AFtD_AG_eMBS-A: 2015-01-07 -> 2026-07-22 n=603
+[19:54:52] ✅   NYPD-PD_AFtD_CORS-A: 2015-01-07 -> 2026-07-22 n=603
+[19:54:52] ✅   NYPD-PD_AFtD_OMBS-A: 2015-01-07 -> 2026-07-22 n=603
+[19:54:52] ✅   NYPD-PD_AFtD_T-A: 2015-01-07 -> 2026-07-22 n=603
+[19:54:52] ✅   NYPD-PD_AFtD_TIPS-A: 2015-01-07 -> 2026-07-22 n=603
+[19:54:52] ✅   NYPD-PD_AFtD_TOT-A: 2015-01-07 -> 2026-07-22 n=603
+[19:54:52] ✅   NYPD-PD_AFtD_T_eTIPS-A: 2015-01-07 -> 2026-07-22 n=603
 
-→ Report written to aws/ops/reports/latest/4771_pd_1998_splice.md
+→ Report written to aws/ops/reports/latest/4773_pd_splice_live_verify.md
