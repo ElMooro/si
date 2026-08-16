@@ -171,6 +171,14 @@ def group_of(e):
         return "ICE BofA option-adjusted spreads (FRED)"
     if e.get("family") == "FREDREPO":
         return "FRED repo & SOFR complex"
+    if e.get("family") == "MMFRP":
+        return "MMF repo counterparties (OFR)"
+    if e.get("family") == "SPONSORED":
+        return "FICC sponsored repo"
+    if e.get("family") == "RATESPCT":
+        return "Rate percentiles (NY Fed)"
+    if e.get("family") == "SRF":
+        return "Standing Repo Facility"
     return "Other"
 
 
@@ -183,7 +191,7 @@ def lambda_handler(event, context):
     names = {}
     try:
         import urllib.request as _ur
-        for _ds in ("repo", "nypd", "fnyr"):
+        for _ds in ("repo", "nypd", "fnyr", "mmf"):
             _rq = _ur.Request("https://data.financialresearch.gov/v1/"
                                f"metadata/mnemonics?dataset={_ds}",
                                headers={"User-Agent":
@@ -431,8 +439,35 @@ def lambda_handler(event, context):
             return "Balance-sheet lines"
         return "Other repo series"
 
+    CORE = ["SOFR", "SOFR30DAYAVG", "SOFR90DAYAVG", "SOFR180DAYAVG",
+             "SOFRINDEX", "RRPONTSYD", "RRPONTSYAWARD", "RPONTSYD",
+             "RPONAGYD", "RPONMBSD", "WLRRAL", "WORAL", "IORB"]
+    if fred_key:
+        try:
+            import urllib.request as _ur
+            for _cid in CORE:
+                if _cid in frepo_meta:
+                    continue
+                try:
+                    with _ur.urlopen(_ur.Request(
+                            "https://api.stlouisfed.org/fred/series?"
+                            f"series_id={_cid}&api_key={fred_key}"
+                            "&file_type=json",
+                            headers={"User-Agent":
+                                      "JustHodl raafouis@gmail.com"}),
+                            timeout=30) as _r:
+                        _ss = json.loads(_r.read()).get("seriess") or []
+                    if _ss:
+                        frepo_meta[_cid] = str(
+                            _ss[0].get("title") or "")[:150]
+                except Exception:
+                    pass
+        except Exception:
+            pass
+    _order = [k for k in CORE if k in frepo_meta] +         sorted(k for k in frepo_meta if k not in CORE)
     frepo_added = 0
-    for fid, title in sorted(frepo_meta.items()):
+    for fid in _order:
+        title = frepo_meta[fid]
         if fid in have_ids or time.time() - t0 > 600:
             continue
         wkey = f"{FREPO_DIR}/{fid}.json"
@@ -488,6 +523,203 @@ def lambda_handler(event, context):
                        "tier": 1 if fid in ("SOFR", "RRPONTSYD") else 2})
         frepo_added += 1
 
+    # v2.0-A: surface already-banked OFR complexes -- MMF repo
+    # counterparties (dataset mmf) + FICC sponsored repo (HFM)
+    for _mm in ("MMF-MMF_RP_wFICC-M", "MMF-MMF_RP_wFR-M",
+                 "MMF-MMF_RP_wDFI-M", "MMF-MMF_RP_wFFI-M",
+                 "MMF-MMF_RP_wOCP-M"):
+        _k = f"data/warm/ofr/series/{_mm}.json.gz"
+        try:
+            s3.head_object(Bucket=BUCKET, Key=_k)
+            scope.append({"mnemonic": _mm, "name": "",
+                           "family": "MMFRP", "s3_key": _k, "tier": 2,
+                           "api_url": "https://data.financialresearch.gov"
+                                       f"/v1/series/full?mnemonic={_mm}"})
+        except Exception:
+            pass
+    for _fs, _fn in (("FICC-SPONSORED_REPO_VOL",
+                       "FICC Sponsored Service repo volume ($B)"),
+                      ("FICC-SPONSORED_REVREPO_VOL",
+                       "FICC Sponsored Service reverse repo volume ($B)")):
+        _k = f"data/warm/ofr-hfm/series/{_fs}.json.gz"
+        try:
+            s3.head_object(Bucket=BUCKET, Key=_k)
+            scope.append({"mnemonic": _fs, "name": _fn,
+                           "family": "SPONSORED", "s3_key": _k,
+                           "tier": 1,
+                           "api_url": "https://data.financialresearch.gov"
+                                       f"/hf/v1/series/full?mnemonic={_fs}"})
+        except Exception:
+            pass
+
+    # v2.0-B: NY Fed secured-rate PERCENTILES (SOFR/TGCR/BGCR) --
+    # banked + self-extending; P25/75/99 become first-class rows via
+    # pairs_inline (no doc round-trip needed)
+    import urllib.request as _ur2
+    RATES_DIR = "data/warm/nyfed-markets/rates"
+    PCT_FIELDS = {"25": ["percentPercentile25", "percentilePercent25"],
+                   "75": ["percentPercentile75", "percentilePercent75"],
+                   "99": ["percentPercentile99", "percentilePercent99"],
+                   "1": ["percentPercentile1", "percentilePercent1"]}
+    pct_pairs = {}
+    for _rt in ("sofr", "tgcr", "bgcr"):
+        _wk = f"{RATES_DIR}/{_rt}.json.gz"
+        _rows = {}
+        try:
+            _doc = sread(_wk)
+            for _r0 in _doc.get("rows") or []:
+                _rows[_r0.get("effectiveDate", "")[:10]] = _r0
+        except Exception:
+            pass
+        _last = max(_rows) if _rows else "2014-01-01"
+        _stale = (datetime.now(timezone.utc) -
+                   datetime.strptime(_last, "%Y-%m-%d")
+                   .replace(tzinfo=timezone.utc)).days > 1
+        if _stale:
+            try:
+                _u = ("https://markets.newyorkfed.org/api/rates/secured/"
+                      f"{_rt}/search.json?startDate={_last}"
+                      f"&endDate={now[:10]}")
+                with _ur2.urlopen(_ur2.Request(_u, headers={
+                        "User-Agent": "JustHodl raafouis@gmail.com"}),
+                        timeout=60) as _r:
+                    _js = json.loads(_r.read())
+                for _r0 in (_js.get("refRates") or []):
+                    _d = str(_r0.get("effectiveDate", ""))[:10]
+                    if _d:
+                        _rows[_d] = _r0
+                s3.put_object(Bucket=BUCKET, Key=_wk,
+                               Body=gzip.compress(json.dumps(
+                                   {"rate": _rt, "banked_at": now,
+                                     "rows": [
+                                         _rows[k] for k in sorted(_rows)]},
+                                   separators=(",", ":")).encode()),
+                               ContentType="application/json",
+                               ContentEncoding="gzip")
+            except Exception as _e:
+                print(f"[repo] rates {_rt}: {type(_e).__name__}")
+        for _pl, _cands in PCT_FIELDS.items():
+            _pp = {}
+            for _d, _r0 in _rows.items():
+                for _c in _cands:
+                    _v = _r0.get(_c)
+                    if _v is not None:
+                        try:
+                            _pp[_d] = float(_v)
+                        except Exception:
+                            pass
+                        break
+            if len(_pp) > 50:
+                _mn = f"{_rt.upper()}_P{_pl}"
+                pct_pairs[_mn] = sorted(_pp.items())
+                scope.append({"mnemonic": _mn,
+                               "name": f"NY Fed {_rt.upper()} "
+                                        f"{_pl}th percentile rate",
+                               "family": "RATESPCT", "tier": 2,
+                               "s3_key": _wk,
+                               "pairs_inline": pct_pairs[_mn],
+                               "api_url":
+                                   "https://markets.newyorkfed.org/api/"
+                                   f"rates/secured/{_rt}/search.json"})
+
+    # v2.0-C: Standing Repo Facility take-up + min bid rate from rp ops
+    srf_take = {}
+    srf_rate = {}
+    _srf_wk = "data/warm/nyfed-markets/rp-repo-history.json.gz"
+    _ops = {}
+    try:
+        _doc = sread(_srf_wk)
+        for _r0 in _doc.get("rows") or []:
+            _ops[str(_r0.get("operationDate", ""))[:10] +
+                  "|" + str(_r0.get("operationId", ""))] = _r0
+    except Exception:
+        pass
+    _lastd = max((k.split("|")[0] for k in _ops), default="2021-01-01")
+    try:
+        _u = ("https://markets.newyorkfed.org/api/rp/results/"
+              f"search.json?startDate={_lastd}&endDate={now[:10]}")
+        with _ur2.urlopen(_ur2.Request(_u, headers={
+                "User-Agent": "JustHodl raafouis@gmail.com"}),
+                timeout=90) as _r:
+            _js = json.loads(_r.read())
+        for _r0 in (_js.get("repo", {}).get("operations")
+                     or _js.get("operations") or []):
+            _ot = str(_r0.get("operationType", ""))
+            if "Repo" in _ot and "Reverse" not in _ot:
+                _ops[str(_r0.get("operationDate", ""))[:10] + "|" +
+                      str(_r0.get("operationId", ""))] = _r0
+        s3.put_object(Bucket=BUCKET, Key=_srf_wk,
+                       Body=gzip.compress(json.dumps(
+                           {"banked_at": now,
+                             "rows": list(_ops.values())},
+                           separators=(",", ":")).encode()),
+                       ContentType="application/json",
+                       ContentEncoding="gzip")
+    except Exception as _e:
+        print(f"[repo] srf: {type(_e).__name__}")
+    for _r0 in _ops.values():
+        _d = str(_r0.get("operationDate", ""))[:10]
+        try:
+            _amt = float(_r0.get("totalAmtAccepted") or 0)
+        except Exception:
+            _amt = 0.0
+        srf_take[_d] = srf_take.get(_d, 0.0) + _amt / 1e9
+        for _rf in ("minimumBidRate", "percentMinimumBidRate",
+                     "minBidRate"):
+            if _r0.get(_rf) is not None:
+                try:
+                    srf_rate[_d] = float(_r0[_rf])
+                except Exception:
+                    pass
+                break
+        if _d not in srf_rate:
+            for _dd in (_r0.get("details") or []):
+                for _rf in ("minimumBidRate", "percentMinimumBidRate"):
+                    if isinstance(_dd, dict) and _dd.get(_rf) is not None:
+                        try:
+                            srf_rate[_d] = float(_dd[_rf])
+                        except Exception:
+                            pass
+    if len(srf_take) > 20:
+        scope.append({"mnemonic": "SRF_TAKEUP",
+                       "name": "Standing Repo Facility total accepted "
+                                "($B/day, all repo ops)",
+                       "family": "SRF", "tier": 1,
+                       "s3_key": _srf_wk,
+                       "pairs_inline": sorted(srf_take.items()),
+                       "api_url": "https://markets.newyorkfed.org/api/rp/"
+                                   "results/search.json"})
+    if len(srf_rate) > 20:
+        scope.append({"mnemonic": "SRF_MINRATE",
+                       "name": "SRF minimum bid rate (%)",
+                       "family": "SRF", "tier": 2, "s3_key": _srf_wk,
+                       "pairs_inline": sorted(srf_rate.items()),
+                       "api_url": "https://markets.newyorkfed.org/api/rp/"
+                                   "results/search.json"})
+
+    # v2.0-D: DTCC daily Treasury fails -- attempt, honest skip
+    dtcc_status = "skipped"
+    for _du in ("https://www.dtcc.com/charts/daily-total-us-treasury-"
+                 "trade-fails.json",
+                 "https://www.dtcc.com/-/media/Files/Downloads/Charts/"
+                 "daily-treasury-fails.csv"):
+        try:
+            with _ur2.urlopen(_ur2.Request(_du, headers={
+                    "User-Agent": "JustHodl raafouis@gmail.com"}),
+                    timeout=30) as _r:
+                _raw = _r.read()
+            if len(_raw) > 500:
+                s3.put_object(Bucket=BUCKET,
+                               Key="data/warm/dtcc/daily-treasury-fails"
+                                    + (".json" if _du.endswith("json")
+                                       else ".csv"),
+                               Body=_raw)
+                dtcc_status = f"banked {len(_raw)}B from {_du[-40:]}"
+                break
+        except Exception:
+            continue
+    print(f"[repo] dtcc: {dtcc_status}")
+
     values = {}
     rows = []
     skipped = []
@@ -497,8 +729,11 @@ def lambda_handler(event, context):
             continue
         sid = safe_id(e["mnemonic"])
         try:
-            doc = sread(e["s3_key"])
-            pairs = extract_pairs(doc)
+            if e.get("pairs_inline"):
+                pairs = list(e["pairs_inline"])
+            else:
+                doc = sread(e["s3_key"])
+                pairs = extract_pairs(doc)
             sm = _spl.get(e["mnemonic"])
             if sm and pairs:
                 try:
@@ -542,6 +777,78 @@ def lambda_handler(event, context):
         except Exception as ex:
             skipped.append({"id": e["mnemonic"],
                              "reason": f"{type(ex).__name__}: {str(ex)[:60]}"})
+
+    # v2.0-E: DERIVED stress indicators -- first-class rows with full
+    # computed histories (formula in the name), from component pairs
+    def _pairs(mn):
+        return dict(values.get(mn, (None, None, []))[2] or [])
+
+    def _emit(mn, name, pairs, tier=1, unit=""):
+        if len(pairs) < 30:
+            return
+        pl = sorted(pairs.items())
+        last_d, last_v, chg = changes(pl)
+        sid = safe_id(mn)
+        s3.put_object(Bucket=BUCKET,
+                       Key=f"data/repo-history/{sid}.json",
+                       Body=json.dumps({"id": mn, "label": name,
+                                          "dates": [x[0] for x in pl],
+                                          "values": [x[1] for x in pl]},
+                                         separators=(",", ":")).encode(),
+                       ContentType="application/json",
+                       CacheControl="public, max-age=1800")
+        values[mn] = (last_d, last_v, pl)
+        rows.append({"id": mn, "sid": sid, "label": name,
+                      "group": "Derived stress indicators",
+                      "tier": tier, "n_obs": len(pl),
+                      "first": pl[0][0], "last": last_d,
+                      "last_value": last_v, "chg": chg})
+
+    def _spread(a, b, scale=100.0):
+        pa, pb = _pairs(a), _pairs(b)
+        return {d: (pa[d] - pb[d]) * scale for d in pa if d in pb}
+
+    _emit("D_SOFR_IORB", "SOFR − IORB (bps): GC repo vs reserves floor",
+           _spread("SOFR", "IORB"))
+    _emit("D_TGCR_IORB", "TGCR − IORB (bps)", _spread("FNYR-TGCR-A",
+                                                         "IORB"))
+    _emit("D_DVP_TRI", "DVP − Tri-party rate (bps): cleared-bilateral "
+           "premium", _spread("REPO-DVP_AR_TOT-P", "REPO-TRIV1_AR_TOT-P"))
+    _emit("D_GCF_TRI", "GCF − Tri-party rate (bps)",
+           _spread("REPO-GCF_AR_TOT-P", "REPO-TRIV1_AR_TOT-P"))
+    _emit("D_DVP_SOFR", "DVP − SOFR (bps): specials/scarcity tilt",
+           _spread("REPO-DVP_AR_TOT-P", "SOFR"))
+    _emit("D_TRI_TGCR", "Tri-party(TRIV1) − TGCR (bps)",
+           _spread("REPO-TRIV1_AR_TOT-P", "FNYR-TGCR-A"))
+    _p25, _p75 = _pairs("SOFR_P25"), _pairs("SOFR_P75")
+    _emit("D_SOFR_P75_P25", "SOFR P75 − P25 (bps): repo-rate "
+           "dispersion, tails widen before the median moves",
+           {d: (_p75[d] - _p25[d]) * 100 for d in _p75 if d in _p25})
+    _tvoo, _tvtot = _pairs("REPO-TRIV1_TV_OO-P"),         _pairs("REPO-TRIV1_TV_TOT-P")
+    _emit("D_ON_SHARE_TRI", "Overnight/Open share of tri-party volume "
+           "(%): rollover-risk gauge",
+           {d: _tvoo[d] / _tvtot[d] * 100 for d in _tvoo
+             if d in _tvtot and _tvtot[d]})
+    _ov = [_pairs(f"REPO-DVP_OV_{b}-P") for b in
+            ("OO", "B27", "B830", "G30", "LE30")]
+    _oo = _ov[0]
+    _emit("D_ON_SHARE_DVP", "Overnight/Open share of DVP outstanding "
+           "(%): rollover-risk gauge",
+           {d: _oo[d] / sum(x.get(d, 0) for x in _ov) * 100
+             for d in _oo if sum(x.get(d, 0) for x in _ov) > 0})
+    _ft, _tvt = _pairs("NYPD-PD_AFtD_T-A"), _pairs("REPO-TRIV1_TV_T-P")
+    _emit("D_FAILS_T_RATIO", "Treasury fails-to-deliver ÷ tri-party "
+           "Treasury volume (%, weekly, venue-proxy ratio)",
+           {d: _ft[d] / (_tvt[d] * 1e3) * 100 for d in _ft
+             if d in _tvt and _tvt[d]}, tier=2)
+    _rp = _pairs("NYPD-PD_RP_TOT-A") or _pairs("NYPD-PD_RP_T_TOT-A")
+    _rr = _pairs("NYPD-PD_RRP_TOT-A") or _pairs("NYPD-PD_RRP_T_TOT-A")
+    _emit("D_DEALER_NET", "Dealer repo − reverse repo ($M): net "
+           "financing imbalance", {d: _rp[d] - _rr[d]
+                                     for d in _rp if d in _rr})
+    _emit("D_SOFR_SRF", "SOFR − SRF min bid rate (bps): market vs "
+           "backstop; positive = knocking on the ceiling",
+           _spread("SOFR", "SRF_MINRATE"))
 
     # ── barometer: labeled, transparent heuristic ────────────────────
     def latest(m):
@@ -619,7 +926,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "1.8", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "2.0", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))
