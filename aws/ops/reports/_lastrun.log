@@ -1,14 +1,15 @@
-executing-against: 461858bf4af84047397f0fd5b059cc16775b72a8
-ops 4766 -- dollar fix verify (v1.1 retry-invoke)
-[18:35:02] attempt 0: v=1.1 series=296 secs=28.0
-[18:35:03]   still missing: DTWEXBGS cats_tried=[]
-[18:35:03]   still missing: RTWEXBGS cats_tried=[]
-[18:35:03]   still missing: DTWEXAFEGS cats_tried=[]
-[18:35:03]   still missing: DTWEXEMEGS cats_tried=[]
-[18:35:03]   still missing: DTWEXM cats_tried=[]
-[18:35:03]   still missing: DTWEXB cats_tried=[]
-[18:35:03]   still missing: TWEXBGSMTH cats_tried=[]
-[18:35:03]   still missing: TWEXAFEGSMTH cats_tried=[]
-[18:35:03]   still missing: TWEXEMEGSMTH cats_tried=[]
+executing-against: 62286add34b3be9517fb3d3bec7cdcdc41246deb
+ops 4766 -- dollar fix verify (v1.2 retry-invoke)
+[18:38:35] attempt 0: v=1.2 series=296 secs=27.3
 
-→ Report written to aws/ops/reports/latest/4766_repo_dollar_verify.md
+→ Report written to aws/ops/reports/latest/4767_repo_dollar_verify_v12.md
+ERROR:
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4767_repo_dollar_verify_v12.py", line 72, in <module>
+    main()
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4767_repo_dollar_verify_v12.py", line 53, in main
+    rep.log(f"  still missing: {m['id']} cats_tried={m['cats_tried']}")
+                                                     ~^^^^^^^^^^^^^^
+KeyError: 'cats_tried'
+
+❌ OPS-FAIL: aws/ops/pending/ops_4767_repo_dollar_verify_v12.py
