@@ -1,0 +1,21 @@
+{
+ "function_name": "justhodl-repo",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 1536,
+ "timeout": 900,
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "ops 4763: THE repo master engine -- all 300 inventory series + FRED dollar complex, D/W/M/Q/Y change grid, per-series history files for repo.html charts, transparent stress barometer -> data/repo.json daily.",
+ "eventbridge_rules": [
+  "justhodl-repo-daily"
+ ],
+ "env": {
+  "S3_BUCKET": "justhodl-dashboard-live"
+ },
+ "schedule": {
+  "name": "justhodl-repo-daily",
+  "expression": "cron(10 6 * * ? *)",
+  "description": "repo master board refresh -- after OFR/NY Fed morning updates"
+ }
+}
