@@ -1,35 +1,15 @@
-executing-against: f3cf53a25e68973ae3f839caaf82a3cb4f65f8eb
-ops 4781 -- fails legacy prepend (PDFAS family)
-[20:48:31] kids: PDFASCFDA, PDFASCFDC, PDFASCFRA, PDFASCFRC, PDFASFAFDA, PDFASFAFDC, PDFASFAFRA, PDFASFAFRC, PDFASMBFDA, PDFASMBFDC, PDFASMBFRA, PDFASMBFRC, PDFASUFDA, PDFASUFDC, PDFASUFRA, PDFASUFRC
-[20:48:31]   PDFASCFDA: 2001-07-04 -> 2013-03-27 n=613
-[20:48:31]   PDFASCFDC: 2001-07-11 -> 2013-03-27 n=612
-[20:48:31]   PDFASCFRA: 2001-07-04 -> 2013-03-27 n=613
-[20:48:31]   PDFASCFRC: 2001-07-11 -> 2013-03-27 n=612
-[20:48:34] ✅   NYPD-PD_AFtD_T-A: floor 1998-01-28 (+792 legacy obs)
-[20:48:34] ✅   NYPD-PD_AFtD_AG_eMBS-A: floor 1998-01-28 (+792 legacy obs)
-[20:48:34] ✅   NYPD-PD_AFtD_AG_MBS-A: floor 1998-01-28 (+792 legacy obs)
-[20:48:34] ✅   NYPD-PD_AFtD_CORS-A: floor 2001-07-04 (+613 legacy obs)
-[20:48:34] ✅   NYPD-PD_AFtD_AG-A: floor 1998-01-28 (+792 legacy obs)
-[20:48:34] ✅   NYPD-PD_AFtD_TOT-A: floor 2001-07-04 (+613 legacy obs)
-[20:48:34] ✅   NYPD-PD_AFtR_T-A: floor 1998-01-28 (+792 legacy obs)
-[20:48:34] ✅   NYPD-PD_AFtR_AG_eMBS-A: floor 1998-01-28 (+792 legacy obs)
-[20:48:34] ✅   NYPD-PD_AFtR_AG_MBS-A: floor 1998-01-28 (+792 legacy obs)
-[20:48:34] ✅   NYPD-PD_AFtR_CORS-A: floor 2001-07-04 (+613 legacy obs)
-[20:48:34] ✅   NYPD-PD_AFtR_AG-A: floor 1998-01-28 (+792 legacy obs)
-[20:48:34] ✅   NYPD-PD_AFtR_TOT-A: floor 2001-07-04 (+613 legacy obs)
+executing-against: 864eacdac3877f39a1eb2fa735879303baf86d1e
+ops 4783 -- splice live on the board?
+[20:51:27] attempt 0: v=1.5 series=305
+[20:51:27] ✅   NYPD-PD_AFtD_AG-A: 1998-01-28 -> 2026-07-22 n=1487
+[20:51:27] ✅   NYPD-PD_AFtD_AG_MBS-A: 1998-01-28 -> 2026-07-22 n=1487
+[20:51:27] ✅   NYPD-PD_AFtD_AG_eMBS-A: 1998-01-28 -> 2026-07-22 n=1487
+[20:51:27] ✅   NYPD-PD_AFtD_T-A: 1998-01-28 -> 2026-07-22 n=1487
+[20:51:27] ✅   NYPD-PD_AFtR_AG-A: 1998-01-28 -> 2026-07-22 n=1487
+[20:51:27] ✅   NYPD-PD_AFtR_AG_MBS-A: 1998-01-28 -> 2026-07-22 n=1487
+[20:51:27] ✅   NYPD-PD_AFtR_AG_eMBS-A: 1998-01-28 -> 2026-07-22 n=1487
+[20:51:27] ✅   NYPD-PD_AFtR_T-A: 1998-01-28 -> 2026-07-22 n=1487
+[20:51:27] ✅   NYPD-PD_RP_CORD_OO-A: 1998-01-28 -> 2021-12-29 n=1249
+[20:51:27] ✅   NYPD-PD_RRP_ABS_TOT-A: 1998-01-28 -> 2021-12-29 n=543
 
-→ Report written to aws/ops/reports/latest/4781_fails_legacy_prepend.md
-ops 4782 -- splice live on the board?
-[20:49:07] attempt 0: v=1.4 series=305
-[20:49:08] ✅   NYPD-PD_AFtD_AG-A: 1998-01-28 -> 2026-07-22 n=1487
-[20:49:08] ✅   NYPD-PD_AFtD_AG_MBS-A: 1998-01-28 -> 2026-07-22 n=1487
-[20:49:08] ✅   NYPD-PD_AFtD_AG_eMBS-A: 1998-01-28 -> 2026-07-22 n=1487
-[20:49:08] ✅   NYPD-PD_AFtD_T-A: 1998-01-28 -> 2026-07-22 n=1487
-[20:49:08] ✅   NYPD-PD_AFtR_AG-A: 1998-01-28 -> 2026-07-22 n=1487
-[20:49:08] ✅   NYPD-PD_AFtR_AG_MBS-A: 1998-01-28 -> 2026-07-22 n=1487
-[20:49:08] ✅   NYPD-PD_AFtR_AG_eMBS-A: 1998-01-28 -> 2026-07-22 n=1487
-[20:49:08] ✅   NYPD-PD_AFtR_T-A: 1998-01-28 -> 2026-07-22 n=1487
-[20:49:08] ✅   NYPD-PD_RP_CORD_OO-A: 1998-01-28 -> 2021-12-29 n=1249
-[20:49:08] ✅   NYPD-PD_RRP_ABS_TOT-A: 1998-01-28 -> 2021-12-29 n=543
-
-→ Report written to aws/ops/reports/latest/4782_final_verify.md
+→ Report written to aws/ops/reports/latest/4783_names_verify.md
