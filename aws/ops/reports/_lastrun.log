@@ -1,50 +1,12 @@
-executing-against: 02e5a4bb98884ee9a16efc7f013ea73ea91274ba
-ops 4752 -- NYPD fails verified + HFM/BSRM discovery+bank
-── A. Khalid's exact linked series ──
-[16:18:14] ✅ NYPD-PD_AFtR_TOT-A: ALREADY BANKED -- 605 obs, 2015-01-07 -> 2026-08-06
-── B. The whole NYPD fails family ──
-[16:18:14]   NYPD-PD_AFtD_AG-A
-[16:18:14]   NYPD-PD_AFtD_AG_MBS-A
-[16:18:14]   NYPD-PD_AFtD_AG_eMBS-A
-[16:18:14]   NYPD-PD_AFtD_CORS-A
-[16:18:14]   NYPD-PD_AFtD_OMBS-A
-[16:18:14]   NYPD-PD_AFtD_T-A
-[16:18:14]   NYPD-PD_AFtD_TIPS-A
-[16:18:14]   NYPD-PD_AFtD_TOT-A
-[16:18:14]   NYPD-PD_AFtD_T_eTIPS-A
-[16:18:14]   NYPD-PD_AFtR_AG-A
-[16:18:14]   NYPD-PD_AFtR_AG_MBS-A
-[16:18:14]   NYPD-PD_AFtR_AG_eMBS-A
-[16:18:14]   NYPD-PD_AFtR_CORS-A
-[16:18:14]   NYPD-PD_AFtR_OMBS-A
-[16:18:14]   NYPD-PD_AFtR_T-A
-[16:18:14]   NYPD-PD_AFtR_TIPS-A
-[16:18:14]   NYPD-PD_AFtR_TOT-A
-[16:18:14]   NYPD-PD_AFtR_T_eTIPS-A
-── C. Live catalog recount ──
-── HFM: discovery via page + bundles ──
-[16:18:15] https://www.financialresearch.gov/hedge-fund-monitor/ -> status=200 bytes=37156
-[16:18:15] bundle jquery.min.js -> status=200 bytes=87533
-[16:18:15] bundle bootstrap.min.js -> status=200 bytes=59401
-[16:18:15] bundle Universal-Federated-Analytics-Min.js?agency=TRE&subagen -> status=200 bytes=30229
-[16:18:15] bundle index-e9be130c.js -> status=200 bytes=53074
-[16:18:16] bundle ofr.min.js?202608141349 -> status=200 bytes=43578
-[16:18:16] bundle jquery-ui.min.js -> status=200 bytes=254961
-[16:18:16]   cand: https://touchpoints.app.cloud.gov/touchpoints/5fc4d26d/submissions.json
-[16:18:16] catalog probe /hf/v1/metadata/mnemonics -> status=200 bytes=16479
-[16:18:16] ✅ HFM: sibling catalog VALIDATED -- 497 mnemonics; banking each
-── BSRM: discovery via page + bundles ──
-[16:21:01] https://www.financialresearch.gov/bank-systemic-risk-monitor/ -> status=200 bytes=41431
-[16:21:01] bundle jquery.min.js -> status=200 bytes=87533
-[16:21:01] bundle bootstrap.min.js -> status=200 bytes=59401
-[16:21:02] bundle Universal-Federated-Analytics-Min.js?agency=TRE&subagen -> status=200 bytes=30229
-[16:21:02] bundle index-e9be130c.js -> status=200 bytes=53074
-[16:21:02] bundle ofr.min.js?202608141349 -> status=200 bytes=43578
-[16:21:02] bundle jquery-ui.min.js -> status=200 bytes=254961
-[16:21:02]   cand: /bank-systemic-risk-monitor/data/ofr_bsrm.xlsx
-[16:21:02]   cand: /bank-systemic-risk-monitor/data/ofr_bsrm_international_scores.xlsx
-[16:21:02]   cand: https://touchpoints.app.cloud.gov/touchpoints/5fc4d26d/submissions.json
-[16:21:02] catalog probe /hf/v1/metadata/mnemonics -> status=200 bytes=16479
-[16:21:02] ✅ BSRM: sibling catalog VALIDATED -- 497 mnemonics; banking each
+executing-against: 4e4158195e1f21e160ef1e78a1710030c73b2815
+ops 4753 -- BSRM workbooks banked, duplicate marked, HFM depth proven
+── A. Bank the two real BSRM workbooks ──
+[16:25:35] ✅ ofr_bsrm.xlsx: 597243 bytes banked (xlsx (PK magic)) -> data/warm/ofr-bsrm/ofr_bsrm.xlsx
+[16:25:36] ✅ ofr_bsrm_international_scores.xlsx: 161171 bytes banked (xlsx (PK magic)) -> data/warm/ofr-bsrm/ofr_bsrm_international_scores.xlsx
+── B. Mark the accidental duplicate sub-prefix ──
+[16:25:36] ✅ duplicate marker written
+── C. HFM depth proof ──
+[16:25:36] ✅ FICC-SPONSORED_REPO_VOL: 1579 distinct dates, 2020-03-23 -> 2026-07-20
+[16:25:36] ✅ FPF-STRATEGY_FUTURES_GNE_CHANGE: 3 distinct dates, 2024-03-31 -> 2026-06-04
 
-→ Report written to aws/ops/reports/latest/4752_ofr_nypd_fails_verify_and_hfm_bsrm.md
+→ Report written to aws/ops/reports/latest/4753_bsrm_finish_and_hfm_depth.md
