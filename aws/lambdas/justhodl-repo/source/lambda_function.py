@@ -218,6 +218,14 @@ def lambda_handler(event, context):
                                         + fid),
                            "tier": 1 if fid == "DTWEXBGS" else 2})
 
+    # v1.3: PD splice layer -- if ops 4772 published a verified map,
+    # NYPD rows prepend older-break history (scaled to OFR units)
+    try:
+        _spl = sread("data/warm/nyfed-markets/pd-splice-map.json"
+                      ).get("verified") or {}
+    except Exception:
+        _spl = {}
+
     values = {}
     rows = []
     skipped = []
@@ -229,6 +237,21 @@ def lambda_handler(event, context):
         try:
             doc = sread(e["s3_key"])
             pairs = extract_pairs(doc)
+            sm = _spl.get(e["mnemonic"])
+            if sm and pairs:
+                try:
+                    sp = sread("data/warm/nyfed-markets/pd-spliced/"
+                                f"{sm['keyid']}.json.gz")
+                    f = 1.0 / (sm.get("factor") or 1.0)
+                    first_have = pairs[0][0]
+                    pre = [(d0, v0 * f) for d0, v0 in
+                            zip(sp.get("dates") or [],
+                                sp.get("values") or [])
+                            if d0 < first_have]
+                    if pre:
+                        pairs = sorted(pre) + pairs
+                except Exception:
+                    pass
             if not pairs:
                 skipped.append({"id": e["mnemonic"],
                                  "reason": "no_pairs_extracted"})
@@ -331,7 +354,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "1.2", "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "1.3", "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))
