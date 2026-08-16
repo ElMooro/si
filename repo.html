@@ -7,46 +7,61 @@
 --amber:#F0B429;--grn:#6fce8a;--red:#E07A6A}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);
 font:14px/1.45 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-a{color:var(--amber);text-decoration:none}
-.wrap{max-width:1280px;margin:0 auto;padding:18px}
-h1{font-size:20px;margin:0 0 2px;letter-spacing:.5px}
-.sub{color:var(--dim);font-size:12px;margin-bottom:14px}
+.wrap{max-width:1320px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0;letter-spacing:.5px}
+.sub{color:var(--dim);font-size:12px;margin:2px 0 12px}
 .baro{background:var(--panel);border:1px solid var(--line);border-radius:10px;
-padding:14px;margin-bottom:14px}
-.score{font-size:34px;font-weight:700}
+padding:12px 14px;margin-bottom:12px}
+.score{font-size:32px;font-weight:700}
 .score .lbl{font-size:13px;font-weight:600;margin-left:10px;padding:3px 10px;
 border-radius:20px;vertical-align:middle}
-.gauge{height:8px;background:#1a2028;border-radius:6px;margin:10px 0 12px;position:relative}
+.gauge{height:8px;background:#1a2028;border-radius:6px;margin:10px 0 10px;position:relative}
 .gauge i{position:absolute;top:-4px;width:4px;height:16px;background:var(--tx);border-radius:2px}
 .comps{display:flex;flex-wrap:wrap;gap:8px}
 .chip{background:#161b22;border:1px solid var(--line);border-radius:8px;
-padding:6px 10px;font-size:12px}
-.chip b{font-size:12px}.chip .z{margin-left:6px;color:var(--dim)}
+padding:5px 10px;font-size:12px}
+.chip .z{margin-left:6px;color:var(--dim)}
 .chip .note{display:block;color:var(--dim);font-size:11px;margin-top:2px;max-width:230px}
-.ctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0 10px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;position:sticky;top:0;
+background:var(--bg);padding:8px 0;z-index:5;border-bottom:1px solid var(--line)}
+.tab{background:#161b22;border:1px solid var(--line);color:var(--dim);border-radius:8px;
+padding:6px 12px;font-size:12px;cursor:pointer;white-space:nowrap}
+.tab.on{color:#0c0f13;background:var(--amber);border-color:var(--amber);font-weight:700}
+.tab .n{opacity:.75;font-size:11px;margin-left:4px}
+.ctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
 input[type=search]{background:#0f1319;border:1px solid var(--line);color:var(--tx);
-border-radius:8px;padding:8px 12px;width:280px;font-size:13px}
+border-radius:8px;padding:8px 12px;width:300px;font-size:13px}
 .gbtn{background:#161b22;border:1px solid var(--line);color:var(--dim);border-radius:16px;
 padding:5px 12px;font-size:12px;cursor:pointer}
 .gbtn.on{color:#0c0f13;background:var(--amber);border-color:var(--amber);font-weight:600}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin:12px 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+padding:12px;cursor:pointer}
+.card:hover{border-color:#2c3542}
+.card h3{margin:0 0 4px;font-size:13px;color:var(--amber)}
+.card .cnt{color:var(--dim);font-size:11px}
+.card .mv{margin-top:8px;font-size:12px}
+.sec{color:var(--amber);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;
+margin:18px 0 6px}
+.subhead td{color:var(--amber)!important;font-size:11px;letter-spacing:1px;
+text-transform:uppercase;background:#10141a}
 table{width:100%;border-collapse:collapse;background:var(--panel);
-border:1px solid var(--line);border-radius:10px;overflow:hidden}
+border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px}
 th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line);
 font-variant-numeric:tabular-nums;white-space:nowrap}
 th{background:#10141a;color:var(--dim);font-size:11px;text-transform:uppercase;
-letter-spacing:.6px;cursor:pointer;user-select:none;position:sticky;top:0}
-td:first-child,th:first-child{text-align:left;max-width:430px;overflow:hidden;
-text-overflow:ellipsis}
+letter-spacing:.6px;cursor:pointer;user-select:none}
+td.namecell,th.namecell{text-align:left;max-width:460px;overflow:hidden;text-overflow:ellipsis}
 tr.row{cursor:pointer}tr.row:hover{background:#151b23}
+tr.row:nth-child(even){background:#10151b}
 .pos{color:var(--grn)}.neg{color:var(--red)}.na{color:#4a5560}
-.grp{color:var(--amber);font-size:11px;letter-spacing:1px;text-transform:uppercase}
 .tag{font-size:10px;color:var(--dim)}
 #ovl{position:fixed;inset:0;background:rgba(5,7,10,.86);display:none;z-index:50}
 #ovl.on{display:flex;align-items:center;justify-content:center}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+.pane{background:var(--panel);border:1px solid var(--line);border-radius:12px;
 width:min(1080px,94vw);padding:16px}
-.card h2{margin:0;font-size:15px}
-.card .meta{color:var(--dim);font-size:12px;margin:2px 0 10px}
+.pane h2{margin:0;font-size:15px}
+.pane .meta{color:var(--dim);font-size:12px;margin:2px 0 10px}
 .modes{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
 .modes button{background:#161b22;border:1px solid var(--line);color:var(--dim);
 border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer}
@@ -54,27 +69,30 @@ border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer}
 #cv{width:100%;height:420px;display:block;background:#0d1117;border:1px solid var(--line);
 border-radius:8px}
 .x{float:right;background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer}
-.foot{color:var(--dim);font-size:11px;margin-top:14px}
+.foot{color:var(--dim);font-size:11px;margin:16px 0}
 .err{color:var(--red);padding:20px}
 </style></head><body><div class="wrap">
 <h1>REPO · Master Board</h1>
 <div class="sub" id="asof">loading /data/repo.json …</div>
+
 <div class="baro" id="baro" style="display:none">
   <span class="score" id="score"></span><span class="lbl" id="slbl"></span>
   <div class="gauge"><i id="pin" style="left:50%"></i></div>
   <div class="comps" id="comps"></div>
 </div>
+
+<div class="tabs" id="tabs"></div>
 <div class="ctrl">
-  <input type="search" id="q" placeholder="search 300+ series… (mnemonic, name, group)">
-  <button class="gbtn" id="starbtn">★ starred only</button> <span id="gchips"></span>
+  <input type="search" id="q" placeholder="search all series… (searches every tab)">
+  <button class="gbtn" id="starbtn">★ starred only</button>
 </div>
-<div id="tbl"></div>
-<div class="foot">Every value from the permanent warm bank · engine: justhodl-repo (daily 06:10 UTC)
-· pop = vs previous observation · W/M/Q/Y = vs the series' own value 7/30/91/365 calendar days back
-· barometer = labeled heuristic (50 + 10·mean clipped z), components above · click any row for the full-history chart.</div>
+<div id="main"></div>
+<div class="foot">Every value from the permanent warm bank · engine justhodl-repo (daily 06:10 UTC) ·
+D% = vs previous observation · W/M/Q/Y% = vs the series' own value 7/30/91/365 calendar days back ·
+★ + red tag = your barometer inputs · click any row for its full-history chart with % views.</div>
 </div>
 
-<div id="ovl"><div class="card">
+<div id="ovl"><div class="pane">
   <button class="x" onclick="closeOvl()">✕</button>
   <h2 id="ct"></h2><div class="meta" id="cm"></div>
   <div class="modes" id="modes"></div>
@@ -86,50 +104,68 @@ border-radius:8px}
 const fmt=(v,d=3)=>v==null?"—":(+v).toLocaleString(undefined,{maximumFractionDigits:d});
 const cls=v=>v==null?"na":v>0?"pos":v<0?"neg":"";
 const pc=v=>v==null?"—":(v>0?"+":"")+(+v).toFixed(2)+"%";
-let DATA=null,rows=[],activeGroups=new Set(),sortK="tier",sortA=true,starOnly=false;
+let DATA=null,rows=[],TAB='overview',sortK='tier',sortA=true,starOnly=false;
 let FAV={};try{FAV=JSON.parse(localStorage.getItem('repoFavs')||'{}')}catch(e){}
 const saveFav=()=>localStorage.setItem('repoFavs',JSON.stringify(FAV));
 const COLORS=[null,'red','amber','green'];
 const dot=c=>c==='red'?'#E07A6A':c==='amber'?'#F0B429':c==='green'?'#6fce8a':'#3a4250';
-const HCACHE={};
+
+const GORDER=["Reference rates & volumes","Tri-party (TRIV1, ex-Fed)","DVP bilateral cleared",
+"GCF","Primary dealer FAILS","Primary dealer financing","Tri-party (TRI legacy)",
+"Dollar (FRED trade-weighted)","ICE BofA option-adjusted spreads (FRED)"];
+const SHORT={"Reference rates & volumes":"Ref rates","Tri-party (TRIV1, ex-Fed)":"Tri-party",
+"DVP bilateral cleared":"DVP","GCF":"GCF","Primary dealer FAILS":"PD fails",
+"Primary dealer financing":"PD financing","Tri-party (TRI legacy)":"TRI legacy",
+"Dollar (FRED trade-weighted)":"Dollar","ICE BofA option-adjusted spreads (FRED)":"ICE BofA"};
+
+function subgroup(r){
+  const id=r.id, g=r.group;
+  if(g.startsWith("ICE BofA")){
+    if(/^BAMLH0|^BAMLHYH/.test(id))return"US High Yield";
+    if(/^BAMLC/.test(id))return"US Investment Grade";
+    if(/^BAMLEM/.test(id))return"Emerging Markets";
+    if(/^BAMLHE/.test(id))return"Euro High Yield";
+    if(/^BAMLE/.test(id))return"Euro / Global IG";
+    return"Other indices";}
+  if(g==="Primary dealer FAILS")return id.includes("AFtD")?"Fails to DELIVER":"Fails to RECEIVE";
+  if(g==="Primary dealer financing")return id.includes("_RRP_")?"Reverse repo (securities in)":"Repo (securities out)";
+  if(/Tri-party|DVP|GCF/.test(g)){
+    if(id.includes("_AR_"))return"Average rates";
+    if(id.includes("_TV_"))return"Transaction volumes";
+    if(id.includes("_OV_"))return"Outstanding volumes";
+    return"Other";}
+  if(g.startsWith("Dollar"))return/MTH$|^RTWEX/.test(id)?"Monthly / real":"Daily nominal";
+  if(g.startsWith("Reference"))return id.includes("_UV")?"Underlying volumes":"Rates";
+  return"";
+}
 
 fetch('/data/repo.json?t='+Date.now()).then(r=>r.json()).then(d=>{
-  DATA=d;
+  DATA=d;rows=[];
+  (d.groups||[]).forEach(g=>g.series.forEach(s=>{s.group=g.name;s.sub=subgroup(s);rows.push(s);}));
   document.getElementById('asof').textContent=
-    `as of ${d.as_of} · ${d.counts.series} series · ${d.counts.skipped} skipped · barometer components below`;
-  renderBaro();
-  const b=d.barometer||{};
-  if(false&&b.score!=null){
-    const el=document.getElementById('baro');el.style.display='block';
-    document.getElementById('score').textContent=b.score;
-    const L=document.getElementById('slbl');L.textContent=b.label;
-    L.style.background=b.score<45?'#12351f':b.score<55?'#1a2028':b.score<65?'#3a2f12':'#3a1a15';
-    L.style.color=b.score<45?'var(--grn)':b.score<65?'var(--amber)':'var(--red)';
-    document.getElementById('pin').style.left=Math.max(1,Math.min(99,b.score))+'%';
-    document.getElementById('comps').innerHTML=(b.components||[]).map(c=>
-      `<span class="chip"><b>${c.name}</b>: <span class="${cls(c.z)}">${fmt(c.value)}${c.unit?' '+c.unit:''}</span><span class="z">z ${fmt(c.z,2)}</span><span class="note">${c.note}</span></span>`).join('');
-  }
-  rows=[];(d.groups||[]).forEach(g=>g.series.forEach(s=>{s.group=g.name;rows.push(s);}));
-  renderBaro();
-  const gs=[...new Set(rows.map(r=>r.group))];
-  document.getElementById('gchips').innerHTML=gs.map(g=>
-    `<button class="gbtn" data-g="${g}">${g}</button>`).join(' ');
-  document.querySelectorAll('.gbtn').forEach(b=>b.onclick=()=>{
-    const g=b.dataset.g;
-    if(activeGroups.has(g)){activeGroups.delete(g);b.classList.remove('on');}
-    else{activeGroups.add(g);b.classList.add('on');}
-    render();});
-  document.getElementById('q').oninput=render;
-  document.getElementById('starbtn').onclick=()=>{starOnly=!starOnly;document.getElementById('starbtn').classList.toggle('on',starOnly);render();};
-  render();
-}).catch(e=>{document.getElementById('tbl').innerHTML=
-  `<div class="err">failed to load /data/repo.json — engine may not have run yet (${e})</div>`;});
+    `as of ${d.as_of} · ${rows.length} series across ${d.groups.length} groups · ${d.counts.skipped} skipped (empty at source)`;
+  renderTabs();renderBaro();render();
+  document.getElementById('q').oninput=()=>render();
+  document.getElementById('starbtn').onclick=()=>{starOnly=!starOnly;
+    document.getElementById('starbtn').classList.toggle('on',starOnly);render();};
+}).catch(e=>{document.getElementById('main').innerHTML=
+  `<div class="err">failed to load /data/repo.json (${e})</div>`;});
 
+function renderTabs(){
+  const gs=GORDER.filter(g=>rows.some(r=>r.group===g));
+  rows.forEach(r=>{if(!gs.includes(r.group))gs.push(r.group);});
+  const t=[['overview','Overview',rows.length],...gs.map(g=>[g,SHORT[g]||g,
+    rows.filter(r=>r.group===g).length])];
+  document.getElementById('tabs').innerHTML=t.map(([k,lab,n])=>
+    `<button class="tab ${TAB===k?'on':''}" data-t="${k}">${lab}<span class="n">${n}</span></button>`).join('');
+  document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;
+    document.getElementById('q').value='';renderTabs();render();window.scrollTo(0,0);});
+}
 
 function renderBaro(){
   const el=document.getElementById('baro');el.style.display='block';
   const sel=rows.filter(r=>{const f=FAV[r.id];return f&&f.star&&f.color==='red';});
-  let score,label,capt,comps;
+  let score,capt,comps;
   if(sel.length){
     const zs=sel.map(r=>{const m=(r.chg||{}).m;return m==null?null:Math.max(-3,Math.min(3,m/10));}).filter(z=>z!=null);
     score=zs.length?Math.round((50+10*zs.reduce((a,b)=>a+b,0)/zs.length)*10)/10:null;
@@ -140,7 +176,7 @@ function renderBaro(){
     capt='Default engine barometer (7 fixed components). ★ a metric and tag it red to build YOUR barometer — only red-starred metrics are counted.';
     comps=(b.components||[]).map(c=>`<span class="chip"><b>${c.name}</b>: <span class="${cls(c.z)}">${fmt(c.value)}${c.unit?' '+c.unit:''}</span><span class="z">z ${fmt(c.z,2)}</span><span class="note">${c.note}</span></span>`).join('');
   }
-  label=score==null?'—':score<45?'CALM':score<55?'NORMAL':score<65?'TIGHTENING':'STRESS';
+  const label=score==null?'—':score<45?'CALM':score<55?'NORMAL':score<65?'TIGHTENING':'STRESS';
   document.getElementById('score').textContent=score==null?'—':score;
   const L=document.getElementById('slbl');L.textContent=label;
   L.style.background=score<45?'#12351f':score<55?'#1a2028':score<65?'#3a2f12':'#3a1a15';
@@ -150,46 +186,83 @@ function renderBaro(){
     `<div style="width:100%;color:var(--dim);font-size:12px;margin-bottom:6px">${capt}</div>`+comps;
 }
 
-function render(){
-  const q=(document.getElementById('q').value||'').toLowerCase();
-  let rs=rows.filter(r=>(!starOnly||((FAV[r.id]||{}).star))&&(!activeGroups.size||activeGroups.has(r.group))&&
-    (!q||(r.id+' '+(r.label||'')+' '+r.group).toLowerCase().includes(q)));
+function tableFor(rs,withGroupCol){
   const kv=r=>{const c=r.chg||{};return({tier:r.tier,id:r.id,last:r.last_value,
     d:c.pop,w:c.w,m:c.m,q:c.q,y:c.y})[sortK];};
-  rs.sort((a,b)=>{const x=kv(a),y=kv(b);
+  rs=[...rs].sort((a,b)=>{const x=kv(a),y=kv(b);
     if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;
     return (x<y?-1:x>y?1:0)*(sortA?1:-1);});
-  const H=(k,t)=>`<th data-k="${k}">${t}${sortK===k?(sortA?' ▲':' ▼'):''}</th>`;
-  let html=`<table><thead><tr><th></th>${H('id','Series')}${H('last','Last')}<th>Date</th>${H('d','D%')}${H('w','W%')}${H('m','M%')}${H('q','Q%')}${H('y','Y%')}</tr></thead><tbody>`;
-  let g0=null;
-  rs.forEach(r=>{const c=r.chg||{};
-    if(r.group!==g0){g0=r.group;html+=`<tr><td colspan="9" class="grp">${g0}</td></tr>`;}
-    const fv=FAV[r.id]||{};
-    html+=`<tr class="row" data-sid="${r.sid}" data-id="${r.id}">`+
+  const H=(k,t,c)=>`<th class="${c||''}" data-k="${k}">${t}${sortK===k?(sortA?' ▲':' ▼'):''}</th>`;
+  let h=`<table><thead><tr><th></th>${H('id','Series','namecell')}${withGroupCol?'<th>Group</th>':''}${H('last','Last')}<th>Date</th>${H('d','D%')}${H('w','W%')}${H('m','M%')}${H('q','Q%')}${H('y','Y%')}</tr></thead><tbody>`;
+  let sub0=null;const cols=withGroupCol?10:9;
+  rs.forEach(r=>{const c=r.chg||{};const fv=FAV[r.id]||{};
+    if(!withGroupCol&&r.sub&&r.sub!==sub0){sub0=r.sub;
+      h+=`<tr class="subhead"><td colspan="${cols}">${sub0}</td></tr>`;}
+    h+=`<tr class="row" data-sid="${r.sid}" data-id="${r.id}">`+
       `<td onclick="event.stopPropagation()" style="white-space:nowrap">`+
       `<span class="starb" data-id="${r.id}" style="cursor:pointer;color:${fv.star?'var(--amber)':'#3a4250'}">${fv.star?'★':'☆'}</span> `+
       `<span class="colb" data-id="${r.id}" title="tag color" style="cursor:pointer;display:inline-block;width:11px;height:11px;border-radius:50%;background:${dot(fv.color)}"></span></td>`+
-      `<td><b>${r.id}</b>${(r.tenor||r.collateral)?` <span class="tag">[${[r.tenor,r.collateral].filter(Boolean).join(' · ')}]</span>`:''}<br><span class="tag" style="font-size:11px">${r.label||'—'}</span></td>`+
+      `<td class="namecell"><b>${r.id}</b>${(r.tenor||r.collateral)?` <span class="tag">[${[r.tenor,r.collateral].filter(Boolean).join(' · ')}]</span>`:''}<br><span class="tag" style="font-size:11px">${r.label||'—'}</span></td>`+
+      (withGroupCol?`<td class="tag">${SHORT[r.group]||r.group}</td>`:'')+
       `<td>${fmt(r.last_value)}</td><td class="tag">${r.last||''}</td>`+
       `<td class="${cls(c.pop)}">${pc(c.pop)}</td><td class="${cls(c.w)}">${pc(c.w)}</td>`+
       `<td class="${cls(c.m)}">${pc(c.m)}</td><td class="${cls(c.q)}">${pc(c.q)}</td>`+
       `<td class="${cls(c.y)}">${pc(c.y)}</td></tr>`;});
-  html+='</tbody></table>';
-  const el=document.getElementById('tbl');el.innerHTML=html;
+  return h+'</tbody></table>';
+}
+
+function wire(el){
   el.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{
     const k=th.dataset.k;if(sortK===k)sortA=!sortA;else{sortK=k;sortA=(k==='id'||k==='tier');}
     render();});
-  el.querySelectorAll('.starb').forEach(b=>b.onclick=()=>{const id=b.dataset.id;FAV[id]=FAV[id]||{};FAV[id].star=!FAV[id].star;saveFav();render();renderBaro();});
-  el.querySelectorAll('.colb').forEach(b=>b.onclick=()=>{const id=b.dataset.id;FAV[id]=FAV[id]||{};const i=COLORS.indexOf(FAV[id].color||null);FAV[id].color=COLORS[(i+1)%COLORS.length];saveFav();render();renderBaro();});
-  el.querySelectorAll('tr.row').forEach(tr=>tr.onclick=()=>{const rr=rows.find(x=>x.sid===tr.dataset.sid);window._cn=rr?rr.label:'';openChart(tr.dataset.sid,tr.dataset.id);});
+  el.querySelectorAll('.starb').forEach(b=>b.onclick=()=>{const id=b.dataset.id;
+    FAV[id]=FAV[id]||{};FAV[id].star=!FAV[id].star;saveFav();render();renderBaro();});
+  el.querySelectorAll('.colb').forEach(b=>b.onclick=()=>{const id=b.dataset.id;
+    FAV[id]=FAV[id]||{};const i=COLORS.indexOf(FAV[id].color||null);
+    FAV[id].color=COLORS[(i+1)%COLORS.length];saveFav();render();renderBaro();});
+  el.querySelectorAll('tr.row').forEach(tr=>tr.onclick=()=>{
+    const rr=rows.find(x=>x.sid===tr.dataset.sid);window._cn=rr?rr.label:'';
+    openChart(tr.dataset.sid,tr.dataset.id);});
 }
 
-/* ── chart overlay ─────────────────────────────────────────────── */
-let CUR=null,MODE='level';
+function render(){
+  const q=(document.getElementById('q').value||'').toLowerCase();
+  const el=document.getElementById('main');
+  let pool=rows.filter(r=>(!starOnly||((FAV[r.id]||{}).star)));
+  if(q){
+    const rs=pool.filter(r=>(r.id+' '+(r.label||'')+' '+r.group).toLowerCase().includes(q));
+    el.innerHTML=`<div class="sec">Search results — ${rs.length} series (all groups)</div>`+
+      tableFor(rs,true);wire(el);return;
+  }
+  if(TAB==='overview'){
+    let h='';
+    const starred=pool.filter(r=>(FAV[r.id]||{}).star);
+    if(starred.length){h+=`<div class="sec">★ Your watchlist (${starred.length})</div>`+tableFor(starred,true);}
+    const dials=pool.filter(r=>r.tier===1);
+    h+=`<div class="sec">Key dials (tier-1)</div>`+tableFor(dials,true);
+    h+=`<div class="sec">Groups</div><div class="cards">`;
+    GORDER.filter(g=>rows.some(r=>r.group===g)).forEach(g=>{
+      const gs=rows.filter(r=>r.group===g);
+      const mv=[...gs].filter(r=>(r.chg||{}).m!=null).sort((a,b)=>Math.abs(b.chg.m)-Math.abs(a.chg.m))[0];
+      h+=`<div class="card" data-g="${g}"><h3>${g}</h3><div class="cnt">${gs.length} series</div>`+
+        (mv?`<div class="mv">top 30-day mover: <b>${mv.id}</b> <span class="${cls(mv.chg.m)}">${pc(mv.chg.m)}</span></div>`:'')+`</div>`;});
+    h+='</div>';
+    el.innerHTML=h;wire(el);
+    el.querySelectorAll('.card').forEach(c=>c.onclick=()=>{TAB=c.dataset.g;renderTabs();render();window.scrollTo(0,0);});
+    return;
+  }
+  const rs=pool.filter(r=>r.group===TAB)
+    .sort((a,b)=>(a.sub||'').localeCompare(b.sub||'')||a.id.localeCompare(b.id));
+  el.innerHTML=`<div class="sec">${TAB} — ${rs.length} series</div>`+tableFor(rs,false);
+  wire(el);
+}
+
+/* ── chart overlay (unchanged mechanics) ───────────────────────── */
+let CUR=null,MODE='level';const HCACHE={};
 const MODES=[['level','Level'],['d','D%'],['w','W%'],['m','M%'],['q','Q%'],['y','Y%']];
 function openChart(sid,id){
   document.getElementById('ovl').classList.add('on');
-  document.getElementById('ct').textContent=id;window._cn&&(document.getElementById('ct').textContent=id+' — '+window._cn);
+  document.getElementById('ct').textContent=id+(window._cn?' — '+window._cn:'');
   document.getElementById('cm').textContent='loading full history…';
   document.getElementById('modes').innerHTML=MODES.map(([k,t])=>
     `<button data-m="${k}" class="${k===MODE?'on':''}">${t}</button>`).join('');
@@ -207,8 +280,7 @@ function openChart(sid,id){
 }
 function closeOvl(){document.getElementById('ovl').classList.remove('on');}
 document.getElementById('ovl').addEventListener('click',e=>{if(e.target.id==='ovl')closeOvl();});
-
-function series(){ // transform per MODE, client-side, calendar lookback
+function series(){
   const D=CUR.dates,V=CUR.values;
   if(MODE==='level')return{D,V,unit:''};
   if(MODE==='d'){const d=[],v=[];for(let i=1;i<V.length;i++){if(V[i-1]){d.push(D[i]);v.push((V[i]/V[i-1]-1)*100);}}return{D:d,V:v,unit:'%'};}
@@ -245,7 +317,6 @@ function draw(){
   const lv=V[V.length-1];
   g.fillStyle=g.strokeStyle;
   g.fillText((unit?pc(lv):fmt(lv)),W-P.r-70,Y(lv)-6);
-  // hover
   cv.onmousemove=e=>{draw._hover&&draw();const r=cv.getBoundingClientRect();
     const fx=(e.clientX-r.left);let i=Math.round((fx-P.l)/(W-P.l-P.r)*(V.length-1));
     i=Math.max(0,Math.min(V.length-1,i));draw._hover=true;
