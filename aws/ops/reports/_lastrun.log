@@ -1,9 +1,31 @@
-executing-against: e24b8687d452f87b7f44f1f90a178024bc7f4605
-ops 4778 -- pd master dump: fetch, bank, census
-[20:41:48] ✅ banked all-timeseries.csv.gz (4093317 bytes gz)
-[20:41:48] columns: As Of Date, Time Series, Value (millions)
-[20:41:49] SBP2001 fails-ish (0): 
-[20:41:49] SBP2013 fails-ish (0): 
-[20:41:49] SBP2001 first 40 kids: 
+executing-against: d7bf6fd5b71a216d89c593c248344f616955fae8
+ops 4779 -- splice v4 from the banked master dump
+── A. dump census (correct columns) ──
+[20:43:49]   PDFTD-UST: 2013-04-03 -> 2026-08-05 n=697
+[20:43:49]   PDFTD-USTET: 2013-04-03 -> 2026-08-05 n=697
+[20:43:49]   PDFTD-FGM: 2013-04-03 -> 2026-08-05 n=697
+[20:43:49]   PDFTD-FGEM: 2013-04-03 -> 2026-08-05 n=697
+[20:43:49]   PDFTD-CS: 2013-04-03 -> 2026-08-05 n=697
+[20:43:49]   PDFTD-OM: 2013-04-03 -> 2026-08-05 n=697
+── B. rebuild mapped docs from the dump ──
+── C. financing expansion (dump brute) ──
+[20:44:18] ✅   NYPD-PD_AFtD_TIPS-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtD_T_eTIPS-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtD_AG_MBS-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtD_AG_eMBS-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtD_CORS-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtD_OMBS-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtD_T-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtD_AG-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtD_TOT-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtR_TIPS-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtR_T_eTIPS-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtR_AG_MBS-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtR_AG_eMBS-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtR_CORS-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtR_OMBS-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtR_T-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtR_AG-A: floor 2013-04-03
+[20:44:18] ✅   NYPD-PD_AFtR_TOT-A: floor 2013-04-03
 
-→ Report written to aws/ops/reports/latest/4778_pd_all_dump.md
+→ Report written to aws/ops/reports/latest/4779_splice_from_dump.md
