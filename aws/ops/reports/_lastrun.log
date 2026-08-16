@@ -1,16 +1,22 @@
-executing-against: b24a84c636af89abb2fb421266d1af3bc1b806c3
-ops 4785 -- splice live on the board?
-[21:05:06] attempt 0: v=1.7 series=497
-[21:05:06] ✅   NYPD-PD_AFtD_AG-A: 1998-01-28 -> 2026-07-22 n=1487
-[21:05:06] ✅   NYPD-PD_AFtD_AG_MBS-A: 1998-01-28 -> 2026-07-22 n=1487
-[21:05:06] ✅   NYPD-PD_AFtD_AG_eMBS-A: 1998-01-28 -> 2026-07-22 n=1487
-[21:05:06] ✅   NYPD-PD_AFtD_T-A: 1998-01-28 -> 2026-07-22 n=1487
-[21:05:06] ✅   NYPD-PD_AFtR_AG-A: 1998-01-28 -> 2026-07-22 n=1487
-[21:05:06] ✅   NYPD-PD_AFtR_AG_MBS-A: 1998-01-28 -> 2026-07-22 n=1487
-[21:05:06] ✅   NYPD-PD_AFtR_AG_eMBS-A: 1998-01-28 -> 2026-07-22 n=1487
-[21:05:06] ✅   NYPD-PD_AFtR_T-A: 1998-01-28 -> 2026-07-22 n=1487
-[21:05:06] ✅   NYPD-PD_RP_CORD_OO-A: 1998-01-28 -> 2021-12-29 n=1249
-[21:05:06] ✅   NYPD-PD_RRP_ABS_TOT-A: 1998-01-28 -> 2021-12-29 n=543
-[21:05:06] ✅ BAMLH0A0HYM2: 1996-12-31 -> 2026-08-13 n=7735 m%=-0.368
+executing-against: cd77d39c222993c488106c8a7df5aa1413db5a6d
+ops 4786 -- splice live on the board?
+[21:46:25] attempt 0: v=1.8 series=1058
+[21:46:25] ✅   NYPD-PD_AFtD_AG-A: 1998-01-28 -> 2026-07-22 n=1487
+[21:46:25] ✅   NYPD-PD_AFtD_AG_MBS-A: 1998-01-28 -> 2026-07-22 n=1487
+[21:46:25] ✅   NYPD-PD_AFtD_AG_eMBS-A: 1998-01-28 -> 2026-07-22 n=1487
+[21:46:25] ✅   NYPD-PD_AFtD_T-A: 1998-01-28 -> 2026-07-22 n=1487
+[21:46:25] ✅   NYPD-PD_AFtR_AG-A: 1998-01-28 -> 2026-07-22 n=1487
+[21:46:25] ✅   NYPD-PD_AFtR_AG_MBS-A: 1998-01-28 -> 2026-07-22 n=1487
+[21:46:25] ✅   NYPD-PD_AFtR_AG_eMBS-A: 1998-01-28 -> 2026-07-22 n=1487
+[21:46:25] ✅   NYPD-PD_AFtR_T-A: 1998-01-28 -> 2026-07-22 n=1487
+[21:46:25] ✅   NYPD-PD_RP_CORD_OO-A: 1998-01-28 -> 2021-12-29 n=1249
+[21:46:25] ✅   NYPD-PD_RRP_ABS_TOT-A: 1998-01-28 -> 2021-12-29 n=543
+[21:46:25] buckets: {"Other repo series": 388, "Balance-sheet lines": 169, "Fed reverse repo (ON RRP)": 4}
+[21:46:25]   SOFR: not in tag inventory
+[21:46:25]   RRPONTSYD: not in tag inventory
+[21:46:25]   RPONTSYD: not in tag inventory
+[21:46:25]   SOFR30DAYAVG: not in tag inventory
+[21:46:25]   WLRRAL: not in tag inventory
+[21:46:25] ✅ BAMLH0A0HYM2: 1996-12-31 -> 2026-08-13 n=7735 m%=-0.368
 
-→ Report written to aws/ops/reports/latest/4785_ice_full_verify.md
+→ Report written to aws/ops/reports/latest/4786_frepo_verify.md
