@@ -1,21 +1,9 @@
-executing-against: d37de2c3122f839ec559ccfde09cc0e385e106cd
-ops 4777 -- pre-2013 keyid vocabulary recon
-── pd paths in the banked spec ──
-[20:39:46]   /api/pd/get/all/timeseries.csv
-[20:39:46]   /api/pd/get/asof/2020-12-14.xml</link>
-[20:39:46]   /api/pd/get/asof/2020-12-16.xml</link>
-[20:39:46]   /api/pd/get/asof/{date}.{format}
-[20:39:46]   /api/pd/get/{seriesbreak}/timeseries/{timeseries}.{format}
-[20:39:46]   /api/pd/get/{timeseries}.{format}
-[20:39:46]   /api/pd/latest/{seriesbreak}.{format}
-[20:39:46]   /api/pd/list/asof.{format}
-[20:39:46]   /api/pd/list/seriesbreaks.{format}
-[20:39:46]   /api/pd/list/timeseries.{format}
-── per-break timeseries lists ──
-[20:39:46] ⚠ SBP2001: no list endpoint answered
-[20:39:47] ⚠ SBP2013: no list endpoint answered
-[20:39:47] ⚠ SBN2013: no list endpoint answered
-── legacy data probes ──
-[20:39:48] ⚠ legacy probe: HTTPError: HTTP Error 400: Bad Request
+executing-against: e24b8687d452f87b7f44f1f90a178024bc7f4605
+ops 4778 -- pd master dump: fetch, bank, census
+[20:41:48] ✅ banked all-timeseries.csv.gz (4093317 bytes gz)
+[20:41:48] columns: As Of Date, Time Series, Value (millions)
+[20:41:49] SBP2001 fails-ish (0): 
+[20:41:49] SBP2013 fails-ish (0): 
+[20:41:49] SBP2001 first 40 kids: 
 
-→ Report written to aws/ops/reports/latest/4777_legacy_keyid_recon.md
+→ Report written to aws/ops/reports/latest/4778_pd_all_dump.md
