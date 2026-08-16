@@ -1,20 +1,76 @@
-executing-against: 0a22ea08926e8eb2044689896e53a4d5a3894032
-ops 4755 -- site vacuum v2 (corpus extraction + 1-level crawl)
-[16:37:28] seed /data/ -> status=200 bytes=30417
-[16:37:28] seed /monitoring-tools/ -> status=200 bytes=45882
-[16:37:34]   cand: https://www.financialresearch.gov/bank-systemic-risk-monitor/data/ofr_bsrm.xlsx
-[16:37:34]   cand: https://www.financialresearch.gov/bank-systemic-risk-monitor/data/ofr_bsrm_international_scores.xlsx
-[16:37:34]   cand: https://www.financialresearch.gov/data/files/Interagency-Data-Inventory-2025.xlsx
-[16:37:34]   cand: https://www.financialresearch.gov/data/financial-instrument-reference-database/data/fird.json
-[16:37:34]   cand: https://www.financialresearch.gov/financial-stress-index/data/fsi.csv
-[16:37:34]   cand: https://www.financialresearch.gov/financial-stress-index/files/FSI_Revision_History_2023-06-27.xlsx
-[16:37:34]   cand: https://www.financialresearch.gov/legal-entity-identifier/data/lei_data.csv
-[16:37:34]   already held: ofr_bsrm.xlsx
-[16:37:34]   already held: ofr_bsrm_international_scores.xlsx
-[16:37:34] ✅   banked data_files_Interagency-Data-Inventory-2025.xlsx (169316 bytes)
-[16:37:34] ✅   banked data_financial-instrument-reference-database_data_fird.json (1183413 bytes)
-[16:37:35]   already held: fsi.csv
-[16:37:35] ✅   banked financial-stress-index_files_FSI_Revision_History_2023-06-27.xlsx (125482 bytes)
-[16:37:35] ✅   banked legal-entity-identifier_data_lei_data.csv (4939 bytes)
+executing-against: 01312a991f0469869f74e5bf28d48f8e42f38c6c
+ops 4756 -- the complete PD fails census (OFR mirror + NY Fed full)
+── A. OFR NYPD mirror -- is 18 the whole fails subset? ──
+[16:55:26] OFR fails grid: NYPD-PD_AFtD_AG-A, NYPD-PD_AFtD_AG_MBS-A, NYPD-PD_AFtD_AG_eMBS-A, NYPD-PD_AFtD_CORS-A, NYPD-PD_AFtD_OMBS-A, NYPD-PD_AFtD_T-A, NYPD-PD_AFtD_TIPS-A, NYPD-PD_AFtD_TOT-A, NYPD-PD_AFtD_T_eTIPS-A, NYPD-PD_AFtR_AG-A, NYPD-PD_AFtR_AG_MBS-A, NYPD-PD_AFtR_AG_eMBS-A, NYPD-PD_AFtR_CORS-A, NYPD-PD_AFtR_OMBS-A, NYPD-PD_AFtR_T-A, NYPD-PD_AFtR_TIPS-A, NYPD-PD_AFtR_TOT-A, NYPD-PD_AFtR_T_eTIPS-A
+── B. NY Fed full PD catalog -- the real fails universe ──
+[16:55:26]   PDFTD-CS
+[16:55:26]   PDFTD-CSC
+[16:55:26]   PDFTD-FGEM
+[16:55:26]   PDFTD-FGEMC
+[16:55:26]   PDFTD-FGM
+[16:55:26]   PDFTD-FGMC
+[16:55:26]   PDFTD-OM
+[16:55:26]   PDFTD-OMC
+[16:55:26]   PDFTD-UST
+[16:55:26]   PDFTD-USTC
+[16:55:26]   PDFTD-USTET
+[16:55:26]   PDFTD-USTETC
+[16:55:26]   PDFTR-CS
+[16:55:26]   PDFTR-CSC
+[16:55:26]   PDFTR-FGEM
+[16:55:26]   PDFTR-FGEMC
+[16:55:26]   PDFTR-FGM
+[16:55:26]   PDFTR-FGMC
+[16:55:26]   PDFTR-OM
+[16:55:26]   PDFTR-OMC
+[16:55:26]   PDFTR-UST
+[16:55:26]   PDFTR-USTC
+[16:55:26]   PDFTR-USTET
+[16:55:26]   PDFTR-USTETC
+[16:55:26]   PDSIOSB-UTSETTA30
+[16:55:26]   PDSIOSB-UTSETTAG30
+[16:55:26]   PDSIOSB-UTSETTOT
+[16:55:26]   PDSIRRA-CBGUTSETTAG30
+[16:55:26]   PDSIRRA-CBGUTSETTAL30
+[16:55:26]   PDSIRRA-CBSPUTSETTAG30
+[16:55:26]   PDSIRRA-CBSPUTSETTAL30
+[16:55:26]   PDSIRRA-CBSUTSETTAG30
+[16:55:26]   PDSIRRA-CBSUTSETTAL30
+[16:55:26]   PDSIRRA-GCFUTSETTAG30
+[16:55:26]   PDSIRRA-GCFUTSETTAL30
+[16:55:26]   PDSIRRA-TRIGUTSETTAG30
+[16:55:26]   PDSIRRA-TRIGUTSETTAL30
+[16:55:26]   PDSIRRA-TRISPUTSETTAG30
+[16:55:26]   PDSIRRA-TRISPUTSETTAL30
+[16:55:26]   PDSIRRA-UBGUTSETTAG30
+[16:55:26]   PDSIRRA-UBGUTSETTAL30
+[16:55:26]   PDSIRRA-UBSUTSETTAG30
+[16:55:26]   PDSIRRA-UBSUTSETTAL30
+[16:55:26]   PDSIRRA-UTSETTOT
+[16:55:26]   PDSOOS-UTSETTAG30
+[16:55:26]   PDSOOS-UTSETTAL30
+[16:55:26]   PDSOOS-UTSETTOT
+[16:55:26]   PDSORA-CBGUTSETTAG30
+[16:55:26]   PDSORA-CBGUTSETTAL30
+[16:55:26]   PDSORA-CBSPUTSETTAG30
+[16:55:26]   PDSORA-CBSPUTSETTAL30
+[16:55:26]   PDSORA-CBSUTSETTAG30
+[16:55:26]   PDSORA-CBSUTSETTAL30
+[16:55:26]   PDSORA-GCFUTSETTAG30
+[16:55:26]   PDSORA-GCFUTSETTAL30
+[16:55:26]   PDSORA-TRIGUTSETTAG30
+[16:55:26]   PDSORA-TRIGUTSETTAL30
+[16:55:26]   PDSORA-TRISPUTSETTAG30
+[16:55:26]   PDSORA-TRISPUTSETTAL30
+[16:55:26]   PDSORA-UBGUTSETTAG30
+[16:55:26]   PDSORA-UBGUTSETTAL30
+[16:55:26]   PDSORA-UBSUTSETTAG30
+[16:55:26]   PDSORA-UBSUTSETTAL30
+[16:55:26]   PDSORA-UTSETTOT
+── C. Bank-verify every NY Fed fails keyid on S3 ──
+── D. Depth proof -- current, legacy, MBS-class ──
+[16:55:28] ✅ PDFTD-CS: 698 obs, 2013-04-03 -> 2026-08-14
+── E. Bank stragglers via the engine's own path ──
+[16:55:28] ✅ no stragglers -- every fails series in the full NY Fed catalog is already banked; nothing to write
 
-→ Report written to aws/ops/reports/latest/4755_ofr_site_vacuum_v2.md
+→ Report written to aws/ops/reports/latest/4756_pd_fails_complete_census.md
