@@ -174,6 +174,23 @@ def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     inv = sread("data/repo-master-inventory.json")
+    # v1.5: readable names straight from OFR metadata (field is
+    # series_name -- the inventory stored blanks); 3 tiny calls/day
+    names = {}
+    try:
+        import urllib.request as _ur
+        for _ds in ("repo", "nypd", "fnyr"):
+            _rq = _ur.Request("https://data.financialresearch.gov/v1/"
+                               f"metadata/mnemonics?dataset={_ds}",
+                               headers={"User-Agent":
+                                         "JustHodl raafouis@gmail.com"})
+            with _ur.urlopen(_rq, timeout=30) as _r:
+                for _x in json.loads(_r.read()):
+                    if isinstance(_x, dict) and _x.get("mnemonic"):
+                        names[str(_x["mnemonic"])] = str(
+                            _x.get("series_name") or "")[:160]
+    except Exception:
+        pass
     scope = list(inv.get("series") or [])
 
     # add the dollar complex (v1.2): warm-first at
@@ -279,7 +296,7 @@ def lambda_handler(event, context):
                 ContentType="application/json",
                 CacheControl="public, max-age=1800")
             rows.append({"id": e["mnemonic"], "sid": sid,
-                          "label": e.get("name") or "",
+                          "label": names.get(e["mnemonic"]) or e.get("name") or "",
                           "tenor": e.get("tenor"),
                           "collateral": e.get("collateral"),
                           "group": group_of(e),
@@ -367,7 +384,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "1.4", "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "1.5", "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))
