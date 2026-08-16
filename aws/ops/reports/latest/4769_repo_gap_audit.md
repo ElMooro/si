@@ -1,0 +1,53 @@
+# ops 4769 -- no-gaps proof across the repo board
+
+**Status:** success  
+**Duration:** 40.8s  
+**Finished:** 2026-08-16T18:53:39+00:00  
+
+## Data
+
+| check | meta_fnyr | meta_nypd | meta_repo | value |
+|---|---|---|---|---|
+| board_series |  |  |  | 305 |
+|  |  |  | 164 |  |
+|  |  | 194 |  |  |
+|  | 30 |  |  |  |
+| start_like_fields |  |  |  |  |
+| verdict_OK |  |  |  | 204 |
+| inception_gaps |  |  |  | 0 |
+| internal_hole_series |  |  |  | 101 |
+
+## Log
+## A. publisher-stated inceptions (OFR metadata)
+
+- `18:52:59` FULL repo record fields: {"mnemonic": "REPO-DVP_AR_G30-P", "series_name": "DVP Service Average Rate: Term, >30 Days (Preliminary)"}
+- `18:52:59` FULL nypd record fields: {"mnemonic": "NYPD-PD_AFtD_AG-A", "series_name": "Primary Dealer Aggregate Fails to Deliver: Federal Agency and GSE Securities"}
+## B. per-series audit (inception match + internal gaps)
+
+- `18:53:39` HOLES REPO-DVP_AR_G30-P (freq~1d): 2024-12-23->2024-12-31 (8d)
+- `18:53:39` HOLES REPO-DVP_AR_LE30-P (freq~1d): 2024-12-23->2024-12-31 (8d)
+- `18:53:39` HOLES REPO-DVP_AR_OO-P (freq~1d): 2024-12-23->2024-12-31 (8d)
+- `18:53:39` HOLES REPO-DVP_TV_G30-P (freq~1d): 2024-12-23->2024-12-31 (8d)
+- `18:53:39` HOLES REPO-DVP_TV_LE30-P (freq~1d): 2024-12-23->2024-12-31 (8d)
+- `18:53:39` HOLES REPO-DVP_TV_OO-P (freq~1d): 2024-12-23->2024-12-31 (8d)
+- `18:53:39` HOLES REPO-DVP_AR_G30-F (freq~1.0d): 2024-12-23->2024-12-31 (8d)
+- `18:53:39` HOLES REPO-DVP_AR_LE30-F (freq~1.0d): 2024-12-23->2024-12-31 (8d)
+- `18:53:39` HOLES REPO-DVP_TV_G30-F (freq~1.0d): 2024-12-23->2024-12-31 (8d)
+- `18:53:39` HOLES REPO-DVP_TV_LE30-F (freq~1.0d): 2024-12-23->2024-12-31 (8d)
+- `18:53:39` HOLES REPO-GCF_AR_G30-P (freq~10d): 2019-07-01->2019-10-01 (92d); 2020-01-02->2020-03-03 (61d); 2020-04-01->2020-10-23 (205d)
+- `18:53:39` HOLES REPO-GCF_AR_LE30-P (freq~10d): 2019-07-01->2019-10-01 (92d); 2020-01-02->2020-03-03 (61d); 2020-04-01->2020-10-23 (205d)
+- `18:53:39` HOLES REPO-GCF_AR_OO-P (freq~4.0d): 2018-07-12->2018-08-24 (43d); 2018-08-24->2018-09-20 (27d); 2018-10-04->2018-11-14 (41d)
+- `18:53:39` HOLES REPO-GCF_OV_B27-P (freq~6d): 2025-11-07->2025-12-09 (32d); 2025-12-26->2026-04-29 (124d); 2026-05-07->2026-06-23 (47d)
+- `18:53:39` HOLES REPO-GCF_TV_G30-P (freq~10d): 2019-07-01->2019-10-01 (92d); 2020-01-02->2020-03-03 (61d); 2020-04-01->2020-10-23 (205d)
+## C. dollar rows vs FRED inceptions
+
+- `18:53:39`   DTWEXBGS: first=2006-01-02 last=2026-08-07 n=5164
+- `18:53:39`   DTWEXAFEGS: first=2006-01-02 last=2026-08-07 n=5164
+- `18:53:39`   DTWEXB: first=1995-01-04 last=2019-12-31 n=6328
+- `18:53:39`   DTWEXEMEGS: first=2006-01-02 last=2026-08-07 n=5164
+- `18:53:39`   DTWEXM: first=1973-01-02 last=2019-12-31 n=11834
+- `18:53:39`   RTWEXBGS: first=2006-01-01 last=2026-07-01 n=247
+- `18:53:39`   TWEXAFEGSMTH: first=2006-01-01 last=2026-07-01 n=247
+- `18:53:39`   TWEXBGSMTH: first=2006-01-01 last=2026-07-01 n=247
+- `18:53:39`   TWEXEMEGSMTH: first=2006-01-01 last=2026-07-01 n=247
+- `18:53:39` ✅ audit artifact -> data/repo-gap-audit.json

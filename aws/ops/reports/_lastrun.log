@@ -1,30 +1,34 @@
-executing-against: 04ca87dcf2ccc24f063a2efa7065946415f5c94a
-ops 4768 -- dollar reasons -> env repair -> verify
-── A. why is dollar_rows 0? ──
-[18:39:59]   DTWEXBGS: no_api_key
-[18:39:59]   RTWEXBGS: no_api_key
-[18:39:59]   DTWEXAFEGS: no_api_key
-[18:39:59]   DTWEXEMEGS: no_api_key
-[18:39:59]   DTWEXM: no_api_key
-[18:39:59]   DTWEXB: no_api_key
-[18:39:59]   TWEXBGSMTH: no_api_key
-[18:39:59]   TWEXAFEGSMTH: no_api_key
-[18:39:59]   TWEXEMEGSMTH: no_api_key
-── B. env repair (value never logged) ──
-[18:40:03] ✅ FRED_API_KEY merged into justhodl-repo env
-── C. re-invoke until dollar rows appear ──
-[18:40:36] attempt 0: v=1.2 dollar_rows=9 miss=0
-── D. verify ──
-[18:40:36]   DTWEXBGS: last=119.0649 m%=-1.705 y%=-1.194 n=5164
-[18:40:36]   DTWEXAFEGS: last=112.3595 m%=-1.63 y%=1.052 n=5164
-[18:40:36]   DTWEXB: last=128.0097 m%=-1.982 y%=0.043 n=6328
-[18:40:36]   DTWEXEMEGS: last=127.5866 m%=-1.778 y%=-3.326 n=5164
-[18:40:36]   DTWEXM: last=90.8221 m%=-2.04 y%=-1.059 n=11834
-[18:40:36]   RTWEXBGS: last=115.4381 m%=0.502 y%=1.169 n=247
-[18:40:36]   TWEXAFEGSMTH: last=113.8452 m%=0.669 y%=2.744 n=247
-[18:40:36]   TWEXBGSMTH: last=120.597 m%=0.428 y%=0.403 n=247
-[18:40:36]   TWEXEMEGSMTH: last=129.1848 m%=0.194 y%=-1.816 n=247
-[18:40:36] ✅ DTWEXBGS history: 5164 obs, 2006-01-02 -> 2026-08-07
-[18:40:36]   banked: DTWEXAFEGS.json, DTWEXB.json, DTWEXBGS.json, DTWEXEMEGS.json, DTWEXM.json, RTWEXBGS.json, TWEXAFEGSMTH.json, TWEXBGSMTH.json, TWEXEMEGSMTH.json
+executing-against: 34d91ebdbf395f9f11f420c66bdb4472abfe4893
+ops 4769 -- no-gaps proof across the repo board
+── A. publisher-stated inceptions (OFR metadata) ──
+[18:52:59] FULL repo record fields: {"mnemonic": "REPO-DVP_AR_G30-P", "series_name": "DVP Service Average Rate: Term, >30 Days (Preliminary)"}
+[18:52:59] FULL nypd record fields: {"mnemonic": "NYPD-PD_AFtD_AG-A", "series_name": "Primary Dealer Aggregate Fails to Deliver: Federal Agency and GSE Securities"}
+── B. per-series audit (inception match + internal gaps) ──
+[18:53:39] HOLES REPO-DVP_AR_G30-P (freq~1d): 2024-12-23->2024-12-31 (8d)
+[18:53:39] HOLES REPO-DVP_AR_LE30-P (freq~1d): 2024-12-23->2024-12-31 (8d)
+[18:53:39] HOLES REPO-DVP_AR_OO-P (freq~1d): 2024-12-23->2024-12-31 (8d)
+[18:53:39] HOLES REPO-DVP_TV_G30-P (freq~1d): 2024-12-23->2024-12-31 (8d)
+[18:53:39] HOLES REPO-DVP_TV_LE30-P (freq~1d): 2024-12-23->2024-12-31 (8d)
+[18:53:39] HOLES REPO-DVP_TV_OO-P (freq~1d): 2024-12-23->2024-12-31 (8d)
+[18:53:39] HOLES REPO-DVP_AR_G30-F (freq~1.0d): 2024-12-23->2024-12-31 (8d)
+[18:53:39] HOLES REPO-DVP_AR_LE30-F (freq~1.0d): 2024-12-23->2024-12-31 (8d)
+[18:53:39] HOLES REPO-DVP_TV_G30-F (freq~1.0d): 2024-12-23->2024-12-31 (8d)
+[18:53:39] HOLES REPO-DVP_TV_LE30-F (freq~1.0d): 2024-12-23->2024-12-31 (8d)
+[18:53:39] HOLES REPO-GCF_AR_G30-P (freq~10d): 2019-07-01->2019-10-01 (92d); 2020-01-02->2020-03-03 (61d); 2020-04-01->2020-10-23 (205d)
+[18:53:39] HOLES REPO-GCF_AR_LE30-P (freq~10d): 2019-07-01->2019-10-01 (92d); 2020-01-02->2020-03-03 (61d); 2020-04-01->2020-10-23 (205d)
+[18:53:39] HOLES REPO-GCF_AR_OO-P (freq~4.0d): 2018-07-12->2018-08-24 (43d); 2018-08-24->2018-09-20 (27d); 2018-10-04->2018-11-14 (41d)
+[18:53:39] HOLES REPO-GCF_OV_B27-P (freq~6d): 2025-11-07->2025-12-09 (32d); 2025-12-26->2026-04-29 (124d); 2026-05-07->2026-06-23 (47d)
+[18:53:39] HOLES REPO-GCF_TV_G30-P (freq~10d): 2019-07-01->2019-10-01 (92d); 2020-01-02->2020-03-03 (61d); 2020-04-01->2020-10-23 (205d)
+── C. dollar rows vs FRED inceptions ──
+[18:53:39]   DTWEXBGS: first=2006-01-02 last=2026-08-07 n=5164
+[18:53:39]   DTWEXAFEGS: first=2006-01-02 last=2026-08-07 n=5164
+[18:53:39]   DTWEXB: first=1995-01-04 last=2019-12-31 n=6328
+[18:53:39]   DTWEXEMEGS: first=2006-01-02 last=2026-08-07 n=5164
+[18:53:39]   DTWEXM: first=1973-01-02 last=2019-12-31 n=11834
+[18:53:39]   RTWEXBGS: first=2006-01-01 last=2026-07-01 n=247
+[18:53:39]   TWEXAFEGSMTH: first=2006-01-01 last=2026-07-01 n=247
+[18:53:39]   TWEXBGSMTH: first=2006-01-01 last=2026-07-01 n=247
+[18:53:39]   TWEXEMEGSMTH: first=2006-01-01 last=2026-07-01 n=247
+[18:53:39] ✅ audit artifact -> data/repo-gap-audit.json
 
-→ Report written to aws/ops/reports/latest/4768_repo_dollar_env_repair.md
+→ Report written to aws/ops/reports/latest/4769_repo_gap_audit.md
