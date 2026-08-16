@@ -1,18 +1,14 @@
-executing-against: c10a34b953b1a24e449fda6b34997d56a930f445
-ops 4765 -- fred resolver facts
-── warm/fred-scoped shape ──
-[18:32:51]   data/warm/fred-scoped/Academic_Data/CANEPUINDXM.json
-[18:32:51]   data/warm/fred-scoped/Academic_Data/CATEPUINDXM.json
-[18:32:51]   data/warm/fred-scoped/Academic_Data/CHNMAINLANDEPU.json
-[18:32:51]   data/warm/fred-scoped/Academic_Data/CHNMAINLANDTPU.json
-[18:32:51]   data/warm/fred-scoped/Academic_Data/DEEPUFEARINDX.json
-[18:32:51]   data/warm/fred-scoped/Academic_Data/DEEPUINDXM.json
-── manifest structure ──
-[18:32:51] manifest keys: updated_at, categories, categories_done, categories_total, series_seen, series_excluded_stale, series_excluded_discontinued, series_skipped_already, accounting, n_categories_expanded, series_imported, phase2
-[18:32:51]   updated_at: "2026-08-16T18:24:19+00:00"
-[18:32:51]   categories: {"22": "Interest Rates", "15": "Exchange Rates", "24": "Monetary Data", "46": "Financial Indicators", "23": "Banking", "32360": "Business Lending", "32145": "Foreign Exchange Intervention"}
-[18:32:51]   categories_done: 4169
-── one page file: first record shape ──
-[18:32:52] first record: ["page", 0]
+executing-against: 461858bf4af84047397f0fd5b059cc16775b72a8
+ops 4766 -- dollar fix verify (v1.1 retry-invoke)
+[18:35:02] attempt 0: v=1.1 series=296 secs=28.0
+[18:35:03]   still missing: DTWEXBGS cats_tried=[]
+[18:35:03]   still missing: RTWEXBGS cats_tried=[]
+[18:35:03]   still missing: DTWEXAFEGS cats_tried=[]
+[18:35:03]   still missing: DTWEXEMEGS cats_tried=[]
+[18:35:03]   still missing: DTWEXM cats_tried=[]
+[18:35:03]   still missing: DTWEXB cats_tried=[]
+[18:35:03]   still missing: TWEXBGSMTH cats_tried=[]
+[18:35:03]   still missing: TWEXAFEGSMTH cats_tried=[]
+[18:35:03]   still missing: TWEXEMEGSMTH cats_tried=[]
 
-→ Report written to aws/ops/reports/latest/4765_fred_resolver_facts.md
+→ Report written to aws/ops/reports/latest/4766_repo_dollar_verify.md
