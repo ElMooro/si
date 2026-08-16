@@ -133,7 +133,7 @@ function render(){
   rs.forEach(r=>{const c=r.chg||{};
     if(r.group!==g0){g0=r.group;html+=`<tr><td colspan="8" class="grp">${g0}</td></tr>`;}
     html+=`<tr class="row" data-sid="${r.sid}" data-id="${r.id}">`+
-      `<td>${r.id} <span class="tag">${(r.label||'').slice(0,70)}</span></td>`+
+      `<td><b>${r.id}</b>${(r.tenor||r.collateral)?` <span class="tag">[${[r.tenor,r.collateral].filter(Boolean).join(' · ')}]</span>`:''}<br><span class="tag" style="font-size:11px">${r.label||'—'}</span></td>`+
       `<td>${fmt(r.last_value)}</td><td class="tag">${r.last||''}</td>`+
       `<td class="${cls(c.pop)}">${pc(c.pop)}</td><td class="${cls(c.w)}">${pc(c.w)}</td>`+
       `<td class="${cls(c.m)}">${pc(c.m)}</td><td class="${cls(c.q)}">${pc(c.q)}</td>`+
@@ -143,7 +143,7 @@ function render(){
   el.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{
     const k=th.dataset.k;if(sortK===k)sortA=!sortA;else{sortK=k;sortA=(k==='id'||k==='tier');}
     render();});
-  el.querySelectorAll('tr.row').forEach(tr=>tr.onclick=()=>openChart(tr.dataset.sid,tr.dataset.id));
+  el.querySelectorAll('tr.row').forEach(tr=>tr.onclick=()=>{const rr=rows.find(x=>x.sid===tr.dataset.sid);window._cn=rr?rr.label:'';openChart(tr.dataset.sid,tr.dataset.id);});
 }
 
 /* ── chart overlay ─────────────────────────────────────────────── */
@@ -151,7 +151,7 @@ let CUR=null,MODE='level';
 const MODES=[['level','Level'],['d','D%'],['w','W%'],['m','M%'],['q','Q%'],['y','Y%']];
 function openChart(sid,id){
   document.getElementById('ovl').classList.add('on');
-  document.getElementById('ct').textContent=id;
+  document.getElementById('ct').textContent=id;window._cn&&(document.getElementById('ct').textContent=id+' — '+window._cn);
   document.getElementById('cm').textContent='loading full history…';
   document.getElementById('modes').innerHTML=MODES.map(([k,t])=>
     `<button data-m="${k}" class="${k===MODE?'on':''}">${t}</button>`).join('');

@@ -39,6 +39,16 @@ import boto3
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 s3 = boto3.client("s3", region_name="us-east-1")
 
+DOLLAR_TITLES = {
+ "DTWEXBGS": "Nominal Broad U.S. Dollar Index (daily)",
+ "RTWEXBGS": "Real Broad U.S. Dollar Index (monthly)",
+ "DTWEXAFEGS": "Nominal Advanced Foreign Economies Dollar Index (daily)",
+ "DTWEXEMEGS": "Nominal Emerging Market Economies Dollar Index (daily)",
+ "DTWEXM": "Trade Weighted Dollar vs Major Currencies (daily, 1973-2019)",
+ "DTWEXB": "Trade Weighted Broad Dollar (daily, 1995-2019)",
+ "TWEXBGSMTH": "Nominal Broad Dollar Index (monthly)",
+ "TWEXAFEGSMTH": "Nominal AFE Dollar Index (monthly)",
+ "TWEXEMEGSMTH": "Nominal EME Dollar Index (monthly)"}
 DOLLAR_IDS = ["DTWEXBGS", "RTWEXBGS", "DTWEXAFEGS", "DTWEXEMEGS",
                "DTWEXM", "DTWEXB", "TWEXBGSMTH", "TWEXAFEGSMTH",
                "TWEXEMEGSMTH"]
@@ -212,7 +222,8 @@ def lambda_handler(event, context):
                                      "reason": f"{type(ex).__name__}: "
                                                f"{str(ex)[:60]}"})
         if ok:
-            scope.append({"mnemonic": fid, "name": f"FRED {fid}",
+            scope.append({"mnemonic": fid,
+                           "name": DOLLAR_TITLES.get(fid, f"FRED {fid}"),
                            "family": "DOLLAR", "s3_key": wkey,
                            "api_url": ("https://fred.stlouisfed.org/series/"
                                         + fid),
@@ -269,6 +280,8 @@ def lambda_handler(event, context):
                 CacheControl="public, max-age=1800")
             rows.append({"id": e["mnemonic"], "sid": sid,
                           "label": e.get("name") or "",
+                          "tenor": e.get("tenor"),
+                          "collateral": e.get("collateral"),
                           "group": group_of(e),
                           "tier": e.get("tier", 2),
                           "n_obs": len(pairs),
@@ -354,7 +367,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "1.3", "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "1.4", "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))
