@@ -1,29 +1,37 @@
-executing-against: d449e5556dda57ceafa378fa184cf59a2e958e38
-ops 4763 -- justhodl-repo: wait for deploy, invoke, verify
-── Wait for the function (parallel deploy) ──
-[18:28:41] ✅ function present after 0s
-── Invoke synchronously ──
-[18:29:15] payload[:350]: {"statusCode": 200, "body": "{\"ok\": true, \"series\": 296, \"skipped\": 4, \"barometer\": 54.6, \"label\": \"NORMAL\", \"secs\": 33.4}"}
-── Verify data/repo.json ──
-[18:29:16]   comp SOFR−TGCR spread: 2.0 bps z=0.67
-[18:29:16]   comp DVP−Triparty rate: -2.0 bps z=-0.5
-[18:29:16]   comp Corp−Tsy collateral spread: 23.0 bps z=2.5
-[18:29:16]   comp Total fails Δ30d: -0.099 % z=-0.0
-[18:29:16]   comp Treasury fails Δ30d: -0.083 % z=-0.0
-[18:29:16]   comp Overnight triparty volume Δ30d: -0.637 % z=0.08
-[18:29:16]   comp Broad dollar Δ30d: None % z=None
-[18:29:16]   group 'DVP bilateral cleared': 36 series
-[18:29:16]   group 'GCF': 44 series
-[18:29:16]   group 'Primary dealer FAILS': 18 series
-[18:29:16]   group 'Primary dealer financing': 88 series
-[18:29:16]   group 'Reference rates & volumes': 30 series
-[18:29:16]   group 'Tri-party (TRI legacy)': 40 series
-[18:29:16]   group 'Tri-party (TRIV1, ex-Fed)': 40 series
-[18:29:16]   skipped: REPO-GCF_AR_B27-F -- no_pairs_extracted
-[18:29:16]   skipped: REPO-GCF_AR_B27-P -- no_pairs_extracted
-[18:29:16]   skipped: REPO-GCF_TV_B27-F -- no_pairs_extracted
-[18:29:16]   skipped: REPO-GCF_TV_B27-P -- no_pairs_extracted
-── Verify one history file + the dollar rows ──
-[18:29:16] ✅ engine + page data path verified end-to-end -- repo.html renders from these exact files
+executing-against: c1bdd15416ed78242e42fbeb94f310f60303f958
+ops 4764 -- fred-scoped key shape (read-only)
+── root sample ──
+[18:30:59]   data/providers/fred-scoped/manifest.json
+[18:30:59]   data/providers/fred-scoped/series/page-0000.json
+[18:30:59]   data/providers/fred-scoped/series/page-0001.json
+[18:30:59]   data/providers/fred-scoped/series/page-0002.json
+[18:30:59]   data/providers/fred-scoped/series/page-0003.json
+[18:30:59]   data/providers/fred-scoped/series/page-0004.json
+[18:30:59]   data/providers/fred-scoped/series/page-0005.json
+[18:30:59]   data/providers/fred-scoped/series/page-0006.json
+── targeted DTWEXBGS across plausible roots ──
+── if nothing hit: where do 279k fred keys live at all? ──
+[18:30:59] data/providers/ fred-ish subdirs: ['data/providers/fred-scoped/', 'data/providers/fred/']
+[18:30:59]    sample data/providers/fred-scoped/manifest.json
+[18:30:59]    sample data/providers/fred-scoped/series/page-0000.json
+[18:30:59]    sample data/providers/fred-scoped/series/page-0001.json
+[18:30:59]    sample data/providers/fred-scoped/series/page-0002.json
+[18:30:59]    sample data/providers/fred-scoped/series/page-0003.json
+[18:30:59]    sample data/providers/fred/catalog-manifest.json
+[18:30:59]    sample data/providers/fred/page-000.json
+[18:30:59]    sample data/providers/fred/page-001.json
+[18:30:59]    sample data/providers/fred/page-002.json
+[18:30:59]    sample data/providers/fred/page-003.json
+[18:31:00] data/warm/ fred-ish subdirs: ['data/warm/archived-fred/', 'data/warm/fred-canary/', 'data/warm/fred-catalog/', 'data/warm/fred-scoped/']
+[18:31:00]    sample data/warm/archived-fred/BAMLC0A0CM.json
+[18:31:00]    sample data/warm/archived-fred/BAMLC0A1CAAA.json
+[18:31:00]    sample data/warm/archived-fred/BAMLC0A2CAAEY.json
+[18:31:00]    sample data/warm/archived-fred/BAMLC0A3CA.json
+[18:31:00]    sample data/warm/archived-fred/BAMLC0A3CAEY.json
+[18:31:00]    sample data/warm/fred-canary/atlanta-gdpnow.csv.gz
+[18:31:00]    sample data/warm/fred-canary/atlanta-gdpnow.xlsx
+[18:31:00]    sample data/warm/fred-canary/bls-labor.json.gz
+[18:31:00]    sample data/warm/fred-canary/cleveland-model.csv.gz
+[18:31:00]    sample data/warm/fred-canary/consumer_housing.csv.gz
 
-→ Report written to aws/ops/reports/latest/4763_repo_engine_invoke_verify.md
+→ Report written to aws/ops/reports/latest/4764_fred_key_shape_discovery.md
