@@ -171,6 +171,10 @@ def group_of(e):
         return "ICE BofA option-adjusted spreads (FRED)"
     if e.get("family") == "HAIRCUT":
         return "Tri-party haircuts (NY Fed monthly)"
+    if e.get("family") == "EUROREPO":
+        return "European sovereign collateral (ECB MMSR)"
+    if e.get("family") == "EUYIELD":
+        return "European sovereign yields & spreads"
     if e.get("family") == "FREDREPO":
         return "FRED repo & SOFR complex"
     if e.get("family") == "MMFRP":
@@ -738,6 +742,108 @@ def lambda_handler(event, context):
                        "api_url": "https://www.newyorkfed.org/data-and-statistics/data-visualization/tri-party-repo",
                        "tier": 2})
 
+    # v2.2-EU: (a) ECB MMSR secured-market collateral usage by issuer
+    # country (free API; maintenance-period aggregates) -- how much
+    # O/N cash is raised on DE/IT/FR/ES collateral; (b) EU sovereign
+    # 10Y yields (monthly OECD via FRED) feeding BTP/OAT/Bono-Bund
+    # derived spreads. Daily RFR (CME entitlement) + SFTR weekly =
+    # source-recon flagged, not faked.
+    MMSR = {"DE": "German", "IT": "Italian", "FR": "French",
+             "ES": "Spanish"}
+    for _cc, _nm in MMSR.items():
+        _wkey = f"data/warm/ecb-mmsr/{_cc.lower()}-on-borrow-turnover.json"
+        _pairs2 = []
+        _stale = True
+        try:
+            _d = sread(_wkey)
+            _pairs2 = extract_pairs(_d)
+            if _pairs2:
+                _stale = (datetime.now(timezone.utc) -
+                           datetime.strptime(_pairs2[-1][0], "%Y-%m-%d")
+                           .replace(tzinfo=timezone.utc)).days > 20
+        except Exception:
+            pass
+        if _stale:
+            try:
+                import urllib.request as _ur
+                _u = ("https://data-api.ecb.europa.eu/service/data/MMSR/"
+                      f"B.U2._X.{_cc}.S1ZV._Z.T.BO.AT._X.MA._Z._Z.EUR._Z"
+                      "?format=csvdata")
+                with _ur.urlopen(_ur.Request(_u, headers={
+                        "User-Agent": "JustHodl raafouis@gmail.com"}),
+                        timeout=45) as _r:
+                    _txt = _r.read().decode("utf-8", "replace")
+                import csv as _csv
+                import io as _io
+                _rd = _csv.DictReader(_io.StringIO(_txt))
+                _pp = dict(_pairs2)
+                for _row in _rd:
+                    _dt = (_row.get("TIME_PERIOD") or "")[:10]
+                    try:
+                        _pp[_dt] = float(_row.get("OBS_VALUE"))
+                    except Exception:
+                        pass
+                if _pp:
+                    _pairs2 = sorted(_pp.items())
+                    s3.put_object(Bucket=BUCKET, Key=_wkey,
+                        Body=json.dumps({"id": f"MMSR-{_cc}-ON-BO-AT",
+                            "source": "ECB data-api MMSR",
+                            "banked_at": now,
+                            "observations": [{"date": d0, "value": v0}
+                                              for d0, v0 in _pairs2]},
+                            separators=(",", ":")).encode(),
+                        ContentType="application/json")
+            except Exception:
+                pass
+        if _pairs2:
+            scope.append({"mnemonic": f"MMSR-{_cc}-ON-BORROW-TURNOVER",
+                "name": (f"ECB MMSR: O/N cash raised on {_nm} sovereign "
+                          "collateral (avg daily turnover, EUR, "
+                          "maintenance-period)"),
+                "family": "EUROREPO", "s3_key": _wkey,
+                "api_url": ("https://data.ecb.europa.eu/data/datasets/"
+                             "MMSR"),
+                "tier": 2})
+    EUY = {"IRLTLT01DEM156N": "Germany 10Y (monthly, OECD)",
+            "IRLTLT01ITM156N": "Italy 10Y (monthly, OECD)",
+            "IRLTLT01FRM156N": "France 10Y (monthly, OECD)",
+            "IRLTLT01ESM156N": "Spain 10Y (monthly, OECD)"}
+    for _fid, _t in EUY.items():
+        _wk = f"data/warm/fred-scoped/EU_Sovereign_Yields/{_fid}.json"
+        _ok = False
+        try:
+            s3.head_object(Bucket=BUCKET, Key=_wk)
+            _ok = True
+        except Exception:
+            if fred_key:
+                try:
+                    import urllib.request as _ur
+                    _u = ("https://api.stlouisfed.org/fred/series/"
+                          f"observations?series_id={_fid}"
+                          f"&api_key={fred_key}&file_type=json"
+                          "&observation_start=1970-01-01")
+                    with _ur.urlopen(_ur.Request(_u, headers={
+                            "User-Agent":
+                                "JustHodl raafouis@gmail.com"}),
+                            timeout=45) as _r:
+                        _obs = json.loads(_r.read()).get(
+                            "observations") or []
+                    if _obs:
+                        s3.put_object(Bucket=BUCKET, Key=_wk,
+                            Body=json.dumps({"id": _fid,
+                                "banked_at": now,
+                                "observations": _obs},
+                                separators=(",", ":")).encode(),
+                            ContentType="application/json")
+                        _ok = True
+                except Exception:
+                    pass
+        if _ok:
+            scope.append({"mnemonic": _fid, "name": _t,
+                "family": "EUYIELD", "s3_key": _wk,
+                "api_url": f"https://fred.stlouisfed.org/series/{_fid}",
+                "tier": 2})
+
     values = {}
     rows = []
     skipped = []
@@ -842,6 +948,13 @@ def lambda_handler(event, context):
     _emit("D_SOFR_P75_P25", "SOFR P75 − P25 (bps): repo-rate "
            "dispersion, tails widen before the median moves",
            {d: (_p75[d] - _p25[d]) * 100 for d in _p75 if d in _p25})
+    _emit("D_BTP_BUND", "BTP − Bund 10Y (bps, monthly OECD; daily "
+           "feed = MTS/RFR, source-recon flagged)",
+           _spread("IRLTLT01ITM156N", "IRLTLT01DEM156N"))
+    _emit("D_OAT_BUND", "OAT − Bund 10Y (bps, monthly OECD)",
+           _spread("IRLTLT01FRM156N", "IRLTLT01DEM156N"))
+    _emit("D_BONO_BUND", "Bono − Bund 10Y (bps, monthly OECD)",
+           _spread("IRLTLT01ESM156N", "IRLTLT01DEM156N"))
     _tvoo, _tvtot = _pairs("REPO-TRIV1_TV_OO-P"),         _pairs("REPO-TRIV1_TV_TOT-P")
     _emit("D_ON_SHARE_TRI", "Overnight/Open share of tri-party volume "
            "(%): rollover-risk gauge",
@@ -944,7 +1057,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "2.1", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "2.2", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))
