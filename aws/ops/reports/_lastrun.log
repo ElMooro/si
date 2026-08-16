@@ -1,30 +1,10 @@
-executing-against: 157e5383426db7bf484a958f79c1e6d9c8d758ad
-ops 4743 -- segment-depth grid for ambs/tsy/seclending + soma special-case
-── A. Grid search: ambs / tsy / seclending ──
-[15:47:44] ambs: ambs/all/all/results/search.json -> status=400 rows=0
-[15:47:45] ambs: ambs/all/all/search.json -> status=400 rows=0
-[15:47:45] ambs: ambs/all/all/all/results/search.json -> status=400 rows=0
-[15:47:45] ambs: ambs/all/all/all/search.json -> status=400 rows=0
-[15:47:45] ambs: ambs/all/all/all/all/results/search.json -> status=400 rows=0
-[15:47:45] ambs: ambs/all/all/all/all/search.json -> status=400 rows=0
-[15:47:45] ⚠ ambs: grid exhausted 2-4 segments -- next escalation is the site's JS bundle route strings, not more guessing
-[15:47:45] tsy: tsy/all/all/results/search.json -> status=400 rows=0
-[15:47:46] tsy: tsy/all/all/search.json -> status=400 rows=0
-[15:47:46] tsy: tsy/all/all/all/results/search.json -> status=400 rows=0
-[15:47:46] tsy: tsy/all/all/all/search.json -> status=400 rows=0
-[15:47:46] tsy: tsy/all/all/all/all/results/search.json -> status=400 rows=0
-[15:47:46] tsy: tsy/all/all/all/all/search.json -> status=400 rows=0
-[15:47:46] ⚠ tsy: grid exhausted 2-4 segments -- next escalation is the site's JS bundle route strings, not more guessing
-[15:47:46] seclending: seclending/all/all/results/search.json -> status=400 rows=0
-[15:47:46] seclending: seclending/all/all/search.json -> status=400 rows=0
-[15:47:47] seclending: seclending/all/all/all/results/search.json -> status=400 rows=0
-[15:47:47] seclending: seclending/all/all/all/search.json -> status=400 rows=0
-[15:47:47] seclending: seclending/all/all/all/all/results/search.json -> status=400 rows=0
-[15:47:47] seclending: seclending/all/all/all/all/search.json -> status=400 rows=0
-[15:47:47] ⚠ seclending: grid exhausted 2-4 segments -- next escalation is the site's JS bundle route strings, not more guessing
-── B. soma special-case ──
-[15:47:47] soma/summary.json -> status=200 rows=1206
-[15:47:47] ✅ soma summary: banked 1206 rows, 2003-07-09 -> 2026-08-12
-[15:47:47] per-CUSIP holdings exist for 1206 as-of dates -- that is a dedicated-engine build (row volume), flagged, never half-banked here
+executing-against: 22a3d12917ef62764d610baa00c3ee61e1530470
+ops 4744 -- NY Fed JS bundle route extraction -> validate -> bank
+── A. Collect bundles ──
+── B. Extract /api/ route strings ──
+── C. Validate + bank ──
+[15:49:58] ⚠ ambs: no bundle route validated -- declared out of reach via this API surface; follow-up = NY Fed's non-API publications for this family
+[15:49:58] ⚠ tsy: no bundle route validated -- declared out of reach via this API surface; follow-up = NY Fed's non-API publications for this family
+[15:49:58] ⚠ seclending: no bundle route validated -- declared out of reach via this API surface; follow-up = NY Fed's non-API publications for this family
 
-→ Report written to aws/ops/reports/latest/4743_nyfed_grammar_grid_and_soma.md
+→ Report written to aws/ops/reports/latest/4744_nyfed_js_bundle_routes.md
