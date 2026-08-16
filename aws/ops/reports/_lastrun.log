@@ -1,35 +1,40 @@
-executing-against: 6455c25057e44098cc0c0b88c91fa127dafbe2e5
-ops 4792 -- async engine run + 14-block closure
-[22:56:17]   #1 venue_rates_vols: TRIV1=40 DVP=36 GCF=44
-[22:56:17]   #2 tenor_rollover: OV legs=28
-[22:56:17]   #3 pd_financing: NYPD rows=106; deepest 1998-01-28
-[22:56:17]   #4 dtcc_daily_fails: no public API confirmed yet
-[22:56:17]   #5 ficc_sponsored: FICC-SPONSORED_REPO_VOL 2020-03-23->2026-07-17 n=1578; FICC-SPONSORED_REVREPO_VOL 2020-03-23->2026-07-17 n=1578
-[22:56:17]   #6 haircuts: ops 4793 parser v2 in this push | NCCBR publisher-blocked, tripwire armed
-[22:56:17]   #7 specialness_proxy: D_DVP_SOFR 2018-05-07->2026-08-04 n=2058; per-CUSIP specials = commercial only
-[22:56:17]   #8 sofr_distribution: percentile rows=12; SOFR 2018-04-03->2026-08-13 n=2089; UV 2018-04-02->2026-08-04 n=2083
-[22:56:17]   #9 srf: D_SOFR_SRF 2021-09-20->2026-02-18 n=1055; RPONTSYD 2000-01-03->2026-08-14 n=3276; SRF_TAKEUP 2021-01-04->2026-08-14 n=1402
-[22:56:17]   #10 mmf_counterparties: rows=5; wFICC 2014-03-31->2026-06-30 n=139
-[22:56:17]   #11 collateral_splits: all legs on board
-[22:56:17]   #12 fima_foreign_pool: []
-[22:56:17]   #13 europe_mmsr: ECB MMSR queued -- international arc
-[22:56:17]   #14 derived_barometer: derived=11 first-class series + red-tag user barometer
+executing-against: e877e0642899abdcbded4e0b1862da13e9d23596
+ops 4794 -- haircut parser v3 (keyword header, long format)
+[22:58:04] hist row3: (None, None, None, 'https://www.newyorkfed.org/research', None, None, None, None, None, None, None, None, None)
+[22:58:04] hist row4: (None, None, None, None, None, None, None, None, None, None, None, None, None)
+[22:58:04] hist row5: ('date', 'group_id', 'group_name', 'collateral_value', 'share_of_total', 'top_3_concentration', 'p1', 'p10', 'median', 'p90', 'fedwire', 'num_obs', 'margin_stdev')
+[22:58:04] hist row6: ('20100511', 1, 'Agency CMOs', '131.92', '7.9', '46.1', '0.0', '2.0', '3.0', '5.0', 1, 638, 2.037842775442173)
+[22:58:04] hist row7: ('20100511', 2, 'Agency Debentures & Strips', '166.94', '10.0', '38.4', '0.0', '2.0', '2.0', '5.0', 1, 1439, 1.291824124142772)
+[22:58:04] hist row8: ('20100511', 3, 'Agency MBS', '509.26', '30.5', '47.2', '0.0', '2.0', '2.0', '3.0', 1, 1390, 1.017246300008063)
+[22:58:04] hist row9: ('20100511', 4, 'US Treasuries Strips', '43.33', '2.6', '49.2', '0.0', '2.0', '2.0', '2.0', 1, 169, 0.5624503611455994)
+[22:58:04] hist row10: ('20100511', 5, 'US Treasuries excluding Strips', '488.46', '29.3', '42.3', '0.0', '2.0', '2.0', '2.0', 1, 1594, 1.140115661075234)
+[22:58:04] hist row11: ('20100511', 6, 'ABS Investment Grade', '25.70', '1.5', '50.1', '0.0', '2.0', '5.0', '8.0', 0, 238, 3.105871864401442)
+[22:58:04] hist row12: ('20100511', 7, 'ABS Non Investment Grade', '13.12', '0.8', '45.1', '0.0', '0.0', '8.0', '8.0', 0, 210, 3.707974461619253)
+[22:58:04] hist row13: ('20100511', 9, 'CMO Private Label Investment Grade', '22.78', '1.4', '53.6', '0.0', '2.0', '5.0', '7.0', 0, 240, 2.786966952957959)
+[22:58:04] hist HEADER @row5: date | group_id | group_name | collateral_value | share_of_total | top_3_concentration | p1 | p10 | median | p90 | fedwire | num_obs | margin_stdev
+[22:58:04] curr row3: (None, None, None, 'https://www.newyorkfed.org/research', None, None, None, None, None, None, None, None)
+[22:58:04] curr row4: (None, None, None, None, None, None, None, None, None, None, None, None)
+[22:58:04] curr row5: ('date', 'group_id', 'group_name', 'collateral_value', 'share_of_total', 'top_3_concentration', 'p10', 'median', 'p90', 'fedwire', 'num_obs', 'margin_stdev')
+[22:58:04] curr row6: ('20241210', 1, 'Agency CMOs', '76.14', '2.2', '38.4', '2.0', '3.0', '10.0', 1, 732, 4.625026742507231)
+[22:58:04] curr row7: ('20241210', 2, 'Agency Debentures & Strips', '34.99', '1.0', '26.6', '2.0', '2.0', '5.0', 1, 900, 1.769612881709843)
+[22:58:04] curr row8: ('20241210', 3, 'Agency MBS', '683.03', '19.9', '27.3', '2.0', '2.0', '3.0', 1, 2105, 0.6498878687118225)
+[22:58:04] curr row9: ('20241210', 4, 'US Treasuries Strips', '94.44', '2.7', '45.7', '1.9', '2.0', '2.4', 1, 931, 0.6756274861534354)
+[22:58:04] curr row10: ('20241210', 5, 'US Treasuries excluding Strips', '1512.44', '44.0', '28.3', '2.0', '2.0', '2.0', 1, 4945, 0.4395577568936698)
+[22:58:04] curr row11: ('20241210', 6, 'ABS Investment Grade', '20.28', '0.6', '47.3', '3.0', '7.0', '10.0', 0, 383, 2.796168834476526)
+[22:58:04] curr row12: ('20241210', 7, 'ABS Non Investment Grade', '14.42', '0.4', '47.9', '3.0', '10.0', '15.0', 0, 379, 5.459924280383596)
+[22:58:04] curr row13: ('20241210', 9, 'CMO Private Label Investment Grade', '15.61', '0.5', '57.2', '3.0', '7.0', '10.0', 0, 290, 3.180600592804915)
+[22:58:04] curr HEADER @row5: date | group_id | group_name | collateral_value | share_of_total | top_3_concentration | p10 | median | p90 | fedwire | num_obs | margin_stdev
+[22:58:08] ✅   abs-investment-grade--collateral_share: 2010-05-11 -> 2026-07-09 n=195
+[22:58:08] ✅   abs-investment-grade--collateral_value: 2010-05-11 -> 2026-07-09 n=195
+[22:58:08] ✅   abs-investment-grade--median_haircut: 2010-05-11 -> 2026-07-09 n=195
+[22:58:08] ✅   abs-investment-grade--top3_concentration: 2010-05-11 -> 2026-07-09 n=195
+[22:58:08] ✅   abs-non-investment-grade--collateral_share: 2010-05-11 -> 2026-07-09 n=195
+[22:58:08] ✅   abs-non-investment-grade--collateral_value: 2010-05-11 -> 2026-07-09 n=195
+[22:58:08] ✅   abs-non-investment-grade--median_haircut: 2010-05-11 -> 2026-07-09 n=195
+[22:58:08] ✅   abs-non-investment-grade--top3_concentration: 2010-05-11 -> 2026-07-09 n=195
+[22:58:08] ✅   agency-cmos--collateral_share: 2010-05-11 -> 2026-07-09 n=195
+[22:58:08] ✅   agency-cmos--collateral_value: 2010-05-11 -> 2026-07-09 n=195
+[22:58:08] ✅   agency-cmos--median_haircut: 2010-05-11 -> 2026-07-09 n=195
+[22:58:08] ✅   agency-cmos--top3_concentration: 2010-05-11 -> 2026-07-09 n=195
 
-→ Report written to aws/ops/reports/latest/4792_async_closure.md
-ops 4793 -- haircut parser v2 (2-row headers)
-[22:56:19] hist row0: (None, None, None, None, None, None, None, None, None, None)
-[22:56:19] hist row1: (None, None, None, 'NEW YORK FED  ECONOMIC RESEARCH', None, None, None, None, None, None)
-[22:56:19] hist row2: (None, None, None, None, None, None, None, None, None, None)
-[22:56:19] hist row3: (None, None, None, 'https://www.newyorkfed.org/research', None, None, None, None, None, None)
-[22:56:19] hist row4: (None, None, None, None, None, None, None, None, None, None)
-[22:56:19] hist row5: ('date', 'group_id', 'group_name', 'collateral_value', 'share_of_total', 'top_3_concentration', 'p1', 'p10', 'median', 'p90')
-[22:56:19] hist header(2-row @13,14): 20100511 20100511 | 9 10 | CMO Private Label Investment Grade CMO Private Label Non Investment Grade | 22.78 19.21 | 1.4 1.2 | 53.6 43.2 | 0.0 0.0 | 2.0 0.0 | 5.0 8.0 | 7.0 8.0 | 0 0 | 240 263
-[22:56:19] curr row0: (None, None, None, None, None, None, None, None, None, None)
-[22:56:19] curr row1: (None, None, None, 'NEW YORK FED  ECONOMIC RESEARCH', None, None, None, None, None, None)
-[22:56:19] curr row2: (None, None, None, None, None, None, None, None, None, None)
-[22:56:19] curr row3: (None, None, None, 'https://www.newyorkfed.org/research', None, None, None, None, None, None)
-[22:56:19] curr row4: (None, None, None, None, None, None, None, None, None, None)
-[22:56:19] curr row5: ('date', 'group_id', 'group_name', 'collateral_value', 'share_of_total', 'top_3_concentration', 'p10', 'median', 'p90', 'fedwire')
-[22:56:19] curr header(2-row @13,14): 20241210 20241210 | 9 10 | CMO Private Label Investment Grade CMO Private Label Non Investment Grade | 15.61 17.23 | 0.5 0.5 | 57.2 68.6 | 3.0 5.0 | 7.0 10.0 | 10.0 15.0 | 0 0 | 290 433 | 3.180600592804915 4.682861878786703
-
-→ Report written to aws/ops/reports/latest/4793_haircut_v2.md
+→ Report written to aws/ops/reports/latest/4794_haircut_v3.md

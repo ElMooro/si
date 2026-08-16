@@ -1,0 +1,53 @@
+# ops 4794 -- haircut parser v3 (keyword header, long format)
+
+**Status:** success  
+**Duration:** 4.2s  
+**Finished:** 2026-08-16T22:58:08+00:00  
+
+## Data
+
+| check | curr_series | curr_stat_cols | hist_series | hist_stat_cols | value |
+|---|---|---|---|---|---|
+|  |  |  |  | 4 |  |
+|  |  |  | 77 |  |  |
+|  |  | 4 |  |  |  |
+|  | 73 |  |  |  |  |
+| haircut_series_banked |  |  |  |  | 81 |
+
+## Log
+- `22:58:04` hist row3: (None, None, None, 'https://www.newyorkfed.org/research', None, None, None, None, None, None, None, None, None)
+- `22:58:04` hist row4: (None, None, None, None, None, None, None, None, None, None, None, None, None)
+- `22:58:04` hist row5: ('date', 'group_id', 'group_name', 'collateral_value', 'share_of_total', 'top_3_concentration', 'p1', 'p10', 'median', 'p90', 'fedwire', 'num_obs', 'margin_stdev')
+- `22:58:04` hist row6: ('20100511', 1, 'Agency CMOs', '131.92', '7.9', '46.1', '0.0', '2.0', '3.0', '5.0', 1, 638, 2.037842775442173)
+- `22:58:04` hist row7: ('20100511', 2, 'Agency Debentures & Strips', '166.94', '10.0', '38.4', '0.0', '2.0', '2.0', '5.0', 1, 1439, 1.291824124142772)
+- `22:58:04` hist row8: ('20100511', 3, 'Agency MBS', '509.26', '30.5', '47.2', '0.0', '2.0', '2.0', '3.0', 1, 1390, 1.017246300008063)
+- `22:58:04` hist row9: ('20100511', 4, 'US Treasuries Strips', '43.33', '2.6', '49.2', '0.0', '2.0', '2.0', '2.0', 1, 169, 0.5624503611455994)
+- `22:58:04` hist row10: ('20100511', 5, 'US Treasuries excluding Strips', '488.46', '29.3', '42.3', '0.0', '2.0', '2.0', '2.0', 1, 1594, 1.140115661075234)
+- `22:58:04` hist row11: ('20100511', 6, 'ABS Investment Grade', '25.70', '1.5', '50.1', '0.0', '2.0', '5.0', '8.0', 0, 238, 3.105871864401442)
+- `22:58:04` hist row12: ('20100511', 7, 'ABS Non Investment Grade', '13.12', '0.8', '45.1', '0.0', '0.0', '8.0', '8.0', 0, 210, 3.707974461619253)
+- `22:58:04` hist row13: ('20100511', 9, 'CMO Private Label Investment Grade', '22.78', '1.4', '53.6', '0.0', '2.0', '5.0', '7.0', 0, 240, 2.786966952957959)
+- `22:58:04` hist HEADER @row5: date | group_id | group_name | collateral_value | share_of_total | top_3_concentration | p1 | p10 | median | p90 | fedwire | num_obs | margin_stdev
+- `22:58:04` curr row3: (None, None, None, 'https://www.newyorkfed.org/research', None, None, None, None, None, None, None, None)
+- `22:58:04` curr row4: (None, None, None, None, None, None, None, None, None, None, None, None)
+- `22:58:04` curr row5: ('date', 'group_id', 'group_name', 'collateral_value', 'share_of_total', 'top_3_concentration', 'p10', 'median', 'p90', 'fedwire', 'num_obs', 'margin_stdev')
+- `22:58:04` curr row6: ('20241210', 1, 'Agency CMOs', '76.14', '2.2', '38.4', '2.0', '3.0', '10.0', 1, 732, 4.625026742507231)
+- `22:58:04` curr row7: ('20241210', 2, 'Agency Debentures & Strips', '34.99', '1.0', '26.6', '2.0', '2.0', '5.0', 1, 900, 1.769612881709843)
+- `22:58:04` curr row8: ('20241210', 3, 'Agency MBS', '683.03', '19.9', '27.3', '2.0', '2.0', '3.0', 1, 2105, 0.6498878687118225)
+- `22:58:04` curr row9: ('20241210', 4, 'US Treasuries Strips', '94.44', '2.7', '45.7', '1.9', '2.0', '2.4', 1, 931, 0.6756274861534354)
+- `22:58:04` curr row10: ('20241210', 5, 'US Treasuries excluding Strips', '1512.44', '44.0', '28.3', '2.0', '2.0', '2.0', 1, 4945, 0.4395577568936698)
+- `22:58:04` curr row11: ('20241210', 6, 'ABS Investment Grade', '20.28', '0.6', '47.3', '3.0', '7.0', '10.0', 0, 383, 2.796168834476526)
+- `22:58:04` curr row12: ('20241210', 7, 'ABS Non Investment Grade', '14.42', '0.4', '47.9', '3.0', '10.0', '15.0', 0, 379, 5.459924280383596)
+- `22:58:04` curr row13: ('20241210', 9, 'CMO Private Label Investment Grade', '15.61', '0.5', '57.2', '3.0', '7.0', '10.0', 0, 290, 3.180600592804915)
+- `22:58:04` curr HEADER @row5: date | group_id | group_name | collateral_value | share_of_total | top_3_concentration | p10 | median | p90 | fedwire | num_obs | margin_stdev
+- `22:58:08` ✅   abs-investment-grade--collateral_share: 2010-05-11 -> 2026-07-09 n=195
+- `22:58:08` ✅   abs-investment-grade--collateral_value: 2010-05-11 -> 2026-07-09 n=195
+- `22:58:08` ✅   abs-investment-grade--median_haircut: 2010-05-11 -> 2026-07-09 n=195
+- `22:58:08` ✅   abs-investment-grade--top3_concentration: 2010-05-11 -> 2026-07-09 n=195
+- `22:58:08` ✅   abs-non-investment-grade--collateral_share: 2010-05-11 -> 2026-07-09 n=195
+- `22:58:08` ✅   abs-non-investment-grade--collateral_value: 2010-05-11 -> 2026-07-09 n=195
+- `22:58:08` ✅   abs-non-investment-grade--median_haircut: 2010-05-11 -> 2026-07-09 n=195
+- `22:58:08` ✅   abs-non-investment-grade--top3_concentration: 2010-05-11 -> 2026-07-09 n=195
+- `22:58:08` ✅   agency-cmos--collateral_share: 2010-05-11 -> 2026-07-09 n=195
+- `22:58:08` ✅   agency-cmos--collateral_value: 2010-05-11 -> 2026-07-09 n=195
+- `22:58:08` ✅   agency-cmos--median_haircut: 2010-05-11 -> 2026-07-09 n=195
+- `22:58:08` ✅   agency-cmos--top3_concentration: 2010-05-11 -> 2026-07-09 n=195
