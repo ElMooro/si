@@ -1,8 +1,14 @@
-executing-against: dc53e2545e5b2a67ae74d1825785ad3bf743ddbf
-ops 4798 -- engine v2.4 verify
-[23:56:35] ⚠ DE10Y_TE: ABSENT
-[23:56:35] ⚠ IT10Y_TE: ABSENT
-[23:56:35] ⚠ D_BTP_BUND_D: ABSENT
-[23:56:35] ⚠ WREPOFOR: ABSENT
+executing-against: 46f170cca0dde63a6881223afc85c3110421eafa
+ops 4799 -- settle-gated v2.4 verify
+── 1. env keys (heal if deploy wiped them) ──
+── 2. deploy settle: marker in deployed zip ──
+── 3. async run + assertions ──
+[00:10:30] ⚠ DE10Y_TE: ABSENT
+[00:10:30] ⚠ IT10Y_TE: ABSENT
+[00:10:30] ⚠ FR10Y_TE: ABSENT
+[00:10:30] ⚠ ES10Y_TE: ABSENT
+[00:10:30] ⚠ D_BTP_BUND_D: ABSENT
+[00:10:30] ⚠ WREPOFOR: ABSENT
+[00:10:30] ⚠ WLRRAFOIAL: ABSENT
 
-→ Report written to aws/ops/reports/latest/4798_v24_verify.md
+→ Report written to aws/ops/reports/latest/4799_settled_verify.md
