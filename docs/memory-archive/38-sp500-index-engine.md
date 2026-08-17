@@ -196,3 +196,22 @@ credits — zero code change). Day-1 verdicts: SPCX WATCH 53%/26w/dwn60 ·
 APGE WATCH 52 · XLE WATCH 47/dwn12 · PTC comeback WATCH 36/39w/dwn38.
 Page: AI line per card + inst chips + base-rate table + anchor
 methodology. Next ops 4816.
+
+## v1.3.0 (ops 4816 GREEN) — contracts/backlog/derating + ETF flows/industry
+Khalid: contract announcements + backlogs + huge drawdowns w/o
+fundamental change (stocks); inflows/outflows + momentum + industry
+contracts/earnings-beats (ETFs). STOCK: new **catalyst leg w .10**
+(reweighted book sums 1.0): catalyst.json by_ticker classes (+.08/event
+from .55), SEC-mined backlog_yoy_pct ≥10 → .8, deal-tape ≥2 wins → +.1;
+live: 4 rows incl **MU** (12-1 +602%, screener 93). COMEBACK:
+**fundamentals_intact** — dd≤−35 AND ntm_growth>0 AND revenue_yoy>0 AND
+revisions≥0 → stabilize +.1 + DERATING why-line + green chip; ops
+asserts flag⇒dd≤−35∧why-cites. ETF: **etf_flows leg w .10** from
+etf-true-flows (containers inflows/outflows/by_etf, field
+net_flow_20d_usd — Probe-3818 lesson honored; pctile across covered)
++ **industry_fund leg w .10** (ETF_IND_TERMS ~32 tickers → boom league
+containment match; boom fuses revision breadth + deal wins + backlog
+accel). Live: **SMH 88.4** w/ flows .93 (+$3.23B 20d, top 7%) — the
+requested inflow×momentum×industry read working; USO/DBC flows .37
+honestly drag. 14 ETF rows carry flows leg. All clamps/traps/ledger
+invariants held. Next ops 4817.
