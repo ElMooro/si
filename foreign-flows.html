@@ -93,7 +93,7 @@ async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok
     return s;}
   let hh="";for(const k of Object.keys(HL))if(H[k])hh+=chart(k,H[k]);
   document.getElementById("hist").innerHTML=hh||'<div class="note">history pending next engine run</div>';
-  const SPn={lt_total:"LT total",lt_treasury:"LT Treasuries",st_tbills:"T-bills (ST)",lt_corp:"Corp bonds",lt_equity:"Equities",lt_agency:"Agency/MBS"};
+  const SPn={lt_total:"LT total",lt_treas:"LT Treasuries",st_treas:"T-bills (ST)",lt_corp:"Corp bonds",lt_equity:"Equities",lt_agency:"Agency/MBS"};
   const SP=d.holder_splits||{};const spr=Object.entries(SP);
   if(spr.length){let ts='<table><tr><th>family</th><th>official</th><th>off 12m</th><th>private</th><th>prv 12m</th><th>recon gap</th><th>status</th></tr>';
     for(const[f,r]of spr){

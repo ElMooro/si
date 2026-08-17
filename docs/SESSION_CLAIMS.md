@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| FULL-RENDER wave: ff v1.3 hist_10y (6 flows + 4 signals) + country tx_3m + page charts + full official/private table | 4861-4862 | S-fable-A | 2026-08-17 22:3x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 ## Done (this arc)
