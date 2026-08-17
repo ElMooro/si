@@ -16,6 +16,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| GLOBAL capital flows: country-inflow engine (TW/KR/CL/PE + IMF layer) + capital-flow.html TOP restructure (US-by-destination + world grid) | 4832-4835 | S-fable-A | 2026-08-17 17:1x |
 
 ## Done (this arc)
 | workstream | ops | session |
