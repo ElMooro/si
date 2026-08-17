@@ -449,7 +449,8 @@ def lambda_handler(event, context):
 
     CORE = ["SOFR", "SOFR30DAYAVG", "SOFR90DAYAVG", "SOFR180DAYAVG",
              "SOFRINDEX", "RRPONTSYD", "RRPONTSYAWARD", "RPONTSYD",
-             "RPONAGYD", "RPONMBSD", "WLRRAL", "WORAL", "IORB"]
+             "RPONAGYD", "RPONMBSD", "WLRRAL", "WORAL", "IORB",
+             "WREPOFOR", "WLRRAFOIAL"]
     if fred_key:
         try:
             import urllib.request as _ur
@@ -846,20 +847,22 @@ def lambda_handler(event, context):
                 "api_url": f"https://fred.stlouisfed.org/series/{_fid}",
                 "tier": 2})
 
-    # v2.3-A: DAILY EU sovereign 10Y via Trading Economics (key
-    # inherited at runtime by ops 4797; grammar proven by dxy-predict)
-    te_key = os.environ.get("TE_API_KEY", "")
-    TECN = {"germany": "DE10Y_TE", "italy": "IT10Y_TE",
-             "france": "FR10Y_TE", "spain": "ES10Y_TE"}
+    # v2.5: DAILY EU sovereign 10Y via Trading Economics, with
+    # self-reporting diagnostics into repo.json's diag dict.
+    diag = {}
+    te_key = os.environ.get('TE_API_KEY', '')
+    diag['te_key_present'] = bool(te_key)
+    TECN = {'germany': 'DE10Y_TE', 'italy': 'IT10Y_TE',
+             'france': 'FR10Y_TE', 'spain': 'ES10Y_TE'}
     for _cty, _tid in TECN.items():
-        _wk = f"data/warm/te-yields/{_cty}-10y.json"
+        _wk = 'data/warm/te-yields/' + _cty + '-10y.json'
         _pp = []
         _stale = True
         try:
             _pp = extract_pairs(sread(_wk))
             if _pp:
                 _stale = (datetime.now(timezone.utc) -
-                           datetime.strptime(_pp[-1][0], "%Y-%m-%d")
+                           datetime.strptime(_pp[-1][0], '%Y-%m-%d')
                            .replace(tzinfo=timezone.utc)).days > 3
         except Exception:
             pass
@@ -867,46 +870,53 @@ def lambda_handler(event, context):
             try:
                 import urllib.request as _ur
                 import urllib.parse as _up
-                _u = ("https://api.tradingeconomics.com/historical/"
-                      "country/%s/indicator/%s?c=%s&f=json"
-                      % (_up.quote(_cty),
-                          _up.quote("government bond 10y"), te_key))
+                _u = ('https://api.tradingeconomics.com/historical/'
+                      'country/' + _up.quote(_cty) + '/indicator/'
+                      + _up.quote('government bond 10y')
+                      + '?c=' + te_key + '&f=json')
                 with _ur.urlopen(_ur.Request(_u, headers={
-                        "User-Agent": "Mozilla/5.0"}), timeout=50) as _r:
-                    _js = json.loads(_r.read())
+                        'User-Agent': 'Mozilla/5.0'}),
+                        timeout=50) as _r:
+                    _body = _r.read()
+                _js = json.loads(_body)
                 _d2 = dict(_pp)
-                for _row in _js if isinstance(_js, list) else []:
-                    _dt = str(_row.get("DateTime") or "")[:10]
-                    _v = _row.get("Value")
+                _added = 0
+                for _row in (_js if isinstance(_js, list) else []):
+                    _dt = str(_row.get('DateTime') or '')[:10]
+                    _v = _row.get('Value')
                     if len(_dt) == 10 and _v is not None:
                         try:
                             _d2[_dt] = float(_v)
+                            _added += 1
                         except Exception:
                             pass
                 if _d2:
                     _pp = sorted(_d2.items())
                     s3.put_object(Bucket=BUCKET, Key=_wk,
-                        Body=json.dumps({"id": _tid,
-                            "source": "TradingEconomics historical",
-                            "banked_at": now,
-                            "observations": [{"date": a, "value": b}
+                        Body=json.dumps({'id': _tid,
+                            'source': 'TradingEconomics historical',
+                            'banked_at': now,
+                            'observations': [{'date': a, 'value': b}
                                               for a, b in _pp]},
-                            separators=(",", ":")).encode(),
-                        ContentType="application/json")
-            except Exception:
-                pass
+                            separators=(',', ':')).encode(),
+                        ContentType='application/json')
+                diag.setdefault('te', {})[_cty] = (
+                    'ok:' + str(len(_pp)) + '/+' + str(_added)
+                    if _pp else 'empty:' + _body[:60].decode(
+                        'utf-8', 'replace'))
+            except Exception as _te_e:
+                diag.setdefault('te', {})[_cty] = (
+                    type(_te_e).__name__ + ':' + str(_te_e)[:60])
+        elif _pp:
+            diag.setdefault('te', {})[_cty] = 'warm:' + str(len(_pp))
         if _pp:
-            scope.append({"mnemonic": _tid,
-                "name": f"{_cty.title()} 10Y yield (daily, TE)",
-                "family": "EUYIELD", "bucket": "Daily (TE)",
-                "s3_key": _wk,
-                "api_url": "https://tradingeconomics.com/bonds",
-                "tier": 2})
+            scope.append({'mnemonic': _tid,
+                'name': _cty.title() + ' 10Y yield (daily, TE)',
+                'family': 'EUYIELD', 'bucket': 'Daily (TE)',
+                's3_key': _wk,
+                'api_url': 'https://tradingeconomics.com/bonds',
+                'tier': 2})
 
-    # v2.3-B: ICMA SFTR weekly public files -- self-extending: find
-    # the two newest EU/UK xlsx links on the page, bank any new raw
-    # file, parse with the house zipfile+xml mini-reader (no openpyxl
-    # in Lambda), melt numeric metrics to weekly series.
     def _xlsx_sheets(raw):
         import zipfile as _zf
         import io as _io
@@ -958,9 +968,11 @@ def lambda_handler(event, context):
             'sftr-public-data/',
             headers={'User-Agent': 'Mozilla/5.0'}), timeout=45
             ).read().decode('utf-8', 'replace')
+        diag['sftr'] = {'stage': 'page'}
         _links = sorted(set(_re.findall(
             r'href="([^"]*SFTR-Public-Data-(?:EU|UK)[^"]*\.xlsx)"',
             _pg)))
+        diag['sftr']['links'] = len(_links)
         for _lk in _links[-2:]:
             _full = _lk if _lk.startswith('http') else \
                 'https://www.icmagroup.org' + _lk
@@ -976,6 +988,7 @@ def lambda_handler(event, context):
             s3.put_object(Bucket=BUCKET, Key=_rk, Body=_raw,
                 ContentType='application/vnd.openxmlformats-'
                              'officedocument.spreadsheetml.sheet')
+            diag['sftr']['files_new'] = diag['sftr'].get('files_new', 0) + 1
             _region = 'EU' if '-EU-' in _fn else 'UK'
             _m = _re.search(r'we-(\d{1,2})-(\w+)-(\d{4})', _fn)
             _months = {m0: i for i, m0 in enumerate(
@@ -1031,6 +1044,7 @@ def lambda_handler(event, context):
                                 {'date': _wdate, 'value': _v})
                             _doc['observations'].sort(
                                 key=lambda o: o['date'])
+                            diag['sftr']['series_put'] = diag['sftr'].get('series_put', 0) + 1
                             s3.put_object(Bucket=BUCKET, Key=_sk,
                                 Body=json.dumps(
                                     _doc, separators=(',', ':')
@@ -1063,6 +1077,7 @@ def lambda_handler(event, context):
                 if not _tok:
                     break
     except Exception as _e:
+        diag['sftr_error'] = type(_e).__name__ + ':' + str(_e)[:80]
         print("[repo] sftr block:", type(_e).__name__, str(_e)[:80])
 
     values = {}
@@ -1271,7 +1286,7 @@ def lambda_handler(event, context):
     groups = {}
     for r in rows:
         groups.setdefault(r["group"], []).append(r)
-    out = {"as_of": now, "engine_v": "2.4",
+    out = {"as_of": now, "engine_v": "2.5", "diag": diag,
             "note": ("barometer is a labeled heuristic: score = 50 + "
                      "10*mean(clipped z), components listed in full"),
             "counts": {"series": len(rows), "skipped": len(skipped),
@@ -1284,7 +1299,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "2.4", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "2.5", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))
