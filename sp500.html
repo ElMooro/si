@@ -65,12 +65,14 @@ tr.grp td{background:var(--bg-1);color:var(--cyan);font-family:var(--mono);font-
 <div class="cmpbox"><input id="tk" placeholder="TICKER" maxlength="6" autocomplete="off"><button id="go">Compare</button><span class="note">verdict = &plusmn;10% vs member median &middot; percentile = rank within S&amp;P members</span></div>
 <div id="cmp"></div></div>
 
+<div class="sec"><h2>S&amp;P 500 by sector — the fair fight</h2><div class="note" style="margin:-6px 0 10px">Ratio-of-sums per GICS sector. A stock should beat <b>its own sector inside the index</b>, not just the blended average.</div><div id="t_sec"></div></div>
 <div class="sec"><h2>Valuation</h2><div id="t_val"></div></div>
 <div class="sec"><h2>Forward (NTM analyst consensus)</h2><div id="t_fwd"></div></div>
 <div class="sec"><h2>Yield &amp; capital return</h2><div id="t_yld"></div></div>
 <div class="sec"><h2>Quality &amp; margins</h2><div id="t_qua"></div></div>
 <div class="sec"><h2>Growth</h2><div id="t_gro"></div></div>
 <div class="sec"><h2>Balance sheet &amp; risk</h2><div id="t_bal"></div></div>
+<div class="sec"><h2>History</h2><div id="hist"></div></div>
 <div class="sec"><h2>Macro cross</h2><div class="cards" id="macro"></div></div>
 
 <div class="foot" id="foot"></div>
@@ -140,6 +142,13 @@ function buildArrays(){FI={};D.member_fields.forEach((f,i)=>FI[f]=i);
  for(const f of names){const a=[];for(const t in D.members){const v=D.members[t][FI[f]];if(typeof v==="number"&&isFinite(v))a.push(v)}a.sort((x,y)=>x-y);ARR[f]=a}}
 function pct(arr,x){if(!arr||!arr.length||x==null)return null;let lo=0,hi=arr.length;while(lo<hi){const m=(lo+hi)>>1;arr[m]<x?lo=m+1:hi=m}return Math.round(1000*lo/arr.length)/10}
 function med(arr){if(!arr||!arr.length)return null;const m=arr.length>>1;return arr.length%2?arr[m]:(arr[m-1]+arr[m])/2}
+function secLine(t){
+ const m=D.members[t];if(!m||!D.sectors)return"";
+ const sec=m[FI["sector"]];const sb=D.sectors[sec];if(!sb)return"";
+ const g=(f,key,dp)=>{const x=m[FI[f]],sa=sb[key];if(x==null||!sa)return null;
+  return `${key.replace(/_pct|_ttm/g,"").replace(/_/g," ")} ${fmt(x,dp)} vs ${fmt(sa,dp)} (${x/sa>1?"+":""}${fmt((x/sa-1)*100,0)}%)`};
+ const parts=[g("pe_fwd","pe_fwd",1),g("roe_pct","roe_pct",1),g("ntm_growth_pct","ntm_growth_pct",1)].filter(Boolean);
+ return `<div class="tags" style="margin-top:6px">vs <b>${sec}</b> in the S&amp;P (${sb.n} names, ${fmt(sb.weight_pct,1)}% weight): ${parts.join(" · ")||"—"}</div>`}
 function compare(){const t=(document.getElementById("tk").value||"").trim().toUpperCase();const el=document.getElementById("cmp");if(!t)return;
  const m=D.members[t];if(!m){el.innerHTML=`<div class="err">${t} is not in the S&amp;P 500 census.</div>`;return}
  const pcts={};
@@ -168,9 +177,24 @@ function compare(){const t=(document.getElementById("tk").value||"").trim().toUp
   return `<div class="pill"><div class="pk">${pn} edge</div><div class="pv" style="color:${barc(p.score)}">${p.score}</div><div class="pbar"><i style="width:${p.score}%;background:${barc(p.score)}"></i></div><div class="pk" style="margin-top:4px">${p.n} metrics</div></div>`}).join("");
  el.innerHTML=`<div class="vband"><div class="big">${t} — ${cs==null?"—":cs}/100 · ${vtxt}</div>
  <div class="tags">${tags.length?tags.join(" · "):"broadly in line with the index"} &middot; ${m[FI["sector"]]||""} &middot; price ${m[FI["px_chg_since_census_pct"]]>0?"+":""}${fmt(m[FI["px_chg_since_census_pct"]],1)}% since fundamentals snapshot</div>
- <div class="pillars">${pilHtml}</div></div>
+ <div class="pillars">${pilHtml}</div>${secLine(t)}</div>
  <table><tr><th>Metric</th><th>${t}</th><th>SP500 (agg)</th><th>Member median</th><th>vs median</th><th>%ile in S&amp;P</th><th style="text-align:left">Verdict</th></tr>${rows.join("")}</table>
  <div class="note">Score = weighted percentile edge (valuation 30% · quality 25% · growth 25% · balance 10% · momentum 10%); low-better metrics inverted. Percentile column: for valuation rows higher = more expensive; for the rest higher = stronger. SPX is the default — the stock must earn its place.</div>`}
+function renderSectors(){
+ if(!D.sectors)return;
+ const rows=Object.entries(D.sectors).sort((a,b)=>b[1].weight_pct-a[1].weight_pct).map(([s,v])=>
+  `<tr><td class="metric">${s}</td><td>${fmt(v.weight_pct,1)}%</td><td class="band">${v.n}</td><td><b>${fmt(v.pe_ttm,1)}</b></td><td>${fmt(v.pe_fwd,1)}</td><td>${fmt(v.ntm_growth_pct,1)}%</td><td>${fmt(v.ps_ttm,2)}</td><td>${fmt(v.ev_ebitda_ttm,1)}</td><td>${fmt(v.roe_pct,1)}%</td><td>${fmt(v.net_margin_pct,1)}%</td><td>${fmt(v.div_yield_pct,2)}%</td><td>${fmt(v.fcf_yield_pct,2)}%</td></tr>`).join("");
+ document.getElementById("t_sec").innerHTML=`<table><tr><th>Sector</th><th>Weight</th><th>n</th><th>P/E</th><th>Fwd P/E</th><th>NTM gr</th><th>P/S</th><th>EV/EBITDA</th><th>ROE</th><th>Net mgn</th><th>Div</th><th>FCF y</th></tr>${rows}</table>`}
+async function renderHistory(){
+ let H=null;try{H=await (await fetch(`${PROXY}/data/sp500-history.json?t=${Date.now()}`)).json()}catch(e){}
+ const el=document.getElementById("hist");if(!el)return;
+ const days=H?Object.keys(H).sort():[];
+ if(days.length<5){el.innerHTML=`<div class="note">Banking daily — ${days.length} day(s) so far. Trend charts unlock at 5 days (P/E, forward P/E, ERP, Rule of 20).</div>`;return}
+ const spark=(key,dp,color)=>{const vs=days.map(d=>H[d][key]).filter(v=>v!=null);if(vs.length<5)return"";
+  const mn=Math.min(...vs),mx=Math.max(...vs),W=260,Ht=46;
+  const pts=vs.map((v,i)=>`${(i/(vs.length-1)*W).toFixed(1)},${(Ht-4-(mx>mn?(v-mn)/(mx-mn):0.5)*(Ht-8)).toFixed(1)}`).join(" ");
+  return `<div class="card" style="min-width:280px"><div class="k">${key} · ${days.length}d</div><svg width="${W}" height="${Ht}"><polyline fill="none" stroke="${color}" stroke-width="2" points="${pts}"/></svg><div class="s">${fmt(vs[0],dp)} → <b>${fmt(vs[vs.length-1],dp)}</b></div></div>`};
+ el.innerHTML=`<div class="cards">${spark("pe",1,"var(--cyan)")}${spark("fpe",1,"var(--green)")}${spark("erp",2,"var(--amber)")}${spark("r20",1,"var(--violet)")}</div>`}
 async function load(){let r;try{r=await fetch(`${PROXY}/data/sp500.json?t=${Date.now()}`);D=await r.json()}catch(e){}
  if(!D||!D.ok){document.getElementById("cards").innerHTML=`<div class="err">data/sp500.json unavailable — engine may still be on first run.</div>`;return}
  buildArrays();
@@ -204,6 +228,7 @@ async function load(){let r;try{r=await fetch(`${PROXY}/data/sp500.json?t=${Date
   card("Div yield − 10Y",mc.div_yield_minus_10y_pct==null?"—":fmt(mc.div_yield_minus_10y_pct,2)+"%","")].join("");
  const dg=D.diag||{};const rp=dg.reprice||{};
  document.getElementById("foot").innerHTML=`<b>Methodology.</b> ${D.provenance.method} Sources: ${D.provenance.sources.join(" · ")}. Reprice: ${rp.members_repriced??"—"} members on ${rp.now_px_date??"—"} closes, ${rp.members_flat??"—"} at snapshot price. History banked: ${D.hist_days??"—"} days (permanent). Engine ${D.engine_v}. Real data only — anything unavailable shows as — with the reason in <span style="font-family:var(--mono)">data/sp500.json → diag</span>.`;
+ renderSectors();renderHistory();
  const u=new URLSearchParams(location.search).get("t");if(u){document.getElementById("tk").value=u;compare()}
 }
 document.getElementById("go").onclick=compare;

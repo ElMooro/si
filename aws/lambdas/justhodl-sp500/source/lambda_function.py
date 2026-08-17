@@ -1,4 +1,4 @@
-"""justhodl-sp500 v1.1.0 — THE S&P 500 AS A SINGLE STOCK.
+"""justhodl-sp500 v1.2.0 — THE S&P 500 AS A SINGLE STOCK.
 
 Khalid (2026-08-16): "give me all the sp500 metrics as a whole — its p/e,
 forward p/e, yield, everything — so when I buy a stock I can compare its
@@ -45,8 +45,8 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.1.0"
-MARKER = "sp500 v1.1.0"
+VERSION = "1.2.0"
+MARKER = "sp500 v1.2.0"
 BUCKET = "justhodl-dashboard-live"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
 LEDGER_KEY = "spx-ma/member-closes.json"
@@ -249,7 +249,7 @@ def compute(diag):
                               % sum(1 for v in ni_f if v is not None))
 
     # ---------------------------------------------------- aggregates --
-    def AGG(nums, dens, dp=2, floor=None):
+    def AGG(nums, dens, dp=2, floor=None, min_k=50):
         sn = sd = cv = 0.0
         k = 0
         for i in range(n):
@@ -260,7 +260,7 @@ def compute(diag):
             sd += b
             cv += cap_n[i] or 0
             k += 1
-        if k < 50 or sd == 0:
+        if k < min_k or sd == 0:
             return None, k, 0.0
         v = sn / sd
         if floor is not None and v < floor:
@@ -424,6 +424,64 @@ def compute(diag):
                 "current_ratio", "interest_coverage_ttm", "altman_z",
                 "beta_2y")}
 
+    # ---- per-sector aggregates (the fair fight: stock vs its own
+    # sector inside the index; ratio-of-sums with sector-sized min_k) --
+    sec_idx = {}
+    for i in range(n):
+        if cap_n[i]:
+            sec_idx.setdefault(sectors[i] or "Unknown", []).append(i)
+
+    def SUB(src, idxs):
+        out = [None] * n
+        for j in idxs:
+            out[j] = src[j]
+        return out
+
+    def swm(col, idxs, dp=1):
+        sn = sw = 0.0
+        for j in idxs:
+            if col[j] is not None and cap_n[j]:
+                sn += col[j] * cap_n[j]
+                sw += cap_n[j]
+        return round(sn / sw, dp) if sw else None
+
+    sectors_agg = {}
+    for s_name, idxs in sec_idx.items():
+        if s_name == "Unknown" or len(idxs) < 5:
+            continue
+        scap = sum(cap_n[j] for j in idxs)
+        sub = lambda a: SUB(a, idxs)  # noqa: E731
+        pe_s = AGG(sub(cap_n), sub(ni), floor=0, min_k=5)[0]
+        fpe_s = AGG(sub(cap_n), sub(ni_f), floor=0, min_k=5)[0]
+        roe_s = AGG(sub(ni), sub(book), dp=4, min_k=5)[0]
+        nm_s = AGG(sub(ni), sub(rev), dp=4, min_k=5)[0]
+        fy_s = AGG(sub(fcf), sub(cap_n), dp=4, min_k=5)[0]
+        dv_s = AGG(sub(div), sub(cap_n), dp=4, min_k=5)[0]
+        fpe_sub = sorted(v for v in (fpe_m[j] for j in idxs)
+                         if v is not None)
+        sectors_agg[s_name] = {
+            "n": len(idxs), "cap_t": round(scap, 1),
+            "weight_pct": round(100 * scap / total_cap, 1)
+            if total_cap else None,
+            "pe_ttm": pe_s, "pe_fwd": fpe_s,
+            "pe_fwd_median": (round(fpe_sub[len(fpe_sub) // 2], 1)
+                              if fpe_sub else None),
+            "ntm_growth_pct": (round((pe_s / fpe_s - 1) * 100, 1)
+                               if pe_s and fpe_s else None),
+            "ps_ttm": AGG(sub(cap_n), sub(rev), min_k=5)[0],
+            "ev_ebitda_ttm": AGG(sub(ev_n), sub(ebitda), floor=0,
+                                 min_k=5)[0],
+            "fcf_yield_pct": (round(fy_s * 100, 2)
+                              if fy_s is not None else None),
+            "div_yield_pct": (round(dv_s * 100, 2)
+                              if dv_s is not None else None),
+            "roe_pct": (round(roe_s * 100, 1)
+                        if roe_s is not None else None),
+            "net_margin_pct": (round(nm_s * 100, 1)
+                               if nm_s is not None else None),
+            "revenue_yoy_pct": swm(C("revenue_yoy_pct"), idxs),
+        }
+
     mem_spec = [
         ("px_chg_since_census_pct",
          [round((sc[i] - 1) * 100, 1) for i in range(n)], None),
@@ -477,7 +535,8 @@ def compute(diag):
             "px_date": px_date, "gen": gen,
             "valuation": valuation, "forward": forward, "yield": yld,
             "quality": quality, "growth": growth, "balance": balance,
-            "members": members,
+            "members": members, "sectors": sectors_agg,
+            "_sec_idx": sec_idx,
             "_arrays": {nm: lst for nm, lst, _ in mem_spec
                         if nm != "sector"}}
 
@@ -570,7 +629,7 @@ def run():
            "valuation": cx["valuation"], "forward": cx["forward"],
            "yield": cx["yield"], "quality": cx["quality"],
            "growth": cx["growth"], "balance": cx["balance"],
-           "macro_cross": macro,
+           "macro_cross": macro, "sectors": cx["sectors"],
            "member_fields": MEMBER_FIELDS, "members": cx["members"],
            "diag": diag,
            "provenance": {
@@ -741,8 +800,34 @@ def compare(ticker):
         vtxt = "NO CLEAR EDGE -- SPX is the default"
     else:
         vtxt = "PREFER SPX over this name on these numbers"
+    sec = (cx["members"].get(t) or [None, None])[1]
+    sctx = None
+    sblk = (cx.get("sectors") or {}).get(sec)
+    if sblk:
+        sidx = cx["_sec_idx"].get(sec) or []
+        srows = []
+        for f, key in (("pe_ttm", "pe_ttm"), ("pe_fwd", "pe_fwd"),
+                       ("ps_ttm", "ps_ttm"),
+                       ("ev_ebitda_ttm", "ev_ebitda_ttm"),
+                       ("roe_pct", "roe_pct"),
+                       ("net_margin_pct", "net_margin_pct"),
+                       ("ntm_growth_pct", "ntm_growth_pct")):
+            x = fnum(cx["_arrays"][f][i])
+            sa = sblk.get(key)
+            srows.append({"metric": f, "stock": x, "sector_agg": sa,
+                          "premium_pct": (round((x / sa - 1) * 100, 1)
+                                          if x is not None and sa
+                                          else None)})
+        fpe_peers = sorted(v for v in (
+            fnum(cx["_arrays"]["pe_fwd"][j]) for j in sidx)
+            if v is not None)
+        sctx = {"sector": sec, "n": sblk["n"],
+                "weight_pct": sblk["weight_pct"], "rows": srows,
+                "pe_fwd_pctile_in_sector": pctile(
+                    fpe_peers, fnum(cx["_arrays"]["pe_fwd"][i]))}
     return {"ok": True, "ticker": t, "as_of":
             datetime.now(timezone.utc).isoformat(), "rows": rows,
+            "sector_context": sctx,
             "pillars": pillars,
             "composite": {"score": composite,
                           "weights": {k: PILLAR_W[k] for k in pillars},
