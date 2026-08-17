@@ -16,7 +16,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| GLOBAL capital flows: country-inflow engine (TW/KR/CL/PE + IMF layer) + capital-flow.html TOP restructure (US-by-destination + world grid) | 4832-4835 | S-fable-A | 2026-08-17 17:1x |
 
 ## Done (this arc)
 | workstream | ops | session |
@@ -27,6 +26,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 | foreign-flows engine v1.0 (TIC/CSLT) | 4824-4826 | S-fable-A |
 | CSLT official/private + countries v1.1 | 4827-4829 | S-B |
 | capital-flow.html TIC card + verify | 4830-4831 | S-fable-A |
+| global-flows engine (Peru live) + capital-flow TOP restructure | 4832-4836 | S-fable-A |
 
 ## Open queue (unclaimed)
 - Fusion 3: catalyst chain (catalyst x readthrough x backlog-miner x
@@ -37,4 +37,9 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
   safe-haven spike, STRESS-ONLY) — GATED: wait >=1 verified monthly
   TIC cycle (earliest after next new_release flip)
 - FRED-window sentinel for tic-cslt banks (weekly diff vs bank)
+- global-flows micro-probes: CBC BPP2Q01en data[] shape map; TWSE
+  rwd/en/fund JSON daily-flow endpoints; IMF sdmx/2.1 BOP dataflow
+  id (worldwide layer)
+- global-flows key-gated: Korea (BOK ECOS + KRX keys) and Chile
+  (BCCh token) -- BLOCKED ON KHALID
 - Fusion 5/6 (sector triangle + mispriced-boom) — wave 2, after Sat
