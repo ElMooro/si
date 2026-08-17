@@ -236,6 +236,26 @@ def main():
         and d_dup["country_lt_treasury"]["belgium"]["status"]
         == "OK")
     eng.COUNTRIES = _saved
+    H = doc.get("hist_10y") or {}
+    chk("A2 hist_10y: 6 flows + 4 signals, identity + cap",
+        all(k in H for k in ("total", "treas", "equity", "corp",
+                             "agency", "tbills",
+                             "sig_risk_appetite",
+                             "sig_safe_haven",
+                             "sig_total_demand",
+                             "sig_official_private"))
+        and H["total"]["vals"][-1]
+        == doc["flows_bn"]["total"]["latest"]
+        and H["sig_risk_appetite"]["vals"][-1]
+        == doc["signals"]["risk_appetite"]["latest_bn"]
+        and H["sig_official_private"]["vals"][-1]
+        == doc["signals"]["official_private"]["latest_bn"]
+        and all(len(v["vals"]) <= 120
+                and len(v["dates"]) == len(v["vals"])
+                for v in H.values()))
+    c3 = doc["country_lt_treasury"]["china"]
+    chk("A2 country tx_3m present + numeric",
+        isinstance(c3.get("tx_3m_bn"), (int, float)))
     c = doc["country_lt_treasury"]["china"]
     chk("A2 country decomposition identity (china)",
         c["holdings_bn"] == round((700000.0

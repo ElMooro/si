@@ -1,6 +1,6 @@
 """justhodl-foreign-flows v1.1.0 -- US Foreign Portfolio Flows
 (Treasury TIC via the 2026 CSLT dataset on FRED).
-Marker: foreign-flows v1.2.1
+Marker: foreign-flows v1.3.0
 
 Khalid doctrine: dollar view first. This engine adds the missing
 organ -- where foreign money actually moves inside US markets --
@@ -57,7 +57,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.2.1"
+VERSION = "1.3.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 FRED_KEY = os.environ.get("FRED_KEY") or ""
 OUT_KEY = "data/foreign-flows.json"
@@ -260,10 +260,11 @@ def split_block(doc):
             "private": {"latest": round(vp[-1], 1),
                         "sum_12m": round(sum(vp[-12:]), 1),
                         "z_10y": zlast(vp)},
-            "_vo": vo, "_vp": vp}
+            "_vo": vo, "_vp": vp, "_da": da}
     lt = fam_out.get("lt_total") or {}
     if lt.get("status") == "OK":
         vo, vp = lt.pop("_vo"), lt.pop("_vp")
+        lt_dates = lt.pop("_da", [])
         n = min(len(vo), len(vp))
         d = [vp[len(vp) - n + i] - vo[len(vo) - n + i]
              for i in range(n)]
@@ -274,6 +275,9 @@ def split_block(doc):
             "z_10y": zlast(d),
             "formula": "private - official (LT total; suffixes "
                        "99991-99990, runtime-reconciled)"}
+        doc.setdefault("hist_10y", {})["sig_official_private"] = {
+            "dates": lt_dates[-len(d):][-120:],
+            "vals": [round(v, 1) for v in d[-120:]]}
     else:
         doc["signals"]["official_private"] = {
             "value": None,
@@ -282,6 +286,7 @@ def split_block(doc):
     for fam in fam_out.values():
         fam.pop("_vo", None)
         fam.pop("_vp", None)
+        fam.pop("_da", None)
     doc["holder_splits"] = fam_out
 
 
@@ -314,6 +319,7 @@ def country_block(doc):
         dv, vv = fetch_bn("FORLTTREASVALCHG" + code)
         if dn is not None:
             row["tx_12m_bn"] = round(sum(vn[-12:]), 1)
+            row["tx_3m_bn"] = round(sum(vn[-3:]), 1)
         if dv is not None:
             row["valchg_12m_bn"] = round(sum(vv[-12:]), 1)
         if (row.get("d12m_holdings_bn") is not None
@@ -404,6 +410,11 @@ def build():
         return doc
     doc["status"] = "LIVE"
     doc["latest_month"] = latest_month
+    doc["hist_10y"] = {}
+    for name, c in comp.items():
+        doc["hist_10y"][name] = {
+            "dates": c["dates"][-120:],
+            "vals": [round(v, 1) for v in c["vals"][-120:]]}
 
     for sig, parts in SIGNALS.items():
         vals = None
@@ -422,6 +433,7 @@ def build():
                      + (-v[len(v) - n + i] if neg
                         else v[len(v) - n + i]))
                     for i in range(n)]
+            sig_dates = comp[nm]["dates"]
         if missing or vals is None:
             doc["signals"][sig] = {"value": None,
                                    "why": "missing components: %s"
@@ -433,6 +445,9 @@ def build():
             "sum_12m_bn": round(sum(vals[-12:]), 1),
             "z_10y": zlast(vals),
             "formula": " + ".join(parts).replace("+ -", "- ")}
+        doc["hist_10y"]["sig_" + sig] = {
+            "dates": sig_dates[-len(vals):][-120:],
+            "vals": [round(v, 1) for v in vals[-120:]]}
     split_block(doc)
     country_block(doc)
 
