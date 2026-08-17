@@ -16,6 +16,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| global-flows micro-probes (CBC shape / TWSE rwd daily / IMF BOP dataflow) + v1.1 Taiwan wiring + page generic country render | 4837-4841 | S-fable-A | 2026-08-17 17:3x |
 
 ## Done (this arc)
 | workstream | ops | session |
