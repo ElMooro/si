@@ -1,18 +1,16 @@
-executing-against: c60a412302404ea6072710c3f38235aec4b68960
-1. official-pulse birth
-[23:04:29] ✅ function Active + update settled
-[23:04:34] ✅ env FRED_KEY HEALED (burn 4864: inherit_env is not a deploy feature)
-[23:04:35] ✅ justhodl-official-pulse: token settled (attempt 1)
-[23:04:35] ✅ schedule exists
-[23:04:46] ✅ justhodl-official-pulse fresh in 10s
-2. pulse truths
-[23:04:46] ✅   RRP 357.4B @ 2026-08-12 == FRED refetch
-[23:04:46] ✅   13w chg +34.8B == banked recompute
-[23:04:46] ⚠   custody OMITTED honestly: no current series; tried WMTSEC:stale(last 2012-11-07); WMTSECL:stale(last 2012-11-07)
-[23:04:47] ✅   dollar_leg WATCH: 1 firing == independent recompute (off_z=0.74 sh_z=-1.95 cust_z=None)
-3. risk-gate leg
-[23:04:47] ✅ justhodl-risk-gate: token settled (attempt 1)
-[23:09:57] ✗ justhodl-risk-gate: no fresh doc
+executing-against: cd040d0dea553fd643f65c8e971a2c6d161186d0
+[23:10:27] ✅ weekly custody candidates: 10
+[23:10:28]   H0RESH4CNWW last=2012-11-07 cur=False | Memorandum Items: Custody Holdings: Total (Marketable Securities Held in Custody for Forei
+[23:10:28]   H0RESH4CXAWNWW last=2012-11-07 cur=False | Memorandum Items: Custody Holdings: Total (Marketable Securities Held in Custody for Forei
+[23:10:29]   H0RESH4CXAWXCH1NWW last=2012-11-07 cur=False | Memorandum Items: Custody Holdings: Total (Marketable Securities Held in Custody for Forei
+[23:10:30]   H0RESH4CXAWXCH52NWW last=2012-11-07 cur=False | Memorandum Items: Custody Holdings: Total (Marketable Securities Held in Custody for Forei
+[23:10:31]   WFASEC last=2012-11-07 cur=False | Memorandum Item: Marketable Securities Held in Custody for Foreign Official and Internatio
+[23:10:32]   WFASECL last=2012-11-07 cur=False | Memorandum Item: Marketable Securities Held in Custody for Foreign Official and Internatio
+[23:10:33]   WMTSEC last=2012-11-07 cur=False | Memorandum Item: Marketable Securities Held in Custody for Foreign Official and Internatio
+[23:10:33]   WMTSECL last=2012-11-07 cur=False | Memorandum Item: Marketable Securities Held in Custody for Foreign Official and Internatio
+[23:10:34]   WSEFINT last=2012-11-07 cur=False | Memorandum item: Marketable Securities Held in Custody for Foreign Official and Internatio
+[23:10:35]   WSEFINTL last=2012-11-07 cur=False | Memorandum item: Marketable Securities Held in Custody for Foreign Official and Internatio
+[23:10:36] ✗ no current custody series -- wire blocked
 
-→ Report written to aws/ops/reports/latest/ops 4865 -- official-pulse + dollar leg take2 (key heal).md
-❌ OPS-FAIL: aws/ops/pending/ops_4865_official_pulse_take2.py
+→ Report written to aws/ops/reports/latest/ops 4864 -- custody resolver probe.md
+❌ OPS-FAIL: aws/ops/pending/ops_4864_custody_resolver_probe.py
