@@ -54,7 +54,7 @@ def fred_latest(sid, key):
         try:
             with urllib.request.urlopen(
                     urllib.request.Request(
-                        url, headers={"User-Agent": "ops-4861"}),
+                        url, headers={"User-Agent": "ops-4862"}),
                     timeout=60) as r:
                 j = json.loads(r.read())
             for o in j.get("observations") or []:
@@ -69,7 +69,7 @@ def fred_latest(sid, key):
 
 
 def main():
-    with report("ops 4861 -- ff v1.3 full-render verify") as rep:
+    with report("ops 4862 -- ff v1.3 full-render verify take2 (active-wait)") as rep:
         rep.heading("1. settle + invoke")
         key = None
         for d in DONORS:
@@ -85,6 +85,19 @@ def main():
         if not key:
             rep.fail("no FRED donor")
             sys.exit(1)
+        for _ in range(40):
+            try:
+                cfg = lam.get_function_configuration(
+                    FunctionName=FN)
+                if cfg.get("State") == "Active" and \
+                        cfg.get("LastUpdateStatus") \
+                        != "InProgress":
+                    break
+            except ClientError:
+                pass
+            time.sleep(6)
+        rep.ok("function Active + update settled (burn 4861: "
+               "marker-in-zip != code-live)")
         settled = False
         for att in range(30):
             try:
@@ -119,7 +132,8 @@ def main():
                 d = sread(OUT_KEY)
             except ClientError:
                 continue
-            if d.get("generated_at") != prev:
+            if d.get("generated_at") != prev \
+                    and d.get("v") == "1.3.0":
                 doc = d
                 break
         if not doc:
@@ -246,7 +260,7 @@ def main():
                 req = urllib.request.Request(
                     "https://justhodl.ai/foreign-flows.html?t=%d"
                     % int(time.time()),
-                    headers={"User-Agent": "ops-4861",
+                    headers={"User-Agent": "ops-4862",
                              "Cache-Control": "no-cache"})
                 with urllib.request.urlopen(req, timeout=45) as r:
                     if 'id="splits"' in r.read().decode(
