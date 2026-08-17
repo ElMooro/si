@@ -1,1 +1,21 @@
-executing-against: 73b411131e79309a9ac3547f5335fc90900557f7
+executing-against: 5d02516f16639cb4161aac1aba264d0f282200a2
+1. settle + invoke
+[23:13:44] ✅ marker settled (attempt 1)
+[23:15:09] ✅ fresh in 85s
+[23:15:09]   30s quota-window breather before sampling
+[23:15:39]   30s quota-window breather before sampling
+2. v1.4 truths
+[23:16:09] ✅   21 base countries, 21 OK
+[23:16:09] ✅   Euroclear composite: china -91.3 + belgium +89.1 = -2.2B tx12m
+[23:16:09] ✅   equity decomposition on 21 countries
+[23:16:10] ✅   JAPAN eq-net latest month 2026-06-01 == FRED refetch (401M)
+[23:16:10] ✅   equity identity holds on 21/21
+[23:16:10]   eq tx12m top5: cayman +269.8 | ireland +159.3 | singapore +158.9 | germany +90.7 | korea +72.9
+[23:16:10]   eq tx12m bottom3: saudi_arabia -27.0 | uae -22.0 | japan -19.0
+3. page
+[23:16:10] ✅   committed equity tokens present
+[23:16:10] ✅   SERVED (0s)
+4. verdict
+[23:16:10] ✅ 21-country matrix + equity holdings LIVE, sampled against FRED, banked, served
+
+→ Report written to aws/ops/reports/latest/ops 4868 -- ff v1.4 equity decomposition verify.md
