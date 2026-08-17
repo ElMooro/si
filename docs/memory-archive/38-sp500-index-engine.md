@@ -215,3 +215,23 @@ accel). Live: **SMH 88.4** w/ flows .93 (+$3.23B 20d, top 7%) — the
 requested inflow×momentum×industry read working; USO/DBC flows .37
 honestly drag. 14 ETF rows carry flows leg. All clamps/traps/ledger
 invariants held. Next ops 4817.
+
+## v1.3.1 (ops 4817 GREEN) — CORRECTION to the v1.3.0 note above
+The v1.3.0 addendum overclaimed: the industry legs were NOT working
+live. Producer league rows carry **boom_score** (league.append at
+industry-boom L215); the engine bound "score" → boom_by_ind EMPTY from
+ops 4811 through 4816, silently killing BOTH the stock `industry` leg
+and the ETF `industry_fund` leg (renormalization hid it; the only
+symptom was the warn-only "industry_fund = 0" line in 4816 and no
+industry legs in any readout). Root-caused by grepping the producer's
+OUTPUT construction instead of its input readers. v1.3.1: exact
+boom_score bind + score/velocity fallback chain + score_delta_20d in
+why-lines + engine parse canary ("joined 0 of N league rows — field
+drift?"). ops 4817 adds **field-level G0** (league[0].boom_score
+numeric) — container-length G0 alone let this through. Live after fix:
+131 parsed · 60 stock rows w/ industry leg · 8 ETF rows w/
+industry_fund · SPCX 94.8 (A&D boom 77, top 5%, +1.3/20d) · **SMH 89.8
+full stack** (mom .97 / rotation .76 / flows .93 / industry_fund .98 —
+semis boom 81, top 2%) · NBIS 94.1 · BRKR 88.1 new. All invariants
+held (53w, clamps 0, comeback traps NONE). LESSON (fleet-wide): bind
+the producer's OUTPUT append/dict literal; G0 the FIELD. Next ops 4818.
