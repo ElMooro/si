@@ -1,26 +1,33 @@
-executing-against: 7308297cf76e976ae57751a2f2ff4e7e1e7e8331
-ops 4808 -- justhodl-sp500 birth verify
-── 1. function Active + env heal ──
-── 2. deploy settle (zip marker) ──
-── 3. EventBridge Scheduler ensure ──
-[02:57:31] ✅ schedule justhodl-sp500-daily already correct
-── 4. Event-invoke + poll as_of ──
-[02:57:47] ✅   fresh doc after ~15s  as_of=2026-08-17T02:57:34.078881+00:00
-── 5. truth bands (all real) ──
-[02:57:47] ✅   members = 495
-[02:57:47] ✅   pe_ttm.agg = 24.73
-[02:57:47] ✅   pe_fwd.agg = 20.37
-[02:57:47] ✅   earnings_yield.agg = 4.04
-[02:57:47] ✅   div_yield.agg = 1.07
-[02:57:47] ✅   pe_ttm.median (dist populated) = 23.45
-[02:57:47] ✅   ps_ttm.agg = 3.55
-[02:57:47] ✅   roe.agg = 21.3
-[02:57:47] ✅   erp_ttm = -0.59
-[02:57:47] ✅   rule_of_20 = 28.3
-── 6. compare-mode smoke (AAPL) ──
-[02:57:48] ✅   compare rows = 12
-[02:57:48] ✅   compare rows w/ percentile = 12
-── 7. headline readout ──
-[02:57:48] ✅ justhodl-sp500 LIVE -- the index now reads like a single stock
+executing-against: 9c3e5a783840b961ece29325c9c5289b98a804c6
+1. deploy settle (zip marker)
+[03:12:22] ✅ deployed marker sp500 v1.1.0 settled (attempt 1)
+2. Event-invoke + poll as_of
+[03:12:38] ✅   fresh v1.1.0 doc after ~15s  as_of=2026-08-17T03:12:24.622286+00:00
+3. doc contract
+[03:12:38] ✅   member_fields = 41 names
+[03:12:38] ✅   AAPL member row len = 41
+[03:12:38] ✅   coverage ps_fwd = 99.2% (491/495)
+[03:12:38] ✅   coverage ev_ebitda_fwd = 95.4% (472/495)
+[03:12:38] ✅   coverage shareholder_yield_pct = 100.0% (495/495)
+[03:12:38] ✅   coverage roic_pct = 100.0% (495/495)
+[03:12:38] ✅   coverage altman_z = 100.0% (495/495)
+[03:12:38] ✅   coverage ntm_growth_pct = 94.3% (467/495)
+[03:12:38] ✅   coverage mom_6m_pct = 100.0% (495/495)
+[03:12:38] ✅   coverage mom_12_1_pct = 99.8% (494/495)
+4. index bands (unchanged truths)
+[03:12:38] ✅   pe_ttm.agg = 24.73
+[03:12:38] ✅   pe_fwd.agg = 20.37
+[03:12:38] ✅   roe.agg = 21.3
+[03:12:38] ✅   shareholder_yield.agg = 2.3
+[03:12:38] ✅   fwd_ps.agg = 3.32
+5. compare smoke (NVDA + AAPL)
+[03:12:39] ✅   NVDA rows = 38 (want 38)
+[03:12:39] ✅   NVDA pillars = ['balance', 'growth', 'momentum', 'quality', 'valuation']
+[03:12:39] ✅   NVDA composite = 62.4  verdict: MODEST EDGE vs SPX
+[03:12:39] ✅   AAPL rows = 38 (want 38)
+[03:12:39] ✅   AAPL pillars = ['balance', 'growth', 'momentum', 'quality', 'valuation']
+[03:12:39] ✅   AAPL composite = 54.0  verdict: NO CLEAR EDGE -- SPX is the default
+6. verdict
+[03:12:39] ✅ sp500 v1.1.0 LIVE -- 41-field members, 38-metric better-buy compare with pillar verdict
 
-→ Report written to aws/ops/reports/latest/4808_sp500_engine_deploy_verify.md
+→ Report written to aws/ops/reports/latest/ops 4809 -- sp500 v1.1.0 expanded compare.md
