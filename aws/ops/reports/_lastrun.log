@@ -1,44 +1,55 @@
-executing-against: 2c54bcc5c66e2c4864b6685595e584e19a68ecd1
-G0. BCRP re-confirm at birth
-[17:24:38] ✅ BCRP 4 series, 57 quarters, last T1.26
-1. function + settle + schedule
-[17:24:39] ✅ marker settled (attempt 1)
-[17:24:39] ✅ schedule created -> cron(0 12 ? * MON *)
-2. Event-invoke + poll (<=4 min)
-[17:24:50] ✅ fresh in 10s
-3. truths
-[17:24:50] ✅   LIVE; peru T1.26
-[17:24:50] ✅   portfolio_total == independent BCRP refetch (+258.1M @ T1.26)
-[17:24:50] ✅   gov_bonds_nonresident == independent BCRP refetch (+712.6M @ T1.26)
-[17:24:50] ✅   bank PN39285BQ n=57 (Deny-Delete zone)
-[17:24:50] ✅   bank PN39286BQ n=57 (Deny-Delete zone)
-[17:24:51] ✅   bank PN39287BQ n=57 (Deny-Delete zone)
-[17:24:51] ✅   bank PN39414FQ n=57 (Deny-Delete zone)
-[17:24:51] ✅   five deferrals named with unlock reasons
-[17:24:51] ✅   composites honestly null
-4. readout
-[17:24:51]   portfolio_total              +258.1M  4Q   +1149.3  z=-0.08  since T1.12
-[17:24:51]   portfolio_equity              +57.6M  4Q    +147.0  z=0.87  since T1.12
-[17:24:51]   portfolio_fixed_income       +200.5M  4Q   +1002.3  z=-0.21  since T1.12
-[17:24:51]   gov_bonds_nonresident        +712.6M  4Q   +3394.7  z=0.34  since T1.12
-5. verdict
-[17:24:51] ✅ justhodl-global-flows LIVE -- Peru measured, the world map honest about what unlocks next
+executing-against: 027a4212379a9e283e716022d8d35fd3a31f63d7
+1. CBC BPP2Q01en recursive shape walk
+[17:33:37] ✅ HTTP 200 bytes=577401
+[17:33:37]   meta: {"title": "Balance of Payments By Period", "sender": "Central Bank of the Republic of China (Taiwan)", "prepared": "2026/8/18 上午 01:33:36", "filename": "BPP2Q01en.px", "links": "https://cpx.cbc.gov.tw/api/DataAPI/Get?FileName=BPP2Q01en", "note": "The symbol '─' for an amount denotes the figure is not available or less than a half unit.", "refperiod": "Please refer to <a href='https://eng.stat.gov.tw/News_NoticeCalendar_EN.aspx?n=4011&Dept=A59000000N'>“Advance release calendar”</a>.", "last_updat...
+[17:33:37]   data type=dict len=2
+[17:33:37] ✅   portfolio/liabilit string hits: 41
+[17:33:37]    @data/structure/Table1/96/data -> Primary income-Investment income-Portfolio investment income-Net Value
+[17:33:37]    @data/structure/Table1/97/data -> Primary income-Investment income-Portfolio investment income-Credit
+[17:33:37]    @data/structure/Table1/98/data -> Primary income-Investment income-Portfolio investment income-Debit
+[17:33:37]    @data/structure/Table1/99/data -> Primary income-Investment income-Portfolio investment income-Inv. income on equity and invest. fund shares-Net Value
+[17:33:37]    @data/structure/Table1/100/data -> Primary income-Investment income-Portfolio investment income-Inv. income on equity and invest. fund shares-Credit
+[17:33:37]    @data/structure/Table1/101/data -> Primary income-Investment income-Portfolio investment income-Inv. income on equity and invest. fund shares-Debit
+[17:33:37]    @data/structure/Table1/102/data -> Primary income-Investment income-Portfolio investment income-Interest-Net Value
+[17:33:37]    @data/structure/Table1/103/data -> Primary income-Investment income-Portfolio investment income-Interest-Credit
+[17:33:37]    @data/structure/Table1/104/data -> Primary income-Investment income-Portfolio investment income-Interest-Debit
+[17:33:37]    @data/structure/Table1/143/data -> Financial account(exc. Reserve assets)-Liabilities
+[17:33:37]    @data/structure/Table1/146/data -> Direct investment-Liabilities
+[17:33:37]    @data/structure/Table1/149/data -> Direct investment- Equity and investment fund shares -Liabilities
+[17:33:37]    @data/structure/Table1/152/data -> Direct investment- Equity and investment fund shares-Equity other than reinvestment of earnings-Liabilities
+[17:33:37]    @data/structure/Table1/155/data -> Direct investment- Equity and investment fund shares-Reinvestment of earnings-Liabilities
+[17:33:37]    @data/structure/Table1/158/data -> Direct investment-Debt instruments-Liabilities
+[17:33:37]    @data/structure/Table1/159/data -> Portfolio investment-Balance
+[17:33:37]   FULL ROW data[structure]: {"Table1": [{"data": "Current account-Net Value"}, {"data": "Current account-Credit"}, {"data": "Current account-Debit"}, {"data": "Goods-Net Value"}, {"data": "Goods-Credit"}, {"data": "Goods-Debit"}, {"data": "Goods-General merchandise-Net Value"}, {"data": "Goods-General merchandise-Credit"}, {"data": "Goods-General merchandise-Debit"}, {"data": "Goods-Net exports of goods under merchanting-Net Value"}, {"data": "Goods-Net exports of goods under merchanting-Credit"}, {"data": "Goods-Net expor...
+2. TWSE rwd daily foreign-flow endpoints
+[17:33:39] ✅   rwd/en/fund/BFI82U?response=json               HTTP 200 keys=['data', 'date', 'fields', 'hints', 'notes', 'params', 'stat', 'title'] stat=OK
+[17:33:39]     fields: ["Item", "Total Buy", "Total Sell", "Difference"]
+[17:33:39]     rows=6 row0: ["Dealers (Proprietary)", "11,405,300,339", "7,865,150,499", "3,540,149,840"]
+[17:33:39]     date=20260817 title=2026/08/17 Trading Value of Foreign & Other Investors
+[17:33:40] ✅   rwd/en/fund/BFI82U?dayDate=20260814&type=day   HTTP 200 keys=['data', 'date', 'fields', 'hints', 'notes', 'params', 'stat', 'title'] stat=OK
+[17:33:40]     fields: ["Item", "Total Buy", "Total Sell", "Difference"]
+[17:33:40]     rows=6 row0: ["Dealers (Proprietary)", "11,160,429,833", "13,896,418,209", "-2,735,988,376"]
+[17:33:40]     date=20260814 title=2026/08/14 Trading Value of Foreign & Other Investors
+[17:33:42] ✅   rwd/en/fund/TWT38U?response=json               HTTP 200 keys=['data', 'date', 'fields', 'groups', 'notes', 'stat', 'title', 'total'] stat=OK
+[17:33:42]     fields: ["", "Security Code", "Total Buy", "Total Sell", "Difference", "Total Buy", "Total Sell", "Difference", "Total Buy", "Total Sell", "Difference"]
+[17:33:42]     rows=1357 row0: [" ", "00403A", "68,861,020", "14,041,150", "54,819,870", "0", "0", "0", "68,861,020", "14,041,150", "54,819,870"]
+[17:33:42]     date=20260817 title=2026/08/17 Trading Volume of Foreign Investors include Mainland Area Investors (...
+[17:33:44] ✅   en/fund/BFI82U?response=json                   HTTP 200 keys=['data', 'date', 'fields', 'hints', 'notes', 'params', 'stat', 'title'] stat=OK
+[17:33:44]     fields: ["Item", "Total Buy", "Total Sell", "Difference"]
+[17:33:44]     rows=6 row0: ["Dealers (Proprietary)", "11,405,300,339", "7,865,150,499", "3,540,149,840"]
+[17:33:44]     date=20260817 title=2026/08/17 Trading Value of Foreign & Other Investors
+3. IMF BOP dataflow + dimensions
+[17:33:45] ✅ dataflows total=222
+[17:33:45] ✅ BOP-ish dataflows: 6
+[17:33:45]   BOP_2026_JAN_VINTAGE (IMF.STA v1.0.0) 'Balance of Payments (BOP) 2026 January'
+[17:33:45]   BOP (IMF.STA v21.0.0) 'Balance of Payments (BOP)'
+[17:33:45]   BOP_2026_FEB_VINTAGE (IMF.STA v1.0.0) 'Balance of Payments (BOP) 2026 February'
+[17:33:45]   BOP_2026_MAY_VINTAGE (IMF.STA v1.0.0) 'Balance of Payments (BOP) 2026 May'
+[17:33:45]   BOP_2026_APR_VINTAGE (IMF.STA v1.0.0) 'Balance of Payments (BOP) 2026 April'
+[17:33:45]   BOP_AGG (IMF.STA v9.0.1) 'Balance of Payments and International Investment Position Statistics (BOP/IIP), World and ...'
+[17:33:45]   DSD_BOP_2026_JAN_VINTAGE try -> HTTP 204 json=False
+[17:33:50]   datastructure/all -> HTTP 200 bytes=2141208
+4. verdict
+[17:33:50] ✅ probes answered: ['cbc', 'imf', 'twse'] -- wire only what is proven
 
-→ Report written to aws/ops/reports/latest/ops 4835 -- global-flows birth verify.md
-G0. both live feeds, field-level
-[17:24:51] ✅   foreign-flows bindings OK
-[17:24:51] ✅   global-flows bindings OK (peru T1.26)
-1. committed-HTML + ORDER
-[17:24:51] ✅   id="tic-ff-card" exactly once
-[17:24:51] ✅   id="global-ff-card" exactly once
-[17:24:51] ✅   ORDER: US card @10246 < world @14475 < legacy @24890 (TOP confirmed)
-[17:24:51] ✅   label 'US Treasuries (LT+ST)' present
-[17:24:51] ✅   label 'Agency / MBS (mortgage channel)' present
-[17:24:51] ✅   label 'NAR annual survey' present
-[17:24:51] ✅   label 'Gov bonds bought by nonresidents' present
-2. served (<=8 min)
-[17:24:52] ✅ BOTH cards SERVED in order after 0s
-3. verdict
-[17:24:52] ✅ capital-flow.html: US-by-destination + world inflow grid now lead the page
-
-→ Report written to aws/ops/reports/latest/ops 4836 -- capital-flow top restructure verify.md
+→ Report written to aws/ops/reports/latest/ops 4837 -- micro-probes CBC-TWSE-IMF.md
