@@ -1,6 +1,6 @@
-"""justhodl-foreign-flows v1.0.0 -- US Foreign Portfolio Flows
+"""justhodl-foreign-flows v1.1.0 -- US Foreign Portfolio Flows
 (Treasury TIC via the 2026 CSLT dataset on FRED).
-Marker: foreign-flows v1.0.0
+Marker: foreign-flows v1.1.0
 
 Khalid doctrine: dollar view first. This engine adds the missing
 organ -- where foreign money actually moves inside US markets --
@@ -19,8 +19,17 @@ doc, 2026-08-17):
   risk_appetite   = equity + corp + agency
   safe_haven      = treas - equity
   total_demand    = treas + agency + corp + equity
-  official_private DEFERRED -- CSLT official/private split series ids
-  not yet probed; never guessed (FRED-search probe op queued).
+  official_private = private - official (holder-suffix legend proven
+  by ops 4827-4828 arithmetic identity: 99996=all, 99990=Foreign
+  Official, 99991=private; May LT-Treasury reconciled gap 0.0).
+  Every split family is RECONCILED AT RUNTIME (|all-(off+priv)| <=
+  0.2B on the latest month) or excluded as UNRECONCILED -- never
+  trusted on pattern alone. st_treas official ships as its own line
+  (officials sold -61B of T-bills in May while private bought).
+  Country block: LT-Treasury holdings for CN/JP/UK/BE/KY with the
+  transactions + valuation-change decomposition (POS/NET/VALCHG) and
+  the identity gap printed -- holdings deltas are never presented as
+  flows.
 
 Discipline:
   * Series ids come from a post-cutoff research doc, so the birth op
@@ -48,7 +57,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 FRED_KEY = os.environ.get("FRED_KEY") or ""
 OUT_KEY = "data/foreign-flows.json"
@@ -63,6 +72,24 @@ SERIES = {
     "agency": "FORLTAGCYNET99996",
     "tbills": "FORSTTREASNET99996",
 }
+SPLITS = {   # (all, official-99990, private-99991) -- runtime-reconciled
+    "lt_total": ("FORLTTOTALNET99996", "FORLTTOTALNET99990",
+                 "FORLTTOTALNET99991"),
+    "lt_treas": ("FORLTTREASNET99996", "FORLTTREASNET99990",
+                 "FORLTTREASNET99991"),
+    "lt_equity": ("FORLTEQTYNET99996", "FORLTEQTYNET99990",
+                  "FORLTEQTYNET99991"),
+    "lt_corp": ("FORLTCORPNET99996", "FORLTCORPNET99990",
+                "FORLTCORPNET99991"),
+    "lt_agency": ("FORLTAGCYNET99996", "FORLTAGCYNET99990",
+                  "FORLTAGCYNET99991"),
+    "st_treas": ("FORSTTREASNET99996", "FORSTTREASNET99990",
+                 "FORSTTREASNET99991"),
+}
+RECON_TOL_BN = 0.2
+COUNTRIES = {"china": "41408", "japan": "42609",
+             "united_kingdom": "13005", "belgium": "10308",
+             "cayman": "36137"}
 SIGNALS = {
     "risk_appetite": ("equity", "corp", "agency"),
     "safe_haven": ("treas", "-equity"),
@@ -161,6 +188,104 @@ def zlast(vals):
     return round(max(-4.0, min(4.0, (last - mu) / sd)), 2)
 
 
+def fetch_bn(sid):
+    """(dates, vals_bn) or (None, reason)."""
+    units, rows = fred_fetch(sid)
+    if units is None:
+        return None, "%s:%s" % (sid, rows)
+    bank_merge(sid, rows)
+    return [d for d, _ in rows], [to_bn(v, units) for _, v in rows]
+
+
+def split_block(doc):
+    """Holder-split families, reconciled at runtime; builds the
+    official_private signal from lt_total."""
+    fam_out = {}
+    for fam, (sid_all, sid_off, sid_prv) in SPLITS.items():
+        da, va = fetch_bn(sid_all)
+        do_, vo = fetch_bn(sid_off)
+        dp, vp = fetch_bn(sid_prv)
+        if da is None or do_ is None or dp is None:
+            fam_out[fam] = {"status": "MISSING",
+                            "why": ";".join(x[1] for x in
+                                            ((da, va), (do_, vo),
+                                             (dp, vp))
+                                            if x[0] is None)}
+            continue
+        if not (da[-1] == do_[-1] == dp[-1]):
+            fam_out[fam] = {"status": "MISALIGNED",
+                            "why": "latest months differ"}
+            continue
+        gap = abs(va[-1] - (vo[-1] + vp[-1]))
+        if gap > RECON_TOL_BN:
+            fam_out[fam] = {"status": "UNRECONCILED",
+                            "why": "all-(off+priv) gap %.2fB"
+                            % gap}
+            continue
+        fam_out[fam] = {
+            "status": "OK", "month": da[-1],
+            "recon_gap_bn": round(gap, 3),
+            "official": {"latest": round(vo[-1], 1),
+                         "sum_12m": round(sum(vo[-12:]), 1),
+                         "z_10y": zlast(vo)},
+            "private": {"latest": round(vp[-1], 1),
+                        "sum_12m": round(sum(vp[-12:]), 1),
+                        "z_10y": zlast(vp)},
+            "_vo": vo, "_vp": vp}
+    lt = fam_out.get("lt_total") or {}
+    if lt.get("status") == "OK":
+        vo, vp = lt.pop("_vo"), lt.pop("_vp")
+        n = min(len(vo), len(vp))
+        d = [vp[len(vp) - n + i] - vo[len(vo) - n + i]
+             for i in range(n)]
+        doc["signals"]["official_private"] = {
+            "latest_bn": round(d[-1], 1),
+            "sum_3m_bn": round(sum(d[-3:]), 1),
+            "sum_12m_bn": round(sum(d[-12:]), 1),
+            "z_10y": zlast(d),
+            "formula": "private - official (LT total; suffixes "
+                       "99991-99990, runtime-reconciled)"}
+    else:
+        doc["signals"]["official_private"] = {
+            "value": None,
+            "why": "lt_total split %s: %s"
+            % (lt.get("status"), lt.get("why"))}
+    for fam in fam_out.values():
+        fam.pop("_vo", None)
+        fam.pop("_vp", None)
+    doc["holder_splits"] = fam_out
+
+
+def country_block(doc):
+    """LT-Treasury holdings + the tx/valchg decomposition; identity
+    gap reported, never hidden (delta != flows doctrine)."""
+    out = {}
+    for name, code in COUNTRIES.items():
+        dpos, vpos = fetch_bn("FORLTTREASPOS" + code)
+        if dpos is None:
+            out[name] = {"status": "MISSING", "why": vpos}
+            continue
+        row = {"status": "OK", "holdings_bn": round(vpos[-1], 1),
+               "month": dpos[-1],
+               "d12m_holdings_bn": (round(vpos[-1] - vpos[-13], 1)
+                                    if len(vpos) >= 13 else None)}
+        dn, vn = fetch_bn("FORLTTREASNET" + code)
+        dv, vv = fetch_bn("FORLTTREASVALCHG" + code)
+        if dn is not None:
+            row["tx_12m_bn"] = round(sum(vn[-12:]), 1)
+        if dv is not None:
+            row["valchg_12m_bn"] = round(sum(vv[-12:]), 1)
+        if (row.get("d12m_holdings_bn") is not None
+                and "tx_12m_bn" in row and "valchg_12m_bn" in row):
+            row["identity_gap_bn"] = round(
+                row["d12m_holdings_bn"]
+                - row["tx_12m_bn"] - row["valchg_12m_bn"], 1)
+            row["note"] = ("dHoldings = tx + valchg + other "
+                           "adjustments; gap = the 'other' term")
+        out[name] = row
+    doc["country_lt_treasury"] = out
+
+
 def build():
     t0 = time.time()
     now = datetime.now(timezone.utc)
@@ -244,10 +369,8 @@ def build():
             "sum_12m_bn": round(sum(vals[-12:]), 1),
             "z_10y": zlast(vals),
             "formula": " + ".join(parts).replace("+ -", "- ")}
-    doc["signals"]["official_private"] = {
-        "value": None,
-        "why": "DEFERRED -- official/private CSLT ids not probed "
-               "yet; never guessed (FRED-search probe queued)"}
+    split_block(doc)
+    country_block(doc)
 
     prev = _g(OUT_KEY) or {}
     doc["new_release"] = bool(prev.get("latest_month")

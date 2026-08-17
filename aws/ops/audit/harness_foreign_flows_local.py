@@ -70,19 +70,74 @@ BASE = {
     "total": [30000.0 + (i % 9) * 1500 for i in range(500)],
     "tbills": [-2000.0 + (i % 6) * 800 for i in range(500)],
 }
-NAME_BY_SID = {sid: n for n, sid in eng.SERIES.items()}
+CORE_BY_SID = {sid: n for n, sid in eng.SERIES.items()}
 DROP = set()
+DROP_SIDS = set()
 UNITS = {n: "Millions of Dollars" for n in BASE}
-UNITS["tbills"] = "Billions of Dollars"     # passthrough branch
+UNITS["tbills"] = "Billions of Dollars"
+BREAK_FAMS = set()          # families whose 'all' gets +0.9B skew
+
+
+def _mn(units):
+    return 1.0 if "billion" in units.lower() else 1000.0
+
+
+def gen_all(fam):
+    sa = eng.SPLITS[fam][0]
+    if sa in CORE_BY_SID:
+        n = CORE_BY_SID[sa]
+        return UNITS[n], list(BASE[n])
+    return "Millions of Dollars", [9000.0 + (i % 5) * 400
+                                   for i in range(len(MONTHS))]
+
+
+def gen_off(fam):
+    units, allv = gen_all(fam)
+    k = _mn(units)
+    return units, [(-1200.0 + (i % 3) * 250) * (k / 1000.0)
+                   for i in range(len(allv))]
 
 
 def fake_fetch(sid):
+    if sid in DROP_SIDS:
+        return None, "fetch_error:404"
+    if sid in CORE_BY_SID:
+        n = CORE_BY_SID[sid]
+        if n in DROP:
+            return None, "fetch_error:404"
+        return UNITS[n], list(zip(MONTHS, BASE[n]))
+    for fam, (sa, so, sp) in eng.SPLITS.items():
+        if sid not in (sa, so, sp):
+            continue
+        units, allv = gen_all(fam)
+        _, offv = gen_off(fam)
+        prv = [a - o for a, o in zip(allv, offv)]   # from UNSKEWED
+        if fam in BREAK_FAMS:
+            allv = [v + 0.9 * _mn(units) for v in allv]
+        if sid == so:
+            return units, list(zip(MONTHS, offv))
+        if sid == sp:
+            return units, list(zip(MONTHS, prv))
+        return units, list(zip(MONTHS, allv))
+    if sid.startswith("FORLTTREASPOS"):
+        return "Millions of Dollars", list(zip(
+            MONTHS, [700000.0 + i * 500 for i in
+                     range(len(MONTHS))]))
+    if sid.startswith("FORLTTREASNET"):
+        return "Millions of Dollars", list(zip(
+            MONTHS, [400.0 + (i % 4) * 150 for i in
+                     range(len(MONTHS))]))
+    if sid.startswith("FORLTTREASVALCHG"):
+        return "Millions of Dollars", list(zip(
+            MONTHS, [60.0 + (i % 4) * 40 for i in
+                     range(len(MONTHS))]))
     n = NAME_BY_SID[sid]
     if n in DROP:
         return None, "fetch_error:404"
     return UNITS[n], list(zip(MONTHS, BASE[n]))
 
 
+NAME_BY_SID = {sid: n for n, sid in eng.SERIES.items()}
 eng.fred_fetch = fake_fetch
 
 
@@ -132,9 +187,31 @@ def main():
               and s["sum_12m_bn"] == round(sum(ser[-12:]), 1)
               and s["z_10y"] == ind_z(ser))
         chk("A2 %s" % sig, ok, "latest=%s" % s["latest_bn"])
-    chk("A2 official_private deferred-not-guessed",
-        doc["signals"]["official_private"]["value"] is None
-        and "DEFERRED" in doc["signals"]["official_private"]["why"])
+    u_lt, _ = gen_all("lt_total")
+    _, offv = gen_off("lt_total")
+    _, allv = gen_all("lt_total")
+    k = _mn(u_lt)
+    dop = [((a - o) - o) / k for a, o in zip(allv, offv)]
+    s = doc["signals"]["official_private"]
+    chk("A2 official_private == private-official identity",
+        s["latest_bn"] == round(dop[-1], 1)
+        and s["sum_12m_bn"] == round(sum(dop[-12:]), 1)
+        and s["z_10y"] == ind_z(dop))
+    hs = doc["holder_splits"]
+    u_st, _ = gen_all("st_treas")
+    _, off_st = gen_off("st_treas")
+    chk("A2 all six split families reconciled OK",
+        all(hs[f]["status"] == "OK" for f in eng.SPLITS)
+        and hs["st_treas"]["official"]["latest"]
+        == round(off_st[-1] / _mn(u_st), 1))
+    c = doc["country_lt_treasury"]["china"]
+    chk("A2 country decomposition identity (china)",
+        c["holdings_bn"] == round((700000.0
+                                   + (len(MONTHS) - 1) * 500)
+                                  / 1000.0, 1)
+        and c["identity_gap_bn"] == round(
+            c["d12m_holdings_bn"] - c["tx_12m_bn"]
+            - c["valchg_12m_bn"], 1))
     chk("A2 per-series z identity (equity)",
         doc["flows_bn"]["equity"]["z_10y"] == ind_z(bn("equity")))
 
@@ -182,6 +259,24 @@ def main():
     chk("A5 safe_haven unaffected",
         d4["signals"]["safe_haven"]["latest_bn"]
         == round(sh[-1], 1))
+    BREAK_FAMS.add("lt_equity")
+    d4b = eng.build()
+    chk("A5 broken family -> UNRECONCILED named",
+        d4b["holder_splits"]["lt_equity"]["status"]
+        == "UNRECONCILED")
+    u2, all2 = gen_all("lt_total")
+    _, off2 = gen_off("lt_total")
+    exp2 = round(((all2[-1] - off2[-1]) - off2[-1]) / _mn(u2), 1)
+    chk("A5 lt_total signal unaffected by sibling break",
+        d4b["signals"]["official_private"]["latest_bn"] == exp2)
+    BREAK_FAMS.clear()
+    DROP_SIDS.add(eng.SPLITS["lt_total"][2])
+    d4c = eng.build()
+    chk("A5 missing private id -> signal null with reason",
+        d4c["signals"]["official_private"].get("value") is None
+        and "MISSING" in
+        d4c["signals"]["official_private"]["why"])
+    DROP_SIDS.clear()
     DROP = {"tbills", "corp", "agency", "equity"}
     d5 = eng.build()
     chk("A5 2/6 -> INSUFFICIENT",
@@ -199,7 +294,8 @@ def main():
     PUTS.clear()
     out = eng.lambda_handler({}, None)
     chk("A6 handler writes OUT last", PUTS[-1] == eng.OUT_KEY
-        and out["ok"] is True)
+        and out["ok"] is True,
+        "tail=%s out=%s" % (PUTS[-3:], out))
     chk("A6 only provider-bank/releases/out keys ever written",
         all(p == eng.OUT_KEY or p == eng.REL_KEY
             or p.startswith("data/providers/tic-cslt/")
