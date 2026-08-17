@@ -171,6 +171,8 @@ def group_of(e):
         return "ICE BofA option-adjusted spreads (FRED)"
     if e.get("family") == "HAIRCUT":
         return "Tri-party haircuts (NY Fed monthly)"
+    if e.get("family") == "DTCCFAILS":
+        return "DTCC daily settlement fails (FICC)"
     if e.get("family") == "SFTR":
         return "SFTR EU/UK repo (ICMA weekly)"
     if e.get("family") == "EUROREPO":
@@ -935,26 +937,37 @@ def lambda_handler(event, context):
         snames = sorted(n for n in z.namelist()
                          if _re.match(r'xl/worksheets/sheet\d+\.xml',
                                        n))
+
+        def _colidx(letters):
+            n = 0
+            for ch in letters:
+                n = n * 26 + (ord(ch) - 64)
+            return n - 1
+
         for _si, sheet in enumerate(snames):
             xml = z.read(sheet).decode('utf-8', 'replace')
             rows = []
             for rm in _re.findall(r'<row[^>]*>(.*?)</row>', xml,
                                     _re.S):
-                cells = []
-                pat = (r'<c[^>]*?(?:t="(\w+)")?[^>]*>'
+                cellmap = {}
+                pat = (r'<c\s+[^>]*?r="([A-Z]+)\d+"[^>]*?'
+                        r'(?:t="(\w+)")?[^>]*>'
                         r'(?:<is><t[^>]*>(.*?)</t></is>|'
                         r'<v>(.*?)</v>)?</c>')
                 for cm in _re.finditer(pat, rm, _re.S):
-                    t, inl, v = cm.group(1), cm.group(2), cm.group(3)
+                    ci = _colidx(cm.group(1))
+                    t, inl, v = (cm.group(2), cm.group(3),
+                                  cm.group(4))
                     if t == 's' and v is not None:
                         try:
-                            cells.append(shared[int(v)])
+                            cellmap[ci] = shared[int(v)]
                         except Exception:
-                            cells.append('')
+                            cellmap[ci] = ''
                     else:
-                        cells.append(inl if inl is not None
-                                      else (v or ''))
-                rows.append(cells)
+                        cellmap[ci] = (inl if inl is not None
+                                        else (v or ''))
+                width = max(cellmap) + 1 if cellmap else 0
+                rows.append([cellmap.get(i) for i in range(width)])
             out_sheets[names[_si] if _si < len(names)
                         else sheet] = rows
         return out_sheets
@@ -979,15 +992,14 @@ def lambda_handler(event, context):
             _fn = _full.rsplit('/', 1)[-1]
             _rk = 'data/warm/icma-sftr/files/' + _fn
             try:
-                s3.head_object(Bucket=BUCKET, Key=_rk)
-                continue
+                _raw = s3.get_object(Bucket=BUCKET,
+                                       Key=_rk)['Body'].read()
             except Exception:
-                pass
-            _raw = _ur.urlopen(_ur.Request(_full, headers={
-                'User-Agent': 'Mozilla/5.0'}), timeout=60).read()
-            s3.put_object(Bucket=BUCKET, Key=_rk, Body=_raw,
-                ContentType='application/vnd.openxmlformats-'
-                             'officedocument.spreadsheetml.sheet')
+                _raw = _ur.urlopen(_ur.Request(_full, headers={
+                    'User-Agent': 'Mozilla/5.0'}), timeout=60).read()
+                s3.put_object(Bucket=BUCKET, Key=_rk, Body=_raw,
+                    ContentType='application/vnd.openxmlformats-'
+                                 'officedocument.spreadsheetml.sheet')
             diag['sftr']['files_new'] = diag['sftr'].get('files_new', 0) + 1
             _region = 'EU' if '-EU-' in _fn else 'UK'
             _m = _re.search(r'we-(\d{1,2})-(\w+)-(\d{4})', _fn)
@@ -1079,6 +1091,74 @@ def lambda_handler(event, context):
     except Exception as _e:
         diag['sftr_error'] = type(_e).__name__ + ':' + str(_e)[:80]
         print("[repo] sftr block:", type(_e).__name__, str(_e)[:80])
+
+    # v2.6: DTCC/FICC daily GROSS Treasury settlement fails --
+    # public CSV, ~1yr rolling window; merge-on-write into warm docs
+    # so OUR bank becomes the permanent history (ops 4802 backfills
+    # via Wayback snapshots).
+    diag['dtcc'] = {}
+    try:
+        import urllib.request as _ur
+        _txt = _ur.urlopen(_ur.Request(
+            'https://www.dtcc.com/data/failsdata.csv',
+            headers={'User-Agent': 'Mozilla/5.0'}), timeout=45
+            ).read().decode('utf-8', 'replace')
+        _tsy, _agy = {}, {}
+        for _ln in _txt.splitlines():
+            if _ln.startswith('TRAILER') or _ln.startswith('Date'):
+                continue
+            _pc = _ln.split(',')
+            if len(_pc) < 3:
+                continue
+            import re as _re3
+            _dm = _re3.match(r'(\d{2})/(\d{2})/(\d{4})', _pc[0])
+            if not _dm:
+                continue
+            _ds = (_dm.group(3) + '-' + _dm.group(1) + '-'
+                    + _dm.group(2))
+            try:
+                _tsy[_ds] = float(_pc[1])
+                _agy[_ds] = float(_pc[2])
+            except Exception:
+                continue
+        diag['dtcc']['live_rows'] = len(_tsy)
+        for _sid, _newd, _ttl in (
+                ('treasury', _tsy,
+                  'FICC daily GROSS Treasury settlement fails (USD; '
+                  'FtD+FtR aggregated, can double-count -- NY Fed '
+                  'caveat)'),
+                ('agency', _agy,
+                  'FICC daily GROSS Agency settlement fails (USD)')):
+            _wk = 'data/warm/dtcc-fails/' + _sid + '.json'
+            try:
+                _doc = sread(_wk)
+                _m2 = {o['date']: o['value']
+                        for o in _doc.get('observations', [])}
+            except Exception:
+                _m2 = {}
+            _before = len(_m2)
+            _m2.update(_newd)
+            if len(_m2) > _before or _before == 0:
+                s3.put_object(Bucket=BUCKET, Key=_wk,
+                    Body=json.dumps({'id': 'DTCC-' + _sid.upper()
+                                       + '-FAILS',
+                        'title': _ttl, 'banked_at': now,
+                        'source': 'dtcc.com/data/failsdata.csv',
+                        'observations': [{'date': a, 'value': b}
+                            for a, b in sorted(_m2.items())]},
+                        separators=(',', ':')).encode(),
+                    ContentType='application/json')
+            diag['dtcc'][_sid] = len(_m2)
+            scope.append({'mnemonic': 'DTCC-' + _sid.upper()
+                            + '-FAILS',
+                'name': _ttl, 'family': 'DTCCFAILS',
+                's3_key': _wk,
+                'api_url': 'https://www.dtcc.com/charts/daily-total-'
+                            'us-treasury-trade-fails',
+                'tier': 1 if _sid == 'treasury' else 2})
+    except Exception as _de:
+        diag['dtcc']['error'] = (type(_de).__name__ + ':'
+                                   + str(_de)[:80])
 
     values = {}
     rows = []
@@ -1286,7 +1366,7 @@ def lambda_handler(event, context):
     groups = {}
     for r in rows:
         groups.setdefault(r["group"], []).append(r)
-    out = {"as_of": now, "engine_v": "2.5", "diag": diag,
+    out = {"as_of": now, "engine_v": "2.6", "diag": diag,
             "note": ("barometer is a labeled heuristic: score = 50 + "
                      "10*mean(clipped z), components listed in full"),
             "counts": {"series": len(rows), "skipped": len(skipped),
@@ -1299,7 +1379,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "2.5", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "2.6", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))
