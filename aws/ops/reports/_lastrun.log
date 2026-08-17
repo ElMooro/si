@@ -1,34 +1,36 @@
-executing-against: b88d26f8169659c8d0481c390932b8e4417ba324
-G0. FIELD-level contracts + pre snapshot
-[15:58:21] ✅   G0 plumbing LIVE age=0.2h scarcity_z=-0.78 breadth=0.41 composite=-0.295
-1. settle v2.4
-[15:58:22] ✅ marker settled (attempt 1)
-2. Event-invoke + poll (<=8 min, FRED replay)
-[15:59:23] ✅ fresh doc in 61s elapsed_s=48.7
-3. truths
-[15:59:23] ✅   marker == v2.4
-[15:59:23] ✅   input plumbing_board_composite     OK adj=+0.00 age=0.2h
-[15:59:23] ✅   input plumbing_scarcity_haircuts   OK adj=+0.00 age=0.2h
-[15:59:23] ✅   score_adjs == independent recompute (+0.00, +0.00)
-[15:59:23] ✅   calm-tape prediction held: plumbing leaves the gate untouched today
-[15:59:23] ✅   5 legacy funding inputs preserved
-[15:59:23] ✅   fleet_adj identity (-0.200)
-[15:59:23] ✅   score_fused identity (-2.000)
-[15:59:23] ✅   live composite identity (-0.352)
-[15:59:23] ✅   posture mapping identity (RISK_OFF)
-[15:59:23] ✅   replay purity canary intact (flips=36)
-[15:59:23] ✅   pre->post unchanged (posture RISK_OFF, fleet_adj -0.2) -- calm wiring proven inert
-4. readout
-[15:59:23]   dealer_net_treasury_b        OK       adj=+0.00
-[15:59:23]   fails_cross_z                MISSING  adj=+0.00
-[15:59:23]   auction_10y_grade            OK       adj=+0.00
-[15:59:23]   plumbing_composite           OK       adj=+0.20
-[15:59:23]   xcc_basis_signals            OK       adj=-0.40
-[15:59:23]   plumbing_board_composite     OK       adj=+0.00
-[15:59:23]   plumbing_scarcity_haircuts   OK       adj=+0.00
-[15:59:23]   funding score=-2.0 fleet_adj=-0.2 fused=-2.0
-[15:59:23]   posture=RISK_OFF composite=-0.352 sizing=0.45
-5. verdict
-[15:59:23] ✅ risk-gate v2.4 LIVE -- Fusion 2 complete: the repo master board reaches sizing through two stress-only funding inputs; calm tape verified inert, replay purity intact
+executing-against: c65d36d9f28fc05f5adcb72cf1603d92ad6a7e6e
+G0. LIVE-verify research-doc series ids on FRED
+[16:09:46] ✅   G0 total   FORLTTOTALNET99996   n=497 first=1985-01-01 'Foreign Net Transactions of All U.S. Long-Term Securities:'
+[16:09:46] ✗   G0 treas   FORTREASNET69995     BROKEN (n=279 first=2003-03-01 Foreign Net Transactions of U.S. Long-Term and Sho)
+[16:09:47] ✅   G0 equity  FORLTEQTYNET69995    n=497 first=1985-01-01 'Foreign Net Transactions of U.S. Equity Securities: All Co'
+[16:09:47] ✅   G0 corp    FORLTCORPNET99996    n=497 first=1985-01-01 'Foreign Net Transactions of U.S. Long-Term Corporate Bonds'
+[16:09:48] ✅   G0 agency  FORLTAGCYNET99996    n=497 first=1985-01-01 'Foreign Net Transactions of U.S. Long-Term Agency Bonds: G'
+[16:09:48] ✅   G0 tbills  FORSTTREASNET99996   n=497 first=1985-01-01 'Foreign Net Transactions of U.S. Short-Term Treasury Secur'
+[16:09:48] ✗ G0 broken -- the doc's ids do not survive the live probe; fix before trusting
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4824_foreign_flows_birth_verify.py", line 217, in main
+    sys.exit(1)
+SystemExit: 1
 
-→ Report written to aws/ops/reports/latest/ops 4823 -- risk-gate v2.4 plumbing wire verify.md
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4824_foreign_flows_birth_verify.py", line 375, in <module>
+    main()
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4824_foreign_flows_birth_verify.py", line 186, in main
+    with report("ops 4824 -- foreign-flows birth verify "
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 113, in report
+    latest_file.write_text(r.render(), encoding="utf-8")
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/pathlib.py", line 1047, in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/si/si/aws/ops/reports/latest/ops 4824 -- foreign-flows birth verify (TIC/CSLT).md'
+❌ OPS-FAIL: aws/ops/pending/ops_4824_foreign_flows_birth_verify.py
