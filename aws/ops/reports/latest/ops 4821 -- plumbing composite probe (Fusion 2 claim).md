@@ -1,0 +1,118 @@
+# 1. repo.json shape
+
+**Status:** success  
+**Duration:** 1.4s  
+**Finished:** 2026-08-17T15:14:10+00:00  
+
+## Data
+
+| as_of | composite | engine_v | legs | posture | sizing_multiplier | top_keys |
+|---|---|---|---|---|---|---|
+| 2026-08-17T12:05:03+00:00 |  | 2.9 |  |  |  | as_of,barometer,counts,diag,dollar_missing,engine_v,groups,note,skipped |
+|  | -0.352 |  | carry,collateral,credit,dollar,funding,growth,structure | RISK_OFF | 0.45 |  |
+
+## Log
+- `15:14:09` ✅ series rows = 832 across 20 groups
+- `15:14:09`   group DTCC daily settlement fails  n=2
+- `15:14:09`   group DVP bilateral cleared        n=36
+- `15:14:09`   group Derived stress indicators    n=15
+- `15:14:09`   group Dollar (FRED trade-weighted) n=9
+- `15:14:09`   group European sovereign collatera n=4
+- `15:14:09`   group European sovereign yields &  n=6
+- `15:14:09`   group FICC sponsored repo          n=2
+- `15:14:09`   group FRED repo & SOFR complex     n=194
+- `15:14:09`   group GCF                          n=44
+- `15:14:09`   group ICE BofA option-adjusted spr n=192
+- `15:14:09`   group MMF repo counterparties (OFR n=5
+- `15:14:09`   group Primary dealer FAILS         n=18
+- `15:14:09`   group Primary dealer financing     n=88
+- `15:14:09`   group Rate percentiles (NY Fed)    n=12
+- `15:14:09`   group Reference rates & volumes    n=30
+- `15:14:09`   group SFTR EU/UK repo (ICMA weekly n=12
+- `15:14:09`   group Standing Repo Facility       n=2
+- `15:14:09`   group Tri-party (TRI legacy)       n=40
+- `15:14:09`   group Tri-party (TRIV1, ex-Fed)    n=40
+- `15:14:09`   group Tri-party haircuts (NY Fed m n=81
+- `15:14:09`   SAMPLE DTCC daily settlement fa {"id": "DTCC-TREASURY-FAILS", "sid": "DTCC-TREASURY-FAILS", "label": "FICC daily GROSS Treasury settlement fails (USD; FtD+FtR aggregated, can double-count -- NY Fed caveat)", "tenor": null, "bucket": null, "collateral": null, "group": "DTCC daily settlement fails (FICC)", "tier": 1, "n_obs": 250, "first": "2025-08-14", "last": "2026-08-1...
+- `15:14:09`   SAMPLE DVP bilateral cleared    {"id": "REPO-DVP_AR_TOT-P", "sid": "REPO-DVP_AR_TOT-P", "label": "DVP Service Average Rate: Total (Preliminary)", "tenor": "total", "bucket": null, "collateral": "total", "group": "DVP bilateral cleared", "tier": 1, "n_obs": 2058, "first": "2018-05-07", "last": "2026-08-04", "last_value": 3.67, "chg": {"pop": 0.0, "w": 0.0, "m": 0.273, "q...
+- `15:14:09`   SAMPLE Derived stress indicator {"id": "D_BONO_BUND", "sid": "D_BONO_BUND", "label": "Bono \u2212 Bund 10Y (bps, monthly OECD)", "group": "Derived stress indicators", "tier": 1, "n_obs": 558, "first": "1980-01-01", "last": "2026-06-01", "last_value": 45.11904761904799, "chg": {"pop": 3.543, "w": 3.543, "m": 3.543, "q": -5.167, "y": -30.413}}
+- `15:14:09`   SAMPLE Dollar (FRED trade-weigh {"id": "DTWEXBGS", "sid": "DTWEXBGS", "label": "Nominal Broad U.S. Dollar Index (daily)", "tenor": null, "bucket": null, "collateral": null, "group": "Dollar (FRED trade-weighted)", "tier": 1, "n_obs": 5164, "first": "2006-01-02", "last": "2026-08-07", "last_value": 119.0649, "chg": {"pop": -0.374, "w": -0.533, "m": -1.705, "q": 0.869, "y...
+- `15:14:09`   SAMPLE European sovereign colla {"id": "MMSR-DE-ON-BORROW-TURNOVER", "sid": "MMSR-DE-ON-BORROW-TURNOVER", "label": "ECB MMSR: O/N cash raised on German sovereign collateral (avg daily turnover, EUR, maintenance-period)", "tenor": null, "bucket": null, "collateral": null, "group": "European sovereign collateral (ECB MMSR)", "tier": 2, "n_obs": 67, "first": "2018-03-13", ...
+- `15:14:09`   SAMPLE European sovereign yield {"id": "DE10Y_BBK", "sid": "DE10Y_BBK", "label": "Germany 10Y Bund yield (daily, Bundesbank)", "tenor": null, "bucket": "Daily (official)", "collateral": null, "group": "European sovereign yields & spreads", "tier": 2, "n_obs": 7366, "first": "1997-08-07", "last": "2026-08-14", "last_value": 3.22, "chg": {"pop": 0.312, "w": 0.625, "m": 1....
+- `15:14:09`   SAMPLE FICC sponsored repo      {"id": "FICC-SPONSORED_REPO_VOL", "sid": "FICC-SPONSORED_REPO_VOL", "label": "FICC Sponsored Service repo volume ($B)", "tenor": null, "bucket": null, "collateral": null, "group": "FICC sponsored repo", "tier": 1, "n_obs": 1578, "first": "2020-03-23", "last": "2026-07-17", "last_value": 1077107471593.73, "chg": {"pop": 1.943, "w": 4.289, ...
+- `15:14:09`   SAMPLE FRED repo & SOFR complex {"id": "RRPONTSYD", "sid": "RRPONTSYD", "label": "Overnight Reverse Repurchase Agreements: Treasury Securities Sold by the Federal Reserve in the Temporary Open Market Operations", "tenor": null, "bucket": "Fed reverse repo (ON RRP)", "collateral": null, "group": "FRED repo & SOFR complex", "tier": 1, "n_obs": 3305, "first": "2003-02-07",...
+- `15:14:09`   SAMPLE GCF                      {"id": "REPO-GCF_AR_TOT-P", "sid": "REPO-GCF_AR_TOT-P", "label": "GCF Repo Service Average Rate: Total (Preliminary)", "tenor": "total", "bucket": null, "collateral": "total", "group": "GCF", "tier": 1, "n_obs": 2058, "first": "2018-05-07", "last": "2026-08-04", "last_value": 3.7, "chg": {"pop": -0.27, "w": -0.27, "m": 0.271, "q": 0.817, ...
+- `15:14:09`   SAMPLE ICE BofA option-adjusted {"id": "BAMLC0A0CM", "sid": "BAMLC0A0CM", "label": "ICE BofA BAMLC0A0CM (OAS/yield, FRED)", "tenor": null, "bucket": null, "collateral": null, "group": "ICE BofA option-adjusted spreads (FRED)", "tier": 2, "n_obs": 7734, "first": "1996-12-31", "last": "2026-08-13", "last_value": 0.79, "chg": {"pop": 0.0, "w": 1.282, "m": 0.0, "q": 3.947, ...
+- `15:14:09`   SAMPLE MMF repo counterparties  {"id": "MMF-MMF_RP_wDFI-M", "sid": "MMF-MMF_RP_wDFI-M", "label": "Money Market Mutual Fund Investments in Repurchase Agreements with U.S. Financial Institutions", "tenor": null, "bucket": null, "collateral": null, "group": "MMF repo counterparties (OFR)", "tier": 2, "n_obs": 188, "first": "2010-11-30", "last": "2026-06-30", "last_value": ...
+- `15:14:09`   SAMPLE Primary dealer FAILS     {"id": "NYPD-PD_AFtD_AG-A", "sid": "NYPD-PD_AFtD_AG-A", "label": "Primary Dealer Aggregate Fails to Deliver: Federal Agency and GSE Securities", "tenor": null, "bucket": null, "collateral": "Agency/GSE", "group": "Primary dealer FAILS", "tier": 2, "n_obs": 1487, "first": "1998-01-28", "last": "2026-07-22", "last_value": 17391000000.0, "ch...
+- `15:14:09`   SAMPLE Primary dealer financing {"id": "NYPD-PD_RP_ABS_GE30-A", "sid": "NYPD-PD_RP_ABS_GE30-A", "label": "Primary Dealer Repurchase Agreements Backed by Asset-Backed Securities: Term, >=30 Days", "tenor": null, "bucket": null, "collateral": null, "group": "Primary dealer financing", "tier": 2, "n_obs": 365, "first": "2015-01-07", "last": "2021-12-29", "last_value": 3376...
+- `15:14:09`   SAMPLE Rate percentiles (NY Fed {"id": "BGCR_P1", "sid": "BGCR_P1", "label": "NY Fed BGCR 1th percentile rate", "tenor": null, "bucket": null, "collateral": null, "group": "Rate percentiles (NY Fed)", "tier": 2, "n_obs": 2089, "first": "2018-04-02", "last": "2026-08-14", "last_value": 3.56, "chg": {"pop": 0.282, "w": 0.282, "m": 0.565, "q": 1.714, "y": -16.628}}
+- `15:14:09`   SAMPLE Reference rates & volume {"id": "FNYR-BGCR-A", "sid": "FNYR-BGCR-A", "label": "Broad General Collateral Rate", "tenor": null, "bucket": null, "collateral": null, "group": "Reference rates & volumes", "tier": 1, "n_obs": 2083, "first": "2018-04-02", "last": "2026-08-04", "last_value": 3.64, "chg": {"pop": 0.275, "w": 0.0, "m": 0.552, "q": 1.111, "y": -15.545}}
+- `15:14:09`   SAMPLE SFTR EU/UK repo (ICMA we {"id": "SFTR-EU-newt-all-sfts-total-sft-cash-value-eur-mn", "sid": "SFTR-EU-newt-all-sfts-total-sft-cash-value-eur-mn", "label": "SFTR EU weekly: newt all sfts total sft cash value eur mn", "tenor": null, "bucket": null, "collateral": null, "group": "SFTR EU/UK repo (ICMA weekly)", "tier": 2, "n_obs": 1, "first": "2026-08-07", "last": "20...
+- `15:14:09`   SAMPLE Standing Repo Facility   {"id": "SRF_TAKEUP", "sid": "SRF_TAKEUP", "label": "Standing Repo Facility total accepted ($B/day, all repo ops)", "tenor": null, "bucket": null, "collateral": null, "group": "Standing Repo Facility", "tier": 1, "n_obs": 1402, "first": "2021-01-04", "last": "2026-08-14", "last_value": 0.0, "chg": {"pop": -100.0, "w": null, "m": -100.0, "q...
+- `15:14:09`   SAMPLE Tri-party (TRI legacy)   {"id": "REPO-TRI_AR_AG-F", "sid": "REPO-TRI_AR_AG-F", "label": "Tri-Party Average Rate: Federal Agency and GSE Securities (Final)", "tenor": null, "bucket": null, "collateral": "Agency/GSE", "group": "Tri-party (TRI legacy)", "tier": 3, "n_obs": 2880, "first": "2014-08-22", "last": "2026-03-31", "last_value": 3.67, "chg": {"pop": 0.824, "...
+- `15:14:09`   SAMPLE Tri-party (TRIV1, ex-Fed {"id": "REPO-TRIV1_AR_OO-P", "sid": "REPO-TRIV1_AR_OO-P", "label": "Tri-Party Average Rate, excluding Federal Reserve transactions: Overnight/Open (Preliminary)", "tenor": "overnight/open", "bucket": null, "collateral": null, "group": "Tri-party (TRIV1, ex-Fed)", "tier": 1, "n_obs": 2958, "first": "2014-08-22", "last": "2026-08-03", "last...
+- `15:14:09`   SAMPLE Tri-party haircuts (NY F {"id": "HAIRCUT-abs-investment-grade--collateral_share", "sid": "HAIRCUT-abs-investment-grade--collateral_share", "label": "Tri-party haircuts: ABS Investment Grade \u2014 collateral share", "tenor": null, "bucket": "collateral share", "collateral": null, "group": "Tri-party haircuts (NY Fed monthly)", "tier": 2, "n_obs": 195, "first": "2...
+# 2. component-family scans
+
+- `15:14:09` ✅   fails                3 hit(s)
+- `15:14:09`     DTCC-TREASURY-FAILS                grp=DTCC daily settlem last=2026-08-14 @ None
+- `15:14:09`     DTCC-AGENCY-FAILS                  grp=DTCC daily settlem last=2026-08-14 @ None
+- `15:14:09`     D_FAILS_T_RATIO                    grp=Derived stress ind last=2026-07-22 @ None
+- `15:14:09` ✅   haircuts             81 hit(s)
+- `15:14:09`     HAIRCUT-abs-investment-grade--coll grp=Tri-party haircuts last=2026-07-09 @ None
+- `15:14:09`     HAIRCUT-abs-investment-grade--coll grp=Tri-party haircuts last=2026-07-09 @ None
+- `15:14:09`     HAIRCUT-abs-investment-grade--medi grp=Tri-party haircuts last=2026-07-09 @ None
+- `15:14:09`     HAIRCUT-abs-investment-grade--top3 grp=Tri-party haircuts last=2026-07-09 @ None
+- `15:14:09`     HAIRCUT-abs-non-investment-grade-- grp=Tri-party haircuts last=2026-07-09 @ None
+- `15:14:09`     HAIRCUT-abs-non-investment-grade-- grp=Tri-party haircuts last=2026-07-09 @ None
+- `15:14:09` ✅   sftr                 12 hit(s)
+- `15:14:09`     SFTR-EU-newt-all-sfts-total-sft-ca grp=SFTR EU/UK repo (I last=2026-08-07 @ None
+- `15:14:09`     SFTR-EU-newt-all-sfts-total-sft-co grp=SFTR EU/UK repo (I last=2026-08-07 @ None
+- `15:14:09`     SFTR-EU-newt-all-sfts-total-sft-n- grp=SFTR EU/UK repo (I last=2026-08-07 @ None
+- `15:14:09`     SFTR-EU-outstanding-all-sfts-total grp=SFTR EU/UK repo (I last=2026-08-07 @ None
+- `15:14:09`     SFTR-EU-outstanding-all-sfts-total grp=SFTR EU/UK repo (I last=2026-08-07 @ None
+- `15:14:09`     SFTR-EU-outstanding-all-sfts-total grp=SFTR EU/UK repo (I last=2026-08-07 @ None
+- `15:14:09` ✅   scarcity_bund_aaa    1 hit(s)
+- `15:14:09`     D_BUND_EA_AAA                      grp=Derived stress ind last=2026-08-14 @ None
+- `15:14:09` ✅   periphery_spreads    3 hit(s)
+- `15:14:09`     D_BONO_BUND                        grp=Derived stress ind last=2026-06-01 @ None
+- `15:14:09`     D_BTP_BUND                         grp=Derived stress ind last=2026-06-01 @ None
+- `15:14:09`     D_OAT_BUND                         grp=Derived stress ind last=2026-06-01 @ None
+- `15:14:09` ✅   sofr_iorb            21 hit(s)
+- `15:14:09`     D_DVP_SOFR                         grp=Derived stress ind last=2026-08-04 @ None
+- `15:14:09`     D_SOFR_IORB                        grp=Derived stress ind last=2026-08-14 @ None
+- `15:14:09`     D_SOFR_P75_P25                     grp=Derived stress ind last=2026-08-14 @ None
+- `15:14:09`     D_SOFR_SRF                         grp=Derived stress ind last=2026-02-18 @ None
+- `15:14:09`     D_TGCR_IORB                        grp=Derived stress ind last=2026-08-04 @ None
+- `15:14:09`     SOFR                               grp=FRED repo & SOFR c last=2026-08-14 @ None
+- `15:14:09` ✅   rrp                  47 hit(s)
+- `15:14:09`     RRPONTSYD                          grp=FRED repo & SOFR c last=2026-08-14 @ None
+- `15:14:09`     RRPONTSYAWARD                      grp=FRED repo & SOFR c last=2026-08-14 @ None
+- `15:14:09`     WLRRAL                             grp=FRED repo & SOFR c last=2026-08-12 @ None
+- `15:14:09`     NYPD-PD_RRP_ABS_GE30-A             grp=Primary dealer fin last=2021-12-29 @ None
+- `15:14:09`     NYPD-PD_RRP_ABS_L30-A              grp=Primary dealer fin last=2021-12-29 @ None
+- `15:14:09`     NYPD-PD_RRP_ABS_OO-A               grp=Primary dealer fin last=2021-12-29 @ None
+- `15:14:09` ✅   reserves             2 hit(s)
+- `15:14:09`     HAIRCUT-federal-reserve--collatera grp=Tri-party haircuts last=2026-07-09 @ None
+- `15:14:09`     HAIRCUT-federal-reserve--collatera grp=Tri-party haircuts last=2026-07-09 @ None
+- `15:14:09` ⚠   dealer_positioning   NO MATCH -- composite must source elsewhere (FRED leg?)
+- `15:14:09` ✅   fima_xccy            1 hit(s)
+- `15:14:09`     WREPOFOR                           grp=FRED repo & SOFR c last=2026-08-12 @ None
+# 3. history depth (data/repo-history/{id}.json)
+
+- `15:14:09` ✅   fails                DTCC-TREASURY-FAILS            n=250  2025-08-14 -> 2026-08-14
+- `15:14:09` ✅   fima_xccy            WREPOFOR                       n=1235  2002-12-18 -> 2026-08-12
+- `15:14:10` ✅   haircuts             HAIRCUT-abs-investment-grade-- n=195  2010-05-11 -> 2026-07-09
+- `15:14:10` ✅   periphery_spreads    D_BONO_BUND                    n=558  1980-01-01 -> 2026-06-01
+- `15:14:10` ✅   reserves             HAIRCUT-federal-reserve--colla n=20  2024-12-10 -> 2026-07-09
+- `15:14:10` ✅   rrp                  RRPONTSYD                      n=3305  2003-02-07 -> 2026-08-14
+- `15:14:10` ✅   scarcity_bund_aaa    D_BUND_EA_AAA                  n=5574  2004-09-06 -> 2026-08-14
+- `15:14:10` ✅   sftr                 SFTR-EU-newt-all-sfts-total-sf n=1  2026-08-07 -> 2026-08-07
+- `15:14:10` ✅   sofr_iorb            D_DVP_SOFR                     n=2058  2018-05-07 -> 2026-08-04
+# 4. risk-gate enrichment target
+
+- `15:14:10`   funding leg: {"score": -2.0, "why": ["RRP buffer EXHAUSTED (0B, near zero, below pre-COVID) while reserves drain -4.4%/13w [nmq5x1e4os92j]", "A2/P2 spread 4.01% \u2014 low-grade paper stress [nmq5x1qrkm0cn]"], "cp_ffr_bp": 14.000000000000012, "rrp_bn": 0.25, "reserves_13w_pct": -4.436101525518521, "sofr_iorb_bp": -2.9999999999999805, "fleet_adj": -0.2, "fleet_inputs": [{"input": "dealer_net_treasury_b", "feed": "nyfed-primary-dea...
+# 5. verdict
+
+- `15:14:10` ✅ probe complete: 9/10 families matched; composite spec can bind exact IDs (Fusion 2 claimed by this session)
