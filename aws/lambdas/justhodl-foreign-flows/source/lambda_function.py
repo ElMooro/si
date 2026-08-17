@@ -1,6 +1,6 @@
 """justhodl-foreign-flows v1.1.0 -- US Foreign Portfolio Flows
 (Treasury TIC via the 2026 CSLT dataset on FRED).
-Marker: foreign-flows v1.2.0
+Marker: foreign-flows v1.2.1
 
 Khalid doctrine: dollar view first. This engine adds the missing
 organ -- where foreign money actually moves inside US markets --
@@ -57,7 +57,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 FRED_KEY = os.environ.get("FRED_KEY") or ""
 OUT_KEY = "data/foreign-flows.json"
@@ -100,7 +100,8 @@ COUNTRIES = {          # probe ops 4858: 21-country matrix
     "australia": "60089"}
 # luxembourg EXCLUDED: probe matched Belgium's combined legacy
 # series (dup code 10308); strict-title probe queued.
-COUNTRY_PACE = 0.2
+COUNTRY_PACE = 1.0
+KNOWN_MUSD_PREFIXES = ("FORLT", "FORST", "FORTREAS")
 SIGNALS = {
     "risk_appetite": ("equity", "corp", "agency"),
     "safe_haven": ("treas", "-equity"),
@@ -131,16 +132,21 @@ def _put(key, obj):
 
 def _fred_once(sid):
     """(units, [(date,val_musd)]) or (None, reason). Seam for the
-    harness."""
+    harness.  CSLT families skip the units meta call (probe 4858:
+    every FORLT*/FORST*/FORTREAS* series is Millions of Dollars)
+    -- halves the call count against FRED's 120/min limit."""
     base = "https://api.stlouisfed.org/fred"
     try:
-        req = urllib.request.Request(
-            "%s/series?series_id=%s&api_key=%s&file_type=json"
-            % (base, sid, FRED_KEY))
-        with urllib.request.urlopen(req, timeout=30) as r:
-            meta = json.loads(r.read())
-        units = ((meta.get("seriess") or [{}])[0].get("units")
-                 or "")
+        if sid.startswith(KNOWN_MUSD_PREFIXES):
+            units = "Millions of Dollars"
+        else:
+            req = urllib.request.Request(
+                "%s/series?series_id=%s&api_key=%s&file_type=json"
+                % (base, sid, FRED_KEY))
+            with urllib.request.urlopen(req, timeout=30) as r:
+                meta = json.loads(r.read())
+            units = ((meta.get("seriess") or [{}])[0]
+                     .get("units") or "")
         req = urllib.request.Request(
             "%s/series/observations?series_id=%s&api_key=%s"
             "&file_type=json&observation_start=1985-01-01"
@@ -169,7 +175,7 @@ def fred_fetch(sid):
     units, rows = _fred_once(sid)
     if units is not None:
         return units, rows
-    time.sleep(2.0)
+    time.sleep(8.0 if "429" in str(rows) else 2.0)
     return _fred_once(sid)
 
 def to_bn(v, units):
