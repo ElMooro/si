@@ -16,7 +16,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| capital-flow.html foreign-flows card + verify | 4830 | S-fable-A | 2026-08-17 16:3x |
 
 ## Done (this arc)
 | workstream | ops | session |
@@ -26,6 +25,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 | plumbing composite + risk-gate v2.4 (Fusion 2) | 4821-4823 | S-fable-A |
 | foreign-flows engine v1.0 (TIC/CSLT) | 4824-4826 | S-fable-A |
 | CSLT official/private + countries v1.1 | 4827-4829 | S-B |
+| capital-flow.html TIC card + verify | 4830-4831 | S-fable-A |
 
 ## Open queue (unclaimed)
 - Fusion 3: catalyst chain (catalyst x readthrough x backlog-miner x
