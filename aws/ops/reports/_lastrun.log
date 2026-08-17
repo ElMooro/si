@@ -1,17 +1,23 @@
-executing-against: 81da00d637b598533ca1d853b9982dccd430175b
-ops 4799 -- settle-gated v2.6 verify
+executing-against: da310d5c48fc204bbae88f402bd1a3df697f9636
+ops 4803 -- DTCC Wayback retry (backoff)
+[00:47:30] attempt 0: HTTPError: HTTP Error 503: Service Unavailable
+[00:47:45] attempt 1: HTTPError: HTTP Error 503: Service Unavailable
+[00:48:10] attempt 2: HTTPError: HTTP Error 503: Service Unavailable
+[00:48:55] attempt 3: HTTPError: HTTP Error 503: Service Unavailable
+[00:50:20] attempt 4: HTTPError: HTTP Error 503: Service Unavailable
+[00:53:05] attempt 5: HTTPError: HTTP Error 503: Service Unavailable
+[00:53:05] ⚠ CDX unreachable after backoff -- leave for the next scheduled attempt; live upsert continues daily regardless
+
+→ Report written to aws/ops/reports/latest/4803_wayback_retry.md
+ops 4799 -- settle-gated v2.7 verify
 ── 1. env keys (heal if deploy wiped them) ──
 ── 2. deploy settle: marker in deployed zip ──
 ── 3. async run + assertions ──
-[00:41:00] diag: {"te_key_present": true, "te": {"germany": "HTTPError:HTTP Error 403: Forbidden", "italy": "HTTPError:HTTP Error 403: Forbidden", "france": "HTTPError:HTTP Error 403: Forbidden", "spain": "HTTPError:HTTP Error 403: Forbidden"}, "sftr": {"stage": "page", "links": 2, "files_new": 2, "series_put": 12}, "dtcc": {"live_rows": 250, "treasury": 250, "agency": 250}}
-[00:41:00] ✅ DTCC-TREASURY-FAILS: 2025-08-14 -> 2026-08-14 n=250 last=34843330834.03
-[00:41:00] ✅ DTCC-AGENCY-FAILS: 2025-08-14 -> 2026-08-14 n=250 last=40577210.08
-[00:41:00] ✅ WREPOFOR: 2002-12-18 -> 2026-08-12 n=1235 last=349641.0
-[00:41:00] ⚠ SFTR-EU-outstanding-all-sfts-total-sft-cash-value-eur-mn: ABSENT
-[00:41:00] ✅ sftr sample: SFTR-EU-newt-5-6-cash-value-eur-mn last=18886667.515700083
+[01:01:39] diag: {"te_key_present": true, "te": {"germany": "HTTPError:HTTP Error 403: Forbidden", "italy": "HTTPError:HTTP Error 403: Forbidden", "france": "HTTPError:HTTP Error 403: Forbidden", "spain": "HTTPError:HTTP Error 403: Forbidden"}, "sftr": {"stage": "page", "links": 2, "files_new": 2, "series_put": 12}, "dtcc": {"live_rows": 250, "treasury": 250, "agency": 250}}
+[01:01:39] ✅ DTCC-TREASURY-FAILS: 2025-08-14 -> 2026-08-14 n=250 last=34843330834.03
+[01:01:39] ✅ DTCC-AGENCY-FAILS: 2025-08-14 -> 2026-08-14 n=250 last=40577210.08
+[01:01:39] ✅ WREPOFOR: 2002-12-18 -> 2026-08-12 n=1235 last=349641.0
+[01:01:39] ✅ SFTR-EU-outstanding-all-sfts-total-sft-cash-value-eur-mn: 2026-08-07 -> 2026-08-07 n=1 last=18635629.57903577
+[01:01:39] ✅ sftr sample: SFTR-EU-newt-5-6-cash-value-eur-mn last=18886667.515700083
 
-→ Report written to aws/ops/reports/latest/4801_v26_verify.md
-ops 4802 -- DTCC fails Wayback recovery
-[00:41:06] ⚠ CDX: HTTPError: HTTP Error 503: Service Unavailable
-
-→ Report written to aws/ops/reports/latest/4802_dtcc_wayback.md
+→ Report written to aws/ops/reports/latest/4804_v27_verify.md
