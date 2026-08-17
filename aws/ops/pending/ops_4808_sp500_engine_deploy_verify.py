@@ -72,18 +72,28 @@ def wait_active(rep):
     return None
 
 
+DONORS = ("dollar-strength-agent", "justhodl-blackswan-watch")
+
+
 def heal_fred(rep):
     cfg = lam.get_function_configuration(FunctionName=FN)
     env = (cfg.get("Environment") or {}).get("Variables", {})
     if env.get("FRED_API_KEY"):
         rep.kv(env_FRED_API_KEY="present")
         return
-    src = lam.get_function_configuration(
-        FunctionName="justhodl-dollar-strength-agent")
-    k = (src.get("Environment") or {}).get("Variables",
-                                           {}).get("FRED_API_KEY")
+    k, used = None, None
+    for d in DONORS:
+        try:
+            src = lam.get_function_configuration(FunctionName=d)
+            k = (src.get("Environment") or {}).get(
+                "Variables", {}).get("FRED_API_KEY")
+            if k:
+                used = d
+                break
+        except ClientError:
+            continue
     if not k:
-        rep.warn("FRED_API_KEY absent in donor too -- macro_cross "
+        rep.warn("FRED_API_KEY absent in all donors -- macro_cross "
                  "will degrade honestly")
         return
     env["FRED_API_KEY"] = k
@@ -94,7 +104,7 @@ def heal_fred(rep):
                 "LastUpdateStatus") == "Successful":
             break
         time.sleep(3)
-    rep.kv(env_FRED_API_KEY="HEALED from dollar-strength-agent")
+    rep.kv(env_FRED_API_KEY="HEALED from %s" % used)
 
 
 def settle_marker(rep):
