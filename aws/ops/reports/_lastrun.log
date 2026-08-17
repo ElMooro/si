@@ -1,28 +1,19 @@
-executing-against: 0eac2db3f92186e55935f1172c16a08e1b5a7510
-ops 4806 -- daily EU 10Y free-source probes
-── A. Bundesbank (official, daily Bund) ──
-[01:39:04] ✅ [BBK-BBSIS-R10] 665B :: ﻿"";BBSIS.D.I.ZST.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A;BBSIS.D.I.ZST.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A_FLAGS|"";Zinsstrukturkurve (Svensson-Methode) / Börsennotierte             Bundeswertpap
-[01:39:05] [BBK-BBSIS-alt] HTTPError: HTTP Error 406: Not Acceptable
-── B. ECB YC (euro-area AAA 10Y) ──
-[01:39:06] ✅ [ECB-YC-10Y] 4894B :: KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_FM,PROVIDER_FM_ID,DATA_TYPE_FM,TIME_PERIOD,OBS_VALUE,OBS_STATUS,OBS_CONF,OBS_PRE_BREAK,OBS_COM,TIME_FORMAT,BREAKS,COLLECTION,COMPILING_ORG,DISS_ORG,DO
-── C. Banca d'Italia SDMX candidates ──
-[01:39:07] [BDI-a2a] HTTPError: HTTP Error 404: Not Found
-[01:39:08] [BDI-infostat] HTTPError: HTTP Error 404: Not Found
-── D. MTS live screen -- embedded data hunt ──
-[01:39:11] ✅ [MTS-page] 1103728B :: <!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preload" as="image" href="https://static-prod.mtsmarkets.com
-[01:39:11]   mts url: https://static-prod.mtsmarkets.com/public/2026-03/ENX4805_MTS-Website-data_Banner_170226-01.jpg\
-[01:39:11]   mts url: https://www.linkedin.com/posts/trader-tv-ltd_fixedincome-api-directconnectivity-activity-7486028946854092801-_vOL?utm_source=share&amp;utm_medium=memb
-[01:39:11]   mts url: https://www.linkedin.com/posts/trader-tv-ltd_fixedincome-api-directconnectivity-activity-7486028946854092801-_vOL?utm_source=share\u0026utm_medium=mem
-[01:39:11]   mts url: https://www.mtsmarkets.com/data-analytics/data-portal\
-[01:39:11]   mts inline: [{\"__typename\":\"Translation\",\"lang\":\"en\",\"url\":\"/en/homepage\"},{\"__typename\":\"Translation\",\"lang\":\"it\",\"url\":\"/it/homepage\"}]
-── E. Borsa Italiana spread page ──
-[01:39:12] ✅ [BIT-page] 39277B :: <!--[if !IE]><!--><!--<![endif]-->||<!--Homepage-->|<!--Page/Service--><!doctype html>|<html class="no-js" lang="en" xmlns="http://www.w3.org/1999/html">|<head>|  <meta http-equiv="x-ua-compatib
-── F. stooq daily CSVs (unofficial mirror) ──
-[01:39:13] ✅ [stooq-DE] 796B :: <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript to verify your browser. Please enable JavaScript an
-[01:39:13] ✅ [stooq-IT] 796B :: <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript to verify your browser. Please enable JavaScript an
-[01:39:14] ✅ [stooq-FR] 796B :: <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript to verify your browser. Please enable JavaScript an
-[01:39:14] ✅ [stooq-ES] 796B :: <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript to verify your browser. Please enable JavaScript an
-[01:39:15] ✅ [stooq-DE2] 796B :: <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript to verify your browser. Please enable JavaScript an
-[01:39:16] ✅ [stooq-IT2] 796B :: <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript to verify your browser. Please enable JavaScript an
+executing-against: 0970bffd7d49f1729a1f3300df161422d788bb7d
+ops 4799 -- settle-gated v2.9 verify
+── 1. env keys (heal if deploy wiped them) ──
+── 2. deploy settle: marker in deployed zip ──
+── 3. async run + assertions ──
+[01:51:35] diag: {"bbk_de": "ok:7366", "ecb_yc": "ok:5608", "te_key_present": true, "te": {"germany": "HTTPError:HTTP Error 403: Forbidden", "italy": "HTTPError:HTTP Error 403: Forbidden", "france": "HTTPError:HTTP Error 403: Forbidden", "spain": "HTTPError:HTTP Error 403: Forbidden"}, "sftr": {"stage": "page", "links": 2, "files_new": 2}, "dtcc": {"live_rows": 250, "treasury": 250, "agency": 250}}
+[01:51:35] ✅ DE10Y_BBK: 1997-08-07 -> 2026-08-14 n=7366 last=3.22
+[01:51:35] ✅ EA_AAA_10Y: 2004-09-06 -> 2026-08-13 n=5608 last=3.155665028
+[01:51:35] ✅ D_BUND_EA_AAA: 2004-09-06 -> 2026-08-13 n=5573 last=5.433497199999993
+[01:51:35] ✅ DTCC-TREASURY-FAILS: 2025-08-14 -> 2026-08-14 n=250 last=34843330834.03
+[01:51:35] ✅ SFTR-EU-outstanding-all-sfts-total-sft-cash-value-eur-mn: 2026-08-07 -> 2026-08-07 n=1 last=18635629.57903577
+[01:51:35] ✅ sftr sample: SFTR-EU-newt-all-sfts-total-sft-cash-value-eur-mn last=18886667.515700083
+── ECB FM wildcard discovery: per-country daily gov-bond yields? ──
+[01:51:36] FM[D..EUR.4F.BB..YLDA]: HTTPError: HTTP Error 404: Not Found
+[01:51:37] FM[D..EUR.4F.BB..YLD]: HTTPError: HTTP Error 404: Not Found
+[01:51:37] FM[D.IT.EUR.4F.BB..]: HTTPError: HTTP Error 404: Not Found
+[01:51:38] FM[D.DE.EUR.4F.BB..]: HTTPError: HTTP Error 404: Not Found
 
-→ Report written to aws/ops/reports/latest/4806_eu_daily_probe.md
+→ Report written to aws/ops/reports/latest/4807_v29_verify.md
