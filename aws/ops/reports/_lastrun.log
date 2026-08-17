@@ -1,27 +1,11 @@
-executing-against: b1f71b2c556155eaa41baa5452f4854f6e18fa70
+executing-against: 8d91ede44453cb4ee84bae6534b3db837307fff3
 ops 4808 -- justhodl-sp500 birth verify
 ── 1. function Active + env heal ──
 ── 2. deploy settle (zip marker) ──
 ── 3. EventBridge Scheduler ensure ──
-[02:42:14] ✅ schedule justhodl-sp500-daily already correct
+[02:46:30] ✅ schedule justhodl-sp500-daily already correct
 ── 4. Event-invoke + poll as_of ──
-[02:42:30] ✅   fresh doc after ~15s  as_of=2026-08-17T02:42:17.609815+00:00
-── 5. truth bands (all real) ──
-[02:42:30] ✅   members = 495
-[02:42:30] ✅   pe_ttm.agg = 24.73
-[02:42:30] ✗   pe_fwd.agg = None  [band 10..30.9125]
-[02:42:30] ✅   earnings_yield.agg = 4.04
-[02:42:30] ✅   div_yield.agg = 1.07
-[02:42:30] ✅   pe_ttm.median (dist populated) = 23.45
-[02:42:30] ✅   ps_ttm.agg = 3.55
-[02:42:30] ✗   roe.agg = 65.2  [band 5..60]
-[02:42:30] ✅   erp_ttm = -0.59
-[02:42:30] ✅   rule_of_20 = 28.3
-── 6. compare-mode smoke (AAPL) ──
-[02:42:32] ✅   compare rows = 12
-[02:42:32] ✅   compare rows w/ percentile = 11
-── 7. headline readout ──
-[02:42:32] ✗ HARD FAILS: ['pe_fwd.agg', 'roe.agg']
+[02:54:33] ✗ data/sp500.json never refreshed within 8 min
 
 → Report written to aws/ops/reports/latest/4808_sp500_engine_deploy_verify.md
 ❌ OPS-FAIL: aws/ops/pending/ops_4808_sp500_engine_deploy_verify.py
