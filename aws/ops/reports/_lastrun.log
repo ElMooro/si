@@ -1,25 +1,29 @@
-executing-against: faec6baf2e9c9c770a1c4369d40da0e569b88735
-G0. FIELD-level spine + consumer contracts
-[15:00:44] ✅   spine LIVE, q1.beat_pct=32.7, assignments=4966
-[15:00:44] ✅   data/invest.json present (prev generated_at=2026-08-17T15:00:26)
-[15:00:44] ✅   data/stock-buying.json present (prev as_of=2026-08-17T14:40:18)
-1. deploy settle (both markers)
-[15:00:45] ✅ justhodl-invest marker 'invest-odds v1' settled (attempt 1)
-[15:01:06] ✅ justhodl-stock-buying marker 'sb-odds v1' settled (attempt 3)
-2. Event-invoke both + poll (<=12 min)
-[15:01:27] ✅ justhodl-invest fresh in 20s
-[15:01:48] ✅ justhodl-stock-buying fresh in 41s
-3. truths
-[15:01:48] ✅   invest schema unchanged (invest/0.1)
-[15:01:48] ✅   stock-buying schema_version unchanged (1)
-[15:01:48] ⚠   justhodl-invest: stock_picks empty (bootstrap tape) -- coverage skipped, meta={"as_of": "2026-08-17", "ledger_weeks": 53, "picks_with_odds": 0}
-[15:01:48] ✗   justhodl-stock-buying: coverage only 0/289
-[15:01:48] ✅   justhodl-stock-buying: sampled odds.q == spine q (0/0)
-[15:01:48] ✗   justhodl-stock-buying: header meta missing
-[15:01:48] ✗   sb row fields missing on chip rows
-4. sample chips
-5. verdict
-[15:01:48] ✗ HARD FAILS: ['coverage_justhodl-stock-buying', 'meta_justhodl-stock-buying', 'sb_fields']
+executing-against: 9f08baa42ba7e49f48ad90e0773622dbd01b9bc2
+G0. FIELD-level spine contract
+[15:07:20] ✅   spine LIVE, q1.beat_pct=32.7, assignments=4966
+1. LastUpdateStatus gate (the 4819 miss)
+[15:07:20] ✅ justhodl-invest Active + LastUpdateStatus Successful
+[15:07:21] ✅ justhodl-stock-buying Active + LastUpdateStatus Successful
+2. marker settle
+[15:07:21] ✅ justhodl-invest marker 'invest-odds v1' settled (attempt 1)
+[15:07:22] ✅ justhodl-stock-buying marker 'sb-odds v1' settled (attempt 1)
+3. capture prev AFTER gates, invoke, poll (<=15 min)
+[15:07:43] ✅ justhodl-invest fresh in 20s
+[15:08:04] ✅ justhodl-stock-buying fresh in 41s
+4. truths
+[15:08:04] ✅   invest schema unchanged (invest/0.1)
+[15:08:04] ✅   stock-buying schema_version unchanged (1)
+[15:08:04] ⚠   justhodl-invest: stock_picks empty (bootstrap tape) -- coverage skipped, meta={"as_of": "2026-08-17", "ledger_weeks": 53, "picks_with_odds": 0}
+[15:08:04] ✅   justhodl-stock-buying: odds coverage 289/289 (100%)
+[15:08:04] ✅   justhodl-stock-buying: sampled odds.q == spine q (40/40)
+[15:08:04] ✅   justhodl-stock-buying: header base_rates meta {"as_of": "2026-08-17", "ledger_weeks": 53, "rows_with_odds": 562}
+[15:08:04] ✅   sb pre-existing fields intact on chip rows
+5. sample chips
+[15:08:04]   stock-buying  DELL   q=5 beat=41.6% LB95=38.4% dd=0_to_-10 medEx=-7.2pp
+[15:08:04]   stock-buying  GPN    q=5 beat=41.6% LB95=38.4% dd=0_to_-10 medEx=-7.2pp
+[15:08:04]   stock-buying  MPC    q=5 beat=41.6% LB95=38.4% dd=0_to_-10 medEx=-7.2pp
+[15:08:04]   stock-buying  BBY    q=4 beat=36.5% LB95=33.4% dd=0_to_-10 medEx=-7.0pp
+6. verdict
+[15:08:04] ✅ Fusion 1 consumers LIVE -- invest + stock-buying quote the fleet's measured odds; neither can diverge from the spine
 
-→ Report written to aws/ops/reports/latest/ops 4819 -- odds chips wire verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_4819_odds_chips_wire_verify.py
+→ Report written to aws/ops/reports/latest/ops 4820 -- odds chips wire verify (fixed).md
