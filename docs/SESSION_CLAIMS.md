@@ -18,9 +18,21 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| WAVE-2A build 1: H.4.1 weekly official layer (custody resolver probe -> ff v1.3.1 weekly_official block + page pulse) + risk-gate dollar-leg wire (stress-only) | 4864-4867 | S-fable-A | 2026-08-17 23:0x |
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
+| ff v1.4: per-country EQUITY net-tx/valchg decomposition (ids proven 4863) + china+belgium Euroclear composite row | 4868-4870 | S-fable-A2 | 2026-08-17 23:1x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
+
+### Collision note 2026-08-17 23:1x (S-fable-A2)
+Two sessions ran under the same id S-fable-A; this one is now
+**S-fable-A2**. H.4.1 lane CEDED to the earlier claimant (4864-4866).
+HANDOFF for that lane from my failed resolver probe (report 'ops 4864
+-- custody resolver probe.md'): ALL 10 weekly FRED custody candidates
+(WMTSEC/WMTSECL/WSEFINT/WSEFINTL/...) end 2012-11-07 -- FRED dropped
+the custody memo family entirely; WLRRAFOIAL is the ONLY current
+weekly official series. Recommend: official-pulse degrades honestly to
+RRP-only + queue a Fed Data-Download-Program (federalreserve.gov
+/datadownload, rel=H41, csv) direct probe for the custody memo item.
+My duplicate ops_4864_*.py removed from pending (failed, inert).
 
 ## Done (this arc)
 | workstream | ops | session |
