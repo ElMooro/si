@@ -1,46 +1,44 @@
-executing-against: d0a6b64d825bd2e12b4305a3cf396c36b54115db
-G0. LIVE-verify research-doc series ids on FRED
-[16:19:43] ✅   G0 total   FORLTTOTALNET99996   n=497 first=1985-01-01 'Foreign Net Transactions of All U.S. Long-Term Securities:'
-[16:19:44] ✅   G0 treas   FORTREASNET69995     n=279 first=2003-03-01 'Foreign Net Transactions of U.S. Long-Term and Short-Term '
-[16:19:44] ✅   G0 equity  FORLTEQTYNET69995    n=497 first=1985-01-01 'Foreign Net Transactions of U.S. Equity Securities: All Co'
-[16:19:45] ✅   G0 corp    FORLTCORPNET99996    n=497 first=1985-01-01 'Foreign Net Transactions of U.S. Long-Term Corporate Bonds'
-[16:19:46] ✅   G0 agency  FORLTAGCYNET99996    n=497 first=1985-01-01 'Foreign Net Transactions of U.S. Long-Term Agency Bonds: G'
-[16:19:46] ✅   G0 tbills  FORSTTREASNET99996   n=497 first=1985-01-01 'Foreign Net Transactions of U.S. Short-Term Treasury Secur'
-1. function + key + settle
-[16:19:47] ✅ marker settled (attempt 1)
-2. daily schedule (21:30 UTC)
-[16:19:47] ✅ schedule justhodl-foreign-flows-daily already correct
-3. Event-invoke + poll (<=5 min)
-[16:19:59] ✅ fresh doc in 12s runtime_ms=3469
-4. truths
-[16:19:59] ✅   LIVE v1.0.0 6/6 latest_month=2026-05-01
-[16:19:59] ✅   treas latest == independent FRED refetch (+17.0B @ 2026-05-01)
-[16:20:00] ✅   equity latest == independent FRED refetch (+134.3B @ 2026-05-01)
-[16:20:00] ✅   all six series share latest_month
-[16:20:00] ✅   risk_appetite latest == component sum (+206.0B)
-[16:20:00] ✅   total_demand latest == component sum (+223.0B)
-[16:20:00] ✅   safe_haven latest == treas-equity (-117.3B)
-[16:20:00] ✅   official_private deferred-not-guessed
-[16:20:00] ✅   all z_10y within [-4,4]
-[16:20:00] ✅   bank FORLTTOTALNET99996   n=497 first=1985-01-01 (Deny-Delete zone)
-[16:20:00] ✅   bank FORTREASNET69995     n=279 first=2003-03-01 (Deny-Delete zone)
-[16:20:00] ✅   bank FORLTEQTYNET69995    n=497 first=1985-01-01 (Deny-Delete zone)
-[16:20:00] ✅   bank FORLTCORPNET99996    n=497 first=1985-01-01 (Deny-Delete zone)
-[16:20:00] ✅   bank FORLTAGCYNET99996    n=497 first=1985-01-01 (Deny-Delete zone)
-[16:20:00] ✅   bank FORSTTREASNET99996   n=497 first=1985-01-01 (Deny-Delete zone)
-5. readout
-[16:20:00]   total     +262.8B  3m   +566.1  12m  +1771.9  z=1.61  since 1985-01-01
-[16:20:00]   treas      +17.0B  3m    +46.2  12m   +334.8  z=-0.16  since 2003-03-01
-[16:20:00]   equity    +134.3B  3m   +253.9  12m   +901.7  z=1.27  since 1985-01-01
-[16:20:00]   corp       +52.5B  3m   +150.0  12m   +448.8  z=1.17  since 1985-01-01
-[16:20:00]   agency     +19.1B  3m    +41.4  12m   +128.9  z=0.67  since 1985-01-01
-[16:20:00]   tbills     -43.5B  3m    -76.1  12m    +52.6  z=-1.63  since 1985-01-01
-[16:20:00]   SIGNAL risk_appetite   +206.0B  12m   +1479.4  z=1.6
-[16:20:00]   SIGNAL safe_haven      -117.3B  12m    -566.9  z=-1.2
-[16:20:00]   SIGNAL total_demand    +223.0B  12m   +1814.2  z=1.22
-[16:20:00]   treas series correctly starts 2003-03 (L+S combined; per-series floor)
-[16:20:00]   NOTE today 4pm ET IS a TIC release (end-June data); the 21:30 UTC daily run flips new_release when FRED ingests it
-6. verdict
-[16:20:00] ✅ justhodl-foreign-flows LIVE -- TIC/CSLT foreign capital flows banked permanently and signaled; dollar-view-first doctrine gains its missing organ
+executing-against: a8af4188f460b3d2af5ca55bb424c462233ad208
+1. resolve + enumerate the CSLT release
+[16:40:13] ✅ catalog enumerated: 4260 series (release count=4260)
+2. official vs private net-transaction ids
+[16:40:13] ✅   official all_lt     FORLTTOTALNET82644       2023-02-01 'Foreign Net Transactions of All U.S. Long-Term Securities: I'
+[16:40:13] ✅   official all_lt     FORLTTOTALNET82652       2023-02-01 'Foreign Net Transactions of All U.S. Long-Term Securities: I'
+[16:40:13] ✅   official treasury   FORLTTREASNET99990       1985-01-01 'Foreign Net Transactions of U.S. Long-Term Treasury Securiti'
+[16:40:13] ✅   official treasury   FORSTTREASNET99990       1984-12-01 'Foreign Net Transactions of U.S. Short-Term Treasury Securit'
+[16:40:13] ✅   official equity     FORLTEQTYNET82644        2023-02-01 'Foreign Net Transactions of U.S. Equity Securities: Issued b'
+[16:40:13] ✅   official equity     FORLTEQTYNET82652        2023-02-01 'Foreign Net Transactions of U.S. Equity Securities: Issued b'
+[16:40:13] ✅   official corporate  FORLTCORPNET82644        2023-02-01 'Foreign Net Transactions of U.S. Long-Term Corporate Bonds: '
+[16:40:13] ✅   official corporate  FORLTCORPNET82652        2023-02-01 'Foreign Net Transactions of U.S. Long-Term Corporate Bonds: '
+[16:40:13] ✅   official agency     FORLTAGCYNET89992        2023-02-01 'Foreign Net Transactions of U.S. Long-Term Agency Bonds: U.S'
+[16:40:13] ✅   official agency     FORLTAGCYNET99990        1985-01-01 'Foreign Net Transactions of U.S. Long-Term Agency Bonds: For'
+[16:40:13] ⚠   official short_term NO MATCH
+[16:40:13] ⚠   private  all_lt     NO MATCH
+[16:40:13] ⚠   private  treasury   NO MATCH
+[16:40:13] ⚠   private  equity     NO MATCH
+[16:40:13] ⚠   private  corporate  NO MATCH
+[16:40:13] ⚠   private  agency     NO MATCH
+[16:40:13] ⚠   private  short_term NO MATCH
+3. arithmetic cross-validation (May 2026)
+[16:40:13] ⚠   all_lt official/private candidates incomplete -- cannot validate
+[16:40:13]   doc context (FULL-TIC, will differ from LT-only): May private +172.0B / official -39.9B
+4. country lines (Treasury focus)
+[16:40:13] ✅   China           FORLTTREASPOS41408         1984-12-01 'Foreign Portfolio Holdings of U.S. Long-Term Treasury Se'
+[16:40:13] ✅   China           FORLTTREASVALCHG41408      1985-01-01 'Valuation Change on Foreign Portfolio Holdings of U.S. L'
+[16:40:13] ✅   China           FORSTTREASPOS41408         2003-02-01 'Foreign Portfolio Holdings of U.S. Short-Term Treasury S'
+[16:40:13] ✅   Japan           FORLTTREASPOS42609         1984-12-01 'Foreign Portfolio Holdings of U.S. Long-Term Treasury Se'
+[16:40:13] ✅   Japan           FORLTTREASVALCHG42609      1985-01-01 'Valuation Change on Foreign Portfolio Holdings of U.S. L'
+[16:40:13] ✅   Japan           FORSTTREASPOS42609         2003-02-01 'Foreign Portfolio Holdings of U.S. Short-Term Treasury S'
+[16:40:13] ✅   United Kingdom  FORLTTREASPOS13005         1984-12-01 'Foreign Portfolio Holdings of U.S. Long-Term Treasury Se'
+[16:40:13] ✅   United Kingdom  FORLTTREASPOS13059         1984-12-01 'Foreign Portfolio Holdings of U.S. Long-Term Treasury Se'
+[16:40:13] ✅   United Kingdom  FORLTTREASVALCHG13005      1985-01-01 'Valuation Change on Foreign Portfolio Holdings of U.S. L'
+[16:40:13] ✅   Belgium         FORLTTREASPOS10251         2000-03-01 'Foreign Portfolio Holdings of U.S. Long-Term Treasury Se'
+[16:40:13] ✅   Belgium         FORLTTREASPOS10308         1984-12-01 'Foreign Portfolio Holdings of U.S. Long-Term Treasury Se'
+[16:40:13] ✅   Belgium         FORLTTREASVALCHG10251      2000-04-01 'Valuation Change on Foreign Portfolio Holdings of U.S. L'
+[16:40:13] ✅   Cayman          FORLTTREASPOS36137         2000-03-01 'Foreign Portfolio Holdings of U.S. Long-Term Treasury Se'
+[16:40:13] ✅   Cayman          FORLTTREASVALCHG36137      2000-04-01 'Valuation Change on Foreign Portfolio Holdings of U.S. L'
+[16:40:13] ✅   Cayman          FORSTTREASPOS36137         2003-02-01 'Foreign Portfolio Holdings of U.S. Short-Term Treasury S'
+5. verdict
+[16:40:13] ✅ probe complete: 21 official + 0 private net-transaction series discovered; wire v1.1 only with identity-proven ids
 
-→ Report written to aws/ops/reports/latest/ops 4826 -- foreign-flows birth verify final.md
+→ Report written to aws/ops/reports/latest/ops 4827 -- CSLT official-private + country probe.md
