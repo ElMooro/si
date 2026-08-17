@@ -1,43 +1,26 @@
-executing-against: 11fcda437eb749b2665607b66ec1cd60e0c6d33a
-G0. CBC + TWSE live contracts
-[18:00:38] ✅ CBC: labels @161/164/182, width 403==402+1, last 2026Q1
-[18:00:39] ✅ TWSE: stat OK date=20260817 foreign rows=2 net=45.45bn NT$
-1. settle + schedule swap
-[18:00:40] ✅ marker settled (attempt 1)
-[18:00:40] ✅ daily schedule exists
-[18:00:40] weekly schedule already gone
-2. invoke-to-complete backfill rounds
-[18:02:55] ✅ round 1: ledger=54 attempts=45 new=19
-[18:04:46] ✅ round 2: ledger=62 attempts=36 new=8
-3. truths
-[18:04:46] ✅   taiwan LIVE; macro 2026Q1
-[18:04:47] ✅   macro total == in-op CBC refetch (-25340.0M @ 2026Q1)
-[18:04:47] ✅   hot_money ledger=62 days; 5/20/60d present
-[18:04:49] ✅   sampled 20260814 ledger == refetch (45.35bn)
-[18:04:49] ✅   peru untouched LIVE (T1.26)
-[18:04:49] ✅   deferred == korea/chile/imf_layer
-[18:04:49] ✅   bank portfolio_liab_total.json n=162
-[18:04:49] ✅   bank bfi82u-foreign.json n=62
-4. readout
-[18:04:49]   TW portfolio_liab_total    -25340.0M  4Q   -21071.0  z=-4.0
-[18:04:49]   TW portfolio_liab_equity   -25661.0M  4Q   -23217.0  z=-4.0
-[18:04:49]   TW portfolio_liab_debt       +321.0M  4Q    +2146.0  z=0.26
-[18:04:49]   TW hot money: 45.45 @ 20260817 | 5d 199.84 | 20d 154.84 | 60d -821.28 NT$bn z=0.96
+executing-against: 30e179df6a53436d61519b1a14109289b9fe5553
+1. BOP datastructure -- dimension order
+[18:09:14] ⚠   /datastructure/IMF.STA/DSD_BOP?references=children non-json head=b"<?xml version='1.0' encoding='UTF-8'?>\n<mes:Structure xmlns:"
+[18:09:15] ⚠   /2.1/datastructure/IMF.STA/BOP?references=children -> HTTP 204 bytes=0
+[18:09:16] ✅ DSD via sdmx/3.0/structure/datastructure/IMF.STA (56866 bytes)
+[18:09:16] ✅ dimension order: ['COUNTRY', 'BOP_ACCOUNTING_ENTRY', 'INDICATOR', 'UNIT', 'FREQUENCY']
+[18:09:16] ✅ codelists shipped: 0 ([]...)
+2. indicator codes -- portfolio + other-investment LIABILITIES
+[18:09:16] ⚠ no INDICATOR codelist in DSD payload; ids seen: []
+3. sample data call -- Korea quarterly portfolio liabilities
+[18:09:16]   building keys over dims: ['COUNTRY', 'BOP_ACCOUNTING_ENTRY', 'INDICATOR', 'UNIT', 'FREQUENCY']
+[18:09:21] ⚠   IMF.STA,BOP/Q.KR.BFPL_BP6_USD?lastNObservations=6&fo HTTP 200 bytes=2754 head=<?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData xmlns:ss="http://www.sdmx.org/resources/s
+[18:09:22] ⚠   IMF.STA,BOP/KR.BFPL_BP6_USD.Q?lastNObservations=6&fo HTTP 200 bytes=2754 head=<?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData xmlns:ss="http://www.sdmx.org/resources/s
+[18:09:24] ⚠   IMF.STA,BOP/BFPL_BP6_USD.KR.Q?lastNObservations=6&fo HTTP 200 bytes=2754 head=<?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData xmlns:ss="http://www.sdmx.org/resources/s
+[18:09:25] ✅   dataflow/IMF.STA/BOP/~/Q.KR.BFPL_BP6_USD?lastNObserv HTTP 200 bytes=3254 head={"meta":{},"data":{"dataSets":[{"structure":0,"action":"Replace"}],"structures":[{"dataSets":[0],"links":[{"ur
+[18:09:26] ✅ WINNER data URL shape: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/BOP/~/Q.KR.BFPL_BP6_USD?lastNObservations=6
+4. BIS /api/v2 catalog + LBS peek
+[18:09:27] ✅ BIS dataflow HTTP 200 bytes=22349
+[18:09:27] ✅   flows=32, LBS-ish=3
+[18:09:27]    WS_LBS_D_PUB | "Locational banking"
+[18:09:27]    LBSN | "Locational Banking Statistics by Nationality"
+[18:09:27]    LBSR | "Locational Banking Statistics by Residence"
 5. verdict
-[18:04:49] ✅ Taiwan LIVE -- semiconductor specialist wired: quarterly CBC macro + daily TWSE hot money with backfilled ledger
+[18:09:27] ✅ structure resolved; wire op binds ONLY what is printed above
 
-→ Report written to aws/ops/reports/latest/ops 4841 -- taiwan regate invoke-to-complete.md
-G0. live feed bindings
-[18:04:49] ✅   taiwan+peru bindings OK (tw macro -25340.0M, hot 45.45bn)
-1. committed HTML + order
-[18:04:49] ✅   token 'id="global-ff-card"' present
-[18:04:49] ✅   token 'hot_money' present
-[18:04:49] ✅   token 'const FLAG' present
-[18:04:49] ✅   token 'Hot money' present
-[18:04:49] ✅   ORDER preserved (US @10246 < world @14475 < legacy @25572)
-2. served (<=8 min)
-[18:04:49] ✅ generic world card SERVED after 0s
-3. verdict
-[18:04:49] ✅ world card v1.1 live -- Taiwan renders beside Peru with the hot-money strip
-
-→ Report written to aws/ops/reports/latest/ops 4842 -- world card served regate.md
+→ Report written to aws/ops/reports/latest/ops 4843 -- IMF BOP structure + BIS catalog probe.md

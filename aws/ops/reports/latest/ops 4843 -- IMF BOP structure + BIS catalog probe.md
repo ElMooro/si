@@ -1,0 +1,33 @@
+# 1. BOP datastructure -- dimension order
+
+**Status:** success  
+**Duration:** 13.6s  
+**Finished:** 2026-08-17T18:09:27+00:00  
+
+## Log
+- `18:09:14` ⚠   /datastructure/IMF.STA/DSD_BOP?references=children non-json head=b"<?xml version='1.0' encoding='UTF-8'?>\n<mes:Structure xmlns:"
+- `18:09:15` ⚠   /2.1/datastructure/IMF.STA/BOP?references=children -> HTTP 204 bytes=0
+- `18:09:16` ✅ DSD via sdmx/3.0/structure/datastructure/IMF.STA (56866 bytes)
+- `18:09:16` ✅ dimension order: ['COUNTRY', 'BOP_ACCOUNTING_ENTRY', 'INDICATOR', 'UNIT', 'FREQUENCY']
+- `18:09:16` ✅ codelists shipped: 0 ([]...)
+# 2. indicator codes -- portfolio + other-investment LIABILITIES
+
+- `18:09:16` ⚠ no INDICATOR codelist in DSD payload; ids seen: []
+# 3. sample data call -- Korea quarterly portfolio liabilities
+
+- `18:09:16`   building keys over dims: ['COUNTRY', 'BOP_ACCOUNTING_ENTRY', 'INDICATOR', 'UNIT', 'FREQUENCY']
+- `18:09:21` ⚠   IMF.STA,BOP/Q.KR.BFPL_BP6_USD?lastNObservations=6&fo HTTP 200 bytes=2754 head=<?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData xmlns:ss="http://www.sdmx.org/resources/s
+- `18:09:22` ⚠   IMF.STA,BOP/KR.BFPL_BP6_USD.Q?lastNObservations=6&fo HTTP 200 bytes=2754 head=<?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData xmlns:ss="http://www.sdmx.org/resources/s
+- `18:09:24` ⚠   IMF.STA,BOP/BFPL_BP6_USD.KR.Q?lastNObservations=6&fo HTTP 200 bytes=2754 head=<?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData xmlns:ss="http://www.sdmx.org/resources/s
+- `18:09:25` ✅   dataflow/IMF.STA/BOP/~/Q.KR.BFPL_BP6_USD?lastNObserv HTTP 200 bytes=3254 head={"meta":{},"data":{"dataSets":[{"structure":0,"action":"Replace"}],"structures":[{"dataSets":[0],"links":[{"ur
+- `18:09:26` ✅ WINNER data URL shape: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/BOP/~/Q.KR.BFPL_BP6_USD?lastNObservations=6
+# 4. BIS /api/v2 catalog + LBS peek
+
+- `18:09:27` ✅ BIS dataflow HTTP 200 bytes=22349
+- `18:09:27` ✅   flows=32, LBS-ish=3
+- `18:09:27`    WS_LBS_D_PUB | "Locational banking"
+- `18:09:27`    LBSN | "Locational Banking Statistics by Nationality"
+- `18:09:27`    LBSR | "Locational Banking Statistics by Residence"
+# 5. verdict
+
+- `18:09:27` ✅ structure resolved; wire op binds ONLY what is printed above
