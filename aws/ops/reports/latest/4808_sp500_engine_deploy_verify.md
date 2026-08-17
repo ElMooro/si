@@ -1,11 +1,15 @@
-executing-against: 45d15d2cffe02d5e1179077612d93bd69d0ffe3a
-ops 4808 -- justhodl-sp500 birth verify
-── 1. function Active + env heal ──
+# ops 4808 -- justhodl-sp500 birth verify
 
-→ Report written to aws/ops/reports/latest/4808_sp500_engine_deploy_verify.md
+**Status:** failure  
+**Duration:** 6.5s  
+**Finished:** 2026-08-17T02:32:57+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4808_sp500_engine_deploy_verify.py", line 273, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4808_sp500_engine_deploy_verify.py", line 176, in main
     heal_fred(rep)
   File "/home/runner/work/si/si/aws/ops/pending/ops_4808_sp500_engine_deploy_verify.py", line 81, in heal_fred
@@ -20,4 +24,15 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
     raise error_class(parsed_response, operation_name)
 botocore.errorfactory.ResourceNotFoundException: An error occurred (ResourceNotFoundException) when calling the GetFunctionConfiguration operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-dollar-strength-agent
-❌ OPS-FAIL: aws/ops/pending/ops_4808_sp500_engine_deploy_verify.py
+
+```
+
+## Data
+
+| mem | runtime | state |
+|---|---|---|
+| 1024 | python3.12 | Active |
+
+## Log
+## 1. function Active + env heal
+
