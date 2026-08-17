@@ -148,3 +148,25 @@ mega→large explicit. League tops with 12-1: SPCX 94.7 · APGE 93.2
 (12-1 +259%) · QTTB micro (12-1 +664%) · XLE 92.9 (12-1 +34.8%) · USO
 91.2. Remaining time-gated: sp500 day-two Mon 21:45 UTC · beaters first
 SCHEDULED Saturday run (Aug 22). Next ops 4814.
+
+## v1.1.0 COMEBACK wing (ops 4814 GREEN) — Khalid: "good quality stocks
+beaten up bad, attractively cheap vs the sp500, higher chance to come
+back and beat it"
+New `comeback` bucket in spx-beaters (weekly, same doc/page). Pool: all
+ledgered stocks ≥30% below 52w high (weekly closes, ≥40w). STILL-FALLING
+SKIP unless comeback-screener CONFIRMED/EARLY_TURN (8w base ≥ −3%
+otherwise). Legs (renorm, ≥3 required): quality .30 (S&P: sp500 quality
+pillar ≥55 — spx_composites now returns per-pillar; broad: stock-buying
+score ≥55) — **QUALITY REQUIRED**, cheap-alone never lists · cheap .25
+(valuation pillar; why cites fwd P/E vs index agg; broad: PEG) · accum
+.20 (13F net>0 INTO weakness + congress) · stabilize .15 (8w base,
+CONFIRMED→0.85) · revisions .10 (eps-revision-velocity>0). HARD TRAP
+EXCLUDES (master-ranker redflag pattern): beneish red_flags +
+earnings-quality avoid + insider-sell clusters + share-flows
+SBC_WASH/BUYBACK_BLUFF + comeback-screener DILUTION boards. Min 60.
+Ops 4814 cross-checks listed∩live-trap-sets == NONE every run. Day-one
+LIVE (all S&P scope): PTC 75.8 (−30%, qual 67, fwd P/E 13.6 vs 20.4,
+8w +31%) · GDDY 72.4 (−36%, fwd 10.8, −47% vs index) · IT 72.1 (8w
++42%) · INTU 70.1 (−52%, qual 71) · BR 67.9 · BSX 66.3 (−52%). Page:
+comeback section w/ red dd chips + guards banner; sp500 teaser includes
+comeback pick. Next ops 4815.
