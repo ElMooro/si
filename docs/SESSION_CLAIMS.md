@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| Fusion 4: beaters listings-history bank + forward-return grader + provisional learned-weights (justhodl-beaters-grader) | 4847-4849 | S-fable-A | 2026-08-17 18:2x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 ## Done (this arc)
