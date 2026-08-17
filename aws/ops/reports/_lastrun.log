@@ -1,22 +1,37 @@
-executing-against: 958fa20e4f715094be873969e47bdb7813b6d165
-1. TPEx openapi list
-[23:22:04] ✅   HTTP 200 rows=911
-[23:22:04]   row0 keys: [' Foreign Investors include Mainland Area Investors (Foreign Dealers excluded)-Total Sell', 'CompanyName', 'Date', 'Dealers -TotalSell', 'Dealers-Difference', 'Dealers-TotalBuy', 'Dealers-TotalSell', 'Foreign Dealers-Total Buy', 'Foreign Dealers-TotalSell', 'Foreign Investors include Mainland Area Investors (Foreign Dealers excluded)-Difference', 'Foreign Investors include Mainland Area Investors (Foreign Dealers excluded)-Total Buy', 'ForeignDealers-Difference', 'ForeignInvestorsInclude MainlandAreaInvestors-Difference', 'ForeignInvestorsIncludeMainlandAreaInvestors-TotalBuy', 'ForeignInvestorsIncludeMainlandAreaInvestors-TotalSell', 'SecuritiesCompanyCode', 'SecuritiesInvestmentTrustCompanies-Difference', 'SecuritiesInvestmentTrustCompanies-TotalBuy', 'SecuritiesInvestmentTrustCompanies-TotalSell', 'TotalDifference']
-[23:22:04]   row0: {"Date": "1150817", "SecuritiesCompanyCode": "00679B", "CompanyName": "元大美債20年", "Foreign Investors include Mainland Area Investors (Foreign Dealers excluded)-Total Buy": "1345685", " Foreign Investors include Mainland Area Investors (Foreign Dealers excluded)-Total Sell": "4309900", "Foreign Investors include Mainland Area Investors (Foreign Dealers excluded)-Difference": "-2964215", "Foreign Dea
-[23:22:04]   foreign-net key candidates: ['Foreign Investors include Mainland Area Investors (Foreign Dealers excluded)-Difference', 'ForeignDealers-Difference', 'ForeignInvestorsInclude MainlandAreaInvestors-Difference']
-[23:22:04] ✅   SUM(Foreign Investors include Mainland Area Investors (Foreign Dealers excluded)-Difference) over 911 rows = -27720936
-[23:22:04] ✅   SUM(ForeignDealers-Difference) over 911 rows = +0
-2. TPEx en-us result.php
-[23:22:07] ✅   HTTP 200 date=115/08/17 totalCount=911
-[23:22:07]   fields: ['Security Code', 'Name', 'Total Buy', 'Total Sell', 'Difference', 'Total Buy', 'Total Sell', 'Difference', 'Total Buy', 'Total Sell', 'Difference', 'Total Buy', 'Total Sell', 'Difference', 'Total Buy', 'Total Sell', 'Difference', 'Total Buy', 'Total Sell', 'Difference', 'Total Buy', 'Total Sell', 'Difference', 'Total Difference']
-[23:22:07]   data row0: ["006201", "Yuanta/P-shares Taiwan GreTai 50 ETF", "25,000", "15,000", "10,000", "0", "0", "0", "25,000", "15,000", "10,000", "0", "0", "0", "0", "6,000", "-6,000", "78,227", "19,012", "59,215", "78,227", "25,012", "53,215", "63,215"]
-3. TreasuryDirect full row
-[23:22:08] ✅   HTTP 200 rows=5
-[23:22:08]   FULL row0: {"cusip": "91282CRF0", "issueDate": "2026-08-17T00:00:00", "securityType": "Note", "securityTerm": "10-Year", "maturityDate": "2036-08-15T00:00:00", "interestRate": "4.625000", "refCpiOnIssueDate": "", "refCpiOnDatedDate": "", "announcementDate": "2026-08-05T00:00:00", "auctionDate": "2026-08-12T00:00:00", "auctionDateYear": "2026", "datedDate": "2026-08-15T00:00:00", "accruedInterestPer1000": "0.2513600000", "accruedInterestPer100": "", "adjustedAccruedInterestPer1000": "", "adjustedPrice": "", "allocationPercentage": "65.270000", "allocationPercentageDecimals": "2", "announcedCusip": "", "auctionFormat": "Single-Price", "averageMedianDiscountRate": "", "averageMedianInvestmentRate": "", "averageMedianPrice": "", "averageMedianDiscountMargin": "", "averageMedianYield": "4.630000", "backDated": "Yes", "backDatedDate": "2026-08-15T00:00:00", "bidToCoverRatio": "2.530000", "callDate": "", 
-[23:22:08]   row0 keys: ['accruedInterestPer100', 'accruedInterestPer1000', 'adjustedAccruedInterestPer1000', 'adjustedPrice', 'allocationPercentage', 'allocationPercentageDecimals', 'announcedCusip', 'announcementDate', 'auctionDate', 'auctionDateYear', 'auctionFormat', 'averageMedianDiscountMargin', 'averageMedianDiscountRate', 'averageMedianInvestmentRate', 'averageMedianPrice', 'averageMedianYield', 'backDated', 'backDatedDate', 'bidToCoverRatio', 'callDate', 'callable', 'calledDate', 'cashManagementBillCMB', 'closingTimeCompetitive', 'closingTimeNoncompetitive', 'competitiveAccepted', 'competitiveBidDecimals', 'competitiveTendered', 'competitiveTendersAccepted', 'corpusCusip', 'cpiBaseReferencePeriod', 'currentlyOutstanding', 'cusip', 'datedDate', 'directBidderAccepted', 'directBidderTendered', 'estimatedAmountOfPubliclyHeldMaturingSecuritiesByType', 'fimaIncluded', 'fimaNoncompetitiveAccepted', 'fimaNoncompetitiveTendered', 'firstInterestPaymentDate', 'firstInterestPeriod', 'floatingRate', 'frnIndexDeterminationDate', 'frnIndexDeterminationRate', 'highDiscountMargin', 'highDiscountRate', 'highInvestmentRate', 'highPrice', 'highYield', 'indexRatioOnIssueDate', 'indirectBidderAccepted', 'indirectBidderTendered', 'interestPaymentFrequency', 'interestRate', 'issueDate', 'lowDiscountMargin', 'lowDiscountRate', 'lowInvestmentRate', 'lowPrice', 'lowYield', 'maturingDate', 'maturityDate', 'maximumCompetitiveAward', 'maximumNoncompetitiveAward', 'maximumSingleBid', 'minimumBidAmount', 'minimumStripAmount', 'minimumToIssue', 'multiplesToBid', 'multiplesToIssue', 'nlpExclusionAmount', 'nlpReportingThreshold', 'noncompetitiveAccepted', 'noncompetitiveTendersAccepted', 'offeringAmount', 'originalCusip', 'originalDatedDate', 'originalIssueDate', 'originalSecurityTerm', 'pdfFilenameAnnouncement', 'pdfFilenameCompetitiveResults', 'pdfFilenameNoncompetitiveResults', 'pdfFilenameSpecialAnnouncement', 'pricePer100', 'primaryDealerAccepted', 'primaryDealerTendered', 'refCpiOnDatedDate', 'refCpiOnIssueDate', 'reopening', 'securityTerm', 'securityTermDayMonth', 'securityTermWeekYear', 'securityType', 'series', 'somaAccepted', 'somaHoldings', 'somaIncluded', 'somaTendered', 'spread', 'standardInterestPaymentPer1000', 'strippable', 'term', 'tiinConversionFactorPer1000', 'tintCusip1', 'tintCusip1DueDate', 'tintCusip2', 'tintCusip2DueDate', 'tips', 'totalAccepted', 'totalTendered', 'treasuryRetailAccepted', 'treasuryRetailTendersAccepted', 'type', 'unadjustedAccruedInterestPer1000', 'unadjustedPrice', 'updatedTimestamp', 'xmlFilenameAnnouncement', 'xmlFilenameCompetitiveResults', 'xmlFilenameSpecialAnnouncement']
-4. MSPD Total Marketable
-[23:22:08] ✅   HTTP 200 classes=['Bills', 'Bonds', 'Domestic Series', 'Federal Financing Bank', 'Floating Rate Notes', 'Government Account Series', 'Notes', 'Other', 'State and Local Government Series', 'Treasury Inflation-Protected Securities', 'United States Savings Securities', '_']
+executing-against: 6158f89b768939382bfdfa178fbb0f16b799f0f1
+a. openapi catalog
+[23:28:51] ✅   /openapi/ HTTP 200 bytes=2677
+[23:28:54] ✅   /openapi/v1/swagger.json HTTP 200 bytes=23902
+[23:28:57] ✅   /openapi/swagger.json HTTP 200 bytes=476923
+b. candidates
+[23:29:00] ✅   tpex_3insti_trading_vol HTTP 200 bytes=23902 head=<!DOCTYPE html><html lang="zh-Hant-tw"><head><title>證券櫃檯買賣中心</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, use
+[23:29:01] ✅   tpex_3insti_summary HTTP 200 bytes=1014 head=[
+{"Date":"1150817","Investor":"外資及陸資合計","PurchaseAmount":"49780578913","SaleAmount":"54439527047","Net":"-4658948134"},
+{"Date":"1150817","Investor":"　外資及陸資(不含自營商)","PurchaseAmoun
+[23:29:02] ✅   tpex_3insti_trading_summary HTTP 200 bytes=23902 head=<!DOCTYPE html><html lang="zh-Hant-tw"><head><title>證券櫃檯買賣中心</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, use
+[23:29:04] ✅   tpex_qfii_trading_vol HTTP 200 bytes=23902 head=<!DOCTYPE html><html lang="zh-Hant-tw"><head><title>證券櫃檯買賣中心</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, use
+[23:29:06] ✅   tpex_3insti_daily_summary HTTP 200 bytes=23902 head=<!DOCTYPE html><html lang="zh-Hant-tw"><head><title>證券櫃檯買賣中心</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, use
+c. zh aggregate value endpoint
+[23:29:07] ✅   /www/zh-tw/insti/3insti?type=Daily&response=js HTTP 200 bytes=10892 head=<!DOCTYPE html><html lang="zh-Hant-tw"><head><title>404 - 證券櫃檯買賣中心</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
+[23:29:09] ✅   /web/stock/3insti/3insti_summary/3itrade_sum_r HTTP 200 bytes=10892 head=<!DOCTYPE html><html lang="zh-Hant-tw"><head><title>404 - 證券櫃檯買賣中心</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
 verdict
-[23:22:08] ✅ fields dumped -- wires bind ONLY what is above
+[23:29:10] ✅ value-endpoint evidence above (7 answers) -- wire binds only a NT$-denominated field, else shares w/ unit
 
-→ Report written to aws/ops/reports/latest/ops 4869 -- absorption + tpex field dump.md
+→ Report written to aws/ops/reports/latest/ops 4870 -- tpex value probe.md
+1. settle + invoke
+[23:29:11] ✅ marker settled (attempt 1)
+[23:31:12] ✅ fresh in 121s
+[23:31:12]   30s quota-window breather before sampling
+[23:31:42]   30s quota-window breather before sampling
+2. v1.5 truths
+[23:32:12] ✅   absorption LIVE: 12 months, identities True; 12m foreign +253.0B / issuance +2114.8B = 12.0%
+[23:32:12] ✅   auctions LIVE: 13 in 60d, avg indirect 66.5%; latest 2026-08-13 30-Year indirect 66.8% btc 2.390000
+[23:32:12] ✅   accel flags: 10 set -> {"japan": "ACCEL_BUY", "canada": "ACCEL_BUY", "france": "ACCEL_SELL", "singapore": "ACCEL_BUY", "norway": "FLIP_SELL", "india": "FLIP_BUY", "brazil": "FLIP_BUY", "korea": "ACCEL_SELL", "saudi_arabia": "ACCEL_BUY", "uae":
+[23:32:12] ✅   france flag == independent recompute (ACCEL_SELL)
+3. page
+[23:32:12] ✅   committed equity tokens present
+[23:32:12] ✅   SERVED (0s)
+4. verdict
+[23:32:12] ✅ 21-country matrix + equity holdings LIVE, sampled against FRED, banked, served
+
+→ Report written to aws/ops/reports/latest/ops 4871 -- ff v1.5 absorption verify.md
