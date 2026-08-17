@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| EXPANSION WAVE 1 (Khalid: engines too thin): mega-probe (CSLT countries x holdings/tx/valchg + JP MOF weekly + TPEx OTC + Thailand SET + Brazil BCB olinda) -> foreign-flows v1.2 country matrix wire | 4858-4861 | S-fable-A | 2026-08-17 22:0x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 ## Done (this arc)
@@ -32,6 +31,22 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 | capital-flow.html TIC card + verify | 4830-4831 | S-fable-A |
 | global-flows engine (Peru live) + capital-flow TOP restructure | 4832-4836 | S-A#k7q2 |
 | micro-probes + Taiwan CBC+TWSE hot-money wire + generic world card + throttle fix | 4837-4842 | S-B |
+
+## Open queue (expansion wave 2 -- from probe 4858, endpoints verbatim in its report)
+- TPEx OTC daily foreign net -> hot-money taiwan v1.1 (openapi
+  tpex_3insti_daily_trading JSON 862KB + en 3itrade_hedge_result.php
+  both HTTP 200; sums listed+OTC; ROC-year dates need conversion)
+- Japan MOF weekly securities flows -> global-flows japan (CSV alive
+  254KB Shift-JIS at /policy/international_policy/reference/
+  itn_transactions_in_securities/week.csv; cp932 parse micro-probe)
+- foreign-flows v1.3: per-country EQUITY net-tx/valchg decomposition
+  (series exist in CSLT release, title-probe like 4858) + Luxembourg
+  strict-title probe (dup 10308 burn) + official/private per country
+- Thailand SET investor-type: 403 on plain GET -- retry with browser
+  headers/referer; Brazil BCB olinda: PEC path 404 -- probe service
+  list for the FX-flow (fluxo cambial) resource
+- BEA ITA quarterly layer (portfolio liab/assets, FDI, NIIP): needs
+  BEA_KEY donor discovery across the fleet first
 
 ## Open queue (unclaimed)
 - catalyst-chain v1.1: S3 freshness gate (RPO/deferred as-of must be
