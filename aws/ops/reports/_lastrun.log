@@ -1,28 +1,33 @@
-executing-against: 46bb1978a68bc8c9e5593a71aa7e433f9109bbb7
-1. settle + invoke
-[11:27:49] ✅ marker settled
-[11:28:04] ✅   fresh v1.1.0 doc (~15s)
-2. comeback truths
-[11:28:04] ✅   comeback qualifiers = 6 (showing 6)
-[11:28:04] ✅   row contract violations = 0
-2b. trap integrity (live cross-check)
-[11:28:04] ✅   trap-set size 20, overlap with listed = NONE
-2c. momentum wings unchanged
-[11:28:04] ✅   53w + 12-1 intact = True
-3. comeback readout
-[11:28:04] ✅   PTC     75.8  dd -30.4%  8w 30.5%  scope=sp500  [large]
-[11:28:04]       -30% below 52w high (weekly closes, 53w) | quality pillar 67/100 inside the S&P | fwd P/E 13.6 vs index 20.4 (-33%) | 8w base +31% -- no longer falling
-[11:28:04] ✅   GDDY    72.4  dd -36.0%  8w 23.2%  scope=sp500  [large]
-[11:28:04]       -36% below 52w high (weekly closes, 53w) | quality pillar 64/100 inside the S&P | fwd P/E 10.8 vs index 20.4 (-47%) | 8w base +23% -- no longer falling
-[11:28:04] ✅   IT      72.1  dd -31.4%  8w 42.0%  scope=sp500  [large]
-[11:28:04]       -31% below 52w high (weekly closes, 53w) | quality pillar 59/100 inside the S&P | fwd P/E 11.2 vs index 20.4 (-45%) | 8w base +42% -- no longer falling
-[11:28:04] ✅   INTU    70.1  dd -51.8%  8w 29.5%  scope=sp500  [large]
-[11:28:04]       -52% below 52w high (weekly closes, 53w) | quality pillar 71/100 inside the S&P | fwd P/E 14.5 vs index 20.4 (-29%) | 8w base +29% -- no longer falling
-[11:28:04] ✅   BR      67.9  dd -34.8%  8w 24.3%  scope=sp500  [large]
-[11:28:04]       -35% below 52w high (weekly closes, 53w) | quality pillar 55/100 inside the S&P | fwd P/E 16.3 vs index 20.4 (-20%) | 8w base +24% -- no longer falling
-[11:28:04] ✅   BSX     66.3  dd -51.7%  8w 14.4%  scope=sp500  [large]
-[11:28:04]       -52% below 52w high (weekly closes, 53w) | quality pillar 58/100 inside the S&P | fwd P/E 12.9 vs index 20.4 (-37%) | 8w base +14% -- no longer falling
-4. verdict
-[11:28:04] ✅ comeback wing LIVE -- quality drawdown candidates with trap guards verified against live flag sets
+executing-against: 9549dbc54506ea2d423772125e8147ddc002a763
+1. env + settle + invoke
+[11:55:44] ✅ marker settled
+[11:56:04] ✅   fresh v1.2.0 doc (~20s)
+2. base rates
+[11:56:04] ✅   Q1 form -100.0..-28.9%  n=891  beat=32.5%  med excess -24.3pp
+[11:56:04] ✅   Q2 form -28.9..-4.6%  n=891  beat=36.7%  med excess -10.9pp
+[11:56:04] ✅   Q3 form -4.6..12.0%  n=892  beat=31.5%  med excess -11.0pp
+[11:56:04] ✅   Q4 form 12.0..33.8%  n=891  beat=36.6%  med excess -7.1pp
+[11:56:04] ✅   Q5 form 33.8..1306.7%  n=892  beat=41.7%  med excess -7.0pp
+[11:56:04] ✅   Q5 > Q1 -- persistence held in our cohort
+3. rows + AI clamp audit
+[11:56:04] ✗   rows missing inst/odds = 3 of 84
+[11:56:04] ✗   AI coverage = 38/84 rows (45%)  mode=llm new_calls=0
+[11:56:04] ✅   clamp violations = 0
+4. readout (AI lines)
+[11:56:04] ✅   large        SPCX    94.7 | WATCH 53.0% odds ~26w dwn 349.0%
+[11:56:04]       momentum: 12-1 +402% (top 1% of all stocks), +525pp vs SPY 6m
+[11:56:04] ✅   comeback     PTC     75.8 | WATCH 36.0% odds ~39w dwn 38.0%
+[11:56:04]       -30% below 52w high (weekly closes, 53w)
+[11:56:04] ✅   mid          APGE    93.2 | WATCH 52.0% odds ~26w dwn 34.0%
+[11:56:04]       momentum: 12-1 +259% (top 2% of all stocks), +85pp vs SPY 6m
+[11:56:04] ✅   small        SHAZ    93.8 | None None% odds ~Nonew dwn None%
+[11:56:04]       
+[11:56:04] ✅   etf_equity   XLE     92.9 | WATCH 47.0% odds ~26w dwn 12.0%
+[11:56:04]       momentum: 6m +14% (+0pp vs SPY)
+[11:56:04] ✅   etf_commodity USO     91.2 | WATCH 51.0% odds ~26w dwn 27.0%
+[11:56:04]       momentum: 6m +66% (+52pp vs SPY)
+5. verdict
+[11:56:04] ✗ HARD FAILS: ['ai_cov', 'inst']
 
-→ Report written to aws/ops/reports/latest/ops 4814 -- comeback wing verify.md
+→ Report written to aws/ops/reports/latest/ops 4815 -- v1.2.0 odds + AI verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_4815_beaters_v120_odds_ai_verify.py
