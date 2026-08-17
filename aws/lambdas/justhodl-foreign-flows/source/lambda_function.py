@@ -1,6 +1,6 @@
 """justhodl-foreign-flows v1.1.0 -- US Foreign Portfolio Flows
 (Treasury TIC via the 2026 CSLT dataset on FRED).
-Marker: foreign-flows v1.4.0
+Marker: foreign-flows v1.5.0
 
 Khalid doctrine: dollar view first. This engine adds the missing
 organ -- where foreign money actually moves inside US markets --
@@ -57,7 +57,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 FRED_KEY = os.environ.get("FRED_KEY") or ""
 OUT_KEY = "data/foreign-flows.json"
@@ -290,6 +290,148 @@ def split_block(doc):
     doc["holder_splits"] = fam_out
 
 
+MSPD_URL = ("https://api.fiscaldata.treasury.gov/services/api/"
+            "fiscal_service/v1/debt/mspd/mspd_table_1"
+            "?fields=record_date,security_type_desc,"
+            "security_class_desc,debt_held_public_mil_amt"
+            "&filter=security_type_desc:eq:Marketable"
+            "&sort=-record_date&page%5Bsize%5D=90")
+TD_URL = ("https://www.treasurydirect.gov/TA_WS/securities/"
+          "auctioned?format=json&days=60&type=")
+MKT_CLASSES = ("Bills", "Notes", "Bonds",
+               "Treasury Inflation-Protected Securities",
+               "Floating Rate Notes")
+
+
+def http_json(url):
+    """Seam."""
+    req = urllib.request.Request(
+        url, headers={"User-Agent": "justhodl-foreign-flows"})
+    with urllib.request.urlopen(req, timeout=45) as r:
+        return json.loads(r.read())
+
+
+def absorption_block(doc):
+    """Foreign Treasury buying / net marketable issuance (MSPD
+    5-class sum, computed -- no Total row exists, probe 4869).
+    Negative-issuance months -> pct null with note, never faked."""
+    try:
+        j = http_json(MSPD_URL)
+        rows = j.get("data") or []
+        by_m = {}
+        for r in rows:
+            if r.get("security_class_desc") not in MKT_CLASSES:
+                continue
+            m = str(r.get("record_date"))[:7]
+            v = None
+            try:
+                v = float(r.get("debt_held_public_mil_amt"))
+            except (TypeError, ValueError):
+                continue
+            by_m.setdefault(m, {})[r["security_class_desc"]] = v
+        tot = {m: round(sum(d.values()) / 1000.0, 1)
+               for m, d in by_m.items()
+               if len(d) == len(MKT_CLASSES)}
+        months = sorted(tot)
+        tic = (doc.get("hist_10y") or {}).get("treas") or {}
+        tic_by_m = {d[:7]: v for d, v in
+                    zip(tic.get("dates") or [],
+                        tic.get("vals") or [])}
+        out_rows = []
+        for i in range(1, len(months)):
+            m = months[i]
+            iss = round(tot[m] - tot[months[i - 1]], 1)
+            fb = tic_by_m.get(m)
+            row = {"month": m, "net_issuance_bn": iss,
+                   "foreign_bn": fb}
+            if fb is not None and iss > 0:
+                row["absorption_pct"] = round(100.0 * fb / iss,
+                                              1)
+            elif fb is not None:
+                row["absorption_pct"] = None
+                row["note"] = "issuance <= 0 (paydown month)"
+            out_rows.append(row)
+        out_rows = out_rows[-12:]
+        num = sum(r["foreign_bn"] for r in out_rows
+                  if r.get("foreign_bn") is not None)
+        den = sum(r["net_issuance_bn"] for r in out_rows
+                  if r.get("foreign_bn") is not None)
+        doc["absorption"] = {
+            "status": "LIVE" if out_rows else
+            "INSUFFICIENT_DATA",
+            "rows": out_rows,
+            "agg_12m": {"foreign_bn": round(num, 1),
+                        "net_issuance_bn": round(den, 1),
+                        "pct": (round(100.0 * num / den, 1)
+                                if den > 0 else None)},
+            "doctrine": "foreign share of MARGINAL supply is "
+                        "the stress metric -- a positive flow "
+                        "against faster issuance is still "
+                        "abandonment",
+            "src": "FiscalData MSPD 5-class marketable sum x "
+                   "TIC treas net"}
+    except Exception as e:  # noqa: BLE001
+        doc["absorption"] = {"status": "MISSING",
+                             "why": str(e)[:80]}
+
+
+def auctions_block(doc):
+    """TreasuryDirect indirect-bidder read; pct = indirect
+    accepted / competitive accepted (fields probed 4869)."""
+    out = {"status": "MISSING", "recent": []}
+    try:
+        rows = []
+        for typ in ("Note", "Bond"):
+            try:
+                rows += [dict(r, _typ=typ) for r in
+                         http_json(TD_URL + typ) or []]
+            except Exception:  # noqa: BLE001
+                continue
+            time.sleep(0.3)
+        rec = []
+        for r in rows:
+            try:
+                ind = float(r["indirectBidderAccepted"])
+                comp = float(r["competitiveAccepted"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if comp <= 0:
+                continue
+            rec.append({
+                "date": str(r.get("auctionDate"))[:10],
+                "type": r.get("_typ"),
+                "term": r.get("securityTerm"),
+                "indirect_pct": round(100.0 * ind / comp, 1),
+                "bid_to_cover": r.get("bidToCoverRatio"),
+                "high_yield": r.get("highYield")})
+        rec.sort(key=lambda x: x["date"], reverse=True)
+        if rec:
+            avg = round(sum(x["indirect_pct"]
+                            for x in rec) / len(rec), 1)
+            out = {"status": "LIVE", "recent": rec[:8],
+                   "avg_indirect_pct_60d": avg,
+                   "n_auctions_60d": len(rec),
+                   "note": "indirect accepted / competitive "
+                           "accepted; proxy for foreign demand "
+                           "at the margin"}
+    except Exception as e:  # noqa: BLE001
+        out["why"] = str(e)[:80]
+    doc["auctions"] = out
+
+
+def accel_flag(tx3, tx12):
+    if not isinstance(tx3, (int, float))             or not isinstance(tx12, (int, float)):
+        return None
+    ann = tx3 * 4
+    if abs(ann) < 2 and abs(tx12) < 2:
+        return None
+    if tx12 != 0 and (ann > 0) != (tx12 > 0) and abs(ann) > 5:
+        return "FLIP_" + ("BUY" if ann > 0 else "SELL")
+    if abs(ann) > 1.6 * abs(tx12) + 2:
+        return "ACCEL_" + ("BUY" if ann > 0 else "SELL")
+    return None
+
+
 def country_block(doc):
     """LT-Treasury holdings + tx/valchg decomposition for the
     21-country matrix (probe 4858) + LT-EQUITY holdings; dedupe
@@ -320,6 +462,8 @@ def country_block(doc):
         if dn is not None:
             row["tx_12m_bn"] = round(sum(vn[-12:]), 1)
             row["tx_3m_bn"] = round(sum(vn[-3:]), 1)
+            row["accel"] = accel_flag(row["tx_3m_bn"],
+                                      row["tx_12m_bn"])
         if dv is not None:
             row["valchg_12m_bn"] = round(sum(vv[-12:]), 1)
         if (row.get("d12m_holdings_bn") is not None
@@ -343,6 +487,8 @@ def country_block(doc):
             if den is not None:
                 erow["tx_3m_bn"] = round(sum(ven[-3:]), 1)
                 erow["tx_12m_bn"] = round(sum(ven[-12:]), 1)
+                erow["accel"] = accel_flag(erow["tx_3m_bn"],
+                                           erow["tx_12m_bn"])
             if dev is not None:
                 erow["valchg_12m_bn"] = round(sum(vev[-12:]), 1)
             if (erow.get("d12m_holdings_bn") is not None
@@ -480,6 +626,8 @@ def build():
             "vals": [round(v, 1) for v in vals[-120:]]}
     split_block(doc)
     country_block(doc)
+    absorption_block(doc)
+    auctions_block(doc)
 
     prev = _g(OUT_KEY) or {}
     doc["new_release"] = bool(prev.get("latest_month")

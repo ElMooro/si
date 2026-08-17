@@ -46,6 +46,9 @@ tr:last-child td{border-bottom:none}
 <div class="sec"><h2>History — 10 years monthly ($B)</h2><div id="hist" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px"></div></div>
 <div class="sec"><h2>Official vs Private — all split families ($B)</h2><div id="splits"></div>
 <div class="note">Each family reconciled at runtime: all = official + private within tolerance, or the family is marked and excluded — never silently summed.</div></div>
+<div class="sec"><h2>Foreign absorption of Treasury supply</h2><div class="cards" id="abscards" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))"></div><div id="abstab" style="margin-top:10px"></div>
+<div class="note">absorption = TIC foreign Treasury net buying \u00f7 net marketable issuance (MSPD 5-class sum). Paydown months show no percentage \u2014 never faked. Falling share against rising supply is the stress read even when the raw flow is positive.</div></div>
+<div class="sec"><h2>Auction tape \u2014 indirect bidders (foreign proxy)</h2><div id="auct"></div></div>
 <div class="sec"><h2>LT-Treasury holdings by country ($B)</h2><div id="ctry"></div>
 <div class="note">Δholdings = transactions + valuation change + other adjustments — the rightmost column is the honest "other" term. Country attribution carries custodial bias (BE/UK/LU/IE/KY are custody centers).</div></div>
 <div class="sec"><h2>LT-Equity holdings by country ($B)</h2><div id="ctryeq"></div>
@@ -78,9 +81,25 @@ async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok
   const hs=((d.holder_splits||{}).lt_total)||{};
   if(hs.status==="OK")document.getElementById("split").innerHTML="LT total split: private <b>"+fN((hs.private||{}).latest)+"B</b> vs official <b>"+fN((hs.official||{}).latest)+"B</b> (recon gap "+fN(hs.recon_gap_bn,2)+"B \u2014 runtime-reconciled).";
   const C=d.country_lt_treasury||{};const rows=Object.entries(C).filter(([,r])=>r&&r.status==="OK");
-  if(rows.length){let t='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th><th>tx 3m</th><th>tx 12m</th><th>valchg 12m</th><th>other</th></tr>';
-    for(const[n,r]of rows)t+='<tr'+(r.composite?' style="border-top:2px solid var(--border-bright);background:var(--bg-1)"':'')+'><td>'+(r.composite?'\u2211 ':'')+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td><td class="'+cls(r.tx_3m_bn)+'">'+fN(r.tx_3m_bn)+'</td><td class="'+cls(r.tx_12m_bn)+'">'+fN(r.tx_12m_bn)+'</td><td>'+fN(r.valchg_12m_bn)+'</td><td>'+fN(r.identity_gap_bn)+'</td></tr>';
+  if(rows.length){let t='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th><th>tx 3m</th><th>tx 12m</th><th>accel</th><th>valchg 12m</th><th>other</th></tr>';
+    for(const[n,r]of rows)t+='<tr'+(r.composite?' style="border-top:2px solid var(--border-bright);background:var(--bg-1)"':'')+'><td>'+(r.composite?'\u2211 ':'')+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td><td class="'+cls(r.tx_3m_bn)+'">'+fN(r.tx_3m_bn)+'</td><td class="'+cls(r.tx_12m_bn)+'">'+fN(r.tx_12m_bn)+'</td><td>'+acc(r.accel)+'</td><td>'+fN(r.valchg_12m_bn)+'</td><td>'+fN(r.identity_gap_bn)+'</td></tr>';
     document.getElementById("ctry").innerHTML=t+'</table>';}
+  const acc=f=>!f?"":('<span style="font-size:10px;font-family:var(--mono);padding:1px 6px;border-radius:4px;border:1px solid var(--border-bright);color:'+(f.indexOf("BUY")>0?"var(--green)":"var(--red)")+'">'+f.replace("_"," ")+'</span>');
+  const A=d.absorption||{};
+  if(A.status==="LIVE"){
+    const g=A.agg_12m||{};
+    document.getElementById("abscards").innerHTML=
+      '<div class="card"><div class="k">12m foreign buying</div><div class="v'+cls(g.foreign_bn)+'">'+fN(g.foreign_bn)+'B</div><div class="s">TIC Treasury net (LT+ST)</div></div>'+
+      '<div class="card"><div class="k">12m net issuance</div><div class="v">'+fN(g.net_issuance_bn)+'B</div><div class="s">MSPD marketable, held by public</div></div>'+
+      '<div class="card"><div class="k">Foreign absorption share</div><div class="v'+(g.pct!=null&&g.pct<10?" neg":"")+'">'+(g.pct==null?"\u2013":g.pct+"%")+'</div><div class="s">of marginal supply, 12m</div></div>';
+    let at='<table><tr><th>month</th><th>foreign ($B)</th><th>net issuance ($B)</th><th>absorption</th></tr>';
+    for(const r of (A.rows||[]).slice().reverse())at+='<tr><td>'+r.month+'</td><td class="'+cls(r.foreign_bn)+'">'+fN(r.foreign_bn)+'</td><td>'+fN(r.net_issuance_bn)+'</td><td>'+(r.absorption_pct==null?('<span style="color:var(--fg-3)">'+(r.note||"\u2013")+'</span>'):r.absorption_pct+"%")+'</td></tr>';
+    document.getElementById("abstab").innerHTML=at+'</table>';}
+  const AU=d.auctions||{};
+  if(AU.status==="LIVE"){
+    let au='<div class="note" style="margin-bottom:8px">avg indirect '+AU.avg_indirect_pct_60d+'% across '+AU.n_auctions_60d+' auctions, 60d</div><table><tr><th>date</th><th>type</th><th>term</th><th>indirect %</th><th>bid-to-cover</th><th>high yield</th></tr>';
+    for(const r of AU.recent||[])au+='<tr><td>'+r.date+'</td><td>'+r.type+'</td><td>'+r.term+'</td><td class="'+(r.indirect_pct>=70?"pos":(r.indirect_pct<55?"neg":""))+'">'+r.indirect_pct+'%</td><td>'+(r.bid_to_cover||"\u2013")+'</td><td>'+(r.high_yield||"\u2013")+'</td></tr>';
+    document.getElementById("auct").innerHTML=au+'</table>';}
   const H=d.hist_10y||{};
   const HL={total:"Total LT",treas:"Treasuries",equity:"Equities",corp:"Corp bonds",agency:"Agency/MBS",tbills:"T-bills",sig_risk_appetite:"Risk appetite",sig_safe_haven:"Safe-haven",sig_total_demand:"Total demand",sig_official_private:"Private \u2212 Official"};
   function chart(name,h){
@@ -103,8 +122,8 @@ async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok
       ts+='<tr><td>'+(SPn[f]||f)+'</td><td class="'+cls(r.official.latest)+'">'+fN(r.official.latest)+'</td><td>'+fN(r.official.sum_12m)+'</td><td class="'+cls(r.private.latest)+'">'+fN(r.private.latest)+'</td><td>'+fN(r.private.sum_12m)+'</td><td>'+fN(r.recon_gap_bn,2)+'</td><td style="color:var(--green)">OK</td></tr>';}
     document.getElementById("splits").innerHTML=ts+'</table>';}
   const E=d.country_lt_equity||{};const er=Object.entries(E).filter(([,r])=>r&&r.status==="OK");
-  if(er.length){let t2='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th><th>tx 3m</th><th>tx 12m</th><th>valchg 12m</th><th>other</th></tr>';
-    for(const[n,r]of er)t2+='<tr><td>'+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td><td class="'+cls(r.tx_3m_bn)+'">'+fN(r.tx_3m_bn)+'</td><td class="'+cls(r.tx_12m_bn)+'">'+fN(r.tx_12m_bn)+'</td><td>'+fN(r.valchg_12m_bn)+'</td><td>'+fN(r.identity_gap_bn)+'</td></tr>';
+  if(er.length){let t2='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th><th>tx 3m</th><th>tx 12m</th><th>accel</th><th>valchg 12m</th><th>other</th></tr>';
+    for(const[n,r]of er)t2+='<tr><td>'+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td><td class="'+cls(r.tx_3m_bn)+'">'+fN(r.tx_3m_bn)+'</td><td class="'+cls(r.tx_12m_bn)+'">'+fN(r.tx_12m_bn)+'</td><td>'+acc(r.accel)+'</td><td>'+fN(r.valchg_12m_bn)+'</td><td>'+fN(r.identity_gap_bn)+'</td></tr>';
     document.getElementById("ctryeq").innerHTML=t2+'</table>';}
   const op=await jget("/data/official-pulse.json");
   if(op&&op.status==="LIVE"){let ph="";

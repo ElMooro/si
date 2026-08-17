@@ -59,6 +59,43 @@ sys.path.insert(0, str(SRC))
 import lambda_function as eng  # noqa: E402
 eng.COUNTRY_PACE = 0.0
 
+MSPD_MONTHS = ["2025-%02d" % m for m in range(7, 13)] \
+    + ["2026-%02d" % m for m in range(1, 8)]
+MSPD_TOT = {m: 28000000.0 + i * 200000.0
+            for i, m in enumerate(MSPD_MONTHS)}
+MSPD_TOT["2026-03"] = MSPD_TOT["2026-02"] - 50000.0   # paydown
+TD_ROWS = [
+    {"auctionDate": "2026-08-12T00:00:00", "securityTerm":
+     "10-Year", "indirectBidderAccepted": "32087936000",
+     "competitiveAccepted": "41900000000",
+     "bidToCoverRatio": "2.58", "highYield": "4.21"},
+    {"auctionDate": "2026-08-05T00:00:00", "securityTerm":
+     "3-Year", "indirectBidderAccepted": "30000000000",
+     "competitiveAccepted": "50000000000",
+     "bidToCoverRatio": "2.40", "highYield": "3.90"},
+    {"auctionDate": "2026-07-30T00:00:00", "securityTerm":
+     "bad", "indirectBidderAccepted": None,
+     "competitiveAccepted": "x"}]
+
+
+def fake_http(url):
+    if "fiscaldata" in url:
+        data = []
+        for m, tot in MSPD_TOT.items():
+            for c in eng.MKT_CLASSES:
+                data.append({"record_date": m + "-30",
+                             "security_type_desc": "Marketable",
+                             "security_class_desc": c,
+                             "debt_held_public_mil_amt":
+                             str(tot / len(eng.MKT_CLASSES))})
+        return {"data": data}
+    if "treasurydirect" in url:
+        return list(TD_ROWS) if "type=Note" in url else []
+    raise RuntimeError("unexpected url " + url[:40])
+
+
+eng.http_json = fake_http
+
 eng.FRED_KEY = "FIXTURE"
 
 MONTHS = ["%04d-%02d-01" % (1985 + i // 12, i % 12 + 1)
@@ -230,6 +267,33 @@ def main():
         and [r["holdings_bn"] for r in base_rows.values()]
         == sorted((r["holdings_bn"] for r in
                    base_rows.values()), reverse=True))
+    A = doc.get("absorption") or {}
+    r_last = (A.get("rows") or [{}])[-1]
+    chk("A2 absorption: pct identity + paydown null path",
+        A.get("status") == "LIVE"
+        and r_last.get("net_issuance_bn") == 200.0
+        and any(r.get("absorption_pct") is None
+                and "paydown" in str(r.get("note", ""))
+                for r in A["rows"])
+        and all(r["absorption_pct"] == round(
+            100.0 * r["foreign_bn"] / r["net_issuance_bn"], 1)
+            for r in A["rows"]
+            if r.get("absorption_pct") is not None))
+    AU = doc.get("auctions") or {}
+    chk("A2 auctions: indirect pct identity, bad row dropped",
+        AU.get("status") == "LIVE"
+        and AU.get("n_auctions_60d") == 2
+        and AU["recent"][0]["indirect_pct"] == round(
+            100.0 * 32087936000 / 41900000000, 1)
+        and AU["avg_indirect_pct_60d"] == round(
+            (AU["recent"][0]["indirect_pct"]
+             + AU["recent"][1]["indirect_pct"]) / 2, 1))
+    chk("A2 accel flags computed",
+        "accel" in doc["country_lt_treasury"]["china"]
+        and eng.accel_flag(10.0, 5.0) == "ACCEL_BUY"
+        and eng.accel_flag(-6.0, 4.0) == "FLIP_SELL"
+        and eng.accel_flag(1.0, 40.0) is None
+        and eng.accel_flag(0.1, 0.3) is None)
     eqj = doc["country_lt_equity"]["japan"]
     chk("A2 equity decomposition identity (japan)",
         isinstance(eqj.get("tx_12m_bn"), (int, float))
