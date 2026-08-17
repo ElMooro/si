@@ -1,41 +1,32 @@
-executing-against: 87558cb19eae80997d9d9c4cae2862bf6570e997
-G0. private (99991) id existence
-[16:52:02] ✅   FORLTTOTALNET99991     EXISTS 'Foreign Net Transactions of All U.S. Long-Term Securitie'
-[16:52:02] ✅   FORLTTREASNET99991     EXISTS 'Foreign Net Transactions of U.S. Long-Term Treasury Secu'
-[16:52:02] ✅   FORLTEQTYNET99991      EXISTS 'Foreign Net Transactions of U.S. Equity Securities: Fore'
-[16:52:02] ✅   FORLTCORPNET99991      EXISTS 'Foreign Net Transactions of U.S. Long-Term Corporate Bon'
-[16:52:03] ✅   FORLTAGCYNET99991      EXISTS 'Foreign Net Transactions of U.S. Long-Term Agency Bonds:'
-[16:52:03] ✅   FORSTTREASNET99991     EXISTS 'Foreign Net Transactions of U.S. Short-Term Treasury Sec'
-1. settle + invoke + poll
-[16:52:03] ✅ marker settled (attempt 1)
-[16:52:41] ✅ fresh doc in 36s runtime_ms=24253
-2. truths
-[16:52:41] ✅   LIVE v1.1.0
-[16:52:41] ✅   LIVE IDENTITY: all=off+prv (gap 0.000B); signal +230.7B == prv-off @ 2026-05-01
-[16:52:41] ✅   doc recon_gap consistent (0.000)
-[16:52:41] ✅   lt_total  OK  off    +16.1 (12m    +105.8)  prv   +246.8 (12m   +1666.0)
-[16:52:41] ✅   lt_treas  OK  off     +3.0 (12m     -34.0)  prv    +53.6 (12m    +324.4)
-[16:52:41] ✅   lt_equity OK  off    +13.8 (12m    +123.3)  prv   +120.8 (12m    +780.5)
-[16:52:41] ✅   lt_corp   OK  off     +3.8 (12m     +49.0)  prv    +48.7 (12m    +399.8)
-[16:52:41] ✅   lt_agency OK  off     -4.6 (12m     -32.4)  prv    +23.7 (12m    +161.3)
-[16:52:41] ✅   st_treas  OK  off    -61.0 (12m      -1.3)  prv    +17.6 (12m     +53.9)
-[16:52:42] ✅   st_treas official == refetch (-61.0B -- the official T-bill flow line)
-[16:52:42] ✅   five countries OK
-[16:52:42] ✅   china holdings == refetch (608.5B)
-[16:52:42] ✅   china decomposition identity (gap +6.1B = 'other adjustments')
-[16:52:42] ✅   bank FORLTTOTALNET99990       n=497
-[16:52:42] ✅   bank FORLTTOTALNET99991       n=497
-[16:52:42] ✅   bank FORLTTREASPOS41408       n=497
-[16:52:42] ✅   bank FORLTTREASVALCHG41408    n=497
-[16:52:42] ✅   core six untouched
-3. country readout
-[16:52:42]   china           hold    608.5B  d12   -48.7  tx12   -80.9  val12   +26.1  other   +6.1
-[16:52:42]   japan           hold   1049.6B  d12   +30.4  tx12   +17.0  val12    +6.4  other   +7.0
-[16:52:42]   united_kingdom  hold    847.1B  d12  +119.0  tx12  +168.5  val12  -102.2  other  +52.7
-[16:52:42]   belgium         hold    231.0B  d12   +96.2  tx12   +89.1  val12    +7.1  other   +0.0
-[16:52:42]   cayman          hold    312.4B  d12   +29.2  tx12   -17.5  val12   -30.0  other  +76.7
-[16:52:42]   SIGNAL official_private +230.7B (12m +1560.2B, z=1.84)
-4. verdict
-[16:52:42] ✅ foreign-flows v1.1.0 LIVE -- the official/private divergence and five-country decomposition are now fleet facts, identity-proven end to end
+executing-against: 18b62393498e7630167ace4f75fe4cc0c4682b63
+G0. live JSON contract for every card binding
+[16:57:42] ✅   flows_bn.total latest=+262.8 12m=+1771.9 z=1.61
+[16:57:42] ✅   flows_bn.treas latest=+17.0 12m=+334.8 z=-0.16
+[16:57:42] ✅   flows_bn.equity latest=+134.3 12m=+901.7 z=1.27
+[16:57:42] ✅   flows_bn.corp latest=+52.5 12m=+448.8 z=1.17
+[16:57:42] ✅   flows_bn.agency latest=+19.1 12m=+128.9 z=0.67
+[16:57:42] ✅   flows_bn.tbills latest=-43.5 12m=+52.6 z=-1.63
+[16:57:42] ✅   signals.risk_appetite latest=+206.0B z=1.6
+[16:57:42] ✅   signals.safe_haven latest=-117.3B z=-1.2
+[16:57:42] ✅   signals.total_demand latest=+223.0B z=1.22
+[16:57:42] ✅   signals.official_private latest=+230.7B z=1.84
+[16:57:42] ✅   holder_splits.lt_total status=OK gap=0.0
+[16:57:42] ✅   split OK: private +246.8B vs official +16.1B
+[16:57:42] ✅   country_lt_treasury: 5 OK rows (e.g. china +608.5B, other-gap 6.1)
+1. committed-HTML asserts
 
-→ Report written to aws/ops/reports/latest/ops 4829 -- foreign-flows v1.1.0 splits verify.md
+→ Report written to aws/ops/reports/latest/ops 4830 -- capital-flow TIC card verify.md
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4830_capflow_tic_card_verify.py", line 167, in <module>
+    main()
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4830_capflow_tic_card_verify.py", line 117, in main
+    html = PAGE.read_text(encoding="utf-8")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/si/si/aws/capital-flow.html'
+❌ OPS-FAIL: aws/ops/pending/ops_4830_capflow_tic_card_verify.py
