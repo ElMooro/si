@@ -1,28 +1,43 @@
-executing-against: 5d17c194fa9b2bd13a9b63f1fcb64c7477fb7d6b
-G0. feeds field-level
-[21:55:29] ✅   feeds OK
-1. committed HTML
-[21:55:29] ✅   foreign-flows.html: fetch path + 3 tokens + nav
-[21:55:29] ✅   global-flows.html: fetch path + 2 tokens + nav
-[21:55:29] ✅   hot-money.html: fetch path + 3 tokens + nav
-[21:55:29] ✅   capital-flow carries all three desk links
-2. served (<=9 min)
-[21:55:29]   foreign-flows.html: HTTP Error 404: Not Found
-[21:55:29]   global-flows.html: HTTP Error 404: Not Found
-[21:55:54]   foreign-flows.html: HTTP Error 404: Not Found
-[21:55:55]   global-flows.html: HTTP Error 404: Not Found
-[21:56:20]   foreign-flows.html: HTTP Error 404: Not Found
-[21:56:20]   global-flows.html: HTTP Error 404: Not Found
-[21:56:45]   foreign-flows.html: HTTP Error 404: Not Found
-[21:56:45]   global-flows.html: HTTP Error 404: Not Found
-[21:57:10]   foreign-flows.html: HTTP Error 404: Not Found
-[21:57:11]   global-flows.html: HTTP Error 404: Not Found
-[21:57:36]   foreign-flows.html: HTTP Error 404: Not Found
-[21:57:36]   global-flows.html: HTTP Error 404: Not Found
-[21:58:01] ✅   foreign-flows.html SERVED (152s)
-[21:58:01] ✅   global-flows.html SERVED (152s)
-[21:58:01] ✅   hot-money.html SERVED (152s)
-3. verdict
-[21:58:01] ✅ three dedicated desks LIVE: foreign-flows / global-flows / hot-money each on its own page
+executing-against: 1bea6f855fb50353233653eeed2e19c4c520f685
+1. CSLT country matrix
+[22:06:29] ✅ release paged: 4260 series
+[22:06:30] ✅   China                  pos=FORLTTREASPOS41408 net=FORLTTREASNET41408 val=FORLTTREASVALCHG41408 eq=FORLTEQTYPOS41408
+[22:06:30] ✅   Japan                  pos=FORLTTREASPOS42609 net=FORLTTREASNET42609 val=FORLTTREASVALCHG42609 eq=FORLTEQTYPOS42609
+[22:06:30] ✅   United Kingdom         pos=FORLTTREASPOS13005 net=FORLTTREASNET13005 val=FORLTTREASVALCHG13005 eq=FORLTEQTYPOS13005
+[22:06:30] ✅   Belgium                pos=FORLTTREASPOS10308 net=FORLTTREASNET10308 val=FORLTTREASVALCHG10308 eq=FORLTEQTYPOS10308
+[22:06:30] ✅   Cayman                 pos=FORLTTREASPOS36137 net=FORLTTREASNET36137 val=FORLTTREASVALCHG36137 eq=FORLTEQTYPOS36137
+[22:06:30] ✅   Luxembourg             pos=FORLTTREASPOS10308 net=FORLTTREASNET10308 val=FORLTTREASVALCHG10308 eq=FORLTEQTYPOS10308
+[22:06:30] ✅   Ireland                pos=FORLTTREASPOS11401 net=FORLTTREASNET11401 val=FORLTTREASVALCHG11401 eq=FORLTEQTYPOS11401
+[22:06:30] ✅   France                 pos=FORLTTREASPOS10804 net=FORLTTREASNET10804 val=FORLTTREASVALCHG10804 eq=FORLTEQTYPOS10804
+[22:06:30] ✅   Switzerland            pos=FORLTTREASPOS12688 net=FORLTTREASNET12688 val=FORLTTREASVALCHG12688 eq=FORLTEQTYPOS12688
+[22:06:30] ✅   Canada                 pos=FORLTTREASPOS29998 net=FORLTTREASNET29998 val=FORLTTREASVALCHG29998 eq=FORLTEQTYPOS29998
+[22:06:30] ✅   Taiwan                 pos=FORLTTREASPOS46302 net=FORLTTREASNET46302 val=FORLTTREASVALCHG46302 eq=FORLTEQTYPOS46302
+[22:06:30] ✅   Hong Kong              pos=FORLTTREASPOS42005 net=FORLTTREASNET42005 val=FORLTTREASVALCHG42005 eq=FORLTEQTYPOS42005
+[22:06:30] ✅   Singapore              pos=FORLTTREASPOS46019 net=FORLTTREASNET46019 val=FORLTTREASVALCHG46019 eq=FORLTEQTYPOS46019
+[22:06:30] ✅   Korea                  pos=FORLTTREASPOS43001 net=FORLTTREASNET43001 val=FORLTTREASVALCHG43001 eq=FORLTEQTYPOS43001
+[22:06:30] ✅   India                  pos=FORLTTREASPOS42102 net=FORLTTREASNET42102 val=FORLTTREASVALCHG42102 eq=FORLTEQTYPOS42102
+[22:06:30] ✅   Brazil                 pos=FORLTTREASPOS30309 net=FORLTTREASNET30309 val=FORLTTREASVALCHG30309 eq=FORLTEQTYPOS30309
+[22:06:30] ✅   Norway                 pos=FORLTTREASPOS12203 net=FORLTTREASNET12203 val=FORLTTREASVALCHG12203 eq=FORLTEQTYPOS12203
+[22:06:30] ✅   Saudi Arabia           pos=FORLTTREASPOS45608 net=FORLTTREASNET45608 val=FORLTTREASVALCHG45608 eq=FORLTEQTYPOS45608
+[22:06:30] ✅   United Arab Emirates   pos=FORLTTREASPOS46604 net=FORLTTREASNET46604 val=FORLTTREASVALCHG46604 eq=FORLTEQTYPOS46604
+[22:06:30] ✅   Mexico                 pos=FORLTTREASPOS31704 net=FORLTTREASNET31704 val=FORLTTREASVALCHG31704 eq=FORLTEQTYPOS31704
+[22:06:30] ✅   Germany                pos=FORLTTREASPOS11002 net=FORLTTREASNET11002 val=FORLTTREASVALCHG11002 eq=FORLTEQTYPOS11002
+[22:06:30] ✅   Australia              pos=FORLTTREASPOS60089 net=FORLTTREASNET60089 val=FORLTTREASVALCHG60089 eq=FORLTEQTYPOS60089
+[22:06:30]   PICKS_JSON {"China": {"pos": "FORLTTREASPOS41408", "net": "FORLTTREASNET41408", "val": "FORLTTREASVALCHG41408", "eq_pos": "FORLTEQTYPOS41408"}, "Japan": {"pos": "FORLTTREASPOS42609", "net": "FORLTTREASNET42609", "val": "FORLTTREASVALCHG42609", "eq_pos": "FORLTEQTYPOS42609"}, "United Kingdom": {"pos": "FORLTTREASPOS13005", "net": "FORLTTREASNET13005", "val": "FORLTTREASVALCHG13005", "eq_pos": "FORLTEQTYPOS13005"}, "Belgium": {"pos": "FORLTTREASPOS10308", "net": "FORLTTREASNET10308", "val": "FORLTTREASVALCHG10308", "eq_pos": "FORLTEQTYPOS10308"}, "Cayman": {"pos": "FORLTTREASPOS36137", "net": "FORLTTREASNET36137", "val": "FORLTTREASVALCHG36137", "eq_pos": "FORLTEQTYPOS36137"}, "Luxembourg": {"pos": "FORLTTREASPOS10308", "net": "FORLTTREASNET10308", "val": "FORLTTREASVALCHG10308", "eq_pos": "FORLTEQTYPOS10308"}, "Ireland": {"pos": "FORLTTREASPOS11401", "net": "FORLTTREASNET11401", "val": "FORLTTREASVALCHG11401", "eq_pos": "FORLTEQTYPOS11401"}, "France": {"pos": "FORLTTREASPOS10804", "net": "FORLTTREASNET10804", "val": "FORLTTREASVALCHG10804", "eq_pos": "FORLTEQTYPOS10804"}, "Switzerland": {"pos": "FORLTTREASPOS12688", "net": "FORLTTREASNET12688", "val": "FORLTTREASVALCHG12688", "eq_pos": "FORLTEQTYPOS12688"}, "Canada": {"pos": "FORLTTREASPOS29998", "net": "FORLTTREASNET29998", "val": "FORLTTREASVALCHG29998", "eq_pos": "FORLTEQTYPOS29998"}, "Taiwan": {"pos": "FORLTTREASPOS46302", "net": "FORLTTREASNET46302", "val": "FORLTTREASVALCHG46302", "eq_pos": "FORLTEQTYPOS46302"}, "Hong Kong": {"pos": "FORLTTREASPOS42005", "net": "FORLTTREASNET42005", "val": "FORLTTREASVALCHG42005", "eq_pos": "FORLTEQTYPOS42005"}, "Singapore": {"pos": "FORLTTREASPOS46019", "net": "FORLTTREASNET46019", "val": "FORLTTREASVALCHG46019", "eq_pos": "FORLTEQTYPOS46019"}, "Korea": {"pos": "FORLTTREASPOS43001", "net": "FORLTTREASNET43001", "val": "FORLTTREASVALCHG43001", "eq_pos": "FORLTEQTYPOS43001"}, "India": {"pos": "FORLTTREASPOS42102", "net": "FORLTTREASNET42102", "val": "FORLTTREASVALCHG42102", "eq_pos": "FORLTEQTYPOS42102"}, "Brazil": {"pos": "FORLTTREASPOS30309", "net": "FORLTTREASNET30309", "val": "FORLTTREASVALCHG30309", "eq_pos": "FORLTEQTYPOS30309"}, "Norway": {"pos": "FORLTTREASPOS12203", "net": "FORLTTREASNET12203", "val": "FORLTTREASVALCHG12203", "eq_pos": "FORLTEQTYPOS12203"}, "Saudi Arabia": {"pos": "FORLTTREASPOS45608", "net": "FORLTTREASNET45608", "val": "FORLTTREASVALCHG45608", "eq_pos": "FORLTEQTYPOS45608"}, "United Arab Emirates": {"pos": "FORLTTREASPOS46604", "net": "FORLTTREASNET46604", "val": "FORLTTREASVALCHG46604", "eq_pos": "FORLTEQTYPOS46604"}, "Mexico": {"pos": "FORLTTREASPOS31704", "net": "FORLTTREASNET31704", "val": "FORLTTREASVALCHG31704", "eq_pos": "FORLTEQTYPOS31704"}, "Germany": {"pos": "FORLTTREASPOS11002", "net": "FORLTTREASNET11002", "val": "FORLTTREASVALCHG11002", "eq_pos": "FORLTEQTYPOS11002"}, "Australia": {"pos": "FORLTTREASPOS60089", "net": "FORLTTREASNET60089", "val": "FORLTTREASVALCHG60089", "eq_pos": "FORLTEQTYPOS60089"}}
+2. Japan MOF weekly securities flows
+[22:06:31] ⚠   week.csv died: HTTP Error 404: Not Found
+[22:06:32] ✅   /policy/international_policy/reference/itn_transacti -> HTTP 200 bytes=254473 head=�ΊO�y�ёΓ��،������_�񓙂̏󋵁@(�T���E�w��񍐋@�փx�[�X�j,,,,,,,,,,,,,,,,,,,�ŏI�X�V��  �ߘa8�N8��14��,,, | International Transactions in Securities (Weekly; based on reports from designated ma
+3. TPEx OTC daily foreign net
+[22:06:35] ✅   /openapi/v1/tpex_3insti_daily_trading -> HTTP 200 json bytes=862844 head=[
+{"Date":"1150817","SecuritiesCompanyCode":"00679B","CompanyName":"元大美債20年","Foreign Investors include Mainland Area In
+[22:06:37] ✅   /www/zh-tw/insti/dailyTrade?type=Daily&respo -> HTTP 200 json bytes=147342 head={"columnNum":25,"tables":[{"title":"三大法人買賣明細資訊","date":"115/08/17","fields":["代號","名稱","買進股數","賣出股數","買賣超股數","買進股數","賣出股
+[22:06:40] ✅   /web/stock/3insti/daily_trade/3itrade_hedge_ -> HTTP 200 json bytes=163143 head={"columnNum":25,"tables":[{"title":"Foreign & Institutional Investors Trading Detail","date":"115/08/17","fields":["Secu
+4. Thailand SET investor-type
+[22:06:40] ⚠   set/market/SET/investor-type?lang=en died: HTTP Error 403: Forbidden
+[22:06:41] ⚠   set/marketsummary/investor-type?lang died: HTTP Error 403: Forbidden
+5. Brazil BCB olinda FX flow
+[22:06:42] ⚠   olinda PEC died: HTTP Error 404: Not Found
+verdict
+[22:06:42] ✅ wave-1 matrix resolved (22 countries); wave-2 candidates recorded above
 
-→ Report written to aws/ops/reports/latest/ops 4857 -- three flow desks verify.md
+→ Report written to aws/ops/reports/latest/ops 4858 -- expansion mega-probe.md
