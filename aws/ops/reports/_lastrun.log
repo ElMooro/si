@@ -1,14 +1,15 @@
-executing-against: 46f170cca0dde63a6881223afc85c3110421eafa
-ops 4799 -- settle-gated v2.4 verify
+executing-against: dd2b3e7c4f50903f6e9ad20220fe657d546da387
+ops 4799 -- settle-gated v2.5 verify
 ── 1. env keys (heal if deploy wiped them) ──
 ── 2. deploy settle: marker in deployed zip ──
 ── 3. async run + assertions ──
-[00:10:30] ⚠ DE10Y_TE: ABSENT
-[00:10:30] ⚠ IT10Y_TE: ABSENT
-[00:10:30] ⚠ FR10Y_TE: ABSENT
-[00:10:30] ⚠ ES10Y_TE: ABSENT
-[00:10:30] ⚠ D_BTP_BUND_D: ABSENT
-[00:10:30] ⚠ WREPOFOR: ABSENT
-[00:10:30] ⚠ WLRRAFOIAL: ABSENT
+[00:24:14] diag: {"te_key_present": true, "te": {"germany": "HTTPError:HTTP Error 403: Forbidden", "italy": "HTTPError:HTTP Error 403: Forbidden", "france": "HTTPError:HTTP Error 403: Forbidden", "spain": "HTTPError:HTTP Error 403: Forbidden"}, "sftr": {"stage": "page", "links": 2}}
+[00:24:14] ⚠ DE10Y_TE: ABSENT
+[00:24:14] ⚠ IT10Y_TE: ABSENT
+[00:24:14] ⚠ FR10Y_TE: ABSENT
+[00:24:14] ⚠ ES10Y_TE: ABSENT
+[00:24:14] ⚠ D_BTP_BUND_D: ABSENT
+[00:24:14] ✅ WREPOFOR: 2002-12-18 -> 2026-08-12 n=1235 last=349641.0
+[00:24:14] ✅ WLRRAFOIAL: 2002-12-18 -> 2026-08-12 n=1235 last=357392.0
 
-→ Report written to aws/ops/reports/latest/4799_settled_verify.md
+→ Report written to aws/ops/reports/latest/4800_v25_verify.md
