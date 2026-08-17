@@ -1,0 +1,7 @@
+{
+  "function_name": "justhodl-base-rates",
+  "runtime": "python3.12",
+  "timeout": 300,
+  "memory": 768,
+  "description": "Empirical base-rates spine (Fusion 1): reads the spx-beaters weekly-close ledger READ-ONLY, publishes beat-SPY odds by momentum quintile x horizon (4/13/26w) x cap bucket x drawdown band + current_assignments map. Sat 14:30 UTC after the league run."
+}
