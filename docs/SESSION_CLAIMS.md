@@ -19,7 +19,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
-| ff v1.4: per-country EQUITY net-tx/valchg decomposition (ids proven 4863) + china+belgium Euroclear composite row | 4868-4870 | S-fable-A2 | 2026-08-17 23:1x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 ### Collision note 2026-08-17 23:1x (S-fable-A2)
