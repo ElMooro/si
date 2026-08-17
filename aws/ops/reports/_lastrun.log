@@ -1,37 +1,19 @@
-executing-against: 6158f89b768939382bfdfa178fbb0f16b799f0f1
-a. openapi catalog
-[23:28:51] ✅   /openapi/ HTTP 200 bytes=2677
-[23:28:54] ✅   /openapi/v1/swagger.json HTTP 200 bytes=23902
-[23:28:57] ✅   /openapi/swagger.json HTTP 200 bytes=476923
-b. candidates
-[23:29:00] ✅   tpex_3insti_trading_vol HTTP 200 bytes=23902 head=<!DOCTYPE html><html lang="zh-Hant-tw"><head><title>證券櫃檯買賣中心</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, use
-[23:29:01] ✅   tpex_3insti_summary HTTP 200 bytes=1014 head=[
-{"Date":"1150817","Investor":"外資及陸資合計","PurchaseAmount":"49780578913","SaleAmount":"54439527047","Net":"-4658948134"},
-{"Date":"1150817","Investor":"　外資及陸資(不含自營商)","PurchaseAmoun
-[23:29:02] ✅   tpex_3insti_trading_summary HTTP 200 bytes=23902 head=<!DOCTYPE html><html lang="zh-Hant-tw"><head><title>證券櫃檯買賣中心</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, use
-[23:29:04] ✅   tpex_qfii_trading_vol HTTP 200 bytes=23902 head=<!DOCTYPE html><html lang="zh-Hant-tw"><head><title>證券櫃檯買賣中心</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, use
-[23:29:06] ✅   tpex_3insti_daily_summary HTTP 200 bytes=23902 head=<!DOCTYPE html><html lang="zh-Hant-tw"><head><title>證券櫃檯買賣中心</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, use
-c. zh aggregate value endpoint
-[23:29:07] ✅   /www/zh-tw/insti/3insti?type=Daily&response=js HTTP 200 bytes=10892 head=<!DOCTYPE html><html lang="zh-Hant-tw"><head><title>404 - 證券櫃檯買賣中心</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
-[23:29:09] ✅   /web/stock/3insti/3insti_summary/3itrade_sum_r HTTP 200 bytes=10892 head=<!DOCTYPE html><html lang="zh-Hant-tw"><head><title>404 - 證券櫃檯買賣中心</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
-verdict
-[23:29:10] ✅ value-endpoint evidence above (7 answers) -- wire binds only a NT$-denominated field, else shares w/ unit
+executing-against: 2eb21833301c534c0be1abcd5d11b154ae920d48
+1. committed
+[23:42:13] ✅   acc declared before IIFE
+[23:42:13] ✅   10 armored sections
+[23:42:13] ✅   no literal escapes in HTML
+[23:42:13] ✅   pulse container bound
+[23:42:13] ✅   releases + absorption + auctions + tables ids
+2. served (<=8 min)
+[23:42:13]   settling...
+[23:42:43]   settling...
+[23:43:13]   settling...
+[23:43:43]   settling...
+[23:44:13]   settling...
+[23:44:43]   settling...
+[23:45:13] ✅ armored script SERVED (180s)
+3. verdict
+[23:45:13] ✅ desk un-blanked: helpers-first order restored, sections independently armored
 
-→ Report written to aws/ops/reports/latest/ops 4870 -- tpex value probe.md
-1. settle + invoke
-[23:29:11] ✅ marker settled (attempt 1)
-[23:31:12] ✅ fresh in 121s
-[23:31:12]   30s quota-window breather before sampling
-[23:31:42]   30s quota-window breather before sampling
-2. v1.5 truths
-[23:32:12] ✅   absorption LIVE: 12 months, identities True; 12m foreign +253.0B / issuance +2114.8B = 12.0%
-[23:32:12] ✅   auctions LIVE: 13 in 60d, avg indirect 66.5%; latest 2026-08-13 30-Year indirect 66.8% btc 2.390000
-[23:32:12] ✅   accel flags: 10 set -> {"japan": "ACCEL_BUY", "canada": "ACCEL_BUY", "france": "ACCEL_SELL", "singapore": "ACCEL_BUY", "norway": "FLIP_SELL", "india": "FLIP_BUY", "brazil": "FLIP_BUY", "korea": "ACCEL_SELL", "saudi_arabia": "ACCEL_BUY", "uae":
-[23:32:12] ✅   france flag == independent recompute (ACCEL_SELL)
-3. page
-[23:32:12] ✅   committed equity tokens present
-[23:32:12] ✅   SERVED (0s)
-4. verdict
-[23:32:12] ✅ 21-country matrix + equity holdings LIVE, sampled against FRED, banked, served
-
-→ Report written to aws/ops/reports/latest/ops 4871 -- ff v1.5 absorption verify.md
+→ Report written to aws/ops/reports/latest/ops 4872 -- page hotfix verify.md
