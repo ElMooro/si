@@ -5,7 +5,9 @@ caught by preflight, but WORKSTREAM collisions (same feature built
 twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 
 1. BEFORE starting a workstream: `git pull`, read this file.
-2. Claim = add a row (workstream, ops range guess, timestamp UTC),
+2. Claim = add a row (workstream, ops range guess, timestamp UTC).
+   Session tag MUST carry a unique nonce (e.g. S-A#k7q2) -- two
+   sessions reused the same tag on 2026-08-17.
    commit + push IMMEDIATELY (tiny commit, [skip-deploy] fine).
 3. Release = move the row to Done with the final ops numbers.
 4. If your intended work is already claimed: pick the next free
@@ -16,8 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| WORLDWIDE hot-money: IMF sdmx3/BIS/TWSE-rwd probe + Taiwan daily hot-money wire + generic country card | 4837-4840 | S-fable-A | 2026-08-17 17:3x |
-| global-flows micro-probes (CBC shape / TWSE rwd daily / IMF BOP dataflow) + v1.1 Taiwan wiring + page generic country render | 4837-4841 | S-fable-A | 2026-08-17 17:3x |
+| IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 ## Done (this arc)
 | workstream | ops | session |
@@ -28,7 +29,8 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 | foreign-flows engine v1.0 (TIC/CSLT) | 4824-4826 | S-fable-A |
 | CSLT official/private + countries v1.1 | 4827-4829 | S-B |
 | capital-flow.html TIC card + verify | 4830-4831 | S-fable-A |
-| global-flows engine (Peru live) + capital-flow TOP restructure | 4832-4836 | S-fable-A |
+| global-flows engine (Peru live) + capital-flow TOP restructure | 4832-4836 | S-A#k7q2 |
+| micro-probes + Taiwan CBC+TWSE hot-money wire + generic world card + throttle fix | 4837-4842 | S-B |
 
 ## Open queue (unclaimed)
 - Fusion 3: catalyst chain (catalyst x readthrough x backlog-miner x
