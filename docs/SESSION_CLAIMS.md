@@ -18,7 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| WAVE-2A build 2: absorption share (MSPD + auction indirect) + acceleration flags + TPEx OTC into hot-money v1.1 -- field-dump probe first | 4869-4872 | S-fable-A2 | 2026-08-17 23:2x |
+| TPEx wire into hot-money v1.1: dump tpex_3insti_summary JSON (1KB, ONLY real JSON answer, probe 4870) then bind NT$ field | 4872-4873 | S-fable-A2 | 2026-08-17 23:3x |
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
