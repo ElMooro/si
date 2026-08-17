@@ -90,3 +90,17 @@ agg). Page: verdict band + pillar bars + grouped table; ?t=NVDA deep-link.
 Day-one: NVDA 62.4 MODEST EDGE (higher quality/faster growth/stronger
 momentum, richer) · AAPL 54.0 NO CLEAR EDGE. Nav FORCE-pinned "Research &
 Tools" (ops 4809). Next ops 4810.
+
+## v1.2.0 (ops 4810 GREEN) — per-sector fair fight
+`sectors` block: 11 GICS ratio-of-sums aggregates (pe/fpe/ntm/ps/ev_ebitda/
+roe=ΣNI/ΣBook/net_margin/div+fcf yields/weight/n; AGG gained min_k param —
+the k>=50 gate would have nulled every sector). compare() adds
+`sector_context` (7 rows vs sector agg + fwd-P/E percentile-in-sector via
+_sec_idx). Page: sector table, sector line in verdict band, history
+sparklines (unlock at 5 banked days). Day-one truth: weights 100.1%, Tech
+34.1%/89 · Comm Svcs pe 17.8 fpe 22.3 (NTM −19.9% — consensus decline,
+honest) · Fin 15.5/15.0 · Energy fpe 12.4. Killer read: NVDA fwd P/E =
+84th pctile in the INDEX but 48th pctile IN TECH (mid-pack for its
+sector); AAPL 77.5th in Tech (rich even for its sector). QUEUED: day-two
+re-read after first scheduled run (Mon 21:45 UTC — ledger accretion,
+history chart unlock path). Next ops 4811.
