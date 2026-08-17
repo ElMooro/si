@@ -1,29 +1,18 @@
-executing-against: f4b78bd21a95392e111ebe4f01cd09f01494bcfa
+executing-against: c60a412302404ea6072710c3f38235aec4b68960
 1. official-pulse birth
-[22:58:37] ✅ function Active + update settled
-[22:58:38] ✅ justhodl-official-pulse: token settled (attempt 1)
-[22:58:38] ✅ schedule Fri 09:00 UTC
-[22:58:48] ✅ justhodl-official-pulse fresh in 10s
+[23:04:29] ✅ function Active + update settled
+[23:04:34] ✅ env FRED_KEY HEALED (burn 4864: inherit_env is not a deploy feature)
+[23:04:35] ✅ justhodl-official-pulse: token settled (attempt 1)
+[23:04:35] ✅ schedule exists
+[23:04:46] ✅ justhodl-official-pulse fresh in 10s
 2. pulse truths
-[22:58:48] ✗   rrp {} vs fred 2026-08-12/357392.0
+[23:04:46] ✅   RRP 357.4B @ 2026-08-12 == FRED refetch
+[23:04:46] ✅   13w chg +34.8B == banked recompute
+[23:04:46] ⚠   custody OMITTED honestly: no current series; tried WMTSEC:stale(last 2012-11-07); WMTSECL:stale(last 2012-11-07)
+[23:04:47] ✅   dollar_leg WATCH: 1 firing == independent recompute (off_z=0.74 sh_z=-1.95 cust_z=None)
+3. risk-gate leg
+[23:04:47] ✅ justhodl-risk-gate: token settled (attempt 1)
+[23:09:57] ✗ justhodl-risk-gate: no fresh doc
 
-→ Report written to aws/ops/reports/latest/ops 4864 -- official-pulse + dollar leg.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4864_official_pulse_birth.py", line 311, in <module>
-    main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4864_official_pulse_birth.py", line 202, in main
-    bank = sread("data/providers/h41/WLRRAFOIAL.json")
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4864_official_pulse_birth.py", line 53, in sread
-    raw = s3.get_object(Bucket=B, Key=key)["Body"].read()
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
-❌ OPS-FAIL: aws/ops/pending/ops_4864_official_pulse_birth.py
+→ Report written to aws/ops/reports/latest/ops 4865 -- official-pulse + dollar leg take2 (key heal).md
+❌ OPS-FAIL: aws/ops/pending/ops_4865_official_pulse_take2.py
