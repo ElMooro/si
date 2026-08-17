@@ -1,27 +1,27 @@
-executing-against: 91244b60ee14a396cd5b297e49afeff10a22125f
+executing-against: b1f71b2c556155eaa41baa5452f4854f6e18fa70
 ops 4808 -- justhodl-sp500 birth verify
 ── 1. function Active + env heal ──
 ── 2. deploy settle (zip marker) ──
 ── 3. EventBridge Scheduler ensure ──
-[02:38:51] ✅ schedule justhodl-sp500-daily created -> cron(45 21 ? * MON-FRI *)
+[02:42:14] ✅ schedule justhodl-sp500-daily already correct
 ── 4. Event-invoke + poll as_of ──
-[02:39:07] ✅   fresh doc after ~15s  as_of=2026-08-17T02:38:54.372112+00:00
+[02:42:30] ✅   fresh doc after ~15s  as_of=2026-08-17T02:42:17.609815+00:00
 ── 5. truth bands (all real) ──
-[02:39:07] ✅   members = 495
-[02:39:07] ✅   pe_ttm.agg = 24.73
-[02:39:07] ✗   pe_fwd.agg = None  [band 10..30.9125]
-[02:39:07] ✅   earnings_yield.agg = 4.04
-[02:39:07] ✅   div_yield.agg = 1.07
-[02:39:07] ✅   pe_ttm.median (dist populated) = 23.45
-[02:39:07] ✅   ps_ttm.agg = 3.55
-[02:39:07] ✗   roe.agg = 205.9  [band 5..60]
-[02:39:07] ✅   erp_ttm = -0.59
-[02:39:07] ✅   rule_of_20 = 28.3
+[02:42:30] ✅   members = 495
+[02:42:30] ✅   pe_ttm.agg = 24.73
+[02:42:30] ✗   pe_fwd.agg = None  [band 10..30.9125]
+[02:42:30] ✅   earnings_yield.agg = 4.04
+[02:42:30] ✅   div_yield.agg = 1.07
+[02:42:30] ✅   pe_ttm.median (dist populated) = 23.45
+[02:42:30] ✅   ps_ttm.agg = 3.55
+[02:42:30] ✗   roe.agg = 65.2  [band 5..60]
+[02:42:30] ✅   erp_ttm = -0.59
+[02:42:30] ✅   rule_of_20 = 28.3
 ── 6. compare-mode smoke (AAPL) ──
-[02:39:09] ✅   compare rows = 12
-[02:39:09] ✅   compare rows w/ percentile = 11
+[02:42:32] ✅   compare rows = 12
+[02:42:32] ✅   compare rows w/ percentile = 11
 ── 7. headline readout ──
-[02:39:09] ✗ HARD FAILS: ['pe_fwd.agg', 'roe.agg']
+[02:42:32] ✗ HARD FAILS: ['pe_fwd.agg', 'roe.agg']
 
 → Report written to aws/ops/reports/latest/4808_sp500_engine_deploy_verify.md
 ❌ OPS-FAIL: aws/ops/pending/ops_4808_sp500_engine_deploy_verify.py
