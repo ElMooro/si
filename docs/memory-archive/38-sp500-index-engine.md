@@ -104,3 +104,29 @@ honest) · Fin 15.5/15.0 · Energy fpe 12.4. Killer read: NVDA fwd P/E =
 sector); AAPL 77.5th in Tech (rich even for its sector). QUEUED: day-two
 re-read after first scheduled run (Mon 21:45 UTC — ledger accretion,
 history chart unlock path). Next ops 4811.
+
+## SPX-BEATERS sibling engine (ops 4811 GREEN, 2026-08-17)
+justhodl-spx-beaters v1.0.0 → data/spx-beaters.json + spx-beaters/
+weekly-closes.json ledger, Scheduler justhodl-spx-beaters-weekly cron(0 13
+? * SAT *), page spx-beaters.html (pinned Portfolio & Execution) + teaser
+section on sp500.html. Weekly scan: ALL caps (universe 5,239) + ALL ETFs +
+asset classes. Own factor: full-market weekly-close momentum ledger
+(Polygon grouped-daily, one call/Friday, ≤30 fetches/run, 53w target —
+day-one bootstrapped 30w in a single invoke, ~20s to fresh doc). Legs:
+mom .30 (cross-sectional 12-1 .6 + 6m .4 pctile) / fleet .25 (stock-
+buying tier+score, best-setups rank, master-ranker, invest tier-3) /
+flows .15 (13F net$ 6,778 tickers + congress-alpha) / industry .15 (boom
+league pctile, 131 inds) / quality .15 (sp500 five-pillar composite,
+S&P members only). ETF: mom .35 / compass ER-vs-SPY .35 / rotation .30
+(trend gate + rank + RRG). Rules: ≥2 legs, mom+industry-alone never
+lists (industry is group evidence), score≥55, weights renormalize over
+available legs, macro (risk-gate sizing + rotation regime + ERP/R20)
+ships as CONTEXT never a multiplier (brain). Day-one: 1,507 qualifiers
+(377/388/434/308 by cap, 21 eq-ETF, 2 commodity), 77 listed, 0 contract
+violations. Tops: SPCX 94.9 (6m +539%, 13F +$7.65B) · IWD 92.0 (RRG
+LEADING + gate PASS) · USO 91.9. Honest partials: 12-1 pending 30/53w
+(completes next 1-2 Saturdays), etf_bond/crypto buckets empty (census
+class coverage — candidates for classification widening). G0 gates
+verified every live feed contract pre-invoke (universe.stocks/compass.
+assets/rotation.assets/boom.league/stock-buying.top/13f.t/sp500.members).
+Next ops 4812.
