@@ -1,4 +1,9 @@
-"""ops/4824 -- justhodl-foreign-flows birth verify (TIC/CSLT).
+"""ops/4825 -- justhodl-foreign-flows birth verify, fixed.
+4824 lessons: (a) report titles must never contain "/" --
+pathlib treats it as a directory (preflight now guards this);
+(b) FORTREASNET69995 (combined L+S Treasuries) correctly
+starts 2003-03 -- short-term collection did not exist in
+1985 -- so depth floors are per-series.
  G0  the research doc's series ids are POST-CUTOFF claims, so every
      one of the six is LIVE-verified against FRED first (title +
      units + n_obs>=100 + first<=2000) using a donor FRED_KEY; any
@@ -46,6 +51,7 @@ SCHED_NAME = "justhodl-foreign-flows-daily"
 SCHED_CRON = "cron(30 21 * * ? *)"
 SCHED_ROLE = f"arn:aws:iam::{ACCOUNT}:role/justhodl-scheduler-role"
 DONORS = ("dollar-strength-agent", "justhodl-risk-gate")
+FIRST_FLOOR = {"treas": "2004-01-01"}
 SERIES = {"total": "FORLTTOTALNET99996",
           "treas": "FORTREASNET69995",
           "equity": "FORLTEQTYNET69995",
@@ -183,8 +189,8 @@ def ensure_schedule(rep):
 
 
 def main():
-    with report("ops 4824 -- foreign-flows birth verify "
-                "(TIC/CSLT)") as rep:
+    with report("ops 4825 -- foreign-flows birth verify "
+                "fixed") as rep:
         rep.heading("G0. LIVE-verify research-doc series ids on "
                     "FRED")
         key = donor_key(rep)
@@ -199,7 +205,8 @@ def main():
                            ).get("observations") or []
                 title = meta.get("title") or ""
                 first = obs[0]["date"] if obs else "9999"
-                ok = (len(obs) >= 100 and first <= "2000-01-01"
+                floor = FIRST_FLOOR.get(name, "2000-01-01")
+                ok = (len(obs) >= 100 and first <= floor
                       and "foreign" in title.lower())
             except Exception as e:  # noqa: BLE001
                 ok, title, first, obs = False, str(e)[:60], "?", []
@@ -358,6 +365,8 @@ def main():
             rep.log("  SIGNAL %-13s %+8.1fB  12m %+9.1f  z=%s"
                     % (s, v.get("latest_bn", 0),
                        v.get("sum_12m_bn", 0), v.get("z_10y")))
+        rep.log("  treas series correctly starts 2003-03 (L+S "
+                "combined; per-series floor)")
         rep.log("  NOTE today 4pm ET IS a TIC release (end-June "
                 "data); the 21:30 UTC daily run flips new_release "
                 "when FRED ingests it")

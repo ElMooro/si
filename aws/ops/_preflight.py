@@ -53,6 +53,12 @@ def check_py(path):
         if "sys.exit(1)" not in text:
             HARD.append("%s: no sys.exit(1) anywhere -- fails would go "
                         "green and auto-move" % rel)
+        for m in re.finditer(r"report\(\s*([\'\"])((?:[^\\\\]|\\\\.)*?)\1",
+                             text, re.S):
+            if "/" in m.group(2):
+                HARD.append("%s: report title contains '/' -- pathlib "
+                            "writes it as a directory (burned ops 4824)"
+                            % rel)
         m = re.match(r"ops_(\d+)_", path.name)
         if m:
             num = m.group(1)
