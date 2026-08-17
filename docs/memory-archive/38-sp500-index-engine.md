@@ -130,3 +130,21 @@ class coverage — candidates for classification widening). G0 gates
 verified every live feed contract pre-invoke (universe.stocks/compass.
 assets/rotation.assets/boom.league/stock-buying.top/13f.t/sp500.members).
 Next ops 4812.
+
+## ops 4812–4813: ledger complete + forensics + v1.0.1
+Invoke-to-complete finished the momentum ledger SAME DAY (round 1:
++23 fetches → 53/53w, ~20s). 12-1 LIVE market-wide; SPY 12-1 = +15.5%
+(the bar); 71/78 listed rows carry 12-1. FORENSICS: **SPCX = SpaceX**
+(universe row: "Space Exploration Technologies Corp.", NASDAQ, $108.74,
+mcap $1.42T, cap_bucket "mega") — the +539%/6m +402%/12-1 with 13F
++$7.65B is a REAL post-IPO rocket, not an artifact; the ops "looks like
+a FUND" warn was the substring 'spac' matching "SPACe" (heuristic
+false-positive, engine correct). Bond/crypto zeros = HONEST: all 12
+candidates (TLT/IEF/LQD/HYG/EMB/MUB/SHY/TIP/BIL + BTC/ETH/IBIT) hold
+ledger closes and scored < bar. Latent bug fixed in v1.0.1: compass
+pseudo-tickers BTC/ETH could bind momentum to unrelated grouped-daily
+equities → MOM_ALIAS {BTC→IBIT, ETH→ETHA} (why[] cites "via IBIT");
+mega→large explicit. League tops with 12-1: SPCX 94.7 · APGE 93.2
+(12-1 +259%) · QTTB micro (12-1 +664%) · XLE 92.9 (12-1 +34.8%) · USO
+91.2. Remaining time-gated: sp500 day-two Mon 21:45 UTC · beaters first
+SCHEDULED Saturday run (Aug 22). Next ops 4814.
