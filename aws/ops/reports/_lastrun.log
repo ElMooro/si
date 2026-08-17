@@ -1,27 +1,52 @@
-executing-against: 49ac84282a18e17fb197155031d7b057404eac77
-G0. input contracts
-[21:30:25] ✅ shapes ok: cat=204 bl=121 dmap=831 benef=25
-1. settle + schedule
-[21:30:25] ✅ marker settled (attempt 1)
-[21:30:26] ✅ schedule daily 22:15 UTC
-2. invoke + poll
-[21:30:34] ✅ fresh in 8s
-3. truths
-[21:30:34] ✅   LIVE; chains=60 unpriced=30 completed=0
-[21:30:34] ✅   unpriced/completed disjoint; unpriced invariants hold
-[21:30:34] ✅   stage hist sums to 226 subjects
-[21:30:34] ✅   top unpriced PLTR score 8.100 == independent recompute
-[21:30:34] ✅   no-coverage gap count == independent (161)
-4. readout -- top unpriced chains
-[21:30:34]   PLTR   o1 stage3 score  8.100 conf 1.00 SELF | RPO qoq +8.9% (asof 2026-06-30) | UNKNOWN
-[21:30:34]   MSFT   o1 stage3 score  8.100 conf 1.00 SELF | RPO qoq +8.1% (asof 2026-06-30) | FLAT
-[21:30:34]   AMZN   o1 stage3 score  8.100 conf 1.00 SELF | RPO qoq +20.2% (asof 2020-06-30) | FLAT
-[21:30:34]   MU     o1 stage3 score  8.100 conf 1.00 SELF | RPO qoq +2083.4% (asof 2026-05-28) | UNKNOWN
-[21:30:34]   AVGO   o1 stage3 score  8.100 conf 1.00 SELF | RPO qoq +265.8% (asof 2026-05-03) | UNKNOWN
-[21:30:34]   LMT    o1 stage3 score  8.100 conf 1.00 SELF | RPO qoq +23.6% (asof 2026-06-28) | UNKNOWN
-[21:30:34]   GE     o1 stage3 score  8.100 conf 1.00 SELF | deferred revenue accelerating (qoq | UNKNOWN
-[21:30:34]   LRCX   o1 stage3 score  7.200 conf 1.00 SELF | RPO qoq +9.6% (asof 2026-06-28) | UNKNOWN
-5. verdict
-[21:30:34] ✅ Fusion 3 LIVE -- the chain the fleet saw in pieces is now one machine
+executing-against: 8d9bce616ed314c3091508462e052c94424f9ff2
+a. diagnosis on record
+[21:43:52]   current excluded: {"total": "FORLTTOTALNET99996:fetch_error:HTTP Error 502: Bad Gateway"}
+[21:43:52]   latest_month=2026-06-01 new_release=True
+b. foreign-flows v1.1.1 + total verify
+[21:43:52] ✅ foreign-flows v1.1.1 settled (attempt 1)
+[21:44:23] ✅ justhodl-foreign-flows fresh in 30s
+[21:44:23] ✅   TOTAL restored: +207.1B @ 2026-06-01 (12m +1777.5B)
+[21:44:23]   JUNE: treas -24.6B eq +181.2B corp +35.6B agency -16.8B tbills -29.0B
+c. global-flows v1.2 macro-only
+[21:44:23] ✅ global-flows v1.2.0 settled (attempt 1)
+[21:44:33] ✅ justhodl-global-flows fresh in 10s
+[21:44:33] ✅   taiwan macro LIVE, hot_money MOVED pointer, peru intact
+verdict
+[21:44:33] ✅ total tile restored on June data; global-flows is macro-only
 
-→ Report written to aws/ops/reports/latest/ops 4853 -- catalyst-chain birth verify.md
+→ Report written to aws/ops/reports/latest/ops 4854 -- ff total fix + gf v1.2 settle.md
+G0. ledger continuity precondition
+[21:44:33] ✅ ledger n_before=62
+1. settle + schedule
+[21:44:44] ✅ marker settled (attempt 2)
+[21:44:44] ✅ schedule daily 09:50 UTC
+2. invoke + poll
+[21:44:53] ✅ fresh in 8s
+3. truths
+[21:44:53] ✅   taiwan LIVE; ledger 62 -> 62 (UNION, nothing lost)
+[21:44:53] ✅   sums == independent full-ledger recompute (latest +45.45, 5d +199.84, 60d -821.28)
+[21:44:53] ✅   korea deferral named
+4. verdict
+[21:44:53] ✅ hot-money engine LIVE -- the fast layer has its own house; the ledger survived the move intact
+
+→ Report written to aws/ops/reports/latest/ops 4855 -- hot-money birth verify.md
+G0. feeds
+[21:44:53] ✅   feeds OK (hm 5d +199.84)
+1. committed HTML
+[21:44:53] ✅   token '/data/hot-money.json' present
+[21:44:53] ✅   token 'id="global-ff-card"' present
+[21:44:53] ✅   token 'id="tic-ff-card"' present
+[21:44:53] ✅   order intact
+2. served (<=8 min)
+[21:44:53]   settling...
+[21:45:23]   settling...
+[21:45:53]   settling...
+[21:46:23]   settling...
+[21:46:53]   settling...
+[21:47:23]   settling...
+[21:47:53]   settling...
+[21:48:24] ✅ dual-feed card SERVED after 210s
+3. verdict
+[21:48:24] ✅ hot money renders from its own engine; macro and fast layers formally separated
+
+→ Report written to aws/ops/reports/latest/ops 4856 -- page dual-feed verify.md
