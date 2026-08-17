@@ -1,5 +1,5 @@
-"""justhodl-global-flows v1.0.0 -- worldwide foreign capital
-inflows by country.  Marker: global-flows v1.0.0
+"""justhodl-global-flows v1.1.0 -- worldwide foreign capital
+inflows by country.  Marker: global-flows v1.1.0
 
 Khalid directive 2026-08-17: country inflows worldwide, the more the
 better, specialists first (industries + raw materials).  Doctrine
@@ -22,6 +22,17 @@ Everything else ships as a NAMED deferral with its unlock condition
   korea        BOK ECOS + KRX -- API keys required (Khalid)
   chile        BCCh bcchapi -- token required (Khalid)
   imf_layer    api.imf.org sdmx/2.1 ALIVE -- BOP dataflow id probe
+v1.1 (probes 4837-4838): TAIWAN LIVE --
+  macro: CBC BPP2Q01en dataSets rows ["YYYYQn", v0..v401] mapping
+  +1-offset onto structure.Table1 labels; bound by EXACT label
+  ("Portfolio investment-Liabilities", "...Equity and investment
+  fund shares-Liabilities", first "Debt securities-Liabilities"
+  AFTER the equity row -- never by hardcoded index), USD mn, "-"
+  = null, quarterly since 1984Q1.
+  hot_money: TWSE rwd/en/fund/BFI82U daily Trading Value by
+  investor type; foreign net = sum of Difference over Items
+  containing "Foreign" (incl Mainland-area row + Foreign Dealers),
+  NT$; self-building ledger + {"twse_backfill_days": N} event.
 Series bank permanently under data/providers/bcrp/{sid}.json
 (Deny-Delete zone, union-merge).  Weekly Mon 12:00 UTC (quarterly
 data; cheap check).  CFI and hot-money composites stay DEFERRED
@@ -36,7 +47,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/global-flows.json"
 BANK_FMT = "data/providers/bcrp/%s.json"
@@ -50,16 +61,6 @@ PE_URL = ("https://estadisticas.bcrp.gob.pe/estadisticas/series/"
 MIN_Q = 24
 
 DEFERRED = {
-    "taiwan_cbc": {"status": "DEFERRED",
-                   "why": "CBC BPP2Q01en alive ({data,meta} shape) "
-                          "-- portfolio-liabilities row map needs "
-                          "the queued micro-probe (ops 4832 sec 2)",
-                   "specialty": "semiconductors"},
-    "taiwan_twse_daily": {"status": "DEFERRED",
-                          "why": "OpenAPI fund/* paths returned "
-                                 "HTML; rwd JSON endpoints queued "
-                                 "for probe",
-                          "specialty": "semiconductors hot-money"},
     "korea": {"status": "DEFERRED",
               "why": "BOK ECOS + KRX require API keys -- pending "
                      "Khalid",
@@ -69,9 +70,10 @@ DEFERRED = {
                      "Khalid",
               "specialty": "copper"},
     "imf_layer": {"status": "DEFERRED",
-                  "why": "api.imf.org sdmx/2.1 ALIVE (probe 4832); "
-                         "BOP dataflow id discovery queued -- the "
-                         "worldwide normalization layer",
+                  "why": "dataflow BOP (IMF.STA v21) + dims "
+                         "COUNTRY.BOP_ACCOUNTING_ENTRY.INDICATOR."
+                         "UNIT.FREQUENCY resolved (4838); INDICATOR"
+                         " codelist probe queued",
                   "specialty": "all countries, one methodology"},
 }
 
@@ -169,7 +171,190 @@ def zlast(vals):
     return round(max(-4.0, min(4.0, (last - mu) / sd)), 2)
 
 
-def build():
+CBC_URL = ("https://cpx.cbc.gov.tw/API/DataAPI/Get"
+           "?FileName=BPP2Q01en")
+CBC_LAB_TOTAL = "Portfolio investment-Liabilities"
+CBC_LAB_EQ = ("Portfolio investment-Equity and investment fund "
+              "shares-Liabilities")
+CBC_LAB_DEBT = "Debt securities-Liabilities"
+TWSE_URL = ("https://www.twse.com.tw/rwd/en/fund/BFI82U"
+            "?response=json")
+TWSE_LEDGER = "data/providers/twse/bfi82u-foreign.json"
+CBC_BANK_FMT = "data/providers/cbc/%s.json"
+
+
+def cbc_fetch():
+    """(labels, rows) with rows=[(period,[vals])] or (None,
+    reason).  Seam for the harness."""
+    try:
+        req = urllib.request.Request(
+            CBC_URL, headers={"User-Agent": "justhodl-gf"})
+        with urllib.request.urlopen(req, timeout=70) as r:
+            j = json.loads(r.read())
+        labels = [(x or {}).get("data") or ""
+                  for x in (((j.get("data") or {})
+                             .get("structure") or {})
+                            .get("Table1") or [])]
+        rows = []
+        for row in ((j.get("data") or {}).get("dataSets") or []):
+            if not row or not isinstance(row, list):
+                continue
+            per = str(row[0])
+            vals = []
+            for v in row[1:]:
+                vals.append(fnum(v))
+            rows.append((per, vals))
+        if not labels or not rows:
+            return None, "empty labels/rows"
+        return labels, rows
+    except Exception as e:  # noqa: BLE001
+        return None, "fetch_error:%s" % str(e)[:70]
+
+
+def cbc_locate(labels):
+    """Exact-label binding; debt = first bare Debt-securities-
+    Liabilities AFTER the equity row.  Returns dict or None."""
+    try:
+        i_tot = labels.index(CBC_LAB_TOTAL)
+        i_eq = labels.index(CBC_LAB_EQ)
+    except ValueError:
+        return None
+    i_debt = None
+    for i in range(i_eq + 1, len(labels)):
+        if labels[i] == CBC_LAB_DEBT:
+            i_debt = i
+            break
+    if i_debt is None:
+        return None
+    return {"portfolio_liab_total": i_tot,
+            "portfolio_liab_equity": i_eq,
+            "portfolio_liab_debt": i_debt}
+
+
+def twse_fetch(day=None):
+    """(yyyymmdd, foreign_net_twd) or (None, reason).  Foreign net
+    = sum of Difference over Items containing 'Foreign'.  Seam."""
+    url = TWSE_URL + ("&dayDate=%s&type=day" % day if day else "")
+    try:
+        req = urllib.request.Request(
+            url, headers={"User-Agent": "justhodl-gf"})
+        with urllib.request.urlopen(req, timeout=45) as r:
+            j = json.loads(r.read())
+        if j.get("stat") != "OK" or not j.get("data"):
+            return None, "stat=%s" % j.get("stat")
+        net = 0.0
+        found = False
+        for row in j["data"]:
+            if "foreign" in str(row[0]).lower():
+                found = True
+                net += float(str(row[3]).replace(",", ""))
+        if not found:
+            return None, "no foreign rows"
+        return str(j.get("date")), net
+    except Exception as e:  # noqa: BLE001
+        return None, "fetch_error:%s" % str(e)[:60]
+
+
+def taiwan_block(doc, event):
+    tw = {"specialty": "semiconductors", "macro": {},
+          "hot_money": {}}
+    labels, rows = cbc_fetch()
+    if labels is None:
+        tw["macro"] = {"status": "MISSING", "why": rows}
+    else:
+        loc = cbc_locate(labels)
+        width_ok = all(len(v) == len(labels)
+                       for _, v in rows[-4:])
+        if not loc or not width_ok:
+            tw["macro"] = {"status": "MISSING",
+                           "why": "labels moved or width mismatch "
+                                  "-- refusing positional bind"}
+        else:
+            tw["macro"] = {"status": "LIVE", "freq": "quarterly",
+                           "unit": "USD mn",
+                           "source": "CBC BPP2Q01en (keyless)",
+                           "series": {}}
+            for name, idx in loc.items():
+                ser = [(per, v[idx]) for per, v in rows
+                       if idx < len(v) and v[idx] is not None]
+                if len(ser) < MIN_Q:
+                    tw["macro"]["series"][name] = {
+                        "status": "SHORT", "n": len(ser)}
+                    continue
+                bank_key = CBC_BANK_FMT % name
+                bank = _g(bank_key) or {"id": name,
+                                        "source": "CBC",
+                                        "rows": {}}
+                n_new = 0
+                for per, v in ser:
+                    if per not in bank["rows"]:
+                        n_new += 1
+                    bank["rows"][per] = v
+                if n_new:
+                    _put(bank_key, bank)
+                vals = [v for _, v in ser]
+                tw["macro"]["series"][name] = {
+                    "label_index": idx,
+                    "latest": round(vals[-1], 1),
+                    "period": ser[-1][0],
+                    "sum_4q": round(sum(vals[-4:]), 1),
+                    "z_all": zlast(vals), "n_obs": len(vals),
+                    "first": ser[0][0]}
+            tw["macro"]["latest_period"] = rows[-1][0]
+
+    led = _g(TWSE_LEDGER) or {"source": "TWSE BFI82U foreign net "
+                              "(TWD)", "rows": {}}
+    n_backfill = 0
+    bf = 0
+    try:
+        bf = int((event or {}).get("twse_backfill_days") or 0)
+    except (TypeError, ValueError):
+        bf = 0
+    if bf > 0:
+        from datetime import timedelta
+        d0 = datetime.now(timezone.utc)
+        for k in range(min(bf, 120)):
+            day = (d0 - timedelta(days=k)).strftime("%Y%m%d")
+            if day in led["rows"]:
+                continue
+            dd, net = twse_fetch(day)
+            if dd is not None and dd == day:
+                led["rows"][day] = net
+                n_backfill += 1
+            time.sleep(0.35)
+    dd, net = twse_fetch()
+    if dd is not None:
+        led["rows"][dd] = net
+    if n_backfill or dd is not None:
+        _put(TWSE_LEDGER, led)
+    days = sorted(led["rows"])
+    nets = [led["rows"][d] for d in days]
+    hm = {"status": "LIVE" if days else "MISSING",
+          "unit": "TWD bn", "ledger_days": len(days),
+          "source": "TWSE BFI82U (keyless, daily)"}
+    if days:
+        hm["latest_day"] = days[-1]
+        hm["latest_bn"] = round(nets[-1] / 1e9, 2)
+        for w in (5, 20, 60):
+            if len(nets) >= w:
+                hm["sum_%dd_bn" % w] = round(sum(nets[-w:]) / 1e9,
+                                             2)
+            else:
+                hm["sum_%dd_bn" % w] = None
+        hm["why_partial"] = (None if len(nets) >= 60 else
+                             "ledger accruing n=%d" % len(nets))
+        zs = [n / 1e9 for n in nets[-61:]]
+        hm["z_60d"] = zlast(zs) if len(zs) >= MIN_Q else None
+    if n_backfill:
+        hm["backfilled"] = n_backfill
+    tw["hot_money"] = hm
+    tw["status"] = ("LIVE" if (tw["macro"].get("status") == "LIVE"
+                               or hm.get("status") == "LIVE")
+                    else "MISSING")
+    doc["countries"]["taiwan"] = tw
+
+
+def build(event=None):
     t0 = time.time()
     now = datetime.now(timezone.utc)
     doc = {"v": VERSION, "engine": "justhodl-global-flows",
@@ -190,10 +375,16 @@ def build():
            "diag": {}}
     data, err = bcrp_fetch()
     if data is None:
-        doc["status"] = "INSUFFICIENT_DATA"
-        doc["why"] = "peru core failed: %s" % err
-        doc["countries"]["peru"] = {"status": "MISSING",
-                                    "why": err}
+        pe = {"status": "MISSING", "why": err}
+        doc["countries"]["peru"] = pe
+        taiwan_block(doc, event)
+        tw_ok = (doc["countries"].get("taiwan")
+                 or {}).get("status") == "LIVE"
+        doc["status"] = "LIVE" if tw_ok else "INSUFFICIENT_DATA"
+        if not tw_ok:
+            doc["why"] = "peru core failed (%s) and taiwan not " \
+                "live" % err
+        doc["diag"]["runtime_ms"] = int((time.time() - t0) * 1000)
         return doc
     pe = {"status": "LIVE", "freq": "quarterly", "unit": "USD mn",
           "source": "BCRP (keyless)", "specialty": "copper/gold "
@@ -221,17 +412,24 @@ def build():
         pe["status"] = "THIN"
         pe["why"] = "only %d/4 series usable" % live_n
     doc["countries"]["peru"] = pe
-    doc["status"] = "LIVE" if pe["status"] == "LIVE" \
+    taiwan_block(doc, event)
+    tw_ok = (doc["countries"].get("taiwan") or {}).get("status") \
+        == "LIVE"
+    doc["status"] = "LIVE" if (pe["status"] == "LIVE" or tw_ok) \
         else "INSUFFICIENT_DATA"
     doc["diag"]["runtime_ms"] = int((time.time() - t0) * 1000)
     return doc
 
 
 def lambda_handler(event, context):
-    doc = build()
+    doc = build(event or {})
     _put(OUT_KEY, doc)
     pe = (doc.get("countries") or {}).get("peru") or {}
+    tw = (doc.get("countries") or {}).get("taiwan") or {}
     return {"ok": doc.get("status") == "LIVE", "v": VERSION,
             "status": doc.get("status"),
             "peru_period": pe.get("latest_period"),
+            "tw_macro": (tw.get("macro") or {}).get("status"),
+            "tw_ledger_days": (tw.get("hot_money")
+                               or {}).get("ledger_days"),
             "n_deferred": len(doc.get("deferred") or {})}

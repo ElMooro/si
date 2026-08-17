@@ -1,5 +1,7 @@
-"""LOCAL PUSH-GATE HARNESS -- justhodl-global-flows v1.0.0
-(ops 4833).  bcrp_fetch seam stubbed.  Asserts: string->float parse
+"""LOCAL PUSH-GATE HARNESS -- justhodl-global-flows v1.1.0
+(ops 4839).  v1.1 adds Taiwan: CBC label-locate (+decoy-resistant
+debt rule, width guard, "-" nulls, +1 offset) and TWSE hot-money
+ledger (foreign-row sum, accrual honesty, backfill event).  bcrp_fetch seam stubbed.  Asserts: string->float parse
 incl 'n.d.' nulls; per-series latest/sum_4q/z == independent
 recompute; bank union-merge survival of a pre-2012 row; THIN when
 <3 series usable; INSUFFICIENT on fetch death; deferred block ships
@@ -83,6 +85,73 @@ def fake_fetch():
 
 eng.bcrp_fetch = fake_fetch
 
+# ---- Taiwan fixtures ----
+CBC_LABELS = (["Current account-Net Value",
+               "Direct investment-Debt instruments-Liabilities"]
+              + ["pad%d" % i for i in range(2, 159)]
+              + ["Portfolio investment-Balance",
+                 "Portfolio investment-Assets",
+                 "Portfolio investment-Liabilities",          # 161
+                 "Portfolio investment-Equity and investment "
+                 "fund shares-Balance",
+                 "Portfolio investment-Equity and investment "
+                 "fund shares-Assets",
+                 "Portfolio investment-Equity and investment "
+                 "fund shares-Liabilities",                   # 164
+                 "pad165",
+                 "Debt securities-Balance",
+                 "Debt securities-Assets",
+                 "Debt securities-Liabilities",               # 168
+                 "Other investment-Liabilities",
+                 "Debt securities-Liabilities"])              # 170 decoy
+CBC_QS = ["%dQ%d" % (1984 + i // 4, i % 4 + 1) for i in range(30)]
+CBC_MODE = {"dead": False, "shift": False, "ragged": False}
+
+
+def cbc_val(qi, li):
+    if li == 161:
+        return 1000.0 + 10 * qi
+    if li == 164:
+        return 300.0 + 5 * qi
+    if li == 168:
+        return 700.0 + 5 * qi if qi != 2 else None    # "-" null
+    return float(li)
+
+
+def fake_cbc():
+    if CBC_MODE["dead"]:
+        return None, "fetch_error:boom"
+    labels = list(CBC_LABELS)
+    if CBC_MODE["shift"]:
+        labels[161] = "Portfolio investment-LiabilitiesX"
+    rows = []
+    for qi, q in enumerate(CBC_QS):
+        vals = [cbc_val(qi, li) for li in range(len(labels))]
+        if CBC_MODE["ragged"] and qi == len(CBC_QS) - 1:
+            vals = vals[:-5]
+        rows.append((q, vals))
+    return labels, rows
+
+
+eng.cbc_fetch = fake_cbc
+
+TW_DAYS = ["202608%02d" % d for d in range(1, 16)]
+TW_NET = {d: 1e9 * (i - 5) for i, d in enumerate(TW_DAYS)}
+TW_MODE = {"dead": False}
+
+
+def fake_twse(day=None):
+    if TW_MODE["dead"]:
+        return None, "stat=NO"
+    if day is None:
+        day = TW_DAYS[-1]
+    if day not in TW_NET:
+        return None, "stat=NO"          # weekend/holiday
+    return day, TW_NET[day]
+
+
+eng.twse_fetch = fake_twse
+
 
 def ind_z(vals):
     h, last = vals[:-1], vals[-1]
@@ -110,10 +179,9 @@ def main():
         chk("A1 %s" % k, ok, "latest=%s z=%s" % (s["latest"],
                                                  s["z_all"]))
     print("== A2 deferred + composites honest ==")
-    chk("A2 five deferrals verbatim",
-        set(doc["deferred"]) == {"taiwan_cbc", "taiwan_twse_daily",
-                                 "korea", "chile", "imf_layer"}
-        and all("why" in v for v in doc["deferred"].values()))
+    chk("A2 deferrals now korea/chile/imf only",
+        set(doc["deferred"]) == {"korea", "chile", "imf_layer"}
+        and "INDICATOR" in doc["deferred"]["imf_layer"]["why"])
     chk("A2 composites null with reasons",
         doc["composites"]["cfi"]["value"] is None
         and "partial" in doc["composites"]["cfi"]["why"]
@@ -131,17 +199,95 @@ def main():
         (eng.BANK_FMT % sid) not in PUTS)
     print("== A4 honesty paths ==")
     MODE["drop"] = {"portfolio_equity", "gov_bonds_nonresident"}
-    d2 = eng.build()
-    chk("A4 2/4 -> THIN + INSUFFICIENT",
+    d2 = eng.build({})
+    chk("A4 2/4 -> peru THIN (doc LIVE via taiwan)",
         d2["countries"]["peru"]["status"] == "THIN"
-        and d2["status"] == "INSUFFICIENT_DATA")
+        and d2["status"] == "LIVE")
     MODE["drop"] = set()
     MODE["dead"] = True
-    d3 = eng.build()
-    chk("A4 fetch death -> INSUFFICIENT + peru MISSING",
-        d3["status"] == "INSUFFICIENT_DATA"
-        and d3["countries"]["peru"]["status"] == "MISSING")
+    d3 = eng.build({})
+    chk("A4 peru fetch death -> peru MISSING, doc LIVE via "
+        "taiwan", d3["countries"]["peru"]["status"] == "MISSING"
+        and d3["status"] == "LIVE")
     MODE["dead"] = False
+    print("== T1 Taiwan CBC label-bind identities ==")
+    tw = doc["countries"]["taiwan"]
+    m = tw["macro"]
+    chk("T1 macro LIVE latest_period", m["status"] == "LIVE"
+        and m["latest_period"] == CBC_QS[-1])
+    tot = m["series"]["portfolio_liab_total"]
+    eq = m["series"]["portfolio_liab_equity"]
+    db = m["series"]["portfolio_liab_debt"]
+    chk("T1 exact-label indices 161/164",
+        tot["label_index"] == 161 and eq["label_index"] == 164)
+    chk("T1 debt = FIRST bare label AFTER equity (168, not "
+        "decoy 170)", db["label_index"] == 168)
+    exp_tot = [cbc_val(q, 161) for q in range(30)]
+    chk("T1 total latest/sum/z", tot["latest"]
+        == round(exp_tot[-1], 1)
+        and tot["sum_4q"] == round(sum(exp_tot[-4:]), 1)
+        and tot["z_all"] == ind_z(exp_tot))
+    chk("T1 '-' null dropped from debt series",
+        db["n_obs"] == 29 and db["latest"]
+        == round(cbc_val(29, 168), 1))
+    chk("T1 taiwan bank written",
+        len(STORE[eng.CBC_BANK_FMT % "portfolio_liab_total"]
+            ["rows"]) == 30)
+
+    print("== T2 TWSE ledger day-one honesty ==")
+    hm = tw["hot_money"]
+    exp = [TW_NET[d] for d in TW_DAYS]
+    chk("T2 day-one: latest only, sums honestly null",
+        hm["ledger_days"] == 1
+        and hm["latest_bn"] == round(exp[-1] / 1e9, 2)
+        and hm["sum_5d_bn"] is None
+        and "accruing" in hm["why_partial"])
+    chk("T2 z null below MIN_Q", hm["z_60d"] is None)
+
+    print("== T3 backfill event -> sums activate ==")
+    PUTS.clear()
+    eng.lambda_handler({"twse_backfill_days": 30}, None)
+    led = STORE[eng.TWSE_LEDGER]["rows"]
+    chk("T3 ledger holds all 15 fixture days (holidays "
+        "skipped)", len(led) == 15
+        and all(d in led for d in TW_DAYS))
+    hm2 = (STORE[eng.OUT_KEY]["countries"]["taiwan"]
+           ["hot_money"])
+    chk("T3 post-backfill 5d sum == independent",
+        hm2["sum_5d_bn"] == round(sum(exp[-5:]) / 1e9, 2)
+        and hm2["ledger_days"] == 15
+        and hm2["sum_20d_bn"] is None)
+
+    print("== T4 Taiwan honesty paths ==")
+    CBC_MODE["shift"] = True
+    d_s = eng.build({})
+    chk("T4 moved label -> macro MISSING (refuses positional "
+        "bind)", d_s["countries"]["taiwan"]["macro"]["status"]
+        == "MISSING")
+    CBC_MODE["shift"] = False
+    CBC_MODE["ragged"] = True
+    d_r = eng.build({})
+    chk("T4 width mismatch -> macro MISSING",
+        d_r["countries"]["taiwan"]["macro"]["status"]
+        == "MISSING")
+    CBC_MODE["ragged"] = False
+    CBC_MODE["dead"] = True
+    TW_MODE["dead"] = True
+    d_l = eng.build({})
+    chk("T4 feeds dead but LEDGER banked -> taiwan stays LIVE "
+        "via hot_money history",
+        d_l["countries"]["taiwan"]["status"] == "LIVE"
+        and d_l["countries"]["taiwan"]["macro"]["status"]
+        == "MISSING")
+    del STORE[eng.TWSE_LEDGER]
+    d_d = eng.build({})
+    chk("T4 feeds dead + empty ledger -> taiwan MISSING, doc "
+        "LIVE on peru", d_d["countries"]["taiwan"]["status"]
+        == "MISSING" and d_d["status"] == "LIVE")
+    CBC_MODE["dead"] = False
+    TW_MODE["dead"] = False
+    eng.build({"twse_backfill_days": 30})   # restore ledger
+
     print("== A5b endq_prev unit ==")
     from datetime import datetime as _dt, timezone as _tz
     cases = {(2026, 8): "2026-2", (2026, 1): "2025-4",
@@ -155,15 +301,17 @@ def main():
     out = eng.lambda_handler({}, None)
     chk("A5 handler writes OUT last", PUTS[-1] == eng.OUT_KEY
         and out["ok"] is True)
-    chk("A5 only bcrp-bank/out written",
+    chk("A5 only bcrp/cbc/twse banks + out written",
         all(p == eng.OUT_KEY
             or p.startswith("data/providers/bcrp/")
+            or p.startswith("data/providers/cbc/")
+            or p == eng.TWSE_LEDGER
             for p in PUTS))
     print()
     if FAILS:
         print("HARNESS FAILED: %s" % FAILS)
         sys.exit(1)
-    print("HARNESS GREEN -- push gate open (ops 4833)")
+    print("HARNESS GREEN -- push gate open (ops 4839)")
 
 
 if __name__ == "__main__":

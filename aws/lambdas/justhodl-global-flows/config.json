@@ -1,7 +1,7 @@
 {
   "function_name": "justhodl-global-flows",
   "runtime": "python3.12",
-  "timeout": 120,
+  "timeout": 300,
   "memory": 512,
-  "description": "Worldwide foreign capital inflows by country. v1.0: Peru BCRP live (portfolio liabilities total/equity/fixed-income + gov bonds by nonresidents, probe-proven), Taiwan/Korea/Chile/IMF layer as named deferrals with unlock conditions. Weekly Mon 12:00 UTC."
+  "description": "Worldwide foreign capital inflows by country. v1.1: Peru BCRP + Taiwan (CBC quarterly portfolio liabilities, label-bound; TWSE daily foreign hot-money ledger with backfill). Korea/Chile/IMF as named deferrals. Daily 10:00 UTC."
 }

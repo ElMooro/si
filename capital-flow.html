@@ -183,23 +183,28 @@ a{color:var(--cyan);text-decoration:none}
   let d=null;
   try{const r=await fetch(P+"/data/global-flows.json?t="+Date.now());if(r.ok)d=await r.json();}catch(e){}
   if(!d){el.innerHTML="<span style=\"opacity:.6\">global-flows unavailable</span>";return;}
+  const FLAG={peru:"🇵🇪",taiwan:"🇹🇼",korea:"🇰🇷",chile:"🇨🇱"};
   const fm=v=>v==null?"–":(v>0?"+":"")+v.toFixed(1)+"M";
+  const fb2=v=>v==null?"–":(v>0?"+":"")+v.toFixed(2);
   const zc=z=>z==null?"":" <span style=\"opacity:.6\">z "+(z>0?"+":"")+z+"</span>";
+  const pretty=s=>s.replace(/_/g," ").replace(/liab/,"liabilities —");
   let h="";
-  const pe=(d.countries||{}).peru||{};
-  if(pe.status==="LIVE"){
-    const S=pe.series||{};
-    h+="<div class=\"card\" style=\"padding:10px 12px;margin-bottom:8px\"><b>🇵🇪 Peru</b> <span style=\"opacity:.6\">copper/gold · "+(pe.latest_period||"")+" · USD mn · quarterly</span><table style=\"width:100%;font-size:12px;margin-top:4px\">";
-    for(const[k,lab]of[["portfolio_total","Portfolio liabilities — total"],["portfolio_equity"," equity"],["portfolio_fixed_income"," fixed income"],["gov_bonds_nonresident","Gov bonds bought by nonresidents"]]){
-      const s=S[k]||{};h+="<tr><td>"+lab+"</td><td style=\"text-align:right\">"+fm(s.latest)+"</td><td style=\"text-align:right;opacity:.7\">4Q "+fm(s.sum_4q)+"</td><td style=\"text-align:right\">"+zc(s.z_all)+"</td></tr>";}
-    h+="</table></div>";
-  }else{h+="<div style=\"opacity:.6\">Peru: "+(pe.status||"n/a")+" "+(pe.why||"")+"</div>";}
+  for(const[cn,c]of Object.entries(d.countries||{})){
+    if(!c||c.status!=="LIVE"){h+="<div style=\"opacity:.6;margin-bottom:6px\">"+(FLAG[cn]||"")+" "+cn+": "+(c&&c.status||"n/a")+" "+((c&&c.why)||"")+"</div>";continue;}
+    const mac=(c.macro&&c.macro.series)?c.macro:((c.series)?c:null);
+    h+="<div class=\"card\" style=\"padding:10px 12px;margin-bottom:8px\"><b>"+(FLAG[cn]||"")+" "+cn.charAt(0).toUpperCase()+cn.slice(1)+"</b> <span style=\"opacity:.6\">"+(c.specialty||"")+(mac?" · "+(mac.latest_period||"")+" · "+(mac.unit||"")+" · "+(mac.freq||""):"")+"</span>";
+    if(mac){h+="<table style=\"width:100%;font-size:12px;margin-top:4px\">";
+      for(const[k,s]of Object.entries(mac.series||{})){if(s==null||s.latest==null)continue;
+        h+="<tr><td>"+pretty(k)+"</td><td style=\"text-align:right\">"+fm(s.latest)+"</td><td style=\"text-align:right;opacity:.7\">4Q "+fm(s.sum_4q)+"</td><td style=\"text-align:right\">"+zc(s.z_all)+"</td></tr>";}
+      h+="</table>";}
+    const hm=c.hot_money;
+    if(hm&&hm.status==="LIVE"){h+="<div style=\"margin-top:6px;font-size:12px\"><b>Hot money</b> (daily foreign net, "+(hm.unit||"")+"): latest "+fb2(hm.latest_bn)+" @ "+(hm.latest_day||"")+" · 5d "+fb2(hm.sum_5d_bn)+" · 20d "+fb2(hm.sum_20d_bn)+" · 60d "+fb2(hm.sum_60d_bn)+zc(hm.z_60d)+(hm.why_partial?" <span style=\"opacity:.55\">("+hm.why_partial+")</span>":"")+"</div>";}
+    h+="</div>";}
   const dep=Object.entries(d.deferred||{});
   if(dep.length){h+="<div style=\"display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px\">";
     for(const[n,r]of dep){h+="<div class=\"card\" style=\"padding:8px 10px;opacity:.75\"><b style=\"font-size:12px\">"+n.replace(/_/g," ")+"</b> <span style=\"opacity:.6;font-size:11px\">"+(r.specialty||"")+"</span><div style=\"font-size:11px;opacity:.7;margin-top:2px\">"+(r.why||"")+"</div></div>";}
     h+="</div>";}
-  const c=(d.composites||{});
-  h+="<div style=\"opacity:.5;font-size:11px;margin-top:8px\">CFI + hot-money composites: "+((c.cfi||{}).why||"")+"</div>";
+  h+="<div style=\"opacity:.5;font-size:11px;margin-top:8px\">CFI + hot-money composites: "+(((d.composites||{}).cfi||{}).why||"")+"</div>";
   el.innerHTML=h;
 })();
 </script>
