@@ -1,7 +1,7 @@
 """justhodl-hot-money v1.0.0 -- daily foreign flows in liquid
 markets, split into its own engine per Khalid directive 2026-08-17
 ("hot money and capital flow each into their own engine").
-Marker: hot-money v1.0.0
+Marker: hot-money v1.1.0
 
 Doctrine (Khalid's research doc): FDI into a copper mine and a
 hedge fund buying government bonds are different animals -- macro
@@ -31,10 +31,13 @@ from datetime import datetime, timezone, timedelta
 import boto3
 import urllib.request
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/hot-money.json"
 TWSE_LEDGER = "data/providers/twse/bfi82u-foreign.json"
+TPEX_LEDGER = "data/providers/tpex/insti-foreign.json"
+TPEX_URL = ("https://www.tpex.org.tw/openapi/v1/"
+            "tpex_3insti_summary")
 TWSE_URL = ("https://www.twse.com.tw/rwd/en/fund/BFI82U"
             "?response=json")
 BACKFILL_SLEEP = 2.2
@@ -100,6 +103,43 @@ def twse_fetch(day=None):
         return None, "fetch_error:%s" % str(e)[:60]
 
 
+def tpex_fetch():
+    """(yyyymmdd, foreign_net_twd) or (None, reason).  Binds the
+    ops-4873 dump: row Investor == 外資及陸資合計, Net in NT$,
+    Date in ROC calendar (115yy -> +1911).  Seam."""
+    try:
+        req = urllib.request.Request(
+            TPEX_URL, headers={"User-Agent": "justhodl-hot-money",
+                               "Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=45) as r:
+            j = json.loads(r.read())
+        row = None
+        for x in j if isinstance(j, list) else []:
+            inv = str(x.get("Investor", ""))
+            if "外資及陸資合計" \
+                    in inv:
+                row = x
+                break
+        if row is None:
+            return None, "foreign-total row absent"
+        d = str(row.get("Date", ""))
+        if len(d) != 7 or not d.isdigit():
+            return None, "date shape %r" % d[:10]
+        greg = "%04d%s" % (int(d[:3]) + 1911, d[3:])
+        net = float(str(row.get("Net", "")).replace(",", ""))
+        return greg, net
+    except Exception as e:  # noqa: BLE001
+        return None, "fetch_error:%s" % str(e)[:60]
+
+
+def windows(nets):
+    out = {}
+    for w in (5, 20, 60):
+        out["sum_%dd_bn" % w] = (round(sum(nets[-w:]) / 1e9, 2)
+                                 if len(nets) >= w else None)
+    return out
+
+
 def taiwan(event):
     led = _g(TWSE_LEDGER) or {"source": "TWSE BFI82U foreign net "
                               "(TWD)", "rows": {}}
@@ -151,6 +191,53 @@ def taiwan(event):
     if bf > 0:
         tw["backfilled"] = n_backfill
         tw["backfill_attempts"] = attempts
+
+    led2 = _g(TPEX_LEDGER) or {"source": "TPEx 3insti summary "
+                               "foreign+mainland net (NT$)",
+                               "rows": {}}
+    n2_before = len(led2["rows"])
+    d2, net2 = tpex_fetch()
+    otc = {"status": "MISSING", "unit": "TWD bn",
+           "source": "TPEx openapi 3insti_summary (keyless, "
+                     "daily, OTC board)"}
+    if d2 is not None:
+        led2["rows"][d2] = net2
+    else:
+        otc["today_fetch"] = net2
+    if len(led2["rows"]) != n2_before:
+        _put(TPEX_LEDGER, led2)
+    days2 = sorted(led2["rows"])
+    if days2:
+        nets2 = [led2["rows"][x] for x in days2]
+        otc.update({"status": "LIVE",
+                    "ledger_days": len(days2),
+                    "latest_day": days2[-1],
+                    "latest_bn": round(nets2[-1] / 1e9, 2)})
+        otc.update(windows(nets2))
+        otc["why_partial"] = (None if len(nets2) >= 60 else
+                              "ledger accruing n=%d (no "
+                              "historical endpoint -- honest "
+                              "accrual)" % len(nets2))
+        zs2 = [n / 1e9 for n in nets2[-61:]]
+        otc["z_60d"] = zlast(zs2) if len(zs2) >= MIN_Q else None
+    tw["otc"] = otc
+    comb = {"status": "MISSING"}
+    if tw.get("latest_day") and otc.get("latest_day"):
+        if tw["latest_day"] == otc["latest_day"]:
+            comb = {"status": "LIVE",
+                    "latest_day": tw["latest_day"],
+                    "latest_bn": round(tw["latest_bn"]
+                                       + otc["latest_bn"], 2),
+                    "note": "listed (TWSE) + OTC (TPEx), "
+                            "same-day identity; window sums "
+                            "stay per-board until ledgers "
+                            "align in depth"}
+        else:
+            comb = {"status": "MISALIGNED",
+                    "why": "listed %s vs otc %s"
+                           % (tw["latest_day"],
+                              otc["latest_day"])}
+    tw["combined"] = comb
     return tw
 
 

@@ -72,7 +72,16 @@ function spark(rows){
     h+='<div class="card"><div class="k">Latest \u00b7 '+(c.latest_day||"")+'</div><div class="v'+cls(c.latest_bn)+'">'+fN(c.latest_bn,2)+'</div><div class="s">daily foreign net</div></div>';
     for(const w of[5,20,60]){const v=c["sum_"+w+"d_bn"];
       h+='<div class="card"><div class="k">'+w+'-day flow</div><div class="v'+cls(v)+'">'+fN(v,1)+'</div><div class="s">'+(v==null?(c.why_partial||"accruing"):(w===60?"z "+((c.z_60d>0?"+":"")+(c.z_60d==null?"\u2013":c.z_60d)):"cumulative"))+'</div></div>';}
-    h+='</div><div id="tape-'+cn+'" style="margin-top:12px"></div></div>';}
+    const o=c.otc||{};
+    if(o.status==="LIVE"){
+      h+='<div class="note" style="margin:10px 0 6px">OTC board (TPEx) \u00b7 ledger '+(o.ledger_days||0)+' days'+(o.why_partial?' \u00b7 '+o.why_partial:'')+'</div><div class="cards">';
+      h+='<div class="card"><div class="k">OTC latest \u00b7 '+(o.latest_day||"")+'</div><div class="v'+cls(o.latest_bn)+'">'+fN(o.latest_bn,2)+'</div><div class="s">daily foreign net, OTC</div></div>';
+      for(const w of[5,20,60]){const v=o["sum_"+w+"d_bn"];
+        h+='<div class="card"><div class="k">OTC '+w+'-day</div><div class="v'+cls(v)+'">'+fN(v,1)+'</div><div class="s">'+(v==null?"accruing":(w===60?"z "+((o.z_60d==null?"\u2013":(o.z_60d>0?"+":"")+o.z_60d)):"cumulative"))+'</div></div>';}
+      const cb=c.combined||{};
+      h+='<div class="card"><div class="k">Listed + OTC \u00b7 '+(cb.latest_day||"")+'</div><div class="v'+cls(cb.latest_bn)+'">'+(cb.status==="LIVE"?fN(cb.latest_bn,2):"\u2013")+'</div><div class="s">'+(cb.status==="LIVE"?"same-day identity":(cb.why||cb.status||""))+'</div></div>';
+      h+='</div>';}
+    h+='<div id="tape-'+cn+'" style="margin-top:12px"></div></div>';}
   document.getElementById("countries").innerHTML=h;
   let dh="";
   for(const[n,r]of Object.entries(d.deferred||{}))dh+='<div class="chip"><b>'+n.replace(/_/g," ")+'</b> <span style="color:var(--fg-3);font-size:11px">'+(r.specialty||"")+'</span><div class="w">'+(r.why||"")+'</div></div>';

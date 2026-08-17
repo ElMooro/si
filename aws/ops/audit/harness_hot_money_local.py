@@ -65,6 +65,17 @@ def fake_twse(day=None):
 
 
 eng.twse_fetch = fake_twse
+TPEX_TODAY = ("20260817", -4.658948134e9)
+TPEX_MODE = {"dead": False, "day": None}
+
+
+def fake_tpex():
+    if TPEX_MODE["dead"]:
+        return None, "foreign-total row absent"
+    return (TPEX_MODE["day"] or TPEX_TODAY[0]), TPEX_TODAY[1]
+
+
+eng.tpex_fetch = fake_tpex
 
 
 def seed():
@@ -92,6 +103,29 @@ def main():
     chk("H1 z present at n>=24", tw["z_60d"] is not None)
     chk("H1 korea deferral named",
         "korea" in STORE[eng.OUT_KEY]["deferred"])
+    otc = tw["otc"]
+    chk("H1 OTC leg: ROC-converted key, NT$bn, accruing honest",
+        otc["status"] == "LIVE" and otc["ledger_days"] == 1
+        and otc["latest_day"] == "20260817"
+        and otc["latest_bn"] == round(TPEX_TODAY[1] / 1e9, 2)
+        and otc["sum_5d_bn"] is None
+        and "accruing" in (otc.get("why_partial") or ""))
+    chk("H1 combined same-day identity",
+        tw["combined"]["status"] == "LIVE"
+        and tw["combined"]["latest_bn"] == round(
+            tw["latest_bn"] + otc["latest_bn"], 2))
+    chk("H1 tpex ledger written",
+        eng.TPEX_LEDGER in STORE
+        and STORE[eng.TPEX_LEDGER]["rows"]["20260817"]
+        == TPEX_TODAY[1])
+    seed()                      # fresh ledgers: union keeps max
+    TPEX_MODE["day"] = "20260815"
+    eng.lambda_handler({}, None)
+    tw2 = STORE[eng.OUT_KEY]["countries"]["taiwan"]
+    chk("H1 date misalignment -> combined MISALIGNED named",
+        tw2["combined"]["status"] == "MISALIGNED"
+        and "20260815" in tw2["combined"]["why"])
+    TPEX_MODE["day"] = None
 
     print("== H2 today-dead keeps history ==")
     seed()
@@ -126,8 +160,9 @@ def main():
     seed()
     PUTS.clear()
     eng.lambda_handler({}, None)
-    chk("H4 only ledger + out written; out last",
-        set(PUTS) <= {eng.TWSE_LEDGER, eng.OUT_KEY}
+    chk("H4 only ledgers + out written; out last",
+        set(PUTS) <= {eng.TWSE_LEDGER, eng.TPEX_LEDGER,
+                      eng.OUT_KEY}
         and PUTS[-1] == eng.OUT_KEY)
 
     print()
