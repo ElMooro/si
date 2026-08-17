@@ -18,6 +18,8 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| FRED-window sentinel for tic-cslt banks (detect windowing + silent revisions) | 4850-4851 | S-fable-A | 2026-08-17 18:4x |
+| Fusion 3 catalyst-chain: schema probe (catalyst x readthrough x backlog x est-revisions) | 4852 | S-fable-A | 2026-08-17 18:4x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 ## Done (this arc)
@@ -38,7 +40,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 - risk-gate dollar-leg input from foreign-flows (official-outflow z +
   safe-haven spike, STRESS-ONLY) — GATED: wait >=1 verified monthly
   TIC cycle (earliest after next new_release flip)
-- FRED-window sentinel for tic-cslt banks (weekly diff vs bank)
 - global-flows key-gated: Korea (BOK ECOS + KRX keys) and Chile
   (BCCh token) -- BLOCKED ON KHALID
 - Fusion 5/6 (sector triangle + mispriced-boom) — wave 2, after Sat
