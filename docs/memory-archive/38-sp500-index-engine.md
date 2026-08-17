@@ -170,3 +170,29 @@ LIVE (all S&P scope): PTC 75.8 (−30%, qual 67, fwd P/E 13.6 vs 20.4,
 +42%) · INTU 70.1 (−52%, qual 71) · BR 67.9 · BSX 66.3 (−52%). Page:
 comeback section w/ red dd chips + guards banner; sp500 teaser includes
 comeback pick. Next ops 4815.
+
+## v1.2.0–1.2.1 (ops 4815 GREEN) — institutional metrics + empirical
+odds + anchored AI verdicts (Khalid: "all HF/institutional metrics,
+odds of beating SPX, AI short answer: buy? odds? how long? downside %")
+INST BLOCK per row (ledger-derived): 52w realized vol (ann), max
+drawdown, Sharpe-momentum (12-1/vol), 26w RS-consistency (% weeks
+beating SPY) — auto why-lines when notable. **EMPIRICAL BASE RATES from
+our own 53w ledger** (single 26w cohort, 6m-return formation quintiles,
+n=4,457): Q1 32.5% beat SPY / −24.3pp median · Q5 41.7% / −7.0pp ·
+comeback cohort (dd≤−30 + base) n=200: 31.5%. SPY 26w +13.9%. TRUTH:
+median stock LOSES to SPY in every quintile (breadth) but Q5>Q1
+persistence held. Each row: odds_base_26w_pct from its live quintile
+(comeback rows use comeback cohort). **AI VERDICT** (top-6/bucket,
+weekly cache spx-beaters/ai-cache.json): claude-haiku-4-5 direct API
+(ANTHROPIC_KEY donor justhodl-watchlist-debate; pattern copied from
+watchlist-debate), strict-JSON, deterministic server clamps: odds ∈
+[base±12] ∩ [2,98] · downside ∈ [min(60,½vol) .. min(95,max(dd,vol))]
+· horizon 13–52w · BUY requires odds≥55. Rules fallback when LLM
+unavailable (mode tag on row). v1.2.1: downside caps (349% bug — vol
+anchor uncapped on +539% movers), history_weeks (short listings like
+SHAZ honestly skip odds/AI). ⚠️**Anthropic billing STILL DOWN**
+(new_calls=0, all-rules fallback; heals itself when Khalid tops up
+credits — zero code change). Day-1 verdicts: SPCX WATCH 53%/26w/dwn60 ·
+APGE WATCH 52 · XLE WATCH 47/dwn12 · PTC comeback WATCH 36/39w/dwn38.
+Page: AI line per card + inst chips + base-rate table + anchor
+methodology. Next ops 4816.
