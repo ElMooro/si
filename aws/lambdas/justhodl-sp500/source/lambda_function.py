@@ -1,4 +1,4 @@
-"""justhodl-sp500 v1.0.1 — THE S&P 500 AS A SINGLE STOCK.
+"""justhodl-sp500 v1.0.2 — THE S&P 500 AS A SINGLE STOCK.
 
 Khalid (2026-08-16): "give me all the sp500 metrics as a whole — its p/e,
 forward p/e, yield, everything — so when I buy a stock I can compare its
@@ -45,8 +45,8 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.1"
-MARKER = "sp500 v1.0.1"
+VERSION = "1.0.2"
+MARKER = "sp500 v1.0.2"
 BUCKET = "justhodl-dashboard-live"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
 LEDGER_KEY = "spx-ma/member-closes.json"
@@ -130,7 +130,7 @@ NEED = ["mcap", "pe_ttm", "earnings_yield_pct", "ps_ttm", "pb",
         "ev_sales_ttm", "ev_ebitda_ttm", "fcf_yield_pct",
         "dividend_yield_pct", "net_buyback_yield_pct",
         "shareholder_yield_pct", "payout_ratio_pct", "peg_ttm",
-        "est_net_income_avg", "est_revenue_avg", "est_ebitda_avg",
+        "pe_fwd", "ps_fwd", "ev_ebitda_fwd",
         "roe_pct", "roic_pct", "roa_pct", "gross_margin_pct",
         "operating_margin_pct", "net_margin_pct", "fcf_margin_pct",
         "revenue_yoy_pct", "eps_yoy_pct", "revenue_cagr_3y_pct",
@@ -195,24 +195,16 @@ def compute(diag):
     evs, eve, fcfy = C("ev_sales_ttm"), C("ev_ebitda_ttm"), C("fcf_yield_pct")
     dy, bby, shy = (C("dividend_yield_pct"), C("net_buyback_yield_pct"),
                     C("shareholder_yield_pct"))
-    ni_f, rev_f, ebd_f = (C("est_net_income_avg"), C("est_revenue_avg"),
-                          C("est_ebitda_avg"))
-    eps_f = C("est_eps_avg")
-    fwd_src = "est_net_income_avg (analyst NTM, absolute)"
-    if not any(v is not None for v in ni_f):
-        # matrix carries per-share consensus only: NI_ntm = eps x shares,
-        # shares = mcap / census-date close (house derivation)
-        ni_f = [None] * n
-        built = 0
-        for i, t in enumerate(tickers):
-            m = mcap[i]
-            px = pxc.get(t)
-            if eps_f[i] is not None and m and px and px > 0:
-                ni_f[i] = eps_f[i] * (m / px)
-                built += 1
-        fwd_src = ("est_eps_avg x shares(mcap/close) -- %d members"
-                   % built)
-    diag["forward_source"] = fwd_src
+    # NTM components backed out of the fundamental-graphs derived
+    # forward ratios (real analyst consensus; est_* raw is _lv-excluded)
+    pef_c, psf_c, evef_c = C("pe_fwd"), C("ps_fwd"), C("ev_ebitda_fwd")
+    ni_f = [cap_c[i] / pef_c[i] if cap_c[i] and pef_c[i]
+            and pef_c[i] > 0 else None for i in range(n)]
+    rev_f = [cap_c[i] / psf_c[i] if cap_c[i] and psf_c[i]
+             and psf_c[i] > 0 else None for i in range(n)]
+    diag["forward_source"] = ("matrix pe_fwd/ps_fwd/ev_ebitda_fwd "
+                              "(NTM consensus, %d members w/ pe_fwd)"
+                              % sum(1 for v in ni_f if v is not None))
 
     # per-member components at census snapshot + repriced cap ---------
     cap_c = [m if (m and m > 0) else None for m in mcap]
@@ -252,6 +244,8 @@ def compute(diag):
     ev_n = [ev_c[i] + cap_c[i] * (sc[i] - 1.0)
             if ev_c[i] is not None and cap_c[i] else None
             for i in range(n)]
+    ebd_f = [ev_c[i] / evef_c[i] if ev_c[i] and evef_c[i]
+             and evef_c[i] > 0 else None for i in range(n)]
 
     # ---------------------------------------------------- aggregates --
     def AGG(nums, dens, dp=2, floor=None):
@@ -399,6 +393,20 @@ def compute(diag):
                 "fcf_margin_pct", "income_quality",
                 "sbc_to_revenue_pct")}
     quality["piotroski_f"] = WM("piotroski_f", 2)
+    # component-correct index aggregates (ratio-of-sums, not mean):
+    for name, num_a, den_a in (("roe_pct", ni, book),
+                               ("net_margin_pct", ni, rev),
+                               ("fcf_margin_pct", fcf, rev)):
+        a, k, cov = AGG(num_a, den_a, dp=4)
+        if a is not None:
+            quality[name]["agg"] = round(a * 100, 1)
+            quality[name]["cap_cov_pct"] = cov
+            quality[name]["method"] = ("SIGMA %s / SIGMA %s x100"
+                                       % (("NI", "book")
+                                          if name == "roe_pct" else
+                                          ("NI", "revenue")
+                                          if name == "net_margin_pct"
+                                          else ("FCF", "revenue")))
     growth = {k: WM(k) for k in
               ("revenue_yoy_pct", "eps_yoy_pct", "revenue_cagr_3y_pct",
                "eps_cagr_3y_pct")}

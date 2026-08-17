@@ -33,7 +33,7 @@ ACCOUNT = "857687956942"
 FN = "justhodl-sp500"
 B = "justhodl-dashboard-live"
 OUT_KEY = "data/sp500.json"
-MARKER = "sp500 v1.0.1"
+MARKER = "sp500 v1.0.2"
 SCHED_NAME = "justhodl-sp500-daily"
 SCHED_CRON = "cron(45 21 ? * MON-FRI *)"
 SCHED_ROLE = f"arn:aws:iam::{ACCOUNT}:role/justhodl-scheduler-role"
@@ -233,7 +233,7 @@ def main():
              val["pe_ttm"].get("median"), 8, 60)
         band(rep, "ps_ttm.agg", val["ps_ttm"].get("agg"), 1.0, 8.0)
         band(rep, "roe.agg", doc["quality"]["roe_pct"].get("agg"),
-             5, 60)
+             5, 40)
         band(rep, "erp_ttm", mac.get("erp_ttm_pct"), -6, 8,
              hard=False)
         band(rep, "rule_of_20", mac.get("rule_of_20"), 12, 45,
