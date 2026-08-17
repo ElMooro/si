@@ -18,9 +18,18 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| TPEx wire into hot-money v1.1: dump tpex_3insti_summary JSON (1KB, ONLY real JSON answer, probe 4870) then bind NT$ field | 4872-4873 | S-fable-A2 | 2026-08-17 23:3x |
+| TPEx wire into hot-money v1.1: dump tpex_3insti_summary JSON (1KB, ONLY real JSON answer, probe 4870) then bind NT$ field | 4873-4874 | S-fable-A2 | 2026-08-17 23:3x |
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
+
+### SHARED-SURFACE RULE (foreign-flows.html) -- 2026-08-17 23:4x
+The page script is now: helpers block FIRST (PROXY/fN/cls/zs/acc/
+jget/S_), then one async IIFE where EVERY section is wrapped in
+S_("name",fn) or try/catch. Any session editing this page MUST keep
+that structure and run `node --check` on the extracted script as a
+local push gate. Burn on record: a rebase re-ordered declarations
+(const acc used before init -> TDZ) and one throw blanked the whole
+desk for the user.
 
 ### Collision note 2026-08-17 23:1x (S-fable-A2)
 Two sessions ran under the same id S-fable-A; this one is now
