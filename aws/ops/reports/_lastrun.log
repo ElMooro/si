@@ -1,28 +1,31 @@
-executing-against: 4c177faf83d5542269d1977c7c7d98f90f5e49fb
-G0. live JSON contract for every card binding
-[17:02:54] ✅   flows_bn.total latest=+262.8 12m=+1771.9 z=1.61
-[17:02:54] ✅   flows_bn.treas latest=+17.0 12m=+334.8 z=-0.16
-[17:02:54] ✅   flows_bn.equity latest=+134.3 12m=+901.7 z=1.27
-[17:02:54] ✅   flows_bn.corp latest=+52.5 12m=+448.8 z=1.17
-[17:02:54] ✅   flows_bn.agency latest=+19.1 12m=+128.9 z=0.67
-[17:02:54] ✅   flows_bn.tbills latest=-43.5 12m=+52.6 z=-1.63
-[17:02:54] ✅   signals.risk_appetite latest=+206.0B z=1.6
-[17:02:54] ✅   signals.safe_haven latest=-117.3B z=-1.2
-[17:02:54] ✅   signals.total_demand latest=+223.0B z=1.22
-[17:02:54] ✅   signals.official_private latest=+230.7B z=1.84
-[17:02:54] ✅   holder_splits.lt_total status=OK gap=0.0
-[17:02:54] ✅   split OK: private +246.8B vs official +16.1B
-[17:02:54] ✅   country_lt_treasury: 5 OK rows (e.g. china +608.5B, other-gap 6.1)
-1. committed-HTML asserts
-[17:02:54] ✅   token 'id="tic-ff-card"'           x1
-[17:02:54] ✅   token '/data/foreign-flows.json'   x1
-[17:02:54] ✅   token 'country_lt_treasury'        x1
-[17:02:54] ✅   token 'holder_splits'              x1
-[17:02:54] ✅   token 'official_private'           x1
-[17:02:54] ✅   token 'custodial bias'             x1
-2. served check (<=8 min; CF purge-on-success live)
-[17:02:54] ✅ card SERVED at https://justhodl.ai/capital-flow.html after 0s
-3. verdict
-[17:02:54] ✅ capital-flow.html now surfaces the TIC organ: six flows, four signals incl private-vs-official, reconciled split, country decomposition with the honest 'other' gap
+executing-against: 46908e8b8c85a24d513fd22b813487776a40d32d
+1. PERU -- BCRP explicit series (keyless)
+[17:13:07] ✅ HTTP 200  n_series=4 n_periods=57
+[17:13:07]   series[0] name='Cuenta financiera del sector privado (millones US$) - Pasivos - Invers'
+[17:13:07]   series[1] name='Cuenta financiera del sector privado (millones US$) - Pasivos - Invers'
+[17:13:07]   series[2] name='Cuenta financiera del sector privado (millones US$) - Pasivos - Invers'
+[17:13:07]   series[3] name='Cuenta financiera del sector público (millones US$) - Pasivos - Invers'
+[17:13:07] ✅   last period T1.26 values=["258.088846421046", "57.5671215748516", "200.521724846194", "712.634830067631"]
+[17:13:07]   first period T1.12
+2. TAIWAN -- CBC BPP2Q01en full BOP (keyless)
+[17:13:11] ✅ HTTP 200  bytes=577401  json=dict
+[17:13:11]   top keys: ['data', 'meta']
+3. TAIWAN -- TWSE OpenAPI daily foreign flow candidates
+[17:13:12] ⚠   fund/BFI82U        HTTP 200 non-list (<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.or)
+[17:13:14] ⚠   fund/TWT38U        HTTP 200 non-list (<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.or)
+[17:13:17] ⚠   fund/TWT44U        HTTP 200 non-list (<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.or)
+[17:13:18] ✅   fund/MI_QFIIS_cat  HTTP 200 n=36 keys=['ForeignMainlandAreaShare', 'IndustryCat', 'Numbers', 'Percentage', 'ShareNumber']
+[17:13:18]     row0: {"IndustryCat": "ETF", "Numbers": "236", "ShareNumber": "241528945760", "ForeignMainlandAreaShare": "6397848183", "Percentage": "2.65"}
+[17:13:20] ⚠   fund/T86           HTTP 200 non-list (<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.or)
+4. IMF worldwide layer candidates
+[17:13:21] ⚠   dataservices.imf.org dead: <urlopen error [Errno -2] Name or service not known>
+[17:13:21] ✅   api.imf.org -> HTTP 200 bytes=378624 head={"data":{"dataflows":[{"links":[{"urn":"urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow
+[17:13:22] ✅   www.imf.org -> HTTP 200 bytes=48340 head={"indicators":{"NGDP_RPCH":{"label":"Real GDP growth","description":"Gross domestic produc
+5. KOREA -- key requirements (expected deferral)
+[17:14:03]   ECOS: <urlopen error timed out>
+[17:14:03] ⚠   KOREA (ECOS+KRX) => DEFERRED pending API keys from Khalid; slots reserved in the engine
+[17:14:03] ⚠   CHILE (BCCh bcchapi) => DEFERRED pending token from Khalid; slot reserved
+6. verdict
+[17:14:03] ✅ probe complete: peru_ok=True cbc_ok=False -- engine binds only what answered
 
-→ Report written to aws/ops/reports/latest/ops 4831 -- capital-flow TIC card verify fixed.md
+→ Report written to aws/ops/reports/latest/ops 4832 -- global capital-flows discovery probe.md
