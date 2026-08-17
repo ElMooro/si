@@ -31,7 +31,7 @@ from ops_report import report  # noqa: E402
 FN = "justhodl-spx-beaters"
 B = "justhodl-dashboard-live"
 OUT_KEY = "data/spx-beaters.json"
-MARKER = "spx-beaters v1.2.0"
+MARKER = "spx-beaters v1.2.1"
 DONORS = ("justhodl-watchlist-debate", "justhodl-ai-brief")
 s3 = boto3.client("s3", region_name="us-east-1")
 lam = boto3.client("lambda", region_name="us-east-1",
@@ -145,17 +145,25 @@ def main():
                comeback_cohort=json.dumps(br.get("comeback_cohort")))
 
         rep.heading("3. rows + AI clamp audit")
-        shown = ai_n = viol = miss_inst = 0
+        shown = ai_n = viol = miss_inst = elig = 0
         for bname, rows in (doc.get("buckets") or {}).items():
             for i, r in enumerate(rows):
                 shown += 1
-                if not r.get("inst") or \
-                        r.get("odds_base_26w_pct") is None:
+                hw = r.get("history_weeks") or 0
+                if hw >= 30 and (not r.get("inst")
+                                 or r.get("odds_base_26w_pct")
+                                 is None):
                     miss_inst += 1
+                if i < 6 and r.get("odds_base_26w_pct") is not None:
+                    elig += 1
                 a = r.get("ai")
                 if not a:
                     continue
                 ai_n += 1
+                if a["downside_risk_pct"] > 95:
+                    viol += 1
+                    rep.warn("    %s/%s downside > 95%%"
+                             % (bname, r["t"]))
                 base = r["odds_base_26w_pct"]
                 lo = max(2, base - 12)
                 hi = min(98, base + 12)
@@ -178,14 +186,16 @@ def main():
                     rep.warn("    %s/%s violates %s"
                              % (bname, r["t"], bad))
         (rep.ok if miss_inst == 0 else rep.fail)(
-            "  rows missing inst/odds = %d of %d" % (miss_inst,
+            "  rows (>=30w history) missing inst/odds = %d of %d"
+            % (miss_inst,
                                                      shown))
         if miss_inst:
             FAILED.append("inst")
-        cov = 100 * ai_n / max(1, shown)
-        (rep.ok if cov >= 50 else rep.fail)(
-            "  AI coverage = %d/%d rows (%.0f%%)  mode=%s "
-            "new_calls=%s" % (ai_n, shown, cov,
+        cov = 100 * ai_n / max(1, elig)
+        (rep.ok if cov >= 80 else rep.fail)(
+            "  AI coverage = %d/%d ELIGIBLE (top-6 w/ odds) rows "
+            "(%.0f%%)  mode=%s new_calls=%s"
+            % (ai_n, elig, cov,
                               (doc.get("diag", {}).get("ai")
                                or {}).get("mode"),
                               (doc.get("diag", {}).get("ai")

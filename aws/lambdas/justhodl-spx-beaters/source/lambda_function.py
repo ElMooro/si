@@ -37,8 +37,8 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.2.0"
-MARKER = "spx-beaters v1.2.0"
+VERSION = "1.2.1"
+MARKER = "spx-beaters v1.2.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/spx-beaters.json"
 LEDGER_KEY = "spx-beaters/weekly-closes.json"
@@ -448,10 +448,10 @@ def ai_verdict(row, wing, cache):
     base = row.get("odds_base_26w_pct")
     if base is None:
         return None
-    d_lo = round(max(8.0, 0.5 * vol), 0)
-    d_hi = round(min(95.0, max(mdd, vol)), 0)
+    d_lo = round(min(60.0, max(8.0, 0.5 * vol)), 0)
+    d_hi = round(min(95.0, max(mdd, vol, d_lo + 5)), 0)
     if d_hi <= d_lo:
-        d_hi = d_lo + 5
+        d_hi = min(95.0, d_lo + 5)
     anchors = {"odds_base_26w_pct": base, "downside_lo": d_lo,
                "downside_hi": d_hi,
                "horizon_hint_weeks": 39 if wing == "comeback" else 26}
@@ -801,6 +801,9 @@ def scan():
                "ret_12_1_pct": round(r121 * 100, 1)
                if r121 is not None else None,
                "inst": inst_stats(led, t, spy_arr),
+               "history_weeks": len([v for v in
+                                     (led["closes"].get(t) or [])
+                                     if v]),
                "odds_base_26w_pct": qo[0] if qo else None,
                "mom_quintile": qo[1] if qo else None,
                "why": why[:6]}
@@ -897,6 +900,9 @@ def scan():
         qo = quintile_odds(t)
         return {"t": t, "name": name_of.get(t) or t, "class": cls,
                 "inst": inst_stats(led, t, spy_arr),
+                "history_weeks": len([v for v in
+                                      (led["closes"].get(t) or [])
+                                      if v]),
                 "odds_base_26w_pct": qo[0] if qo else None,
                 "mom_quintile": qo[1] if qo else None,
                 "score": score,
@@ -1030,6 +1036,9 @@ def scan():
         return {"t": t, "name": m["name"], "sector": m.get("sector"),
                 "industry": m.get("industry"), "mcap": m.get("mcap"),
                 "inst": inst_stats(led, t, spy_arr),
+                "history_weeks": len([v for v in
+                                      (led["closes"].get(t) or [])
+                                      if v]),
                 "odds_base_26w_pct": cb_odds,
                 "bucket": m["bucket"],
                 "scope": "sp500" if t in qual else "broad",
