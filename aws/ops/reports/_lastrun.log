@@ -1,33 +1,26 @@
-executing-against: 9c3e5a783840b961ece29325c9c5289b98a804c6
-1. deploy settle (zip marker)
-[03:12:22] ✅ deployed marker sp500 v1.1.0 settled (attempt 1)
-2. Event-invoke + poll as_of
-[03:12:38] ✅   fresh v1.1.0 doc after ~15s  as_of=2026-08-17T03:12:24.622286+00:00
-3. doc contract
-[03:12:38] ✅   member_fields = 41 names
-[03:12:38] ✅   AAPL member row len = 41
-[03:12:38] ✅   coverage ps_fwd = 99.2% (491/495)
-[03:12:38] ✅   coverage ev_ebitda_fwd = 95.4% (472/495)
-[03:12:38] ✅   coverage shareholder_yield_pct = 100.0% (495/495)
-[03:12:38] ✅   coverage roic_pct = 100.0% (495/495)
-[03:12:38] ✅   coverage altman_z = 100.0% (495/495)
-[03:12:38] ✅   coverage ntm_growth_pct = 94.3% (467/495)
-[03:12:38] ✅   coverage mom_6m_pct = 100.0% (495/495)
-[03:12:38] ✅   coverage mom_12_1_pct = 99.8% (494/495)
-4. index bands (unchanged truths)
-[03:12:38] ✅   pe_ttm.agg = 24.73
-[03:12:38] ✅   pe_fwd.agg = 20.37
-[03:12:38] ✅   roe.agg = 21.3
-[03:12:38] ✅   shareholder_yield.agg = 2.3
-[03:12:38] ✅   fwd_ps.agg = 3.32
-5. compare smoke (NVDA + AAPL)
-[03:12:39] ✅   NVDA rows = 38 (want 38)
-[03:12:39] ✅   NVDA pillars = ['balance', 'growth', 'momentum', 'quality', 'valuation']
-[03:12:39] ✅   NVDA composite = 62.4  verdict: MODEST EDGE vs SPX
-[03:12:39] ✅   AAPL rows = 38 (want 38)
-[03:12:39] ✅   AAPL pillars = ['balance', 'growth', 'momentum', 'quality', 'valuation']
-[03:12:39] ✅   AAPL composite = 54.0  verdict: NO CLEAR EDGE -- SPX is the default
-6. verdict
-[03:12:39] ✅ sp500 v1.1.0 LIVE -- 41-field members, 38-metric better-buy compare with pillar verdict
+executing-against: e1d1c2c090aadd624d457492a8a9e850ed0097f4
+1. settle + invoke
+[03:34:39] ✅ deployed marker settled (attempt 1)
+[03:34:55] ✅   fresh v1.2.0 doc after ~15s
+2. sectors block
+[03:34:55] ✅   sectors = 11
+[03:34:55] ✅   weights sum = 100.1%
+[03:34:55] ✅   top sector = Technology (34.1%)
+[03:34:55] ✅   Technology               w= 34.1% n= 89 pe=33.5 fpe=21.08 roe=35.5 ntm=58.9
+[03:34:55] ✅   Communication Services   w= 16.4% n= 20 pe=17.83 fpe=22.25 roe=30.0 ntm=-19.9
+[03:34:55] ✅   Financial Services       w= 11.4% n= 71 pe=15.53 fpe=14.99 roe=14.4 ntm=3.6
+[03:34:55] ✅   Consumer Cyclical        w=  9.4% n= 50 pe=28.33 fpe=26.81 roe=24.1 ntm=5.7
+[03:34:55] ✅   Healthcare               w=  7.9% n= 58 pe=28.75 fpe=17.33 roe=16.8 ntm=65.9
+[03:34:55] ✅   Industrials              w=  6.8% n= 70 pe=29.6 fpe=24.71 roe=22.6 ntm=19.8
+[03:34:55] ✅   Consumer Defensive       w=  5.1% n= 32 pe=30.82 fpe=23.94 roe=23.1 ntm=28.7
+[03:34:55] ✅   Energy                   w=  3.1% n= 21 pe=19.9 fpe=12.35 roe=12.4 ntm=61.1
+[03:34:55] ✅   Utilities                w=  2.5% n= 32 pe=22.35 fpe=21.33 roe=12.3 ntm=4.8
+[03:34:55] ✅   Basic Materials          w=  1.7% n= 22 pe=29.82 fpe=18.82 roe=12.2 ntm=58.4
+[03:34:55] ✅   Real Estate              w=  1.7% n= 30 pe=33.91 fpe=36.5 roe=9.2 ntm=-7.1
+3. compare sector_context
+[03:34:56] ✅   NVDA sector_context: Technology (n=89, fwd-P/E pctile-in-sector=48.3)
+[03:34:56] ✅   AAPL sector_context: Technology (n=89, fwd-P/E pctile-in-sector=77.5)
+4. verdict
+[03:34:56] ✅ sp500 v1.2.0 LIVE -- sector fair-fight wired end to end
 
-→ Report written to aws/ops/reports/latest/ops 4809 -- sp500 v1.1.0 expanded compare.md
+→ Report written to aws/ops/reports/latest/ops 4810 -- sp500 v1.2.0 sector fair-fight.md
