@@ -1,0 +1,48 @@
+# G0. private (99991) id existence
+
+**Status:** success  
+**Duration:** 41.7s  
+**Finished:** 2026-08-17T16:52:42+00:00  
+
+## Log
+- `16:52:02` ✅   FORLTTOTALNET99991     EXISTS 'Foreign Net Transactions of All U.S. Long-Term Securitie'
+- `16:52:02` ✅   FORLTTREASNET99991     EXISTS 'Foreign Net Transactions of U.S. Long-Term Treasury Secu'
+- `16:52:02` ✅   FORLTEQTYNET99991      EXISTS 'Foreign Net Transactions of U.S. Equity Securities: Fore'
+- `16:52:02` ✅   FORLTCORPNET99991      EXISTS 'Foreign Net Transactions of U.S. Long-Term Corporate Bon'
+- `16:52:03` ✅   FORLTAGCYNET99991      EXISTS 'Foreign Net Transactions of U.S. Long-Term Agency Bonds:'
+- `16:52:03` ✅   FORSTTREASNET99991     EXISTS 'Foreign Net Transactions of U.S. Short-Term Treasury Sec'
+# 1. settle + invoke + poll
+
+- `16:52:03` ✅ marker settled (attempt 1)
+- `16:52:41` ✅ fresh doc in 36s runtime_ms=24253
+# 2. truths
+
+- `16:52:41` ✅   LIVE v1.1.0
+- `16:52:41` ✅   LIVE IDENTITY: all=off+prv (gap 0.000B); signal +230.7B == prv-off @ 2026-05-01
+- `16:52:41` ✅   doc recon_gap consistent (0.000)
+- `16:52:41` ✅   lt_total  OK  off    +16.1 (12m    +105.8)  prv   +246.8 (12m   +1666.0)
+- `16:52:41` ✅   lt_treas  OK  off     +3.0 (12m     -34.0)  prv    +53.6 (12m    +324.4)
+- `16:52:41` ✅   lt_equity OK  off    +13.8 (12m    +123.3)  prv   +120.8 (12m    +780.5)
+- `16:52:41` ✅   lt_corp   OK  off     +3.8 (12m     +49.0)  prv    +48.7 (12m    +399.8)
+- `16:52:41` ✅   lt_agency OK  off     -4.6 (12m     -32.4)  prv    +23.7 (12m    +161.3)
+- `16:52:41` ✅   st_treas  OK  off    -61.0 (12m      -1.3)  prv    +17.6 (12m     +53.9)
+- `16:52:42` ✅   st_treas official == refetch (-61.0B -- the official T-bill flow line)
+- `16:52:42` ✅   five countries OK
+- `16:52:42` ✅   china holdings == refetch (608.5B)
+- `16:52:42` ✅   china decomposition identity (gap +6.1B = 'other adjustments')
+- `16:52:42` ✅   bank FORLTTOTALNET99990       n=497
+- `16:52:42` ✅   bank FORLTTOTALNET99991       n=497
+- `16:52:42` ✅   bank FORLTTREASPOS41408       n=497
+- `16:52:42` ✅   bank FORLTTREASVALCHG41408    n=497
+- `16:52:42` ✅   core six untouched
+# 3. country readout
+
+- `16:52:42`   china           hold    608.5B  d12   -48.7  tx12   -80.9  val12   +26.1  other   +6.1
+- `16:52:42`   japan           hold   1049.6B  d12   +30.4  tx12   +17.0  val12    +6.4  other   +7.0
+- `16:52:42`   united_kingdom  hold    847.1B  d12  +119.0  tx12  +168.5  val12  -102.2  other  +52.7
+- `16:52:42`   belgium         hold    231.0B  d12   +96.2  tx12   +89.1  val12    +7.1  other   +0.0
+- `16:52:42`   cayman          hold    312.4B  d12   +29.2  tx12   -17.5  val12   -30.0  other  +76.7
+- `16:52:42`   SIGNAL official_private +230.7B (12m +1560.2B, z=1.84)
+# 4. verdict
+
+- `16:52:42` ✅ foreign-flows v1.1.0 LIVE -- the official/private divergence and five-country decomposition are now fleet facts, identity-proven end to end
