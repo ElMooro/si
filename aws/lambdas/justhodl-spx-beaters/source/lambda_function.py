@@ -36,12 +36,13 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.0"
-MARKER = "spx-beaters v1.0.0"
+VERSION = "1.0.1"
+MARKER = "spx-beaters v1.0.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/spx-beaters.json"
 LEDGER_KEY = "spx-beaters/weekly-closes.json"
 POLY = os.environ.get("POLYGON_API_KEY") or ""
+MOM_ALIAS = {"BTC": "IBIT", "ETH": "ETHA"}  # pseudo-tickers -> listed proxy
 TARGET_WEEKS = 53
 MAX_FETCH = 30
 PER_BUCKET = 15
@@ -337,7 +338,7 @@ def scan():
     rg = _g("data/risk-gate.json") or {}
 
     # ---------------------------------------------------- ledger set --
-    want = {"SPY"}
+    want = {"SPY"} | set(MOM_ALIAS.values())
     name_of, meta = {}, {}
     for r in stocks:
         t = tick_of(r)
@@ -347,6 +348,8 @@ def scan():
         cb = str(r.get("cap_bucket") or "").lower()
         if cb in ("nano",):
             cb = "micro"
+        if cb == "mega":
+            cb = "large"
         if cb not in ("large", "mid", "small", "micro"):
             mc = fnum(r.get("market_cap")) or 0
             cb = ("large" if mc >= 10e9 else "mid" if mc >= 2e9
@@ -393,7 +396,8 @@ def scan():
         a.sort()
 
     def mom_leg(t, is_stock):
-        r6, r121 = r6_map.get(t), r121_map.get(t)
+        mt = MOM_ALIAS.get(t, t)
+        r6, r121 = r6_map.get(mt), r121_map.get(mt)
         p6 = pctile(st_r6 if is_stock else et_r6, r6) \
             if mom_ok_6 else None
         p121 = pctile(st_r121 if is_stock else et_r121, r121) \
@@ -520,8 +524,10 @@ def scan():
         if leg is not None:
             legs["mom"] = leg
             if r6 is not None and spy6 is not None:
-                why.append("momentum: 6m %+.0f%% (%+.0fpp vs SPY)"
-                           % (r6 * 100, (r6 - spy6) * 100))
+                why.append("momentum%s: 6m %+.0f%% (%+.0fpp vs SPY)"
+                           % (" (via %s)" % MOM_ALIAS[t]
+                              if t in MOM_ALIAS else "",
+                              r6 * 100, (r6 - spy6) * 100))
         ca_row = c_by_t.get(t)
         if ca_row:
             er5 = fnum(ca_row.get("er_5y_pct"))
