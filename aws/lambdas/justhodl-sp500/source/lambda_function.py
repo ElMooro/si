@@ -1,4 +1,4 @@
-"""justhodl-sp500 v1.0.3 — THE S&P 500 AS A SINGLE STOCK.
+"""justhodl-sp500 v1.1.0 — THE S&P 500 AS A SINGLE STOCK.
 
 Khalid (2026-08-16): "give me all the sp500 metrics as a whole — its p/e,
 forward p/e, yield, everything — so when I buy a stock I can compare its
@@ -45,8 +45,8 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.3"
-MARKER = "sp500 v1.0.3"
+VERSION = "1.1.0"
+MARKER = "sp500 v1.1.0"
 BUCKET = "justhodl-dashboard-live"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
 LEDGER_KEY = "spx-ma/member-closes.json"
@@ -137,7 +137,7 @@ NEED = ["mcap", "pe_ttm", "earnings_yield_pct", "ps_ttm", "pb",
         "eps_cagr_3y_pct", "debt_to_equity", "netdebt_to_ebitda_ttm",
         "current_ratio", "interest_coverage_ttm", "altman_z",
         "piotroski_f", "income_quality", "sbc_to_revenue_pct",
-        "beta_2y"]
+        "beta_2y", "mom_6m_pct", "mom_12_1_pct"]
 
 
 def load_scales(tickers, census_iso, diag):
@@ -237,6 +237,7 @@ def compute(diag):
     ev_n = [ev_c[i] + cap_c[i] * (sc[i] - 1.0)
             if ev_c[i] is not None and cap_c[i] else None
             for i in range(n)]
+    # (evsl_m defined after R below)
     ebd_f = [ev_c[i] / evef_c[i] if ev_c[i] and evef_c[i]
              and evef_c[i] > 0 else None for i in range(n)]
     ni_f = [cap_c[i] / pef_c[i] if cap_c[i] and pef_c[i]
@@ -296,6 +297,14 @@ def compute(diag):
     eve_m = R(ev_n, ebitda)
     fevebd_m = R(ev_n, ebd_f)
     fps_m = R(cap_n, rev_f)
+    bby_m = [bb[i] / cap_n[i] * 100 if cap_n[i] and bb[i] is not None
+             else None for i in range(n)]
+    shy_m = [((dy_m[i] or 0.0) + (bby_m[i] or 0.0))
+             if dy_m[i] is not None or bby_m[i] is not None else None
+             for i in range(n)]
+    evsl_m = R(ev_n, rev)
+    ntmg_m = [round((pe_m[i] / fpe_m[i] - 1) * 100, 1)
+              if pe_m[i] and fpe_m[i] else None for i in range(n)]
 
     pe_agg = AGG(cap_n, ni, floor=0)
     fpe_agg = AGG(cap_n, ni_f, floor=0)
@@ -321,7 +330,7 @@ def compute(diag):
                            fcfy_m, "%", "SIGMA FCF/SIGMA cap"),
         "ev_ebitda_ttm": M(AGG(ev_n, ebitda, floor=0), eve_m, "x",
                            "SIGMA EV/SIGMA EBITDA"),
-        "ev_sales_ttm": M(AGG(ev_n, rev), R(ev_n, rev), "x",
+        "ev_sales_ttm": M(AGG(ev_n, rev), evsl_m, "x",
                           "SIGMA EV/SIGMA revenue"),
         "peg_ttm": M((None, 0, None), C("peg_ttm"), "x",
                      "member distribution (agg n/a)"),
@@ -415,34 +424,62 @@ def compute(diag):
                 "current_ratio", "interest_coverage_ttm", "altman_z",
                 "beta_2y")}
 
+    mem_spec = [
+        ("px_chg_since_census_pct",
+         [round((sc[i] - 1) * 100, 1) for i in range(n)], None),
+        ("sector", sectors, None),
+        ("mcap", cap_n, 1),
+        ("pe_ttm", pe_m, 1), ("pe_fwd", fpe_m, 1),
+        ("peg_ttm", C("peg_ttm"), 2),
+        ("ps_ttm", ps_m, 2), ("ps_fwd", fps_m, 2), ("pb", pb_m, 2),
+        ("ev_ebitda_ttm", eve_m, 1), ("ev_ebitda_fwd", fevebd_m, 1),
+        ("ev_sales_ttm", evsl_m, 2),
+        ("earnings_yield_pct", ey_m, 2), ("fcf_yield_pct", fcfy_m, 2),
+        ("div_yield_pct", dy_m, 2), ("buyback_yield_pct", bby_m, 2),
+        ("shareholder_yield_pct", shy_m, 2),
+        ("payout_ratio_pct", C("payout_ratio_pct"), 1),
+        ("roe_pct", C("roe_pct"), 1), ("roic_pct", C("roic_pct"), 1),
+        ("roa_pct", C("roa_pct"), 1),
+        ("gross_margin_pct", C("gross_margin_pct"), 1),
+        ("operating_margin_pct", C("operating_margin_pct"), 1),
+        ("net_margin_pct", C("net_margin_pct"), 1),
+        ("fcf_margin_pct", C("fcf_margin_pct"), 1),
+        ("income_quality", C("income_quality"), 2),
+        ("sbc_to_revenue_pct", C("sbc_to_revenue_pct"), 2),
+        ("piotroski_f", C("piotroski_f"), 2),
+        ("altman_z", C("altman_z"), 2),
+        ("revenue_yoy_pct", C("revenue_yoy_pct"), 1),
+        ("eps_yoy_pct", C("eps_yoy_pct"), 1),
+        ("revenue_cagr_3y_pct", C("revenue_cagr_3y_pct"), 1),
+        ("eps_cagr_3y_pct", C("eps_cagr_3y_pct"), 1),
+        ("ntm_growth_pct", ntmg_m, 1),
+        ("debt_to_equity", C("debt_to_equity"), 2),
+        ("netdebt_to_ebitda_ttm", C("netdebt_to_ebitda_ttm"), 2),
+        ("current_ratio", C("current_ratio"), 2),
+        ("interest_coverage_ttm", C("interest_coverage_ttm"), 1),
+        ("beta_2y", C("beta_2y"), 2),
+        ("mom_6m_pct", C("mom_6m_pct"), 1),
+        ("mom_12_1_pct", C("mom_12_1_pct"), 1),
+    ]
+    assert [x[0] for x in mem_spec] == MEMBER_FIELDS, "spec/fields drift"
     members = {}
     for i, t in enumerate(tickers):
         if not cap_n[i]:
             continue
-        members[t] = [
-            round((sc[i] - 1) * 100, 1), sectors[i],
-            round(cap_n[i], 1) if cap_n[i] else None,
-            round(pe_m[i], 1) if pe_m[i] else None,
-            round(fpe_m[i], 1) if fpe_m[i] else None,
-            round(ps_m[i], 2) if ps_m[i] else None,
-            round(pb_m[i], 2) if pb_m[i] else None,
-            round(eve_m[i], 1) if eve_m[i] else None,
-            round(dy_m[i], 2) if dy_m[i] is not None else None,
-            round(fcfy_m[i], 2) if fcfy_m[i] is not None else None,
-            fnum(C("peg_ttm")[i]),
-            fnum(C("roe_pct")[i]), fnum(C("net_margin_pct")[i]),
-            fnum(C("revenue_yoy_pct")[i]), fnum(C("eps_yoy_pct")[i])]
+        row = []
+        for _nm, lst, dp in mem_spec:
+            v = lst[i]
+            if dp is not None and v is not None:
+                v = round(fnum(v), dp) if fnum(v) is not None else None
+            row.append(v)
+        members[t] = row
     return {"tickers": tickers, "total_cap": total_cap,
             "px_date": px_date, "gen": gen,
             "valuation": valuation, "forward": forward, "yield": yld,
             "quality": quality, "growth": growth, "balance": balance,
             "members": members,
-            "_arrays": {"pe": pe_m, "fpe": fpe_m, "ps": ps_m,
-                        "pb": pb_m, "eve": eve_m, "dy": dy_m,
-                        "fcfy": fcfy_m, "peg": C("peg_ttm"),
-                        "roe": C("roe_pct"), "nm": C("net_margin_pct"),
-                        "rg": C("revenue_yoy_pct"),
-                        "eg": C("eps_yoy_pct")}}
+            "_arrays": {nm: lst for nm, lst, _ in mem_spec
+                        if nm != "sector"}}
 
 
 def macro_cross(val, fwd, yld, diag):
@@ -497,10 +534,21 @@ def bank_history(doc):
     return len(led)
 
 
-MEMBER_FIELDS = ["px_chg_since_census_pct", "sector", "mcap", "pe_ttm",
-                 "pe_fwd", "ps_ttm", "pb", "ev_ebitda_ttm",
-                 "div_yield_pct", "fcf_yield_pct", "peg_ttm", "roe_pct",
-                 "net_margin_pct", "revenue_yoy_pct", "eps_yoy_pct"]
+MEMBER_FIELDS = [
+    "px_chg_since_census_pct", "sector", "mcap",
+    "pe_ttm", "pe_fwd", "peg_ttm", "ps_ttm", "ps_fwd", "pb",
+    "ev_ebitda_ttm", "ev_ebitda_fwd", "ev_sales_ttm",
+    "earnings_yield_pct", "fcf_yield_pct",
+    "div_yield_pct", "buyback_yield_pct", "shareholder_yield_pct",
+    "payout_ratio_pct",
+    "roe_pct", "roic_pct", "roa_pct", "gross_margin_pct",
+    "operating_margin_pct", "net_margin_pct", "fcf_margin_pct",
+    "income_quality", "sbc_to_revenue_pct", "piotroski_f", "altman_z",
+    "revenue_yoy_pct", "eps_yoy_pct", "revenue_cagr_3y_pct",
+    "eps_cagr_3y_pct", "ntm_growth_pct",
+    "debt_to_equity", "netdebt_to_ebitda_ttm", "current_ratio",
+    "interest_coverage_ttm", "beta_2y",
+    "mom_6m_pct", "mom_12_1_pct"]
 
 
 def run():
@@ -548,23 +596,75 @@ def run():
             "members": len(cx["members"])}
 
 
-COMPARE_MAP = [("pe_ttm", "pe", "valuation", "pe_ttm", True),
-               ("pe_fwd", "fpe", "forward", "pe_fwd", True),
-               ("ps_ttm", "ps", "valuation", "ps_ttm", True),
-               ("pb", "pb", "valuation", "pb", True),
-               ("ev_ebitda_ttm", "eve", "valuation", "ev_ebitda_ttm",
-                True),
-               ("div_yield_pct", "dy", "yield", "dividend_yield_pct",
-                False),
-               ("fcf_yield_pct", "fcfy", "valuation", "fcf_yield_pct",
-                False),
-               ("peg_ttm", "peg", "valuation", "peg_ttm", True),
-               ("roe_pct", "roe", "quality", "roe_pct", False),
-               ("net_margin_pct", "nm", "quality", "net_margin_pct",
-                False),
-               ("revenue_yoy_pct", "rg", "growth", "revenue_yoy_pct",
-                False),
-               ("eps_yoy_pct", "eg", "growth", "eps_yoy_pct", False)]
+COMPARE_MAP = [
+    ("pe_ttm", "valuation", "pe_ttm", "low"),
+    ("pe_fwd", "forward", "pe_fwd", "low"),
+    ("peg_ttm", "valuation", "peg_ttm", "low"),
+    ("ps_ttm", "valuation", "ps_ttm", "low"),
+    ("ps_fwd", "forward", "ps_fwd", "low"),
+    ("pb", "valuation", "pb", "low"),
+    ("ev_ebitda_ttm", "valuation", "ev_ebitda_ttm", "low"),
+    ("ev_ebitda_fwd", "forward", "ev_ebitda_fwd", "low"),
+    ("ev_sales_ttm", "valuation", "ev_sales_ttm", "low"),
+    ("earnings_yield_pct", "valuation", "earnings_yield_pct", "high"),
+    ("fcf_yield_pct", "valuation", "fcf_yield_pct", "high"),
+    ("div_yield_pct", "yield", "dividend_yield_pct", "high"),
+    ("buyback_yield_pct", "yield", "net_buyback_yield_pct", "high"),
+    ("shareholder_yield_pct", "yield", "shareholder_yield_pct", "high"),
+    ("payout_ratio_pct", "yield", "payout_ratio_pct", None),
+    ("roe_pct", "quality", "roe_pct", "high"),
+    ("roic_pct", "quality", "roic_pct", "high"),
+    ("roa_pct", "quality", "roa_pct", "high"),
+    ("gross_margin_pct", "quality", "gross_margin_pct", "high"),
+    ("operating_margin_pct", "quality", "operating_margin_pct", "high"),
+    ("net_margin_pct", "quality", "net_margin_pct", "high"),
+    ("fcf_margin_pct", "quality", "fcf_margin_pct", "high"),
+    ("income_quality", "quality", "income_quality", "high"),
+    ("sbc_to_revenue_pct", "quality", "sbc_to_revenue_pct", "low"),
+    ("piotroski_f", "quality", "piotroski_f", "high"),
+    ("altman_z", "balance", "altman_z", "high"),
+    ("revenue_yoy_pct", "growth", "revenue_yoy_pct", "high"),
+    ("eps_yoy_pct", "growth", "eps_yoy_pct", "high"),
+    ("revenue_cagr_3y_pct", "growth", "revenue_cagr_3y_pct", "high"),
+    ("eps_cagr_3y_pct", "growth", "eps_cagr_3y_pct", "high"),
+    ("ntm_growth_pct", "forward", "ntm_earnings_growth_pct", "high"),
+    ("debt_to_equity", "balance", "debt_to_equity", "low"),
+    ("netdebt_to_ebitda_ttm", "balance", "netdebt_to_ebitda_ttm",
+     "low"),
+    ("current_ratio", "balance", "current_ratio", "high"),
+    ("interest_coverage_ttm", "balance", "interest_coverage_ttm",
+     "high"),
+    ("beta_2y", "balance", "beta_2y", "low"),
+    ("mom_6m_pct", None, None, "high"),
+    ("mom_12_1_pct", None, None, "high"),
+]
+
+PILLARS = {
+    "valuation": ["pe_ttm", "pe_fwd", "peg_ttm", "ps_ttm", "pb",
+                  "ev_ebitda_ttm", "ev_sales_ttm",
+                  "earnings_yield_pct", "fcf_yield_pct"],
+    "quality": ["roe_pct", "roic_pct", "roa_pct", "gross_margin_pct",
+                "operating_margin_pct", "net_margin_pct",
+                "fcf_margin_pct", "income_quality", "piotroski_f",
+                "sbc_to_revenue_pct"],
+    "growth": ["revenue_yoy_pct", "eps_yoy_pct", "revenue_cagr_3y_pct",
+               "eps_cagr_3y_pct", "ntm_growth_pct"],
+    "balance": ["debt_to_equity", "netdebt_to_ebitda_ttm",
+                "current_ratio", "interest_coverage_ttm", "altman_z",
+                "beta_2y"],
+    "momentum": ["mom_6m_pct", "mom_12_1_pct"],
+}
+PILLAR_MIN_N = {"valuation": 3, "quality": 4, "growth": 2,
+                "balance": 3, "momentum": 1}
+PILLAR_W = {"valuation": .30, "quality": .25, "growth": .25,
+            "balance": .10, "momentum": .10}
+
+
+def _median(sv):
+    if not sv:
+        return None
+    m = len(sv) // 2
+    return sv[m] if len(sv) % 2 else (sv[m - 1] + sv[m]) / 2
 
 
 def compare(ticker):
@@ -575,32 +675,83 @@ def compare(ticker):
         i = cx["tickers"].index(t)
     except ValueError:
         return {"ok": False, "error": "%s not in the S&P census" % t}
-    rows = []
-    for name, ak, grp, mk, lower_rich in COMPARE_MAP:
-        arr = cx["_arrays"][ak]
-        sv = sorted(v for v in arr if fnum(v) is not None)
+    rows, pcts = [], {}
+    for field, grp, ik, better in COMPARE_MAP:
+        arr = cx["_arrays"][field]
+        sv = sorted(v for v in (fnum(x) for x in arr) if v is not None)
         x = fnum(arr[i])
-        ref = cx[grp][mk]
-        med = ref.get("median")
+        if grp:
+            ref = cx[grp][ik]
+            agg, med = ref.get("agg"), ref.get("median")
+        else:
+            agg = None
+            med = round(_median(sv), 2) if sv else None
         pc = pctile(sv, x)
-        verdict = None
+        pcts[field] = (pc, better)
+        prem = verdict = None
         if x is not None and med not in (None, 0):
             prem = (x / med - 1) * 100
-            cheap = prem < -10 if lower_rich else prem > 10
-            rich = prem > 10 if lower_rich else prem < -10
-            verdict = ("CHEAP vs index" if cheap else
-                       "RICH vs index" if rich else "IN LINE")
+            if better == "low":
+                verdict = ("CHEAP vs index" if prem < -10 else
+                           "RICH vs index" if prem > 10 else "IN LINE")
+            elif better == "high":
+                verdict = ("STRONGER than index" if prem > 10 else
+                           "WEAKER than index" if prem < -10 else
+                           "IN LINE")
             prem = round(prem, 1)
-        else:
-            prem = None
-        rows.append({"metric": name, "stock": x,
-                     "spx_agg": ref.get("agg"), "spx_median": med,
+        rows.append({"metric": field, "group": grp or "momentum",
+                     "stock": x, "spx_agg": agg, "spx_median": med,
                      "premium_vs_median_pct": prem,
                      "percentile_in_spx": pc, "verdict": verdict})
+    pillars, comp, wsum = {}, 0.0, 0.0
+    for pname, fields in PILLARS.items():
+        vals = []
+        for f in fields:
+            pc, better = pcts.get(f, (None, None))
+            if pc is None:
+                continue
+            vals.append(100 - pc if better == "low" else pc)
+        if len(vals) >= PILLAR_MIN_N[pname]:
+            scv = round(sum(vals) / len(vals), 1)
+            pillars[pname] = {"score": scv, "n": len(vals)}
+            comp += scv * PILLAR_W[pname]
+            wsum += PILLAR_W[pname]
+    composite = round(comp / wsum, 1) if wsum else None
+    tagmap = {"valuation": ("cheaper than the index",
+                            "richer than the index"),
+              "quality": ("higher quality", "lower quality"),
+              "growth": ("faster growth", "slower growth"),
+              "balance": ("stronger balance sheet",
+                          "weaker balance sheet"),
+              "momentum": ("stronger momentum", "weaker momentum")}
+    tags = []
+    for pn, pv in pillars.items():
+        if pv["score"] >= 60:
+            tags.append(tagmap[pn][0])
+        elif pv["score"] <= 40:
+            tags.append(tagmap[pn][1])
+    if composite is None:
+        vtxt = "INSUFFICIENT COVERAGE to score vs SPX"
+    elif composite >= 65:
+        vtxt = ("STRONG CANDIDATE vs owning SPX -- clears the index "
+                "bar on the weighted read")
+    elif composite >= 55:
+        vtxt = "MODEST EDGE vs SPX"
+    elif composite >= 45:
+        vtxt = "NO CLEAR EDGE -- SPX is the default"
+    else:
+        vtxt = "PREFER SPX over this name on these numbers"
     return {"ok": True, "ticker": t, "as_of":
             datetime.now(timezone.utc).isoformat(), "rows": rows,
-            "note": "percentile = rank within S&P members; verdict "
-                    "threshold +/-10% vs member median"}
+            "pillars": pillars,
+            "composite": {"score": composite,
+                          "weights": {k: PILLAR_W[k] for k in pillars},
+                          "scale": "0-100 percentile-based, "
+                                   "direction-adjusted"},
+            "verdict": vtxt, "tags": tags,
+            "note": "percentile = rank within S&P members; row verdict "
+                    "threshold +/-10% vs member median; SPX is the "
+                    "default -- the stock must earn its place"}
 
 
 def lambda_handler(event, context):

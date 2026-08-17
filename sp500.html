@@ -40,6 +40,16 @@ td.metric{color:var(--fg-2);font-family:var(--sans)}
 .err{color:var(--red);font-family:var(--mono);font-size:13px;margin-top:8px}
 .foot{margin-top:36px;color:var(--fg-3);font-size:12px;border-top:1px solid var(--border);padding-top:14px;line-height:1.7}
 @media(max-width:720px){.wrap{padding:22px 12px 60px}}
+.vband{margin:10px 0 14px;padding:14px 16px;border:1px solid var(--border-bright);border-radius:10px;background:var(--bg-2)}
+.vband .big{font-size:17px;font-weight:800;font-family:var(--mono);color:var(--fg-0)}
+.vband .tags{margin-top:5px;font-size:12px;color:var(--fg-2)}
+.pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:12px}
+.pill{background:var(--bg-1);border:1px solid var(--border);border-radius:8px;padding:9px 10px}
+.pill .pk{font-size:10px;font-family:var(--mono);color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px}
+.pill .pv{font-size:16px;font-weight:800;font-family:var(--mono);margin:3px 0 5px}
+.pbar{height:5px;border-radius:3px;background:var(--border)}
+.pbar i{display:block;height:5px;border-radius:3px}
+tr.grp td{background:var(--bg-1);color:var(--cyan);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:6px 12px;text-align:left}
 </style></head><body>
 <header class="header"><div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
 <nav class="nav"><a href="/">Home</a><a href="/rotation-dashboard.html">Rotation</a><a href="/industry-rotation.html">Industry Boom</a><a href="/compass.html">Capital Compass</a><a href="/invest.html">Invest</a><a href="/sp500.html" class="active">SP500</a><a href="/canaries.html">Canaries</a><a href="/backlog.html">Backlog</a><a href="/ask.html">Ask</a></nav>
@@ -67,26 +77,100 @@ td.metric{color:var(--fg-2);font-family:var(--sans)}
 </div>
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
-let D=null,ARR={};
-const MF=i=>D.member_fields[i];
-const CMP=[["P/E (TTM)",3,"pe_ttm","valuation",true],["Forward P/E",4,"pe_fwd","forward",true],["P/S (TTM)",5,"ps_ttm","valuation",true],["P/B",6,"pb","valuation",true],["EV/EBITDA",7,"ev_ebitda_ttm","valuation",true],["Dividend yield %",8,"dividend_yield_pct","yield",false],["FCF yield %",9,"fcf_yield_pct","valuation",false],["PEG",10,"peg_ttm","valuation",true],["ROE %",11,"roe_pct","quality",false],["Net margin %",12,"net_margin_pct","quality",false],["Revenue YoY %",13,"revenue_yoy_pct","growth",false],["EPS YoY %",14,"eps_yoy_pct","growth",false]];
+let D=null,FI={},ARR={};
+// field, label, group, path-to-index-metric [section,key] (null = member-median only), better: "low"|"high"|null, dp
+const CMP=[
+ ["__G","VALUATION — cheaper is better"],
+ ["pe_ttm","P/E (TTM)",["valuation","pe_ttm"],"low",1],
+ ["pe_fwd","Forward P/E (NTM)",["forward","pe_fwd"],"low",1],
+ ["peg_ttm","PEG",["valuation","peg_ttm"],"low",2],
+ ["ps_ttm","P/S (TTM)",["valuation","ps_ttm"],"low",2],
+ ["ps_fwd","Forward P/S",["forward","ps_fwd"],"low",2],
+ ["pb","P/B",["valuation","pb"],"low",2],
+ ["ev_ebitda_ttm","EV/EBITDA (TTM)",["valuation","ev_ebitda_ttm"],"low",1],
+ ["ev_ebitda_fwd","Forward EV/EBITDA",["forward","ev_ebitda_fwd"],"low",1],
+ ["ev_sales_ttm","EV/Sales",["valuation","ev_sales_ttm"],"low",2],
+ ["earnings_yield_pct","Earnings yield %",["valuation","earnings_yield_pct"],"high",2],
+ ["fcf_yield_pct","FCF yield %",["valuation","fcf_yield_pct"],"high",2],
+ ["__G","CAPITAL RETURN — higher is better"],
+ ["div_yield_pct","Dividend yield %",["yield","dividend_yield_pct"],"high",2],
+ ["buyback_yield_pct","Net buyback yield %",["yield","net_buyback_yield_pct"],"high",2],
+ ["shareholder_yield_pct","Shareholder yield %",["yield","shareholder_yield_pct"],"high",2],
+ ["payout_ratio_pct","Payout ratio %",["yield","payout_ratio_pct"],null,1],
+ ["__G","QUALITY & MARGINS — higher is better (SBC lower)"],
+ ["roe_pct","ROE %",["quality","roe_pct"],"high",1],
+ ["roic_pct","ROIC %",["quality","roic_pct"],"high",1],
+ ["roa_pct","ROA %",["quality","roa_pct"],"high",1],
+ ["gross_margin_pct","Gross margin %",["quality","gross_margin_pct"],"high",1],
+ ["operating_margin_pct","Operating margin %",["quality","operating_margin_pct"],"high",1],
+ ["net_margin_pct","Net margin %",["quality","net_margin_pct"],"high",1],
+ ["fcf_margin_pct","FCF margin %",["quality","fcf_margin_pct"],"high",1],
+ ["income_quality","Income quality",["quality","income_quality"],"high",2],
+ ["sbc_to_revenue_pct","SBC / revenue %",["quality","sbc_to_revenue_pct"],"low",2],
+ ["piotroski_f","Piotroski F",["quality","piotroski_f"],"high",2],
+ ["__G","GROWTH — higher is better"],
+ ["revenue_yoy_pct","Revenue YoY %",["growth","revenue_yoy_pct"],"high",1],
+ ["eps_yoy_pct","EPS YoY %",["growth","eps_yoy_pct"],"high",1],
+ ["revenue_cagr_3y_pct","Revenue CAGR 3y %",["growth","revenue_cagr_3y_pct"],"high",1],
+ ["eps_cagr_3y_pct","EPS CAGR 3y %",["growth","eps_cagr_3y_pct"],"high",1],
+ ["ntm_growth_pct","NTM earnings growth %",["forward","ntm_earnings_growth_pct"],"high",1],
+ ["__G","BALANCE SHEET & RISK"],
+ ["debt_to_equity","Debt / equity",["balance","debt_to_equity"],"low",2],
+ ["netdebt_to_ebitda_ttm","Net debt / EBITDA",["balance","netdebt_to_ebitda_ttm"],"low",2],
+ ["current_ratio","Current ratio",["balance","current_ratio"],"high",2],
+ ["interest_coverage_ttm","Interest coverage",["balance","interest_coverage_ttm"],"high",1],
+ ["beta_2y","Beta (2y)",["balance","beta_2y"],"low",2],
+ ["__G","MOMENTUM — vs member median only"],
+ ["mom_6m_pct","6-month momentum %",null,"high",1],
+ ["mom_12_1_pct","12-1 momentum %",null,"high",1]];
+const PIL={valuation:["pe_ttm","pe_fwd","peg_ttm","ps_ttm","pb","ev_ebitda_ttm","ev_sales_ttm","earnings_yield_pct","fcf_yield_pct"],
+ quality:["roe_pct","roic_pct","roa_pct","gross_margin_pct","operating_margin_pct","net_margin_pct","fcf_margin_pct","income_quality","piotroski_f","sbc_to_revenue_pct"],
+ growth:["revenue_yoy_pct","eps_yoy_pct","revenue_cagr_3y_pct","eps_cagr_3y_pct","ntm_growth_pct"],
+ balance:["debt_to_equity","netdebt_to_ebitda_ttm","current_ratio","interest_coverage_ttm","altman_z","beta_2y"],
+ momentum:["mom_6m_pct","mom_12_1_pct"]};
+const PMIN={valuation:3,quality:4,growth:2,balance:3,momentum:1},PW={valuation:.30,quality:.25,growth:.25,balance:.10,momentum:.10};
+const BETTER={};CMP.forEach(c=>{if(c[0]!=="__G")BETTER[c[0]]=c[3]});BETTER["altman_z"]="high";
 const fmt=(v,dp=2)=>v==null?"—":(+v).toLocaleString(undefined,{maximumFractionDigits:dp,minimumFractionDigits:0});
 function card(k,v,s,cls){return `<div class="card"><div class="k">${k}</div><div class="v ${cls||""}">${v}</div><div class="s">${s||""}</div></div>`}
 function row(name,m,dp=2){if(!m)return"";const band=(m.p25!=null)?`${fmt(m.p25,dp)} – ${fmt(m.p75,dp)}`:"—";const wide=(m.p10!=null)?`${fmt(m.p10,dp)} – ${fmt(m.p90,dp)}`:"—";
  return `<tr><td class="metric">${name}</td><td><b>${fmt(m.agg,dp)}</b></td><td>${fmt(m.median,dp)}</td><td class="band">${band}</td><td class="band">${wide}</td><td class="band">${m.n||m.n_agg||"—"}</td></tr>`}
 function table(rows){return `<table><tr><th>Metric</th><th>SP500 (agg)</th><th>Member median</th><th>p25–p75</th><th>p10–p90</th><th>n</th></tr>${rows.join("")}</table>`}
-function buildArrays(){for(const[,idx]of CMP.map((c,i)=>[i,c[1]])){}
- for(const c of CMP){const a=[];for(const t in D.members){const v=D.members[t][c[1]];if(typeof v==="number"&&isFinite(v))a.push(v)}a.sort((x,y)=>x-y);ARR[c[1]]=a}}
+function buildArrays(){FI={};D.member_fields.forEach((f,i)=>FI[f]=i);
+ const names=Object.keys(FI).filter(f=>f!=="sector");
+ for(const f of names){const a=[];for(const t in D.members){const v=D.members[t][FI[f]];if(typeof v==="number"&&isFinite(v))a.push(v)}a.sort((x,y)=>x-y);ARR[f]=a}}
 function pct(arr,x){if(!arr||!arr.length||x==null)return null;let lo=0,hi=arr.length;while(lo<hi){const m=(lo+hi)>>1;arr[m]<x?lo=m+1:hi=m}return Math.round(1000*lo/arr.length)/10}
+function med(arr){if(!arr||!arr.length)return null;const m=arr.length>>1;return arr.length%2?arr[m]:(arr[m-1]+arr[m])/2}
 function compare(){const t=(document.getElementById("tk").value||"").trim().toUpperCase();const el=document.getElementById("cmp");if(!t)return;
  const m=D.members[t];if(!m){el.innerHTML=`<div class="err">${t} is not in the S&amp;P 500 census.</div>`;return}
- const rows=CMP.map(([name,idx,key,grp,lowerRich])=>{const x=m[idx];const ref=D[grp][key]||{};const med=ref.median,agg=ref.agg;let prem=null,chip=`<span class="chip inline">—</span>`;
-  if(x!=null&&med){prem=(x/med-1)*100;const cheap=lowerRich?prem<-10:prem>10;const rich=lowerRich?prem>10:prem<-10;
-   chip=cheap?`<span class="chip cheap">CHEAP vs index</span>`:rich?`<span class="chip rich">RICH vs index</span>`:`<span class="chip inline">IN LINE</span>`}
-  const p=pct(ARR[idx],x);
-  return `<tr><td class="metric">${name}</td><td><b>${fmt(x)}</b></td><td>${fmt(agg)}</td><td>${fmt(med)}</td><td>${prem==null?"—":(prem>0?"+":"")+fmt(prem,1)+"%"}</td><td>${p==null?"—":fmt(p,1)}</td><td style="text-align:left">${chip}</td></tr>`});
- el.innerHTML=`<table><tr><th>Metric</th><th>${t}</th><th>SP500 (agg)</th><th>Member median</th><th>vs median</th><th>%ile in S&amp;P</th><th style="text-align:left">Verdict</th></tr>${rows.join("")}</table>
- <div class="note">${t}: ${m[1]||""} &middot; price ${m[0]>0?"+":""}${fmt(m[0],1)}% since fundamentals snapshot &middot; higher percentile = more expensive for valuation rows, stronger for yield/quality/growth rows.</div>`}
+ const pcts={};
+ const rows=CMP.map(c=>{
+  if(c[0]==="__G")return `<tr class="grp"><td colspan="7">${c[1]}</td></tr>`;
+  const [f,label,ref,better,dp]=c;const x=m[FI[f]];
+  let agg=null,median=null;
+  if(ref){const r=(D[ref[0]]||{})[ref[1]]||{};agg=r.agg;median=r.median}else{median=med(ARR[f])}
+  const p=pct(ARR[f],x);pcts[f]=p;
+  let prem=null,chip=`<span class="chip inline">—</span>`;
+  if(x!=null&&median){prem=(x/median-1)*100;
+   if(better==="low")chip=prem<-10?`<span class="chip cheap">CHEAP</span>`:prem>10?`<span class="chip rich">RICH</span>`:`<span class="chip inline">IN LINE</span>`;
+   else if(better==="high")chip=prem>10?`<span class="chip cheap">STRONGER</span>`:prem<-10?`<span class="chip rich">WEAKER</span>`:`<span class="chip inline">IN LINE</span>`;}
+  return `<tr><td class="metric">${label}</td><td><b>${fmt(x,dp)}</b></td><td>${fmt(agg,dp)}</td><td>${fmt(median,dp)}</td><td>${prem==null?"—":(prem>0?"+":"")+fmt(prem,1)+"%"}</td><td>${p==null?"—":fmt(p,1)}</td><td style="text-align:left">${chip}</td></tr>`});
+ // altman z pctile for balance pillar (not a compare row group-item but used in pillar)
+ pcts["altman_z"]=pct(ARR["altman_z"],m[FI["altman_z"]]);
+ const pil={};let comp=0,ws=0;
+ for(const pn in PIL){const vals=[];for(const f of PIL[pn]){const p=pcts[f];if(p==null)continue;vals.push(BETTER[f]==="low"?100-p:p)}
+  if(vals.length>=PMIN[pn]){const s=Math.round(10*vals.reduce((a,b)=>a+b,0)/vals.length)/10;pil[pn]={score:s,n:vals.length};comp+=s*PW[pn];ws+=PW[pn]}}
+ const cs=ws?Math.round(10*comp/ws)/10:null;
+ const tagmap={valuation:["cheaper than the index","richer than the index"],quality:["higher quality","lower quality"],growth:["faster growth","slower growth"],balance:["stronger balance sheet","weaker balance sheet"],momentum:["stronger momentum","weaker momentum"]};
+ const tags=[];for(const pn in pil){if(pil[pn].score>=60)tags.push(tagmap[pn][0]);else if(pil[pn].score<=40)tags.push(tagmap[pn][1])}
+ const vtxt=cs==null?"INSUFFICIENT COVERAGE to score vs SPX":cs>=65?"STRONG CANDIDATE vs owning SPX — clears the index bar":cs>=55?"MODEST EDGE vs SPX":cs>=45?"NO CLEAR EDGE — SPX is the default":"PREFER SPX over this name on these numbers";
+ const barc=s=>s>=60?"var(--green)":s<=40?"var(--red)":"var(--amber)";
+ const pilHtml=Object.keys(PW).map(pn=>{const p=pil[pn];if(!p)return card(pn,"—","insufficient data");
+  return `<div class="pill"><div class="pk">${pn} edge</div><div class="pv" style="color:${barc(p.score)}">${p.score}</div><div class="pbar"><i style="width:${p.score}%;background:${barc(p.score)}"></i></div><div class="pk" style="margin-top:4px">${p.n} metrics</div></div>`}).join("");
+ el.innerHTML=`<div class="vband"><div class="big">${t} — ${cs==null?"—":cs}/100 · ${vtxt}</div>
+ <div class="tags">${tags.length?tags.join(" · "):"broadly in line with the index"} &middot; ${m[FI["sector"]]||""} &middot; price ${m[FI["px_chg_since_census_pct"]]>0?"+":""}${fmt(m[FI["px_chg_since_census_pct"]],1)}% since fundamentals snapshot</div>
+ <div class="pillars">${pilHtml}</div></div>
+ <table><tr><th>Metric</th><th>${t}</th><th>SP500 (agg)</th><th>Member median</th><th>vs median</th><th>%ile in S&amp;P</th><th style="text-align:left">Verdict</th></tr>${rows.join("")}</table>
+ <div class="note">Score = weighted percentile edge (valuation 30% · quality 25% · growth 25% · balance 10% · momentum 10%); low-better metrics inverted. Percentile column: for valuation rows higher = more expensive; for the rest higher = stronger. SPX is the default — the stock must earn its place.</div>`}
 async function load(){let r;try{r=await fetch(`${PROXY}/data/sp500.json?t=${Date.now()}`);D=await r.json()}catch(e){}
  if(!D||!D.ok){document.getElementById("cards").innerHTML=`<div class="err">data/sp500.json unavailable — engine may still be on first run.</div>`;return}
  buildArrays();
@@ -120,6 +204,7 @@ async function load(){let r;try{r=await fetch(`${PROXY}/data/sp500.json?t=${Date
   card("Div yield − 10Y",mc.div_yield_minus_10y_pct==null?"—":fmt(mc.div_yield_minus_10y_pct,2)+"%","")].join("");
  const dg=D.diag||{};const rp=dg.reprice||{};
  document.getElementById("foot").innerHTML=`<b>Methodology.</b> ${D.provenance.method} Sources: ${D.provenance.sources.join(" · ")}. Reprice: ${rp.members_repriced??"—"} members on ${rp.now_px_date??"—"} closes, ${rp.members_flat??"—"} at snapshot price. History banked: ${D.hist_days??"—"} days (permanent). Engine ${D.engine_v}. Real data only — anything unavailable shows as — with the reason in <span style="font-family:var(--mono)">data/sp500.json → diag</span>.`;
+ const u=new URLSearchParams(location.search).get("t");if(u){document.getElementById("tk").value=u;compare()}
 }
 document.getElementById("go").onclick=compare;
 document.getElementById("tk").addEventListener("keydown",e=>{if(e.key==="Enter")compare()});

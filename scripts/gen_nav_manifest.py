@@ -47,6 +47,7 @@ def title_of(p):
 
 
 FORCE = {  # ops 3302
+    "/sp500.html": "Research & Tools",         # ops 4809 index-as-a-stock
     "/data.html": "System & Meta",           # ops 4506 Data hub
     "/provider.html": "System & Meta",       # ops 4506 provider template: explicit category pins (beat keyword collisions)
     "/readthrough.html": "Portfolio & Execution",   # ops 3699 read-through radar
