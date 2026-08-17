@@ -1,69 +1,17 @@
-executing-against: e6705f4915e750b2a99fe07e8b10538ddd6ce40a
-[23:49:31] ✅ HTTP ok bytes=1014 rows=8
-[23:49:31] VERBATIM:
-[23:49:31] [
- {
-  "Date": "1150817",
-  "Investor": "外資及陸資合計",
-  "PurchaseAmount": "49780578913",
-  "SaleAmount": "54439527047",
-  "Net": "-4658948134"
- },
- {
-  "Date": "1150817",
-  "Investor": "　外資及陸資(不含自營商)",
-  "PurchaseAmount": "49780578913",
-  "SaleAmount": "54439527047",
-  "Net": "-4658948134"
- },
- {
-  "Date": "1150817",
-  "Investor": "　外資自營商",
-  "PurchaseAmount": "0",
-  "SaleAmount": "0",
-  "Net": "0"
- },
- {
-  "Date": "1150817",
-  "Investor": "投信",
-  "PurchaseAmount": "3547718940",
-  "SaleAmount": "4857776799",
-  "Net": "-1310057859"
- },
- {
-  "Date": "1150817",
-  "Investor": "自營商合計",
-  "PurchaseAmount": "5875461723",
-  "SaleAmount": "5781529994",
-  "Net": "93931729"
- },
- {
-  "Date": "1150817",
-  "Investor": "　自營商(自行買賣)",
-  "PurchaseAmount": "2693475106",
-  "SaleAmount": "2076530143",
-  "Net": "616944963"
- },
- {
-  "Date": "1150817",
-  "Investor": "　自營商(避險)",
-  "PurchaseAmount": "3181986617",
-  "SaleAmount": "3704999851",
-  "Net": "-523013234"
- },
- {
-  "Date": "1150817",
-  "Investor": "三大法人合計*",
-  "PurchaseAmount": "59203759576",
-  "SaleAmount": "65078833840",
-  "Net": "-5875074264"
- }
-]
-[23:49:31] all keys: ['Date', 'Investor', 'Net', 'PurchaseAmount', 'SaleAmount']
-[23:49:31] foreign-tagged rows: 3
-[23:49:31]   {"Date": "1150817", "Investor": "外資及陸資合計", "PurchaseAmount": "49780578913", "SaleAmount": "54439527047", "Net": "-4658948134"}
-[23:49:31]   {"Date": "1150817", "Investor": "　外資及陸資(不含自營商)", "PurchaseAmount": "49780578913", "SaleAmount": "54439527047", "Net": "-4658948134"}
-[23:49:31]   {"Date": "1150817", "Investor": "　外資自營商", "PurchaseAmount": "0", "SaleAmount": "0", "Net": "0"}
-[23:49:31] ✅ value table confirmed -- wire binds the fields above
+executing-against: b9bccd9f6187cc59b8cf58051bbed6cc16b15006
+1. settle + invoke
+[23:54:23] ✅ marker settled (attempt 1)
+[23:54:32] ✅ fresh in 8s
+2. truths
+[23:54:32] ✅   listed contract intact (latest +45.45, 5d +199.84)
+[23:54:33] ✅   otc LIVE: 20260817 -4.66bn (ledger 1)
+[23:54:33] ✅   otc latest == independent TPEx refetch (20260817 = -4.66bn)
+[23:54:33] ✅   tpex ledger exists n=1
+[23:54:33] ✅   combined LIVE +40.79bn identity=True
+3. page
+[23:54:33] ✅   committed OTC tokens
+[23:59:04] ✅   SERVED (270s)
+4. verdict
+[23:59:04] ✅ Taiwan hot money now covers BOTH boards -- listed + OTC with same-day identity
 
-→ Report written to aws/ops/reports/latest/ops 4873 -- tpex summary dump.md
+→ Report written to aws/ops/reports/latest/ops 4874 -- hot-money v1.1 verify.md
