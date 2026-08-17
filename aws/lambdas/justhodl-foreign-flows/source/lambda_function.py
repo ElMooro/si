@@ -1,6 +1,6 @@
 """justhodl-foreign-flows v1.1.0 -- US Foreign Portfolio Flows
 (Treasury TIC via the 2026 CSLT dataset on FRED).
-Marker: foreign-flows v1.1.1
+Marker: foreign-flows v1.2.0
 
 Khalid doctrine: dollar view first. This engine adds the missing
 organ -- where foreign money actually moves inside US markets --
@@ -57,7 +57,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.1.1"
+VERSION = "1.2.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 FRED_KEY = os.environ.get("FRED_KEY") or ""
 OUT_KEY = "data/foreign-flows.json"
@@ -87,9 +87,20 @@ SPLITS = {   # (all, official-99990, private-99991) -- runtime-reconciled
                  "FORSTTREASNET99991"),
 }
 RECON_TOL_BN = 0.2
-COUNTRIES = {"china": "41408", "japan": "42609",
-             "united_kingdom": "13005", "belgium": "10308",
-             "cayman": "36137"}
+COUNTRIES = {          # probe ops 4858: 21-country matrix
+    "china": "41408", "japan": "42609",
+    "united_kingdom": "13005", "belgium": "10308",
+    "cayman": "36137", "ireland": "11401", "france": "10804",
+    "switzerland": "12688", "canada": "29998",
+    "taiwan": "46302", "hong_kong": "42005",
+    "singapore": "46019", "korea": "43001", "india": "42102",
+    "brazil": "30309", "norway": "12203",
+    "saudi_arabia": "45608", "uae": "46604",
+    "mexico": "31704", "germany": "11002",
+    "australia": "60089"}
+# luxembourg EXCLUDED: probe matched Belgium's combined legacy
+# series (dup code 10308); strict-title probe queued.
+COUNTRY_PACE = 0.2
 SIGNALS = {
     "risk_appetite": ("equity", "corp", "agency"),
     "safe_haven": ("treas", "-equity"),
@@ -269,10 +280,22 @@ def split_block(doc):
 
 
 def country_block(doc):
-    """LT-Treasury holdings + the tx/valchg decomposition; identity
-    gap reported, never hidden (delta != flows doctrine)."""
+    """LT-Treasury holdings + tx/valchg decomposition for the
+    21-country matrix (probe 4858) + LT-EQUITY holdings; dedupe
+    guard; output ordered by holdings desc; identity gap reported,
+    never hidden (delta != flows doctrine)."""
     out = {}
+    out_eq = {}
+    seen = {}
     for name, code in COUNTRIES.items():
+        if code in seen:
+            out[name] = {"status": "MISSING",
+                         "why": "duplicate TIC code %s (combined "
+                                "legacy series with %s)"
+                                % (code, seen[code])}
+            continue
+        seen[code] = name
+        time.sleep(COUNTRY_PACE)
         dpos, vpos = fetch_bn("FORLTTREASPOS" + code)
         if dpos is None:
             out[name] = {"status": "MISSING", "why": vpos}
@@ -295,7 +318,30 @@ def country_block(doc):
             row["note"] = ("dHoldings = tx + valchg + other "
                            "adjustments; gap = the 'other' term")
         out[name] = row
-    doc["country_lt_treasury"] = out
+        de, ve = fetch_bn("FORLTEQTYPOS" + code)
+        if de is not None:
+            out_eq[name] = {
+                "status": "OK",
+                "holdings_bn": round(ve[-1], 1),
+                "month": de[-1],
+                "d12m_holdings_bn": (round(ve[-1] - ve[-13], 1)
+                                     if len(ve) >= 13 else None)}
+        else:
+            out_eq[name] = {"status": "MISSING", "why": ve}
+
+    def _ordered(d):
+        return dict(sorted(
+            d.items(),
+            key=lambda kv: -(kv[1].get("holdings_bn")
+                             if isinstance(kv[1].get(
+                                 "holdings_bn"), (int, float))
+                             else -1e18)))
+    doc["country_lt_treasury"] = _ordered(out)
+    doc["country_lt_equity"] = _ordered(out_eq)
+    doc["country_note"] = ("equity decomposition (net tx / "
+                           "valchg by country) exists in CSLT -- "
+                           "queued; holdings + d12m shown now, "
+                           "never diffed as flows")
 
 
 def build():

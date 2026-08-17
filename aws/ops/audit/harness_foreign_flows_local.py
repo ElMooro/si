@@ -57,6 +57,7 @@ SRC = (Path(__file__).resolve().parents[2] / "lambdas"
        / "justhodl-foreign-flows" / "source")
 sys.path.insert(0, str(SRC))
 import lambda_function as eng  # noqa: E402
+eng.COUNTRY_PACE = 0.0
 
 eng.FRED_KEY = "FIXTURE"
 
@@ -131,6 +132,10 @@ def fake_fetch(sid):
         return "Millions of Dollars", list(zip(
             MONTHS, [60.0 + (i % 4) * 40 for i in
                      range(len(MONTHS))]))
+    if sid.startswith("FORLTEQTYPOS"):
+        return "Millions of Dollars", list(zip(
+            MONTHS, [300000.0 + i * 250 for i in
+                     range(len(MONTHS))]))
     n = NAME_BY_SID[sid]
     if n in DROP:
         return None, "fetch_error:404"
@@ -204,6 +209,33 @@ def main():
         all(hs[f]["status"] == "OK" for f in eng.SPLITS)
         and hs["st_treas"]["official"]["latest"]
         == round(off_st[-1] / _mn(u_st), 1))
+    chk("A2 21-country matrix all OK + ordered non-increasing",
+        len(doc["country_lt_treasury"]) == len(eng.COUNTRIES)
+        and all(r.get("status") == "OK"
+                for r in doc["country_lt_treasury"].values())
+        and [r["holdings_bn"] for r in
+             doc["country_lt_treasury"].values()]
+        == sorted((r["holdings_bn"] for r in
+                   doc["country_lt_treasury"].values()),
+                  reverse=True))
+    eq = doc["country_lt_equity"]["japan"]
+    exp_eq = round((300000.0 + (len(MONTHS) - 1) * 250)
+                   / 1000.0, 1)
+    chk("A2 equity holdings block identity (japan)",
+        eq["status"] == "OK" and eq["holdings_bn"] == exp_eq
+        and eq["d12m_holdings_bn"] == round(12 * 250 / 1000.0,
+                                            1))
+    _saved = dict(eng.COUNTRIES)
+    eng.COUNTRIES = {"belgium": "10308", "luxembourg": "10308"}
+    d_dup = eng.build()
+    chk("A2 dedupe guard: duplicate code -> MISSING named",
+        d_dup["country_lt_treasury"]["luxembourg"]["status"]
+        == "MISSING"
+        and "duplicate" in d_dup["country_lt_treasury"]
+        ["luxembourg"]["why"]
+        and d_dup["country_lt_treasury"]["belgium"]["status"]
+        == "OK")
+    eng.COUNTRIES = _saved
     c = doc["country_lt_treasury"]["china"]
     chk("A2 country decomposition identity (china)",
         c["holdings_bn"] == round((700000.0

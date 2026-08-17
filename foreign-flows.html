@@ -43,6 +43,8 @@ tr:last-child td{border-bottom:none}
 <div class="sec"><h2>Signals</h2><div class="cards" id="sigs"></div><div class="note" id="split"></div></div>
 <div class="sec"><h2>LT-Treasury holdings by country ($B)</h2><div id="ctry"></div>
 <div class="note">Δholdings = transactions + valuation change + other adjustments — the rightmost column is the honest "other" term. Country attribution carries custodial bias (BE/UK/LU/IE/KY are custody centers).</div></div>
+<div class="sec"><h2>LT-Equity holdings by country ($B)</h2><div id="ctryeq"></div>
+<div class="note">Foreign holdings of US equities by country — holdings and Δ12m only; never diffed into flows (valuation dominates equity deltas). Transactions decomposition by country: queued.</div></div>
 <div class="sec"><h2>Release history</h2><div id="rel" class="note">loading…</div></div>
 <div class="note">Flows are TIC <b>transactions</b> — never computed as holdings deltas (valuation-change trap). Direct real-estate purchases (NAR annual survey) and TIC banking-channel flows (B-tables) are queued probes — not monthly CSLT, so not faked here. Engine: justhodl-foreign-flows.</div>
 <script>
@@ -74,6 +76,10 @@ async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok
   if(rows.length){let t='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th><th>tx 12m</th><th>valchg 12m</th><th>other</th></tr>';
     for(const[n,r]of rows)t+='<tr><td>'+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td><td class="'+cls(r.tx_12m_bn)+'">'+fN(r.tx_12m_bn)+'</td><td>'+fN(r.valchg_12m_bn)+'</td><td>'+fN(r.identity_gap_bn)+'</td></tr>';
     document.getElementById("ctry").innerHTML=t+'</table>';}
+  const E=d.country_lt_equity||{};const er=Object.entries(E).filter(([,r])=>r&&r.status==="OK");
+  if(er.length){let t2='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th></tr>';
+    for(const[n,r]of er)t2+='<tr><td>'+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td></tr>';
+    document.getElementById("ctryeq").innerHTML=t2+'</table>';}
   const rel=await jget("/foreign-flows/releases.json");
   const rr=(rel&&rel.rows||[]).slice(-12).reverse();
   document.getElementById("rel").innerHTML=rr.length?rr.map(r=>"<div>"+r.detected+" \u2014 month "+r.month+": "+(r.alert||"")+"</div>").join(""):"no releases logged yet \u2014 the badge flips on the next monthly TIC ingest.";

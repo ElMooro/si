@@ -1,13 +1,15 @@
 {
   "function_name": "justhodl-foreign-flows",
   "runtime": "python3.12",
-  "timeout": 180,
+  "timeout": 600,
   "memory": 512,
-  "description": "US Foreign Portfolio Flows (Treasury TIC via 2026 CSLT on FRED): six flow series banked permanently under data/providers/tic-cslt, doc-exact signals (risk appetite, safe haven, total demand), TIC release detection. Daily 21:30 UTC.",
+  "description": "US Foreign Portfolio Flows (TIC/CSLT): six destination flows + signals + official/private splits + 21-country LT-Treasury matrix (holdings/tx/valchg, honest gap) + LT-equity holdings; Deny-Delete banks; release detection. Daily 21:30 UTC.",
   "inherit_env": [
     {
       "from_function": "dollar-strength-agent",
-      "keys": ["FRED_KEY"]
+      "keys": [
+        "FRED_KEY"
+      ]
     }
   ]
 }
