@@ -1,58 +1,43 @@
-executing-against: 10668be053e7b2cf4ae6bebd3d0c77ce12ea26aa
+executing-against: 11fcda437eb749b2665607b66ec1cd60e0c6d33a
 G0. CBC + TWSE live contracts
-[17:45:20] ✅ CBC: labels @161/164/182, width 403==402+1, last 2026Q1
-[17:45:21] ✅ TWSE: stat OK date=20260817 foreign rows=2 net=45.45bn NT$
+[18:00:38] ✅ CBC: labels @161/164/182, width 403==402+1, last 2026Q1
+[18:00:39] ✅ TWSE: stat OK date=20260817 foreign rows=2 net=45.45bn NT$
 1. settle + schedule swap
-[17:45:22] ✅ marker settled (attempt 1)
-[17:45:22] ✅ daily schedule created (10:00 UTC)
-[17:45:23] ✅ weekly schedule retired
-2. invoke backfill(90) + poll (<=6 min)
-[17:46:49] ✅ fresh in 86s
+[18:00:40] ✅ marker settled (attempt 1)
+[18:00:40] ✅ daily schedule exists
+[18:00:40] weekly schedule already gone
+2. invoke-to-complete backfill rounds
+[18:02:55] ✅ round 1: ledger=54 attempts=45 new=19
+[18:04:46] ✅ round 2: ledger=62 attempts=36 new=8
 3. truths
-[17:46:49] ✅   taiwan LIVE; macro 2026Q1
-[17:46:51] ✅   macro total == in-op CBC refetch (-25340.0M @ 2026Q1)
-[17:46:51] ✗   hot_money thin: n=35 sums_ok=False
-[17:46:52] ✅   sampled 20260814 ledger == refetch (45.35bn)
-[17:46:52] ✅   peru untouched LIVE (T1.26)
-[17:46:52] ✅   deferred == korea/chile/imf_layer
-[17:46:52] ✅   bank portfolio_liab_total.json n=162
-[17:46:52] ✅   bank bfi82u-foreign.json n=35
+[18:04:46] ✅   taiwan LIVE; macro 2026Q1
+[18:04:47] ✅   macro total == in-op CBC refetch (-25340.0M @ 2026Q1)
+[18:04:47] ✅   hot_money ledger=62 days; 5/20/60d present
+[18:04:49] ✅   sampled 20260814 ledger == refetch (45.35bn)
+[18:04:49] ✅   peru untouched LIVE (T1.26)
+[18:04:49] ✅   deferred == korea/chile/imf_layer
+[18:04:49] ✅   bank portfolio_liab_total.json n=162
+[18:04:49] ✅   bank bfi82u-foreign.json n=62
 4. readout
-[17:46:52]   TW portfolio_liab_total    -25340.0M  4Q   -21071.0  z=-4.0
-[17:46:52]   TW portfolio_liab_equity   -25661.0M  4Q   -23217.0  z=-4.0
-[17:46:52]   TW portfolio_liab_debt       +321.0M  4Q    +2146.0  z=0.26
-[17:46:52]   TW hot money: 45.45 @ 20260817 | 5d 199.84 | 20d 154.84 | 60d None NT$bn z=1.12
+[18:04:49]   TW portfolio_liab_total    -25340.0M  4Q   -21071.0  z=-4.0
+[18:04:49]   TW portfolio_liab_equity   -25661.0M  4Q   -23217.0  z=-4.0
+[18:04:49]   TW portfolio_liab_debt       +321.0M  4Q    +2146.0  z=0.26
+[18:04:49]   TW hot money: 45.45 @ 20260817 | 5d 199.84 | 20d 154.84 | 60d -821.28 NT$bn z=0.96
 5. verdict
-[17:46:52] ✗ HARD FAILS: ['hm']
+[18:04:49] ✅ Taiwan LIVE -- semiconductor specialist wired: quarterly CBC macro + daily TWSE hot money with backfilled ledger
 
-→ Report written to aws/ops/reports/latest/ops 4839 -- taiwan birth verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_4839_taiwan_birth_verify.py
+→ Report written to aws/ops/reports/latest/ops 4841 -- taiwan regate invoke-to-complete.md
 G0. live feed bindings
-[17:46:53] ✅   taiwan+peru bindings OK (tw macro -25340.0M, hot 45.45bn)
+[18:04:49] ✅   taiwan+peru bindings OK (tw macro -25340.0M, hot 45.45bn)
 1. committed HTML + order
-[17:46:53] ✅   token 'id="global-ff-card"' present
-[17:46:53] ✅   token 'hot_money' present
-[17:46:53] ✅   token 'const FLAG' present
-[17:46:53] ✅   token 'Hot money' present
-[17:46:53] ✅   ORDER preserved (US @10246 < world @14475 < legacy @25572)
+[18:04:49] ✅   token 'id="global-ff-card"' present
+[18:04:49] ✅   token 'hot_money' present
+[18:04:49] ✅   token 'const FLAG' present
+[18:04:49] ✅   token 'Hot money' present
+[18:04:49] ✅   ORDER preserved (US @10246 < world @14475 < legacy @25572)
 2. served (<=8 min)
-[17:46:53]   settling...
-[17:47:23]   settling...
-[17:47:53]   settling...
-[17:48:23]   settling...
-[17:48:53]   settling...
-[17:49:23]   settling...
-[17:49:53]   settling...
-[17:50:23]   settling...
-[17:50:53]   settling...
-[17:51:23]   settling...
-[17:51:53]   settling...
-[17:52:23]   settling...
-[17:52:53]   settling...
-[17:53:23]   settling...
-[17:53:53]   settling...
-[17:54:23]   settling...
-[17:54:53] ✗ not served in 8 min
+[18:04:49] ✅ generic world card SERVED after 0s
+3. verdict
+[18:04:49] ✅ world card v1.1 live -- Taiwan renders beside Peru with the hot-money strip
 
-→ Report written to aws/ops/reports/latest/ops 4840 -- world card v1.1 verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_4840_world_card_v11_verify.py
+→ Report written to aws/ops/reports/latest/ops 4842 -- world card served regate.md
