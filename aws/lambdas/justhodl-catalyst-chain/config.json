@@ -1,0 +1,7 @@
+{
+  "function_name": "justhodl-catalyst-chain",
+  "runtime": "python3.12",
+  "timeout": 90,
+  "memory": 512,
+  "description": "Fusion 3: 4-stage catalyst chain state machine (EVENT -> PROPAGATED -> FILING-CONFIRMED -> STREET-REPRICED) fusing catalyst x readthrough x backlog x estimate-revisions; alpha = confirmed chains the street has not repriced. Daily 22:15 UTC."
+}
