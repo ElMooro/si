@@ -1080,7 +1080,7 @@ def lambda_handler(event, context):
                     _sid = _o["Key"].rsplit("/", 1)[-1
                             ].replace(".json", "")
                     import re as _re4
-                    if _re4.search(r'-(newt|outstanding)-\d', _sid):
+                    if _re4.search(r'^(newt|outstanding)-\d', _sid):
                         continue
                     scope.append({"mnemonic":
                                     f"SFTR-{_region.upper()}-{_sid}",
@@ -1373,7 +1373,7 @@ def lambda_handler(event, context):
     groups = {}
     for r in rows:
         groups.setdefault(r["group"], []).append(r)
-    out = {"as_of": now, "engine_v": "2.7", "diag": diag,
+    out = {"as_of": now, "engine_v": "2.8", "diag": diag,
             "note": ("barometer is a labeled heuristic: score = 50 + "
                      "10*mean(clipped z), components listed in full"),
             "counts": {"series": len(rows), "skipped": len(skipped),
@@ -1386,7 +1386,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "2.7", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "2.8", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))
