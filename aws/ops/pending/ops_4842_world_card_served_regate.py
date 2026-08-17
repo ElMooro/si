@@ -1,4 +1,6 @@
-"""ops/4840 -- world card v1.1 verify (generic country renderer).
+"""ops/4842 -- world card served regate (4840 failed only on
+serving: that commit's Pages deploy flaked; the self-heal retry
+has since deployed).
  G0  live global-flows.json: taiwan LIVE with macro.series.
      portfolio_liab_total.latest numeric + hot_money sums; peru
      LIVE.
@@ -35,7 +37,7 @@ def sread(key):
 
 
 def main():
-    with report("ops 4840 -- world card v1.1 verify") as rep:
+    with report("ops 4842 -- world card served regate") as rep:
         rep.heading("G0. live feed bindings")
         try:
             gf = sread("data/global-flows.json")
@@ -89,7 +91,7 @@ def main():
             try:
                 req = urllib.request.Request(
                     "%s?t=%d" % (URL, int(time.time())),
-                    headers={"User-Agent": "ops-4840",
+                    headers={"User-Agent": "ops-4842",
                              "Cache-Control": "no-cache"})
                 with urllib.request.urlopen(req, timeout=45) as r:
                     body = r.read().decode("utf-8", "replace")

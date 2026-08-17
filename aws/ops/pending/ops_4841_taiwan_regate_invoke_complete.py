@@ -1,4 +1,8 @@
-"""ops/4839 -- global-flows v1.1 Taiwan birth verify.
+"""ops/4841 -- Taiwan regate: invoke-to-complete backfill.
+4839 truth: TWSE throttles bursts -- 35/90 days landed.  v1.1.1
+paces (2.2s) + caps 45 attempts/invoke; this op loops invokes
+(up to 4 rounds) until the ledger holds >=55 days, then reruns the
+full truth block.
  G0  live CBC: labels locate (total/equity/debt-after-equity),
      row width == len(labels)+1, last period >= 2025Q4; live TWSE:
      stat OK + foreign rows present (net printed).
@@ -33,7 +37,7 @@ ACCOUNT = "857687956942"
 FN = "justhodl-global-flows"
 B = "justhodl-dashboard-live"
 OUT_KEY = "data/global-flows.json"
-MARKER = "global-flows v1.1.0"
+MARKER = "global-flows v1.1.1"
 LAB_TOT = "Portfolio investment-Liabilities"
 LAB_EQ = ("Portfolio investment-Equity and investment fund "
           "shares-Liabilities")
@@ -126,7 +130,7 @@ def swap_schedule(rep):
 
 
 def main():
-    with report("ops 4839 -- taiwan birth verify") as rep:
+    with report("ops 4841 -- taiwan regate invoke-to-complete") as rep:
         rep.heading("G0. CBC + TWSE live contracts")
         try:
             labels, rows = cbc()
@@ -173,29 +177,39 @@ def main():
             sys.exit(1)
         swap_schedule(rep)
 
-        rep.heading("2. invoke backfill(90) + poll (<=6 min)")
-        try:
-            prev = sread(OUT_KEY).get("generated_at")
-        except ClientError:
-            prev = None
-        lam.invoke(FunctionName=FN, InvocationType="Event",
-                   Payload=json.dumps({"twse_backfill_days":
-                                       90}).encode())
+        rep.heading("2. invoke-to-complete backfill rounds")
         doc = None
-        t0 = time.time()
-        while time.time() - t0 < 360:
-            time.sleep(12)
+        for rnd in range(1, 5):
             try:
-                d = sread(OUT_KEY)
+                prev = sread(OUT_KEY).get("generated_at")
             except ClientError:
-                continue
-            if d.get("generated_at") != prev:
-                doc = d
+                prev = None
+            lam.invoke(FunctionName=FN, InvocationType="Event",
+                       Payload=json.dumps({"twse_backfill_days":
+                                           90}).encode())
+            t0 = time.time()
+            fresh = None
+            while time.time() - t0 < 300:
+                time.sleep(12)
+                try:
+                    d = sread(OUT_KEY)
+                except ClientError:
+                    continue
+                if d.get("generated_at") != prev:
+                    fresh = d
+                    break
+            if not fresh:
+                rep.fail("round %d: no fresh doc" % rnd)
+                sys.exit(1)
+            doc = fresh
+            hm_r = ((doc.get("countries") or {})
+                    .get("taiwan") or {}).get("hot_money") or {}
+            rep.ok("round %d: ledger=%s attempts=%s new=%s"
+                   % (rnd, hm_r.get("ledger_days"),
+                      hm_r.get("backfill_attempts"),
+                      hm_r.get("backfilled")))
+            if (hm_r.get("ledger_days") or 0) >= 55:
                 break
-        if not doc:
-            rep.fail("no fresh doc")
-            sys.exit(1)
-        rep.ok("fresh in %ds" % int(time.time() - t0))
 
         rep.heading("3. truths")
         tw = (doc.get("countries") or {}).get("taiwan") or {}

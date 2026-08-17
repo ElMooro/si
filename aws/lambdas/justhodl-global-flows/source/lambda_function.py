@@ -1,5 +1,5 @@
 """justhodl-global-flows v1.1.0 -- worldwide foreign capital
-inflows by country.  Marker: global-flows v1.1.0
+inflows by country.  Marker: global-flows v1.1.1
 
 Khalid directive 2026-08-17: country inflows worldwide, the more the
 better, specialists first (industries + raw materials).  Doctrine
@@ -47,7 +47,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/global-flows.json"
 BANK_FMT = "data/providers/bcrp/%s.json"
@@ -180,6 +180,8 @@ CBC_LAB_DEBT = "Debt securities-Liabilities"
 TWSE_URL = ("https://www.twse.com.tw/rwd/en/fund/BFI82U"
             "?response=json")
 TWSE_LEDGER = "data/providers/twse/bfi82u-foreign.json"
+BACKFILL_SLEEP = 2.2          # TWSE throttles bursts (burned 4839)
+BACKFILL_CAP = 45             # attempts per invoke; ops loops
 CBC_BANK_FMT = "data/providers/cbc/%s.json"
 
 
@@ -310,18 +312,22 @@ def taiwan_block(doc, event):
         bf = int((event or {}).get("twse_backfill_days") or 0)
     except (TypeError, ValueError):
         bf = 0
+    attempts = 0
     if bf > 0:
         from datetime import timedelta
         d0 = datetime.now(timezone.utc)
         for k in range(min(bf, 120)):
+            if attempts >= BACKFILL_CAP:
+                break
             day = (d0 - timedelta(days=k)).strftime("%Y%m%d")
             if day in led["rows"]:
                 continue
+            attempts += 1
             dd, net = twse_fetch(day)
             if dd is not None and dd == day:
                 led["rows"][day] = net
                 n_backfill += 1
-            time.sleep(0.35)
+            time.sleep(BACKFILL_SLEEP)
     dd, net = twse_fetch()
     if dd is not None:
         led["rows"][dd] = net
@@ -345,8 +351,9 @@ def taiwan_block(doc, event):
                              "ledger accruing n=%d" % len(nets))
         zs = [n / 1e9 for n in nets[-61:]]
         hm["z_60d"] = zlast(zs) if len(zs) >= MIN_Q else None
-    if n_backfill:
+    if bf > 0:
         hm["backfilled"] = n_backfill
+        hm["backfill_attempts"] = attempts
     tw["hot_money"] = hm
     tw["status"] = ("LIVE" if (tw["macro"].get("status") == "LIVE"
                                or hm.get("status") == "LIVE")

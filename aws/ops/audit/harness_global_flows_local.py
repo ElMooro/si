@@ -151,6 +151,7 @@ def fake_twse(day=None):
 
 
 eng.twse_fetch = fake_twse
+eng.BACKFILL_SLEEP = 0.0
 
 
 def ind_z(vals):
@@ -244,7 +245,15 @@ def main():
         and "accruing" in hm["why_partial"])
     chk("T2 z null below MIN_Q", hm["z_60d"] is None)
 
-    print("== T3 backfill event -> sums activate ==")
+    print("== T3 backfill: pacing cap honored, then sums ==")
+    old_cap = eng.BACKFILL_CAP
+    eng.BACKFILL_CAP = 5
+    eng.lambda_handler({"twse_backfill_days": 30}, None)
+    hm_c = (STORE[eng.OUT_KEY]["countries"]["taiwan"]
+            ["hot_money"])
+    chk("T3 cap=5 -> exactly 5 attempts recorded",
+        hm_c.get("backfill_attempts") == 5)
+    eng.BACKFILL_CAP = old_cap
     PUTS.clear()
     eng.lambda_handler({"twse_backfill_days": 30}, None)
     led = STORE[eng.TWSE_LEDGER]["rows"]
