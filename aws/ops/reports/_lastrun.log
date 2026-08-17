@@ -1,32 +1,28 @@
-executing-against: 18b62393498e7630167ace4f75fe4cc0c4682b63
+executing-against: 4c177faf83d5542269d1977c7c7d98f90f5e49fb
 G0. live JSON contract for every card binding
-[16:57:42] ✅   flows_bn.total latest=+262.8 12m=+1771.9 z=1.61
-[16:57:42] ✅   flows_bn.treas latest=+17.0 12m=+334.8 z=-0.16
-[16:57:42] ✅   flows_bn.equity latest=+134.3 12m=+901.7 z=1.27
-[16:57:42] ✅   flows_bn.corp latest=+52.5 12m=+448.8 z=1.17
-[16:57:42] ✅   flows_bn.agency latest=+19.1 12m=+128.9 z=0.67
-[16:57:42] ✅   flows_bn.tbills latest=-43.5 12m=+52.6 z=-1.63
-[16:57:42] ✅   signals.risk_appetite latest=+206.0B z=1.6
-[16:57:42] ✅   signals.safe_haven latest=-117.3B z=-1.2
-[16:57:42] ✅   signals.total_demand latest=+223.0B z=1.22
-[16:57:42] ✅   signals.official_private latest=+230.7B z=1.84
-[16:57:42] ✅   holder_splits.lt_total status=OK gap=0.0
-[16:57:42] ✅   split OK: private +246.8B vs official +16.1B
-[16:57:42] ✅   country_lt_treasury: 5 OK rows (e.g. china +608.5B, other-gap 6.1)
+[17:02:54] ✅   flows_bn.total latest=+262.8 12m=+1771.9 z=1.61
+[17:02:54] ✅   flows_bn.treas latest=+17.0 12m=+334.8 z=-0.16
+[17:02:54] ✅   flows_bn.equity latest=+134.3 12m=+901.7 z=1.27
+[17:02:54] ✅   flows_bn.corp latest=+52.5 12m=+448.8 z=1.17
+[17:02:54] ✅   flows_bn.agency latest=+19.1 12m=+128.9 z=0.67
+[17:02:54] ✅   flows_bn.tbills latest=-43.5 12m=+52.6 z=-1.63
+[17:02:54] ✅   signals.risk_appetite latest=+206.0B z=1.6
+[17:02:54] ✅   signals.safe_haven latest=-117.3B z=-1.2
+[17:02:54] ✅   signals.total_demand latest=+223.0B z=1.22
+[17:02:54] ✅   signals.official_private latest=+230.7B z=1.84
+[17:02:54] ✅   holder_splits.lt_total status=OK gap=0.0
+[17:02:54] ✅   split OK: private +246.8B vs official +16.1B
+[17:02:54] ✅   country_lt_treasury: 5 OK rows (e.g. china +608.5B, other-gap 6.1)
 1. committed-HTML asserts
+[17:02:54] ✅   token 'id="tic-ff-card"'           x1
+[17:02:54] ✅   token '/data/foreign-flows.json'   x1
+[17:02:54] ✅   token 'country_lt_treasury'        x1
+[17:02:54] ✅   token 'holder_splits'              x1
+[17:02:54] ✅   token 'official_private'           x1
+[17:02:54] ✅   token 'custodial bias'             x1
+2. served check (<=8 min; CF purge-on-success live)
+[17:02:54] ✅ card SERVED at https://justhodl.ai/capital-flow.html after 0s
+3. verdict
+[17:02:54] ✅ capital-flow.html now surfaces the TIC organ: six flows, four signals incl private-vs-official, reconciled split, country decomposition with the honest 'other' gap
 
-→ Report written to aws/ops/reports/latest/ops 4830 -- capital-flow TIC card verify.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4830_capflow_tic_card_verify.py", line 167, in <module>
-    main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4830_capflow_tic_card_verify.py", line 117, in main
-    html = PAGE.read_text(encoding="utf-8")
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/pathlib.py", line 1027, in read_text
-    with self.open(mode='r', encoding=encoding, errors=errors) as f:
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/pathlib.py", line 1013, in open
-    return io.open(self, mode, buffering, encoding, errors, newline)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/si/si/aws/capital-flow.html'
-❌ OPS-FAIL: aws/ops/pending/ops_4830_capflow_tic_card_verify.py
+→ Report written to aws/ops/reports/latest/ops 4831 -- capital-flow TIC card verify fixed.md
