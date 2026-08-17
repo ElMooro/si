@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| DEEP-IMPROVEMENT probe: H.4.1 weekly custody/foreign-RRP ids + TreasuryDirect auctions + FiscalData MSPD + ECB SDW BOP + CSLT equity-tx titles | 4863 | S-fable-A | 2026-08-17 22:5x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 ## Done (this arc)
@@ -35,8 +34,10 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 
 ## Roadmap: capital-flows engine deep improvement (2026-08-17 review)
 WAVE 2A -- keyless, immediate, highest value:
-- Fed H.4.1 WEEKLY official layer: Treasury custody for foreign officials
-  + foreign-official reverse-repo pool -> weekly_official block in
+- Fed H.4.1 WEEKLY official layer: WLRRAFOIAL (foreign-official RRP,
+  PROVEN live 2026-08-12=$357.4B) + custody series (WMTSECL stale 2012;
+  wire op must resolve the CURRENT sibling empirically: search Weekly
+  candidates incl RESPP*-prefixed, pick last-obs>=2026-07) -> weekly_official block in
   foreign-flows (weekly cadence vs monthly TIC = leading read on the
   official exit) -> becomes the risk-gate dollar-leg input
 - CSLT per-country EQUITY net-tx + valchg (who bought the +181B June)
