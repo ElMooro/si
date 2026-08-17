@@ -1,0 +1,10 @@
+{
+  "function_name": "justhodl-spx-beaters",
+  "runtime": "python3.12",
+  "timeout": 900,
+  "memory": 1536,
+  "description": "Weekly SPX-beaters league: scans all caps (universe ~5.3k) + all ETFs + asset classes; own full-market weekly-close momentum ledger (Polygon grouped-daily) fused with stock-buying/best-setups/master-ranker/invest/13F/congress/industry-boom/sp500 pillars.",
+  "inherit_env": [
+    {"from_function": "justhodl-equity-research", "keys": ["POLYGON_API_KEY"]}
+  ]
+}

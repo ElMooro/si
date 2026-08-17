@@ -1,0 +1,107 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SPX Beaters · Weekly League · JustHodl AI</title>
+<meta name="description" content="Weekly scan of every listed stock (large, mid, small, micro cap), every ETF and the asset-class board for candidates with evidence-backed higher odds of beating the S&P 500 — cross-sectional momentum, fleet screeners, 13F and congress flows, industry boom, and the sp500 pillar composite, with the WHY spelled out per name.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{min-height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:8px 24px;background:var(--bg-1);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 24px 70px}
+.hero h1{font-size:28px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:6px 0 16px;max-width:880px}
+.sec{margin-top:28px}
+.sec h2{font-size:15px;font-family:var(--mono);color:var(--fg-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.card{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.card .k{font-size:11px;font-family:var(--mono);color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px}
+.card .v{font-size:20px;font-weight:800;color:var(--fg-0);margin-top:4px;font-family:var(--mono)}
+.card .s{font-size:11px;color:var(--fg-3);margin-top:3px}
+.pos{color:var(--green)!important}.neg{color:var(--red)!important}.amb{color:var(--amber)!important}
+.banner{border:1px solid var(--border-bright);background:var(--bg-2);border-radius:10px;padding:12px 16px;margin:10px 0;color:var(--fg-2);font-size:13px}
+.row{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.row .top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.row .tk{font-family:var(--mono);font-weight:800;font-size:17px;color:var(--fg-0)}
+.row .nm{color:var(--fg-3);font-size:12px}
+.badge{margin-left:auto;font-family:var(--mono);font-weight:800;font-size:15px;padding:3px 10px;border-radius:7px}
+.b-hi{background:rgba(38,255,175,.12);color:var(--green)}
+.b-md{background:rgba(251,191,36,.12);color:var(--amber)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px}
+.chip{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:5px;background:var(--bg-1);border:1px solid var(--border);color:var(--fg-2)}
+.why{margin-top:6px;color:var(--fg-2);font-size:12.5px;line-height:1.55}
+.why li{margin-left:18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.foot{margin-top:36px;color:var(--fg-3);font-size:12px;border-top:1px solid var(--border);padding-top:14px;line-height:1.7}
+.err{color:var(--red);font-family:var(--mono)}
+</style></head><body>
+<header class="header"><div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+<nav class="nav"><a href="/">Home</a><a href="/rotation-dashboard.html">Rotation</a><a href="/invest.html">Invest</a><a href="/sp500.html">SP500</a><a href="/spx-beaters.html" class="active">SPX Beaters</a><a href="/canaries.html">Canaries</a><a href="/ask.html">Ask</a></nav>
+<div data-auth-slot style="margin-left:auto"></div></header>
+<div class="wrap">
+<div class="hero"><h1>SPX Beaters <span class="grad">— The Weekly League</span></h1>
+<p>Every Saturday the engine scans <b>every listed stock</b> — large, mid, small and micro cap — <b>every ETF</b> and the asset-class board, and lists the candidates with evidence-backed higher odds of beating the S&amp;P 500, with the <b>why</b> spelled out per name. Momentum is computed in-house across the full market (the most replicated systematic SPX-beating factor); the rest of the evidence comes from the fleet's screeners, 13F and congress flows, the industry boom league, and the sp500 pillar composite. Scores are weighted odds from real evidence — <i>not guarantees</i>. Macro gates <b>sizing</b>, never selection.</p></div>
+
+<div class="sec"><h2>Regime &amp; benchmark context</h2><div class="cards" id="regime"></div><div id="banner"></div><div class="s" id="asof" style="color:var(--fg-3);font-size:12px;margin-top:6px"></div></div>
+
+<div class="sec"><h2>Stocks — by cap bucket</h2><div class="grid2">
+<div><h2 style="font-size:13px">Large cap (≥$10B)</h2><div id="b_large"></div></div>
+<div><h2 style="font-size:13px">Mid cap ($2–10B)</h2><div id="b_mid"></div></div>
+<div><h2 style="font-size:13px">Small cap ($300M–2B)</h2><div id="b_small"></div></div>
+<div><h2 style="font-size:13px">Micro cap (&lt;$300M)</h2><div id="b_micro"></div></div>
+</div></div>
+
+<div class="sec"><h2>ETFs &amp; asset classes</h2><div class="grid2">
+<div><h2 style="font-size:13px">Equity ETFs</h2><div id="b_etf_equity"></div></div>
+<div><h2 style="font-size:13px">Bond / fixed income</h2><div id="b_etf_bond"></div></div>
+<div><h2 style="font-size:13px">Commodity</h2><div id="b_etf_commodity"></div></div>
+<div><h2 style="font-size:13px">Crypto / alternative</h2><div id="b_etf_crypto_alt"></div></div>
+</div></div>
+
+<div class="foot" id="foot"></div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+const fmt=(v,dp=1)=>v==null?"—":(+v).toLocaleString(undefined,{maximumFractionDigits:dp,minimumFractionDigits:0});
+const card=(k,v,s,cls)=>`<div class="card"><div class="k">${k}</div><div class="v ${cls||""}">${v}</div><div class="s">${s||""}</div></div>`;
+function mcapS(m){if(m==null)return"";return m>=1e12?fmt(m/1e12,1)+"T":m>=1e9?fmt(m/1e9,1)+"B":fmt(m/1e6,0)+"M"}
+function rowHtml(r){
+ const b=r.score>=70?"b-hi":"b-md";
+ const chips=[r.sector||r.class,r.mcap?("$"+mcapS(r.mcap)):null,
+  r.ret_6m_pct!=null?`6m ${r.ret_6m_pct>0?"+":""}${fmt(r.ret_6m_pct,0)}%`:null,
+  r.rs_6m_pp!=null?`${r.rs_6m_pp>0?"+":""}${fmt(r.rs_6m_pp,0)}pp vs SPY`:null,
+  r.ret_12_1_pct!=null?`12-1 ${r.ret_12_1_pct>0?"+":""}${fmt(r.ret_12_1_pct,0)}%`:null,
+  `${r.n_legs} evidence legs`].filter(Boolean).map(c=>`<span class="chip">${c}</span>`).join("");
+ return `<div class="row"><div class="top"><span class="tk">${r.t}</span><span class="nm">${r.name||""}</span><span class="badge ${b}">${fmt(r.score,1)}</span></div>
+ <div class="chips">${chips}</div>
+ <ul class="why">${(r.why||[]).map(w=>`<li>${w}</li>`).join("")}</ul></div>`}
+function fill(id,rows,cnt,min){
+ const el=document.getElementById(id);if(!el)return;
+ if(!rows||!rows.length){el.innerHTML=`<div class="banner">No candidates cleared the ${min} evidence bar this week — SPX is the default, and that's an honest answer.</div>`;return}
+ el.innerHTML=rows.map(rowHtml).join("")+(cnt>rows.length?`<div class="s" style="color:var(--fg-3);font-size:12px">${cnt-rows.length} more qualified below the top ${rows.length}.</div>`:"")}
+async function load(){let D=null;try{D=await (await fetch(`${PROXY}/data/spx-beaters.json?t=${Date.now()}`)).json()}catch(e){}
+ if(!D||!D.ok){document.getElementById("regime").innerHTML=`<div class="err">data/spx-beaters.json unavailable — first weekly run may still be pending.</div>`;return}
+ const rg=D.regime||{},led=D.ledger||{};
+ document.getElementById("regime").innerHTML=[
+  card("Risk-gate sizing",rg.risk_gate_sizing==null?"—":fmt(rg.risk_gate_sizing,2),rg.risk_gate_state||"","amb"),
+  card("Rotation regime",rg.rotation_regime||"—",""),
+  card("SPX ERP (ttm)",rg.spx_erp_ttm_pct==null?"—":fmt(rg.spx_erp_ttm_pct,2)+"%","earnings yield − 10Y",rg.spx_erp_ttm_pct>=0?"pos":"neg"),
+  card("Rule of 20",rg.spx_rule_of_20==null?"—":fmt(rg.spx_rule_of_20,1),"",rg.spx_rule_of_20<=20?"pos":"neg"),
+  card("SPY 6m",rg.spy_ret_6m_pct==null?"—":(rg.spy_ret_6m_pct>0?"+":"")+fmt(rg.spy_ret_6m_pct,1)+"%","the bar to beat"),
+  card("SPY 12-1",rg.spy_ret_12_1_pct==null?"—":(rg.spy_ret_12_1_pct>0?"+":"")+fmt(rg.spy_ret_12_1_pct,1)+"%",""),
+  card("Ledger",`${led.weeks||0}/${led.target||53}w`,led.complete?"complete":"accreting weekly"),
+  card("Scanned",fmt((D.scanned||{}).stocks,0),`stocks + ${fmt((D.scanned||{}).etfs,0)} ETFs`)].join("");
+ const ms=D.mom_status||{};
+ document.getElementById("banner").innerHTML=ms.note?`<div class="banner">⏳ ${ms.note}. 6-month momentum is live; scores will sharpen as the 12-1 window completes.</div>`:"";
+ document.getElementById("asof").textContent=`as of ${(D.as_of||"").slice(0,16).replace("T"," ")} UTC · weekly closes ${led.first||"—"} → ${led.last||"—"} · ${rg.note||""}`;
+ for(const b of ["large","mid","small","micro","etf_equity","etf_bond","etf_commodity","etf_crypto_alt"])
+  fill("b_"+b,(D.buckets||{})[b],(D.counts||{})[b]||0,D.min_score);
+ const w=D.weights||{};
+ document.getElementById("foot").innerHTML=`<b>Method.</b> ${D.method||""} Stock weights ${JSON.stringify(w.stock)} · ETF weights ${JSON.stringify(w.etf)}. Minimum score ${D.min_score}; a name-specific second evidence leg is required (momentum + industry alone never lists). Engine ${D.engine_v}, refreshed Saturdays 13:00 UTC. Real data only — empty buckets mean nothing cleared the bar, not a rendering gap.`;
+}
+load();
+</script></body></html>

@@ -52,7 +52,7 @@ td.metric{color:var(--fg-2);font-family:var(--sans)}
 tr.grp td{background:var(--bg-1);color:var(--cyan);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:6px 12px;text-align:left}
 </style></head><body>
 <header class="header"><div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
-<nav class="nav"><a href="/">Home</a><a href="/rotation-dashboard.html">Rotation</a><a href="/industry-rotation.html">Industry Boom</a><a href="/compass.html">Capital Compass</a><a href="/invest.html">Invest</a><a href="/sp500.html" class="active">SP500</a><a href="/canaries.html">Canaries</a><a href="/backlog.html">Backlog</a><a href="/ask.html">Ask</a></nav>
+<nav class="nav"><a href="/">Home</a><a href="/rotation-dashboard.html">Rotation</a><a href="/industry-rotation.html">Industry Boom</a><a href="/compass.html">Capital Compass</a><a href="/invest.html">Invest</a><a href="/sp500.html" class="active">SP500</a><a href="/spx-beaters.html">SPX Beaters</a><a href="/canaries.html">Canaries</a><a href="/backlog.html">Backlog</a><a href="/ask.html">Ask</a></nav>
 <div data-auth-slot style="margin-left:auto"></div></header>
 <div class="wrap">
 <div class="hero"><h1>S&amp;P 500 <span class="grad">— The Index As A Stock</span></h1>
@@ -65,6 +65,7 @@ tr.grp td{background:var(--bg-1);color:var(--cyan);font-family:var(--mono);font-
 <div class="cmpbox"><input id="tk" placeholder="TICKER" maxlength="6" autocomplete="off"><button id="go">Compare</button><span class="note">verdict = &plusmn;10% vs member median &middot; percentile = rank within S&amp;P members</span></div>
 <div id="cmp"></div></div>
 
+<div class="sec"><h2>Who's beating the index? <a href="/spx-beaters.html" style="font-size:12px">weekly league →</a></h2><div id="beat_teaser" class="cards"></div></div>
 <div class="sec"><h2>S&amp;P 500 by sector — the fair fight</h2><div class="note" style="margin:-6px 0 10px">Ratio-of-sums per GICS sector. A stock should beat <b>its own sector inside the index</b>, not just the blended average.</div><div id="t_sec"></div></div>
 <div class="sec"><h2>Valuation</h2><div id="t_val"></div></div>
 <div class="sec"><h2>Forward (NTM analyst consensus)</h2><div id="t_fwd"></div></div>
@@ -185,6 +186,12 @@ function renderSectors(){
  const rows=Object.entries(D.sectors).sort((a,b)=>b[1].weight_pct-a[1].weight_pct).map(([s,v])=>
   `<tr><td class="metric">${s}</td><td>${fmt(v.weight_pct,1)}%</td><td class="band">${v.n}</td><td><b>${fmt(v.pe_ttm,1)}</b></td><td>${fmt(v.pe_fwd,1)}</td><td>${fmt(v.ntm_growth_pct,1)}%</td><td>${fmt(v.ps_ttm,2)}</td><td>${fmt(v.ev_ebitda_ttm,1)}</td><td>${fmt(v.roe_pct,1)}%</td><td>${fmt(v.net_margin_pct,1)}%</td><td>${fmt(v.div_yield_pct,2)}%</td><td>${fmt(v.fcf_yield_pct,2)}%</td></tr>`).join("");
  document.getElementById("t_sec").innerHTML=`<table><tr><th>Sector</th><th>Weight</th><th>n</th><th>P/E</th><th>Fwd P/E</th><th>NTM gr</th><th>P/S</th><th>EV/EBITDA</th><th>ROE</th><th>Net mgn</th><th>Div</th><th>FCF y</th></tr>${rows}</table>`}
+async function renderBeaters(){
+ let B=null;try{B=await (await fetch(`${PROXY}/data/spx-beaters.json?t=${Date.now()}`)).json()}catch(e){}
+ const el=document.getElementById("beat_teaser");if(!el)return;
+ if(!B||!B.ok){el.innerHTML=`<div class="note">Weekly SPX-beaters league runs Saturdays — first scan pending.</div>`;return}
+ const picks=[];for(const b of ["large","mid","small","micro","etf_equity","etf_commodity"]){const r=((B.buckets||{})[b]||[])[0];if(r)picks.push([b,r])}
+ el.innerHTML=picks.slice(0,6).map(([b,r])=>card(b.replace("etf_","ETF "),`${r.t} · ${fmt(r.score,0)}`,(r.why&&r.why[0]||"").slice(0,60))).join("")||`<div class="note">No candidates cleared the evidence bar this week — SPX is the default.</div>`;}
 async function renderHistory(){
  let H=null;try{H=await (await fetch(`${PROXY}/data/sp500-history.json?t=${Date.now()}`)).json()}catch(e){}
  const el=document.getElementById("hist");if(!el)return;
@@ -228,7 +235,7 @@ async function load(){let r;try{r=await fetch(`${PROXY}/data/sp500.json?t=${Date
   card("Div yield − 10Y",mc.div_yield_minus_10y_pct==null?"—":fmt(mc.div_yield_minus_10y_pct,2)+"%","")].join("");
  const dg=D.diag||{};const rp=dg.reprice||{};
  document.getElementById("foot").innerHTML=`<b>Methodology.</b> ${D.provenance.method} Sources: ${D.provenance.sources.join(" · ")}. Reprice: ${rp.members_repriced??"—"} members on ${rp.now_px_date??"—"} closes, ${rp.members_flat??"—"} at snapshot price. History banked: ${D.hist_days??"—"} days (permanent). Engine ${D.engine_v}. Real data only — anything unavailable shows as — with the reason in <span style="font-family:var(--mono)">data/sp500.json → diag</span>.`;
- renderSectors();renderHistory();
+ renderSectors();renderHistory();renderBeaters();
  const u=new URLSearchParams(location.search).get("t");if(u){document.getElementById("tk").value=u;compare()}
 }
 document.getElementById("go").onclick=compare;
