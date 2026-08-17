@@ -30,18 +30,24 @@ import io
 import json
 import os
 import time
+import ssl
 import urllib.request
 from bisect import bisect_left
 from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.1.0"
-MARKER = "spx-beaters v1.1.0"
+VERSION = "1.2.0"
+MARKER = "spx-beaters v1.2.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/spx-beaters.json"
 LEDGER_KEY = "spx-beaters/weekly-closes.json"
 POLY = os.environ.get("POLYGON_API_KEY") or ""
+ANTHROPIC_KEY = os.environ.get("ANTHROPIC_KEY") or ""
+AI_MODEL = "claude-haiku-4-5-20251001"
+AI_CACHE_KEY = "spx-beaters/ai-cache.json"
+AI_TOP_PER_BUCKET = 6
+CTX = ssl.create_default_context()
 MOM_ALIAS = {"BTC": "IBIT", "ETH": "ETHA"}  # pseudo-tickers -> listed proxy
 TARGET_WEEKS = 53
 MAX_FETCH = 30
@@ -206,6 +212,105 @@ def rets(led, t):
     return r6, r121
 
 
+def inst_stats(led, t, spy_arr):
+    """52w institutional risk block from weekly closes: annualized vol,
+    max drawdown, vol-adjusted 12-1 (Sharpe-style), and 26w RS
+    consistency vs SPY (% of weeks beating)."""
+    arr = [v for v in (led["closes"].get(t) or []) if v]
+    if len(arr) < 30:
+        return None
+    rets = [arr[i] / arr[i - 1] - 1 for i in range(1, len(arr))]
+    mu = sum(rets) / len(rets)
+    var = sum((r - mu) ** 2 for r in rets) / max(1, len(rets) - 1)
+    vol = (var ** 0.5) * (52 ** 0.5) * 100
+    peak, mdd = arr[0], 0.0
+    for v in arr:
+        peak = max(peak, v)
+        mdd = min(mdd, v / peak - 1)
+    r121 = None
+    if len(arr) >= 53:
+        r121 = arr[-5] / arr[-53] - 1
+    sharpe_mom = (round(r121 / (vol / 100), 2)
+                  if r121 is not None and vol > 1 else None)
+    cons = None
+    if spy_arr and len(arr) >= 27 and len(spy_arr) >= 27:
+        w = 0
+        n = 0
+        a2, s2 = arr[-27:], spy_arr[-27:]
+        for i in range(1, min(len(a2), len(s2))):
+            ra = a2[i] / a2[i - 1] - 1
+            rs = s2[i] / s2[i - 1] - 1
+            n += 1
+            if ra > rs:
+                w += 1
+        cons = round(100 * w / n, 0) if n else None
+    return {"vol_52w_pct": round(vol, 1),
+            "max_dd_52w_pct": round(mdd * 100, 1),
+            "sharpe_mom": sharpe_mom,
+            "rs_consist_26w_pct": cons}
+
+
+def base_rates(led, spy_arr, meta):
+    """Empirical odds from OUR ledger: single 26w cohort. Formation =
+    6m return as of 26w ago; outcome = excess return vs SPY over the
+    following 26w. Quintile beat-rates + a comeback cohort (dd<=-30 at
+    formation with a 4w base). Honest: one cohort, in-sample."""
+    if not spy_arr or len(spy_arr) < 53:
+        return None, {}
+    spy_out = spy_arr[-1] / spy_arr[-27] - 1
+    rows = []
+    for t in meta:
+        arr = [v for v in (led["closes"].get(t) or []) if v]
+        if len(arr) < 53:
+            continue
+        form = arr[-27] / arr[-53] - 1
+        out = arr[-1] / arr[-27] - 1
+        dd_form = None
+        peak = arr[0]
+        for v in arr[:-26]:
+            peak = max(peak, v)
+        if peak:
+            dd_form = arr[-27] / peak - 1
+        base4 = arr[-27] / arr[-31] - 1 if len(arr) >= 31 else None
+        rows.append((t, form, out - spy_out, dd_form, base4))
+    if len(rows) < 200:
+        return None, {}
+    rows.sort(key=lambda r: r[1])
+    n = len(rows)
+    quints = []
+    for q in range(5):
+        seg = rows[int(n * q / 5):int(n * (q + 1) / 5)]
+        ex = sorted(x[2] for x in seg)
+        beat = sum(1 for x in seg if x[2] > 0)
+        quints.append({
+            "q": q + 1,
+            "form_6m_min_pct": round(seg[0][1] * 100, 1),
+            "form_6m_max_pct": round(seg[-1][1] * 100, 1),
+            "n": len(seg),
+            "beat_spy_26w_pct": round(100 * beat / len(seg), 1),
+            "median_excess_pp": round(ex[len(ex) // 2] * 100, 1)})
+    cb = [x for x in rows if x[3] is not None and x[3] <= -0.30
+          and x[4] is not None and x[4] >= -0.03]
+    cb_stat = None
+    if len(cb) >= 25:
+        ex = sorted(x[2] for x in cb)
+        cb_stat = {"n": len(cb),
+                   "beat_spy_26w_pct": round(
+                       100 * sum(1 for x in cb if x[2] > 0)
+                       / len(cb), 1),
+                   "median_excess_pp": round(ex[len(ex) // 2]
+                                             * 100, 1)}
+    br = {"window": "26w outcome, 6m-return formation, single cohort "
+                    "from our own weekly ledger (in-sample)",
+          "spy_ret_26w_pct": round(spy_out * 100, 1),
+          "momentum_quintiles": quints, "comeback_cohort": cb_stat,
+          "caveat": "one non-overlapping cohort; real but short "
+                    "history -- odds are anchors, not gospel"}
+    # thresholds for mapping current 6m ret -> quintile
+    th = [q["form_6m_max_pct"] / 100 for q in quints[:-1]]
+    return th, br
+
+
 def dd_base(led, t):
     """(drawdown from 52w high, 8w return, n_closes) from the ledger."""
     arr = [v for v in (led["closes"].get(t) or []) if v]
@@ -282,6 +387,115 @@ def spx_composites(sp):
             out[t] = {"composite": round(comp / wsum, 1),
                       "pillars": pil}
     return out
+
+
+def ai_prompt(row, anchors, wing):
+    return json.dumps({
+        "task": "Verdict on whether this candidate beats the S&P 500.",
+        "wing": wing, "candidate": row, "anchors": anchors,
+        "rules": [
+            "Respond ONLY with strict JSON, no prose.",
+            "odds_beat_spx_26w_pct MUST stay within "
+            "anchors.odds_base_26w_pct +/- 12; state the adjustment "
+            "driver in one_liner.",
+            "downside_risk_pct MUST lie between anchors.downside_lo "
+            "and anchors.downside_hi (derived from realized 52w vol "
+            "and max drawdown).",
+            "horizon_weeks integer 13..52.",
+            "stance: BUY only if odds >= 55 AND the evidence legs "
+            "justify it; WATCH if borderline; PASS otherwise.",
+            "one_liner <= 140 chars, cite the decisive evidence."],
+        "format": {"stance": "BUY|WATCH|PASS",
+                   "odds_beat_spx_26w_pct": 0,
+                   "horizon_weeks": 26, "downside_risk_pct": 0,
+                   "one_liner": ""}})
+
+
+def ai_call(row, anchors, wing):
+    if not ANTHROPIC_KEY:
+        return None
+    body = json.dumps({
+        "model": AI_MODEL, "max_tokens": 300,
+        "system": "You are the risk desk of a systematic fund. You "
+                  "never invent numbers: every figure must derive "
+                  "from the provided evidence and stay inside the "
+                  "stated anchors. Strict JSON only.",
+        "messages": [{"role": "user",
+                      "content": ai_prompt(row, anchors, wing)}],
+    }).encode()
+    req = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages", data=body,
+        headers={"Content-Type": "application/json",
+                 "x-api-key": ANTHROPIC_KEY,
+                 "anthropic-version": "2023-06-01"})
+    try:
+        with urllib.request.urlopen(req, timeout=25,
+                                    context=CTX) as r:
+            txt = json.loads(r.read())["content"][0]["text"].strip()
+        if txt.startswith("```"):
+            txt = txt.strip("`")
+            txt = txt[txt.find("{"):txt.rfind("}") + 1]
+        return json.loads(txt)
+    except Exception as e:  # noqa: BLE001
+        print("[ai] %s %s" % (row.get("t"), e))
+        return None
+
+
+def ai_verdict(row, wing, cache):
+    inst = row.get("inst") or {}
+    vol = inst.get("vol_52w_pct") or 40.0
+    mdd = abs(inst.get("max_dd_52w_pct") or vol)
+    base = row.get("odds_base_26w_pct")
+    if base is None:
+        return None
+    d_lo = round(max(8.0, 0.5 * vol), 0)
+    d_hi = round(min(95.0, max(mdd, vol)), 0)
+    if d_hi <= d_lo:
+        d_hi = d_lo + 5
+    anchors = {"odds_base_26w_pct": base, "downside_lo": d_lo,
+               "downside_hi": d_hi,
+               "horizon_hint_weeks": 39 if wing == "comeback" else 26}
+    cached = cache.get(row["t"])
+    raw = cached or ai_call(
+        {k: row[k] for k in ("t", "name", "score", "legs", "why",
+                             "dd_52w_pct", "ret_6m_pct",
+                             "ret_12_1_pct", "inst", "sector")
+         if k in row}, anchors, wing)
+    mode = "llm" if raw else "rules"
+    if not raw:
+        sc = row.get("score", 0)
+        odds = max(2.0, min(98.0, base + min(12.0, max(-12.0,
+                                                       (sc - 62)
+                                                       / 3.0))))
+        raw = {"stance": "BUY" if sc >= 75 and odds >= 55
+               else "WATCH" if sc >= 62 else "PASS",
+               "odds_beat_spx_26w_pct": odds,
+               "horizon_weeks": anchors["horizon_hint_weeks"],
+               "downside_risk_pct": max(d_lo, min(d_hi,
+                                                  round(0.8 * mdd
+                                                        or vol))),
+               "one_liner": (row.get("why") or ["evidence-weighted "
+                                                "rule verdict"])[0]
+               [:140]}
+    # deterministic clamps regardless of source
+    odds = fnum(raw.get("odds_beat_spx_26w_pct"))
+    odds = base if odds is None else max(base - 12, min(base + 12,
+                                                        odds))
+    odds = max(2.0, min(98.0, odds))
+    dwn = fnum(raw.get("downside_risk_pct"))
+    dwn = d_hi if dwn is None else max(d_lo, min(d_hi, dwn))
+    hz = fnum(raw.get("horizon_weeks")) or anchors[
+        "horizon_hint_weeks"]
+    hz = int(max(13, min(52, hz)))
+    st = str(raw.get("stance") or "WATCH").upper()
+    if st not in ("BUY", "WATCH", "PASS"):
+        st = "WATCH"
+    if st == "BUY" and odds < 55:
+        st = "WATCH"
+    return {"stance": st, "odds_beat_spx_26w_pct": round(odds, 0),
+            "horizon_weeks": hz, "downside_risk_pct": round(dwn, 0),
+            "one_liner": str(raw.get("one_liner") or "")[:150],
+            "mode": mode, "anchors": anchors}
 
 
 # ------------------------------------------------------------- main --
@@ -447,6 +661,21 @@ def scan():
     led = build_ledger(want, diag)
     weeks = len(led["dates"])
     spy6, spy121 = rets(led, "SPY")
+    spy_arr = [v for v in (led["closes"].get("SPY") or []) if v]
+    q_th, br = base_rates(led, spy_arr, meta)
+
+    def quintile_odds(t):
+        if not q_th or not br:
+            return None
+        arr = [v for v in (led["closes"].get(t) or []) if v]
+        if len(arr) < 27:
+            return None
+        r6c = arr[-1] / arr[-27] - 1
+        qi = 0
+        for th in q_th:
+            if r6c > th:
+                qi += 1
+        return (br["momentum_quintiles"][qi]["beat_spy_26w_pct"], qi + 1)
     mom_ok_6 = weeks >= 27 and spy6 is not None
     mom_ok_121 = weeks >= TARGET_WEEKS and spy121 is not None
 
@@ -559,18 +788,31 @@ def scan():
         num = sum(W_STOCK[k] * v for k, v in legs.items())
         den = sum(W_STOCK[k] for k in legs)
         score = round(100 * num / den, 1)
-        return {"t": t, "name": m["name"], "sector": m.get("sector"),
-                "industry": m.get("industry"), "mcap": m.get("mcap"),
-                "score": score,
-                "legs": {k: round(v, 2) for k, v in legs.items()},
-                "n_legs": len(legs),
-                "ret_6m_pct": round(r6 * 100, 1)
-                if r6 is not None else None,
-                "rs_6m_pp": round((r6 - spy6) * 100, 1)
-                if r6 is not None and spy6 is not None else None,
-                "ret_12_1_pct": round(r121 * 100, 1)
-                if r121 is not None else None,
-                "why": why[:6]}
+        qo = quintile_odds(t)
+        row = {"t": t, "name": m["name"], "sector": m.get("sector"),
+               "industry": m.get("industry"), "mcap": m.get("mcap"),
+               "score": score,
+               "legs": {k: round(v, 2) for k, v in legs.items()},
+               "n_legs": len(legs),
+               "ret_6m_pct": round(r6 * 100, 1)
+               if r6 is not None else None,
+               "rs_6m_pp": round((r6 - spy6) * 100, 1)
+               if r6 is not None and spy6 is not None else None,
+               "ret_12_1_pct": round(r121 * 100, 1)
+               if r121 is not None else None,
+               "inst": inst_stats(led, t, spy_arr),
+               "odds_base_26w_pct": qo[0] if qo else None,
+               "mom_quintile": qo[1] if qo else None,
+               "why": why[:6]}
+        ins = row["inst"] or {}
+        if ins.get("sharpe_mom") is not None and                 ins["sharpe_mom"] >= 1.0:
+            row["why"].append("vol-adjusted 12-1 (Sharpe-mom) %.1f -- "
+                              "trend not just noise"
+                              % ins["sharpe_mom"])
+        if ins.get("rs_consist_26w_pct") is not None and                 ins["rs_consist_26w_pct"] >= 60:
+            row["why"].append("beat SPY in %.0f%% of the last 26 "
+                              "weeks" % ins["rs_consist_26w_pct"])
+        return row
 
     buckets = {b: [] for b in ("large", "mid", "small", "micro")}
     scanned = 0
@@ -652,7 +894,11 @@ def scan():
                                            ("gold", "silver", "oil",
                                             "commod"))
                    else "equity")
+        qo = quintile_odds(t)
         return {"t": t, "name": name_of.get(t) or t, "class": cls,
+                "inst": inst_stats(led, t, spy_arr),
+                "odds_base_26w_pct": qo[0] if qo else None,
+                "mom_quintile": qo[1] if qo else None,
                 "score": score,
                 "legs": {k: round(v, 2) for k, v in legs.items()},
                 "n_legs": len(legs),
@@ -776,8 +1022,15 @@ def scan():
         if score < COMEBACK_MIN:
             return None
         r6, r121 = r6_map.get(t), r121_map.get(t)
+        cb_odds = ((br or {}).get("comeback_cohort")
+                   or {}).get("beat_spy_26w_pct")
+        if cb_odds is None:
+            qo = quintile_odds(t)
+            cb_odds = qo[0] if qo else None
         return {"t": t, "name": m["name"], "sector": m.get("sector"),
                 "industry": m.get("industry"), "mcap": m.get("mcap"),
+                "inst": inst_stats(led, t, spy_arr),
+                "odds_base_26w_pct": cb_odds,
                 "bucket": m["bucket"],
                 "scope": "sp500" if t in qual else "broad",
                 "score": score,
@@ -800,6 +1053,33 @@ def scan():
     out_buckets = {b: v[:PER_BUCKET] for b, v in
                    {**buckets, **etf_buckets}.items()}
     out_buckets["comeback"] = comeback[:COMEBACK_TOP]
+    # ---- AI verdicts (top rows only, weekly cache, anchored) --------
+    wk_key = led["dates"][-1] if led["dates"] else "na"
+    cache_doc = _g(AI_CACHE_KEY) or {}
+    cache = cache_doc.get(wk_key) or {}
+    ai_calls = 0
+    for bname, rows in out_buckets.items():
+        wing = "comeback" if bname == "comeback" else "momentum"
+        for r in rows[:AI_TOP_PER_BUCKET]:
+            v = ai_verdict(r, wing, cache)
+            if v:
+                r["ai"] = v
+                if v["mode"] == "llm" and r["t"] not in cache:
+                    cache[r["t"]] = {k: v[k] for k in
+                                     ("stance",
+                                      "odds_beat_spx_26w_pct",
+                                      "horizon_weeks",
+                                      "downside_risk_pct",
+                                      "one_liner")}
+                    ai_calls += 1
+    if ai_calls:
+        cache_doc[wk_key] = cache
+        for k in list(cache_doc):
+            if k != wk_key:
+                cache_doc.pop(k)
+        _put(AI_CACHE_KEY, cache_doc)
+    diag["ai"] = {"mode": "llm" if ANTHROPIC_KEY else "rules",
+                  "new_calls": ai_calls, "cached": len(cache)}
     counts = {b: len(v) for b, v in {**buckets, **etf_buckets}.items()}
     counts["comeback"] = len(comeback)
 
@@ -838,6 +1118,7 @@ def scan():
            "weights": {"stock": W_STOCK, "etf": W_ETF,
                        "comeback": W_CB},
            "min_score": MIN_SCORE, "comeback_min": COMEBACK_MIN,
+           "base_rates": br,
            "diag": diag,
            "method": "score = 100 x SIGMA(w_leg x leg)/SIGMA(w_leg) "
                      "over AVAILABLE legs (>=2 required); momentum = "
