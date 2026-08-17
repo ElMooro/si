@@ -1,16 +1,15 @@
-executing-against: f4b78bd21a95392e111ebe4f01cd09f01494bcfa
-1. official-pulse birth
-[22:58:37] ✅ function Active + update settled
-[22:58:38] ✅ justhodl-official-pulse: token settled (attempt 1)
-[22:58:38] ✅ schedule Fri 09:00 UTC
-[22:58:48] ✅ justhodl-official-pulse fresh in 10s
-2. pulse truths
-[22:58:48] ✗   rrp {} vs fred 2026-08-12/357392.0
+# 1. official-pulse birth
 
-→ Report written to aws/ops/reports/latest/ops 4864 -- official-pulse + dollar leg.md
+**Status:** failure  
+**Duration:** 11.5s  
+**Finished:** 2026-08-17T22:58:48+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4864_official_pulse_birth.py", line 311, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4864_official_pulse_birth.py", line 202, in main
     bank = sread("data/providers/h41/WLRRAFOIAL.json")
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -26,4 +25,14 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
     raise error_class(parsed_response, operation_name)
 botocore.errorfactory.NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
-❌ OPS-FAIL: aws/ops/pending/ops_4864_official_pulse_birth.py
+
+```
+
+## Log
+- `22:58:37` ✅ function Active + update settled
+- `22:58:38` ✅ justhodl-official-pulse: token settled (attempt 1)
+- `22:58:38` ✅ schedule Fri 09:00 UTC
+- `22:58:48` ✅ justhodl-official-pulse fresh in 10s
+# 2. pulse truths
+
+- `22:58:48` ✗   rrp {} vs fred 2026-08-12/357392.0
