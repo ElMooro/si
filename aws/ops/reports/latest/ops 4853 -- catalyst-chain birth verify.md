@@ -1,0 +1,35 @@
+# G0. input contracts
+
+**Status:** success  
+**Duration:** 10.1s  
+**Finished:** 2026-08-17T21:30:34+00:00  
+
+## Log
+- `21:30:25` ✅ shapes ok: cat=204 bl=121 dmap=831 benef=25
+# 1. settle + schedule
+
+- `21:30:25` ✅ marker settled (attempt 1)
+- `21:30:26` ✅ schedule daily 22:15 UTC
+# 2. invoke + poll
+
+- `21:30:34` ✅ fresh in 8s
+# 3. truths
+
+- `21:30:34` ✅   LIVE; chains=60 unpriced=30 completed=0
+- `21:30:34` ✅   unpriced/completed disjoint; unpriced invariants hold
+- `21:30:34` ✅   stage hist sums to 226 subjects
+- `21:30:34` ✅   top unpriced PLTR score 8.100 == independent recompute
+- `21:30:34` ✅   no-coverage gap count == independent (161)
+# 4. readout -- top unpriced chains
+
+- `21:30:34`   PLTR   o1 stage3 score  8.100 conf 1.00 SELF | RPO qoq +8.9% (asof 2026-06-30) | UNKNOWN
+- `21:30:34`   MSFT   o1 stage3 score  8.100 conf 1.00 SELF | RPO qoq +8.1% (asof 2026-06-30) | FLAT
+- `21:30:34`   AMZN   o1 stage3 score  8.100 conf 1.00 SELF | RPO qoq +20.2% (asof 2020-06-30) | FLAT
+- `21:30:34`   MU     o1 stage3 score  8.100 conf 1.00 SELF | RPO qoq +2083.4% (asof 2026-05-28) | UNKNOWN
+- `21:30:34`   AVGO   o1 stage3 score  8.100 conf 1.00 SELF | RPO qoq +265.8% (asof 2026-05-03) | UNKNOWN
+- `21:30:34`   LMT    o1 stage3 score  8.100 conf 1.00 SELF | RPO qoq +23.6% (asof 2026-06-28) | UNKNOWN
+- `21:30:34`   GE     o1 stage3 score  8.100 conf 1.00 SELF | deferred revenue accelerating (qoq | UNKNOWN
+- `21:30:34`   LRCX   o1 stage3 score  7.200 conf 1.00 SELF | RPO qoq +9.6% (asof 2026-06-28) | UNKNOWN
+# 5. verdict
+
+- `21:30:34` ✅ Fusion 3 LIVE -- the chain the fleet saw in pieces is now one machine
