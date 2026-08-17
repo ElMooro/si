@@ -1,32 +1,28 @@
-executing-against: 83d708fe8dc899ea924f7344fa3bef34b1574068
-1. env + settle + invoke
-[12:01:22] ✅ marker settled
-[12:01:42] ✅   fresh v1.2.0 doc (~20s)
-2. base rates
-[12:01:42] ✅   Q1 form -100.0..-28.9%  n=891  beat=32.5%  med excess -24.3pp
-[12:01:42] ✅   Q2 form -28.9..-4.6%  n=891  beat=36.7%  med excess -10.9pp
-[12:01:42] ✅   Q3 form -4.6..12.0%  n=892  beat=31.5%  med excess -11.0pp
-[12:01:42] ✅   Q4 form 12.0..33.8%  n=891  beat=36.6%  med excess -7.1pp
-[12:01:42] ✅   Q5 form 33.8..1306.7%  n=892  beat=41.7%  med excess -7.0pp
-[12:01:42] ✅   Q5 > Q1 -- persistence held in our cohort
-3. rows + AI clamp audit
-[12:01:42] ✅   rows (>=30w history) missing inst/odds = 0 of 84
-[12:01:42] ✅   AI coverage = 38/38 ELIGIBLE (top-6 w/ odds) rows (100%)  mode=llm new_calls=0
-[12:01:42] ✅   clamp violations = 0
-4. readout (AI lines)
-[12:01:42] ✅   large        SPCX    94.7 | WATCH 53.0% odds ~26w dwn 60.0%
-[12:01:42]       momentum: 12-1 +402% (top 1% of all stocks), +525pp vs SPY 6m
-[12:01:42] ✅   comeback     PTC     75.8 | WATCH 36.0% odds ~39w dwn 38.0%
-[12:01:42]       -30% below 52w high (weekly closes, 53w)
-[12:01:42] ✅   mid          APGE    93.2 | WATCH 52.0% odds ~26w dwn 34.0%
-[12:01:42]       momentum: 12-1 +259% (top 2% of all stocks), +85pp vs SPY 6m
-[12:01:42] ✅   small        SHAZ    93.8 | None None% odds ~Nonew dwn None%
-[12:01:42]       
-[12:01:42] ✅   etf_equity   XLE     92.9 | WATCH 47.0% odds ~26w dwn 12.0%
-[12:01:42]       momentum: 6m +14% (+0pp vs SPY)
-[12:01:42] ✅   etf_commodity USO     91.2 | WATCH 51.0% odds ~26w dwn 27.0%
-[12:01:42]       momentum: 6m +66% (+52pp vs SPY)
-5. verdict
-[12:01:42] ✅ v1.2.0 LIVE -- institutional metrics, empirical odds and anchored AI verdicts verified
+executing-against: 5810cb47ed433c83d3734729dbfce4d2a6ede51d
+1. settle + invoke
+[12:29:33] ✅ marker settled
+[12:29:54] ✅   fresh v1.3.0 doc (~20s)
+2. weights + feeds
+[12:29:54] ✅   stock weights sum = 1.000  {"mom": 0.28, "fleet": 0.22, "flows": 0.13, "industry": 0.13, "quality": 0.14, "catalyst": 0.1}
+[12:29:54] ✅   etf weights sum = 1.000  {"mom": 0.3, "er": 0.25, "rotation": 0.25, "etf_flows": 0.1, "industry_fund": 0.1}
+3. new evidence on LIVE rows
+[12:29:54] ✅   stock rows w/ catalyst leg = 4 (ex: ('MU', 'momentum: 12-1 +602% (top 0% of all stocks), +122pp vs SPY 6m | stock-buying screener SCREENED score 93 (above long-SMA (not in accumulation zone); no'))
+[12:29:54] ✅   ETF rows w/ true-flows leg = 14 (ex: ('SMH', 'momentum: 6m +44% (+30pp vs SPY) | trend gate PASS (px>200d & 12m>cash); rotation rank #19 | true net flows 20d +$3232M (top 7% of covered ETFs)'))
+[12:29:54] ⚠   ETF rows w/ industry-fundamentals leg = 0
+[12:29:54] ✅   fundamentals-intact contract violations = 0
+4. invariants
+[12:29:54] ✅   53w + 12-1 intact
+[12:29:54] ✅   ai clamp violations = 0
+5. readout
+[12:29:54] ✅   large        SPCX    94.9 legs={"mom": 0.99, "flows": 0.85}
+[12:29:54] ✅   large        NBIS    93.0 legs={"mom": 0.97, "flows": 0.85}
+[12:29:54] ✅   comeback     PTC     75.8 legs={"quality": 0.67, "cheap": 0.71, "stabilize": 1.0}
+[12:29:54] ✅   comeback     GDDY    72.4 legs={"quality": 0.64, "cheap": 0.66, "stabilize": 1.0}
+[12:29:54] ✅   etf_equity   IWD     89.8 legs={"mom": 0.81, "rotation": 1.0}
+[12:29:54] ✅   etf_equity   SMH     88.4 legs={"mom": 0.97, "rotation": 0.76, "etf_flows": 0.93}
+[12:29:54] ✅   etf_commodity USO     82.9 legs={"mom": 0.97, "rotation": 0.85, "etf_flows": 0.37}
+[12:29:54] ✅   etf_commodity DBC     76.5 legs={"mom": 0.89, "rotation": 0.78, "etf_flows": 0.37}
+6. verdict
+[12:29:54] ✅ v1.3.0 LIVE -- contracts/backlog/deal evidence, derating detection and ETF flows/industry legs verified on the live league
 
-→ Report written to aws/ops/reports/latest/ops 4815 -- v1.2.0 odds + AI verify.md
+→ Report written to aws/ops/reports/latest/ops 4816 -- v1.3.0 catalyst+ETF legs verify.md
