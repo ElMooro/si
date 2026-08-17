@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Hot Money · daily foreign flows · JustHodl AI</title>
-<meta name="description" content="Daily foreign net buying in liquid markets — the fast layer, kept strictly apart from macro capital flows. Taiwan TWSE live with a 60-day ledger tape; Korea slot ready for KRX keys. Engine: justhodl-hot-money.">
+<title>World Capital Flows · portfolio liabilities · JustHodl AI</title>
+<meta name="description" content="Worldwide foreign capital inflows by country — portfolio investment liabilities (nonresidents buying the country), quarterly BOP layer with specialists first: Peru (copper/gold), Taiwan (semiconductors). Macro layer only; the daily layer lives in Hot Money.">
 <style>
 :root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -34,13 +34,14 @@ tr:last-child td{border-bottom:none}
 .chip .w{font-size:11px;color:var(--fg-3);margin-top:3px}
 </style></head><body>
 <div class="header"><div class="brand"><div class="brand-dot"></div>JustHodl<span style="color:var(--cyan)">.AI</span></div>
-<div class="nav"><a href="/capital-flow.html">capital-flow</a><a href="/foreign-flows.html">us tic/cslt</a><a href="/global-flows.html">world macro</a><a href="/hot-money.html" class="active">hot money</a></div></div>
+<div class="nav"><a href="/capital-flow.html">capital-flow</a><a href="/foreign-flows.html">us tic/cslt</a><a href="/global-flows.html" class="active">world macro</a><a href="/hot-money.html">hot money</a></div></div>
 <div class="wrap">
 
-<div class="hero"><h1>⚡ Hot Money <span class="grad">daily foreign net</span></h1>
-<p>The fast layer: exchange-reported foreign buy/sell, daily. Kept in its own engine, apart from <a href="/global-flows.html">macro capital flows</a> — a hedge fund buying bonds and FDI into a copper mine are different animals. Engine: justhodl-hot-money.</p></div>
+<div class="hero"><h1>🌍 World Capital Flows <span class="grad">portfolio liabilities</span></h1>
+<p>Nonresidents buying the country — never the mixed headline financial account. Quarterly BOP macro layer; the <a href="/hot-money.html">daily hot-money layer</a> is deliberately a separate engine (partial blends are lies). Engine: justhodl-global-flows.</p></div>
 <div id="countries"></div>
 <div class="sec"><h2>Coming online</h2><div class="cards" id="def" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))"></div></div>
+<div class="note" id="comp"></div>
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 const fN=(v,d)=>v==null?"\u2013":(v>0?"+":"")+v.toFixed(d==null?1:d);
@@ -48,37 +49,29 @@ const cls=v=>v==null?"":(v>0?" pos":(v<0?" neg":""));
 const zs=z=>z==null?"":" \u00b7 z "+(z>0?"+":"")+z;
 async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok)return await r.json();}catch(e){}return null;}
 
-const FLAG={taiwan:"🇹🇼",korea:"🇰🇷"};
-function spark(rows){
-  const days=Object.keys(rows).sort().slice(-60);
-  if(days.length<5)return"";
-  const vals=days.map(d=>rows[d]/1e9);
-  const mx=Math.max(...vals.map(Math.abs))||1;
-  const W=Math.min(900,days.length*14),H=90,bw=W/days.length;
-  let s='<svg width="100%" viewBox="0 0 '+W+' '+H+'" style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px">';
-  s+='<line x1="0" y1="'+(H/2)+'" x2="'+W+'" y2="'+(H/2)+'" stroke="#1c2433"/>';
-  vals.forEach((v,i)=>{const bh=Math.abs(v)/mx*(H/2-6);const y=v>=0?H/2-bh:H/2;
-    s+='<rect x="'+(i*bw+1)+'" y="'+y+'" width="'+(bw-2)+'" height="'+Math.max(1,bh)+'" fill="'+(v>=0?"#26ffaf":"#ff5577")+'" opacity="0.85"/>';});
-  s+='</svg><div class="note">'+days[0]+' \u2192 '+days[days.length-1]+' \u00b7 daily foreign net, NT$bn \u00b7 '+days.length+' sessions</div>';
-  return s;}
+const FLAG={peru:"🇵🇪",taiwan:"🇹🇼",korea:"🇰🇷",chile:"🇨🇱"};
 (async function(){
-  const d=await jget("/data/hot-money.json");
+  const d=await jget("/data/global-flows.json");
   if(!d){document.getElementById("countries").innerHTML='<p class="note">feed unavailable</p>';return;}
   let h="";
   for(const[cn,c]of Object.entries(d.countries||{})){
     const name=cn.charAt(0).toUpperCase()+cn.slice(1);
-    if(!c||c.status!=="LIVE"){h+='<div class="sec"><h2>'+(FLAG[cn]||"")+' '+name+'</h2><div class="note">'+(c&&c.status||"n/a")+'</div></div>';continue;}
-    h+='<div class="sec"><h2>'+(FLAG[cn]||"")+' '+name+' <span style="text-transform:none;color:var(--fg-3)">'+(c.specialty||"")+' \u00b7 '+(c.unit||"")+' \u00b7 ledger '+(c.ledger_days||0)+' days</span></h2><div class="cards">';
-    h+='<div class="card"><div class="k">Latest \u00b7 '+(c.latest_day||"")+'</div><div class="v'+cls(c.latest_bn)+'">'+fN(c.latest_bn,2)+'</div><div class="s">daily foreign net</div></div>';
-    for(const w of[5,20,60]){const v=c["sum_"+w+"d_bn"];
-      h+='<div class="card"><div class="k">'+w+'-day flow</div><div class="v'+cls(v)+'">'+fN(v,1)+'</div><div class="s">'+(v==null?(c.why_partial||"accruing"):(w===60?"z "+((c.z_60d>0?"+":"")+(c.z_60d==null?"\u2013":c.z_60d)):"cumulative"))+'</div></div>';}
-    h+='</div><div id="tape-'+cn+'" style="margin-top:12px"></div></div>';}
+    if(!c||c.status!=="LIVE"){h+='<div class="sec"><h2>'+(FLAG[cn]||"")+' '+name+'</h2><div class="note">'+(c&&c.status||"n/a")+' '+((c&&c.why)||"")+'</div></div>';continue;}
+    const mac=(c.macro&&c.macro.series)?c.macro:((c.series)?c:null);
+    h+='<div class="sec"><h2>'+(FLAG[cn]||"")+' '+name+' <span style="text-transform:none;color:var(--fg-3)">'+(c.specialty||"")+(mac?' \u00b7 '+(mac.latest_period||"")+' \u00b7 '+(mac.unit||"")+' \u00b7 '+(mac.freq||""):"")+'</span></h2>';
+    if(mac){h+='<table><tr><th>series</th><th>latest</th><th>4Q sum</th><th>z (all history)</th></tr>';
+      for(const[k,s]of Object.entries(mac.series||{})){
+        if(s==null||s.latest==null){h+='<tr><td>'+k.replace(/_/g," ")+'</td><td colspan="3" style="color:var(--fg-3)">'+((s&&s.status)||"n/a")+'</td></tr>';continue;}
+        h+='<tr><td>'+k.replace(/_/g," ")+'</td><td class="'+cls(s.latest)+'">'+fN(s.latest)+'M</td><td class="'+cls(s.sum_4q)+'">'+fN(s.sum_4q)+'M</td><td>'+(s.z_all==null?"\u2013":(s.z_all>0?"+":"")+s.z_all)+'</td></tr>';}
+      h+='</table>';}
+    const hm=c.hot_money;
+    if(hm&&hm.status==="MOVED")h+='<div class="note">daily hot money \u2192 <a href="/hot-money.html">its own engine + page</a></div>';
+    h+='</div>';}
   document.getElementById("countries").innerHTML=h;
   let dh="";
   for(const[n,r]of Object.entries(d.deferred||{}))dh+='<div class="chip"><b>'+n.replace(/_/g," ")+'</b> <span style="color:var(--fg-3);font-size:11px">'+(r.specialty||"")+'</span><div class="w">'+(r.why||"")+'</div></div>';
   document.getElementById("def").innerHTML=dh;
-  const led=await jget("/data/providers/twse/bfi82u-foreign.json");
-  if(led&&led.rows&&document.getElementById("tape-taiwan"))document.getElementById("tape-taiwan").innerHTML=spark(led.rows);
+  document.getElementById("comp").textContent="CFI + hot-money composites: "+(((d.composites||{}).cfi||{}).why||"");
 })();
 </script>
 </div><script src="/freshness.js"></script></body></html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>US Foreign Portfolio Flows · TIC/CSLT · JustHodl AI</title>
+<meta name="description" content="Monthly foreign capital into US assets by destination: Treasuries, equities, corporate bonds, agency/MBS, T-bills — with risk-appetite, safe-haven and private-vs-official signals, country holdings decomposition and release history. Source: Treasury TIC via the 2026 CSLT dataset on FRED.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{min-height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:8px 24px;background:var(--bg-1);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 24px 70px}
+.hero h1{font-size:28px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:6px 0 16px;max-width:860px}
+.badge{display:none;background:var(--amber);color:#000;border-radius:6px;padding:2px 10px;font-size:11px;font-weight:700;font-family:var(--mono);vertical-align:middle;margin-left:10px}
+.sec{margin-top:30px}
+.sec h2{font-size:15px;font-family:var(--mono);color:var(--fg-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.card{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:14px 14px 12px}
+.card .k{font-size:11px;font-family:var(--mono);color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px}
+.card .v{font-size:22px;font-weight:800;color:var(--fg-0);margin-top:4px;font-family:var(--mono)}
+.card .s{font-size:11px;color:var(--fg-3);margin-top:3px}
+.pos{color:var(--green)!important}.neg{color:var(--red)!important}.amb{color:var(--amber)!important}
+table{width:100%;border-collapse:collapse;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th{font-family:var(--mono);font-size:11px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px;text-align:right;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--bg-1)}
+th:first-child,td:first-child{text-align:left}
+td{padding:8px 12px;font-family:var(--mono);font-size:13px;text-align:right;border-bottom:1px solid var(--border);color:var(--fg-1)}
+tr:last-child td{border-bottom:none}
+.note{color:var(--fg-3);font-size:11px;margin-top:10px;max-width:1000px}
+.chip{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;opacity:.8}
+.chip b{font-size:12px;font-family:var(--mono)}
+.chip .w{font-size:11px;color:var(--fg-3);margin-top:3px}
+</style></head><body>
+<div class="header"><div class="brand"><div class="brand-dot"></div>JustHodl<span style="color:var(--cyan)">.AI</span></div>
+<div class="nav"><a href="/capital-flow.html">capital-flow</a><a href="/foreign-flows.html" class="active">us tic/cslt</a><a href="/global-flows.html">world macro</a><a href="/hot-money.html">hot money</a></div></div>
+<div class="wrap">
+
+<div class="hero"><h1>🇺🇸 US Foreign Portfolio Flows <span class="grad">TIC / CSLT</span><span class="badge" id="nr">NEW RELEASE</span></h1>
+<p id="sub">Foreign purchases minus sales of US securities, by destination. Monthly, ~1.5-month lag, banked permanently. Loading…</p></div>
+<div class="sec"><h2>Flows by destination — latest month ($B)</h2><div class="cards" id="flows"></div></div>
+<div class="sec"><h2>Signals</h2><div class="cards" id="sigs"></div><div class="note" id="split"></div></div>
+<div class="sec"><h2>LT-Treasury holdings by country ($B)</h2><div id="ctry"></div>
+<div class="note">Δholdings = transactions + valuation change + other adjustments — the rightmost column is the honest "other" term. Country attribution carries custodial bias (BE/UK/LU/IE/KY are custody centers).</div></div>
+<div class="sec"><h2>Release history</h2><div id="rel" class="note">loading…</div></div>
+<div class="note">Flows are TIC <b>transactions</b> — never computed as holdings deltas (valuation-change trap). Direct real-estate purchases (NAR annual survey) and TIC banking-channel flows (B-tables) are queued probes — not monthly CSLT, so not faked here. Engine: justhodl-foreign-flows.</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+const fN=(v,d)=>v==null?"\u2013":(v>0?"+":"")+v.toFixed(d==null?1:d);
+const cls=v=>v==null?"":(v>0?" pos":(v<0?" neg":""));
+const zs=z=>z==null?"":" \u00b7 z "+(z>0?"+":"")+z;
+async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok)return await r.json();}catch(e){}return null;}
+
+(async function(){
+  const d=await jget("/data/foreign-flows.json");
+  if(!d||d.status!=="LIVE"){document.getElementById("sub").textContent="feed "+(d&&d.status||"unavailable")+(d&&d.why?" \u2014 "+d.why:"");return;}
+  document.getElementById("sub").textContent="Data month "+(d.latest_month||"")+" \u00b7 published as of "+(d.as_of||"")+" \u00b7 monthly, ~1.5-month lag \u00b7 banked permanently under the Deny-Delete zone.";
+  if(d.new_release)document.getElementById("nr").style.display="inline-block";
+  const F=d.flows_bn||{};let h="";
+  for(const[k,lab]of[["total","Total LT securities"],["treas","US Treasuries (LT+ST)"],["equity","US Equities"],["corp","Corporate bonds"],["agency","Agency / MBS"],["tbills","T-bills (ST)"]]){
+    const v=F[k]||{};
+    h+='<div class="card"><div class="k">'+lab+'</div><div class="v'+cls(v.latest)+'">'+fN(v.latest)+'B</div><div class="s">3m '+fN(v.sum_3m)+' \u00b7 12m '+fN(v.sum_12m)+zs(v.z_10y)+'</div></div>';}
+  document.getElementById("flows").innerHTML=h;
+  const S=d.signals||{};h="";
+  for(const[k,lab]of[["risk_appetite","Risk appetite"],["safe_haven","Safe-haven rotation"],["total_demand","Total foreign demand"],["official_private","Private \u2212 Official"]]){
+    const s=S[k]||{};
+    if(s.latest_bn==null){h+='<div class="card"><div class="k">'+lab+'</div><div class="v">\u2013</div><div class="s">'+(s.why||"")+'</div></div>';continue;}
+    h+='<div class="card"><div class="k">'+lab+'</div><div class="v'+cls(s.latest_bn)+'">'+fN(s.latest_bn)+'B</div><div class="s">12m '+fN(s.sum_12m_bn)+zs(s.z_10y)+'</div></div>';}
+  document.getElementById("sigs").innerHTML=h;
+  const hs=((d.holder_splits||{}).lt_total)||{};
+  if(hs.status==="OK")document.getElementById("split").innerHTML="LT total split: private <b>"+fN((hs.private||{}).latest)+"B</b> vs official <b>"+fN((hs.official||{}).latest)+"B</b> (recon gap "+fN(hs.recon_gap_bn,2)+"B \u2014 runtime-reconciled).";
+  const C=d.country_lt_treasury||{};const rows=Object.entries(C).filter(([,r])=>r&&r.status==="OK");
+  if(rows.length){let t='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th><th>tx 12m</th><th>valchg 12m</th><th>other</th></tr>';
+    for(const[n,r]of rows)t+='<tr><td>'+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td><td class="'+cls(r.tx_12m_bn)+'">'+fN(r.tx_12m_bn)+'</td><td>'+fN(r.valchg_12m_bn)+'</td><td>'+fN(r.identity_gap_bn)+'</td></tr>';
+    document.getElementById("ctry").innerHTML=t+'</table>';}
+  const rel=await jget("/foreign-flows/releases.json");
+  const rr=(rel&&rel.rows||[]).slice(-12).reverse();
+  document.getElementById("rel").innerHTML=rr.length?rr.map(r=>"<div>"+r.detected+" \u2014 month "+r.month+": "+(r.alert||"")+"</div>").join(""):"no releases logged yet \u2014 the badge flips on the next monthly TIC ingest.";
+})();
+</script>
+</div><script src="/freshness.js"></script></body></html>
