@@ -1,15 +1,17 @@
-executing-against: dd2b3e7c4f50903f6e9ad20220fe657d546da387
-ops 4799 -- settle-gated v2.5 verify
+executing-against: 81da00d637b598533ca1d853b9982dccd430175b
+ops 4799 -- settle-gated v2.6 verify
 ── 1. env keys (heal if deploy wiped them) ──
 ── 2. deploy settle: marker in deployed zip ──
 ── 3. async run + assertions ──
-[00:24:14] diag: {"te_key_present": true, "te": {"germany": "HTTPError:HTTP Error 403: Forbidden", "italy": "HTTPError:HTTP Error 403: Forbidden", "france": "HTTPError:HTTP Error 403: Forbidden", "spain": "HTTPError:HTTP Error 403: Forbidden"}, "sftr": {"stage": "page", "links": 2}}
-[00:24:14] ⚠ DE10Y_TE: ABSENT
-[00:24:14] ⚠ IT10Y_TE: ABSENT
-[00:24:14] ⚠ FR10Y_TE: ABSENT
-[00:24:14] ⚠ ES10Y_TE: ABSENT
-[00:24:14] ⚠ D_BTP_BUND_D: ABSENT
-[00:24:14] ✅ WREPOFOR: 2002-12-18 -> 2026-08-12 n=1235 last=349641.0
-[00:24:14] ✅ WLRRAFOIAL: 2002-12-18 -> 2026-08-12 n=1235 last=357392.0
+[00:41:00] diag: {"te_key_present": true, "te": {"germany": "HTTPError:HTTP Error 403: Forbidden", "italy": "HTTPError:HTTP Error 403: Forbidden", "france": "HTTPError:HTTP Error 403: Forbidden", "spain": "HTTPError:HTTP Error 403: Forbidden"}, "sftr": {"stage": "page", "links": 2, "files_new": 2, "series_put": 12}, "dtcc": {"live_rows": 250, "treasury": 250, "agency": 250}}
+[00:41:00] ✅ DTCC-TREASURY-FAILS: 2025-08-14 -> 2026-08-14 n=250 last=34843330834.03
+[00:41:00] ✅ DTCC-AGENCY-FAILS: 2025-08-14 -> 2026-08-14 n=250 last=40577210.08
+[00:41:00] ✅ WREPOFOR: 2002-12-18 -> 2026-08-12 n=1235 last=349641.0
+[00:41:00] ⚠ SFTR-EU-outstanding-all-sfts-total-sft-cash-value-eur-mn: ABSENT
+[00:41:00] ✅ sftr sample: SFTR-EU-newt-5-6-cash-value-eur-mn last=18886667.515700083
 
-→ Report written to aws/ops/reports/latest/4800_v25_verify.md
+→ Report written to aws/ops/reports/latest/4801_v26_verify.md
+ops 4802 -- DTCC fails Wayback recovery
+[00:41:06] ⚠ CDX: HTTPError: HTTP Error 503: Service Unavailable
+
+→ Report written to aws/ops/reports/latest/4802_dtcc_wayback.md
