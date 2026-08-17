@@ -37,8 +37,8 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.3.0"
-MARKER = "spx-beaters v1.3.0"
+VERSION = "1.3.1"
+MARKER = "spx-beaters v1.3.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/spx-beaters.json"
 LEDGER_KEY = "spx-beaters/weekly-closes.json"
@@ -665,14 +665,28 @@ def scan():
 
     boom = _g("data/industry-boom.json") or {}
     league = rows_of(boom, "league", "rows")
-    boom_by_ind, boom_scores = {}, []
+    boom_by_ind, boom_delta, boom_scores = {}, {}, []
     for b in league:
         nm = str(b.get("industry") or "").lower()
-        sc = fnum(b.get("score"))
+        # producer's league.append writes "boom_score" (ops 4817
+        # root-cause: binding "score" joined ZERO rows 4811-4816 --
+        # bind the OUTPUT construction, keep a fallback chain only
+        # for resilience)
+        sc = fnum(b.get("boom_score"))
+        if sc is None:
+            sc = fnum(b.get("score"))
+        if sc is None:
+            sc = fnum(b.get("velocity"))
         if nm and sc is not None:
             boom_by_ind[nm] = sc
+            d20 = fnum(b.get("score_delta_20d"))
+            if d20 is not None:
+                boom_delta[nm] = d20
             boom_scores.append(sc)
     boom_scores.sort()
+    if league and not boom_by_ind:
+        print("[spx-beaters] WARN industry-boom parse joined 0 of "
+              "%d league rows -- field drift?" % len(league))
     diag["feeds"]["industry_boom"] = len(boom_by_ind)
 
     sp = _g("data/sp500.json") or {}
@@ -836,9 +850,13 @@ def scan():
             bp = pctile(boom_scores, boom_by_ind[ind])
             if bp is not None:
                 legs["industry"] = bp / 100.0
+                d20 = boom_delta.get(ind)
                 why.append("industry '%s' boom score %.0f (top %.0f%% "
-                           "of 120)" % (m["industry"][:28],
-                                        boom_by_ind[ind], 100 - bp))
+                           "of %d)%s"
+                           % (m["industry"][:28], boom_by_ind[ind],
+                              100 - bp, len(boom_by_ind),
+                              ", %+.1f over 20d" % d20
+                              if d20 is not None else ""))
         cev = []
         cv = 0.0
         ce = cat_by.get(t)
@@ -983,11 +1001,14 @@ def scan():
             if best is not None:
                 bp = pctile(boom_scores, best)
                 legs["industry_fund"] = (bp or 50) / 100.0
+                d20 = boom_delta.get(bname)
                 why.append("industry '%s' boom %.0f (top %.0f%% of "
-                           "%d) -- fuses earnings-revision breadth, "
+                           "%d%s) -- fuses earnings-revision breadth, "
                            "deal wins + backlog accel"
                            % (bname[:26], best, 100 - (bp or 50),
-                              len(boom_by_ind)))
+                              len(boom_by_ind),
+                              ", %+.1f/20d" % d20
+                              if d20 is not None else ""))
         if len(legs) < 2:
             return None
         num = sum(W_ETF[k] * v for k, v in legs.items())
