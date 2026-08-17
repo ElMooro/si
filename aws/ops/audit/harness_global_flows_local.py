@@ -135,11 +135,6 @@ def fake_cbc():
 
 eng.cbc_fetch = fake_cbc
 
-TW_DAYS = ["202608%02d" % d for d in range(1, 16)]
-TW_NET = {d: 1e9 * (i - 5) for i, d in enumerate(TW_DAYS)}
-TW_MODE = {"dead": False}
-
-
 def fake_twse(day=None):
     if TW_MODE["dead"]:
         return None, "stat=NO"
@@ -150,8 +145,7 @@ def fake_twse(day=None):
     return day, TW_NET[day]
 
 
-eng.twse_fetch = fake_twse
-eng.BACKFILL_SLEEP = 0.0
+
 
 
 def ind_z(vals):
@@ -235,37 +229,10 @@ def main():
         len(STORE[eng.CBC_BANK_FMT % "portfolio_liab_total"]
             ["rows"]) == 30)
 
-    print("== T2 TWSE ledger day-one honesty ==")
-    hm = tw["hot_money"]
-    exp = [TW_NET[d] for d in TW_DAYS]
-    chk("T2 day-one: latest only, sums honestly null",
-        hm["ledger_days"] == 1
-        and hm["latest_bn"] == round(exp[-1] / 1e9, 2)
-        and hm["sum_5d_bn"] is None
-        and "accruing" in hm["why_partial"])
-    chk("T2 z null below MIN_Q", hm["z_60d"] is None)
-
-    print("== T3 backfill: pacing cap honored, then sums ==")
-    old_cap = eng.BACKFILL_CAP
-    eng.BACKFILL_CAP = 5
-    eng.lambda_handler({"twse_backfill_days": 30}, None)
-    hm_c = (STORE[eng.OUT_KEY]["countries"]["taiwan"]
-            ["hot_money"])
-    chk("T3 cap=5 -> exactly 5 attempts recorded",
-        hm_c.get("backfill_attempts") == 5)
-    eng.BACKFILL_CAP = old_cap
-    PUTS.clear()
-    eng.lambda_handler({"twse_backfill_days": 30}, None)
-    led = STORE[eng.TWSE_LEDGER]["rows"]
-    chk("T3 ledger holds all 15 fixture days (holidays "
-        "skipped)", len(led) == 15
-        and all(d in led for d in TW_DAYS))
-    hm2 = (STORE[eng.OUT_KEY]["countries"]["taiwan"]
-           ["hot_money"])
-    chk("T3 post-backfill 5d sum == independent",
-        hm2["sum_5d_bn"] == round(sum(exp[-5:]) / 1e9, 2)
-        and hm2["ledger_days"] == 15
-        and hm2["sum_20d_bn"] is None)
+    print("== T2 hot-money MOVED pointer ==")
+    chk("T2 hot_money = MOVED -> data/hot-money.json",
+        tw["hot_money"]["status"] == "MOVED"
+        and "hot-money" in tw["hot_money"]["see"])
 
     print("== T4 Taiwan honesty paths ==")
     CBC_MODE["shift"] = True
@@ -281,21 +248,11 @@ def main():
         == "MISSING")
     CBC_MODE["ragged"] = False
     CBC_MODE["dead"] = True
-    TW_MODE["dead"] = True
-    d_l = eng.build({})
-    chk("T4 feeds dead but LEDGER banked -> taiwan stays LIVE "
-        "via hot_money history",
-        d_l["countries"]["taiwan"]["status"] == "LIVE"
-        and d_l["countries"]["taiwan"]["macro"]["status"]
-        == "MISSING")
-    del STORE[eng.TWSE_LEDGER]
     d_d = eng.build({})
-    chk("T4 feeds dead + empty ledger -> taiwan MISSING, doc "
-        "LIVE on peru", d_d["countries"]["taiwan"]["status"]
+    chk("T4 cbc dead -> taiwan MISSING (macro-only), doc LIVE "
+        "on peru", d_d["countries"]["taiwan"]["status"]
         == "MISSING" and d_d["status"] == "LIVE")
     CBC_MODE["dead"] = False
-    TW_MODE["dead"] = False
-    eng.build({"twse_backfill_days": 30})   # restore ledger
 
     print("== A5b endq_prev unit ==")
     from datetime import datetime as _dt, timezone as _tz
@@ -310,17 +267,17 @@ def main():
     out = eng.lambda_handler({}, None)
     chk("A5 handler writes OUT last", PUTS[-1] == eng.OUT_KEY
         and out["ok"] is True)
-    chk("A5 only bcrp/cbc/twse banks + out written",
+    chk("A5 only bcrp/cbc banks + out written (TWSE ledger "
+        "NEVER touched)",
         all(p == eng.OUT_KEY
             or p.startswith("data/providers/bcrp/")
             or p.startswith("data/providers/cbc/")
-            or p == eng.TWSE_LEDGER
             for p in PUTS))
     print()
     if FAILS:
         print("HARNESS FAILED: %s" % FAILS)
         sys.exit(1)
-    print("HARNESS GREEN -- push gate open (ops 4839)")
+    print("HARNESS GREEN -- push gate open (ops 4854)")
 
 
 if __name__ == "__main__":

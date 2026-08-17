@@ -1,5 +1,5 @@
 """justhodl-global-flows v1.1.0 -- worldwide foreign capital
-inflows by country.  Marker: global-flows v1.1.1
+inflows by country.  Marker: global-flows v1.2.0
 
 Khalid directive 2026-08-17: country inflows worldwide, the more the
 better, specialists first (industries + raw materials).  Doctrine
@@ -29,10 +29,8 @@ v1.1 (probes 4837-4838): TAIWAN LIVE --
   fund shares-Liabilities", first "Debt securities-Liabilities"
   AFTER the equity row -- never by hardcoded index), USD mn, "-"
   = null, quarterly since 1984Q1.
-  hot_money: TWSE rwd/en/fund/BFI82U daily Trading Value by
-  investor type; foreign net = sum of Difference over Items
-  containing "Foreign" (incl Mainland-area row + Foreign Dealers),
-  NT$; self-building ledger + {"twse_backfill_days": N} event.
+  hot_money: MOVED to justhodl-hot-money (Khalid directive
+  2026-08-17: separate engines for hot money vs capital flow).
 Series bank permanently under data/providers/bcrp/{sid}.json
 (Deny-Delete zone, union-merge).  Weekly Mon 12:00 UTC (quarterly
 data; cheap check).  CFI and hot-money composites stay DEFERRED
@@ -47,7 +45,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.1.1"
+VERSION = "1.2.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/global-flows.json"
 BANK_FMT = "data/providers/bcrp/%s.json"
@@ -177,11 +175,6 @@ CBC_LAB_TOTAL = "Portfolio investment-Liabilities"
 CBC_LAB_EQ = ("Portfolio investment-Equity and investment fund "
               "shares-Liabilities")
 CBC_LAB_DEBT = "Debt securities-Liabilities"
-TWSE_URL = ("https://www.twse.com.tw/rwd/en/fund/BFI82U"
-            "?response=json")
-TWSE_LEDGER = "data/providers/twse/bfi82u-foreign.json"
-BACKFILL_SLEEP = 2.2          # TWSE throttles bursts (burned 4839)
-BACKFILL_CAP = 45             # attempts per invoke; ops loops
 CBC_BANK_FMT = "data/providers/cbc/%s.json"
 
 
@@ -233,30 +226,6 @@ def cbc_locate(labels):
             "portfolio_liab_debt": i_debt}
 
 
-def twse_fetch(day=None):
-    """(yyyymmdd, foreign_net_twd) or (None, reason).  Foreign net
-    = sum of Difference over Items containing 'Foreign'.  Seam."""
-    url = TWSE_URL + ("&dayDate=%s&type=day" % day if day else "")
-    try:
-        req = urllib.request.Request(
-            url, headers={"User-Agent": "justhodl-gf"})
-        with urllib.request.urlopen(req, timeout=45) as r:
-            j = json.loads(r.read())
-        if j.get("stat") != "OK" or not j.get("data"):
-            return None, "stat=%s" % j.get("stat")
-        net = 0.0
-        found = False
-        for row in j["data"]:
-            if "foreign" in str(row[0]).lower():
-                found = True
-                net += float(str(row[3]).replace(",", ""))
-        if not found:
-            return None, "no foreign rows"
-        return str(j.get("date")), net
-    except Exception as e:  # noqa: BLE001
-        return None, "fetch_error:%s" % str(e)[:60]
-
-
 def taiwan_block(doc, event):
     tw = {"specialty": "semiconductors", "macro": {},
           "hot_money": {}}
@@ -304,60 +273,12 @@ def taiwan_block(doc, event):
                     "first": ser[0][0]}
             tw["macro"]["latest_period"] = rows[-1][0]
 
-    led = _g(TWSE_LEDGER) or {"source": "TWSE BFI82U foreign net "
-                              "(TWD)", "rows": {}}
-    n_backfill = 0
-    bf = 0
-    try:
-        bf = int((event or {}).get("twse_backfill_days") or 0)
-    except (TypeError, ValueError):
-        bf = 0
-    attempts = 0
-    if bf > 0:
-        from datetime import timedelta
-        d0 = datetime.now(timezone.utc)
-        for k in range(min(bf, 120)):
-            if attempts >= BACKFILL_CAP:
-                break
-            day = (d0 - timedelta(days=k)).strftime("%Y%m%d")
-            if day in led["rows"]:
-                continue
-            attempts += 1
-            dd, net = twse_fetch(day)
-            if dd is not None and dd == day:
-                led["rows"][day] = net
-                n_backfill += 1
-            time.sleep(BACKFILL_SLEEP)
-    dd, net = twse_fetch()
-    if dd is not None:
-        led["rows"][dd] = net
-    if n_backfill or dd is not None:
-        _put(TWSE_LEDGER, led)
-    days = sorted(led["rows"])
-    nets = [led["rows"][d] for d in days]
-    hm = {"status": "LIVE" if days else "MISSING",
-          "unit": "TWD bn", "ledger_days": len(days),
-          "source": "TWSE BFI82U (keyless, daily)"}
-    if days:
-        hm["latest_day"] = days[-1]
-        hm["latest_bn"] = round(nets[-1] / 1e9, 2)
-        for w in (5, 20, 60):
-            if len(nets) >= w:
-                hm["sum_%dd_bn" % w] = round(sum(nets[-w:]) / 1e9,
-                                             2)
-            else:
-                hm["sum_%dd_bn" % w] = None
-        hm["why_partial"] = (None if len(nets) >= 60 else
-                             "ledger accruing n=%d" % len(nets))
-        zs = [n / 1e9 for n in nets[-61:]]
-        hm["z_60d"] = zlast(zs) if len(zs) >= MIN_Q else None
-    if bf > 0:
-        hm["backfilled"] = n_backfill
-        hm["backfill_attempts"] = attempts
-    tw["hot_money"] = hm
-    tw["status"] = ("LIVE" if (tw["macro"].get("status") == "LIVE"
-                               or hm.get("status") == "LIVE")
-                    else "MISSING")
+    tw["hot_money"] = {"status": "MOVED",
+                       "see": "data/hot-money.json",
+                       "why": "hot money split into justhodl-"
+                              "hot-money per doctrine"}
+    tw["status"] = ("LIVE" if tw["macro"].get("status")
+                    == "LIVE" else "MISSING")
     doc["countries"]["taiwan"] = tw
 
 

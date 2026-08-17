@@ -1,6 +1,6 @@
 """justhodl-foreign-flows v1.1.0 -- US Foreign Portfolio Flows
 (Treasury TIC via the 2026 CSLT dataset on FRED).
-Marker: foreign-flows v1.1.0
+Marker: foreign-flows v1.1.1
 
 Khalid doctrine: dollar view first. This engine adds the missing
 organ -- where foreign money actually moves inside US markets --
@@ -57,7 +57,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 FRED_KEY = os.environ.get("FRED_KEY") or ""
 OUT_KEY = "data/foreign-flows.json"
@@ -118,7 +118,7 @@ def _put(key, obj):
                   ContentType="application/json")
 
 
-def fred_fetch(sid):
+def _fred_once(sid):
     """(units, [(date,val_musd)]) or (None, reason). Seam for the
     harness."""
     base = "https://api.stlouisfed.org/fred"
@@ -148,6 +148,18 @@ def fred_fetch(sid):
     except Exception as e:  # noqa: BLE001
         return None, "fetch_error:%s" % str(e)[:60]
 
+
+
+def fred_fetch(sid):
+    """Retry shell: release-night FRED load flakes single series
+    (burned 2026-08-17 21:30 -- total tile went null while 5/6
+    siblings succeeded).  One retry after 2s; both failures ->
+    honest exclusion as before."""
+    units, rows = _fred_once(sid)
+    if units is not None:
+        return units, rows
+    time.sleep(2.0)
+    return _fred_once(sid)
 
 def to_bn(v, units):
     u = (units or "").lower()

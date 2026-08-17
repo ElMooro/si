@@ -180,8 +180,9 @@ a{color:var(--cyan);text-decoration:none}
 (async function(){
   const P=(typeof PROXY!=="undefined")?PROXY:"";
   const el=document.getElementById("gf-body");
-  let d=null;
+  let d=null,hd=null;
   try{const r=await fetch(P+"/data/global-flows.json?t="+Date.now());if(r.ok)d=await r.json();}catch(e){}
+  try{const r2=await fetch(P+"/data/hot-money.json?t="+Date.now());if(r2.ok)hd=await r2.json();}catch(e){}
   if(!d){el.innerHTML="<span style=\"opacity:.6\">global-flows unavailable</span>";return;}
   const FLAG={peru:"🇵🇪",taiwan:"🇹🇼",korea:"🇰🇷",chile:"🇨🇱"};
   const fm=v=>v==null?"–":(v>0?"+":"")+v.toFixed(1)+"M";
@@ -197,7 +198,7 @@ a{color:var(--cyan);text-decoration:none}
       for(const[k,s]of Object.entries(mac.series||{})){if(s==null||s.latest==null)continue;
         h+="<tr><td>"+pretty(k)+"</td><td style=\"text-align:right\">"+fm(s.latest)+"</td><td style=\"text-align:right;opacity:.7\">4Q "+fm(s.sum_4q)+"</td><td style=\"text-align:right\">"+zc(s.z_all)+"</td></tr>";}
       h+="</table>";}
-    const hm=c.hot_money;
+    const hm=(hd&&hd.countries&&hd.countries[cn])||null;
     if(hm&&hm.status==="LIVE"){h+="<div style=\"margin-top:6px;font-size:12px\"><b>Hot money</b> (daily foreign net, "+(hm.unit||"")+"): latest "+fb2(hm.latest_bn)+" @ "+(hm.latest_day||"")+" · 5d "+fb2(hm.sum_5d_bn)+" · 20d "+fb2(hm.sum_20d_bn)+" · 60d "+fb2(hm.sum_60d_bn)+zc(hm.z_60d)+(hm.why_partial?" <span style=\"opacity:.55\">("+hm.why_partial+")</span>":"")+"</div>";}
     h+="</div>";}
   const dep=Object.entries(d.deferred||{});
