@@ -1,5 +1,5 @@
 """justhodl-beaters-grader v1.0.0 -- Fusion 4.
-Marker: beaters-grader v1.0.0
+Marker: beaters-grader v1.0.1
 
 Closes the loop the beaters league cannot close itself: every
 Saturday (15:00 UTC, after the league at 13:00) this engine BANKS
@@ -27,7 +27,7 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 SRC_KEY = "data/spx-beaters.json"
 LEDGER_KEY = "spx-beaters/weekly-closes.json"
@@ -62,7 +62,7 @@ def _put(key, obj):
 def bank_week(bank, src):
     """Append this snapshot's listings (slim rows) under its as_of
     date; idempotent."""
-    wk = src.get("as_of") or src.get("generated_at", "")[:10]
+    wk = (src.get("as_of") or src.get("generated_at") or "")[:10]
     if not wk:
         return bank, None, "no as_of on source"
     if wk in bank["weeks"]:
@@ -120,8 +120,8 @@ def grade(bank, led, today):
     graded = bank.setdefault("grades", {})
     n_new = 0
     for wk, snap in bank["weeks"].items():
-        age_d = (datetime.fromisoformat(today)
-                 - datetime.fromisoformat(wk)).days
+        age_d = (datetime.fromisoformat(today[:10])
+                 - datetime.fromisoformat(wk[:10])).days
         g = graded.setdefault(wk, {})
         for hw in H_WEEKS:
             hk = "%dw" % hw

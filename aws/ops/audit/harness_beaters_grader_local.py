@@ -63,7 +63,8 @@ CLOSES = {
     "CCC": [10.0] * 16,                               # flat
 }
 LEDGER = {"dates": DATES, "closes": CLOSES}
-SRC_DOC = {"as_of": "2026-08-15", "buckets": {
+SRC_DOC = {"as_of": "2026-08-15T13:05:22+00:00",  # tz-aware (burned 4847)
+           "buckets": {
     "momentum_stocks": [
         {"t": "AAA", "score": 90, "legs": {"mom": .3, "fleet": .2}},
         {"t": "BBB", "score": 70, "legs": {"mom": .3}}],

@@ -1,4 +1,6 @@
-"""ops/4848 -- grader diagnose + regate (4847: invoke fired, no
+"""ops/4849 -- grader regate after tz fix (4848 captured the
+root cause: naive-vs-aware datetime; v1.0.1 slices week keys to
+YYYY-MM-DD) (4847: invoke fired, no
 doc in 3 min => runtime crash).
  (1) tail CloudWatch for /aws/lambda/justhodl-beaters-grader --
      print the last error lines.
@@ -44,7 +46,7 @@ def sread(key):
 
 
 def main():
-    with report("ops 4848 -- grader diagnose regate") as rep:
+    with report("ops 4849 -- grader regate tz-fixed") as rep:
         rep.heading("1. CloudWatch tail")
         try:
             streams = logs.describe_log_streams(
@@ -87,7 +89,7 @@ def main():
         except ClientError as e:
             rep.fail("outputs unreadable: %s" % e)
             sys.exit(1)
-        wk = src.get("as_of")
+        wk = (src.get("as_of") or "")[:10]
         if doc.get("status") == "LIVE" and wk in bank.get(
                 "weeks", {}):
             rep.ok("  LIVE; week %s banked" % wk)
