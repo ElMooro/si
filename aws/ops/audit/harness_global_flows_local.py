@@ -142,6 +142,14 @@ def main():
         d3["status"] == "INSUFFICIENT_DATA"
         and d3["countries"]["peru"]["status"] == "MISSING")
     MODE["dead"] = False
+    print("== A5b endq_prev unit ==")
+    from datetime import datetime as _dt, timezone as _tz
+    cases = {(2026, 8): "2026-2", (2026, 1): "2025-4",
+             (2026, 4): "2026-1", (2026, 12): "2026-3"}
+    ok = all(eng.endq_prev(_dt(y, m, 15, tzinfo=_tz.utc)) == v
+             for (y, m), v in cases.items())
+    chk("A5b endq = previous completed quarter (4 cases)", ok)
+
     print("== A5 write discipline ==")
     PUTS.clear()
     out = eng.lambda_handler({}, None)

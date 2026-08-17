@@ -102,18 +102,31 @@ def fnum(v):
         return None
 
 
+def endq_prev(now):
+    """BCRP end period = PREVIOUS completed quarter: asking through
+    the current (incomplete) quarter makes the API append junk
+    after the JSON (Extra data -- burned ops 4833)."""
+    q = (now.month - 1) // 3 + 1
+    return "%d-4" % (now.year - 1) if q == 1 \
+        else "%d-%d" % (now.year, q - 1)
+
+
 def bcrp_fetch():
     """One combined call -> {name: [(period, val_musd)]} or
     (None, reason).  Seam for the harness."""
     now = datetime.now(timezone.utc)
-    endq = "%d-%d" % (now.year, (now.month - 1) // 3 + 1)
+    endq = endq_prev(now)
     sids = "-".join(PE_SERIES.values())
     try:
         req = urllib.request.Request(
             PE_URL % (sids, endq),
             headers={"User-Agent": "justhodl-global-flows"})
         with urllib.request.urlopen(req, timeout=60) as r:
-            j = json.loads(r.read())
+            raw = r.read().decode("utf-8", "replace")
+        try:
+            j = json.loads(raw)
+        except ValueError:
+            j = json.JSONDecoder().raw_decode(raw)[0]
     except Exception as e:  # noqa: BLE001
         return None, "fetch_error:%s" % str(e)[:70]
     periods = j.get("periods") or []

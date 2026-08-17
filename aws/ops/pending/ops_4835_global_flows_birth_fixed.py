@@ -1,4 +1,4 @@
-"""ops/4833 -- justhodl-global-flows birth verify (Peru live,
+"""ops/4835 -- justhodl-global-flows birth verify (Peru live,
 world deferrals named).
  G0  BCRP combined call answers with 4 series >= 24 quarters
      (probe-4832 re-confirmed at birth).
@@ -59,14 +59,20 @@ def sread(key):
 
 def bcrp():
     now = datetime.now(timezone.utc)
-    endq = "%d-%d" % (now.year, (now.month - 1) // 3 + 1)
+    q = (now.month - 1) // 3 + 1
+    endq = "%d-4" % (now.year - 1) if q == 1 \
+        else "%d-%d" % (now.year, q - 1)
     url = ("https://estadisticas.bcrp.gob.pe/estadisticas/series/"
            "api/%s/json/2012-1/%s"
            % ("-".join(SIDS.values()), endq))
     req = urllib.request.Request(url, headers={"User-Agent":
                                                "ops-4833"})
     with urllib.request.urlopen(req, timeout=60) as r:
-        return json.loads(r.read())
+        raw = r.read().decode("utf-8", "replace")
+    try:
+        return json.loads(raw)
+    except ValueError:
+        return json.JSONDecoder().raw_decode(raw)[0]
 
 
 def settle(rep):
@@ -128,7 +134,7 @@ def ensure_schedule(rep):
 
 
 def main():
-    with report("ops 4833 -- global-flows birth verify") as rep:
+    with report("ops 4835 -- global-flows birth verify") as rep:
         rep.heading("G0. BCRP re-confirm at birth")
         try:
             j = bcrp()

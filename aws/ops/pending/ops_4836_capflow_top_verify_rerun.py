@@ -1,4 +1,4 @@
-"""ops/4834 -- capital-flow.html TOP restructure verify.
+"""ops/4836 -- capital-flow.html TOP restructure verify.
 Khalid: US-by-destination + world grid must sit at the TOP.
  G0  field-level on BOTH feeds every card binds:
      foreign-flows.json (six flows, four signals, split, countries)
@@ -39,7 +39,7 @@ def sread(key):
 
 
 def main():
-    with report("ops 4834 -- capital-flow top restructure "
+    with report("ops 4836 -- capital-flow top restructure "
                 "verify") as rep:
         rep.heading("G0. both live feeds, field-level")
         try:
