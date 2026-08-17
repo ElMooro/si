@@ -1,4 +1,4 @@
-"""justhodl-sp500 v1.0.2 — THE S&P 500 AS A SINGLE STOCK.
+"""justhodl-sp500 v1.0.3 — THE S&P 500 AS A SINGLE STOCK.
 
 Khalid (2026-08-16): "give me all the sp500 metrics as a whole — its p/e,
 forward p/e, yield, everything — so when I buy a stock I can compare its
@@ -45,8 +45,8 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.2"
-MARKER = "sp500 v1.0.2"
+VERSION = "1.0.3"
+MARKER = "sp500 v1.0.3"
 BUCKET = "justhodl-dashboard-live"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
 LEDGER_KEY = "spx-ma/member-closes.json"
@@ -198,13 +198,6 @@ def compute(diag):
     # NTM components backed out of the fundamental-graphs derived
     # forward ratios (real analyst consensus; est_* raw is _lv-excluded)
     pef_c, psf_c, evef_c = C("pe_fwd"), C("ps_fwd"), C("ev_ebitda_fwd")
-    ni_f = [cap_c[i] / pef_c[i] if cap_c[i] and pef_c[i]
-            and pef_c[i] > 0 else None for i in range(n)]
-    rev_f = [cap_c[i] / psf_c[i] if cap_c[i] and psf_c[i]
-             and psf_c[i] > 0 else None for i in range(n)]
-    diag["forward_source"] = ("matrix pe_fwd/ps_fwd/ev_ebitda_fwd "
-                              "(NTM consensus, %d members w/ pe_fwd)"
-                              % sum(1 for v in ni_f if v is not None))
 
     # per-member components at census snapshot + repriced cap ---------
     cap_c = [m if (m and m > 0) else None for m in mcap]
@@ -246,6 +239,13 @@ def compute(diag):
             for i in range(n)]
     ebd_f = [ev_c[i] / evef_c[i] if ev_c[i] and evef_c[i]
              and evef_c[i] > 0 else None for i in range(n)]
+    ni_f = [cap_c[i] / pef_c[i] if cap_c[i] and pef_c[i]
+            and pef_c[i] > 0 else None for i in range(n)]
+    rev_f = [cap_c[i] / psf_c[i] if cap_c[i] and psf_c[i]
+             and psf_c[i] > 0 else None for i in range(n)]
+    diag["forward_source"] = ("matrix pe_fwd/ps_fwd/ev_ebitda_fwd "
+                              "(NTM consensus, %d members w/ pe_fwd)"
+                              % sum(1 for v in ni_f if v is not None))
 
     # ---------------------------------------------------- aggregates --
     def AGG(nums, dens, dp=2, floor=None):
