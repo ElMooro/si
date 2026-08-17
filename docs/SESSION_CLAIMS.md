@@ -18,8 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| FRED-window sentinel for tic-cslt banks (detect windowing + silent revisions) | 4850-4851 | S-fable-A | 2026-08-17 18:4x |
-| Fusion 3 catalyst-chain: schema probe (catalyst x readthrough x backlog x est-revisions) | 4852 | S-fable-A | 2026-08-17 18:4x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 ## Done (this arc)
@@ -35,8 +33,11 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 | micro-probes + Taiwan CBC+TWSE hot-money wire + generic world card + throttle fix | 4837-4842 | S-B |
 
 ## Open queue (unclaimed)
-- Fusion 3: catalyst chain (catalyst x readthrough x backlog-miner x
-  estimate-revisions, second-order propagation, ledger-graded)
+- Fusion 3 BUILD: justhodl-catalyst-chain engine -- 4-stage state
+  machine (EVENT -> PROPAGATED tier/conf -> FILING-CONFIRMED rpo/
+  deferred accel -> STREET-REPRICED est-rev direction); alpha =
+  chains at stage 1-3 with street still FLAT/DOWN; binds ONLY the
+  4852-probed fields; ledger-graded
 - risk-gate dollar-leg input from foreign-flows (official-outflow z +
   safe-haven spike, STRESS-ONLY) — GATED: wait >=1 verified monthly
   TIC cycle (earliest after next new_release flip)
