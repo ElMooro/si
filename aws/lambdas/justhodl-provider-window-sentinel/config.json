@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-provider-window-sentinel",
+  "runtime": "python3.12",
+  "timeout": 120,
+  "memory": 256,
+  "description": "Weekly diff of live FRED CSLT series vs the Deny-Delete tic-cslt banks: detects retroactive windowing (bank becomes authoritative) and silent revisions; read-only vs banks; alerts via events log. Sun 09:00 UTC.",
+  "inherit_env": [
+    {
+      "from_function": "dollar-strength-agent",
+      "keys": ["FRED_KEY"]
+    }
+  ]
+}
