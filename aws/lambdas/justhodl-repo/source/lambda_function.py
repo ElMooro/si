@@ -849,9 +849,125 @@ def lambda_handler(event, context):
                 "api_url": f"https://fred.stlouisfed.org/series/{_fid}",
                 "tier": 2})
 
+    # v2.9: OFFICIAL free daily yields -- Bundesbank Bund 10Y
+    # (Svensson, listed Federal securities) + ECB euro-area AAA 10Y
+    # spot; derived Bund-minus-AAA daily scarcity proxy downstream.
+    diag = {}
+
+    def _bank_put(key, sid, title, src, pairs):
+        s3.put_object(Bucket=BUCKET, Key=key,
+            Body=json.dumps({'id': sid, 'title': title,
+                'source': src, 'banked_at': now,
+                'observations': [{'date': a, 'value': b}
+                                  for a, b in pairs]},
+                separators=(',', ':')).encode(),
+            ContentType='application/json')
+
+    _wk = 'data/warm/official-yields/de-10y-bbk.json'
+    _pp = []
+    _stale = True
+    try:
+        _pp = extract_pairs(sread(_wk))
+        if _pp:
+            _stale = (datetime.now(timezone.utc) -
+                       datetime.strptime(_pp[-1][0], '%Y-%m-%d')
+                       .replace(tzinfo=timezone.utc)).days > 3
+    except Exception:
+        pass
+    if _stale:
+        try:
+            import urllib.request as _ur
+            _u = ('https://api.statistiken.bundesbank.de/rest/data/'
+                  'BBSIS/D.I.ZST.ZI.EUR.S1311.B.A604.R10XX.R.A.A.'
+                  '_Z._Z.A?format=csv')
+            _txt = _ur.urlopen(_ur.Request(_u, headers={
+                'User-Agent': 'Mozilla/5.0'}), timeout=60
+                ).read().decode('utf-8', 'replace')
+            import re as _re5
+            _d2 = dict(_pp)
+            _added = 0
+            for _ln in _txt.splitlines():
+                _pc = _ln.split(';')
+                if len(_pc) < 2:
+                    continue
+                _dm = _re5.match(r'^"?(\d{4}-\d{2}-\d{2})"?$',
+                                  _pc[0].strip())
+                if not _dm:
+                    continue
+                _vs = _pc[1].strip().strip('"').replace(',', '.')
+                try:
+                    _d2[_dm.group(1)] = float(_vs)
+                    _added += 1
+                except Exception:
+                    continue
+            if _d2:
+                _pp = sorted(_d2.items())
+                _bank_put(_wk, 'DE10Y_BBK',
+                           'Germany 10Y Bund yield (daily, '
+                           'Bundesbank Svensson)',
+                           'Bundesbank BBSIS', _pp)
+            diag['bbk_de'] = 'ok:' + str(len(_pp))
+        except Exception as _be:
+            diag['bbk_de'] = type(_be).__name__ + ':' + str(_be)[:60]
+    else:
+        diag['bbk_de'] = 'warm:' + str(len(_pp))
+    if _pp:
+        scope.append({'mnemonic': 'DE10Y_BBK',
+            'name': 'Germany 10Y Bund yield (daily, Bundesbank)',
+            'family': 'EUYIELD', 'bucket': 'Daily (official)',
+            's3_key': _wk,
+            'api_url': 'https://api.statistiken.bundesbank.de',
+            'tier': 2})
+
+    _wk2 = 'data/warm/official-yields/ea-aaa-10y-ecb.json'
+    _pp2 = []
+    _stale2 = True
+    try:
+        _pp2 = extract_pairs(sread(_wk2))
+        if _pp2:
+            _stale2 = (datetime.now(timezone.utc) -
+                        datetime.strptime(_pp2[-1][0], '%Y-%m-%d')
+                        .replace(tzinfo=timezone.utc)).days > 3
+    except Exception:
+        pass
+    if _stale2:
+        try:
+            import urllib.request as _ur
+            import csv as _csv2
+            import io as _io2
+            _u = ('https://data-api.ecb.europa.eu/service/data/YC/'
+                  'B.U2.EUR.4F.G_N_A.SV_C_YM.SR_10Y?format=csvdata')
+            _txt = _ur.urlopen(_ur.Request(_u, headers={
+                'User-Agent': 'Mozilla/5.0'}), timeout=90
+                ).read().decode('utf-8', 'replace')
+            _d2 = dict(_pp2)
+            for _row in _csv2.DictReader(_io2.StringIO(_txt)):
+                _dt = (_row.get('TIME_PERIOD') or '')[:10]
+                try:
+                    _d2[_dt] = float(_row.get('OBS_VALUE'))
+                except Exception:
+                    pass
+            if _d2:
+                _pp2 = sorted(_d2.items())
+                _bank_put(_wk2, 'EA_AAA_10Y',
+                           'Euro-area AAA 10Y spot yield (daily, '
+                           'ECB Svensson curve)',
+                           'ECB YC dataset', _pp2)
+            diag['ecb_yc'] = 'ok:' + str(len(_pp2))
+        except Exception as _ye:
+            diag['ecb_yc'] = type(_ye).__name__ + ':' + str(_ye)[:60]
+    else:
+        diag['ecb_yc'] = 'warm:' + str(len(_pp2))
+    if _pp2:
+        scope.append({'mnemonic': 'EA_AAA_10Y',
+            'name': 'Euro-area AAA 10Y spot (daily, ECB)',
+            'family': 'EUYIELD', 'bucket': 'Daily (official)',
+            's3_key': _wk2,
+            'api_url': 'https://data.ecb.europa.eu',
+            'tier': 2})
+
     # v2.5: DAILY EU sovereign 10Y via Trading Economics, with
     # self-reporting diagnostics into repo.json's diag dict.
-    diag = {}
     te_key = os.environ.get('TE_API_KEY', '')
     diag['te_key_present'] = bool(te_key)
     TECN = {'germany': 'DE10Y_TE', 'italy': 'IT10Y_TE',
@@ -1271,6 +1387,9 @@ def lambda_handler(event, context):
     _emit("D_SOFR_P75_P25", "SOFR P75 − P25 (bps): repo-rate "
            "dispersion, tails widen before the median moves",
            {d: (_p75[d] - _p25[d]) * 100 for d in _p75 if d in _p25})
+    _emit("D_BUND_EA_AAA", "Bund − EA AAA 10Y (bps, daily): Bund "
+           "scarcity/specialness proxy vs the AAA curve",
+           _spread("DE10Y_BBK", "EA_AAA_10Y"))
     _emit("D_BTP_BUND_D", "BTP − Bund 10Y DAILY (bps, TE)",
            _spread("IT10Y_TE", "DE10Y_TE"))
     _emit("D_OAT_BUND_D", "OAT − Bund 10Y DAILY (bps, TE)",
@@ -1373,7 +1492,7 @@ def lambda_handler(event, context):
     groups = {}
     for r in rows:
         groups.setdefault(r["group"], []).append(r)
-    out = {"as_of": now, "engine_v": "2.8", "diag": diag,
+    out = {"as_of": now, "engine_v": "2.9", "diag": diag,
             "note": ("barometer is a labeled heuristic: score = 50 + "
                      "10*mean(clipped z), components listed in full"),
             "counts": {"series": len(rows), "skipped": len(skipped),
@@ -1386,7 +1505,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "2.8", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "2.9", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))
