@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| DEEP-IMPROVEMENT probe: H.4.1 weekly custody/foreign-RRP ids + TreasuryDirect auctions + FiscalData MSPD + ECB SDW BOP + CSLT equity-tx titles | 4863 | S-fable-A | 2026-08-17 22:5x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 ## Done (this arc)
@@ -31,6 +32,36 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 | capital-flow.html TIC card + verify | 4830-4831 | S-fable-A |
 | global-flows engine (Peru live) + capital-flow TOP restructure | 4832-4836 | S-A#k7q2 |
 | micro-probes + Taiwan CBC+TWSE hot-money wire + generic world card + throttle fix | 4837-4842 | S-B |
+
+## Roadmap: capital-flows engine deep improvement (2026-08-17 review)
+WAVE 2A -- keyless, immediate, highest value:
+- Fed H.4.1 WEEKLY official layer: Treasury custody for foreign officials
+  + foreign-official reverse-repo pool -> weekly_official block in
+  foreign-flows (weekly cadence vs monthly TIC = leading read on the
+  official exit) -> becomes the risk-gate dollar-leg input
+- CSLT per-country EQUITY net-tx + valchg (who bought the +181B June)
+- Derived analytics (zero new data): china+belgium Euroclear-adjusted
+  composite row; 3m-vs-12m acceleration flags per country/destination;
+  buyer-concentration (custody-center share, top-5 share)
+- Issuance-adjusted absorption: foreign Treasury buying / net marketable
+  issuance (FiscalData MSPD) + TreasuryDirect auction indirect-bidder %
+- TPEx OTC -> hot-money taiwan v1.1 (endpoints proven 4858)
+- Japan MOF weekly securities flows BOTH directions (foreigners->Japan
+  AND Japan->foreign bonds, the lifer carry channel), cp932 parse
+WAVE 2B -- keyless, second: TIC B-tables banking channel (eurodollar
+  doctrine); ECB SDW euro-area BOP portfolio liab (SDMX keyless);
+  country-ETF flow fusion from etf-true-flows (EWJ/EWT/EWY/MCHI/EWZ/
+  INDA... = real-time per-country appetite, internal join, zero API)
+WAVE 2C -- needs Khalid: Korea BOK+KRX, Chile BCCh, Turkey EVDS key
+WAVE 2D -- scrape-class, careful: India NSDL FPI, Indonesia bond
+  ownership, ChinaBond foreign CGB holdings, Thailand SET retry
+  w/ browser headers; NOTE: HKEX stopped daily northbound flow
+  disclosure Aug 2024 -- do not fake a dead feed
+ENGINE BRAIN (no new data): official-demand composite (TIC monthly
+  anchor + H.4.1 weekly pulse); signal event-grading via signals-ledger
+  (safe_haven z<-1.5 episodes vs fwd SPX/UST, beaters-style base
+  rates); revision-aware banks (keep first_print per month, publish
+  revision-bias per series); flowsxplumbing concordance block
 
 ## Open queue (expansion wave 2 -- from probe 4858, endpoints verbatim in its report)
 - TPEx OTC daily foreign net -> hot-money taiwan v1.1 (openapi
