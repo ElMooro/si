@@ -1,4 +1,6 @@
-"""ops/4830 -- capital-flow.html TIC card verify (claimed in
+"""ops/4831 -- capital-flow.html TIC card verify FIXED
+(4830: PAGE used parents[2]=aws/ not repo root; G0 on the
+live v1.1 JSON was already green before the crash). (claimed in
 docs/SESSION_CLAIMS.md).
  G0  FIELD-level on data/foreign-flows.json for EVERY binding the
      card reads: flows_bn six keys latest numeric; signals four keys
@@ -27,7 +29,7 @@ from ops_report import report  # noqa: E402
 
 B = "justhodl-dashboard-live"
 FF = "data/foreign-flows.json"
-PAGE = ROOT / "capital-flow.html"
+PAGE = Path(__file__).resolve().parents[3] / "capital-flow.html"
 URL = "https://justhodl.ai/capital-flow.html"
 s3 = boto3.client("s3", region_name="us-east-1")
 FAILED = []
@@ -41,7 +43,7 @@ def sread(key):
 
 
 def main():
-    with report("ops 4830 -- capital-flow TIC card verify") as rep:
+    with report("ops 4831 -- capital-flow TIC card verify fixed") as rep:
         rep.heading("G0. live JSON contract for every card binding")
         try:
             d = sread(FF)
@@ -138,7 +140,7 @@ def main():
             try:
                 req = urllib.request.Request(
                     "%s?t=%d" % (URL, int(time.time())),
-                    headers={"User-Agent": "ops-4830",
+                    headers={"User-Agent": "ops-4831",
                              "Cache-Control": "no-cache"})
                 with urllib.request.urlopen(req, timeout=45) as r:
                     body = r.read().decode("utf-8", "replace")
