@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| Fusion 3 BUILD: justhodl-catalyst-chain engine (4-stage state machine off 4852 schemas) + birth verify | 4853-4855 | S-fable-A | 2026-08-17 19:0x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 ## Done (this arc)
