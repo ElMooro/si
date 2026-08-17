@@ -58,7 +58,7 @@ import boto3
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/risk-gate.json"
-MARKER = "risk-gate v2.3 BRAIN-CONSTITUTIONAL FLEET-FUSED"
+MARKER = "risk-gate v2.4 BRAIN-CONSTITUTIONAL FLEET-FUSED"
 
 s3 = boto3.client("s3")
 
@@ -627,7 +627,8 @@ def event_study(F, calendar, postures):
 
 
 
-# ── FLEET LAYER (v2.0, Khalid-approved list 2026-07-26) ─────────────────────
+# ── FLEET LAYER (v2.0, Khalid-approved list 2026-07-26; ops 4823 adds
+# plumbing-board inputs, STRESS-ONLY) ─────────────────────
 # Consumes existing engines' LIVE outputs as per-leg adjustments. Applied to
 # the LIVE posture only — the FRED replay stays pure so the event study keeps
 # its integrity (fleet feeds lack deep history; grading them by replay would
@@ -695,6 +696,43 @@ def fleet_adjust(legs):
     out["funding"].append(_fi("xcc_basis_signals", "crisis-plumbing", v, adj,
         "cross-currency basis proxies (JPY/EUR rate-diff z + OBFR-IORB) — ranked #1 "
         "leading funding signal [nmq5x1qrmghwy]", a))
+
+    # ops 4823 plumbing board (Fusion 2): the 832-series repo master
+    # board's daily composite (ops 4821-4822). STRESS-ONLY by design:
+    # RRP-primacy stays untouched (the validated Oct-2025 logic) and calm
+    # plumbing never eases the leg. The broad-stress input fires only at
+    # TIGHT+ so the small fails/SOFR overlap with the inputs above cannot
+    # double-count in calm tape; scarcity + haircut breadth are channels
+    # NOTHING else in this gate consumes.
+    pb, a = _feed("data/plumbing-composite.json")
+    v = None
+    adj = 0.0
+    if (pb or {}).get("status") == "LIVE":
+        c_ = pb.get("composite")
+        v = {"composite": c_, "posture": pb.get("posture"),
+             "top": (pb.get("why") or [])[:2]}
+        if isinstance(c_, (int, float)):
+            adj = (-0.4 if c_ >= 1.0 else -0.2 if c_ >= 0.5 else 0.0)
+    out["funding"].append(_fi("plumbing_board_composite", "plumbing-composite",
+        v, adj,
+        "repo master board daily composite (fails/SOFR/dispersion/scarcity/"
+        "periphery/haircuts/FIMA + SRF escalator); stress-only: TIGHT -0.2, "
+        "STRESS+ -0.4; collateral-scramble doctrine [nmq5x0cp7zp4j]", a))
+    lg_ = ((pb or {}).get("legs") or {})
+    sc_z = (lg_.get("scarcity") or {}).get("stress_z")
+    hb_sh = (lg_.get("haircuts") or {}).get("share_widening")
+    v = ({"scarcity_z": sc_z, "haircut_breadth": hb_sh}
+         if (sc_z is not None or hb_sh is not None) else None)
+    adj = 0.0
+    if isinstance(sc_z, (int, float)) and sc_z > 1.5:
+        adj -= 0.3
+    if isinstance(hb_sh, (int, float)) and hb_sh > 0.75:
+        adj -= 0.2
+    out["funding"].append(_fi("plumbing_scarcity_haircuts", "plumbing-composite",
+        v, adj,
+        "Bund-AAA collateral scarcity z + tri-party margin-widening breadth "
+        "-- the two plumbing channels no other gate input consumes; "
+        "stress-only [nmq5x0cp7zp4j]", a))
 
     # LEG 2 CREDIT — 5-lens composite + IG z-scores
     cc, a = _feed("data/credit-composite.json")
