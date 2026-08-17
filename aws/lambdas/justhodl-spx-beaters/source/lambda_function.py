@@ -37,8 +37,8 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.2.1"
-MARKER = "spx-beaters v1.2.1"
+VERSION = "1.3.0"
+MARKER = "spx-beaters v1.3.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/spx-beaters.json"
 LEDGER_KEY = "spx-beaters/weekly-closes.json"
@@ -57,9 +57,29 @@ COMEBACK_MIN = 60.0
 W_CB = {"quality": .30, "cheap": .25, "accum": .20,
         "stabilize": .15, "revisions": .10}
 MIN_SCORE = 55.0
-W_STOCK = {"mom": .30, "fleet": .25, "flows": .15, "industry": .15,
-           "quality": .15}
-W_ETF = {"mom": .35, "er": .35, "rotation": .30}
+W_STOCK = {"mom": .28, "fleet": .22, "flows": .13, "industry": .13,
+           "quality": .14, "catalyst": .10}
+W_ETF = {"mom": .30, "er": .25, "rotation": .25, "etf_flows": .10,
+         "industry_fund": .10}
+ETF_IND_TERMS = {
+    "SMH": ["semiconductor"], "SOXX": ["semiconductor"],
+    "XBI": ["biotech"], "IBB": ["biotech"],
+    "ITA": ["aerospace"], "XAR": ["aerospace"],
+    "KRE": ["banks"], "KBE": ["banks"],
+    "XOP": ["oil & gas e", "oil, gas"], "OIH": ["oilfield",
+                                                "oil & gas equip"],
+    "XHB": ["homebuild", "residential construction"],
+    "JETS": ["airlines"], "XRT": ["retail"], "TAN": ["solar"],
+    "URA": ["uranium"], "GDX": ["gold"], "XME": ["metals", "steel"],
+    "PAVE": ["engineering", "infrastructure"],
+    "IGV": ["software"], "WCLD": ["software"], "FDN": ["internet"],
+    "XLE": ["oil"], "XLK": ["software", "semiconductor"],
+    "XLV": ["drug", "biotech", "medical"],
+    "XLI": ["aerospace", "machinery", "engineering"],
+    "XLB": ["chemical", "metals"], "XLU": ["utilit"],
+    "XLP": ["beverages", "household"], "XLY": ["retail", "auto"],
+    "XLC": ["internet", "entertainment"],
+    "XLF": ["banks", "insurance"], "XLRE": ["reit"]}
 
 s3 = boto3.client("s3")
 
@@ -603,6 +623,46 @@ def scan():
             rev[t_] = v
     diag["feeds"]["eps_revisions"] = len(rev)
 
+    # contracts / backlog / deal-tape (Khalid: contract announcements
+    # + backlogs are beat-SPX evidence)
+    cat_by = (_g("data/catalyst.json") or {}).get("by_ticker") or {}
+    diag["feeds"]["catalyst"] = len(cat_by)
+    bmd = _g("data/backlog-mined.json") or {}
+    bl_by = {}
+    for cont in ("by_ticker", "companies", "by", "rows"):
+        v = bmd.get(cont)
+        if isinstance(v, dict) and v:
+            bl_by = v
+            break
+        if isinstance(v, list) and v:
+            bl_by = {tick_of(r): r for r in v if tick_of(r)}
+            break
+    diag["feeds"]["backlog_mined"] = len(bl_by)
+    deal_cnt = {}
+    for d in ((_g("data/deal-scanner.json") or {}).get("deals")
+              or [])[:200]:
+        t_ = tick_of(d)
+        if t_:
+            deal_cnt[t_] = deal_cnt.get(t_, 0) + 1
+    diag["feeds"]["deal_tape"] = len(deal_cnt)
+    # ETF true flows (Probe 3818: containers inflows/outflows/by_etf,
+    # field net_flow_20d_usd -- NOT net_flow_usd)
+    tf = _g("data/etf-true-flows.json") or {}
+    flow_idx = {}
+    for cont in ("inflows", "outflows", "by_etf", "flows"):
+        v = tf.get(cont)
+        rows_v = (list(v.values()) if isinstance(v, dict)
+                  else v if isinstance(v, list) else [])
+        for r in rows_v:
+            t_ = tick_of(r) or str(r.get("etf") or "").upper()
+            nf = (fnum(r.get("net_flow_20d_usd"))
+                  or fnum(r.get("net_flow_5d_usd"))
+                  or fnum(r.get("net_flow_1d_usd")))
+            if t_ and nf is not None:
+                flow_idx[t_] = nf
+    flow_sorted = sorted(flow_idx.values())
+    diag["feeds"]["etf_true_flows"] = len(flow_idx)
+
     boom = _g("data/industry-boom.json") or {}
     league = rows_of(boom, "league", "rows")
     boom_by_ind, boom_scores = {}, []
@@ -779,6 +839,29 @@ def scan():
                 why.append("industry '%s' boom score %.0f (top %.0f%% "
                            "of 120)" % (m["industry"][:28],
                                         boom_by_ind[ind], 100 - bp))
+        cev = []
+        cv = 0.0
+        ce = cat_by.get(t)
+        if isinstance(ce, dict) and ce.get("catalysts"):
+            n_c = len(ce["catalysts"])
+            cv = min(1.0, 0.55 + 0.08 * n_c)
+            cls = [c.get("class") for c in ce["catalysts"][:3]
+                   if c.get("class")]
+            cev.append("catalysts on tape: %s (%d events)"
+                       % (" + ".join(cls), n_c))
+        bl = bl_by.get(t)
+        by_yoy = fnum((bl or {}).get("backlog_yoy_pct"))
+        if by_yoy is not None and by_yoy >= 10:
+            cv = max(cv, 0.8)
+            cev.append("SEC-mined backlog %+.0f%% YoY -- future "
+                       "revenue already contracted" % by_yoy)
+        if deal_cnt.get(t, 0) >= 2:
+            cv = min(1.0, max(cv, 0.6) + 0.1)
+            cev.append("%d contract wins on the deal tape"
+                       % deal_cnt[t])
+        if cv > 0:
+            legs["catalyst"] = round(cv, 2)
+            why.extend(cev[:2])
         if t in qual:
             legs["quality"] = qual[t]["composite"] / 100.0
             why.append("sp500 five-pillar composite %.0f/100 vs index"
@@ -881,6 +964,30 @@ def scan():
             legs["rotation"] = max(0.0, min(1.0, v))
             if bits:
                 why.append("; ".join(bits))
+        nf = flow_idx.get(t)
+        if nf is not None and len(flow_sorted) >= 8:
+            fp = pctile(flow_sorted, nf)
+            legs["etf_flows"] = (fp or 50) / 100.0
+            why.append("true net flows 20d %s$%.0fM (top %.0f%% of "
+                       "covered ETFs)"
+                       % ("+" if nf >= 0 else "-",
+                          abs(nf) / 1e6, 100 - (fp or 50)))
+        terms = ETF_IND_TERMS.get(t)
+        if terms and boom_by_ind:
+            best = None
+            bname = None
+            for ind, sc_ in boom_by_ind.items():
+                if any(w in ind for w in terms):
+                    if best is None or sc_ > best:
+                        best, bname = sc_, ind
+            if best is not None:
+                bp = pctile(boom_scores, best)
+                legs["industry_fund"] = (bp or 50) / 100.0
+                why.append("industry '%s' boom %.0f (top %.0f%% of "
+                           "%d) -- fuses earnings-revision breadth, "
+                           "deal wins + backlog accel"
+                           % (bname[:26], best, 100 - (bp or 50),
+                              len(boom_by_ind)))
         if len(legs) < 2:
             return None
         num = sum(W_ETF[k] * v for k, v in legs.items())
@@ -1016,6 +1123,23 @@ def scan():
         elif r8 is not None:
             why.append("8w base %+.0f%% -- no longer falling"
                        % (r8 * 100))
+        intact = False
+        row_m = sp_mem.get(t)
+        if row_m is not None and dd <= -0.35:
+            gi = sp_fi.get("ntm_growth_pct")
+            ri = sp_fi.get("revenue_yoy_pct")
+            g_ = row_m[gi] if gi is not None else None
+            rv_ = row_m[ri] if ri is not None else None
+            rv_ok = fnum(rev.get(t)) is None or rev[t] >= 0
+            if isinstance(g_, (int, float)) and g_ > 0 and \
+                    isinstance(rv_, (int, float)) and rv_ > 0 and \
+                    rv_ok:
+                intact = True
+                st = min(1.0, st + 0.1)
+                why.append("price %.0f%% off the high while NTM "
+                           "estimates %+.0f%% and revenue %+.0f%% -- "
+                           "DERATING, not deterioration"
+                           % (dd * 100, g_, rv_))
         legs["stabilize"] = st
         if fnum(rev.get(t)) is not None and rev[t] > 0:
             legs["revisions"] = 0.8
@@ -1040,6 +1164,7 @@ def scan():
                                       (led["closes"].get(t) or [])
                                       if v]),
                 "odds_base_26w_pct": cb_odds,
+                "fundamentals_intact": intact,
                 "bucket": m["bucket"],
                 "scope": "sp500" if t in qual else "broad",
                 "score": score,

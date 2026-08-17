@@ -84,6 +84,7 @@ function rowHtml(r){
  const b=r.score>=70?"b-hi":"b-md";
  const chips=[r.dd_52w_pct!=null?`<b style="color:var(--red)">${fmt(r.dd_52w_pct,0)}% off 52w high</b>`:null,
   r.ret_8w_pct!=null?`8w base ${r.ret_8w_pct>0?"+":""}${fmt(r.ret_8w_pct,0)}%`:null,
+  r.fundamentals_intact?`<b style="color:var(--green)">DERATING — fundamentals intact</b>`:null,
   r.scope?`scope: ${r.scope}`:null,
   r.bucket?r.bucket+" cap":null,
   r.sector||r.class,r.mcap?("$"+mcapS(r.mcap)):null,
@@ -127,7 +128,7 @@ async function load(){let D=null;try{D=await (await fetch(`${PROXY}/data/spx-bea
   ${br.comeback_cohort?`<tr><td class="metric">Comeback cohort (dd≤−30%, based)</td><td>—</td><td class="band">${br.comeback_cohort.n}</td><td><b>${fmt(br.comeback_cohort.beat_spy_26w_pct,1)}%</b></td><td>${br.comeback_cohort.median_excess_pp>0?"+":""}${fmt(br.comeback_cohort.median_excess_pp,1)}pp</td></tr>`:""}</table>
   <div class="s" style="color:var(--fg-3);font-size:12px;margin-top:6px">AI verdicts are hard-clamped to these anchors: odds = quintile base ±12pp max, downside between ½·realized-vol and max(|max-drawdown|, vol), horizon 13–52w. The AI cannot invent a number.</div>`}
  const w=D.weights||{};
- document.getElementById("foot").innerHTML=`<b>Method.</b> ${D.method||""} Stock weights ${JSON.stringify(w.stock)} · ETF weights ${JSON.stringify(w.etf)}. Minimum score ${D.min_score}; a name-specific second evidence leg is required (momentum + industry alone never lists). Comeback wing: quality leg REQUIRED, drawdown ≤ −30%, still-falling names skipped unless an independent turn is CONFIRMED, minimum score ${D.comeback_min||60}. Engine ${D.engine_v}, refreshed Saturdays 13:00 UTC. Real data only — empty buckets mean nothing cleared the bar, not a rendering gap.`;
+ document.getElementById("foot").innerHTML=`<b>Method.</b> ${D.method||""} Stock weights ${JSON.stringify(w.stock)} · ETF weights ${JSON.stringify(w.etf)}. Minimum score ${D.min_score}; a name-specific second evidence leg is required (momentum + industry alone never lists). Stock evidence now includes contract announcements, SEC-mined backlogs and the deal tape (catalyst leg); ETFs add true net flows and industry fundamentals (earnings-revision breadth + deal wins + backlog accel). Comeback wing: quality leg REQUIRED, huge drawdowns with NTM estimates + revenue still growing are tagged DERATING (fundamentals intact), drawdown ≤ −30%, still-falling names skipped unless an independent turn is CONFIRMED, minimum score ${D.comeback_min||60}. Engine ${D.engine_v}, refreshed Saturdays 13:00 UTC. Real data only — empty buckets mean nothing cleared the bar, not a rendering gap.`;
 }
 load();
 </script></body></html>
