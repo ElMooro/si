@@ -76,3 +76,17 @@ Settle by zip-marker (MARKER "sp500 v1.0.3") → Event-invoke → poll as_of ≤
 0.5–4, roe 5–40, erp −6..8 warn) → compare smoke (12 rows, percentiles).
 
 Next ops: 4809.
+
+## v1.1.0 (ops 4809 GREEN, same day) — expanded better-buy compare
+41-field member block (was 15) + 38-metric grouped compare + FIVE-PILLAR
+percentile score (valuation .30 / quality .25 / growth .25 / balance .10 /
+momentum .10; low-better metrics inverted; per-pillar min-n gates) →
+composite 0-100 + verdict tiers (≥65 STRONG CANDIDATE / 55 MODEST EDGE /
+45 NO CLEAR EDGE — SPX default / <45 PREFER SPX) + tags. New fields all
+matrix-real: ps_fwd 99.2% cov · ev_ebitda_fwd 95.4% · roic/roa/altman/
+shareholder-yield 100% · ntm_growth 94.3% · mom_6m/mom_12_1 ~100% (census
+moms block IS in the matrix). Momentum rows: member-median only (no index
+agg). Page: verdict band + pillar bars + grouped table; ?t=NVDA deep-link.
+Day-one: NVDA 62.4 MODEST EDGE (higher quality/faster growth/stronger
+momentum, richer) · AAPL 54.0 NO CLEAR EDGE. Nav FORCE-pinned "Research &
+Tools" (ops 4809). Next ops 4810.
