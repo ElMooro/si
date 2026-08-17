@@ -79,7 +79,7 @@ async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok
   if(hs.status==="OK")document.getElementById("split").innerHTML="LT total split: private <b>"+fN((hs.private||{}).latest)+"B</b> vs official <b>"+fN((hs.official||{}).latest)+"B</b> (recon gap "+fN(hs.recon_gap_bn,2)+"B \u2014 runtime-reconciled).";
   const C=d.country_lt_treasury||{};const rows=Object.entries(C).filter(([,r])=>r&&r.status==="OK");
   if(rows.length){let t='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th><th>tx 3m</th><th>tx 12m</th><th>valchg 12m</th><th>other</th></tr>';
-    for(const[n,r]of rows)t+='<tr><td>'+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td><td class="'+cls(r.tx_3m_bn)+'">'+fN(r.tx_3m_bn)+'</td><td class="'+cls(r.tx_12m_bn)+'">'+fN(r.tx_12m_bn)+'</td><td>'+fN(r.valchg_12m_bn)+'</td><td>'+fN(r.identity_gap_bn)+'</td></tr>';
+    for(const[n,r]of rows)t+='<tr'+(r.composite?' style="border-top:2px solid var(--border-bright);background:var(--bg-1)"':'')+'><td>'+(r.composite?'\u2211 ':'')+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td><td class="'+cls(r.tx_3m_bn)+'">'+fN(r.tx_3m_bn)+'</td><td class="'+cls(r.tx_12m_bn)+'">'+fN(r.tx_12m_bn)+'</td><td>'+fN(r.valchg_12m_bn)+'</td><td>'+fN(r.identity_gap_bn)+'</td></tr>';
     document.getElementById("ctry").innerHTML=t+'</table>';}
   const H=d.hist_10y||{};
   const HL={total:"Total LT",treas:"Treasuries",equity:"Equities",corp:"Corp bonds",agency:"Agency/MBS",tbills:"T-bills",sig_risk_appetite:"Risk appetite",sig_safe_haven:"Safe-haven",sig_total_demand:"Total demand",sig_official_private:"Private \u2212 Official"};
@@ -103,8 +103,8 @@ async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok
       ts+='<tr><td>'+(SPn[f]||f)+'</td><td class="'+cls(r.official.latest)+'">'+fN(r.official.latest)+'</td><td>'+fN(r.official.sum_12m)+'</td><td class="'+cls(r.private.latest)+'">'+fN(r.private.latest)+'</td><td>'+fN(r.private.sum_12m)+'</td><td>'+fN(r.recon_gap_bn,2)+'</td><td style="color:var(--green)">OK</td></tr>';}
     document.getElementById("splits").innerHTML=ts+'</table>';}
   const E=d.country_lt_equity||{};const er=Object.entries(E).filter(([,r])=>r&&r.status==="OK");
-  if(er.length){let t2='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th></tr>';
-    for(const[n,r]of er)t2+='<tr><td>'+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td></tr>';
+  if(er.length){let t2='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th><th>tx 3m</th><th>tx 12m</th><th>valchg 12m</th><th>other</th></tr>';
+    for(const[n,r]of er)t2+='<tr><td>'+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td><td class="'+cls(r.tx_3m_bn)+'">'+fN(r.tx_3m_bn)+'</td><td class="'+cls(r.tx_12m_bn)+'">'+fN(r.tx_12m_bn)+'</td><td>'+fN(r.valchg_12m_bn)+'</td><td>'+fN(r.identity_gap_bn)+'</td></tr>';
     document.getElementById("ctryeq").innerHTML=t2+'</table>';}
   const op=await jget("/data/official-pulse.json");
   if(op&&op.status==="LIVE"){let ph="";

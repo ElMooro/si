@@ -136,6 +136,14 @@ def fake_fetch(sid):
         return "Millions of Dollars", list(zip(
             MONTHS, [300000.0 + i * 250 for i in
                      range(len(MONTHS))]))
+    if sid.startswith("FORLTEQTYNET"):
+        return "Millions of Dollars", list(zip(
+            MONTHS, [120.0 + (i % 3) * 30 for i in
+                     range(len(MONTHS))]))
+    if sid.startswith("FORLTEQTYVALCHG"):
+        return "Millions of Dollars", list(zip(
+            MONTHS, [50.0 + (i % 5) * 20 for i in
+                     range(len(MONTHS))]))
     n = NAME_BY_SID[sid]
     if n in DROP:
         return None, "fetch_error:404"
@@ -209,15 +217,37 @@ def main():
         all(hs[f]["status"] == "OK" for f in eng.SPLITS)
         and hs["st_treas"]["official"]["latest"]
         == round(off_st[-1] / _mn(u_st), 1))
-    chk("A2 21-country matrix all OK + ordered non-increasing",
-        len(doc["country_lt_treasury"]) == len(eng.COUNTRIES)
+    base_rows = {k: r for k, r in
+                 doc["country_lt_treasury"].items()
+                 if not r.get("composite")}
+    chk("A2 21-country matrix all OK + ordered non-increasing "
+        "(+1 composite row)",
+        len(base_rows) == len(eng.COUNTRIES)
+        and len(doc["country_lt_treasury"])
+        == len(eng.COUNTRIES) + 1
         and all(r.get("status") == "OK"
-                for r in doc["country_lt_treasury"].values())
-        and [r["holdings_bn"] for r in
-             doc["country_lt_treasury"].values()]
+                for r in base_rows.values())
+        and [r["holdings_bn"] for r in base_rows.values()]
         == sorted((r["holdings_bn"] for r in
-                   doc["country_lt_treasury"].values()),
-                  reverse=True))
+                   base_rows.values()), reverse=True))
+    eqj = doc["country_lt_equity"]["japan"]
+    chk("A2 equity decomposition identity (japan)",
+        isinstance(eqj.get("tx_12m_bn"), (int, float))
+        and isinstance(eqj.get("valchg_12m_bn"), (int, float))
+        and eqj.get("identity_gap_bn") == round(
+            eqj["d12m_holdings_bn"] - eqj["tx_12m_bn"]
+            - eqj["valchg_12m_bn"], 1))
+    cbt = doc["country_lt_treasury"].get("china_plus_belgium")
+    chk("A2 china+belgium composite = exact sum",
+        cbt and cbt.get("composite") is True
+        and cbt["holdings_bn"] == round(
+            doc["country_lt_treasury"]["china"]["holdings_bn"]
+            + doc["country_lt_treasury"]["belgium"]
+            ["holdings_bn"], 1)
+        and cbt["tx_12m_bn"] == round(
+            doc["country_lt_treasury"]["china"]["tx_12m_bn"]
+            + doc["country_lt_treasury"]["belgium"]
+            ["tx_12m_bn"], 1))
     eq = doc["country_lt_equity"]["japan"]
     exp_eq = round((300000.0 + (len(MONTHS) - 1) * 250)
                    / 1000.0, 1)

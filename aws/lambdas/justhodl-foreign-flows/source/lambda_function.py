@@ -1,6 +1,6 @@
 """justhodl-foreign-flows v1.1.0 -- US Foreign Portfolio Flows
 (Treasury TIC via the 2026 CSLT dataset on FRED).
-Marker: foreign-flows v1.3.0
+Marker: foreign-flows v1.4.0
 
 Khalid doctrine: dollar view first. This engine adds the missing
 organ -- where foreign money actually moves inside US markets --
@@ -57,7 +57,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 FRED_KEY = os.environ.get("FRED_KEY") or ""
 OUT_KEY = "data/foreign-flows.json"
@@ -332,12 +332,27 @@ def country_block(doc):
         out[name] = row
         de, ve = fetch_bn("FORLTEQTYPOS" + code)
         if de is not None:
-            out_eq[name] = {
+            erow = {
                 "status": "OK",
                 "holdings_bn": round(ve[-1], 1),
                 "month": de[-1],
                 "d12m_holdings_bn": (round(ve[-1] - ve[-13], 1)
                                      if len(ve) >= 13 else None)}
+            den, ven = fetch_bn("FORLTEQTYNET" + code)
+            dev, vev = fetch_bn("FORLTEQTYVALCHG" + code)
+            if den is not None:
+                erow["tx_3m_bn"] = round(sum(ven[-3:]), 1)
+                erow["tx_12m_bn"] = round(sum(ven[-12:]), 1)
+            if dev is not None:
+                erow["valchg_12m_bn"] = round(sum(vev[-12:]), 1)
+            if (erow.get("d12m_holdings_bn") is not None
+                    and "tx_12m_bn" in erow
+                    and "valchg_12m_bn" in erow):
+                erow["identity_gap_bn"] = round(
+                    erow["d12m_holdings_bn"]
+                    - erow["tx_12m_bn"]
+                    - erow["valchg_12m_bn"], 1)
+            out_eq[name] = erow
         else:
             out_eq[name] = {"status": "MISSING", "why": ve}
 
@@ -348,12 +363,27 @@ def country_block(doc):
                              if isinstance(kv[1].get(
                                  "holdings_bn"), (int, float))
                              else -1e18)))
-    doc["country_lt_treasury"] = _ordered(out)
+    ordered_t = _ordered(out)
+    ch, be = out.get("china") or {}, out.get("belgium") or {}
+    if ch.get("status") == "OK" and be.get("status") == "OK":
+        comp = {"status": "OK", "composite": True,
+                "note": "Euroclear adjustment: Belgian custody "
+                        "largely intermediates China (Setser); "
+                        "read the pair, not the parts"}
+        for f in ("holdings_bn", "d12m_holdings_bn", "tx_3m_bn",
+                  "tx_12m_bn", "valchg_12m_bn",
+                  "identity_gap_bn"):
+            a, b = ch.get(f), be.get(f)
+            comp[f] = (round(a + b, 1)
+                       if isinstance(a, (int, float))
+                       and isinstance(b, (int, float)) else None)
+        ordered_t["china_plus_belgium"] = comp
+    doc["country_lt_treasury"] = ordered_t
     doc["country_lt_equity"] = _ordered(out_eq)
-    doc["country_note"] = ("equity decomposition (net tx / "
-                           "valchg by country) exists in CSLT -- "
-                           "queued; holdings + d12m shown now, "
-                           "never diffed as flows")
+    doc["country_note"] = ("equity decomposition LIVE (v1.4): "
+                           "dHoldings = tx + valchg + other for "
+                           "equities too; valuation dominates -- "
+                           "read tx, never the delta")
 
 
 def build():
