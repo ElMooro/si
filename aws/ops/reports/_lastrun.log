@@ -1,28 +1,30 @@
-executing-against: 5810cb47ed433c83d3734729dbfce4d2a6ede51d
+executing-against: be35cfc97eabb0262822301066d84c6ae81005a7
+G0. field-level league contract
+[12:40:20] ✅   league[0].boom_score = 81.7; sample industries: ['Computer Hardware', 'Semiconductors', 'Software - Infrastructure', 'Hardware, Equipment & Parts', 'Broadcasting']
 1. settle + invoke
-[12:29:33] ✅ marker settled
-[12:29:54] ✅   fresh v1.3.0 doc (~20s)
-2. weights + feeds
-[12:29:54] ✅   stock weights sum = 1.000  {"mom": 0.28, "fleet": 0.22, "flows": 0.13, "industry": 0.13, "quality": 0.14, "catalyst": 0.1}
-[12:29:54] ✅   etf weights sum = 1.000  {"mom": 0.3, "er": 0.25, "rotation": 0.25, "etf_flows": 0.1, "industry_fund": 0.1}
-3. new evidence on LIVE rows
-[12:29:54] ✅   stock rows w/ catalyst leg = 4 (ex: ('MU', 'momentum: 12-1 +602% (top 0% of all stocks), +122pp vs SPY 6m | stock-buying screener SCREENED score 93 (above long-SMA (not in accumulation zone); no'))
-[12:29:54] ✅   ETF rows w/ true-flows leg = 14 (ex: ('SMH', 'momentum: 6m +44% (+30pp vs SPY) | trend gate PASS (px>200d & 12m>cash); rotation rank #19 | true net flows 20d +$3232M (top 7% of covered ETFs)'))
-[12:29:54] ⚠   ETF rows w/ industry-fundamentals leg = 0
-[12:29:54] ✅   fundamentals-intact contract violations = 0
+[12:40:31] ✅ marker settled
+[12:40:52] ✅   fresh v1.3.1 doc (~20s)
+2. parse proof
+[12:40:52] ✅   diag.feeds.industry_boom = 131 (was 0 in 4811-4816)
+3. industry legs live
+[12:40:52] ✅   stock rows w/ industry leg = 60
+[12:40:52] ✅   ETF rows w/ industry_fund leg = 8
+[12:40:52]     stock ex SPCX: industry 'Aerospace & Defense' boom score 77 (top 5% of 131), +1.3 over 20d
+[12:40:52]     etf ex SMH: industry 'semiconductors' boom 81 (top 2% of 131, -0.3/20d) -- fuses earnings-revision breadth, deal wins + backlog accel
 4. invariants
-[12:29:54] ✅   53w + 12-1 intact
-[12:29:54] ✅   ai clamp violations = 0
+[12:40:52] ✅   53w + 12-1 intact = True
+[12:40:52] ✅   ai clamp violations = 0
+[12:40:52] ✅   comeback trap overlap = NONE
 5. readout
-[12:29:54] ✅   large        SPCX    94.9 legs={"mom": 0.99, "flows": 0.85}
-[12:29:54] ✅   large        NBIS    93.0 legs={"mom": 0.97, "flows": 0.85}
-[12:29:54] ✅   comeback     PTC     75.8 legs={"quality": 0.67, "cheap": 0.71, "stabilize": 1.0}
-[12:29:54] ✅   comeback     GDDY    72.4 legs={"quality": 0.64, "cheap": 0.66, "stabilize": 1.0}
-[12:29:54] ✅   etf_equity   IWD     89.8 legs={"mom": 0.81, "rotation": 1.0}
-[12:29:54] ✅   etf_equity   SMH     88.4 legs={"mom": 0.97, "rotation": 0.76, "etf_flows": 0.93}
-[12:29:54] ✅   etf_commodity USO     82.9 legs={"mom": 0.97, "rotation": 0.85, "etf_flows": 0.37}
-[12:29:54] ✅   etf_commodity DBC     76.5 legs={"mom": 0.89, "rotation": 0.78, "etf_flows": 0.37}
+[12:40:52] ✅   large       SPCX    94.8 legs={"mom": 0.99, "flows": 0.85, "industry": 0.95}
+[12:40:52] ✅   large       NBIS    94.1 legs={"mom": 0.97, "flows": 0.85, "industry": 0.98}
+[12:40:52] ✅   mid         APGE    93.9 legs={"mom": 0.97, "flows": 0.85, "industry": 0.95}
+[12:40:52] ✅   mid         BRKR    88.1 legs={"mom": 0.89, "flows": 0.85, "industry": 0.89}
+[12:40:52] ✅   comeback    PTC     75.8 legs={"quality": 0.67, "cheap": 0.71, "stabilize": 1.0}
+[12:40:52] ✅   comeback    GDDY    72.4 legs={"quality": 0.64, "cheap": 0.66, "stabilize": 1.0}
+[12:40:52] ✅   etf_equity  SMH     89.8 legs={"mom": 0.97, "rotation": 0.76, "etf_flows": 0.93, "industry_fund": 0.98}
+[12:40:52] ✅   etf_equity  IWD     89.8 legs={"mom": 0.81, "rotation": 1.0}
 6. verdict
-[12:29:54] ✅ v1.3.0 LIVE -- contracts/backlog/deal evidence, derating detection and ETF flows/industry legs verified on the live league
+[12:40:52] ✅ v1.3.1 LIVE -- industry legs restored on both books; field-level G0 now guards the boom contract
 
-→ Report written to aws/ops/reports/latest/ops 4816 -- v1.3.0 catalyst+ETF legs verify.md
+→ Report written to aws/ops/reports/latest/ops 4817 -- v1.3.1 boom_score fix verify.md
