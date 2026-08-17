@@ -1,18 +1,17 @@
-"""ops/4819 -- odds chips wire verify (Fusion 1 consumers).
- Invest + stock-buying now carry additive, NON-GATING
- `base_rate_odds` per row, joined from data/base-rates.json.
- Local gates already green: invest pytest 35/35 (incl. 6 new join
- tests proving deep non-gating identity), sb stub-harness 7/7.
- G0  FIELD-level: spine LIVE + cohorts.26w.quintiles[0].beat_pct
-     numeric + current_assignments>=3000; both consumer docs exist.
- (1) zip markers settle: 'invest-odds v1' + 'sb-odds v1'.
- (2) Event-invoke BOTH; poll both docs fresh (<=12 min combined).
- (3) truths: header meta present; odds coverage >=95% of rows whose
-     ticker/symbol sits in current_assignments; sampled odds.q ==
-     spine assignment q (consumer can never diverge from the spine);
-     schema strings unchanged (invest/0.1, schema_version 1);
-     pre-existing row fields present (score/tier/verdict smoke).
- (4) readout: sample chips from each consumer.
+"""ops/4820 -- odds chips wire verify, FIXED (supersedes ops 4819).
+
+ROOT CAUSE of 4819's red: the op checked the zip marker but skipped
+the wait_active / LastUpdateStatus gate (present in 4811 + 4818), so
+the Event-invoke raced code-update propagation and a stale-code run
+wrote data/stock-buying.json with no `base_rates` key at all -- the
+exact signature seen (meta missing, 0/289 odds).  Invest's side
+proved the join executes: meta {"picks_with_odds": 0, ledger 53w}
+with picks honestly empty in Tier-1 bootstrap.
+Fix = gate ORDER: (a) State Active + LastUpdateStatus Successful on
+BOTH functions, (b) marker settle, (c) only THEN capture prev stamps,
+invoke, poll <=15 min, and run the same truths.  House lesson filed:
+marker-in-zip is necessary but NOT sufficient -- always pair it with
+the LastUpdateStatus gate before invoking edited functions.
 """
 import gzip
 import io
@@ -53,6 +52,23 @@ def sread(key):
     if raw[:2] == b"\x1f\x8b":
         raw = gzip.decompress(raw)
     return json.loads(raw)
+
+
+def wait_active(rep, fn):
+    for _ in range(40):
+        try:
+            cfg = lam.get_function_configuration(FunctionName=fn)
+        except ClientError:
+            time.sleep(6)
+            continue
+        if (cfg.get("State") == "Active"
+                and cfg.get("LastUpdateStatus") == "Successful"):
+            rep.ok("%s Active + LastUpdateStatus Successful" % fn)
+            return True
+        time.sleep(6)
+    rep.fail("%s never settled to Active/Successful" % fn)
+    FAILED.append("active_" + fn)
+    return False
 
 
 def settle(rep, fn, marker):
@@ -120,8 +136,8 @@ def verify_consumer(rep, name, doc, spine, rows_key, tkey):
 
 
 def main():
-    with report("ops 4819 -- odds chips wire verify") as rep:
-        rep.heading("G0. FIELD-level spine + consumer contracts")
+    with report("ops 4820 -- odds chips wire verify (fixed)") as rep:
+        rep.heading("G0. FIELD-level spine contract")
         try:
             spine = sread(SPINE_KEY)
         except ClientError:
@@ -136,32 +152,35 @@ def main():
             rep.ok("  spine LIVE, q1.beat_pct=%s, assignments=%d"
                    % (q0.get("beat_pct"), n_asg))
         else:
-            rep.fail("  spine contract broken: status=%s beat=%s "
-                     "n=%d" % (spine.get("status"),
-                               q0.get("beat_pct"), n_asg))
+            rep.fail("  spine contract broken")
             sys.exit(1)
-        prev = {}
-        for fn, key, _m, stamp, _rk, _tk in CONSUMERS:
-            try:
-                prev[fn] = sread(key).get(stamp)
-                rep.ok("  %s present (prev %s=%s)"
-                       % (key, stamp, str(prev[fn])[:19]))
-            except ClientError:
-                prev[fn] = None
-                rep.warn("  %s absent pre-invoke" % key)
 
-        rep.heading("1. deploy settle (both markers)")
+        rep.heading("1. LastUpdateStatus gate (the 4819 miss)")
+        for fn, _k, _m, _s, _r, _t in CONSUMERS:
+            if not wait_active(rep, fn):
+                sys.exit(1)
+
+        rep.heading("2. marker settle")
         for fn, _k, marker, _s, _r, _t in CONSUMERS:
             if not settle(rep, fn, marker):
                 sys.exit(1)
 
-        rep.heading("2. Event-invoke both + poll (<=12 min)")
+        rep.heading("3. capture prev AFTER gates, invoke, poll "
+                    "(<=15 min)")
+        prev = {}
+        for fn, key, _m, stamp, _r, _t in CONSUMERS:
+            try:
+                prev[fn] = sread(key).get(stamp)
+            except ClientError:
+                prev[fn] = None
+            rep.kv(**{fn.replace("justhodl-", "") + "_prev":
+                      str(prev[fn])[:19]})
         for fn, _k, _m, _s, _r, _t in CONSUMERS:
             lam.invoke(FunctionName=fn, InvocationType="Event",
                        Payload=b"{}")
         docs = {}
         t0 = time.time()
-        while time.time() - t0 < 720 and len(docs) < len(CONSUMERS):
+        while time.time() - t0 < 900 and len(docs) < len(CONSUMERS):
             time.sleep(20)
             for fn, key, _m, stamp, _r, _t in CONSUMERS:
                 if fn in docs:
@@ -172,8 +191,8 @@ def main():
                     continue
                 if d.get(stamp) != prev[fn]:
                     docs[fn] = d
-                    rep.ok("%s fresh in %ds" % (fn,
-                                                int(time.time() - t0)))
+                    rep.ok("%s fresh in %ds"
+                           % (fn, int(time.time() - t0)))
         for fn, _k, _m, _s, _r, _t in CONSUMERS:
             if fn not in docs:
                 rep.fail("%s never refreshed" % fn)
@@ -181,20 +200,18 @@ def main():
         if FAILED:
             sys.exit(1)
 
-        rep.heading("3. truths")
+        rep.heading("4. truths")
         inv = docs["justhodl-invest"]
         sb = docs["justhodl-stock-buying"]
         if inv.get("schema") == "invest/0.1":
             rep.ok("  invest schema unchanged (invest/0.1)")
         else:
-            rep.fail("  invest schema mutated: %s"
-                     % inv.get("schema"))
+            rep.fail("  invest schema mutated")
             FAILED.append("schema_invest")
         if sb.get("schema_version") == 1:
             rep.ok("  stock-buying schema_version unchanged (1)")
         else:
-            rep.fail("  sb schema mutated: %s"
-                     % sb.get("schema_version"))
+            rep.fail("  sb schema mutated")
             FAILED.append("schema_sb")
         for fn, _k, _m, _s, rk, tk in CONSUMERS:
             verify_consumer(rep, fn, docs[fn], spine, rk, tk)
@@ -206,8 +223,10 @@ def main():
         elif sb.get("top"):
             rep.fail("  sb row fields missing on chip rows")
             FAILED.append("sb_fields")
+        rep.kv(sb_n_scored=len(sb.get("top") or []),
+               sb_tiers=json.dumps(sb.get("tiers")))
 
-        rep.heading("4. sample chips")
+        rep.heading("5. sample chips")
         for fn, _k, _m, _s, rk, tk in CONSUMERS:
             shown = 0
             for r in docs[fn].get(rk) or []:
@@ -224,11 +243,11 @@ def main():
                 if shown >= 4:
                     break
 
-        rep.heading("5. verdict")
+        rep.heading("6. verdict")
         if FAILED:
             rep.fail("HARD FAILS: %s" % sorted(set(FAILED)))
             sys.exit(1)
-        rep.ok("Fusion 1 consumers LIVE -- invest + stock-buying now "
+        rep.ok("Fusion 1 consumers LIVE -- invest + stock-buying "
                "quote the fleet's measured odds; neither can diverge "
                "from the spine")
 
