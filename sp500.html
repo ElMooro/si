@@ -190,7 +190,7 @@ async function renderBeaters(){
  let B=null;try{B=await (await fetch(`${PROXY}/data/spx-beaters.json?t=${Date.now()}`)).json()}catch(e){}
  const el=document.getElementById("beat_teaser");if(!el)return;
  if(!B||!B.ok){el.innerHTML=`<div class="note">Weekly SPX-beaters league runs Saturdays — first scan pending.</div>`;return}
- const picks=[];for(const b of ["large","mid","small","micro","etf_equity","etf_commodity"]){const r=((B.buckets||{})[b]||[])[0];if(r)picks.push([b,r])}
+ const picks=[];for(const b of ["large","comeback","mid","small","micro","etf_equity"]){const r=((B.buckets||{})[b]||[])[0];if(r)picks.push([b,r])}
  el.innerHTML=picks.slice(0,6).map(([b,r])=>card(b.replace("etf_","ETF "),`${r.t} · ${fmt(r.score,0)}`,(r.why&&r.why[0]||"").slice(0,60))).join("")||`<div class="note">No candidates cleared the evidence bar this week — SPX is the default.</div>`;}
 async function renderHistory(){
  let H=null;try{H=await (await fetch(`${PROXY}/data/sp500-history.json?t=${Date.now()}`)).json()}catch(e){}

@@ -36,8 +36,8 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.1"
-MARKER = "spx-beaters v1.0.1"
+VERSION = "1.1.0"
+MARKER = "spx-beaters v1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/spx-beaters.json"
 LEDGER_KEY = "spx-beaters/weekly-closes.json"
@@ -46,6 +46,10 @@ MOM_ALIAS = {"BTC": "IBIT", "ETH": "ETHA"}  # pseudo-tickers -> listed proxy
 TARGET_WEEKS = 53
 MAX_FETCH = 30
 PER_BUCKET = 15
+COMEBACK_TOP = 20
+COMEBACK_MIN = 60.0
+W_CB = {"quality": .30, "cheap": .25, "accum": .20,
+        "stabilize": .15, "revisions": .10}
 MIN_SCORE = 55.0
 W_STOCK = {"mom": .30, "fleet": .25, "flows": .15, "industry": .15,
            "quality": .15}
@@ -202,6 +206,17 @@ def rets(led, t):
     return r6, r121
 
 
+def dd_base(led, t):
+    """(drawdown from 52w high, 8w return, n_closes) from the ledger."""
+    arr = [v for v in (led["closes"].get(t) or []) if v]
+    if len(arr) < 40:
+        return None, None, len(arr)
+    hi = max(arr)
+    dd = arr[-1] / hi - 1 if hi else None
+    r8 = (arr[-1] / arr[-9] - 1) if len(arr) >= 9 else None
+    return dd, r8, len(arr)
+
+
 # ---------------------------------------------------- sp500 pillars --
 SPX_PIL = {
     "valuation": (["pe_ttm", "pe_fwd", "peg_ttm", "ps_ttm", "pb",
@@ -246,6 +261,7 @@ def spx_composites(sp):
     out = {}
     for t, r in mem.items():
         comp = wsum = 0.0
+        pil = {}
         for pname, (lows, _, highs) in SPX_PIL.items():
             vals = []
             for f in lows + highs:
@@ -259,10 +275,12 @@ def spx_composites(sp):
                 vals.append(100 - p if f in lows else p)
             if len(vals) >= SPX_MINN[pname]:
                 sc = sum(vals) / len(vals)
+                pil[pname] = round(sc, 1)
                 comp += sc * SPX_PW[pname]
                 wsum += SPX_PW[pname]
         if wsum:
-            out[t] = round(comp / wsum, 1)
+            out[t] = {"composite": round(comp / wsum, 1),
+                      "pillars": pil}
     return out
 
 
@@ -318,6 +336,58 @@ def scan():
         if isinstance(r, dict) and tick_of(r):
             ca_set.add(tick_of(r))
     diag["feeds"]["congress_alpha"] = len(ca_set)
+
+    # value-trap guards (master-ranker redflag pattern) + comeback feeds
+    trap = {}
+    for r in ((_g("data/beneish.json") or {}).get("red_flags") or []):
+        t_ = tick_of(r)
+        if t_:
+            trap.setdefault(t_, []).append("Beneish manipulation flag")
+    for r in ((_g("data/earnings-quality.json") or {})
+              .get("top_10_low_quality_avoid") or []):
+        t_ = tick_of(r)
+        if t_:
+            trap.setdefault(t_, []).append("low earnings quality")
+    for r in ((_g("data/insider-sell-cluster.json") or {})
+              .get("top_clusters") or []):
+        t_ = tick_of(r)
+        if t_:
+            trap.setdefault(t_, []).append("insider selling cluster")
+    for r in rows_of(_g("data/share-flows.json") or {}, "rows", "top"):
+        t_ = tick_of(r)
+        fl = r.get("flags") or []
+        if t_ and any(f in ("SBC_WASH", "BUYBACK_BLUFF") for f in fl):
+            trap.setdefault(t_, []).append("share-flows " +
+                                           "/".join(fl[:2]))
+    diag["feeds"]["trap_guards"] = len(trap)
+    cbs = _g("data/comeback-screener.json") or {}
+    cb_boards = cbs.get("boards") or {}
+    cb_state, cb_trap = {}, set()
+    for bname, rws in cb_boards.items():
+        for r in (rws or []):
+            t_ = tick_of(r)
+            if not t_:
+                continue
+            if "DILUTION" in str(bname).upper():
+                cb_trap.add(t_)
+            else:
+                cb_state[t_] = str(bname).upper()
+    diag["feeds"]["comeback_screener"] = len(cb_state)
+    rev = {}
+    for r in rows_of(_g("data/eps-revision-velocity.json") or {},
+                     "rows", "top", "stocks", "data"):
+        t_ = tick_of(r)
+        if not t_:
+            continue
+        v = None
+        for k in ("velocity", "revision_velocity", "net_revisions",
+                  "score"):
+            if fnum(r.get(k)) is not None:
+                v = fnum(r.get(k))
+                break
+        if v is not None:
+            rev[t_] = v
+    diag["feeds"]["eps_revisions"] = len(rev)
 
     boom = _g("data/industry-boom.json") or {}
     league = rows_of(boom, "league", "rows")
@@ -481,9 +551,9 @@ def scan():
                            "of 120)" % (m["industry"][:28],
                                         boom_by_ind[ind], 100 - bp))
         if t in qual:
-            legs["quality"] = qual[t] / 100.0
+            legs["quality"] = qual[t]["composite"] / 100.0
             why.append("sp500 five-pillar composite %.0f/100 vs index"
-                       % qual[t])
+                       % qual[t]["composite"])
         if len(legs) < 2 or set(legs) == {"mom", "industry"}:
             return None  # need name-specific evidence beyond momentum
         num = sum(W_STOCK[k] * v for k, v in legs.items())
@@ -613,9 +683,125 @@ def scan():
     for b in etf_buckets:
         etf_buckets[b].sort(key=lambda r: -r["score"])
 
+    # -------------------------------- COMEBACK wing (quality, beaten
+    # up, cheap vs the index, evidence it turns) ---------------------
+    sp_fi = {k: i for i, k in enumerate(sp.get("member_fields") or [])}
+    sp_mem = sp.get("members") or {}
+    idx_fpe = ((sp.get("forward") or {}).get("pe_fwd")
+               or {}).get("agg")
+
+    def cb_row(t):
+        if t in trap or t in cb_trap:
+            return None
+        m = meta[t]
+        dd, r8, ncl = dd_base(led, t)
+        if dd is None or dd > -0.30:
+            return None
+        state = cb_state.get(t)
+        if (r8 is None or r8 < -0.03) and state not in ("CONFIRMED",
+                                                        "EARLY_TURN"):
+            return None  # still falling, no independent turn signal
+        legs, why = {}, []
+        why.append("%.0f%% below 52w high (weekly closes, %dw)"
+                   % (dd * 100, ncl))
+        q = qual.get(t)
+        if q and q["pillars"].get("quality") is not None:
+            qs = q["pillars"]["quality"]
+            if qs >= 55:
+                legs["quality"] = qs / 100.0
+                why.append("quality pillar %.0f/100 inside the S&P"
+                           % qs)
+        else:
+            sbr = sb_map.get(t)
+            sc = fnum((sbr or {}).get("score"))
+            if sc is not None and sc >= 55:
+                legs["quality"] = min(0.9, sc / 100.0)
+                why.append("stock-buying screener quality score %.0f "
+                           "(%s)" % (sc, (sbr.get("tier") or "")))
+        if "quality" not in legs:
+            return None  # Khalid: GOOD QUALITY only
+        if q and q["pillars"].get("valuation") is not None:
+            vs = q["pillars"]["valuation"]
+            legs["cheap"] = vs / 100.0
+            fpe_i = sp_fi.get("pe_fwd")
+            row = sp_mem.get(t)
+            if row is not None and fpe_i is not None and idx_fpe:
+                x = row[fpe_i]
+                if isinstance(x, (int, float)):
+                    why.append("fwd P/E %.1f vs index %.1f (%+.0f%%)"
+                               % (x, idx_fpe, (x / idx_fpe - 1) * 100))
+            else:
+                why.append("valuation pillar %.0f/100 (cheaper than "
+                           "most of the index)" % vs)
+        else:
+            peg = fnum((sb_map.get(t) or {}).get("peg"))
+            if peg is not None and 0 < peg < 1.5:
+                legs["cheap"] = 0.8 if peg < 1.0 else 0.6
+                why.append("PEG %.2f" % peg)
+        fl = f13.get(t)
+        if isinstance(fl, dict):
+            net = None
+            for k, v in fl.items():
+                if "net" in k and fnum(v) is not None:
+                    net = fnum(v)
+                    break
+            if net is not None and net > 0:
+                legs["accum"] = 0.85
+                why.append("13F net +$%.0fM while the stock is down "
+                           "-- accumulation into weakness"
+                           % (net / 1e6 if abs(net) > 1e6 else net))
+        if t in ca_set:
+            legs["accum"] = min(1.0, legs.get("accum", 0.5) + 0.15)
+            why.append("congress-alpha disclosed buy")
+        st = 0.5 + min(0.5, max(0.0, (r8 or 0)) * 2.5)
+        if state == "CONFIRMED":
+            st = max(st, 0.85)
+            why.append("comeback-screener CONFIRMED (SMA200 "
+                       "reclaimed)")
+        elif state == "EARLY_TURN":
+            st = max(st, 0.65)
+            why.append("comeback-screener EARLY_TURN")
+        elif r8 is not None:
+            why.append("8w base %+.0f%% -- no longer falling"
+                       % (r8 * 100))
+        legs["stabilize"] = st
+        if fnum(rev.get(t)) is not None and rev[t] > 0:
+            legs["revisions"] = 0.8
+            why.append("EPS revision velocity positive")
+        if len(legs) < 3:
+            return None
+        num = sum(W_CB[k] * v for k, v in legs.items())
+        den = sum(W_CB[k] for k in legs)
+        score = round(100 * num / den, 1)
+        if score < COMEBACK_MIN:
+            return None
+        r6, r121 = r6_map.get(t), r121_map.get(t)
+        return {"t": t, "name": m["name"], "sector": m.get("sector"),
+                "industry": m.get("industry"), "mcap": m.get("mcap"),
+                "bucket": m["bucket"],
+                "scope": "sp500" if t in qual else "broad",
+                "score": score,
+                "legs": {k: round(v, 2) for k, v in legs.items()},
+                "n_legs": len(legs),
+                "dd_52w_pct": round(dd * 100, 1),
+                "ret_8w_pct": round(r8 * 100, 1)
+                if r8 is not None else None,
+                "ret_6m_pct": round(r6 * 100, 1)
+                if r6 is not None else None,
+                "why": why[:7]}
+
+    comeback = []
+    for t in meta:
+        row = cb_row(t)
+        if row:
+            comeback.append(row)
+    comeback.sort(key=lambda r: -r["score"])
+
     out_buckets = {b: v[:PER_BUCKET] for b, v in
                    {**buckets, **etf_buckets}.items()}
+    out_buckets["comeback"] = comeback[:COMEBACK_TOP]
     counts = {b: len(v) for b, v in {**buckets, **etf_buckets}.items()}
+    counts["comeback"] = len(comeback)
 
     regime = {
         "risk_gate_sizing": (rg.get("sizing") or rg.get("size")
@@ -649,8 +835,10 @@ def scan():
                           % (TARGET_WEEKS, weeks)},
            "scanned": {"stocks": scanned, "etfs": len(etf_pool)},
            "counts": counts, "buckets": out_buckets,
-           "weights": {"stock": W_STOCK, "etf": W_ETF},
-           "min_score": MIN_SCORE, "diag": diag,
+           "weights": {"stock": W_STOCK, "etf": W_ETF,
+                       "comeback": W_CB},
+           "min_score": MIN_SCORE, "comeback_min": COMEBACK_MIN,
+           "diag": diag,
            "method": "score = 100 x SIGMA(w_leg x leg)/SIGMA(w_leg) "
                      "over AVAILABLE legs (>=2 required); momentum = "
                      "cross-sectional percentile of 12-1 (0.6) + 6m "

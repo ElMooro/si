@@ -55,6 +55,9 @@ a{color:var(--cyan);text-decoration:none}
 <div><h2 style="font-size:13px">Micro cap (&lt;$300M)</h2><div id="b_micro"></div></div>
 </div></div>
 
+<div class="sec"><h2>Comeback candidates — quality, beaten up, cheap vs the index</h2>
+<div class="banner">Good businesses trading ≥30% below their 52-week high that have <b>stopped falling</b>, screen <b>cheap against the S&amp;P itself</b>, and carry evidence of a turn (smart-money accumulation into weakness, positive revisions, an independent CONFIRMED turn signal). Value-trap guards exclude anything with Beneish flags, low earnings quality, insider-sell clusters, SBC-wash/buyback-bluff patterns or dilution-funded recoveries. Quality is <b>required</b> — cheap alone never lists.</div>
+<div id="b_comeback"></div></div>
 <div class="sec"><h2>ETFs &amp; asset classes</h2><div class="grid2">
 <div><h2 style="font-size:13px">Equity ETFs</h2><div id="b_etf_equity"></div></div>
 <div><h2 style="font-size:13px">Bond / fixed income</h2><div id="b_etf_bond"></div></div>
@@ -71,7 +74,11 @@ const card=(k,v,s,cls)=>`<div class="card"><div class="k">${k}</div><div class="
 function mcapS(m){if(m==null)return"";return m>=1e12?fmt(m/1e12,1)+"T":m>=1e9?fmt(m/1e9,1)+"B":fmt(m/1e6,0)+"M"}
 function rowHtml(r){
  const b=r.score>=70?"b-hi":"b-md";
- const chips=[r.sector||r.class,r.mcap?("$"+mcapS(r.mcap)):null,
+ const chips=[r.dd_52w_pct!=null?`<b style="color:var(--red)">${fmt(r.dd_52w_pct,0)}% off 52w high</b>`:null,
+  r.ret_8w_pct!=null?`8w base ${r.ret_8w_pct>0?"+":""}${fmt(r.ret_8w_pct,0)}%`:null,
+  r.scope?`scope: ${r.scope}`:null,
+  r.bucket?r.bucket+" cap":null,
+  r.sector||r.class,r.mcap?("$"+mcapS(r.mcap)):null,
   r.ret_6m_pct!=null?`6m ${r.ret_6m_pct>0?"+":""}${fmt(r.ret_6m_pct,0)}%`:null,
   r.rs_6m_pp!=null?`${r.rs_6m_pp>0?"+":""}${fmt(r.rs_6m_pp,0)}pp vs SPY`:null,
   r.ret_12_1_pct!=null?`12-1 ${r.ret_12_1_pct>0?"+":""}${fmt(r.ret_12_1_pct,0)}%`:null,
@@ -98,10 +105,10 @@ async function load(){let D=null;try{D=await (await fetch(`${PROXY}/data/spx-bea
  const ms=D.mom_status||{};
  document.getElementById("banner").innerHTML=ms.note?`<div class="banner">⏳ ${ms.note}. 6-month momentum is live; scores will sharpen as the 12-1 window completes.</div>`:"";
  document.getElementById("asof").textContent=`as of ${(D.as_of||"").slice(0,16).replace("T"," ")} UTC · weekly closes ${led.first||"—"} → ${led.last||"—"} · ${rg.note||""}`;
- for(const b of ["large","mid","small","micro","etf_equity","etf_bond","etf_commodity","etf_crypto_alt"])
+ for(const b of ["large","mid","small","micro","comeback","etf_equity","etf_bond","etf_commodity","etf_crypto_alt"])
   fill("b_"+b,(D.buckets||{})[b],(D.counts||{})[b]||0,D.min_score);
  const w=D.weights||{};
- document.getElementById("foot").innerHTML=`<b>Method.</b> ${D.method||""} Stock weights ${JSON.stringify(w.stock)} · ETF weights ${JSON.stringify(w.etf)}. Minimum score ${D.min_score}; a name-specific second evidence leg is required (momentum + industry alone never lists). Engine ${D.engine_v}, refreshed Saturdays 13:00 UTC. Real data only — empty buckets mean nothing cleared the bar, not a rendering gap.`;
+ document.getElementById("foot").innerHTML=`<b>Method.</b> ${D.method||""} Stock weights ${JSON.stringify(w.stock)} · ETF weights ${JSON.stringify(w.etf)}. Minimum score ${D.min_score}; a name-specific second evidence leg is required (momentum + industry alone never lists). Comeback wing: quality leg REQUIRED, drawdown ≤ −30%, still-falling names skipped unless an independent turn is CONFIRMED, minimum score ${D.comeback_min||60}. Engine ${D.engine_v}, refreshed Saturdays 13:00 UTC. Real data only — empty buckets mean nothing cleared the bar, not a rendering gap.`;
 }
 load();
 </script></body></html>
