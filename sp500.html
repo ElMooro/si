@@ -1,0 +1,127 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SP500 · The Index As A Stock · JustHodl AI</title>
+<meta name="description" content="The S&P 500 treated as a single stock: index-level P/E, forward P/E, earnings yield, dividend + buyback yield, quality, growth and balance-sheet aggregates — with member distributions so any ticker can be compared and percentile-ranked against the index in one read.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{min-height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:8px 24px;background:var(--bg-1);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 24px 70px}
+.hero h1{font-size:28px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:6px 0 16px;max-width:860px}
+.sec{margin-top:30px}
+.sec h2{font-size:15px;font-family:var(--mono);color:var(--fg-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.card{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:14px 14px 12px}
+.card .k{font-size:11px;font-family:var(--mono);color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px}
+.card .v{font-size:22px;font-weight:800;color:var(--fg-0);margin-top:4px;font-family:var(--mono)}
+.card .s{font-size:11px;color:var(--fg-3);margin-top:3px}
+.pos{color:var(--green)!important}.neg{color:var(--red)!important}.amb{color:var(--amber)!important}
+table{width:100%;border-collapse:collapse;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th{font-family:var(--mono);font-size:11px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px;text-align:right;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--bg-1)}
+th:first-child,td:first-child{text-align:left}
+td{padding:8px 12px;font-family:var(--mono);font-size:13px;text-align:right;border-bottom:1px solid var(--border);color:var(--fg-1)}
+tr:last-child td{border-bottom:none}
+td.metric{color:var(--fg-2);font-family:var(--sans)}
+.band{color:var(--fg-3);font-size:12px}
+.cmpbox{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.cmpbox input{background:var(--bg-1);border:1px solid var(--border-bright);border-radius:8px;color:var(--fg-0);font-family:var(--mono);font-size:16px;padding:10px 14px;width:170px;text-transform:uppercase}
+.cmpbox button{background:linear-gradient(90deg,var(--cyan),var(--green));border:none;border-radius:8px;color:#04121a;font-weight:800;font-family:var(--mono);font-size:14px;padding:11px 20px;cursor:pointer}
+.chip{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-family:var(--mono);font-weight:700}
+.chip.cheap{background:rgba(38,255,175,.12);color:var(--green)}
+.chip.rich{background:rgba(255,85,119,.12);color:var(--red)}
+.chip.inline{background:rgba(168,179,199,.12);color:var(--fg-2)}
+.note{color:var(--fg-3);font-size:12px;margin-top:8px}
+.err{color:var(--red);font-family:var(--mono);font-size:13px;margin-top:8px}
+.foot{margin-top:36px;color:var(--fg-3);font-size:12px;border-top:1px solid var(--border);padding-top:14px;line-height:1.7}
+@media(max-width:720px){.wrap{padding:22px 12px 60px}}
+</style></head><body>
+<header class="header"><div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+<nav class="nav"><a href="/">Home</a><a href="/rotation-dashboard.html">Rotation</a><a href="/industry-rotation.html">Industry Boom</a><a href="/compass.html">Capital Compass</a><a href="/invest.html">Invest</a><a href="/sp500.html" class="active">SP500</a><a href="/canaries.html">Canaries</a><a href="/backlog.html">Backlog</a><a href="/ask.html">Ask</a></nav>
+<div data-auth-slot style="margin-left:auto"></div></header>
+<div class="wrap">
+<div class="hero"><h1>S&amp;P 500 <span class="grad">— The Index As A Stock</span></h1>
+<p>Every metric a single stock carries, computed for the index itself: <b>&Sigma; market cap / &Sigma; component</b> across the members (losers included in earnings, exactly like the real index), fundamentals from the census matrix repriced by daily member closes. Type any ticker below to see whether it's cheap or rich <i>versus the index you could own instead</i> — aggregate, member median, and its percentile rank inside the S&amp;P.</p></div>
+
+<div class="sec"><h2>Headline</h2><div class="cards" id="cards"></div>
+<div class="note" id="asof"></div></div>
+
+<div class="sec"><h2>Compare a stock to the index</h2>
+<div class="cmpbox"><input id="tk" placeholder="TICKER" maxlength="6" autocomplete="off"><button id="go">Compare</button><span class="note">verdict = &plusmn;10% vs member median &middot; percentile = rank within S&amp;P members</span></div>
+<div id="cmp"></div></div>
+
+<div class="sec"><h2>Valuation</h2><div id="t_val"></div></div>
+<div class="sec"><h2>Forward (NTM analyst consensus)</h2><div id="t_fwd"></div></div>
+<div class="sec"><h2>Yield &amp; capital return</h2><div id="t_yld"></div></div>
+<div class="sec"><h2>Quality &amp; margins</h2><div id="t_qua"></div></div>
+<div class="sec"><h2>Growth</h2><div id="t_gro"></div></div>
+<div class="sec"><h2>Balance sheet &amp; risk</h2><div id="t_bal"></div></div>
+<div class="sec"><h2>Macro cross</h2><div class="cards" id="macro"></div></div>
+
+<div class="foot" id="foot"></div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+let D=null,ARR={};
+const MF=i=>D.member_fields[i];
+const CMP=[["P/E (TTM)",3,"pe_ttm","valuation",true],["Forward P/E",4,"pe_fwd","forward",true],["P/S (TTM)",5,"ps_ttm","valuation",true],["P/B",6,"pb","valuation",true],["EV/EBITDA",7,"ev_ebitda_ttm","valuation",true],["Dividend yield %",8,"dividend_yield_pct","yield",false],["FCF yield %",9,"fcf_yield_pct","valuation",false],["PEG",10,"peg_ttm","valuation",true],["ROE %",11,"roe_pct","quality",false],["Net margin %",12,"net_margin_pct","quality",false],["Revenue YoY %",13,"revenue_yoy_pct","growth",false],["EPS YoY %",14,"eps_yoy_pct","growth",false]];
+const fmt=(v,dp=2)=>v==null?"—":(+v).toLocaleString(undefined,{maximumFractionDigits:dp,minimumFractionDigits:0});
+function card(k,v,s,cls){return `<div class="card"><div class="k">${k}</div><div class="v ${cls||""}">${v}</div><div class="s">${s||""}</div></div>`}
+function row(name,m,dp=2){if(!m)return"";const band=(m.p25!=null)?`${fmt(m.p25,dp)} – ${fmt(m.p75,dp)}`:"—";const wide=(m.p10!=null)?`${fmt(m.p10,dp)} – ${fmt(m.p90,dp)}`:"—";
+ return `<tr><td class="metric">${name}</td><td><b>${fmt(m.agg,dp)}</b></td><td>${fmt(m.median,dp)}</td><td class="band">${band}</td><td class="band">${wide}</td><td class="band">${m.n||m.n_agg||"—"}</td></tr>`}
+function table(rows){return `<table><tr><th>Metric</th><th>SP500 (agg)</th><th>Member median</th><th>p25–p75</th><th>p10–p90</th><th>n</th></tr>${rows.join("")}</table>`}
+function buildArrays(){for(const[,idx]of CMP.map((c,i)=>[i,c[1]])){}
+ for(const c of CMP){const a=[];for(const t in D.members){const v=D.members[t][c[1]];if(typeof v==="number"&&isFinite(v))a.push(v)}a.sort((x,y)=>x-y);ARR[c[1]]=a}}
+function pct(arr,x){if(!arr||!arr.length||x==null)return null;let lo=0,hi=arr.length;while(lo<hi){const m=(lo+hi)>>1;arr[m]<x?lo=m+1:hi=m}return Math.round(1000*lo/arr.length)/10}
+function compare(){const t=(document.getElementById("tk").value||"").trim().toUpperCase();const el=document.getElementById("cmp");if(!t)return;
+ const m=D.members[t];if(!m){el.innerHTML=`<div class="err">${t} is not in the S&amp;P 500 census.</div>`;return}
+ const rows=CMP.map(([name,idx,key,grp,lowerRich])=>{const x=m[idx];const ref=D[grp][key]||{};const med=ref.median,agg=ref.agg;let prem=null,chip=`<span class="chip inline">—</span>`;
+  if(x!=null&&med){prem=(x/med-1)*100;const cheap=lowerRich?prem<-10:prem>10;const rich=lowerRich?prem>10:prem<-10;
+   chip=cheap?`<span class="chip cheap">CHEAP vs index</span>`:rich?`<span class="chip rich">RICH vs index</span>`:`<span class="chip inline">IN LINE</span>`}
+  const p=pct(ARR[idx],x);
+  return `<tr><td class="metric">${name}</td><td><b>${fmt(x)}</b></td><td>${fmt(agg)}</td><td>${fmt(med)}</td><td>${prem==null?"—":(prem>0?"+":"")+fmt(prem,1)+"%"}</td><td>${p==null?"—":fmt(p,1)}</td><td style="text-align:left">${chip}</td></tr>`});
+ el.innerHTML=`<table><tr><th>Metric</th><th>${t}</th><th>SP500 (agg)</th><th>Member median</th><th>vs median</th><th>%ile in S&amp;P</th><th style="text-align:left">Verdict</th></tr>${rows.join("")}</table>
+ <div class="note">${t}: ${m[1]||""} &middot; price ${m[0]>0?"+":""}${fmt(m[0],1)}% since fundamentals snapshot &middot; higher percentile = more expensive for valuation rows, stronger for yield/quality/growth rows.</div>`}
+async function load(){let r;try{r=await fetch(`${PROXY}/data/sp500.json?t=${Date.now()}`);D=await r.json()}catch(e){}
+ if(!D||!D.ok){document.getElementById("cards").innerHTML=`<div class="err">data/sp500.json unavailable — engine may still be on first run.</div>`;return}
+ buildArrays();
+ const v=D.valuation,f=D.forward,y=D.yield,q=D.quality,g=D.growth,b=D.balance,mc=D.macro_cross,ix=D.index;
+ const erp=mc.erp_ttm_pct,r20=mc.rule_of_20;
+ document.getElementById("cards").innerHTML=[
+  card("SPX level",fmt(ix.level,0),ix.regime||""),
+  card("P/E (TTM)",fmt(v.pe_ttm.agg,1),"losers included"),
+  card("Forward P/E",fmt(f.pe_fwd.agg,1),`NTM growth ${fmt(f.ntm_earnings_growth_pct.agg,1)}%`),
+  card("Earnings yield",fmt(v.earnings_yield_pct.agg,2)+"%","100 / P·E"),
+  card("Dividend yield",fmt(y.dividend_yield_pct.agg,2)+"%","non-payers = 0"),
+  card("Buyback yield",fmt(y.net_buyback_yield_pct.agg,2)+"%","net of issuance"),
+  card("FCF yield",fmt(v.fcf_yield_pct.agg,2)+"%",""),
+  card("ERP vs 10Y",erp==null?"—":fmt(erp,2)+"%",`10Y ${fmt(mc.us10y_pct,2)}%`,erp==null?"":erp>=0?"pos":"neg"),
+  card("Rule of 20",r20==null?"—":fmt(r20,1),`CPI ${fmt(mc.cpi_yoy_pct,1)}%`,r20==null?"":r20<=20?"pos":r20<=23?"amb":"neg"),
+  card("Total mkt cap",fmt(ix.total_mcap/1e3,1)+"T","across "+ix.members+" members")].join("");
+ document.getElementById("asof").textContent=`as of ${D.as_of.slice(0,16).replace("T"," ")} UTC · member prices ${ix.px_date||"—"} · fundamentals snapshot ${ix.fundamentals_asof||"—"}`;
+ document.getElementById("t_val").innerHTML=table([row("P/E (TTM, losers in)",v.pe_ttm,1),row("Earnings yield %",v.earnings_yield_pct),row("P/S (TTM)",v.ps_ttm),row("P/B",v.pb),row("P/FCF",v.p_fcf_ttm,1),row("FCF yield %",v.fcf_yield_pct),row("EV/EBITDA",v.ev_ebitda_ttm,1),row("EV/Sales",v.ev_sales_ttm),row("PEG (member dist)",v.peg_ttm)]);
+ document.getElementById("t_fwd").innerHTML=table([row("Forward P/E",f.pe_fwd,1),row("Forward earnings yield %",f.earnings_yield_fwd_pct),row("Forward P/S",f.ps_fwd),row("Forward EV/EBITDA",f.ev_ebitda_fwd,1),row("NTM earnings growth %",f.ntm_earnings_growth_pct,1)]);
+ document.getElementById("t_yld").innerHTML=table([row("Dividend yield %",y.dividend_yield_pct),row("Net buyback yield %",y.net_buyback_yield_pct),row("Shareholder yield %",y.shareholder_yield_pct),row("Payout ratio %",y.payout_ratio_pct,1)]);
+ document.getElementById("t_qua").innerHTML=table([row("ROE %",q.roe_pct,1),row("ROIC %",q.roic_pct,1),row("ROA %",q.roa_pct,1),row("Gross margin %",q.gross_margin_pct,1),row("Operating margin %",q.operating_margin_pct,1),row("Net margin %",q.net_margin_pct,1),row("FCF margin %",q.fcf_margin_pct,1),row("Income quality",q.income_quality),row("SBC / revenue %",q.sbc_to_revenue_pct,1),row("Piotroski F",q.piotroski_f)]);
+ document.getElementById("t_gro").innerHTML=table([row("Revenue YoY %",g.revenue_yoy_pct,1),row("EPS YoY %",g.eps_yoy_pct,1),row("Revenue CAGR 3y %",g.revenue_cagr_3y_pct,1),row("EPS CAGR 3y %",g.eps_cagr_3y_pct,1)]);
+ document.getElementById("t_bal").innerHTML=table([row("Debt / equity",b.debt_to_equity),row("Net debt / EBITDA",b.netdebt_to_ebitda_ttm),row("Current ratio",b.current_ratio),row("Interest coverage",b.interest_coverage_ttm,1),row("Altman Z",b.altman_z),row("Beta (2y)",b.beta_2y)]);
+ document.getElementById("macro").innerHTML=[
+  card("US 10Y",fmt(mc.us10y_pct,2)+"%",mc.asof&&mc.asof.dgs10||""),
+  card("US 2Y",fmt(mc.us2y_pct,2)+"%",""),
+  card("2s10s",mc.curve_2s10s_bp==null?"—":fmt(mc.curve_2s10s_bp,0)+"bp","",mc.curve_2s10s_bp>=0?"pos":"neg"),
+  card("CPI YoY",fmt(mc.cpi_yoy_pct,1)+"%",mc.asof&&mc.asof.cpi||""),
+  card("ERP (TTM)",erp==null?"—":fmt(erp,2)+"%","earnings yield − 10Y",erp==null?"":erp>=0?"pos":"neg"),
+  card("ERP (fwd)",mc.erp_fwd_pct==null?"—":fmt(mc.erp_fwd_pct,2)+"%",""),
+  card("Div yield − 10Y",mc.div_yield_minus_10y_pct==null?"—":fmt(mc.div_yield_minus_10y_pct,2)+"%","")].join("");
+ const dg=D.diag||{};const rp=dg.reprice||{};
+ document.getElementById("foot").innerHTML=`<b>Methodology.</b> ${D.provenance.method} Sources: ${D.provenance.sources.join(" · ")}. Reprice: ${rp.members_repriced??"—"} members on ${rp.now_px_date??"—"} closes, ${rp.members_flat??"—"} at snapshot price. History banked: ${D.hist_days??"—"} days (permanent). Engine ${D.engine_v}. Real data only — anything unavailable shows as — with the reason in <span style="font-family:var(--mono)">data/sp500.json → diag</span>.`;
+}
+document.getElementById("go").onclick=compare;
+document.getElementById("tk").addEventListener("keydown",e=>{if(e.key==="Enter")compare()});
+load();
+</script></body></html>

@@ -1,0 +1,9 @@
+{
+  "function_name": "justhodl-sp500",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 300,
+  "memory": 1024,
+  "description": "S&P 500 as a single stock: index P/E, fwd P/E, yields, quality, growth, balance aggregates + member distributions for stock-vs-index compare. Census matrix + spx-ma closes + FRED. Out: data/sp500.json",
+  "inherit_env": [{"from_function": "justhodl-dollar-strength-agent", "keys": ["FRED_API_KEY"]}]
+}
