@@ -53,6 +53,13 @@ th{background:#10141a;color:var(--dim);font-size:11px;text-transform:uppercase;
 letter-spacing:.6px;cursor:pointer;user-select:none}
 td.namecell,th.namecell{text-align:left;max-width:460px;overflow:hidden;text-overflow:ellipsis}
 tr.row{cursor:pointer}tr.row:hover{background:#151b23}
+.renb,.noteb{cursor:pointer;color:#5a6472;font-size:12px;margin-left:6px}
+.noteb.has{color:var(--amber)}
+#novl{position:fixed;inset:0;background:rgba(5,7,10,.86);display:none;z-index:60}
+#novl.on{display:flex;align-items:center;justify-content:center}
+#novl textarea{width:100%;height:150px;background:#0f1319;border:1px solid var(--line);color:var(--tx);border-radius:8px;padding:10px;font:13px/1.5 inherit;resize:vertical}
+.nbtn{background:#161b22;border:1px solid var(--line);color:var(--tx);border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;margin-right:8px}
+.nbtn.pri{background:var(--amber);color:#0c0f13;border-color:var(--amber);font-weight:700}
 tr.row:nth-child(even){background:#10151b}
 .pos{color:var(--grn)}.neg{color:var(--red)}.na{color:#4a5560}
 .tag{font-size:10px;color:var(--dim)}
@@ -89,8 +96,16 @@ border-radius:8px}
 <div id="main"></div>
 <div class="foot">Every value from the permanent warm bank · engine justhodl-repo (daily 06:10 UTC) ·
 D% = vs previous observation · W/M/Q/Y% = vs the series' own value 7/30/91/365 calendar days back ·
-★ + red tag = your barometer inputs · click any row for its full-history chart with % views.</div>
+★ + red tag = your barometer inputs · click any row for its full-history chart with % views.
+✎ custom names & 🗒 notes are saved in this browser (localStorage, per-device) and searchable.</div>
 </div>
+
+<div id="novl"><div class="pane" style="width:min(640px,94vw)">
+  <button class="x" onclick="closeNote()">✕</button>
+  <h2 id="ntitle">Note</h2><div class="meta" id="nmeta"></div>
+  <textarea id="ntext" placeholder="your note for this series…"></textarea>
+  <div style="margin-top:10px"><button class="nbtn pri" id="nsave">Save</button><button class="nbtn" id="ndel">Delete note</button><button class="nbtn" onclick="closeNote()">Close</button></div>
+</div></div>
 
 <div id="ovl"><div class="pane">
   <button class="x" onclick="closeOvl()">✕</button>
@@ -107,6 +122,12 @@ const pc=v=>v==null?"—":(v>0?"+":"")+(+v).toFixed(2)+"%";
 let DATA=null,rows=[],TAB='overview',sortK='tier',sortA=true,starOnly=false;
 let FAV={};try{FAV=JSON.parse(localStorage.getItem('repoFavs')||'{}')}catch(e){}
 const saveFav=()=>localStorage.setItem('repoFavs',JSON.stringify(FAV));
+let NAMES={};try{NAMES=JSON.parse(localStorage.getItem('repoNames')||'{}')}catch(e){}
+let NOTES={};try{NOTES=JSON.parse(localStorage.getItem('repoNotes')||'{}')}catch(e){}
+const saveNames=()=>localStorage.setItem('repoNames',JSON.stringify(NAMES));
+const saveNotes=()=>localStorage.setItem('repoNotes',JSON.stringify(NOTES));
+const dispName=r=>NAMES[r.id]||r.label||'—';
+const esc=t=>(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 const COLORS=[null,'red','amber','green'];
 const dot=c=>c==='red'?'#E07A6A':c==='amber'?'#F0B429':c==='green'?'#6fce8a':'#3a4250';
 
@@ -155,7 +176,7 @@ fetch('/data/repo.json?t='+Date.now()).then(r=>r.json()).then(d=>{
 function renderTabs(){
   const gs=GORDER.filter(g=>rows.some(r=>r.group===g));
   rows.forEach(r=>{if(!gs.includes(r.group))gs.push(r.group);});
-  const t=[['overview','Overview',rows.length],...gs.map(g=>[g,SHORT[g]||g,
+  const t=[['overview','Overview',rows.length],['favorites','★ Favorites',rows.filter(r=>(FAV[r.id]||{}).star).length],...gs.map(g=>[g,SHORT[g]||g,
     rows.filter(r=>r.group===g).length])];
   document.getElementById('tabs').innerHTML=t.map(([k,lab,n])=>
     `<button class="tab ${TAB===k?'on':''}" data-t="${k}">${lab}<span class="n">${n}</span></button>`).join('');
@@ -189,21 +210,22 @@ function renderBaro(){
 
 function tableFor(rs,withGroupCol){
   const kv=r=>{const c=r.chg||{};return({tier:r.tier,id:r.id,last:r.last_value,
+    date:r.last||'',grp:r.group||'',name:dispName(r),
     d:c.pop,w:c.w,m:c.m,q:c.q,y:c.y})[sortK];};
   rs=[...rs].sort((a,b)=>{const x=kv(a),y=kv(b);
     if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;
     return (x<y?-1:x>y?1:0)*(sortA?1:-1);});
   const H=(k,t,c)=>`<th class="${c||''}" data-k="${k}">${t}${sortK===k?(sortA?' ▲':' ▼'):''}</th>`;
-  let h=`<table><thead><tr><th></th>${H('id','Series','namecell')}${withGroupCol?'<th>Group</th>':''}${H('last','Last')}<th>Date</th>${H('d','D%')}${H('w','W%')}${H('m','M%')}${H('q','Q%')}${H('y','Y%')}</tr></thead><tbody>`;
-  let sub0=null;const cols=withGroupCol?10:9;
+  let h=`<table><thead><tr><th title="sort by tier" data-k="tier" style="cursor:pointer">${sortK==='tier'?(sortA?'▲':'▼'):'·'}</th>${H('id','Series','namecell')}${withGroupCol?H('grp','Group'):''}${H('last','Last')}${H('date','Date')}${H('d','D%')}${H('w','W%')}${H('m','M%')}${H('q','Q%')}${H('y','Y%')}</tr></thead><tbody>`;
+  let sub0=null;const cols=withGroupCol?10:9;const flat=(sortK!=='tier');
   rs.forEach(r=>{const c=r.chg||{};const fv=FAV[r.id]||{};
-    if(!withGroupCol&&r.sub&&r.sub!==sub0){sub0=r.sub;
+    if(!flat&&!withGroupCol&&r.sub&&r.sub!==sub0){sub0=r.sub;
       h+=`<tr class="subhead"><td colspan="${cols}">${sub0}</td></tr>`;}
     h+=`<tr class="row" data-sid="${r.sid}" data-id="${r.id}">`+
       `<td onclick="event.stopPropagation()" style="white-space:nowrap">`+
       `<span class="starb" data-id="${r.id}" style="cursor:pointer;color:${fv.star?'var(--amber)':'#3a4250'}">${fv.star?'★':'☆'}</span> `+
       `<span class="colb" data-id="${r.id}" title="tag color" style="cursor:pointer;display:inline-block;width:11px;height:11px;border-radius:50%;background:${dot(fv.color)}"></span></td>`+
-      `<td class="namecell"><b>${r.id}</b>${(r.tenor||r.collateral)?` <span class="tag">[${[r.tenor,r.collateral].filter(Boolean).join(' · ')}]</span>`:''}<br><span class="tag" style="font-size:11px">${r.label||'—'}</span></td>`+
+      `<td class="namecell"><b>${r.id}</b>${(r.tenor||r.collateral)?` <span class="tag">[${[r.tenor,r.collateral].filter(Boolean).join(' · ')}]</span>`:''}<span class="renb" data-id="${r.id}" title="rename this series (stored in this browser)">✎</span><span class="noteb ${NOTES[r.id]?'has':''}" data-id="${r.id}" title="${NOTES[r.id]?esc(NOTES[r.id].slice(0,180)):'add a note'}">🗒</span><br><span class="tag" style="font-size:11px" title="${esc(r.label)}">${esc(dispName(r))}${NAMES[r.id]?' <i style="opacity:.55">(renamed)</i>':''}</span>${NOTES[r.id]?`<br><span class="tag" style="font-size:11px;color:#c8ab5e;font-style:italic">🗒 ${esc(NOTES[r.id].slice(0,110))}${NOTES[r.id].length>110?'…':''}</span>`:''}</td>`+
       (withGroupCol?`<td class="tag">${SHORT[r.group]||r.group}</td>`:'')+
       `<td>${fmt(r.last_value)}</td><td class="tag">${r.last||''}</td>`+
       `<td class="${cls(c.pop)}">${pc(c.pop)}</td><td class="${cls(c.w)}">${pc(c.w)}</td>`+
@@ -217,7 +239,15 @@ function wire(el){
     const k=th.dataset.k;if(sortK===k)sortA=!sortA;else{sortK=k;sortA=(k==='id'||k==='tier');}
     render();});
   el.querySelectorAll('.starb').forEach(b=>b.onclick=()=>{const id=b.dataset.id;
-    FAV[id]=FAV[id]||{};FAV[id].star=!FAV[id].star;saveFav();render();renderBaro();});
+    FAV[id]=FAV[id]||{};FAV[id].star=!FAV[id].star;saveFav();renderTabs();render();renderBaro();});
+  el.querySelectorAll('.renb').forEach(b=>b.onclick=e=>{e.stopPropagation();
+    const id=b.dataset.id,r=rows.find(x=>x.id===id);
+    const cur=NAMES[id]||'';
+    const v=prompt('Custom name for '+id+'\n(original: '+((r&&r.label)||'—')+')\nEmpty = restore original:',cur);
+    if(v===null)return;const t=v.trim();
+    if(t)NAMES[id]=t;else delete NAMES[id];
+    saveNames();render();});
+  el.querySelectorAll('.noteb').forEach(b=>b.onclick=e=>{e.stopPropagation();openNote(b.dataset.id);});
   el.querySelectorAll('.colb').forEach(b=>b.onclick=()=>{const id=b.dataset.id;
     FAV[id]=FAV[id]||{};const i=COLORS.indexOf(FAV[id].color||null);
     FAV[id].color=COLORS[(i+1)%COLORS.length];saveFav();render();renderBaro();});
@@ -231,9 +261,15 @@ function render(){
   const el=document.getElementById('main');
   let pool=rows.filter(r=>(!starOnly||((FAV[r.id]||{}).star)));
   if(q){
-    const rs=pool.filter(r=>(r.id+' '+(r.label||'')+' '+r.group).toLowerCase().includes(q));
+    const rs=pool.filter(r=>(r.id+' '+(r.label||'')+' '+r.group+' '+(NAMES[r.id]||'')+' '+(NOTES[r.id]||'')).toLowerCase().includes(q));
     el.innerHTML=`<div class="sec">Search results — ${rs.length} series (all groups)</div>`+
       tableFor(rs,true);wire(el);return;
+  }
+  if(TAB==='favorites'){
+    const rs=pool.filter(r=>(FAV[r.id]||{}).star);
+    el.innerHTML=`<div class="sec">★ Favorites — ${rs.length} starred series · sortable by every column · ✎ rename · 🗒 notes (all stored in this browser)</div>`+
+      (rs.length?tableFor(rs,true):'<div class="tag" style="padding:16px">No starred series yet — tap ☆ on any row anywhere, it lands here instantly.</div>');
+    wire(el);return;
   }
   if(TAB==='overview'){
     let h='';
@@ -275,10 +311,22 @@ function openChart(sid,id){
     fetch('/data/repo-history/'+sid+'.json').then(r=>r.json()).then(h=>(HCACHE[sid]=h)))
   .then(h=>{CUR=h;
     document.getElementById('cm').textContent=
-      `${h.label||''} · ${h.dates.length} obs · ${h.dates[0]} → ${h.dates[h.dates.length-1]}`;
+      `${h.label||''} · ${h.dates.length} obs · ${h.dates[0]} → ${h.dates[h.dates.length-1]}`+(NOTES[id]?'  ·  🗒 '+NOTES[id].slice(0,140):'');
     draw();})
   .catch(()=>{document.getElementById('cm').textContent='history file unavailable';});
 }
+let NOTE_ID=null;
+function openNote(id){NOTE_ID=id;const r=rows.find(x=>x.id===id);
+  document.getElementById('ntitle').textContent='🗒 '+id;
+  document.getElementById('nmeta').textContent=(r&&dispName(r))||'';
+  document.getElementById('ntext').value=NOTES[id]||'';
+  document.getElementById('novl').classList.add('on');
+  document.getElementById('ntext').focus();}
+function closeNote(){document.getElementById('novl').classList.remove('on');NOTE_ID=null;}
+document.getElementById('nsave').onclick=()=>{const t=document.getElementById('ntext').value.trim();
+  if(t)NOTES[NOTE_ID]=t;else delete NOTES[NOTE_ID];saveNotes();closeNote();render();};
+document.getElementById('ndel').onclick=()=>{delete NOTES[NOTE_ID];saveNotes();closeNote();render();};
+document.getElementById('novl').addEventListener('click',e=>{if(e.target.id==='novl')closeNote();});
 function closeOvl(){document.getElementById('ovl').classList.remove('on');}
 document.getElementById('ovl').addEventListener('click',e=>{if(e.target.id==='ovl')closeOvl();});
 function series(){
