@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| EXPANSION WAVE 1 (Khalid: engines too thin): mega-probe (CSLT countries x holdings/tx/valchg + JP MOF weekly + TPEx OTC + Thailand SET + Brazil BCB olinda) -> foreign-flows v1.2 country matrix wire | 4858-4861 | S-fable-A | 2026-08-17 22:0x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 ## Done (this arc)
