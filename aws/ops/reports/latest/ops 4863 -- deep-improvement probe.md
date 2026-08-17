@@ -1,0 +1,38 @@
+# 1. H.4.1 weekly official layer
+
+**Status:** success  
+**Duration:** 11.8s  
+**Finished:** 2026-08-17T22:47:55+00:00  
+
+## Log
+- `22:47:43`   [custody] WMTSECL | Weekly, As of Wednesday | Memorandum Item: Marketable Securities Held in Custody for Foreign Official an | 2002-12-18->
+- `22:47:43`   [custody] WMTSEC | Weekly, Ending Wednesday | Memorandum Item: Marketable Securities Held in Custody for Foreign Official an | 1989-06-07->
+- `22:47:44`   [foreign_rrp] WLRRAFOIAL | Weekly, As of Wednesday | Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: Foreign O | 2002-12-18->
+- `22:47:44`   [foreign_rrp] WREPOFOR | Weekly, Ending Wednesday | Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: Foreign O | 2002-12-18->
+- `22:47:44`   [foreign_rrp] WLRRA | Weekly, As of Wednesday | Liabilities: Reverse Repurchase Agreements (DISCONTINUED) | 2002-12-18->
+- `22:47:44`   [foreign_rrp] RESPPLLRFXAWXCH1NWW | Weekly, Ending Wednesday | Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: Foreign O | 2002-12-18->
+- `22:47:44`   [foreign_rrp] RESPPLLRFXAWXCH52NWW | Weekly, Ending Wednesday | Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: Foreign O | 2002-12-18->
+- `22:47:45` ✅   WINNER custody -> WMTSECL | last3 2012-11-07=2915446 2012-10-31=2920582 2012-10-24=2904259
+- `22:47:46` ✅   WINNER foreign_rrp -> WLRRAFOIAL | last3 2026-08-12=357392.0000000000 2026-08-05=317718.0000000000 2026-07-29=334475.0000000000
+# 2. CSLT equity tx/valchg by country
+
+- `22:47:53`   China            {'eq_net': 'FORLTEQTYNET41408', 'eq_val': 'FORLTEQTYVALCHG41408'}
+- `22:47:53`   Japan            {'eq_net': 'FORLTEQTYNET42609', 'eq_val': 'FORLTEQTYVALCHG42609'}
+- `22:47:53`   United Kingdom   {'eq_net': 'FORLTEQTYNET13005', 'eq_val': 'FORLTEQTYVALCHG13005'}
+- `22:47:53`   Canada           {'eq_net': 'FORLTEQTYNET29998', 'eq_val': 'FORLTEQTYVALCHG29998'}
+- `22:47:53`   Korea            {'eq_net': 'FORLTEQTYNET43001', 'eq_val': 'FORLTEQTYVALCHG43001'}
+- `22:47:53`   Norway           {'eq_net': 'FORLTEQTYNET12203', 'eq_val': 'FORLTEQTYVALCHG12203'}
+# 3. TreasuryDirect auctions (keyless)
+
+- `22:47:53` ✅   HTTP 200 rows=5 sample keys=['bidToCoverRatio', 'indirectBidderAccepted', 'indirectBidderTendered', 'offeringAmount']
+- `22:47:53`   row0: cusip=91282CRF0 date=2026-08-12T00:00:00 indirect=32087936000
+# 4. FiscalData MSPD (keyless)
+
+- `22:47:54` ✅   HTTP 200 fields=['debt_held_public_mil_amt', 'intragov_hold_mil_amt', 'record_calendar_day', 'record_calendar_month', 'record_calendar_quarter', 'record_calendar_year', 'record_date', 'record_fiscal_quarter']
+- `22:47:54`   row0: {"record_date": "2026-07-31", "security_type_desc": "Marketable", "security_class_desc": "Bills", "debt_held_public_mil_amt": "6988226.4301", "intragov_hold_mil_amt": "664.5328", "total_mil_amt": "6988890.9629", "src_lin
+# 5. ECB data-api BOP catalogue (keyless)
+
+- `22:47:55` ⚠   ecb died: HTTP Error 406: Not Acceptable
+# verdict
+
+- `22:47:55` ✅ wave-2A candidates resolved with live evidence -- wire order recorded in roadmap
