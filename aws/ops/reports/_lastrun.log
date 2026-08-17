@@ -1,26 +1,41 @@
-executing-against: e1d1c2c090aadd624d457492a8a9e850ed0097f4
-1. settle + invoke
-[03:34:39] ✅ deployed marker settled (attempt 1)
-[03:34:55] ✅   fresh v1.2.0 doc after ~15s
-2. sectors block
-[03:34:55] ✅   sectors = 11
-[03:34:55] ✅   weights sum = 100.1%
-[03:34:55] ✅   top sector = Technology (34.1%)
-[03:34:55] ✅   Technology               w= 34.1% n= 89 pe=33.5 fpe=21.08 roe=35.5 ntm=58.9
-[03:34:55] ✅   Communication Services   w= 16.4% n= 20 pe=17.83 fpe=22.25 roe=30.0 ntm=-19.9
-[03:34:55] ✅   Financial Services       w= 11.4% n= 71 pe=15.53 fpe=14.99 roe=14.4 ntm=3.6
-[03:34:55] ✅   Consumer Cyclical        w=  9.4% n= 50 pe=28.33 fpe=26.81 roe=24.1 ntm=5.7
-[03:34:55] ✅   Healthcare               w=  7.9% n= 58 pe=28.75 fpe=17.33 roe=16.8 ntm=65.9
-[03:34:55] ✅   Industrials              w=  6.8% n= 70 pe=29.6 fpe=24.71 roe=22.6 ntm=19.8
-[03:34:55] ✅   Consumer Defensive       w=  5.1% n= 32 pe=30.82 fpe=23.94 roe=23.1 ntm=28.7
-[03:34:55] ✅   Energy                   w=  3.1% n= 21 pe=19.9 fpe=12.35 roe=12.4 ntm=61.1
-[03:34:55] ✅   Utilities                w=  2.5% n= 32 pe=22.35 fpe=21.33 roe=12.3 ntm=4.8
-[03:34:55] ✅   Basic Materials          w=  1.7% n= 22 pe=29.82 fpe=18.82 roe=12.2 ntm=58.4
-[03:34:55] ✅   Real Estate              w=  1.7% n= 30 pe=33.91 fpe=36.5 roe=9.2 ntm=-7.1
-3. compare sector_context
-[03:34:56] ✅   NVDA sector_context: Technology (n=89, fwd-P/E pctile-in-sector=48.3)
-[03:34:56] ✅   AAPL sector_context: Technology (n=89, fwd-P/E pctile-in-sector=77.5)
-4. verdict
-[03:34:56] ✅ sp500 v1.2.0 LIVE -- sector fair-fight wired end to end
+executing-against: 8c1d82b4d1c0f9cb57384fbe8b2f453a8ff9478d
+G0. live feed contracts
+[03:52:40] ✅   G0 data/universe.json.stocks = 5239
+[03:52:40] ✅   G0 data/asset-compass.json.assets = 31
+[03:52:40] ✅   G0 data/rotation-dashboard.json.assets = 37
+[03:52:40] ✅   G0 data/industry-boom.json.league = 131
+[03:52:40] ✅   G0 data/stock-buying.json.top = 300
+[03:52:40] ✅   G0 data/13f-flows-by-ticker.json.t = 6778
+[03:52:40] ⚠   G0 data/best-setups.json.setups empty/absent (top keys: ['alpha_trust_wiring', 'bond_vol_regime', 'brain_aligned', 'buildout_threats', 'by_verdict', 'contested_picks', 'duration_s', 'engine'])
+[03:52:41] ⚠   G0 data/invest.json.stock_picks empty/absent (top keys: ['elapsed_s', 'engine', 'gate_params', 'generated_at', 'grading_candidates', 'industry_gates', 'leading_indicators', 'method_notes'])
+[03:52:41] ✅   G0 data/sp500.json.members = 495
+1. function + env + settle
+[03:52:41] ✅ marker settled (attempt 1)
+2. weekly schedule
+[03:52:42] ✅ schedule justhodl-spx-beaters-weekly created -> cron(0 13 ? * SAT *)
+3. Event-invoke + poll (<=13 min)
+[03:53:02] ✅   fresh doc after ~20s
+4. league truths
+[03:53:02] ✅   ledger weeks = 30 (target 53, fetched_now 30)
+[03:53:02] ✅   scanned stocks = 5239
+[03:53:02] ✅   buckets = 8: {"large": 377, "mid": 388, "small": 434, "micro": 308, "etf_equity": 21, "etf_bond": 0, "etf_commodity": 2, "etf_crypto_alt": 0}
+[03:53:02] ✅   listed rows = 77, contract violations = 0
+5. league readout (top of each bucket)
+[03:53:02] ✅   large          SPCX    94.9  legs={"mom": 1.0, "flows": 0.85}
+[03:53:02]       why: momentum: 6m +539% (top 0%, 12-1 pending 30/53 wks), +525pp vs SPY 6m | 13F net +$7650M last quarters
+[03:53:02] ✅   mid            APGE    92.3  legs={"mom": 0.96, "flows": 0.85}
+[03:53:02]       why: momentum: 6m +99% (top 4%, 12-1 pending 30/53 wks), +85pp vs SPY 6m | 13F net +$75M last quarters
+[03:53:02] ✅   small          SHAZ    93.8  legs={"mom": 0.98, "flows": 0.85}
+[03:53:02]       why: momentum: 6m +149% (top 2%, 12-1 pending 30/53 wks), +135pp vs SPY 6m | 13F net +$102M last quarters
+[03:53:02] ✅   micro          MGRX    83.5  legs={"mom": 0.83, "flows": 0.85}
+[03:53:02]       why: momentum: 6m +35% (top 17%, 12-1 pending 30/53 wks), +21pp vs SPY 6m | 13F net +$129M last quarters
+[03:53:02] ✅   etf_equity     IWD     92.0  legs={"mom": 0.85, "rotation": 1.0}
+[03:53:02]       why: momentum: 6m +16% (+2pp vs SPY) | trend gate PASS (px>200d & 12m>cash); rotation rank #3; RRG LEADING
+[03:53:02] ⚠   etf_bond       (none >= 55.0 yet)
+[03:53:02] ✅   etf_commodity  USO     91.9  legs={"mom": 0.98, "rotation": 0.85}
+[03:53:02]       why: momentum: 6m +66% (+52pp vs SPY) | trend gate PASS (px>200d & 12m>cash); rotation rank #12
+[03:53:02] ⚠   etf_crypto_alt (none >= 55.0 yet)
+6. verdict
+[03:53:02] ✅ justhodl-spx-beaters LIVE -- weekly all-cap + ETF + asset-class beat-the-SPX league
 
-→ Report written to aws/ops/reports/latest/ops 4810 -- sp500 v1.2.0 sector fair-fight.md
+→ Report written to aws/ops/reports/latest/ops 4811 -- spx-beaters birth verify.md
