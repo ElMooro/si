@@ -1,4 +1,7 @@
-"""ops/4825 -- justhodl-foreign-flows birth verify, fixed.
+"""ops/4826 -- justhodl-foreign-flows birth verify, final.
+4825: one residual -- the bank-truth loop kept the global
+2000 depth floor; per-series FIRST_FLOOR now applies there
+too (everything else was green: LIVE 6/6, all identities).
 4824 lessons: (a) report titles must never contain "/" --
 pathlib treats it as a directory (preflight now guards this);
 (b) FORTREASNET69995 (combined L+S Treasuries) correctly
@@ -189,8 +192,8 @@ def ensure_schedule(rep):
 
 
 def main():
-    with report("ops 4825 -- foreign-flows birth verify "
-                "fixed") as rep:
+    with report("ops 4826 -- foreign-flows birth verify "
+                "final") as rep:
         rep.heading("G0. LIVE-verify research-doc series ids on "
                     "FRED")
         key = donor_key(rep)
@@ -336,7 +339,8 @@ def main():
                 bank = sread(BANK_FMT % sid)
                 rows = bank.get("rows") or {}
                 first = min(rows) if rows else "9999"
-                if len(rows) >= 100 and first <= "2000-01-01":
+                floor = FIRST_FLOOR.get(name, "2000-01-01")
+                if len(rows) >= 100 and first <= floor:
                     rep.ok("  bank %-20s n=%d first=%s "
                            "(Deny-Delete zone)" % (sid, len(rows),
                                                    first))
