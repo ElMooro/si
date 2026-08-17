@@ -41,6 +41,8 @@ tr:last-child td{border-bottom:none}
 <p id="sub">Foreign purchases minus sales of US securities, by destination. Monthly, ~1.5-month lag, banked permanently. Loading…</p></div>
 <div class="sec"><h2>Flows by destination — latest month ($B)</h2><div class="cards" id="flows"></div></div>
 <div class="sec"><h2>Signals</h2><div class="cards" id="sigs"></div><div class="note" id="split"></div></div>
+<div class="sec"><h2>Weekly official pulse — Fed H.4.1</h2><div class="cards" id="pulse"></div>
+<div class="note">The Fed's own weekly ledger of foreign official accounts — six weeks ahead of TIC. Dollar-leg is STRESS-ONLY: it can warn the risk-gate, never turn it bullish. Engine: justhodl-official-pulse.</div></div>
 <div class="sec"><h2>History — 10 years monthly ($B)</h2><div id="hist" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px"></div></div>
 <div class="sec"><h2>Official vs Private — all split families ($B)</h2><div id="splits"></div>
 <div class="note">Each family reconciled at runtime: all = official + private within tolerance, or the family is marked and excluded — never silently summed.</div></div>
@@ -104,6 +106,18 @@ async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok
   if(er.length){let t2='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th></tr>';
     for(const[n,r]of er)t2+='<tr><td>'+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td></tr>';
     document.getElementById("ctryeq").innerHTML=t2+'</table>';}
+  const op=await jget("/data/official-pulse.json");
+  if(op&&op.status==="LIVE"){let ph="";
+    const rr=op.foreign_rrp||{};
+    ph+='<div class="card"><div class="k">Foreign RRP pool \u00b7 '+(rr.latest_date||"")+'</div><div class="v">'+fN(rr.latest_bn)+'B</div><div class="s">4w '+fN(rr.chg_4w_bn)+' \u00b7 13w '+fN(rr.chg_13w_bn)+zs(rr.z_13wchg_10y)+'</div></div>';
+    const cu=op.custody||{};
+    if(cu.status==="LIVE")ph+='<div class="card"><div class="k">FRBNY custody \u00b7 '+(cu.latest_date||"")+'</div><div class="v">'+fN(cu.latest_bn)+'B</div><div class="s">4w '+fN(cu.chg_4w_bn)+' \u00b7 13w '+fN(cu.chg_13w_bn)+zs(cu.z_13wchg_10y)+'</div></div>';
+    else ph+='<div class="card"><div class="k">FRBNY custody</div><div class="v">\u2013</div><div class="s">'+(cu.why||"").slice(0,80)+'</div></div>';
+    const dl=op.dollar_leg||{};
+    const col=dl.status==="STRESS"?"neg":(dl.status==="WATCH"?"amb":"pos");
+    ph+='<div class="card"><div class="k">Dollar leg (risk-gate input)</div><div class="v '+col+'">'+(dl.status||"\u2013")+'</div><div class="s">'+(dl.legs_firing||0)+'/'+(dl.available||0)+' legs firing'+((dl.firing&&dl.firing.length)?" \u00b7 "+dl.firing.join(", "):"")+'</div></div>';
+    document.getElementById("pulse").innerHTML=ph;}
+  else document.getElementById("pulse").innerHTML='<div class="note">official-pulse pending first run</div>';
   const rel=await jget("/foreign-flows/releases.json");
   const rr=(rel&&rel.rows||[]).slice(-12).reverse();
   document.getElementById("rel").innerHTML=rr.length?rr.map(r=>"<div>"+r.detected+" \u2014 month "+r.month+": "+(r.alert||"")+"</div>").join(""):"no releases logged yet \u2014 the badge flips on the next monthly TIC ingest.";

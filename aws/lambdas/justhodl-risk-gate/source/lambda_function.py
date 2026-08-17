@@ -544,6 +544,40 @@ def compute_posture(F, calendar, i):
         composite -= 0.35
         legs["collateral"]["applied"] = "-0.35 (SEIZING)"
 
+    # ops 4864 -- foreign-official dollar leg (advisory; weights
+    # untouched): the official-pulse composite (H.4.1 weekly +
+    # TIC monthly, STRESS-ONLY) enters as a recorded leg and
+    # adjusts the gate only at 2/3-leg firing, fully disclosed.
+    try:
+        _op = json.loads(s3.get_object(
+            Bucket="justhodl-dashboard-live",
+            Key="data/official-pulse.json")["Body"].read())
+        _dl = _op.get("dollar_leg") or {}
+        _nf = int(_dl.get("legs_firing") or 0)
+        legs["foreign_official"] = {
+            "score": round(max(-2.0, -0.7 * _nf), 2),
+            "advisory": True,
+            "why": ["official-pulse %s: %d/%d legs firing %s "
+                    "(TIC official z + safe-haven z + FRBNY "
+                    "custody drain; STRESS-ONLY)"
+                    % (_dl.get("status"), _nf,
+                       _dl.get("available") or 0,
+                       ",".join(_dl.get("firing") or []) or "-")],
+            "cite": "ops4864/official-pulse"}
+        if _nf >= 3:
+            composite -= 0.30
+            legs["foreign_official"]["applied"] = \
+                "-0.30 (3 legs firing)"
+        elif _nf >= 2:
+            composite -= 0.15
+            legs["foreign_official"]["applied"] = \
+                "-0.15 (2 legs firing)"
+    except Exception as _e:
+        legs["foreign_official"] = {
+            "score": None, "advisory": True,
+            "why": ["official-pulse unreadable: %s"
+                    % str(_e)[:60]]}
+
     # Posture bands + the plumbing override (nmq5vhvebjob6: never touch stocks
     # when plumbing is shaky — a broken funding leg confirmed by credit is
     # SEVERE regardless of the other legs' average).

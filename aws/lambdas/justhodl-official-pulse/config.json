@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-official-pulse",
+  "runtime": "python3.12",
+  "timeout": 180,
+  "memory": 256,
+  "description": "Weekly H.4.1 foreign-official pulse: foreign RRP pool (WLRRAFOIAL) + FRBNY custody (runtime-resolved, never stale-bound) with 4/13/26w changes and z; dollar_leg STRESS-ONLY composite joining monthly TIC. Fri 09:00 UTC. Feeds risk-gate.",
+  "inherit_env": [
+    {
+      "from_function": "dollar-strength-agent",
+      "keys": ["FRED_KEY"]
+    }
+  ]
+}
