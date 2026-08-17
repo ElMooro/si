@@ -1,0 +1,31 @@
+# 1. settle + invoke
+
+**Status:** success  
+**Duration:** 106.5s  
+**Finished:** 2026-08-17T22:39:11+00:00  
+
+## Log
+- `22:37:25` ✅ function Active + update settled (burn 4861: marker-in-zip != code-live)
+- `22:37:25` ✅ marker settled (attempt 1)
+- `22:38:39` ✅ fresh in 73s
+- `22:38:39`   30s quota-window breather before sampling
+# 2. matrix truths
+
+- `22:39:09` ✅   21 countries, 21 OK
+- `22:39:09` ✅   ordered by holdings desc (top: japan 1046B)
+- `22:39:10` ✅   INDIA 170.5B @ 2026-06-01 == FRED refetch
+- `22:39:10` ✅   identity gaps on 21 countries
+- `22:39:10` ✅   equity block 21 OK; JAPAN eq 1400.4B == refetch
+- `22:39:10` ✅   bank exists: FORLTTREASPOS42102
+- `22:39:10` ✅   bank exists: FORLTEQTYPOS42609
+- `22:39:10` ✅   hist_10y: 10 series, identity + calendar verified (total tail 2026-06-01=207.1)
+- `22:39:10` ✅   holder splits: 6 families, 6 OK
+- `22:39:10` ✅   tx_3m on 21 countries
+- `22:39:10`   readout top6: japan 1046 (tx12m 16.8) | united_kingdom 836 (tx12m 150.7) | china 589 (tx12m -91.3) | canada 422 (tx12m 25.8) | france 373 (tx12m -0.9) | taiwan 298 (tx12m -3.9)
+# 3. page
+
+- `22:39:10` ✅   committed equity tokens present
+- `22:39:11` ✅   SERVED (0s)
+# 4. verdict
+
+- `22:39:11` ✅ full render LIVE: 10-series 10y history, six split families, tx_3m -- charts + tables served
