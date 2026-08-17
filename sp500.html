@@ -102,7 +102,7 @@ async function load(){let r;try{r=await fetch(`${PROXY}/data/sp500.json?t=${Date
   card("FCF yield",fmt(v.fcf_yield_pct.agg,2)+"%",""),
   card("ERP vs 10Y",erp==null?"—":fmt(erp,2)+"%",`10Y ${fmt(mc.us10y_pct,2)}%`,erp==null?"":erp>=0?"pos":"neg"),
   card("Rule of 20",r20==null?"—":fmt(r20,1),`CPI ${fmt(mc.cpi_yoy_pct,1)}%`,r20==null?"":r20<=20?"pos":r20<=23?"amb":"neg"),
-  card("Total mkt cap",fmt(ix.total_mcap/1e3,1)+"T","across "+ix.members+" members")].join("");
+  card("Total mkt cap",fmt(ix.total_mcap/1e12,1)+"T","across "+ix.members+" members")].join("");
  document.getElementById("asof").textContent=`as of ${D.as_of.slice(0,16).replace("T"," ")} UTC · member prices ${ix.px_date||"—"} · fundamentals snapshot ${ix.fundamentals_asof||"—"}`;
  document.getElementById("t_val").innerHTML=table([row("P/E (TTM, losers in)",v.pe_ttm,1),row("Earnings yield %",v.earnings_yield_pct),row("P/S (TTM)",v.ps_ttm),row("P/B",v.pb),row("P/FCF",v.p_fcf_ttm,1),row("FCF yield %",v.fcf_yield_pct),row("EV/EBITDA",v.ev_ebitda_ttm,1),row("EV/Sales",v.ev_sales_ttm),row("PEG (member dist)",v.peg_ttm)]);
  document.getElementById("t_fwd").innerHTML=table([row("Forward P/E",f.pe_fwd,1),row("Forward earnings yield %",f.earnings_yield_fwd_pct),row("Forward P/S",f.ps_fwd),row("Forward EV/EBITDA",f.ev_ebitda_fwd,1),row("NTM earnings growth %",f.ntm_earnings_growth_pct,1)]);

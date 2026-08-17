@@ -1,4 +1,4 @@
-"""justhodl-sp500 v1.0.0 — THE S&P 500 AS A SINGLE STOCK.
+"""justhodl-sp500 v1.0.1 — THE S&P 500 AS A SINGLE STOCK.
 
 Khalid (2026-08-16): "give me all the sp500 metrics as a whole — its p/e,
 forward p/e, yield, everything — so when I buy a stock I can compare its
@@ -45,8 +45,8 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
-MARKER = "sp500 v1.0.0"
+VERSION = "1.0.1"
+MARKER = "sp500 v1.0.1"
 BUCKET = "justhodl-dashboard-live"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
 LEDGER_KEY = "spx-ma/member-closes.json"
@@ -148,27 +148,28 @@ def load_scales(tickers, census_iso, diag):
     closes = led.get("closes") or {}
     if not dates or not closes:
         diag["reprice"] = "ledger unavailable -> census-date prices"
-        return {t: 1.0 for t in tickers}, None, 0
+        return {t: 1.0 for t in tickers}, None, 0, {}
     cdate = (census_iso or "")[:10]
     ci = 0
     for i, d in enumerate(dates):
         if d <= cdate:
             ci = i
     li = len(dates) - 1
-    scales, hit = {}, 0
+    scales, pxc, hit = {}, {}, 0
     for t in tickers:
         row = closes.get(t) or []
         a = fnum(row[ci]) if len(row) > ci else None
         b = fnum(row[li]) if len(row) > li else None
         if a and b and a > 0:
             scales[t] = b / a
+            pxc[t] = a
             hit += 1
         else:
             scales[t] = 1.0
     diag["reprice"] = {"census_px_date": dates[ci], "now_px_date":
                        dates[li], "members_repriced": hit,
                        "members_flat": len(tickers) - hit}
-    return scales, dates[li], hit
+    return scales, dates[li], hit, pxc
 
 
 def compute(diag):
@@ -188,7 +189,7 @@ def compute(diag):
         v = cols.get(k) or [None] * n
         return [fnum(x) for x in v]
 
-    scales, px_date, _ = load_scales(tickers, gen, diag)
+    scales, px_date, _, pxc = load_scales(tickers, gen, diag)
     mcap, ey, pe, ps, pb = (C("mcap"), C("earnings_yield_pct"),
                             C("pe_ttm"), C("ps_ttm"), C("pb"))
     evs, eve, fcfy = C("ev_sales_ttm"), C("ev_ebitda_ttm"), C("fcf_yield_pct")
@@ -196,6 +197,22 @@ def compute(diag):
                     C("shareholder_yield_pct"))
     ni_f, rev_f, ebd_f = (C("est_net_income_avg"), C("est_revenue_avg"),
                           C("est_ebitda_avg"))
+    eps_f = C("est_eps_avg")
+    fwd_src = "est_net_income_avg (analyst NTM, absolute)"
+    if not any(v is not None for v in ni_f):
+        # matrix carries per-share consensus only: NI_ntm = eps x shares,
+        # shares = mcap / census-date close (house derivation)
+        ni_f = [None] * n
+        built = 0
+        for i, t in enumerate(tickers):
+            m = mcap[i]
+            px = pxc.get(t)
+            if eps_f[i] is not None and m and px and px > 0:
+                ni_f[i] = eps_f[i] * (m / px)
+                built += 1
+        fwd_src = ("est_eps_avg x shares(mcap/close) -- %d members"
+                   % built)
+    diag["forward_source"] = fwd_src
 
     # per-member components at census snapshot + repriced cap ---------
     cap_c = [m if (m and m > 0) else None for m in mcap]
@@ -358,16 +375,22 @@ def compute(diag):
 
     def WM(key, dp=1):
         col = C(key)
+        sv = sorted(v for v in col if v is not None)
+        lo = _q(sv, .02) if len(sv) >= 50 else None
+        hi = _q(sv, .98) if len(sv) >= 50 else None
         sn = sw = 0.0
         for i in range(n):
             if col[i] is not None and cap_n[i]:
-                sn += col[i] * cap_n[i]
+                v = col[i]
+                if lo is not None:
+                    v = min(max(v, lo), hi)
+                sn += v * cap_n[i]
                 sw += cap_n[i]
         a = round(sn / sw, dp) if sw else None
         d = dist(col, dp)
         d.update({"agg": a, "cap_cov_pct":
                   round(100 * sw / total_cap, 1) if total_cap else 0,
-                  "unit": "%", "method": "cap-weighted mean"})
+                  "unit": "%", "method": "cap-weighted mean, winsorized p2-p98"})
         return d
 
     quality = {k: WM(k) for k in
