@@ -96,6 +96,7 @@ log = logging.getLogger("justhodl-invest")
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/invest.json"
+BASE_RATES_KEY = "data/base-rates.json"  # ops 4819: invest-odds v1
 
 # Upstream S3 keys this engine reads whole (not single-leg Leg.source reads).
 # CONFIRM ON FIRST RUN against live S3 -- see module docstring.
@@ -464,6 +465,55 @@ def run_tier3(tier2_gates):
     return picks
 
 
+def attach_base_rates(picks, br):
+    """ops 4819 (Fusion 1 consumer): additive, NON-GATING odds chips.
+
+    Attaches empirical beat-SPX odds from data/base-rates.json (the
+    spx-beaters ledger spine) to each stock pick: momentum quintile,
+    cap bucket, drawdown band, and the 26w cohort's measured beat
+    rate / Wilson LB95 / median excess.  Quintile cells are matched by
+    their `q` FIELD, never by list position (boom_score doctrine).
+    This function only ADDS the `base_rate_odds` key -- it never reads
+    or writes scores, verdicts, gates, or any pre-existing field, so
+    Tier 1-3 behavior is byte-identical with or without the doc.
+    Returns a small meta dict for the output header, or None when the
+    spine is absent/INSUFFICIENT (honest: no odds are invented).
+    """
+    if not br or br.get("status") != "LIVE" or not isinstance(picks, list):
+        return None
+    asg = br.get("current_assignments") or {}
+    c26 = (br.get("cohorts") or {}).get("26w") or {}
+    by_q = {c.get("q"): c for c in (c26.get("quintiles") or [])
+            if isinstance(c, dict)}
+    dd_cells = c26.get("dd_bands") or {}
+    n = 0
+    for p in picks:
+        if not isinstance(p, dict):
+            continue
+        a = asg.get(p.get("ticker"))
+        if not a:
+            continue
+        odds = {"q": a.get("q"), "bucket": a.get("b"),
+                "dd_band": a.get("dd"), "mom_6m_pct": a.get("m6"),
+                "horizon": "26w",
+                "src": "base-rates " + str(br.get("as_of"))}
+        cell = by_q.get(a.get("q"))
+        if cell:
+            odds["beat_spx_pct"] = cell.get("beat_pct")
+            odds["lb95_pct"] = cell.get("wilson_lb95_pct")
+            odds["median_excess_pp"] = cell.get("median_excess_pp")
+            odds["cohort_n"] = cell.get("n")
+        band = dd_cells.get(a.get("dd") or "")
+        if band:
+            odds["dd_beat_spx_pct"] = band.get("beat_pct")
+        p["base_rate_odds"] = odds
+        n += 1
+    return {"as_of": br.get("as_of"),
+            "ledger_weeks": ((br.get("diag") or {}).get("feeds")
+                             or {}).get("ledger_weeks"),
+            "picks_with_odds": n}
+
+
 def build_thesis(gate, proxy, stock_result, verdict) -> str:
     parts = [
         f"{gate.get('triggered_by', 'leading indicator')} confirmed demand "
@@ -524,10 +574,13 @@ def lambda_handler(event, context):
 
         tier2_gates = run_tier2(tier1_results)
         tier3_picks = run_tier3(tier2_gates)
+        br_meta = attach_base_rates(tier3_picks,
+                                    fleet_io.get_json(BASE_RATES_KEY))
         grading_candidates = build_grading_candidates(tier2_gates, tier3_picks)
 
         out = {
             "schema": "invest/0.1",
+            "base_rates": br_meta,
             "engine": "justhodl-invest",
             "generated_at": t0.isoformat(),
             "gate_params": {"ir_min": scoring.IR_MIN_DEFAULT,

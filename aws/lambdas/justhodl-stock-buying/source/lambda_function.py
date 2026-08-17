@@ -46,6 +46,50 @@ def s3_json(key):
         return None
 
 
+def attach_base_rates(rows, br):
+    """ops 4819 (Fusion 1 consumer): additive, NON-GATING odds chips.
+    Marker: sb-odds v1.  Joins data/base-rates.json empirical
+    beat-SPX odds onto screener rows by `symbol`; quintile cells
+    matched by their `q` FIELD, never list position (boom_score
+    doctrine).  Only ADDS `base_rate_odds` -- scores, tiers, gates
+    and every pre-existing field stay byte-identical; spine absent or
+    INSUFFICIENT -> honest None, rows untouched."""
+    if not br or br.get("status") != "LIVE" or not isinstance(rows,
+                                                              list):
+        return None
+    asg = br.get("current_assignments") or {}
+    c26 = (br.get("cohorts") or {}).get("26w") or {}
+    by_q = {c.get("q"): c for c in (c26.get("quintiles") or [])
+            if isinstance(c, dict)}
+    dd_cells = c26.get("dd_bands") or {}
+    n = 0
+    for r in rows:
+        if not isinstance(r, dict):
+            continue
+        a = asg.get(r.get("symbol"))
+        if not a:
+            continue
+        odds = {"q": a.get("q"), "bucket": a.get("b"),
+                "dd_band": a.get("dd"), "mom_6m_pct": a.get("m6"),
+                "horizon": "26w",
+                "src": "base-rates " + str(br.get("as_of"))}
+        cell = by_q.get(a.get("q"))
+        if cell:
+            odds["beat_spx_pct"] = cell.get("beat_pct")
+            odds["lb95_pct"] = cell.get("wilson_lb95_pct")
+            odds["median_excess_pp"] = cell.get("median_excess_pp")
+            odds["cohort_n"] = cell.get("n")
+        band = dd_cells.get(a.get("dd") or "")
+        if band:
+            odds["dd_beat_spx_pct"] = band.get("beat_pct")
+        r["base_rate_odds"] = odds
+        n += 1
+    return {"as_of": br.get("as_of"),
+            "ledger_weeks": ((br.get("diag") or {}).get("feeds")
+                             or {}).get("ledger_weeks"),
+            "rows_with_odds": n}
+
+
 def fmp(path, qs=""):
     if not FMP_KEY or FMP_BUDGET["n"] <= 0:
         return None
@@ -894,8 +938,11 @@ def lambda_handler(event=None, context=None):
                            "broad_seen": nb,
                            "broad_below_sma": nb_pass}
 
+    br_meta = attach_base_rates(rows_out, s3_json("data/base-rates.json"))
+
     payload = {
         "schema_version": 1,
+        "base_rates": br_meta,
         "engine": "justhodl-stock-buying",
         "matrix_probe": globals().get("_MXP"),
         "us10y_pct": globals().get("_US10Y"),
