@@ -1,37 +1,21 @@
-executing-against: 7da76717787690e584181c0872b690b540dc1eb7
+executing-against: d4f1940c1b5de40c74aa3e7b0ccb3b16e473aba5
 1. settle + invoke
-[22:13:56] ✅ marker settled (attempt 1)
-[22:15:45] ✅ fresh in 109s
+[22:20:25] ✅ marker settled (attempt 2)
+[22:21:38] ✅ fresh in 72s
+[22:21:38]   30s quota-window breather before sampling
 2. matrix truths
-[22:15:45] ✗   keys=21 ok=15
-[22:15:45] ✅   ordered by holdings desc (top: japan 1046B)
+[22:22:08] ✅   21 countries, 21 OK
+[22:22:08] ✅   ordered by holdings desc (top: japan 1046B)
+[22:22:09] ✅   INDIA 170.5B @ 2026-06-01 == FRED refetch
+[22:22:09] ✅   identity gaps on 21 countries
+[22:22:09] ✅   equity block 21 OK; JAPAN eq 1400.4B == refetch
+[22:22:09] ✅   bank exists: FORLTTREASPOS42102
+[22:22:09] ✅   bank exists: FORLTEQTYPOS42609
+[22:22:09]   readout top6: japan 1046 (tx12m 16.8) | united_kingdom 836 (tx12m 150.7) | china 589 (tx12m -91.3) | canada 422 (tx12m 25.8) | france 373 (tx12m -0.9) | taiwan 298 (tx12m -3.9)
+3. page
+[22:22:09] ✅   committed equity tokens present
+[22:22:09] ✅   SERVED (0s)
+4. verdict
+[22:22:09] ✅ 21-country matrix + equity holdings LIVE, sampled against FRED, banked, served
 
-→ Report written to aws/ops/reports/latest/ops 4859 -- ff v1.2 matrix verify.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4859_ff_v12_matrix_verify.py", line 227, in <module>
-    main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4859_ff_v12_matrix_verify.py", line 142, in main
-    d_i, v_i = fred_latest("FORLTTREASPOS42102", key)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4859_ff_v12_matrix_verify.py", line 53, in fred_latest
-    with urllib.request.urlopen(
-         ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 215, in urlopen
-    return opener.open(url, data, timeout)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 521, in open
-    response = meth(req, response)
-               ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 630, in http_response
-    response = self.parent.error(
-               ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 559, in error
-    return self._call_chain(*args)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 492, in _call_chain
-    result = func(*args)
-             ^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/request.py", line 639, in http_error_default
-    raise HTTPError(req.full_url, code, msg, hdrs, fp)
-urllib.error.HTTPError: HTTP Error 429: Too Many Requests
-❌ OPS-FAIL: aws/ops/pending/ops_4859_ff_v12_matrix_verify.py
+→ Report written to aws/ops/reports/latest/ops 4860 -- ff v1.2.1 matrix reverify (429 hardened).md
