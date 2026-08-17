@@ -1,4 +1,4 @@
-"""ops/4864 -- official-pulse birth + risk-gate foreign_official
+"""ops/4865 -- official-pulse birth + risk-gate foreign_official
 leg verify + page card.
  (1) official-pulse: Active-wait + settle 'official-pulse v1.0.0'
      + schedule Fri 09:00 UTC + invoke + poll; truths: RRP latest
@@ -96,7 +96,7 @@ def fred_latest(sid, key):
         try:
             with urllib.request.urlopen(
                     urllib.request.Request(
-                        url, headers={"User-Agent": "ops-4864"}),
+                        url, headers={"User-Agent": "ops-4865"}),
                     timeout=60) as r:
                 j = json.loads(r.read())
             for o in j.get("observations") or []:
@@ -125,7 +125,8 @@ def fresh(fn, out_key, budget, rep, pin=None):
         except ClientError:
             continue
         if d.get("generated_at") != prev and \
-                (pin is None or d.get("v") == pin):
+                (pin is None or d.get("v") == pin) and \
+                d.get("status") == "LIVE":
             rep.ok("%s fresh in %ds" % (fn,
                                         int(time.time() - t0)))
             return d
@@ -134,7 +135,7 @@ def fresh(fn, out_key, budget, rep, pin=None):
 
 
 def main():
-    with report("ops 4864 -- official-pulse + dollar leg") as rep:
+    with report("ops 4865 -- official-pulse + dollar leg take2 (key heal)") as rep:
         rep.heading("1. official-pulse birth")
         key = None
         for d in DONORS:
@@ -154,6 +155,23 @@ def main():
             rep.fail("fn never Active")
             sys.exit(1)
         rep.ok("function Active + update settled")
+        env = ((lam.get_function_configuration(FunctionName=FN)
+                .get("Environment") or {}).get("Variables") or {})
+        if not env.get("FRED_KEY"):
+            env["FRED_KEY"] = key
+            lam.update_function_configuration(
+                FunctionName=FN,
+                Environment={"Variables": env})
+            for _ in range(25):
+                if lam.get_function_configuration(
+                        FunctionName=FN).get(
+                        "LastUpdateStatus") == "Successful":
+                    break
+                time.sleep(4)
+            rep.ok("env FRED_KEY HEALED (burn 4864: inherit_env "
+                   "is not a deploy feature)")
+        else:
+            rep.ok("env FRED_KEY present")
         if not settle(FN, MARKER, rep):
             sys.exit(1)
         fn_arn = ("arn:aws:lambda:%s:%s:function:%s"
@@ -199,10 +217,16 @@ def main():
             rep.fail("  rrp %s vs fred %s/%s"
                      % (json.dumps(rr)[:80], d_f, v_f))
             FAILED.append("rrp")
-        bank = sread("data/providers/h41/WLRRAFOIAL.json")
+        try:
+            bank = sread("data/providers/h41/WLRRAFOIAL.json")
+        except ClientError:
+            rep.fail("  h41 bank missing")
+            FAILED.append("bank")
+            bank = {"rows": {}}
         vals = [bank["rows"][d] / 1000.0
                 for d in sorted(bank["rows"])]
-        exp13 = round(vals[-1] - vals[-14], 1)
+        exp13 = (round(vals[-1] - vals[-14], 1)
+                 if len(vals) > 14 else None)
         if rr.get("chg_13w_bn") == exp13:
             rep.ok("  13w chg %+0.1fB == banked recompute"
                    % exp13)
@@ -283,7 +307,7 @@ def main():
                 req = urllib.request.Request(
                     "https://justhodl.ai/foreign-flows.html?"
                     "t=%d" % int(time.time()),
-                    headers={"User-Agent": "ops-4864",
+                    headers={"User-Agent": "ops-4865",
                              "Cache-Control": "no-cache"})
                 with urllib.request.urlopen(req, timeout=45) \
                         as r:
