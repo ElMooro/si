@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| IMF worldwide layer: INDICATOR codelist probe + global-flows v1.2 multi-country wiring | 4843-4845 | S-fable-A | 2026-08-17 18:1x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 ## Done (this arc)
@@ -41,9 +42,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
   safe-haven spike, STRESS-ONLY) — GATED: wait >=1 verified monthly
   TIC cycle (earliest after next new_release flip)
 - FRED-window sentinel for tic-cslt banks (weekly diff vs bank)
-- global-flows micro-probes: CBC BPP2Q01en data[] shape map; TWSE
-  rwd/en/fund JSON daily-flow endpoints; IMF sdmx/2.1 BOP dataflow
-  id (worldwide layer)
 - global-flows key-gated: Korea (BOK ECOS + KRX keys) and Chile
   (BCCh token) -- BLOCKED ON KHALID
 - Fusion 5/6 (sector triangle + mispriced-boom) — wave 2, after Sat
