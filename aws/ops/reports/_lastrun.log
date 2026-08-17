@@ -1,30 +1,52 @@
-executing-against: be35cfc97eabb0262822301066d84c6ae81005a7
-G0. field-level league contract
-[12:40:20] ✅   league[0].boom_score = 81.7; sample industries: ['Computer Hardware', 'Semiconductors', 'Software - Infrastructure', 'Hardware, Equipment & Parts', 'Broadcasting']
-1. settle + invoke
-[12:40:31] ✅ marker settled
-[12:40:52] ✅   fresh v1.3.1 doc (~20s)
-2. parse proof
-[12:40:52] ✅   diag.feeds.industry_boom = 131 (was 0 in 4811-4816)
-3. industry legs live
-[12:40:52] ✅   stock rows w/ industry leg = 60
-[12:40:52] ✅   ETF rows w/ industry_fund leg = 8
-[12:40:52]     stock ex SPCX: industry 'Aerospace & Defense' boom score 77 (top 5% of 131), +1.3 over 20d
-[12:40:52]     etf ex SMH: industry 'semiconductors' boom 81 (top 2% of 131, -0.3/20d) -- fuses earnings-revision breadth, deal wins + backlog accel
-4. invariants
-[12:40:52] ✅   53w + 12-1 intact = True
-[12:40:52] ✅   ai clamp violations = 0
-[12:40:52] ✅   comeback trap overlap = NONE
-5. readout
-[12:40:52] ✅   large       SPCX    94.8 legs={"mom": 0.99, "flows": 0.85, "industry": 0.95}
-[12:40:52] ✅   large       NBIS    94.1 legs={"mom": 0.97, "flows": 0.85, "industry": 0.98}
-[12:40:52] ✅   mid         APGE    93.9 legs={"mom": 0.97, "flows": 0.85, "industry": 0.95}
-[12:40:52] ✅   mid         BRKR    88.1 legs={"mom": 0.89, "flows": 0.85, "industry": 0.89}
-[12:40:52] ✅   comeback    PTC     75.8 legs={"quality": 0.67, "cheap": 0.71, "stabilize": 1.0}
-[12:40:52] ✅   comeback    GDDY    72.4 legs={"quality": 0.64, "cheap": 0.66, "stabilize": 1.0}
-[12:40:52] ✅   etf_equity  SMH     89.8 legs={"mom": 0.97, "rotation": 0.76, "etf_flows": 0.93, "industry_fund": 0.98}
-[12:40:52] ✅   etf_equity  IWD     89.8 legs={"mom": 0.81, "rotation": 1.0}
+executing-against: fcc592814fb1defb74890a2f0c040cf4f7810bcc
+G0. FIELD-level feed contracts
+[14:48:12] ✅   G0 ledger dates=53 closes.SPY numeric=53
+[14:48:13] ✅   G0 universe.stocks = 5239
+1. function + settle
+[14:48:13] ✅ marker settled (attempt 1)
+2. weekly schedule (Sat 14:30 UTC, post-league)
+[14:48:13] ✅ schedule justhodl-base-rates-weekly created -> cron(30 14 ? * SAT *)
+3. Event-invoke + poll (<=6 min)
+[14:48:29] ✅ fresh doc in 15s  runtime_ms=6929
+4. truths
+[14:48:29] ✅   status LIVE v1.0.0
+[14:48:29] ✅   ledger LastModified UNCHANGED (read-only proven)
+[14:48:29] ✅   26w s0 quintiles == independent in-op oracle recompute
+[14:48:29] ✅   thresholds == oracle
+[14:48:29] ✅   current_assignments = 4966
+[14:48:29] ✅   cross-engine: 25/25 sampled q == league mom_quintile
+[14:48:29] ✅   4w rolling cohort: n=109989 forms=23
+[14:48:29] ✅   13w rolling cohort: n=66032 forms=14
+[14:48:29] ✅   comeback n=200 beat=31.5%
+[14:48:29] ✅   history row appended for 2026-08-17
+[14:48:29] ✅   output size 264 KB
+5. odds readout
+[14:48:29]   -- 4w (n=109989, forms=23) --
+[14:48:29]    Q1 beat= 41.6%  medEx=  -3.9pp  LB95= 41.0%  n=21987
+[14:48:29]    Q2 beat= 44.4%  medEx=  -1.6pp  LB95= 43.8%  n=21998
+[14:48:29]    Q3 beat= 43.3%  medEx=  -1.4pp  LB95= 42.6%  n=22000
+[14:48:29]    Q4 beat= 44.7%  medEx=  -1.2pp  LB95= 44.0%  n=21998
+[14:48:29]    Q5 beat= 42.3%  medEx=  -2.7pp  LB95= 41.7%  n=22006
+[14:48:29]   -- 13w (n=66032, forms=14) --
+[14:48:29]    Q1 beat= 34.3%  medEx= -14.6pp  LB95= 33.5%  n=13200
+[14:48:29]    Q2 beat= 38.3%  medEx=  -7.4pp  LB95= 37.5%  n=13206
+[14:48:29]    Q3 beat= 34.8%  medEx=  -6.2pp  LB95= 34.0%  n=13208
+[14:48:29]    Q4 beat= 41.4%  medEx=  -3.7pp  LB95= 40.5%  n=13206
+[14:48:29]    Q5 beat= 38.6%  medEx=  -7.2pp  LB95= 37.8%  n=13212
+[14:48:29]   -- 26w (n=4503, forms=1) --
+[14:48:29]    Q1 beat= 32.7%  medEx= -23.5pp  LB95= 29.7%  n=900
+[14:48:29]    Q2 beat= 36.4%  medEx= -10.9pp  LB95= 33.3%  n=901
+[14:48:29]    Q3 beat= 30.9%  medEx= -11.3pp  LB95= 28.0%  n=900
+[14:48:29]    Q4 beat= 36.5%  medEx=  -7.0pp  LB95= 33.4%  n=901
+[14:48:29]    Q5 beat= 41.6%  medEx=  -7.2pp  LB95= 38.4%  n=901
+[14:48:29]    dd -10_to_-20   beat= 33.1%  medEx= -10.7pp  n=622
+[14:48:29]    dd -20_to_-35   beat= 42.3%  medEx=  -7.8pp  n=742
+[14:48:29]    dd 0_to_-10     beat= 35.0%  medEx=  -8.3pp  n=1969
+[14:48:29]    dd below_-35    beat= 33.8%  medEx= -22.4pp  n=1170
+[14:48:29]    assign LVLU   {"b": "micro", "q": 2, "dd": "below_-35", "m6": -10.9}
+[14:48:29]    assign YTRA   {"b": "micro", "q": 1, "dd": "below_-35", "m6": -37.1}
+[14:48:29]    assign TDTH   {"b": "micro", "q": 1, "dd": "below_-35", "m6": -74.8}
 6. verdict
-[12:40:52] ✅ v1.3.1 LIVE -- industry legs restored on both books; field-level G0 now guards the boom contract
+[14:48:29] ✅ justhodl-base-rates LIVE -- Fusion 1 spine: one ledger now disciplines every odds claim the fleet makes
 
-→ Report written to aws/ops/reports/latest/ops 4817 -- v1.3.1 boom_score fix verify.md
+→ Report written to aws/ops/reports/latest/ops 4818 -- base-rates spine birth verify.md
