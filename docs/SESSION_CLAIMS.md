@@ -18,7 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| IMF worldwide layer: INDICATOR codelist probe + global-flows v1.2 multi-country wiring | 4843-4845 | S-fable-A | 2026-08-17 18:1x |
+| Fusion 4: beaters listings-history bank + forward-return grader + provisional learned-weights (justhodl-beaters-grader) | 4847-4849 | S-fable-A | 2026-08-17 18:2x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 ## Done (this arc)
@@ -36,8 +36,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Open queue (unclaimed)
 - Fusion 3: catalyst chain (catalyst x readthrough x backlog-miner x
   estimate-revisions, second-order propagation, ledger-graded)
-- Fusion 4: learned-weights grader for beaters legs / invest tiers
-  (ship grader now, activation at >=4 graded weeks)
 - risk-gate dollar-leg input from foreign-flows (official-outflow z +
   safe-haven spike, STRESS-ONLY) — GATED: wait >=1 verified monthly
   TIC cycle (earliest after next new_release flip)
