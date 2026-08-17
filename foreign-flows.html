@@ -47,8 +47,8 @@ tr:last-child td{border-bottom:none}
 <div class="sec"><h2>Official vs Private — all split families ($B)</h2><div id="splits"></div>
 <div class="note">Each family reconciled at runtime: all = official + private within tolerance, or the family is marked and excluded — never silently summed.</div></div>
 <div class="sec"><h2>Foreign absorption of Treasury supply</h2><div class="cards" id="abscards" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))"></div><div id="abstab" style="margin-top:10px"></div>
-<div class="note">absorption = TIC foreign Treasury net buying \u00f7 net marketable issuance (MSPD 5-class sum). Paydown months show no percentage \u2014 never faked. Falling share against rising supply is the stress read even when the raw flow is positive.</div></div>
-<div class="sec"><h2>Auction tape \u2014 indirect bidders (foreign proxy)</h2><div id="auct"></div></div>
+<div class="note">absorption = TIC foreign Treasury net buying ÷ net marketable issuance (MSPD 5-class sum). Paydown months show no percentage — never faked. Falling share against rising supply is the stress read even when the raw flow is positive.</div></div>
+<div class="sec"><h2>Auction tape — indirect bidders (foreign proxy)</h2><div id="auct"></div></div>
 <div class="sec"><h2>LT-Treasury holdings by country ($B)</h2><div id="ctry"></div>
 <div class="note">Δholdings = transactions + valuation change + other adjustments — the rightmost column is the honest "other" term. Country attribution carries custodial bias (BE/UK/LU/IE/KY are custody centers).</div></div>
 <div class="sec"><h2>LT-Equity holdings by country ($B)</h2><div id="ctryeq"></div>
@@ -60,33 +60,57 @@ const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 const fN=(v,d)=>v==null?"\u2013":(v>0?"+":"")+v.toFixed(d==null?1:d);
 const cls=v=>v==null?"":(v>0?" pos":(v<0?" neg":""));
 const zs=z=>z==null?"":" \u00b7 z "+(z>0?"+":"")+z;
+const acc=f=>!f?"":('<span style="font-size:10px;font-family:var(--mono);padding:1px 6px;border-radius:4px;border:1px solid var(--border-bright);color:'+(f.indexOf("BUY")>0?"var(--green)":"var(--red)")+'">'+f.replace("_"," ")+'</span>');
 async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok)return await r.json();}catch(e){}return null;}
+const S_=(n,f)=>{try{f()}catch(e){console.warn("sec",n,e)}};
 
 (async function(){
   const d=await jget("/data/foreign-flows.json");
   if(!d||d.status!=="LIVE"){document.getElementById("sub").textContent="feed "+(d&&d.status||"unavailable")+(d&&d.why?" \u2014 "+d.why:"");return;}
-  document.getElementById("sub").textContent="Data month "+(d.latest_month||"")+" \u00b7 published as of "+(d.as_of||"")+" \u00b7 monthly, ~1.5-month lag \u00b7 banked permanently under the Deny-Delete zone.";
-  if(d.new_release)document.getElementById("nr").style.display="inline-block";
-  const F=d.flows_bn||{};let h="";
-  for(const[k,lab]of[["total","Total LT securities"],["treas","US Treasuries (LT+ST)"],["equity","US Equities"],["corp","Corporate bonds"],["agency","Agency / MBS"],["tbills","T-bills (ST)"]]){
-    const v=F[k]||{};
-    h+='<div class="card"><div class="k">'+lab+'</div><div class="v'+cls(v.latest)+'">'+fN(v.latest)+'B</div><div class="s">3m '+fN(v.sum_3m)+' \u00b7 12m '+fN(v.sum_12m)+zs(v.z_10y)+'</div></div>';}
-  document.getElementById("flows").innerHTML=h;
-  const S=d.signals||{};h="";
-  for(const[k,lab]of[["risk_appetite","Risk appetite"],["safe_haven","Safe-haven rotation"],["total_demand","Total foreign demand"],["official_private","Private \u2212 Official"]]){
-    const s=S[k]||{};
-    if(s.latest_bn==null){h+='<div class="card"><div class="k">'+lab+'</div><div class="v">\u2013</div><div class="s">'+(s.why||"")+'</div></div>';continue;}
-    h+='<div class="card"><div class="k">'+lab+'</div><div class="v'+cls(s.latest_bn)+'">'+fN(s.latest_bn)+'B</div><div class="s">12m '+fN(s.sum_12m_bn)+zs(s.z_10y)+'</div></div>';}
-  document.getElementById("sigs").innerHTML=h;
-  const hs=((d.holder_splits||{}).lt_total)||{};
-  if(hs.status==="OK")document.getElementById("split").innerHTML="LT total split: private <b>"+fN((hs.private||{}).latest)+"B</b> vs official <b>"+fN((hs.official||{}).latest)+"B</b> (recon gap "+fN(hs.recon_gap_bn,2)+"B \u2014 runtime-reconciled).";
-  const C=d.country_lt_treasury||{};const rows=Object.entries(C).filter(([,r])=>r&&r.status==="OK");
-  if(rows.length){let t='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th><th>tx 3m</th><th>tx 12m</th><th>accel</th><th>valchg 12m</th><th>other</th></tr>';
-    for(const[n,r]of rows)t+='<tr'+(r.composite?' style="border-top:2px solid var(--border-bright);background:var(--bg-1)"':'')+'><td>'+(r.composite?'\u2211 ':'')+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td><td class="'+cls(r.tx_3m_bn)+'">'+fN(r.tx_3m_bn)+'</td><td class="'+cls(r.tx_12m_bn)+'">'+fN(r.tx_12m_bn)+'</td><td>'+acc(r.accel)+'</td><td>'+fN(r.valchg_12m_bn)+'</td><td>'+fN(r.identity_gap_bn)+'</td></tr>';
-    document.getElementById("ctry").innerHTML=t+'</table>';}
-  const acc=f=>!f?"":('<span style="font-size:10px;font-family:var(--mono);padding:1px 6px;border-radius:4px;border:1px solid var(--border-bright);color:'+(f.indexOf("BUY")>0?"var(--green)":"var(--red)")+'">'+f.replace("_"," ")+'</span>');
-  const A=d.absorption||{};
-  if(A.status==="LIVE"){
+  S_("sub",()=>{
+    document.getElementById("sub").textContent="Data month "+(d.latest_month||"")+" \u00b7 published as of "+(d.as_of||"")+" \u00b7 monthly, ~1.5-month lag \u00b7 banked permanently under the Deny-Delete zone.";
+    if(d.new_release)document.getElementById("nr").style.display="inline-block";});
+  S_("flows",()=>{
+    const F=d.flows_bn||{};let h="";
+    for(const[k,lab]of[["total","Total LT securities"],["treas","US Treasuries (LT+ST)"],["equity","US Equities"],["corp","Corporate bonds"],["agency","Agency / MBS"],["tbills","T-bills (ST)"]]){
+      const v=F[k]||{};
+      h+='<div class="card"><div class="k">'+lab+'</div><div class="v'+cls(v.latest)+'">'+fN(v.latest)+'B</div><div class="s">3m '+fN(v.sum_3m)+' \u00b7 12m '+fN(v.sum_12m)+zs(v.z_10y)+'</div></div>';}
+    document.getElementById("flows").innerHTML=h;});
+  S_("signals",()=>{
+    const S=d.signals||{};let h="";
+    for(const[k,lab]of[["risk_appetite","Risk appetite"],["safe_haven","Safe-haven rotation"],["total_demand","Total foreign demand"],["official_private","Private \u2212 Official"]]){
+      const s=S[k]||{};
+      if(s.latest_bn==null){h+='<div class="card"><div class="k">'+lab+'</div><div class="v">\u2013</div><div class="s">'+(s.why||"")+'</div></div>';continue;}
+      h+='<div class="card"><div class="k">'+lab+'</div><div class="v'+cls(s.latest_bn)+'">'+fN(s.latest_bn)+'B</div><div class="s">12m '+fN(s.sum_12m_bn)+zs(s.z_10y)+'</div></div>';}
+    document.getElementById("sigs").innerHTML=h;
+    const hs=((d.holder_splits||{}).lt_total)||{};
+    if(hs.status==="OK")document.getElementById("split").innerHTML="LT total split: private <b>"+fN((hs.private||{}).latest)+"B</b> vs official <b>"+fN((hs.official||{}).latest)+"B</b> (recon gap "+fN(hs.recon_gap_bn,2)+"B \u2014 runtime-reconciled).";});
+  S_("hist",()=>{
+    const H=d.hist_10y||{};
+    const HL={total:"Total LT",treas:"Treasuries",equity:"Equities",corp:"Corp bonds",agency:"Agency/MBS",tbills:"T-bills",sig_risk_appetite:"Risk appetite",sig_safe_haven:"Safe-haven",sig_total_demand:"Total demand",sig_official_private:"Private \u2212 Official"};
+    function chart(name,hh){
+      const v=hh.vals,dts=hh.dates;if(!v||v.length<12)return"";
+      const W=340,Hh=96,n=v.length,bw=W/n;
+      const mx=Math.max(...v.map(Math.abs))||1;
+      let s='<div class="card" style="padding:10px"><div class="k">'+(HL[name]||name)+' <span style="float:right;color:var(--fg-2)">'+fN(v[v.length-1])+'B</span></div>';
+      s+='<svg width="100%" viewBox="0 0 '+W+' '+Hh+'" style="margin-top:6px"><line x1="0" y1="'+(Hh/2)+'" x2="'+W+'" y2="'+(Hh/2)+'" stroke="#1c2433"/>';
+      v.forEach((x,i)=>{const bh=Math.abs(x)/mx*(Hh/2-4);const y=x>=0?Hh/2-bh:Hh/2;
+        s+='<rect x="'+(i*bw)+'" y="'+y+'" width="'+Math.max(0.8,bw-0.7)+'" height="'+Math.max(0.6,bh)+'" fill="'+(x>=0?"#26ffaf":"#ff5577")+'" opacity="0.8"/>';});
+      s+='</svg><div class="s">'+dts[0].slice(0,7)+' \u2192 '+dts[dts.length-1].slice(0,7)+' \u00b7 monthly net flow</div></div>';
+      return s;}
+    let hh="";for(const k of Object.keys(HL))if(H[k])hh+=chart(k,H[k]);
+    document.getElementById("hist").innerHTML=hh||'<div class="note">history pending next engine run</div>';});
+  S_("splits",()=>{
+    const SPn={lt_total:"LT total",lt_treas:"LT Treasuries",st_treas:"T-bills (ST)",lt_corp:"Corp bonds",lt_equity:"Equities",lt_agency:"Agency/MBS"};
+    const SP=d.holder_splits||{};const spr=Object.entries(SP);
+    if(!spr.length)return;
+    let ts='<table><tr><th>family</th><th>official</th><th>off 12m</th><th>private</th><th>prv 12m</th><th>recon gap</th><th>status</th></tr>';
+    for(const[f,r]of spr){
+      if(r.status!=="OK"){ts+='<tr><td>'+(SPn[f]||f)+'</td><td colspan="5" style="color:var(--fg-3)">'+r.status+' \u2014 '+(r.why||"")+'</td><td>'+r.status+'</td></tr>';continue;}
+      ts+='<tr><td>'+(SPn[f]||f)+'</td><td class="'+cls(r.official.latest)+'">'+fN(r.official.latest)+'</td><td>'+fN(r.official.sum_12m)+'</td><td class="'+cls(r.private.latest)+'">'+fN(r.private.latest)+'</td><td>'+fN(r.private.sum_12m)+'</td><td>'+fN(r.recon_gap_bn,2)+'</td><td style="color:var(--green)">OK</td></tr>';}
+    document.getElementById("splits").innerHTML=ts+'</table>';});
+  S_("absorption",()=>{
+    const A=d.absorption||{};if(A.status!=="LIVE")return;
     const g=A.agg_12m||{};
     document.getElementById("abscards").innerHTML=
       '<div class="card"><div class="k">12m foreign buying</div><div class="v'+cls(g.foreign_bn)+'">'+fN(g.foreign_bn)+'B</div><div class="s">TIC Treasury net (LT+ST)</div></div>'+
@@ -94,52 +118,47 @@ async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok
       '<div class="card"><div class="k">Foreign absorption share</div><div class="v'+(g.pct!=null&&g.pct<10?" neg":"")+'">'+(g.pct==null?"\u2013":g.pct+"%")+'</div><div class="s">of marginal supply, 12m</div></div>';
     let at='<table><tr><th>month</th><th>foreign ($B)</th><th>net issuance ($B)</th><th>absorption</th></tr>';
     for(const r of (A.rows||[]).slice().reverse())at+='<tr><td>'+r.month+'</td><td class="'+cls(r.foreign_bn)+'">'+fN(r.foreign_bn)+'</td><td>'+fN(r.net_issuance_bn)+'</td><td>'+(r.absorption_pct==null?('<span style="color:var(--fg-3)">'+(r.note||"\u2013")+'</span>'):r.absorption_pct+"%")+'</td></tr>';
-    document.getElementById("abstab").innerHTML=at+'</table>';}
-  const AU=d.auctions||{};
-  if(AU.status==="LIVE"){
+    document.getElementById("abstab").innerHTML=at+'</table>';});
+  S_("auctions",()=>{
+    const AU=d.auctions||{};if(AU.status!=="LIVE")return;
     let au='<div class="note" style="margin-bottom:8px">avg indirect '+AU.avg_indirect_pct_60d+'% across '+AU.n_auctions_60d+' auctions, 60d</div><table><tr><th>date</th><th>type</th><th>term</th><th>indirect %</th><th>bid-to-cover</th><th>high yield</th></tr>';
     for(const r of AU.recent||[])au+='<tr><td>'+r.date+'</td><td>'+r.type+'</td><td>'+r.term+'</td><td class="'+(r.indirect_pct>=70?"pos":(r.indirect_pct<55?"neg":""))+'">'+r.indirect_pct+'%</td><td>'+(r.bid_to_cover||"\u2013")+'</td><td>'+(r.high_yield||"\u2013")+'</td></tr>';
-    document.getElementById("auct").innerHTML=au+'</table>';}
-  const H=d.hist_10y||{};
-  const HL={total:"Total LT",treas:"Treasuries",equity:"Equities",corp:"Corp bonds",agency:"Agency/MBS",tbills:"T-bills",sig_risk_appetite:"Risk appetite",sig_safe_haven:"Safe-haven",sig_total_demand:"Total demand",sig_official_private:"Private \u2212 Official"};
-  function chart(name,h){
-    const v=h.vals,dts=h.dates;if(!v||v.length<12)return"";
-    const W=340,Hh=96,n=v.length,bw=W/n;
-    const mx=Math.max(...v.map(Math.abs))||1;
-    let s='<div class="card" style="padding:10px"><div class="k">'+(HL[name]||name)+' <span style="float:right;color:var(--fg-2)">'+fN(v[v.length-1])+'B</span></div>';
-    s+='<svg width="100%" viewBox="0 0 '+W+' '+Hh+'" style="margin-top:6px"><line x1="0" y1="'+(Hh/2)+'" x2="'+W+'" y2="'+(Hh/2)+'" stroke="#1c2433"/>';
-    v.forEach((x,i)=>{const bh=Math.abs(x)/mx*(Hh/2-4);const y=x>=0?Hh/2-bh:Hh/2;
-      s+='<rect x="'+(i*bw)+'" y="'+y+'" width="'+Math.max(0.8,bw-0.7)+'" height="'+Math.max(0.6,bh)+'" fill="'+(x>=0?"#26ffaf":"#ff5577")+'" opacity="0.8"/>';});
-    s+='</svg><div class="s">'+dts[0].slice(0,7)+' \u2192 '+dts[dts.length-1].slice(0,7)+' \u00b7 monthly net flow</div></div>';
-    return s;}
-  let hh="";for(const k of Object.keys(HL))if(H[k])hh+=chart(k,H[k]);
-  document.getElementById("hist").innerHTML=hh||'<div class="note">history pending next engine run</div>';
-  const SPn={lt_total:"LT total",lt_treas:"LT Treasuries",st_treas:"T-bills (ST)",lt_corp:"Corp bonds",lt_equity:"Equities",lt_agency:"Agency/MBS"};
-  const SP=d.holder_splits||{};const spr=Object.entries(SP);
-  if(spr.length){let ts='<table><tr><th>family</th><th>official</th><th>off 12m</th><th>private</th><th>prv 12m</th><th>recon gap</th><th>status</th></tr>';
-    for(const[f,r]of spr){
-      if(r.status!=="OK"){ts+='<tr><td>'+(SPn[f]||f)+'</td><td colspan="5" style="color:var(--fg-3)">'+r.status+' \u2014 '+(r.why||"")+'</td><td>'+r.status+'</td></tr>';continue;}
-      ts+='<tr><td>'+(SPn[f]||f)+'</td><td class="'+cls(r.official.latest)+'">'+fN(r.official.latest)+'</td><td>'+fN(r.official.sum_12m)+'</td><td class="'+cls(r.private.latest)+'">'+fN(r.private.latest)+'</td><td>'+fN(r.private.sum_12m)+'</td><td>'+fN(r.recon_gap_bn,2)+'</td><td style="color:var(--green)">OK</td></tr>';}
-    document.getElementById("splits").innerHTML=ts+'</table>';}
-  const E=d.country_lt_equity||{};const er=Object.entries(E).filter(([,r])=>r&&r.status==="OK");
-  if(er.length){let t2='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th><th>tx 3m</th><th>tx 12m</th><th>accel</th><th>valchg 12m</th><th>other</th></tr>';
+    document.getElementById("auct").innerHTML=au+'</table>';});
+  S_("ctry",()=>{
+    const C=d.country_lt_treasury||{};const rows=Object.entries(C).filter(([,r])=>r&&r.status==="OK");
+    if(!rows.length)return;
+    let t='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th><th>tx 3m</th><th>tx 12m</th><th>accel</th><th>valchg 12m</th><th>other</th></tr>';
+    for(const[n,r]of rows)t+='<tr'+(r.composite?' style="border-top:2px solid var(--border-bright);background:var(--bg-1)"':'')+'><td>'+(r.composite?'\u2211 ':'')+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td><td class="'+cls(r.tx_3m_bn)+'">'+fN(r.tx_3m_bn)+'</td><td class="'+cls(r.tx_12m_bn)+'">'+fN(r.tx_12m_bn)+'</td><td>'+acc(r.accel)+'</td><td>'+fN(r.valchg_12m_bn)+'</td><td>'+fN(r.identity_gap_bn)+'</td></tr>';
+    document.getElementById("ctry").innerHTML=t+'</table>';});
+  S_("ctryeq",()=>{
+    const E=d.country_lt_equity||{};const er=Object.entries(E).filter(([,r])=>r&&r.status==="OK");
+    if(!er.length)return;
+    let t2='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th><th>tx 3m</th><th>tx 12m</th><th>accel</th><th>valchg 12m</th><th>other</th></tr>';
     for(const[n,r]of er)t2+='<tr><td>'+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td><td class="'+cls(r.tx_3m_bn)+'">'+fN(r.tx_3m_bn)+'</td><td class="'+cls(r.tx_12m_bn)+'">'+fN(r.tx_12m_bn)+'</td><td>'+acc(r.accel)+'</td><td>'+fN(r.valchg_12m_bn)+'</td><td>'+fN(r.identity_gap_bn)+'</td></tr>';
-    document.getElementById("ctryeq").innerHTML=t2+'</table>';}
-  const op=await jget("/data/official-pulse.json");
-  if(op&&op.status==="LIVE"){let ph="";
-    const rr=op.foreign_rrp||{};
-    ph+='<div class="card"><div class="k">Foreign RRP pool \u00b7 '+(rr.latest_date||"")+'</div><div class="v">'+fN(rr.latest_bn)+'B</div><div class="s">4w '+fN(rr.chg_4w_bn)+' \u00b7 13w '+fN(rr.chg_13w_bn)+zs(rr.z_13wchg_10y)+'</div></div>';
-    const cu=op.custody||{};
-    if(cu.status==="LIVE")ph+='<div class="card"><div class="k">FRBNY custody \u00b7 '+(cu.latest_date||"")+'</div><div class="v">'+fN(cu.latest_bn)+'B</div><div class="s">4w '+fN(cu.chg_4w_bn)+' \u00b7 13w '+fN(cu.chg_13w_bn)+zs(cu.z_13wchg_10y)+'</div></div>';
-    else ph+='<div class="card"><div class="k">FRBNY custody</div><div class="v">\u2013</div><div class="s">'+(cu.why||"").slice(0,80)+'</div></div>';
-    const dl=op.dollar_leg||{};
-    const col=dl.status==="STRESS"?"neg":(dl.status==="WATCH"?"amb":"pos");
-    ph+='<div class="card"><div class="k">Dollar leg (risk-gate input)</div><div class="v '+col+'">'+(dl.status||"\u2013")+'</div><div class="s">'+(dl.legs_firing||0)+'/'+(dl.available||0)+' legs firing'+((dl.firing&&dl.firing.length)?" \u00b7 "+dl.firing.join(", "):"")+'</div></div>';
-    document.getElementById("pulse").innerHTML=ph;}
-  else document.getElementById("pulse").innerHTML='<div class="note">official-pulse pending first run</div>';
-  const rel=await jget("/foreign-flows/releases.json");
-  const rr=(rel&&rel.rows||[]).slice(-12).reverse();
-  document.getElementById("rel").innerHTML=rr.length?rr.map(r=>"<div>"+r.detected+" \u2014 month "+r.month+": "+(r.alert||"")+"</div>").join(""):"no releases logged yet \u2014 the badge flips on the next monthly TIC ingest.";
+    document.getElementById("ctryeq").innerHTML=t2+'</table>';});
+  S_("releases",async()=>{});
+  try{
+    const rel=await jget("/foreign-flows/releases.json");
+    const rr=(rel&&rel.rows||[]).slice(-12).reverse();
+    document.getElementById("rel").innerHTML=rr.length?rr.map(r=>"<div>"+r.detected+" \u2014 month "+r.month+": "+(r.alert||"")+"</div>").join(""):"no releases logged yet \u2014 the badge flips on the next monthly TIC ingest.";
+  }catch(e){console.warn("sec releases",e)}
+  try{
+    const op=await jget("/data/official-pulse.json");
+    const el=document.getElementById("pulse");
+    if(el){
+      if(op&&op.status==="LIVE"){let ph="";
+        const rr2=op.foreign_rrp||{};
+        ph+='<div class="card"><div class="k">Foreign RRP pool \u00b7 '+(rr2.latest_date||"")+'</div><div class="v">'+fN(rr2.latest_bn)+'B</div><div class="s">4w '+fN(rr2.chg_4w_bn)+' \u00b7 13w '+fN(rr2.chg_13w_bn)+zs(rr2.z_13wchg_10y)+'</div></div>';
+        const cu=op.custody||{};
+        if(cu.status==="LIVE")ph+='<div class="card"><div class="k">FRBNY custody \u00b7 '+(cu.latest_date||"")+'</div><div class="v">'+fN(cu.latest_bn)+'B</div><div class="s">4w '+fN(cu.chg_4w_bn)+' \u00b7 13w '+fN(cu.chg_13w_bn)+zs(cu.z_13wchg_10y)+'</div></div>';
+        else ph+='<div class="card"><div class="k">FRBNY custody</div><div class="v">\u2013</div><div class="s">'+((cu.why||"")+"").slice(0,80)+'</div></div>';
+        const dl=op.dollar_leg||{};
+        const col=dl.status==="STRESS"?"neg":(dl.status==="WATCH"?"amb":"pos");
+        ph+='<div class="card"><div class="k">Dollar-leg (stress-only)</div><div class="v '+col+'">'+(dl.status||"\u2013")+'</div><div class="s">'+((dl.why||"")+"").slice(0,90)+'</div></div>';
+        el.innerHTML=ph;
+      }else el.innerHTML='<div class="note">official-pulse '+((op&&op.status)||"unavailable")+' \u2014 '+((op&&op.why)||"")+'</div>';
+    }
+  }catch(e){console.warn("sec pulse",e)}
 })();
 </script>
 </div><script src="/freshness.js"></script></body></html>
