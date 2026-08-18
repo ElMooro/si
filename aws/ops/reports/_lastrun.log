@@ -1,50 +1,25 @@
-executing-against: fa3bf0b6fa3b1972617aa20b2acd286f48566044
-[00:26:27] ✅ bytes=254473 lines=1149
-header block (1-14)
-[00:26:27]   L01| 対外及び対内証券売買契約等の状況　(週次・指定報告機関ベース）,,,,,,,,,,,,,,,,,,,最終更新日  令和8年8月14日,,,
-[00:26:27]   L02| International Transactions in Securities (Weekly; based on reports from designated major investors),,,,,,,,,,,,,,,,,,,"Final Update  August  14 , 2026",,,
-[00:26:27]   L03| ,,,,,,,,,,,,,,,,,,,,,,
-[00:26:27]   L04| ,,,,,,,,,,,,,,,,,,,単位： 億円,,,
-[00:26:27]   L05| ,,,,,,,,,,,,,,,,,,,Unit: 100 million Yen,,,
-[00:26:27]   L06| ,,,,,,,,,,,,,,,,,,,,,,
-[00:26:27]   L07| ,,,,,,,,,,,,,,,,,,,,,,
-[00:26:27]   L08| ,１．対外証券投資　【居住者による取得・処分】,,,,,,,,,,,2．対内証券投資　【非居住者による取得・処分】,,,,,,,,,,
-[00:26:27]   L09| ,1. Portfolio Investment Assets,,,,,,,,,,,2. Portfolio Investment Liabilities,,,,,,,,,,
-[00:26:27]   L10| ,,,,,,,,,,,,,,,,,,,,,,
-[00:26:27]   L11| "期間
-[00:26:27]   L12| Period",   株式 ・投資ファンド持分,,,   中 長 期 債 ,,,  小  計,   短 期 債,,,  合  計,   株式 ・投資ファンド持分,,,   中 長 期 債 ,,,  小  計,   短 期 債,,,  合  計
-[00:26:27]   L13| ,Equity and investment fund shares,,, Long-term debt securities,,,Subtotal,Short-term debt securities,,,Total,Equity and investment fund shares,,, Long-term debt securiti
-[00:26:27]   L14| ,取得,処分,ネット,取得,処分,ネット,ネット,取得,処分,ネット,ネット,取得,処分,ネット,取得,処分,ネット,ネット,取得,処分,ネット,ネット
-first 2 data-ish rows
-[00:26:27]   ,１．対外証券投資　【居住者による取得・処分】,,,,,,,,,,,2．対内証券投資　【非居住者による取得・処分】,,,,,,,,,,
-[00:26:27]   ,1. Portfolio Investment Assets,,,,,,,,,,,2. Portfolio Investment Liabilities,,,,,,,,,,
-last 4 rows of file
-[00:26:27]   ,③ネットのプラス（＋）は取得超、マイナス（－）は処分超を表す。,,,,,,,,,,,,,,,,,,,,,
-[00:26:27]      (Note 1),"Transactions related to investment funds will be recorded under the　new items ""Equity and investment fund shares"" starting from January 2014.",,,,,,,,,,,,,,,,,,,,,
-[00:26:27]      (Note 2),Totals may not add due to rounding.,,,,,,,,,,,,,,,,,,,,,
-[00:26:27]      (Note 3),International Transactions in Securities show net acquisition with a plus sign(＋) and net disposition with a minus sign(－).,,,,,,,,,,,,,,,,,,,,,
-comma census of latest data row
-[00:26:27]   n_cells=23
-[00:26:27]   c00='(Note 3)'
-[00:26:27]   c01='International Transactions'
-[00:26:27]   c02=''
-[00:26:27]   c03=''
-[00:26:27]   c04=''
-[00:26:27]   c05=''
-[00:26:27]   c06=''
-[00:26:27]   c07=''
-[00:26:27]   c08=''
-[00:26:27]   c09=''
-[00:26:27]   c10=''
-[00:26:27]   c11=''
-[00:26:27]   c12=''
-[00:26:27]   c13=''
-[00:26:27]   c14=''
-[00:26:27]   c15=''
-[00:26:27]   c16=''
-[00:26:27]   c17=''
-[00:26:27]   c18=''
-[00:26:27]   c19=''
-[00:26:27] ✅ structure on record -- wire binds these columns
+executing-against: 7b17131e611e8434e84de76670217f5ad85fe86a
+G0. shared parser vs live CSV
+[00:32:25] ✅ parse_mof: 1127 weekly rows
+[00:32:25]   2026．7．19～7．25 | out_lt -810.1 out_eq 289.1 | in_lt -1514.1 in_eq 912.4 in_total -3484.1
+[00:32:25]   2026．7．26～8．1 | out_lt 477.9 out_eq -276.4 | in_lt 558.9 in_eq -392.5 in_total -126.6
+[00:32:25]   2026．8．2～8．8 | out_lt 1629.4 out_eq 963.5 | in_lt -58.7 in_eq -368.5 in_total -211.3
+1. settle + invoke
+[00:32:32] ✅ marker settled (attempt 1)
+[00:32:43] ✅ fresh in 10s
+2. truths
+[00:32:43] ✅   japan LIVE: 1127 weeks, latest '2026．8．2～8．8'
+[00:32:43] ✅   sampled nets == independent parse (in_lt -58.7, out_lt +1629.4 JPYbn)
+[00:32:43]   inward_equity    latest -368.5 4w +69.5 z -0.72
+[00:32:43]   outward_equity   latest +963.5 4w +854.9 z 2.75
+[00:32:43]   inward_total     latest -211.3 4w -4403.0 z -0.2
+[00:32:43]   outward_total    latest +1811.6 4w +774.6 z 1.86
+[00:32:43] ✅   mof bank rows=1127
+[00:32:43] ✅   peru + taiwan intact
+3. page
+[00:32:43] ✅   committed window_label render
+[00:35:14] ✅   SERVED (150s)
+4. verdict
+[00:35:14] ✅ Japan MOF weekly LIVE both directions -- the carry channel is on the desk
 
-→ Report written to aws/ops/reports/latest/ops 4875 -- mof weekly structure dump.md
+→ Report written to aws/ops/reports/latest/ops 4876 -- mof wire verify.md

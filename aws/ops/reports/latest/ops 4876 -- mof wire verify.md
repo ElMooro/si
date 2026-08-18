@@ -1,0 +1,32 @@
+# G0. shared parser vs live CSV
+
+**Status:** success  
+**Duration:** 170.8s  
+**Finished:** 2026-08-18T00:35:14+00:00  
+
+## Log
+- `00:32:25` ✅ parse_mof: 1127 weekly rows
+- `00:32:25`   2026．7．19～7．25 | out_lt -810.1 out_eq 289.1 | in_lt -1514.1 in_eq 912.4 in_total -3484.1
+- `00:32:25`   2026．7．26～8．1 | out_lt 477.9 out_eq -276.4 | in_lt 558.9 in_eq -392.5 in_total -126.6
+- `00:32:25`   2026．8．2～8．8 | out_lt 1629.4 out_eq 963.5 | in_lt -58.7 in_eq -368.5 in_total -211.3
+# 1. settle + invoke
+
+- `00:32:32` ✅ marker settled (attempt 1)
+- `00:32:43` ✅ fresh in 10s
+# 2. truths
+
+- `00:32:43` ✅   japan LIVE: 1127 weeks, latest '2026．8．2～8．8'
+- `00:32:43` ✅   sampled nets == independent parse (in_lt -58.7, out_lt +1629.4 JPYbn)
+- `00:32:43`   inward_equity    latest -368.5 4w +69.5 z -0.72
+- `00:32:43`   outward_equity   latest +963.5 4w +854.9 z 2.75
+- `00:32:43`   inward_total     latest -211.3 4w -4403.0 z -0.2
+- `00:32:43`   outward_total    latest +1811.6 4w +774.6 z 1.86
+- `00:32:43` ✅   mof bank rows=1127
+- `00:32:43` ✅   peru + taiwan intact
+# 3. page
+
+- `00:32:43` ✅   committed window_label render
+- `00:35:14` ✅   SERVED (150s)
+# 4. verdict
+
+- `00:35:14` ✅ Japan MOF weekly LIVE both directions -- the carry channel is on the desk
