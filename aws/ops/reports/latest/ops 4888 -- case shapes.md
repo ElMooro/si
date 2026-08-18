@@ -1,0 +1,21 @@
+- `03:25:44` [data/readthrough.json] top=['engine', 'version', 'ok', 'generated_at', 'status', 'degraded', 'thesis', 'params', 'n_events', 'n_beneficiaries', 'n_unpriced', 'events']
+- `03:25:44` [data/industry-boom.json] top=['engine', 'version', 'generated_at', 'n_industries', 'n_universe', 'league', 'trouble', 'coverage', 'siblings', 'methodology', 'disclaimer', 'elapsed_s']
+**Status:** success  
+**Duration:** 1.0s  
+**Finished:** 2026-08-18T03:25:45+00:00  
+
+## Log
+- `03:25:44`   league n=131 row0={"industry": "Computer Hardware", "sector": "Technology", "n": 40, "mcap_b": 1294.1, "boom_score": 81.7, "n_component_families": 9, "coverage_w": 115.0, "comp": {"rev_mean": 81.64, "rev_breadth": 100.0, "deal_wins_30d": 2, "backlog_accel_share": 0.0, "inst_net_bps": 12.3, "insider_buys_30d": 2, "census_conviction": 62.4, "dilution_share": 61.5, "risk_high_share": 88.9}, "top_names": ["DELL", "ANET
+- `03:25:44` [data/boom-league.json] ABSENT An error occurred (NoSuchKey) when calling the GetObject ope
+- `03:25:44` [data/industry-league.json] ABSENT An error occurred (NoSuchKey) when calling the GetObject ope
+- `03:25:45` [data/sp500.json] top=['ok', 'engine', 'engine_v', 'marker', 'as_of', 'index', 'valuation', 'forward', 'yield', 'quality', 'growth', 'balance']
+- `03:25:45`   members n=495
+- `03:25:45`   picker died: 0
+- `03:25:45` [data/universe.json] top=['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'cap_buckets', 'stocks']
+- `03:25:45`   n=5239 row0={"symbol": "NVDA", "name": "NVIDIA Corporation", "sector": "Technology", "industry": "Semiconductors", "exchange": "NASDAQ Global Select", "country": "US", "is_adr": false, "market_cap": 4831362870000, "price": 199.47, "cap_bucket": "mega", "source": "screener"}
+- `03:25:45` [data/13f-flows.json] ABSENT An error occurred (NoSuchKey) when calling the GetObject ope
+- `03:25:45` [data/clone-alpha.json] ABSENT An error occurred (NoSuchKey) when calling the GetObject ope
+- `03:25:45` [data/whale-flows.json] ABSENT An error occurred (NoSuchKey) when calling the GetObject ope
+- `03:25:45` [data/earnings.json] top=['v', 'engine', 'as_of', 'generated_at', 'window_days', 'status', 'method', 'universe_join', 'stats', 'beat_league', 'biggest_misses', 'growth_calls']
+- `03:25:45`   picks n=22 keys=['t', 'name', 'sector', 'mcap_b', 'bucket', 'call_date', 'period', 'growth_score', 'beat_rank', 'beat_score', 'pick_score', 'demand_flag', 'pos_hits', 'neg_hits']
+- `03:25:45` ✅ shapes on record
