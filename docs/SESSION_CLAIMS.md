@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| TAPE-TRUTH ENGINE (Khalid directive): CVD divergence + FINRA short-vol footprint + CBOE dealer GEX + flows fusion -> GENUINE/FAKE/SHAKEOUT verdicts + tape-truth.html | 4884-4888 | S-fable-A2 | 2026-08-18 01:5x |
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
@@ -58,6 +57,7 @@ My duplicate ops_4864_*.py removed from pending (failed, inert).
 | justhodl-earnings v1.0.0 BORN (Khalid directive): 528-reporter beat league (top DUOT +107.6% EPS) + 42-transcript growth desk -> 24 picks w/ verbatim evidence; LLM self-heal armed; earnings.html served | 4879-4881 | S-fable-A2 |
 | earnings v1.1.0: universe join LIVE (sector/mcap/cap-bucket + by-bucket beat rates + page filters) | 4882 | S-fable-A2 |
 | earnings page: 10 sortable league columns asc/desc, null-sink, composes with cap filters (4883 verifier self-contradicted, 4883b green) | 4883-4883b | S-fable-A2 |
+| justhodl-tape-truth v1.0.0 BORN (Khalid directive): bar-CVD divergence (SPY Mon -570.7k sh, recomputed), FINRA short-vol, CBOE dealer GEX (SPY +0.72bn POSITIVE, flip~799, 4,730 contracts), 12/12 WARMING-honest verdicts + tape-truth.html; 4885 session-clock bug fixed+pinned in 4885b | 4884-4885b | S-fable-A2 |
 | workstream | ops | session |
 |---|---|---|
 | base-rates spine (Fusion 1) | 4818 | S-fable-A |
