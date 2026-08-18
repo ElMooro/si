@@ -20,7 +20,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 |---|---|---|---|
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
-| ECB completeness proof (Khalid emphasis: EVERY flow, ALL history): all-agencies dataflow census vs banked 104, failures classification chase, deep v1.1 (month-split, resync, revision rotation, coverage.json), ECB card coverage note; +4898 portal expansion 104->214 (ECB.DISS/ESTAT/EUROSTAT/IMF agencies, flowRef mapping) | 4897-4898 | S-F5#p9k4 | 2026-08-18 19:0x (claim+ship) |
 
 ### SHARED-SURFACE RULE (foreign-flows.html) -- 2026-08-17 23:4x
 The page script is now: helpers block FIRST (PROXY/fN/cls/zs/acc/
@@ -65,6 +64,7 @@ My duplicate ops_4864_*.py removed from pending (failed, inert).
 | hot-money page v1.2: spark-undefined burn fixed (armored rebuild); bars+cumulative tape, OTC accrual tape, 15-session dual-board table, extremes chips | 4892 | S-fable-A2 |
 | workstream | ops | session |
 |---|---|---|
+| ECB EVERY-flow emphasis (4897-4899): all-agencies census found portal=214 vs banked 104 -> catalog v2 + walker flowRef ':'->',' -> 214/214 COMPLETE in one blitz, census re-check ZERO extras (ECB 104 + ECB.DISS 89 + ESTAT 11 + EUROSTAT 6 + IMF 4). Truncated 31->48 (big *_PUB) -> ecb-deep v1.1 auto-resync adopts them (month-split, revision rotation, coverage.json harness-proven). Failures 7 -> 4899 classifies all (expect SOURCE_EMPTY 404s), data/warm/ecb/failures-classified.json permanent. ECB card note live: 'walk+deep coverage'. Day-two: n_deep 48, deep complete 48/48, coverage n totals | 4897-4899 | S-F5#p9k4 | 2026-08-18 19:5x |
 | ECB full-inception + permanence + speed (Khalid): 4895 PASS_WITH_PENDING -> 4896 PASS. Walk 104/104 COMPLETE; deny-Delete extended data/raw/*+data/ciss*; lifecycle clean; 31 giants >450MB raw -> justhodl-ecb-deep v1.0 (time-sliced /tmp-streamed windows, parts+manifests, real TIME_PERIOD inception: BSI 1980-02, EXR 1982, both COMPLETE round 1, 20 parts banked; 10min Scheduler grinds the rest then refresh mode forever); weekly rewalk reset_done SUN 03:15 keeps the 73 fast flows current+inception. Day-two: verify n_complete 31/31 + provider-catalog ECB card growth | 4895-4896 | S-F5#p9k4 | 2026-08-18 18:39 |
 | ECB unblock (Khalid's ciss hunch confirmed): 406 was the STRUCTURE call's Accept: application/xml only — no-accept won rung 1 (200), 104 dataflows banked, walker converging 2/104 0-fail, sentinel sdmx-ecb=RUNNING, data.html ECB card = 104 series + ciss-stress note + data/ciss prefix (182 keys) | 4893+4894 (3 revs: ROOT parents[3]; Report API kv not row; 4894 = self-caught shared-zip clobber -> dispatch redeploy + F4 restore) | S-F5#p9k4 | 2026-08-18 17:24 PASS all 5 gates |
 | base-rates spine (Fusion 1) | 4818 | S-fable-A |
