@@ -1,23 +1,17 @@
-executing-against: 19501d67d99659f4c14799de5f3b94bd98f8328c
-0. env keys
-[01:17:37] ✅ env keys set (FMP=True, ANTHROPIC=True)
+executing-against: 82b8f8ab38a03fed05194c42ebe60031d2378882
 1. settle + invoke
-[01:17:44] ✅ marker settled (attempt 1)
-[01:18:00] ✅ fresh in 15s status=LIVE
-2. field-level G0
-[01:18:00] ✅ beat_league[0]: DUOT score +100.0 (n=528 reporters)
-3. truths
-[01:18:00] ✅   row0 surprise+score == recompute (eps +107.6%)
-[01:18:00] ✅   rank monotonic over 250 rows
-[01:18:00] ✅   scanned 42 transcripts -> 24 picks
-[01:18:00]   top pick DUOT pick=100.0 growth=100 mode=rules_only (llm error HTTP Error 400: Bad Request -- self-heals)
-[01:18:01] ✅   transcript spot-check: 'backlog' x18 == independent recount
-[01:18:01] ✅   ai_mode honest: rules_only (llm error HTTP Error 400: Bad Request -- self-he
-[01:18:01] ✅   history born runs=1
-4. page
-[01:18:01] ✅   committed
-[01:20:31] ✅   SERVED (150s)
-5. verdict
-[01:20:31] ✅ earnings desk born: beat league + transcript growth calls, every number recomputed independently
+[01:28:42] ✅ marker settled (attempt 1)
+[01:28:58] ✅ fresh in 15s
+2. G0 + truths
+[01:28:58] ✅ league[0] carries bucket key (DUOT micro)
+[01:28:58] ✅ join 311/524 reporters
+[01:28:59] ✅   DUOT join == independent universe read (Technology, $0.16B)
+[01:28:59] ✅   by_bucket {'large': 7, 'mid': 21, 'small': 54, 'micro': 229} (sum 311 <= matched)
+[01:28:59] ✅   picks carry join fields (top DUOT micro $0.16B)
+3. page
+[01:28:59] ✅   committed filter
+[01:31:29] ✅   SERVED (150s)
+4. verdict
+[01:31:29] ✅ cap-aware earnings desk: joins recomputed, buckets honest, filters live
 
-→ Report written to aws/ops/reports/latest/ops 4881 -- earnings birth verify.md
+→ Report written to aws/ops/reports/latest/ops 4882 -- earnings v1.1 verify.md
