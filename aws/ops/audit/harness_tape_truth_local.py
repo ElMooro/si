@@ -86,6 +86,19 @@ def main():
         and eng.bar_delta(5, 5, 5, 5, 999) == 0.0)
     chk("parse_occ", eng.parse_occ("SPY261002P00810000")
         == ("261002", "P", 810.0))
+    from datetime import datetime, timezone, date as _date
+    mk = lambda y, m, dd, hh: datetime(y, m, dd, hh,
+                                       tzinfo=timezone.utc)
+    chk("completed_session: Tue 02h -> Mon; Mon 22h -> Mon; "
+        "Mon 02h -> Fri; Sun -> Fri",
+        eng.completed_session(mk(2026, 8, 18, 2))
+        == _date(2026, 8, 17)
+        and eng.completed_session(mk(2026, 8, 17, 22))
+        == _date(2026, 8, 17)
+        and eng.completed_session(mk(2026, 8, 17, 2))
+        == _date(2026, 8, 14)
+        and eng.completed_session(mk(2026, 8, 16, 12))
+        == _date(2026, 8, 14))
     d = eng.build({})
     a = d["symbols"]["AAA"]
     exp_cvd = (1000.0 + 500 * (2 * (10 - 10)

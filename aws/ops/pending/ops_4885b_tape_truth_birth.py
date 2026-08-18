@@ -1,4 +1,7 @@
-"""ops/4885 -- justhodl-tape-truth v1.0.0 birth verify.
+"""ops/4885b -- tape-truth birth verify, take 2.
+Take 1 failed on the session-clock bug (asked Polygon for a
+session that had not opened); completed_session() now walks
+back before 21:00 UTC, harness-pinned on four boundary cases.
  (0) copy POLYGON_API_KEY from donor justhodl-spx-beaters.
  (1) settle 'tape-truth v1.0.0'; invoke; poll fresh doc.
  (2) G0 field-level: symbols.SPY.cvd.session_cvd numeric.
@@ -67,7 +70,7 @@ def donor(fn, name):
 
 
 def main():
-    with report("ops 4885 -- tape-truth birth") as rep:
+    with report("ops 4885b -- tape-truth birth") as rep:
         rep.heading("0. env")
         for _ in range(40):
             try:

@@ -56,6 +56,17 @@ def http_raw(url, headers=None):
         return r.read()
 
 
+def completed_session(now):
+    """Last fully-closed US session: today only after 21:00
+    UTC, else walk back; weekends always walk back."""
+    d = now.date()
+    if now.hour < 21:
+        d -= timedelta(days=1)
+    while d.weekday() >= 5:
+        d -= timedelta(days=1)
+    return d
+
+
 def bar_delta(o, h, l, c, v):
     """Close-in-range volume delta: v * (2*(c-l)/(h-l) - 1).
     Flat bar -> 0.  The classic bar approximation of CVD."""
@@ -265,9 +276,7 @@ def build(event=None):
                              "shares + close", "rows": {}}
     fled = _g(FINRA_LEDGER) or {"rows": {}}
 
-    d = today
-    while d.weekday() >= 5:
-        d -= timedelta(days=1)
+    d = completed_session(now)
     dstr = d.isoformat()
     cvd_fetch_err = None
     if poly:
