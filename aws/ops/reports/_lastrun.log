@@ -1,9 +1,11 @@
-executing-against: 94af1ab520c486e6bba56cb0af4054b3557a5f23
-[01:46:41] ✗   10 sortable headers
-[01:46:41] ✅   null-sink comparator
-[01:46:41] ✅   direction toggle
-[01:46:41] ✅   filter composes with sort
-[01:46:41] ✅   node-balanced braces
+executing-against: 94678a2c8ab82aef355c73c3063f65f59d31480d
+[01:49:10] ✅   data-k header template present once
+[01:49:10] ✅   COLS defines exactly 10 columns
+[01:49:10] ✅   null-sink comparator
+[01:49:10] ✅   direction toggle
+[01:49:10] ✅   filter composes with sort
+[01:49:10] ✅   braces balanced
+[01:49:40] ✅ SERVED (30s)
+[01:49:40] ✅ every league column sorts both ways, blanks sink, filters compose
 
-→ Report written to aws/ops/reports/latest/ops 4883 -- sortable league verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_4883_sortable_verify.py
+→ Report written to aws/ops/reports/latest/ops 4883b -- sortable league verify.md
