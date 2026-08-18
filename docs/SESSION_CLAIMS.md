@@ -20,7 +20,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 |---|---|---|---|
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
-| ECB inception+permanence+blitz: walker per/cap_mb/retry_truncated event overrides + 10240/10240 + PER=120, deny-Delete extended to data/raw/*+data/ciss*, lifecycle audit, blitz to 104/104 + 450MB de-truncation + inception year-scan | 4895 | S-F5#p9k4 | 2026-08-18 18:0x (claim+ship same push) |
+| ECB inception+permanence+blitz: walker per/cap_mb/retry_truncated event overrides + 10240/10240 + PER=120, deny-Delete extended to data/raw/*+data/ciss*, lifecycle audit, blitz to 104/104 + 450MB de-truncation + inception year-scan; +ecb-deep engine (time-sliced giants, backfill->refresh, 10min Scheduler) + weekly rewalk reset_done | 4895-4896 | S-F5#p9k4 | 2026-08-18 18:0x (claim+ship same push) |
 
 ### SHARED-SURFACE RULE (foreign-flows.html) -- 2026-08-17 23:4x
 The page script is now: helpers block FIRST (PROXY/fN/cls/zs/acc/

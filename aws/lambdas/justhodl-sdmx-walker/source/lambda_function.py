@@ -237,6 +237,7 @@ def lambda_handler(event, context):
     _eper = int((event or {}).get("per") or 0) or None
     _ecap = (int((event or {}).get("cap_mb") or 0) or 0) * 1024 * 1024 or None
     _ert = bool((event or {}).get("retry_truncated"))
+    _erd = bool((event or {}).get("reset_done"))
     if not ag:
         # ops 4539: cron fans out one async invoke PER agency — each
         # gets its own full 700s budget instead of sharing one.
@@ -285,6 +286,17 @@ def lambda_handler(event, context):
         ecb_ids = _order([f["id"] for f in _get_json(
             "data/warm/ecb/catalog.json.gz")["dataflows"]],
             ("BSI", "MIR", "ICP", "STS", "GFS", "BOP", "EXR"))
+        if ag == "ecb" and _erd:
+            # ops 4896 weekly rewalk: full re-pull keeps every fast
+            # flow current AND inception-complete (bare pull = full
+            # history). Giants stay skipped -- done := truncated; the
+            # ecb-deep engine owns them.
+            _k0, _st0 = _state("ecb")
+            _st0["done"] = list(dict.fromkeys(
+                _st0.get("truncated") or []))
+            _st0["rewalk_at"] = datetime.now(
+                timezone.utc).isoformat(timespec="seconds")
+            _save(_k0, _st0, _st0.get("n_total") or len(ecb_ids))
         if ag == "ecb":
           _ecb_base = "https://data-api.ecb.europa.eu/service/data/"
           _ecb_alts = [
