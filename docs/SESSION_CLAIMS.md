@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| tape-truth v1.1 (Khalid): +VWAP/volume-regime/CLV/effort-vs-result/DTE5-share/dist-to-flip indicators, conviction-scored verdicts; why.html Tape-Truth module (self-contained armored script) | 4886-4887 | S-fable-A2 | 2026-08-18 02:4x |
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
@@ -59,6 +58,7 @@ My duplicate ops_4864_*.py removed from pending (failed, inert).
 | earnings v1.1.0: universe join LIVE (sector/mcap/cap-bucket + by-bucket beat rates + page filters) | 4882 | S-fable-A2 |
 | earnings page: 10 sortable league columns asc/desc, null-sink, composes with cap filters (4883 verifier self-contradicted, 4883b green) | 4883-4883b | S-fable-A2 |
 | justhodl-tape-truth v1.0.0 BORN (Khalid directive): bar-CVD divergence (SPY Mon -570.7k sh, recomputed), FINRA short-vol, CBOE dealer GEX (SPY +0.72bn POSITIVE, flip~799, 4,730 contracts), 12/12 WARMING-honest verdicts + tape-truth.html; 4885 session-clock bug fixed+pinned in 4885b | 4884-4885b | S-fable-A2 |
+| tape-truth v1.1.0: +6 indicators (VWAP, vol-regime, CLV, churn, DTE5-share, flip-dist) -> conviction-scored verdicts w/ SUSPECT downgrade; why.html TT_ module served | 4886 | S-fable-A2 |
 | workstream | ops | session |
 |---|---|---|
 | base-rates spine (Fusion 1) | 4818 | S-fable-A |
