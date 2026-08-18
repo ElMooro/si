@@ -1,0 +1,83 @@
+{
+ "ops": 4895,
+ "gates": {
+  "walker_deployed": "PASS",
+  "deny_delete_policy": "PASS",
+  "lifecycle_clean": "PASS",
+  "walk_complete": "PASS",
+  "truncation_zero": "PENDING",
+  "inception_depth": "PASS"
+ },
+ "started": "2026-08-18T17:51:54+00:00",
+ "truncated_remaining": [
+  "BSI",
+  "EXR",
+  "ICP",
+  "MIR",
+  "STS",
+  "BLS",
+  "BSP",
+  "CBD",
+  "CBD2",
+  "DWA",
+  "ESA",
+  "FVC",
+  "GST",
+  "HICP",
+  "ICB",
+  "IVF",
+  "PCP",
+  "PMC",
+  "PSS",
+  "PTT",
+  "SAFE",
+  "SEC",
+  "SHS",
+  "SHSS",
+  "SPF",
+  "STBS",
+  "STP",
+  "SUP",
+  "WTS",
+  "YC",
+  "CSEC"
+ ],
+ "inception": {
+  "EXR": {
+   "min_year": 1920,
+   "max_year": 2026,
+   "raw_bytes": 473956352
+  },
+  "BSI": {
+   "min_year": 1900,
+   "max_year": 2099,
+   "raw_bytes": 473956352
+  },
+  "ICP": {
+   "min_year": 1985,
+   "max_year": 2025,
+   "raw_bytes": 473956352
+  },
+  "MIR": {
+   "min_year": 1900,
+   "max_year": 2099,
+   "raw_bytes": 473956352
+  },
+  "CISS": {
+   "min_year": 1973,
+   "max_year": 2026,
+   "raw_bytes": 83504090
+  },
+  "FM": {
+   "min_year": 1900,
+   "max_year": 2087,
+   "raw_bytes": 33663205
+  }
+ },
+ "footprint": {
+  "objects": 103,
+  "gz_mb": 195.6
+ },
+ "overall": "PASS_WITH_PENDING",
+ "finished": "2026-08-18T18:18:54+00:00"
+}
