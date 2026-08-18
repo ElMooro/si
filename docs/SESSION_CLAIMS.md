@@ -20,7 +20,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 |---|---|---|---|
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
-| ECB unblock: ciss-stress access pattern ported to justhodl-ecb-full-catalog (Accept ladder, accept_winner recorded) + ECB card = ciss engines/prefixes/series_count/note on data.html + sentinel stale-406 retired + walker agency=ecb fired | 4893 | S-F5#p9k4 | 2026-08-18 17:2x (claim+ship same push) |
 
 ### SHARED-SURFACE RULE (foreign-flows.html) -- 2026-08-17 23:4x
 The page script is now: helpers block FIRST (PROXY/fN/cls/zs/acc/
@@ -65,6 +64,7 @@ My duplicate ops_4864_*.py removed from pending (failed, inert).
 | hot-money page v1.2: spark-undefined burn fixed (armored rebuild); bars+cumulative tape, OTC accrual tape, 15-session dual-board table, extremes chips | 4892 | S-fable-A2 |
 | workstream | ops | session |
 |---|---|---|
+| ECB unblock (Khalid's ciss hunch confirmed): 406 was the STRUCTURE call's Accept: application/xml only — no-accept won rung 1 (200), 104 dataflows banked, walker converging 2/104 0-fail, sentinel sdmx-ecb=RUNNING, data.html ECB card = 104 series + ciss-stress note + data/ciss prefix (182 keys) | 4893 (3 revs: ROOT parents[3]; Report API kv not row) | S-F5#p9k4 | 2026-08-18 17:24 PASS all 5 gates |
 | base-rates spine (Fusion 1) | 4818 | S-fable-A |
 | odds chips consumers (Fusion 1) | 4819-4820 | S-B |
 | plumbing composite + risk-gate v2.4 (Fusion 2) | 4821-4823 | S-fable-A |

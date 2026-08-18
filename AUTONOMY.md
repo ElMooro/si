@@ -117,6 +117,8 @@ api.github.com / raw.githubusercontent.com. It does NOT have egress to
   would require FABRICATING the split — do not. Revisit only if Khalid buys an
   AAR/Railinc feed.
 
+- **ECB SDMX (ops 4893)**: the STRUCTURE endpoint 406s `Accept: application/xml` — send NO Accept header (server default SDMX-ML wins) or the vnd.sdmx.structure+xml;version=2.1 type. The DATA endpoint never negotiates when `?format=csvdata` is in the query (the ciss-stress pattern; series enumeration = `{flow}?format=csvdata&lastNObservations=1`). Never diagnose "ECB blocked" from the catalog path alone.
+- **ops_report API is `rep.kv(**kw)`, NOT `rep.row(...)`** — the module docstring still shows r.row and cost ops 4893 two revs. Methods: heading/section/log/ok/warn/fail/kv.
 - **Empty scheduled invokes**: EventBridge targets created by the workflow
   carry NO `Input`. Handlers that require a payload (e.g. `{"tickers":[...]}`)
   silently no-op daily. Fix: `put_targets` with `Input`, or give handlers a
