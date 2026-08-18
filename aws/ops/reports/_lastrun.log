@@ -1,7 +1,7 @@
-executing-against: 506f028a1c42689d54c080f1c2f7c6818cc7bdc2
-ops 4896 — ecb-deep launch + weekly rewalk
-[18:39:38] deep round 1 settled
-[18:39:38] VERDICT: PASS · {"walker_rewalk_deployed": "PASS", "deep_fn_live": "PASS", "schedulers_ensured": "PASS", "deep_backfill_started": "PASS"}
-[18:39:38] report written: aws/ops/reports/4896.json
+executing-against: 4f7bc9f2987ec1e8755479f95a0c44fdeb95083f
+ops 4897 — every flow, all history: the proof
+[19:30:27] VERDICT: FAIL · {"patches_deployed": "PASS", "dataflow_census": "PENDING", "failures_classified": "PASS", "coverage_ledger_live": "FAIL", "ecb_card_coverage_note": "FAIL"}
+[19:30:27] report written: aws/ops/reports/4897.json
 
-→ Report written to aws/ops/reports/latest/ops 4896 -- ecb deep launch.md
+→ Report written to aws/ops/reports/latest/ops 4897 -- ecb completeness proof.md
+❌ OPS-FAIL: aws/ops/pending/ops_4897_ecb_completeness_proof.py
