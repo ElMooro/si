@@ -1,0 +1,91 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Hot Money · daily foreign flows · JustHodl AI</title>
+<meta name="description" content="Daily foreign net buying in liquid markets — the fast layer, kept strictly apart from macro capital flows. Taiwan TWSE live with a 60-day ledger tape; Korea slot ready for KRX keys. Engine: justhodl-hot-money.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{min-height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:8px 24px;background:var(--bg-1);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 24px 70px}
+.hero h1{font-size:28px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:6px 0 16px;max-width:860px}
+.badge{display:none;background:var(--amber);color:#000;border-radius:6px;padding:2px 10px;font-size:11px;font-weight:700;font-family:var(--mono);vertical-align:middle;margin-left:10px}
+.sec{margin-top:30px}
+.sec h2{font-size:15px;font-family:var(--mono);color:var(--fg-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.card{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:14px 14px 12px}
+.card .k{font-size:11px;font-family:var(--mono);color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px}
+.card .v{font-size:22px;font-weight:800;color:var(--fg-0);margin-top:4px;font-family:var(--mono)}
+.card .s{font-size:11px;color:var(--fg-3);margin-top:3px}
+.pos{color:var(--green)!important}.neg{color:var(--red)!important}.amb{color:var(--amber)!important}
+table{width:100%;border-collapse:collapse;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th{font-family:var(--mono);font-size:11px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px;text-align:right;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--bg-1)}
+th:first-child,td:first-child{text-align:left}
+td{padding:8px 12px;font-family:var(--mono);font-size:13px;text-align:right;border-bottom:1px solid var(--border);color:var(--fg-1)}
+tr:last-child td{border-bottom:none}
+.note{color:var(--fg-3);font-size:11px;margin-top:10px;max-width:1000px}
+.chip{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;opacity:.8}
+.chip b{font-size:12px;font-family:var(--mono)}
+.chip .w{font-size:11px;color:var(--fg-3);margin-top:3px}
+</style></head><body>
+<div class="header"><div class="wrap"><a class="logo" href="index.html">JUSTHODL<span>&middot;AI</span></a>
+<div class="nav"><a href="capital-flow.html">capital-flow</a><a href="foreign-flows.html">us tic/cslt</a><a href="global-flows.html">world macro</a><a href="hot-money.html">hot money</a><a class="on" href="earnings.html">earnings</a></div></div></div>
+<div class="wrap">
+<div class="hero"><h1>&#128202; Earnings Desk <span style="font-size:12px;color:var(--fg-2)">beat league &middot; growth calls</span></h1>
+<div id="sub" class="note">loading&hellip;</div>
+<div class="cards" id="stats"></div></div>
+<div class="sec"><h2>Growth Calls &mdash; transcript-signal picks</h2>
+<div class="note">Rules lexicon scored per 10k words with verbatim evidence quotes; picks require score&ge;62, &ge;3 distinct positive phrases, &ge;3,000-word calls. AI one-liners activate automatically when the Anthropic account self-heals &mdash; until then every pick is tagged rules_only.</div>
+<div id="picks" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-top:10px"></div></div>
+<div class="sec"><h2>Beat League &mdash; ranked by surprise score</h2>
+<div class="note" id="meth"></div><div id="league"></div></div>
+<div class="sec"><h2>Biggest Misses</h2><div id="misses"></div></div>
+<div class="note">Every figure traces to FMP stable-calendar fields (epsActual/epsEstimated/revenueActual/revenueEstimated); surprises with |estimate|&lt;$0.01 are excluded, never faked. Engine: justhodl-earnings.</div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+const fN=(v,d)=>v==null?"\u2013":(v>0?"+":"")+v.toFixed(d==null?1:d);
+const cls=v=>v==null?"":(v>0?" pos":(v<0?" neg":""));
+async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok)return await r.json();}catch(e){}return null;}
+const S_=(n,f)=>{try{f()}catch(e){console.warn("sec",n,e)}};
+const chip=(txt,neg)=>'<span style="font-size:10px;font-family:var(--mono);padding:1px 6px;border-radius:4px;border:1px solid var(--border-bright);margin-right:4px;color:'+(neg?"var(--red)":"var(--green)")+'">'+txt+'</span>';
+(async function(){
+  const d=await jget("/data/earnings.json");
+  if(!d||d.status!=="LIVE"){document.getElementById("sub").textContent="feed "+((d&&d.status)||"unavailable")+" \u2014 "+((d&&d.why)||"");return;}
+  S_("hero",()=>{
+    document.getElementById("sub").textContent="As of "+(d.as_of||"")+" \u00b7 "+(d.window_days||"")+"-day reporter window \u00b7 daily 12:30 UTC";
+    const s=d.stats||{};
+    document.getElementById("stats").innerHTML=
+      '<div class="card"><div class="k">Reporters</div><div class="v">'+(s.n_reporters==null?"\u2013":s.n_reporters)+'</div><div class="s">EPS actual + estimate present</div></div>'+
+      '<div class="card"><div class="k">Beat rate</div><div class="v'+cls((s.beat_rate_pct||0)-50)+'">'+(s.beat_rate_pct==null?"\u2013":s.beat_rate_pct+"%")+'</div><div class="s">eps_a &gt; eps_e</div></div>'+
+      '<div class="card"><div class="k">Avg EPS surprise</div><div class="v'+cls(s.avg_eps_surprise_pct)+'">'+fN(s.avg_eps_surprise_pct)+'%</div><div class="s">mean across window</div></div>'+
+      '<div class="card"><div class="k">Calls scanned</div><div class="v">'+((d.growth_calls||{}).scanned==null?"\u2013":d.growth_calls.scanned)+'</div><div class="s">transcripts this run</div></div>';});
+  S_("picks",()=>{
+    const P=(d.growth_calls||{}).picks||[];let h="";
+    for(const p of P){
+      let ch="";const ph=Object.entries(p.pos_hits||{}).sort((a,b)=>b[1]-a[1]).slice(0,3);
+      for(const[k,c]of ph)ch+=chip(k+" \u00d7"+c,false);
+      for(const[k,c]of Object.entries(p.neg_hits||{}).slice(0,2))ch+=chip(k+" \u00d7"+c,true);
+      h+='<div class="card"><div class="k">'+p.t+' \u00b7 '+(p.period||"")+' \u00b7 call '+(p.call_date||"")+(p.demand_flag?' '+chip("INDUSTRY DEMAND",false):'')+'</div>'
+        +'<div class="v'+cls(p.pick_score-50)+'">'+p.pick_score+'</div>'
+        +'<div class="s">growth '+p.growth_score+' \u00b7 beat rank '+(p.beat_rank==null?"\u2013":"#"+p.beat_rank)+' (score '+fN(p.beat_score)+') \u00b7 '+p.words.toLocaleString()+' words</div>'
+        +'<div style="margin-top:6px">'+ch+'</div>'
+        +((p.evidence||[]).length?'<div class="s" style="margin-top:6px;font-style:italic;color:var(--fg-2)">\u201c'+p.evidence[0]+'\u201d</div>':'')
+        +(p.ai_line?'<div class="s" style="margin-top:4px">'+p.ai_line+'</div>':'')
+        +'<div class="s" style="margin-top:4px;color:var(--fg-3)">'+(p.ai_mode||"")+'</div></div>';}
+    document.getElementById("picks").innerHTML=h||'<div class="note">no picks cleared the gate this run \u2014 thresholds are never bent.</div>';});
+  S_("league",()=>{
+    document.getElementById("meth").textContent=((d.method||{}).beat||"");
+    const rowhtml=r=>'<tr><td>'+r.rank+'</td><td><b>'+r.t+'</b></td><td>'+r.date+'</td><td>'+r.eps_a+'</td><td>'+r.eps_e+'</td><td class="'+cls(r.eps_surprise_pct)+'">'+fN(r.eps_surprise_pct)+'%</td><td class="'+cls(r.rev_surprise_pct)+'">'+(r.rev_surprise_pct==null?"\u2013":fN(r.rev_surprise_pct)+"%")+'</td><td class="'+cls(r.beat_score)+'">'+fN(r.beat_score)+'</td></tr>';
+    const hd='<table><tr><th>#</th><th>ticker</th><th>date</th><th>EPS a</th><th>EPS e</th><th>EPS surp</th><th>rev surp</th><th>score</th></tr>';
+    let t1=hd;for(const r of (d.beat_league||[]).slice(0,100))t1+=rowhtml(r);
+    document.getElementById("league").innerHTML=t1+'</table>';
+    let t2=hd;for(const r of (d.biggest_misses||[]).slice(0,15))t2+=rowhtml(r);
+    document.getElementById("misses").innerHTML=t2+'</table>';});
+})();
+</script></body></html>

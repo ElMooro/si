@@ -1,0 +1,9 @@
+{
+  "FunctionName": "justhodl-earnings",
+  "Description": "Earnings desk: all-reporter beat league (FMP stable calendar, EPS+rev surprises) + transcript growth/demand picks (rules lexicon with verbatim evidence; LLM layer self-heals on Anthropic credits). Daily 12:30 UTC M-F.",
+  "Handler": "lambda_function.lambda_handler",
+  "Runtime": "python3.12",
+  "Timeout": 600,
+  "MemorySize": 1024,
+  "Schedule": "cron(30 12 ? * MON-FRI *)"
+}
