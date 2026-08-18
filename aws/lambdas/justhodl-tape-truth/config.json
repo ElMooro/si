@@ -1,0 +1,9 @@
+{
+  "FunctionName": "justhodl-tape-truth",
+  "Description": "Tape truth: bar-approximated CVD divergence (tops/bottoms), FINRA short-volume footprint, CBOE dealer gamma exposure (net GEX, flip, walls), fused into evidence-cited GENUINE/FAKE/SHAKEOUT verdicts. Daily 21:10 UTC M-F.",
+  "Handler": "lambda_function.lambda_handler",
+  "Runtime": "python3.12",
+  "Timeout": 600,
+  "MemorySize": 1536,
+  "Schedule": "cron(10 21 ? * MON-FRI *)"
+}

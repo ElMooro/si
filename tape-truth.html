@@ -1,0 +1,112 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Hot Money · daily foreign flows · JustHodl AI</title>
+<meta name="description" content="Daily foreign net buying in liquid markets — the fast layer, kept strictly apart from macro capital flows. Taiwan TWSE live with a 60-day ledger tape; Korea slot ready for KRX keys. Engine: justhodl-hot-money.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{min-height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:8px 24px;background:var(--bg-1);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 24px 70px}
+.hero h1{font-size:28px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:6px 0 16px;max-width:860px}
+.badge{display:none;background:var(--amber);color:#000;border-radius:6px;padding:2px 10px;font-size:11px;font-weight:700;font-family:var(--mono);vertical-align:middle;margin-left:10px}
+.sec{margin-top:30px}
+.sec h2{font-size:15px;font-family:var(--mono);color:var(--fg-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.card{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:14px 14px 12px}
+.card .k{font-size:11px;font-family:var(--mono);color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px}
+.card .v{font-size:22px;font-weight:800;color:var(--fg-0);margin-top:4px;font-family:var(--mono)}
+.card .s{font-size:11px;color:var(--fg-3);margin-top:3px}
+.pos{color:var(--green)!important}.neg{color:var(--red)!important}.amb{color:var(--amber)!important}
+table{width:100%;border-collapse:collapse;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th{font-family:var(--mono);font-size:11px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px;text-align:right;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--bg-1)}
+th:first-child,td:first-child{text-align:left}
+td{padding:8px 12px;font-family:var(--mono);font-size:13px;text-align:right;border-bottom:1px solid var(--border);color:var(--fg-1)}
+tr:last-child td{border-bottom:none}
+.note{color:var(--fg-3);font-size:11px;margin-top:10px;max-width:1000px}
+.chip{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;opacity:.8}
+.chip b{font-size:12px;font-family:var(--mono)}
+.chip .w{font-size:11px;color:var(--fg-3);margin-top:3px}
+</style></head><body>
+<div class="header"><div class="wrap"><a class="logo" href="index.html">JUSTHODL<span>&middot;AI</span></a>
+<div class="nav"><a href="capital-flow.html">capital-flow</a><a href="earnings.html">earnings</a><a href="hot-money.html">hot money</a><a class="on" href="tape-truth.html">tape truth</a></div></div></div>
+<div class="wrap">
+<div class="hero"><h1>&#127902;&#65039; Tape Truth <span style="font-size:12px;color:var(--fg-2)">genuine vs manufactured moves</span></h1>
+<div id="sub" class="note">loading&hellip;</div>
+<div class="cards" id="idxgex"></div></div>
+<div class="sec"><h2>Verdicts &mdash; is the move real?</h2>
+<div class="note">Institutions distribute into strength (retail = exit liquidity) and shake weak hands out to accumulate. Each verdict cites the numbers it rests on: bar-approximated CVD vs price, FINRA short-volume z, dealer gamma regime. WARMING until ledgers hold &ge;5 sessions &mdash; verdicts are never guessed.</div>
+<div id="verdicts" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-top:10px"></div></div>
+<div class="sec"><h2>Dealer Gamma Exposure</h2>
+<div class="note">CBOE delayed chains, DTE&le;45, gamma&middot;OI&middot;100&middot;spot&sup2;&middot;1% &mdash; calls positive, puts negative under the standard dealer assumption. Positive regime: dealers fade moves (breakouts suspect, pins near walls). Negative: dealers accelerate (moves overshoot both ways). Flip is a strike-ladder crossover approximation, labeled as such.</div>
+<div id="gex"></div></div>
+<div class="sec"><h2>CVD vs Price &mdash; divergence tape</h2>
+<div class="note">Per-minute close-in-range delta v&middot;(2&middot;(c&minus;l)/(h&minus;l)&minus;1), summed per session &mdash; a bar approximation, never claimed as tick data. Green line = cumulative CVD, grey = close. Tops print when price makes highs the delta refuses to confirm.</div>
+<div id="cvd" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px"></div></div>
+<div class="sec"><h2>Short-Volume Footprint</h2>
+<div class="note" id="fnote">FINRA CNMS daily short volume &divide; total volume. Elevated z into strength = someone large is selling into the bid.</div>
+<div id="finra"></div></div>
+<div class="note">Engine: justhodl-tape-truth &middot; daily 21:10 UTC after the close. Every methodology limitation is stated where the number is shown.</div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+const fN=(v,d)=>v==null?"\u2013":(v>0?"+":"")+v.toFixed(d==null?1:d);
+const cls=v=>v==null?"":(v>0?" pos":(v<0?" neg":""));
+async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok)return await r.json();}catch(e){}return null;}
+const S_=(n,f)=>{try{f()}catch(e){console.warn("sec",n,e)}};
+const chip=(txt,kind)=>'<span style="font-size:10px;font-family:var(--mono);padding:1px 6px;border-radius:4px;border:1px solid var(--border-bright);margin:2px 4px 2px 0;display:inline-block;color:'+(kind==="bad"?"var(--red)":(kind==="good"?"var(--green)":"var(--fg-2)"))+'">'+txt+'</span>';
+const VCOL={GENUINE_UP:"good",GENUINE_DOWN:"bad",FAKE_UP_DISTRIBUTION:"bad",SHAKEOUT_ACCUMULATION:"good",NEUTRAL:"",WARMING:""};
+(async function(){
+  const d=await jget("/data/tape-truth.json");
+  if(!d||!d.symbols){document.getElementById("sub").textContent="feed "+((d&&d.status)||"unavailable")+" \u2014 "+((d&&d.why)||"");return;}
+  S_("hero",()=>{
+    document.getElementById("sub").textContent="As of "+(d.as_of||"")+" \u00b7 status "+(d.status||"")+(d.why?" \u00b7 "+d.why:"");
+    const g=d.gex_index;
+    if(g&&g.status==="LIVE")document.getElementById("idxgex").innerHTML=
+      '<div class="card"><div class="k">SPX net GEX</div><div class="v'+cls(g.net_gex_bn)+'">'+fN(g.net_gex_bn,2)+'bn</div><div class="s">'+g.regime.toLowerCase()+' gamma \u00b7 '+g.n_contracts_used.toLocaleString()+' contracts \u00b7 DTE\u2264'+g.dte_window+'</div></div>'+
+      '<div class="card"><div class="k">SPX flip (approx)</div><div class="v">'+(g.flip_approx==null?"\u2013":g.flip_approx.toLocaleString())+'</div><div class="s">spot '+g.spot.toLocaleString()+'</div></div>'+
+      '<div class="card"><div class="k">SPX put/call OI</div><div class="v">'+g.put_call_oi+'</div><div class="s">volume ratio '+g.put_call_vol+'</div></div>';});
+  S_("verdicts",()=>{
+    let h="";
+    for(const[t,s]of Object.entries(d.symbols)){
+      const v=s.verdict||{};const kind=VCOL[v.call]||"";
+      h+='<div class="card"><div class="k">'+t+'</div><div class="v" style="font-size:15px;color:'+(kind==="good"?"var(--green)":(kind==="bad"?"var(--red)":"var(--fg-1)"))+'">'+(v.call||"\u2013").replace(/_/g," ")+'</div>';
+      if(v.why)h+='<div class="s">'+v.why+'</div>';
+      for(const e of v.evidence||[])h+=chip(e, e.indexOf("exit-liquidity")>=0||e.indexOf("top-divergence")>=0?"bad":(e.indexOf("accumulation")>=0||e.indexOf("bottom-divergence")>=0?"good":""));
+      h+='</div>';}
+    document.getElementById("verdicts").innerHTML=h;});
+  S_("gex",()=>{
+    let t1='<table><tr><th>symbol</th><th>spot</th><th>net GEX $bn</th><th>regime</th><th>flip~</th><th>P/C OI</th><th>P/C vol</th><th>top wall</th></tr>';
+    for(const[t,s]of Object.entries(d.symbols)){
+      const g=s.gex;if(!g)continue;
+      if(g.status!=="LIVE"){t1+='<tr><td>'+t+'</td><td colspan="7" style="color:var(--fg-3)">'+(g.why||g.status)+'</td></tr>';continue;}
+      const w=(g.walls||[])[0];
+      t1+='<tr><td><b>'+t+'</b></td><td>'+g.spot+'</td><td class="'+cls(g.net_gex_bn)+'">'+fN(g.net_gex_bn,2)+'</td><td style="color:'+(g.regime==="POSITIVE"?"var(--green)":"var(--red)")+'">'+g.regime+'</td><td>'+(g.flip_approx==null?"\u2013":g.flip_approx)+'</td><td>'+g.put_call_oi+'</td><td>'+g.put_call_vol+'</td><td>'+(w?w.strike+" ("+fN(w.net_gex_bn,2)+"bn)":"\u2013")+'</td></tr>';}
+    document.getElementById("gex").innerHTML=t1+'</table>';});
+  S_("cvd",()=>{
+    let h="";
+    for(const[t,s]of Object.entries(d.symbols)){
+      const c=s.cvd||{};const ser=c.series||[];
+      if(ser.length<2){h+='<div class="card"><div class="k">'+t+'</div><div class="s">ledger accruing \u00b7 '+(c.n_days||0)+' day(s)</div></div>';continue;}
+      const W=340,H=90;
+      const px=ser.map(x=>x.close),cv=ser.map(x=>x.cum_cvd);
+      const nx=v=>{const mn=Math.min(...v),mx=Math.max(...v);return v.map(x=>mx===mn?H/2:H-6-(x-mn)/(mx-mn)*(H-16));};
+      const yp=nx(px),yc=nx(cv);
+      const pts=y=>y.map((v,i)=>((i/(y.length-1))*W).toFixed(1)+","+v.toFixed(1)).join(" ");
+      h+='<div class="card" style="padding:10px"><div class="k">'+t+' <span style="float:right;color:var(--fg-2)">'+c.n_days+'d \u00b7 5d CVD '+fN(c.cvd_5d,0)+'</span></div>'
+        +'<svg width="100%" viewBox="0 0 '+W+' '+H+'"><polyline points="'+pts(yp)+'" fill="none" stroke="#6b7688" stroke-width="1.4"/><polyline points="'+pts(yc)+'" fill="none" stroke="#26ffaf" stroke-width="1.6"/></svg>'
+        +'<div class="s">'+(c.top_divergence?chip("TOP DIVERGENCE","bad"):"")+(c.bottom_divergence?chip("BOTTOM DIVERGENCE","good"):"")+' price 5d '+fN(c.price_chg_5d_pct)+'%</div></div>';}
+    document.getElementById("cvd").innerHTML=h;});
+  S_("finra",()=>{
+    let t2='<table><tr><th>symbol</th><th>short-vol ratio</th><th>z (20d)</th><th>days</th></tr>';
+    for(const[t,s]of Object.entries(d.symbols)){
+      const f=s.short_vol;if(!f)continue;
+      t2+='<tr><td><b>'+t+'</b></td><td>'+f.ratio+'</td><td class="'+cls(f.z_20d)+'">'+(f.z_20d==null?"warming":fN(f.z_20d,2))+'</td><td>'+f.n_days+'</td></tr>';}
+    document.getElementById("finra").innerHTML=t2+'</table>';});
+})();
+</script></body></html>
