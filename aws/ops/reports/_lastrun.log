@@ -1,17 +1,23 @@
-executing-against: 1ef54d02fb90d6f068ffe49e62f835a9c7ef6fa9
-[01:10:33] ✅ donor justhodl-estimate-revisions env FMP_KEY
-[01:10:34] [yq] 200 bytes=51417 type=list n=1
-[01:10:34]   keys=['symbol', 'period', 'year', 'date', 'content']
-[01:10:34]   content chars=51251 head="Suhasini Chandramouli: Good afternoon, and welcome to the Apple Q2 Fiscal Year 2026 Earnings Conference Call. My name is Suhasini Chandramouli, Director of Investor Relations. Today's call is being recorded. Speaking fir"
-[01:10:34] [yq3] 200 bytes=49787 type=list n=1
-[01:10:34]   keys=['symbol', 'period', 'year', 'date', 'content']
-[01:10:34]   content chars=49521 head="Suhasini Chandramouli: Good afternoon, welcome to the Apple Q3 fiscal year 2026 earnings conference call. My name is Suhasini Chandramouli, Director of Investor Relations. Today's call is being recorded. Speaking first t"
-[01:10:34] [latest] 200 bytes=10109 type=list n=100
-[01:10:34]   keys=['symbol', 'period', 'fiscalYear', 'date']
-[01:10:34]   item: {"symbol": "FLXS", "period": "Q4", "fiscalYear": 2026, "date": "2026-08-18"}
-[01:10:34] [dates] 200 bytes=6386 type=list n=84
-[01:10:34]   keys=['quarter', 'fiscalYear', 'date']
-[01:10:34]   item: {"quarter": 3, "fiscalYear": 2026, "date": "2026-07-30"}
-[01:10:34] ✅ 2 variant(s) with content -- bindable
+executing-against: 19501d67d99659f4c14799de5f3b94bd98f8328c
+0. env keys
+[01:17:37] ✅ env keys set (FMP=True, ANTHROPIC=True)
+1. settle + invoke
+[01:17:44] ✅ marker settled (attempt 1)
+[01:18:00] ✅ fresh in 15s status=LIVE
+2. field-level G0
+[01:18:00] ✅ beat_league[0]: DUOT score +100.0 (n=528 reporters)
+3. truths
+[01:18:00] ✅   row0 surprise+score == recompute (eps +107.6%)
+[01:18:00] ✅   rank monotonic over 250 rows
+[01:18:00] ✅   scanned 42 transcripts -> 24 picks
+[01:18:00]   top pick DUOT pick=100.0 growth=100 mode=rules_only (llm error HTTP Error 400: Bad Request -- self-heals)
+[01:18:01] ✅   transcript spot-check: 'backlog' x18 == independent recount
+[01:18:01] ✅   ai_mode honest: rules_only (llm error HTTP Error 400: Bad Request -- self-he
+[01:18:01] ✅   history born runs=1
+4. page
+[01:18:01] ✅   committed
+[01:20:31] ✅   SERVED (150s)
+5. verdict
+[01:20:31] ✅ earnings desk born: beat league + transcript growth calls, every number recomputed independently
 
-→ Report written to aws/ops/reports/latest/ops 4880 -- transcript variants.md
+→ Report written to aws/ops/reports/latest/ops 4881 -- earnings birth verify.md
