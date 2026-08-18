@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| SIDEBAR + INDUSTRY DEEP-DETAIL (Khalid): site-wide /sidebar.js on every page; industry-case v1.1 full member tables (share, role tier, 12m growth, revenue growth, HHI concentration) | 4890-4893 | S-fable-A2 | 2026-08-18 03:5x |
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
@@ -61,6 +60,7 @@ My duplicate ops_4864_*.py removed from pending (failed, inert).
 | justhodl-tape-truth v1.0.0 BORN (Khalid directive): bar-CVD divergence (SPY Mon -570.7k sh, recomputed), FINRA short-vol, CBOE dealer GEX (SPY +0.72bn POSITIVE, flip~799, 4,730 contracts), 12/12 WARMING-honest verdicts + tape-truth.html; 4885 session-clock bug fixed+pinned in 4885b | 4884-4885b | S-fable-A2 |
 | tape-truth v1.1.0: +6 indicators (VWAP, vol-regime, CLV, churn, DTE5-share, flip-dist) -> conviction-scored verdicts w/ SUSPECT downgrade; why.html TT_ module served | 4886 | S-fable-A2 |
 | justhodl-industry-case v1.0.0 BORN (Khalid): 5,239 cases / 149 industries, 8-question Q&A (NVDA = 30.7% of $15.7T semis cohort, rank #1, boom rank 2 -- all recomputed); industry-case.html + why.html IC_ module; chain Q honestly deferred | 4888-4889 | S-fable-A2 |
+| industry-case v1.1.0 + SITE SIDEBAR: full member tables (share/tier/12m growth via beaters ledger), HHI+top3+wtd/median growth per industry, 9-question case; /sidebar.js on 453 pages (filterable core+A-Z) -- all recomputed+served | 4890-4891 | S-fable-A2 |
 | workstream | ops | session |
 |---|---|---|
 | base-rates spine (Fusion 1) | 4818 | S-fable-A |
