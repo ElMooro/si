@@ -37,4 +37,5 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
  document.querySelector('#off tbody').innerHTML=(det.top||[]).slice(0,10).map(e=>
   `<tr><td>${esc(e.engine)}</td><td>${e.n}</td><td>${e.risk}</td></tr>`).join('');
 }catch(e){document.getElementById('kpis').innerHTML='<div class="card"><div class="k">error</div><div class="v" style="font-size:13px">'+esc(e.message)+'</div></div>';}})();
-</script></div></body></html>
+</script></div><script src="/sidebar.js" defer></script>
+</body></html>

@@ -61,5 +61,6 @@ document.getElementById('dis').innerHTML=((p.disruptions||[]).map(function(d){va
 document.getElementById('foot').textContent='Source: IMF PortWatch (portwatch.imf.org) — UN Global Platform AIS; keyless public ArcGIS FeatureServer. Metric: '+(p.metric_field||'')+' (chokepoints) / '+(p.ports_metric||'')+' (ports). Baselines: trailing 1-year mean; yoy = same 7d window prior year. Generated '+p.generated_at;
 }catch(e){console.error(e);}})();
 </script>
+<script src="/sidebar.js" defer></script>
 </body>
 </html>

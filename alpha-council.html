@@ -62,4 +62,5 @@ return `${symEl} ${exp} ${st} <span class="sub" style="font-size:10.5px">conf ${
  return `<tr><td><a href="${esc(c.link||"#")}" target="_blank" style="text-decoration:underline dotted">${esc(c.engine)}</a></td><td style="color:var(--acc)">${c.wilson_lb}%</td><td>${c.win_pct}%</td><td>${c.n}</td><td class="${c.direction_bias==="UP"?"":""}" style="color:${c.direction_bias==="DOWN"?"var(--avd)":"var(--buy)"}">${esc(c.direction_bias)}</td><td>${c.regime_fit_now??"—"}</td><td>${c.avg_move_pct??"—"}%</td><td style="color:var(--buy)">${c.avg_win_move_pct??"—"}%</td><td>${tcell}</td><td class="sub">${rs}</td><td class="why">${esc(c.why)}</td></tr>`}).join("");
 document.getElementById("acct").innerHTML=`${d.self_logged??0} consensus call(s) self-logged this run as <b>eng:alpha-council</b> — pending 7/14/21-day grading in the ledger. ${esc(d.note||"")}`;
 })();
-</script></div></body></html>
+</script></div><script src="/sidebar.js" defer></script>
+</body></html>

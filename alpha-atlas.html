@@ -65,4 +65,5 @@ fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/alpha-atlas.json?t=
     document.getElementById("dorm").innerHTML=dl.map(x=>`${esc(x.target.replace("data/",""))} <span style="opacity:.6">(${esc((x.writers||[]).join(", ").replace(/justhodl-/g,""))})</span>`).join("<br>");}
   document.getElementById("scopenote").textContent=d.version>=2?"Atlas v"+d.version+": includes nested stores (crypto/, _alerts/, …). Dormant split — lazy-event keys (correctly empty until an event fires) vs true-dormant main-path writers; wave-1 lit "+((d.totals||{}).wave1_lit??"—")+".":"Scope note: top-level scan; nested stores join in v2.";
 }).catch(e=>{document.getElementById("hero").innerHTML=`<div class="loading">Failed to load atlas: ${esc(e)}</div>`});
-</script></body></html>
+</script><script src="/sidebar.js" defer></script>
+</body></html>

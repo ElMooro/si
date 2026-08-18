@@ -179,4 +179,5 @@ function render(){const rows=(D.artifacts||[]).filter(a=>!q||
    <td>${a.error?`<span class="pill p-bug">${esc(a.error)}</span>`:a.stale?'<span class="pill p-stale">STALE</span>':'<span class="pill p-ok">OK</span>'}</td></tr>`).join('')
   +(rows.length>400?`<tr><td colspan="7" class="dim">…${rows.length-400} more — refine the search</td></tr>`:'')}
 load();loadInv();
-</script></body></html>
+</script><script src="/sidebar.js" defer></script>
+</body></html>

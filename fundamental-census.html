@@ -567,4 +567,5 @@ fetch(PX+'data/fundamental-census.json?ts='+Date.now()).then(r=>r.json()).then(D
   document.getElementById('jhTurnMeth').textContent='Method: '+(TT.method||'')+'. Turn score 50 = universe median pace; >75 = top-quartile inflection. Double-click rows in the Explorer above to chart any name.';
   document.getElementById('covbox').innerHTML=`Coverage: ${C.scored}/${C.universe} scored${C.dormant_n?` · ${C.dormant_n} dormant (docs pending next sweep): <span style="font-family:var(--mono)">${(C.dormant_sample||[]).map(esc).join(', ')}${C.dormant_n>12?'…':''}</span>`:''}. Sweep chain: warm batches of 25 through the fundamental-graphs engine → aggregate. Click any ticker for its full research module; deep charts at <a href="/fundamental-graphs.html">fundamental-graphs</a>.`;
 }).catch(e=>{document.getElementById('stamp').textContent='feed error: '+e.message;});
-</script></div></body></html>
+</script></div><script src="/sidebar.js" defer></script>
+</body></html>

@@ -162,4 +162,5 @@ Promise.all([
   return `<i style="background:${c};height:${Math.max(8,r.composite||8)}%" title="${esc((r.t||"").slice(0,16))} · ${r.composite??"—"} ${esc(r.band||"")} · ${esc(JSON.stringify(r.legs_z||{}))}"></i>`}).join("")||"<span class='note'>history builds daily</span>";
  document.getElementById("notes").textContent=(d.notes||[]).join("\n")||"—";
 }).catch(e=>document.getElementById("err").textContent="Load failed: "+e);
-</script></body></html>
+</script><script src="/sidebar.js" defer></script>
+</body></html>

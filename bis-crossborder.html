@@ -55,5 +55,6 @@ document.querySelector('#tbl tbody').innerHTML=rows.map(function(x){
 document.getElementById('foot').textContent='Source: BIS Consolidated Banking Statistics (WS_CBS_PUB), immediate counterparty basis, all reporting banks; '+(b.counterparties_in_response||0)+' counterparties in response. Dataflow shape credit: World Monitor project documentation (facts). Units USD; quarterly. Generated '+b.generated_at;
 }catch(e){console.error(e);}})();
 </script>
+<script src="/sidebar.js" defer></script>
 </body>
 </html>

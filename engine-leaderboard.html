@@ -49,4 +49,5 @@ const all=(d.board||[]);document.getElementById("all").innerHTML=HDR+all.map(row
 document.getElementById("cnt").textContent=all.length+" engines";
 document.getElementById("csv").onclick=()=>{const cs=["engine,win_pct,n,avg_move_pct,link"].concat(all.map(x=>[x.engine,x.win_pct,x.n,x.avg_move_pct,x.link].join(","))).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([cs],{type:"text/csv"}));a.download="engine-leaderboard.csv";a.click();};
 })();
-</script></div></body></html>
+</script></div><script src="/sidebar.js" defer></script>
+</body></html>

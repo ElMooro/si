@@ -89,5 +89,6 @@ Promise.allSettled([
       +'<div class="meth mono">'+(sm.n_deals||0)+' deal wins on tape · '+(sm.n_green||0)+' green · '+(sm.n_ai||0)+' AI · '+(sm.signals_logged||0)+' graded signals this run · '+((DW.coverage||{}).sectors_with_deals||0)+'/'+((DW.coverage||{}).n_sectors_tracked||11)+' sectors covered</div>';}
 }).catch(e=>{document.getElementById('stamp').textContent='load error: '+e.message;});
 </script>
+<script src="/sidebar.js" defer></script>
 </body>
 </html>

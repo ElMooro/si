@@ -254,4 +254,5 @@ Promise.all([fetch(FEED,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("f
     return `<div><span class="${cls}">●</span> ${esc(h.source||h.name)}<br><span class="vs">${esc(h.status||"")}${h.age_h!=null?` · ${h.age_h}h`:""}${h.max_age_h?` / ${h.max_age_h}h`:""}</span></div>`}).join("");
   if(es)document.getElementById("evstats").textContent=`Evidence join: ${es.consulted} per-name sources consulted · ${es.hit_sources} corroborated at least one name · ${es.skipped_stale_or_err} skipped (stale/error).`;
 }).catch(e=>{document.getElementById("err").textContent="Load failed: "+e});
-</script></body></html>
+</script><script src="/sidebar.js" defer></script>
+</body></html>

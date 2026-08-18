@@ -60,6 +60,11 @@ STORE["data/earnings.json"] = {
                      "eps_surprise_pct": 20.0}],
     "growth_calls": {"picks": [{"t": "AAA",
                                 "pick_score": 88.0}]}}
+STORE["spx-beaters/weekly-closes.json"] = {
+    "dates": ["w%d" % i for i in range(53)],
+    "closes": {"AAA": [100.0] * 52 + [150.0],
+               "BBB": [100.0, 110.0],
+               "DDD": [50.0] * 53}}
 STORE["data/tape-truth.json"] = {"symbols": {
     "AAA": {"verdict": {"call": "WARMING",
                         "conviction": None}}}}
@@ -82,6 +87,33 @@ def main():
         and semi["top5"][0]["share_pct"] == 80.0
         and semi["top5"][1]["share_pct"] == 20.0)
     a = d["cases"]["AAA"]
+    chk("ret12 join: AAA +50.0 (53w), BBB None (short), "
+        "DDD 0.0; tiers LEADER/MAJOR",
+        a["ret_12m_pct"] == 50.0 and a["tier"] == "LEADER"
+        and d["cases"]["BBB"]["ret_12m_pct"] is None
+        and d["cases"]["BBB"]["tier"] == "MAJOR"
+        and d["cases"]["DDD"]["ret_12m_pct"] == 0.0)
+    mem = semi["members"]
+    chk("full member table: complete, ordered, share sums "
+        "~100",
+        len(mem) == 2 and mem[0]["t"] == "AAA"
+        and mem[0]["rank"] == 1
+        and abs(sum(m["share_pct"] for m in mem)
+                - 100.0) < 0.02)
+    chk("HHI == sum share^2 (80^2+20^2=6800), top3 100.0, "
+        "wtd ret == 50*.8+0*0? only AAA+? ",
+        semi["hhi"] == 6800.0
+        and semi["top3_share_pct"] == 100.0)
+    exp_wtd = round((50.0 * 800e9) / 800e9, 1)
+    chk("wtd 12m ret over covered members (BBB uncovered "
+        "excluded) == +50.0, coverage 1? no -- DDD other "
+        "industry; semis coverage n=1",
+        semi["wtd_ret_12m_pct"] == exp_wtd
+        and semi["ret_coverage"] == 1
+        and semi["median_ret_12m_pct"] == 50.0)
+    chk("rev_growth DEFERRED honesty on every industry",
+        semi["rev_growth"]["status"] == "DEFERRED"
+        and "never guessed" in semi["rev_growth"]["why"])
     chk("case: rank 1 of 2, share 80.00, boom joined "
         "(rank 1 of 2 by score)",
         a["ind_rank"] == 1 and a["ind_n"] == 2

@@ -143,4 +143,5 @@ function wlFill(d){if(!d.open||d.dataset.done)return;d.dataset.done=1;const l=LI
   return `<tr><td class="mono" style="width:34%"><b>${esc(sy)}</b></td><td style="width:22%">${r?`<span class="badge b-${esc(r.status)}">${esc(r.status)}</span>`:'<span class="badge">NOT-IN-VAULT</span>'}</td><td class="mono" style="width:22%">${v}</td><td class="dim" style="font-size:10px">${esc(r?(r.source||''):'')}</td></tr>`}).join('')+'</tbody></table>'}
 document.addEventListener('input',e=>{if(e.target.id==='wq')wlRender()});
 buildWatchlists();
-</script></body></html>
+</script><script src="/sidebar.js" defer></script>
+</body></html>

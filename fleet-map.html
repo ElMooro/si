@@ -37,4 +37,5 @@ async function j(u){const r=await fetch(u+'?t='+Date.now(),{cache:'no-store',sig
  document.querySelector('#hubs tbody').innerHTML=feeds.map(f=>
   `<tr><td>${esc(f.k)}</td><td>${f.e}</td><td>${f.p}</td><td>${f.pr}</td></tr>`).join('');
 }catch(e){document.getElementById('kpis').innerHTML='<div class="card"><div class="k">error</div><div class="v" style="font-size:13px">'+esc(e.message)+'</div></div>';}})();
-</script></div></body></html>
+</script></div><script src="/sidebar.js" defer></script>
+</body></html>

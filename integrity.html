@@ -113,5 +113,6 @@ fetch('data/fleet-integrity.json?cb='+Date.now())
  .then(r=>r.json()).then(j=>{DATA=j;render()})
  .catch(e=>{document.getElementById('sub').textContent='feed unavailable: '+e});
 </script>
+<script src="/sidebar.js" defer></script>
 </body>
 </html>

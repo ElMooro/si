@@ -77,4 +77,5 @@ fetch('data/gov-sources.json?cb='+Date.now()).then(r=>r.json()).then(d=>{
   }).join('');
   document.getElementById('foot').textContent=`${d.marker} · generated ${d.generated_at}`;
 }).catch(e=>{document.getElementById('cards').textContent='Failed to load data/gov-sources.json: '+e;});
-</script></body></html>
+</script><script src="/sidebar.js" defer></script>
+</body></html>

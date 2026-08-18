@@ -40,6 +40,7 @@ tr:last-child td{border-bottom:none}
 <div id="sub" class="note">loading&hellip;</div>
 <div style="margin-top:10px"><input id="tk" placeholder="ticker, e.g. NVDA" style="font-family:var(--mono);background:var(--bg-1);border:1px solid var(--border-bright);color:var(--fg-0);padding:7px 12px;border-radius:6px;width:180px;text-transform:uppercase"> <button id="go" style="font-family:var(--mono);padding:7px 14px;border-radius:6px;border:1px solid var(--border-bright);background:var(--bg-1);color:var(--fg-0);cursor:pointer">open case</button></div></div>
 <div class="sec" id="casewrap" style="display:none"><h2 id="ct"></h2><div id="ai"></div><div id="qa"></div></div>
+<div class="sec" id="indwrap" style="display:none"><h2 id="it"></h2><div class="cards" id="icards"></div><div class="note" id="ihow"></div><div id="imem" style="margin-top:10px"></div></div>
 <div class="sec"><h2>Industry league &mdash; heat &times; size</h2>
 <div class="note">Share figures are of the LISTED-US investable cohort (universe mcap), never a claimed product-market share &mdash; the method line travels with every case.</div>
 <div id="inds"></div></div>
@@ -58,15 +59,45 @@ function qa(t,c){
   const rows=[
     ["1. What is "+t+"?", c.name+" \u2014 "+c.sector+" / "+c.industry+", $"+c.mcap_b+"B ("+(c.bucket||"?")+" cap)."],
     ["2. How big is it in its industry?", "Rank #"+c.ind_rank+" of "+c.ind_n+" listed US names \u2014 "+c.ind_share_pct+"% of the industry's $"+(ind.total_mcap_b||"?")+"B investable market value."+(c.ind_share_pct>=50?" It IS the industry by market value.":(c.ind_rank===1?" The largest name in the cohort.":""))],
-    ["3. Who are the peers that matter?", peers||"cohort unavailable"],
-    ["4. Is the industry hot right now?", b?("Boom score "+b.score+" \u2014 rank "+b.rank+" of "+b.of+" industries"+(b.rank<=Math.ceil(b.of*0.1)?" (top decile).":".")):"industry not in the boom league \u2014 stated, not guessed."],
-    ["5. Is institutional money moving in?", b&&b.inst_net_bps!=null?("Industry 13F net "+fN(b.inst_net_bps,1)+"bps of mcap; insider buys 30d: "+(b.insider_buys_30d==null?"\u2013":b.insider_buys_30d)+"."):"institutional legs not covered for this industry."],
-    ["6. Did it just prove itself on earnings?", c.earn?("Beat-league rank #"+c.earn.beat_rank+" (score "+fN(c.earn.beat_score)+", EPS surprise "+fN(c.earn.eps_surprise_pct)+"%)"+(c.earn.growth_pick_score?" \u00b7 transcript growth pick "+c.earn.growth_pick_score+".":".")):"not in the current 35-day reporter window."],
-    ["7. Is today's move genuine?", c.tape?("Tape-truth: "+(c.tape.call||"").replace(/_/g," ")+(c.tape.conviction!=null?" (conviction "+c.tape.conviction+")":"")+" \u2014 full evidence on the tape-truth desk."):"not on the 12-name tape watchlist yet."],
-    ["8. Who supplies it / who depends on it?", "DEFERRED \u2014 value-chain edges ship once readthrough event\u2192edge aggregation is proven. Never guessed."]];
+    ["3. How fast is it growing vs its industry?", (c.ret_12m_pct!=null?("12m return "+fN(c.ret_12m_pct)+"%"+(ind.median_ret_12m_pct!=null?" vs industry median "+fN(ind.median_ret_12m_pct)+"% ("+(c.ret_12m_pct>=ind.median_ret_12m_pct?"outgrowing":"lagging")+" the cohort).":".")) :"price ledger has <52 weeks for this name -- growth shown only when real.")+" Revenue growth: "+((ind.rev_growth&&ind.rev_growth.status)||"DEFERRED")+" -- "+((ind.rev_growth&&ind.rev_growth.why)||"")],
+    ["4. Who are the peers that matter?", peers||"cohort unavailable"],
+    ["5. Is the industry hot right now?", b?("Boom score "+b.score+" \u2014 rank "+b.rank+" of "+b.of+" industries"+(b.rank<=Math.ceil(b.of*0.1)?" (top decile).":".")):"industry not in the boom league \u2014 stated, not guessed."],
+    ["6. Is institutional money moving in?", b&&b.inst_net_bps!=null?("Industry 13F net "+fN(b.inst_net_bps,1)+"bps of mcap; insider buys 30d: "+(b.insider_buys_30d==null?"\u2013":b.insider_buys_30d)+"."):"institutional legs not covered for this industry."],
+    ["7. Did it just prove itself on earnings?", c.earn?("Beat-league rank #"+c.earn.beat_rank+" (score "+fN(c.earn.beat_score)+", EPS surprise "+fN(c.earn.eps_surprise_pct)+"%)"+(c.earn.growth_pick_score?" \u00b7 transcript growth pick "+c.earn.growth_pick_score+".":".")):"not in the current 35-day reporter window."],
+    ["8. Is today's move genuine?", c.tape?("Tape-truth: "+(c.tape.call||"").replace(/_/g," ")+(c.tape.conviction!=null?" (conviction "+c.tape.conviction+")":"")+" \u2014 full evidence on the tape-truth desk."):"not on the 12-name tape watchlist yet."],
+    ["9. Who supplies it / who depends on it?", "DEFERRED \u2014 value-chain edges ship once readthrough event\u2192edge aggregation is proven. Never guessed."]];
   let h="";
   for(const[q,a]of rows)h+='<div class="card" style="margin-bottom:8px"><div class="k">'+q+'</div><div class="s" style="font-size:12px;color:var(--fg-1);margin-top:4px">'+a+'</div></div>';
   return h;}
+function openInd(k){
+  const v=D&&D.industries&&D.industries[k];
+  const w=document.getElementById("indwrap");
+  if(!v){return;}
+  w.style.display="block";
+  document.getElementById("it").textContent=k+" \u00b7 "+(v.sector||"")+" \u00b7 "+v.n+" listed US names";
+  const hlab=v.hhi>2500?"highly concentrated":(v.hhi>=1500?"moderately concentrated":"competitive");
+  document.getElementById("icards").innerHTML=
+    '<div class="card"><div class="k">Concentration (HHI)</div><div class="v">'+(v.hhi==null?"\u2013":v.hhi)+'</div><div class="s">'+hlab+' \u00b7 top-3 hold '+v.top3_share_pct+'%</div></div>'+
+    '<div class="card"><div class="k">Total investable mcap</div><div class="v">$'+v.total_mcap_b.toLocaleString()+'B</div><div class="s">'+((v.boom&&v.boom.score)!=null?("boom "+v.boom.score+" \u00b7 rank "+v.boom.rank+"/"+v.boom.of):"not in boom league")+'</div></div>'+
+    '<div class="card"><div class="k">12m growth (mcap-wtd)</div><div class="v'+cls(v.wtd_ret_12m_pct)+'">'+(v.wtd_ret_12m_pct==null?"\u2013":fN(v.wtd_ret_12m_pct)+"%")+'</div><div class="s">median '+(v.median_ret_12m_pct==null?"\u2013":fN(v.median_ret_12m_pct)+"%")+' \u00b7 '+v.ret_coverage+'/'+v.n+' covered</div></div>'+
+    '<div class="card"><div class="k">Revenue growth</div><div class="v">'+((v.rev_growth&&v.rev_growth.status)||"\u2013")+'</div><div class="s">'+((v.rev_growth&&v.rev_growth.why)||"")+'</div></div>';
+  document.getElementById("ihow").textContent="Tiers: LEADER \u226525% \u00b7 MAJOR \u226510% \u00b7 CHALLENGER \u22653% \u00b7 NICHE -- mcap-cohort labels, not product-share claims. Click any header to sort.";
+  const M=v.members||[];
+  const COLS=[["rank","#",1],["t","ticker",0],["name","name",0],["tier","tier",0],["share_pct","share %",1],["mcap_b","mcap $B",1],["ret_12m_pct","12m ret",1]];
+  const st={key:"rank",dir:1};
+  const cmp=(a,b)=>{const num=COLS.find(c=>c[0]===st.key)[2];let x=a[st.key],y=b[st.key];
+    const nx=x==null,ny=y==null;if(nx&&ny)return 0;if(nx)return 1;if(ny)return -1;
+    if(!num){x=String(x);y=String(y);return st.dir*(x<y?-1:(x>y?1:0));}
+    return st.dir*(x-y);};
+  const render=()=>{
+    let h='<table><tr>';for(const[kk,lab]of COLS)h+='<th data-k="'+kk+'" style="cursor:pointer;user-select:none">'+lab+(st.key===kk?(st.dir>0?" \u25b2":" \u25bc"):"")+'</th>';h+='</tr>';
+    for(const m of M.slice().sort(cmp))h+='<tr><td>'+m.rank+'</td><td><b><a href="industry-case.html?t='+m.t+'" style="color:inherit">'+m.t+'</a></b></td><td style="color:var(--fg-2)">'+(m.name||"")+'</td><td>'+m.tier+'</td><td>'+m.share_pct+'</td><td>'+m.mcap_b+'</td><td class="'+cls(m.ret_12m_pct)+'">'+(m.ret_12m_pct==null?"\u2013":fN(m.ret_12m_pct)+"%")+'</td></tr>';
+    document.getElementById("imem").innerHTML=h+'</table>';
+    document.querySelectorAll("#imem th").forEach(x=>x.onclick=()=>{const kk=x.dataset.k;
+      if(st.key===kk)st.dir=-st.dir;else{st.key=kk;st.dir=(kk==="rank"||!COLS.find(c=>c[0]===kk)[2])?1:-1;}render();});};
+  render();
+  history.replaceState(null,"","industry-case.html?ind="+encodeURIComponent(k));
+  w.scrollIntoView({behavior:"smooth"});}
 function openCase(t){
   t=(t||"").toUpperCase().trim();
   const c=D&&D.cases&&D.cases[t];
@@ -83,13 +114,18 @@ function openCase(t){
   S_("hero",()=>{document.getElementById("sub").textContent="As of "+D.as_of+" \u00b7 "+D.n_cases.toLocaleString()+" cases across "+D.n_industries+" industries";});
   S_("inds",()=>{
     const rows=Object.entries(D.industries||{}).map(([k,v])=>[k,v]).sort((a,b)=>((b[1].boom&&b[1].boom.score)||-1)-((a[1].boom&&a[1].boom.score)||-1));
-    let t1='<table><tr><th>industry</th><th>sector</th><th>boom</th><th>names</th><th>total mcap</th><th>top name (share)</th></tr>';
-    for(const[k,v]of rows.slice(0,60)){const tp=(v.top5||[])[0];
-      t1+='<tr><td><b>'+k+'</b></td><td>'+(v.sector||"")+'</td><td>'+((v.boom&&v.boom.score)!=null?v.boom.score:"\u2013")+'</td><td>'+v.n+'</td><td>$'+v.total_mcap_b.toLocaleString()+'B</td><td>'+(tp?tp.t+" ("+tp.share_pct+"%)":"\u2013")+'</td></tr>';}
-    document.getElementById("inds").innerHTML=t1+'</table>';});
+    let t1='<table><tr><th>industry</th><th>sector</th><th>boom</th><th>names</th><th>total mcap</th><th>HHI</th><th>wtd 12m</th><th>top name (share)</th></tr>';
+    for(const[k,v]of rows){const tp=(v.top5||[])[0];
+      t1+='<tr data-ind="'+encodeURIComponent(k)+'" style="cursor:pointer"><td><b>'+k+'</b></td><td>'+(v.sector||"")+'</td><td>'+((v.boom&&v.boom.score)!=null?v.boom.score:"\u2013")+'</td><td>'+v.n+'</td><td>$'+v.total_mcap_b.toLocaleString()+'B</td><td>'+(v.hhi==null?"\u2013":v.hhi)+'</td><td class="'+cls(v.wtd_ret_12m_pct)+'">'+(v.wtd_ret_12m_pct==null?"\u2013":fN(v.wtd_ret_12m_pct)+"%")+'</td><td>'+(tp?tp.t+" ("+tp.share_pct+"%)":"\u2013")+'</td></tr>';}
+    document.getElementById("inds").innerHTML=t1+'</table>';
+    document.querySelectorAll("#inds tr[data-ind]").forEach(x=>x.onclick=()=>openInd(decodeURIComponent(x.dataset.ind)));});
   document.getElementById("go").onclick=()=>openCase(document.getElementById("tk").value);
   document.getElementById("tk").addEventListener("keydown",e=>{if(e.key==="Enter")openCase(e.target.value);});
-  const q=new URLSearchParams(location.search).get("t");
+  const usp=new URLSearchParams(location.search);
+  const q=usp.get("t");
   if(q)openCase(q);
+  const qi=usp.get("ind");
+  if(qi)openInd(qi);
 })();
-</script></body></html>
+</script><script src="/sidebar.js" defer></script>
+</body></html>

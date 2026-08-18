@@ -144,4 +144,5 @@ function renderCredit(){fetch(CFG.doc+'?ts='+(Date.now()/600000|0)).then(functio
   el.innerHTML=tl(c.y10,'US 10y %')+tl(c.curve_2s10s_bp,'2s10s bp')+tl(c.curve_5s30s_bp,'5s30s bp')+tl(c.real_10y,'real 10y %')+tl(c.breakeven_5y,'5y breakeven %')
     +tl(hy.oas_bp,'HY OAS bp')+tl(hy.change_30d_bp,'HY Δ30d bp')+tl(cr.composite_credit_risk,'credit risk 0-100')+tl(cr.regime,'regime');
 });}
-</script></body></html>
+</script><script src="/sidebar.js" defer></script>
+</body></html>

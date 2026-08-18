@@ -131,4 +131,5 @@ async function load(){let D=null;try{D=await (await fetch(`${PROXY}/data/spx-bea
  document.getElementById("foot").innerHTML=`<b>Method.</b> ${D.method||""} Stock weights ${JSON.stringify(w.stock)} · ETF weights ${JSON.stringify(w.etf)}. Minimum score ${D.min_score}; a name-specific second evidence leg is required (momentum + industry alone never lists). Stock evidence now includes contract announcements, SEC-mined backlogs and the deal tape (catalyst leg); ETFs add true net flows and industry fundamentals (earnings-revision breadth + deal wins + backlog accel). Comeback wing: quality leg REQUIRED, huge drawdowns with NTM estimates + revenue still growing are tagged DERATING (fundamentals intact), drawdown ≤ −30%, still-falling names skipped unless an independent turn is CONFIRMED, minimum score ${D.comeback_min||60}. Engine ${D.engine_v}, refreshed Saturdays 13:00 UTC. Real data only — empty buckets mean nothing cleared the bar, not a rendering gap.`;
 }
 load();
-</script></body></html>
+</script><script src="/sidebar.js" defer></script>
+</body></html>

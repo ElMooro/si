@@ -1,5 +1,5 @@
 """justhodl-industry-case -- what role does this stock play?
-Marker: industry-case v1.0.0
+Marker: industry-case v1.1.0
 Every answer is assembled from banked fleet data (universe,
 industry boom league, earnings desk, tape-truth) and cites its
 numbers.  The value-chain question is HONESTLY deferred until
@@ -14,11 +14,22 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/industry-case.json"
 AI_CAP = 6
+CLOSES_KEY = "spx-beaters/weekly-closes.json"
+
+
+def tier_of(share_pct):
+    if share_pct >= 25:
+        return "LEADER"
+    if share_pct >= 10:
+        return "MAJOR"
+    if share_pct >= 3:
+        return "CHALLENGER"
+    return "NICHE"
 
 s3 = boto3.client("s3", region_name=REGION)
 
@@ -86,7 +97,20 @@ def build(event=None):
                "chain": "value-chain edges DEFERRED -- "
                         "readthrough is event-shaped "
                         "(probe 4888); aggregation queued, "
-                        "never guessed"}}
+                        "never guessed",
+               "tiers": "LEADER>=25%% / MAJOR>=10%% / "
+                        "CHALLENGER>=3%% / NICHE -- "
+                        "mcap-cohort-derived labels, not "
+                        "product-share claims",
+               "growth": "ret_12m from the beaters weekly-"
+                         "closes ledger (52w); revenue "
+                         "growth DEFERRED -- census matrix "
+                         "not proven under probed keys "
+                         "(4890), nulled never guessed",
+               "hhi": "sum of squared %% shares (0-10000); "
+                      ">2500 highly concentrated, 1500-2500 "
+                      "moderate, <1500 competitive (DOJ/FTC "
+                      "convention)"}}
     uni = _g("data/universe.json")
     stocks = (uni or {}).get("stocks") or []
     if len(stocks) < 1000:
@@ -119,6 +143,18 @@ def build(event=None):
                    .get("picks") or [])}
     tape = _g("data/tape-truth.json") or {}
     tape_by_t = tape.get("symbols") or {}
+    closes = (_g(CLOSES_KEY) or {}).get("closes") or {}
+
+    def ret12(sym):
+        arr = closes.get(sym)
+        if isinstance(arr, list) and len(arr) >= 53 \
+                and arr[-53] and arr[-1]:
+            try:
+                return round((arr[-1] / arr[-53] - 1)
+                             * 100, 1)
+            except (TypeError, ZeroDivisionError):
+                return None
+        return None
 
     inds = {}
     for r in stocks:
@@ -136,10 +172,43 @@ def build(event=None):
     for ind, blk in inds.items():
         mem = sorted(blk["members"], key=lambda x: -x[2])
         tot = sum(m[2] for m in mem)
+        members = []
+        hhi = 0.0
+        wtd_num = wtd_den = 0.0
+        rets = []
+        for i, m in enumerate(mem):
+            sh = 100.0 * m[2] / tot
+            hhi += sh * sh
+            r12 = ret12(m[0])
+            if r12 is not None:
+                rets.append(r12)
+                wtd_num += r12 * m[2]
+                wtd_den += m[2]
+            members.append({"t": m[0], "name": m[1],
+                            "rank": i + 1,
+                            "mcap_b": round(m[2] / 1e9, 2),
+                            "share_pct": round(sh, 2),
+                            "tier": tier_of(sh),
+                            "ret_12m_pct": r12})
+        rets.sort()
         industries[ind] = {
             "sector": blk["sector"], "n": len(mem),
             "total_mcap_b": round(tot / 1e9, 1),
             "boom": boom_by_ind.get(ind),
+            "hhi": round(hhi, 0),
+            "top3_share_pct": round(sum(
+                100.0 * m[2] / tot for m in mem[:3]), 1),
+            "wtd_ret_12m_pct": round(wtd_num / wtd_den, 1)
+            if wtd_den else None,
+            "median_ret_12m_pct": rets[len(rets) // 2]
+            if rets else None,
+            "ret_coverage": len(rets),
+            "rev_growth": {"status": "DEFERRED",
+                           "why": "census matrix not proven "
+                                  "under probed keys (ops "
+                                  "4890) -- nulled, never "
+                                  "guessed"},
+            "members": members,
             "top5": [{"t": m[0], "name": m[1],
                       "mcap_b": round(m[2] / 1e9, 1),
                       "share_pct": round(100.0 * m[2]
@@ -162,6 +231,8 @@ def build(event=None):
              "bucket": r.get("cap_bucket"),
              "ind_rank": rk, "ind_n": n,
              "ind_share_pct": share,
+             "tier": tier_of(share),
+             "ret_12m_pct": ret12(t),
              "boom": boom_by_ind.get(ind)}
         br = beat_by_t.get(t)
         if br:
