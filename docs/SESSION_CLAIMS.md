@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| Japan MOF weekly securities flows (cp932 structure dump -> global-flows v1.3 japan weekly block BOTH directions -> page) | 4875-4877 | S-fable-A2 | 2026-08-18 00:0x |
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
@@ -88,9 +87,6 @@ ENGINE BRAIN (no new data): official-demand composite (TIC monthly
   revision-bias per series); flowsxplumbing concordance block
 
 ## Open queue (expansion wave 2 -- from probe 4858, endpoints verbatim in its report)
-- Japan MOF weekly securities flows -> global-flows japan (CSV alive
-  254KB Shift-JIS at /policy/international_policy/reference/
-  itn_transactions_in_securities/week.csv; cp932 parse micro-probe)
 - foreign-flows v1.3: per-country EQUITY net-tx/valchg decomposition
   (series exist in CSLT release, title-probe like 4858) + Luxembourg
   strict-title probe (dup 10308 burn) + official/private per country
