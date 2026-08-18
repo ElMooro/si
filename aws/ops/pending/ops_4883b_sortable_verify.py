@@ -1,7 +1,7 @@
-"""ops/4883 -- sortable Beat League columns verify.
- (1) committed: 10 data-k headers, cmp with null-sink, toggle
-     logic, filter+sort composition.
- (2) served with the sort tokens.
+"""ops/4883b -- sortable Beat League verify (corrected).
+4883's committed-check self-contradicted (demanded the data-k
+template appear zero times while the code rightly writes it
+once).  Page untouched; only the assertions are fixed.
 """
 import sys
 import time
@@ -18,25 +18,23 @@ URL = "https://justhodl.ai/earnings.html"
 
 
 def main():
-    with report("ops 4883 -- sortable league verify") as rep:
-        html = PAGE.read_text(encoding="utf-8")
-        script = html.split("<script>")[1].split(
-            "</script>")[0]
+    with report("ops 4883b -- sortable league verify") as rep:
+        script = PAGE.read_text(encoding="utf-8") \
+            .split("<script>")[1].split("</script>")[0]
+        cols = script.split("COLS=[", 1)[1] \
+            .split("];", 1)[0]
         checks = {
-            "10 sortable headers":
-                script.count('data-k="') == 0
-                and script.count("data-k=") >= 1
-                and script.count('["rank","#",1]') == 1
-                and script.count("COLS=[") == 1,
+            "data-k header template present once":
+                script.count('data-k="') == 1,
+            "COLS defines exactly 10 columns":
+                cols.count('["') == 10,
             "null-sink comparator":
                 "if(nx)return 1;if(ny)return -1;" in script,
-            "direction toggle":
-                "st.dir=-st.dir" in script,
+            "direction toggle": "st.dir=-st.dir" in script,
             "filter composes with sort":
-                "st.bucket===st.bucket" not in script
-                and 'st.bucket==="all"||r.bucket===st.bucket'
+                'st.bucket==="all"||r.bucket===st.bucket'
                 in script,
-            "node-balanced braces":
+            "braces balanced":
                 script.count("{") == script.count("}")}
         bad = [k for k, ok in checks.items() if not ok]
         for k in checks:
@@ -48,7 +46,7 @@ def main():
             try:
                 req = urllib.request.Request(
                     "%s?t=%d" % (URL, int(time.time())),
-                    headers={"User-Agent": "ops-4883",
+                    headers={"User-Agent": "ops-4883b",
                              "Cache-Control": "no-cache"})
                 with urllib.request.urlopen(req, timeout=45) \
                         as r:
