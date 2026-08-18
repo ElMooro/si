@@ -86,18 +86,37 @@ const chip=(txt,neg)=>'<span style="font-size:10px;font-family:var(--mono);paddi
         +'<div class="s" style="margin-top:4px;color:var(--fg-3)">'+(p.ai_mode||"")+'</div></div>';}
     document.getElementById("picks").innerHTML=h||'<div class="note">no picks cleared the gate this run \u2014 thresholds are never bent.</div>';});
   S_("league",()=>{
-    document.getElementById("meth").textContent=((d.method||{}).beat||"");
+    document.getElementById("meth").textContent=((d.method||{}).beat||"")+" \u00b7 click any column header to sort (toggles asc/desc; blanks always sink)";
+    const L=d.beat_league||[];
+    const COLS=[["rank","#",1],["t","ticker",0],["date","date",0],["sector","sector",0],["mcap_b","mcap",1],["eps_a","EPS a",1],["eps_e","EPS e",1],["eps_surprise_pct","EPS surp",1],["rev_surprise_pct","rev surp",1],["beat_score","score",1]];
+    const st={bucket:"all",key:"rank",dir:1};
     const rowhtml=r=>'<tr><td>'+r.rank+'</td><td><b>'+r.t+'</b>'+(r.name?' <span style="color:var(--fg-3);font-size:11px">'+r.name+'</span>':'')+'</td><td>'+r.date+'</td><td>'+(r.sector||"\u2013")+'</td><td>'+(r.mcap_b==null?"\u2013":"$"+r.mcap_b+"B")+'</td><td>'+r.eps_a+'</td><td>'+r.eps_e+'</td><td class="'+cls(r.eps_surprise_pct)+'">'+fN(r.eps_surprise_pct)+'%</td><td class="'+cls(r.rev_surprise_pct)+'">'+(r.rev_surprise_pct==null?"\u2013":fN(r.rev_surprise_pct)+"%")+'</td><td class="'+cls(r.beat_score)+'">'+fN(r.beat_score)+'</td></tr>';
-    const hd='<table><tr><th>#</th><th>ticker</th><th>date</th><th>sector</th><th>mcap</th><th>EPS a</th><th>EPS e</th><th>EPS surp</th><th>rev surp</th><th>score</th></tr>';
-    const render=b=>{let t1=hd;let k=0;
-      for(const r of (d.beat_league||[])){if(b!=="all"&&r.bucket!==b)continue;t1+=rowhtml(r);if(++k>=100)break;}
-      document.getElementById("league").innerHTML=t1+'</table>'+(k===0?'<div class="note">no '+b+'-cap reporters matched this window.</div>':'');};
+    const hd=()=>{let h='<table><tr>';
+      for(const[k,lab,num]of COLS)h+='<th data-k="'+k+'" style="cursor:pointer;user-select:none">'+lab+(st.key===k?(st.dir>0?" \u25b2":" \u25bc"):"")+'</th>';
+      return h+'</tr>';};
+    const cmp=(a,b)=>{
+      const num=COLS.find(c=>c[0]===st.key)[2];
+      let x=a[st.key],y=b[st.key];
+      const nx=x==null||x==="",ny=y==null||y==="";
+      if(nx&&ny)return 0;if(nx)return 1;if(ny)return -1;
+      if(!num){x=String(x);y=String(y);return st.dir*(x<y?-1:(x>y?1:0));}
+      return st.dir*(x-y);};
+    const render=()=>{
+      const rows=L.filter(r=>st.bucket==="all"||r.bucket===st.bucket).slice().sort(cmp).slice(0,100);
+      let t1=hd();for(const r of rows)t1+=rowhtml(r);
+      document.getElementById("league").innerHTML=t1+'</table>'+(rows.length===0?'<div class="note">no '+st.bucket+'-cap reporters matched this window.</div>':'');
+      document.querySelectorAll("#league th").forEach(x=>x.onclick=()=>{
+        const k=x.dataset.k;
+        if(st.key===k)st.dir=-st.dir;
+        else{st.key=k;const num=COLS.find(c=>c[0]===k)[2];st.dir=(k==="rank"||!num)?1:-1;}
+        render();});};
     let fb="";for(const b of["all","large","mid","small","micro"])
       fb+='<button data-b="'+b+'" style="font-family:var(--mono);font-size:11px;margin-right:6px;padding:3px 10px;border-radius:5px;border:1px solid var(--border-bright);background:var(--bg-1);color:var(--fg-1);cursor:pointer">'+b+'</button>';
     const bf=document.getElementById("bfilter");bf.innerHTML=fb;
-    bf.querySelectorAll("button").forEach(x=>x.onclick=()=>render(x.dataset.b));
-    render("all");
-    let t2=hd;for(const r of (d.biggest_misses||[]).slice(0,15))t2+=rowhtml(r);
+    bf.querySelectorAll("button").forEach(x=>x.onclick=()=>{st.bucket=x.dataset.b;render();});
+    render();
+    let t2='<table><tr><th>#</th><th>ticker</th><th>date</th><th>sector</th><th>mcap</th><th>EPS a</th><th>EPS e</th><th>EPS surp</th><th>rev surp</th><th>score</th></tr>';
+    for(const r of (d.biggest_misses||[]).slice(0,15))t2+=rowhtml(r);
     document.getElementById("misses").innerHTML=t2+'</table>';});
 })();
 </script></body></html>
