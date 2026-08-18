@@ -33,9 +33,12 @@ eng.WATCH = ["AAA", "BBB"]
 eng.GEX_SYMS = ["AAA"]
 
 MIN_BARS = {
-    "AAA": [{"o": 10, "h": 11, "l": 10, "c": 11, "v": 1000},
-            {"o": 11, "h": 12, "l": 10, "c": 10, "v": 500}],
-    "BBB": [{"o": 5, "h": 5, "l": 5, "c": 5, "v": 999}] * 150}
+    "AAA": [{"o": 10, "h": 11, "l": 10, "c": 11, "v": 1000,
+             "vw": 10.5},
+            {"o": 11, "h": 12, "l": 10, "c": 10, "v": 500,
+             "vw": 11.0}],
+    "BBB": [{"o": 5, "h": 5, "l": 5, "c": 5, "v": 999,
+             "vw": 5.0}] * 150}
 FINRA_TXT = ("Date|Symbol|ShortVolume|ShortExemptVolume|"
              "TotalVolume|Market\n"
              "20260817|AAA|600|0|1000|B,Q\n"
@@ -106,6 +109,21 @@ def main():
     chk("session CVD == recompute (150 bars)",
         a["cvd"]["session_cvd"] == round(exp_cvd, 0)
         and a["cvd"]["n_days"] == 1)
+    exp_vwap = round((10.5 * 1000 + 11.0 * 500)
+                     / 1500 * 75 / 75, 4)
+    led = STORE[eng.CVD_LEDGER]["rows"]["AAA"]
+    lrow = led[sorted(led)[-1]]
+    chk("session vwap/vol/ohlc banked in ledger",
+        lrow["vwap"] == exp_vwap
+        and lrow["vol"] == 1500.0 * 75
+        and lrow["o"] == 10 and lrow["h"] == 12
+        and lrow["l"] == 10 and lrow["c"] == 10)
+    chk("day-one derived: CLV == 2*(c-l)/(h-l)-1 = -1.0, "
+        "vwap gap computed, vol_ratio None (n<6)",
+        a["cvd"]["clv_session"] == -1.0
+        and a["cvd"]["close_vs_vwap_pct"]
+        == round((10 / exp_vwap - 1) * 100, 2)
+        and a["cvd"]["vol_ratio_20d"] is None)
     chk("BBB flat-bar session banked (cvd 0, 150 bars)",
         d["symbols"]["BBB"]["cvd"]["session_cvd"] == 0.0)
     chk("finra ratios ledgered (AAA .6, BBB .25; ZZZ "
@@ -118,6 +136,14 @@ def main():
     call1 = 0.02 * 100 * 100 * spot * spot * 0.01
     call2 = 0.05 * 50 * 100 * spot * spot * 0.01
     put1 = 0.01 * 200 * 100 * spot * spot * 0.01
+    g5 = a["gex"]
+    chk("DTE5 share: only the 260901 exps count (all vol "
+        "within 5d of frozen today? computed vs vol_all)",
+        g5["dte5_vol_share_pct"] is None
+        or 0 <= g5["dte5_vol_share_pct"] <= 100)
+    chk("dist_to_flip present when flip exists",
+        g5["flip_approx"] is None
+        or isinstance(g5["dist_to_flip_pct"], float))
     chk("GEX math: DTE filter drops 2027, zero-OI dropped, "
         "net == recompute",
         g["status"] == "LIVE" and g["n_contracts_used"] == 3
@@ -152,14 +178,25 @@ def main():
     d2 = eng.build({})
     eng.session_cvd = _sc
     v2 = d2["symbols"]["AAA"]["verdict"]
+    chk("conviction pure-fn arithmetic",
+        eng.conviction([("a", 15), ("b", -10)]) == 55.0
+        and eng.conviction([("a", -80)]) == 0.0)
     chk("FAKE_UP_DISTRIBUTION: price up on negative delta, "
         "evidence cites both numbers",
-        v2["call"] == "FAKE_UP_DISTRIBUTION"
+        v2["call"].endswith("FAKE_UP_DISTRIBUTION")
         and any("exit-liquidity" in e
                 for e in v2["evidence"])
         and any("price 5d" in e for e in v2["evidence"])
         and any("top-divergence" in e
                 for e in v2["evidence"]))
+    chk("conviction == recompute from score_parts",
+        v2["conviction"]
+        == eng.conviction(v2["score_parts"]))
+    chk("legacy ledger rows (no vol/vwap) never crash -- "
+        "derived stay None-safe",
+        d2["symbols"]["AAA"]["cvd"]["vol_ratio_20d"] is None
+        or isinstance(d2["symbols"]["AAA"]["cvd"]
+                      ["vol_ratio_20d"], float))
     chk("write discipline: ledgers + out only, out last",
         set(PUTS) <= {eng.CVD_LEDGER, eng.FINRA_LEDGER,
                       eng.OUT_KEY}

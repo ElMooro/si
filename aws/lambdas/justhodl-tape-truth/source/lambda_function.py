@@ -1,5 +1,5 @@
 """justhodl-tape-truth -- is the move genuine or manufactured?
-Marker: tape-truth v1.0.0
+Marker: tape-truth v1.1.0
 Honesty ledger: CVD is BAR-APPROXIMATED (minute close-in-range
 delta, never claimed as tick data); GEX uses the standard
 dealer-positioning assumption (long calls, short puts vs
@@ -14,7 +14,7 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/tape-truth.json"
@@ -77,18 +77,31 @@ def bar_delta(o, h, l, c, v):
 
 
 def session_cvd(poly_key, sym, day):
+    """(cvd, close, nbars, session{vol,vwap,o,h,l,c})."""
     j = json.loads(http_raw(
         "https://api.polygon.io/v2/aggs/ticker/%s/range/1/"
         "minute/%s/%s?limit=50000&apiKey=%s"
         % (sym, day, day, poly_key)))
     rs = j.get("results") or []
-    cvd = 0.0
-    close = None
+    cvd = vol = vwap_num = 0.0
+    close = op = hi = lo = None
     for b in rs:
         cvd += bar_delta(b.get("o"), b.get("h"), b.get("l"),
                          b.get("c"), b.get("v"))
+        v = b.get("v") or 0.0
+        vol += v
+        vwap_num += (b.get("vw") or b.get("c") or 0.0) * v
         close = b.get("c", close)
-    return (round(cvd, 0), close, len(rs))
+        if op is None:
+            op = b.get("o")
+        hi = b.get("h") if hi is None else max(hi,
+                                               b.get("h", hi))
+        lo = b.get("l") if lo is None else min(lo,
+                                               b.get("l", lo))
+    sess = {"vol": round(vol, 0),
+            "vwap": round(vwap_num / vol, 4) if vol else None,
+            "o": op, "h": hi, "l": lo, "c": close}
+    return (round(cvd, 0), close, len(rs), sess)
 
 
 def finra_day(day):
@@ -133,7 +146,9 @@ def gex_block(sym, today):
         return {"status": "MISSING", "why": "empty chain"}
     cutoff = (today + timedelta(days=NEAR_DTE)) \
         .strftime("%y%m%d")
+    near5 = (today + timedelta(days=5)).strftime("%y%m%d")
     tstr = today.strftime("%y%m%d")
+    vol5 = vol_all = 0.0
     call_g = put_g = 0.0
     by_strike = {}
     pc_oi = {"C": 0.0, "P": 0.0}
@@ -153,8 +168,11 @@ def gex_block(sym, today):
         n_used += 1
         dollar = g * oi * 100.0 * spot * spot * 0.01
         pc_oi[cp] = pc_oi.get(cp, 0) + oi
-        pc_vol[cp] = pc_vol.get(cp, 0) \
-            + (o.get("volume") or 0)
+        ovol = o.get("volume") or 0
+        pc_vol[cp] = pc_vol.get(cp, 0) + ovol
+        vol_all += ovol
+        if exp <= near5:
+            vol5 += ovol
         signed = dollar if cp == "C" else -dollar
         if cp == "C":
             call_g += dollar
@@ -188,6 +206,12 @@ def gex_block(sym, today):
             "put_call_vol": round(pc_vol["P"]
                                   / max(1.0, pc_vol["C"]), 2),
             "dte_window": NEAR_DTE,
+            "dte5_vol_share_pct": round(100.0 * vol5
+                                        / vol_all, 1)
+            if vol_all else None,
+            "dist_to_flip_pct": round((spot - flip)
+                                      / spot * 100, 2)
+            if flip else None,
             "audit": {"sum_call_dollar": round(call_g, 0),
                       "sum_put_dollar": round(put_g, 0)}}
 
@@ -202,39 +226,85 @@ def zlast(vals):
     return round((vals[-1] - m) / var ** 0.5, 2)
 
 
+def conviction(parts):
+    """50 base +- weighted, clipped 0..100.  Pure fn shared
+    with the verify op."""
+    s = 50.0
+    for _name, w in parts:
+        s += w
+    return max(0.0, min(100.0, round(s, 0)))
+
+
 def verdict(sym, cv, fin, gex):
-    ev = []
     if cv.get("status") != "LIVE" or cv.get("n_days", 0) < 5:
         return {"call": "WARMING",
                 "why": "cvd ledger %d days -- verdicts need "
                        ">=5" % cv.get("n_days", 0)}
+    ev, parts = [], []
     p5 = cv["price_chg_5d_pct"]
     c5 = cv["cvd_5d"]
+    up = p5 > 0.5
+    dn = p5 < -0.5
     ev.append("price 5d %+0.2f%%" % p5)
     ev.append("bar-CVD 5d %+0.0f sh" % c5)
     call = "NEUTRAL"
-    if p5 > 0.5 and c5 < 0:
+    if up and c5 < 0:
         call = "FAKE_UP_DISTRIBUTION"
         ev.append("price up on negative delta -- classic "
                   "exit-liquidity pattern")
-    elif p5 < -0.5 and c5 > 0:
+        parts.append(("cvd_conflict", 15))
+    elif dn and c5 > 0:
         call = "SHAKEOUT_ACCUMULATION"
         ev.append("price down on positive delta -- "
                   "accumulation into fear")
-    elif p5 > 0.5 and c5 > 0:
+        parts.append(("cvd_conflict", 15))
+    elif up and c5 > 0:
         call = "GENUINE_UP"
-    elif p5 < -0.5 and c5 < 0:
+        parts.append(("cvd_align", 15))
+    elif dn and c5 < 0:
         call = "GENUINE_DOWN"
+        parts.append(("cvd_align", 15))
+    vr = cv.get("vol_ratio_20d")
+    if vr is not None and (up or dn):
+        if vr >= 1.2:
+            parts.append(("volume_confirms", 10))
+            ev.append("volume x%.2f of 20d avg -- "
+                      "participation confirms" % vr)
+        elif vr <= 0.8:
+            parts.append(("volume_thin", -10))
+            ev.append("volume x%.2f of 20d avg -- thin tape, "
+                      "move suspect" % vr)
+    vw = cv.get("close_vs_vwap_pct")
+    if vw is not None:
+        agree = (vw > 0 and up) or (vw < 0 and dn)
+        parts.append(("vwap", 8 if agree else -8))
+        ev.append("close %+0.2f%% vs session VWAP%s"
+                  % (vw, "" if agree else
+                     " -- fighting the average price"))
+    clv = cv.get("clv_session")
+    if clv is not None and abs(clv) >= 0.6:
+        strong = (clv > 0 and up) or (clv < 0 and dn)
+        parts.append(("clv", 6 if strong else -6))
+        ev.append("close-location %.2f (%s of range)"
+                  % (clv, "top" if clv > 0 else "bottom"))
+    if cv.get("churn_flag"):
+        parts.append(("effort_no_result", -9))
+        ev.append("heavy volume, no progress -- "
+                  "absorption/churn (Wyckoff effort vs "
+                  "result)")
     if cv.get("top_divergence"):
+        parts.append(("top_div", -12 if not dn else 12))
         ev.append("20d price high with lower CVD high -- "
                   "top-divergence flag")
     if cv.get("bottom_divergence"):
+        parts.append(("bot_div", 12 if not dn else -12))
         ev.append("20d price low with higher CVD low -- "
                   "bottom-divergence flag")
     if fin and fin.get("z_20d") is not None:
         ev.append("short-vol ratio %.2f (z %+0.2f)"
                   % (fin["ratio"], fin["z_20d"]))
-        if fin["z_20d"] > 1.2 and p5 > 0.5:
+        if fin["z_20d"] > 1.2 and up:
+            parts.append(("short_absorb", -8))
             ev.append("elevated short-flow into strength -- "
                       "absorption watch")
     if gex and gex.get("status") == "LIVE":
@@ -243,13 +313,27 @@ def verdict(sym, cv, fin, gex):
                      gex["regime"].lower()))
         if gex["regime"] == "NEGATIVE" \
                 and call.startswith("GENUINE"):
+            parts.append(("neg_gamma", -6))
             ev.append("negative gamma -- dealers accelerate; "
                       "moves overshoot, genuine != stable")
-        if gex["regime"] == "POSITIVE" \
-                and call == "FAKE_UP_DISTRIBUTION":
-            ev.append("positive gamma pins -- distribution "
-                      "can proceed quietly near walls")
-    return {"call": call, "evidence": ev}
+        d2f = gex.get("dist_to_flip_pct")
+        if d2f is not None and abs(d2f) < 1.0:
+            parts.append(("near_flip", -6))
+            ev.append("spot %+0.2f%% from gamma flip -- "
+                      "regime unstable" % d2f)
+        d5 = gex.get("dte5_vol_share_pct")
+        if d5 is not None and d5 > 40:
+            parts.append(("dte5_noise", -6))
+            ev.append("%.1f%% of option volume in DTE<=5 -- "
+                      "gamma-day noise, informational value "
+                      "low" % d5)
+    conv = conviction(parts)
+    if conv < 35 and call not in ("NEUTRAL",):
+        ev.append("conviction %d < 35 -- downgraded to "
+                  "SUSPECT" % conv)
+        call = "SUSPECT_" + call
+    return {"call": call, "conviction": conv,
+            "score_parts": parts, "evidence": ev}
 
 
 def build(event=None):
@@ -282,11 +366,12 @@ def build(event=None):
     if poly:
         for sym in WATCH:
             try:
-                cvd, close, nbars = session_cvd(poly, sym,
-                                                dstr)
+                cvd, close, nbars, sess = session_cvd(
+                    poly, sym, dstr)
                 if nbars > 100:
-                    led["rows"].setdefault(sym, {})[dstr] = \
-                        {"cvd": cvd, "close": close}
+                    row = {"cvd": cvd, "close": close}
+                    row.update(sess)
+                    led["rows"].setdefault(sym, {})[dstr] = row
             except Exception as e:  # noqa: BLE001
                 cvd_fetch_err = str(e)[:60]
     for sym in led["rows"]:
@@ -346,10 +431,36 @@ def build(event=None):
                       (closes[-1] / closes[max(0, len(closes)
                                                - 6)] - 1)
                       * 100, 2) if len(closes) >= 2 else 0.0,
+                  "vol_ratio_20d": None,
+                  "close_vs_vwap_pct": None,
+                  "clv_session": None,
+                  "churn_flag": False,
                   "series": [{"d": days[i],
                               "close": closes[i],
                               "cum_cvd": round(cum[i], 0)}
                              for i in range(len(days))]}
+            last = rows[days[-1]]
+            if last.get("vwap") and last.get("c"):
+                cv["close_vs_vwap_pct"] = round(
+                    (last["c"] / last["vwap"] - 1) * 100, 2)
+            if last.get("h") is not None \
+                    and last.get("l") is not None \
+                    and last["h"] > last["l"]:
+                cv["clv_session"] = round(
+                    2 * (last["c"] - last["l"])
+                    / (last["h"] - last["l"]) - 1, 2)
+            vols = [rows[k].get("vol") for k in days
+                    if rows[k].get("vol")]
+            if last.get("vol") and len(vols) >= 6:
+                avg = sum(vols[:-1]) / len(vols[:-1])
+                cv["vol_ratio_20d"] = round(
+                    last["vol"] / avg, 2) if avg else None
+            if cv.get("vol_ratio_20d") \
+                    and cv["vol_ratio_20d"] >= 1.5 \
+                    and last.get("o") \
+                    and abs(last["c"] / last["o"] - 1) \
+                    < 0.003:
+                cv["churn_flag"] = True
             if len(days) >= 20:
                 w_c = closes[-20:]
                 w_v = cum[-20:]

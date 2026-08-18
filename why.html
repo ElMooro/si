@@ -4301,5 +4301,36 @@ async function markStale(d, ticker){
   }catch(e){console.warn('markStale',e);}
 }
 </script>
+
+<!-- tape-truth-module (S-fable-A2, self-contained; namespaced TT_) -->
+<div id="tt_sec" style="max-width:1200px;margin:18px auto;padding:0 16px;font-family:inherit">
+<h2 style="font-size:15px;margin:0 0 6px">&#127902;&#65039; Tape Truth &mdash; genuine vs manufactured moves <a href="tape-truth.html" style="font-size:11px;margin-left:8px">full desk &rarr;</a></h2>
+<div id="tt_note" style="font-size:11px;opacity:.75;margin-bottom:8px">Bar-approximated CVD, volume regime, VWAP, dealer gamma &mdash; evidence-cited verdicts; WARMING until ledgers hold &ge;5 sessions.</div>
+<div id="tt_strip" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+</div>
+<script>
+(async function TT_(){
+  try{
+    const TT_P="https://justhodl-data-proxy.raafouis.workers.dev";
+    const r=await fetch(TT_P+"/data/tape-truth.json?t="+Date.now());
+    if(!r.ok)return;
+    const d=await r.json();
+    if(!d||!d.symbols)return;
+    const qt=(new URLSearchParams(location.search).get("t")||"").toUpperCase();
+    const col=c=>c&&c.indexOf("GENUINE_UP")>=0?"#26ffaf":(c&&(c.indexOf("FAKE")>=0||c==="GENUINE_DOWN")?"#ff5577":(c&&c.indexOf("SHAKEOUT")>=0?"#26ffaf":"#8a93a5"));
+    let h="";
+    const order=Object.keys(d.symbols).sort((a,b)=>(a===qt?-1:(b===qt?1:0)));
+    for(const t2 of order){
+      const s=d.symbols[t2];const v=s.verdict||{};
+      h+='<div style="border:1px solid #223047;border-radius:8px;padding:8px 10px;min-width:150px'+(t2===qt?';box-shadow:0 0 0 1px #26ffaf":"':'')+'">'
+        +'<div style="font-size:11px;font-weight:700">'+t2+(v.conviction!=null?' <span style="float:right;opacity:.7">'+v.conviction+'</span>':'')+'</div>'
+        +'<div style="font-size:11px;color:'+col(v.call)+'">'+((v.call||"\u2013").replace(/_/g," "))+'</div>'
+        +(s.gex&&s.gex.status==="LIVE"?'<div style="font-size:10px;opacity:.7">GEX '+(s.gex.net_gex_bn>0?"+":"")+s.gex.net_gex_bn+'bn '+s.gex.regime.toLowerCase()+'</div>':'')
+        +'</div>';}
+    document.getElementById("tt_strip").innerHTML=h;
+  }catch(e){console.warn("tt-module",e)}
+})();
+</script>
+
 </body>
 </html>

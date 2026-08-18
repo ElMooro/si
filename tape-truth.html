@@ -60,7 +60,7 @@ const cls=v=>v==null?"":(v>0?" pos":(v<0?" neg":""));
 async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok)return await r.json();}catch(e){}return null;}
 const S_=(n,f)=>{try{f()}catch(e){console.warn("sec",n,e)}};
 const chip=(txt,kind)=>'<span style="font-size:10px;font-family:var(--mono);padding:1px 6px;border-radius:4px;border:1px solid var(--border-bright);margin:2px 4px 2px 0;display:inline-block;color:'+(kind==="bad"?"var(--red)":(kind==="good"?"var(--green)":"var(--fg-2)"))+'">'+txt+'</span>';
-const VCOL={GENUINE_UP:"good",GENUINE_DOWN:"bad",FAKE_UP_DISTRIBUTION:"bad",SHAKEOUT_ACCUMULATION:"good",NEUTRAL:"",WARMING:""};
+const VCOL={SUSPECT_GENUINE_UP:"",SUSPECT_GENUINE_DOWN:"",SUSPECT_FAKE_UP_DISTRIBUTION:"bad",SUSPECT_SHAKEOUT_ACCUMULATION:"",GENUINE_UP:"good",GENUINE_DOWN:"bad",FAKE_UP_DISTRIBUTION:"bad",SHAKEOUT_ACCUMULATION:"good",NEUTRAL:"",WARMING:""};
 (async function(){
   const d=await jget("/data/tape-truth.json");
   if(!d||!d.symbols){document.getElementById("sub").textContent="feed "+((d&&d.status)||"unavailable")+" \u2014 "+((d&&d.why)||"");return;}
@@ -75,18 +75,19 @@ const VCOL={GENUINE_UP:"good",GENUINE_DOWN:"bad",FAKE_UP_DISTRIBUTION:"bad",SHAK
     let h="";
     for(const[t,s]of Object.entries(d.symbols)){
       const v=s.verdict||{};const kind=VCOL[v.call]||"";
-      h+='<div class="card"><div class="k">'+t+'</div><div class="v" style="font-size:15px;color:'+(kind==="good"?"var(--green)":(kind==="bad"?"var(--red)":"var(--fg-1)"))+'">'+(v.call||"\u2013").replace(/_/g," ")+'</div>';
+      h+='<div class="card"><div class="k">'+t+(v.conviction!=null?' <span style="float:right;color:var(--fg-2)">conviction '+v.conviction+'</span>':'')+'</div><div class="v" style="font-size:15px;color:'+(kind==="good"?"var(--green)":(kind==="bad"?"var(--red)":"var(--fg-1)"))+'">'+(v.call||"\u2013").replace(/_/g," ")+'</div>';
+      if(v.conviction!=null)h+='<div style="height:5px;background:var(--bg-1);border-radius:3px;margin:6px 0"><div style="height:5px;width:'+v.conviction+'%;border-radius:3px;background:'+(v.conviction>=60?"var(--green)":(v.conviction<40?"var(--red)":"#c9a94a"))+'"></div></div>';
       if(v.why)h+='<div class="s">'+v.why+'</div>';
       for(const e of v.evidence||[])h+=chip(e, e.indexOf("exit-liquidity")>=0||e.indexOf("top-divergence")>=0?"bad":(e.indexOf("accumulation")>=0||e.indexOf("bottom-divergence")>=0?"good":""));
       h+='</div>';}
     document.getElementById("verdicts").innerHTML=h;});
   S_("gex",()=>{
-    let t1='<table><tr><th>symbol</th><th>spot</th><th>net GEX $bn</th><th>regime</th><th>flip~</th><th>P/C OI</th><th>P/C vol</th><th>top wall</th></tr>';
+    let t1='<table><tr><th>symbol</th><th>spot</th><th>net GEX $bn</th><th>regime</th><th>flip~</th><th>P/C OI</th><th>P/C vol</th><th>DTE\u22645 vol</th><th>flip dist</th><th>top wall</th></tr>';
     for(const[t,s]of Object.entries(d.symbols)){
       const g=s.gex;if(!g)continue;
       if(g.status!=="LIVE"){t1+='<tr><td>'+t+'</td><td colspan="7" style="color:var(--fg-3)">'+(g.why||g.status)+'</td></tr>';continue;}
       const w=(g.walls||[])[0];
-      t1+='<tr><td><b>'+t+'</b></td><td>'+g.spot+'</td><td class="'+cls(g.net_gex_bn)+'">'+fN(g.net_gex_bn,2)+'</td><td style="color:'+(g.regime==="POSITIVE"?"var(--green)":"var(--red)")+'">'+g.regime+'</td><td>'+(g.flip_approx==null?"\u2013":g.flip_approx)+'</td><td>'+g.put_call_oi+'</td><td>'+g.put_call_vol+'</td><td>'+(w?w.strike+" ("+fN(w.net_gex_bn,2)+"bn)":"\u2013")+'</td></tr>';}
+      t1+='<tr><td><b>'+t+'</b></td><td>'+g.spot+'</td><td class="'+cls(g.net_gex_bn)+'">'+fN(g.net_gex_bn,2)+'</td><td style="color:'+(g.regime==="POSITIVE"?"var(--green)":"var(--red)")+'">'+g.regime+'</td><td>'+(g.flip_approx==null?"\u2013":g.flip_approx)+'</td><td>'+g.put_call_oi+'</td><td>'+g.put_call_vol+'</td><td>'+(g.dte5_vol_share_pct==null?"\u2013":g.dte5_vol_share_pct+"%")+'</td><td>'+(g.dist_to_flip_pct==null?"\u2013":fN(g.dist_to_flip_pct,2)+"%")+'</td><td>'+(w?w.strike+" ("+fN(w.net_gex_bn,2)+"bn)":"\u2013")+'</td></tr>';}
     document.getElementById("gex").innerHTML=t1+'</table>';});
   S_("cvd",()=>{
     let h="";
