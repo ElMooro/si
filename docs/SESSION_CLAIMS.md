@@ -43,6 +43,16 @@ RRP-only + queue a Fed Data-Download-Program (federalreserve.gov
 My duplicate ops_4864_*.py removed from pending (failed, inert).
 
 ## Done (this arc)
+| provider-window sentinel v1.0.0 (weekly FRED-vs-bank diff, WINDOWED alerting) | 4850 | S-fable-A2 |
+| catalyst-chain v1.0.0 (4-stage event->filing->street machine; 60 chains, 30 unpriced) | 4852-4853 | S-fable-A2 |
+| hot-money engine split + three dedicated desks (foreign-flows/global-flows/hot-money pages) | 4854-4857 | S-fable-A2 |
+| foreign-flows v1.2-v1.3 (21-country treasury matrix; hist_10y; all six official/private families) | 4858-4863 | S-fable-A2 |
+| foreign-flows v1.4 (per-country equity decomposition + Euroclear china+belgium composite) | 4868 | S-fable-A2 |
+| foreign-flows v1.5 (absorption 12.0% + auction tape + accel flags) | 4869-4871 | S-fable-A2 |
+| HOTFIX foreign-flows.html: cross-session TDZ blanked the desk; helpers-first + 10 armored sections, node-gated | 4872 | S-fable-A2 |
+| hot-money v1.1.0: TPEx OTC leg (-4.66bn vs listed +45.45 -> combined +40.79 identity-checked) | 4873-4874 | S-fable-A2 |
+| global-flows v1.3.0: Japan MOF weekly (1,127 weeks banked, both directions; +1,629bn JPY carry bid) | 4875-4876 | S-fable-A2 |
+| gf page hotfix: unit suffix bound to declared unit + JP flag | 4877 | S-fable-A2 |
 | workstream | ops | session |
 |---|---|---|
 | base-rates spine (Fusion 1) | 4818 | S-fable-A |
