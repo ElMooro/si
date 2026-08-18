@@ -1,5 +1,5 @@
 """justhodl-global-flows v1.1.0 -- worldwide foreign capital
-inflows by country.  Marker: global-flows v1.2.0
+inflows by country.  Marker: global-flows v1.3.0
 
 Khalid directive 2026-08-17: country inflows worldwide, the more the
 better, specialists first (industries + raw materials).  Doctrine
@@ -45,7 +45,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/global-flows.json"
 BANK_FMT = "data/providers/bcrp/%s.json"
@@ -306,6 +306,7 @@ def build(event=None):
         pe = {"status": "MISSING", "why": err}
         doc["countries"]["peru"] = pe
         taiwan_block(doc, event)
+        japan_block(doc)
         tw_ok = (doc["countries"].get("taiwan")
                  or {}).get("status") == "LIVE"
         doc["status"] = "LIVE" if tw_ok else "INSUFFICIENT_DATA"
@@ -341,12 +342,127 @@ def build(event=None):
         pe["why"] = "only %d/4 series usable" % live_n
     doc["countries"]["peru"] = pe
     taiwan_block(doc, event)
+    japan_block(doc)
     tw_ok = (doc["countries"].get("taiwan") or {}).get("status") \
         == "LIVE"
     doc["status"] = "LIVE" if (pe["status"] == "LIVE" or tw_ok) \
         else "INSUFFICIENT_DATA"
     doc["diag"]["runtime_ms"] = int((time.time() - t0) * 1000)
     return doc
+
+
+MOF_URL = ("https://www.mof.go.jp/policy/international_policy/"
+           "reference/itn_transactions_in_securities/week.csv")
+MOF_BANK = "data/providers/mof/weekly-securities.json"
+MOF_COLS = {"out_eq": 3, "out_lt": 6, "out_st": 10,
+            "out_total": 11, "in_eq": 14, "in_lt": 17,
+            "in_st": 21, "in_total": 22}
+
+
+def mof_fetch():
+    """cp932 text or (None, reason).  Seam."""
+    try:
+        req = urllib.request.Request(
+            MOF_URL, headers={"User-Agent":
+                              "justhodl-global-flows"})
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return r.read().decode("cp932", "replace"), None
+    except Exception as e:  # noqa: BLE001
+        return None, "fetch_error:%s" % str(e)[:60]
+
+
+def _mof_num(x):
+    s = str(x).replace(",", "").replace("\u25b3", "-") \
+        .replace(" ", "").replace("\u3000", "")
+    if s in ("", "-", "--"):
+        return None
+    try:
+        return float(s)
+    except ValueError:
+        return None
+
+
+def parse_mof(txt):
+    """Rows of 8 nets in JPY bn (file unit = oku yen / 10),
+    chronological.  Structure per ops-4875 dump: period c0 with a
+    range mark; NET columns per MOF_COLS.  Pure fn -- ops 4876
+    imports and validates it against the LIVE file."""
+    import csv as _csv
+    import io as _io
+    out = []
+    for cells in _csv.reader(_io.StringIO(txt)):
+        if len(cells) < 23:
+            continue
+        p = cells[0].replace("\u3000", " ").strip()
+        if not p or "(Note" in p or "Period" in p \
+                or "\u671f\u9593" in p:
+            continue
+        if "\uff5e" not in p and "~" not in p \
+                and "-" not in p:
+            continue
+        vals = {k: _mof_num(cells[i])
+                for k, i in MOF_COLS.items()}
+        if sum(v is not None for v in vals.values()) < 6:
+            continue
+        row = {"period": p}
+        for k, v in vals.items():
+            row[k] = None if v is None else round(v / 10.0, 1)
+        out.append(row)
+    return out
+
+
+def japan_block(doc):
+    """MOF weekly, BOTH directions -- the carry channel.
+    outward_lt = Japanese net buying of foreign long-term bonds
+    (lifers/pensions -> UST demand transmission); inward_* =
+    foreigners buying Japan."""
+    txt, why = mof_fetch()
+    jp = {"status": "MISSING",
+          "specialty": "carry channel / lifer flows",
+          "freq": "weekly", "unit": "JPY bn",
+          "window_label": "4w sum",
+          "source": "Japan MOF weekly securities transactions "
+                    "(keyless CSV, cp932)"}
+    if txt is None:
+        jp["why"] = why
+        doc["countries"]["japan"] = jp
+        return
+    rows = parse_mof(txt)
+    if len(rows) < 24:
+        jp["why"] = "parsed only %d rows" % len(rows)
+        doc["countries"]["japan"] = jp
+        return
+    bank = _g(MOF_BANK) or {"source": "MOF weekly securities "
+                            "(JPY bn, parse v1)", "rows": {}}
+    n0 = len(bank["rows"])
+    for r in rows:
+        bank["rows"][r["period"]] = {k: r[k] for k in MOF_COLS}
+    if len(bank["rows"]) != n0:
+        _put(MOF_BANK, bank)
+    jp["status"] = "LIVE"
+    jp["latest_period"] = rows[-1]["period"]
+    jp["n_weeks"] = len(rows)
+    LBL = {"outward_lt_bonds": ("out_lt", "JP buying foreign "
+                                "LT bonds (carry)"),
+           "outward_equity": ("out_eq", "JP buying foreign "
+                              "equity"),
+           "outward_total": ("out_total", "JP outward total"),
+           "inward_equity": ("in_eq", "foreigners buying JP "
+                             "equity"),
+           "inward_lt_bonds": ("in_lt", "foreigners buying "
+                               "JGB/LT"),
+           "inward_total": ("in_total", "foreign inward total")}
+    ser = {}
+    for name, (col, _d) in LBL.items():
+        vals = [r[col] for r in rows if r[col] is not None]
+        if not vals:
+            ser[name] = {"status": "MISSING"}
+            continue
+        ser[name] = {"latest": vals[-1],
+                     "sum_4q": round(sum(vals[-4:]), 1),
+                     "z_all": zlast(vals)}
+    jp["series"] = ser
+    doc["countries"]["japan"] = jp
 
 
 def lambda_handler(event, context):

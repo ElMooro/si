@@ -53,6 +53,36 @@ SRC = (Path(__file__).resolve().parents[2] / "lambdas"
 sys.path.insert(0, str(SRC))
 import lambda_function as eng  # noqa: E402
 
+MOF_HDR = (",,,,,,,,,,,,,,,,,,,\u5358\u4f4d\uff1a \u5104\u5186,,,\n"
+           '"\u671f\u9593\nPeriod",x,,,,,,,,,,,,,,,,,,,,,\n')
+
+
+def mof_row(period, base):
+    c = [""] * 23
+    c[0] = period
+    c[3] = str(base + 10)        # out_eq (oku)
+    c[6] = str(base + 20)        # out_lt
+    c[10] = "\u25b3" + str(base)  # out_st negative
+    c[11] = str(base + 30)
+    c[14] = str(base + 40)       # in_eq
+    c[17] = str(base + 50)       # in_lt
+    c[21] = str(base)
+    c[22] = str(base + 60)
+    return ",".join(c) + "\n"
+
+
+def fake_mof():
+    txt = MOF_HDR
+    for i in range(30):
+        txt += mof_row("8. %d.%d\uff5e %d.%d"
+                       % (1 + i // 7, 1 + i % 7,
+                          1 + i // 7, 2 + i % 7), 100 + i * 10)
+    txt += "(Note 3),x,,,,,,,,,,,,,,,,,,,,,\n"
+    return txt, None
+
+
+eng.mof_fetch = fake_mof
+
 QS = ["T%d.%02d" % (q, y) for y in range(12, 27)
       for q in range(1, 5)][:57]
 VALS = {
@@ -229,6 +259,27 @@ def main():
         len(STORE[eng.CBC_BANK_FMT % "portfolio_liab_total"]
             ["rows"]) == 30)
 
+    jp = d2["countries"]["japan"]
+    chk("T2 japan MOF weekly LIVE, oku->bn, both directions",
+        jp["status"] == "LIVE" and jp["n_weeks"] == 30
+        and jp["series"]["inward_lt_bonds"]["latest"]
+        == round((100 + 29 * 10 + 50) / 10.0, 1)
+        and jp["series"]["outward_lt_bonds"]["latest"]
+        == round((100 + 29 * 10 + 20) / 10.0, 1)
+        and jp["series"]["outward_lt_bonds"]["sum_4q"]
+        == round(sum((100 + i * 10 + 20) / 10.0
+                     for i in range(26, 30)), 1)
+        and jp["window_label"] == "4w sum")
+    chk("T2 mof bank written (30 periods)",
+        len(STORE[eng.MOF_BANK]["rows"]) == 30)
+    _mf = eng.mof_fetch
+    eng.mof_fetch = lambda: (None, "fetch_error:boom")
+    d_mo = eng.build({})
+    chk("T2 mof dead -> japan MISSING named, doc still LIVE",
+        d_mo["countries"]["japan"]["status"] == "MISSING"
+        and "boom" in d_mo["countries"]["japan"]["why"]
+        and d_mo["status"] == "LIVE")
+    eng.mof_fetch = _mf
     print("== T2 hot-money MOVED pointer ==")
     chk("T2 hot_money = MOVED -> data/hot-money.json",
         tw["hot_money"]["status"] == "MOVED"
@@ -267,11 +318,12 @@ def main():
     out = eng.lambda_handler({}, None)
     chk("A5 handler writes OUT last", PUTS[-1] == eng.OUT_KEY
         and out["ok"] is True)
-    chk("A5 only bcrp/cbc banks + out written (TWSE ledger "
+    chk("A5 only bcrp/cbc/mof banks + out written (TWSE ledger "
         "NEVER touched)",
         all(p == eng.OUT_KEY
             or p.startswith("data/providers/bcrp/")
             or p.startswith("data/providers/cbc/")
+            or p == eng.MOF_BANK
             for p in PUTS))
     print()
     if FAILS:
