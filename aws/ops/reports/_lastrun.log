@@ -1,25 +1,21 @@
-executing-against: 41281fa2d035aeb877cfce80deb60de96ff1fb6c
+executing-against: 89eb2169c2099fdb5a9253918645a2a221dce4da
 ops 4893 — ECB unblock (ciss-stress access pattern)
-[17:12:07]   zip: 100323 bytes
+[17:20:42]   zip: 100323 bytes
 ── 1. Lambda ──
-[17:12:07]   Lambda exists — updating
-[17:12:13] ✅   ✓ updated justhodl-ecb-full-catalog
+[17:20:42]   Lambda exists — updating
+[17:20:45] ✅   ✓ updated justhodl-ecb-full-catalog
+[17:20:45]   zip: 108440 bytes
+── 1. Lambda ──
+[17:20:45]   Lambda exists — updating
+[17:20:51] ✅   ✓ updated justhodl-provider-catalog
+[17:20:51]   zip: 103818 bytes
+── 1. Lambda ──
+[17:20:51]   Lambda exists — updating
+[17:20:56] ✅   ✓ updated justhodl-import-sentinel
+[17:20:56] invoking justhodl-ecb-full-catalog (RequestResponse)…
+[17:20:58] walker Event fired (agency=ecb, budget=700); polling state + data keys up to ~6 min…
+[17:21:44] provider-catalog Event fired; polling refresh up to ~6 min (full-bucket scan)…
+[17:24:14] VERDICT: PASS · gates={"deploys": "ok", "ecb_catalog_banked": "PASS", "ecb_walk_started": "PASS", "sentinel_unblocked": "PASS", "ecb_card_series_and_note": "PASS"}
+[17:24:14] report written: aws/ops/reports/4893.json
 
 → Report written to aws/ops/reports/latest/ops 4893 -- ecb unblock via ciss pattern.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py", line 106, in main
-    rep.row(fn=fn, deploy="ok")
-    ^^^^^^^
-AttributeError: 'Report' object has no attribute 'row'. Did you mean: 'rows'?
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py", line 255, in <module>
-    _overall = main()
-               ^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py", line 108, in main
-    rep.row(fn=fn, deploy="FAIL",
-    ^^^^^^^
-AttributeError: 'Report' object has no attribute 'row'. Did you mean: 'rows'?
-❌ OPS-FAIL: aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py
