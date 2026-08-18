@@ -25,7 +25,13 @@ except Exception:
 
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
-    url = "https://data-api.ecb.europa.eu/service/dataflow/ECB"
+    # ops 4898 (Khalid: EVERY ecb data): the portal hosts 214 flows
+    # across 5 maintainer agencies (ECB 104, ECB.DISS 89 dissemination
+    # views, ESTAT 11, EUROSTAT 6, IMF 4 -- census ops 4897). Bare
+    # /service/dataflow returns them all. ECB-agency ids stay bare for
+    # walker-ledger compat; foreign-agency ids are "AGENCY:ID" and the
+    # walker maps ":" -> "," in the data flowRef.
+    url = "https://data-api.ecb.europa.eu/service/dataflow"
     # ops 4893 (Khalid: "investigate how ciss pulls ECB"): the single
     # Accept "application/xml" was the 406 -- ECB's STRUCTURE endpoint
     # refuses that representation while the DATA endpoint has served
@@ -66,25 +72,33 @@ def lambda_handler(event, context):
     raw_key = snapshot("ecb", url, raw) if snapshot else None
     root = ET.fromstring(raw)
     flows = []
+    agencies = {}
     for df in root.iter():
         if df.tag.endswith("}Dataflow"):
             fid = df.attrib.get("id")
             ver = df.attrib.get("version")
+            ag = df.attrib.get("agencyID") or "ECB"
             name = None
             for ch in df:
                 if ch.tag.endswith("}Name"):
                     name = (ch.text or "").strip()
                     break
             if fid:
-                flows.append({"id": fid, "name": name, "version": ver})
+                agencies[ag] = agencies.get(ag, 0) + 1
+                flows.append({"id": (fid if ag == "ECB"
+                                     else f"{ag}:{fid}"),
+                              "agency": ag, "name": name,
+                              "version": ver})
     flows.sort(key=lambda x: x["id"])
     s3.put_object(Bucket=BUCKET, Key="data/warm/ecb/catalog.json.gz",
                   Body=gzip.compress(json.dumps(
                       {"as_of": now.isoformat(timespec="seconds"),
                        "source_url": url, "raw_snapshot_key": raw_key,
                        "n_dataflows": len(flows),
-                       "note": "dataflow registry; per-dataset series "
-                               "pulls = E10 backfill",
+                       "agencies": agencies,
+                       "note": "dataflow registry, ALL portal "
+                               "maintainer agencies; per-dataset "
+                               "series pulls = E10 backfill",
                        "accept_winner": winner,
                        "negotiation": ladder,
                        "dataflows": flows}).encode()),
@@ -101,6 +115,7 @@ def lambda_handler(event, context):
                       "sample": flows[:8]}).encode(),
                   ContentType="application/json", CacheControl="no-cache")
     res = {"ok": True, "n_dataflows": len(flows),
+           "agencies": agencies,
            "accept_winner": winner, "negotiation": ladder,
            "key_flows": key_ids}
     print(json.dumps(res))

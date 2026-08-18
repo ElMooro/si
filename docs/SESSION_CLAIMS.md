@@ -20,7 +20,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 |---|---|---|---|
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
-| ECB completeness proof (Khalid emphasis: EVERY flow, ALL history): all-agencies dataflow census vs banked 104, failures classification chase, deep v1.1 (month-split, resync, revision rotation, coverage.json), ECB card coverage note | 4897 | S-F5#p9k4 | 2026-08-18 19:0x (claim+ship) |
+| ECB completeness proof (Khalid emphasis: EVERY flow, ALL history): all-agencies dataflow census vs banked 104, failures classification chase, deep v1.1 (month-split, resync, revision rotation, coverage.json), ECB card coverage note; +4898 portal expansion 104->214 (ECB.DISS/ESTAT/EUROSTAT/IMF agencies, flowRef mapping) | 4897-4898 | S-F5#p9k4 | 2026-08-18 19:0x (claim+ship) |
 
 ### SHARED-SURFACE RULE (foreign-flows.html) -- 2026-08-17 23:4x
 The page script is now: helpers block FIRST (PROXY/fN/cls/zs/acc/

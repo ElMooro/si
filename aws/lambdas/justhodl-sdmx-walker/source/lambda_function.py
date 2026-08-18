@@ -299,16 +299,20 @@ def lambda_handler(event, context):
             _save(_k0, _st0, _st0.get("n_total") or len(ecb_ids))
         if ag == "ecb":
           _ecb_base = "https://data-api.ecb.europa.eu/service/data/"
+          # ops 4898: "AGENCY:ID" catalog ids -> "AGENCY,ID" flowRef
+          _fr = lambda f: str(f).replace(":", ",")
           _ecb_alts = [
-            (lambda f: _ecb_base + f + "?format=csvdata",
+            (lambda f: _ecb_base + _fr(f) + "?format=csvdata",
              {"Accept": "text/csv"}),
-            (lambda f: _ecb_base + f,
+            (lambda f: _ecb_base + _fr(f),
              {"Accept": "application/vnd.sdmx.data+csv;version=1.0.0"}),
-            (lambda f: _ecb_base + f + "?format=csvdata&detail=dataonly",
+            (lambda f: _ecb_base + _fr(f)
+             + "?format=csvdata&detail=dataonly",
              {"Accept": "text/csv"}),
-            (lambda f: _ecb_base + f + "?format=genericdata",
+            (lambda f: _ecb_base + _fr(f) + "?format=genericdata",
              {"Accept": "application/xml"}),
           ]
+
           _walk_generic(
             "ecb", ecb_ids, _ecb_alts[0][0],
             "data/warm/ecb/data", S, _budget=_ebud,
