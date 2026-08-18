@@ -118,6 +118,7 @@ api.github.com / raw.githubusercontent.com. It does NOT have egress to
   AAR/Railinc feed.
 
 - **ECB SDMX (ops 4893)**: the STRUCTURE endpoint 406s `Accept: application/xml` — send NO Accept header (server default SDMX-ML wins) or the vnd.sdmx.structure+xml;version=2.1 type. The DATA endpoint never negotiates when `?format=csvdata` is in the query (the ciss-stress pattern; series enumeration = `{flow}?format=csvdata&lastNObservations=1`). Never diagnose "ECB blocked" from the catalog path alone.
+- **deploy_lambda() inside an ops that shares a push with lambda source changes CLOBBERS the shared-inclusive artifact** (ops 4893 rev-B/C, self-caught 4894): the helper zips ONLY source/, never aws/shared/**, so fns importing shared modules (even fail-soft, e.g. raw_snapshot) silently degrade. Remediation pattern: workflow_dispatch deploy-lambdas.yml function=<fn> (API 204), then an ops that zip-settles BY CONTENT (namelist must hold the shared file) before invoking.
 - **ops_report API is `rep.kv(**kw)`, NOT `rep.row(...)`** — the module docstring still shows r.row and cost ops 4893 two revs. Methods: heading/section/log/ok/warn/fail/kv.
 - **Empty scheduled invokes**: EventBridge targets created by the workflow
   carry NO `Input`. Handlers that require a payload (e.g. `{"tickers":[...]}`)

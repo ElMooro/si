@@ -64,7 +64,7 @@ My duplicate ops_4864_*.py removed from pending (failed, inert).
 | hot-money page v1.2: spark-undefined burn fixed (armored rebuild); bars+cumulative tape, OTC accrual tape, 15-session dual-board table, extremes chips | 4892 | S-fable-A2 |
 | workstream | ops | session |
 |---|---|---|
-| ECB unblock (Khalid's ciss hunch confirmed): 406 was the STRUCTURE call's Accept: application/xml only — no-accept won rung 1 (200), 104 dataflows banked, walker converging 2/104 0-fail, sentinel sdmx-ecb=RUNNING, data.html ECB card = 104 series + ciss-stress note + data/ciss prefix (182 keys) | 4893 (3 revs: ROOT parents[3]; Report API kv not row) | S-F5#p9k4 | 2026-08-18 17:24 PASS all 5 gates |
+| ECB unblock (Khalid's ciss hunch confirmed): 406 was the STRUCTURE call's Accept: application/xml only — no-accept won rung 1 (200), 104 dataflows banked, walker converging 2/104 0-fail, sentinel sdmx-ecb=RUNNING, data.html ECB card = 104 series + ciss-stress note + data/ciss prefix (182 keys) | 4893+4894 (3 revs: ROOT parents[3]; Report API kv not row; 4894 = self-caught shared-zip clobber -> dispatch redeploy + F4 restore) | S-F5#p9k4 | 2026-08-18 17:24 PASS all 5 gates |
 | base-rates spine (Fusion 1) | 4818 | S-fable-A |
 | odds chips consumers (Fusion 1) | 4819-4820 | S-B |
 | plumbing composite + risk-gate v2.4 (Fusion 2) | 4821-4823 | S-fable-A |
