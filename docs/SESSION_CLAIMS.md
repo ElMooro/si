@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| TPEx wire into hot-money v1.1: dump tpex_3insti_summary JSON (1KB, ONLY real JSON answer, probe 4870) then bind NT$ field | 4873-4874 | S-fable-A2 | 2026-08-17 23:3x |
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
@@ -88,9 +87,6 @@ ENGINE BRAIN (no new data): official-demand composite (TIC monthly
   revision-bias per series); flowsxplumbing concordance block
 
 ## Open queue (expansion wave 2 -- from probe 4858, endpoints verbatim in its report)
-- TPEx OTC daily foreign net -> hot-money taiwan v1.1 (openapi
-  tpex_3insti_daily_trading JSON 862KB + en 3itrade_hedge_result.php
-  both HTTP 200; sums listed+OTC; ROC-year dates need conversion)
 - Japan MOF weekly securities flows -> global-flows japan (CSV alive
   254KB Shift-JIS at /policy/international_policy/reference/
   itn_transactions_in_securities/week.csv; cp932 parse micro-probe)
