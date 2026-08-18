@@ -103,9 +103,9 @@ def main():
                     memory=int(cfg.get("memory") or 512),
                     description=str(cfg.get("description") or "")[:250],
                     create_function_url=False, smoke=False)
-                rep.row(fn=fn, deploy="ok")
+                rep.kv(fn=fn, deploy="ok")
             except Exception as e:
-                rep.row(fn=fn, deploy="FAIL",
+                rep.kv(fn=fn, deploy="FAIL",
                         err=f"{type(e).__name__}: {str(e)[:120]}")
                 verdict["gates"]["deploy_" + fn] = "FAIL"
         verdict["gates"].setdefault("deploys", "ok")
@@ -122,12 +122,12 @@ def main():
                 payload if isinstance(payload, dict) else {})
             n_flows = int(cat_res.get("n_dataflows") or 0)
             winner = cat_res.get("accept_winner")
-            rep.row(stage="catalog-invoke", ok=bool(cat_res.get("ok")),
+            rep.kv(stage="catalog-invoke", ok=bool(cat_res.get("ok")),
                     n_dataflows=n_flows, accept_winner=winner,
                     negotiation=json.dumps(
                         cat_res.get("negotiation") or [])[:300])
         except Exception as e:
-            rep.row(stage="catalog-invoke", ok=False,
+            rep.kv(stage="catalog-invoke", ok=False,
                     err=f"{type(e).__name__}: {str(e)[:200]}")
         # read-back, never trust the invoke alone
         cat_ok = False
@@ -135,11 +135,11 @@ def main():
             cat = g("data/warm/ecb/catalog.json.gz")
             ids = [f.get("id") for f in (cat.get("dataflows") or [])]
             cat_ok = len(ids) >= 40 and "CISS" in ids
-            rep.row(stage="catalog-readback", n_dataflows=len(ids),
+            rep.kv(stage="catalog-readback", n_dataflows=len(ids),
                     ciss_present=("CISS" in ids),
                     sample=",".join(str(i) for i in ids[:12]))
         except Exception as e:
-            rep.row(stage="catalog-readback", ok=False,
+            rep.kv(stage="catalog-readback", ok=False,
                     err=f"{type(e).__name__}: {str(e)[:150]}")
         verdict["gates"]["ecb_catalog_banked"] = "PASS" if cat_ok \
             else "FAIL"
@@ -163,7 +163,7 @@ def main():
                 data_keys = count_prefix("data/warm/ecb/data/")
                 if walk_state and data_keys > 0:
                     break
-            rep.row(stage="walker",
+            rep.kv(stage="walker",
                     state_present=bool(walk_state),
                     status=(walk_state or {}).get("status"),
                     n_total=(walk_state or {}).get("n_total"),
@@ -173,7 +173,7 @@ def main():
                     failures=len((walk_state or {}).get("failures")
                                  or {}))
         else:
-            rep.row(stage="walker", skipped="catalog gate failed")
+            rep.kv(stage="walker", skipped="catalog gate failed")
         verdict["gates"]["ecb_walk_started"] = (
             "PASS" if (walk_state and data_keys > 0) else
             "PENDING" if walk_state else "FAIL")
@@ -187,11 +187,11 @@ def main():
             ih = g("data/import-health.json")
             ecb_pipe = next((p for p in (ih.get("pipelines") or [])
                              if p.get("name") == "sdmx-ecb"), None)
-            rep.row(stage="sentinel", found=bool(ecb_pipe),
+            rep.kv(stage="sentinel", found=bool(ecb_pipe),
                     status=(ecb_pipe or {}).get("status"),
                     detail=str((ecb_pipe or {}).get("detail"))[:160])
         except Exception as e:
-            rep.row(stage="sentinel", ok=False,
+            rep.kv(stage="sentinel", ok=False,
                     err=f"{type(e).__name__}: {str(e)[:150]}")
         _st = str((ecb_pipe or {}).get("status") or "")
         _dt = str((ecb_pipe or {}).get("detail") or "")
@@ -217,14 +217,14 @@ def main():
             pc = g("data/provider-catalog.json")
             ecb_card = next((p for p in (pc.get("providers") or [])
                              if p.get("slug") == "ecb"), None)
-            rep.row(stage="provider-catalog",
+            rep.kv(stage="provider-catalog",
                     refreshed=bool(ecb_card),
                     series_count=(ecb_card or {}).get("series_count"),
                     n_keys=(ecb_card or {}).get("n_keys"),
                     note=str((ecb_card or {}).get("catalog_note")
                              )[:200])
         except Exception as e:
-            rep.row(stage="provider-catalog", ok=False,
+            rep.kv(stage="provider-catalog", ok=False,
                     err=f"{type(e).__name__}: {str(e)[:150]}")
         _note = str((ecb_card or {}).get("catalog_note") or "")
         verdict["gates"]["ecb_card_series_and_note"] = (
