@@ -1,0 +1,95 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Hot Money · daily foreign flows · JustHodl AI</title>
+<meta name="description" content="Daily foreign net buying in liquid markets — the fast layer, kept strictly apart from macro capital flows. Taiwan TWSE live with a 60-day ledger tape; Korea slot ready for KRX keys. Engine: justhodl-hot-money.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{min-height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:8px 24px;background:var(--bg-1);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 24px 70px}
+.hero h1{font-size:28px;font-weight:800;color:var(--fg-0)}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--fg-2);margin:6px 0 16px;max-width:860px}
+.badge{display:none;background:var(--amber);color:#000;border-radius:6px;padding:2px 10px;font-size:11px;font-weight:700;font-family:var(--mono);vertical-align:middle;margin-left:10px}
+.sec{margin-top:30px}
+.sec h2{font-size:15px;font-family:var(--mono);color:var(--fg-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.card{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:14px 14px 12px}
+.card .k{font-size:11px;font-family:var(--mono);color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px}
+.card .v{font-size:22px;font-weight:800;color:var(--fg-0);margin-top:4px;font-family:var(--mono)}
+.card .s{font-size:11px;color:var(--fg-3);margin-top:3px}
+.pos{color:var(--green)!important}.neg{color:var(--red)!important}.amb{color:var(--amber)!important}
+table{width:100%;border-collapse:collapse;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+th{font-family:var(--mono);font-size:11px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px;text-align:right;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--bg-1)}
+th:first-child,td:first-child{text-align:left}
+td{padding:8px 12px;font-family:var(--mono);font-size:13px;text-align:right;border-bottom:1px solid var(--border);color:var(--fg-1)}
+tr:last-child td{border-bottom:none}
+.note{color:var(--fg-3);font-size:11px;margin-top:10px;max-width:1000px}
+.chip{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;opacity:.8}
+.chip b{font-size:12px;font-family:var(--mono)}
+.chip .w{font-size:11px;color:var(--fg-3);margin-top:3px}
+</style></head><body>
+<div class="header"><div class="wrap"><a class="logo" href="index.html">JUSTHODL<span>&middot;AI</span></a>
+<div class="nav"><a href="why.html">research</a><a href="earnings.html">earnings</a><a href="tape-truth.html">tape truth</a><a class="on" href="industry-case.html">industry case</a></div></div></div>
+<div class="wrap">
+<div class="hero"><h1>&#129513; Industry Case <span style="font-size:12px;color:var(--fg-2)">what role does this stock play?</span></h1>
+<div id="sub" class="note">loading&hellip;</div>
+<div style="margin-top:10px"><input id="tk" placeholder="ticker, e.g. NVDA" style="font-family:var(--mono);background:var(--bg-1);border:1px solid var(--border-bright);color:var(--fg-0);padding:7px 12px;border-radius:6px;width:180px;text-transform:uppercase"> <button id="go" style="font-family:var(--mono);padding:7px 14px;border-radius:6px;border:1px solid var(--border-bright);background:var(--bg-1);color:var(--fg-0);cursor:pointer">open case</button></div></div>
+<div class="sec" id="casewrap" style="display:none"><h2 id="ct"></h2><div id="ai"></div><div id="qa"></div></div>
+<div class="sec"><h2>Industry league &mdash; heat &times; size</h2>
+<div class="note">Share figures are of the LISTED-US investable cohort (universe mcap), never a claimed product-market share &mdash; the method line travels with every case.</div>
+<div id="inds"></div></div>
+<div class="note">Engine: justhodl-industry-case &middot; daily 13:00 UTC. Value-chain edges (who supplies whom) are DEFERRED until readthrough event&rarr;edge aggregation is proven &mdash; stated, never guessed. AI narratives self-heal on Anthropic credits.</div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+const fN=(v,d)=>v==null?"\u2013":(v>0?"+":"")+v.toFixed(d==null?1:d);
+async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok)return await r.json();}catch(e){}return null;}
+const S_=(n,f)=>{try{f()}catch(e){console.warn("sec",n,e)}};
+let D=null;
+function qa(t,c){
+  const ind=(D.industries||{})[c.industry]||{};
+  const peers=(ind.top5||[]).map(x=>x.t+(x.t===t?"*":"")+" ("+x.share_pct+"%)").join(" \u00b7 ");
+  const b=c.boom;
+  const rows=[
+    ["1. What is "+t+"?", c.name+" \u2014 "+c.sector+" / "+c.industry+", $"+c.mcap_b+"B ("+(c.bucket||"?")+" cap)."],
+    ["2. How big is it in its industry?", "Rank #"+c.ind_rank+" of "+c.ind_n+" listed US names \u2014 "+c.ind_share_pct+"% of the industry's $"+(ind.total_mcap_b||"?")+"B investable market value."+(c.ind_share_pct>=50?" It IS the industry by market value.":(c.ind_rank===1?" The largest name in the cohort.":""))],
+    ["3. Who are the peers that matter?", peers||"cohort unavailable"],
+    ["4. Is the industry hot right now?", b?("Boom score "+b.score+" \u2014 rank "+b.rank+" of "+b.of+" industries"+(b.rank<=Math.ceil(b.of*0.1)?" (top decile).":".")):"industry not in the boom league \u2014 stated, not guessed."],
+    ["5. Is institutional money moving in?", b&&b.inst_net_bps!=null?("Industry 13F net "+fN(b.inst_net_bps,1)+"bps of mcap; insider buys 30d: "+(b.insider_buys_30d==null?"\u2013":b.insider_buys_30d)+"."):"institutional legs not covered for this industry."],
+    ["6. Did it just prove itself on earnings?", c.earn?("Beat-league rank #"+c.earn.beat_rank+" (score "+fN(c.earn.beat_score)+", EPS surprise "+fN(c.earn.eps_surprise_pct)+"%)"+(c.earn.growth_pick_score?" \u00b7 transcript growth pick "+c.earn.growth_pick_score+".":".")):"not in the current 35-day reporter window."],
+    ["7. Is today's move genuine?", c.tape?("Tape-truth: "+(c.tape.call||"").replace(/_/g," ")+(c.tape.conviction!=null?" (conviction "+c.tape.conviction+")":"")+" \u2014 full evidence on the tape-truth desk."):"not on the 12-name tape watchlist yet."],
+    ["8. Who supplies it / who depends on it?", "DEFERRED \u2014 value-chain edges ship once readthrough event\u2192edge aggregation is proven. Never guessed."]];
+  let h="";
+  for(const[q,a]of rows)h+='<div class="card" style="margin-bottom:8px"><div class="k">'+q+'</div><div class="s" style="font-size:12px;color:var(--fg-1);margin-top:4px">'+a+'</div></div>';
+  return h;}
+function openCase(t){
+  t=(t||"").toUpperCase().trim();
+  const c=D&&D.cases&&D.cases[t];
+  const w=document.getElementById("casewrap");
+  if(!c){w.style.display="block";document.getElementById("ct").textContent=t+" \u2014 not in the universe spine";document.getElementById("qa").innerHTML="";document.getElementById("ai").innerHTML="";return;}
+  w.style.display="block";
+  document.getElementById("ct").textContent=t+" \u00b7 "+c.name;
+  document.getElementById("ai").innerHTML=c.ai_case?'<div class="note" style="font-style:italic">'+c.ai_case+' <span style="color:var(--fg-3)">['+(c.ai_mode||"")+']</span></div>':(c.ai_mode?'<div class="note" style="color:var(--fg-3)">'+c.ai_mode+'</div>':'');
+  document.getElementById("qa").innerHTML=qa(t,c);
+  history.replaceState(null,"","industry-case.html?t="+t);}
+(async function(){
+  D=await jget("/data/industry-case.json");
+  if(!D||D.status!=="LIVE"){document.getElementById("sub").textContent="feed "+((D&&D.status)||"unavailable")+" \u2014 "+((D&&D.why)||"");return;}
+  S_("hero",()=>{document.getElementById("sub").textContent="As of "+D.as_of+" \u00b7 "+D.n_cases.toLocaleString()+" cases across "+D.n_industries+" industries";});
+  S_("inds",()=>{
+    const rows=Object.entries(D.industries||{}).map(([k,v])=>[k,v]).sort((a,b)=>((b[1].boom&&b[1].boom.score)||-1)-((a[1].boom&&a[1].boom.score)||-1));
+    let t1='<table><tr><th>industry</th><th>sector</th><th>boom</th><th>names</th><th>total mcap</th><th>top name (share)</th></tr>';
+    for(const[k,v]of rows.slice(0,60)){const tp=(v.top5||[])[0];
+      t1+='<tr><td><b>'+k+'</b></td><td>'+(v.sector||"")+'</td><td>'+((v.boom&&v.boom.score)!=null?v.boom.score:"\u2013")+'</td><td>'+v.n+'</td><td>$'+v.total_mcap_b.toLocaleString()+'B</td><td>'+(tp?tp.t+" ("+tp.share_pct+"%)":"\u2013")+'</td></tr>';}
+    document.getElementById("inds").innerHTML=t1+'</table>';});
+  document.getElementById("go").onclick=()=>openCase(document.getElementById("tk").value);
+  document.getElementById("tk").addEventListener("keydown",e=>{if(e.key==="Enter")openCase(e.target.value);});
+  const q=new URLSearchParams(location.search).get("t");
+  if(q)openCase(q);
+})();
+</script></body></html>

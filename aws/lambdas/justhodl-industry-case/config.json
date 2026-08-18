@@ -1,0 +1,9 @@
+{
+  "FunctionName": "justhodl-industry-case",
+  "Description": "Per-ticker role-in-industry case study: mcap rank+share within industry, peer cohort, boom-league heat, earnings-desk join, tape-truth join -- assembled into an 8-question evidence-cited Q&A. LLM narrative self-heals on Anthropic credits. Daily 13:00 UTC M-F.",
+  "Handler": "lambda_function.lambda_handler",
+  "Runtime": "python3.12",
+  "Timeout": 300,
+  "MemorySize": 1024,
+  "Schedule": "cron(0 13 ? * MON-FRI *)"
+}

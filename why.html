@@ -4302,6 +4302,40 @@ async function markStale(d, ticker){
 }
 </script>
 
+
+<!-- industry-case-module (S-fable-A2, self-contained; namespaced IC_) -->
+<div id="ic_sec" style="max-width:1200px;margin:18px auto;padding:0 16px">
+<h2 style="font-size:15px;margin:0 0 6px">&#129513; Industry Case &mdash; the stock's role in its industry <a href="industry-case.html" style="font-size:11px;margin-left:8px">full desk &rarr;</a></h2>
+<div id="ic_body" style="font-size:12px"></div>
+</div>
+<script>
+(async function IC_(){
+  try{
+    const IC_P="https://justhodl-data-proxy.raafouis.workers.dev";
+    const qt=(new URLSearchParams(location.search).get("t")||"").toUpperCase();
+    const r=await fetch(IC_P+"/data/industry-case.json?t="+Date.now());
+    if(!r.ok)return;
+    const D=await r.json();
+    if(!D||!D.cases)return;
+    const el=document.getElementById("ic_body");
+    if(!qt||!D.cases[qt]){
+      el.innerHTML='<span style="opacity:.7">Open any ticker (?t=NVDA) to see its rank, industry share, cohort, boom heat, and desk joins \u2014 or use the full desk.</span>';return;}
+    const c=D.cases[qt];const ind=(D.industries||{})[c.industry]||{};const b=c.boom;
+    const card=(k,v)=>'<div style="border:1px solid #223047;border-radius:8px;padding:8px 10px;min-width:170px"><div style="font-size:10px;opacity:.65">'+k+'</div><div style="font-size:12px;margin-top:2px">'+v+'</div></div>';
+    let h='<div style="display:flex;flex-wrap:wrap;gap:8px">';
+    h+=card("Role","#"+c.ind_rank+" of "+c.ind_n+" in "+c.industry);
+    h+=card("Industry share",c.ind_share_pct+"% of $"+(ind.total_mcap_b||"?")+"B cohort"+(c.ind_share_pct>=50?" \u2014 it IS the industry":""));
+    h+=card("Industry heat",b?("boom "+b.score+" \u00b7 rank "+b.rank+"/"+b.of):"not in boom league");
+    h+=card("Peers",((ind.top5||[]).slice(0,4).map(x=>x.t).join(" \u00b7 "))||"\u2013");
+    if(c.earn)h+=card("Earnings desk","beat #"+c.earn.beat_rank+(c.earn.growth_pick_score?" \u00b7 growth pick "+c.earn.growth_pick_score:""));
+    if(c.tape)h+=card("Tape truth",(c.tape.call||"").replace(/_/g," "));
+    h+='</div>';
+    if(c.ai_case)h+='<div style="margin-top:8px;font-style:italic;opacity:.85">'+c.ai_case+'</div>';
+    el.innerHTML=h;
+  }catch(e){console.warn("ic-module",e)}
+})();
+</script>
+
 <!-- tape-truth-module (S-fable-A2, self-contained; namespaced TT_) -->
 <div id="tt_sec" style="max-width:1200px;margin:18px auto;padding:0 16px;font-family:inherit">
 <h2 style="font-size:15px;margin:0 0 6px">&#127902;&#65039; Tape Truth &mdash; genuine vs manufactured moves <a href="tape-truth.html" style="font-size:11px;margin-left:8px">full desk &rarr;</a></h2>
