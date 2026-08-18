@@ -1,17 +1,9 @@
-executing-against: 82b8f8ab38a03fed05194c42ebe60031d2378882
-1. settle + invoke
-[01:28:42] ✅ marker settled (attempt 1)
-[01:28:58] ✅ fresh in 15s
-2. G0 + truths
-[01:28:58] ✅ league[0] carries bucket key (DUOT micro)
-[01:28:58] ✅ join 311/524 reporters
-[01:28:59] ✅   DUOT join == independent universe read (Technology, $0.16B)
-[01:28:59] ✅   by_bucket {'large': 7, 'mid': 21, 'small': 54, 'micro': 229} (sum 311 <= matched)
-[01:28:59] ✅   picks carry join fields (top DUOT micro $0.16B)
-3. page
-[01:28:59] ✅   committed filter
-[01:31:29] ✅   SERVED (150s)
-4. verdict
-[01:31:29] ✅ cap-aware earnings desk: joins recomputed, buckets honest, filters live
+executing-against: 94af1ab520c486e6bba56cb0af4054b3557a5f23
+[01:46:41] ✗   10 sortable headers
+[01:46:41] ✅   null-sink comparator
+[01:46:41] ✅   direction toggle
+[01:46:41] ✅   filter composes with sort
+[01:46:41] ✅   node-balanced braces
 
-→ Report written to aws/ops/reports/latest/ops 4882 -- earnings v1.1 verify.md
+→ Report written to aws/ops/reports/latest/ops 4883 -- sortable league verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_4883_sortable_verify.py
