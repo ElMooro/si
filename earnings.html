@@ -43,7 +43,7 @@ tr:last-child td{border-bottom:none}
 <div class="note">Rules lexicon scored per 10k words with verbatim evidence quotes; picks require score&ge;62, &ge;3 distinct positive phrases, &ge;3,000-word calls. AI one-liners activate automatically when the Anthropic account self-heals &mdash; until then every pick is tagged rules_only.</div>
 <div id="picks" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-top:10px"></div></div>
 <div class="sec"><h2>Beat League &mdash; ranked by surprise score</h2>
-<div class="note" id="meth"></div><div id="league"></div></div>
+<div class="note" id="meth"></div><div id="bfilter" style="margin:8px 0"></div><div id="league"></div></div>
 <div class="sec"><h2>Biggest Misses</h2><div id="misses"></div></div>
 <div class="note">Every figure traces to FMP stable-calendar fields (epsActual/epsEstimated/revenueActual/revenueEstimated); surprises with |estimate|&lt;$0.01 are excluded, never faked. Engine: justhodl-earnings.</div>
 </div>
@@ -64,14 +64,20 @@ const chip=(txt,neg)=>'<span style="font-size:10px;font-family:var(--mono);paddi
       '<div class="card"><div class="k">Reporters</div><div class="v">'+(s.n_reporters==null?"\u2013":s.n_reporters)+'</div><div class="s">EPS actual + estimate present</div></div>'+
       '<div class="card"><div class="k">Beat rate</div><div class="v'+cls((s.beat_rate_pct||0)-50)+'">'+(s.beat_rate_pct==null?"\u2013":s.beat_rate_pct+"%")+'</div><div class="s">eps_a &gt; eps_e</div></div>'+
       '<div class="card"><div class="k">Avg EPS surprise</div><div class="v'+cls(s.avg_eps_surprise_pct)+'">'+fN(s.avg_eps_surprise_pct)+'%</div><div class="s">mean across window</div></div>'+
-      '<div class="card"><div class="k">Calls scanned</div><div class="v">'+((d.growth_calls||{}).scanned==null?"\u2013":d.growth_calls.scanned)+'</div><div class="s">transcripts this run</div></div>';});
+      '<div class="card"><div class="k">Calls scanned</div><div class="v">'+((d.growth_calls||{}).scanned==null?"\u2013":d.growth_calls.scanned)+'</div><div class="s">transcripts this run</div></div>';
+    const bb=(d.stats||{}).by_bucket||{};let bh="";
+    for(const b of["large","mid","small","micro"]){const x=bb[b];if(!x)continue;
+      bh+='<div class="card"><div class="k">'+b+' caps</div><div class="v'+cls(x.beat_rate_pct-50)+'">'+x.beat_rate_pct+'%</div><div class="s">beat rate \u00b7 n='+x.n+'</div></div>';}
+    if(bh)document.getElementById("stats").innerHTML+=bh;
+    const uj=d.universe_join||{};
+    if(uj.status==="LIVE")document.getElementById("sub").textContent+=" \u00b7 universe join "+uj.matched+"/"+uj.of;});
   S_("picks",()=>{
     const P=(d.growth_calls||{}).picks||[];let h="";
     for(const p of P){
       let ch="";const ph=Object.entries(p.pos_hits||{}).sort((a,b)=>b[1]-a[1]).slice(0,3);
       for(const[k,c]of ph)ch+=chip(k+" \u00d7"+c,false);
       for(const[k,c]of Object.entries(p.neg_hits||{}).slice(0,2))ch+=chip(k+" \u00d7"+c,true);
-      h+='<div class="card"><div class="k">'+p.t+' \u00b7 '+(p.period||"")+' \u00b7 call '+(p.call_date||"")+(p.demand_flag?' '+chip("INDUSTRY DEMAND",false):'')+'</div>'
+      h+='<div class="card"><div class="k">'+p.t+(p.bucket?' \u00b7 '+p.bucket:'')+(p.mcap_b!=null?' $'+p.mcap_b+'B':'')+' \u00b7 '+(p.period||"")+' \u00b7 call '+(p.call_date||"")+(p.demand_flag?' '+chip("INDUSTRY DEMAND",false):'')+'</div>'
         +'<div class="v'+cls(p.pick_score-50)+'">'+p.pick_score+'</div>'
         +'<div class="s">growth '+p.growth_score+' \u00b7 beat rank '+(p.beat_rank==null?"\u2013":"#"+p.beat_rank)+' (score '+fN(p.beat_score)+') \u00b7 '+p.words.toLocaleString()+' words</div>'
         +'<div style="margin-top:6px">'+ch+'</div>'
@@ -81,10 +87,16 @@ const chip=(txt,neg)=>'<span style="font-size:10px;font-family:var(--mono);paddi
     document.getElementById("picks").innerHTML=h||'<div class="note">no picks cleared the gate this run \u2014 thresholds are never bent.</div>';});
   S_("league",()=>{
     document.getElementById("meth").textContent=((d.method||{}).beat||"");
-    const rowhtml=r=>'<tr><td>'+r.rank+'</td><td><b>'+r.t+'</b></td><td>'+r.date+'</td><td>'+r.eps_a+'</td><td>'+r.eps_e+'</td><td class="'+cls(r.eps_surprise_pct)+'">'+fN(r.eps_surprise_pct)+'%</td><td class="'+cls(r.rev_surprise_pct)+'">'+(r.rev_surprise_pct==null?"\u2013":fN(r.rev_surprise_pct)+"%")+'</td><td class="'+cls(r.beat_score)+'">'+fN(r.beat_score)+'</td></tr>';
-    const hd='<table><tr><th>#</th><th>ticker</th><th>date</th><th>EPS a</th><th>EPS e</th><th>EPS surp</th><th>rev surp</th><th>score</th></tr>';
-    let t1=hd;for(const r of (d.beat_league||[]).slice(0,100))t1+=rowhtml(r);
-    document.getElementById("league").innerHTML=t1+'</table>';
+    const rowhtml=r=>'<tr><td>'+r.rank+'</td><td><b>'+r.t+'</b>'+(r.name?' <span style="color:var(--fg-3);font-size:11px">'+r.name+'</span>':'')+'</td><td>'+r.date+'</td><td>'+(r.sector||"\u2013")+'</td><td>'+(r.mcap_b==null?"\u2013":"$"+r.mcap_b+"B")+'</td><td>'+r.eps_a+'</td><td>'+r.eps_e+'</td><td class="'+cls(r.eps_surprise_pct)+'">'+fN(r.eps_surprise_pct)+'%</td><td class="'+cls(r.rev_surprise_pct)+'">'+(r.rev_surprise_pct==null?"\u2013":fN(r.rev_surprise_pct)+"%")+'</td><td class="'+cls(r.beat_score)+'">'+fN(r.beat_score)+'</td></tr>';
+    const hd='<table><tr><th>#</th><th>ticker</th><th>date</th><th>sector</th><th>mcap</th><th>EPS a</th><th>EPS e</th><th>EPS surp</th><th>rev surp</th><th>score</th></tr>';
+    const render=b=>{let t1=hd;let k=0;
+      for(const r of (d.beat_league||[])){if(b!=="all"&&r.bucket!==b)continue;t1+=rowhtml(r);if(++k>=100)break;}
+      document.getElementById("league").innerHTML=t1+'</table>'+(k===0?'<div class="note">no '+b+'-cap reporters matched this window.</div>':'');};
+    let fb="";for(const b of["all","large","mid","small","micro"])
+      fb+='<button data-b="'+b+'" style="font-family:var(--mono);font-size:11px;margin-right:6px;padding:3px 10px;border-radius:5px;border:1px solid var(--border-bright);background:var(--bg-1);color:var(--fg-1);cursor:pointer">'+b+'</button>';
+    const bf=document.getElementById("bfilter");bf.innerHTML=fb;
+    bf.querySelectorAll("button").forEach(x=>x.onclick=()=>render(x.dataset.b));
+    render("all");
     let t2=hd;for(const r of (d.biggest_misses||[]).slice(0,15))t2+=rowhtml(r);
     document.getElementById("misses").innerHTML=t2+'</table>';});
 })();

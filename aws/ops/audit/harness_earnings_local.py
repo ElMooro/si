@@ -89,6 +89,16 @@ def fake_http(url):
 
 
 eng.http_json = fake_http
+STORE["data/universe.json"] = {"stocks": [
+    {"symbol": "AAA", "name": "Alpha Corp", "sector": "Tech",
+     "industry": "Software", "market_cap": 25e9,
+     "cap_bucket": "large"},
+    {"symbol": "DDD", "name": "Delta", "sector": "Industrials",
+     "industry": "Rail", "market_cap": 3e8,
+     "cap_bucket": "nano"},
+    {"symbol": "MEGA", "name": "Mega", "sector": "Tech",
+     "industry": "Chips", "market_cap": 2e12,
+     "cap_bucket": "mega"}]}
 FAILS = []
 
 
@@ -171,6 +181,40 @@ def main():
     chk("history caps at 260",
         len(STORE[eng.HIST_KEY]["runs"]) == 2
         and d2["status"] == "LIVE")
+    r_aaa = rows["AAA"]
+    chk("universe join: AAA sector/mcap/bucket bound",
+        r_aaa["sector"] == "Tech" and r_aaa["mcap_b"] == 25.0
+        and r_aaa["bucket"] == "large"
+        and r_aaa["name"] == "Alpha Corp")
+    chk("nano folded to micro on DDD; unmatched BBB nulls",
+        rows["DDD"]["bucket"] == "micro"
+        and rows["BBB"]["sector"] is None
+        and rows["BBB"]["bucket"] is None)
+    chk("join accounting honest",
+        d["universe_join"]["status"] == "LIVE"
+        and d["universe_join"]["matched"] == 2
+        and d["universe_join"]["of"] == 3)
+    bb = d["stats"]["by_bucket"]
+    chk("by-bucket stats (large n=1 beat 100; micro n=1 "
+        "beat 0)",
+        bb["large"]["n"] == 1
+        and bb["large"]["beat_rate_pct"] == 100.0
+        and bb["micro"]["n"] == 1
+        and bb["micro"]["beat_rate_pct"] == 0.0
+        and "mid" not in bb)
+    chk("pick carries join fields",
+        {"name", "sector", "mcap_b", "bucket"}
+        <= set(picks["AAA"]))
+    del STORE["data/universe.json"]
+    STORE[eng.HIST_KEY] = {"runs": []}
+    d3 = eng.build({})
+    r3 = {r["t"]: r for r in d3["beat_league"]}
+    chk("universe missing -> MISSING named, fields null, "
+        "league still LIVE",
+        d3["universe_join"]["status"] == "MISSING"
+        and "never guessed" in d3["universe_join"]["why"]
+        and r3["AAA"]["sector"] is None
+        and d3["status"] == "LIVE")
     if FAILS:
         print("HARNESS FAILED:", FAILS)
         sys.exit(1)

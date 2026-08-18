@@ -1,5 +1,5 @@
 """justhodl-earnings -- beat league + transcript growth desk.
-Marker: earnings v1.0.0
+Marker: earnings v1.1.0
 Doctrine: every number traces to an FMP field proven in ops
 4879/4880; surprises computed from actual-vs-estimate in the
 calendar itself; transcript scoring is a transparent lexicon
@@ -15,7 +15,7 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/earnings.json"
@@ -92,6 +92,38 @@ def beat_score(eps_pct, rev_pct):
     # eps-only reporters keep the 0.6-weighted score: a missing
     # revenue estimate never inflates a rank
     return round(s, 1)
+
+
+def load_universe():
+    """Proven bind (spx-beaters house pattern): data/universe.json
+    rows under stocks|rows|universe; symbol|ticker, name, sector,
+    industry, market_cap, cap_bucket (mega folded into large,
+    nano into micro)."""
+    uni = _g("data/universe.json") or {}
+    rows = uni.get("stocks") or uni.get("rows") \
+        or uni.get("universe") or []
+    out = {}
+    for r in rows:
+        sym = str(r.get("symbol") or r.get("ticker")
+                  or "").upper()
+        if not sym:
+            continue
+        cb = str(r.get("cap_bucket") or "").lower()
+        if cb == "nano":
+            cb = "micro"
+        if cb == "mega":
+            cb = "large"
+        mc = r.get("market_cap")
+        out[sym] = {"name": r.get("name"),
+                    "sector": r.get("sector"),
+                    "industry": r.get("industry"),
+                    "mcap_b": round(mc / 1e9, 2)
+                    if isinstance(mc, (int, float)) and mc
+                    else None,
+                    "bucket": cb if cb in
+                    ("large", "mid", "small", "micro")
+                    else None}
+    return out
 
 
 def fetch_reporters(key, today):
@@ -208,6 +240,22 @@ def build(event=None):
         return doc
     rows = fetch_reporters(key, now.date())
     n = len(rows)
+    uni = load_universe()
+    matched = 0
+    for r in rows:
+        m = uni.get(r["t"]) or {}
+        r["name"] = m.get("name")
+        r["sector"] = m.get("sector")
+        r["industry"] = m.get("industry")
+        r["mcap_b"] = m.get("mcap_b")
+        r["bucket"] = m.get("bucket")
+        if m:
+            matched += 1
+    doc["universe_join"] = {
+        "status": "LIVE" if uni else "MISSING",
+        "matched": matched, "of": n,
+        "why": None if uni else "data/universe.json absent "
+                                "-- fields null, never guessed"}
     beats = sum(1 for r in rows
                 if r["eps_a"] > r["eps_e"])
     doc["stats"] = {
@@ -220,6 +268,17 @@ def build(event=None):
             / max(1, sum(1 for r in rows
                          if r["eps_surprise_pct"]
                          is not None)), 1) if n else None}
+    bb = {}
+    for b in ("large", "mid", "small", "micro"):
+        sub = [r for r in rows if r.get("bucket") == b]
+        if sub:
+            bb[b] = {"n": len(sub),
+                     "beat_rate_pct": round(
+                         100.0 * sum(1 for r in sub
+                                     if r["eps_a"]
+                                     > r["eps_e"])
+                         / len(sub), 1)}
+    doc["stats"]["by_bucket"] = bb
     for i, r in enumerate(rows):
         r["rank"] = i + 1
     doc["beat_league"] = rows[:250]
@@ -269,7 +328,12 @@ def build(event=None):
         br = by_t.get(t, {})
         pct = (1 - (br.get("rank", n) - 1)
                / max(1, n - 1)) * 100 if n > 1 else 50
-        pick = {"t": t, "call_date": tr[0].get("date"),
+        um = uni.get(t) or {}
+        pick = {"t": t, "name": um.get("name"),
+                "sector": um.get("sector"),
+                "mcap_b": um.get("mcap_b"),
+                "bucket": um.get("bucket"),
+                "call_date": tr[0].get("date"),
                 "period": "%sQ%s" % (y, q),
                 "growth_score": sc["growth_score"],
                 "beat_rank": br.get("rank"),
