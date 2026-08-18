@@ -49,7 +49,7 @@ const cls=v=>v==null?"":(v>0?" pos":(v<0?" neg":""));
 const zs=z=>z==null?"":" \u00b7 z "+(z>0?"+":"")+z;
 async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok)return await r.json();}catch(e){}return null;}
 
-const FLAG={peru:"🇵🇪",taiwan:"🇹🇼",korea:"🇰🇷",chile:"🇨🇱"};
+const FLAG={peru:"🇵🇪",taiwan:"🇹🇼",korea:"🇰🇷",chile:"🇨🇱",japan:"🇯🇵"};
 (async function(){
   const d=await jget("/data/global-flows.json");
   if(!d){document.getElementById("countries").innerHTML='<p class="note">feed unavailable</p>';return;}
@@ -59,10 +59,11 @@ const FLAG={peru:"🇵🇪",taiwan:"🇹🇼",korea:"🇰🇷",chile:"🇨🇱"}
     if(!c||c.status!=="LIVE"){h+='<div class="sec"><h2>'+(FLAG[cn]||"")+' '+name+'</h2><div class="note">'+(c&&c.status||"n/a")+' '+((c&&c.why)||"")+'</div></div>';continue;}
     const mac=(c.macro&&c.macro.series)?c.macro:((c.series)?c:null);
     h+='<div class="sec"><h2>'+(FLAG[cn]||"")+' '+name+' <span style="text-transform:none;color:var(--fg-3)">'+(c.specialty||"")+(mac?' \u00b7 '+(mac.latest_period||"")+' \u00b7 '+(mac.unit||"")+' \u00b7 '+(mac.freq||""):"")+'</span></h2>';
-    if(mac){h+='<table><tr><th>series</th><th>latest</th><th>'+((mac.window_label)||'4Q sum')+'</th><th>z (all history)</th></tr>';
+    if(mac){const sfx=(mac.unit&&mac.unit.indexOf("USD")>=0)?"M":"";
+      h+='<table><tr><th>series</th><th>latest</th><th>'+((mac.window_label)||'4Q sum')+'</th><th>z (all history)</th></tr>';
       for(const[k,s]of Object.entries(mac.series||{})){
         if(s==null||s.latest==null){h+='<tr><td>'+k.replace(/_/g," ")+'</td><td colspan="3" style="color:var(--fg-3)">'+((s&&s.status)||"n/a")+'</td></tr>';continue;}
-        h+='<tr><td>'+k.replace(/_/g," ")+'</td><td class="'+cls(s.latest)+'">'+fN(s.latest)+(mac.unit&&mac.unit.indexOf('JPY')>=0?'':'M')+'</td><td class="'+cls(s.sum_4q)+'">'+fN(s.sum_4q)+'M</td><td>'+(s.z_all==null?"\u2013":(s.z_all>0?"+":"")+s.z_all)+'</td></tr>';}
+        h+='<tr><td>'+k.replace(/_/g," ")+'</td><td class="'+cls(s.latest)+'">'+fN(s.latest)+sfx+'</td><td class="'+cls(s.sum_4q)+'">'+fN(s.sum_4q)+sfx+'</td><td>'+(s.z_all==null?"\u2013":(s.z_all>0?"+":"")+s.z_all)+'</td></tr>';}
       h+='</table>';}
     const hm=c.hot_money;
     if(hm&&hm.status==="MOVED")h+='<div class="note">daily hot money \u2192 <a href="/hot-money.html">its own engine + page</a></div>';
