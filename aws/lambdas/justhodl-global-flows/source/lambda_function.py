@@ -1,5 +1,5 @@
 """justhodl-global-flows v1.1.0 -- worldwide foreign capital
-inflows by country.  Marker: global-flows v1.3.0
+inflows by country.  Marker: global-flows v1.4.0
 
 Khalid directive 2026-08-17: country inflows worldwide, the more the
 better, specialists first (industries + raw materials).  Doctrine
@@ -45,7 +45,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/global-flows.json"
 BANK_FMT = "data/providers/bcrp/%s.json"
@@ -411,6 +411,95 @@ def parse_mof(txt):
     return out
 
 
+TIC_JP_BANK = "data/providers/tic-cslt/FORLTTREASNET42609.json"
+
+
+def month_of_period(p):
+    """MOF period string -> 'YYYY-MM' of the WEEK-END month.
+    Handles fullwidth digits/dots and Dec->Jan year rollover.
+    Shared with ops 4878 for independent recompute."""
+    s = str(p)
+    for a, b in zip("\uff10\uff11\uff12\uff13\uff14\uff15"
+                    "\uff16\uff17\uff18\uff19\uff0e",
+                    "0123456789."):
+        s = s.replace(a, b)
+    s = s.replace("\uff5e", "~").replace("\u3000", "") \
+        .replace(" ", "")
+    try:
+        head, tail = s.split("~", 1)
+        hp = head.split(".")
+        y, sm = int(hp[0]), int(hp[1])
+        em = int(tail.split(".")[0])
+        return "%04d-%02d" % (y + 1 if em < sm else y, em)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _pearson(a, b):
+    n = len(a)
+    if n < 3:
+        return None
+    ma, mb = sum(a) / n, sum(b) / n
+    va = sum((x - ma) ** 2 for x in a)
+    vb = sum((x - mb) ** 2 for x in b)
+    if va == 0 or vb == 0:
+        return None
+    cov = sum((a[i] - ma) * (b[i] - mb) for i in range(n))
+    return round(cov / (va ** 0.5 * vb ** 0.5), 3)
+
+
+def concordance(rows):
+    """Weekly MOF outward-LT (JPY bn) monthly-summed vs monthly
+    TIC Japan LT-treasury net (USD bn).  Different currencies --
+    stats are SIGN AGREEMENT and CORRELATION only, levels never
+    compared."""
+    out = {"status": "MISSING",
+           "method": "MOF weekly out_lt summed into week-end "
+                     "months (JPY bn) vs TIC FORLTTREASNET "
+                     "japan (USD bn); sign + pearson only -- "
+                     "cross-currency levels never compared"}
+    bank = _g(TIC_JP_BANK)
+    trows = (bank or {}).get("rows") or {}
+    if len(trows) < 24:
+        out["why"] = "tic japan bank rows=%d" % len(trows)
+        return out
+    mof_m = {}
+    for r in rows:
+        m = month_of_period(r["period"])
+        if m and r.get("out_lt") is not None:
+            mof_m[m] = round(mof_m.get(m, 0) + r["out_lt"], 1)
+    tic_m = {str(d)[:7]: round(v / 1000.0, 2)
+             for d, v in trows.items()
+             if isinstance(v, (int, float))}
+    common = sorted(set(mof_m) & set(tic_m))
+    if len(common) < 24:
+        out["why"] = "aligned months=%d" % len(common)
+        return out
+    a = [mof_m[m] for m in common]
+    b = [tic_m[m] for m in common]
+    agree = sum((a[i] > 0) == (b[i] > 0)
+                for i in range(len(a)))
+    lead_a, lead_b = [], []
+    for i, m in enumerate(common[:-1]):
+        y, mo = int(m[:4]), int(m[5:7])
+        nxt = "%04d-%02d" % (y + (mo == 12),
+                             1 if mo == 12 else mo + 1)
+        if common[i + 1] == nxt:
+            lead_a.append(a[i])
+            lead_b.append(b[i + 1])
+    out.update({"status": "LIVE", "n_months": len(common),
+                "sign_agree_pct": round(100.0 * agree
+                                        / len(common), 1),
+                "corr_lag0": _pearson(a, b),
+                "corr_mof_leads_1m": _pearson(lead_a, lead_b),
+                "n_lead_pairs": len(lead_a),
+                "last3": [{"month": m,
+                           "mof_out_lt_jpybn": mof_m[m],
+                           "tic_japan_treas_usdbn": tic_m[m]}
+                          for m in common[-3:]]})
+    return out
+
+
 def japan_block(doc):
     """MOF weekly, BOTH directions -- the carry channel.
     outward_lt = Japanese net buying of foreign long-term bonds
@@ -462,6 +551,7 @@ def japan_block(doc):
                      "sum_4q": round(sum(vals[-4:]), 1),
                      "z_all": zlast(vals)}
     jp["series"] = ser
+    jp["tic_concordance"] = concordance(rows)
     doc["countries"]["japan"] = jp
 
 

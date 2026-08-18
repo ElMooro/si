@@ -64,7 +64,14 @@ const FLAG={peru:"🇵🇪",taiwan:"🇹🇼",korea:"🇰🇷",chile:"🇨🇱",
       for(const[k,s]of Object.entries(mac.series||{})){
         if(s==null||s.latest==null){h+='<tr><td>'+k.replace(/_/g," ")+'</td><td colspan="3" style="color:var(--fg-3)">'+((s&&s.status)||"n/a")+'</td></tr>';continue;}
         h+='<tr><td>'+k.replace(/_/g," ")+'</td><td class="'+cls(s.latest)+'">'+fN(s.latest)+sfx+'</td><td class="'+cls(s.sum_4q)+'">'+fN(s.sum_4q)+sfx+'</td><td>'+(s.z_all==null?"\u2013":(s.z_all>0?"+":"")+s.z_all)+'</td></tr>';}
-      h+='</table>';}
+      h+='</table>';
+      const cc=c.tic_concordance;
+      if(cc&&cc.status==="LIVE"){
+        h+='<div class="note" style="margin-top:8px">MOF\u2194TIC concordance \u00b7 '+cc.n_months+' months \u00b7 sign agree '+cc.sign_agree_pct+'% \u00b7 corr lag0 '+cc.corr_lag0+' \u00b7 MOF leads 1m '+cc.corr_mof_leads_1m+' \u00b7 signs+correlation only, cross-currency levels never compared</div>';
+        h+='<table style="margin-top:6px"><tr><th>month</th><th>MOF out-LT (\u00a5bn)</th><th>TIC JP treas ($bn)</th></tr>';
+        for(const r of cc.last3||[])h+='<tr><td>'+r.month+'</td><td class="'+cls(r.mof_out_lt_jpybn)+'">'+fN(r.mof_out_lt_jpybn)+'</td><td class="'+cls(r.tic_japan_treas_usdbn)+'">'+fN(r.tic_japan_treas_usdbn)+'</td></tr>';
+        h+='</table>';}
+      }
     const hm=c.hot_money;
     if(hm&&hm.status==="MOVED")h+='<div class="note">daily hot money \u2192 <a href="/hot-money.html">its own engine + page</a></div>';
     h+='</div>';}

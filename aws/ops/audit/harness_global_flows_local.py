@@ -71,17 +71,34 @@ def mof_row(period, base):
     return ",".join(c) + "\n"
 
 
+MOFN = {"n": 30}
+
+
 def fake_mof():
+    from datetime import date, timedelta
     txt = MOF_HDR
-    for i in range(30):
-        txt += mof_row("8. %d.%d\uff5e %d.%d"
-                       % (1 + i // 7, 1 + i % 7,
-                          1 + i // 7, 2 + i % 7), 100 + i * 10)
+    d0 = date(2024, 1, 7)
+    for i in range(MOFN["n"]):
+        e = d0 + timedelta(days=7 * i)
+        s = e - timedelta(days=6)
+        txt += mof_row("%d\uff0e%d\uff0e%d\uff5e%d\uff0e%d"
+                       % (s.year, s.month, s.day,
+                          e.month, e.day), 100 + i * 10)
     txt += "(Note 3),x,,,,,,,,,,,,,,,,,,,,,\n"
     return txt, None
 
 
 eng.mof_fetch = fake_mof
+
+
+def seed_tic_jp(n=30, sign_seq=None):
+    rows = {}
+    for i in range(n):
+        y, m = 2024 + (i // 12), 1 + (i % 12)
+        v = (1000.0 if (sign_seq or [True] * n)[i]
+             else -1000.0) * (1 + i * 0.01)
+        rows["%04d-%02d-01" % (y, m)] = v
+    STORE[eng.TIC_JP_BANK] = {"rows": rows}
 
 QS = ["T%d.%02d" % (q, y) for y in range(12, 27)
       for q in range(1, 5)][:57]
@@ -272,6 +289,47 @@ def main():
         and jp["window_label"] == "4w sum")
     chk("T2 mof bank written (30 periods)",
         len(STORE[eng.MOF_BANK]["rows"]) == 30)
+    chk("T2 month attribution: rollover week -> Jan next year",
+        eng.month_of_period("2026\uff0e12\uff0e28\uff5e1"
+                            "\uff0e3") == "2027-01"
+        and eng.month_of_period("2026\uff0e8\uff0e2\uff5e8"
+                                "\uff0e8") == "2026-08")
+    cc = jp["tic_concordance"]
+    chk("T2 concordance honest-missing without tic bank",
+        cc["status"] == "MISSING" and "bank rows=0"
+        in cc["why"])
+    seed_tic_jp(40)
+    MOFN["n"] = 140
+    d_cc = eng.build({})
+    MOFN["n"] = 30
+    cc2 = d_cc["countries"]["japan"]["tic_concordance"]
+    mof_m = {}
+    for per, r in STORE[eng.MOF_BANK]["rows"].items():
+        mm = eng.month_of_period(per)
+        if mm:
+            mof_m[mm] = round(mof_m.get(mm, 0)
+                              + r["out_lt"], 1)
+    tic_m = {d[:7]: round(v / 1000.0, 2)
+             for d, v in STORE[eng.TIC_JP_BANK]["rows"]
+             .items()}
+    common = sorted(set(mof_m) & set(tic_m))
+    exp_agree = round(100.0 * sum(
+        (mof_m[m] > 0) == (tic_m[m] > 0)
+        for m in common) / len(common), 1) if len(common) \
+        >= 24 else None
+    if len(common) >= 24:
+        chk("T2 concordance LIVE == independent recompute",
+            cc2["status"] == "LIVE"
+            and cc2["n_months"] == len(common)
+            and cc2["sign_agree_pct"] == exp_agree
+            and cc2["corr_lag0"] == eng._pearson(
+                [mof_m[m] for m in common],
+                [tic_m[m] for m in common]))
+    else:
+        chk("T2 concordance honest on thin overlap (%d)"
+            % len(common),
+            cc2["status"] == "MISSING"
+            and "aligned months" in cc2["why"])
     _mf = eng.mof_fetch
     eng.mof_fetch = lambda: (None, "fetch_error:boom")
     d_mo = eng.build({})
