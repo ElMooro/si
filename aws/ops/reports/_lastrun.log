@@ -1,19 +1,25 @@
-executing-against: 55587b61dc30a2fdfc28d3f09d60b6187c11ef40
+executing-against: 41281fa2d035aeb877cfce80deb60de96ff1fb6c
 ops 4893 — ECB unblock (ciss-stress access pattern)
+[17:12:07]   zip: 100323 bytes
+── 1. Lambda ──
+[17:12:07]   Lambda exists — updating
+[17:12:13] ✅   ✓ updated justhodl-ecb-full-catalog
 
 → Report written to aws/ops/reports/latest/ops 4893 -- ecb unblock via ciss pattern.md
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py", line 254, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py", line 106, in main
+    rep.row(fn=fn, deploy="ok")
+    ^^^^^^^
+AttributeError: 'Report' object has no attribute 'row'. Did you mean: 'rows'?
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py", line 255, in <module>
     _overall = main()
                ^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py", line 94, in main
-    ).read_text())
-      ^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/pathlib.py", line 1027, in read_text
-    with self.open(mode='r', encoding=encoding, errors=errors) as f:
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/pathlib.py", line 1013, in open
-    return io.open(self, mode, buffering, encoding, errors, newline)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/si/si/aws/aws/lambdas/justhodl-ecb-full-catalog/config.json'
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py", line 108, in main
+    rep.row(fn=fn, deploy="FAIL",
+    ^^^^^^^
+AttributeError: 'Report' object has no attribute 'row'. Did you mean: 'rows'?
 ❌ OPS-FAIL: aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py

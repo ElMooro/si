@@ -1,27 +1,33 @@
 # ops 4893 — ECB unblock (ciss-stress access pattern)
 
 **Status:** failure  
-**Duration:** 0.0s  
-**Finished:** 2026-08-18T17:06:55+00:00  
+**Duration:** 5.7s  
+**Finished:** 2026-08-18T17:12:13+00:00  
 
 ## Error
 
 ```
 Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py", line 106, in main
+    rep.row(fn=fn, deploy="ok")
+    ^^^^^^^
+AttributeError: 'Report' object has no attribute 'row'. Did you mean: 'rows'?
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
   File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
     yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py", line 94, in main
-    ).read_text())
-      ^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/pathlib.py", line 1027, in read_text
-    with self.open(mode='r', encoding=encoding, errors=errors) as f:
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/pathlib.py", line 1013, in open
-    return io.open(self, mode, buffering, encoding, errors, newline)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/si/si/aws/aws/lambdas/justhodl-ecb-full-catalog/config.json'
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py", line 108, in main
+    rep.row(fn=fn, deploy="FAIL",
+    ^^^^^^^
+AttributeError: 'Report' object has no attribute 'row'. Did you mean: 'rows'?
 
 ```
 
 ## Log
+- `17:12:07`   zip: 100323 bytes
+## 1. Lambda
 
+- `17:12:07`   Lambda exists — updating
+- `17:12:13` ✅   ✓ updated justhodl-ecb-full-catalog
