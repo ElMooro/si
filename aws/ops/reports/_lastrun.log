@@ -1,11 +1,7 @@
-executing-against: 3dfceb07a37bcbe3b1e146e86367313755878e4f
-ops 4895 — ECB inception + permanence + blitz
-[17:51:55] blitz round 1: done 14/104, truncated 10
-[18:06:09] blitz round 2: done 14/104, truncated 10
-[18:14:56] trunc round 1: 33 flows (BOP,BSI,EXR,ICP,MIR,STS,BKN,BLS) at cap 450MB
-[18:16:12] trunc round 2: 32 flows (BSI,EXR,ICP,MIR,STS,BKN,BLS,BSP) at cap 450MB
-[18:17:27] trunc round 3: 31 flows (BSI,EXR,ICP,MIR,STS,BLS,BSP,CBD) at cap 450MB
-[18:18:54] VERDICT: PASS_WITH_PENDING · {"walker_deployed": "PASS", "deny_delete_policy": "PASS", "lifecycle_clean": "PASS", "walk_complete": "PASS", "truncation_zero": "PENDING", "inception_depth": "PASS"}
-[18:18:54] report written: aws/ops/reports/4895.json
+executing-against: 506f028a1c42689d54c080f1c2f7c6818cc7bdc2
+ops 4896 — ecb-deep launch + weekly rewalk
+[18:39:38] deep round 1 settled
+[18:39:38] VERDICT: PASS · {"walker_rewalk_deployed": "PASS", "deep_fn_live": "PASS", "schedulers_ensured": "PASS", "deep_backfill_started": "PASS"}
+[18:39:38] report written: aws/ops/reports/4896.json
 
-→ Report written to aws/ops/reports/latest/ops 4895 -- ecb inception permanence blitz.md
+→ Report written to aws/ops/reports/latest/ops 4896 -- ecb deep launch.md
