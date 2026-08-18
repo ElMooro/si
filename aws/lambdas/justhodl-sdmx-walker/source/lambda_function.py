@@ -37,7 +37,7 @@ def _get_json(key):
     return json.loads(b)
 
 
-def _fetch_capped(u, headers=None, timeout=240):
+def _fetch_capped(u, headers=None, timeout=240, cap=None):
     h = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                        "Chrome/126 Safari/537.36", "Accept": "*/*"}
     h.update(headers or {})
@@ -50,7 +50,7 @@ def _fetch_capped(u, headers=None, timeout=240):
             if not c:
                 break
             buf.write(c)
-            if buf.tell() >= CAP:
+            if buf.tell() >= (cap or CAP):
                 truncated = True
                 break
     b = buf.getvalue()
@@ -92,7 +92,8 @@ def _order(ids, pri_prefixes):
 
 
 def _walk_generic(agency, ids, url_fn, out_prefix, S,
-                  _budget=None, alt_attempts=None, retry=False):
+                  _budget=None, alt_attempts=None, retry=False,
+                  _per=None, _cap=None, retry_trunc=False):
     k, st = _state(agency)
     done = set(st["done"])
     if retry:
@@ -102,6 +103,14 @@ def _walk_generic(agency, ids, url_fn, out_prefix, S,
         # selection and never double-appended below.
         ids = list(st.get("failures", {}).keys())
         done = set()
+    if retry_trunc:
+        # ops 4895: re-pull flows the 40MB cap truncated, with a
+        # bigger event cap — full-inception guarantee pass. st["done"]
+        # is never touched here (they are done); success pops the
+        # truncated ledger, a still-truncated result re-appends via
+        # the normal path below.
+        ids = list(dict.fromkeys(st.get("truncated") or []))
+        done = set()
     _budget = _budget or BUDGET_S
     # ops 4542 lease: long-budget agencies may outlive the 5-min cadence
     # — skip if a sibling holds the lease (overlap-safe).
@@ -109,8 +118,9 @@ def _walk_generic(agency, ids, url_fn, out_prefix, S,
         S[agency] = {"skipped": "lease_held"}
         return
     st["lease_until"] = time.time() + _budget + 90
-    _save(k, st, len(ids))
-    todo = [i for i in ids if i not in done][:PER]
+    _tot = (st.get("n_total") if (retry or retry_trunc) else None) or len(ids)
+    _save(k, st, _tot)
+    todo = [i for i in ids if i not in done][:(_per or PER)]
     _wt0 = time.time()
     # ops 4542: as_completed(timeout=) RAISED past the deadline and
     # DISCARDED every finished download — the Eurostat-blitz-gained-0
@@ -127,14 +137,14 @@ def _walk_generic(agency, ids, url_fn, out_prefix, S,
 
     def _dl_one(_fid):
         if not alt_attempts:
-            return _fetch_capped(url_fn(_fid))
+            return _fetch_capped(url_fn(_fid), cap=_cap)
         order = list(range(len(alt_attempts)))
         order.remove(_neg["i"]); order.insert(0, _neg["i"])
         last = None
         for ai in order:
             ufn, hdrs = alt_attempts[ai]
             try:
-                r = _fetch_capped(ufn(_fid), headers=hdrs)
+                r = _fetch_capped(ufn(_fid), headers=hdrs, cap=_cap)
                 _neg["i"] = ai
                 return r
             except urllib.error.HTTPError as e:
@@ -180,23 +190,28 @@ def _walk_generic(agency, ids, url_fn, out_prefix, S,
                 Metadata={"truncated": str(trunc),
                           "source": u[:200]},
                 ContentType="application/gzip")
-            if trunc:
+            if retry_trunc and not trunc:
+                st["truncated"] = [x for x in st.get("truncated", [])
+                                   if x != fid]
+            if trunc and fid not in (st.get("truncated") or []):
                 st.setdefault("truncated", []).append(fid)
-            if not retry:
+            elif trunc and retry_trunc:
+                pass  # still truncated at the bigger cap — stays listed
+            if not (retry or retry_trunc):
                 st["done"].append(fid)
-            else:
+            elif retry:
                 st.get("failures", {}).pop(str(fid), None)
                 st["retried_ok"] = st.get("retried_ok", 0) + 1
             got += 1
         except Exception as e:
             st.setdefault("failures", {})[str(fid)] = \
                 f"{type(e).__name__}: {str(e)[:60]}"
-            if not retry:
+            if not (retry or retry_trunc):
                 st["done"].append(fid)  # advance; ledger keeps it
             else:
                 st["retried_fail"] = st.get("retried_fail", 0) + 1
     st["lease_until"] = 0
-    pct, status = _save(k, st, len(ids))
+    pct, status = _save(k, st, _tot)
     S[agency] = {"pulled": got, "of_run": len(todo),
                  "progress_pct": pct, "status": status,
                  "n_total": len(ids),
@@ -219,6 +234,9 @@ def lambda_handler(event, context):
         timespec="seconds")}
     ag = (event or {}).get("agency")
     rf = bool((event or {}).get("retry_failures"))
+    _eper = int((event or {}).get("per") or 0) or None
+    _ecap = (int((event or {}).get("cap_mb") or 0) or 0) * 1024 * 1024 or None
+    _ert = bool((event or {}).get("retry_truncated"))
     if not ag:
         # ops 4539: cron fans out one async invoke PER agency — each
         # gets its own full 700s budget instead of sharing one.
@@ -282,7 +300,8 @@ def lambda_handler(event, context):
           _walk_generic(
             "ecb", ecb_ids, _ecb_alts[0][0],
             "data/warm/ecb/data", S, _budget=_ebud,
-            alt_attempts=_ecb_alts, retry=rf)
+            alt_attempts=_ecb_alts, retry=rf,
+            _per=_eper, _cap=_ecap, retry_trunc=_ert)
     except Exception as e:
         S["ecb"] = {"data_unavailable": True,
                     "reason": f"{type(e).__name__}: {str(e)[:60]}"}
