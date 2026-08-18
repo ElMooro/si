@@ -308,10 +308,15 @@ def lambda_handler(event=None, context=None):
     for name in SDMX:
         stx = read_json("data/_state/sdmx-walk-%s.json" % name)
         stt, det = classify_sdmx(name, stx)
-        if name == "ecb" and stt in ("NO_STATE", "STALLED", "UNKNOWN"):
-            stt = "BLOCKED"
-            det = (det + " — ECB API 406 content-negotiation block "
-                   "(known; needs Accept-header adapter fix)")[:180]
+        if name == "ecb" and stt == "NO_STATE":
+            # ops 4893: the historical 406 was the CATALOG call only
+            # (Accept: application/xml refused by the structure
+            # endpoint) — fixed by porting the ciss-stress access
+            # pattern. NO_STATE now just means the walk hasn't landed
+            # yet; check justhodl-ecb-full-catalog output first.
+            det = (det + " — ecb walk state absent; catalog dependency "
+                   "data/warm/ecb/catalog.json.gz (rebuilt ops 4893)"
+                   )[:180]
         pipelines.append({"name": "sdmx-" + name, "status": stt,
                           "detail": det,
                           "age_min": age_min((stx or {}).get("updated_at")

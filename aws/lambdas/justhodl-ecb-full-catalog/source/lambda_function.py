@@ -8,6 +8,7 @@ not silent. F4 snapshot of the raw XML."""
 import gzip
 import json
 import os
+import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
@@ -25,11 +26,43 @@ except Exception:
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
     url = "https://data-api.ecb.europa.eu/service/dataflow/ECB"
-    req = urllib.request.Request(url, headers={
-        "User-Agent": "JustHodl research admin@justhodl.ai",
-        "Accept": "application/xml"})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        raw = r.read()
+    # ops 4893 (Khalid: "investigate how ciss pulls ECB"): the single
+    # Accept "application/xml" was the 406 -- ECB's STRUCTURE endpoint
+    # refuses that representation while the DATA endpoint has served
+    # justhodl-ciss-stress 24/7 the whole time (UA-only request,
+    # ?format=csvdata sidesteps content negotiation entirely). Port
+    # the same posture here: honest UA, then a ladder -- server-default
+    # representation first, the documented SDMX-ML 2.1 structure type
+    # second, wildcard last. First 2xx wins; the winner and every
+    # refusal are recorded (stated, not silent).
+    attempts = [
+        ("no-accept", None),
+        ("sdmx-structure-xml-2.1",
+         "application/vnd.sdmx.structure+xml;version=2.1"),
+        ("wildcard", "*/*"),
+    ]
+    raw, winner, ladder = None, None, []
+    for label, acc in attempts:
+        h = {"User-Agent": "JustHodl Research raafouis@gmail.com"}
+        if acc:
+            h["Accept"] = acc
+        try:
+            req = urllib.request.Request(url, headers=h)
+            with urllib.request.urlopen(req, timeout=60) as r:
+                raw = r.read()
+            winner = label
+            ladder.append({"attempt": label, "status": 200})
+            break
+        except urllib.error.HTTPError as e:
+            ladder.append({"attempt": label, "status": e.code})
+        except Exception as e:
+            ladder.append({"attempt": label,
+                           "error": f"{type(e).__name__}: {str(e)[:80]}"})
+    if raw is None:
+        print(json.dumps({"ok": False, "negotiation": ladder}))
+        raise RuntimeError(
+            "ECB dataflow catalog: every Accept negotiation refused "
+            "-- %s" % json.dumps(ladder))
     raw_key = snapshot("ecb", url, raw) if snapshot else None
     root = ET.fromstring(raw)
     flows = []
@@ -52,6 +85,8 @@ def lambda_handler(event, context):
                        "n_dataflows": len(flows),
                        "note": "dataflow registry; per-dataset series "
                                "pulls = E10 backfill",
+                       "accept_winner": winner,
+                       "negotiation": ladder,
                        "dataflows": flows}).encode()),
                   ContentType="application/gzip")
     key_ids = [f["id"] for f in flows
@@ -61,10 +96,12 @@ def lambda_handler(event, context):
                   Body=json.dumps({
                       "as_of": now.isoformat(timespec="seconds"),
                       "n_dataflows": len(flows),
+                      "accept_winner": winner,
                       "key_flows_present": key_ids,
                       "sample": flows[:8]}).encode(),
                   ContentType="application/json", CacheControl="no-cache")
     res = {"ok": True, "n_dataflows": len(flows),
+           "accept_winner": winner, "negotiation": ladder,
            "key_flows": key_ids}
     print(json.dumps(res))
     return {"statusCode": 200, "body": json.dumps(res)}

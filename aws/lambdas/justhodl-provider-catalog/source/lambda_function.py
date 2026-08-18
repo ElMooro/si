@@ -207,8 +207,16 @@ REG = {
   "api": "(various)", "engines": ["fleet"], "prefixes": []},
  "ecb": {"name": "ECB — SDMX",
   "api": "data-api.ecb.europa.eu",
-  "engines": ["justhodl-ecb-catalog"],
-  "prefixes": ["data/warm/ecb/", "data/warm/ecb-", "data/ecb"],
+  # ops 4893: truthful engine list — ciss-stress/ciss-ai were the
+  # engines proving the ECB DATA endpoint worked all along; their
+  # outputs (data/ciss-*.json) now count under this card instead of
+  # falling into "Other / mixed-signature".
+  "engines": ["justhodl-ecb-full-catalog", "justhodl-ciss-stress",
+              "justhodl-ciss-ai", "justhodl-ecb-history",
+              "justhodl-ecb-detail", "justhodl-ecb-derived",
+              "justhodl-sdmx-walker"],
+  "prefixes": ["data/warm/ecb/", "data/warm/ecb-", "data/ecb",
+               "data/ciss"],
   "series_from": ("data/warm/ecb/catalog.json.gz", "dataflows")},
 }
 
@@ -600,6 +608,24 @@ def lambda_handler(event, context):
                                  _tx.get("mean_agree_pct") or "—"))
                     note = (note + " · " + _note_x) if note \
                         else _note_x
+            except Exception:
+                pass
+        if slug == "ecb":
+            # ops 4893 (Khalid): surface the ciss-stress engine's live
+            # holdings on this card — it is the proof-of-access engine
+            # whose format=csvdata pattern (no content negotiation)
+            # unblocked the catalog + walker. Fail-soft: note only.
+            try:
+                _cs = _get_json("data/ciss-stress.json")
+                _ncs = _cs.get("n_series")
+                if _ncs:
+                    _note_c = ("ciss-stress engine: %d CISS/CLIFS/"
+                               "SovCISS stress series live via "
+                               "format=csvdata — the access pattern "
+                               "ops 4893 ported to the catalog builder"
+                               % _ncs)
+                    note = (note + " · " + _note_c) if note \
+                        else _note_c
             except Exception:
                 pass
         hub["providers"].append(
