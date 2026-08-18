@@ -1,6 +1,22 @@
-executing-against: e4981e9e0d59d97e1595e22d019dbfe03a2ecb42
-[00:38:51] ✅ committed unit-suffix + flag checks
-[00:40:51] ✅ SERVED (120s)
-[00:40:51] ✅ JPY rows no longer mislabeled as millions
+executing-against: 05dd2cc8eed89441599bccaf998bb3d1ffa30c28
+G0. banks
+[00:55:20] ✅ tic japan bank rows=498
+[00:55:20]   2026-04-01  +14705 $mn
+[00:55:20]   2026-05-01  -2838 $mn
+[00:55:20]   2026-06-01  -3753 $mn
+[00:55:21] ✅ mof bank rows=1127
+1. settle + invoke
+[00:55:21] ✅ marker settled (attempt 1)
+[00:55:32] ✅ fresh in 10s
+2. independent recompute
+[00:55:32] ✅ doc == recompute: n=258 sign_agree=63.6% corr_lag0=0.226 leads_1m=0.07
+[00:55:32]   2026-04  MOF -2677.2 JPYbn | TIC +14.71 $bn
+[00:55:32]   2026-05  MOF +4647.5 JPYbn | TIC -2.84 $bn
+[00:55:32]   2026-06  MOF +516.7 JPYbn | TIC -3.75 $bn
+3. page
+[00:55:32] ✅   committed token
+[00:58:04] ✅   SERVED (151s)
+4. verdict
+[00:58:04] ✅ weekly carry bid formally joined to the monthly TIC print -- stats honest, independently recomputed
 
-→ Report written to aws/ops/reports/latest/ops 4877 -- gf page unit fix.md
+→ Report written to aws/ops/reports/latest/ops 4878 -- concordance verify.md
