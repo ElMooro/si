@@ -1,11 +1,19 @@
-executing-against: 30f3164c165c5c5e2712268596c182229e1a1a3d
+executing-against: 2f8fcac91fae7654527a2d5475d38a110b2ac26f
 0. env
-[02:24:24] ✅ polygon key set from donor
+[02:34:49] ✅ polygon key present=True
 1. settle + invoke
-[02:24:31] ✅ marker settled (attempt 1)
-[02:24:46] ✅ fresh in 15s status=LIVE
+[02:34:49] ✅ marker settled (attempt 1)
+[02:35:05] ✅ fresh in 15s status=LIVE
 2. G0 + truths
-[02:24:46] ✗ cvd field missing: MISSING
+[02:35:05] ✅ SPY session CVD -570655 sh (2026-08-17)
+[02:35:05] ✅   CVD == independent recompute via engine bar_delta (835 bars)
+[02:35:06] ⚠   finra recompute skipped: HTTP Error 403: Forbidden
+[02:35:06] ✅   GEX audit identity net=+0.72bn (4730 contracts, regime POSITIVE, flip~799.0)
+[02:35:06] ✅   day-one honesty: 12/12 WARMING with named why
+3. page
+[02:35:06] ✅   committed
+[02:35:06] ✅   SERVED (0s)
+4. verdict
+[02:35:06] ✅ tape-truth born: CVD, footprint, and dealer gamma all independently recomputed
 
-→ Report written to aws/ops/reports/latest/ops 4885 -- tape-truth birth.md
-❌ OPS-FAIL: aws/ops/pending/ops_4885_tape_truth_birth.py
+→ Report written to aws/ops/reports/latest/ops 4885b -- tape-truth birth.md

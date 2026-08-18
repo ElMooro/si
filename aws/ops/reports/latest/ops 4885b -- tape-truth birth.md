@@ -1,0 +1,26 @@
+# 0. env
+
+**Status:** success  
+**Duration:** 17.5s  
+**Finished:** 2026-08-18T02:35:06+00:00  
+
+## Log
+- `02:34:49` ✅ polygon key present=True
+# 1. settle + invoke
+
+- `02:34:49` ✅ marker settled (attempt 1)
+- `02:35:05` ✅ fresh in 15s status=LIVE
+# 2. G0 + truths
+
+- `02:35:05` ✅ SPY session CVD -570655 sh (2026-08-17)
+- `02:35:05` ✅   CVD == independent recompute via engine bar_delta (835 bars)
+- `02:35:06` ⚠   finra recompute skipped: HTTP Error 403: Forbidden
+- `02:35:06` ✅   GEX audit identity net=+0.72bn (4730 contracts, regime POSITIVE, flip~799.0)
+- `02:35:06` ✅   day-one honesty: 12/12 WARMING with named why
+# 3. page
+
+- `02:35:06` ✅   committed
+- `02:35:06` ✅   SERVED (0s)
+# 4. verdict
+
+- `02:35:06` ✅ tape-truth born: CVD, footprint, and dealer gamma all independently recomputed
