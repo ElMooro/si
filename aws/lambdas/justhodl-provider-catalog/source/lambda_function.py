@@ -628,6 +628,17 @@ def lambda_handler(event, context):
                         else _note_c
             except Exception:
                 pass
+            try:
+                _cv = _get_json("data/warm/ecb/coverage.json")
+                _note_v = ("walk+deep coverage: %d fast + %d "
+                           "deep-sliced flows · %d/%d deep complete"
+                           % (_cv.get("n_fast") or 0,
+                              _cv.get("n_deep") or 0,
+                              _cv.get("n_deep_complete") or 0,
+                              _cv.get("n_deep") or 0))
+                note = (note + " · " + _note_v) if note else _note_v
+            except Exception:
+                pass
         hub["providers"].append(
             {"slug": slug, "name": r["name"], "api": r["api"],
              "datasets": ds, "datasets_target": tgt,

@@ -1,4 +1,7 @@
-"""justhodl-ecb-deep — E-deep v1.0 (ops 4896).
+"""justhodl-ecb-deep — E-deep v1.1 (ops 4896 + 4897 hardening:
+month-split for oversize years, flow_order resync with the walker's
+live truncated ledger, historical-revision rotation in refresh mode,
+and a self-updating data/warm/ecb/coverage.json completeness ledger).
 
 The 31 giant ECB flows (BSI, HICP, MIR, SEC, SHS, YC, ...) exceed any
 RAM-buffered cap (proven ops 4895: >450MB raw each), and a bare pull
@@ -138,6 +141,10 @@ def _first_period(head):
         return None
 
 
+def _month_splits(y):
+    return [(f"{y}-{m:02d}", f"{y}-{m:02d}") for m in range(1, 13)]
+
+
 def _year_splits(sp, ep):
     a, b = int(sp[:4]), min(int(ep[:4]), 2035)
     return [(str(y), str(y)) for y in range(a, b + 1)]
@@ -168,7 +175,9 @@ def _next_pending(state):
 
 
 def _flow_done(fl):
-    return all(w.get("status") in ("done", "empty", "oversize_year")
+    return all(w.get("status") in ("done", "empty",
+                                   "oversize_year",
+                                   "oversize_month")
                for w in fl["windows"].values())
 
 
@@ -188,6 +197,39 @@ def _write_manifest(flow, fl):
         "parts": parts})
 
 
+def _write_coverage(state, walk):
+    """data/warm/ecb/coverage.json -- the completeness ledger Khalid
+    can point at: every flow, its source path, and its status."""
+    done = list(dict.fromkeys(walk.get("done") or []))
+    trunc = set(state.get("flow_order") or [])
+    fast = [f for f in done if f not in trunc]
+    deep = {}
+    for f in state.get("flow_order") or []:
+        fl = state.get("flows", {}).get(f) or {}
+        ws = fl.get("windows") or {}
+        deep[f] = {"complete": bool(fl.get("complete")),
+                   "first_period": fl.get("first_period"),
+                   "n_parts": sum(1 for w in ws.values()
+                                  if w.get("status") == "done"),
+                   "flags": sorted({w.get("status")
+                                    for w in ws.values()
+                                    if str(w.get("status", "")
+                                           ).startswith("oversize")})}
+    _put_json("data/warm/ecb/coverage.json", {
+        "as_of": _now(), "engine": "ecb-deep",
+        "n_flows_walked": len(done),
+        "n_fast": len(fast),
+        "n_deep": len(trunc),
+        "n_deep_complete": sum(1 for d in deep.values()
+                               if d["complete"]),
+        "walk_failures": walk.get("failures") or {},
+        "fast_flows": sorted(fast),
+        "deep_flows": deep,
+        "note": ("fast = full-history single object via weekly "
+                 "rewalk; deep = time-sliced parts + manifest; "
+                 "every prefix deny-Delete protected")})
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     state = _j(STATE_KEY, {}) or {}
@@ -199,6 +241,12 @@ def lambda_handler(event, context):
         giants = list(dict.fromkeys(walk.get("truncated") or []))
         state = {"flow_order": giants, "flows": {}, "mode":
                  "backfill", "created_at": _now()}
+    walk = _j(WALK_STATE, {}) or {}
+    for fl_new in dict.fromkeys(walk.get("truncated") or []):
+        if fl_new not in state["flow_order"]:
+            state["flow_order"].append(fl_new)
+            state.setdefault("resynced", []).append(
+                {"flow": fl_new, "at": _now()})
     state["lease_until"] = time.time() + BUDGET_S + 120
     _put_json(STATE_KEY, state)
     for flow in state["flow_order"]:
@@ -223,9 +271,15 @@ def lambda_handler(event, context):
                 if fp:
                     fl["first_period"] = fp
         elif status == "oversize":
-            if len(sp) == 4 and sp == ep:
-                w.update(status="oversize_year", raw_bytes=nraw,
+            if sp == ep and len(sp) == 7:
+                # a single MONTH over the guard -- stated, not silent
+                w.update(status="oversize_month", raw_bytes=nraw,
                          at=_now())
+            elif sp == ep and len(sp) == 4:
+                del fl["windows"][wid]
+                for ms, me in _month_splits(sp):
+                    fl["windows"][f"{ms}_{me}"] = {"status":
+                                                   "pending"}
             else:
                 del fl["windows"][wid]
                 for ys, ye in _year_splits(sp, ep):
@@ -269,6 +323,25 @@ def lambda_handler(event, context):
                 _write_manifest(flow, fl)
                 did.append(f"refresh:{flow}:{wid}")
         state["rot"] = rot + REFRESH_PER_RUN
+        # ECB revises HISTORY too (BSI/ICP esp.) -- one rotating
+        # historical window per run walks the entire back catalog
+        # on a slow loop, so revisions land without a full re-crawl.
+        allw = [(f, wid) for f in order
+                for wid, v in (state["flows"].get(f, {})
+                               .get("windows") or {}).items()
+                if v.get("status") == "done"]
+        if allw and time.time() - t0 < BUDGET_S:
+            hr = int(state.get("hrot") or 0)
+            f, wid = allw[hr % len(allw)]
+            sp, ep = wid.split("_")
+            status, nraw, head = _stream_window(f, sp, ep)
+            if status == "ok":
+                key, gz = _gzip_upload(f, sp, ep)
+                state["flows"][f]["windows"][wid].update(
+                    raw_bytes=nraw, gz_bytes=gz, key=key,
+                    refreshed_at=_now())
+                did.append(f"hist-refresh:{f}:{wid}")
+            state["hrot"] = hr + 1
 
     n_complete = sum(1 for f in state["flows"].values()
                      if f.get("complete"))
@@ -277,6 +350,10 @@ def lambda_handler(event, context):
     state["n_flows"] = len(state["flow_order"])
     state["n_complete"] = n_complete
     _put_json(STATE_KEY, state)
+    try:
+        _write_coverage(state, walk)
+    except Exception as e:
+        print("coverage write failed: %s" % type(e).__name__)
     res = {"ok": True, "mode": state.get("mode"),
            "actions": len(did), "sample": did[:6],
            "flows_complete": f"{n_complete}/{len(state['flow_order'])}",
