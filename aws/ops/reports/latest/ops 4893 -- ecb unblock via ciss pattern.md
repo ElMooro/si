@@ -1,11 +1,15 @@
-executing-against: 55587b61dc30a2fdfc28d3f09d60b6187c11ef40
-ops 4893 — ECB unblock (ciss-stress access pattern)
+# ops 4893 — ECB unblock (ciss-stress access pattern)
 
-→ Report written to aws/ops/reports/latest/ops 4893 -- ecb unblock via ciss pattern.md
+**Status:** failure  
+**Duration:** 0.0s  
+**Finished:** 2026-08-18T17:06:55+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py", line 254, in <module>
-    _overall = main()
-               ^^^^^^
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py", line 94, in main
     ).read_text())
       ^^^^^^^^^^^
@@ -16,4 +20,8 @@ Traceback (most recent call last):
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/si/si/aws/aws/lambdas/justhodl-ecb-full-catalog/config.json'
-❌ OPS-FAIL: aws/ops/pending/ops_4893_ecb_unblock_ciss_pattern.py
+
+```
+
+## Log
+
