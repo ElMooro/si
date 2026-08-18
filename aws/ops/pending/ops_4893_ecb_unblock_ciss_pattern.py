@@ -31,8 +31,9 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "ops"))
+# parents: [0]=pending [1]=ops [2]=aws [3]=repo root -- the first run
+# used parents[2] and looked for aws/aws/lambdas (ops-4893 rev-B).
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "aws" / "ops"))
 import boto3  # noqa: E402
 from botocore.config import Config  # noqa: E402
