@@ -1,0 +1,36 @@
+{
+ "ops": 4913,
+ "gates": {
+  "markets_scheduler_fixed": "PASS",
+  "src_mirror_live": "PASS",
+  "verdicts_banked": "PASS",
+  "markets_fresh": "PASS"
+ },
+ "started": "2026-08-19T18:37:50+00:00",
+ "markets_autopsy": {
+  "invocations_30h": 2,
+  "gaps_gt90min_h": []
+ },
+ "mirror": {
+  "lanes": {
+   "ofr-bsrm": {
+    "ofr_bsrm.xlsx": {
+     "status": "fresh",
+     "bytes": 597243
+    },
+    "ofr_bsrm_international_scores.xlsx": {
+     "status": "fresh",
+     "bytes": 161171
+    }
+   },
+   "ofr-site": {
+    "harvested": 0,
+    "fresh": 0
+   }
+  },
+  "bsrm_age": 0.5,
+  "site_age": 0.5
+ },
+ "overall": "PASS",
+ "finished": "2026-08-19T18:39:38+00:00"
+}

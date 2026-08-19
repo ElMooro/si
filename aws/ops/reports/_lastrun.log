@@ -1,6 +1,6 @@
-executing-against: f5758721ed11944ce12585bfc6aa96b3f7cc90d6
-ops 4912 — edgar chain + deep rearm rekick
-[18:04:22] VERDICT: PASS_WITH_PENDING · {"edgar_chain_moving": "PASS", "deep_rearm_applied": "PENDING"}
-[18:04:22] report written: aws/ops/reports/4912.json
+executing-against: b4a7738e496a624bfd3b56b988416c4c79dce1fc
+ops 4913 — NY Fed + OFR verdicts & fixes
+[18:39:38] VERDICT: PASS · {"markets_scheduler_fixed": "PASS", "src_mirror_live": "PASS", "verdicts_banked": "PASS", "markets_fresh": "PASS"}
+[18:39:38] report written: aws/ops/reports/4913.json
 
-→ Report written to aws/ops/reports/latest/ops 4912 -- chain rekick.md
+→ Report written to aws/ops/reports/latest/ops 4913 -- nyfed ofr investigation.md
