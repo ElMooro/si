@@ -19,7 +19,8 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
-| INCIDENT 526 justhodl.ai (4906-4907): GH LE cert expired 13:57 UTC, ACME bad_authz chronic under CF proxy; ACME reset done, CF SSL->full mitigation live, www DNS + CAA verified clean, edge recheck | 4906-4907 | S-F5#p9k4 | 2026-08-19 15:1x |\n| IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
+| INCIDENT 526 justhodl.ai (4906-4907): GH LE cert expired 13:57 UTC, ACME bad_authz chronic under CF proxy; ACME reset done, CF SSL->full mitigation live, www DNS + CAA verified clean, edge recheck | 4906-4907 | S-F5#p9k4 | 2026-08-19 15:1x |\n| Thin-history expedite (Khalid 8-provider list): justhodl-hist-banker v1.0 (DERA 2009-> quarters, EDGAR full-index 1993->, EIOPA RFR history; harness PASS) + sec-bulk 3d->daily + repo refresh + ofr cadence classification | 4910 | S-F5#p9k4 | 2026-08-19 (claim+ship) |
+| IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 ### SHARED-SURFACE RULE (foreign-flows.html) -- 2026-08-17 23:4x
 The page script is now: helpers block FIRST (PROXY/fN/cls/zs/acc/
