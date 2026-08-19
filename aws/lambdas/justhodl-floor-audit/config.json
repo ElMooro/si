@@ -1,0 +1,15 @@
+{
+  "function_name": "justhodl-floor-audit",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 600,
+  "memory": 1024,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Senseless-drawdown auditor: liquid floor (cash+investments+live-marked crypto-debt) + RPO/backlog vs mcap; decomposes dumps into asset-driven vs residual; SEC XBRL + frames discovery + Polygon; -> data/floor-audit.json daily.",
+  "inherit_env": [
+    {
+      "from_function": "justhodl-equity-research",
+      "keys": ["POLYGON_API_KEY"]
+    }
+  ]
+}
