@@ -114,7 +114,7 @@ REG = {
   "prefixes": ["data/warm/sec-dera/"]},
  "sec-midas": {"name": "SEC MIDAS — market structure",
   "api": "sec.gov/marketstructure",
-  "engines": ["justhodl-global-expansion"],
+  "engines": ["justhodl-sec-midas"],
   "prefixes": ["data/warm/sec-midas/"]},
  "polygon": {"name": "Polygon.io — US equities",
   "api": "api.polygon.io", "engines": ["justhodl-polygon-daily"],
