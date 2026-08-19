@@ -1,6 +1,6 @@
-executing-against: 6a9448924d650e4a7c220278d1fa14e1289168c9
-ops 4903 — OECD paced lane · MIDAS v2 · deep
-[14:39:42] VERDICT: PASS_WITH_PENDING · {"walker_workers_deployed": "PASS", "oecd_failures_decreasing": "PASS", "oecd_drain_scheduled": "PASS", "statcan_audited": "PASS", "midas_harvest": "PENDING"}
-[14:39:42] report written: aws/ops/reports/4903.json
+executing-against: 0f8dd32765c02e2d4a10178b8f9ef12e1b3ea640
+ops 4904 — StatCan lane · deep truth · MIDAS v3
+[14:45:14] VERDICT: PASS_WITH_PENDING · {"statcan_lane_deployed": "PASS", "statcan_failures_decreasing": "PASS", "statcan_drain_scheduled": "PASS", "deep_grinding": "PENDING", "midas_evidence": "PASS"}
+[14:45:14] report written: aws/ops/reports/4904.json
 
-→ Report written to aws/ops/reports/latest/ops 4903 -- oecd unlock midas v2.md
+→ Report written to aws/ops/reports/latest/ops 4904 -- statcan drain deep truth midas v3.md
