@@ -1,17 +1,16 @@
-executing-against: e98ebd9db16f4be55d8cb9a1dfed126ffd5129b5
-ops 4915 -- floor-audit v1.0.1 quarantine ladder
+executing-against: da8aa016ce4cb1b82260f4edb0dddf65b166f604
+ops 4916 -- floor-audit v1.0.2 bind gates
 ── G1 redeploy ──
-[19:30:22]   zip: 108578 bytes
+[19:36:19]   zip: 109390 bytes
 ── 1. Lambda ──
-[19:30:22]   Lambda exists — updating
-[19:30:29] ✅   ✓ updated justhodl-floor-audit
+[19:36:20]   Lambda exists — updating
+[19:36:25] ✅   ✓ updated justhodl-floor-audit
 ── 3. Smoke test ──
-[19:30:29]   invoking justhodl-floor-audit…
-── G2 config reset ──
-── G3 fresh run ──
-── G4 alert hygiene ──
-── G5 real edges intact ──
-── G6 DAT board ──
-── edge (soft) ──
+[19:36:25]   invoking justhodl-floor-audit…
+── G2 fresh run ──
+── G3 BMNR un-quarantined ──
+── G4 BTBT spec-case bind (HARD) ──
+[19:37:10] FAIL G4: BTBT crypto_coverage=0.0046 (spec ~1/3 of mcap). Tag inventory follows:
 
-→ Report written to aws/ops/reports/latest/4915-floor-v101-quarantine.md
+→ Report written to aws/ops/reports/latest/4916-floor-v102-binds.md
+❌ OPS-FAIL: aws/ops/pending/ops_4916_floor_v102_binds.py
