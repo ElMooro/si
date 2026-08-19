@@ -279,7 +279,8 @@ def lambda_handler(event, context):
             lambda f: ("https://ec.europa.eu/eurostat/api/"
                        "dissemination/sdmx/2.1/data/"
                        f"{f}?format=TSV&compressed=true"),
-            "data/warm/eurostat/data", S, _budget=_ebud, retry=rf)
+            "data/warm/eurostat/data", S, _budget=_ebud, retry=rf,
+            _workers=_eworkers)  # ops 4911 eurostat paced lane
     except Exception as e:
         S["eurostat"] = {"data_unavailable": True,
                          "reason": f"{type(e).__name__}: "

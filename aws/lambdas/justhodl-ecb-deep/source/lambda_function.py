@@ -1,4 +1,4 @@
-"""justhodl-ecb-deep — E-deep v1.3 (ops 4896/4897/4901 + 4908 slow-window guard:
+"""justhodl-ecb-deep — E-deep v1.4 (…4908 slow-window guard + 4911 err-terminal/rearm:
 month-split for oversize years, flow_order resync with the walker's
 live truncated ledger, historical-revision rotation in refresh mode,
 and a self-updating data/warm/ecb/coverage.json completeness ledger).
@@ -181,10 +181,17 @@ def _next_pending(state):
 
 
 def _flow_done(fl):
-    return all(w.get("status") in ("done", "empty",
-                                   "oversize_year",
-                                   "oversize_month", "slow_month")
-               for w in fl["windows"].values())
+    # ops 4911: an err window with exhausted tries is TERMINAL
+    # (flagged in the manifest, never silent) -- before this, one
+    # dead window blocked flow completion forever while parts kept
+    # landing (the 30/48 freeze).
+    def _t(w):
+        st = str(w.get("status"))
+        return (st in ("done", "empty", "oversize_year",
+                       "oversize_month", "slow_month")
+                or (st.startswith("err")
+                    and w.get("tries", 0) >= 3))
+    return all(_t(w) for w in fl["windows"].values())
 
 
 def _write_manifest(flow, fl):
@@ -217,10 +224,12 @@ def _write_coverage(state, walk):
                    "first_period": fl.get("first_period"),
                    "n_parts": sum(1 for w in ws.values()
                                   if w.get("status") == "done"),
-                   "flags": sorted({w.get("status")
+                   "flags": sorted({str(w.get("status"))
                                     for w in ws.values()
                                     if str(w.get("status", "")
-                                           ).startswith("oversize")})}
+                                           ).startswith(
+                                        ("oversize", "slow",
+                                         "err"))})[:6]}
     _put_json("data/warm/ecb/coverage.json", {
         "as_of": _now(), "engine": "ecb-deep",
         "n_flows_walked": len(done),
@@ -257,6 +266,26 @@ def lambda_handler(event, context):
     _put_json(STATE_KEY, state)
     for flow in state["flow_order"]:
         _ensure_flow(state, flow)
+    if (event or {}).get("rearm_errs"):
+        # one-shot healing: pre-v1.3 err windows get fresh tries
+        # under the slow-window guard, then either bank or exhaust
+        # into the terminal flag above.
+        n_re = 0
+        for fl in state["flows"].values():
+            for w in fl.get("windows", {}).values():
+                if str(w.get("status", "")).startswith("err"):
+                    w["tries"] = 0
+                    n_re += 1
+        state["rearmed"] = {"n": n_re, "at": _now()}
+    # ops 4911: UNCONDITIONAL completion sweep every run -- flows
+    # whose only remaining windows are exhausted-errs are skipped by
+    # _next_pending and were never completion-checked (the 30/48
+    # freeze anatomy, caught by harness v5).
+    for f, fl in state["flows"].items():
+        if not fl.get("complete") and _flow_done(fl):
+            fl["complete"] = True
+            fl["completed_at"] = _now()
+            _write_manifest(f, fl)
 
     did = []
     while time.time() - t0 < BUDGET_S:

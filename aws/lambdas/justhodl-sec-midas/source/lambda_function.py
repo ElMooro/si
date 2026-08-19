@@ -77,7 +77,10 @@ def _discover():
             inv[(int(m.group(2)), int(m.group(3)))] = u
     except Exception:
         pass
-    if not inv:  # pattern fallback across both path variants
+    # ops 4911 v1.1: ALWAYS union the deterministic pattern probe --
+    # the dataset page only lists back to ~2022; older quarters live
+    # at the same URL patterns (both path variants).
+    if True:
         yr = datetime.now(timezone.utc).year
         for y in range(2012, yr + 1):
             for q in (1, 2, 3, 4):
