@@ -93,7 +93,8 @@ def _order(ids, pri_prefixes):
 
 def _walk_generic(agency, ids, url_fn, out_prefix, S,
                   _budget=None, alt_attempts=None, retry=False,
-                  _per=None, _cap=None, retry_trunc=False):
+                  _per=None, _cap=None, retry_trunc=False,
+                  _workers=None):
     k, st = _state(agency)
     done = set(st["done"])
     if retry:
@@ -155,7 +156,7 @@ def _walk_generic(agency, ids, url_fn, out_prefix, S,
                 last = e
                 break
         raise last
-    _pool = ThreadPoolExecutor(max_workers=24)
+    _pool = ThreadPoolExecutor(max_workers=(_workers or 24))
     _futs = {_pool.submit(_dl_one, f2): f2 for f2 in todo}
     _results = {}
     _pend = set(_futs)
@@ -238,6 +239,7 @@ def lambda_handler(event, context):
     _ecap = (int((event or {}).get("cap_mb") or 0) or 0) * 1024 * 1024 or None
     _ert = bool((event or {}).get("retry_truncated"))
     _erd = bool((event or {}).get("reset_done"))
+    _eworkers = int((event or {}).get("workers") or 0) or None
     if not ag:
         # ops 4539: cron fans out one async invoke PER agency — each
         # gets its own full 700s budget instead of sharing one.
@@ -383,7 +385,8 @@ def lambda_handler(event, context):
           _walk_generic(
             "oecd", oe_ids, _oe_url,
             "data/warm/oecd/data", S, _budget=_ebud,
-            alt_attempts=_oe_alts, retry=rf)
+            alt_attempts=_oe_alts, retry=rf,
+            _workers=_eworkers)
     except Exception as e:
         S["oecd"] = {"data_unavailable": True,
                      "reason": f"{type(e).__name__}: {str(e)[:60]}"}
