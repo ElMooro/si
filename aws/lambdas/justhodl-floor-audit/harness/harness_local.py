@@ -212,6 +212,59 @@ sh2 = L.shares_series(fx2)
 check("S-1 placeholder (100 sh) never wins the series",
       sh2[-1] == ("2026-05-01", 100e6), "(latest=%s)" % (sh2[-1],))
 
+print("== 8. v1.0.2 binds ==")
+# cross-namespace crypto (BTBT-class entity tag)
+fx8 = facts_fixture()
+fx8["facts"]["btbt"] = {"CryptoAssetEthereumFairValue": {"units": {
+    "USD": [{"val": 250e6, "end": "2026-06-30", "form": "10-Q",
+             "filed": "2026-08-10"}]}}}
+cv8, cp8 = L.crypto_fv(fx8)
+if cv8 is None:
+    cv8, cp8 = L.crypto_fv_crossns(fx8)
+check("cross-ns entity tag binds with cited ns:tag",
+      cv8 == 250e6 and cp8["tag"] == "btbt:CryptoAssetEthereumFairValue",
+      "(%s)" % (cp8 or {}).get("tag"))
+fx8b = facts_fixture()
+fx8b["facts"]["hood"] = {"CryptoAssetHeldForPlatformUserFairValue":
+    {"units": {"USD": [{"val": 9e9, "end": "2026-06-30",
+                        "form": "10-Q", "filed": "2026-08-10"}]}}}
+cv8b, _ = L.crypto_fv_crossns(fx8b)
+check("cross-ns scan still blocks custody patterns", cv8b is None)
+fx8c = facts_fixture()
+fx8c["facts"]["us-gaap"]["CashSegregatedUnderFederalAndOtherRegulations"] =     {"units": {"USD": [{"val": 5e9, "end": "2026-06-30",
+                        "form": "10-Q", "filed": "2026-08-10"}]}}
+check("broker markers detected (HOOD-class)",
+      L.broker_balance_sheet(fx8c) ==
+      ["CashSegregatedUnderFederalAndOtherRegulations"])
+# watchlist exemption from the structural wrapper test
+wl = set(L.DEFAULT_CONFIG["watchlist"])
+def classify2(tk, coverage, crypto_cov, mcap, broker, vd):
+    in_watchlist = tk in wl
+    is_fund = tk in set(L.DEFAULT_CONFIG["fund_blocklist"]) or \
+        (not in_watchlist and coverage is not None and
+         0.94 <= coverage <= 1.08 and crypto_cov >= 0.90)
+    if broker and not in_watchlist:
+        return "BROKER_BALANCE_SHEET"
+    if is_fund:
+        return "FUND_WRAPPER"
+    if not in_watchlist and coverage is not None and \
+            (coverage > 10 or mcap < 3e6):
+        return "SUSPECT_INPUTS"
+    return vd
+check("BMNR (watchlist, cov .97, crypto .94) NOT a wrapper",
+      classify2("BMNR", 0.9726, 0.9443, 2e10, [], "IN_LINE")
+      == "IN_LINE")
+check("unknown at same shape IS a wrapper",
+      classify2("ZETF", 0.9726, 0.9443, 2e9, [], "IN_LINE")
+      == "FUND_WRAPPER")
+check("HOOD-class broker quarantined",
+      classify2("HOOD", 1.62, 0.05, 9e10,
+                ["CashSegregatedUnderFederalAndOtherRegulations"],
+                "BELOW_LIQUID_FLOOR") == "BROKER_BALANCE_SHEET")
+check("watchlist name with broker markers still audited",
+      classify2("GLXY", 1.2, 0.8, 8e9, ["PayablesToCustomers"],
+                "BELOW_LIQUID_FLOOR") == "BELOW_LIQUID_FLOOR")
+
 print()
 if FAIL:
     print("HARNESS RED: %d failures: %s" % (len(FAIL), FAIL))

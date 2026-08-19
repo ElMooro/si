@@ -40,7 +40,7 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/floor-audit.json"
 CFG_KEY = "data/floor-audit/config.json"
@@ -195,6 +195,60 @@ def shares_series(facts):
         if by_end:
             return sorted(((k, float(v["val"])) for k, v in by_end.items()))
     return []
+
+
+import re as _re
+_CRYPTO_NAME = _re.compile(r"(CryptoAsset|DigitalAsset)")
+_CRYPTO_FV = _re.compile(r"FairValue")
+_CRYPTO_BAD = _re.compile(r"(PlatformUser|Customer|Safeguard|Custod|"
+                          r"Payable|Liabilit|Borrow|Loaned|Collateral|"
+                          r"Receivable|Restricted|Pledged)")
+
+
+def crypto_fv_crossns(facts):
+    """Cross-namespace scan for company-owned crypto fair value.
+    BTBT-class filers tag under their entity namespace, not us-gaap.
+    Deterministic: name must contain CryptoAsset|DigitalAsset AND
+    FairValue, must NOT match custody/liability patterns; latest USD
+    instant wins, largest value tiebreak. Bind is cited as ns:tag."""
+    best = None
+    for ns, tags in (facts.get("facts") or {}).items():
+        if ns == "dei":
+            continue
+        for tag, node in (tags or {}).items():
+            if not (_CRYPTO_NAME.search(tag) and
+                    _CRYPTO_FV.search(tag)):
+                continue
+            if _CRYPTO_BAD.search(tag):
+                continue
+            e = pick_latest((node.get("units") or {}).get("USD"))
+            if not e:
+                continue
+            key = (e["end"], float(e["val"]))
+            if best is None or key > best[0]:
+                best = (key, float(e["val"]),
+                        {"tag": "%s:%s" % (ns, tag), "end": e["end"],
+                         "form": e.get("form"),
+                         "filed": e.get("filed"),
+                         "doctrine": "cross-ns scan; custody/liability "
+                                     "patterns blocked"})
+    if best:
+        return best[1], best[2]
+    return None, None
+
+
+def broker_balance_sheet(facts):
+    """Exchanges/brokers (HOOD/COIN-class) carry customer-adjacent
+    balance sheets the treasury floor model was not built for. Detect
+    via custody/segregation markers and quarantine honestly."""
+    gaap = (facts.get("facts") or {}).get("us-gaap") or {}
+    markers = ("CashSegregatedUnderFederalAndOtherRegulations",
+               "PayablesToCustomers",
+               "CryptoAssetHeldForPlatformUserFairValue",
+               "SafeguardingLiabilityPlatformUserCryptoAsset",
+               "SafeguardingAssetPlatformUserCryptoAsset")
+    hits = [m for m in markers if m in gaap]
+    return hits
 
 
 def crypto_fv(facts):
@@ -416,7 +470,7 @@ def sec_ticker_map():
 def sec_companyfacts(cik):
     time.sleep(0.15)  # SEC pacing
     return http_json("https://data.sec.gov/api/xbrl/companyfacts/"
-                     "CIK%010d.json" % cik)
+                     "CIK%010d.json" % cik, timeout=60)
 
 
 def sec_frames_discover(tag, max_add):
@@ -531,6 +585,8 @@ def audit_ticker(tk, cik, cfg, crypto, backlog, notes):
 
     # crypto: filing FV -> live mark via primary-asset ratio
     fv, fv_prov = crypto_fv(facts)
+    if fv is None:
+        fv, fv_prov = crypto_fv_crossns(facts)
     crypto_mark, ratio = None, None
     if fv is not None and fv_prov:
         cd, cc, csrc = crypto[primary]
@@ -603,16 +659,26 @@ def audit_ticker(tk, cik, cfg, crypto, backlog, notes):
     #     ~all-crypto stack is a tautology, never an alert.
     # (b) SUSPECT_INPUTS -- coverage>10x or micro mcap means the shares
     #     bind or the price bind is pathological; quarantine honestly.
+    in_watchlist = tk in (cfg.get("watchlist") or {})
+    broker_hits = broker_balance_sheet(facts)
     is_fund = tk in set(cfg.get("fund_blocklist") or []) or \
-        (coverage is not None and 0.94 <= coverage <= 1.08 and
-         crypto_cov >= 0.90)
-    if is_fund:
+        (not in_watchlist and coverage is not None and
+         0.94 <= coverage <= 1.08 and crypto_cov >= 0.90)
+    if broker_hits and not in_watchlist:
+        vd = {"verdict": "BROKER_BALANCE_SHEET", "severity": "NONE",
+              "triggered_windows": vd.get("triggered_windows", []),
+              "worst_window": None, "sense_score": None,
+              "note": "customer-custody/segregation markers %s -- "
+                      "treasury floor model not applicable; "
+                      "quarantined" % ",".join(broker_hits[:2])}
+    elif is_fund:
         vd = {"verdict": "FUND_WRAPPER", "severity": "NONE",
               "triggered_windows": vd.get("triggered_windows", []),
               "worst_window": None, "sense_score": None,
               "note": "ETF/trust: mcap tracks the crypto stack by "
                       "construction; excluded from alerting"}
-    elif coverage is not None and (coverage > 10 or mcap < 3e6):
+    elif not in_watchlist and coverage is not None and \
+            (coverage > 10 or mcap < 3e6):
         vd = {"verdict": "SUSPECT_INPUTS", "severity": "NONE",
               "triggered_windows": vd.get("triggered_windows", []),
               "worst_window": vd.get("worst_window"),
@@ -741,6 +807,10 @@ def lambda_handler(event=None, context=None):
                                  if x.get("status") == "OK" and
                                  x["verdict"]["verdict"] ==
                                  "SUSPECT_INPUTS"),
+        "broker_sheets": sorted(t for t, x in tickers.items()
+                                if x.get("status") == "OK" and
+                                x["verdict"]["verdict"] ==
+                                "BROKER_BALANCE_SHEET"),
         "fusion": {"why_html": "tickers[T].why_block",
                    "history": HIST_PREFIX + "YYYY-MM-DD.json"},
     }
