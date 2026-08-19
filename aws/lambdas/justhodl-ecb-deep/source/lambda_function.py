@@ -1,4 +1,4 @@
-"""justhodl-ecb-deep — E-deep v1.1 (ops 4896 + 4897 hardening:
+"""justhodl-ecb-deep — E-deep v1.2 (ops 4896 + 4897 hardening + 4901 self-chain:
 month-split for oversize years, flow_order resync with the walker's
 live truncated ledger, historical-revision rotation in refresh mode,
 and a self-updating data/warm/ecb/coverage.json completeness ledger).
@@ -345,6 +345,16 @@ def lambda_handler(event, context):
 
     n_complete = sum(1 for f in state["flows"].values()
                      if f.get("complete"))
+    # ops 4901 (Khalid: expedite, budget no problem): self-chain --
+    # while backfill work remains, async re-invoke at budget end for
+    # ~100% duty (the FRED pattern, playbook 2.6). Depth-capped, the
+    # 10-min Scheduler stays the watchdog, the lease stays the
+    # overlap guard (released just before chaining).
+    _depth = int((event or {}).get("chain_depth") or 0)
+    _more = _next_pending(state)[0] is not None
+    _chain = bool(state.get("mode") == "backfill" and _more
+                  and _depth < 60
+                  and not (event or {}).get("no_chain"))
     state["lease_until"] = 0
     state["as_of"] = _now()
     state["n_flows"] = len(state["flow_order"])
@@ -354,7 +364,19 @@ def lambda_handler(event, context):
         _write_coverage(state, walk)
     except Exception as e:
         print("coverage write failed: %s" % type(e).__name__)
+    if _chain:
+        try:
+            _fn = os.environ.get("AWS_LAMBDA_FUNCTION_NAME",
+                                 "justhodl-ecb-deep")
+            boto3.client("lambda", region_name="us-east-1").invoke(
+                FunctionName=_fn, InvocationType="Event",
+                Payload=json.dumps(
+                    {"chain_depth": _depth + 1}).encode())
+        except Exception as e:
+            print("chain failed: %s" % type(e).__name__)
+            _chain = False
     res = {"ok": True, "mode": state.get("mode"),
+           "chained": _chain, "chain_depth": _depth,
            "actions": len(did), "sample": did[:6],
            "flows_complete": f"{n_complete}/{len(state['flow_order'])}",
            "elapsed_s": round(time.time() - t0, 1)}
