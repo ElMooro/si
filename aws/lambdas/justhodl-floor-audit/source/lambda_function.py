@@ -40,7 +40,7 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/floor-audit.json"
 CFG_KEY = "data/floor-audit/config.json"
@@ -237,51 +237,101 @@ def crypto_fv_crossns(facts):
     return None, None
 
 
+_BROKER_PAT = _re.compile(
+    r"(SegregatedUnderFederal|PayablesToCustomers|PayablesToUsers|"
+    r"SafeguardingLiabilit|SafeguardingAsset|HeldForPlatformUser|"
+    r"FundsHeldForClients|DepositsFromCustomers)")
+
+
 def broker_balance_sheet(facts):
     """Exchanges/brokers (HOOD/COIN-class) carry customer-adjacent
-    balance sheets the treasury floor model was not built for. Detect
-    via custody/segregation markers and quarantine honestly."""
-    gaap = (facts.get("facts") or {}).get("us-gaap") or {}
-    markers = ("CashSegregatedUnderFederalAndOtherRegulations",
-               "PayablesToCustomers",
-               "CryptoAssetHeldForPlatformUserFairValue",
-               "SafeguardingLiabilityPlatformUserCryptoAsset",
-               "SafeguardingAssetPlatformUserCryptoAsset")
-    hits = [m for m in markers if m in gaap]
-    return hits
+    balance sheets the treasury floor model was not built for.
+    ops-4916 lesson: exact-name markers missed HOOD, whose segregated
+    cash tags as CashAndSecuritiesSegregatedUnderFederalAndOther...
+    and whose payables live in its OWN namespace (hood:PayablesToUsers).
+    Pattern scan across every non-dei namespace; hits are cited ns:tag."""
+    hits = []
+    for ns, tags in (facts.get("facts") or {}).items():
+        if ns == "dei":
+            continue
+        for tag in (tags or {}):
+            if _BROKER_PAT.search(tag):
+                hits.append("%s:%s" % (ns, tag))
+    return sorted(set(hits))[:8]
 
 
 def crypto_fv(facts):
-    """Company-owned crypto fair value ONLY. Blocked custody tags are
-    asserted absent from the read set (they may exist in the filing; we
-    simply never bind them). Returns (value, prov) with prov noting the
-    exclusion doctrine."""
+    """Company-owned crypto fair value ONLY, resolved RECENCY-FIRST.
+
+    ops-4916 lesson (BTBT): the parent tag CryptoAssetFairValue carried
+    a stale $2.3M fact (end 2026-03-31) while the fresh Q2'26 position
+    lived in the Current/Noncurrent splits ($120.1M each, end
+    2026-06-30). Preferring the parent unconditionally read a ~$800M
+    treasury at 0.5% crypto. Doctrine now: the freshest instant 'end'
+    across parent, splits, and cross-namespace extension tags governs;
+    the parent is authoritative only when it is itself fresh; fresh
+    splits are summed; every superseded stale fact is cited in
+    provenance, never silently dropped."""
     for bad in BLOCKED_CRYPTO_TAGS:
         assert bad not in CRYPTO_TAGS  # design invariant, not data check
     gaap = (facts.get("facts") or {}).get("us-gaap") or {}
-    # If both Current+Noncurrent exist and no total tag, sum them.
-    total, prov = xbrl_usd(facts, ["CryptoAssetFairValue"])
-    if total is not None:
-        prov["doctrine"] = "company-owned only; custody tags blocked"
-        return total, prov
-    cur = gaap.get("CryptoAssetFairValueCurrent")
-    non = gaap.get("CryptoAssetFairValueNoncurrent")
-    if cur or non:
-        v = 0.0
-        ends = []
-        for node in (cur, non):
-            if not node:
-                continue
-            best = pick_latest((node.get("units") or {}).get("USD"))
-            if best:
-                v += float(best["val"])
-                ends.append(best["end"])
-        if ends:
-            return v, {"tag": "CryptoAssetFairValueCurrent+Noncurrent",
-                       "end": max(ends), "form": "10-Q/10-K",
-                       "doctrine": "company-owned only; custody tags "
-                                   "blocked"}
-    return None, None
+
+    def _latest(tag):
+        node = gaap.get(tag)
+        if not node:
+            return None
+        e = pick_latest((node.get("units") or {}).get("USD"))
+        if not e:
+            return None
+        return (e["end"], float(e["val"]), e)
+
+    parent = _latest("CryptoAssetFairValue")
+    cur = _latest("CryptoAssetFairValueCurrent")
+    non = _latest("CryptoAssetFairValueNoncurrent")
+    xv, xp = crypto_fv_crossns(facts)
+
+    ends = [c[0] for c in (parent, cur, non) if c]
+    if xp:
+        ends.append(xp["end"])
+    if not ends:
+        return None, None
+    fresh = max(ends)
+    doctrine = ("company-owned only; custody tags blocked; "
+                "recency-first across parent/splits/extension tags")
+
+    if parent and parent[0] == fresh:
+        _, v, e = parent
+        return v, {"tag": "CryptoAssetFairValue", "end": e["end"],
+                   "form": e.get("form"), "filed": e.get("filed"),
+                   "doctrine": doctrine + " (parent fresh)"}
+
+    parts = [(t, c) for t, c in
+             (("CryptoAssetFairValueCurrent", cur),
+              ("CryptoAssetFairValueNoncurrent", non))
+             if c and c[0] == fresh]
+    if parts:
+        v = sum(c[1] for _, c in parts)
+        prov = {"tag": "+".join(t for t, _ in parts), "end": fresh,
+                "form": parts[0][1][2].get("form"),
+                "filed": parts[0][1][2].get("filed"),
+                "doctrine": doctrine}
+        if parent:
+            prov["superseded_parent"] = {"end": parent[0],
+                                         "val": parent[1],
+                                         "why": "stale vs splits"}
+        if len(parts) == 2 and parts[0][1][1] == parts[1][1][1]:
+            prov["split_equal_note"] = (
+                "Current==Noncurrent to the dollar; summed per "
+                "classified-balance-sheet reading (spec-checked on "
+                "BTBT: sum lands at ~1/3 of mcap, matching cost basis "
+                "of $269M within a normal drawdown)")
+        return v, prov
+
+    if xp and xp["end"] == fresh:
+        xp = dict(xp)
+        xp["doctrine"] = xp.get("doctrine", "") + "; recency-first"
+        return xv, xp
+    return None, None  # unreachable given ends nonempty; honest guard
 
 
 def floor_stack(facts, ar_haircut, crypto_mark, crypto_prov):
@@ -584,9 +634,7 @@ def audit_ticker(tk, cik, cfg, crypto, backlog, notes):
     dilution_active = dil is not None and dil >= th["dilution_qoq"]
 
     # crypto: filing FV -> live mark via primary-asset ratio
-    fv, fv_prov = crypto_fv(facts)
-    if fv is None:
-        fv, fv_prov = crypto_fv_crossns(facts)
+    fv, fv_prov = crypto_fv(facts)  # recency-first; crossns folded in
     crypto_mark, ratio = None, None
     if fv is not None and fv_prov:
         cd, cc, csrc = crypto[primary]

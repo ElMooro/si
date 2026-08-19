@@ -233,9 +233,9 @@ check("cross-ns scan still blocks custody patterns", cv8b is None)
 fx8c = facts_fixture()
 fx8c["facts"]["us-gaap"]["CashSegregatedUnderFederalAndOtherRegulations"] =     {"units": {"USD": [{"val": 5e9, "end": "2026-06-30",
                         "form": "10-Q", "filed": "2026-08-10"}]}}
-check("broker markers detected (HOOD-class)",
+check("broker markers detected (HOOD-class), cited ns:tag",
       L.broker_balance_sheet(fx8c) ==
-      ["CashSegregatedUnderFederalAndOtherRegulations"])
+      ["us-gaap:CashSegregatedUnderFederalAndOtherRegulations"])
 # watchlist exemption from the structural wrapper test
 wl = set(L.DEFAULT_CONFIG["watchlist"])
 def classify2(tk, coverage, crypto_cov, mcap, broker, vd):
@@ -264,6 +264,91 @@ check("HOOD-class broker quarantined",
 check("watchlist name with broker markers still audited",
       classify2("GLXY", 1.2, 0.8, 8e9, ["PayablesToCustomers"],
                 "BELOW_LIQUID_FLOOR") == "BELOW_LIQUID_FLOOR")
+
+print("== 9. v1.0.3 recency-first bind (ops-4916 BTBT failure) ==")
+
+
+def inst_rows(tag, rows):
+    return {tag: {"units": {"USD": [
+        {"val": v, "end": e, "form": f, "filed": fd}
+        for v, e, f, fd in rows]}}}
+
+
+# exact BTBT tape from the ops-4916 tag inventory: stale $2.3M parent
+# (2026-03-31) must NOT shadow fresh $120.1M+$120.1M splits (2026-06-30)
+fx9 = facts_fixture()
+fx9["facts"]["us-gaap"].update(inst_rows(
+    "CryptoAssetFairValue",
+    [(2296509, "2026-03-31", "10-Q", "2026-05-08")]))
+fx9["facts"]["us-gaap"].update(inst_rows(
+    "CryptoAssetFairValueCurrent",
+    [(120149000, "2026-06-30", "10-Q", "2026-08-10")]))
+fx9["facts"]["us-gaap"].update(inst_rows(
+    "CryptoAssetFairValueNoncurrent",
+    [(120149000, "2026-06-30", "10-Q", "2026-08-10")]))
+cv9, cp9 = L.crypto_fv(fx9)
+check("BTBT replica: fresh splits sum, stale parent superseded",
+      cv9 == 240298000 and cp9["end"] == "2026-06-30",
+      "(val=%s end=%s)" % (cv9, (cp9 or {}).get("end")))
+check("BTBT replica: superseded parent cited in provenance",
+      (cp9.get("superseded_parent") or {}).get("end") == "2026-03-31"
+      and (cp9.get("superseded_parent") or {}).get("val") == 2296509)
+check("BTBT replica: equal-split doctrine note present",
+      "split_equal_note" in cp9)
+
+# parent fresh at the same end as splits -> parent authoritative
+fx9b = facts_fixture()
+fx9b["facts"]["us-gaap"].update(inst_rows(
+    "CryptoAssetFairValue",
+    [(500e6, "2026-06-30", "10-Q", "2026-08-10")]))
+fx9b["facts"]["us-gaap"].update(inst_rows(
+    "CryptoAssetFairValueCurrent",
+    [(100e6, "2026-03-31", "10-Q", "2026-05-08")]))
+cv9b, cp9b = L.crypto_fv(fx9b)
+check("fresh parent beats stale split",
+      cv9b == 500e6 and cp9b["tag"] == "CryptoAssetFairValue")
+
+# only ONE split is fresh -> stale sibling excluded from the sum
+fx9c = facts_fixture()
+fx9c["facts"]["us-gaap"].update(inst_rows(
+    "CryptoAssetFairValueCurrent",
+    [(200e6, "2026-06-30", "10-Q", "2026-08-10")]))
+fx9c["facts"]["us-gaap"].update(inst_rows(
+    "CryptoAssetFairValueNoncurrent",
+    [(300e6, "2026-03-31", "10-Q", "2026-05-08")]))
+cv9c, cp9c = L.crypto_fv(fx9c)
+check("lone fresh split binds alone, stale sibling excluded",
+      cv9c == 200e6 and cp9c["tag"] == "CryptoAssetFairValueCurrent")
+
+# extension-namespace tag fresher than every us-gaap fact -> ext wins
+fx9d = facts_fixture(crypto_total=100e6)  # parent @2026-03-31
+fx9d["facts"]["btbt"] = inst_rows(
+    "CryptoAssetEthereumFairValue",
+    [(400e6, "2026-06-30", "10-Q", "2026-08-10")])
+cv9d, cp9d = L.crypto_fv(fx9d)
+check("fresher extension tag beats stale us-gaap parent",
+      cv9d == 400e6
+      and cp9d["tag"] == "btbt:CryptoAssetEthereumFairValue"
+      and "recency-first" in cp9d["doctrine"])
+
+print("== 10. v1.0.3 broker pattern scan (HOOD tag-miss fix) ==")
+fx10 = facts_fixture()
+fx10["facts"]["us-gaap"][
+    "CashAndSecuritiesSegregatedUnderFederalAndOtherRegulations"] = \
+    {"units": {"USD": [{"val": 4e9, "end": "2026-06-30",
+                        "form": "10-Q", "filed": "2026-08-06"}]}}
+check("HOOD real segregation tag caught by pattern",
+      L.broker_balance_sheet(fx10) ==
+      ["us-gaap:CashAndSecuritiesSegregatedUnderFederalAndOther"
+       "Regulations"])
+fx10b = facts_fixture()
+fx10b["facts"]["hood"] = {"PayablesToUsers": {"units": {"USD": [
+    {"val": 6e9, "end": "2026-06-30", "form": "10-Q",
+     "filed": "2026-08-06"}]}}}
+check("entity-namespace PayablesToUsers caught",
+      L.broker_balance_sheet(fx10b) == ["hood:PayablesToUsers"])
+check("clean DAT fixture has zero broker hits",
+      L.broker_balance_sheet(facts_fixture(crypto_total=300e6)) == [])
 
 print()
 if FAIL:
