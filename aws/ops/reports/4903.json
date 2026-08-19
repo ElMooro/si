@@ -1,0 +1,48 @@
+{
+ "ops": 4903,
+ "gates": {
+  "walker_workers_deployed": "PASS",
+  "oecd_failures_decreasing": "PASS",
+  "oecd_drain_scheduled": "PASS",
+  "statcan_audited": "PASS",
+  "midas_harvest": "PENDING"
+ },
+ "started": "2026-08-19T14:37:38+00:00",
+ "oecd": {
+  "before": 991,
+  "after": 966
+ },
+ "statcan_top": [
+  [
+   "HTTPError: HTTP Error 429: Too Many Requests",
+   106
+  ],
+  [
+   "URLError: <urlopen error [Errno 104] Connect",
+   83
+  ],
+  [
+   "URLError: <urlopen error [Errno 110] Connect",
+   72
+  ],
+  [
+   "HTTPError: HTTP Error 502: Bad Gateway",
+   24
+  ],
+  [
+   "HTTPError: HTTP Error 404: Not Found",
+   4
+  ],
+  [
+   "ValueError: tiny 0b",
+   1
+  ]
+ ],
+ "midas_links": [],
+ "deep": {
+  "n_complete": 30,
+  "mode": "backfill"
+ },
+ "overall": "PASS_WITH_PENDING",
+ "finished": "2026-08-19T14:39:42+00:00"
+}

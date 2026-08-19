@@ -1,6 +1,6 @@
-executing-against: 92091d02ffa35d20847e4ce9e1db4f8092052a2b
-ops 4902 — OECD histogram+probe · MIDAS links · chain duty
-[14:28:49] VERDICT: PASS_WITH_PENDING · {"oecd_diagnosis": "PASS", "midas_links": "PENDING", "deep_chain_duty": "PENDING"}
-[14:28:49] report written: aws/ops/reports/4902.json
+executing-against: 6a9448924d650e4a7c220278d1fa14e1289168c9
+ops 4903 — OECD paced lane · MIDAS v2 · deep
+[14:39:42] VERDICT: PASS_WITH_PENDING · {"walker_workers_deployed": "PASS", "oecd_failures_decreasing": "PASS", "oecd_drain_scheduled": "PASS", "statcan_audited": "PASS", "midas_harvest": "PENDING"}
+[14:39:42] report written: aws/ops/reports/4903.json
 
-→ Report written to aws/ops/reports/latest/ops 4902 -- corrected diagnoses.md
+→ Report written to aws/ops/reports/latest/ops 4903 -- oecd unlock midas v2.md
