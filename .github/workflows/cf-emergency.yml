@@ -38,9 +38,13 @@ jobs:
             "https://api.cloudflare.com/client/v4/zones/$ZID/settings/ssl" \
             -d "{\"value\":\"${{ inputs.mode }}\"}" | head -c 400; echo
           if [ "${{ inputs.fix_www }}" = "1" ]; then
+            # fail-soft: the token may lack DNS scope (ops 4906 run:
+            # ssl patch landed, this section killed the job via set -e)
             N=$(curl -s -H "Authorization: Bearer $CF" \
               "https://api.cloudflare.com/client/v4/zones/$ZID/dns_records?name=www.justhodl.ai" \
-              | python3 -c "import json,sys;print(len(json.load(sys.stdin)['result']))")
+              | python3 -c "import json,sys
+try: print(len(json.load(sys.stdin).get('result') or []))
+except Exception: print('scope-denied')" || echo scope-denied)
             echo "www records existing: $N"
             if [ "$N" = "0" ]; then
               echo "--- creating www CNAME -> elmooro.github.io (proxied)"
