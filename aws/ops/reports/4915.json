@@ -1,0 +1,136 @@
+{
+ "op": 4915,
+ "version": "1.0.1",
+ "as_of": "2026-08-19T19:31:02+00:00",
+ "alerts": [
+  {
+   "ticker": "AIFC",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": 0,
+   "coverage": 6.5575,
+   "worst_residual": -0.816459,
+   "headline": "NLAV $479M vs mcap $73M -> 656% liquid coverage"
+  },
+  {
+   "ticker": "CNTN",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": 0,
+   "coverage": 3.9689,
+   "worst_residual": -0.651316,
+   "headline": "NLAV $647M vs mcap $163M -> 397% liquid coverage"
+  },
+  {
+   "ticker": "TONX",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": 0,
+   "coverage": 3.0004,
+   "worst_residual": -0.525353,
+   "headline": "NLAV $454M vs mcap $151M -> 300% liquid coverage"
+  },
+  {
+   "ticker": "UPXI",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": null,
+   "coverage": 1.7192,
+   "worst_residual": null,
+   "headline": "NLAV $106M vs mcap $61M -> 172% liquid coverage"
+  },
+  {
+   "ticker": "HOOD",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": null,
+   "coverage": 1.6213,
+   "worst_residual": null,
+   "headline": "NLAV $35990M vs mcap $22198M -> 162% liquid coverage"
+  },
+  {
+   "ticker": "FWDI",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": null,
+   "coverage": 1.1071,
+   "worst_residual": null,
+   "headline": "NLAV $400M vs mcap $361M -> 111% liquid coverage"
+  },
+  {
+   "ticker": "ABTC",
+   "severity": "MEDIUM",
+   "verdict": "SENSELESS_DRAWDOWN",
+   "sense_score": 0,
+   "coverage": 0.7961,
+   "worst_residual": -0.575644,
+   "headline": "NLAV $531M vs mcap $667M -> 80% liquid coverage"
+  },
+  {
+   "ticker": "HIVE",
+   "severity": "MEDIUM",
+   "verdict": "STRETCHED",
+   "sense_score": 0,
+   "coverage": 0.3107,
+   "worst_residual": -0.436773,
+   "headline": "NLAV $236M vs mcap $758M -> 31% liquid coverage"
+  }
+ ],
+ "fund_wrappers": [
+  "ARKB",
+  "BMNR",
+  "ETHA",
+  "ETHB",
+  "EZBC",
+  "HODL",
+  "IBIT"
+ ],
+ "suspect_inputs": [
+  "GDC"
+ ],
+ "dat_board": {
+  "BTBT": {
+   "verdict": "IN_LINE",
+   "cov": 0.0497,
+   "crypto": 0.0047,
+   "dd20": -0.159375,
+   "sense": 0
+  },
+  "BMNR": {
+   "verdict": "FUND_WRAPPER",
+   "cov": 0.9726,
+   "crypto": 0.9443,
+   "dd20": 0.0,
+   "sense": null
+  },
+  "SBET": {
+   "verdict": "IN_LINE",
+   "cov": 0.0377,
+   "crypto": 0.0009,
+   "dd20": 0.0,
+   "sense": null
+  },
+  "DFDV": {
+   "verdict": "IN_LINE",
+   "cov": -0.4193,
+   "crypto": 0.6968,
+   "dd20": 0.0,
+   "sense": null
+  },
+  "UPXI": {
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "cov": 1.7192,
+   "crypto": 2.9746,
+   "dd20": -0.007264,
+   "sense": null
+  },
+  "ABTC": {
+   "verdict": "SENSELESS_DRAWDOWN",
+   "cov": 0.7961,
+   "crypto": 0.8356,
+   "dd20": 0.0,
+   "sense": 0
+  }
+ },
+ "edge": "PENDING"
+}

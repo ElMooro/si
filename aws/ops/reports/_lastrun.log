@@ -1,19 +1,17 @@
-executing-against: cdb923e3cf9c056607414a5da7af14da9c9ac4a2
-ops 4914 -- floor-audit birth
-── G1 key inheritance ──
-── G2 deploy ──
-[19:23:09]   zip: 107942 bytes
+executing-against: e98ebd9db16f4be55d8cb9a1dfed126ffd5129b5
+ops 4915 -- floor-audit v1.0.1 quarantine ladder
+── G1 redeploy ──
+[19:30:22]   zip: 108578 bytes
 ── 1. Lambda ──
-[19:23:10]   Lambda exists — updating
-[19:23:15] ✅   ✓ updated justhodl-floor-audit
-[19:23:15] ✅   ✓ Function URL: https://2svmcowoxlyhacedhjgjbdmsni0yqmve.lambda-url.us-east-1.on.aws/
+[19:30:22]   Lambda exists — updating
+[19:30:29] ✅   ✓ updated justhodl-floor-audit
 ── 3. Smoke test ──
-[19:23:16]   invoking justhodl-floor-audit…
-── G3 schedule ──
-── G4 first run ──
-[19:23:32] async invoke fired; polling data/floor-audit.json for fresh as_of (prev=2026-08-19T19:23:30+00:00)
-── G5 payload assertions ──
-── G6 history ──
+[19:30:29]   invoking justhodl-floor-audit…
+── G2 config reset ──
+── G3 fresh run ──
+── G4 alert hygiene ──
+── G5 real edges intact ──
+── G6 DAT board ──
 ── edge (soft) ──
 
-→ Report written to aws/ops/reports/latest/4914-floor-audit-birth.md
+→ Report written to aws/ops/reports/latest/4915-floor-v101-quarantine.md
