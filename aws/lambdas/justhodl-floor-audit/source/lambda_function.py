@@ -40,7 +40,7 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/floor-audit.json"
 CFG_KEY = "data/floor-audit/config.json"
@@ -77,6 +77,9 @@ DEFAULT_CONFIG = {
     },
     "discovery": {"enabled": True, "tag": "CryptoAssetFairValue",
                   "max_add": 25, "default_primary": "BTC"},
+    "fund_blocklist": ["IBIT", "ETHA", "EZBC", "ARKB", "HODL", "FBTC",
+                       "GBTC", "ETHE", "BITB", "BTCO", "BRRR", "ETHB",
+                       "ETHV", "BTCW", "DEFI", "BITO"],
     "thresholds": {
         "dd_trigger": {"5": -0.15, "20": -0.25, "60": -0.35, "120": -0.45},
         "coverage_high": 0.50, "coverage_mid": 0.30,
@@ -176,8 +179,14 @@ def shares_series(facts):
         if not node:
             continue
         by_end = {}
+        cover_forms = ("10-Q", "10-K", "20-F", "40-F", "8-K",
+                       "10-Q/A", "10-K/A", "6-K")
         for e in (node.get("units") or {}).get("shares") or []:
             if e.get("val") is None or not e.get("end"):
+                continue
+            if e.get("form") not in cover_forms:
+                continue
+            if float(e["val"]) < 1000:  # registration placeholders
                 continue
             cur = by_end.get(e["end"])
             if cur is None or (e.get("filed") or "") > (cur.get("filed")
@@ -589,6 +598,29 @@ def audit_ticker(tk, cik, cfg, crypto, backlog, notes):
     committed_cov = (round(committed / mcap, 4)
                      if committed is not None else None)
 
+    # v1.0.1 quarantine ladder (first live tape, ops 4914/4915):
+    # (a) FUND_WRAPPER -- an ETF/trust IS its assets; cov~1.0 with a
+    #     ~all-crypto stack is a tautology, never an alert.
+    # (b) SUSPECT_INPUTS -- coverage>10x or micro mcap means the shares
+    #     bind or the price bind is pathological; quarantine honestly.
+    is_fund = tk in set(cfg.get("fund_blocklist") or []) or \
+        (coverage is not None and 0.94 <= coverage <= 1.08 and
+         crypto_cov >= 0.90)
+    if is_fund:
+        vd = {"verdict": "FUND_WRAPPER", "severity": "NONE",
+              "triggered_windows": vd.get("triggered_windows", []),
+              "worst_window": None, "sense_score": None,
+              "note": "ETF/trust: mcap tracks the crypto stack by "
+                      "construction; excluded from alerting"}
+    elif coverage is not None and (coverage > 10 or mcap < 3e6):
+        vd = {"verdict": "SUSPECT_INPUTS", "severity": "NONE",
+              "triggered_windows": vd.get("triggered_windows", []),
+              "worst_window": vd.get("worst_window"),
+              "sense_score": None,
+              "note": "coverage %.1fx / mcap $%.1fM implausible -- "
+                      "shares or price bind pathological; quarantined, "
+                      "not alerted" % (coverage, mcap / 1e6)}
+
     if dilution_active and vd["severity"] in ("HIGH", "MEDIUM"):
         vd = dict(vd)
         vd["severity"] = "MEDIUM" if vd["severity"] == "HIGH" else "LOW"
@@ -701,6 +733,14 @@ def lambda_handler(event=None, context=None):
         "crypto_sources": {a: s for a, (_, _, s) in crypto.items()},
         "thresholds": th, "notes": sorted(notes),
         "alerts": alerts, "tickers": tickers,
+        "fund_wrappers": sorted(t for t, x in tickers.items()
+                                if x.get("status") == "OK" and
+                                x["verdict"]["verdict"] ==
+                                "FUND_WRAPPER"),
+        "suspect_inputs": sorted(t for t, x in tickers.items()
+                                 if x.get("status") == "OK" and
+                                 x["verdict"]["verdict"] ==
+                                 "SUSPECT_INPUTS"),
         "fusion": {"why_html": "tickers[T].why_block",
                    "history": HIST_PREFIX + "YYYY-MM-DD.json"},
     }

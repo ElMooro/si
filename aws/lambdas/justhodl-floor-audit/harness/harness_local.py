@@ -176,6 +176,42 @@ try:
 except AssertionError:
     check("G0 rejects <60% OK", True)
 
+print("== 7. v1.0.1 quarantine ladder (integration slice) ==")
+# fund wrapper: structural test on the audit-side classification inputs
+cfgq = {"fund_blocklist": ["IBIT"], "thresholds": TH}
+def classify(tk, coverage, crypto_cov, mcap, vd):
+    is_fund = tk in set(cfgq.get("fund_blocklist") or []) or \
+        (coverage is not None and 0.94 <= coverage <= 1.08 and
+         crypto_cov >= 0.90)
+    if is_fund:
+        return "FUND_WRAPPER"
+    if coverage is not None and (coverage > 10 or mcap < 3e6):
+        return "SUSPECT_INPUTS"
+    return vd
+check("unknown ETF caught structurally (cov 1.00, crypto 99%)",
+      classify("ZZZC", 1.003, 0.99, 5e9, "BELOW_LIQUID_FLOOR")
+      == "FUND_WRAPPER")
+check("blocklisted IBIT caught even off-band",
+      classify("IBIT", 1.2, 0.99, 5e10, "BELOW_LIQUID_FLOOR")
+      == "FUND_WRAPPER")
+check("GLXY-class 3e6x coverage quarantined",
+      classify("GLXY", 3040406.0, 118054.0, 2e3, "BELOW_LIQUID_FLOOR")
+      == "SUSPECT_INPUTS")
+check("real DAT discount 1.73x passes through (UPXI-class)",
+      classify("UPXI", 1.73, 1.53, 61e6, "BELOW_LIQUID_FLOOR")
+      == "BELOW_LIQUID_FLOOR")
+check("real operator 6.6x still passes (<=10x band honored)",
+      classify("AIFC", 6.6, 6.1, 73e6, "BELOW_LIQUID_FLOOR")
+      == "BELOW_LIQUID_FLOOR")
+# shares form filter: S-1 placeholder row must not win
+fx2 = facts_fixture()
+fx2["facts"]["dei"]["EntityCommonStockSharesOutstanding"]["units"][
+    "shares"].append({"val": 100, "end": "2026-06-01", "form": "S-1",
+                      "filed": "2026-06-02"})
+sh2 = L.shares_series(fx2)
+check("S-1 placeholder (100 sh) never wins the series",
+      sh2[-1] == ("2026-05-01", 100e6), "(latest=%s)" % (sh2[-1],))
+
 print()
 if FAIL:
     print("HARNESS RED: %d failures: %s" % (len(FAIL), FAIL))
