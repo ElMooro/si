@@ -1,6 +1,19 @@
-executing-against: b4a7738e496a624bfd3b56b988416c4c79dce1fc
-ops 4913 — NY Fed + OFR verdicts & fixes
-[18:39:38] VERDICT: PASS · {"markets_scheduler_fixed": "PASS", "src_mirror_live": "PASS", "verdicts_banked": "PASS", "markets_fresh": "PASS"}
-[18:39:38] report written: aws/ops/reports/4913.json
+executing-against: cdb923e3cf9c056607414a5da7af14da9c9ac4a2
+ops 4914 -- floor-audit birth
+── G1 key inheritance ──
+── G2 deploy ──
+[19:23:09]   zip: 107942 bytes
+── 1. Lambda ──
+[19:23:10]   Lambda exists — updating
+[19:23:15] ✅   ✓ updated justhodl-floor-audit
+[19:23:15] ✅   ✓ Function URL: https://2svmcowoxlyhacedhjgjbdmsni0yqmve.lambda-url.us-east-1.on.aws/
+── 3. Smoke test ──
+[19:23:16]   invoking justhodl-floor-audit…
+── G3 schedule ──
+── G4 first run ──
+[19:23:32] async invoke fired; polling data/floor-audit.json for fresh as_of (prev=2026-08-19T19:23:30+00:00)
+── G5 payload assertions ──
+── G6 history ──
+── edge (soft) ──
 
-→ Report written to aws/ops/reports/latest/ops 4913 -- nyfed ofr investigation.md
+→ Report written to aws/ops/reports/latest/4914-floor-audit-birth.md
