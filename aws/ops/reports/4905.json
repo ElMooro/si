@@ -1,0 +1,48 @@
+{
+ "ops": 4905,
+ "gates": {
+  "autopsy_captured": "PASS",
+  "deep_status": "PASS",
+  "midas_hop2": "PENDING"
+ },
+ "started": "2026-08-19T14:50:20+00:00",
+ "deep_log_sample": [
+  "REPORT RequestId: fcc8876a-e66a-4a93-8a6d-0013fe724bb9\tDuration: 80.30 ms\tBilled Duration: 570 ms\tMemory Size: 4096 MB\tMax Memory Used: 97 MB\tInit Duration: 488.91 ms\t\nXRAY TraceId: 1-6a85b706-4c00add334ddc12611a57efd\tSe",
+  "REPORT RequestId: 276a85b3-61a7-4b68-b42e-de11b5f419e3\tDuration: 900000.00 ms\tBilled Duration: 900503 ms\tMemory Size: 4096 MB\tMax Memory Used: 537 MB\tInit Duration: 502.37 ms\tStatus: timeout\nXRAY TraceId: 1-6a85b38d-6f9d",
+  "REPORT RequestId: 276a85b3-61a7-4b68-b42e-de11b5f419e3\tDuration: 84.77 ms\tBilled Duration: 635 ms\tMemory Size: 4096 MB\tMax Memory Used: 97 MB\tInit Duration: 549.71 ms\t\nXRAY TraceId: 1-6a85b38d-6f9d98433c41c43c27db5b48\tSe",
+  "REPORT RequestId: 276a85b8-11a7-4b68-b42e-de11b5f419e3\tDuration: 74.59 ms\tBilled Duration: 75 ms\tMemory Size: 4096 MB\tMax Memory Used: 97 MB\t\nXRAY TraceId: 1-6a85b83d-0300aaff473d11d85c695ad6\tSegmentId: 26dc16cbbd0c0bf5\t",
+  "REPORT RequestId: 276a85bc-c1a7-4b68-b42e-de11b5f419e3\tDuration: 70.75 ms\tBilled Duration: 576 ms\tMemory Size: 4096 MB\tMax Memory Used: 97 MB\tInit Duration: 504.81 ms\t\nXRAY TraceId: 1-6a85bced-2a574ebe6f4efb4250401214\tSe",
+  "REPORT RequestId: 276a85ba-69a7-4b68-b42e-de11b5f419e3\tDuration: 900000.00 ms\tBilled Duration: 900493 ms\tMemory Size: 4096 MB\tMax Memory Used: 542 MB\tInit Duration: 492.98 ms\tStatus: timeout\nXRAY TraceId: 1-6a85ba95-77fd",
+  "REPORT RequestId: 276a85ba-69a7-4b68-b42e-de11b5f419e3\tDuration: 428.59 ms\tBilled Duration: 429 ms\tMemory Size: 4096 MB\tMax Memory Used: 97 MB\t\nXRAY TraceId: 1-6a85ba95-77fdc98c06ff23d257fcda8e\tSegmentId: 2c33af94440ce3e",
+  "REPORT RequestId: 276a85bf-19a7-4b68-b42e-de11b5f419e3\tDuration: 65.05 ms\tBilled Duration: 66 ms\tMemory Size: 4096 MB\tMax Memory Used: 97 MB\t\nXRAY TraceId: 1-6a85bf45-69f72963358b720f2b158c31\tSegmentId: 071d828eb7df1b97\t"
+ ],
+ "deep": {
+  "parts": 238,
+  "newest_age_min": 4.6,
+  "moved_after_kick": null
+ },
+ "midas_hop2": {
+  "sec-markets-data": {
+   "status": 200,
+   "files": [],
+   "next_hops": [
+    "/featured-topics/market-structure-analytics",
+    "/data-research/sec-markets-data/market-structure-data-security-exchange"
+   ]
+  },
+  "mstr-analytics": {
+   "status": 200,
+   "files": [],
+   "next_hops": [
+    "/featured-topics/market-structure-analytics",
+    "/securities-topics/market-structure-analytics/midas-market-information-data-analytics-system",
+    "/securities-topics/market-structure-analytics/market-activity-data-visualizations",
+    "/marketstructure/midas-system",
+    "/featured-topics/market-structure-analytics/research-analysis-market-structure",
+    "/files/roundtable-options-market-structure.pdf"
+   ]
+  }
+ },
+ "overall": "PASS_WITH_PENDING",
+ "finished": "2026-08-19T14:50:22+00:00"
+}
