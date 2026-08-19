@@ -408,7 +408,8 @@ def lambda_handler(event, context):
           _walk_generic(
             "statcan", pids,
             lambda pid: sc_fetch(pid),
-            "data/warm/statcan/data", S, _budget=_ebud, retry=rf)
+            "data/warm/statcan/data", S, _budget=_ebud, retry=rf,
+            _workers=_eworkers)  # ops 4904 statcan paced lane
     except Exception as e:
         S["statcan"] = {"data_unavailable": True,
                         "reason": f"{type(e).__name__}: "
