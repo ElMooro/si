@@ -1,6 +1,6 @@
-executing-against: fce5ae0e7c7e7d082b39d84535569ed5ab04b6c6
-ops 4911 — deep unfreeze · eurostat autopsy · nyfed · midas union
-[17:36:37] VERDICT: PASS_WITH_PENDING · {"patches_deployed": "PASS", "deep_unfrozen": "PENDING", "eurostat_handled": "PASS", "nyfed_markets_fresh": "PASS", "midas_inventory_grew": "PASS", "snapshots": "PASS"}
-[17:36:37] report written: aws/ops/reports/4911.json
+executing-against: f5758721ed11944ce12585bfc6aa96b3f7cc90d6
+ops 4912 — edgar chain + deep rearm rekick
+[18:04:22] VERDICT: PASS_WITH_PENDING · {"edgar_chain_moving": "PASS", "deep_rearm_applied": "PENDING"}
+[18:04:22] report written: aws/ops/reports/4912.json
 
-→ Report written to aws/ops/reports/latest/ops 4911 -- stale slow sweep.md
+→ Report written to aws/ops/reports/latest/ops 4912 -- chain rekick.md
