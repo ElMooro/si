@@ -1,0 +1,42 @@
+{
+ "ops": 4901,
+ "gates": {
+  "deep_chain_live": "PENDING",
+  "oecd_probe": "PASS",
+  "midas_discovery": "PASS"
+ },
+ "started": "2026-08-19T14:00:37+00:00",
+ "oecd": {
+  "UNLOCKABLE": [],
+  "HARD_403": [],
+  "OTHER": []
+ },
+ "midas": {
+  "metrics-page": {
+   "status": 200,
+   "bytes_head": 65536
+  },
+  "data-page": {
+   "status": 200,
+   "bytes_head": 65536
+  },
+  "mstr-q-2026q1": {
+   "status": 404,
+   "bytes_head": 0
+  },
+  "mstr-q-2025q4": {
+   "status": 404,
+   "bytes_head": 0
+  },
+  "mstr-sec-2025q4": {
+   "status": 404,
+   "bytes_head": 0
+  },
+  "mstr-index": {
+   "status": 404,
+   "bytes_head": 0
+  }
+ },
+ "overall": "PASS_WITH_PENDING",
+ "finished": "2026-08-19T14:15:48+00:00"
+}
