@@ -1,4 +1,4 @@
-"""justhodl-ecb-deep — E-deep v1.2 (ops 4896 + 4897 hardening + 4901 self-chain:
+"""justhodl-ecb-deep — E-deep v1.3 (ops 4896/4897/4901 + 4908 slow-window guard:
 month-split for oversize years, flow_order resync with the walker's
 live truncated ledger, historical-revision rotation in refresh mode,
 and a self-updating data/warm/ecb/coverage.json completeness ledger).
@@ -76,9 +76,13 @@ def _now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def _stream_window(flow, sp, ep):
+def _stream_window(flow, sp, ep, wl_deadline=None):
     """Pull one window to /tmp. Returns (status, raw_bytes,
-    first_two_lines) -- status in ok|empty|oversize|err:<t>."""
+    first_two_lines) -- status in ok|empty|oversize|slow|err:<t>.
+    ops 4908: wl_deadline aborts slow drips BEFORE the 900s Lambda
+    wall kills the whole invoke (the livelock: a dripping mega-window
+    ate every run, chain never fired, duty collapsed to the 10-min
+    Scheduler minus timeouts)."""
     url = (f"{BASE}{flow}?format=csvdata"
            f"&startPeriod={sp}&endPeriod={ep}")
     tmp = "/tmp/w.csv"
@@ -98,6 +102,8 @@ def _stream_window(flow, sp, ep):
                 n += len(c)
                 if n >= TMP_CAP:
                     return "oversize", n, head
+                if wl_deadline and time.time() > wl_deadline:
+                    return "slow", n, head
         if n < 60:
             return "empty", n, head
         return "ok", n, head
@@ -177,7 +183,7 @@ def _next_pending(state):
 def _flow_done(fl):
     return all(w.get("status") in ("done", "empty",
                                    "oversize_year",
-                                   "oversize_month")
+                                   "oversize_month", "slow_month")
                for w in fl["windows"].values())
 
 
@@ -261,7 +267,9 @@ def lambda_handler(event, context):
         fl = state["flows"][flow]
         w = fl["windows"][wid]
         sp, ep = wid.split("_")
-        status, nraw, head = _stream_window(flow, sp, ep)
+        _wl = min(t0 + BUDGET_S - 70, time.time() + 600)
+        status, nraw, head = _stream_window(flow, sp, ep,
+                                            wl_deadline=_wl)
         if status == "ok":
             key, gz = _gzip_upload(flow, sp, ep)
             w.update(status="done", raw_bytes=nraw,
@@ -270,11 +278,14 @@ def lambda_handler(event, context):
                 fp = _first_period(head)
                 if fp:
                     fl["first_period"] = fp
-        elif status == "oversize":
+        elif status in ("oversize", "slow"):
+            # slow = dripping stream: same medicine as oversize --
+            # split down; a slow MONTH is flagged terminal after the
+            # normal retry budget (stated, not silent).
             if sp == ep and len(sp) == 7:
-                # a single MONTH over the guard -- stated, not silent
-                w.update(status="oversize_month", raw_bytes=nraw,
-                         at=_now())
+                w.update(status=("oversize_month" if status ==
+                                 "oversize" else "slow_month"),
+                         raw_bytes=nraw, at=_now())
             elif sp == ep and len(sp) == 4:
                 del fl["windows"][wid]
                 for ms, me in _month_splits(sp):
@@ -314,7 +325,10 @@ def lambda_handler(event, context):
                 continue
             wid = max(wids, key=lambda x: x.split("_")[1])
             sp, ep = wid.split("_")
-            status, nraw, head = _stream_window(flow, sp, ep)
+            status, nraw, head = _stream_window(
+                flow, sp, ep,
+                wl_deadline=min(t0 + BUDGET_S - 40,
+                                time.time() + 300))
             if status == "ok":
                 key, gz = _gzip_upload(flow, sp, ep)
                 fl["windows"][wid].update(
@@ -334,7 +348,10 @@ def lambda_handler(event, context):
             hr = int(state.get("hrot") or 0)
             f, wid = allw[hr % len(allw)]
             sp, ep = wid.split("_")
-            status, nraw, head = _stream_window(f, sp, ep)
+            status, nraw, head = _stream_window(
+                f, sp, ep,
+                wl_deadline=min(t0 + BUDGET_S - 40,
+                                time.time() + 300))
             if status == "ok":
                 key, gz = _gzip_upload(f, sp, ep)
                 state["flows"][f]["windows"][wid].update(
