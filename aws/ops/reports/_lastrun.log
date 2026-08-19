@@ -1,6 +1,6 @@
-executing-against: ace22ad87ec67c4fb5f4d46d760efb8cd3ec7b81
-ops 4908 — deep v1.3 · OECD 15-min · MIDAS hop3
-[16:33:31] VERDICT: PASS_WITH_PENDING · {"deep_v13_deployed": "PASS", "oecd_cranked": "PASS", "statcan_residual_classified": "PASS", "midas_hop3": "PASS", "deep_unblocked": "PENDING"}
-[16:33:31] report written: aws/ops/reports/4908.json
+executing-against: ccbdab6fc50e475c7fdd807258a5560360339006
+ops 4909 — SEC MIDAS goes live
+[16:39:15] VERDICT: PASS_WITH_PENDING · {"midas_fn_live": "PASS", "midas_scheduled": "PASS", "midas_first_zips": "PASS", "deep_grinding": "PENDING"}
+[16:39:15] report written: aws/ops/reports/4909.json
 
-→ Report written to aws/ops/reports/latest/ops 4908 -- livelock cure drain crank hop3.md
+→ Report written to aws/ops/reports/latest/ops 4909 -- midas launch.md
