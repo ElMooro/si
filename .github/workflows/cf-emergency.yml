@@ -1,0 +1,57 @@
+name: cf-emergency
+# ops 4906 -- justhodl.ai 526 outage (GitHub Pages LE cert expired
+# 2026-08-19, ACME stuck bad_authz). This dispatchable applies zone
+# fixes with the repo's Cloudflare secret:
+#   mode=full    -> accept origin cert without validation (clears 526
+#                   instantly while ACME re-issues)
+#   mode=strict  -> restore Full (strict) after the new cert lands
+#   fix_www=1    -> ensure www.justhodl.ai CNAME -> elmooro.github.io
+#                   (a broken www authz poisons the whole cert order)
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Cloudflare SSL mode: full | strict'
+        default: 'full'
+      fix_www:
+        description: '1 = ensure www CNAME record'
+        default: '1'
+
+permissions: {}
+
+jobs:
+  cf:
+    runs-on: ubuntu-latest
+    steps:
+      - name: apply zone fixes
+        env:
+          CF: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -e
+          ZID=$(curl -s -H "Authorization: Bearer $CF" \
+            "https://api.cloudflare.com/client/v4/zones?name=justhodl.ai" \
+            | python3 -c "import json,sys;print(json.load(sys.stdin)['result'][0]['id'])")
+          echo "zone=$ZID"
+          echo "--- set ssl mode=${{ inputs.mode }}"
+          curl -s -X PATCH -H "Authorization: Bearer $CF" \
+            -H "Content-Type: application/json" \
+            "https://api.cloudflare.com/client/v4/zones/$ZID/settings/ssl" \
+            -d "{\"value\":\"${{ inputs.mode }}\"}" | head -c 400; echo
+          if [ "${{ inputs.fix_www }}" = "1" ]; then
+            N=$(curl -s -H "Authorization: Bearer $CF" \
+              "https://api.cloudflare.com/client/v4/zones/$ZID/dns_records?name=www.justhodl.ai" \
+              | python3 -c "import json,sys;print(len(json.load(sys.stdin)['result']))")
+            echo "www records existing: $N"
+            if [ "$N" = "0" ]; then
+              echo "--- creating www CNAME -> elmooro.github.io (proxied)"
+              curl -s -X POST -H "Authorization: Bearer $CF" \
+                -H "Content-Type: application/json" \
+                "https://api.cloudflare.com/client/v4/zones/$ZID/dns_records" \
+                -d '{"type":"CNAME","name":"www","content":"elmooro.github.io","proxied":true,"ttl":1}' \
+                | head -c 400; echo
+            fi
+          fi
+          echo "--- ssl mode now:"
+          curl -s -H "Authorization: Bearer $CF" \
+            "https://api.cloudflare.com/client/v4/zones/$ZID/settings/ssl" \
+            | head -c 300; echo
