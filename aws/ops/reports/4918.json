@@ -1,0 +1,131 @@
+{
+ "op": 4918,
+ "version": "1.0.3",
+ "as_of": "2026-08-19T19:51:40+00:00",
+ "alerts": [
+  {
+   "ticker": "AIFC",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": 0,
+   "coverage": 6.5579,
+   "worst_residual": -0.838866,
+   "headline": "NLAV $481M vs mcap $73M -> 656% liquid coverage"
+  },
+  {
+   "ticker": "CNTN",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": 0,
+   "coverage": 3.9434,
+   "worst_residual": -0.658078,
+   "headline": "NLAV $649M vs mcap $165M -> 394% liquid coverage"
+  },
+  {
+   "ticker": "UPXI",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": null,
+   "coverage": 1.7121,
+   "worst_residual": null,
+   "headline": "NLAV $106M vs mcap $62M -> 171% liquid coverage"
+  },
+  {
+   "ticker": "TONX",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": null,
+   "coverage": 2.994,
+   "worst_residual": null,
+   "headline": "NLAV $455M vs mcap $152M -> 299% liquid coverage"
+  },
+  {
+   "ticker": "FWDI",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": null,
+   "coverage": 1.1086,
+   "worst_residual": null,
+   "headline": "NLAV $402M vs mcap $362M -> 111% liquid coverage"
+  },
+  {
+   "ticker": "BTBT",
+   "severity": "HIGH",
+   "verdict": "SENSELESS_DRAWDOWN",
+   "sense_score": 0,
+   "coverage": 0.6945,
+   "worst_residual": -0.520276,
+   "headline": "NLAV $343M vs mcap $494M -> 69% liquid coverage"
+  },
+  {
+   "ticker": "ABTC",
+   "severity": "MEDIUM",
+   "verdict": "SENSELESS_DRAWDOWN",
+   "sense_score": 0,
+   "coverage": 0.8147,
+   "worst_residual": -0.589157,
+   "headline": "NLAV $533M vs mcap $655M -> 81% liquid coverage"
+  },
+  {
+   "ticker": "HIVE",
+   "severity": "MEDIUM",
+   "verdict": "STRETCHED",
+   "sense_score": 0,
+   "coverage": 0.3096,
+   "worst_residual": -0.434797,
+   "headline": "NLAV $236M vs mcap $761M -> 31% liquid coverage"
+  }
+ ],
+ "fund_wrappers": [
+  "ARKB",
+  "ETHA",
+  "ETHB",
+  "EZBC",
+  "HODL",
+  "IBIT"
+ ],
+ "suspect_inputs": [
+  "GDC"
+ ],
+ "broker_sheets": [
+  "COIN",
+  "HOOD"
+ ],
+ "btbt": {
+  "crypto_cov": 0.6503,
+  "cov": 0.6945,
+  "bind": "CryptoAssetFairValueCurrent+CryptoAssetFairValueNoncurrent",
+  "bind_end": "2026-06-30",
+  "filing_fv_usd": 240298000.0,
+  "superseded_parent": {
+   "end": "2026-03-31",
+   "val": 2296509.0,
+   "why": "stale vs splits"
+  },
+  "verdict": "SENSELESS_DRAWDOWN",
+  "why_block": {
+   "verdict": "SENSELESS_DRAWDOWN",
+   "severity": "HIGH",
+   "sense_score": 0,
+   "coverage": 0.6945,
+   "crypto_coverage": 0.6503,
+   "nlav_usd": 343110692.89,
+   "mcap_usd": 494067899.11,
+   "dd20": -0.14375,
+   "residual20": -0.205398,
+   "committed_rev_coverage": 0.028,
+   "dilution_qoq": 0.0328,
+   "evidence": [
+    "NLAV $343M vs mcap $494M -> 69% liquid coverage",
+    "crypto (ETH) marked live: $321M = 65% of mcap",
+    "RPO/backlog $14M = 3% of mcap"
+   ]
+  }
+ },
+ "bmnr": {
+  "cov": 0.976,
+  "crypto": 0.9476,
+  "verdict": "IN_LINE"
+ },
+ "edge": "PENDING"
+}
