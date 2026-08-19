@@ -31,7 +31,7 @@ REG = {
   "prefixes": ["data/warm/ofr-hfm/"], "hot": []},
  "ofr-bsrm": {"name": "OFR — Bank Systemic Risk Monitor",
   "api": "financialresearch.gov/bank-systemic-risk-monitor",
-  "engines": [],
+  "engines": ["justhodl-src-mirror"],
   "prefixes": ["data/warm/ofr-bsrm/"], "hot": []},
  "ofr-fsi": {"name": "OFR — Financial Stress Index",
   "api": "financialresearch.gov/financial-stress-index",
@@ -39,7 +39,7 @@ REG = {
   "prefixes": ["data/warm/ofr-fsi/"], "hot": ["data/ofr-fsi.json"]},
  "ofr-site": {"name": "OFR — Site Data Files",
   "api": "financialresearch.gov",
-  "engines": [],
+  "engines": ["justhodl-src-mirror"],
   "prefixes": ["data/warm/ofr-site/"], "hot": []},
  "nyfed": {"name": "NY Fed — Markets API",
   "api": "markets.newyorkfed.org/api",
@@ -612,6 +612,19 @@ def lambda_handler(event, context):
                         else _note_x
             except Exception:
                 pass
+        _orphan_notes = {
+            "ofr-bsrm": ("src-mirror daily since ops 4913 (workbooks"
+                         " conditional-ETag; parsed 500-series "
+                         "re-transform = phase 2, seed ops 4753)"),
+            "ofr-site": ("src-mirror daily since ops 4913 "
+                         "(live page-harvest, seed ops 4755)"),
+            "nyfed-research": ("ORPHANED_TRANSFORM: haircut series "
+                               "seeded ops 4793-94, no refresh "
+                               "engine; source-map queued 4913"),
+        }
+        if slug in _orphan_notes:
+            note = ((note + " · ") if note else "") + \
+                _orphan_notes[slug]
         if slug == "ecb":
             # ops 4893 (Khalid): surface the ciss-stress engine's live
             # holdings on this card — it is the proof-of-access engine
