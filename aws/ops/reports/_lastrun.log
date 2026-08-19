@@ -1,5 +1,6 @@
-executing-against: 3a0ae1cde359aaefa550846fdb4a7cb67e83c500
-ops 4907 — post-526 edge recheck
-[15:11:06] VERDICT: PASS site up
+executing-against: ace22ad87ec67c4fb5f4d46d760efb8cd3ec7b81
+ops 4908 — deep v1.3 · OECD 15-min · MIDAS hop3
+[16:33:31] VERDICT: PASS_WITH_PENDING · {"deep_v13_deployed": "PASS", "oecd_cranked": "PASS", "statcan_residual_classified": "PASS", "midas_hop3": "PASS", "deep_unblocked": "PENDING"}
+[16:33:31] report written: aws/ops/reports/4908.json
 
-→ Report written to aws/ops/reports/latest/ops 4907 -- edge recheck.md
+→ Report written to aws/ops/reports/latest/ops 4908 -- livelock cure drain crank hop3.md

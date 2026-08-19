@@ -1,0 +1,47 @@
+{
+ "ops": 4908,
+ "gates": {
+  "deep_v13_deployed": "PASS",
+  "oecd_cranked": "PASS",
+  "statcan_residual_classified": "PASS",
+  "midas_hop3": "PASS",
+  "deep_unblocked": "PENDING"
+ },
+ "started": "2026-08-19T16:25:57+00:00",
+ "oecd": {
+  "before": 930,
+  "after": 879
+ },
+ "statcan_residual": {
+  "12100153": "HTTPError: HTTP Error 404: Not Found",
+  "12100154": "HTTPError: HTTP Error 404: Not Found",
+  "12100155": "HTTPError: HTTP Error 404: Not Found",
+  "12100156": "HTTPError: HTTP Error 404: Not Found",
+  "13100019": "ValueError: tiny 0b"
+ },
+ "midas_files": [
+  "/files/opa/data/market-structure/metrics-individual-security-exchange/individual_security_exchange_2026_q2.zip",
+  "/files/opa/data/market-structure/metrics-individual-security-exchange/individual_security_exchange_2026_q1.zip",
+  "/files/opa/data/market-structure/metrics-individual-security-exchange/individual_security_exchange_2025_q4.zip",
+  "/files/opa/data/market-structure/metrics-individual-security-exchange/individual_security_exchange_2025_q3.zip",
+  "/files/opa/data/market-structure/metrics-individual-security-exchange/individual_security_exchange_2025_q2.zip",
+  "/files/opa/data/market-structure/metrics-individual-security-exchange/individual_security_exchange_2025_q1.zip",
+  "/files/opa/data/market-structure/metrics-individual-security-exchange/individual_security_exchange_2024_q4.zip",
+  "/files/opa/data/market-structure/metrics-individual-security-exchange/individual_security_exchange_2024_q3.zip",
+  "/files/opa/data/market-structure/metrics-individual-security-exchange/individual_security_exchange_2024_q2.zip",
+  "/files/opa/data/market-structure/metrics-individual-security-and-exchange/individual_security_exchange_2024_q1.zip",
+  "/files/opa/data/market-structure/metrics-individual-security-and-exchange/individual_security_exchange_2023_q4.zip",
+  "/files/opa/data/market-structure/metrics-individual-security-and-exchange/individual_security_exchange_2023_q3.zip",
+  "/files/opa/data/market-structure/metrics-individual-security-and-exchange/individual_security_exchange_2023_q2.zip",
+  "/files/opa/data/market-structure/metrics-individual-security-and-exchange/individual_security_exchange_2023_q1.zip",
+  "/files/opa/data/market-structure/metrics-individual-security-and-exchange/individual_security_exchange_2022_q4.zip",
+  "/files/opa/data/market-structure/metrics-individual-security-and-exchange/individual_security_exchange_2022_q3.zip"
+ ],
+ "deep": {
+  "parts0": 243,
+  "parts1": 243,
+  "n_complete": 30
+ },
+ "overall": "PASS_WITH_PENDING",
+ "finished": "2026-08-19T16:33:31+00:00"
+}
