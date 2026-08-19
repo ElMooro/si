@@ -19,6 +19,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
+| AI retrieval playbook (Khalid): ECB+FRED exact-detail runbook -> docs/AI_DATA_RETRIEVAL_PLAYBOOK.md + embedded bottom of data.html + S3 permanent copy + AUTONOMY pointer + edge-verified | 4900 | S-F5#p9k4 | 2026-08-19 (claim+ship) |
 | IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 ### SHARED-SURFACE RULE (foreign-flows.html) -- 2026-08-17 23:4x

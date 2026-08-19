@@ -1,31 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Data Providers — JustHodl.AI</title>
-<style>
-body{margin:0;background:#070b10;color:#dfe9f2;font-family:'SF Mono',Consolas,monospace}
-.wrap{max-width:1240px;margin:0 auto;padding:26px 16px}
-h1{font-size:20px;letter-spacing:3px;color:#8fd0ff;margin:0 0 4px}
-.sub{color:#5d7285;font-size:11px;margin-bottom:18px}
-.tot{display:flex;gap:26px;margin:14px 0 22px;flex-wrap:wrap}
-.tot div{background:#0d141c;border:1px solid #1c2733;border-radius:10px;padding:10px 18px}
-.tot b{display:block;font-size:22px;color:#e8f1f8}.tot span{font-size:10px;color:#5d7285;letter-spacing:1px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
-a.card{display:block;background:#0d141c;border:1px solid #1c2733;border-radius:10px;padding:14px 16px;text-decoration:none;color:inherit;transition:border-color .15s}
-a.card:hover{border-color:#2f4a6a}
-.nm{color:#cfe3f5;font-weight:700;font-size:13px}
-.api{color:#4f6a7d;font-size:10px;margin:3px 0 8px;word-break:break-all}
-.stats{display:flex;gap:14px;font-size:11px}
-.stats b{color:#9fd0a8}.stats i{font-style:normal;color:#69808f}
-.fr{font-size:10px;margin-top:6px}
-</style></head><body><div class="wrap">
-<h1>DATA</h1><div class="sub">Every provider · every dataset we pull · auto-inventoried daily by justhodl-provider-catalog</div>
-<div id="ih" style="display:none;margin:10px 0 14px;padding:10px 14px;background:#0d141c;border:1px solid #1c2733;border-radius:10px;font:12px ui-monospace,Menlo,monospace"></div>
-<div class="tot" id="tot"></div><div class="grid" id="g">Loading…</div>
-<!-- AI-RETRIEVAL-PLAYBOOK ops4900 -->
-<details id="ai-playbook" style="margin-top:26px;background:#0d141c;border:1px solid #1c2733;border-radius:10px;padding:12px 16px">
-<summary style="cursor:pointer;color:#8fd0ff;font-size:12px;letter-spacing:2px;font-weight:700">🤖 AI RETRIEVAL PLAYBOOK — how to pull ECB &amp; FRED correctly (for Claude &amp; every other AI; ops 4900)</summary>
-<div style="font-size:10px;color:#5d7285;margin:8px 0 6px">Single source of truth: <a href="https://github.com/ElMooro/si/blob/main/docs/AI_DATA_RETRIEVAL_PLAYBOOK.md" style="color:#7fb0d0">docs/AI_DATA_RETRIEVAL_PLAYBOOK.md</a> · permanent S3 copy: <a href="/data/warm/playbooks/ecb-fred-retrieval.md" style="color:#7fb0d0">data/warm/playbooks/ecb-fred-retrieval.md</a> (deny-Delete protected) · full text below.</div>
-<pre style="white-space:pre-wrap;font-size:10.5px;line-height:1.45;color:#9db4c6;margin:0"># AI DATA RETRIEVAL PLAYBOOK — ECB &amp; FRED
+# AI DATA RETRIEVAL PLAYBOOK — ECB & FRED
 
 v1 · ops 4900 · 2026-08-19 · written by Claude, for Claude and every
 other AI or agent that ever touches this system.
@@ -61,7 +34,7 @@ STRUCTURE: https://data-api.ecb.europa.eu/service/dataflow
 DATA rule: put `?format=csvdata` in the query string. The query param
 SIDESTEPS content negotiation entirely — there is no 406 on this
 path. Send NO Accept header. Send an honest User-Agent with contact
-(ours: &quot;JustHodl Research raafouis@gmail.com&quot;). That&#x27;s it.
+(ours: "JustHodl Research raafouis@gmail.com"). That's it.
 
 STRUCTURE rule: NEVER send `Accept: application/xml` (→ 406, the
 whole outage). Use this ladder, first 2xx wins, record the winner:
@@ -78,15 +51,15 @@ views: *_PUB, JDF_*, MOBILE_*) · ESTAT 11 · EUROSTAT 6 · IMF 4
 BP6, RA6 and more. (ops 4897 census, 4898 expansion)
 Foreign-agency data flowRef uses a COMMA:
   /service/data/ESTAT,GFS?format=csvdata
-We store those ids as &quot;AGENCY:ID&quot; and map &quot;:&quot; → &quot;,&quot; at URL time.
+We store those ids as "AGENCY:ID" and map ":" → "," at URL time.
 
-1.3 FULL HISTORY &amp; THE TRUNCATION TRAP
+1.3 FULL HISTORY & THE TRUNCATION TRAP
 A bare pull (no startPeriod / lastNObservations) returns FULL history
 since inception — that is the SDMX default. Rows arrive OLDEST-FIRST,
 so any byte-cap truncation silently deletes the RECENT tail — the
 worst possible loss. 48 of the 214 flows exceed 450MB of raw CSV;
 RAM-buffered pulls can NEVER win. The house answer (justhodl-ecb-deep,
-ops 4896): time-slice with `startPeriod=YYYY&amp;endPeriod=YYYY` windows —
+ops 4896): time-slice with `startPeriod=YYYY&endPeriod=YYYY` windows —
 ladder 1900-1979 · 1980-1989 · 1990-1994 · 1995-1999 · 2000-2004 ·
 2005-2009 · 2010-2014 · 2015-2019 · 2020-2022 · 2023-2024 · 2025-2035
 — stream each response to /tmp (10GB ephemeral), gzip file-to-file,
@@ -95,7 +68,7 @@ splits to single years, then to months (YYYY-MM). HTTP 404 on a
 window = genuinely empty range (pre-inception) = fine, mark empty.
 
 1.4 SERIES ENUMERATION WITHOUT ANY STRUCTURE CALL
-  {flow}?format=csvdata&amp;lastNObservations=1
+  {flow}?format=csvdata&lastNObservations=1
 returns exactly one row per series = the complete series-key list of
 a flow. This is how ciss-stress enumerates 65 CISS/CLIFS/SovCISS
 series with zero metadata calls.
@@ -117,7 +90,7 @@ ECB revises HISTORY (BSI, ICP especially). Refreshing only the newest
 window is wrong — rotate historical windows too (ecb-deep does one
 per cycle over the whole back catalog).
 
-1.8 WHERE EVERYTHING ALREADY LIVES — READ, DON&#x27;T RE-PULL
+1.8 WHERE EVERYTHING ALREADY LIVES — READ, DON'T RE-PULL
   data/warm/ecb/catalog.json.gz          214 flows, agency histogram,
                                          accept_winner + negotiation
   data/warm/ecb/data/{FLOW}.dat.gz       166 fast flows, gzip CSV,
@@ -136,32 +109,32 @@ retry_truncated, retry_failures, reset_done) · justhodl-ecb-deep
 (10-min Scheduler; backfill → refresh + revision rotation) ·
 justhodl-ciss-stress / justhodl-ciss-ai (daily).
 Schedules: justhodl-ecb-deep-10min · justhodl-ecb-rewalk-weekly
-(SUN 03:15 UTC → walker {&quot;agency&quot;:&quot;ecb&quot;,&quot;reset_done&quot;:1,&quot;budget&quot;:740,
-&quot;per&quot;:120,&quot;cap_mb&quot;:150}; giants stay skipped — deep owns them).
+(SUN 03:15 UTC → walker {"agency":"ecb","reset_done":1,"budget":740,
+"per":120,"cap_mb":150}; giants stay skipped — deep owns them).
 Permanence: deny-Delete bucket policy on data/warm/*,
 data/providers/*, data/raw/*, data/ciss* · lifecycle audited clean.
 
-1.9 POLITENESS &amp; LIMITS
+1.9 POLITENESS & LIMITS
 ≤24 parallel connections proved fine; sequential is always safe.
 Timeouts: 60-240s metadata, 420s giant windows. No API key needed.
 
 1.10 COPY-PASTE MINIMAL EXAMPLES
   # catalog (ALL agencies)
-  curl -A &quot;JustHodl Research raafouis@gmail.com&quot; \
-    &quot;https://data-api.ecb.europa.eu/service/dataflow&quot;
+  curl -A "JustHodl Research raafouis@gmail.com" \
+    "https://data-api.ecb.europa.eu/service/dataflow"
   # one series, full history
-  curl -A &quot;...&quot; &quot;https://data-api.ecb.europa.eu/service/data/\
-CISS/D.U2.Z0Z.4F.EC.SS_CIN.IDX?format=csvdata&quot;
+  curl -A "..." "https://data-api.ecb.europa.eu/service/data/\
+CISS/D.U2.Z0Z.4F.EC.SS_CIN.IDX?format=csvdata"
   # whole flow, full history (fast flows only!)
-  curl -A &quot;...&quot; &quot;.../service/data/MIR?format=csvdata&quot;
+  curl -A "..." ".../service/data/MIR?format=csvdata"
   # giant flow, one window, streamed
-  curl -A &quot;...&quot; &quot;.../service/data/BSI?format=csvdata\
-&amp;startPeriod=2010&amp;endPeriod=2014&quot; -o /tmp/w.csv
+  curl -A "..." ".../service/data/BSI?format=csvdata\
+&startPeriod=2010&endPeriod=2014" -o /tmp/w.csv
   # enumerate every series in a flow
-  curl -A &quot;...&quot; &quot;.../service/data/FM?format=csvdata\
-&amp;lastNObservations=1&quot;
+  curl -A "..." ".../service/data/FM?format=csvdata\
+&lastNObservations=1"
   # foreign-agency flow
-  curl -A &quot;...&quot; &quot;.../service/data/ESTAT,GFS?format=csvdata&quot;
+  curl -A "..." ".../service/data/ESTAT,GFS?format=csvdata"
 
 ---------------------------------------------------------------------
 PART 2 — FRED · api.stlouisfed.org
@@ -173,11 +146,11 @@ their traffic fed OUR 429s. The key is SSM-FIRST and never in code:
   /justhodl/fred-api-key   (primary)
   /justhodl/fred/api-key   (fallback path)
   env FRED_API_KEY         (last resort)
-Dead-key rule: an HTTP 400 whose body names &quot;api_key&quot; means the key
+Dead-key rule: an HTTP 400 whose body names "api_key" means the key
 is dead/rotated → halt ALL FRED calls for this invoke immediately;
 never burn rate budget on a dead key.
 
-2.1 RATE LIMIT &amp; AIMD PACING (justhodl-fred-catalog, &quot;priority-drain v2&quot;)
+2.1 RATE LIMIT & AIMD PACING (justhodl-fred-catalog, "priority-drain v2")
 FRED hard limit ≈ 120 req/min. House pacing: start 70/min · +6/min
 after each clean 120-call window · ×0.6 (floor 24/min) + 20s cooldown
 on ANY 429 · ceiling from SSM /justhodl/fred/rate-ceiling (default
@@ -209,9 +182,9 @@ exhaustion once. The old model re-paged giant categories from
 offset 0 every invoke and burned the entire rate budget on
 re-listing instead of real observation fetches.
 
-2.5 OBSERVATIONS &amp; FRESHNESS
+2.5 OBSERVATIONS & FRESHNESS
   https://api.stlouisfed.org/fred/series/observations?series_id={ID}
-  &amp;api_key={KEY}&amp;file_type=json
+  &api_key={KEY}&file_type=json
 Full history by default. FRESH_DAYS=90: series with no observation in
 90 days are imported metadata-only (stale filter).
 
@@ -221,11 +194,11 @@ the 5-min cron is only the watchdog. Live SSM knobs, zero redeploys:
 /justhodl/fred/paused=1 halts everything ·
 /justhodl/fred/min-popularity=N cuts the popularity tail.
 
-2.7 STORAGE &amp; STATUS SEMANTICS
+2.7 STORAGE & STATUS SEMANTICS
   data/providers/fred-scoped/series/page-NNNN.json   imported rows
   data/warm/fred-catalog/series-meta/page-NNNN.json  metadata pages
   data/_state/fred-scoped-import.json                state
-COMPLETE_WITH_LEAKS = queue fully drained; &quot;leaks&quot; = series that are
+COMPLETE_WITH_LEAKS = queue fully drained; "leaks" = series that are
 unreachable via the category tree. 92 ICE BofA series are
 independently cross-validated via the Trading Economics FRED mirror
 (justhodl-te-fred-mirror, 100.0% agreement). Current scale: 282,141
@@ -234,7 +207,7 @@ catalog series · 277,453 banked · 4169/4169 categories.
 ---------------------------------------------------------------------
 PART 3 — UNIVERSAL DOCTRINE (any API, forever)
 ---------------------------------------------------------------------
-1. NEVER CLAIM — READ BACK. A pull &quot;succeeded&quot; only when the S3
+1. NEVER CLAIM — READ BACK. A pull "succeeded" only when the S3
    object is re-read and its content verified.
 2. Honest User-Agent with a contact. Always.
 3. STATED, NOT SILENT. Truncation, failures, empties: ledgered in a
@@ -242,7 +215,7 @@ PART 3 — UNIVERSAL DOCTRINE (any API, forever)
 4. Before writing ANY new puller: read this playbook, then check the
    840+ existing lambdas and the state files above. The data you
    want probably already lands every 10 minutes.
-5. When a provider &quot;blocks&quot; you: isolate the EXACT failing call
+5. When a provider "blocks" you: isolate the EXACT failing call
    (endpoint × header × param). A sibling engine succeeding against
    the same host is your diagnosis map — diff the two requests.
 6. Keys live in SSM, never in code, never in a public repo.
@@ -250,45 +223,3 @@ PART 3 — UNIVERSAL DOCTRINE (any API, forever)
    RAM caps always lose eventually.
 Evidence trail: aws/ops/reports/4893-4899 · AUTONOMY.md ·
 docs/SESSION_CLAIMS.md.
-</pre>
-</details>
-<!-- /AI-RETRIEVAL-PLAYBOOK -->
-</div>
-<script>
-fetch('/data/import-health.json?t='+Date.now()).then(r=>r.ok?r.json():null).then(function(h){
- if(!h)return;var C={HEALTHY:'#6fce8a',DEGRADED:'#F0B429',ACTION_REQUIRED:'#E07A6A'};
- var PC={OK:'#6fce8a',COMPLETE:'#6fce8a',RUNNING:'#7fb4e0',STALLED:'#F0B429',STALE:'#F0B429',WEDGED:'#E07A6A',BLOCKED:'#E07A6A',BLOCKED_403:'#E07A6A',ACTION_REQUIRED:'#E07A6A',KEY_INVALID:'#E07A6A',NO_STATE:'#5b6479',UNKNOWN:'#5b6479'};
- var f=(h.pipelines||[]).filter(function(p){return p.name==='fred'})[0]||{};
- var chips=(h.pipelines||[]).map(function(p){var c=PC[p.status]||'#5b6479';
-  return '<span title="'+((p.detail||'')+(p.age_min!=null?' · '+p.age_min+'m':''))+'" style="display:inline-block;margin:2px 8px 2px 0;color:'+c+'">●&nbsp;'+p.name+' <b>'+p.status+'</b></span>';}).join('');
- var fr=f.imported!=null?('&nbsp;·&nbsp;FRED '+(f.imported||0).toLocaleString()+' series'+(f.queue_total?(' · queue '+(f.queue_cursor||0)+'/'+f.queue_total):'')+(f.series_per_hour?(' · '+f.series_per_hour+'/h'):'')+(f.eta_hours?(' · ETA '+f.eta_hours+'h'):'')+' · scope '+(f.scope||'')):'';
- var act=(h.actions_this_sweep&&h.actions_this_sweep.length)?('<div style="color:#F0B429;margin-top:4px">sentinel: '+h.actions_this_sweep.join(' · ')+'</div>'):'';
- var el=document.getElementById('ih');el.style.display='block';
- el.innerHTML='<span style="color:'+(C[h.overall]||'#e8e8e8')+';font-weight:800">IMPORT '+h.overall+'</span>'+fr+'<div style="margin-top:6px">'+chips+'</div>'+act+
- '<div style="color:#5b6479;margin-top:4px">sentinel sweep '+(h.generated_at||'')+' · '+((h.incidents||[]).length)+' incidents logged</div>';
-}).catch(function(){});
-fetch('/data/provider-catalog.json?t='+Date.now()).then(r=>r.json()).then(function(d){
-var t=d.totals||{};document.getElementById('tot').innerHTML=
- '<div><b>'+(t.providers||0)+'</b><span>PROVIDERS</span></div>'+
- '<div><b>'+((d.datasets_total||t.datasets||t.keys)||0).toLocaleString()+'</b><span>DATASETS / FILES</span></div>'+
- '<div><b>'+(t.keys||0).toLocaleString()+'</b><span>S3 KEYS</span></div>'+
- '<div><b>'+(t.gb||0)+' GB</b><span>WARM + HOT</span></div>'+
- (d.breakdown?'<div style="flex-basis:100%;font-size:10px;color:#5d7285;margin-top:-8px">reconcile: '+(d.breakdown.provider_datasets||0).toLocaleString()+' provider datasets + '+(d.breakdown.instruments||0).toLocaleString()+' instruments = '+((d.datasets_total)||0).toLocaleString()+' total</div>':'')+
- '<div><b>'+new Date(d.as_of).toUTCString().slice(5,22)+'</b><span>INVENTORIED</span></div>';
-var g=document.getElementById('g');g.innerHTML='';
-(d.providers||[]).forEach(function(p){
- var a=document.createElement('a');a.className='card';a.href='/provider.html?p='+p.slug;
- var fh=p.freshest_h,fc=fh==null?'#5d7285':(fh<=26?'#5fbf7f':'#e05252');
- a.innerHTML='<div class="nm">'+p.name+'</div><div class="api">'+p.api+'</div>'+
-  '<div class="stats"><span><b>'+p.n_keys+'</b> <i>keys</i></span>'+
-  (p.series_count?'<span><b>'+p.series_count.toLocaleString()+'</b> <i>series</i></span>':'')+
-  (p.unit==='instruments'&&p.datasets?'<span><b>'+p.datasets.toLocaleString()+'</b> <i>instruments</i></span>':'')+
-  '<span><b>'+p.total_mb+'</b> <i>MB</i></span></div>'+
-  '<div class="fr" style="color:'+fc+'">freshest '+(fh==null?'—':fh+'h')+'</div>'+
-  (p.coverage_pct!=null?'<div style="height:4px;background:#141d27;border-radius:3px;margin-top:6px"><div style="height:4px;border-radius:3px;width:'+Math.min(100,p.coverage_pct)+'%;background:'+(p.coverage_pct>=99?'#5fbf7f':p.coverage_pct>=25?'#e0b552':'#e05252')+'"></div></div><div style="font-size:9px;color:#5d7285;margin-top:2px">'+p.coverage_pct+'% of '+(p.datasets_target||0).toLocaleString()+' target'+(p.denied_source_side?' · '+p.denied_source_side+' denied at source':'')+'</div>':'')+
-  (p.catalog_note?'<div style="font-size:9px;color:#7fb0d0;margin-top:3px">'+p.catalog_note+'</div>':'');
- g.appendChild(a);});
-}).catch(function(e){document.getElementById('g').textContent='catalog unavailable — first inventory runs with ops 4506';});
-</script>
-<script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script>
-</body></html>
