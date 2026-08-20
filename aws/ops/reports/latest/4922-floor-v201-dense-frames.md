@@ -1,14 +1,12 @@
-executing-against: c1f44548f6b9e6e443dedb3b4fdd9819abd12912
-ops 4922 -- floor-audit v2.0.1 dense-frame sweep
-── G1 deploy ──
-[01:53:57]   zip: 117418 bytes
-── 1. Lambda ──
-[01:53:58]   Lambda exists — updating
-[01:54:03] ✅   ✓ updated justhodl-floor-audit
-── 3. Smoke test ──
-[01:54:03]   invoking justhodl-floor-audit…
+# ops 4922 -- floor-audit v2.0.1 dense-frame sweep
 
-→ Report written to aws/ops/reports/latest/4922-floor-v201-dense-frames.md
+**Status:** failure  
+**Duration:** 312.6s  
+**Finished:** 2026-08-20T01:59:10+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
     response = conn.getresponse()
@@ -61,8 +59,8 @@ urllib3.exceptions.ReadTimeoutError: AWSHTTPSConnectionPool(host='lambda.us-east
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4922_floor_v201_dense_frames.py", line 314, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4922_floor_v201_dense_frames.py", line 111, in main
     deploy_lambda(
   File "/home/runner/work/si/si/aws/ops/_lambda_deploy_helpers.py", line 277, in deploy_lambda
@@ -127,4 +125,17 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 547, in send
     raise ReadTimeoutError(endpoint_url=request.url, error=e)
 botocore.exceptions.ReadTimeoutError: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-floor-audit/invocations"
-❌ OPS-FAIL: aws/ops/pending/ops_4922_floor_v201_dense_frames.py
+
+```
+
+## Log
+## G1 deploy
+
+- `01:53:57`   zip: 117418 bytes
+## 1. Lambda
+
+- `01:53:58`   Lambda exists — updating
+- `01:54:03` ✅   ✓ updated justhodl-floor-audit
+## 3. Smoke test
+
+- `01:54:03`   invoking justhodl-floor-audit…
