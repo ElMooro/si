@@ -59,10 +59,35 @@ with report("ops_4938_13f_resolve_repair") as R:
             sys.exit(1)
     R.log("G0 producer contract OK")
 
+    # ops 4938b: budget 150->600 + figi 400->1200 pushed the run past the
+    # synchronous ceiling -- the first attempt died with
+    # ConnectionClosedError at ~240s while the Lambda kept running fine.
+    # House doctrine for long engines: Event-invoke, then gate on S3
+    # object freshness. Never hold a sync socket open for a long engine.
+    from datetime import datetime, timezone
+    try:
+        prev = s3.head_object(Bucket=B, Key=OUT_KEY)["LastModified"]
+    except Exception:
+        prev = None
     t0 = time.time()
-    r = lam.invoke(FunctionName=FN, InvocationType="RequestResponse",
-                   Payload=b"{}")
-    R.log("invoke rc=%s in %.0fs" % (r["StatusCode"], time.time() - t0))
+    r = lam.invoke(FunctionName=FN, InvocationType="Event", Payload=b"{}")
+    R.log("async invoke rc=%s (202 expected)" % r["StatusCode"])
+    fresh_at = None
+    while time.time() - t0 < 780:
+        time.sleep(20)
+        try:
+            lm = s3.head_object(Bucket=B, Key=OUT_KEY)["LastModified"]
+        except Exception:
+            continue
+        if prev is None or lm > prev:
+            fresh_at = lm
+            break
+    if not fresh_at:
+        R.log("FAIL payload never refreshed within 780s")
+        sys.exit(1)
+    age = (datetime.now(timezone.utc) - fresh_at).total_seconds()
+    R.log("payload refreshed after %.0fs (age %.0fs)" % (time.time() - t0, age))
+    time.sleep(5)          # let the final PUT settle before reading
 
     d = json.loads(s3.get_object(Bucket=B, Key=OUT_KEY)["Body"].read())
     agg = d.get("aggregate_by_ticker") or {}
