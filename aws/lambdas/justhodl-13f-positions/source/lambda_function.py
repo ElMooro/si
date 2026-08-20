@@ -1030,6 +1030,7 @@ def _purge_collisions(m):
         if t:
             by_t.setdefault(t, []).append(cu)
     purged = 0
+    unadjudicated = []
     for t, cus in by_t.items():
         if len(cus) < 2:
             continue
@@ -1050,13 +1051,26 @@ def _purge_collisions(m):
                     len(m[c].get("name") or ""))
 
         cus.sort(key=_score, reverse=True)
+        if not sec_tok:
+            # ops 4938c: SEC cannot adjudicate this ticker. Do NOT guess.
+            # A reported collision is honest; a blanked real position is
+            # not. Leave both claimants and let the payload name it.
+            unadjudicated.append(t)
+            continue
+        top = _score(cus[0])
         for c in cus[1:]:
+            # demote only where the winner is DEMONSTRABLY the better
+            # match. Equal evidence is not evidence.
+            if _score(c)[:2] >= top[:2]:
+                unadjudicated.append(t)
+                break
             m[c] = {"ticker": None, "name": m[c].get("name"),
                     "src": "purged-collision", "tried_at": 0}
             purged += 1
-    if purged:
-        print(f"  ops4937 purge: {purged} colliding cusips demoted "
-              f"across {sum(1 for v in by_t.values() if len(v) > 1)} tickers")
+    if purged or unadjudicated:
+        print(f"  ops4938 purge: {purged} demoted on SEC evidence; "
+              f"{len(set(unadjudicated))} tickers left AS-IS (no authority)")
+    globals()["_UNADJUDICATED"] = sorted(set(unadjudicated))
     return m
 
 
@@ -1075,8 +1089,12 @@ def resolve_missing_tickers(fund_results, budget=600):
     tier-2, persisted map with self-healing src upgrades."""
     import time as _t
     m = get_s3_json(CUSIP_MAP_KEY) or {}
-    m = _purge_collisions(m)          # ops 4937 — see below
+    # ops 4938c ORDER MATTERS: _purge_collisions adjudicates using SEC's
+    # ticker->title map, so _sec_titles MUST populate it first. Running the
+    # purge first left bytick empty, the adjudicator fell back to the old
+    # length tiebreak, and $88B of real positions were blanked.
     sec = _sec_titles(m)
+    m = _purge_collisions(m)
     now = _t.time()
     fresh = 0
     _pend = []          # ops 3297: resolve BIGGEST dollars first
@@ -1129,8 +1147,10 @@ def resolve_missing_tickers(fund_results, budget=600):
                     m[cu] = {"ticker": None,
                              "name": (m.get(cu) or {}).get("name"),
                              "src": "figi-miss", "tried_at": now}
-        except Exception as e:
-            print("  figi chunk: %s" % str(e)[:60])
+        except Exception as _fe:
+            if "429" in str(_fe):
+                _t.sleep(4.0)      # ops 4938c: FIGI 429 backoff
+            continue
             break
         _t.sleep(2.6)          # keyless limit ~25 req/min
     print("  [resolver] openfigi: %d/%d resolved"
@@ -1944,6 +1964,10 @@ def lambda_handler(event, context):
         # ops 4937: measured invariant, not a claim. Empty == one ticker
         # is claimed by exactly one cusip across the whole map.
         "cusip_collisions": globals().get("_LAST_COLLISIONS") or {},
+        # ops 4938c: tickers where two cusips both claim the name and SEC
+        # cannot adjudicate. Kept BOTH rather than blanking a real
+        # position -- named here so the ambiguity is visible, not silent.
+        "cusip_unadjudicated": globals().get("_UNADJUDICATED") or [],
         # ops 4937b: mcap enrichment is unreliable for ETFs/trusts and for
         # foreign ordinaries on OTC (FMP returns local-currency or stub
         # values). Vossloh came back at $1.08M against $775M held. Publish

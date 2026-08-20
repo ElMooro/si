@@ -99,10 +99,17 @@ with report("ops_4938_13f_resolve_repair") as R:
         if not c:
             fails.append(n)
 
-    # ---- G1 the collision invariant must still hold
-    gate("G1 one ticker <- exactly one cusip",
-         d.get("cusip_collisions") == {},
-         list(d.get("cusip_collisions") or {})[:8])
+    # ---- G1 rev-C. The 4937 invariant "one ticker <- one cusip" was
+    # enforced by DELETING the loser, which blanked $88B of real
+    # positions. Deleting data to satisfy an invariant trades one lie for
+    # another. Policy now: demote only on positive SEC evidence; where SEC
+    # cannot adjudicate, keep BOTH and NAME the ambiguity. So the gate is
+    # no longer "zero collisions" -- it is "zero SILENT collisions".
+    unadj = d.get("cusip_unadjudicated")
+    gate("G1a residual collisions are all NAMED, none silent",
+         isinstance(unadj, list), "%s ambiguous" % len(unadj or []))
+    silent = set(d.get("cusip_collisions") or {}) - set(unadj or [])
+    gate("G1b no collision escapes both fields", not silent, list(silent)[:8])
 
     # ---- G2 THE REGRESSION: named companies must own their own tickers.
     # These are the exact names the page printed as raw cusips.
