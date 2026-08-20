@@ -972,7 +972,8 @@ def _sec_titles(m):
     Cached daily inside the cusip-map doc."""
     import time as _t
     sec = m.get("_sec") or {}
-    if _t.time() - float(sec.get("at") or 0) < 86400             and sec.get("byname"):
+    # ops 4938: cache must carry bytick too; v1 blobs lack it -> refetch.
+    if _t.time() - float(sec.get("at") or 0) < 86400             and sec.get("byname") and sec.get("bytick"):
         return sec["byname"]
     try:
         req = urllib.request.Request(
@@ -980,13 +981,15 @@ def _sec_titles(m):
             headers={"User-Agent": USER_AGENT})
         with urllib.request.urlopen(req, timeout=20) as r:
             data = json.loads(r.read())
-        byname = {}
+        byname, bytick = {}, {}
         for v in (data or {}).values():
             t = str(v.get("ticker") or "").upper()
             nm = _norm_name(v.get("title"))
             if t and nm and nm not in byname:
                 byname[nm] = t
-        m["_sec"] = {"at": _t.time(), "byname": byname}
+            if t and nm:
+                bytick.setdefault(t, nm)      # ops 4938: reverse authority
+        m["_sec"] = {"at": _t.time(), "byname": byname, "bytick": bytick}
         print(f"[13f] SEC titles loaded: {len(byname)}")
         return byname
     except Exception as e:
@@ -1018,6 +1021,7 @@ def _purge_collisions(m):
     it from SEC/OpenFIGI. An unresolved cusip is honest; a confidently
     wrong ticker ranks on a board and gets traded.
     """
+    bytick = ((m.get("_sec") or {}).get("bytick")) or {}
     by_t = {}
     for cu, e in m.items():
         if not isinstance(e, dict):
@@ -1029,8 +1033,23 @@ def _purge_collisions(m):
     for t, cus in by_t.items():
         if len(cus) < 2:
             continue
-        cus.sort(key=lambda c: (SRC_RANK.get(m[c].get("src"), 0),
-                                len(m[c].get("name") or "")), reverse=True)
+        # ops 4938: WHO WINS the ticker is decided by SEC's own title for
+        # that ticker, not by name length. The 4937 tiebreak was
+        # (src_rank, len(name)) -- so a longer WRONG name beat the correct
+        # short one and the real cusip got demoted. Live damage: UBER,
+        # BRK-B, SE, MKSI, BILL, RIVN, BRKR all lost their own tickers and
+        # the unresolved bucket went $4.7B -> $70.7B.
+        sec_nm = bytick.get(t) or ""
+        sec_tok = set(sec_nm.split())
+
+        def _score(c):
+            nm = _norm_name(m[c].get("name") or "")
+            overlap = len(sec_tok & set(nm.split())) if sec_tok else 0
+            exact = 1 if (sec_nm and nm == sec_nm) else 0
+            return (exact, overlap, SRC_RANK.get(m[c].get("src"), 0),
+                    len(m[c].get("name") or ""))
+
+        cus.sort(key=_score, reverse=True)
         for c in cus[1:]:
             m[c] = {"ticker": None, "name": m[c].get("name"),
                     "src": "purged-collision", "tried_at": 0}
@@ -1051,7 +1070,7 @@ def _assert_no_collisions(m):
     return {t: c for t, c in by_t.items() if len(c) > 1}
 
 
-def resolve_missing_tickers(fund_results, budget=150):
+def resolve_missing_tickers(fund_results, budget=600):
     """ops 3278b/c: SEC-first authoritative resolution, FMP strict
     tier-2, persisted map with self-healing src upgrades."""
     import time as _t
@@ -1081,7 +1100,7 @@ def resolve_missing_tickers(fund_results, budget=150):
                 and not e0.get("ticker")):
             seen_cu.add(cu)
             figi_cus.append(cu)
-        if len(figi_cus) >= 400:
+        if len(figi_cus) >= 1200:
             break
     figi_hits = 0
     for i0 in range(0, len(figi_cus), 10):
