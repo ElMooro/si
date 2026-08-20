@@ -1,7 +1,11 @@
-executing-against: 45caf33543550dbe63100deb9ecbfdc626e41d20
-[18:05:53] G0 producer contract OK
+- `18:05:53` G0 producer contract OK
+**Status:** failure  
+**Duration:** 271.5s  
+**Finished:** 2026-08-20T18:10:24+00:00  
 
-→ Report written to aws/ops/reports/latest/ops_4938_13f_resolve_repair.md
+## Error
+
+```
 Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
     response = self._make_request(
@@ -56,6 +60,8 @@ urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Re
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4938_13f_resolve_repair.py", line 63, in <module>
     r = lam.invoke(FunctionName=FN, InvocationType="RequestResponse",
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -115,4 +121,8 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 549, in send
     raise ConnectionClosedError(
 botocore.exceptions.ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-13f-positions/invocations".
-❌ OPS-FAIL: aws/ops/pending/ops_4938_13f_resolve_repair.py
+
+```
+
+## Log
+
