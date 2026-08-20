@@ -1,17 +1,10 @@
-executing-against: adc5052e9084a5eba972221965c707948b06a537
-ops 4918 -- floor-audit v1.0.3 acceptance
-── G1 redeploy ──
-[19:51:05]   zip: 110136 bytes
-── 1. Lambda ──
-[19:51:06]   Lambda exists — updating
-[19:51:09] ✅   ✓ updated justhodl-floor-audit
-── 3. Smoke test ──
-[19:51:09]   invoking justhodl-floor-audit…
-── G2 fresh run ──
-── G3 BMNR regression ──
-── G4 BTBT spec case (HARD) ──
-── G5 broker quarantine live ──
-── G6 DAT board ──
-── edge (soft) ──
+executing-against: 97a091060f8d0a12aa4021f02581cd101c092b0d
+ops 4919 -- floor desk edge acceptance
+── G1 page at edge ──
+── G2 feed at edge ──
+── G3 nav placement ──
+── G4 schedule ──
+── G5 lambda config ──
+── G6 tape freshness ──
 
-→ Report written to aws/ops/reports/latest/4918-floor-v103-accept.md
+→ Report written to aws/ops/reports/latest/4919-floor-edge-acceptance.md
