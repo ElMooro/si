@@ -1,17 +1,17 @@
-executing-against: d1854cd6310ed828c937e56bbc0e9301b15dcaf8
-[18:14:17] G0 producer contract OK
-[18:14:18] async invoke rc=202 (202 expected)
-[18:20:43] payload refreshed after 386s (age 20s)
-[18:20:50] PASS G1 one ticker <- exactly one cusip  []
-[18:20:50] PASS G2 major names hold their own tickers again  []
-[18:20:50] unresolved top: [{"k": "428040DE6", "name": "HERTZ CORP", "usd": 8.63}, {"k": "084670702", "name": "BERKSHIRE HATHAWAY INC DEL", "usd": 5.2}, {"k": "958102105", "name": "WESTERN DIGITAL CORP", "usd": 3.68}, {"k": "90353T100", "name": "UBER TECHNOLOGIES INC", "usd": 2.99}, {"k": "833445109", "name": "SNOWFLAKE INC", "usd": 2.97}, {"k": "81141R100", "name": "SEA LTD", "usd": 2.36}, {"k": "55306N104", "name": "MKS INC.", "usd": 1.92}, {"k": "526057104", "name": "Lennar Corporation", "usd": 1.8}]
-[18:20:50] FAIL G3 unresolved book back under $15B (was $70.68B)  $88.04B
-[18:20:50] PASS G4a roster balances  18/17/1
-[18:20:50] PASS G4b holders <= roster  
-[18:20:50] PASS G4c exits <= roster  
-[18:20:50] PASS G4d mcap_suspect still published honestly  4
-[18:20:50] as_of=2026-06-30 parsed=17/18 tickers=8666
-[18:20:50] ops 4938 RED: G3 unresolved book back under $15B (was $70.68B)
+executing-against: 1e2e9ede6bd987214ed170e36a2032f87600477e
+[18:25:33] G0 producer contract OK
+[18:25:34] async invoke rc=202 (202 expected)
+[18:31:59] payload refreshed after 386s (age 20s)
+[18:32:06] PASS G1a residual collisions are all NAMED, none silent  487 ambiguous
+[18:32:06] PASS G1b no collision escapes both fields  []
+[18:32:06] PASS G2 major names hold their own tickers again  []
+[18:32:06] unresolved top: [{"k": "23804L103", "name": "DATADOG INC", "usd": 1.39}, {"k": "G1151C101", "name": "ACCENTURE PLC IRELAND", "usd": 1.06}, {"k": "94419L101", "name": "WAYFAIR INC", "usd": 1.04}, {"k": "G0692U109", "name": "AXIS CAP HLDGS LTD", "usd": 0.73}, {"k": "65249B109", "name": "NEWS CORP NEW", "usd": 0.57}, {"k": "G0450A105", "name": "ARCH CAP GROUP LTD", "usd": 0.38}, {"k": "G47875110", "name": "INFLECTION      PT   ACQUISITION  ", "usd": 0.36}, {"k": "01609W102", "name": "ALIBABA GROUP HLDG LTD", "usd": 0.34}]
+[18:32:06] PASS G3 unresolved book back under $15B (was $70.68B)  $10.22B
+[18:32:06] PASS G4a roster balances  18/17/1
+[18:32:06] PASS G4b holders <= roster  
+[18:32:06] PASS G4c exits <= roster  
+[18:32:06] PASS G4d mcap_suspect still published honestly  4
+[18:32:06] as_of=2026-06-30 parsed=17/18 tickers=8130
+[18:32:06] ops 4938 GREEN -- 7/7 gates
 
 → Report written to aws/ops/reports/latest/ops_4938_13f_resolve_repair.md
-❌ OPS-FAIL: aws/ops/pending/ops_4938_13f_resolve_repair.py
