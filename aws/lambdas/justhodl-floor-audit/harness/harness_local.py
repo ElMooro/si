@@ -469,6 +469,17 @@ check("sweep is config-gated and disabled cleanly",
       L.market_prescreen({"market_sweep": {"enabled": False}}, {},
                          set()) == ([], {}))
 
+print("== 13. v2.0.1 frame density (ops 4921 trap) ==")
+newest = {1: 10.0, 2: 20.0}          # current quarter: 2 early filers
+prior = {1: 9.0, 3: 30.0, 4: 40.0}   # completed quarter: dense
+m = L.merge_frames([newest, prior])
+check("newest filing wins per company", m[1] == 10.0)
+check("older frame fills the companies that have not filed yet",
+      m[3] == 30.0 and m[4] == 40.0)
+check("union is denser than either frame alone", len(m) == 4)
+check("empty input is empty, never a fabricated row",
+      L.merge_frames([]) == {})
+
 print()
 if FAIL:
     print("HARNESS RED: %d failures: %s" % (len(FAIL), FAIL))

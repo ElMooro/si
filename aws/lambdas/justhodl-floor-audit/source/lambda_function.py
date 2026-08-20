@@ -40,7 +40,7 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/floor-audit.json"
 CFG_KEY = "data/floor-audit/config.json"
@@ -933,11 +933,28 @@ def recommend(ctx, th):
 
 
 # -------------------------------------- live: whole-market prescreen ---
-def frames_map(taxonomy, tag, unit, quarters=4):
-    """One XBRL frames call = that tag for EVERY filer that reported
-    it. This is what makes a whole-market sweep affordable."""
+def merge_frames(maps):
+    """Newest-first merge: the most recent filing wins per company,
+    older frames only fill companies the newer one has not reported
+    yet. Pure, so the density logic is testable."""
+    out = {}
+    for m in maps:
+        for cik, val in m.items():
+            if cik not in out:
+                out[cik] = val
+    return out
+
+
+def frames_map(taxonomy, tag, unit, quarters=5, dense=3000):
+    """One XBRL frames call = that tag for EVERY filer that reported it
+    in that quarter -- which is what makes a whole-market sweep
+    affordable. TRAP (ops 4921): the CURRENT quarter's frame holds only
+    the handful of companies that have filed so far (8 filers screened,
+    gate caught it). Never accept the first non-empty frame; walk back
+    merging newest-first until the union is dense."""
     now = datetime.now(timezone.utc)
     y, q = now.year, (now.month - 1) // 3 + 1
+    maps, used = [], []
     for _ in range(quarters):
         frame = "CY%dQ%dI" % (y, q)
         try:
@@ -947,14 +964,18 @@ def frames_map(taxonomy, tag, unit, quarters=4):
                            timeout=90, retries=2)
             rows = js.get("data") or []
             if rows:
-                return {int(r["cik"]): float(r["val"]) for r in rows
-                        if r.get("val") is not None}, frame
+                maps.append({int(r["cik"]): float(r["val"])
+                             for r in rows if r.get("val") is not None})
+                used.append("%s(%d)" % (frame, len(rows)))
         except Exception:  # noqa: BLE001
             pass
+        merged_n = sum(len(m) for m in maps)
+        if merged_n >= dense:
+            break
         q -= 1
         if q == 0:
             y, q = y - 1, 4
-    return {}, None
+    return merge_frames(maps), ",".join(used) or None
 
 
 def poly_grouped(days_back=7):
@@ -1006,8 +1027,9 @@ def market_prescreen(cfg, c2t, notes):
     if not shares:
         shares, sh_frame = frames_map(
             "us-gaap", "CommonStockSharesOutstanding", "shares")
-    if not shares:
-        notes.add("market sweep skipped: no share-count frame")
+    if len(shares) < 800:
+        notes.add("market sweep skipped: share-count frames too thin "
+                  "(%d filers, frames %s)" % (len(shares), sh_frame))
         return [], {}
     legs, frames_used = {}, {"shares": sh_frame, "prices": px_day}
     for name, tax, tag, sign in PRESCREEN_TAGS:
