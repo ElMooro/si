@@ -1,16 +1,16 @@
-executing-against: 7b20d4613cf4544af3b99fbecbc780ed1c43455c
-ops 4920 -- floor-audit v1.1.0 contract floor
+executing-against: 8aed363b3f73eee91959d009bdc670b6838445f3
+ops 4921 -- floor-audit v2.0.0 whole market + call
 ── G1 deploy ──
-[01:28:16]   zip: 110820 bytes
+[01:47:49]   zip: 117020 bytes
 ── 1. Lambda ──
-[01:28:16]   Lambda exists — updating
-[01:28:19] ✅   ✓ updated justhodl-floor-audit
+[01:47:49]   Lambda exists — updating
+[01:47:55] ✅   ✓ updated justhodl-floor-audit
 ── 3. Smoke test ──
-[01:28:20]   invoking justhodl-floor-audit…
+[01:47:55]   invoking justhodl-floor-audit…
 ── G2 config reset ──
 ── G3 fresh run ──
-── G4 order-book leg ──
-── G5 ladder integrity (live tape) ──
-── G6 edge ──
+── G4 market breadth ──
+[01:48:51] FAIL G4: screened=8 tiers={'mega': 0, 'large': 0, 'mid': 1, 'small': 3, 'micro': 3, 'nano': 1} -- the sweep did not reach the whole market
 
-→ Report written to aws/ops/reports/latest/4920-floor-v110-contract-floor.md
+→ Report written to aws/ops/reports/latest/4921-floor-v200-market-sweep.md
+❌ OPS-FAIL: aws/ops/pending/ops_4921_floor_v200_market_sweep.py
