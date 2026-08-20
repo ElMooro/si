@@ -115,5 +115,6 @@ with report("ops_4936_13f_integrity") as R:
     R.log("stale roster: %s" % json.dumps(d.get("stale_funds") or [])[:400])
 
     if fails:
-        raise SystemExit("ops 4936 RED: " + "; ".join(fails))
+        R.log("ops 4936 RED: " + "; ".join(fails))
+        sys.exit(1)          # house rule: fails must NOT auto-move to ran/
     R.log("ops 4936 GREEN -- 6/6 gates")
