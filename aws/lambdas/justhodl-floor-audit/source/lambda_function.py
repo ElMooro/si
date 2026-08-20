@@ -40,7 +40,7 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "2.0.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/floor-audit.json"
 CFG_KEY = "data/floor-audit/config.json"
@@ -75,6 +75,15 @@ DEFAULT_CONFIG = {
         "SMLR": {"primary_asset": "BTC"},
         "DFDV": {"primary_asset": "SOL"}, "UPXI": {"primary_asset": "SOL"},
     },
+    "market_sweep": {
+        # Every SEC filer, screened daily off XBRL frames + one grouped
+        # price tape (~11 HTTP calls for the whole market). The deep
+        # forensic audit then runs only where a floor could plausibly
+        # exist -- screening 6,000 names is cheap, auditing them is not.
+        "enabled": True, "max_deep": 120, "prescreen_min_cov": 0.40,
+        "min_mcap_usd": 15000000.0, "screen_publish": 400,
+        "premium_flag": 2.0,
+    },
     "backlog_universe": {"enabled": True, "max_add": 15,
                          "min_backlog_usd": 300000000.0},
     "discovery": {"enabled": True, "tag": "CryptoAssetFairValue",
@@ -88,7 +97,8 @@ DEFAULT_CONFIG = {
         "coverage_min_report": 0.10,
         "residual_senseless": -0.15, "residual_stretched": -0.20,
         "explained_ok": 0.60,
-        "committed_floor": 1.5, "committed_high": 3.0, "ar_haircut": 0.85, "dilution_qoq": 0.08,
+        "committed_floor": 1.5, "committed_high": 3.0,
+        "runway_min_months": 12.0, "dilution_yoy_veto": 0.35, "ar_haircut": 0.85, "dilution_qoq": 0.08,
     },
     "backlog_join": {"key": BACKLOG_KEY, "root": "by_ticker",
                      "value_field": "backlog_usd",
@@ -636,6 +646,422 @@ def spot_at(dates, closes, iso_date):
 
 
 # ----------------------------------------------------------- handler ---
+
+# --------------------------------------- pure: tiers, quality, burn ----
+CAP_TIERS = [("mega", 2e11), ("large", 1e10), ("mid", 2e9),
+             ("small", 3e8), ("micro", 5e7), ("nano", 0.0)]
+
+
+def cap_tier(mcap):
+    """Blue chip to nano. Published on every row so the desk can be
+    read one tier at a time -- a 300% floor on a $40M shell and on a
+    $40B industrial are not the same claim."""
+    for name, lo in CAP_TIERS:
+        if mcap is not None and mcap >= lo:
+            return name
+    return "nano"
+
+
+ASSET_WEIGHTS = {"cash": 1.00, "st_investments": 0.95,
+                 "crypto_marked": 0.75, "lt_investments": 0.60,
+                 "receivables": 0.50}
+
+
+def asset_quality(floor):
+    """0-100: how cash-like the floor actually is. Cash is a floor; a
+    receivable is a promise and a coin stack is a floor that moves."""
+    num = den = 0.0
+    for lg in floor["legs"]:
+        if lg["sign"] < 0 or not lg["value"]:
+            continue
+        num += lg["value"] * ASSET_WEIGHTS.get(lg["name"], 0.5)
+        den += lg["value"]
+    return None if den <= 0 else int(round(100 * num / den))
+
+
+def ocf_ttm(facts):
+    """Trailing-twelve-month operating cash flow: sum of the last four
+    quarterly durations, else the latest annual. This is the leg that
+    separates a floor from an ice cube."""
+    gaap = (facts.get("facts") or {}).get("us-gaap") or {}
+    for tag in ("NetCashProvidedByUsedInOperatingActivities",
+                "NetCashProvidedByUsedInOperatingActivities"
+                "ContinuingOperations"):
+        node = gaap.get(tag)
+        if not node:
+            continue
+        rows = []
+        for e in (node.get("units") or {}).get("USD") or []:
+            if e.get("val") is None or not e.get("start") \
+                    or not e.get("end"):
+                continue
+            try:
+                span = (datetime.fromisoformat(e["end"])
+                        - datetime.fromisoformat(e["start"])).days
+            except ValueError:
+                continue
+            rows.append((span, e["end"], float(e["val"]), e.get("form")))
+        if not rows:
+            continue
+        rows.sort(key=lambda r: r[1])
+        q = [r for r in rows if 80 <= r[0] <= 100]
+        if len(q) >= 4:
+            last4 = q[-4:]
+            return sum(r[2] for r in last4), {
+                "tag": tag, "basis": "sum of 4 quarterly filings",
+                "window": "%s..%s" % (last4[0][1], last4[-1][1])}
+        a = [r for r in rows if 340 <= r[0] <= 380]
+        if a:
+            return a[-1][2], {"tag": tag, "basis": "latest annual",
+                              "end": a[-1][1], "form": a[-1][3]}
+    return None, None
+
+
+def runway_months(floor, ocf):
+    """Months of cash-like assets at the current burn. Returns
+    (months, state); a self-funding company gets state not a number --
+    an important distinction, never a missing value."""
+    if ocf is None:
+        return None, "unknown"
+    if ocf >= 0:
+        return None, "self_funding"
+    liquid = sum(lg["value"] for lg in floor["legs"]
+                 if lg["name"] in ("cash", "st_investments")
+                 and lg["value"])
+    burn_m = abs(ocf) / 12.0
+    if burn_m <= 0:
+        return None, "self_funding"
+    return round(liquid / burn_m, 1), "burning"
+
+
+def durability(rw_m, rw_state, dil_yoy, debt_total, gross):
+    """0-100 with its reasons attached. A discount to a melting floor
+    is not a discount -- it is a countdown."""
+    flags = []
+    if rw_state == "self_funding":
+        sc = 90.0
+    elif rw_m is None:
+        sc, _ = 50.0, flags.append("cash-flow statement not bound -- "
+                                   "durability unproven")
+    elif rw_m >= 36:
+        sc = 85.0
+    elif rw_m >= 24:
+        sc = 72.0
+    elif rw_m >= 12:
+        sc, _ = 45.0, flags.append("under 2 years of runway at the "
+                                   "current burn (%.0f months)" % rw_m)
+    elif rw_m >= 6:
+        sc, _ = 22.0, flags.append("under 1 year of runway (%.0f "
+                                   "months) -- the floor is melting"
+                                   % rw_m)
+    else:
+        sc, _ = 5.0, flags.append("under 6 months of runway (%.0f) -- "
+                                  "a funding event is likely" % rw_m)
+    if dil_yoy is not None and dil_yoy >= 0.10:
+        pen = 35 if dil_yoy >= 0.50 else (20 if dil_yoy >= 0.25 else 8)
+        sc -= pen
+        flags.append("share count up %.0f%% year-over-year -- the "
+                     "floor per share is being diluted"
+                     % (dil_yoy * 100))
+    if gross and gross > 0:
+        lev = (debt_total or 0.0) / gross
+        if lev >= 0.75:
+            sc -= 25
+            flags.append("debt is %.0f%% of gross liquid assets"
+                         % (lev * 100))
+        elif lev >= 0.40:
+            sc -= 10
+            flags.append("debt is %.0f%% of gross liquid assets"
+                         % (lev * 100))
+    return int(max(0, min(100, round(sc)))), flags
+
+
+def _interp(x, pts):
+    if x is None:
+        return None
+    if x <= pts[0][0]:
+        return float(pts[0][1])
+    for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+        if x <= x1:
+            return y0 + (y1 - y0) * (x - x0) / (x1 - x0)
+    return float(pts[-1][1])
+
+
+def discount_score(coverage):
+    """How much floor a dollar of market cap buys."""
+    return None if coverage is None else int(round(_interp(
+        coverage, [(0.10, 0), (0.30, 12), (0.50, 28), (0.80, 46),
+                   (1.00, 64), (1.30, 79), (1.80, 90), (3.00, 97)])))
+
+
+def mispricing_score(worst_res):
+    """Size of the dump that live asset moves cannot explain."""
+    if worst_res is None or worst_res >= 0:
+        return 0
+    return int(max(0, min(100, round(-worst_res * 220))))
+
+
+# ------------------------------------------ pure: the retail call ------
+NO_CALL_VERDICTS = ("FUND_WRAPPER", "SUSPECT_INPUTS",
+                    "BROKER_BALANCE_SHEET", "NO_FLOOR_DATA")
+
+
+def recommend(ctx, th):
+    """The decision layer. Vetoes fire BEFORE any score, because the
+    classic way to lose money on a balance-sheet screen is to buy a
+    genuine discount to a floor that is being burned or issued away.
+    Returns action + conviction + plain-English why + risks + the
+    condition that would flip it."""
+    v = ctx["verdict"]
+    cov, cc = ctx["coverage"], ctx["crypto_coverage"]
+    dur, dflags = ctx["durability"], ctx["durability_flags"]
+    qual = ctx["asset_quality"] or 50
+    mis = mispricing_score(ctx["worst_residual"])
+    disc = discount_score(cov) or 0
+    prem = ctx["premium_to_nav"]
+    reasons, risks, vetoes = [], list(dflags), []
+
+    if v in NO_CALL_VERDICTS:
+        return {"action": "NO_CALL", "conviction": 0,
+                "composite": None, "legs": None,
+                "plain": {"FUND_WRAPPER": "This is a fund or trust: its "
+                          "price tracks the assets it holds by design, "
+                          "so a floor comparison says nothing.",
+                          "SUSPECT_INPUTS": "The filed share count or "
+                          "the price bind is implausible here, so any "
+                          "number this desk produced would be noise.",
+                          "BROKER_BALANCE_SHEET": "A broker holds "
+                          "customer assets on its balance sheet. That "
+                          "is not shareholder value and this model "
+                          "does not apply.",
+                          "NO_FLOOR_DATA": "No usable balance-sheet "
+                          "filing was found, so there is no floor to "
+                          "measure against."}[v],
+                "reasons": [], "risks": [], "vetoes": [v],
+                "invalidation": "n/a"}
+
+    composite = (0.30 * disc + 0.18 * qual + 0.32 * dur + 0.20 * mis)
+
+    if cov is not None and cov >= 1.0:
+        reasons.append("market cap is BELOW the net liquid assets: "
+                       "%.0f cents of floor per dollar of price"
+                       % (cov * 100))
+    elif cov is not None and cov >= 0.5:
+        reasons.append("%.0f%% of the market cap is already covered by "
+                       "net liquid assets" % (cov * 100))
+    if mis >= 40:
+        reasons.append("%.0f points of the drawdown are not explained "
+                       "by any move in the assets themselves"
+                       % (-100 * (ctx["worst_residual"] or 0)))
+    if ctx["committed_cov"] and ctx["committed_cov"] >= 1.0:
+        reasons.append("committed contracts/backlog are %.1fx the "
+                       "market cap" % ctx["committed_cov"])
+    if qual >= 85:
+        reasons.append("the floor is mostly cash and short-term "
+                       "investments, not receivables or illiquid "
+                       "holdings")
+    if cc and cc >= 0.30:
+        risks.append("%.0f%% of the floor case rests on crypto marked "
+                     "live -- it moves every day" % (cc * 100))
+
+    if dur < 25:
+        vetoes.append("durability")
+        action = "AVOID"
+        conv = int(min(90, 55 + (25 - dur)))
+    elif ctx["dilution_yoy"] is not None and \
+            ctx["dilution_yoy"] >= th.get("dilution_yoy_veto", 0.35):
+        vetoes.append("dilution")
+        action, conv = "AVOID", 70
+    elif prem is not None and prem >= th.get("premium_flag", 2.0) \
+            and (cc or 0) >= 0.25:
+        action = "REDUCE"
+        conv = int(min(90, 40 + 20 * prem))
+        reasons.append("price is %.2fx the live value of the assets "
+                       "held -- you are paying a %.0f%% premium for a "
+                       "stack you could buy directly"
+                       % (prem, (prem - 1) * 100))
+    elif composite >= 72 and (cov or 0) >= 0.95 and dur >= 55:
+        action, conv = "BUY", int(round(composite))
+    elif composite >= 58 and (cov or 0) >= 0.60:
+        action, conv = "ACCUMULATE", int(round(composite))
+    elif composite >= 42:
+        action, conv = "WATCH", int(round(composite))
+    else:
+        action, conv = "PASS", int(round(100 - composite))
+
+    plain = {
+        "BUY": "The market is paying less than the company's own net "
+               "liquid assets, the drawdown is not explained by those "
+               "assets falling, and the balance sheet is durable "
+               "enough to wait. This is the setup this desk exists to "
+               "find.",
+        "ACCUMULATE": "A real discount with a workable balance sheet, "
+                      "but not the full set -- size it smaller than a "
+                      "high-conviction position and add on weakness.",
+        "WATCH": "The floor is interesting but at least one leg is "
+                 "unproven. Put it on the list; do not chase it.",
+        "PASS": "The price is not far enough below what the balance "
+                "sheet supports to be worth the risk here.",
+        "AVOID": "There is a discount, and there is a reason: the "
+                 "floor itself is shrinking through burn or share "
+                 "issuance. Cheap gets cheaper.",
+        "REDUCE": "You are paying a premium to assets you could own "
+                  "directly. If you hold this for the asset exposure, "
+                  "the exposure is available cheaper.",
+    }[action]
+
+    inval = {
+        "BUY": "a quarter showing the cash burn accelerating, or a "
+               "share issuance above 10%",
+        "ACCUMULATE": "runway falling under 12 months, or dilution "
+                      "above 25% year-over-year",
+        "WATCH": "the missing leg resolving -- a clean cash-flow "
+                 "filing or the dump becoming asset-explained",
+        "PASS": "coverage crossing 60% of market cap on a further "
+                "decline",
+        "AVOID": "a financing that removes the funding risk, or the "
+                 "burn turning positive",
+        "REDUCE": "the premium compressing back toward 1.2x",
+    }[action]
+
+    return {"action": action, "conviction": int(max(0, min(99, conv))),
+            "composite": round(composite, 1),
+            "legs": {"discount": disc, "asset_quality": qual,
+                     "durability": dur, "mispricing": mis},
+            "plain": plain, "reasons": reasons, "risks": risks,
+            "vetoes": vetoes, "invalidation": inval}
+
+
+# -------------------------------------- live: whole-market prescreen ---
+def frames_map(taxonomy, tag, unit, quarters=4):
+    """One XBRL frames call = that tag for EVERY filer that reported
+    it. This is what makes a whole-market sweep affordable."""
+    now = datetime.now(timezone.utc)
+    y, q = now.year, (now.month - 1) // 3 + 1
+    for _ in range(quarters):
+        frame = "CY%dQ%dI" % (y, q)
+        try:
+            js = http_json("https://data.sec.gov/api/xbrl/frames/"
+                           "%s/%s/%s/%s.json" % (taxonomy, tag, unit,
+                                                 frame),
+                           timeout=90, retries=2)
+            rows = js.get("data") or []
+            if rows:
+                return {int(r["cik"]): float(r["val"]) for r in rows
+                        if r.get("val") is not None}, frame
+        except Exception:  # noqa: BLE001
+            pass
+        q -= 1
+        if q == 0:
+            y, q = y - 1, 4
+    return {}, None
+
+
+def poly_grouped(days_back=7):
+    """One call = the last close for every US-listed name."""
+    for i in range(days_back):
+        d = (datetime.now(timezone.utc)
+             - timedelta(days=i)).date().isoformat()
+        try:
+            js = http_json("https://api.polygon.io/v2/aggs/grouped/"
+                           "locale/us/market/stocks/%s?adjusted=true"
+                           "&apiKey=%s" % (d, POLY), timeout=90,
+                           retries=2)
+            rows = js.get("results") or []
+            if len(rows) > 1000:
+                return {r["T"]: r["c"] for r in rows if r.get("c")}, d
+        except Exception:  # noqa: BLE001
+            continue
+    return {}, None
+
+
+PRESCREEN_TAGS = [
+    ("cash", "us-gaap", "CashAndCashEquivalentsAtCarryingValue", 1),
+    ("cash_ifrs", "ifrs-full", "CashAndCashEquivalents", 1),
+    ("st_inv", "us-gaap", "ShortTermInvestments", 1),
+    ("lt_inv", "us-gaap", "LongTermInvestments", 1),
+    ("crypto", "us-gaap", "CryptoAssetFairValue", 1),
+    ("debt_nc", "us-gaap", "LongTermDebtNoncurrent", -1),
+    ("debt_c", "us-gaap", "LongTermDebtCurrent", -1),
+    ("st_borrow", "us-gaap", "ShortTermBorrowings", -1),
+]
+
+
+def market_prescreen(cfg, c2t, notes):
+    """Screen the ENTIRE filer universe -- every cap tier, plus the
+    foreign private issuers that file IFRS with the SEC -- on an
+    approximate floor. Cheap, wide, and honestly labelled: no live
+    crypto mark, no receivables, no per-leg provenance. Its only job
+    is to decide who deserves the expensive forensic audit."""
+    ms = cfg.get("market_sweep") or {}
+    if not ms.get("enabled"):
+        return [], {}
+    px, px_day = poly_grouped()
+    if not px:
+        notes.add("market sweep skipped: grouped price tape unavailable")
+        return [], {}
+    shares, sh_frame = frames_map("dei",
+                                  "EntityCommonStockSharesOutstanding",
+                                  "shares")
+    if not shares:
+        shares, sh_frame = frames_map(
+            "us-gaap", "CommonStockSharesOutstanding", "shares")
+    if not shares:
+        notes.add("market sweep skipped: no share-count frame")
+        return [], {}
+    legs, frames_used = {}, {"shares": sh_frame, "prices": px_day}
+    for name, tax, tag, sign in PRESCREEN_TAGS:
+        m, fr = frames_map(tax, tag, "USD")
+        legs[name] = (m, sign)
+        frames_used[name] = fr
+    rpo, rpo_fr = frames_map("us-gaap",
+                             "RevenueRemainingPerformanceObligation",
+                             "USD")
+    frames_used["rpo"] = rpo_fr
+
+    min_mcap = ms.get("min_mcap_usd", 15e6)
+    rows = []
+    for cik, sh in shares.items():
+        tk = c2t.get(cik)
+        if not tk or sh <= 0:
+            continue
+        close = px.get(tk)
+        if not close:
+            continue
+        mcap = sh * close
+        if mcap < min_mcap:
+            continue
+        gross = 0.0
+        debt = 0.0
+        parts = {}
+        for name, (m, sign) in legs.items():
+            v = m.get(cik)
+            if v is None:
+                continue
+            parts[name] = v
+            if sign > 0:
+                gross += v
+            else:
+                debt += v
+        if not parts:
+            continue
+        nlav = gross - debt
+        rows.append({
+            "ticker": tk, "cik": cik, "mcap_usd": round(mcap, 2),
+            "cap_tier": cap_tier(mcap),
+            "approx_nlav_usd": round(nlav, 2),
+            "approx_coverage": round(nlav / mcap, 4),
+            "crypto_in_floor": round(parts.get("crypto", 0.0), 2),
+            "committed_coverage": (round(rpo[cik] / mcap, 4)
+                                   if cik in rpo else None),
+            "legs_bound": sorted(parts),
+        })
+    rows.sort(key=lambda r: -(r["approx_coverage"] or 0))
+    notes.add("market sweep: %d filers priced and screened (%s tape, "
+              "%s share frame)" % (len(rows), px_day, sh_frame))
+    return rows, frames_used
+
+
 def audit_ticker(tk, cik, cfg, crypto, backlog, notes):
     th = cfg["thresholds"]
     meta = cfg["watchlist"].get(tk) or {}
@@ -651,6 +1077,11 @@ def audit_ticker(tk, cik, cfg, crypto, backlog, notes):
     dil = None
     if len(sh) >= 2 and sh[-2][1] > 0:
         dil = round(sh[-1][1] / sh[-2][1] - 1.0, 4)
+    dil_yoy = None
+    if len(sh) >= 5 and sh[-5][1] > 0:
+        dil_yoy = round(sh[-1][1] / sh[-5][1] - 1.0, 4)
+    elif len(sh) >= 2 and sh[0][1] > 0 and dil is not None:
+        dil_yoy = round((1 + dil) ** 4 - 1.0, 4)  # annualised QoQ
     dilution_active = dil is not None and dil >= th["dilution_qoq"]
 
     # crypto: filing FV -> live mark via primary-asset ratio
@@ -761,8 +1192,31 @@ def audit_ticker(tk, cik, cfg, crypto, backlog, notes):
         vd["severity"] = "MEDIUM" if vd["severity"] == "HIGH" else "LOW"
         vd["dilution_softened"] = True
 
+    # v2.0 durability + decision layer (after the verdict is final)
+    ocf, ocf_prov = ocf_ttm(facts)
+    rw_m, rw_state = runway_months(floor, ocf)
+    dur_score, dur_flags = durability(
+        rw_m, rw_state, dil_yoy, floor["debt_total"],
+        floor["gross_liquid_assets"])
+    qual = asset_quality(floor)
+    tier = cap_tier(mcap)
+    premium = (round(mcap / floor["nlav"], 3)
+               if floor["nlav"] and floor["nlav"] > 0 else None)
+    rec = recommend({
+        "verdict": vd["verdict"], "coverage": coverage,
+        "crypto_coverage": crypto_cov, "committed_cov": committed_cov,
+        "durability": dur_score, "durability_flags": dur_flags,
+        "asset_quality": qual, "premium_to_nav": premium,
+        "dilution_yoy": dil_yoy,
+        "worst_residual": vd.get("worst_residual"),
+    }, th)
+
     why_block = {
         "verdict": vd["verdict"], "severity": vd["severity"],
+        "action": rec["action"], "conviction": rec["conviction"],
+        "cap_tier": tier, "runway_months": rw_m,
+        "runway_state": rw_state, "durability": dur_score,
+        "asset_quality": qual, "premium_to_nav": premium,
         "sense_score": vd["sense_score"],
         "coverage": coverage, "crypto_coverage": crypto_cov,
         "nlav_usd": floor["nlav"], "mcap_usd": round(mcap, 2),
@@ -785,7 +1239,14 @@ def audit_ticker(tk, cik, cfg, crypto, backlog, notes):
         "status": "OK", "ticker": tk, "cik": cik,
         "primary_asset": primary,
         "shares": shares, "shares_asof": sh[-1][0],
-        "dilution_qoq": dil, "dilution_active": dilution_active,
+        "cap_tier": tier,
+        "dilution_qoq": dil, "dilution_yoy": dil_yoy,
+        "dilution_active": dilution_active,
+        "ocf_ttm_usd": ocf, "ocf_bind": ocf_prov,
+        "runway_months": rw_m, "runway_state": rw_state,
+        "durability_score": dur_score, "durability_flags": dur_flags,
+        "asset_quality_score": qual, "premium_to_nav": premium,
+        "recommendation": rec,
         "last_close": last_close, "price_asof": dts[-1],
         "mcap_usd": round(mcap, 2),
         "floor": floor, "coverage": coverage,
@@ -824,6 +1285,31 @@ def lambda_handler(event=None, context=None):
                 universe[tk] = cik
                 discovered.append(tk)
         notes.add("frames tried: %s" % ",".join(tried))
+    screen, frames_used = [], {}
+    try:
+        screen, frames_used = market_prescreen(cfg, c2t, notes)
+    except Exception as e:  # noqa: BLE001
+        notes.add("market sweep error (universe falls back to "
+                  "watchlist+discovery): %s" % str(e)[:120])
+    ms = cfg.get("market_sweep") or {}
+    screen_seed = []
+    if screen:
+        seen = set(universe)
+        for row in screen:
+            if len(screen_seed) >= ms.get("max_deep", 120):
+                break
+            if row["ticker"] in seen:
+                continue
+            if (row["approx_coverage"] or 0) < ms.get(
+                    "prescreen_min_cov", 0.40) and \
+                    (row["committed_coverage"] or 0) < 1.5:
+                continue
+            universe[row["ticker"]] = row["cik"]
+            screen_seed.append(row["ticker"])
+            seen.add(row["ticker"])
+        notes.add("deep tier: %d name(s) promoted from the market "
+                  "screen" % len(screen_seed))
+
     backlog_seed = []
     bu = cfg.get("backlog_universe") or {}
     _bl_early = s3_json(cfg["backlog_join"]["key"]) if bu.get(
@@ -891,9 +1377,27 @@ def lambda_handler(event=None, context=None):
         "doctrine": "a dump is only sensible if the balance sheet allows "
                     "it; residual beyond live asset repricing vs a "
                     ">=50%-covered liquid floor is SENSELESS; custody "
-                    "crypto never counts; committed contracts are a floor leg too; NOT_DISCLOSED stays honest",
+                    "crypto never counts; committed contracts are a floor leg "
+                    "too; a floor that is being burned or diluted away "
+                    "is vetoed before any discount is credited; "
+                    "NOT_DISCLOSED stays honest",
         "universe_n": len(universe), "discovered": sorted(discovered),
         "backlog_seeded": sorted(backlog_seed),
+        "screen_seeded": sorted(screen_seed),
+        "screened_n": len(screen),
+        "screen_frames": frames_used,
+        "screen": screen[:(cfg.get("market_sweep") or {}).get(
+            "screen_publish", 400)],
+        "screen_cap_tiers": {t: sum(1 for r in screen
+                                    if r["cap_tier"] == t)
+                             for t in ("mega", "large", "mid", "small",
+                                       "micro", "nano")},
+        "actions": {a: sorted(t for t, x in tickers.items()
+                              if x.get("status") == "OK" and
+                              (x.get("recommendation") or {})
+                              .get("action") == a)
+                    for a in ("BUY", "ACCUMULATE", "WATCH", "PASS",
+                              "AVOID", "REDUCE", "NO_CALL")},
         "crypto_sources": {a: s for a, (_, _, s) in crypto.items()},
         "thresholds": th, "notes": sorted(notes),
         "alerts": alerts, "tickers": tickers,
@@ -922,4 +1426,5 @@ def lambda_handler(event=None, context=None):
     s3_put(OUT_KEY, payload)
     s3_put(HIST_PREFIX + now.date().isoformat() + ".json", payload)
     return {"ok": ok, "universe": len(universe),
+            "screened": len(screen),
             "alerts": len(alerts), "as_of": payload["as_of"]}

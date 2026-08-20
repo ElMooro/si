@@ -386,6 +386,89 @@ check("committed_coverage echoed on the verdict for fusion",
       L.verdict(dd_dump, dec_dump, 0.18, TH, 2.0)[
           "committed_coverage"] == 2.0)
 
+print("== 10. v2.0 durability, quality, tiers ==")
+check("cap tiers ladder", [L.cap_tier(x) for x in
+      (3e11, 5e10, 5e9, 1e9, 1e8, 1e7)] ==
+      ["mega", "large", "mid", "small", "micro", "nano"])
+f_cash = {"legs": [{"name": "cash", "value": 100e6, "sign": 1},
+                   {"name": "receivables", "value": 0, "sign": 1},
+                   {"name": "debt", "value": -10e6, "sign": -1}],
+          "gross_liquid_assets": 100e6, "debt_total": 10e6,
+          "nlav": 90e6}
+f_soft = {"legs": [{"name": "cash", "value": 10e6, "sign": 1},
+                   {"name": "receivables", "value": 90e6, "sign": 1},
+                   {"name": "debt", "value": 0, "sign": -1}],
+          "gross_liquid_assets": 100e6, "debt_total": 0.0,
+          "nlav": 100e6}
+check("all-cash floor scores 100 quality", L.asset_quality(f_cash) == 100)
+check("receivable-heavy floor scores far lower",
+      L.asset_quality(f_soft) == 55, "(%s)" % L.asset_quality(f_soft))
+rw, st = L.runway_months(f_cash, -60e6)
+check("runway = cash-like / monthly burn (100M / 5M = 20 months)",
+      rw == 20.0 and st == "burning", "(%s,%s)" % (rw, st))
+rw2, st2 = L.runway_months(f_cash, +5e6)
+check("profitable company gets a state, not a number",
+      rw2 is None and st2 == "self_funding")
+d_ok, _ = L.durability(None, "self_funding", 0.02, 10e6, 100e6)
+d_melt, fl = L.durability(4.0, "burning", 0.0, 0.0, 100e6)
+check("self-funding scores high", d_ok >= 85, "(%s)" % d_ok)
+check("4-month runway scores near zero + says why",
+      d_melt <= 10 and any("6 months" in x for x in fl), "(%s)" % d_melt)
+d_dil, fl2 = L.durability(None, "self_funding", 0.60, 0.0, 100e6)
+check("60% YoY dilution penalised even when self-funding",
+      d_dil <= 60 and any("diluted" in x for x in fl2), "(%s)" % d_dil)
+check("discount score monotonic in coverage",
+      L.discount_score(0.3) < L.discount_score(1.0) <
+      L.discount_score(1.8))
+check("mispricing score scales with unexplained residual",
+      L.mispricing_score(-0.45) > L.mispricing_score(-0.15) >
+      L.mispricing_score(0.0) == 0)
+
+print("== 11. v2.0 recommendation vetoes + ladder ==")
+def R(**kw):
+    ctx = {"verdict": "SENSELESS_DRAWDOWN", "coverage": 1.2,
+           "crypto_coverage": 0.1, "committed_cov": None,
+           "durability": 80, "durability_flags": [],
+           "asset_quality": 95, "premium_to_nav": 0.83,
+           "dilution_yoy": 0.02, "worst_residual": -0.35}
+    ctx.update(kw)
+    return L.recommend(ctx, TH)
+check("full house -> BUY", R()["action"] == "BUY", "(%s)" % R()["action"])
+check("melting floor VETOES a real discount",
+      R(durability=15)["action"] == "AVOID")
+check("veto is recorded, not hidden",
+      "durability" in R(durability=15)["vetoes"])
+check("heavy dilution vetoes too",
+      R(dilution_yoy=0.60)["action"] == "AVOID")
+check("premium to NAV on a treasury -> REDUCE (sell side)",
+      R(coverage=0.4, crypto_coverage=0.35,
+        premium_to_nav=2.5)["action"] == "REDUCE")
+check("weak-but-clean setup -> WATCH or PASS, never BUY",
+      R(coverage=0.35, worst_residual=-0.05,
+        asset_quality=60)["action"] in ("WATCH", "PASS"))
+check("structural quarantine -> NO_CALL with a plain reason",
+      R(verdict="FUND_WRAPPER")["action"] == "NO_CALL" and
+      "fund or trust" in R(verdict="FUND_WRAPPER")["plain"])
+check("every call carries plain text, risks and an invalidation",
+      all(R(**k).get("plain") and R(**k).get("invalidation")
+          for k in ({}, {"durability": 15}, {"coverage": 0.2})))
+check("crypto-heavy floor is flagged as a risk to the retail reader",
+      any("crypto" in x for x in R(crypto_coverage=0.55)["risks"]))
+check("conviction bounded 0-99",
+      all(0 <= R(**k)["conviction"] <= 99
+          for k in ({}, {"durability": 5}, {"coverage": 3.0})))
+
+print("== 12. v2.0 market prescreen shape ==")
+check("PRESCREEN_TAGS covers cash/investments/crypto/debt + IFRS",
+      {t[0] for t in L.PRESCREEN_TAGS} >=
+      {"cash", "cash_ifrs", "st_inv", "lt_inv", "crypto", "debt_nc"})
+check("debt legs carry sign -1 (subtracted, never added)",
+      all(t[3] == -1 for t in L.PRESCREEN_TAGS
+          if t[0] in ("debt_nc", "debt_c", "st_borrow")))
+check("sweep is config-gated and disabled cleanly",
+      L.market_prescreen({"market_sweep": {"enabled": False}}, {},
+                         set()) == ([], {}))
+
 print()
 if FAIL:
     print("HARNESS RED: %d failures: %s" % (len(FAIL), FAIL))

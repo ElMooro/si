@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="floor-version" content="floor-audit-v1.1.0">
+<meta name="floor-version" content="floor-audit-v2.0.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Asset-Floor Auditor · JustHodl.AI</title>
-<meta name="description" content="Senseless-drawdown auditor: liquid floor (cash + investments + live-marked crypto − debt) and backlog vs market cap; decomposes every dump into asset-driven vs residual.">
+<meta name="description" content="Senseless-drawdown auditor: every SEC filer screened daily against its own liquid floor (cash + investments + live-marked crypto − debt) and its order book, with a plain-English buy/watch/avoid call and the reason behind it.">
 <style>
 :root{--bg:#0a0a0a;--bg-card:#131313;--bg-elev:#181818;--bg-hover:#1f1f1f;
 --border:#262626;--border-light:#2e2e2e;--text:#e8e8e8;--text-dim:#888;
@@ -28,102 +28,223 @@ border-radius:8px;padding:12px 16px;margin-bottom:18px;color:var(--text-dim);fon
 .doctrine b{color:var(--text)}
 h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);
 margin:22px 0 10px;font-weight:600}
-.alerts{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
-.alert{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
-padding:14px 16px;cursor:pointer}
-.alert:hover{background:var(--bg-hover)}
-.alert .tk{font-family:var(--font-mono);font-weight:700;font-size:16px}
-.alert .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(430px,1fr));gap:12px}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.card .head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.tk{font-family:var(--font-mono);font-size:16px;font-weight:700}
 .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:.05em}
 .CRITICAL{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.4)}
 .HIGH{background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.4)}
 .MEDIUM{background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.35)}
 .INFO{background:rgba(34,197,94,.10);color:var(--green);border:1px solid rgba(34,197,94,.3)}
-.NONE{background:var(--bg-elev);color:var(--text-muted);border:1px solid var(--border)}
-.alert .line{color:var(--text-dim);font-size:11px;margin-top:4px}
+.LOW,.NONE{background:var(--bg-elev);color:var(--text-muted);border:1px solid var(--border)}
+.act{font-size:11px;font-weight:800;padding:4px 10px;border-radius:5px;letter-spacing:.06em}
+.act.BUY{background:rgba(34,197,94,.18);color:var(--green);border:1px solid rgba(34,197,94,.5)}
+.act.ACCUMULATE{background:rgba(34,211,238,.14);color:var(--cyan);border:1px solid rgba(34,211,238,.4)}
+.act.WATCH{background:rgba(250,204,21,.13);color:var(--accent);border:1px solid rgba(250,204,21,.4)}
+.act.PASS{background:var(--bg-elev);color:var(--text-dim);border:1px solid var(--border-light)}
+.act.AVOID,.act.REDUCE{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.45)}
+.act.NO_CALL{background:var(--bg-elev);color:var(--text-muted);border:1px solid var(--border)}
+.tier{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);
+border:1px solid var(--border-light);border-radius:3px;padding:2px 6px}
+.plain{color:var(--text);font-size:12.5px;margin:8px 0}
+.why{color:var(--text-dim);font-size:11.5px;margin:3px 0 0 0}
+.why b{color:var(--text)}
+.why.risk{color:#d9a066}
+.conv{display:flex;align-items:center;gap:8px;margin:8px 0 4px}
+.bar{flex:1;height:6px;background:var(--bg-elev);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.legs{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim)}
+.legs span b{color:var(--text)}
+.note{color:var(--text-dim);font-size:11.5px;margin:8px 0}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.chip{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--border-light);
+background:var(--bg-card);color:var(--text-dim);cursor:pointer;user-select:none}
+.chip.on{background:rgba(250,204,21,.13);color:var(--accent);border-color:rgba(250,204,21,.45)}
 table{width:100%;border-collapse:collapse;background:var(--bg-card);
 border:1px solid var(--border);border-radius:10px;overflow:hidden}
-th,td{padding:9px 12px;text-align:right;font-size:12px;border-bottom:1px solid var(--border)}
+th,td{padding:8px 11px;text-align:right;font-size:12px;border-bottom:1px solid var(--border)}
 th{background:var(--bg-elev);color:var(--text-dim);font-size:10px;text-transform:uppercase;
-letter-spacing:.06em;cursor:pointer;user-select:none}
+letter-spacing:.06em;cursor:pointer;user-select:none;white-space:nowrap}
 th:first-child,td:first-child{text-align:left}
-tr.row{cursor:pointer}tr.row:hover{background:var(--bg-hover)}
-td.tk{font-family:var(--font-mono);font-weight:700}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--bg-hover)}
+td.mono{font-family:var(--font-mono)}
 .pos{color:var(--green)}.neg{color:var(--red)}.dim{color:var(--text-muted)}
-.detail{display:none}.detail.open{display:table-row}
-.detail>td{background:var(--bg-elev);padding:16px 18px;text-align:left}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-@media(max-width:900px){.grid2{grid-template-columns:1fr}}
-.stack .leg{display:flex;justify-content:space-between;font-family:var(--font-mono);
-font-size:12px;padding:4px 0;border-bottom:1px dashed var(--border)}
-.stack .leg .nm{color:var(--text-dim)}
-.stack .total{font-weight:700;border-top:1px solid var(--border-light);padding-top:6px;margin-top:4px}
-.bind{color:var(--text-muted);font-size:10px;font-family:var(--font-mono)}
-.bar{height:10px;border-radius:5px;background:var(--bg);overflow:hidden;display:flex;
-border:1px solid var(--border);margin:4px 0 10px}
-.bar .ad{background:var(--blue)}.bar .res{background:var(--red)}
-.legend{font-size:10px;color:var(--text-dim)}
-.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin:0 4px 0 10px;vertical-align:middle}
-.copy{background:var(--bg-card);border:1px solid var(--border-light);color:var(--text-dim);
-border-radius:5px;padding:5px 10px;font-size:10px;cursor:pointer;font-family:var(--font-mono)}
-.copy:hover{color:var(--accent);border-color:var(--accent)}
-.err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.35);color:var(--red);
-border-radius:8px;padding:14px;margin:14px 0;font-family:var(--font-mono);font-size:12px}
-.note{color:var(--text-muted);font-size:11px;margin-top:8px}
+.detail td{background:var(--bg-elev);padding:14px 16px}
+.stack{display:grid;grid-template-columns:1fr 1fr;gap:6px 22px;font-family:var(--font-mono);font-size:11px}
+.leg{display:flex;justify-content:space-between;border-bottom:1px dotted var(--border);padding:3px 0}
+.leg .nm{color:var(--text-dim)}
+.leg .bind{color:var(--text-muted);font-size:9.5px}
+.leg.total{border-top:1px solid var(--border-light);border-bottom:none;margin-top:4px;padding-top:6px}
+.leg.total .nm{color:var(--text)}
+.dbar{height:9px;background:var(--bg-card);border-radius:2px;overflow:hidden;display:flex;margin:3px 0}
+.dbar i{display:block;height:100%}
+.dbar .ad{background:var(--blue)}.dbar .rs{background:var(--red)}
+details.defs{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:14px}
+details.defs summary{cursor:pointer;font-size:12px;color:var(--accent);font-weight:600;letter-spacing:.03em}
+.defgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;margin-top:12px}
+.def{border-left:2px solid var(--border-light);padding-left:10px}
+.def h4{font-size:11.5px;color:var(--text);margin-bottom:2px}
+.def .f{font-family:var(--font-mono);font-size:10.5px;color:var(--accent);margin-bottom:3px}
+.def p{font-size:11.5px;color:var(--text-dim)}
+.def .src{font-size:10px;color:var(--text-muted);margin-top:3px}
+.err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);color:#f6a2a2;
+padding:10px 14px;border-radius:8px;margin:10px 0;font-size:12px}
+.copy{font-size:10px;color:var(--text-muted);cursor:pointer;border:1px solid var(--border-light);
+border-radius:4px;padding:2px 7px;margin-left:8px}
+@media(max-width:760px){.stack{grid-template-columns:1fr}.cards{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="container">
 <header>
-  <h1>Asset-Floor Auditor<span class="sub">senseless-drawdown desk · fuses into Research Desk (why.html)</span></h1>
+  <h1>Asset-Floor Auditor<span class="sub">senseless-drawdown desk · every SEC filer, every cap tier</span></h1>
   <div class="meta" id="meta">loading…</div>
 </header>
-<div class="doctrine"><b>Doctrine:</b> a dump is only sensible if the balance sheet allows it.
-Each drawdown is decomposed into <b style="color:var(--blue)">asset-driven</b>
-(crypto coverage × live coin return — a treasury <i>should</i> fall with its coin) and
-<b style="color:var(--red)">residual</b>. A large residual against a ≥50%-covered liquid floor
-(cash + investments + live-marked crypto − debt) is <b>SENSELESS</b>; mcap below the floor is
-<b>BELOW LIQUID FLOOR</b>. Backlog/RPO extends the floor. Custody crypto never counts.
-Every leg carries its XBRL tag + filing date.</div>
+
+<div class="doctrine">
+  <b>Doctrine:</b> a dump is only sensible if the balance sheet allows it. Every filer is screened daily against its own
+  <b>liquid floor</b> (cash + investments + live-marked crypto − debt) and its <b>committed order book</b>. Each drawdown is split into
+  <b>asset-driven</b> (a treasury should fall when its coin falls) and <b>residual</b> — the part nothing on the balance sheet explains.
+  A large residual against a well-covered floor is <b>senseless</b>. But a discount is only worth owning if the floor survives:
+  burn, dilution and debt are checked <b>before</b> any discount is credited, and they can veto the call outright.
+  Custody crypto never counts. Every leg carries its XBRL tag and filing date.
+</div>
+
+<details class="defs" id="defsbox">
+  <summary>What every number on this page means — read this first</summary>
+  <div class="defgrid" id="defs"></div>
+</details>
 
 <div id="errbox"></div>
-<h2>Live warnings</h2>
-<div class="alerts" id="alerts"><span class="dim">loading…</span></div>
+
+<h2>The call — highest conviction first</h2>
+<div class="chips" id="actfilter"></div>
+<div class="cards" id="calls"><span class="dim">loading…</span></div>
 <div class="note" id="quarantine"></div>
 
-<h2>Full universe <span class="dim" id="ucount"></span></h2>
-<div style="overflow-x:auto"><table id="tbl">
-<thead><tr>
-<th data-k="ticker">Ticker</th><th data-k="sev">Verdict</th>
-<th data-k="sense">Sense</th><th data-k="coverage">Floor cov</th>
-<th data-k="crypto">Crypto cov</th><th data-k="dd20">DD 20d</th>
-<th data-k="res20">Residual 20d</th><th data-k="mcap">Mcap $M</th>
-<th data-k="nlav">NLAV $M</th><th data-k="committed">RPO/Backlog cov</th>
-</tr></thead><tbody id="tb"></tbody></table></div>
-<div class="note">Sense score = % of the worst triggered dump explained by live asset repricing
-(0 = fully unexplained). Click any row for the full floor stack, decomposition bars,
-provenance binds and the why.html fusion block.</div>
+<h2>Deep audit <span id="ucount" class="dim"></span></h2>
+<div class="chips" id="tierfilter"></div>
+<div style="overflow-x:auto">
+<table><thead><tr>
+<th data-k="ticker">Ticker</th><th data-k="tier">Tier</th><th data-k="action">Call</th>
+<th data-k="conv">Conv</th><th data-k="verdict">Verdict</th><th data-k="cov">Floor cov</th>
+<th data-k="crypto">Crypto cov</th><th data-k="dur">Durability</th><th data-k="runway">Runway</th>
+<th data-k="dd20">20d dump</th><th data-k="res20">Unexplained</th>
+<th data-k="mcap">Mcap $M</th><th data-k="nlav">NLAV $M</th><th data-k="committed">Order book</th>
+</tr></thead><tbody id="tb"></tbody></table>
+</div>
+<div class="note">Click any row for the full floor stack, the drawdown decomposition, provenance binds and the fusion block.</div>
+
+<h2>Whole-market screen <span id="scount" class="dim"></span></h2>
+<div class="note">Every SEC filer with a bound balance sheet and a live price — including foreign private issuers filing under IFRS.
+This is the <b>approximate</b> pass (no live crypto re-mark, no receivables, no per-leg provenance): its job is to decide who earns the
+forensic audit above. Names promoted to the deep tier are marked <b>audited</b>.</div>
+<div class="chips" id="stierfilter"></div>
+<div style="overflow-x:auto">
+<table><thead><tr>
+<th>Ticker</th><th>Tier</th><th>Approx floor cov</th><th>Order book cov</th>
+<th>Crypto in floor $M</th><th>Mcap $M</th><th>Approx NLAV $M</th><th>Legs bound</th><th>Deep</th>
+</tr></thead><tbody id="stb"></tbody></table>
+</div>
+
 </div>
 <script>
 (function(){
 "use strict";
 var DATA="/data/floor-audit.json";
-var pct=function(x,d){return x==null?"—":( (x*100).toFixed(d==null?1:d)+"%");};
+var pct=function(x,d){return x==null?"—":((x*100).toFixed(d==null?1:d)+"%");};
+var xx=function(x){return x==null?"—":(x.toFixed(2)+"x");};
 var usdM=function(x){return x==null?"—":(x/1e6).toLocaleString(undefined,{maximumFractionDigits:0});};
 var cls=function(x){return x==null?"dim":(x<0?"neg":"pos");};
 var esc=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});};
-var SEVR={CRITICAL:0,HIGH:1,MEDIUM:2,INFO:3,NONE:4};
-var state={rows:[],sortK:"sev",asc:true};
+var SEVR={CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3,INFO:4,NONE:5};
+var ACTR={BUY:0,ACCUMULATE:1,REDUCE:2,WATCH:3,AVOID:4,PASS:5,NO_CALL:6};
+var TIERS=["mega","large","mid","small","micro","nano"];
+var state={rows:[],screen:[],sortK:"conv",asc:false,tier:"all",act:"all",stier:"all"};
 
-function alertCard(a){
-  return '<div class="alert" data-tk="'+esc(a.ticker)+'"><div class="head">'
-   +'<span class="tk">'+esc(a.ticker)+'</span>'
-   +'<span class="badge '+esc(a.severity)+'">'+esc(a.severity)+' · '+esc(a.verdict).replace(/_/g," ")+'</span></div>'
-   +'<div class="line">'+esc(a.headline)+'</div>'
-   +'<div class="line">sense score <b>'+(a.sense_score==null?"—":a.sense_score)+'</b>'
-   +' · floor coverage <b>'+pct(a.coverage,0)+'</b>'
-   +(a.worst_residual!=null?' · unexplained residual <b class="neg">'+pct(a.worst_residual)+'</b>':'')
+var DEFS=[
+ ["Liquid floor (NLAV)","cash + short-term investments + long-term investments + live-marked company crypto + 85% of receivables − debt",
+  "What the company would be left holding if it stopped operating tomorrow — the assets that could realistically be turned into cash, minus what it owes. Receivables are haircut because not everyone pays; leases and preferred stock are excluded.",
+  "SEC XBRL company facts (10-Q/10-K/20-F/40-F), tag and filing date shown on every leg"],
+ ["Floor coverage","NLAV ÷ market cap",
+  "Cents of liquid floor behind each dollar of share price. Above 100% the market is paying less than the company's own net liquid assets — you are buying the operating business for less than nothing. Most healthy companies sit at 5–20%; that is normal, not a warning.",
+  "computed daily"],
+ ["Crypto coverage","live-marked company crypto ÷ market cap",
+  "How much of the floor is coins the company owns, re-marked at today's price rather than the filing's. Only company-owned crypto counts — coins held for customers are excluded by name, because they are not shareholder assets.",
+  "XBRL CryptoAssetFairValue (any namespace) × today's spot ÷ spot at filing date"],
+ ["Drawdown (5/20/60/120d)","last close ÷ highest close in the window − 1",
+  "How far the stock has fallen from its own recent high over each window. The window that triggers the worst unexplained residual is the one that governs the verdict.",
+  "Polygon daily bars, 430-day history"],
+ ["Asset-driven","crypto coverage × the coin's return over the same window",
+  "The part of the fall the balance sheet fully explains. If a third of a company is ETH and ETH drops 30%, roughly 10 points of decline are simply the assets repricing — that is a sensible dump, not a mispricing.",
+  "computed per window"],
+ ["Residual (unexplained)","drawdown − asset-driven",
+  "The part of the fall nothing on the balance sheet explains. This is the actual signal: it is where narrative, forced selling or panic — rather than asset value — did the damage.",
+  "exact identity: asset-driven + residual = drawdown, always"],
+ ["Sense score","100 × (asset-driven ÷ drawdown), capped 0–100",
+  "What percentage of the worst dump the assets actually justify. 100 means the fall makes complete sense. 0 means nothing the company owns explains it.",
+  "computed on the worst triggered window"],
+ ["Durability score","0–100 from runway, dilution and debt",
+  "Whether the floor will still be there in a year. A discount to a floor that is being burned or issued away is a countdown, not a bargain — this score can veto a buy call on its own.",
+  "operating cash flow (TTM), share count history, debt legs"],
+ ["Runway","(cash + short-term investments) ÷ (monthly cash burn)",
+  "Months of cash-like assets at the current burn rate. Self-funding means operating cash flow is positive and the question does not apply — that is a state, not a missing number.",
+  "XBRL NetCashProvidedByUsedInOperatingActivities, four quarters or latest annual"],
+ ["Dilution (QoQ / YoY)","change in shares outstanding",
+  "New shares split the same floor more ways. Above 25% a year, the floor per share is shrinking faster than most discounts can close — that alone triggers an avoid.",
+  "dei EntityCommonStockSharesOutstanding, cover pages only"],
+ ["Asset quality","weighted mix of the floor's legs",
+  "How cash-like the floor is. Cash counts 100%, short-term investments 95%, live crypto 75% (it moves), long-term investments 60%, receivables 50%. A 200% floor made of receivables is worth far less than a 120% floor made of cash.",
+  "computed from the leg composition"],
+ ["Premium to NAV (mNAV)","market cap ÷ NLAV",
+  "The inverse of coverage, used for treasury companies. Above 2x you are paying more than double for a coin stack you could buy directly — that is the sell side of this desk.",
+  "computed daily"],
+ ["Order-book coverage","committed revenue (RPO or disclosed backlog) ÷ market cap",
+  "Revenue already under contract but not yet delivered, as a multiple of the whole company's price. Above 1.5x the order book alone is a floor — a different kind of asset from cash, and one this desk ranks below it, because a promise to deliver is not money in the bank.",
+  "XBRL RevenueRemainingPerformanceObligation + the platform's backlog miner"],
+ ["Conviction","0–99 composite",
+  "30% discount, 32% durability, 20% unexplained dump, 18% asset quality — after any veto. It is a ranking of how complete the setup is, not a probability of profit.",
+  "computed daily"],
+ ["Cap tier","mega ≥$200B · large ≥$10B · mid ≥$2B · small ≥$300M · micro ≥$50M · nano below",
+  "A 300% floor on a $40M shell and on a $40B industrial are not the same claim. Filter by tier to compare like with like.",
+  "shares outstanding × last close"],
+ ["Quarantines","fund wrapper · suspect inputs · broker balance sheet",
+  "Names where the model does not apply and is honest about it. An ETF is its assets by construction; a broker holds customer money; a filing with a placeholder share count produces nonsense. These are shown but never alerted on.",
+  "structural classification, watchlist names exempt"]
+];
+
+function defsHTML(){
+  return DEFS.map(function(d){
+    return '<div class="def"><h4>'+esc(d[0])+'</h4><div class="f">'+esc(d[1])+'</div>'
+      +'<p>'+esc(d[2])+'</p><div class="src">source: '+esc(d[3])+'</div></div>';
+  }).join("");
+}
+
+function callCard(r){
+  var rec=r.recommendation||{}, v=r.verdict||{};
+  var h='<div class="card"><div class="head"><span class="tk">'+esc(r.ticker)+'</span>'
+   +'<span class="act '+esc(rec.action||"NO_CALL")+'">'+esc((rec.action||"NO CALL").replace(/_/g," "))+'</span>'
+   +'<span class="badge '+esc(v.severity||"NONE")+'">'+esc((v.verdict||"").replace(/_/g," "))+'</span>'
+   +'<span class="tier">'+esc(r.cap_tier||"")+'</span></div>';
+  h+='<div class="conv"><span class="dim" style="font-size:10.5px">conviction '+(rec.conviction==null?"—":rec.conviction)+'</span>'
+   +'<span class="bar"><i style="width:'+(rec.conviction||0)+'%"></i></span></div>';
+  h+='<div class="plain">'+esc(rec.plain||"")+'</div>';
+  (rec.reasons||[]).forEach(function(x){h+='<div class="why">+ '+esc(x)+'</div>';});
+  (rec.risks||[]).forEach(function(x){h+='<div class="why risk">! '+esc(x)+'</div>';});
+  if(rec.invalidation&&rec.invalidation!=="n/a")
+    h+='<div class="why" style="margin-top:6px"><b>What would change this:</b> '+esc(rec.invalidation)+'</div>';
+  var L=rec.legs||{};
+  h+='<div class="legs">'
+   +'<span>floor cov <b>'+pct(r.coverage,0)+'</b></span>'
+   +'<span>quality <b>'+(L.asset_quality==null?"—":L.asset_quality)+'</b></span>'
+   +'<span>durability <b>'+(L.durability==null?"—":L.durability)+'</b></span>'
+   +'<span>runway <b>'+(r.runway_state==="self_funding"?"self-funding":(r.runway_months==null?"—":r.runway_months+"m"))+'</b></span>'
+   +'<span>unexplained <b class="neg">'+pct(v.worst_residual)+'</b></span>'
+   +'<span>NLAV <b>$'+usdM(r.floor&&r.floor.nlav)+'M</b> vs mcap <b>$'+usdM(r.mcap_usd)+'M</b></span>'
    +'</div></div>';
+  return h;
 }
 
 function stackHTML(f){
@@ -131,159 +252,209 @@ function stackHTML(f){
     var h='<div class="stack">';
     (f.legs||[]).forEach(function(l){
       var v=l.value, hc=(l.haircut&&l.haircut!==1)?' ×'+l.haircut:'';
-      var bind=l.bind&&l.bind.tag?(l.bind.tag+' @ '+(l.bind.end||'')):(l.bind&&l.bind.long_term?'debt binds @ '+(l.bind.long_term.end||''):'no bind — honest 0');
+      var bind=l.bind&&l.bind.tag?(l.bind.tag+' @ '+(l.bind.end||'')):(l.bind&&l.bind.long_term?'debt binds @ '+((l.bind.long_term||{}).end||''):'no bind — honest 0');
       h+='<div class="leg"><span class="nm">'+esc(l.name)+hc+'<br><span class="bind">'+esc(bind)+'</span></span>'
         +'<span class="'+cls(v)+'">'+(v==null?'—':'$'+usdM(v)+'M')+'</span></div>';
     });
     h+='<div class="leg total"><span class="nm">NLAV (net liquid asset value)</span>'
       +'<span class="'+cls(f.nlav)+'">$'+usdM(f.nlav)+'M</span></div></div>';
     return h;
-  }catch(e){return '<span class="dim">stack render error: '+esc(e.message)+'</span>';}
+  }catch(e){return '<span class="dim">stack render error</span>';}
 }
 
 function decompHTML(rec){
   try{
-    var h='';
-    var dws=Object.keys(rec.drawdowns||{}).sort(function(a,b){return +a-+b;});
-    dws.forEach(function(w){
-      var dd=rec.drawdowns[w]; if(dd==null){return;}
-      var d=(rec.decomposition||{})[w]||{};
-      var ad=Math.abs(Math.min(0,d.asset_driven||0)), rs=Math.abs(Math.min(0,d.residual||0));
-      var tot=Math.max(ad+rs,1e-9), aw=(100*ad/tot), rw=(100*rs/tot);
-      h+='<div style="margin-bottom:8px"><span class="dim">'+w+'d dump '+
-        '<b class="'+cls(dd)+'">'+pct(dd)+'</b>'+
-        (d.explained_frac!=null?' — '+Math.round(d.explained_frac*100)+'% explained by '+esc(rec.primary_asset||'asset'):'')+'</span>'+
-        '<div class="bar"><span class="ad" style="width:'+aw+'%"></span><span class="res" style="width:'+rw+'%"></span></div></div>';
+    var h='', d=rec.decomposition||{}, dd=rec.drawdowns||{};
+    ["5","20","60","120"].forEach(function(w){
+      var c=d[w]||{}, tot=Math.abs(dd[w]||0)||1;
+      var a=Math.abs(c.asset_driven||0)/tot*100, r=Math.abs(c.residual||0)/tot*100;
+      h+='<div style="margin:6px 0"><span class="dim" style="font-family:var(--font-mono);font-size:10.5px">'
+        +w+'d '+pct(dd[w])+' = asset-driven '+pct(c.asset_driven)+' + unexplained '+pct(c.residual)+'</span>'
+        +'<div class="dbar"><i class="ad" style="width:'+Math.min(100,a)+'%"></i><i class="rs" style="width:'+Math.min(100,r)+'%"></i></div></div>';
     });
-    h+='<div class="legend"><i style="background:var(--blue)"></i>asset-driven'
-      +'<i style="background:var(--red)"></i>residual (potentially senseless)</div>';
     return h;
-  }catch(e){return '<span class="dim">decomp render error</span>';}
+  }catch(e){return '';}
 }
 
-function detailHTML(rec){
-  var wb=JSON.stringify(rec.why_block,null,1);
-  return '<div class="grid2"><div><h2 style="margin-top:0">Liquid floor stack</h2>'+stackHTML(rec.floor)
-   +'<div class="note">shares '+Number(rec.shares).toLocaleString()+' @ '+esc(rec.shares_asof)
-   +(rec.dilution_qoq!=null?' · shares QoQ '+pct(rec.dilution_qoq)+(rec.dilution_active?' <b class="neg">DILUTION ACTIVE — warn softened</b>':''):'')
-   +'<br>RPO '+(rec.rpo_usd!=null?'$'+usdM(rec.rpo_usd)+'M ('+esc((rec.rpo_bind||{}).tag||'')+')':'not disclosed')
-   +' · backlog-miner: '+esc(rec.backlog_status||'—')
-   +(rec.backlog_usd!=null?' $'+usdM(rec.backlog_usd)+'M':'')
-   +'</div></div><div><h2 style="margin-top:0">Dump decomposition ('+esc(rec.primary_asset)+')</h2>'+decompHTML(rec)
-   +'<h2>why.html fusion block <button class="copy" data-wb="'+esc(rec.ticker)+'">copy JSON</button></h2>'
-   +'<pre class="bind" style="white-space:pre-wrap">'+esc(wb)+'</pre></div></div>';
-}
-
-function rowHTML(rec,i){
-  var v=rec.verdict||{},c20=(rec.decomposition||{})["20"]||{};
-  return '<tr class="row" data-i="'+i+'"><td class="tk">'+esc(rec.ticker)+'</td>'
+function rowHTML(r){
+  var v=r.verdict||{},c20=(r.decomposition||{})["20"]||{},rec=r.recommendation||{};
+  return '<tr data-tk="'+esc(r.ticker)+'"><td class="mono">'+esc(r.ticker)+'</td>'
+   +'<td><span class="tier">'+esc(r.cap_tier||"")+'</span></td>'
+   +'<td><span class="act '+esc(rec.action||"NO_CALL")+'">'+esc((rec.action||"—").replace(/_/g," "))+'</span></td>'
+   +'<td class="mono">'+(rec.conviction==null?"—":rec.conviction)+'</td>'
    +'<td><span class="badge '+esc(v.severity||"NONE")+'">'+esc((v.verdict||"").replace(/_/g," "))+'</span></td>'
-   +'<td>'+(v.sense_score==null?'<span class="dim">—</span>':v.sense_score)+'</td>'
-   +'<td class="'+(rec.coverage>=1?'pos':(rec.coverage>=0.5?'':'dim'))+'">'+pct(rec.coverage,0)+'</td>'
-   +'<td>'+pct(rec.crypto_coverage,0)+'</td>'
-   +'<td class="'+cls(rec.drawdowns&&rec.drawdowns["20"])+'">'+pct(rec.drawdowns&&rec.drawdowns["20"])+'</td>'
-   +'<td class="'+cls(c20.residual)+'">'+pct(c20.residual)+'</td>'
-   +'<td>'+usdM(rec.mcap_usd)+'</td><td class="'+cls(rec.floor&&rec.floor.nlav)+'">'+usdM(rec.floor&&rec.floor.nlav)+'</td>'
-   +'<td>'+pct(rec.committed_rev_coverage,0)+'</td></tr>'
-   +'<tr class="detail" id="det'+i+'"><td colspan="10">'+detailHTML(rec)+'</td></tr>';
+   +'<td class="mono">'+pct(r.coverage,0)+'</td>'
+   +'<td class="mono">'+pct(r.crypto_coverage,0)+'</td>'
+   +'<td class="mono">'+(r.durability_score==null?"—":r.durability_score)+'</td>'
+   +'<td class="mono">'+(r.runway_state==="self_funding"?"self-fund":(r.runway_months==null?"—":r.runway_months+"m"))+'</td>'
+   +'<td class="mono '+cls(r.drawdowns&&r.drawdowns["20"])+'">'+pct(r.drawdowns&&r.drawdowns["20"])+'</td>'
+   +'<td class="mono '+cls(c20.residual)+'">'+pct(c20.residual)+'</td>'
+   +'<td class="mono">'+usdM(r.mcap_usd)+'</td>'
+   +'<td class="mono">'+usdM(r.floor&&r.floor.nlav)+'</td>'
+   +'<td class="mono">'+(r.committed_rev_coverage==null?"—":xx(r.committed_rev_coverage))+'</td></tr>';
+}
+
+function detailHTML(r){
+  var rec=r.recommendation||{};
+  var h='<tr class="detail"><td colspan="14"><div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">';
+  h+='<div><div class="dim" style="font-size:10.5px;margin-bottom:6px">FLOOR STACK — every leg with its XBRL bind</div>'+stackHTML(r.floor||{})+'</div>';
+  h+='<div><div class="dim" style="font-size:10.5px;margin-bottom:6px">DRAWDOWN DECOMPOSITION — blue is explained by assets, red is not</div>'+decompHTML(r)+'</div>';
+  h+='</div><div class="why" style="margin-top:12px">'
+   +'shares '+(r.shares==null?"—":r.shares.toLocaleString())+' @ '+esc(r.shares_asof||"")
+   +' · dilution QoQ '+pct(r.dilution_qoq)+' / YoY '+pct(r.dilution_yoy)
+   +' · operating cash flow (TTM) '+(r.ocf_ttm_usd==null?"—":("$"+usdM(r.ocf_ttm_usd)+"M"))
+   +' · asset quality '+(r.asset_quality_score==null?"—":r.asset_quality_score)
+   +' · premium to NAV '+xx(r.premium_to_nav)
+   +' · RPO '+(r.rpo_usd==null?"—":("$"+usdM(r.rpo_usd)+"M"))
+   +' · backlog '+(r.backlog_usd==null?"—":("$"+usdM(r.backlog_usd)+"M"))+' ('+esc(r.backlog_status||"—")+')</div>';
+  (rec.vetoes||[]).forEach(function(x){h+='<div class="why risk">veto: '+esc(x)+'</div>';});
+  h+='<div class="why" style="margin-top:8px">why.html fusion block'
+   +'<span class="copy" data-wb="'+esc(r.ticker)+'">copy</span></div>'
+   +'<pre style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);white-space:pre-wrap;margin-top:4px">'
+   +esc(JSON.stringify(r.why_block||{},null,1))+'</pre>';
+  return h+'</td></tr>';
 }
 
 function sortRows(){
   var k=state.sortK,a=state.asc?1:-1;
-  var g=function(r){
-    var c20=(r.decomposition||{})["20"]||{};
+  var g=function(r){var v=r.verdict||{},rec=r.recommendation||{},c=(r.decomposition||{})["20"]||{};
     switch(k){
       case "ticker":return r.ticker;
-      case "sev":return SEVR[(r.verdict||{}).severity]||9;
-      case "sense":return (r.verdict||{}).sense_score==null?999:(r.verdict||{}).sense_score;
-      case "coverage":return -(r.coverage==null?-9:r.coverage);
-      case "crypto":return -(r.crypto_coverage||0);
-      case "dd20":return (r.drawdowns||{})["20"]==null?9:(r.drawdowns||{})["20"];
-      case "res20":return c20.residual==null?9:c20.residual;
-      case "mcap":return -(r.mcap_usd||0);
-      case "nlav":return -((r.floor||{}).nlav||0);
-      case "committed":return -(r.committed_rev_coverage||0);
+      case "tier":return TIERS.indexOf(r.cap_tier||"nano");
+      case "action":return ACTR[rec.action]==null?9:ACTR[rec.action];
+      case "conv":return rec.conviction==null?-1:rec.conviction;
+      case "verdict":return SEVR[v.severity]==null?9:SEVR[v.severity];
+      case "cov":return r.coverage==null?-9:r.coverage;
+      case "crypto":return r.crypto_coverage==null?-9:r.crypto_coverage;
+      case "dur":return r.durability_score==null?-1:r.durability_score;
+      case "runway":return r.runway_months==null?(r.runway_state==="self_funding"?9999:-1):r.runway_months;
+      case "dd20":return (r.drawdowns||{})["20"]==null?9:r.drawdowns["20"];
+      case "res20":return c.residual==null?9:c.residual;
+      case "mcap":return r.mcap_usd||0;
+      case "nlav":return (r.floor||{}).nlav||0;
+      case "committed":return r.committed_rev_coverage==null?-1:r.committed_rev_coverage;
       default:return 0;}
   };
   state.rows.sort(function(x,y){var xv=g(x),yv=g(y);return (xv>yv?1:xv<yv?-1:0)*a;});
 }
 
+function paintTable(){
+  var rows=state.rows.filter(function(r){
+    return state.tier==="all"||r.cap_tier===state.tier;});
+  document.getElementById("tb").innerHTML=rows.map(rowHTML).join("");
+  document.getElementById("ucount").textContent="("+rows.length+" shown)";
+}
+
+function paintCalls(){
+  var order=["BUY","ACCUMULATE","REDUCE","WATCH","AVOID","PASS"];
+  var rows=state.rows.filter(function(r){
+    var a=(r.recommendation||{}).action;
+    if(!a||a==="NO_CALL")return false;
+    if(state.act!=="all")return a===state.act;
+    return order.indexOf(a)>=0;
+  }).sort(function(x,y){
+    var ax=ACTR[(x.recommendation||{}).action],ay=ACTR[(y.recommendation||{}).action];
+    if(ax!==ay)return ax-ay;
+    return ((y.recommendation||{}).conviction||0)-((x.recommendation||{}).conviction||0);
+  });
+  document.getElementById("calls").innerHTML=rows.length?rows.slice(0,24).map(callCard).join("")
+    :'<span class="dim">No actionable calls on the current tape.</span>';
+}
+
+function paintScreen(){
+  var rows=state.screen.filter(function(r){
+    return state.stier==="all"||r.cap_tier===state.stier;}).slice(0,250);
+  var deep={};state.rows.forEach(function(r){deep[r.ticker]=1;});
+  document.getElementById("stb").innerHTML=rows.map(function(r){
+    return '<tr><td class="mono">'+esc(r.ticker)+'</td>'
+     +'<td><span class="tier">'+esc(r.cap_tier)+'</span></td>'
+     +'<td class="mono">'+pct(r.approx_coverage,0)+'</td>'
+     +'<td class="mono">'+(r.committed_coverage==null?"—":xx(r.committed_coverage))+'</td>'
+     +'<td class="mono">'+(r.crypto_in_floor?usdM(r.crypto_in_floor):"—")+'</td>'
+     +'<td class="mono">'+usdM(r.mcap_usd)+'</td>'
+     +'<td class="mono">'+usdM(r.approx_nlav_usd)+'</td>'
+     +'<td class="mono dim" style="font-size:10px">'+esc((r.legs_bound||[]).join(" "))+'</td>'
+     +'<td class="mono">'+(deep[r.ticker]?'<span class="badge INFO">audited</span>':'')+'</td></tr>';
+  }).join("");
+}
+
+function chipbar(el,opts,key,paint){
+  document.getElementById(el).innerHTML=opts.map(function(o){
+    return '<span class="chip'+(state[key]===o[0]?" on":"")+'" data-v="'+o[0]+'">'+esc(o[1])+'</span>';
+  }).join("");
+  document.getElementById(el).addEventListener("click",function(ev){
+    var c=ev.target.closest(".chip");if(!c)return;
+    state[key]=c.getAttribute("data-v");
+    chipbar(el,opts,key,paint);paint();
+  });
+}
+
 function render(d){
   try{
     document.getElementById("meta").textContent=
-      "as of "+d.as_of+" · universe "+d.universe_n+" · G0 ok "+d.g0_ok_tickers
-      +" · discovered +"+(d.discovered||[]).length+" via SEC frames"
-      +" · +"+((d.backlog_seeded||[]).length)+" backlog-seeded · v"+d.version;
-    var al=document.getElementById("alerts");
-    al.innerHTML=(d.alerts&&d.alerts.length)?d.alerts.map(alertCard).join("")
-      :'<span class="dim">No CRITICAL / HIGH / MEDIUM warnings on the current tape — floors intact or dumps asset-driven.</span>';
-  }catch(e){showErr("header/alerts armor: "+e.message);}
-  try{
-    var q=[], mk=function(lbl,arr,why){
-      if(arr&&arr.length){q.push('<b>'+lbl+'</b> ('+arr.length+'): '
-        +arr.map(esc).join(", ")+' — '+why);} };
-    mk("Fund wrappers",d.fund_wrappers,
-       "an ETF/trust IS its coin stack; coverage ≈ 1.0 by construction, never a warning");
-    mk("Suspect inputs",d.suspect_inputs,
-       "coverage &gt;10× or micro market cap: share or price bind pathological, quarantined not published");
-    if(d.contract_floors&&d.contract_floors.length){
-      q.push('<b>Contract floors</b> ('+d.contract_floors.length+'): '
-        +d.contract_floors.map(esc).join(", ")
-        +' — committed order book (RPO/backlog) exceeds the market cap;'
-        +' shown in the table with their own verdict');}
-    mk("Broker balance sheets",d.broker_sheets,
-       "customer custody/segregation markers present; a treasury floor model does not apply");
-    document.getElementById("quarantine").innerHTML = q.length
-      ? '<div style="margin-bottom:4px"><b>Quarantined — excluded from the alert board by design:</b></div>'
-        +q.map(function(x){return '<div style="margin:2px 0">· '+x+'</div>';}).join("")
-      : "";
-  }catch(e){/* quarantine strip is advisory; never blocks the desk */}
+      "as of "+d.as_of+" · "+(d.screened_n||0).toLocaleString()+" filers screened · "
+      +d.universe_n+" deep-audited ("+d.g0_ok_tickers+" clean) · v"+d.version;
+    document.getElementById("defs").innerHTML=defsHTML();
+  }catch(e){}
   try{
     state.rows=Object.keys(d.tickers||{}).map(function(t){return d.tickers[t];})
       .filter(function(r){return r.status==="OK";});
-    document.getElementById("ucount").textContent=
-      "("+state.rows.length+" OK / "+(d.universe_n||0)+")";
-    sortRows();
-    document.getElementById("tb").innerHTML=state.rows.map(rowHTML).join("");
-  }catch(e){showErr("table armor: "+e.message);}
+    state.screen=d.screen||[];
+    var tiers=[["all","all tiers"]].concat(TIERS.map(function(t){return [t,t];}));
+    chipbar("actfilter",[["all","every call"],["BUY","buy"],["ACCUMULATE","accumulate"],
+      ["WATCH","watch"],["REDUCE","reduce"],["AVOID","avoid"]],"act",paintCalls);
+    chipbar("tierfilter",tiers,"tier",paintTable);
+    chipbar("stierfilter",tiers,"stier",paintScreen);
+    sortRows();paintCalls();paintTable();paintScreen();
+    document.getElementById("scount").textContent=
+      "("+(d.screened_n||0).toLocaleString()+" filers · top "+Math.min(250,(d.screen||[]).length)+" by coverage shown)";
+  }catch(e){showErr("board armor: "+e.message);}
+  try{
+    var q=[],mk=function(lbl,arr,why){if(arr&&arr.length){
+      q.push('<b>'+lbl+'</b> ('+arr.length+'): '+arr.map(esc).join(", ")+' — '+why);}};
+    mk("Fund wrappers",d.fund_wrappers,"an ETF/trust IS its coin stack; coverage ≈ 1.0 by construction, never a warning");
+    mk("Suspect inputs",d.suspect_inputs,"coverage &gt;10× or micro market cap: share or price bind pathological, quarantined not published");
+    mk("Broker balance sheets",d.broker_sheets,"customer custody/segregation markers present; a treasury floor model does not apply");
+    if(d.contract_floors&&d.contract_floors.length)
+      q.push('<b>Contract floors</b> ('+d.contract_floors.length+'): '+d.contract_floors.map(esc).join(", ")
+        +' — committed order book exceeds the market cap');
+    document.getElementById("quarantine").innerHTML=q.length
+      ? '<div style="margin-bottom:4px"><b>Quarantined and contract-backed names:</b></div>'
+        +q.map(function(x){return '<div style="margin:2px 0">· '+x+'</div>';}).join("") : "";
+  }catch(e){}
+
   document.getElementById("tb").addEventListener("click",function(ev){
     var cp=ev.target.closest(".copy");
     if(cp){var tk=cp.getAttribute("data-wb");
       var rec=state.rows.filter(function(r){return r.ticker===tk;})[0];
-      if(rec){navigator.clipboard.writeText(JSON.stringify(rec.why_block));cp.textContent="copied";}
-      ev.stopPropagation();return;}
-    var tr=ev.target.closest("tr.row");if(!tr){return;}
-    var det=document.getElementById("det"+tr.getAttribute("data-i"));
-    if(det){det.classList.toggle("open");}
+      if(rec&&navigator.clipboard){navigator.clipboard.writeText(JSON.stringify(rec.why_block));cp.textContent="copied";}
+      return;}
+    var tr=ev.target.closest("tr[data-tk]");if(!tr)return;
+    var nx=tr.nextElementSibling;
+    if(nx&&nx.classList.contains("detail")){nx.remove();return;}
+    var rec=state.rows.filter(function(r){return r.ticker===tr.getAttribute("data-tk");})[0];
+    if(rec)tr.insertAdjacentHTML("afterend",detailHTML(rec));
   });
   document.querySelectorAll("th[data-k]").forEach(function(th){
     th.addEventListener("click",function(){
       var k=th.getAttribute("data-k");
-      state.asc=(state.sortK===k)?!state.asc:true;state.sortK=k;
-      sortRows();document.getElementById("tb").innerHTML=state.rows.map(rowHTML).join("");
-    });
-  });
-  document.querySelectorAll(".alert").forEach(function(c){
-    c.addEventListener("click",function(){
-      var tk=c.getAttribute("data-tk");
-      state.rows.forEach(function(r,i){if(r.ticker===tk){
-        var det=document.getElementById("det"+i);
-        if(det){det.classList.add("open");det.previousElementSibling.scrollIntoView({behavior:"smooth"});}
-      }});
+      state.asc=(state.sortK===k)?!state.asc:false;state.sortK=k;
+      sortRows();paintTable();
     });
   });
 }
-function showErr(m){
-  document.getElementById("errbox").innerHTML='<div class="err">'+esc(m)+'</div>';
-}
-fetch(DATA+"?cb="+Date.now()).then(function(r){
-  if(!r.ok){throw new Error("feed HTTP "+r.status);}return r.json();
-}).then(render).catch(function(e){
-  showErr("floor-audit feed unavailable: "+e.message+" — engine may not have completed its first run yet.");
-  document.getElementById("alerts").innerHTML="";
-  document.getElementById("meta").textContent="no data";
-});
+
+function showErr(m){document.getElementById("errbox").innerHTML='<div class="err">'+esc(m)+'</div>';}
+
+fetch(DATA+"?cb="+Date.now(),{cache:"no-store"})
+ .then(function(r){if(!r.ok)throw new Error("feed HTTP "+r.status);return r.json();})
+ .then(render)
+ .catch(function(e){
+   showErr("Could not load the floor-audit feed ("+e.message+"). The engine runs at 21:35 UTC on weekdays; if this persists the run may not have completed.");
+   document.getElementById("calls").innerHTML="";
+ });
 })();
-</script><script src="/sidebar.js" defer></script>
+</script>
+<script src="/sidebar.js" defer></script>
 </body>
 </html>
