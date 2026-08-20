@@ -1,12 +1,15 @@
-executing-against: 6d26218ed2264d1bb370dd9079e890012210b3d9
-ops 4923 -- floor-audit v2.0.1 acceptance
+executing-against: ebb79b1860ebb7668f40e1703369e3a59e98c7c7
+ops 4924 -- floor-audit v2.0.2 acceptance
 ── G1 deploy ──
+[02:31:15]   zip: 117705 bytes
+── 1. Lambda ──
+[02:31:15]   Lambda exists — updating
+[02:31:18] ✅   ✓ updated justhodl-floor-audit
+── G2 config reset ──
+── G3 fresh run ──
+── G4 market breadth ──
+── G5 decision layer ──
+── G6 precedence + regression ──
+── G7 edge ──
 
-→ Report written to aws/ops/reports/latest/4923-floor-v201-accept.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4923_floor_v201_accept.py", line 323, in <module>
-    main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4923_floor_v201_accept.py", line 111, in main
-    deploy_lambda(
-TypeError: deploy_lambda() got an unexpected keyword argument 'smoke_test'
-❌ OPS-FAIL: aws/ops/pending/ops_4923_floor_v201_accept.py
+→ Report written to aws/ops/reports/latest/4924-floor-v202-accept.md
