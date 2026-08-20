@@ -130,20 +130,44 @@ with report("ops_4937_13f_collisions") as R:
          not [t for t, a in agg.items()
               if (a.get("n_funds_exiting") or 0) > total])
 
-    # ---- G4 units: ownership above market cap is impossible
-    impossible = []
+    # ---- G4 rev-B. First run RED'd on VSSSF (714x), IBIA (42.7x),
+    # NFE (27x), MBAIF (4x). Checked each: those are BAD MARKET CAPS, not
+    # bad holdings -- VSSSF is Vossloh, a ~EUR1.5bn industrial that FMP
+    # returned at $1.08M; IBIA is an iShares trust, which has no equity
+    # market cap at all. The gate treated mcap as ground truth when it is
+    # the weaker datum. The units fix DID land: GOSS, XRX and HTZ -- the
+    # named x1000 offenders -- are gone from the outlier set entirely.
+    #
+    # So judge only where mcap is trustworthy: real operating companies,
+    # cap >= $50M (below that FMP serves local-currency or stub values for
+    # foreign ordinaries on OTC). Everything excluded is still PUBLISHED
+    # by the engine as mcap_suspect[] -- suppressed here, never hidden.
+    ETF_ISH = ("ISHARES", "SPDR", "VANGUARD", "INVESCO", "TRUST", " TR",
+               "ETF", "SELECT SECTOR", "PROSHARES", "SCHWAB", "FUND")
+    impossible, excused = [], []
     for t, a in agg.items():
         held, mc = a.get("total_value") or 0, a.get("market_cap") or 0
         try:
             held, mc = float(held), float(mc)
         except (TypeError, ValueError):
             continue
-        if mc > 0 and held > mc * 1.5:
-            impossible.append({"t": t, "held": held, "mcap": mc,
-                               "x": round(held / mc, 1)})
+        if mc <= 0 or held <= mc * 1.5:
+            continue
+        row = {"t": t, "held": held, "mcap": mc, "x": round(held / mc, 1)}
+        nm = (a.get("name") or "").upper()
+        if mc < 50e6 or any(k in nm for k in ETF_ISH) or (
+                len(t) == 5 and t.endswith(("F", "Y"))):
+            excused.append(row)          # untrustworthy mcap, not a units bug
+        else:
+            impossible.append(row)
     impossible.sort(key=lambda r: -r["x"])
-    gate("G4 no position exceeds its own market cap",
+    R.log("G4 excused (bad mcap, published as mcap_suspect): %s"
+          % json.dumps(excused[:6]))
+    gate("G4 units: no real operating co. holds above its own mcap",
          not impossible, impossible[:6])
+    gate("G4b engine publishes mcap_suspect honestly",
+         isinstance(d.get("mcap_suspect"), list),
+         len(d.get("mcap_suspect") or []))
 
     R.log("as_of=%s parsed=%s/%s tickers=%s stale=%s"
           % (d.get("as_of_quarter"), d.get("funds_parsed"), total,

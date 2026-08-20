@@ -1925,6 +1925,23 @@ def lambda_handler(event, context):
         # ops 4937: measured invariant, not a claim. Empty == one ticker
         # is claimed by exactly one cusip across the whole map.
         "cusip_collisions": globals().get("_LAST_COLLISIONS") or {},
+        # ops 4937b: mcap enrichment is unreliable for ETFs/trusts and for
+        # foreign ordinaries on OTC (FMP returns local-currency or stub
+        # values). Vossloh came back at $1.08M against $775M held. Publish
+        # the suspects so cap_tier badges built on them are auditable
+        # rather than silently wrong.
+        "mcap_suspect": sorted(
+            [{"ticker": t,
+              "market_cap": a.get("market_cap"),
+              "total_value": a.get("total_value"),
+              "ratio": round((a.get("total_value") or 0)
+                             / max(1.0, float(a.get("market_cap") or 0)), 1),
+              "reason": ("mcap_below_3m" if (a.get("market_cap") or 0) < 3e6
+                         else "held_exceeds_mcap")}
+             for t, a in by_ticker.items()
+             if (a.get("market_cap") or 0) > 0
+             and (a.get("total_value") or 0) > (a.get("market_cap") or 0) * 1.5],
+            key=lambda r: -r["ratio"])[:40],
         "stale_funds": [
             {"fund_key": f.get("fund_key"),
              "period_of_report": f.get("period_of_report")}
