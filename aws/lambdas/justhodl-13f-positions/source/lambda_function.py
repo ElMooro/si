@@ -998,6 +998,43 @@ def _sec_titles(m):
 SRC_RANK = {"sec": 3, "figi": 2, "fmp": 1}      # authority, high wins
 
 
+def _purge_name_mismatch(m, sec_byname):
+    """ops 4937d: a UNIQUE mapping can still be a WRONG one.
+
+    The collision purge only catches a ticker claimed twice. It cannot see
+    a cusip that resolves one-to-one to the wrong company, because nothing
+    contradicts it. Live proof from the 4937c run: cusip -> ticker VSSSF
+    carrying the name "STATE STR CORP" (State Street is STT), MBAIF
+    carrying "SEI INVTS CO", and $2.5B dumped into NFE against a $92M
+    equity cap with share_type SH -- none of which collided with anything.
+
+    SEC company_tickers.json is authoritative for US name<->ticker. If the
+    stored name resolves under SEC to a DIFFERENT ticker, the mapping is
+    wrong: demote it and let the next pass re-read it. Names SEC does not
+    carry (foreign ordinaries, private placements) are left alone rather
+    than guessed at -- absence of evidence is not evidence of error.
+    """
+    if not sec_byname:
+        return m
+    bad = 0
+    for cu, e in list(m.items()):
+        if not isinstance(e, dict):
+            continue
+        t = (e.get("ticker") or "").upper()
+        nm = e.get("name") or ""
+        if not t or not nm:
+            continue
+        sec_t = sec_byname.get(_norm_name(nm))
+        if sec_t and sec_t.upper() != t:
+            m[cu] = {"ticker": None, "name": nm,
+                     "src": "purged-name-mismatch", "tried_at": 0}
+            bad += 1
+    if bad:
+        print(f"  ops4937d name-mismatch purge: {bad} cusips demoted "
+              f"(SEC says a different ticker owns that name)")
+    return m
+
+
 def _purge_collisions(m):
     """A ticker may be claimed by exactly ONE cusip. Anything else is a
     resolution error.
@@ -1058,6 +1095,7 @@ def resolve_missing_tickers(fund_results, budget=150):
     m = get_s3_json(CUSIP_MAP_KEY) or {}
     m = _purge_collisions(m)          # ops 4937 — see below
     sec = _sec_titles(m)
+    m = _purge_name_mismatch(m, sec)  # ops 4937d — see below
     now = _t.time()
     fresh = 0
     _pend = []          # ops 3297: resolve BIGGEST dollars first
