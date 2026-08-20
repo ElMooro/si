@@ -1,15 +1,15 @@
-executing-against: ebb79b1860ebb7668f40e1703369e3a59e98c7c7
-ops 4924 -- floor-audit v2.0.2 acceptance
+executing-against: 31409e6e2040559c5ff46e2735656ff2d0d3163f
+ops 4925 -- floor-audit v2.1.0 retail guards
 ── G1 deploy ──
-[02:31:15]   zip: 117705 bytes
+[02:38:36]   zip: 118370 bytes
 ── 1. Lambda ──
-[02:31:15]   Lambda exists — updating
-[02:31:18] ✅   ✓ updated justhodl-floor-audit
+[02:38:36]   Lambda exists — updating
+[02:38:42] ✅   ✓ updated justhodl-floor-audit
 ── G2 config reset ──
 ── G3 fresh run ──
 ── G4 market breadth ──
 ── G5 decision layer ──
-── G6 precedence + regression ──
-── G7 edge ──
+[02:40:03] FAIL G5: buy call on an untradable name: [('QNCX', 0), ('AIFA', 0), ('INHD', 0), ('INVE', 0), ('CUBI', 0), ('SCLX', 0), ('GPMT', 0)]
 
-→ Report written to aws/ops/reports/latest/4924-floor-v202-accept.md
+→ Report written to aws/ops/reports/latest/4925-floor-v210-guards.md
+❌ OPS-FAIL: aws/ops/pending/ops_4925_floor_v210_guards.py
