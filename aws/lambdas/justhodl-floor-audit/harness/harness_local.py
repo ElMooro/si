@@ -480,6 +480,43 @@ check("union is denser than either frame alone", len(m) == 4)
 check("empty input is empty, never a fabricated row",
       L.merge_frames([]) == {})
 
+print("== 14. v2.1 retail guards (debt bind, tradability, premium) ==")
+def R2(**kw):
+    ctx = {"verdict": "SENSELESS_DRAWDOWN", "coverage": 1.2,
+           "crypto_coverage": 0.1, "committed_cov": None,
+           "durability": 80, "durability_flags": [],
+           "asset_quality": 95, "premium_to_nav": 0.83,
+           "dilution_yoy": 0.02, "worst_residual": -0.35,
+           "debt_bound": True, "adv_usd": 5e6}
+    ctx.update(kw)
+    return L.recommend(ctx, TH)
+check("clean setup still BUYs", R2()["action"] == "BUY")
+u = R2(debt_bound=False)
+check("unbound debt blocks the BUY", u["action"] != "BUY",
+      "(%s)" % u["action"])
+check("and says the floor may be overstated",
+      any("upper bound" in x for x in u["risks"]))
+check("unbound debt is recorded as a veto", "debt_unbound" in u["vetoes"])
+check("low-coverage names are unaffected by the debt gate",
+      "debt_unbound" not in R2(debt_bound=False, coverage=0.3)["vetoes"])
+tn = R2(adv_usd=80000.0)
+check("a stock trading $80k/day is never a BUY",
+      tn["action"] != "BUY", "(%s)" % tn["action"])
+check("and the reader is told the actual daily volume",
+      any("thin market" in x for x in tn["risks"]))
+check("thin ACCUMULATE is demoted to WATCH",
+      R2(coverage=0.7, composite_hint=None, adv_usd=50000.0,
+         worst_residual=-0.25)["action"] in ("WATCH", "PASS"))
+check("liquid names keep their call", R2(adv_usd=9e6)["action"] == "BUY")
+dj = R2(coverage=0.07, crypto_coverage=0.30, premium_to_nav=14.3)
+check("tiny floor + some coins is NOT a wrapper-premium REDUCE",
+      dj["action"] != "REDUCE", "(%s)" % dj["action"])
+tr = R2(coverage=0.45, crypto_coverage=0.40, premium_to_nav=2.4)
+check("a real treasury premium still REDUCEs",
+      tr["action"] == "REDUCE", "(%s)" % tr["action"])
+check("missing ADV data never invents a liquidity problem",
+      R2(adv_usd=None)["action"] == "BUY")
+
 print()
 if FAIL:
     print("HARNESS RED: %d failures: %s" % (len(FAIL), FAIL))

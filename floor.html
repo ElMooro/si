@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="floor-version" content="floor-audit-v2.0.2">
+<meta name="floor-version" content="floor-audit-v2.1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Asset-Floor Auditor · JustHodl.AI</title>
 <meta name="description" content="Senseless-drawdown auditor: every SEC filer screened daily against its own liquid floor (cash + investments + live-marked crypto − debt) and its order book, with a plain-English buy/watch/avoid call and the reason behind it.">
@@ -210,6 +210,12 @@ var DEFS=[
  ["Cap tier","mega ≥$200B · large ≥$10B · mid ≥$2B · small ≥$300M · micro ≥$50M · nano below",
   "A 300% floor on a $40M shell and on a $40B industrial are not the same claim. Filter by tier to compare like with like.",
   "shares outstanding × last close"],
+ ["Liquidity (ADV)","average daily dollar volume over the last 20 sessions",
+  "How much of this stock actually trades. Below roughly $250k a day a position is hard to build or exit at the prices you see, so no matter how good the floor looks the desk will not call it a buy.",
+  "Polygon daily bars, close × volume"],
+ ["Debt bound","whether a debt figure was found in the filings at all",
+  "The floor subtracts debt. If no debt tag binds, the floor is an upper bound rather than a measurement — so a high coverage number on an unbound filer is downgraded, never bought.",
+  "XBRL debt ladder: long-term (noncurrent+current), combined, credit facility, notes payable"],
  ["Quarantines","fund wrapper · suspect inputs · broker balance sheet",
   "Names where the model does not apply and is honest about it. An ETF is its assets by construction; a broker holds customer money; a filing with a placeholder share count produces nonsense. These are shown but never alerted on.",
   "structural classification, watchlist names exempt"]

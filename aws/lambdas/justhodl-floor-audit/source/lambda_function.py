@@ -40,7 +40,7 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
-VERSION = "2.0.2"
+VERSION = "2.1.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/floor-audit.json"
 CFG_KEY = "data/floor-audit/config.json"
@@ -99,7 +99,8 @@ DEFAULT_CONFIG = {
         "residual_senseless": -0.15, "residual_stretched": -0.20,
         "explained_ok": 0.60,
         "committed_floor": 1.5, "committed_high": 3.0,
-        "runway_min_months": 12.0, "dilution_yoy_veto": 0.35, "ar_haircut": 0.85, "dilution_qoq": 0.08,
+        "runway_min_months": 12.0, "dilution_yoy_veto": 0.35,
+        "min_adv_usd": 250000.0, "ar_haircut": 0.85, "dilution_qoq": 0.08,
     },
     "backlog_join": {"key": BACKLOG_KEY, "root": "by_ticker",
                      "value_field": "backlog_usd",
@@ -387,13 +388,20 @@ def floor_stack(facts, ar_haircut, crypto_mark, crypto_prov):
                  "end": max([x["end"] for x in (p_non, p_cur) if x]),
                  "form": (p_non or p_cur).get("form")}
     else:
-        dv, dprov = xbrl_usd(facts, ["LongTermDebt"])
+        dv, dprov = xbrl_usd(facts, [
+            "LongTermDebt",
+            "LongTermDebtAndCapitalLeaseObligations",
+            "DebtLongtermAndShorttermCombinedAmount",
+            "DebtInstrumentCarryingAmount",
+            "LineOfCreditFacilityAmountOutstanding",
+            "NotesPayable", "LoansPayable"])
     stb, pstb = xbrl_usd(facts, ["ShortTermBorrowings", "CommercialPaper"])
     debt_total = (dv or 0.0) + (stb or 0.0)
     legs.append({"name": "debt", "raw": debt_total,
                  "value": round(-debt_total, 2), "haircut": 1.0,
                  "sign": -1,
                  "bind": {"long_term": dprov, "short_term": pstb,
+                          "bound": bool(dprov or pstb),
                           "note": "leases excluded v1.0"}})
     _ = gaap  # (kept for future preferred/lease legs)
     assets = sum(x["value"] for x in legs
@@ -584,6 +592,9 @@ def sec_frames_discover(tag, max_add):
     return [c for c, _ in top], tried
 
 
+ADV_MEMO = {}  # sym -> 20d average dollar volume (filled by poly_daily)
+
+
 def poly_daily(sym, days=430):
     end = datetime.now(timezone.utc).date()
     start = end - timedelta(days=days)
@@ -595,6 +606,10 @@ def poly_daily(sym, days=430):
                                     tz=timezone.utc).date().isoformat()
              for r in res]
     closes = [float(r["c"]) for r in res]
+    tail = res[-20:]
+    if tail:
+        ADV_MEMO[sym] = sum(float(r.get("c") or 0) * float(r.get("v") or 0)
+                            for r in tail) / len(tail)
     return dates, closes
 
 
@@ -861,6 +876,17 @@ def recommend(ctx, th):
         reasons.append("the floor is mostly cash and short-term "
                        "investments, not receivables or illiquid "
                        "holdings")
+    if not ctx.get("debt_bound", True) and (cov or 0) >= 0.60:
+        vetoes.append("debt_unbound")
+        risks.append("no debt figure could be bound from the filings, "
+                     "so this floor may be overstated -- treat the "
+                     "coverage number as an upper bound")
+    adv = ctx.get("adv_usd")
+    thin = adv is not None and adv < th.get("min_adv_usd", 250000.0)
+    if thin:
+        risks.append("thin market: about $%.0fk traded per day, so a "
+                     "position is hard to build or exit at these "
+                     "prices" % (adv / 1000.0))
     if cc and cc >= 0.30:
         risks.append("%.0f%% of the floor case rests on crypto marked "
                      "live -- it moves every day" % (cc * 100))
@@ -874,18 +900,24 @@ def recommend(ctx, th):
         vetoes.append("dilution")
         action, conv = "AVOID", 70
     elif prem is not None and prem >= th.get("premium_flag", 2.0) \
-            and (cc or 0) >= 0.25:
+            and (cc or 0) >= 0.25 and (cov or 0) >= 0.35:
+        # coverage floor added v2.1: below it the coin stack is a
+        # rounding error on the enterprise and the "buy it directly"
+        # argument is not honest -- that is an operating company that
+        # happens to hold some crypto, not a wrapper.
         action = "REDUCE"
         conv = int(min(90, 40 + 20 * prem))
         reasons.append("price is %.2fx the live value of the assets "
                        "held -- you are paying a %.0f%% premium for a "
                        "stack you could buy directly"
                        % (prem, (prem - 1) * 100))
-    elif composite >= 72 and (cov or 0) >= 0.95 and dur >= 55:
+    elif composite >= 72 and (cov or 0) >= 0.95 and dur >= 55 \
+            and not vetoes and not thin:
         action, conv = "BUY", int(round(composite))
-    elif composite >= 58 and (cov or 0) >= 0.60:
-        action, conv = "ACCUMULATE", int(round(composite))
-    elif composite >= 42:
+    elif composite >= 58 and (cov or 0) >= 0.60 and not vetoes:
+        action, conv = ("WATCH" if thin else "ACCUMULATE",
+                        int(round(composite)))
+    elif composite >= 42 or vetoes:
         action, conv = "WATCH", int(round(composite))
     else:
         action, conv = "PASS", int(round(100 - composite))
@@ -1223,6 +1255,10 @@ def audit_ticker(tk, cik, cfg, crypto, backlog, notes):
         floor["gross_liquid_assets"])
     qual = asset_quality(floor)
     tier = cap_tier(mcap)
+    debt_leg = [lg for lg in floor["legs"] if lg["name"] == "debt"]
+    debt_bound = bool(debt_leg and (debt_leg[0].get("bind") or {})
+                      .get("bound"))
+    adv_usd = ADV_MEMO.get(tk)
     premium = (round(mcap / floor["nlav"], 3)
                if floor["nlav"] and floor["nlav"] > 0 else None)
     rec = recommend({
@@ -1232,6 +1268,7 @@ def audit_ticker(tk, cik, cfg, crypto, backlog, notes):
         "asset_quality": qual, "premium_to_nav": premium,
         "dilution_yoy": dil_yoy,
         "worst_residual": vd.get("worst_residual"),
+        "debt_bound": debt_bound, "adv_usd": adv_usd,
     }, th)
 
     why_block = {
@@ -1240,6 +1277,7 @@ def audit_ticker(tk, cik, cfg, crypto, backlog, notes):
         "cap_tier": tier, "runway_months": rw_m,
         "runway_state": rw_state, "durability": dur_score,
         "asset_quality": qual, "premium_to_nav": premium,
+        "debt_bound": debt_bound, "adv_usd_20d": adv_usd,
         "sense_score": vd["sense_score"],
         "coverage": coverage, "crypto_coverage": crypto_cov,
         "nlav_usd": floor["nlav"], "mcap_usd": round(mcap, 2),
