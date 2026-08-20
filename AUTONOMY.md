@@ -450,3 +450,49 @@ Traps banked (each cost an ops number):
     and require a real floor (>=35% coverage) before calling a
     premium-to-NAV REDUCE, or an operating company that happens to
     hold coins gets framed as a wrapper.
+
+## ⚠️⚠️ TRAP — "THE PAGE LOOKS RIGHT" (ops 4936, 2026-08-20, 13F desk)
+
+Khalid flagged the 13F desk as stale. **The quarter was correct** (Q2-2026,
+deadline 8/14). The desk had been wrong for months in ways every existing
+gate passed, because the arrays were FULL — only the VALUES were wrong.
+
+Four defects, all invisible to container-length checks:
+
+1. **SILENT ROSTER DROP.** A fund with no discoverable 13F-HR hit a bare
+   `continue` and entered neither `successful` nor `failed`, so
+   `funds_total 18 != funds_parsed 17 + funds_failed 0`. The missing fund
+   was ELLIOTT (CIK 0001286922 files no 13F-HR — the live entity
+   re-registered). **A skip must always be recorded as a failure that
+   names itself.** Never `continue` out of a roster loop.
+
+2. **ROW COUNT MASQUERADING AS FUND COUNT.** `n_funds_holding += 1` sat
+   inside the per-position loop. Citadel/Millennium file dozens of lots
+   per ETF trust, so BSML read "166 funds" on an 18-fund roster (NZUS 131,
+   IBIA 94). **Invariant gate that catches it: no ticker may be held by
+   more funds than exist.** Count DISTINCT keys via a set, always.
+
+3. **RESOLVER FALLBACK WITH NO ASSET-CLASS FILTER.** One-word substring
+   match, no exchange check. CPAY resolved to FOUR different companies on
+   one page (F N B / PG&E / SLM / ODP); ICLN resolved to QQQ and
+   manufactured a phantom −$23.80B "most sold" row; MOBUSD/VEEUSD are
+   CRYPTO PAIRS and cannot appear in a 13F at all. Fix = US-exchange
+   allowlist + reject base+quote symbols + require TWO significant words.
+   **An unresolved ticker is honest; a wrong one is a lie that ranks.**
+
+4. **NON-DETERMINISTIC HEADLINE.** `as_of_quarter = successful[0]`, but
+   that list is in `as_completed()` finish order. A stale filer finishing
+   first would stamp the whole page with its quarter. Use the MODE across
+   the roster, and publish `stale_funds[]` so lag is DECLARED not hidden.
+
+**GENERALISED RULE (extends the ops-4817 field-level G0):** a container
+that is the right shape and full length proves nothing. Gate on a value's
+RELATION TO A KNOWN INVARIANT — holders <= roster size, ticker->name is
+1:1, total == parsed + failed. Those three caught everything here.
+
+Also: bump `PARSER_VERSION` whenever parse semantics change, or the
+per-accession cache replays pre-fix rows and the fix is invisible.
+
+**A false-positive gate is still a RED.** G3 first fired on ticker `USD`
+— ProShares Ultra Semiconductors, a legitimate NYSE Arca holding. The
+GATE was wrong, not the engine. Fix the gate, never widen it to "pass".
