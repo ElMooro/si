@@ -42,7 +42,7 @@ Local harness 9/9 across all three engines.
 import json
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -84,6 +84,36 @@ with report("ops_4940_13f_roster_fix") as R:
                 R.log("G0 FAIL %s missing %s" % (eng, c))
                 sys.exit(1)
     R.log("G0 all three engines carry the corrected roster")
+
+    # ---- G0b DEPLOY RACE. run-ops.yml and deploy-lambdas.yml both fire on
+    # the same push and run CONCURRENTLY. The first 4940 attempt invoked
+    # sec-13f at 20:54:20 while the deploy did not finish until 20:55:34,
+    # so the index was rebuilt on the OLD roster and every roster gate
+    # failed against code that was never running. The source check in G0
+    # proves the REPO is right; it proves nothing about the ARTIFACT.
+    # Wait for both functions to actually carry post-push code.
+    started = datetime.now(timezone.utc)
+    def _await_deploy(fn, budget=420):
+        t0 = time.time()
+        while time.time() - t0 < budget:
+            try:
+                lm = lam.get_function_configuration(
+                    FunctionName=fn)["LastModified"]
+                dt = datetime.strptime(lm.split(".")[0],
+                                       "%Y-%m-%dT%H:%M:%S").replace(
+                    tzinfo=timezone.utc)
+                if dt >= started - timedelta(minutes=12):
+                    return dt, time.time() - t0
+            except Exception as e:
+                R.log("deploy poll %s: %s" % (fn, str(e)[:80]))
+            time.sleep(15)
+        return None, time.time() - t0
+    for fn in (IDX, POS, "justhodl-13f-clone-alpha"):
+        dt, took = _await_deploy(fn)
+        if not dt:
+            R.log("G0b FAIL %s not redeployed within budget" % fn)
+            sys.exit(1)
+        R.log("G0b %s live at %s (waited %.0fs)" % (fn, dt.isoformat(), took))
 
     # ---- 1) rebuild the filings index on the NEW CIKs first
     R.log("invoking %s (index must lead)" % IDX)
@@ -138,11 +168,20 @@ with report("ops_4940_13f_roster_fix") as R:
                and v.get("fund_key") == "BAUPOST"), {})
     lp = next((v for v in by_fund.values() if isinstance(v, dict)
                and v.get("fund_key") == "LONE_PINE"), {})
+    # by_fund carries no `cik` field -- the first attempt gated on one and
+    # read None for both, which is a gate failing for its own reasons.
+    # Distinctness is provable from the artifacts themselves.
+    def _top(v):
+        return tuple(sorted((p.get("ticker") or p.get("cusip") or "")
+                            for p in (v.get("top_positions")
+                                      or v.get("positions") or [])[:8]))
     gate("G4 BAUPOST and LONE_PINE are distinct books",
          bool(bp) and bool(lp)
-         and bp.get("cik") != lp.get("cik")
-         and bp.get("accession") != lp.get("accession"),
-         {"baupost_cik": bp.get("cik"), "lone_pine_cik": lp.get("cik")})
+         and bp.get("accession") != lp.get("accession")
+         and _top(bp) != _top(lp),
+         {"baupost_acc": bp.get("accession"),
+          "lone_pine_acc": lp.get("accession"),
+          "same_top": _top(bp) == _top(lp)})
 
     # ---- G5 nothing from 4936-4938 regressed
     agg = d.get("aggregate_by_ticker") or {}
