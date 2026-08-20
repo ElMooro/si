@@ -1,0 +1,221 @@
+{
+ "verdict": "RED",
+ "fails": [
+  "rate:sofr",
+  "rate:tgcr",
+  "rate:bgcr",
+  "rate:effr",
+  "rate:obfr",
+  "g0:tgcr",
+  "g0:bgcr",
+  "z:legs"
+ ],
+ "notes": [],
+ "status": "PARTIAL",
+ "errors": [
+  "nyfed:sofr:HTTPError: HTTP Error 400: Bad Request",
+  "nyfed:tgcr:HTTPError: HTTP Error 400: Bad Request",
+  "nyfed:bgcr:HTTPError: HTTP Error 400: Bad Request",
+  "nyfed:effr:HTTPError: HTTP Error 400: Bad Request",
+  "nyfed:obfr:HTTPError: HTTP Error 400: Bad Request"
+ ],
+ "sum_z": 0.22,
+ "reading": "NORMAL",
+ "tgcr": {
+  "ok": false,
+  "label": "TGCR",
+  "error": "HTTPError: HTTP Error 400: Bad Request"
+ },
+ "bgcr": {
+  "ok": false,
+  "label": "BGCR",
+  "error": "HTTPError: HTTP Error 400: Bad Request"
+ },
+ "bis": {
+  "ok": true,
+  "positions": {
+   "claims": {
+    "latest_period": "2026-Q1",
+    "latest_usd_bn": 3934.1,
+    "qoq_pct": 6.34,
+    "yoy_pct": 13.76,
+    "history": [
+     {
+      "period": "1999-Q4",
+      "usd_bn": -0.3
+     },
+     {
+      "period": "2000-Q1",
+      "usd_bn": -0.1
+     },
+     {
+      "period": "2000-Q2",
+      "usd_bn": 0.0
+     },
+     {
+      "period": "2000-Q3",
+      "usd_bn": 0.1
+     },
+     {
+      "period": "2000-Q4",
+      "usd_bn": 0.2
+     },
+     {
+      "period": "2001-Q1",
+      "usd_bn": 0.2
+     },
+     {
+      "period": "2001-Q2",
+      "usd_bn": 0.1
+     },
+     {
+      "period": "2001-Q3",
+      "usd_bn": 0.1
+     },
+     {
+      "period": "2001-Q4",
+      "usd_bn": 0.1
+     },
+     {
+      "period": "2002-Q1",
+      "usd_bn": 0.0
+     },
+     {
+      "period": "2002-Q2",
+      "usd_bn": 0.0
+     },
+     {
+      "period": "2002-Q3",
+      "usd_bn": 0.1
+     },
+     {
+      "period": "2023-Q2",
+      "usd_bn": 2977.5
+     },
+     {
+      "period": "2023-Q3",
+      "usd_bn": 3152.7
+     },
+     {
+      "period": "2023-Q4",
+      "usd_bn": 3132.0
+     },
+     {
+      "period": "2024-Q1",
+      "usd_bn": 3258.7
+     },
+     {
+      "period": "2024-Q2",
+      "usd_bn": 3277.1
+     },
+     {
+      "period": "2024-Q3",
+      "usd_bn": 3209.9
+     },
+     {
+      "period": "2024-Q4",
+      "usd_bn": 3098.6
+     },
+     {
+      "period": "2025-Q1",
+      "usd_bn": 3458.3
+     },
+     {
+      "period": "2025-Q2",
+      "usd_bn": 3519.5
+     },
+     {
+      "period": "2025-Q3",
+      "usd_bn": 3671.2
+     },
+     {
+      "period": "2025-Q4",
+      "usd_bn": 3699.5
+     },
+     {
+      "period": "2026-Q1",
+      "usd_bn": 3934.1
+     }
+    ]
+   },
+   "liabilities": {
+    "latest_period": "2026-Q1",
+    "latest_usd_bn": 49.2,
+    "qoq_pct": 17.36,
+    "yoy_pct": 14.62,
+    "history": [
+     {
+      "period": "2023-Q2",
+      "usd_bn": 56.7
+     },
+     {
+      "period": "2023-Q3",
+      "usd_bn": 58.5
+     },
+     {
+      "period": "2023-Q4",
+      "usd_bn": 58.8
+     },
+     {
+      "period": "2024-Q1",
+      "usd_bn": 42.4
+     },
+     {
+      "period": "2024-Q2",
+      "usd_bn": 45.6
+     },
+     {
+      "period": "2024-Q3",
+      "usd_bn": 44.4
+     },
+     {
+      "period": "2024-Q4",
+      "usd_bn": 40.0
+     },
+     {
+      "period": "2025-Q1",
+      "usd_bn": 42.9
+     },
+     {
+      "period": "2025-Q2",
+      "usd_bn": 50.0
+     },
+     {
+      "period": "2025-Q3",
+      "usd_bn": 42.2
+     },
+     {
+      "period": "2025-Q4",
+      "usd_bn": 41.9
+     },
+     {
+      "period": "2026-Q1",
+      "usd_bn": 49.2
+     }
+    ]
+   }
+  },
+  "attempts": [
+   {
+    "key": "stocks_wildcard",
+    "pos": "C",
+    "rows": 35839,
+    "ok": true
+   },
+   {
+    "key": "stocks_wildcard",
+    "pos": "L",
+    "rows": 36923,
+    "ok": true
+   }
+  ],
+  "key_used": "Q.S.{pos}.A.USD.......",
+  "net_usd_bn": 3884.9,
+  "funding_gap_note": "Positive = reporting banks hold more USD cross-border claims than USD liabilities; the gap must be funded in the swap market, which is where CIP breaks show up.",
+  "aggregation": "L_REP_CTY=5A (all reporting) \u00d7 L_CP_COUNTRY=5J (all counterparties) \u00d7 L_CP_SECTOR=A (all sectors), L_DENOM=USD",
+  "cadence": "quarterly, ~4-month publication lag",
+  "structural": true
+ },
+ "abcp_share_pct": 34.6,
+ "quality_spread_30d_bp": 25.0
+}
