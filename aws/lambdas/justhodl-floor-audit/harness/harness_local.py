@@ -350,6 +350,42 @@ check("entity-namespace PayablesToUsers caught",
 check("clean DAT fixture has zero broker hits",
       L.broker_balance_sheet(facts_fixture(crypto_total=300e6)) == [])
 
+print("== 9. v1.1 contract floor (backlog/orders leg) ==")
+dd_none = {"5": -0.02, "20": -0.03, "60": -0.05, "120": -0.08}
+dec_none = {w: (0.0, 0.0, None) for w in ("5", "20", "60", "120")}
+dd_dump = {"5": -0.10, "20": -0.34, "60": -0.40, "120": -0.45}
+dec_dump = {"5": (0.0, -0.10, 0.0), "20": (-0.02, -0.32, 0.06),
+            "60": (-0.02, -0.38, 0.05), "120": (-0.03, -0.42, 0.07)}
+v = L.verdict(dd_none, dec_none, 0.22, TH, 2.4)
+check("no dump + committed 2.4x mcap -> BACKLOG_FLOOR/INFO",
+      v["verdict"] == "BACKLOG_FLOOR" and v["severity"] == "INFO",
+      "(%s/%s)" % (v["verdict"], v["severity"]))
+v = L.verdict(dd_none, dec_none, 0.22, TH, 0.9)
+check("no dump + committed 0.9x -> IN_LINE (below floor threshold)",
+      v["verdict"] == "IN_LINE")
+v = L.verdict(dd_dump, dec_dump, 0.18, TH, 2.0)
+check("dump + committed 2.0x -> CONTRACT_BACKED_DUMP/MEDIUM",
+      v["verdict"] == "CONTRACT_BACKED_DUMP" and
+      v["severity"] == "MEDIUM", "(%s/%s)" % (v["verdict"],
+                                              v["severity"]))
+v = L.verdict(dd_dump, dec_dump, 0.18, TH, 4.1)
+check("dump + committed 4.1x -> CONTRACT_BACKED_DUMP/HIGH",
+      v["verdict"] == "CONTRACT_BACKED_DUMP" and
+      v["severity"] == "HIGH", "(%s)" % v["severity"])
+v = L.verdict(dd_dump, dec_dump, 1.4, TH, 4.1)
+check("liquid floor still outranks the order book (hard assets win)",
+      v["verdict"] == "BELOW_LIQUID_FLOOR")
+v = L.verdict(dd_dump, dec_dump, 0.62, TH, 4.1)
+check("crypto SENSELESS still outranks CONTRACT_BACKED_DUMP",
+      v["verdict"] == "SENSELESS_DRAWDOWN")
+v = L.verdict(dd_dump, dec_dump, 0.18, TH, None)
+check("no backlog data -> no contract verdict invented",
+      v["verdict"] not in ("BACKLOG_FLOOR", "CONTRACT_BACKED_DUMP"),
+      "(%s)" % v["verdict"])
+check("committed_coverage echoed on the verdict for fusion",
+      L.verdict(dd_dump, dec_dump, 0.18, TH, 2.0)[
+          "committed_coverage"] == 2.0)
+
 print()
 if FAIL:
     print("HARNESS RED: %d failures: %s" % (len(FAIL), FAIL))

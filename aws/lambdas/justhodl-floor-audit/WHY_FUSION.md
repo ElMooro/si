@@ -26,6 +26,14 @@ why.html wiring (later op, ~3 lines in the fetch fanout + one card):
     const fb = floor?.tickers?.[TICKER]?.why_block;
     if (fb && fb.severity !== "NONE") renderFloorCard(fb);
 
+v1.1 adds two verdicts driven by the order book rather than the
+balance sheet: `BACKLOG_FLOOR` (committed revenue > market cap, no dump
+in progress -- a standing fact, INFO) and `CONTRACT_BACKED_DUMP` (that
+same book, plus a dump the asset move cannot explain -- MEDIUM, or HIGH
+above 3x). `why_block.committed_rev_coverage` is the number behind
+both, and the feed carries `contract_floors[]` and `backlog_seeded[]`
+alongside the crypto-side buckets.
+
 Rules for consumers:
 - Treat `NO_FLOOR_DATA` and `backlog_status: JOIN_BROKEN(...)` as honest
   gaps, never zeros (boom silent-join lesson, ops 4817).

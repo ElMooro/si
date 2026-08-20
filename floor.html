@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="floor-version" content="floor-audit-v1.0.3">
+<meta name="floor-version" content="floor-audit-v1.1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Asset-Floor Auditor · JustHodl.AI</title>
 <meta name="description" content="Senseless-drawdown auditor: liquid floor (cash + investments + live-marked crypto − debt) and backlog vs market cap; decomposes every dump into asset-driven vs residual.">
@@ -212,7 +212,8 @@ function render(d){
   try{
     document.getElementById("meta").textContent=
       "as of "+d.as_of+" · universe "+d.universe_n+" · G0 ok "+d.g0_ok_tickers
-      +" · discovered +"+(d.discovered||[]).length+" via SEC frames · v"+d.version;
+      +" · discovered +"+(d.discovered||[]).length+" via SEC frames"
+      +" · +"+((d.backlog_seeded||[]).length)+" backlog-seeded · v"+d.version;
     var al=document.getElementById("alerts");
     al.innerHTML=(d.alerts&&d.alerts.length)?d.alerts.map(alertCard).join("")
       :'<span class="dim">No CRITICAL / HIGH / MEDIUM warnings on the current tape — floors intact or dumps asset-driven.</span>';
@@ -225,6 +226,11 @@ function render(d){
        "an ETF/trust IS its coin stack; coverage ≈ 1.0 by construction, never a warning");
     mk("Suspect inputs",d.suspect_inputs,
        "coverage &gt;10× or micro market cap: share or price bind pathological, quarantined not published");
+    if(d.contract_floors&&d.contract_floors.length){
+      q.push('<b>Contract floors</b> ('+d.contract_floors.length+'): '
+        +d.contract_floors.map(esc).join(", ")
+        +' — committed order book (RPO/backlog) exceeds the market cap;'
+        +' shown in the table with their own verdict');}
     mk("Broker balance sheets",d.broker_sheets,
        "customer custody/segregation markers present; a treasury floor model does not apply");
     document.getElementById("quarantine").innerHTML = q.length

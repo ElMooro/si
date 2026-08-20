@@ -40,7 +40,7 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
-VERSION = "1.0.3"
+VERSION = "1.1.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/floor-audit.json"
 CFG_KEY = "data/floor-audit/config.json"
@@ -75,6 +75,8 @@ DEFAULT_CONFIG = {
         "SMLR": {"primary_asset": "BTC"},
         "DFDV": {"primary_asset": "SOL"}, "UPXI": {"primary_asset": "SOL"},
     },
+    "backlog_universe": {"enabled": True, "max_add": 15,
+                         "min_backlog_usd": 300000000.0},
     "discovery": {"enabled": True, "tag": "CryptoAssetFairValue",
                   "max_add": 25, "default_primary": "BTC"},
     "fund_blocklist": ["IBIT", "ETHA", "EZBC", "ARKB", "HODL", "FBTC",
@@ -85,7 +87,8 @@ DEFAULT_CONFIG = {
         "coverage_high": 0.50, "coverage_mid": 0.30,
         "coverage_min_report": 0.10,
         "residual_senseless": -0.15, "residual_stretched": -0.20,
-        "explained_ok": 0.60, "ar_haircut": 0.85, "dilution_qoq": 0.08,
+        "explained_ok": 0.60,
+        "committed_floor": 1.5, "committed_high": 3.0, "ar_haircut": 0.85, "dilution_qoq": 0.08,
     },
     "backlog_join": {"key": BACKLOG_KEY, "root": "by_ticker",
                      "value_field": "backlog_usd",
@@ -427,7 +430,7 @@ def decompose(dd, crypto_cov, asset_ret):
     return ad, res, (None if expl is None else round(expl, 4))
 
 
-def verdict(dd_map, decomp, coverage, th):
+def verdict(dd_map, decomp, coverage, th, committed_cov=None):
     """Worst triggered window governs. Returns verdict dict incl.
     sense_score (100 x explained fraction of the worst triggered dump)."""
     trig = []
@@ -440,11 +443,20 @@ def verdict(dd_map, decomp, coverage, th):
                 "triggered_windows": [w for w, _ in trig],
                 "sense_score": None, "worst_window": None}
     below = coverage >= 1.0
+    cc = committed_cov
+    contract = cc is not None and cc >= th.get("committed_floor", 1.5)
     if not trig:
-        v = "BELOW_LIQUID_FLOOR" if below else "IN_LINE"
-        sev = "CRITICAL" if below else "NONE"
+        if below:
+            v, sev = "BELOW_LIQUID_FLOOR", "CRITICAL"
+        elif contract:
+            # v1.1: the order book is the floor. Not a dump warning --
+            # a standing fact: committed revenue exceeds the whole cap.
+            v, sev = "BACKLOG_FLOOR", "INFO"
+        else:
+            v, sev = "IN_LINE", "NONE"
         return {"verdict": v, "severity": sev, "triggered_windows": [],
-                "sense_score": None, "worst_window": None}
+                "sense_score": None, "worst_window": None,
+                "committed_coverage": cc}
     # worst residual across triggered windows
     worst_w, worst_res, worst_expl = None, 0.0, None
     for w, _ in trig:
@@ -467,13 +479,21 @@ def verdict(dd_map, decomp, coverage, th):
             worst_res is not None and \
             worst_res <= th["residual_stretched"]:
         v, sev = "STRETCHED", "MEDIUM"
+    elif contract and worst_res is not None and \
+            worst_res <= th["residual_stretched"]:
+        # v1.1: crypto-light names whose committed contracts already
+        # exceed the market cap, dumped beyond what any asset move
+        # explains. Khalid's "backlog orders/contracts" leg, promoted
+        # from a reported field to a verdict.
+        v = "CONTRACT_BACKED_DUMP"
+        sev = "HIGH" if cc >= th.get("committed_high", 3.0) else "MEDIUM"
     elif worst_expl is not None and worst_expl >= th["explained_ok"]:
         v, sev = "ASSET_DRIVEN", "INFO"
     else:
         v, sev = "IN_LINE", "NONE"
     return {"verdict": v, "severity": sev,
             "triggered_windows": [w for w, _ in sorted(trig)],
-            "worst_window": worst_w,
+            "worst_window": worst_w, "committed_coverage": cc,
             "worst_residual": worst_res, "sense_score": sense}
 
 
@@ -674,8 +694,6 @@ def audit_ticker(tk, cik, cfg, crypto, backlog, notes):
     for w in windows:
         aret = window_return(cc, w)
         decomp[str(w)] = decompose(dd[str(w)], crypto_cov, aret)
-    vd = verdict(dd, decomp, coverage, th)
-
     # backlog / RPO leg (field-asserted join + direct XBRL RPO)
     rpo, rpo_prov = xbrl_usd(
         facts, ["RevenueRemainingPerformanceObligation"])
@@ -701,6 +719,9 @@ def audit_ticker(tk, cik, cfg, crypto, backlog, notes):
     committed = rpo if rpo is not None else bl_val
     committed_cov = (round(committed / mcap, 4)
                      if committed is not None else None)
+    # v1.1: the contract book is a floor leg, so the verdict is taken
+    # only once both the liquid stack AND the order book are known.
+    vd = verdict(dd, decomp, coverage, th, committed_cov)
 
     # v1.0.1 quarantine ladder (first live tape, ops 4914/4915):
     # (a) FUND_WRAPPER -- an ETF/trust IS its assets; cov~1.0 with a
@@ -803,6 +824,34 @@ def lambda_handler(event=None, context=None):
                 universe[tk] = cik
                 discovered.append(tk)
         notes.add("frames tried: %s" % ",".join(tried))
+    backlog_seed = []
+    bu = cfg.get("backlog_universe") or {}
+    _bl_early = s3_json(cfg["backlog_join"]["key"]) if bu.get(
+        "enabled") else None
+    if _bl_early:
+        rows = []
+        for tk, node in (_bl_early.get(
+                cfg["backlog_join"]["root"]) or {}).items():
+            try:
+                val = float((node or {}).get(
+                    cfg["backlog_join"]["value_field"]) or 0)
+            except (TypeError, ValueError):
+                continue
+            if tk in universe or val < bu.get("min_backlog_usd", 3e8):
+                continue
+            if t2c.get(tk):
+                rows.append((val, tk))
+        for val, tk in sorted(rows, reverse=True)[:bu.get("max_add",
+                                                          15)]:
+            universe[tk] = t2c[tk]
+            backlog_seed.append(tk)
+        notes.add("backlog-seeded %d name(s) >= $%.0fM committed"
+                  % (len(backlog_seed),
+                     bu.get("min_backlog_usd", 3e8) / 1e6))
+    elif bu.get("enabled"):
+        notes.add("backlog universe pass skipped: %s unreadable"
+                  % cfg["backlog_join"]["key"])
+
     universe = {k: v for k, v in universe.items() if v}
 
     # crypto marks (one series per asset in play)
@@ -842,8 +891,9 @@ def lambda_handler(event=None, context=None):
         "doctrine": "a dump is only sensible if the balance sheet allows "
                     "it; residual beyond live asset repricing vs a "
                     ">=50%-covered liquid floor is SENSELESS; custody "
-                    "crypto never counts; NOT_DISCLOSED stays honest",
+                    "crypto never counts; committed contracts are a floor leg too; NOT_DISCLOSED stays honest",
         "universe_n": len(universe), "discovered": sorted(discovered),
+        "backlog_seeded": sorted(backlog_seed),
         "crypto_sources": {a: s for a, (_, _, s) in crypto.items()},
         "thresholds": th, "notes": sorted(notes),
         "alerts": alerts, "tickers": tickers,
@@ -859,6 +909,11 @@ def lambda_handler(event=None, context=None):
                                 if x.get("status") == "OK" and
                                 x["verdict"]["verdict"] ==
                                 "BROKER_BALANCE_SHEET"),
+        "contract_floors": sorted(t for t, x in tickers.items()
+                                  if x.get("status") == "OK" and
+                                  x["verdict"]["verdict"] in
+                                  ("BACKLOG_FLOOR",
+                                   "CONTRACT_BACKED_DUMP")),
         "fusion": {"why_html": "tickers[T].why_block",
                    "history": HIST_PREFIX + "YYYY-MM-DD.json"},
     }
