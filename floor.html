@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="floor-version" content="floor-audit-v1.0.0">
+<meta name="floor-version" content="floor-audit-v1.0.3">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Asset-Floor Auditor · JustHodl.AI</title>
 <meta name="description" content="Senseless-drawdown auditor: liquid floor (cash + investments + live-marked crypto − debt) and backlog vs market cap; decomposes every dump into asset-driven vs residual.">
@@ -89,6 +89,7 @@ Every leg carries its XBRL tag + filing date.</div>
 <div id="errbox"></div>
 <h2>Live warnings</h2>
 <div class="alerts" id="alerts"><span class="dim">loading…</span></div>
+<div class="note" id="quarantine"></div>
 
 <h2>Full universe <span class="dim" id="ucount"></span></h2>
 <div style="overflow-x:auto"><table id="tbl">
@@ -216,6 +217,21 @@ function render(d){
     al.innerHTML=(d.alerts&&d.alerts.length)?d.alerts.map(alertCard).join("")
       :'<span class="dim">No CRITICAL / HIGH / MEDIUM warnings on the current tape — floors intact or dumps asset-driven.</span>';
   }catch(e){showErr("header/alerts armor: "+e.message);}
+  try{
+    var q=[], mk=function(lbl,arr,why){
+      if(arr&&arr.length){q.push('<b>'+lbl+'</b> ('+arr.length+'): '
+        +arr.map(esc).join(", ")+' — '+why);} };
+    mk("Fund wrappers",d.fund_wrappers,
+       "an ETF/trust IS its coin stack; coverage ≈ 1.0 by construction, never a warning");
+    mk("Suspect inputs",d.suspect_inputs,
+       "coverage &gt;10× or micro market cap: share or price bind pathological, quarantined not published");
+    mk("Broker balance sheets",d.broker_sheets,
+       "customer custody/segregation markers present; a treasury floor model does not apply");
+    document.getElementById("quarantine").innerHTML = q.length
+      ? '<div style="margin-bottom:4px"><b>Quarantined — excluded from the alert board by design:</b></div>'
+        +q.map(function(x){return '<div style="margin:2px 0">· '+x+'</div>';}).join("")
+      : "";
+  }catch(e){/* quarantine strip is advisory; never blocks the desk */}
   try{
     state.rows=Object.keys(d.tickers||{}).map(function(t){return d.tickers[t];})
       .filter(function(r){return r.status==="OK";});
