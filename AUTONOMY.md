@@ -379,3 +379,30 @@ variable that becomes the key, before it is sliced.
 
 ## BRAIN IS CONSTITUTIONAL (Khalid directive 2026-07-26, PROTECTED)
 data/brain.json defines how the system thinks. ALL decisions, analysis, macro/liquidity/risk definitions, stock and asset-class picking must be based on and traceable to Khalid's brain notes — cite note IDs in engine code and output. Macro/risk/liquidity engines implement his frameworks (liquidity rules; dollar view first; credit spreads = visible liquidity; macro gates sizing before selection) and are graded by EVENT-STUDY / regime P&L, never daily IC. Reference implementation: justhodl-risk-gate (ops 3912).
+
+## Traps banked — ops 4914–4920 (justhodl-floor-audit birth)
+
+1. **Edge polls need a real User-Agent.** `urllib.request.urlopen(url)`
+   sends `Python-urllib/3.x`; behind Cloudflare that returns nothing and
+   the poll silently reports PENDING forever. Five ops reported
+   `edge=PENDING` on a page that had been live the whole time. Always
+   `Request(url, headers={"User-Agent": "..."})` — the ops 4907 pattern.
+2. **XBRL tags are not all in us-gaap.** Company-owned crypto fair value
+   often sits in the filer's own namespace (BTBT). Scan cross-namespace
+   by name pattern, block custody/liability patterns explicitly, and
+   pick by **recency first** — a stale parent tag will otherwise shadow
+   fresh `*Current` / `*Noncurrent` splits.
+3. **Filter dei share series to cover forms.** An S-1 placeholder row of
+   100 shares produced a market cap of ~$2k and a coverage ratio of
+   3,040,406× that headlined a CRITICAL board.
+4. **Structural classifiers must exempt the curated watchlist.** A rule
+   that catches ETF wrappers by shape (coverage ≈ 1.0, nearly all
+   crypto) also catches a real treasury company at fair value — it
+   quarantined BMNR, a name we deliberately track.
+5. **Take the verdict only after every input leg exists.** v1.0 computed
+   the verdict before the backlog leg was joined, so committed-revenue
+   coverage could never reach the ladder no matter what it said.
+6. **Implausible-but-passing is a gate failure.** Structural gates
+   (schema, non-null, ≥60% OK) all passed while ETFs and placeholder
+   share rows led the alert board. Gate magnitudes and plausibility
+   bands, not just shapes.
