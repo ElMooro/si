@@ -1,0 +1,195 @@
+{
+ "verdict": "GREEN",
+ "fails": [],
+ "notes": [],
+ "status": "GREEN",
+ "errors": [],
+ "sum_z": 2.57,
+ "reading": "TIGHTENING",
+ "tgcr": {
+  "ok": true,
+  "label": "TGCR",
+  "desc": "Tri-party general collateral",
+  "date": "2026-08-19",
+  "rate": 3.6,
+  "volume_bn": 1202.0,
+  "volume_z": 1.05,
+  "p1": 3.54,
+  "p25": 3.6,
+  "p75": 3.6,
+  "p99": 3.66,
+  "iqr_bp": 0.0,
+  "fan_bp": 12.0,
+  "n_obs": 750,
+  "request_shape": "last/750"
+ },
+ "bgcr": {
+  "ok": true,
+  "label": "BGCR",
+  "desc": "Broad general collateral",
+  "date": "2026-08-19",
+  "rate": 3.6,
+  "volume_bn": 1228.0,
+  "volume_z": 1.03,
+  "p1": 3.55,
+  "p25": 3.6,
+  "p75": 3.6,
+  "p99": 3.66,
+  "iqr_bp": 0.0,
+  "fan_bp": 11.0,
+  "n_obs": 750,
+  "request_shape": "last/750"
+ },
+ "bis": {
+  "ok": true,
+  "positions": {
+   "claims": {
+    "latest_period": "2026-Q1",
+    "latest_usd_bn": 21796.9,
+    "qoq_pct": 4.6,
+    "yoy_pct": 12.24,
+    "history": [
+     {
+      "period": "2023-Q2",
+      "usd_bn": 17469.0
+     },
+     {
+      "period": "2023-Q3",
+      "usd_bn": 17790.6
+     },
+     {
+      "period": "2023-Q4",
+      "usd_bn": 17821.6
+     },
+     {
+      "period": "2024-Q1",
+      "usd_bn": 18446.2
+     },
+     {
+      "period": "2024-Q2",
+      "usd_bn": 18397.8
+     },
+     {
+      "period": "2024-Q3",
+      "usd_bn": 18564.9
+     },
+     {
+      "period": "2024-Q4",
+      "usd_bn": 19010.9
+     },
+     {
+      "period": "2025-Q1",
+      "usd_bn": 19419.0
+     },
+     {
+      "period": "2025-Q2",
+      "usd_bn": 19868.6
+     },
+     {
+      "period": "2025-Q3",
+      "usd_bn": 20437.7
+     },
+     {
+      "period": "2025-Q4",
+      "usd_bn": 20838.0
+     },
+     {
+      "period": "2026-Q1",
+      "usd_bn": 21796.9
+     }
+    ]
+   },
+   "liabilities": {
+    "latest_period": "2026-Q1",
+    "latest_usd_bn": 19518.5,
+    "qoq_pct": 4.02,
+    "yoy_pct": 9.82,
+    "history": [
+     {
+      "period": "2023-Q2",
+      "usd_bn": 16409.9
+     },
+     {
+      "period": "2023-Q3",
+      "usd_bn": 16784.3
+     },
+     {
+      "period": "2023-Q4",
+      "usd_bn": 16615.6
+     },
+     {
+      "period": "2024-Q1",
+      "usd_bn": 16928.3
+     },
+     {
+      "period": "2024-Q2",
+      "usd_bn": 16985.3
+     },
+     {
+      "period": "2024-Q3",
+      "usd_bn": 17306.2
+     },
+     {
+      "period": "2024-Q4",
+      "usd_bn": 17260.8
+     },
+     {
+      "period": "2025-Q1",
+      "usd_bn": 17772.9
+     },
+     {
+      "period": "2025-Q2",
+      "usd_bn": 18298.0
+     },
+     {
+      "period": "2025-Q3",
+      "usd_bn": 18659.8
+     },
+     {
+      "period": "2025-Q4",
+      "usd_bn": 18765.0
+     },
+     {
+      "period": "2026-Q1",
+      "usd_bn": 19518.5
+     }
+    ]
+   }
+  },
+  "attempts": [
+   {
+    "pos": "C",
+    "rows": 12,
+    "distinct_series": 1
+   },
+   {
+    "pos": "L",
+    "rows": 12,
+    "distinct_series": 1
+   }
+  ],
+  "ambiguous": false,
+  "key_used": "Q.S.{pos}.A.USD.A.5J.A.5A.A.5J.N",
+  "dims": {
+   "FREQ": "Q",
+   "L_MEASURE": "S",
+   "L_INSTR": "A",
+   "L_DENOM": "USD",
+   "L_CURR_TYPE": "A",
+   "L_PARENT_CTY": "5J",
+   "L_REP_BANK_TYPE": "A",
+   "L_REP_CTY": "5A",
+   "L_CP_SECTOR": "A",
+   "L_CP_COUNTRY": "5J",
+   "L_POS_TYPE": "N"
+  },
+  "claims_liab_ratio": 1.12,
+  "net_usd_bn": 2278.4,
+  "funding_gap_note": "Positive = reporting banks hold more USD cross-border claims than USD liabilities; the gap must be funded in the swap market, which is where CIP breaks show up.",
+  "aggregation": "L_CURR_TYPE=A (all) \u00d7 L_PARENT_CTY=5J \u00d7 L_REP_BANK_TYPE=A \u00d7 L_REP_CTY=5A \u00d7 L_CP_SECTOR=A \u00d7 L_CP_COUNTRY=5J \u00d7 L_POS_TYPE=N (cross-border) \u00d7 L_DENOM=USD",
+  "cadence": "quarterly, ~4-month publication lag",
+  "structural": true
+ },
+ "abcp_share_pct": 34.6,
+ "quality_spread_30d_bp": 25.0
+}
