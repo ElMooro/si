@@ -1,0 +1,171 @@
+{
+ "op": 4920,
+ "version": "1.1.0",
+ "as_of": "2026-08-20T01:29:07+00:00",
+ "universe_n": 48,
+ "backlog_seeded": [
+  "ACM",
+  "APH",
+  "BA",
+  "CAT",
+  "EMR",
+  "ETN",
+  "FSLR",
+  "GD",
+  "HON",
+  "LHX",
+  "NOC",
+  "NOW",
+  "PWR",
+  "RTX",
+  "WDAY"
+ ],
+ "contract_floors": [
+  "ACM",
+  "BA",
+  "FSLR"
+ ],
+ "committed_top": [
+  [
+   "BA",
+   4.0728
+  ],
+  [
+   "FSLR",
+   2.5522
+  ],
+  [
+   "ACM",
+   2.4372
+  ],
+  [
+   "NOC",
+   1.2645
+  ],
+  [
+   "GD",
+   1.1122
+  ],
+  [
+   "RTX",
+   0.9731
+  ],
+  [
+   "LHX",
+   0.8139
+  ],
+  [
+   "HON",
+   0.5408
+  ],
+  [
+   "APH",
+   0.4693
+  ],
+  [
+   "PWR",
+   0.3294
+  ]
+ ],
+ "alerts": [
+  {
+   "ticker": "AIFC",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": 0,
+   "coverage": 6.6455,
+   "worst_residual": -1.048539,
+   "headline": "NLAV $487M vs mcap $73M -> 665% liquid coverage"
+  },
+  {
+   "ticker": "CNTN",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": 0,
+   "coverage": 3.9439,
+   "worst_residual": -0.765307,
+   "headline": "NLAV $657M vs mcap $167M -> 394% liquid coverage"
+  },
+  {
+   "ticker": "BMNR",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": null,
+   "coverage": 1.0291,
+   "worst_residual": null,
+   "headline": "NLAV $12565M vs mcap $12209M -> 103% liquid coverage"
+  },
+  {
+   "ticker": "UPXI",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": null,
+   "coverage": 1.7982,
+   "worst_residual": null,
+   "headline": "NLAV $111M vs mcap $62M -> 180% liquid coverage"
+  },
+  {
+   "ticker": "TONX",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": null,
+   "coverage": 3.0091,
+   "worst_residual": null,
+   "headline": "NLAV $461M vs mcap $153M -> 301% liquid coverage"
+  },
+  {
+   "ticker": "FWDI",
+   "severity": "CRITICAL",
+   "verdict": "BELOW_LIQUID_FLOOR",
+   "sense_score": null,
+   "coverage": 1.1148,
+   "worst_residual": null,
+   "headline": "NLAV $407M vs mcap $365M -> 111% liquid coverage"
+  },
+  {
+   "ticker": "BTBT",
+   "severity": "HIGH",
+   "verdict": "SENSELESS_DRAWDOWN",
+   "sense_score": 0,
+   "coverage": 0.7265,
+   "worst_residual": -0.592009,
+   "headline": "NLAV $367M vs mcap $505M -> 73% liquid coverage"
+  },
+  {
+   "ticker": "ABTC",
+   "severity": "MEDIUM",
+   "verdict": "SENSELESS_DRAWDOWN",
+   "sense_score": 0,
+   "coverage": 0.8263,
+   "worst_residual": -0.616789,
+   "headline": "NLAV $541M vs mcap $654M -> 83% liquid coverage"
+  },
+  {
+   "ticker": "HIVE",
+   "severity": "MEDIUM",
+   "verdict": "STRETCHED",
+   "sense_score": 0,
+   "coverage": 0.3049,
+   "worst_residual": -0.426135,
+   "headline": "NLAV $236M vs mcap $773M -> 30% liquid coverage"
+  }
+ ],
+ "quarantine": {
+  "fund_wrappers": [
+   "ARKB",
+   "ETHA",
+   "ETHB",
+   "EZBC",
+   "HODL",
+   "IBIT"
+  ],
+  "suspect_inputs": [
+   "GDC"
+  ],
+  "broker_sheets": [
+   "COIN",
+   "HOOD"
+  ]
+ },
+ "edge": "LIVE"
+}

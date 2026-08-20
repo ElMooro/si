@@ -1,10 +1,16 @@
-executing-against: 97a091060f8d0a12aa4021f02581cd101c092b0d
-ops 4919 -- floor desk edge acceptance
-── G1 page at edge ──
-── G2 feed at edge ──
-── G3 nav placement ──
-── G4 schedule ──
-── G5 lambda config ──
-── G6 tape freshness ──
+executing-against: 7b20d4613cf4544af3b99fbecbc780ed1c43455c
+ops 4920 -- floor-audit v1.1.0 contract floor
+── G1 deploy ──
+[01:28:16]   zip: 110820 bytes
+── 1. Lambda ──
+[01:28:16]   Lambda exists — updating
+[01:28:19] ✅   ✓ updated justhodl-floor-audit
+── 3. Smoke test ──
+[01:28:20]   invoking justhodl-floor-audit…
+── G2 config reset ──
+── G3 fresh run ──
+── G4 order-book leg ──
+── G5 ladder integrity (live tape) ──
+── G6 edge ──
 
-→ Report written to aws/ops/reports/latest/4919-floor-edge-acceptance.md
+→ Report written to aws/ops/reports/latest/4920-floor-v110-contract-floor.md
