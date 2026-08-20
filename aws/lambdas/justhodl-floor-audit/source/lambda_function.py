@@ -40,7 +40,7 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
-VERSION = "2.0.1"
+VERSION = "2.0.2"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/floor-audit.json"
 CFG_KEY = "data/floor-audit/config.json"
@@ -81,6 +81,7 @@ DEFAULT_CONFIG = {
         # forensic audit then runs only where a floor could plausibly
         # exist -- screening 6,000 names is cheap, auditing them is not.
         "enabled": True, "max_deep": 120, "prescreen_min_cov": 0.40,
+        "deep_budget_s": 660,
         "min_mcap_usd": 15000000.0, "screen_publish": 400,
         "premium_flag": 2.0,
     },
@@ -1370,7 +1371,18 @@ def lambda_handler(event=None, context=None):
     backlog = s3_json(cfg["backlog_join"]["key"])
 
     tickers, alerts = {}, []
+    # Wall-clock budget: a partial board published on time beats a
+    # complete board that never lands because the Lambda ceiling hit
+    # mid-sweep. Watchlist and discovery names are audited first
+    # (dict order), so a truncation only ever drops the tail of the
+    # market-screen promotions -- and says so.
+    t_start = time.time()
+    budget = (cfg.get("market_sweep") or {}).get("deep_budget_s", 660)
+    truncated = []
     for tk, cik in universe.items():
+        if time.time() - t_start > budget:
+            truncated.append(tk)
+            continue
         try:
             rec = audit_ticker(tk, cik, cfg, crypto, backlog, notes)
         except Exception as e:  # noqa: BLE001
@@ -1392,6 +1404,9 @@ def lambda_handler(event=None, context=None):
     alerts.sort(key=lambda a: (sev_rank.get(a["severity"], 9),
                                a.get("worst_residual") or 0))
 
+    if truncated:
+        notes.add("deep audit truncated at the %ds budget: %d name(s) "
+                  "deferred to the next run" % (budget, len(truncated)))
     now = datetime.now(timezone.utc)
     payload = {
         "engine": "justhodl-floor-audit", "version": VERSION,
@@ -1406,6 +1421,7 @@ def lambda_handler(event=None, context=None):
         "universe_n": len(universe), "discovered": sorted(discovered),
         "backlog_seeded": sorted(backlog_seed),
         "screen_seeded": sorted(screen_seed),
+        "deep_truncated": sorted(truncated),
         "screened_n": len(screen),
         "screen_frames": frames_used,
         "screen": screen[:(cfg.get("market_sweep") or {}).get(
