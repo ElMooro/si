@@ -84,8 +84,14 @@ with report("ops_4936_13f_integrity") as R:
          "worst=%s" % sorted(over, key=lambda x: -x[1])[:5])
 
     # G3 -- crypto/forex can never appear in a 13F.
+    # ops 4936 rev-B: the first run RED'd on ticker "USD" -- which is
+    # ProShares Ultra Semiconductors on NYSE Arca, a legitimate 13F
+    # holding. A crypto PAIR is base+quote (MOBUSD, VEEUSD, BTCUSD), so
+    # require length > 3. Bare "USD"/"EUR" are real tickers. The gate was
+    # wrong, not the engine.
     crypto = [t for t in agg
-              if str(t).upper().endswith(("USD", "USDT"))]
+              if len(str(t)) > 3
+              and str(t).upper().endswith(("USD", "USDT"))]
     gate("G3 zero crypto pairs in the book", not crypto, crypto[:10])
 
     # G4 -- ticker->name must be 1:1 across the whole payload.
