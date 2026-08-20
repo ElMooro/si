@@ -114,12 +114,17 @@ WATCHLIST = {
     "SOROS":          "0001029160",
     "TIGER_GLOBAL":   "0001167483",
     "COATUE":         "0001135730",
-    "BAUPOST":        "0001061165",
-    "ELLIOTT":        "0001286922",
+    # ops 4940: SEC says 0001061165 IS Lone Pine and 0001061768 IS
+    # Baupost -- the two were SWAPPED. Every "Baupost (Klarman)" card
+    # on the page was actually Lone Pine's book, and vice versa.
+    "BAUPOST":        "0001061768",
+    # ops 4940: 0001286922 is ADTERACTIVE INC and files no 13F-HR.
+    # Elliott re-registered; 0001791786 is current for 2026-06-30.
+    "ELLIOTT":        "0001791786",
     "SCION":          "0001649339",
     "DURATION":       "0001582202",
     "POINT72":        "0001603466",
-    "LONE_PINE":      "0001061768",
+    "LONE_PINE":      "0001061165",
 }
 
 FUND_DISPLAY_NAMES = {
@@ -138,7 +143,11 @@ FUND_DISPLAY_NAMES = {
     "BAUPOST":        "Baupost (Klarman)",
     "ELLIOTT":        "Elliott Mgmt",
     "SCION":          "Scion (Burry)",
-    "DURATION":       "Duration Capital",
+    # ops 4940: SEC companyName for 0001582202 is "Swiss National
+    # Bank". $191B across 2,301 mega-cap names was never a
+    # boutique -- it is a central bank's US equity book. Real
+    # data, wrong label. Relabelled, not deleted.
+    "DURATION":       "Swiss National Bank",
     "POINT72":        "Point72 (Cohen)",
     "LONE_PINE":      "Lone Pine",
 }
@@ -1224,6 +1233,38 @@ def resolve_missing_tickers(fund_results, budget=600):
     return fund_results
 
 
+def _verify_roster_labels(results):
+    """ops 4940: assert each CIK's SEC companyName matches the label we
+    print. This class of bug -- Baupost and Lone Pine swapped, Elliott
+    pointed at ADTERACTIVE INC, the Swiss National Bank shown as
+    "Duration Capital" -- survived for months because nothing ever
+    compared the roster to the filer. Now every run does, and any
+    disagreement is published rather than rendered as fact."""
+    import time as _t
+    bad = []
+    for f in results:
+        k = f.get("fund_key")
+        cik = str(f.get("cik") or WATCHLIST.get(k) or "")
+        if not cik:
+            continue
+        try:
+            req = urllib.request.Request(
+                "https://data.sec.gov/submissions/CIK%s.json" % cik.zfill(10),
+                headers={"User-Agent": USER_AGENT})
+            sec_name = json.loads(
+                urllib.request.urlopen(req, timeout=15).read()).get("name")
+            _t.sleep(0.12)
+        except Exception:
+            continue          # honest gap, never a guess
+        sec_nm = _norm_name(sec_name or "")
+        label = _norm_name(FUND_DISPLAY_NAMES.get(k, k))
+        st, sl = set(sec_nm.split()), set(label.split())
+        if st and sl and not (st & sl):
+            bad.append({"fund_key": k, "label": FUND_DISPLAY_NAMES.get(k),
+                        "sec_company_name": sec_name, "cik": cik})
+    return bad
+
+
 def _headline_quarter(successful):
     """ops 4936: modal period across the roster, ties -> most recent."""
     from collections import Counter
@@ -1968,6 +2009,8 @@ def lambda_handler(event, context):
         # cannot adjudicate. Kept BOTH rather than blanking a real
         # position -- named here so the ambiguity is visible, not silent.
         "cusip_unadjudicated": globals().get("_UNADJUDICATED") or [],
+        # ops 4940: label-vs-filer disagreement, measured every run.
+        "roster_label_mismatch": _verify_roster_labels(successful),
         # ops 4937b: mcap enrichment is unreliable for ETFs/trusts and for
         # foreign ordinaries on OTC (FMP returns local-currency or stub
         # values). Vossloh came back at $1.08M against $775M held. Publish

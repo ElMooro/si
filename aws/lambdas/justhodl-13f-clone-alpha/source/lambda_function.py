@@ -65,9 +65,12 @@ WATCHLIST = {
     "MILLENNIUM": "0001273087", "PERSHING": "0001336528",
     "GREENLIGHT": "0001079114", "SOROS": "0001029160",
     "TIGER_GLOBAL": "0001167483", "COATUE": "0001135730",
-    "BAUPOST": "0001061165", "ELLIOTT": "0001286922",
+    # ops 4940: BAUPOST/LONE_PINE were swapped; ELLIOTT pointed at
+    # ADTERACTIVE INC. Clone-alpha SKILL scores were therefore
+    # attributed to the wrong manager on the leaderboard.
+    "BAUPOST": "0001061768", "ELLIOTT": "0001791786",
     "SCION": "0001649339", "DURATION": "0001582202",
-    "POINT72": "0001603466", "LONE_PINE": "0001061768",
+    "POINT72": "0001603466", "LONE_PINE": "0001061165",
 }
 NAMES = {
     "BERKSHIRE": "Berkshire Hathaway", "BRIDGEWATER": "Bridgewater",
@@ -77,7 +80,7 @@ NAMES = {
     "GREENLIGHT": "Greenlight", "SOROS": "Soros Fund",
     "TIGER_GLOBAL": "Tiger Global", "COATUE": "Coatue",
     "BAUPOST": "Baupost", "ELLIOTT": "Elliott",
-    "SCION": "Scion (Burry)", "DURATION": "Duration Capital",
+    "SCION": "Scion (Burry)", "DURATION": "Swiss National Bank",
     "POINT72": "Point72", "LONE_PINE": "Lone Pine",
 }
 HEDGE_BOOK = {"CITADEL", "MILLENNIUM"}   # doctrine: options/hedge churn

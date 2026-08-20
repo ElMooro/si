@@ -71,12 +71,15 @@ WATCHLIST = {
     "SOROS":          "0001029160",   # Soros Fund Management
     "TIGER_GLOBAL":   "0001167483",   # Tiger Global Management
     "COATUE":         "0001135730",   # Coatue Management
-    "BAUPOST":        "0001061165",   # Baupost Group (Klarman)
-    "ELLIOTT":        "0001286922",   # Elliott Investment Management
+    # ops 4940: SEC companyName proves 0001061165 is LONE PINE and
+    # 0001061768 is BAUPOST — the roster had them SWAPPED.
+    "BAUPOST":        "0001061768",   # Baupost Group (Klarman)
+    # ops 4940: 0001286922 is ADTERACTIVE INC, files no 13F-HR.
+    "ELLIOTT":        "0001791786",   # Elliott Investment Management
     "SCION":          "0001649339",   # Scion Asset Management (Burry)
-    "DURATION":       "0001582202",   # Duration Capital
+    "DURATION":       "0001582202",   # Swiss National Bank (ops 4940)
     "POINT72":        "0001603466",   # Point72 (Cohen)
-    "LONE_PINE":      "0001061768",   # Lone Pine Capital
+    "LONE_PINE":      "0001061165",   # Lone Pine Capital
 }
 
 
