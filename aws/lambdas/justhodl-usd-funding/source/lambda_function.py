@@ -58,7 +58,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 KEY = "data/usd-funding.json"
 REGION = "us-east-1"
@@ -309,101 +309,135 @@ def nyfed_rates():
 
 
 # ───────────────────────── BIS LBS (USD-pinned) ──────────────────────
+# Canonical LBS aggregate, resolved by ops 4934 against the live data
+# rather than assumed. v1.0.1 pinned only 5 of 12 dimensions and left
+# L_CURR_TYPE / L_PARENT_CTY / L_REP_BANK_TYPE / L_POS_TYPE wildcarded —
+# 40 distinct series then survived on the claims side and 30 on the
+# liabilities side, and the parse took whichever row came last. Claims
+# happened to land on L_CURR_TYPE=D (domestic-currency USD positions,
+# $3,934bn) while liabilities landed somewhere narrower still, producing
+# a published claims/liabilities ratio of 80:1. The guard against SUMMING
+# overlapping rows held the whole time; there was no guard against
+# CHOOSING between them, which is the quieter version of the same sin.
+#
+# Order (proven ops 4928 from the 25-col CSV header):
+#   FREQ.L_MEASURE.L_POSITION.L_INSTR.L_DENOM.L_CURR_TYPE.L_PARENT_CTY.
+#   L_REP_BANK_TYPE.L_REP_CTY.L_CP_SECTOR.L_CP_COUNTRY.L_POS_TYPE
+BIS_KEY = "Q.S.{pos}.A.USD.A.5J.A.5A.A.5J.N"
+BIS_DIMS = {"FREQ": "Q", "L_MEASURE": "S", "L_INSTR": "A",
+            "L_DENOM": "USD", "L_CURR_TYPE": "A", "L_PARENT_CTY": "5J",
+            "L_REP_BANK_TYPE": "A", "L_REP_CTY": "5A",
+            "L_CP_SECTOR": "A", "L_CP_COUNTRY": "5J", "L_POS_TYPE": "N"}
+FREE_DIMS = ("L_CURR_TYPE", "L_PARENT_CTY", "L_REP_BANK_TYPE",
+             "L_POS_TYPE", "L_INSTR", "L_MEASURE")
+# A two-sided book is the whole premise of the LBS aggregate. If claims
+# and liabilities differ by more than 5x, we are not looking at the same
+# population on both sides — publish nothing rather than a wrong number.
+RATIO_LO, RATIO_HI = 0.2, 5.0
+
+
+def _bis_one_position(pos, res):
+    """Fetch ONE fully-pinned series and assert it is unique."""
+    url = ("%s/%s/all?format=csv&lastNObservations=12"
+           % (BIS_BASE, BIS_KEY.format(pos=pos)))
+    txt = _get(url, timeout=60, cap=9_000_000)
+    lines = txt.splitlines()
+    if len(lines) < 2:
+        res["attempts"].append({"pos": pos, "rows": 0})
+        return None
+    cols = [c.strip().strip('"') for c in lines[0].split(",")]
+    ix = {c: i for i, c in enumerate(cols)}
+    need = ("L_DENOM", "TIME_PERIOD", "OBS_VALUE")
+    if any(c not in ix for c in need):
+        res["attempts"].append({"pos": pos, "error": "columns"})
+        return None
+    series, by_period = {}, {}
+    for ln in lines[1:]:
+        f = ln.split(",")
+        if len(f) < len(cols) - 4:
+            continue
+        try:
+            val = float(f[ix["OBS_VALUE"]])
+        except (ValueError, IndexError):
+            continue
+        tup = tuple(f[ix[d]] if d in ix and ix[d] < len(f) else "?"
+                    for d in FREE_DIMS)
+        series.setdefault(tup, {})[f[ix["TIME_PERIOD"]]] = val
+        by_period.setdefault(f[ix["TIME_PERIOD"]], set()).add(tup)
+    res["attempts"].append({"pos": pos, "rows": len(lines) - 1,
+                            "distinct_series": len(series)})
+    if not series:
+        return None
+    if len(series) > 1:
+        # Fully pinned and still ambiguous — say so, do not pick.
+        res["ambiguous"] = True
+        res["ambiguous_note"] = (
+            "%d distinct series survived a fully-pinned key on the %s side; "
+            "BIS may have added a dimension. No figure published."
+            % (len(series), pos))
+        return None
+    per = series[list(series)[0]]
+    ordered = sorted(per)
+    vals = [per[p] for p in ordered]
+    mult = 1e6  # LBS UNIT_MULT=6 -> USD millions
+    return {
+        "latest_period": ordered[-1],
+        "latest_usd_bn": round(vals[-1] * mult / 1e9, 1),
+        "qoq_pct": (round((vals[-1] / vals[-2] - 1) * 100, 2)
+                    if len(vals) > 1 and vals[-2] else None),
+        "yoy_pct": (round((vals[-1] / vals[-5] - 1) * 100, 2)
+                    if len(vals) > 4 and vals[-5] else None),
+        "history": [{"period": p, "usd_bn": round(per[p] * mult / 1e9, 1)}
+                    for p in ordered],
+    }
+
+
 def bis_lbs_usd():
-    """USD cross-border claims & liabilities, queried with a USD-pinned
-    key. Candidate-chain: first key that answers with parseable rows
-    wins, and the key that answered is recorded in the payload."""
-    ladder = [
-        ("stocks_wildcard", "Q.S.{pos}.A.USD......."),
-        ("allmeasure_wildcard", "Q..{pos}.A.USD......."),
-    ]
-    res = {"ok": False, "positions": {}, "attempts": []}
-    for name, tmpl in ladder:
-        got = {}
-        for pos, plabel in (("C", "claims"), ("L", "liabilities")):
-            url = ("%s/%s/all?format=csv&lastNObservations=12"
-                   % (BIS_BASE, tmpl.format(pos=pos)))
-            try:
-                txt = _get(url, timeout=60, cap=9_000_000)
-                lines = txt.splitlines()
-                if len(lines) < 2:
-                    res["attempts"].append({"key": name, "pos": pos,
-                                            "rows": 0})
-                    continue
-                cols = [c.strip().strip('"') for c in lines[0].split(",")]
-                ix = {c: i for i, c in enumerate(cols)}
-                need = ("L_DENOM", "L_REP_CTY", "L_CP_COUNTRY",
-                        "L_CP_SECTOR", "TIME_PERIOD", "OBS_VALUE")
-                if any(c not in ix for c in need):
-                    res["attempts"].append({"key": name, "pos": pos,
-                                            "error": "cols"})
-                    continue
-                # Take the single MOST-AGGREGATE series only. Summing
-                # overlapping BIS rows double-counts — 5A is "all
-                # reporting countries", 5J "all counterparty countries",
-                # A "all sectors". If that row is absent we say so
-                # rather than inventing an aggregate.
-                best = {}
-                for ln in lines[1:]:
-                    f = ln.split(",")
-                    if len(f) < len(cols) - 4:
-                        continue
-                    if f[ix["L_DENOM"]] != "USD":
-                        continue
-                    if f[ix["L_REP_CTY"]] != "5A":
-                        continue
-                    if f[ix["L_CP_COUNTRY"]] != "5J":
-                        continue
-                    if f[ix["L_CP_SECTOR"]] != "A":
-                        continue
-                    try:
-                        val = float(f[ix["OBS_VALUE"]])
-                    except (ValueError, IndexError):
-                        continue
-                    best[f[ix["TIME_PERIOD"]]] = val
-                if not best:
-                    res["attempts"].append({"key": name, "pos": pos,
-                                            "rows": len(lines) - 1,
-                                            "aggregate": "not found"})
-                    continue
-                per = sorted(best)
-                vals = [best[p] for p in per]
-                mult = 1e6  # BIS LBS UNIT_MULT=6 -> USD millions
-                got[plabel] = {
-                    "latest_period": per[-1],
-                    "latest_usd_bn": round(vals[-1] * mult / 1e9, 1),
-                    "qoq_pct": (round((vals[-1] / vals[-2] - 1) * 100, 2)
-                                if len(vals) > 1 and vals[-2] else None),
-                    "yoy_pct": (round((vals[-1] / vals[-5] - 1) * 100, 2)
-                                if len(vals) > 4 and vals[-5] else None),
-                    "history": [{"period": p,
-                                 "usd_bn": round(best[p] * mult / 1e9, 1)}
-                                for p in per],
-                }
-                res["attempts"].append({"key": name, "pos": pos,
-                                        "rows": len(lines) - 1, "ok": True})
-            except Exception as e:  # noqa: BLE001
-                res["attempts"].append({
-                    "key": name, "pos": pos,
-                    "error": "%s: %s" % (type(e).__name__, str(e)[:80])})
-        if got.get("claims") or got.get("liabilities"):
-            res["ok"] = True
-            res["key_used"] = tmpl
-            res["positions"] = got
-            c = (got.get("claims") or {}).get("latest_usd_bn")
-            li = (got.get("liabilities") or {}).get("latest_usd_bn")
-            if c is not None and li is not None:
-                res["net_usd_bn"] = round(c - li, 1)
-                res["funding_gap_note"] = (
-                    "Positive = reporting banks hold more USD cross-border "
-                    "claims than USD liabilities; the gap must be funded in "
-                    "the swap market, which is where CIP breaks show up.")
-            res["aggregation"] = ("L_REP_CTY=5A (all reporting) × "
-                                  "L_CP_COUNTRY=5J (all counterparties) × "
-                                  "L_CP_SECTOR=A (all sectors), L_DENOM=USD")
-            res["cadence"] = "quarterly, ~4-month publication lag"
-            res["structural"] = True
-            break
+    """USD cross-border claims & liabilities on the canonical aggregate."""
+    res = {"ok": False, "positions": {}, "attempts": [],
+           "ambiguous": False, "key_used": BIS_KEY,
+           "dims": BIS_DIMS}
+    got = {}
+    for pos, plabel in (("C", "claims"), ("L", "liabilities")):
+        try:
+            rec = _bis_one_position(pos, res)
+            if rec:
+                got[plabel] = rec
+        except Exception as e:  # noqa: BLE001
+            res["attempts"].append({
+                "pos": pos,
+                "error": "%s: %s" % (type(e).__name__, str(e)[:80])})
+    if res.get("ambiguous"):
+        return res
+    c = (got.get("claims") or {}).get("latest_usd_bn")
+    li = (got.get("liabilities") or {}).get("latest_usd_bn")
+    if c is None or li is None:
+        res["error"] = "one side missing — no net published"
+        return res
+    ratio = abs(c) / abs(li) if li else None
+    res["claims_liab_ratio"] = round(ratio, 2) if ratio else None
+    if not ratio or not (RATIO_LO <= ratio <= RATIO_HI):
+        # The gate that would have caught the 80:1 on day one.
+        res["ambiguous"] = True
+        res["ambiguous_note"] = (
+            "claims/liabilities ratio %s falls outside the two-sided band "
+            "[%.1f, %.1f] — the two legs are not the same population, so "
+            "no figure is published."
+            % (res.get("claims_liab_ratio"), RATIO_LO, RATIO_HI))
+        return res
+    res["ok"] = True
+    res["positions"] = got
+    res["net_usd_bn"] = round(c - li, 1)
+    res["funding_gap_note"] = (
+        "Positive = reporting banks hold more USD cross-border claims than "
+        "USD liabilities; the gap must be funded in the swap market, which "
+        "is where CIP breaks show up.")
+    res["aggregation"] = ("L_CURR_TYPE=A (all) × L_PARENT_CTY=5J × "
+                          "L_REP_BANK_TYPE=A × L_REP_CTY=5A × "
+                          "L_CP_SECTOR=A × L_CP_COUNTRY=5J × "
+                          "L_POS_TYPE=N (cross-border) × L_DENOM=USD")
+    res["cadence"] = "quarterly, ~4-month publication lag"
+    res["structural"] = True
     return res
 
 

@@ -61,12 +61,14 @@ BIS_HDR = ("FREQ,L_MEASURE,L_POSITION,L_INSTR,L_DENOM,L_CURR_TYPE,"
            "TIME_PERIOD,OBS_VALUE,OBS_STATUS,OBS_CONF,OBS_PRE_BREAK")
 
 
-def bis_row(pos, rep, cp_ctry, sector, period, val, denom="USD"):
-    return ("Q,S,%s,A,%s,F,5J,A,%s,%s,%s,R,3,USD,6,K,,,S,E,%s,%s,A,F,"
-            % (pos, denom, rep, sector, cp_ctry, period, val))
+def bis_row(pos, rep, cp_ctry, sector, period, val, denom="USD",
+            pos_type="N", curr_type="A"):
+    return ("Q,S,%s,A,%s,%s,5J,A,%s,%s,%s,%s,3,USD,6,K,,,S,E,%s,%s,A,F,"
+            % (pos, denom, curr_type, rep, sector, cp_ctry, pos_type,
+               period, val))
 
 
-STATE = {"mode": "happy", "ny_cap": None}
+STATE = {"mode": "happy", "ny_cap": None, "bis_mode": "happy"}
 
 
 def fake_get(url, timeout=45, cap=None, headers=None):
@@ -121,22 +123,27 @@ def fake_get(url, timeout=45, cap=None, headers=None):
         return json.dumps({"observations": obs})
 
     if "stats.bis.org" in url:
-        if STATE["mode"] == "bis_no_aggregate":
-            body = [BIS_HDR,
-                    bis_row("C", "GB", "5J", "A", "2026-Q1", "1000")]
-            return "\n".join(body)
-        pos = "C" if "Q.S.C." in url or "Q..C." in url else "L"
+        pos = "C" if ".C.A.USD." in url or "Q.S.C." in url else "L"
+        mode = STATE.get("bis_mode", "happy")
         rows = [BIS_HDR]
+        if mode == "ambiguous":
+            # two distinct series survive a fully-pinned key
+            for per in ("2025-Q1", "2026-Q1"):
+                rows.append(bis_row(pos, "5A", "5J", "A", per, "21000000"))
+                rows.append(bis_row(pos, "5A", "5J", "A", per, "9000000",
+                                    pos_type="R"))
+            return "\n".join(rows)
+        if mode == "lopsided":
+            v = "21796900" if pos == "C" else "49200"
+            for per in ("2025-Q1", "2026-Q1"):
+                rows.append(bis_row(pos, "5A", "5J", "A", per, v))
+            return "\n".join(rows)
+        if mode == "one_sided" and pos == "L":
+            return BIS_HDR
         for i, per in enumerate(("2024-Q1", "2024-Q2", "2024-Q3",
                                  "2024-Q4", "2025-Q1")):
-            v = (18_000_000 if pos == "C" else 16_000_000) + i * 100_000
+            v = (21_796_900 if pos == "C" else 19_518_500) + i * 100_000
             rows.append(bis_row(pos, "5A", "5J", "A", per, str(v)))
-            # decoys that MUST NOT be summed in
-            rows.append(bis_row(pos, "GB", "5J", "A", per, "900000"))
-            rows.append(bis_row(pos, "5A", "US", "A", per, "800000"))
-            rows.append(bis_row(pos, "5A", "5J", "B", per, "700000"))
-            rows.append(bis_row(pos, "5A", "5J", "A", per, "999999",
-                                denom="EUR"))
         return "\n".join(rows)
     raise RuntimeError("unexpected url %s" % url)
 
@@ -208,19 +215,24 @@ check(all(("source" in v and "upgrade" in v and "why" in v)
 check(all("value" not in v for v in ne.values()),
       "not-entitled rows carry NO fabricated value")
 
-print("\n--- BIS LBS USD: most-aggregate only, never summed ---")
+print("\n--- BIS LBS USD: fully-pinned canonical aggregate ---")
 b = p["bis_lbs_usd"]
 check(b["ok"], "BIS answered")
-check(b["positions"]["claims"]["latest_usd_bn"] == 18400.0,
-      "claims = ONLY the 5A/5J/A USD row (decoys excluded), got %s"
+check(b["key_used"] == "Q.S.{pos}.A.USD.A.5J.A.5A.A.5J.N",
+      "all 12 dims pinned, got %s" % b["key_used"])
+check(b["positions"]["claims"]["latest_usd_bn"] == 22196.9,
+      "claims = the canonical series, got %s"
       % b["positions"]["claims"]["latest_usd_bn"])
-check(b["positions"]["liabilities"]["latest_usd_bn"] == 16400.0,
+check(b["positions"]["liabilities"]["latest_usd_bn"] == 19918.5,
       "liabilities likewise, got %s"
       % b["positions"]["liabilities"]["latest_usd_bn"])
-check(b.get("net_usd_bn") == 2000.0, "net USD gap = claims - liabilities")
+check(b.get("net_usd_bn") == 2278.4, "net = claims - liabilities, got %s"
+      % b.get("net_usd_bn"))
+check(b.get("claims_liab_ratio") == 1.11, "C/L ratio published, got %s"
+      % b.get("claims_liab_ratio"))
+check(b.get("ambiguous") is False, "not flagged ambiguous")
 check(b.get("structural") is True, "BIS flagged structural")
 check("quarterly" in b.get("cadence", ""), "BIS cadence disclosed")
-check(b.get("key_used"), "the key that answered is recorded")
 
 print("\n--- z-score composite ---")
 z = p["stress_z"]
@@ -237,16 +249,6 @@ print("\n--- FRED '.' missing-value rows must not become 0.0 ---")
 s = ENG.fred("SOFR")
 check(all(isinstance(v, float) for _, v in s), "no None leaked")
 check(not any(v == 0.0 for _, v in s), "'.' rows dropped, not zeroed")
-
-print("\n=== 2. BIS returns no aggregate row (honest failure) ===")
-STATE["mode"] = "bis_no_aggregate"
-p2 = ENG.build()
-check(not p2["bis_lbs_usd"]["ok"], "BIS reports NOT ok")
-check(p2["bis_lbs_usd"]["positions"] == {}, "no fabricated aggregate")
-check(any("bis" in e for e in p2["errors"]), "BIS failure surfaced in errors")
-check("not found" in json.dumps(p2["bis_lbs_usd"]["attempts"]),
-      "attempt log states aggregate not found")
-STATE["mode"] = "happy"
 
 print("\n=== 3. NY Fed down — TGCR/BGCR must fail loud, not silently ===")
 _orig = ENG._get
@@ -331,6 +333,35 @@ check(pb.get("probe") == "nyfed", "probe mode routed")
 check(set(pb["diag"].keys()) == {"sofr", "tgcr", "bgcr", "effr", "obfr"},
       "all five rates probed")
 check(pb["diag"]["tgcr"]["shape_used"] is not None, "shape recorded")
+
+print("\n=== 10. BIS lopsided (the shipped bug) must NOT publish ===")
+STATE["bis_mode"] = "lopsided"
+p10 = ENG.build()
+b10 = p10["bis_lbs_usd"]
+check(not b10["ok"], "lopsided pair refused")
+check(b10["ambiguous"] is True, "flagged ambiguous")
+check("ratio" in (b10.get("ambiguous_note") or ""), "ratio named in note")
+check("net_usd_bn" not in b10, "no net published from a bad pair")
+check(b10.get("claims_liab_ratio", 0) > 5, "the 80:1 ratio is recorded")
+
+print("\n=== 11. still-ambiguous after pinning -> refuse, don't pick ===")
+STATE["bis_mode"] = "ambiguous"
+p11 = ENG.build()
+b11 = p11["bis_lbs_usd"]
+check(not b11["ok"], "ambiguous refused")
+check(b11["ambiguous"] is True, "flagged")
+check(b11["positions"] == {}, "no arbitrary pick published")
+check(any(a.get("distinct_series", 0) > 1 for a in b11["attempts"]),
+      "attempt log records the multiplicity")
+
+print("\n=== 12. one side missing -> no net invented ===")
+STATE["bis_mode"] = "one_sided"
+p12 = ENG.build()
+b12 = p12["bis_lbs_usd"]
+check(not b12["ok"], "one-sided refused")
+check("net_usd_bn" not in b12, "no net from one leg")
+check("missing" in (b12.get("error") or ""), "error names the gap")
+STATE["bis_mode"] = "happy"
 
 print("\n" + "=" * 58)
 if FAILS:
