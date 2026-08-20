@@ -406,3 +406,47 @@ data/brain.json defines how the system thinks. ALL decisions, analysis, macro/li
    (schema, non-null, ≥60% OK) all passed while ETFs and placeholder
    share rows led the alert board. Gate magnitudes and plausibility
    bands, not just shapes.
+
+## floor-audit v2 arc — ops 4921–4926 (whole market, and a call)
+
+State: **justhodl-floor-audit v2.1.1 LIVE**, `/floor.html` v2.1.1 at the
+edge, daily 21:35 UTC, 2048MB/900s. 2,858 filers screened across all six
+cap tiers (45 mega, 528 large, 748 mid, 812 small, 534 micro, 191 nano);
+168 deep-audited; calls: 7 BUY, 19 ACCUMULATE, 53 WATCH, 16 PASS,
+50 AVOID, 18 NO_CALL. Next ops **4927**.
+
+Architecture worth reusing: **screen wide, audit deep**. XBRL `frames`
+returns one tag for EVERY filer in a single call and Polygon
+grouped-daily returns every last close — ~11 calls cover the whole
+market (incl. IFRS foreign private issuers). The expensive per-filer
+forensic pass then runs only on names that could plausibly have a
+floor, under a wall-clock budget that publishes a partial board rather
+than missing the run.
+
+Traps banked (each cost an ops number):
+
+7. **The current quarter's frame is nearly empty.** `frames` for
+   CY<now>Q<n>I holds only companies that have already filed — 8 of
+   them. Never accept the first non-empty frame; merge newest-first
+   across quarters until the union is dense (newest filing still wins
+   per company).
+8. **`deploy_lambda` smoke-tests SYNCHRONOUSLY** and the kwarg is
+   `smoke`, not `smoke_test`. A minutes-long engine read-times-out the
+   boto client and kills the op while the Lambda runs on happily. Long
+   engines: `smoke=False, create_function_url=False`, then gate on S3
+   freshness.
+9. **Assert every string replace.** A record-dict patch targeted
+   `"asset_quality"` where the record actually said
+   `"asset_quality_score"`; the new fields landed in `why_block` only,
+   and both the ops gate and the page read blank — which surfaced as
+   the gate refusing CUBI, a bank trading millions a day, as
+   "untradable". Absent is not thin. The harness now carries a
+   source-level record-contract check over all nine consumer fields.
+10. **A retail-facing call needs vetoes before scores.** Discount to a
+    floor that is burning (runway), being issued away (dilution) or
+    unverifiable (no debt tag binds) is a countdown, not a bargain.
+    UPXI is the live proof: 180% coverage, AVOID, 4.9 months of
+    runway. Also gate tradability — no buy call under $250k/day ADV —
+    and require a real floor (>=35% coverage) before calling a
+    premium-to-NAV REDUCE, or an operating company that happens to
+    hold coins gets framed as a wrapper.
