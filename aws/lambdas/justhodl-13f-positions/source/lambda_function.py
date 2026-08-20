@@ -532,6 +532,10 @@ def cusip_to_ticker(cusip: str, name: str):
     return None, name
 
 
+US_EXCHANGES = {"NYSE", "NASDAQ", "AMEX", "NYSEARCA", "BATS", "OTC",
+                "PNK", "NMS", "NGS", "NCM", "ASE", "ARCA"}   # ops 4936
+
+
 def cusip_to_ticker_via_fmp(cusip: str, name: str):
     """Optional FMP lookup for individual cusips.
     Used during async resolve, NOT during parse. Returns (ticker, name) or (None, name).
@@ -567,9 +571,24 @@ def cusip_to_ticker_via_fmp(cusip: str, name: str):
                     for c in (cand or []):
                         nm2 = str(c.get("name") or c.get("company")
                                   or "").upper()
-                        if words[0].upper() in nm2 and                                 (c.get("symbol") or "").isalpha():
-                            return (c["symbol"].upper(),
-                                    c.get("name") or name)
+                        sym = str(c.get("symbol") or "").upper()
+                        exch = str(c.get("exchangeShortName")
+                                   or c.get("exchange") or "").upper()
+                        # ops 4936 GATE A — a 13F can only hold US-listed
+                        # securities. Reject crypto/forex/foreign outright.
+                        if exch and exch not in US_EXCHANGES:
+                            continue
+                        if (sym.endswith("USD") or sym.endswith("USDT")
+                                or "." in sym or "-" in sym
+                                or not sym.isalpha() or len(sym) > 5):
+                            continue
+                        # ops 4936 GATE B — require TWO significant words to
+                        # match, not one. One-word matching is what let
+                        # "CPAY" resolve to F N B / PG&E / SLM / ODP.
+                        hits = sum(1 for w in words if w.upper() in nm2)
+                        if hits < min(2, len(words)):
+                            continue
+                        return (sym, c.get("name") or name)
                 except Exception:
                     continue
     except Exception:
@@ -584,7 +603,7 @@ def parse_one_fund(fund_key: str, cik: str, latest_filing: dict, prior_filing: d
         return {"fund_key": fund_key, "error": "no_accession"}
 
     # Cache check — version-tagged so unit fixes invalidate old cache
-    PARSER_VERSION = "v4"   # ops 3279c: option-row separation   # bump when parser logic changes (units, fields, etc.)
+    PARSER_VERSION = "v5"   # ops 4936: units-per-filing + resolver gates   # bump when parser logic changes (units, fields, etc.)
     cache_key = f"{S3_CACHE_PREFIX}{fund_key}/{accession.replace('-', '')}_{PARSER_VERSION}.json"
     cached = get_s3_json(cache_key)
     if cached and cached.get("positions") and cached.get("parser_version") == PARSER_VERSION:
@@ -1077,6 +1096,25 @@ def resolve_missing_tickers(fund_results, budget=150):
     return fund_results
 
 
+def _headline_quarter(successful):
+    """ops 4936: modal period across the roster, ties -> most recent."""
+    from collections import Counter
+    per = [f.get("period_of_report") for f in successful
+           if f.get("period_of_report")]
+    if not per:
+        return None
+    c = Counter(per)
+    return sorted(c.items(), key=lambda kv: (-kv[1], kv[0]))[0][0]
+
+
+def _scrub_sets(by_ticker):
+    """ops 4936: drop the dedupe sets — json.dumps cannot serialise set."""
+    for a in by_ticker.values():
+        a.pop("_fund_set", None)
+        a.pop("_act_set", None)
+    return by_ticker
+
+
 def aggregate_by_ticker(fund_results):
     """Aggregate positions across all funds, by ticker."""
     by_ticker = {}
@@ -1105,10 +1143,11 @@ def aggregate_by_ticker(fund_results):
             agg = by_ticker[tkr]
             pc = p.get("put_call")
             if pc in ("PUT", "CALL"):       # ops 3279c: clean books
-                agg.setdefault(
-                    "put_funds" if pc == "PUT" else "call_funds",
-                    []).append(
-                    fund_data.get("fund_name") or fund_key)
+                _lst = agg.setdefault(
+                    "put_funds" if pc == "PUT" else "call_funds", [])
+                _nm = fund_data.get("fund_name") or fund_key
+                if _nm not in _lst:          # ops 4936: distinct funds
+                    _lst.append(_nm)
                 continue
             if not agg.get("name"):               # ops 3297
                 agg["name"] = (p.get("resolved_name")
@@ -1117,15 +1156,24 @@ def aggregate_by_ticker(fund_results):
                 agg["title"] = p.get("title") or ""
             if not agg.get("share_type"):
                 agg["share_type"] = p.get("share_type") or ""
-            agg["n_funds_holding"] += 1
+            # ops 4936: DISTINCT funds, not infotable rows. A single fund
+            # may file dozens of lots for the same CUSIP; pre-4936 each lot
+            # incremented the counter, producing holder counts far above the
+            # roster size (BSML 166, NZUS 131 on an 18-fund roster).
+            _seen = agg.setdefault("_fund_set", set())
+            if fund_key not in _seen:
+                _seen.add(fund_key)
+                agg["n_funds_holding"] += 1
             agg["total_value"] += p.get("value_usd", 0)
             change = p.get("change", "HOLD")
-            if change == "ADD":
-                agg["n_funds_adding"] += 1
-            elif change == "TRIM":
-                agg["n_funds_trimming"] += 1
-            elif change == "NEW":
-                agg["n_funds_new_position"] += 1
+            _act = agg.setdefault("_act_set", set())
+            _ak = (fund_key, change)
+            if change == "ADD" and _ak not in _act:
+                _act.add(_ak); agg["n_funds_adding"] += 1
+            elif change == "TRIM" and _ak not in _act:
+                _act.add(_ak); agg["n_funds_trimming"] += 1
+            elif change == "NEW" and _ak not in _act:
+                _act.add(_ak); agg["n_funds_new_position"] += 1
             agg["fund_actions"].append({
                 "fund": fund_key,
                 "fund_name": FUND_DISPLAY_NAMES.get(fund_key, fund_key),
@@ -1202,7 +1250,19 @@ def lambda_handler(event, context):
         meta = by_fund_meta.get(fund_key, {})
         latest = meta.get("latest_filing")
         if not latest or not latest.get("accession"):
-            print(f"  {fund_key}: no latest filing in index")
+            # ops 4936: NEVER drop silently. A fund with no discoverable
+            # 13F-HR is a FAILURE, not a non-event. Pre-4936 this `continue`
+            # left the fund out of BOTH `successful` and `failed`, so
+            # funds_total(18) != funds_parsed(17) + funds_failed(0) and the
+            # roster gap was invisible on the page.
+            print(f"  {fund_key}: NO 13F-HR FOUND — recording as failure")
+            fund_results.append({
+                "fund_key": fund_key, "cik": cik,
+                "error": "no_13f_hr_filing_found",
+                "diagnosis": ("CIK filed no 13F-HR — entity likely "
+                              "deregistered or re-registered under a new "
+                              "CIK. Verify against data.sec.gov submissions."),
+            })
             continue
 
         # Pick prior filing — prefer the index's prior_filing (true prior quarter)
@@ -1273,7 +1333,7 @@ def lambda_handler(event, context):
 
     # Step 4: aggregate by ticker
     successful = resolve_missing_tickers(successful)  # ops 3278b
-    by_ticker = aggregate_by_ticker(successful)
+    by_ticker = _scrub_sets(aggregate_by_ticker(successful))   # ops 4936
 
     # ops 3278: market-cap + tier enrichment for every resolved ticker
     def _enrich(tk):
@@ -1759,7 +1819,19 @@ def lambda_handler(event, context):
     # Step 6: write output
     output = {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "as_of_quarter": successful[0].get("period_of_report") if successful else None,
+        # ops 4936: successful[] is in as_completed() order (thread finish
+        # order), so successful[0] made the headline quarter NON-DETERMINISTIC
+        # — a stale filer finishing first would stamp the whole page with its
+        # quarter. Take the MODE of the roster instead.
+        "as_of_quarter": _headline_quarter(successful),
+        "roster_periods": {f.get("fund_key"): f.get("period_of_report")
+                           for f in successful},
+        "stale_funds": [
+            {"fund_key": f.get("fund_key"),
+             "period_of_report": f.get("period_of_report")}
+            for f in successful
+            if f.get("period_of_report")
+            and f.get("period_of_report") != _headline_quarter(successful)],
         "funds_total": len(WATCHLIST),
         "funds_parsed": len(successful),
         "funds_failed": len(failed),
