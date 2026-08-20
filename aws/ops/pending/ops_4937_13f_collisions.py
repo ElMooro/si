@@ -153,11 +153,21 @@ with report("ops_4937_13f_collisions") as R:
             continue
         if mc <= 0 or held <= mc * 1.5:
             continue
-        row = {"t": t, "held": held, "mcap": mc, "x": round(held / mc, 1)}
+        st = (a.get("share_type") or "").upper()
+        row = {"t": t, "held": held, "mcap": mc, "x": round(held / mc, 1),
+               "share_type": st, "name": (a.get("name") or "")[:40]}
         nm = (a.get("name") or "").upper()
-        if mc < 50e6 or any(k in nm for k in ETF_ISH) or (
+        # PRN rows are PRINCIPAL AMOUNT OF DEBT, not shares. Measuring a
+        # company's bonds against its equity market cap is a category
+        # error, not a units bug: NFE carries billions in notes while its
+        # equity cap collapsed to ~$92M, so $2.5B held is entirely real.
+        # This is stated as a TESTABLE condition -- if NFE is not in fact
+        # PRN, the gate still fails and prints the true share_type.
+        if st == "PRN":
+            excused.append(dict(row, why="debt_vs_equity_cap"))
+        elif mc < 50e6 or any(k in nm for k in ETF_ISH) or (
                 len(t) == 5 and t.endswith(("F", "Y"))):
-            excused.append(row)          # untrustworthy mcap, not a units bug
+            excused.append(dict(row, why="untrustworthy_mcap"))
         else:
             impossible.append(row)
     impossible.sort(key=lambda r: -r["x"])
