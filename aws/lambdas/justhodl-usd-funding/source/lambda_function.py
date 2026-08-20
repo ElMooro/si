@@ -54,7 +54,7 @@ import statistics
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import boto3
 
@@ -214,21 +214,64 @@ RATE_EPS = {
     "obfr": ("unsecured/obfr", "OBFR", "Overnight bank funding"),
 }
 
+# ops 4932 burned this in: `last/1.json` answered 200 from the ops runner
+# while `last/1300.json` returned 400 from Lambda on ALL FIVE rates —
+# including SOFR, so it was never a TGCR/BGCR problem and never an egress
+# problem. It was an unverified N bound: the probe tested one shape and
+# the engine shipped another. Never again pin a magic constant that was
+# not the thing actually proven — descend a ladder, record what answered,
+# and keep a differently-shaped fallback behind it.
+NY_N_LADDER = (750, 500, 250, 120, 60, 30, 5, 1)
 
-def nyfed_rates(n=1300):
+
+def _nyfed_rows(path, diag):
+    """Candidate-chain: first request shape that returns rows wins.
+    Every attempt is recorded so a future failure is diagnosable from
+    the payload alone rather than needing another probe cycle."""
+    for n in NY_N_LADDER:
+        url = "%s/%s/last/%d.json" % (NYFED, path, n)
+        try:
+            rows = (json.loads(_get(url)) or {}).get("refRates") or []
+            diag.append({"shape": "last/%d" % n, "ok": True,
+                         "rows": len(rows)})
+            if rows:
+                return rows, "last/%d" % n
+        except Exception as e:  # noqa: BLE001
+            diag.append({"shape": "last/%d" % n, "ok": False,
+                         "error": "%s: %s" % (type(e).__name__,
+                                              str(e)[:70])})
+    # differently-shaped fallback: date range instead of a row count
+    end = datetime.now(timezone.utc).date()
+    start = end - timedelta(days=730)
+    url = ("%s/%s/search.json?startDate=%s&endDate=%s"
+           % (NYFED, path, start.isoformat(), end.isoformat()))
+    try:
+        rows = (json.loads(_get(url)) or {}).get("refRates") or []
+        diag.append({"shape": "search", "ok": True, "rows": len(rows)})
+        if rows:
+            return rows, "search"
+    except Exception as e:  # noqa: BLE001
+        diag.append({"shape": "search", "ok": False,
+                     "error": "%s: %s" % (type(e).__name__, str(e)[:70])})
+    return [], None
+
+
+def nyfed_rates():
     """Direct NY Fed pull: rate + volume + the 1/25/75/99 percentile fan.
 
     FRED carries none of this for TGCR/BGCR — it does not carry those
     rates at all (HTTP 400, proven ops 4928)."""
     out = {}
     for rid, (path, label, desc) in RATE_EPS.items():
+        diag = []
         try:
-            j = json.loads(_get("%s/%s/last/%d.json" % (NYFED, path, n)))
-            rows = j.get("refRates") or []
+            rows, shape = _nyfed_rows(path, diag)
             rows = [r for r in rows if r.get("percentRate") is not None]
             rows.sort(key=lambda r: r.get("effectiveDate", ""))
             if not rows:
-                out[rid] = {"ok": False, "error": "no rows"}
+                out[rid] = {"ok": False, "label": label,
+                            "error": "no rows from any request shape",
+                            "attempts": diag}
                 continue
             cur = rows[-1]
             hist = [float(r["percentRate"]) for r in rows
@@ -254,13 +297,14 @@ def nyfed_rates(n=1300):
                            if p75 is not None and p25 is not None else None),
                 "fan_bp": (round((float(p99) - float(p1)) * 100, 1)
                            if p99 is not None and p1 is not None else None),
-                "n_obs": len(rows),
+                "n_obs": len(rows), "request_shape": shape,
                 "_hist": {r["effectiveDate"]: float(r["percentRate"])
                           for r in rows if r.get("percentRate") is not None},
             }
         except Exception as e:  # noqa: BLE001
             out[rid] = {"ok": False, "label": label,
-                        "error": "%s: %s" % (type(e).__name__, str(e)[:90])}
+                        "error": "%s: %s" % (type(e).__name__, str(e)[:90]),
+                        "attempts": diag}
     return out
 
 
@@ -547,6 +591,20 @@ def build():
 
 
 def lambda_handler(event, context):  # noqa: ARG001
+    # Self-diagnostic: run the NY Fed request ladder from INSIDE Lambda
+    # and return the raw attempt log. Diagnosing a Lambda-only failure
+    # from the ops runner is how ops 4932 shipped a bad N in the first
+    # place — the probe must run where the failure lives.
+    if (event or {}).get("probe") == "nyfed":
+        diag = {}
+        for rid, (path, _lab, _d) in RATE_EPS.items():
+            att = []
+            rows, shape = _nyfed_rows(path, att)
+            diag[rid] = {"shape_used": shape, "rows": len(rows),
+                         "attempts": att}
+        return {"statusCode": 200,
+                "body": json.dumps({"probe": "nyfed", "diag": diag})}
+
     p = build()
     body = json.dumps(p, separators=(",", ":")).encode()
     s3.put_object(Bucket=BUCKET, Key=KEY, Body=body,

@@ -66,12 +66,21 @@ def bis_row(pos, rep, cp_ctry, sector, period, val, denom="USD"):
             % (pos, denom, rep, sector, cp_ctry, period, val))
 
 
-STATE = {"mode": "happy"}
+STATE = {"mode": "happy", "ny_cap": None}
 
 
 def fake_get(url, timeout=45, cap=None, headers=None):
     if "markets.newyorkfed.org" in url:
-        rid = url.split("/")[-3]
+        cap = STATE.get("ny_cap")
+        if cap is not None and "/last/" in url:
+            import re as _re
+            m = _re.search(r"/last/(\d+)\.json", url)
+            if m and int(m.group(1)) > int(cap):
+                raise RuntimeError("HTTP Error 400: Bad Request")
+        if "/search.json" in url:
+            rid = url.split("/")[-2].split("?")[0]
+        else:
+            rid = url.split("/")[-3]
         base = {"sofr": 3.65, "tgcr": 3.63, "bgcr": 3.63,
                 "effr": 3.63, "obfr": 3.63}[rid]
         vol = {"sofr": 3010, "tgcr": 1203, "bgcr": 1234,
@@ -273,6 +282,55 @@ for k in ("reference_rates", "spreads_vs_iorb", "bank_wholesale_funding",
           "commercial_paper", "sofr_term_structure", "bis_lbs_usd",
           "not_entitled", "stress_z", "status", "generated", "errors"):
     check(k in body, "top-level key %s" % k)
+
+print("\n=== 6. NY Fed N-ladder: large N 400s, engine falls back ===")
+STATE["ny_cap"] = 250
+p6 = ENG.build()
+r6 = p6["reference_rates"]
+check(r6["tgcr"]["ok"], "TGCR still collected via smaller N")
+check(r6["tgcr"]["request_shape"] == "last/250",
+      "ladder descended to the largest shape that works, got %s"
+      % r6["tgcr"].get("request_shape"))
+check(r6["tgcr"]["volume_bn"] == 1203, "volume survives the fallback")
+check(p6["stress_z"]["sum_z"] is not None, "composite rebuilt")
+check(len(p6["stress_z"]["legs"]) >= 4, "%d legs after fallback"
+      % len(p6["stress_z"]["legs"]))
+
+print("\n=== 7. every last/N 400s -> search fallback ===")
+STATE["ny_cap"] = 0
+p7 = ENG.build()
+r7 = p7["reference_rates"]
+check(r7["bgcr"]["ok"], "BGCR collected via search endpoint")
+check(r7["bgcr"]["request_shape"] == "search", "shape=search, got %s"
+      % r7["bgcr"].get("request_shape"))
+
+print("\n=== 8. total NY Fed outage -> attempts log, no silent zero ===")
+STATE["ny_cap"] = None
+_save = ENG._get
+
+
+def _dead(url, **kw):
+    if "newyorkfed" in url:
+        raise RuntimeError("HTTP Error 400: Bad Request")
+    return fake_get(url, **kw)
+
+
+ENG._get = _dead
+p8 = ENG.build()
+check(not p8["reference_rates"]["tgcr"]["ok"], "TGCR not-ok")
+check(len(p8["reference_rates"]["tgcr"].get("attempts") or []) >= 8,
+      "every attempted shape is logged for diagnosis (%d)"
+      % len(p8["reference_rates"]["tgcr"].get("attempts") or []))
+check("TGCR-IORB" in p8["stress_z"]["legs_missing"], "leg named missing")
+ENG._get = _save
+
+print("\n=== 9. in-Lambda probe mode returns the ladder ===")
+pr = ENG.lambda_handler({"probe": "nyfed"}, None)
+pb = json.loads(pr["body"])
+check(pb.get("probe") == "nyfed", "probe mode routed")
+check(set(pb["diag"].keys()) == {"sofr", "tgcr", "bgcr", "effr", "obfr"},
+      "all five rates probed")
+check(pb["diag"]["tgcr"]["shape_used"] is not None, "shape recorded")
 
 print("\n" + "=" * 58)
 if FAILS:
