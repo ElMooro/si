@@ -1,0 +1,21 @@
+{
+  "function_name": "justhodl-usd-funding",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 420,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "ops 4929: offshore-USD funding feeds absent from eurodollar-plumbing - NY Fed TGCR/BGCR direct (rate+volume+percentile fan), H.8 wholesale funding, CP outstandings incl ABCP + tenor grid, SOFR term, BIS LBS USD claims/liabilities, z-score composite -> data/usd-funding.json",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "inherit_env": {
+    "FRED_API_KEY": "dollar-strength-agent"
+  },
+  "schedule": {
+    "name": "justhodl-usd-funding-daily",
+    "expression": "cron(20 22 ? * MON-FRI *)",
+    "description": "Daily 22:20 UTC - after NY Fed publishes reference rates (~13:00 ET) and FRED's daily CP refresh"
+  }
+}
