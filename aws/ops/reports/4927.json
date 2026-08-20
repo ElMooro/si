@@ -1,0 +1,425 @@
+{
+ "generated": "2026-08-20T03:35:05.210433+00:00",
+ "op": 4927,
+ "A": {
+  "ok": true,
+  "metric_ids": [
+   "sofr_iorb",
+   "sofr99_iorb",
+   "on_rrp",
+   "tga",
+   "effr_iorb",
+   "gcf_tri",
+   "ofr_repo_depth",
+   "mmf_repo_pool",
+   "cp_ois",
+   "cpn_ois",
+   "bill_ois",
+   "ofr_fsi_funding",
+   "hy_oas",
+   "ig_oas",
+   "fed_swaps",
+   "fima_repo",
+   "fed_repo_srf",
+   "ecb_usd_provision",
+   "ust_fails",
+   "fails_TIPS",
+   "fails_Corpor",
+   "fails_Agency",
+   "fails_Agency",
+   "fails_Other ",
+   "broad_dollar",
+   "stablecoin_offshore_usd",
+   "foreign_custody",
+   "net_due_foreign",
+   "xccy_basis",
+   "hk_usd_hkd",
+   "cnh_cny",
+   "cnh_hibor_on",
+   "cnh_hibor_3m",
+   "jpy"
+  ],
+  "layers": {
+   "us_core": [
+    "sofr_iorb",
+    "sofr99_iorb",
+    "on_rrp",
+    "tga",
+    "effr_iorb",
+    "gcf_tri",
+    "ofr_repo_depth",
+    "mmf_repo_pool"
+   ],
+   "bank_funding": [
+    "cp_ois",
+    "cpn_ois",
+    "bill_ois",
+    "ofr_fsi_funding"
+   ],
+   "credit": [
+    "hy_oas",
+    "ig_oas"
+   ],
+   "backstops": [
+    "fed_swaps",
+    "fima_repo",
+    "fed_repo_srf",
+    "ecb_usd_provision"
+   ],
+   "settlement": [
+    "ust_fails",
+    "fails_TIPS",
+    "fails_Corpor",
+    "fails_Agency",
+    "fails_Agency",
+    "fails_Other "
+   ],
+   "fx": [
+    "broad_dollar",
+    "stablecoin_offshore_usd",
+    "foreign_custody",
+    "net_due_foreign",
+    "xccy_basis"
+   ],
+   "hubs": [
+    "hk_usd_hkd",
+    "cnh_cny",
+    "cnh_hibor_on",
+    "cnh_hibor_3m",
+    "jpy"
+   ]
+  },
+  "health": 85.1,
+  "generated": null
+ },
+ "B": {
+  "sofr": {
+   "status": 200,
+   "url": "https://markets.newyorkfed.org/api/rates/secured/sofr/last/1.json",
+   "fields": [
+    "effectiveDate",
+    "percentPercentile1",
+    "percentPercentile25",
+    "percentPercentile75",
+    "percentPercentile99",
+    "percentRate",
+    "revisionIndicator",
+    "type",
+    "volumeInBillions"
+   ],
+   "sample": {
+    "effectiveDate": "2026-08-18",
+    "type": "SOFR",
+    "percentRate": 3.65,
+    "percentPercentile1": 3.6,
+    "percentPercentile25": 3.63,
+    "percentPercentile75": 3.7,
+    "percentPercentile99": 3.72,
+    "volumeInBillions": 3010,
+    "revisionIndicator": ""
+   },
+   "n": 1
+  },
+  "tgcr": {
+   "status": 200,
+   "url": "https://markets.newyorkfed.org/api/rates/secured/tgcr/last/1.json",
+   "fields": [
+    "effectiveDate",
+    "percentPercentile1",
+    "percentPercentile25",
+    "percentPercentile75",
+    "percentPercentile99",
+    "percentRate",
+    "revisionIndicator",
+    "type",
+    "volumeInBillions"
+   ],
+   "sample": {
+    "effectiveDate": "2026-08-18",
+    "type": "TGCR",
+    "percentRate": 3.63,
+    "percentPercentile1": 3.55,
+    "percentPercentile25": 3.62,
+    "percentPercentile75": 3.63,
+    "percentPercentile99": 3.67,
+    "volumeInBillions": 1203,
+    "revisionIndicator": ""
+   },
+   "n": 1
+  },
+  "bgcr": {
+   "status": 200,
+   "url": "https://markets.newyorkfed.org/api/rates/secured/bgcr/last/1.json",
+   "fields": [
+    "effectiveDate",
+    "percentPercentile1",
+    "percentPercentile25",
+    "percentPercentile75",
+    "percentPercentile99",
+    "percentRate",
+    "revisionIndicator",
+    "type",
+    "volumeInBillions"
+   ],
+   "sample": {
+    "effectiveDate": "2026-08-18",
+    "type": "BGCR",
+    "percentRate": 3.63,
+    "percentPercentile1": 3.55,
+    "percentPercentile25": 3.62,
+    "percentPercentile75": 3.63,
+    "percentPercentile99": 3.68,
+    "volumeInBillions": 1234,
+    "revisionIndicator": ""
+   },
+   "n": 1
+  },
+  "effr": {
+   "status": 200,
+   "url": "https://markets.newyorkfed.org/api/rates/unsecured/effr/last/1.json",
+   "fields": [
+    "effectiveDate",
+    "percentPercentile1",
+    "percentPercentile25",
+    "percentPercentile75",
+    "percentPercentile99",
+    "percentRate",
+    "revisionIndicator",
+    "targetRateFrom",
+    "targetRateTo",
+    "type",
+    "volumeInBillions"
+   ],
+   "sample": {
+    "effectiveDate": "2026-08-18",
+    "type": "EFFR",
+    "percentRate": 3.63,
+    "percentPercentile1": 3.6,
+    "percentPercentile25": 3.62,
+    "percentPercentile75": 3.63,
+    "percentPercentile99": 3.69,
+    "targetRateFrom": 3.5,
+    "targetRateTo": 3.75,
+    "volumeInBillions": 89,
+    "revisionIndicator": ""
+   },
+   "n": 1
+  },
+  "obfr": {
+   "status": 200,
+   "url": "https://markets.newyorkfed.org/api/rates/unsecured/obfr/last/1.json",
+   "fields": [
+    "effectiveDate",
+    "percentPercentile1",
+    "percentPercentile25",
+    "percentPercentile75",
+    "percentPercentile99",
+    "percentRate",
+    "revisionIndicator",
+    "type",
+    "volumeInBillions"
+   ],
+   "sample": {
+    "effectiveDate": "2026-08-18",
+    "type": "OBFR",
+    "percentRate": 3.63,
+    "percentPercentile1": 3.55,
+    "percentPercentile25": 3.62,
+    "percentPercentile75": 3.63,
+    "percentPercentile99": 3.69,
+    "volumeInBillions": 214,
+    "revisionIndicator": ""
+   },
+   "n": 1
+  },
+  "all_latest": {
+   "status": 200,
+   "url": "https://markets.newyorkfed.org/api/rates/all/latest.json",
+   "fields": [
+    "average180day",
+    "average30day",
+    "average90day",
+    "effectiveDate",
+    "index",
+    "revisionIndicator",
+    "type"
+   ],
+   "sample": {
+    "effectiveDate": "2026-08-19",
+    "type": "SOFRAI",
+    "average30day": 3.64085,
+    "average90day": 3.63706,
+    "average180day": 3.66056,
+    "index": 1.25540619,
+    "revisionIndicator": ""
+   },
+   "n": 6
+  },
+  "sofr_avg": {
+   "status": 200,
+   "url": "https://markets.newyorkfed.org/api/rates/secured/sofrai/last/1.json",
+   "fields": [
+    "average180day",
+    "average30day",
+    "average90day",
+    "effectiveDate",
+    "index",
+    "revisionIndicator",
+    "type"
+   ],
+   "sample": {
+    "effectiveDate": "2026-08-19",
+    "type": "SOFRAI",
+    "average30day": 3.64085,
+    "average90day": 3.63706,
+    "average180day": 3.66056,
+    "index": 1.25540619,
+    "revisionIndicator": ""
+   },
+   "n": 1
+  }
+ },
+ "C": {
+  "catalog_total": 29,
+  "catalog_hits": [
+   {
+    "id": "WS_CBS_PUB",
+    "name": "Consolidated banking"
+   },
+   {
+    "id": "WS_DEBT_SEC2_PUB",
+    "name": "International debt securities (BIS-compiled)"
+   },
+   {
+    "id": "WS_GLI",
+    "name": "Global liquidity indicators"
+   },
+   {
+    "id": "WS_LBS_D_PUB",
+    "name": "Locational banking"
+   }
+  ],
+  "banked_total": 28,
+  "banked_hits": [
+   {
+    "key": "data/warm/bis/data/WS_CBS_PUB.dat.gz",
+    "mb": 3.31,
+    "modified": "2026-08-06T20:24:40+00:00"
+   },
+   {
+    "key": "data/warm/bis/data/WS_GLI.dat.gz",
+    "mb": 0.2,
+    "modified": "2026-08-07T04:24:20+00:00"
+   },
+   {
+    "key": "data/warm/bis/data/WS_LBS_D_PUB.dat.gz",
+    "mb": 4.06,
+    "modified": "2026-08-07T05:24:31+00:00"
+   }
+  ],
+  "lbs_object": "data/warm/bis/data/WS_LBS_D_PUB.dat.gz",
+  "lbs_header": "FREQ,L_MEASURE,L_POSITION,L_INSTR,L_DENOM,L_CURR_TYPE,L_PARENT_CTY,L_REP_BANK_TYPE,L_REP_CTY,L_CP_SECTOR,L_CP_COUNTRY,L_POS_TYPE,DECIMALS,UNIT_MEASURE,UNIT_MULT,AVAILABILITY,TITLE_GRP,TIME_FORMAT,COLLECTION,ORG_VISIBILITY,TIME_PERIOD,OBS_VALUE,OBS_STATUS,OBS_CONF,OBS_PRE_BREAK",
+  "lbs_rows_sampled": 30986,
+  "lbs_sample_rows": [
+   "Q,F,C,A,TO1,F,5J,A,BR,A,5J,R,3,USD,6,K,,,S,E,2003-Q1,1643.983,A,F,",
+   "Q,F,C,A,TO1,F,5J,A,BR,A,5J,R,3,USD,6,K,,,S,E,2003-Q2,559.716,A,F,",
+   "Q,F,C,A,TO1,F,5J,A,BR,A,5J,R,3,USD,6,K,,,S,E,2003-Q3,-1976.784,A,F,"
+  ],
+  "lbs_columns": [
+   "FREQ",
+   "L_MEASURE",
+   "L_POSITION",
+   "L_INSTR",
+   "L_DENOM",
+   "L_CURR_TYPE",
+   "L_PARENT_CTY",
+   "L_REP_BANK_TYPE",
+   "L_REP_CTY",
+   "L_CP_SECTOR",
+   "L_CP_COUNTRY",
+   "L_POS_TYPE",
+   "DECIMALS",
+   "UNIT_MEASURE",
+   "UNIT_MULT",
+   "AVAILABILITY",
+   "TITLE_GRP",
+   "TIME_FORMAT",
+   "COLLECTION",
+   "ORG_VISIBILITY",
+   "TIME_PERIOD",
+   "OBS_VALUE",
+   "OBS_STATUS",
+   "OBS_CONF",
+   "OBS_PRE_BREAK"
+  ],
+  "has_usd_dim": true,
+  "usd_row_count_in_sample": 19999,
+  "usd_sample": [
+   "Q,F,C,A,TO1,F,5J,A,BR,A,5J,R,3,USD,6,K,,,S,E,2003-Q1,1643.983,A,F,",
+   "Q,F,C,A,TO1,F,5J,A,BR,A,5J,R,3,USD,6,K,,,S,E,2003-Q2,559.716,A,F,",
+   "Q,F,C,A,TO1,F,5J,A,BR,A,5J,R,3,USD,6,K,,,S,E,2003-Q3,-1976.784,A,F,"
+  ],
+  "live_ladder": {
+   "v1_lbs_csv": {
+    "status": 200,
+    "bytes": 300000,
+    "head": "FREQ,L_MEASURE,L_POSITION,L_INSTR,L_DENOM,L_CURR_TYPE,L_PARENT_CTY,L_REP_BANK_TYPE,L_REP_CTY,L_CP_SECTOR,L_CP_COUNTRY,L_POS_TYPE,DECIMALS,UNIT_MEASURE,UNIT_MULT,AVAILABILITY,TITLE_GRP,TIME_FORMAT,COLLECTION,ORG_VISIBILITY,TIME_PERIOD,OBS_VALUE,OBS_STATUS,OBS_CONF,OBS_PRE_BREAK | Q,F,C,A,TO1,F,5J,A,BR,A,5J,R,3,USD,6,K,,,S,E,2003-Q1,1643.983,A,F, | Q,F,C,A,TO1,F,5J,A,BR,A,5J,R,3,USD,6,K,,,S,E,2003-Q2,55"
+   },
+   "v2_lbs_csv": {
+    "status": "HTTPError:HTTP Error 404: ",
+    "bytes": 0,
+    "head": ""
+   },
+   "v1_lbs_dsd_avail": {
+    "status": 200,
+    "bytes": 1594,
+    "head": "<?xml version=\"1.0\" ?><mes:Structure xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:mes=\"http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message\" xmlns:str=\"http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure\" xmlns:com=\"http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common\"><mes:Header><mes:ID>IREF969132</mes:ID><mes:Test>false</mes:Test><mes:Prepared>2026-08-20T03:35:15"
+   }
+  }
+ },
+ "D": {
+  "ok": false,
+  "status": "HTTPError:HTTP Error 429: Too Many Requests"
+ },
+ "E": {
+  "SOFR30DAYAVG": {
+   "status": "HTTPError:HTTP Error 429: Too Many Requests"
+  },
+  "SOFR90DAYAVG": {
+   "status": "HTTPError:HTTP Error 429: Too Many Requests"
+  },
+  "SOFR180DAYAVG": {
+   "status": "HTTPError:HTTP Error 429: Too Many Requests"
+  },
+  "SOFRINDEX": {
+   "status": "HTTPError:HTTP Error 429: Too Many Requests"
+  },
+  "SOFRVOL": {
+   "status": "HTTPError:HTTP Error 429: Too Many Requests"
+  },
+  "SOFR1": {
+   "status": "HTTPError:HTTP Error 429: Too Many Requests"
+  },
+  "SOFR25": {
+   "status": "HTTPError:HTTP Error 429: Too Many Requests"
+  },
+  "SOFR75": {
+   "status": "HTTPError:HTTP Error 429: Too Many Requests"
+  },
+  "SOFR99": {
+   "status": "HTTPError:HTTP Error 429: Too Many Requests"
+  },
+  "BGCR": {
+   "status": "HTTPError:HTTP Error 429: Too Many Requests"
+  },
+  "TGCR": {
+   "status": "HTTPError:HTTP Error 429: Too Many Requests"
+  },
+  "OBFR": {
+   "status": "HTTPError:HTTP Error 429: Too Many Requests"
+  },
+  "EFFRVOL": {
+   "status": "HTTPError:HTTP Error 429: Too Many Requests"
+  }
+ }
+}
