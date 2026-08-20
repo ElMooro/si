@@ -11,7 +11,8 @@
     "S3_BUCKET": "justhodl-dashboard-live"
   },
   "inherit_env": {
-    "FRED_API_KEY": "dollar-strength-agent"
+    "from_function": "dollar-strength-agent",
+    "keys": ["FRED_API_KEY"]
   },
   "schedule": {
     "name": "justhodl-usd-funding-daily",
