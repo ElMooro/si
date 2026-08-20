@@ -1,0 +1,1201 @@
+{
+ "generated": "2026-08-20T03:42:03.592810+00:00",
+ "op": 4928,
+ "A": {
+  "size_mb": 4.06,
+  "modified": "2026-08-07T05:24:31+00:00",
+  "metadata": {
+   "source": "https://stats.bis.org/api/v1/data/WS_LBS_D_PUB/all/all?format=csv",
+   "truncated": "True"
+  },
+  "columns": [
+   "FREQ",
+   "L_MEASURE",
+   "L_POSITION",
+   "L_INSTR",
+   "L_DENOM",
+   "L_CURR_TYPE",
+   "L_PARENT_CTY",
+   "L_REP_BANK_TYPE",
+   "L_REP_CTY",
+   "L_CP_SECTOR",
+   "L_CP_COUNTRY",
+   "L_POS_TYPE",
+   "DECIMALS",
+   "UNIT_MEASURE",
+   "UNIT_MULT",
+   "AVAILABILITY",
+   "TITLE_GRP",
+   "TIME_FORMAT",
+   "COLLECTION",
+   "ORG_VISIBILITY",
+   "TIME_PERIOD",
+   "OBS_VALUE",
+   "OBS_STATUS",
+   "OBS_CONF",
+   "OBS_PRE_BREAK"
+  ],
+  "rows_total": 648423,
+  "missing_cols": [],
+  "usd_rows": 2517,
+  "code_counts": {
+   "L_DENOM": [
+    [
+     "TO1",
+     266047
+    ],
+    [
+     "CHF",
+     134714
+    ],
+    [
+     "TO3",
+     129525
+    ],
+    [
+     "JPY",
+     53287
+    ],
+    [
+     "UN9",
+     37987
+    ],
+    [
+     "EUR",
+     14931
+    ],
+    [
+     "GBP",
+     9414
+    ],
+    [
+     "USD",
+     2517
+    ]
+   ],
+   "L_POSITION": [
+    [
+     "C",
+     326252
+    ],
+    [
+     "L",
+     322170
+    ]
+   ],
+   "L_MEASURE": [
+    [
+     "F",
+     370242
+    ],
+    [
+     "S",
+     156597
+    ],
+    [
+     "G",
+     76678
+    ],
+    [
+     "B",
+     44905
+    ]
+   ],
+   "L_INSTR": [
+    [
+     "G",
+     397678
+    ],
+    [
+     "A",
+     210299
+    ],
+    [
+     "B",
+     38701
+    ],
+    [
+     "D",
+     1744
+    ]
+   ],
+   "L_CP_SECTOR": [
+    [
+     "A",
+     214093
+    ],
+    [
+     "N",
+     146994
+    ],
+    [
+     "X",
+     71349
+    ],
+    [
+     "B",
+     57619
+    ],
+    [
+     "P",
+     34503
+    ],
+    [
+     "U",
+     30867
+    ],
+    [
+     "C",
+     22726
+    ],
+    [
+     "K",
+     19500
+    ],
+    [
+     "H",
+     19418
+    ],
+    [
+     "I",
+     15352
+    ],
+    [
+     "F",
+     9463
+    ],
+    [
+     "G",
+     6512
+    ]
+   ],
+   "L_REP_CTY": [
+    [
+     "5A",
+     434352
+    ],
+    [
+     "CH",
+     61592
+    ],
+    [
+     "DK",
+     57666
+    ],
+    [
+     "SE",
+     28724
+    ],
+    [
+     "IT",
+     15868
+    ],
+    [
+     "JE",
+     8876
+    ],
+    [
+     "GR",
+     8808
+    ],
+    [
+     "NL",
+     6087
+    ],
+    [
+     "IM",
+     3195
+    ],
+    [
+     "AU",
+     1817
+    ],
+    [
+     "FR",
+     1717
+    ],
+    [
+     "US",
+     1628
+    ]
+   ]
+  },
+  "latest_usd_periods": [
+   "2024-Q4",
+   "2025-Q1",
+   "2025-Q2",
+   "2025-Q3",
+   "2025-Q4",
+   "2026-Q1"
+  ],
+  "usd_samples": [
+   "Q,S,L,A,USD,F,BE,A,5A,A,5J,R,3,USD,6,K,,,E,E,1994-Q2,20.0,A,F,",
+   "Q,S,L,A,USD,F,BE,A,5A,A,5J,R,3,USD,6,K,,,E,E,1994-Q3,75.0,A,F,",
+   "Q,S,L,A,USD,F,BE,A,5A,A,5J,R,3,USD,6,K,,,E,E,1994-Q4,699.0,A,F,",
+   "Q,S,L,A,USD,F,BE,A,5A,A,5J,R,3,USD,6,K,,,E,E,1995-Q1,10147.0,A,F,"
+  ],
+  "bis_codes": {
+   "L_DENOM": [
+    "CHF",
+    "EUR",
+    "GBP",
+    "JPY",
+    "TO1",
+    "TO3",
+    "UN9",
+    "USD"
+   ],
+   "L_POSITION": [
+    "C",
+    "L"
+   ],
+   "L_MEASURE": [
+    "B",
+    "F",
+    "G",
+    "S"
+   ]
+  }
+ },
+ "B": {
+  "releases": {
+   "H8": {
+    "id": 22,
+    "name": "H.8 Assets and Liabilities of Commercial Banks in the United States"
+   },
+   "CP": {
+    "id": 86,
+    "name": "Commercial Paper"
+   }
+  },
+  "series": {
+   "H8": {
+    "release_series": 1000,
+    "matched": [
+     {
+      "id": "DPSACBW027SBOG",
+      "title": "Deposits, All Commercial Banks",
+      "freq": "W",
+      "units": "Bil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:29:33-05",
+      "pop": 68
+     },
+     {
+      "id": "DPSACBM027NBOG",
+      "title": "Deposits, All Commercial Banks",
+      "freq": "M",
+      "units": "Bil. of U.S. $",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:20:36-05",
+      "pop": 38
+     },
+     {
+      "id": "DPSACBW027NBOG",
+      "title": "Deposits, All Commercial Banks",
+      "freq": "W",
+      "units": "Bil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:20:53-05",
+      "pop": 30
+     },
+     {
+      "id": "DPSACBM027SBOG",
+      "title": "Deposits, All Commercial Banks",
+      "freq": "M",
+      "units": "Bil. of U.S. $",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:28:23-05",
+      "pop": 30
+     },
+     {
+      "id": "H8B1058NCBCMG",
+      "title": "Deposits, All Commercial Banks",
+      "freq": "M",
+      "units": "% Chg. at Annual Rate",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:18:22-05",
+      "pop": 25
+     },
+     {
+      "id": "ODSACBW027SBOG",
+      "title": "Other Deposits, All Commercial Banks",
+      "freq": "W",
+      "units": "Bil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:27:49-05",
+      "pop": 23
+     },
+     {
+      "id": "DPSACBQ158SBOG",
+      "title": "Deposits, All Commercial Banks",
+      "freq": "Q",
+      "units": "% Chg. at Annual Rate",
+      "end": "2026-04-01",
+      "updated": "2026-07-10 15:36:04-05",
+      "pop": 20
+     },
+     {
+      "id": "LTDACBM027NBOG",
+      "title": "Large Time Deposits, All Commercial Banks",
+      "freq": "M",
+      "units": "Bil. of U.S. $",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:34:27-05",
+      "pop": 16
+     },
+     {
+      "id": "H8B3094NCBA",
+      "title": "Borrowings, All Commercial Banks",
+      "freq": "W",
+      "units": "Mil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:24:29-05",
+      "pop": 15
+     },
+     {
+      "id": "NDFACBW027SBOG",
+      "title": "Net Due to Related Foreign Offices, All Commercial Banks",
+      "freq": "W",
+      "units": "Bil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:29:32-05",
+      "pop": 12
+     },
+     {
+      "id": "LTDACBW027SBOG",
+      "title": "Large Time Deposits, All Commercial Banks",
+      "freq": "W",
+      "units": "Bil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:18:11-05",
+      "pop": 11
+     },
+     {
+      "id": "H8B3094NCBD",
+      "title": "Borrowings, All Commercial Banks",
+      "freq": "W",
+      "units": "Mil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:25:44-05",
+      "pop": 9
+     },
+     {
+      "id": "LTDACBM027SBOG",
+      "title": "Large Time Deposits, All Commercial Banks",
+      "freq": "M",
+      "units": "Bil. of U.S. $",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:40:22-05",
+      "pop": 9
+     },
+     {
+      "id": "NDFFRIM027SBOG",
+      "title": "Net Due to Related Foreign Offices, Foreign-Related Institutions",
+      "freq": "M",
+      "units": "Bil. of U.S. $",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:33:26-05",
+      "pop": 8
+     },
+     {
+      "id": "H8B3094NSMA",
+      "title": "Borrowings, Small Domestically Chartered Commercial Banks",
+      "freq": "W",
+      "units": "Mil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:23:18-05",
+      "pop": 7
+     },
+     {
+      "id": "H8B1058NCBCAG",
+      "title": "Deposits, All Commercial Banks",
+      "freq": "A",
+      "units": "% Chg. at Annual Rate",
+      "end": "2025-01-01",
+      "updated": "2026-07-02 15:26:03-05",
+      "pop": 7
+     },
+     {
+      "id": "H8B1072NCBCMG",
+      "title": "Large Time Deposits, All Commercial Banks",
+      "freq": "M",
+      "units": "% Chg. at Annual Rate",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:23:25-05",
+      "pop": 5
+     },
+     {
+      "id": "ODSACBW027NBOG",
+      "title": "Other Deposits, All Commercial Banks",
+      "freq": "W",
+      "units": "Bil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:19:06-05",
+      "pop": 5
+     },
+     {
+      "id": "H8B3094NLGA",
+      "title": "Borrowings, Large Domestically Chartered Commercial Banks",
+      "freq": "W",
+      "units": "Mil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:18:23-05",
+      "pop": 4
+     },
+     {
+      "id": "LTDACBW027NBOG",
+      "title": "Large Time Deposits, All Commercial Banks",
+      "freq": "W",
+      "units": "Bil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:34:07-05",
+      "pop": 4
+     },
+     {
+      "id": "H8B1072NDMCMG",
+      "title": "Large Time Deposits, Domestically Chartered Commercial Banks",
+      "freq": "M",
+      "units": "% Chg. at Annual Rate",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:23:15-05",
+      "pop": 4
+     },
+     {
+      "id": "LTDSCBW027SBOG",
+      "title": "Large Time Deposits, Small Domestically Chartered Commercial Banks",
+      "freq": "W",
+      "units": "Bil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:26:22-05",
+      "pop": 4
+     },
+     {
+      "id": "NDFLCBM027SBOG",
+      "title": "Net Due to Related Foreign Offices, Large Domestically Chartered Commercial Banks",
+      "freq": "M",
+      "units": "Bil. of U.S. $",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:36:36-05",
+      "pop": 3
+     },
+     {
+      "id": "NDFACBW027NBOG",
+      "title": "Net Due to Related Foreign Offices, All Commercial Banks",
+      "freq": "W",
+      "units": "Bil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:29:36-05",
+      "pop": 3
+     },
+     {
+      "id": "LTDLCBW027SBOG",
+      "title": "Large Time Deposits, Large Domestically Chartered Commercial Banks",
+      "freq": "W",
+      "units": "Bil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:27:12-05",
+      "pop": 3
+     },
+     {
+      "id": "H8B3094NCBAM",
+      "title": "Borrowings, All Commercial Banks",
+      "freq": "M",
+      "units": "Mil. of U.S. $",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:23:42-05",
+      "pop": 3
+     },
+     {
+      "id": "NDFFRIW027NBOG",
+      "title": "Net Due to Related Foreign Offices, Foreign-Related Institutions",
+      "freq": "W",
+      "units": "Bil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:33:28-05",
+      "pop": 2
+     },
+     {
+      "id": "H8B3094NSMAM",
+      "title": "Borrowings, Small Domestically Chartered Commercial Banks",
+      "freq": "M",
+      "units": "Mil. of U.S. $",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:23:55-05",
+      "pop": 2
+     },
+     {
+      "id": "ODSSCBW027SBOG",
+      "title": "Other Deposits, Small Domestically Chartered Commercial Banks",
+      "freq": "W",
+      "units": "Bil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:40:25-05",
+      "pop": 2
+     },
+     {
+      "id": "H8B1072NCBCAG",
+      "title": "Large Time Deposits, All Commercial Banks",
+      "freq": "A",
+      "units": "% Chg. at Annual Rate",
+      "end": "2025-01-01",
+      "updated": "2026-07-02 15:33:50-05",
+      "pop": 2
+     },
+     {
+      "id": "NDFFRIW027SBOG",
+      "title": "Net Due to Related Foreign Offices, Foreign-Related Institutions",
+      "freq": "W",
+      "units": "Bil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:36:34-05",
+      "pop": 2
+     },
+     {
+      "id": "LTDACBQ158SBOG",
+      "title": "Large Time Deposits, All Commercial Banks",
+      "freq": "Q",
+      "units": "% Chg. at Annual Rate",
+      "end": "2026-04-01",
+      "updated": "2026-08-14 15:36:59-05",
+      "pop": 2
+     },
+     {
+      "id": "ODSACBM027NBOG",
+      "title": "Other Deposits, All Commercial Banks",
+      "freq": "M",
+      "units": "Bil. of U.S. $",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:26:04-05",
+      "pop": 2
+     },
+     {
+      "id": "LTDDCBW027NBOG",
+      "title": "Large Time Deposits, Domestically Chartered Commercial Banks",
+      "freq": "W",
+      "units": "Bil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:18:40-05",
+      "pop": 2
+     },
+     {
+      "id": "H8B3094NCBCMG",
+      "title": "Borrowings, All Commercial Banks",
+      "freq": "M",
+      "units": "% Chg. at Annual Rate",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:26:03-05",
+      "pop": 2
+     },
+     {
+      "id": "H8B3094NSMCMG",
+      "title": "Borrowings, Small Domestically Chartered Commercial Banks",
+      "freq": "M",
+      "units": "% Chg. at Annual Rate",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:24:03-05",
+      "pop": 2
+     },
+     {
+      "id": "H8B3094NLGD",
+      "title": "Borrowings, Large Domestically Chartered Commercial Banks",
+      "freq": "W",
+      "units": "Mil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:20:45-05",
+      "pop": 1
+     },
+     {
+      "id": "H8B1110NDMCMG",
+      "title": "Other Deposits, Domestically Chartered Commercial Banks",
+      "freq": "M",
+      "units": "% Chg. at Annual Rate",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:18:42-05",
+      "pop": 1
+     },
+     {
+      "id": "LTDLCBM027SBOG",
+      "title": "Large Time Deposits, Large Domestically Chartered Commercial Banks",
+      "freq": "M",
+      "units": "Bil. of U.S. $",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:23:45-05",
+      "pop": 1
+     },
+     {
+      "id": "ODSACBM027SBOG",
+      "title": "Other Deposits, All Commercial Banks",
+      "freq": "M",
+      "units": "Bil. of U.S. $",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:28:27-05",
+      "pop": 1
+     },
+     {
+      "id": "H8B1110NCBCMG",
+      "title": "Other Deposits, All Commercial Banks",
+      "freq": "M",
+      "units": "% Chg. at Annual Rate",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:18:50-05",
+      "pop": 1
+     },
+     {
+      "id": "H8B3094NSMD",
+      "title": "Borrowings, Small Domestically Chartered Commercial Banks",
+      "freq": "W",
+      "units": "Mil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:23:33-05",
+      "pop": 1
+     },
+     {
+      "id": "H8B3094NFRA",
+      "title": "Borrowings, Foreign-Related Institutions",
+      "freq": "W",
+      "units": "Mil. of U.S. $",
+      "end": "2026-08-05",
+      "updated": "2026-08-14 15:29:27-05",
+      "pop": 1
+     },
+     {
+      "id": "H8B3094NCBDM",
+      "title": "Borrowings, All Commercial Banks",
+      "freq": "M",
+      "units": "Mil. of U.S. $",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:28:36-05",
+      "pop": 1
+     },
+     {
+      "id": "NDFACBM027NBOG",
+      "title": "Net Due to Related Foreign Offices, All Commercial Banks",
+      "freq": "M",
+      "units": "Bil. of U.S. $",
+      "end": "2026-07-01",
+      "updated": "2026-08-14 15:28:26-05",
+      "pop": 1
+     }
+    ]
+   },
+   "CP": {
+    "release_series": 202,
+    "matched": [
+     {
+      "id": "RIFSPPFAAD90NB",
+      "title": "90-Day AA Financial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:39-05",
+      "pop": 53
+     },
+     {
+      "id": "COMPOUT",
+      "title": "Commercial Paper Outstanding",
+      "freq": "W",
+      "units": "Bil. of $",
+      "end": "2026-08-12",
+      "updated": "2026-08-13 12:01:28-05",
+      "pop": 45
+     },
+     {
+      "id": "ABCOMP",
+      "title": "Asset-Backed Commercial Paper Outstanding",
+      "freq": "W",
+      "units": "Bil. of $",
+      "end": "2026-08-12",
+      "updated": "2026-08-13 12:01:23-05",
+      "pop": 35
+     },
+     {
+      "id": "RIFSPPAAAD90NB",
+      "title": "90-Day AA Asset-Backed Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:44-05",
+      "pop": 34
+     },
+     {
+      "id": "RIFSPPNA2P2D90NB",
+      "title": "90-Day A2/P2 Nonfinancial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-10",
+      "updated": "2026-08-11 12:01:38-05",
+      "pop": 33
+     },
+     {
+      "id": "RIFSPPNA2P2D30NB",
+      "title": "30-Day A2/P2 Nonfinancial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:41-05",
+      "pop": 28
+     },
+     {
+      "id": "RIFSPPNAAD30NB",
+      "title": "30-Day AA Nonfinancial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:42-05",
+      "pop": 27
+     },
+     {
+      "id": "RIFSPPNAAD90NB",
+      "title": "90-Day AA Nonfinancial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:22-05",
+      "pop": 21
+     },
+     {
+      "id": "FINCPN",
+      "title": "Financial Commercial Paper Outstanding",
+      "freq": "W",
+      "units": "Bil. of $",
+      "end": "2026-08-12",
+      "updated": "2026-08-13 12:01:30-05",
+      "pop": 20
+     },
+     {
+      "id": "RIFSPPFAAD07NB",
+      "title": "7-Day AA Financial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-14",
+      "updated": "2026-08-17 12:02:00-05",
+      "pop": 18
+     },
+     {
+      "id": "RIFSPPNA2P2D01NB",
+      "title": "Overnight A2/P2 Nonfinancial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:35-05",
+      "pop": 17
+     },
+     {
+      "id": "RIFSPPAAAD30NB",
+      "title": "30-Day AA Asset-Backed Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:36-05",
+      "pop": 17
+     },
+     {
+      "id": "RIFSPPFAAD01NB",
+      "title": "Overnight AA Financial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:44-05",
+      "pop": 15
+     },
+     {
+      "id": "COMPAPER",
+      "title": "Nonfinancial Commercial Paper Outstanding",
+      "freq": "W",
+      "units": "Bil. of $",
+      "end": "2026-08-12",
+      "updated": "2026-08-13 12:01:26-05",
+      "pop": 15
+     },
+     {
+      "id": "RIFSPPNAAD01NB",
+      "title": "Overnight AA Nonfinancial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:40-05",
+      "pop": 15
+     },
+     {
+      "id": "RIFSPPNA2P2D07NB",
+      "title": "7-Day A2/P2 Nonfinancial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:45-05",
+      "pop": 14
+     },
+     {
+      "id": "RIFSPPFAAD30NB",
+      "title": "30-Day AA Financial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-12",
+      "updated": "2026-08-13 12:01:47-05",
+      "pop": 14
+     },
+     {
+      "id": "FINCP",
+      "title": "Financial Commercial Paper Outstanding",
+      "freq": "W",
+      "units": "Bil. of $",
+      "end": "2026-08-12",
+      "updated": "2026-08-13 12:01:28-05",
+      "pop": 13
+     },
+     {
+      "id": "DTBSPCKM",
+      "title": "Commercial Paper Outstanding",
+      "freq": "M",
+      "units": "Mil. of $",
+      "end": "2026-07-01",
+      "updated": "2026-08-06 12:01:31-05",
+      "pop": 13
+     },
+     {
+      "id": "DTBSPCKANM",
+      "title": "Asset-Backed Commercial Paper Outstanding",
+      "freq": "M",
+      "units": "Mil. of $",
+      "end": "2026-07-01",
+      "updated": "2026-08-06 12:01:33-05",
+      "pop": 13
+     },
+     {
+      "id": "COMPUTN",
+      "title": "Commercial Paper Outstanding",
+      "freq": "W",
+      "units": "Bil. of $",
+      "end": "2026-08-12",
+      "updated": "2026-08-13 12:01:29-05",
+      "pop": 12
+     },
+     {
+      "id": "NFINCP",
+      "title": "Nonfinancial Commercial Paper Outstanding",
+      "freq": "W",
+      "units": "Bil. of $",
+      "end": "2026-08-12",
+      "updated": "2026-08-13 12:01:48-05",
+      "pop": 12
+     },
+     {
+      "id": "FIN14AAAMT",
+      "title": "Total Value of Issues, with a Maturity Between 1 and 4 Days, Used in Calculating the AA Financial Commercial Paper Rates",
+      "freq": "D",
+      "units": "Mil. of $",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:31-05",
+      "pop": 9
+     },
+     {
+      "id": "RIFSPPFAAD60NB",
+      "title": "60-Day AA Financial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-14",
+      "updated": "2026-08-17 12:02:06-05",
+      "pop": 9
+     },
+     {
+      "id": "RIFSPPNAAD07NB",
+      "title": "7-Day AA Nonfinancial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:44-05",
+      "pop": 9
+     },
+     {
+      "id": "ABCOMPN",
+      "title": "Asset-Backed Commercial Paper Outstanding",
+      "freq": "W",
+      "units": "Bil. of $",
+      "end": "2026-08-12",
+      "updated": "2026-08-13 12:01:36-05",
+      "pop": 9
+     },
+     {
+      "id": "DTBSPCKCT2NM",
+      "title": "Commercial Paper Outstanding, Tier-2",
+      "freq": "M",
+      "units": "Mil. of $",
+      "end": "2026-07-01",
+      "updated": "2026-08-06 12:01:55-05",
+      "pop": 7
+     },
+     {
+      "id": "RIFSPPAAAD60NB",
+      "title": "60-Day AA Asset-Backed Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:45-05",
+      "pop": 7
+     },
+     {
+      "id": "RIFSPPNAAD60NB",
+      "title": "60-Day AA Nonfinancial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:19-05",
+      "pop": 7
+     },
+     {
+      "id": "RIFSPPAAAD01NB",
+      "title": "Overnight AA Asset-Backed Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:41-05",
+      "pop": 7
+     },
+     {
+      "id": "DFINCP",
+      "title": "Domestic Financial Commercial Paper Outstanding",
+      "freq": "W",
+      "units": "Bil. of $",
+      "end": "2026-08-12",
+      "updated": "2026-08-13 12:01:32-05",
+      "pop": 7
+     },
+     {
+      "id": "RIFSPPAAAD07NB",
+      "title": "7-Day AA Asset-Backed Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:31-05",
+      "pop": 6
+     },
+     {
+      "id": "DTBSPCKNMM",
+      "title": "Commercial Paper Outstanding",
+      "freq": "M",
+      "units": "Mil. of $",
+      "end": "2026-07-01",
+      "updated": "2026-08-03 12:01:55-05",
+      "pop": 5
+     },
+     {
+      "id": "RIFSPPFAAD15NB",
+      "title": "15-Day AA Financial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-07-30",
+      "updated": "2026-07-31 12:03:04-05",
+      "pop": 5
+     },
+     {
+      "id": "DTBSPCKAM",
+      "title": "Asset-Backed Commercial Paper Outstanding",
+      "freq": "M",
+      "units": "Mil. of $",
+      "end": "2026-07-01",
+      "updated": "2026-08-06 12:01:53-05",
+      "pop": 5
+     },
+     {
+      "id": "DTBSPCKNYRENDWW",
+      "title": "Commercial Paper Outstanding; Maturing After December 31",
+      "freq": "W",
+      "units": "Mil. of $",
+      "end": "2025-12-31",
+      "updated": "2026-08-06 12:01:48-05",
+      "pop": 4
+     },
+     {
+      "id": "DNFINCP",
+      "title": "Domestic Nonfinancial Commercial Paper Outstanding",
+      "freq": "W",
+      "units": "Bil. of $",
+      "end": "2026-08-12",
+      "updated": "2026-08-13 12:01:31-05",
+      "pop": 4
+     },
+     {
+      "id": "DTBSPCKCT1NWW",
+      "title": "Commercial Paper Outstanding, Tier-1",
+      "freq": "W",
+      "units": "Mil. of $",
+      "end": "2026-08-12",
+      "updated": "2026-08-13 12:01:45-05",
+      "pop": 4
+     },
+     {
+      "id": "RIFSPPNAAD15NB",
+      "title": "15-Day AA Nonfinancial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-17",
+      "updated": "2026-08-18 12:01:42-05",
+      "pop": 4
+     },
+     {
+      "id": "RIFSPPNA2P2D60NB",
+      "title": "60-Day A2/P2 Nonfinancial Commercial Paper Interest Rate",
+      "freq": "D",
+      "units": "%",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:46-05",
+      "pop": 4
+     },
+     {
+      "id": "FINGT80AAAMT",
+      "title": "Total Value of Issues, with a Maturity Greater Than 80 Days, Used in Calculating the AA Financial Commercial Paper Rates",
+      "freq": "D",
+      "units": "Mil. of $",
+      "end": "2026-08-18",
+      "updated": "2026-08-19 12:01:33-05",
+      "pop": 4
+     },
+     {
+      "id": "DTBSPCKFM",
+      "title": "Financial Commercial Paper Outstanding",
+      "freq": "M",
+      "units": "Mil. of $",
+      "end": "2026-07-01",
+      "updated": "2026-08-06 12:01:26-05",
+      "pop": 4
+     },
+     {
+      "id": "DTBSPCKCT2NWW",
+      "title": "Commercial Paper Outstanding, Tier-2",
+      "freq": "W",
+      "units": "Mil. of $",
+      "end": "2026-08-12",
+      "updated": "2026-08-13 12:01:34-05",
+      "pop": 4
+     },
+     {
+      "id": "DTBSPCKCT1NM",
+      "title": "Commercial Paper Outstanding, Tier-1",
+      "freq": "M",
+      "units": "Mil. of $",
+      "end": "2026-07-01",
+      "updated": "2026-08-03 12:01:38-05",
+      "pop": 4
+     },
+     {
+      "id": "DTBSPCKNM",
+      "title": "Nonfinancial Commercial Paper Outstanding",
+      "freq": "M",
+      "units": "Mil. of $",
+      "end": "2026-07-01",
+      "updated": "2026-08-06 12:01:41-05",
+      "pop": 4
+     }
+    ]
+   }
+  },
+  "sofr_term": {
+   "SOFR30DAYAVG": {
+    "alive": true,
+    "title": "30-Day Average SOFR",
+    "freq": "D",
+    "units": "%",
+    "end": "2026-08-19",
+    "updated": "2026-08-19 07:02:23-05"
+   },
+   "SOFR90DAYAVG": {
+    "alive": true,
+    "title": "90-Day Average SOFR",
+    "freq": "D",
+    "units": "%",
+    "end": "2026-08-19",
+    "updated": "2026-08-19 07:02:20-05"
+   },
+   "SOFR180DAYAVG": {
+    "alive": true,
+    "title": "180-Day Average SOFR",
+    "freq": "D",
+    "units": "%",
+    "end": "2026-08-19",
+    "updated": "2026-08-19 07:02:23-05"
+   },
+   "SOFRINDEX": {
+    "alive": true,
+    "title": "SOFR Index",
+    "freq": "D",
+    "units": "Index Apr 2, 2018 = 1",
+    "end": "2026-08-19",
+    "updated": "2026-08-19 07:02:23-05"
+   },
+   "SOFRVOL": {
+    "alive": true,
+    "title": "Secured Overnight Financing Volume",
+    "freq": "D",
+    "units": "Bil. of U.S. $",
+    "end": "2026-08-18",
+    "updated": "2026-08-19 07:02:21-05"
+   },
+   "SOFR1": {
+    "alive": true,
+    "title": "Secured Overnight Financing Rate: 1st Percentile",
+    "freq": "D",
+    "units": "%",
+    "end": "2026-08-18",
+    "updated": "2026-08-19 07:02:22-05"
+   },
+   "SOFR25": {
+    "alive": true,
+    "title": "Secured Overnight Financing Rate: 25th Percentile",
+    "freq": "D",
+    "units": "%",
+    "end": "2026-08-18",
+    "updated": "2026-08-19 07:02:22-05"
+   },
+   "SOFR75": {
+    "alive": true,
+    "title": "Secured Overnight Financing Rate: 75th Percentile",
+    "freq": "D",
+    "units": "%",
+    "end": "2026-08-18",
+    "updated": "2026-08-19 07:02:23-05"
+   },
+   "SOFR99": {
+    "alive": true,
+    "title": "Secured Overnight Financing Rate: 99th Percentile",
+    "freq": "D",
+    "units": "%",
+    "end": "2026-08-18",
+    "updated": "2026-08-19 07:02:22-05"
+   },
+   "BGCR": {
+    "alive": false,
+    "err": "HTTP 400"
+   },
+   "TGCR": {
+    "alive": false,
+    "err": "HTTP 400"
+   },
+   "BGCRVOL": {
+    "alive": false,
+    "err": "HTTP 400"
+   },
+   "TGCRVOL": {
+    "alive": false,
+    "err": "HTTP 400"
+   },
+   "OBFRVOL": {
+    "alive": true,
+    "title": "Overnight Bank Funding Volume",
+    "freq": "D",
+    "units": "Bil. of U.S. $",
+    "end": "2026-08-18",
+    "updated": "2026-08-19 08:02:28-05"
+   },
+   "EFFRVOL": {
+    "alive": true,
+    "title": "Effective Federal Funds Volume",
+    "freq": "D",
+    "units": "Bil. of U.S. $",
+    "end": "2026-08-18",
+    "updated": "2026-08-19 08:02:28-05"
+   }
+  },
+  "fred_calls": 18
+ }
+}
