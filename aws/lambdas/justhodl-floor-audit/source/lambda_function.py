@@ -40,7 +40,7 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
-VERSION = "2.1.0"
+VERSION = "2.1.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/floor-audit.json"
 CFG_KEY = "data/floor-audit/config.json"
@@ -1307,6 +1307,7 @@ def audit_ticker(tk, cik, cfg, crypto, backlog, notes):
         "runway_months": rw_m, "runway_state": rw_state,
         "durability_score": dur_score, "durability_flags": dur_flags,
         "asset_quality_score": qual, "premium_to_nav": premium,
+        "debt_bound": debt_bound, "adv_usd_20d": adv_usd,
         "recommendation": rec,
         "last_close": last_close, "price_asof": dts[-1],
         "mcap_usd": round(mcap, 2),

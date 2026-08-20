@@ -517,6 +517,18 @@ check("a real treasury premium still REDUCEs",
 check("missing ADV data never invents a liquidity problem",
       R2(adv_usd=None)["action"] == "BUY")
 
+print("== 15. record contract (field-level G0 on the source) ==")
+_src = open(SRC_PATH).read() if "SRC_PATH" in dir() else open(
+    "aws/lambdas/justhodl-floor-audit/source/lambda_function.py").read()
+_rec = _src[_src.index('        "status": "OK", "ticker": tk'):]
+_rec = _rec[:_rec.index("def lambda_handler")]
+for _f in ("adv_usd_20d", "debt_bound", "recommendation", "cap_tier",
+           "durability_score", "runway_months", "asset_quality_score",
+           "premium_to_nav", "dilution_yoy"):
+    check("record dict carries %s (ops 4925: a silent replace-miss "
+          "left it in why_block only, and every consumer read blank)"
+          % _f, ('"%s"' % _f) in _rec)
+
 print()
 if FAIL:
     print("HARNESS RED: %d failures: %s" % (len(FAIL), FAIL))
