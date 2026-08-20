@@ -437,6 +437,7 @@ def parse_infotable(xml_text: str):
     cleaned = re.sub(r'\s+\w+:\w+="[^"]*"', "", cleaned)
 
     positions = []
+    _unit_votes = []          # ops 4937: filing-wide units vote
     try:
         root = ET.fromstring(cleaned)
     except ET.ParseError as e:
@@ -463,22 +464,25 @@ def parse_infotable(xml_text: str):
             # the implied per-share price.
             value_int = int(float(value_str))
             shares_int = int(float(shares))
-            value_usd = value_int   # default: dollars
+            # ops 4937: units are a property of the FILING, not the row.
+            # Deciding per row let odd share counts flip the guess, so a
+            # handful of rows in an otherwise-dollars filing got x1000
+            # (GOSS $2.6B on a ~$300M cap, XRX $4.1B, HTZ $8.6B). The
+            # per-row vote is now COLLECTED here and applied to the whole
+            # filing after the loop, by majority.
+            value_usd = value_int   # provisional; re-decided post-loop
             if shares_int > 0 and value_int > 0:
-                price_if_thousands = (value_int * 1000) / shares_int
-                price_if_dollars = value_int / shares_int
-                t_plausible = 0.5 <= price_if_thousands <= 5000
-                d_plausible = 0.5 <= price_if_dollars <= 5000
-                if t_plausible and not d_plausible:
-                    value_usd = value_int * 1000
-                elif d_plausible and t_plausible:
-                    # Both plausible — pick whichever yields a price closer to $50
-                    # (typical median equity price). Most legitimate $0.50-$50
-                    # are large-cap stocks so we lean dollar.
-                    if abs(price_if_dollars - 50) < abs(price_if_thousands - 50):
-                        value_usd = value_int
-                    else:
-                        value_usd = value_int * 1000
+                _pt = (value_int * 1000) / shares_int
+                _pd = value_int / shares_int
+                _t_ok = 0.5 <= _pt <= 5000
+                _d_ok = 0.5 <= _pd <= 5000
+                if _t_ok and not _d_ok:
+                    _unit_votes.append(1000)
+                elif _d_ok and not _t_ok:
+                    _unit_votes.append(1)
+                elif _d_ok and _t_ok:
+                    _unit_votes.append(
+                        1 if abs(_pd - 50) < abs(_pt - 50) else 1000)
 
             if not name or not cusip:
                 continue
@@ -501,6 +505,17 @@ def parse_infotable(xml_text: str):
         "value_usd": 0, "shares": 0, "share_type": "SH",
         "put_call": None,
     })
+    # ops 4937: apply ONE units decision to the whole filing. Majority of
+    # the per-row votes wins; ties and empty votes fall back to dollars
+    # (the SEC post-2023 norm). This is what kills the x1000 outliers —
+    # a filing is either in thousands or it is not.
+    if _unit_votes:
+        _mult = 1000 if _unit_votes.count(1000) > _unit_votes.count(1) else 1
+    else:
+        _mult = 1
+    if _mult != 1:
+        for _p in positions:
+            _p["value_usd"] = _p["value_usd"] * _mult
     for p in positions:
         key = (p["cusip"], p.get("put_call") or "")  # ops 3279c
         agg = by_cusip[key]
@@ -979,11 +994,69 @@ def _sec_titles(m):
         return sec.get("byname") or {}
 
 
+# ── ops 4937 ────────────────────────────────────────────────────────
+SRC_RANK = {"sec": 3, "figi": 2, "fmp": 1}      # authority, high wins
+
+
+def _purge_collisions(m):
+    """A ticker may be claimed by exactly ONE cusip. Anything else is a
+    resolution error.
+
+    Why this exists: ops 4936 tightened the FMP fallback so NEW lookups
+    can't invent a ticker, but the persisted map is cusip-keyed and the
+    resolver skips any cusip that already carries a ticker
+    (`if e.get("ticker") and src != "fmp-loose": continue`). Every wrong
+    answer the old loose ladder ever wrote was therefore FROZEN IN
+    FOREVER. Live proof on 2026-08-20, one page: ticker CPAY rendered as
+    F N B Corp, PG&E, SLM and The ODP Corp; ORCL rendered as Elevance;
+    ICLN rendered as Invesco QQQ and manufactured a phantom -$23.80B
+    "most sold" row.
+
+    Resolution: keep the single most authoritative claimant
+    (sec > figi > fmp; ties broken by the longer/more specific name),
+    demote every other claimant to unresolved so the next pass re-reads
+    it from SEC/OpenFIGI. An unresolved cusip is honest; a confidently
+    wrong ticker ranks on a board and gets traded.
+    """
+    by_t = {}
+    for cu, e in m.items():
+        if not isinstance(e, dict):
+            continue
+        t = (e.get("ticker") or "").upper()
+        if t:
+            by_t.setdefault(t, []).append(cu)
+    purged = 0
+    for t, cus in by_t.items():
+        if len(cus) < 2:
+            continue
+        cus.sort(key=lambda c: (SRC_RANK.get(m[c].get("src"), 0),
+                                len(m[c].get("name") or "")), reverse=True)
+        for c in cus[1:]:
+            m[c] = {"ticker": None, "name": m[c].get("name"),
+                    "src": "purged-collision", "tried_at": 0}
+            purged += 1
+    if purged:
+        print(f"  ops4937 purge: {purged} colliding cusips demoted "
+              f"across {sum(1 for v in by_t.values() if len(v) > 1)} tickers")
+    return m
+
+
+def _assert_no_collisions(m):
+    """Post-resolution invariant. Returns {ticker: [cusips]} for any
+    ticker still claimed twice — must be empty."""
+    by_t = {}
+    for cu, e in m.items():
+        if isinstance(e, dict) and (e.get("ticker") or ""):
+            by_t.setdefault(e["ticker"].upper(), []).append(cu)
+    return {t: c for t, c in by_t.items() if len(c) > 1}
+
+
 def resolve_missing_tickers(fund_results, budget=150):
     """ops 3278b/c: SEC-first authoritative resolution, FMP strict
     tier-2, persisted map with self-healing src upgrades."""
     import time as _t
     m = get_s3_json(CUSIP_MAP_KEY) or {}
+    m = _purge_collisions(m)          # ops 4937 — see below
     sec = _sec_titles(m)
     now = _t.time()
     fresh = 0
@@ -1085,6 +1158,22 @@ def resolve_missing_tickers(fund_results, budget=150):
             else:
                 m[cu] = {"ticker": None, "name": nm,
                          "src": "fmp-strict-miss", "tried_at": now}
+    # ops 4937: a fresh lookup inside THIS run can re-create a collision
+    # against an entry the purge already kept, so enforce the invariant
+    # again immediately before persisting, then publish the residual.
+    m = _purge_collisions(m)
+    _resid = _assert_no_collisions(m)
+    globals()["_LAST_COLLISIONS"] = _resid
+    if _resid:
+        print(f"  ops4937 WARN residual collisions: {list(_resid)[:8]}")
+    # positions that pointed at a demoted cusip must drop the stale ticker
+    for fd in fund_results:
+        for pos in fd.get("positions", []) or []:
+            cu = pos.get("cusip")
+            e = m.get(cu) if cu else None
+            if isinstance(e, dict) and not e.get("ticker") and pos.get("ticker"):
+                if e.get("src") == "purged-collision":
+                    pos["ticker"] = None
     try:
         put_s3_json(CUSIP_MAP_KEY, m)
     except Exception:
@@ -1112,6 +1201,7 @@ def _scrub_sets(by_ticker):
     for a in by_ticker.values():
         a.pop("_fund_set", None)
         a.pop("_act_set", None)
+        a.pop("_exit_set", None)          # ops 4937
     return by_ticker
 
 
@@ -1198,7 +1288,13 @@ def aggregate_by_ticker(fund_results):
                     "fund_actions": [],
                     "bought_usd": 0, "sold_usd": 0,   # ops 3295
                 }
-            by_ticker[tkr]["n_funds_exiting"] += 1
+            # ops 4937: DISTINCT funds. 4936 deduped the positions loop but
+            # NOT this one, so the spotlight still printed "Citadel
+            # Advisors, Citadel Advisors" for a multi-lot exit.
+            _ex = by_ticker[tkr].setdefault("_exit_set", set())
+            if fund_key not in _ex:
+                _ex.add(fund_key)
+                by_ticker[tkr]["n_funds_exiting"] += 1
             by_ticker[tkr]["fund_actions"].append({
                 "fund": fund_key,
                 "fund_name": FUND_DISPLAY_NAMES.get(fund_key, fund_key),
@@ -1826,6 +1922,9 @@ def lambda_handler(event, context):
         "as_of_quarter": _headline_quarter(successful),
         "roster_periods": {f.get("fund_key"): f.get("period_of_report")
                            for f in successful},
+        # ops 4937: measured invariant, not a claim. Empty == one ticker
+        # is claimed by exactly one cusip across the whole map.
+        "cusip_collisions": globals().get("_LAST_COLLISIONS") or {},
         "stale_funds": [
             {"fund_key": f.get("fund_key"),
              "period_of_report": f.get("period_of_report")}
