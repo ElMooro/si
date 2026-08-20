@@ -60,6 +60,10 @@ h1{font-size:20px;font-weight:700;}h1 .s{color:var(--fg3);font-weight:400;font-s
 <div class="sec">The funding board · green normal · yellow watch · red stress</div>
 <div id="layers" class="grid"></div>
 
+<div class="sec">Offshore-USD funding · the feeds this board did not carry</div>
+<!-- usd-funding-panel-v2 ops4935 -->
+<div id="usdf" style="display:none;margin:6px 0 18px;padding:14px;background:var(--c1);border:1px solid var(--bd);border-radius:12px;font-family:var(--mono);font-size:12px"></div>
+
 <div id="jh-biscb" style="margin:18px 0;padding:14px;background:#10151d;border:1px solid #1c2330;border-radius:12px;font-family:ui-monospace,Menlo,monospace;font-size:12px"></div>
 <script>/* ops 3656: BIS cross-border card */
 (async function(){try{
@@ -157,6 +161,105 @@ const VCOL={'FUNCTIONING':'var(--green)','MILD STRAIN':'var(--gold)','STRAINED':
    +'<div style="font-size:10px;color:var(--text-muted,#777);margin-top:8px">direct model inputs \u00b7 series fusion \u00b7 asof '+esc(String(b.asof||'').slice(0,10))+'</div>';
   var host=document.querySelector('main')||document.body;
   host.insertBefore(card,host.firstChild);
+ }).catch(function(){});
+})();
+</script>
+<script>
+/* usd-funding-panel-v2 (ops 4935) — offshore-USD feeds absent from the
+   plumbing board: NY Fed TGCR/BGCR direct with volumes + percentile fan,
+   H.8 wholesale funding, CP quantities incl ABCP, SOFR term, BIS LBS USD,
+   and the z-score composite. Gaps 6+7 render as declared gaps, never zeros. */
+(function(){
+ fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/usd-funding.json?t='+Date.now())
+ .then(function(r){return r.ok?r.json():null;}).then(function(d){
+ if(!d)return; var el=document.getElementById('usdf'); el.style.display='block';
+ var n=function(v,dp){return (v===null||v===undefined)?'—':Number(v).toLocaleString(undefined,{minimumFractionDigits:dp||0,maximumFractionDigits:dp||0});};
+ var zc=function(z){if(z===null||z===undefined)return 'var(--fg3)';var a=Math.abs(z);return a<1?'var(--green)':a<2?'var(--amber)':a<3?'var(--gold)':'var(--red)';};
+ var zs=function(z){return (z===null||z===undefined)?'<i style="color:var(--fg3)">z n/a</i>':'<b style="color:'+zc(z)+'">z '+(z>0?'+':'')+z.toFixed(2)+'</b>';};
+ var TH='style="text-align:left;color:var(--fg3);font-weight:400;font-size:10px;letter-spacing:1px;padding:4px 10px 4px 0;border-bottom:1px solid var(--bd)"';
+ var TD='style="padding:4px 10px 4px 0;font-size:11px;border-bottom:1px solid #171717"';
+ var SEC=function(t,s){return '<div style="margin:16px 0 6px;color:var(--cyan);font-size:11px;letter-spacing:2px">'+t+'</div>'+(s?'<div style="color:var(--fg3);font-size:10px;margin-bottom:6px;line-height:1.6">'+s+'</div>':'');};
+ var H='';
+ var z=d.stress_z||{}, RC={CALM:'var(--green)',NORMAL:'var(--green)',TIGHTENING:'var(--amber)',STRESSED:'var(--gold)',ACUTE:'var(--red)'};
+ H+='<div style="display:flex;gap:22px;align-items:baseline;flex-wrap:wrap">'+
+  '<div><span style="font-size:11px;letter-spacing:2px;color:var(--cyan)">OFFSHORE-USD FUNDING</span>'+
+  '<span style="margin-left:10px;font-size:10px;color:'+(d.status==='GREEN'?'var(--green)':d.status==='PARTIAL'?'var(--amber)':'var(--red)')+'">'+(d.status||'')+'</span></div>'+
+  '<div style="font-size:22px;font-weight:800;color:'+(RC[z.reading]||'var(--fg)')+'">'+((z.sum_z===null||z.sum_z===undefined)?'—':(z.sum_z>0?'+':'')+z.sum_z)+' <span style="font-size:11px;letter-spacing:1px">'+(z.reading||'')+'</span></div>'+
+  '<div style="font-size:10px;color:var(--fg3)">&Sigma; z-scores · '+((z.legs||[]).length)+' legs'+(((z.legs_missing||[]).length)?' · <span style="color:var(--amber)">missing: '+z.legs_missing.join(', ')+'</span>':'')+'</div></div>'+
+  '<div style="font-size:10px;color:var(--fg3);margin-top:6px;line-height:1.6">'+(z.method||'')+'</div>';
+ if((z.legs||[]).length){H+='<div style="margin-top:8px;font-size:11px">'+z.legs.map(function(l){return '<span style="display:inline-block;margin:2px 14px 2px 0">'+l.leg+' '+zs(l.z)+'</span>';}).join('')+'</div>';}
+ H+=SEC('REFERENCE RATES — DIRECT FROM NY FED','Rate, volume and the full 1/25/75/99 percentile fan. TGCR and BGCR are not published by FRED at all — this is the only path to them. Volume collapse and percentile fanning lead the rate move.');
+ H+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:760px"><tr><th '+TH+'>RATE</th><th '+TH+'>LEVEL</th><th '+TH+'>VOLUME $bn</th><th '+TH+'>VOL z</th><th '+TH+'>IQR bp</th><th '+TH+'>FAN bp</th><th '+TH+'>&minus; IORB</th><th '+TH+'>SPREAD z</th><th '+TH+'>SHAPE</th><th '+TH+'>AS OF</th></tr>';
+ ['sofr','tgcr','bgcr','effr','obfr'].forEach(function(k){var r=(d.reference_rates||{})[k]||{},s=(d.spreads_vs_iorb||{})[k]||{};
+  if(!r.ok){H+='<tr><td '+TD+'><b>'+(r.label||k.toUpperCase())+'</b></td><td '+TD+' colspan="9" style="color:var(--red);font-size:11px">unavailable — '+(r.error||'')+'</td></tr>';return;}
+  H+='<tr><td '+TD+'><b style="color:var(--fg)">'+r.label+'</b><div style="color:var(--fg3);font-size:9px">'+(r.desc||'')+'</div></td>'+
+   '<td '+TD+'><b style="color:var(--fg)">'+n(r.rate,2)+'%</b></td><td '+TD+'>'+n(r.volume_bn,0)+'</td><td '+TD+'>'+zs(r.volume_z)+'</td>'+
+   '<td '+TD+'>'+n(r.iqr_bp,1)+'</td><td '+TD+'>'+n(r.fan_bp,1)+'</td>'+
+   '<td '+TD+'>'+((s.value_bp===undefined)?'—':n(s.value_bp,1)+'bp')+'</td><td '+TD+'>'+zs(s.z)+'</td>'+
+   '<td '+TD+' style="color:var(--fg3);font-size:9px">'+(r.request_shape||'')+'</td>'+
+   '<td '+TD+' style="color:var(--fg3);font-size:10px">'+(r.date||'')+'</td></tr>';});
+ H+='</table></div>';
+ H+=SEC('H.8 — BANK WHOLESALE FUNDING','This board previously carried one H.8 series. Large time deposits and borrowings are how a bank funds itself when deposits will not stretch.');
+ H+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:660px"><tr><th '+TH+'>SERIES</th><th '+TH+'>LEVEL</th><th '+TH+'>13w &Delta;</th><th '+TH+'>52w &Delta;</th><th '+TH+'>13w &Delta; z</th><th '+TH+'>FRED ID</th><th '+TH+'>AS OF</th></tr>';
+ Object.keys(d.bank_wholesale_funding||{}).forEach(function(k){var m=d.bank_wholesale_funding[k];
+  if(m.error){H+='<tr><td '+TD+'>'+m.label+'</td><td '+TD+' colspan="6" style="color:var(--red)">'+m.error+'</td></tr>';return;}
+  H+='<tr><td '+TD+'><b style="color:var(--fg)">'+m.label+'</b></td><td '+TD+'><b>'+n(m.value,0)+'</b> <i style="color:var(--fg3);font-style:normal">'+m.unit+'</i></td>'+
+   '<td '+TD+' style="color:'+((m.chg_13w||0)<0?'var(--amber)':'var(--green)')+'">'+(m.chg_13w>0?'+':'')+n(m.chg_13w,0)+'</td>'+
+   '<td '+TD+'>'+(m.chg_52w>0?'+':'')+n(m.chg_52w,0)+'</td><td '+TD+'>'+zs(m.z_13w_chg)+'</td>'+
+   '<td '+TD+' style="color:var(--fg3);font-size:10px">'+m.series_id+'</td><td '+TD+' style="color:var(--fg3);font-size:10px">'+(m.date||'')+'</td></tr>';});
+ H+='</table></div>';
+ var cp=d.commercial_paper||{};
+ H+=SEC('COMMERCIAL PAPER — QUANTITIES AND THE TENOR GRID',(cp.abcp_note||'')+' In a freeze the quantity goes before the rate does.');
+ H+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:620px"><tr><th '+TH+'>OUTSTANDING</th><th '+TH+'>$bn</th><th '+TH+'>4w &Delta;</th><th '+TH+'>13w &Delta;</th><th '+TH+'>13w %</th><th '+TH+'>FRED ID</th></tr>';
+ Object.keys(cp.outstandings||{}).forEach(function(k){var m=cp.outstandings[k];
+  if(m.error){H+='<tr><td '+TD+'>'+m.label+'</td><td '+TD+' colspan="5" style="color:var(--red)">'+m.error+'</td></tr>';return;}
+  H+='<tr><td '+TD+'><b style="color:var(--fg)">'+m.label+'</b></td><td '+TD+'><b>'+n(m.value,0)+'</b></td>'+
+   '<td '+TD+' style="color:'+((m.chg_4w||0)<0?'var(--amber)':'var(--green)')+'">'+(m.chg_4w>0?'+':'')+n(m.chg_4w,0)+'</td>'+
+   '<td '+TD+' style="color:'+((m.chg_13w||0)<0?'var(--amber)':'var(--green)')+'">'+(m.chg_13w>0?'+':'')+n(m.chg_13w,0)+'</td>'+
+   '<td '+TD+'>'+(m.pct_13w>0?'+':'')+n(m.pct_13w,1)+'%</td>'+
+   '<td '+TD+' style="color:var(--fg3);font-size:10px">'+m.series_id+'</td></tr>';});
+ H+='</table></div>';
+ if(cp.abcp_share_pct!==undefined&&cp.abcp_share_pct!==null){H+='<div style="font-size:11px;color:var(--green);margin-top:6px">ABCP share of total CP: <b>'+cp.abcp_share_pct+'%</b></div>';}
+ if(cp.quality_spread_30d_bp!==undefined&&cp.quality_spread_30d_bp!==null){H+='<div style="font-size:11px;margin-top:4px">A2/P2 &minus; AA quality spread (30d): <b style="color:'+(cp.quality_spread_30d_bp>60?'var(--red)':cp.quality_spread_30d_bp>30?'var(--amber)':'var(--green)')+'">'+cp.quality_spread_30d_bp+'bp</b> <span style="color:var(--fg3);font-size:10px">'+(cp.quality_spread_note||'')+'</span></div>';}
+ H+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;margin-top:10px;min-width:620px"><tr><th '+TH+'>TIER</th><th '+TH+'>TENOR</th><th '+TH+'>RATE</th><th '+TH+'>&minus; SOFR</th><th '+TH+'>FRED ID</th><th '+TH+'>AS OF</th></tr>';
+ Object.keys(cp.rates||{}).forEach(function(k){var m=cp.rates[k];
+  if(m.error){H+='<tr><td '+TD+'>'+m.tier+'</td><td '+TD+'>'+m.tenor+'</td><td '+TD+' colspan="4" style="color:var(--red)">'+m.error+'</td></tr>';return;}
+  H+='<tr><td '+TD+' style="color:var(--fg)">'+m.tier+'</td><td '+TD+'>'+m.tenor+'</td><td '+TD+'><b>'+n(m.rate,2)+'%</b></td>'+
+   '<td '+TD+' style="color:'+((m.spread_to_sofr_bp||0)>75?'var(--red)':(m.spread_to_sofr_bp||0)>25?'var(--amber)':'var(--green)')+'">'+(m.spread_to_sofr_bp>0?'+':'')+n(m.spread_to_sofr_bp,1)+'bp</td>'+
+   '<td '+TD+' style="color:var(--fg3);font-size:10px">'+m.series_id+'</td><td '+TD+' style="color:var(--fg3);font-size:10px">'+(m.date||'')+'</td></tr>';});
+ H+='</table></div>';
+ var t=d.sofr_term_structure||{};
+ H+=SEC('SOFR TERM STRUCTURE','');
+ H+='<div style="font-size:11px">';
+ ['sofr_30d_avg','sofr_90d_avg','sofr_180d_avg','sofr_index'].forEach(function(k){var m=t[k]||{};
+  H+='<span style="display:inline-block;margin:0 20px 6px 0">'+(m.label||k)+': <b style="color:var(--fg)">'+(m.error?('<span style="color:var(--red)">'+m.error+'</span>'):(n(m.value,k==='sofr_index'?6:3)+(k==='sofr_index'?'':'%')))+'</b></span>';});
+ H+='</div>';
+ if(t.term_slope_bp!==undefined&&t.term_slope_bp!==null){H+='<div style="font-size:11px;margin-top:4px">Term slope (180d &minus; 30d): <b>'+t.term_slope_bp+'bp</b> <span style="color:var(--fg3);font-size:10px">'+(t.term_slope_note||'')+'</span></div>';}
+ var b=d.bis_lbs_usd||{};
+ H+=SEC('BIS LOCATIONAL BANKING — USD CROSS-BORDER POSITIONS','Structural, not a live trigger — and deliberately excluded from the z-composite above.');
+ if(b.ok&&!b.ambiguous){var C=(b.positions||{}).claims||{},L=(b.positions||{}).liabilities||{};
+  H+='<div style="display:flex;gap:26px;flex-wrap:wrap;font-size:11px">'+
+   '<div>USD claims<br><b style="font-size:17px;color:var(--fg)">$'+n(C.latest_usd_bn,0)+'bn</b><div style="color:var(--fg3);font-size:10px">'+(C.latest_period||'')+' · QoQ '+n(C.qoq_pct,2)+'% · YoY '+n(C.yoy_pct,2)+'%</div></div>'+
+   '<div>USD liabilities<br><b style="font-size:17px;color:var(--fg)">$'+n(L.latest_usd_bn,0)+'bn</b><div style="color:var(--fg3);font-size:10px">'+(L.latest_period||'')+' · QoQ '+n(L.qoq_pct,2)+'% · YoY '+n(L.yoy_pct,2)+'%</div></div>'+
+   '<div>Net USD gap<br><b style="font-size:17px;color:'+((b.net_usd_bn||0)>0?'var(--amber)':'var(--green)')+'">'+((b.net_usd_bn||0)>0?'+$':'&minus;$')+n(Math.abs(b.net_usd_bn||0),0)+'bn</b><div style="color:var(--fg3);font-size:10px">'+(b.cadence||'')+'</div></div>'+
+   (b.claims_liab_ratio?'<div>C/L ratio<br><b style="font-size:17px;color:var(--fg)">'+b.claims_liab_ratio+'&times;</b><div style="color:var(--fg3);font-size:10px">two-sided check</div></div>':'')+'</div>'+
+   '<div style="color:var(--fg3);font-size:10px;margin-top:6px;line-height:1.6">'+(b.funding_gap_note||'')+'</div>'+
+   '<div style="color:var(--fg3);font-size:9px;margin-top:3px">aggregation: '+(b.aggregation||'')+'</div>';
+ }else if(b.ambiguous){
+  H+='<div style="color:var(--amber);font-size:11px;line-height:1.7">Aggregate is AMBIGUOUS this run — more than one BIS series survives the aggregate filter, so no single figure is published rather than picking one at random. '+(b.ambiguous_note||'')+'</div>';
+ }else{
+  H+='<div style="color:var(--red);font-size:11px">BIS aggregate unresolved — no fabricated figure published.</div>';}
+ H+=SEC('DECLARED GAPS — NOT IN ENTITLEMENTS','Published as gaps on purpose. A board that hides what it cannot see is worse than one that admits it.');
+ (d.not_entitled||[]).forEach(function(g){
+  H+='<div style="border-left:2px solid var(--amber);padding:4px 0 4px 10px;margin-bottom:8px">'+
+   '<div style="font-size:11px;color:var(--amber);font-weight:700">'+g.label+'</div>'+
+   '<div style="font-size:10px;color:var(--fg3)">source: '+g.source+'</div>'+
+   '<div style="font-size:10px;color:var(--fg2);margin-top:2px;line-height:1.6">'+g.why+'</div>'+
+   '<div style="font-size:10px;color:var(--fg3);margin-top:2px">proxy in use: '+g.proxy_in_use+'</div>'+
+   '<div style="font-size:10px;color:var(--fg3)">upgrade: '+g.upgrade+'</div></div>';});
+ if((d.errors||[]).length){H+='<div style="color:var(--amber);font-size:10px;margin-top:8px">collector errors ('+d.errors.length+'): '+d.errors.join(' · ')+'</div>';}
+ H+='<div style="color:var(--fg3);font-size:10px;margin-top:8px">justhodl-usd-funding v'+(d.version||'')+' · generated '+(d.generated||'').slice(0,19)+'Z · data/usd-funding.json</div>';
+ el.innerHTML=H;
  }).catch(function(){});
 })();
 </script>
