@@ -47,29 +47,54 @@ lam = boto3.client("lambda", region_name=REGION,
                                  retries={"max_attempts": 0}))
 
 
-def artifact_has(fn, marker, budget=420):
-    """ops 4941c: check the ARTIFACT, never a deploy timestamp."""
+def artifact_ready(fn, marker, budget=480):
+    """ops 4942b: the artifact carrying the change is NOT enough.
+
+    The first attempt confirmed '_MCAP_REJECTED' was in the deployed zip
+    at 15:03:31, invoked immediately, and got a payload built by the OLD
+    code -- old mcap_suspect schema, market_cap still populated. Cause:
+    UpdateFunctionCode swaps the zip and returns straight away, but the
+    function sits at LastUpdateStatus=InProgress for a few seconds more,
+    and invokes in that window still execute the PREVIOUS code.
+
+      So the ladder is three rungs, not two:
+        repo has it   ->  artifact has it   ->  function is READY to run it
+      4940 checked rung one, 4941 added rung two, this adds rung three.
+
+    Require both the marker AND State=Active + LastUpdateStatus=Successful.
+    """
     t0 = time.time()
     while time.time() - t0 < budget:
         try:
-            loc = lam.get_function(FunctionName=fn)["Code"]["Location"]
-            z = zipfile.ZipFile(io.BytesIO(
-                urllib.request.urlopen(loc, timeout=90).read()))
-            for n in z.namelist():
-                if n.endswith("lambda_function.py"):
-                    if marker in z.read(n).decode("utf-8", "replace"):
-                        return True
+            cfg = lam.get_function_configuration(FunctionName=fn)
+            state = cfg.get("State")
+            upd = cfg.get("LastUpdateStatus")
+            if state == "Active" and upd == "Successful":
+                loc = lam.get_function(FunctionName=fn)["Code"]["Location"]
+                z = zipfile.ZipFile(io.BytesIO(
+                    urllib.request.urlopen(loc, timeout=90).read()))
+                for n in z.namelist():
+                    if n.endswith("lambda_function.py"):
+                        if marker in z.read(n).decode("utf-8", "replace"):
+                            R.log("artifact ready: state=%s update=%s"
+                                  % (state, upd))
+                            return True
+            else:
+                R.log("waiting: state=%s lastUpdate=%s" % (state, upd))
         except Exception as e:
             R.log("artifact poll: %s" % str(e)[:70])
-        time.sleep(20)
+        time.sleep(15)
     return False
 
 
 with report("ops_4942_13f_mcap_reject") as R:
-    if not artifact_has(POS, "_MCAP_REJECTED"):
-        R.log("G0 FAIL deployed artifact lacks the rejection pass")
+    # marker taken from the payload-emitting region -- the LAST thing the
+    # edit touched -- so a half-applied artifact cannot pass.
+    if not artifact_ready(POS, "rejected_market_cap"):
+        R.log("G0 FAIL deployed function not ready with the rejection pass")
         sys.exit(1)
-    R.log("G0 deployed artifact carries the rejection pass")
+    R.log("G0 deployed function is Active and carries the rejection pass")
+    time.sleep(10)          # let the update settle before first invoke
 
     try:
         prev = s3.head_object(Bucket=B, Key=OUT_KEY)["LastModified"]
