@@ -43,6 +43,7 @@ page renders.
 import json
 import sys
 import time
+import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -62,20 +63,34 @@ lam = boto3.client("lambda", region_name=REGION,
                                  retries={"max_attempts": 0}))
 
 
-def await_deploy(fn, started, budget=420):
+def artifact_has(fn, marker, budget=420):
+    """ops 4941c: check the ARTIFACT, not the clock.
+
+    4940 guarded the deploy race with LastModified >= ops_start-12min.
+    That heuristic is wrong in both directions: it failed lambdas that
+    correctly were NOT redeployed (unchanged source), and then failed a
+    lambda that WAS correctly deployed, because the follow-up push
+    carried [skip-deploy] so the timestamp was older than the window.
+
+    A timestamp is a proxy for "does the running code contain my change".
+    Download the deployed zip and look. No proxy, no window, no guessing.
+    """
+    import io
+    import zipfile
     t0 = time.time()
     while time.time() - t0 < budget:
         try:
-            lm = lam.get_function_configuration(FunctionName=fn)["LastModified"]
-            dt = datetime.strptime(lm.split(".")[0],
-                                   "%Y-%m-%dT%H:%M:%S").replace(
-                tzinfo=timezone.utc)
-            if dt >= started - timedelta(minutes=12):
-                return dt
-        except Exception:
-            pass
-        time.sleep(15)
-    return None
+            loc = lam.get_function(FunctionName=fn)["Code"]["Location"]
+            z = zipfile.ZipFile(io.BytesIO(
+                urllib.request.urlopen(loc, timeout=90).read()))
+            for n in z.namelist():
+                if n.endswith("lambda_function.py"):
+                    if marker in z.read(n).decode("utf-8", "replace"):
+                        return True
+        except Exception as e:
+            R.log("artifact poll %s: %s" % (fn, str(e)[:70]))
+        time.sleep(20)
+    return False
 
 
 def wait_fresh(key, prev, budget=780):
@@ -109,13 +124,11 @@ with report("ops_4941_13f_cache_flush") as R:
     # guard failed them for not being redeployed. Wait only on what this
     # ops actually modified; state the rest explicitly rather than
     # silently skipping.
-    started = datetime.now(timezone.utc)
-    CHANGED = (POS,)
-    for fn in CHANGED:
-        if not await_deploy(fn, started):
-            R.log("G0b FAIL %s not redeployed in budget" % fn)
-            sys.exit(1)
-        R.log("G0b %s carries post-push code" % fn)
+    if not artifact_has(POS, 'PARSER_VERSION = "v6"'):
+        R.log("G0b FAIL deployed %s artifact does not contain the v6 flush"
+              % POS)
+        sys.exit(1)
+    R.log("G0b deployed artifact confirmed to carry the v6 flush")
     for fn in (IDX, CLONE):
         R.log("G0b %s unchanged this push -- no redeploy expected" % fn)
 
