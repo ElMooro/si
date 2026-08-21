@@ -1,17 +1,15 @@
-executing-against: 0548082d08300633511b5f943a27c467f44e12db
-[14:56:58] G0 v6 flush armed; page copy matches cron
-[14:56:58] G0b deployed artifact confirmed to carry the v6 flush
-[14:56:58] G0b justhodl-sec-13f unchanged this push -- no redeploy expected
-[14:56:58] G0b justhodl-13f-clone-alpha unchanged this push -- no redeploy expected
-[15:00:21] positions refreshed after 201s (full re-parse, no cache reuse)
-[15:00:27] PASS G1 per-fund rows no longer show pre-fix tickers  []
-[15:00:27] PASS G2 per-fund row names agree with the aggregate  0 rows: []
-[15:00:47] PASS G3a clone-alpha rebuilt (was 4d stale, weekly cron)  20s
-[15:00:52] PASS G3b leaderboard no longer says 'Duration Capital'  
-[15:00:52] PASS G4a roster 18/18  18/18/0
-[15:00:52] PASS G4b zero label-vs-filer mismatches  []
-[15:00:52] PASS G4c holders <= roster  
-[15:00:52] as_of=2026-06-30 tickers=8131
-[15:00:52] ops 4941 GREEN -- 7/7 gates
+executing-against: db5cc2fe8663474ceaf1a3cf660b2aa2d7c2ade7
+[15:03:31] G0 deployed artifact carries the rejection pass
+[15:06:53] payload refreshed after 202s
+[15:06:58] FAIL G1 zero surviving impossible market caps  [{'t': 'VSSSF', 'x': 714.6, 'name': 'STATE STR CORP'}, {'t': 'IBIA', 'x': 42.7, 'name': 'iShares Trust'}, {'t': 'MBAIF', 'x': 4.0, 'name': 'SEI INVTS CO'}]
+[15:06:58] FAIL G2 VSSSF/IBIA/NFE/MBAIF carry null cap AND a reason  {'VSSSF': {'market_cap': 1084971.0, 'cap_tier': 'MICRO', 'rejected': None}, 'IBIA': {'market_cap': 10153387.0, 'cap_tier': 'MICRO', 'rejected': None}, 'NFE': {'market_cap': None, 'cap_tier': None, 'rejected': None}, 'MBAIF': {'market_cap': 31833442.0, 'cap_tier': 'MICRO', 'rejected': None}}
+[15:06:58] FAIL G3 rejected caps published with the value thrown away  3 rows: ['VSSSF', 'IBIA', 'MBAIF']
+[15:06:58] PASS G4 real mcap coverage survives (>=400 tickers)  598
+[15:06:58] PASS G5a roster 18/18  18/18/0
+[15:06:58] PASS G5b zero label-vs-filer mismatches  
+[15:06:58] PASS G5c holders <= roster  
+[15:06:58] as_of=2026-06-30 tickers=8131 mcap_kept=598 rejected=3
+[15:06:58] ops 4942 RED: G1 zero surviving impossible market caps; G2 VSSSF/IBIA/NFE/MBAIF carry null cap AND a reason; G3 rejected caps published with the value thrown away
 
-→ Report written to aws/ops/reports/latest/ops_4941_13f_cache_flush.md
+→ Report written to aws/ops/reports/latest/ops_4942_13f_mcap_reject.md
+❌ OPS-FAIL: aws/ops/pending/ops_4942_13f_mcap_reject.py
