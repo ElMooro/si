@@ -102,12 +102,22 @@ with report("ops_4941_13f_cache_flush") as R:
         sys.exit(1)
     R.log("G0 v6 flush armed; page copy matches cron")
 
+    # ops 4941b: the 4940 deploy-race guard was RIGHT to exist and WRONG
+    # to be blanket. deploy-lambdas.yml only redeploys lambdas whose
+    # source CHANGED in the push. This commit touched only 13f-positions,
+    # so sec-13f and clone-alpha were correctly left alone -- and the
+    # guard failed them for not being redeployed. Wait only on what this
+    # ops actually modified; state the rest explicitly rather than
+    # silently skipping.
     started = datetime.now(timezone.utc)
-    for fn in (IDX, POS, CLONE):
+    CHANGED = (POS,)
+    for fn in CHANGED:
         if not await_deploy(fn, started):
             R.log("G0b FAIL %s not redeployed in budget" % fn)
             sys.exit(1)
-    R.log("G0b all three functions carry post-push code")
+        R.log("G0b %s carries post-push code" % fn)
+    for fn in (IDX, CLONE):
+        R.log("G0b %s unchanged this push -- no redeploy expected" % fn)
 
     lam.invoke(FunctionName=IDX, InvocationType="RequestResponse", Payload=b"{}")
     try:
