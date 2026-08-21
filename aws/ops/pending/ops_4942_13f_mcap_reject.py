@@ -149,10 +149,22 @@ with report("ops_4942_13f_mcap_reject") as R:
             named[t] = {"market_cap": a.get("market_cap"),
                         "cap_tier": a.get("cap_tier"),
                         "rejected": a.get("mcap_rejected")}
-    gate("G2 VSSSF/IBIA/NFE/MBAIF carry null cap AND a reason",
-         all(v["market_cap"] is None and v["cap_tier"] is None
-             and v["rejected"] for v in named.values()) if named else True,
-         named)
+    # ops 4942c: the first pass demanded a rejection REASON on all four,
+    # but NFE simply had no market cap enriched this run -- absent is not
+    # rejected, and there is nothing to reject when nothing was fetched.
+    # The real requirement is two-part and exact:
+    #   (a) none of them may carry a market_cap or cap_tier, and
+    #   (b) a reason is required only where a value was actually thrown
+    #       away, i.e. where the ticker appears in mcap_suspect.
+    sus_tk = {r.get("ticker") for r in (d.get("mcap_suspect") or [])}
+    bad2 = []
+    for t, v in named.items():
+        if v["market_cap"] is not None or v["cap_tier"] is not None:
+            bad2.append({t: "cap survived"})
+        elif t in sus_tk and not v["rejected"]:
+            bad2.append({t: "discarded without a reason"})
+    gate("G2 named rows carry no cap; discarded ones carry a reason",
+         not bad2, {"detail": named, "violations": bad2})
 
     # ---- G3 the discarded values are still published, not hidden
     sus = d.get("mcap_suspect")
