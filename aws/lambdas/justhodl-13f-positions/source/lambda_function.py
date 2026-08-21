@@ -627,7 +627,13 @@ def parse_one_fund(fund_key: str, cik: str, latest_filing: dict, prior_filing: d
         return {"fund_key": fund_key, "error": "no_accession"}
 
     # Cache check — version-tagged so unit fixes invalidate old cache
-    PARSER_VERSION = "v5"   # ops 4936: units-per-filing + resolver gates   # bump when parser logic changes (units, fields, etc.)
+    PARSER_VERSION = "v6"   # ops 4941: FLUSH — v5 caches were written
+    # during the 4936 run, BEFORE the 4937/4938 collision purge, and the
+    # cache stores each position WITH its resolved ticker. So every
+    # per-fund card kept rendering pre-fix tickers (ICLN->"INVESCO QQQ
+    # TR", CPAY->"PG&E CORP", ORCL->"ELEVANCE HEALTH") and the phantom
+    # -$23.80B ICLN most-sold row survived every later fix. Fixing a
+    # resolver does nothing if the cache still holds its old answers.
     cache_key = f"{S3_CACHE_PREFIX}{fund_key}/{accession.replace('-', '')}_{PARSER_VERSION}.json"
     cached = get_s3_json(cache_key)
     if cached and cached.get("positions") and cached.get("parser_version") == PARSER_VERSION:

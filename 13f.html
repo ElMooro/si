@@ -534,7 +534,7 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
   </section>
 
   <footer class="foot">
-    <strong>Data:</strong> SEC EDGAR 13F-HR filings, parsed from infotable XML. <strong>Refresh:</strong> Lambda runs every 6h checking for new filings. <strong>Fund universe:</strong> 18 hand-picked institutional managers. <strong>Caching:</strong> Per-accession cache prevents re-parsing the same filing twice.<br>
+    <strong>Data:</strong> SEC EDGAR 13F-HR filings, parsed from infotable XML. <strong>Refresh:</strong> holdings rebuild daily 21:10 UTC (Mon–Fri); the clone-alpha leaderboard rebuilds weekly, Mondays 08:30 UTC. <strong>Fund universe:</strong> 18 hand-picked institutional managers. <strong>Caching:</strong> per-accession cache, keyed by parser version — a parser change invalidates it so fixes reach every card.<br>
     Last updated <span id="updated-at">—</span> · <a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/13f-positions.json" target="_blank">Raw JSON</a> · <a href="javascript:location.reload()">Refresh</a>
   </footer>
 
