@@ -1,19 +1,6 @@
-executing-against: d7a1168ab006363ca69b48842c581f03569fd189
-[21:05:07] G0 all three engines carry the corrected roster
-[21:05:07] G0b justhodl-sec-13f live at 2026-08-20T20:55:23+00:00 (waited 0s)
-[21:05:07] G0b justhodl-13f-positions live at 2026-08-20T20:54:56+00:00 (waited 0s)
-[21:05:07] G0b justhodl-13f-clone-alpha live at 2026-08-20T20:54:30+00:00 (waited 0s)
-[21:05:07] invoking justhodl-sec-13f (index must lead)
-[21:05:09] index rc=200
-[21:08:31] positions refreshed after 202s
-[21:08:37] PASS G1 zero label-vs-filer mismatches  []
-[21:08:37] PASS G2 ELLIOTT now parses (was the missing fund)  2026-06-30
-[21:08:37] PASS G3a roster balances  18/18/0
-[21:08:37] PASS G3b parsed count improved to 18  18
-[21:08:37] PASS G4 BAUPOST and LONE_PINE are distinct books  {'baupost_acc': '0001061768-26-000010', 'lone_pine_acc': '0000919574-26-005485', 'same_top': False}
-[21:08:37] PASS G5a holders <= roster  
-[21:08:37] PASS G5b collisions all named  487
-[21:08:37] as_of=2026-06-30 parsed=18/18
-[21:08:37] ops 4940 GREEN -- 7/7 gates
+executing-against: 3e2c44962bb73860c0fcb9c636a21e99d95902fe
+[14:19:21] G0 v6 flush armed; page copy matches cron
+[14:26:24] G0b FAIL justhodl-sec-13f not redeployed in budget
 
-→ Report written to aws/ops/reports/latest/ops_4940_13f_roster_fix.md
+→ Report written to aws/ops/reports/latest/ops_4941_13f_cache_flush.md
+❌ OPS-FAIL: aws/ops/pending/ops_4941_13f_cache_flush.py
