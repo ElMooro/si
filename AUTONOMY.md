@@ -496,3 +496,64 @@ per-accession cache replays pre-fix rows and the fix is invisible.
 **A false-positive gate is still a RED.** G3 first fired on ticker `USD`
 — ProShares Ultra Semiconductors, a legitimate NYSE Arca holding. The
 GATE was wrong, not the engine. Fix the gate, never widen it to "pass".
+
+## ⚠️⚠️ TRAP — THE THREE-RUNG DEPLOY LADDER (ops 4940–4942, 2026-08-21)
+
+`run-ops.yml` and `deploy-lambdas.yml` fire on the SAME push and run
+CONCURRENTLY. Three separate ops burned attempts on three different
+rungs of the same ladder. Verify all three, in order:
+
+  1. **repo has it** — read the source file. ops 4940's G0 did only this
+     and passed while the ops invoked pre-deploy code (`sec-13f` rebuilt
+     the index on the OLD roster at 20:54:20; deploy finished 20:55:34).
+  2. **artifact has it** — download `get_function()["Code"]["Location"]`,
+     unzip, grep for a marker. Do NOT use `LastModified` timestamps:
+     that heuristic failed lambdas that were correctly NOT redeployed
+     (deploy-lambdas only touches CHANGED sources), then failed one that
+     WAS deployed because the follow-up push carried `[skip-deploy]`.
+  3. **function is READY** — `State=Active` AND
+     `LastUpdateStatus=Successful`. `UpdateFunctionCode` swaps the zip
+     and returns immediately; the function stays `InProgress` for a few
+     seconds and **invokes in that window still run the PREVIOUS code**.
+     ops 4942 confirmed the marker was in the zip at 15:03:31, invoked,
+     and got a payload built by the old code.
+
+Take the marker from the LAST-EDITED region of the file, not the first —
+otherwise a half-applied artifact passes.
+
+## ⚠️ TRAP — A CACHE OUTLIVES THE FIX (ops 4941)
+
+`parse_one_fund` caches each position WITH its resolved ticker under
+`PARSER_VERSION`. v5 was set in 4936, BEFORE the 4937/4938 collision
+purge — so the cache froze the poisoned answers and three consecutive
+GREEN ops never reached the per-fund cards. `ICLN` kept rendering as
+"INVESCO QQQ TR" ($26.6B) and the phantom −$23.80B most-sold row
+survived every fix.
+
+  **Changing how a value is DERIVED requires bumping the key of every
+  cache that STORES it.** A resolver fix is inert while the cache still
+  holds its old answers.
+
+## ⚠️ GATES — FOUR WAYS I GOT THEM WRONG IN ONE ARC
+
+1. **A gate that cannot fail.** 4936 asserted "one ticker → one name"
+   over `aggregate_by_ticker`, which is KEYED by ticker and holds one
+   name by construction. Before trusting a gate, name the data that
+   would turn it RED. If you cannot, it is decoration.
+2. **A gate reading a different layer than the page.** Same check, but
+   the page renders `by_fund[*].top_positions`. Gate the layer that
+   ships.
+3. **A gate whose tokeniser is wrong.** Stopwords applied to raw tokens
+   left `"INC."` and `"VERISIGN,"` punctuated, so `VERISIGN, INC.` vs
+   `VERISIGN` read as a mismatch. Fix the tokeniser, never loosen the
+   threshold.
+4. **A gate conflating absent with rejected.** NFE had no market cap
+   fetched at all; demanding a rejection REASON for it failed a healthy
+   run. "Never had one" and "had a bad one, discarded it" are different
+   states and must be asserted differently.
+
+Corollary from 4942: **a flag the renderer ignores is not a fix.** 4937b
+published `mcap_suspect[]` but still wrote the bad `market_cap` and
+`cap_tier`, so Vossloh ($1.08M cap vs $775M held) kept badging MICRO-CAP.
+If a value is not fit to publish, do not publish it — annotating it
+elsewhere just moves the lie one field over.
