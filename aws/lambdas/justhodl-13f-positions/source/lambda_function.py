@@ -1574,6 +1574,52 @@ def lambda_handler(event, context):
         pass
     print(f"[13f] mcap enriched: {enriched}")
 
+    # ops 4942: REJECT an implausible market cap instead of publishing it.
+    # 4937b flagged four rows in mcap_suspect but still let the bad value
+    # drive market_cap and cap_tier, so Vossloh (a ~EUR1.5bn industrial
+    # that FMP returned at $1.08M against $775M held) kept badging as
+    # MICRO-CAP and kept ranking on the small/mid-cap board. A flag the
+    # renderer ignores is not a fix.
+    #
+    # Three impossibility tests, in order of strength:
+    #   1. 13F filers cannot hold more of a company than it is worth.
+    #      total_value here EXCLUDES option rows, so this is a clean test.
+    #   2. a sub-$3M cap against a nine-figure position is a stub value,
+    #      typical of foreign ordinaries quoted on OTC.
+    #   3. ETFs and trusts have no equity market cap at all.
+    _ETF_WORDS = ("ISHARES", "SPDR", "VANGUARD", "INVESCO", "TRUST", " TR",
+                  "ETF", "SELECT SECTOR", "PROSHARES", "SCHWAB", "FUND",
+                  "SERIES", "PORTFOLIO")
+    rejected = []
+    for tk, a in by_ticker.items():
+        mc = a.get("market_cap") or 0
+        held = a.get("total_value") or 0
+        if not mc or mc <= 0:
+            continue
+        nm = (a.get("name") or "").upper()
+        why = None
+        if held > mc * 1.5:
+            why = "held_exceeds_market_cap"
+        elif mc < 3e6 and held > 50e6:
+            why = "stub_mcap_below_3m"
+        elif any(w in nm for w in _ETF_WORDS):
+            why = "etf_or_trust_has_no_equity_cap"
+        if not why:
+            continue
+        rejected.append({"ticker": tk, "name": a.get("name"),
+                         "rejected_market_cap": mc, "total_value": held,
+                         "ratio": round(held / max(1.0, mc), 1),
+                         "reason": why})
+        # an unknown cap is honest; a wrong one ranks and badges.
+        a["market_cap"] = None
+        a["cap_tier"] = None
+        a["mcap_rejected"] = why
+    rejected.sort(key=lambda r: -r["ratio"])
+    globals()["_MCAP_REJECTED"] = rejected[:60]
+    if rejected:
+        print(f"[13f] ops4942 rejected {len(rejected)} implausible mcaps: "
+              f"{[r['ticker'] for r in rejected[:8]]}")
+
     # ops 3285: FLOW + RISK v2 — gross-normalized (kills the ±1
     # saturation: opposite-sign nets always pinned the old
     # (x−y)/(|x|+|y|)), dual-scope in one pass (ALL vs DIRECTIONAL
@@ -2022,18 +2068,10 @@ def lambda_handler(event, context):
         # values). Vossloh came back at $1.08M against $775M held. Publish
         # the suspects so cap_tier badges built on them are auditable
         # rather than silently wrong.
-        "mcap_suspect": sorted(
-            [{"ticker": t,
-              "market_cap": a.get("market_cap"),
-              "total_value": a.get("total_value"),
-              "ratio": round((a.get("total_value") or 0)
-                             / max(1.0, float(a.get("market_cap") or 0)), 1),
-              "reason": ("mcap_below_3m" if (a.get("market_cap") or 0) < 3e6
-                         else "held_exceeds_mcap")}
-             for t, a in by_ticker.items()
-             if (a.get("market_cap") or 0) > 0
-             and (a.get("total_value") or 0) > (a.get("market_cap") or 0) * 1.5],
-            key=lambda r: -r["ratio"])[:40],
+        # ops 4942: these are now REJECTED, not merely flagged — the
+        # market_cap and cap_tier on each of these tickers is null in the
+        # payload, so nothing downstream can badge or rank on them.
+        "mcap_suspect": globals().get("_MCAP_REJECTED") or [],
         "stale_funds": [
             {"fund_key": f.get("fund_key"),
              "period_of_report": f.get("period_of_report")}
