@@ -173,6 +173,19 @@ with report("ops_4941_13f_cache_flush") as R:
     gate("G1 per-fund rows no longer show pre-fix tickers", not wrong,
          wrong[:8])
 
+    _STOP = {"INC", "CORP", "CO", "LTD", "PLC", "THE", "GROUP", "HOLDINGS",
+             "HLDGS", "CLASS", "A", "B", "C", "NEW", "TR", "COM", "COMPANY",
+             "AND", "LLC", "LP", "SA", "NV", "AG", "DEL", "CORPORATION",
+             "INCORPORATED", "TRUST", "FD", "FUND"}
+
+    def _tok(name):
+        import re as _re
+        out = set()
+        for w in _re.split(r"[^A-Za-z0-9]+", (name or "").upper()):
+            if w and w not in _STOP and not w.isdigit():
+                out.add(w)
+        return out
+
     # ---- G2 GENERAL: every per-fund row must agree with the aggregate name
     # for its ticker. This is the layer the page renders; the 4937 gate
     # read the aggregate, which cannot disagree with itself.
@@ -185,15 +198,16 @@ with report("ops_4941_13f_cache_flush") as R:
             a = agg.get(tk)
             if not tk or not a:
                 continue
-            an = set((a.get("name") or "").upper().split())
-            pn = set((p.get("resolved_name") or p.get("name") or "")
-                     .upper().split())
-            an -= {"INC", "CORP", "CO", "LTD", "PLC", "THE", "GROUP",
-                   "HOLDINGS", "HLDGS", "CLASS", "A", "C", "NEW", "TR",
-                   "COM", "COMPANY", "&"}
-            pn -= {"INC", "CORP", "CO", "LTD", "PLC", "THE", "GROUP",
-                   "HOLDINGS", "HLDGS", "CLASS", "A", "C", "NEW", "TR",
-                   "COM", "COMPANY", "&"}
+            # ops 4941d: the first run RED'd on 29 rows like
+            #   VRSN  "VERISIGN, INC."  vs  "VERISIGN"
+            #   CPAY  "CORPAY, INC."    vs  "CORPAY"
+            # -- the same company. The suffix list was applied to RAW
+            # tokens, so "INC." and "VERISIGN," kept their punctuation,
+            # never matched the stopwords, and the intersection came up
+            # empty. Strip to bare alphanumerics FIRST, then drop
+            # suffixes. Fixing the tokeniser, not loosening the threshold.
+            an = _tok(a.get("name"))
+            pn = _tok(p.get("resolved_name") or p.get("name"))
             if an and pn and not (an & pn):
                 disagree.append({"fund": v.get("fund_key") or fk,
                                  "ticker": tk, "row": " ".join(sorted(pn))[:26],
