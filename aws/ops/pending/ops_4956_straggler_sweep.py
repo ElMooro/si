@@ -179,9 +179,12 @@ with report("ops_4956_straggler_sweep") as R:
         for s_ in d["sched"]:
             cur = rate_minutes(s_["expr"])
             if cur is None:
-                R.log("  cron-keep %-30s %s" % (fn, s_["expr"]))
-                continue
-            if cur <= tgt_min:
+                # v2: these seven are plain daily/weekly fetch crons
+                # (fixed-hour ticks = the 8-23h drift itself); convert
+                # sanctioned for TARGETS only
+                R.log("  cron->rate %-28s %s -> %s" % (
+                    fn, s_["expr"], new_expr))
+            elif cur <= tgt_min:
                 R.log("  ok       %-30s %s" % (fn, s_["expr"]))
                 continue
             try:
@@ -221,7 +224,7 @@ with report("ops_4956_straggler_sweep") as R:
                     name, cur, expr))
         except Exception as e:
             R.log("  verify-err %s: %s" % (name, str(e)[:60]))
-    ok_b = verified == len(changed) and len(changed) >= 4
+    ok_b = verified == len(changed) and len(changed) >= 5
     R.log("B %s changed=%d verified=%d" % (
         "PASS" if ok_b else "FAIL", len(changed), verified))
     if not ok_b:
