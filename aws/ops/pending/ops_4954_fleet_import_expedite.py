@@ -232,9 +232,13 @@ with report("ops_4954_fleet_import_expedite") as R:
     for fn_, ex_, why in skipped[:40]:
         R.log("  skip %-40s %-20s %s" % (fn_[:40], (ex_ or "")[:20],
                                          why[:50]))
-    ok_b = len(applied) >= 8
+    at_target = sum(1 for _fn, _ex, why in skipped
+                    if why == "already<=target")
+    ok_b = (len(applied) + at_target) >= 10
+    R.log("B gate: applied=%d + already_at_target=%d (idempotent "
+          "rerun counts both)" % (len(applied), at_target))
     if not ok_b:
-        fails.append("B apply<8")
+        fails.append("B satisfied<10")
 
     # verify each applied by re-describe -------------------------------
     bad = []
