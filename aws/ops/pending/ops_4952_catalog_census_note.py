@@ -99,15 +99,14 @@ with report("ops_4952_catalog_census_note") as R:
 
     # G1 -- run the inventory now --------------------------------------
     R.section("G1 invoke catalog + fresh stamp")
-    before = (gj(HUB_KEY) or {}).get("generated") or \
-             (gj(HUB_KEY) or {}).get("generated_at") or ""
+    before = (gj(HUB_KEY) or {}).get("as_of") or ""
     lam.invoke(FunctionName=CAT_FN, InvocationType="Event",
                Payload=b"{}")
     cat, ok1, t0 = None, False, time.time()
     while time.time() - t0 < 660:
         time.sleep(30)
         cat = gj(HUB_KEY) or {}
-        stamp = cat.get("generated") or cat.get("generated_at") or ""
+        stamp = cat.get("as_of") or ""
         if stamp and stamp != before:
             ok1 = True
             R.log("G1 PASS stamp %s -> %s after %ds" % (
@@ -127,8 +126,8 @@ with report("ops_4952_catalog_census_note") as R:
         ce = next((p for p in provs
                    if (p.get("slug") or p.get("id")) == "census-us"),
                   {}) or {}
-    note = ce.get("note") or ""
-    keys_n = ce.get("n_live") or ce.get("keys") or 0
+    note = ce.get("catalog_note") or ""
+    keys_n = ce.get("n_keys") or 0
     R.log("  keys=%s note=%s" % (keys_n, note[:220]))
     must = ["full timeseries universe",
             "%s/%s datasets" % (exp_done, exp_total),
