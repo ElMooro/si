@@ -1,0 +1,21 @@
+## P0 QWI grammar probe (runner-side, nothing guessed)
+
+**Status:** failure  
+**Duration:** 5.8s  
+**Finished:** 2026-08-23T16:17:34+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `16:17:28`   census key present: True
+- `16:17:29`   A-failing-shape      HTTP 400 rows=-1     error: wildcard not supported in 'for' clause for this hierarchy. Please select a specific state.
+- `16:17:30`   B-core4-from1900     HTTP 400 rows=-1     error: wildcard not supported in 'for' clause for this hierarchy. Please select a specific state.
+- `16:17:31`   C-core4-fromQ1       HTTP 400 rows=-1     error: wildcard not supported in 'for' clause for this hierarchy. Please select a specific state.
+- `16:17:32`   D-core4-year         HTTP 400 rows=-1     error: wildcard not supported in 'for' clause for this hierarchy. Please select a specific state.
+- `16:17:32`   G-core4-qtr-window   HTTP 400 rows=-1     error: wildcard not supported in 'for' clause for this hierarchy. Please select a specific state.
+- `16:17:33`   E-core4-1state-1q    HTTP 200 rows=1      [["Emp","HirA","Sep","EarnS","time","state"], ["1940492","371102","366307","4753","2022-Q1","01"]]
+- `16:17:34` P0 FAIL no candidate shape returned rows -- bodies above are the next iteration's input; NOT guessing
