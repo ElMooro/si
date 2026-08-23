@@ -1,34 +1,32 @@
-executing-against: e131c2518a7a835cd551db27ebfdeb6630a19200
-── P0 bounded-range probe (4950: 'requires a bounded date/time range') ──
-[17:03:45]   L-bounded-years  HTTP 200 rows=100   [["Emp","HirA","Sep","EarnS","time","state"], [null,null,"375317",null,"2001-Q1","01"], ["1793105","416657","406550","2516","2001-Q2","01"], ["1803213
-[17:03:46]   M-bounded-qtrs   HTTP 200 rows=100   [["Emp","HirA","Sep","EarnS","time","state"], [null,null,"375317",null,"2001-Q1","01"], ["1793105","416657","406550","2516","2001-Q2","01"], ["1803213
-[17:03:47]   confirm state:48 HTTP 200 rows=124
-[17:03:47] P0 PASS winner=L-bounded-years (AL 100 / TX 124 rows) -> full_time='from 1990 to {cur}' written for qwi-sa,qwi-se,qwi-rh
-── G0 zip-settle v1.1.3 ──
-[17:03:47] G0 PASS after 0s
-── G0b redo qwi x3 ──
-── G1 drive to COMPLETE ──
-[17:04:07]   t+   0s DRAIN done=48/56 rows=3892162 q=3 head=qwi-rh geo_i=None fail=5
-[17:04:47]   t+  40s DRAIN done=49/56 rows=3897932 q=2 head=qwi-se geo_i=None fail=5
-[17:05:08]   t+  60s DRAIN done=50/56 rows=3903702 q=1 head=qwi-sa geo_i=None fail=5
-[17:05:48]   t+ 100s COMPLETE done=51/56 rows=3909472 q=0 head=None geo_i=None fail=5
-[17:05:48] G1 PASS phase=COMPLETE 51+5==56 kicks=0
-── G2 failures ledger ──
-[17:05:48]   FAIL aies-miscsector      no data any mode (last HTTP 400)
-[17:05:48]   FAIL asm-industry         no data any mode (last HTTP 400)
-[17:05:48]   FAIL poverty-saipe-schdist no data any mode (last HTTP 400)
-[17:05:48]   FAIL pseo-earnings        no data any mode (last HTTP 400)
-[17:05:48]   FAIL pseo-flows           no data any mode (last HTTP 400)
-[17:05:48] G2 PASS n=5 unexpected=[]
-── G3 qwi inception ──
-[17:05:48]   qwi-rh   mode=geo_state rows=5770    states=51  1990..2025
-[17:05:48]   qwi-sa   mode=geo_state rows=5770    states=51  1990..2025
-[17:05:48]   qwi-se   mode=geo_state rows=5770    states=51  1990..2025
-[17:05:48] G3 PASS qwi_datasets=3
-── G4 rows/bytes ──
-[17:05:48] G4 PASS rows=3909472 (+1826656 vs v1.0) 32.45MB keys=325
-── G6 sentinel ──
-[17:06:08] G6 PASS {'name': 'census-us', 'status': 'COMPLETE', 'detail': 'COMPLETE 51/56 datasets · 3909472 rows · 5 source failures logged', 'age_min': 0.1}
-[17:06:08] ops 4951 GREEN -- qwi live per-state since the 1990s; the full timeseries universe is COMPLETE with exactly the five structurally out-of-ladder failures named
+executing-against: 120fe50ca748d91bd86ac2a64a7b65246e693c9c
+── expected values from live census state ──
+[17:11:52]   state: 51/56 datasets · 3,909,472 rows · 5 failures · phase COMPLETE
+── G0 zip-settle census-note-v2 ──
+[17:11:53]   t+   0s marker=False
+[17:12:18]   t+  26s marker=False
+[17:12:44]   t+  51s marker=False
+[17:13:09]   t+  77s marker=False
+[17:13:35]   t+ 102s marker=False
+[17:14:00]   t+ 128s marker=False
+[17:14:26]   t+ 153s marker=False
+[17:14:51]   t+ 179s marker=False
+[17:15:16]   t+ 204s marker=False
+[17:15:42]   t+ 229s marker=False
+[17:16:07]   t+ 255s marker=False
+[17:16:33]   t+ 280s marker=False
+[17:16:58]   t+ 306s marker=False
+[17:17:24]   t+ 331s marker=False
+[17:17:49]   t+ 357s marker=False
+[17:18:15]   t+ 382s marker=False
+[17:18:40]   t+ 408s marker=False
+[17:19:05]   t+ 433s marker=False
+[17:19:31]   t+ 458s marker=False
+[17:19:56]   t+ 484s marker=False
+[17:20:22]   t+ 509s marker=False
+[17:20:47]   t+ 535s marker=False
+[17:21:13]   t+ 560s marker=False
+[17:21:38]   t+ 586s marker=False
+[17:22:03] G0 FAIL patched builder never landed
 
-→ Report written to aws/ops/reports/latest/ops_4951_census_qwi_bounded.md
+→ Report written to aws/ops/reports/latest/ops_4952_catalog_census_note.md
+❌ OPS-FAIL: aws/ops/pending/ops_4952_catalog_census_note.py
