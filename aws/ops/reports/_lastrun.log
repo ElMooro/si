@@ -1,21 +1,27 @@
-executing-against: 47ea0bccb62dcd8a41da36c4c89bdcd5ad1f432f
-── expected values from live census state ──
-[17:33:12]   state: 51/56 datasets · 3,909,472 rows · 5 failures · phase COMPLETE
-── G-1 marker-in-source self-check ──
-[17:33:12] G-1 PASS marker present in checkout
-── G0 zip-settle census-note-v2 ──
-[17:33:13] G0 PASS after 0s
-── G1 invoke catalog + fresh stamp ──
-[17:33:44]   t+  30s stamp unchanged (2026-08-23T16:48:53)
-[17:34:14]   t+  60s stamp unchanged (2026-08-23T16:48:53)
-[17:34:44]   t+  90s stamp unchanged (2026-08-23T16:48:53)
-[17:35:14]   t+ 121s stamp unchanged (2026-08-23T16:48:53)
-[17:35:45] G1 PASS stamp 2026-08-23T16:48:53 -> 2026-08-23T17:33:14 after 151s
-── G2 census card contract ──
-[17:35:45]   keys=325 note=full timeseries universe since inception: 51/56 datasets · 18 families · 3,909,472 rows · phase COMPLETE · excluded by design: idb 2, intltrade 36 (intltrade -> import-canary) · 5 structurally-named source failures
-[17:35:45] G2 PASS missing=[] fossil=False keys_ok=True
+executing-against: 5d8e60192891e229c7a606f5330987b12ceef485
+── G-1 markers-in-checkout ──
+[17:43:17]   ok justhodl-src-mirror          'nyfed-research lane ops 4953'
+[17:43:17]   ok justhodl-provider-catalog    'nyfed-note-v2'
+── G0 zip-settle both engines ──
+[17:43:43]   justhodl-src-mirror settled after 26s
+[17:43:43]   justhodl-provider-catalog settled after 0s
+[17:43:43] G0 PASS
+── G1 src-mirror run (Event + state poll) ──
+[17:44:14]   t+  30s waiting (as_of=2026-08-23T05:05:49)
+[17:44:44]   t+  60s waiting (as_of=2026-08-23T05:05:49)
+[17:45:14]   t+  90s waiting (as_of=2026-08-23T05:05:49)
+[17:45:44]   t+ 120s waiting (as_of=2026-08-23T05:05:49)
+[17:46:15]   t+ 151s waiting (as_of=2026-08-23T05:05:49)
+[17:46:45]   t+ 181s waiting (as_of=2026-08-23T05:05:49)
+[17:47:15] G1 PASS lane={"haircuts": {"tri-party-repo_data_current.xlsx": {"status": "fresh", "bytes": 217243}, "tri-party-repo_preNov25_history.xlsx": {"status": "fresh", "bytes": 439002}}, "mirrored": 429, "fresh": 429, "unchanged": 0, "errors": 0, "new_harvested": 0} lastcheck={sources:431 at:2026-08-23T17:47:05}
+── G2 provider-catalog nyfed card ──
+[17:47:46]   t+  30s stamp unchanged
+[17:48:16]   t+  60s stamp unchanged
+[17:48:46]   t+  90s stamp unchanged
+[17:49:17]   t+ 120s stamp unchanged
+[17:49:47] G2 PASS freshest_h=0.0 note=src-mirror daily since ops 4953: 431 sources · 429 fresh / 0 unchanged · haircut workbooks fresh/fresh · parsed haircuts-series re-transform = phase 2 (seed ops 4793-94)
 ── G3 origin ──
-[17:35:45] G3 PASS
-[17:35:45] ops 4952 GREEN -- census card now composed from state truth; the fossil template is gone and the numbers match the live walker
+[17:49:47] G3 PASS
+[17:49:47] ops 4953 GREEN -- the last audit orphan has a real import loop; nyfed-research refreshes daily beside the OFR lanes, phase-2 re-transforms stated in refresh-orphans
 
-→ Report written to aws/ops/reports/latest/ops_4952_catalog_census_note.md
+→ Report written to aws/ops/reports/latest/ops_4953_nyfed_src_mirror_lane.md
