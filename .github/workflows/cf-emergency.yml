@@ -42,9 +42,8 @@ jobs:
             # ssl patch landed, this section killed the job via set -e)
             N=$(curl -s -H "Authorization: Bearer $CF" \
               "https://api.cloudflare.com/client/v4/zones/$ZID/dns_records?name=www.justhodl.ai" \
-              | python3 -c "import json,sys
-try: print(len(json.load(sys.stdin).get('result') or []))
-except Exception: print('scope-denied')" || echo scope-denied)
+              | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d.get('result') or []))" \
+              2>/dev/null || echo scope-denied)
             echo "www records existing: $N"
             if [ "$N" = "0" ]; then
               echo "--- creating www CNAME -> elmooro.github.io (proxied)"
