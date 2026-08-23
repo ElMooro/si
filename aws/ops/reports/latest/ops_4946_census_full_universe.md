@@ -1,0 +1,69 @@
+## G0 zip-settle (deploy-lambdas races this push)
+
+**Status:** success  
+**Duration:** 192.7s  
+**Finished:** 2026-08-23T15:04:50+00:00  
+
+## Data
+
+| excluded | families | n_done | n_total | new_family_datasets_done | phase | rows_added | rows_total | universe |
+|---|---|---|---|---|---|---|---|---|
+| {"idb": 2, "intltrade": 36} | aies,asm,bds,eits,govs,govsemp,govslocalfin,govspension,govsschfin,govsstatefin,govsstatetax,healthins,hhpulse,hps,poverty,pseo,qwi,soma | 32 | 56 | 11 | DRAIN | 40384 | 2123200 | 94 |
+
+## Log
+- `15:01:37` G0 PASS marker deployed after 0s (sha SA5O0cpwEs8p)
+## G1 recatalog -> full timeseries universe
+
+- `15:01:58` G1 PASS n_total=56 universe=94 families=['aies', 'asm', 'bds', 'eits', 'govs', 'govsemp', 'govslocalfin', 'govspension', 'govsschfin', 'govsstatefin', 'govsstatetax', 'healthins', 'hhpulse', 'hps', 'poverty', 'pseo', 'qwi', 'soma'] excluded={'idb': 2, 'intltrade': 36} no_excluded_slugs=True
+## G2 drain drive (Event kicks; heartbeat finishes)
+
+- `15:01:58`   t+   0s phase=DRAIN n_done=26/56 rows=2086766 q=30 fail=0
+- `15:02:48`   t+  50s phase=DRAIN n_done=26/56 rows=2086766 q=29 fail=1
+- `15:03:13`   t+  75s phase=DRAIN n_done=28/56 rows=2086978 q=27 fail=1
+- `15:03:39`   t+ 100s phase=DRAIN n_done=30/56 rows=2089590 q=25 fail=1
+- `15:04:29`   t+ 151s phase=DRAIN n_done=32/56 rows=2123200 q=22 fail=2
+- `15:04:29` G2 PASS phase=DRAIN n_done=32/56 rows_total=2123200 (+40384 vs EITS) kicks=0 failures=[('aies-miscsector', 'no data any mode (last HTTP 400)'), ('asm-industry', 'no data any mode (last HTTP 400)')]
+## inception coverage (new families first)
+
+- `15:04:29`   asm         asm-product                    full_for   tp=time rows=32292    2002..2016
+- `15:04:29`   asm         asm-benchmark2017              year_for   tp=YEAR rows=2608     2013..2016
+- `15:04:29`   aies        aies-exp01                     full_for   tp=time rows=2530     2023..2023
+- `15:04:29`   asm         asm-state                      full_for   tp=time rows=1318     2003..2016
+- `15:04:29`   aies        aies-inv                       full_for   tp=time rows=1279     2023..2023
+- `15:04:29`   asm         asm-area2012                   year       tp=YEAR rows=208      2013..2016
+- `15:04:29`   aies        aies-ecom                      full_for   tp=time rows=139      2023..2023
+- `15:04:29`   asm         asm-area2017                   full_for   tp=time rows=4        2018..2021
+- `15:04:29`   asm         asm-benchmark2022              year_for   tp=YEAR rows=4        2018..2021
+- `15:04:29`   aies        aies-basic                     full_for   tp=time rows=1        2023..2023
+- `15:04:29`   aies        aies-exp02                     full_for   tp=time rows=1        2023..2023
+- `15:04:29`   eits        m3                             full_for   tp=time rows=600278   1..1
+- `15:04:29`   eits        qfr                            full       tp=time rows=378854   2000..2026
+- `15:04:29`   eits        mrts                           full       tp=time rows=195161   1992..2026
+- `15:04:29`   eits        mwts                           full       tp=time rows=157052   1992..2026
+- `15:04:29`   eits        qss                            full       tp=time rows=151236   2003..2026
+- `15:04:29`   eits        advm3                          full_for   tp=time rows=132240   1..1
+- `15:04:29`   eits        bfs                            full_for   tp=time rows=116256   1..1
+- `15:04:29`   eits        resconst                       full       tp=time rows=90361    1959..2026
+- `15:04:29`   eits        vip                            full       tp=time rows=83904    2002..2026
+- `15:04:29`   eits        marts                          full       tp=time rows=58730    1992..2026
+- `15:04:29`   eits        ressales                       full       tp=time rows=28416    1963..2026
+- `15:04:29`   eits        mtis                           full       tp=time rows=23816    1992..2026
+- `15:04:29`   eits        mhs                            full       tp=time rows=22140    1959..2014
+- `15:04:29`   eits        hv                             full       tp=time rows=12240    1956..2026
+- `15:04:29`   eits        mrtsadv                        full       tp=time rows=8598     1992..2026
+- `15:04:29`   eits        mwtsadv                        full       tp=time rows=8598     1992..2026
+- `15:04:29`   eits        qpr                            full       tp=time rows=5830     1968..2026
+- `15:04:29`   eits        mhs2                           full_for   tp=time rows=3678     1..1
+- `15:04:29`   eits        ftdadv                         full       tp=time rows=2484     1992..2026
+- `15:04:29`   eits        ftd                            full       tp=time rows=2472     1992..2026
+- `15:04:29`   eits        qtax                           full_for   tp=time rows=472      1..1
+## G3 EITS regression guard
+
+- `15:04:29` G3 PASS marts_rows=58730 eits_ok=21
+## G4 sentinel pipeline
+
+- `15:04:49` G4 PASS pipeline={'name': 'census-us', 'status': 'RUNNING', 'detail': 'DRAIN 32/56 datasets · 2123200 rows · 2 source failures logged', 'age_min': 0.2}
+## G5 origin card
+
+- `15:04:50` G5 PASS origin=True(200)
+- `15:04:50` ops 4946 GREEN -- census-us now draining the FULL timeseries universe since inception; 15-min heartbeat completes the remainder and then daily-refreshes; intltrade stays with import-canary; day-two verify banked for the next session
