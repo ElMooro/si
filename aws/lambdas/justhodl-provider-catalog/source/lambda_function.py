@@ -655,13 +655,39 @@ def lambda_handler(event, context):
                          "re-transform = phase 2, seed ops 4753)"),
             "ofr-site": ("src-mirror daily since ops 4913 "
                          "(live page-harvest, seed ops 4755)"),
-            "nyfed-research": ("ORPHANED_TRANSFORM: haircut series "
-                               "seeded ops 4793-94, no refresh "
-                               "engine; source-map queued 4913"),
         }
         if slug in _orphan_notes:
             note = ((note + " · ") if note else "") + \
                 _orphan_notes[slug]
+        if slug == "nyfed-research":
+            # ops 4953 (nyfed-note-v2): the ORPHANED_TRANSFORM fossil
+            # is gone -- src-mirror lane 3 refreshes the haircut
+            # workbooks + every 4757/4758 manifest source daily;
+            # compose from the lane's own _last-check truth.
+            try:
+                _lc = _get_json(
+                    "data/warm/nyfed-research/_last-check.json") or {}
+                if _lc.get("engine") == "src-mirror":
+                    _hc = _lc.get("haircuts") or {}
+                    _note_n = ("src-mirror daily since ops 4953: "
+                               "%s sources · %s fresh / %s unchanged"
+                               " · haircut workbooks %s · parsed "
+                               "haircuts-series re-transform = "
+                               "phase 2 (seed ops 4793-94)" % (
+                                   _lc.get("sources"),
+                                   _lc.get("fresh"),
+                                   _lc.get("unchanged"),
+                                   "/".join(
+                                       (v or {}).get("status", "?")
+                                       for v in _hc.values())
+                                   or "pending"))
+                else:
+                    _note_n = ("ORPHANED_TRANSFORM: haircut series "
+                               "seeded ops 4793-94; src-mirror lane "
+                               "deployed, first run pending")
+                note = ((note + " · ") if note else "") + _note_n
+            except Exception:
+                pass
         if slug == "ecb":
             # ops 4893 (Khalid): surface the ciss-stress engine's live
             # holdings on this card — it is the proof-of-access engine

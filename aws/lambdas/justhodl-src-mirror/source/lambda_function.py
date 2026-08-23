@@ -1,4 +1,4 @@
-"""justhodl-src-mirror — v1.0 (ops 4913).
+"""justhodl-src-mirror — v1.1 (ops 4913 + nyfed-research lane ops 4953).
 
 Investigation verdict (Khalid: "are NY Fed and OFR importing
 properly?"): data/warm/ofr-bsrm/ and data/warm/ofr-site/ were NEVER
@@ -12,14 +12,23 @@ touched them. This engine gives them a real import loop:
   ofr-site : live page-harvest (the 4755 pattern) of every
              csv/xlsx/xls/json/zip data href on the FRG root pages,
              mirrored by basename.
+  nyfed-research (v1.1, ops 4953 -- closes the last audit orphan):
+             (a) the two tri-party haircut workbooks verbatim
+                 (medialibrary Interactives endpoints, ops 4759 URLs);
+             (b) every file in data/warm/nyfed-research/_manifest.json
+                 re-mirrored conditionally from its recorded
+                 source_url (the 4757/4758 sweep IS the refresh map);
+             (c) light re-harvest of the five seed pages (sce/hhdc/
+                 dsge/datahub/research-data) appends NEW first-party
+                 data files to the manifest, capped per run.
+             Parsed haircuts-series/ stays a phase-2 re-transform,
+             flagged beside bsrm's 500 series in refresh-orphans.
 
 Conditional fetch: upstream ETag/Length vs stored object metadata --
 unchanged content is skipped, and a tiny _last-check.json is stamped
 under each prefix EVERY run so the board's freshness reflects the
 truth: the import attempt happened (an unchanged quarterly source is
-healthy, not stale). Parsed-series re-transforms (the 500 bsrm series
-from ops 4753) are phase-2, flagged in data/warm/_audit/
-refresh-orphans.json — stated, not silent. Daily Scheduler.
+healthy, not stale). Daily Scheduler.
 """
 import gzip
 import json
@@ -34,17 +43,42 @@ import boto3
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 FRG = "https://www.financialresearch.gov"
+NYF = "https://www.newyorkfed.org"
 UA = {"User-Agent": "JustHodl Research raafouis@gmail.com",
       "Accept": "*/*"}
 STATE_KEY = "data/_state/src-mirror.json"
+ORPHANS_KEY = "data/warm/_audit/refresh-orphans.json"
 BSRM_FILES = ("ofr_bsrm.xlsx", "ofr_bsrm_international_scores.xlsx")
 SITE_PAGES = (FRG + "/", FRG + "/data")
+NYR = "data/warm/nyfed-research/"
+NYR_MANIFEST = NYR + "_manifest.json"
+HAIRCUTS = (
+    ("haircuts/tri-party-repo_data_current.xlsx",
+     NYF + "/medialibrary/Research/Interactives/Data/"
+           "tri-party-repo/tri-party-repo_data"),
+    ("haircuts/tri-party-repo_preNov25_history.xlsx",
+     NYF + "/medialibrary/Research/Interactives/Data/"
+           "tri-party-repo/tri-party-repo-preNov25_data"),
+)
+NYF_SEEDS = ("/microeconomics/sce", "/microeconomics/hhdc",
+             "/research/policy/dsge", "/markets/data-hub",
+             "/research/data_indicators")
+NYF_EXCLUDE = ("google-analytics", "dap.digitalgov", "youtube",
+               "twitter", "facebook", "linkedin", "doubleclick")
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
 
 def _now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def _get_json(key, default=None):
+    try:
+        raw = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
+        return json.loads(raw)
+    except Exception:
+        return default
 
 
 def _put_json(key, obj):
@@ -168,6 +202,83 @@ def lambda_handler(event, context):
                                 "fresh": sum(1 for v in s_.values()
                                              if v["status"] ==
                                              "fresh")}
+
+    # lane 3: nyfed-research (ops 4953 -- the last audit orphan) -----
+    n_ = {"haircuts": {}, "mirrored": 0, "fresh": 0, "unchanged": 0,
+          "errors": 0, "new_harvested": 0}
+    for rel, url in HAIRCUTS:
+        st, nb = _mirror(url, NYR + rel)
+        n_["haircuts"][rel.rsplit("/", 1)[-1]] = {"status": st,
+                                                  "bytes": nb}
+    man = _get_json(NYR_MANIFEST) or {"files": {}}
+    files = man.get("files") or {}
+    for rel, meta in sorted(files.items()):
+        if time.time() - t0 > 680:
+            break
+        src = (meta or {}).get("source_url")
+        if not src or "newyorkfed.org" not in src:
+            continue
+        st, nb = _mirror(src, NYR + rel)
+        n_["mirrored"] += 1
+        if st == "fresh":
+            n_["fresh"] += 1
+        elif st == "unchanged":
+            n_["unchanged"] += 1
+        else:
+            n_["errors"] += 1
+    # light re-harvest: NEW first-party data files -> manifest
+    if time.time() - t0 < 640:
+        known = set(files)
+        for sp in NYF_SEEDS:
+            if n_["new_harvested"] >= 12 or time.time() - t0 > 680:
+                break
+            try:
+                body = _page(NYF + sp)
+            except Exception:
+                continue
+            for m in re.findall(
+                    r'href="([^"]+\.(?:csv|xlsx|xls|json|zip))"',
+                    body, re.I):
+                u = m if m.startswith("http") else NYF + (
+                    m if m.startswith("/") else "/" + m)
+                if "newyorkfed.org" not in u or \
+                        any(x in u for x in NYF_EXCLUDE):
+                    continue
+                rel = (sp.strip("/").split("/")[-1] + "/" +
+                       re.sub(r"[^A-Za-z0-9._-]+", "_",
+                              u.split("newyorkfed.org", 1)[-1]
+                              .strip("/"))[:110])
+                if rel in known:
+                    continue
+                st, nb = _mirror(u, NYR + rel)
+                if st == "fresh":
+                    files[rel] = {"source_url": u, "bytes": nb,
+                                  "added_by": "src-mirror",
+                                  "added_at": _now()}
+                    known.add(rel)
+                    n_["new_harvested"] += 1
+                if n_["new_harvested"] >= 12:
+                    break
+        if n_["new_harvested"]:
+            man["files"] = files
+            man["extended_at"] = _now()
+            _put_json(NYR_MANIFEST, man)
+    _put_json(NYR + "_last-check.json",
+              {"at": _now(), "engine": "src-mirror",
+               "sources": len(files) + len(HAIRCUTS), **n_})
+    res["lanes"]["nyfed-research"] = n_
+
+    # phase-2 re-transforms: stated, never silent ---------------------
+    _put_json(ORPHANS_KEY, {
+        "as_of": _now(), "engine": "src-mirror",
+        "phase2_retransforms": {
+            "ofr-bsrm-series": "500 parsed bsrm series (seed ops "
+                               "4753) not re-derived from the "
+                               "mirrored workbooks yet",
+            "nyfed-haircuts-series": "parsed tri-party haircut "
+                                     "series (seed ops 4793-94) not "
+                                     "re-derived from the mirrored "
+                                     "workbooks yet"}})
 
     _put_json(STATE_KEY, {"as_of": _now(), "ok": True,
                           "summary": res,
