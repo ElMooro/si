@@ -1,23 +1,12 @@
-executing-against: e61cb2fbabd6e738089e6cb7362af2fb44b31602
-── G0 repo markers ──
-[14:18:03] G0 PASS justhodl-census-us
-[14:18:03] G0 PASS justhodl-provider-catalog
-[14:18:03] G0 PASS justhodl-import-sentinel
-── G0b artifact ladder (catalog + sentinel) ──
-[14:18:44] G0b PASS justhodl-provider-catalog ready after 41s
-[14:18:44] G0b PASS justhodl-import-sentinel ready after 0s
-── G1 deploy justhodl-census-us ──
-[14:18:44]   zip: 104080 bytes
-── 1. Lambda ──
-[14:18:44]   Lambda exists — updating
-[14:18:47] ✅   ✓ updated justhodl-census-us
-[14:18:47] ✅   ✓ reserved concurrency = 1
-[14:19:08] G1 PASS engine live + READY
-── G2 schedule ──
-[14:19:08] G2 PASS schedule created
-── G3/G4 discovery + drain drive ──
+## G0 repo markers
 
-→ Report written to aws/ops/reports/latest/ops_4944_census_us_birth.md
+**Status:** failure  
+**Duration:** 323.9s  
+**Finished:** 2026-08-23T14:23:27+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
     response = self._make_request(
@@ -72,6 +61,8 @@ urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Re
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4944_census_us_birth.py", line 183, in <module>
     last = sync_run(FN)
            ^^^^^^^^^^^^
@@ -134,4 +125,28 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 549, in send
     raise ConnectionClosedError(
 botocore.exceptions.ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-census-us/invocations".
-❌ OPS-FAIL: aws/ops/pending/ops_4944_census_us_birth.py
+
+```
+
+## Log
+- `14:18:03` G0 PASS justhodl-census-us
+- `14:18:03` G0 PASS justhodl-provider-catalog
+- `14:18:03` G0 PASS justhodl-import-sentinel
+## G0b artifact ladder (catalog + sentinel)
+
+- `14:18:44` G0b PASS justhodl-provider-catalog ready after 41s
+- `14:18:44` G0b PASS justhodl-import-sentinel ready after 0s
+## G1 deploy justhodl-census-us
+
+- `14:18:44`   zip: 104080 bytes
+## 1. Lambda
+
+- `14:18:44`   Lambda exists — updating
+- `14:18:47` ✅   ✓ updated justhodl-census-us
+- `14:18:47` ✅   ✓ reserved concurrency = 1
+- `14:19:08` G1 PASS engine live + READY
+## G2 schedule
+
+- `14:19:08` G2 PASS schedule created
+## G3/G4 discovery + drain drive
+
