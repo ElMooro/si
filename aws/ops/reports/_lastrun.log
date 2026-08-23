@@ -1,32 +1,21 @@
-executing-against: 2b1d3c9d6470fd7d182cd62c951e3d48298f8f8a
+executing-against: 47ea0bccb62dcd8a41da36c4c89bdcd5ad1f432f
 ── expected values from live census state ──
-[17:22:37]   state: 51/56 datasets · 3,909,472 rows · 5 failures · phase COMPLETE
+[17:33:12]   state: 51/56 datasets · 3,909,472 rows · 5 failures · phase COMPLETE
+── G-1 marker-in-source self-check ──
+[17:33:12] G-1 PASS marker present in checkout
 ── G0 zip-settle census-note-v2 ──
-[17:22:37]   t+   0s marker=False
-[17:23:03]   t+  25s marker=False
-[17:23:28]   t+  51s marker=False
-[17:23:53]   t+  76s marker=False
-[17:24:19]   t+ 102s marker=False
-[17:24:44]   t+ 127s marker=False
-[17:25:10]   t+ 152s marker=False
-[17:25:35]   t+ 178s marker=False
-[17:26:00]   t+ 203s marker=False
-[17:26:26]   t+ 228s marker=False
-[17:26:51]   t+ 254s marker=False
-[17:27:17]   t+ 279s marker=False
-[17:27:42]   t+ 305s marker=False
-[17:28:07]   t+ 330s marker=False
-[17:28:33]   t+ 355s marker=False
-[17:28:58]   t+ 381s marker=False
-[17:29:23]   t+ 406s marker=False
-[17:29:49]   t+ 432s marker=False
-[17:30:14]   t+ 457s marker=False
-[17:30:40]   t+ 482s marker=False
-[17:31:05]   t+ 508s marker=False
-[17:31:30]   t+ 533s marker=False
-[17:31:56]   t+ 558s marker=False
-[17:32:21]   t+ 584s marker=False
-[17:32:46] G0 FAIL patched builder never landed
+[17:33:13] G0 PASS after 0s
+── G1 invoke catalog + fresh stamp ──
+[17:33:44]   t+  30s stamp unchanged (2026-08-23T16:48:53)
+[17:34:14]   t+  60s stamp unchanged (2026-08-23T16:48:53)
+[17:34:44]   t+  90s stamp unchanged (2026-08-23T16:48:53)
+[17:35:14]   t+ 121s stamp unchanged (2026-08-23T16:48:53)
+[17:35:45] G1 PASS stamp 2026-08-23T16:48:53 -> 2026-08-23T17:33:14 after 151s
+── G2 census card contract ──
+[17:35:45]   keys=325 note=full timeseries universe since inception: 51/56 datasets · 18 families · 3,909,472 rows · phase COMPLETE · excluded by design: idb 2, intltrade 36 (intltrade -> import-canary) · 5 structurally-named source failures
+[17:35:45] G2 PASS missing=[] fossil=False keys_ok=True
+── G3 origin ──
+[17:35:45] G3 PASS
+[17:35:45] ops 4952 GREEN -- census card now composed from state truth; the fossil template is gone and the numbers match the live walker
 
 → Report written to aws/ops/reports/latest/ops_4952_catalog_census_note.md
-❌ OPS-FAIL: aws/ops/pending/ops_4952_catalog_census_note.py
