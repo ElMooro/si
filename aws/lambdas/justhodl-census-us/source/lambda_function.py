@@ -1,4 +1,4 @@
-"""justhodl-census-us v1.1.1 -- US Census Bureau timeseries walker, FULL universe.
+"""justhodl-census-us v1.1.2 -- US Census Bureau timeseries walker, FULL universe.
 
 v1.0.0 (ops 4944-45) drained the EITS family complete since inception
 (21 datasets, 2.08M rows). Khalid (2026-08-23): "there is no way all of
@@ -64,6 +64,18 @@ YEAR_FLOOR = 1900
 EMPTY_STOP = 4            # consecutive empty years after data = inception
 BIG_TEXT = 45_000_000     # full payload above this -> slice by year
 READ_CAP = 48_000_000     # hard chunked-read cap -> synthetic 413
+GRAM_KEY = "data/warm/census-us/_state/grammar-overrides.json"
+
+_OV = None
+
+
+def _ov(slug):
+    """Probe-verified grammar overrides (written by ops, never guessed):
+    {slug: {vars:[...], tp, full_time, year_time}}. Empty when absent."""
+    global _OV
+    if _OV is None:
+        _OV = gj(GRAM_KEY) or {}
+    return _OV.get(slug) or {}
 EXCLUDE_FAMILIES = {"intltrade", "idb"}
 
 PREFERRED_VARS = ["cell_value", "data_type_code", "category_code",
@@ -243,11 +255,13 @@ def discover(state):
 
 # ── per-dataset drain ─────────────────────────────────────────────────
 
-def get_vars(url):
+def get_vars(url, slug=None):
     """Returns (getlist, tp, has_year). tp is the time-predicate name
     the dataset itself declares -- 'time' or 'YEAR' -- never guessed.
     cell_value grid datasets keep the tight 8-var set; wide indicator
-    datasets (BDS/QWI/SAIPE class) take up to 20 usable vars."""
+    datasets (BDS/QWI/SAIPE class) take up to 20 usable vars. Probe-
+    verified overrides (GRAM_KEY) replace the var list / tp when the
+    default grammar is rejected by the dataset (qwi-class)."""
     st, text = http_get(url + "/variables.json")
     if st != 200:
         return None, None, False
@@ -258,6 +272,11 @@ def get_vars(url):
     tp = "time" if "time" in avail else ("YEAR" if "YEAR" in avail
                                          else None)
     has_year = "YEAR" in avail
+    ov = _ov(slug) if slug else {}
+    if ov.get("vars"):
+        got = [v for v in ov["vars"] if v in avail]
+        if got:
+            return got, (ov.get("tp") or tp), has_year
     usable = [v for v in avail
               if v not in ("for", "in", "time", "us", "ucgid", "YEAR")
               and not (avail[v] or {}).get("predicateOnly")]
@@ -301,11 +320,14 @@ def drain_one(slug, state, ctx):
         state["failures"][slug] = "no accessURL in catalog"
         return True
     if ds.get("vars") is None:
-        ds["vars"], ds["tp"], ds["has_year"] = get_vars(url)
+        ds["vars"], ds["tp"], ds["has_year"] = get_vars(url, slug)
         if not ds["vars"]:
             state["failures"][slug] = "variables.json unreadable"
             return True
     tp = ds.get("tp") or "time"
+    ov = _ov(slug)
+    t_full = ov.get("full_time") or "from 1900"
+    y_fmt = ov.get("year_time")
 
     c0 = _calls
     try:
@@ -318,7 +340,7 @@ def drain_one(slug, state, ctx):
                 if ds["mode"] not in (None, mode):
                     continue
                 st, text = http_get(
-                    q(url, ds["vars"], "from 1900", VARIANTS[vi], tp),
+                    q(url, ds["vars"], t_full, VARIANTS[vi], tp),
                     timeout=120)
                 if st == 200 and len(text) > BIG_TEXT:
                     break             # too big for one shot -> slice
@@ -355,7 +377,8 @@ def drain_one(slug, state, ctx):
                     _calls >= MAX_CALLS:
                 ds["resume_year"] = y
                 return False
-            st, text = http_get(q(url, ds["vars"], str(y),
+            y_arg = y_fmt.format(y=y) if y_fmt else str(y)
+            st, text = http_get(q(url, ds["vars"], y_arg,
                                   VARIANTS[vi], tp))
             rows = parse_rows(text) if st == 200 else None
             if rows:
@@ -435,9 +458,11 @@ def refresh(state, ctx):
             done.append(slug)
             continue
         tp = ds.get("tp") or "time"
+        ovr = _ov(slug)
         vi = VI_BY_MODE.get(ds.get("mode"), 0)
         if ds["mode"] in ("full", "full_for", "full_state"):
-            st, text = http_get(q(url, ds["vars"], "from 1900",
+            st, text = http_get(q(url, ds["vars"],
+                                  ovr.get("full_time") or "from 1900",
                                   VARIANTS[vi], tp), timeout=120)
             rows = parse_rows(text) if st == 200 else None
             if rows:
@@ -447,7 +472,9 @@ def refresh(state, ctx):
                     ds["y0"], ds["y1"] = y0, y1
         else:
             for y in (cur, cur - 1):
-                st, text = http_get(q(url, ds["vars"], str(y),
+                yf = ovr.get("year_time")
+                st, text = http_get(q(url, ds["vars"],
+                                      yf.format(y=y) if yf else str(y),
                                       VARIANTS[vi], tp))
                 rows = parse_rows(text) if st == 200 else None
                 if rows:
@@ -478,17 +505,18 @@ def save(state):
 
 
 def lambda_handler(event, ctx):
-    global _calls
+    global _calls, _OV
     _calls = 0
+    _OV = None                       # re-read overrides each invoke
     event = event or {}
     state = gj(STATE_KEY) or {
-        "version": "1.1.1", "phase": "CATALOG", "queue": [],
+        "version": "1.1.2", "phase": "CATALOG", "queue": [],
         "datasets": {}, "catalog": {}, "failures": {},
         "n_total": 0, "n_done": 0, "rows_total": 0,
         "n_timeseries_universe": 0,
         "note": "scope: full Census timeseries universe since inception "
                 "(intltrade -> import-canary; idb value-gated out)"}
-    state["version"] = "1.1.1"
+    state["version"] = "1.1.2"
 
     if event.get("recatalog"):
         if discover(state) and state["queue"]:
@@ -563,4 +591,4 @@ def lambda_handler(event, ctx):
             "failures": len(state["failures"])}
 
 
-ENGINE_VERSION = "justhodl-census-us v1.1.1 ops4948 oom-guard"
+ENGINE_VERSION = "justhodl-census-us v1.1.2 ops4949 grammar-overrides"

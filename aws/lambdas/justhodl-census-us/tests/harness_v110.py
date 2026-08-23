@@ -1,4 +1,4 @@
-"""Local harness for census-us v1.1.1 -- boto3 + urllib stubbed.
+"""Local harness for census-us v1.1.2 -- boto3 + urllib stubbed.
 Proves v1.1.0 behaviors PLUS the 4948 fixes: chunked READ_CAP -> 413
 ladder signal (no OOM), save-first crash quarantine, annual-set
 single-year time answer redone via YEAR (bds), and the redo event.
@@ -52,7 +52,8 @@ V_MARTS = {"variables": {"cell_value": {}, "data_type_code": {},
 V_BDS = {"variables": {"time": {}, "YEAR": {}, "ESTAB": {}, "FIRM": {},
   "JOB_CREATION": {}, "for": {}, "us": {}}}            # BOTH grammars
 V_QWI = {"variables": {"time": {}, "Emp": {}, "HirA": {}, "Sep": {},
-  "EarnS": {}, "for": {}, "state": {}}}
+  "EarnS": {}, "sEmp": {}, "sHirA": {}, "sSep": {}, "sEarnS": {},
+  "Payroll": {}, "FrmJbGn": {}, "for": {}, "state": {}}}
 V_SAHIE = {"variables": {"time": {}, "NUI_PT": {}, "NIC_PT": {},
   "PCTUI_PT": {}, "for": {}, "us": {}, "state": {}}}
 
@@ -112,13 +113,17 @@ def fake_urlopen(req, timeout=None):
             return R(rows_bds_year(int(m.group(1))))
         return R([])
     if "qwi/sa?" in url:
-        if "time=from+1900" in url:
+        import urllib.error
+        core = "get=Emp%2CHirA%2CSep%2CEarnS" in url or \
+               "get=Emp,HirA,Sep,EarnS" in url
+        if core and "time=from+1990-Q1" in url:
             if "for=state%3A%2A" in url: return R(rows_qwi())
             if "for=us%3A%2A" in url:
-                import urllib.error
                 raise urllib.error.HTTPError(url, 400, "bad", {}, io.BytesIO(b"unknown geo"))
             return R([])
-        return R([])
+        # every non-override shape is rejected (the live 4948 behavior)
+        raise urllib.error.HTTPError(url, 400, "bad", {},
+                                     io.BytesIO(b"error: unknown variable"))
     if "healthins/sahie?" in url:
         if "time=from+1900" in url:
             if "for=" not in url:
@@ -152,6 +157,9 @@ seed = {"version":"1.0.0","phase":"COMPLETE","queue":["soma"],
  "n_timeseries_universe":8,"last_catalog_check":"2026-08-23T14:00:00",
  "last_refresh_date":"2026-08-23"}
 S3MEM[L.STATE_KEY] = json.dumps(seed).encode()
+S3MEM[L.GRAM_KEY] = json.dumps({"qwi-sa": {
+    "vars": ["Emp", "HirA", "Sep", "EarnS"],
+    "full_time": "from 1990-Q1"}}).encode()
 
 out = L.lambda_handler({"recatalog": True}, Ctx())
 st = json.loads(S3MEM[L.STATE_KEY])
@@ -172,6 +180,7 @@ ck("bds rows 46", b["rows"] == 46, b["rows"])
 qw = st["datasets"]["qwi-sa"]
 ck("qwi state variant", qw["mode"] == "full_state" and qw["ok"], qw["mode"])
 ck("qwi header year fix", qw["y0"] == "1990" and qw["y1"] == "2025", (qw["y0"], qw["y1"]))
+ck("qwi override vars applied", qw.get("vars") == ["Emp","HirA","Sep","EarnS"], qw.get("vars"))
 
 sa = st["datasets"]["healthins-sahie"]
 ck("sahie 413 -> us variant", sa["mode"] == "full_for" and sa["ok"],
@@ -201,7 +210,7 @@ need = ["phase","n_total","n_done","rows_total","queue","datasets",
 ck("state key contract", all(k in st2 for k in need),
    [k for k in need if k not in st2])
 ck("handler return shape", out["phase"] == "COMPLETE" and out["n_done"] == 4, out)
-ck("version 1.1.1", st2.get("version") == "1.1.1", st2.get("version"))
+ck("version 1.1.2", st2.get("version") == "1.1.2", st2.get("version"))
 
 print("HARNESS " + ("GREEN" if not fails else "RED: " + ",".join(fails)))
 sys.exit(1 if fails else 0)
