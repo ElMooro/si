@@ -86,6 +86,11 @@ REG = {
   "prefixes": ["data/warm/usgov/bls/",
                "data/warm/fred-canary/bls-labor"],
   "hot": ["data/bls-macro.json"]},
+ "census-us": {"name": "US Census Bureau",
+  "api": "api.census.gov/data/timeseries",
+  "engines": ["justhodl-census-us"],
+  "prefixes": ["data/warm/census-us/"], "hot": [],
+  "series_from": ("data/warm/census-us/catalog.json.gz", "datasets")},
  "fed-board": {"name": "Federal Reserve Board — DDP",
   "api": "federalreserve.gov/datadownload",
   "engines": ["justhodl-usgov-direct"],
@@ -610,6 +615,32 @@ def lambda_handler(event, context):
                                  _tx.get("mean_agree_pct") or "—"))
                     note = (note + " · " + _note_x) if note \
                         else _note_x
+            except Exception:
+                pass
+        if slug == "census-us":
+            # ops 4944: unit discipline (ops 4574) — n_live counts
+            # KEYS under the prefix (state + manifests + year slices),
+            # not datasets, so no keys-vs-datasets ratio. Progress
+            # rides in the note from the walker's OWN state, in
+            # dataset units.
+            try:
+                _cw = _get_json(
+                    "data/warm/census-us/_state/state.json")
+                _defer = max(0, (_cw.get("n_timeseries_universe")
+                                 or 0) - (_cw.get("n_total") or 0))
+                _note_c = ("EITS full history since inception: "
+                           "%s/%s datasets · %s rows banked · "
+                           "phase %s" % (
+                               _cw.get("n_done"), _cw.get("n_total"),
+                               f"{_cw.get('rows_total') or 0:,}",
+                               _cw.get("phase")))
+                if _defer:
+                    _note_c += (" · %d wider timeseries datasets "
+                                "deferred tier-2" % _defer)
+                if _cw.get("failures"):
+                    _note_c += (" · %d source failures logged"
+                                % len(_cw["failures"]))
+                note = ((note + " · ") if note else "") + _note_c
             except Exception:
                 pass
         _orphan_notes = {

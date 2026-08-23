@@ -321,6 +321,43 @@ def lambda_handler(event=None, context=None):
                           "detail": det,
                           "age_min": age_min((stx or {}).get("updated_at")
                                              if stx else None)})
+    # ── Census Bureau EITS walker (ops 4944) ─────────────────────────
+    cst = read_json("data/warm/census-us/_state/state.json")
+    if not cst:
+        pipelines.append({"name": "census-us", "status": "NO_STATE",
+                          "detail": "walker state absent — first run "
+                                    "pending", "age_min": None})
+    else:
+        c_age = age_min(cst.get("updated_at"))
+        c_ph = cst.get("phase")
+        c_det = "%s %s/%s datasets · %s rows" % (
+            c_ph, cst.get("n_done"), cst.get("n_total"),
+            cst.get("rows_total"))
+        if c_ph == "COMPLETE":
+            c_st = "COMPLETE" if (c_age or 9e9) < 26 * 60 else "STALE"
+        elif (c_age or 9e9) > 45:
+            c_st = "STALLED"
+            # allowlisted heal: ONE async kick, same discipline as the
+            # FRED kick above — never on key/403 classes.
+            try:
+                lam.invoke(FunctionName="justhodl-census-us",
+                           InvocationType="Event",
+                           Payload=json.dumps(
+                               {"kicked_by": "import-sentinel"}
+                           ).encode())
+                actions.append("census-us: async kick queued")
+                incident("census-us", "auto_heal",
+                         "stalled — async kick queued")
+            except Exception as e:
+                incident("census-us", "heal_failed", str(e)[:120])
+        else:
+            c_st = "RUNNING"
+        if len(cst.get("failures") or {}):
+            c_det += " · %d source failures logged" % len(
+                cst["failures"])
+        pipelines.append({"name": "census-us", "status": c_st,
+                          "detail": c_det[:160], "age_min": c_age})
+
     cat = read_json("data/provider-catalog.json")
     pipelines.append({"name": "provider-catalog",
                       "status": ("OK" if cat and (age_min(
