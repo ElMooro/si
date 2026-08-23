@@ -1,43 +1,42 @@
-"""justhodl-census-us v1.0.0 -- US Census Bureau economic timeseries walker.
+"""justhodl-census-us v1.1.0 -- US Census Bureau timeseries walker, FULL universe.
 
-Khalid (2026-08-23): "add US Census Bureau to data.html and import all
-the data from there they have a lot of factory orders, manufacturing
-etc ... make sure you are importing all the historic data since
-inception".
+v1.0.0 (ops 4944-45) drained the EITS family complete since inception
+(21 datasets, 2.08M rows). Khalid (2026-08-23): "there is no way all of
+it is just 11mb" -- correct instinct: EITS is the aggregate-indicator
+family; Census's timeseries universe is ~94 datasets. v1.1.0 turns the
+documented tier-2 knob: EVERY timeseries dataset in data.json is now in
+scope -- BDS firm dynamics (1978->), ASM manufacturing detail, QWI
+workforce indicators, SAIPE poverty, SAHIE health-insurance, PSEO and
+the rest -- full history since each dataset's inception.
 
-Scope, stated honestly: the Census cell API spans ~1,400 datasets
-(ACS, decennial, CBP, economic census -- geographic cross-sections in
-the multi-TB range that no timeseries platform mirrors cell-by-cell).
-The Census content that belongs on THIS platform is the Economic
-Indicators Time Series family (timeseries/eits/*): M3 factory orders,
-advance durable goods, retail sales, housing starts + permits, new
-home sales, construction spending, business + wholesale + retail
-inventories, QFR, quarterly services, business formation, trade
-balance headline, homeownership. v1.0 drains EVERY eits dataset in the
-live data.json catalog, full history since each dataset's inception,
-every category / data type / seasonal-adjustment cell the endpoint
-serves. The full timeseries universe (intltrade country-level etc.) is
-discovered and counted in state as deferred tier-2 -- a knob, not a
-rewrite.
+Deliberate exclusions (named, not silent):
+  intltrade/*  customs detail -- lives in justhodl-import-canary
+               (#1 canary, memory card 5); never duplicate.
+  idb/*        international population projections to 2100 --
+               demographic, no platform edge (value-gate, memory 26).
+The multi-TB geographic cross-section API (ACS/decennial/CBP cell
+grids) remains out of timeseries scope by design.
 
-Mechanics (fleet conventions -- fred-catalog / sdmx-walker lineage):
-  - phases CATALOG -> DRAIN -> COMPLETE; state checkpointed to S3
-  - adaptive per-dataset pull ladder, winner memoized:
-      full (?time=from+1900) -> full+for=us:* -> per-year descending
-      (inception found after 4 consecutive empty years) -> per-year+for
-  - reserved concurrency 1 (single flight), 15-min Scheduler heartbeat
-  - after COMPLETE the same heartbeat refreshes: daily re-pull of the
-    trailing window per dataset (captures revisions + new months) and
-    a weekly data.json re-discovery that queues NEW datasets
-  - every failure lands in state.failures with the reason -- never
-    silently dropped (the 13F lesson, ops 4936-4940)
+New mechanics on top of the proven v1.0 ladder:
+  - per-dataset time grammar from variables.json: tp = "time" when the
+    dataset speaks time predicates, else "YEAR" (BDS-style) -> the
+    walker never guesses a grammar the source didn't declare
+  - geo-variant chain "" -> us:* -> state:* in BOTH full and year modes
+    (QWI-class datasets only answer with an explicit for=)
+  - wide datasets without cell_value get up to 20 vars (BDS/QWI carry
+    their payload across many named indicators, not a cell grid)
+  - oversized full responses (>45MB text) escalate to year slicing
+  - y0/y1 read from the HEADER time column, not r[-1] (v1.0 cosmetic
+    bug: with for= variants the last column is the geo code -> "1..1")
+  - event {"recatalog": true} forces immediate re-discovery + DRAIN
+phases CATALOG -> DRAIN -> COMPLETE unchanged; state schema is a
+superset of v1.0 (every v1.0 key still written -- G0_KEY_CONTRACT).
 
-S3 layout under data/warm/census-us/:
-  _state/state.json            walker state (sentinel + catalog read it)
-  catalog.json.gz              filtered dataset catalog (target source)
-  <slug>/full.json.gz          whole-history payload (full modes)
-  <slug>/slices/<YYYY>.json.gz per-year payloads (year modes)
-  <slug>/manifest.json         rows, mode, year span, calls, refreshed
+S3 layout under data/warm/census-us/ unchanged:
+  _state/state.json  catalog.json.gz  <slug>/full.json.gz
+  <slug>/slices/<YYYY>.json.gz  <slug>/manifest.json
+Non-EITS slugs are family-prefixed ("bds", "qwi-sa", "asm-...") so the
+21 live EITS slugs and their banked history are untouched.
 """
 import gzip
 import io
@@ -63,10 +62,17 @@ KEEP_MS = 90_000          # stop starting work under 90s remaining
 CATALOG_REFRESH_D = 7     # weekly re-discovery of data.json
 YEAR_FLOOR = 1900
 EMPTY_STOP = 4            # consecutive empty years after data = inception
+BIG_TEXT = 45_000_000     # full payload above this -> slice by year
+EXCLUDE_FAMILIES = {"intltrade", "idb"}
 
 PREFERRED_VARS = ["cell_value", "data_type_code", "category_code",
                   "seasonally_adj", "time_slot_id", "error_data",
                   "geo_level_code", "program_code"]
+VARIANTS = ["", "us:*", "state:*"]
+MODE_BY_VI = {0: ("full", "year"), 1: ("full_for", "year_for"),
+              2: ("full_state", "year_state")}
+VI_BY_MODE = {"full": 0, "year": 0, "full_for": 1, "year_for": 1,
+              "full_state": 2, "year_state": 2}
 
 s3 = boto3.client("s3", region_name="us-east-1")
 _calls = 0
@@ -106,7 +112,7 @@ def http_get(url, timeout=45, tries=2):
         time.sleep(SPACING)
         try:
             req = urllib.request.Request(url, headers={
-                "User-Agent": "justhodl-census-us/1.0 (raafouis@gmail.com)"})
+                "User-Agent": "justhodl-census-us/1.1 (raafouis@gmail.com)"})
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return r.status, r.read().decode("utf-8", "replace")
         except urllib.error.HTTPError as e:
@@ -138,12 +144,34 @@ def parse_rows(text):
         return None
 
 
+def year_span(rows, tp):
+    """y0/y1 from the HEADER-located time column (v1.1 fix -- r[-1] is
+    the geo code under for= variants)."""
+    if not rows or len(rows) < 2:
+        return None, None
+    hdr = rows[0]
+    ti = -1
+    for cand in (tp, "time", "YEAR"):
+        if cand and cand in hdr:
+            ti = hdr.index(cand)
+            break
+    ys = set()
+    for r in rows[1:]:
+        try:
+            y = str(r[ti])[:4]
+        except Exception:
+            continue
+        if y.isdigit() and 1900 <= int(y) <= 2100:
+            ys.add(y)
+    return (min(ys), max(ys)) if ys else (None, None)
+
+
 # ── discovery ─────────────────────────────────────────────────────────
 
 def discover(state):
-    """Pull data.json, filter the EITS family, bank the catalog, build
-    the drain queue. Counts the full timeseries universe for the
-    deferred-tier note."""
+    """Pull data.json, include EVERY timeseries dataset outside
+    EXCLUDE_FAMILIES, bank the catalog, extend the drain queue. EITS
+    slugs keep their v1.0 names; other families are family-prefixed."""
     st, text = http_get(DATA_JSON, timeout=90)
     if st != 200:
         state["failures"]["_catalog"] = "data.json HTTP %s" % st
@@ -154,64 +182,82 @@ def discover(state):
     except Exception as e:
         state["failures"]["_catalog"] = "data.json parse: %s" % str(e)[:120]
         return False
-    eits, universe = [], 0
+    inc, universe, excluded = [], 0, {}
     for d in dsets:
         cd = d.get("c_dataset") or []
-        if d.get("c_isTimeseries") is True:
-            universe += 1
-        if len(cd) >= 3 and cd[0] == "timeseries" and cd[1] == "eits":
-            url = ""
-            for dist in (d.get("distribution") or []):
-                if dist.get("accessURL"):
-                    url = dist["accessURL"].replace("http://", "https://")
-                    break
-            if not url:
-                continue
-            eits.append({"slug": "-".join(cd[2:]),
-                         "title": (d.get("title") or "")[:140],
-                         "url": url.rstrip("/"),
-                         "modified": d.get("modified")})
-    eits.sort(key=lambda x: x["slug"])
-    seen = {d["slug"] for d in eits}
-    new = [sl for sl in sorted(seen) if sl not in state["datasets"]]
-    state["catalog"] = {d["slug"]: d for d in eits}
-    state["n_total"] = len(eits)
+        if d.get("c_isTimeseries") is not True:
+            continue
+        if not cd or cd[0] != "timeseries" or len(cd) < 2:
+            continue
+        universe += 1
+        fam = cd[1]
+        if fam in EXCLUDE_FAMILIES:
+            excluded[fam] = excluded.get(fam, 0) + 1
+            continue
+        url = ""
+        for dist in (d.get("distribution") or []):
+            if dist.get("accessURL"):
+                url = dist["accessURL"].replace("http://", "https://")
+                break
+        if not url:
+            continue
+        slug = "-".join(cd[2:]) if fam == "eits" and len(cd) >= 3 \
+            else "-".join(cd[1:])
+        inc.append({"slug": slug, "family": fam,
+                    "title": (d.get("title") or "")[:140],
+                    "url": url.rstrip("/"),
+                    "modified": d.get("modified")})
+    inc.sort(key=lambda x: (x["family"] != "eits", x["slug"]))
+    seen = {d["slug"] for d in inc}
+    new = [d["slug"] for d in inc if d["slug"] not in state["datasets"]]
+    state["catalog"] = {d["slug"]: d for d in inc}
+    state["n_total"] = len(inc)
     state["n_timeseries_universe"] = universe
+    state["excluded_families"] = excluded
     state["queue"] = [sl for sl in state.get("queue", []) if sl in seen] \
         + [sl for sl in new if sl not in state.get("queue", [])]
     state["last_catalog_check"] = _now().isoformat(timespec="seconds")
     pj(CATALOG_KEY, {"as_of": state["last_catalog_check"],
-                     "n_total": len(eits),
+                     "n_total": len(inc),
                      "universe_timeseries": universe,
-                     "datasets": eits})
+                     "excluded_families": excluded,
+                     "datasets": inc})
     return True
 
 
 # ── per-dataset drain ─────────────────────────────────────────────────
 
 def get_vars(url):
+    """Returns (getlist, tp, has_year). tp is the time-predicate name
+    the dataset itself declares -- 'time' or 'YEAR' -- never guessed.
+    cell_value grid datasets keep the tight 8-var set; wide indicator
+    datasets (BDS/QWI/SAIPE class) take up to 20 usable vars."""
     st, text = http_get(url + "/variables.json")
     if st != 200:
-        return None
+        return None, None, False
     try:
         avail = (json.loads(text).get("variables") or {})
     except Exception:
-        return None
+        return None, None, False
+    tp = "time" if "time" in avail else ("YEAR" if "YEAR" in avail
+                                         else None)
+    has_year = "YEAR" in avail
     usable = [v for v in avail
-              if v not in ("for", "in", "time", "us", "ucgid")
+              if v not in ("for", "in", "time", "us", "ucgid", "YEAR")
               and not (avail[v] or {}).get("predicateOnly")]
-    got = [v for v in PREFERRED_VARS if v in avail]
-    if "cell_value" not in got:
-        got = (["cell_value"] if "cell_value" in avail else []) + \
-            [v for v in usable if v not in got][:6]
-    return got[:8] or None
+    if "cell_value" in avail:
+        got = [v for v in PREFERRED_VARS if v in avail]
+        if "cell_value" not in got:
+            got = ["cell_value"] + [v for v in usable if v not in got][:6]
+        return (got[:8] or None), tp, has_year
+    return (usable[:20] or None), tp, has_year
 
 
-def q(url, getlist, timepred, with_for):
+def q(url, getlist, pred, geo, tp):
     parts = ["get=" + ",".join(getlist),
-             "time=" + urllib.parse.quote_plus(timepred)]
-    if with_for:
-        parts.append("for=" + urllib.parse.quote_plus("us:*"))
+             (tp or "time") + "=" + urllib.parse.quote_plus(pred)]
+    if geo:
+        parts.append("for=" + urllib.parse.quote_plus(geo))
     if KEY:
         parts.append("key=" + KEY)
     return url + "?" + "&".join(parts)
@@ -236,43 +282,51 @@ def drain_one(slug, state, ctx):
         state["failures"][slug] = "no accessURL in catalog"
         return True
     if ds.get("vars") is None:
-        ds["vars"] = get_vars(url)
+        ds["vars"], ds["tp"], ds["has_year"] = get_vars(url)
         if not ds["vars"]:
             state["failures"][slug] = "variables.json unreadable"
             return True
+    tp = ds.get("tp") or "time"
 
     c0 = _calls
     try:
-        # rung 1+2: whole-history in one shot -----------------------------
-        if ds["mode"] in (None, "full", "full_for"):
-            for wf, mode in ((False, "full"), (True, "full_for")):
+        # rungs 1-3: whole-history in one shot (time-grammar only) ------
+        if tp == "time" and (ds["mode"] is None or
+                             ds["mode"] in ("full", "full_for",
+                                            "full_state")):
+            for vi in range(3):
+                mode = MODE_BY_VI[vi][0]
                 if ds["mode"] not in (None, mode):
                     continue
-                st, text = http_get(q(url, ds["vars"], "from 1900", wf),
-                                    timeout=120)
+                st, text = http_get(
+                    q(url, ds["vars"], "from 1900", VARIANTS[vi], tp),
+                    timeout=120)
+                if st == 200 and len(text) > BIG_TEXT:
+                    break             # too big for one shot -> slice
                 rows = parse_rows(text) if st == 200 else None
                 if st == 200 and rows:
                     n = bank(ROOT + slug + "/full.json.gz", rows)
                     ds.update(mode=mode, rows=n, ok=True)
-                    ys = sorted({str(r[-1])[:4] for r in rows[1:]
-                                 if r and r[-1] and
-                                 str(r[-1])[:4].isdigit()})
-                    if ys:
-                        ds["y0"], ds["y1"] = ys[0], ys[-1]
+                    y0, y1 = year_span(rows, tp)
+                    if y0:
+                        ds["y0"], ds["y1"] = y0, y1
                     return True
-                if st == 200 and rows == []:
-                    continue          # syntax accepted, nothing matched
-            ds["mode"] = "year"       # escalate to slicing
+                # [] or 400 -> try next geo variant
+            ds["mode"] = ds["mode"] if str(ds["mode"]).startswith("year") \
+                else "year"           # escalate to slicing
+        elif ds["mode"] is None:
+            ds["mode"] = "year"       # YEAR-grammar: per-year only
 
-        # rung 3+4: per-year descending until inception -------------------
+        # rungs 4-6: per-year descending until inception ----------------
+        vi = VI_BY_MODE.get(ds["mode"], 0)
         y = ds.get("resume_year") or _now().year
         while y >= YEAR_FLOOR:
             if ctx.get_remaining_time_in_millis() < KEEP_MS or \
                     _calls >= MAX_CALLS:
                 ds["resume_year"] = y
                 return False
-            wf = ds["mode"] == "year_for"
-            st, text = http_get(q(url, ds["vars"], str(y), wf))
+            st, text = http_get(q(url, ds["vars"], str(y),
+                                  VARIANTS[vi], tp))
             rows = parse_rows(text) if st == 200 else None
             if rows:
                 n = bank(ROOT + slug + "/slices/%d.json.gz" % y, rows)
@@ -282,16 +336,27 @@ def drain_one(slug, state, ctx):
                 ds["y0"] = str(y)
                 ds["y1"] = ds["y1"] or str(y)
             else:
-                if not ds["seen_data"] and not ds.get("flipped") and \
-                        y >= _now().year - 3 and ds["mode"] == "year":
-                    ds["mode"] = "year_for"     # flip variant once
-                    ds["flipped"] = True
-                    continue
                 if ds["seen_data"]:
                     ds["empty_run"] += 1
                     if ds["empty_run"] >= EMPTY_STOP:
                         break                   # inception found
                 elif y <= _now().year - 12:
+                    # this variant is exhausted down to the horizon:
+                    # try the YEAR grammar first (if declared), then
+                    # the next geo variant, before declaring failure
+                    if tp == "time" and ds.get("has_year") and \
+                            not ds.get("tp_flipped"):
+                        ds["tp"] = tp = "YEAR"
+                        ds["tp_flipped"] = True
+                        y = _now().year
+                        continue
+                    flips = ds.get("flips", 0)
+                    if flips < 2:
+                        vi += 1
+                        ds["flips"] = flips + 1
+                        ds["mode"] = MODE_BY_VI[min(vi, 2)][1]
+                        y = _now().year
+                        continue
                     state["failures"][slug] = \
                         "no data any mode (last HTTP %s)" % st
                     return True
@@ -307,9 +372,10 @@ def drain_one(slug, state, ctx):
             state["failures"].pop(slug, None)
             pj(ROOT + slug + "/manifest.json",
                {"dataset": slug, "title": meta.get("title"),
+                "family": meta.get("family"),
                 "mode": ds["mode"], "rows": ds["rows"],
                 "years": [ds["y0"], ds["y1"]], "vars": ds["vars"],
-                "calls": ds["calls"],
+                "tp": ds.get("tp"), "calls": ds["calls"],
                 "updated_at": _now().isoformat(timespec="seconds")})
 
 
@@ -339,20 +405,21 @@ def refresh(state, ctx):
         if not url:
             done.append(slug)
             continue
-        wf = ds["mode"] in ("full_for", "year_for")
-        if ds["mode"] in ("full", "full_for"):
-            st, text = http_get(q(url, ds["vars"], "from 1900", wf),
-                                timeout=120)
+        tp = ds.get("tp") or "time"
+        vi = VI_BY_MODE.get(ds.get("mode"), 0)
+        if ds["mode"] in ("full", "full_for", "full_state"):
+            st, text = http_get(q(url, ds["vars"], "from 1900",
+                                  VARIANTS[vi], tp), timeout=120)
             rows = parse_rows(text) if st == 200 else None
             if rows:
                 ds["rows"] = bank(ROOT + slug + "/full.json.gz", rows)
-                ys = [str(r[-1])[:4] for r in rows[1:]
-                      if r and r[-1] and str(r[-1])[:4].isdigit()]
-                if ys:
-                    ds["y1"] = max(ys)
+                y0, y1 = year_span(rows, tp)
+                if y0:
+                    ds["y0"], ds["y1"] = y0, y1
         else:
             for y in (cur, cur - 1):
-                st, text = http_get(q(url, ds["vars"], str(y), wf))
+                st, text = http_get(q(url, ds["vars"], str(y),
+                                      VARIANTS[vi], tp))
                 rows = parse_rows(text) if st == 200 else None
                 if rows:
                     bank(ROOT + slug + "/slices/%d.json.gz" % y, rows)
@@ -370,9 +437,12 @@ def save(state):
                               for d in state["datasets"].values())
     state["n_done"] = sum(1 for d in state["datasets"].values()
                           if d.get("ok"))
+    state["families"] = sorted({(v.get("family") or "?")
+                                for v in state.get("catalog", {}).values()})
     state["updated_at"] = _now().isoformat(timespec="seconds")
     slim = dict(state)
     slim["catalog"] = {k: {"url": v["url"], "title": v.get("title"),
+                           "family": v.get("family"),
                            "modified": v.get("modified")}
                        for k, v in state.get("catalog", {}).items()}
     pj(STATE_KEY, slim)
@@ -381,13 +451,20 @@ def save(state):
 def lambda_handler(event, ctx):
     global _calls
     _calls = 0
+    event = event or {}
     state = gj(STATE_KEY) or {
-        "version": "1.0.0", "phase": "CATALOG", "queue": [],
+        "version": "1.1.0", "phase": "CATALOG", "queue": [],
         "datasets": {}, "catalog": {}, "failures": {},
         "n_total": 0, "n_done": 0, "rows_total": 0,
         "n_timeseries_universe": 0,
-        "note": "scope: full EITS family since inception; wider "
-                "timeseries universe deferred tier-2"}
+        "note": "scope: full Census timeseries universe since inception "
+                "(intltrade -> import-canary; idb value-gated out)"}
+    state["version"] = "1.1.0"
+
+    if event.get("recatalog"):
+        if discover(state) and state["queue"]:
+            state["phase"] = "DRAIN"
+        save(state)
 
     if state["phase"] == "CATALOG" or not state.get("catalog"):
         if discover(state):
@@ -420,4 +497,4 @@ def lambda_handler(event, ctx):
             "failures": len(state["failures"])}
 
 
-ENGINE_VERSION = "justhodl-census-us v1.0.0 ops4944"
+ENGINE_VERSION = "justhodl-census-us v1.1.0 ops4946 full-universe"
