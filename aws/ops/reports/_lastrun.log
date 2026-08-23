@@ -1,13 +1,9 @@
-executing-against: 48271b2447f4e377bd17cc316678654afc0c541e
-── P0 QWI grammar probe (runner-side, nothing guessed) ──
-[16:17:28]   census key present: True
-[16:17:29]   A-failing-shape      HTTP 400 rows=-1     error: wildcard not supported in 'for' clause for this hierarchy. Please select a specific state.
-[16:17:30]   B-core4-from1900     HTTP 400 rows=-1     error: wildcard not supported in 'for' clause for this hierarchy. Please select a specific state.
-[16:17:31]   C-core4-fromQ1       HTTP 400 rows=-1     error: wildcard not supported in 'for' clause for this hierarchy. Please select a specific state.
-[16:17:32]   D-core4-year         HTTP 400 rows=-1     error: wildcard not supported in 'for' clause for this hierarchy. Please select a specific state.
-[16:17:32]   G-core4-qtr-window   HTTP 400 rows=-1     error: wildcard not supported in 'for' clause for this hierarchy. Please select a specific state.
-[16:17:33]   E-core4-1state-1q    HTTP 200 rows=1      [["Emp","HirA","Sep","EarnS","time","state"], ["1940492","371102","366307","4753","2022-Q1","01"]]
-[16:17:34] P0 FAIL no candidate shape returned rows -- bodies above are the next iteration's input; NOT guessing
+executing-against: e86bda8a0d51bed7abb93a3c240d215802c0926e
+── P0 per-state time-range probe ──
+[16:57:50]   H-from1990     HTTP 400 rows=-1    error: this dataset requires a bounded date/time range
+[16:57:51]   I-from1990Q1   HTTP 400 rows=-1    error: this dataset requires a bounded date/time range
+[16:57:52]   J-year2022     HTTP 200 rows=4     [["Emp","HirA","Sep","EarnS","time","state"], ["1940492","371102","366307","4753","2022-Q1","01"], ["1945287","434891","410889","4739","2022-Q2","01"]
+[16:57:53] P0 FAIL no per-state range form returned rows
 
-→ Report written to aws/ops/reports/latest/ops_4949_census_qwi_grammar.md
-❌ OPS-FAIL: aws/ops/pending/ops_4949_census_qwi_grammar.py
+→ Report written to aws/ops/reports/latest/ops_4950_census_qwi_geoiter.md
+❌ OPS-FAIL: aws/ops/pending/ops_4950_census_qwi_geoiter.py
