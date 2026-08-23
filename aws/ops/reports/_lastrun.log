@@ -1,46 +1,53 @@
-executing-against: 8b4d2c00518e01441d7637eeee2adcaecedcd9e6
+executing-against: a29c4019e13e1aa7f65974ea85fe553f84699313
 ── A engines + existing schedules ──
-[21:02:49]   justhodl-canary-macro            scheds=[('events', 'cron(10 11 * * ? *)')]
-[21:02:49]   justhodl-gap-metrics             scheds=[('scheduler', 'cron(45 21 * * ? *)'), ('events', 'cron(45 21 * * ? *)')]
-[21:02:49]   justhodl-global-expansion        scheds=[('events', 'cron(30 3 * * ? *)')]
-[21:02:49]   justhodl-peru-copper             scheds=[('events', 'cron(0 4 * * ? *)')]
-[21:02:49]   justhodl-plumbing-panel          scheds=[('events', 'cron(5 18 ? * FRI *)')]
-[21:02:49]   justhodl-taiwan-moea             scheds=[('events', 'cron(30 3 * * ? *)')]
-[21:02:49]   justhodl-te-feed                 scheds=[('scheduler', 'cron(0 11 * * ? *)')]
-[21:02:49] A PASS 7/7 engines live
+[21:15:35]   justhodl-canary-macro            scheds=[('events', 'cron(10 11 * * ? *)')]
+[21:15:35]   justhodl-gap-metrics             scheds=[('scheduler', 'cron(45 21 * * ? *)'), ('events', 'cron(45 21 * * ? *)')]
+[21:15:35]   justhodl-global-expansion        scheds=[('events', 'cron(30 3 * * ? *)')]
+[21:15:35]   justhodl-peru-copper             scheds=[('events', 'cron(0 4 * * ? *)')]
+[21:15:35]   justhodl-plumbing-panel          scheds=[('events', 'cron(5 18 ? * FRI *)')]
+[21:15:35]   justhodl-taiwan-moea             scheds=[('events', 'cron(30 3 * * ? *)')]
+[21:15:35]   justhodl-te-feed                 scheds=[('scheduler', 'cron(0 11 * * ? *)')]
+[21:15:35] A PASS 7/7 engines live
 ── B ensure cadence (create-if-missing / tighten rate) ──
-[21:02:49]   cron-keep justhodl-global-expansion      cron(30 3 * * ? *)
-[21:02:49]   cron-keep justhodl-gap-metrics           cron(45 21 * * ? *)
-[21:02:49]   cron-keep justhodl-gap-metrics           cron(45 21 * * ? *)
-[21:02:49]   cron-keep justhodl-plumbing-panel        cron(5 18 ? * FRI *)
-[21:02:49]   cron-keep justhodl-canary-macro          cron(10 11 * * ? *)
-[21:02:49]   cron-keep justhodl-te-feed               cron(0 11 * * ? *)
-[21:02:49]   cron-keep justhodl-taiwan-moea           cron(30 3 * * ? *)
-[21:02:49]   cron-keep justhodl-peru-copper           cron(0 4 * * ? *)
-[21:02:49] B FAIL changed=0 verified=0
+[21:15:35]   cron->rate justhodl-global-expansion    cron(30 3 * * ? *) -> rate(6 hours)
+[21:15:35]   TIGHTEN justhodl-global-expansion        cron(30 3 * * ? *) -> rate(6 hours)
+[21:15:35]   cron->rate justhodl-gap-metrics         cron(45 21 * * ? *) -> rate(2 hours)
+[21:15:35]   TIGHTEN justhodl-gap-metrics             cron(45 21 * * ? *) -> rate(2 hours)
+[21:15:35]   cron->rate justhodl-gap-metrics         cron(45 21 * * ? *) -> rate(2 hours)
+[21:15:35]   TIGHTEN justhodl-gap-metrics             cron(45 21 * * ? *) -> rate(2 hours)
+[21:15:35]   cron->rate justhodl-plumbing-panel      cron(5 18 ? * FRI *) -> rate(2 hours)
+[21:15:35]   TIGHTEN justhodl-plumbing-panel          cron(5 18 ? * FRI *) -> rate(2 hours)
+[21:15:35]   cron->rate justhodl-canary-macro        cron(10 11 * * ? *) -> rate(2 hours)
+[21:15:35]   TIGHTEN justhodl-canary-macro            cron(10 11 * * ? *) -> rate(2 hours)
+[21:15:35]   cron->rate justhodl-te-feed             cron(0 11 * * ? *) -> rate(2 hours)
+[21:15:35]   TIGHTEN justhodl-te-feed                 cron(0 11 * * ? *) -> rate(2 hours)
+[21:15:35]   cron->rate justhodl-taiwan-moea         cron(30 3 * * ? *) -> rate(2 hours)
+[21:15:35]   TIGHTEN justhodl-taiwan-moea             cron(30 3 * * ? *) -> rate(2 hours)
+[21:15:35]   cron->rate justhodl-peru-copper         cron(0 4 * * ? *) -> rate(2 hours)
+[21:15:35]   TIGHTEN justhodl-peru-copper             cron(0 4 * * ? *) -> rate(2 hours)
+[21:15:36] B PASS changed=8 verified=8
 ── C kicks ──
-[21:02:49]   kicked justhodl-global-expansion
-[21:02:50]   kicked justhodl-gap-metrics
-[21:02:51]   kicked justhodl-plumbing-panel
-[21:02:51]   kicked justhodl-canary-macro
-[21:02:52]   kicked justhodl-te-feed
-[21:02:53]   kicked justhodl-taiwan-moea
-[21:02:53]   kicked justhodl-peru-copper
+[21:15:36]   kicked justhodl-global-expansion
+[21:15:37]   kicked justhodl-gap-metrics
+[21:15:37]   kicked justhodl-plumbing-panel
+[21:15:38]   kicked justhodl-canary-macro
+[21:15:38]   kicked justhodl-te-feed
+[21:15:39]   kicked justhodl-taiwan-moea
+[21:15:40]   kicked justhodl-peru-copper
 ── D straggler cards fresh (<2h for >=6/8) ──
-[21:07:24]   t+  30s inventory 2026-08-23T20:54:39 < mark
-[21:07:55]   t+  60s inventory 2026-08-23T20:54:39 < mark
-[21:08:25]   t+  91s inventory 2026-08-23T20:54:39 < mark
-[21:08:55]   t+ 121s inventory 2026-08-23T20:54:39 < mark
-[21:09:26]   sec-dera       freshest=0.1h OK
-[21:09:26]   ofr-fsi        freshest=0.1h OK
-[21:09:26]   chicagofed     freshest=0.0h OK
-[21:09:26]   clevelandfed   freshest=0.0h OK
-[21:09:26]   atlantafed     freshest=0.0h OK
-[21:09:26]   te-feed        freshest=0.1h OK
-[21:09:26]   taiwan-moea    freshest=0.1h OK
-[21:09:26]   peru-copper    freshest=0.1h OK
-[21:09:26] D PASS fresh<2h: 8/8 (as_of 2026-08-23T21:06:54)
-[21:09:26] ops 4956 RED: B
+[21:20:10]   t+  30s inventory 2026-08-23T21:06:54 < mark
+[21:20:41]   t+  60s inventory 2026-08-23T21:06:54 < mark
+[21:21:11]   t+  90s inventory 2026-08-23T21:06:54 < mark
+[21:21:41]   t+ 120s inventory 2026-08-23T21:06:54 < mark
+[21:22:11]   sec-dera       freshest=0.1h OK
+[21:22:11]   ofr-fsi        freshest=0.1h OK
+[21:22:11]   chicagofed     freshest=0.1h OK
+[21:22:11]   clevelandfed   freshest=0.1h OK
+[21:22:11]   atlantafed     freshest=0.1h OK
+[21:22:11]   te-feed        freshest=0.1h OK
+[21:22:11]   taiwan-moea    freshest=0.1h OK
+[21:22:11]   peru-copper    freshest=0.1h OK
+[21:22:11] D PASS fresh<2h: 8/8 (as_of 2026-08-23T21:19:41)
+[21:22:11] ops 4956 GREEN -- every straggler card now has a real cadence and a fresh write; indicator-bus (internal) left for its own lane
 
 → Report written to aws/ops/reports/latest/ops_4956_straggler_sweep.md
-❌ OPS-FAIL: aws/ops/pending/ops_4956_straggler_sweep.py
