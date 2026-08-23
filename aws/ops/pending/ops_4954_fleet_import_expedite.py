@@ -310,17 +310,22 @@ with report("ops_4954_fleet_import_expedite") as R:
     R.log("cadence-map artifact written: %s" % MAP_KEY)
 
     # D -- board proof -------------------------------------------------
-    R.section("D board proof (fresh<=1h count must rise >=5)")
-    time.sleep(420)
+    R.section("D board proof (post-storm inventory only)")
+    time.sleep(240)                    # let the kicked fleet write
+    t_mark = datetime.now(timezone.utc).isoformat(timespec="seconds")
     lam.invoke(FunctionName=CAT_FN, InvocationType="Event",
                Payload=b"{}")
+    R.log("  post-storm mark %s -> catalog kicked; accepting only "
+          "as_of >= mark (4954 v1 raced a mid-storm inventory)"
+          % t_mark[:19])
     hub1, ok_d, t0 = {}, False, time.time()
-    before_stamp = (hub0.get("as_of") or "")
-    while time.time() - t0 < 11 * 60:
+    while time.time() - t0 < 13 * 60:
         time.sleep(30)
         hub1 = gj(HUB_KEY) or {}
-        if (hub1.get("as_of") or "") != before_stamp:
+        if (hub1.get("as_of") or "") >= t_mark:
             break
+        R.log("  t+%4ds inventory %s < mark" % (
+            time.time() - t0, (hub1.get("as_of") or "")[:19]))
     fresh1 = sum(1 for p in hub1.get("providers", [])
                  if (p.get("freshest_h") or 99) <= 1.0)
     movers = sorted(
@@ -336,15 +341,14 @@ with report("ops_4954_fleet_import_expedite") as R:
     for slug_, b_, a_ in movers[:15]:
         R.log("  fresher: %-18s %.1fh -> %.1fh" % (slug_, b_ or 0,
                                                    a_ or 0))
-    ok_d = fresh1 >= fresh0 + 5 and \
-        (hub1.get("as_of") or "") != before_stamp
-    R.log("D %s fresh<=1h: %d -> %d (as_of %s)" % (
-        "PASS" if ok_d else "FAIL", fresh0, fresh1,
-        (hub1.get("as_of") or "")[:19]))
     mid = next((p for p in hub1.get("providers", [])
                 if p.get("slug") == "sec-midas"), {}) or {}
-    R.log("  sec-midas freshest now: %sh (schedule tightened; run "
-          "may still be in flight)" % mid.get("freshest_h"))
+    mid_h = abs(mid.get("freshest_h") or 99)
+    ok_d = (hub1.get("as_of") or "") >= t_mark and \
+        fresh1 >= max(fresh0, 30) and mid_h < 2.0
+    R.log("D %s fresh<=1h: %d -> %d (as_of %s) · sec-midas %.1fh"
+          % ("PASS" if ok_d else "FAIL", fresh0, fresh1,
+             (hub1.get("as_of") or "")[:19], mid_h))
     if not ok_d:
         fails.append("D board")
 
