@@ -334,7 +334,7 @@ def drain_one(slug, state, ctx):
             return True
     tp = ds.get("tp") or "time"
     ov = _ov(slug)
-    t_full = ov.get("full_time") or "from 1900"
+    t_full = (ov.get("full_time") or "from 1900").format(cur=_now().year)
     y_fmt = ov.get("year_time")
 
     c0 = _calls
@@ -507,7 +507,7 @@ def refresh(state, ctx):
             for code in STATE_FIPS:
                 st, text = http_get(
                     q(url, ds["vars"],
-                      ovr.get("full_time") or "from 1900",
+                      (ovr.get("full_time") or "from 1900").format(cur=_now().year),
                       "state:" + code, tp), timeout=120)
                 rows = parse_rows(text) if st == 200 else None
                 if rows:
@@ -519,7 +519,7 @@ def refresh(state, ctx):
             ds["rows"] = sum(gr.values())
         elif ds["mode"] in ("full", "full_for", "full_state"):
             st, text = http_get(q(url, ds["vars"],
-                                  ovr.get("full_time") or "from 1900",
+                                  (ovr.get("full_time") or "from 1900").format(cur=_now().year),
                                   VARIANTS[vi], tp), timeout=120)
             rows = parse_rows(text) if st == 200 else None
             if rows:
@@ -567,13 +567,13 @@ def lambda_handler(event, ctx):
     _OV = None                       # re-read overrides each invoke
     event = event or {}
     state = gj(STATE_KEY) or {
-        "version": "1.1.3", "phase": "CATALOG", "queue": [],
+        "version": "1.1.4", "phase": "CATALOG", "queue": [],
         "datasets": {}, "catalog": {}, "failures": {},
         "n_total": 0, "n_done": 0, "rows_total": 0,
         "n_timeseries_universe": 0,
         "note": "scope: full Census timeseries universe since inception "
                 "(intltrade -> import-canary; idb value-gated out)"}
-    state["version"] = "1.1.3"
+    state["version"] = "1.1.4"
 
     if event.get("recatalog"):
         if discover(state) and state["queue"]:
@@ -648,4 +648,4 @@ def lambda_handler(event, ctx):
             "failures": len(state["failures"])}
 
 
-ENGINE_VERSION = "justhodl-census-us v1.1.3 ops4950 geo-iter"
+ENGINE_VERSION = "justhodl-census-us v1.1.4 ops4951 bounded-range"

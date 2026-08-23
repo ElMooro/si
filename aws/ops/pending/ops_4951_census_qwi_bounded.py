@@ -1,4 +1,4 @@
-"""ops_4950 -- census-us v1.1.3: QWI via probe-verified per-state iteration.
+"""ops_4951 -- census-us v1.1.3: QWI via probe-verified per-state iteration.
 
 4949's probe captured the exact refusal: "wildcard not supported in
 'for' clause for this hierarchy. Please select a specific state" --
@@ -36,7 +36,7 @@ STATE_KEY = "data/warm/census-us/_state/state.json"
 GRAM_KEY = "data/warm/census-us/_state/grammar-overrides.json"
 WARM_PREFIX = "data/warm/census-us/"
 HEALTH_KEY = "data/import-health.json"
-MARKER = "v1.1.3 ops4950"
+MARKER = "v1.1.4 ops4951"
 V10_ROWS = 2_082_816
 QWI = ["qwi-sa", "qwi-se", "qwi-rh"]
 CORE4 = ["Emp", "HirA", "Sep", "EarnS"]
@@ -74,7 +74,7 @@ def fam_of(st, slug):
 def census(url, timeout=90):
     try:
         req = urllib.request.Request(url, headers={
-            "User-Agent": "justhodl-ops/4950 (raafouis@gmail.com)"})
+            "User-Agent": "justhodl-ops/4951 (raafouis@gmail.com)"})
         with urllib.request.urlopen(req, timeout=timeout) as r:
             body = r.read(8_000_000).decode("utf-8", "replace")
             try:
@@ -98,46 +98,44 @@ def qurl(base, tval, geo, key):
             + "&key=" + key)
 
 
-with report("ops_4950_census_qwi_geoiter") as R:
+with report("ops_4951_census_qwi_bounded") as R:
     fails = []
 
-    # P0 -- per-state range probe + 2nd-state confirmation -------------
-    R.section("P0 per-state time-range probe")
+    # P0 -- BOUNDED per-state range probe --------------------------
+    R.section("P0 bounded-range probe (4950: 'requires a bounded "
+              "date/time range')")
     key = (lam.get_function_configuration(FunctionName=FN)
            .get("Environment", {}).get("Variables", {})
            .get("CENSUS_API_KEY", ""))
     base = "https://api.census.gov/data/timeseries/qwi/sa"
-    cand = [("H-from1990", "from 1990"),
-            ("I-from1990Q1", "from 1990-Q1"),
-            ("J-year2022", "2022")]
+    cand = [("L-bounded-years", "from 1990 to 2026"),
+            ("M-bounded-qtrs", "from 1990-Q1 to 2026-Q4")]
     winner = None
     for name, tv in cand:
         stx, body, n = census(qurl(base, tv, "state:01", key))
-        R.log("  %-14s HTTP %-3s rows=%-5s %s" % (
+        R.log("  %-16s HTTP %-3s rows=%-5s %s" % (
             name, stx, n, body.replace("\n", " ")[:150]))
-        if n > 10 and not winner:
+        if n > 40 and not winner:
             winner = (name, tv, n)
         time.sleep(0.7)
-    if winner and winner[0] == "J-year2022":
-        R.log("P0 FAIL only single-year form works per state -- a "
-              "geo x year matrix walker is a different build; not "
-              "writing a partial-history override")
-        sys.exit(1)
     if not winner:
-        R.log("P0 FAIL no per-state range form returned rows")
+        R.log("P0 FAIL bounded forms also refused -- bodies above "
+              "feed the next iteration; not guessing")
         sys.exit(1)
     stx, body, n2 = census(qurl(base, winner[1], "state:48", key))
     R.log("  confirm state:48 HTTP %s rows=%s" % (stx, n2))
-    if n2 <= 10:
+    if n2 <= 40:
         R.log("P0 FAIL winner did not confirm on a second state")
         sys.exit(1)
-    ov = {"vars": CORE4, "geo_iter": "state", "full_time": winner[1]}
+    ft = winner[1].replace("2026", "{cur}")   # rollover-safe bound
+    ov = {"vars": CORE4, "geo_iter": "state", "full_time": ft}
     s3.put_object(Bucket=B, Key=GRAM_KEY,
                   Body=json.dumps({sl: dict(ov) for sl in QWI},
                                   indent=1).encode(),
                   ContentType="application/json")
-    R.log("P0 PASS winner=%s (%s rows AL / %s rows TX) -> override "
-          "written for %s" % (winner[0], winner[2], n2, ",".join(QWI)))
+    R.log("P0 PASS winner=%s (AL %s / TX %s rows) -> full_time=%r "
+          "written for %s" % (winner[0], winner[2], n2, ft,
+                              ",".join(QWI)))
 
     # G0 -- settle v1.1.3 ----------------------------------------------
     R.section("G0 zip-settle v1.1.3")
@@ -283,12 +281,12 @@ with report("ops_4950_census_qwi_geoiter") as R:
         fails.append("G6")
 
     if fails:
-        R.log("ops 4950 RED: " + "; ".join(fails))
+        R.log("ops 4951 RED: " + "; ".join(fails))
         sys.exit(1)
     R.kv(n_done=n_done, n_total=n_total, failures=n_fail,
          rows_total=rows_total, store_mb=round(mb, 2), s3_keys=n_keys,
          qwi_states=",".join(str(len(d.get("geo_rows") or {}))
                              for _, d in qrows))
-    R.log("ops 4950 GREEN -- qwi live per-state since the 1990s; the "
+    R.log("ops 4951 GREEN -- qwi live per-state since the 1990s; the "
           "full timeseries universe is COMPLETE with exactly the five "
           "structurally out-of-ladder failures named")

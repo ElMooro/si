@@ -117,7 +117,7 @@ def fake_urlopen(req, timeout=None):
         core = "get=Emp%2CHirA%2CSep%2CEarnS" in url or \
                "get=Emp,HirA,Sep,EarnS" in url
         m = _re.search(r"for=state%3A(\d\d)", url)
-        if core and "time=from+1990-Q1" in url and m:
+        if core and "time=from+1990-Q1+to+2026-Q4" in url and m:
             return R(rows_qwi(m.group(1)))       # specific state only
         raise urllib.error.HTTPError(url, 400, "bad", {}, io.BytesIO(
             b"error: wildcard not supported in 'for' clause for this "
@@ -158,7 +158,7 @@ S3MEM[L.STATE_KEY] = json.dumps(seed).encode()
 S3MEM[L.GRAM_KEY] = json.dumps({"qwi-sa": {
     "vars": ["Emp", "HirA", "Sep", "EarnS"],
     "geo_iter": "state",
-    "full_time": "from 1990-Q1"}}).encode()
+    "full_time": "from 1990-Q1 to {cur}-Q4"}}).encode()
 
 out = L.lambda_handler({"recatalog": True}, Ctx())
 st = json.loads(S3MEM[L.STATE_KEY])
@@ -213,7 +213,7 @@ need = ["phase","n_total","n_done","rows_total","queue","datasets",
 ck("state key contract", all(k in st2 for k in need),
    [k for k in need if k not in st2])
 ck("handler return shape", out["phase"] == "COMPLETE" and out["n_done"] == 4, out)
-ck("version 1.1.3", st2.get("version") == "1.1.3", st2.get("version"))
+ck("version 1.1.4", st2.get("version") == "1.1.4", st2.get("version"))
 
 print("HARNESS " + ("GREEN" if not fails else "RED: " + ",".join(fails)))
 sys.exit(1 if fails else 0)
