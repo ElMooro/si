@@ -38,7 +38,7 @@ B = "justhodl-dashboard-live"
 CAT_FN = "justhodl-provider-catalog"
 HUB_KEY = "data/provider-catalog.json"
 STATE_KEY = "data/warm/census-us/_state/state.json"
-MARKER = "census-note-v2 ops4952"
+MARKER = "census-note-v2"
 UA = "justhodl-ops/4952 (raafouis@gmail.com)"
 
 s3 = boto3.client("s3", region_name=REGION)
@@ -71,6 +71,17 @@ with report("ops_4952_catalog_census_note") as R:
     if not (exp_done and exp_total and exp_rows):
         R.log("ABORT: census state unreadable")
         sys.exit(1)
+
+    # G-1 -- marker exists in the checkout (authoring self-check) ------
+    R.section("G-1 marker-in-source self-check")
+    _src = (Path(__file__).resolve().parents[2] / "lambdas" /
+            "justhodl-provider-catalog" / "source" /
+            "lambda_function.py").read_text()
+    if MARKER not in _src:
+        R.log("ABORT: MARKER %r not present in the engine source -- "
+              "fix the ops, not the deploy" % MARKER)
+        sys.exit(1)
+    R.log("G-1 PASS marker present in checkout")
 
     # G0 -- settle patched builder -------------------------------------
     R.section("G0 zip-settle census-note-v2")
