@@ -622,24 +622,30 @@ def lambda_handler(event, context):
             # KEYS under the prefix (state + manifests + year slices),
             # not datasets, so no keys-vs-datasets ratio. Progress
             # rides in the note from the walker's OWN state, in
-            # dataset units.
+            # dataset units. ops 4952 (census-note-v2): the v1.0-era
+            # "EITS ... deferred tier-2" template fossilized after the
+            # v1.1 full-universe expansion — compose from state truth:
+            # excluded_families are DESIGN exclusions (intltrade lives
+            # in import-canary; idb value-gated), not deferrals.
             try:
                 _cw = _get_json(
                     "data/warm/census-us/_state/state.json")
-                _defer = max(0, (_cw.get("n_timeseries_universe")
-                                 or 0) - (_cw.get("n_total") or 0))
-                _note_c = ("EITS full history since inception: "
-                           "%s/%s datasets · %s rows banked · "
+                _ex = _cw.get("excluded_families") or {}
+                _note_c = ("full timeseries universe since inception: "
+                           "%s/%s datasets · %s families · %s rows · "
                            "phase %s" % (
                                _cw.get("n_done"), _cw.get("n_total"),
+                               len(_cw.get("families") or []),
                                f"{_cw.get('rows_total') or 0:,}",
                                _cw.get("phase")))
-                if _defer:
-                    _note_c += (" · %d wider timeseries datasets "
-                                "deferred tier-2" % _defer)
+                if _ex:
+                    _note_c += (" · excluded by design: "
+                                + ", ".join("%s %d" % kv for kv in
+                                            sorted(_ex.items()))
+                                + " (intltrade -> import-canary)")
                 if _cw.get("failures"):
-                    _note_c += (" · %d source failures logged"
-                                % len(_cw["failures"]))
+                    _note_c += (" · %d structurally-named source "
+                                "failures" % len(_cw["failures"]))
                 note = ((note + " · ") if note else "") + _note_c
             except Exception:
                 pass
