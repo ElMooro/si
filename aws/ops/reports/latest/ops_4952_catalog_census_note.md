@@ -1,8 +1,8 @@
 ## expected values from live census state
 
 **Status:** failure  
-**Duration:** 611.5s  
-**Finished:** 2026-08-23T17:22:03+00:00  
+**Duration:** 610.6s  
+**Finished:** 2026-08-23T17:32:46+00:00  
 
 ## Error
 
@@ -11,31 +11,31 @@ SystemExit: 1
 ```
 
 ## Log
-- `17:11:52`   state: 51/56 datasets · 3,909,472 rows · 5 failures · phase COMPLETE
+- `17:22:37`   state: 51/56 datasets · 3,909,472 rows · 5 failures · phase COMPLETE
 ## G0 zip-settle census-note-v2
 
-- `17:11:53`   t+   0s marker=False
-- `17:12:18`   t+  26s marker=False
-- `17:12:44`   t+  51s marker=False
-- `17:13:09`   t+  77s marker=False
-- `17:13:35`   t+ 102s marker=False
-- `17:14:00`   t+ 128s marker=False
-- `17:14:26`   t+ 153s marker=False
-- `17:14:51`   t+ 179s marker=False
-- `17:15:16`   t+ 204s marker=False
-- `17:15:42`   t+ 229s marker=False
-- `17:16:07`   t+ 255s marker=False
-- `17:16:33`   t+ 280s marker=False
-- `17:16:58`   t+ 306s marker=False
-- `17:17:24`   t+ 331s marker=False
-- `17:17:49`   t+ 357s marker=False
-- `17:18:15`   t+ 382s marker=False
-- `17:18:40`   t+ 408s marker=False
-- `17:19:05`   t+ 433s marker=False
-- `17:19:31`   t+ 458s marker=False
-- `17:19:56`   t+ 484s marker=False
-- `17:20:22`   t+ 509s marker=False
-- `17:20:47`   t+ 535s marker=False
-- `17:21:13`   t+ 560s marker=False
-- `17:21:38`   t+ 586s marker=False
-- `17:22:03` G0 FAIL patched builder never landed
+- `17:22:37`   t+   0s marker=False
+- `17:23:03`   t+  25s marker=False
+- `17:23:28`   t+  51s marker=False
+- `17:23:53`   t+  76s marker=False
+- `17:24:19`   t+ 102s marker=False
+- `17:24:44`   t+ 127s marker=False
+- `17:25:10`   t+ 152s marker=False
+- `17:25:35`   t+ 178s marker=False
+- `17:26:00`   t+ 203s marker=False
+- `17:26:26`   t+ 228s marker=False
+- `17:26:51`   t+ 254s marker=False
+- `17:27:17`   t+ 279s marker=False
+- `17:27:42`   t+ 305s marker=False
+- `17:28:07`   t+ 330s marker=False
+- `17:28:33`   t+ 355s marker=False
+- `17:28:58`   t+ 381s marker=False
+- `17:29:23`   t+ 406s marker=False
+- `17:29:49`   t+ 432s marker=False
+- `17:30:14`   t+ 457s marker=False
+- `17:30:40`   t+ 482s marker=False
+- `17:31:05`   t+ 508s marker=False
+- `17:31:30`   t+ 533s marker=False
+- `17:31:56`   t+ 558s marker=False
+- `17:32:21`   t+ 584s marker=False
+- `17:32:46` G0 FAIL patched builder never landed
