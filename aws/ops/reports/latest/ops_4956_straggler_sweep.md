@@ -1,0 +1,57 @@
+## A engines + existing schedules
+
+**Status:** failure  
+**Duration:** 475.1s  
+**Finished:** 2026-08-23T21:09:26+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `21:02:49`   justhodl-canary-macro            scheds=[('events', 'cron(10 11 * * ? *)')]
+- `21:02:49`   justhodl-gap-metrics             scheds=[('scheduler', 'cron(45 21 * * ? *)'), ('events', 'cron(45 21 * * ? *)')]
+- `21:02:49`   justhodl-global-expansion        scheds=[('events', 'cron(30 3 * * ? *)')]
+- `21:02:49`   justhodl-peru-copper             scheds=[('events', 'cron(0 4 * * ? *)')]
+- `21:02:49`   justhodl-plumbing-panel          scheds=[('events', 'cron(5 18 ? * FRI *)')]
+- `21:02:49`   justhodl-taiwan-moea             scheds=[('events', 'cron(30 3 * * ? *)')]
+- `21:02:49`   justhodl-te-feed                 scheds=[('scheduler', 'cron(0 11 * * ? *)')]
+- `21:02:49` A PASS 7/7 engines live
+## B ensure cadence (create-if-missing / tighten rate)
+
+- `21:02:49`   cron-keep justhodl-global-expansion      cron(30 3 * * ? *)
+- `21:02:49`   cron-keep justhodl-gap-metrics           cron(45 21 * * ? *)
+- `21:02:49`   cron-keep justhodl-gap-metrics           cron(45 21 * * ? *)
+- `21:02:49`   cron-keep justhodl-plumbing-panel        cron(5 18 ? * FRI *)
+- `21:02:49`   cron-keep justhodl-canary-macro          cron(10 11 * * ? *)
+- `21:02:49`   cron-keep justhodl-te-feed               cron(0 11 * * ? *)
+- `21:02:49`   cron-keep justhodl-taiwan-moea           cron(30 3 * * ? *)
+- `21:02:49`   cron-keep justhodl-peru-copper           cron(0 4 * * ? *)
+- `21:02:49` B FAIL changed=0 verified=0
+## C kicks
+
+- `21:02:49`   kicked justhodl-global-expansion
+- `21:02:50`   kicked justhodl-gap-metrics
+- `21:02:51`   kicked justhodl-plumbing-panel
+- `21:02:51`   kicked justhodl-canary-macro
+- `21:02:52`   kicked justhodl-te-feed
+- `21:02:53`   kicked justhodl-taiwan-moea
+- `21:02:53`   kicked justhodl-peru-copper
+## D straggler cards fresh (<2h for >=6/8)
+
+- `21:07:24`   t+  30s inventory 2026-08-23T20:54:39 < mark
+- `21:07:55`   t+  60s inventory 2026-08-23T20:54:39 < mark
+- `21:08:25`   t+  91s inventory 2026-08-23T20:54:39 < mark
+- `21:08:55`   t+ 121s inventory 2026-08-23T20:54:39 < mark
+- `21:09:26`   sec-dera       freshest=0.1h OK
+- `21:09:26`   ofr-fsi        freshest=0.1h OK
+- `21:09:26`   chicagofed     freshest=0.0h OK
+- `21:09:26`   clevelandfed   freshest=0.0h OK
+- `21:09:26`   atlantafed     freshest=0.0h OK
+- `21:09:26`   te-feed        freshest=0.1h OK
+- `21:09:26`   taiwan-moea    freshest=0.1h OK
+- `21:09:26`   peru-copper    freshest=0.1h OK
+- `21:09:26` D PASS fresh<2h: 8/8 (as_of 2026-08-23T21:06:54)
+- `21:09:26` ops 4956 RED: B
