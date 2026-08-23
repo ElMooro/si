@@ -1,4 +1,4 @@
-"""justhodl-census-us v1.1.0 -- US Census Bureau timeseries walker, FULL universe.
+"""justhodl-census-us v1.1.1 -- US Census Bureau timeseries walker, FULL universe.
 
 v1.0.0 (ops 4944-45) drained the EITS family complete since inception
 (21 datasets, 2.08M rows). Khalid (2026-08-23): "there is no way all of
@@ -63,6 +63,7 @@ CATALOG_REFRESH_D = 7     # weekly re-discovery of data.json
 YEAR_FLOOR = 1900
 EMPTY_STOP = 4            # consecutive empty years after data = inception
 BIG_TEXT = 45_000_000     # full payload above this -> slice by year
+READ_CAP = 48_000_000     # hard chunked-read cap -> synthetic 413
 EXCLUDE_FAMILIES = {"intltrade", "idb"}
 
 PREFERRED_VARS = ["cell_value", "data_type_code", "category_code",
@@ -114,7 +115,22 @@ def http_get(url, timeout=45, tries=2):
             req = urllib.request.Request(url, headers={
                 "User-Agent": "justhodl-census-us/1.1 (raafouis@gmail.com)"})
             with urllib.request.urlopen(req, timeout=timeout) as r:
-                return r.status, r.read().decode("utf-8", "replace")
+                # chunked read with a hard cap: county-grained sets can
+                # return multi-hundred-MB dumps on the bare geo variant;
+                # an unbounded read() OOM-kills the 1GB Lambda before
+                # BIG_TEXT is ever consulted (the 4947 crash-loop).
+                # Oversize -> synthetic 413 the mode ladder treats as
+                # "wrong variant, try the next rung".
+                buf, got = [], 0
+                while True:
+                    chunk = r.read(4 * 1024 * 1024)
+                    if not chunk:
+                        break
+                    got += len(chunk)
+                    if got > READ_CAP:
+                        return 413, ""
+                    buf.append(chunk)
+                return r.status, b"".join(buf).decode("utf-8", "replace")
         except urllib.error.HTTPError as e:
             try:
                 last = (e.code, e.read().decode("utf-8", "replace")[:400])
@@ -268,16 +284,19 @@ def bank(key, rows):
     return max(0, len(rows) - 1)   # minus header
 
 
+def _ds_default():
+    return {"mode": None, "rows": 0, "y0": None, "y1": None,
+            "calls": 0, "ok": False, "resume_year": None,
+            "seen_data": False, "empty_run": 0}
+
+
 def drain_one(slug, state, ctx):
     """Full-history pull with the mode ladder. Returns True when the
     dataset is DONE (banked or failed-with-reason), False when the time
     budget ran out mid-year-scan (resume next heartbeat)."""
     meta = state["catalog"].get(slug) or {}
     url = meta.get("url")
-    ds = state["datasets"].setdefault(
-        slug, {"mode": None, "rows": 0, "y0": None, "y1": None,
-               "calls": 0, "ok": False, "resume_year": None,
-               "seen_data": False, "empty_run": 0})
+    ds = state["datasets"].setdefault(slug, _ds_default())
     if not url:
         state["failures"][slug] = "no accessURL in catalog"
         return True
@@ -305,9 +324,20 @@ def drain_one(slug, state, ctx):
                     break             # too big for one shot -> slice
                 rows = parse_rows(text) if st == 200 else None
                 if st == 200 and rows:
+                    y0, y1 = year_span(rows, tp)
+                    if ds.get("has_year") and y0 and y0 == y1 and \
+                            not ds.get("tp_flipped"):
+                        # annual set answered `time` with ONE year only
+                        # (bds: time=from 1900 returns just the latest)
+                        # -> its real history lives behind YEAR
+                        ds.update(tp="YEAR", tp_flipped=True,
+                                  mode="year", rows=0, ok=False,
+                                  resume_year=None, seen_data=False,
+                                  empty_run=0, y0=None, y1=None)
+                        tp = "YEAR"
+                        break             # fall into per-year rungs
                     n = bank(ROOT + slug + "/full.json.gz", rows)
                     ds.update(mode=mode, rows=n, ok=True)
-                    y0, y1 = year_span(rows, tp)
                     if y0:
                         ds["y0"], ds["y1"] = y0, y1
                     return True
@@ -340,10 +370,9 @@ def drain_one(slug, state, ctx):
                     ds["empty_run"] += 1
                     if ds["empty_run"] >= EMPTY_STOP:
                         break                   # inception found
-                elif y <= _now().year - 12:
-                    # this variant is exhausted down to the horizon:
-                    # try the YEAR grammar first (if declared), then
-                    # the next geo variant, before declaring failure
+                elif st == 413 or y <= _now().year - 12:
+                    # variant exhausted (12-yr horizon) OR the slice is
+                    # oversize even per-year -> advance the ladder now:
                     if tp == "time" and ds.get("has_year") and \
                             not ds.get("tp_flipped"):
                         ds["tp"] = tp = "YEAR"
@@ -453,18 +482,30 @@ def lambda_handler(event, ctx):
     _calls = 0
     event = event or {}
     state = gj(STATE_KEY) or {
-        "version": "1.1.0", "phase": "CATALOG", "queue": [],
+        "version": "1.1.1", "phase": "CATALOG", "queue": [],
         "datasets": {}, "catalog": {}, "failures": {},
         "n_total": 0, "n_done": 0, "rows_total": 0,
         "n_timeseries_universe": 0,
         "note": "scope: full Census timeseries universe since inception "
                 "(intltrade -> import-canary; idb value-gated out)"}
-    state["version"] = "1.1.0"
+    state["version"] = "1.1.1"
 
     if event.get("recatalog"):
         if discover(state) and state["queue"]:
             state["phase"] = "DRAIN"
         save(state)
+
+    for slug in (event.get("redo") or []):
+        # surgical re-import: reset one dataset and put it at the
+        # front of the queue (used to repair wrong-grammar banks)
+        if slug in state.get("catalog", {}):
+            state["datasets"][slug] = _ds_default()
+            state["failures"].pop(slug, None)
+            if slug in state["queue"]:
+                state["queue"].remove(slug)
+            state["queue"].insert(0, slug)
+            state["phase"] = "DRAIN"
+            save(state)
 
     if state["phase"] == "CATALOG" or not state.get("catalog"):
         if discover(state):
@@ -480,8 +521,33 @@ def lambda_handler(event, ctx):
                     _calls >= MAX_CALLS:
                 break
             slug = state["queue"][0]
-            if drain_one(slug, state, ctx):
+            ds0 = state["datasets"].setdefault(slug, _ds_default())
+            att = ds0.get("attempts", 0) + 1
+            ds0["attempts"] = att
+            if att > 4:
+                # 4 invokes died at this head without completing it ->
+                # OOM-class poison; quarantine, never starve the queue
+                state["failures"][slug] = (
+                    "quarantined: %d invoke attempts died without "
+                    "completing (OOM-class)" % (att - 1))
                 state["queue"].pop(0)
+                save(state)
+                continue
+            prev_ry = ds0.get("resume_year")
+            save(state)          # black-box: attempt survives an OOM
+            try:
+                done = drain_one(slug, state, ctx)
+            except MemoryError:
+                state["failures"][slug] = "MemoryError during pull"
+                done = True
+            except Exception as e:
+                state["failures"][slug] = "crash: %s" % str(e)[:160]
+                done = True
+            if done:
+                ds0.pop("attempts", None)
+                state["queue"].pop(0)
+            elif ds0.get("resume_year") != prev_ry:
+                ds0["attempts"] = 1        # budget resume = progress
             save(state)
         if not state["queue"]:
             state["phase"] = "COMPLETE"
@@ -497,4 +563,4 @@ def lambda_handler(event, ctx):
             "failures": len(state["failures"])}
 
 
-ENGINE_VERSION = "justhodl-census-us v1.1.0 ops4946 full-universe"
+ENGINE_VERSION = "justhodl-census-us v1.1.1 ops4948 oom-guard"
