@@ -1,137 +1,39 @@
-executing-against: e61cb2fbabd6e738089e6cb7362af2fb44b31602
-── G0 repo markers ──
-[14:18:03] G0 PASS justhodl-census-us
-[14:18:03] G0 PASS justhodl-provider-catalog
-[14:18:03] G0 PASS justhodl-import-sentinel
-── G0b artifact ladder (catalog + sentinel) ──
-[14:18:44] G0b PASS justhodl-provider-catalog ready after 41s
-[14:18:44] G0b PASS justhodl-import-sentinel ready after 0s
-── G1 deploy justhodl-census-us ──
-[14:18:44]   zip: 104080 bytes
-── 1. Lambda ──
-[14:18:44]   Lambda exists — updating
-[14:18:47] ✅   ✓ updated justhodl-census-us
-[14:18:47] ✅   ✓ reserved concurrency = 1
-[14:19:08] G1 PASS engine live + READY
-── G2 schedule ──
-[14:19:08] G2 PASS schedule created
-── G3/G4 discovery + drain drive ──
+executing-against: 2c63b20ae7315f77b685b1c0869ccdbd82b9c028
+── G0 walker state ──
+[14:32:49] G0 PASS phase=COMPLETE n_total=21 n_done=21 rows=2082816 updated=2026-08-23T14:28:43+00:00
+── G1 catalog ──
+[14:32:49] G1 PASS n_total=21 catalog=21 universe=94
+── G2 drain drive (async, no sync invokes) ──
+[14:32:49]   t+   0s phase=COMPLETE n_done=21/21 rows=2082816 q=0
+[14:32:49] G2 PASS phase=COMPLETE n_done=21/21 rows_total=2082816 min_first_year=1 kicks=0 failures=[]
+── inception coverage (top datasets by rows) ──
+[14:32:49]   m3                                 full_for  rows=600278   1..1
+[14:32:49]   qfr                                full      rows=378854   2000..2026
+[14:32:49]   mrts                               full      rows=195161   1992..2026
+[14:32:49]   mwts                               full      rows=157052   1992..2026
+[14:32:49]   qss                                full      rows=151236   2003..2026
+[14:32:49]   advm3                              full_for  rows=132240   1..1
+[14:32:49]   bfs                                full_for  rows=116256   1..1
+[14:32:49]   resconst                           full      rows=90361    1959..2026
+[14:32:49]   vip                                full      rows=83904    2002..2026
+[14:32:49]   marts                              full      rows=58730    1992..2026
+[14:32:49]   ressales                           full      rows=28416    1963..2026
+[14:32:49]   mtis                               full      rows=23816    1992..2026
+[14:32:49]   mhs                                full      rows=22140    1959..2014
+[14:32:49]   hv                                 full      rows=12240    1956..2026
+[14:32:49]   mrtsadv                            full      rows=8598     1992..2026
+[14:32:49]   mwtsadv                            full      rows=8598     1992..2026
+[14:32:49]   qpr                                full      rows=5830     1968..2026
+[14:32:49]   mhs2                               full_for  rows=3678     1..1
+[14:32:49]   ftdadv                             full      rows=2484     1992..2026
+[14:32:49]   ftd                                full      rows=2472     1992..2026
+[14:32:49]   qtax                               full_for  rows=472      1..1
+── G3 provider-catalog card ──
+[14:35:31] G3 PASS card={"slug": "census-us", "name": "US Census Bureau", "api": "api.census.gov/data/timeseries", "datasets": 44, "datasets_target": null, "coverage_pct": null, "coverage_note": null, "coverage_basis": null, "denied_source_side": null, "unit": "keys", "n_keys": 44, "total_mb": 11.36, "hot_feeds": 0, "serie
+── G4 sentinel pipeline ──
+[14:35:51] G4 PASS pipeline={'name': 'census-us', 'status': 'COMPLETE', 'detail': 'COMPLETE 21/21 datasets · 2082816 rows', 'age_min': 0.6}
+── G5 served surfaces ──
+[14:35:52] G5 PASS origin=True(200) edge=True(200) page_generic=True(200)
+[14:35:52] ops 4945 GREEN -- US Census Bureau importing full history since inception; card live on data.html; sentinel + 15-min Scheduler finish and refresh autonomously
 
-→ Report written to aws/ops/reports/latest/ops_4944_census_us_birth.md
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
-    response = self._make_request(
-               ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
-    response = conn.getresponse()
-               ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connection.py", line 571, in getresponse
-    httplib_response = super().getresponse()
-                       ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 1478, in getresponse
-    response.begin()
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 343, in begin
-    version, status, reason = self._read_status()
-                              ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 312, in _read_status
-    raise RemoteDisconnected("Remote end closed connection without"
-http.client.RemoteDisconnected: Remote end closed connection without response
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 509, in send
-    urllib_response = conn.urlopen(
-                      ^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 842, in urlopen
-    retries = retries.increment(
-              ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/util/retry.py", line 473, in increment
-    raise reraise(type(error), error, _stacktrace)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/util/util.py", line 38, in reraise
-    raise value.with_traceback(tb)
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
-    response = self._make_request(
-               ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
-    response = conn.getresponse()
-               ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connection.py", line 571, in getresponse
-    httplib_response = super().getresponse()
-                       ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 1478, in getresponse
-    response.begin()
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 343, in begin
-    version, status, reason = self._read_status()
-                              ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 312, in _read_status
-    raise RemoteDisconnected("Remote end closed connection without"
-urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4944_census_us_birth.py", line 183, in <module>
-    last = sync_run(FN)
-           ^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4944_census_us_birth.py", line 104, in sync_run
-    r = lam.invoke(FunctionName=fn, InvocationType="RequestResponse",
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 1076, in _make_api_call
-    http, parsed_response = self._make_request(
-                            ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 1100, in _make_request
-    return self._endpoint.make_request(operation_model, request_dict)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 119, in make_request
-    return self._send_request(request_dict, operation_model)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 202, in _send_request
-    while self._needs_retry(
-          ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 362, in _needs_retry
-    responses = self._event_emitter.emit(
-                ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/hooks.py", line 412, in emit
-    return self._emitter.emit(aliased_event_name, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/hooks.py", line 256, in emit
-    return self._emit(event_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/hooks.py", line 239, in _emit
-    response = handler(**kwargs)
-               ^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 207, in __call__
-    if self._checker(**checker_kwargs):
-       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 284, in __call__
-    should_retry = self._should_retry(
-                   ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 320, in _should_retry
-    return self._checker(attempt_number, response, caught_exception)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 363, in __call__
-    checker_response = checker(
-                       ^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 247, in __call__
-    return self._check_caught_exception(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 416, in _check_caught_exception
-    raise caught_exception
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 281, in _do_get_response
-    http_response = self._send(request)
-                    ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 385, in _send
-    return self.http_session.send(request)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 549, in send
-    raise ConnectionClosedError(
-botocore.exceptions.ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-census-us/invocations".
-❌ OPS-FAIL: aws/ops/pending/ops_4944_census_us_birth.py
+→ Report written to aws/ops/reports/latest/ops_4945_census_us_drive.md
