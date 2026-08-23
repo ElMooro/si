@@ -1,4 +1,4 @@
-"""Local harness for census-us v1.1.2 -- boto3 + urllib stubbed.
+"""Local harness for census-us v1.1.3 -- boto3 + urllib stubbed.
 Proves v1.1.0 behaviors PLUS the 4948 fixes: chunked READ_CAP -> 413
 ladder signal (no OOM), save-first crash quarantine, annual-set
 single-year time answer redone via YEAR (bds), and the redo event.
@@ -67,9 +67,9 @@ def rows_bds_time_single():
             ["500","300","70","2023","1"]]
 def rows_bds_year(y):
     return [["ESTAB","FIRM","JOB_CREATION","YEAR"],["500","300","70",str(y)]]
-def rows_qwi():
+def rows_qwi(code):
     h = [["Emp","HirA","Sep","EarnS","time","state"]]
-    return h + [["10","1","1","900","%d-Q1" % y, "48"] for y in range(1990,2026)]
+    return h + [["10","1","1","900","%d-Q1" % y, code] for y in (1990, 2025)]
 def rows_sahie():
     h = [["NUI_PT","NIC_PT","PCTUI_PT","time","us"]]
     return h + [["27000","250000","9.7", str(y), "1"] for y in range(2008,2025)]
@@ -113,17 +113,15 @@ def fake_urlopen(req, timeout=None):
             return R(rows_bds_year(int(m.group(1))))
         return R([])
     if "qwi/sa?" in url:
-        import urllib.error
+        import urllib.error, re as _re
         core = "get=Emp%2CHirA%2CSep%2CEarnS" in url or \
                "get=Emp,HirA,Sep,EarnS" in url
-        if core and "time=from+1990-Q1" in url:
-            if "for=state%3A%2A" in url: return R(rows_qwi())
-            if "for=us%3A%2A" in url:
-                raise urllib.error.HTTPError(url, 400, "bad", {}, io.BytesIO(b"unknown geo"))
-            return R([])
-        # every non-override shape is rejected (the live 4948 behavior)
-        raise urllib.error.HTTPError(url, 400, "bad", {},
-                                     io.BytesIO(b"error: unknown variable"))
+        m = _re.search(r"for=state%3A(\d\d)", url)
+        if core and "time=from+1990-Q1" in url and m:
+            return R(rows_qwi(m.group(1)))       # specific state only
+        raise urllib.error.HTTPError(url, 400, "bad", {}, io.BytesIO(
+            b"error: wildcard not supported in 'for' clause for this "
+            b"hierarchy. Please select a specific state."))
     if "healthins/sahie?" in url:
         if "time=from+1900" in url:
             if "for=" not in url:
@@ -159,6 +157,7 @@ seed = {"version":"1.0.0","phase":"COMPLETE","queue":["soma"],
 S3MEM[L.STATE_KEY] = json.dumps(seed).encode()
 S3MEM[L.GRAM_KEY] = json.dumps({"qwi-sa": {
     "vars": ["Emp", "HirA", "Sep", "EarnS"],
+    "geo_iter": "state",
     "full_time": "from 1990-Q1"}}).encode()
 
 out = L.lambda_handler({"recatalog": True}, Ctx())
@@ -178,7 +177,11 @@ ck("bds inception 1978..2023", b["y0"] == "1978" and b["y1"] == "2023"
 ck("bds rows 46", b["rows"] == 46, b["rows"])
 
 qw = st["datasets"]["qwi-sa"]
-ck("qwi state variant", qw["mode"] == "full_state" and qw["ok"], qw["mode"])
+ck("qwi geo_state mode", qw["mode"] == "geo_state" and qw["ok"], qw["mode"])
+ck("qwi 51 geo banks", len(qw.get("geo_rows") or {}) == 51
+   and qw["rows"] == 51 * 2, (len(qw.get("geo_rows") or {}), qw["rows"]))
+ck("qwi geo artifacts", "data/warm/census-us/qwi-sa/geo/48.json.gz" in S3MEM
+   and "data/warm/census-us/qwi-sa/geo/01.json.gz" in S3MEM, None)
 ck("qwi header year fix", qw["y0"] == "1990" and qw["y1"] == "2025", (qw["y0"], qw["y1"]))
 ck("qwi override vars applied", qw.get("vars") == ["Emp","HirA","Sep","EarnS"], qw.get("vars"))
 
@@ -210,7 +213,7 @@ need = ["phase","n_total","n_done","rows_total","queue","datasets",
 ck("state key contract", all(k in st2 for k in need),
    [k for k in need if k not in st2])
 ck("handler return shape", out["phase"] == "COMPLETE" and out["n_done"] == 4, out)
-ck("version 1.1.2", st2.get("version") == "1.1.2", st2.get("version"))
+ck("version 1.1.3", st2.get("version") == "1.1.3", st2.get("version"))
 
 print("HARNESS " + ("GREEN" if not fails else "RED: " + ",".join(fails)))
 sys.exit(1 if fails else 0)

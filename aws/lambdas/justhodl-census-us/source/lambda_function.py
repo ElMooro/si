@@ -1,4 +1,4 @@
-"""justhodl-census-us v1.1.2 -- US Census Bureau timeseries walker, FULL universe.
+"""justhodl-census-us v1.1.3 -- US Census Bureau timeseries walker, FULL universe.
 
 v1.0.0 (ops 4944-45) drained the EITS family complete since inception
 (21 datasets, 2.08M rows). Khalid (2026-08-23): "there is no way all of
@@ -65,6 +65,14 @@ EMPTY_STOP = 4            # consecutive empty years after data = inception
 BIG_TEXT = 45_000_000     # full payload above this -> slice by year
 READ_CAP = 48_000_000     # hard chunked-read cap -> synthetic 413
 GRAM_KEY = "data/warm/census-us/_state/grammar-overrides.json"
+
+# per-state iteration targets (override geo_iter="state"): 50 states+DC
+STATE_FIPS = ["01", "02", "04", "05", "06", "08", "09", "10", "11",
+              "12", "13", "15", "16", "17", "18", "19", "20", "21",
+              "22", "23", "24", "25", "26", "27", "28", "29", "30",
+              "31", "32", "33", "34", "35", "36", "37", "38", "39",
+              "40", "41", "42", "44", "45", "46", "47", "48", "49",
+              "50", "51", "53", "54", "55", "56"]
 
 _OV = None
 
@@ -331,6 +339,40 @@ def drain_one(slug, state, ctx):
 
     c0 = _calls
     try:
+        # rung 0: probe-verified per-geo iteration (qwi-class: the API
+        # rejects for=state:* -- "select a specific state") -----------
+        if ov.get("geo_iter") == "state":
+            ds["mode"] = "geo_state"
+            gr = ds.setdefault("geo_rows", {})
+            i = ds.get("resume_geo") or 0
+            while i < len(STATE_FIPS):
+                if ctx.get_remaining_time_in_millis() < KEEP_MS or \
+                        _calls >= MAX_CALLS:
+                    ds["resume_geo"] = i
+                    return False
+                code = STATE_FIPS[i]
+                st, text = http_get(
+                    q(url, ds["vars"], t_full, "state:" + code, tp),
+                    timeout=120)
+                rows = parse_rows(text) if st == 200 else None
+                if rows:
+                    n = bank(ROOT + slug + "/geo/%s.json.gz" % code,
+                             rows)
+                    gr[code] = n
+                    ds["seen_data"] = True
+                    y0, y1 = year_span(rows, tp)
+                    if y0:
+                        ds["y0"] = min(ds["y0"] or y0, y0)
+                        ds["y1"] = max(ds["y1"] or y1, y1)
+                i += 1
+            ds["rows"] = sum(gr.values())
+            ds["ok"] = ds["seen_data"]
+            ds["resume_geo"] = None
+            if not ds["ok"]:
+                state["failures"][slug] = \
+                    "geo_state: no state returned rows"
+            return True
+
         # rungs 1-3: whole-history in one shot (time-grammar only) ------
         if tp == "time" and (ds["mode"] is None or
                              ds["mode"] in ("full", "full_for",
@@ -460,7 +502,22 @@ def refresh(state, ctx):
         tp = ds.get("tp") or "time"
         ovr = _ov(slug)
         vi = VI_BY_MODE.get(ds.get("mode"), 0)
-        if ds["mode"] in ("full", "full_for", "full_state"):
+        if ds.get("mode") == "geo_state":
+            gr = ds.setdefault("geo_rows", {})
+            for code in STATE_FIPS:
+                st, text = http_get(
+                    q(url, ds["vars"],
+                      ovr.get("full_time") or "from 1900",
+                      "state:" + code, tp), timeout=120)
+                rows = parse_rows(text) if st == 200 else None
+                if rows:
+                    gr[code] = bank(
+                        ROOT + slug + "/geo/%s.json.gz" % code, rows)
+                    y0, y1 = year_span(rows, tp)
+                    if y1:
+                        ds["y1"] = max(ds["y1"] or y1, y1)
+            ds["rows"] = sum(gr.values())
+        elif ds["mode"] in ("full", "full_for", "full_state"):
             st, text = http_get(q(url, ds["vars"],
                                   ovr.get("full_time") or "from 1900",
                                   VARIANTS[vi], tp), timeout=120)
@@ -510,13 +567,13 @@ def lambda_handler(event, ctx):
     _OV = None                       # re-read overrides each invoke
     event = event or {}
     state = gj(STATE_KEY) or {
-        "version": "1.1.2", "phase": "CATALOG", "queue": [],
+        "version": "1.1.3", "phase": "CATALOG", "queue": [],
         "datasets": {}, "catalog": {}, "failures": {},
         "n_total": 0, "n_done": 0, "rows_total": 0,
         "n_timeseries_universe": 0,
         "note": "scope: full Census timeseries universe since inception "
                 "(intltrade -> import-canary; idb value-gated out)"}
-    state["version"] = "1.1.2"
+    state["version"] = "1.1.3"
 
     if event.get("recatalog"):
         if discover(state) and state["queue"]:
@@ -591,4 +648,4 @@ def lambda_handler(event, ctx):
             "failures": len(state["failures"])}
 
 
-ENGINE_VERSION = "justhodl-census-us v1.1.2 ops4949 grammar-overrides"
+ENGINE_VERSION = "justhodl-census-us v1.1.3 ops4950 geo-iter"
