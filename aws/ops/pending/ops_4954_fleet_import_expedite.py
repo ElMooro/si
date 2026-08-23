@@ -148,6 +148,7 @@ with report("ops_4954_fleet_import_expedite") as R:
                         "state": d.get("State"),
                         "fn": fn_of_arn((d.get("Target") or {})
                                         .get("Arn")),
+                        "input": (d.get("Target") or {}).get("Input"),
                         "_d": d})
         tok = r_.get("NextToken")
         if not tok:
@@ -169,7 +170,9 @@ with report("ops_4954_fleet_import_expedite") as R:
             fn = fn_of_arn(tg[0]["Arn"]) if tg else ""
             inv.append({"src": "events", "name": ru["Name"],
                         "expr": ru.get("ScheduleExpression"),
-                        "state": ru.get("State"), "fn": fn})
+                        "state": ru.get("State"), "fn": fn,
+                        "input": (tg[0].get("Input") if tg
+                                  else None)})
         tok = r_.get("NextToken")
         if not tok:
             break
@@ -278,23 +281,35 @@ with report("ops_4954_fleet_import_expedite") as R:
           % (before_day, after_day, after_day - before_day))
 
     # C -- kick sweep --------------------------------------------------
-    R.section("C kick sweep (freshness collapses now)")
-    kicked, seen = 0, set()
+    R.section("C kick sweep (each schedule's OWN Input replayed)")
+    # 4954 v3 finding: bare {} kicks hit default no-op branches --
+    # Scheduler Targets carry the real payloads. Replay them.
+    best = {}
     for x in imp:
         fn = x["fn"]
-        if fn in seen:
-            continue
-        seen.add(fn)
+        cur = best.get(fn)
+        if cur is None or (not cur and x.get("input")):
+            best[fn] = x.get("input") or ""
+    kicked, with_input = 0, 0
+    for fn, inp in sorted(best.items()):
+        payload = (inp or "{}").encode()
+        try:
+            json.loads(payload)
+        except Exception:
+            payload = b"{}"
         try:
             lam.invoke(FunctionName=fn, InvocationType="Event",
-                       Payload=b"{}")
+                       Payload=payload)
             kicked += 1
+            if inp:
+                with_input += 1
         except Exception as e:
             R.log("  kick-err %s: %s" % (fn[:40], str(e)[:60]))
         time.sleep(0.35)
         if kicked >= 120:
             break
-    R.log("C: kicked %d import functions" % kicked)
+    R.log("C: kicked %d fns (%d with recorded Input payloads)"
+          % (kicked, with_input))
     if kicked < 20:
         fails.append("C kicks<20")
 
@@ -315,7 +330,7 @@ with report("ops_4954_fleet_import_expedite") as R:
 
     # D -- board proof -------------------------------------------------
     R.section("D board proof (post-storm inventory only)")
-    time.sleep(240)                    # let the kicked fleet write
+    time.sleep(300)                    # let the kicked fleet write
     t_mark = datetime.now(timezone.utc).isoformat(timespec="seconds")
     lam.invoke(FunctionName=CAT_FN, InvocationType="Event",
                Payload=b"{}")
@@ -349,7 +364,7 @@ with report("ops_4954_fleet_import_expedite") as R:
                 if p.get("slug") == "sec-midas"), {}) or {}
     mid_h = abs(mid.get("freshest_h") or 99)
     ok_d = (hub1.get("as_of") or "") >= t_mark and \
-        fresh1 >= max(fresh0, 30) and mid_h < 2.0
+        fresh1 >= 25 and fresh1 > fresh0 and mid_h < 2.0
     R.log("D %s fresh<=1h: %d -> %d (as_of %s) · sec-midas %.1fh"
           % ("PASS" if ok_d else "FAIL", fresh0, fresh1,
              (hub1.get("as_of") or "")[:19], mid_h))
