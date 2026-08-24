@@ -37,6 +37,41 @@ BOUNDED = {
 }
 PD_CATALOG_CANDS = ["/pd/list/timeseries.json",
                     "/pd/list/seriesbreaks.json"]
+# hist-v1 (ops 4963, Khalid priority lane #1): the bounded block
+# stores LATEST-only for whole families while the source holds full
+# history (4962 probe: repo ops 8,125 since 2000, AMBS 2,875 since
+# 2009, EFFR 6,568 since 2000). Full-window search pulls, verbatim,
+# candidate-ladder per family (this engine's own house pattern),
+# refreshed when >20h stale.
+HIST = {
+    "rates_sofr": ["/rates/secured/sofr/search.json"
+                   "?startDate=2014-01-01&endDate=2030-01-01"],
+    "rates_bgcr": ["/rates/secured/bgcr/search.json"
+                   "?startDate=2014-01-01&endDate=2030-01-01"],
+    "rates_tgcr": ["/rates/secured/tgcr/search.json"
+                   "?startDate=2014-01-01&endDate=2030-01-01"],
+    "rates_effr": ["/rates/unsecured/effr/search.json"
+                   "?startDate=2000-01-01&endDate=2030-01-01"],
+    "rates_obfr": ["/rates/unsecured/obfr/search.json"
+                   "?startDate=2000-01-01&endDate=2030-01-01"],
+    "repo_ops": ["/rp/results/search.json?startDate=2000-01-01"],
+    "ambs_ops": ["/ambs/all/results/summary/search.json"
+                 "?startDate=2009-01-01",
+                 "/ambs/all/all/results/summary/search.json"
+                 "?startDate=2009-01-01"],
+    "seclending_ops": ["/seclending/all/results/search.json"
+                       "?startDate=2000-01-01",
+                       "/seclending/all/all/results/search.json"
+                       "?startDate=2000-01-01"],
+    "tsy_ops": ["/tsy/results/search.json?startDate=2000-01-01",
+                "/tsy/all/results/search.json"
+                "?startDate=2000-01-01"],
+    "fxs_all": ["/fxs/all/search.json?startDate=2000-01-01",
+                "/fxs/all/all/search.json?startDate=2000-01-01"],
+    "soma_asofdates": ["/soma/asofdates/list.json"],
+}
+HIST_STALE_S = 20 * 3600
+HIST_MARK = "nyfed-hist-v1 ops4963"
 TRANCHE = int(os.environ.get("PD_TRANCHE", "150"))
 
 
@@ -77,6 +112,67 @@ def lambda_handler(event, context):
         else:
             summary["bounded"][name] = {"data_unavailable": True,
                                         "reason": last}
+    # hist-v1: full-window family histories (verbatim) --------------
+    hstate_key = "data/warm/nyfed-markets/hist-state.json"
+    try:
+        hstate = json.loads(s3.get_object(
+            Bucket=BUCKET, Key=hstate_key)["Body"].read())
+    except Exception:
+        hstate = {"mark": HIST_MARK, "families": {}}
+    hstate["mark"] = HIST_MARK
+    for fam, cands in HIST.items():
+        prev = (hstate["families"].get(fam) or {})
+        try:
+            age_ok = (time.time() - float(prev.get("epoch") or 0)
+                      ) < HIST_STALE_S
+        except Exception:
+            age_ok = False
+        if age_ok and prev.get("ok"):
+            continue
+        if context.get_remaining_time_in_millis() < 150000:
+            hstate["families"][fam] = dict(
+                prev, deferred="time-budget")
+            break
+        last = "none"
+        for cp in cands:
+            try:
+                raw = _fetch(cp)
+                d = json.loads(raw)
+                nrec = max(raw.count(b'"effectiveDate"'),
+                           raw.count(b'"operationId"'),
+                           raw.count(b'"asofdate"'),
+                           raw.count(b'"') // 20)
+                s3.put_object(
+                    Bucket=BUCKET,
+                    Key=f"data/warm/nyfed-markets/hist/{fam}"
+                        f".json.gz",
+                    Body=gzip.compress(json.dumps(
+                        {"family": fam, "endpoint": cp,
+                         "as_of": now, "hist_mark": HIST_MARK,
+                         "n_hint": nrec,
+                         "payload": d}).encode()),
+                    ContentType="application/gzip")
+                hstate["families"][fam] = {
+                    "ok": True, "endpoint": cp, "bytes": len(raw),
+                    "n_hint": nrec, "as_of": now,
+                    "epoch": time.time()}
+                summary.setdefault("hist", {})[fam] = {
+                    "ok": True, "bytes": len(raw), "n_hint": nrec}
+                break
+            except Exception as e:
+                last = (f"{cp} -> {type(e).__name__}: "
+                        f"{str(e)[:60]}")
+            time.sleep(0.2)
+        else:
+            hstate["families"][fam] = {"ok": False, "reason": last,
+                                       "epoch": time.time()}
+            summary.setdefault("hist", {})[fam] = {
+                "data_unavailable": True, "reason": last}
+    s3.put_object(Bucket=BUCKET, Key=hstate_key,
+                  Body=json.dumps(hstate, default=str).encode(),
+                  ContentType="application/json",
+                  CacheControl="no-cache")
+
     # PD catalog discovery + cursored tranche
     state_key = "data/warm/nyfed-markets/pd-state.json"
     try:
