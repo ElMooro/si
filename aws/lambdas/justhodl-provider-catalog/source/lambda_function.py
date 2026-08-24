@@ -84,7 +84,7 @@ REG = {
   "api": "api.bls.gov/publicAPI/v2",
   "engines": ["justhodl-usgov-direct", "justhodl-canary-macro"],
   "prefixes": ["data/warm/usgov/bls/",
-               "data/warm/fred-canary/bls-labor"],
+               "data/warm/fred-canary/bls-labor", "data/warm/bls-full/"],
   "hot": ["data/bls-macro.json"]},
  "census-us": {"name": "US Census Bureau",
   "api": "api.census.gov/data/timeseries",
@@ -615,6 +615,21 @@ def lambda_handler(event, context):
                                  _tx.get("mean_agree_pct") or "—"))
                     note = (note + " · " + _note_x) if note \
                         else _note_x
+            except Exception:
+                pass
+        if slug == "bls":
+            # ops 4958 (bls-note-v2): the 0.11MB curated-agent card
+            # gains the FULL warehouse truth from bls-full's manifest
+            try:
+                _bm = _get_json("data/warm/bls-full/manifest.json")
+                if _bm:
+                    note = ((note + " · ") if note else "") + (
+                        "FULL time.series warehouse (bls-full v1): "
+                        "%s surveys · %s files · %.2fGB · phase %s"
+                        " · complete history since 1913, conditional"
+                        " Last-Modified refresh" % (
+                            _bm.get("surveys"), _bm.get("files"),
+                            _bm.get("gb") or 0, _bm.get("phase")))
             except Exception:
                 pass
         if slug == "census-us":
