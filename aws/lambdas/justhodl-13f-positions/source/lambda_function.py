@@ -873,6 +873,12 @@ def compute_performance(fund_results, by_ticker):
             continue
         w = {}
         for pos in fd.get("positions", []):
+            # truth-layer ops4969: option notionals do NOT belong in the
+            # clone weight set — Scion's $912M of PLTR calls over a $68M
+            # share book printed coverage 2027%. Shares-only, as the
+            # methodology footer always claimed.
+            if (pos.get("put_call") or pos.get("putCall") or ""):
+                continue
             tk = (pos.get("ticker") or "").upper()
             if tk and tk.isalpha() and len(tk) <= 6:
                 w[tk] = w.get(tk, 0) + (pos.get("value_usd") or 0) / tot
@@ -1016,10 +1022,10 @@ def _sec_titles(m):
 
 
 # ── ops 4937 ────────────────────────────────────────────────────────
-SRC_RANK = {"sec": 3, "figi": 2, "fmp": 1}      # authority, high wins
+SRC_RANK = {"fmp-profile": 3, "sec": 3, "figi": 2, "fmp": 1}  # high wins
 
 
-def _purge_collisions(m):
+def _purge_collisions(m, fmp_budget=0):
     """A ticker may be claimed by exactly ONE cusip. Anything else is a
     resolution error.
 
@@ -1039,6 +1045,7 @@ def _purge_collisions(m):
     it from SEC/OpenFIGI. An unresolved cusip is honest; a confidently
     wrong ticker ranks on a board and gets traded.
     """
+    import time as _t2                      # truth-layer ops4969
     bytick = ((m.get("_sec") or {}).get("bytick")) or {}
     by_t = {}
     for cu, e in m.items():
@@ -1049,6 +1056,7 @@ def _purge_collisions(m):
             by_t.setdefault(t, []).append(cu)
     purged = 0
     unadjudicated = []
+    fmp_cand = []
     for t, cus in by_t.items():
         if len(cus) < 2:
             continue
@@ -1064,27 +1072,92 @@ def _purge_collisions(m):
         def _score(c):
             nm = _norm_name(m[c].get("name") or "")
             overlap = len(sec_tok & set(nm.split())) if sec_tok else 0
-            exact = 1 if (sec_nm and nm == sec_nm) else 0
+            exact = 1 if ((sec_nm and nm == sec_nm)
+                          or m[c].get("src") == "fmp-profile") else 0
             return (exact, overlap, SRC_RANK.get(m[c].get("src"), 0),
                     len(m[c].get("name") or ""))
 
         cus.sort(key=_score, reverse=True)
         if not sec_tok:
-            # ops 4938c: SEC cannot adjudicate this ticker. Do NOT guess.
-            # A reported collision is honest; a blanked real position is
-            # not. Leave both claimants and let the payload name it.
-            unadjudicated.append(t)
+            # SEC cannot adjudicate this ticker (ETFs, dead names) —
+            # truth-layer ops4969: hand it to the FMP profile round-trip
+            # below instead of leaving the poison frozen in forever.
+            fmp_cand.append((t, list(cus)))
             continue
         top = _score(cus[0])
+        _tied = False
         for c in cus[1:]:
             # demote only where the winner is DEMONSTRABLY the better
             # match. Equal evidence is not evidence.
             if _score(c)[:2] >= top[:2]:
-                unadjudicated.append(t)
+                _tied = True
                 break
+        if _tied:
+            fmp_cand.append((t, list(cus)))
+            continue
+        for c in cus[1:]:
             m[c] = {"ticker": None, "name": m[c].get("name"),
                     "src": "purged-collision", "tried_at": 0}
             purged += 1
+    # ── truth-layer ops4969: FMP profile round-trip — the authority SEC
+    # lacks. The profile's own cusip for ticker t decides which claimant
+    # IS t; every other claimant is demoted. If the real owner filed
+    # under a cusip none of them carry, ALL claimants are wrong and the
+    # verified owner gets the map entry. Verdicts cached 7d in m["_adj"].
+    adj = m.get("_adj") or {}
+    _tnow = _t2.time()
+    fmp_used = 0
+    for t, cus in fmp_cand:
+        v = adj.get(t) or {}
+        pcu = v.get("cusip")
+        if _tnow - float(v.get("at") or 0) > 7 * 86400:
+            pcu = None
+        if pcu is None and fmp_used < fmp_budget and FMP_KEY:
+            fmp_used += 1
+            try:
+                u = ("https://financialmodelingprep.com/stable/profile"
+                     "?symbol=%s&apikey=%s" % (t, FMP_KEY))
+                rows = json.loads(urllib.request.urlopen(
+                    urllib.request.Request(
+                        u, headers={"User-Agent": USER_AGENT}),
+                    timeout=15).read().decode())
+                r0 = rows[0] if isinstance(rows, list) and rows else {}
+                pcu = (r0.get("cusip") or "").strip()
+                adj[t] = {"cusip": pcu,
+                          "name": (r0.get("companyName") or "")[:60],
+                          "at": _tnow}
+            except Exception:
+                adj[t] = {"cusip": "", "at": _tnow}
+                pcu = ""
+            _t2.sleep(0.12)
+        if not pcu or len(pcu) != 9:
+            unadjudicated.append(t)      # honest: no authority anywhere
+            continue
+        if pcu in cus:
+            m[pcu] = {"ticker": t,
+                      "name": (m.get(pcu) or {}).get("name")
+                      or (adj.get(t) or {}).get("name"),
+                      "src": "fmp-profile", "tried_at": _tnow}
+            for c in cus:
+                if c != pcu:
+                    m[c] = {"ticker": None, "name": m[c].get("name"),
+                            "src": "purged-collision", "tried_at": 0}
+                    purged += 1
+        else:
+            for c in cus:
+                m[c] = {"ticker": None, "name": m[c].get("name"),
+                        "src": "purged-collision", "tried_at": 0}
+                purged += 1
+            e0 = m.get(pcu)
+            if not (isinstance(e0, dict) and e0.get("ticker")
+                    and e0["ticker"] != t):
+                m[pcu] = {"ticker": t,
+                          "name": (adj.get(t) or {}).get("name"),
+                          "src": "fmp-profile", "tried_at": _tnow}
+    m["_adj"] = adj
+    if fmp_used:
+        print("  ops4969 fmp-adjudicated: %d lookups, %d candidates"
+              % (fmp_used, len(fmp_cand)))
     if purged or unadjudicated:
         print(f"  ops4938 purge: {purged} demoted on SEC evidence; "
               f"{len(set(unadjudicated))} tickers left AS-IS (no authority)")
@@ -1112,7 +1185,7 @@ def resolve_missing_tickers(fund_results, budget=600):
     # purge first left bytick empty, the adjudicator fell back to the old
     # length tiebreak, and $88B of real positions were blanked.
     sec = _sec_titles(m)
-    m = _purge_collisions(m)
+    m = _purge_collisions(m, fmp_budget=0)
     now = _t.time()
     fresh = 0
     _pend = []          # ops 3297: resolve BIGGEST dollars first
@@ -1218,19 +1291,35 @@ def resolve_missing_tickers(fund_results, budget=600):
     # ops 4937: a fresh lookup inside THIS run can re-create a collision
     # against an entry the purge already kept, so enforce the invariant
     # again immediately before persisting, then publish the residual.
-    m = _purge_collisions(m)
+    m = _purge_collisions(m, fmp_budget=40)
     _resid = _assert_no_collisions(m)
     globals()["_LAST_COLLISIONS"] = _resid
     if _resid:
         print(f"  ops4937 WARN residual collisions: {list(_resid)[:8]}")
-    # positions that pointed at a demoted cusip must drop the stale ticker
+    # positions that pointed at a demoted cusip must drop the stale
+    # ticker; positions whose cusip now carries a PROFILE-VERIFIED win
+    # adopt it; EXIT rows (built from the prior parse, so they can still
+    # carry a raw cusip as ticker) get mapped through today's map.
     for fd in fund_results:
         for pos in fd.get("positions", []) or []:
             cu = pos.get("cusip")
             e = m.get(cu) if cu else None
-            if isinstance(e, dict) and not e.get("ticker") and pos.get("ticker"):
+            if not isinstance(e, dict):
+                continue
+            if not e.get("ticker") and pos.get("ticker"):
                 if e.get("src") == "purged-collision":
                     pos["ticker"] = None
+            elif e.get("ticker") and e.get("src") == "fmp-profile":
+                pos["ticker"] = e["ticker"]
+        cs = fd.get("changes_summary") or {}
+        for ex in cs.get("exits", []) or []:
+            cu = ex.get("cusip")
+            tk = ex.get("ticker") or ""
+            e = m.get(cu) if cu else None
+            if isinstance(e, dict) and e.get("ticker") and (
+                    not tk or not all(
+                        ch.isalpha() or ch in ".-" for ch in tk)):
+                ex["ticker"] = e["ticker"]
     try:
         put_s3_json(CUSIP_MAP_KEY, m)
     except Exception:
@@ -1399,6 +1488,23 @@ def aggregate_by_ticker(fund_results):
             agg["n_funds_adding"] + 2 * agg["n_funds_new_position"]
             - agg["n_funds_trimming"] - 2 * agg["n_funds_exiting"]
         )
+
+    # truth-layer ops4969: corporate-action guard — an "exit" whose
+    # issuer reappears as a NEW position under a sibling security name
+    # (HON exit + HONA Honeywell Aerospace NEW = spinoff paperwork) is
+    # not risk-off. Stamp it so boards/spotlights refuse to headline it.
+    _new_toks = {}
+    for tkr, agg in by_ticker.items():
+        if (agg.get("n_funds_new_position") or 0) >= 1:
+            for tok in _norm_name(agg.get("name") or "").split():
+                if len(tok) >= 5:
+                    _new_toks.setdefault(tok, set()).add(tkr)
+    for tkr, agg in by_ticker.items():
+        if (agg.get("n_funds_exiting") or 0) >= 2:
+            toks = [t for t in _norm_name(
+                agg.get("name") or "").split() if len(t) >= 5]
+            if any(_new_toks.get(t, set()) - {tkr} for t in toks):
+                agg["corporate_action_suspect"] = True
 
     return by_ticker
 
@@ -2181,8 +2287,15 @@ def lambda_handler(event, context):
         _mark("names", a["ticker"])
         if (a.get("n_funds_new_position") or 0) >= 1 and                 a.get("cap_tier") in ("MICRO", "SMALL", "MID"):
             _mark("smallmid", a["ticker"])
+    _ind_new = {a.get("industry") for a in by_ticker.values()
+                if a.get("industry")
+                and (a.get("n_funds_new_position") or 0) >= 1}
     for _ind in ind_agg:
-        _mark("industries", _ind)
+        # truth-layer ops4969: an industry is "new" only via an actual
+        # NEW position — never via the classifier cache catching up on
+        # holdings that were always there.
+        if _ind in _ind_new:
+            _mark("industries", _ind)
 
     _W = 72.0
     _by_fund_now = {f.get("fund_key"): f for f in successful}

@@ -748,7 +748,7 @@ function renderSpotlight(data){
   // Top sell by net_action_score (most negative)
   const topSell = sells.sort((a,b) => (a.net_action_score||0) - (b.net_action_score||0))[0];
   // Most famous-fund exits in one name (filter exits >= 2)
-  const massExit = sells.find(s => (s.n_funds_exiting||0) >= 2);
+  const massExit = sells.find(s => (s.n_funds_exiting||0) >= 2 && !s.corporate_action_suspect);
 
   const cards = [];
   if(topBuy){

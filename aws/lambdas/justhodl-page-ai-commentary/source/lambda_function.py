@@ -361,6 +361,42 @@ def lambda_handler(event, context):
         commentary = generate_commentary(page, ctx)
         # Validate at least one expected field
         has_content = "error" not in commentary
+        # truth-layer ops4969: NEVER overwrite a good brief with an
+        # error stub. If the LLM failed, keep the last good content
+        # (current doc, else newest dated history) and stamp the failed
+        # attempt honestly so the page keeps rendering real analysis.
+        preserved_from = None
+        if not has_content:
+            prev = {}
+            try:
+                prev = json.loads(s3.get_object(
+                    Bucket=S3_BUCKET,
+                    Key=f"data/ai-commentary/{page}.json")["Body"].read())
+            except Exception:
+                prev = {}
+            pc = (prev or {}).get("commentary") or {}
+            if not (pc and "error" not in pc):
+                try:
+                    hist = s3.list_objects_v2(
+                        Bucket=S3_BUCKET,
+                        Prefix=f"data/ai-commentary/history/{page}/")
+                    keys = sorted(o["Key"] for o in
+                                  hist.get("Contents", []))
+                    for k in reversed(keys[-14:]):
+                        d2 = json.loads(s3.get_object(
+                            Bucket=S3_BUCKET, Key=k)["Body"].read())
+                        pc2 = (d2 or {}).get("commentary") or {}
+                        if pc2 and "error" not in pc2:
+                            prev, pc = d2, pc2
+                            break
+                except Exception:
+                    pass
+            if pc and "error" not in pc:
+                commentary = pc
+                has_content = True
+                preserved_from = prev.get("generated_at")
+                print(f"[ai-commentary] {page}: LLM failed — "
+                      f"preserved last good from {preserved_from}")
         results[page] = {
             "has_content": has_content,
             "keys": list(commentary.keys()),
@@ -371,6 +407,8 @@ def lambda_handler(event, context):
             "page": page,
             "model": ANTHROPIC_MODEL,
             "commentary": commentary,
+            "preserved_from": preserved_from,
+            "llm_attempt_failed": bool(preserved_from),
         }
 
         s3.put_object(
