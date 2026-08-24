@@ -183,7 +183,8 @@ with report("ops_4961_imf_grammar_probe") as R:
     if fails or not ok_any:
         R.log("ops 4961 RED: %s" % (fails or ["no 200s"]))
         sys.exit(1)
-    R.kv(legacy_flows=n_leg, new_ids=n_new,
+    R.kv(legacy_host="DNS-dead", flows_21=n_new,
+         resolved=json.dumps(resolved),
          probes=len(out["probes"]))
     R.log("ops 4961 GREEN -- IMF grammar captured; imf-full engine "
           "ships next on PROVEN access shapes")
