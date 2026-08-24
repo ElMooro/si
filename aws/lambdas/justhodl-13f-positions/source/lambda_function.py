@@ -1200,11 +1200,16 @@ def resolve_missing_tickers(fund_results, budget=600):
             cu = pos.get("cusip") or ""
             e = m.get(cu)
             if not isinstance(e, dict):
+                # ops4969c: an alphabetic ticker with NO map backing can
+                # only be an orphan of a deleted loose ladder — strip it
+                # into honest re-resolution rather than trust it.
+                if pos.get("ticker"):
+                    pos["ticker"] = None
                 continue
             if e.get("ticker"):
                 pos["ticker"] = e["ticker"]
-            elif e.get("src") == "purged-collision" and pos.get("ticker"):
-                pos["ticker"] = None
+            elif pos.get("ticker"):
+                pos["ticker"] = None     # map says unresolved: so are we
     now = _t.time()
     fresh = 0
     _pend = []          # ops 3297: resolve BIGGEST dollars first
@@ -1335,13 +1340,15 @@ def resolve_missing_tickers(fund_results, budget=600):
             for ex in cs.get(_lst, []) or []:
                 cu = ex.get("cusip")
                 e = m.get(cu) if cu else None
-                if not isinstance(e, dict):
-                    continue
                 tk = ex.get("ticker") or ""
-                if e.get("ticker") and e["ticker"] != tk:
-                    ex["ticker"] = e["ticker"]
-                elif (not e.get("ticker") and tk
-                        and e.get("src") == "purged-collision"):
+                if not isinstance(e, dict):
+                    if tk:               # ops4969c: unbacked = untrusted
+                        ex["ticker"] = None
+                    continue
+                if e.get("ticker"):
+                    if e["ticker"] != tk:
+                        ex["ticker"] = e["ticker"]
+                elif tk:
                     ex["ticker"] = None
     try:
         put_s3_json(CUSIP_MAP_KEY, m)
