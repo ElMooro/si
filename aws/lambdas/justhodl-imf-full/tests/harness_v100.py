@@ -32,10 +32,11 @@ BODIES = {"BOP": PAD + b"<Series><Obs v='1'/><Obs v='2'/></Series>",
           "CPI_WCA_2026_MAY_VINTAGE": PAD + b"<Series><Obs/></Series>"}
 
 def cat_xml():
-    return "".join(
+    pad = "<!-- " + "c" * 5200 + " -->"
+    return (pad + "".join(
         '<str:Dataflow id="%s" agencyID="IMF">'
         '<com:Name xml:lang="en">%s</com:Name></str:Dataflow>'
-        % (k, v) for k, v in CAT.items()).encode()
+        % (k, v) for k, v in CAT.items())).encode()
 
 class Resp:
     def __init__(s, b): s._b = b
@@ -49,8 +50,11 @@ class Resp:
 def fake_urlopen(req, timeout=None):
     import urllib.error
     url = req.full_url
-    if url.endswith("/dataflow/IMF"):
-        return Resp(cat_xml())
+    if "/dataflow" in url:
+        if url.endswith("/dataflow/all"):
+            return Resp(cat_xml())          # ladder cand #1 answers
+        raise urllib.error.HTTPError(url, 204, "empty", {},
+                                     io.BytesIO(b""))
     fid = url.split("/data/")[1].split("?")[0]
     if fid == "DEADFLOW":
         raise urllib.error.HTTPError(url, 500, "x", {},

@@ -1,4 +1,4 @@
-"""justhodl-census-us v1.1.3 -- US Census Bureau timeseries walker, FULL universe.
+"""justhodl-census-us v1.1.5 -- US Census Bureau timeseries walker, FULL universe. conquest-v115 ops4972
 
 v1.0.0 (ops 4944-45) drained the EITS family complete since inception
 (21 datasets, 2.08M rows). Khalid (2026-08-23): "there is no way all of
@@ -351,9 +351,22 @@ def drain_one(slug, state, ctx):
                     ds["resume_geo"] = i
                     return False
                 code = STATE_FIPS[i]
-                st, text = http_get(
-                    q(url, ds["vars"], t_full, "state:" + code, tp),
-                    timeout=120)
+                # conquest-v115 ops4972: overrides may redirect the
+                # per-state rung to a finer FOR-geo iterated within
+                # each state (school district / institution), plus
+                # fixed extra predicates (sector/NAICS wildcards)
+                _fg = ov.get("for_geo")
+                _geo = ("%s:*" % _fg) if _fg else ("state:" + code)
+                _u = q(url, ds["vars"],
+                       (ov.get("full_time_geo") or t_full), _geo, tp)
+                if _fg:
+                    _u += "&in=" + urllib.parse.quote_plus(
+                        "state:" + code)
+                for _k, _v in (ov.get("extra") or {}).items():
+                    _u += "&%s=%s" % (
+                        urllib.parse.quote_plus(_k),
+                        urllib.parse.quote_plus(_v))
+                st, text = http_get(_u, timeout=120)
                 rows = parse_rows(text) if st == 200 else None
                 if rows:
                     n = bank(ROOT + slug + "/geo/%s.json.gz" % code,

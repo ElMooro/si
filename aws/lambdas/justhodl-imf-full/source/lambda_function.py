@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-ENGINE_VERSION = "justhodl-imf-full v1.0.1 ops4967 loose-parse"
+ENGINE_VERSION = "justhodl-imf-full v1.0.2 ops4967 catalog-ladder"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 API = "https://api.imf.org/external/sdmx/2.1"
 ROOT = "data/warm/imf-full/"
@@ -64,10 +64,26 @@ def _put_json(key, obj):
                   ContentType="application/json")
 
 
+CATALOG_CANDS = ["/dataflow/all", "/dataflow", "/dataflow/IMF"]
+
+
 def discover(state):
-    req = urllib.request.Request(API + "/dataflow/IMF", headers=UA)
-    with urllib.request.urlopen(req, timeout=120) as r:
-        xml = r.read(12_000_000).decode("utf-8", "replace")
+    # ops-4971 evidence: agency-scoped /dataflow/IMF now returns 204
+    # No Content while /dataflow/all serves the full 222-flow XML --
+    # ladder the catalog path, record which shape answered
+    xml, used = "", None
+    for cp in CATALOG_CANDS:
+        try:
+            req = urllib.request.Request(API + cp, headers=UA)
+            with urllib.request.urlopen(req, timeout=120) as r:
+                body = r.read(12_000_000)
+            if len(body) > 5000:
+                xml, used = body.decode("utf-8", "replace"), cp
+                break
+        except Exception:
+            continue
+        time.sleep(0.3)
+    state["catalog_endpoint"] = used
     # ops-4961 proven parse: loose id capture (the source emits
     # namespaced/self-closing forms a closing-tag anchor misses --
     # that anchor produced 0 flows live in 4967 v1)

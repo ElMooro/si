@@ -35,7 +35,7 @@ GOV = "justhodl-gov-sources"
 STATE_KEY = "data/warm/imf-full/_state/state.json"
 HUB_KEY = "data/provider-catalog.json"
 SCHED_ROLE = "arn:aws:iam::857687956942:role/justhodl-scheduler-role"
-MARKS = {FN: ("v1.0.1 ops4967",
+MARKS = {FN: ("v1.0.2 ops4967",
               "aws/lambdas/justhodl-imf-full/source/"
               "lambda_function.py"),
          CAT: ("imf-note-v2",
