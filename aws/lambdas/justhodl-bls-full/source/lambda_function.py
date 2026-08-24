@@ -31,7 +31,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-ENGINE_VERSION = "justhodl-bls-full v1.0.0 ops4958 full-warehouse"
+ENGINE_VERSION = "justhodl-bls-full v1.0.1 ops4959 iis-case"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 BASE = "https://download.bls.gov/pub/time.series/"
 ROOT = "data/warm/bls-full/"
@@ -85,9 +85,19 @@ def _head(url):
 
 def discover_surveys(state):
     html = _listing(BASE)
-    dirs = sorted(set(re.findall(
-        r'href="(?:/pub/time\.series/)?([a-z]{2,3})/"', html)))
+    # BLS runs IIS: listings use uppercase <A HREF="..."> -- the
+    # v1.0.0 case-sensitive regex parsed ZERO dirs silently (4958).
+    dirs = sorted({d.lower() for d in re.findall(
+        r'href="(?:/pub/time\.series/)?([A-Za-z]{2,3})/?"',
+        html, re.I)})
     dirs = [d for d in dirs if d not in ("pub",)]
+    if not dirs:
+        # empty parse is a NAMED failure, never a silent no-op
+        state["failures"]["_discover"] = (
+            "0 dirs parsed; head=%r" %
+            html[:200].replace("\n", " "))
+        return []
+    state["failures"].pop("_discover", None)
     state["surveys"] = state.get("surveys") or {}
     for d in dirs:
         state["surveys"].setdefault(d, {"n_files": 0, "bytes": 0,
@@ -100,7 +110,13 @@ def list_survey(state, sv, recheck=False):
     html = _listing(BASE + sv + "/")
     files = sorted(set(re.findall(
         r'href="(?:/pub/time\.series/%s/)?(%s\.[A-Za-z0-9.\-_]+)"'
-        % (re.escape(sv), re.escape(sv)), html)))
+        % (re.escape(sv), re.escape(sv)), html, re.I)))
+    if not files:
+        state["failures"]["_list:" + sv] = (
+            "0 files parsed; head=%r" %
+            html[:160].replace("\n", " "))
+    else:
+        state["failures"].pop("_list:" + sv, None)
     q = state.setdefault("queue", [])
     have = state.setdefault("have", {})
     queued = {x[0] for x in q}
@@ -178,7 +194,7 @@ def write_manifest(state):
     tot = sum(v.get("bytes") or 0 for v in have.values())
     _put_json(MANIFEST_KEY, {
         "as_of": _now(), "engine": "justhodl-bls-full",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "surveys": state.get("n_surveys"),
         "files": len(have), "bytes": tot,
         "gb": round(tot / 1e9, 2),
@@ -195,16 +211,18 @@ def lambda_handler(event, ctx=None):
     global _bytes_run, _t0
     _t0, _bytes_run = time.time(), 0
     state = _j(STATE_KEY, None) or {
-        "version": "1.0.0", "phase": "DISCOVER", "surveys": {},
+        "version": "1.0.1", "phase": "DISCOVER", "surveys": {},
         "queue": [], "have": {}, "failures": {}}
     if float(state.get("lease_until") or 0) > time.time():
         return {"skipped": "lease_held"}
     state["lease_until"] = time.time() + BUDGET_S + 150
     _put_json(STATE_KEY, state)
 
+    if not state.get("surveys"):
+        state["phase"] = "DISCOVER"      # self-heal empty state
     if state["phase"] == "DISCOVER" or event.get("rediscover"):
-        discover_surveys(state)
-        state["phase"] = "LIST"
+        if discover_surveys(state):
+            state["phase"] = "LIST"
         _put_json(STATE_KEY, state)
 
     if state["phase"] in ("LIST", "DRAIN", "COMPLETE"):
@@ -250,6 +268,10 @@ def lambda_handler(event, ctx=None):
             time.sleep(SPACING)
         if not state["queue"]:
             state["phase"] = "COMPLETE"
+    if state["phase"] == "DRAIN" and not state["queue"] and \
+            state["surveys"] and \
+            all(m.get("listed") for m in state["surveys"].values()):
+        state["phase"] = "COMPLETE"
 
     n_missing = len(state["queue"])
     depth = int((event or {}).get("chain_depth") or 0)

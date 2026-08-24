@@ -54,12 +54,12 @@ def fake_urlopen(req, timeout=None):
     url = req.full_url
     meth = req.get_method()
     if url == L.BASE:
-        return Resp(b'<a href="/pub/time.series/ap/">ap</a> '
-                    b'<a href="jt/">jt</a> <a href="pub/">x</a>')
+        return Resp(b'<A HREF="/pub/time.series/AP/">AP</A> '
+                    b'<A HREF="jt/">jt</A> <A HREF="pub/">x</A>')
     m = re.match(re.escape(L.BASE) + r"([a-z]{2,3})/$", url)
     if m:
         sv = m.group(1)
-        links = "".join('<a href="%s">x</a>' % f.split("/")[1]
+        links = "".join('<A HREF="%s">x</A>' % f.split("/")[1]
                         for f in list(FILES) + [GONE]
                         if f.startswith(sv + "/"))
         return Resp(links.encode())

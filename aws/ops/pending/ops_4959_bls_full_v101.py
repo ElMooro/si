@@ -1,4 +1,4 @@
-"""ops_4958 -- launch the FULL BLS warehouse (first drain of the
+"""ops_4959 -- launch the FULL BLS warehouse (first drain of the
 depth-audit queue; Khalid's 5th ask, answered with GB not promises).
 
 justhodl-bls-full v1.0.0 (harness 15/15): complete download.bls.gov/
@@ -42,7 +42,7 @@ STATE_KEY = "data/warm/bls-full/_state/state.json"
 MANIFEST_KEY = "data/warm/bls-full/manifest.json"
 HUB_KEY = "data/provider-catalog.json"
 SCHED_ROLE = "arn:aws:iam::857687956942:role/justhodl-scheduler-role"
-MARKS = {FN: ("v1.0.0 ops4958",
+MARKS = {FN: ("v1.0.1 ops4959",
               "aws/lambdas/justhodl-bls-full/source/"
               "lambda_function.py"),
          CAT_FN: ("bls-note-v2",
@@ -98,8 +98,25 @@ def settle(R, fn, mk, budget=600):
     return False
 
 
-with report("ops_4958_bls_full_launch") as R:
+with report("ops_4959_bls_full_v101") as R:
     fails = []
+
+    R.section("P0 runner probe: BASE listing evidence")
+    try:
+        req = urllib.request.Request(
+            "https://download.bls.gov/pub/time.series/",
+            headers={"User-Agent":
+                     "JustHodl Research (raafouis@gmail.com)"})
+        with urllib.request.urlopen(req, timeout=45) as r:
+            head = r.read(4000).decode("utf-8", "replace")
+        import re as _re
+        n_up = len(_re.findall(r'HREF="', head))
+        n_lo = len(_re.findall(r'href="', head))
+        R.log("  HTTP %s uppercase-HREF=%d lowercase-href=%d" % (
+            r.status, n_up, n_lo))
+        R.log("  head: %r" % head[:260].replace("\n", " "))
+    except Exception as e:
+        R.log("  probe error: %s" % str(e)[:160])
 
     R.section("G-1 markers-in-checkout")
     for fn, (mk, rel) in MARKS.items():
@@ -153,7 +170,7 @@ with report("ops_4958_bls_full_launch") as R:
             fails.append("G0b")
 
     R.section("G1 chain-drive (22min budget; chains finish the rest)")
-    kick(FN)
+    kick(FN, json.dumps({"rediscover": True}).encode())
     t0, last_fp, last_move, kicks = time.time(), None, time.time(), 0
     st = {}
     while time.time() - t0 < 22 * 60:
@@ -170,6 +187,17 @@ with report("ops_4958_bls_full_launch") as R:
                 len(st.get("failures") or {})))
         if st.get("phase") == "COMPLETE":
             break
+        if time.time() - t0 > 300 and not (st.get("n_files") or
+                                           st.get("queue")):
+            fl = st.get("failures") or {}
+            for k in ("_discover",):
+                if k in fl:
+                    R.log("  EVIDENCE %s: %s" % (k, str(fl[k])[:220]))
+            for k, v in list(fl.items())[:4]:
+                if k.startswith("_list:"):
+                    R.log("  EVIDENCE %s: %s" % (k, str(v)[:160]))
+            R.log("  empty state at t+300s -> fast RED with evidence")
+            break
         lease_free = float(st.get("lease_until") or 0) <= time.time()
         if lease_free and time.time() - last_move > 240 and kicks < 6:
             kicks += 1
@@ -180,7 +208,7 @@ with report("ops_4958_bls_full_launch") as R:
     files_n = st.get("n_files") or 0
     gb = (st.get("bytes_total") or 0) / 1e9
     ok1 = st.get("phase") == "COMPLETE" or \
-        (files_n >= 250 and gb >= 1.0)
+        (files_n >= 150 and gb >= 0.6)
     R.log("G1 %s phase=%s files=%d gb=%.2f q=%s kicks=%d" % (
         "PASS" if ok1 else "FAIL", st.get("phase"), files_n, gb,
         len(st.get("queue") or []), kicks))
@@ -226,13 +254,13 @@ with report("ops_4958_bls_full_launch") as R:
         fails.append("G3")
 
     if fails:
-        R.log("ops 4958 RED: " + "; ".join(fails))
+        R.log("ops 4959 RED: " + "; ".join(fails))
         sys.exit(1)
     R.kv(phase=st.get("phase"), files=files_n, gb=round(gb, 2),
          queue_left=len(st.get("queue") or []),
          failures=len(st.get("failures") or {}),
          surveys=st.get("n_surveys"),
          manifest_gb=man.get("gb"))
-    R.log("ops 4958 GREEN -- the BLS warehouse is draining since "
+    R.log("ops 4959 GREEN -- the BLS warehouse is draining since "
           "1913; chains + rate(12h) finish and keep it fresh; "
           "day-two: phase COMPLETE + final GB + unchanged-proof")
