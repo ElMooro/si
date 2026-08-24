@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-ENGINE_VERSION = "justhodl-imf-full v1.0.0 ops4967 vintages"
+ENGINE_VERSION = "justhodl-imf-full v1.0.1 ops4967 loose-parse"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 API = "https://api.imf.org/external/sdmx/2.1"
 ROOT = "data/warm/imf-full/"
@@ -68,12 +68,18 @@ def discover(state):
     req = urllib.request.Request(API + "/dataflow/IMF", headers=UA)
     with urllib.request.urlopen(req, timeout=120) as r:
         xml = r.read(12_000_000).decode("utf-8", "replace")
+    # ops-4961 proven parse: loose id capture (the source emits
+    # namespaced/self-closing forms a closing-tag anchor misses --
+    # that anchor produced 0 flows live in 4967 v1)
+    ids = re.findall(
+        r'Dataflow[^>]*\bid="([A-Za-z0-9_.\-]+)"', xml)
     flows = {}
-    for m in re.finditer(
-            r'<(?:str:)?Dataflow[^>]*\bid="([A-Za-z0-9_.-]+)"'
-            r'[^>]*>(.*?)</(?:str:)?Dataflow>', xml, re.S):
-        fid, body = m.group(1), m.group(2)
-        nm = re.search(r'<(?:com:)?Name[^>]*>([^<]+)<', body)
+    for fid in ids:
+        if fid in flows:
+            continue
+        nm = re.search(
+            r'id="%s"[^>]*>\s*<[^>]*Name[^>]*>([^<]+)<'
+            % re.escape(fid), xml)
         flows[fid] = (nm.group(1).strip() if nm else "")[:120]
     if not flows:
         raise RuntimeError("catalog parse yielded 0 flows")
