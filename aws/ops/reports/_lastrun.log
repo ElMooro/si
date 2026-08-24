@@ -1,40 +1,102 @@
-executing-against: 86efb705c530d08c2f385201ab18a76e85914def
-── P0 imf-full _discover error (from state) + runner re-parse ──
-[23:15:07]   Lambda _discover err: {"err": "catalog parse yielded 0 flows"}
-[23:15:07]   dataflow/IMF plain       204        0B ids=0
-[23:15:08]   dataflow/IMF sdmx-acc    204        0B ids=0
-[23:15:09]   dataflow/all             200   446083B ids=222
-[23:15:11]   dataflow bare            200   446083B ids=222
-[23:15:12]   dataflow/IMF/all sdmx    204        0B ids=0
-[23:15:12]   dataflow ?detail         204        0B ids=0
-[23:15:13]   WINNER: {"name": "dataflow/all", "url": "https://api.imf.org/external/sdmx/2.1/dataflow/all", "accept": null, "ids": 222}
-── P1 census: the 5 structural failures, stored reasons ──
-[23:15:13]   state at data/warm/census-us/_state/state.json
-[23:15:13]   FAIL aies-miscsector          "no data any mode (last HTTP 400)"
-[23:15:13]   FAIL asm-industry             "no data any mode (last HTTP 400)"
-[23:15:13]   FAIL poverty-saipe-schdist    "no data any mode (last HTTP 400)"
-[23:15:13]   FAIL pseo-earnings            "no data any mode (last HTTP 400)"
-[23:15:13]   FAIL pseo-flows               "no data any mode (last HTTP 400)"
-[23:15:13]   aies-miscsector          table-line: 
-[23:15:13]   asm-industry             table-line: 
-[23:15:13]   poverty-saipe-schdist    table-line: 
-[23:15:13]   pseo-earnings            table-line: 
-[23:15:13]   pseo-flows               table-line: 
-── P2 fiscaldata: real dataset registry ──
-[23:15:13]   datasets -> 200 0.00MB eps+0
-[23:15:13]   index -> 200 0.00MB eps+0
-[23:15:14]   fiscaldata.treasury.gov -> 404 0.00MB eps+0
-[23:15:14]   registry endpoints=0 known=19 NEW=0 sample=[]
-── P3 OFR: catalogs vs banked ──
-[23:15:15]   ofr main catalog=442 (200) banked stfm-series=0
-[23:15:15]   ofr hf   catalog=497 (200) banked hfm-series=497
-── P4 polygon: entitlement depth ──
-[23:15:16]   daily_1990 403 {"status":"NOT_AUTHORIZED","request_id":"4398e4edb9aecff008f24570cb711bed","mess
-[23:15:16]   grouped    200 
-[23:15:17]   tickers    200 results=1 first_t=None
-[23:15:17]   options    200 results=1 first_t=None
-[23:15:18]   indices    403 {"status":"NOT_AUTHORIZED","request_id":"75ee23e7bfbf56c19d838e2f2abf31fd","mess
-[23:15:18] artifact data/warm/_audit/expedite-4lane.json
-[23:15:18] ops 4971 GREEN -- expedite lanes evidenced; builds follow Khalid's order census -> polygon -> fiscaldata -> ofr
+executing-against: 9cb8cbf0cf79502490409ea1b9f6d0bc19b7c33c
+── G-1 markers-in-checkout ──
+[23:27:39]   ok justhodl-imf-full        'v1.0.2 ops4967'
+[23:27:39]   ok justhodl-provider-catalog 'imf-note-v2'
+[23:27:39]   ok justhodl-gov-sources     'imf-api-v2 ops4967'
+── G0 settle x3 ──
+[23:28:05]   justhodl-imf-full settled (25s)
+[23:28:05]   justhodl-provider-catalog settled (0s)
+[23:28:05]   justhodl-gov-sources settled (0s)
+[23:28:05] G0 PASS
+── G0b schedules ──
+[23:28:05]   exists justhodl-imf-full-6h (ok)
+[23:28:05]   exists justhodl-imf-full-weekly (ok)
+── G1 chain-drive (15min) ──
+[23:28:06]   t+   0s DISCOVER banked=0 q=0 cat=0 fail=1
+[23:28:31]   t+  25s DRAIN banked=5 q=217 cat=222 fail=1
+[23:28:56]   t+  50s DRAIN banked=10 q=212 cat=222 fail=1
+[23:32:42]   t+ 276s DRAIN banked=11 q=211 cat=222 fail=1
+[23:36:28]   t+ 502s DRAIN banked=12 q=210 cat=222 fail=1
+[23:39:48]   t+ 702s DRAIN banked=13 q=209 cat=222 fail=1
+[23:43:09] G1 FAIL phase=DRAIN banked=13 catalog=222 failures=1
+── G2 substance: BOP SDMX payload ──
+[23:43:14]   BOP raw=1866.07MB obs_tags=12219733
+[23:43:14] G2 PASS
+── G3 card (post-mark) ──
+[23:48:45] G3 PASS note=FULL SDMX-2.1 warehouse (imf-full v1) on api.imf.org: 13/222 dataflows · 8 vintages retained · 5.65GB · 0 lastN-partial · phase DRAIN · daily rediscovery
+── DAY-TWO board (info) ──
+[23:48:45]   worldbank: phase=DRAIN banked=9200 q=20289
+[23:48:45]   gdelt: phase=DRAIN files=334653 gb=35.12 cursor=2024110307 gaps=5699 v1=0/None
+[23:48:45]   bls: phase=COMPLETE files=1659 gb=40.06
+[23:48:45]   dol: files=70 mb=160.6 fresh=70 unchanged=0
+[23:48:45] ops 4967 RED: G1
 
-→ Report written to aws/ops/reports/latest/ops_4971_expedite_probe.md
+→ Report written to aws/ops/reports/latest/ops_4967_imf_full_launch.md
+❌ OPS-FAIL: aws/ops/pending/ops_4967_imf_full_launch.py
+── G-1 markers ──
+[23:48:46]   ok 'conquest-v115 ops4972'
+[23:48:46]   ok 'v1.0.2 ops4967'
+[23:48:46]   census key: present
+── G0 settle census v1.1.5 ──
+[23:48:46]   settled (0s)
+── P1 per-slug recon + two-state confirmation ──
+[23:48:46]   ── aies-miscsector  base=https://api.census.gov/data/timeseries/aies/miscsector
+[23:48:46]      geo=[('us', [], [])] (200) tp=time req=['PBA', 'TYPOP', 'TAXSTAT', 'NAICS'] vars=['RCPT_NEWPT_SSBNFTS_CV', 'RCPT_NONOP_PROGSRVC_VAL', 'RCPT_MOTR_AGR_CV', 'RCPT_APSOFT_MAIN_DVAL', 'RCPT_CUST_IND_CV', 'RCPT_AUDVID_CV']
+[23:48:47]      us-star       200 rows~859 
+[23:48:47]      CONQUERED via us-star -> {"vars": ["RCPT_NEWPT_SSBNFTS_CV", "RCPT_NONOP_PROGSRVC_VAL", "RCPT_MOTR_AGR_CV", "RCPT_APSOFT_MAIN_DVAL", "RCPT_CUST_IND_CV", "RCPT_AUDVID_CV"], "tp": "time", 
+[23:48:47]   ── asm-industry  base=https://api.census.gov/data/timeseries/asm/industry
+[23:48:47]      geo=[('us', [], [])] (200) tp=time req=['NAICS'] vars=['BENHEA', 'BENPEC_S', 'INVMATE_F', 'INVWIPB_F', 'PCHADVT', 'MSCTOT_S_F']
+[23:48:48]      us-star       200 rows~9395 
+[23:48:48]      CONQUERED via us-star -> {"vars": ["BENHEA", "BENPEC_S", "INVMATE_F", "INVWIPB_F", "PCHADVT", "MSCTOT_S_F"], "tp": "time", "full_time": "from 1990", "extra": {"NAICS": "*"}}
+[23:48:48]   ── poverty-saipe-schdist  base=https://api.census.gov/data/timeseries/poverty/saipe/schdist
+[23:48:48]      geo=[('school district (elementary)', ['state'], ['state']), ('school district (secondary)', ['state'], ['state']), ('school district (unified)', ['state'], ['state']), ('school district administrative area', ['state'], ['state'])] (200) tp=time req=[] vars=['SAEPOVRAT5_17RV_PT', 'YEAR', 'SD_NAME', 'GEOID', 'SAEPOV5_17V_PT', 'SAEPOV5_17RV_PT']
+[23:48:48]      sub-in-state  200 rows~4 
+[23:48:48]      2nd-state failed (204)
+[23:48:48]      us-star       400 rows~0 error: unknown/unsupported geography hierarchy
+[23:48:49]      state-direct  400 rows~0 error: unknown/unsupported geography hierarchy
+[23:48:49]      no-geo        400 rows~0 error: missing 'for' argument
+[23:48:49]   ── pseo-earnings  base=https://api.census.gov/data/timeseries/pseo/earnings
+[23:48:50]      geo=[('us', [], [])] (200) tp=time req=['CIPCODE', 'GEOCOMP', 'GRAD_COHORT', 'DEGREE_LEVEL'] vars=['Y10_GRADS_EARN', 'GRAD_COHORT_YEARS', 'Y1_P50_EARNINGS', 'Y10_IPEDS_COUNT', 'AGG_LEVEL_PSEO', 'CIPCODE']
+[23:48:50]      us-star       400 rows~0 error: unknown predicate variable: 'time'
+[23:48:50]      state-direct  400 rows~0 error: unknown/unsupported geography hierarchy
+[23:48:50]      no-geo        400 rows~0 error: missing 'for' argument
+[23:48:51]   ── pseo-flows  base=https://api.census.gov/data/timeseries/pseo/flows
+[23:48:51]      geo=[('us', [], []), ('division', [], [])] (200) tp=time req=['CIPCODE', 'NAICS', 'GEOCOMP', 'GRAD_COHORT'] vars=['Y1_GRADS_NME', 'Y1_GRADS_EMP', 'GRAD_COHORT_YEARS', 'AGG_LEVEL_PSEO', 'CIPCODE', 'DIVISION']
+[23:48:51]      us-star       400 rows~0 error: unknown predicate variable: 'time'
+[23:48:51]      state-direct  400 rows~0 error: unknown/unsupported geography hierarchy
+[23:48:51]      no-geo        400 rows~0 error: missing 'for' argument
+── P2 merge-write overrides ──
+[23:48:52]   GRAM_KEY now 5 entries (+2)
+── P3 redo drive ──
+[23:49:22]   t+  30s ok=0/2 still-failed=0
+[23:49:52]   t+  60s ok=0/2 still-failed=1
+[23:50:22]   t+  90s ok=0/2 still-failed=2
+[23:50:52]   t+ 120s ok=0/2 still-failed=2
+[23:51:22]   t+ 150s ok=0/2 still-failed=2
+[23:51:53]   t+ 180s ok=0/2 still-failed=2
+[23:52:23]   t+ 210s ok=0/2 still-failed=2
+[23:52:53]   t+ 240s ok=0/2 still-failed=2
+[23:53:23]   t+ 270s ok=0/2 still-failed=0
+[23:53:53]   t+ 301s ok=0/2 still-failed=1
+[23:54:23]   t+ 331s ok=0/2 still-failed=0
+[23:54:53]   t+ 361s ok=0/2 still-failed=1
+[23:55:24]   t+ 391s ok=0/2 still-failed=0
+[23:55:54]   t+ 421s ok=0/2 still-failed=0
+[23:56:24]   t+ 451s ok=0/2 still-failed=1
+[23:56:54]   t+ 482s ok=0/2 still-failed=0
+[23:57:24]   t+ 512s ok=0/2 still-failed=1
+[23:57:54]   t+ 542s ok=0/2 still-failed=2
+[23:58:25]   t+ 572s ok=0/2 still-failed=0
+[23:58:55]   t+ 602s ok=0/2 still-failed=1
+[23:59:25]   t+ 633s ok=0/2 still-failed=0
+[23:59:55]   t+ 663s ok=0/2 still-failed=1
+[23:59:55]   aies-miscsector          ok=False rows=0 span=None..None mode=None
+[23:59:55]   asm-industry             ok=False rows=0 span=None..None mode=year_state
+[23:59:55]   UNCONQUERED poverty-saipe-schdist all shapes refused; last bodies logged
+[23:59:55]   UNCONQUERED pseo-earnings        all shapes refused; last bodies logged
+[23:59:55]   UNCONQUERED pseo-flows           all shapes refused; last bodies logged
+[23:59:55] G1 FAIL conquered-live=0/5 probe-refused=3
+[23:59:55] ops 4972 RED: G1
+
+→ Report written to aws/ops/reports/latest/ops_4972_census_conquest.md
+❌ OPS-FAIL: aws/ops/pending/ops_4972_census_conquest.py
