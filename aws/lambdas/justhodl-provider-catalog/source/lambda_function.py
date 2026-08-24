@@ -161,7 +161,7 @@ REG = {
  "gdelt": {"name": "GDELT — global events",
   "api": "data.gdeltproject.org/gdeltv2",
   "engines": ["justhodl-global-expansion"],
-  "prefixes": ["data/warm/gdelt/"]},
+  "prefixes": ["data/warm/gdelt/", "data/warm/gdelt-full/"]},
  "eiopa": {"name": "EIOPA — Solvency II RFR",
   "api": "eiopa.europa.eu", "engines": ["justhodl-global-expansion",
               "justhodl-hist-banker"],
@@ -615,6 +615,43 @@ def lambda_handler(event, context):
                                  _tx.get("mean_agree_pct") or "—"))
                     note = (note + " · " + _note_x) if note \
                         else _note_x
+            except Exception:
+                pass
+        if slug == "gdelt":
+            # ops 4965 (gd-note-v2): full v2-events cursor truth
+            try:
+                _gm = _get_json("data/warm/gdelt-full/manifest.json")
+                if _gm:
+                    note = ((note + " · ") if note else "") + (
+                        "FULL v2 EVENTS warehouse (gdelt-full v1): "
+                        "%s files · %.2fGB · cursor %s · gaps %s · "
+                        "phase %s · v1 archive %s/%s · GKG/mentions "
+                        "scoped by design" % (
+                            _gm.get("v2_files"),
+                            _gm.get("v2_gb") or 0,
+                            str(_gm.get("cursor"))[:8],
+                            _gm.get("gaps"), _gm.get("phase"),
+                            _gm.get("v1_files"),
+                            _gm.get("v1_total")))
+            except Exception:
+                pass
+        if slug == "nyfed":
+            # ops 4965 (nyfed-hist-note-v2): surface hist-v1 depth
+            try:
+                _hs = _get_json(
+                    "data/warm/nyfed-markets/hist-state.json")
+                _hf = (_hs or {}).get("families") or {}
+                _okn = sum(1 for v in _hf.values() if v.get("ok"))
+                if _okn:
+                    _eff = (_hf.get("rates_effr") or {}
+                            ).get("n_hint") or 0
+                    _rawmb = sum((v.get("bytes") or 0)
+                                 for v in _hf.values()) / 1e6
+                    note = ((note + " · ") if note else "") + (
+                        "hist-v1 full-window: %d/11 families "
+                        "(EFFR %s obs since 2000, repo ops since "
+                        "2000, AMBS/tsy/fxs) · %.1fMB raw · "
+                        "20h self-refresh" % (_okn, _eff, _rawmb))
             except Exception:
                 pass
         if slug == "treasury":
