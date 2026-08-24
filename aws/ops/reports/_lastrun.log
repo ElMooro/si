@@ -1,21 +1,36 @@
-executing-against: 29fde4192950459b8dd6bba4339647d9d42e6aa2
-── P0 drain status (bls-full / worldbank-full) ──
-[02:06:42]   bls-full phase=COMPLETE files/banked=1659 gb=40.06 q=0 fail=3 as_of=2026-08-24T01:23:21
-[02:06:43]   worldbank-full phase=DRAIN files/banked=2328 gb=0.03 q=27001 fail=0 as_of=2026-08-24T02:03:23
-── P1 dataflow catalogs (both generations) ──
-[02:06:43]   legacy host: DNS DEAD (registry fossil, recorded)
-[02:06:43]   2.1 dataflow XML: 200 bytes=446083 flows=222 sample=['NSDP', 'ITG_2026_MAY_VINTAGE', 'WPCPER', 'MFS_MA_2026_MAY_VINTAGE', 'MFS_OFC_2026_FEB_VINTAGE', 'IL', 'WEO_2025_OCT_VINTAGE', 'MFS_OFC_2026_APR_VINTAGE']
-[02:06:43]   resolved flagships: {'BOP': 'BOP', 'IFS': None, 'DOT': None, 'CPI': 'CPI_WCA_2026_JAN_VINTAGE'}
-── P2 full-pull ladder (capture refusals verbatim) ──
-[02:06:46]   BOP(BOP).full_default  200 bytes=3000000 trunc=True <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData x
-[02:06:49]   BOP(BOP).full_csv      200 bytes=3000000 trunc=True <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData x
-[02:06:50]   CPI(CPI_WCA_2026_JAN_VINTAGE).full_default 200 bytes=11707 trunc=False <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData x
-[02:06:51]   CPI(CPI_WCA_2026_JAN_VINTAGE).full_csv 200 bytes=11707 trunc=False <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData x
-── P3 slice grammar (freq=A on IFS) ──
-[02:06:53]   dim_A                  200 bytes=2752 <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData xmlns:ss="h
-[02:06:54]   dim_A_dots             400 bytes=None {"status":400,"code":40000,"message":"key A.......... has more than expected 5 d
-[02:07:05]   lastN                  200 bytes=3000000 <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData xmlns:ss="h
-[02:07:06] artifact data/warm/imf-full/_probe/probe.json (ok_any=True)
-[02:07:06] ops 4961 GREEN -- IMF grammar captured; imf-full engine ships next on PROVEN access shapes
+executing-against: b8c622189807a92d3855e099245070bcf925d10a
+── G-1 marker-in-checkout ──
+[02:09:56]   ok 'nyfed-hist-v1 ops4963'
+── G0 settle ──
+[02:09:56]   settled (0s)
+── G1 kick -> hist families converge ──
+[02:10:21]   t+  25s mark=True ok=9/11
+[02:10:21]   ambs_ops         ok=True bytes=1503326 n_hint=10226 /ambs/all/results/summary/search.json?startDate=2009-01-01
+[02:10:21]   fxs_all          ok=True bytes=503898 n_hint=3036 /fxs/all/search.json?startDate=2000-01-01
+[02:10:21]   rates_bgcr       ok=True bytes=496924 n_hint=2515 /rates/secured/bgcr/search.json?startDate=2014-01-01&endDate
+[02:10:21]   rates_effr       ok=True bytes=1514800 n_hint=8195 /rates/unsecured/effr/search.json?startDate=2000-01-01&endDa
+[02:10:21]   rates_obfr       ok=True bytes=623819 n_hint=3158 /rates/unsecured/obfr/search.json?startDate=2000-01-01&endDa
+[02:10:21]   rates_sofr       ok=True bytes=497983 n_hint=2515 /rates/secured/sofr/search.json?startDate=2014-01-01&endDate
+[02:10:21]   rates_tgcr       ok=True bytes=496908 n_hint=2515 /rates/secured/tgcr/search.json?startDate=2014-01-01&endDate
+[02:10:21]   repo_ops         ok=True bytes=7315625 n_hint=39447 /rp/results/search.json?startDate=2000-01-01
+[02:10:21]   seclending_ops   ok=False bytes=None n_hint=None /seclending/all/all/results/search.json?startDate=2000-01-01
+[02:10:21]   soma_asofdates   ok=True bytes=15716 n_hint=120 /soma/asofdates/list.json
+[02:10:21]   tsy_ops          ok=False bytes=None n_hint=None /tsy/all/results/search.json?startDate=2000-01-01 -> HTTPErr
+[02:10:21] G1 PASS ok_fams=9 effr=8195 repo=39447 ambs=10226
+── G2 substance: EFFR span 2000 -> current ──
+[02:10:21] G2 PASS n=6568 span=2000-07-03..2026-08-20
+── G3 hist keys landed ──
+[02:10:22]   ambs_ops.json.gz              63.72KB
+[02:10:22]   fxs_all.json.gz               25.46KB
+[02:10:22]   rates_bgcr.json.gz            20.86KB
+[02:10:22]   rates_effr.json.gz            48.94KB
+[02:10:22]   rates_obfr.json.gz            20.62KB
+[02:10:22]   rates_sofr.json.gz            22.71KB
+[02:10:22]   rates_tgcr.json.gz            20.46KB
+[02:10:22]   repo_ops.json.gz             355.69KB
+[02:10:22]   soma_asofdates.json.gz         3.22KB
+[02:10:22] G3 FAIL files=9 0.58MB
+[02:10:22] ops 4963 RED: G3
 
-→ Report written to aws/ops/reports/latest/ops_4961_imf_grammar_probe.md
+→ Report written to aws/ops/reports/latest/ops_4963_nyfed_hist_depth.md
+❌ OPS-FAIL: aws/ops/pending/ops_4963_nyfed_hist_depth.py
