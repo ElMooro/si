@@ -93,6 +93,9 @@ from botocore.exceptions import ClientError
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/13f-positions.json")
+# ops 4968 live-delta: shared state keys
+CIK_OVR_KEY = "data/13f-state/cik-overrides.json"   # probe-verified only
+LEDGER_KEY = "data/13f-state/first-seen.json"       # rolling novelty ledger
 S3_CACHE_PREFIX = os.environ.get("S3_CACHE_PREFIX", "13f-cache/")
 S3_FILINGS_KEY = os.environ.get("S3_FILINGS_KEY", "data/institutional-positions.json")
 USER_AGENT = os.environ.get("USER_AGENT", "JustHodl Research raafouis@gmail.com")
@@ -1402,6 +1405,17 @@ def aggregate_by_ticker(fund_results):
 
 def lambda_handler(event, context):
     started = time.time()
+    _ev = event if isinstance(event, dict) else {}
+    if _ev.get("trigger"):
+        print(f"[13f] invoked by trigger={_ev.get('trigger')} "
+              f"changed={_ev.get('changed')}")
+
+    # ops 4968: probe-verified CIK overrides — same key sec-13f reads.
+    _cik_ovr = get_s3_json(CIK_OVR_KEY, {}) or {}
+    _watch = dict(WATCHLIST)
+    for _ok, _ov in _cik_ovr.items():
+        if isinstance(_ov, dict) and _ov.get("cik") and _ok in _watch:
+            _watch[_ok] = str(_ov["cik"])
 
     # Step 1: load filings index from sec-13f Lambda's output
     filings_index = get_s3_json(S3_FILINGS_KEY, {})
@@ -1428,7 +1442,7 @@ def lambda_handler(event, context):
     # Step 3: parse each fund's latest filing in parallel
     fund_results = []
     fund_inputs = []
-    for fund_key, cik in WATCHLIST.items():
+    for fund_key, cik in _watch.items():
         meta = by_fund_meta.get(fund_key, {})
         latest = meta.get("latest_filing")
         if not latest or not latest.get("accession"):
@@ -1514,6 +1528,12 @@ def lambda_handler(event, context):
                 p["ticker"], p["resolved_name"] = resolved_map[p["cusip"]]
 
     # Step 4: aggregate by ticker
+    # ops 4968: deregistered / stale-entity status rides on the fund dict
+    # so the page can label a FINAL filing instead of it looking broken.
+    for _f in successful:
+        _st = (_cik_ovr.get(_f.get("fund_key")) or {}).get("status")
+        if _st:
+            _f["fund_status"] = _st
     successful = resolve_missing_tickers(successful)  # ops 3278b
     by_ticker = _scrub_sets(aggregate_by_ticker(successful))   # ops 4936
 
@@ -1531,10 +1551,13 @@ def lambda_handler(event, context):
                 row = d[0] if isinstance(d, list) and d else (d or {})
                 mc = row.get("marketCap") or row.get("mktCap")
                 if mc:
-                    return float(mc), row.get("sector") or None
+                    # ops 4968: same profile row carries industry — one
+                    # call now yields mcap AND sector AND industry.
+                    return (float(mc), row.get("sector") or None,
+                            row.get("industry") or None)
             except Exception:
                 continue
-        return None, None
+        return None, None, None
 
     enriched = 0
     _mc_cache = get_s3_json(ANCHORS_KEY) or {}
@@ -1542,25 +1565,42 @@ def lambda_handler(event, context):
         import time as _t2
         seen_t = [t for t in by_ticker
                   if t and t.isalpha() and len(t) <= 6][:600]
-        mc_budget = 80          # ops 3280: cached 7d, refresh slice
+        # ops 4968: event-overridable budget so a backfill run can sweep
+        # the whole book; cached entries WITHOUT an "industry" key are
+        # treated as refreshable so industry coverage self-completes.
+        mc_budget = int(_ev.get("industry_budget")
+                        or _ev.get("mcap_budget") or 80)
         for tk in seen_t:
             sec = None               # ops 3282b: NameError killer — sec leaked
+            ind = None               # ops 4968
             ce = (_mc_cache.get(tk) or {}).get("_mc") or {}
-            if ce.get("v") and _t2.time() - float(ce.get("at") or 0)                     < 7 * 86400:
+            _cached_ok = bool(ce.get("v")) and                 _t2.time() - float(ce.get("at") or 0) < 7 * 86400
+            _need_ind = _cached_ok and ("industry" not in ce)
+            if _cached_ok and not (_need_ind and mc_budget > 0):
                 mc = float(ce["v"])
                 sec = ce.get("sector")
+                ind = ce.get("industry")
             else:
                 if mc_budget <= 0:
                     continue
                 mc_budget -= 1
-                mc, sec = _enrich(tk)
+                mc, sec, ind = _enrich(tk)
                 time.sleep(0.12)
                 if mc is not None:
-                    _mc_cache.setdefault(tk, {})["_mc"] =                         {"v": mc, "at": _t2.time(), "sector": sec}
+                    _mc_cache.setdefault(tk, {})["_mc"] =                         {"v": mc, "at": _t2.time(), "sector": sec,
+                         "industry": ind}
+                elif _cached_ok:
+                    # transient FMP miss on a backfill refresh — keep the
+                    # cached mcap rather than dropping a real tier.
+                    mc = float(ce["v"])
+                    sec = ce.get("sector")
+                    ind = ce.get("industry")
             if mc is None:
                 continue
             if sec:
                 by_ticker[tk]["sector"] = sec
+            if ind:
+                by_ticker[tk]["industry"] = ind   # live-delta ops4968
             tier = ("MICRO" if mc < 3e8 else "SMALL" if mc < 2e9
                     else "MID" if mc < 1e10 else "LARGE")
             by_ticker[tk]["market_cap"] = mc
@@ -2032,6 +2072,219 @@ def lambda_handler(event, context):
         "real estate = REITs + RE ETFs; true cash/private assets are "
         "not reportable. Flows use the same value-delta basis as the "
         "NET FLOW headline.")
+    # ── ops 4968 live-delta: INDUSTRY FLOWS ──────────────────────────
+    # Same value-delta dollar basis as the headline, rolled up to the FMP
+    # profile industry of every resolved ticker. Names without a resolved
+    # industry are excluded and counted in the coverage number — an honest
+    # gap, never a guess.
+    ind_agg = {}
+    _gross_all = 0.0
+    _gross_cls = 0.0
+    for a in by_ticker.values():
+        _b = float(a.get("bought_usd") or 0)
+        _s = float(a.get("sold_usd") or 0)
+        _gross_all += _b + _s
+        _ind = a.get("industry")
+        if not _ind:
+            continue
+        _gross_cls += _b + _s
+        c = ind_agg.setdefault(_ind, {
+            "industry": _ind, "sector": a.get("sector"),
+            "bought_usd": 0, "sold_usd": 0, "net_flow_usd": 0,
+            "total_usd": 0, "new_usd": 0, "n_names": 0,
+            "_add": set(), "_cut": set(), "_newf": set(), "top": []})
+        c["bought_usd"] += _b
+        c["sold_usd"] += _s
+        c["net_flow_usd"] += _b - _s
+        c["total_usd"] += float(a.get("total_value") or 0)
+        c["n_names"] += 1
+        for fa in a.get("fund_actions") or []:
+            _ch = fa.get("change")
+            if _ch in ("ADD", "NEW"):
+                c["_add"].add(fa.get("fund"))
+                if _ch == "NEW":
+                    c["_newf"].add(fa.get("fund"))
+                    c["new_usd"] += float(fa.get("value") or 0)
+            elif _ch in ("TRIM", "EXIT"):
+                c["_cut"].add(fa.get("fund"))
+        c["top"].append((a.get("ticker") or "?", _b - _s,
+                         float(a.get("total_value") or 0)))
+    for c in ind_agg.values():
+        c["funds_adding"] = len(c.pop("_add"))
+        c["funds_cutting"] = len(c.pop("_cut"))
+        c["funds_new"] = len(c.pop("_newf"))
+        c["top"] = [{"ticker": t, "net_flow_usd": round(n),
+                     "total_usd": round(v)}
+                    for t, n, v in sorted(c["top"],
+                                          key=lambda x: -abs(x[1]))[:5]]
+        for k2 in ("bought_usd", "sold_usd", "net_flow_usd",
+                   "total_usd", "new_usd"):
+            c[k2] = round(c[k2])
+    _rows = list(ind_agg.values())
+    industry_flows = {
+        "industries_resolved": len(_rows),
+        "coverage_pct_of_gross": round(
+            100 * _gross_cls / _gross_all, 1) if _gross_all else 0,
+        "most_bought": sorted(
+            [r for r in _rows if r["net_flow_usd"] > 0],
+            key=lambda r: -r["net_flow_usd"])[:15],
+        "most_sold": sorted(
+            [r for r in _rows if r["net_flow_usd"] < 0],
+            key=lambda r: r["net_flow_usd"])[:15],
+        "fresh_money": sorted(
+            [r for r in _rows if r["new_usd"] > 0],
+            key=lambda r: -r["new_usd"])[:12],
+        "by_industry": sorted(_rows, key=lambda r: -r["total_usd"]),
+        "note": ("Industry = FMP company profile industry per resolved "
+                 "ticker; unclassified names are excluded here and "
+                 "reflected in coverage_pct_of_gross. Dollar basis "
+                 "identical to the NET FLOW headline."),
+    }
+
+    # ── ops 4968 live-delta: NEW-SINCE + rolling first-seen ledger ──
+    # The ledger is the single source of novelty truth across runs: an
+    # EMPTY ledger seeds silently (nothing flashes on the deploy run);
+    # after that, anything first seen within 72h drives the red flash.
+    _now = datetime.now(timezone.utc)
+    _now_iso = _now.isoformat(timespec="seconds")
+    led = get_s3_json(LEDGER_KEY, {}) or {}
+    for _cat in ("filings", "names", "smallmid", "industries"):
+        led.setdefault(_cat, {})
+    _seed_run = not any(led[_c] for _c in
+                        ("filings", "names", "smallmid", "industries"))
+
+    def _mark(cat, key):
+        """Insert if unseen; True only for genuine (non-seed) novelty."""
+        if key not in led[cat]:
+            e = {"first_seen": _now_iso}
+            if _seed_run:
+                e["seed"] = True     # seed stock never flashes — ever
+            led[cat][key] = e
+            return not _seed_run
+        return False
+
+    def _age_h(e):
+        if e.get("seed"):
+            return 1e9               # seed entries are permanently stale
+        try:
+            return (_now - datetime.fromisoformat(
+                e["first_seen"])).total_seconds() / 3600.0
+        except Exception:
+            return 1e9
+
+    for f in successful:
+        if f.get("fund_key") and f.get("accession"):
+            _mark("filings", "%s:%s" % (f["fund_key"], f["accession"]))
+    for tk, a in by_ticker.items():
+        if not a.get("ticker"):
+            continue
+        _mark("names", a["ticker"])
+        if (a.get("n_funds_new_position") or 0) >= 1 and                 a.get("cap_tier") in ("MICRO", "SMALL", "MID"):
+            _mark("smallmid", a["ticker"])
+    for _ind in ind_agg:
+        _mark("industries", _ind)
+
+    _W = 72.0
+    _by_fund_now = {f.get("fund_key"): f for f in successful}
+    nf_fresh = []
+    for k, e in led["filings"].items():
+        if _age_h(e) > _W:
+            continue
+        fk = k.split(":", 1)[0]
+        f = _by_fund_now.get(fk) or {}
+        nf_fresh.append({
+            "fund_key": fk,
+            "fund_name": FUND_DISPLAY_NAMES.get(fk, fk),
+            "period_of_report": f.get("period_of_report"),
+            "filed_at": f.get("filed_at"),
+            "first_seen": e["first_seen"]})
+    nf_fresh.sort(key=lambda x: x["first_seen"], reverse=True)
+
+    smm = []
+    for tk, a in by_ticker.items():
+        if (a.get("n_funds_new_position") or 0) < 1 or                 a.get("cap_tier") not in ("MICRO", "SMALL", "MID"):
+            continue
+        _e = led["smallmid"].get(a.get("ticker") or "") or {}
+        _newers = sorted({fa.get("fund_name") or fa.get("fund")
+                          for fa in a.get("fund_actions") or []
+                          if fa.get("change") == "NEW"})
+        smm.append({
+            "ticker": a.get("ticker"), "name": a.get("name"),
+            "cap_tier": a.get("cap_tier"),
+            "market_cap": a.get("market_cap"),
+            "industry": a.get("industry"),
+            "n_funds_new_position": a.get("n_funds_new_position"),
+            "net_flow_usd": round(a.get("net_flow_usd") or 0),
+            "funds": _newers[:4],
+            "first_seen": _e.get("first_seen"),
+            "fresh": _age_h(_e) <= _W if _e else False})
+    smm.sort(key=lambda x: (-int(bool(x["fresh"])),
+                            -(x["n_funds_new_position"] or 0),
+                            -abs(x["net_flow_usd"] or 0)))
+    smm = smm[:30]
+
+    ni_fresh = []
+    for _ind, e in led["industries"].items():
+        if _age_h(e) > _W:
+            continue
+        r = ind_agg.get(_ind) or {}
+        ni_fresh.append({
+            "industry": _ind, "sector": r.get("sector"),
+            "net_flow_usd": r.get("net_flow_usd"),
+            "n_names": r.get("n_names"),
+            "first_seen": e["first_seen"]})
+    ni_fresh.sort(key=lambda x: -abs(x.get("net_flow_usd") or 0))
+
+    nn_fresh = []
+    for tk2, e in led["names"].items():
+        if _age_h(e) > _W:
+            continue
+        a = by_ticker.get(tk2) or {}
+        nn_fresh.append({
+            "ticker": tk2, "name": a.get("name"),
+            "cap_tier": a.get("cap_tier"),
+            "net_flow_usd": round(a.get("net_flow_usd") or 0),
+            "first_seen": e["first_seen"]})
+    nn_fresh.sort(key=lambda x: -abs(x.get("net_flow_usd") or 0))
+    nn_fresh = nn_fresh[:40]
+
+    _fresh_smm = sum(1 for x in smm if x.get("fresh"))
+    _level = "red" if (nf_fresh or _fresh_smm or ni_fresh) else "none"
+    new_since = {
+        "generated_at": _now_iso, "window_h": 72,
+        "seed_run": _seed_run,
+        "alert": {"level": _level,
+                  "fresh_counts": {"filings": len(nf_fresh),
+                                   "smallmid": _fresh_smm,
+                                   "industries": len(ni_fresh),
+                                   "names": len(nn_fresh)}},
+        "new_filings": nf_fresh,
+        "new_small_mid_micro": smm,
+        "new_industries": ni_fresh,
+        "new_names": nn_fresh,
+        "note": ("Novelty is ledger-measured: first_seen is when THIS "
+                 "system first observed the item, red flash = first "
+                 "seen within 72h. new_small_mid_micro always carries "
+                 "this quarter's NEW small/mid/micro positions from the "
+                 "filings themselves; 'fresh' marks the ones that just "
+                 "surfaced. Seed run stamps the ledger without "
+                 "flashing."),
+    }
+    # prune ledger (10d) and persist
+    def _real_age_h(e):
+        try:
+            return (_now - datetime.fromisoformat(
+                e["first_seen"])).total_seconds() / 3600.0
+        except Exception:
+            return 1e9
+    for _cat in ("filings", "names", "smallmid", "industries"):
+        led[_cat] = {k: v for k, v in led[_cat].items()
+                     if _real_age_h(v) <= 240}
+    try:
+        put_s3_json(LEDGER_KEY, led)
+    except Exception as _le:
+        print(f"  ledger put FAILED (non-fatal): {_le}")
+
     consensus_holds = sorted(
         by_ticker.values(),
         key=lambda x: (-x["n_funds_holding"], -x["total_value"]),
@@ -2098,6 +2351,8 @@ def lambda_handler(event, context):
         "risk_appetite": risk_appetite,
         "flow_summary_directional": flow_summary_directional,
         "risk_appetite_directional": risk_appetite_directional,
+        "industry_flows": industry_flows,          # ops 4968
+        "new_since": new_since,                    # ops 4968
         "performance": compute_performance(successful, by_ticker),
         "most_bought": most_bought,
         "most_sold": most_sold,
@@ -2111,12 +2366,41 @@ def lambda_handler(event, context):
           f"{len(by_ticker)} unique tickers | "
           f"top buy: {most_bought[0]['ticker'] if most_bought else '?'}")
 
+    # ops 4968: when a genuinely new filing just landed, refresh the AI
+    # brief so the commentary tracks the data instead of trailing it by
+    # a day. Best-effort — never blocks the publish.
+    try:
+        if any(x.get("first_seen") == new_since.get("generated_at")
+               for x in (new_since.get("new_filings") or [])) and \
+                not new_since.get("seed_run"):
+            boto3.client("lambda").invoke(
+                FunctionName="justhodl-page-ai-commentary",
+                InvocationType="Event",
+                Payload=json.dumps({"page": "13f"}).encode())
+            print("  live-delta: ai-commentary(13f) refresh fired")
+    except Exception as _ce:
+        print(f"  ai-commentary refire FAILED (non-fatal): {_ce}")
+
     # ─── ALERTS ────────────────────────────────────────────────────────
     # Compare new output vs prior_run, fire Telegram on meaningful changes.
     try:
         prior_quarter = (prior_run or {}).get("as_of_quarter")
         new_quarter = output.get("as_of_quarter")
         alerts = []
+
+        # 0. ops 4968: NEW FILING(S) LANDED — fires within minutes of
+        # EDGAR, ledger-deduped so each accession alerts exactly once.
+        _nf_now = [x for x in (new_since.get("new_filings") or [])
+                   if x.get("first_seen") == new_since.get("generated_at")]
+        if _nf_now and not new_since.get("seed_run"):
+            _nf_lines = "\n".join(
+                f"• <b>{x['fund_name']}</b> — {x.get('period_of_report')}"
+                f" (filed {x.get('filed_at')})" for x in _nf_now[:6])
+            alerts.append(
+                f"🚨 <b>NEW 13F FILING{'S' if len(_nf_now) > 1 else ''}"
+                f" ON EDGAR</b>\n{_nf_lines}\n\n"
+                f"<a href='https://justhodl.ai/13f.html'>"
+                f"justhodl.ai/13f</a>")
 
         # 1. QUARTER ADVANCE — biggest signal (only fires once per quarter)
         if prior_quarter and new_quarter and prior_quarter != new_quarter:

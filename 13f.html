@@ -290,6 +290,23 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
 <main class="shell">
 
   <section style="max-width:1200px;margin:14px auto 0;padding:0 18px">
+  <!-- ops 4968 live-delta: NEW-SINCE flash band -->
+  <style>
+  @keyframes jhFlashRed{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.55);border-color:#ef4444}50%{box-shadow:0 0 24px 5px rgba(239,68,68,.30);border-color:#ff7b7b}}
+  @keyframes jhDotRed{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(239,68,68,.7)}50%{opacity:.55;box-shadow:0 0 0 7px rgba(239,68,68,0)}}
+  #jh13f-newflash{display:none;margin:0 0 12px;border:1.5px solid #7f1d1d;border-radius:12px;background:linear-gradient(180deg,rgba(127,29,29,.20),rgba(15,19,26,.92));padding:14px 18px}
+  #jh13f-newflash.flash{animation:jhFlashRed 1.5s ease-in-out infinite}
+  #jh13f-newflash .nf-hd{display:flex;align-items:center;gap:10px;font:700 11px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.16em;color:#fca5a5;text-transform:uppercase}
+  #jh13f-newflash .nf-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 8px #ef4444;flex:0 0 auto}
+  #jh13f-newflash.flash .nf-dot{animation:jhDotRed 1.2s ease-in-out infinite}
+  #jh13f-newflash .nf-sub{margin-left:auto;font:600 9.5px 'IBM Plex Mono',ui-monospace,monospace;color:#f19999;letter-spacing:.08em;text-transform:none}
+  #jh13f-newflash .nf-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:11px}
+  #jh13f-newflash .nf-lbl{font:700 9.5px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.14em;color:#f87171;opacity:.9;margin-bottom:6px}
+  #jh13f-newflash .nf-chip{display:inline-flex;gap:6px;align-items:baseline;margin:0 6px 6px 0;padding:4px 9px;border:1px solid rgba(239,68,68,.35);border-radius:8px;background:rgba(239,68,68,.08);font:600 11.5px 'IBM Plex Mono',ui-monospace,monospace;color:#fecaca;cursor:pointer;max-width:100%}
+  #jh13f-newflash .nf-chip .sub{font:500 9.5px 'IBM Plex Mono',ui-monospace,monospace;color:#f0a5a5;opacity:.9}
+  #jh13f-newflash .nf-chip.fresh{border-color:#ef4444;background:rgba(239,68,68,.17);color:#fff}
+  </style>
+  <div id="jh13f-newflash"></div>
   <div id="jh13f-flow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:12px"></div>
 </section>
 <script>
@@ -502,6 +519,34 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
     </div>
   </section>
 
+  <!-- Industry flows · ops 4968 live-delta -->
+  <section class="section" id="industry-flows">
+    <div class="section-eyebrow">Industry rotation · dollar-weighted</div>
+    <h2 class="section-title">Industries bought · Industries sold</h2>
+    <p class="section-blurb">Every ticker's net dollar flow rolled up to its company <strong>industry</strong> — same value-delta basis as the NET FLOW headline. Left: where the whale complex is pouring money. Right: where it's draining. Coverage <span id="ind-cov">—</span>% of gross flow classified — unclassified names are excluded, never guessed.</p>
+    <div class="bs-grid">
+      <div class="bs-col">
+        <div class="bs-head buys">
+          <span class="bs-icon buys">↑</span>
+          <span class="bs-title">Industries Bought</span>
+        </div>
+        <div class="bs-list" id="ind-bought">
+          <div class="bs-empty">Loading…</div>
+        </div>
+      </div>
+      <div class="bs-col">
+        <div class="bs-head sells">
+          <span class="bs-icon sells">↓</span>
+          <span class="bs-title">Industries Sold</span>
+        </div>
+        <div class="bs-list" id="ind-sold">
+          <div class="bs-empty">Loading…</div>
+        </div>
+      </div>
+    </div>
+    <div id="ind-fresh" style="margin-top:12px"></div>
+  </section>
+
   <!-- Consensus holds -->
   <section class="section">
     <div class="section-eyebrow">Cross-fund consensus</div>
@@ -534,7 +579,7 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
   </section>
 
   <footer class="foot">
-    <strong>Data:</strong> SEC EDGAR 13F-HR filings, parsed from infotable XML. <strong>Refresh:</strong> holdings rebuild daily 21:10 UTC (Mon–Fri); the clone-alpha leaderboard rebuilds weekly, Mondays 08:30 UTC. <strong>Fund universe:</strong> 18 hand-picked institutional managers. <strong>Caching:</strong> per-accession cache, keyed by parser version — a parser change invalidates it so fixes reach every card.<br>
+    <strong>Data:</strong> SEC EDGAR 13F-HR filings, parsed from infotable XML. <strong>Refresh:</strong> EDGAR watched every 30 min, 24/7 — holdings rebuild within minutes of any new 13F filing, plus a full refresh every 2h; the clone-alpha leaderboard rebuilds weekly, Mondays 08:30 UTC. <strong>Fund universe:</strong> 18 hand-picked institutional managers. <strong>Caching:</strong> per-accession cache, keyed by parser version — a parser change invalidates it so fixes reach every card.<br>
     Last updated <span id="updated-at">—</span> · <a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/13f-positions.json" target="_blank">Raw JSON</a> · <a href="javascript:location.reload()">Refresh</a>
   </footer>
 
@@ -997,6 +1042,62 @@ function renderFunds(byFund){
 }
 
 // ──────────────────────────────────────────────────────────────
+// ops 4968 live-delta: NEW-SINCE flash band + Industry flows
+// ──────────────────────────────────────────────────────────────
+function jhAge(iso){try{var h=(Date.now()-new Date(iso).getTime())/36e5;if(h<0)h=0;return h<1?Math.max(1,Math.round(h*60))+'m':h<48?Math.round(h)+'h':Math.round(h/24)+'d';}catch(e){return'';}}
+function jhNet(v){var a=Math.abs(v||0),s=a>=1e9?(a/1e9).toFixed(2)+'B':a>=1e6?(a/1e6).toFixed(0)+'M':Math.round(a/1e3)+'k';return (v<0?'-$':'+$')+s;}
+function renderNewFlash(d){
+  var el=document.getElementById('jh13f-newflash'); if(!el) return;
+  var ns=d&&d.new_since; if(!ns){el.style.display='none';return;}
+  var f=ns.new_filings||[], sm=ns.new_small_mid_micro||[], ni=ns.new_industries||[];
+  if(!f.length&&!sm.length&&!ni.length){el.style.display='none';return;}
+  var red=!!(ns.alert&&ns.alert.level==='red');
+  el.className=red?'flash':'';
+  function chips(items,fn){var h=items.map(fn).join('');return h||'<span style="font:11px monospace;color:#9aa4b5">none in the 72h window</span>';}
+  var html='<div class="nf-hd"><span class="nf-dot"></span>'+(red?'🔴 New since last update — live':'This quarter · newly added')
+    +'<span class="nf-sub">'+(red?'flashing = first seen ≤72h':'EDGAR watched every 30 min · rebuilds within minutes of a filing')+'</span></div><div class="nf-groups">';
+  if(f.length){html+='<div><div class="nf-lbl">🚨 New filings</div>'+chips(f.slice(0,6),function(x){
+    return '<span class="nf-chip fresh">'+escape(x.fund_name||x.fund_key)+' <span class="sub">'+escape(x.period_of_report||'')+' · '+jhAge(x.first_seen)+' ago</span></span>';})+'</div>';}
+  html+='<div><div class="nf-lbl">🆕 Small · Mid · Micro — new positions</div>'+chips(sm.slice(0,12),function(x){
+    return '<span class="nf-chip'+(x.fresh?' fresh':'')+'" onclick="openTicker(\''+escape(x.ticker||'')+'\')">'+escape(x.ticker||'?')
+      +' <span class="sub">'+escape(x.cap_tier||'')+(x.industry?' · '+escape(x.industry):'')+' · '+(x.n_funds_new_position||0)+' fund'+((x.n_funds_new_position||0)>1?'s':'')+' NEW'
+      +(x.fresh&&x.first_seen?' · '+jhAge(x.first_seen)+' ago':'')+'</span></span>';})+'</div>';
+  if(ni.length){html+='<div><div class="nf-lbl">🏭 New industries</div>'+chips(ni.slice(0,8),function(x){
+    return '<span class="nf-chip fresh">'+escape(x.industry)+' <span class="sub">'+jhNet(x.net_flow_usd)+' · '+jhAge(x.first_seen)+' ago</span></span>';})+'</div>';}
+  html+='</div>';
+  el.innerHTML=html; el.style.display='block';
+}
+function jhIndRow(r,i,dir,maxAbs){
+  var breadth=dir==='buy'?(r.funds_adding||0):(r.funds_cutting||0);
+  var tops=(r.top||[]).slice(0,4).map(function(t){return escape(t.ticker);}).join(' · ');
+  var n=Math.max(0,Math.min(8,Math.round(8*Math.abs(r.net_flow_usd||0)/(maxAbs||1))));
+  var bars=Array.from({length:8},function(_,k){return '<div class="bs-bar '+(dir==='buy'?'':'sell ')+(k<n?'active':'')+'"></div>';}).join('');
+  return '<div class="bs-row fade-in">'
+    +'<span class="bs-rank">#'+(i+1)+'</span>'
+    +'<div class="bs-stock"><span class="bs-ticker">'+escape(r.industry)+'</span>'
+    +'<span class="bs-name">'+escape(r.sector||'')+' · '+(r.n_names||0)+' names · '+tops+'</span>'
+    +'<div class="bs-extra"><span class="val">bought '+fmtMoney(r.bought_usd||0)+'</span><span class="val">sold '+fmtMoney(r.sold_usd||0)+'</span>'
+    +(r.funds_new?'<span class="new">'+r.funds_new+' fund'+(r.funds_new>1?'s':'')+' NEW</span>':'')+'</div></div>'
+    +'<div class="bs-meta"><span class="bs-funds '+(dir==='buy'?'buys':'sells')+'">'+jhNet(r.net_flow_usd)+'</span>'
+    +'<span class="bs-funds-label">'+breadth+' funds '+(dir==='buy'?'adding':'cutting')+'</span></div>'
+    +'<div class="bs-bars">'+bars+'</div></div>';
+}
+function renderIndustryFlows(d){
+  var fl=d&&d.industry_flows; var eb=document.getElementById('ind-bought'), es=document.getElementById('ind-sold');
+  if(!eb||!es) return;
+  if(!fl){eb.innerHTML='<div class="bs-empty">Industry classification in progress — populates as the profile cache fills.</div>';es.innerHTML='<div class="bs-empty">—</div>';return;}
+  var cov=document.getElementById('ind-cov'); if(cov) cov.textContent=(fl.coverage_pct_of_gross!=null?fl.coverage_pct_of_gross:'—');
+  var mb=fl.most_bought||[], ms=fl.most_sold||[];
+  var mx=Math.max.apply(null,[1].concat(mb.concat(ms).map(function(r){return Math.abs(r.net_flow_usd||0);})));
+  eb.innerHTML=mb.length?mb.map(function(r,i){return jhIndRow(r,i,'buy',mx);}).join(''):'<div class="bs-empty">No net-bought industries yet</div>';
+  es.innerHTML=ms.length?ms.map(function(r,i){return jhIndRow(r,i,'sell',mx);}).join(''):'<div class="bs-empty">No net-sold industries yet</div>';
+  var ef=document.getElementById('ind-fresh');
+  if(ef){var fm=fl.fresh_money||[];
+    ef.innerHTML=fm.length?('<div style="font:700 9.5px monospace;letter-spacing:.14em;color:#7dd3a0;margin-bottom:6px">💰 FRESH-MONEY INDUSTRIES — NEW-position dollars only</div>'
+      +fm.slice(0,10).map(function(r){return '<span style="display:inline-flex;gap:6px;align-items:baseline;margin:0 6px 6px 0;padding:4px 9px;border:1px solid rgba(52,211,153,.3);border-radius:8px;background:rgba(52,211,153,.07);font:600 11.5px monospace;color:#a7f3d0">'+escape(r.industry)+' <span style="font:500 9.5px monospace;color:#6ee7b7;opacity:.9">'+jhNet(r.new_usd)+' · '+(r.funds_new||0)+' funds</span></span>';}).join('')):'';}
+}
+
+// ──────────────────────────────────────────────────────────────
 // Master refresh
 // ──────────────────────────────────────────────────────────────
 async function load(){
@@ -1017,6 +1118,8 @@ async function load(){
   renderFamousFunds(data.by_fund);
   renderMostBought(data.most_bought);
   renderMostSold(data.most_sold);
+  renderNewFlash(data);          // ops 4968
+  renderIndustryFlows(data);     // ops 4968
   renderConsensus(data.consensus_holds, data.aggregate_by_ticker);
   renderCapTiers(data);
   renderRarePicks(data.rare_picks);

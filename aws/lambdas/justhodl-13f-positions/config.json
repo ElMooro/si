@@ -24,13 +24,13 @@
   "reserved_concurrency": 1,
   "function_url": null,
   "eventbridge_rules": [
-    "justhodl-13f-positions-6h"
+    "justhodl-13f-positions-sched"
   ],
-  "description": "Parse 13F infotables from 18 institutional funds. Compute NEW/ADD/TRIM/EXIT vs prior quarter. Aggregate by ticker. Caches per-accession to avoid re-parsing.",
+  "description": "Parse 13F infotables from 18 institutional funds. NEW/ADD/TRIM/EXIT vs prior quarter, industry flows, new-since ledger. Per-accession cache.",
   "memory": 1024,
   "schedule": {
     "name": "justhodl-13f-positions-sched",
-    "expression": "cron(10 21 ? * MON-FRI *)",
-    "description": "13F holdings + adds/exits daily refresh"
+    "expression": "rate(2 hours)",
+    "description": "13F holdings full refresh every 2h; sec-13f detector fires instant rebuilds on new EDGAR filings"
   }
 }

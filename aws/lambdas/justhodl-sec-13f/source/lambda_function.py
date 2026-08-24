@@ -151,6 +151,22 @@ def lambda_handler(event, context):
     s3 = boto3.client("s3")
     started = time.time()
 
+    # ops 4968 live-delta: probe-verified CIK overrides — written only by
+    # ops scripts after an EDGAR probe proves the roster CIK is stale or
+    # the entity deregistered. Both sec-13f and 13f-positions read the
+    # same key so the two layers can never disagree on who a fund is.
+    watch = dict(WATCHLIST)
+    cik_ovr = {}
+    try:
+        cik_ovr = json.loads(s3.get_object(
+            Bucket=S3_BUCKET,
+            Key="data/13f-state/cik-overrides.json")["Body"].read()) or {}
+        for _k, _v in cik_ovr.items():
+            if isinstance(_v, dict) and _v.get("cik") and _k in watch:
+                watch[_k] = str(_v["cik"])
+    except Exception:
+        pass
+
     # Load existing to detect new filings
     existing = {}
     try:
@@ -166,15 +182,42 @@ def lambda_handler(event, context):
     fetch_errors = 0
 
     with ThreadPoolExecutor(max_workers=MAX_PARALLEL) as pool:
-        futures = [pool.submit(fetch_fund_filings, name, cik) for name, cik in WATCHLIST.items()]
+        futures = [pool.submit(fetch_fund_filings, name, cik) for name, cik in watch.items()]
         for fut in futures:
             name, result = fut.result()
             if result.get("error"):
                 fetch_errors += 1
-                # Keep prior data
+                # ops 4968: keeping prior data on a fetch error is fine for
+                # ONE run — silently keeping it forever is how Greenlight
+                # froze at 2023-12-31 for 2.5 years. Stamp the freeze so a
+                # persistently failing CIK is visible on every downstream
+                # surface instead of masquerading as a filed quarter.
                 if name in prev_by_fund:
-                    by_fund[name] = prev_by_fund[name]
+                    kept = dict(prev_by_fund[name])
+                    kept["stale_kept"] = True
+                    kept["last_fetch_error"] = str(result.get("error"))[:200]
+                    kept["stale_since"] = kept.get("stale_since") or \
+                        datetime.now(timezone.utc).isoformat(timespec="seconds")
+                    by_fund[name] = kept
                 continue
+            # ops 4968: stale-ENTITY (fetch works, but the CIK's newest
+            # 13F-HR is old). Deregistered funds carry the override status;
+            # anything else >210 days old is named, never silently normal.
+            _lat = result.get("latest_filing") or {}
+            _per = _lat.get("period_of_report") or ""
+            try:
+                _age_d = (datetime.now(timezone.utc)
+                          - datetime.fromisoformat(_per + "T00:00:00+00:00")
+                          ).days if _per else None
+            except Exception:
+                _age_d = None
+            _ost = (cik_ovr.get(name) or {}).get("status")
+            if _ost:
+                result["fund_status"] = _ost
+            elif _age_d is not None and _age_d > 210:
+                result["stale_reason"] = (
+                    "latest 13F-HR period %s is %dd old — CIK may be a "
+                    "deregistered/superseded entity; verify roster" % (_per, _age_d))
             by_fund[name] = result
 
             # Detect new filing
@@ -203,6 +246,24 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
                   Body=json.dumps(output).encode(),
                   ContentType="application/json", CacheControl="no-cache")
+
+    # ops 4968 live-delta: a new accession on EDGAR triggers the holdings
+    # rebuild IMMEDIATELY (async) instead of waiting for the next cron —
+    # this is what makes the page update within minutes of a filing.
+    if new_filings:
+        try:
+            boto3.client("lambda").invoke(
+                FunctionName=os.environ.get(
+                    "POSITIONS_FN", "justhodl-13f-positions"),
+                InvocationType="Event",
+                Payload=json.dumps({
+                    "trigger": "new_filing",
+                    "changed": [f.get("fund") for f in new_filings],
+                }).encode())
+            print("  live-delta: positions rebuild fired for "
+                  + ",".join(f.get("fund") or "?" for f in new_filings))
+        except Exception as _te:
+            print(f"  live-delta trigger FAILED (non-fatal): {_te}")
 
     print(f"13F tracker: {len(by_fund)}/{len(WATCHLIST)} funds, {len(new_filings)} new filings")
     return {

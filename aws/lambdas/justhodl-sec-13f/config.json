@@ -36,5 +36,10 @@
     "justhodl-sec-13f-daily"
   ],
   "description": "SEC 13F-HR institutional position tracker. Watches 18 major funds for new quarterly filings (Berkshire, Bridgewater, Citadel, Pershing, etc.).",
-  "memory": 768
+  "memory": 768,
+  "schedule": {
+    "name": "justhodl-sec-13f-daily",
+    "expression": "rate(30 minutes)",
+    "description": "13F filing detector \u2014 every 30 min 24/7; triggers positions rebuild on new accessions (rule name kept for cap-safety, cadence is 30m)"
+  }
 }
