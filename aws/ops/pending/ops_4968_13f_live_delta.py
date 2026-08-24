@@ -58,7 +58,7 @@ OVR = "data/13f-state/cik-overrides.json"
 LED = "data/13f-state/first-seen.json"
 AIB = "data/ai-commentary/13f.json"
 UA = "JustHodl Research raafouis@gmail.com"
-ROOTP = Path(__file__).resolve().parents[2]
+ROOTP = Path(__file__).resolve().parents[3]
 MARK = "live-delta ops4968"
 STALE_D = 210
 
