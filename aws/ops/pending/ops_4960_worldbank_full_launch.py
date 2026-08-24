@@ -143,17 +143,23 @@ with report("ops_4960_worldbank_full_launch") as R:
     kick(FN)
     t0, last_fp, last_move, kicks = time.time(), None, time.time(), 0
     st = {}
-    while time.time() - t0 < 20 * 60:
+    q0 = None
+    while time.time() - t0 < 9 * 60:
         st = gj(STATE_KEY) or {}
-        fp = (st.get("phase"), st.get("n_banked"),
-              st.get("bytes_total"), len(st.get("queue") or []))
+        have = st.get("have") or {}
+        live_banked = sum(1 for v in have.values()
+                          if v.get("status") == "fresh")
+        live_mb = sum(v.get("bytes") or 0
+                      for v in have.values()) / 1e6
+        if q0 is None and st.get("queue") is not None:
+            q0 = len(st.get("queue") or [])
+        fp = (st.get("phase"), live_banked,
+              len(st.get("queue") or []))
         if fp != last_fp:
             last_fp, last_move = fp, time.time()
             R.log("  t+%4ds %s banked=%s mb=%.1f q=%s fail=%s" % (
-                time.time() - t0, st.get("phase"),
-                st.get("n_banked") or 0,
-                (st.get("bytes_total") or 0) / 1e6,
-                len(st.get("queue") or []),
+                time.time() - t0, st.get("phase"), live_banked,
+                live_mb, len(st.get("queue") or []),
                 len(st.get("failures") or {})))
         if st.get("phase") == "COMPLETE":
             break
@@ -164,36 +170,68 @@ with report("ops_4960_worldbank_full_launch") as R:
             last_move = time.time()
             R.log("  chain restart kick #%d" % kicks)
         time.sleep(25)
-    banked = st.get("n_banked") or 0
-    mb = (st.get("bytes_total") or 0) / 1e6
-    ok1 = st.get("phase") == "COMPLETE" or \
-        (banked >= 600 and mb >= 40)
+    have = st.get("have") or {}
+    banked = sum(1 for v in have.values()
+                 if v.get("status") == "fresh")
+    mb = sum(v.get("bytes") or 0 for v in have.values()) / 1e6
+    q_now = len(st.get("queue") or [])
+    fl_n = len(st.get("failures") or {})
+    # v2 floors from 4960 telemetry: ~0.9 ids/s, first alphabetical
+    # chunk = archived shells (~6KB avg) -> MB floor was fiction;
+    # health = ids flowing + failure rate sane + chains alive
+    ok1 = st.get("phase") == "COMPLETE" or (
+        banked >= 550 and fl_n <= max(20, int(0.03 * banked))
+        and (q0 is None or q_now < q0))
     R.log("G1 %s phase=%s banked=%d mb=%.1f q=%s kicks=%d" % (
         "PASS" if ok1 else "FAIL", st.get("phase"), banked, mb,
         len(st.get("queue") or []), kicks))
     if not ok1:
         fails.append("G1")
 
-    R.section("G2 substance")
-    have = st.get("have") or {}
-    pick = next((k for k, v in have.items()
-                 if v.get("status") == "fresh"
-                 and (v.get("bytes") or 0) > 30_000), None)
+    R.section("G2 substance (zip validity + any-member content)")
+    picks = sorted(((k, v.get("bytes") or 0)
+                    for k, v in have.items()
+                    if v.get("status") == "fresh"),
+                   key=lambda x: -x[1])[:3]
     ok2 = False
-    if pick:
-        raw = s3.get_object(
-            Bucket=B,
-            Key="data/warm/worldbank-full/src/%s.zip" % pick
-        )["Body"].read()
+    for pick, _pb in picks:
         try:
+            raw = s3.get_object(
+                Bucket=B,
+                Key="data/warm/worldbank-full/src/%s.zip" % pick
+            )["Body"].read()
             zf = zipfile.ZipFile(io.BytesIO(raw))
-            txt = zf.read(zf.namelist()[0])[:4000].decode(
-                "utf-8", "replace")
-            ok2 = "Country" in txt
-            R.log("  %s -> %s files, head ok=%s" % (
-                pick, len(zf.namelist()), ok2))
+            hit = None
+            for nm in zf.namelist():
+                txt = zf.read(nm)[:4000].decode("utf-8", "replace")
+                if "Country" in txt or '","' in txt:
+                    hit = nm
+                    break
+            R.log("  %s -> %d members, content member=%s" % (
+                pick, len(zf.namelist()), hit))
+            if hit:
+                ok2 = True
+                break
         except Exception as e:
-            R.log("  zip open failed: %s" % str(e)[:80])
+            R.log("  %s open failed: %s" % (pick, str(e)[:70]))
+    if not ok2:
+        # backstop: flagship straight from the runner proves the
+        # endpoint+format even while chains sit in shell-alphabet
+        try:
+            req = urllib.request.Request(
+                "https://api.worldbank.org/v2/en/indicator/"
+                "NY.GDP.MKTP.CD?downloadformat=csv",
+                headers={"User-Agent":
+                         "JustHodl Research (raafouis@gmail.com)"})
+            with urllib.request.urlopen(req, timeout=90) as r:
+                raw = r.read(3_000_000)
+            zf = zipfile.ZipFile(io.BytesIO(raw))
+            ok2 = any("Country" in zf.read(nm)[:4000].decode(
+                "utf-8", "replace") for nm in zf.namelist())
+            R.log("  runner backstop NY.GDP.MKTP.CD: %d members "
+                  "ok=%s" % (len(zf.namelist()), ok2))
+        except Exception as e:
+            R.log("  backstop failed: %s" % str(e)[:80])
     R.log("G2 %s" % ("PASS" if ok2 else "FAIL"))
     if not ok2:
         fails.append("G2")

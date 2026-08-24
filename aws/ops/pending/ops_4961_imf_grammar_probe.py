@@ -100,34 +100,53 @@ with report("ops_4961_imf_grammar_probe") as R:
 
     # P1 -- dataflow catalogs -----------------------------------------
     R.section("P1 dataflow catalogs (both generations)")
-    meta, body = fetch(LEG + "/Dataflow")
-    n_leg = body.decode("utf-8", "replace").count('"KeyFamilyRef"') \
-        if body else 0
-    R.log("  legacy Dataflow: %s bytes=%s flows~%d %s" % (
-        meta.get("status"), meta.get("bytes"), n_leg,
-        meta.get("head", "")[:80].replace("\n", " ")))
-    out["probes"]["legacy_dataflow"] = dict(meta, flows=n_leg)
-    meta2, body2 = fetch(NEW + "/dataflow?format=sdmx-json")
-    n_new = body2.count(b'"id"') if body2 else 0
-    R.log("  2.1 dataflow: %s bytes=%s ids~%d" % (
-        meta2.get("status"), meta2.get("bytes"), n_new))
-    out["probes"]["new_dataflow"] = dict(meta2, ids=n_new)
-    if not (n_leg or n_new):
+    # 4961 v1 finding: dataservices.imf.org = DNS DEAD (fossil);
+    # 2.1 catalog answers XML regardless of format param.
+    out["probes"]["legacy_dataflow"] = {"status": 0,
+                                        "head": "DNS dead (v1)"}
+    R.log("  legacy host: DNS DEAD (registry fossil, recorded)")
+    meta2, body2 = fetch(NEW + "/dataflow", cap=9_000_000)
+    import re as _re
+    flow_ids = _re.findall(
+        rb'Dataflow[^>]*\bid="([A-Za-z0-9_.\-]+)"', body2 or b"")
+    flow_ids = [f.decode() for f in flow_ids]
+    names = dict(_re.findall(
+        rb'id="([A-Za-z0-9_.\-]+)"[^>]*>.{0,400}?<com:Name[^>]*>'
+        rb'([^<]{4,120})</com:Name>', body2 or b"", _re.S))
+    n_new = len(flow_ids)
+    R.log("  2.1 dataflow XML: %s bytes=%s flows=%d sample=%s" % (
+        meta2.get("status"), meta2.get("bytes"), n_new,
+        flow_ids[:8]))
+    def _find(pat):
+        for fid in flow_ids:
+            nm = names.get(fid.encode(), b"").decode(
+                "utf-8", "replace")
+            if _re.search(pat, fid, _re.I) or \
+                    _re.search(pat, nm, _re.I):
+                return fid
+        return None
+    resolved = {"BOP": "BOP" if "BOP" in flow_ids else _find("balance of pay"),
+                "IFS": _find(r"^IFS|International Financial"),
+                "DOT": _find(r"^DOT|Direction of Trade"),
+                "CPI": _find(r"^CPI|Consumer Price")}
+    R.log("  resolved flagships: %s" % resolved)
+    out["probes"]["new_dataflow"] = dict(
+        meta2, flows=n_new, sample=flow_ids[:25],
+        resolved=resolved)
+    if not n_new:
         fails.append("P1 no catalog")
 
     # P2 -- full-pull ladder on flagship flows ------------------------
     R.section("P2 full-pull ladder (capture refusals verbatim)")
-    flows = ["IFS", "BOP", "DOT", "PGI"]
-    for fl in flows:
+    flows = [(k, v) for k, v in resolved.items() if v]
+    for fname, fl in flows:
         for label, url in (
-                ("leg_compact_all",
-                 LEG + "/CompactData/%s" % fl),
-                ("new_csv_all",
-                 NEW + "/data/%s?format=csv" % fl),
-                ("new_json_all",
-                 NEW + "/data/%s?format=sdmx-json" % fl)):
+                ("full_default",
+                 NEW + "/data/%s" % fl),
+                ("full_csv",
+                 NEW + "/data/%s?format=csv" % fl)):
             meta, _ = fetch(url, cap=3_000_000, timeout=75)
-            key = "%s.%s" % (fl, label)
+            key = "%s(%s).%s" % (fname, fl, label)
             out["probes"][key] = meta
             R.log("  %-22s %s bytes=%s trunc=%s %s" % (
                 key, meta.get("status"), meta.get("bytes"),
@@ -137,14 +156,16 @@ with report("ops_4961_imf_grammar_probe") as R:
 
     # P3 -- slice grammar (ecb-deep-style ladder) ---------------------
     R.section("P3 slice grammar (freq=A on IFS)")
-    for label, url in (
-            ("leg_compact_A",
-             LEG + "/CompactData/IFS/A..NGDP_R_SA_XDC"),
-            ("leg_compact_A_US",
-             LEG + "/CompactData/IFS/A.US.NGDP_R_SA_XDC"
-             "?startPeriod=1950"),
-            ("new_csv_key",
-             NEW + "/data/IFS/A.US.NGDP_R_SA_XDC?format=csv")):
+    slice_fl = resolved.get("BOP") or (flows[0][1] if flows
+                                       else None)
+    slice_urls = []
+    if slice_fl:
+        slice_urls = [
+            ("dim_A", NEW + "/data/%s/A..." % slice_fl),
+            ("dim_A_dots", NEW + "/data/%s/A.........." % slice_fl),
+            ("lastN", NEW + "/data/%s?lastNObservations=2"
+             % slice_fl)]
+    for label, url in slice_urls:
         meta, _ = fetch(url, cap=3_000_000, timeout=75)
         out["probes"]["slice." + label] = meta
         R.log("  %-22s %s bytes=%s %s" % (
