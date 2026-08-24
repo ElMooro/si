@@ -1,19 +1,40 @@
-executing-against: ed6766ad48c6c99069677651f4246a2ab5536790
+executing-against: 86efb705c530d08c2f385201ab18a76e85914def
 ── P0 imf-full _discover error (from state) + runner re-parse ──
-[23:10:16]   Lambda _discover err: {"err": "catalog parse yielded 0 flows"}
-[23:10:16]   runner refetch: status=204 bytes=0 loose-ids=0 sample=[]
+[23:15:07]   Lambda _discover err: {"err": "catalog parse yielded 0 flows"}
+[23:15:07]   dataflow/IMF plain       204        0B ids=0
+[23:15:08]   dataflow/IMF sdmx-acc    204        0B ids=0
+[23:15:09]   dataflow/all             200   446083B ids=222
+[23:15:11]   dataflow bare            200   446083B ids=222
+[23:15:12]   dataflow/IMF/all sdmx    204        0B ids=0
+[23:15:12]   dataflow ?detail         204        0B ids=0
+[23:15:13]   WINNER: {"name": "dataflow/all", "url": "https://api.imf.org/external/sdmx/2.1/dataflow/all", "accept": null, "ids": 222}
 ── P1 census: the 5 structural failures, stored reasons ──
-[23:10:16]   state at data/warm/census-us/_state/state.json
-[23:10:16]   FAIL aies-miscsector          "no data any mode (last HTTP 400)"
-[23:10:16]   FAIL asm-industry             "no data any mode (last HTTP 400)"
-[23:10:16]   FAIL poverty-saipe-schdist    "no data any mode (last HTTP 400)"
-[23:10:16]   FAIL pseo-earnings            "no data any mode (last HTTP 400)"
-[23:10:16]   FAIL pseo-flows               "no data any mode (last HTTP 400)"
+[23:15:13]   state at data/warm/census-us/_state/state.json
+[23:15:13]   FAIL aies-miscsector          "no data any mode (last HTTP 400)"
+[23:15:13]   FAIL asm-industry             "no data any mode (last HTTP 400)"
+[23:15:13]   FAIL poverty-saipe-schdist    "no data any mode (last HTTP 400)"
+[23:15:13]   FAIL pseo-earnings            "no data any mode (last HTTP 400)"
+[23:15:13]   FAIL pseo-flows               "no data any mode (last HTTP 400)"
+[23:15:13]   aies-miscsector          table-line: 
+[23:15:13]   asm-industry             table-line: 
+[23:15:13]   poverty-saipe-schdist    table-line: 
+[23:15:13]   pseo-earnings            table-line: 
+[23:15:13]   pseo-flows               table-line: 
+── P2 fiscaldata: real dataset registry ──
+[23:15:13]   datasets -> 200 0.00MB eps+0
+[23:15:13]   index -> 200 0.00MB eps+0
+[23:15:14]   fiscaldata.treasury.gov -> 404 0.00MB eps+0
+[23:15:14]   registry endpoints=0 known=19 NEW=0 sample=[]
+── P3 OFR: catalogs vs banked ──
+[23:15:15]   ofr main catalog=442 (200) banked stfm-series=0
+[23:15:15]   ofr hf   catalog=497 (200) banked hfm-series=497
+── P4 polygon: entitlement depth ──
+[23:15:16]   daily_1990 403 {"status":"NOT_AUTHORIZED","request_id":"4398e4edb9aecff008f24570cb711bed","mess
+[23:15:16]   grouped    200 
+[23:15:17]   tickers    200 results=1 first_t=None
+[23:15:17]   options    200 results=1 first_t=None
+[23:15:18]   indices    403 {"status":"NOT_AUTHORIZED","request_id":"75ee23e7bfbf56c19d838e2f2abf31fd","mess
+[23:15:18] artifact data/warm/_audit/expedite-4lane.json
+[23:15:18] ops 4971 GREEN -- expedite lanes evidenced; builds follow Khalid's order census -> polygon -> fiscaldata -> ofr
 
 → Report written to aws/ops/reports/latest/ops_4971_expedite_probe.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4971_expedite_probe.py", line 111, in <module>
-    u = fp.get("url") or fp.get("last_url")
-        ^^^^^^
-AttributeError: 'str' object has no attribute 'get'
-❌ OPS-FAIL: aws/ops/pending/ops_4971_expedite_probe.py
