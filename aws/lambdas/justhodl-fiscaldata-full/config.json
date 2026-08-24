@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-fiscaldata-full",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 850,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "COMPLETE FiscalData warehouse v1.0.0: docs-harvest+seed discovery, probe-validated universe, full pagination since inception (auctions 1979-) to JSONL.gz per endpoint, delta-checked refresh + weekly redrain. data/warm/fiscaldata-full/",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  }
+}

@@ -74,7 +74,7 @@ REG = {
  "treasury": {"name": "US Treasury — FiscalData",
   "api": "api.fiscaldata.treasury.gov",
   "engines": ["justhodl-usgov-direct", "justhodl-warm-bridge"],
-  "prefixes": ["data/warm/treasury/"],
+  "prefixes": ["data/warm/treasury/", "data/warm/fiscaldata-full/"],
   "hot": ["data/treasury-fiscal.json"]},
  "bea": {"name": "BEA — Bureau of Economic Analysis",
   "api": "apps.bea.gov/api", "engines": ["justhodl-usgov-direct"],
@@ -615,6 +615,22 @@ def lambda_handler(event, context):
                                  _tx.get("mean_agree_pct") or "—"))
                     note = (note + " · " + _note_x) if note \
                         else _note_x
+            except Exception:
+                pass
+        if slug == "treasury":
+            # ops 4964 (fd-note-v2): FiscalData card truth from the
+            # full-warehouse manifest (Khalid priority lane #2)
+            try:
+                _fm = _get_json(
+                    "data/warm/fiscaldata-full/manifest.json")
+                if _fm:
+                    note = ((note + " · ") if note else "") + (
+                        "FULL FiscalData warehouse (fiscaldata-full "
+                        "v1): %s endpoints · %s rows since "
+                        "inception (auctions 1979-) · phase %s · "
+                        "delta-checked refresh" % (
+                            _fm.get("endpoints_banked"),
+                            _fm.get("rows"), _fm.get("phase")))
             except Exception:
                 pass
         if slug == "worldbank":
