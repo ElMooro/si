@@ -435,3 +435,5 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out).encode(),
                   ContentType="application/json", CacheControl="max-age=120")
     return {"statusCode": 200, "n_live": n_live}
+
+# imf-api-v2 ops4967: legacy dataservices host DNS-dead; canonical base api.imf.org/external/sdmx/2.1

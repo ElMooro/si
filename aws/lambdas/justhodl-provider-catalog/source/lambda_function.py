@@ -197,7 +197,7 @@ REG = {
   "api": "community-api.coinmetrics.io",
   "engines": ["legacy fleet"], "prefixes": []},
  "imf": {"name": "IMF — SDMX/MFS", "api": "dataservices.imf.org",
-  "engines": ["families-feed"], "prefixes": ["data/warm/imf"]},
+  "engines": ["families-feed"], "prefixes": ["data/warm/imf", "data/warm/imf-full/"]},
  "worldbank": {"name": "World Bank", "api": "api.worldbank.org",
   "engines": ["families-feed"], "prefixes": ["data/warm/worldbank", "data/warm/worldbank-full/"]},
  "dbnomics": {"name": "DBnomics", "api": "api.db.nomics.world",
@@ -615,6 +615,24 @@ def lambda_handler(event, context):
                                  _tx.get("mean_agree_pct") or "—"))
                     note = (note + " · " + _note_x) if note \
                         else _note_x
+            except Exception:
+                pass
+        if slug == "imf":
+            # ops 4967 (imf-note-v2): full SDMX-2.1 warehouse truth
+            try:
+                _im = _get_json("data/warm/imf-full/manifest.json")
+                if _im:
+                    note = ((note + " · ") if note else "") + (
+                        "FULL SDMX-2.1 warehouse (imf-full v1) on "
+                        "api.imf.org: %s/%s dataflows · %s "
+                        "vintages retained · %.2fGB · %s lastN-"
+                        "partial · phase %s · daily rediscovery" % (
+                            _im.get("flows_banked"),
+                            _im.get("flows_catalog"),
+                            _im.get("vintages_banked"),
+                            _im.get("gb") or 0,
+                            _im.get("lastN_partial"),
+                            _im.get("phase")))
             except Exception:
                 pass
         if slug in ("dol", "dol-eta"):
