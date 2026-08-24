@@ -1,0 +1,73 @@
+## G-1 markers-in-checkout
+
+**Status:** success  
+**Duration:** 1121.2s  
+**Finished:** 2026-08-24T03:07:31+00:00  
+
+## Data
+
+| cursor | files | gaps | gb | phase |
+|---|---|---|---|---|
+| 20150408000000 | 4601 | 11 | 0.6 | DRAIN |
+
+## Log
+- `02:48:50`   ok justhodl-gdelt-full      'v1.0.0 ops4965'
+- `02:48:50`   ok justhodl-provider-catalog 'gd-note-v2'
+- `02:48:50`   ok nyfed-hist-note-v2
+## G0 settle
+
+- `02:48:51`   justhodl-gdelt-full settled (0s)
+- `02:49:17`   justhodl-provider-catalog settled (26s)
+- `02:49:17` G0 PASS
+## G0b live-edge schedule rate(30 minutes)
+
+- `02:49:18` G0b created
+## G1 chain-drive (15min)
+
+- `02:49:18`   t+   0s None files=0 gb=0.00 gaps=0 cursor=None
+- `02:49:43`   t+  25s DRAIN files=110 gb=0.02 gaps=10 cursor=2015022005
+- `02:50:09`   t+  50s DRAIN files=230 gb=0.03 gaps=10 cursor=2015022111
+- `02:50:34`   t+  76s DRAIN files=390 gb=0.05 gaps=10 cursor=2015022303
+- `02:50:59`   t+ 101s DRAIN files=510 gb=0.06 gaps=10 cursor=2015022409
+- `02:51:25`   t+ 126s DRAIN files=630 gb=0.08 gaps=10 cursor=2015022515
+- `02:51:50`   t+ 152s DRAIN files=790 gb=0.11 gaps=10 cursor=2015022707
+- `02:52:15`   t+ 177s DRAIN files=910 gb=0.12 gaps=10 cursor=2015022813
+- `02:52:41`   t+ 202s DRAIN files=1070 gb=0.14 gaps=10 cursor=2015030205
+- `02:53:06`   t+ 228s DRAIN files=1190 gb=0.15 gaps=10 cursor=2015030311
+- `02:53:31`   t+ 253s DRAIN files=1310 gb=0.17 gaps=10 cursor=2015030417
+- `02:53:57`   t+ 278s DRAIN files=1430 gb=0.19 gaps=10 cursor=2015030523
+- `02:54:22`   t+ 303s DRAIN files=1590 gb=0.21 gaps=10 cursor=2015030715
+- `02:54:47`   t+ 329s DRAIN files=1710 gb=0.22 gaps=10 cursor=2015030821
+- `02:55:12`   t+ 354s DRAIN files=1830 gb=0.24 gaps=10 cursor=2015031003
+- `02:55:38`   t+ 379s DRAIN files=1950 gb=0.26 gaps=10 cursor=2015031109
+- `02:56:03`   t+ 405s DRAIN files=2110 gb=0.28 gaps=10 cursor=2015031301
+- `02:56:28`   t+ 430s DRAIN files=2230 gb=0.30 gaps=10 cursor=2015031407
+- `02:56:54`   t+ 455s DRAIN files=2390 gb=0.31 gaps=10 cursor=2015031523
+- `02:57:19`   t+ 481s DRAIN files=2510 gb=0.33 gaps=10 cursor=2015031705
+- `02:57:44`   t+ 506s DRAIN files=2630 gb=0.35 gaps=10 cursor=2015031811
+- `02:58:09`   t+ 531s DRAIN files=2750 gb=0.37 gaps=10 cursor=2015031917
+- `02:58:35`   t+ 556s DRAIN files=2910 gb=0.39 gaps=10 cursor=2015032109
+- `02:59:00`   t+ 582s DRAIN files=3030 gb=0.40 gaps=10 cursor=2015032215
+- `02:59:25`   t+ 607s DRAIN files=3162 gb=0.41 gaps=10 cursor=2015032400
+- `02:59:51`   t+ 632s DRAIN files=3322 gb=0.44 gaps=10 cursor=2015032516
+- `03:00:16`   t+ 658s DRAIN files=3442 gb=0.46 gaps=10 cursor=2015032622
+- `03:00:41`   t+ 683s DRAIN files=3562 gb=0.48 gaps=10 cursor=2015032804
+- `03:01:07`   t+ 708s DRAIN files=3682 gb=0.49 gaps=10 cursor=2015032910
+- `03:01:32`   t+ 734s DRAIN files=3842 gb=0.51 gaps=10 cursor=2015033102
+- `03:01:57`   t+ 759s DRAIN files=3962 gb=0.52 gaps=10 cursor=2015040108
+- `03:02:22`   t+ 784s DRAIN files=4082 gb=0.54 gaps=10 cursor=2015040214
+- `03:02:48`   t+ 809s DRAIN files=4202 gb=0.56 gaps=10 cursor=2015040320
+- `03:03:13`   t+ 835s DRAIN files=4361 gb=0.57 gaps=11 cursor=2015040512
+- `03:03:38`   t+ 860s DRAIN files=4481 gb=0.58 gaps=11 cursor=2015040618
+- `03:04:04`   t+ 885s DRAIN files=4601 gb=0.60 gaps=11 cursor=2015040800
+- `03:04:29` G1 PASS files=4601 gb=0.60 gaps=11 (0.2%) cursor=20150408000000 kicks=0
+## G2 substance: GDELT event shape
+
+- `03:04:29`   20150218230000.export.CSV.zip -> first row: id=410412347 cols=61
+- `03:04:29` G2 PASS
+## G3 cards (post-mark)
+
+- `03:07:31`   gdelt: FULL v2 EVENTS warehouse (gdelt-full v1): 3162 files · 0.41GB · cursor 20150324 · gaps 10 · phase DRAIN · v1 archive 0/None · GKG/mentions scoped by design
+- `03:07:31`   nyfed: depth 359 obs/series · since 2013 · 1539/1539 @v3 · hist-v1 full-window: 10/11 families (EFFR 8195 obs since 2000, repo ops since 2000, AMBS/tsy/fxs) · 13.9MB r
+- `03:07:31` G3 PASS
+- `03:07:31` ops 4965 GREEN -- GDELT full v2-events draining on the cursor; chains + rate(30m) hold the live edge; v1 backfill follows automatically
