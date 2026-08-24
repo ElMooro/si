@@ -214,13 +214,13 @@ def main():
 
         # P0 EDGAR truth sweep + CIK re-hunt (probe-verified overrides)
         R.log("P0 EDGAR truth sweep — FROM the runner")
-        src = (ROOTP / "aws/lambdas/%s/source/lambda_function.py"
-               % SEC).read_text()
+        src = (ROOTP / ("aws/lambdas/%s/source/lambda_function.py"
+               % SEC)).read_text()
         wl = dict(re.findall(r'"([A-Z_]+)":\s*"(\d{7,10})"',
                              re.search(r"WATCHLIST\s*=\s*\{(.*?)\n\}",
                                        src, re.S).group(1)))
-        psrc = (ROOTP / "aws/lambdas/%s/source/lambda_function.py"
-                % POS).read_text()
+        psrc = (ROOTP / ("aws/lambdas/%s/source/lambda_function.py"
+                % POS)).read_text()
         disp = dict(re.findall(
             r'"([A-Z_]+)":\s*"([^"]+)"',
             re.search(r"FUND_DISPLAY_NAMES\s*=\s*\{(.*?)\n\}",
