@@ -1,66 +1,61 @@
 ## G-1 markers-in-checkout
 
-**Status:** failure  
-**Duration:** 965.5s  
-**Finished:** 2026-08-24T03:28:43+00:00  
+**Status:** success  
+**Duration:** 764.2s  
+**Finished:** 2026-08-24T03:49:28+00:00  
 
-## Error
+## Data
 
-```
-SystemExit: 1
-```
+| dol_files | dol_mb | hfm_fresh_h | phase2_remaining |
+|---|---|---|---|
+| 70 | 160.6 | 0.7 | ['nyfed-haircuts-series'] |
 
 ## Log
-- `03:12:37`   ok justhodl-dol-full        'v1.0.0 ops4966'
-- `03:12:37`   ok justhodl-src-mirror      'bsrm-truth ops 4966'
-- `03:12:37`   ok justhodl-provider-catalog 'dol-note-v2'
+- `03:36:44`   ok justhodl-dol-full        'v1.0.0 ops4966'
+- `03:36:44`   ok justhodl-src-mirror      'bsrm-truth ops 4966'
+- `03:36:44`   ok justhodl-provider-catalog 'dol-note-v2'
 ## G0 settle x3
 
-- `03:12:38`   justhodl-dol-full settled (0s)
-- `03:13:29`   justhodl-src-mirror settled (51s)
-- `03:13:29`   justhodl-provider-catalog settled (0s)
-- `03:13:29` G0 PASS
+- `03:36:44`   justhodl-dol-full settled (0s)
+- `03:36:45`   justhodl-src-mirror settled (0s)
+- `03:36:45`   justhodl-provider-catalog settled (0s)
+- `03:36:45` G0 PASS
 ## G0b dol schedule rate(6 hours)
 
-- `03:13:30` G0b created
+- `03:36:46` G0b exists (ok)
 ## G1 dol-full run
 
-- `03:13:55`   t+  25s files=None
-- `03:14:20`   t+  50s files=70
-- `03:14:45`   t+  75s files=70
-- `03:15:11`   t+ 100s files=70
-- `03:15:36`   t+ 126s files=70
-- `03:16:01`   t+ 151s files=70
-- `03:16:26`   t+ 176s files=70
-- `03:16:51`   t+ 201s files=70
-- `03:17:17`   t+ 226s files=70
-- `03:17:42`   t+ 252s files=70
-- `03:18:07`   t+ 277s files=70
-- `03:18:32`   t+ 302s files=70
-- `03:18:57`   t+ 327s files=70
-- `03:19:23`   t+ 352s files=70
-- `03:19:48`   t+ 378s files=70
-- `03:20:13`   t+ 403s files=70
-- `03:20:38`   t+ 428s files=70
-- `03:21:03`   t+ 453s files=70
-- `03:21:29`   t+ 478s files=70
-- `03:21:54`   t+ 504s files=70
-- `03:22:19`   t+ 529s files=70
-- `03:22:44`   t+ 554s files=70
-- `03:22:44` G1 PASS files=70 mb=160.6 universe=70 failures=0
-- `03:22:44`   ar539 head: b'"st","rptdate","c1","c2","c3","c4","c5","c6","c7","c8","c9","c10","c11","c12","c'
+- `03:37:11`   t+  25s files=70
+- `03:37:36`   t+  50s files=70
+- `03:38:01`   t+  75s files=70
+- `03:38:27`   t+ 100s files=70
+- `03:38:52`   t+ 126s files=70
+- `03:39:17`   t+ 151s files=70
+- `03:39:42`   t+ 176s files=70
+- `03:40:08`   t+ 201s files=70
+- `03:40:33`   t+ 227s files=70
+- `03:40:58`   t+ 252s files=70
+- `03:41:23`   t+ 277s files=70
+- `03:41:48`   t+ 302s files=70
+- `03:42:14`   t+ 327s files=70
+- `03:42:39`   t+ 353s files=70
+- `03:43:04`   t+ 378s files=70
+- `03:43:29`   t+ 403s files=70
+- `03:43:55`   t+ 428s files=70
+- `03:44:20`   t+ 454s files=70
+- `03:44:45`   t+ 479s files=70
+- `03:45:10`   t+ 504s files=70
+- `03:45:35`   t+ 529s files=70
+- `03:46:01`   t+ 554s files=70
+- `03:46:01` G1 PASS files=70 mb=160.6 universe=70 failures=0
+- `03:46:01`   ar539 head: b'"st","rptdate","c1","c2","c3","c4","c5","c6","c7","c8","c9","c10","c11","c12","c'
 ## G2 bsrm truth verified
 
-- `03:23:10`   t+  25s orphans awaiting v1.2 write
-- `03:23:35`   t+  50s orphans awaiting v1.2 write
-- `03:24:00`   t+  75s orphans awaiting v1.2 write
-- `03:24:26`   t+ 100s orphans awaiting v1.2 write
-- `03:24:51`   t+ 125s orphans awaiting v1.2 write
-- `03:25:16`   t+ 151s orphans awaiting v1.2 write
-- `03:25:41` G2 FAIL dupnote=True closed=['ofr-bsrm-series'] phase2=['nyfed-haircuts-series'] hfm=99.0h
+- `03:46:26` G2 PASS dupnote=True closed=['ofr-bsrm-series'] phase2=['nyfed-haircuts-series'] (hfm canonical freshness moved to G3 post-mark hub -- v1 read a pre-mark snapshot under the wrong slug and defaulted 99h while the board showed 0.5h)
 ## G3 cards (post-mark)
 
-- `03:28:43`   dol : FULL ETA DataDownloads corpus (dol-full v1): 70 report csvs · 160.6MB · 0 fresh / 70 unchanged · self-extending harvest
-- `03:28:43`   bsrm: src-mirror since ops 4913 (workbooks conditional-ETag, FULL) · bsrm-truth ops 4966: series/ = flagged duplicate of ofr-hfm (4752 bug, 4753 note) -- no transform
-- `03:28:43` G3 PASS
-- `03:28:43` ops 4966 RED: G2
+- `03:49:28`   dol : FULL ETA DataDownloads corpus (dol-full v1): 70 report csvs · 160.6MB · 0 fresh / 70 unchanged · self-extending harvest
+- `03:49:28`   bsrm: src-mirror since ops 4913 (workbooks conditional-ETag, FULL) · bsrm-truth ops 4966: series/ = flagged duplicate of ofr-hfm (4752 bug, 4753 note) -- no transform
+- `03:49:28`   hfm canonical: slug=ofr-hfm freshest_h=0.7
+- `03:49:28` G3 PASS
+- `03:49:28` ops 4966 GREEN -- lane #4 corpus FULL; lane #5 closed as truth (no transform owed); the five-lane program is complete on the build side
