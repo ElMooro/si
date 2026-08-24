@@ -77,16 +77,38 @@ with report("ops_4971_expedite_probe") as R:
     ist = gj("data/warm/imf-full/_state/state.json") or {}
     derr = (ist.get("failures") or {}).get("_discover")
     R.log("  Lambda _discover err: %s" % json.dumps(derr))
-    meta, body = fetch("https://api.imf.org/external/sdmx/2.1"
-                       "/dataflow/IMF", cap=12_000_000, timeout=120)
-    xml = body.decode("utf-8", "replace") if body else ""
-    ids = re.findall(r'Dataflow[^>]*\bid="([A-Za-z0-9_.\-]+)"', xml)
-    uniq = sorted(set(ids))
-    R.log("  runner refetch: status=%s bytes=%d loose-ids=%d "
-          "sample=%s" % (meta.get("status"), len(body), len(uniq),
-                         uniq[:4]))
-    out["imf"] = {"lambda_err": derr, "runner_status":
-                  meta.get("status"), "runner_ids": len(uniq)}
+    IB = "https://api.imf.org/external/sdmx/2.1"
+    SDMX_ACC = ("application/vnd.sdmx.structure+xml;"
+                "version=2.1")
+    cands = [
+        ("dataflow/IMF plain", IB + "/dataflow/IMF", None),
+        ("dataflow/IMF sdmx-acc", IB + "/dataflow/IMF",
+         {"Accept": SDMX_ACC}),
+        ("dataflow/all", IB + "/dataflow/all", None),
+        ("dataflow bare", IB + "/dataflow", None),
+        ("dataflow/IMF/all sdmx", IB + "/dataflow/IMF/all",
+         {"Accept": SDMX_ACC}),
+        ("dataflow ?detail", IB +
+         "/dataflow/IMF?detail=full&references=none", None),
+    ]
+    winner = None
+    ladder = []
+    for nm, u, hd in cands:
+        m_, b_ = fetch(u, cap=12_000_000, timeout=90, headers=hd)
+        xml = b_.decode("utf-8", "replace") if b_ else ""
+        n = len(set(re.findall(
+            r'Dataflow[^>]*\bid="([A-Za-z0-9_.\-]+)"', xml)))
+        R.log("  %-24s %s %8dB ids=%d" % (
+            nm, m_.get("status"), len(b_), n))
+        ladder.append({"cand": nm, "status": m_.get("status"),
+                       "bytes": len(b_), "ids": n})
+        if n >= 150 and not winner:
+            winner = {"name": nm, "url": u, "accept": hd,
+                      "ids": n}
+        time.sleep(0.4)
+    R.log("  WINNER: %s" % json.dumps(winner))
+    out["imf"] = {"lambda_err": derr, "ladder": ladder,
+                  "winner": winner}
 
     # ---- P1 census ---------------------------------------------------
     R.section("P1 census: the 5 structural failures, stored reasons")
@@ -103,20 +125,37 @@ with report("ops_4971_expedite_probe") as R:
         for slug, v in sorted(fl.items()):
             R.log("  FAIL %-24s %s" % (
                 slug, json.dumps(v)[:220]))
-            cout[slug] = v
-        # live retest of one: rebuild URL from stored fingerprint
-        pick = next((s_ for s_ in fl
-                     if "pseo" in s_ or "aies" in s_), None)
-        fp = (fl.get(pick) or {})
-        u = fp.get("url") or fp.get("last_url")
-        if u:
-            m2, b2 = fetch(u, cap=200_000, timeout=60)
-            R.log("  retest %s -> %s %s" % (
-                pick, m2.get("status"),
-                (b2[:160].decode("utf-8", "replace")
-                 if b2 else m2.get("head", ""))[:160]))
-            cout["_retest"] = {"slug": pick,
-                               "status": m2.get("status")}
+            cout[slug] = v if isinstance(v, dict) else {"err": v}
+        # conquest recon: engine dataset table -> geography.json
+        eng = (Path(__file__).resolve().parents[2].parent /
+               "aws/lambdas/justhodl-census-us/source/"
+               "lambda_function.py").read_text()
+        for slug in list(fl)[:5]:
+            m_ds = re.search(
+                r'"%s"[^\n]*?"(?:path|ds|dataset)"\s*:\s*'
+                r'"([^"]+)"' % re.escape(slug), eng) or re.search(
+                r'"%s"\s*:\s*\(?\s*"([^"]+)"'
+                % re.escape(slug), eng)
+            path = m_ds.group(1) if m_ds else None
+            if not path:
+                ln = next((l_ for l_ in eng.splitlines()
+                           if ('"%s"' % slug) in l_), "")
+                R.log("  %-24s table-line: %s" % (
+                    slug, ln.strip()[:150]))
+                cout.setdefault("_recon", {})[slug] =                     {"line": ln.strip()[:150]}
+                continue
+            gu = ("https://api.census.gov/data/%s/geography.json"
+                  % path.strip("/"))
+            m2, b2 = fetch(gu, cap=400_000, timeout=45)
+            geos = re.findall(r'"name"\s*:\s*"([^"]+)"',
+                              b2.decode("utf-8", "replace")
+                              if b2 else "")[:8]
+            R.log("  %-24s path=%s geo(%s)=%s" % (
+                slug, path, m2.get("status"), geos))
+            cout.setdefault("_recon", {})[slug] = {
+                "path": path, "geo_status": m2.get("status"),
+                "geos": geos}
+            time.sleep(0.3)
     else:
         R.log("  census state NOT FOUND under either prefix")
     out["census"] = cout
@@ -248,7 +287,7 @@ with report("ops_4971_expedite_probe") as R:
         R.log("ops 4971 RED: <4 lanes evidenced")
         sys.exit(1)
     R.kv(imf_lambda_err=bool(derr),
-         imf_runner_ids=out["imf"]["runner_ids"],
+         imf_winner=json.dumps((out["imf"].get("winner") or {}).get("name")),
          census_fails=len(cout),
          fd_new=len(fout.get("new") or []),
          ofr_main=oout.get("main_catalog"),
