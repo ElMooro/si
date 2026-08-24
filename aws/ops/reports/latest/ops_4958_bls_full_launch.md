@@ -1,0 +1,41 @@
+## G-1 markers-in-checkout
+
+**Status:** failure  
+**Duration:** 1507.5s  
+**Finished:** 2026-08-24T00:50:55+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `00:25:48`   ok justhodl-bls-full            'v1.0.0 ops4958'
+- `00:25:48`   ok justhodl-provider-catalog    'bls-note-v2'
+## G0 settle (new-function fallback armed)
+
+- `00:25:48`   justhodl-bls-full t+0s marker=True
+- `00:26:13`   justhodl-bls-full settled (25s)
+- `00:26:13`   justhodl-provider-catalog settled (0s)
+- `00:26:13` G0 PASS
+## G0b schedule rate(12 hours)
+
+- `00:26:14` G0b created
+## G1 chain-drive (22min budget; chains finish the rest)
+
+- `00:26:14`   t+   0s None files=0 gb=0.00 q=0 fail=0
+- `00:26:39`   t+  25s DRAIN files=0 gb=0.00 q=0 fail=0
+- `00:30:50`   chain restart kick #1
+- `00:35:01`   chain restart kick #2
+- `00:39:12`   chain restart kick #3
+- `00:43:23`   chain restart kick #4
+- `00:47:34`   chain restart kick #5
+- `00:48:24` G1 FAIL phase=DRAIN files=0 gb=0.00 q=0 kicks=5
+## G2 substance (deep AllData streaming proven)
+
+- `00:48:24` G2 FAIL big_files=0 series_maps=False
+## G3 catalog card (post-mark)
+
+- `00:50:55` G3 PASS keys=27 note=FULL time.series warehouse (bls-full v1): 0 surveys · 0 files · 0.00GB · phase DRAIN · complete history since 1913, conditional Last-Modified refresh
+- `00:50:55` ops 4958 RED: G1; G2
