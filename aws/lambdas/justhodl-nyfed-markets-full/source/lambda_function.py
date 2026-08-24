@@ -62,16 +62,26 @@ HIST = {
     "seclending_ops": ["/seclending/all/results/search.json"
                        "?startDate=2000-01-01",
                        "/seclending/all/all/results/search.json"
+                       "?startDate=2000-01-01",
+                       "/seclending/results/search.json"
+                       "?startDate=2000-01-01",
+                       "/seclending/all/results/summary/search.json"
                        "?startDate=2000-01-01"],
     "tsy_ops": ["/tsy/results/search.json?startDate=2000-01-01",
                 "/tsy/all/results/search.json"
+                "?startDate=2000-01-01",
+                "/tsy/all/all/results/search.json"
+                "?startDate=2000-01-01",
+                "/tsy/all/results/summary/search.json"
+                "?startDate=2000-01-01",
+                "/tsy/results/summary/search.json"
                 "?startDate=2000-01-01"],
     "fxs_all": ["/fxs/all/search.json?startDate=2000-01-01",
                 "/fxs/all/all/search.json?startDate=2000-01-01"],
     "soma_asofdates": ["/soma/asofdates/list.json"],
 }
 HIST_STALE_S = 20 * 3600
-HIST_MARK = "nyfed-hist-v1 ops4963"
+HIST_MARK = "nyfed-hist-v1b ops4963"
 TRANCHE = int(os.environ.get("PD_TRANCHE", "150"))
 
 

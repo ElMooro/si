@@ -31,7 +31,7 @@ REGION = "us-east-1"
 B = "justhodl-dashboard-live"
 FN = "justhodl-nyfed-markets-full"
 HSTATE = "data/warm/nyfed-markets/hist-state.json"
-MARK = "nyfed-hist-v1 ops4963"
+MARK = "nyfed-hist-v1b ops4963"
 REL = ("aws/lambdas/justhodl-nyfed-markets-full/source/"
        "lambda_function.py")
 
@@ -138,9 +138,12 @@ with report("ops_4963_nyfed_hist_depth") as R:
     tot = sum(sz for _k, sz in ks)
     for k_, sz in sorted(ks):
         R.log("  %-26s %8.2fKB" % (k_, sz / 1e3))
-    ok3 = len(ks) >= 8 and tot > 1_500_000
-    R.log("G3 %s files=%d %.2fMB" % ("PASS" if ok3 else "FAIL",
-                                     len(ks), tot / 1e6))
+    raw_tot = sum((v.get("bytes") or 0)
+                  for v in (hs.get("families") or {}).values())
+    ok3 = len(ks) >= 8 and raw_tot > 8_000_000
+    R.log("G3 %s files=%d gz=%.2fMB raw=%.2fMB (gz-aware floor)"
+          % ("PASS" if ok3 else "FAIL", len(ks), tot / 1e6,
+             raw_tot / 1e6))
     if not ok3:
         fails.append("G3")
 
@@ -148,7 +151,7 @@ with report("ops_4963_nyfed_hist_depth") as R:
         R.log("ops 4963 RED: " + "; ".join(fails))
         sys.exit(1)
     R.kv(families_ok=okn, effr_obs=len(dates), repo_hint=rep,
-         ambs_hint=amb, hist_mb=round(tot / 1e6, 2))
+         ambs_hint=amb, raw_mb=round(raw_tot / 1e6, 2))
     R.log("ops 4963 GREEN -- nyfed lane #1 full-depth: latest-only "
           "families now carry complete source history, self-"
           "refreshing on the existing hourly schedule")
