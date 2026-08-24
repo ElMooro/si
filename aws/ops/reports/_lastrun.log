@@ -1,75 +1,69 @@
-executing-against: c1fdf11ba12ad60abf7b875777d66679e0999438
-── P0 runner probe: BASE listing evidence ──
-[00:54:30]   HTTP 200 uppercase-HREF=48 lowercase-href=0
-[00:54:30]   head: '<html><head><title>download.bls.gov - /pub/time.series/</title></head><body><H1>download.bls.gov - /pub/time.series/</H1><hr>\r \r <pre><A HREF="/pub/">[To Parent Directory]</A><br><br> 8/12/2026  8:30 AM        &lt;dir&gt; <A HREF="/pub/time.series/ap/">ap</A><'
+executing-against: d0bbf33bcca8d4b3b01ded2c2bc991d49e4304f6
 ── G-1 markers-in-checkout ──
-[00:54:30]   ok justhodl-bls-full            'v1.0.1 ops4959'
-[00:54:30]   ok justhodl-provider-catalog    'bls-note-v2'
-── G0 settle (new-function fallback armed) ──
-[00:54:30]   justhodl-bls-full settled (0s)
-[00:54:30]   justhodl-provider-catalog settled (0s)
-[00:54:30] G0 PASS
-── G0b schedule rate(12 hours) ──
-[00:54:30] G0b exists (ok)
-── G1 chain-drive (22min budget; chains finish the rest) ──
-[00:54:31]   t+   0s DRAIN files=0 gb=0.00 q=0 fail=0
-[00:54:56]   t+  25s DRAIN files=0 gb=0.00 q=1656 fail=0
-[00:55:21]   t+  50s DRAIN files=0 gb=0.00 q=1620 fail=0
-[00:55:46]   t+  75s DRAIN files=0 gb=0.00 q=1605 fail=0
-[00:57:26]   t+ 175s DRAIN files=58 gb=3.37 q=1604 fail=0
-[00:57:51]   t+ 200s DRAIN files=59 gb=6.25 q=1595 fail=0
-[00:58:16]   t+ 225s DRAIN files=59 gb=6.25 q=1579 fail=1
-[00:59:32]   t+ 301s DRAIN files=59 gb=6.25 q=1578 fail=1
-[00:59:57]   t+ 326s DRAIN files=84 gb=10.72 q=1566 fail=1
-[01:00:22]   t+ 351s DRAIN files=84 gb=10.72 q=1564 fail=1
-[01:00:47]   t+ 376s DRAIN files=84 gb=10.72 q=1563 fail=1
-[01:01:12]   t+ 401s DRAIN files=98 gb=14.60 q=1526 fail=1
-[01:01:37]   t+ 426s DRAIN files=98 gb=14.60 q=1498 fail=1
-[01:02:02]   t+ 452s DRAIN files=98 gb=14.60 q=1467 fail=1
-[01:02:28]   t+ 477s DRAIN files=98 gb=14.60 q=1445 fail=1
-[01:03:18]   t+ 527s DRAIN files=217 gb=18.78 q=1444 fail=1
-[01:03:43]   t+ 552s DRAIN files=218 gb=22.15 q=1441 fail=1
-[01:04:08]   t+ 577s DRAIN files=218 gb=22.15 q=1431 fail=1
-[01:04:33]   t+ 602s DRAIN files=218 gb=22.15 q=1395 fail=1
-[01:04:58]   t+ 627s DRAIN files=218 gb=22.15 q=1376 fail=3
-[01:05:23]   t+ 652s DRAIN files=284 gb=26.00 q=1354 fail=3
-[01:05:48]   t+ 678s DRAIN files=284 gb=26.00 q=1319 fail=3
-[01:06:14]   t+ 703s DRAIN files=284 gb=26.00 q=1296 fail=3
-[01:06:39]   t+ 728s DRAIN files=284 gb=26.00 q=1252 fail=3
-[01:07:04]   t+ 753s DRAIN files=284 gb=26.00 q=1211 fail=3
-[01:07:29]   t+ 778s DRAIN files=284 gb=26.00 q=1172 fail=3
-[01:07:54]   t+ 803s DRAIN files=284 gb=26.00 q=1136 fail=3
-[01:08:19]   t+ 828s DRAIN files=284 gb=26.00 q=1104 fail=3
-[01:08:44]   t+ 853s DRAIN files=284 gb=26.00 q=1080 fail=3
-[01:09:09]   t+ 878s DRAIN files=580 gb=28.62 q=1049 fail=3
-[01:09:34]   t+ 904s DRAIN files=580 gb=28.62 q=1008 fail=3
-[01:10:00]   t+ 929s DRAIN files=580 gb=28.62 q=973 fail=3
-[01:10:25]   t+ 954s DRAIN files=580 gb=28.62 q=937 fail=3
-[01:10:50]   t+ 979s DRAIN files=580 gb=28.62 q=911 fail=3
-[01:11:15]   t+1004s DRAIN files=580 gb=28.62 q=889 fail=3
-[01:11:40]   t+1029s DRAIN files=780 gb=30.94 q=864 fail=3
-[01:12:05]   t+1054s DRAIN files=780 gb=30.94 q=846 fail=3
-[01:12:30]   t+1079s DRAIN files=780 gb=30.94 q=804 fail=3
-[01:12:55]   t+1104s DRAIN files=780 gb=30.94 q=770 fail=3
-[01:13:20]   t+1129s DRAIN files=780 gb=30.94 q=737 fail=3
-[01:13:46]   t+1155s DRAIN files=780 gb=30.94 q=697 fail=3
-[01:14:11]   t+1180s DRAIN files=780 gb=30.94 q=661 fail=3
-[01:14:36]   t+1205s DRAIN files=780 gb=30.94 q=626 fail=3
-[01:15:01]   t+1230s DRAIN files=780 gb=30.94 q=589 fail=3
-[01:15:26]   t+1255s DRAIN files=780 gb=30.94 q=565 fail=3
-[01:15:51]   t+1280s DRAIN files=1095 gb=35.33 q=559 fail=3
-[01:16:16]   t+1305s DRAIN files=1095 gb=35.33 q=549 fail=3
-[01:16:41] G1 PASS phase=DRAIN files=1095 gb=35.33 q=549 kicks=0
-── G2 substance (deep AllData streaming proven) ──
-[01:16:41]   ap/ap.series head: 'series_id        \tarea_code\titem_code\tseries_title\tfootnote_codes\tbegin_year\tbegin_period\t'
-[01:16:41]   BIG cb/cb.series                       3878.4MB
-[01:16:41]   BIG ch/ch.data.0.Current               3369.7MB
-[01:16:41]   BIG ch/ch.data.1.AllData               3369.7MB
-[01:16:41]   BIG ca/ca.data.0.Current               2885.9MB
-[01:16:41]   BIG ca/ca.data.1.AllData               2885.9MB
-[01:16:41] G2 PASS big_files=36 series_maps=True
+[01:19:38]   ok justhodl-worldbank-full        'v1.0.0 ops4960'
+[01:19:38]   ok justhodl-provider-catalog      'wb-note-v2'
+── G0 settle ──
+[01:19:38]   justhodl-worldbank-full settled (0s)
+[01:19:38]   justhodl-provider-catalog settled (0s)
+[01:19:38] G0 PASS
+── G0b weekly redrain schedule ──
+[01:19:39] G0b created
+── G1 chain-drive (20min; chains finish the rest) ──
+[01:19:39]   t+   0s None banked=0 mb=0.0 q=0 fail=0
+[01:20:04]   t+  25s DRAIN banked=0 mb=0.0 q=29474 fail=0
+[01:20:29]   t+  50s DRAIN banked=0 mb=0.0 q=29447 fail=0
+[01:20:54]   t+  75s DRAIN banked=0 mb=0.0 q=29421 fail=0
+[01:21:20]   t+ 100s DRAIN banked=0 mb=0.0 q=29396 fail=0
+[01:21:45]   t+ 125s DRAIN banked=0 mb=0.0 q=29370 fail=0
+[01:22:10]   t+ 150s DRAIN banked=0 mb=0.0 q=29343 fail=0
+[01:22:35]   t+ 176s DRAIN banked=0 mb=0.0 q=29319 fail=0
+[01:23:00]   t+ 201s DRAIN banked=0 mb=0.0 q=29292 fail=0
+[01:23:25]   t+ 226s DRAIN banked=0 mb=0.0 q=29266 fail=0
+[01:23:50]   t+ 251s DRAIN banked=0 mb=0.0 q=29240 fail=0
+[01:24:15]   t+ 276s DRAIN banked=0 mb=0.0 q=29216 fail=0
+[01:24:41]   t+ 301s DRAIN banked=0 mb=0.0 q=29189 fail=0
+[01:25:06]   t+ 326s DRAIN banked=0 mb=0.0 q=29163 fail=0
+[01:25:31]   t+ 352s DRAIN banked=0 mb=0.0 q=29137 fail=0
+[01:25:56]   t+ 377s DRAIN banked=0 mb=0.0 q=29111 fail=0
+[01:26:21]   t+ 402s DRAIN banked=0 mb=0.0 q=29085 fail=0
+[01:26:46]   t+ 427s DRAIN banked=0 mb=0.0 q=29059 fail=0
+[01:27:12]   t+ 452s DRAIN banked=0 mb=0.0 q=29033 fail=0
+[01:27:37]   t+ 477s DRAIN banked=0 mb=0.0 q=29009 fail=0
+[01:28:02]   t+ 502s DRAIN banked=0 mb=0.0 q=28988 fail=0
+[01:28:27]   t+ 528s DRAIN banked=0 mb=0.0 q=28963 fail=0
+[01:28:52]   t+ 553s DRAIN banked=0 mb=0.0 q=28944 fail=0
+[01:29:17]   t+ 578s DRAIN banked=0 mb=0.0 q=28924 fail=0
+[01:29:42]   t+ 603s DRAIN banked=0 mb=0.0 q=28903 fail=0
+[01:30:07]   t+ 628s DRAIN banked=0 mb=0.0 q=28884 fail=0
+[01:30:33]   t+ 653s DRAIN banked=0 mb=0.0 q=28865 fail=0
+[01:30:58]   t+ 678s DRAIN banked=628 mb=3.6 q=28847 fail=0
+[01:31:23]   t+ 703s DRAIN banked=628 mb=3.6 q=28827 fail=0
+[01:31:48]   t+ 729s DRAIN banked=628 mb=3.6 q=28807 fail=0
+[01:32:13]   t+ 754s DRAIN banked=628 mb=3.6 q=28787 fail=0
+[01:32:38]   t+ 779s DRAIN banked=628 mb=3.6 q=28767 fail=0
+[01:33:03]   t+ 804s DRAIN banked=628 mb=3.6 q=28747 fail=0
+[01:33:29]   t+ 829s DRAIN banked=628 mb=3.6 q=28727 fail=0
+[01:33:54]   t+ 854s DRAIN banked=628 mb=3.6 q=28707 fail=0
+[01:34:19]   t+ 880s DRAIN banked=628 mb=3.6 q=28686 fail=0
+[01:34:44]   t+ 905s DRAIN banked=628 mb=3.6 q=28666 fail=0
+[01:35:09]   t+ 930s DRAIN banked=628 mb=3.6 q=28645 fail=0
+[01:35:34]   t+ 955s DRAIN banked=628 mb=3.6 q=28625 fail=0
+[01:35:59]   t+ 980s DRAIN banked=628 mb=3.6 q=28605 fail=0
+[01:36:25]   t+1005s DRAIN banked=628 mb=3.6 q=28585 fail=0
+[01:36:50]   t+1030s DRAIN banked=628 mb=3.6 q=28565 fail=0
+[01:37:15]   t+1056s DRAIN banked=628 mb=3.6 q=28544 fail=0
+[01:37:40]   t+1081s DRAIN banked=628 mb=3.6 q=28524 fail=0
+[01:38:05]   t+1106s DRAIN banked=628 mb=3.6 q=28499 fail=0
+[01:38:30]   t+1131s DRAIN banked=628 mb=3.6 q=28474 fail=0
+[01:38:55]   t+1156s DRAIN banked=628 mb=3.6 q=28455 fail=0
+[01:39:21]   t+1181s DRAIN banked=628 mb=3.6 q=28433 fail=0
+[01:39:46] G1 FAIL phase=DRAIN banked=628 mb=3.6 q=28433 kicks=0
+── G2 substance ──
+[01:39:46]   1.1_ACCESS.ELECTRICITY.TOT -> 3 files, head ok=False
+[01:39:46] G2 FAIL
 ── G3 catalog card (post-mark) ──
-[01:19:12] G3 PASS keys=1156 note=FULL time.series warehouse (bls-full v1): 65 surveys · 1095 files · 35.33GB · phase DRAIN · complete history since 1913, conditional Last-Modified refresh
-[01:19:12] ops 4959 GREEN -- the BLS warehouse is draining since 1913; chains + rate(12h) finish and keep it fresh; day-two: phase COMPLETE + final GB + unchanged-proof
+[01:42:16] G3 PASS note=FULL indicator warehouse (worldbank-full v1): 1184/29490 indicators banked · 0 no-data · 0.01GB · phase DRAIN · official CSV-zips verbatim, weekly re-drain
+[01:42:16] ops 4960 RED: G1; G2
 
-→ Report written to aws/ops/reports/latest/ops_4959_bls_full_v101.md
+→ Report written to aws/ops/reports/latest/ops_4960_worldbank_full_launch.md
+❌ OPS-FAIL: aws/ops/pending/ops_4960_worldbank_full_launch.py
