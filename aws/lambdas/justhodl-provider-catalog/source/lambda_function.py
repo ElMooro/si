@@ -172,7 +172,7 @@ REG = {
   "prefixes": ["data/warm/nasa-power/"]},
  "dol": {"name": "US DOL — ETA claims",
   "api": "oui.doleta.gov", "engines": ["justhodl-canary-macro"],
-  "prefixes": ["data/warm/fred-canary/dol-"]},
+  "prefixes": ["data/warm/fred-canary/dol-", "data/warm/dol-full/"]},
  "chicagofed": {"name": "Chicago Fed — NFCI",
   "api": "chicagofed.org", "engines": ["justhodl-plumbing-panel"],
   "prefixes": ["data/warm/chicagofed/",
@@ -617,6 +617,21 @@ def lambda_handler(event, context):
                         else _note_x
             except Exception:
                 pass
+        if slug in ("dol", "dol-eta"):
+            # ops 4966 (dol-note-v2): full ETA corpus truth
+            try:
+                _dm = _get_json("data/warm/dol-full/manifest.json")
+                if _dm:
+                    note = ((note + " · ") if note else "") + (
+                        "FULL ETA DataDownloads corpus (dol-full "
+                        "v1): %s report csvs · %.1fMB · %s fresh / "
+                        "%s unchanged · self-extending harvest" % (
+                            _dm.get("files"),
+                            (_dm.get("bytes") or 0) / 1e6,
+                            _dm.get("fresh"),
+                            _dm.get("unchanged")))
+            except Exception:
+                pass
         if slug == "gdelt":
             # ops 4965 (gd-note-v2): full v2-events cursor truth
             try:
@@ -736,9 +751,11 @@ def lambda_handler(event, context):
             except Exception:
                 pass
         _orphan_notes = {
-            "ofr-bsrm": ("src-mirror daily since ops 4913 (workbooks"
-                         " conditional-ETag; parsed 500-series "
-                         "re-transform = phase 2, seed ops 4753)"),
+            "ofr-bsrm": ("src-mirror since ops 4913 (workbooks "
+                         "conditional-ETag, FULL) · bsrm-truth ops "
+                         "4966: series/ = flagged duplicate of "
+                         "ofr-hfm (4752 bug, 4753 note) -- no "
+                         "transform owed, canonical hfm live"),
             "ofr-site": ("src-mirror daily since ops 4913 "
                          "(live page-harvest, seed ops 4755)"),
         }

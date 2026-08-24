@@ -271,14 +271,22 @@ def lambda_handler(event, context):
     # phase-2 re-transforms: stated, never silent ---------------------
     _put_json(ORPHANS_KEY, {
         "as_of": _now(), "engine": "src-mirror",
+        # bsrm-truth ops 4966: the "500 parsed bsrm series" ledger
+        # entry was a FICTION -- ops 4753's own report shows
+        # data/warm/ofr-bsrm/series/ is an accidental duplicate of
+        # ofr-hfm (ops 4752 bug), flagged in-bucket by
+        # _DUPLICATE_NOTE.json; canonical hfm has its own live
+        # engine. No transform is owed.
         "phase2_retransforms": {
-            "ofr-bsrm-series": "500 parsed bsrm series (seed ops "
-                               "4753) not re-derived from the "
-                               "mirrored workbooks yet",
             "nyfed-haircuts-series": "parsed tri-party haircut "
                                      "series (seed ops 4793-94) not "
                                      "re-derived from the mirrored "
-                                     "workbooks yet"}})
+                                     "workbooks yet"},
+        "closed": {
+            "ofr-bsrm-series": "no transform owed: series/ = "
+                               "flagged duplicate of ofr-hfm "
+                               "(ops 4752 bug, 4753 _DUPLICATE_"
+                               "NOTE); canonical ofr-hfm live"}})
 
     _put_json(STATE_KEY, {"as_of": _now(), "ok": True,
                           "summary": res,

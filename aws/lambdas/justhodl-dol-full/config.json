@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-dol-full",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 780,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "COMPLETE DOL ETA DataDownloads corpus v1.0.0: page-harvest every report CSV (self-extending), verbatim streamed, conditional Last-Modified refresh, named failures. data/warm/dol-full/",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  }
+}
