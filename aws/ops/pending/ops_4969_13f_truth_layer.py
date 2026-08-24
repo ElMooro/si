@@ -57,7 +57,7 @@ AIB = "data/ai-commentary/13f.json"
 UA = "JustHodl Research raafouis@gmail.com"
 ROOTP = Path(__file__).resolve().parents[3]
 MARK = "truth-layer ops4969"
-MARK_POS = "ops4969b"   # unique to the v2 fossil-heal zip
+MARK_POS = "ops4969c"   # unique to the v3 map-verdict zip
 SUSPECT = {"CPAY", "ICLN", "ORCL", "MOBL", "IBIA"}
 ETFS = ["SPY", "QQQ", "IWM", "ICLN", "GLD", "SLV", "IBB", "HYG", "TLT",
         "VOO", "IBIT", "BIL", "SGOV", "SHV", "IYR", "VNQ", "XLF", "XLI",
