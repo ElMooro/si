@@ -57,6 +57,7 @@ AIB = "data/ai-commentary/13f.json"
 UA = "JustHodl Research raafouis@gmail.com"
 ROOTP = Path(__file__).resolve().parents[3]
 MARK = "truth-layer ops4969"
+MARK_POS = "ops4969b"   # unique to the v2 fossil-heal zip
 SUSPECT = {"CPAY", "ICLN", "ORCL", "MOBL", "IBIA"}
 ETFS = ["SPY", "QQQ", "IWM", "ICLN", "GLD", "SLV", "IBB", "HYG", "TLT",
         "VOO", "IBIT", "BIL", "SGOV", "SHV", "IYR", "VNQ", "XLF", "XLI",
@@ -89,7 +90,7 @@ def http(url, timeout=25):
         return r.read()
 
 
-def settle(R, fn, budget=600):
+def settle(R, fn, mk, budget=600):
     t0 = time.time()
     while time.time() - t0 < budget:
         try:
@@ -97,7 +98,7 @@ def settle(R, fn, budget=600):
             zb = http(f["Code"]["Location"], timeout=90)
             srcz = zipfile.ZipFile(io.BytesIO(zb)).read(
                 "lambda_function.py").decode("utf-8", "replace")
-            if MARK in srcz and f["Configuration"].get("State") == "Active":
+            if mk in srcz and f["Configuration"].get("State") == "Active":
                 R.log("  settle %s OK (%.0fs)" % (fn, time.time() - t0))
                 return True
         except Exception:
@@ -173,7 +174,8 @@ def main():
 
         # G-1 markers in checkout
         for rel, mk in (
-                ("aws/lambdas/%s/source/lambda_function.py" % POS, MARK),
+                ("aws/lambdas/%s/source/lambda_function.py" % POS,
+                 MARK_POS),
                 ("aws/lambdas/%s/source/lambda_function.py" % COM, MARK),
                 ("13f.html", "corporate_action_suspect")):
             if mk not in (ROOTP / rel).read_text():
@@ -272,12 +274,12 @@ def main():
         pj(LED, led)
 
         # G0 settle
-        ok = settle(R, POS) or (fallback_deploy(
+        ok = settle(R, POS, MARK_POS) or (fallback_deploy(
             R, POS, ROOTP / "aws/lambdas" / POS / "source")
-            and settle(R, POS, 120))
-        ok2 = settle(R, COM) or (fallback_deploy(
+            and settle(R, POS, MARK_POS, 120))
+        ok2 = settle(R, COM, MARK) or (fallback_deploy(
             R, COM, ROOTP / "aws/lambdas" / COM / "source")
-            and settle(R, COM, 120))
+            and settle(R, COM, MARK, 120))
         R.log("G0 %s" % ("PASS" if ok and ok2 else "FAIL"))
         if not (ok and ok2):
             fails.append("G0")

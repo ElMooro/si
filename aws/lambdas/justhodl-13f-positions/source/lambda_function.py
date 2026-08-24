@@ -1186,6 +1186,25 @@ def resolve_missing_tickers(fund_results, budget=600):
     # length tiebreak, and $88B of real positions were blanked.
     sec = _sec_titles(m)
     m = _purge_collisions(m, fmp_budget=0)
+    # ops4969b: the per-accession cache FOSSILIZES tickers baked in by
+    # old resolver runs — 4938 purged CPAY's poison from the map, yet
+    # cached positions kept rendering PG&E/ODP/SLM as CPAY for months
+    # because the resolver skips any position already wearing an
+    # alphabetic ticker. The map is authoritative: every position
+    # re-reads its ticker from it, and a purged cusip drops its stale
+    # ticker so it re-enters resolution honestly.
+    for fd in fund_results:
+        if fd.get("error"):
+            continue
+        for pos in fd.get("positions", []) or []:
+            cu = pos.get("cusip") or ""
+            e = m.get(cu)
+            if not isinstance(e, dict):
+                continue
+            if e.get("ticker"):
+                pos["ticker"] = e["ticker"]
+            elif e.get("src") == "purged-collision" and pos.get("ticker"):
+                pos["ticker"] = None
     now = _t.time()
     fresh = 0
     _pend = []          # ops 3297: resolve BIGGEST dollars first
@@ -1312,14 +1331,18 @@ def resolve_missing_tickers(fund_results, budget=600):
             elif e.get("ticker") and e.get("src") == "fmp-profile":
                 pos["ticker"] = e["ticker"]
         cs = fd.get("changes_summary") or {}
-        for ex in cs.get("exits", []) or []:
-            cu = ex.get("cusip")
-            tk = ex.get("ticker") or ""
-            e = m.get(cu) if cu else None
-            if isinstance(e, dict) and e.get("ticker") and (
-                    not tk or not all(
-                        ch.isalpha() or ch in ".-" for ch in tk)):
-                ex["ticker"] = e["ticker"]
+        for _lst in ("new", "added", "trimmed", "exits"):
+            for ex in cs.get(_lst, []) or []:
+                cu = ex.get("cusip")
+                e = m.get(cu) if cu else None
+                if not isinstance(e, dict):
+                    continue
+                tk = ex.get("ticker") or ""
+                if e.get("ticker") and e["ticker"] != tk:
+                    ex["ticker"] = e["ticker"]
+                elif (not e.get("ticker") and tk
+                        and e.get("src") == "purged-collision"):
+                    ex["ticker"] = None
     try:
         put_s3_json(CUSIP_MAP_KEY, m)
     except Exception:
@@ -2340,6 +2363,8 @@ def lambda_handler(event, context):
     for _ind, e in led["industries"].items():
         if _age_h(e) > _W:
             continue
+        if _ind not in _ind_new:     # ops4969b: NEW-backed only —
+            continue                 # never a classifier-cache echo
         r = ind_agg.get(_ind) or {}
         ni_fresh.append({
             "industry": _ind, "sector": r.get("sector"),
