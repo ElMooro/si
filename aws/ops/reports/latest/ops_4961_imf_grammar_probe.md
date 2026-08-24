@@ -1,0 +1,40 @@
+## P0 drain status (bls-full / worldbank-full)
+
+**Status:** failure  
+**Duration:** 16.8s  
+**Finished:** 2026-08-24T01:42:57+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `01:42:41`   bls-full phase=COMPLETE files/banked=1659 gb=40.06 q=0 fail=3 as_of=2026-08-24T01:23:21
+- `01:42:41`   worldbank-full phase=DRAIN files/banked=1184 gb=0.01 q=28238 fail=0 as_of=2026-08-24T01:41:31
+## P1 dataflow catalogs (both generations)
+
+- `01:42:41`   legacy Dataflow: 0 bytes=None flows~0 <urlopen error [Errno -2] Name or service not known>
+- `01:42:42`   2.1 dataflow: 200 bytes=446083 ids~0
+## P2 full-pull ladder (capture refusals verbatim)
+
+- `01:42:42`   IFS.leg_compact_all    0 bytes=None trunc=None <urlopen error [Errno -2] Name or service not known>
+- `01:42:43`   IFS.new_csv_all        404 bytes=None trunc=None {"status":404,"code":40400,"message":"No such dataflow found: Dataflow
+- `01:42:44`   IFS.new_json_all       404 bytes=None trunc=None {"status":404,"code":40400,"message":"No such dataflow found: Dataflow
+- `01:42:44`   BOP.leg_compact_all    0 bytes=None trunc=None <urlopen error [Errno -2] Name or service not known>
+- `01:42:47`   BOP.new_csv_all        200 bytes=3000000 trunc=True <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData x
+- `01:42:50`   BOP.new_json_all       200 bytes=3000000 trunc=True <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData x
+- `01:42:50`   DOT.leg_compact_all    0 bytes=None trunc=None <urlopen error [Errno -2] Name or service not known>
+- `01:42:51`   DOT.new_csv_all        404 bytes=None trunc=None {"status":404,"code":40400,"message":"No such dataflow found: Dataflow
+- `01:42:52`   DOT.new_json_all       404 bytes=None trunc=None {"status":404,"code":40400,"message":"No such dataflow found: Dataflow
+- `01:42:53`   PGI.leg_compact_all    0 bytes=None trunc=None <urlopen error [Errno -2] Name or service not known>
+- `01:42:53`   PGI.new_csv_all        404 bytes=None trunc=None {"status":404,"code":40400,"message":"No such dataflow found: Dataflow
+- `01:42:54`   PGI.new_json_all       404 bytes=None trunc=None {"status":404,"code":40400,"message":"No such dataflow found: Dataflow
+## P3 slice grammar (freq=A on IFS)
+
+- `01:42:55`   leg_compact_A          0 bytes=None <urlopen error [Errno -2] Name or service not known>
+- `01:42:56`   leg_compact_A_US       0 bytes=None <urlopen error [Errno -2] Name or service not known>
+- `01:42:56`   new_csv_key            404 bytes=None {"status":404,"code":40400,"message":"No such dataflow found: Dataflow=all:IFS(l
+- `01:42:57` artifact data/warm/imf-full/_probe/probe.json (ok_any=True)
+- `01:42:57` ops 4961 RED: ['P1 no catalog']
