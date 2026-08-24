@@ -1,11 +1,15 @@
-executing-against: 51826c31a9a713739263dbfc718854ee49c651cc
-ops 4968 -- 13F live-delta
-[12:24:31] mark 2026-08-24T12:24:31+00:00
+# ops 4968 -- 13F live-delta
 
-→ Report written to aws/ops/reports/latest/ops_4968_13f_live_delta.md
+**Status:** failure  
+**Duration:** 0.0s  
+**Finished:** 2026-08-24T12:24:31+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4968_13f_live_delta.py", line 473, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_4968_13f_live_delta.py", line 204, in main
     if MARK not in (ROOTP / rel).read_text():
                    ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -16,4 +20,8 @@ Traceback (most recent call last):
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/si/si/aws/aws/lambdas/justhodl-13f-positions/source/lambda_function.py'
-❌ OPS-FAIL: aws/ops/pending/ops_4968_13f_live_delta.py
+
+```
+
+## Log
+- `12:24:31` mark 2026-08-24T12:24:31+00:00
