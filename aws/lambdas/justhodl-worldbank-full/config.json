@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-worldbank-full",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 850,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "COMPLETE World Bank warehouse v1.0.0: full ~16k-indicator catalog, every indicator's official CSV-zip (data+metadata) mirrored verbatim via streaming; no-data named; self-chaining drain; weekly full re-drain. data/warm/worldbank-full/",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  }
+}

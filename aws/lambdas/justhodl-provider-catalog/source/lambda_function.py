@@ -199,7 +199,7 @@ REG = {
  "imf": {"name": "IMF — SDMX/MFS", "api": "dataservices.imf.org",
   "engines": ["families-feed"], "prefixes": ["data/warm/imf"]},
  "worldbank": {"name": "World Bank", "api": "api.worldbank.org",
-  "engines": ["families-feed"], "prefixes": ["data/warm/worldbank"]},
+  "engines": ["families-feed"], "prefixes": ["data/warm/worldbank", "data/warm/worldbank-full/"]},
  "dbnomics": {"name": "DBnomics", "api": "api.db.nomics.world",
   "engines": ["legacy fleet"], "prefixes": []},
  "snb": {"name": "Swiss National Bank", "api": "data.snb.ch",
@@ -615,6 +615,24 @@ def lambda_handler(event, context):
                                  _tx.get("mean_agree_pct") or "—"))
                     note = (note + " · " + _note_x) if note \
                         else _note_x
+            except Exception:
+                pass
+        if slug == "worldbank":
+            # ops 4960 (wb-note-v2): card truth from the full-
+            # warehouse manifest (drain-queue #2)
+            try:
+                _wm = _get_json(
+                    "data/warm/worldbank-full/manifest.json")
+                if _wm:
+                    note = ((note + " · ") if note else "") + (
+                        "FULL indicator warehouse (worldbank-full "
+                        "v1): %s/%s indicators banked · %s no-data "
+                        "· %.2fGB · phase %s · official CSV-zips "
+                        "verbatim, weekly re-drain" % (
+                            _wm.get("banked"),
+                            _wm.get("indicators_catalog"),
+                            _wm.get("no_data"),
+                            _wm.get("gb") or 0, _wm.get("phase")))
             except Exception:
                 pass
         if slug == "bls":
