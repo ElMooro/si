@@ -188,21 +188,20 @@ with report("ops_4966_dol_full_and_bsrm_truth") as R:
             break
         R.log("  t+%4ds orphans awaiting v1.2 write" % (
             time.time() - t0))
-    hub0 = gj(HUB_KEY) or {}
-    hfm = next((p for p in hub0.get("providers", [])
-                if p.get("slug") == "ofr-hf"), {}) or {}
-    hfm_h = abs(hfm.get("freshest_h") or 99)
     ok2 = bool(dup.get("canonical_prefix") ==
                "data/warm/ofr-hfm/series/") and \
         "ofr-bsrm-series" in (orp.get("closed") or {}) and \
         "ofr-bsrm-series" not in (orp.get("phase2_retransforms")
                                   or {}) and \
         "nyfed-haircuts-series" in (orp.get("phase2_retransforms")
-                                    or {}) and hfm_h < 26
-    R.log("G2 %s dupnote=%s closed=%s phase2=%s hfm=%.1fh" % (
-        "PASS" if ok2 else "FAIL", bool(dup),
-        list((orp.get("closed") or {})),
-        list((orp.get("phase2_retransforms") or {})), hfm_h))
+                                    or {})
+    R.log("G2 %s dupnote=%s closed=%s phase2=%s (hfm canonical "
+          "freshness moved to G3 post-mark hub -- v1 read a "
+          "pre-mark snapshot under the wrong slug and defaulted "
+          "99h while the board showed 0.5h)" % (
+              "PASS" if ok2 else "FAIL", bool(dup),
+              list((orp.get("closed") or {})),
+              list((orp.get("phase2_retransforms") or {}))))
     if not ok2:
         fails.append("G2")
 
@@ -219,13 +218,20 @@ with report("ops_4966_dol_full_and_bsrm_truth") as R:
                if p.get("slug") in ("dol", "dol-eta")), {}) or {}
     bs = next((p for p in hub.get("providers", [])
                if p.get("slug") == "ofr-bsrm"), {}) or {}
+    hfm = next((p for p in hub.get("providers", [])
+                if "Hedge Fund" in (p.get("name") or "")
+                or p.get("slug") in ("ofr-hf", "ofr-hfm")), {}) or {}
+    hfm_h = hfm.get("freshest_h")
     ok3 = "FULL ETA DataDownloads corpus" in (dl.get("catalog_note")
                                               or "") and \
         "bsrm-truth" in (bs.get("catalog_note") or "") and \
         "re-transform = phase 2" not in (bs.get("catalog_note")
-                                         or "")
+                                         or "") and \
+        hfm_h is not None and abs(float(hfm_h)) < 26
     R.log("  dol : %s" % (dl.get("catalog_note") or "")[:160])
     R.log("  bsrm: %s" % (bs.get("catalog_note") or "")[:160])
+    R.log("  hfm canonical: slug=%s freshest_h=%s" % (
+        hfm.get("slug"), hfm_h))
     R.log("G3 %s" % ("PASS" if ok3 else "FAIL"))
     if not ok3:
         fails.append("G3")
@@ -236,7 +242,7 @@ with report("ops_4966_dol_full_and_bsrm_truth") as R:
     R.kv(dol_files=files, dol_mb=round(mb, 1),
          phase2_remaining=list(
              (orp.get("phase2_retransforms") or {})),
-         hfm_fresh_h=round(hfm_h, 1))
+         hfm_fresh_h=hfm_h)
     R.log("ops 4966 GREEN -- lane #4 corpus FULL; lane #5 closed as "
           "truth (no transform owed); the five-lane program is "
           "complete on the build side")
