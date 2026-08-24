@@ -1,47 +1,35 @@
-executing-against: be9a7369e0b69b66e140b7b5f26af2e41f5a3ac3
+executing-against: eae5d7b32287a3b4bc7509c9059fa08d362ab09e
 ── G-1 markers-in-checkout ──
-[03:36:44]   ok justhodl-dol-full        'v1.0.0 ops4966'
-[03:36:44]   ok justhodl-src-mirror      'bsrm-truth ops 4966'
-[03:36:44]   ok justhodl-provider-catalog 'dol-note-v2'
+[11:23:44]   ok justhodl-imf-full        'v1.0.0 ops4967'
+[11:23:44]   ok justhodl-provider-catalog 'imf-note-v2'
+[11:23:44]   ok justhodl-gov-sources     'imf-api-v2 ops4967'
 ── G0 settle x3 ──
-[03:36:44]   justhodl-dol-full settled (0s)
-[03:36:45]   justhodl-src-mirror settled (0s)
-[03:36:45]   justhodl-provider-catalog settled (0s)
-[03:36:45] G0 PASS
-── G0b dol schedule rate(6 hours) ──
-[03:36:46] G0b exists (ok)
-── G1 dol-full run ──
-[03:37:11]   t+  25s files=70
-[03:37:36]   t+  50s files=70
-[03:38:01]   t+  75s files=70
-[03:38:27]   t+ 100s files=70
-[03:38:52]   t+ 126s files=70
-[03:39:17]   t+ 151s files=70
-[03:39:42]   t+ 176s files=70
-[03:40:08]   t+ 201s files=70
-[03:40:33]   t+ 227s files=70
-[03:40:58]   t+ 252s files=70
-[03:41:23]   t+ 277s files=70
-[03:41:48]   t+ 302s files=70
-[03:42:14]   t+ 327s files=70
-[03:42:39]   t+ 353s files=70
-[03:43:04]   t+ 378s files=70
-[03:43:29]   t+ 403s files=70
-[03:43:55]   t+ 428s files=70
-[03:44:20]   t+ 454s files=70
-[03:44:45]   t+ 479s files=70
-[03:45:10]   t+ 504s files=70
-[03:45:35]   t+ 529s files=70
-[03:46:01]   t+ 554s files=70
-[03:46:01] G1 PASS files=70 mb=160.6 universe=70 failures=0
-[03:46:01]   ar539 head: b'"st","rptdate","c1","c2","c3","c4","c5","c6","c7","c8","c9","c10","c11","c12","c'
-── G2 bsrm truth verified ──
-[03:46:26] G2 PASS dupnote=True closed=['ofr-bsrm-series'] phase2=['nyfed-haircuts-series'] (hfm canonical freshness moved to G3 post-mark hub -- v1 read a pre-mark snapshot under the wrong slug and defaulted 99h while the board showed 0.5h)
-── G3 cards (post-mark) ──
-[03:49:28]   dol : FULL ETA DataDownloads corpus (dol-full v1): 70 report csvs · 160.6MB · 0 fresh / 70 unchanged · self-extending harvest
-[03:49:28]   bsrm: src-mirror since ops 4913 (workbooks conditional-ETag, FULL) · bsrm-truth ops 4966: series/ = flagged duplicate of ofr-hfm (4752 bug, 4753 note) -- no transform
-[03:49:28]   hfm canonical: slug=ofr-hfm freshest_h=0.7
-[03:49:28] G3 PASS
-[03:49:28] ops 4966 GREEN -- lane #4 corpus FULL; lane #5 closed as truth (no transform owed); the five-lane program is complete on the build side
+[11:23:44]   justhodl-imf-full t+0s NOT FOUND
+[11:24:09]   justhodl-imf-full settled (25s)
+[11:24:35]   justhodl-provider-catalog settled (25s)
+[11:24:35]   justhodl-gov-sources settled (0s)
+[11:24:35] G0 PASS
+── G0b schedules ──
+[11:24:35]   created justhodl-imf-full-6h rate(6 hours)
+[11:24:35]   created justhodl-imf-full-weekly rate(7 days)
+── G1 chain-drive (15min) ──
+[11:24:36]   t+   0s None banked=0 q=0 cat=0 fail=0
+[11:25:01]   t+  25s DISCOVER banked=0 q=0 cat=0 fail=1
+[11:28:47]   chain restart kick #1
+[11:32:33]   chain restart kick #2
+[11:36:19]   chain restart kick #3
+[11:39:40] G1 FAIL phase=DISCOVER banked=0 catalog=0 failures=1
+── G2 substance: BOP SDMX payload ──
+[11:39:40]   substance err: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
+[11:39:40] G2 FAIL
+── G3 card (post-mark) ──
+[11:43:41] G3 PASS note=FULL SDMX-2.1 warehouse (imf-full v1) on api.imf.org: 0/0 dataflows · 0 vintages retained · 0.00GB · 0 lastN-partial · phase DISCOVER · daily rediscovery
+── DAY-TWO board (info) ──
+[11:43:41]   worldbank: phase=DRAIN banked=9200 q=20289
+[11:43:41]   gdelt: phase=DRAIN files=147513 gb=19.24 cursor=2019052819 gaps=2233 v1=0/None
+[11:43:41]   bls: phase=COMPLETE files=1659 gb=40.06
+[11:43:41]   dol: files=70 mb=160.6 fresh=0 unchanged=70
+[11:43:41] ops 4967 RED: G1; G2
 
-→ Report written to aws/ops/reports/latest/ops_4966_dol_full_and_bsrm_truth.md
+→ Report written to aws/ops/reports/latest/ops_4967_imf_full_launch.md
+❌ OPS-FAIL: aws/ops/pending/ops_4967_imf_full_launch.py
