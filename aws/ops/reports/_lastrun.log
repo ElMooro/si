@@ -1,29 +1,67 @@
-executing-against: 0ab37d0d2a7d6cef81710a6820019695bc8bc34a
+executing-against: 5ec86d80df2496f9f8c7f79fdb53011387eb72d8
+── G-1 markers-in-checkout ──
+[01:47:17]   ok justhodl-worldbank-full        'v1.0.0 ops4960'
+[01:47:17]   ok justhodl-provider-catalog      'wb-note-v2'
+── G0 settle ──
+[01:47:18]   justhodl-worldbank-full settled (0s)
+[01:47:18]   justhodl-provider-catalog settled (0s)
+[01:47:18] G0 PASS
+── G0b weekly redrain schedule ──
+[01:47:18] G0b exists (ok)
+── G1 chain-drive (20min; chains finish the rest) ──
+[01:47:18]   t+   0s DRAIN banked=1523 mb=14.5 q=27967 fail=0
+[01:47:43]   t+  25s DRAIN banked=1549 mb=14.9 q=27941 fail=0
+[01:48:09]   t+  50s DRAIN banked=1569 mb=15.2 q=27921 fail=0
+[01:48:34]   t+  75s DRAIN banked=1589 mb=15.7 q=27901 fail=0
+[01:48:59]   t+ 100s DRAIN banked=1611 mb=16.1 q=27879 fail=0
+[01:49:24]   t+ 125s DRAIN banked=1634 mb=16.4 q=27856 fail=0
+[01:49:49]   t+ 150s DRAIN banked=1657 mb=16.8 q=27833 fail=0
+[01:50:14]   t+ 175s DRAIN banked=1679 mb=17.1 q=27811 fail=0
+[01:50:39]   t+ 201s DRAIN banked=1700 mb=17.3 q=27790 fail=0
+[01:51:04]   t+ 226s DRAIN banked=1724 mb=17.7 q=27766 fail=0
+[01:51:30]   t+ 251s DRAIN banked=1747 mb=18.1 q=27743 fail=0
+[01:51:55]   t+ 276s DRAIN banked=1768 mb=18.4 q=27722 fail=0
+[01:52:20]   t+ 301s DRAIN banked=1790 mb=18.7 q=27700 fail=0
+[01:52:45]   t+ 326s DRAIN banked=1810 mb=18.9 q=27680 fail=0
+[01:53:10]   t+ 352s DRAIN banked=1830 mb=19.2 q=27660 fail=0
+[01:53:35]   t+ 377s DRAIN banked=1851 mb=19.5 q=27639 fail=0
+[01:54:01]   t+ 402s DRAIN banked=1873 mb=19.9 q=27617 fail=0
+[01:54:26]   t+ 427s DRAIN banked=1894 mb=20.2 q=27596 fail=0
+[01:54:51]   t+ 452s DRAIN banked=1920 mb=21.6 q=27570 fail=0
+[01:55:16]   t+ 477s DRAIN banked=1945 mb=22.6 q=27545 fail=0
+[01:55:41]   t+ 502s DRAIN banked=1970 mb=23.4 q=27520 fail=0
+[01:56:06]   t+ 527s DRAIN banked=1990 mb=23.8 q=27500 fail=0
+[01:56:31] G1 PASS phase=DRAIN banked=1990 mb=23.8 q=27500 kicks=0
+── G2 substance (zip validity + any-member content) ──
+[01:56:31]   AG.LND.ARBL.HA.PC -> 3 members, content member=Metadata_Indicator_API_AG.LND.ARBL.HA.PC_DS2_en_csv_v2_34191.csv
+[01:56:31] G2 PASS
+── G3 catalog card (post-mark) ──
+[01:59:02] G3 PASS note=FULL indicator warehouse (worldbank-full v1): 1796/29490 indicators banked · 0 no-data · 0.02GB · phase DRAIN · official CSV-zips verbatim, weekly re-drain
+[01:59:02] ops 4960 GREEN -- World Bank warehouse draining; chains + weekly redrain own it; day-two: COMPLETE + final GB
+
+→ Report written to aws/ops/reports/latest/ops_4960_worldbank_full_launch.md
 ── P0 drain status (bls-full / worldbank-full) ──
-[01:42:41]   bls-full phase=COMPLETE files/banked=1659 gb=40.06 q=0 fail=3 as_of=2026-08-24T01:23:21
-[01:42:41]   worldbank-full phase=DRAIN files/banked=1184 gb=0.01 q=28238 fail=0 as_of=2026-08-24T01:41:31
+[01:59:02]   bls-full phase=COMPLETE files/banked=1659 gb=40.06 q=0 fail=3 as_of=2026-08-24T01:23:21
+[01:59:03]   worldbank-full phase=DRAIN files/banked=1796 gb=0.02 q=27366 fail=0 as_of=2026-08-24T01:52:28
 ── P1 dataflow catalogs (both generations) ──
-[01:42:41]   legacy Dataflow: 0 bytes=None flows~0 <urlopen error [Errno -2] Name or service not known>
-[01:42:42]   2.1 dataflow: 200 bytes=446083 ids~0
+[01:59:03]   legacy host: DNS DEAD (registry fossil, recorded)
+[01:59:03]   2.1 dataflow XML: 200 bytes=446083 flows=222 sample=['QGDP_WCA_2026_FEB_VINTAGE', 'ANEA_2026_APR_VINTAGE', 'ANEA_2026_FEB_VINTAGE', 'IRFCL', 'GDD', 'QGFS_2026_JAN_VINTAGE', 'FA_2026_MAY_VINTAGE', 'LS_2026_FEB_VINTAGE']
+[01:59:03]   resolved flagships: {'BOP': 'BOP', 'IFS': None, 'DOT': None, 'CPI': 'CPI_WCA_2026_MAY_VINTAGE'}
 ── P2 full-pull ladder (capture refusals verbatim) ──
-[01:42:42]   IFS.leg_compact_all    0 bytes=None trunc=None <urlopen error [Errno -2] Name or service not known>
-[01:42:43]   IFS.new_csv_all        404 bytes=None trunc=None {"status":404,"code":40400,"message":"No such dataflow found: Dataflow
-[01:42:44]   IFS.new_json_all       404 bytes=None trunc=None {"status":404,"code":40400,"message":"No such dataflow found: Dataflow
-[01:42:44]   BOP.leg_compact_all    0 bytes=None trunc=None <urlopen error [Errno -2] Name or service not known>
-[01:42:47]   BOP.new_csv_all        200 bytes=3000000 trunc=True <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData x
-[01:42:50]   BOP.new_json_all       200 bytes=3000000 trunc=True <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData x
-[01:42:50]   DOT.leg_compact_all    0 bytes=None trunc=None <urlopen error [Errno -2] Name or service not known>
-[01:42:51]   DOT.new_csv_all        404 bytes=None trunc=None {"status":404,"code":40400,"message":"No such dataflow found: Dataflow
-[01:42:52]   DOT.new_json_all       404 bytes=None trunc=None {"status":404,"code":40400,"message":"No such dataflow found: Dataflow
-[01:42:53]   PGI.leg_compact_all    0 bytes=None trunc=None <urlopen error [Errno -2] Name or service not known>
-[01:42:53]   PGI.new_csv_all        404 bytes=None trunc=None {"status":404,"code":40400,"message":"No such dataflow found: Dataflow
-[01:42:54]   PGI.new_json_all       404 bytes=None trunc=None {"status":404,"code":40400,"message":"No such dataflow found: Dataflow
+[01:59:04]   BOP(BOP).full_default  200 bytes=3000000 trunc=True <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData x
+[01:59:06]   BOP(BOP).full_csv      200 bytes=3000000 trunc=True <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData x
+[01:59:09]   CPI(CPI_WCA_2026_MAY_VINTAGE).full_default 200 bytes=274909 trunc=False <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData x
+[01:59:10]   CPI(CPI_WCA_2026_MAY_VINTAGE).full_csv 200 bytes=274909 trunc=False <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData x
 ── P3 slice grammar (freq=A on IFS) ──
-[01:42:55]   leg_compact_A          0 bytes=None <urlopen error [Errno -2] Name or service not known>
-[01:42:56]   leg_compact_A_US       0 bytes=None <urlopen error [Errno -2] Name or service not known>
-[01:42:56]   new_csv_key            404 bytes=None {"status":404,"code":40400,"message":"No such dataflow found: Dataflow=all:IFS(l
-[01:42:57] artifact data/warm/imf-full/_probe/probe.json (ok_any=True)
-[01:42:57] ops 4961 RED: ['P1 no catalog']
+[01:59:12]   dim_A                  200 bytes=2752 <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData xmlns:ss="h
+[01:59:12]   dim_A_dots             400 bytes=None {"status":400,"code":40000,"message":"key A.......... has more than expected 5 d
+[01:59:22]   lastN                  200 bytes=3000000 <?xml version='1.0' encoding='UTF-8'?><message:StructureSpecificData xmlns:ss="h
+[01:59:23] artifact data/warm/imf-full/_probe/probe.json (ok_any=True)
 
 → Report written to aws/ops/reports/latest/ops_4961_imf_grammar_probe.md
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4961_imf_grammar_probe.py", line 186, in <module>
+    R.kv(legacy_flows=n_leg, new_ids=n_new,
+                      ^^^^^
+NameError: name 'n_leg' is not defined. Did you mean: 'n_new'?
 ❌ OPS-FAIL: aws/ops/pending/ops_4961_imf_grammar_probe.py
