@@ -151,7 +151,7 @@ def lambda_handler(event, context):
     s3 = boto3.client("s3")
     started = time.time()
 
-    # ops 4968 live-delta: probe-verified CIK overrides — written only by
+    # live-delta ops4968: probe-verified CIK overrides — written only by
     # ops scripts after an EDGAR probe proves the roster CIK is stale or
     # the entity deregistered. Both sec-13f and 13f-positions read the
     # same key so the two layers can never disagree on who a fund is.
