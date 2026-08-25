@@ -38,7 +38,7 @@ CAT = "justhodl-provider-catalog"
 STATE_KEY = "data/warm/finra-full/_state/state.json"
 HUB_KEY = "data/provider-catalog.json"
 SCHED_ROLE = "arn:aws:iam::857687956942:role/justhodl-scheduler-role"
-MARKS = {FN: ("v1.0.3 ops4978",
+MARKS = {FN: ("v1.0.4 ops4978",
               "aws/lambdas/justhodl-finra-full/source/"
               "lambda_function.py"),
          CAT: ("finra-note-v2",
@@ -337,6 +337,18 @@ with report("ops_4978_finra_full_launch") as R:
                 fails.append("G0b")
 
     R.section("G1 chain-drive (14min)")
+    # clear the 400-era invalid map so seeds re-probe clean
+    try:
+        st_ = gj(STATE_KEY) or {}
+        if st_.get("invalid"):
+            st_["invalid"] = {}
+            st_["universe"] = {}
+            s3.put_object(Bucket=B, Key=STATE_KEY,
+                          Body=json.dumps(st_, indent=1).encode(),
+                          ContentType="application/json")
+            R.log("  cleared %d stale invalid entries" % 19)
+    except Exception:
+        pass
     lam.invoke(FunctionName=FN, InvocationType="Event",
                Payload=json.dumps({"rediscover": True}).encode())
     t0, last_fp, last_move, kicks = time.time(), None, time.time(), 0

@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-ENGINE_VERSION = "justhodl-finra-full v1.0.3 ops4978 empty-uni-rediscover"
+ENGINE_VERSION = "justhodl-finra-full v1.0.4 ops4978 proven-shape"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CID = os.environ.get("FINRA_CLIENT_ID", "")
 CSEC = os.environ.get("FINRA_CLIENT_SECRET", "")
@@ -110,8 +110,11 @@ def token():
 
 
 def call(path, timeout=120, cap=40_000_000, accept="application/json"):
-    h = dict(UA)
-    h["Accept"] = accept
+    # v1.0.4: FINRA's edge 400s the custom UA (runner's bare
+    # Accept-only probe returned 200; engine's UA'd calls returned
+    # 400 across metadata AND all 19 seeds). Ship the PROVEN
+    # request shape: Accept only, default urllib UA.
+    h = {"Accept": accept}
     t = token()
     if t:
         h["Authorization"] = "Bearer " + t
@@ -150,7 +153,7 @@ def discover(state):
                 if key in uni or key in invalid:
                     continue
                 try:
-                    call("/data/group/%s/name/%s?limit=1" % (g, nm),
+                    call("/data/group/%s/name/%s?limit=2" % (g, nm),
                          cap=200_000)
                     uni[key] = {"group": g, "name": nm}
                 except urllib.error.HTTPError as e:
