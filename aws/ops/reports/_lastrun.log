@@ -1,56 +1,10 @@
-executing-against: ae9198c264af571523874e408ce9e603604ca639
+executing-against: 61dacfb121b3951883701b57d1ec990f6a43eb67
 ── G-1 markers ──
-[15:25:41]   ok justhodl-boe-full      'v1.0.0 ops4977'
-[15:25:41]   ok justhodl-provider-catalog 'boe-note-v2'
-── G0 settle ──
-[15:25:42]   justhodl-boe-full settled (0s)
-[15:25:42]   justhodl-provider-catalog settled (0s)
-[15:25:42] G0 PASS
-── G0b rate(12 hours) ──
-[15:25:43] G0b created
-── G1 run ──
-[15:26:14]   t+  30s zips=0 iadb_ok=0 fail=0
-[15:26:44]   t+  60s zips=11 iadb_ok=0 fail=36
-[15:27:14]   t+  90s zips=11 iadb_ok=0 fail=36
-[15:27:44]   t+ 121s zips=11 iadb_ok=0 fail=36
-[15:28:15]   t+ 151s zips=11 iadb_ok=0 fail=36
-[15:28:45]   t+ 181s zips=11 iadb_ok=0 fail=36
-[15:29:15]   t+ 212s zips=11 iadb_ok=0 fail=36
-[15:29:46]   t+ 242s zips=11 iadb_ok=0 fail=36
-[15:30:16]   t+ 272s zips=11 iadb_ok=0 fail=36
-[15:30:46]   t+ 303s zips=11 iadb_ok=0 fail=36
-[15:31:17]   t+ 333s zips=11 iadb_ok=0 fail=36
-[15:31:47]   t+ 363s zips=11 iadb_ok=0 fail=36
-[15:32:17]   t+ 394s zips=11 iadb_ok=0 fail=36
-[15:32:48]   t+ 424s zips=11 iadb_ok=0 fail=36
-[15:33:18]   t+ 454s zips=11 iadb_ok=0 fail=36
-[15:33:48]   t+ 485s zips=11 iadb_ok=0 fail=36
-[15:34:19]   t+ 515s zips=11 iadb_ok=0 fail=36
-[15:34:49]   t+ 545s zips=11 iadb_ok=0 fail=36
-[15:35:19]   t+ 575s zips=11 iadb_ok=0 fail=36
-[15:35:49]   t+ 606s zips=11 iadb_ok=0 fail=36
-[15:36:20]   t+ 636s zips=11 iadb_ok=0 fail=36
-[15:36:50]   t+ 666s zips=11 iadb_ok=0 fail=36
-[15:37:20]   t+ 697s zips=11 iadb_ok=0 fail=36
-[15:37:51]   t+ 727s zips=11 iadb_ok=0 fail=36
-[15:38:21]   t+ 757s zips=11 iadb_ok=0 fail=36
-[15:38:51]   t+ 788s zips=11 iadb_ok=0 fail=36
-[15:38:51]     fail iadb:IUDSOIA: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-[15:38:51]     fail iadb:IUDBEDR: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-[15:38:51]     fail iadb:XUDLUSS: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-[15:38:51]     fail iadb:XUDLERS: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-[15:38:51]     fail iadb:XUDLJYS: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-[15:38:51]     fail iadb:XUDLSFS: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-[15:38:51]     fail iadb:XUDLCDS: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-[15:38:51]     fail iadb:XUDLADS: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-[15:38:51] G1 FAIL zips=11 131MB iadb_ok=0/36
-── G2 substance ──
-[15:38:52]   sonia err An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does
-[15:38:53]   blcnomddata.zip members=5 sample=['BLC Nominal daily data_2016 to 2021.xlsx', 'BLC Nominal daily data_1990 to 1994.xlsx']
-[15:38:53] G2 FAIL
-── G3 card ──
-[15:44:57] G3 PASS note=FULL warehouse (boe-full v1): 11 curve zips 131MB (daily curves since 1970) · 0 IADB codes full-window · 0 rows · 36 named failures
-[15:44:57] ops 4977 RED: G1; G2
+[15:45:31]   ok justhodl-finra-full    'v1.0.0 ops4978'
+[15:45:31]   ok justhodl-provider-catalog 'finra-note-v2'
+── P0 credential hunt + runner proof ──
+[15:45:40]   resolved: client_id=False secret=False apikey=False
+[15:45:40] G0 FAIL: no working FINRA credentials found in fleet envs -- name where the key lives and I wire it in
 
-→ Report written to aws/ops/reports/latest/ops_4977_boe_full_launch.md
-❌ OPS-FAIL: aws/ops/pending/ops_4977_boe_full_launch.py
+→ Report written to aws/ops/reports/latest/ops_4978_finra_full_launch.md
+❌ OPS-FAIL: aws/ops/pending/ops_4978_finra_full_launch.py
