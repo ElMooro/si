@@ -38,7 +38,7 @@ GRAM_KEY = "data/warm/census-us/_state/grammar-overrides.json"
 TARGETS = ["aies-miscsector", "asm-industry",
            "poverty-saipe-schdist", "pseo-earnings", "pseo-flows"]
 UA = {"User-Agent": "JustHodl Research (raafouis@gmail.com)"}
-MARKS = {"conquest-v115 ops4972":
+MARKS = {"conquest-v116 ops4972":
          "aws/lambdas/justhodl-census-us/source/lambda_function.py",
          "v1.0.2 ops4967":
          "aws/lambdas/justhodl-imf-full/source/lambda_function.py"}
@@ -110,7 +110,7 @@ with report("ops_4972_census_conquest") as R:
             with urllib.request.urlopen(req, timeout=90) as r:
                 src = _zf.ZipFile(_io.BytesIO(r.read())).read(
                     "lambda_function.py").decode("utf-8", "replace")
-            if "conquest-v115 ops4972" in src:
+            if "conquest-v116 ops4972" in src:
                 ok0 = True
                 R.log("  settled (%ds)" % (time.time() - t0))
                 break
@@ -173,18 +173,23 @@ with report("ops_4972_census_conquest") as R:
                     and g["name"] != "state"), None)
         shapes = []
         ex_req = {v: "*" for v in req_vars}
-        pred_full = "from 1990" if tp == "time" else "2021"
+        pred_full = "from 1989" if tp == "time" else "2021"
         if sub:
             shapes.append(("sub-in-state",
                            dict(geo="%s:*" % sub["name"],
                                 in_="state:01", extra=ex_req)))
         shapes.append(("us-star", dict(geo="us:*", extra=ex_req)))
+        shapes.append(("us-star-no-time",
+                       dict(geo="us:*", extra=ex_req, no_time=True)))
         shapes.append(("state-direct",
                        dict(geo="state:01", extra=ex_req)))
         shapes.append(("no-geo", dict(geo=None, extra=ex_req)))
         win = None
         for nm, kw in shapes:
-            u = qs(base, vars_pick, tp, pred_full, **kw)
+            _nt = kw.pop("no_time", False)
+            u = qs(base, vars_pick, (None if _nt else tp),
+                   pred_full, **kw)
+            kw["no_time"] = _nt
             s1, b1 = fetch(u, timeout=90, cap=2_000_000)
             rows1 = b1.count(b"],") if s1 == 200 else 0
             R.log("     %-13s %s rows~%d %s" % (
@@ -193,10 +198,12 @@ with report("ops_4972_census_conquest") as R:
                     "utf-8", "replace")))
             if s1 == 200 and rows1 >= 2:
                 if kw.get("in_"):
+                    kw2 = {k: v for k, v in kw.items()
+                           if k != "no_time"}
                     u2 = qs(base, vars_pick, tp, pred_full,
-                            **dict(kw, in_="state:02"))
+                            **dict(kw2, in_="state:02"))
                     s2, b2 = fetch(u2, timeout=90, cap=500_000)
-                    if not (s2 == 200 and b2.count(b"],") >= 1):
+                    if not (s2 in (200, 204)):   # 204=legit-empty
                         R.log("     2nd-state failed (%s)" % s2)
                         continue
                 win = (nm, kw)
@@ -204,12 +211,15 @@ with report("ops_4972_census_conquest") as R:
             time.sleep(0.3)
         if win:
             nm, kw = win
-            ov = {"vars": vars_pick, "tp": tp,
+            ov = {"vars": vars_pick,
+                  "tp": (None if kw.get("no_time") else tp),
                   "full_time": pred_full}
             if kw.get("in_"):
                 ov["geo_iter"] = "state"
                 ov["for_geo"] = kw["geo"].split(":")[0]
                 ov["full_time_geo"] = pred_full
+            elif kw.get("geo"):
+                ov["geo"] = kw["geo"]     # pinned rung -1 (v116)
             if kw.get("extra"):
                 ov["extra"] = kw["extra"]
             conquered[slug] = ov

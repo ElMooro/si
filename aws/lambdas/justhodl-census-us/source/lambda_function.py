@@ -1,4 +1,4 @@
-"""justhodl-census-us v1.1.5 -- US Census Bureau timeseries walker, FULL universe. conquest-v115 ops4972
+"""justhodl-census-us v1.1.6 -- US Census Bureau timeseries walker, FULL universe. conquest-v116 ops4972
 
 v1.0.0 (ops 4944-45) drained the EITS family complete since inception
 (21 datasets, 2.08M rows). Khalid (2026-08-23): "there is no way all of
@@ -296,11 +296,18 @@ def get_vars(url, slug=None):
     return (usable[:20] or None), tp, has_year
 
 
-def q(url, getlist, pred, geo, tp):
-    parts = ["get=" + ",".join(getlist),
-             (tp or "time") + "=" + urllib.parse.quote_plus(pred)]
+def q(url, getlist, pred, geo, tp, extra=None):
+    # conquest-v116: tp may be None (PSEO-class -- the time axis is a
+    # regular wildcarded predicate, no time= param exists); extra =
+    # fixed predicate wildcards (NAICS/PBA/CIPCODE...)
+    parts = ["get=" + ",".join(getlist)]
+    if tp is not None:
+        parts.append(tp + "=" + urllib.parse.quote_plus(pred))
     if geo:
         parts.append("for=" + urllib.parse.quote_plus(geo))
+    for _k, _v in (extra or {}).items():
+        parts.append(urllib.parse.quote_plus(_k) + "=" +
+                     urllib.parse.quote_plus(_v))
     if KEY:
         parts.append("key=" + KEY)
     return url + "?" + "&".join(parts)
@@ -334,6 +341,29 @@ def drain_one(slug, state, ctx):
             return True
     tp = ds.get("tp") or "time"
     ov = _ov(slug)
+    if "tp" in ov:
+        tp = ov["tp"]                     # may be None (PSEO-class)
+    # conquest-v116 rung -1: probe-pinned single geo (us:* etc) with
+    # extra predicate wildcards -- one full-window shot, verbatim
+    if ov.get("geo"):
+        ds["mode"] = "ov_geo"
+        _u = q(url, ov.get("vars") or ds["vars"],
+               (ov.get("full_time") or "from 1900").format(
+                   cur=_now().year),
+               ov["geo"], tp, extra=ov.get("extra"))
+        st_, text = http_get(_u, timeout=120)
+        rows = parse_rows(text) if st_ == 200 else None
+        if rows and len(rows) > 1:
+            ds["rows"] = bank(ROOT + slug + "/full.json.gz", rows)
+            ds["seen_data"] = ds["ok"] = True
+            y0, y1 = year_span(rows, tp or "YEAR")
+            ds["y0"], ds["y1"] = y0, y1
+            state["failures"].pop(slug, None)
+            return True
+        state["failures"][slug] = (
+            "ov_geo shot refused (HTTP %s) %s" % (
+                st_, (text or "")[:90]))
+        return True
     t_full = (ov.get("full_time") or "from 1900").format(cur=_now().year)
     y_fmt = ov.get("year_time")
 
@@ -351,7 +381,7 @@ def drain_one(slug, state, ctx):
                     ds["resume_geo"] = i
                     return False
                 code = STATE_FIPS[i]
-                # conquest-v115 ops4972: overrides may redirect the
+                # conquest-v116 ops4972: overrides may redirect the
                 # per-state rung to a finer FOR-geo iterated within
                 # each state (school district / institution), plus
                 # fixed extra predicates (sector/NAICS wildcards)
@@ -367,6 +397,10 @@ def drain_one(slug, state, ctx):
                         urllib.parse.quote_plus(_k),
                         urllib.parse.quote_plus(_v))
                 st, text = http_get(_u, timeout=120)
+                if st == 204:
+                    gr[code] = 0          # legit-empty state (v116)
+                    i += 1
+                    continue
                 rows = parse_rows(text) if st == 200 else None
                 if rows:
                     n = bank(ROOT + slug + "/geo/%s.json.gz" % code,
@@ -522,6 +556,10 @@ def refresh(state, ctx):
                     q(url, ds["vars"],
                       (ovr.get("full_time") or "from 1900").format(cur=_now().year),
                       "state:" + code, tp), timeout=120)
+                if st == 204:
+                    gr[code] = 0          # legit-empty state (v116)
+                    i += 1
+                    continue
                 rows = parse_rows(text) if st == 200 else None
                 if rows:
                     gr[code] = bank(
@@ -546,6 +584,10 @@ def refresh(state, ctx):
                 st, text = http_get(q(url, ds["vars"],
                                       yf.format(y=y) if yf else str(y),
                                       VARIANTS[vi], tp))
+                if st == 204:
+                    gr[code] = 0          # legit-empty state (v116)
+                    i += 1
+                    continue
                 rows = parse_rows(text) if st == 200 else None
                 if rows:
                     bank(ROOT + slug + "/slices/%d.json.gz" % y, rows)
