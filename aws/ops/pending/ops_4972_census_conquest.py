@@ -69,8 +69,9 @@ def fetch(url, timeout=60, cap=3_000_000):
 
 
 def qs(base, vars_, tp, pred, geo=None, in_=None, extra=None):
-    parts = ["get=" + ",".join(vars_),
-             tp + "=" + urllib.parse.quote_plus(pred)]
+    parts = ["get=" + ",".join(vars_)]
+    if tp is not None:
+        parts.append(tp + "=" + urllib.parse.quote_plus(pred))
     if geo:
         parts.append("for=" + urllib.parse.quote_plus(geo))
     if in_:

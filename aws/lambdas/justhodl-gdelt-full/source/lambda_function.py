@@ -34,7 +34,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-ENGINE_VERSION = "justhodl-gdelt-full v1.0.0 ops4965 cursor"
+ENGINE_VERSION = "justhodl-gdelt-full v1.0.1 ops4973 v1-index"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 V2 = "http://data.gdeltproject.org/gdeltv2/"
 V1IDX = "http://data.gdeltproject.org/events/index.html"
@@ -131,9 +131,12 @@ def load_v1_queue(state):
     req = urllib.request.Request(V1IDX, headers=UA)
     with urllib.request.urlopen(req, timeout=120) as r:
         html = r.read(8_000_000).decode("utf-8", "replace")
+    # v1.0.1 ops4973: live index hrefs didn't match the strict
+    # quoted pattern (4962 counted 9,740 on this same page) --
+    # capture bare filenames anywhere in the HTML instead
     names = sorted(set(re.findall(
-        r'href="((?:\d{4}|\d{6}|\d{8})\.(?:export\.CSV\.zip|zip))"',
-        html)))
+        r'\b(\d{4}(?:\d{2})?(?:\d{2})?'
+        r'(?:\.export\.CSV\.zip|\.zip))', html)))
     q = {"names": names, "idx": 0, "as_of": _now().isoformat(
         timespec="seconds")}
     s3.put_object(Bucket=BUCKET, Key=V1Q_KEY,
