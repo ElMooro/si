@@ -38,7 +38,7 @@ CAT = "justhodl-provider-catalog"
 STATE_KEY = "data/warm/finra-full/_state/state.json"
 HUB_KEY = "data/provider-catalog.json"
 SCHED_ROLE = "arn:aws:iam::857687956942:role/justhodl-scheduler-role"
-MARKS = {FN: ("v1.0.0 ops4978",
+MARKS = {FN: ("v1.0.1 ops4978",
               "aws/lambdas/justhodl-finra-full/source/"
               "lambda_function.py"),
          CAT: ("finra-note-v2",
@@ -185,6 +185,13 @@ with report("ops_4978_finra_full_launch") as R:
                          it.get("service") or {}).get("S", "?")
                         for it in items})[:30]))
             for it in items:
+                _nm = next((v.get("S") for k, v in it.items()
+                            if k.lower() in ("provider", "name",
+                                             "service", "id",
+                                             "pk", "key_name")
+                            and v.get("S")), "?")
+                R.log("    vault item: %s (attrs %s)" % (
+                    _nm, sorted(it)[:6]))
                 blob = json.dumps(it).lower()
                 if "finra" not in blob:
                     continue
@@ -238,10 +245,27 @@ with report("ops_4978_finra_full_launch") as R:
         except Exception as e:
             R.log("  token mint FAILED: %s" % str(e)[:120])
     if not tok and not akey:
-        R.log("G0 FAIL: no working FINRA credentials found in "
-              "fleet envs -- name where the key lives and I wire "
-              "it in")
-        sys.exit(1)
+        # keyless PUBLIC-tier probe before giving up
+        try:
+            req = urllib.request.Request(
+                "https://api.finra.org/data/group/otcMarket/name/"
+                "weeklySummary?limit=2",
+                headers={"Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=45) as r:
+                body = r.read(200_000)
+            js = json.loads(body)
+            n = len(js) if isinstance(js, list) else                 len(js.get("data") or [])
+            R.log("  PUBLIC-tier probe: 200, %d rows -- "
+                  "proceeding KEYLESS (creds upgrade later)" % n)
+            if n < 1:
+                raise RuntimeError("empty public response")
+        except Exception as e:
+            R.log("G0 FAIL: no creds anywhere AND public tier "
+                  "refused (%s). The vault holds 14 items, none "
+                  "FINRA -- paste the client_id/secret or add a "
+                  "provider=finra item to justhodl-api-keys and "
+                  "rerun." % str(e)[:90])
+            sys.exit(1)
     if tok:
         try:
             req = urllib.request.Request(
