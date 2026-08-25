@@ -1,8 +1,8 @@
 ## G-1 markers
 
 **Status:** failure  
-**Duration:** 1259.6s  
-**Finished:** 2026-08-25T16:36:04+00:00  
+**Duration:** 1277.3s  
+**Finished:** 2026-08-25T17:06:52+00:00  
 
 ## Error
 
@@ -11,53 +11,54 @@ SystemExit: 1
 ```
 
 ## Log
-- `16:15:04`   ok justhodl-finra-full    'v1.0.1 ops4978'
-- `16:15:04`   ok justhodl-provider-catalog 'finra-note-v2'
+- `16:45:35`   ok justhodl-finra-full    'v1.0.2 ops4978'
+- `16:45:35`   ok justhodl-provider-catalog 'finra-note-v2'
 ## P0 credential hunt + runner proof
 
-- `16:15:19`   keys-table env on justhodl-api-keys-admin -> justhodl-api-keys
-- `16:15:20`   dynamo scan: 14 items; providers=['?']
-- `16:15:20`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'tier'])
-- `16:15:20`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
-- `16:15:20`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
-- `16:15:20`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
-- `16:15:20`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
-- `16:15:20`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'owner_email', 'revoked_at', 'tier'])
-- `16:15:20`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
-- `16:15:20`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
-- `16:15:20`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
-- `16:15:20`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
-- `16:15:20`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
-- `16:15:20`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
-- `16:15:20`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'owner_email', 'revoked_at', 'tier'])
-- `16:15:20`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'tier'])
-- `16:15:27`   fleet credential-shaped env names: ['ADMIN_TOKEN_SSM', 'ALPHAVANTAGE_API_KEY', 'ALPHAVANTAGE_KEY', 'ALPHA_VANTAGE_KEY', 'ANTHROPIC_API_KEY', 'ANTHROPIC_KEY', 'ANTHROPIC_KEY_SSM', 'AV_KEY', 'BEA_API_KEY', 'BEA_KEY', 'BLS_API_KEY', 'BLS_KEY', 'CENSUS_API_KEY', 'CENSUS_KEY', 'CMC_API_KEY', 'CMC_KEY', 'DESK_KEY', 'EIA_API_KEY', 'FEEDBACK_AUTH_TOKEN', 'FMP_API_KEY', 'FMP_KEY', 'FRED_API_KEY', 'FRED_KEY', 'GITHUB_TOKEN_SSM', 'INGEST_TOKEN', 'JUSTHODL_API_KEYS_TABLE', 'NASDAQ_API_KEY', 'NEWSAPI_KEY', 'NEWS_API_KEY', 'NEWS_KEY', 'NQ_PROXY_KEY', 'OUT_KEY', 'PJM_API_KEY', 'POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY', 'S3_FILINGS_KEY', 'S3_INPUT_KEY', 'S3_KEY', 'S3_KEY_DIVERGENCE', 'S3_KEY_HISTORY', 'S3_KEY_NOWCAST', 'S3_KEY_OUT', 'S3_KEY_ROTATION', 'S3_KEY_STATE', 'S3_KEY_STATS', 'S3_KEY_TRADES', 'S3_OUTPUT_KEY', 'SIGNAL_BOARD_KEY', 'SSM_TOKEN_PATH', 'STATE_KEY', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN', 'TE_API_KEY', 'TG_TOKEN_PARAM', 'TIINGO_API_KEY', 'TOKEN', 'TREASURY_KEY']
-- `16:15:27`   resolved: client_id=False secret=False apikey=False
-- `16:15:27`   PUBLIC-tier probe: 200, 2 rows -- proceeding KEYLESS (creds upgrade later)
+- `16:45:39`   donor justhodl-finra-full                ['FINRA_CLIENT_ID', 'FINRA_CRED_EXPIRES']
+- `16:45:52`   keys-table env on justhodl-api-keys-admin -> justhodl-api-keys
+- `16:45:52`   dynamo scan: 15 items; providers=['?', 'finra']
+- `16:45:52`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'tier'])
+- `16:45:52`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
+- `16:45:52`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
+- `16:45:52`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
+- `16:45:52`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
+- `16:45:52`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'owner_email', 'revoked_at', 'tier'])
+- `16:45:52`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
+- `16:45:52`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
+- `16:45:52`     vault item: finra (attrs ['client_id', 'expires', 'key_hash', 'note', 'provider'])
+- `16:45:52`   FINRA item attrs=['key_hash', 'provider', 'note', 'expires', 'client_id']
+- `16:45:52`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
+- `16:45:52`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
+- `16:45:52`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
+- `16:45:52`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'revoked_at'])
+- `16:45:52`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'owner_email', 'revoked_at', 'tier'])
+- `16:45:52`     vault item: ? (attrs ['created_at', 'key_hash', 'label', 'last_used_at', 'owner_email', 'tier'])
+- `16:46:00`   fleet credential-shaped env names: ['ADMIN_TOKEN_SSM', 'ALPHAVANTAGE_API_KEY', 'ALPHAVANTAGE_KEY', 'ALPHA_VANTAGE_KEY', 'ANTHROPIC_API_KEY', 'ANTHROPIC_KEY', 'ANTHROPIC_KEY_SSM', 'AV_KEY', 'BEA_API_KEY', 'BEA_KEY', 'BLS_API_KEY', 'BLS_KEY', 'CENSUS_API_KEY', 'CENSUS_KEY', 'CMC_API_KEY', 'CMC_KEY', 'DESK_KEY', 'EIA_API_KEY', 'FEEDBACK_AUTH_TOKEN', 'FINRA_CLIENT_ID', 'FMP_API_KEY', 'FMP_KEY', 'FRED_API_KEY', 'FRED_KEY', 'GITHUB_TOKEN_SSM', 'INGEST_TOKEN', 'JUSTHODL_API_KEYS_TABLE', 'NASDAQ_API_KEY', 'NEWSAPI_KEY', 'NEWS_API_KEY', 'NEWS_KEY', 'NQ_PROXY_KEY', 'OUT_KEY', 'PJM_API_KEY', 'POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY', 'S3_FILINGS_KEY', 'S3_INPUT_KEY', 'S3_KEY', 'S3_KEY_DIVERGENCE', 'S3_KEY_HISTORY', 'S3_KEY_NOWCAST', 'S3_KEY_OUT', 'S3_KEY_ROTATION', 'S3_KEY_STATE', 'S3_KEY_STATS', 'S3_KEY_TRADES', 'S3_OUTPUT_KEY', 'SIGNAL_BOARD_KEY', 'SSM_TOKEN_PATH', 'STATE_KEY', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN', 'TE_API_KEY', 'TG_TOKEN_PARAM', 'TIINGO_API_KEY', 'TOKEN', 'TREASURY_KEY']
+- `16:46:00`   resolved: client_id=True secret=False apikey=False
+- `16:46:00`   PUBLIC-tier probe: 200, 2 rows -- proceeding KEYLESS (creds upgrade later)
 ## G0 settle + env
 
-- `16:15:27`   justhodl-finra-full settled (0s)
-- `16:15:28`   justhodl-provider-catalog settled (0s)
-- `16:15:28`   env creds injected post-create
-- `16:15:48` G0 PASS
+- `16:46:01`   justhodl-finra-full settled (0s)
+- `16:46:01`   justhodl-provider-catalog settled (0s)
+- `16:46:01` G0 PASS
 ## G0b schedules
 
-- `16:15:48`   created justhodl-finra-full-6h
-- `16:15:48`   created justhodl-finra-full-weekly
+- `16:46:02`   exists justhodl-finra-full-6h
+- `16:46:02`   exists justhodl-finra-full-weekly
 ## G1 chain-drive (14min)
 
-- `16:15:48`   t+   0s None banked=0 rows=0 q=0 cat=0 inv=0 fail=0
-- `16:16:14`   t+  25s DRAIN banked=0 rows=0 q=0 cat=0 inv=0 fail=2
-- `16:19:35`   chain restart kick #1
-- `16:22:55`   chain restart kick #2
-- `16:26:16`   chain restart kick #3
-- `16:29:37`   chain restart kick #4
-- `16:30:02` G1 FAIL phase=DRAIN banked=0/0 rows=0
+- `16:46:02`   t+   0s DRAIN banked=0 rows=0 q=0 cat=0 inv=0 fail=2
+- `16:49:24`   chain restart kick #1
+- `16:52:45`   chain restart kick #2
+- `16:56:07`   chain restart kick #3
+- `16:59:29`   chain restart kick #4
+- `17:00:19` G1 FAIL phase=DRAIN banked=0/0 rows=0
 ## G2 substance: weekly history since <=2016
 
-- `16:30:02`   substance err An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
-- `16:30:02` G2 FAIL
+- `17:00:19`   substance err An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+- `17:00:19` G2 FAIL
 ## G3 finra card (NEW slug)
 
-- `16:36:04` G3 FAIL keys=2 note=FULL Query-API warehouse (finra-full v1): 0/0 datasets · 0 rows since inception · 0MB · phase DRAIN · daily rediscovery
-- `16:36:04` ops 4978 RED: G1; G2; G3
+- `17:06:52` G3 FAIL keys=2 note=FULL Query-API warehouse (finra-full v1): 0/0 datasets · 0 rows since inception · 0MB · phase DRAIN · daily rediscovery
+- `17:06:52` ops 4978 RED: G1; G2; G3
