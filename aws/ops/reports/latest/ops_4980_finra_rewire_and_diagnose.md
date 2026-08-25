@@ -1,0 +1,35 @@
+## P0 rewire to new client_id
+
+**Status:** success  
+**Duration:** 22.7s  
+**Finished:** 2026-08-25T17:35:54+00:00  
+
+## Data
+
+| banked | invalid | universe |
+|---|---|---|
+| 0 | 19 | 0 |
+
+## Log
+- `17:35:31`   vault: finra item -> new client_id
+- `17:35:32`   env: FINRA_CLIENT_ID -> new; stale secret cleared
+## P1 sync invoke with log tail
+
+- `17:35:53`   FunctionError=None
+- `17:35:53`   payload: {"ok": true, "phase": "DRAIN", "banked": 0, "rows": 0, "queue_left": 0, "chained": false, "elapsed_s": 0.4}
+- `17:35:53`   | START RequestId: a085706b-8caa-41f9-926f-76912ba38cd4 Version: $LATEST
+- `17:35:53`   | END RequestId: a085706b-8caa-41f9-926f-76912ba38cd4
+- `17:35:53`   | REPORT RequestId: a085706b-8caa-41f9-926f-76912ba38cd4	Duration: 411.14 ms	Billed Duration: 911 ms	Memory Size: 1024 MB	Max Memory Used: 98 MB	Init Du
+- `17:35:53`   | XRAY TraceId: 1-6a8dd278-087ac0f06af553de6e26c32a	SegmentId: c2e8cee73e9456ce	Sampled: true	
+## P2 state truth
+
+- `17:35:54`   phase=DRAIN universe=0 invalid=19 have=0 failures={"_meta_otcMarket": "metadata refused (HTTP Error 400: Bad Request) -> seed fallback", "_meta_fixedIncomeMarket": "metadata refused (HTTP Error 400: Bad Request) -> seed fallback"}
+- `17:35:54`     invalid otcMarket__weeklySummary: HTTP 400
+- `17:35:54`     invalid otcMarket__monthlySummary: HTTP 400
+- `17:35:54`     invalid otcMarket__blocksSummary: HTTP 400
+- `17:35:54`     invalid otcMarket__otcBlocksSummary: HTTP 400
+- `17:35:54`     invalid otcMarket__consolidatedShortInterest: HTTP 400
+- `17:35:54`     invalid otcMarket__regShoDaily: HTTP 400
+- `17:35:54`     invalid otcMarket__weeklyDownloadDetails: HTTP 400
+- `17:35:54`     invalid otcMarket__monthlyDownloadDetails: HTTP 400
+- `17:35:54` ops 4980 GREEN -- discovery moving; new client_id wired (activation + secret still pending on Khalid)
