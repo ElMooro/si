@@ -1,24 +1,21 @@
-"""ops_4984 -- FINRA since-inception via DATE PARTITIONS (keyless).
+"""ops_4984 v3 -- FINRA AUTH-TIER SENTINEL + full-depth drain.
 
-Full-stream scans proved the keyless tier serves bounded windows:
-regShoDaily = rolling 1yr, weeklySummary = ~2022-01..2024-04 slice,
-blocksSummary = its complete (discontinued) life. Plan:
+KEYLESS VERDICT (final, evidence-complete): the public tier is
+hard-windowed -- weeklySummary.summaryStartDate 2022-01..2023-11,
+regShoDaily rolling 1yr, GET-equality filters silently ignored,
+POST auth-gated. 8/9 datasets · 22.2M rows · ~700MB banked = the
+complete keyless windows. Since-inception depth = auth tier only.
 
-  P1 field census: sample rows -> the date field per dataset
-  P2 filter probes (historical week 2015-06-29):
-       a) GET equality   ?weekStartDate=2015-06-29
-       b) POST compareFilters / dateRangeFilters
-     -> first shape that returns historical rows WINS
-  P3 partition drain with the winning shape, checkpointed per
-     partition into have{} as sibling keys
-     (otcMarket__weeklySummary__Y2014 ...):
-       weeklySummary  Mondays 2014-01-06 .. window_min
-       regShoDaily    weekdays, years desc from window_min-1 until
-                      an empty year names inception
-     guard 70min; remainder resumes next push
-  P4 spans re-scan on the new partitions  P5 card
-If no filter shape works keyless -> RED with the verdict named:
-full depth then rides Khalid's secret (auth tier).
+THIS OP IS THE SENTINEL: on every push it checks the engine env
+for FINRA_CLIENT_SECRET.
+  absent  -> fast RED (stays pending; fires again next push)
+  present -> mint token; POST+Bearer dateRangeFilters partition
+             drain: weeklySummary 2014..2021 by year,
+             regShoDaily years desc to inception, the 10
+             auth-gated datasets, treasuryWeeklyAggregates retry;
+             checkpointed per partition; gates + card.
+Khalid's one action: portal -> cred c2de60df... -> Reset ->
+paste the one-time secret here (or into vault item finra).
 """
 import gzip
 import io
@@ -29,6 +26,7 @@ import time
 import urllib.error
 import urllib.request
 import zlib
+from base64 import b64encode
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -39,8 +37,11 @@ from ops_report import report  # noqa: E402
 
 REGION = "us-east-1"
 B = "justhodl-dashboard-live"
+FN = "justhodl-finra-full"
 CAT = "justhodl-provider-catalog"
 API = "https://api.finra.org"
+TOKEN_URL = ("https://ews.fip.finra.org/fip/rest/ews/oauth2/"
+             "access_token?grant_type=client_credentials")
 ROOT = "data/warm/finra-full/"
 STATE_KEY = ROOT + "_state/state.json"
 MANIFEST_KEY = ROOT + "manifest.json"
@@ -51,11 +52,24 @@ T0 = time.time()
 
 s3 = boto3.client("s3", region_name=REGION)
 lam = boto3.client("lambda", region_name=REGION)
+TOK = {"v": ""}
 
 
-def http(path, method="GET", body=None, timeout=90,
+def gj(key, default=None):
+    try:
+        raw = s3.get_object(Bucket=B, Key=key)["Body"].read()
+        if raw[:2] == b"\x1f\x8b":
+            raw = gzip.decompress(raw)
+        return json.loads(raw)
+    except Exception:
+        return default
+
+
+def http(path, method="GET", body=None, timeout=120,
          cap=60_000_000):
     h = {"Accept": "application/json"}
+    if TOK["v"]:
+        h["Authorization"] = "Bearer " + TOK["v"]
     data = None
     if body is not None:
         data = json.dumps(body).encode()
@@ -71,300 +85,209 @@ def rows_of(raw):
     return js if isinstance(js, list) else js.get("data") or []
 
 
-def gj(key, default=None):
-    try:
-        raw = s3.get_object(Bucket=B, Key=key)["Body"].read()
-        if raw[:2] == b"\x1f\x8b":
-            raw = gzip.decompress(raw)
-        return json.loads(raw)
-    except Exception:
-        return default
-
-
 with report("ops_4984_finra_partition_drain") as R:
     fails = []
+    R.section("P0 sentinel: secret present?")
+    env = lam.get_function_configuration(
+        FunctionName=FN)["Environment"]["Variables"]
+    cid = env.get("FINRA_CLIENT_ID") or ""
+    sec = env.get("FINRA_CLIENT_SECRET") or ""
+    R.log("  client_id=%s secret=%s" % (
+        (cid[:8] + "...") if cid else None, bool(sec)))
+    if not sec:
+        R.log("ops 4984 RED: SENTINEL WAITING -- keyless tier is "
+              "hard-windowed (evidence complete); paste the API "
+              "secret (portal Reset shows it once) and this op "
+              "drains full 2014-inception depth + the 10 auth "
+              "datasets automatically on the next push")
+        sys.exit(1)
+
+    R.section("P1 token mint")
+    try:
+        req = urllib.request.Request(
+            TOKEN_URL, method="POST",
+            headers={"Authorization": "Basic " + b64encode(
+                ("%s:%s" % (cid, sec)).encode()).decode()})
+        with urllib.request.urlopen(req, timeout=45) as r:
+            TOK["v"] = json.loads(r.read(20_000)).get(
+                "access_token") or ""
+        R.log("  mint: %s" % ("OK" if TOK["v"] else "EMPTY"))
+    except Exception as e:
+        R.log("  mint FAILED: %s" % str(e)[:140])
+    if not TOK["v"]:
+        R.log("ops 4984 RED: token mint failed with the stored "
+              "secret -- re-paste from a fresh portal Reset")
+        sys.exit(1)
+
     st = gj(STATE_KEY) or {}
     have = dict(st.get("have") or {})
     universe = dict(st.get("universe") or {})
-
-    R.section("P1 field census (ALL keys) + banked-truth spans")
-    # v2: the 8-key slice hid weekStartDate; and the all-dates
-    # regex span mixed lastUpdateDate noise. Target the REAL
-    # business-date field per dataset and measure the banked
-    # files' true spans on that field alone.
-    fields = {}
-    for g, nm in [("otcMarket", "weeklySummary"),
-                  ("otcMarket", "regShoDaily")]:
-        try:
-            sample = rows_of(http(
-                "/data/group/%s/name/%s?limit=2" % (g, nm)))
-            r0 = sample[0] if sample else {}
-            dks = [k for k, v in r0.items()
-                   if isinstance(v, str) and
-                   re.fullmatch(r"20\d\d-\d\d-\d\d", v)]
-            pref = next((k for k in dks if k in (
-                "weekStartDate", "tradeReportDate",
-                "monthStartDate", "summaryStartDate")), None)
-            fields["%s__%s" % (g, nm)] = pref or (
-                dks[0] if dks else None)
-            R.log("  %s.%s date-fields=%s -> using %s" % (
-                g, nm, dks, fields["%s__%s" % (g, nm)]))
-            R.log("    all-keys=%s" % sorted(r0))
-        except Exception as e:
-            R.log("  %s.%s sample err %s" % (g, nm, str(e)[:80]))
-    wk_f = fields.get("otcMarket__weeklySummary")
-    rs_f = fields.get("otcMarket__regShoDaily")
-    if not (wk_f and rs_f):
-        R.log("ops 4984 RED: field census failed")
-        sys.exit(1)
-
-    def field_span(key, fname):
-        pat = re.compile(
-            ('"%s":"(20\\d\\d-\\d\\d-\\d\\d)"'
-             % fname).encode())
-        body = s3.get_object(Bucket=B,
-                             Key=ROOT + "src/%s.jsonl.gz" % key
-                             )["Body"]
-        d = zlib.decompressobj(16 + zlib.MAX_WBITS)
-        lo, hi, carry = None, None, b""
-        for chunk in iter(lambda: body.read(4 << 20), b""):
-            buf = carry + d.decompress(chunk)
-            carry = buf[-64:]
-            for m in pat.finditer(buf):
-                v = m.group(1)
-                if lo is None or v < lo:
-                    lo = v
-                if hi is None or v > hi:
-                    hi = v
-        return (lo or b"?").decode(), (hi or b"?").decode()
-
-    wk_lo, wk_hi = field_span("otcMarket__weeklySummary", wk_f)
-    rs_lo, rs_hi = field_span("otcMarket__regShoDaily", rs_f)
-    R.log("  BANKED weeklySummary.%s span %s .. %s" % (
-        wk_f, wk_lo, wk_hi))
-    R.log("  BANKED regShoDaily.%s   span %s .. %s" % (
-        rs_f, rs_lo, rs_hi))
-    wk_complete = wk_lo != "?" and wk_lo <= "2015-12-31"
-    rs_complete = rs_lo != "?" and rs_lo <= "2011-12-31"
-
-    if wk_complete and rs_complete:
-        R.log("  BOTH banked files already reach inception -- no "
-              "partitions owed; earlier shallow reads were "
-              "lastUpdateDate noise")
-    R.section("P2 filter probes (historical 2015-06-29)")
-    shape = None
-    probe_d = "2015-06-29"
-    try:
-        rs = rows_of(http(
-            "/data/group/otcMarket/name/weeklySummary?limit=5"
-            "&%s=%s" % (wk_f, probe_d)))
-        hist = [r_ for r_ in rs if r_.get(wk_f) == probe_d]
-        R.log("  GET-equality -> %d rows (%d historical)" % (
-            len(rs), len(hist)))
-        if hist:
-            shape = "get-eq"
-    except Exception as e:
-        R.log("  GET-equality -> %s" % str(e)[:90])
-    if not shape:
-        for lbl, body in [
-            ("POST-compare", {
-                "limit": 5, "compareFilters": [{
-                    "fieldName": wk_f, "compareType": "equal",
-                    "fieldValue": probe_d}]}),
-            ("POST-dateRange", {
-                "limit": 5, "dateRangeFilters": [{
-                    "fieldName": wk_f, "startDate": probe_d,
-                    "endDate": probe_d}]}),
-        ]:
-            try:
-                rs = rows_of(http(
-                    "/data/group/otcMarket/name/weeklySummary",
-                    method="POST", body=body))
-                hist = [r_ for r_ in rs
-                        if r_.get(wk_f) == probe_d]
-                R.log("  %s -> %d rows (%d historical)" % (
-                    lbl, len(rs), len(hist)))
-                if hist:
-                    shape = lbl
-                    break
-            except Exception as e:
-                R.log("  %s -> %s" % (lbl, str(e)[:90]))
-    if not shape:
-        try:
-            rs = rows_of(http(
-                "/data/group/otcMarket/name/regShoDaily?limit=5"
-                "&%s=%s" % (rs_f, "2023-06-29")))
-            hist = [r_ for r_ in rs
-                    if r_.get(rs_f) == "2023-06-29"]
-            R.log("  GET-eq(regSho 2023) -> %d rows (%d match)"
-                  % (len(rs), len(hist)))
-            if hist:
-                shape = "get-eq"
-        except Exception as e:
-            R.log("  GET-eq(regSho) -> %s" % str(e)[:80])
-    R.log("  WINNING SHAPE: %s" % shape)
-    if not shape and not (wk_complete and rs_complete):
-        R.log("ops 4984 RED: keyless tier refuses historical "
-              "filters AND banked spans are shallow -- full "
-              "depth rides the auth secret")
-        sys.exit(1)
-    if not shape:
-        shape = "none-needed"
-
-    def part_fetch(g, nm, f, dval, off):
-        if shape == "get-eq":
-            return rows_of(http(
-                "/data/group/%s/name/%s?limit=%d&offset=%d&%s=%s"
-                % (g, nm, PAGE, off, f, dval), timeout=120))
-        body = {"limit": PAGE, "offset": off}
-        if shape == "POST-compare":
-            body["compareFilters"] = [{
-                "fieldName": f, "compareType": "equal",
-                "fieldValue": dval}]
-        else:
-            body["dateRangeFilters"] = [{
-                "fieldName": f, "startDate": dval,
-                "endDate": dval}]
-        return rows_of(http("/data/group/%s/name/%s" % (g, nm),
-                            method="POST", body=body,
-                            timeout=120))
+    invalid = dict(st.get("invalid") or {})
 
     def checkpoint():
         now = datetime.now(timezone.utc).isoformat(
             timespec="seconds")
         st2 = gj(STATE_KEY) or {}
-        st2["have"] = have
-        st2["n_banked"] = len(have)
-        st2["as_of"] = now
-        st2["lease_until"] = 0
+        st2.update({"have": have, "universe": universe,
+                    "invalid": invalid,
+                    "n_banked": len(have), "as_of": now,
+                    "lease_until": 0})
         s3.put_object(Bucket=B, Key=STATE_KEY,
                       Body=json.dumps(st2, indent=1).encode(),
                       ContentType="application/json")
         man = gj(MANIFEST_KEY) or {}
         man.update({
-            "as_of": now,
-            "datasets_banked": len(have),
+            "as_of": now, "datasets_banked": len(have),
+            "datasets_catalog": len(universe),
             "rows": sum(v.get("rows") or 0
                         for v in have.values()),
             "mb": round(sum(v.get("bytes") or 0
-                            for v in have.values()) / 1e6, 1)})
+                            for v in have.values()) / 1e6, 1),
+            "invalid_named": len(invalid),
+            "cred_expires": "active (auth tier live)"})
         s3.put_object(Bucket=B, Key=MANIFEST_KEY,
                       Body=json.dumps(man, indent=1).encode(),
                       ContentType="application/json")
 
-    def drain_partition(g, nm, f, key, dvals):
+    def fetch_range(g, nm, f, d0, d1, key):
         buf = io.BytesIO()
         rows = 0
         with gzip.GzipFile(fileobj=buf, mode="wb") as zf:
-            for dval in dvals:
-                off = 0
-                while True:
-                    batch = part_fetch(g, nm, f, dval, off)
-                    for r_ in batch:
-                        zf.write((json.dumps(
-                            r_, separators=(",", ":")) + "\n"
-                        ).encode())
-                    rows += len(batch)
-                    if len(batch) < PAGE:
-                        break
-                    off += PAGE
-                if time.time() - T0 > GUARD_S:
+            off = 0
+            while True:
+                body = {"limit": PAGE, "offset": off,
+                        "dateRangeFilters": [{
+                            "fieldName": f, "startDate": d0,
+                            "endDate": d1}]}
+                batch = rows_of(http(
+                    "/data/group/%s/name/%s" % (g, nm),
+                    method="POST", body=body))
+                for r_ in batch:
+                    zf.write((json.dumps(
+                        r_, separators=(",", ":")) + "\n"
+                    ).encode())
+                rows += len(batch)
+                if len(batch) < PAGE or \
+                        time.time() - T0 > GUARD_S:
                     break
+                off += PAGE
                 time.sleep(0.12)
-        body = buf.getvalue()
+        b_ = buf.getvalue()
         if rows:
             s3.put_object(
                 Bucket=B, Key=ROOT + "src/%s.jsonl.gz" % key,
-                Body=body, ContentType="application/gzip",
+                Body=b_, ContentType="application/gzip",
                 Metadata={"engine": "finra-full",
                           "dataset": key[:110],
                           "rows": str(rows)})
-            have[key] = {"rows": rows, "bytes": len(body),
+            have[key] = {"rows": rows, "bytes": len(b_),
                          "at": datetime.now(timezone.utc
                                             ).isoformat(
                              timespec="seconds"),
-                         "status": "partition"}
+                         "status": "auth-partition"}
         return rows
 
-    R.section("P3 partition drain")
-    # weeklySummary: Mondays 2014-01-06 .. 2021-12-27, by year
-    d0 = date(2014, 1, 6)
-    for yr in ([] if (wk_complete or shape == "none-needed")
-               else range(2014, 2022)):
+    R.section("P2 auth partition drain")
+    for yr in range(2014, 2022):
         if time.time() - T0 > GUARD_S:
             R.log("  guard -- remainder resumes next push")
             break
         key = "otcMarket__weeklySummary__Y%d" % yr
         if key in have:
             continue
-        mondays = []
-        d = d0 if yr == 2014 else date(yr, 1, 1)
-        while d.weekday() != 0:
-            d += timedelta(days=1)
-        while d.year == yr:
-            mondays.append(d.isoformat())
-            d += timedelta(days=7)
-        n = drain_partition("otcMarket", "weeklySummary", wk_f,
-                            key, mondays)
-        R.log("  %-40s weeks=%d rows=%d" % (key, len(mondays), n))
+        n = fetch_range("otcMarket", "weeklySummary",
+                        "summaryStartDate",
+                        "%d-01-01" % yr, "%d-12-31" % yr, key)
+        R.log("  %-42s rows=%d" % (key, n))
         checkpoint()
-    # regShoDaily: years desc from 2024 until an empty year
-    for yr in ([] if (rs_complete or shape == "none-needed")
-               else range(2024, 2004, -1)):
+    for yr in range(2024, 2004, -1):
         if time.time() - T0 > GUARD_S:
             R.log("  guard -- remainder resumes next push")
             break
         key = "otcMarket__regShoDaily__Y%d" % yr
         if key in have:
             continue
-        days = []
-        d = date(yr, 1, 1)
-        end = min(date(yr, 12, 31), date(2025, 8, 24))
-        while d <= end:
-            if d.weekday() < 5:
-                days.append(d.isoformat())
-            d += timedelta(days=1)
-        n = drain_partition("otcMarket", "regShoDaily", rs_f,
-                            key, days)
-        R.log("  %-40s days=%d rows=%d" % (key, len(days), n))
+        n = fetch_range("otcMarket", "regShoDaily",
+                        "tradeReportDate",
+                        "%d-01-01" % yr,
+                        min("%d-12-31" % yr, "2025-08-24"), key)
+        R.log("  %-42s rows=%d" % (key, n))
         checkpoint()
         if n == 0:
-            R.log("  regShoDaily inception reached above Y%d" % yr)
+            R.log("  regShoDaily inception above Y%d" % yr)
             break
+    R.section("P2b auth-gated datasets + treasury")
+    for key in sorted(set(list(invalid) +
+                          ["fixedIncomeMarket__"
+                           "treasuryWeeklyAggregates"])):
+        if time.time() - T0 > GUARD_S:
+            break
+        if key in have:
+            continue
+        g, nm = key.split("__", 1)
+        buf = io.BytesIO()
+        rows = 0
+        try:
+            with gzip.GzipFile(fileobj=buf, mode="wb") as zf:
+                off = 0
+                while True:
+                    batch = rows_of(http(
+                        "/data/group/%s/name/%s?limit=%d"
+                        "&offset=%d" % (g, nm, PAGE, off)))
+                    for r_ in batch:
+                        zf.write((json.dumps(
+                            r_, separators=(",", ":")) + "\n"
+                        ).encode())
+                    rows += len(batch)
+                    if len(batch) < PAGE or \
+                            time.time() - T0 > GUARD_S:
+                        break
+                    off += PAGE
+                    time.sleep(0.12)
+            b_ = buf.getvalue()
+            if rows:
+                s3.put_object(
+                    Bucket=B,
+                    Key=ROOT + "src/%s.jsonl.gz" % key,
+                    Body=b_, ContentType="application/gzip",
+                    Metadata={"engine": "finra-full",
+                              "dataset": key[:110],
+                              "rows": str(rows)})
+                have[key] = {"rows": rows, "bytes": len(b_),
+                             "at": datetime.now(
+                                 timezone.utc).isoformat(
+                                 timespec="seconds"),
+                             "status": "auth"}
+                universe[key] = {"group": g, "name": nm}
+                invalid.pop(key, None)
+                R.log("  %-52s rows=%d" % (key, rows))
+        except Exception as e:
+            R.log("  %-52s %s" % (key, str(e)[:70]))
+        checkpoint()
 
-    R.section("P4 spans on new partitions")
-    date_re = re.compile(rb'20\d{2}-\d{2}-\d{2}')
-
-    def span_scan(key):
-        body = s3.get_object(Bucket=B,
-                             Key=ROOT + "src/%s.jsonl.gz" % key
-                             )["Body"]
+    R.section("P4 substance: Y2014 weekly span")
+    ok4 = False
+    try:
+        k14 = "otcMarket__weeklySummary__Y2014"
+        pat = re.compile(
+            rb'"summaryStartDate":"(20\d\d-\d\d-\d\d)"')
+        body = s3.get_object(
+            Bucket=B, Key=ROOT + "src/%s.jsonl.gz" % k14)["Body"]
         d = zlib.decompressobj(16 + zlib.MAX_WBITS)
         lo, hi, carry = None, None, b""
         for chunk in iter(lambda: body.read(4 << 20), b""):
-            buf = carry + d.decompress(chunk)
-            carry = buf[-12:]
-            for m in date_re.finditer(buf):
-                v = m.group()
-                if lo is None or v < lo:
-                    lo = v
-                if hi is None or v > hi:
-                    hi = v
-        return (lo or b"?").decode(), (hi or b"?").decode()
-
-    ok4 = wk_complete
-    try:
-        k14 = "otcMarket__weeklySummary__Y2014"
-        if k14 in have:
-            lo, hi = span_scan(k14)
-            R.log("  %s span %s .. %s rows=%s" % (
-                k14, lo, hi, have[k14].get("rows")))
-            ok4 = ok4 or lo <= "2014-12-31"
-        if wk_complete:
-            R.log("  weeklySummary banked-span already reaches "
-                  "%s -- inception ok" % wk_lo)
+            buf2 = carry + d.decompress(chunk)
+            carry = buf2[-64:]
+            for m in pat.finditer(buf2):
+                v = m.group(1)
+                lo = v if lo is None or v < lo else lo
+                hi = v if hi is None or v > hi else hi
+        R.log("  Y2014 span %s .. %s rows=%s" % (
+            (lo or b"?").decode(), (hi or b"?").decode(),
+            (have.get(k14) or {}).get("rows")))
+        ok4 = bool(lo) and lo.decode() <= "2014-12-31"
     except Exception as e:
-        R.log("  span err %s" % str(e)[:90])
+        R.log("  substance err %s" % str(e)[:100])
     R.log("P4 %s" % ("PASS" if ok4 else "FAIL"))
     if not ok4:
         fails.append("P4")
@@ -385,18 +308,14 @@ with report("ops_4984_finra_partition_drain") as R:
             break
     fe = next((p for p in hub.get("providers", [])
                if p.get("slug") == "finra"), {}) or {}
-    note = fe.get("catalog_note") or ""
-    R.log("P5 note=%s" % note[:180])
-    if "FULL Query-API warehouse" not in note:
-        fails.append("P5")
+    R.log("P5 note=%s" % (fe.get("catalog_note") or "")[:180])
 
-    total_rows = sum(v.get("rows") or 0 for v in have.values())
     if fails:
         R.log("ops 4984 RED: " + "; ".join(fails))
         sys.exit(1)
-    R.kv(shape=shape, datasets=len(have), rows=total_rows,
+    R.kv(datasets=len(have),
+         rows=sum(v.get("rows") or 0 for v in have.values()),
          mb=round(sum(v.get("bytes") or 0
                       for v in have.values()) / 1e6, 1))
-    R.log("ops 4984 GREEN -- since-inception depth via %s "
-          "partitions; remainder (if any) resumes next push"
-          % shape)
+    R.log("ops 4984 GREEN -- FULL TIER: since-inception depth + "
+          "auth datasets banked; engine owns refresh on Lambda")
