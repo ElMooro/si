@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-ENGINE_VERSION = "justhodl-finra-full v1.0.1 ops4978 public-tier"
+ENGINE_VERSION = "justhodl-finra-full v1.0.2 ops4978 seed-fallback"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CID = os.environ.get("FINRA_CLIENT_ID", "")
 CSEC = os.environ.get("FINRA_CLIENT_SECRET", "")
@@ -41,6 +41,25 @@ TOKEN_URL = ("https://ews.fip.finra.org/fip/rest/ews/oauth2/"
              "access_token?grant_type=client_credentials")
 API = "https://api.finra.org"
 GROUPS = ["otcMarket", "fixedIncomeMarket"]
+# v1.0.2: /metadata is AUTH-LOCKED on the public tier while /data
+# answers keyless -- when metadata refuses, fall back to these
+# known public dataset names, each still probe-validated via a
+# 1-row /data call (wrong names fail named).
+SEED_DATASETS = {
+    "otcMarket": [
+        "weeklySummary", "monthlySummary", "blocksSummary",
+        "otcBlocksSummary", "consolidatedShortInterest",
+        "regShoDaily", "weeklyDownloadDetails",
+        "monthlyDownloadDetails", "atsIssueData",
+        "otcIssueData"],
+    "fixedIncomeMarket": [
+        "treasuryWeeklyAggregates", "treasuryMonthlyAggregates",
+        "corporatesAndAgenciesCappedVolume",
+        "corporateMarketSentiment", "agencyMarketSentiment",
+        "corporate144AMarketSentiment",
+        "treasuryDailyAggregates", "securitizedProductsCapped",
+        "corporateMarketBreadth"],
+}
 ROOT = "data/warm/finra-full/"
 STATE_KEY = ROOT + "_state/state.json"
 MANIFEST_KEY = ROOT + "manifest.json"
@@ -107,6 +126,7 @@ def discover(state):
     uni, invalid = dict(state.get("universe") or {}), \
         dict(state.get("invalid") or {})
     for g in GROUPS:
+        names = []
         try:
             raw = call("/metadata/group/%s" % g, cap=4_000_000)
             js = json.loads(raw)
@@ -115,6 +135,15 @@ def discover(state):
             for it in items:
                 nm = it.get("datasetName") or it.get("name") \
                     if isinstance(it, dict) else it
+                if nm:
+                    names.append(nm)
+        except Exception as e:
+            state["failures"]["_meta_" + g] = \
+                ("metadata refused (%s) -> seed fallback"
+                 % str(e)[:60])
+            names = list(SEED_DATASETS.get(g) or [])
+        try:
+            for nm in names:
                 if not nm:
                     continue
                 key = "%s__%s" % (g, nm)
