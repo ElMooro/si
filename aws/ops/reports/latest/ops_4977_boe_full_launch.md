@@ -1,69 +1,62 @@
 ## G-1 markers
 
-**Status:** failure  
-**Duration:** 1156.1s  
-**Finished:** 2026-08-25T15:44:57+00:00  
+**Status:** success  
+**Duration:** 1145.6s  
+**Finished:** 2026-08-25T16:07:07+00:00  
 
-## Error
+## Data
 
-```
-SystemExit: 1
-```
+| curve_mb | failures | iadb_ok | zips |
+|---|---|---|---|
+| 131.0 | 1 | 35 | 11 |
 
 ## Log
-- `15:25:41`   ok justhodl-boe-full      'v1.0.0 ops4977'
-- `15:25:41`   ok justhodl-provider-catalog 'boe-note-v2'
+- `15:48:01`   ok justhodl-boe-full      'v1.0.1 ops4977'
+- `15:48:01`   ok justhodl-provider-catalog 'boe-note-v2'
 ## G0 settle
 
-- `15:25:42`   justhodl-boe-full settled (0s)
-- `15:25:42`   justhodl-provider-catalog settled (0s)
-- `15:25:42` G0 PASS
+- `15:48:01`   justhodl-boe-full settled (0s)
+- `15:48:01`   justhodl-provider-catalog settled (0s)
+- `15:48:01` G0 PASS
 ## G0b rate(12 hours)
 
-- `15:25:43` G0b created
+- `15:48:02` G0b exists (ok)
 ## G1 run
 
-- `15:26:14`   t+  30s zips=0 iadb_ok=0 fail=0
-- `15:26:44`   t+  60s zips=11 iadb_ok=0 fail=36
-- `15:27:14`   t+  90s zips=11 iadb_ok=0 fail=36
-- `15:27:44`   t+ 121s zips=11 iadb_ok=0 fail=36
-- `15:28:15`   t+ 151s zips=11 iadb_ok=0 fail=36
-- `15:28:45`   t+ 181s zips=11 iadb_ok=0 fail=36
-- `15:29:15`   t+ 212s zips=11 iadb_ok=0 fail=36
-- `15:29:46`   t+ 242s zips=11 iadb_ok=0 fail=36
-- `15:30:16`   t+ 272s zips=11 iadb_ok=0 fail=36
-- `15:30:46`   t+ 303s zips=11 iadb_ok=0 fail=36
-- `15:31:17`   t+ 333s zips=11 iadb_ok=0 fail=36
-- `15:31:47`   t+ 363s zips=11 iadb_ok=0 fail=36
-- `15:32:17`   t+ 394s zips=11 iadb_ok=0 fail=36
-- `15:32:48`   t+ 424s zips=11 iadb_ok=0 fail=36
-- `15:33:18`   t+ 454s zips=11 iadb_ok=0 fail=36
-- `15:33:48`   t+ 485s zips=11 iadb_ok=0 fail=36
-- `15:34:19`   t+ 515s zips=11 iadb_ok=0 fail=36
-- `15:34:49`   t+ 545s zips=11 iadb_ok=0 fail=36
-- `15:35:19`   t+ 575s zips=11 iadb_ok=0 fail=36
-- `15:35:49`   t+ 606s zips=11 iadb_ok=0 fail=36
-- `15:36:20`   t+ 636s zips=11 iadb_ok=0 fail=36
-- `15:36:50`   t+ 666s zips=11 iadb_ok=0 fail=36
-- `15:37:20`   t+ 697s zips=11 iadb_ok=0 fail=36
-- `15:37:51`   t+ 727s zips=11 iadb_ok=0 fail=36
-- `15:38:21`   t+ 757s zips=11 iadb_ok=0 fail=36
-- `15:38:51`   t+ 788s zips=11 iadb_ok=0 fail=36
-- `15:38:51`     fail iadb:IUDSOIA: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-- `15:38:51`     fail iadb:IUDBEDR: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-- `15:38:51`     fail iadb:XUDLUSS: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-- `15:38:51`     fail iadb:XUDLERS: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-- `15:38:51`     fail iadb:XUDLJYS: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-- `15:38:51`     fail iadb:XUDLSFS: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-- `15:38:51`     fail iadb:XUDLCDS: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-- `15:38:51`     fail iadb:XUDLADS: non-csv/thin (287 rows) head='<!DOCTYPE html>\r\n<html lang="en" class="no-js">\r\n    <he
-- `15:38:51` G1 FAIL zips=11 131MB iadb_ok=0/36
+- `15:48:32`   t+  30s zips=11 iadb_ok=0 fail=36
+- `15:49:02`   t+  60s zips=11 iadb_ok=0 fail=36
+- `15:49:32`   t+  90s zips=11 iadb_ok=35 fail=1
+- `15:50:02`   t+ 120s zips=11 iadb_ok=35 fail=1
+- `15:50:32`   t+ 150s zips=11 iadb_ok=35 fail=1
+- `15:51:02`   t+ 180s zips=11 iadb_ok=35 fail=1
+- `15:51:32`   t+ 210s zips=11 iadb_ok=35 fail=1
+- `15:52:03`   t+ 240s zips=11 iadb_ok=35 fail=1
+- `15:52:33`   t+ 270s zips=11 iadb_ok=35 fail=1
+- `15:53:03`   t+ 301s zips=11 iadb_ok=35 fail=1
+- `15:53:33`   t+ 331s zips=11 iadb_ok=35 fail=1
+- `15:54:03`   t+ 361s zips=11 iadb_ok=35 fail=1
+- `15:54:33`   t+ 391s zips=11 iadb_ok=35 fail=1
+- `15:55:03`   t+ 421s zips=11 iadb_ok=35 fail=1
+- `15:55:33`   t+ 451s zips=11 iadb_ok=35 fail=1
+- `15:56:03`   t+ 481s zips=11 iadb_ok=35 fail=1
+- `15:56:34`   t+ 511s zips=11 iadb_ok=35 fail=1
+- `15:57:04`   t+ 541s zips=11 iadb_ok=35 fail=1
+- `15:57:34`   t+ 572s zips=11 iadb_ok=35 fail=1
+- `15:58:04`   t+ 602s zips=11 iadb_ok=35 fail=1
+- `15:58:34`   t+ 632s zips=11 iadb_ok=35 fail=1
+- `15:59:04`   t+ 662s zips=11 iadb_ok=35 fail=1
+- `15:59:34`   t+ 692s zips=11 iadb_ok=35 fail=1
+- `16:00:04`   t+ 722s zips=11 iadb_ok=35 fail=1
+- `16:00:34`   t+ 752s zips=11 iadb_ok=35 fail=1
+- `16:01:04`   t+ 782s zips=11 iadb_ok=35 fail=1
+- `16:01:04`     fail iadb:RPMB56C: df=01/Jan/2000 -> html/thin(287)
+- `16:01:04` G1 PASS zips=11 131MB iadb_ok=35/36
 ## G2 substance
 
-- `15:38:52`   sonia err An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does
-- `15:38:53`   blcnomddata.zip members=5 sample=['BLC Nominal daily data_2016 to 2021.xlsx', 'BLC Nominal daily data_1990 to 1994.xlsx']
-- `15:38:53` G2 FAIL
+- `16:01:04`   SONIA rows=7490 first='02 Jan 1997,' last='21 Aug 2026,'
+- `16:01:05`   blcnomddata.zip members=5 sample=['BLC Nominal daily data_2016 to 2021.xlsx', 'BLC Nominal daily data_1990 to 1994.xlsx']
+- `16:01:05` G2 PASS
 ## G3 card
 
-- `15:44:57` G3 PASS note=FULL warehouse (boe-full v1): 11 curve zips 131MB (daily curves since 1970) · 0 IADB codes full-window · 0 rows · 36 named failures
-- `15:44:57` ops 4977 RED: G1; G2
+- `16:07:07` G3 PASS note=FULL warehouse (boe-full v1): 11 curve zips 131MB (daily curves since 1970) · 35 IADB codes full-window · 213115 rows · 1 named failures
+- `16:07:07` ops 4977 GREEN -- BoE full warehouse live; queue #5 coinmetrics next
