@@ -222,32 +222,51 @@ with report("ops_4983_finra_drain_resume") as R:
     if len(have) < 6:
         fails.append("P2")
 
-    R.section("P4 substance")
+    R.section("P4 substance -- full-stream min/max dates")
+    # v4: FINRA pagination is NOT chronological; sampling head+tail
+    # of an unordered 215MB stream landed mid-window (2022-2023)
+    # and looked shallow. Scan EVERY date. weeklySummary since 2014
+    # ~= 600 weeks x ~10k issue-tier rows ~= 6M -- the 5.75M banked
+    # is plausibly the complete history.
+    import zlib
+    date_re = re.compile(rb'20\d{2}-\d{2}-\d{2}')
+
+    def span_scan(key):
+        body = s3.get_object(Bucket=B,
+                             Key=ROOT + "src/%s.jsonl.gz" % key
+                             )["Body"]
+        d = zlib.decompressobj(16 + zlib.MAX_WBITS)
+        lo, hi, carry = None, None, b""
+        for chunk in iter(lambda: body.read(4 << 20), b""):
+            buf = carry + d.decompress(chunk)
+            carry = buf[-12:]
+            for m in date_re.finditer(buf):
+                v = m.group()
+                if lo is None or v < lo:
+                    lo = v
+                if hi is None or v > hi:
+                    hi = v
+        return (lo or b"?").decode(), (hi or b"?").decode()
+
     ok4 = False
     try:
         # v2: pick the DEEPEST weekly history (the first-match
         # picker grabbed weeklyDownloadDetails, whose own source
         # inception is 2021-12; weeklySummary holds 5.75M rows
         # back to the program's start)
-        weeklies = [k for k in have if "weekly" in k.lower()
-                    and (have[k].get("rows") or 0) > 1000]
-        pick = (max(weeklies,
-                    key=lambda k: have[k].get("rows") or 0)
-                if weeklies else
-                max(have, key=lambda k: have[k].get("rows") or 0))
-        # v3: full-body read -- weeklySummary.gz is 215MB and a
-        # capped read truncates the gzip stream
-        raw = gzip.decompress(s3.get_object(
-            Bucket=B, Key=ROOT + "src/%s.jsonl.gz" % pick
-        )["Body"].read())
-        dates = sorted(set(m.decode() for m in re.findall(
-            rb'20\d{2}-\d{2}-\d{2}',
-            raw[:6_000_000] + raw[-2_000_000:])))
-        ok4 = bool(dates) and dates[0] <= "2016-12-31"
-        R.log("  %s rows=%s span %s .. %s" % (
-            pick, have[pick].get("rows"),
-            dates[0] if dates else None,
-            dates[-1] if dates else None))
+        spans = {}
+        for pick in ["otcMarket__weeklySummary",
+                     "otcMarket__regShoDaily",
+                     "otcMarket__blocksSummary"]:
+            if pick not in have:
+                continue
+            lo, hi = span_scan(pick)
+            spans[pick] = (lo, hi)
+            R.log("  %-38s rows=%-9s span %s .. %s" % (
+                pick, have[pick].get("rows"), lo, hi))
+        lo_w = (spans.get("otcMarket__weeklySummary") or
+                ("9999", ""))[0]
+        ok4 = lo_w <= "2016-12-31"
     except Exception as e:
         R.log("  substance err %s" % str(e)[:110])
     R.log("P4 %s" % ("PASS" if ok4 else "FAIL"))
