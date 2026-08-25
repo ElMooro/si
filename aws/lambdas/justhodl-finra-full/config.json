@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-finra-full",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 780,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "COMPLETE FINRA Query API warehouse v1.0.0: every discovered dataset fully paginated since inception (OTC/ATS, TRACE aggregates, short interest), OAuth2 client-credentials, daily rediscovery + weekly redrain. data/warm/finra-full/",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  }
+}

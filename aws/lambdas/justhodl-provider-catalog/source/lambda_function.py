@@ -158,6 +158,11 @@ REG = {
   "api": "bankofengland.co.uk/boeapps/database",
   "engines": ["justhodl-global-expansion"],
   "prefixes": ["data/warm/boe/", "data/warm/boe-full/"]},
+ "finra": {
+     "name": "FINRA — Query API",
+     "api": "api.finra.org",
+     "engines": ["justhodl-finra-full"],
+     "prefixes": ["data/warm/finra-full/"]},
  "gdelt": {"name": "GDELT — global events",
   "api": "data.gdeltproject.org/gdeltv2",
   "engines": ["justhodl-global-expansion"],
@@ -615,6 +620,24 @@ def lambda_handler(event, context):
                                  _tx.get("mean_agree_pct") or "—"))
                     note = (note + " · " + _note_x) if note \
                         else _note_x
+            except Exception:
+                pass
+        if slug == "finra":
+            # ops 4978 (finra-note-v2)
+            try:
+                _fn = _get_json("data/warm/finra-full/"
+                                "manifest.json")
+                if _fn:
+                    note = ((note + " · ") if note else "") + (
+                        "FULL Query-API warehouse (finra-full v1):"
+                        " %s/%s datasets · %s rows since "
+                        "inception · %.0fMB · phase %s · daily "
+                        "rediscovery" % (
+                            _fn.get("datasets_banked"),
+                            _fn.get("datasets_catalog"),
+                            _fn.get("rows"),
+                            _fn.get("mb") or 0,
+                            _fn.get("phase")))
             except Exception:
                 pass
         if slug == "boe":
