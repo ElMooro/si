@@ -1,30 +1,49 @@
-executing-against: 3e7614fa37f125c1558f495a87a91701878936f3
+executing-against: 53423c00b8b4298178c4bcf2bb6f9f9a35a21031
 ── G-1 marker ──
-[04:12:01]   ok 'v1.0.2 ops4973'
+[14:31:39]   ok 'v1.0.2 ops4973'
 ── G0 settle ──
-[04:12:02]   settled (0s)
+[14:31:39]   settled (0s)
 ── G1 kick -> v1 backfill moves ──
-[04:12:27]   t+  25s phase=LIVE v1=0/0 v1_gb=0.00
-[04:12:52]   t+  50s phase=LIVE v1=20/4986 v1_gb=0.00
-[04:13:18]   t+  75s phase=LIVE v1=40/4986 v1_gb=0.00
-[04:13:43]   t+ 101s phase=LIVE v1=60/4986 v1_gb=0.00
-[04:14:08]   t+ 126s phase=LIVE v1=80/4986 v1_gb=0.00
-[04:14:33]   t+ 151s phase=LIVE v1=100/4986 v1_gb=0.00
-[04:14:59]   t+ 177s phase=LIVE v1=140/4986 v1_gb=0.00
-[04:15:24]   t+ 202s phase=LIVE v1=200/4986 v1_gb=0.13
-[04:15:49]   t+ 227s phase=LIVE v1=240/4986 v1_gb=0.44
-[04:16:15]   t+ 252s phase=LIVE v1=280/4986 v1_gb=0.81
-[04:16:40]   t+ 278s phase=LIVE v1=300/4986 v1_gb=0.99
-[04:17:05]   t+ 303s phase=LIVE v1=340/4986 v1_gb=1.34
-[04:17:30]   t+ 328s phase=LIVE v1=380/4986 v1_gb=1.67
-[04:17:56]   t+ 354s phase=LIVE v1=420/4986 v1_gb=1.94
-[04:18:21]   t+ 379s phase=LIVE v1=460/4986 v1_gb=2.29
-[04:18:46]   t+ 404s phase=LIVE v1=500/4986 v1_gb=2.64
-[04:19:12]   t+ 429s phase=LIVE v1=540/4986 v1_gb=2.99
-[04:19:37]   t+ 455s phase=LIVE v1=580/4986 v1_gb=3.34
-[04:20:02]   t+ 480s phase=LIVE v1=600/4986 v1_gb=3.54
-[04:20:02] G1 FAIL v1_total=4986 v1_idx=600
-[04:20:02] ops 4973 RED: G1
+[14:32:05]   t+  25s phase=V1 v1=4986/4986 v1_gb=44.59
+[14:32:05] G1 PASS v1_total=4986 v1_idx=4986
+[14:32:05] ops 4973 GREEN -- 1979-2015 archive backfilling; chains + rate(30m) own it to phase V1
 
 → Report written to aws/ops/reports/latest/ops_4973_gdelt_v1_kick.md
-❌ OPS-FAIL: aws/ops/pending/ops_4973_gdelt_v1_kick.py
+── P1 worldbank heal ──
+[14:32:05]   frozen-state: banked=9200 q=20289 lease=1787668326s-ago failures=1 as_of=2026-08-24T04:14:35
+[14:32:05]     fail GD_WBL_MAR_LAW_DIVORCE: {"err": "HTTP 400", "tries": 3}
+[14:32:05]   schedule -2h CREATED (the missing restarter)
+[14:32:36]   t+ 30s banked=9200 q=20278
+[14:33:06]   t+ 60s banked=9200 q=20261
+[14:33:36]   t+ 90s banked=9200 q=20250
+[14:34:06]   t+120s banked=9200 q=20247
+[14:34:36]   t+150s banked=9200 q=20232
+[14:35:06]   t+180s banked=9200 q=20225
+[14:35:36]   t+210s banked=9200 q=20216
+[14:36:07]   t+241s banked=9200 q=20202
+[14:36:37]   t+271s banked=9200 q=20190
+[14:37:07]   t+301s banked=9200 q=20178
+[14:37:37]   t+331s banked=9200 q=20163
+[14:38:07]   t+361s banked=9200 q=20158
+[14:38:07]   P1 FAIL (drain still frozen)
+── P2 gdelt v1 last-3 ──
+[14:38:07]   v1=4986/4986 v1_gb=44.59 phase=V1
+[14:38:07]     v1-fail 2013.zip: HTTP 404
+[14:38:07]     v1-fail 20221110.export.CSV.zip: HTTP 404
+[14:38:07]     v1-fail 20230323.export.CSV.zip: HTTP 404
+── P3 polygon entitled window ──
+[14:38:07]   grouped 2016-06-01 -> 403 results=0 {"status":"NOT_AUTHORIZED","request_id":"b1c06461be0d7b1dc3c2815b8237e7b9","message":"Atte
+[14:38:08]   grouped 2019-06-03 -> 403 results=0 {"status":"NOT_AUTHORIZED","request_id":"95f7b7db37a12df2227e13728e189464","message":"Atte
+[14:38:08]   grouped 2021-06-01 -> 403 results=0 {"status":"NOT_AUTHORIZED","request_id":"9dfe7d76a018aea3a86a23859c04f251","message":"Atte
+[14:38:09]   grouped 2022-06-01 -> 200 results=0 
+[14:38:10]   grouped 2023-06-01 -> 200 results=0 
+[14:38:11]   grouped 2024-01-02 -> 200 results=0 
+[14:38:11]   entitled-from ~ NONE
+── P4 fiscaldata universe grows ──
+[14:38:41]   t+ 30s universe=19 banked=19 invalid=3
+[14:39:11]   t+ 60s universe=33 banked=19 invalid=8
+[14:39:11]   P4 PASS universe=33 (+14) invalid-named=8
+[14:39:11] ops 4974 RED: P1
+
+→ Report written to aws/ops/reports/latest/ops_4974_wb_heal_polygon_window.md
+❌ OPS-FAIL: aws/ops/pending/ops_4974_wb_heal_polygon_window.py
