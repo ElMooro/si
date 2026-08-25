@@ -38,7 +38,7 @@ CAT = "justhodl-provider-catalog"
 STATE_KEY = "data/warm/finra-full/_state/state.json"
 HUB_KEY = "data/provider-catalog.json"
 SCHED_ROLE = "arn:aws:iam::857687956942:role/justhodl-scheduler-role"
-MARKS = {FN: ("v1.0.4 ops4978",
+MARKS = {FN: ("v1.0.5 ops4978",
               "aws/lambdas/justhodl-finra-full/source/"
               "lambda_function.py"),
          CAT: ("finra-note-v2",

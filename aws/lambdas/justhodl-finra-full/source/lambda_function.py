@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-ENGINE_VERSION = "justhodl-finra-full v1.0.4 ops4978 proven-shape"
+ENGINE_VERSION = "justhodl-finra-full v1.0.5 ops4978 trust-catalog"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CID = os.environ.get("FINRA_CLIENT_ID", "")
 CSEC = os.environ.get("FINRA_CLIENT_SECRET", "")
@@ -140,29 +140,38 @@ def discover(state):
                     if isinstance(it, dict) else it
                 if nm:
                     names.append(nm)
+            # v1.0.5: metadata IS the catalog -- trust its names
+            # directly (per-name probing of a big catalog blew the
+            # Lambda budget and died before any state write).
+            # Invalid names surface naturally at drain time.
+            for nm in names:
+                if nm:
+                    uni.setdefault("%s__%s" % (g, nm),
+                                   {"group": g, "name": nm})
+            state["failures"].pop("_meta_" + g, None)
+            continue
         except Exception as e:
             state["failures"]["_meta_" + g] = \
                 ("metadata refused (%s) -> seed fallback"
                  % str(e)[:60])
             names = list(SEED_DATASETS.get(g) or [])
-        try:
-            for nm in names:
-                if not nm:
-                    continue
-                key = "%s__%s" % (g, nm)
-                if key in uni or key in invalid:
-                    continue
-                try:
-                    call("/data/group/%s/name/%s?limit=2" % (g, nm),
-                         cap=200_000)
-                    uni[key] = {"group": g, "name": nm}
-                except urllib.error.HTTPError as e:
-                    invalid[key] = "HTTP %s" % e.code
-                except Exception as e:
-                    invalid[key] = str(e)[:60]
-                time.sleep(SPACING)
-        except Exception as e:
-            state["failures"]["_meta_" + g] = str(e)[:100]
+        for nm in names:
+            if time.time() - _t0 > BUDGET_S - 90:
+                break
+            if not nm:
+                continue
+            key = "%s__%s" % (g, nm)
+            if key in uni or key in invalid:
+                continue
+            try:
+                call("/data/group/%s/name/%s?limit=2" % (g, nm),
+                     cap=200_000)
+                uni[key] = {"group": g, "name": nm}
+            except urllib.error.HTTPError as e:
+                invalid[key] = "HTTP %s" % e.code
+            except Exception as e:
+                invalid[key] = str(e)[:60]
+            time.sleep(SPACING)
     state["universe"], state["invalid"] = uni, invalid
     q = state.setdefault("queue", [])
     queued = {x[0] for x in q}
