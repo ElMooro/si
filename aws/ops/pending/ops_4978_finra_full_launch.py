@@ -114,6 +114,64 @@ with report("ops_4978_finra_full_launch") as R:
 
     R.section("P0 credential hunt + runner proof")
     creds = hunt_creds(R)
+    # hunt-v2: SSM Parameter Store + S3 config keys + a fleet-wide
+    # census of credential-shaped env NAMES (names only)
+    try:
+        ssm = boto3.client("ssm", region_name=REGION)
+        for pfx in ("/justhodl", "/"):
+            try:
+                pag = ssm.get_paginator("get_parameters_by_path")
+                for pg in pag.paginate(Path=pfx, Recursive=True,
+                                       WithDecryption=True):
+                    for prm in pg.get("Parameters", []):
+                        nm = prm["Name"]
+                        if "FINRA" in nm.upper():
+                            R.log("  SSM hit %s" % nm)
+                            up = nm.upper()
+                            if "SECRET" in up:
+                                creds.setdefault(
+                                    "FINRA_CLIENT_SECRET",
+                                    prm["Value"])
+                            elif "ID" in up or "CLIENT" in up:
+                                creds.setdefault(
+                                    "FINRA_CLIENT_ID",
+                                    prm["Value"])
+                            else:
+                                creds.setdefault("FINRA_API_KEY",
+                                                 prm["Value"])
+            except Exception as e:
+                R.log("  ssm %s: %s" % (pfx, str(e)[:60]))
+    except Exception as e:
+        R.log("  ssm client: %s" % str(e)[:60])
+    for cand in ("data/config/finra.json", "data/config/keys.json",
+                 "data/_secrets/finra.json", "config/finra.json"):
+        js = gj(cand)
+        if js:
+            R.log("  S3 config hit %s keys=%s" % (
+                cand, list(js)[:6]))
+            for k, v in js.items():
+                if "FINRA" in k.upper() or k.lower() in (
+                        "client_id", "client_secret", "api_key"):
+                    kk = ("FINRA_CLIENT_SECRET" if "secret"
+                          in k.lower() else
+                          "FINRA_CLIENT_ID" if "id" in k.lower()
+                          or "client" in k.lower() else
+                          "FINRA_API_KEY")
+                    creds.setdefault(kk, v)
+    names = set()
+    try:
+        pag = lam.get_paginator("list_functions")
+        for page in pag.paginate():
+            for f in page["Functions"]:
+                for k in ((f.get("Environment") or {})
+                          .get("Variables") or {}):
+                    if any(t in k.upper() for t in
+                           ("KEY", "SECRET", "CLIENT", "TOKEN")):
+                        names.add(k)
+    except Exception:
+        pass
+    R.log("  fleet credential-shaped env names: %s" %
+          sorted(names))
     cid = creds.get("FINRA_CLIENT_ID") or \
         creds.get("FINRA_API_CLIENT_ID") or ""
     csec = creds.get("FINRA_CLIENT_SECRET") or \

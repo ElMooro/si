@@ -29,7 +29,7 @@ CAT = "justhodl-provider-catalog"
 STATE_KEY = "data/warm/boe-full/_state/state.json"
 HUB_KEY = "data/provider-catalog.json"
 SCHED_ROLE = "arn:aws:iam::857687956942:role/justhodl-scheduler-role"
-MARKS = {FN: ("v1.0.0 ops4977",
+MARKS = {FN: ("v1.0.1 ops4977",
               "aws/lambdas/justhodl-boe-full/source/"
               "lambda_function.py"),
          CAT: ("boe-note-v2",

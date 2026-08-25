@@ -24,13 +24,17 @@ from datetime import datetime, timezone
 
 import boto3
 
-ENGINE_VERSION = "justhodl-boe-full v1.0.0 ops4977 iadb+curves"
+ENGINE_VERSION = "justhodl-boe-full v1.0.1 ops4977 datefrom-ladder"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 SITE = "https://www.bankofengland.co.uk"
 YC_PAGE = SITE + "/statistics/yield-curves"
 IADB = (SITE + "/boeapps/iadb/fromshowcolumns.asp?csv.x=yes"
-        "&SeriesCodes=%s&CSVF=TN&UsingCodes=Y"
-        "&Datefrom=01/Jan/1694")
+        "&SeriesCodes=%s&CSVF=TN&UsingCodes=Y&Datefrom=%s")
+# v1.0.1 ops4977: Datefrom=1694 bounced every code to the site's
+# HTML shell (uniform 287-row page). Ladder from the IADB's real
+# floor; first CSV answer wins and records its window.
+DATEFROM_LADDER = ["01/Jan/1963", "01/Jan/1975", "01/Jan/1990",
+                   "01/Jan/2000"]
 ROOT = "data/warm/boe-full/"
 STATE_KEY = ROOT + "_state/state.json"
 MANIFEST_KEY = ROOT + "manifest.json"
@@ -138,14 +142,23 @@ def iadb_lane(state, t0):
         if prev.get("ok") and age < 11 * 3600:
             continue
         try:
-            _, _, body = fetch(IADB % code, timeout=120,
-                               cap=30_000_000)
-            txt = body.decode("utf-8", "replace")
+            txt, used_from = "", None
+            last = ""
+            for df in DATEFROM_LADDER:
+                _, _, body = fetch(IADB % (code, df), timeout=120,
+                                   cap=30_000_000)
+                t_ = body.decode("utf-8", "replace")
+                if t_.count("\n") >= 5 and \
+                        "<html" not in t_[:400].lower():
+                    txt, used_from = t_, df
+                    break
+                last = "df=%s -> html/thin(%d)" % (
+                    df, t_.count("\n"))
+                time.sleep(0.3)
+            if not txt:
+                raise RuntimeError(last[:100])
+            body = txt.encode()
             rows = txt.count("\n")
-            if rows < 5 or "<html" in txt[:400].lower():
-                raise RuntimeError(
-                    "non-csv/thin (%d rows) head=%r"
-                    % (rows, txt[:80]))
             s3.put_object(
                 Bucket=BUCKET,
                 Key=ROOT + "iadb/%s.csv.gz" % code,
@@ -156,6 +169,7 @@ def iadb_lane(state, t0):
             first = txt.split("\n", 2)[1][:24] if rows > 1 else ""
             st[code] = {"ok": True, "rows": rows,
                         "bytes": len(body), "first": first,
+                        "datefrom": used_from,
                         "epoch": time.time(), "at": _now()}
             state["failures"].pop("iadb:" + code, None)
         except Exception as e:
