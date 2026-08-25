@@ -235,9 +235,11 @@ with report("ops_4983_finra_drain_resume") as R:
                     key=lambda k: have[k].get("rows") or 0)
                 if weeklies else
                 max(have, key=lambda k: have[k].get("rows") or 0))
+        # v3: full-body read -- weeklySummary.gz is 215MB and a
+        # capped read truncates the gzip stream
         raw = gzip.decompress(s3.get_object(
             Bucket=B, Key=ROOT + "src/%s.jsonl.gz" % pick
-        )["Body"].read(60_000_000))
+        )["Body"].read())
         dates = sorted(set(m.decode() for m in re.findall(
             rb'20\d{2}-\d{2}-\d{2}',
             raw[:6_000_000] + raw[-2_000_000:])))
