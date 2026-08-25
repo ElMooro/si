@@ -225,10 +225,16 @@ with report("ops_4983_finra_drain_resume") as R:
     R.section("P4 substance")
     ok4 = False
     try:
-        pick = next((k for k in have if "weekly" in k.lower()
-                     and (have[k].get("rows") or 0) > 1000),
-                    None) or \
-            max(have, key=lambda k: have[k].get("rows") or 0)
+        # v2: pick the DEEPEST weekly history (the first-match
+        # picker grabbed weeklyDownloadDetails, whose own source
+        # inception is 2021-12; weeklySummary holds 5.75M rows
+        # back to the program's start)
+        weeklies = [k for k in have if "weekly" in k.lower()
+                    and (have[k].get("rows") or 0) > 1000]
+        pick = (max(weeklies,
+                    key=lambda k: have[k].get("rows") or 0)
+                if weeklies else
+                max(have, key=lambda k: have[k].get("rows") or 0))
         raw = gzip.decompress(s3.get_object(
             Bucket=B, Key=ROOT + "src/%s.jsonl.gz" % pick
         )["Body"].read(60_000_000))
