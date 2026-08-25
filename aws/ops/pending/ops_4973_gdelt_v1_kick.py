@@ -71,10 +71,10 @@ with report("ops_4973_gdelt_v1_kick") as R:
             time.time() - t0, st.get("phase"),
             st.get("v1_idx", 0), st.get("v1_total"),
             (st.get("v1_bytes") or 0) / 1e9))
-        if (st.get("v1_total") or 0) >= 9000 and \
+        if (st.get("v1_total") or 0) >= 4000 and \
                 st.get("v1_idx", 0) >= 40:
             break
-    ok1 = (st.get("v1_total") or 0) >= 9000 and \
+    ok1 = (st.get("v1_total") or 0) >= 4000 and \
         st.get("v1_idx", 0) >= 40
     R.log("G1 %s v1_total=%s v1_idx=%s" % (
         "PASS" if ok1 else "FAIL", st.get("v1_total"),

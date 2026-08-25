@@ -31,7 +31,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-ENGINE_VERSION = "justhodl-fiscaldata-full v1.0.0 ops4964 warehouse"
+ENGINE_VERSION = "justhodl-fiscaldata-full v1.0.1 ops4974 seeds+20"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 API = ("https://api.fiscaldata.treasury.gov/services/api/"
        "fiscal_service")
@@ -67,6 +67,29 @@ SEEDS = [
     "v1/accounting/od/record_setting_auction",
     "v2/accounting/od/savings_bonds_report",
     "v1/accounting/od/slgs_securities",
+    # ops 4974 seed expansion (docs page is a JS shell; every seed
+    # is probe-validated before joining the universe -- wrong
+    # guesses fail-named harmlessly)
+    "v1/accounting/mts/mts_table_2",
+    "v1/accounting/mts/mts_table_3",
+    "v1/accounting/mts/mts_table_6",
+    "v1/accounting/mts/mts_table_7",
+    "v1/accounting/mts/mts_table_8",
+    "v1/debt/mspd/mspd_table_2",
+    "v1/debt/mspd/mspd_table_4",
+    "v1/debt/mspd/mspd_table_5",
+    "v1/accounting/dts/adjustment_public_debt_transactions_cash_basis",
+    "v1/accounting/dts/debt_subject_to_limit",
+    "v1/accounting/dts/federal_tax_deposits",
+    "v1/accounting/dts/income_tax_refunds_issued",
+    "v1/accounting/dts/short_term_cash_investments",
+    "v1/accounting/dts/inter_agency_tax_transfers",
+    "v2/accounting/od/securities_sales",
+    "v2/accounting/od/securities_redemptions",
+    "v2/accounting/od/securities_outstanding",
+    "v2/accounting/od/schedules_fed_debt_daily_activity",
+    "v1/debt/top/top_state",
+    "v1/debt/top/top_federal",
 ]
 
 s3 = boto3.client("s3", region_name="us-east-1")
