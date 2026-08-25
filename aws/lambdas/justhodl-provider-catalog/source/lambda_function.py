@@ -124,7 +124,7 @@ REG = {
   "prefixes": ["data/warm/sec-midas/"]},
  "polygon": {"name": "Polygon.io — US equities",
   "api": "api.polygon.io", "engines": ["justhodl-polygon-daily"],
-  "prefixes": ["data/warm/us-equities-daily/"]},
+  "prefixes": ["data/warm/us-equities-daily/", "data/warm/polygon-full/"]},
  "gleif": {"name": "GLEIF — LEI system",
   "api": "gleif.org", "engines": ["justhodl-bis-gleif",
                                    "justhodl-symbology-master"],
@@ -615,6 +615,25 @@ def lambda_handler(event, context):
                                  _tx.get("mean_agree_pct") or "—"))
                     note = (note + " · " + _note_x) if note \
                         else _note_x
+            except Exception:
+                pass
+        if slug == "polygon":
+            # ops 4976 (pf-note-v2): full-market warehouse truth
+            try:
+                _pm = _get_json("data/warm/polygon-full/"
+                                "manifest.json")
+                if _pm:
+                    note = ((note + " · ") if note else "") + (
+                        "FULL grouped-daily warehouse (polygon-"
+                        "full v1): %s sessions since %s · %.2fGB "
+                        "· ~%s tickers/day · phase %s · banked "
+                        "dates persist as the entitled window "
+                        "rolls" % (
+                            _pm.get("sessions"),
+                            (_pm.get("window_start") or "?")[:10],
+                            _pm.get("gb") or 0,
+                            _pm.get("tickers_last"),
+                            _pm.get("phase")))
             except Exception:
                 pass
         if slug == "imf":
