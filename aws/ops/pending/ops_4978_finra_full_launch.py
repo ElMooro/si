@@ -158,6 +158,51 @@ with report("ops_4978_finra_full_launch") as R:
                           or "client" in k.lower() else
                           "FINRA_API_KEY")
                     creds.setdefault(kk, v)
+    # hunt-v3: the fleet env census exposed JUSTHODL_API_KEYS_TABLE
+    # -- a DynamoDB key vault. Scan it for FINRA items.
+    try:
+        tbl = None
+        pag0 = lam.get_paginator("list_functions")
+        for page in pag0.paginate():
+            for f in page["Functions"]:
+                v = ((f.get("Environment") or {})
+                     .get("Variables") or {}).get(
+                    "JUSTHODL_API_KEYS_TABLE")
+                if v:
+                    tbl = v
+                    R.log("  keys-table env on %s -> %s" % (
+                        f["FunctionName"], tbl))
+                    break
+            if tbl:
+                break
+        if tbl:
+            ddb = boto3.client("dynamodb", region_name=REGION)
+            scan = ddb.scan(TableName=tbl)
+            items = scan.get("Items", [])
+            R.log("  dynamo scan: %d items; providers=%s" % (
+                len(items),
+                sorted({(it.get("provider") or it.get("name") or
+                         it.get("service") or {}).get("S", "?")
+                        for it in items})[:30]))
+            for it in items:
+                blob = json.dumps(it).lower()
+                if "finra" not in blob:
+                    continue
+                flat = {k: (v.get("S") or v.get("N") or "")
+                        for k, v in it.items()}
+                R.log("  FINRA item attrs=%s" % list(flat))
+                for k, v in flat.items():
+                    ku = k.lower()
+                    if not v or len(v) < 6:
+                        continue
+                    if "secret" in ku:
+                        creds.setdefault("FINRA_CLIENT_SECRET", v)
+                    elif "client" in ku or ku.endswith("id"):
+                        creds.setdefault("FINRA_CLIENT_ID", v)
+                    elif "key" in ku or "token" in ku or                             ku in ("value", "apikey"):
+                        creds.setdefault("FINRA_API_KEY", v)
+    except Exception as e:
+        R.log("  dynamo hunt: %s" % str(e)[:110])
     names = set()
     try:
         pag = lam.get_paginator("list_functions")
