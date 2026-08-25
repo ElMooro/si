@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-boe-full",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 780,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Full BoE warehouse v1.0.0: yield-curve zip archives (daily curves since 1970) verbatim-conditional + flagship IADB series full-window since inception; named failures; rate(12h). data/warm/boe-full/",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  }
+}

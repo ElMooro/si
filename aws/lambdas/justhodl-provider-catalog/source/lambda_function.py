@@ -157,7 +157,7 @@ REG = {
  "boe": {"name": "Bank of England — IADB",
   "api": "bankofengland.co.uk/boeapps/database",
   "engines": ["justhodl-global-expansion"],
-  "prefixes": ["data/warm/boe/"]},
+  "prefixes": ["data/warm/boe/", "data/warm/boe-full/"]},
  "gdelt": {"name": "GDELT — global events",
   "api": "data.gdeltproject.org/gdeltv2",
   "engines": ["justhodl-global-expansion"],
@@ -615,6 +615,23 @@ def lambda_handler(event, context):
                                  _tx.get("mean_agree_pct") or "—"))
                     note = (note + " · " + _note_x) if note \
                         else _note_x
+            except Exception:
+                pass
+        if slug == "boe":
+            # ops 4977 (boe-note-v2)
+            try:
+                _bm = _get_json("data/warm/boe-full/manifest.json")
+                if _bm:
+                    note = ((note + " · ") if note else "") + (
+                        "FULL warehouse (boe-full v1): %s curve "
+                        "zips %.0fMB (daily curves since 1970) · "
+                        "%s IADB codes full-window · %s rows · "
+                        "%s named failures" % (
+                            _bm.get("curve_zips"),
+                            _bm.get("curve_mb") or 0,
+                            _bm.get("iadb_codes_ok"),
+                            _bm.get("iadb_rows"),
+                            _bm.get("failures")))
             except Exception:
                 pass
         if slug == "polygon":
