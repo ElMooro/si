@@ -1,46 +1,60 @@
 ## G-1 markers
 
-**Status:** failure  
-**Duration:** 8.8s  
-**Finished:** 2026-08-25T03:50:41+00:00  
+**Status:** success  
+**Duration:** 265.6s  
+**Finished:** 2026-08-25T03:58:57+00:00  
 
-## Error
+## Data
 
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4972_census_conquest.py", line 190, in <module>
-    u = qs(base, vars_pick, (None if _nt else tp),
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4972_census_conquest.py", line 73, in qs
-    tp + "=" + urllib.parse.quote_plus(pred)]
-    ~~~^~~~~
-TypeError: unsupported operand type(s) for +: 'NoneType' and 'str'
-
-```
+| conquered | overrides_total | refused |
+|---|---|---|
+| 4 | 7 | 1 |
 
 ## Log
-- `03:50:32`   ok 'conquest-v116 ops4972'
-- `03:50:32`   ok 'v1.0.2 ops4967'
-- `03:50:32`   census key: present
+- `03:54:32`   ok 'conquest-v116 ops4972'
+- `03:54:32`   ok 'v1.0.2 ops4967'
+- `03:54:32`   census key: present
 ## G0 settle census v1.1.5
 
-- `03:50:33`   settled (0s)
+- `03:54:32`   settled (0s)
 ## P1 per-slug recon + two-state confirmation
 
-- `03:50:33`   ── aies-miscsector  base=https://api.census.gov/data/timeseries/aies/miscsector
-- `03:50:34`      geo=[('us', [], [])] (200) tp=time req=['PBA', 'TYPOP', 'TAXSTAT', 'NAICS'] vars=['RCPT_NEWPT_SSBNFTS_CV', 'RCPT_NONOP_PROGSRVC_VAL', 'RCPT_MOTR_AGR_CV', 'RCPT_APSOFT_MAIN_DVAL', 'RCPT_CUST_IND_CV', 'RCPT_AUDVID_CV']
-- `03:50:35`      us-star       200 rows~859 
-- `03:50:35`      CONQUERED via us-star -> {"vars": ["RCPT_NEWPT_SSBNFTS_CV", "RCPT_NONOP_PROGSRVC_VAL", "RCPT_MOTR_AGR_CV", "RCPT_APSOFT_MAIN_DVAL", "RCPT_CUST_IND_CV", "RCPT_AUDVID_CV"], "tp": "time", 
-- `03:50:35`   ── asm-industry  base=https://api.census.gov/data/timeseries/asm/industry
-- `03:50:35`      geo=[('us', [], [])] (200) tp=time req=['NAICS'] vars=['BENHEA', 'BENPEC_S', 'INVMATE_F', 'INVWIPB_F', 'PCHADVT', 'MSCTOT_S_F']
-- `03:50:38`      us-star       200 rows~9395 
-- `03:50:38`      CONQUERED via us-star -> {"vars": ["BENHEA", "BENPEC_S", "INVMATE_F", "INVWIPB_F", "PCHADVT", "MSCTOT_S_F"], "tp": "time", "full_time": "from 1989", "geo": "us:*", "extra": {"NAICS": "*
-- `03:50:38`   ── poverty-saipe-schdist  base=https://api.census.gov/data/timeseries/poverty/saipe/schdist
-- `03:50:39`      geo=[('school district (elementary)', ['state'], ['state']), ('school district (secondary)', ['state'], ['state']), ('school district (unified)', ['state'], ['state']), ('school district administrative area', ['state'], ['state'])] (200) tp=time req=[] vars=['SAEPOVRAT5_17RV_PT', 'YEAR', 'SD_NAME', 'GEOID', 'SAEPOV5_17V_PT', 'SAEPOV5_17RV_PT']
-- `03:50:39`      sub-in-state  200 rows~4 
-- `03:50:40`      CONQUERED via sub-in-state -> {"vars": ["SAEPOVRAT5_17RV_PT", "YEAR", "SD_NAME", "GEOID", "SAEPOV5_17V_PT", "SAEPOV5_17RV_PT"], "tp": "time", "full_time": "from 1989", "geo_iter": "state", "
-- `03:50:40`   ── pseo-earnings  base=https://api.census.gov/data/timeseries/pseo/earnings
-- `03:50:40`      geo=[('us', [], [])] (200) tp=time req=['CIPCODE', 'GEOCOMP', 'GRAD_COHORT', 'DEGREE_LEVEL'] vars=['Y10_GRADS_EARN', 'GRAD_COHORT_YEARS', 'Y1_P50_EARNINGS', 'Y10_IPEDS_COUNT', 'AGG_LEVEL_PSEO', 'CIPCODE']
-- `03:50:40`      us-star       400 rows~0 error: unknown predicate variable: 'time'
+- `03:54:32`   ── aies-miscsector  base=https://api.census.gov/data/timeseries/aies/miscsector
+- `03:54:33`      geo=[('us', [], [])] (200) tp=time req=['PBA', 'TYPOP', 'TAXSTAT', 'NAICS'] vars=['RCPT_NEWPT_SSBNFTS_CV', 'RCPT_NONOP_PROGSRVC_VAL', 'RCPT_MOTR_AGR_CV', 'RCPT_APSOFT_MAIN_DVAL', 'RCPT_CUST_IND_CV', 'RCPT_AUDVID_CV']
+- `03:54:33`      us-star       200 rows~859 
+- `03:54:33`      CONQUERED via us-star -> {"vars": ["RCPT_NEWPT_SSBNFTS_CV", "RCPT_NONOP_PROGSRVC_VAL", "RCPT_MOTR_AGR_CV", "RCPT_APSOFT_MAIN_DVAL", "RCPT_CUST_IND_CV", "RCPT_AUDVID_CV"], "tp": "time", 
+- `03:54:33`   ── asm-industry  base=https://api.census.gov/data/timeseries/asm/industry
+- `03:54:33`      geo=[('us', [], [])] (200) tp=time req=['NAICS'] vars=['BENHEA', 'BENPEC_S', 'INVMATE_F', 'INVWIPB_F', 'PCHADVT', 'MSCTOT_S_F']
+- `03:54:34`      us-star       200 rows~9395 
+- `03:54:34`      CONQUERED via us-star -> {"vars": ["BENHEA", "BENPEC_S", "INVMATE_F", "INVWIPB_F", "PCHADVT", "MSCTOT_S_F"], "tp": "time", "full_time": "from 1989", "geo": "us:*", "extra": {"NAICS": "*
+- `03:54:34`   ── poverty-saipe-schdist  base=https://api.census.gov/data/timeseries/poverty/saipe/schdist
+- `03:54:34`      geo=[('school district (elementary)', ['state'], ['state']), ('school district (secondary)', ['state'], ['state']), ('school district (unified)', ['state'], ['state']), ('school district administrative area', ['state'], ['state'])] (200) tp=time req=[] vars=['SAEPOVRAT5_17RV_PT', 'YEAR', 'SD_NAME', 'GEOID', 'SAEPOV5_17V_PT', 'SAEPOV5_17RV_PT']
+- `03:54:34`      sub-in-state  200 rows~4 
+- `03:54:35`      CONQUERED via sub-in-state -> {"vars": ["SAEPOVRAT5_17RV_PT", "YEAR", "SD_NAME", "GEOID", "SAEPOV5_17V_PT", "SAEPOV5_17RV_PT"], "tp": "time", "full_time": "from 1989", "geo_iter": "state", "
+- `03:54:35`   ── pseo-earnings  base=https://api.census.gov/data/timeseries/pseo/earnings
+- `03:54:35`      geo=[('us', [], [])] (200) tp=time req=['CIPCODE', 'GEOCOMP', 'GRAD_COHORT', 'DEGREE_LEVEL'] vars=['Y10_GRADS_EARN', 'GRAD_COHORT_YEARS', 'Y1_P50_EARNINGS', 'Y10_IPEDS_COUNT', 'AGG_LEVEL_PSEO', 'CIPCODE']
+- `03:54:35`      us-star       400 rows~0 error: unknown predicate variable: 'time'
+- `03:55:20`      us-star-no-time 200 rows~31044 
+- `03:55:20`      CONQUERED via us-star-no-time -> {"vars": ["Y10_GRADS_EARN", "GRAD_COHORT_YEARS", "Y1_P50_EARNINGS", "Y10_IPEDS_COUNT", "AGG_LEVEL_PSEO", "CIPCODE"], "tp": null, "full_time": "from 1989", "geo"
+- `03:55:20`   ── pseo-flows  base=https://api.census.gov/data/timeseries/pseo/flows
+- `03:55:21`      geo=[('us', [], []), ('division', [], [])] (200) tp=time req=['CIPCODE', 'NAICS', 'GEOCOMP', 'GRAD_COHORT'] vars=['Y1_GRADS_NME', 'Y1_GRADS_EMP', 'GRAD_COHORT_YEARS', 'AGG_LEVEL_PSEO', 'CIPCODE', 'DIVISION']
+- `03:55:25`      us-star       400 rows~0 error: unknown predicate variable: 'time'
+- `03:56:56`      us-star-no-time 0 rows~0 The read operation timed out
+- `03:56:56`      state-direct  400 rows~0 error: unknown/unsupported geography hierarchy
+- `03:56:56`      no-geo        400 rows~0 error: missing 'for' argument
+## P2 merge-write overrides
+
+- `03:56:57`   GRAM_KEY now 7 entries (+4)
+## P3 redo drive
+
+- `03:57:27`   t+  30s ok=0/4 still-failed=0
+- `03:57:57`   t+  60s ok=1/4 still-failed=0
+- `03:58:27`   t+  90s ok=1/4 still-failed=0
+- `03:58:57`   t+ 120s ok=4/4 still-failed=0
+- `03:58:57`   aies-miscsector          ok=True rows=859 span=2023..2023 mode=ov_geo
+- `03:58:57`   asm-industry             ok=True rows=9395 span=2002..2016 mode=ov_geo
+- `03:58:57`   poverty-saipe-schdist    ok=True rows=62074 span=1995..2024 mode=geo_state
+- `03:58:57`   pseo-earnings            ok=True rows=623084 span=None..None mode=ov_geo
+- `03:58:57`   UNCONQUERED pseo-flows           all shapes refused; last bodies logged
+- `03:58:57` G1 PASS conquered-live=4/5 probe-refused=1
+- `03:58:57` ops 4972 GREEN -- census structural failures conquered via probe-verified grammar; refusals stay named
