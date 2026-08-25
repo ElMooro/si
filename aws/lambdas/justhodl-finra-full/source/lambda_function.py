@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-ENGINE_VERSION = "justhodl-finra-full v1.0.2 ops4978 seed-fallback"
+ENGINE_VERSION = "justhodl-finra-full v1.0.3 ops4978 empty-uni-rediscover"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CID = os.environ.get("FINRA_CLIENT_ID", "")
 CSEC = os.environ.get("FINRA_CLIENT_SECRET", "")
@@ -248,7 +248,10 @@ def lambda_handler(event, ctx=None):
     except Exception:
         pass
     if state["phase"] == "DISCOVER" or event.get("rediscover") or \
-            age > 20 * 3600:
+            age > 20 * 3600 or not state.get("universe"):
+        # v1.0.3: an EMPTY universe is never a fresh discovery --
+        # v1's 0-dataset run left last_discover<20h and the skip-
+        # guard no-opped every later link (seed-fallback never ran)
         try:
             discover(state)
             if state["phase"] == "DISCOVER" or state.get("queue"):

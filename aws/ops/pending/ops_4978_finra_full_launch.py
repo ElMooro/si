@@ -38,7 +38,7 @@ CAT = "justhodl-provider-catalog"
 STATE_KEY = "data/warm/finra-full/_state/state.json"
 HUB_KEY = "data/provider-catalog.json"
 SCHED_ROLE = "arn:aws:iam::857687956942:role/justhodl-scheduler-role"
-MARKS = {FN: ("v1.0.2 ops4978",
+MARKS = {FN: ("v1.0.3 ops4978",
               "aws/lambdas/justhodl-finra-full/source/"
               "lambda_function.py"),
          CAT: ("finra-note-v2",
@@ -338,7 +338,7 @@ with report("ops_4978_finra_full_launch") as R:
 
     R.section("G1 chain-drive (14min)")
     lam.invoke(FunctionName=FN, InvocationType="Event",
-               Payload=b"{}")
+               Payload=json.dumps({"rediscover": True}).encode())
     t0, last_fp, last_move, kicks = time.time(), None, time.time(), 0
     st = {}
     while time.time() - t0 < 14 * 60:
