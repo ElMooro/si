@@ -1,26 +1,12 @@
-executing-against: cac2f2862c34f2fac56e3ba918f834cc56fd0ab8
-── P0 function config ──
-[18:46:03]   timeout=780 mem=1024 state=Active lastmod=2026-08-25T18:45:56.000+0000
-[18:46:03]   reserved_concurrency=None
-[18:46:04]   event_invoke_config: none (defaults)
-[18:46:04]   event_invoke_config reset to sane defaults
-── P0b mint attempts (Khalid: try this one) ──
-[18:46:04]   no-secret -> HTTP 400 {"error_message":"Invalid credentials format","error":"invalid_client"}
-[18:46:04]   id-as-secret -> HTTP 400 {"error_message":"Invalid Credentials","error":"invalid_client"}
-── P1 sync rediscover ──
-[18:46:05]   FunctionError=None payload={"ok": true, "phase": "DRAIN", "banked": 0, "rows": 0, "queue_left": 0, "chained": false, "elapsed_s": 0.4}
-[18:46:05]   universe=0 invalid=19 phase=DRAIN
-── P2 sync drain x5 ──
-[18:46:06]   link1 err=None banked=0 rows=0 q=0
-[18:46:06]   link2 err=None banked=0 rows=0 q=0
-[18:46:06]   link3 err=None banked=0 rows=0 q=0
-[18:46:07]   link4 err=None banked=0 rows=0 q=0
-[18:46:07]   link5 err=None banked=0 rows=0 q=0
-[18:46:07]     fail _meta_otcMarket: "metadata refused (HTTP Error 400: Bad Request) -> seed fallback"
-[18:46:07]     fail _meta_fixedIncomeMarket: "metadata refused (HTTP Error 400: Bad Request) -> seed fallback"
-── P3 async verdict ──
-[18:46:23]   async events: ALIVE (15s)
-[18:46:23] ops 4981 RED: P1; P2
-
-→ Report written to aws/ops/reports/latest/ops_4981_finra_sync_drive.md
-❌ OPS-FAIL: aws/ops/pending/ops_4981_finra_sync_drive.py
+executing-against: 89e000b3a1f532f16dd8ab266f621ee1a16f0f0d
+── P1 catalog (runner egress) ──
+[18:51:31]   otcMarket metadata refused (HTTP Error 404: Not Found) -> seeds
+[18:51:45]   fixedIncomeMarket metadata refused (HTTP Error 404: Not Found) -> seeds
+[18:51:49]   universe=9 invalid=10
+── P2 drain since inception ──
+[18:51:49]   fixedIncomeMarket__treasuryWeeklyAggregates          FAIL Expecting value: line 1 column 1 (char 0)
+[18:51:52]   otcMarket__blocksSummary                             rows=3847        0.2MB
+[19:18:05]   otcMarket__consolidatedShortInterest                 rows=3904106   168.1MB
+[19:18:06]   otcMarket__monthlyDownloadDetails                    rows=684         0.0MB
+[20:08:10]   otcMarket__monthlySummary                            rows=5719147   218.5MB
+[20:08:12]   otcMarket__otcBlocksSummary                          rows=3967        0.3MB
