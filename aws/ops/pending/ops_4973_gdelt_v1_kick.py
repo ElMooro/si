@@ -23,7 +23,7 @@ REGION = "us-east-1"
 B = "justhodl-dashboard-live"
 FN = "justhodl-gdelt-full"
 STATE_KEY = "data/warm/gdelt-full/_state/state.json"
-MARK = "v1.0.1 ops4973"
+MARK = "v1.0.2 ops4973"
 REL = ("aws/lambdas/justhodl-gdelt-full/source/lambda_function.py")
 s3 = boto3.client("s3", region_name=REGION)
 lam = boto3.client("lambda", region_name=REGION)

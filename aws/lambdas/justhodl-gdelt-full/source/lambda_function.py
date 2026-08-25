@@ -34,7 +34,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-ENGINE_VERSION = "justhodl-gdelt-full v1.0.1 ops4973 v1-index"
+ENGINE_VERSION = "justhodl-gdelt-full v1.0.2 ops4973 v1-unlock"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 V2 = "http://data.gdeltproject.org/gdeltv2/"
 V1IDX = "http://data.gdeltproject.org/events/index.html"
@@ -125,7 +125,9 @@ def load_v1_queue(state):
     try:
         raw = s3.get_object(Bucket=BUCKET,
                             Key=V1Q_KEY)["Body"].read()
-        return json.loads(gzip.decompress(raw))
+        q = json.loads(gzip.decompress(raw))
+        if q.get("names"):
+            return q          # v1.0.2: empty cache -> refetch
     except Exception:
         pass
     req = urllib.request.Request(V1IDX, headers=UA)
@@ -232,7 +234,7 @@ def lambda_handler(event, ctx=None):
 
     # phase 2: v1 backfill once the live edge is held ---------------
     if state["phase"] == "LIVE" and not event.get("no_v1") and \
-            state.get("v1_idx", 0) < state.get("v1_total", 1) + 0:
+            state.get("v1_idx", 0) < (state.get("v1_total") or 1):
         try:
             q = load_v1_queue(state)
             state["v1_total"] = len(q["names"])
