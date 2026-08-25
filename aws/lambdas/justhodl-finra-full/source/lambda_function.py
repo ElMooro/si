@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-ENGINE_VERSION = "justhodl-finra-full v1.0.5 ops4978 trust-catalog"
+ENGINE_VERSION = "justhodl-finra-full v1.0.6 ops4981 sync-drive"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CID = os.environ.get("FINRA_CLIENT_ID", "")
 CSEC = os.environ.get("FINRA_CLIENT_SECRET", "")
@@ -238,9 +238,11 @@ def drain_one(state, key):
 
 
 def lambda_handler(event, ctx=None):
-    global _t0
+    global _t0, BUDGET_S
     _t0 = time.time()
     event = event or {}
+    if event.get("budget_s"):
+        BUDGET_S = int(event["budget_s"])   # sync-drive links
     # v1.0.1: keyless PUBLIC-tier mode allowed -- FINRA's public
     # datasets answer unauthenticated (rate-limited); creds, when
     # they arrive, upgrade the same engine in place.
