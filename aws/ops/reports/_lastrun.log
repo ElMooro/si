@@ -1,102 +1,64 @@
-executing-against: 9cb8cbf0cf79502490409ea1b9f6d0bc19b7c33c
+executing-against: e2aebbd6263790baa77c75d57e2001881074061a
 ── G-1 markers-in-checkout ──
-[23:27:39]   ok justhodl-imf-full        'v1.0.2 ops4967'
-[23:27:39]   ok justhodl-provider-catalog 'imf-note-v2'
-[23:27:39]   ok justhodl-gov-sources     'imf-api-v2 ops4967'
+[03:29:10]   ok justhodl-imf-full        'v1.0.2 ops4967'
+[03:29:10]   ok justhodl-provider-catalog 'imf-note-v2'
+[03:29:10]   ok justhodl-gov-sources     'imf-api-v2 ops4967'
 ── G0 settle x3 ──
-[23:28:05]   justhodl-imf-full settled (25s)
-[23:28:05]   justhodl-provider-catalog settled (0s)
-[23:28:05]   justhodl-gov-sources settled (0s)
-[23:28:05] G0 PASS
+[03:29:11]   justhodl-imf-full settled (0s)
+[03:29:11]   justhodl-provider-catalog settled (0s)
+[03:29:12]   justhodl-gov-sources settled (0s)
+[03:29:12] G0 PASS
 ── G0b schedules ──
-[23:28:05]   exists justhodl-imf-full-6h (ok)
-[23:28:05]   exists justhodl-imf-full-weekly (ok)
+[03:29:12]   exists justhodl-imf-full-6h (ok)
+[03:29:12]   exists justhodl-imf-full-weekly (ok)
 ── G1 chain-drive (15min) ──
-[23:28:06]   t+   0s DISCOVER banked=0 q=0 cat=0 fail=1
-[23:28:31]   t+  25s DRAIN banked=5 q=217 cat=222 fail=1
-[23:28:56]   t+  50s DRAIN banked=10 q=212 cat=222 fail=1
-[23:32:42]   t+ 276s DRAIN banked=11 q=211 cat=222 fail=1
-[23:36:28]   t+ 502s DRAIN banked=12 q=210 cat=222 fail=1
-[23:39:48]   t+ 702s DRAIN banked=13 q=209 cat=222 fail=1
-[23:43:09] G1 FAIL phase=DRAIN banked=13 catalog=222 failures=1
+[03:29:13]   t+   0s DRAIN banked=103 q=119 cat=222 fail=1
+[03:29:38]   t+  25s DRAIN banked=103 q=118 cat=222 fail=1
+[03:43:33]   chain restart kick #1
+[03:44:23] G1 PASS phase=DRAIN banked=103 catalog=222 failures=1
 ── G2 substance: BOP SDMX payload ──
-[23:43:14]   BOP raw=1866.07MB obs_tags=12219733
-[23:43:14] G2 PASS
+[03:44:28]   BOP raw=1866.07MB obs_tags=12219733
+[03:44:28] G2 PASS
 ── G3 card (post-mark) ──
-[23:48:45] G3 PASS note=FULL SDMX-2.1 warehouse (imf-full v1) on api.imf.org: 13/222 dataflows · 8 vintages retained · 5.65GB · 0 lastN-partial · phase DRAIN · daily rediscovery
+[03:50:31] G3 PASS note=FULL SDMX-2.1 warehouse (imf-full v1) on api.imf.org: 76/222 dataflows · 33 vintages retained · 24.96GB · 0 lastN-partial · phase DRAIN · daily rediscovery
 ── DAY-TWO board (info) ──
-[23:48:45]   worldbank: phase=DRAIN banked=9200 q=20289
-[23:48:45]   gdelt: phase=DRAIN files=334653 gb=35.12 cursor=2024110307 gaps=5699 v1=0/None
-[23:48:45]   bls: phase=COMPLETE files=1659 gb=40.06
-[23:48:45]   dol: files=70 mb=160.6 fresh=70 unchanged=0
-[23:48:45] ops 4967 RED: G1
+[03:50:31]   worldbank: phase=DRAIN banked=9200 q=20289
+[03:50:32]   gdelt: phase=LIVE files=396316 gb=39.72 cursor=2026082503 gaps=7381 v1=0/0
+[03:50:32]   bls: phase=COMPLETE files=1659 gb=40.06
+[03:50:32]   dol: files=70 mb=160.6 fresh=0 unchanged=70
+[03:50:32] ops 4967 GREEN -- IMF full warehouse draining; daily rediscovery + weekly redrain own it; original drain queue resumes next (boe -> coinmetrics -> ...)
 
 → Report written to aws/ops/reports/latest/ops_4967_imf_full_launch.md
-❌ OPS-FAIL: aws/ops/pending/ops_4967_imf_full_launch.py
 ── G-1 markers ──
-[23:48:46]   ok 'conquest-v115 ops4972'
-[23:48:46]   ok 'v1.0.2 ops4967'
-[23:48:46]   census key: present
+[03:50:32]   ok 'conquest-v116 ops4972'
+[03:50:32]   ok 'v1.0.2 ops4967'
+[03:50:32]   census key: present
 ── G0 settle census v1.1.5 ──
-[23:48:46]   settled (0s)
+[03:50:33]   settled (0s)
 ── P1 per-slug recon + two-state confirmation ──
-[23:48:46]   ── aies-miscsector  base=https://api.census.gov/data/timeseries/aies/miscsector
-[23:48:46]      geo=[('us', [], [])] (200) tp=time req=['PBA', 'TYPOP', 'TAXSTAT', 'NAICS'] vars=['RCPT_NEWPT_SSBNFTS_CV', 'RCPT_NONOP_PROGSRVC_VAL', 'RCPT_MOTR_AGR_CV', 'RCPT_APSOFT_MAIN_DVAL', 'RCPT_CUST_IND_CV', 'RCPT_AUDVID_CV']
-[23:48:47]      us-star       200 rows~859 
-[23:48:47]      CONQUERED via us-star -> {"vars": ["RCPT_NEWPT_SSBNFTS_CV", "RCPT_NONOP_PROGSRVC_VAL", "RCPT_MOTR_AGR_CV", "RCPT_APSOFT_MAIN_DVAL", "RCPT_CUST_IND_CV", "RCPT_AUDVID_CV"], "tp": "time", 
-[23:48:47]   ── asm-industry  base=https://api.census.gov/data/timeseries/asm/industry
-[23:48:47]      geo=[('us', [], [])] (200) tp=time req=['NAICS'] vars=['BENHEA', 'BENPEC_S', 'INVMATE_F', 'INVWIPB_F', 'PCHADVT', 'MSCTOT_S_F']
-[23:48:48]      us-star       200 rows~9395 
-[23:48:48]      CONQUERED via us-star -> {"vars": ["BENHEA", "BENPEC_S", "INVMATE_F", "INVWIPB_F", "PCHADVT", "MSCTOT_S_F"], "tp": "time", "full_time": "from 1990", "extra": {"NAICS": "*"}}
-[23:48:48]   ── poverty-saipe-schdist  base=https://api.census.gov/data/timeseries/poverty/saipe/schdist
-[23:48:48]      geo=[('school district (elementary)', ['state'], ['state']), ('school district (secondary)', ['state'], ['state']), ('school district (unified)', ['state'], ['state']), ('school district administrative area', ['state'], ['state'])] (200) tp=time req=[] vars=['SAEPOVRAT5_17RV_PT', 'YEAR', 'SD_NAME', 'GEOID', 'SAEPOV5_17V_PT', 'SAEPOV5_17RV_PT']
-[23:48:48]      sub-in-state  200 rows~4 
-[23:48:48]      2nd-state failed (204)
-[23:48:48]      us-star       400 rows~0 error: unknown/unsupported geography hierarchy
-[23:48:49]      state-direct  400 rows~0 error: unknown/unsupported geography hierarchy
-[23:48:49]      no-geo        400 rows~0 error: missing 'for' argument
-[23:48:49]   ── pseo-earnings  base=https://api.census.gov/data/timeseries/pseo/earnings
-[23:48:50]      geo=[('us', [], [])] (200) tp=time req=['CIPCODE', 'GEOCOMP', 'GRAD_COHORT', 'DEGREE_LEVEL'] vars=['Y10_GRADS_EARN', 'GRAD_COHORT_YEARS', 'Y1_P50_EARNINGS', 'Y10_IPEDS_COUNT', 'AGG_LEVEL_PSEO', 'CIPCODE']
-[23:48:50]      us-star       400 rows~0 error: unknown predicate variable: 'time'
-[23:48:50]      state-direct  400 rows~0 error: unknown/unsupported geography hierarchy
-[23:48:50]      no-geo        400 rows~0 error: missing 'for' argument
-[23:48:51]   ── pseo-flows  base=https://api.census.gov/data/timeseries/pseo/flows
-[23:48:51]      geo=[('us', [], []), ('division', [], [])] (200) tp=time req=['CIPCODE', 'NAICS', 'GEOCOMP', 'GRAD_COHORT'] vars=['Y1_GRADS_NME', 'Y1_GRADS_EMP', 'GRAD_COHORT_YEARS', 'AGG_LEVEL_PSEO', 'CIPCODE', 'DIVISION']
-[23:48:51]      us-star       400 rows~0 error: unknown predicate variable: 'time'
-[23:48:51]      state-direct  400 rows~0 error: unknown/unsupported geography hierarchy
-[23:48:51]      no-geo        400 rows~0 error: missing 'for' argument
-── P2 merge-write overrides ──
-[23:48:52]   GRAM_KEY now 5 entries (+2)
-── P3 redo drive ──
-[23:49:22]   t+  30s ok=0/2 still-failed=0
-[23:49:52]   t+  60s ok=0/2 still-failed=1
-[23:50:22]   t+  90s ok=0/2 still-failed=2
-[23:50:52]   t+ 120s ok=0/2 still-failed=2
-[23:51:22]   t+ 150s ok=0/2 still-failed=2
-[23:51:53]   t+ 180s ok=0/2 still-failed=2
-[23:52:23]   t+ 210s ok=0/2 still-failed=2
-[23:52:53]   t+ 240s ok=0/2 still-failed=2
-[23:53:23]   t+ 270s ok=0/2 still-failed=0
-[23:53:53]   t+ 301s ok=0/2 still-failed=1
-[23:54:23]   t+ 331s ok=0/2 still-failed=0
-[23:54:53]   t+ 361s ok=0/2 still-failed=1
-[23:55:24]   t+ 391s ok=0/2 still-failed=0
-[23:55:54]   t+ 421s ok=0/2 still-failed=0
-[23:56:24]   t+ 451s ok=0/2 still-failed=1
-[23:56:54]   t+ 482s ok=0/2 still-failed=0
-[23:57:24]   t+ 512s ok=0/2 still-failed=1
-[23:57:54]   t+ 542s ok=0/2 still-failed=2
-[23:58:25]   t+ 572s ok=0/2 still-failed=0
-[23:58:55]   t+ 602s ok=0/2 still-failed=1
-[23:59:25]   t+ 633s ok=0/2 still-failed=0
-[23:59:55]   t+ 663s ok=0/2 still-failed=1
-[23:59:55]   aies-miscsector          ok=False rows=0 span=None..None mode=None
-[23:59:55]   asm-industry             ok=False rows=0 span=None..None mode=year_state
-[23:59:55]   UNCONQUERED poverty-saipe-schdist all shapes refused; last bodies logged
-[23:59:55]   UNCONQUERED pseo-earnings        all shapes refused; last bodies logged
-[23:59:55]   UNCONQUERED pseo-flows           all shapes refused; last bodies logged
-[23:59:55] G1 FAIL conquered-live=0/5 probe-refused=3
-[23:59:55] ops 4972 RED: G1
+[03:50:33]   ── aies-miscsector  base=https://api.census.gov/data/timeseries/aies/miscsector
+[03:50:34]      geo=[('us', [], [])] (200) tp=time req=['PBA', 'TYPOP', 'TAXSTAT', 'NAICS'] vars=['RCPT_NEWPT_SSBNFTS_CV', 'RCPT_NONOP_PROGSRVC_VAL', 'RCPT_MOTR_AGR_CV', 'RCPT_APSOFT_MAIN_DVAL', 'RCPT_CUST_IND_CV', 'RCPT_AUDVID_CV']
+[03:50:35]      us-star       200 rows~859 
+[03:50:35]      CONQUERED via us-star -> {"vars": ["RCPT_NEWPT_SSBNFTS_CV", "RCPT_NONOP_PROGSRVC_VAL", "RCPT_MOTR_AGR_CV", "RCPT_APSOFT_MAIN_DVAL", "RCPT_CUST_IND_CV", "RCPT_AUDVID_CV"], "tp": "time", 
+[03:50:35]   ── asm-industry  base=https://api.census.gov/data/timeseries/asm/industry
+[03:50:35]      geo=[('us', [], [])] (200) tp=time req=['NAICS'] vars=['BENHEA', 'BENPEC_S', 'INVMATE_F', 'INVWIPB_F', 'PCHADVT', 'MSCTOT_S_F']
+[03:50:38]      us-star       200 rows~9395 
+[03:50:38]      CONQUERED via us-star -> {"vars": ["BENHEA", "BENPEC_S", "INVMATE_F", "INVWIPB_F", "PCHADVT", "MSCTOT_S_F"], "tp": "time", "full_time": "from 1989", "geo": "us:*", "extra": {"NAICS": "*
+[03:50:38]   ── poverty-saipe-schdist  base=https://api.census.gov/data/timeseries/poverty/saipe/schdist
+[03:50:39]      geo=[('school district (elementary)', ['state'], ['state']), ('school district (secondary)', ['state'], ['state']), ('school district (unified)', ['state'], ['state']), ('school district administrative area', ['state'], ['state'])] (200) tp=time req=[] vars=['SAEPOVRAT5_17RV_PT', 'YEAR', 'SD_NAME', 'GEOID', 'SAEPOV5_17V_PT', 'SAEPOV5_17RV_PT']
+[03:50:39]      sub-in-state  200 rows~4 
+[03:50:40]      CONQUERED via sub-in-state -> {"vars": ["SAEPOVRAT5_17RV_PT", "YEAR", "SD_NAME", "GEOID", "SAEPOV5_17V_PT", "SAEPOV5_17RV_PT"], "tp": "time", "full_time": "from 1989", "geo_iter": "state", "
+[03:50:40]   ── pseo-earnings  base=https://api.census.gov/data/timeseries/pseo/earnings
+[03:50:40]      geo=[('us', [], [])] (200) tp=time req=['CIPCODE', 'GEOCOMP', 'GRAD_COHORT', 'DEGREE_LEVEL'] vars=['Y10_GRADS_EARN', 'GRAD_COHORT_YEARS', 'Y1_P50_EARNINGS', 'Y10_IPEDS_COUNT', 'AGG_LEVEL_PSEO', 'CIPCODE']
+[03:50:40]      us-star       400 rows~0 error: unknown predicate variable: 'time'
 
 → Report written to aws/ops/reports/latest/ops_4972_census_conquest.md
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4972_census_conquest.py", line 190, in <module>
+    u = qs(base, vars_pick, (None if _nt else tp),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4972_census_conquest.py", line 73, in qs
+    tp + "=" + urllib.parse.quote_plus(pred)]
+    ~~~^~~~~
+TypeError: unsupported operand type(s) for +: 'NoneType' and 'str'
 ❌ OPS-FAIL: aws/ops/pending/ops_4972_census_conquest.py

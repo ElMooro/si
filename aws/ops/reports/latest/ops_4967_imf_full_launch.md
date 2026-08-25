@@ -1,49 +1,46 @@
 ## G-1 markers-in-checkout
 
-**Status:** failure  
-**Duration:** 1266.1s  
-**Finished:** 2026-08-24T23:48:45+00:00  
+**Status:** success  
+**Duration:** 1281.6s  
+**Finished:** 2026-08-25T03:50:32+00:00  
 
-## Error
+## Data
 
-```
-SystemExit: 1
-```
+| banked | catalog | failures | phase | vintages |
+|---|---|---|---|---|
+| 103 | 222 | 1 | DRAIN | 45 |
 
 ## Log
-- `23:27:39`   ok justhodl-imf-full        'v1.0.2 ops4967'
-- `23:27:39`   ok justhodl-provider-catalog 'imf-note-v2'
-- `23:27:39`   ok justhodl-gov-sources     'imf-api-v2 ops4967'
+- `03:29:10`   ok justhodl-imf-full        'v1.0.2 ops4967'
+- `03:29:10`   ok justhodl-provider-catalog 'imf-note-v2'
+- `03:29:10`   ok justhodl-gov-sources     'imf-api-v2 ops4967'
 ## G0 settle x3
 
-- `23:28:05`   justhodl-imf-full settled (25s)
-- `23:28:05`   justhodl-provider-catalog settled (0s)
-- `23:28:05`   justhodl-gov-sources settled (0s)
-- `23:28:05` G0 PASS
+- `03:29:11`   justhodl-imf-full settled (0s)
+- `03:29:11`   justhodl-provider-catalog settled (0s)
+- `03:29:12`   justhodl-gov-sources settled (0s)
+- `03:29:12` G0 PASS
 ## G0b schedules
 
-- `23:28:05`   exists justhodl-imf-full-6h (ok)
-- `23:28:05`   exists justhodl-imf-full-weekly (ok)
+- `03:29:12`   exists justhodl-imf-full-6h (ok)
+- `03:29:12`   exists justhodl-imf-full-weekly (ok)
 ## G1 chain-drive (15min)
 
-- `23:28:06`   t+   0s DISCOVER banked=0 q=0 cat=0 fail=1
-- `23:28:31`   t+  25s DRAIN banked=5 q=217 cat=222 fail=1
-- `23:28:56`   t+  50s DRAIN banked=10 q=212 cat=222 fail=1
-- `23:32:42`   t+ 276s DRAIN banked=11 q=211 cat=222 fail=1
-- `23:36:28`   t+ 502s DRAIN banked=12 q=210 cat=222 fail=1
-- `23:39:48`   t+ 702s DRAIN banked=13 q=209 cat=222 fail=1
-- `23:43:09` G1 FAIL phase=DRAIN banked=13 catalog=222 failures=1
+- `03:29:13`   t+   0s DRAIN banked=103 q=119 cat=222 fail=1
+- `03:29:38`   t+  25s DRAIN banked=103 q=118 cat=222 fail=1
+- `03:43:33`   chain restart kick #1
+- `03:44:23` G1 PASS phase=DRAIN banked=103 catalog=222 failures=1
 ## G2 substance: BOP SDMX payload
 
-- `23:43:14`   BOP raw=1866.07MB obs_tags=12219733
-- `23:43:14` G2 PASS
+- `03:44:28`   BOP raw=1866.07MB obs_tags=12219733
+- `03:44:28` G2 PASS
 ## G3 card (post-mark)
 
-- `23:48:45` G3 PASS note=FULL SDMX-2.1 warehouse (imf-full v1) on api.imf.org: 13/222 dataflows · 8 vintages retained · 5.65GB · 0 lastN-partial · phase DRAIN · daily rediscovery
+- `03:50:31` G3 PASS note=FULL SDMX-2.1 warehouse (imf-full v1) on api.imf.org: 76/222 dataflows · 33 vintages retained · 24.96GB · 0 lastN-partial · phase DRAIN · daily rediscovery
 ## DAY-TWO board (info)
 
-- `23:48:45`   worldbank: phase=DRAIN banked=9200 q=20289
-- `23:48:45`   gdelt: phase=DRAIN files=334653 gb=35.12 cursor=2024110307 gaps=5699 v1=0/None
-- `23:48:45`   bls: phase=COMPLETE files=1659 gb=40.06
-- `23:48:45`   dol: files=70 mb=160.6 fresh=70 unchanged=0
-- `23:48:45` ops 4967 RED: G1
+- `03:50:31`   worldbank: phase=DRAIN banked=9200 q=20289
+- `03:50:32`   gdelt: phase=LIVE files=396316 gb=39.72 cursor=2026082503 gaps=7381 v1=0/0
+- `03:50:32`   bls: phase=COMPLETE files=1659 gb=40.06
+- `03:50:32`   dol: files=70 mb=160.6 fresh=0 unchanged=70
+- `03:50:32` ops 4967 GREEN -- IMF full warehouse draining; daily rediscovery + weekly redrain own it; original drain queue resumes next (boe -> coinmetrics -> ...)
