@@ -1,8 +1,8 @@
 ## P1 catalog + resume census
 
 **Status:** failure  
-**Duration:** 386.8s  
-**Finished:** 2026-08-25T22:07:18+00:00  
+**Duration:** 395.7s  
+**Finished:** 2026-08-25T22:22:09+00:00  
 
 ## Error
 
@@ -11,18 +11,20 @@ SystemExit: 1
 ```
 
 ## Log
-- `22:00:51`   otcMarket metadata refused (HTTP Error 404: Not Found) -> seeds
-- `22:01:04`   fixedIncomeMarket metadata refused (HTTP Error 404: Not Found) -> seeds
-- `22:01:08`   universe=9 invalid=10 already-banked(4982)=8
+- `22:15:33`   otcMarket metadata refused (HTTP Error 404: Not Found) -> seeds
+- `22:15:44`   fixedIncomeMarket metadata refused (HTTP Error 404: Not Found) -> seeds
+- `22:15:47`   universe=9 invalid=10 already-banked(4982)=8
 ## P2 drain (checkpointed)
 
-- `22:01:08`   fixedIncomeMarket__treasuryWeeklyAggregates          FAIL Expecting value: line 1 column 1 (char 0)
-- `22:01:09`   banked=8 rows=22212147 failed=1 remaining=0 phase=DRAIN
-## P4 substance
+- `22:15:47`   fixedIncomeMarket__treasuryWeeklyAggregates          FAIL Expecting value: line 1 column 1 (char 0)
+- `22:15:47`   banked=8 rows=22212147 failed=1 remaining=0 phase=DRAIN
+## P4 substance -- full-stream min/max dates
 
-- `22:01:16`   otcMarket__weeklySummary rows=5755000 span 2022-11-07 .. 2023-12-11
-- `22:01:16` P4 FAIL
+- `22:15:58`   otcMarket__weeklySummary               rows=5755000   span 2022-01-03 .. 2024-04-29
+- `22:16:02`   otcMarket__regShoDaily                 rows=6820408   span 2025-08-25 .. 2026-08-24
+- `22:16:02`   otcMarket__blocksSummary               rows=3847      span 2016-06-01 .. 2019-01-07
+- `22:16:02` P4 FAIL
 ## P5 card
 
-- `22:07:18` P5 PASS note=FULL Query-API warehouse (finra-full v1): 8/9 datasets · 22212147 rows since inception · 700MB · phase DRAIN · daily rediscovery
-- `22:07:18` ops 4983 RED: P4
+- `22:22:09` P5 PASS note=FULL Query-API warehouse (finra-full v1): 8/9 datasets · 22212147 rows since inception · 700MB · phase COMPLETE · daily rediscovery
+- `22:22:09` ops 4983 RED: P4
