@@ -1,8 +1,8 @@
-## P1 field census (ALL keys) + banked-truth spans
+## P0 sentinel: secret present?
 
 **Status:** failure  
-**Duration:** 23.4s  
-**Finished:** 2026-08-25T22:30:56+00:00  
+**Duration:** 0.4s  
+**Finished:** 2026-08-25T22:35:59+00:00  
 
 ## Error
 
@@ -11,17 +11,5 @@ SystemExit: 1
 ```
 
 ## Log
-- `22:30:33`   otcMarket.weeklySummary date-fields=['lastUpdateDate', 'lastReportedDate', 'initialPublishedDate', 'summaryStartDate', 'weekStartDate'] -> using summaryStartDate
-- `22:30:33`     all-keys=['MPID', 'firmCRDNumber', 'initialPublishedDate', 'issueName', 'issueSymbolIdentifier', 'lastReportedDate', 'lastUpdateDate', 'marketParticipantName', 'productTypeCode', 'summaryStartDate', 'summaryTypeCode', 'tierDescription', 'tierIdentifier', 'totalNotionalSum', 'totalWeeklyShareQuantity', 'totalWeeklyTradeCount', 'weekStartDate']
-- `22:30:33`   otcMarket.regShoDaily date-fields=['tradeReportDate'] -> using tradeReportDate
-- `22:30:33`     all-keys=['marketCode', 'reportingFacilityCode', 'securitiesInformationProcessorSymbolIdentifier', 'shortExemptParQuantity', 'shortParQuantity', 'totalParQuantity', 'tradeReportDate']
-- `22:30:49`   BANKED weeklySummary.summaryStartDate span 2022-01-03 .. 2023-11-06
-- `22:30:49`   BANKED regShoDaily.tradeReportDate   span 2025-08-25 .. 2026-08-24
-## P2 filter probes (historical 2015-06-29)
-
-- `22:30:49`   GET-equality -> 5 rows (0 historical)
-- `22:30:52`   POST-compare -> Expecting value: line 1 column 1 (char 0)
-- `22:30:55`   POST-dateRange -> Expecting value: line 1 column 1 (char 0)
-- `22:30:56`   GET-eq(regSho 2023) -> 5 rows (0 match)
-- `22:30:56`   WINNING SHAPE: None
-- `22:30:56` ops 4984 RED: keyless tier refuses historical filters AND banked spans are shallow -- full depth rides the auth secret
+- `22:35:59`   client_id=c2de60df... secret=False
+- `22:35:59` ops 4984 RED: SENTINEL WAITING -- keyless tier is hard-windowed (evidence complete); paste the API secret (portal Reset shows it once) and this op drains full 2014-inception depth + the 10 auth datasets automatically on the next push
