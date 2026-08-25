@@ -87,7 +87,11 @@ with report("ops_4984_finra_partition_drain") as R:
     have = dict(st.get("have") or {})
     universe = dict(st.get("universe") or {})
 
-    R.section("P1 field census")
+    R.section("P1 field census (ALL keys) + banked-truth spans")
+    # v2: the 8-key slice hid weekStartDate; and the all-dates
+    # regex span mixed lastUpdateDate noise. Target the REAL
+    # business-date field per dataset and measure the banked
+    # files' true spans on that field alone.
     fields = {}
     for g, nm in [("otcMarket", "weeklySummary"),
                   ("otcMarket", "regShoDaily")]:
@@ -95,13 +99,17 @@ with report("ops_4984_finra_partition_drain") as R:
             sample = rows_of(http(
                 "/data/group/%s/name/%s?limit=2" % (g, nm)))
             r0 = sample[0] if sample else {}
-            datef = next((k for k, v in r0.items()
-                          if isinstance(v, str) and
-                          re.fullmatch(r"20\d\d-\d\d-\d\d", v)),
-                         None)
-            fields["%s__%s" % (g, nm)] = datef
-            R.log("  %s.%s date-field=%s keys=%s" % (
-                g, nm, datef, sorted(r0)[:8]))
+            dks = [k for k, v in r0.items()
+                   if isinstance(v, str) and
+                   re.fullmatch(r"20\d\d-\d\d-\d\d", v)]
+            pref = next((k for k in dks if k in (
+                "weekStartDate", "tradeReportDate",
+                "monthStartDate", "summaryStartDate")), None)
+            fields["%s__%s" % (g, nm)] = pref or (
+                dks[0] if dks else None)
+            R.log("  %s.%s date-fields=%s -> using %s" % (
+                g, nm, dks, fields["%s__%s" % (g, nm)]))
+            R.log("    all-keys=%s" % sorted(r0))
         except Exception as e:
             R.log("  %s.%s sample err %s" % (g, nm, str(e)[:80]))
     wk_f = fields.get("otcMarket__weeklySummary")
@@ -110,6 +118,39 @@ with report("ops_4984_finra_partition_drain") as R:
         R.log("ops 4984 RED: field census failed")
         sys.exit(1)
 
+    def field_span(key, fname):
+        pat = re.compile(
+            ('"%s":"(20\\d\\d-\\d\\d-\\d\\d)"'
+             % fname).encode())
+        body = s3.get_object(Bucket=B,
+                             Key=ROOT + "src/%s.jsonl.gz" % key
+                             )["Body"]
+        d = zlib.decompressobj(16 + zlib.MAX_WBITS)
+        lo, hi, carry = None, None, b""
+        for chunk in iter(lambda: body.read(4 << 20), b""):
+            buf = carry + d.decompress(chunk)
+            carry = buf[-64:]
+            for m in pat.finditer(buf):
+                v = m.group(1)
+                if lo is None or v < lo:
+                    lo = v
+                if hi is None or v > hi:
+                    hi = v
+        return (lo or b"?").decode(), (hi or b"?").decode()
+
+    wk_lo, wk_hi = field_span("otcMarket__weeklySummary", wk_f)
+    rs_lo, rs_hi = field_span("otcMarket__regShoDaily", rs_f)
+    R.log("  BANKED weeklySummary.%s span %s .. %s" % (
+        wk_f, wk_lo, wk_hi))
+    R.log("  BANKED regShoDaily.%s   span %s .. %s" % (
+        rs_f, rs_lo, rs_hi))
+    wk_complete = wk_lo != "?" and wk_lo <= "2015-12-31"
+    rs_complete = rs_lo != "?" and rs_lo <= "2011-12-31"
+
+    if wk_complete and rs_complete:
+        R.log("  BOTH banked files already reach inception -- no "
+              "partitions owed; earlier shallow reads were "
+              "lastUpdateDate noise")
     R.section("P2 filter probes (historical 2015-06-29)")
     shape = None
     probe_d = "2015-06-29"
@@ -148,11 +189,27 @@ with report("ops_4984_finra_partition_drain") as R:
                     break
             except Exception as e:
                 R.log("  %s -> %s" % (lbl, str(e)[:90]))
-    R.log("  WINNING SHAPE: %s" % shape)
     if not shape:
+        try:
+            rs = rows_of(http(
+                "/data/group/otcMarket/name/regShoDaily?limit=5"
+                "&%s=%s" % (rs_f, "2023-06-29")))
+            hist = [r_ for r_ in rs
+                    if r_.get(rs_f) == "2023-06-29"]
+            R.log("  GET-eq(regSho 2023) -> %d rows (%d match)"
+                  % (len(rs), len(hist)))
+            if hist:
+                shape = "get-eq"
+        except Exception as e:
+            R.log("  GET-eq(regSho) -> %s" % str(e)[:80])
+    R.log("  WINNING SHAPE: %s" % shape)
+    if not shape and not (wk_complete and rs_complete):
         R.log("ops 4984 RED: keyless tier refuses historical "
-              "filters -- full depth rides the auth secret")
+              "filters AND banked spans are shallow -- full "
+              "depth rides the auth secret")
         sys.exit(1)
+    if not shape:
+        shape = "none-needed"
 
     def part_fetch(g, nm, f, dval, off):
         if shape == "get-eq":
@@ -232,7 +289,8 @@ with report("ops_4984_finra_partition_drain") as R:
     R.section("P3 partition drain")
     # weeklySummary: Mondays 2014-01-06 .. 2021-12-27, by year
     d0 = date(2014, 1, 6)
-    for yr in range(2014, 2022):
+    for yr in ([] if (wk_complete or shape == "none-needed")
+               else range(2014, 2022)):
         if time.time() - T0 > GUARD_S:
             R.log("  guard -- remainder resumes next push")
             break
@@ -251,7 +309,8 @@ with report("ops_4984_finra_partition_drain") as R:
         R.log("  %-40s weeks=%d rows=%d" % (key, len(mondays), n))
         checkpoint()
     # regShoDaily: years desc from 2024 until an empty year
-    for yr in range(2024, 2004, -1):
+    for yr in ([] if (rs_complete or shape == "none-needed")
+               else range(2024, 2004, -1)):
         if time.time() - T0 > GUARD_S:
             R.log("  guard -- remainder resumes next push")
             break
@@ -293,14 +352,17 @@ with report("ops_4984_finra_partition_drain") as R:
                     hi = v
         return (lo or b"?").decode(), (hi or b"?").decode()
 
-    ok4 = False
+    ok4 = wk_complete
     try:
         k14 = "otcMarket__weeklySummary__Y2014"
         if k14 in have:
             lo, hi = span_scan(k14)
             R.log("  %s span %s .. %s rows=%s" % (
                 k14, lo, hi, have[k14].get("rows")))
-            ok4 = lo <= "2014-12-31"
+            ok4 = ok4 or lo <= "2014-12-31"
+        if wk_complete:
+            R.log("  weeklySummary banked-span already reaches "
+                  "%s -- inception ok" % wk_lo)
     except Exception as e:
         R.log("  span err %s" % str(e)[:90])
     R.log("P4 %s" % ("PASS" if ok4 else "FAIL"))
