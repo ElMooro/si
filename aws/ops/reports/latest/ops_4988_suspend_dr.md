@@ -1,0 +1,31 @@
+## P0 evidence
+
+**Status:** success  
+**Duration:** 92.9s  
+**Finished:** 2026-08-26T14:43:55+00:00  
+
+## Data
+
+| sources_suspended |
+|---|
+| 2 |
+
+## Log
+- `14:42:24`   SOURCE justhodl-dashboard-live                  rules=1 -> ['justhodl-dashboard-live-dr']
+- `14:42:25`   SOURCE justhodl-dashboard-live-dr               rules=1 -> ['justhodl-dr-usw2-857687956942']
+- `14:43:16`   DR justhodl-dashboard-live-dr                 ~200000 objs 72.05GB
+- `14:43:17`     IT configs: []
+- `14:43:51`   DR justhodl-dr-usw2-857687956942              ~152824 objs 7.05GB
+- `14:43:51`     IT configs: []
+## P1 archive configs
+
+- `14:43:51`   archived 2 config(s)
+## P2 delete replication rules
+
+- `14:43:52`   DELETED replication on justhodl-dashboard-live
+- `14:43:52`   DELETED replication on justhodl-dashboard-live-dr
+## P3 verify
+
+- `14:43:55`   justhodl-dashboard-live: replication config GONE
+- `14:43:55`   justhodl-dashboard-live-dr: replication config GONE
+- `14:43:55` ops 4988 GREEN -- DR replication suspended; the us-west-2 request line stops accruing (existing copies untouched; re-enable = restore archived config)
