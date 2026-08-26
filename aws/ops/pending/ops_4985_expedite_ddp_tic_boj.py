@@ -168,11 +168,17 @@ with report("ops_4985_expedite_ddp_tic_boj") as R:
             if st.get("as_of") and \
                     float(st.get("lease_until") or 1) == 0:
                 done[fn] = (ok_n, st)
+    # v2: compare FINAL states, not the mid-run cache
+    finals = {}
     for fn, cfg in LANES.items():
-        got = done.get(fn, (0, {}))
-        if got[0] < cfg["bar"]:
+        st = gj(cfg["state"]) or {}
+        items = st.get(cfg["items"]) or {}
+        ok_n = sum(1 for v in items.values() if v.get("ok"))
+        finals[fn] = ok_n
+        if ok_n < cfg["bar"]:
             fails.append("%s:G1(%d<%d)" % (
-                fn.replace("justhodl-", ""), got[0], cfg["bar"]))
+                fn.replace("justhodl-", ""), ok_n, cfg["bar"]))
+    done = {fn: (n, {}) for fn, n in finals.items()}
     R.log("G1 %s" % ("PASS" if not fails else
                      "FAIL " + "; ".join(fails)))
 
