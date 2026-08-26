@@ -1,4 +1,4 @@
-"""ops_4987 v4 (resume trigger) -- Bank of Japan API universe import (Khalid's next).
+"""ops_4987 v5 (modern-window G2 + note-v3) -- Bank of Japan API universe import (Khalid's next).
 
 boj-full v1.1.0 adds the API lane: getMetadata?db=X lists every
 series per database; getDataCode pulls full-window values in
@@ -224,8 +224,10 @@ with report("ops_4987_boj_api_universe") as R:
     try:
         r_ = s3.list_objects_v2(
             Bucket=B, Prefix="data/warm/boj-full/api/MD11/",
-            MaxKeys=2)
-        k0 = (r_.get("Contents") or [{}])[0].get("Key")
+            MaxKeys=60)
+        keys = [o["Key"] for o in r_.get("Contents") or []]
+        k0 = next((k for k in keys if "_201" in k or
+                   "_200" in k), (keys or [None])[0])
         js = json.loads(gzip.decompress(s3.get_object(
             Bucket=B, Key=k0)["Body"].read()))
         blob = json.dumps(js)
@@ -261,7 +263,7 @@ with report("ops_4987_boj_api_universe") as R:
                if p.get("slug") == "boj"), {}) or {}
     note = be.get("catalog_note") or ""
     R.log("G3 note=%s" % note[:180])
-    if "API universe" not in note and "api" not in note.lower():
+    if "API universe" not in note:
         fails.append("G3")
 
     if fails:

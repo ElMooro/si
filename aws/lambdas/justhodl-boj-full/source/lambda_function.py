@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-ENGINE_VERSION = "justhodl-boj-full v1.1.1 ops4987 window-chunks"
+ENGINE_VERSION = "justhodl-boj-full v1.1.2 ops4987 throughput"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 SITE = "https://www.stat-search.boj.or.jp"
 PAGE = SITE + "/info/dload_en.html"
@@ -38,7 +38,7 @@ UA = {"User-Agent": "Mozilla/5.0 JustHodl Research "
 BUDGET_S = int(os.environ.get("BOJ_BUDGET_S", "640"))
 CHUNK_Y = int(os.environ.get("BOJ_CHUNK_Y", "10"))
 API_START = 1955
-BATCH = 40
+BATCH = 60
 GUARD = 60
 DB_CANDS = ["MD01", "MD02", "MD11", "MD12", "MD13", "CO", "IR01",
             "IR02", "IR03", "IR04", "FM01", "FM02", "FM03",
@@ -171,13 +171,13 @@ def api_drain_db(db, budget_end, state):
                                 bank(raw, w0)
                         except Exception:
                             pass
-                        time.sleep(0.12)
+                        time.sleep(0.08)
                 else:
                     st["fail"] = "HTTP %s @%d %s" % (
                         e.code, st["done"], w0)
             except Exception as e:
                 st["fail"] = "@%d %s" % (st["done"], str(e)[:60])
-            time.sleep(0.22)
+            time.sleep(0.1)
         st["done"] += len(batch)
         _put(_dbstate_key(db), st)
     _put(_dbstate_key(db), st)
