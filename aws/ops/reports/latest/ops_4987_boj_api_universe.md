@@ -1,8 +1,8 @@
 ## P0 shape evidence (runner)
 
 **Status:** failure  
-**Duration:** 4040.4s  
-**Finished:** 2026-08-26T15:59:59+00:00  
+**Duration:** 4005.0s  
+**Finished:** 2026-08-26T17:46:12+00:00  
 
 ## Error
 
@@ -11,110 +11,112 @@ SystemExit: 1
 ```
 
 ## Log
-- `14:52:39`   getMetadata MD11: 399164B head=b'{\n "STATUS":200,\n "MESSAGEID":"M181000I",\n "MESSAGE":"Successfully completed",\n "DATE":"2026-08-22T5:01:59.017+09:00",\n "DB":"MD11",\n "RESULTSET":[\n{\n "SERIES_CODE":"",\n "NAME_OF_TIME_SERIES":"Deposits, Vault Cash, and L'
-- `14:52:39`   getDataCode err HTTP Error 400: Bad Request
+- `16:39:27`   getMetadata MD11: 399164B head=b'{\n "STATUS":200,\n "MESSAGEID":"M181000I",\n "MESSAGE":"Successfully completed",\n "DATE":"2026-08-22T5:01:59.017+09:00",\n "DB":"MD11",\n "RESULTSET":[\n{\n "SERIES_CODE":"",\n "NAME_OF_TIME_SERIES":"Deposits, Vault Cash, and L'
+- `16:39:28`   getDataCode err HTTP Error 400: Bad Request
 ## G0 settle
 
-- `14:52:40`   settled (0s)
+- `16:39:28`   settled (0s)
 ## P0b window ladder (single code)
 
-- `14:52:40`   full -> HTTP Error 400: Bad Request
-- `14:52:41`   20y (197001-198912) -> 3584B dates=True
-- `14:52:41`   10y (198001-198912) -> 2144B dates=True
-- `14:52:42`   5y (198501-198912) -> 1424B dates=True
-- `14:52:43`   2y (198801-198912) -> 992B dates=True
-- `14:52:43`   widest working window: 20y (engine CHUNK_Y=10)
+- `16:39:28`   full -> HTTP Error 400: Bad Request
+- `16:39:29`   20y (197001-198912) -> 3584B dates=True
+- `16:39:30`   10y (198001-198912) -> 2144B dates=True
+- `16:39:31`   5y (198501-198912) -> 1424B dates=True
+- `16:39:31`   2y (198801-198912) -> 992B dates=True
+- `16:39:31`   widest working window: 20y (engine CHUNK_Y=10)
 ## P1 sharded sync drive (6 lanes, 60min)
 
-- `14:52:44`   dbs=22 ['BP01', 'BS01', 'BS02', 'FF', 'FM01', 'FM02', 'FM03', 'FM08', 'IR01', 'IR02', 'IR03', 'IR04', 'LA01', 'MD01', 'MD02', 'MD11', 'MD12', 'MD13', 'PR01', 'PR02', 'PR03', 'PS01']
-- `14:53:31`   t+  47s series 15419/85102 parts=2742 live=4
-- `14:54:18`   t+  94s series 15739/85102 parts=2797 live=4
-- `14:55:05`   t+ 141s series 15899/85102 parts=2813 live=4
-- `14:55:53`   t+ 189s series 16059/85102 parts=2842 live=4
-- `14:56:40`   t+ 236s series 16299/85102 parts=2944 live=4
-- `14:57:28`   t+ 283s series 16579/85102 parts=2993 live=4
-- `14:58:15`   t+ 331s series 16739/85102 parts=3025 live=4
-- `14:59:02`   t+ 378s series 16939/85102 parts=3044 live=4
-- `14:59:50`   t+ 425s series 17099/85102 parts=3146 live=4
-- `15:00:37`   t+ 473s series 17379/85102 parts=3178 live=4
-- `15:01:24`   t+ 520s series 17579/85102 parts=3217 live=4
-- `15:02:12`   t+ 567s series 17779/85102 parts=3240 live=4
-- `15:02:59`   t+ 615s series 17899/85102 parts=3264 live=4
-- `15:03:46`   t+ 662s series 18099/85102 parts=3370 live=4
-- `15:04:33`   t+ 709s series 18419/85102 parts=3418 live=4
-- `15:05:21`   t+ 757s series 18539/85102 parts=3442 live=4
-- `15:06:08`   t+ 804s series 18739/85102 parts=3466 live=4
-- `15:06:55`   t+ 851s series 18939/85102 parts=3571 live=4
-- `15:07:42`   t+ 898s series 19099/85102 parts=3603 live=4
-- `15:08:30`   t+ 946s series 19459/85102 parts=3654 live=4
-- `15:09:17`   t+ 993s series 19579/85102 parts=3678 live=4
-- `15:10:04`   t+1040s series 19819/85102 parts=3733 live=4
-- `15:10:52`   t+1087s series 19939/85102 parts=3757 live=4
-- `15:11:39`   t+1135s series 20179/85102 parts=3848 live=4
-- `15:12:26`   t+1182s series 20419/85102 parts=3896 live=4
-- `15:13:13`   t+1229s series 20619/85102 parts=3930 live=4
-- `15:14:00`   t+1276s series 20859/85102 parts=3985 live=4
-- `15:14:48`   t+1323s series 21099/85102 parts=4029 live=4
-- `15:15:35`   t+1371s series 21379/85102 parts=4068 live=4
-- `15:16:22`   t+1418s series 21539/85102 parts=4100 live=4
-- `15:17:09`   t+1465s series 21699/85102 parts=4116 live=4
-- `15:17:57`   t+1512s series 21899/85102 parts=4205 live=4
-- `15:18:44`   t+1560s series 22139/85102 parts=4253 live=4
-- `15:19:31`   t+1607s series 22379/85102 parts=4285 live=4
-- `15:20:18`   t+1654s series 22539/85102 parts=4346 live=4
-- `15:21:05`   t+1701s series 22739/85102 parts=4367 live=4
-- `15:21:53`   t+1749s series 22899/85102 parts=4453 live=4
-- `15:22:40`   t+1796s series 23219/85102 parts=4497 live=4
-- `15:23:27`   t+1843s series 23379/85102 parts=4529 live=4
-- `15:24:15`   t+1891s series 23579/85102 parts=4596 live=4
-- `15:25:02`   t+1938s series 23939/85102 parts=4647 live=4
-- `15:25:49`   t+1985s series 24139/85102 parts=4681 live=4
-- `15:26:36`   t+2032s series 24446/85102 parts=4726 live=3
-- `15:27:23`   t+2079s series 24566/85102 parts=4750 live=3
-- `15:28:11`   t+2127s series 24766/85102 parts=4774 live=3
-- `15:28:58`   t+2174s series 24886/85102 parts=4798 live=3
-- `15:29:45`   t+2221s series 25126/85102 parts=4824 live=3
-- `15:30:33`   t+2268s series 25246/85102 parts=4848 live=3
-- `15:31:20`   t+2316s series 25406/85102 parts=4868 live=3
-- `15:32:07`   t+2363s series 25566/85102 parts=4892 live=3
-- `15:32:54`   t+2410s series 25726/85102 parts=4914 live=3
-- `15:33:42`   t+2457s series 25886/85102 parts=4938 live=3
-- `15:34:29`   t+2505s series 26046/85102 parts=4962 live=3
-- `15:35:16`   t+2552s series 26246/85102 parts=4994 live=3
-- `15:36:04`   t+2599s series 26406/85102 parts=5018 live=3
-- `15:36:51`   t+2647s series 26566/85102 parts=5042 live=3
-- `15:37:38`   t+2694s series 26726/85102 parts=5066 live=3
-- `15:38:25`   t+2741s series 26886/85102 parts=5090 live=3
-- `15:39:13`   t+2788s series 27046/85102 parts=5114 live=3
-- `15:40:00`   t+2836s series 27206/85102 parts=5138 live=3
-- `15:40:47`   t+2883s series 27366/85102 parts=5163 live=3
-- `15:41:34`   t+2930s series 27566/85102 parts=5187 live=3
-- `15:42:21`   t+2977s series 27686/85102 parts=5211 live=3
-- `15:43:09`   t+3024s series 27886/85102 parts=5235 live=3
-- `15:43:56`   t+3072s series 27966/85102 parts=5246 live=3
-- `15:44:43`   t+3119s series 28086/85102 parts=5262 live=3
-- `15:45:30`   t+3166s series 28286/85102 parts=5290 live=3
-- `15:46:18`   t+3214s series 28446/85102 parts=5314 live=3
-- `15:47:05`   t+3261s series 28646/85102 parts=5340 live=3
-- `15:47:52`   t+3308s series 28806/85102 parts=5364 live=3
-- `15:48:39`   t+3355s series 29006/85102 parts=5391 live=3
-- `15:49:27`   t+3402s series 29166/85102 parts=5415 live=3
-- `15:50:14`   t+3450s series 29366/85102 parts=5440 live=3
-- `15:51:01`   t+3497s series 29526/85102 parts=5464 live=3
-- `15:51:49`   t+3545s series 29686/85102 parts=5488 live=3
-- `15:52:36`   t+3592s series 29886/85102 parts=5520 live=3
-- `15:53:23`   t+3639s series 30046/85102 parts=5544 live=2
-- `15:53:23`     BP01 fail: HTTP 500 @2360 195501
-- `15:53:25`     PR02 fail: HTTP 500 @520 196501
-- `15:53:25`     PR03 fail: HTTP 500 @9240 196501
-- `15:53:25`   remainder: ['BP01 3560/17989', 'FF 2760/33887', 'PR03 17560/27060']
-- `15:53:25` P1 PASS dbs=22 series=30046/85102 parts=5544
+- `16:39:32`   dbs=22 ['BP01', 'BS01', 'BS02', 'FF', 'FM01', 'FM02', 'FM03', 'FM08', 'IR01', 'IR02', 'IR03', 'IR04', 'LA01', 'MD01', 'MD02', 'MD11', 'MD12', 'MD13', 'PR01', 'PR02', 'PR03', 'PS01']
+- `16:40:17`   t+  45s series 30326/85102 parts=5588 live=3
+- `16:41:03`   t+  91s series 30486/85102 parts=5620 live=3
+- `16:41:48`   t+ 136s series 30686/85102 parts=5637 live=3
+- `16:42:34`   t+ 182s series 30806/85102 parts=5661 live=3
+- `16:43:20`   t+ 228s series 31046/85102 parts=5686 live=3
+- `16:44:06`   t+ 273s series 31166/85102 parts=5710 live=3
+- `16:44:51`   t+ 319s series 31366/85102 parts=5733 live=3
+- `16:45:37`   t+ 365s series 31446/85102 parts=5749 live=3
+- `16:46:23`   t+ 410s series 31606/85102 parts=5770 live=3
+- `16:47:08`   t+ 456s series 31766/85102 parts=5794 live=3
+- `16:47:54`   t+ 502s series 31886/85102 parts=5817 live=3
+- `16:48:40`   t+ 547s series 32086/85102 parts=5841 live=3
+- `16:49:25`   t+ 593s series 32246/85102 parts=5863 live=3
+- `16:50:11`   t+ 639s series 32506/85102 parts=5887 live=3
+- `16:50:56`   t+ 684s series 32686/85102 parts=5908 live=3
+- `16:51:42`   t+ 730s series 32866/85102 parts=5932 live=3
+- `16:52:28`   t+ 776s series 33166/85102 parts=5952 live=3
+- `16:53:13`   t+ 821s series 33346/85102 parts=5976 live=3
+- `16:53:59`   t+ 867s series 33526/85102 parts=5998 live=3
+- `16:54:44`   t+ 912s series 33826/85102 parts=6022 live=3
+- `16:55:30`   t+ 958s series 34006/85102 parts=6042 live=3
+- `16:56:16`   t+1004s series 34186/85102 parts=6066 live=3
+- `16:57:01`   t+1049s series 34426/85102 parts=6088 live=3
+- `16:57:47`   t+1095s series 34666/85102 parts=6112 live=3
+- `16:58:33`   t+1141s series 34846/85102 parts=6133 live=3
+- `16:59:18`   t+1186s series 35026/85102 parts=6149 live=3
+- `17:00:04`   t+1232s series 35146/85102 parts=6165 live=3
+- `17:00:50`   t+1277s series 35326/85102 parts=6181 live=3
+- `17:01:35`   t+1323s series 35446/85102 parts=6195 live=3
+- `17:02:21`   t+1369s series 35686/85102 parts=6211 live=3
+- `17:03:07`   t+1414s series 35746/85102 parts=6216 live=3
+- `17:03:52`   t+1460s series 35926/85102 parts=6232 live=3
+- `17:04:38`   t+1506s series 36166/85102 parts=6254 live=3
+- `17:05:24`   t+1551s series 36346/85102 parts=6270 live=3
+- `17:06:09`   t+1597s series 36586/85102 parts=6289 live=3
+- `17:06:55`   t+1643s series 36706/85102 parts=6305 live=3
+- `17:07:41`   t+1689s series 36886/85102 parts=6327 live=3
+- `17:08:26`   t+1734s series 37066/85102 parts=6343 live=3
+- `17:09:12`   t+1780s series 37306/85102 parts=6364 live=3
+- `17:09:58`   t+1825s series 37486/85102 parts=6380 live=3
+- `17:10:43`   t+1871s series 37726/85102 parts=6402 live=3
+- `17:11:29`   t+1917s series 37906/85102 parts=6418 live=3
+- `17:12:14`   t+1962s series 38146/85102 parts=6440 live=3
+- `17:13:00`   t+2008s series 38266/85102 parts=6456 live=3
+- `17:13:46`   t+2054s series 38506/85102 parts=6476 live=3
+- `17:14:32`   t+2099s series 38686/85102 parts=6492 live=3
+- `17:15:17`   t+2145s series 38806/85102 parts=6505 live=3
+- `17:16:03`   t+2191s series 39046/85102 parts=6529 live=3
+- `17:16:49`   t+2237s series 39226/85102 parts=6541 live=3
+- `17:17:34`   t+2282s series 39466/85102 parts=6565 live=3
+- `17:18:20`   t+2328s series 39706/85102 parts=6585 live=3
+- `17:19:06`   t+2374s series 39886/85102 parts=6601 live=3
+- `17:19:51`   t+2419s series 40066/85102 parts=6614 live=3
+- `17:20:37`   t+2465s series 40306/85102 parts=6638 live=3
+- `17:21:23`   t+2511s series 40486/85102 parts=6649 live=3
+- `17:22:08`   t+2556s series 40666/85102 parts=6673 live=3
+- `17:22:54`   t+2602s series 40906/85102 parts=6686 live=3
+- `17:23:40`   t+2647s series 41026/85102 parts=6702 live=3
+- `17:24:25`   t+2693s series 41266/85102 parts=6721 live=3
+- `17:25:11`   t+2739s series 41446/85102 parts=6737 live=3
+- `17:25:57`   t+2785s series 41686/85102 parts=6754 live=3
+- `17:26:42`   t+2830s series 41926/85102 parts=6778 live=3
+- `17:27:28`   t+2876s series 42106/85102 parts=6791 live=3
+- `17:28:13`   t+2921s series 42226/85102 parts=6807 live=3
+- `17:28:59`   t+2967s series 42346/85102 parts=6815 live=2
+- `17:29:45`   t+3012s series 42346/85102 parts=6815 live=2
+- `17:30:30`   t+3058s series 42406/85102 parts=6815 live=2
+- `17:31:16`   t+3104s series 42466/85102 parts=6815 live=2
+- `17:32:02`   t+3150s series 42466/85102 parts=6815 live=2
+- `17:32:48`   t+3196s series 42526/85102 parts=6815 live=2
+- `17:33:33`   t+3241s series 42586/85102 parts=6815 live=2
+- `17:34:19`   t+3287s series 42586/85102 parts=6815 live=2
+- `17:35:05`   t+3333s series 42646/85102 parts=6815 live=2
+- `17:35:51`   t+3379s series 42646/85102 parts=6815 live=2
+- `17:36:37`   t+3425s series 42706/85102 parts=6815 live=2
+- `17:37:22`   t+3470s series 42766/85102 parts=6815 live=2
+- `17:38:08`   t+3516s series 42766/85102 parts=6815 live=2
+- `17:38:54`   t+3562s series 42826/85102 parts=6815 live=2
+- `17:39:39`   t+3607s series 42886/85102 parts=6815 live=2
+- `17:39:39`     BP01 fail: HTTP 500 @2360 195501
+- `17:39:40`     PR02 fail: HTTP 500 @520 196501
+- `17:39:40`     PR03 fail: HTTP 500 @9240 196501
+- `17:39:40`   remainder: ['BP01 5280/17989', 'FF 4380/33887']
+- `17:39:40` P1 PASS dbs=22 series=42886/85102 parts=6815
 ## G2 substance
 
-- `15:53:25`   substance err Parameter validation failed:
+- `17:39:40`   substance err Parameter validation failed:
 Invalid type for parameter Key, value: None, type: <class 'NoneType'>, valid type
-- `15:53:25` G2 FAIL
+- `17:39:40` G2 FAIL
 ## G3 card
 
-- `15:59:59` G3 note=FULL flat-file warehouse (boj-full v1): 16/16 database zips · 19MB · the entire time-series portal
-- `15:59:59` ops 4987 RED: REMAINDER(3 dbs); G2; G3
+- `17:46:12` G3 note=FULL flat-file warehouse (boj-full v1): 16/16 database zips · 19MB · the entire time-series portal · API universe: 22 dbs · 43006/120394 series · 6815 parts
+- `17:46:12` ops 4987 RED: REMAINDER(2 dbs); G2
