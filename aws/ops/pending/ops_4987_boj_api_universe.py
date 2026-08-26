@@ -186,7 +186,7 @@ with report("ops_4987_boj_api_universe") as R:
     R.log("  dbs=%d %s" % (len(dbs_all), dbs_all))
     shards = [dbs_all[i::6] for i in range(6)]
     t0 = time.time()
-    stop = t0 + 60 * 60
+    stop = t0 + 68 * 60
 
     def lane(dblist):
         idle = 0
