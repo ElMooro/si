@@ -1,4 +1,4 @@
-"""ops_4987 v6 (runner-deploys CAT+engine) -- Bank of Japan API universe import (Khalid's next).
+"""ops_4987 v7 (MARK v1.1.2) -- Bank of Japan API universe import (Khalid's next).
 
 boj-full v1.1.0 adds the API lane: getMetadata?db=X lists every
 series per database; getDataCode pulls full-window values in
@@ -37,7 +37,7 @@ FN = "justhodl-boj-full"
 CAT = "justhodl-provider-catalog"
 STATE_KEY = "data/warm/boj-full/_state/state.json"
 HUB_KEY = "data/provider-catalog.json"
-MARK = "v1.1.1 ops4987"
+MARK = "v1.1.2 ops4987"
 REL = ("aws/lambdas/justhodl-boj-full/source/lambda_function.py")
 ROOTP = Path(__file__).resolve().parents[2]
 
