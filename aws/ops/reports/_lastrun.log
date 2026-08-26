@@ -1,14 +1,47 @@
-executing-against: ea50563f61c1e8fb19c3c40025ef173417d206f7
-ops 5010 -- why.html Quant Layer (equity-research v2.4)
-── G1 deploy justhodl-equity-research v2.4 (code only) ──
-[23:04:36] ✅ code updated; configuration/env untouched
-── P1 regenerate AAOI+NVDA with real data ──
-[23:04:36] cache busted for AAOI
-[23:04:36] cache busted for NVDA
-[23:04:41] ✅ AAOI asserted
-[23:04:41] ✅ NVDA asserted
-── G2 page markers ──
-[23:07:42] ⚠ NVDA not blue-chip (5/7) -- review thresholds
-[23:07:42] ✅ OPS 5010 PASS -- classification, base-rate expectations, EMA distance, industry risk & 5y growth live on real data
+executing-against: 5515dd33208d04d1f14bb6e93f728883a0c64720
+ops 5010 probe -- real generated numbers
+── AAOI ──
+[23:09:34] generated_at=2026-08-26T23:04:39.323468+00:00 schema=2.4 price=None history_years=10.0
+[23:09:34] beta_2y=3.81 corr=0.45 vol30=160.7 vol1y=145.9 ddown1y=-65.7 dd5y=-82.6
+[23:09:34] ema200 value=106.16 dist=7.16% above=True slope20d=4.1%
+[23:09:34] ema250 value=97.17 dist=17.07% above=True slope20d=5.23%
+[23:09:34] cap=MID-CAP (9128417174) style=SPECULATIVE GROWTH blue=False score=1/7
+[23:09:34]   [fail] None -- $9.1B
+[23:09:34]   [fail] None -- 2/10 profitable
+[23:09:34]   [fail] None -- no dividend
+[23:09:34]   [fail] None -- net income negative
+[23:09:34]   [fail] None -- β 3.81
+[23:09:34]   [fail] None -- -83%
+[23:09:34]   [PASS] None -- +6.4%/yr
+[23:09:34] 1M: n=2491 median=-2.1 p10=-26.4 p90=46.1 win=47.0 vol1s=2.7
+[23:09:34] 3M: n=2449 median=-2.7 p10=-40.4 p90=106.5 win=47.6 vol1s=4.6
+[23:09:34] 1Y: n=2260 median=-16.0 p10=-63.9 p90=427.2 win=43.1 vol1s=9.2
+[23:09:34] industry avail=True peers=['DQ', 'KLIC', 'LASR', 'MXL', 'PGY', 'POWI', 'SONO', 'UCTT'] ind_vol=70.1 ind_dd=-50.1 q_pts=20
+[23:09:34]   2025Q3 yoy=82.1 qoq=15.2
+[23:09:34]   2025Q4 yoy=33.9 qoq=13.2
+[23:09:34]   2026Q1 yoy=51.4 qoq=12.6
+[23:09:34]   2026Q2 yoy=86.4 qoq=27.0
+── NVDA ──
+[23:09:34] generated_at=2026-08-26T23:04:40.826263+00:00 schema=2.4 price=None history_years=10.0
+[23:09:34] beta_2y=1.9 corr=0.7 vol30=35.4 vol1y=36.8 ddown1y=-20.2 dd5y=-66.4
+[23:09:34] ema200 value=195.8 dist=7.08% above=True slope20d=2.3%
+[23:09:34] ema250 value=190.66 dist=9.96% above=True slope20d=2.33%
+[23:09:34] cap=MEGA-CAP (5078174860000) style=GROWTH blue=False score=5/7
+[23:09:34]   [PASS] None -- $5078.2B
+[23:09:34]   [PASS] None -- 10/10 profitable
+[23:09:34]   [PASS] None -- yes
+[23:09:34]   [PASS] None -- net income positive
+[23:09:34]   [fail] None -- β 1.90
+[23:09:34]   [fail] None -- -66%
+[23:09:34]   [PASS] None -- +46.6%/yr
+[23:09:34] 1M: n=2491 median=4.4 p10=-11.4 p90=22.8 win=65.5 vol1s=0.7
+[23:09:34] 3M: n=2449 median=14.1 p10=-16.0 p90=52.6 win=73.6 vol1s=1.2
+[23:09:34] 1Y: n=2260 median=73.0 p10=-32.6 p90=200.5 win=80.5 vol1s=2.3
+[23:09:34] industry avail=True peers=['AAPL', 'ADI', 'AVGO', 'ENTG', 'GOOGL', 'IMOS', 'MSFT', 'TER'] ind_vol=41.7 ind_dd=-31.5 q_pts=20
+[23:09:34]   2025Q4 yoy=62.5 qoq=22.0
+[23:09:34]   2026Q1 yoy=73.2 qoq=19.5
+[23:09:34]   2026Q2 yoy=85.2 qoq=19.8
+[23:09:34]   2026Q3 yoy=105.9 qoq=17.9
+[23:09:34] ✅ probe complete
 
-→ Report written to aws/ops/reports/latest/ops_5010_why_quant_layer.md
+→ Report written to aws/ops/reports/latest/ops_5010_probe.md
