@@ -95,12 +95,17 @@ with report("ops_4984_finra_partition_drain") as R:
     R.log("  client_id=%s secret=%s" % (
         (cid[:8] + "...") if cid else None, bool(sec)))
     if not sec:
-        R.log("ops 4984 RED: SENTINEL WAITING -- keyless tier is "
-              "hard-windowed (evidence complete); paste the API "
-              "secret (portal Reset shows it once) and this op "
-              "drains full 2014-inception depth + the 10 auth "
-              "datasets automatically on the next push")
-        sys.exit(1)
+        # Khalid: "there is nothing else I can give" -- the
+        # public-tier warehouse is COMPLETE (22.2M rows) and this
+        # sentinel now waits QUIETLY: green, one line, zero cost.
+        # If a client_secret ever lands in the vault finra item
+        # or engine env, the very next push runs the full
+        # auth-tier drain below automatically.
+        R.log("ops 4984 GREEN -- auth tier dormant (no secret; "
+              "public-tier warehouse complete at 22.2M rows); "
+              "upgrades automatically if a secret ever appears "
+              "in vault/env")
+        sys.exit(0)
 
     R.section("P1 token mint")
     try:
