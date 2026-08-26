@@ -1,4 +1,4 @@
-"""ops_4987 v5.1 (note-v3 rerun) -- Bank of Japan API universe import (Khalid's next).
+"""ops_4987 v6 (runner-deploys CAT+engine) -- Bank of Japan API universe import (Khalid's next).
 
 boj-full v1.1.0 adds the API lane: getMetadata?db=X lists every
 series per database; getDataCode pulls full-window values in
@@ -29,6 +29,7 @@ import boto3
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ops_report import report  # noqa: E402
+from _lambda_deploy_helpers import deploy_lambda  # noqa: E402
 
 REGION = "us-east-1"
 B = "justhodl-dashboard-live"
@@ -108,6 +109,40 @@ with report("ops_4987_boj_api_universe") as R:
     if not ok0:
         R.log("G0 FAIL")
         sys.exit(1)
+
+    R.section("G0 runner-deploys (event-blip fallback)")
+    for fn_, mk_, rel_ in [
+            (FN, "v1.1.2 ops4987",
+             "lambdas/justhodl-boj-full/source"),
+            (CAT, "boj-note-v3",
+             "lambdas/justhodl-provider-catalog/source")]:
+        need = True
+        try:
+            f = lam.get_function(FunctionName=fn_)
+            req = urllib.request.Request(f["Code"]["Location"])
+            with urllib.request.urlopen(req, timeout=90) as r_:
+                src_ = zipfile.ZipFile(io.BytesIO(
+                    r_.read())).read(
+                    "lambda_function.py").decode(
+                    "utf-8", "replace")
+            need = mk_ not in src_
+        except Exception as e:
+            R.log("  %s probe: %s" % (fn_, str(e)[:70]))
+        if need:
+            cfg_ = json.load(open(
+                ROOTP.parent / "aws" / rel_.replace(
+                    "/source", "") / "config.json"))
+            deploy_lambda(
+                report=R, function_name=fn_,
+                source_dir=ROOTP / rel_,
+                env_vars=cfg_.get("env") or {},
+                timeout=cfg_.get("timeout", 900),
+                memory=cfg_.get("memory", 1024),
+                description=cfg_.get("description", "")[:250],
+                create_function_url=False, smoke=False)
+            R.log("  %s deployed from checkout" % fn_)
+        else:
+            R.log("  %s already carries %s" % (fn_, mk_))
 
     R.section("P0b window ladder (single code)")
     win_ok = None
