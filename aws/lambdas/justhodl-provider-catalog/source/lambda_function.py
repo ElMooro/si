@@ -158,6 +158,21 @@ REG = {
   "api": "bankofengland.co.uk/boeapps/database",
   "engines": ["justhodl-global-expansion"],
   "prefixes": ["data/warm/boe/", "data/warm/boe-full/"]},
+ "hk-data": {
+     "name": "Hong Kong — data.gov.hk",
+     "api": "data.gov.hk CKAN",
+     "engines": ["justhodl-asia-trade-full"],
+     "prefixes": ["data/warm/asia-trade/hk/"]},
+ "cl-datos": {
+     "name": "Chile — datos.gob.cl",
+     "api": "datos.gob.cl CKAN",
+     "engines": ["justhodl-asia-trade-full"],
+     "prefixes": ["data/warm/asia-trade/cl/"]},
+ "kr-ecos": {
+     "name": "Korea — Bank of Korea ECOS",
+     "api": "ecos.bok.or.kr",
+     "engines": ["justhodl-asia-trade-full"],
+     "prefixes": ["data/warm/asia-trade/kr/"]},
  "tic": {
      "name": "US Treasury — TIC",
      "api": "ticdata.treasury.gov",
@@ -627,6 +642,30 @@ def lambda_handler(event, context):
                         else _note_x
             except Exception:
                 pass
+        if slug in ("hk-data", "cl-datos", "kr-ecos"):
+            try:  # ops 4989 (asia-note-v2)
+                _am = _get_json("data/warm/asia-trade/"
+                                "manifest.json")
+            except Exception:
+                _am = None
+            if _am:
+                if slug == "hk-data":
+                    _x = ("trade/industry mirror: %s "
+                          "resources · ports/"
+                          "manufacturing/exports/"
+                          "imports"
+                          % _am.get("hk_resources"))
+                elif slug == "cl-datos":
+                    _x = ("comercio/industria mirror: "
+                          "%s resources"
+                          % _am.get("cl_resources"))
+                else:
+                    _x = ("ECOS: %s series · %s" % (
+                        _am.get("kr_series"),
+                        (_am.get("kr_status")
+                         or "")[:90]))
+                note = ((note + " · ") if note
+                        else "") + _x
         if slug == "fed-board":
             try:  # ops 4985 (ddp-note-v2)
                 _dm = _get_json("data/warm/frbddp-full/"
