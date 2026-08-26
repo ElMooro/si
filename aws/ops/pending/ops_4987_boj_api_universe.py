@@ -36,7 +36,7 @@ FN = "justhodl-boj-full"
 CAT = "justhodl-provider-catalog"
 STATE_KEY = "data/warm/boj-full/_state/state.json"
 HUB_KEY = "data/provider-catalog.json"
-MARK = "v1.1.0 ops4987"
+MARK = "v1.1.1 ops4987"
 REL = ("aws/lambdas/justhodl-boj-full/source/lambda_function.py")
 ROOTP = Path(__file__).resolve().parents[2]
 
@@ -102,50 +102,103 @@ with report("ops_4987_boj_api_universe") as R:
         R.log("G0 FAIL")
         sys.exit(1)
 
-    R.section("P1 sync drive")
-    t0 = time.time()
-    st = {}
-    while time.time() - t0 < 55 * 60:
+    R.section("P0b window ladder (single code)")
+    win_ok = None
+    for w0, w1, lbl in [("190001", "209912", "full"),
+                        ("197001", "198912", "20y"),
+                        ("198001", "198912", "10y"),
+                        ("198501", "198912", "5y"),
+                        ("198801", "198912", "2y")]:
         try:
-            resp = lam.invoke(
-                FunctionName=FN,
-                InvocationType="RequestResponse",
-                Payload=json.dumps({"api_only": 1,
-                                    "budget_s": 150}).encode())
-            body = resp["Payload"].read().decode("utf-8",
-                                                 "replace")
-            fe = resp.get("FunctionError")
+            d = fetch("https://www.stat-search.boj.or.jp/api/v1/"
+                      "getDataCode?format=json&lang=en&db=MD11"
+                      "&startDate=%s&endDate=%s"
+                      "&code=DLCLAADBLTTO" % (w0, w1),
+                      cap=4_000_000)
+            hit = b"SURVEY_DATES" in d
+            R.log("  %s (%s-%s) -> %dB dates=%s" % (
+                lbl, w0, w1, len(d), hit))
+            if hit and win_ok is None:
+                win_ok = lbl
         except Exception as e:
-            fe, body = "invoke", str(e)[:120]
-        st = gj(STATE_KEY) or {}
-        ap = st.get("api") or {}
-        dbs = ap.get("dbs") or {}
-        total = sum(len(m.get("codes") or [])
-                    for m in dbs.values())
-        done = sum(m.get("done", 0) for m in dbs.values())
-        R.log("  t+%4ds err=%s dbs=%d inv=%d series %d/%d "
-              "parts=%d" % (
-                  time.time() - t0, fe, len(dbs),
-                  len(ap.get("invalid") or {}), done, total,
-                  sum(m.get("parts", 0) for m in dbs.values())))
-        if fe:
-            R.log("    payload: %s" % body[:200])
-            fails.append("P1-err")
+            R.log("  %s -> %s" % (lbl, str(e)[:70]))
+    R.log("  widest working window: %s (engine CHUNK_Y=10)"
+          % win_ok)
+
+    R.section("P1 sharded sync drive (6 lanes, 60min)")
+    import threading
+    # discovery pass (fills aggregate state)
+    lam.invoke(FunctionName=FN,
+               InvocationType="RequestResponse",
+               Payload=json.dumps({"api_only": 1,
+                                   "budget_s": 200}).encode())
+    st = gj(STATE_KEY) or {}
+    dbs_all = sorted(((st.get("api") or {}).get("dbs") or {}))
+    R.log("  dbs=%d %s" % (len(dbs_all), dbs_all))
+    shards = [dbs_all[i::6] for i in range(6)]
+    t0 = time.time()
+    stop = t0 + 60 * 60
+
+    def lane(dblist):
+        while time.time() < stop:
+            try:
+                r_ = lam.invoke(
+                    FunctionName=FN,
+                    InvocationType="RequestResponse",
+                    Payload=json.dumps(
+                        {"api_only": 1, "budget_s": 150,
+                         "db_filter": dblist}).encode())
+                pl = json.loads(r_["Payload"].read() or b"{}")
+                res = pl.get("res") or {}
+                if res and all(d >= t for d, t, _ in
+                               res.values()):
+                    return
+            except Exception:
+                time.sleep(5)
+
+    th = [threading.Thread(target=lane, args=(sh,), daemon=True)
+          for sh in shards if sh]
+    for x in th:
+        x.start()
+    while time.time() < stop:
+        time.sleep(45)
+        tot_done = tot_all = tot_parts = 0
+        for db in dbs_all:
+            ds = gj("data/warm/boj-full/_state/api_%s.json"
+                    % db) or {}
+            tot_done += ds.get("done", 0)
+            tot_all += len(ds.get("codes") or [])
+            tot_parts += ds.get("parts", 0)
+        R.log("  t+%4ds series %d/%d parts=%d live=%d" % (
+            time.time() - t0, tot_done, tot_all, tot_parts,
+            sum(1 for x in th if x.is_alive())))
+        if tot_all and tot_done >= tot_all:
             break
-        if dbs and done >= total and total > 0:
+        if not any(x.is_alive() for x in th):
             break
-        time.sleep(3)
-    ap = (gj(STATE_KEY) or {}).get("api") or {}
-    dbs = ap.get("dbs") or {}
-    total = sum(len(m.get("codes") or []) for m in dbs.values())
-    done = sum(m.get("done", 0) for m in dbs.values())
-    for db, why in sorted((ap.get("invalid") or {}).items()):
-        R.log("    invalid db %s: %s" % (db, why))
-    ok1 = len(dbs) >= 8 and total >= 1500 and done >= total
-    R.log("P1 %s dbs=%d series=%d done=%d" % (
-        "PASS" if ok1 else "FAIL", len(dbs), total, done))
+    tot_done = tot_all = tot_parts = 0
+    lagg = []
+    for db in dbs_all:
+        ds = gj("data/warm/boj-full/_state/api_%s.json"
+                % db) or {}
+        d_, a_ = ds.get("done", 0), len(ds.get("codes") or [])
+        tot_done += d_
+        tot_all += a_
+        tot_parts += ds.get("parts", 0)
+        if d_ < a_:
+            lagg.append("%s %d/%d" % (db, d_, a_))
+        if ds.get("fail"):
+            R.log("    %s fail: %s" % (db, ds["fail"]))
+    R.log("  remainder: %s" % (lagg or "none"))
+    ok1 = len(dbs_all) >= 8 and tot_all >= 1500 and \
+        tot_parts >= 100
+    R.log("P1 %s dbs=%d series=%d/%d parts=%d" % (
+        "PASS" if ok1 else "FAIL", len(dbs_all), tot_done,
+        tot_all, tot_parts))
     if not ok1:
         fails.append("P1")
+    if lagg:
+        fails.append("REMAINDER(%d dbs)" % len(lagg))
 
     R.section("G2 substance")
     ok2 = False
