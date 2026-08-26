@@ -1,7 +1,99 @@
-executing-against: 199cec325b8edc6520b409b2478de8fda3fd9647
-── P0 sentinel: secret present? ──
-[22:35:59]   client_id=c2de60df... secret=False
-[22:35:59] ops 4984 RED: SENTINEL WAITING -- keyless tier is hard-windowed (evidence complete); paste the API secret (portal Reset shows it once) and this op drains full 2014-inception depth + the 10 auth datasets automatically on the next push
+executing-against: 6922545340a86bad81b4c753e195004577ef0d14
+── G-1 markers ──
+[02:08:51]   ok justhodl-frbddp-full
+[02:08:51]   ok justhodl-tic-full
+[02:08:51]   ok justhodl-boj-full
+── G0 settle + schedules + kicks ──
+[02:09:13]   justhodl-frbddp-full settled (22s)
+[02:09:35]   justhodl-tic-full settled (22s)
+[02:09:36]   justhodl-boj-full settled (0s)
+[02:09:36]   justhodl-provider-catalog settled (0s)
+[02:09:36] G0 PASS -- all lanes kicked
+── G1 lane drives (12min) ──
+[02:10:06]   t+ 30s frbddp-full          ok=17 fail=8
+[02:10:07]   t+ 30s tic-full             ok=0 fail=0
+[02:10:07]   t+ 30s boj-full             ok=16 fail=0 uni=16
+[02:10:37]   t+ 60s frbddp-full          ok=17 fail=8
+[02:10:37]   t+ 60s tic-full             ok=0 fail=0
+[02:10:37]   t+ 60s boj-full             ok=16 fail=0 uni=16
+[02:11:07]   t+ 90s frbddp-full          ok=17 fail=8
+[02:11:07]   t+ 90s tic-full             ok=0 fail=0
+[02:11:07]   t+ 90s boj-full             ok=16 fail=0 uni=16
+[02:11:37]   t+120s frbddp-full          ok=17 fail=8
+[02:11:37]   t+120s tic-full             ok=0 fail=0
+[02:11:37]   t+120s boj-full             ok=16 fail=0 uni=16
+[02:12:07]   t+150s frbddp-full          ok=17 fail=8
+[02:12:07]   t+150s tic-full             ok=8 fail=4
+[02:12:07]   t+150s boj-full             ok=16 fail=0 uni=16
+[02:12:37]   t+181s frbddp-full          ok=17 fail=8
+[02:12:37]   t+181s tic-full             ok=8 fail=4
+[02:12:37]   t+181s boj-full             ok=16 fail=0 uni=16
+[02:13:08]   t+211s frbddp-full          ok=17 fail=8
+[02:13:08]   t+211s tic-full             ok=8 fail=4
+[02:13:08]   t+211s boj-full             ok=16 fail=0 uni=16
+[02:13:38]   t+241s frbddp-full          ok=17 fail=8
+[02:13:38]   t+241s tic-full             ok=8 fail=4
+[02:13:38]   t+241s boj-full             ok=16 fail=0 uni=16
+[02:14:08]   t+271s frbddp-full          ok=17 fail=8
+[02:14:08]   t+271s tic-full             ok=8 fail=4
+[02:14:08]   t+271s boj-full             ok=16 fail=0 uni=16
+[02:14:38]   t+301s frbddp-full          ok=17 fail=8
+[02:14:38]   t+301s tic-full             ok=8 fail=4
+[02:14:38]   t+301s boj-full             ok=16 fail=0 uni=16
+[02:15:08]   t+332s frbddp-full          ok=17 fail=8
+[02:15:08]   t+332s tic-full             ok=8 fail=4
+[02:15:09]   t+332s boj-full             ok=16 fail=0 uni=16
+[02:15:39]   t+362s frbddp-full          ok=17 fail=8
+[02:15:39]   t+362s tic-full             ok=8 fail=4
+[02:15:39]   t+362s boj-full             ok=16 fail=0 uni=16
+[02:16:09]   t+392s frbddp-full          ok=17 fail=8
+[02:16:09]   t+392s tic-full             ok=8 fail=4
+[02:16:09]   t+392s boj-full             ok=16 fail=0 uni=16
+[02:16:39]   t+422s frbddp-full          ok=17 fail=8
+[02:16:39]   t+422s tic-full             ok=8 fail=4
+[02:16:39]   t+422s boj-full             ok=16 fail=0 uni=16
+[02:17:09]   t+452s frbddp-full          ok=17 fail=8
+[02:17:09]   t+452s tic-full             ok=8 fail=4
+[02:17:09]   t+452s boj-full             ok=16 fail=0 uni=16
+[02:17:39]   t+483s frbddp-full          ok=17 fail=8
+[02:17:39]   t+483s tic-full             ok=8 fail=4
+[02:17:39]   t+483s boj-full             ok=16 fail=0 uni=16
+[02:18:10]   t+513s frbddp-full          ok=17 fail=8
+[02:18:10]   t+513s tic-full             ok=8 fail=4
+[02:18:10]   t+513s boj-full             ok=16 fail=0 uni=16
+[02:18:40]   t+543s frbddp-full          ok=17 fail=8
+[02:18:40]   t+543s tic-full             ok=8 fail=4
+[02:18:40]   t+543s boj-full             ok=16 fail=0 uni=16
+[02:19:10]   t+573s frbddp-full          ok=17 fail=8
+[02:19:10]   t+573s tic-full             ok=8 fail=4
+[02:19:10]   t+573s boj-full             ok=16 fail=0 uni=16
+[02:19:40]   t+603s frbddp-full          ok=17 fail=8
+[02:19:40]   t+603s tic-full             ok=8 fail=4
+[02:19:40]   t+603s boj-full             ok=16 fail=0 uni=16
+[02:20:10]   t+633s frbddp-full          ok=17 fail=8
+[02:20:10]   t+634s tic-full             ok=8 fail=4
+[02:20:10]   t+634s boj-full             ok=16 fail=0 uni=16
+[02:20:40]   t+664s frbddp-full          ok=17 fail=8
+[02:20:40]   t+664s tic-full             ok=8 fail=4
+[02:20:41]   t+664s boj-full             ok=16 fail=0 uni=16
+[02:21:11]   t+694s frbddp-full          ok=17 fail=8
+[02:21:11]   t+694s tic-full             ok=8 fail=4
+[02:21:11]   t+694s boj-full             ok=16 fail=0 uni=16
+[02:21:41]   t+724s frbddp-full          ok=17 fail=8
+[02:21:41]   t+724s tic-full             ok=8 fail=4
+[02:21:41]   t+724s boj-full             ok=16 fail=0 uni=16
+[02:21:41] G1 FAIL frbddp-full:G1(0<10); tic-full:G1(0<5); boj-full:G1(0<3)
+── G2 substance ──
+[02:21:41]   Z1.zip 36.4MB
+[02:21:41]   bctype.txt 9119B has-total=True
+[02:21:41]   boj zips sample=['bis1-1_q_en.zip', 'bis1-2_q_en.zip', 'bis2-1_q_en.zip']
+[02:21:41] G2 PASS (3/3)
+── G3 cards ──
+[02:28:13]   fed-board OK FULL release packages (frbddp-full v1): 17 programs · 80MB (Z.1, H.4.1, H.15, H.8...) · 8 named misses
+[02:28:13]   tic OK banking+flows text mirror (tic-full v1): 8 files · 0.24MB (bctype claims, bltype, SLT, MFH) · 4 named misses
+[02:28:13]   boj OK FULL flat-file warehouse (boj-full v1): 16/16 database zips · 19MB · the entire time-series portal
+[02:28:13] G3 PASS (3/3)
+[02:28:13] ops 4985 RED: frbddp-full:G1(0<10); tic-full:G1(0<5); boj-full:G1(0<3)
 
-→ Report written to aws/ops/reports/latest/ops_4984_finra_partition_drain.md
-❌ OPS-FAIL: aws/ops/pending/ops_4984_finra_partition_drain.py
+→ Report written to aws/ops/reports/latest/ops_4985_expedite_ddp_tic_boj.md
+❌ OPS-FAIL: aws/ops/pending/ops_4985_expedite_ddp_tic_boj.py
