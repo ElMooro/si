@@ -702,6 +702,14 @@ def lambda_handler(event, context):
                         "entire time-series portal" % (
                             _bm.get("zips"), _bm.get("universe"),
                             _bm.get("mb") or 0))
+                    _ad = _bm.get("api_dbs") or 0
+                    if _ad:  # boj-note-v3 (ops 4987)
+                        note += (" · API universe: %s dbs · "
+                                 "%s/%s series · %s parts"
+                                 % (_ad,
+                                    _bm.get("api_series_done"),
+                                    _bm.get("api_series"),
+                                    _bm.get("api_parts")))
             except Exception:
                 pass
         if slug == "finra":

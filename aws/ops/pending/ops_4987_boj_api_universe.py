@@ -1,4 +1,4 @@
-"""ops_4987 v5 (modern-window G2 + note-v3) -- Bank of Japan API universe import (Khalid's next).
+"""ops_4987 v5.1 (note-v3 rerun) -- Bank of Japan API universe import (Khalid's next).
 
 boj-full v1.1.0 adds the API lane: getMetadata?db=X lists every
 series per database; getDataCode pulls full-window values in
