@@ -1,140 +1,119 @@
 ## P0 shape evidence (runner)
 
 **Status:** failure  
-**Duration:** 403.2s  
-**Finished:** 2026-08-26T04:00:25+00:00  
+**Duration:** 4001.5s  
+**Finished:** 2026-08-26T14:41:47+00:00  
 
 ## Error
 
 ```
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
-    response = conn.getresponse()
-               ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connection.py", line 571, in getresponse
-    httplib_response = super().getresponse()
-                       ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 1478, in getresponse
-    response.begin()
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 343, in begin
-    version, status, reason = self._read_status()
-                              ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 304, in _read_status
-    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/socket.py", line 720, in readinto
-    return self._sock.recv_into(b)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/ssl.py", line 1251, in recv_into
-    return self.read(nbytes, buffer)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/ssl.py", line 1103, in read
-    return self._sslobj.read(len, buffer)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TimeoutError: The read operation timed out
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 509, in send
-    urllib_response = conn.urlopen(
-                      ^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 842, in urlopen
-    retries = retries.increment(
-              ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/util/retry.py", line 473, in increment
-    raise reraise(type(error), error, _stacktrace)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/util/util.py", line 39, in reraise
-    raise value
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
-    response = self._make_request(
-               ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 536, in _make_request
-    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 367, in _raise_timeout
-    raise ReadTimeoutError(
-urllib3.exceptions.ReadTimeoutError: AWSHTTPSConnectionPool(host='lambda.us-east-1.amazonaws.com', port=443): Read timed out. (read timeout=60)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_4987_boj_api_universe.py", line 131, in <module>
-    lam.invoke(FunctionName=FN,
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 1076, in _make_api_call
-    http, parsed_response = self._make_request(
-                            ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 1100, in _make_request
-    return self._endpoint.make_request(operation_model, request_dict)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 119, in make_request
-    return self._send_request(request_dict, operation_model)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 202, in _send_request
-    while self._needs_retry(
-          ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 362, in _needs_retry
-    responses = self._event_emitter.emit(
-                ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/hooks.py", line 412, in emit
-    return self._emitter.emit(aliased_event_name, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/hooks.py", line 256, in emit
-    return self._emit(event_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/hooks.py", line 239, in _emit
-    response = handler(**kwargs)
-               ^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 207, in __call__
-    if self._checker(**checker_kwargs):
-       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 284, in __call__
-    should_retry = self._should_retry(
-                   ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 320, in _should_retry
-    return self._checker(attempt_number, response, caught_exception)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 363, in __call__
-    checker_response = checker(
-                       ^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 247, in __call__
-    return self._check_caught_exception(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 416, in _check_caught_exception
-    raise caught_exception
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 281, in _do_get_response
-    http_response = self._send(request)
-                    ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 385, in _send
-    return self.http_session.send(request)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 547, in send
-    raise ReadTimeoutError(endpoint_url=request.url, error=e)
-botocore.exceptions.ReadTimeoutError: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-boj-full/invocations"
-
+SystemExit: 1
 ```
 
 ## Log
-- `03:53:42`   getMetadata MD11: 399164B head=b'{\n "STATUS":200,\n "MESSAGEID":"M181000I",\n "MESSAGE":"Successfully completed",\n "DATE":"2026-08-22T5:01:59.017+09:00",\n "DB":"MD11",\n "RESULTSET":[\n{\n "SERIES_CODE":"",\n "NAME_OF_TIME_SERIES":"Deposits, Vault Cash, and L'
-- `03:53:43`   getDataCode err HTTP Error 400: Bad Request
+- `13:35:06`   getMetadata MD11: 399164B head=b'{\n "STATUS":200,\n "MESSAGEID":"M181000I",\n "MESSAGE":"Successfully completed",\n "DATE":"2026-08-22T5:01:59.017+09:00",\n "DB":"MD11",\n "RESULTSET":[\n{\n "SERIES_CODE":"",\n "NAME_OF_TIME_SERIES":"Deposits, Vault Cash, and L'
+- `13:35:06`   getDataCode err HTTP Error 400: Bad Request
 ## G0 settle
 
-- `03:55:12`   settled (89s)
+- `13:35:07`   settled (0s)
 ## P0b window ladder (single code)
 
-- `03:55:12`   full -> HTTP Error 400: Bad Request
-- `03:55:13`   20y (197001-198912) -> 3584B dates=True
-- `03:55:14`   10y (198001-198912) -> 2144B dates=True
-- `03:55:15`   5y (198501-198912) -> 1424B dates=True
-- `03:55:16`   2y (198801-198912) -> 992B dates=True
-- `03:55:16`   widest working window: 20y (engine CHUNK_Y=10)
+- `13:35:07`   full -> HTTP Error 400: Bad Request
+- `13:35:08`   20y (197001-198912) -> 3584B dates=True
+- `13:35:08`   10y (198001-198912) -> 2144B dates=True
+- `13:35:09`   5y (198501-198912) -> 1424B dates=True
+- `13:35:10`   2y (198801-198912) -> 992B dates=True
+- `13:35:10`   widest working window: 20y (engine CHUNK_Y=10)
 ## P1 sharded sync drive (6 lanes, 60min)
 
+- `13:35:10`   dbs=22 ['BP01', 'BS01', 'BS02', 'FF', 'FM01', 'FM02', 'FM03', 'FM08', 'IR01', 'IR02', 'IR03', 'IR04', 'LA01', 'MD01', 'MD02', 'MD11', 'MD12', 'MD13', 'PR01', 'PR02', 'PR03', 'PS01']
+- `13:35:56`   t+  45s series 322/19538 parts=197 live=6
+- `13:36:41`   t+  91s series 554/19538 parts=245 live=6
+- `13:37:27`   t+ 136s series 994/55139 parts=353 live=6
+- `13:38:12`   t+ 182s series 1281/55186 parts=489 live=6
+- `13:38:58`   t+ 227s series 1758/55285 parts=623 live=4
+- `13:39:44`   t+ 273s series 2038/55285 parts=671 live=4
+- `13:40:29`   t+ 319s series 2398/55285 parts=743 live=4
+- `13:41:15`   t+ 364s series 2638/55285 parts=791 live=4
+- `13:42:00`   t+ 410s series 3038/55285 parts=850 live=4
+- `13:42:46`   t+ 455s series 3318/55285 parts=926 live=4
+- `13:43:31`   t+ 501s series 3598/55285 parts=964 live=4
+- `13:44:17`   t+ 546s series 3798/55285 parts=996 live=4
+- `13:45:03`   t+ 592s series 4113/55285 parts=1048 live=4
+- `13:45:48`   t+ 638s series 4275/55287 parts=1088 live=4
+- `13:46:34`   t+ 683s series 4555/55441 parts=1130 live=4
+- `13:47:19`   t+ 729s series 4829/82501 parts=1178 live=4
+- `13:48:05`   t+ 774s series 5045/82501 parts=1210 live=3
+- `13:48:50`   t+ 820s series 5165/82501 parts=1234 live=3
+- `13:49:36`   t+ 865s series 5405/82501 parts=1260 live=3
+- `13:50:22`   t+ 911s series 5525/82501 parts=1284 live=3
+- `13:51:07`   t+ 957s series 5765/82501 parts=1309 live=3
+- `13:51:53`   t+1002s series 5885/82501 parts=1333 live=3
+- `13:52:39`   t+1048s series 6125/82501 parts=1359 live=3
+- `13:53:24`   t+1094s series 6245/82501 parts=1383 live=3
+- `13:54:10`   t+1140s series 6485/82501 parts=1408 live=3
+- `13:54:56`   t+1185s series 6605/82501 parts=1432 live=3
+- `13:55:41`   t+1231s series 6805/82501 parts=1457 live=3
+- `13:56:27`   t+1276s series 6925/82501 parts=1473 live=3
+- `13:57:13`   t+1322s series 7125/82501 parts=1503 live=3
+- `13:57:58`   t+1367s series 7285/82501 parts=1527 live=3
+- `13:58:44`   t+1413s series 7365/82501 parts=1541 live=3
+- `13:59:29`   t+1459s series 7565/82501 parts=1565 live=3
+- `14:00:15`   t+1504s series 7725/82501 parts=1595 live=3
+- `14:01:00`   t+1550s series 7845/82501 parts=1611 live=3
+- `14:01:46`   t+1596s series 8005/82501 parts=1632 live=3
+- `14:02:32`   t+1641s series 8165/82501 parts=1656 live=3
+- `14:03:18`   t+1687s series 8325/82501 parts=1679 live=3
+- `14:04:03`   t+1733s series 8485/82501 parts=1703 live=3
+- `14:04:49`   t+1778s series 8645/82501 parts=1727 live=3
+- `14:05:34`   t+1824s series 8765/82501 parts=1751 live=3
+- `14:06:20`   t+1869s series 8965/82501 parts=1774 live=3
+- `14:07:06`   t+1915s series 9085/82501 parts=1798 live=3
+- `14:07:51`   t+1961s series 9285/82501 parts=1821 live=3
+- `14:08:37`   t+2006s series 9405/82501 parts=1845 live=3
+- `14:09:23`   t+2052s series 9645/82501 parts=1870 live=3
+- `14:10:08`   t+2098s series 9765/82501 parts=1894 live=3
+- `14:10:54`   t+2143s series 9925/82501 parts=1918 live=3
+- `14:11:39`   t+2189s series 10085/82501 parts=1942 live=3
+- `14:12:25`   t+2234s series 10245/82501 parts=1966 live=3
+- `14:13:11`   t+2280s series 10405/82501 parts=1990 live=3
+- `14:13:56`   t+2326s series 10565/82501 parts=2014 live=3
+- `14:14:42`   t+2372s series 10725/82501 parts=2038 live=3
+- `14:15:28`   t+2417s series 10845/82501 parts=2058 live=3
+- `14:16:14`   t+2463s series 11045/82501 parts=2082 live=3
+- `14:16:59`   t+2509s series 11165/82501 parts=2104 live=3
+- `14:17:45`   t+2554s series 11365/82501 parts=2128 live=3
+- `14:18:31`   t+2600s series 11485/82501 parts=2151 live=3
+- `14:19:16`   t+2646s series 11685/82501 parts=2175 live=3
+- `14:20:02`   t+2691s series 11805/82501 parts=2198 live=3
+- `14:20:48`   t+2737s series 11965/82501 parts=2222 live=3
+- `14:21:33`   t+2783s series 12165/82501 parts=2247 live=3
+- `14:22:19`   t+2828s series 12325/82501 parts=2271 live=3
+- `14:23:04`   t+2874s series 12485/82501 parts=2295 live=3
+- `14:23:50`   t+2919s series 12645/82501 parts=2319 live=3
+- `14:24:36`   t+2965s series 12805/82501 parts=2342 live=3
+- `14:25:21`   t+3011s series 12925/82501 parts=2366 live=3
+- `14:26:07`   t+3056s series 13125/82501 parts=2390 live=3
+- `14:26:53`   t+3102s series 13245/82501 parts=2414 live=3
+- `14:27:38`   t+3148s series 13445/82501 parts=2437 live=3
+- `14:28:24`   t+3193s series 13565/82501 parts=2461 live=3
+- `14:29:10`   t+3239s series 13765/82501 parts=2485 live=3
+- `14:29:55`   t+3285s series 13885/82501 parts=2509 live=3
+- `14:30:41`   t+3330s series 14045/82501 parts=2523 live=3
+- `14:31:27`   t+3376s series 14165/82501 parts=2547 live=3
+- `14:32:13`   t+3422s series 14285/82501 parts=2565 live=3
+- `14:32:58`   t+3468s series 14485/82501 parts=2589 live=3
+- `14:33:44`   t+3513s series 14605/82501 parts=2611 live=3
+- `14:34:30`   t+3559s series 14805/82501 parts=2635 live=3
+- `14:35:15`   t+3605s series 14965/82501 parts=2665 live=3
+- `14:35:16`   remainder: ['BP01 2160/17989', 'FF 1360/33887', 'PR03 7880/27060']
+- `14:35:16` P1 PASS dbs=22 series=14965/82501 parts=2665
+## G2 substance
+
+- `14:35:16`   substance err Parameter validation failed:
+Invalid type for parameter Key, value: None, type: <class 'NoneType'>, valid type
+- `14:35:16` G2 FAIL
+## G3 card
+
+- `14:41:47` G3 note=FULL flat-file warehouse (boj-full v1): 16/16 database zips · 19MB · the entire time-series portal
+- `14:41:47` ops 4987 RED: REMAINDER(3 dbs); G2; G3
