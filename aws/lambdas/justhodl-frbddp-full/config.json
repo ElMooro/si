@@ -1,0 +1,11 @@
+{
+  "function_name": "justhodl-frbddp-full",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1536,
+  "timeout": 780,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Full frbddp warehouse v1.0.0 (ops 4985 expedite). data/warm/frbddp-full/",
+  "env": { "S3_BUCKET": "justhodl-dashboard-live" }
+}

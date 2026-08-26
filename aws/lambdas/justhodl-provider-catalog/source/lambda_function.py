@@ -96,7 +96,7 @@ REG = {
   "engines": ["justhodl-usgov-direct"],
   "prefixes": ["data/warm/usgov/ddp/", "data/warm/usgov/fed-ddp/",
                "data/warm/ddp/", "data/warm/fed-ddp/",
-               "data/warm/usgov/frb"]},
+               "data/warm/usgov/frb", "data/warm/frbddp-full/"]},
  "fred": {"name": "FRED — St. Louis Fed",
   "api": "fred.stlouisfed.org",
   "engines": ["justhodl-fred-catalog", "justhodl-canary-macro",
@@ -158,6 +158,11 @@ REG = {
   "api": "bankofengland.co.uk/boeapps/database",
   "engines": ["justhodl-global-expansion"],
   "prefixes": ["data/warm/boe/", "data/warm/boe-full/"]},
+ "tic": {
+     "name": "US Treasury — TIC",
+     "api": "ticdata.treasury.gov",
+     "engines": ["justhodl-tic-full"],
+     "prefixes": ["data/warm/tic-full/"]},
  "finra": {
      "name": "FINRA — Query API",
      "api": "api.finra.org",
@@ -214,7 +219,7 @@ REG = {
  "cboe": {"name": "Cboe", "api": "cdn.cboe.com",
   "engines": ["legacy fleet"], "prefixes": []},
  "boj": {"name": "Bank of Japan", "api": "stat-search.boj.or.jp",
-  "engines": ["gov-sources"], "prefixes": []},
+  "engines": ["gov-sources"], "prefixes": ["data/warm/boj-full/"]},
  "other": {"name": "Other / mixed-signature",
   "api": "(various)", "engines": ["fleet"], "prefixes": []},
  "ecb": {"name": "ECB — SDMX",
@@ -620,6 +625,44 @@ def lambda_handler(event, context):
                                  _tx.get("mean_agree_pct") or "—"))
                     note = (note + " · " + _note_x) if note \
                         else _note_x
+            except Exception:
+                pass
+        if slug == "fed-board":
+            try:  # ops 4985 (ddp-note-v2)
+                _dm = _get_json("data/warm/frbddp-full/"
+                                "manifest.json")
+                if _dm:
+                    note = ((note + " · ") if note else "") + (
+                        "FULL release packages (frbddp-full v1): "
+                        "%s programs · %.0fMB (Z.1, H.4.1, H.15, "
+                        "H.8...) · %s named misses" % (
+                            _dm.get("packages"),
+                            _dm.get("mb") or 0,
+                            _dm.get("failures")))
+            except Exception:
+                pass
+        if slug == "tic":
+            try:  # ops 4985 (tic-note-v2)
+                _tm = _get_json("data/warm/tic-full/manifest.json")
+                if _tm:
+                    note = ((note + " · ") if note else "") + (
+                        "banking+flows text mirror (tic-full v1): "
+                        "%s files · %.2fMB (bctype claims, bltype, "
+                        "SLT, MFH) · %s named misses" % (
+                            _tm.get("files"), _tm.get("mb") or 0,
+                            _tm.get("failures")))
+            except Exception:
+                pass
+        if slug == "boj":
+            try:  # ops 4985 (boj-note-v2)
+                _bm = _get_json("data/warm/boj-full/manifest.json")
+                if _bm:
+                    note = ((note + " · ") if note else "") + (
+                        "FULL flat-file warehouse (boj-full v1): "
+                        "%s/%s database zips · %.0fMB · the "
+                        "entire time-series portal" % (
+                            _bm.get("zips"), _bm.get("universe"),
+                            _bm.get("mb") or 0))
             except Exception:
                 pass
         if slug == "finra":
