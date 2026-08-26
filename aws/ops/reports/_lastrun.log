@@ -1,19 +1,12 @@
-executing-against: e94d76099a15e30f091a32569eb72f79bc85b385
-── P0 evidence ──
-[14:42:24]   SOURCE justhodl-dashboard-live                  rules=1 -> ['justhodl-dashboard-live-dr']
-[14:42:25]   SOURCE justhodl-dashboard-live-dr               rules=1 -> ['justhodl-dr-usw2-857687956942']
-[14:43:16]   DR justhodl-dashboard-live-dr                 ~200000 objs 72.05GB
-[14:43:17]     IT configs: []
-[14:43:51]   DR justhodl-dr-usw2-857687956942              ~152824 objs 7.05GB
-[14:43:51]     IT configs: []
-── P1 archive configs ──
-[14:43:51]   archived 2 config(s)
-── P2 delete replication rules ──
-[14:43:52]   DELETED replication on justhodl-dashboard-live
-[14:43:52]   DELETED replication on justhodl-dashboard-live-dr
-── P3 verify ──
-[14:43:55]   justhodl-dashboard-live: replication config GONE
-[14:43:55]   justhodl-dashboard-live-dr: replication config GONE
-[14:43:55] ops 4988 GREEN -- DR replication suspended; the us-west-2 request line stops accruing (existing copies untouched; re-enable = restore archived config)
+executing-against: d929fa5831ed5aa59b646c73c3d2f9ff936c8e29
+── P0 sentinel: secret present? ──
+[14:47:34]   client_id=c2de60df... secret=False
+[14:47:34] ops 4984 GREEN -- auth tier dormant (no secret; public-tier warehouse complete at 22.2M rows); upgrades automatically if a secret ever appears in vault/env
 
-→ Report written to aws/ops/reports/latest/ops_4988_suspend_dr.md
+→ Report written to aws/ops/reports/latest/ops_4984_finra_partition_drain.md
+── G-1 markers ──
+[14:47:35]   ok justhodl-asia-trade-full
+[14:47:35] ABORT justhodl-provider-catalog
+
+→ Report written to aws/ops/reports/latest/ops_4989_asia_trade_launch.md
+❌ OPS-FAIL: aws/ops/pending/ops_4989_asia_trade_launch.py

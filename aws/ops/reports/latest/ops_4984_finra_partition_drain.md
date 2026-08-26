@@ -1,15 +1,15 @@
 ## P0 sentinel: secret present?
 
-**Status:** failure  
+**Status:** success  
 **Duration:** 0.4s  
-**Finished:** 2026-08-25T22:35:59+00:00  
+**Finished:** 2026-08-26T14:47:34+00:00  
 
 ## Error
 
 ```
-SystemExit: 1
+SystemExit: 0
 ```
 
 ## Log
-- `22:35:59`   client_id=c2de60df... secret=False
-- `22:35:59` ops 4984 RED: SENTINEL WAITING -- keyless tier is hard-windowed (evidence complete); paste the API secret (portal Reset shows it once) and this op drains full 2014-inception depth + the 10 auth datasets automatically on the next push
+- `14:47:34`   client_id=c2de60df... secret=False
+- `14:47:34` ops 4984 GREEN -- auth tier dormant (no secret; public-tier warehouse complete at 22.2M rows); upgrades automatically if a secret ever appears in vault/env
