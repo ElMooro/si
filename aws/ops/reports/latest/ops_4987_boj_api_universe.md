@@ -1,695 +1,140 @@
 ## P0 shape evidence (runner)
 
 **Status:** failure  
-**Duration:** 2665.2s  
-**Finished:** 2026-08-26T03:49:23+00:00  
+**Duration:** 403.2s  
+**Finished:** 2026-08-26T04:00:25+00:00  
 
 ## Error
 
 ```
-SystemExit: 1
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connection.py", line 571, in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 1478, in getresponse
+    response.begin()
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 343, in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 304, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/socket.py", line 720, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/ssl.py", line 1251, in recv_into
+    return self.read(nbytes, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/ssl.py", line 1103, in read
+    return self._sslobj.read(len, buffer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: The read operation timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 509, in send
+    urllib_response = conn.urlopen(
+                      ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 842, in urlopen
+    retries = retries.increment(
+              ^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/util/retry.py", line 473, in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/util/util.py", line 39, in reraise
+    raise value
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 536, in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 367, in _raise_timeout
+    raise ReadTimeoutError(
+urllib3.exceptions.ReadTimeoutError: AWSHTTPSConnectionPool(host='lambda.us-east-1.amazonaws.com', port=443): Read timed out. (read timeout=60)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
+  File "/home/runner/work/si/si/aws/ops/pending/ops_4987_boj_api_universe.py", line 131, in <module>
+    lam.invoke(FunctionName=FN,
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 1076, in _make_api_call
+    http, parsed_response = self._make_request(
+                            ^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/client.py", line 1100, in _make_request
+    return self._endpoint.make_request(operation_model, request_dict)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 119, in make_request
+    return self._send_request(request_dict, operation_model)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 202, in _send_request
+    while self._needs_retry(
+          ^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 362, in _needs_retry
+    responses = self._event_emitter.emit(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/hooks.py", line 412, in emit
+    return self._emitter.emit(aliased_event_name, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/hooks.py", line 256, in emit
+    return self._emit(event_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/hooks.py", line 239, in _emit
+    response = handler(**kwargs)
+               ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 207, in __call__
+    if self._checker(**checker_kwargs):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 284, in __call__
+    should_retry = self._should_retry(
+                   ^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 320, in _should_retry
+    return self._checker(attempt_number, response, caught_exception)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 363, in __call__
+    checker_response = checker(
+                       ^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 247, in __call__
+    return self._check_caught_exception(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 416, in _check_caught_exception
+    raise caught_exception
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 281, in _do_get_response
+    http_response = self._send(request)
+                    ^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 385, in _send
+    return self.http_session.send(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 547, in send
+    raise ReadTimeoutError(endpoint_url=request.url, error=e)
+botocore.exceptions.ReadTimeoutError: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-boj-full/invocations"
+
 ```
 
 ## Log
-- `03:04:58`   getMetadata MD11: 399164B head=b'{\n "STATUS":200,\n "MESSAGEID":"M181000I",\n "MESSAGE":"Successfully completed",\n "DATE":"2026-08-22T5:01:59.017+09:00",\n "DB":"MD11",\n "RESULTSET":[\n{\n "SERIES_CODE":"",\n "NAME_OF_TIME_SERIES":"Deposits, Vault Cash, and L'
-- `03:04:58`   getDataCode err HTTP Error 400: Bad Request
+- `03:53:42`   getMetadata MD11: 399164B head=b'{\n "STATUS":200,\n "MESSAGEID":"M181000I",\n "MESSAGE":"Successfully completed",\n "DATE":"2026-08-22T5:01:59.017+09:00",\n "DB":"MD11",\n "RESULTSET":[\n{\n "SERIES_CODE":"",\n "NAME_OF_TIME_SERIES":"Deposits, Vault Cash, and L'
+- `03:53:43`   getDataCode err HTTP Error 400: Bad Request
 ## G0 settle
 
-- `03:04:59`   settled (0s)
-## P1 sync drive
+- `03:55:12`   settled (89s)
+## P0b window ladder (single code)
 
-- `03:06:00`   t+  61s err=None dbs=22 inv=8 series 2120/120394 parts=0
-- `03:06:04`   t+  64s err=None dbs=22 inv=8 series 2280/120394 parts=0
-- `03:06:07`   t+  67s err=None dbs=22 inv=8 series 2480/120394 parts=0
-- `03:06:10`   t+  71s err=None dbs=22 inv=8 series 2640/120394 parts=0
-- `03:06:13`   t+  74s err=None dbs=22 inv=8 series 2840/120394 parts=0
-- `03:06:16`   t+  77s err=None dbs=22 inv=8 series 3000/120394 parts=0
-- `03:06:19`   t+  80s err=None dbs=22 inv=8 series 3160/120394 parts=0
-- `03:06:23`   t+  83s err=None dbs=22 inv=8 series 3360/120394 parts=0
-- `03:06:26`   t+  86s err=None dbs=22 inv=8 series 3520/120394 parts=0
-- `03:06:29`   t+  90s err=None dbs=22 inv=8 series 3680/120394 parts=0
-- `03:06:32`   t+  93s err=None dbs=22 inv=8 series 3880/120394 parts=0
-- `03:06:35`   t+  96s err=None dbs=22 inv=8 series 4040/120394 parts=0
-- `03:06:38`   t+  99s err=None dbs=22 inv=8 series 4240/120394 parts=0
-- `03:06:41`   t+ 102s err=None dbs=22 inv=8 series 4360/120394 parts=0
-- `03:06:45`   t+ 105s err=None dbs=22 inv=8 series 4560/120394 parts=0
-- `03:06:48`   t+ 108s err=None dbs=22 inv=8 series 4720/120394 parts=0
-- `03:06:51`   t+ 111s err=None dbs=22 inv=8 series 4880/120394 parts=0
-- `03:06:54`   t+ 115s err=None dbs=22 inv=8 series 5040/120394 parts=0
-- `03:06:57`   t+ 118s err=None dbs=22 inv=8 series 5200/120394 parts=0
-- `03:07:00`   t+ 121s err=None dbs=22 inv=8 series 5360/120394 parts=0
-- `03:07:03`   t+ 124s err=None dbs=22 inv=8 series 5520/120394 parts=0
-- `03:07:06`   t+ 127s err=None dbs=22 inv=8 series 5680/120394 parts=0
-- `03:07:10`   t+ 130s err=None dbs=22 inv=8 series 5840/120394 parts=0
-- `03:07:13`   t+ 133s err=None dbs=22 inv=8 series 6000/120394 parts=0
-- `03:07:16`   t+ 137s err=None dbs=22 inv=8 series 6200/120394 parts=0
-- `03:07:19`   t+ 140s err=None dbs=22 inv=8 series 6360/120394 parts=0
-- `03:07:22`   t+ 143s err=None dbs=22 inv=8 series 6520/120394 parts=0
-- `03:07:25`   t+ 146s err=None dbs=22 inv=8 series 6680/120394 parts=0
-- `03:07:28`   t+ 149s err=None dbs=22 inv=8 series 6840/120394 parts=0
-- `03:07:32`   t+ 152s err=None dbs=22 inv=8 series 7040/120394 parts=0
-- `03:07:35`   t+ 155s err=None dbs=22 inv=8 series 7200/120394 parts=0
-- `03:07:38`   t+ 158s err=None dbs=22 inv=8 series 7360/120394 parts=0
-- `03:07:41`   t+ 162s err=None dbs=22 inv=8 series 7520/120394 parts=0
-- `03:07:44`   t+ 165s err=None dbs=22 inv=8 series 7720/120394 parts=0
-- `03:07:47`   t+ 168s err=None dbs=22 inv=8 series 7880/120394 parts=0
-- `03:07:50`   t+ 171s err=None dbs=22 inv=8 series 8040/120394 parts=0
-- `03:07:53`   t+ 174s err=None dbs=22 inv=8 series 8200/120394 parts=0
-- `03:07:56`   t+ 177s err=None dbs=22 inv=8 series 8400/120394 parts=0
-- `03:08:00`   t+ 180s err=None dbs=22 inv=8 series 8560/120394 parts=0
-- `03:08:03`   t+ 183s err=None dbs=22 inv=8 series 8760/120394 parts=0
-- `03:08:06`   t+ 187s err=None dbs=22 inv=8 series 8920/120394 parts=0
-- `03:08:09`   t+ 190s err=None dbs=22 inv=8 series 9080/120394 parts=0
-- `03:08:12`   t+ 193s err=None dbs=22 inv=8 series 9280/120394 parts=0
-- `03:08:15`   t+ 196s err=None dbs=22 inv=8 series 9440/120394 parts=0
-- `03:08:18`   t+ 199s err=None dbs=22 inv=8 series 9600/120394 parts=0
-- `03:08:21`   t+ 202s err=None dbs=22 inv=8 series 9760/120394 parts=0
-- `03:08:25`   t+ 205s err=None dbs=22 inv=8 series 9920/120394 parts=0
-- `03:08:28`   t+ 208s err=None dbs=22 inv=8 series 10120/120394 parts=0
-- `03:08:31`   t+ 211s err=None dbs=22 inv=8 series 10280/120394 parts=0
-- `03:08:34`   t+ 215s err=None dbs=22 inv=8 series 10440/120394 parts=0
-- `03:08:37`   t+ 218s err=None dbs=22 inv=8 series 10600/120394 parts=0
-- `03:08:40`   t+ 221s err=None dbs=22 inv=8 series 10760/120394 parts=0
-- `03:08:43`   t+ 224s err=None dbs=22 inv=8 series 10920/120394 parts=0
-- `03:08:46`   t+ 227s err=None dbs=22 inv=8 series 11080/120394 parts=0
-- `03:08:50`   t+ 230s err=None dbs=22 inv=8 series 11280/120394 parts=0
-- `03:08:53`   t+ 233s err=None dbs=22 inv=8 series 11440/120394 parts=0
-- `03:08:56`   t+ 236s err=None dbs=22 inv=8 series 11600/120394 parts=0
-- `03:08:59`   t+ 240s err=None dbs=22 inv=8 series 11760/120394 parts=0
-- `03:09:02`   t+ 243s err=None dbs=22 inv=8 series 11920/120394 parts=0
-- `03:09:05`   t+ 246s err=None dbs=22 inv=8 series 12080/120394 parts=0
-- `03:09:08`   t+ 249s err=None dbs=22 inv=8 series 12240/120394 parts=0
-- `03:09:11`   t+ 252s err=None dbs=22 inv=8 series 12400/120394 parts=0
-- `03:09:14`   t+ 255s err=None dbs=22 inv=8 series 12600/120394 parts=0
-- `03:09:18`   t+ 258s err=None dbs=22 inv=8 series 12760/120394 parts=0
-- `03:09:21`   t+ 261s err=None dbs=22 inv=8 series 12920/120394 parts=0
-- `03:09:24`   t+ 265s err=None dbs=22 inv=8 series 13120/120394 parts=0
-- `03:09:27`   t+ 268s err=None dbs=22 inv=8 series 13280/120394 parts=0
-- `03:09:30`   t+ 271s err=None dbs=22 inv=8 series 13480/120394 parts=0
-- `03:09:33`   t+ 274s err=None dbs=22 inv=8 series 13640/120394 parts=0
-- `03:09:36`   t+ 277s err=None dbs=22 inv=8 series 13800/120394 parts=0
-- `03:09:39`   t+ 280s err=None dbs=22 inv=8 series 14000/120394 parts=0
-- `03:09:43`   t+ 283s err=None dbs=22 inv=8 series 14160/120394 parts=0
-- `03:09:46`   t+ 286s err=None dbs=22 inv=8 series 14320/120394 parts=0
-- `03:09:49`   t+ 290s err=None dbs=22 inv=8 series 14520/120394 parts=0
-- `03:09:52`   t+ 293s err=None dbs=22 inv=8 series 14680/120394 parts=0
-- `03:09:55`   t+ 296s err=None dbs=22 inv=8 series 14840/120394 parts=0
-- `03:09:58`   t+ 299s err=None dbs=22 inv=8 series 15040/120394 parts=0
-- `03:10:01`   t+ 302s err=None dbs=22 inv=8 series 15200/120394 parts=0
-- `03:10:05`   t+ 305s err=None dbs=22 inv=8 series 15360/120394 parts=0
-- `03:10:08`   t+ 308s err=None dbs=22 inv=8 series 15520/120394 parts=0
-- `03:10:11`   t+ 312s err=None dbs=22 inv=8 series 15680/120394 parts=0
-- `03:10:14`   t+ 315s err=None dbs=22 inv=8 series 15880/120394 parts=0
-- `03:10:17`   t+ 318s err=None dbs=22 inv=8 series 16040/120394 parts=0
-- `03:10:20`   t+ 321s err=None dbs=22 inv=8 series 16200/120394 parts=0
-- `03:10:23`   t+ 324s err=None dbs=22 inv=8 series 16360/120394 parts=0
-- `03:10:26`   t+ 327s err=None dbs=22 inv=8 series 16520/120394 parts=0
-- `03:10:30`   t+ 330s err=None dbs=22 inv=8 series 16720/120394 parts=0
-- `03:10:33`   t+ 333s err=None dbs=22 inv=8 series 16880/120394 parts=0
-- `03:10:36`   t+ 336s err=None dbs=22 inv=8 series 17040/120394 parts=0
-- `03:10:39`   t+ 340s err=None dbs=22 inv=8 series 17200/120394 parts=0
-- `03:10:42`   t+ 343s err=None dbs=22 inv=8 series 17360/120394 parts=0
-- `03:10:45`   t+ 346s err=None dbs=22 inv=8 series 17560/120394 parts=0
-- `03:10:48`   t+ 349s err=None dbs=22 inv=8 series 17720/120394 parts=0
-- `03:10:51`   t+ 352s err=None dbs=22 inv=8 series 17880/120394 parts=0
-- `03:10:55`   t+ 355s err=None dbs=22 inv=8 series 18027/120394 parts=0
-- `03:10:58`   t+ 358s err=None dbs=22 inv=8 series 18227/120394 parts=0
-- `03:11:01`   t+ 361s err=None dbs=22 inv=8 series 18387/120394 parts=0
-- `03:11:04`   t+ 365s err=None dbs=22 inv=8 series 18587/120394 parts=0
-- `03:11:07`   t+ 368s err=None dbs=22 inv=8 series 18747/120394 parts=0
-- `03:11:10`   t+ 371s err=None dbs=22 inv=8 series 18907/120394 parts=0
-- `03:11:13`   t+ 374s err=None dbs=22 inv=8 series 19107/120394 parts=0
-- `03:11:16`   t+ 377s err=None dbs=22 inv=8 series 19267/120394 parts=0
-- `03:11:20`   t+ 380s err=None dbs=22 inv=8 series 19422/120394 parts=0
-- `03:11:23`   t+ 383s err=None dbs=22 inv=8 series 19622/120394 parts=0
-- `03:11:26`   t+ 386s err=None dbs=22 inv=8 series 19782/120394 parts=0
-- `03:11:29`   t+ 390s err=None dbs=22 inv=8 series 19942/120394 parts=0
-- `03:11:32`   t+ 393s err=None dbs=22 inv=8 series 20102/120394 parts=0
-- `03:11:35`   t+ 396s err=None dbs=22 inv=8 series 20302/120394 parts=0
-- `03:11:38`   t+ 399s err=None dbs=22 inv=8 series 20462/120394 parts=0
-- `03:11:41`   t+ 402s err=None dbs=22 inv=8 series 20622/120394 parts=0
-- `03:11:45`   t+ 405s err=None dbs=22 inv=8 series 20822/120394 parts=0
-- `03:11:48`   t+ 408s err=None dbs=22 inv=8 series 20982/120394 parts=0
-- `03:11:51`   t+ 411s err=None dbs=22 inv=8 series 21142/120394 parts=0
-- `03:11:54`   t+ 415s err=None dbs=22 inv=8 series 21342/120394 parts=0
-- `03:11:57`   t+ 418s err=None dbs=22 inv=8 series 21502/120394 parts=0
-- `03:12:00`   t+ 421s err=None dbs=22 inv=8 series 21662/120394 parts=0
-- `03:12:03`   t+ 424s err=None dbs=22 inv=8 series 21822/120394 parts=0
-- `03:12:06`   t+ 427s err=None dbs=22 inv=8 series 22022/120394 parts=0
-- `03:12:09`   t+ 430s err=None dbs=22 inv=8 series 22182/120394 parts=0
-- `03:12:13`   t+ 433s err=None dbs=22 inv=8 series 22342/120394 parts=0
-- `03:12:16`   t+ 436s err=None dbs=22 inv=8 series 22542/120394 parts=0
-- `03:12:19`   t+ 440s err=None dbs=22 inv=8 series 22702/120394 parts=0
-- `03:12:22`   t+ 443s err=None dbs=22 inv=8 series 22862/120394 parts=0
-- `03:12:25`   t+ 446s err=None dbs=22 inv=8 series 23062/120394 parts=0
-- `03:12:28`   t+ 449s err=None dbs=22 inv=8 series 23222/120394 parts=0
-- `03:12:31`   t+ 452s err=None dbs=22 inv=8 series 23382/120394 parts=0
-- `03:12:34`   t+ 455s err=None dbs=22 inv=8 series 23582/120394 parts=0
-- `03:12:38`   t+ 458s err=None dbs=22 inv=8 series 23742/120394 parts=0
-- `03:12:41`   t+ 461s err=None dbs=22 inv=8 series 23902/120394 parts=0
-- `03:12:44`   t+ 465s err=None dbs=22 inv=8 series 24062/120394 parts=0
-- `03:12:47`   t+ 468s err=None dbs=22 inv=8 series 24262/120394 parts=0
-- `03:12:50`   t+ 471s err=None dbs=22 inv=8 series 24422/120394 parts=0
-- `03:12:53`   t+ 474s err=None dbs=22 inv=8 series 24582/120394 parts=0
-- `03:12:56`   t+ 477s err=None dbs=22 inv=8 series 24742/120394 parts=0
-- `03:12:59`   t+ 480s err=None dbs=22 inv=8 series 24942/120394 parts=0
-- `03:13:03`   t+ 483s err=None dbs=22 inv=8 series 25102/120394 parts=0
-- `03:13:06`   t+ 486s err=None dbs=22 inv=8 series 25262/120394 parts=0
-- `03:13:09`   t+ 490s err=None dbs=22 inv=8 series 25422/120394 parts=0
-- `03:13:12`   t+ 493s err=None dbs=22 inv=8 series 25582/120394 parts=0
-- `03:13:15`   t+ 496s err=None dbs=22 inv=8 series 25782/120394 parts=0
-- `03:13:18`   t+ 499s err=None dbs=22 inv=8 series 25942/120394 parts=0
-- `03:13:21`   t+ 502s err=None dbs=22 inv=8 series 26102/120394 parts=0
-- `03:13:24`   t+ 505s err=None dbs=22 inv=8 series 26302/120394 parts=0
-- `03:13:28`   t+ 508s err=None dbs=22 inv=8 series 26462/120394 parts=0
-- `03:13:31`   t+ 511s err=None dbs=22 inv=8 series 26622/120394 parts=0
-- `03:13:34`   t+ 514s err=None dbs=22 inv=8 series 26782/120394 parts=0
-- `03:13:37`   t+ 518s err=None dbs=22 inv=8 series 26982/120394 parts=0
-- `03:13:40`   t+ 521s err=None dbs=22 inv=8 series 27062/120394 parts=0
-- `03:13:43`   t+ 524s err=None dbs=22 inv=8 series 27182/120394 parts=0
-- `03:13:46`   t+ 527s err=None dbs=22 inv=8 series 27342/120394 parts=0
-- `03:13:49`   t+ 530s err=None dbs=22 inv=8 series 27542/120394 parts=0
-- `03:13:53`   t+ 533s err=None dbs=22 inv=8 series 27702/120394 parts=0
-- `03:13:56`   t+ 536s err=None dbs=22 inv=8 series 27902/120394 parts=0
-- `03:13:59`   t+ 540s err=None dbs=22 inv=8 series 28062/120394 parts=0
-- `03:14:02`   t+ 543s err=None dbs=22 inv=8 series 28222/120394 parts=0
-- `03:14:05`   t+ 546s err=None dbs=22 inv=8 series 28422/120394 parts=0
-- `03:14:08`   t+ 549s err=None dbs=22 inv=8 series 28582/120394 parts=0
-- `03:14:11`   t+ 552s err=None dbs=22 inv=8 series 28742/120394 parts=0
-- `03:14:14`   t+ 555s err=None dbs=22 inv=8 series 28902/120394 parts=0
-- `03:14:18`   t+ 558s err=None dbs=22 inv=8 series 29102/120394 parts=0
-- `03:14:21`   t+ 561s err=None dbs=22 inv=8 series 29262/120394 parts=0
-- `03:14:24`   t+ 565s err=None dbs=22 inv=8 series 29462/120394 parts=0
-- `03:14:27`   t+ 568s err=None dbs=22 inv=8 series 29622/120394 parts=0
-- `03:14:30`   t+ 571s err=None dbs=22 inv=8 series 29782/120394 parts=0
-- `03:14:33`   t+ 574s err=None dbs=22 inv=8 series 29982/120394 parts=0
-- `03:14:36`   t+ 577s err=None dbs=22 inv=8 series 30142/120394 parts=0
-- `03:14:39`   t+ 580s err=None dbs=22 inv=8 series 30342/120394 parts=0
-- `03:15:44`   t+ 644s err=None dbs=22 inv=8 series 33502/120394 parts=0
-- `03:15:47`   t+ 648s err=None dbs=22 inv=8 series 33702/120394 parts=0
-- `03:15:50`   t+ 651s err=None dbs=22 inv=8 series 33862/120394 parts=0
-- `03:15:53`   t+ 654s err=None dbs=22 inv=8 series 34022/120394 parts=0
-- `03:15:56`   t+ 657s err=None dbs=22 inv=8 series 34222/120394 parts=0
-- `03:16:00`   t+ 660s err=None dbs=22 inv=8 series 34382/120394 parts=0
-- `03:16:03`   t+ 663s err=None dbs=22 inv=8 series 34542/120394 parts=0
-- `03:16:06`   t+ 667s err=None dbs=22 inv=8 series 34702/120394 parts=0
-- `03:16:09`   t+ 670s err=None dbs=22 inv=8 series 34902/120394 parts=0
-- `03:16:12`   t+ 673s err=None dbs=22 inv=8 series 35062/120394 parts=0
-- `03:16:15`   t+ 676s err=None dbs=22 inv=8 series 35222/120394 parts=0
-- `03:16:18`   t+ 679s err=None dbs=22 inv=8 series 35382/120394 parts=0
-- `03:16:22`   t+ 682s err=None dbs=22 inv=8 series 35542/120394 parts=0
-- `03:16:25`   t+ 685s err=None dbs=22 inv=8 series 35702/120394 parts=0
-- `03:16:28`   t+ 689s err=None dbs=22 inv=8 series 35862/120394 parts=0
-- `03:16:31`   t+ 692s err=None dbs=22 inv=8 series 36022/120394 parts=0
-- `03:16:34`   t+ 695s err=None dbs=22 inv=8 series 36182/120394 parts=0
-- `03:16:37`   t+ 698s err=None dbs=22 inv=8 series 36342/120394 parts=0
-- `03:16:40`   t+ 701s err=None dbs=22 inv=8 series 36542/120394 parts=0
-- `03:16:44`   t+ 704s err=None dbs=22 inv=8 series 36702/120394 parts=0
-- `03:16:47`   t+ 707s err=None dbs=22 inv=8 series 36862/120394 parts=0
-- `03:16:50`   t+ 711s err=None dbs=22 inv=8 series 37022/120394 parts=0
-- `03:16:53`   t+ 714s err=None dbs=22 inv=8 series 37182/120394 parts=0
-- `03:16:56`   t+ 717s err=None dbs=22 inv=8 series 37382/120394 parts=0
-- `03:16:59`   t+ 720s err=None dbs=22 inv=8 series 37542/120394 parts=0
-- `03:17:02`   t+ 723s err=None dbs=22 inv=8 series 37702/120394 parts=0
-- `03:17:06`   t+ 726s err=None dbs=22 inv=8 series 37862/120394 parts=0
-- `03:17:09`   t+ 729s err=None dbs=22 inv=8 series 38022/120394 parts=0
-- `03:17:12`   t+ 732s err=None dbs=22 inv=8 series 38182/120394 parts=0
-- `03:17:15`   t+ 736s err=None dbs=22 inv=8 series 38342/120394 parts=0
-- `03:17:18`   t+ 739s err=None dbs=22 inv=8 series 38542/120394 parts=0
-- `03:17:21`   t+ 742s err=None dbs=22 inv=8 series 38702/120394 parts=0
-- `03:17:24`   t+ 745s err=None dbs=22 inv=8 series 38862/120394 parts=0
-- `03:17:27`   t+ 748s err=None dbs=22 inv=8 series 39062/120394 parts=0
-- `03:17:31`   t+ 751s err=None dbs=22 inv=8 series 39222/120394 parts=0
-- `03:17:34`   t+ 754s err=None dbs=22 inv=8 series 39382/120394 parts=0
-- `03:17:37`   t+ 758s err=None dbs=22 inv=8 series 39582/120394 parts=0
-- `03:17:40`   t+ 761s err=None dbs=22 inv=8 series 39742/120394 parts=0
-- `03:17:43`   t+ 764s err=None dbs=22 inv=8 series 39902/120394 parts=0
-- `03:17:46`   t+ 767s err=None dbs=22 inv=8 series 40102/120394 parts=0
-- `03:17:50`   t+ 770s err=None dbs=22 inv=8 series 40262/120394 parts=0
-- `03:17:53`   t+ 773s err=None dbs=22 inv=8 series 40422/120394 parts=0
-- `03:17:56`   t+ 776s err=None dbs=22 inv=8 series 40622/120394 parts=0
-- `03:17:59`   t+ 780s err=None dbs=22 inv=8 series 40782/120394 parts=0
-- `03:18:02`   t+ 783s err=None dbs=22 inv=8 series 40942/120394 parts=0
-- `03:18:05`   t+ 786s err=None dbs=22 inv=8 series 41102/120394 parts=0
-- `03:18:08`   t+ 789s err=None dbs=22 inv=8 series 41262/120394 parts=0
-- `03:18:11`   t+ 792s err=None dbs=22 inv=8 series 41462/120394 parts=0
-- `03:18:15`   t+ 795s err=None dbs=22 inv=8 series 41622/120394 parts=0
-- `03:18:18`   t+ 798s err=None dbs=22 inv=8 series 41782/120394 parts=0
-- `03:18:21`   t+ 802s err=None dbs=22 inv=8 series 41982/120394 parts=0
-- `03:18:24`   t+ 805s err=None dbs=22 inv=8 series 42142/120394 parts=0
-- `03:18:27`   t+ 808s err=None dbs=22 inv=8 series 42302/120394 parts=0
-- `03:18:30`   t+ 811s err=None dbs=22 inv=8 series 42462/120394 parts=0
-- `03:18:33`   t+ 814s err=None dbs=22 inv=8 series 42622/120394 parts=0
-- `03:18:37`   t+ 817s err=None dbs=22 inv=8 series 42782/120394 parts=0
-- `03:18:40`   t+ 820s err=None dbs=22 inv=8 series 42982/120394 parts=0
-- `03:18:43`   t+ 823s err=None dbs=22 inv=8 series 43142/120394 parts=0
-- `03:18:46`   t+ 827s err=None dbs=22 inv=8 series 43302/120394 parts=0
-- `03:18:49`   t+ 830s err=None dbs=22 inv=8 series 43462/120394 parts=0
-- `03:18:52`   t+ 833s err=None dbs=22 inv=8 series 43622/120394 parts=0
-- `03:18:56`   t+ 836s err=None dbs=22 inv=8 series 43782/120394 parts=0
-- `03:18:59`   t+ 839s err=None dbs=22 inv=8 series 43942/120394 parts=0
-- `03:19:02`   t+ 842s err=None dbs=22 inv=8 series 44142/120394 parts=0
-- `03:19:05`   t+ 846s err=None dbs=22 inv=8 series 44302/120394 parts=0
-- `03:19:08`   t+ 849s err=None dbs=22 inv=8 series 44462/120394 parts=0
-- `03:19:11`   t+ 852s err=None dbs=22 inv=8 series 44662/120394 parts=0
-- `03:19:14`   t+ 855s err=None dbs=22 inv=8 series 44822/120394 parts=0
-- `03:19:18`   t+ 858s err=None dbs=22 inv=8 series 44982/120394 parts=0
-- `03:19:21`   t+ 861s err=None dbs=22 inv=8 series 45142/120394 parts=0
-- `03:19:24`   t+ 864s err=None dbs=22 inv=8 series 45342/120394 parts=0
-- `03:19:27`   t+ 868s err=None dbs=22 inv=8 series 45502/120394 parts=0
-- `03:19:30`   t+ 871s err=None dbs=22 inv=8 series 45662/120394 parts=0
-- `03:19:33`   t+ 874s err=None dbs=22 inv=8 series 45822/120394 parts=0
-- `03:19:36`   t+ 877s err=None dbs=22 inv=8 series 45982/120394 parts=0
-- `03:19:40`   t+ 880s err=None dbs=22 inv=8 series 46182/120394 parts=0
-- `03:19:43`   t+ 883s err=None dbs=22 inv=8 series 46342/120394 parts=0
-- `03:19:46`   t+ 887s err=None dbs=22 inv=8 series 46542/120394 parts=0
-- `03:19:49`   t+ 890s err=None dbs=22 inv=8 series 46662/120394 parts=0
-- `03:19:52`   t+ 893s err=None dbs=22 inv=8 series 46822/120394 parts=0
-- `03:19:55`   t+ 896s err=None dbs=22 inv=8 series 47022/120394 parts=0
-- `03:19:58`   t+ 899s err=None dbs=22 inv=8 series 47182/120394 parts=0
-- `03:20:01`   t+ 902s err=None dbs=22 inv=8 series 47342/120394 parts=0
-- `03:20:05`   t+ 905s err=None dbs=22 inv=8 series 47502/120394 parts=0
-- `03:20:08`   t+ 908s err=None dbs=22 inv=8 series 47702/120394 parts=0
-- `03:20:11`   t+ 912s err=None dbs=22 inv=8 series 47822/120394 parts=0
-- `03:20:14`   t+ 915s err=None dbs=22 inv=8 series 48022/120394 parts=0
-- `03:20:17`   t+ 918s err=None dbs=22 inv=8 series 48182/120394 parts=0
-- `03:20:20`   t+ 921s err=None dbs=22 inv=8 series 48342/120394 parts=0
-- `03:20:23`   t+ 924s err=None dbs=22 inv=8 series 48502/120394 parts=0
-- `03:20:26`   t+ 927s err=None dbs=22 inv=8 series 48662/120394 parts=0
-- `03:20:30`   t+ 930s err=None dbs=22 inv=8 series 48822/120394 parts=0
-- `03:20:33`   t+ 933s err=None dbs=22 inv=8 series 48982/120394 parts=0
-- `03:20:36`   t+ 937s err=None dbs=22 inv=8 series 49142/120394 parts=0
-- `03:20:39`   t+ 940s err=None dbs=22 inv=8 series 49302/120394 parts=0
-- `03:20:42`   t+ 943s err=None dbs=22 inv=8 series 49462/120394 parts=0
-- `03:20:45`   t+ 946s err=None dbs=22 inv=8 series 49662/120394 parts=0
-- `03:20:48`   t+ 949s err=None dbs=22 inv=8 series 49822/120394 parts=0
-- `03:20:51`   t+ 952s err=None dbs=22 inv=8 series 49982/120394 parts=0
-- `03:20:55`   t+ 955s err=None dbs=22 inv=8 series 50142/120394 parts=0
-- `03:20:58`   t+ 958s err=None dbs=22 inv=8 series 50302/120394 parts=0
-- `03:21:01`   t+ 961s err=None dbs=22 inv=8 series 50462/120394 parts=0
-- `03:21:04`   t+ 965s err=None dbs=22 inv=8 series 50622/120394 parts=0
-- `03:21:07`   t+ 968s err=None dbs=22 inv=8 series 50782/120394 parts=0
-- `03:21:10`   t+ 971s err=None dbs=22 inv=8 series 50942/120394 parts=0
-- `03:21:13`   t+ 974s err=None dbs=22 inv=8 series 51102/120394 parts=0
-- `03:21:16`   t+ 977s err=None dbs=22 inv=8 series 51262/120394 parts=0
-- `03:21:20`   t+ 980s err=None dbs=22 inv=8 series 51422/120394 parts=0
-- `03:21:23`   t+ 983s err=None dbs=22 inv=8 series 51582/120394 parts=0
-- `03:21:26`   t+ 987s err=None dbs=22 inv=8 series 51782/120394 parts=0
-- `03:21:29`   t+ 990s err=None dbs=22 inv=8 series 51942/120394 parts=0
-- `03:21:32`   t+ 993s err=None dbs=22 inv=8 series 52102/120394 parts=0
-- `03:21:35`   t+ 996s err=None dbs=22 inv=8 series 52262/120394 parts=0
-- `03:21:38`   t+ 999s err=None dbs=22 inv=8 series 52422/120394 parts=0
-- `03:21:42`   t+1002s err=None dbs=22 inv=8 series 52582/120394 parts=0
-- `03:21:45`   t+1005s err=None dbs=22 inv=8 series 52742/120394 parts=0
-- `03:21:48`   t+1008s err=None dbs=22 inv=8 series 52902/120394 parts=0
-- `03:21:51`   t+1012s err=None dbs=22 inv=8 series 53062/120394 parts=0
-- `03:21:54`   t+1015s err=None dbs=22 inv=8 series 53222/120394 parts=0
-- `03:21:57`   t+1018s err=None dbs=22 inv=8 series 53313/120394 parts=0
-- `03:22:00`   t+1021s err=None dbs=22 inv=8 series 53430/120394 parts=0
-- `03:22:03`   t+1024s err=None dbs=22 inv=8 series 53543/120394 parts=0
-- `03:22:07`   t+1027s err=None dbs=22 inv=8 series 53695/120394 parts=0
-- `03:22:10`   t+1030s err=None dbs=22 inv=8 series 53838/120394 parts=0
-- `03:22:13`   t+1034s err=None dbs=22 inv=8 series 53998/120394 parts=0
-- `03:22:16`   t+1037s err=None dbs=22 inv=8 series 54158/120394 parts=0
-- `03:22:19`   t+1040s err=None dbs=22 inv=8 series 54358/120394 parts=0
-- `03:22:22`   t+1043s err=None dbs=22 inv=8 series 54518/120394 parts=0
-- `03:22:25`   t+1046s err=None dbs=22 inv=8 series 54678/120394 parts=0
-- `03:22:29`   t+1049s err=None dbs=22 inv=8 series 54838/120394 parts=0
-- `03:22:32`   t+1052s err=None dbs=22 inv=8 series 55038/120394 parts=0
-- `03:22:35`   t+1055s err=None dbs=22 inv=8 series 55198/120394 parts=0
-- `03:22:38`   t+1059s err=None dbs=22 inv=8 series 55358/120394 parts=0
-- `03:22:41`   t+1062s err=None dbs=22 inv=8 series 55518/120394 parts=0
-- `03:22:44`   t+1065s err=None dbs=22 inv=8 series 55678/120394 parts=0
-- `03:22:47`   t+1068s err=None dbs=22 inv=8 series 55838/120394 parts=0
-- `03:22:50`   t+1071s err=None dbs=22 inv=8 series 55998/120394 parts=0
-- `03:22:54`   t+1074s err=None dbs=22 inv=8 series 56158/120394 parts=0
-- `03:22:57`   t+1078s err=None dbs=22 inv=8 series 56318/120394 parts=0
-- `03:23:00`   t+1081s err=None dbs=22 inv=8 series 56478/120394 parts=0
-- `03:23:03`   t+1084s err=None dbs=22 inv=8 series 56678/120394 parts=0
-- `03:23:06`   t+1087s err=None dbs=22 inv=8 series 56838/120394 parts=0
-- `03:23:09`   t+1090s err=None dbs=22 inv=8 series 56998/120394 parts=0
-- `03:23:13`   t+1093s err=None dbs=22 inv=8 series 57158/120394 parts=0
-- `03:23:16`   t+1096s err=None dbs=22 inv=8 series 57317/120394 parts=0
-- `03:23:19`   t+1100s err=None dbs=22 inv=8 series 57451/120394 parts=0
-- `03:23:22`   t+1103s err=None dbs=22 inv=8 series 57605/120394 parts=0
-- `03:23:25`   t+1106s err=None dbs=22 inv=8 series 57805/120394 parts=0
-- `03:23:28`   t+1109s err=None dbs=22 inv=8 series 57965/120394 parts=0
-- `03:23:31`   t+1112s err=None dbs=22 inv=8 series 58125/120394 parts=0
-- `03:23:35`   t+1115s err=None dbs=22 inv=8 series 58272/120394 parts=0
-- `03:23:38`   t+1118s err=None dbs=22 inv=8 series 58432/120394 parts=0
-- `03:23:41`   t+1122s err=None dbs=22 inv=8 series 58592/120394 parts=0
-- `03:23:44`   t+1125s err=None dbs=22 inv=8 series 58752/120394 parts=0
-- `03:23:47`   t+1128s err=None dbs=22 inv=8 series 58912/120394 parts=0
-- `03:23:50`   t+1131s err=None dbs=22 inv=8 series 59072/120394 parts=0
-- `03:23:53`   t+1134s err=None dbs=22 inv=8 series 59272/120394 parts=0
-- `03:23:56`   t+1137s err=None dbs=22 inv=8 series 59432/120394 parts=0
-- `03:24:00`   t+1140s err=None dbs=22 inv=8 series 59592/120394 parts=0
-- `03:24:03`   t+1143s err=None dbs=22 inv=8 series 59752/120394 parts=0
-- `03:24:06`   t+1147s err=None dbs=22 inv=8 series 59928/120394 parts=0
-- `03:24:09`   t+1150s err=None dbs=22 inv=8 series 60084/120394 parts=0
-- `03:24:12`   t+1153s err=None dbs=22 inv=8 series 60244/120394 parts=0
-- `03:24:15`   t+1156s err=None dbs=22 inv=8 series 60404/120394 parts=0
-- `03:24:18`   t+1159s err=None dbs=22 inv=8 series 60564/120394 parts=0
-- `03:24:21`   t+1162s err=None dbs=22 inv=8 series 60764/120394 parts=0
-- `03:25:25`   t+1226s err=None dbs=22 inv=8 series 64044/120394 parts=0
-- `03:25:28`   t+1229s err=None dbs=22 inv=8 series 64204/120394 parts=0
-- `03:25:31`   t+1232s err=None dbs=22 inv=8 series 64364/120394 parts=0
-- `03:25:34`   t+1235s err=None dbs=22 inv=8 series 64524/120394 parts=0
-- `03:25:38`   t+1238s err=None dbs=22 inv=8 series 64684/120394 parts=0
-- `03:25:41`   t+1241s err=None dbs=22 inv=8 series 64884/120394 parts=0
-- `03:25:44`   t+1244s err=None dbs=22 inv=8 series 65044/120394 parts=0
-- `03:25:47`   t+1248s err=None dbs=22 inv=8 series 65204/120394 parts=0
-- `03:25:50`   t+1251s err=None dbs=22 inv=8 series 65364/120394 parts=0
-- `03:25:53`   t+1254s err=None dbs=22 inv=8 series 65524/120394 parts=0
-- `03:25:56`   t+1257s err=None dbs=22 inv=8 series 65684/120394 parts=0
-- `03:25:59`   t+1260s err=None dbs=22 inv=8 series 65844/120394 parts=0
-- `03:26:03`   t+1263s err=None dbs=22 inv=8 series 66004/120394 parts=0
-- `03:26:06`   t+1266s err=None dbs=22 inv=8 series 66164/120394 parts=0
-- `03:26:09`   t+1269s err=None dbs=22 inv=8 series 66324/120394 parts=0
-- `03:26:12`   t+1273s err=None dbs=22 inv=8 series 66524/120394 parts=0
-- `03:26:15`   t+1276s err=None dbs=22 inv=8 series 66684/120394 parts=0
-- `03:26:18`   t+1279s err=None dbs=22 inv=8 series 66844/120394 parts=0
-- `03:26:21`   t+1282s err=None dbs=22 inv=8 series 67004/120394 parts=0
-- `03:26:24`   t+1285s err=None dbs=22 inv=8 series 67124/120394 parts=0
-- `03:26:28`   t+1288s err=None dbs=22 inv=8 series 67324/120394 parts=0
-- `03:26:31`   t+1291s err=None dbs=22 inv=8 series 67484/120394 parts=0
-- `03:26:34`   t+1294s err=None dbs=22 inv=8 series 67604/120394 parts=0
-- `03:26:37`   t+1298s err=None dbs=22 inv=8 series 67764/120394 parts=0
-- `03:26:40`   t+1301s err=None dbs=22 inv=8 series 67924/120394 parts=0
-- `03:26:43`   t+1304s err=None dbs=22 inv=8 series 68084/120394 parts=0
-- `03:26:46`   t+1307s err=None dbs=22 inv=8 series 68244/120394 parts=0
-- `03:26:49`   t+1310s err=None dbs=22 inv=8 series 68404/120394 parts=0
-- `03:26:53`   t+1313s err=None dbs=22 inv=8 series 68564/120394 parts=0
-- `03:26:56`   t+1316s err=None dbs=22 inv=8 series 68724/120394 parts=0
-- `03:26:59`   t+1319s err=None dbs=22 inv=8 series 68884/120394 parts=0
-- `03:27:02`   t+1323s err=None dbs=22 inv=8 series 69044/120394 parts=0
-- `03:27:05`   t+1326s err=None dbs=22 inv=8 series 69204/120394 parts=0
-- `03:27:08`   t+1329s err=None dbs=22 inv=8 series 69364/120394 parts=0
-- `03:27:11`   t+1332s err=None dbs=22 inv=8 series 69524/120394 parts=0
-- `03:27:14`   t+1335s err=None dbs=22 inv=8 series 69684/120394 parts=0
-- `03:27:18`   t+1338s err=None dbs=22 inv=8 series 69844/120394 parts=0
-- `03:27:21`   t+1341s err=None dbs=22 inv=8 series 70004/120394 parts=0
-- `03:27:24`   t+1345s err=None dbs=22 inv=8 series 70164/120394 parts=0
-- `03:27:27`   t+1348s err=None dbs=22 inv=8 series 70324/120394 parts=0
-- `03:27:30`   t+1351s err=None dbs=22 inv=8 series 70484/120394 parts=0
-- `03:27:33`   t+1354s err=None dbs=22 inv=8 series 70684/120394 parts=0
-- `03:27:36`   t+1357s err=None dbs=22 inv=8 series 70804/120394 parts=0
-- `03:27:39`   t+1360s err=None dbs=22 inv=8 series 70964/120394 parts=0
-- `03:27:43`   t+1363s err=None dbs=22 inv=8 series 71124/120394 parts=0
-- `03:27:46`   t+1366s err=None dbs=22 inv=8 series 71284/120394 parts=0
-- `03:27:49`   t+1369s err=None dbs=22 inv=8 series 71484/120394 parts=0
-- `03:27:52`   t+1373s err=None dbs=22 inv=8 series 71644/120394 parts=0
-- `03:27:55`   t+1376s err=None dbs=22 inv=8 series 71804/120394 parts=0
-- `03:27:58`   t+1379s err=None dbs=22 inv=8 series 71924/120394 parts=0
-- `03:28:01`   t+1382s err=None dbs=22 inv=8 series 72124/120394 parts=0
-- `03:28:04`   t+1385s err=None dbs=22 inv=8 series 72284/120394 parts=0
-- `03:28:08`   t+1388s err=None dbs=22 inv=8 series 72444/120394 parts=0
-- `03:28:11`   t+1391s err=None dbs=22 inv=8 series 72604/120394 parts=0
-- `03:28:14`   t+1394s err=None dbs=22 inv=8 series 72764/120394 parts=0
-- `03:28:17`   t+1398s err=None dbs=22 inv=8 series 72924/120394 parts=0
-- `03:28:20`   t+1401s err=None dbs=22 inv=8 series 73084/120394 parts=0
-- `03:28:23`   t+1404s err=None dbs=22 inv=8 series 73284/120394 parts=0
-- `03:28:26`   t+1407s err=None dbs=22 inv=8 series 73444/120394 parts=0
-- `03:28:29`   t+1410s err=None dbs=22 inv=8 series 73604/120394 parts=0
-- `03:28:33`   t+1413s err=None dbs=22 inv=8 series 73764/120394 parts=0
-- `03:28:36`   t+1416s err=None dbs=22 inv=8 series 73924/120394 parts=0
-- `03:28:39`   t+1419s err=None dbs=22 inv=8 series 74124/120394 parts=0
-- `03:28:42`   t+1423s err=None dbs=22 inv=8 series 74284/120394 parts=0
-- `03:28:45`   t+1426s err=None dbs=22 inv=8 series 74444/120394 parts=0
-- `03:28:48`   t+1429s err=None dbs=22 inv=8 series 74604/120394 parts=0
-- `03:28:51`   t+1432s err=None dbs=22 inv=8 series 74804/120394 parts=0
-- `03:28:54`   t+1435s err=None dbs=22 inv=8 series 74964/120394 parts=0
-- `03:28:57`   t+1438s err=None dbs=22 inv=8 series 75124/120394 parts=0
-- `03:29:01`   t+1441s err=None dbs=22 inv=8 series 75284/120394 parts=0
-- `03:29:04`   t+1444s err=None dbs=22 inv=8 series 75484/120394 parts=0
-- `03:29:07`   t+1448s err=None dbs=22 inv=8 series 75644/120394 parts=0
-- `03:29:10`   t+1451s err=None dbs=22 inv=8 series 75804/120394 parts=0
-- `03:29:13`   t+1454s err=None dbs=22 inv=8 series 75964/120394 parts=0
-- `03:29:16`   t+1457s err=None dbs=22 inv=8 series 76124/120394 parts=0
-- `03:29:20`   t+1460s err=None dbs=22 inv=8 series 76324/120394 parts=0
-- `03:29:23`   t+1463s err=None dbs=22 inv=8 series 76484/120394 parts=0
-- `03:29:26`   t+1466s err=None dbs=22 inv=8 series 76644/120394 parts=0
-- `03:29:29`   t+1470s err=None dbs=22 inv=8 series 76804/120394 parts=0
-- `03:29:32`   t+1473s err=None dbs=22 inv=8 series 76964/120394 parts=0
-- `03:29:35`   t+1476s err=None dbs=22 inv=8 series 77124/120394 parts=0
-- `03:29:38`   t+1479s err=None dbs=22 inv=8 series 77284/120394 parts=0
-- `03:29:41`   t+1482s err=None dbs=22 inv=8 series 77444/120394 parts=0
-- `03:29:45`   t+1485s err=None dbs=22 inv=8 series 77644/120394 parts=0
-- `03:29:48`   t+1488s err=None dbs=22 inv=8 series 77804/120394 parts=0
-- `03:29:51`   t+1491s err=None dbs=22 inv=8 series 77964/120394 parts=0
-- `03:29:54`   t+1495s err=None dbs=22 inv=8 series 78164/120394 parts=0
-- `03:29:57`   t+1498s err=None dbs=22 inv=8 series 78284/120394 parts=0
-- `03:30:00`   t+1501s err=None dbs=22 inv=8 series 78444/120394 parts=0
-- `03:30:03`   t+1504s err=None dbs=22 inv=8 series 78604/120394 parts=0
-- `03:30:06`   t+1507s err=None dbs=22 inv=8 series 78764/120394 parts=0
-- `03:30:10`   t+1510s err=None dbs=22 inv=8 series 78964/120394 parts=0
-- `03:30:13`   t+1513s err=None dbs=22 inv=8 series 79124/120394 parts=0
-- `03:30:16`   t+1516s err=None dbs=22 inv=8 series 79284/120394 parts=0
-- `03:30:19`   t+1520s err=None dbs=22 inv=8 series 79444/120394 parts=0
-- `03:30:22`   t+1523s err=None dbs=22 inv=8 series 79604/120394 parts=0
-- `03:30:25`   t+1526s err=None dbs=22 inv=8 series 79764/120394 parts=0
-- `03:30:28`   t+1529s err=None dbs=22 inv=8 series 79964/120394 parts=0
-- `03:30:31`   t+1532s err=None dbs=22 inv=8 series 80124/120394 parts=0
-- `03:30:35`   t+1535s err=None dbs=22 inv=8 series 80284/120394 parts=0
-- `03:30:38`   t+1538s err=None dbs=22 inv=8 series 80444/120394 parts=0
-- `03:30:41`   t+1542s err=None dbs=22 inv=8 series 80604/120394 parts=0
-- `03:30:44`   t+1545s err=None dbs=22 inv=8 series 80764/120394 parts=0
-- `03:30:47`   t+1548s err=None dbs=22 inv=8 series 80924/120394 parts=0
-- `03:30:50`   t+1551s err=None dbs=22 inv=8 series 81084/120394 parts=0
-- `03:30:53`   t+1554s err=None dbs=22 inv=8 series 81244/120394 parts=0
-- `03:30:57`   t+1557s err=None dbs=22 inv=8 series 81444/120394 parts=0
-- `03:31:00`   t+1560s err=None dbs=22 inv=8 series 81604/120394 parts=0
-- `03:31:03`   t+1563s err=None dbs=22 inv=8 series 81764/120394 parts=0
-- `03:31:06`   t+1567s err=None dbs=22 inv=8 series 81924/120394 parts=0
-- `03:31:09`   t+1570s err=None dbs=22 inv=8 series 82084/120394 parts=0
-- `03:31:12`   t+1573s err=None dbs=22 inv=8 series 82244/120394 parts=0
-- `03:31:15`   t+1576s err=None dbs=22 inv=8 series 82404/120394 parts=0
-- `03:31:18`   t+1579s err=None dbs=22 inv=8 series 82564/120394 parts=0
-- `03:31:22`   t+1582s err=None dbs=22 inv=8 series 82724/120394 parts=0
-- `03:31:25`   t+1585s err=None dbs=22 inv=8 series 82924/120394 parts=0
-- `03:31:28`   t+1588s err=None dbs=22 inv=8 series 83084/120394 parts=0
-- `03:31:31`   t+1592s err=None dbs=22 inv=8 series 83244/120394 parts=0
-- `03:31:34`   t+1595s err=None dbs=22 inv=8 series 83404/120394 parts=0
-- `03:31:37`   t+1598s err=None dbs=22 inv=8 series 83604/120394 parts=0
-- `03:31:40`   t+1601s err=None dbs=22 inv=8 series 83764/120394 parts=0
-- `03:31:43`   t+1604s err=None dbs=22 inv=8 series 83924/120394 parts=0
-- `03:31:47`   t+1607s err=None dbs=22 inv=8 series 84084/120394 parts=0
-- `03:31:50`   t+1610s err=None dbs=22 inv=8 series 84284/120394 parts=0
-- `03:31:53`   t+1614s err=None dbs=22 inv=8 series 84444/120394 parts=0
-- `03:31:56`   t+1617s err=None dbs=22 inv=8 series 84604/120394 parts=0
-- `03:31:59`   t+1620s err=None dbs=22 inv=8 series 84764/120394 parts=0
-- `03:32:02`   t+1623s err=None dbs=22 inv=8 series 84924/120394 parts=0
-- `03:32:05`   t+1626s err=None dbs=22 inv=8 series 85084/120394 parts=0
-- `03:32:08`   t+1629s err=None dbs=22 inv=8 series 85244/120394 parts=0
-- `03:32:12`   t+1632s err=None dbs=22 inv=8 series 85404/120394 parts=0
-- `03:32:15`   t+1635s err=None dbs=22 inv=8 series 85564/120394 parts=0
-- `03:32:18`   t+1639s err=None dbs=22 inv=8 series 85724/120394 parts=0
-- `03:32:21`   t+1642s err=None dbs=22 inv=8 series 85884/120394 parts=0
-- `03:32:24`   t+1645s err=None dbs=22 inv=8 series 86044/120394 parts=0
-- `03:32:27`   t+1648s err=None dbs=22 inv=8 series 86204/120394 parts=0
-- `03:32:30`   t+1651s err=None dbs=22 inv=8 series 86364/120394 parts=0
-- `03:32:34`   t+1654s err=None dbs=22 inv=8 series 86524/120394 parts=0
-- `03:32:37`   t+1657s err=None dbs=22 inv=8 series 86684/120394 parts=0
-- `03:32:40`   t+1660s err=None dbs=22 inv=8 series 86884/120394 parts=0
-- `03:32:43`   t+1664s err=None dbs=22 inv=8 series 87044/120394 parts=0
-- `03:32:46`   t+1667s err=None dbs=22 inv=8 series 87204/120394 parts=0
-- `03:32:49`   t+1670s err=None dbs=22 inv=8 series 87364/120394 parts=0
-- `03:32:52`   t+1673s err=None dbs=22 inv=8 series 87524/120394 parts=0
-- `03:32:55`   t+1676s err=None dbs=22 inv=8 series 87684/120394 parts=0
-- `03:32:59`   t+1679s err=None dbs=22 inv=8 series 87844/120394 parts=0
-- `03:33:02`   t+1682s err=None dbs=22 inv=8 series 88004/120394 parts=0
-- `03:33:05`   t+1686s err=None dbs=22 inv=8 series 88204/120394 parts=0
-- `03:33:08`   t+1689s err=None dbs=22 inv=8 series 88364/120394 parts=0
-- `03:33:11`   t+1692s err=None dbs=22 inv=8 series 88524/120394 parts=0
-- `03:33:14`   t+1695s err=None dbs=22 inv=8 series 88684/120394 parts=0
-- `03:33:18`   t+1698s err=None dbs=22 inv=8 series 88884/120394 parts=0
-- `03:33:21`   t+1702s err=None dbs=22 inv=8 series 89044/120394 parts=0
-- `03:33:24`   t+1705s err=None dbs=22 inv=8 series 89244/120394 parts=0
-- `03:33:28`   t+1708s err=None dbs=22 inv=8 series 89404/120394 parts=0
-- `03:33:31`   t+1712s err=None dbs=22 inv=8 series 89604/120394 parts=0
-- `03:33:34`   t+1715s err=None dbs=22 inv=8 series 89764/120394 parts=0
-- `03:33:38`   t+1719s err=None dbs=22 inv=8 series 89964/120394 parts=0
-- `03:33:42`   t+1723s err=None dbs=22 inv=8 series 90164/120394 parts=0
-- `03:33:45`   t+1726s err=None dbs=22 inv=8 series 90364/120394 parts=0
-- `03:33:49`   t+1729s err=None dbs=22 inv=8 series 90524/120394 parts=0
-- `03:33:52`   t+1733s err=None dbs=22 inv=8 series 90724/120394 parts=0
-- `03:33:56`   t+1737s err=None dbs=22 inv=8 series 90898/120394 parts=0
-- `03:34:00`   t+1740s err=None dbs=22 inv=8 series 91058/120394 parts=0
-- `03:34:03`   t+1744s err=None dbs=22 inv=8 series 91258/120394 parts=0
-- `03:35:07`   t+1808s err=None dbs=22 inv=8 series 94605/120394 parts=0
-- `03:35:10`   t+1811s err=None dbs=22 inv=8 series 94765/120394 parts=0
-- `03:35:14`   t+1814s err=None dbs=22 inv=8 series 94925/120394 parts=0
-- `03:35:17`   t+1817s err=None dbs=22 inv=8 series 95085/120394 parts=0
-- `03:35:20`   t+1820s err=None dbs=22 inv=8 series 95245/120394 parts=0
-- `03:35:23`   t+1824s err=None dbs=22 inv=8 series 95445/120394 parts=0
-- `03:35:26`   t+1827s err=None dbs=22 inv=8 series 95605/120394 parts=0
-- `03:35:29`   t+1830s err=None dbs=22 inv=8 series 95765/120394 parts=0
-- `03:35:32`   t+1833s err=None dbs=22 inv=8 series 95925/120394 parts=0
-- `03:35:35`   t+1836s err=None dbs=22 inv=8 series 96085/120394 parts=0
-- `03:35:39`   t+1839s err=None dbs=22 inv=8 series 96285/120394 parts=0
-- `03:35:42`   t+1842s err=None dbs=22 inv=8 series 96445/120394 parts=0
-- `03:35:45`   t+1845s err=None dbs=22 inv=8 series 96605/120394 parts=0
-- `03:35:48`   t+1849s err=None dbs=22 inv=8 series 96805/120394 parts=0
-- `03:35:51`   t+1852s err=None dbs=22 inv=8 series 96965/120394 parts=0
-- `03:35:54`   t+1855s err=None dbs=22 inv=8 series 97125/120394 parts=0
-- `03:35:57`   t+1858s err=None dbs=22 inv=8 series 97325/120394 parts=0
-- `03:36:00`   t+1861s err=None dbs=22 inv=8 series 97485/120394 parts=0
-- `03:36:03`   t+1864s err=None dbs=22 inv=8 series 97645/120394 parts=0
-- `03:36:07`   t+1867s err=None dbs=22 inv=8 series 97805/120394 parts=0
-- `03:36:10`   t+1870s err=None dbs=22 inv=8 series 97965/120394 parts=0
-- `03:36:13`   t+1874s err=None dbs=22 inv=8 series 98165/120394 parts=0
-- `03:36:16`   t+1877s err=None dbs=22 inv=8 series 98325/120394 parts=0
-- `03:36:19`   t+1880s err=None dbs=22 inv=8 series 98485/120394 parts=0
-- `03:36:22`   t+1883s err=None dbs=22 inv=8 series 98645/120394 parts=0
-- `03:36:25`   t+1886s err=None dbs=22 inv=8 series 98805/120394 parts=0
-- `03:36:28`   t+1889s err=None dbs=22 inv=8 series 98965/120394 parts=0
-- `03:36:32`   t+1892s err=None dbs=22 inv=8 series 99125/120394 parts=0
-- `03:36:35`   t+1895s err=None dbs=22 inv=8 series 99285/120394 parts=0
-- `03:36:38`   t+1898s err=None dbs=22 inv=8 series 99445/120394 parts=0
-- `03:36:41`   t+1902s err=None dbs=22 inv=8 series 99605/120394 parts=0
-- `03:36:44`   t+1905s err=None dbs=22 inv=8 series 99765/120394 parts=0
-- `03:36:47`   t+1908s err=None dbs=22 inv=8 series 99925/120394 parts=0
-- `03:36:50`   t+1911s err=None dbs=22 inv=8 series 100045/120394 parts=0
-- `03:36:53`   t+1914s err=None dbs=22 inv=8 series 100245/120394 parts=0
-- `03:36:57`   t+1917s err=None dbs=22 inv=8 series 100365/120394 parts=0
-- `03:37:00`   t+1920s err=None dbs=22 inv=8 series 100525/120394 parts=0
-- `03:37:03`   t+1924s err=None dbs=22 inv=8 series 100685/120394 parts=0
-- `03:37:06`   t+1927s err=None dbs=22 inv=8 series 100845/120394 parts=0
-- `03:37:09`   t+1930s err=None dbs=22 inv=8 series 101005/120394 parts=0
-- `03:37:12`   t+1933s err=None dbs=22 inv=8 series 101165/120394 parts=0
-- `03:37:15`   t+1936s err=None dbs=22 inv=8 series 101325/120394 parts=0
-- `03:37:18`   t+1939s err=None dbs=22 inv=8 series 101485/120394 parts=0
-- `03:37:22`   t+1942s err=None dbs=22 inv=8 series 101645/120394 parts=0
-- `03:37:25`   t+1945s err=None dbs=22 inv=8 series 101845/120394 parts=0
-- `03:37:28`   t+1948s err=None dbs=22 inv=8 series 101965/120394 parts=0
-- `03:37:31`   t+1952s err=None dbs=22 inv=8 series 102165/120394 parts=0
-- `03:37:34`   t+1955s err=None dbs=22 inv=8 series 102285/120394 parts=0
-- `03:37:37`   t+1958s err=None dbs=22 inv=8 series 102445/120394 parts=0
-- `03:37:40`   t+1961s err=None dbs=22 inv=8 series 102605/120394 parts=0
-- `03:37:43`   t+1964s err=None dbs=22 inv=8 series 102765/120394 parts=0
-- `03:37:47`   t+1967s err=None dbs=22 inv=8 series 102925/120394 parts=0
-- `03:37:50`   t+1970s err=None dbs=22 inv=8 series 103085/120394 parts=0
-- `03:37:53`   t+1973s err=None dbs=22 inv=8 series 103245/120394 parts=0
-- `03:37:56`   t+1977s err=None dbs=22 inv=8 series 103405/120394 parts=0
-- `03:37:59`   t+1980s err=None dbs=22 inv=8 series 103565/120394 parts=0
-- `03:38:02`   t+1983s err=None dbs=22 inv=8 series 103725/120394 parts=0
-- `03:38:05`   t+1986s err=None dbs=22 inv=8 series 103885/120394 parts=0
-- `03:38:08`   t+1989s err=None dbs=22 inv=8 series 104045/120394 parts=0
-- `03:38:12`   t+1992s err=None dbs=22 inv=8 series 104205/120394 parts=0
-- `03:38:15`   t+1995s err=None dbs=22 inv=8 series 104365/120394 parts=0
-- `03:38:18`   t+1999s err=None dbs=22 inv=8 series 104525/120394 parts=0
-- `03:38:21`   t+2002s err=None dbs=22 inv=8 series 104685/120394 parts=0
-- `03:38:24`   t+2005s err=None dbs=22 inv=8 series 104845/120394 parts=0
-- `03:38:27`   t+2008s err=None dbs=22 inv=8 series 105005/120394 parts=0
-- `03:38:30`   t+2011s err=None dbs=22 inv=8 series 105165/120394 parts=0
-- `03:38:33`   t+2014s err=None dbs=22 inv=8 series 105325/120394 parts=0
-- `03:38:37`   t+2017s err=None dbs=22 inv=8 series 105485/120394 parts=0
-- `03:38:40`   t+2020s err=None dbs=22 inv=8 series 105645/120394 parts=0
-- `03:38:43`   t+2023s err=None dbs=22 inv=8 series 105805/120394 parts=0
-- `03:38:46`   t+2027s err=None dbs=22 inv=8 series 105965/120394 parts=0
-- `03:38:49`   t+2030s err=None dbs=22 inv=8 series 106165/120394 parts=0
-- `03:38:52`   t+2033s err=None dbs=22 inv=8 series 106325/120394 parts=0
-- `03:38:55`   t+2036s err=None dbs=22 inv=8 series 106485/120394 parts=0
-- `03:38:58`   t+2039s err=None dbs=22 inv=8 series 106645/120394 parts=0
-- `03:39:02`   t+2042s err=None dbs=22 inv=8 series 106845/120394 parts=0
-- `03:39:05`   t+2046s err=None dbs=22 inv=8 series 107005/120394 parts=0
-- `03:39:08`   t+2049s err=None dbs=22 inv=8 series 107165/120394 parts=0
-- `03:39:11`   t+2052s err=None dbs=22 inv=8 series 107365/120394 parts=0
-- `03:39:14`   t+2055s err=None dbs=22 inv=8 series 107525/120394 parts=0
-- `03:39:17`   t+2058s err=None dbs=22 inv=8 series 107685/120394 parts=0
-- `03:39:21`   t+2061s err=None dbs=22 inv=8 series 107885/120394 parts=0
-- `03:39:24`   t+2064s err=None dbs=22 inv=8 series 108045/120394 parts=0
-- `03:39:27`   t+2067s err=None dbs=22 inv=8 series 108205/120394 parts=0
-- `03:39:30`   t+2071s err=None dbs=22 inv=8 series 108365/120394 parts=0
-- `03:39:33`   t+2074s err=None dbs=22 inv=8 series 108525/120394 parts=0
-- `03:39:36`   t+2077s err=None dbs=22 inv=8 series 108685/120394 parts=0
-- `03:39:39`   t+2080s err=None dbs=22 inv=8 series 108845/120394 parts=0
-- `03:39:42`   t+2083s err=None dbs=22 inv=8 series 109045/120394 parts=0
-- `03:39:46`   t+2086s err=None dbs=22 inv=8 series 109205/120394 parts=0
-- `03:39:49`   t+2089s err=None dbs=22 inv=8 series 109365/120394 parts=0
-- `03:39:52`   t+2093s err=None dbs=22 inv=8 series 109525/120394 parts=0
-- `03:39:55`   t+2096s err=None dbs=22 inv=8 series 109685/120394 parts=0
-- `03:39:58`   t+2099s err=None dbs=22 inv=8 series 109845/120394 parts=0
-- `03:40:01`   t+2102s err=None dbs=22 inv=8 series 110005/120394 parts=0
-- `03:40:04`   t+2105s err=None dbs=22 inv=8 series 110165/120394 parts=0
-- `03:40:08`   t+2108s err=None dbs=22 inv=8 series 110325/120394 parts=0
-- `03:40:11`   t+2111s err=None dbs=22 inv=8 series 110485/120394 parts=0
-- `03:40:14`   t+2115s err=None dbs=22 inv=8 series 110685/120394 parts=0
-- `03:40:17`   t+2118s err=None dbs=22 inv=8 series 110845/120394 parts=0
-- `03:40:20`   t+2121s err=None dbs=22 inv=8 series 111005/120394 parts=0
-- `03:40:23`   t+2124s err=None dbs=22 inv=8 series 111165/120394 parts=0
-- `03:40:26`   t+2127s err=None dbs=22 inv=8 series 111285/120394 parts=0
-- `03:40:30`   t+2130s err=None dbs=22 inv=8 series 111485/120394 parts=0
-- `03:40:33`   t+2133s err=None dbs=22 inv=8 series 111645/120394 parts=0
-- `03:40:36`   t+2137s err=None dbs=22 inv=8 series 111805/120394 parts=0
-- `03:40:39`   t+2140s err=None dbs=22 inv=8 series 111965/120394 parts=0
-- `03:40:42`   t+2143s err=None dbs=22 inv=8 series 112085/120394 parts=0
-- `03:40:45`   t+2146s err=None dbs=22 inv=8 series 112285/120394 parts=0
-- `03:40:48`   t+2149s err=None dbs=22 inv=8 series 112445/120394 parts=0
-- `03:40:51`   t+2152s err=None dbs=22 inv=8 series 112605/120394 parts=0
-- `03:40:55`   t+2155s err=None dbs=22 inv=8 series 112765/120394 parts=0
-- `03:40:58`   t+2158s err=None dbs=22 inv=8 series 112925/120394 parts=0
-- `03:41:01`   t+2162s err=None dbs=22 inv=8 series 113085/120394 parts=0
-- `03:41:04`   t+2165s err=None dbs=22 inv=8 series 113245/120394 parts=0
-- `03:41:07`   t+2168s err=None dbs=22 inv=8 series 113405/120394 parts=0
-- `03:41:10`   t+2171s err=None dbs=22 inv=8 series 113565/120394 parts=0
-- `03:41:13`   t+2174s err=None dbs=22 inv=8 series 113725/120394 parts=0
-- `03:41:16`   t+2177s err=None dbs=22 inv=8 series 113885/120394 parts=0
-- `03:41:20`   t+2180s err=None dbs=22 inv=8 series 114045/120394 parts=0
-- `03:41:23`   t+2183s err=None dbs=22 inv=8 series 114205/120394 parts=0
-- `03:41:26`   t+2187s err=None dbs=22 inv=8 series 114325/120394 parts=0
-- `03:41:29`   t+2190s err=None dbs=22 inv=8 series 114485/120394 parts=0
-- `03:41:32`   t+2193s err=None dbs=22 inv=8 series 114645/120394 parts=0
-- `03:41:35`   t+2196s err=None dbs=22 inv=8 series 114805/120394 parts=0
-- `03:41:38`   t+2199s err=None dbs=22 inv=8 series 114965/120394 parts=0
-- `03:41:42`   t+2202s err=None dbs=22 inv=8 series 115125/120394 parts=0
-- `03:41:45`   t+2205s err=None dbs=22 inv=8 series 115285/120394 parts=0
-- `03:41:48`   t+2208s err=None dbs=22 inv=8 series 115445/120394 parts=0
-- `03:41:51`   t+2212s err=None dbs=22 inv=8 series 115605/120394 parts=0
-- `03:41:54`   t+2215s err=None dbs=22 inv=8 series 115765/120394 parts=0
-- `03:41:57`   t+2218s err=None dbs=22 inv=8 series 115925/120394 parts=0
-- `03:42:00`   t+2221s err=None dbs=22 inv=8 series 116045/120394 parts=0
-- `03:42:03`   t+2224s err=None dbs=22 inv=8 series 116245/120394 parts=0
-- `03:42:07`   t+2227s err=None dbs=22 inv=8 series 116405/120394 parts=0
-- `03:42:10`   t+2230s err=None dbs=22 inv=8 series 116565/120394 parts=0
-- `03:42:13`   t+2234s err=None dbs=22 inv=8 series 116725/120394 parts=0
-- `03:42:16`   t+2237s err=None dbs=22 inv=8 series 116885/120394 parts=0
-- `03:42:19`   t+2240s err=None dbs=22 inv=8 series 117085/120394 parts=0
-- `03:42:22`   t+2243s err=None dbs=22 inv=8 series 117245/120394 parts=0
-- `03:42:25`   t+2246s err=None dbs=22 inv=8 series 117405/120394 parts=0
-- `03:42:28`   t+2249s err=None dbs=22 inv=8 series 117565/120394 parts=0
-- `03:42:32`   t+2252s err=None dbs=22 inv=8 series 117725/120394 parts=0
-- `03:42:35`   t+2255s err=None dbs=22 inv=8 series 117885/120394 parts=0
-- `03:42:38`   t+2259s err=None dbs=22 inv=8 series 118085/120394 parts=0
-- `03:42:41`   t+2262s err=None dbs=22 inv=8 series 118245/120394 parts=0
-- `03:42:44`   t+2265s err=None dbs=22 inv=8 series 118405/120394 parts=0
-- `03:42:47`   t+2268s err=None dbs=22 inv=8 series 118565/120394 parts=0
-- `03:42:50`   t+2271s err=None dbs=22 inv=8 series 118765/120394 parts=0
-- `03:42:54`   t+2274s err=None dbs=22 inv=8 series 118925/120394 parts=0
-- `03:42:57`   t+2277s err=None dbs=22 inv=8 series 119085/120394 parts=0
-- `03:43:00`   t+2281s err=None dbs=22 inv=8 series 119245/120394 parts=0
-- `03:43:03`   t+2284s err=None dbs=22 inv=8 series 119405/120394 parts=0
-- `03:43:06`   t+2287s err=None dbs=22 inv=8 series 119605/120394 parts=0
-- `03:43:09`   t+2290s err=None dbs=22 inv=8 series 119765/120394 parts=0
-- `03:43:12`   t+2293s err=None dbs=22 inv=8 series 119925/120394 parts=0
-- `03:43:16`   t+2296s err=None dbs=22 inv=8 series 120085/120394 parts=0
-- `03:43:19`   t+2299s err=None dbs=22 inv=8 series 120285/120394 parts=0
-- `03:43:22`   t+2303s err=None dbs=22 inv=8 series 120394/120394 parts=0
-- `03:43:22`     invalid db BP02: no-codes head='{\n "STATUS":200,\n "MESSAGEID":"M181000I",\n "MESSAGE":"Succes'
-- `03:43:22`     invalid db CA01: HTTP 400
-- `03:43:22`     invalid db CO: Unterminated string starting at: line 569722 column 24 (char 19999950)
-- `03:43:22`     invalid db DL01: HTTP 400
-- `03:43:22`     invalid db FFYS: HTTP 400
-- `03:43:22`     invalid db SK01: HTTP 400
-- `03:43:22`     invalid db ST01: HTTP 400
-- `03:43:22`     invalid db TK: HTTP 400
-- `03:43:22` P1 PASS dbs=22 series=120394 done=120394
-## G2 substance
+- `03:55:12`   full -> HTTP Error 400: Bad Request
+- `03:55:13`   20y (197001-198912) -> 3584B dates=True
+- `03:55:14`   10y (198001-198912) -> 2144B dates=True
+- `03:55:15`   5y (198501-198912) -> 1424B dates=True
+- `03:55:16`   2y (198801-198912) -> 992B dates=True
+- `03:55:16`   widest working window: 20y (engine CHUNK_Y=10)
+## P1 sharded sync drive (6 lanes, 60min)
 
-- `03:43:22`   substance err Parameter validation failed:
-Invalid type for parameter Key, value: None, type: <class 'NoneType'>, valid type
-- `03:43:22` G2 FAIL
-## G3 card
-
-- `03:49:23` G3 note=FULL flat-file warehouse (boj-full v1): 16/16 database zips · 19MB · the entire time-series portal
-- `03:49:23` ops 4987 RED: G2; G3
