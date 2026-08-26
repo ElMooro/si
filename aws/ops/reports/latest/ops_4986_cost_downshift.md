@@ -1,0 +1,114 @@
+## P1 schedule downshift
+
+**Status:** success  
+**Duration:** 18.3s  
+**Finished:** 2026-08-26T02:29:10+00:00  
+
+## Data
+
+| aws_flagged | downshifted | kept | wb_queue |
+|---|---|---|---|
+| 7 | 37 | 310 | 1551 |
+
+## Log
+- `02:28:54`   SHIFT crypto-gex-sched                       rate(30 minutes) -> rate(6 hours)
+- `02:28:55`   SHIFT fleet-error-monitor-sched              rate(1 hour) -> rate(24 hours)
+- `02:28:55`   SHIFT fleet-monitor-sched                    rate(6 hours) -> rate(24 hours)
+- `02:28:56`   SHIFT justhodl-backlog-miner                 rate(2 hours) -> rate(24 hours)
+- `02:28:56`   SHIFT justhodl-blackswan-watch               rate(1 hour) -> rate(24 hours)
+- `02:28:57`   SHIFT justhodl-bls-full-12h                  rate(12 hours) -> rate(24 hours)
+- `02:28:57`   SHIFT justhodl-boe-full-12h                  rate(12 hours) -> rate(24 hours)
+- `02:28:57`   SHIFT justhodl-boj-full-12h                  rate(12 hours) -> rate(24 hours)
+- `02:28:57`   SHIFT justhodl-bottom-signals                rate(1 hour) -> rate(24 hours)
+- `02:28:57`   SHIFT justhodl-catalyst                      rate(1 hour) -> rate(24 hours)
+- `02:28:58`   SHIFT justhodl-dol-full-6h                   rate(6 hours) -> rate(24 hours)
+- `02:28:58`   SHIFT justhodl-dxy-predict                   rate(1 hour) -> rate(24 hours)
+- `02:28:59`   SHIFT justhodl-finra-full-6h                 rate(6 hours) -> rate(24 hours)
+- `02:28:59`   SHIFT justhodl-fiscaldata-full-2h            rate(2 hours) -> rate(24 hours)
+- `02:29:00`   SHIFT justhodl-frbddp-full-12h               rate(12 hours) -> rate(24 hours)
+- `02:29:00`   SHIFT justhodl-gap-metrics-daily             rate(2 hours) -> rate(24 hours)
+- `02:29:00`   SHIFT justhodl-gdelt-full-30m                rate(30 minutes) -> rate(6 hours)
+- `02:29:01`   SHIFT justhodl-imf-full-6h                   rate(6 hours) -> rate(24 hours)
+- `02:29:01`   SHIFT justhodl-liq-indicators                rate(1 hour) -> rate(24 hours)
+- `02:29:01`   SHIFT justhodl-liquidity-reversal            rate(1 hour) -> rate(24 hours)
+- `02:29:02`   SHIFT justhodl-macro-predict                 rate(1 hour) -> rate(24 hours)
+- `02:29:02`   SHIFT justhodl-market-machine                rate(1 hour) -> rate(24 hours)
+- `02:29:02`   SHIFT justhodl-nyfed-markets-full-hourly     rate(1 hour) -> rate(24 hours)
+- `02:29:02`   SHIFT justhodl-nyfed-markets-hourly-s        rate(1 hour) -> rate(24 hours)
+- `02:29:02`   SHIFT justhodl-ofr-stfm-daily                rate(6 hours) -> rate(24 hours)
+- `02:29:03`   SHIFT justhodl-physical-econ                 rate(1 hour) -> rate(24 hours)
+- `02:29:03`   SHIFT justhodl-pjm-grid                      rate(1 hour) -> rate(24 hours)
+- `02:29:03`   SHIFT justhodl-polygon-full-2h               rate(2 hours) -> rate(24 hours)
+- `02:29:04`   SHIFT justhodl-real-economy-collector        rate(1 hour) -> rate(24 hours)
+- `02:29:04`   SHIFT justhodl-sec-midas-weekly              rate(6 hours) -> rate(24 hours)
+- `02:29:05`   SHIFT justhodl-src-mirror-daily              rate(6 hours) -> rate(24 hours)
+- `02:29:05`   SHIFT justhodl-statcan-retry-hourly          rate(1 hour) -> rate(24 hours)
+- `02:29:05`   SHIFT justhodl-stock-buying                  rate(1 hour) -> rate(24 hours)
+- `02:29:05`   SHIFT justhodl-tic-full-12h                  rate(12 hours) -> rate(24 hours)
+- `02:29:05`   SHIFT justhodl-top-signals                   rate(1 hour) -> rate(24 hours)
+- `02:29:06`   KEEP  justhodl-worldbank-full-2h             rate(2 hours) (wb queue=1551)
+- `02:29:06`   SHIFT ma-tracker-sched                       rate(1 hour) -> rate(24 hours)
+- `02:29:07`   SHIFT te-feed-daily                          rate(2 hours) -> rate(24 hours)
+- `02:29:07`   P1: 37 downshifted, 310 kept, 347 total
+## P2 recursion-config census
+
+- `02:29:08`   justhodl-gdelt-full          RecursiveLoop=Terminate
+- `02:29:08`   justhodl-imf-full            RecursiveLoop=Terminate
+- `02:29:08`   justhodl-worldbank-full      RecursiveLoop=Terminate
+- `02:29:08`   justhodl-polygon-full        RecursiveLoop=Terminate
+- `02:29:08`   justhodl-finra-full          RecursiveLoop=Terminate
+- `02:29:08`   justhodl-fiscaldata-full     RecursiveLoop=Terminate
+- `02:29:08`   justhodl-bls-full            RecursiveLoop=Terminate
+- `02:29:08`   justhodl-census-full         An error occurred (ResourceNotFoundException) when calling t
+- `02:29:08`   AWS-terminating self-invokes on: ['justhodl-gdelt-full', 'justhodl-imf-full', 'justhodl-worldbank-full', 'justhodl-polygon-full', 'justhodl-finra-full', 'justhodl-fiscaldata-full', 'justhodl-bls-full']
+## P3 bucket/region census (us-west-2 mystery)
+
+- `02:29:08`   ai-assistant-data-lake                     us-east-1
+- `02:29:08`   ai-assistant-downloads                     us-east-1
+- `02:29:08`   aiapi-historical-data-lake                 us-east-1
+- `02:29:09`   autonomous-ai-data-857687956942            us-east-1
+- `02:29:09`   autonomous-ai-data-lake-857687956942       us-east-1
+- `02:29:09`   autonomous-deploy-857687956942             us-east-1
+- `02:29:09`   bls-data-857687956942-us-east-1-bls-minimal us-east-1
+- `02:29:09`   daily-liquidity-reports                    us-east-1
+- `02:29:09`   fed-liquidity-data                         us-east-1
+- `02:29:09`   financial-intelligence-857687956942        us-east-1
+- `02:29:09`   financial-intelligence-platform-857687956942 us-east-1
+- `02:29:09`   justhodl-backups-857687956942              us-east-1
+- `02:29:09`   justhodl-bloomberg-terminal                us-east-1
+- `02:29:09`   justhodl-dashboard-live                    us-east-1
+- `02:29:09`   justhodl-dashboard-live-dr                 us-west-2  <-- us-west-2!
+- `02:29:09`   justhodl-dr-usw2-857687956942              us-west-2  <-- us-west-2!
+- `02:29:09`   justhodl-historical-data-1758485495        us-east-1
+- `02:29:09`   khalid-charts-857687956942                 us-east-1
+- `02:29:09`   liquidity-agent-data                       us-east-1
+- `02:29:09`   liquidity-agent-data-test                  us-east-1
+- `02:29:09`   liquidity-reports-12217                    us-east-1
+- `02:29:09`   macro-data-lake                            us-east-1
+- `02:29:09`   macro-financial-intelligence               us-east-1
+- `02:29:09`   multi-agent-system-1758293987              us-east-1
+- `02:29:09`   multi-agent-system-1758294189              us-east-1
+- `02:29:10`   multi-agent-system-1758294338              us-east-1
+- `02:29:10`   multi-agent-system-1758294418              us-east-1
+- `02:29:10`   multi-agent-system-1758294711              us-east-1
+- `02:29:10`   multi-agent-system-1758296033              us-east-1
+- `02:29:10`   multi-agent-system-1758296078              us-east-1
+- `02:29:10`   multi-agent-system-1758296221              us-east-1
+- `02:29:10`   my-fred-data-12345                         us-east-1
+- `02:29:10`   nyfed-realdata-cache-1755444561            us-east-1
+- `02:29:10`   openbb-chart-exports-1750029727            us-east-1
+- `02:29:10`   openbb-dashboard-public                    us-east-1
+- `02:29:10`   openbb-data-bucket                         us-east-1
+- `02:29:10`   openbb-historical-data                     us-east-1
+- `02:29:10`   openbb-lambda-data                         us-east-1
+- `02:29:10`   openbb-ml-predictions                      us-east-1
+- `02:29:10`   openbb-platform-857687956942               us-east-1
+- `02:29:10`   openbb-reports                             us-east-1
+- `02:29:10`   sagemaker-studio-857687956942-h4pypfnpftu  us-east-1
+- `02:29:10`   sagemaker-studio-857687956942-j1fxb72sz7s  us-east-1
+- `02:29:10`   sagemaker-studio-857687956942-yj1hkbvksoj  us-east-1
+- `02:29:10`   sagemaker-us-east-1-857687956942           us-east-1
+## P4 worldbank tail
+
+- `02:29:10`   banked=27918 queue=1551 (finishes on kept 2h ticks; schedule downshifts after COMPLETE next hygiene pass)
+- `02:29:10` ops 4986 GREEN -- steady-state cadence: ~90%% fewer invocations/day; S3 request burn collapses with the drains; chains retired by completion
