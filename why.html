@@ -4367,5 +4367,317 @@ async function markStale(d, ticker){
 </script>
 
 <script src="/sidebar.js" defer></script>
+<script id="OPS5010">
+/* ops 5010 ADDITIVE — Quant Layer: beta & classification on top, realistic
+   return base rates, 200/250-day EMA chart, stock-vs-industry risk & growth.
+   Reads the v2.4 equity-research payload; every block degrades honestly
+   (shows the server's reason) instead of inventing data. Touches nothing
+   existing. */
+(function(){
+'use strict';
+var TK=(new URLSearchParams(location.search).get('ticker')||'').toUpperCase();
+if(!TK||!/^[A-Z0-9.\-^]{1,12}$/.test(TK))return;
+var CDN='https://justhodl-data-proxy.raafouis.workers.dev/equity-research/';
+var LIVE='https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/';
+
+/* ── palette / helpers ─────────────────────────────────────────── */
+var C={cy:'#22d3ee',gn:'#34d399',rd:'#f87171',am:'#fbbf24',pu:'#a78bfa',
+       bl:'#60a5fa',gy:'#8fa3c0',dim:'#5d6b82',grid:'#1e2635'};
+function N(v,d){return (v==null||isNaN(v))?'\u2014':Number(v).toLocaleString(undefined,{minimumFractionDigits:d==null?1:d,maximumFractionDigits:d==null?1:d});}
+function P(v,d){return (v==null||isNaN(v))?'\u2014':(v>=0?'+':'')+Number(v).toFixed(d==null?1:d)+'%';}
+function E(s){return String(s==null?'\u2014':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function pcCol(v){return v==null?C.gy:(v>=0?C.gn:C.rd);}
+function chip(txt,col,big){return '<span style="border:1px solid '+col+';color:'+col+';border-radius:6px;padding:'+(big?'2px 9px':'1px 7px')+';font-size:'+(big?'.74rem':'.64rem')+';font-weight:700;margin:0 6px 4px 0;display:inline-block;font-family:var(--font-mono,monospace)">'+txt+'</span>';}
+function sec(id,ico,title,note){return '<section class="block" id="'+id+'"><div class="sub"><span class="ico">'+ico+'</span> '+title+(note?' <span style="color:'+C.dim+';font-weight:400">'+note+'</span>':'')+'</div><div id="'+id+'-b" style="font-family:var(--font-mono,monospace);font-size:11.5px;color:var(--text,#dfe7f3)">loading\u2026</div></section>';}
+function unavailable(el,label,reason){el.innerHTML='<div style="color:'+C.dim+';padding:6px 0">'+E(label)+' unavailable \u2014 '+E(reason||'no data')+'. Nothing is invented in its place.</div>';}
+function niceTicks(lo,hi,n){var span=hi-lo;if(!(span>0))return [lo,hi];var step=Math.pow(10,Math.floor(Math.log(span/n)/Math.LN10));var err=span/n/step;step*= err>=7.5?10:err>=3.5?5:err>=1.5?2:1;var t=[],v=Math.ceil(lo/step)*step;for(;v<=hi+1e-9;v+=step)t.push(+v.toFixed(6));return t;}
+
+/* ── beta gauge (semi-circular, zoned) ─────────────────────────── */
+function betaGauge(beta,corr,obs){
+  if(beta==null)return '<div style="color:'+C.dim+'">beta unavailable \u2014 needs 200+ aligned SPY sessions</div>';
+  var W=280,H=170,cx=140,cy=145,R=110,MAX=3;
+  var zones=[[0,0.8,C.cy,'DEFENSIVE'],[0.8,1.2,C.bl,'MARKET'],[1.2,2,C.am,'AGGRESSIVE'],[2,3,C.rd,'EXTREME']];
+  function ang(v){return Math.PI*(1-Math.min(v,MAX)/MAX);}
+  function pt(a,r){return [cx+r*Math.cos(a),cy-r*Math.sin(a)];}
+  function arc(v0,v1,col){var a0=ang(v0),a1=ang(v1),p0=pt(a0,R),p1=pt(a1,R);
+    return '<path d="M'+p0[0].toFixed(1)+' '+p0[1].toFixed(1)+' A'+R+' '+R+' 0 0 1 '+p1[0].toFixed(1)+' '+p1[1].toFixed(1)+'" stroke="'+col+'" stroke-width="16" fill="none" stroke-linecap="butt" opacity=".85"/>';}
+  var g='';zones.forEach(function(z){g+=arc(z[0],z[1],z[2]);});
+  [0,0.5,1,1.5,2,2.5,3].forEach(function(v){var a=ang(v),p1=pt(a,R-12),p2=pt(a,R+12),pl=pt(a,R+24);
+    g+='<line x1="'+p1[0].toFixed(1)+'" y1="'+p1[1].toFixed(1)+'" x2="'+p2[0].toFixed(1)+'" y2="'+p2[1].toFixed(1)+'" stroke="#2a3140" stroke-width="1"/>'
+     +'<text x="'+pl[0].toFixed(1)+'" y="'+(pl[1]+3).toFixed(1)+'" font-size="9" fill="'+C.dim+'" text-anchor="middle">'+v+'</text>';});
+  var off=beta>MAX||beta<0, bb=Math.max(0,Math.min(beta,MAX)), na=ang(bb), tip=pt(na,R-24);
+  g+='<line x1="'+cx+'" y1="'+cy+'" x2="'+tip[0].toFixed(1)+'" y2="'+tip[1].toFixed(1)+'" stroke="#e2e8f0" stroke-width="2.5"/><circle cx="'+cx+'" cy="'+cy+'" r="5" fill="#e2e8f0"/>';
+  var zone=zones.find(function(z){return beta>=z[0]&&beta<z[1];})||zones[zones.length-1];
+  var zcol=beta>=2?C.rd:zone[2];
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:300px;display:block" role="img" aria-label="Beta gauge">'+g
+   +'<text x="'+cx+'" y="'+(cy-38)+'" font-size="26" font-weight="700" fill="'+zcol+'" text-anchor="middle">\u03b2 '+N(beta,2)+'</text>'
+   +'<text x="'+cx+'" y="'+(cy-22)+'" font-size="10" fill="'+zcol+'" text-anchor="middle" letter-spacing="1">'+(beta>=2?'EXTREME':zone[3])+(off?' \u00b7 OFF-SCALE':'')+'</text></svg>'
+   +'<div style="color:'+C.dim+';font-size:10.5px;margin-top:2px">2-year daily regression vs SPY \u00b7 historically moved ~'+N(beta,2)+'% per 1% SPY move \u00b7 corr '+N(corr,2)+' \u00b7 n='+(obs||'\u2014')+'</div>';
+}
+
+/* ── cap ladder ────────────────────────────────────────────────── */
+function capLadder(cls){
+  var tiers=[['MICRO','<$300M'],['SMALL','$300M\u2013$2B'],['MID','$2B\u2013$10B'],['LARGE','$10B\u2013$200B'],['MEGA','\u2265$200B']];
+  var cur=(cls.cap_tier||'').split('-')[0];
+  var h='<div style="display:flex;gap:4px;margin:4px 0 8px">';
+  tiers.forEach(function(t){var on=t[0]===cur;
+    h+='<div title="'+t[1]+'" style="flex:1;text-align:center;padding:7px 2px;border-radius:6px;border:1px solid '+(on?C.cy:'#232c3f')+';background:'+(on?'rgba(34,211,238,.12)':'transparent')+';color:'+(on?C.cy:C.dim)+';font-weight:'+(on?'700':'400')+';font-size:.66rem;letter-spacing:.5px">'+t[0]+(on?'<div style="font-size:.62rem;margin-top:2px">$'+N(cls.market_cap_b,1)+'B</div>':'')+'</div>';});
+  return h+'</div>';
+}
+
+/* ── blue-chip checklist ───────────────────────────────────────── */
+function checklist(cls){
+  var h='<table style="width:100%;border-collapse:collapse;font-size:11px">';
+  (cls.checklist||[]).forEach(function(r){
+    h+='<tr><td style="padding:4px 6px 4px 0;border-bottom:1px solid #1a2130;color:var(--text,#dfe7f3)">'+E(r.test)+'</td>'
+     +'<td style="padding:4px 6px;border-bottom:1px solid #1a2130;text-align:center;color:'+(r.pass?C.gn:C.rd)+';font-weight:700">'+(r.pass?'\u2713':'\u2717')+'</td>'
+     +'<td style="padding:4px 0;border-bottom:1px solid #1a2130;text-align:right;color:'+C.dim+'">'+E(r.detail)+'</td></tr>';});
+  h+='</table>';
+  var verdict=cls.is_blue_chip?'BLUE CHIP \u00b7 '+cls.blue_chip_score:'NOT A BLUE CHIP \u00b7 '+cls.blue_chip_score+' criteria met';
+  h+='<div style="margin-top:8px;padding:7px 10px;border:1px dashed #232c3f;border-radius:8px;color:'+(cls.is_blue_chip?C.gn:C.am)+';font-weight:700;letter-spacing:.5px">'+verdict+' \u2192 '+E(cls.cap_tier)+' \u00b7 '+E(cls.style)+'</div>';
+  return h;
+}
+
+/* ── expectations: distribution range bars ─────────────────────── */
+function expectRow(label,e){
+  if(!e||!e.available)return '<div style="flex:1;min-width:210px;border:1px solid #232c3f;border-radius:8px;padding:10px"><div style="color:'+C.dim+'">'+label+' \u2014 '+E((e||{}).reason||'no data')+'</div></div>';
+  var lo=Math.min(e.p10_pct,-(e.vol_implied_1sigma_pct||0),0),hi=Math.max(e.p90_pct,(e.vol_implied_1sigma_pct||0),0);
+  var pad=(hi-lo)*0.08;lo-=pad;hi+=pad;
+  var W=250,H=64;function X(v){return ( (v-lo)/(hi-lo) )*W;}
+  var med=e.median_pct,vi=e.vol_implied_1sigma_pct;
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%">'
+   +'<line x1="'+X(0).toFixed(1)+'" y1="6" x2="'+X(0).toFixed(1)+'" y2="'+(H-14)+'" stroke="#38445a" stroke-width="1" stroke-dasharray="3 3"/>'
+   +'<rect x="'+X(e.p10_pct).toFixed(1)+'" y="16" width="'+(X(e.p90_pct)-X(e.p10_pct)).toFixed(1)+'" height="12" rx="6" fill="'+(med>=0?C.gn:C.rd)+'" opacity=".25"/>'
+   +'<line x1="'+X(e.p10_pct).toFixed(1)+'" y1="14" x2="'+X(e.p10_pct).toFixed(1)+'" y2="30" stroke="'+C.gy+'" stroke-width="1.5"/>'
+   +'<line x1="'+X(e.p90_pct).toFixed(1)+'" y1="14" x2="'+X(e.p90_pct).toFixed(1)+'" y2="30" stroke="'+C.gy+'" stroke-width="1.5"/>'
+   +'<path d="M'+X(med).toFixed(1)+' 14 l6 8 -6 8 -6 -8 z" fill="'+pcCol(med)+'"/>'
+   +(vi!=null?('<line x1="'+X(-vi).toFixed(1)+'" y1="42" x2="'+X(vi).toFixed(1)+'" y2="42" stroke="'+C.bl+'" stroke-width="2" opacity=".8"/>'
+   +'<line x1="'+X(-vi).toFixed(1)+'" y1="38" x2="'+X(-vi).toFixed(1)+'" y2="46" stroke="'+C.bl+'" stroke-width="2"/>'
+   +'<line x1="'+X(vi).toFixed(1)+'" y1="38" x2="'+X(vi).toFixed(1)+'" y2="46" stroke="'+C.bl+'" stroke-width="2"/>'):'')
+   +'<text x="2" y="'+(H-3)+'" font-size="8.5" fill="'+C.dim+'">'+P(lo+pad,0)+'</text>'
+   +'<text x="'+(W-2)+'" y="'+(H-3)+'" font-size="8.5" fill="'+C.dim+'" text-anchor="end">'+P(hi-pad,0)+'</text></svg>';
+  var wr=e.win_rate_pct;
+  return '<div style="flex:1;min-width:210px;border:1px solid #232c3f;border-radius:8px;padding:10px 12px">'
+   +'<div style="display:flex;justify-content:space-between;align-items:baseline"><b style="color:'+C.cy+';letter-spacing:1px">'+label+'</b><span style="font-size:15px;font-weight:700;color:'+pcCol(med)+'">'+P(med)+'</span></div>'
+   +'<div style="color:'+C.dim+';font-size:10px;margin:1px 0 4px">median of '+e.n_windows.toLocaleString()+' historical windows</div>'+svg
+   +'<div style="display:grid;grid-template-columns:auto 1fr auto;gap:4px 8px;font-size:10.5px;margin-top:4px;color:var(--text,#dfe7f3)">'
+   +'<span style="color:'+C.dim+'">10th\u201390th pctile</span><span></span><span>'+P(e.p10_pct,0)+' \u2026 '+P(e.p90_pct,0)+'</span>'
+   +'<span style="color:'+C.dim+'">\u00b11\u03c3 (history)</span><span></span><span>\u00b1'+N(e.sigma_pct,0)+'%</span>'
+   +'<span style="color:'+C.bl+'">\u00b11\u03c3 (vol-implied)</span><span></span><span style="color:'+C.bl+'">'+(vi!=null?'\u00b1'+N(vi,0)+'%':'\u2014')+'</span>'
+   +'<span style="color:'+C.dim+'">positive windows</span>'
+   +'<span style="align-self:center"><span style="display:block;height:5px;border-radius:3px;background:#1b2230"><span style="display:block;height:5px;border-radius:3px;width:'+Math.max(0,Math.min(100,wr))+'%;background:'+(wr>=50?C.gn:C.rd)+'"></span></span></span>'
+   +'<span>'+N(wr,0)+'%</span></div></div>';
+}
+
+/* ── EMA chart (2y weekly, real daily-computed EMAs) ───────────── */
+function emaChart(pa){
+  var s=(pa.ema_chart||[]).filter(function(r){return r&&r.c!=null;});
+  if(s.length<20)return '<div style="color:'+C.dim+'">not enough history for the EMA overlay</div>';
+  var W=820,H=270,L=52,Rp=14,T=16,B=34;
+  var ys=[];s.forEach(function(r){ys.push(r.c);if(r.e200!=null)ys.push(r.e200);if(r.e250!=null)ys.push(r.e250);});
+  var lo=Math.min.apply(null,ys),hi=Math.max.apply(null,ys),pad=(hi-lo)*0.06||1;lo-=pad;hi+=pad;
+  function X(i){return L+(i/(s.length-1))*(W-L-Rp);}
+  function Y(v){return T+(1-(v-lo)/(hi-lo))*(H-T-B);}
+  function path(key,skipNull){var d='',pen=false;s.forEach(function(r,i){var v=r[key];if(v==null){pen=false;return;}d+=(pen?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)+' ';pen=true;});return d;}
+  var g='';niceTicks(lo,hi,5).forEach(function(t){var y=Y(t);g+='<line x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+(W-Rp)+'" y2="'+y.toFixed(1)+'" stroke="'+C.grid+'" stroke-width="1"/><text x="'+(L-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="'+C.dim+'" text-anchor="end">$'+(t>=100?t.toFixed(0):t.toFixed(1))+'</text>';});
+  var step=Math.max(1,Math.floor(s.length/8));
+  for(var i=0;i<s.length;i+=step){g+='<text x="'+X(i).toFixed(1)+'" y="'+(H-10)+'" font-size="8.5" fill="'+C.dim+'" text-anchor="middle">'+E((s[i].d||'').slice(0,7))+'</text>';}
+  var up=s[s.length-1].c>=s[0].c;
+  var last=s[s.length-1];
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%" role="img" aria-label="Price vs 200 and 250 day EMA">'+g
+   +'<path d="'+path('e200')+'" stroke="'+C.am+'" stroke-width="1.6" fill="none" stroke-dasharray="5 3"/>'
+   +'<path d="'+path('e250')+'" stroke="'+C.pu+'" stroke-width="1.6" fill="none" stroke-dasharray="2 3"/>'
+   +'<path d="'+path('c')+'" stroke="'+(up?C.gn:C.rd)+'" stroke-width="2" fill="none"/>'
+   +'<circle cx="'+X(s.length-1).toFixed(1)+'" cy="'+Y(last.c).toFixed(1)+'" r="3.4" fill="'+(up?C.gn:C.rd)+'"/></svg>';
+  function leg(col,txt){return '<span style="color:'+col+';margin-right:14px">\u2501 '+txt+'</span>';}
+  var e2=pa.ema200||{},e25=pa.ema250||{};
+  return '<div style="margin:2px 0 6px;font-size:11px">'
+   +leg(up?C.gn:C.rd,TK+' $'+N(last.c,2))
+   +leg(C.am,'EMA-200 $'+N(e2.value,2)+' ('+P(e2.dist_pct)+' '+(e2.above?'above':'below')+')')
+   +leg(C.pu,'EMA-250 $'+N(e25.value,2)+' ('+P(e25.dist_pct)+' '+(e25.above?'above':'below')+')')+'</div>'+svg
+   +'<div style="color:'+C.dim+';font-size:10px;margin-top:2px">EMAs computed on the full '+N(pa.history_years,1)+'y daily series (never re-seeded), charted weekly \u00b7 EMA-200 20-day slope '+P(e2.slope_20d_pct)+' \u00b7 as of '+E(pa.as_of)+'</div>';
+}
+
+/* ── risk: paired stock-vs-industry bars ───────────────────────── */
+function riskTier(v,kind){
+  if(v==null)return ['\u2014',C.gy];
+  if(kind==='vol')return v<25?['LOW',C.gn]:v<45?['MEDIUM',C.am]:v<70?['HIGH',C.rd]:['EXTREME',C.rd];
+  if(kind==='dd'){var a=Math.abs(v);return a<20?['LOW',C.gn]:a<40?['MEDIUM',C.am]:a<60?['HIGH',C.rd]:['EXTREME',C.rd];}
+  return v<0.8?['LOW',C.gn]:v<1.5?['MEDIUM',C.bl]:v<2.5?['HIGH',C.am]:['EXTREME',C.rd];
+}
+function pairBars(label,sv,iv,unit,kind,scaleMax){
+  var t=riskTier(sv,kind);
+  function bar(v,col,name){var w=v==null?0:Math.max(2,Math.min(100,Math.abs(v)/scaleMax*100));
+    return '<div style="display:grid;grid-template-columns:64px 1fr 74px;gap:8px;align-items:center;margin:2px 0">'
+     +'<span style="color:'+C.dim+';font-size:9.5px;text-align:right">'+name+'</span>'
+     +'<span style="display:block;height:9px;border-radius:4px;background:#1b2230"><span style="display:block;height:9px;border-radius:4px;width:'+w+'%;background:'+col+'"></span></span>'
+     +'<span style="font-size:11px">'+(v==null?'\u2014':(kind==='beta'?N(v,2):N(Math.abs(v),1)+unit))+'</span></div>';}
+  return '<div style="margin:10px 0 12px"><div style="display:flex;justify-content:space-between;margin-bottom:2px"><b>'+label+'</b>'+chip(t[0],t[1])+'</div>'
+   +bar(sv,t[1],TK)+bar(iv,'#3a465c','INDUSTRY')+'</div>';
+}
+
+/* ── growth charts ─────────────────────────────────────────────── */
+function fyBars(sfy,ify){
+  var years={};(sfy||[]).forEach(function(r){years[r.fy]=years[r.fy]||{};years[r.fy].s=r.yoy;});
+  (ify||[]).forEach(function(r){years[r.fy]=years[r.fy]||{};years[r.fy].i=r.yoy;});
+  var ks=Object.keys(years).sort().slice(-5);
+  if(!ks.length)return '<div style="color:'+C.dim+'">no annual series</div>';
+  var vals=[];ks.forEach(function(k){var y=years[k];if(y.s!=null)vals.push(y.s);if(y.i!=null)vals.push(y.i);});
+  var hi=Math.max.apply(null,vals.concat([10])),lo=Math.min.apply(null,vals.concat([-5]));
+  var W=560,H=210,L=44,T=12,B=26;function Y(v){return T+(1-(v-lo)/(hi-lo))*(H-T-B);}
+  var bw=(W-L-10)/ks.length, g='';
+  niceTicks(lo,hi,5).forEach(function(t){g+='<line x1="'+L+'" y1="'+Y(t).toFixed(1)+'" x2="'+(W-6)+'" y2="'+Y(t).toFixed(1)+'" stroke="'+C.grid+'"/><text x="'+(L-5)+'" y="'+(Y(t)+3).toFixed(1)+'" font-size="9" fill="'+C.dim+'" text-anchor="end">'+t+'%</text>';});
+  g+='<line x1="'+L+'" y1="'+Y(0).toFixed(1)+'" x2="'+(W-6)+'" y2="'+Y(0).toFixed(1)+'" stroke="#38445a" stroke-width="1.2"/>';
+  ks.forEach(function(k,idx){var y=years[k],x0=L+idx*bw+bw*0.14,w=bw*0.30;
+    [[y.s,x0,pcCol(y.s),TK],[y.i,x0+w+bw*0.06,'#3a465c','industry median']].forEach(function(b){
+      if(b[0]==null)return;var yy=Y(Math.max(b[0],0)),hh=Math.abs(Y(b[0])-Y(0));
+      g+='<rect x="'+b[1].toFixed(1)+'" y="'+(b[0]>=0?yy:Y(0)).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+Math.max(hh,1).toFixed(1)+'" rx="2" fill="'+b[2]+'"'+(b[3]===TK?'':' opacity=".9"')+'><title>'+k+' '+b[3]+': '+P(b[0])+'</title></rect>'
+       +'<text x="'+(b[1]+w/2).toFixed(1)+'" y="'+((b[0]>=0?yy:Y(b[0])+hh)+(b[0]>=0?-3:10)).toFixed(1)+'" font-size="8.5" fill="'+(b[3]===TK?pcCol(b[0]):C.gy)+'" text-anchor="middle">'+P(b[0],0)+'</text>';});
+    g+='<text x="'+(L+idx*bw+bw/2).toFixed(1)+'" y="'+(H-8)+'" font-size="9.5" fill="'+C.dim+'" text-anchor="middle">FY'+k+'</text>';});
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px">'+g+'</svg>';
+}
+function qChart(sq,iq,mode){
+  var qs={};(sq||[]).forEach(function(r){qs[r.q]=qs[r.q]||{};qs[r.q].s=r[mode];});
+  (iq||[]).forEach(function(r){qs[r.q]=qs[r.q]||{};qs[r.q].i=r[mode];qs[r.q].n=r.n;});
+  var ks=Object.keys(qs).sort().slice(-20);
+  var vals=[];ks.forEach(function(k){var q=qs[k];if(q.s!=null)vals.push(q.s);if(q.i!=null)vals.push(q.i);});
+  if(vals.length<4)return '<div style="color:'+C.dim+'">not enough quarterly points for '+mode.toUpperCase()+'</div>';
+  var hi=Math.max.apply(null,vals.concat([5])),lo=Math.min.apply(null,vals.concat([-5]));
+  var pad=(hi-lo)*0.08;hi+=pad;lo-=pad;
+  var W=820,H=240,L=46,T=12,B=30;
+  function X(i){return L+(i/(ks.length-1))*(W-L-12);}
+  function Y(v){return T+(1-(v-lo)/(hi-lo))*(H-T-B);}
+  var g='';niceTicks(lo,hi,5).forEach(function(t){g+='<line x1="'+L+'" y1="'+Y(t).toFixed(1)+'" x2="'+(W-8)+'" y2="'+Y(t).toFixed(1)+'" stroke="'+C.grid+'"/><text x="'+(L-5)+'" y="'+(Y(t)+3).toFixed(1)+'" font-size="9" fill="'+C.dim+'" text-anchor="end">'+t+'%</text>';});
+  g+='<line x1="'+L+'" y1="'+Y(0).toFixed(1)+'" x2="'+(W-8)+'" y2="'+Y(0).toFixed(1)+'" stroke="#38445a" stroke-width="1.2"/>';
+  ks.forEach(function(k,i){if(i%4===0||i===ks.length-1)g+='<text x="'+X(i).toFixed(1)+'" y="'+(H-9)+'" font-size="8.5" fill="'+C.dim+'" text-anchor="middle">'+E(k)+'</text>';});
+  function line(key,col,dash){var d='',pen=false;
+    ks.forEach(function(k,i){var v=qs[k][key];if(v==null){pen=false;return;}d+=(pen?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)+' ';pen=true;});
+    var dots='';ks.forEach(function(k,i){var v=qs[k][key];if(v==null)return;
+      dots+='<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="2.6" fill="'+col+'"><title>'+k+' '+(key==='s'?TK:'industry (n='+(qs[k].n||'?')+')')+': '+P(v)+'</title></circle>';});
+    return '<path d="'+d+'" stroke="'+col+'" stroke-width="2" fill="none"'+(dash?' stroke-dasharray="6 4" opacity=".85"':'')+'/>'+dots;}
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%">'+g+line('i','#5c6b85',true)+line('s',C.cy,false)+'</svg>';
+}
+
+/* ── mount helper: after the Quantitative Risk section ─────────── */
+function mount(html){
+  var anchor=null,subs=document.querySelectorAll('.sub');
+  for(var i=0;i<subs.length;i++){if(subs[i].textContent.indexOf('Quantitative Risk')>=0){anchor=subs[i].closest('section');break;}}
+  var host=document.createElement('div');host.id='jh5010-wrap';host.innerHTML=html;
+  if(anchor&&anchor.parentNode){anchor.parentNode.insertBefore(host,anchor.nextSibling);}
+  else{var c=document.getElementById('content')||document.body;c.appendChild(host);}
+}
+
+/* ── main ──────────────────────────────────────────────────────── */
+function run(d){
+  var cls=d.classification||{},pa=d.price_analytics||{},ind=d.industry_growth||{};
+  var risk=(pa.risk)||{};
+  /* 0 · vitals chips (β + type + EMA distance on top) */
+  (function(){
+    var h='';
+    var b=risk.beta_2y!=null?risk.beta_2y:cls.beta_2y;
+    if(b!=null)h+=chip('\u03b2 '+N(b,2)+(b>=2?' \u00b7 EXTREME':b>=1.5?' \u00b7 HIGH':''),riskTier(b,'beta')[1],true);
+    if(cls.available)h+=chip(E(cls.cap_tier)+' \u00b7 '+(cls.is_blue_chip?'BLUE CHIP \u2713':E(cls.style)),cls.is_blue_chip?C.gn:C.cy,true);
+    var e2=pa.ema200||{},e25=pa.ema250||{};
+    if(e2.dist_pct!=null)h+=chip('\u0394200-EMA '+P(e2.dist_pct),pcCol(e2.dist_pct));
+    if(e25.dist_pct!=null)h+=chip('\u0394250-EMA '+P(e25.dist_pct),pcCol(e25.dist_pct));
+    if(!h)return;
+    var tries=0,tm=setInterval(function(){tries++;var v=document.getElementById('jhVitalsTop');
+      if(v){clearInterval(tm);var el=document.createElement('div');el.style.cssText='margin:6px 0 2px';el.innerHTML=h;v.insertBefore(el,v.children[1]||null);}
+      else if(tries>40)clearInterval(tm);},250);
+  })();
+
+  mount(
+    sec('jh5010-class','\u25c8','What kind of stock is '+TK+' \u2014 classification &amp; beta')+
+    sec('jh5010-expect','\u2652','Realistic return expectations','\u2014 base rates from this stock\u2019s own history, not a forecast')+
+    sec('jh5010-ema','\u3030','Price vs 200- &amp; 250-day EMA','\u2014 2 years, EMAs from the full daily series')+
+    sec('jh5010-risk','\u26a0','Risk \u2014 '+TK+' vs its industry')+
+    sec('jh5010-growth','\u2197','Revenue growth \u2014 '+TK+' vs its industry','\u2014 5 years, YoY &amp; QoQ')
+  );
+
+  /* 1 · classification */
+  var b1=document.getElementById('jh5010-class-b');
+  if(!cls.available){unavailable(b1,'Classification',cls.reason);}
+  else{
+    b1.innerHTML='<div style="display:grid;grid-template-columns:300px 1fr;gap:18px" class="jh5010-2col">'
+     +'<div>'+betaGauge(risk.beta_2y!=null?risk.beta_2y:cls.beta_2y,risk.spy_corr_2y,risk.beta_obs)+'</div>'
+     +'<div>'+capLadder(cls)+checklist(cls)+'</div></div>';
+  }
+  /* 2 · expectations */
+  var b2=document.getElementById('jh5010-expect-b');
+  var hz=((pa.expectations)||{}).horizons;
+  if(!pa.available||!hz){unavailable(b2,'Return base rates',pa.reason);}
+  else{
+    b2.innerHTML='<div style="display:flex;gap:12px;flex-wrap:wrap">'
+     +expectRow('1 MONTH',hz['1M'])+expectRow('3 MONTHS',hz['3M'])+expectRow('1 YEAR',hz['1Y'])+'</div>'
+     +'<div style="color:'+C.dim+';font-size:10px;margin-top:8px">'+E((pa.expectations||{}).method)+'. Distributions of what this stock actually did \u2014 research &amp; analytics, not investment advice.</div>';
+  }
+  /* 3 · EMA chart */
+  var b3=document.getElementById('jh5010-ema-b');
+  if(!pa.available){unavailable(b3,'EMA chart',pa.reason);}else{b3.innerHTML=emaChart(pa);}
+  /* 4 · risk vs industry */
+  var b4=document.getElementById('jh5010-risk-b');
+  if(!pa.available){unavailable(b4,'Risk comparison',pa.reason);}
+  else{
+    var im=((ind.risk_compare)||{}).industry_median||{};
+    var vmax=Math.max(risk.vol_1y_pct||0,im.vol_1y_pct||0,60)*1.15;
+    var dmax=Math.max(Math.abs(risk.max_dd_1y_pct||0),Math.abs(im.max_dd_1y_pct||0),50)*1.15;
+    var h=pairBars('Realized volatility (1y, annualized)',risk.vol_1y_pct,im.vol_1y_pct,'%','vol',vmax)
+     +pairBars('Max drawdown (1y)',risk.max_dd_1y_pct,im.max_dd_1y_pct,'%','dd',dmax)
+     +pairBars('Beta vs SPY (2y)',risk.beta_2y,null,'','beta',3.2)
+     +(risk.beta_2y==null?'<div style="color:'+C.dim+';font-size:9.5px;margin-top:-6px">beta unavailable \u2014 needs 200+ aligned SPY sessions; nothing is invented in its place</div>':'');
+    h+='<div style="color:'+C.dim+';font-size:10.5px;margin-top:4px">Also: 30-day vol '+N(risk.vol_30d_pct)+'% \u00b7 downside deviation (1y) '+N(risk.downside_dev_1y_pct)+'% \u00b7 max drawdown 5y '+N(risk.max_dd_5y_pct)+'% \u00b7 full history '+N(risk.max_dd_full_pct)+'%</div>';
+    var pd=((ind.risk_compare)||{}).peer_detail||[];
+    if(pd.length){h+='<div style="margin-top:8px;font-size:10px;color:'+C.dim+'">industry peers (1y vol): '+pd.map(function(p){return '<span style="color:'+C.gy+'">'+E(p.symbol)+' '+N(p.vol_1y_pct,0)+'%</span>';}).join(' \u00b7 ')+'</div>';}
+    else if(!ind.available){h+='<div style="margin-top:8px;font-size:10px;color:'+C.dim+'">industry aggregate unavailable \u2014 '+E(ind.reason)+'</div>';}
+    b4.innerHTML=h;
+  }
+  /* 5 · growth vs industry */
+  var b5=document.getElementById('jh5010-growth-b');
+  var sq=ind.stock_quarters,sfy=ind.stock_fy;
+  if((!sq||!sq.length)&&(!sfy||!sfy.length)){unavailable(b5,'Growth series',ind.reason||'no revenue history');}
+  else{
+    var mode='yoy';
+    function draw(){
+      var h='<div style="margin:2px 0 4px"><b>Annual revenue growth (YoY)</b> <span style="color:'+C.cy+'">\u25a0 '+TK+'</span> <span style="color:#5c6b85">\u25a0 industry median</span></div>'
+       +fyBars(sfy,ind.industry_fy)
+       +'<div style="margin:14px 0 4px;display:flex;align-items:center;gap:10px"><b>Quarterly revenue growth</b>'
+       +'<span id="jh5010-tg"></span>'
+       +'<span style="color:'+C.cy+';font-size:10.5px">\u2501 '+TK+'</span><span style="color:#5c6b85;font-size:10.5px">\u254c industry median</span></div>'
+       +'<div id="jh5010-qc">'+qChart(sq,ind.industry_quarters,mode)+'</div>'
+       +'<div style="color:'+C.dim+';font-size:10px;margin-top:6px">'+E(ind.method||'')+(ind.peers&&ind.peers.length?' \u00b7 peers: '+ind.peers.map(E).join(', '):'')+'</div>';
+      b5.innerHTML=h;
+      var tg=document.getElementById('jh5010-tg');
+      ['yoy','qoq'].forEach(function(mo){
+        var btn=document.createElement('button');btn.textContent=mo.toUpperCase();
+        btn.style.cssText='background:'+(mode===mo?'rgba(34,211,238,.15)':'transparent')+';border:1px solid '+(mode===mo?C.cy:'#232c3f')+';color:'+(mode===mo?C.cy:C.dim)+';border-radius:6px;padding:2px 10px;font-size:.62rem;font-weight:700;cursor:pointer;margin-right:6px;font-family:inherit';
+        btn.onclick=function(){mode=mo;document.getElementById('jh5010-qc').innerHTML=qChart(sq,ind.industry_quarters,mode);
+          Array.prototype.forEach.call(tg.children,function(c){var on=c.textContent.toLowerCase()===mo;
+            c.style.background=on?'rgba(34,211,238,.15)':'transparent';c.style.borderColor=on?C.cy:'#232c3f';c.style.color=on?C.cy:C.dim;});};
+        tg.appendChild(btn);});
+    }
+    draw();
+  }
+}
+
+/* responsive tweak */
+(function(){var st=document.createElement('style');
+st.textContent='@media(max-width:760px){#jh5010-wrap .jh5010-2col{grid-template-columns:1fr!important}}';
+document.head.appendChild(st);})();
+
+/* fetch: CDN cache first; if payload predates v2.4, fire a background
+   regeneration so the next load is upgraded — never fake the data now. */
+fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
+.then(function(r){if(!r.ok)throw new Error('cdn '+r.status);return r.json();})
+.then(function(d){
+  if(d&&d.price_analytics){run(d);return;}
+  mount(sec('jh5010-stale','\u25c8','Quant layer \u2014 beta, classification, expectations, EMA, industry'));
+  var el=document.getElementById('jh5010-stale-b');
+  if(el)el.innerHTML='<div style="color:'+C.dim+'">This ticker\u2019s dossier was generated before the quant layer (schema '+E(d&&d.schema_version)+'). A fresh v2.4 build has been requested in the background \u2014 reload in ~2 minutes. No stale or invented numbers are shown in its place.</div>';
+  try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+})
+.catch(function(e){console.warn('[ops5010]',e);});
+})();
+</script>
+
 </body>
 </html>

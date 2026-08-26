@@ -1159,7 +1159,7 @@ def fetch_all(ticker: str) -> Dict[str, Any]:
         "profile":          ("profile", {"symbol": ticker}),
         "quote":            ("quote",   {"symbol": ticker}),
         "income_annual":    ("income-statement", {"symbol": ticker, "period": "annual", "limit": 20}),
-        "income_quarterly": ("income-statement", {"symbol": ticker, "period": "quarter", "limit": 8}),
+        "income_quarterly": ("income-statement", {"symbol": ticker, "period": "quarter", "limit": 22}),
         "balance_annual":   ("balance-sheet-statement", {"symbol": ticker, "period": "annual", "limit": 20}),
         "cashflow_annual":  ("cash-flow-statement", {"symbol": ticker, "period": "annual", "limit": 20}),
         "ratios_annual":    ("ratios", {"symbol": ticker, "period": "annual", "limit": 15}),
@@ -2811,6 +2811,483 @@ def khalid_notes_block(ticker):
         return {}
 
 
+# ═════════════════════════════════════════════════════════════════════
+# JH-5010 — classification, price analytics & industry growth/risk
+# (ops 5010, additive; real data only — every block degrades to
+#  {"available": False, "reason": ...} instead of inventing numbers)
+# ═════════════════════════════════════════════════════════════════════
+
+_JH_TRADING_DAYS = 252
+
+
+def _jh_first(x):
+    if isinstance(x, list):
+        return x[0] if x else {}
+    return x if isinstance(x, dict) else {}
+
+
+def _jh_closes(prices, min_len=30):
+    """Sorted (date, close) from an FMP eod list; [] if unusable."""
+    if not isinstance(prices, list) or len(prices) < min_len:
+        return []
+    out = []
+    for p in sorted(prices, key=lambda r: r.get("date") or ""):
+        c = p.get("price")
+        if c is None:
+            c = p.get("close")
+        if c is None:
+            c = p.get("adjClose")
+        d = p.get("date")
+        if d and isinstance(c, (int, float)) and c > 0:
+            out.append((d, float(c)))
+    return out if len(out) >= min_len else []
+
+
+def _jh_ema_series(closes, n):
+    """Full EMA series (None until seeded) for period n over [(d,c)...]."""
+    if len(closes) < n + 5:
+        return [None] * len(closes)
+    k = 2.0 / (n + 1.0)
+    out = [None] * len(closes)
+    seed = sum(c for _, c in closes[:n]) / n
+    out[n - 1] = seed
+    ema = seed
+    for i in range(n, len(closes)):
+        ema = closes[i][1] * k + ema * (1.0 - k)
+        out[i] = ema
+    return out
+
+
+def _jh_rets(closes):
+    return [(closes[i][1] / closes[i - 1][1]) - 1.0
+            for i in range(1, len(closes))
+            if closes[i - 1][1] > 0]
+
+
+def _jh_std(xs):
+    n = len(xs)
+    if n < 2:
+        return None
+    m = sum(xs) / n
+    return (sum((x - m) ** 2 for x in xs) / (n - 1)) ** 0.5
+
+
+def _jh_median(xs):
+    xs = sorted(x for x in xs if isinstance(x, (int, float)))
+    n = len(xs)
+    if not n:
+        return None
+    return xs[n // 2] if n % 2 else (xs[n // 2 - 1] + xs[n // 2]) / 2.0
+
+
+def _jh_pctl(xs, q):
+    xs = sorted(xs)
+    if not xs:
+        return None
+    i = q * (len(xs) - 1)
+    lo = int(i)
+    hi = min(lo + 1, len(xs) - 1)
+    return xs[lo] + (xs[hi] - xs[lo]) * (i - lo)
+
+
+def _jh_max_dd(closes):
+    peak, dd = None, 0.0
+    for _, c in closes:
+        peak = c if peak is None or c > peak else peak
+        if peak:
+            dd = min(dd, c / peak - 1.0)
+    return dd * 100.0
+
+
+def _jh_beta(stock_closes, spy_closes):
+    """Beta + correlation from date-aligned daily returns (>=200 obs)."""
+    sm = dict(stock_closes)
+    bm = dict(spy_closes)
+    dates = sorted(set(sm) & set(bm))
+    if len(dates) < 200:
+        return None, None, len(dates)
+    rs, rb = [], []
+    for i in range(1, len(dates)):
+        p0, p1 = sm[dates[i - 1]], sm[dates[i]]
+        q0, q1 = bm[dates[i - 1]], bm[dates[i]]
+        if p0 > 0 and q0 > 0:
+            rs.append(p1 / p0 - 1.0)
+            rb.append(q1 / q0 - 1.0)
+    n = len(rs)
+    if n < 200:
+        return None, None, n
+    ms, mb = sum(rs) / n, sum(rb) / n
+    cov = sum((rs[i] - ms) * (rb[i] - mb) for i in range(n)) / (n - 1)
+    vb = sum((x - mb) ** 2 for x in rb) / (n - 1)
+    vs = sum((x - ms) ** 2 for x in rs) / (n - 1)
+    if vb < 1e-12:  # degenerate benchmark variance -> no honest beta
+        return None, None, n
+    beta = cov / vb
+    corr = cov / ((vs ** 0.5) * (vb ** 0.5)) if vs > 0 else None
+    return round(beta, 2), (round(corr, 2) if corr is not None else None), n
+
+
+def build_price_analytics(raw):
+    """EMA-200/250 distance, realized risk, and forward-return base rates —
+    every number computed from this stock's own 10y FMP daily history."""
+    closes = _jh_closes(raw.get("prices_eod"), min_len=260)
+    if not closes:
+        return {"available": False,
+                "reason": "insufficient daily price history (<260 sessions)"}
+    px = closes[-1][1]
+    out = {"available": True, "as_of": closes[-1][0], "price": round(px, 2),
+           "history_days": len(closes),
+           "history_years": round(len(closes) / _JH_TRADING_DAYS, 1)}
+
+    # ── long EMAs ────────────────────────────────────────────────────
+    e200 = _jh_ema_series(closes, 200)
+    e250 = _jh_ema_series(closes, 250)
+    for name, ser, n in (("ema200", e200, 200), ("ema250", e250, 250)):
+        v = ser[-1]
+        if v:
+            prev = ser[-21] if len(ser) >= 21 and ser[-21] else None
+            out[name] = {
+                "value": round(v, 2),
+                "dist_pct": round((px / v - 1.0) * 100.0, 2),
+                "above": px >= v,
+                "slope_20d_pct": (round((v / prev - 1.0) * 100.0, 2)
+                                  if prev else None),
+            }
+        else:
+            out[name] = {"value": None, "dist_pct": None, "above": None,
+                         "reason": f"needs {n}+ sessions"}
+
+    # compact 2y weekly overlay series for the client chart (real EMA
+    # computed on the full daily series, then sampled — never re-seeded)
+    tail = min(len(closes), 2 * _JH_TRADING_DAYS)
+    idxs = list(range(len(closes) - tail, len(closes), 5))
+    if idxs and idxs[-1] != len(closes) - 1:
+        idxs.append(len(closes) - 1)
+    out["ema_chart"] = [
+        {"d": closes[i][0], "c": round(closes[i][1], 2),
+         "e200": round(e200[i], 2) if e200[i] else None,
+         "e250": round(e250[i], 2) if e250[i] else None}
+        for i in idxs]
+
+    # ── realized risk ────────────────────────────────────────────────
+    rets = _jh_rets(closes)
+    s30 = _jh_std(rets[-21:])
+    s1y = _jh_std(rets[-_JH_TRADING_DAYS:])
+    downside = [r for r in rets[-_JH_TRADING_DAYS:] if r < 0]
+    sd_dn = _jh_std(downside) if len(downside) > 10 else None
+    beta2y, corr2y, beta_n = _jh_beta(
+        closes[-(2 * _JH_TRADING_DAYS + 1):],
+        _jh_closes(raw.get("spy_light"), min_len=200))
+    out["risk"] = {
+        "vol_30d_pct": round(s30 * (252 ** 0.5) * 100, 1) if s30 else None,
+        "vol_1y_pct": round(s1y * (252 ** 0.5) * 100, 1) if s1y else None,
+        "downside_dev_1y_pct": (round(sd_dn * (252 ** 0.5) * 100, 1)
+                                if sd_dn else None),
+        "beta_2y": beta2y, "spy_corr_2y": corr2y, "beta_obs": beta_n,
+        "max_dd_1y_pct": round(_jh_max_dd(closes[-_JH_TRADING_DAYS:]), 1),
+        "max_dd_5y_pct": round(_jh_max_dd(closes[-5 * _JH_TRADING_DAYS:]), 1),
+        "max_dd_full_pct": round(_jh_max_dd(closes), 1),
+    }
+
+    # ── forward-return base rates (the honest "what to expect") ─────
+    # Every overlapping h-day forward return in the full history →
+    # a distribution, published as-is. Plus the vol-implied ±1σ range.
+    horizons = (("1M", 21), ("3M", 63), ("1Y", _JH_TRADING_DAYS))
+    exp = {}
+    for label, h in horizons:
+        fwd = [closes[i + h][1] / closes[i][1] - 1.0
+               for i in range(len(closes) - h)
+               if closes[i][1] > 0]
+        if len(fwd) < 120:
+            exp[label] = {"available": False,
+                          "reason": f"only {len(fwd)} windows"}
+            continue
+        sd = _jh_std(fwd)
+        vi = (s1y * ((h / 252.0) ** 0.5) * 100.0) if s1y else None
+        exp[label] = {
+            "available": True, "n_windows": len(fwd),
+            "median_pct": round(_jh_median(fwd) * 100, 1),
+            "mean_pct": round(sum(fwd) / len(fwd) * 100, 1),
+            "p10_pct": round(_jh_pctl(fwd, 0.10) * 100, 1),
+            "p90_pct": round(_jh_pctl(fwd, 0.90) * 100, 1),
+            "sigma_pct": round(sd * 100, 1) if sd else None,
+            "win_rate_pct": round(
+                100.0 * sum(1 for r in fwd if r > 0) / len(fwd), 1),
+            "vol_implied_1sigma_pct": round(vi, 1) if vi else None,
+        }
+    out["expectations"] = {
+        "method": ("base rates: every overlapping forward window in this "
+                   "stock's own %.1fy daily history; vol-implied: ±1σ from "
+                   "trailing-1y realized volatility, zero drift"
+                   % out["history_years"]),
+        "horizons": exp,
+    }
+    return out
+
+
+def build_classification(raw, income_annual, pa):
+    """Cap tier + explicit blue-chip checklist — each test shown, never
+    just a label."""
+    q = _jh_first(raw.get("quote"))
+    mcap = q.get("marketCap")
+    if not isinstance(mcap, (int, float)) or mcap <= 0:
+        return {"available": False, "reason": "no market cap in quote"}
+    tiers = (("MEGA-CAP", 200e9), ("LARGE-CAP", 10e9), ("MID-CAP", 2e9),
+             ("SMALL-CAP", 300e6), ("MICRO-CAP", 0))
+    tier = next(name for name, floor in tiers if mcap >= floor)
+
+    ia = income_annual if isinstance(income_annual, list) else []
+    ia = sorted(ia, key=lambda r: r.get("date") or "")[-10:]
+    prof_years = sum(1 for r in ia
+                     if isinstance(r.get("netIncome"), (int, float))
+                     and r["netIncome"] > 0)
+    revs = [r.get("revenue") for r in ia
+            if isinstance(r.get("revenue"), (int, float)) and r["revenue"] > 0]
+    rev_cagr_10y = None
+    if len(revs) >= 6 and revs[0] > 0:
+        rev_cagr_10y = round(
+            ((revs[-1] / revs[0]) ** (1.0 / (len(revs) - 1)) - 1) * 100, 1)
+    g3 = None
+    if len(revs) >= 4 and revs[-4] > 0:
+        g3 = round(((revs[-1] / revs[-4]) ** (1.0 / 3.0) - 1) * 100, 1)
+
+    divs = raw.get("dividends") if isinstance(raw.get("dividends"), list) else []
+    _now = datetime.now(timezone.utc)
+    cutoff = "%04d-%02d-%02d" % (_now.year - 2, _now.month, min(_now.day, 28))
+    pays_div = any((d.get("date") or "") >= cutoff and
+                   isinstance(d.get("dividend"), (int, float)) and
+                   d["dividend"] > 0 for d in divs)
+
+    risk = (pa or {}).get("risk") or {}
+    beta = risk.get("beta_2y")
+    dd5 = risk.get("max_dd_5y_pct")
+    ni_ttm = ia[-1].get("netIncome") if ia else None
+    profitable_now = isinstance(ni_ttm, (int, float)) and ni_ttm > 0
+
+    checks = [
+        ("Market cap ≥ $10B", mcap >= 10e9,
+         "$%.1fB" % (mcap / 1e9)),
+        ("Profitable ≥ 7 of last 10 FYs", prof_years >= 7,
+         "%d/%d profitable" % (prof_years, len(ia) or 0)),
+        ("Pays a dividend (last 2y)", pays_div,
+         "yes" if pays_div else "no dividend"),
+        ("Profitable latest FY", profitable_now,
+         "net income %s" % ("positive" if profitable_now else "negative")),
+        ("Beta ≤ 1.5", (beta is not None and beta <= 1.5),
+         "β %.2f" % beta if beta is not None else "n/a"),
+        ("Max 5y drawdown ≤ 60%",
+         (dd5 is not None and dd5 >= -60.0),
+         "%.0f%%" % dd5 if dd5 is not None else "n/a"),
+        ("Revenue 10y CAGR > 0", (rev_cagr_10y is not None and
+                                  rev_cagr_10y > 0),
+         "%+.1f%%/yr" % rev_cagr_10y if rev_cagr_10y is not None else "n/a"),
+    ]
+    passed = sum(1 for _, ok, _ in checks if ok)
+    blue = passed >= 6 and mcap >= 10e9
+
+    if blue:
+        style = "BLUE CHIP"
+    elif not profitable_now and (beta or 0) > 2:
+        style = "SPECULATIVE" + (" GROWTH" if (g3 or 0) > 15 else "")
+    elif (g3 or 0) > 15:
+        style = "GROWTH"
+    elif profitable_now:
+        style = "ESTABLISHED"
+    else:
+        style = "TURNAROUND / UNPROFITABLE"
+
+    return {"available": True,
+            "market_cap": mcap,
+            "market_cap_b": round(mcap / 1e9, 2),
+            "cap_tier": tier,
+            "style": style,
+            "is_blue_chip": blue,
+            "blue_chip_score": "%d/%d" % (passed, len(checks)),
+            "checklist": [{"test": t, "pass": bool(ok), "detail": d}
+                          for t, ok, d in checks],
+            "beta_2y": beta,
+            "rev_cagr_10y_pct": rev_cagr_10y,
+            "rev_cagr_3y_pct": g3,
+            "profitable_years_of_10": prof_years}
+
+
+def _jh_q_growth(rows):
+    """[(calendar-quarter, yoy%, qoq%)] newest-last from FMP quarterly
+    income rows (needs date+revenue; requires q-1 and q-4 to exist)."""
+    rs = [r for r in (rows or [])
+          if r.get("date") and isinstance(r.get("revenue"), (int, float))
+          and r["revenue"] > 0]
+    rs = sorted(rs, key=lambda r: r["date"])
+    out = []
+    for i, r in enumerate(rs):
+        y, m = int(r["date"][:4]), int(r["date"][5:7])
+        label = "%dQ%d" % (y, (m - 1) // 3 + 1)
+        yoy = (round((r["revenue"] / rs[i - 4]["revenue"] - 1) * 100, 1)
+               if i >= 4 and rs[i - 4]["revenue"] > 0 else None)
+        qoq = (round((r["revenue"] / rs[i - 1]["revenue"] - 1) * 100, 1)
+               if i >= 1 and rs[i - 1]["revenue"] > 0 else None)
+        out.append({"q": label, "date": r["date"], "yoy": yoy, "qoq": qoq})
+    return out[-20:]
+
+
+def _jh_fy_growth(rows, n=6):
+    rs = [r for r in (rows or [])
+          if r.get("date") and isinstance(r.get("revenue"), (int, float))
+          and r["revenue"] > 0]
+    rs = sorted(rs, key=lambda r: r["date"])[-n:]
+    out = []
+    for i in range(1, len(rs)):
+        out.append({"fy": rs[i]["date"][:4],
+                    "yoy": round((rs[i]["revenue"] / rs[i - 1]["revenue"] - 1)
+                                 * 100, 1)})
+    return out[-5:]
+
+
+_JH_IND_CACHE_PREFIX = "equity-research/industry/"
+_JH_IND_TTL = 6 * 24 * 3600
+
+
+def build_industry_growth_risk(ticker, raw, income_quarterly, income_annual,
+                               pa):
+    """Industry = the stock's FMP peer set (up to 8 real listed peers),
+    aggregated by MEDIAN — the honest desk proxy when no official
+    industry aggregate exists. Cached 6d in S3; peers named in the
+    payload so nothing is a black box."""
+    peers_list = raw.get("peers") if isinstance(raw.get("peers"), list) else []
+    peer_syms = []
+    for p in peers_list:
+        s = (p.get("symbol") or "").upper()
+        if s and s != ticker and "." not in s and s not in peer_syms:
+            peer_syms.append(s)
+    peer_syms = peer_syms[:8]
+
+    stock_q = _jh_q_growth(income_quarterly)
+    stock_fy = _jh_fy_growth(income_annual)
+
+    if len(peer_syms) < 3:
+        return {"available": False,
+                "reason": "fewer than 3 listed FMP peers — no honest "
+                          "industry aggregate possible",
+                "stock_quarters": stock_q, "stock_fy": stock_fy,
+                "peers": peer_syms}
+
+    cache_key = "%s%s.json" % (_JH_IND_CACHE_PREFIX, ticker)
+    bundle = None
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key=cache_key)
+        cand = json.loads(obj["Body"].read())
+        age = time.time() - cand.get("_ts", 0)
+        if age < _JH_IND_TTL and cand.get("peers") == peer_syms:
+            bundle = cand
+    except Exception:
+        pass
+
+    if bundle is None:
+        bundle = {"_ts": time.time(), "peers": peer_syms, "data": {}}
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            futs = {}
+            for s in peer_syms:
+                futs[ex.submit(fmp_get, "income-statement",
+                               symbol=s, period="quarter", limit=22)] = (s, "q")
+                futs[ex.submit(fmp_get, "income-statement",
+                               symbol=s, period="annual", limit=7)] = (s, "a")
+                futs[ex.submit(fmp_get, "historical-price-eod/light",
+                               symbol=s, **{"from": _date_n_years_ago(1)})] = (s, "p")
+            for fut in as_completed(futs):
+                s, kind = futs[fut]
+                try:
+                    bundle["data"].setdefault(s, {})[kind] = fut.result()
+                except Exception as e:
+                    print("[jh-industry] %s/%s failed: %s" % (s, kind, e))
+        try:
+            slim = {"_ts": bundle["_ts"], "peers": peer_syms, "data": {}}
+            for s, d in bundle["data"].items():
+                slim["data"][s] = {
+                    "q": [{"date": r.get("date"), "revenue": r.get("revenue")}
+                          for r in (d.get("q") or [])
+                          if isinstance(r, dict)],
+                    "a": [{"date": r.get("date"), "revenue": r.get("revenue")}
+                          for r in (d.get("a") or [])
+                          if isinstance(r, dict)],
+                    "p": [{"date": r.get("date"),
+                           "price": r.get("price") if r.get("price") is not None
+                           else r.get("close")}
+                          for r in (d.get("p") or [])
+                          if isinstance(r, dict)][-260:],
+                }
+            s3.put_object(Bucket=S3_BUCKET, Key=cache_key,
+                          Body=json.dumps(slim).encode(),
+                          ContentType="application/json")
+            bundle = slim
+        except Exception as e:
+            print("[jh-industry] cache write failed: %s" % e)
+
+    # per-quarter industry medians across peers
+    per_peer_q = {s: _jh_q_growth((bundle["data"].get(s) or {}).get("q"))
+                  for s in peer_syms}
+    qset = sorted({q["q"] for qs in per_peer_q.values() for q in qs})[-20:]
+    industry_q = []
+    for qq in qset:
+        yy = [x["yoy"] for qs in per_peer_q.values() for x in qs
+              if x["q"] == qq and x["yoy"] is not None]
+        cc = [x["qoq"] for qs in per_peer_q.values() for x in qs
+              if x["q"] == qq and x["qoq"] is not None]
+        industry_q.append({"q": qq,
+                           "yoy": (round(_jh_median(yy), 1)
+                                   if len(yy) >= 3 else None),
+                           "qoq": (round(_jh_median(cc), 1)
+                                   if len(cc) >= 3 else None),
+                           "n": len(yy)})
+
+    per_peer_fy = {s: _jh_fy_growth((bundle["data"].get(s) or {}).get("a"))
+                   for s in peer_syms}
+    fyset = sorted({f["fy"] for fs in per_peer_fy.values() for f in fs})[-5:]
+    industry_fy = []
+    for fy in fyset:
+        yy = [x["yoy"] for fs in per_peer_fy.values() for x in fs
+              if x["fy"] == fy and x["yoy"] is not None]
+        industry_fy.append({"fy": fy,
+                            "yoy": (round(_jh_median(yy), 1)
+                                    if len(yy) >= 3 else None),
+                            "n": len(yy)})
+
+    # industry risk = median of peer 1y realized vol / max drawdown
+    peer_risk = []
+    for s in peer_syms:
+        cl = _jh_closes((bundle["data"].get(s) or {}).get("p"), min_len=120)
+        if not cl:
+            continue
+        sd = _jh_std(_jh_rets(cl))
+        peer_risk.append({"symbol": s,
+                          "vol_1y_pct": (round(sd * (252 ** 0.5) * 100, 1)
+                                         if sd else None),
+                          "max_dd_1y_pct": round(_jh_max_dd(cl), 1)})
+    vols = [p["vol_1y_pct"] for p in peer_risk if p["vol_1y_pct"] is not None]
+    dds = [p["max_dd_1y_pct"] for p in peer_risk
+           if p["max_dd_1y_pct"] is not None]
+    srisk = (pa or {}).get("risk") or {}
+
+    return {"available": True,
+            "method": ("industry = median of %d listed FMP peers "
+                       "(named below); no official aggregate is invented"
+                       % len(peer_syms)),
+            "peers": peer_syms,
+            "stock_quarters": stock_q,
+            "industry_quarters": industry_q,
+            "stock_fy": stock_fy,
+            "industry_fy": industry_fy,
+            "risk_compare": {
+                "stock": {"vol_1y_pct": srisk.get("vol_1y_pct"),
+                          "max_dd_1y_pct": srisk.get("max_dd_1y_pct"),
+                          "beta_2y": srisk.get("beta_2y")},
+                "industry_median": {
+                    "vol_1y_pct": (round(_jh_median(vols), 1)
+                                   if len(vols) >= 3 else None),
+                    "max_dd_1y_pct": (round(_jh_median(dds), 1)
+                                      if len(dds) >= 3 else None)},
+                "peer_detail": peer_risk}}
+
+
 def lambda_handler(event, context):
     t0 = time.time()
 
@@ -3218,13 +3695,32 @@ def lambda_handler(event, context):
                          "verdict_rationale": "Manual review required — AI synthesis unavailable."},
         }
 
+    # ── JH-5010: classification / price analytics / industry (additive)
+    jh_pa = jh_cls = jh_ind = {"available": False, "reason": "build failed"}
+    try:
+        jh_pa = build_price_analytics(raw)
+    except Exception as e:
+        jh_pa = {"available": False, "reason": str(e)[:120]}
+    try:
+        jh_cls = build_classification(raw, income_annual, jh_pa)
+    except Exception as e:
+        jh_cls = {"available": False, "reason": str(e)[:120]}
+    try:
+        jh_ind = build_industry_growth_risk(ticker, raw, income_quarterly,
+                                            income_annual, jh_pa)
+    except Exception as e:
+        jh_ind = {"available": False, "reason": str(e)[:120]}
+
     # ── Assemble final document
     document = {
-        "schema_version": "2.3",  # v2.3: + dilution Pillar 6 (ops 3289);  # v2.2: + earnings_vol_edge (#6 realized-vs-implied + PEAD); v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
+        "schema_version": "2.4",  # v2.4: + classification/price_analytics/industry_growth (ops 5010)  # v2.3: + dilution Pillar 6 (ops 3289);  # v2.2: + earnings_vol_edge (#6 realized-vs-implied + PEAD); v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
         "technicals":         v2.get("technicals"),
         "liquidity_solvency": v2.get("liquidity"),
         "growth_vs_mcap":     v2.get("growth_vs_mcap"),
         "quant_risk":         v2.get("quant_risk"),
+        "classification":     jh_cls,      # ops 5010
+        "price_analytics":    jh_pa,       # ops 5010
+        "industry_growth":    jh_ind,      # ops 5010
         "industry_compass":   v2.get("industry_compass"),
         "backlog":            v2.get("backlog"),
         "dilution":           v2.get("dilution"),  # ops 3289 Pillar 6
