@@ -1,4 +1,4 @@
-"""ops_4989 -- HK + Chile + Korea on data.html (Khalid's ask:
+"""ops_4989 v2 (REG in checkout) -- HK + Chile + Korea on data.html (Khalid's ask:
 manufacturing, exports, ports, imports, industrial).
 
   G-1 markers  G0 settle(+fallback) + rate(24 hours)
