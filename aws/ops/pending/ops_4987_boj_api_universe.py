@@ -40,8 +40,15 @@ MARK = "v1.1.1 ops4987"
 REL = ("aws/lambdas/justhodl-boj-full/source/lambda_function.py")
 ROOTP = Path(__file__).resolve().parents[2]
 
+from botocore.config import Config  # noqa: E402
+
 s3 = boto3.client("s3", region_name=REGION)
-lam = boto3.client("lambda", region_name=REGION)
+# v3: sync-drive invokes run 150-200s server-side; the default
+# 60s read timeout killed the run (botocore retry ladder = 403s).
+lam = boto3.client(
+    "lambda", region_name=REGION,
+    config=Config(read_timeout=300, connect_timeout=10,
+                  retries={"max_attempts": 0}))
 
 
 def gj(key, default=None):
@@ -127,19 +134,27 @@ with report("ops_4987_boj_api_universe") as R:
 
     R.section("P1 sharded sync drive (6 lanes, 60min)")
     import threading
-    # discovery pass (fills aggregate state)
-    lam.invoke(FunctionName=FN,
-               InvocationType="RequestResponse",
-               Payload=json.dumps({"api_only": 1,
-                                   "budget_s": 200}).encode())
     st = gj(STATE_KEY) or {}
     dbs_all = sorted(((st.get("api") or {}).get("dbs") or {}))
+    if len(dbs_all) < 15:
+        try:  # discovery pass only if the map is thin
+            lam.invoke(FunctionName=FN,
+                       InvocationType="RequestResponse",
+                       Payload=json.dumps(
+                           {"api_only": 1, "budget_s": 200,
+                            "db_filter": []}).encode())
+        except Exception as e:
+            R.log("  discovery invoke: %s" % str(e)[:90])
+        st = gj(STATE_KEY) or {}
+        dbs_all = sorted(((st.get("api") or {})
+                          .get("dbs") or {}))
     R.log("  dbs=%d %s" % (len(dbs_all), dbs_all))
     shards = [dbs_all[i::6] for i in range(6)]
     t0 = time.time()
     stop = t0 + 60 * 60
 
     def lane(dblist):
+        idle = 0
         while time.time() < stop:
             try:
                 r_ = lam.invoke(
@@ -153,8 +168,12 @@ with report("ops_4987_boj_api_universe") as R:
                 if res and all(d >= t for d, t, _ in
                                res.values()):
                     return
+                idle = 0
             except Exception:
-                time.sleep(5)
+                idle += 1
+                if idle >= 6:
+                    return
+                time.sleep(8)
 
     th = [threading.Thread(target=lane, args=(sh,), daemon=True)
           for sh in shards if sh]
