@@ -1,4 +1,4 @@
-"""ops_4987 v7 (MARK v1.1.2) -- Bank of Japan API universe import (Khalid's next).
+"""ops_4987 v8 (two-part G2) -- Bank of Japan API universe import (Khalid's next).
 
 boj-full v1.1.0 adds the API lane: getMetadata?db=X lists every
 series per database; getDataCode pulls full-window values in
@@ -37,7 +37,7 @@ FN = "justhodl-boj-full"
 CAT = "justhodl-provider-catalog"
 STATE_KEY = "data/warm/boj-full/_state/state.json"
 HUB_KEY = "data/provider-catalog.json"
-MARK = "v1.1.2 ops4987"
+MARK = "v1.1.3 ops4987"
 REL = ("aws/lambdas/justhodl-boj-full/source/lambda_function.py")
 ROOTP = Path(__file__).resolve().parents[2]
 
@@ -112,7 +112,7 @@ with report("ops_4987_boj_api_universe") as R:
 
     R.section("G0 runner-deploys (event-blip fallback)")
     for fn_, mk_, rel_ in [
-            (FN, "v1.1.2 ops4987",
+            (FN, "v1.1.3 ops4987",
              "lambdas/justhodl-boj-full/source"),
             (CAT, "boj-note-v3",
              "lambdas/justhodl-provider-catalog/source")]:
@@ -254,26 +254,31 @@ with report("ops_4987_boj_api_universe") as R:
     if lagg:
         fails.append("REMAINDER(%d dbs)" % len(lagg))
 
-    R.section("G2 substance")
+    R.section("G2 substance (early depth + modern density)")
     ok2 = False
     try:
         r_ = s3.list_objects_v2(
             Bucket=B, Prefix="data/warm/boj-full/api/MD11/",
-            MaxKeys=60)
+            MaxKeys=200)
         keys = [o["Key"] for o in r_.get("Contents") or []]
-        k0 = next((k for k in keys if "_201" in k or
-                   "_200" in k), (keys or [None])[0])
-        js = json.loads(gzip.decompress(s3.get_object(
-            Bucket=B, Key=k0)["Body"].read()))
-        blob = json.dumps(js)
-        import re as _re
-        yrs = sorted(set(_re.findall(r'"(19\d\d|20\d\d)', blob)))
-        n_series = blob.count("SURVEY_DATES")
-        ok2 = n_series >= 10 and bool(yrs) and yrs[0] <= "1999"
-        R.log("  %s series=%d yr-span %s..%s" % (
-            k0.rsplit("/", 1)[-1], n_series,
-            yrs[0] if yrs else None,
-            yrs[-1] if yrs else None))
+        k_old = next((k for k in keys if "_19" in k), None)
+        k_new = next((k for k in keys
+                      if "_201" in k or "_202" in k), None)
+        n_old = n_new = 0
+        if k_old:
+            b_ = gzip.decompress(s3.get_object(
+                Bucket=B, Key=k_old)["Body"].read())
+            n_old = b_.count(b"SURVEY_DATES")
+            json.loads(b_)
+        if k_new:
+            b_ = gzip.decompress(s3.get_object(
+                Bucket=B, Key=k_new)["Body"].read())
+            n_new = b_.count(b"SURVEY_DATES")
+            json.loads(b_)
+        R.log("  early %s series=%d | modern %s series=%d" % (
+            (k_old or "-").rsplit("/", 1)[-1], n_old,
+            (k_new or "-").rsplit("/", 1)[-1], n_new))
+        ok2 = bool(k_old) and n_new >= 10
     except Exception as e:
         R.log("  substance err %s" % str(e)[:110])
     R.log("G2 %s" % ("PASS" if ok2 else "FAIL"))

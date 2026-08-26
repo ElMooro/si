@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-ENGINE_VERSION = "justhodl-boj-full v1.1.2 ops4987 throughput"
+ENGINE_VERSION = "justhodl-boj-full v1.1.3 ops4987 manifest-totals"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 SITE = "https://www.stat-search.boj.or.jp"
 PAGE = SITE + "/info/dload_en.html"
@@ -258,8 +258,10 @@ def write_manifest(state):
                         for v in ok.values()) / 1e6, 1),
         "api_dbs": len(dbs),
         "api_invalid": len(ap.get("invalid") or {}),
-        "api_series": sum(len(m.get("codes") or [])
-                          for m in dbs.values()),
+        "api_series": sum(
+            len((_j(_dbstate_key(d)) or {}).get("codes")
+                or (m.get("codes") or [])) for d, m in
+            dbs.items()),
         "api_series_done": tot_done,
         "api_parts": tot_parts,
         "api_rows": tot_rows,
