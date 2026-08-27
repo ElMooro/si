@@ -69,7 +69,7 @@ with report("ops_5018_gf_parity") as rep:
     for mark in ("JH-5018", "build_gf_extras", "build_scores",
                  "build_valuation_ladder", "build_dupont",
                  '"rev_geo_seg"', '"analyst_est"', '"treasury"',
-                 '"gf_extras":', 'SCHEMA_CURRENT = "2.9.2"'):
+                 '"gf_extras":', 'SCHEMA_CURRENT = "2.9.3"'):
         if mark not in src:
             fails.append("lambda missing %r" % mark)
     page = (ROOT / "why.html").read_text()
@@ -102,8 +102,8 @@ with report("ops_5018_gf_parity") as rep:
         doc_kb = len(json.dumps(doc)) // 1024
         rep.kv(ticker=t, gen_s=round(time.time() - t0, 1),
                schema=doc.get("schema_version"), doc_kb=doc_kb)
-        if doc.get("schema_version") != "2.9.2":
-            fails.append(tag("schema %r != 2.9.2"
+        if doc.get("schema_version") != "2.9.3":
+            fails.append(tag("schema %r != 2.9.3"
                              % doc.get("schema_version")))
             continue
         X = doc.get("gf_extras") or {}
@@ -268,6 +268,14 @@ with report("ops_5018_gf_parity") as rep:
         elif t == "NVDA" and sy <= 0:
             fails.append(tag("NVDA shareholder yield must be positive "
                              "(buybacks+div): %s" % sy))
+        if (di.get("basis")) != "TTM":
+            fails.append(tag("shareholder yield not TTM basis: %r"
+                             % di.get("basis")))
+        ref = S.get("reference") or {}
+        if not isinstance(ref.get("piotroski"), (int, float)):
+            fails.append(tag("FMP score reference missing"))
+        rep.kv(ticker=t, ref_alt=ref.get("altman_z"),
+               ref_pio=ref.get("piotroski"))
         rep.kv(ticker=t, risk=RA.get("level"),
                transcripts=len(TL.get("rows") or []),
                news=len((NW.get("rows") or [])))

@@ -154,7 +154,7 @@ def census_idx(s3_client, bucket):
 
 CACHE_PREFIX = "equity-research/"
 CACHE_TTL    = 24 * 3600   # 24h cache (statements don't change daily)
-SCHEMA_CURRENT = "2.9.2"   # 2.9.2: row-order normalization + qr stats unwrap     # ops 5014: single source of truth — cache gate + doc assembly
+SCHEMA_CURRENT = "2.9.3"   # 2.9.3: technicals.stats beta source + TTM shareholder yield + endpoint score refs
 FETCH_TIMEOUT = 20         # FMP per-call timeout
 CLAUDE_TIMEOUT = 150        # was 90s, but bigger schema + transcript pushes to ~85s
 FALLBACK_BUDGET_S = 70      # hard cap on the GLM/Sonnet fallback so a slow LLM never
@@ -4806,9 +4806,18 @@ def build_liquidity_table(ia, ba, ratios_annual):
     return {"available": True, "rows": rows, "cash_conversion_days": ccc}
 
 
-def build_scores(ia, ba, ca, quote, rf_pct, beta):
+def build_scores(ia, ba, ca, quote, rf_pct, beta, fmp_scores=None):
     ia, ba, ca = _jh11_rows(ia), _jh11_rows(ba), _jh11_rows(ca)
     out = {}
+    fs = _jh_first(fmp_scores) or {}
+    if fs.get("altmanZScore") is not None or \
+            fs.get("piotroskiScore") is not None:
+        out["reference"] = {
+            "altman_z": fs.get("altmanZScore"),
+            "piotroski": fs.get("piotroskiScore"),
+            "note": ("FMP financial-scores endpoint values, shown "
+                     "beside our from-statement computation — formula "
+                     "variants can differ; both are real")}
     # ── Piotroski (9 components, FY vs prior FY) ──
     if len(ia) >= 2 and len(ba) >= 2 and len(ca) >= 1:
         i1, i0 = ia[-1], ia[-2]
@@ -5549,18 +5558,32 @@ def build_risk_assessment(quant_risk, altman, closes=None):
                        " Z<1.81; Medium if exactly one; Low otherwise")}
 
 
-def build_dividend_extra(ca, ia, quote):
+def build_dividend_extra(ca, ia, quote, cq=None):
     ia, ca = _jh11_rows(ia), _jh11_rows(ca)
     if not ca:
         return {"available": False, "reason": "no cashflow rows"}
     mcap = _jh11_g(quote, "marketCap")
-    c1 = ca[-1]
-    div = abs(_jh11_g(c1, "dividendsPaid", "netDividendsPaid") or 0)
-    rep = abs(_jh11_g(c1, "commonStockRepurchased") or 0)
-    iss = abs(_jh11_g(c1, "commonStockIssued") or 0)
+    _DV = ("dividendsPaid", "netDividendsPaid", "commonDividendsPaid")
+    _RP = ("commonStockRepurchased", "purchaseOfCommonStock")
+    _IS = ("commonStockIssued", "commonStockIssuance",
+           "issuanceOfCommonStock", "netCommonStockIssuance")
+    basis = "FY"
+    div = rep = iss = 0.0
+    cq_rows = _jh11_rows(cq)[-4:]
+    if len(cq_rows) == 4:
+        div = sum(abs(_jh11_g(r, *_DV) or 0) for r in cq_rows)
+        rep = sum(abs(_jh11_g(r, *_RP) or 0) for r in cq_rows)
+        iss = sum(abs(_jh11_g(r, *_IS) or 0) for r in cq_rows)
+        basis = "TTM"
+    if div == rep == iss == 0.0:
+        c1 = ca[-1]
+        div = abs(_jh11_g(c1, *_DV) or 0)
+        rep = abs(_jh11_g(c1, *_RP) or 0)
+        iss = abs(_jh11_g(c1, *_IS) or 0)
+        basis = "FY"
     sy = (100.0 * (div + rep - iss) / mcap) if mcap else None
     inputs = {"dividends": div, "buybacks": rep, "issuance": iss,
-              "mcap": mcap}
+              "mcap": mcap, "basis": basis}
     ratios = []
     sh = [_jh11_g(r, "weightedAverageShsOutDil",
                   "weightedAverageShsOut") for r in ia[-4:]]
@@ -5573,7 +5596,8 @@ def build_dividend_extra(ca, ia, quote):
                                       if sy is not None else None),
             "buyback_ratio_3y_avg_pct": bb3,
             "note": ("shareholder yield = (dividends + buybacks - "
-                     "issuance) / market cap; negative = issuance "
+                     "issuance) / market cap, trailing-twelve-month "
+                     "quarters when available; negative = issuance "
                      "dominates. Buyback ratio: positive = net "
                      "buybacks, negative = dilution")}
 
@@ -5591,7 +5615,8 @@ def build_gf_extras(raw, ia, iq, ba, bq, ca, closes, spy_closes, quote,
           if isinstance((quant_risk or {}).get("stats"), dict)
           else (quant_risk or {}))
     beta = qs.get("beta_2y")
-    scores = _jh18_safe(build_scores, ia, ba, ca, quote, rf, beta)
+    scores = _jh18_safe(build_scores, ia, ba, ca, quote, rf, beta,
+                       raw.get("scores"))
     wacc = ((scores or {}).get("wacc_roic") or {}).get("wacc_pct") or 10.0
     est = raw.get("analyst_est")
     est_rows = sorted([r for r in (est if isinstance(est, list) else [])
@@ -5632,7 +5657,8 @@ def build_gf_extras(raw, ia, iq, ba, bq, ca, closes, spy_closes, quote,
                                       (scores or {}).get("altman"),
                                       closes),
         "dividend_extra": _jh18_safe(build_dividend_extra, ca, ia,
-                                     quote),
+                                     quote,
+                                     raw.get("cashflow_quarterly")),
     }
 
 
@@ -6119,7 +6145,7 @@ def lambda_handler(event, context):
     jh18 = _jh11_safe(build_gf_extras, raw, _ia11, _iq11, _ba11, _bq18,
                       _ca11, jh11_closes, _spy17,
                       _jh_first(raw.get("quote")) or {},
-                      v2.get("quant_risk"),
+                      v2.get("technicals"),   # beta_2y + realized vol live in technicals.stats
                       ((jh11_val or {}).get("fair_value") or {}).get("value"),
                       ticker)
     try:
