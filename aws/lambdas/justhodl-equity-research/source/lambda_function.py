@@ -154,7 +154,7 @@ def census_idx(s3_client, bucket):
 
 CACHE_PREFIX = "equity-research/"
 CACHE_TTL    = 24 * 3600   # 24h cache (statements don't change daily)
-SCHEMA_CURRENT = "2.7.2"  # 2.7.2: filings ladder FMP-a/FMP-b/EDGAR with formType parsing     # ops 5014: single source of truth — cache gate + doc assembly
+SCHEMA_CURRENT = "2.8"     # 2.8: momentum + dividend/buyback + JH composite score     # ops 5014: single source of truth — cache gate + doc assembly
 FETCH_TIMEOUT = 20         # FMP per-call timeout
 CLAUDE_TIMEOUT = 150        # was 90s, but bigger schema + transcript pushes to ~85s
 FALLBACK_BUDGET_S = 70      # hard cap on the GLM/Sonnet fallback so a slow LLM never
@@ -4429,6 +4429,197 @@ def build_company_records(raw, income_annual, closes, ticker, today):
             "index_membership": _jh15_index_membership(ticker)}
 
 
+# ══════════════════════════════════════════════════════════════════════
+# JH-5017 — composite score, momentum, dividend & buy back
+# (ops 5017, additive; equity-research v2.8)
+# The GF-Score-style crown: five sub-ranks (strength, profitability,
+# growth, value, momentum) → a /100 composite with VISIBLE weights and
+# unknown-renormalization; a momentum panel (1M/3M/6M/12M vs SPY, 52w
+# band); a Dividend & Buy Back panel. Real data only; every unknown is
+# excluded, never guessed.
+# ══════════════════════════════════════════════════════════════════════
+
+
+def _jh17_ret(closes, nd):
+    if not closes or len(closes) <= nd:
+        return None
+    a, b = closes[-1 - nd][1], closes[-1][1]
+    return round(100.0 * (b / a - 1), 2) if a > 0 else None
+
+
+def build_momentum(closes, spy_closes):
+    if not closes or len(closes) < 130:
+        return {"available": False, "reason": "insufficient price history"}
+    horizons = [("1M", 21), ("3M", 63), ("6M", 126), ("12M", 252)]
+    rows = []
+    for label, nd in horizons:
+        st = _jh17_ret(closes, nd)
+        sp = _jh17_ret(spy_closes, nd) if spy_closes else None
+        rows.append({"h": label, "stock": st, "spy": sp,
+                     "rel": (round(st - sp, 2)
+                             if st is not None and sp is not None else None)})
+    yr = closes[-252:] if len(closes) >= 252 else closes
+    hi = max(c for _, c in yr)
+    lo = min(c for _, c in yr)
+    cur = closes[-1][1]
+    band = {"low": round(lo, 2), "high": round(hi, 2),
+            "current": round(cur, 2),
+            "pos_pct": (round(100.0 * (cur - lo) / (hi - lo), 0)
+                        if hi > lo else None)}
+    pts, mx = 0.0, 0.0
+
+    def score(v, bands):
+        nonlocal pts, mx
+        if v is None:
+            return
+        mx += bands[0][1]
+        for th, p in bands:
+            if v >= th:
+                pts += p
+                return
+    for r in rows:
+        score(r["rel"], [(5, 2), (0, 1.4), (-10, 0.7), (-1e9, 0)])
+    score(band["pos_pct"], [(80, 2), (50, 1.4), (20, 0.7), (-1e9, 0)])
+    rank = max(1, min(10, round(10 * pts / mx))) if mx else None
+    return {"available": True, "rows": rows, "band_52w": band,
+            "rank": rank,
+            "rubric": ("rank = rubric on 1M/3M/6M/12M return vs SPY and "
+                       "position in the 52-week range — thresholds "
+                       "absolute, unknowns excluded")}
+
+
+def build_dividend_buyback(raw, income_annual, cashflow_annual,
+                           quant_risk, closes):
+    divs = [r for r in (raw.get("dividends") or [])
+            if isinstance(r, dict) and r.get("date")]
+    px = closes[-1][1] if closes else None
+    out = {"available": True}
+    if not divs:
+        out["dividend"] = {"pays": False,
+                           "note": "no dividend has ever been paid — "
+                                   "yield, payout and growth are 0 by "
+                                   "fact, not by omission"}
+    else:
+        divs = sorted(divs, key=lambda r: r["date"])
+        last_dt = divs[-1]["date"]
+        cutoff = ("%04d" % (int(last_dt[:4]) - 1)) + last_dt[4:]
+        ttm = sum((r.get("adjDividend") or r.get("dividend") or 0)
+                  for r in divs if r["date"] > cutoff)
+        by_year = {}
+        for r in divs:
+            by_year.setdefault(r["date"][:4], 0.0)
+            by_year[r["date"][:4]] += (r.get("adjDividend") or
+                                       r.get("dividend") or 0)
+        yrs = sorted(by_year)
+        consec = 0
+        for y in yrs[::-1]:
+            if by_year[y] > 0:
+                consec += 1
+            else:
+                break
+        # trailing-365d windows anchored on the last payment — a partial
+        # calendar year can never fake a decline (or hide one)
+        def _win(lo, hi):
+            return sum((r.get("adjDividend") or r.get("dividend") or 0)
+                       for r in divs if lo < r["date"] <= hi)
+        y0 = int(last_dt[:4])
+        g1 = ttm
+        g0 = _win("%04d%s" % (y0 - 4, last_dt[4:]),
+                  "%04d%s" % (y0 - 3, last_dt[4:]))
+        cagr3 = (round(((g1 / g0) ** (1 / 3.0) - 1) * 100, 1)
+                 if g0 > 0 and g1 > 0 else None)
+        ia = _jh11_rows(income_annual)
+        ca = _jh11_rows(cashflow_annual)
+        ni = _jh11_g(ia[-1], "netIncome") if ia else None
+        paid = abs(_jh11_g(ca[-1], "dividendsPaid",
+                           "netDividendsPaid") or 0) if ca else 0
+        out["dividend"] = {
+            "pays": ttm > 0,
+            "ttm_per_share": round(ttm, 4),
+            "yield_pct": (round(100.0 * ttm / px, 2)
+                          if px and ttm > 0 else None),
+            "payout_pct": (round(100.0 * paid / ni, 1)
+                           if ni and ni > 0 and paid else None),
+            "payout_note": ("payout undefined — company is loss-making"
+                            if ni is not None and ni <= 0 and paid
+                            else None),
+            "growth_3y_cagr_pct": cagr3,
+            "consecutive_years": consec}
+    ca = _jh11_rows(cashflow_annual)
+    rep = abs(_jh11_g(ca[-1], "commonStockRepurchased") or 0) if ca else 0
+    iss = abs(_jh11_g(ca[-1], "commonStockIssued") or 0) if ca else 0
+    dil = _jh11_g(quant_risk if isinstance(quant_risk, dict) else {},
+                  "dilution_3y_cagr_pct")
+    out["buyback"] = {
+        "repurchased_last_fy": rep, "issued_last_fy": iss,
+        "share_count_3y_cagr_pct": dil,
+        "note": ("negative share-count CAGR = net buybacks; positive = "
+                 "net dilution — from diluted share counts, not "
+                 "announcements")}
+    return out
+
+
+def build_jh_score(sp_block, growth_block, val_block, momentum_block):
+    """Composite /100 from five sub-ranks with visible weights.
+    Unknown components are excluded and the weights renormalize —
+    the score never pretends to know what it doesn't."""
+    comps = []
+
+    def add(name, rank, weight):
+        comps.append({"name": name, "rank": rank, "weight": weight})
+    sp = sp_block if isinstance(sp_block, dict) else {}
+    add("Financial strength",
+        ((sp.get("strength") or {}).get("rank")), 0.30)
+    add("Profitability",
+        ((sp.get("profitability") or {}).get("rank")), 0.25)
+
+    g_rank = None
+    gb = growth_block if isinstance(growth_block, dict) else {}
+    if gb.get("available"):
+        pts, mx = 0.0, 0.0
+        for row in gb.get("rows", []):
+            if row.get("metric") not in ("Revenue", "Operating income",
+                                         "EPS (diluted)"):
+                continue
+            for k in ("cagr_3y", "cagr_5y"):
+                v = row.get(k)
+                if v is None:
+                    continue
+                mx += 2
+                pts += 2 if v >= 15 else 1.4 if v >= 7 else \
+                    0.7 if v >= 0 else 0
+        g_rank = max(1, min(10, round(10 * pts / mx))) if mx else None
+    add("Growth", g_rank, 0.20)
+
+    v_rank = None
+    vb = val_block if isinstance(val_block, dict) else {}
+    ratio = ((vb.get("fair_value") or {}).get("price_to_fv")
+             if vb.get("available") else None)
+    if ratio is not None and ratio > 0:
+        v_rank = (10 if ratio <= 0.5 else 9 if ratio <= 0.7 else
+                  8 if ratio <= 0.85 else 6 if ratio <= 1.15 else
+                  4 if ratio <= 1.6 else 2 if ratio <= 2.2 else 1)
+    add("Value (price vs model FV)", v_rank, 0.15)
+
+    mb = momentum_block if isinstance(momentum_block, dict) else {}
+    add("Momentum", mb.get("rank") if mb.get("available") else None, 0.10)
+
+    known = [c for c in comps if c["rank"] is not None]
+    if not known:
+        return {"available": False, "reason": "no sub-ranks computable"}
+    wsum = sum(c["weight"] for c in known)
+    score = round(sum(c["rank"] * c["weight"] for c in known)
+                  / wsum * 10)
+    score = max(1, min(100, score))
+    return {"available": True, "score": score, "components": comps,
+            "weights_note": ("strength 30% · profitability 25% · growth "
+                             "20% · value 15% · momentum 10% — unknown "
+                             "components excluded, weights renormalized"),
+            "disclaimer": ("a mechanical composite of the rubric ranks "
+                           "above — research shorthand, not a rating or "
+                           "a recommendation")}
+
+
 def lambda_handler(event, context):
     t0 = time.time()
 
@@ -4896,6 +5087,17 @@ def lambda_handler(event, context):
                           ticker,
                           datetime.now(timezone.utc).strftime("%Y-%m-%d"))
 
+    # ── ops 5017: momentum / dividend & buyback / JH composite score
+    try:
+        _spy17 = _jh_closes(raw.get("spy_light"), min_len=60)
+    except Exception:
+        _spy17 = []
+    jh17_mom = _jh11_safe(build_momentum, jh11_closes, _spy17)
+    jh17_div = _jh11_safe(build_dividend_buyback, raw, _ia11, _ca11,
+                          v2.get("quant_risk"), jh11_closes)
+    jh17_score = _jh11_safe(build_jh_score, jh11_sp, jh11_growth,
+                            jh11_val, jh17_mom)
+
     # ── Assemble final document
     document = {
         "schema_version": SCHEMA_CURRENT,  # v2.4: + classification/price_analytics/industry_growth (ops 5010)  # v2.3: + dilution Pillar 6 (ops 3289);  # v2.2: + earnings_vol_edge (#6 realized-vs-implied + PEAD); v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
@@ -4913,7 +5115,10 @@ def lambda_handler(event, context):
         "signals":                jh11_sig,       # ops 5011
         "peer_returns":           jh11_ret,       # ops 5011
         "statement_flows":        jh13_flows,     # ops 5013
-        "company_records":        jh15_rec,       # ops 5015      # ops 5010
+        "company_records":        jh15_rec,       # ops 5015
+        "momentum_panel":         jh17_mom,       # ops 5017
+        "dividend_buyback":       jh17_div,       # ops 5017
+        "jh_score":               jh17_score,     # ops 5017      # ops 5010
         "industry_compass":   v2.get("industry_compass"),
         "backlog":            v2.get("backlog"),
         "dilution":           v2.get("dilution"),  # ops 3289 Pillar 6

@@ -5376,5 +5376,170 @@ else{var _q=new URLSearchParams(location.search);
 })();
 
 </script>
+
+<script id="OPS5017">
+/* ops 5017 ADDITIVE — the crown of the GuruFocus layout: composite
+   JH Score /100 wheel with its five sub-rank bars, the Momentum panel
+   (1M/3M/6M/12M vs SPY + 52-week band), and the Dividend & Buy Back
+   panel. v2.8 payload; ticker-bus driven (ops 5016), self-healing and
+   self-positioning ABOVE the 5010 stack, in-place auto-upgrade. */
+(function(){
+'use strict';
+var CDN='https://justhodl-data-proxy.raafouis.workers.dev/equity-research/';
+var LIVE='https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/';
+var C={cy:'#22d3ee',gn:'#34d399',rd:'#f87171',am:'#fbbf24',bl:'#60a5fa',
+       gy:'#8fa3c0',dim:'#5d6b82',bg:'#1b2230',ink:'#dfe7f3'};
+function E(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function N(v,d){return (v==null||isNaN(v))?'\u2014':Number(v).toLocaleString(undefined,{maximumFractionDigits:d==null?2:d});}
+function P(v,d){return (v==null||isNaN(v))?'\u2014':(v>=0?'+':'')+Number(v).toFixed(d==null?2:d)+'%';}
+function pc(v){return v==null?C.gy:(v>=0?C.gn:C.rd);}
+function rcol(r){return r==null?C.gy:r>=7?C.gn:r>=4?C.am:C.rd;}
+function card(t,b){return '<div style="border:1px solid #232c3f;border-radius:8px;padding:10px 12px;background:rgba(15,20,30,.35)"><div style="font-weight:800;color:'+C.ink+';margin:0 0 6px">'+t+'</div>'+b+'</div>';}
+
+function wheel(S){
+  var sc=S.score, col=sc>=70?C.gn:sc>=40?C.am:C.rd, r=52, cir=2*Math.PI*r;
+  var svg='<svg viewBox="0 0 130 130" style="width:128px;height:128px;flex:none" role="img" aria-label="JH Score '+sc+' of 100">'
+   +'<circle cx="65" cy="65" r="'+r+'" stroke="'+C.bg+'" stroke-width="12" fill="none"/>'
+   +'<circle cx="65" cy="65" r="'+r+'" stroke="'+col+'" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="'+(cir*sc/100).toFixed(1)+' '+cir.toFixed(1)+'" transform="rotate(-90 65 65)"/>'
+   +'<text x="65" y="62" font-size="30" font-weight="800" fill="'+col+'" text-anchor="middle">'+sc+'</text>'
+   +'<text x="65" y="82" font-size="10" fill="'+C.dim+'" text-anchor="middle">/ 100</text></svg>';
+  var bars='';(S.components||[]).forEach(function(c){
+    var col2=rcol(c.rank), w=c.rank==null?0:c.rank*10;
+    bars+='<div style="display:grid;grid-template-columns:190px 1fr 66px;gap:8px;align-items:center;padding:3px 0">'
+     +'<span style="color:'+C.gy+'">'+E(c.name)+' <span style="color:'+C.dim+';font-size:9px">('+Math.round(c.weight*100)+'%)</span></span>'
+     +'<span style="display:block;height:8px;border-radius:4px;background:'+C.bg+';position:relative"><span style="position:absolute;left:0;top:0;height:8px;border-radius:4px;width:'+w+'%;background:'+col2+'"></span></span>'
+     +'<span style="text-align:right;font-weight:800;color:'+col2+'">'+(c.rank==null?'\u2014':c.rank+'/10')+'</span></div>';});
+  return '<div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap"><div style="text-align:center">'+svg+'<div style="font-size:9.5px;color:'+C.dim+'">JH Score</div></div>'
+   +'<div style="flex:1;min-width:290px">'+bars
+   +'<div style="color:'+C.dim+';font-size:9.5px;margin-top:4px">'+E(S.weights_note)+'</div>'
+   +'<div style="color:'+C.dim+';font-size:9.5px">'+E(S.disclaimer)+'</div></div></div>';
+}
+function momCard(M){
+  if(!M.available)return card('\u26a1 Momentum',
+    '<div style="color:'+C.dim+'">momentum unavailable \u2014 '+E(M.reason)+'. Nothing is invented in its place.</div>');
+  var mx=10;(M.rows||[]).forEach(function(r){['stock','spy'].forEach(function(k){if(r[k]!=null)mx=Math.max(mx,Math.abs(r[k]));});});
+  var h='<table style="width:100%;border-collapse:collapse;font-size:10.5px"><tr><th style="text-align:left;color:'+C.dim+';font-weight:400">horizon</th><th style="text-align:right;color:'+C.dim+';font-weight:400">stock</th><th style="text-align:right;color:'+C.dim+';font-weight:400">SPY</th><th style="text-align:right;color:'+C.dim+';font-weight:400">vs SPY</th><th style="min-width:110px"></th></tr>';
+  (M.rows||[]).forEach(function(r){
+    var w1=r.stock==null?0:Math.min(52,52*Math.abs(r.stock)/mx),w2=r.spy==null?0:Math.min(52,52*Math.abs(r.spy)/mx);
+    h+='<tr><td style="padding:3px 0;border-bottom:1px solid #1a2130">'+E(r.h)+'</td>'
+     +'<td style="padding:3px 6px;border-bottom:1px solid #1a2130;text-align:right;color:'+pc(r.stock)+';font-weight:700">'+P(r.stock)+'</td>'
+     +'<td style="padding:3px 6px;border-bottom:1px solid #1a2130;text-align:right;color:'+pc(r.spy)+'">'+P(r.spy)+'</td>'
+     +'<td style="padding:3px 6px;border-bottom:1px solid #1a2130;text-align:right;color:'+pc(r.rel)+';font-weight:800">'+P(r.rel)+'</td>'
+     +'<td style="padding:3px 0;border-bottom:1px solid #1a2130"><span style="display:inline-block;height:7px;border-radius:3px;background:'+pc(r.stock)+';opacity:.85;width:'+w1.toFixed(0)+'px;margin-right:3px"></span><span style="display:inline-block;height:7px;border-radius:3px;background:'+C.dim+';opacity:.7;width:'+w2.toFixed(0)+'px"></span></td></tr>';});
+  h+='</table>';
+  var b=M.band_52w||{};
+  if(b.pos_pct!=null){
+    h+='<div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:10px"><span style="color:'+C.dim+'">52w $'+N(b.low)+'</span>'
+     +'<span style="position:relative;display:block;flex:1;height:7px;border-radius:4px;background:linear-gradient(90deg,'+C.rd+'33,'+C.gn+'33)">'
+     +'<span style="position:absolute;left:calc('+b.pos_pct+'% - 4px);top:-2.5px;width:9px;height:12px;border-radius:3px;background:'+C.cy+'"></span></span>'
+     +'<span style="color:'+C.dim+'">$'+N(b.high)+'</span><span style="color:'+C.cy+';font-weight:700">now $'+N(b.current)+' \u00b7 p'+N(b.pos_pct,0)+'</span></div>';}
+  var rk=M.rank;
+  h+='<div style="margin-top:7px">rank <b style="color:'+rcol(rk)+'">'+(rk==null?'\u2014':rk+'/10')+'</b> <span style="color:'+C.dim+';font-size:9.5px">\u00b7 '+E(M.rubric)+'</span></div>';
+  return card('\u26a1 Momentum \u2014 vs SPY',h);
+}
+function divCard(D){
+  if(!D.available)return card('\ud83d\udcb0 Dividend & Buy Back','<div style="color:'+C.dim+'">unavailable \u2014 '+E(D.reason)+'.</div>');
+  var dv=D.dividend||{},bb=D.buyback||{},h='';
+  if(dv.pays===false){h+='<div style="color:'+C.gy+'">'+E(dv.note)+'</div>';}
+  else{
+    function row(l,v){return '<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid #1a2130"><span style="color:'+C.gy+'">'+l+'</span><b>'+v+'</b></div>';}
+    h+=row('Dividend / share (TTM)','$'+N(dv.ttm_per_share,4));
+    h+=row('Yield',dv.yield_pct==null?'\u2014':N(dv.yield_pct)+'%');
+    h+=row('Payout ratio',dv.payout_pct==null?'<span style="color:'+C.dim+'">'+E(dv.payout_note||'\u2014')+'</span>':N(dv.payout_pct,1)+'%');
+    h+=row('3-yr dividend CAGR',dv.growth_3y_cagr_pct==null?'\u2014':'<span style="color:'+pc(dv.growth_3y_cagr_pct)+'">'+P(dv.growth_3y_cagr_pct,1)+'</span>');
+    h+=row('Consecutive years paid',N(dv.consecutive_years,0));
+  }
+  var d3=bb.share_count_3y_cagr_pct;
+  h+='<div style="margin-top:8px;color:'+C.gy+'">Buy back \u00b7 last FY: repurchased <b style="color:'+C.gn+'">$'+N((bb.repurchased_last_fy||0)/1e6,1)+'M</b> \u00b7 issued <b style="color:'+C.rd+'">$'+N((bb.issued_last_fy||0)/1e6,1)+'M</b></div>'
+   +'<div>share count 3y: <b style="color:'+pc(d3==null?null:-d3)+'">'+(d3==null?'\u2014':P(d3,1)+'/yr')+'</b></div>'
+   +'<div style="color:'+C.dim+';font-size:9.5px;margin-top:3px">'+E(bb.note)+'</div>';
+  return card('\ud83d\udcb0 Dividend & Buy Back',h);
+}
+
+var TK=null,GEN=0,DOC=null,_hb=null;
+function sec(){return '<section class="block" id="jh5017"><div class="sub"><span class="ico">\ud83c\udfaf</span> JH Score \u2014 '+E(TK)+' <span style="color:'+C.dim+';font-weight:400">\u2014 composite of the five rubric ranks \u00b7 momentum \u00b7 dividend &amp; buy back</span></div><div id="jh5017-b" style="font-family:var(--font-mono,monospace);font-size:11.5px;color:var(--text,#dfe7f3)">loading\u2026</div></section>';}
+function mount(){
+  var _old=document.getElementById('jh5017-wrap');
+  if(_old&&_old.parentNode)_old.parentNode.removeChild(_old);
+  var host=document.createElement('div');host.id='jh5017-wrap';host.innerHTML=sec();
+  var t=document.getElementById('jh5010-wrap');
+  if(t&&t.parentNode){t.parentNode.insertBefore(host,t);return host;}
+  var anchor=null,subs=document.querySelectorAll('.sub');
+  for(var i=0;i<subs.length;i++){if(subs[i].textContent.indexOf('Quantitative Risk')>=0){anchor=subs[i].closest('section');break;}}
+  if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(host,anchor.nextSibling);
+  else (document.getElementById('content')||document.body).appendChild(host);
+  return host;
+}
+function guard(heal){
+  var t0=Date.now();
+  function tick(){try{heal();}catch(e){}}
+  try{var mo=new MutationObserver(function(){if(_hb)return;
+    _hb=setTimeout(function(){_hb=null;tick();},700);});
+    mo.observe(document.body,{childList:true,subtree:true});
+    setTimeout(function(){try{mo.disconnect();}catch(e){}},300000);}catch(e){}
+  var iv=setInterval(function(){tick();if(Date.now()-t0>300000)clearInterval(iv);},1500);
+}
+function draw(){
+  mount();
+  var b=document.getElementById('jh5017-b');
+  var S=DOC.jh_score||{},M=DOC.momentum_panel||{},D=DOC.dividend_buyback||{};
+  var h='';
+  if(S.available)h+=wheel(S);
+  else h+='<div style="color:'+C.dim+'">composite score unavailable \u2014 '+E(S.reason)+'. Nothing is invented in its place.</div>';
+  h+='<div class="jh5017-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">'+momCard(M)+divCard(D)+'</div>';
+  b.innerHTML=h;
+  if(S.available){
+    var v=document.getElementById('jhVitalsTop');
+    if(v&&!document.getElementById('jh5017-chip')){
+      var col=S.score>=70?C.gn:S.score>=40?C.am:C.rd;
+      var el=document.createElement('span');el.id='jh5017-chip';
+      el.style.cssText='border:1.5px solid '+col+';color:'+col+';border-radius:6px;padding:2px 9px;font-size:.74rem;font-weight:800;margin:0 6px 4px 0;display:inline-block;font-family:var(--font-mono,monospace)';
+      el.textContent='JH SCORE '+S.score+'/100';
+      (v.children[1]||v).insertAdjacentElement('beforebegin',el);
+      if(!el.isConnected)v.appendChild(el);
+    }
+  }
+}
+function jhStart(_t){
+  TK=_t;GEN++;var _g=GEN;DOC=null;
+  var _c=document.getElementById('jh5017-chip');if(_c&&_c.parentNode)_c.parentNode.removeChild(_c);
+  var _w=document.getElementById('jh5017-wrap');if(_w&&_w.parentNode)_w.parentNode.removeChild(_w);
+  fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
+  .then(function(r){if(!r.ok)throw new Error('cdn '+r.status);return r.json();})
+  .then(function(d){if(_g!==GEN)return;
+    if(d&&d.jh_score){DOC=d;draw();
+      guard(function(){if(_g!==GEN)return;
+        var w=document.getElementById('jh5017-wrap');
+        var t=document.getElementById('jh5010-wrap');
+        if(((!w||!w.isConnected)||(t&&w&&w.nextElementSibling!==t))&&DOC)draw();});
+      return;}
+    mount();
+    var b=document.getElementById('jh5017-b');
+    if(b)b.innerHTML='<div style="color:'+C.dim+'">Building the current engine version for this ticker now \u2014 the JH Score, momentum and dividend panels will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
+    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+    guard(function(){if(_g!==GEN)return;if(!document.getElementById('jh5017-wrap'))mount();});
+    var _pt=0,_pl=setInterval(function(){if(_g!==GEN){clearInterval(_pl);return;}_pt++;
+      if(_pt>26){clearInterval(_pl);return;}
+      fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(nd){if(_g!==GEN){clearInterval(_pl);return;}if(nd&&nd.jh_score){clearInterval(_pl);
+        DOC=nd;draw();
+        guard(function(){if(_g!==GEN)return;
+          var w=document.getElementById('jh5017-wrap');
+          if((!w||!w.isConnected)&&DOC)draw();});}})
+      .catch(function(){});},12000);
+  })
+  .catch(function(e){console.warn('[ops5017]',e);});
+}
+(function(){var st=document.createElement('style');
+st.textContent='@media(max-width:760px){#jh5017-wrap .jh5017-grid{grid-template-columns:1fr !important}}';
+document.head.appendChild(st);})();
+if(window.__JH_TICKER_BUS){window.__JH_TICKER_BUS.subscribe(function(t){if(t!==TK)jhStart(t);});}
+else{var _q=new URLSearchParams(location.search);
+  var _t0=((_q.get('ticker')||_q.get('t'))||'').toUpperCase();
+  if(/^[A-Z0-9.\-^]{1,12}$/.test(_t0))jhStart(_t0);}
+})();
+
+</script>
 </body>
 </html>
