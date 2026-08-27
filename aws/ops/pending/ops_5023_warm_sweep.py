@@ -55,8 +55,20 @@ with report("ops_5023_warm_sweep") as rep:
             (rep.ok if ok else rep.fail)("%s %ss %s" % (t, dt, sch))
             if not ok:
                 bad.append(t)
+    if bad:
+        rep.section("P2 sequential retry of failures")
+        still = []
+        for t in bad:
+            time.sleep(2)
+            t2, ok, dt, sch = build(t)
+            (rep.ok if ok else rep.fail)(
+                "retry %s %ss %s" % (t2, dt, sch))
+            if not ok:
+                still.append(t2)
+        bad = still
     rep.kv(total_s=round(time.time() - t0, 1), tickers=len(TICKERS),
            failed=len(bad))
     if bad:
-        raise SystemExit("warm sweep failures: %s" % ",".join(bad))
+        raise SystemExit("warm sweep failures after retry: %s"
+                         % ",".join(bad))
     rep.ok("all 30 majors cached on 2.9.3 — instant CDN renders")
