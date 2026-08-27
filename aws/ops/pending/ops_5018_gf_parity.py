@@ -69,7 +69,7 @@ with report("ops_5018_gf_parity") as rep:
     for mark in ("JH-5018", "build_gf_extras", "build_scores",
                  "build_valuation_ladder", "build_dupont",
                  '"rev_geo_seg"', '"analyst_est"', '"treasury"',
-                 '"gf_extras":', 'SCHEMA_CURRENT = "2.9.1"'):
+                 '"gf_extras":', 'SCHEMA_CURRENT = "2.9.2"'):
         if mark not in src:
             fails.append("lambda missing %r" % mark)
     page = (ROOT / "why.html").read_text()
