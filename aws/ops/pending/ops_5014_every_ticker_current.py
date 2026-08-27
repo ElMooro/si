@@ -37,6 +37,8 @@ FN = "justhodl-equity-research"
 SRC = Path(__file__).resolve().parents[2] / "lambdas" / FN / "source"
 ROOT = Path(__file__).resolve().parents[3]
 
+B = "justhodl-dashboard-live"
+s3c = boto3.client("s3", region_name=REGION)
 lam = boto3.client("lambda", region_name=REGION, config=Config(
     connect_timeout=10, read_timeout=600, retries={"max_attempts": 0}))
 
@@ -67,9 +69,8 @@ def check_flows(rep, fails, t, doc):
     if doc.get("schema_version") != "2.6":
         fails.append(tag("schema %r != 2.6" % doc.get("schema_version")))
         return
-    if doc.get("from_cache") is True:
-        fails.append(tag("served from cache -- version gate did not fire"))
-        return
+    # from_cache=True with a CURRENT schema is the designed steady state
+    # (the fleet's daily refresh already rebuilt this ticker on v2.6).
     sf = doc.get("statement_flows") or {}
     if not sf.get("available"):
         fails.append(tag("statement_flows unavailable: %s" % sf.get("reason")))
@@ -122,6 +123,32 @@ with report("ops_5014_every_ticker_current") as rep:
     lam.update_function_code(FunctionName=FN, ZipFile=zip_bytes, Publish=True)
     lam.get_waiter("function_updated_v2").wait(FunctionName=FN)
     rep.ok("code updated; configuration/env untouched")
+
+    rep.section("P0 controlled stale-schema probe (ORCL)")
+    key = "equity-research/ORCL.json"
+    lam.invoke(FunctionName=FN, InvocationType="RequestResponse",
+               Payload=json.dumps(
+                   {"queryStringParameters": {"ticker": "ORCL"}}).encode())
+    obj = s3c.get_object(Bucket=B, Key=key)
+    doctored = json.loads(obj["Body"].read())
+    real_schema = doctored.get("schema_version")
+    doctored["schema_version"] = "2.5-test-stale"
+    s3c.put_object(Bucket=B, Key=key,
+                   Body=json.dumps(doctored).encode(),
+                   ContentType="application/json")
+    rep.log("ORCL cache doctored: schema %r -> 2.5-test-stale" % real_schema)
+    t0 = time.time()
+    doc = invoke("ORCL", refresh=False)   # plain path must treat it as MISS
+    rep.kv(ticker="ORCL", gen_s=round(time.time() - t0, 1),
+           from_cache=doc.get("from_cache"))
+    if doc.get("from_cache") is True:
+        fails.append("ORCL: doctored stale-schema doc was served from "
+                     "cache -- version gate did not fire")
+    check_flows(rep, fails, "ORCL", doc)
+    if fails:
+        for f in fails:
+            rep.fail(f)
+        raise SystemExit("stale-schema probe failed")
 
     rep.section("P1 behavioral proof on untouched tickers")
     t0 = time.time()
