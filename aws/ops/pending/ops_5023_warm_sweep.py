@@ -74,3 +74,5 @@ with report("ops_5023_warm_sweep") as rep:
         raise SystemExit("warm sweep failures after retry: %s"
                          % ",".join(bad))
     rep.ok("all 30 majors cached on 2.9.3 — instant CDN renders")
+
+# touch: rerun after cagr sign-flip fix

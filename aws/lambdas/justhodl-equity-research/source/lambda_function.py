@@ -1256,7 +1256,8 @@ def _first(maybe_list):
 
 
 def cagr(end_val: float, start_val: float, n_years: int) -> Optional[float]:
-    if start_val is None or end_val is None or start_val <= 0 or n_years <= 0:
+    if start_val is None or end_val is None or start_val <= 0 \
+            or end_val <= 0 or n_years <= 0:
         return None
     try:
         return (pow(end_val / start_val, 1 / n_years) - 1) * 100
