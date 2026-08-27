@@ -1,12 +1,20 @@
-executing-against: 1c4e141a61b504bb439d319d09c64585d7c52190
+executing-against: 5fc397ec0617a51ba90f9b7e72c392290f4847ac
 ops 5018 -- full GuruFocus summary parity (v2.9)
 ── G0 preflight ──
-[18:11:26] ✅ v2.9 markers, OPS5018 block, 6 bus subscriptions
+[18:16:20] ✅ v2.9 markers, OPS5018 block, 6 bus subscriptions
 ── G1 deploy (code only) ──
-[18:11:33] ✅ code updated; configuration/env untouched
+[18:16:27] ✅ code updated; configuration/env untouched
 ── P1 deep real-data asserts ──
-[18:11:40] ✗ AAOI: gf_extras unavailable
-[18:11:40] ✗ NVDA: gf_extras unavailable
+[18:16:32] ✅ AAOI: all gf_extras sections checked
+[18:16:34] ✅ NVDA: all gf_extras sections checked
+[18:16:34] ⚠ AAOI: AAOI FY-next consensus revenue outside expected band: 453M
+[18:16:34] ✗ AAOI: wacc missing
+[18:16:34] ✗ AAOI: valuation ladder thin
+[18:16:34] ✗ AAOI: fv band thin: not enough history for the anchor
+[18:16:34] ✗ AAOI: AAOI risk must assess High (vol/beta/drawdown): got 'Low'
+[18:16:34] ✗ NVDA: wacc missing
+[18:16:34] ✗ NVDA: valuation ladder thin
+[18:16:34] ✗ NVDA: fv band thin: not enough history for the anchor
 
 → Report written to aws/ops/reports/latest/ops_5018_gf_parity.md
 deep asserts failed
