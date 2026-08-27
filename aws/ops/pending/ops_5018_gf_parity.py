@@ -102,8 +102,8 @@ with report("ops_5018_gf_parity") as rep:
         doc_kb = len(json.dumps(doc)) // 1024
         rep.kv(ticker=t, gen_s=round(time.time() - t0, 1),
                schema=doc.get("schema_version"), doc_kb=doc_kb)
-        if doc.get("schema_version") != "2.9.1":
-            fails.append(tag("schema %r != 2.9.1"
+        if doc.get("schema_version") != "2.9.2":
+            fails.append(tag("schema %r != 2.9.2"
                              % doc.get("schema_version")))
             continue
         X = doc.get("gf_extras") or {}
@@ -130,8 +130,22 @@ with report("ops_5018_gf_parity") as rep:
         if not isinstance(be.get("m"), (int, float)):
             fails.append(tag("beneish missing"))
         wr = S.get("wacc_roic") or {}
-        if not isinstance(wr.get("wacc_pct"), (int, float)):
-            fails.append(tag("wacc missing"))
+        if not isinstance(wr.get("wacc_pct"), (int, float)) or \
+                not (2.0 <= wr["wacc_pct"] <= 45.0):
+            fails.append(tag("wacc missing/insane: %r (beta_used=%r "
+                             "rf=%r)" % (wr.get("wacc_pct"),
+                                         wr.get("beta_used"),
+                                         wr.get("rf_used"))))
+        if not isinstance(wr.get("roic_pct"), (int, float)):
+            fails.append(tag("roic missing"))
+        ali = al.get("inputs") or {}
+        if isinstance(al.get("z"), (int, float)) and not \
+                (0.2 <= al["z"] <= 80):
+            fails.append(tag("altman scale off: z=%s inputs=%s"
+                             % (al["z"], {k: round(v / 1e6, 1)
+                                          for k, v in ali.items()
+                                          if isinstance(v, (int, float))
+                                          })))
         rep.kv(ticker=t, piotroski=pi.get("total"),
                altman="%s(%s)" % (al.get("z"), al.get("zone")),
                beneish=be.get("m"), wacc=wr.get("wacc_pct"),
@@ -143,7 +157,13 @@ with report("ops_5018_gf_parity") as rep:
         LD = X.get("valuation_ladder") or {}
         if not LD.get("available") or len(LD.get("methods") or []) < 4 \
                 or not LD.get("price"):
-            fails.append(tag("valuation ladder thin"))
+            fails.append(tag("valuation ladder thin: %s methods=%s"
+                             % (LD.get("reason"),
+                                [m.get("name") for m in
+                                 (LD.get("methods") or [])])))
+        else:
+            rep.kv(ticker=t, ladder_methods=len(LD["methods"]),
+                   ladder_sh_m=LD.get("sh_used"))
         FB = X.get("fv_band") or {}
         if not FB.get("available") or \
                 len(FB.get("monthly_price") or []) < 36 or \
@@ -189,6 +209,11 @@ with report("ops_5018_gf_parity") as rep:
             if not pr.get("available"):
                 fails.append(tag("AAOI product mix missing"))
         ES = X.get("estimates") or {}
+        if ES.get("available") and ES.get("rows"):
+            first_fy = ES["rows"][0]["fy"]
+            if first_fy < time.strftime("%Y-%m"):
+                fails.append(tag("estimates leak past FY: %s"
+                                 % first_fy))
         if ES.get("available"):
             r0 = (ES.get("rows") or [{}])[0]
             rep.kv(ticker=t, est_fy=r0.get("fy"),
@@ -229,11 +254,21 @@ with report("ops_5018_gf_parity") as rep:
             fails.append(tag("AAOI risk must assess High (vol/beta/"
                              "drawdown): got %r" % RA.get("level")))
         DE = X.get("dividend_extra") or {}
-        if not isinstance(DE.get("shareholder_yield_pct"),
-                          (int, float)):
-            fails.append(tag("shareholder yield missing"))
+        sy = DE.get("shareholder_yield_pct")
+        di = DE.get("inputs") or {}
+        rep.kv(ticker=t, sh_yield=sy,
+               de_div_m=round((di.get("dividends") or 0) / 1e6, 1),
+               de_buyb_m=round((di.get("buybacks") or 0) / 1e6, 1),
+               de_iss_m=round((di.get("issuance") or 0) / 1e6, 1))
+        if not isinstance(sy, (int, float)) or sy == 0.0:
+            fails.append(tag("shareholder yield zero/missing"))
+        elif t == "AAOI" and sy >= 0:
+            fails.append(tag("AAOI shareholder yield must be negative "
+                             "(heavy issuance): %s" % sy))
+        elif t == "NVDA" and sy <= 0:
+            fails.append(tag("NVDA shareholder yield must be positive "
+                             "(buybacks+div): %s" % sy))
         rep.kv(ticker=t, risk=RA.get("level"),
-               sh_yield=DE.get("shareholder_yield_pct"),
                transcripts=len(TL.get("rows") or []),
                news=len((NW.get("rows") or [])))
         rep.ok(tag("all gf_extras sections checked"))

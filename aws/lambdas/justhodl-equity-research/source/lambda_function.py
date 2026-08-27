@@ -154,7 +154,7 @@ def census_idx(s3_client, bucket):
 
 CACHE_PREFIX = "equity-research/"
 CACHE_TTL    = 24 * 3600   # 24h cache (statements don't change daily)
-SCHEMA_CURRENT = "2.9.1"   # 2.9.1: gf_extras self-contained safe wrapper     # ops 5014: single source of truth — cache gate + doc assembly
+SCHEMA_CURRENT = "2.9.2"   # 2.9.2: row-order normalization + qr stats unwrap     # ops 5014: single source of truth — cache gate + doc assembly
 FETCH_TIMEOUT = 20         # FMP per-call timeout
 CLAUDE_TIMEOUT = 150        # was 90s, but bigger schema + transcript pushes to ~85s
 FALLBACK_BUDGET_S = 70      # hard cap on the GLM/Sonnet fallback so a slow LLM never
@@ -4676,6 +4676,7 @@ def _jh18_series(ratios_annual, *names):
 
 
 def build_fin_strength_table(ia, ba, ratios_annual, rt):
+    ia, ba = _jh11_rows(ia), _jh11_rows(ba)   # accept raw newest-first feeds
     b, b1 = (ba[-1] if ba else {}), (ba[-2] if len(ba) > 1 else {})
     i = ia[-1] if ia else {}
     cash = (_jh11_g(b, "cashAndCashEquivalents") or 0) + \
@@ -4716,6 +4717,7 @@ def build_fin_strength_table(ia, ba, ratios_annual, rt):
 
 
 def build_profitability_table(ia, ba, ratios_annual):
+    ia, ba = _jh11_rows(ia), _jh11_rows(ba)
     i = ia[-1] if ia else {}
     rev = _jh11_g(i, "revenue")
     if not rev:
@@ -4765,6 +4767,7 @@ def build_profitability_table(ia, ba, ratios_annual):
 
 
 def build_liquidity_table(ia, ba, ratios_annual):
+    ia, ba = _jh11_rows(ia), _jh11_rows(ba)
     b = ba[-1] if ba else {}
     i = ia[-1] if ia else {}
     ca = _jh11_g(b, "totalCurrentAssets")
@@ -4804,6 +4807,7 @@ def build_liquidity_table(ia, ba, ratios_annual):
 
 
 def build_scores(ia, ba, ca, quote, rf_pct, beta):
+    ia, ba, ca = _jh11_rows(ia), _jh11_rows(ba), _jh11_rows(ca)
     out = {}
     # ── Piotroski (9 components, FY vs prior FY) ──
     if len(ia) >= 2 and len(ba) >= 2 and len(ca) >= 1:
@@ -4865,6 +4869,8 @@ def build_scores(ia, ba, ca, quote, rf_pct, beta):
                  0.6 * mcap / tl + 1.0 * sales / ta)
             out["altman"] = {
                 "z": round(z, 2),
+                "inputs": {"wc": wc, "re": re, "ebit": ebit, "tl": tl,
+                           "mcap": mcap, "sales": sales, "ta": ta},
                 "zone": ("Safe" if z > 2.99 else
                          "Grey" if z >= 1.81 else "Distress"),
                 "note": "original 1968 coefficients; market cap from "
@@ -4956,6 +4962,7 @@ def build_scores(ia, ba, ca, quote, rf_pct, beta):
                     if op is not None and ic > 0 else None)
             out["wacc_roic"] = {
                 "wacc_pct": round(wacc, 2),
+                "beta_used": round(beta, 2), "rf_used": round(rf_pct, 2),
                 "roic_pct": round(roic, 2) if roic is not None else None,
                 "spread_pct": (round(roic - wacc, 2)
                                if roic is not None else None),
@@ -4994,9 +5001,12 @@ def _jh18_ttm(iq, *names, n=4):
 
 def build_valuation_ratios(ia, iq, ba, ca, quote, closes, est_rows,
                            model_fv, wacc_pct):
+    ia, iq, ba, ca = (_jh11_rows(ia), _jh11_rows(iq), _jh11_rows(ba),
+                      _jh11_rows(ca))
     px = _jh11_g(quote, "price") or (closes[-1][1] if closes else None)
     mcap = _jh11_g(quote, "marketCap")
-    sh = _jh11_g(quote, "sharesOutstanding")
+    sh = _jh11_g(quote, "sharesOutstanding") or (
+        mcap / px if mcap and px else None)
     if not px or not mcap:
         return {"available": False, "reason": "no live quote"}
     b = ba[-1] if ba else {}
@@ -5073,8 +5083,10 @@ def build_valuation_ratios(ia, iq, ba, ca, quote, closes, est_rows,
 
 def build_valuation_ladder(ia, ba, ca, quote, model_fv, wacc_pct,
                            med_ps_value):
+    ia, ba, ca = _jh11_rows(ia), _jh11_rows(ba), _jh11_rows(ca)
     px = _jh11_g(quote, "price")
-    sh = _jh11_g(quote, "sharesOutstanding")
+    sh = _jh11_g(quote, "sharesOutstanding") or (
+        (_jh11_g(quote, "marketCap") or 0) / px if px else None)
     if not px or not sh:
         return {"available": False, "reason": "no live quote"}
     b = ba[-1] if ba else {}
@@ -5122,7 +5134,7 @@ def build_valuation_ladder(ia, ba, ca, quote, model_fv, wacc_pct,
     ]
     methods = [m for m in methods if m["value"] is not None]
     return {"available": bool(methods), "price": round(px, 2),
-            "methods": methods,
+            "sh_used": round(sh / 1e6, 2), "methods": methods,
             "assumptions": ("EPV = 5y avg EBIT x (1-21%%) / max(WACC,8%%)"
                             "; DCF-lite grows 3y-avg FCF at %s%% "
                             "(clamped -5..15) for 10y, 2%% terminal; "
@@ -5134,6 +5146,7 @@ def build_valuation_ladder(ia, ba, ca, quote, model_fv, wacc_pct,
 def build_fv_band(ia, iq, closes, quote):
     """price (monthly, 5y) vs a median-P/S anchor band ±30% — clearly
     labeled; this is OUR anchor, not GuruFocus's proprietary line."""
+    ia = _jh11_rows(ia)
     if not closes or len(closes) < 300:
         return {"available": False, "reason": "insufficient prices"}
     monthly = []
@@ -5143,7 +5156,9 @@ def build_fv_band(ia, iq, closes, quote):
             monthly.append([d[:7], round(c, 2)])
             last_m = d[:7]
     monthly = monthly[-61:]
-    sh = _jh11_g(quote, "sharesOutstanding")
+    sh = _jh11_g(quote, "sharesOutstanding") or (
+        (_jh11_g(quote, "marketCap") or 0) /
+        (_jh11_g(quote, "price") or 1) or None)
     anchors = []
     for r in ia[-6:]:
         y = r["date"][:4]
@@ -5237,7 +5252,7 @@ def build_key_stats(closes, spy_closes, rf_pct, quote, iq, quant_risk):
     return {"available": True,
             "rev_ttm": _jh18_ttm(iq, "revenue"),
             "eps_ttm": _jh18_ttm(iq, "epsDiluted", "epsdiluted", "eps"),
-            "beta_2y": (quant_risk or {}).get("beta_2y"),
+            "beta_2y": (quant_risk or {}).get("beta_2y"),   # caller passes the stats dict
             "vol_ann_pct": round(sd * (252 ** 0.5) * 100, 1),
             "sharpe_3y": round(sharpe, 2) if sharpe is not None else None,
             "sortino_3y": (round(sortino, 2)
@@ -5294,6 +5309,7 @@ def build_dupont(iq, bq_raw):
 
 
 def build_financial_minis(ia, ba, ca):
+    ia, ba, ca = _jh11_rows(ia), _jh11_rows(ba), _jh11_rows(ca)
     def series(rows, *names):
         return [[r["date"][:4],
                  _jh11_g(r, *names)] for r in rows[-12:]]
@@ -5352,7 +5368,8 @@ def build_estimates_table(est):
     rows = est if isinstance(est, list) else []
     rows = sorted([r for r in rows if isinstance(r, dict)
                    and r.get("date")], key=lambda r: r["date"])
-    fut = [r for r in rows if r["date"][:4] >= "2025"][:4]
+    today = time.strftime("%Y-%m-%d")
+    fut = [r for r in rows if r["date"] >= today][:4]
     if not fut:
         return {"available": False,
                 "reason": "no forward analyst estimates on this feed"}
@@ -5504,13 +5521,17 @@ def build_peer_perf(ticker, closes):
                      "industry aggregates")}
 
 
-def build_risk_assessment(quant_risk, altman):
+def build_risk_assessment(quant_risk, altman, closes=None):
     qr = quant_risk or {}
     vol = qr.get("realized_vol_30d_pct")
     beta = qr.get("beta_2y")
-    dd = ((qr.get("returns") or {}) or {}).get("max_drawdown_pct") \
-        if isinstance(qr.get("returns"), dict) else \
-        qr.get("max_drawdown_pct")
+    dd = None
+    if closes and len(closes) > 60:
+        peak, worst = closes[0][1], 0.0
+        for _, c in closes:
+            peak = max(peak, c)
+            worst = min(worst, 100.0 * (c / peak - 1))
+        dd = round(worst, 1)
     z = (altman or {}).get("z")
     flags = []
     if vol is not None and vol > 60:
@@ -5529,6 +5550,7 @@ def build_risk_assessment(quant_risk, altman):
 
 
 def build_dividend_extra(ca, ia, quote):
+    ia, ca = _jh11_rows(ia), _jh11_rows(ca)
     if not ca:
         return {"available": False, "reason": "no cashflow rows"}
     mcap = _jh11_g(quote, "marketCap")
@@ -5537,6 +5559,8 @@ def build_dividend_extra(ca, ia, quote):
     rep = abs(_jh11_g(c1, "commonStockRepurchased") or 0)
     iss = abs(_jh11_g(c1, "commonStockIssued") or 0)
     sy = (100.0 * (div + rep - iss) / mcap) if mcap else None
+    inputs = {"dividends": div, "buybacks": rep, "issuance": iss,
+              "mcap": mcap}
     ratios = []
     sh = [_jh11_g(r, "weightedAverageShsOutDil",
                   "weightedAverageShsOut") for r in ia[-4:]]
@@ -5544,7 +5568,7 @@ def build_dividend_extra(ca, ia, quote):
         if a and b:
             ratios.append(-100.0 * (b / a - 1))
     bb3 = round(sum(ratios) / len(ratios), 1) if ratios else None
-    return {"available": True,
+    return {"available": True, "inputs": inputs,
             "shareholder_yield_pct": (round(sy, 2)
                                       if sy is not None else None),
             "buyback_ratio_3y_avg_pct": bb3,
@@ -5563,7 +5587,10 @@ def build_gf_extras(raw, ia, iq, ba, bq, ca, closes, spy_closes, quote,
         rf = _jh11_g(tr, "year10", "month10", "year5") or rf
     except Exception:
         pass
-    beta = (quant_risk or {}).get("beta_2y")
+    qs = ((quant_risk or {}).get("stats")
+          if isinstance((quant_risk or {}).get("stats"), dict)
+          else (quant_risk or {}))
+    beta = qs.get("beta_2y")
     scores = _jh18_safe(build_scores, ia, ba, ca, quote, rf, beta)
     wacc = ((scores or {}).get("wacc_roic") or {}).get("wacc_pct") or 10.0
     est = raw.get("analyst_est")
@@ -5591,7 +5618,7 @@ def build_gf_extras(raw, ia, iq, ba, bq, ca, closes, spy_closes, quote,
         "fv_band": _jh18_safe(build_fv_band, ia, iq, closes, quote),
         "momentum_extra": _jh18_safe(build_momentum_extra, closes),
         "key_stats": _jh18_safe(build_key_stats, closes, spy_closes,
-                                rf, quote, iq, quant_risk),
+                                rf, quote, iq, qs),
         "dupont": _jh18_safe(build_dupont, iq, bq),
         "financial_minis": _jh18_safe(build_financial_minis, ia, ba, ca),
         "segments": _jh18_safe(build_segments, raw),
@@ -5601,8 +5628,9 @@ def build_gf_extras(raw, ia, iq, ba, bq, ca, closes, spy_closes, quote,
         "splits": _jh18_safe(build_splits, raw),
         "facts": _jh18_safe(build_facts, raw),
         "peer_perf": _jh18_safe(build_peer_perf, ticker, closes),
-        "risk_assessment": _jh18_safe(build_risk_assessment, quant_risk,
-                                      (scores or {}).get("altman")),
+        "risk_assessment": _jh18_safe(build_risk_assessment, qs,
+                                      (scores or {}).get("altman"),
+                                      closes),
         "dividend_extra": _jh18_safe(build_dividend_extra, ca, ia,
                                      quote),
     }
