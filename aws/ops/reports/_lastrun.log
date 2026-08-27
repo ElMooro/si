@@ -1,14 +1,26 @@
-executing-against: fe2569f215d0bdd3901cbc7a2a4db1445b076935
-ops 5015 -- company records (equity-research v2.7)
-── G0 preflight ──
-[15:20:12] ✅ v2.7 markers and OPS5015 block present
-── G1 deploy (code only) ──
-[15:20:19] ✅ code updated; configuration/env untouched
-── P1 real-data asserts (version gate regenerates on its own) ──
-[15:20:23] ✅ AAOI: company records checked
-[15:20:25] ✅ NVDA: company records checked
-── G2 live page carries OPS5015 ──
-[15:20:25] ✅ served page carries the Peter Lynch chart + company records
-[15:20:25] ✅ OPS 5015 PASS -- every GuruFocus summary panel from the screenshots is now built; v2.7 rolls to all tickers via the version gate + in-place auto-upgrade
+executing-against: c92e639ae28991d9e08914c3578e203b1008e989
+ops 5016 -- ticker bus: layers follow the desk's navigation
+── G1 repo file carries the bus + rewires ──
+[16:40:36] ✅ bus block present
+[16:40:36] ✅ bus singleton
+[16:40:36] ✅ history hooks
+[16:40:36] ✅ fetch interception
+[16:40:36] ✅ four subscriptions
+[16:40:36] ✅ four jhStart entrypoints
+[16:40:36] ✅ generation checks >=20
+[16:40:36] ✅ bus precedes OPS5010
+── G2 served page carries it ──
+[16:40:36] waiting for site sync
+[16:40:51] waiting for site sync
+[16:41:07] waiting for site sync
+[16:41:22] waiting for site sync
+[16:41:37] waiting for site sync
+[16:41:52] waiting for site sync
+[16:42:07] waiting for site sync
+[16:42:23] waiting for site sync
+[16:42:38] waiting for site sync
+[16:42:53] waiting for site sync
+[16:43:08] ✅ bus + all four subscribed layers on the served page
+[16:43:08] ✅ OPS 5016 PASS -- every research layer arms from any navigation path and re-renders on in-page ticker switches
 
-→ Report written to aws/ops/reports/latest/ops_5015_company_records.md
+→ Report written to aws/ops/reports/latest/ops_5016_ticker_bus.md
