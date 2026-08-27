@@ -1162,6 +1162,8 @@ def fetch_all(ticker: str) -> Dict[str, Any]:
         "income_quarterly": ("income-statement", {"symbol": ticker, "period": "quarter", "limit": 22}),
         "balance_annual":   ("balance-sheet-statement", {"symbol": ticker, "period": "annual", "limit": 20}),
         "cashflow_annual":  ("cash-flow-statement", {"symbol": ticker, "period": "annual", "limit": 20}),
+        "balance_quarterly": ("balance-sheet-statement", {"symbol": ticker, "period": "quarter", "limit": 8}),
+        "cashflow_quarterly": ("cash-flow-statement", {"symbol": ticker, "period": "quarter", "limit": 8}),
         "ratios_annual":    ("ratios", {"symbol": ticker, "period": "annual", "limit": 15}),
         "ratios_ttm":       ("ratios-ttm", {"symbol": ticker}),
         "key_metrics":      ("key-metrics", {"symbol": ticker, "period": "annual", "limit": 15}),
@@ -3882,6 +3884,269 @@ def build_peer_returns(ticker, closes, bundle, peer_syms):
                      "excluded; 3Y/5Y/10Y annualized")}
 
 
+# ══════════════════════════════════════════════════════════════════════
+# JH-5013 — statement flows (ops 5013, additive; equity-research v2.6)
+# Semantic numbers for the GuruFocus-style Sankey breakdowns of the
+# income statement, balance sheet and cash-flow statement. The server
+# emits audited figures (every parent reconciles to its children via an
+# explicit residual line); the shared client lib assets/jh-flows.js
+# turns them into diagrams. Real data only.
+# ══════════════════════════════════════════════════════════════════════
+
+
+def _jh13_g(row, *names):
+    for n in names:
+        v = (row or {}).get(n)
+        if isinstance(v, (int, float)) and not isinstance(v, bool):
+            return float(v)
+    return None
+
+
+def _jh13_z(row, *names):
+    v = _jh13_g(row, *names)
+    return v if v is not None else 0.0
+
+
+def _jh13_income(r, segs):
+    rev = _jh13_g(r, "revenue")
+    if not rev or rev <= 0:
+        return None
+    gp = _jh13_g(r, "grossProfit")
+    cogs = _jh13_g(r, "costOfRevenue")
+    if gp is None and cogs is not None:
+        gp = rev - cogs
+    if cogs is None and gp is not None:
+        cogs = rev - gp
+    if gp is None:
+        return None
+    opinc = _jh13_g(r, "operatingIncome")
+    opex = _jh13_g(r, "operatingExpenses")
+    if opex is None and opinc is not None:
+        opex = gp - opinc
+    sga = _jh13_z(r, "sellingGeneralAndAdministrativeExpenses") or (
+        _jh13_z(r, "generalAndAdministrativeExpenses") +
+        _jh13_z(r, "sellingAndMarketingExpenses"))
+    rnd = _jh13_z(r, "researchAndDevelopmentExpenses")
+    other_opex = (opex - sga - rnd) if opex is not None else 0.0
+    pretax = _jh13_g(r, "incomeBeforeTax")
+    tax = _jh13_z(r, "incomeTaxExpense")
+    ni = _jh13_g(r, "netIncome")
+    if ni is None and pretax is not None:
+        ni = pretax - tax
+    if pretax is None and ni is not None:
+        pretax = ni + tax
+    int_net = (_jh13_z(r, "interestIncome") -
+               _jh13_z(r, "interestExpense"))
+    other_inc = ((pretax - (opinc if opinc is not None else 0.0) - int_net)
+                 if pretax is not None else 0.0)
+    seg_rows = []
+    tot = sum(v for _, v in (segs or []) if isinstance(v, (int, float)))
+    if segs and tot > 0:
+        for name, v in segs:
+            if isinstance(v, (int, float)) and v > 0:
+                seg_rows.append({"name": str(name)[:28], "val": v})
+        drift = rev - sum(x["val"] for x in seg_rows)
+        if abs(drift) > 0.02 * rev:      # segments from a different FY —
+            seg_rows = []                # drop rather than mislead
+        elif abs(drift) > 0.001 * rev:
+            seg_rows.append({"name": "Other / unallocated", "val": drift})
+    out = {"revenue": rev, "segments": seg_rows,
+           "cogs": cogs, "gross_profit": gp,
+           "opex_total": opex, "sga": sga, "rnd": rnd,
+           "other_opex": other_opex,
+           "operating_income": opinc,
+           "interest_net": int_net, "other_income": other_inc,
+           "pretax": pretax, "tax": tax, "net_income": ni,
+           "tax_rate_pct": (round(100.0 * tax / pretax, 2)
+                            if pretax and abs(pretax) > 1 else None)}
+    out["recon_ok"] = bool(
+        abs(rev - gp - cogs) <= 0.01 * rev and
+        (opinc is None or opex is None or
+         abs(gp - opex - opinc) <= 0.01 * rev) and
+        (pretax is None or ni is None or
+         abs(pretax - tax - ni) <= 0.015 * max(rev, abs(pretax))))
+    return out
+
+
+def _jh13_balance(r):
+    ta = _jh13_g(r, "totalAssets")
+    if not ta or ta <= 0:
+        return None
+    cash = _jh13_z(r, "cashAndCashEquivalents") + \
+        _jh13_z(r, "shortTermInvestments")
+    rec = _jh13_z(r, "netReceivables")
+    inv = _jh13_z(r, "inventory")
+    tca = _jh13_g(r, "totalCurrentAssets")
+    if tca is None:
+        tca = cash + rec + inv
+    oth_cur = tca - cash - rec - inv
+    ppe = _jh13_z(r, "propertyPlantEquipmentNet")
+    gw = _jh13_z(r, "goodwill")
+    intan = _jh13_z(r, "intangibleAssets")
+    lti = _jh13_z(r, "longTermInvestments")
+    tlta = _jh13_g(r, "totalNonCurrentAssets")
+    if tlta is None:
+        tlta = ta - tca
+    oth_lt = tlta - ppe - gw - intan - lti
+    tl = _jh13_g(r, "totalLiabilities")
+    te = _jh13_g(r, "totalStockholdersEquity", "totalEquity")
+    if tl is None and te is not None:
+        tl = ta - te
+    if te is None and tl is not None:
+        te = ta - tl
+    if tl is None or te is None:
+        return None
+    ap = _jh13_z(r, "accountPayables")
+    std = _jh13_z(r, "shortTermDebt")
+    dref = _jh13_z(r, "deferredRevenue")
+    tcl = _jh13_g(r, "totalCurrentLiabilities")
+    if tcl is None:
+        tcl = ap + std + dref
+    oth_cl = tcl - ap - std - dref
+    ltd = _jh13_z(r, "longTermDebt")
+    tll = _jh13_g(r, "totalNonCurrentLiabilities")
+    if tll is None:
+        tll = tl - tcl
+    oth_ll = tll - ltd
+    common = _jh13_z(r, "commonStock")
+    apic = _jh13_z(r, "additionalPaidInCapital")
+    ret = _jh13_z(r, "retainedEarnings")
+    aoci = _jh13_z(r, "accumulatedOtherComprehensiveIncomeLoss")
+    oth_eq = te - common - apic - ret - aoci
+    out = {"total_assets": ta,
+           "cur": {"cash_sti": cash, "receivables": rec, "inventory": inv,
+                   "other": oth_cur, "total": tca},
+           "lt": {"ppe": ppe, "goodwill": gw, "intangibles": intan,
+                  "lt_invest": lti, "other": oth_lt, "total": tlta},
+           "liab": {"ap": ap, "st_debt": std, "deferred_rev": dref,
+                    "other_cur": oth_cl, "cur_total": tcl,
+                    "lt_debt": ltd, "other_lt": oth_ll, "lt_total": tll,
+                    "total": tl},
+           "equity": {"common": common, "apic": apic, "retained": ret,
+                      "aoci": aoci, "other": oth_eq, "total": te}}
+    out["recon_ok"] = bool(
+        abs(ta - tca - tlta) <= 0.01 * ta and
+        abs(ta - tl - te) <= 0.01 * ta and
+        abs(tl - tcl - tll) <= 0.015 * ta)
+    return out
+
+
+def _jh13_cashflow(r):
+    cfo = _jh13_g(r, "netCashProvidedByOperatingActivities",
+                  "operatingCashFlow")
+    if cfo is None:
+        return None
+    ni = _jh13_z(r, "netIncome")
+    dda = _jh13_z(r, "depreciationAndAmortization")
+    sbc = _jh13_z(r, "stockBasedCompensation")
+    dtax = _jh13_z(r, "deferredIncomeTax")
+    wc = _jh13_z(r, "changeInWorkingCapital")
+    oth_op = cfo - ni - dda - sbc - dtax - wc
+    capex = _jh13_z(r, "investmentsInPropertyPlantAndEquipment", "capitalExpenditure")
+    cfi = _jh13_g(r, "netCashUsedForInvestingActivites",
+                  "netCashProvidedByInvestingActivities")
+    if cfi is None:
+        cfi = capex
+    oth_inv = cfi - capex
+    iss = _jh13_z(r, "commonStockIssued")
+    rep = _jh13_z(r, "commonStockRepurchased")
+    debt = _jh13_z(r, "netDebtIssuance")
+    if debt == 0.0:
+        debt = _jh13_z(r, "debtRepayment")
+    div = _jh13_z(r, "dividendsPaid", "netDividendsPaid")
+    cff = _jh13_g(r, "netCashUsedProvidedByFinancingActivities",
+                  "netCashProvidedByFinancingActivities")
+    if cff is None:
+        cff = iss + rep + debt + div
+    oth_fin = cff - iss - rep - debt - div
+    fx = _jh13_z(r, "effectOfForexChangesOnCash")
+    chg = _jh13_g(r, "netChangeInCash")
+    if chg is None:
+        chg = cfo + cfi + cff + fx
+    beg = _jh13_g(r, "cashAtBeginningOfPeriod")
+    end = _jh13_g(r, "cashAtEndOfPeriod")
+    if end is None and beg is not None:
+        end = beg + chg
+    if beg is None and end is not None:
+        beg = end - chg
+    fcf = _jh13_g(r, "freeCashFlow")
+    if fcf is None:
+        fcf = cfo + capex
+    out = {"ni": ni, "dda": dda, "sbc": sbc, "deferred_tax": dtax,
+           "wc_change": wc, "other_operating": oth_op, "cfo": cfo,
+           "capex": capex, "other_investing": oth_inv, "cfi": cfi,
+           "stock_issued": iss, "stock_repurchased": rep,
+           "debt_net": debt, "dividends": div, "other_financing": oth_fin,
+           "cff": cff, "fx": fx, "net_change": chg,
+           "begin_cash": beg, "end_cash": end, "fcf": fcf}
+    scale = max(abs(cfo), abs(cfi or 0), abs(cff or 0), abs(chg or 0), 1.0)
+    out["recon_ok"] = bool(
+        abs(cfo + (cfi or 0) + (cff or 0) + fx - (chg or 0))
+        <= 0.02 * scale and
+        (beg is None or end is None or
+         abs(beg + chg + 0.0 - end) <= 0.02 * max(abs(end), scale)))
+    return out
+
+
+def build_statement_flows(raw, income_annual, income_quarterly,
+                          balance_annual, balance_quarterly,
+                          cashflow_annual, cashflow_quarterly):
+    """Up to 3 periods: latest FY, prior FY, latest quarter — each with
+    income/balance/cashflow flow semantics. Segments (rev_product_seg)
+    attach to annual income only, and only when they reconcile to that
+    FY's revenue."""
+    ia = _jh11_rows(income_annual)
+    ba = {r["date"]: r for r in _jh11_rows(balance_annual)}
+    ca = {r["date"]: r for r in _jh11_rows(cashflow_annual)}
+    iq = _jh11_rows(income_quarterly)
+    bq = {r["date"]: r for r in _jh11_rows(balance_quarterly)}
+    cq = {r["date"]: r for r in _jh11_rows(cashflow_quarterly)}
+
+    segs = []
+    try:
+        seg_raw = raw.get("rev_product_seg")
+        row = None
+        if isinstance(seg_raw, list) and seg_raw:
+            row = sorted(seg_raw, key=lambda x: (x.get("date") or
+                                                 x.get("fiscalYear") or ""))[-1]
+        if isinstance(row, dict):
+            d = row.get("data") if isinstance(row.get("data"), dict) else row
+            for k, v in (d or {}).items():
+                if isinstance(v, (int, float)) and k not in (
+                        "date", "fiscalYear", "period"):
+                    segs.append((k, float(v)))
+            segs = sorted(segs, key=lambda x: -x[1])[:6]
+    except Exception:
+        segs = []
+
+    periods = []
+    for r in ia[-2:][::-1]:
+        d = r["date"]
+        periods.append({
+            "label": "FY" + d[:4], "kind": "annual", "date": d,
+            "income": _jh13_income(r, segs if len(periods) == 0 else []),
+            "balance": _jh13_balance(ba.get(d)),
+            "cashflow": _jh13_cashflow(ca.get(d))})
+    if iq:
+        r = iq[-1]
+        d = r["date"]
+        periods.append({
+            "label": "Q %s" % d, "kind": "quarter", "date": d,
+            "income": _jh13_income(r, []),
+            "balance": _jh13_balance(bq.get(d)),
+            "cashflow": _jh13_cashflow(cq.get(d))})
+
+    periods = [p for p in periods
+               if p["income"] or p["balance"] or p["cashflow"]]
+    if not periods:
+        return {"available": False,
+                "reason": "no reconcilable statements for this symbol"}
+    return {"available": True, "periods": periods,
+            "note": ("every parent equals the sum of its children — "
+                     "residual lines are shown explicitly, never hidden; "
+                     "computed from FMP statements, no vendor black box")}
+
+
 def lambda_handler(event, context):
     t0 = time.time()
 
@@ -4337,9 +4602,15 @@ def lambda_handler(event, context):
                           ((_b11 or {}).get("peers")
                            or (jh_ind or {}).get("peers") or []))
 
+    # ── ops 5013: statement flows (income / balance / cashflow sankeys)
+    jh13_flows = _jh11_safe(build_statement_flows, raw,
+                            _ia11, _iq11, _ba11,
+                            raw.get("balance_quarterly"),
+                            _ca11, raw.get("cashflow_quarterly"))
+
     # ── Assemble final document
     document = {
-        "schema_version": "2.5",  # v2.4: + classification/price_analytics/industry_growth (ops 5010)  # v2.3: + dilution Pillar 6 (ops 3289);  # v2.2: + earnings_vol_edge (#6 realized-vs-implied + PEAD); v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
+        "schema_version": "2.6",  # v2.4: + classification/price_analytics/industry_growth (ops 5010)  # v2.3: + dilution Pillar 6 (ops 3289);  # v2.2: + earnings_vol_edge (#6 realized-vs-implied + PEAD); v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
         "technicals":         v2.get("technicals"),
         "liquidity_solvency": v2.get("liquidity"),
         "growth_vs_mcap":     v2.get("growth_vs_mcap"),
@@ -4352,7 +4623,8 @@ def lambda_handler(event, context):
         "strength_profitability": jh11_sp,        # ops 5011
         "growth_panel":           jh11_growth,    # ops 5011
         "signals":                jh11_sig,       # ops 5011
-        "peer_returns":           jh11_ret,       # ops 5011      # ops 5010
+        "peer_returns":           jh11_ret,       # ops 5011
+        "statement_flows":        jh13_flows,     # ops 5013      # ops 5010
         "industry_compass":   v2.get("industry_compass"),
         "backlog":            v2.get("backlog"),
         "dilution":           v2.get("dilution"),  # ops 3289 Pillar 6

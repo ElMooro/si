@@ -5006,5 +5006,74 @@ fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
 })();
 </script>
 
+
+<script id="OPS5013">
+/* ops 5013 ADDITIVE — Statement Flows: GuruFocus-style Sankey breakdowns
+   of the income statement, balance sheet and cash-flow statement, drawn
+   by the shared engine assets/jh-flows.js from the v2.6 payload's
+   audited statement_flows block. Self-healing (ops 5012 pattern). */
+(function(){
+'use strict';
+var TK=(new URLSearchParams(location.search).get('ticker')||'').toUpperCase();
+if(!TK||!/^[A-Z0-9.\-^]{1,12}$/.test(TK))return;
+var CDN='https://justhodl-data-proxy.raafouis.workers.dev/equity-research/';
+var LIVE='https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/';
+var DIM='#5d6b82';
+function sec(){return '<section class="block" id="jh5013"><div class="sub"><span class="ico">\ud83e\udea2</span> Statement Flows \u2014 where every dollar goes <span style="color:'+DIM+';font-weight:400">\u2014 income \u00b7 balance sheet \u00b7 cash flow, drawn to scale</span></div><div id="jh5013-b" style="font-family:var(--font-mono,monospace);font-size:11.5px;color:var(--text,#dfe7f3)">loading\u2026</div></section>';}
+function mount(){
+  var _old=document.getElementById('jh5013-wrap');
+  if(_old&&_old.parentNode)_old.parentNode.removeChild(_old);
+  var host=document.createElement('div');host.id='jh5013-wrap';host.innerHTML=sec();
+  var prev=document.getElementById('jh5011-wrap')||document.getElementById('jh5010-wrap');
+  if(prev&&prev.parentNode){prev.parentNode.insertBefore(host,prev.nextSibling);return host;}
+  var anchor=null,subs=document.querySelectorAll('.sub');
+  for(var i=0;i<subs.length;i++){if(subs[i].textContent.indexOf('Quantitative Risk')>=0){anchor=subs[i].closest('section');break;}}
+  if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(host,anchor.nextSibling);
+  else (document.getElementById('content')||document.body).appendChild(host);
+  return host;
+}
+function withLib(cb,fail){
+  if(window.JHFlows){cb();return;}
+  var tag=document.getElementById('jh-flows-lib');
+  if(!tag){tag=document.createElement('script');tag.id='jh-flows-lib';
+    tag.src='assets/jh-flows.js?v=5013';document.head.appendChild(tag);}
+  var t0=Date.now();
+  var iv=setInterval(function(){
+    if(window.JHFlows){clearInterval(iv);cb();}
+    else if(Date.now()-t0>8000){clearInterval(iv);fail();}},120);
+}
+var DOC=null,_hb=null;
+function guard(heal){
+  var t0=Date.now();
+  function tick(){try{heal();}catch(e){}}
+  try{var mo=new MutationObserver(function(){if(_hb)return;
+    _hb=setTimeout(function(){_hb=null;tick();},650);});
+    mo.observe(document.body,{childList:true,subtree:true});
+    setTimeout(function(){try{mo.disconnect();}catch(e){}},300000);}catch(e){}
+  var iv=setInterval(function(){tick();
+    if(Date.now()-t0>300000)clearInterval(iv);},1500);
+}
+function draw(){
+  mount();
+  var b=document.getElementById('jh5013-b');
+  withLib(function(){window.JHFlows.statements(b,DOC.statement_flows,{ticker:TK});},
+    function(){if(b)b.innerHTML='<div style="color:'+DIM+'">flow engine (assets/jh-flows.js) failed to load \u2014 diagrams withheld rather than faked. Reload to retry.</div>';});
+}
+fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
+.then(function(r){if(!r.ok)throw new Error('cdn '+r.status);return r.json();})
+.then(function(d){
+  if(d&&d.statement_flows){DOC=d;draw();
+    guard(function(){var w=document.getElementById('jh5013-wrap');
+      if((!w||!w.isConnected)&&DOC)draw();});
+    return;}
+  var host=mount();
+  var b=document.getElementById('jh5013-b');
+  if(b)b.innerHTML='<div style="color:'+DIM+'">This ticker\u2019s dossier predates the statement-flow layer (schema '+String(d&&d.schema_version||'?')+'). A fresh v2.6 build has been requested in the background \u2014 reload in ~2 minutes. Nothing stale or invented is shown in its place.</div>';
+  try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+  guard(function(){if(!document.getElementById('jh5013-wrap'))mount();});
+})
+.catch(function(e){console.warn('[ops5013]',e);});
+})();
+</script>
 </body>
 </html>
