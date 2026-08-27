@@ -1,8 +1,19 @@
-executing-against: 738b166e8543bff070dedd54860c64137b052ba6
+executing-against: 412b535af1346511225bf73305764de2bfdd17ee
 ops 5018 -- full GuruFocus summary parity (v2.9)
 ── G0 preflight ──
-[19:29:01] ✗ lambda missing 'SCHEMA_CURRENT = "2.9.1"'
+[19:34:23] ✅ v2.9 markers, OPS5018 block, 6 bus subscriptions
+── G1 deploy (code only) ──
+[19:34:30] ✅ code updated; configuration/env untouched
+── P1 deep real-data asserts ──
+[19:34:34] ✅ AAOI: all gf_extras sections checked
+[19:34:36] ✅ NVDA: all gf_extras sections checked
+[19:34:36] ✗ AAOI: wacc missing/insane: None (beta_used=None rf=None)
+[19:34:36] ✗ AAOI: roic missing
+[19:34:36] ✗ AAOI: AAOI risk must assess High (vol/beta/drawdown): got 'Medium'
+[19:34:36] ✗ AAOI: shareholder yield zero/missing
+[19:34:36] ✗ NVDA: wacc missing/insane: None (beta_used=None rf=None)
+[19:34:36] ✗ NVDA: roic missing
 
 → Report written to aws/ops/reports/latest/ops_5018_gf_parity.md
-preflight failed
+deep asserts failed
 ❌ OPS-FAIL: aws/ops/pending/ops_5018_gf_parity.py
