@@ -1185,8 +1185,12 @@ def fetch_all(ticker: str) -> Dict[str, Any]:
         "peers":            ("stock-peers", {"symbol": ticker}),
         "earnings":         ("earnings", {"symbol": ticker, "limit": 12}),
         "ownership":        ("acquisition-of-beneficial-ownership", {"symbol": ticker}),
-        "sec_filings_a":    ("sec-filings-search/symbol", {"symbol": ticker, "limit": 30}),
-        "sec_filings_b":    ("sec-filings", {"symbol": ticker, "limit": 30}),
+        "sec_filings_a":    ("sec-filings-search/symbol", {"symbol": ticker, "limit": 40,
+                             "from": _date_n_years_ago(2),
+                             "to": datetime.now(timezone.utc).strftime("%Y-%m-%d")}),
+        "sec_filings_b":    ("sec-filings", {"symbol": ticker, "limit": 40,
+                             "from": _date_n_years_ago(2),
+                             "to": datetime.now(timezone.utc).strftime("%Y-%m-%d")}),
         "press_rel":        ("news/press-releases", {"symbols": ticker, "limit": 12}),
         "key_execs":        ("key-executives", {"symbol": ticker}),
         "transcript_dates": ("earning-call-transcript-dates", {"symbol": ticker}),
@@ -4181,6 +4185,38 @@ def _jh15_close_pair(closes, date):
     return on, nxt
 
 
+def _jh15_edgar_rows(raw):
+    """Authoritative fallback: SEC EDGAR submissions API (free, no plan
+    tier). Columnar arrays -> row dicts shaped like FMP's."""
+    prof = _jh_first(raw.get("profile")) or {}
+    cik = str(prof.get("cik") or "").strip().lstrip("0")
+    if not cik.isdigit():
+        return None
+    try:
+        url = "https://data.sec.gov/submissions/CIK%s.json" % cik.zfill(10)
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "JustHodlEquityResearch/1.0 (research@justhodl.ai)"})
+        with urllib.request.urlopen(req, timeout=8) as r:
+            sub = json.loads(r.read())
+        rec = (sub.get("filings") or {}).get("recent") or {}
+        forms = rec.get("form") or []
+        dates = rec.get("filingDate") or []
+        accs = rec.get("accessionNumber") or []
+        docs = rec.get("primaryDocument") or []
+        out = []
+        for i in range(min(len(forms), len(dates), 40)):
+            acc = (accs[i] if i < len(accs) else "").replace("-", "")
+            doc = docs[i] if i < len(docs) else ""
+            link = ("https://www.sec.gov/Archives/edgar/data/%s/%s/%s"
+                    % (cik, acc, doc)) if acc and doc else None
+            out.append({"fillingDate": dates[i], "type": forms[i],
+                        "finalLink": link})
+        return out or None
+    except Exception as e:
+        print("[jh15] edgar fallback failed: %s" % e)
+        return None
+
+
 def _jh15_filings(raw):
     rows = None
     for key in ("sec_filings_a", "sec_filings_b"):
@@ -4189,9 +4225,11 @@ def _jh15_filings(raw):
             rows = x
             break
     if not rows:
+        rows = _jh15_edgar_rows(raw)
+    if not rows:
         return {"available": False,
-                "reason": "SEC filings endpoint returned nothing on this "
-                          "plan tier"}
+                "reason": "no filings from FMP (plan tier) nor EDGAR "
+                          "(no CIK / fetch failed)"}
     out = []
     for r in rows:
         if not isinstance(r, dict):
