@@ -30,7 +30,8 @@ with report("ops_5021_resilience_gate") as rep:
     for name, pat, want in (
             ("poll window 60", r"if\(_pt>60\)", 6),
             ("recovery catch", r"First fetch failed", 6),
-            ("LIVE-direct render", r"&refresh=1'\)\.then\(", 6),
+            ("LIVE-direct render (stale + recovery)",
+             r"&refresh=1'\)\.then\(", 12),
             ("5010/5011 run-binding",
              r"\{DOC=nd;run\(DOC\);\}\}\)\.catch", 4),
     ):
