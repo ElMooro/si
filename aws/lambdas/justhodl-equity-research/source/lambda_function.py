@@ -154,7 +154,7 @@ def census_idx(s3_client, bucket):
 
 CACHE_PREFIX = "equity-research/"
 CACHE_TTL    = 24 * 3600   # 24h cache (statements don't change daily)
-SCHEMA_CURRENT = "2.7.1"  # 2.7.1: EDGAR filings fallback     # ops 5014: single source of truth — cache gate + doc assembly
+SCHEMA_CURRENT = "2.7.2"  # 2.7.2: filings ladder FMP-a/FMP-b/EDGAR with formType parsing     # ops 5014: single source of truth — cache gate + doc assembly
 FETCH_TIMEOUT = 20         # FMP per-call timeout
 CLAUDE_TIMEOUT = 150        # was 90s, but bigger schema + transcript pushes to ~85s
 FALLBACK_BUDGET_S = 70      # hard cap on the GLM/Sonnet fallback so a slow LLM never
@@ -4217,33 +4217,34 @@ def _jh15_edgar_rows(raw):
         return None
 
 
-def _jh15_filings(raw):
-    rows = None
-    for key in ("sec_filings_a", "sec_filings_b"):
-        x = raw.get(key)
-        if isinstance(x, list) and x:
-            rows = x
-            break
-    if not rows:
-        rows = _jh15_edgar_rows(raw)
-    if not rows:
-        return {"available": False,
-                "reason": "no filings from FMP (plan tier) nor EDGAR "
-                          "(no CIK / fetch failed)"}
+def _jh15_norm_filings(rows):
     out = []
-    for r in rows:
+    for r in rows if isinstance(rows, list) else []:
         if not isinstance(r, dict):
             continue
         d = (r.get("fillingDate") or r.get("filingDate") or
              r.get("acceptedDate") or r.get("date") or "")[:10]
-        typ = (r.get("type") or r.get("form") or "").strip()
-        link = r.get("finalLink") or r.get("link") or r.get("url")
+        typ = (r.get("type") or r.get("form") or r.get("formType") or
+               "").strip()
+        link = (r.get("finalLink") or r.get("link") or r.get("url") or
+                r.get("linkToFilingDetails") or r.get("linkToHtml"))
         if d and typ:
             out.append({"date": d, "type": typ, "link": link})
-    out = sorted(out, key=lambda r: r["date"], reverse=True)[:14]
-    if not out:
-        return {"available": False, "reason": "no parseable filing rows"}
-    return {"available": True, "rows": out}
+    return sorted(out, key=lambda r: r["date"], reverse=True)[:14]
+
+
+def _jh15_filings(raw):
+    """Ladder: FMP endpoint A -> FMP endpoint B -> SEC EDGAR submissions.
+    A source that returns rows we cannot parse falls through to the next
+    -- never a dead end while an authoritative source remains."""
+    for rows in (raw.get("sec_filings_a"), raw.get("sec_filings_b"),
+                 _jh15_edgar_rows(raw)):
+        out = _jh15_norm_filings(rows)
+        if out:
+            return {"available": True, "rows": out}
+    return {"available": False,
+            "reason": "no parseable filings from FMP (either endpoint) "
+                      "nor SEC EDGAR (no CIK / fetch failed)"}
 
 
 def _jh15_events(raw, closes, today):
