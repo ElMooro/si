@@ -1,11 +1,10 @@
-executing-against: 9594d44a93d98534c46fbd4ff9fa4f4f2215b04f
-ops 5019 -- TSLA v2.9.3 regen probe
-── P1 fresh invokes ──
-── P2 CloudWatch error tail ──
-[19:54:13] cw: [claude] PARSE ERROR: no JSON object found
-[19:54:13] cw: [claude] PARSE ERROR: no JSON object found
-[19:54:13] cw: [claude] PARSE ERROR: no JSON object found
-[19:54:13] cw: [claude] PARSE ERROR: no JSON object found
-[19:54:14] ✅ all three tickers regenerate on 2.9.3 with gf_extras
+executing-against: 5bafd707e0e7cb111bf92e0e6221b6336695cc02
+ops 5020 -- browser auto-upgrade unblock (CORS)
+── G0 current function-URL config ──
+[19:57:06] before: {"AllowCredentials": false, "AllowHeaders": ["*"], "AllowMethods": ["*"], "AllowOrigins": ["*"], "ExposeHeaders": ["*"], "MaxAge": 86400}
+── G1 config change (only if needed) ──
+[19:57:06] ✅ origin already allowed — no change made
+── P1 prove it with an Origin-header request ──
+[19:57:06] ✅ browser-origin requests now receive Access-Control-Allow-Origin — stale docs self-upgrade from the page for every ticker and every future schema bump
 
-→ Report written to aws/ops/reports/latest/ops_5019_tsla_probe.md
+→ Report written to aws/ops/reports/latest/ops_5020_cors_unblock.md
