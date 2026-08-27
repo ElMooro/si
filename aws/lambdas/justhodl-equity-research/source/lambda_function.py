@@ -154,7 +154,7 @@ def census_idx(s3_client, bucket):
 
 CACHE_PREFIX = "equity-research/"
 CACHE_TTL    = 24 * 3600   # 24h cache (statements don't change daily)
-SCHEMA_CURRENT = "2.6"     # ops 5014: single source of truth — cache gate + doc assembly
+SCHEMA_CURRENT = "2.7"     # ops 5014: single source of truth — cache gate + doc assembly
 FETCH_TIMEOUT = 20         # FMP per-call timeout
 CLAUDE_TIMEOUT = 150        # was 90s, but bigger schema + transcript pushes to ~85s
 FALLBACK_BUDGET_S = 70      # hard cap on the GLM/Sonnet fallback so a slow LLM never
@@ -1185,6 +1185,10 @@ def fetch_all(ticker: str) -> Dict[str, Any]:
         "peers":            ("stock-peers", {"symbol": ticker}),
         "earnings":         ("earnings", {"symbol": ticker, "limit": 12}),
         "ownership":        ("acquisition-of-beneficial-ownership", {"symbol": ticker}),
+        "sec_filings_a":    ("sec-filings-search/symbol", {"symbol": ticker, "limit": 30}),
+        "sec_filings_b":    ("sec-filings", {"symbol": ticker, "limit": 30}),
+        "press_rel":        ("news/press-releases", {"symbols": ticker, "limit": 12}),
+        "key_execs":        ("key-executives", {"symbol": ticker}),
         "transcript_dates": ("earning-call-transcript-dates", {"symbol": ticker}),
         "prices_eod":       ("historical-price-eod/light",
                               {"symbol": ticker, "from": _date_n_years_ago(10)}),
@@ -4148,6 +4152,244 @@ def build_statement_flows(raw, income_annual, income_quarterly,
                      "computed from FMP statements, no vendor black box")}
 
 
+# ══════════════════════════════════════════════════════════════════════
+# JH-5015 — company records (ops 5015, additive; equity-research v2.7)
+# The remaining GuruFocus summary panels: SEC filings, stock events
+# (next-earnings countdown + past report-day prices & next-session
+# reactions), transcripts list, press releases, executives, the Peter
+# Lynch price-vs-15×EPS series, cross-listings by ISIN, and index
+# membership (S&P 500 / Nasdaq-100 / Dow — Russell honestly
+# unavailable). Real data only; every sub-block degrades with a reason.
+# ══════════════════════════════════════════════════════════════════════
+
+_JH15_CONST_KEY = "equity-research/shared/constituents.json"
+_JH15_CONST_TTL = 24 * 3600
+
+
+def _jh15_close_pair(closes, date):
+    """(close_on_or_before(date), first close AFTER date) or Nones."""
+    lo, hi, idx = 0, len(closes) - 1, -1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if closes[mid][0] <= date:
+            idx = mid
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    on = closes[idx][1] if idx >= 0 else None
+    nxt = closes[idx + 1][1] if 0 <= idx < len(closes) - 1 else None
+    return on, nxt
+
+
+def _jh15_filings(raw):
+    rows = None
+    for key in ("sec_filings_a", "sec_filings_b"):
+        x = raw.get(key)
+        if isinstance(x, list) and x:
+            rows = x
+            break
+    if not rows:
+        return {"available": False,
+                "reason": "SEC filings endpoint returned nothing on this "
+                          "plan tier"}
+    out = []
+    for r in rows:
+        if not isinstance(r, dict):
+            continue
+        d = (r.get("fillingDate") or r.get("filingDate") or
+             r.get("acceptedDate") or r.get("date") or "")[:10]
+        typ = (r.get("type") or r.get("form") or "").strip()
+        link = r.get("finalLink") or r.get("link") or r.get("url")
+        if d and typ:
+            out.append({"date": d, "type": typ, "link": link})
+    out = sorted(out, key=lambda r: r["date"], reverse=True)[:14]
+    if not out:
+        return {"available": False, "reason": "no parseable filing rows"}
+    return {"available": True, "rows": out}
+
+
+def _jh15_events(raw, closes, today):
+    ers = [r for r in (raw.get("earnings") or [])
+           if isinstance(r, dict) and r.get("date")]
+    if not ers:
+        return {"available": False, "reason": "no earnings calendar rows"}
+    ers = sorted(ers, key=lambda r: r["date"])
+    future = [r for r in ers if r["date"] > today]
+    past = [r for r in ers if r["date"] <= today][-8:]
+    nxt = None
+    if future:
+        d = future[0]["date"]
+        try:
+            days = (datetime.strptime(d, "%Y-%m-%d").date() -
+                    datetime.strptime(today, "%Y-%m-%d").date()).days
+        except Exception:
+            days = None
+        nxt = {"date": d, "days": days}
+    rows = []
+    for r in past[::-1]:
+        on, after = (_jh15_close_pair(closes, r["date"])
+                     if closes else (None, None))
+        react = (round(100.0 * (after / on - 1), 2)
+                 if on and after else None)
+        rows.append({"date": r["date"],
+                     "close": round(on, 2) if on else None,
+                     "react_next_pct": react,
+                     "eps_actual": r.get("epsActual"),
+                     "eps_est": r.get("epsEstimated")})
+    return {"available": True, "next": nxt, "past": rows,
+            "note": ("reaction = next session close vs report-date close; "
+                     "prices from FMP EOD")}
+
+
+def _jh15_press(raw):
+    xs = raw.get("press_rel")
+    if not isinstance(xs, list) or not xs:
+        return {"available": False,
+                "reason": "press-release feed empty on this plan tier"}
+    out = []
+    for r in xs:
+        if not isinstance(r, dict):
+            continue
+        d = (r.get("publishedDate") or r.get("date") or "")[:10]
+        t = (r.get("title") or "").strip()
+        if d and t:
+            out.append({"date": d, "title": t[:160],
+                        "url": r.get("url") or r.get("link")})
+    out = out[:8]
+    if not out:
+        return {"available": False, "reason": "no parseable press rows"}
+    return {"available": True, "rows": out}
+
+
+def _jh15_execs(raw):
+    xs = raw.get("key_execs")
+    if not isinstance(xs, list) or not xs:
+        return {"available": False,
+                "reason": "key-executives endpoint empty"}
+    out = []
+    for r in xs:
+        if not isinstance(r, dict) or not r.get("name"):
+            continue
+        out.append({"name": str(r.get("name"))[:48],
+                    "title": str(r.get("title") or "")[:64],
+                    "pay": r.get("pay")
+                    if isinstance(r.get("pay"), (int, float)) else None})
+    out = sorted(out, key=lambda r: -(r["pay"] or 0))[:8]
+    if not out:
+        return {"available": False, "reason": "no parseable executives"}
+    return {"available": True, "rows": out}
+
+
+def _jh15_lynch(income_annual, closes):
+    ia = _jh11_rows(income_annual)[-12:]
+    if len(ia) < 4 or not closes:
+        return {"available": False, "reason": "needs 4+ fiscal years and "
+                                              "price history"}
+    years = []
+    for r in ia:
+        y = r["date"][:4]
+        eps = _jh11_g(r, "epsDiluted", "epsdiluted", "eps")
+        px = _jh11_close_on(closes, r["date"])
+        if px is None:
+            continue
+        years.append({"y": y, "eps": round(eps, 2) if eps is not None
+                      else None, "close": round(px, 2)})
+    cur = closes[-1]
+    pos = sum(1 for r in years if (r["eps"] or 0) > 0)
+    if len(years) < 4:
+        return {"available": False, "reason": "insufficient overlapping "
+                                              "price/EPS years"}
+    return {"available": True, "multiplier": 15, "years": years,
+            "current": {"date": cur[0], "close": round(cur[1], 2)},
+            "pos_eps_years": pos,
+            "note": ("earnings line = diluted EPS \u00d7 15 (Peter Lynch "
+                     "convention); the line is only drawn where EPS > 0 "
+                     "\u2014 loss years get no fake earnings line")}
+
+
+def _jh15_listings(raw, ticker):
+    prof = _jh_first(raw.get("profile")) or {}
+    isin = prof.get("isin")
+    if not isin:
+        return {"available": False, "reason": "no ISIN on profile"}
+    try:
+        rows = fmp_get("search-isin", isin=isin) or []
+    except Exception:
+        rows = []
+    out, seen = [], set()
+    for r in rows if isinstance(rows, list) else []:
+        if not isinstance(r, dict):
+            continue
+        sym = (r.get("symbol") or "").upper()
+        exch = r.get("exchangeShortName") or r.get("exchange") or ""
+        k = (sym, exch)
+        if not sym or k in seen:
+            continue
+        seen.add(k)
+        out.append({"symbol": sym, "exchange": str(exch)[:24],
+                    "primary": sym == ticker})
+    if not out:
+        return {"available": False,
+                "reason": "ISIN search returned nothing on this plan tier"}
+    return {"available": True, "isin": isin, "rows": out[:8]}
+
+
+def _jh15_index_membership(ticker):
+    data = None
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key=_JH15_CONST_KEY)
+        cand = json.loads(obj["Body"].read())
+        if time.time() - cand.get("_ts", 0) < _JH15_CONST_TTL:
+            data = cand
+    except Exception:
+        pass
+    if data is None:
+        data = {"_ts": time.time()}
+        for name, ep in (("sp500", "sp500-constituent"),
+                         ("nasdaq100", "nasdaq-constituent"),
+                         ("dow", "dowjones-constituent")):
+            try:
+                rows = fmp_get(ep) or []
+                data[name] = sorted({(r.get("symbol") or "").upper()
+                                     for r in rows if isinstance(r, dict)}
+                                    - {""})
+            except Exception:
+                data[name] = []
+        try:
+            s3.put_object(Bucket=S3_BUCKET, Key=_JH15_CONST_KEY,
+                          Body=json.dumps(data).encode(),
+                          ContentType="application/json")
+        except Exception:
+            pass
+    checked, member = [], []
+    labels = {"sp500": "S&P 500", "nasdaq100": "Nasdaq-100",
+              "dow": "Dow Jones Industrial Average"}
+    for k, lbl in labels.items():
+        syms = data.get(k) or []
+        if len(syms) < 20:      # feed failed — do not claim a check ran
+            continue
+        checked.append(lbl)
+        if ticker in syms:
+            member.append(lbl)
+    if not checked:
+        return {"available": False,
+                "reason": "constituent feeds unavailable"}
+    return {"available": True, "member_of": member, "checked": checked,
+            "note": ("Russell membership is not available from the data "
+                     "source \u2014 omitted, not guessed")}
+
+
+def build_company_records(raw, income_annual, closes, ticker, today):
+    return {"available": True,
+            "filings": _jh15_filings(raw),
+            "events": _jh15_events(raw, closes, today),
+            "press": _jh15_press(raw),
+            "executives": _jh15_execs(raw),
+            "lynch": _jh15_lynch(income_annual, closes),
+            "listings": _jh15_listings(raw, ticker),
+            "index_membership": _jh15_index_membership(ticker)}
+
+
 def lambda_handler(event, context):
     t0 = time.time()
 
@@ -4610,6 +4852,11 @@ def lambda_handler(event, context):
                             raw.get("balance_quarterly"),
                             _ca11, raw.get("cashflow_quarterly"))
 
+    # ── ops 5015: company records (filings/events/press/execs/lynch/listings/index)
+    jh15_rec = _jh11_safe(build_company_records, raw, _ia11, jh11_closes,
+                          ticker,
+                          datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+
     # ── Assemble final document
     document = {
         "schema_version": SCHEMA_CURRENT,  # v2.4: + classification/price_analytics/industry_growth (ops 5010)  # v2.3: + dilution Pillar 6 (ops 3289);  # v2.2: + earnings_vol_edge (#6 realized-vs-implied + PEAD); v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
@@ -4626,7 +4873,8 @@ def lambda_handler(event, context):
         "growth_panel":           jh11_growth,    # ops 5011
         "signals":                jh11_sig,       # ops 5011
         "peer_returns":           jh11_ret,       # ops 5011
-        "statement_flows":        jh13_flows,     # ops 5013      # ops 5010
+        "statement_flows":        jh13_flows,     # ops 5013
+        "company_records":        jh15_rec,       # ops 5015      # ops 5010
         "industry_compass":   v2.get("industry_compass"),
         "backlog":            v2.get("backlog"),
         "dilution":           v2.get("dilution"),  # ops 3289 Pillar 6

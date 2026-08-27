@@ -5111,5 +5111,198 @@ fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
 .catch(function(e){console.warn('[ops5013]',e);});
 })();
 </script>
+
+<script id="OPS5015">
+/* ops 5015 ADDITIVE — the last GuruFocus summary panels: Peter Lynch
+   chart (price vs 15× diluted EPS) and Company Records (SEC filings
+   with form filters, stock events with next-earnings countdown and
+   report-day reactions, press releases, executives, cross-listings,
+   index membership). v2.7 payload; auto-upgrades in place (ops 5014
+   pattern); self-heals (ops 5012 pattern). Real data only. */
+(function(){
+'use strict';
+var TK=(new URLSearchParams(location.search).get('ticker')||'').toUpperCase();
+if(!TK||!/^[A-Z0-9.\-^]{1,12}$/.test(TK))return;
+var CDN='https://justhodl-data-proxy.raafouis.workers.dev/equity-research/';
+var LIVE='https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/';
+var C={cy:'#22d3ee',gn:'#34d399',rd:'#f87171',am:'#fbbf24',gy:'#8fa3c0',
+       dim:'#5d6b82',bg:'#1b2230',ink:'#dfe7f3'};
+function E(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function N(v,d){return (v==null||isNaN(v))?'\u2014':Number(v).toLocaleString(undefined,{maximumFractionDigits:d==null?2:d});}
+function pc(v){return v==null?C.gy:(v>=0?C.gn:C.rd);}
+function card(title,body){return '<div style="border:1px solid #232c3f;border-radius:8px;padding:10px 12px;background:rgba(15,20,30,.35)"><div style="font-weight:800;color:'+C.ink+';margin:0 0 6px">'+title+'</div>'+body+'</div>';}
+function unav(label,reason){return '<div style="color:'+C.dim+'">'+E(label)+' unavailable \u2014 '+E(reason||'no data')+'. Nothing is invented in its place.</div>';}
+
+function lynchSVG(L){
+  var W=940,H=300,Lp=56,Rp=120,Tp=16,Bp=30;
+  var pts=L.years.slice(); var cur=L.current;
+  var xs=pts.map(function(r){return r.y;}); if(cur)xs=xs.concat([cur.date.slice(0,4)+'*']);
+  var vals=[];
+  pts.forEach(function(r){vals.push(r.close);if((r.eps||0)>0)vals.push(r.eps*L.multiplier);});
+  if(cur)vals.push(cur.close);
+  var mx=Math.max.apply(null,vals)*1.08, mn=0;
+  function X(i){return Lp+i*(W-Lp-Rp)/(xs.length-1);}
+  function Y(v){return Tp+(H-Tp-Bp)*(1-(v-mn)/(mx-mn));}
+  var g='';
+  for(var k=0;k<=4;k++){var v=mn+(mx-mn)*k/4;
+    g+='<line x1="'+Lp+'" y1="'+Y(v).toFixed(1)+'" x2="'+(W-Rp)+'" y2="'+Y(v).toFixed(1)+'" stroke="#1e2635" stroke-width="1"/>'
+     +'<text x="'+(Lp-6)+'" y="'+(Y(v)+3).toFixed(1)+'" font-size="9" fill="'+C.dim+'" text-anchor="end">$'+N(v,0)+'</text>';}
+  xs.forEach(function(y,i){if(i%2===0||i===xs.length-1)g+='<text x="'+X(i).toFixed(1)+'" y="'+(H-10)+'" font-size="9" fill="'+C.dim+'" text-anchor="middle">'+E(y)+'</text>';});
+  var pp=pts.map(function(r,i){return X(i).toFixed(1)+','+Y(r.close).toFixed(1);});
+  if(cur)pp.push(X(xs.length-1).toFixed(1)+','+Y(cur.close).toFixed(1));
+  g+='<polyline points="'+pp.join(' ')+'" fill="none" stroke="'+C.cy+'" stroke-width="2"/>';
+  pts.forEach(function(r,i){g+='<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(r.close).toFixed(1)+'" r="2.4" fill="'+C.cy+'"><title>'+r.y+' close $'+N(r.close)+'</title></circle>';});
+  var seg=[],epsPts=0;
+  function flush(){if(seg.length>1)g+='<polyline points="'+seg.join(' ')+'" fill="none" stroke="'+C.gn+'" stroke-width="2" stroke-dasharray="1 0"/>';seg=[];}
+  pts.forEach(function(r,i){
+    if((r.eps||0)>0){var yv=r.eps*L.multiplier;epsPts++;
+      seg.push(X(i).toFixed(1)+','+Y(yv).toFixed(1));
+      g+='<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(yv).toFixed(1)+'" r="2.4" fill="'+C.gn+'"><title>'+r.y+' EPS $'+N(r.eps)+' \u00d7 '+L.multiplier+' = $'+N(r.eps*L.multiplier)+'</title></circle>';}
+    else flush();});
+  flush();
+  if(cur)g+='<text x="'+(W-Rp+6)+'" y="'+Y(cur.close).toFixed(1)+'" font-size="9.5" font-weight="700" fill="'+C.cy+'">now $'+N(cur.close)+'</text>';
+  var html='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%" role="img" aria-label="Peter Lynch chart">'+g+'</svg>';
+  html+='<div style="font-size:10px;margin-top:2px"><span style="color:'+C.cy+'">\u2500 price (FY-end close)</span> &nbsp; <span style="color:'+C.gn+'">\u2500 earnings line = diluted EPS \u00d7 '+L.multiplier+'</span>'
+    +' &nbsp; <span style="color:'+C.dim+'">'+L.pos_eps_years+' of '+L.years.length+' years profitable</span></div>'
+    +'<div style="color:'+C.dim+';font-size:10px">'+E(L.note)+'</div>';
+  return html;
+}
+
+function eventsCard(Ev){
+  if(!Ev.available)return card('\ud83d\udcc5 Stock Events',unav('events',Ev.reason));
+  var h='';
+  if(Ev.next)h+='<div style="margin:0 0 8px"><span style="border:1px solid '+C.am+';color:'+C.am+';border-radius:6px;padding:2px 9px;font-weight:800;font-size:.72rem">NEXT EARNINGS \u00b7 '+E(Ev.next.date)+(Ev.next.days!=null?' \u00b7 in '+Ev.next.days+' days':'')+'</span></div>';
+  h+='<table style="width:100%;border-collapse:collapse;font-size:10.5px"><tr>'
+   +'<th style="text-align:left;color:'+C.dim+';font-weight:400">report date</th><th style="text-align:right;color:'+C.dim+';font-weight:400">close</th>'
+   +'<th style="text-align:right;color:'+C.dim+';font-weight:400">next session</th><th style="text-align:right;color:'+C.dim+';font-weight:400">EPS act / est</th></tr>';
+  (Ev.past||[]).forEach(function(r){
+    h+='<tr><td style="padding:3px 0;border-bottom:1px solid #1a2130">'+E(r.date)+'</td>'
+     +'<td style="padding:3px 0;border-bottom:1px solid #1a2130;text-align:right">'+(r.close==null?'\u2014':'$'+N(r.close))+'</td>'
+     +'<td style="padding:3px 0;border-bottom:1px solid #1a2130;text-align:right;color:'+pc(r.react_next_pct)+';font-weight:700">'+(r.react_next_pct==null?'\u2014':(r.react_next_pct>=0?'+':'')+N(r.react_next_pct)+'%')+'</td>'
+     +'<td style="padding:3px 0;border-bottom:1px solid #1a2130;text-align:right;color:'+C.gy+'">'+(r.eps_actual==null?'\u2014':N(r.eps_actual))+' / '+(r.eps_est==null?'\u2014':N(r.eps_est))+'</td></tr>';});
+  h+='</table><div style="color:'+C.dim+';font-size:9.5px;margin-top:4px">'+E(Ev.note)+' \u00b7 each past report is an earnings-call date.</div>';
+  return card('\ud83d\udcc5 Stock Events \u2014 earnings calendar & reactions',h);
+}
+
+function filingsCard(F){
+  if(!F.available)return card('\ud83d\udcc4 SEC Filings',unav('filings',F.reason));
+  var types={}; F.rows.forEach(function(r){types[r.type]=1;});
+  var chips=['ALL'].concat(Object.keys(types));
+  var h='<div id="jh5015-fch" style="margin:0 0 6px">'+chips.map(function(c){
+    return '<button data-f="'+E(c)+'" style="background:transparent;border:1px solid #232c3f;color:'+C.dim+';border-radius:6px;padding:1px 8px;font-size:.62rem;font-weight:700;cursor:pointer;margin-right:5px;font-family:inherit">'+E(c)+'</button>';}).join('')+'</div>';
+  h+='<table style="width:100%;border-collapse:collapse;font-size:10.5px"><tr><th style="text-align:left;color:'+C.dim+';font-weight:400">filing date</th><th style="text-align:left;color:'+C.dim+';font-weight:400">form</th><th></th></tr>';
+  F.rows.forEach(function(r){
+    h+='<tr data-t="'+E(r.type)+'"><td style="padding:3px 0;border-bottom:1px solid #1a2130">'+E(r.date)+'</td>'
+     +'<td style="padding:3px 0;border-bottom:1px solid #1a2130;font-weight:700">'+E(r.type)+'</td>'
+     +'<td style="padding:3px 0;border-bottom:1px solid #1a2130;text-align:right">'+(r.link?'<a href="'+E(r.link)+'" target="_blank" rel="noopener" style="color:'+C.cy+'">SEC \u2197</a>':'')+'</td></tr>';});
+  h+='</table>';
+  return card('\ud83d\udcc4 SEC Filings \u2014 latest '+F.rows.length,h);
+}
+
+function pressCard(P){
+  if(!P.available)return card('\ud83d\udcf0 Press Releases',unav('press releases',P.reason));
+  var h='';P.rows.forEach(function(r){
+    h+='<div style="padding:3px 0;border-bottom:1px solid #1a2130"><span style="color:'+C.dim+'">'+E(r.date)+'</span> \u00b7 '
+     +(r.url?'<a href="'+E(r.url)+'" target="_blank" rel="noopener" style="color:'+C.ink+'">'+E(r.title)+' \u2197</a>':E(r.title))+'</div>';});
+  return card('\ud83d\udcf0 Press Releases',h);
+}
+
+function execsCard(X){
+  if(!X.available)return card('\ud83d\udc54 Executives',unav('executives',X.reason));
+  var h='';X.rows.forEach(function(r){
+    h+='<div style="padding:3px 0;border-bottom:1px solid #1a2130"><b>'+E(r.name)+'</b> <span style="color:'+C.gy+'">\u2014 '+E(r.title)+'</span>'
+     +(r.pay?' <span style="color:'+C.dim+'">\u00b7 pay $'+N(r.pay/1e6,1)+'M</span>':'')+'</div>';});
+  return card('\ud83d\udc54 Executives',h);
+}
+
+function listingsCard(Li,M){
+  var h='';
+  if(Li.available){
+    h+='<div style="color:'+C.dim+';margin:0 0 4px">Traded in other markets (ISIN '+E(Li.isin)+'):</div><div style="margin:0 0 8px">';
+    Li.rows.forEach(function(r){h+='<span style="border:1px solid '+(r.primary?C.cy:'#2a3140')+';color:'+(r.primary?C.cy:C.gy)+';border-radius:6px;padding:1px 8px;font-size:.64rem;font-weight:700;margin:0 5px 4px 0;display:inline-block">'+E(r.symbol)+' \u00b7 '+E(r.exchange)+'</span>';});
+    h+='</div>';
+  } else h+='<div style="color:'+C.dim+';margin:0 0 8px">cross-listings unavailable \u2014 '+E(Li.reason)+'.</div>';
+  if(M.available){
+    h+='<div style="color:'+C.dim+'">Index membership (checked: '+M.checked.map(E).join(', ')+'):</div>';
+    if(M.member_of.length)M.member_of.forEach(function(x){h+='<div style="color:'+C.gn+';font-weight:700">\u2713 '+E(x)+'</div>';});
+    else h+='<div style="color:'+C.gy+'">not a member of any checked index</div>';
+    h+='<div style="color:'+C.dim+';font-size:9.5px;margin-top:3px">'+E(M.note)+'</div>';
+  } else h+='<div style="color:'+C.dim+'">index membership unavailable \u2014 '+E(M.reason)+'.</div>';
+  return card('\ud83c\udf0d Listings & Index Membership',h);
+}
+
+function sec(id,ico,title,note){return '<section class="block" id="'+id+'"><div class="sub"><span class="ico">'+ico+'</span> '+title+(note?' <span style="color:'+C.dim+';font-weight:400">'+note+'</span>':'')+'</div><div id="'+id+'-b" style="font-family:var(--font-mono,monospace);font-size:11.5px;color:var(--text,#dfe7f3)">loading\u2026</div></section>';}
+function mount(){
+  var _old=document.getElementById('jh5015-wrap');
+  if(_old&&_old.parentNode)_old.parentNode.removeChild(_old);
+  var host=document.createElement('div');host.id='jh5015-wrap';
+  host.innerHTML=sec('jh5015-lynch','\ud83d\udcc8','Peter Lynch Chart \u2014 '+TK,'\u2014 price vs 15\u00d7 diluted EPS')
+    +sec('jh5015-rec','\ud83d\udcda','Company Records \u2014 '+TK,'\u2014 filings \u00b7 events \u00b7 press \u00b7 people \u00b7 listings');
+  var prev=document.getElementById('jh5013-wrap')||document.getElementById('jh5011-wrap')||document.getElementById('jh5010-wrap');
+  if(prev&&prev.parentNode)prev.parentNode.insertBefore(host,prev.nextSibling);
+  else (document.getElementById('content')||document.body).appendChild(host);
+  return host;
+}
+var DOC=null,_hb=null;
+function guard(heal){
+  var t0=Date.now();
+  function tick(){try{heal();}catch(e){}}
+  try{var mo=new MutationObserver(function(){if(_hb)return;
+    _hb=setTimeout(function(){_hb=null;tick();},800);});
+    mo.observe(document.body,{childList:true,subtree:true});
+    setTimeout(function(){try{mo.disconnect();}catch(e){}},300000);}catch(e){}
+  var iv=setInterval(function(){tick();
+    if(Date.now()-t0>300000)clearInterval(iv);},1500);
+}
+function draw(){
+  mount();
+  var R=DOC.company_records||{};
+  var b=document.getElementById('jh5015-lynch-b');
+  var L=R.lynch||{};
+  b.innerHTML=L.available?lynchSVG(L):unav('Peter Lynch chart',L.reason);
+  b=document.getElementById('jh5015-rec-b');
+  b.innerHTML='<div class="jh5015-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+    +eventsCard(R.events||{})+filingsCard(R.filings||{})
+    +pressCard(R.press||{})+execsCard(R.executives||{})
+    +listingsCard(R.listings||{available:false,reason:'no data'},R.index_membership||{available:false,reason:'no data'})
+    +'</div>';
+  Array.prototype.forEach.call(b.querySelectorAll('#jh5015-fch button'),function(btn){
+    btn.onclick=function(){var f=btn.getAttribute('data-f');
+      Array.prototype.forEach.call(b.querySelectorAll('tr[data-t]'),function(tr){
+        tr.style.display=(f==='ALL'||tr.getAttribute('data-t')===f)?'':'none';});
+      Array.prototype.forEach.call(b.querySelectorAll('#jh5015-fch button'),function(o){
+        o.style.borderColor=o===btn?C.cy:'#232c3f';o.style.color=o===btn?C.cy:C.dim;});};});
+}
+(function(){var st=document.createElement('style');
+st.textContent='@media(max-width:760px){#jh5015-wrap .jh5015-grid{grid-template-columns:1fr !important}}';
+document.head.appendChild(st);})();
+fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
+.then(function(r){if(!r.ok)throw new Error('cdn '+r.status);return r.json();})
+.then(function(d){
+  if(d&&d.company_records){DOC=d;draw();
+    guard(function(){var w=document.getElementById('jh5015-wrap');
+      if((!w||!w.isConnected)&&DOC)draw();});
+    return;}
+  mount();
+  var b=document.getElementById('jh5015-lynch-b');
+  if(b)b.innerHTML='<div style="color:'+C.dim+'">Building the current engine version for this ticker now \u2014 the Peter Lynch chart and company records will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
+  var b2=document.getElementById('jh5015-rec-b'); if(b2)b2.innerHTML='';
+  try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+  guard(function(){if(!document.getElementById('jh5015-wrap'))mount();});
+  /* ops 5014: auto-upgrade poll */
+  var _pt=0,_pl=setInterval(function(){_pt++;
+    if(_pt>26){clearInterval(_pl);return;}
+    fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(nd){if(nd&&nd.company_records){clearInterval(_pl);
+      DOC=nd;draw();
+      guard(function(){var w=document.getElementById('jh5015-wrap');
+        if((!w||!w.isConnected)&&DOC)draw();});}})
+    .catch(function(){});},12000);
+})
+.catch(function(e){console.warn('[ops5015]',e);});
+})();
+
+</script>
 </body>
 </html>
