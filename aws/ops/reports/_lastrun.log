@@ -1,14 +1,14 @@
-executing-against: 8f2f4ef91addbe60743c5a9d6e7d28c7984460dc
+executing-against: fdf5fe194df1c0a8b3fa38e5f9a33ddbde4fccf7
 ops 5015 -- company records (equity-research v2.7)
 ── G0 preflight ──
-[15:16:32] ✅ v2.7 markers and OPS5015 block present
+[15:18:20] ✅ v2.7 markers and OPS5015 block present
 ── G1 deploy (code only) ──
-[15:16:38] ✅ code updated; configuration/env untouched
+[15:18:27] ✅ code updated; configuration/env untouched
 ── P1 real-data asserts (version gate regenerates on its own) ──
-[15:16:39] ✅ AAOI: company records checked
-[15:16:39] ✅ NVDA: company records checked
-[15:16:39] ✗ AAOI: filings: 0 rows (need 3) -- SEC filings endpoint returned nothing on this plan tier
-[15:16:39] ✗ NVDA: filings: 0 rows (need 3) -- SEC filings endpoint returned nothing on this plan tier
+[15:18:31] ✅ AAOI: company records checked
+[15:18:34] ✅ NVDA: company records checked
+[15:18:34] ✗ AAOI: filings: 0 rows (need 3) -- no parseable filing rows
+[15:18:34] ✗ NVDA: filings: 0 rows (need 3) -- no parseable filing rows
 
 → Report written to aws/ops/reports/latest/ops_5015_company_records.md
 real-data asserts failed
