@@ -1,26 +1,24 @@
-executing-against: c92e639ae28991d9e08914c3578e203b1008e989
-ops 5016 -- ticker bus: layers follow the desk's navigation
-── G1 repo file carries the bus + rewires ──
-[16:40:36] ✅ bus block present
-[16:40:36] ✅ bus singleton
-[16:40:36] ✅ history hooks
-[16:40:36] ✅ fetch interception
-[16:40:36] ✅ four subscriptions
-[16:40:36] ✅ four jhStart entrypoints
-[16:40:36] ✅ generation checks >=20
-[16:40:36] ✅ bus precedes OPS5010
-── G2 served page carries it ──
-[16:40:36] waiting for site sync
-[16:40:51] waiting for site sync
-[16:41:07] waiting for site sync
-[16:41:22] waiting for site sync
-[16:41:37] waiting for site sync
-[16:41:52] waiting for site sync
-[16:42:07] waiting for site sync
-[16:42:23] waiting for site sync
-[16:42:38] waiting for site sync
-[16:42:53] waiting for site sync
-[16:43:08] ✅ bus + all four subscribed layers on the served page
-[16:43:08] ✅ OPS 5016 PASS -- every research layer arms from any navigation path and re-renders on in-page ticker switches
+executing-against: 62f5134958fafa886db4090c17337b7ad263f9ab
+ops 5017 -- JH Score / Momentum / Dividend & Buy Back (v2.8)
+── G0 preflight ──
+[17:23:42] ✅ v2.8 markers, OPS5017 block, 5 bus subscriptions
+── G1 deploy (code only) ──
+[17:23:49] ✅ code updated; configuration/env untouched
+── P1 real-data asserts ──
+[17:23:53] ✅ AAOI: score/momentum/dividend checked
+[17:23:56] ✅ NVDA: score/momentum/dividend checked
+── G2 live page carries OPS5017 ──
+[17:23:56] waiting for site sync
+[17:24:11] waiting for site sync
+[17:24:27] waiting for site sync
+[17:24:42] waiting for site sync
+[17:24:57] waiting for site sync
+[17:25:12] waiting for site sync
+[17:25:27] waiting for site sync
+[17:25:42] waiting for site sync
+[17:25:57] waiting for site sync
+[17:26:12] waiting for site sync
+[17:26:27] ✅ served page carries the score wheel block + 5 subscriptions
+[17:26:27] ✅ OPS 5017 PASS -- every visual from every screenshot in this conversation is now built, verified on real data, and rolls to every ticker
 
-→ Report written to aws/ops/reports/latest/ops_5016_ticker_bus.md
+→ Report written to aws/ops/reports/latest/ops_5017_score_momentum_dividend.md
