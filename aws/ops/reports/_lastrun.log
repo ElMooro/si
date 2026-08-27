@@ -1,32 +1,37 @@
-executing-against: 972ef0fb51304d7bd00e8d6a719acd0bc5339033
-ops 5012 -- why.html mount resilience (5010/5011 layers)
-── G1 repo file carries the resilience layer ──
-[02:47:20] ✅ exactly one OPS5010 block
-[02:47:20] ✅ exactly one OPS5011 block
-[02:47:20] ✅ two ops-5012 guards
-[02:47:20] ✅ idempotent 5010 mount
-[02:47:20] ✅ idempotent 5011 mount
-[02:47:20] ✅ heal closure x2
-[02:47:20] ✅ 5010 chips guarded
-[02:47:20] ✅ 5011 chips guarded
-[02:47:20] ✅ observer armed x2
-── G2 served page carries it (site sync) ──
-[02:47:20] live page not synced yet -- retrying
-[02:47:36] live page not synced yet -- retrying
-[02:47:51] live page not synced yet -- retrying
-[02:48:06] live page not synced yet -- retrying
-[02:48:21] live page not synced yet -- retrying
-[02:48:36] live page not synced yet -- retrying
-[02:48:51] live page not synced yet -- retrying
-[02:49:06] live page not synced yet -- retrying
-[02:49:21] live page not synced yet -- retrying
-[02:49:36] live page not synced yet -- retrying
-[02:49:51] live page not synced yet -- retrying
-[02:50:07] live page not synced yet -- retrying
-[02:50:22] ✅ OPS5010 block live
-[02:50:22] ✅ OPS5011 block live
-[02:50:22] ✅ heal closure live
-[02:50:22] ✅ chip guard live
-[02:50:22] ✅ OPS 5012 PASS -- 5010/5011 sections now survive the desk's re-render; every GuruFocus visual mounts after Quantitative Risk and self-heals for 5 minutes
+executing-against: 576f8aa0ec6dc3d9fa891aff6ce7d1db0e136d44
+ops 5013 -- statement flows (equity-research v2.6 + assets/jh-flows.js)
+── G0 preflight -- repo carries every piece ──
+[03:03:55] ✅ lambda v2.6 markers, shared lib, and OPS5013 block present
+── G1 deploy v2.6 (code only) ──
+[03:04:02] ✅ code updated; configuration/env untouched
+── P1 regenerate AAOI+NVDA with real data ──
+[03:04:02] doc cache busted for AAOI
+[03:04:02] doc cache busted for NVDA
+── P2 statement_flows reconciliation on real data ──
+[03:04:10] ✅ AAOI: all three statements reconcile
+[03:04:10] ✅ NVDA: all three statements reconcile
+── G2 live -- lib served + page wired ──
+[03:04:10] live fetch: HTTP Error 404: Not Found
+[03:04:10] waiting for site sync (lib=False page=False)
+[03:04:25] live fetch: HTTP Error 404: Not Found
+[03:04:25] waiting for site sync (lib=False page=False)
+[03:04:40] live fetch: HTTP Error 404: Not Found
+[03:04:40] waiting for site sync (lib=False page=False)
+[03:04:55] live fetch: HTTP Error 404: Not Found
+[03:04:55] waiting for site sync (lib=False page=False)
+[03:05:10] live fetch: HTTP Error 404: Not Found
+[03:05:10] waiting for site sync (lib=False page=False)
+[03:05:25] live fetch: HTTP Error 404: Not Found
+[03:05:25] waiting for site sync (lib=False page=False)
+[03:05:40] live fetch: HTTP Error 404: Not Found
+[03:05:40] waiting for site sync (lib=False page=False)
+[03:05:55] live fetch: HTTP Error 404: Not Found
+[03:05:55] waiting for site sync (lib=False page=False)
+[03:06:10] live fetch: HTTP Error 404: Not Found
+[03:06:10] waiting for site sync (lib=False page=False)
+[03:06:25] live fetch: HTTP Error 404: Not Found
+[03:06:25] waiting for site sync (lib=False page=False)
+[03:06:41] ✅ assets/jh-flows.js live and OPS5013 on the served page
+[03:06:41] ✅ OPS 5013 PASS -- income / balance-sheet / cash-flow Sankeys live on real data; shared engine available to every research page via assets/jh-flows.js
 
-→ Report written to aws/ops/reports/latest/ops_5012_why_mount_resilience.md
+→ Report written to aws/ops/reports/latest/ops_5013_statement_flows.md
