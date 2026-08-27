@@ -4562,6 +4562,7 @@ function qChart(sq,iq,mode){
 function mount(html){
   var anchor=null,subs=document.querySelectorAll('.sub');
   for(var i=0;i<subs.length;i++){if(subs[i].textContent.indexOf('Quantitative Risk')>=0){anchor=subs[i].closest('section');break;}}
+  var _old=document.getElementById('jh5010-wrap');if(_old&&_old.parentNode)_old.parentNode.removeChild(_old);
   var host=document.createElement('div');host.id='jh5010-wrap';host.innerHTML=html;
   if(anchor&&anchor.parentNode){anchor.parentNode.insertBefore(host,anchor.nextSibling);}
   else{var c=document.getElementById('content')||document.body;c.appendChild(host);}
@@ -4582,7 +4583,7 @@ function run(d){
     if(e25.dist_pct!=null)h+=chip('\u0394250-EMA '+P(e25.dist_pct),pcCol(e25.dist_pct));
     if(!h)return;
     var tries=0,tm=setInterval(function(){tries++;var v=document.getElementById('jhVitalsTop');
-      if(v){clearInterval(tm);var el=document.createElement('div');el.style.cssText='margin:6px 0 2px';el.innerHTML=h;v.insertBefore(el,v.children[1]||null);}
+      if(v){clearInterval(tm);if(document.getElementById('jh5010-chips'))return;var el=document.createElement('div');el.id='jh5010-chips';el.style.cssText='margin:6px 0 2px';el.innerHTML=h;v.insertBefore(el,v.children[1]||null);}
       else if(tries>40)clearInterval(tm);},250);
   })();
 
@@ -4666,14 +4667,32 @@ document.head.appendChild(st);})();
 
 /* fetch: CDN cache first; if payload predates v2.4, fire a background
    regeneration so the next load is upgraded — never fake the data now. */
+/* ops 5012: the desk re-renders #content after its own fetch, wiping
+   one-shot mounts. Keep the doc, watch the DOM, and remount whenever
+   our wrap disappears — idempotent, 5-minute window. */
+var DOC=null,_hb=null;
+function guard(heal){
+  var t0=Date.now();
+  function tick(){try{heal();}catch(e){}}
+  try{var mo=new MutationObserver(function(){if(_hb)return;
+    _hb=setTimeout(function(){_hb=null;tick();},250);});
+    mo.observe(document.body,{childList:true,subtree:true});
+    setTimeout(function(){try{mo.disconnect();}catch(e){}},300000);}catch(e){}
+  var iv=setInterval(function(){tick();
+    if(Date.now()-t0>300000)clearInterval(iv);},1500);
+}
 fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
 .then(function(r){if(!r.ok)throw new Error('cdn '+r.status);return r.json();})
 .then(function(d){
-  if(d&&d.price_analytics){run(d);return;}
+  if(d&&d.price_analytics){DOC=d;run(d);
+    guard(function(){var w=document.getElementById('jh5010-wrap');
+      if((!w||!w.isConnected)&&DOC)run(DOC);});
+    return;}
   mount(sec('jh5010-stale','\u25c8','Quant layer \u2014 beta, classification, expectations, EMA, industry'));
   var el=document.getElementById('jh5010-stale-b');
   if(el)el.innerHTML='<div style="color:'+C.dim+'">This ticker\u2019s dossier was generated before the quant layer (schema '+E(d&&d.schema_version)+'). A fresh v2.4 build has been requested in the background \u2014 reload in ~2 minutes. No stale or invented numbers are shown in its place.</div>';
   try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+  guard(function(){if(!document.getElementById('jh5010-wrap'))return;});
 })
 .catch(function(e){console.warn('[ops5010]',e);});
 })();
@@ -4893,6 +4912,7 @@ function descCard(cp,peers){
 
 /* ── mount after the 5010 wrap ────────────────────────────────── */
 function mount(html){
+  var _old=document.getElementById('jh5011-wrap');if(_old&&_old.parentNode)_old.parentNode.removeChild(_old);
   var host=document.createElement('div');host.id='jh5011-wrap';host.innerHTML=html;
   var prev=document.getElementById('jh5010-wrap');
   if(prev&&prev.parentNode){prev.parentNode.insertBefore(host,prev.nextSibling);return;}
@@ -4955,14 +4975,32 @@ function run(d){
 st.textContent='@media(max-width:760px){#jh5011-wrap .jh5011-2col{grid-template-columns:1fr!important}}';
 document.head.appendChild(st);})();
 
+/* ops 5012: the desk re-renders #content after its own fetch, wiping
+   one-shot mounts. Keep the doc, watch the DOM, and remount whenever
+   our wrap disappears — idempotent, 5-minute window. */
+var DOC=null,_hb=null;
+function guard(heal){
+  var t0=Date.now();
+  function tick(){try{heal();}catch(e){}}
+  try{var mo=new MutationObserver(function(){if(_hb)return;
+    _hb=setTimeout(function(){_hb=null;tick();},500);});
+    mo.observe(document.body,{childList:true,subtree:true});
+    setTimeout(function(){try{mo.disconnect();}catch(e){}},300000);}catch(e){}
+  var iv=setInterval(function(){tick();
+    if(Date.now()-t0>300000)clearInterval(iv);},1500);
+}
 fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
 .then(function(r){if(!r.ok)throw new Error('cdn '+r.status);return r.json();})
 .then(function(d){
-  if(d&&d.valuation_panel){run(d);return;}
+  if(d&&d.valuation_panel){DOC=d;run(d);
+    guard(function(){var w=document.getElementById('jh5011-wrap');
+      if((!w||!w.isConnected)&&DOC)run(DOC);});
+    return;}
   mount(sec('jh5011-stale','\u2696','Full report layer \u2014 fair value, strength, signs, returns, profile'));
   var el=document.getElementById('jh5011-stale-b');
   if(el)el.innerHTML='<div style="color:'+C.dim+'">This ticker\u2019s dossier predates the full-report layer (schema '+E(d&&d.schema_version)+'). A fresh v2.5 build has been requested in the background \u2014 reload in ~2 minutes. No stale or invented numbers are shown in its place.</div>';
   try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+  guard(function(){if(!document.getElementById('jh5011-wrap'))return;});
 })
 .catch(function(e){console.warn('[ops5011]',e);});
 })();
