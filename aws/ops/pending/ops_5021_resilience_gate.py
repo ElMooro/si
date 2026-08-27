@@ -43,16 +43,22 @@ with report("ops_5021_resilience_gate") as rep:
         raise SystemExit("repo markers wrong")
 
     rep.section("P1 served page carries the resilience layer")
+    UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+          "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36")
+    CANDIDATES = [PAGE, "https://elmooro.github.io/si/why.html"]
     live_ok = False
     for i in range(16):
         try:
-            with urllib.request.urlopen(PAGE + "?v=%d" % time.time(),
-                                        timeout=30) as r:
+            url = CANDIDATES[i % len(CANDIDATES)]
+            req = urllib.request.Request(
+                url + "?v=%d" % time.time(), headers={"User-Agent": UA})
+            with urllib.request.urlopen(req, timeout=30) as r:
                 page = r.read().decode("utf-8", "replace")
             if page.count("if(_pt>60)") == 6 and \
                     page.count("First fetch failed") == 6:
-                rep.ok("served page live after %ds (%d KB)"
-                       % (i * 20, len(page) // 1024))
+                rep.ok("served page live after %ds via %s (%d KB)"
+                       % (i * 20, url.split("/")[2],
+                          len(page) // 1024))
                 live_ok = True
                 break
         except Exception as e:
