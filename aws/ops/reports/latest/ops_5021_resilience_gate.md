@@ -1,19 +1,37 @@
 # ops 5021 -- LIVE-direct stale resilience gate
 
 **Status:** failure  
-**Duration:** 0.0s  
-**Finished:** 2026-08-27T20:05:52+00:00  
+**Duration:** 322.2s  
+**Finished:** 2026-08-27T20:17:36+00:00  
 
 ## Error
 
 ```
-SystemExit: repo markers wrong
+SystemExit: served page did not pick up the change
 ```
 
 ## Log
 ## G0 repo markers
 
-- `20:05:52` ✅ poll window 60: 6/6
-- `20:05:52` ✅ recovery catch: 6/6
-- `20:05:52` ✗ LIVE-direct render: 12/6
-- `20:05:52` ✅ 5010/5011 run-binding: 4/4
+- `20:12:14` ✅ poll window 60: 6/6
+- `20:12:14` ✅ recovery catch: 6/6
+- `20:12:14` ✅ LIVE-direct render (stale + recovery): 12/12
+- `20:12:14` ✅ 5010/5011 run-binding: 4/4
+## P1 served page carries the resilience layer
+
+- `20:12:14` poll 0: HTTP Error 403: Forbidden
+- `20:12:34` poll 1: HTTP Error 403: Forbidden
+- `20:12:54` poll 2: HTTP Error 403: Forbidden
+- `20:13:14` poll 3: HTTP Error 403: Forbidden
+- `20:13:34` poll 4: HTTP Error 403: Forbidden
+- `20:13:54` poll 5: HTTP Error 403: Forbidden
+- `20:14:15` poll 6: HTTP Error 403: Forbidden
+- `20:14:35` poll 7: HTTP Error 403: Forbidden
+- `20:14:55` poll 8: HTTP Error 403: Forbidden
+- `20:15:15` poll 9: HTTP Error 403: Forbidden
+- `20:15:35` poll 10: HTTP Error 403: Forbidden
+- `20:15:55` poll 11: HTTP Error 403: Forbidden
+- `20:16:15` poll 12: HTTP Error 403: Forbidden
+- `20:16:35` poll 13: HTTP Error 403: Forbidden
+- `20:16:56` poll 14: HTTP Error 403: Forbidden
+- `20:17:16` poll 15: HTTP Error 403: Forbidden

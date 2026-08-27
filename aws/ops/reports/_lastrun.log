@@ -1,11 +1,28 @@
-executing-against: 75f82ea1e1493220f69d4abc2a74cd117aedb6fc
+executing-against: a4142ad202a6406a2fb856897a190455b202a9ca
 ops 5021 -- LIVE-direct stale resilience gate
 ── G0 repo markers ──
-[20:05:52] ✅ poll window 60: 6/6
-[20:05:52] ✅ recovery catch: 6/6
-[20:05:52] ✗ LIVE-direct render: 12/6
-[20:05:52] ✅ 5010/5011 run-binding: 4/4
+[20:12:14] ✅ poll window 60: 6/6
+[20:12:14] ✅ recovery catch: 6/6
+[20:12:14] ✅ LIVE-direct render (stale + recovery): 12/12
+[20:12:14] ✅ 5010/5011 run-binding: 4/4
+── P1 served page carries the resilience layer ──
+[20:12:14] poll 0: HTTP Error 403: Forbidden
+[20:12:34] poll 1: HTTP Error 403: Forbidden
+[20:12:54] poll 2: HTTP Error 403: Forbidden
+[20:13:14] poll 3: HTTP Error 403: Forbidden
+[20:13:34] poll 4: HTTP Error 403: Forbidden
+[20:13:54] poll 5: HTTP Error 403: Forbidden
+[20:14:15] poll 6: HTTP Error 403: Forbidden
+[20:14:35] poll 7: HTTP Error 403: Forbidden
+[20:14:55] poll 8: HTTP Error 403: Forbidden
+[20:15:15] poll 9: HTTP Error 403: Forbidden
+[20:15:35] poll 10: HTTP Error 403: Forbidden
+[20:15:55] poll 11: HTTP Error 403: Forbidden
+[20:16:15] poll 12: HTTP Error 403: Forbidden
+[20:16:35] poll 13: HTTP Error 403: Forbidden
+[20:16:56] poll 14: HTTP Error 403: Forbidden
+[20:17:16] poll 15: HTTP Error 403: Forbidden
 
 → Report written to aws/ops/reports/latest/ops_5021_resilience_gate.md
-repo markers wrong
+served page did not pick up the change
 ❌ OPS-FAIL: aws/ops/pending/ops_5021_resilience_gate.py
