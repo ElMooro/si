@@ -168,3 +168,4 @@ with report("ops_5015_company_records") as rep:
     rep.ok("OPS 5015 PASS -- every GuruFocus summary panel from the "
            "screenshots is now built; v2.7 rolls to all tickers via the "
            "version gate + in-place auto-upgrade")
+# rerun: verify EDGAR-fallback filings on real data (15:16)
