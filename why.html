@@ -4730,12 +4730,12 @@ function jhStart(_t){
     mount(sec('jh5010-stale','\u25c8','Quant layer \u2014 beta, classification, expectations, EMA, industry'));
     var el=document.getElementById('jh5010-stale-b');
     if(el)el.innerHTML='<div style="color:'+C.dim+'">Building the current engine version for this ticker now \u2014 the quant layer (beta, classification, expectations, EMA, industry) will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
-    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').then(function(r){return r.ok?r.json():null;}).then(function(nd){if(_g!==GEN)return;if(nd&&nd.price_analytics){DOC=nd;run(DOC);}}).catch(function(){});}catch(e){}
     guard(function(){if(_g!==GEN)return;if(!document.getElementById('jh5010-wrap'))return;});
     /* ops 5014: auto-upgrade — server regenerates (version-gated cache),
        we poll the CDN and draw in place when the current doc lands. */
     var _pt=0,_pl=setInterval(function(){if(_g!==GEN){clearInterval(_pl);return;}_pt++;
-      if(_pt>26){clearInterval(_pl);return;}
+      if(_pt>60){clearInterval(_pl);return;}
       fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
       .then(function(r){return r.ok?r.json():null;})
       .then(function(nd){if(_g!==GEN){clearInterval(_pl);return;}if(nd&&nd.price_analytics){clearInterval(_pl);
@@ -4745,7 +4745,7 @@ function jhStart(_t){
       .catch(function(){});},12000);
   
   })
-  .catch(function(e){console.warn('[ops5010]',e);});
+  .catch(function(e){console.warn('[ops5010]',e);if(_g!==GEN)return;mount();var _b=document.getElementById('jh5010-stale-b');if(_b)_b.innerHTML='<div style="color:'+C.dim+'">First fetch failed \u2014 pulling a fresh build for this ticker directly; it will appear here in seconds. Nothing stale or invented is shown meanwhile.</div>';try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').then(function(r){return r.ok?r.json():null;}).then(function(nd){if(_g!==GEN)return;if(nd&&nd.price_analytics){DOC=nd;run(DOC);}}).catch(function(){});}catch(e){}});
 }
 if(window.__JH_TICKER_BUS){window.__JH_TICKER_BUS.subscribe(function(t){if(t!==TK)jhStart(t);});}
 else{var _q=new URLSearchParams(location.search);
@@ -5059,12 +5059,12 @@ function jhStart(_t){
     mount(sec('jh5011-stale','\u2696','Full report layer \u2014 fair value, strength, signs, returns, profile'));
     var el=document.getElementById('jh5011-stale-b');
     if(el)el.innerHTML='<div style="color:'+C.dim+'">Building the current engine version for this ticker now \u2014 the full report (fair value, valuation history, ranks, signs, peer returns, description) will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
-    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').then(function(r){return r.ok?r.json():null;}).then(function(nd){if(_g!==GEN)return;if(nd&&nd.valuation_panel){DOC=nd;run(DOC);}}).catch(function(){});}catch(e){}
     guard(function(){if(_g!==GEN)return;if(!document.getElementById('jh5011-wrap'))return;});
     /* ops 5014: auto-upgrade — server regenerates (version-gated cache),
        we poll the CDN and draw in place when the current doc lands. */
     var _pt=0,_pl=setInterval(function(){if(_g!==GEN){clearInterval(_pl);return;}_pt++;
-      if(_pt>26){clearInterval(_pl);return;}
+      if(_pt>60){clearInterval(_pl);return;}
       fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
       .then(function(r){return r.ok?r.json():null;})
       .then(function(nd){if(_g!==GEN){clearInterval(_pl);return;}if(nd&&nd.valuation_panel){clearInterval(_pl);
@@ -5074,7 +5074,7 @@ function jhStart(_t){
       .catch(function(){});},12000);
   
   })
-  .catch(function(e){console.warn('[ops5011]',e);});
+  .catch(function(e){console.warn('[ops5011]',e);if(_g!==GEN)return;mount();var _b=document.getElementById('jh5011-stale-b');if(_b)_b.innerHTML='<div style="color:'+C.dim+'">First fetch failed \u2014 pulling a fresh build for this ticker directly; it will appear here in seconds. Nothing stale or invented is shown meanwhile.</div>';try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').then(function(r){return r.ok?r.json():null;}).then(function(nd){if(_g!==GEN)return;if(nd&&nd.valuation_panel){DOC=nd;run(DOC);}}).catch(function(){});}catch(e){}});
 }
 if(window.__JH_TICKER_BUS){window.__JH_TICKER_BUS.subscribe(function(t){if(t!==TK)jhStart(t);});}
 else{var _q=new URLSearchParams(location.search);
@@ -5150,12 +5150,12 @@ function jhStart(_t){
     var host=mount();
     var b=document.getElementById('jh5013-b');
     if(b)b.innerHTML='<div style="color:'+DIM+'">Building the current engine version for this ticker now \u2014 the income / balance-sheet / cash-flow diagrams will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
-    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').then(function(r){return r.ok?r.json():null;}).then(function(nd){if(_g!==GEN)return;if(nd&&nd.statement_flows){DOC=nd;draw();}}).catch(function(){});}catch(e){}
     guard(function(){if(_g!==GEN)return;if(!document.getElementById('jh5013-wrap'))mount();});
     /* ops 5014: auto-upgrade — server regenerates (version-gated cache),
        we poll the CDN and draw in place when the current doc lands. */
     var _pt=0,_pl=setInterval(function(){if(_g!==GEN){clearInterval(_pl);return;}_pt++;
-      if(_pt>26){clearInterval(_pl);return;}
+      if(_pt>60){clearInterval(_pl);return;}
       fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
       .then(function(r){return r.ok?r.json():null;})
       .then(function(nd){if(_g!==GEN){clearInterval(_pl);return;}if(nd&&nd.statement_flows){clearInterval(_pl);
@@ -5165,7 +5165,7 @@ function jhStart(_t){
       .catch(function(){});},12000);
   
   })
-  .catch(function(e){console.warn('[ops5013]',e);});
+  .catch(function(e){console.warn('[ops5013]',e);if(_g!==GEN)return;mount();var _b=document.getElementById('jh5013-b');if(_b)_b.innerHTML='<div style="color:'+C.dim+'">First fetch failed \u2014 pulling a fresh build for this ticker directly; it will appear here in seconds. Nothing stale or invented is shown meanwhile.</div>';try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').then(function(r){return r.ok?r.json():null;}).then(function(nd){if(_g!==GEN)return;if(nd&&nd.statement_flows){DOC=nd;draw();}}).catch(function(){});}catch(e){}});
 }
 if(window.__JH_TICKER_BUS){window.__JH_TICKER_BUS.subscribe(function(t){if(t!==TK)jhStart(t);});}
 else{var _q=new URLSearchParams(location.search);
@@ -5353,11 +5353,11 @@ function jhStart(_t){
     var b=document.getElementById('jh5015-lynch-b');
     if(b)b.innerHTML='<div style="color:'+C.dim+'">Building the current engine version for this ticker now \u2014 the Peter Lynch chart and company records will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
     var b2=document.getElementById('jh5015-rec-b'); if(b2)b2.innerHTML='';
-    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').then(function(r){return r.ok?r.json():null;}).then(function(nd){if(_g!==GEN)return;if(nd&&nd.company_records){DOC=nd;draw();}}).catch(function(){});}catch(e){}
     guard(function(){if(_g!==GEN)return;if(!document.getElementById('jh5015-wrap'))mount();});
     /* ops 5014: auto-upgrade poll */
     var _pt=0,_pl=setInterval(function(){if(_g!==GEN){clearInterval(_pl);return;}_pt++;
-      if(_pt>26){clearInterval(_pl);return;}
+      if(_pt>60){clearInterval(_pl);return;}
       fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
       .then(function(r){return r.ok?r.json():null;})
       .then(function(nd){if(_g!==GEN){clearInterval(_pl);return;}if(nd&&nd.company_records){clearInterval(_pl);
@@ -5366,7 +5366,7 @@ function jhStart(_t){
           if((!w||!w.isConnected)&&DOC)draw();});}})
       .catch(function(){});},12000);
   })
-  .catch(function(e){console.warn('[ops5015]',e);});
+  .catch(function(e){console.warn('[ops5015]',e);if(_g!==GEN)return;mount();var _b=document.getElementById('jh5015-lynch-b');if(_b)_b.innerHTML='<div style="color:'+C.dim+'">First fetch failed \u2014 pulling a fresh build for this ticker directly; it will appear here in seconds. Nothing stale or invented is shown meanwhile.</div>';try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').then(function(r){return r.ok?r.json():null;}).then(function(nd){if(_g!==GEN)return;if(nd&&nd.company_records){DOC=nd;draw();}}).catch(function(){});}catch(e){}});
 }
 if(window.__JH_TICKER_BUS){window.__JH_TICKER_BUS.subscribe(function(t){if(t!==TK)jhStart(t);});}
 else{var _q=new URLSearchParams(location.search);
@@ -5516,10 +5516,10 @@ function jhStart(_t){
     mount();
     var b=document.getElementById('jh5017-b');
     if(b)b.innerHTML='<div style="color:'+C.dim+'">Building the current engine version for this ticker now \u2014 the JH Score, momentum and dividend panels will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
-    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').then(function(r){return r.ok?r.json():null;}).then(function(nd){if(_g!==GEN)return;if(nd&&nd.jh_score){DOC=nd;draw();}}).catch(function(){});}catch(e){}
     guard(function(){if(_g!==GEN)return;if(!document.getElementById('jh5017-wrap'))mount();});
     var _pt=0,_pl=setInterval(function(){if(_g!==GEN){clearInterval(_pl);return;}_pt++;
-      if(_pt>26){clearInterval(_pl);return;}
+      if(_pt>60){clearInterval(_pl);return;}
       fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
       .then(function(r){return r.ok?r.json():null;})
       .then(function(nd){if(_g!==GEN){clearInterval(_pl);return;}if(nd&&nd.jh_score){clearInterval(_pl);
@@ -5529,7 +5529,7 @@ function jhStart(_t){
           if((!w||!w.isConnected)&&DOC)draw();});}})
       .catch(function(){});},12000);
   })
-  .catch(function(e){console.warn('[ops5017]',e);});
+  .catch(function(e){console.warn('[ops5017]',e);if(_g!==GEN)return;mount();var _b=document.getElementById('jh5017-b');if(_b)_b.innerHTML='<div style="color:'+C.dim+'">First fetch failed \u2014 pulling a fresh build for this ticker directly; it will appear here in seconds. Nothing stale or invented is shown meanwhile.</div>';try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').then(function(r){return r.ok?r.json():null;}).then(function(nd){if(_g!==GEN)return;if(nd&&nd.jh_score){DOC=nd;draw();}}).catch(function(){});}catch(e){}});
 }
 (function(){var st=document.createElement('style');
 st.textContent='@media(max-width:760px){#jh5017-wrap .jh5017-grid{grid-template-columns:1fr !important}}';
@@ -5866,10 +5866,10 @@ function jhStart(_t){
     mount();
     var b=document.getElementById('jh5018-b');
     if(b)b.innerHTML='<div style="color:'+C.dim+'">Building the current engine version for this ticker now \u2014 the full summary tables (fundamentals, forensics, valuation, estimates, mix, peers) will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
-    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').then(function(r){return r.ok?r.json():null;}).then(function(nd){if(_g!==GEN)return;if(nd&&nd.gf_extras){DOC=nd;draw();}}).catch(function(){});}catch(e){}
     guard(function(){if(_g!==GEN)return;if(!document.getElementById('jh5018-wrap'))mount();});
     var _pt=0,_pl=setInterval(function(){if(_g!==GEN){clearInterval(_pl);return;}_pt++;
-      if(_pt>26){clearInterval(_pl);return;}
+      if(_pt>60){clearInterval(_pl);return;}
       fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
       .then(function(r){return r.ok?r.json():null;})
       .then(function(nd){if(_g!==GEN){clearInterval(_pl);return;}if(nd&&nd.gf_extras){clearInterval(_pl);
@@ -5879,7 +5879,7 @@ function jhStart(_t){
           if((!w||!w.isConnected)&&DOC)draw();});}})
       .catch(function(){});},12000);
   })
-  .catch(function(e){console.warn('[ops5018]',e);});
+  .catch(function(e){console.warn('[ops5018]',e);if(_g!==GEN)return;mount();var _b=document.getElementById('jh5018-b');if(_b)_b.innerHTML='<div style="color:'+C.dim+'">First fetch failed \u2014 pulling a fresh build for this ticker directly; it will appear here in seconds. Nothing stale or invented is shown meanwhile.</div>';try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').then(function(r){return r.ok?r.json():null;}).then(function(nd){if(_g!==GEN)return;if(nd&&nd.gf_extras){DOC=nd;draw();}}).catch(function(){});}catch(e){}});
 }
 (function(){var st=document.createElement('style');
 st.textContent='@media(max-width:900px){#jh5018-wrap .jh5018-g3{grid-template-columns:1fr !important}#jh5018-wrap .jh5018-g2{grid-template-columns:1fr !important}}';
