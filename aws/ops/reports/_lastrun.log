@@ -1,17 +1,15 @@
-executing-against: 8a3422a43380584e8f1e3c62c7db50653465293a
-ops 5014 -- version-gated cache + in-place auto-upgrade
+executing-against: e960a17d7f4578e0b7d3b26a7d465995b24cda4a
+ops 5015 -- company records (equity-research v2.7)
 ── G0 preflight ──
-[14:32:12] ✅ version gate, schema constant, and 3 auto-upgrade layers present
+[15:10:11] ✅ v2.7 markers and OPS5015 block present
 ── G1 deploy (code only) ──
-[14:32:19] ✅ code updated; configuration/env untouched
-── P0 controlled stale-schema probe (ORCL) ──
-[14:32:21] ORCL cache doctored: schema '2.6' -> 2.5-test-stale
-[14:32:24] ✅ ORCL: fresh current-schema doc with reconciling flows
-── P1 behavioral proof on untouched tickers ──
-[14:32:25] ✅ MSFT: fresh current-schema doc with reconciling flows
-[14:32:27] ✅ GOOGL: fresh current-schema doc with reconciling flows
-── G2 live page carries the auto-upgrade layers ──
-[14:32:27] ✅ served page carries all 3 auto-upgrade layers
-[14:32:27] ✅ OPS 5014 PASS -- every ticker now serves the current engine: stale-schema cache is a miss server-side, and the page upgrades itself in place
+[15:10:18] ✅ code updated; configuration/env untouched
+── P1 real-data asserts (version gate regenerates on its own) ──
+[15:10:23] ✅ AAOI: company records checked
+[15:10:26] ✅ NVDA: company records checked
+[15:10:26] ✗ AAOI: filings: 0 rows (need 3) -- SEC filings endpoint returned nothing on this plan tier
+[15:10:26] ✗ NVDA: filings: 0 rows (need 3) -- SEC filings endpoint returned nothing on this plan tier
 
-→ Report written to aws/ops/reports/latest/ops_5014_every_ticker_current.md
+→ Report written to aws/ops/reports/latest/ops_5015_company_records.md
+real-data asserts failed
+❌ OPS-FAIL: aws/ops/pending/ops_5015_company_records.py
