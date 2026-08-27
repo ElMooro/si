@@ -154,7 +154,7 @@ def census_idx(s3_client, bucket):
 
 CACHE_PREFIX = "equity-research/"
 CACHE_TTL    = 24 * 3600   # 24h cache (statements don't change daily)
-SCHEMA_CURRENT = "2.9"     # 2.9: full GuruFocus summary parity (ops 5018)     # ops 5014: single source of truth — cache gate + doc assembly
+SCHEMA_CURRENT = "2.9.1"   # 2.9.1: gf_extras self-contained safe wrapper     # ops 5014: single source of truth — cache gate + doc assembly
 FETCH_TIMEOUT = 20         # FMP per-call timeout
 CLAUDE_TIMEOUT = 150        # was 90s, but bigger schema + transcript pushes to ~85s
 FALLBACK_BUDGET_S = 70      # hard cap on the GLM/Sonnet fallback so a slow LLM never
@@ -4972,6 +4972,16 @@ def build_scores(ia, ba, ca, quote, rf_pct, beta):
 # ── JH-5018 part 2 ───────────────────────────────────────────────────
 
 
+def _jh18_safe(fn, *a):
+    try:
+        return fn(*a)
+    except Exception as e:
+        print("[jh18] %s failed: %s" % (getattr(fn, "__name__", "?"), e))
+        return {"available": False,
+                "reason": "internal error: %s" % str(e)[:120]}
+
+
+
 def _jh18_ttm(iq, *names, n=4):
     rows = _jh11_rows(iq)[-n:]
     if len(rows) < n:
@@ -5554,46 +5564,46 @@ def build_gf_extras(raw, ia, iq, ba, bq, ca, closes, spy_closes, quote,
     except Exception:
         pass
     beta = (quant_risk or {}).get("beta_2y")
-    scores = _jh11_safe(build_scores, ia, ba, ca, quote, rf, beta)
+    scores = _jh18_safe(build_scores, ia, ba, ca, quote, rf, beta)
     wacc = ((scores or {}).get("wacc_roic") or {}).get("wacc_pct") or 10.0
     est = raw.get("analyst_est")
     est_rows = sorted([r for r in (est if isinstance(est, list) else [])
                        if isinstance(r, dict) and r.get("date")
                        and r["date"][:4] >= "2025"],
                       key=lambda r: r["date"])
-    vr = _jh11_safe(build_valuation_ratios, ia, iq, ba, ca, quote,
+    vr = _jh18_safe(build_valuation_ratios, ia, iq, ba, ca, quote,
                     closes, est_rows, model_fv, wacc)
     return {
         "available": True,
         "rf_10y_pct": round(rf, 2),
-        "fin_strength_table": _jh11_safe(build_fin_strength_table, ia,
+        "fin_strength_table": _jh18_safe(build_fin_strength_table, ia,
                                          ba, raw.get("ratios_annual"),
                                          raw.get("ratios_ttm")),
-        "profitability_table": _jh11_safe(build_profitability_table, ia,
+        "profitability_table": _jh18_safe(build_profitability_table, ia,
                                           ba, raw.get("ratios_annual")),
-        "liquidity_table": _jh11_safe(build_liquidity_table, ia, ba,
+        "liquidity_table": _jh18_safe(build_liquidity_table, ia, ba,
                                       raw.get("ratios_annual")),
         "scores": scores,
         "valuation_ratios": vr,
-        "valuation_ladder": _jh11_safe(
+        "valuation_ladder": _jh18_safe(
             build_valuation_ladder, ia, ba, ca, quote, model_fv, wacc,
             (vr or {}).get("med_ps_value")),
-        "fv_band": _jh11_safe(build_fv_band, ia, iq, closes, quote),
-        "momentum_extra": _jh11_safe(build_momentum_extra, closes),
-        "key_stats": _jh11_safe(build_key_stats, closes, spy_closes,
+        "fv_band": _jh18_safe(build_fv_band, ia, iq, closes, quote),
+        "momentum_extra": _jh18_safe(build_momentum_extra, closes),
+        "key_stats": _jh18_safe(build_key_stats, closes, spy_closes,
                                 rf, quote, iq, quant_risk),
-        "dupont": _jh11_safe(build_dupont, iq, bq),
-        "financial_minis": _jh11_safe(build_financial_minis, ia, ba, ca),
-        "segments": _jh11_safe(build_segments, raw),
-        "estimates": _jh11_safe(build_estimates_table,
+        "dupont": _jh18_safe(build_dupont, iq, bq),
+        "financial_minis": _jh18_safe(build_financial_minis, ia, ba, ca),
+        "segments": _jh18_safe(build_segments, raw),
+        "estimates": _jh18_safe(build_estimates_table,
                                 raw.get("analyst_est")),
-        "news": _jh11_safe(build_news, raw),
-        "splits": _jh11_safe(build_splits, raw),
-        "facts": _jh11_safe(build_facts, raw),
-        "peer_perf": _jh11_safe(build_peer_perf, ticker, closes),
-        "risk_assessment": _jh11_safe(build_risk_assessment, quant_risk,
+        "news": _jh18_safe(build_news, raw),
+        "splits": _jh18_safe(build_splits, raw),
+        "facts": _jh18_safe(build_facts, raw),
+        "peer_perf": _jh18_safe(build_peer_perf, ticker, closes),
+        "risk_assessment": _jh18_safe(build_risk_assessment, quant_risk,
                                       (scores or {}).get("altman")),
-        "dividend_extra": _jh11_safe(build_dividend_extra, ca, ia,
+        "dividend_extra": _jh18_safe(build_dividend_extra, ca, ia,
                                      quote),
     }
 

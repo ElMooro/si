@@ -69,7 +69,7 @@ with report("ops_5018_gf_parity") as rep:
     for mark in ("JH-5018", "build_gf_extras", "build_scores",
                  "build_valuation_ladder", "build_dupont",
                  '"rev_geo_seg"', '"analyst_est"', '"treasury"',
-                 '"gf_extras":', 'SCHEMA_CURRENT = "2.9"'):
+                 '"gf_extras":', 'SCHEMA_CURRENT = "2.9.1"'):
         if mark not in src:
             fails.append("lambda missing %r" % mark)
     page = (ROOT / "why.html").read_text()
@@ -102,13 +102,14 @@ with report("ops_5018_gf_parity") as rep:
         doc_kb = len(json.dumps(doc)) // 1024
         rep.kv(ticker=t, gen_s=round(time.time() - t0, 1),
                schema=doc.get("schema_version"), doc_kb=doc_kb)
-        if doc.get("schema_version") != "2.9":
-            fails.append(tag("schema %r != 2.9"
+        if doc.get("schema_version") != "2.9.1":
+            fails.append(tag("schema %r != 2.9.1"
                              % doc.get("schema_version")))
             continue
         X = doc.get("gf_extras") or {}
         if not X.get("available"):
-            fails.append(tag("gf_extras unavailable"))
+            fails.append(tag("gf_extras unavailable: %s"
+                             % X.get("reason")))
             continue
 
         for name in ("fin_strength_table", "profitability_table",
