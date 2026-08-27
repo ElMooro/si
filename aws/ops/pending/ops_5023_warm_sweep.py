@@ -39,7 +39,7 @@ def build(t):
     ok = isinstance(doc, dict) and \
         doc.get("schema_version") == "2.9.3" and \
         bool((doc.get("gf_extras") or {}).get("available"))
-    tail = "" if ok else json.dumps(body)[:220]
+    tail = "" if ok else json.dumps(body)[:700]
     return t, ok, round(time.time() - t0, 1), (
         tail or (doc.get("schema_version")
                  if isinstance(doc, dict) else "err"))
