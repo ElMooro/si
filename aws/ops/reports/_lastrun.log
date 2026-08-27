@@ -1,10 +1,11 @@
-executing-against: 5bafd707e0e7cb111bf92e0e6221b6336695cc02
-ops 5020 -- browser auto-upgrade unblock (CORS)
-── G0 current function-URL config ──
-[19:57:06] before: {"AllowCredentials": false, "AllowHeaders": ["*"], "AllowMethods": ["*"], "AllowOrigins": ["*"], "ExposeHeaders": ["*"], "MaxAge": 86400}
-── G1 config change (only if needed) ──
-[19:57:06] ✅ origin already allowed — no change made
-── P1 prove it with an Origin-header request ──
-[19:57:06] ✅ browser-origin requests now receive Access-Control-Allow-Origin — stale docs self-upgrade from the page for every ticker and every future schema bump
+executing-against: 75f82ea1e1493220f69d4abc2a74cd117aedb6fc
+ops 5021 -- LIVE-direct stale resilience gate
+── G0 repo markers ──
+[20:05:52] ✅ poll window 60: 6/6
+[20:05:52] ✅ recovery catch: 6/6
+[20:05:52] ✗ LIVE-direct render: 12/6
+[20:05:52] ✅ 5010/5011 run-binding: 4/4
 
-→ Report written to aws/ops/reports/latest/ops_5020_cors_unblock.md
+→ Report written to aws/ops/reports/latest/ops_5021_resilience_gate.md
+repo markers wrong
+❌ OPS-FAIL: aws/ops/pending/ops_5021_resilience_gate.py
