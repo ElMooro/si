@@ -3143,7 +3143,7 @@ def _jh_fy_growth(rows, n=6):
     return out[-5:]
 
 
-_JH_IND_CACHE_PREFIX = "equity-research/industry/"
+_JH_IND_CACHE_PREFIX = "equity-research/industry2/"  # ops 5011: 10y peer prices
 _JH_IND_TTL = 6 * 24 * 3600
 
 
@@ -3192,7 +3192,7 @@ def build_industry_growth_risk(ticker, raw, income_quarterly, income_annual,
                 futs[ex.submit(fmp_get, "income-statement",
                                symbol=s, period="annual", limit=7)] = (s, "a")
                 futs[ex.submit(fmp_get, "historical-price-eod/light",
-                               symbol=s, **{"from": _date_n_years_ago(1)})] = (s, "p")
+                               symbol=s, **{"from": _date_n_years_ago(10)})] = (s, "p")
             for fut in as_completed(futs):
                 s, kind = futs[fut]
                 try:
@@ -3213,7 +3213,7 @@ def build_industry_growth_risk(ticker, raw, income_quarterly, income_annual,
                            "price": r.get("price") if r.get("price") is not None
                            else r.get("close")}
                           for r in (d.get("p") or [])
-                          if isinstance(r, dict)][-260:],
+                          if isinstance(r, dict)][-2600:],
                 }
             s3.put_object(Bucket=S3_BUCKET, Key=cache_key,
                           Body=json.dumps(slim).encode(),
@@ -3286,6 +3286,600 @@ def build_industry_growth_risk(ticker, raw, income_quarterly, income_annual,
                     "max_dd_1y_pct": (round(_jh_median(dds), 1)
                                       if len(dds) >= 3 else None)},
                 "peer_detail": peer_risk}}
+
+
+# ══════════════════════════════════════════════════════════════════════
+# JH-5011 — full GuruFocus-style report layer (ops 5011, additive)
+# fair-value gauge · valuation vs own 10y history · financial strength
+# & profitability rubric ranks · growth CAGRs · warning/good signs ·
+# annualized + calendar-year returns vs peers · company profile.
+# Real data only — every block degrades to {"available": False, "reason"}.
+# ══════════════════════════════════════════════════════════════════════
+
+
+def _jh11_g(row, *names):
+    for n in names:
+        v = (row or {}).get(n)
+        if isinstance(v, (int, float)) and not isinstance(v, bool):
+            return float(v)
+    return None
+
+
+def _jh11_rows(x, key="date"):
+    xs = x if isinstance(x, list) else []
+    xs = [r for r in xs if isinstance(r, dict) and r.get(key)]
+    return sorted(xs, key=lambda r: r[key])
+
+
+def _jh11_close_on(closes, date):
+    """Last close on or before ISO date from [(d,c)...]; None if before start."""
+    lo, hi, best = 0, len(closes) - 1, None
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if closes[mid][0] <= date:
+            best = closes[mid][1]
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return best
+
+
+def build_company_profile(raw):
+    p = _jh_first(raw.get("profile"))
+    if not p or not (p.get("companyName") or p.get("name")):
+        return {"available": False, "reason": "no FMP profile for this symbol"}
+    desc = (p.get("description") or "").strip()
+    if len(desc) > 650:
+        desc = desc[:647].rsplit(" ", 1)[0] + "…"
+    return {"available": True,
+            "name": p.get("companyName") or p.get("name"),
+            "sector": p.get("sector"), "industry": p.get("industry"),
+            "exchange": p.get("exchange") or p.get("exchangeShortName"),
+            "website": p.get("website"),
+            "hq": ", ".join([x for x in (p.get("city"), p.get("state"),
+                                         p.get("country")) if x]) or None,
+            "employees": _jh11_g(p, "fullTimeEmployees"),
+            "isin": p.get("isin"), "cik": p.get("cik"),
+            "ipo_date": p.get("ipoDate"),
+            "description": desc or None}
+
+
+def _jh11_ttm(income_quarterly, field_names):
+    rs = _jh11_rows(income_quarterly)[-4:]
+    if len(rs) < 4:
+        return None
+    vals = [_jh11_g(r, *field_names) for r in rs]
+    if any(v is None for v in vals):
+        return None
+    return sum(vals)
+
+
+def build_valuation_panel(raw, income_annual, income_quarterly,
+                          balance_annual, closes):
+    """Current multiples vs the stock's own 10y FY-end history, plus a
+    model fair value (FMP DCF + historical-median-multiple), plus the
+    Street's targets. History multiples use FY-end close × FY shares —
+    fully computed from real data, no vendor black box."""
+    q = _jh_first(raw.get("quote"))
+    mcap = _jh11_g(q, "marketCap")
+    px = _jh11_g(q, "price") or (closes[-1][1] if closes else None)
+    if not mcap or not px or not closes:
+        return {"available": False, "reason": "no market cap / price"}
+
+    ia = _jh11_rows(income_annual)[-11:]
+    ba = {r["date"][:4]: r for r in _jh11_rows(balance_annual)[-11:]}
+
+    ttm_rev = _jh11_ttm(income_quarterly, ("revenue",)) or \
+        (_jh11_g(ia[-1], "revenue") if ia else None)
+    ttm_ni = _jh11_ttm(income_quarterly, ("netIncome",)) or \
+        (_jh11_g(ia[-1], "netIncome") if ia else None)
+    ttm_ebitda = _jh11_ttm(income_quarterly, ("ebitda",)) or \
+        (_jh11_g(ia[-1], "ebitda") if ia else None)
+    bl = _jh11_rows(balance_annual)
+    eq = _jh11_g(bl[-1], "totalStockholdersEquity",
+                 "totalEquity") if bl else None
+    debt = _jh11_g(bl[-1], "totalDebt") if bl else 0.0
+    cash = ((_jh11_g(bl[-1], "cashAndCashEquivalents") or 0) +
+            (_jh11_g(bl[-1], "shortTermInvestments") or 0)) if bl else 0.0
+    ev = mcap + (debt or 0) - cash
+
+    def mult(num, den):
+        return round(num / den, 2) if (num and den and den > 0) else None
+
+    current = {"ps": mult(mcap, ttm_rev), "pe": mult(mcap, ttm_ni),
+               "pb": mult(mcap, eq), "ev_sales": mult(ev, ttm_rev),
+               "ev_ebitda": mult(ev, ttm_ebitda)}
+
+    # FY-end history of each multiple (real: FY-end close × FY shares)
+    hist = {k: [] for k in current}
+    for r in ia[:-1] if len(ia) > 1 else ia:
+        fy_end = r["date"]
+        c = _jh11_close_on(closes, fy_end)
+        sh = _jh11_g(r, "weightedAverageShsOutDil", "weightedAverageShsOut")
+        if not c or not sh:
+            continue
+        m = c * sh
+        b = ba.get(fy_end[:4], {})
+        d = _jh11_g(b, "totalDebt") or 0
+        ch = (_jh11_g(b, "cashAndCashEquivalents") or 0) + \
+             (_jh11_g(b, "shortTermInvestments") or 0)
+        e_v = m + d - ch
+        for k, num, den in (("ps", m, _jh11_g(r, "revenue")),
+                            ("pe", m, _jh11_g(r, "netIncome")),
+                            ("pb", m, _jh11_g(b, "totalStockholdersEquity",
+                                              "totalEquity")),
+                            ("ev_sales", e_v, _jh11_g(r, "revenue")),
+                            ("ev_ebitda", e_v, _jh11_g(r, "ebitda"))):
+            if den and den > 0 and num:
+                hist[k].append(round(num / den, 2))
+
+    rows = []
+    labels = {"ps": "P/S (TTM)", "pe": "P/E (TTM)", "pb": "P/B",
+              "ev_sales": "EV/Sales", "ev_ebitda": "EV/EBITDA"}
+    for k in ("pe", "ps", "pb", "ev_sales", "ev_ebitda"):
+        h = sorted(hist[k])
+        cur = current[k]
+        row = {"metric": labels[k], "current": cur,
+               "hist_n": len(h),
+               "hist_min": h[0] if h else None,
+               "hist_med": _jh_median(h),
+               "hist_max": h[-1] if h else None, "pctl": None}
+        if cur is not None and len(h) >= 5:
+            row["pctl"] = round(100.0 * sum(1 for x in h if x <= cur)
+                                / len(h), 0)
+        if cur is None and k == "pe":
+            row["note"] = "no earnings — P/E undefined"
+        rows.append(row)
+
+    # model fair value: FMP DCF + historical-median-multiple re-pricing
+    dcf_obj = _jh_first(raw.get("dcf"))
+    dcf_v = _jh11_g(dcf_obj, "dcf", "Dcf", "dcfValue")
+    fv_parts = []
+    if dcf_v and dcf_v > 0:
+        fv_parts.append({"method": "FMP discounted cash flow", "value":
+                         round(dcf_v, 2)})
+    sh_now = _jh11_g(q, "sharesOutstanding") or \
+        (_jh11_g(ia[-1], "weightedAverageShsOutDil",
+                 "weightedAverageShsOut") if ia else None)
+    med_ps = _jh_median(sorted(hist["ps"])) if len(hist["ps"]) >= 5 else None
+    if med_ps and ttm_rev and sh_now:
+        fv_parts.append({"method": "10y-median P/S × TTM sales",
+                         "value": round(med_ps * ttm_rev / sh_now, 2)})
+    med_pe = _jh_median(sorted(hist["pe"])) if len(hist["pe"]) >= 5 else None
+    if med_pe and ttm_ni and ttm_ni > 0 and sh_now:
+        fv_parts.append({"method": "10y-median P/E × TTM earnings",
+                         "value": round(med_pe * ttm_ni / sh_now, 2)})
+    fv = _jh_median([p["value"] for p in fv_parts]) if fv_parts else None
+    verdict = None
+    ratio = None
+    if fv and fv > 0:
+        ratio = round(px / fv, 2)
+        verdict = ("SIGNIFICANTLY OVERVALUED" if ratio >= 1.6 else
+                   "OVERVALUED" if ratio >= 1.15 else
+                   "FAIRLY VALUED" if ratio >= 0.85 else
+                   "UNDERVALUED" if ratio >= 0.5 else
+                   "SIGNIFICANTLY UNDERVALUED")
+
+    pt = _jh_first(raw.get("pt_consensus"))
+    gc = _jh_first(raw.get("grades_consensus"))
+    street = {"pt_avg": _jh11_g(pt, "targetConsensus", "targetMedian"),
+              "pt_high": _jh11_g(pt, "targetHigh"),
+              "pt_low": _jh11_g(pt, "targetLow"),
+              "buy": _jh11_g(gc, "strongBuy") or 0,
+              "buy2": _jh11_g(gc, "buy") or 0,
+              "hold": _jh11_g(gc, "hold") or 0,
+              "sell": (_jh11_g(gc, "sell") or 0) +
+                      (_jh11_g(gc, "strongSell") or 0)}
+    if not any(v for v in street.values()):
+        street = None
+
+    return {"available": True, "price": round(px, 2), "rows": rows,
+            "fair_value": {"value": round(fv, 2) if fv else None,
+                           "parts": fv_parts, "price_to_fv": ratio,
+                           "verdict": verdict,
+                           "method": ("model fair value = median of the "
+                                      "methods listed (own FMP data); this "
+                                      "is a mechanical model, not a price "
+                                      "target")},
+            "street": street}
+
+
+def _jh11_pos(v, lo, hi):
+    if v is None or lo is None or hi is None or hi <= lo:
+        return None
+    return round(100.0 * max(0.0, min(1.0, (v - lo) / (hi - lo))), 0)
+
+
+def build_strength_profitability(raw, income_annual, balance_annual,
+                                 cashflow_annual, quant_risk):
+    """GuruFocus-style panels: each item = current value + its own 10y
+    range; ranks 1-10 from a VISIBLE rubric (absolute institutional
+    thresholds), never a black-box percentile vs 'all stocks'."""
+    ia = _jh11_rows(income_annual)[-10:]
+    ba = _jh11_rows(balance_annual)[-10:]
+    ca = _jh11_rows(cashflow_annual)[-10:]
+    if not ia or not ba:
+        return {"available": False, "reason": "insufficient statements"}
+
+    def series(rows, fn):
+        out = []
+        for r in rows:
+            v = fn(r)
+            if v is not None:
+                out.append(round(v, 2))
+        return out
+
+    def item(name, cur, hist, fmt="x", higher_better=True):
+        h = sorted(hist)
+        return {"name": name, "current": cur, "fmt": fmt,
+                "higher_better": higher_better,
+                "hist_min": h[0] if h else None,
+                "hist_max": h[-1] if h else None,
+                "hist_med": _jh_median(h),
+                "pos": _jh11_pos(cur, h[0] if h else None,
+                                 h[-1] if h else None)}
+
+    b_last, i_last = ba[-1], ia[-1]
+    cash = ((_jh11_g(b_last, "cashAndCashEquivalents") or 0) +
+            (_jh11_g(b_last, "shortTermInvestments") or 0))
+    debt = _jh11_g(b_last, "totalDebt") or 0.0
+    eq = _jh11_g(b_last, "totalStockholdersEquity", "totalEquity")
+    assets = _jh11_g(b_last, "totalAssets")
+    opinc = _jh11_g(i_last, "operatingIncome")
+    ie = abs(_jh11_g(i_last, "interestExpense") or 0)
+
+    def f_c2d(r):
+        d = _jh11_g(r, "totalDebt")
+        c = (_jh11_g(r, "cashAndCashEquivalents") or 0) + \
+            (_jh11_g(r, "shortTermInvestments") or 0)
+        return (c / d) if d else None
+    def f_e2a(r):
+        e = _jh11_g(r, "totalStockholdersEquity", "totalEquity")
+        a = _jh11_g(r, "totalAssets")
+        return (e / a) if (e is not None and a) else None
+    def f_d2e(r):
+        d = _jh11_g(r, "totalDebt")
+        e = _jh11_g(r, "totalStockholdersEquity", "totalEquity")
+        return (d / e) if (d is not None and e and e > 0) else None
+
+    c2d = (cash / debt) if debt else None
+    e2a = (eq / assets) if (eq is not None and assets) else None
+    d2e = (debt / eq) if (eq and eq > 0) else None
+    icov = (opinc / ie) if (opinc is not None and ie > 0.01) else None
+
+    sitems = [
+        item("Cash-to-Debt", round(c2d, 2) if c2d is not None else None,
+             series(ba, f_c2d)),
+        item("Equity-to-Asset", round(e2a, 2) if e2a is not None else None,
+             series(ba, f_e2a)),
+        item("Debt-to-Equity", round(d2e, 2) if d2e is not None else None,
+             series(ba, f_d2e), higher_better=False),
+        item("Interest Coverage",
+             round(icov, 1) if icov is not None else None,
+             [], ),
+    ]
+    if icov is None:
+        sitems[-1]["note"] = ("no meaningful interest expense"
+                              if ie <= 0.01 else "operating income n/a")
+    qr = quant_risk or {}
+    altman = _jh11_g(qr, "altman_z") if isinstance(qr, dict) else None
+    if altman is None:
+        altman = _jh11_g(_jh_first(raw.get("scores")), "altmanZScore")
+    piotroski = _jh11_g(qr, "piotroski") if isinstance(qr, dict) else None
+    if piotroski is None:
+        piotroski = _jh11_g(_jh_first(raw.get("scores")), "piotroskiScore")
+
+    # visible rubric → 1-10
+    pts, mx = 0.0, 0.0
+    def score(v, bands):  # bands: [(threshold, pts_if_>=)] descending
+        nonlocal pts, mx
+        if v is None:      # unknown metric: excluded from the rubric
+            return         # entirely — never counted for or against
+        mx += bands[0][1]
+        for th, p in bands:
+            if v >= th:
+                pts += p
+                return
+    score(c2d if debt else 10, [(1.0, 2), (0.5, 1.4), (0.2, 0.7), (-1e9, 0)])
+    score(e2a, [(0.6, 2), (0.4, 1.4), (0.2, 0.7), (-1e9, 0)])
+    score(icov if icov is not None else
+          (999 if (ie <= 0.01 and (debt or 0) <= 0.05 * (assets or 1))
+           else None),
+          [(10, 2), (4, 1.4), (2, 0.7), (-1e9, 0)])
+    score(altman, [(3.0, 2), (1.8, 1.2), (-1e9, 0)])
+    score(piotroski, [(7, 2), (5, 1.2), (3, 0.6), (-1e9, 0)])
+    strength_rank = max(1, min(10, round(10 * pts / mx))) if mx else None
+
+    # profitability
+    def margin(field):
+        def f(r):
+            n = _jh11_g(r, field)
+            rev = _jh11_g(r, "revenue")
+            return (100.0 * n / rev) if (n is not None and rev) else None
+        return f
+    def roe(r_i, r_b):
+        n = _jh11_g(r_i, "netIncome")
+        e = _jh11_g(r_b, "totalStockholdersEquity", "totalEquity")
+        return (100.0 * n / e) if (n is not None and e and e > 0) else None
+    tax_e = _jh11_g(i_last, "incomeTaxExpense")
+    pre = _jh11_g(i_last, "incomeBeforeTax")
+    eff_tax = (max(0.0, min(0.35, tax_e / pre))
+               if (tax_e is not None and pre and pre > 0) else 0.21)
+    nopat = opinc * (1 - eff_tax) if opinc is not None else None
+    invested = (debt or 0) + (eq or 0)
+    roic = (100.0 * nopat / invested) if (nopat is not None and
+                                          invested > 0) else None
+
+    by_year_b = {r["date"][:4]: r for r in ba}
+    roe_hist = []
+    roa_hist = []
+    for r in ia:
+        b = by_year_b.get(r["date"][:4])
+        if not b:
+            continue
+        v = roe(r, b)
+        if v is not None:
+            roe_hist.append(round(v, 1))
+        n = _jh11_g(r, "netIncome")
+        a = _jh11_g(b, "totalAssets")
+        if n is not None and a:
+            roa_hist.append(round(100.0 * n / a, 1))
+
+    gm = margin("grossProfit")(i_last)
+    om = margin("operatingIncome")(i_last)
+    nm = margin("netIncome")(i_last)
+    pitems = [
+        item("Gross Margin %", round(gm, 1) if gm is not None else None,
+             series(ia, margin("grossProfit")), fmt="%"),
+        item("Operating Margin %", round(om, 1) if om is not None else None,
+             series(ia, margin("operatingIncome")), fmt="%"),
+        item("Net Margin %", round(nm, 1) if nm is not None else None,
+             series(ia, margin("netIncome")), fmt="%"),
+        item("ROE %", roe_hist[-1] if roe_hist else None, roe_hist, fmt="%"),
+        item("ROA %", roa_hist[-1] if roa_hist else None, roa_hist, fmt="%"),
+        item("ROIC % (approx)", round(roic, 1) if roic is not None else None,
+             [], fmt="%"),
+    ]
+    prof_years = sum(1 for r in ia
+                     if (_jh11_g(r, "netIncome") or -1) > 0)
+    pts2, mx2 = 0.0, 0.0
+    def score2(v, bands):
+        nonlocal pts2, mx2
+        if v is None:
+            return
+        mx2 += bands[0][1]
+        for th, p in bands:
+            if v >= th:
+                pts2 += p
+                return
+    score2(gm, [(50, 2), (30, 1.4), (15, 0.7), (-1e9, 0)])
+    score2(om, [(20, 2), (10, 1.4), (0, 0.7), (-1e9, 0)])
+    score2(roe_hist[-1] if roe_hist else None,
+           [(20, 2), (10, 1.4), (0, 0.7), (-1e9, 0)])
+    score2(roic, [(15, 2), (8, 1.4), (0, 0.7), (-1e9, 0)])
+    score2(prof_years, [(9, 2), (7, 1.4), (4, 0.7), (0, 0.2)])
+    prof_rank = max(1, min(10, round(10 * pts2 / mx2))) if mx2 else None
+
+    return {"available": True,
+            "strength": {"rank": strength_rank, "items": sitems,
+                         "altman_z": altman, "piotroski": piotroski,
+                         "rubric": ("rank = visible rubric on cash/debt, "
+                                    "equity/asset, interest coverage, "
+                                    "Altman Z, Piotroski F — absolute "
+                                    "thresholds, shown per item")},
+            "profitability": {"rank": prof_rank, "items": pitems,
+                              "years_profitable_of_10": prof_years,
+                              "n_years": len(ia),
+                              "rubric": ("rank = rubric on margins, ROE, "
+                                         "ROIC, profitable-years — "
+                                         "absolute thresholds")}}
+
+
+def _jh11_cagr(rows, field_names, years):
+    rs = [r for r in _jh11_rows(rows)
+          if _jh11_g(r, *field_names) and _jh11_g(r, *field_names) > 0]
+    if len(rs) < years + 1:
+        return None
+    a = _jh11_g(rs[-1 - years], *field_names)
+    b = _jh11_g(rs[-1], *field_names)
+    if not a or a <= 0 or not b or b <= 0:
+        return None
+    return round(((b / a) ** (1.0 / years) - 1) * 100, 1)
+
+
+def build_growth_panel(income_annual):
+    ia = _jh11_rows(income_annual)
+    if len(ia) < 4:
+        return {"available": False, "reason": "fewer than 4 fiscal years"}
+    rows = []
+    for label, fields in (("Revenue", ("revenue",)),
+                          ("Operating income", ("operatingIncome",)),
+                          ("EBITDA", ("ebitda",)),
+                          ("EPS (diluted)", ("epsDiluted", "epsdiluted",
+                                             "eps"))):
+        rows.append({"metric": label,
+                     "cagr_3y": _jh11_cagr(ia, fields, 3),
+                     "cagr_5y": _jh11_cagr(ia, fields, 5),
+                     "cagr_10y": _jh11_cagr(ia, fields, 10)})
+    return {"available": True, "rows": rows,
+            "note": ("CAGRs need positive start & end values — negative-"
+                     "earnings spans show as — instead of a fake number")}
+
+
+def build_signals(raw, income_annual, cashflow_annual, quant_risk, pa,
+                  closes):
+    """GuruFocus-style Severe / Medium / Good signs — each one computed,
+    each one carrying its number."""
+    sev, med, good = [], [], []
+    ia = _jh11_rows(income_annual)[-10:]
+    ca = _jh11_rows(cashflow_annual)[-5:]
+    qr = quant_risk if isinstance(quant_risk, dict) else {}
+    risk = (pa or {}).get("risk") or {}
+
+    ni = _jh11_g(ia[-1], "netIncome") if ia else None
+    if ni is not None and ni < 0:
+        sev.append("Operating at a loss — latest FY net income "
+                   "$%.0fM" % (ni / 1e6))
+    altman = _jh11_g(qr, "altman_z")
+    if altman is None:
+        altman = _jh11_g(_jh_first(raw.get("scores")), "altmanZScore")
+    if altman is not None:
+        if altman < 1.81:
+            sev.append("Altman Z-Score %.2f — distress zone (<1.81)"
+                       % altman)
+        elif altman < 3.0:
+            med.append("Altman Z-Score %.2f — grey zone (1.81–3.0)"
+                       % altman)
+        else:
+            good.append("Altman Z-Score %.2f — safe zone (>3.0)" % altman)
+
+    # revenue per share 5y trend
+    if len(ia) >= 6:
+        def rps(r):
+            rev = _jh11_g(r, "revenue")
+            sh = _jh11_g(r, "weightedAverageShsOutDil",
+                         "weightedAverageShsOut")
+            return (rev / sh) if (rev and sh) else None
+        a, b = rps(ia[-6]), rps(ia[-1])
+        if a and b:
+            chg = (b / a - 1) * 100
+            if chg < -10:
+                sev.append("Revenue per share declined %.0f%% over 5 "
+                           "years" % chg)
+            elif chg > 40:
+                good.append("Revenue per share +%.0f%% over 5 years" % chg)
+
+    gm_d = _jh11_g(qr, "gross_margin_3y_delta_pp")
+    if gm_d is not None:
+        if gm_d < -3:
+            med.append("Gross margin down %.1fpp over 3 years" % gm_d)
+        elif gm_d > 3:
+            good.append("Gross margin up +%.1fpp over 3 years" % gm_d)
+
+    dil = _jh11_g(qr, "dilution_3y_cagr_pct")
+    if dil is not None:
+        if dil > 5:
+            sev.append("Share count growing %.1f%%/yr (3y) — heavy "
+                       "dilution" % dil)
+        elif dil > 2:
+            med.append("Share count growing %.1f%%/yr (3y)" % dil)
+        elif dil < -1:
+            good.append("Share count shrinking %.1f%%/yr (3y) — "
+                        "buybacks" % dil)
+
+    sbc = _jh11_g(qr, "sbc_pct_of_rev")
+    if sbc is not None and sbc > 10:
+        med.append("Stock-based comp %.1f%% of revenue" % sbc)
+
+    if closes and len(closes) > 260:
+        hi10 = max(c for _, c in closes)
+        cur = closes[-1][1]
+        if cur >= 0.90 * hi10:
+            med.append("Price within %.0f%% of its 10-year high"
+                       % ((1 - cur / hi10) * 100))
+        lo1y = min(c for _, c in closes[-252:])
+        if cur <= 1.10 * lo1y:
+            med.append("Price within 10% of its 1-year low")
+
+    v1 = risk.get("vol_1y_pct")
+    if v1 is not None and v1 > 70:
+        sev.append("Realized volatility %.0f%% (1y) — extreme" % v1)
+    b2 = risk.get("beta_2y")
+    if b2 is not None and b2 > 2.5:
+        sev.append("Beta %.2f vs SPY — extreme market sensitivity" % b2)
+    dd = risk.get("max_dd_5y_pct")
+    if dd is not None and dd < -60:
+        med.append("Max drawdown %.0f%% within the last 5 years" % dd)
+
+    piot = _jh11_g(qr, "piotroski")
+    if piot is None:
+        piot = _jh11_g(_jh_first(raw.get("scores")), "piotroskiScore")
+    if piot is not None:
+        if piot >= 7:
+            good.append("Piotroski F-Score %d/9 — high quality" % piot)
+        elif piot <= 3:
+            med.append("Piotroski F-Score %d/9 — weak" % piot)
+
+    if ca:
+        fcf = [_jh11_g(r, "freeCashFlow") for r in ca]
+        fcf = [x for x in fcf if x is not None]
+        if len(fcf) >= 3 and all(x > 0 for x in fcf[-3:]):
+            good.append("Free cash flow positive 3 straight years")
+        ocf = _jh11_g(ca[-1], "operatingCashFlow")
+        if (ocf is not None and ni is not None and ni < 0 and ocf > 0):
+            good.append("Operating cash flow positive despite net loss")
+
+    # revenue acceleration (last 2 quarterly YoY rising) via income_annual
+    return {"available": True,
+            "severe": sev, "medium": med, "good": good,
+            "note": ("every sign is computed from this company's own "
+                     "filings/prices — thresholds shown in the text")}
+
+
+def build_peer_returns(ticker, closes, bundle, peer_syms):
+    """Annualized returns (1W→10Y, 3Y+ annualized) and calendar-year
+    returns for the stock and up to 4 peers — price returns, dividends
+    excluded (stated)."""
+    if not closes or len(closes) < 30:
+        return {"available": False, "reason": "insufficient price history"}
+    peers_used = []
+    series = [(ticker, closes)]
+    for s in peer_syms[:4]:
+        cl = _jh_closes(((bundle or {}).get("data", {}).get(s) or {})
+                        .get("p"), min_len=120)
+        if cl:
+            series.append((s, cl))
+            peers_used.append(s)
+
+    horizons = [("1W", 5, False), ("1M", 21, False), ("3M", 63, False),
+                ("6M", 126, False), ("YTD", None, False),
+                ("1Y", 252, False), ("3Y", 756, True),
+                ("5Y", 1260, True), ("10Y", 2520, True)]
+    ann_rows = []
+    for sym, cl in series:
+        cur = cl[-1][1]
+        row = {"symbol": sym}
+        for label, nd, annualize in horizons:
+            v = None
+            if label == "YTD":
+                y = cl[-1][0][:4]
+                prev = [c for d, c in cl if d[:4] < y]
+                if prev:
+                    v = (cur / prev[-1] - 1) * 100
+            elif len(cl) > nd:
+                base = cl[-1 - nd][1]
+                if base > 0:
+                    tot = cur / base
+                    v = ((tot ** (252.0 / nd) - 1) * 100 if annualize
+                         else (tot - 1) * 100)
+            row[label] = round(v, 2) if v is not None else None
+        ann_rows.append(row)
+
+    years = sorted({d[:4] for d, _ in closes})[-10:]
+    cal_rows = []
+    for sym, cl in series:
+        by_year_last = {}
+        for d, c in cl:
+            by_year_last[d[:4]] = c
+        row = {"symbol": sym}
+        ys = sorted(by_year_last)
+        for y in years:
+            v = None
+            if y in by_year_last:
+                idx = ys.index(y)
+                if idx > 0:
+                    prev = by_year_last[ys[idx - 1]]
+                    if prev > 0:
+                        v = (by_year_last[y] / prev - 1) * 100
+            row[y] = round(v, 2) if v is not None else None
+        cal_rows.append(row)
+
+    return {"available": True, "peers": peers_used,
+            "annualized": ann_rows, "horizon_order":
+            [h[0] for h in horizons],
+            "calendar": cal_rows, "years": years,
+            "note": ("price returns from FMP daily closes; dividends "
+                     "excluded; 3Y/5Y/10Y annualized")}
 
 
 def lambda_handler(event, context):
@@ -3711,16 +4305,54 @@ def lambda_handler(event, context):
     except Exception as e:
         jh_ind = {"available": False, "reason": str(e)[:120]}
 
+    # ── ops 5011: full-report layer (profile/valuation/strength/signals/returns)
+    def _jh11_safe(fn, *a):
+        try:
+            return fn(*a)
+        except Exception as _e:
+            return {"available": False, "reason": "builder error: %s" % _e}
+    try:
+        jh11_closes = _jh_closes(raw.get("prices_eod"), min_len=30)
+    except Exception:
+        jh11_closes = []
+    _ia11 = raw.get("income_annual")
+    _iq11 = raw.get("income_quarterly")
+    _ba11 = raw.get("balance_annual")
+    _ca11 = raw.get("cashflow_annual")
+    jh11_prof = _jh11_safe(build_company_profile, raw)
+    jh11_val = _jh11_safe(build_valuation_panel, raw, _ia11, _iq11, _ba11,
+                          jh11_closes)
+    jh11_sp = _jh11_safe(build_strength_profitability, raw, _ia11, _ba11,
+                         _ca11, v2.get("quant_risk"))
+    jh11_growth = _jh11_safe(build_growth_panel, _ia11)
+    jh11_sig = _jh11_safe(build_signals, raw, _ia11, _ca11,
+                          v2.get("quant_risk"), jh_pa, jh11_closes)
+    try:
+        _o11 = s3.get_object(Bucket=S3_BUCKET,
+                             Key="equity-research/industry2/%s.json" % ticker)
+        _b11 = json.loads(_o11["Body"].read())
+    except Exception:
+        _b11 = None
+    jh11_ret = _jh11_safe(build_peer_returns, ticker, jh11_closes, _b11,
+                          ((_b11 or {}).get("peers")
+                           or (jh_ind or {}).get("peers") or []))
+
     # ── Assemble final document
     document = {
-        "schema_version": "2.4",  # v2.4: + classification/price_analytics/industry_growth (ops 5010)  # v2.3: + dilution Pillar 6 (ops 3289);  # v2.2: + earnings_vol_edge (#6 realized-vs-implied + PEAD); v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
+        "schema_version": "2.5",  # v2.4: + classification/price_analytics/industry_growth (ops 5010)  # v2.3: + dilution Pillar 6 (ops 3289);  # v2.2: + earnings_vol_edge (#6 realized-vs-implied + PEAD); v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
         "technicals":         v2.get("technicals"),
         "liquidity_solvency": v2.get("liquidity"),
         "growth_vs_mcap":     v2.get("growth_vs_mcap"),
         "quant_risk":         v2.get("quant_risk"),
         "classification":     jh_cls,      # ops 5010
         "price_analytics":    jh_pa,       # ops 5010
-        "industry_growth":    jh_ind,      # ops 5010
+        "industry_growth":    jh_ind,
+        "company_profile":        jh11_prof,      # ops 5011
+        "valuation_panel":        jh11_val,       # ops 5011
+        "strength_profitability": jh11_sp,        # ops 5011
+        "growth_panel":           jh11_growth,    # ops 5011
+        "signals":                jh11_sig,       # ops 5011
+        "peer_returns":           jh11_ret,       # ops 5011      # ops 5010
         "industry_compass":   v2.get("industry_compass"),
         "backlog":            v2.get("backlog"),
         "dilution":           v2.get("dilution"),  # ops 3289 Pillar 6

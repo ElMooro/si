@@ -4679,5 +4679,294 @@ fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
 })();
 </script>
 
+<script id="OPS5011">
+/* ops 5011 ADDITIVE — the rest of the GuruFocus-style report: model
+   fair-value gauge, valuation vs own 10y history + Street view,
+   Financial Strength & Profitability rubric ranks, growth CAGRs,
+   Severe/Medium/Good signs, annualized & calendar-year returns vs
+   peers, and the business description card. Reads the v2.5
+   equity-research payload; every block degrades honestly. */
+(function(){
+'use strict';
+var TK=(new URLSearchParams(location.search).get('ticker')||'').toUpperCase();
+if(!TK||!/^[A-Z0-9.\-^]{1,12}$/.test(TK))return;
+var CDN='https://justhodl-data-proxy.raafouis.workers.dev/equity-research/';
+var LIVE='https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/';
+var C={cy:'#22d3ee',gn:'#34d399',rd:'#f87171',am:'#fbbf24',pu:'#a78bfa',
+       bl:'#60a5fa',gy:'#8fa3c0',dim:'#5d6b82',grid:'#1e2635',dgn:'#16a34a'};
+function N(v,d){return (v==null||isNaN(v))?'\u2014':Number(v).toLocaleString(undefined,{minimumFractionDigits:d==null?1:d,maximumFractionDigits:d==null?1:d});}
+function P(v,d){return (v==null||isNaN(v))?'\u2014':(v>=0?'+':'')+Number(v).toFixed(d==null?1:d)+'%';}
+function E(s){return String(s==null?'\u2014':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function pcCol(v){return v==null?C.gy:(v>=0?C.gn:C.rd);}
+function chip(txt,col,big){return '<span style="border:1px solid '+col+';color:'+col+';border-radius:6px;padding:'+(big?'2px 9px':'1px 7px')+';font-size:'+(big?'.74rem':'.64rem')+';font-weight:700;margin:0 6px 4px 0;display:inline-block;font-family:var(--font-mono,monospace)">'+txt+'</span>';}
+function sec(id,ico,title,note){return '<section class="block" id="'+id+'"><div class="sub"><span class="ico">'+ico+'</span> '+title+(note?' <span style="color:'+C.dim+';font-weight:400">'+note+'</span>':'')+'</div><div id="'+id+'-b" style="font-family:var(--font-mono,monospace);font-size:11.5px;color:var(--text,#dfe7f3)">loading\u2026</div></section>';}
+function unavailable(el,label,reason){el.innerHTML='<div style="color:'+C.dim+';padding:6px 0">'+E(label)+' unavailable \u2014 '+E(reason||'no data')+'. Nothing is invented in its place.</div>';}
+
+/* ── fair-value gauge ─────────────────────────────────────────── */
+function fvGauge(vp){
+  var fv=vp.fair_value||{},r=fv.price_to_fv;
+  var h='';
+  if(fv.value==null||r==null){
+    h+='<div style="color:'+C.dim+'">model fair value unavailable \u2014 '+(fv.parts&&fv.parts.length?'ratio undefined':'no usable valuation method (needs DCF or 5+ years of multiples)')+'. Nothing is invented in its place.</div>';
+  }else{
+    var LO=0.3,HI=2.6,W=760,H=86;
+    function X(v){return Math.max(0,Math.min(1,(v-LO)/(HI-LO)))*(W-20)+10;}
+    var zones=[[0.3,0.5,'#15803d','SIG. UNDERVALUED'],[0.5,0.85,C.gn,'UNDERVALUED'],[0.85,1.15,C.bl,'FAIRLY VALUED'],[1.15,1.6,C.am,'OVERVALUED'],[1.6,2.6,C.rd,'SIG. OVERVALUED']];
+    var g='';zones.forEach(function(z){g+='<rect x="'+X(z[0]).toFixed(1)+'" y="30" width="'+(X(z[1])-X(z[0])).toFixed(1)+'" height="16" rx="3" fill="'+z[2]+'" opacity=".8"><title>'+z[3]+': price '+z[0]+'\u2013'+z[1]+'\u00d7 model FV</title></rect>';});
+    g+='<line x1="'+X(1).toFixed(1)+'" y1="22" x2="'+X(1).toFixed(1)+'" y2="56" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3 2"/>'
+     +'<text x="'+X(1).toFixed(1)+'" y="68" font-size="9" fill="'+C.dim+'" text-anchor="middle">model FV $'+N(fv.value,2)+'</text>';
+    (fv.parts||[]).forEach(function(p){var rr=vp.price&&p.value?vp.price/p.value:null;if(rr==null)return;
+      g+='<line x1="'+X(vp.price/p.value).toFixed(1)+'" y1="48" x2="'+X(vp.price/p.value).toFixed(1)+'" y2="56" stroke="'+C.gy+'" stroke-width="2"><title>'+E(p.method)+': $'+N(p.value,2)+'</title></line>';});
+    var off=r>HI||r<LO, rx=X(Math.max(LO,Math.min(HI,r)));
+    g+='<path d="M'+rx.toFixed(1)+' 28 l-6 -10 h12 z" fill="#e2e8f0"/>'
+     +'<text x="'+rx.toFixed(1)+'" y="12" font-size="10" font-weight="700" fill="#e2e8f0" text-anchor="middle">PRICE $'+N(vp.price,2)+(off?' (off-scale)':'')+'</text>';
+    var vcol=r>=1.6?C.rd:r>=1.15?C.am:r>=0.85?C.bl:r>=0.5?C.gn:'#15803d';
+    h+='<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:6px">'
+     +'<span style="border:1.5px solid '+vcol+';color:'+vcol+';border-radius:8px;padding:5px 14px;font-weight:800;letter-spacing:.8px;font-size:.86rem">'+E(fv.verdict)+'</span>'
+     +'<span>price is <b style="color:'+vcol+'">'+N(r,2)+'\u00d7</b> the model fair value</span></div>'
+     +'<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:780px" role="img" aria-label="Fair value gauge">'+g+'</svg>'
+     +'<div style="color:'+C.dim+';font-size:10px;margin-top:2px">'+ (fv.parts||[]).map(function(p){return E(p.method)+' \u2192 $'+N(p.value,2);}).join(' \u00b7 ')+'</div>'
+     +'<div style="color:'+C.dim+';font-size:10px">'+E(fv.method)+' \u2014 research &amp; analytics, not investment advice.</div>';
+  }
+  var st=vp.street;
+  if(st){
+    var lo=st.pt_low,hi=st.pt_high,avg=st.pt_avg,px=vp.price;
+    var hasR=(lo!=null&&hi!=null&&hi>lo);
+    h+='<div style="margin-top:12px;border-top:1px dashed #232c3f;padding-top:10px"><b>Street view</b> <span style="color:'+C.dim+';font-size:10px">(FMP consensus \u2014 the Street\u2019s opinion, not this desk\u2019s)</span>';
+    if(hasR){
+      var W2=360;function X2(v){return Math.max(0,Math.min(1,(v-lo)/(hi-lo)))*(W2-16)+8;}
+      h+='<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:6px"><svg viewBox="0 0 '+W2+' 34" style="width:'+W2+'px;max-width:100%">'
+       +'<line x1="8" y1="16" x2="'+(W2-8)+'" y2="16" stroke="#2a3345" stroke-width="4" stroke-linecap="round"/>'
+       +(avg!=null?'<path d="M'+X2(avg).toFixed(1)+' 10 l5 6 -5 6 -5 -6 z" fill="'+C.bl+'"><title>consensus PT $'+N(avg,2)+'</title></path>':'')
+       +(px!=null?'<line x1="'+X2(Math.max(lo,Math.min(hi,px))).toFixed(1)+'" y1="6" x2="'+X2(Math.max(lo,Math.min(hi,px))).toFixed(1)+'" y2="26" stroke="#e2e8f0" stroke-width="2"><title>price $'+N(px,2)+'</title></line>':'')
+       +'<text x="8" y="32" font-size="9" fill="'+C.dim+'">$'+N(lo,0)+'</text><text x="'+(W2-8)+'" y="32" font-size="9" fill="'+C.dim+'" text-anchor="end">$'+N(hi,0)+'</text></svg>'
+       +'<span style="font-size:11px">PT avg <b style="color:'+C.bl+'">$'+N(avg,2)+'</b> \u00b7 range $'+N(lo,0)+'\u2013$'+N(hi,0)+(px!=null&&avg?' \u00b7 '+P((avg/px-1)*100,0)+' vs price':'')+'</span></div>';
+    }
+    var b=(st.buy||0)+(st.buy2||0),ho=st.hold||0,se=st.sell||0,tot=b+ho+se;
+    if(tot>0){
+      h+='<div style="display:flex;align-items:center;gap:10px;margin-top:6px"><span style="flex:0 0 auto;font-size:10.5px;color:'+C.dim+'">ratings</span>'
+       +'<span style="display:flex;height:10px;border-radius:5px;overflow:hidden;flex:0 1 260px;background:#1b2230">'
+       +'<span style="width:'+(100*b/tot)+'%;background:'+C.gn+'"></span><span style="width:'+(100*ho/tot)+'%;background:#4b5a72"></span><span style="width:'+(100*se/tot)+'%;background:'+C.rd+'"></span></span>'
+       +'<span style="font-size:10.5px"><span style="color:'+C.gn+'">'+b+' buy</span> \u00b7 <span style="color:'+C.gy+'">'+ho+' hold</span> \u00b7 <span style="color:'+C.rd+'">'+se+' sell</span></span></div>';
+    }
+    h+='</div>';
+  }
+  return h;
+}
+
+/* ── valuation vs own history ─────────────────────────────────── */
+function valTable(vp){
+  var h='<div style="display:grid;grid-template-columns:110px 70px 1fr 120px;gap:6px 12px;align-items:center;font-size:11px">'
+   +'<span style="color:'+C.dim+';font-size:9.5px">METRIC</span><span style="color:'+C.dim+';font-size:9.5px">CURRENT</span><span style="color:'+C.dim+';font-size:9.5px">OWN 10y RANGE (min \u00b7 median \u00b7 max)</span><span style="color:'+C.dim+';font-size:9.5px">VS HISTORY</span>';
+  (vp.rows||[]).forEach(function(r){
+    h+='<span>'+E(r.metric)+'</span><span style="font-weight:700">'+(r.current==null?'\u2014':N(r.current,2))+'</span>';
+    if(r.current!=null&&r.hist_min!=null&&r.hist_max!=null&&r.hist_max>r.hist_min){
+      var pos=Math.max(0,Math.min(100,100*(r.current-r.hist_min)/(r.hist_max-r.hist_min)));
+      var mpos=Math.max(0,Math.min(100,100*(r.hist_med-r.hist_min)/(r.hist_max-r.hist_min)));
+      var col=r.pctl==null?C.gy:(r.pctl>=80?C.rd:r.pctl<=20?C.gn:C.am);
+      h+='<span style="position:relative;display:block;height:12px"><span style="position:absolute;left:0;right:0;top:4px;height:4px;border-radius:2px;background:#243049"></span>'
+       +'<span style="position:absolute;left:'+mpos+'%;top:1px;width:2px;height:10px;background:'+C.gy+'" title="median '+N(r.hist_med,2)+'"></span>'
+       +'<span style="position:absolute;left:calc('+pos+'% - 4px);top:0;width:9px;height:9px;border-radius:50%;background:'+col+';border:1.5px solid #0b1220" title="current '+N(r.current,2)+'"></span>'
+       +'<span style="position:absolute;left:0;top:12px;font-size:8.5px;color:'+C.dim+'">'+N(r.hist_min,1)+'</span>'
+       +'<span style="position:absolute;right:0;top:12px;font-size:8.5px;color:'+C.dim+'">'+N(r.hist_max,1)+'</span></span>';
+      h+='<span>'+chip(r.pctl>=80?'RICH \u00b7 p'+N(r.pctl,0):r.pctl<=20?'CHEAP \u00b7 p'+N(r.pctl,0):'p'+N(r.pctl,0)+' of own 10y',col)+'</span>';
+    }else{
+      h+='<span style="color:'+C.dim+';font-size:10px">'+E(r.note||(r.hist_n<5?'fewer than 5 usable FY points':'range n/a'))+'</span><span style="color:'+C.dim+'">\u2014</span>';
+    }
+  });
+  h+='</div><div style="color:'+C.dim+';font-size:10px;margin-top:8px">multiples computed from FY-end close \u00d7 diluted shares \u2014 the stock priced against its own record, not a vendor black box.</div>';
+  return h;
+}
+
+/* ── rank donut + range sliders ───────────────────────────────── */
+function donut(rank,label){
+  if(rank==null)return '<div style="color:'+C.dim+'">rank n/a</div>';
+  var col=rank>=7?C.gn:rank>=4?C.am:C.rd, R=26,CF=2*Math.PI*R, frac=rank/10;
+  return '<svg viewBox="0 0 68 68" style="width:68px;height:68px;flex:0 0 auto">'
+   +'<circle cx="34" cy="34" r="'+R+'" stroke="#243049" stroke-width="7" fill="none"/>'
+   +'<circle cx="34" cy="34" r="'+R+'" stroke="'+col+'" stroke-width="7" fill="none" stroke-linecap="round" stroke-dasharray="'+(CF*frac).toFixed(1)+' '+CF.toFixed(1)+'" transform="rotate(-90 34 34)"/>'
+   +'<text x="34" y="32" text-anchor="middle" font-size="15" font-weight="800" fill="'+col+'">'+rank+'</text>'
+   +'<text x="34" y="45" text-anchor="middle" font-size="8.5" fill="'+C.dim+'">/ 10</text></svg>';
+}
+function slider(it){
+  var h='<div style="display:grid;grid-template-columns:150px 66px 1fr;gap:8px;align-items:center;margin:5px 0">'
+   +'<span>'+E(it.name)+'</span><span style="font-weight:700">'+(it.current==null?'\u2014':N(it.current,it.fmt==='%'?1:2)+(it.fmt==='%'?'%':''))+'</span>';
+  if(it.pos!=null){
+    var good=it.higher_better?it.pos:100-it.pos;
+    var col=good>=66?C.gn:good>=33?C.am:C.rd;
+    h+='<span style="position:relative;display:block;height:12px"><span style="position:absolute;left:0;right:0;top:4px;height:4px;border-radius:2px;background:#243049"></span>'
+     +'<span style="position:absolute;left:calc('+it.pos+'% - 4px);top:0;width:9px;height:9px;border-radius:50%;background:'+col+';border:1.5px solid #0b1220" title="within own 10y range"></span>'
+     +'<span style="position:absolute;left:0;top:12px;font-size:8.5px;color:'+C.dim+'">'+N(it.hist_min,1)+'</span>'
+     +'<span style="position:absolute;right:0;top:12px;font-size:8.5px;color:'+C.dim+'">'+N(it.hist_max,1)+'</span></span>';
+  }else{
+    h+='<span style="color:'+C.dim+';font-size:10px">'+E(it.note||'no 10y range')+'</span>';
+  }
+  return h+'</div>';
+}
+function fsPanel(sp){
+  var s=sp.strength||{};
+  var h='<div style="display:flex;gap:16px;align-items:flex-start">'+donut(s.rank)
+   +'<div style="flex:1;min-width:0">'
+   +'<div style="margin-bottom:4px">'+(s.altman_z!=null?chip('Altman Z '+N(s.altman_z,2),s.altman_z>=3?C.gn:s.altman_z>=1.81?C.am:C.rd):'')
+   +(s.piotroski!=null?chip('Piotroski '+N(s.piotroski,0)+'/9',s.piotroski>=7?C.gn:s.piotroski>=4?C.am:C.rd):'')+'</div>';
+  (s.items||[]).forEach(function(it){h+=slider(it);});
+  h+='<div style="color:'+C.dim+';font-size:10px;margin-top:6px">'+E(s.rubric)+'</div></div></div>';
+  return h;
+}
+function profPanel(sp){
+  var p=sp.profitability||{};
+  var boxes='';for(var i=0;i<10;i++){boxes+='<span style="display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:3px;background:'+(i<(p.years_profitable_of_10||0)?C.gn:'#243049')+'"></span>';}
+  var h='<div style="display:flex;gap:16px;align-items:flex-start">'+donut(p.rank)
+   +'<div style="flex:1;min-width:0"><div style="margin-bottom:6px;font-size:10.5px;color:'+C.gy+'">profitable years (last '+(p.n_years||10)+'): '+boxes+' <b>'+(p.years_profitable_of_10||0)+'/'+(p.n_years||10)+'</b></div>';
+  (p.items||[]).forEach(function(it){h+=slider(it);});
+  h+='<div style="color:'+C.dim+';font-size:10px;margin-top:6px">'+E(p.rubric)+'</div></div></div>';
+  return h;
+}
+
+/* ── growth CAGRs ─────────────────────────────────────────────── */
+function cagrTable(gp){
+  var rows=gp.rows||[]; var mx=10;
+  rows.forEach(function(r){['cagr_3y','cagr_5y','cagr_10y'].forEach(function(k){if(r[k]!=null)mx=Math.max(mx,Math.abs(r[k]));});});
+  mx=Math.min(mx,80);
+  function cell(v){if(v==null)return '<span style="color:'+C.dim+'">\u2014</span>';
+    var w=Math.min(100,Math.abs(v)/mx*100);
+    return '<span style="display:flex;align-items:center;gap:6px"><span style="color:'+pcCol(v)+';font-weight:700;min-width:52px">'+P(v)+'</span>'
+     +'<span style="flex:1;height:6px;border-radius:3px;background:#1b2230;max-width:90px"><span style="display:block;height:6px;border-radius:3px;width:'+w+'%;background:'+pcCol(v)+'"></span></span></span>';}
+  var h='<div style="display:grid;grid-template-columns:130px 1fr 1fr 1fr;gap:6px 14px;align-items:center;font-size:11px">'
+   +'<span></span><span style="color:'+C.dim+';font-size:9.5px">3-YEAR CAGR</span><span style="color:'+C.dim+';font-size:9.5px">5-YEAR CAGR</span><span style="color:'+C.dim+';font-size:9.5px">10-YEAR CAGR</span>';
+  rows.forEach(function(r){h+='<span>'+E(r.metric)+'</span>'+cell(r.cagr_3y)+cell(r.cagr_5y)+cell(r.cagr_10y);});
+  return h+'</div><div style="color:'+C.dim+';font-size:10px;margin-top:6px">'+E(gp.note)+'</div>';
+}
+
+/* ── warning / good signs ─────────────────────────────────────── */
+function signalsPanel(sg){
+  function grp(list,title,col,mark){
+    if(!list||!list.length)return '';
+    var h='<div style="margin:8px 0 10px"><div style="color:'+col+';font-weight:800;letter-spacing:.5px;font-size:.72rem;margin-bottom:4px">'+mark+' '+title+' ('+list.length+')</div>';
+    list.forEach(function(t){h+='<div style="border-left:3px solid '+col+';padding:3px 8px;margin:3px 0;background:rgba(255,255,255,.02)">'+E(t)+'</div>';});
+    return h+'</div>';
+  }
+  var h=grp(sg.severe,'SEVERE WARNING SIGNS',C.rd,'\u26a0')
+   +grp(sg.medium,'MEDIUM WARNING SIGNS',C.am,'\u25cf')
+   +grp(sg.good,'GOOD SIGNS',C.gn,'\u2713');
+  if(!h)h='<div style="color:'+C.dim+'">no computed signs for this name</div>';
+  return h+'<div style="color:'+C.dim+';font-size:10px">'+E(sg.note)+'</div>';
+}
+
+/* ── return tables (annualized + calendar-year, vs peers) ─────── */
+function retTables(pr){
+  function tbl(title,cols,rows,get){
+    var h='<div style="margin:4px 0 2px"><b>'+title+'</b></div><div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:10.5px;white-space:nowrap">'
+     +'<tr><th style="text-align:left;padding:3px 10px 3px 0;color:'+C.dim+';font-weight:400">Symbol</th>';
+    cols.forEach(function(c){h+='<th style="text-align:right;padding:3px 8px;color:'+C.dim+';font-weight:400">'+E(c)+'</th>';});
+    h+='</tr>';
+    rows.forEach(function(r,i){
+      var me=r.symbol===TK;
+      h+='<tr><td style="padding:3px 10px 3px 0;border-top:1px solid #1a2130;font-weight:'+(me?'800':'400')+';color:'+(me?C.cy:'var(--text,#dfe7f3)')+'">'+E(r.symbol)+'</td>';
+      cols.forEach(function(c){var v=get(r,c);
+        h+='<td style="text-align:right;padding:3px 8px;border-top:1px solid #1a2130;color:'+(v==null?C.dim:v>=0?C.gn:C.rd)+(me?';font-weight:700':'')+'">'+(v==null?'\u2014':N(v,2))+'</td>';});
+      h+='</tr>';});
+    return h+'</table></div>';
+  }
+  var h=tbl('Annualized Return %',pr.horizon_order||[],pr.annualized||[],function(r,c){return r[c];});
+  var yrs=(pr.years||[]).slice().reverse();
+  h+='<div style="height:10px"></div>'+tbl('Total Annual Return % (calendar years)',yrs,pr.calendar||[],function(r,c){return r[c];});
+  return h+'<div style="color:'+C.dim+';font-size:10px;margin-top:6px">'+E(pr.note)+' \u00b7 peers from the FMP peer set: '+(pr.peers||[]).map(E).join(', ')+'</div>';
+}
+
+/* ── business description ─────────────────────────────────────── */
+function descCard(cp,peers){
+  var meta=[['Sector',cp.sector],['Industry',cp.industry],['Exchange',cp.exchange],
+            ['ISIN',cp.isin],['CIK',cp.cik],['IPO',cp.ipo_date],['HQ',cp.hq],
+            ['Employees',cp.employees!=null?Number(cp.employees).toLocaleString():null]];
+  var h='<div style="display:grid;grid-template-columns:280px 1fr;gap:16px" class="jh5011-2col"><div>'
+   +'<div style="font-size:14px;font-weight:800;margin-bottom:6px">'+E(cp.name)+'</div>'
+   +'<div style="display:grid;grid-template-columns:78px 1fr;gap:3px 8px;font-size:10.5px">';
+  meta.forEach(function(m){if(m[1]==null)return;h+='<span style="color:'+C.dim+'">'+m[0]+'</span><span>'+E(m[1])+'</span>';});
+  if(cp.website)h+='<span style="color:'+C.dim+'">Website</span><span><a href="'+E(cp.website)+'" target="_blank" rel="noopener" style="color:'+C.cy+'">'+E(String(cp.website).replace(/^https?:\/\//,''))+'</a></span>';
+  h+='</div></div><div>'
+   +(cp.description?'<div style="color:'+C.gy+';line-height:1.55">'+E(cp.description)+'</div>':'<div style="color:'+C.dim+'">no description on file</div>');
+  if(peers&&peers.length){h+='<div style="margin-top:10px;font-size:10px;color:'+C.dim+'">Compare:</div><div>'
+    +peers.map(function(s){return '<a href="why.html?ticker='+encodeURIComponent(s)+'" style="text-decoration:none">'+chip(E(s),C.bl)+'</a>';}).join('')+'</div>';}
+  return h+'</div></div>';
+}
+
+/* ── mount after the 5010 wrap ────────────────────────────────── */
+function mount(html){
+  var host=document.createElement('div');host.id='jh5011-wrap';host.innerHTML=html;
+  var prev=document.getElementById('jh5010-wrap');
+  if(prev&&prev.parentNode){prev.parentNode.insertBefore(host,prev.nextSibling);return;}
+  var anchor=null,subs=document.querySelectorAll('.sub');
+  for(var i=0;i<subs.length;i++){if(subs[i].textContent.indexOf('Quantitative Risk')>=0){anchor=subs[i].closest('section');break;}}
+  if(anchor&&anchor.parentNode){anchor.parentNode.insertBefore(host,anchor.nextSibling);}
+  else{(document.getElementById('content')||document.body).appendChild(host);}
+}
+
+function run(d){
+  var vp=d.valuation_panel||{},sp=d.strength_profitability||{},gp=d.growth_panel||{},
+      sg=d.signals||{},pr=d.peer_returns||{},cp=d.company_profile||{};
+  /* verdict + rank chips on top (once) */
+  (function(){
+    if(document.getElementById('jh5011-chips'))return;
+    var h='';
+    var fv=vp.fair_value||{};
+    if(fv.verdict){var r=fv.price_to_fv,vcol=r>=1.6?C.rd:r>=1.15?C.am:r>=0.85?C.bl:C.gn;
+      h+=chip('FV $'+N(fv.value,2)+' \u00b7 '+E(fv.verdict),vcol,true);}
+    var sr=(sp.strength||{}).rank,pk=(sp.profitability||{}).rank;
+    if(sr!=null)h+=chip('STRENGTH '+sr+'/10',sr>=7?C.gn:sr>=4?C.am:C.rd);
+    if(pk!=null)h+=chip('PROFITABILITY '+pk+'/10',pk>=7?C.gn:pk>=4?C.am:C.rd);
+    if(!h)return;
+    var tries=0,tm=setInterval(function(){tries++;var v=document.getElementById('jhVitalsTop');
+      if(v){clearInterval(tm);var el=document.createElement('div');el.id='jh5011-chips';el.style.cssText='margin:2px 0';el.innerHTML=h;v.insertBefore(el,v.children[2]||null);}
+      else if(tries>40)clearInterval(tm);},250);
+  })();
+
+  mount(
+    sec('jh5011-fv','\u2696','Fair value \u2014 model gauge &amp; the Street')+
+    sec('jh5011-val','\u25a4','Valuation \u2014 '+TK+' vs its own 10-year history')+
+    sec('jh5011-fs','\u26e8','Financial Strength')+
+    sec('jh5011-prof','\u2691','Profitability')+
+    sec('jh5011-cagr','\u2196','Growth \u2014 3y / 5y / 10y CAGR')+
+    sec('jh5011-sig','\u2690','Warning &amp; good signs \u2014 computed, with the numbers')+
+    sec('jh5011-ret','\u2637','Returns \u2014 '+TK+' vs peers','\u2014 annualized &amp; by calendar year')+
+    sec('jh5011-desc','\u24d8','Business description')
+  );
+  var b;
+  b=document.getElementById('jh5011-fv-b');
+  if(!vp.available){unavailable(b,'Fair value',vp.reason);}else{b.innerHTML=fvGauge(vp);}
+  b=document.getElementById('jh5011-val-b');
+  if(!vp.available){unavailable(b,'Valuation history',vp.reason);}else{b.innerHTML=valTable(vp);}
+  b=document.getElementById('jh5011-fs-b');
+  if(!sp.available){unavailable(b,'Financial strength',sp.reason);}else{b.innerHTML=fsPanel(sp);}
+  b=document.getElementById('jh5011-prof-b');
+  if(!sp.available){unavailable(b,'Profitability',sp.reason);}else{b.innerHTML=profPanel(sp);}
+  b=document.getElementById('jh5011-cagr-b');
+  if(!gp.available){unavailable(b,'Growth CAGRs',gp.reason);}else{b.innerHTML=cagrTable(gp);}
+  b=document.getElementById('jh5011-sig-b');
+  if(!sg.available){unavailable(b,'Signals',sg.reason);}else{b.innerHTML=signalsPanel(sg);}
+  b=document.getElementById('jh5011-ret-b');
+  if(!pr.available){unavailable(b,'Return tables',pr.reason);}else{b.innerHTML=retTables(pr);}
+  b=document.getElementById('jh5011-desc-b');
+  if(!cp.available){unavailable(b,'Business description',cp.reason);}
+  else{b.innerHTML=descCard(cp,(pr.peers&&pr.peers.length?pr.peers:(d.industry_growth||{}).peers)||[]);}
+}
+
+(function(){var st=document.createElement('style');
+st.textContent='@media(max-width:760px){#jh5011-wrap .jh5011-2col{grid-template-columns:1fr!important}}';
+document.head.appendChild(st);})();
+
+fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
+.then(function(r){if(!r.ok)throw new Error('cdn '+r.status);return r.json();})
+.then(function(d){
+  if(d&&d.valuation_panel){run(d);return;}
+  mount(sec('jh5011-stale','\u2696','Full report layer \u2014 fair value, strength, signs, returns, profile'));
+  var el=document.getElementById('jh5011-stale-b');
+  if(el)el.innerHTML='<div style="color:'+C.dim+'">This ticker\u2019s dossier predates the full-report layer (schema '+E(d&&d.schema_version)+'). A fresh v2.5 build has been requested in the background \u2014 reload in ~2 minutes. No stale or invented numbers are shown in its place.</div>';
+  try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+})
+.catch(function(e){console.warn('[ops5011]',e);});
+})();
+</script>
+
 </body>
 </html>
