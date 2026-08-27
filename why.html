@@ -4367,6 +4367,42 @@ async function markStale(d, ticker){
 </script>
 
 <script src="/sidebar.js" defer></script>
+<script id="OPS5016">
+/* ops 5016 — ticker bus: the desk arrives with no ?ticker and rewrites
+   the URL via replaceState after load, so URL-keyed layers never armed
+   off UI navigation. This bus is the single source of truth for the
+   active ticker: seeded from ?ticker/?t, updated on history rewrites,
+   and confirmed by intercepting the desk's own research fetches. The
+   5010/5011/5013/5015 layers subscribe and re-render on every switch. */
+(function(){
+'use strict';
+if(window.__JH_TICKER_BUS)return;
+var subs=[],cur=null;
+function valid(t){return /^[A-Z0-9.\-^]{1,12}$/.test(t||'');}
+function set(t){t=(t||'').toUpperCase();
+  if(!valid(t)||t===cur)return;
+  cur=t;subs.forEach(function(f){try{f(t);}catch(e){}});}
+function fromURL(){try{var q=new URLSearchParams(location.search);
+  set(q.get('ticker')||q.get('t'));}catch(e){}}
+fromURL();
+['replaceState','pushState'].forEach(function(k){
+  var o=history[k];
+  history[k]=function(){var r=o.apply(this,arguments);
+    try{fromURL();}catch(e){}return r;};});
+window.addEventListener('popstate',fromURL);
+var of=window.fetch;
+window.fetch=function(u,opt){
+  try{var str=String((u&&u.url)||u);
+    var m=str.match(/equity-research\/([A-Za-z0-9.\-^]{1,12})\.json/)||
+          str.match(/[?&]ticker=([A-Za-z0-9.\-^%]{1,14})/);
+    if(m)set(decodeURIComponent(m[1]));}catch(e){}
+  return of.apply(this,arguments);};
+window.__JH_TICKER_BUS={
+  current:function(){return cur;},
+  subscribe:function(f){subs.push(f);
+    if(cur){try{f(cur);}catch(e){}}}};
+})();
+</script>
 <script id="OPS5010">
 /* ops 5010 ADDITIVE — Quant Layer: beta & classification on top, realistic
    return base rates, 200/250-day EMA chart, stock-vs-industry risk & growth.
@@ -4375,8 +4411,7 @@ async function markStale(d, ticker){
    existing. */
 (function(){
 'use strict';
-var TK=(new URLSearchParams(location.search).get('ticker')||'').toUpperCase();
-if(!TK||!/^[A-Z0-9.\-^]{1,12}$/.test(TK))return;
+var TK=null,GEN=0;
 var CDN='https://justhodl-data-proxy.raafouis.workers.dev/equity-research/';
 var LIVE='https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/';
 
@@ -4681,32 +4716,42 @@ function guard(heal){
   var iv=setInterval(function(){tick();
     if(Date.now()-t0>300000)clearInterval(iv);},1500);
 }
-fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
-.then(function(r){if(!r.ok)throw new Error('cdn '+r.status);return r.json();})
-.then(function(d){
-  if(d&&d.price_analytics){DOC=d;run(d);
-    guard(function(){var w=document.getElementById('jh5010-wrap');
-      if((!w||!w.isConnected)&&DOC)run(DOC);});
-    return;}
-  mount(sec('jh5010-stale','\u25c8','Quant layer \u2014 beta, classification, expectations, EMA, industry'));
-  var el=document.getElementById('jh5010-stale-b');
-  if(el)el.innerHTML='<div style="color:'+C.dim+'">Building the current engine version for this ticker now \u2014 the quant layer (beta, classification, expectations, EMA, industry) will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
-  try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
-  guard(function(){if(!document.getElementById('jh5010-wrap'))return;});
-  /* ops 5014: auto-upgrade — server regenerates (version-gated cache),
-     we poll the CDN and draw in place when the current doc lands. */
-  var _pt=0,_pl=setInterval(function(){_pt++;
-    if(_pt>26){clearInterval(_pl);return;}
-    fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
-    .then(function(r){return r.ok?r.json():null;})
-    .then(function(nd){if(nd&&nd.price_analytics){clearInterval(_pl);
-      DOC=nd;run(DOC);
-      guard(function(){var w=document.getElementById('jh5010-wrap');
-        if((!w||!w.isConnected)&&DOC)run(DOC);});}})
-    .catch(function(){});},12000);
+function jhStart(_t){
+  TK=_t;GEN++;var _g=GEN;DOC=null;
+  var _c=document.getElementById('jh5010-chips');if(_c&&_c.parentNode)_c.parentNode.removeChild(_c);
+  var _w=document.getElementById('jh5010-wrap');if(_w&&_w.parentNode)_w.parentNode.removeChild(_w);
+  fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
+  .then(function(r){if(!r.ok)throw new Error('cdn '+r.status);return r.json();})
+  .then(function(d){if(_g!==GEN)return;
+    if(d&&d.price_analytics){DOC=d;run(d);
+      guard(function(){if(_g!==GEN)return;var w=document.getElementById('jh5010-wrap');
+        if((!w||!w.isConnected)&&DOC)run(DOC);});
+      return;}
+    mount(sec('jh5010-stale','\u25c8','Quant layer \u2014 beta, classification, expectations, EMA, industry'));
+    var el=document.getElementById('jh5010-stale-b');
+    if(el)el.innerHTML='<div style="color:'+C.dim+'">Building the current engine version for this ticker now \u2014 the quant layer (beta, classification, expectations, EMA, industry) will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
+    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+    guard(function(){if(_g!==GEN)return;if(!document.getElementById('jh5010-wrap'))return;});
+    /* ops 5014: auto-upgrade — server regenerates (version-gated cache),
+       we poll the CDN and draw in place when the current doc lands. */
+    var _pt=0,_pl=setInterval(function(){if(_g!==GEN){clearInterval(_pl);return;}_pt++;
+      if(_pt>26){clearInterval(_pl);return;}
+      fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(nd){if(_g!==GEN){clearInterval(_pl);return;}if(nd&&nd.price_analytics){clearInterval(_pl);
+        DOC=nd;run(DOC);
+        guard(function(){if(_g!==GEN)return;var w=document.getElementById('jh5010-wrap');
+          if((!w||!w.isConnected)&&DOC)run(DOC);});}})
+      .catch(function(){});},12000);
+  
+  })
+  .catch(function(e){console.warn('[ops5010]',e);});
+}
+if(window.__JH_TICKER_BUS){window.__JH_TICKER_BUS.subscribe(function(t){if(t!==TK)jhStart(t);});}
+else{var _q=new URLSearchParams(location.search);
+  var _t0=((_q.get('ticker')||_q.get('t'))||'').toUpperCase();
+  if(/^[A-Z0-9.\-^]{1,12}$/.test(_t0))jhStart(_t0);}
 
-})
-.catch(function(e){console.warn('[ops5010]',e);});
 })();
 </script>
 
@@ -4719,8 +4764,7 @@ fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
    equity-research payload; every block degrades honestly. */
 (function(){
 'use strict';
-var TK=(new URLSearchParams(location.search).get('ticker')||'').toUpperCase();
-if(!TK||!/^[A-Z0-9.\-^]{1,12}$/.test(TK))return;
+var TK=null,GEN=0;
 var CDN='https://justhodl-data-proxy.raafouis.workers.dev/equity-research/';
 var LIVE='https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/';
 var C={cy:'#22d3ee',gn:'#34d399',rd:'#f87171',am:'#fbbf24',pu:'#a78bfa',
@@ -5001,32 +5045,42 @@ function guard(heal){
   var iv=setInterval(function(){tick();
     if(Date.now()-t0>300000)clearInterval(iv);},1500);
 }
-fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
-.then(function(r){if(!r.ok)throw new Error('cdn '+r.status);return r.json();})
-.then(function(d){
-  if(d&&d.valuation_panel){DOC=d;run(d);
-    guard(function(){var w=document.getElementById('jh5011-wrap');
-      if((!w||!w.isConnected)&&DOC)run(DOC);});
-    return;}
-  mount(sec('jh5011-stale','\u2696','Full report layer \u2014 fair value, strength, signs, returns, profile'));
-  var el=document.getElementById('jh5011-stale-b');
-  if(el)el.innerHTML='<div style="color:'+C.dim+'">Building the current engine version for this ticker now \u2014 the full report (fair value, valuation history, ranks, signs, peer returns, description) will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
-  try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
-  guard(function(){if(!document.getElementById('jh5011-wrap'))return;});
-  /* ops 5014: auto-upgrade — server regenerates (version-gated cache),
-     we poll the CDN and draw in place when the current doc lands. */
-  var _pt=0,_pl=setInterval(function(){_pt++;
-    if(_pt>26){clearInterval(_pl);return;}
-    fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
-    .then(function(r){return r.ok?r.json():null;})
-    .then(function(nd){if(nd&&nd.valuation_panel){clearInterval(_pl);
-      DOC=nd;run(DOC);
-      guard(function(){var w=document.getElementById('jh5011-wrap');
-        if((!w||!w.isConnected)&&DOC)run(DOC);});}})
-    .catch(function(){});},12000);
+function jhStart(_t){
+  TK=_t;GEN++;var _g=GEN;DOC=null;
+  var _c=document.getElementById('jh5011-chips');if(_c&&_c.parentNode)_c.parentNode.removeChild(_c);
+  var _w=document.getElementById('jh5011-wrap');if(_w&&_w.parentNode)_w.parentNode.removeChild(_w);
+  fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
+  .then(function(r){if(!r.ok)throw new Error('cdn '+r.status);return r.json();})
+  .then(function(d){if(_g!==GEN)return;
+    if(d&&d.valuation_panel){DOC=d;run(d);
+      guard(function(){if(_g!==GEN)return;var w=document.getElementById('jh5011-wrap');
+        if((!w||!w.isConnected)&&DOC)run(DOC);});
+      return;}
+    mount(sec('jh5011-stale','\u2696','Full report layer \u2014 fair value, strength, signs, returns, profile'));
+    var el=document.getElementById('jh5011-stale-b');
+    if(el)el.innerHTML='<div style="color:'+C.dim+'">Building the current engine version for this ticker now \u2014 the full report (fair value, valuation history, ranks, signs, peer returns, description) will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
+    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+    guard(function(){if(_g!==GEN)return;if(!document.getElementById('jh5011-wrap'))return;});
+    /* ops 5014: auto-upgrade — server regenerates (version-gated cache),
+       we poll the CDN and draw in place when the current doc lands. */
+    var _pt=0,_pl=setInterval(function(){if(_g!==GEN){clearInterval(_pl);return;}_pt++;
+      if(_pt>26){clearInterval(_pl);return;}
+      fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(nd){if(_g!==GEN){clearInterval(_pl);return;}if(nd&&nd.valuation_panel){clearInterval(_pl);
+        DOC=nd;run(DOC);
+        guard(function(){if(_g!==GEN)return;var w=document.getElementById('jh5011-wrap');
+          if((!w||!w.isConnected)&&DOC)run(DOC);});}})
+      .catch(function(){});},12000);
+  
+  })
+  .catch(function(e){console.warn('[ops5011]',e);});
+}
+if(window.__JH_TICKER_BUS){window.__JH_TICKER_BUS.subscribe(function(t){if(t!==TK)jhStart(t);});}
+else{var _q=new URLSearchParams(location.search);
+  var _t0=((_q.get('ticker')||_q.get('t'))||'').toUpperCase();
+  if(/^[A-Z0-9.\-^]{1,12}$/.test(_t0))jhStart(_t0);}
 
-})
-.catch(function(e){console.warn('[ops5011]',e);});
 })();
 </script>
 
@@ -5038,8 +5092,7 @@ fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
    audited statement_flows block. Self-healing (ops 5012 pattern). */
 (function(){
 'use strict';
-var TK=(new URLSearchParams(location.search).get('ticker')||'').toUpperCase();
-if(!TK||!/^[A-Z0-9.\-^]{1,12}$/.test(TK))return;
+var TK=null,GEN=0;
 var CDN='https://justhodl-data-proxy.raafouis.workers.dev/equity-research/';
 var LIVE='https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/';
 var DIM='#5d6b82';
@@ -5083,32 +5136,42 @@ function draw(){
   withLib(function(){window.JHFlows.statements(b,DOC.statement_flows,{ticker:TK});},
     function(){if(b)b.innerHTML='<div style="color:'+DIM+'">flow engine (assets/jh-flows.js) failed to load \u2014 diagrams withheld rather than faked. Reload to retry.</div>';});
 }
-fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
-.then(function(r){if(!r.ok)throw new Error('cdn '+r.status);return r.json();})
-.then(function(d){
-  if(d&&d.statement_flows){DOC=d;draw();
-    guard(function(){var w=document.getElementById('jh5013-wrap');
-      if((!w||!w.isConnected)&&DOC)draw();});
-    return;}
-  var host=mount();
-  var b=document.getElementById('jh5013-b');
-  if(b)b.innerHTML='<div style="color:'+DIM+'">Building the current engine version for this ticker now \u2014 the income / balance-sheet / cash-flow diagrams will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
-  try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
-  guard(function(){if(!document.getElementById('jh5013-wrap'))mount();});
-  /* ops 5014: auto-upgrade — server regenerates (version-gated cache),
-     we poll the CDN and draw in place when the current doc lands. */
-  var _pt=0,_pl=setInterval(function(){_pt++;
-    if(_pt>26){clearInterval(_pl);return;}
-    fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
-    .then(function(r){return r.ok?r.json():null;})
-    .then(function(nd){if(nd&&nd.statement_flows){clearInterval(_pl);
-      DOC=nd;draw();
-      guard(function(){var w=document.getElementById('jh5013-wrap');
-        if((!w||!w.isConnected)&&DOC)draw();});}})
-    .catch(function(){});},12000);
+function jhStart(_t){
+  TK=_t;GEN++;var _g=GEN;DOC=null;
+  var _c=document.getElementById('jh5013-nochip');if(_c&&_c.parentNode)_c.parentNode.removeChild(_c);
+  var _w=document.getElementById('jh5013-wrap');if(_w&&_w.parentNode)_w.parentNode.removeChild(_w);
+  fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
+  .then(function(r){if(!r.ok)throw new Error('cdn '+r.status);return r.json();})
+  .then(function(d){if(_g!==GEN)return;
+    if(d&&d.statement_flows){DOC=d;draw();
+      guard(function(){if(_g!==GEN)return;var w=document.getElementById('jh5013-wrap');
+        if((!w||!w.isConnected)&&DOC)draw();});
+      return;}
+    var host=mount();
+    var b=document.getElementById('jh5013-b');
+    if(b)b.innerHTML='<div style="color:'+DIM+'">Building the current engine version for this ticker now \u2014 the income / balance-sheet / cash-flow diagrams will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
+    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+    guard(function(){if(_g!==GEN)return;if(!document.getElementById('jh5013-wrap'))mount();});
+    /* ops 5014: auto-upgrade — server regenerates (version-gated cache),
+       we poll the CDN and draw in place when the current doc lands. */
+    var _pt=0,_pl=setInterval(function(){if(_g!==GEN){clearInterval(_pl);return;}_pt++;
+      if(_pt>26){clearInterval(_pl);return;}
+      fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(nd){if(_g!==GEN){clearInterval(_pl);return;}if(nd&&nd.statement_flows){clearInterval(_pl);
+        DOC=nd;draw();
+        guard(function(){if(_g!==GEN)return;var w=document.getElementById('jh5013-wrap');
+          if((!w||!w.isConnected)&&DOC)draw();});}})
+      .catch(function(){});},12000);
+  
+  })
+  .catch(function(e){console.warn('[ops5013]',e);});
+}
+if(window.__JH_TICKER_BUS){window.__JH_TICKER_BUS.subscribe(function(t){if(t!==TK)jhStart(t);});}
+else{var _q=new URLSearchParams(location.search);
+  var _t0=((_q.get('ticker')||_q.get('t'))||'').toUpperCase();
+  if(/^[A-Z0-9.\-^]{1,12}$/.test(_t0))jhStart(_t0);}
 
-})
-.catch(function(e){console.warn('[ops5013]',e);});
 })();
 </script>
 
@@ -5121,8 +5184,7 @@ fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
    pattern); self-heals (ops 5012 pattern). Real data only. */
 (function(){
 'use strict';
-var TK=(new URLSearchParams(location.search).get('ticker')||'').toUpperCase();
-if(!TK||!/^[A-Z0-9.\-^]{1,12}$/.test(TK))return;
+var TK=null,GEN=0;
 var CDN='https://justhodl-data-proxy.raafouis.workers.dev/equity-research/';
 var LIVE='https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/';
 var C={cy:'#22d3ee',gn:'#34d399',rd:'#f87171',am:'#fbbf24',gy:'#8fa3c0',
@@ -5276,31 +5338,41 @@ function draw(){
 (function(){var st=document.createElement('style');
 st.textContent='@media(max-width:760px){#jh5015-wrap .jh5015-grid{grid-template-columns:1fr !important}}';
 document.head.appendChild(st);})();
-fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
-.then(function(r){if(!r.ok)throw new Error('cdn '+r.status);return r.json();})
-.then(function(d){
-  if(d&&d.company_records){DOC=d;draw();
-    guard(function(){var w=document.getElementById('jh5015-wrap');
-      if((!w||!w.isConnected)&&DOC)draw();});
-    return;}
-  mount();
-  var b=document.getElementById('jh5015-lynch-b');
-  if(b)b.innerHTML='<div style="color:'+C.dim+'">Building the current engine version for this ticker now \u2014 the Peter Lynch chart and company records will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
-  var b2=document.getElementById('jh5015-rec-b'); if(b2)b2.innerHTML='';
-  try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
-  guard(function(){if(!document.getElementById('jh5015-wrap'))mount();});
-  /* ops 5014: auto-upgrade poll */
-  var _pt=0,_pl=setInterval(function(){_pt++;
-    if(_pt>26){clearInterval(_pl);return;}
-    fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
-    .then(function(r){return r.ok?r.json():null;})
-    .then(function(nd){if(nd&&nd.company_records){clearInterval(_pl);
-      DOC=nd;draw();
-      guard(function(){var w=document.getElementById('jh5015-wrap');
-        if((!w||!w.isConnected)&&DOC)draw();});}})
-    .catch(function(){});},12000);
-})
-.catch(function(e){console.warn('[ops5015]',e);});
+function jhStart(_t){
+  TK=_t;GEN++;var _g=GEN;DOC=null;
+  var _c=document.getElementById('jh5015-nochip');if(_c&&_c.parentNode)_c.parentNode.removeChild(_c);
+  var _w=document.getElementById('jh5015-wrap');if(_w&&_w.parentNode)_w.parentNode.removeChild(_w);
+  fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
+  .then(function(r){if(!r.ok)throw new Error('cdn '+r.status);return r.json();})
+  .then(function(d){if(_g!==GEN)return;
+    if(d&&d.company_records){DOC=d;draw();
+      guard(function(){if(_g!==GEN)return;var w=document.getElementById('jh5015-wrap');
+        if((!w||!w.isConnected)&&DOC)draw();});
+      return;}
+    mount();
+    var b=document.getElementById('jh5015-lynch-b');
+    if(b)b.innerHTML='<div style="color:'+C.dim+'">Building the current engine version for this ticker now \u2014 the Peter Lynch chart and company records will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
+    var b2=document.getElementById('jh5015-rec-b'); if(b2)b2.innerHTML='';
+    try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
+    guard(function(){if(_g!==GEN)return;if(!document.getElementById('jh5015-wrap'))mount();});
+    /* ops 5014: auto-upgrade poll */
+    var _pt=0,_pl=setInterval(function(){if(_g!==GEN){clearInterval(_pl);return;}_pt++;
+      if(_pt>26){clearInterval(_pl);return;}
+      fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(nd){if(_g!==GEN){clearInterval(_pl);return;}if(nd&&nd.company_records){clearInterval(_pl);
+        DOC=nd;draw();
+        guard(function(){if(_g!==GEN)return;var w=document.getElementById('jh5015-wrap');
+          if((!w||!w.isConnected)&&DOC)draw();});}})
+      .catch(function(){});},12000);
+  })
+  .catch(function(e){console.warn('[ops5015]',e);});
+}
+if(window.__JH_TICKER_BUS){window.__JH_TICKER_BUS.subscribe(function(t){if(t!==TK)jhStart(t);});}
+else{var _q=new URLSearchParams(location.search);
+  var _t0=((_q.get('ticker')||_q.get('t'))||'').toUpperCase();
+  if(/^[A-Z0-9.\-^]{1,12}$/.test(_t0))jhStart(_t0);}
+
 })();
 
 </script>
