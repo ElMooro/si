@@ -1,13 +1,17 @@
-executing-against: c40c2e9ac97982b74c2f3a8936b3b7ce98fb129d
+executing-against: 8a3422a43380584e8f1e3c62c7db50653465293a
 ops 5014 -- version-gated cache + in-place auto-upgrade
 ── G0 preflight ──
-[14:27:25] ✅ version gate, schema constant, and 3 auto-upgrade layers present
+[14:32:12] ✅ version gate, schema constant, and 3 auto-upgrade layers present
 ── G1 deploy (code only) ──
-[14:27:31] ✅ code updated; configuration/env untouched
+[14:32:19] ✅ code updated; configuration/env untouched
+── P0 controlled stale-schema probe (ORCL) ──
+[14:32:21] ORCL cache doctored: schema '2.6' -> 2.5-test-stale
+[14:32:24] ✅ ORCL: fresh current-schema doc with reconciling flows
 ── P1 behavioral proof on untouched tickers ──
-[14:27:35] ✅ GOOGL: fresh current-schema doc with reconciling flows
-[14:27:35] ✗ MSFT: served from cache -- version gate did not fire
+[14:32:25] ✅ MSFT: fresh current-schema doc with reconciling flows
+[14:32:27] ✅ GOOGL: fresh current-schema doc with reconciling flows
+── G2 live page carries the auto-upgrade layers ──
+[14:32:27] ✅ served page carries all 3 auto-upgrade layers
+[14:32:27] ✅ OPS 5014 PASS -- every ticker now serves the current engine: stale-schema cache is a miss server-side, and the page upgrades itself in place
 
 → Report written to aws/ops/reports/latest/ops_5014_every_ticker_current.md
-behavioral proof failed
-❌ OPS-FAIL: aws/ops/pending/ops_5014_every_ticker_current.py
