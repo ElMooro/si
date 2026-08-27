@@ -4690,9 +4690,21 @@ fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
     return;}
   mount(sec('jh5010-stale','\u25c8','Quant layer \u2014 beta, classification, expectations, EMA, industry'));
   var el=document.getElementById('jh5010-stale-b');
-  if(el)el.innerHTML='<div style="color:'+C.dim+'">This ticker\u2019s dossier was generated before the quant layer (schema '+E(d&&d.schema_version)+'). A fresh v2.4 build has been requested in the background \u2014 reload in ~2 minutes. No stale or invented numbers are shown in its place.</div>';
+  if(el)el.innerHTML='<div style="color:'+C.dim+'">Building the current engine version for this ticker now \u2014 the quant layer (beta, classification, expectations, EMA, industry) will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
   try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
   guard(function(){if(!document.getElementById('jh5010-wrap'))return;});
+  /* ops 5014: auto-upgrade — server regenerates (version-gated cache),
+     we poll the CDN and draw in place when the current doc lands. */
+  var _pt=0,_pl=setInterval(function(){_pt++;
+    if(_pt>26){clearInterval(_pl);return;}
+    fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(nd){if(nd&&nd.price_analytics){clearInterval(_pl);
+      DOC=nd;run(DOC);
+      guard(function(){var w=document.getElementById('jh5010-wrap');
+        if((!w||!w.isConnected)&&DOC)run(DOC);});}})
+    .catch(function(){});},12000);
+
 })
 .catch(function(e){console.warn('[ops5010]',e);});
 })();
@@ -4998,9 +5010,21 @@ fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
     return;}
   mount(sec('jh5011-stale','\u2696','Full report layer \u2014 fair value, strength, signs, returns, profile'));
   var el=document.getElementById('jh5011-stale-b');
-  if(el)el.innerHTML='<div style="color:'+C.dim+'">This ticker\u2019s dossier predates the full-report layer (schema '+E(d&&d.schema_version)+'). A fresh v2.5 build has been requested in the background \u2014 reload in ~2 minutes. No stale or invented numbers are shown in its place.</div>';
+  if(el)el.innerHTML='<div style="color:'+C.dim+'">Building the current engine version for this ticker now \u2014 the full report (fair value, valuation history, ranks, signs, peer returns, description) will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
   try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
   guard(function(){if(!document.getElementById('jh5011-wrap'))return;});
+  /* ops 5014: auto-upgrade — server regenerates (version-gated cache),
+     we poll the CDN and draw in place when the current doc lands. */
+  var _pt=0,_pl=setInterval(function(){_pt++;
+    if(_pt>26){clearInterval(_pl);return;}
+    fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(nd){if(nd&&nd.valuation_panel){clearInterval(_pl);
+      DOC=nd;run(DOC);
+      guard(function(){var w=document.getElementById('jh5011-wrap');
+        if((!w||!w.isConnected)&&DOC)run(DOC);});}})
+    .catch(function(){});},12000);
+
 })
 .catch(function(e){console.warn('[ops5011]',e);});
 })();
@@ -5068,9 +5092,21 @@ fetch(CDN+encodeURIComponent(TK)+'.json?ts='+((Date.now()/600000)|0))
     return;}
   var host=mount();
   var b=document.getElementById('jh5013-b');
-  if(b)b.innerHTML='<div style="color:'+DIM+'">This ticker\u2019s dossier predates the statement-flow layer (schema '+String(d&&d.schema_version||'?')+'). A fresh v2.6 build has been requested in the background \u2014 reload in ~2 minutes. Nothing stale or invented is shown in its place.</div>';
+  if(b)b.innerHTML='<div style="color:'+DIM+'">Building the current engine version for this ticker now \u2014 the income / balance-sheet / cash-flow diagrams will appear here automatically in ~1\u20133 minutes, no reload needed. Nothing stale or invented is shown meanwhile.</div>';
   try{fetch(LIVE+'?ticker='+encodeURIComponent(TK)+'&refresh=1').catch(function(){});}catch(e){}
   guard(function(){if(!document.getElementById('jh5013-wrap'))mount();});
+  /* ops 5014: auto-upgrade — server regenerates (version-gated cache),
+     we poll the CDN and draw in place when the current doc lands. */
+  var _pt=0,_pl=setInterval(function(){_pt++;
+    if(_pt>26){clearInterval(_pl);return;}
+    fetch(CDN+encodeURIComponent(TK)+'.json?ts='+Date.now())
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(nd){if(nd&&nd.statement_flows){clearInterval(_pl);
+      DOC=nd;draw();
+      guard(function(){var w=document.getElementById('jh5013-wrap');
+        if((!w||!w.isConnected)&&DOC)draw();});}})
+    .catch(function(){});},12000);
+
 })
 .catch(function(e){console.warn('[ops5013]',e);});
 })();

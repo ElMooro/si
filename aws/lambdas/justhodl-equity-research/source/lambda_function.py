@@ -154,6 +154,7 @@ def census_idx(s3_client, bucket):
 
 CACHE_PREFIX = "equity-research/"
 CACHE_TTL    = 24 * 3600   # 24h cache (statements don't change daily)
+SCHEMA_CURRENT = "2.6"     # ops 5014: single source of truth — cache gate + doc assembly
 FETCH_TIMEOUT = 20         # FMP per-call timeout
 CLAUDE_TIMEOUT = 150        # was 90s, but bigger schema + transcript pushes to ~85s
 FALLBACK_BUDGET_S = 70      # hard cap on the GLM/Sonnet fallback so a slow LLM never
@@ -4200,7 +4201,8 @@ def lambda_handler(event, context):
             cached = json.loads(obj["Body"].read())
             cached["from_cache"] = True
             cached["cache_age_seconds"] = int(time.time() - _iso_to_epoch(cached.get("generated_at")))
-            if cached["cache_age_seconds"] < CACHE_TTL and "earnings_vol_edge" in cached:
+            if (cached["cache_age_seconds"] < CACHE_TTL
+                    and cached.get("schema_version") == SCHEMA_CURRENT):  # ops 5014: a stale-schema doc is a cache MISS for every ticker
                 print(f"[cache] HIT {ticker} age={cached['cache_age_seconds']}s")
                 if is_internal_async:
                     return {"ok": True, "from_cache": True, "ticker": ticker}
@@ -4610,7 +4612,7 @@ def lambda_handler(event, context):
 
     # ── Assemble final document
     document = {
-        "schema_version": "2.6",  # v2.4: + classification/price_analytics/industry_growth (ops 5010)  # v2.3: + dilution Pillar 6 (ops 3289);  # v2.2: + earnings_vol_edge (#6 realized-vs-implied + PEAD); v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
+        "schema_version": SCHEMA_CURRENT,  # v2.4: + classification/price_analytics/industry_growth (ops 5010)  # v2.3: + dilution Pillar 6 (ops 3289);  # v2.2: + earnings_vol_edge (#6 realized-vs-implied + PEAD); v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
         "technicals":         v2.get("technicals"),
         "liquidity_solvency": v2.get("liquidity"),
         "growth_vs_mcap":     v2.get("growth_vs_mcap"),
