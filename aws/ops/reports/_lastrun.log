@@ -1,24 +1,13 @@
-executing-against: 62f5134958fafa886db4090c17337b7ad263f9ab
-ops 5017 -- JH Score / Momentum / Dividend & Buy Back (v2.8)
+executing-against: 1c4e141a61b504bb439d319d09c64585d7c52190
+ops 5018 -- full GuruFocus summary parity (v2.9)
 ── G0 preflight ──
-[17:23:42] ✅ v2.8 markers, OPS5017 block, 5 bus subscriptions
+[18:11:26] ✅ v2.9 markers, OPS5018 block, 6 bus subscriptions
 ── G1 deploy (code only) ──
-[17:23:49] ✅ code updated; configuration/env untouched
-── P1 real-data asserts ──
-[17:23:53] ✅ AAOI: score/momentum/dividend checked
-[17:23:56] ✅ NVDA: score/momentum/dividend checked
-── G2 live page carries OPS5017 ──
-[17:23:56] waiting for site sync
-[17:24:11] waiting for site sync
-[17:24:27] waiting for site sync
-[17:24:42] waiting for site sync
-[17:24:57] waiting for site sync
-[17:25:12] waiting for site sync
-[17:25:27] waiting for site sync
-[17:25:42] waiting for site sync
-[17:25:57] waiting for site sync
-[17:26:12] waiting for site sync
-[17:26:27] ✅ served page carries the score wheel block + 5 subscriptions
-[17:26:27] ✅ OPS 5017 PASS -- every visual from every screenshot in this conversation is now built, verified on real data, and rolls to every ticker
+[18:11:33] ✅ code updated; configuration/env untouched
+── P1 deep real-data asserts ──
+[18:11:40] ✗ AAOI: gf_extras unavailable
+[18:11:40] ✗ NVDA: gf_extras unavailable
 
-→ Report written to aws/ops/reports/latest/ops_5017_score_momentum_dividend.md
+→ Report written to aws/ops/reports/latest/ops_5018_gf_parity.md
+deep asserts failed
+❌ OPS-FAIL: aws/ops/pending/ops_5018_gf_parity.py
