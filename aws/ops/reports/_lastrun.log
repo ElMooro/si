@@ -1,13 +1,11 @@
-executing-against: 455842e50488426843137fc6d20ec936510fd4dc
-ops 5021 -- LIVE-direct stale resilience gate
-── G0 repo markers ──
-[20:19:26] ✅ poll window 60: 6/6
-[20:19:26] ✅ recovery catch: 6/6
-[20:19:26] ✅ LIVE-direct render (stale + recovery): 12/12
-[20:19:26] ✅ 5010/5011 run-binding: 4/4
-── P1 served page carries the resilience layer ──
-[20:19:26] ✅ served page live after 0s via justhodl.ai (407 KB)
-── P2 TSLA doc on current schema in S3 ──
-[20:19:26] ✅ TSLA closed end-to-end: fresh doc in S3 + page that renders straight from LIVE on any stale or failed fetch
+executing-against: 4b47d4fb14f7b05d9346f73e88b51e6e317ee62e
+ops 5022 -- AMZN first-build vs timeout
+── G0 function config ──
+── P1 AMZN cold build (direct invoke, refresh=1) ──
+── G1 timeout headroom (config change only if needed) ──
+[21:06:01] ✅ timeout 300s has 78.9x headroom over this cold build -- unchanged
+── P2 URL-path proof (as the browser calls it) ──
+── P3 edge serves the new page WITHOUT a buster ──
+[21:06:05] ✅ AMZN builds within limits on the exact browser path and the edge serves the fixed page to plain requests
 
-→ Report written to aws/ops/reports/latest/ops_5021_resilience_gate.md
+→ Report written to aws/ops/reports/latest/ops_5022_amzn_timeout.md
