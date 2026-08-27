@@ -39,9 +39,12 @@ def http(url, timeout=25):
 
 
 def invoke(t):
+    # refresh=1: this is a verification run -- never accept a doc cached
+    # before the code under test was deployed
     rsp = lam.invoke(FunctionName=FN, InvocationType="RequestResponse",
                      Payload=json.dumps(
-                         {"queryStringParameters": {"ticker": t}}).encode())
+                         {"queryStringParameters":
+                          {"ticker": t, "refresh": "1"}}).encode())
     raw = rsp["Payload"].read().decode("utf-8", "replace")
     if rsp.get("FunctionError"):
         raise RuntimeError("FunctionError: %s" % raw[:300])
@@ -58,7 +61,7 @@ with report("ops_5015_company_records") as rep:
     src = (SRC / "lambda_function.py").read_text()
     for mark in ("JH-5015", "build_company_records", '"sec_filings_a"',
                  '"press_rel"', '"key_execs"', '"company_records":',
-                 'SCHEMA_CURRENT = "2.7"'):
+                 'SCHEMA_CURRENT = "2.7.1"'):
         if mark not in src:
             fails.append("lambda missing %r" % mark)
     page = (ROOT / "why.html").read_text()
@@ -87,8 +90,8 @@ with report("ops_5015_company_records") as rep:
         rep.kv(ticker=t, gen_s=round(time.time() - t0, 1),
                schema=doc.get("schema_version"),
                from_cache=doc.get("from_cache"))
-        if doc.get("schema_version") != "2.7":
-            fails.append(tag("schema %r != 2.7" % doc.get("schema_version")))
+        if doc.get("schema_version") != "2.7.1":
+            fails.append(tag("schema %r != 2.7.1" % doc.get("schema_version")))
             continue
         R = doc.get("company_records") or {}
         if not R.get("available"):

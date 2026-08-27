@@ -154,7 +154,7 @@ def census_idx(s3_client, bucket):
 
 CACHE_PREFIX = "equity-research/"
 CACHE_TTL    = 24 * 3600   # 24h cache (statements don't change daily)
-SCHEMA_CURRENT = "2.7"     # ops 5014: single source of truth — cache gate + doc assembly
+SCHEMA_CURRENT = "2.7.1"  # 2.7.1: EDGAR filings fallback     # ops 5014: single source of truth — cache gate + doc assembly
 FETCH_TIMEOUT = 20         # FMP per-call timeout
 CLAUDE_TIMEOUT = 150        # was 90s, but bigger schema + transcript pushes to ~85s
 FALLBACK_BUDGET_S = 70      # hard cap on the GLM/Sonnet fallback so a slow LLM never
