@@ -1,15 +1,14 @@
-executing-against: fdf5fe194df1c0a8b3fa38e5f9a33ddbde4fccf7
+executing-against: fe2569f215d0bdd3901cbc7a2a4db1445b076935
 ops 5015 -- company records (equity-research v2.7)
 ── G0 preflight ──
-[15:18:20] ✅ v2.7 markers and OPS5015 block present
+[15:20:12] ✅ v2.7 markers and OPS5015 block present
 ── G1 deploy (code only) ──
-[15:18:27] ✅ code updated; configuration/env untouched
+[15:20:19] ✅ code updated; configuration/env untouched
 ── P1 real-data asserts (version gate regenerates on its own) ──
-[15:18:31] ✅ AAOI: company records checked
-[15:18:34] ✅ NVDA: company records checked
-[15:18:34] ✗ AAOI: filings: 0 rows (need 3) -- no parseable filing rows
-[15:18:34] ✗ NVDA: filings: 0 rows (need 3) -- no parseable filing rows
+[15:20:23] ✅ AAOI: company records checked
+[15:20:25] ✅ NVDA: company records checked
+── G2 live page carries OPS5015 ──
+[15:20:25] ✅ served page carries the Peter Lynch chart + company records
+[15:20:25] ✅ OPS 5015 PASS -- every GuruFocus summary panel from the screenshots is now built; v2.7 rolls to all tickers via the version gate + in-place auto-upgrade
 
 → Report written to aws/ops/reports/latest/ops_5015_company_records.md
-real-data asserts failed
-❌ OPS-FAIL: aws/ops/pending/ops_5015_company_records.py
