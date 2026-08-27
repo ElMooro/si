@@ -154,7 +154,7 @@ def census_idx(s3_client, bucket):
 
 CACHE_PREFIX = "equity-research/"
 CACHE_TTL    = 24 * 3600   # 24h cache (statements don't change daily)
-SCHEMA_CURRENT = "2.8"     # 2.8: momentum + dividend/buyback + JH composite score     # ops 5014: single source of truth — cache gate + doc assembly
+SCHEMA_CURRENT = "2.9"     # 2.9: full GuruFocus summary parity (ops 5018)     # ops 5014: single source of truth — cache gate + doc assembly
 FETCH_TIMEOUT = 20         # FMP per-call timeout
 CLAUDE_TIMEOUT = 150        # was 90s, but bigger schema + transcript pushes to ~85s
 FALLBACK_BUDGET_S = 70      # hard cap on the GLM/Sonnet fallback so a slow LLM never
@@ -1193,6 +1193,13 @@ def fetch_all(ticker: str) -> Dict[str, Any]:
                              "to": datetime.now(timezone.utc).strftime("%Y-%m-%d")}),
         "press_rel":        ("news/press-releases", {"symbols": ticker, "limit": 12}),
         "key_execs":        ("key-executives", {"symbol": ticker}),
+        "rev_geo_seg":      ("revenue-geographic-segmentation", {"symbol": ticker, "period": "annual"}),
+        "analyst_est":      ("analyst-estimates", {"symbol": ticker, "period": "annual", "limit": 8}),
+        "news_a":           ("news/stock", {"symbols": ticker, "limit": 12}),
+        "news_b":           ("stock-news", {"tickers": ticker, "limit": 12}),
+        "splits_a":         ("splits", {"symbol": ticker}),
+        "splits_b":         ("stock-split", {"symbol": ticker}),
+        "treasury":         ("treasury-rates", {"limit": 1}),
         "transcript_dates": ("earning-call-transcript-dates", {"symbol": ticker}),
         "prices_eod":       ("historical-price-eod/light",
                               {"symbol": ticker, "from": _date_n_years_ago(10)}),
@@ -4620,6 +4627,977 @@ def build_jh_score(sp_block, growth_block, val_block, momentum_block):
                            "a recommendation")}
 
 
+# ══════════════════════════════════════════════════════════════════════
+# JH-5018 — the complete GuruFocus summary parity block (ops 5018,
+# additive; equity-research v2.9). Everything remaining from the
+# 12-screenshot set: metric tables with 10-yr-history context,
+# Piotroski/Altman/Beneish/WACC-vs-ROIC, multi-method valuation ladder
+# + price-vs-anchor band, RSI & skip-month momentum, key statistics
+# (Sharpe/Sortino), 5-step DuPont, six financial mini-charts, product &
+# geographic revenue mix (donut + history), analyst estimate table,
+# transcripts labels, news, splits, company facts, peer performance
+# chart, risk assessment, shareholder yield. Real data only; every
+# assumption is printed next to the number it feeds.
+# ══════════════════════════════════════════════════════════════════════
+
+_JH18_ERP = 4.5      # equity risk premium %, stated assumption
+_JH18_RF_FALLBACK = 4.25
+
+
+def _jh18_pctl(series, v):
+    xs = sorted(x for x in series if isinstance(x, (int, float)))
+    if v is None or len(xs) < 6:
+        return None
+    return round(100.0 * sum(1 for x in xs if x <= v) / len(xs), 0)
+
+
+def _jh18_div(a, b, scale=1.0, nd=2):
+    try:
+        if a is None or not b:
+            return None
+        return round(scale * a / b, nd)
+    except Exception:
+        return None
+
+
+def _jh18_row(name, cur, hist_series, nd=2, unit=""):
+    return {"name": name, "current": (round(cur, nd) if cur is not None
+                                      else None),
+            "hist_pctl": _jh18_pctl(hist_series or [], cur), "unit": unit}
+
+
+def _jh18_series(ratios_annual, *names):
+    out = []
+    for r in _jh11_rows(ratios_annual):
+        v = _jh11_g(r, *names)
+        if v is not None:
+            out.append(v)
+    return out
+
+
+def build_fin_strength_table(ia, ba, ratios_annual, rt):
+    b, b1 = (ba[-1] if ba else {}), (ba[-2] if len(ba) > 1 else {})
+    i = ia[-1] if ia else {}
+    cash = (_jh11_g(b, "cashAndCashEquivalents") or 0) + \
+        (_jh11_g(b, "shortTermInvestments") or 0)
+    debt = (_jh11_g(b, "shortTermDebt") or 0) + \
+        (_jh11_g(b, "longTermDebt") or 0)
+    ta = _jh11_g(b, "totalAssets")
+    te = _jh11_g(b, "totalStockholdersEquity", "totalEquity")
+    ebitda = _jh11_g(i, "ebitda")
+    if ebitda is None:
+        ebitda = (_jh11_g(i, "operatingIncome") or 0) + \
+            (_jh11_g(i, "depreciationAndAmortization") or 0)
+    ie = abs(_jh11_g(i, "interestExpense") or 0)
+    op = _jh11_g(i, "operatingIncome")
+    rows = [
+        _jh18_row("Cash-to-Debt",
+                  (_jh18_div(cash, debt) if debt else None),
+                  []),
+        _jh18_row("Equity-to-Asset", _jh18_div(te, ta),
+                  [_jh18_div(_jh11_g(r, "totalStockholdersEquity",
+                                     "totalEquity"),
+                             _jh11_g(r, "totalAssets"))
+                   for r in ba[-11:]] if ba else []),
+        _jh18_row("Debt-to-Equity", _jh18_div(debt, te),
+                  _jh18_series(ratios_annual, "debtEquityRatio",
+                               "debtToEquity")),
+        _jh18_row("Debt-to-EBITDA", _jh18_div(debt, ebitda),
+                  _jh18_series(ratios_annual, "netDebtToEBITDA")),
+        _jh18_row("Interest Coverage (EBIT/IntExp)",
+                  (_jh18_div(op, ie) if ie > 1 else None),
+                  _jh18_series(ratios_annual, "interestCoverage")),
+    ]
+    note = ("cash-to-debt uses cash + short-term investments; history "
+            "bars = percentile within the company's own last decade "
+            "(industry medians only exist where the peer cache covers "
+            "them — never faked)")
+    return {"available": True, "rows": rows, "note": note}
+
+
+def build_profitability_table(ia, ba, ratios_annual):
+    i = ia[-1] if ia else {}
+    rev = _jh11_g(i, "revenue")
+    if not rev:
+        return {"available": False, "reason": "no revenue row"}
+    def m(field, *names):
+        return _jh18_div(_jh11_g(i, *names), rev, 100.0)
+    ni = _jh11_g(i, "netIncome")
+    te = _jh11_g(ba[-1] if ba else {}, "totalStockholdersEquity",
+                 "totalEquity")
+    ta = _jh11_g(ba[-1] if ba else {}, "totalAssets")
+    op = _jh11_g(i, "operatingIncome")
+    tax = _jh11_g(i, "incomeTaxExpense") or 0
+    pretax = _jh11_g(i, "incomeBeforeTax")
+    trate = (tax / pretax) if pretax and pretax > 0 else 0.21
+    debt = (_jh11_g(ba[-1] if ba else {}, "shortTermDebt") or 0) + \
+        (_jh11_g(ba[-1] if ba else {}, "longTermDebt") or 0)
+    ic = (te or 0) + debt
+    nopat = op * (1 - min(max(trate, 0), 0.4)) if op is not None else None
+    prof_years = sum(1 for r in ia[-10:]
+                     if (_jh11_g(r, "netIncome") or 0) > 0)
+    rows = [
+        _jh18_row("Gross Margin %", m("g", "grossProfit") if rev else None,
+                  [_jh18_div(_jh11_g(r, "grossProfit"),
+                             _jh11_g(r, "revenue"), 100.0)
+                   for r in ia[-11:]], unit="%"),
+        _jh18_row("Operating Margin %",
+                  _jh18_div(op, rev, 100.0),
+                  [_jh18_div(_jh11_g(r, "operatingIncome"),
+                             _jh11_g(r, "revenue"), 100.0)
+                   for r in ia[-11:]], unit="%"),
+        _jh18_row("Net Margin %", _jh18_div(ni, rev, 100.0),
+                  [_jh18_div(_jh11_g(r, "netIncome"),
+                             _jh11_g(r, "revenue"), 100.0)
+                   for r in ia[-11:]], unit="%"),
+        _jh18_row("ROE %", _jh18_div(ni, te, 100.0),
+                  _jh18_series(ratios_annual, "returnOnEquity"), unit="%"),
+        _jh18_row("ROA %", _jh18_div(ni, ta, 100.0),
+                  _jh18_series(ratios_annual, "returnOnAssets"), unit="%"),
+        _jh18_row("ROIC % (NOPAT/invested capital)",
+                  _jh18_div(nopat, ic, 100.0), [], unit="%"),
+        {"name": "Years profitable (last 10)", "current": prof_years,
+         "hist_pctl": None, "unit": "/10"},
+    ]
+    return {"available": True, "rows": rows,
+            "note": ("Moat / Tariff-resilience scores are GuruFocus "
+                     "proprietary models — omitted here, not imitated")}
+
+
+def build_liquidity_table(ia, ba, ratios_annual):
+    b = ba[-1] if ba else {}
+    i = ia[-1] if ia else {}
+    ca = _jh11_g(b, "totalCurrentAssets")
+    cl = _jh11_g(b, "totalCurrentLiabilities")
+    inv = _jh11_g(b, "inventory") or 0
+    rec = _jh11_g(b, "netReceivables") or 0
+    ap = _jh11_g(b, "accountPayables") or 0
+    cash = (_jh11_g(b, "cashAndCashEquivalents") or 0) + \
+        (_jh11_g(b, "shortTermInvestments") or 0)
+    cogs = _jh11_g(i, "costOfRevenue")
+    rev = _jh11_g(i, "revenue")
+    dio = _jh18_div(inv * 365.0, cogs)
+    dso = _jh18_div(rec * 365.0, rev)
+    dpo = _jh18_div(ap * 365.0, cogs)
+    rows = [
+        _jh18_row("Current Ratio", _jh18_div(ca, cl),
+                  _jh18_series(ratios_annual, "currentRatio")),
+        _jh18_row("Quick Ratio", _jh18_div((ca or 0) - inv, cl),
+                  _jh18_series(ratios_annual, "quickRatio")),
+        _jh18_row("Cash Ratio", _jh18_div(cash, cl),
+                  _jh18_series(ratios_annual, "cashRatio")),
+        _jh18_row("Days Inventory", dio,
+                  _jh18_series(ratios_annual,
+                               "daysOfInventoryOutstanding",
+                               "daysOfInventoryOnHand"), nd=1),
+        _jh18_row("Days Sales Outstanding", dso,
+                  _jh18_series(ratios_annual, "daysOfSalesOutstanding"),
+                  nd=1),
+        _jh18_row("Days Payable", dpo,
+                  _jh18_series(ratios_annual, "daysOfPayablesOutstanding"),
+                  nd=1),
+    ]
+    ccc = None
+    if None not in (dio, dso, dpo):
+        ccc = round(dio + dso - dpo, 1)
+    return {"available": True, "rows": rows, "cash_conversion_days": ccc}
+
+
+def build_scores(ia, ba, ca, quote, rf_pct, beta):
+    out = {}
+    # ── Piotroski (9 components, FY vs prior FY) ──
+    if len(ia) >= 2 and len(ba) >= 2 and len(ca) >= 1:
+        i1, i0 = ia[-1], ia[-2]
+        b1, b0 = ba[-1], ba[-2]
+        c1 = ca[-1]
+        ta1 = _jh11_g(b1, "totalAssets") or 1
+        ta0 = _jh11_g(b0, "totalAssets") or 1
+        ni1 = _jh11_g(i1, "netIncome") or 0
+        ni0 = _jh11_g(i0, "netIncome") or 0
+        cfo = _jh11_g(c1, "netCashProvidedByOperatingActivities",
+                      "operatingCashFlow") or 0
+        roa1, roa0 = ni1 / ta1, ni0 / ta0
+        gm1 = _jh18_div(_jh11_g(i1, "grossProfit"),
+                        _jh11_g(i1, "revenue")) or 0
+        gm0 = _jh18_div(_jh11_g(i0, "grossProfit"),
+                        _jh11_g(i0, "revenue")) or 0
+        at1 = (_jh11_g(i1, "revenue") or 0) / ta1
+        at0 = (_jh11_g(i0, "revenue") or 0) / ta0
+        lev1 = (_jh11_g(b1, "longTermDebt") or 0) / ta1
+        lev0 = (_jh11_g(b0, "longTermDebt") or 0) / ta0
+        cr1 = _jh18_div(_jh11_g(b1, "totalCurrentAssets"),
+                        _jh11_g(b1, "totalCurrentLiabilities")) or 0
+        cr0 = _jh18_div(_jh11_g(b0, "totalCurrentAssets"),
+                        _jh11_g(b0, "totalCurrentLiabilities")) or 0
+        sh1 = _jh11_g(i1, "weightedAverageShsOutDil",
+                      "weightedAverageShsOut") or 0
+        sh0 = _jh11_g(i0, "weightedAverageShsOutDil",
+                      "weightedAverageShsOut") or 0
+        comps = [
+            ("Positive ROA", roa1 > 0),
+            ("Positive CFO", cfo > 0),
+            ("Higher ROA yoy", roa1 > roa0),
+            ("CFO > Net Income (accruals)", cfo > ni1),
+            ("Lower leverage yoy (LTD/assets)", lev1 <= lev0),
+            ("Higher current ratio yoy", cr1 > cr0),
+            ("No net share issuance", 0 < sh1 <= sh0 * 1.005),
+            ("Higher gross margin yoy", gm1 > gm0),
+            ("Higher asset turnover yoy", at1 > at0),
+        ]
+        out["piotroski"] = {
+            "total": sum(1 for _, ok in comps if ok),
+            "components": [{"name": n, "pass": bool(ok)}
+                           for n, ok in comps],
+            "note": "computed from the last two fiscal years' statements"}
+    # ── Altman Z (original 5-ratio, manufacturing form) ──
+    if ia and ba:
+        b1, i1 = ba[-1], ia[-1]
+        ta = _jh11_g(b1, "totalAssets")
+        if ta:
+            wc = (_jh11_g(b1, "totalCurrentAssets") or 0) - \
+                (_jh11_g(b1, "totalCurrentLiabilities") or 0)
+            re = _jh11_g(b1, "retainedEarnings") or 0
+            ebit = _jh11_g(i1, "operatingIncome") or 0
+            tl = _jh11_g(b1, "totalLiabilities") or 1
+            mcap = _jh11_g(quote, "marketCap") or 0
+            sales = _jh11_g(i1, "revenue") or 0
+            z = (1.2 * wc / ta + 1.4 * re / ta + 3.3 * ebit / ta +
+                 0.6 * mcap / tl + 1.0 * sales / ta)
+            out["altman"] = {
+                "z": round(z, 2),
+                "zone": ("Safe" if z > 2.99 else
+                         "Grey" if z >= 1.81 else "Distress"),
+                "note": "original 1968 coefficients; market cap from "
+                        "live quote"}
+    # ── Beneish M-Score (8-ratio) ──
+    if len(ia) >= 2 and len(ba) >= 2 and len(ca) >= 2:
+        i1, i0, b1, b0 = ia[-1], ia[-2], ba[-1], ba[-2]
+        c1 = ca[-1]
+        def g(row, *n):
+            return _jh11_g(row, *n) or 0.0
+        s1, s0 = g(i1, "revenue"), g(i0, "revenue") or 1
+        rec1, rec0 = g(b1, "netReceivables"), g(b0, "netReceivables") or 1
+        dsri = (rec1 / max(s1, 1)) / max(rec0 / s0, 1e-9)
+        gm1 = (s1 - g(i1, "costOfRevenue")) / max(s1, 1)
+        gm0 = (s0 - g(i0, "costOfRevenue")) / max(s0, 1)
+        gmi = gm0 / gm1 if abs(gm1) > 1e-9 else 1.0
+        ta1, ta0 = g(b1, "totalAssets") or 1, g(b0, "totalAssets") or 1
+        hard1 = (g(b1, "totalCurrentAssets") +
+                 g(b1, "propertyPlantEquipmentNet"))
+        hard0 = (g(b0, "totalCurrentAssets") +
+                 g(b0, "propertyPlantEquipmentNet"))
+        aqi = ((1 - hard1 / ta1) / max(1 - hard0 / ta0, 1e-9)
+               if ta1 and ta0 else 1.0)
+        sgi = s1 / s0
+        dep1 = g(c1, "depreciationAndAmortization")
+        dep0 = g(ca[-2], "depreciationAndAmortization")
+        ppe1 = g(b1, "propertyPlantEquipmentNet")
+        ppe0 = g(b0, "propertyPlantEquipmentNet")
+        r1 = dep1 / max(dep1 + ppe1, 1)
+        r0 = dep0 / max(dep0 + ppe0, 1)
+        depi = r0 / max(r1, 1e-9)
+        sga1 = g(i1, "sellingGeneralAndAdministrativeExpenses") or (
+            g(i1, "generalAndAdministrativeExpenses") +
+            g(i1, "sellingAndMarketingExpenses"))
+        sga0 = g(i0, "sellingGeneralAndAdministrativeExpenses") or (
+            g(i0, "generalAndAdministrativeExpenses") +
+            g(i0, "sellingAndMarketingExpenses"))
+        sgai = (sga1 / max(s1, 1)) / max(sga0 / s0, 1e-9)
+        lev1 = (g(b1, "longTermDebt") +
+                g(b1, "totalCurrentLiabilities")) / ta1
+        lev0 = (g(b0, "longTermDebt") +
+                g(b0, "totalCurrentLiabilities")) / ta0
+        lvgi = lev1 / max(lev0, 1e-9)
+        ni1 = g(i1, "netIncome")
+        cfo1 = g(c1, "netCashProvidedByOperatingActivities",
+                 "operatingCashFlow")
+        tata = (ni1 - cfo1) / ta1
+        def cl(x, lo, hi):
+            return min(max(x, lo), hi)
+        m = (-4.84 + 0.92 * cl(dsri, 0, 5) + 0.528 * cl(gmi, 0, 5) +
+             0.404 * cl(aqi, 0, 5) + 0.892 * cl(sgi, 0, 5) +
+             0.115 * cl(depi, 0, 5) - 0.172 * cl(sgai, 0, 5) +
+             4.679 * cl(tata, -1, 1) - 0.327 * cl(lvgi, 0, 5))
+        out["beneish"] = {
+            "m": round(m, 2),
+            "flag": "possible manipulator" if m > -1.78
+                    else "not flagged",
+            "inputs": {k: round(v, 3) for k, v in
+                       {"DSRI": dsri, "GMI": gmi, "AQI": aqi, "SGI": sgi,
+                        "DEPI": depi, "SGAI": sgai, "LVGI": lvgi,
+                        "TATA": tata}.items()},
+            "note": "8-ratio Beneish (1999); components capped at 5x to "
+                    "keep one broken ratio from dominating"}
+    # ── WACC vs ROIC ──
+    if ia and ba and quote:
+        i1, b1 = ia[-1], ba[-1]
+        mcap = _jh11_g(quote, "marketCap") or 0
+        debt = (_jh11_g(b1, "shortTermDebt") or 0) + \
+            (_jh11_g(b1, "longTermDebt") or 0)
+        v = mcap + debt
+        if v > 0 and beta is not None:
+            coe = rf_pct + beta * _JH18_ERP
+            ie = abs(_jh11_g(i1, "interestExpense") or 0)
+            d0 = (_jh11_g(ba[-2] if len(ba) > 1 else b1,
+                          "shortTermDebt") or 0) + \
+                 (_jh11_g(ba[-2] if len(ba) > 1 else b1,
+                          "longTermDebt") or 0)
+            cod = (100.0 * ie / ((debt + d0) / 2)
+                   if debt + d0 > 0 and ie > 0 else 6.0)
+            pretax = _jh11_g(i1, "incomeBeforeTax")
+            tax = _jh11_g(i1, "incomeTaxExpense") or 0
+            t = min(max(tax / pretax, 0), 0.35) if pretax and \
+                pretax > 0 else 0.21
+            wacc = (mcap / v) * coe + (debt / v) * cod * (1 - t)
+            op = _jh11_g(i1, "operatingIncome")
+            te = _jh11_g(b1, "totalStockholdersEquity", "totalEquity") or 0
+            ic = te + debt
+            roic = (100.0 * op * (1 - t) / ic
+                    if op is not None and ic > 0 else None)
+            out["wacc_roic"] = {
+                "wacc_pct": round(wacc, 2),
+                "roic_pct": round(roic, 2) if roic is not None else None,
+                "spread_pct": (round(roic - wacc, 2)
+                               if roic is not None else None),
+                "assumptions": ("CoE = 10y treasury %.2f%% + beta %.2f x "
+                                "ERP %.1f%%; CoD from actual interest "
+                                "expense; effective tax capped at 35%%"
+                                % (rf_pct, beta, _JH18_ERP))}
+    if not out:
+        return {"available": False, "reason": "insufficient statements"}
+    out["available"] = True
+    return out
+
+
+# ── JH-5018 part 2 ───────────────────────────────────────────────────
+
+
+def _jh18_ttm(iq, *names, n=4):
+    rows = _jh11_rows(iq)[-n:]
+    if len(rows) < n:
+        return None
+    vals = [_jh11_g(r, *names) for r in rows]
+    if any(v is None for v in vals):
+        return None
+    return sum(vals)
+
+
+def build_valuation_ratios(ia, iq, ba, ca, quote, closes, est_rows,
+                           model_fv, wacc_pct):
+    px = _jh11_g(quote, "price") or (closes[-1][1] if closes else None)
+    mcap = _jh11_g(quote, "marketCap")
+    sh = _jh11_g(quote, "sharesOutstanding")
+    if not px or not mcap:
+        return {"available": False, "reason": "no live quote"}
+    b = ba[-1] if ba else {}
+    cash = (_jh11_g(b, "cashAndCashEquivalents") or 0) + \
+        (_jh11_g(b, "shortTermInvestments") or 0)
+    debt = (_jh11_g(b, "shortTermDebt") or 0) + \
+        (_jh11_g(b, "longTermDebt") or 0)
+    ev = mcap + debt - cash
+    rev_ttm = _jh18_ttm(iq, "revenue") or _jh11_g(ia[-1] if ia else {},
+                                                  "revenue")
+    ni_ttm = _jh18_ttm(iq, "netIncome")
+    ebit_ttm = _jh18_ttm(iq, "operatingIncome")
+    ebitda_ttm = _jh18_ttm(iq, "ebitda")
+    fcf_ttm = None
+    te = _jh11_g(b, "totalStockholdersEquity", "totalEquity")
+    gw = (_jh11_g(b, "goodwill") or 0) + (_jh11_g(b, "intangibleAssets")
+                                          or 0)
+    tb = (te - gw) if te is not None else None
+    ncav = ((_jh11_g(b, "totalCurrentAssets") or 0) -
+            (_jh11_g(b, "totalLiabilities") or 0))
+    eps_fwd = None
+    rev_fwd = None
+    if est_rows:
+        eps_fwd = _jh11_g(est_rows[0], "epsAvg", "estimatedEpsAvg")
+        rev_fwd = _jh11_g(est_rows[0], "revenueAvg",
+                          "estimatedRevenueAvg")
+    # 10-yr history series for percentile bars (FY-end price vs FY stats)
+    ps_hist, pb_hist = [], []
+    for r in ia[-11:]:
+        p = _jh11_close_on(closes, r["date"])
+        shs = _jh11_g(r, "weightedAverageShsOutDil",
+                      "weightedAverageShsOut")
+        if p and shs:
+            rv = _jh11_g(r, "revenue")
+            if rv:
+                ps_hist.append(p * shs / rv)
+    for r in ba[-11:]:
+        p = _jh11_close_on(closes, r["date"])
+        e = _jh11_g(r, "totalStockholdersEquity", "totalEquity")
+        if p and e and e > 0 and sh:
+            pb_hist.append(p * sh / e)
+    med_ps = sorted(ps_hist)[len(ps_hist) // 2] if len(ps_hist) >= 6 \
+        else None
+    med_ps_value = (med_ps * rev_ttm / sh
+                    if med_ps and rev_ttm and sh else None)
+    ey = _jh18_div(ebit_ttm, ev, 100.0) if ev else None
+    rows = [
+        _jh18_row("Forward P/E", _jh18_div(px, eps_fwd), []),
+        _jh18_row("P/S (TTM)", _jh18_div(mcap, rev_ttm), ps_hist),
+        _jh18_row("P/B", _jh18_div(mcap, te), pb_hist),
+        _jh18_row("Price-to-Tangible-Book",
+                  _jh18_div(mcap, tb) if tb and tb > 0 else None, []),
+        _jh18_row("EV-to-EBIT", _jh18_div(ev, ebit_ttm), []),
+        _jh18_row("EV-to-EBITDA", _jh18_div(ev, ebitda_ttm), []),
+        _jh18_row("EV-to-Revenue", _jh18_div(ev, rev_ttm), []),
+        _jh18_row("EV-to-Forward-Revenue", _jh18_div(ev, rev_fwd), []),
+        _jh18_row("Earnings Yield (Greenblatt, EBIT/EV) %", ey, [],
+                  unit="%"),
+        _jh18_row("Price-to-Median-PS-Value",
+                  _jh18_div(px, med_ps_value), []),
+        _jh18_row("Price-to-NCAV",
+                  _jh18_div(mcap, ncav) if ncav > 0 else None, []),
+        _jh18_row("Price-to-Model-FV",
+                  _jh18_div(px, model_fv) if model_fv else None, []),
+    ]
+    return {"available": True, "rows": rows, "ev": ev,
+            "med_ps": round(med_ps, 2) if med_ps else None,
+            "med_ps_value": (round(med_ps_value, 2)
+                             if med_ps_value else None),
+            "note": ("TTM from the last four quarters; negative "
+                     "denominators shown as the negative multiple they "
+                     "are, never hidden")}
+
+
+def build_valuation_ladder(ia, ba, ca, quote, model_fv, wacc_pct,
+                           med_ps_value):
+    px = _jh11_g(quote, "price")
+    sh = _jh11_g(quote, "sharesOutstanding")
+    if not px or not sh:
+        return {"available": False, "reason": "no live quote"}
+    b = ba[-1] if ba else {}
+    te = _jh11_g(b, "totalStockholdersEquity", "totalEquity")
+    gw = (_jh11_g(b, "goodwill") or 0) + \
+        (_jh11_g(b, "intangibleAssets") or 0)
+    tb_ps = _jh18_div(te - gw, sh) if te is not None else None
+    ncav_ps = _jh18_div((_jh11_g(b, "totalCurrentAssets") or 0) -
+                        (_jh11_g(b, "totalLiabilities") or 0), sh)
+    ebits = [_jh11_g(r, "operatingIncome") for r in ia[-5:]]
+    ebits = [e for e in ebits if e is not None]
+    r_ = max(wacc_pct, 8.0) / 100.0
+    epv_ps = None
+    if ebits:
+        avg_ebit = sum(ebits) / len(ebits)
+        epv_ps = round(avg_ebit * (1 - 0.21) / r_ / sh, 2)
+    fcfs = [_jh11_g(r, "freeCashFlow") for r in ca[-3:]]
+    fcfs = [f for f in fcfs if f is not None]
+    pfcf_ps = None
+    g_used = None
+    if fcfs:
+        f0 = sum(fcfs) / len(fcfs)
+        g_hist = None
+        f_old = [_jh11_g(r, "freeCashFlow") for r in ca[-6:-3]]
+        f_old = [f for f in f_old if f is not None]
+        if f_old and sum(f_old) > 0 and f0 > 0:
+            g_hist = ((f0 / (sum(f_old) / len(f_old)))
+                      ** (1 / 3.0) - 1) * 100
+        g_used = min(max(g_hist if g_hist is not None else 5.0, -5.0),
+                     15.0)
+        pv = 0.0
+        f = f0
+        for yy in range(1, 11):
+            f *= (1 + g_used / 100.0)
+            pv += f / ((1 + r_) ** yy)
+        tv = f * 1.02 / (r_ - 0.02) / ((1 + r_) ** 10)
+        pfcf_ps = round((pv + tv) / sh, 2)
+    methods = [
+        {"name": "Model fair value (5011)", "value": model_fv},
+        {"name": "Earnings power value (EPV)", "value": epv_ps},
+        {"name": "Projected FCF (10y DCF-lite)", "value": pfcf_ps},
+        {"name": "Median P/S value", "value": med_ps_value},
+        {"name": "Tangible book / share", "value": tb_ps},
+        {"name": "Net current asset value / share", "value": ncav_ps},
+    ]
+    methods = [m for m in methods if m["value"] is not None]
+    return {"available": bool(methods), "price": round(px, 2),
+            "methods": methods,
+            "assumptions": ("EPV = 5y avg EBIT x (1-21%%) / max(WACC,8%%)"
+                            "; DCF-lite grows 3y-avg FCF at %s%% "
+                            "(clamped -5..15) for 10y, 2%% terminal; "
+                            "negative values shown as-is"
+                            % ("n/a" if g_used is None
+                               else round(g_used, 1)))}
+
+
+def build_fv_band(ia, iq, closes, quote):
+    """price (monthly, 5y) vs a median-P/S anchor band ±30% — clearly
+    labeled; this is OUR anchor, not GuruFocus's proprietary line."""
+    if not closes or len(closes) < 300:
+        return {"available": False, "reason": "insufficient prices"}
+    monthly = []
+    last_m = ""
+    for d, c in closes[-1300:]:
+        if d[:7] != last_m:
+            monthly.append([d[:7], round(c, 2)])
+            last_m = d[:7]
+    monthly = monthly[-61:]
+    sh = _jh11_g(quote, "sharesOutstanding")
+    anchors = []
+    for r in ia[-6:]:
+        y = r["date"][:4]
+        ps_hist = []
+        for r2 in ia:
+            if r2["date"] > r["date"]:
+                continue
+            p2 = _jh11_close_on(closes, r2["date"])
+            s2 = _jh11_g(r2, "weightedAverageShsOutDil",
+                         "weightedAverageShsOut")
+            rv2 = _jh11_g(r2, "revenue")
+            if p2 and s2 and rv2:
+                ps_hist.append(p2 * s2 / rv2)
+        shs = _jh11_g(r, "weightedAverageShsOutDil",
+                      "weightedAverageShsOut") or sh
+        rv = _jh11_g(r, "revenue")
+        if len(ps_hist) >= 4 and rv and shs:
+            med = sorted(ps_hist)[len(ps_hist) // 2]
+            anchors.append([y, round(med * rv / shs, 2)])
+    if len(anchors) < 3:
+        return {"available": False,
+                "reason": "not enough history for the anchor"}
+    return {"available": True, "monthly_price": monthly,
+            "anchor_by_year": anchors, "band_pct": 30,
+            "note": ("anchor = trailing median P/S x that year's sales "
+                     "per share; band ±30% — a transparent house anchor, "
+                     "not GuruFocus's proprietary GF-Value line")}
+
+
+def _jh18_rsi(closes, n):
+    if len(closes) < n + 1:
+        return None
+    gains = losses = 0.0
+    for i in range(-n, 0):
+        d = closes[i][1] - closes[i - 1][1]
+        gains += max(d, 0)
+        losses += max(-d, 0)
+    ag, al = gains / n, losses / n
+    for i in range(-n, 0):
+        d = closes[i][1] - closes[i - 1][1]
+        ag = (ag * (n - 1) + max(d, 0)) / n
+        al = (al * (n - 1) + max(-d, 0)) / n
+    if al == 0:
+        return 100.0
+    rs = ag / al
+    return round(100 - 100 / (1 + rs), 2)
+
+
+def build_momentum_extra(closes):
+    if not closes or len(closes) < 260:
+        return {"available": False, "reason": "insufficient prices"}
+    def skip(m_far, m_near):
+        a = closes[-1 - m_far * 21][1]
+        b = closes[-1 - m_near * 21][1]
+        return round(100.0 * (b / a - 1), 2)
+    sma20 = sum(c for _, c in closes[-20:]) / 20.0
+    px = closes[-1][1]
+    return {"available": True,
+            "rsi": {"5d": _jh18_rsi(closes, 5),
+                    "9d": _jh18_rsi(closes, 9),
+                    "14d": _jh18_rsi(closes, 14)},
+            "skip_month": {"3_1": skip(3, 1), "6_1": skip(6, 1),
+                           "12_1": skip(12, 1)},
+            "sma20": round(sma20, 2),
+            "px_vs_sma20_pct": round(100.0 * (px / sma20 - 1), 2),
+            "note": ("X-1 momentum = return from X months ago to 1 month "
+                     "ago (skip-month convention); ATR omitted — needs "
+                     "OHLC we do not fetch, and a proxy would not be an "
+                     "ATR")}
+
+
+def build_key_stats(closes, spy_closes, rf_pct, quote, iq, quant_risk):
+    if not closes or len(closes) < 400:
+        return {"available": False, "reason": "insufficient prices"}
+    rets = []
+    for i in range(max(1, len(closes) - 756), len(closes)):
+        a, b = closes[i - 1][1], closes[i][1]
+        if a > 0:
+            rets.append(b / a - 1)
+    n = len(rets)
+    mu = sum(rets) / n
+    var = sum((r - mu) ** 2 for r in rets) / max(n - 1, 1)
+    sd = var ** 0.5
+    rf_d = rf_pct / 100.0 / 252.0
+    sharpe = ((mu - rf_d) / sd * (252 ** 0.5)) if sd > 0 else None
+    dn = [min(r - rf_d, 0.0) for r in rets]
+    dvar = sum(x * x for x in dn) / max(n - 1, 1)
+    dsd = dvar ** 0.5
+    sortino = ((mu - rf_d) / dsd * (252 ** 0.5)) if dsd > 0 else None
+    yr = closes[-252:]
+    return {"available": True,
+            "rev_ttm": _jh18_ttm(iq, "revenue"),
+            "eps_ttm": _jh18_ttm(iq, "epsDiluted", "epsdiluted", "eps"),
+            "beta_2y": (quant_risk or {}).get("beta_2y"),
+            "vol_ann_pct": round(sd * (252 ** 0.5) * 100, 1),
+            "sharpe_3y": round(sharpe, 2) if sharpe is not None else None,
+            "sortino_3y": (round(sortino, 2)
+                           if sortino is not None else None),
+            "range_52w": [round(min(c for _, c in yr), 2),
+                          round(max(c for _, c in yr), 2)],
+            "shares_out_m": (round((_jh11_g(quote, "sharesOutstanding")
+                                    or 0) / 1e6, 2) or None),
+            "note": ("Sharpe/Sortino on 3y daily returns vs the live 10y "
+                     "treasury; bid/ask depth is not in our feed — "
+                     "omitted, not guessed")}
+
+
+def build_dupont(iq, bq_raw):
+    iqr = _jh11_rows(iq)
+    bq = _jh11_rows(bq_raw)
+    if len(iqr) < 1 or len(bq) < 5:
+        return {"available": False,
+                "reason": "needs latest quarter + 5 quarterly balances"}
+    i = iqr[-1]
+    rev = (_jh11_g(i, "revenue") or 0) * 4
+    ni = (_jh11_g(i, "netIncome") or 0) * 4
+    op = (_jh11_g(i, "operatingIncome") or 0) * 4
+    pt = (_jh11_g(i, "incomeBeforeTax") or 0) * 4
+    a1 = _jh11_g(bq[-1], "totalAssets")
+    a0 = _jh11_g(bq[-5], "totalAssets")
+    e1 = _jh11_g(bq[-1], "totalStockholdersEquity", "totalEquity")
+    e0 = _jh11_g(bq[-5], "totalStockholdersEquity", "totalEquity")
+    if not all(v for v in (rev, a1, a0)) or e1 is None or e0 is None:
+        return {"available": False, "reason": "missing quarterly lines"}
+    avg_a = (a1 + a0) / 2
+    avg_e = (e1 + e0) / 2
+    nm = 100.0 * ni / rev
+    at = rev / avg_a
+    em = avg_a / avg_e if avg_e else None
+    roe = (100.0 * ni / avg_e) if avg_e else None
+    return {"available": True, "period": i["date"], "annualized": True,
+            "roe_pct": round(roe, 2) if roe is not None else None,
+            "net_margin_pct": round(nm, 2),
+            "asset_turnover": round(at, 2),
+            "equity_multiplier": (round(em, 2) if em is not None
+                                  else None),
+            "op_margin_pct": round(100.0 * op / rev, 2),
+            "tax_burden": round(ni / pt, 3) if pt else None,
+            "interest_burden": round(pt / op, 3) if op else None,
+            "nodes": {"revenue": rev, "net_income": ni, "pretax": pt,
+                      "op_income": op, "avg_assets": avg_a,
+                      "begin_assets": a0, "end_assets": a1,
+                      "avg_equity": avg_e, "begin_equity": e0,
+                      "end_equity": e1},
+            "note": ("latest quarter x4 (annualized), averages over the "
+                     "trailing four quarters — the identity NM x AT x EM "
+                     "= ROE holds to rounding")}
+
+
+def build_financial_minis(ia, ba, ca):
+    def series(rows, *names):
+        return [[r["date"][:4],
+                 _jh11_g(r, *names)] for r in rows[-12:]]
+    return {"available": True, "charts": {
+        "rev_ni_ebitda": {"Revenue": series(ia, "revenue"),
+                          "Net Income": series(ia, "netIncome"),
+                          "EBITDA": series(ia, "ebitda")},
+        "cash_debt": {"Cash": series(ba, "cashAndCashEquivalents"),
+                      "Debt": [[r["date"][:4],
+                                (_jh11_g(r, "shortTermDebt") or 0) +
+                                (_jh11_g(r, "longTermDebt") or 0)]
+                               for r in ba[-12:]]},
+        "ocf_fcf_ni": {"OCF": series(
+            ca, "netCashProvidedByOperatingActivities",
+            "operatingCashFlow"),
+            "FCF": series(ca, "freeCashFlow"),
+            "SBC": series(ca, "stockBasedCompensation")},
+        "shares_buyback": {"Shares": series(
+            ia, "weightedAverageShsOutDil", "weightedAverageShsOut")},
+        "equity_assets": {"Equity": series(
+            ba, "totalStockholdersEquity", "totalEquity"),
+            "Assets": series(ba, "totalAssets")},
+    }}
+
+
+def _jh18_seg_hist(raw_key, raw):
+    xs = raw.get(raw_key)
+    hist = []
+    latest = None
+    if isinstance(xs, list):
+        for row in sorted(xs, key=lambda r: (r.get("date") or "")):
+            d = row.get("data") if isinstance(row.get("data"), dict) \
+                else {k: v for k, v in row.items()
+                      if isinstance(v, (int, float))}
+            if not d:
+                continue
+            clean = {str(k)[:28]: float(v) for k, v in d.items()
+                     if isinstance(v, (int, float)) and v != 0}
+            if clean:
+                hist.append({"date": (row.get("date") or "")[:10],
+                             "data": clean})
+    if hist:
+        latest = hist[-1]
+    return {"available": bool(hist), "latest": latest,
+            "history": hist[-8:],
+            "reason": None if hist else "segmentation not reported"}
+
+
+def build_segments(raw):
+    return {"available": True,
+            "product": _jh18_seg_hist("rev_product_seg", raw),
+            "geographic": _jh18_seg_hist("rev_geo_seg", raw)}
+
+
+def build_estimates_table(est):
+    rows = est if isinstance(est, list) else []
+    rows = sorted([r for r in rows if isinstance(r, dict)
+                   and r.get("date")], key=lambda r: r["date"])
+    fut = [r for r in rows if r["date"][:4] >= "2025"][:4]
+    if not fut:
+        return {"available": False,
+                "reason": "no forward analyst estimates on this feed"}
+    out = []
+    for r in fut:
+        out.append({"fy": r["date"][:7],
+                    "revenue": _jh11_g(r, "revenueAvg",
+                                       "estimatedRevenueAvg"),
+                    "ebitda": _jh11_g(r, "ebitdaAvg",
+                                      "estimatedEbitdaAvg"),
+                    "eps": _jh11_g(r, "epsAvg", "estimatedEpsAvg"),
+                    "net_income": _jh11_g(r, "netIncomeAvg",
+                                          "estimatedNetIncomeAvg"),
+                    "analysts": _jh11_g(r, "numAnalystsRevenue",
+                                        "numberAnalystEstimatedRevenue")})
+    g = None
+    if len(out) >= 2 and out[0]["revenue"] and out[-1]["revenue"]:
+        yrs = max(len(out) - 1, 1)
+        g = round(((out[-1]["revenue"] / out[0]["revenue"])
+                   ** (1 / yrs) - 1) * 100, 1)
+    return {"available": True, "rows": out,
+            "future_rev_cagr_pct": g,
+            "note": "consensus averages from the analyst-estimates feed"}
+
+
+def build_transcript_labels(events, fy_end_month):
+    if not events or not events.get("available"):
+        return {"available": False, "reason": "no earnings history"}
+    out = []
+    for r in events.get("past") or []:
+        d = r["date"]
+        y, m = int(d[:4]), int(d[5:7])
+        qe_m = m - 2
+        qe_y = y
+        if qe_m <= 0:
+            qe_m += 12
+            qe_y -= 1
+        months_after_fye = (qe_m - fy_end_month) % 12
+        q = (months_after_fye - 1) // 3 + 1 if months_after_fye else 4
+        fy = qe_y if qe_m <= fy_end_month else qe_y + 1
+        out.append({"label": "Q%d %d Earnings Call" % (q, fy),
+                    "date": d})
+    return {"available": True, "rows": out,
+            "note": ("fiscal quarter inferred from the report date vs "
+                     "the fiscal year-end month — labels, not "
+                     "transcripts themselves")}
+
+
+def build_news(raw):
+    for key in ("news_a", "news_b"):
+        xs = raw.get(key)
+        if isinstance(xs, list) and xs:
+            out = []
+            for r in xs:
+                if not isinstance(r, dict):
+                    continue
+                d = (r.get("publishedDate") or r.get("date") or "")[:10]
+                t = (r.get("title") or "").strip()
+                if d and t:
+                    out.append({"date": d, "title": t[:150],
+                                "site": (r.get("site") or
+                                         r.get("publisher") or "")[:28],
+                                "url": r.get("url")})
+            if out:
+                return {"available": True, "rows": out[:8]}
+    return {"available": False,
+            "reason": "news feed empty on this plan tier"}
+
+
+def build_splits(raw):
+    for key in ("splits_a", "splits_b"):
+        xs = raw.get(key)
+        if isinstance(xs, list):
+            rows = [{"date": (r.get("date") or "")[:10],
+                     "ratio": "%s:%s" % (r.get("numerator", "?"),
+                                         r.get("denominator", "?"))}
+                    for r in xs if isinstance(r, dict) and r.get("date")]
+            return {"available": True, "rows": rows[:8],
+                    "empty_verified": not rows,
+                    "note": ("no split history — verified against the "
+                             "feed, not missing" if not rows else "")}
+    return {"available": False, "reason": "splits feed unavailable"}
+
+
+def build_facts(raw):
+    p = _jh_first(raw.get("profile")) or {}
+    hq = ", ".join(x for x in (p.get("city"), p.get("state"),
+                               p.get("country")) if x)
+    return {"available": True,
+            "website": p.get("website"),
+            "employees": p.get("fullTimeEmployees"),
+            "ipo_date": p.get("ipoDate"),
+            "hq": hq or None, "exchange": p.get("exchange") or
+            p.get("exchangeShortName"),
+            "sector": p.get("sector"), "industry": p.get("industry"),
+            "isin": p.get("isin"), "cik": p.get("cik"),
+            "note": "NAICS/SIC codes are not in the data feed — omitted"}
+
+
+def build_peer_perf(ticker, closes):
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET,
+                            Key="%s%s.json" % (_JH_IND_CACHE_PREFIX,
+                                               ticker))
+        bundle = json.loads(obj["Body"].read())
+    except Exception:
+        return {"available": False,
+                "reason": "peer price cache not warm yet"}
+    def monthly(rows):
+        out, last = [], ""
+        for r in rows:
+            d = r.get("date") or ""
+            p = r.get("price")
+            if p is None:
+                p = r.get("close")
+            if d[:7] != last and p:
+                out.append([d[:7], p])
+                last = d[:7]
+        return out[-121:]
+    series = {}
+    self_m, last = [], ""
+    for d, c in closes:
+        if d[:7] != last:
+            self_m.append([d[:7], c])
+            last = d[:7]
+    self_m = self_m[-121:]
+    if len(self_m) < 24:
+        return {"available": False, "reason": "insufficient own history"}
+    series[ticker] = self_m
+    for s, d in (bundle.get("data") or {}).items():
+        if len(series) >= 3:
+            break
+        m = monthly(d.get("p") or [])
+        if len(m) >= 24:
+            series[s] = m
+    if len(series) < 2:
+        return {"available": False, "reason": "no peer price history"}
+    out = {}
+    for s, m in series.items():
+        base = m[0][1]
+        out[s] = [[d, round(100.0 * (p / base - 1), 1)] for d, p in m]
+    own = [p for _, p in series[ticker]]
+    cur = own[-1]
+    stats = {"above_low_pct": round(100.0 * (cur / min(own) - 1), 1),
+             "below_high_pct": round(100.0 * (cur / max(own) - 1), 1)}
+    return {"available": True, "series": out, "stats": stats,
+            "note": ("cumulative % from a common start, monthly closes, "
+                     "up to 10y; peers = the same peer set as the "
+                     "industry aggregates")}
+
+
+def build_risk_assessment(quant_risk, altman):
+    qr = quant_risk or {}
+    vol = qr.get("realized_vol_30d_pct")
+    beta = qr.get("beta_2y")
+    dd = ((qr.get("returns") or {}) or {}).get("max_drawdown_pct") \
+        if isinstance(qr.get("returns"), dict) else \
+        qr.get("max_drawdown_pct")
+    z = (altman or {}).get("z")
+    flags = []
+    if vol is not None and vol > 60:
+        flags.append("annualized volatility %.0f%%" % vol)
+    if beta is not None and abs(beta) > 2:
+        flags.append("beta %.2f" % beta)
+    if dd is not None and dd < -70:
+        flags.append("max drawdown %.0f%%" % dd)
+    if z is not None and z < 1.81:
+        flags.append("Altman Z in distress zone")
+    level = "High" if len(flags) >= 2 else \
+        "Medium" if len(flags) == 1 else "Low"
+    return {"available": True, "level": level, "flags": flags,
+            "rubric": ("High if 2+ of: vol>60%, |beta|>2, drawdown<-70%,"
+                       " Z<1.81; Medium if exactly one; Low otherwise")}
+
+
+def build_dividend_extra(ca, ia, quote):
+    if not ca:
+        return {"available": False, "reason": "no cashflow rows"}
+    mcap = _jh11_g(quote, "marketCap")
+    c1 = ca[-1]
+    div = abs(_jh11_g(c1, "dividendsPaid", "netDividendsPaid") or 0)
+    rep = abs(_jh11_g(c1, "commonStockRepurchased") or 0)
+    iss = abs(_jh11_g(c1, "commonStockIssued") or 0)
+    sy = (100.0 * (div + rep - iss) / mcap) if mcap else None
+    ratios = []
+    sh = [_jh11_g(r, "weightedAverageShsOutDil",
+                  "weightedAverageShsOut") for r in ia[-4:]]
+    for a, b in zip(sh, sh[1:]):
+        if a and b:
+            ratios.append(-100.0 * (b / a - 1))
+    bb3 = round(sum(ratios) / len(ratios), 1) if ratios else None
+    return {"available": True,
+            "shareholder_yield_pct": (round(sy, 2)
+                                      if sy is not None else None),
+            "buyback_ratio_3y_avg_pct": bb3,
+            "note": ("shareholder yield = (dividends + buybacks - "
+                     "issuance) / market cap; negative = issuance "
+                     "dominates. Buyback ratio: positive = net "
+                     "buybacks, negative = dilution")}
+
+
+def build_gf_extras(raw, ia, iq, ba, bq, ca, closes, spy_closes, quote,
+                    quant_risk, model_fv, ticker):
+    rf = _JH18_RF_FALLBACK
+    try:
+        tr = raw.get("treasury")
+        tr = tr[0] if isinstance(tr, list) and tr else (tr or {})
+        rf = _jh11_g(tr, "year10", "month10", "year5") or rf
+    except Exception:
+        pass
+    beta = (quant_risk or {}).get("beta_2y")
+    scores = _jh11_safe(build_scores, ia, ba, ca, quote, rf, beta)
+    wacc = ((scores or {}).get("wacc_roic") or {}).get("wacc_pct") or 10.0
+    est = raw.get("analyst_est")
+    est_rows = sorted([r for r in (est if isinstance(est, list) else [])
+                       if isinstance(r, dict) and r.get("date")
+                       and r["date"][:4] >= "2025"],
+                      key=lambda r: r["date"])
+    vr = _jh11_safe(build_valuation_ratios, ia, iq, ba, ca, quote,
+                    closes, est_rows, model_fv, wacc)
+    return {
+        "available": True,
+        "rf_10y_pct": round(rf, 2),
+        "fin_strength_table": _jh11_safe(build_fin_strength_table, ia,
+                                         ba, raw.get("ratios_annual"),
+                                         raw.get("ratios_ttm")),
+        "profitability_table": _jh11_safe(build_profitability_table, ia,
+                                          ba, raw.get("ratios_annual")),
+        "liquidity_table": _jh11_safe(build_liquidity_table, ia, ba,
+                                      raw.get("ratios_annual")),
+        "scores": scores,
+        "valuation_ratios": vr,
+        "valuation_ladder": _jh11_safe(
+            build_valuation_ladder, ia, ba, ca, quote, model_fv, wacc,
+            (vr or {}).get("med_ps_value")),
+        "fv_band": _jh11_safe(build_fv_band, ia, iq, closes, quote),
+        "momentum_extra": _jh11_safe(build_momentum_extra, closes),
+        "key_stats": _jh11_safe(build_key_stats, closes, spy_closes,
+                                rf, quote, iq, quant_risk),
+        "dupont": _jh11_safe(build_dupont, iq, bq),
+        "financial_minis": _jh11_safe(build_financial_minis, ia, ba, ca),
+        "segments": _jh11_safe(build_segments, raw),
+        "estimates": _jh11_safe(build_estimates_table,
+                                raw.get("analyst_est")),
+        "news": _jh11_safe(build_news, raw),
+        "splits": _jh11_safe(build_splits, raw),
+        "facts": _jh11_safe(build_facts, raw),
+        "peer_perf": _jh11_safe(build_peer_perf, ticker, closes),
+        "risk_assessment": _jh11_safe(build_risk_assessment, quant_risk,
+                                      (scores or {}).get("altman")),
+        "dividend_extra": _jh11_safe(build_dividend_extra, ca, ia,
+                                     quote),
+    }
+
+
 def lambda_handler(event, context):
     t0 = time.time()
 
@@ -5098,6 +6076,23 @@ def lambda_handler(event, context):
     jh17_score = _jh11_safe(build_jh_score, jh11_sp, jh11_growth,
                             jh11_val, jh17_mom)
 
+    # ── ops 5018: full GuruFocus summary parity block
+    _bq18 = _jh11_rows(raw.get("balance_quarterly"))
+    jh18 = _jh11_safe(build_gf_extras, raw, _ia11, _iq11, _ba11, _bq18,
+                      _ca11, jh11_closes, _spy17,
+                      _jh_first(raw.get("quote")) or {},
+                      v2.get("quant_risk"),
+                      ((jh11_val or {}).get("fair_value") or {}).get("value"),
+                      ticker)
+    try:
+        _fye18 = int(_ia11[-1]["date"][5:7]) if _ia11 else 12
+        if isinstance(jh18, dict):
+            jh18["transcripts"] = _jh11_safe(
+                build_transcript_labels,
+                (jh15_rec or {}).get("events"), _fye18)
+    except Exception:
+        pass
+
     # ── Assemble final document
     document = {
         "schema_version": SCHEMA_CURRENT,  # v2.4: + classification/price_analytics/industry_growth (ops 5010)  # v2.3: + dilution Pillar 6 (ops 3289);  # v2.2: + earnings_vol_edge (#6 realized-vs-implied + PEAD); v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
@@ -5118,7 +6113,8 @@ def lambda_handler(event, context):
         "company_records":        jh15_rec,       # ops 5015
         "momentum_panel":         jh17_mom,       # ops 5017
         "dividend_buyback":       jh17_div,       # ops 5017
-        "jh_score":               jh17_score,     # ops 5017      # ops 5010
+        "jh_score":               jh17_score,     # ops 5017
+        "gf_extras":              jh18,           # ops 5018      # ops 5010
         "industry_compass":   v2.get("industry_compass"),
         "backlog":            v2.get("backlog"),
         "dilution":           v2.get("dilution"),  # ops 3289 Pillar 6
