@@ -1,11 +1,37 @@
-executing-against: 4b47d4fb14f7b05d9346f73e88b51e6e317ee62e
-ops 5022 -- AMZN first-build vs timeout
-── G0 function config ──
-── P1 AMZN cold build (direct invoke, refresh=1) ──
-── G1 timeout headroom (config change only if needed) ──
-[21:06:01] ✅ timeout 300s has 78.9x headroom over this cold build -- unchanged
-── P2 URL-path proof (as the browser calls it) ──
-── P3 edge serves the new page WITHOUT a buster ──
-[21:06:05] ✅ AMZN builds within limits on the exact browser path and the edge serves the fixed page to plain requests
+executing-against: 0a2d1251fd3525833e39924d12e604caf8bec94e
+ops 5023 -- warm sweep to 2.9.3 (30 majors)
+── P1 threaded builds ──
+[21:08:40] ✅ AMZN 3.6s 2.9.3
+[21:08:40] ✅ META 3.7s 2.9.3
+[21:08:40] ✅ AAPL 3.7s 2.9.3
+[21:08:40] ✅ GOOGL 3.8s 2.9.3
+[21:08:40] ✅ NVDA 3.9s 2.9.3
+[21:08:40] ✅ MSFT 4.0s 2.9.3
+[21:08:41] ✅ TSLA 1.7s 2.9.3
+[21:08:42] ✅ AVGO 1.8s 2.9.3
+[21:08:42] ✅ ORCL 1.6s 2.9.3
+[21:08:42] ✅ KO 1.7s 2.9.3
+[21:08:42] ✅ AMD 1.9s 2.9.3
+[21:08:42] ✅ PEP 2.2s 2.9.3
+[21:08:43] ✅ V 1.8s 2.9.3
+[21:08:44] ✅ XOM 1.7s 2.9.3
+[21:08:44] ✅ MA 2.0s 2.9.3
+[21:08:44] ✅ UNH 1.9s 2.9.3
+[21:08:44] ✅ LLY 1.6s 2.9.3
+[21:08:45] ✅ WMT 1.8s 2.9.3
+[21:08:45] ✅ COST 1.8s 2.9.3
+[21:08:46] ✗ INTC 0.6s None
+[21:08:46] ✅ CRM 2.2s 2.9.3
+[21:08:46] ✅ NFLX 2.2s 2.9.3
+[21:08:46] ✅ PLTR 2.1s 2.9.3
+[21:08:47] ✅ MU 1.9s 2.9.3
+[21:08:47] ✅ BA 1.5s 2.9.3
+[21:08:47] ✅ QCOM 1.6s 2.9.3
+[21:08:48] ✅ TSM 1.9s 2.9.3
+[21:08:48] ✅ DIS 1.9s 2.9.3
+[21:08:49] ✅ AAOI 2.1s 2.9.3
+[21:09:03] ✅ JPM 21.8s 2.9.3
 
-→ Report written to aws/ops/reports/latest/ops_5022_amzn_timeout.md
+→ Report written to aws/ops/reports/latest/ops_5023_warm_sweep.md
+warm sweep failures: INTC
+❌ OPS-FAIL: aws/ops/pending/ops_5023_warm_sweep.py
