@@ -1,0 +1,76 @@
+## P0 evidence
+
+**Status:** success  
+**Duration:** 95.8s  
+**Finished:** 2026-08-28T12:14:00+00:00  
+
+## Data
+
+| esms_disabled | killed | purge | rules_disabled | s3_notifs_removed |
+|---|---|---|---|---|
+| 0 | True | DEFERRED | 1 | 0 |
+
+## Log
+- `12:12:24`   runtime=python3.12 mem=256 timeout=60 lastmod=2026-05-30T18:39:53.000+0000 size=1725
+- `12:12:24`   desc: 
+- `12:12:24`   env keys: ['REGISTRY_TABLE']
+- `12:12:24`   role: lambda-execution-role
+- `12:12:25`   reserved concurrency BEFORE: unreserved
+- `12:12:25`   code archived -> data/ops/archive/justhodl-signal-registry-ingest-20260828T121224Z.zip (1725 bytes)
+- `12:12:25`   zip files: 1 ['lambda_function.py']
+- `12:12:25`     lambda_function.py:5: - Direct S3 event format: {Records: [{s3: {bucket, object: {key, size, eTag}}}]}
+- `12:12:25`     lambda_function.py:36: obj = s3.get_object(Bucket=bucket, Key=key, Range='bytes=0-8191')
+- `12:12:25`     lambda_function.py:64: ddb.put_item(TableName=TABLE, Item=item)
+- `12:12:25`     lambda_function.py:67: def lambda_handler(event, context):
+- `12:12:25`     lambda_function.py:89: elif 'Records' in event:
+- `12:12:25`     lambda_function.py:91: for r in event['Records']:
+- `12:12:25`   key literals in code: ['data/', 'data/_archive/', 'data/_pit/', 'data/_registry/', 'data/_registry_test', 'data/archive/', 'data/snapshots/']
+- `12:12:25`   policy: AllowEventBridgeInvoke <- {"Service": "events.amazonaws.com"} src=arn:aws:events:us-east-1:857687956942:rule/justhodl-signal-registry-s3-events
+- `12:12:25`   event buses: ['default', 'justhodl-system-events']
+- `12:12:25`   RULE justhodl-signal-registry-s3-events@default state=ENABLED sched=None pattern={"source": ["aws.s3"], "detail-type": ["Object Created"], "detail": {"bucket": {"name": ["justhodl-dashboard-live"]}, "object": {"key": [{"wildcard": "data/*.json"}]}}}
+- `12:12:26`   S3 notif -> openbb-websocket-broadcast events=['s3:ObjectCreated:*'] {"Key": {"FilterRules": [{"Name": "Prefix", "Value": "data/report.json"}]}}
+- `12:12:26`   S3 notif -> openbb-websocket-broadcast events=['s3:ObjectCreated:*'] {"Key": {"FilterRules": [{"Name": "Prefix", "Value": "data/macro-nowcast.json"}]}}
+- `12:12:26`   S3 notif -> openbb-websocket-broadcast events=['s3:ObjectCreated:*'] {"Key": {"FilterRules": [{"Name": "Prefix", "Value": "data/compound-signals.json"}]}}
+- `12:12:26`   S3 notif -> openbb-websocket-broadcast events=['s3:ObjectCreated:*'] {"Key": {"FilterRules": [{"Name": "Prefix", "Value": "data/cross-asset-regime.json"}]}}
+- `12:12:26`   S3 notif -> openbb-websocket-broadcast events=['s3:ObjectCreated:*'] {"Key": {"FilterRules": [{"Name": "Prefix", "Value": "data/options-flow.json"}]}}
+- `12:12:26`   S3 notif -> openbb-websocket-broadcast events=['s3:ObjectCreated:*'] {"Key": {"FilterRules": [{"Name": "Prefix", "Value": "data/eurodollar-stress.json"}]}}
+- `12:12:26`   S3 notif -> openbb-websocket-broadcast events=['s3:ObjectCreated:*'] {"Key": {"FilterRules": [{"Name": "Prefix", "Value": "data/nobrainers.json"}]}}
+- `12:12:26`   S3 notif -> openbb-websocket-broadcast events=['s3:ObjectCreated:*'] {"Key": {"FilterRules": [{"Name": "Prefix", "Value": "data/narrative-density.json"}]}}
+- `12:12:26`   function url: none
+- `12:12:26`   invocations last 24h: 492706 (349.9/min avg); last 5 min: [('12:06', 47), ('12:07', 499), ('12:09', 71), ('12:10', 1004), ('12:11', 37)]
+- `12:12:26`   errors last 24h: [0]
+- `12:12:27`   log tail (60 events, last 30 min):
+- `12:12:27`     REPORT RequestId: 506ddf95-43b2-4b54-98db-6f0944470dcf	Duration: 61.98 ms	Billed Duration: 62 ms	Memory Size: 256 MB	Max Memory Used: 101 MB	 | XRAY TraceId: 1-6a917421-50510ffe6dbe234e6724dd1f	SegmentId: 54ca2fd3cb6b53e
+- `12:12:27`     [registry] ingested=1 skipped=0 errors=0
+- `12:12:27`     REPORT RequestId: 8b1ba345-805c-49f3-9b26-17965a758696	Duration: 35.52 ms	Billed Duration: 36 ms	Memory Size: 256 MB	Max Memory Used: 101 MB	 | XRAY TraceId: 1-6a917421-2a454a812fe3c04a08260557	SegmentId: 2cf79233bfa486f
+- `12:12:27`     [registry] ingested=1 skipped=0 errors=0
+- `12:12:27`     REPORT RequestId: f80603f3-c7f4-47ef-84b9-927d75475ff8	Duration: 34.45 ms	Billed Duration: 35 ms	Memory Size: 256 MB	Max Memory Used: 101 MB	 | XRAY TraceId: 1-6a917421-37f925b9016351bd1d27bd67	SegmentId: b79f7ae1543edb6
+- `12:12:27`     [registry] ingested=1 skipped=0 errors=0
+- `12:12:27`     REPORT RequestId: 17a3954f-6b5d-437c-ae2c-0b7c28197fa2	Duration: 45.17 ms	Billed Duration: 46 ms	Memory Size: 256 MB	Max Memory Used: 101 MB	 | XRAY TraceId: 1-6a917421-319f356a621041d16d896e9e	SegmentId: 3072fec8aefa5c8
+- `12:12:27`     [registry] ingested=1 skipped=0 errors=0
+- `12:12:27`     REPORT RequestId: 8d87bdb9-8ae9-44fe-8999-86ed09ccea7b	Duration: 50.53 ms	Billed Duration: 51 ms	Memory Size: 256 MB	Max Memory Used: 101 MB	 | XRAY TraceId: 1-6a917421-1fb7dc82551ce9c818ff6d84	SegmentId: fd56149a81d7910
+- `12:12:27`     [registry] ingested=1 skipped=0 errors=0
+- `12:12:27`     [registry] ingested=1 skipped=0 errors=0
+- `12:12:27`   keys seen in logs: []
+## P1 kill switch + trigger quarantine
+
+- `12:12:29`   reserved concurrency -> 0  KILLED
+- `12:12:29`   rule justhodl-signal-registry-s3-events@default -> DISABLED
+## P2 locate the objects it wrote
+
+- `12:12:29`   candidate prefixes: ['data/_archive/', 'data/_pit/', 'data/_registry/', 'data/archive/', 'data/snapshots/']
+- `12:12:29`   data/_archive/                                     sample=4 truncated=False recent48h=0 avg=37226B first=dex-scanner-data.json last=skew.json
+- `12:12:29`   data/_pit/                                         EMPTY
+- `12:12:29`   data/_registry/                                    EMPTY
+- `12:12:30`   data/archive/                                      sample=1000 truncated=True recent48h=2 avg=17332B first=ai-website-synthesis/20260601_16.json last=convergence-radar/20260602_0030.json
+- `12:12:30`   data/snapshots/                                    sample=1000 truncated=True recent48h=0 avg=1629456B first=data_13f-positions-2026-05-04.json last=portfolio_signal-portfolio-state-2026-06
+## P3 purge via lifecycle (only unambiguous junk prefixes)
+
+- `12:12:30`   purge prefixes: []
+- `12:12:30`   PURGE DEFERRED -- no prefix met all three conditions; the S3 Inventory (armed by 5024, first manifest <48h) will name it exactly; next op purges from that
+## P4 verify
+
+- `12:12:30`   ledger -> data/ops/signal-registry-ingest-quarantine.json
+- `12:14:00`   invocations/min after kill: [('12:09', 71), ('12:10', 1004), ('12:11', 37), ('12:12', 115)]
+- `12:14:00`   throttles/min after kill: [('12:09', 0), ('12:10', 0), ('12:11', 0), ('12:12', 0)]
+- `12:14:00` ops 5025 GREEN -- justhodl-signal-registry-ingest throttled to zero and quarantined; PutObject/GetObject/DDB/EventBridge burn stops now; storage purge deferred to inventory
