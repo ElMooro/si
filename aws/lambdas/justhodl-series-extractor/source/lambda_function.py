@@ -618,7 +618,13 @@ def lambda_handler(event, context):
     manifest = {
         "provider": provider,
         "updated_at": now,
-        "flows_total": len(all_keys),
+        # ops 5046: on a grouped provider the unit of work is a FLOW,
+        # not a file. ECB's 207 flows live in 574 sliced files, so
+        # len(all_keys) rendered "207/574" on the card -- reading like
+        # 36% when the lane was 100% complete. Same class of mislabel as
+        # counting dataflows and calling them series.
+        "flows_total": (state.get("flows_total_grouped")
+                        or len(all_keys)),
         "flows_parsed": len(state["flows_done"]),
         "series_extracted": state["series_count"] + len(buf),
         "n_pages": state["n_pages"],
