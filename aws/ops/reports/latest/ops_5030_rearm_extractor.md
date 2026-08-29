@@ -1,0 +1,37 @@
+## P0 baseline + unfreeze the function (schedule stays off)
+
+**Status:** failure  
+**Duration:** 20.6s  
+**Finished:** 2026-08-29T13:31:15+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `13:30:55`   BEFORE flows_done=79 n_pages=3466 series=1733000 updated_at=2026-08-09T02:40:20+00:00
+- `13:30:55`   deployed code LastModified=2026-08-29T13:30:54.000+0000 size=104537
+- `13:30:57`   reserved concurrency -> unreserved (unfrozen)
+- `13:30:58`   rule justhodl-series-extractor-5min still DISABLED (correct -- one supervised run first)
+## P1 one supervised Event invoke
+
+- `13:30:58`   invoke accepted status=202
+- `13:31:15`   state advanced after 17s: updated_at=2026-08-29T13:30:58+00:00
+## P2 PROOF of real forward progress
+
+- `13:31:15`   AFTER  flows_done=81 n_pages=3602 series=1801000 stopped_early=None pages_this_run=None
+- `13:31:15`   delta: flows +2   pages +136
+- `13:31:15`   page-3466.json               versions=20 *** REWRITE ***
+- `13:31:15`   page-3467.json               versions=20 *** REWRITE ***
+- `13:31:15`   page-3468.json               versions=20 *** REWRITE ***
+## P3 re-enable the schedule (only on proof)
+
+- `13:31:15`   NOT re-enabling -- the run did not prove progress; the engine stays frozen and this needs eyes
+## P4 projection
+
+- `13:31:15`   flows 81 / 8147 (0.99%)
+- `13:31:15`   NOTE: signal-registry-ingest stays quarantined during the backfill, so the ~482k Object Created events this will raise cost nothing; replication stays off, so none of it mirrors to us-west-2
+- `13:31:15`   -> data/ops/series-extractor-rearm.json
+- `13:31:15` ops 5030 RED: P2:rewrite
