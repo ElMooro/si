@@ -1,25 +1,28 @@
-executing-against: c69d46b10eecc9f4cd640f77a7697eb144f5d309
-── P0 baseline + unfreeze the function (schedule stays off) ──
-[13:30:55]   BEFORE flows_done=79 n_pages=3466 series=1733000 updated_at=2026-08-09T02:40:20+00:00
-[13:30:55]   deployed code LastModified=2026-08-29T13:30:54.000+0000 size=104537
-[13:30:57]   reserved concurrency -> unreserved (unfrozen)
-[13:30:58]   rule justhodl-series-extractor-5min still DISABLED (correct -- one supervised run first)
-── P1 one supervised Event invoke ──
-[13:30:58]   invoke accepted status=202
-[13:31:15]   state advanced after 17s: updated_at=2026-08-29T13:30:58+00:00
-── P2 PROOF of real forward progress ──
-[13:31:15]   AFTER  flows_done=81 n_pages=3602 series=1801000 stopped_early=None pages_this_run=None
-[13:31:15]   delta: flows +2   pages +136
-[13:31:15]   page-3466.json               versions=20 *** REWRITE ***
-[13:31:15]   page-3467.json               versions=20 *** REWRITE ***
-[13:31:15]   page-3468.json               versions=20 *** REWRITE ***
-── P3 re-enable the schedule (only on proof) ──
-[13:31:15]   NOT re-enabling -- the run did not prove progress; the engine stays frozen and this needs eyes
-── P4 projection ──
-[13:31:15]   flows 81 / 8147 (0.99%)
-[13:31:15]   NOTE: signal-registry-ingest stays quarantined during the backfill, so the ~482k Object Created events this will raise cost nothing; replication stays off, so none of it mirrors to us-west-2
-[13:31:15]   -> data/ops/series-extractor-rearm.json
-[13:31:15] ops 5030 RED: P2:rewrite
+executing-against: fed3f5cf501f5934fb007ea1164e428d0a3e6a75
+── P0 baseline ──
+[13:37:07]   BEFORE flows_done=129 n_pages=3961 series=1980500 updated_at=2026-08-29T13:34:58+00:00
+[13:37:07]   run window opens at 2026-08-29T13:37:07+00:00
+── P1 one Event invoke ──
+[13:37:07]   accepted status=202
+[13:37:24]   state advanced after 17s
+[13:37:24]   AFTER  flows_done=129 n_pages=3961 series=1980500
+[13:37:24]   delta: flows +0  pages +0  series +0
+── P2 dual proof -- new keys +1, existing keys +0 ──
+[13:37:25]   EXISTING page-3466 total=200  written_this_run=0  OK -- untouched
+[13:37:25]   EXISTING page-3500 total=200  written_this_run=0  OK -- untouched
+[13:37:25]   EXISTING page-3550 total=200  written_this_run=0  OK -- untouched
+[13:37:25]   EXISTING page-3600 total=200  written_this_run=0  OK -- untouched
+[13:37:25]   EXISTING page-0000 total=2  written_this_run=0  OK -- untouched
+[13:37:25]   EXISTING page-1980 total=2  written_this_run=0  OK -- untouched
+[13:37:25]   (page-3466 total was 11,870 versions at ops 5028; the ops5027 lifecycle purge is what is shrinking it)
+── P3 re-enable the schedule ──
+[13:37:25]   NOT enabling -- predicate failed
+── P4 projection + purge progress ──
+[13:37:25]   flows 129 / 8147 (1.58%)
+[13:37:25]   ~1 pages/run -> ~482049 runs -> ~1673.8 days at rate(5 minutes)
+[13:37:25]   in-flight AVIA_GOEXAC rows_done=0 attempts=4
+[13:37:25]   -> data/ops/series-extractor-rearm.json
+[13:37:25] ops 5031 RED: P2:noprogress
 
-→ Report written to aws/ops/reports/latest/ops_5030_rearm_extractor.md
-❌ OPS-FAIL: aws/ops/pending/ops_5030_rearm_extractor.py
+→ Report written to aws/ops/reports/latest/ops_5031_idempotency_proof.md
+❌ OPS-FAIL: aws/ops/pending/ops_5031_idempotency_proof.py
