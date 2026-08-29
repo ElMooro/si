@@ -1,45 +1,23 @@
-executing-against: c7a0de2418c90f7f9ae3df76b0f7e5d24c459558
-── P0 live registry, parsed with ElementTree ──
-[20:24:41]   /service/dataflow -> HTTP 200, 147052 bytes
-[20:24:41]   live dataflows: 214
-[20:24:41]   sample: ['AGR', 'AME', 'BKN', 'BLS', 'BNT', 'BOP', 'BSI', 'BSP', 'CAR', 'CBD', 'CBD2', 'CCP']
-[20:24:41]   our catalog: 214 flows, as_of 2026-08-18T19:34:38+00:00 (11 days old)
-[20:24:41]   ON THE PORTAL, NOT IN OUR CATALOG: 0  []
-[20:24:41]   in our catalog, no longer published: 0  []
-── P1 flows grouped on the real delimiter ──
-[20:24:42]   574 objects, 2.56 GB, 265 distinct FLOWS
-[20:24:42]   CSEC             slices=37     886.2 MB  covers 1980..2025
-[20:24:42]   IVF              slices=8      240.3 MB  covers 2000..2035
-[20:24:42]   YC               slices=8      190.7 MB  covers 2000..2035
-[20:24:42]   BSI              slices=11     139.0 MB  covers 1980..2035
-[20:24:42]   HICP             slices=12     138.6 MB  covers 1900..2035
-[20:24:42]   SAFE             slices=7      130.8 MB  covers 2005..2035
-[20:24:42]   ICP              slices=11      78.4 MB  covers 1980..2035
-[20:24:42]   SEC              slices=9       70.4 MB  covers 1980..2022
-[20:24:42]   CBD2             slices=7       62.9 MB  covers 2005..2035
-[20:24:42]   SPF              slices=9       56.1 MB  covers 1995..2035
-[20:24:42]   CATALOGUED FLOWS WITH NO FILE: 7  ['DD', 'ECB.DISS:JVC_PUB', 'ECB.DISS:LCI_PUB', 'ECB.DISS:MOBILE_KEY_4', 'ECB.DISS:MOBILE_KEY_5', 'ECB.DISS:RESR_PUB', 'ECB.DISS:SUR_PUB']
-[20:24:42]   files with no catalog entry: 58 ['BLS.manifest.json', 'BOP.manifest.json', 'BP6.manifest.json', 'BPS.manifest.json', 'BSI.manifest.json', 'BSP.manifest.json', 'CBD.manifest.json', 'CBD2.manifest.json', 'CSEC.manifest.json', 'DWA.manifest.json', 'E09.manifest.json', 'E11.manifest.json']
-[20:24:42]   flows whose earliest slice starts after 1999: 25
-[20:24:42]   latest-starting: [('SHSS', 2020), ('PMC', 2020), ('SUP', 2015), ('SHS', 2010), ('SESFOD', 2010), ('PPC', 2010), ('STP', 2005), ('SAFE', 2005), ('ICB', 2005), ('FVC', 2005), ('DWA', 2005), ('CBD2', 2005)]
-── P2 decisive test -- does the portal hold OLDER data? ──
-[20:26:22]   SHSS           probe err The read operation timed out
-[20:26:28]   PMC            ours start 2020 | pre-2020 query -> HTTP 200, 0 rows (none - we have it all)
-[20:26:33]   SUP            ours start 2015 | pre-2015 query -> HTTP 200, 0 rows (none - we have it all)
-[20:26:37]   SHS            ours start 2010 | pre-2010 query -> HTTP 200, 0 rows (none - we have it all)
-[20:26:38]   SESFOD         ours start 2010 | pre-2010 query -> HTTP 200, 0 rows (none - we have it all)
-[20:26:45]   PPC            ours start 2010 | pre-2010 query -> HTTP 200, 0 rows (none - we have it all)
-[20:26:46]   STP            ours start 2005 | pre-2005 query -> HTTP 200, 0 rows (none - we have it all)
-[20:28:27]   SAFE           probe err The read operation timed out
-[20:28:30]   ICB            ours start 2005 | pre-2005 query -> HTTP 200, 0 rows (none - we have it all)
-[20:28:32]   FVC            ours start 2005 | pre-2005 query -> HTTP 200, 0 rows (none - we have it all)
-[20:28:32]   flows with provable pre-coverage history: 0
-── P3 distinct series, deduped across slices ──
-[20:28:43]   CSEC           22447 distinct series across its slices (3610418 rows read)
-[20:28:54]   IVF            89400 distinct series across its slices (3416076 rows read)
-[20:29:05]   YC             2164 distinct series across its slices (3646251 rows read)
-[20:29:12]   BSI            30095 distinct series across its slices (2246394 rows read)
-[20:29:12]   -> data/ops/ecb-gap-truth.json
-[20:29:12] ops 5043 GREEN -- ECB gap measured on correct parsers
+executing-against: 43831e1e885c98f44097d82270a37be50e622b8e
+── P0 deploy + eurostat unharmed ──
+[20:35:30]   code fresh 2026-08-29T20:35:29  mem=10240 timeout=900
+[20:35:33]   eurostat: flows=8147 n_pages=1128408 series=564204000 updated_at=2026-08-29T20:35:18+00:00
+── P1 wire the ecb target ──
+[20:35:34]   existing targets: [('t1', '{"provider": "eurostat"}')]
+[20:35:34]   targets now: [('ecb', '{"provider": "ecb"}'), ('t1', '{"provider": "eurostat"}')]
+[20:35:34]   reserved concurrency stays 1, so ecb and eurostat serialise -- separate state docs and separate page prefixes mean they cannot collide
+── P2 first ECB run ──
+[20:35:34]   kick sent
+[20:36:05]   t+  0min flows=6/207 n_pages=48 series=24000 stopped_early=None
+── P3 read back a page -- is the history really merged ──
+[20:36:05]   pages present: ['data/providers/ecb/series/page-0000.json', 'data/providers/ecb/series/page-0001.json', 'data/providers/ecb/series/page-0002.json'] …
+[20:36:05]   page-0000.json: count=500 rows=500
+[20:36:05]     ecb:AGR:AGR.M.I10.N.AGRI.X00000.4F0.N.IX   2000-01..2026-07  n_obs=319 last=166.19 geo=I10
+[20:36:05]     ecb:AGR:AGR.M.I10.N.AGRI.XCEREA.4F0.N.IX   1991-01..2026-07  n_obs=427 last=122.05 geo=I10
+[20:36:05]     ecb:AGR:AGR.M.I10.N.AGRI.XDAIR0.4F0.N.IX   1991-01..2026-07  n_obs=427 last=166.72 geo=I10
+[20:36:05]     ecb:AGR:AGR.M.I10.N.AGRI.XMEAT0.4F0.N.IX   1991-01..2026-07  n_obs=427 last=187.64 geo=I10
+[20:36:05]   records spanning more than one year: 499/500 (cross-slice merge working)
+[20:36:05]   -> data/ops/ecb-series-lane.json
+[20:36:05] ops 5044 GREEN -- ECB series lane live and merging history
 
-→ Report written to aws/ops/reports/latest/ops_5043_ecb_gap_truth.md
+→ Report written to aws/ops/reports/latest/ops_5044_ecb_series_lane.md
