@@ -1,33 +1,29 @@
-executing-against: 0ddae585c498625efd89d7151ed74bf05e3d972c
-── P0 wait for the lane to finish ──
-[15:30:26]   denominator: 8147 warm eurostat flow files
-[15:30:28]   t+ 0min flows=1095/8147 (13.4%) pages=356988 series=178494000 stopped_early=True
-[15:34:29]   t+ 4min flows=1303/8147 (16.0%) pages=365243 series=182621500 stopped_early=True
-[15:38:31]   t+ 8min flows=1338/8147 (16.4%) pages=382379 series=191189500 stopped_early=True
-[15:42:32]   t+12min flows=1377/8147 (16.9%) pages=398684 series=199342000 stopped_early=True
-[15:46:34]   t+16min flows=1395/8147 (17.1%) pages=416546 series=208273000 stopped_early=True
-[15:50:35]   t+20min flows=1422/8147 (17.5%) pages=437364 series=218682000 stopped_early=True
-[15:54:37]   t+24min flows=1444/8147 (17.7%) pages=453980 series=226990000 stopped_early=True
-[15:58:39]   t+28min flows=1453/8147 (17.8%) pages=476156 series=238078000 stopped_early=True
-── P1 integrity -- counted objects vs the page counter ──
-[16:04:29]   objects present under data/providers/eurostat/series/ : 500120  (139.56 GB)
-[16:04:29]   state n_pages claims      : 476156
-[16:04:29]   gap: -23964  *** pages promised that do not exist ***
-[16:04:29]   avg page 273 KB -> ~1705972 series/GB
-── P2 exceptions ──
-[16:04:29]   write errors last run: 0
-[16:04:29]   missing_pages (holes): 0
-[16:04:29]   retired failed_flows : 0
-[16:04:29]   errors recorded      : 0
-── P3 stand down to steady state ──
-[16:04:29]   NOT standing down -- the lane has not finished; cadence stays at rate(2 minutes) so it keeps importing
-[16:04:30]   reserved concurrency = 1 (permanent race interlock)
-── P4 closeout ──
-[16:04:30]   manifest: flows_total=8147 flows_parsed=1456 series_extracted=240883000 n_pages=481766 page_size=500 updated_at=2026-08-29T15:45:46+00:00
-[16:04:30]   COVERAGE: 1453 / 8147 flows (17.83%)  vs 79 / 8147 (0.97%) before this arc
-[16:04:30]   series held: 238078000  (was 1,733,000)
-[16:04:30]   -> data/ops/eurostat-backfill-progress.json
-[16:04:30] ops 5036 RED: P1:gap
+executing-against: 86f07d1351380e64b51887dc0add65cf4494dbb4
+── P0 integrity on the BRACKET predicate ──
+[16:11:20]   n_pages BEFORE count: 518825  (16:11:20)
+[16:13:29]   objects counted     : 524349  (146.25 GB) over 127s
+[16:13:29]   n_pages AFTER count : 525018  (16:13:28)
+[16:13:29]   bracket 518825 <= 524349 <= 525018 : CLEAN -- every claimed page exists
+[16:13:29]   lane wrote 6193 pages during the count itself
+[16:13:29]   holes=0 failed_flows=0 write_errors_last_run=0
+── P1 duty cycle of the serialised worker ──
+[16:13:29]   last hour: invocations=3  errors=0  throttles=644
+[16:13:29]   execution time=2524s of 3600s  ->  DUTY CYCLE 70.1%
+[16:13:29]   (throttles are expected and harmless -- they are ticks arriving while the single worker is busy, which is the interlock doing its job)
+── P2 tighten the cadence ──
+[16:13:30]   cadence rate(2 minutes) -> rate(1 minute) (ENABLED), targets=1 ['justhodl-series-extractor']
+[16:13:30]   reserved concurrency = 1 (must stay 1 -- it is what makes a tighter cadence safe)
+── P3 measured re-projection ──
+[16:13:30]   measured: 147726 series and 295.5 pages per flow, 272 KB/page
+[16:13:30]   NOW  : 1777/8147 flows (21.81%)  525018 pages  262509000 series  146.2 GB
+[16:13:30]   FULL : ~1.20B series  ~2.4M pages  ~671 GB
+[16:13:30]   (my earlier 241M/126GB came from extrapolating the 79 alphabetical-head flows, which are small -- this projection is off 1,400+ real flows)
+[16:13:30]   storage at $0.023/GB-mo: ~$15/month once complete; one-time PUT at $0.005/1k: ~$12
+[16:17:22]   t+ 231s pages=539405 (+14387) series=269702500 (+7193500)
+[16:21:14]   t+ 463s pages=547166 (+22148) series=273583000 (+11074000)
+[16:21:14]   rate after the cadence change: 2870 pages/min
+[16:21:14]   ETA to the FULL Eurostat series universe: ~10.8 hours
+[16:21:14]   -> data/ops/eurostat-backfill-progress.json
+[16:21:14] ops 5037 GREEN -- data intact, lane tightened, real scale on the record
 
-→ Report written to aws/ops/reports/latest/ops_5036_land_and_standdown.md
-❌ OPS-FAIL: aws/ops/pending/ops_5036_land_and_standdown.py
+→ Report written to aws/ops/reports/latest/ops_5037_bracket_and_tighten.md
