@@ -1,0 +1,45 @@
+## P0 wait for the lane to finish
+
+**Status:** failure  
+**Duration:** 2046.4s  
+**Finished:** 2026-08-29T16:04:30+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `15:30:26`   denominator: 8147 warm eurostat flow files
+- `15:30:28`   t+ 0min flows=1095/8147 (13.4%) pages=356988 series=178494000 stopped_early=True
+- `15:34:29`   t+ 4min flows=1303/8147 (16.0%) pages=365243 series=182621500 stopped_early=True
+- `15:38:31`   t+ 8min flows=1338/8147 (16.4%) pages=382379 series=191189500 stopped_early=True
+- `15:42:32`   t+12min flows=1377/8147 (16.9%) pages=398684 series=199342000 stopped_early=True
+- `15:46:34`   t+16min flows=1395/8147 (17.1%) pages=416546 series=208273000 stopped_early=True
+- `15:50:35`   t+20min flows=1422/8147 (17.5%) pages=437364 series=218682000 stopped_early=True
+- `15:54:37`   t+24min flows=1444/8147 (17.7%) pages=453980 series=226990000 stopped_early=True
+- `15:58:39`   t+28min flows=1453/8147 (17.8%) pages=476156 series=238078000 stopped_early=True
+## P1 integrity -- counted objects vs the page counter
+
+- `16:04:29`   objects present under data/providers/eurostat/series/ : 500120  (139.56 GB)
+- `16:04:29`   state n_pages claims      : 476156
+- `16:04:29`   gap: -23964  *** pages promised that do not exist ***
+- `16:04:29`   avg page 273 KB -> ~1705972 series/GB
+## P2 exceptions
+
+- `16:04:29`   write errors last run: 0
+- `16:04:29`   missing_pages (holes): 0
+- `16:04:29`   retired failed_flows : 0
+- `16:04:29`   errors recorded      : 0
+## P3 stand down to steady state
+
+- `16:04:29`   NOT standing down -- the lane has not finished; cadence stays at rate(2 minutes) so it keeps importing
+- `16:04:30`   reserved concurrency = 1 (permanent race interlock)
+## P4 closeout
+
+- `16:04:30`   manifest: flows_total=8147 flows_parsed=1456 series_extracted=240883000 n_pages=481766 page_size=500 updated_at=2026-08-29T15:45:46+00:00
+- `16:04:30`   COVERAGE: 1453 / 8147 flows (17.83%)  vs 79 / 8147 (0.97%) before this arc
+- `16:04:30`   series held: 238078000  (was 1,733,000)
+- `16:04:30`   -> data/ops/eurostat-backfill-progress.json
+- `16:04:30` ops 5036 RED: P1:gap
