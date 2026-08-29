@@ -1,0 +1,47 @@
+## P0 live dataflow registry vs ours
+
+**Status:** success  
+**Duration:** 61.2s  
+**Finished:** 2026-08-29T20:19:16+00:00  
+
+## Data
+
+| added | live_dataflows | missing_files | our_dataflows | projected_series |
+|---|---|---|---|---|
+| 0 | None | 40 | None | 256177 |
+
+## Log
+- `20:18:16`   /service/dataflow -> 147052 bytes
+- `20:18:16`   live dataflows parsed: 0
+- `20:18:16`   sample: []
+- `20:18:16`   our catalog: n_dataflows=214 parsed=214 as_of=2026-08-18T19:34:38+00:00
+## P1 per-flow file inventory
+
+- `20:18:16`   data/warm/ecb/: 578 objects, 2.56 GB
+- `20:18:16`   distinct flow buckets under the prefix: 5
+- `20:18:16`   suspiciously small (<3KB, likely an error body or empty pull): 2 [('catalog-summary', 929), ('failures-classified', 646)]
+- `20:18:16`   largest: [('data', '2562 MB'), ('coverage', '0 MB'), ('catalog', '0 MB'), ('catalog-summary', '0 MB'), ('failures-classified', '0 MB')]
+- `20:18:16`   catalogued flows with NO file at all: 214 ['AGR', 'AME', 'BKN', 'BLS', 'BNT', 'BOP', 'BSI', 'BSP', 'CAR', 'CBD', 'CBD2', 'CCP', 'CES', 'CISS', 'CLIFS', 'CPP', 'CSEC', 'DCM', 'DD', 'DWA']
+- `20:18:16`   coverage.json: {"as_of": "2026-08-29T20:16:11+00:00", "note": "fast = full-history single object via weekly rewalk; deep = time-sliced parts + manifest; every prefix deny-Delete protected"}
+## P2 sample the real files -- series keys and history
+
+- `20:18:33`   data/IVF__2015_2019.dat.gz                        57.6 MB  rows=5421462  series=161630   2015-01..2019-Q4
+- `20:18:49`   data/IVF__2020_2022.dat.gz                        55.4 MB  rows=4848396  series=192520   2020-01..2022-Q4
+- `20:18:59`   data/CSEC__2022_2022.dat.gz                       50.0 MB  rows=2851208  series=237779   2022-01..2022-12
+- `20:19:07`   data/YC__2015_2019.dat.gz                         44.1 MB  rows=2753880  series=2165     2015-01-02..2019-12-30
+- `20:19:08`   data/ECB.DISS:JDF_ICPF_PENSION_FUNDS.dat.gz        0.1 MB  rows=6027     series=764      2008..2015
+- `20:19:08`   data/STP__2025_2035.dat.gz                         1.8 MB  rows=237038   series=865      2025-01-01..2026-W34
+- `20:19:09`   data/STBS__2025_2035.dat.gz                        0.5 MB  rows=49449    series=2901     2025-01..2026-Q2
+- `20:19:09`   data/PEM__2020_2022.dat.gz                         0.6 MB  rows=44559    series=22757    2020..2022-S2
+- `20:19:12`   data/BSI__2005_2009.dat.gz                        15.2 MB  rows=992157   series=24546    2005-01..2009-Q4
+- `20:19:13`   data/CSEC__2023-04_2023-04.dat.gz                 16.4 MB  rows=397194   series=397194   2..2023-04
+- `20:19:14`   data/STBS__2023_2024.dat.gz                        0.6 MB  rows=69609    series=3093     2023-01..2024-Q4
+- `20:19:16`   data/CSEC__2005_2009.dat.gz                       11.3 MB  rows=978986   series=17321    2005-01..2009-12
+- `20:19:16`   sampled 10635.1 MB -> 1063535 distinct series (100.0 series/MB), 18649965 observation rows
+## P3 size the extraction
+
+- `20:19:16`   ECB warm mirror is 2.56 GB -> ~0.3M distinct series at the observed density
+- `20:19:16`   pages at 500 series/page: ~512  (Eurostat needed ~1.1M pages for 558M series)
+- `20:19:16`   the extractor is generic -- EXTRACTORS = {'eurostat': extract_eurostat}. ECB needs an extract_ecb because csvdata is LONG format (one row per observation, series identified by the KEY column) whereas Eurostat TSV is wide (one row per series, columns are periods)
+- `20:19:16`   -> data/ops/ecb-completeness.json
+- `20:19:16` ops 5042 GREEN -- ECB completeness measured
