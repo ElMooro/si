@@ -29,8 +29,12 @@ BUDGET_S = 220  # stay well inside a 5-min cadence; resumable
 RESERVE_MS = 45000   # never enter another page write with less left than this
 MAX_PAGES_PER_RUN = 1200  # ~600k series/run; observed throughput is
                           # ~1540 pages/run, so this is a real cap
-STALL_ATTEMPTS = 40       # a flow that cannot advance is skipped, not
+STALL_ATTEMPTS = 3        # a flow that cannot advance is skipped, not
                           # retried forever (the Aug-09 failure mode)
+ERROR_ATTEMPTS = 3        # a flow that RAISES is retired after 3 tries;
+                          # AVIA_GOEXAC MemoryError blocked the other
+                          # 8,018 flows behind it because the except
+                          # branch recorded the error and retried forever
 
 
 def _out_of_time(t0, context):
@@ -63,8 +67,15 @@ def _flow_id_from_key(key):
 def extract_eurostat(gz_bytes, flow_id, engine_index):
     """Eurostat TSV: header 'dim1,dim2,...,dimN\\TIME_PERIOD<TAB>p1<TAB>p2...'
     one row per unique dimension-combination = one series."""
-    text = gzip.decompress(gz_bytes).decode("utf-8", errors="ignore")
-    f = io.StringIO(text)
+    # ops 5033: gzip.decompress() materialised the WHOLE file as bytes and
+    # then .decode() made a second full copy as str. A 42MB .gz of TSV
+    # expands to several hundred MB, so AVIA_GOEXAC raised MemoryError on
+    # every attempt and -- because the except branch retried forever --
+    # blocked the other 8,018 flows behind it. Stream it instead: peak
+    # memory is now one line, not the whole dataset.
+    f = io.TextIOWrapper(
+        gzip.GzipFile(fileobj=io.BytesIO(gz_bytes), mode="rb"),
+        encoding="utf-8", errors="ignore", newline="")
     hdr = f.readline().rstrip("\n")
     dims_part, sep, periods_part = hdr.partition("\\TIME_PERIOD")
     if not sep:
@@ -225,7 +236,8 @@ def lambda_handler(event, context):
             _checkpoint()
             continue
         progress[fid] = {"rows_done": skip_rows, "attempts": attempts,
-                         "rows_at_last_check": skip_rows}
+                         "rows_at_last_check": skip_rows,
+                         "error_count": int(prog.get("error_count", 0))}
         try:
             obj = s3.get_object(Bucket=BUCKET, Key=key)
             raw = obj["Body"].read()
@@ -264,8 +276,23 @@ def lambda_handler(event, context):
                 _checkpoint()
                 break
         except Exception as e:
-            state.setdefault("errors", {})[fid] = (f"{type(e).__name__}"
-                                                    f": {str(e)[:80]}")
+            ec = int((progress.get(fid) or {}).get("error_count", 0)) + 1
+            state.setdefault("errors", {})[fid] = (
+                f"{type(e).__name__}: {str(e)[:70]} (attempt {ec})")
+            if ec >= ERROR_ATTEMPTS:
+                # retire it: an identical input raising an identical
+                # exception will not behave differently on attempt 4.
+                # It stays listed in errors[] for a later targeted pass.
+                if fid not in state["flows_done"]:
+                    state["flows_done"].append(fid)
+                state.setdefault("failed_flows", [])
+                if fid not in state["failed_flows"]:
+                    state["failed_flows"].append(fid)
+                progress.pop(fid, None)
+            else:
+                pr = progress.get(fid) or {}
+                pr["error_count"] = ec
+                progress[fid] = pr
             _checkpoint()
     state["buffer"] = buf
     state["stopped_early"] = stopped_early
