@@ -27,7 +27,10 @@ s3 = boto3.client("s3", region_name="us-east-1")
 PAGE = 500
 BUDGET_S = 220  # stay well inside a 5-min cadence; resumable
 RESERVE_MS = 45000   # never enter another page write with less left than this
-MAX_PAGES_PER_RUN = 200  # a single run can never write more than 200 pages
+MAX_PAGES_PER_RUN = 1200  # ~600k series/run; observed throughput is
+                          # ~1540 pages/run, so this is a real cap
+STALL_ATTEMPTS = 40       # a flow that cannot advance is skipped, not
+                          # retried forever (the Aug-09 failure mode)
 
 
 def _out_of_time(t0, context):
@@ -203,7 +206,26 @@ def lambda_handler(event, context):
             stopped_early = True
             break
         fid = _flow_id_from_key(key)
-        skip_rows = int((progress.get(fid) or {}).get("rows_done", 0))
+        prog = progress.get(fid) or {}
+        skip_rows = int(prog.get("rows_done", 0))
+        attempts = int(prog.get("attempts", 0)) + 1
+        # ops 5030 circuit breaker: a flow is only allowed to be retried
+        # while it is ADVANCING. rows_done grows every run thanks to the
+        # resume offset, so this can only fire on a genuinely stuck flow
+        # -- never on a merely large one. Flow #80 blocked the entire
+        # 8,147-flow lane for 20 days because nothing enforced this.
+        if (attempts > STALL_ATTEMPTS
+                and skip_rows <= int(prog.get("rows_at_last_check", -1))):
+            state.setdefault("errors", {})[fid] = (
+                f"stalled after {attempts} attempts at row {skip_rows} "
+                f"-- skipped to keep the lane moving")
+            if fid not in state["flows_done"]:
+                state["flows_done"].append(fid)
+            progress.pop(fid, None)
+            _checkpoint()
+            continue
+        progress[fid] = {"rows_done": skip_rows, "attempts": attempts,
+                         "rows_at_last_check": skip_rows}
         try:
             obj = s3.get_object(Bucket=BUCKET, Key=key)
             raw = obj["Body"].read()
@@ -226,6 +248,8 @@ def lambda_handler(event, context):
                     if (_out_of_time(t0, context)
                             or pages_this_run >= MAX_PAGES_PER_RUN):
                         progress[fid] = {"rows_done": row_i,
+                                         "attempts": attempts,
+                                         "rows_at_last_check": skip_rows,
                                          "updated_at": now}
                         finished = False
                         stopped_early = True
