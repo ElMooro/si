@@ -138,7 +138,14 @@ REG = {
   "api": "ec.europa.eu/eurostat SDMX",
   "engines": ["justhodl-eurostat-oecd", "justhodl-sdmx-walker"],
   "prefixes": ["data/warm/eurostat/"],
-  "series_from": ("data/warm/eurostat/catalog.json.gz",
+  # ops 5040: the derived series store is COUNTED, never enumerated --
+  # the normal prefix scan appends one dict per object into keys[], and
+  # at 2M+ pages that document would be hundreds of MB and would time
+  # the scan out. count_prefixes contributes objects+bytes only.
+  "count_prefixes": ["data/providers/eurostat/series/"],
+  "series_from": ("data/providers/eurostat/series-manifest.json",
+                  "series_extracted"),
+  "_series_from_legacy": ("data/warm/eurostat/catalog.json.gz",
                   "dataflows")},
  "oecd": {"name": "OECD",
   "api": "sdmx.oecd.org/public/rest",
@@ -267,6 +274,15 @@ def _series_list(spec):
     try:
         d = _get_json(key)
         v = d.get(field)
+        # ops 5039: some providers count series in the hundreds of
+        # millions, where an id list is neither possible nor meaningful.
+        # Eurostat's extractor publishes an integer total in its
+        # series-manifest; accept that as a first-class answer instead of
+        # forcing every provider through len(ids).
+        if isinstance(v, bool):
+            v = None
+        if isinstance(v, (int, float)) and v >= 0:
+            return {"count": int(v), "ids": [], "counted": True}
         if isinstance(v, list):
             ids = [(x.get("id") if isinstance(x, dict) else x)
                    for x in v]
@@ -485,12 +501,48 @@ def lambda_handler(event, context):
                 seen.add(fk)
                 n_roll += 1
         keys.sort(key=lambda x: (x.get("bytes") or 0), reverse=True)
+        # ops 5040: counted prefixes. Same LIST walk, MaxKeys=1000, but
+        # only two accumulators come back -- so a 2M-object derived store
+        # lifts the provider's key and byte totals without inflating the
+        # per-key array that data.html actually downloads. n_live below
+        # is computed from keys[] alone, so coverage % stays a warm-mirror
+        # ratio and is unaffected by anything counted here.
+        derived_n, derived_bytes, derived_fresh = 0, 0, None
+        for cpref in (r.get("count_prefixes") or []):
+            tok, guard = None, 0
+            while guard < 6000:
+                guard += 1
+                kw = {"Bucket": BUCKET, "Prefix": cpref, "MaxKeys": 1000}
+                if tok:
+                    kw["ContinuationToken"] = tok
+                try:
+                    resp = s3.list_objects_v2(**kw)
+                except Exception:
+                    break
+                for o in resp.get("Contents", []):
+                    derived_n += 1
+                    derived_bytes += o["Size"]
+                    a = round((now - o["LastModified"])
+                              .total_seconds() / 3600, 1)
+                    if derived_fresh is None or a < derived_fresh:
+                        derived_fresh = a
+                if not resp.get("IsTruncated"):
+                    break
+                tok = resp.get("NextContinuationToken")
+        if derived_bytes:
+            tot += derived_bytes
         ser = _series_list(r.get("series_from"))
         doc = {"slug": slug, "name": r["name"], "api": r["api"],
                "engines": r["engines"],
                "as_of": hub["as_of"],
                "n_keys": len([k for k in keys
-                              if not k.get("missing")]),
+                              if not k.get("missing")]) + derived_n,
+               "derived": ({"prefixes": r.get("count_prefixes"),
+                            "objects": derived_n,
+                            "bytes": derived_bytes,
+                            "mb": round(derived_bytes / 1e6, 2),
+                            "freshest_h": derived_fresh}
+                           if derived_n else None),
                "total_bytes": tot,
                "total_mb": round(tot / 1e6, 2),
                "freshest_h": min([k["age_h"] for k in keys
@@ -575,6 +627,11 @@ def lambda_handler(event, context):
             except Exception:
                 denied = None
         note = None
+        if derived_n:   # ops 5040
+            note = ("derived series store: %s series across %s pages "
+                    "(%.1f GB) — counted, not mirrored" % (
+                        f"{(ser or {}).get('count') or 0:,}",
+                        f"{derived_n:,}", derived_bytes / 1e9))
         if slug == "fred":
             # ops 4569: the manifest counter double-counts re-walked
             # series (its imported_ids dedup list caps at 2000) — the
