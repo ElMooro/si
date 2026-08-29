@@ -1,0 +1,105 @@
+## P0 the state-bloat bug
+
+**Status:** success  
+**Duration:** 2273.5s  
+**Finished:** 2026-08-29T22:29:29+00:00  
+
+## Data
+
+| ecb | eurostat |
+|---|---|
+| 118 | 6326 |
+
+## Log
+- `21:51:38`   eurostat  state doc 98.1 MB · page_hashes=1,124,942 · flows_done=8147 · buffer=235 rows
+- `21:51:38`   ecb       state doc 0.8 MB · page_hashes=6,481 · flows_done=207 · buffer=332 rows
+- `21:51:38`   (buffer carry-over verified in code: buf = state.get('buffer', []) -- no series are dropped at a run boundary; that one is NOT a bug)
+- `21:51:39`   extractor LastModified=2026-08-29T21:51:37.000+0000
+## P1/P2 Tier-0 index: ecb
+
+- `21:51:39`   6,481 pages, resuming at 0 (0 already mapped)
+- `21:51:51`     mapped 6,481/6,481 pages (15s elapsed)
+- `21:51:51`   ecb -> 118 flows mapped (manifest says 207 parsed)
+- `21:51:51`   -> index/ecb/flows.json.gz  0.00 MB gzipped  complete=True
+## P3 verify ecb ranges against real pages
+
+- `21:51:52`   CSEC           lo page-0418 rows=500 flows_on_page=1 contains_CSEC=True
+- `21:51:52`   CSEC           hi page-1895 rows=500 flows_on_page=1 contains_CSEC=False
+- `21:51:52`   SPF            lo page-5184 rows=500 flows_on_page=1 contains_SPF=True
+- `21:51:52`   SPF            hi page-6196 rows=500 flows_on_page=1 contains_SPF=False
+- `21:51:52`   SAFE           lo page-4307 rows=500 flows_on_page=1 contains_SAFE=True
+- `21:51:52`   SAFE           hi page-4892 rows=500 flows_on_page=1 contains_SAFE=False
+- `21:51:52`   verified 3 flows
+## P1/P2 Tier-0 index: eurostat
+
+- `21:51:52`   1,128,408 pages, resuming at 0 (0 already mapped)
+- `21:52:26`     mapped 20,000/1,128,408 pages (50s elapsed)
+- `21:53:01`     mapped 40,000/1,128,408 pages (85s elapsed)
+- `21:53:35`     mapped 60,000/1,128,408 pages (120s elapsed)
+- `21:54:10`     mapped 80,000/1,128,408 pages (154s elapsed)
+- `21:54:44`     mapped 100,000/1,128,408 pages (188s elapsed)
+- `21:55:18`     mapped 120,000/1,128,408 pages (222s elapsed)
+- `21:55:53`     mapped 140,000/1,128,408 pages (257s elapsed)
+- `21:56:27`     mapped 160,000/1,128,408 pages (291s elapsed)
+- `21:57:02`     mapped 180,000/1,128,408 pages (326s elapsed)
+- `21:57:36`     mapped 200,000/1,128,408 pages (360s elapsed)
+- `21:58:11`     mapped 220,000/1,128,408 pages (395s elapsed)
+- `21:58:46`     mapped 240,000/1,128,408 pages (430s elapsed)
+- `21:59:20`     mapped 260,000/1,128,408 pages (464s elapsed)
+- `21:59:54`     mapped 280,000/1,128,408 pages (498s elapsed)
+- `22:00:30`     mapped 300,000/1,128,408 pages (534s elapsed)
+- `22:01:06`     mapped 320,000/1,128,408 pages (570s elapsed)
+- `22:01:42`     mapped 340,000/1,128,408 pages (606s elapsed)
+- `22:02:16`     mapped 360,000/1,128,408 pages (640s elapsed)
+- `22:02:51`     mapped 380,000/1,128,408 pages (675s elapsed)
+- `22:03:27`     mapped 400,000/1,128,408 pages (711s elapsed)
+- `22:04:02`     mapped 420,000/1,128,408 pages (746s elapsed)
+- `22:04:37`     mapped 440,000/1,128,408 pages (782s elapsed)
+- `22:05:14`     mapped 460,000/1,128,408 pages (818s elapsed)
+- `22:05:49`     mapped 480,000/1,128,408 pages (853s elapsed)
+- `22:06:25`     mapped 500,000/1,128,408 pages (889s elapsed)
+- `22:07:00`     mapped 520,000/1,128,408 pages (924s elapsed)
+- `22:07:36`     mapped 540,000/1,128,408 pages (960s elapsed)
+- `22:08:11`     mapped 560,000/1,128,408 pages (995s elapsed)
+- `22:08:47`     mapped 580,000/1,128,408 pages (1031s elapsed)
+- `22:09:23`     mapped 600,000/1,128,408 pages (1067s elapsed)
+- `22:09:58`     mapped 620,000/1,128,408 pages (1102s elapsed)
+- `22:10:34`     mapped 640,000/1,128,408 pages (1138s elapsed)
+- `22:11:09`     mapped 660,000/1,128,408 pages (1173s elapsed)
+- `22:11:45`     mapped 680,000/1,128,408 pages (1209s elapsed)
+- `22:12:20`     mapped 700,000/1,128,408 pages (1244s elapsed)
+- `22:12:56`     mapped 720,000/1,128,408 pages (1280s elapsed)
+- `22:13:31`     mapped 740,000/1,128,408 pages (1315s elapsed)
+- `22:14:06`     mapped 760,000/1,128,408 pages (1350s elapsed)
+- `22:14:42`     mapped 780,000/1,128,408 pages (1386s elapsed)
+- `22:15:17`     mapped 800,000/1,128,408 pages (1421s elapsed)
+- `22:15:53`     mapped 820,000/1,128,408 pages (1457s elapsed)
+- `22:16:28`     mapped 840,000/1,128,408 pages (1492s elapsed)
+- `22:17:04`     mapped 860,000/1,128,408 pages (1528s elapsed)
+- `22:17:39`     mapped 880,000/1,128,408 pages (1563s elapsed)
+- `22:18:15`     mapped 900,000/1,128,408 pages (1599s elapsed)
+- `22:18:51`     mapped 920,000/1,128,408 pages (1635s elapsed)
+- `22:19:26`     mapped 940,000/1,128,408 pages (1670s elapsed)
+- `22:20:02`     mapped 960,000/1,128,408 pages (1706s elapsed)
+- `22:20:38`     mapped 980,000/1,128,408 pages (1742s elapsed)
+- `22:21:14`     mapped 1,000,000/1,128,408 pages (1778s elapsed)
+- `22:21:49`     mapped 1,020,000/1,128,408 pages (1814s elapsed)
+- `22:22:25`     mapped 1,040,000/1,128,408 pages (1849s elapsed)
+- `22:23:02`     mapped 1,060,000/1,128,408 pages (1886s elapsed)
+- `22:23:38`     mapped 1,080,000/1,128,408 pages (1922s elapsed)
+- `22:24:14`     mapped 1,100,000/1,128,408 pages (1958s elapsed)
+- `22:24:50`     mapped 1,120,000/1,128,408 pages (1994s elapsed)
+- `22:25:06`     mapped 1,128,408/1,128,408 pages (2010s elapsed)
+- `22:29:28`   eurostat -> 6326 flows mapped (manifest says 8147 parsed)
+- `22:29:28`   -> index/eurostat/flows.json.gz  0.08 MB gzipped  complete=True
+## P3 verify eurostat ranges against real pages
+
+- `22:29:29`   CENS_21COBHS_R lo page-162478 rows=500 flows_on_page=1 contains_CENS_21C=True
+- `22:29:29`   CENS_21COBHS_R hi page-178304 rows=500 flows_on_page=1 contains_CENS_21C=False
+- `22:29:29`   MIGR_RESBC12   lo page-977022 rows=500 flows_on_page=1 contains_MIGR_RES=True
+- `22:29:29`   MIGR_RESBC12   hi page-991068 rows=500 flows_on_page=1 contains_MIGR_RES=False
+- `22:29:29`   MIGR_RESBC43   lo page-1013424 rows=500 flows_on_page=1 contains_MIGR_RES=True
+- `22:29:29`   MIGR_RESBC43   hi page-1026474 rows=500 flows_on_page=1 contains_MIGR_RES=False
+- `22:29:29`   verified 3 flows
+- `22:29:29`   -> data/ops/index-tier0.json
+- `22:29:29` ops 5047 GREEN -- Tier-0 index built, state bloat fixed

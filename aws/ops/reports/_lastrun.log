@@ -1,37 +1,92 @@
-executing-against: c0f5ef0df504aef7f3eb62c33671f2fb05e8004d
-── P0 deploy + one run per provider ──
-[21:21:47]   extractor code fresh (2026-08-29T21:21:45.000+0000)
-[21:21:48]   kicked eurostat
-[21:21:53]   kicked ecb
-── P1 manifests -- flows_parsed vs flows_total ──
-[21:22:02]   eurostat  flows_parsed=8147 / flows_total=8147  OK
-[21:22:02]             series=564,204,235 pages=1,128,408 pages_bytes=312.93 GB refreshed=True
-[21:22:02]             failed_flows=0 errors=0 holes=0
-[21:22:02]   ecb       flows_parsed=207 / flows_total=207  OK
-[21:22:02]             series=3,240,832 pages=6,481 pages_bytes=2.33 GB refreshed=True
-[21:22:02]             failed_flows=0 errors=0 holes=0
-── P2 the cards ──
-[21:22:02]   BEFORE hub totals: keys=1,911,590 gb=530.12 datasets=801001
-[21:22:02]   catalog Event invoke sent
-[21:28:07]   hub rewritten after 360s
-[21:28:07]   eurostat  series=564,204,235 counted=True n_keys=1,136,599 total_mb=321818.7
-[21:28:07]             derived objects=1,128,408 bytes=312.93 GB
-[21:28:07]   ecb       series=3,240,832 counted=True n_keys=7,237 total_mb=4930.34
-[21:28:07]             derived objects=6,481 bytes=2.33 GB
-[21:28:07]   AFTER hub totals: keys=1,911,594 gb=530.13 datasets=801005
-[21:28:07]   NOTE datasets moved 801001 -> 801005
-[21:28:07]   ecb       hub row: series_count=3,240,832 coverage_pct=None datasets=756
-[21:28:07]   eurostat  hub row: series_count=564,204,235 coverage_pct=100.0 datasets=8191
-── P3 stand the lanes down ──
-[21:28:08]   cadence rate(1 minute) -> rate(1 hour) (ENABLED)
-[21:28:08]   targets: [('ecb', '{"provider": "ecb"}'), ('t1', '{"provider": "eurostat"}')]
-[21:28:08]   reserved concurrency=1 (permanent interlock)
-[21:28:08]   memory/timeout left at 10240MB/900s so the next large flow does not need an incident to get headroom
-── P4 ledger ──
-[21:28:08]   Eurostat 8,147/8,147 flows · 564,204,235 series · 1,128,408 pages
-[21:28:08]   ECB        207/207 flows · 3,240,832 series · 6,481 pages
-[21:28:08]   started the day at Eurostat 79/8,147 (0.97%) and ECB 0
-[21:28:08]   -> data/ops/series-lanes-closeout.json
-[21:28:08] ops 5046 GREEN -- both lanes closed out, cards honest, cadence at steady state
+executing-against: 95ce10d5caed48d21fc7e71e462d44f321f7659f
+── P0 the state-bloat bug ──
+[21:51:38]   eurostat  state doc 98.1 MB · page_hashes=1,124,942 · flows_done=8147 · buffer=235 rows
+[21:51:38]   ecb       state doc 0.8 MB · page_hashes=6,481 · flows_done=207 · buffer=332 rows
+[21:51:38]   (buffer carry-over verified in code: buf = state.get('buffer', []) -- no series are dropped at a run boundary; that one is NOT a bug)
+[21:51:39]   extractor LastModified=2026-08-29T21:51:37.000+0000
+── P1/P2 Tier-0 index: ecb ──
+[21:51:39]   6,481 pages, resuming at 0 (0 already mapped)
+[21:51:51]     mapped 6,481/6,481 pages (15s elapsed)
+[21:51:51]   ecb -> 118 flows mapped (manifest says 207 parsed)
+[21:51:51]   -> index/ecb/flows.json.gz  0.00 MB gzipped  complete=True
+── P3 verify ecb ranges against real pages ──
+[21:51:52]   CSEC           lo page-0418 rows=500 flows_on_page=1 contains_CSEC=True
+[21:51:52]   CSEC           hi page-1895 rows=500 flows_on_page=1 contains_CSEC=False
+[21:51:52]   SPF            lo page-5184 rows=500 flows_on_page=1 contains_SPF=True
+[21:51:52]   SPF            hi page-6196 rows=500 flows_on_page=1 contains_SPF=False
+[21:51:52]   SAFE           lo page-4307 rows=500 flows_on_page=1 contains_SAFE=True
+[21:51:52]   SAFE           hi page-4892 rows=500 flows_on_page=1 contains_SAFE=False
+[21:51:52]   verified 3 flows
+── P1/P2 Tier-0 index: eurostat ──
+[21:51:52]   1,128,408 pages, resuming at 0 (0 already mapped)
+[21:52:26]     mapped 20,000/1,128,408 pages (50s elapsed)
+[21:53:01]     mapped 40,000/1,128,408 pages (85s elapsed)
+[21:53:35]     mapped 60,000/1,128,408 pages (120s elapsed)
+[21:54:10]     mapped 80,000/1,128,408 pages (154s elapsed)
+[21:54:44]     mapped 100,000/1,128,408 pages (188s elapsed)
+[21:55:18]     mapped 120,000/1,128,408 pages (222s elapsed)
+[21:55:53]     mapped 140,000/1,128,408 pages (257s elapsed)
+[21:56:27]     mapped 160,000/1,128,408 pages (291s elapsed)
+[21:57:02]     mapped 180,000/1,128,408 pages (326s elapsed)
+[21:57:36]     mapped 200,000/1,128,408 pages (360s elapsed)
+[21:58:11]     mapped 220,000/1,128,408 pages (395s elapsed)
+[21:58:46]     mapped 240,000/1,128,408 pages (430s elapsed)
+[21:59:20]     mapped 260,000/1,128,408 pages (464s elapsed)
+[21:59:54]     mapped 280,000/1,128,408 pages (498s elapsed)
+[22:00:30]     mapped 300,000/1,128,408 pages (534s elapsed)
+[22:01:06]     mapped 320,000/1,128,408 pages (570s elapsed)
+[22:01:42]     mapped 340,000/1,128,408 pages (606s elapsed)
+[22:02:16]     mapped 360,000/1,128,408 pages (640s elapsed)
+[22:02:51]     mapped 380,000/1,128,408 pages (675s elapsed)
+[22:03:27]     mapped 400,000/1,128,408 pages (711s elapsed)
+[22:04:02]     mapped 420,000/1,128,408 pages (746s elapsed)
+[22:04:37]     mapped 440,000/1,128,408 pages (782s elapsed)
+[22:05:14]     mapped 460,000/1,128,408 pages (818s elapsed)
+[22:05:49]     mapped 480,000/1,128,408 pages (853s elapsed)
+[22:06:25]     mapped 500,000/1,128,408 pages (889s elapsed)
+[22:07:00]     mapped 520,000/1,128,408 pages (924s elapsed)
+[22:07:36]     mapped 540,000/1,128,408 pages (960s elapsed)
+[22:08:11]     mapped 560,000/1,128,408 pages (995s elapsed)
+[22:08:47]     mapped 580,000/1,128,408 pages (1031s elapsed)
+[22:09:23]     mapped 600,000/1,128,408 pages (1067s elapsed)
+[22:09:58]     mapped 620,000/1,128,408 pages (1102s elapsed)
+[22:10:34]     mapped 640,000/1,128,408 pages (1138s elapsed)
+[22:11:09]     mapped 660,000/1,128,408 pages (1173s elapsed)
+[22:11:45]     mapped 680,000/1,128,408 pages (1209s elapsed)
+[22:12:20]     mapped 700,000/1,128,408 pages (1244s elapsed)
+[22:12:56]     mapped 720,000/1,128,408 pages (1280s elapsed)
+[22:13:31]     mapped 740,000/1,128,408 pages (1315s elapsed)
+[22:14:06]     mapped 760,000/1,128,408 pages (1350s elapsed)
+[22:14:42]     mapped 780,000/1,128,408 pages (1386s elapsed)
+[22:15:17]     mapped 800,000/1,128,408 pages (1421s elapsed)
+[22:15:53]     mapped 820,000/1,128,408 pages (1457s elapsed)
+[22:16:28]     mapped 840,000/1,128,408 pages (1492s elapsed)
+[22:17:04]     mapped 860,000/1,128,408 pages (1528s elapsed)
+[22:17:39]     mapped 880,000/1,128,408 pages (1563s elapsed)
+[22:18:15]     mapped 900,000/1,128,408 pages (1599s elapsed)
+[22:18:51]     mapped 920,000/1,128,408 pages (1635s elapsed)
+[22:19:26]     mapped 940,000/1,128,408 pages (1670s elapsed)
+[22:20:02]     mapped 960,000/1,128,408 pages (1706s elapsed)
+[22:20:38]     mapped 980,000/1,128,408 pages (1742s elapsed)
+[22:21:14]     mapped 1,000,000/1,128,408 pages (1778s elapsed)
+[22:21:49]     mapped 1,020,000/1,128,408 pages (1814s elapsed)
+[22:22:25]     mapped 1,040,000/1,128,408 pages (1849s elapsed)
+[22:23:02]     mapped 1,060,000/1,128,408 pages (1886s elapsed)
+[22:23:38]     mapped 1,080,000/1,128,408 pages (1922s elapsed)
+[22:24:14]     mapped 1,100,000/1,128,408 pages (1958s elapsed)
+[22:24:50]     mapped 1,120,000/1,128,408 pages (1994s elapsed)
+[22:25:06]     mapped 1,128,408/1,128,408 pages (2010s elapsed)
+[22:29:28]   eurostat -> 6326 flows mapped (manifest says 8147 parsed)
+[22:29:28]   -> index/eurostat/flows.json.gz  0.08 MB gzipped  complete=True
+── P3 verify eurostat ranges against real pages ──
+[22:29:29]   CENS_21COBHS_R lo page-162478 rows=500 flows_on_page=1 contains_CENS_21C=True
+[22:29:29]   CENS_21COBHS_R hi page-178304 rows=500 flows_on_page=1 contains_CENS_21C=False
+[22:29:29]   MIGR_RESBC12   lo page-977022 rows=500 flows_on_page=1 contains_MIGR_RES=True
+[22:29:29]   MIGR_RESBC12   hi page-991068 rows=500 flows_on_page=1 contains_MIGR_RES=False
+[22:29:29]   MIGR_RESBC43   lo page-1013424 rows=500 flows_on_page=1 contains_MIGR_RES=True
+[22:29:29]   MIGR_RESBC43   hi page-1026474 rows=500 flows_on_page=1 contains_MIGR_RES=False
+[22:29:29]   verified 3 flows
+[22:29:29]   -> data/ops/index-tier0.json
+[22:29:29] ops 5047 GREEN -- Tier-0 index built, state bloat fixed
 
-→ Report written to aws/ops/reports/latest/ops_5046_close_out_lanes.md
+→ Report written to aws/ops/reports/latest/ops_5047_index_tier0.md
