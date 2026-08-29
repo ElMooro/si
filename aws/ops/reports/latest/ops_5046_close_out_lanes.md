@@ -1,0 +1,50 @@
+## P0 deploy + one run per provider
+
+**Status:** success  
+**Duration:** 381.6s  
+**Finished:** 2026-08-29T21:28:08+00:00  
+
+## Data
+
+| ecb | eurostat | gb | keys |
+|---|---|---|---|
+| 3240832 | 564204235 | 530.13 | 1911594 |
+
+## Log
+- `21:21:47`   extractor code fresh (2026-08-29T21:21:45.000+0000)
+- `21:21:48`   kicked eurostat
+- `21:21:53`   kicked ecb
+## P1 manifests -- flows_parsed vs flows_total
+
+- `21:22:02`   eurostat  flows_parsed=8147 / flows_total=8147  OK
+- `21:22:02`             series=564,204,235 pages=1,128,408 pages_bytes=312.93 GB refreshed=True
+- `21:22:02`             failed_flows=0 errors=0 holes=0
+- `21:22:02`   ecb       flows_parsed=207 / flows_total=207  OK
+- `21:22:02`             series=3,240,832 pages=6,481 pages_bytes=2.33 GB refreshed=True
+- `21:22:02`             failed_flows=0 errors=0 holes=0
+## P2 the cards
+
+- `21:22:02`   BEFORE hub totals: keys=1,911,590 gb=530.12 datasets=801001
+- `21:22:02`   catalog Event invoke sent
+- `21:28:07`   hub rewritten after 360s
+- `21:28:07`   eurostat  series=564,204,235 counted=True n_keys=1,136,599 total_mb=321818.7
+- `21:28:07`             derived objects=1,128,408 bytes=312.93 GB
+- `21:28:07`   ecb       series=3,240,832 counted=True n_keys=7,237 total_mb=4930.34
+- `21:28:07`             derived objects=6,481 bytes=2.33 GB
+- `21:28:07`   AFTER hub totals: keys=1,911,594 gb=530.13 datasets=801005
+- `21:28:07`   NOTE datasets moved 801001 -> 801005
+- `21:28:07`   ecb       hub row: series_count=3,240,832 coverage_pct=None datasets=756
+- `21:28:07`   eurostat  hub row: series_count=564,204,235 coverage_pct=100.0 datasets=8191
+## P3 stand the lanes down
+
+- `21:28:08`   cadence rate(1 minute) -> rate(1 hour) (ENABLED)
+- `21:28:08`   targets: [('ecb', '{"provider": "ecb"}'), ('t1', '{"provider": "eurostat"}')]
+- `21:28:08`   reserved concurrency=1 (permanent interlock)
+- `21:28:08`   memory/timeout left at 10240MB/900s so the next large flow does not need an incident to get headroom
+## P4 ledger
+
+- `21:28:08`   Eurostat 8,147/8,147 flows · 564,204,235 series · 1,128,408 pages
+- `21:28:08`   ECB        207/207 flows · 3,240,832 series · 6,481 pages
+- `21:28:08`   started the day at Eurostat 79/8,147 (0.97%) and ECB 0
+- `21:28:08`   -> data/ops/series-lanes-closeout.json
+- `21:28:08` ops 5046 GREEN -- both lanes closed out, cards honest, cadence at steady state
