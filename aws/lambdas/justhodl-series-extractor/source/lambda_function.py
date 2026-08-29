@@ -192,6 +192,30 @@ def lambda_handler(event, context):
     pages_this_run = 0
     stopped_early = False
 
+    if not state.get("pages_seeded"):
+        # ops 5040: everything written before this counter existed still
+        # has to be counted, exactly once. Safe here because reserved
+        # concurrency is 1 -- no other run can be mutating state.
+        _sn, _sb, _tok = 0, 0, None
+        try:
+            while True:
+                _kw = {"Bucket": BUCKET, "MaxKeys": 1000,
+                       "Prefix": f"data/providers/{provider}/series/"}
+                if _tok:
+                    _kw["ContinuationToken"] = _tok
+                _r = s3.list_objects_v2(**_kw)
+                for _o in _r.get("Contents", []):
+                    _sn += 1
+                    _sb += _o["Size"]
+                if not _r.get("IsTruncated"):
+                    break
+                _tok = _r.get("NextContinuationToken")
+            state["pages_objects"] = _sn
+            state["pages_bytes"] = _sb
+            state["pages_seeded"] = now
+        except Exception as _e:
+            state["pages_seed_error"] = str(_e)[:90]
+
     pool = ThreadPoolExecutor(max_workers=WRITERS)
     pending = []
     write_errors = []
@@ -203,17 +227,25 @@ def lambda_handler(event, context):
         named in state['missing_pages'] for a targeted repair pass."""
         nonlocal pending
         still = []
-        for fut, pkey, digest, n in pending:
+        for fut, pkey, digest, n, nb in pending:
             if wait_all or fut.done():
                 try:
                     fut.result()
                     hashes[pkey] = digest
                     state["series_count"] += n
+                    # ops 5040: the writer already knows every page's
+                    # size. Carrying the totals forward here is O(1) and
+                    # exact; re-deriving them by LISTing 2M objects on a
+                    # daily catalog run is what timed the catalog out.
+                    state["pages_objects"] = int(
+                        state.get("pages_objects", 0)) + 1
+                    state["pages_bytes"] = int(
+                        state.get("pages_bytes", 0)) + nb
                 except Exception as e:
                     write_errors.append("%s: %s" % (pkey, str(e)[:70]))
                     state.setdefault("missing_pages", []).append(pkey)
             else:
-                still.append((fut, pkey, digest, n))
+                still.append((fut, pkey, digest, n, nb))
         pending = still
 
     def _put(pkey, body):
@@ -236,7 +268,7 @@ def lambda_handler(event, context):
             state["series_count"] += len(rows)
             return False
         pending.append((pool.submit(_put, pkey, body), pkey, digest,
-                        len(rows)))
+                        len(rows), len(body)))
         if len(pending) >= WRITERS * 3:
             _collect(False)
         return True
@@ -351,6 +383,8 @@ def lambda_handler(event, context):
         "flows_parsed": len(state["flows_done"]),
         "series_extracted": state["series_count"] + len(buf),
         "n_pages": state["n_pages"],
+        "pages": int(state.get("pages_objects") or 0),
+        "pages_bytes": int(state.get("pages_bytes") or 0),
         "page_size": PAGE,
         "note": ("series_extracted is a SEPARATE metric from the "
                 "provider's datasets/datasets_total headline — it "

@@ -142,7 +142,8 @@ REG = {
   # the normal prefix scan appends one dict per object into keys[], and
   # at 2M+ pages that document would be hundreds of MB and would time
   # the scan out. count_prefixes contributes objects+bytes only.
-  "count_prefixes": ["data/providers/eurostat/series/"],
+  "count_from": ("data/providers/eurostat/series-manifest.json",
+                 "pages", "pages_bytes"),
   "series_from": ("data/providers/eurostat/series-manifest.json",
                   "series_extracted"),
   "_series_from_legacy": ("data/warm/eurostat/catalog.json.gz",
@@ -508,27 +509,26 @@ def lambda_handler(event, context):
         # is computed from keys[] alone, so coverage % stays a warm-mirror
         # ratio and is unaffected by anything counted here.
         derived_n, derived_bytes, derived_fresh = 0, 0, None
-        for cpref in (r.get("count_prefixes") or []):
-            tok, guard = None, 0
-            while guard < 6000:
-                guard += 1
-                kw = {"Bucket": BUCKET, "Prefix": cpref, "MaxKeys": 1000}
-                if tok:
-                    kw["ContinuationToken"] = tok
-                try:
-                    resp = s3.list_objects_v2(**kw)
-                except Exception:
-                    break
-                for o in resp.get("Contents", []):
-                    derived_n += 1
-                    derived_bytes += o["Size"]
-                    a = round((now - o["LastModified"])
-                              .total_seconds() / 3600, 1)
-                    if derived_fresh is None or a < derived_fresh:
-                        derived_fresh = a
-                if not resp.get("IsTruncated"):
-                    break
-                tok = resp.get("NextContinuationToken")
+        _cf = r.get("count_from")
+        if _cf:
+            # ops 5040 v2: READ the totals, never re-derive them. The
+            # first cut walked the prefix at MaxKeys=1000; at ~1M objects
+            # that alone blew the 600s scan, and the store is still
+            # growing. The engine that writes the pages already knows how
+            # many there are and how big they are, so it publishes both
+            # and this is O(1) forever.
+            try:
+                _d = _get_json(_cf[0])
+                derived_n = int(_d.get(_cf[1]) or 0)
+                derived_bytes = int(_d.get(_cf[2]) or 0)
+                _u = _d.get("updated_at")
+                if _u:
+                    derived_fresh = round(
+                        (now - datetime.fromisoformat(
+                            str(_u).replace("Z", "+00:00")))
+                        .total_seconds() / 3600, 1)
+            except Exception as _e:
+                derived_n, derived_bytes = 0, 0
         if derived_bytes:
             tot += derived_bytes
         ser = _series_list(r.get("series_from"))
@@ -537,7 +537,7 @@ def lambda_handler(event, context):
                "as_of": hub["as_of"],
                "n_keys": len([k for k in keys
                               if not k.get("missing")]) + derived_n,
-               "derived": ({"prefixes": r.get("count_prefixes"),
+               "derived": ({"source": (r.get("count_from") or [None])[0],
                             "objects": derived_n,
                             "bytes": derived_bytes,
                             "mb": round(derived_bytes / 1e6, 2),
