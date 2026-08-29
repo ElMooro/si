@@ -1,44 +1,30 @@
-executing-against: 483829ec24a8c114a04c1bcd614183ff960ca0f4
-── P0 deploys + the extractor's seeded counters ──
-[19:39:28]   BEFORE hub totals: keys=776,661 gb=214.86 datasets=800961
-[19:39:29]   justhodl-provider-catalog code fresh (2026-08-29T19:39:26)
-[19:39:49]   justhodl-series-extractor code fresh (2026-08-29T19:39:45)
-[19:39:51]   waiting for the seed pass (flows=6344 pages=1094445)
-[19:40:23]   waiting for the seed pass (flows=6356 pages=1095253)
-[19:40:54]   waiting for the seed pass (flows=6374 pages=1095584)
-[19:41:26]   waiting for the seed pass (flows=6390 pages=1095996)
-[19:41:58]   waiting for the seed pass (flows=6411 pages=1096030)
-[19:42:30]   waiting for the seed pass (flows=6432 pages=1096094)
-[19:43:02]   waiting for the seed pass (flows=6449 pages=1096537)
-[19:43:33]   waiting for the seed pass (flows=6458 pages=1098070)
-[19:44:05]   waiting for the seed pass (flows=6465 pages=1099089)
-[19:44:37]   waiting for the seed pass (flows=6472 pages=1100435)
-[19:45:09]   waiting for the seed pass (flows=6482 pages=1102764)
-[19:45:41]   waiting for the seed pass (flows=6482 pages=1102764)
-[19:46:12]   waiting for the seed pass (flows=6482 pages=1102764)
-[19:46:44]   waiting for the seed pass (flows=6482 pages=1102764)
-[19:47:16]   waiting for the seed pass (flows=6482 pages=1102764)
-[19:47:48]   waiting for the seed pass (flows=6482 pages=1102764)
-[19:48:18]   counters not seeded yet -- the card will show 0 derived
-[19:48:18]   manifest: series_extracted=551,382,113 n_pages=1102764 pages=0 pages_bytes=0.0 GB flows_parsed=6482
-── P1 run the catalog (timed) ──
-[19:57:12]   invoke err Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-pro (534s)
-── P2 the card, each doc read on its own schema ──
-[19:57:12]   per-provider doc: series.count=551,382,113 counted=True ids=0
-[19:57:12]   n_keys=8,191 total_mb=8892.72
-[19:57:12]   derived=null
-[19:57:12]   note=None
-[19:57:12]   hub row: series_count=551,382,113 n_keys=8,191 datasets=8191 coverage_pct=100.0
-── P3 regression ──
-[19:57:12]   coverage_pct=None (warm-mirror ratio, must be unmoved)
-[19:57:12]   data/providers/eurostat.json = 0.02 MB, per-key rows=100
-[19:57:12]   other providers: [('statcan', None), ('fred', 277453), ('oecd', 1546), ('bis', 29)]
-── P4 hub totals ──
-[19:57:12]   keys 776,661 -> 776,663
-[19:57:12]   gb   214.86 -> 214.86
-[19:57:12]   datasets 800961 -> 800963 (must NOT absorb derived series)
-[19:57:13]   -> data/ops/eurostat-card-fix.json
-[19:57:13] ops 5040 RED: P0:seed; P1:invoke; P2:derived
+executing-against: a5595df6c9b8d8d04af1151ca7b1affe37aa8d57
+── P0 state + manifest, printed unconditionally ──
+[20:02:14]   flows_done=6977 n_pages=1116368 series_count=558184000 updated_at=2026-08-29T19:59:03+00:00
+[20:02:14]   pages_seeded    = '2026-08-29T19:45:01+00:00'
+[20:02:14]   pages_seed_error= None
+[20:02:14]   pages_objects   = 1116368
+[20:02:14]   pages_bytes     = 309714685756
+[20:02:14]   holes=0 failed_flows=0 write_errors_last_run=0
+[20:02:15]   BEFORE hub totals: keys=776,663 gb=214.86 datasets=800963
+── P1 wait for the seed ──
+[20:02:17]   SEEDED: pages=1,116,338 pages_bytes=309.7 GB (flows_parsed=6843, series=558,169,101)
+── P2 run the catalog asynchronously ──
+[20:02:17]   Event invoke accepted status=202
+[20:08:20]   hub rewritten after 360s (as_of 2026-08-29T19:52:46+00:00 -> 2026-08-29T20:02:17+00:00)
+── P3 the card ──
+[20:08:20]   series.count=558,169,101 counted=True
+[20:08:20]   n_keys=1,124,529 total_mb=318599.72
+[20:08:20]   derived={"source": "data/providers/eurostat/series-manifest.json", "objects": 1116338, "bytes": 309707005982, "mb": 309707.01, "freshest_h": 0.3}
+[20:08:20]   note=None
+[20:08:21]   hub totals keys 776,663 -> 1,893,001
+[20:08:21]   hub totals gb   214.86 -> 524.57
+[20:08:21]   hub datasets    800963 -> 800963 (must NOT absorb series)
+[20:08:21]   hub eurostat row: series_count=558,169,101 n_keys=1,124,529 coverage_pct=100.0 datasets=8191
+── P4 regression ──
+[20:08:21]   data/providers/eurostat.json = 0.02 MB, per-key rows=100
+[20:08:21]   other providers: [('statcan', None), ('fred', 277453), ('oecd', 1546), ('bis', 29)]
+[20:08:21]   -> data/ops/eurostat-card-fix.json
+[20:08:21] ops 5041 GREEN -- card truthful and totals complete
 
-→ Report written to aws/ops/reports/latest/ops_5040_counters_not_scans.md
-❌ OPS-FAIL: aws/ops/pending/ops_5040_counters_not_scans.py
+→ Report written to aws/ops/reports/latest/ops_5041_seed_and_card.md
