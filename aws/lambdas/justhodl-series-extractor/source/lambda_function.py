@@ -13,6 +13,7 @@ GUARDRAILS (both explicit, both enforced):
 """
 import csv
 import gzip
+import hashlib
 import io
 import json
 import os
@@ -25,6 +26,26 @@ BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 s3 = boto3.client("s3", region_name="us-east-1")
 PAGE = 500
 BUDGET_S = 220  # stay well inside a 5-min cadence; resumable
+RESERVE_MS = 45000   # never enter another page write with less left than this
+MAX_PAGES_PER_RUN = 200  # a single run can never write more than 200 pages
+
+
+def _out_of_time(t0, context):
+    """True when the run must checkpoint NOW.
+
+    ops 5028: the original only tested the budget BETWEEN flows. One
+    Eurostat flow larger than the whole budget therefore ran until the
+    280s Lambda timeout killed the process -- so the state put_object at
+    the end NEVER executed, flows_done never advanced past 79, and every
+    5 minutes the same flow was re-extracted and the same ~1540 pages
+    rewritten into a versioned bucket. 444k dead versions/day, 112GB/day,
+    from 2026-08-09T02:40 until ops 5027 stopped it."""
+    if time.time() - t0 > BUDGET_S:
+        return True
+    try:
+        return context.get_remaining_time_in_millis() < RESERVE_MS
+    except Exception:
+        return False
 
 
 def _flow_id_from_key(key):
@@ -143,38 +164,88 @@ def lambda_handler(event, context):
             if _flow_id_from_key(k) not in state["flows_done"]]
     buf = state.get("buffer", [])
     processed_flows = []
+    progress = state.setdefault("flow_progress", {})
+    hashes = state.setdefault("page_hashes", {})
+    pages_this_run = 0
+    stopped_early = False
+
+    def _flush(rows):
+        """Write one page idempotently. A byte-identical rewrite is
+        SKIPPED -- on a versioned bucket an identical put still creates a
+        new noncurrent version, which is what made this engine cost
+        $2.49/day in PUT requests and 112GB/day in dead storage."""
+        pkey = (f"data/providers/{provider}/series/"
+                f"page-{state['n_pages']:04d}.json")
+        body = json.dumps({"page": state["n_pages"], "count": len(rows),
+                           "rows": rows}, default=str).encode()
+        digest = hashlib.sha256(body).hexdigest()[:32]
+        if hashes.get(pkey) == digest:
+            state["n_pages"] += 1
+            state["series_count"] += len(rows)
+            return False
+        s3.put_object(Bucket=BUCKET, Key=pkey, Body=body,
+                      ContentType="application/json",
+                      CacheControl="no-cache")
+        hashes[pkey] = digest
+        state["n_pages"] += 1
+        state["series_count"] += len(rows)
+        return True
+
+    def _checkpoint():
+        state["buffer"] = buf
+        state["updated_at"] = now
+        s3.put_object(Bucket=BUCKET, Key=state_key,
+                      Body=json.dumps(state, default=str).encode(),
+                      ContentType="application/json")
+
     for key in todo:
-        if time.time() - t0 > BUDGET_S:
+        if _out_of_time(t0, context) or pages_this_run >= MAX_PAGES_PER_RUN:
+            stopped_early = True
             break
         fid = _flow_id_from_key(key)
+        skip_rows = int((progress.get(fid) or {}).get("rows_done", 0))
         try:
             obj = s3.get_object(Bucket=BUCKET, Key=key)
             raw = obj["Body"].read()
             n_added = 0
+            row_i = 0
+            finished = True
             for rec in extractor(raw, fid, engine_index):
+                row_i += 1
+                if row_i <= skip_rows:      # resume a part-done flow
+                    continue
                 rec["raw_key"] = key
                 buf.append(rec)
                 n_added += 1
                 if len(buf) >= PAGE:
-                    s3.put_object(
-                        Bucket=BUCKET,
-                        Key=(f"data/providers/{provider}/series/"
-                             f"page-{state['n_pages']:04d}.json"),
-                        Body=json.dumps({"page": state["n_pages"],
-                                        "count": len(buf),
-                                        "rows": buf},
-                                       default=str).encode(),
-                        ContentType="application/json",
-                        CacheControl="no-cache")
-                    state["n_pages"] += 1
-                    state["series_count"] += len(buf)
+                    if _flush(buf):
+                        pages_this_run += 1
                     buf = []
-            state["flows_done"].append(fid)
-            processed_flows.append((fid, n_added))
+                    # budget is now checked INSIDE the flow: a flow bigger
+                    # than one invocation is resumed, never restarted
+                    if (_out_of_time(t0, context)
+                            or pages_this_run >= MAX_PAGES_PER_RUN):
+                        progress[fid] = {"rows_done": row_i,
+                                         "updated_at": now}
+                        finished = False
+                        stopped_early = True
+                        break
+            if finished:
+                if fid not in state["flows_done"]:
+                    state["flows_done"].append(fid)
+                progress.pop(fid, None)
+                processed_flows.append((fid, n_added))
+                _checkpoint()      # progress survives any later timeout
+            else:
+                _checkpoint()
+                break
         except Exception as e:
             state.setdefault("errors", {})[fid] = (f"{type(e).__name__}"
                                                     f": {str(e)[:80]}")
+            _checkpoint()
     state["buffer"] = buf
+    state["stopped_early"] = stopped_early
+    state["pages_this_run"] = pages_this_run
     state["updated_at"] = now
     s3.put_object(Bucket=BUCKET, Key=state_key,
                   Body=json.dumps(state, default=str).encode(),
