@@ -15,6 +15,7 @@ import csv
 import gzip
 import hashlib
 import io
+import re
 import json
 import os
 import time
@@ -38,6 +39,7 @@ BUDGET_S = 840  # 900s timeout, 60s reserved to drain + checkpoint
 RESERVE_MS = 60000   # never enter another page write with less left than this
 MAX_PAGES_PER_RUN = 200000  # effectively uncapped: the run is now
                           # bounded by TIME, not by an arbitrary count
+MAX_ECB_SERIES = 4000000  # dims cache cap; keys still counted
 STALL_ATTEMPTS = 3        # a flow that cannot advance is skipped, not
                           # retried forever (the Aug-09 failure mode)
 ERROR_ATTEMPTS = 3        # a flow that RAISES is retired after 3 tries;
@@ -136,7 +138,167 @@ def extract_eurostat(gz_bytes, flow_id, engine_index):
         }
 
 
+def _ecb_flow_of(key):
+    """data/warm/ecb/data/CSEC__2005_2009.dat.gz -> ("CSEC", 2005)"""
+    base = key.rsplit("/", 1)[-1]
+    if base.endswith(".manifest.json") or base.endswith(".json"):
+        return None, 0
+    name = base
+    for suf in (".dat.gz", ".csv.gz", ".dat", ".csv", ".gz"):
+        if name.endswith(suf):
+            name = name[: -len(suf)]
+            break
+    fid, _, span = name.partition("__")
+    fid = fid.replace("ECB.", "").split(":")[-1]
+    yrs = re.findall(r"\d{4}", span)
+    return fid, (int(yrs[0]) if yrs else 0)
+
+
+def group_ecb(all_keys):
+    """ECB is TIME-SLICED: one flow is spread over many files
+    ({FLOW}__{start}_{end}.dat.gz), so a single series appears in every
+    slice it spans. Extracting per FILE would emit the same series once
+    per slice with a truncated date range. Group by flow, ordered
+    chronologically, so first_obs/last_obs describe the real history."""
+    groups = {}
+    for k in all_keys:
+        fid, y = _ecb_flow_of(k)
+        if not fid:
+            continue
+        groups.setdefault(fid, []).append((y, k))
+    return {f: [k for _, k in sorted(v)] for f, v in groups.items()}
+
+
+GROUPERS = {"ecb": group_ecb}
+
+_ECB_SKIP = {"TIME_PERIOD", "OBS_VALUE", "OBS_STATUS", "OBS_CONF",
+             "OBS_PRE_BREAK", "OBS_COM", "KEY", "SERIES_KEY", "VALUE",
+             "TIME_FORMAT", "COLLECTION", "DECIMALS", "TITLE",
+             "TITLE_COMPL", "UNIT_MULT", "COMPILING_ORG", "DISS_ORG"}
+
+
+def _split_csv(line):
+    # fast path: ECB csvdata is unquoted except for TITLE-style fields
+    if '"' not in line:
+        return line.split(",")
+    return next(csv.reader([line]))
+
+
+def extract_ecb_flow(keys, flow_id, engine_index, get_bytes,
+                     out_of_time, start_slice, stat):
+    """ECB csvdata is LONG format: one row per OBSERVATION, the series
+    identified by the KEY column. Eurostat TSV is WIDE (one row per
+    series, columns are periods) -- so this cannot reuse the same parser.
+
+    Accumulates per-series first/last observation, last value and an
+    observation count across every slice of the flow, then yields one
+    record per distinct series. If the budget expires part-way the
+    accumulator is flushed as-is with the span it covers and slice_idx
+    is recorded, so the next invocation resumes at the next slice
+    instead of restarting the flow (the Aug-09 failure mode)."""
+    acc = {}
+    dims_of = {}
+    ncols = None
+    for si in range(start_slice, len(keys)):
+        # ops 5044: the budget must be tested BETWEEN slices too. The
+        # in-slice check only fires every 65k rows, so a flow made of
+        # many small slices (CSEC has 37) could otherwise run right past
+        # the budget and die at the Lambda timeout -- the Aug-09 failure
+        # mode again. si > start_slice guarantees at least one slice of
+        # forward progress per invocation, so this can never livelock.
+        if si > start_slice and out_of_time():
+            stat["partial"] = True
+            stat["slice_idx"] = si
+            break
+        stat["slice_idx"] = si
+        try:
+            raw = get_bytes(keys[si])
+        except Exception:
+            continue
+        fh = io.TextIOWrapper(
+            gzip.GzipFile(fileobj=io.BytesIO(raw), mode="rb"),
+            encoding="utf-8", errors="ignore", newline="")
+        head = fh.readline().rstrip("\n")
+        if not head:
+            continue
+        hdr = [c.strip().upper() for c in _split_csv(head)]
+        ncols = len(hdr)
+        ki = hdr.index("KEY") if "KEY" in hdr else (
+            hdr.index("SERIES_KEY") if "SERIES_KEY" in hdr else 0)
+        ti = next((i for i, c in enumerate(hdr)
+                   if "TIME_PERIOD" in c), None)
+        vi = next((i for i, c in enumerate(hdr)
+                   if c in ("OBS_VALUE", "VALUE")), None)
+        if ti is None or vi is None:
+            continue
+        dim_ix = [(i, c) for i, c in enumerate(hdr)
+                  if c not in _ECB_SKIP]
+        n = 0
+        for line in fh:
+            n += 1
+            if not line.strip():
+                continue
+            p = _split_csv(line.rstrip("\n"))
+            if len(p) <= max(ki, ti, vi):
+                continue
+            sk = p[ki]
+            tp = p[ti]
+            if not sk or not tp:
+                continue
+            a = acc.get(sk)
+            if a is None:
+                acc[sk] = a = [tp, tp, None, 0]
+                if len(acc) <= MAX_ECB_SERIES:
+                    dims_of[sk] = {c: p[i] for i, c in dim_ix
+                                   if i < len(p) and p[i]}
+            if tp < a[0]:
+                a[0] = tp
+            if tp >= a[1]:
+                a[1] = tp
+                v = p[vi].strip()
+                if v:
+                    try:
+                        a[2] = float(v)
+                    except ValueError:
+                        pass
+            a[3] += 1
+            if (n & 0xFFFF) == 0 and out_of_time():
+                stat["partial"] = True
+                break
+        if stat.get("partial"):
+            stat["slice_idx"] = si + 1
+            break
+    else:
+        stat["done"] = True
+        stat["slice_idx"] = len(keys)
+
+    src = ("https://data.ecb.europa.eu/data/datasets/" + flow_id)
+    eng = engine_index.get("ecb:" + flow_id, [])
+    for sk, a in acc.items():
+        d = dims_of.get(sk) or {}
+        parts = sk.split(".")
+        yield {
+            "id": "ecb:" + flow_id + ":" + sk,
+            "flow": flow_id,
+            "name": flow_id + " · " + " · ".join(parts[:3]) +
+            (" …" if len(parts) > 3 else ""),
+            "dims": d,
+            "unit": d.get("UNIT") or d.get("UNIT_MEASURE"),
+            "freq": d.get("FREQ") or (parts[0] if parts else None),
+            "geo": d.get("REF_AREA") or d.get("COUNTRY"),
+            "first_obs": a[0],
+            "last_obs": a[1],
+            "last_value": a[2],
+            "n_obs": a[3],
+            "status": "LIVE",
+            "source_url": src,
+            "raw_key": None,
+            "engines": eng,
+        }
+
+
 EXTRACTORS = {"eurostat": extract_eurostat}
+GROUP_EXTRACTORS = {"ecb": extract_ecb_flow}
 
 
 def _load_engine_index():
@@ -156,7 +318,8 @@ def _load_engine_index():
 def lambda_handler(event, context):
     t0 = time.time()
     provider = (event or {}).get("provider", "eurostat")
-    extractor = EXTRACTORS.get(provider)
+    extractor = EXTRACTORS.get(provider) or GROUP_EXTRACTORS.get(
+        provider)
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     if not extractor:
         return {"statusCode": 400,
@@ -215,6 +378,9 @@ def lambda_handler(event, context):
             state["pages_seeded"] = now
         except Exception as _e:
             state["pages_seed_error"] = str(_e)[:90]
+
+    def _get_bytes(k):
+        return s3.get_object(Bucket=BUCKET, Key=k)["Body"].read()
 
     pool = ThreadPoolExecutor(max_workers=WRITERS)
     pending = []
@@ -282,6 +448,79 @@ def lambda_handler(event, context):
         s3.put_object(Bucket=BUCKET, Key=state_key,
                       Body=json.dumps(state, default=str).encode(),
                       ContentType="application/json")
+
+    grouper = GROUPERS.get(provider)
+    if grouper:
+        # ---- grouped path (ECB): the unit of work is a FLOW, not a file
+        groups = grouper(all_keys)
+        state["flows_total_grouped"] = len(groups)
+        units = [(f, ks) for f, ks in sorted(groups.items())
+                 if f not in set(state["flows_done"])]
+        for fid, ks in units:
+            if _out_of_time(t0, context) or \
+                    pages_this_run >= MAX_PAGES_PER_RUN:
+                stopped_early = True
+                break
+            pr = progress.get(fid) or {}
+            attempts = int(pr.get("attempts", 0)) + 1
+            si0 = int(pr.get("slice_idx", 0))
+            if (attempts > STALL_ATTEMPTS
+                    and si0 <= int(pr.get("slice_at_last_check", -1))):
+                state.setdefault("errors", {})[fid] = (
+                    f"stalled at slice {si0}/{len(ks)} after "
+                    f"{attempts} attempts -- skipped")
+                if fid not in state["flows_done"]:
+                    state["flows_done"].append(fid)
+                state.setdefault("failed_flows", []).append(fid)
+                progress.pop(fid, None)
+                _checkpoint()
+                continue
+            progress[fid] = {"slice_idx": si0, "attempts": attempts,
+                             "slice_at_last_check": si0,
+                             "slices": len(ks),
+                             "error_count": int(pr.get("error_count", 0))}
+            stat = {"slice_idx": si0, "done": False}
+            try:
+                for rec in GROUP_EXTRACTORS[provider](
+                        ks, fid, engine_index, _get_bytes,
+                        lambda: _out_of_time(t0, context), si0, stat):
+                    rec["raw_key"] = ks[0] if ks else None
+                    buf.append(rec)
+                    if len(buf) >= PAGE:
+                        if _flush(buf):
+                            pages_this_run += 1
+                        buf = []
+                if stat.get("done"):
+                    if fid not in state["flows_done"]:
+                        state["flows_done"].append(fid)
+                    progress.pop(fid, None)
+                    processed_flows.append((fid, len(ks)))
+                else:
+                    stopped_early = True
+                    progress[fid] = {"slice_idx": stat["slice_idx"],
+                                     "attempts": attempts,
+                                     "slice_at_last_check": si0,
+                                     "slices": len(ks),
+                                     "updated_at": now}
+                _checkpoint()
+                if not stat.get("done"):
+                    break
+            except Exception as e:
+                ec = int((progress.get(fid) or {}).get(
+                    "error_count", 0)) + 1
+                state.setdefault("errors", {})[fid] = (
+                    f"{type(e).__name__}: {str(e)[:70]} (attempt {ec})")
+                if ec >= ERROR_ATTEMPTS:
+                    if fid not in state["flows_done"]:
+                        state["flows_done"].append(fid)
+                    state.setdefault("failed_flows", []).append(fid)
+                    progress.pop(fid, None)
+                else:
+                    pr2 = progress.get(fid) or {}
+                    pr2["error_count"] = ec
+                    progress[fid] = pr2
+                _checkpoint()
+        todo = []
 
     for key in todo:
         if _out_of_time(t0, context) or pages_this_run >= MAX_PAGES_PER_RUN:
