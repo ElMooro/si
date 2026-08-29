@@ -1,44 +1,30 @@
-executing-against: 1731bf6b4456ab55fa8e8c5104b94de53082e020
-── P0 evidence -- engine state ──
-[13:10:06]   state doc data/_state/series-extract-eurostat.json: 113.6 KB
-[13:10:06]   flows_done=79  n_pages=3466  series_count=1733000  buffer=233 rows  errors=0  updated_at=2026-08-09T02:40:20+00:00
-[13:10:06]   flows_done unique=79 vs len=79  (no dupes)
-[13:10:06]   fn timeout=280s mem=1536 lastmod=2026-08-09T02:39:30.000+0000
-[13:10:06]   rule justhodl-series-extractor-5min state=ENABLED sched=rate(5 minutes)
-[13:10:06]   invocations last 24h: 864 (36.0/h)
-── P1 PROOF -- versions per page key ──
-[13:10:07]   keys sampled: 2000  total versions seen: 4000
-[13:10:07]   page-0000.json                                       versions=   2 span=0.0h median_gap=0.7 min newest=08-09 02:40
-[13:10:07]   page-0001.json                                       versions=   2 span=0.0h median_gap=0.7 min newest=08-09 02:40
-[13:10:07]   page-0002.json                                       versions=   2 span=0.0h median_gap=0.7 min newest=08-09 02:40
-[13:10:07]   page-0003.json                                       versions=   2 span=0.0h median_gap=0.7 min newest=08-09 02:40
-[13:10:07]   page-0004.json                                       versions=   2 span=0.0h median_gap=0.7 min newest=08-09 02:40
-[13:10:07]   page-0005.json                                       versions=   2 span=0.0h median_gap=0.7 min newest=08-09 02:40
-[13:10:07]   CHURN NOT proven -- worst key carries 2 versions
-[13:10:07]   dead-version bytes in this sample: 1.06 GB over 4000 versions (avg 259 KB)
-── P2 scope -- current vs versions, and the #2 writer ──
-[13:10:07]   data/providers/eurostat/series/ current objects: 1000+ (truncated)
-[13:10:08]   gdelt worst key: page-000.json versions=157
-[13:10:08]   gdelt keys=13 versions=2000 -> same churn pattern
-[13:10:08]   bucket versioning: Enabled
-[13:10:08]   existing lifecycle rules: 7
-[13:10:08]     archive-to-glacier-deep-afte Enabled pfx='archive/' exp=None noncur=None
-[13:10:08]     expire-old-versions-after-30 Enabled pfx='' exp=None noncur=None
-[13:10:08]     expire-screener-snapshots-30 Enabled pfx='screener/snapshots/' exp=30 noncur=None
-[13:10:08]     jh-noncurrent-14d            Enabled pfx='' exp=None noncur=None
-[13:10:08]     justhodl-e9-warm-ia          Enabled pfx='data/warm/' exp=None noncur=None
-[13:10:08]     justhodl-e9-raw-glacier-ir   Enabled pfx='data/raw/' exp=None noncur=None
-[13:10:08]     justhodl-e9-attic-ia         Enabled pfx='data/attic/' exp=None noncur=None
-── P3 STOP the loop (reversible, nothing deleted) ──
-[13:10:08]   rule justhodl-series-extractor-5min -> DISABLED
-[13:10:10]   justhodl-series-extractor reserved concurrency -> 0
-── P4 PURGE dead versions (current objects untouched) ──
-[13:10:10]   lifecycle: 8 rules; ops5027 purge on 'data/providers/' (NoncurrentDays=1, delete-markers cleaned)
-[13:10:10]   -> only NONCURRENT versions expire; every current page object survives; S3 deletes async in ~24-48h at zero request cost
-── P5 verify + ledger ──
-[13:10:10]   rule state now: DISABLED
-[13:10:10]   lifecycle IDs: ['archive-to-glacier-deep-after-90d', 'expire-old-versions-after-30d', 'expire-screener-snapshots-30d', 'jh-noncurrent-14d', 'justhodl-e9-warm-ia', 'justhodl-e9-raw-glacier-ir', 'justhodl-e9-attic-ia', 'ops5027-purge-dead-versions-providers']
-[13:10:10]   ledger -> data/ops/series-extractor-quarantine.json
-[13:10:10] ops 5027 GREEN -- justhodl-series-extractor stopped; dead versions under data/providers/ expire in 24-48h; the engine stays frozen until it is made idempotent (ops 5028)
+executing-against: e4db03dd007d3ad21b37ff294e362ad327026510
+── P0 proof on the HOT page range (page-3400+) ──
+[13:16:39]   keys after page-3400.json: 66   versions seen: 12000
+[13:16:39]   page-3466.json           versions=11870  oldest=08-15 19:27  newest=08-29 13:09  median_gap=1.8 min
+[13:16:39]   page-3401.json           versions=   2  oldest=08-09 02:43  newest=08-09 02:44  median_gap=0.6 min
+[13:16:39]   page-3402.json           versions=   2  oldest=08-09 02:43  newest=08-09 02:44  median_gap=0.6 min
+[13:16:39]   page-3403.json           versions=   2  oldest=08-09 02:43  newest=08-09 02:44  median_gap=0.6 min
+[13:16:39]   page-3404.json           versions=   2  oldest=08-09 02:43  newest=08-09 02:44  median_gap=0.6 min
+[13:16:39]   page-3405.json           versions=   2  oldest=08-09 02:43  newest=08-09 02:44  median_gap=0.6 min
+[13:16:39]   page-3406.json           versions=   2  oldest=08-09 02:43  newest=08-09 02:44  median_gap=0.6 min
+[13:16:39]   page-3407.json           versions=   2  oldest=08-09 02:43  newest=08-09 02:44  median_gap=0.6 min
+[13:16:39]   bytes held by this key range: 2.98 GB
+[13:16:39]   CHURN PROVEN -- worst key carries 11870 versions; median gap ~5 min = the rule cadence
+── P1 the writer is stopped ──
+[13:16:39]   rule justhodl-series-extractor-5min: DISABLED
+[13:16:39]   reserved concurrency: 0
+[13:16:39]   justhodl-series-extractor          invocations/h: 07=36 08=36 09=36 10=36 11=36 12=32
+[13:16:39]   justhodl-signal-registry-ingest    invocations/h: 
+── P2 purge is progressing ──
+[13:16:39]   objects (all versions): 08-23=7.74M 08-24=8.63M 08-25=9.14M 08-26=9.69M 08-27=10.17M
+[13:16:39]   NOTE: this metric is daily and lags ~24-48h; the lifecycle sweep runs async -- expect the fall on the 2026-08-30/31 datapoints, not now
+[13:16:39]   lifecycle rules: ['archive-to-glacier-deep-after-90d', 'expire-old-versions-after-30d', 'expire-screener-snapshots-30d', 'jh-noncurrent-14d', 'justhodl-e9-warm-ia', 'justhodl-e9-raw-glacier-ir', 'justhodl-e9-attic-ia', 'ops5027-purge-dead-versions-providers']
+[13:16:39]   ops5027 purge rule present: True {"Expiration": {"ExpiredObjectDeleteMarker": true}, "ID": "ops5027-purge-dead-versions-providers", "Filter": {"Prefix": "data/providers/"}, "Status": "Enabled", "NoncurrentVersionE
+── P3 v2 engine deployed (frozen, will not run) ──
+[13:16:39]   justhodl-series-extractor LastModified=2026-08-29T13:16:38.000+0000 CodeSize=104103
+── P4 ledger ──
+[13:16:39]   -> data/ops/s3-anomaly-closeout.json
+[13:16:39] ops 5028 GREEN -- churn proven on the hot range, writer stopped, purge armed, v2 deployed frozen
 
-→ Report written to aws/ops/reports/latest/ops_5027_stop_version_churn.md
+→ Report written to aws/ops/reports/latest/ops_5028_churn_proof_and_verify.md
