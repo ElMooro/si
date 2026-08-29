@@ -37,7 +37,16 @@ s3 = boto3.client("s3", region_name="us-east-1",
 PAGE = 500
 BUDGET_S = 840  # 900s timeout, 60s reserved to drain + checkpoint
 RESERVE_MS = 60000   # never enter another page write with less left than this
-MAX_PAGES_PER_RUN = 200000  # effectively uncapped: the run is now
+HASH_WINDOW = 60000       # ops 5047: page_hashes is a REWRITE guard,
+                          # not a ledger. Only pages at or above the
+                          # last checkpointed n_pages can ever be
+                          # rewritten (n_pages only advances and is
+                          # persisted), so hashes below that are dead
+                          # weight. Unpruned it reached 1.13M entries
+                          # ~100MB, rewritten on EVERY checkpoint and
+                          # re-downloaded on every invocation.
+MAX_PAGES_PER_RUN = 50000   # < HASH_WINDOW, so the guard provably
+                            # covers everything a run can rewrite
                           # bounded by TIME, not by an arbitrary count
 MAX_ECB_SERIES = 4000000  # dims cache cap; keys still counted
 STALL_ATTEMPTS = 3        # a flow that cannot advance is skipped, not
@@ -439,8 +448,21 @@ def lambda_handler(event, context):
             _collect(False)
         return True
 
+    def _prune_hashes():
+        """Keep only the window a resume could rewrite."""
+        floor = int(state.get("n_pages", 0)) - HASH_WINDOW
+        if floor <= 0 or len(hashes) <= HASH_WINDOW:
+            return
+        pre = f"data/providers/{provider}/series/page-"
+        for k in [k for k in hashes
+                  if k.startswith(pre)
+                  and k[len(pre):-5].isdigit()
+                  and int(k[len(pre):-5]) < floor]:
+            del hashes[k]
+
     def _checkpoint():
         _collect(True)          # never persist state ahead of the writes
+        _prune_hashes()
         state["buffer"] = buf
         state["updated_at"] = now
         if write_errors:
@@ -606,6 +628,7 @@ def lambda_handler(event, context):
             _checkpoint()
     _collect(True)
     pool.shutdown(wait=True)
+    _prune_hashes()
     state["buffer"] = buf
     state["stopped_early"] = stopped_early
     state["pages_this_run"] = pages_this_run
