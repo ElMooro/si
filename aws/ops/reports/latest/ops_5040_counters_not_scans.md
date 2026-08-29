@@ -1,0 +1,56 @@
+## P0 deploys + the extractor's seeded counters
+
+**Status:** failure  
+**Duration:** 1064.3s  
+**Finished:** 2026-08-29T19:57:13+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `19:39:28`   BEFORE hub totals: keys=776,661 gb=214.86 datasets=800961
+- `19:39:29`   justhodl-provider-catalog code fresh (2026-08-29T19:39:26)
+- `19:39:49`   justhodl-series-extractor code fresh (2026-08-29T19:39:45)
+- `19:39:51`   waiting for the seed pass (flows=6344 pages=1094445)
+- `19:40:23`   waiting for the seed pass (flows=6356 pages=1095253)
+- `19:40:54`   waiting for the seed pass (flows=6374 pages=1095584)
+- `19:41:26`   waiting for the seed pass (flows=6390 pages=1095996)
+- `19:41:58`   waiting for the seed pass (flows=6411 pages=1096030)
+- `19:42:30`   waiting for the seed pass (flows=6432 pages=1096094)
+- `19:43:02`   waiting for the seed pass (flows=6449 pages=1096537)
+- `19:43:33`   waiting for the seed pass (flows=6458 pages=1098070)
+- `19:44:05`   waiting for the seed pass (flows=6465 pages=1099089)
+- `19:44:37`   waiting for the seed pass (flows=6472 pages=1100435)
+- `19:45:09`   waiting for the seed pass (flows=6482 pages=1102764)
+- `19:45:41`   waiting for the seed pass (flows=6482 pages=1102764)
+- `19:46:12`   waiting for the seed pass (flows=6482 pages=1102764)
+- `19:46:44`   waiting for the seed pass (flows=6482 pages=1102764)
+- `19:47:16`   waiting for the seed pass (flows=6482 pages=1102764)
+- `19:47:48`   waiting for the seed pass (flows=6482 pages=1102764)
+- `19:48:18`   counters not seeded yet -- the card will show 0 derived
+- `19:48:18`   manifest: series_extracted=551,382,113 n_pages=1102764 pages=0 pages_bytes=0.0 GB flows_parsed=6482
+## P1 run the catalog (timed)
+
+- `19:57:12`   invoke err Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-pro (534s)
+## P2 the card, each doc read on its own schema
+
+- `19:57:12`   per-provider doc: series.count=551,382,113 counted=True ids=0
+- `19:57:12`   n_keys=8,191 total_mb=8892.72
+- `19:57:12`   derived=null
+- `19:57:12`   note=None
+- `19:57:12`   hub row: series_count=551,382,113 n_keys=8,191 datasets=8191 coverage_pct=100.0
+## P3 regression
+
+- `19:57:12`   coverage_pct=None (warm-mirror ratio, must be unmoved)
+- `19:57:12`   data/providers/eurostat.json = 0.02 MB, per-key rows=100
+- `19:57:12`   other providers: [('statcan', None), ('fred', 277453), ('oecd', 1546), ('bis', 29)]
+## P4 hub totals
+
+- `19:57:12`   keys 776,661 -> 776,663
+- `19:57:12`   gb   214.86 -> 214.86
+- `19:57:12`   datasets 800961 -> 800963 (must NOT absorb derived series)
+- `19:57:13`   -> data/ops/eurostat-card-fix.json
+- `19:57:13` ops 5040 RED: P0:seed; P1:invoke; P2:derived
