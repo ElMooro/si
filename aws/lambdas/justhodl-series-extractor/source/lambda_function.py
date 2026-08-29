@@ -21,14 +21,23 @@ import time
 from datetime import datetime, timezone
 
 import boto3
+from botocore.config import Config
+from concurrent.futures import ThreadPoolExecutor
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
-s3 = boto3.client("s3", region_name="us-east-1")
+WRITERS = 32   # ops 5034: page writes were SERIAL. At ~40ms of S3
+               # round-trip each that capped the engine near 4
+               # pages/s while the parser sat idle. 32 in flight
+               # moves the ceiling onto CPU where it belongs.
+s3 = boto3.client("s3", region_name="us-east-1",
+                  config=Config(max_pool_connections=WRITERS * 2,
+                                retries={"max_attempts": 5,
+                                         "mode": "adaptive"}))
 PAGE = 500
-BUDGET_S = 220  # stay well inside a 5-min cadence; resumable
-RESERVE_MS = 45000   # never enter another page write with less left than this
-MAX_PAGES_PER_RUN = 1200  # ~600k series/run; observed throughput is
-                          # ~1540 pages/run, so this is a real cap
+BUDGET_S = 840  # 900s timeout, 60s reserved to drain + checkpoint
+RESERVE_MS = 60000   # never enter another page write with less left than this
+MAX_PAGES_PER_RUN = 200000  # effectively uncapped: the run is now
+                          # bounded by TIME, not by an arbitrary count
 STALL_ATTEMPTS = 3        # a flow that cannot advance is skipped, not
                           # retried forever (the Aug-09 failure mode)
 ERROR_ATTEMPTS = 3        # a flow that RAISES is retired after 3 tries;
@@ -183,31 +192,61 @@ def lambda_handler(event, context):
     pages_this_run = 0
     stopped_early = False
 
+    pool = ThreadPoolExecutor(max_workers=WRITERS)
+    pending = []
+    write_errors = []
+
+    def _collect(wait_all):
+        """Harvest finished page writes. series_count and page_hashes
+        advance ONLY for pages that actually landed, so a failed write
+        can never be recorded as durable. A page that never lands is
+        named in state['missing_pages'] for a targeted repair pass."""
+        nonlocal pending
+        still = []
+        for fut, pkey, digest, n in pending:
+            if wait_all or fut.done():
+                try:
+                    fut.result()
+                    hashes[pkey] = digest
+                    state["series_count"] += n
+                except Exception as e:
+                    write_errors.append("%s: %s" % (pkey, str(e)[:70]))
+                    state.setdefault("missing_pages", []).append(pkey)
+            else:
+                still.append((fut, pkey, digest, n))
+        pending = still
+
+    def _put(pkey, body):
+        s3.put_object(Bucket=BUCKET, Key=pkey, Body=body,
+                      ContentType="application/json",
+                      CacheControl="no-cache")
+
     def _flush(rows):
-        """Write one page idempotently. A byte-identical rewrite is
-        SKIPPED -- on a versioned bucket an identical put still creates a
-        new noncurrent version, which is what made this engine cost
+        """Queue one page write. A byte-identical rewrite is SKIPPED --
+        on a versioned bucket an identical put still creates a new
+        noncurrent version, which is what made this engine cost
         $2.49/day in PUT requests and 112GB/day in dead storage."""
         pkey = (f"data/providers/{provider}/series/"
                 f"page-{state['n_pages']:04d}.json")
         body = json.dumps({"page": state["n_pages"], "count": len(rows),
                            "rows": rows}, default=str).encode()
         digest = hashlib.sha256(body).hexdigest()[:32]
+        state["n_pages"] += 1
         if hashes.get(pkey) == digest:
-            state["n_pages"] += 1
             state["series_count"] += len(rows)
             return False
-        s3.put_object(Bucket=BUCKET, Key=pkey, Body=body,
-                      ContentType="application/json",
-                      CacheControl="no-cache")
-        hashes[pkey] = digest
-        state["n_pages"] += 1
-        state["series_count"] += len(rows)
+        pending.append((pool.submit(_put, pkey, body), pkey, digest,
+                        len(rows)))
+        if len(pending) >= WRITERS * 3:
+            _collect(False)
         return True
 
     def _checkpoint():
+        _collect(True)          # never persist state ahead of the writes
         state["buffer"] = buf
         state["updated_at"] = now
+        if write_errors:
+            state["write_errors"] = write_errors[-20:]
         s3.put_object(Bucket=BUCKET, Key=state_key,
                       Body=json.dumps(state, default=str).encode(),
                       ContentType="application/json")
@@ -294,9 +333,12 @@ def lambda_handler(event, context):
                 pr["error_count"] = ec
                 progress[fid] = pr
             _checkpoint()
+    _collect(True)
+    pool.shutdown(wait=True)
     state["buffer"] = buf
     state["stopped_early"] = stopped_early
     state["pages_this_run"] = pages_this_run
+    state["write_errors_this_run"] = len(write_errors)
     state["updated_at"] = now
     s3.put_object(Bucket=BUCKET, Key=state_key,
                   Body=json.dumps(state, default=str).encode(),
