@@ -1,35 +1,45 @@
-executing-against: 3435520268ee9645061a6a423f22546d8184431b
-── P0 live dataflow registry vs ours ──
-[20:18:16]   /service/dataflow -> 147052 bytes
-[20:18:16]   live dataflows parsed: 0
-[20:18:16]   sample: []
-[20:18:16]   our catalog: n_dataflows=214 parsed=214 as_of=2026-08-18T19:34:38+00:00
-── P1 per-flow file inventory ──
-[20:18:16]   data/warm/ecb/: 578 objects, 2.56 GB
-[20:18:16]   distinct flow buckets under the prefix: 5
-[20:18:16]   suspiciously small (<3KB, likely an error body or empty pull): 2 [('catalog-summary', 929), ('failures-classified', 646)]
-[20:18:16]   largest: [('data', '2562 MB'), ('coverage', '0 MB'), ('catalog', '0 MB'), ('catalog-summary', '0 MB'), ('failures-classified', '0 MB')]
-[20:18:16]   catalogued flows with NO file at all: 214 ['AGR', 'AME', 'BKN', 'BLS', 'BNT', 'BOP', 'BSI', 'BSP', 'CAR', 'CBD', 'CBD2', 'CCP', 'CES', 'CISS', 'CLIFS', 'CPP', 'CSEC', 'DCM', 'DD', 'DWA']
-[20:18:16]   coverage.json: {"as_of": "2026-08-29T20:16:11+00:00", "note": "fast = full-history single object via weekly rewalk; deep = time-sliced parts + manifest; every prefix deny-Delete protected"}
-── P2 sample the real files -- series keys and history ──
-[20:18:33]   data/IVF__2015_2019.dat.gz                        57.6 MB  rows=5421462  series=161630   2015-01..2019-Q4
-[20:18:49]   data/IVF__2020_2022.dat.gz                        55.4 MB  rows=4848396  series=192520   2020-01..2022-Q4
-[20:18:59]   data/CSEC__2022_2022.dat.gz                       50.0 MB  rows=2851208  series=237779   2022-01..2022-12
-[20:19:07]   data/YC__2015_2019.dat.gz                         44.1 MB  rows=2753880  series=2165     2015-01-02..2019-12-30
-[20:19:08]   data/ECB.DISS:JDF_ICPF_PENSION_FUNDS.dat.gz        0.1 MB  rows=6027     series=764      2008..2015
-[20:19:08]   data/STP__2025_2035.dat.gz                         1.8 MB  rows=237038   series=865      2025-01-01..2026-W34
-[20:19:09]   data/STBS__2025_2035.dat.gz                        0.5 MB  rows=49449    series=2901     2025-01..2026-Q2
-[20:19:09]   data/PEM__2020_2022.dat.gz                         0.6 MB  rows=44559    series=22757    2020..2022-S2
-[20:19:12]   data/BSI__2005_2009.dat.gz                        15.2 MB  rows=992157   series=24546    2005-01..2009-Q4
-[20:19:13]   data/CSEC__2023-04_2023-04.dat.gz                 16.4 MB  rows=397194   series=397194   2..2023-04
-[20:19:14]   data/STBS__2023_2024.dat.gz                        0.6 MB  rows=69609    series=3093     2023-01..2024-Q4
-[20:19:16]   data/CSEC__2005_2009.dat.gz                       11.3 MB  rows=978986   series=17321    2005-01..2009-12
-[20:19:16]   sampled 10635.1 MB -> 1063535 distinct series (100.0 series/MB), 18649965 observation rows
-── P3 size the extraction ──
-[20:19:16]   ECB warm mirror is 2.56 GB -> ~0.3M distinct series at the observed density
-[20:19:16]   pages at 500 series/page: ~512  (Eurostat needed ~1.1M pages for 558M series)
-[20:19:16]   the extractor is generic -- EXTRACTORS = {'eurostat': extract_eurostat}. ECB needs an extract_ecb because csvdata is LONG format (one row per observation, series identified by the KEY column) whereas Eurostat TSV is wide (one row per series, columns are periods)
-[20:19:16]   -> data/ops/ecb-completeness.json
-[20:19:16] ops 5042 GREEN -- ECB completeness measured
+executing-against: c7a0de2418c90f7f9ae3df76b0f7e5d24c459558
+── P0 live registry, parsed with ElementTree ──
+[20:24:41]   /service/dataflow -> HTTP 200, 147052 bytes
+[20:24:41]   live dataflows: 214
+[20:24:41]   sample: ['AGR', 'AME', 'BKN', 'BLS', 'BNT', 'BOP', 'BSI', 'BSP', 'CAR', 'CBD', 'CBD2', 'CCP']
+[20:24:41]   our catalog: 214 flows, as_of 2026-08-18T19:34:38+00:00 (11 days old)
+[20:24:41]   ON THE PORTAL, NOT IN OUR CATALOG: 0  []
+[20:24:41]   in our catalog, no longer published: 0  []
+── P1 flows grouped on the real delimiter ──
+[20:24:42]   574 objects, 2.56 GB, 265 distinct FLOWS
+[20:24:42]   CSEC             slices=37     886.2 MB  covers 1980..2025
+[20:24:42]   IVF              slices=8      240.3 MB  covers 2000..2035
+[20:24:42]   YC               slices=8      190.7 MB  covers 2000..2035
+[20:24:42]   BSI              slices=11     139.0 MB  covers 1980..2035
+[20:24:42]   HICP             slices=12     138.6 MB  covers 1900..2035
+[20:24:42]   SAFE             slices=7      130.8 MB  covers 2005..2035
+[20:24:42]   ICP              slices=11      78.4 MB  covers 1980..2035
+[20:24:42]   SEC              slices=9       70.4 MB  covers 1980..2022
+[20:24:42]   CBD2             slices=7       62.9 MB  covers 2005..2035
+[20:24:42]   SPF              slices=9       56.1 MB  covers 1995..2035
+[20:24:42]   CATALOGUED FLOWS WITH NO FILE: 7  ['DD', 'ECB.DISS:JVC_PUB', 'ECB.DISS:LCI_PUB', 'ECB.DISS:MOBILE_KEY_4', 'ECB.DISS:MOBILE_KEY_5', 'ECB.DISS:RESR_PUB', 'ECB.DISS:SUR_PUB']
+[20:24:42]   files with no catalog entry: 58 ['BLS.manifest.json', 'BOP.manifest.json', 'BP6.manifest.json', 'BPS.manifest.json', 'BSI.manifest.json', 'BSP.manifest.json', 'CBD.manifest.json', 'CBD2.manifest.json', 'CSEC.manifest.json', 'DWA.manifest.json', 'E09.manifest.json', 'E11.manifest.json']
+[20:24:42]   flows whose earliest slice starts after 1999: 25
+[20:24:42]   latest-starting: [('SHSS', 2020), ('PMC', 2020), ('SUP', 2015), ('SHS', 2010), ('SESFOD', 2010), ('PPC', 2010), ('STP', 2005), ('SAFE', 2005), ('ICB', 2005), ('FVC', 2005), ('DWA', 2005), ('CBD2', 2005)]
+── P2 decisive test -- does the portal hold OLDER data? ──
+[20:26:22]   SHSS           probe err The read operation timed out
+[20:26:28]   PMC            ours start 2020 | pre-2020 query -> HTTP 200, 0 rows (none - we have it all)
+[20:26:33]   SUP            ours start 2015 | pre-2015 query -> HTTP 200, 0 rows (none - we have it all)
+[20:26:37]   SHS            ours start 2010 | pre-2010 query -> HTTP 200, 0 rows (none - we have it all)
+[20:26:38]   SESFOD         ours start 2010 | pre-2010 query -> HTTP 200, 0 rows (none - we have it all)
+[20:26:45]   PPC            ours start 2010 | pre-2010 query -> HTTP 200, 0 rows (none - we have it all)
+[20:26:46]   STP            ours start 2005 | pre-2005 query -> HTTP 200, 0 rows (none - we have it all)
+[20:28:27]   SAFE           probe err The read operation timed out
+[20:28:30]   ICB            ours start 2005 | pre-2005 query -> HTTP 200, 0 rows (none - we have it all)
+[20:28:32]   FVC            ours start 2005 | pre-2005 query -> HTTP 200, 0 rows (none - we have it all)
+[20:28:32]   flows with provable pre-coverage history: 0
+── P3 distinct series, deduped across slices ──
+[20:28:43]   CSEC           22447 distinct series across its slices (3610418 rows read)
+[20:28:54]   IVF            89400 distinct series across its slices (3416076 rows read)
+[20:29:05]   YC             2164 distinct series across its slices (3646251 rows read)
+[20:29:12]   BSI            30095 distinct series across its slices (2246394 rows read)
+[20:29:12]   -> data/ops/ecb-gap-truth.json
+[20:29:12] ops 5043 GREEN -- ECB gap measured on correct parsers
 
-→ Report written to aws/ops/reports/latest/ops_5042_ecb_completeness.md
+→ Report written to aws/ops/reports/latest/ops_5043_ecb_gap_truth.md
