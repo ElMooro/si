@@ -257,7 +257,17 @@ REG = {
               "justhodl-sdmx-walker"],
   "prefixes": ["data/warm/ecb/", "data/warm/ecb-", "data/ecb",
                "data/ciss"],
-  "series_from": ("data/warm/ecb/catalog.json.gz", "dataflows")},
+  # ops 5045: same correction Eurostat got. "214 series" was 214
+  # DATAFLOWS -- the dataflow list length, not a series count. The
+  # extractor now publishes a real one, and the page/byte totals of the
+  # derived store come from counters the writer maintains rather than a
+  # LIST walk that would time the scan out.
+  "count_from": ("data/providers/ecb/series-manifest.json",
+                 "pages", "pages_bytes"),
+  "series_from": ("data/providers/ecb/series-manifest.json",
+                  "series_extracted"),
+  "_series_from_legacy": ("data/warm/ecb/catalog.json.gz",
+                          "dataflows")},
 }
 
 
