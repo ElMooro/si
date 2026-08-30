@@ -1,59 +1,97 @@
-executing-against: 877171d264b0bbe033897e40349dca64a113c710
-── P0 the Bureau's own catalogue ──
-[16:08:08]   GET data.json -> HTTP 200, 5.2 MB
-[16:08:08]   catalogue entries (dataset x vintage): 1,798
-[16:08:08]   timeseries entries      : 94
-[16:08:08]   everything else         : 1,704  <- never fetched
-── P1 non-timeseries families, with vintage span ──
-[16:08:08]   family         entries  vintages     example
-[16:08:08]   cps                703  1989–2026    cps/basic/jan
-[16:08:08]   acs                270  2004–2024    acs/acs1/pums
-[16:08:08]   sipp               178  1990–2024    sipp/benefit/1990panel
-[16:08:08]   pep                 80  1990–2023    pep/int_charagegroups
-[16:08:08]   dec                 64  2000–2020    dec/aian
-[16:08:08]   cbp                 38  1986–2023    cbp
-[16:08:08]   nonemp              27  1997–2023    nonemp
-[16:08:08]   zbp                 25  1994–2018    zbp
-[16:08:08]   pdb                 23  2015–2026    pdb/blockgroup
-[16:08:08]   ecn                 12  2012–2022    ecn/islandareas
-[16:08:08]   popproj             10  2012–2017    popproj/deaths
-[16:08:08]   ase                  9  2014–2016    ase/csa
-[16:08:08]   cre                  9  2016–2024    cre
-[16:08:08]   abscb                7  2017–2023    abscb
-[16:08:08]   abscbo               7  2017–2023    abscbo
-[16:08:08]   abscs                7  2017–2023    abscs
-[16:08:08]   absnesdo             6  2018–2023    absnesdo
-[16:08:08]   absnesd              6  2018–2023    absnesd
-[16:08:08]   geoinfo              6  2020–2025    geoinfo
-[16:08:08]   intltrade            5  2014–2018    intltrade/imp_exp
-[16:08:08]   crepuertorico        5  2019–2024    crepuertorico
-[16:08:08]   ewks                 4  1997–2012    ewks
-[16:08:08]   families outside timeseries: 120
-── P2 what we hold today ──
-[16:08:08]   walker: phase=COMPLETE n_done=55/56 rows=4,604,884 universe=94 updated_at=2026-08-25T23:49:53+00:00
-[16:08:08]   S3: 359 objects, 37.9 MB under data/warm/census-us/
-[16:08:08]   coverage of the FULL catalogue: 55 of 1,798 entries = 3.06%
-── P3 size probe on the biggest families ──
-[16:08:09]   cps              703 entries ·   238 variables ·   1 geo levels -> ~4,218 calls at 45 vars/call
-[16:08:10]   acs              270 entries ·   249 variables ·   4 geo levels -> ~6,480 calls at 45 vars/call
-[16:08:11]   sipp             178 entries ·     6 variables ·   0 geo levels -> ~178 calls at 45 vars/call
-[16:08:13]   pep               80 entries ·    10 variables ·   1 geo levels -> ~80 calls at 45 vars/call
-[16:08:16]   dec               64 entries ·  7898 variables ·   9 geo levels -> ~101,376 calls at 45 vars/call
-[16:08:17]   cbp               38 entries ·    22 variables ·   3 geo levels -> ~114 calls at 45 vars/call
-[16:08:17]   rough call estimate for these 6 families alone: ~112,446 requests
-[16:08:17]   (Census caps at 500/day without a key; with a key it is generous but not unlimited -- this is a rate-limit problem before it is a storage problem)
-── P4 verdict ──
-[16:08:17]   NO -- we do not have all of it. We have the timeseries
-[16:08:17]   family only: 94 of 1,798 catalogue entries (5.23%).
-[16:08:17]   Missing entirely: 1,704 entries across 120 families, including ACS, the decennial census, CBP and the economic census.
-[16:08:17]   'All the history' for those means every vintage, which the
-[16:08:17]   vintage spans above make explicit.
-[16:08:17]   RECOMMENDATION: this is not one import, it is a program.
-[16:08:17]   Scope it family by family, largest value first, each with
-[16:08:17]   its own resumable walker on the pattern the eurostat/ecb
-[16:08:17]   lanes now use. Starting with ACS at every geography level
-[16:08:17]   would be the most expensive possible first move.
-[16:08:17]   -> data/ops/census-universe.json
-[16:08:17] ops 5057 GREEN -- census universe measured
+executing-against: 45821037b1ddcd163f802bcc1d4c5a4ba8b216f9
+── P0 API key ──
+[16:13:31]   env vars that look key-ish: ['CENSUS_API_KEY']
+[16:13:31]   using CENSUS_API_KEY (len 40, value not printed)
+[16:13:31]   keyed probe -> HTTP 200
+[16:13:31]   sample: [["NAME", "EMP", "PAYANN", "state"], ["California", "16032440", "1361755461", "06"]]
+[16:13:31]   the API answers, so the walker's problem is rate, not access
+── P1 what timeseries already gives us ──
+[16:13:35]   timeseries datasets we already hold cover:
+[16:13:35]     timeseries/intltrade               36
+[16:13:35]     timeseries/eits                    21
+[16:13:35]     timeseries/asm                     9
+[16:13:35]     timeseries/aies                    6
+[16:13:35]     timeseries/poverty                 3
+[16:13:35]     timeseries/qwi                     3
+[16:13:35]     timeseries/idb                     2
+[16:13:35]     timeseries/pseo                    2
+[16:13:35]     timeseries/healthins               1
+[16:13:35]     timeseries/govs                    1
+[16:13:35]     timeseries/bds                     1
+[16:13:35]     timeseries/hps                     1
+[16:13:35]     timeseries/soma                    1
+[16:13:35]     timeseries/hhpulse                 1
+[16:13:35]   -> EITS, BDS, QWI and ASM are ALREADY IN. The headline
+[16:13:35]      macro indicators are not the gap.
+── P2 classify the rest against the scope ──
+[16:13:35]   IN SCOPE (curated economic programs):
+[16:13:35]     cps        703 entries  1989–2026    Current Population Survey — the employment survey behind the u
+[16:13:35]     sipp       178 entries  1990–2024    Income & Program Participation — household income and wealth
+[16:13:35]     cbp         38 entries  1986–2023    County Business Patterns — establishments, employment, payroll
+[16:13:35]     nonemp      27 entries  1997–2023    Nonemployer Statistics — self-employment, business formation
+[16:13:35]     zbp         25 entries  1994–2018    ZIP Code Business Patterns — the same at ZIP granularity
+[16:13:35]     ecn         12 entries  2012–2022    Economic Census — manufacturing, retail, wholesale, services; 
+[16:13:35]     ase          9 entries  2014–2016    Annual Survey of Entrepreneurs
+[16:13:35]     abscb        7 entries  2017–2023    Annual Business Survey — company characteristics
+[16:13:35]     abscbo       7 entries  2017–2023    Annual Business Survey — business owners
+[16:13:35]     abscs        7 entries  2017–2023    Annual Business Survey — company summary
+[16:13:35]     absnesd      6 entries  2018–2023    Annual Business Survey — nonemployer demographics
+[16:13:35]     absnesdo     6 entries  2018–2023    Annual Business Survey — nonemployer owners
+[16:13:35]     ewks         4 entries  1997–2012    Economic Census, earlier vintages
+[16:13:35]     total in scope: 1029 entries
+[16:13:35]   OUT OF SCOPE (demographics/social, dropped deliberately):
+[16:13:35]     acs        270 entries  2004–2024
+[16:13:35]     pep         80 entries  1990–2023
+[16:13:35]     dec         64 entries  2000–2020
+[16:13:35]     pdb         23 entries  2015–2026
+[16:13:35]     popproj     10 entries  2012–2017
+[16:13:35]     cre          9 entries  2016–2024
+[16:13:35]     geoinfo      6 entries  2020–2025
+[16:13:35]     intltrade    5 entries  2014–2018
+[16:13:35]     crepuertorico    5 entries  2019–2024
+[16:13:35]   KEYWORD SWEEP over families I did not curate -- anything
+[16:13:35]   economic here would be a miss on my part:
+[16:13:35]     absmcb          4 entries (4 match) 2020–2023   2020 Annual Business Survey: Technology, Financing, and Mana
+[16:13:35]     rhfs            4 entries (4 match) 2015–2024   Rental Housing Finance Survey
+[16:13:35]     cfspum          4 entries (4 match) 2012–2017   Commodity Flow Survey  Public Use Microdata: Origin of Shipm
+[16:13:35]     ecnbranddeal    3 entries (3 match) 2012–2022   Finance and Insurance: Subject Series - Misc Subjects: Broke
+[16:13:35]     ecnbridge1      3 entries (3 match) 2012–2022   All sectors: Core Business Statistics Series: Industry Bridg
+[16:13:35]     ecnbridge2      3 entries (3 match) 2012–2022   All sectors: Core Business Statistics Series: Industry Bridg
+[16:13:35]     ecnccard        3 entries (3 match) 2012–2022   Finance and Insurance: Subject Series - Misc Subjects: Credi
+[16:13:35]     ecnclcust       3 entries (3 match) 2012–2022   2012 Economic Census - Economic Census US Economic Class of 
+[16:13:35]     ecncomm         3 entries (3 match) 2012–2022   Wholesale Trade: Subject Series - Misc Subjects: Sales and C
+[16:13:35]     ecncomp         3 entries (3 match) 2012–2022   All sectors: Core Business Statistics Series: Comparative St
+[16:13:35]     ecnconact       3 entries (3 match) 2012–2022   Subject Series - Misc Subjects: Construction Activity for Se
+[16:13:35]     ecncrfin        3 entries (3 match) 2012–2022   Finance and Insurance: Subject Series - Misc Subjects: Types
+── P3 cost of the shortlist only ──
+[16:13:36]   cps        703 entries ·   349 vars ·  2 geo -> ~11,248 calls
+[16:13:37]   sipp       178 entries ·  1021 vars ·  1 geo -> ~4,094 calls
+[16:13:37]   cbp         38 entries ·    22 vars ·  3 geo -> ~114 calls
+[16:13:38]   nonemp      27 entries ·    13 vars ·  3 geo -> ~81 calls
+[16:13:38]   zbp         25 entries ·    17 vars ·  1 geo -> ~25 calls
+[16:13:45]   ecn         12 entries ·    30 vars ·  1 geo -> ~12 calls
+[16:13:46]   ase          9 entries ·    42 vars ·  3 geo -> ~27 calls
+[16:13:46]   abscb        7 entries ·    44 vars ·  7 geo -> ~49 calls
+[16:13:46]   SHORTLIST TOTAL: ~15,650 requests
+[16:13:46]   versus ~112,446 for 5057's top six -- dropping the
+[16:13:46]   decennial census alone removes ~101,376 of them
+[16:13:46]   at 500/day (no key): 31 days.  with a key: hours.
+── P4 the plan ──
+[16:13:46]   1. CBP + ZBP + nonemp -- establishments, employment and
+[16:13:46]      payroll by NAICS and geography, 1986–2023. Cheapest and
+[16:13:46]      the most directly useful to the physical-economy and
+[16:13:46]      regional desks.
+[16:13:46]   2. ECN + EWKS -- the Economic Census: manufacturing,
+[16:13:46]      retail, wholesale, services, 1997–2022.
+[16:13:46]   3. ABS family -- business formation and ownership.
+[16:13:46]   4. CPS -- 703 entries, 1989–2026, the employment survey.
+[16:13:46]      Largest of the four; worth its own lane.
+[16:13:46]   5. SIPP -- household income and wealth, if consumer
+[16:13:46]      balance-sheet work matters.
+[16:13:46]   Each gets a resumable walker on the pattern the eurostat
+[16:13:46]   and ecb lanes now use: state cursor, budget checked inside
+[16:13:46]   the row loop, hash-skipped idempotent writes, stall breaker.
+[16:13:47]   -> data/ops/census-macro-scope.json
+[16:13:47] ops 5058 GREEN -- scope decided on measurements
 
-→ Report written to aws/ops/reports/latest/ops_5057_census_universe.md
+→ Report written to aws/ops/reports/latest/ops_5058_census_macro_scope.md
