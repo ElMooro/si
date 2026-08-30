@@ -622,6 +622,26 @@ def save(state):
 ECON_STATE = "data/_state/census-econ.json"
 ECON_ROOT = "data/warm/census-econ/"
 ECON_SCOPE = "data/_state/census-econ-scope.json"
+ECON_OVER = "data/_state/census-econ-oversize-s%d.json"
+ECON_DISPATCH_SHARDS = 12
+
+
+def _over_load(shards):
+    """Merge every shard's oversize findings. A geography level that is
+    too big for a dataset is too big for EVERY vintage of it -- CBP is
+    national-only, and rediscovering that on all 38 vintages costs three
+    full discarded downloads apiece. Written per shard so concurrent
+    writers never clobber each other, merged on read."""
+    seen = set()
+    for k in range(max(1, shards)):
+        for t in (gj(ECON_OVER % k) or {}).get("pairs") or []:
+            seen.add(tuple(t))
+    return seen
+
+
+def _over_save(shard, pairs):
+    pj(ECON_OVER % shard, {"pairs": sorted(list(p) for p in pairs),
+                           "updated_at": _now().isoformat()})
 ECON_BUDGET = 780          # < the 850s timeout, leaves room to checkpoint
 VAR_CHUNK = 45             # Census caps get= near 50
 GEO_CAP = 4
@@ -677,7 +697,7 @@ def _econ_build_queue(state):
     return state
 
 
-def _econ_entry(e, state, t0, ctx):
+def _econ_entry(e, state, t0, ctx, over=None, shard=0):
     """One dataset-vintage: variables in chunks x geography levels."""
     base = ("https://api.census.gov/data/%s/%s" % (e["vintage"], e["ds"])
             if e.get("vintage") else
@@ -709,7 +729,12 @@ def _econ_entry(e, state, t0, ctx):
     geos = (geos or ["us"])[:GEO_CAP]
     rows = 0
     oversize = []
+    over = over if over is not None else set()
+    skipped = 0
     for gi, geo in enumerate(geos):
+        if (e["ds"], geo) in over:
+            skipped += 1
+            continue          # known oversize for this dataset
         for ci in range(0, len(names), VAR_CHUNK):
             if time.time() - t0 > ECON_BUDGET:
                 return rows, "BUDGET"
@@ -733,6 +758,8 @@ def _econ_entry(e, state, t0, ctx):
                 # costs a full download before it is discarded -- that is
                 # where the 350s-per-entry went.
                 oversize.append("%s:g%d" % (e["ds"], gi))
+                over.add((e["ds"], geo))
+                _over_save(shard, over)
                 break
             if stt != 200 or not body.strip():
                 continue
@@ -749,6 +776,8 @@ def _econ_entry(e, state, t0, ctx):
             rows += len(data) - 1
     if oversize:
         state.setdefault("oversize", {})[e["ds"]] = oversize[:6]
+    if skipped:
+        state["geo_skips"] = int(state.get("geo_skips", 0)) + skipped
     return rows, None
 
 
@@ -772,6 +801,8 @@ def econ_run(ctx, shard=0, shards=1):
     state.setdefault("done", [])
     if state.get("phase") in (None, "CATALOG") or not state.get("queue"):
         state = _econ_build_queue(state)
+    over = _over_load(shards)
+    state["oversize_known"] = len(over)
     drained = 0
     while state.get("queue"):
         if time.time() - t0 > ECON_BUDGET:
@@ -781,7 +812,7 @@ def econ_run(ctx, shard=0, shards=1):
         att = int((state.get("attempts") or {}).get(tag, 0)) + 1
         state.setdefault("attempts", {})[tag] = att
         try:
-            n, err = _econ_entry(e, state, t0, ctx)
+            n, err = _econ_entry(e, state, t0, ctx, over, shard)
         except Exception as ex:
             n, err = 0, "%s: %s" % (type(ex).__name__, str(ex)[:70])
         if err == "BUDGET":
@@ -822,6 +853,26 @@ def lambda_handler(event, ctx):
     _calls = 0
     _OV = None                       # re-read overrides each invoke
     event = event or {}
+    if event.get("mode") == "econ_dispatch":
+        # ops 5063: fan-out, not a chain. One EventBridge target invokes
+        # this once; it async-invokes N shard workers and returns. Avoids
+        # needing N scarce rule slots, and unlike a self-invoke CHAIN
+        # there is no recursion -- a dispatch never dispatches.
+        n = int(event.get("shards") or ECON_DISPATCH_SHARDS)
+        fn = os.environ.get("AWS_LAMBDA_FUNCTION_NAME",
+                            "justhodl-census-us")
+        _lam = boto3.client("lambda", region_name="us-east-1")
+        sent = 0
+        for k in range(n):
+            try:
+                _lam.invoke(FunctionName=fn, InvocationType="Event",
+                            Payload=json.dumps({"mode": "econ",
+                                                "shard": k,
+                                                "shards": n}).encode())
+                sent += 1
+            except Exception:
+                pass
+        return {"mode": "econ_dispatch", "shards": n, "invoked": sent}
     if event.get("mode") == "econ":
         # separate state, separate prefix -- the timeseries lane is
         # untouched by this path
