@@ -1,44 +1,34 @@
-executing-against: a1b2cb0a8fbb0ed282cd45c9ed5ebed80623f59b
-── P0 structural discovery ──
-[20:40:35]   provider directories under data/warm/: 61
-[20:40:35]   ['_audit', 'archived-fred', 'asia-trade', 'backlog', 'banxico', 'bis', 'blackswan', 'bls-full', 'boe-full', 'boe', 'boj-full', 'census-econ', 'census-us', 'cftc'] …
-[20:40:35]   data/_state/ documents: 71
-[20:40:46]   candidate state documents reached: 238  (ops 5064 reached far fewer and called it a clean fleet)
-── P1 every done/total pair, ranked by absolute missing ──
-[20:41:12]   where                                       missing         of   have% kind
-[20:41:12]   data/_state/census-econ.json                  1,211      1,226    1.2% fixable
-[20:41:12]   data/_state/census-econ-s1.json                 203        211    3.8% fixable
-[20:41:12]   data/_state/census-econ-s2.json                 202        213    5.2% fixable
-[20:41:12]   data/_state/census-econ-s4.json                 190        198    4.0% fixable
-[20:41:12]   data/_state/census-econ-s5.json                 182        189    3.7% fixable
-[20:41:12]   data/_state/census-econ-s3.json                 153        201   23.9% fixable
-[20:41:12]   data/_state/census-econ-s0.json                 151        214   29.4% fixable
-[20:41:12]   census-us/_state/state.json                       1         56   98.2% fixable
-[20:41:12]   documents with a measurable gap: 8
-[20:41:12]   TOTAL MISSING across the fleet: 2,293 items
-── P2 the named lanes, at whatever path they really use ──
-[20:41:12]   boj        api_BP01.json                                  keys=['codes', 'db', 'done', 'fail', 'parts', 'rows']
-[20:41:13]   gdelt      state.json                                     keys=['as_of', 'bytes', 'cursor', 'failures', 'files', 'gaps', 'gaps_sample', 'lease_until', 'phase']
-[20:41:13]   fred       fred-categories.json                           keys=['cats', 'errors', 'frontier', 'n_categories', 'status', 'updated_at', 'visited']
-[20:41:14]   imf        IMF:BP6.manifest.json                          keys=['as_of', 'complete', 'engine', 'first_period', 'flow', 'n_parts', 'parts', 'total_raw_bytes']
-[20:41:14]   worldbank  state.json                                     keys=['as_of', 'bytes_total', 'failures', 'have', 'lease_until', 'n_banked', 'n_indicators', 'phase', 'queue']
-[20:41:14]   oecd       sdmx-walk-oecd.json                            keys=['as_of', 'done', 'failures', 'lease_until', 'n_total', 'progress_pct', 'retried_fail', 'retried_ok', 'status']
-[20:41:15]   finra      state.json                                     keys=['as_of', 'drain_src', 'failures', 'have', 'invalid', 'last_discover', 'lease_until', 'n_banked', 'phase']
-[20:41:15]   nyfed      hist-state.json                                keys=['families', 'mark']
-[20:41:15]   frbddp     state.json                                     keys=['as_of', 'failures', 'lease_until', 'rels', 'version']
-[20:41:16]   tic        state.json                                     keys=['as_of', 'failures', 'files', 'lease_until', 'version']
-── P3 expedite order ──
-[20:41:16]   FIXABLE: 8 lanes, 2,293 items missing
-[20:41:16]     data/_state/census-econ.json                1,211 missing  (1% held)
-[20:41:16]     data/_state/census-econ-s1.json               203 missing  (4% held)
-[20:41:16]     data/_state/census-econ-s2.json               202 missing  (5% held)
-[20:41:16]     data/_state/census-econ-s4.json               190 missing  (4% held)
-[20:41:16]     data/_state/census-econ-s5.json               182 missing  (4% held)
-[20:41:16]     data/_state/census-econ-s3.json               153 missing  (24% held)
-[20:41:16]     data/_state/census-econ-s0.json               151 missing  (29% held)
-[20:41:16]     census-us/_state/state.json                     1 missing  (98% held)
-[20:41:16]   BLOCKED-LOOKING: 0 lanes, 0 items
-[20:41:16]   -> data/ops/fleet-gaps.json
-[20:41:16] ops 5065 GREEN -- backlog quantified on a scan that actually reached the fleet
+executing-against: 790b586f37d9ee027393ce26516ace7d2ff26a44
+── P0 numeric shape of every provider state doc ──
+[20:46:19]   61 providers
+[20:46:19]   asia-trade     state.json                     {"hk.res{}": 37, "cl.res{}": 20, "hk.themes.merchandise-trade.hits": 4, "hk.themes.industrial-pr
+[20:46:20]   bls-full       state.json                     {"bytes_total": 40064453478, "have{}": 1659, "n_files": 1659, "surveys{}": 65, "n_surveys": 65, 
+[20:46:20]   boe-full       state.json                     {"iadb{}": 36, "zips{}": 11, "zip_universe": 11, "lease_until": 0}
+[20:46:20]   boj-full       state.json                     {"api.dbs{}": 22, "zips{}": 16, "universe": 16, "lease_until": 0}
+[20:46:20]   census-us      state.json                     {"rows_total": 4604884, "n_timeseries_universe": 94, "datasets{}": 56, "catalog{}": 56, "n_total
+[20:46:20]   dol-full       state.json                     {"bytes_total": 160634259, "have{}": 70, "universe_n": 70, "n_files": 70, "lease_until": 0}
+[20:46:21]   ecb            coverage.json                  {"n_flows_walked": 214, "n_fast": 156, "fast_flows[]": 156, "n_deep": 58, "n_deep_complete": 58,
+[20:46:21]   finra-full     state.json                     {"universe{}": 9, "last_discover.n": 9, "have{}": 8, "n_banked": 8, "failures.fixedIncomeMarket_
+[20:46:21]   fiscaldata-ful state.json                     {"rows_total": 1396027, "have{}": 33, "universe{}": 33, "n_banked": 33, "last_refresh_check.chec
+[20:46:21]   frbddp-full    state.json                     {"rels{}": 25, "lease_until": 0}
+[20:46:22]   gdelt-full     state.json                     {"v1_bytes": 44590476364, "bytes": 39752748141, "files": 396862, "gaps": 7381, "v1_total": 4986,
+[20:46:22]   imf-full       state.json                     {"lease_until": 1788059696.8181705, "universe{}": 222, "last_discover.flows": 222, "have{}": 218
+[20:46:22]   nyfed-markets  pd-state.json                  {"depth.n_obs_sum": 553043, "catalog[]": 1539, "done[]": 1539, "depth.keys": 1539, "depth.multi"
+[20:46:23]   ofr-hfm        state.json                     {"done[]": 497, "catalog[]": 497, "refresh_cursor": 121, "progress_pct": 100.0, "catalog_new_las
+[20:46:23]   ofr            state.json                     {"done[]": 442, "catalog[]": 442, "progress_pct": 100.0}
+[20:46:24]   polygon-full   state.json                     {"bytes": 1442395165, "last_n": 12506, "sessions": 1257, "skips": 573, "forbidden_advances": 86,
+[20:46:24]   te-mirror      _state.json                    {"catalog[]": 225, "failures{}": 225, "done[]": 120, "lease_until": 0}
+[20:46:24]   tic-full       state.json                     {"files{}": 12, "lease_until": 0}
+[20:46:24]   tv-bars        _state.json                    {"catalog[]": 192, "lease_until": 0, "progress_pct": 0.0}
+[20:46:25]   worldbank-full state.json                     {"bytes_total": 473415663, "n_indicators": 29490, "have{}": 29468, "n_banked": 29468, "failures{
+── P1 BOJ -- coverage spread across api_*.json parts ──
+[20:46:25]   boj api part documents: 0
+[20:46:25]   across 0 dbs: done=0 parts=0 rows=0
+── P2 per-lane gaps, from fields that exist ──
+── P3 ranked backlog ──
+[20:46:25]   lane              missing           of    have%
+[20:46:25]   TOTAL MISSING: 0 items across 0 lanes
+[20:46:25]   -> data/ops/fleet-gaps.json
+[20:46:25] ops 5066 GREEN -- lanes read in their own vocabulary
 
-→ Report written to aws/ops/reports/latest/ops_5065_gap_census_fixed.md
+→ Report written to aws/ops/reports/latest/ops_5066_lane_shapes.md
