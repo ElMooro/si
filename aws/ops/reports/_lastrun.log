@@ -1,35 +1,38 @@
-executing-against: 06ad8cd5fe67f7877930db68fe7beb4a3559a54d
-── P0 deploy + is the ACCOUNT the limit ──
-[18:54:22]   code fresh 2026-08-30T18:54:20.000+0000 mem=1024
-[18:54:22]   account concurrency limit=1000 unreserved=783
-[18:54:22]   Invocations  last 3h: 29
-[18:54:22]   Throttles    last 3h: 2099
-[18:54:22]   Errors       last 3h: 22
-[18:54:22]   THROTTLES PRESENT -- that is why s1/s3/s4 wrote no state. More shards would make this worse, not faster.
-[18:54:22]   errors logged -- shard workers may be failing outright
-── P1 one dispatcher instead of six scattered targets ──
-[18:54:23]   justhodl-series-extractor-5min: removed ['econs0']
-[18:54:23]   benzinga-news-agent-warm: removed ['econs1', 'econs2', 'econs3', 'econs4']
-[18:54:23]   justhodl-sdmx-walker-hourly: removed ['econs5']
-[18:54:23]   carry-surface-4h: removed ['censusecon']
-[18:54:24]   dispatcher on benzinga-news-agent-warm (rate(5 minutes)), failed=0
-── P2 drive it ──
-[18:54:25]   starting from 22 entries done
-[18:54:27]   dispatch err An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries:
-[19:08:08]   t+14min total=28 (+6)  0.44/min  shards alive 5/12
-[19:08:12]   dispatch err An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries:
-[19:21:53]   t+27min total=34 (+12)  0.44/min  shards alive 5/12
-[19:21:57]   dispatch err An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries:
-[19:35:39]   t+41min total=44 (+22)  0.53/min  shards alive 5/12
-[19:35:40]   RATE 0.53 entries/min   (0.15 single, 0.37 six-shard)
-[19:35:40]   1182 left -> ~36.9 h
-── P3 waste eliminated? ──
-[19:35:41]   oversize registry: 1 (dataset, geo) pairs known
-[19:35:41]     ('nonemp', 'metropolitan statistical area/micropolitan statistical area')
-[19:35:42]   geo levels SKIPPED via the registry: 1
-[19:35:42]   (each skip is a ~130k-row download not made)
-[19:35:43]   distinct done=44 duplicates=0
-[19:35:43]   S3: 62 objects, 48.7 MB, families={'cbp': 32, 'nonemp': 24, 'ase': 6}
-[19:35:43] ops 5063 GREEN -- scaled, and no longer paying for reads it throws away
+executing-against: 708eba12b08f4c2cf705641b0ede4e6ebb8b84c6
+── P0 every state document in the fleet ──
+[20:34:33]   data/_state/: 70 docs   data/warm/*/_state/: 20 docs
+── P1 ranked by what is MISSING, not by percentage ──
+[20:34:43]   state doc                         missing   of total   have%  kind
+[20:34:43]   census-econ                         1,211      1,226    1.2%  fixable
+[20:34:43]   census-econ-s1                        203        211    3.8%  fixable
+[20:34:43]   census-econ-s2                        202        213    5.2%  fixable
+[20:34:43]   census-econ-s4                        190        198    4.0%  fixable
+[20:34:43]   census-econ-s5                        182        189    3.7%  fixable
+[20:34:43]   census-econ-s0                        157        214   26.6%  fixable
+[20:34:43]   census-econ-s3                        153        201   23.9%  fixable
+[20:34:43]   total documents with a measurable gap: 7
+── P2 the named lanes, checked directly ──
+[20:34:43]   boj            data/_state/boj-full.json -> not at that path
+[20:34:43]   oecd           {"n_total": 1546}
+[20:34:43]   fred           data/_state/fred-import.json -> not at that path
+[20:34:43]   gdelt          data/_state/gdelt-full.json -> not at that path
+[20:34:43]   imf            data/_state/imf-full.json -> not at that path
+[20:34:43]   worldbank      data/_state/worldbank-full.json -> not at that path
+[20:34:43]   census-econ-s0 {"phase": "DRAIN", "n_total": 214, "n_done": 57, "rows_total": 2168377, "updated_at": "2026-08-30T19:54:40.015358+00:00", "queue_left": 157}
+── P3 fixable vs blocked ──
+[20:34:43]   fixable lanes: 7, missing 2,298 items total
+[20:34:43]     census-econ                  1,211 missing (1% held)
+[20:34:43]     census-econ-s1               203 missing (4% held)
+[20:34:43]     census-econ-s2               202 missing (5% held)
+[20:34:43]     census-econ-s4               190 missing (4% held)
+[20:34:43]     census-econ-s5               182 missing (4% held)
+[20:34:43]     census-econ-s0               157 missing (27% held)
+[20:34:43]     census-econ-s3               153 missing (24% held)
+[20:34:43]   looks blocked (credential/denied/by-design): 0
+[20:34:43]   EXPEDITE ORDER = the fixable list above, largest first.
+[20:34:43]   Blocked lanes are not slow, they are stopped -- chasing
+[20:34:43]   them is the waste.
+[20:34:43]   -> data/ops/fleet-gaps.json
+[20:34:43] ops 5064 GREEN -- fleet backlog quantified
 
-→ Report written to aws/ops/reports/latest/ops_5063_econ_scale.md
+→ Report written to aws/ops/reports/latest/ops_5064_fleet_gap_census.md

@@ -1,0 +1,50 @@
+## P0 every state document in the fleet
+
+**Status:** success  
+**Duration:** 11.7s  
+**Finished:** 2026-08-30T20:34:43+00:00  
+
+## Data
+
+| blocked | fixable | gaps | top |
+|---|---|---|---|
+| 0 | 7 | 7 | census-econ |
+
+## Log
+- `20:34:33`   data/_state/: 70 docs   data/warm/*/_state/: 20 docs
+## P1 ranked by what is MISSING, not by percentage
+
+- `20:34:43`   state doc                         missing   of total   have%  kind
+- `20:34:43`   census-econ                         1,211      1,226    1.2%  fixable
+- `20:34:43`   census-econ-s1                        203        211    3.8%  fixable
+- `20:34:43`   census-econ-s2                        202        213    5.2%  fixable
+- `20:34:43`   census-econ-s4                        190        198    4.0%  fixable
+- `20:34:43`   census-econ-s5                        182        189    3.7%  fixable
+- `20:34:43`   census-econ-s0                        157        214   26.6%  fixable
+- `20:34:43`   census-econ-s3                        153        201   23.9%  fixable
+- `20:34:43`   total documents with a measurable gap: 7
+## P2 the named lanes, checked directly
+
+- `20:34:43`   boj            data/_state/boj-full.json -> not at that path
+- `20:34:43`   oecd           {"n_total": 1546}
+- `20:34:43`   fred           data/_state/fred-import.json -> not at that path
+- `20:34:43`   gdelt          data/_state/gdelt-full.json -> not at that path
+- `20:34:43`   imf            data/_state/imf-full.json -> not at that path
+- `20:34:43`   worldbank      data/_state/worldbank-full.json -> not at that path
+- `20:34:43`   census-econ-s0 {"phase": "DRAIN", "n_total": 214, "n_done": 57, "rows_total": 2168377, "updated_at": "2026-08-30T19:54:40.015358+00:00", "queue_left": 157}
+## P3 fixable vs blocked
+
+- `20:34:43`   fixable lanes: 7, missing 2,298 items total
+- `20:34:43`     census-econ                  1,211 missing (1% held)
+- `20:34:43`     census-econ-s1               203 missing (4% held)
+- `20:34:43`     census-econ-s2               202 missing (5% held)
+- `20:34:43`     census-econ-s4               190 missing (4% held)
+- `20:34:43`     census-econ-s5               182 missing (4% held)
+- `20:34:43`     census-econ-s0               157 missing (27% held)
+- `20:34:43`     census-econ-s3               153 missing (24% held)
+- `20:34:43`   looks blocked (credential/denied/by-design): 0
+- `20:34:43`   EXPEDITE ORDER = the fixable list above, largest first.
+- `20:34:43`   Blocked lanes are not slow, they are stopped -- chasing
+- `20:34:43`   them is the waste.
+- `20:34:43`   -> data/ops/fleet-gaps.json
+- `20:34:43` ops 5064 GREEN -- fleet backlog quantified
