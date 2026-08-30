@@ -1,0 +1,43 @@
+## P0 BOJ per-db truth
+
+**Status:** failure  
+**Duration:** 2415.9s  
+**Finished:** 2026-08-30T21:33:05+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `20:52:51`   dbs=16  parts done=55,306/7,148  rows=258,846
+- `20:52:51`   part coverage 773.7%  -> -48,158 parts outstanding
+- `20:52:51`   newest state write: 2026-08-26 22:50:19+00:00
+- `20:52:51`   dbs still short (4):
+- `20:52:51`     FM02           47/88  (41 outstanding)
+- `20:52:51`     FM08           58/94  (36 outstanding)
+- `20:52:51`     IR01           2/16  (14 outstanding)
+- `20:52:51`     FM01           4/8  (4 outstanding)
+## P1 is BOJ actually running
+
+- `20:52:52`   invocations/day (3d): 08-27=1 08-28=1 08-29=1
+- `20:52:52`   rules: NONE -- untriggered, exactly like census-us was
+## P2 expedite
+
+- `21:02:55`   t+10min  parts 55,306/7,148 (+0)  rows 258,846 (+0)  short=4
+- `21:12:57`   t+20min  parts 55,306/7,148 (+0)  rows 258,846 (+0)  short=4
+- `21:22:59`   t+30min  parts 55,306/7,148 (+0)  rows 258,846 (+0)  short=4
+- `21:33:01`   t+40min  parts 55,306/7,148 (+0)  rows 258,846 (+0)  short=4
+- `21:33:03`   drained 0 parts in 40 min (0.0/min); rows +0
+- `21:33:03`   NO MOVEMENT -- the drain is not advancing; the gap is not a slow crawl, it is a stopped one
+## P3 the other lanes, correct paths
+
+- `21:33:03`   oecd     done=1548 n_total=1546 failures=488
+- `21:33:03`   gdelt    files=396862 gaps=7381 cursor=20260830194500
+- `21:33:03`   wb       {"lease_until": 0, "n_indicators": 29490, "n_banked": 29468, "bytes_total": 473415663}
+- `21:33:03`   finra    {"lease_until": 0, "n_banked": 8}
+- `21:33:03`   census-ts {"n_total": 56, "n_done": 55, "rows_total": 4604884, "n_timeseries_universe": 94}
+- `21:33:05`   census-econ shards done=170/1226
+- `21:33:05`   -> data/ops/fleet-gaps.json
+- `21:33:05` ops 5067 RED: P2:stalled
