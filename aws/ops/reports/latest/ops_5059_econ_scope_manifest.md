@@ -1,0 +1,67 @@
+- `16:19:48`   catalogue: 1,798 entries
+## P0/P1 classify every family
+**Status:** success  
+**Duration:** 6.5s  
+**Finished:** 2026-08-30T16:19:49+00:00  
+
+## Data
+
+| economic_census_families | entries | families |
+|---|---|---|
+| 75 | 1226 | 108 |
+
+## Log
+
+- `16:19:48`   families IN SCOPE: 108   entries: 1,226
+- `16:19:48`   by reason: {'curated': 1047, 'keyword': 20, 'economic-census': 159}
+- `16:19:48`   --- the Economic Census, in all its parts ---
+- `16:19:48`   ecn* families: 75, 159 entries
+- `16:19:48`     ecneoyinv         3  2012–2022   Wholesale Trade: Subject Series - Misc Subjects: End-of-
+- `16:19:48`     ecnbasic          3  2012–2022   Economic Census: Economic Census of the United States: E
+- `16:19:48`     ecncrfin          3  2012–2022   Finance and Insurance: Subject Series - Misc Subjects: T
+- `16:19:48`     ecnbranddeal      3  2012–2022   Finance and Insurance: Subject Series - Misc Subjects: B
+- `16:19:48`     ecnbridge1        3  2012–2022   All sectors: Core Business Statistics Series: Industry B
+- `16:19:48`     ecnbridge2        3  2012–2022   All sectors: Core Business Statistics Series: Industry B
+- `16:19:48`     ecnempfunc        3  2012–2022   Wholesale Trade: Subject Series - Misc Subjects: Employm
+- `16:19:48`     ecnccard          3  2012–2022   Finance and Insurance: Subject Series - Misc Subjects: C
+- `16:19:48`     ecnclcust         3  2012–2022   2012 Economic Census - Economic Census US Economic Class
+- `16:19:48`     ecncomm           3  2012–2022   Wholesale Trade: Subject Series - Misc Subjects: Sales a
+- `16:19:48`     ecncomp           3  2012–2022   All sectors: Core Business Statistics Series: Comparativ
+- `16:19:48`     ecnentsup         3  2012–2022   2012 Economic Census - Economic Census US Enterprise Sup
+- `16:19:48`     ecnconact         3  2012–2022   Subject Series - Misc Subjects: Construction Activity fo
+- `16:19:48`     ecngrant          3  2012–2022   Health Care and Social Assistance: Subject Series - Misc
+- `16:19:48`     ecnhosp           3  2012–2022   Health Care and Social Assistance: Subject Series - Misc
+- `16:19:48`     ecninvval         3  2012–2022   Manufacturing: Summary Series: General Summary: Method o
+- `16:19:48`   --- everything else in scope ---
+- `16:19:48`     cps               703  1989–2026   curated   Jan 1990 Current Population Survey: Basic Mont
+- `16:19:48`     sipp              178  1990–2024   curated   1990 Survey of Income and Program Participatio
+- `16:19:48`     cbp                38  1986–2023   curated   1986 County Business Patterns: Business Patter
+- `16:19:48`     nonemp             27  1997–2023   curated   1997 Nonemployer Statistics: Non Employer Stat
+- `16:19:48`     zbp                25  1994–2018   curated   1994 County Business Patterns - Zip Code Busin
+- `16:19:48`     ecn                12  2012–2022   curated   Economic Census: Economic Census of Island Are
+- `16:19:48`     ase                 9  2014–2016   curated   Economic Surveys: Annual Survey of Entrepreneu
+- `16:19:48`     abscb               7  2017–2023   curated   Annual Business Survey: Characteristics of Bus
+- `16:19:48`     abscbo              7  2017–2023   curated   Annual Business Survey: Characteristics of Bus
+- `16:19:48`     abscs               7  2017–2023   curated   2017 Annual Business Survey: Company Summary
+- `16:19:48`     absnesdo            6  2018–2023   curated   2018 Nonemployer Statistics by Demographics Se
+- `16:19:48`     absnesd             6  2018–2023   curated   2018 Nonemployer Statistics by Demographics Se
+- `16:19:48`     ewks                4  1997–2012   curated   1997 Economic Census - All Sectors: Economy-Wi
+- `16:19:48`     absmcb              4  2020–2023   curated   2020 Annual Business Survey: Technology, Finan
+- `16:19:48`     rhfs                4  2015–2024   curated   Rental Housing Finance Survey
+- `16:19:48`     cfspum              4  2012–2017   curated   Commodity Flow Survey  Public Use Microdata: D
+- `16:19:48`     cfsarea             3  2012–2022   curated   2012 Commodity Flow Survey - Geographic Area S
+- `16:19:48`     cfsexport           3  2012–2022   curated   2012 Commodity Flow Survey - Exports Series
+- `16:19:48`   --- dropped as demographics/social ---
+- `16:19:48`     ['acs', 'cre', 'crepuertorico', 'dec', 'geoinfo', 'intltrade', 'language', 'pdb', 'pep', 'popproj', 'sbo', 'surname']
+## P2 cost
+
+- `16:19:48`   1,226 entries in scope vs 1,704 unfetched total
+- `16:19:48`   5058 measured ~15,650 requests for its 8 largest; the ecn*
+- `16:19:48`   families are small per-entry (12-30 variables, 1 geo level)
+- `16:19:48`   so the union stays in the same order of magnitude.
+- `16:19:48`   With CENSUS_API_KEY present and answering, this is hours of
+- `16:19:48`   polite crawling, not the 31 days an unkeyed walker faced.
+## P3 write the scope manifest
+
+- `16:19:49`   -> data/_state/census-econ-scope.json  (108 families, 1,226 entries)
+- `16:19:49` ops 5059 GREEN -- scope is now a reviewable manifest
