@@ -1,0 +1,47 @@
+## P0 finish Tier 1
+
+**Status:** success  
+**Duration:** 2163.3s  
+**Finished:** 2026-08-30T02:18:30+00:00  
+
+## Data
+
+| large_read_kb | small_rows | t1_left |
+|---|---|---|
+| 369 | 111 | 105 |
+
+## Log
+- `01:42:27`   t+ 0min eurostat t1 flows=1315 left=201 entries=191,938,324 17.91 GB
+- `01:46:27`   t+ 4min eurostat t1 flows=1330 left=186 entries=202,204,286 18.91 GB
+- `01:50:27`   t+ 8min eurostat t1 flows=1343 left=173 entries=210,939,298 19.77 GB
+- `01:54:27`   t+12min eurostat t1 flows=1357 left=159 entries=221,010,553 20.75 GB
+- `01:58:27`   t+16min eurostat t1 flows=1369 left=147 entries=230,308,045 21.64 GB
+- `02:02:28`   t+20min eurostat t1 flows=1381 left=135 entries=239,074,969 22.51 GB
+- `02:06:28`   t+24min eurostat t1 flows=1391 left=125 entries=248,663,943 23.41 GB
+- `02:10:28`   t+28min eurostat t1 flows=1401 left=115 entries=259,242,766 24.39 GB
+- `02:14:28`   t+32min eurostat t1 flows=1411 left=105 entries=268,328,152 25.22 GB
+## P1 is the deployed provider.html the fixed one
+
+- `02:18:28`   GET /provider.html -> 200, 13,981 bytes
+- `02:18:28`   all-pages loop removed     OK
+- `02:18:28`   _ensureSeriesCache gone    OK
+- `02:18:28`   index search present       OK
+- `02:18:28`   flow opener present        OK
+- `02:18:28`   range read present         OK
+## P2 LARGE-flow branch (Tier 1) over HTTP
+
+- `02:18:29`   MIGR_ASYRESDA: 1,265,810 series, 309 blocks (map 27,440 bytes)
+- `02:18:29`   binary search -> block 103/309, HTTP 206, 377,728 bytes in 215 ms, 4096 rows
+- `02:18:29`   first row: id=eurostat:MIGR_ASYRESDA:A.PER.POS_OTH.AD.M.UNK.LV f=2021 l=2025 n=None
+- `02:18:29`   renderable (id + last_obs present): True
+## P3 SMALL-flow branch (page range) over HTTP
+
+- `02:18:29`   AACT_ALI01: span 2 pages, fetched 2 pages / 0.5 MB in 403 ms -> 111 rows for this flow
+- `02:18:29`   first row: id=eurostat:AACT_ALI01:A.AM400000.THS_AWU.AT name=AACT_ALI01 · A · AM400000  geo=AT last_obs=2025 last_value=114.47
+## P4 stand down
+
+- `02:18:29`   Tier 1 still building (105 left) -- leaving rate(2 minutes)
+- `02:18:30`   rule=rate(2 minutes) targets=4 concurrency=1
+- `02:18:30`   eurostat  series 564,204,000 in 1,128,408 pages · t1 1420 flows / 278,096,235 entries
+- `02:18:30`   ecb       series 3,240,500 in 6,481 pages · t1 17 flows / 2,619,231 entries
+- `02:18:30` ops 5054 GREEN -- the browser's path works end to end

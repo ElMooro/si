@@ -1,23 +1,34 @@
-executing-against: 99604e8a8b1fb640c2c904d32ac910b40f4d0d1f
-── P0 wait for the worker deploy ──
-[01:35:53]   probe flow IVF: 273,854 entries, 67 blocks
-[01:35:54]   worker live after 0s (206 seen)
-── P1 ranged GETs through the CDN ──
-[01:35:54]   first block   HTTP 206  Content-Range=bytes 0-362243/24135452  Accept-Ranges=bytes
-[01:35:54]                 got 362,244 bytes, expected 362,244  EXACT
-[01:35:54]   middle block  HTTP 206  Content-Range=bytes 11953544-12315846/24135452  Accept-Ranges=bytes
-[01:35:54]                 got 362,303 bytes, expected 362,303  EXACT
-── P2 are they the RIGHT bytes ──
-[01:35:55]   block map says first id = ecb:IVF:IVF.M.SK.N.10.A30.F.4.U2.1000.EUR.E
-[01:35:55]   payload first id        = ecb:IVF:IVF.M.SK.N.10.A30.F.4.U2.1000.EUR.E  MATCH -- binary search lands correctly
-[01:35:55]   payload last id         = ecb:IVF:IVF.M.SK.N.5B.A30.A.1.U6.1000.Z01.E  (4096 lines)
-[01:35:55]   entries in block: 4096 (map says 4096)
-── P3 unranged reads still work ──
-[01:35:55]   GET flows.json.gz -> 200, 23,483 bytes
-[01:35:55]   GET page-0000.json -> 200, 300,054 bytes
-── P4 Tier-1 progress ──
-[01:35:56]   ecb       flows=17 left=0 entries=2,619,231 blocks=649 0.24 GB
-[01:35:56]   eurostat  flows=1284 left=232 entries=178,688,643 blocks=44,281 16.68 GB
-[01:35:56] ops 5053 GREEN -- Tier 1 is genuinely range-served
+executing-against: defb1892bd1c2dc0439261a707feb0c7c99261b9
+── P0 finish Tier 1 ──
+[01:42:27]   t+ 0min eurostat t1 flows=1315 left=201 entries=191,938,324 17.91 GB
+[01:46:27]   t+ 4min eurostat t1 flows=1330 left=186 entries=202,204,286 18.91 GB
+[01:50:27]   t+ 8min eurostat t1 flows=1343 left=173 entries=210,939,298 19.77 GB
+[01:54:27]   t+12min eurostat t1 flows=1357 left=159 entries=221,010,553 20.75 GB
+[01:58:27]   t+16min eurostat t1 flows=1369 left=147 entries=230,308,045 21.64 GB
+[02:02:28]   t+20min eurostat t1 flows=1381 left=135 entries=239,074,969 22.51 GB
+[02:06:28]   t+24min eurostat t1 flows=1391 left=125 entries=248,663,943 23.41 GB
+[02:10:28]   t+28min eurostat t1 flows=1401 left=115 entries=259,242,766 24.39 GB
+[02:14:28]   t+32min eurostat t1 flows=1411 left=105 entries=268,328,152 25.22 GB
+── P1 is the deployed provider.html the fixed one ──
+[02:18:28]   GET /provider.html -> 200, 13,981 bytes
+[02:18:28]   all-pages loop removed     OK
+[02:18:28]   _ensureSeriesCache gone    OK
+[02:18:28]   index search present       OK
+[02:18:28]   flow opener present        OK
+[02:18:28]   range read present         OK
+── P2 LARGE-flow branch (Tier 1) over HTTP ──
+[02:18:29]   MIGR_ASYRESDA: 1,265,810 series, 309 blocks (map 27,440 bytes)
+[02:18:29]   binary search -> block 103/309, HTTP 206, 377,728 bytes in 215 ms, 4096 rows
+[02:18:29]   first row: id=eurostat:MIGR_ASYRESDA:A.PER.POS_OTH.AD.M.UNK.LV f=2021 l=2025 n=None
+[02:18:29]   renderable (id + last_obs present): True
+── P3 SMALL-flow branch (page range) over HTTP ──
+[02:18:29]   AACT_ALI01: span 2 pages, fetched 2 pages / 0.5 MB in 403 ms -> 111 rows for this flow
+[02:18:29]   first row: id=eurostat:AACT_ALI01:A.AM400000.THS_AWU.AT name=AACT_ALI01 · A · AM400000  geo=AT last_obs=2025 last_value=114.47
+── P4 stand down ──
+[02:18:29]   Tier 1 still building (105 left) -- leaving rate(2 minutes)
+[02:18:30]   rule=rate(2 minutes) targets=4 concurrency=1
+[02:18:30]   eurostat  series 564,204,000 in 1,128,408 pages · t1 1420 flows / 278,096,235 entries
+[02:18:30]   ecb       series 3,240,500 in 6,481 pages · t1 17 flows / 2,619,231 entries
+[02:18:30] ops 5054 GREEN -- the browser's path works end to end
 
-→ Report written to aws/ops/reports/latest/ops_5053_range_verify.md
+→ Report written to aws/ops/reports/latest/ops_5054_browser_path.md
