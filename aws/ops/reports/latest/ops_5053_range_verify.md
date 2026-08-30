@@ -1,0 +1,36 @@
+## P0 wait for the worker deploy
+
+**Status:** success  
+**Duration:** 2.5s  
+**Finished:** 2026-08-30T01:35:56+00:00  
+
+## Data
+
+| eurostat_t1 | left | range_ok |
+|---|---|---|
+| 1284 | 232 | True |
+
+## Log
+- `01:35:53`   probe flow IVF: 273,854 entries, 67 blocks
+- `01:35:54`   worker live after 0s (206 seen)
+## P1 ranged GETs through the CDN
+
+- `01:35:54`   first block   HTTP 206  Content-Range=bytes 0-362243/24135452  Accept-Ranges=bytes
+- `01:35:54`                 got 362,244 bytes, expected 362,244  EXACT
+- `01:35:54`   middle block  HTTP 206  Content-Range=bytes 11953544-12315846/24135452  Accept-Ranges=bytes
+- `01:35:54`                 got 362,303 bytes, expected 362,303  EXACT
+## P2 are they the RIGHT bytes
+
+- `01:35:55`   block map says first id = ecb:IVF:IVF.M.SK.N.10.A30.F.4.U2.1000.EUR.E
+- `01:35:55`   payload first id        = ecb:IVF:IVF.M.SK.N.10.A30.F.4.U2.1000.EUR.E  MATCH -- binary search lands correctly
+- `01:35:55`   payload last id         = ecb:IVF:IVF.M.SK.N.5B.A30.A.1.U6.1000.Z01.E  (4096 lines)
+- `01:35:55`   entries in block: 4096 (map says 4096)
+## P3 unranged reads still work
+
+- `01:35:55`   GET flows.json.gz -> 200, 23,483 bytes
+- `01:35:55`   GET page-0000.json -> 200, 300,054 bytes
+## P4 Tier-1 progress
+
+- `01:35:56`   ecb       flows=17 left=0 entries=2,619,231 blocks=649 0.24 GB
+- `01:35:56`   eurostat  flows=1284 left=232 entries=178,688,643 blocks=44,281 16.68 GB
+- `01:35:56` ops 5053 GREEN -- Tier 1 is genuinely range-served
