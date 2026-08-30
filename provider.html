@@ -89,20 +89,54 @@ function _loadSeriesManifest(){
 _loadSeriesManifest();
 document.getElementById('tabFiles').onclick=function(){document.getElementById('filesPane').style.display='block';document.getElementById('seriesPane').style.display='none';this.style.borderBottomColor='#8fd0ff';this.style.color='#8fd0ff';document.getElementById('tabSeries').style.borderBottomColor='transparent';document.getElementById('tabSeries').style.color='#5d7285';};
 document.getElementById('tabSeries').onclick=function(){document.getElementById('filesPane').style.display='none';document.getElementById('seriesPane').style.display='block';this.style.borderBottomColor='#8fd0ff';this.style.color='#8fd0ff';document.getElementById('tabFiles').style.borderBottomColor='transparent';document.getElementById('tabFiles').style.color='#5d7285';};
-async function _ensureSeriesCache(){
- if(_seriesCache||_seriesLoading||!window._serManifest)return;
- _seriesLoading=true;var m=window._serManifest;var all=[];
- for(var i=0;i<m.n_pages;i++){try{var r=await fetch('/data/providers/'+slug+'/series/page-'+String(i).padStart(4,'0')+'.json?t='+Date.now());var d=await r.json();all=all.concat(d.rows||[]);}catch(e){}}
- _seriesCache=all;_seriesLoading=false;_runSearch();}
-function _runSearch(){var q=(document.getElementById('sq').value||'').trim().toLowerCase();
+var _idx=null,_idxErr=false,_curFlow=null;
+async function _getIdx(){
+ if(_idx||_idxErr)return _idx;
+ try{var r=await fetch('/data/index/'+slug+'/flows.json.gz');if(!r.ok)throw 0;_idx=await r.json();}catch(e){_idxErr=true;}
+ return _idx;}
+function _e(s){return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+function _td(v,al,col){return '<td style="padding:5px 8px;border-bottom:1px solid #121b25;color:'+(col||'#c3d3e0')+';text-align:'+(al||'left')+'">'+v+'</td>';}
+async function _loadFlow(f){
+ var rec=(_idx.flows||{})[f]||{};
+ try{
+  var bm=await(await fetch('/data/index/'+slug+'/t1/'+encodeURIComponent(f)+'.blocks.json')).json();
+  var b=(bm.blocks||[])[0];
+  var rs=await fetch('/data/index/'+slug+'/t1/'+encodeURIComponent(f)+'.jsonl',{headers:{'Range':'bytes='+b.o+'-'+(b.o+b.c-1)}});
+  if(rs.status!==206)throw 0;                       /* full body would defeat the point */
+  var rows=(await rs.text()).trim().split('\n').map(function(l){return JSON.parse(l);});
+  return {rows:rows,src:'block 1 of '+bm.blocks.length+' · '+(bm.n||0).toLocaleString()+' series indexed · '+Math.round(b.c/1024)+' KB fetched'};
+ }catch(e){}
+ var lo=rec.lo||0,hi=Math.min(rec.hi==null?lo:rec.hi,(rec.lo||0)+9),out=[];
+ for(var p=lo;p<=hi;p++){try{
+  var d=await(await fetch('/data/providers/'+slug+'/series/page-'+String(p).padStart(4,'0')+'.json')).json();
+  (d.rows||[]).forEach(function(r){if(r.flow===f)out.push(r);});}catch(e2){}}
+ return {rows:out,src:'pages '+lo+'–'+hi+' of '+(rec.lo||0)+'–'+(rec.hi||0)};}
+async function _showFlow(f){
+ _curFlow=f;var hint=document.getElementById('sHint'),tbl=document.getElementById('sTbl'),body=document.getElementById('sBody');
+ hint.style.display='block';hint.textContent='Loading '+f+'…';tbl.style.display='none';
+ var res=await _loadFlow(f);hint.style.display='none';tbl.style.display='table';
+ body.innerHTML='<tr><td colspan="4" style="padding:6px 8px;color:#8fd0ff;cursor:pointer" onclick="_curFlow=null;_runSearch()">← all datasets</td></tr>'+
+  '<tr><td colspan="4" style="padding:4px 8px;color:#5d7285;font-size:10px">'+_e(f)+' · '+_e(res.src)+'</td></tr>'+
+  res.rows.slice(0,400).map(function(s){return '<tr>'+_td(_e(s.name||s.id))+_td(_e(s.geo||'—'))+
+   _td(s.last_value!=null?s.last_value.toLocaleString():(s.n!=null?s.n+' obs':'—'),'right','#9fd0a8')+
+   _td(_e(s.last_obs||s.l||'—'),'right','#5d7285')+'</tr>';}).join('');}
+async function _runSearch(){
+ var q=(document.getElementById('sq').value||'').trim();
  var hint=document.getElementById('sHint'),tbl=document.getElementById('sTbl'),body=document.getElementById('sBody');
- if(q.length<2){hint.style.display='block';tbl.style.display='none';return;}
- if(!_seriesCache){hint.textContent='Loading series pages…';hint.style.display='block';tbl.style.display='none';_ensureSeriesCache();return;}
- hint.style.display='none';tbl.style.display='table';body.innerHTML='';
- var hits=_seriesCache.filter(function(s){return (s.id+' '+s.name).toLowerCase().indexOf(q)>=0;}).slice(0,300);
- hits.forEach(function(s){var tr=document.createElement('tr');
-  tr.innerHTML='<td style="padding:5px 8px;border-bottom:1px solid #121b25;color:#c3d3e0">'+s.name+'</td><td style="padding:5px 8px;border-bottom:1px solid #121b25;color:#9fb4c7">'+(s.geo||'—')+'</td><td style="text-align:right;padding:5px 8px;border-bottom:1px solid #121b25;color:#9fd0a8">'+(s.last_value!=null?s.last_value.toLocaleString():'—')+'</td><td style="text-align:right;padding:5px 8px;border-bottom:1px solid #121b25;color:#5d7285">'+(s.last_obs||'—')+'</td>';
-  body.appendChild(tr);});}
+ if(q.length<2){hint.style.display='block';hint.textContent='Type 2+ characters to search datasets';tbl.style.display='none';_curFlow=null;return;}
+ var idx=await _getIdx();
+ if(!idx){hint.textContent='Series index not built for this provider yet';hint.style.display='block';tbl.style.display='none';return;}
+ if(_curFlow)return;
+ var ql=q.toLowerCase(),fl=idx.flows||{};
+ var hits=Object.keys(fl).filter(function(f){return f.toLowerCase().indexOf(ql)>=0;})
+   .sort(function(a,b){return (fl[b].series||0)-(fl[a].series||0);}).slice(0,300);
+ hint.style.display='none';tbl.style.display='table';
+ body.innerHTML=hits.length?hits.map(function(f){var r=fl[f];
+   return '<tr style="cursor:pointer" onclick="_showFlow(\''+f.replace(/'/g,"\\'")+'\')">'+
+    _td('<span style="color:#8fd0ff">'+_e(f)+'</span>')+
+    _td((r.series!=null?r.series.toLocaleString()+' series':'—')+(r.exact?'':' (est)'))+
+    _td((r.hi-r.lo+1)+' pages','right','#5d7285')+_td('open →','right','#4f6a7d')+'</tr>';}).join('')
+  :'<tr>'+_td('No dataset matches “'+_e(q)+'” in '+Object.keys(fl).length.toLocaleString()+' datasets')+'</tr>';}
 document.getElementById('sq').addEventListener('input',_runSearch);
 }).catch(function(){document.getElementById('nm').textContent='Provider "'+slug+'" not inventoried yet — next hourly catalog run adds it';document.getElementById('tb').innerHTML='';});
 </script>

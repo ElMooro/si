@@ -170,7 +170,14 @@ def _t1_build(provider, context, t0, s3c, bucket):
     Runs in-region deliberately: the same pass from a CI runner would be
     313GB of egress (~$28), here it is GET requests (~$0.45) and Lambda
     time (~$2)."""
-    idx_key = "index/%s/flows.json.gz" % provider
+    # ops 5052: the Cloudflare zone route is justhodl.ai/data/* ONLY, so
+    # anything under index/ is unreachable from the site. Everything the
+    # browser must read lives under data/index/.
+    idx_key = "data/index/%s/flows.json.gz" % provider
+    try:
+        s3c.head_object(Bucket=bucket, Key=idx_key)
+    except Exception:
+        idx_key = "index/%s/flows.json.gz" % provider
     idx = json.loads(gzip.decompress(
         s3c.get_object(Bucket=bucket, Key=idx_key)["Body"].read()))
     st_key = "data/_state/t1-%s.json" % provider
@@ -227,7 +234,7 @@ def _t1_build(provider, context, t0, s3c, bucket):
                            "c": len(blob), "n": len(chunk)})
             body += blob
             off += len(blob)
-        base = "index/%s/t1/%s" % (provider, f)
+        base = "data/index/%s/t1/%s" % (provider, f)
         s3c.put_object(Bucket=bucket, Key=base + ".jsonl",
                        Body=bytes(body),
                        ContentType="application/x-ndjson",
