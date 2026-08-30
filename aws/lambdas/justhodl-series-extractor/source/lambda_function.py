@@ -248,6 +248,12 @@ def _t1_build(provider, context, t0, s3c, bucket):
         st["updated_at"] = datetime.now(timezone.utc).isoformat(
             timespec="seconds")
         st["last_flow"] = f
+        # ops 5051: write the remaining count on EVERY flow, not only on
+        # the final flush. A run cut short by the budget used to leave
+        # candidates_left unset, so the state doc could not tell you
+        # whether the lane was done -- you had to infer it.
+        st["candidates_left"] = len(todo) - len(built) - 1
+        st["candidates_total"] = len(todo)
         s3c.put_object(Bucket=bucket, Key=st_key,
                        Body=json.dumps(st).encode(),
                        ContentType="application/json")
