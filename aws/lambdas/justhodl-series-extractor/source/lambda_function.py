@@ -186,6 +186,12 @@ def _t1_build(provider, context, t0, s3c, bucket):
                                        Key=st_key)["Body"].read())
     except Exception:
         st = {"flows_done": [], "entries": 0, "blocks": 0, "bytes": 0}
+    # ops 5055: entry schema bumped to 2. A stale v1 index would render
+    # blank columns forever, so the version gate rebuilds rather than
+    # leaving half-populated rows in place.
+    if int(st.get("entry_schema") or 1) < 2:
+        st = {"flows_done": [], "entries": 0, "blocks": 0, "bytes": 0,
+              "entry_schema": 2, "rebuilt_for": "v2-entries"}
     done = set(st.get("flows_done") or [])
     flows = idx.get("flows") or {}
     todo = sorted(((r["hi"] - r["lo"] + 1), f) for f, r in flows.items()
@@ -210,13 +216,21 @@ def _t1_build(provider, context, t0, s3c, bucket):
         rows = []
         rng = list(range(rec["lo"], rec["hi"] + 1))
         for i in range(0, len(rng), 256):
-            for doc in pool.map(_page, rng[i:i + 256]):
+            chunk = rng[i:i + 256]
+            for pnum, doc in zip(chunk, pool.map(_page, chunk)):
                 if not doc:
                     continue
                 for r in (doc.get("rows") or []):
                     if r.get("flow") == f:
+                        # ops 5055: v1 stored id/first/last only, so a big
+                        # flow rendered two dashes where a small one showed
+                        # geo and a value -- and with no page pointer there
+                        # was no way back to the full record. An index whose
+                        # entries cannot be displayed is only half an index.
                         rows.append((r.get("id") or "", r.get("first_obs"),
-                                     r.get("last_obs"), r.get("n_obs")))
+                                     r.get("last_obs"), r.get("n_obs"),
+                                     r.get("geo"), r.get("last_value"),
+                                     pnum))
             if _out_of_time(t0, context):
                 rows = None
                 break
@@ -227,9 +241,10 @@ def _t1_build(provider, context, t0, s3c, bucket):
         for i in range(0, len(rows), T1_BLOCK):
             chunk = rows[i:i + T1_BLOCK]
             blob = b"".join(
-                json.dumps({"id": a, "f": b, "l": c, "n": d},
+                json.dumps({"id": a, "f": b, "l": c, "n": d,
+                            "g": g, "v": v, "p": pg},
                            separators=(",", ":")).encode() + b"\n"
-                for a, b, c, d in chunk)
+                for a, b, c, d, g, v, pg in chunk)
             blocks.append({"k": chunk[0][0], "o": off,
                            "c": len(blob), "n": len(chunk)})
             body += blob
@@ -242,7 +257,8 @@ def _t1_build(provider, context, t0, s3c, bucket):
         s3c.put_object(
             Bucket=bucket, Key=base + ".blocks.json",
             Body=json.dumps({"flow": f, "provider": provider,
-                             "n": len(rows), "block_size": T1_BLOCK,
+                             "n": len(rows), "entry_schema": 2,
+                             "block_size": T1_BLOCK,
                              "bytes": off, "blocks": blocks},
                             separators=(",", ":")).encode(),
             ContentType="application/json",
