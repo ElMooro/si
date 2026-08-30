@@ -147,6 +147,122 @@ def extract_eurostat(gz_bytes, flow_id, engine_index):
         }
 
 
+T1_THRESHOLD = 100      # flows spanning more pages than this get Tier 1
+T1_BLOCK = 4096         # entries per range-readable block
+
+
+def _t1_build(provider, context, t0, s3c, bucket):
+    """Tier 1: per-flow sorted series index, range-queryable.
+
+    Tier 0 answers "which pages hold flow X". That is enough for the
+    median flow (8 pages, ~2MB) but not for the 1,516 Eurostat flows
+    spanning >100 pages -- CENS_21COBHS_R3 alone is 7,913,000 series
+    across 15,827 pages, ~4.4GB. Nobody fetches that in a browser.
+
+    So for those flows only, emit the SSTable shape:
+      {FLOW}.jsonl        entries sorted by series id, one per line
+      {FLOW}.blocks.json  sparse map: first id + byte offset + length
+                          for each block of T1_BLOCK entries
+    A client loads the small block map, binary-searches it, and pulls ONE
+    block with an HTTP Range request. No database, no always-on service,
+    immutable objects that cache at the edge forever.
+
+    Runs in-region deliberately: the same pass from a CI runner would be
+    313GB of egress (~$28), here it is GET requests (~$0.45) and Lambda
+    time (~$2)."""
+    idx_key = "index/%s/flows.json.gz" % provider
+    idx = json.loads(gzip.decompress(
+        s3c.get_object(Bucket=bucket, Key=idx_key)["Body"].read()))
+    st_key = "data/_state/t1-%s.json" % provider
+    try:
+        st = json.loads(s3c.get_object(Bucket=bucket,
+                                       Key=st_key)["Body"].read())
+    except Exception:
+        st = {"flows_done": [], "entries": 0, "blocks": 0, "bytes": 0}
+    done = set(st.get("flows_done") or [])
+    flows = idx.get("flows") or {}
+    todo = sorted(((r["hi"] - r["lo"] + 1), f) for f, r in flows.items()
+                  if (r["hi"] - r["lo"] + 1) > T1_THRESHOLD
+                  and f not in done)
+    built = []
+    pool = ThreadPoolExecutor(max_workers=32)
+
+    def _page(n):
+        try:
+            return json.loads(s3c.get_object(
+                Bucket=bucket,
+                Key="data/providers/%s/series/page-%04d.json"
+                    % (provider, n))["Body"].read())
+        except Exception:
+            return None
+
+    for span, f in todo:
+        if _out_of_time(t0, context):
+            break
+        rec = flows[f]
+        rows = []
+        rng = list(range(rec["lo"], rec["hi"] + 1))
+        for i in range(0, len(rng), 256):
+            for doc in pool.map(_page, rng[i:i + 256]):
+                if not doc:
+                    continue
+                for r in (doc.get("rows") or []):
+                    if r.get("flow") == f:
+                        rows.append((r.get("id") or "", r.get("first_obs"),
+                                     r.get("last_obs"), r.get("n_obs")))
+            if _out_of_time(t0, context):
+                rows = None
+                break
+        if rows is None:            # ran out mid-flow: leave it undone
+            break
+        rows.sort(key=lambda x: x[0])
+        body, blocks, off = bytearray(), [], 0
+        for i in range(0, len(rows), T1_BLOCK):
+            chunk = rows[i:i + T1_BLOCK]
+            blob = b"".join(
+                json.dumps({"id": a, "f": b, "l": c, "n": d},
+                           separators=(",", ":")).encode() + b"\n"
+                for a, b, c, d in chunk)
+            blocks.append({"k": chunk[0][0], "o": off,
+                           "c": len(blob), "n": len(chunk)})
+            body += blob
+            off += len(blob)
+        base = "index/%s/t1/%s" % (provider, f)
+        s3c.put_object(Bucket=bucket, Key=base + ".jsonl",
+                       Body=bytes(body),
+                       ContentType="application/x-ndjson",
+                       CacheControl="public, max-age=86400")
+        s3c.put_object(
+            Bucket=bucket, Key=base + ".blocks.json",
+            Body=json.dumps({"flow": f, "provider": provider,
+                             "n": len(rows), "block_size": T1_BLOCK,
+                             "bytes": off, "blocks": blocks},
+                            separators=(",", ":")).encode(),
+            ContentType="application/json",
+            CacheControl="public, max-age=86400")
+        st["flows_done"] = list(done | {f})
+        done.add(f)
+        st["entries"] = int(st.get("entries", 0)) + len(rows)
+        st["blocks"] = int(st.get("blocks", 0)) + len(blocks)
+        st["bytes"] = int(st.get("bytes", 0)) + off
+        st["updated_at"] = datetime.now(timezone.utc).isoformat(
+            timespec="seconds")
+        st["last_flow"] = f
+        s3c.put_object(Bucket=bucket, Key=st_key,
+                       Body=json.dumps(st).encode(),
+                       ContentType="application/json")
+        built.append((f, len(rows), len(blocks)))
+    pool.shutdown(wait=False)
+    st["candidates_left"] = len([1 for span, f in todo
+                                 if f not in done])
+    s3c.put_object(Bucket=bucket, Key=st_key,
+                   Body=json.dumps(st).encode(),
+                   ContentType="application/json")
+    return {"provider": provider, "built": built,
+            "flows_done": len(done), "left": st["candidates_left"],
+            "entries": st.get("entries"), "blocks": st.get("blocks")}
+
+
 def _ecb_flow_of(key):
     """data/warm/ecb/data/CSEC__2005_2009.dat.gz -> ("CSEC", 2005)"""
     base = key.rsplit("/", 1)[-1]
@@ -327,6 +443,13 @@ def _load_engine_index():
 def lambda_handler(event, context):
     t0 = time.time()
     provider = (event or {}).get("provider", "eurostat")
+    if (event or {}).get("mode") == "t1":
+        # Tier-1 index build. Branches before any extraction state is
+        # touched, so the series lanes are untouched by this path.
+        return {"statusCode": 200,
+                "body": json.dumps(_t1_build(provider, context,
+                                             time.time(), s3, BUCKET),
+                                   default=str)}
     extractor = EXTRACTORS.get(provider) or GROUP_EXTRACTORS.get(
         provider)
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
