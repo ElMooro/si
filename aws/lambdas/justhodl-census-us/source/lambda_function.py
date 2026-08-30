@@ -40,6 +40,7 @@ Non-EITS slugs are family-prefixed ("bds", "qwi-sa", "asm-...") so the
 """
 import gzip
 import io
+import zlib
 import json
 import os
 import time
@@ -664,6 +665,11 @@ def _econ_build_queue(state):
     q.sort(key=lambda e: (_econ_rank(e["fam"]), e["fam"],
                           -(int(e["vintage"]) if e["vintage"] else 0)))
     done = set(state.get("done") or [])
+    sh, nsh = int(state.get("shard", 0)), int(state.get("shards", 1))
+    if nsh > 1:
+        q = [e for e in q
+             if zlib.crc32((e["ds"] + "@" + str(e["vintage"]))
+                           .encode()) % nsh == sh]
     state["queue"] = [e for e in q
                       if (e["ds"] + "@" + str(e["vintage"])) not in done]
     state["n_total"] = len(q)
@@ -702,6 +708,7 @@ def _econ_entry(e, state, t0, ctx):
             pass
     geos = (geos or ["us"])[:GEO_CAP]
     rows = 0
+    oversize = []
     for gi, geo in enumerate(geos):
         for ci in range(0, len(names), VAR_CHUNK):
             if time.time() - t0 > ECON_BUDGET:
@@ -713,10 +720,20 @@ def _econ_entry(e, state, t0, ctx):
                 q += "&key=" + KEY
             url = base + "?" + q
             stt, body = http_get(url + ("&%s=*" % naics if naics else ""))
-            if stt != 200 and naics:
+            if stt == 413 and naics:
+                stt, body = http_get(url)      # retry without the wildcard
+            elif stt != 200 and naics:
                 # the wildcard is not valid on every dataset; the totals
                 # are still worth banking, so degrade rather than fail
                 stt, body = http_get(url)
+            if stt == 413:
+                # ops 5062: oversize is a property of the GEO level, not
+                # of this variable chunk. Every remaining chunk at this
+                # level will also blow the read cap, and each attempt
+                # costs a full download before it is discarded -- that is
+                # where the 350s-per-entry went.
+                oversize.append("%s:g%d" % (e["ds"], gi))
+                break
             if stt != 200 or not body.strip():
                 continue
             try:
@@ -730,17 +747,27 @@ def _econ_entry(e, state, t0, ctx):
                 e.get("vintage") or "na", gi, ci // VAR_CHUNK)
             pj(key, data)
             rows += len(data) - 1
+    if oversize:
+        state.setdefault("oversize", {})[e["ds"]] = oversize[:6]
     return rows, None
 
 
-def econ_run(ctx):
+def econ_run(ctx, shard=0, shards=1):
+    """Sharded by tag hash: each shard owns a disjoint slice of the queue
+    and its OWN state document, so concurrent runs can never share a
+    cursor. Same property that makes the eurostat/ecb lanes safe under a
+    cadence shorter than their timeout."""
     t0 = time.time()
+    global ECON_STATE
+    if shards > 1:
+        ECON_STATE = "data/_state/census-econ-s%d.json" % shard
     state = gj(ECON_STATE) or {
         "version": "econ-v1", "phase": "CATALOG", "queue": [],
         "done": [], "failures": {}, "n_total": 0, "n_done": 0,
         "rows_total": 0,
         "note": "macro/finance/industry/employment scope only; "
                 "demographics excluded by directive"}
+    state["shard"], state["shards"] = shard, shards
     state.setdefault("failures", {})
     state.setdefault("done", [])
     if state.get("phase") in (None, "CATALOG") or not state.get("queue"):
@@ -798,7 +825,8 @@ def lambda_handler(event, ctx):
     if event.get("mode") == "econ":
         # separate state, separate prefix -- the timeseries lane is
         # untouched by this path
-        return econ_run(ctx)
+        return econ_run(ctx, int(event.get("shard") or 0),
+                        int(event.get("shards") or 1))
     state = gj(STATE_KEY) or {
         "version": "1.1.4", "phase": "CATALOG", "queue": [],
         "datasets": {}, "catalog": {}, "failures": {},
