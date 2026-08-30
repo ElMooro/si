@@ -1,0 +1,57 @@
+## P0 ecb -- span distribution (the Tier-1 question)
+
+**Status:** success  
+**Duration:** 423.7s  
+**Finished:** 2026-08-30T00:13:54+00:00  
+
+## Data
+
+| ecb | eurostat |
+|---|---|
+| 3,240,500 series, delta 0 | 564,204,000 series, delta 0 |
+
+## Log
+- `00:06:52`   flows=207  span pages: p50=4 p90=62 p99=1478 max=1478
+- `00:06:52`     spanning > 1    pages:   207 flows (100.0%)
+- `00:06:52`     spanning > 5    pages:    94 flows (45.4%)
+- `00:06:52`     spanning > 20   pages:    40 flows (19.3%)
+- `00:06:52`     spanning > 100  pages:    17 flows (8.2%)
+- `00:06:52`     spanning > 1000 pages:     4 flows (1.9%)
+- `00:06:52`     a page is ~280KB, so a 62-page flow is ~17.4 MB to fetch whole
+## P1/P2 ecb -- exact counts
+
+- `00:06:52`   anchor pages=118  impure gaps=46  pages to read=1,985 of 6,481 (30.6%)
+- `00:07:05`     read 1,985/1,985 (14s)
+- `00:07:05`   pages read=1,985  pure interior pages inferred=4,496
+- `00:07:05`   counted=3,240,500   expected=3,240,500 (manifest 3,240,832 minus 332 buffered rows never written to a page)
+- `00:07:05`   delta=0  IDENTITY HOLDS -- index provably complete
+## P3 ecb -- publish schema 3
+
+- `00:07:05`   largest flows by series: [('CSEC', '738,627'), ('SPF', '506,000'), ('SAFE', '292,840'), ('IVF', '274,116'), ('PCP', '138,500'), ('HICP', '90,000')]
+- `00:07:05`   -> index/ecb/flows.json.gz  0.00 MB gz  exact=True
+## P0 eurostat -- span distribution (the Tier-1 question)
+
+- `00:07:05`   flows=8147  span pages: p50=8 p90=232 p99=2914 max=15827
+- `00:07:05`     spanning > 1    pages:  8147 flows (100.0%)
+- `00:07:05`     spanning > 5    pages:  4598 flows (56.4%)
+- `00:07:05`     spanning > 20   pages:  3108 flows (38.1%)
+- `00:07:05`     spanning > 100  pages:  1516 flows (18.6%)
+- `00:07:05`     spanning > 1000 pages:   253 flows (3.1%)
+- `00:07:05`     a page is ~280KB, so a 232-page flow is ~65.0 MB to fetch whole
+## P1/P2 eurostat -- exact counts
+
+- `00:07:05`   anchor pages=6326  impure gaps=843  pages to read=86,137 of 1,128,408 (7.6%)
+- `00:08:44`     read 20,000/86,137 (113s)
+- `00:10:17`     read 40,000/86,137 (207s)
+- `00:11:49`     read 60,000/86,137 (298s)
+- `00:13:25`     read 80,000/86,137 (395s)
+- `00:13:54`     read 86,137/86,137 (423s)
+- `00:13:54`   pages read=86,137  pure interior pages inferred=1,042,271
+- `00:13:54`   counted=564,204,000   expected=564,204,000 (manifest 564,204,235 minus 235 buffered rows never written to a page)
+- `00:13:54`   delta=0  IDENTITY HOLDS -- index provably complete
+## P3 eurostat -- publish schema 3
+
+- `00:13:54`   largest flows by series: [('CENS_21COBHS_R3', '7,913,000'), ('MIGR_RESBC12', '7,022,683'), ('MIGR_RESBC43', '6,525,000'), ('CENS_21CTZF_R3', '5,931,000'), ('MIGR_RESBC41', '5,669,000'), ('EF_LUS_ALLCROPS', '5,235,000')]
+- `00:13:54`   -> index/eurostat/flows.json.gz  0.11 MB gz  exact=True
+- `00:13:54`   -> data/ops/index-tier0.json
+- `00:13:54` ops 5049 GREEN -- counts reconcile to the manifest identity
