@@ -1,0 +1,32 @@
+## P0 deploy + scope
+
+**Status:** failure  
+**Duration:** 264.3s  
+**Finished:** 2026-08-30T16:36:19+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `16:31:55`   code fresh 2026-08-30T16:31:49.000+0000  mem=1024 timeout=850
+- `16:31:55`   scope: 108 families, 1,226 entries, excluded=['acs', 'cre', 'crepuertorico', 'dec', 'geoinfo', 'intltrade']
+- `16:31:55`   timeseries lane (untouched): phase=COMPLETE n_done=55 rows=4,604,884
+## P1 first supervised run
+
+- `16:36:18`   invoke err An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries: 1): Rate Exceeded. (263s)
+- `16:36:18`   state: phase=DRAIN n_done=1/1226 queue_left=None rows=75,573 failures=0
+## P2 what landed, and is the industry detail there
+
+- `16:36:18`   2 objects, 2.45 MB under data/warm/census-econ/
+- `16:36:18`   families landed: {'cbp': 2}
+- `16:36:19`   cbp/cbp/2022/g0-c0.json.gz: 75,886 rows, header=['CBSA', 'CD', 'COUNTY', 'CSA', 'EMP', 'EMPSZES', 'EMP_N', 'ESTAB']
+- `16:36:19`     NAICS2017 distinct values in sample: ['11311', '113110', '1132', '11321', '113210', '1133', '11331', '113310']
+- `16:36:19`     INDUSTRY DETAIL PRESENT (not just totals)
+## P3 wire the schedule
+
+- `16:36:19`   rules already targeting justhodl-census-us: []
+- `16:36:19`   *** no rule targets this function -- the econ lane will only drain when invoked manually ***
+- `16:36:19` ops 5060 RED: P3:nowire
