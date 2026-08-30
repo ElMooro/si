@@ -1,0 +1,41 @@
+## P0 why is census-us STALE
+
+**Status:** failure  
+**Duration:** 982.8s  
+**Finished:** 2026-08-30T16:07:37+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `15:51:14`   state: phase=COMPLETE n_done=55/56 rows=4,604,884 updated_at=2026-08-25T23:49:53+00:00
+- `15:51:14`   age = 112.0 h  (sentinel calls COMPLETE stale past 26h)
+- `15:51:15`   invocations/day (7d): 08-23=115 08-24=113 08-25=222 08-26=288 08-27=288 08-28=288 08-29=288
+- `15:51:15`   rules targeting justhodl-census-us: NONE
+- `15:51:15`   *** no EventBridge rule targets this function -- that is why it never runs ***
+## P1 kick it and watch updated_at
+
+- `15:51:15`   kicked
+- `16:06:21`   updated_at did NOT move -- the walker itself is failing, not just untriggered
+## P2 re-run the sentinel
+
+- `16:07:36`   overall=DEGRADED worst=census-us incidents=5 generated_at=2026-08-30T15:45:04+00:00
+- `16:07:36`     fred               COMPLETE COMPLETE_WITH_LEAKS
+- `16:07:36`     nyfed              OK       rates 10.3h · pd 1539/? · repo 10.4h
+- `16:07:36`     sdmx-eurostat      COMPLETE 8152/8152, 6 source-side failures
+- `16:07:36`     sdmx-oecd          COMPLETE 1548/1546, 488 source-side failures
+- `16:07:36`     sdmx-statcan       COMPLETE 8229/8229, 5 source-side failures
+- `16:07:36`     sdmx-bis           COMPLETE 29/29, 1 source-side failures
+- `16:07:36`     sdmx-ecb           COMPLETE 214/214, 7 source-side failures
+- `16:07:36`     census-us          STALE    COMPLETE 55/56 datasets · 4604884 rows · 1 source failures logged
+- `16:07:36`     provider-catalog   OK       hub index freshness
+## P3 Tier-1 v2 + cadence
+
+- `16:07:36`   ecb       t1 flows=17 left=0 entries=2,619,231 schema=2 0.32 GB
+- `16:07:36`   eurostat  t1 flows=1304 left=212 entries=190,007,664 schema=2 23.47 GB
+- `16:07:36`   v2 still building -- leaving the fast cadence
+- `16:07:37`   extractor rule=rate(2 minutes) targets=4
+- `16:07:37` ops 5056 RED: P1:nomove

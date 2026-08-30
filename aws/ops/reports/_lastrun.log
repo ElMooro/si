@@ -1,35 +1,30 @@
-executing-against: 526e13986299a95d86348afd348426c5877dc497
-── P0 state before the rebuild ──
-[14:42:10]   eurostat  v1 finished: flows=1516 left=0 entries=519,158,505 49.40 GB entry_schema=None
-[14:42:10]   ecb       v1 finished: flows=17 left=0 entries=2,619,231 0.24 GB entry_schema=None
-[14:42:11]   extractor LastModified=2026-08-30T14:42:06.000+0000
-[14:42:11]   cadence held at rate(2 minutes) for the rebuild window
-[14:42:11]   kicked ecb t1
-[14:42:14]   kicked eurostat t1
-── P1 watch the v2 rebuild ──
-[14:46:18]   t+ 4min  ecb 17 flows/2,619,231 left=0 v2  |  eurostat 93 flows/4,457,859 left=1423 v2
-[14:50:18]   t+ 8min  ecb 17 flows/2,619,231 left=0 v2  |  eurostat 252 flows/13,634,640 left=1264 v2
-[14:54:19]   t+12min  ecb 17 flows/2,619,231 left=0 v2  |  eurostat 392 flows/22,666,200 left=1124 v2
-[14:58:19]   t+16min  ecb 17 flows/2,619,231 left=0 v2  |  eurostat 513 flows/31,813,282 left=1003 v2
-[15:02:19]   t+20min  ecb 17 flows/2,619,231 left=0 v2  |  eurostat 610 flows/40,262,119 left=906 v2
-[15:06:20]   t+24min  ecb 17 flows/2,619,231 left=0 v2  |  eurostat 699 flows/49,102,171 left=817 v2
-[15:10:20]   t+28min  ecb 17 flows/2,619,231 left=0 v2  |  eurostat 779 flows/58,472,646 left=737 v2
-[15:14:20]   t+32min  ecb 17 flows/2,619,231 left=0 v2  |  eurostat 846 flows/67,503,043 left=670 v2
-[15:18:21]   t+36min  ecb 17 flows/2,619,231 left=0 v2  |  eurostat 910 flows/76,769,160 left=606 v2
-[15:22:21]   t+40min  ecb 17 flows/2,619,231 left=0 v2  |  eurostat 964 flows/86,155,097 left=552 v2
-[15:26:22]   t+44min  ecb 17 flows/2,619,231 left=0 v2  |  eurostat 1016 flows/94,503,943 left=500 v2
-── P2 verify a v2 block over HTTP ──
-[15:26:23]   ecb/DCM: 22 entries, 1 blocks, entry_schema=2
-[15:26:23]   block 0 -> HTTP 206, 2,798 bytes (want 2,798), 22 rows
-[15:26:23]   sample: id=ecb:DCM:DCM.M.V3.00BK.F33000.ALL.R.BC.E.1.Z0 g=V3 v=554.04181 f=2005-12 l=2020-01 n=170 p=1894
-[15:26:23]   field coverage over 22 rows: {'g': 22, 'v': 22, 'n': 22, 'p': 22, 'f': 22, 'l': 22}
-[15:26:23]   eurostat/HLTH_EHIS_CD1C: 77,525 entries, 19 blocks, entry_schema=2
-[15:26:24]   block 9 -> HTTP 206, 515,380 bytes (want 515,380), 4096 rows
-[15:26:24]   sample: id=eurostat:HLTH_EHIS_CD1C:A.PC.DPR_CHR.M.Y15-4 g=IE v=10.3 f=2014 l=2014 n=None p=617746
-[15:26:24]   field coverage over 4096 rows: {'g': 4096, 'v': 4096, 'n': 0, 'p': 4096, 'f': 4096, 'l': 4096}
-── P3 stand down ──
-[15:26:24]   rebuild still running (left=500) -- leaving rate(2 minutes)
-[15:26:24]   rule=rate(2 minutes) targets=4
-[15:26:24] ops 5055 GREEN -- Tier-1 entries are displayable
+executing-against: 3bf574819211fe2772be8e0263ac13cba9c55ed6
+── P0 why is census-us STALE ──
+[15:51:14]   state: phase=COMPLETE n_done=55/56 rows=4,604,884 updated_at=2026-08-25T23:49:53+00:00
+[15:51:14]   age = 112.0 h  (sentinel calls COMPLETE stale past 26h)
+[15:51:15]   invocations/day (7d): 08-23=115 08-24=113 08-25=222 08-26=288 08-27=288 08-28=288 08-29=288
+[15:51:15]   rules targeting justhodl-census-us: NONE
+[15:51:15]   *** no EventBridge rule targets this function -- that is why it never runs ***
+── P1 kick it and watch updated_at ──
+[15:51:15]   kicked
+[16:06:21]   updated_at did NOT move -- the walker itself is failing, not just untriggered
+── P2 re-run the sentinel ──
+[16:07:36]   overall=DEGRADED worst=census-us incidents=5 generated_at=2026-08-30T15:45:04+00:00
+[16:07:36]     fred               COMPLETE COMPLETE_WITH_LEAKS
+[16:07:36]     nyfed              OK       rates 10.3h · pd 1539/? · repo 10.4h
+[16:07:36]     sdmx-eurostat      COMPLETE 8152/8152, 6 source-side failures
+[16:07:36]     sdmx-oecd          COMPLETE 1548/1546, 488 source-side failures
+[16:07:36]     sdmx-statcan       COMPLETE 8229/8229, 5 source-side failures
+[16:07:36]     sdmx-bis           COMPLETE 29/29, 1 source-side failures
+[16:07:36]     sdmx-ecb           COMPLETE 214/214, 7 source-side failures
+[16:07:36]     census-us          STALE    COMPLETE 55/56 datasets · 4604884 rows · 1 source failures logged
+[16:07:36]     provider-catalog   OK       hub index freshness
+── P3 Tier-1 v2 + cadence ──
+[16:07:36]   ecb       t1 flows=17 left=0 entries=2,619,231 schema=2 0.32 GB
+[16:07:36]   eurostat  t1 flows=1304 left=212 entries=190,007,664 schema=2 23.47 GB
+[16:07:36]   v2 still building -- leaving the fast cadence
+[16:07:37]   extractor rule=rate(2 minutes) targets=4
+[16:07:37] ops 5056 RED: P1:nomove
 
-→ Report written to aws/ops/reports/latest/ops_5055_t1_v2.md
+→ Report written to aws/ops/reports/latest/ops_5056_census_and_banner.md
+❌ OPS-FAIL: aws/ops/pending/ops_5056_census_and_banner.py
