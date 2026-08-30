@@ -1,0 +1,72 @@
+## P0 the Bureau's own catalogue
+
+**Status:** success  
+**Duration:** 15.3s  
+**Finished:** 2026-08-30T16:08:17+00:00  
+
+## Data
+
+| coverage_pct | entries | missing | timeseries |
+|---|---|---|---|
+| 5.23 | 1798 | 1704 | 94 |
+
+## Log
+- `16:08:08`   GET data.json -> HTTP 200, 5.2 MB
+- `16:08:08`   catalogue entries (dataset x vintage): 1,798
+- `16:08:08`   timeseries entries      : 94
+- `16:08:08`   everything else         : 1,704  <- never fetched
+## P1 non-timeseries families, with vintage span
+
+- `16:08:08`   family         entries  vintages     example
+- `16:08:08`   cps                703  1989–2026    cps/basic/jan
+- `16:08:08`   acs                270  2004–2024    acs/acs1/pums
+- `16:08:08`   sipp               178  1990–2024    sipp/benefit/1990panel
+- `16:08:08`   pep                 80  1990–2023    pep/int_charagegroups
+- `16:08:08`   dec                 64  2000–2020    dec/aian
+- `16:08:08`   cbp                 38  1986–2023    cbp
+- `16:08:08`   nonemp              27  1997–2023    nonemp
+- `16:08:08`   zbp                 25  1994–2018    zbp
+- `16:08:08`   pdb                 23  2015–2026    pdb/blockgroup
+- `16:08:08`   ecn                 12  2012–2022    ecn/islandareas
+- `16:08:08`   popproj             10  2012–2017    popproj/deaths
+- `16:08:08`   ase                  9  2014–2016    ase/csa
+- `16:08:08`   cre                  9  2016–2024    cre
+- `16:08:08`   abscb                7  2017–2023    abscb
+- `16:08:08`   abscbo               7  2017–2023    abscbo
+- `16:08:08`   abscs                7  2017–2023    abscs
+- `16:08:08`   absnesdo             6  2018–2023    absnesdo
+- `16:08:08`   absnesd              6  2018–2023    absnesd
+- `16:08:08`   geoinfo              6  2020–2025    geoinfo
+- `16:08:08`   intltrade            5  2014–2018    intltrade/imp_exp
+- `16:08:08`   crepuertorico        5  2019–2024    crepuertorico
+- `16:08:08`   ewks                 4  1997–2012    ewks
+- `16:08:08`   families outside timeseries: 120
+## P2 what we hold today
+
+- `16:08:08`   walker: phase=COMPLETE n_done=55/56 rows=4,604,884 universe=94 updated_at=2026-08-25T23:49:53+00:00
+- `16:08:08`   S3: 359 objects, 37.9 MB under data/warm/census-us/
+- `16:08:08`   coverage of the FULL catalogue: 55 of 1,798 entries = 3.06%
+## P3 size probe on the biggest families
+
+- `16:08:09`   cps              703 entries ·   238 variables ·   1 geo levels -> ~4,218 calls at 45 vars/call
+- `16:08:10`   acs              270 entries ·   249 variables ·   4 geo levels -> ~6,480 calls at 45 vars/call
+- `16:08:11`   sipp             178 entries ·     6 variables ·   0 geo levels -> ~178 calls at 45 vars/call
+- `16:08:13`   pep               80 entries ·    10 variables ·   1 geo levels -> ~80 calls at 45 vars/call
+- `16:08:16`   dec               64 entries ·  7898 variables ·   9 geo levels -> ~101,376 calls at 45 vars/call
+- `16:08:17`   cbp               38 entries ·    22 variables ·   3 geo levels -> ~114 calls at 45 vars/call
+- `16:08:17`   rough call estimate for these 6 families alone: ~112,446 requests
+- `16:08:17`   (Census caps at 500/day without a key; with a key it is generous but not unlimited -- this is a rate-limit problem before it is a storage problem)
+## P4 verdict
+
+- `16:08:17`   NO -- we do not have all of it. We have the timeseries
+- `16:08:17`   family only: 94 of 1,798 catalogue entries (5.23%).
+- `16:08:17`   Missing entirely: 1,704 entries across 120 families, including ACS, the decennial census, CBP and the economic census.
+- `16:08:17`   'All the history' for those means every vintage, which the
+- `16:08:17`   vintage spans above make explicit.
+- `16:08:17`   RECOMMENDATION: this is not one import, it is a program.
+- `16:08:17`   Scope it family by family, largest value first, each with
+- `16:08:17`   its own resumable walker on the pattern the eurostat/ecb
+- `16:08:17`   lanes now use. Starting with ACS at every geography level
+- `16:08:17`   would be the most expensive possible first move.
+- `16:08:17`   -> data/ops/census-universe.json
+- `16:08:17` ops 5057 GREEN -- census universe measured
