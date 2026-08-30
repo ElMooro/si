@@ -1,0 +1,35 @@
+## P0 copy index/** -> data/index/**
+
+**Status:** success  
+**Duration:** 16.2s  
+**Finished:** 2026-08-30T01:32:36+00:00  
+
+## Data
+
+| copied | range_status | t1_left |
+|---|---|---|
+| 2575 | 200 | 247 |
+
+## Log
+- `01:32:21`   2,575 objects, 16.16 GB under index/
+- `01:32:30`     copied 2,000/2,575 (9s)
+- `01:32:32`     copied 2,575/2,575 (11s)
+- `01:32:32`   copied 2,575 of 2,575
+## P1 reachability + headers through the CDN
+
+- `01:32:32`   s3 data/index/eurostat/flows.json.gz: 104 KB enc=gzip type=application/json
+- `01:32:33`   cdn GET /data/index/eurostat/flows.json.gz -> 200  enc=None len=980760
+- `01:32:33`     (body still gzipped to this client -- browsers decode transparently)
+- `01:32:33`   s3 data/index/ecb/flows.json.gz: 3 KB enc=gzip type=application/json
+- `01:32:33`   cdn GET /data/index/ecb/flows.json.gz -> 200  enc=None len=23483
+- `01:32:33`     parsed: 207 flows, series=3,240,832
+## P2 THE RANGE TEST
+
+- `01:32:35`   ranged GET /data/index/ecb/t1/IVF.jsonl bytes=0-362243 -> HTTP 200
+- `01:32:35`     Content-Range=None  Accept-Ranges=None  got 400,000 bytes
+- `01:32:35`     *** not 206: the proxy does not honour Range, so a Tier-1 read would pull the whole file. provider.html already requires 206 and falls back to the page range, so it degrades safely -- but Tier 1 gives no benefit until the worker forwards Range ***
+## P3 republish the manifest at the served path
+
+- `01:32:35`   -> data/index/manifest.json  (cdn GET 200)
+- `01:32:35`   tier1 eurostat: flows=1269 left=247 entries=170,295,774
+- `01:32:36` ops 5052 GREEN -- index served under /data, range read verified

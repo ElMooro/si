@@ -1,45 +1,23 @@
-executing-against: d6b9b12f6135c2a16e29782fc005bf1717433d11
-── P0 Tier-1 progress ──
-[00:54:36]   t+ 0min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
-[00:54:36]   t+ 0min eurostat  flows=919 left=665/None entries=78,126,119 blocks=19,554 7.30 GB
-[00:57:36]   t+ 3min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
-[00:57:36]   t+ 3min eurostat  flows=963 left=665/None entries=85,961,336 blocks=21,488 8.04 GB
-[01:00:36]   t+ 6min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
-[01:00:36]   t+ 6min eurostat  flows=1005 left=665/None entries=93,026,622 blocks=23,226 8.70 GB
-[01:03:37]   t+ 9min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
-[01:03:37]   t+ 9min eurostat  flows=1046 left=665/None entries=99,494,692 blocks=24,831 9.31 GB
-[01:06:37]   t+12min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
-[01:06:37]   t+12min eurostat  flows=1078 left=438/459 entries=106,488,924 blocks=26,554 9.97 GB
-[01:09:37]   t+15min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
-[01:09:38]   t+15min eurostat  flows=1109 left=407/459 entries=114,009,685 blocks=28,404 10.69 GB
-[01:12:38]   t+18min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
-[01:12:38]   t+18min eurostat  flows=1136 left=380/459 entries=121,736,936 blocks=30,304 11.41 GB
-[01:15:38]   t+21min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
-[01:15:38]   t+21min eurostat  flows=1162 left=354/459 entries=129,146,369 blocks=32,130 12.12 GB
-[01:18:39]   t+24min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
-[01:18:39]   t+24min eurostat  flows=1185 left=331/459 entries=136,412,544 blocks=33,914 12.80 GB
-[01:21:39]   t+27min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
-[01:21:39]   t+27min eurostat  flows=1204 left=312/331 entries=142,769,175 blocks=35,474 13.40 GB
-[01:24:40]   ecb       series lane still intact: flows=207 n_pages=6481
-[01:24:41]   eurostat  series lane still intact: flows=8147 n_pages=1128408
-── P1 stress the LARGEST built flow ──
-[01:24:41]   eurostat largest: NASQ_10_F_CP.jsonl
-[01:24:41]     362,747 entries · 89 blocks · data 38.1 MB · map 9 KB (0.024% of the data)
-[01:24:42]     lookup: 89-block binary search -> block 66 -> Range 427 KB in 183 ms -> found=True
-[01:24:42]     total bytes to answer one query: 435 KB vs 38.1 MB whole-flow (86x less)
-[01:24:42]   ecb largest: CSEC.jsonl
-[01:24:42]     738,218 entries · 181 blocks · data 80.5 MB · map 19 KB (0.024% of the data)
-[01:24:42]     lookup: 181-block binary search -> block 135 -> Range 437 KB in 211 ms -> found=True
-[01:24:42]     total bytes to answer one query: 456 KB vs 80.5 MB whole-flow (173x less)
-── P2 publish the index contract ──
-[01:24:42]   eurostat  flows=8147 series=564,204,235 exact=True tier1_flows=1224 complete=False
-[01:24:43]   ecb       flows=207 series=3,240,832 exact=True tier1_flows=17 complete=True
-[01:24:43]   -> index/manifest.json (the entry point a front end fetches first)
-── P3 stand down ──
-[01:24:43]   build still running -- leaving rate(2 minutes) so it finishes; restore hourly next session
-[01:24:43]   rule rate(2 minutes) · targets=4 ['ecb', 't1', 't1ecb', 't1eurost']
-[01:24:44]   reserved concurrency=1
-[01:24:44]   -> data/ops/index-tier1.json
-[01:24:44] ops 5051 GREEN -- index contract published
+executing-against: 9ca9356974f528c7b0ae61e732e887cc6a255b39
+── P0 copy index/** -> data/index/** ──
+[01:32:21]   2,575 objects, 16.16 GB under index/
+[01:32:30]     copied 2,000/2,575 (9s)
+[01:32:32]     copied 2,575/2,575 (11s)
+[01:32:32]   copied 2,575 of 2,575
+── P1 reachability + headers through the CDN ──
+[01:32:32]   s3 data/index/eurostat/flows.json.gz: 104 KB enc=gzip type=application/json
+[01:32:33]   cdn GET /data/index/eurostat/flows.json.gz -> 200  enc=None len=980760
+[01:32:33]     (body still gzipped to this client -- browsers decode transparently)
+[01:32:33]   s3 data/index/ecb/flows.json.gz: 3 KB enc=gzip type=application/json
+[01:32:33]   cdn GET /data/index/ecb/flows.json.gz -> 200  enc=None len=23483
+[01:32:33]     parsed: 207 flows, series=3,240,832
+── P2 THE RANGE TEST ──
+[01:32:35]   ranged GET /data/index/ecb/t1/IVF.jsonl bytes=0-362243 -> HTTP 200
+[01:32:35]     Content-Range=None  Accept-Ranges=None  got 400,000 bytes
+[01:32:35]     *** not 206: the proxy does not honour Range, so a Tier-1 read would pull the whole file. provider.html already requires 206 and falls back to the page range, so it degrades safely -- but Tier 1 gives no benefit until the worker forwards Range ***
+── P3 republish the manifest at the served path ──
+[01:32:35]   -> data/index/manifest.json  (cdn GET 200)
+[01:32:35]   tier1 eurostat: flows=1269 left=247 entries=170,295,774
+[01:32:36] ops 5052 GREEN -- index served under /data, range read verified
 
-→ Report written to aws/ops/reports/latest/ops_5051_index_contract.md
+→ Report written to aws/ops/reports/latest/ops_5052_serve_the_index.md
