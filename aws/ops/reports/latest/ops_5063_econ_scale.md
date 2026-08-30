@@ -1,0 +1,47 @@
+## P0 deploy + is the ACCOUNT the limit
+
+**Status:** success  
+**Duration:** 2481.3s  
+**Finished:** 2026-08-30T19:35:43+00:00  
+
+## Data
+
+| done | objects | rate | skips | throttles |
+|---|---|---|---|---|
+| 44 | 62 | 0.53 | 1 | 2099 |
+
+## Log
+- `18:54:22`   code fresh 2026-08-30T18:54:20.000+0000 mem=1024
+- `18:54:22`   account concurrency limit=1000 unreserved=783
+- `18:54:22`   Invocations  last 3h: 29
+- `18:54:22`   Throttles    last 3h: 2099
+- `18:54:22`   Errors       last 3h: 22
+- `18:54:22`   THROTTLES PRESENT -- that is why s1/s3/s4 wrote no state. More shards would make this worse, not faster.
+- `18:54:22`   errors logged -- shard workers may be failing outright
+## P1 one dispatcher instead of six scattered targets
+
+- `18:54:23`   justhodl-series-extractor-5min: removed ['econs0']
+- `18:54:23`   benzinga-news-agent-warm: removed ['econs1', 'econs2', 'econs3', 'econs4']
+- `18:54:23`   justhodl-sdmx-walker-hourly: removed ['econs5']
+- `18:54:23`   carry-surface-4h: removed ['censusecon']
+- `18:54:24`   dispatcher on benzinga-news-agent-warm (rate(5 minutes)), failed=0
+## P2 drive it
+
+- `18:54:25`   starting from 22 entries done
+- `18:54:27`   dispatch err An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries:
+- `19:08:08`   t+14min total=28 (+6)  0.44/min  shards alive 5/12
+- `19:08:12`   dispatch err An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries:
+- `19:21:53`   t+27min total=34 (+12)  0.44/min  shards alive 5/12
+- `19:21:57`   dispatch err An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries:
+- `19:35:39`   t+41min total=44 (+22)  0.53/min  shards alive 5/12
+- `19:35:40`   RATE 0.53 entries/min   (0.15 single, 0.37 six-shard)
+- `19:35:40`   1182 left -> ~36.9 h
+## P3 waste eliminated?
+
+- `19:35:41`   oversize registry: 1 (dataset, geo) pairs known
+- `19:35:41`     ('nonemp', 'metropolitan statistical area/micropolitan statistical area')
+- `19:35:42`   geo levels SKIPPED via the registry: 1
+- `19:35:42`   (each skip is a ~130k-row download not made)
+- `19:35:43`   distinct done=44 duplicates=0
+- `19:35:43`   S3: 62 objects, 48.7 MB, families={'cbp': 32, 'nonemp': 24, 'ase': 6}
+- `19:35:43` ops 5063 GREEN -- scaled, and no longer paying for reads it throws away
