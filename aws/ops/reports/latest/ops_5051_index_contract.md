@@ -1,0 +1,57 @@
+## P0 Tier-1 progress
+
+**Status:** success  
+**Duration:** 1808.4s  
+**Finished:** 2026-08-30T01:24:44+00:00  
+
+## Data
+
+| ecb_t1 | eurostat_t1 | left |
+|---|---|---|
+| 17 | 1204 | 312 |
+
+## Log
+- `00:54:36`   t+ 0min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
+- `00:54:36`   t+ 0min eurostat  flows=919 left=665/None entries=78,126,119 blocks=19,554 7.30 GB
+- `00:57:36`   t+ 3min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
+- `00:57:36`   t+ 3min eurostat  flows=963 left=665/None entries=85,961,336 blocks=21,488 8.04 GB
+- `01:00:36`   t+ 6min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
+- `01:00:36`   t+ 6min eurostat  flows=1005 left=665/None entries=93,026,622 blocks=23,226 8.70 GB
+- `01:03:37`   t+ 9min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
+- `01:03:37`   t+ 9min eurostat  flows=1046 left=665/None entries=99,494,692 blocks=24,831 9.31 GB
+- `01:06:37`   t+12min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
+- `01:06:37`   t+12min eurostat  flows=1078 left=438/459 entries=106,488,924 blocks=26,554 9.97 GB
+- `01:09:37`   t+15min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
+- `01:09:38`   t+15min eurostat  flows=1109 left=407/459 entries=114,009,685 blocks=28,404 10.69 GB
+- `01:12:38`   t+18min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
+- `01:12:38`   t+18min eurostat  flows=1136 left=380/459 entries=121,736,936 blocks=30,304 11.41 GB
+- `01:15:38`   t+21min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
+- `01:15:38`   t+21min eurostat  flows=1162 left=354/459 entries=129,146,369 blocks=32,130 12.12 GB
+- `01:18:39`   t+24min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
+- `01:18:39`   t+24min eurostat  flows=1185 left=331/459 entries=136,412,544 blocks=33,914 12.80 GB
+- `01:21:39`   t+27min ecb       flows=17 left=0/None entries=2,619,231 blocks=649 0.24 GB
+- `01:21:39`   t+27min eurostat  flows=1204 left=312/331 entries=142,769,175 blocks=35,474 13.40 GB
+- `01:24:40`   ecb       series lane still intact: flows=207 n_pages=6481
+- `01:24:41`   eurostat  series lane still intact: flows=8147 n_pages=1128408
+## P1 stress the LARGEST built flow
+
+- `01:24:41`   eurostat largest: NASQ_10_F_CP.jsonl
+- `01:24:41`     362,747 entries · 89 blocks · data 38.1 MB · map 9 KB (0.024% of the data)
+- `01:24:42`     lookup: 89-block binary search -> block 66 -> Range 427 KB in 183 ms -> found=True
+- `01:24:42`     total bytes to answer one query: 435 KB vs 38.1 MB whole-flow (86x less)
+- `01:24:42`   ecb largest: CSEC.jsonl
+- `01:24:42`     738,218 entries · 181 blocks · data 80.5 MB · map 19 KB (0.024% of the data)
+- `01:24:42`     lookup: 181-block binary search -> block 135 -> Range 437 KB in 211 ms -> found=True
+- `01:24:42`     total bytes to answer one query: 456 KB vs 80.5 MB whole-flow (173x less)
+## P2 publish the index contract
+
+- `01:24:42`   eurostat  flows=8147 series=564,204,235 exact=True tier1_flows=1224 complete=False
+- `01:24:43`   ecb       flows=207 series=3,240,832 exact=True tier1_flows=17 complete=True
+- `01:24:43`   -> index/manifest.json (the entry point a front end fetches first)
+## P3 stand down
+
+- `01:24:43`   build still running -- leaving rate(2 minutes) so it finishes; restore hourly next session
+- `01:24:43`   rule rate(2 minutes) · targets=4 ['ecb', 't1', 't1ecb', 't1eurost']
+- `01:24:44`   reserved concurrency=1
+- `01:24:44`   -> data/ops/index-tier1.json
+- `01:24:44` ops 5051 GREEN -- index contract published
