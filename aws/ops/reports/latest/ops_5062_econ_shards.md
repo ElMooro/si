@@ -1,0 +1,43 @@
+## P0 deploy + find the fastest rule with room
+
+**Status:** success  
+**Duration:** 2448.9s  
+**Finished:** 2026-08-30T18:24:33+00:00  
+
+## Data
+
+| done | objects | rate | shards |
+|---|---|---|---|
+| 15 | 24 | 0.37 | 6 |
+
+## Log
+- `17:43:45`   code fresh 2026-08-30T17:43:38.000+0000 mem=1024 timeout=850
+- `17:43:49`   memory 1024 -> 3008 MB (parsing 130k-row payloads)
+- `17:43:52`   fastest enabled rules with a free slot:
+- `17:43:52`     justhodl-series-extractor-5min           rate(2 minutes)  4/5
+- `17:43:52`     benzinga-news-agent-warm                 rate(5 minutes)  1/5
+- `17:43:52`     justhodl-sdmx-walker-hourly              rate(5 minutes)  1/5
+- `17:43:52`     justhodl-backend-agent-15min             rate(15 minutes) 1/5
+- `17:43:52`     justhodl-crypto-15min                    rate(15 minutes) 1/5
+- `17:43:52`     justhodl-dex-scanner-15min               rate(15 minutes) 1/5
+## P1 attach the shards
+
+- `17:43:52`   justhodl-series-extractor-5min (rate(2 minutes)) <- shards ['econs0']
+- `17:43:52`   benzinga-news-agent-warm (rate(5 minutes)) <- shards ['econs1', 'econs2', 'econs3', 'econs4']
+- `17:43:53`   justhodl-sdmx-walker-hourly (rate(5 minutes)) <- shards ['econs5']
+- `17:43:53`   shards scheduled: 6/6
+## P2 drive all shards and measure
+
+- `17:57:26`   t+14min  s0=1/214 s1=0/? s2=0/? s3=0/? s4=0/? s5=0/?  total=1  (+1, 0.1 entries/min)
+- `18:10:59`   t+27min  s0=7/214 s1=0/? s2=0/? s3=0/? s4=0/? s5=0/?  total=7  (+7, 0.3 entries/min)
+- `18:24:32`   t+41min  s0=7/214 s1=0/? s2=1/213 s3=0/? s4=0/? s5=7/189  total=15  (+15, 0.4 entries/min)
+- `18:24:33`   RATE 0.37 entries/min  (was 0.15 single-worker)
+- `18:24:33`   ~1201 entries left -> ~54.3 h at this rate
+## P3 shards must not overlap
+
+- `18:24:33`   distinct entries done across shards: 15
+- `18:24:33`   duplicates: 0 []
+- `18:24:33`   entries in the wrong shard: 0 []
+- `18:24:33`   geo levels abandoned as oversize: 1 [('cbp', ['cbp:g1', 'cbp:g2', 'cbp:g3'])]
+- `18:24:33`   S3: 24 objects, 24.7 MB, families={'cbp': 24}
+- `18:24:33` ops 5062 GREEN -- econ lane sharded and moving

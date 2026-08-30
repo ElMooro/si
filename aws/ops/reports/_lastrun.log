@@ -1,32 +1,31 @@
-executing-against: b70ab89be8c33ff13f6742e316e08b246032cef2
-── P0 which rules have a free target slot ──
-[16:38:27]   enabled scheduled rules with room: 513
-[16:38:27]     carry-surface-4h                           rate(4 hours)      1/5 targets
-[16:38:27]     cftc-cot-weekly-update                     rate(6 hours)      1/5 targets
-[16:38:27]     cross-asset-confirm-3h                     rate(3 hours)      1/5 targets
-[16:38:27]     event-flow-monitor-hourly                  rate(6 hours)      1/5 targets
-[16:38:27]     fed-nlp-6h                                 rate(6 hours)      1/5 targets
-[16:38:27]     fmp-movers-hourly                          rate(1 hour)       1/5 targets
-[16:38:27]     gap-metrics-daily                          rate(2 hours)      1/5 targets
-[16:38:27]     jsi-6h                                     rate(6 hours)      1/5 targets
-── P1 attach the census targets ──
-[16:38:27]   host rule: carry-surface-4h (rate(4 hours), 1 targets used)
-[16:38:27]   invoke permission granted for carry-surface-4h
-[16:38:27]   put_targets failed=0
-[16:38:27]   carry-surface-4h now has 3 targets: ['1', 'censusecon', 'censusts']
-── P2 drain (Event invokes, polled -- never sync) ──
-[16:38:27]   before: n_done=1/1226 rows=75,573 failures=0
-[16:53:31]   cycle 1  n_done=4/1226  rows=377,739  queue_left=1223  failures=0
-[17:08:34]   cycle 2  n_done=8/1226  rows=862,441  queue_left=1219  failures=0
-[17:23:38]   cycle 3  n_done=9/1226  rows=1,123,121  queue_left=1218  failures=0
-[17:38:41]   cycle 4  n_done=10/1226  rows=1,382,781  queue_left=1216  failures=0
-[17:38:41]   drained 9 entries in 60 min -> 0.1 entries/min
-[17:38:41]   1216 entries left -> ~135.6 h at this rate
-── P3 what landed ──
-[17:38:41]   11 objects, 14.4 MB
-[17:38:41]     cbp              11 objects      14.4 MB
-[17:38:41]   cbp/cbp/2013/g0-c0.json.gz                     129,720 rows · NAICS2012 has 6 distinct codes
-[17:38:42]   cbp/cbp/2014/g0-c0.json.gz                     129,940 rows · NAICS2012 has 6 distinct codes
-[17:38:42] ops 5061 GREEN -- econ lane scheduled and draining
+executing-against: 8330304fae1da7e7883fa00bc708048bd7a4f522
+── P0 deploy + find the fastest rule with room ──
+[17:43:45]   code fresh 2026-08-30T17:43:38.000+0000 mem=1024 timeout=850
+[17:43:49]   memory 1024 -> 3008 MB (parsing 130k-row payloads)
+[17:43:52]   fastest enabled rules with a free slot:
+[17:43:52]     justhodl-series-extractor-5min           rate(2 minutes)  4/5
+[17:43:52]     benzinga-news-agent-warm                 rate(5 minutes)  1/5
+[17:43:52]     justhodl-sdmx-walker-hourly              rate(5 minutes)  1/5
+[17:43:52]     justhodl-backend-agent-15min             rate(15 minutes) 1/5
+[17:43:52]     justhodl-crypto-15min                    rate(15 minutes) 1/5
+[17:43:52]     justhodl-dex-scanner-15min               rate(15 minutes) 1/5
+── P1 attach the shards ──
+[17:43:52]   justhodl-series-extractor-5min (rate(2 minutes)) <- shards ['econs0']
+[17:43:52]   benzinga-news-agent-warm (rate(5 minutes)) <- shards ['econs1', 'econs2', 'econs3', 'econs4']
+[17:43:53]   justhodl-sdmx-walker-hourly (rate(5 minutes)) <- shards ['econs5']
+[17:43:53]   shards scheduled: 6/6
+── P2 drive all shards and measure ──
+[17:57:26]   t+14min  s0=1/214 s1=0/? s2=0/? s3=0/? s4=0/? s5=0/?  total=1  (+1, 0.1 entries/min)
+[18:10:59]   t+27min  s0=7/214 s1=0/? s2=0/? s3=0/? s4=0/? s5=0/?  total=7  (+7, 0.3 entries/min)
+[18:24:32]   t+41min  s0=7/214 s1=0/? s2=1/213 s3=0/? s4=0/? s5=7/189  total=15  (+15, 0.4 entries/min)
+[18:24:33]   RATE 0.37 entries/min  (was 0.15 single-worker)
+[18:24:33]   ~1201 entries left -> ~54.3 h at this rate
+── P3 shards must not overlap ──
+[18:24:33]   distinct entries done across shards: 15
+[18:24:33]   duplicates: 0 []
+[18:24:33]   entries in the wrong shard: 0 []
+[18:24:33]   geo levels abandoned as oversize: 1 [('cbp', ['cbp:g1', 'cbp:g2', 'cbp:g3'])]
+[18:24:33]   S3: 24 objects, 24.7 MB, families={'cbp': 24}
+[18:24:33] ops 5062 GREEN -- econ lane sharded and moving
 
-→ Report written to aws/ops/reports/latest/ops_5061_econ_schedule.md
+→ Report written to aws/ops/reports/latest/ops_5062_econ_shards.md
