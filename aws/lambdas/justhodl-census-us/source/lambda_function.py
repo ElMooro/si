@@ -616,11 +616,189 @@ def save(state):
     pj(STATE_KEY, slim)
 
 
+
+# ── ops 5060: economic-scope walker (macro/finance/industry/employment) ──
+ECON_STATE = "data/_state/census-econ.json"
+ECON_ROOT = "data/warm/census-econ/"
+ECON_SCOPE = "data/_state/census-econ-scope.json"
+ECON_BUDGET = 780          # < the 850s timeout, leaves room to checkpoint
+VAR_CHUNK = 45             # Census caps get= near 50
+GEO_CAP = 4
+ECON_PRIORITY = ["cbp", "zbp", "nonemp", "ase", "rhfs", "cfspum"]
+ECON_LAST = ["cps", "sipp"]   # biggest and most survey-shaped: queued last
+
+
+def _econ_rank(fam):
+    """Cheap-and-useful first, the two giants last. Nothing is dropped --
+    ordering only, so an interrupted crawl has already banked the data
+    the physical-economy and regional desks actually read."""
+    if fam in ECON_PRIORITY:
+        return (0, ECON_PRIORITY.index(fam))
+    if fam in ECON_LAST:
+        return (3, ECON_LAST.index(fam))
+    if fam.startswith("ecn") or fam.startswith("ewks"):
+        return (1, 0)
+    return (2, 0)
+
+
+def _econ_build_queue(state):
+    """Turn the reviewed scope manifest + data.json into a work queue.
+    Scope lives in S3 as DATA, so it can be edited without a deploy."""
+    scope = gj(ECON_SCOPE) or {}
+    fams = set((scope.get("families") or {}).keys())
+    if not fams:
+        state["failures"]["_scope"] = "census-econ-scope.json missing"
+        return state
+    st, txt = http_get(DATA_JSON)
+    if st != 200:
+        state["failures"]["_catalog"] = "data.json HTTP %s" % st
+        return state
+    q = []
+    for d in (json.loads(txt).get("dataset") or []):
+        cd = d.get("c_dataset") or []
+        if not cd or cd[0] == "timeseries" or cd[0] not in fams:
+            continue
+        q.append({"fam": cd[0], "ds": "/".join(str(x) for x in cd),
+                  "vintage": d.get("c_vintage"),
+                  "title": str(d.get("title") or "")[:120]})
+    q.sort(key=lambda e: (_econ_rank(e["fam"]), e["fam"],
+                          -(int(e["vintage"]) if e["vintage"] else 0)))
+    done = set(state.get("done") or [])
+    state["queue"] = [e for e in q
+                      if (e["ds"] + "@" + str(e["vintage"])) not in done]
+    state["n_total"] = len(q)
+    state["phase"] = "DRAIN" if state["queue"] else "COMPLETE"
+    return state
+
+
+def _econ_entry(e, state, t0, ctx):
+    """One dataset-vintage: variables in chunks x geography levels."""
+    base = ("https://api.census.gov/data/%s/%s" % (e["vintage"], e["ds"])
+            if e.get("vintage") else
+            "https://api.census.gov/data/%s" % e["ds"])
+    st, txt = http_get(base + "/variables.json")
+    if st != 200:
+        return 0, "variables HTTP %s" % st
+    try:
+        allv = json.loads(txt).get("variables") or {}
+    except Exception as ex:
+        return 0, "variables parse %s" % str(ex)[:60]
+    skip = {"for", "in", "ucgid", "time"}
+    names = sorted(k for k in allv if k not in skip)
+    # NAICS is a PREDICATE: without an explicit wildcard the API returns
+    # all-industry totals only, which would silently drop the industrial
+    # detail this lane exists for.
+    naics = next((k for k in names
+                  if k.upper().startswith("NAICS")
+                  or k.upper() in ("SECTOR", "INDGROUP")), None)
+    st, txt = http_get(base + "/geography.json")
+    geos = []
+    if st == 200:
+        try:
+            for g in (json.loads(txt).get("fips") or []):
+                if not g.get("requires"):
+                    geos.append(g.get("name"))
+        except Exception:
+            pass
+    geos = (geos or ["us"])[:GEO_CAP]
+    rows = 0
+    for gi, geo in enumerate(geos):
+        for ci in range(0, len(names), VAR_CHUNK):
+            if time.time() - t0 > ECON_BUDGET:
+                return rows, "BUDGET"
+            chunk = names[ci:ci + VAR_CHUNK]
+            q = "get=" + ",".join(chunk) + "&for=" + \
+                urllib.parse.quote(geo) + ":*"
+            if KEY:
+                q += "&key=" + KEY
+            url = base + "?" + q
+            stt, body = http_get(url + ("&%s=*" % naics if naics else ""))
+            if stt != 200 and naics:
+                # the wildcard is not valid on every dataset; the totals
+                # are still worth banking, so degrade rather than fail
+                stt, body = http_get(url)
+            if stt != 200 or not body.strip():
+                continue
+            try:
+                data = json.loads(body)
+            except Exception:
+                continue
+            if not isinstance(data, list) or len(data) < 2:
+                continue
+            key = "%s%s/%s/%s/g%d-c%d.json.gz" % (
+                ECON_ROOT, e["fam"], e["ds"].replace("/", "_"),
+                e.get("vintage") or "na", gi, ci // VAR_CHUNK)
+            pj(key, data)
+            rows += len(data) - 1
+    return rows, None
+
+
+def econ_run(ctx):
+    t0 = time.time()
+    state = gj(ECON_STATE) or {
+        "version": "econ-v1", "phase": "CATALOG", "queue": [],
+        "done": [], "failures": {}, "n_total": 0, "n_done": 0,
+        "rows_total": 0,
+        "note": "macro/finance/industry/employment scope only; "
+                "demographics excluded by directive"}
+    state.setdefault("failures", {})
+    state.setdefault("done", [])
+    if state.get("phase") in (None, "CATALOG") or not state.get("queue"):
+        state = _econ_build_queue(state)
+    drained = 0
+    while state.get("queue"):
+        if time.time() - t0 > ECON_BUDGET:
+            break
+        e = state["queue"][0]
+        tag = e["ds"] + "@" + str(e.get("vintage"))
+        att = int((state.get("attempts") or {}).get(tag, 0)) + 1
+        state.setdefault("attempts", {})[tag] = att
+        try:
+            n, err = _econ_entry(e, state, t0, ctx)
+        except Exception as ex:
+            n, err = 0, "%s: %s" % (type(ex).__name__, str(ex)[:70])
+        if err == "BUDGET":
+            state["rows_total"] += n
+            break
+        if err and att < 3:
+            # retried while it can still advance; retired on the third
+            # failure so one bad vintage cannot block the queue behind it
+            state["failures"][tag] = "%s (attempt %d)" % (err, att)
+            state["queue"].append(state["queue"].pop(0))
+            state["updated_at"] = _now().isoformat()
+            pj(ECON_STATE, state)
+            continue
+        if err:
+            state["failures"][tag] = "%s -- retired" % err
+        state["queue"].pop(0)
+        state["done"].append(tag)
+        state["n_done"] = len(state["done"])
+        state["rows_total"] += n
+        drained += 1
+        state["updated_at"] = _now().isoformat()
+        pj(ECON_STATE, state)
+    if not state.get("queue"):
+        state["phase"] = "COMPLETE"
+    state["queue_left"] = len(state.get("queue") or [])
+    state["updated_at"] = _now().isoformat()
+    pj(ECON_STATE, state)
+    return {"mode": "econ", "phase": state["phase"],
+            "n_done": state["n_done"], "n_total": state["n_total"],
+            "queue_left": state["queue_left"],
+            "rows_total": state["rows_total"],
+            "drained_this_run": drained, "calls": _calls,
+            "failures": len(state["failures"])}
+
+
 def lambda_handler(event, ctx):
     global _calls, _OV
     _calls = 0
     _OV = None                       # re-read overrides each invoke
     event = event or {}
+    if event.get("mode") == "econ":
+        # separate state, separate prefix -- the timeseries lane is
+        # untouched by this path
+        return econ_run(ctx)
     state = gj(STATE_KEY) or {
         "version": "1.1.4", "phase": "CATALOG", "queue": [],
         "datasets": {}, "catalog": {}, "failures": {},
