@@ -1452,6 +1452,42 @@ export default {
       return jsonResp({ ok: true, results });
     }
 
+    // ops 5053: forward Range. Tier-1 series blocks are read by asking
+    // for a byte window of a large .jsonl -- without this the proxy
+    // answers 200 with the WHOLE object and the entire point of the
+    // block index (one ~400KB read instead of an 80MB download) is
+    // lost. Ranged requests bypass the edge cache deliberately: a 206
+    // must never populate, or be served from, the full-object entry.
+    const rangeHdr = request.headers.get("Range");
+    if (rangeHdr) {
+      let rr;
+      try {
+        rr = await fetch(`${BUCKET_BASE}/${safePath}`, {
+          headers: { "Range": rangeHdr,
+                     "User-Agent": "justhodl-data-proxy" },
+          cf: { cacheEverything: false }
+        });
+      } catch (e) {
+        return new Response(
+          JSON.stringify({ error: "range fetch failed",
+                           detail: String(e), path: safePath }),
+          { status: 502, headers: { "Content-Type": "application/json",
+                                    ...corsHeaders() } });
+      }
+      const rh = new Headers(corsHeaders());
+      for (const k of ["Content-Range", "Content-Length", "Content-Type",
+                       "ETag", "Last-Modified"]) {
+        const v = rr.headers.get(k);
+        if (v) rh.set(k, v);
+      }
+      rh.set("Accept-Ranges", "bytes");
+      rh.set("Access-Control-Expose-Headers",
+             "Content-Range, Content-Length, Accept-Ranges");
+      rh.set("Cache-Control", "public, max-age=86400");
+      rh.set("X-JH-Range", "passthrough");
+      return new Response(rr.body, { status: rr.status, headers: rh });
+    }
+
     const ttl = ttlFor(safePath);
     // ops 4528: version-keyed cache — bumping CACHE_VER orphans every
     // stale entry on EVERY Cloudflare PoP at once (per-colo caches meant
