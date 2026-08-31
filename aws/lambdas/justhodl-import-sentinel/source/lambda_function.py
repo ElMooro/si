@@ -54,6 +54,9 @@ cw = boto3.client("cloudwatch", region_name=REGION)
 SDMX = ("eurostat", "oecd", "statcan", "bis", "ecb")
 
 
+DEAD_LANE_H = 48   # a data lane silent this long is not merely slow
+
+
 def read_json(key):
     try:
         return json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
@@ -365,6 +368,63 @@ def lambda_handler(event=None, context=None):
                           "detail": c_det[:160], "age_min": c_age})
 
     cat = read_json("data/provider-catalog.json")
+    # ops 5073: DEAD-LANE DETECTION. Five of the fleet's largest gaps --
+    # census-us, boj-full, gdelt-full, repo, fundamental-census -- were
+    # not slow, throttled or refused. They had no trigger, or one that
+    # had stopped firing, and sat idle for between 4 and 16 days while
+    # their state documents looked perfectly healthy. Nothing checked,
+    # which is exactly why nobody noticed.
+    #
+    # Staleness is the right signal because it is agnostic about cause:
+    # an untriggered lane, a crashed lane and a throttled lane all stop
+    # writing state. One HEAD per provider, no EventBridge or CloudWatch
+    # calls, so it is cheap enough to run every sweep.
+    try:
+        provs, kw = [], {"Bucket": BUCKET, "Prefix": "data/warm/",
+                         "Delimiter": "/"}
+        while True:
+            rr = s3.list_objects_v2(**kw)
+            provs += [x["Prefix"] for x in rr.get("CommonPrefixes", [])]
+            if not rr.get("IsTruncated"):
+                break
+            kw["ContinuationToken"] = rr.get("NextContinuationToken")
+        stale, checked = [], 0
+        for pref in provs:
+            newest = None
+            try:
+                rr = s3.list_objects_v2(Bucket=BUCKET,
+                                        Prefix=pref + "_state/",
+                                        MaxKeys=40)
+            except Exception:
+                continue
+            for o in rr.get("Contents", []):
+                if newest is None or o["LastModified"] > newest:
+                    newest = o["LastModified"]
+            if newest is None:
+                continue
+            checked += 1
+            age_h = (now - newest).total_seconds() / 3600.0
+            if age_h > DEAD_LANE_H:
+                stale.append((pref.split("/")[-2], round(age_h, 1)))
+        stale.sort(key=lambda x: -x[1])
+        if stale:
+            pipelines.append({
+                "name": "dead-lanes",
+                "status": "ACTION_REQUIRED" if stale[0][1] > 168
+                          else "STALE",
+                "detail": ("%d lane(s) have not written state in >%dh: %s"
+                           % (len(stale), DEAD_LANE_H,
+                              ", ".join("%s %.0fh" % (n, a)
+                                        for n, a in stale[:6])))})
+        else:
+            pipelines.append({
+                "name": "dead-lanes", "status": "OK",
+                "detail": "all %d lanes wrote state within %dh"
+                          % (checked, DEAD_LANE_H)})
+    except Exception as e:
+        pipelines.append({"name": "dead-lanes", "status": "UNKNOWN",
+                          "detail": str(e)[:110]})
+
     pipelines.append({"name": "provider-catalog",
                       "status": ("OK" if cat and (age_min(
                           cat.get("as_of") or cat.get("generated_at"))
