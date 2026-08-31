@@ -1,29 +1,30 @@
-executing-against: 92d89bc41ae65a5fba9d1963101cd2f465d24a00
-── P0 deploy + the missing list ──
-[01:33:40]   code fresh 2026-08-31T01:33:33.000+0000 mem=1024 timeout=850
-[01:33:41]   missing list: 7,381 slots (expected 404,263, present 396,882)
-[01:33:41]   by year: {"2015": 204, "2016": 45, "2017": 993, "2018": 990, "2019": 11, "2020": 2585, "2021": 610, "2022": 87, "2023": 172, "2024": 2, "2025": 1681, "2026": 1
-[01:33:41]   engine state: files=396883 gaps=7381 cursor=20260831010000
-── P1 fan out and drain ──
-[01:33:43]   fanout -> b'{"mode": "backfill_fanout", "shards": 12, "invoked": 12}'
-[01:47:03]   t+13min recovered=0 permanent=0 remaining=0 0.00 GB  shards reporting=0
-[01:47:04]   fanout -> b'{"mode": "backfill_fanout", "shards": 12, "invoked": 12}'
-[02:00:25]   t+27min recovered=0 permanent=0 remaining=0 0.00 GB  shards reporting=0
-[02:00:25]   fanout -> b'{"mode": "backfill_fanout", "shards": 12, "invoked": 12}'
-[02:13:46]   t+40min recovered=0 permanent=0 remaining=0 0.00 GB  shards reporting=0
-[02:13:47]   resolved 0 slots in 40 min (0.0/min)
-── P2 truth ──
-[02:13:47]   RECOVERED (fetched and banked): 0
-[02:13:47]   PERMANENT (404 again -- GDELT never published these): 0
-[02:13:47]   remaining to attempt: 0 of 7,381
-[02:13:47]   bytes recovered: 0.00 GB
-[02:13:47]   nothing resolved -- the backfill is not working
-[02:15:01]   v2 export objects in S3 now: 396,885
-── P3 the other lanes ──
-[02:15:02]   boj 60,725/120,394 series (50.4%) rows 294,539
-[02:15:03]   census-econ 382/1226 entries
-[02:15:03]   -> data/ops/gdelt-backfill.json
-[02:15:03] ops 5072 RED: P2:nowork
+executing-against: 816a682fc79867a80c4b9fa2dac808f8c6602454
+── P0 deploy + run the sentinel ──
+[02:15:31]   code fresh 2026-08-31T02:02:25.000+0000
+[02:15:31]   before: overall=DEGRADED worst=census-us
+[02:15:31]   sentinel kicked
+── P1 the new pipeline ──
+[02:22:35]   dead-lanes pipeline ABSENT -- the check did not run
+[02:22:35]   all pipelines now:
+[02:22:35]     fred             COMPLETE         COMPLETE_WITH_LEAKS
+[02:22:35]     nyfed            OK               rates 10.3h · pd 1539/? · repo 10.4h
+[02:22:35]     sdmx-eurostat    COMPLETE         8152/8152, 6 source-side failures
+[02:22:35]     sdmx-oecd        COMPLETE         1548/1546, 488 source-side failures
+[02:22:35]     sdmx-statcan     COMPLETE         8229/8229, 5 source-side failures
+[02:22:35]     sdmx-bis         COMPLETE         29/29, 1 source-side failures
+[02:22:35]     sdmx-ecb         COMPLETE         214/214, 7 source-side failures
+[02:22:35]     census-us        STALE            COMPLETE 55/56 datasets · 4604884 rows · 1 source failures logged
+[02:22:35]     provider-catalog OK               hub index freshness
+── P2 has the banner cleared ──
+[02:22:35]   overall DEGRADED -> DEGRADED   worst census-us -> census-us
+[02:22:35]   still DEGRADED because of census-us; that is now a lane with a name rather than a mystery
+[02:22:35]   incidents retained: 5 (aged to 14 days by ops 5056)
+── P3 the running imports ──
+[02:22:36]   gdelt backfill: recovered=0 permanent=0 remaining=0 0.00 GB
+[02:22:39]   boj: 60,725/120,394 series (50.4%) rows 294,539
+[02:22:40]   census-econ: 385/1226 entries
+[02:22:40]   -> data/ops/dead-lane-alarm.json
+[02:22:40] ops 5073 RED: P1:absent
 
-→ Report written to aws/ops/reports/latest/ops_5072_gdelt_backfill.md
-❌ OPS-FAIL: aws/ops/pending/ops_5072_gdelt_backfill.py
+→ Report written to aws/ops/reports/latest/ops_5073_dead_lane_alarm.md
+❌ OPS-FAIL: aws/ops/pending/ops_5073_dead_lane_alarm.py
