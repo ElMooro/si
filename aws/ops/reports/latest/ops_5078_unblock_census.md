@@ -1,0 +1,44 @@
+## P0 confirm
+
+**Status:** success  
+**Duration:** 2471.2s  
+**Finished:** 2026-08-31T17:41:32+00:00  
+
+## Data
+
+| boj | econ | rate | reserved | throttles_1h |
+|---|---|---|---|---|
+| 60725 | 752 | 1.88 | 20 | 2655 |
+
+## Log
+- `17:00:21`   justhodl-census-us reserved = 1
+- `17:00:21`   throttles 6h: 15,710  invocations 6h: 53
+- `17:00:22`   fleet throttles 6h: 16,935
+- `17:00:22`   concurrency peak used fleet-wide: 140 of 1000
+- `17:00:22`   -> the account has capacity; the reservation is the wall
+## P1 raise the reservation
+
+- `17:00:22`   safe because each econ shard owns its own state document
+- `17:00:22`   (data/_state/census-econ-s{k}.json) -- shards cannot share
+- `17:00:22`   a cursor, so concurrency was never what made it correct
+- `17:00:25`   reserved 1 -> 20 (12 shards + timeseries + headroom)
+## P2 drive and measure
+
+- `17:00:26`   econ entries before: 686 / 1,226
+- `17:00:26`   dispatch sent (cycle 1)
+- `17:12:07`   t+12min  entries=707 (+21)  1.80/min  shards live 12/12
+- `17:12:07`   dispatch sent (cycle 2)
+- `17:23:48`   t+23min  entries=730 (+44)  1.88/min  shards live 12/12
+- `17:23:48`   dispatch sent (cycle 3)
+- `17:35:29`   t+35min  entries=752 (+66)  1.88/min  shards live 12/12
+- `17:35:30`   RATE 1.88 entries/min  (throttled baseline was ~0.37)
+- `17:35:30`   474 left -> ~4.2 h
+## P3 throttles after, and the timeseries lane
+
+- `17:35:30`   last hour -- justhodl-census-us throttles: 2,655   fleet: 2,777
+- `17:35:30`   (6h figures before this change were 15,605 and 16,913)
+- `17:35:30`   timeseries updated_at=2026-08-25T23:49:53+00:00
+- `17:35:30`   timeseries invoke accepted
+- `17:41:31`   timeseries state still unmoved
+- `17:41:32`   BOJ 60,725/120,394 (50.4%)
+- `17:41:32` ops 5078 GREEN -- the wall was mine and it is down
