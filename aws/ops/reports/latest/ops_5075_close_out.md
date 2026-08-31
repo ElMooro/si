@@ -1,0 +1,35 @@
+## P0 GDELT: gap vs never-published
+
+**Status:** failure  
+**Duration:** 817.0s  
+**Finished:** 2026-08-31T15:39:41+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `15:26:04`   slots proven 404 at source: 7,381
+- `15:26:04`   state before: files=396938 gaps=7381
+- `15:26:04`   state after : gaps=0  gaps_permanent=7381
+- `15:26:04`   the card will now read a real gap count instead of a permanent source artefact
+## P1 census-us: does the walker still work
+
+- `15:26:05`   before: phase=COMPLETE n_done=55 rows=4,604,884 updated_at=2026-08-25T23:49:53+00:00
+- `15:26:06`   invoke err An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries: 2): Rate Exceeded.
+- `15:33:37`   state did NOT move -- the walker is broken, not merely untriggered; that is a different repair
+## P2 sentinel deploy
+
+- `15:33:37`   deployed LastModified=2026-08-31T02:02:25.000+0000 CodeSize=106913
+- `15:33:37`   code age 13.4 h -- the dead-lanes check was committed at 02:01 UTC
+- `15:33:37`   the deploy never picked it up; that is why the chip is absent
+- `15:39:39`   dead-lanes: ABSENT
+- `15:39:39`   overall=DEGRADED worst=census-us
+## P3 the lanes that are importing
+
+- `15:39:40`   BOJ         60,725 / 120,394 series (50.4%) · 294,539 rows
+- `15:39:40`   census-econ 676 / 1,226 entries
+- `15:39:41`   census-econ objects in S3: 3,008
+- `15:39:41` ops 5075 RED: P1:nomove
