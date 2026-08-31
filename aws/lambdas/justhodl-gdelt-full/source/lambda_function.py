@@ -29,6 +29,7 @@ import os
 import re
 import time
 import urllib.error
+import zlib
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
@@ -199,7 +200,101 @@ def write_manifest(state):
                  "unconsumed)")})
 
 
+
+# ── ops 5072: gap backfill ──────────────────────────────────────────────
+BF_STATE = "data/_state/gdelt-backfill-s%d.json"
+MISSING_KEY = "data/_state/gdelt-missing-slots.json"
+BF_BUDGET = 760
+
+
+def backfill_run(event, t0):
+    """Re-fetch the slots the forward cursor missed.
+
+    The engine only ever kept a COUNT of gaps plus a capped sample, so
+    the identity of the 7,381 missing files was lost. ops 5071 rebuilt
+    it by diffing the deterministic 15-minute timeline against the
+    stamps actually in S3 -- two independent methods agreeing on 7,381
+    exactly -- and wrote data/_state/gdelt-missing-slots.json.
+
+    Crucially this separates two very different gaps. A slot that now
+    returns 200 was a transient miss and is recovered. A slot that
+    404s again is one GDELT never published -- retrying it forever would
+    burn requests on nothing and keep the counter climbing, so it is
+    recorded as permanent and never attempted again. Without that
+    distinction a "backfill" would run indefinitely and look like
+    progress.
+    """
+    shard = int(event.get("shard") or 0)
+    shards = max(1, int(event.get("shards") or 1))
+    st = _j(BF_STATE % shard, None) or {
+        "done": [], "permanent": [], "recovered": 0, "bytes": 0,
+        "shard": shard, "shards": shards}
+    miss = (_j(MISSING_KEY, {}) or {}).get("slots") or []
+    done, perm = set(st["done"]), set(st["permanent"])
+    todo = [x for x in miss
+            if zlib.crc32(x.encode()) % shards == shard
+            and x not in done and x not in perm]
+    end = t0 + BF_BUDGET
+    ok = gone = err = 0
+    for ss in todo:
+        if time.time() > end:
+            break
+        url = V2 + ss + ".export.CSV.zip"
+        key = (ROOT + "v2/export/%s/%s/%s.export.CSV.zip"
+               % (ss[:4], ss[4:6], ss))
+        try:
+            req = urllib.request.Request(url, headers=UA)
+            with urllib.request.urlopen(req, timeout=90) as r:
+                body = r.read()
+            s3.put_object(Bucket=BUCKET, Key=key, Body=body,
+                          ContentType="application/zip")
+            st["done"].append(ss)
+            st["bytes"] += len(body)
+            st["recovered"] += 1
+            ok += 1
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                st["permanent"].append(ss)   # source never published it
+                gone += 1
+            else:
+                err += 1
+        except Exception:
+            err += 1
+        if (ok + gone) and (ok + gone) % 25 == 0:
+            st["updated_at"] = _now()
+            _put_json(BF_STATE % shard, st)
+    st["updated_at"] = _now()
+    st["remaining"] = max(0, len(todo) - ok - gone)
+    _put_json(BF_STATE % shard, st)
+    return {"mode": "backfill", "shard": shard, "shards": shards,
+            "recovered_run": ok, "permanent_run": gone, "errors": err,
+            "recovered_total": st["recovered"],
+            "permanent_total": len(st["permanent"]),
+            "remaining": st["remaining"],
+            "gb": round(st["bytes"] / 1e9, 2)}
+
+
 def lambda_handler(event, ctx=None):
+    _bft0 = time.time()
+    event = event or {}
+    if event.get("backfill_fanout"):
+        n = int(event.get("shards") or 12)
+        _l = boto3.client("lambda", region_name="us-east-1")
+        fn = os.environ.get("AWS_LAMBDA_FUNCTION_NAME",
+                            "justhodl-gdelt-full")
+        sent = 0
+        for k in range(n):
+            try:
+                _l.invoke(FunctionName=fn, InvocationType="Event",
+                          Payload=json.dumps({"backfill": True,
+                                              "shard": k,
+                                              "shards": n}).encode())
+                sent += 1
+            except Exception:
+                pass
+        return {"mode": "backfill_fanout", "shards": n, "invoked": sent}
+    if event.get("backfill"):
+        return backfill_run(event, _bft0)
     global _t0, _bytes_run
     _t0, _bytes_run = time.time(), 0
     event = event or {}
