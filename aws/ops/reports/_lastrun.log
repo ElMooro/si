@@ -1,25 +1,47 @@
-executing-against: f8ecd3e73937122c1ba107e5d1e05c8c11f57b96
-── P0 real coverage (done / len(codes)) ──
-[00:17:36]   code fresh 2026-08-31T00:17:34.000+0000
-[00:17:36]   dbs with state: 16   series 55,306 / 85,102  (65.0%)
-[00:17:36]   rows banked 258,846 across 7,148 part files
-[00:17:36]   the page reports 55,306/120,394 -- so ~35,292 series are in dbs that have NO state file at all
-[00:17:36]   dbs short (2), worst first:
-[00:17:36]     FF             10,140 / 33,887    23,747 outstanding
-[00:17:36]     BP01           11,940 / 17,989    6,049 outstanding
-── P1 give it a trigger ──
-[00:17:37]   existing rules: NONE
-[00:17:37]   fanout target on benzinga-news-agent-warm (rate(5 minutes)) failed=0
-── P2 fan out, correct payload ──
-[00:17:39]   fanout -> b'{"ok": true, "mode": "fanout", "dbs": 22, "invoked": 22}'
-[00:29:20]   t+12min  series 57,787/120,394 (+2,481)  rows 276,714 (+17,868)  dbs=22
-[00:41:01]   t+23min  series 58,678/120,394 (+3,372)  rows 282,012 (+23,166)  dbs=22
-[00:52:42]   t+35min  series 59,765/120,394 (+4,459)  rows 288,964 (+30,118)  dbs=22
-[00:52:43]   drained 4,459 series in 35 min (127/min); rows +30,118; dbs 16 -> 22
-[00:52:43]   60,629 series left in known dbs -> ~7.9 h at this rate
-── P3 what is still untouched ──
-[00:52:43]   universe dbs=22  with state=22  never started: none
-[00:52:43]   -> data/ops/boj-expedite.json
-[00:52:43] ops 5068 GREEN -- BOJ fanned out and triggered
+executing-against: a3ed58c8af12d06738a862c645619ed2dcd90942
+── P0 BOJ progress + lease ──
+[00:59:52]   series 60,245 / 120,394 (50.0%)  rows 292,922  lease-skips 0
+── P1 THE AUDIT -- every engine, does it have a trigger ──
+[00:59:59]   justhodl-* functions: 822
+[01:02:18]   ENGINES WITH NO ENABLED RULE: 381 of 822
+[01:02:18]   function                                        rules invokes/7d
+[01:02:18]   justhodl-ab-test                                    0          0
+[01:02:18]   justhodl-activist-13d                               0          0
+[01:02:18]   justhodl-activist-filings-scanner                   0          0
+[01:02:18]   justhodl-ai-council                                 0          0
+[01:02:18]   justhodl-alert-router                               0          0
+[01:02:18]   justhodl-allocator                                  0          0
+[01:02:18]   justhodl-api-keys-admin                             0          0
+[01:02:18]   justhodl-ask                                        0          0
+[01:02:18]   justhodl-ask-desk                                   0          0
+[01:02:18]   justhodl-asymmetric-hunter                          0          0
+[01:02:18]   justhodl-asymmetric-scorer                          0          0
+[01:02:18]   justhodl-auction-interpreter                        0          0
+[01:02:18]   justhodl-bloomberg-v8                               0          0
+[01:02:18]   justhodl-bond-regime-detector                       0          0
+[01:02:18]   justhodl-calibration-snapshot                       0          0
+[01:02:18]   justhodl-calls-backtest                             0          0
+[01:02:18]   justhodl-charts-agent                               0          0
+[01:02:18]   justhodl-chat-api                                   0          0
+[01:02:18]   justhodl-correlation-breaks                         0          0
+[01:02:18]   justhodl-correlation-surface                        0          0
+[01:02:18]   justhodl-daily-macro-report                         0          0
+[01:02:18]   justhodl-data-collector                             0          0
+[01:02:18]   justhodl-deep-value-screener                        0          0
+[01:02:18]   justhodl-dep-graph                                  0          0
+[01:02:18]   justhodl-divergence-scanner                         0          0
+[01:02:18]   justhodl-earnings                                   0          0
+── P2 wire the ones holding real backlog ──
+[01:02:21]   rules with free slots: 72
+[01:02:21]   justhodl-gdelt-full          -> benzinga-news-agent-warm (rate(5 minutes))
+[01:02:21]   justhodl-fred-import         already triggered
+[01:02:21]   justhodl-boj-full            already triggered
+[01:02:21]   justhodl-census-us           already triggered
+── P3 GDELT and FRED ──
+[01:02:22]   gdelt  files=396862 gaps=7381 cursor=20260830194500 as_of=2026-08-30T20:29:22+00:00
+[01:02:22]   fred   state not at the guessed paths (again) -- the page's 277,453/282,141 remains the source of truth
+[01:09:23]   BOJ after 7 min: 60,725 series (+480), rows 294,539, lease-skips 0
+[01:09:23]   -> data/ops/trigger-audit.json
+[01:09:23] ops 5069 GREEN -- fleet triggers audited
 
-→ Report written to aws/ops/reports/latest/ops_5068_boj_fanout.md
+→ Report written to aws/ops/reports/latest/ops_5069_trigger_audit.md
