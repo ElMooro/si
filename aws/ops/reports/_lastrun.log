@@ -1,32 +1,25 @@
-executing-against: b8e84bba1d972b8a300352a4583d9e3eac86fad6
-── P0 confirm ──
-[17:00:21]   justhodl-census-us reserved = 1
-[17:00:21]   throttles 6h: 15,710  invocations 6h: 53
-[17:00:22]   fleet throttles 6h: 16,935
-[17:00:22]   concurrency peak used fleet-wide: 140 of 1000
-[17:00:22]   -> the account has capacity; the reservation is the wall
-── P1 raise the reservation ──
-[17:00:22]   safe because each econ shard owns its own state document
-[17:00:22]   (data/_state/census-econ-s{k}.json) -- shards cannot share
-[17:00:22]   a cursor, so concurrency was never what made it correct
-[17:00:25]   reserved 1 -> 20 (12 shards + timeseries + headroom)
-── P2 drive and measure ──
-[17:00:26]   econ entries before: 686 / 1,226
-[17:00:26]   dispatch sent (cycle 1)
-[17:12:07]   t+12min  entries=707 (+21)  1.80/min  shards live 12/12
-[17:12:07]   dispatch sent (cycle 2)
-[17:23:48]   t+23min  entries=730 (+44)  1.88/min  shards live 12/12
-[17:23:48]   dispatch sent (cycle 3)
-[17:35:29]   t+35min  entries=752 (+66)  1.88/min  shards live 12/12
-[17:35:30]   RATE 1.88 entries/min  (throttled baseline was ~0.37)
-[17:35:30]   474 left -> ~4.2 h
-── P3 throttles after, and the timeseries lane ──
-[17:35:30]   last hour -- justhodl-census-us throttles: 2,655   fleet: 2,777
-[17:35:30]   (6h figures before this change were 15,605 and 16,913)
-[17:35:30]   timeseries updated_at=2026-08-25T23:49:53+00:00
-[17:35:30]   timeseries invoke accepted
-[17:41:31]   timeseries state still unmoved
-[17:41:32]   BOJ 60,725/120,394 (50.4%)
-[17:41:32] ops 5078 GREEN -- the wall was mine and it is down
+executing-against: cc213513acdca1c426d90bce967d7befbaf7711c
+── P0 throttles SINCE the fix (17:00Z) ──
+[20:00:55]   last 1h -- census-us throttles=5,054 invocations=103 | fleet throttles=5,071
+[20:00:55]   last 2h -- census-us throttles=9,440 invocations=237 | fleet throttles=9,474
+[20:00:55]   last 3h -- census-us throttles=13,311 invocations=378 | fleet throttles=13,365
+[20:00:55]   ratio now 49.07 refused per success (was 300:1)
+[20:00:55]   still refusing more than it runs -- 20 may be too few for 12 shards plus retries in flight
+── P1 the sentinel ──
+[20:00:55]   health doc generated_at=2026-08-30T15:45:04+00:00 (the page showed this as a day old)
+[20:00:56]   invoke accepted (attempt 1)
+[20:08:58]   sentinel STILL not producing output
+[20:08:58]   dead-lanes chip absent even on a fresh sweep -- then it IS a code path, not the throttling
+[20:08:58]   overall=DEGRADED worst=census-us incidents=5
+── P2 census-us timeseries ──
+[20:08:58]   before updated_at=2026-08-25T23:49:53+00:00 phase=COMPLETE
+[20:08:58]   timeseries invoke accepted (attempt 1)
+[20:19:30]   still unmoved after 10 min
+── P3 the lanes ──
+[20:19:30]   census-econ 1,203 / 1,226 entries
+[20:19:31]   BOJ 60,725 / 120,394 series (50.4%) · 294,539 rows
+[20:19:32]   census-econ objects in S3: 6,765
+[20:19:32] ops 5079 RED: P1:nosweep; P1:nochip; P2:nomove
 
-→ Report written to aws/ops/reports/latest/ops_5078_unblock_census.md
+→ Report written to aws/ops/reports/latest/ops_5079_verify_unblock.md
+❌ OPS-FAIL: aws/ops/pending/ops_5079_verify_unblock.py
