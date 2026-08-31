@@ -281,6 +281,33 @@ def lambda_handler(event, ctx=None):
     state = _j(STATE_KEY, None) or {"version": "1.1.1",
                                     "zips": {}, "failures": {}}
 
+    if event.get("fanout"):
+        # ops 5068: the api lane walks every db SEQUENTIALLY inside one
+        # 780s invocation, so a 22-db universe drains one db at a time
+        # and the later ones never get reached before the budget ends.
+        # db_filter is already a natural shard key -- fan out one
+        # invocation per db and each gets the full budget to itself.
+        # Fan-out, not a chain: a fanout never fans out.
+        if not ((state.get("api") or {}).get("dbs")):
+            api_discover(state, t0)
+            _put(STATE_KEY, state)
+        dbs = sorted((state.get("api") or {}).get("dbs") or {})
+        _l = boto3.client("lambda", region_name="us-east-1")
+        fn = os.environ.get("AWS_LAMBDA_FUNCTION_NAME",
+                            "justhodl-boj-full")
+        sent = 0
+        for db in dbs:
+            try:
+                _l.invoke(FunctionName=fn, InvocationType="Event",
+                          Payload=json.dumps({"api_only": True,
+                                              "db_filter": [db]}
+                                             ).encode())
+                sent += 1
+            except Exception:
+                pass
+        return {"ok": True, "mode": "fanout", "dbs": len(dbs),
+                "invoked": sent}
+
     if event.get("api_only"):
         if not ((state.get("api") or {}).get("dbs")):
             api_discover(state, t0)
