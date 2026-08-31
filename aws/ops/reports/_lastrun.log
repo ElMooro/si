@@ -1,24 +1,36 @@
-executing-against: aaad1888fb036cb39a8facd339741c59c487da24
-── P0 GDELT: gap vs never-published ──
-[15:26:04]   slots proven 404 at source: 7,381
-[15:26:04]   state before: files=396938 gaps=7381
-[15:26:04]   state after : gaps=0  gaps_permanent=7381
-[15:26:04]   the card will now read a real gap count instead of a permanent source artefact
-── P1 census-us: does the walker still work ──
-[15:26:05]   before: phase=COMPLETE n_done=55 rows=4,604,884 updated_at=2026-08-25T23:49:53+00:00
-[15:26:06]   invoke err An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries: 2): Rate Exceeded.
-[15:33:37]   state did NOT move -- the walker is broken, not merely untriggered; that is a different repair
-── P2 sentinel deploy ──
-[15:33:37]   deployed LastModified=2026-08-31T02:02:25.000+0000 CodeSize=106913
-[15:33:37]   code age 13.4 h -- the dead-lanes check was committed at 02:01 UTC
-[15:33:37]   the deploy never picked it up; that is why the chip is absent
-[15:39:39]   dead-lanes: ABSENT
-[15:39:39]   overall=DEGRADED worst=census-us
-── P3 the lanes that are importing ──
-[15:39:40]   BOJ         60,725 / 120,394 series (50.4%) · 294,539 rows
-[15:39:40]   census-econ 676 / 1,226 entries
-[15:39:41]   census-econ objects in S3: 3,008
-[15:39:41] ops 5075 RED: P1:nomove
+executing-against: a223000be90ee993df06edaab5e37e0d458baddb
+── P0 the ceiling ──
+[15:42:15]   ConcurrentExecutions limit : 1000
+[15:42:15]   UnreservedConcurrentExecutions: 783
+[15:42:15]   functions=871  code storage 0.1 GB of 322.1 GB
+[15:42:15]   Throttles              03=3215 04=3151 05=3073 06=2930 07=3176 08=2801 09=2826 10=2904 11=2984 12=2892 13=2557 14=2814
+[15:42:16]   Invocations            03=1235 04=1310 05=1292 06=1295 07=1466 08=1354 09=1289 10=1318 11=1356 12=1457 13=1451 14=1407
+[15:42:16]   ConcurrentExecutions   03=15 04=26 05=16 06=16 07=29 08=25 09=15 10=26 11=17 12=28 13=19 14=18
+[15:42:16]   fleet-wide throttles in 12h: 35323
+[15:42:16]   -> invokes ARE being refused. More shards would be
+[15:42:16]      converted into TooManyRequests, not into data.
+── P1 is the check really in the deployed package ──
+[15:42:16]   deployed LastModified=2026-08-31T02:02:25.000+0000
+[15:42:16]   package 106,913 bytes, lambda_function.py 21,338 bytes
+[15:42:16]   contains DEAD_LANE_H    : True
+[15:42:16]   contains dead-lanes     : True
+[15:42:16]   contains _state/        : True
+[15:42:16]   context: ...ambda x: -x[1])
+        if stale:
+            pipelines.append({
+                "name": "dead-lanes",
+                "status": "ACTION_REQUIRED" if ...
+── P2 census-us with backoff ──
+[15:42:16]   before updated_at=2026-08-25T23:49:53+00:00 phase=COMPLETE
+[15:42:16]   Event invoke accepted (attempt 1) status=202
+[15:51:18]   state still unmoved after 9 min
+── P3 what the ceiling means for the lanes ──
+[15:51:19]   BOJ 60,725/120,394 (50.4%) rows 294,539
+[15:51:19]   census-econ 677/1,226
+[15:51:19]   Both are sharded already. With throttles present the next
+[15:51:19]   lever is NOT more shards -- it is a concurrency limit
+[15:51:19]   increase from AWS Support, or staggering the fan-outs so
+[15:51:19]   they do not all fire on the same minute boundary.
+[15:51:19] ops 5076 GREEN -- ceiling measured before more parallelism
 
-→ Report written to aws/ops/reports/latest/ops_5075_close_out.md
-❌ OPS-FAIL: aws/ops/pending/ops_5075_close_out.py
+→ Report written to aws/ops/reports/latest/ops_5076_throttle_ceiling.md
