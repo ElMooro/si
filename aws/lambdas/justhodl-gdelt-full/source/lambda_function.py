@@ -236,6 +236,13 @@ def backfill_run(event, t0):
             and x not in done and x not in perm]
     end = t0 + BF_BUDGET
     ok = gone = err = 0
+    # ops 5074: write on ENTRY. The previous run had 12 shards accepted
+    # (invoked: 12) and zero state documents, which is indistinguishable
+    # from "never ran". A worker must leave evidence that it started
+    # before it does anything that can throw.
+    st["started_at"] = _now().isoformat()
+    st["todo_at_start"] = len(todo)
+    _put_json(BF_STATE % shard, st)
     for ss in todo:
         if time.time() > end:
             break
@@ -261,9 +268,9 @@ def backfill_run(event, t0):
         except Exception:
             err += 1
         if (ok + gone) and (ok + gone) % 25 == 0:
-            st["updated_at"] = _now()
+            st["updated_at"] = _now().isoformat()
             _put_json(BF_STATE % shard, st)
-    st["updated_at"] = _now()
+    st["updated_at"] = _now().isoformat()
     st["remaining"] = max(0, len(todo) - ok - gone)
     _put_json(BF_STATE % shard, st)
     return {"mode": "backfill", "shard": shard, "shards": shards,
