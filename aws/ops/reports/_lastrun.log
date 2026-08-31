@@ -1,32 +1,25 @@
-executing-against: 4f5f51272aefbdf24691a756548547b96adbe21e
-── P0 BOJ per-db truth ──
-[20:52:51]   dbs=16  parts done=55,306/7,148  rows=258,846
-[20:52:51]   part coverage 773.7%  -> -48,158 parts outstanding
-[20:52:51]   newest state write: 2026-08-26 22:50:19+00:00
-[20:52:51]   dbs still short (4):
-[20:52:51]     FM02           47/88  (41 outstanding)
-[20:52:51]     FM08           58/94  (36 outstanding)
-[20:52:51]     IR01           2/16  (14 outstanding)
-[20:52:51]     FM01           4/8  (4 outstanding)
-── P1 is BOJ actually running ──
-[20:52:52]   invocations/day (3d): 08-27=1 08-28=1 08-29=1
-[20:52:52]   rules: NONE -- untriggered, exactly like census-us was
-── P2 expedite ──
-[21:02:55]   t+10min  parts 55,306/7,148 (+0)  rows 258,846 (+0)  short=4
-[21:12:57]   t+20min  parts 55,306/7,148 (+0)  rows 258,846 (+0)  short=4
-[21:22:59]   t+30min  parts 55,306/7,148 (+0)  rows 258,846 (+0)  short=4
-[21:33:01]   t+40min  parts 55,306/7,148 (+0)  rows 258,846 (+0)  short=4
-[21:33:03]   drained 0 parts in 40 min (0.0/min); rows +0
-[21:33:03]   NO MOVEMENT -- the drain is not advancing; the gap is not a slow crawl, it is a stopped one
-── P3 the other lanes, correct paths ──
-[21:33:03]   oecd     done=1548 n_total=1546 failures=488
-[21:33:03]   gdelt    files=396862 gaps=7381 cursor=20260830194500
-[21:33:03]   wb       {"lease_until": 0, "n_indicators": 29490, "n_banked": 29468, "bytes_total": 473415663}
-[21:33:03]   finra    {"lease_until": 0, "n_banked": 8}
-[21:33:03]   census-ts {"n_total": 56, "n_done": 55, "rows_total": 4604884, "n_timeseries_universe": 94}
-[21:33:05]   census-econ shards done=170/1226
-[21:33:05]   -> data/ops/fleet-gaps.json
-[21:33:05] ops 5067 RED: P2:stalled
+executing-against: f8ecd3e73937122c1ba107e5d1e05c8c11f57b96
+── P0 real coverage (done / len(codes)) ──
+[00:17:36]   code fresh 2026-08-31T00:17:34.000+0000
+[00:17:36]   dbs with state: 16   series 55,306 / 85,102  (65.0%)
+[00:17:36]   rows banked 258,846 across 7,148 part files
+[00:17:36]   the page reports 55,306/120,394 -- so ~35,292 series are in dbs that have NO state file at all
+[00:17:36]   dbs short (2), worst first:
+[00:17:36]     FF             10,140 / 33,887    23,747 outstanding
+[00:17:36]     BP01           11,940 / 17,989    6,049 outstanding
+── P1 give it a trigger ──
+[00:17:37]   existing rules: NONE
+[00:17:37]   fanout target on benzinga-news-agent-warm (rate(5 minutes)) failed=0
+── P2 fan out, correct payload ──
+[00:17:39]   fanout -> b'{"ok": true, "mode": "fanout", "dbs": 22, "invoked": 22}'
+[00:29:20]   t+12min  series 57,787/120,394 (+2,481)  rows 276,714 (+17,868)  dbs=22
+[00:41:01]   t+23min  series 58,678/120,394 (+3,372)  rows 282,012 (+23,166)  dbs=22
+[00:52:42]   t+35min  series 59,765/120,394 (+4,459)  rows 288,964 (+30,118)  dbs=22
+[00:52:43]   drained 4,459 series in 35 min (127/min); rows +30,118; dbs 16 -> 22
+[00:52:43]   60,629 series left in known dbs -> ~7.9 h at this rate
+── P3 what is still untouched ──
+[00:52:43]   universe dbs=22  with state=22  never started: none
+[00:52:43]   -> data/ops/boj-expedite.json
+[00:52:43] ops 5068 GREEN -- BOJ fanned out and triggered
 
-→ Report written to aws/ops/reports/latest/ops_5067_boj_expedite.md
-❌ OPS-FAIL: aws/ops/pending/ops_5067_boj_expedite.py
+→ Report written to aws/ops/reports/latest/ops_5068_boj_fanout.md
