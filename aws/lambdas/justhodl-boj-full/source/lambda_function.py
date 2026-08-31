@@ -124,6 +124,18 @@ def api_drain_db(db, budget_end, state):
         st = {"db": db, "codes": (agg.get(db) or {}
                                   ).get("codes") or [],
               "done": 0, "parts": 0, "rows": 0, "fail": None}
+    # ops 5069: PER-DB LEASE. The fanout target sits on a rate(5
+    # minutes) rule but a db run may take the full 780s, so a second
+    # wave arrives while the first is still draining and both read the
+    # same `done` index -- re-fetching identical codes and racing to
+    # write api_{db}.json. The lane has no lease on the api_only path
+    # (the main path's lease check is bypassed by the early return), so
+    # the lease has to live per db, here.
+    if float(st.get("lease_until") or 0) > time.time():
+        st["skipped_leased"] = int(st.get("skipped_leased", 0)) + 1
+        return st
+    st["lease_until"] = budget_end + 60
+    _put(api_key(db), st)
     codes = st.get("codes") or []
     now_y = datetime.now(timezone.utc).year
     wins, y = [], API_START
