@@ -1,30 +1,24 @@
-executing-against: 816a682fc79867a80c4b9fa2dac808f8c6602454
-── P0 deploy + run the sentinel ──
-[02:15:31]   code fresh 2026-08-31T02:02:25.000+0000
-[02:15:31]   before: overall=DEGRADED worst=census-us
-[02:15:31]   sentinel kicked
-── P1 the new pipeline ──
-[02:22:35]   dead-lanes pipeline ABSENT -- the check did not run
-[02:22:35]   all pipelines now:
-[02:22:35]     fred             COMPLETE         COMPLETE_WITH_LEAKS
-[02:22:35]     nyfed            OK               rates 10.3h · pd 1539/? · repo 10.4h
-[02:22:35]     sdmx-eurostat    COMPLETE         8152/8152, 6 source-side failures
-[02:22:35]     sdmx-oecd        COMPLETE         1548/1546, 488 source-side failures
-[02:22:35]     sdmx-statcan     COMPLETE         8229/8229, 5 source-side failures
-[02:22:35]     sdmx-bis         COMPLETE         29/29, 1 source-side failures
-[02:22:35]     sdmx-ecb         COMPLETE         214/214, 7 source-side failures
-[02:22:35]     census-us        STALE            COMPLETE 55/56 datasets · 4604884 rows · 1 source failures logged
-[02:22:35]     provider-catalog OK               hub index freshness
-── P2 has the banner cleared ──
-[02:22:35]   overall DEGRADED -> DEGRADED   worst census-us -> census-us
-[02:22:35]   still DEGRADED because of census-us; that is now a lane with a name rather than a mystery
-[02:22:35]   incidents retained: 5 (aged to 14 days by ops 5056)
-── P3 the running imports ──
-[02:22:36]   gdelt backfill: recovered=0 permanent=0 remaining=0 0.00 GB
-[02:22:39]   boj: 60,725/120,394 series (50.4%) rows 294,539
-[02:22:40]   census-econ: 385/1226 entries
-[02:22:40]   -> data/ops/dead-lane-alarm.json
-[02:22:40] ops 5073 RED: P1:absent
+executing-against: a1e731c5bfa5927b963c4487e3f025d496c5ac77
+── P0 did both deploys land ──
+[14:31:04]   justhodl-gdelt-full            2026-08-31T14:31:02
+[14:36:27]   justhodl-import-sentinel       NOT FRESH -- deploy lagging
+[14:36:27]     (ops 5073's absent chip is explained by this, not by the check itself)
+── P1 ONE shard, synchronously ──
+[14:37:11]   status=200 FunctionError=None
+[14:37:11]   {"mode": "backfill", "shard": 0, "shards": 12, "recovered_run": 0, "permanent_run": 604, "errors": 0, "recovered_total": 0, "permanent_total": 604, "remaining": 0, "gb": 0.0}
+[14:37:11]   shard 0 state EXISTS: started_at=2026-08-31T14:36:27.430139+00:00 todo_at_start=604 recovered=0 permanent=604
+── P2 fan out ──
+[14:37:12]   fanout sent
+[14:50:34]   t+13min shards_started=12/12 recovered=0 permanent=7,381 remaining=0 0.00 GB
+[14:50:34]   fanout sent
+[15:03:55]   t+27min shards_started=12/12 recovered=0 permanent=7,381 remaining=0 0.00 GB
+[15:03:56]   resolved 6,777 slots this run
+[15:03:56]   RECOVERED 0 · PERMANENT 7,381 (404 again: never published) · REMAINING 0 of 7,381
+── P3 sentinel + banner ──
+[15:11:00]   dead-lanes still absent
+[15:11:00]   overall=DEGRADED worst=census-us
+[15:11:00]   census-us state updated_at=2026-08-25T23:49:53+00:00 (STALE clears when the timeseries walker next writes)
+[15:11:00] ops 5074 RED: P3:absent
 
-→ Report written to aws/ops/reports/latest/ops_5073_dead_lane_alarm.md
-❌ OPS-FAIL: aws/ops/pending/ops_5073_dead_lane_alarm.py
+→ Report written to aws/ops/reports/latest/ops_5074_backfill_retry.md
+❌ OPS-FAIL: aws/ops/pending/ops_5074_backfill_retry.py

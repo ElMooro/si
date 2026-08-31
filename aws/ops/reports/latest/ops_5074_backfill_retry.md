@@ -1,0 +1,35 @@
+## P0 did both deploys land
+
+**Status:** failure  
+**Duration:** 2396.5s  
+**Finished:** 2026-08-31T15:11:00+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+- `14:31:04`   justhodl-gdelt-full            2026-08-31T14:31:02
+- `14:36:27`   justhodl-import-sentinel       NOT FRESH -- deploy lagging
+- `14:36:27`     (ops 5073's absent chip is explained by this, not by the check itself)
+## P1 ONE shard, synchronously
+
+- `14:37:11`   status=200 FunctionError=None
+- `14:37:11`   {"mode": "backfill", "shard": 0, "shards": 12, "recovered_run": 0, "permanent_run": 604, "errors": 0, "recovered_total": 0, "permanent_total": 604, "remaining": 0, "gb": 0.0}
+- `14:37:11`   shard 0 state EXISTS: started_at=2026-08-31T14:36:27.430139+00:00 todo_at_start=604 recovered=0 permanent=604
+## P2 fan out
+
+- `14:37:12`   fanout sent
+- `14:50:34`   t+13min shards_started=12/12 recovered=0 permanent=7,381 remaining=0 0.00 GB
+- `14:50:34`   fanout sent
+- `15:03:55`   t+27min shards_started=12/12 recovered=0 permanent=7,381 remaining=0 0.00 GB
+- `15:03:56`   resolved 6,777 slots this run
+- `15:03:56`   RECOVERED 0 · PERMANENT 7,381 (404 again: never published) · REMAINING 0 of 7,381
+## P3 sentinel + banner
+
+- `15:11:00`   dead-lanes still absent
+- `15:11:00`   overall=DEGRADED worst=census-us
+- `15:11:00`   census-us state updated_at=2026-08-25T23:49:53+00:00 (STALE clears when the timeseries walker next writes)
+- `15:11:00` ops 5074 RED: P3:absent
