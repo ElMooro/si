@@ -1,0 +1,87 @@
+## P0 name the source
+
+**Status:** success  
+**Duration:** 1395.4s  
+**Finished:** 2026-08-31T16:49:50+00:00  
+
+## Data
+
+| cadence | census_moved | throttles_after | worst |
+|---|---|---|---|
+| rate(1 hour) | False | 2662 | justhodl-census-us |
+
+## Log
+- `16:26:35`   fleet throttles (6h): 16,913
+- `16:27:08`   functions WITH reserved concurrency: 49
+- `16:27:08`     justhodl-apex-fusion                         reserved=1    throttles6h=0
+- `16:27:08`     justhodl-onchain-ratios                      reserved=10   throttles6h=0
+- `16:27:08`     justhodl-divergence-interpreter              reserved=1    throttles6h=0
+- `16:27:09`     justhodl-alert-backtester                    reserved=1    throttles6h=0
+- `16:27:09`     justhodl-liquidity-flow                      reserved=1    throttles6h=0
+- `16:27:09`     justhodl-catalyst-calendar                   reserved=1    throttles6h=0
+- `16:27:09`     justhodl-fed-speak                           reserved=1    throttles6h=0
+- `16:27:09`     justhodl-global-macro                        reserved=1    throttles6h=0
+- `16:27:10`     justhodl-ai-chat                             reserved=3    throttles6h=0
+- `16:27:10`     justhodl-signal-scorecard                    reserved=10   throttles6h=0
+- `16:27:10`     justhodl-nyfed-dealer-survey                 reserved=1    throttles6h=0
+- `16:27:10`     justhodl-watchlist                           reserved=1    throttles6h=0
+- `16:27:10`     justhodl-exchange-flows                      reserved=1    throttles6h=0
+- `16:27:11`     justhodl-oecd-cli                            reserved=1    throttles6h=0
+- `16:27:11`     justhodl-series-extractor                    reserved=1    throttles6h=1,255
+- `16:27:11`     justhodl-earnings-whisper                    reserved=1    throttles6h=0
+- `16:27:12`     justhodl-sec-8k                              reserved=1    throttles6h=0
+- `16:27:12`     justhodl-sec-13f                             reserved=1    throttles6h=0
+- `16:27:12`     justhodl-fred-catalog                        reserved=1    throttles6h=53
+- `16:27:12`     justhodl-master-ranker                       reserved=1    throttles6h=0
+- `16:27:12`     justhodl-plumbing-aggregator                 reserved=1    throttles6h=0
+- `16:27:12`     justhodl-implied-prob                        reserved=1    throttles6h=0
+- `16:27:13`     justhodl-daily-report-v3                     reserved=1    throttles6h=0
+- `16:27:13`     justhodl-history-api                         reserved=5    throttles6h=0
+- `16:27:13`     justhodl-chart-data                          reserved=10   throttles6h=0
+- `16:27:13`     justhodl-insider-trades                      reserved=1    throttles6h=0
+- `16:27:14`     justhodl-gdelt-sentiment                     reserved=1    throttles6h=0
+- `16:27:14`     justhodl-kill-switch                         reserved=1    throttles6h=0
+- `16:27:14`     justhodl-aaii-sentiment                      reserved=1    throttles6h=0
+- `16:27:14`     justhodl-vol-regime                          reserved=1    throttles6h=0
+- `16:27:14`     justhodl-census-us                           reserved=1    throttles6h=15,605
+- `16:27:14`     justhodl-outcome-checker                     reserved=10   throttles6h=0
+- `16:27:15`     justhodl-historical-analogs                  reserved=1    throttles6h=0
+- `16:27:15`     justhodl-trade-journal                       reserved=1    throttles6h=0
+- `16:27:15`     justhodl-vix-curve                           reserved=1    throttles6h=0
+- `16:27:15`     justhodl-13f-positions                       reserved=10   throttles6h=0
+- `16:27:15`     justhodl-api-keys-admin                      reserved=2    throttles6h=0
+- `16:27:15`     justhodl-signal-registry-ingest              reserved=0    throttles6h=0
+- `16:27:16`     justhodl-stock-ai-research                   reserved=5    throttles6h=0
+- `16:27:16`     justhodl-smart-wake                          reserved=1    throttles6h=0
+- `16:27:16`     justhodl-public-api-demo                     reserved=5    throttles6h=0
+- `16:27:16`     justhodl-price-redundancy                    reserved=1    throttles6h=0
+- `16:27:17`     justhodl-sec-10kq                            reserved=1    throttles6h=0
+- `16:27:17`     justhodl-global-tide                         reserved=1    throttles6h=0
+- `16:27:17`     justhodl-backtest-harness                    reserved=10   throttles6h=0
+- `16:27:17`     justhodl-labor-leading                       reserved=1    throttles6h=0
+- `16:27:18`     justhodl-options-gamma                       reserved=1    throttles6h=0
+- `16:27:18`     justhodl-tape-reader                         reserved=1    throttles6h=0
+- `16:27:18`     justhodl-redflag-alerter                     reserved=1    throttles6h=0
+- `16:27:18`   worst offender: justhodl-census-us with 15,605 throttles in 6h
+- `16:27:18`   fleet total 16,913 -- so this one function is 92% of it
+## P1 fix the cadence
+
+- `16:27:18`   tier1 eurostat: flows=1516 left=0 schema=2
+- `16:27:18`   tier1 ecb     : flows=17 left=0 schema=2
+- `16:27:18`   rule now: rate(2 minutes) with 4 targets ['ecb', 't1', 't1ecb', 't1eurost']
+- `16:27:18`   cadence rate(2 minutes) -> rate(1 hour)
+- `16:27:18`   with reserved concurrency 1 and runs up to 900s, a 1-2 minute cadence guarantees refusals; rate(1 hour) leaves room for a run to finish before the next tick
+## P2 re-measure
+
+- `16:27:18`   waiting for the retry backlog to drain...
+- `16:42:18`   fleet throttles in the last hour: 2,662
+- `16:42:18`   justhodl-census-us in the last hour: 2,447
+- `16:42:18`   invocations in the last hour: 1,374
+## P3 census-us, with the Invoke rate freed
+
+- `16:42:18`   before updated_at=2026-08-25T23:49:53+00:00
+- `16:42:19`   accepted on attempt 1
+- `16:49:50`   still unmoved (accepted=True)
+- `16:49:50`   dead-lanes chip: still absent
+- `16:49:50`   overall=DEGRADED worst=census-us
+- `16:49:50` ops 5077 GREEN -- throttling traced to our own cadence

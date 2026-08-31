@@ -1,36 +1,75 @@
-executing-against: a223000be90ee993df06edaab5e37e0d458baddb
-── P0 the ceiling ──
-[15:42:15]   ConcurrentExecutions limit : 1000
-[15:42:15]   UnreservedConcurrentExecutions: 783
-[15:42:15]   functions=871  code storage 0.1 GB of 322.1 GB
-[15:42:15]   Throttles              03=3215 04=3151 05=3073 06=2930 07=3176 08=2801 09=2826 10=2904 11=2984 12=2892 13=2557 14=2814
-[15:42:16]   Invocations            03=1235 04=1310 05=1292 06=1295 07=1466 08=1354 09=1289 10=1318 11=1356 12=1457 13=1451 14=1407
-[15:42:16]   ConcurrentExecutions   03=15 04=26 05=16 06=16 07=29 08=25 09=15 10=26 11=17 12=28 13=19 14=18
-[15:42:16]   fleet-wide throttles in 12h: 35323
-[15:42:16]   -> invokes ARE being refused. More shards would be
-[15:42:16]      converted into TooManyRequests, not into data.
-── P1 is the check really in the deployed package ──
-[15:42:16]   deployed LastModified=2026-08-31T02:02:25.000+0000
-[15:42:16]   package 106,913 bytes, lambda_function.py 21,338 bytes
-[15:42:16]   contains DEAD_LANE_H    : True
-[15:42:16]   contains dead-lanes     : True
-[15:42:16]   contains _state/        : True
-[15:42:16]   context: ...ambda x: -x[1])
-        if stale:
-            pipelines.append({
-                "name": "dead-lanes",
-                "status": "ACTION_REQUIRED" if ...
-── P2 census-us with backoff ──
-[15:42:16]   before updated_at=2026-08-25T23:49:53+00:00 phase=COMPLETE
-[15:42:16]   Event invoke accepted (attempt 1) status=202
-[15:51:18]   state still unmoved after 9 min
-── P3 what the ceiling means for the lanes ──
-[15:51:19]   BOJ 60,725/120,394 (50.4%) rows 294,539
-[15:51:19]   census-econ 677/1,226
-[15:51:19]   Both are sharded already. With throttles present the next
-[15:51:19]   lever is NOT more shards -- it is a concurrency limit
-[15:51:19]   increase from AWS Support, or staggering the fan-outs so
-[15:51:19]   they do not all fire on the same minute boundary.
-[15:51:19] ops 5076 GREEN -- ceiling measured before more parallelism
+executing-against: 6d217eeffc65e99e9b58c7aeeec75ea9fcf24b14
+── P0 name the source ──
+[16:26:35]   fleet throttles (6h): 16,913
+[16:27:08]   functions WITH reserved concurrency: 49
+[16:27:08]     justhodl-apex-fusion                         reserved=1    throttles6h=0
+[16:27:08]     justhodl-onchain-ratios                      reserved=10   throttles6h=0
+[16:27:08]     justhodl-divergence-interpreter              reserved=1    throttles6h=0
+[16:27:09]     justhodl-alert-backtester                    reserved=1    throttles6h=0
+[16:27:09]     justhodl-liquidity-flow                      reserved=1    throttles6h=0
+[16:27:09]     justhodl-catalyst-calendar                   reserved=1    throttles6h=0
+[16:27:09]     justhodl-fed-speak                           reserved=1    throttles6h=0
+[16:27:09]     justhodl-global-macro                        reserved=1    throttles6h=0
+[16:27:10]     justhodl-ai-chat                             reserved=3    throttles6h=0
+[16:27:10]     justhodl-signal-scorecard                    reserved=10   throttles6h=0
+[16:27:10]     justhodl-nyfed-dealer-survey                 reserved=1    throttles6h=0
+[16:27:10]     justhodl-watchlist                           reserved=1    throttles6h=0
+[16:27:10]     justhodl-exchange-flows                      reserved=1    throttles6h=0
+[16:27:11]     justhodl-oecd-cli                            reserved=1    throttles6h=0
+[16:27:11]     justhodl-series-extractor                    reserved=1    throttles6h=1,255
+[16:27:11]     justhodl-earnings-whisper                    reserved=1    throttles6h=0
+[16:27:12]     justhodl-sec-8k                              reserved=1    throttles6h=0
+[16:27:12]     justhodl-sec-13f                             reserved=1    throttles6h=0
+[16:27:12]     justhodl-fred-catalog                        reserved=1    throttles6h=53
+[16:27:12]     justhodl-master-ranker                       reserved=1    throttles6h=0
+[16:27:12]     justhodl-plumbing-aggregator                 reserved=1    throttles6h=0
+[16:27:12]     justhodl-implied-prob                        reserved=1    throttles6h=0
+[16:27:13]     justhodl-daily-report-v3                     reserved=1    throttles6h=0
+[16:27:13]     justhodl-history-api                         reserved=5    throttles6h=0
+[16:27:13]     justhodl-chart-data                          reserved=10   throttles6h=0
+[16:27:13]     justhodl-insider-trades                      reserved=1    throttles6h=0
+[16:27:14]     justhodl-gdelt-sentiment                     reserved=1    throttles6h=0
+[16:27:14]     justhodl-kill-switch                         reserved=1    throttles6h=0
+[16:27:14]     justhodl-aaii-sentiment                      reserved=1    throttles6h=0
+[16:27:14]     justhodl-vol-regime                          reserved=1    throttles6h=0
+[16:27:14]     justhodl-census-us                           reserved=1    throttles6h=15,605
+[16:27:14]     justhodl-outcome-checker                     reserved=10   throttles6h=0
+[16:27:15]     justhodl-historical-analogs                  reserved=1    throttles6h=0
+[16:27:15]     justhodl-trade-journal                       reserved=1    throttles6h=0
+[16:27:15]     justhodl-vix-curve                           reserved=1    throttles6h=0
+[16:27:15]     justhodl-13f-positions                       reserved=10   throttles6h=0
+[16:27:15]     justhodl-api-keys-admin                      reserved=2    throttles6h=0
+[16:27:15]     justhodl-signal-registry-ingest              reserved=0    throttles6h=0
+[16:27:16]     justhodl-stock-ai-research                   reserved=5    throttles6h=0
+[16:27:16]     justhodl-smart-wake                          reserved=1    throttles6h=0
+[16:27:16]     justhodl-public-api-demo                     reserved=5    throttles6h=0
+[16:27:16]     justhodl-price-redundancy                    reserved=1    throttles6h=0
+[16:27:17]     justhodl-sec-10kq                            reserved=1    throttles6h=0
+[16:27:17]     justhodl-global-tide                         reserved=1    throttles6h=0
+[16:27:17]     justhodl-backtest-harness                    reserved=10   throttles6h=0
+[16:27:17]     justhodl-labor-leading                       reserved=1    throttles6h=0
+[16:27:18]     justhodl-options-gamma                       reserved=1    throttles6h=0
+[16:27:18]     justhodl-tape-reader                         reserved=1    throttles6h=0
+[16:27:18]     justhodl-redflag-alerter                     reserved=1    throttles6h=0
+[16:27:18]   worst offender: justhodl-census-us with 15,605 throttles in 6h
+[16:27:18]   fleet total 16,913 -- so this one function is 92% of it
+── P1 fix the cadence ──
+[16:27:18]   tier1 eurostat: flows=1516 left=0 schema=2
+[16:27:18]   tier1 ecb     : flows=17 left=0 schema=2
+[16:27:18]   rule now: rate(2 minutes) with 4 targets ['ecb', 't1', 't1ecb', 't1eurost']
+[16:27:18]   cadence rate(2 minutes) -> rate(1 hour)
+[16:27:18]   with reserved concurrency 1 and runs up to 900s, a 1-2 minute cadence guarantees refusals; rate(1 hour) leaves room for a run to finish before the next tick
+── P2 re-measure ──
+[16:27:18]   waiting for the retry backlog to drain...
+[16:42:18]   fleet throttles in the last hour: 2,662
+[16:42:18]   justhodl-census-us in the last hour: 2,447
+[16:42:18]   invocations in the last hour: 1,374
+── P3 census-us, with the Invoke rate freed ──
+[16:42:18]   before updated_at=2026-08-25T23:49:53+00:00
+[16:42:19]   accepted on attempt 1
+[16:49:50]   still unmoved (accepted=True)
+[16:49:50]   dead-lanes chip: still absent
+[16:49:50]   overall=DEGRADED worst=census-us
+[16:49:50] ops 5077 GREEN -- throttling traced to our own cadence
 
-→ Report written to aws/ops/reports/latest/ops_5076_throttle_ceiling.md
+→ Report written to aws/ops/reports/latest/ops_5077_throttle_source.md
