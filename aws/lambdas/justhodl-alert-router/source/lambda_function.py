@@ -642,6 +642,67 @@ def check_short_interest(alerts):
         })
 
 
+def check_fortress(alerts):
+    """FORTRESS COIL engine (data/fortress.json): a name that just passed all six
+    gates, a coiled 5/6 name that is pre-breakout with conviction, and a change
+    of the evidence-adaptive location gate. Ids carry the session so each event
+    fires once."""
+    d = load_json("data/fortress.json")
+    session = d.get("session") or "?"
+    ch = d.get("changes") or {}
+    board = {r.get("ticker"): r for r in (d.get("board") or []) if isinstance(r, dict)}
+
+    def fmt(x, nd=2, suf=""):
+        return ("%.*f%s" % (nd, x, suf)) if isinstance(x, (int, float)) else "n/a"
+
+    def md(x):  # Telegram Markdown v1: strip the characters that would unbalance the message
+        return str(x or "").replace("_", " ").replace("*", "").replace("`", "").replace("[", "(").replace("]", ")")
+
+    def line(r):
+        tp = r.get("trade_plan") or {}
+        return (f"{md(r.get('company'))} · {md(r.get('industry'))}\n"
+                f"dump capture {fmt(r.get('dump_capture'))} (worst {fmt(r.get('capture_worst_gate'))}, n {r.get('n_episodes')}) · "
+                f"worst-day excess {fmt(r.get('worst_days_excess_bps'), 0)} bps · vs EMA250 {fmt(r.get('vs_ema250_pct'), 1, '%')} · "
+                f"BBW pctile {fmt(r.get('bb_width_pctile'), 0)} · {r.get('coil_state')}\n"
+                f"composite {fmt(r.get('composite'), 1)} · conviction {fmt(r.get('conviction'), 0)} · confidence {fmt(r.get('confidence'))} · "
+                f"asymmetry {fmt(r.get('asymmetry'), 1, 'x')} (downside {fmt(r.get('dump_downside_pct'), 1, '%')})\n"
+                f"plan: pivot {fmt(tp.get('pivot'))} · stop {fmt(tp.get('stop'))} · target {fmt(tp.get('target'))} · {fmt(tp.get('reward_to_risk'), 1, 'R')}\n"
+                f"{md(' · '.join((r.get('reasons') or [])[:3]))}\n"
+                f"https://justhodl.ai/fortress.html")
+
+    for t in (ch.get("new_fortress") or [])[:5]:
+        r = board.get(t) or {}
+        alerts.append({
+            "id": f"fortress_new_{t}_{session}",
+            "category": "FORTRESS",
+            "severity": "HIGH",
+            "title": f"🏰 FORTRESS COIL: {t} passes all six gates",
+            "detail": line(r) if r else f"{t} entered FORTRESS_COIL on session {session}. https://justhodl.ai/fortress.html",
+        })
+    n_pre = 0
+    for r in (d.get("board") or []):
+        if n_pre >= 3 or not isinstance(r, dict):
+            break
+        if r.get("tier") == "COILED" and r.get("coil_state") == "PRE_BREAKOUT" and (r.get("conviction") or 0) >= 65:
+            n_pre += 1
+            alerts.append({
+                "id": f"fortress_prebreakout_{r.get('ticker')}_{session}",
+                "category": "FORTRESS",
+                "severity": "MEDIUM",
+                "title": f"🏰 Coiled & pre-breakout: {r.get('ticker')} (5/6, conviction {fmt(r.get('conviction'), 0)})",
+                "detail": line(r) + (f"\nmissing gate: {md(r.get('watch_trigger'))}" if r.get("watch_trigger") else ""),
+            })
+    mc = ch.get("location_mode_changed")
+    if isinstance(mc, dict) and mc.get("to"):
+        alerts.append({
+            "id": f"fortress_gate_{mc.get('to')}_{session}",
+            "category": "FORTRESS",
+            "severity": "LOW",
+            "title": f"🏰 Fortress location gate switched: {mc.get('from')} → {mc.get('to')}",
+            "detail": f"{md(mc.get('why'))}\nhttps://justhodl.ai/fortress.html (Validation tab)",
+        })
+
+
 def check_etf_flows(alerts):
     d = load_json("data/etf-flows.json")
     for cat, etfs in (d.get("by_category") or {}).items():
@@ -757,6 +818,7 @@ def lambda_handler(event=None, context=None):
         ("earnings", check_earnings),
         ("short_interest", check_short_interest),
         ("etf_flows", check_etf_flows),
+        ("fortress", check_fortress),
         ("sector_rotation", check_sector_rotation),
         ("divergences", check_divergences),
         ("cot_extremes", check_cot_extremes),

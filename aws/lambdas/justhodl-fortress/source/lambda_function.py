@@ -90,7 +90,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "2.2.0"
+VERSION = "2.2.1"
 ENGINE = "justhodl-fortress"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fortress.json"
@@ -106,7 +106,7 @@ P = {
     "not_extended_max_pct": 15.0,  # not_extended: vs EMA250 <= +15% (and above the knife floor)
     "adaptive_min_n": 100,       # both backtest arms need >= n observations
     "adaptive_min_edge_pct": 0.5,  # the challenger must beat the spec by >= 0.5 pt of 63-session alpha
-    "backtest_sessions": 1050,
+    "backtest_sessions": 1250,     # the whole warehouse (since 2021-08) -> ~28 test dates
     "backtest_step": 15,
     "dump_min_dd_pct": -4.0,     # SPY peak-to-trough that counts as a dump
     "big_dump_dd_pct": -8.0,
@@ -2430,7 +2430,10 @@ def session_changes(stock_rows, session):
         if t not in cur:
             gone.append({"ticker": t, "was": pt_})
     order = lambda x: rank.get(x.get("to") or x.get("tier") or "", 9)  # noqa: E731
-    return {"status": "ok", "prev_session": prev.get("session"),
+    prev_mode = prev.get("location_mode")
+    mode_change = ({"from": prev_mode, "to": LOCATION_MODE.get("mode"), "why": LOCATION_MODE.get("why")}
+                   if prev_mode and prev_mode != LOCATION_MODE.get("mode") else None)
+    return {"status": "ok", "prev_session": prev.get("session"), "location_mode_changed": mode_change,
             "new_fortress": [x["ticker"] for x in ups + new if (x.get("to") or x.get("tier")) == "FORTRESS_COIL"],
             "upgrades": sorted(ups, key=order)[:40], "downgrades": sorted(downs, key=order)[:40],
             "new_entries": sorted(new, key=order)[:40], "exits": gone[:40],
@@ -2554,7 +2557,8 @@ def snapshot_and_base_rates(stock_rows, bars, dates, session):
              for r in stock_rows if r["tier"] in ("FORTRESS_COIL", "COILED", "ACCUMULATING")][:400]
     try:
         s3_put_json(HIST_PREFIX + session + ".json.gz",
-                    {"session": session, "as_of": datetime.now(timezone.utc).isoformat(), "picks": picks}, gz=True)
+                    {"session": session, "as_of": datetime.now(timezone.utc).isoformat(), "picks": picks,
+                     "location_mode": LOCATION_MODE.get("mode"), "weights_effective": WEFF.get("weights")}, gz=True)
     except Exception as e:  # noqa: BLE001
         log("history write failed: %s" % str(e)[:100])
     keys = sorted(k for k in list_keys(HIST_PREFIX) if k.endswith(".json.gz"))[-60:]
