@@ -798,7 +798,7 @@ def price_signals(b, mkt, etf_bars, dates, aux=None):
         out["vcp_ok"] = None
         out["vcp_strict"] = None
     # ---- volume structure: OBV / A-D / up-down volume / absorption
-    if n >= 64:
+    if n >= 66:   # obv_series has n-1 entries; the 63-session slope needs index -64
         obv = 0.0
         ad = 0.0
         obv_series = []
