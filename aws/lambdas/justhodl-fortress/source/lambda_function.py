@@ -46,6 +46,36 @@ Built the way a fund's internal multi-factor screen is built:
 
 OUTPUT  data/fortress.json  (+ data/fortress/history/{session}.json.gz)
 SCHEDULE 03:30 UTC Tue-Sat (after polygon-full lands the prior session).
+
+v2.0.0 -- evidence-grade rebuild (Khalid: "improve it exponentially"):
+  * THREE YEARS of bars (760 sessions) so the dump statistics rest on every
+    SPY drawdown since 2023, weighted by depth AND recency (half-life one
+    year); capture measured two ways (peak-to-trough and on the market's
+    down days inside each dump) and the two must agree; t-statistics and
+    an evidence-confidence score shrink thin evidence toward neutral.
+  * ACCUMULATION pillar built from volume structure, the way Wyckoff /
+    Chaikin / O'Neil read it: OBV and A/D divergence vs price, up/down
+    volume ratio, absorption (closing-location and volume on the market's
+    worst days), FINRA dark-pool share and acceleration, 13F net, insider
+    clusters, Congress purchases, ETF constituent flow pressure.
+  * STRUCTURE pillar: higher-lows count, Minervini volatility-contraction
+    sequence, O'Neil RS-line-at-new-high-before-price, base age and depth,
+    Carter squeeze momentum (which way the coil is leaning).
+  * Tail-risk safety: CVaR(5%), downside deviation, Ulcer index, gap risk,
+    Amihud illiquidity, rate beta (TLT) and dollar beta (UUP).
+  * Options overlay where the fleet covers the name: IV rank, variance
+    risk premium, skew, put/call, net premium.
+  * Rank-normalised composite (absolute anchors blended with cross-
+    sectional percentiles), conviction (geometric mean of the six gate
+    pillars) and evidence confidence.
+  * Decision support: trade plan (pivot / stop / target / R:R), risk-
+    parity sizing for the picks, what changed since the last session,
+    the single trigger that would flip each COILED name to FORTRESS.
+  * VALIDATION: event {"mode":"backtest"} walks forward through ~4 years
+    of the bar warehouse every 15 sessions, scores the price-structure
+    legs point-in-time, and reports 21/63-session excess returns vs SPY
+    by gates passed and by capture decile (data/fortress-backtest.json,
+    weekly). Fundamentals/flows are not backtested -- no look-ahead.
 """
 import array
 import bisect
@@ -60,7 +90,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.4"
+VERSION = "2.0.0"
 ENGINE = "justhodl-fortress"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fortress.json"
@@ -69,8 +99,11 @@ BARS_ROOT = "data/warm/polygon-full/grouped/"
 
 # ── parameters (published in the payload) ────────────────────────────────
 P = {
-    "sessions_loaded": 330,      # >= 271 for BB-width pctile over 252 + warm-up
+    "sessions_loaded": 760,      # ~3 years: every SPY drawdown since 2023 feeds the capture statistics
     "lookback": 252,
+    "episode_half_life": 252,    # recency weight on dump episodes (sessions)
+    "backtest_sessions": 1050,
+    "backtest_step": 15,
     "dump_min_dd_pct": -4.0,     # SPY peak-to-trough that counts as a dump
     "big_dump_dd_pct": -8.0,
     "worst_day_quantile": 0.05,
@@ -90,10 +123,12 @@ P = {
     "valuation_score_min": 55.0,
 }
 WEIGHTS = {  # composite pillars, sum 100
-    "resilience": 24, "coil": 14, "location": 5, "valuation": 12,
-    "growth": 12, "flows": 10, "momentum": 8, "backlog_contracts": 7,
-    "safety": 8,
+    "resilience": 20, "accumulation": 12, "coil": 11, "structure": 5,
+    "location": 4, "valuation": 11, "growth": 9, "flows": 9, "momentum": 5,
+    "backlog_contracts": 5, "safety": 9,
 }
+GATE_PILLARS = ["resilience", "coil", "location", "valuation", "growth", "flows"]
+BACKTEST_KEY = "data/fortress-backtest.json"
 GATE_NAMES = ["under_ema250", "dump_resilient", "coiled", "low_valuation",
               "growth", "industry_inflows"]
 TIER_BY_GATES = {6: "FORTRESS_COIL", 5: "COILED", 4: "ACCUMULATING",
@@ -420,8 +455,8 @@ def dump_episodes(c, min_dd):
 
 # ── bar warehouse ────────────────────────────────────────────────────────
 class Bars:
-    """Per-ticker aligned arrays: d = session index, c/h/l/v floats."""
-    __slots__ = ("d", "c", "h", "l", "v")
+    """Per-ticker aligned arrays: d = session index, o/c/h/l/v floats."""
+    __slots__ = ("d", "c", "h", "l", "v", "o")
 
     def __init__(self):
         self.d = array.array("i")
@@ -429,6 +464,7 @@ class Bars:
         self.h = array.array("d")
         self.l = array.array("d")
         self.v = array.array("d")
+        self.o = array.array("d")
 
     def pos_at_or_before(self, idx):
         p = bisect.bisect_right(self.d, idx) - 1
@@ -442,7 +478,7 @@ class Bars:
 def session_keys(n):
     now = datetime.now(timezone.utc)
     keys = []
-    for yr in (now.year - 2, now.year - 1, now.year):
+    for yr in range(now.year - 6, now.year + 1):
         keys.extend(k for k in list_keys(BARS_ROOT + "%d/" % yr)
                     if k.endswith(".json.gz"))
     keys.sort()
@@ -456,10 +492,16 @@ def load_session(key, keep):
     for r in j.get("results") or []:
         t = r.get("T")
         c = r.get("c")
-        if not t or c is None or c <= 0 or t not in keep:
+        if not t or c is None or c <= 0:
+            continue
+        if keep is not None:
+            if t not in keep:
+                continue
+        elif not TICKER_OK.match(t):
             continue
         out.append((t, float(c), float(r.get("h") or c),
-                    float(r.get("l") or c), float(r.get("v") or 0.0)))
+                    float(r.get("l") or c), float(r.get("v") or 0.0),
+                    float(r.get("o") or c)))
     return out
 
 
@@ -473,7 +515,7 @@ def load_bars(keys, keep, workers=12):
             for off, rows in enumerate(ex.map(lambda k: load_session(k, keep),
                                               sub)):
                 idx = start + off
-                for t, c, h, lo, v in rows:
+                for t, c, h, lo, v, o in rows:
                     b = bars.get(t)
                     if b is None:
                         b = Bars()
@@ -483,42 +525,65 @@ def load_bars(keys, keep, workers=12):
                     b.h.append(h)
                     b.l.append(lo)
                     b.v.append(v)
+                    b.o.append(o)
             log("bars %d/%d sessions, %d tickers" % (
                 min(start + chunk, len(keys)), len(keys), len(bars)))
     return dates, bars
 
 
 # ── market context (SPY) ─────────────────────────────────────────────────
-def market_context(spy, dates, n_sessions):
+def market_context(spy, dates, n_sessions, asof_pos=None, window=None):
+    """SPY context. Episodes are detected over the FULL loaded window (so
+    every drawdown of the last ~3 years feeds the capture statistics) and
+    carry a recency weight; the worst-day set is the trailing 252 sessions
+    (the current tape's behaviour). asof_pos restricts everything to
+    positions <= asof_pos (backtest mode: point-in-time, no look-ahead)."""
     lb = P["lookback"]
     c = list(spy.c)
     d = list(spy.d)
-    start = max(0, len(c) - lb)
-    cl = c[start:]
-    dl = d[start:]
+    if asof_pos is not None:
+        c = c[:asof_pos + 1]
+        d = d[:asof_pos + 1]
+    if window:
+        c = c[-window:]
+        d = d[-window:]
+    last_idx = d[-1]
     eps = []
-    for pk, tr, dd, closed in dump_episodes(cl, P["dump_min_dd_pct"]):
-        eps.append({"peak_idx": dl[pk], "trough_idx": dl[tr],
-                    "peak_date": dates[dl[pk]], "trough_date": dates[dl[tr]],
+    hl = P["episode_half_life"]
+    for pk, tr, dd, closed in dump_episodes(c, P["dump_min_dd_pct"]):
+        age = last_idx - d[tr]
+        eps.append({"peak_idx": d[pk], "trough_idx": d[tr],
+                    "peak_date": dates[d[pk]], "trough_date": dates[d[tr]],
                     "spy_dd_pct": round(dd, 2), "closed": closed,
-                    "sessions": dl[tr] - dl[pk],
-                    "big": dd <= P["big_dump_dd_pct"]})
-    # daily returns keyed by session idx (only consecutive sessions)
+                    "sessions": d[tr] - d[pk], "age_sessions": age,
+                    "big": dd <= P["big_dump_dd_pct"],
+                    "recent": age <= lb,
+                    "weight": round(abs(dd) * (0.5 ** (age / hl)), 3)})
     rets = {}
     for i in range(1, len(c)):
         if d[i] - d[i - 1] == 1:
             rets[d[i]] = c[i] / c[i - 1] - 1
+    start = max(0, len(c) - lb)
+    dl = d[start:]
+    cl = c[start:]
     lb_rets = {k: v for k, v in rets.items() if k >= dl[0]}
     k = max(P["worst_day_min_n"], int(len(lb_rets) * P["worst_day_quantile"]))
     worst = sorted(lb_rets.items(), key=lambda kv: kv[1])[:k]
     worst_idx = {i for i, _ in worst}
+    # long worst-day set over the whole window (robustness statistics)
+    k_long = max(P["worst_day_min_n"], int(len(rets) * P["worst_day_quantile"]))
+    worst_long = sorted(rets.items(), key=lambda kv: kv[1])[:k_long]
     ema250 = ema_last(c, 250)
     ema200 = ema_last(c, 200)
+    close_by_idx = {d[i]: c[i] for i in range(len(c))}
     return {
         "episodes": eps, "rets": rets, "lb_rets": lb_rets,
-        "worst_idx": worst_idx,
+        "worst_idx": worst_idx, "worst_idx_long": {i for i, _ in worst_long},
+        "close_by_idx": close_by_idx, "last_idx": last_idx,
         "worst_days": [{"date": dates[i], "spy_ret_pct": round(r * 100, 2)}
                        for i, r in worst],
+        "n_episodes": len(eps), "n_episodes_recent": sum(1 for e in eps if e["recent"]),
+        "n_big_dumps": sum(1 for e in eps if e["big"]),
         "spy_close": c[-1], "spy_ema250": ema250, "spy_ema200": ema200,
         "spy_vs_ema250_pct": (rnd((c[-1] / ema250 - 1) * 100)
                               if ema250 else None),
@@ -526,17 +591,47 @@ def market_context(spy, dates, n_sessions):
         "spy_ret_3m_pct": rnd((c[-1] / c[-64] - 1) * 100) if len(c) > 64 else None,
         "spy_dd_from_high_pct": rnd((c[-1] / max(cl) - 1) * 100),
         "lookback_start": dates[dl[0]], "lookback_sessions": len(cl),
+        "window_start": dates[d[0]], "window_sessions": len(c),
         "n_sessions_loaded": n_sessions,
     }
 
 
 # ── per-ticker price signals ─────────────────────────────────────────────
-def price_signals(b, mkt, etf_bars, dates):
+def linreg_last(vals):
+    """value of the least-squares line at the last point (Carter-style momentum)."""
+    n = len(vals)
+    if n < 3:
+        return None
+    xs = range(n)
+    mx = (n - 1) / 2.0
+    my = sum(vals) / n
+    vx = sum((x - mx) ** 2 for x in xs)
+    if vx <= 0:
+        return None
+    sl = sum((x - mx) * (y - my) for x, y in zip(xs, vals)) / vx
+    return my + sl * (n - 1 - mx)
+
+
+def swing_points(c, w=5):
+    """indexes of local minima / maxima of closes (window +-w)."""
+    lows, highs = [], []
+    n = len(c)
+    for i in range(w, n - w):
+        seg = c[i - w:i + w + 1]
+        if c[i] == min(seg) and seg.count(c[i]) == 1:
+            lows.append(i)
+        elif c[i] == max(seg) and seg.count(c[i]) == 1:
+            highs.append(i)
+    return lows, highs
+
+
+def price_signals(b, mkt, etf_bars, dates, aux=None):
     n = len(b.c)
     c = list(b.c)
     h = list(b.h)
     lo = list(b.l)
     v = list(b.v)
+    o = list(b.o)
     d = b.d
     out = {"n_sessions": n}
     last = c[-1]
@@ -571,13 +666,36 @@ def price_signals(b, mkt, etf_bars, dates):
     out["pct_from_52w_high"] = (last / hi52 - 1) * 100
     out["pct_above_52w_low"] = (last / lo52 - 1) * 100 if lo52 > 0 else None
     out["max_dd_1y_pct"] = max_drawdown(lb)
-    # ---- realized vol
+    hi_pos = len(lb) - 1 - lb[::-1].index(hi52)
+    out["weeks_since_52w_high"] = round((len(lb) - 1 - hi_pos) / 5.0, 1)
+    # ---- realized vol / tail
     lr = [math.log(c[i] / c[i - 1]) for i in range(1, n) if c[i - 1] > 0]
     v20 = std(lr[-20:]) if len(lr) >= 20 else None
     v100 = std(lr[-100:]) if len(lr) >= 100 else None
     out["vol_20d_pct"] = v20 * math.sqrt(252) * 100 if v20 else None
     out["vol_100d_pct"] = v100 * math.sqrt(252) * 100 if v100 else None
     out["vol_contraction"] = (v20 / v100) if (v20 and v100) else None
+    r1y = [c[i] / c[i - 1] - 1 for i in range(max(1, n - 252), n)]
+    if len(r1y) >= 60:
+        srt = sorted(r1y)
+        k5 = max(3, int(len(srt) * 0.05))
+        out["cvar5_pct"] = mean(srt[:k5]) * 100
+        out["downside_dev_pct"] = (mean([min(x, 0.0) ** 2 for x in r1y]) ** 0.5) * math.sqrt(252) * 100
+        peak = lb[0]
+        dds = []
+        for x in lb:
+            peak = max(peak, x)
+            dds.append((x / peak - 1) * 100)
+        out["ulcer_index"] = (mean([x * x for x in dds]) ** 0.5)
+    else:
+        out["cvar5_pct"] = None
+        out["downside_dev_pct"] = None
+        out["ulcer_index"] = None
+    gaps = [abs(o[i] / c[i - 1] - 1) for i in range(max(1, n - 252), n) if c[i - 1] > 0 and o[i] > 0]
+    out["gaps_5pct_1y"] = sum(1 for g in gaps if g >= 0.05) if gaps else None
+    out["max_gap_pct_1y"] = (max(gaps) * 100) if gaps else None
+    ami = [abs(c[i] / c[i - 1] - 1) / (c[i] * v[i]) for i in range(max(1, n - 63), n) if c[i] * v[i] > 0]
+    out["amihud_illiq"] = (mean(ami) * 1e6) if ami else None
     # ---- Bollinger / Keltner coil
     W = P["lookback"]
     mid, up, lob, bw = bb_series(c, 20, 2.0)
@@ -622,7 +740,19 @@ def price_signals(b, mkt, etf_bars, dates):
     a20 = mean(v[-20:])
     out["volume_dryup"] = (a20 / adv100) if (a20 and adv100) else None
     out["rel_volume_last"] = (v[-1] / a20) if a20 else None
-    # breakout status
+    # Carter squeeze momentum: close vs mid of (Donchian mid, SMA20), linreg over 20
+    if n >= 40 and mid[-1] is not None:
+        vals = []
+        for i in range(n - 20, n):
+            hh = max(h[i - 19:i + 1])
+            ll = min(lo[i - 19:i + 1])
+            vals.append(c[i] - ((hh + ll) / 2.0 + mid[i]) / 2.0)
+        mom = linreg_last(vals)
+        out["squeeze_momentum_atr"] = (mom / atr[-1]) if (mom is not None and atr[-1]) else None
+        out["squeeze_momentum_rising"] = (vals[-1] > vals[-2]) if len(vals) >= 2 else None
+    else:
+        out["squeeze_momentum_atr"] = None
+        out["squeeze_momentum_rising"] = None
     top60 = max(c[-60:])
     out["range_low_60"] = min(c[-60:])
     out["breakout_level"] = top60
@@ -638,24 +768,93 @@ def price_signals(b, mkt, etf_bars, dates):
         out["coil_state"] = "COILING"
     else:
         out["coil_state"] = "LOOSE"
+    # ---- structure: higher lows / VCP / base
+    seg = c[-120:]
+    lows_i, highs_i = swing_points(seg, 5)
+    hl_count = 0
+    if len(lows_i) >= 2:
+        for j in range(len(lows_i) - 1, 0, -1):
+            if seg[lows_i[j]] > seg[lows_i[j - 1]]:
+                hl_count += 1
+            else:
+                break
+    out["higher_lows"] = hl_count if lows_i else None
+    contractions = []
+    if highs_i and lows_i:
+        pts = sorted([(i, "H") for i in highs_i] + [(i, "L") for i in lows_i])
+        last_h = None
+        for i, kind in pts:
+            if kind == "H":
+                last_h = seg[i]
+            elif last_h:
+                contractions.append(round((1 - seg[i] / last_h) * 100, 1))
+                last_h = None
+    out["vcp_contractions"] = contractions[-4:]
+    if len(contractions) >= 2:
+        out["vcp_ok"] = bool(contractions[-1] < contractions[-2] and contractions[-1] <= 12.0)
+        out["vcp_strict"] = bool(len(contractions) >= 3 and contractions[-1] < contractions[-2] < contractions[-3]
+                                 and contractions[-1] <= 10.0)
+    else:
+        out["vcp_ok"] = None
+        out["vcp_strict"] = None
+    # ---- volume structure: OBV / A-D / up-down volume / absorption
+    if n >= 64:
+        obv = 0.0
+        ad = 0.0
+        obv_series = []
+        ad_series = []
+        upv = 0.0
+        dnv = 0.0
+        for i in range(1, n):
+            chg = c[i] - c[i - 1]
+            obv += v[i] if chg > 0 else (-v[i] if chg < 0 else 0.0)
+            rng = h[i] - lo[i]
+            clv = ((c[i] - lo[i]) - (h[i] - c[i])) / rng if rng > 0 else 0.0
+            ad += clv * v[i]
+            obv_series.append(obv)
+            ad_series.append(ad)
+            if i >= n - 50:
+                if chg > 0:
+                    upv += v[i]
+                elif chg < 0:
+                    dnv += v[i]
+        av63 = mean(v[-63:]) or 1.0
+        out["obv_slope_63"] = (obv_series[-1] - obv_series[-64]) / (av63 * 63)   # -1..1 units of ADV/day
+        out["ad_slope_63"] = (ad_series[-1] - ad_series[-64]) / (av63 * 63)
+        out["updown_volume_ratio_50"] = (upv / dnv) if dnv > 0 else None
+        r63 = out.get("ret_3m_pct")
+        out["obv_divergence"] = bool(out["obv_slope_63"] > 0.05 and r63 is not None and r63 <= 2.0)
+        out["ad_divergence"] = bool(out["ad_slope_63"] > 0.05 and r63 is not None and r63 <= 2.0)
+    else:
+        for k in ("obv_slope_63", "ad_slope_63", "updown_volume_ratio_50"):
+            out[k] = None
+        out["obv_divergence"] = None
+        out["ad_divergence"] = None
     # ---- dump resilience vs SPY
-    rets = mkt["rets"]
     lb_rets = mkt["lb_rets"]
+    all_rets = mkt["rets"]
     pos_by_idx = {}
-    for p in range(n):
-        pos_by_idx[d[p]] = p
+    for p_ in range(n):
+        pos_by_idx[d[p_]] = p_
     pairs_s = []
     pairs_m = []
     worst_rows = []
-    for idx, mr in lb_rets.items():
-        p = pos_by_idx.get(idx)
-        if p is None or p == 0 or d[p - 1] != idx - 1:
+    worst_long = []
+    for idx, mr in all_rets.items():
+        p_ = pos_by_idx.get(idx)
+        if p_ is None or p_ == 0 or d[p_ - 1] != idx - 1:
             continue
-        sr = c[p] / c[p - 1] - 1
-        pairs_s.append(sr)
-        pairs_m.append(mr)
+        sr = c[p_] / c[p_ - 1] - 1
+        if idx in lb_rets:
+            pairs_s.append(sr)
+            pairs_m.append(mr)
         if idx in mkt["worst_idx"]:
-            worst_rows.append((idx, sr, mr))
+            rng = h[p_] - lo[p_]
+            clv = ((c[p_] - lo[p_]) / rng) if rng > 0 else 0.5
+            a20_ = mean(v[max(0, p_ - 20):p_]) or None
+            worst_rows.append((idx, sr, mr, clv, (v[p_] / a20_) if a20_ else None))
+        if idx in mkt["worst_idx_long"]:
+            worst_long.append((sr - mr) * 1e4)
     out["n_days_matched"] = len(pairs_s)
     if len(pairs_s) >= 60:
         out["beta_1y"] = ols_beta(pairs_s, pairs_m)
@@ -670,30 +869,37 @@ def price_signals(b, mkt, etf_bars, dates):
         mu = mean([m_ for _, m_ in upp])
         out["up_capture_pct"] = (mean([s_ for s_, _ in upp]) / mu * 100) if (upp and mu) else None
         out["corr_spy"] = None
-        if len(pairs_s) >= 20:
-            ss, sm = std(pairs_s), std(pairs_m)
-            if ss and sm:
-                msx = sum(pairs_s) / len(pairs_s)
-                mmx = sum(pairs_m) / len(pairs_m)
-                cov = sum((a - msx) * (bb - mmx) for a, bb in zip(pairs_s, pairs_m)) / (len(pairs_s) - 1)
-                out["corr_spy"] = cov / (ss * sm)
+        ss, sm = std(pairs_s), std(pairs_m)
+        if ss and sm:
+            msx = sum(pairs_s) / len(pairs_s)
+            mmx = sum(pairs_m) / len(pairs_m)
+            cov = sum((a - msx) * (bb - mmx) for a, bb in zip(pairs_s, pairs_m)) / (len(pairs_s) - 1)
+            out["corr_spy"] = cov / (ss * sm)
     else:
         for k in ("beta_1y", "down_beta", "up_beta", "beta_asymmetry",
                   "down_capture_pct", "up_capture_pct", "corr_spy"):
             out[k] = None
     if len(worst_rows) >= max(6, P["worst_day_min_n"] // 2):
-        ex = [(s_ - m_) * 1e4 for _, s_, m_ in worst_rows]
+        ex = [(s_ - m_) * 1e4 for _, s_, m_, _, _ in worst_rows]
         out["worst_days_n"] = len(worst_rows)
         out["worst_days_excess_bps"] = mean(ex)
-        out["worst_days_green_rate"] = sum(1 for _, s_, _ in worst_rows if s_ >= 0) / len(worst_rows)
-        out["worst_days_held_rate"] = sum(1 for _, s_, m_ in worst_rows if s_ >= 0.25 * m_) / len(worst_rows)
-        out["worst_days_mean_ret_pct"] = mean([s_ for _, s_, _ in worst_rows]) * 100
+        sdx = std(ex)
+        out["worst_days_tstat"] = (mean(ex) / (sdx / math.sqrt(len(ex)))) if sdx else None
+        out["worst_days_green_rate"] = sum(1 for _, s_, _, _, _ in worst_rows if s_ >= 0) / len(worst_rows)
+        out["worst_days_held_rate"] = sum(1 for _, s_, m_, _, _ in worst_rows if s_ >= 0.25 * m_) / len(worst_rows)
+        out["worst_days_mean_ret_pct"] = mean([s_ for _, s_, _, _, _ in worst_rows]) * 100
+        out["absorption_clv"] = mean([clv for _, _, _, clv, _ in worst_rows])
+        rv = [rv_ for _, _, _, _, rv_ in worst_rows if rv_ is not None]
+        out["worst_days_rel_volume"] = mean(rv) if rv else None
     else:
         out["worst_days_n"] = len(worst_rows)
-        for k in ("worst_days_excess_bps", "worst_days_green_rate",
-                  "worst_days_held_rate", "worst_days_mean_ret_pct"):
+        for k in ("worst_days_excess_bps", "worst_days_tstat", "worst_days_green_rate",
+                  "worst_days_held_rate", "worst_days_mean_ret_pct", "absorption_clv",
+                  "worst_days_rel_volume"):
             out[k] = None
-    # episodes
+    out["worst_days_long_n"] = len(worst_long)
+    out["worst_days_long_excess_bps"] = mean(worst_long) if len(worst_long) >= 12 else None
+    # episodes (three years, depth- and recency-weighted; two capture reads)
     ep_rows = []
     for e in mkt["episodes"]:
         p0 = b.pos_at_or_before(e["peak_idx"])
@@ -704,19 +910,39 @@ def price_signals(b, mkt, etf_bars, dates):
             continue  # stock was not trading through the window
         sr = (c[p1] / c[p0] - 1) * 100
         cap = sr / e["spy_dd_pct"] if e["spy_dd_pct"] else None
+        # in-episode down-day capture: stock vs SPY on the market's red days only
+        sd_ = 0.0
+        md_ = 0.0
+        for pp in range(p0 + 1, p1 + 1):
+            idx = d[pp]
+            mr = all_rets.get(idx)
+            if mr is None or mr >= 0 or d[pp - 1] != idx - 1:
+                continue
+            sd_ += c[pp] / c[pp - 1] - 1
+            md_ += mr
+        dcap = (sd_ / md_) if md_ < 0 else None
         ep_rows.append({"peak_date": e["peak_date"], "trough_date": e["trough_date"],
                         "spy_pct": e["spy_dd_pct"], "stock_pct": round(sr, 2),
                         "capture": (round(cap, 2) if cap is not None else None),
-                        "big": e["big"], "closed": e["closed"]})
+                        "day_capture": (round(dcap, 2) if dcap is not None else None),
+                        "big": e["big"], "closed": e["closed"], "recent": e["recent"],
+                        "weight": e["weight"]})
     out["episodes"] = ep_rows
     out["n_episodes"] = len(ep_rows)
+    out["n_episodes_recent"] = sum(1 for x in ep_rows if x["recent"])
     caps = [x["capture"] for x in ep_rows if x["capture"] is not None]
     out["capture_median"] = median(caps)
     out["capture_mean"] = mean(caps)
     out["capture_worst"] = max(caps) if caps else None
-    wsum = sum(abs(x["spy_pct"]) for x in ep_rows if x["capture"] is not None)
-    out["capture_weighted"] = (sum(x["capture"] * abs(x["spy_pct"]) for x in ep_rows if x["capture"] is not None) / wsum
+    wsum = sum(x["weight"] for x in ep_rows if x["capture"] is not None)
+    out["capture_weighted"] = (sum(x["capture"] * x["weight"] for x in ep_rows if x["capture"] is not None) / wsum
                                if wsum else None)
+    dsum = sum(x["weight"] for x in ep_rows if x["day_capture"] is not None)
+    out["capture_days_weighted"] = (sum(x["day_capture"] * x["weight"] for x in ep_rows if x["day_capture"] is not None) / dsum
+                                    if dsum else None)
+    rc = [x for x in ep_rows if x["recent"] and x["capture"] is not None]
+    rw = sum(x["weight"] for x in rc)
+    out["capture_recent_1y"] = (sum(x["capture"] * x["weight"] for x in rc) / rw) if rw else None
     if caps:
         wx = max(ep_rows, key=lambda x: (x["capture"] if x["capture"] is not None else -9))
         out["worst_episode"] = "%s..%s SPY %.1f%% stock %+.1f%%" % (wx["peak_date"], wx["trough_date"], wx["spy_pct"], wx["stock_pct"])
@@ -726,7 +952,6 @@ def price_signals(b, mkt, etf_bars, dates):
     out["barely_dipped_share"] = (sum(1 for x in caps if x <= P["capture_barely_dipped"]) / len(caps)) if caps else None
     big = [x["capture"] for x in ep_rows if x["big"] and x["capture"] is not None]
     out["capture_big_dumps"] = median(big)
-    # dump_capture: the one number -- episode-based when available, else day-based
     if caps:
         out["dump_capture"] = out["capture_weighted"]
         out["dump_capture_basis"] = "episodes"
@@ -736,7 +961,42 @@ def price_signals(b, mkt, etf_bars, dates):
     else:
         out["dump_capture"] = None
         out["dump_capture_basis"] = None
-    # ---- RS vs industry ETF (63d) is attached by caller (needs ETF bars)
+    # evidence confidence for the resilience read (0..1)
+    n_ep = len(caps)
+    wn = out["worst_days_n"] or 0
+    out["resilience_confidence"] = round(0.5 * min(1.0, n_ep / 4.0) + 0.5 * min(1.0, wn / 12.0), 2)
+    # ---- RS line vs SPY (O'Neil): ratio at/near a 52-week high while price is not
+    cbi = mkt.get("close_by_idx") or {}
+    rs_line = []
+    for p_ in range(max(0, n - 252), n):
+        sc = cbi.get(d[p_])
+        if sc:
+            rs_line.append(c[p_] / sc)
+    if len(rs_line) >= 120:
+        rs_hi = max(rs_line)
+        out["rs_line_vs_high_pct"] = (rs_line[-1] / rs_hi - 1) * 100
+        out["rs_line_new_high"] = out["rs_line_vs_high_pct"] >= -2.0
+        out["rs_leading"] = bool(out["rs_line_new_high"] and out["pct_from_52w_high"] <= -10.0)
+    else:
+        out["rs_line_vs_high_pct"] = None
+        out["rs_line_new_high"] = None
+        out["rs_leading"] = None
+    # ---- macro betas (rates / dollar) when the hedges are in the tape
+    if aux:
+        for key, pack in aux.items():
+            ab, apos = pack if pack else (None, None)
+            if ab is None or len(pairs_s) < 60:
+                out[key] = None
+                continue
+            xs, ys = [], []
+            for idx in lb_rets:
+                p_ = pos_by_idx.get(idx)
+                q_ = apos.get(idx)
+                if p_ is None or q_ is None or p_ == 0 or q_ == 0 or d[p_ - 1] != idx - 1 or ab.d[q_ - 1] != idx - 1:
+                    continue
+                ys.append(c[p_] / c[p_ - 1] - 1)
+                xs.append(ab.c[q_] / ab.c[q_ - 1] - 1)
+            out[key] = ols_beta(ys, xs) if len(xs) >= 60 else None
     return out
 
 
@@ -880,6 +1140,56 @@ def load_feeds():
             spx.add(str(t_).upper())
     F["sp500"] = spx
     F["sp500_asof"] = sp.get("as_of")
+    # ---- v2 feeds
+    se = s3_json("etf-flows/stock-exposure-lookup.json", {}) or {}
+    F["stock_exposure"] = se if isinstance(se, dict) else {}
+    dp = s3_json("data/dark-pool.json", {}) or {}
+    F["dark"] = dp.get("xray_map") if isinstance(dp.get("xray_map"), dict) else {}
+    F["dark_asof"] = dp.get("generated_at") or dp.get("as_of")
+    F["dark_week"] = dp.get("latest_week") or dp.get("week")
+    pt = s3_json("data/political-trades.json", {}) or {}
+    cong = {}
+    cut60 = (datetime.now(timezone.utc) - timedelta(days=60)).strftime("%Y-%m-%d")
+    for t_ in pt.get("trades_recent_50") or []:
+        if not isinstance(t_, dict) or not t_.get("ticker"):
+            continue
+        if str(t_.get("transaction_date") or "")[:10] < cut60:
+            continue
+        e = cong.setdefault(str(t_["ticker"]).upper(), {"buys": 0, "sells": 0, "buy_usd_max": 0.0, "last": None, "cluster": None})
+        if str(t_.get("transaction_type") or "").lower() in ("purchase", "buy"):
+            e["buys"] += 1
+            e["buy_usd_max"] += fnum(t_.get("amount_max_usd")) or 0.0
+        else:
+            e["sells"] += 1
+        dt_ = str(t_.get("transaction_date") or "")[:10]
+        if not e["last"] or dt_ > e["last"]:
+            e["last"] = dt_
+    for c_ in pt.get("clusters_top_10") or []:
+        if isinstance(c_, dict) and c_.get("ticker"):
+            e = cong.setdefault(str(c_["ticker"]).upper(), {"buys": 0, "sells": 0, "buy_usd_max": 0.0, "last": None, "cluster": None})
+            e["cluster"] = {"direction": c_.get("direction"), "n_members": c_.get("n_members")}
+    F["congress"] = cong
+    F["congress_asof"] = pt.get("generated_at")
+    oa = s3_json("data/options-analytics.json", {}) or {}
+    F["options"] = {r.get("ticker"): r for r in (oa.get("board") or []) if isinstance(r, dict) and r.get("ticker")}
+    F["options_asof"] = oa.get("generated_at")
+    rc = s3_json("data/regime-composite.json", {}) or {}
+    vr = s3_json("data/vol-regime.json", {}) or {}
+    F["regime"] = {"meta_regime": rc.get("meta_regime"), "meta_class": rc.get("meta_class"),
+                   "composite_score": rc.get("composite_score"), "as_of": rc.get("as_of") or rc.get("generated_at"),
+                   "vol_regime": vr.get("composite_regime"), "vol_score": vr.get("composite_score"),
+                   "vol_as_of": vr.get("as_of")}
+    yc = s3_json("data/yield-curve.json", {}) or {}
+    ten = ((yc.get("nominal_yields") or {}).get("10Y") or {})
+    F["y10"] = fnum(ten.get("value")) if isinstance(ten, dict) else None
+    F["yc_asof"] = yc.get("as_of") or yc.get("generated_at")
+    ic = s3_json("data/insider-clusters.json", {}) or {}
+    F["insider_clusters"] = {str(r.get("ticker")).upper(): r for r in (ic.get("clusters") or []) if isinstance(r, dict) and r.get("ticker")}
+    F["backtest"] = s3_json(BACKTEST_KEY, None)
+    log("v2 feeds: stock_exposure=%d dark=%d congress=%d options=%d insider_clusters=%d y10=%s regime=%s/%s backtest=%s" % (
+        len(F["stock_exposure"]), len(F["dark"]), len(cong), len(F["options"]), len(F["insider_clusters"]),
+        F["y10"], F["regime"].get("meta_regime"), F["regime"].get("vol_regime"),
+        (F["backtest"] or {}).get("as_of") if F["backtest"] else None))
     log("feeds loaded in %.1fs: finviz=%d census=%d boom=%d rotation=%d flows_poly=%d "
         "flows_true=%d backlog=%d mined=%d contracts=%d catalyst=%d floor=%d/%d "
         "resilience=%d f13=%d short=%d insider=%d rev=%d spx=%d" % (
@@ -1006,6 +1316,18 @@ def growth_score(fv, cs, boom):
         parts.append((1.5, lin_map(ind_g, -10, 0, 30, 100)))
     if ind_b is not None:
         parts.append((0.5, lin_map(ind_b, 20, 0, 90, 100)))
+    e_nq = fnum(fv.get("eps_next_q"))
+    if e_nq is not None:
+        parts.append((0.5, lin_map(e_nq, -30, 0, 60, 100)))
+    e_sur = fnum(fv.get("eps_surprise"))
+    if e_sur is not None:
+        parts.append((0.5, lin_map(e_sur, -20, 10, 20, 100)))
+    r_sur = fnum(fv.get("rev_surprise"))
+    if r_sur is not None:
+        parts.append((0.5, lin_map(r_sur, -10, 10, 10, 100)))
+    s_5y = fnum(fv.get("sales_growth_5y")) or fnum(fv.get("sales_g_5y"))
+    if s_5y is not None:
+        parts.append((0.5, lin_map(s_5y, -5, 0, 25, 100)))
     sc = (sum(w * v for w, v in parts) / sum(w for w, _ in parts)) if parts else None
     stock_growth = max([x for x in (s_yoy, s_qoq, e_yoy) if x is not None], default=None)
     return {
@@ -1134,8 +1456,25 @@ def safety_block(sym, fv, cs, ps, F, mcap, today):
         parts.append((0.5, lin_map(math.log10(max(adv, 1.0)), 6.0, 20, 8.0, 100)))
     if sf is not None:
         parts.append((0.5, 90.0 if sf < 10 else (60.0 if sf < 20 else 25.0)))
+    cvar = ps.get("cvar5_pct")
+    if cvar is not None:
+        parts.append((1.0, lin_map(cvar, -8.0, 0, -2.0, 100)))
+    gaps = ps.get("gaps_5pct_1y")
+    if gaps is not None:
+        parts.append((1.0, lin_map(gaps, 12, 0, 0, 100)))
+    ulc = ps.get("ulcer_index")
+    if ulc is not None:
+        parts.append((0.5, lin_map(ulc, 30.0, 0, 5.0, 100)))
+    ami = ps.get("amihud_illiq")
+    if ami is not None:
+        parts.append((0.5, lin_map(math.log10(max(ami, 1e-6)), 1.0, 0, -2.0, 100)))
     sc = (sum(w * v for w, v in parts) / sum(w for w, _ in parts)) if parts else None
     risks = []
+    if gaps is not None and gaps >= 6:
+        risks.append("%d overnight gaps of 5%%+ in the year (max %.0f%%) -- event-driven tape" % (
+            gaps, ps.get("max_gap_pct_1y") or 0))
+    if cvar is not None and cvar <= -6:
+        risks.append("CVaR(5%%) %.1f%%: the worst twentieth of days average that loss" % cvar)
     if ed is not None and 0 <= ed <= 7:
         risks.append("earnings in %d day(s) -- binary event inside the coil" % ed)
         sc = (sc - 12) if sc is not None else None
@@ -1154,6 +1493,7 @@ def safety_block(sym, fv, cs, ps, F, mcap, today):
     if adv is not None and adv < 5e6:
         risks.append("thin liquidity: $%.1fM average daily dollar volume" % (adv / 1e6))
     return {"safety_score": (clamp(sc) if sc is not None else None), "nlav_coverage": cov,
+            "runway_months": fnum(fd.get("runway_months")),
             "altman_z": altman, "piotroski_f": pio, "beneish_m": ben,
             "interest_coverage": icov, "netdebt_to_ebitda": nd_e, "debt_to_equity": debt_eq,
             "current_ratio": cur, "p_fcf": pfcf, "dilution_yoy_pct": dil,
@@ -1163,6 +1503,10 @@ def safety_block(sym, fv, cs, ps, F, mcap, today):
 
 def build_stock_rows(bars, dates, mkt, F, etf_bars):
     today = datetime.now(timezone.utc).date()
+    AUX = {}
+    for key, tk in (("rate_beta", "TLT"), ("dollar_beta", "UUP")):
+        ab = bars.get(tk)
+        AUX[key] = (ab, {ab.d[i]: i for i in range(len(ab.d))}) if ab else None
     rows = []
     n_fv = 0
     flow_cache = {}
@@ -1176,7 +1520,7 @@ def build_stock_rows(bars, dates, mkt, F, etf_bars):
         n = len(b.c)
         if n < 60:
             continue
-        ps = price_signals(b, mkt, etf_bars, dates)
+        ps = price_signals(b, mkt, etf_bars, dates, aux=AUX)
         cs = F["census"].get(sym) or {}
         mcap = fnum(fv.get("market_cap"))
         if mcap is not None and 0 < mcap < 1e8:
@@ -1284,6 +1628,57 @@ def build_stock_rows(bars, dates, mkt, F, etf_bars):
         r["eps_rev_pct"] = rv.get("eps_rev_pct")
         r["insider_trans_pct"] = fnum(fv.get("insider_trans_pct"))
         r["inst_trans_pct"] = fnum(fv.get("inst_trans_pct"))
+        r["inst_own_pct"] = fnum(fv.get("inst_own_pct"))
+        # ---- v2: growth extras, rule of 40, ERP
+        r["eps_next_q_pct"] = fnum(fv.get("eps_next_q"))
+        r["eps_surprise_pct"] = fnum(fv.get("eps_surprise"))
+        r["rev_surprise_pct"] = fnum(fv.get("rev_surprise"))
+        r["sales_5y_pct"] = fnum(fv.get("sales_growth_5y")) or fnum(fv.get("sales_g_5y"))
+        fcfm = None
+        if r.get("fcf_yield_pct") is not None and r.get("ps"):
+            fcfm = r["fcf_yield_pct"] * r["ps"]          # FCF/mcap x mcap/sales = FCF margin (%)
+        r["fcf_margin_pct"] = fcfm
+        r["rule_of_40"] = (r["sales_yoy_pct"] + fcfm) if (fcfm is not None and r.get("sales_yoy_pct") is not None) else None
+        ey = (100.0 / r["fwd_pe"]) if (r.get("fwd_pe") and r["fwd_pe"] > 0) else ((100.0 / r["pe"]) if (r.get("pe") and r["pe"] > 0) else None)
+        r["earnings_yield_pct"] = ey
+        r["erp_vs_10y_pct"] = (ey - F["y10"]) if (ey is not None and F.get("y10") is not None) else None
+        # ---- v2: ETF constituent pressure (mechanical demand from ETF creations)
+        se = F["stock_exposure"].get(sym) or F["stock_exposure"].get(to_fv(sym)) or {}
+        p21 = fnum(se.get("total_aggregate_flow_21d_usd"))
+        r["etf_pressure_21d_usd"] = p21
+        r["etf_pressure_5d_usd"] = fnum(se.get("total_aggregate_flow_5d_usd"))
+        r["etf_pressure_pct_mcap"] = (p21 / mcap * 100) if (p21 is not None and mcap) else None
+        r["etf_pressure_days_adv"] = (p21 / ps["adv_usd_20d"]) if (p21 is not None and ps.get("adv_usd_20d")) else None
+        r["n_etfs_holding"] = se.get("n_etfs_holding")
+        r["etf_quadrant"] = se.get("quadrant")
+        # ---- v2: dark pool (FINRA ATS share and acceleration)
+        dk = F["dark"].get(sym) or {}
+        r["dark_pool_pct"] = fnum(dk.get("dp"))
+        r["dark_pool_accel"] = fnum(dk.get("acc"))
+        r["dark_pool_state"] = dk.get("st")
+        r["dark_short_z"] = fnum(dk.get("sz"))
+        r["dark_conviction"] = dk.get("cv")
+        # ---- v2: Congress, insider clusters, options
+        cg = F["congress"].get(sym)
+        r["congress_buys_60d"] = cg["buys"] if cg else 0
+        r["congress_sells_60d"] = cg["sells"] if cg else 0
+        r["congress_buy_usd_max"] = cg["buy_usd_max"] if cg else None
+        r["congress_cluster"] = (cg or {}).get("cluster")
+        icl = F["insider_clusters"].get(sym)
+        r["insider_cluster_n"] = icl.get("n_insiders") if icl else None
+        r["insider_cluster_usd"] = fnum(icl.get("total_value")) if icl else None
+        r["insider_cluster_role"] = icl.get("highest_role") if icl else None
+        if icl and not r.get("insider_cluster"):
+            r["insider_cluster"] = True
+        op = F["options"].get(sym)
+        if op:
+            r["options"] = {"iv_rank": fnum(op.get("iv_rank")), "vrp": fnum(op.get("vrp")),
+                            "skew_25d": fnum(op.get("skew_25d")), "pcr_vol": fnum(op.get("pcr_vol")),
+                            "net_premium_usd": fnum(op.get("net_premium_usd")),
+                            "gamma_regime": op.get("gamma_regime"), "signal": op.get("signal"),
+                            "n_unusual": op.get("n_unusual")}
+        else:
+            r["options"] = None
         rows.append(r)
     log("stock rows built: %d (finviz-matched %d)" % (len(rows), n_fv))
     return rows
@@ -1324,6 +1719,11 @@ def valuation_percentiles(rows):
             sc = clamp(sc + 10)
         if sc is not None and r.get("fcf_yield_pct") is not None and r["fcf_yield_pct"] >= 6:
             sc = clamp(sc + 5)
+        if sc is not None and r.get("erp_vs_10y_pct") is not None and r["erp_vs_10y_pct"] >= 2.0:
+            sc = clamp(sc + 5)   # earnings yield beats the 10-year by 200 bps+
+        if sc is not None and r.get("rule_of_40") is not None and r["rule_of_40"] >= 40 \
+                and str(r.get("industry") or "").startswith("Software"):
+            sc = clamp(sc + 5)
         r["valuation_score"] = sc
         r["valuation_group"] = key[0]
         r["valuation_group_name"] = key[1]
@@ -1360,6 +1760,101 @@ def resilience_score(r):
     re_ = r.get("resilience_engine")
     if re_ and re_.get("score") is not None:
         parts.append((0.5, clamp(re_["score"])))
+    dcap = r.get("capture_days_weighted")
+    if dcap is not None:
+        parts.append((1.5, lin_map(dcap, 1.0, 0, -0.25, 100)))
+    ts = r.get("worst_days_tstat")
+    if ts is not None:
+        parts.append((1.0, lin_map(ts, -2.0, 0, 3.0, 100)))
+    lx = r.get("worst_days_long_excess_bps")
+    if lx is not None:
+        parts.append((1.0, lin_map(lx, -150, 0, 150, 100)))
+    if not parts:
+        return None
+    sc = sum(w * v for w, v in parts) / sum(w for w, _ in parts)
+    conf = r.get("resilience_confidence")
+    if conf is not None:
+        sc = 50.0 + (sc - 50.0) * (0.4 + 0.6 * conf)   # thin evidence shrinks toward neutral
+    return sc
+
+
+def accumulation_score(r):
+    """Volume-structure and smart-money evidence that the dips are being bought."""
+    parts = []
+    ob = r.get("obv_slope_63")
+    if ob is not None:
+        parts.append((2.0, lin_map(ob, -0.3, 0, 0.3, 100)))
+    ad = r.get("ad_slope_63")
+    if ad is not None:
+        parts.append((1.5, lin_map(ad, -0.2, 0, 0.2, 100)))
+    ud = r.get("updown_volume_ratio_50")
+    if ud is not None:
+        parts.append((1.5, lin_map(ud, 0.6, 0, 1.6, 100)))
+    clv = r.get("absorption_clv")
+    if clv is not None:
+        parts.append((2.0, lin_map(clv, 0.2, 0, 0.8, 100)))
+    if r.get("obv_divergence") or r.get("ad_divergence"):
+        parts.append((1.0, 90.0))
+    st = r.get("dark_pool_state")
+    if st:
+        parts.append((1.5, {"ACCUMULATION": 90.0, "DISTRIBUTION": 15.0}.get(str(st).upper(), 50.0)))
+    da = r.get("dark_pool_accel")
+    if da is not None:
+        parts.append((0.5, lin_map(da, -0.5, 20, 0.6, 100)))
+    ins = r.get("inst_net_usd")
+    mc = r.get("market_cap")
+    if ins is not None and mc:
+        parts.append((1.0, lin_map(ins / mc * 100, -2.0, 0, 2.0, 100)))
+    if r.get("insider_cluster"):
+        parts.append((1.0, 90.0))
+    elif r.get("insider_buys_30d"):
+        parts.append((1.0, 70.0))
+    if r.get("congress_buys_60d"):
+        parts.append((0.5, 85.0 if r["congress_buys_60d"] >= 2 else 70.0))
+    it = r.get("inst_trans_pct")
+    if it is not None:
+        parts.append((0.5, lin_map(it, -5.0, 0, 5.0, 100)))
+    bb_ = r.get("net_buyback_yield_pct")
+    if bb_ is not None:
+        parts.append((1.0, lin_map(bb_, -3.0, 0, 5.0, 100)))
+    ep = r.get("etf_pressure_pct_mcap")
+    if ep is not None:
+        parts.append((1.0, lin_map(ep, -0.5, 0, 0.5, 100)))
+    return (sum(w * v for w, v in parts) / sum(w for w, _ in parts)) if parts else None
+
+
+def structure_score(r):
+    parts = []
+    hl = r.get("higher_lows")
+    if hl is not None:
+        parts.append((1.5, lin_map(hl, 0, 25, 3, 100)))
+    if r.get("vcp_ok") is not None:
+        parts.append((1.5, 95.0 if r.get("vcp_strict") else (80.0 if r["vcp_ok"] else 30.0)))
+    if r.get("rs_leading") is not None:
+        parts.append((1.5, 95.0 if r["rs_leading"] else (70.0 if r.get("rs_line_new_high") else 35.0)))
+    w = r.get("weeks_since_52w_high")
+    if w is not None:
+        parts.append((0.5, 85.0 if 7 <= w <= 40 else (55.0 if w < 7 else 40.0)))
+    sm = r.get("squeeze_momentum_atr")
+    if sm is not None:
+        parts.append((1.0, lin_map(sm, -1.0, 15, 1.0, 100) + (5.0 if r.get("squeeze_momentum_rising") else 0.0)))
+    return (clamp(sum(w * v for w, v in parts) / sum(w for w, _ in parts)) if parts else None)
+
+
+def flows_pillar(r):
+    parts = []
+    fs = r.get("flow_score")
+    if fs is not None:
+        parts.append((2.5, fs))
+    ss = (r.get("sector_flows") or {}).get("score")
+    if ss is not None:
+        parts.append((0.5, ss))
+    ep = r.get("etf_pressure_pct_mcap")
+    if ep is not None:
+        parts.append((1.5, lin_map(ep, -1.0, 0, 1.0, 100)))
+    pers = (r.get("flows") or {}).get("persistence_days")
+    if pers is not None:
+        parts.append((0.5, lin_map(float(pers), 0, 40, 10, 100)))
     return (sum(w * v for w, v in parts) / sum(w for w, _ in parts)) if parts else None
 
 
@@ -1385,6 +1880,12 @@ def coil_score(r):
     st = r.get("coil_state")
     if st == "IGNITED":
         parts.append((2.0, 20.0))  # already released -- not a pre-breakout coil
+    op = r.get("options") or {}
+    if op.get("iv_rank") is not None:
+        parts.append((1.0, lin_map(op["iv_rank"], 80, 10, 10, 100)))   # cheap options = coil confirmed by the vol market
+    sm = r.get("squeeze_momentum_atr")
+    if sm is not None:
+        parts.append((0.5, lin_map(sm, -1.0, 25, 1.0, 100)))
     return (clamp(sum(w * v for w, v in parts) / sum(w for w, _ in parts)) if parts else None)
 
 
@@ -1439,8 +1940,10 @@ def dump_gate(r):
     worst = r.get("capture_worst")
     if cap is None and ex is None:
         return None
+    dcap = r.get("capture_days_weighted")
     ep_ok = (cap is not None and cap <= P["capture_barely_dipped"]
              and (worst is None or worst <= P["capture_worst_max"])
+             and (dcap is None or dcap <= 0.6)
              and (ex is None or ex >= -75))
     day_ok = (ex is not None and ex >= 25 and gr >= 0.40 and (cap is None or cap <= 0.7)
               and (worst is None or worst <= 1.5))
@@ -1492,13 +1995,16 @@ def gates_and_tier(r):
     r["tier_caps"] = caps
 
 
-def composite_and_asymmetry(r):
+def composite_and_asymmetry(r, ranks=None):
     pillars = {
-        "resilience": resilience_score(r), "coil": coil_score(r), "location": location_score(r),
+        "resilience": resilience_score(r), "accumulation": accumulation_score(r),
+        "coil": coil_score(r), "structure": structure_score(r), "location": location_score(r),
         "valuation": r.get("valuation_score"), "growth": r.get("growth_score"),
-        "flows": r.get("flow_score"), "momentum": momentum_score(r),
+        "flows": flows_pillar(r), "momentum": momentum_score(r),
         "backlog_contracts": r.get("backlog_contracts_score"), "safety": r.get("safety_score"),
     }
+    r["pillars"] = {k: rnd(v, 1) for k, v in pillars.items()}
+    r["_pillars_raw"] = pillars
     num = 0.0
     den = 0.0
     for k, w in WEIGHTS.items():
@@ -1506,11 +2012,31 @@ def composite_and_asymmetry(r):
         if v is not None:
             num += w * clamp(v)
             den += w
-    comp = (num / den) if den >= 60 else None
+    comp_abs = (num / den) if den >= 60 else None
     cov = round(den / sum(WEIGHTS.values()), 2)
-    r["pillars"] = {k: rnd(v, 1) for k, v in pillars.items()}
+    comp = comp_abs
+    if ranks is not None and comp_abs is not None:
+        rn = 0.0
+        rd = 0.0
+        pr = {}
+        for k, w in WEIGHTS.items():
+            pv = (ranks.get(k) or {}).get(r["ticker"])
+            if pv is not None:
+                rn += w * pv
+                rd += w
+                pr[k] = round(pv, 1)
+        r["pillar_ranks"] = pr
+        if rd >= 60:
+            comp = 0.5 * comp_abs + 0.5 * (rn / rd)
     r["pillar_coverage"] = cov
-    r["composite"] = rnd(comp, 1)
+    r["composite_abs"] = rnd(comp_abs, 1)
+    # evidence confidence: resilience sample + data coverage
+    conf = 0.6 * (r.get("resilience_confidence") or 0.0) + 0.4 * cov
+    r["confidence"] = round(conf, 2)
+    r["composite"] = rnd(50.0 + (comp - 50.0) * (0.5 + 0.5 * conf), 1) if comp is not None else None
+    # conviction: geometric mean of the six gate pillars (a fortress is strong everywhere)
+    gp = [clamp(pillars[k]) / 100.0 for k in GATE_PILLARS if pillars.get(k) is not None]
+    r["conviction"] = rnd(100.0 * math.exp(sum(math.log(max(x, 0.02)) for x in gp) / len(gp)), 1) if len(gp) >= 4 else None
     # asymmetry: empirical upside room / empirical dump downside
     ups = [x for x in (r.get("pt_upside_pct"), -r.get("pct_from_52w_high") if r.get("pct_from_52w_high") is not None else None)
            if x is not None and x > 0]
@@ -1521,6 +2047,9 @@ def composite_and_asymmetry(r):
     if cap is not None:
         downside = 10.0 * min(2.5, cap)                # empirical: capture x a -10% SPY dump
         downside = max(downside, 0.5 * sig_m if sig_m else 2.0)  # idiosyncratic floor
+        cv = r.get("cvar5_pct")
+        if cv is not None:
+            downside = max(downside, -cv * 1.5)         # tail floor: 1.5x the average bad-day loss
         cov_ = r.get("nlav_coverage")
         if cov_ is not None and cov_ >= 0.5:
             downside *= 0.7
@@ -1529,6 +2058,15 @@ def composite_and_asymmetry(r):
     r["upside_room_pct"] = rnd(upside, 1)
     r["dump_downside_pct"] = rnd(downside, 1)
     r["asymmetry"] = rnd(min(25.0, upside / downside), 2) if (upside is not None and downside) else None
+
+
+def pillar_ranks(rows):
+    """cross-sectional percentile of every pillar across the scored universe."""
+    out = {}
+    for k in WEIGHTS:
+        vals = {r["ticker"]: r["_pillars_raw"].get(k) for r in rows if r.get("_pillars_raw", {}).get(k) is not None}
+        out[k] = pct_rank(vals)
+    return out
 
 
 def reasons_for(r):
@@ -1588,7 +2126,30 @@ def reasons_for(r):
         R.append("%d insider buy(s) in 30d%s" % (r["insider_buys_30d"], " (cluster)" if r.get("insider_cluster") else ""))
     if r.get("inst_net_usd") and r["inst_net_usd"] > 0:
         R.append("13F net institutional buying $%.0fM" % (r["inst_net_usd"] / 1e6))
-    return R[:9]
+    if r.get("obv_divergence") or r.get("ad_divergence"):
+        R.append("volume divergence: %s rising %+.2f ADV/day while price is flat (%+.1f%% 3m) -- dips are being bought" % (
+            "OBV" if r.get("obv_divergence") else "A/D line",
+            (r.get("obv_slope_63") if r.get("obv_divergence") else r.get("ad_slope_63")) or 0, r.get("ret_3m_pct") or 0))
+    if r.get("absorption_clv") is not None and r["absorption_clv"] >= 0.6:
+        R.append("absorption: closed in the top %.0f%% of its range on the market's worst days%s" % (
+            r["absorption_clv"] * 100, (" on %.1fx volume" % r["worst_days_rel_volume"]) if r.get("worst_days_rel_volume") else ""))
+    if str(r.get("dark_pool_state") or "").upper() == "ACCUMULATION":
+        R.append("FINRA dark-pool share %.0f%% in ACCUMULATION state (accel %+.2f)" % (
+            r.get("dark_pool_pct") or 0, r.get("dark_pool_accel") or 0))
+    if r.get("rs_leading"):
+        R.append("RS line vs SPY at a 52-week high while price sits %.0f%% under its own high (O'Neil lead)" % abs(r.get("pct_from_52w_high") or 0))
+    if r.get("vcp_ok"):
+        R.append("volatility contraction: pullbacks %s%% -- supply drying up" % "% > ".join(str(x) for x in (r.get("vcp_contractions") or [])[-3:]))
+    if r.get("etf_pressure_pct_mcap") is not None and r["etf_pressure_pct_mcap"] >= 0.3:
+        R.append("ETF creations imply $%.0fM of mechanical demand (21d) = %.2f%% of market cap" % (
+            (r.get("etf_pressure_21d_usd") or 0) / 1e6, r["etf_pressure_pct_mcap"]))
+    if r.get("congress_buys_60d"):
+        R.append("%d Congressional purchase(s) disclosed in 60d" % r["congress_buys_60d"])
+    op = r.get("options") or {}
+    if op.get("iv_rank") is not None and op["iv_rank"] <= 25:
+        R.append("options market agrees: IV rank %.0f (cheap convexity)%s" % (
+            op["iv_rank"], (", VRP %.2f" % op["vrp"]) if op.get("vrp") is not None else ""))
+    return R[:12]
 
 
 def invalidation_for(r):
@@ -1604,6 +2165,108 @@ def invalidation_for(r):
     if r.get("sales_yoy_pct") is not None:
         parts.append("revenue growth turning negative y/y")
     return "; ".join(parts) if parts else None
+
+
+def trade_plan(r):
+    """Pivot / stop / target / reward-to-risk from the coil geometry. Research
+    shorthand for a PM's ticket, not advice."""
+    c = r.get("close")
+    atr = (r.get("atr20_pct") or 0) / 100.0 * c if c else None
+    if not c or not atr:
+        return None
+    pivot = r.get("breakout_level") or c
+    stop = max((r.get("range_low_60") or 0) * 0.99, c - 2.5 * atr)
+    if stop >= c:
+        stop = c - 2.0 * atr
+    hi52 = c * (1 - (r.get("pct_from_52w_high") or 0) / 100.0)
+    tgt_cands = [x for x in (r.get("target_price"), hi52) if x and x > c * 1.02]
+    target = min(tgt_cands) if tgt_cands else c * (1 + 2 * (r.get("atr20_pct") or 3) * math.sqrt(20) / 100.0)
+    target2 = max(tgt_cands) if tgt_cands else None
+    risk = (c - stop) / c * 100
+    reward = (target / c - 1) * 100
+    return {"pivot": rnd(pivot, 2), "pivot_dist_pct": rnd((pivot / c - 1) * 100, 1),
+            "stop": rnd(stop, 2), "risk_pct": rnd(risk, 1),
+            "target": rnd(target, 2), "reward_pct": rnd(reward, 1), "target_2": rnd(target2, 2),
+            "reward_to_risk": rnd(min(20.0, reward / risk), 2) if risk > 0 else None,
+            "note": "enter on the pivot break with volume or scale inside the coil; stop under the range low / 2.5 ATR"}
+
+
+def risk_parity_sizing(picks):
+    """equal expected dump-loss weights across the picks (capped 15%)."""
+    inv = {}
+    for p_ in picks:
+        dd = p_.get("dump_downside_pct")
+        if dd and dd > 0:
+            inv[p_["ticker"]] = 1.0 / dd
+    if not inv:
+        return {}
+    w = {k: v / sum(inv.values()) for k, v in inv.items()}
+    cap = max(0.15, 1.0 / len(w))
+    for _ in range(8):
+        over = {k: v for k, v in w.items() if v > cap + 1e-9}
+        if not over:
+            break
+        excess = sum(v - cap for v in over.values())
+        for k in over:
+            w[k] = cap
+        rest = [k for k in w if k not in over]
+        tot = sum(w[k] for k in rest)
+        for k in rest:
+            w[k] += excess * (w[k] / tot) if tot else 0
+    return {k: round(v * 100, 1) for k, v in w.items()}
+
+
+def watch_trigger(r):
+    """For a 5/6 name: the one gate that fails and what would flip it."""
+    g = r.get("gates") or {}
+    fails = [k for k, v in g.items() if v is False]
+    if len(fails) != 1:
+        return None
+    k = fails[0]
+    if k == "under_ema250":
+        return "above EMA250 by %.1f%% -- needs a pullback under %.2f" % (r.get("vs_ema250_pct") or 0, r.get("ema250") or 0)
+    if k == "dump_resilient":
+        return "dump capture %.2f (worst %.2f) -- needs the next SPY dump held (capture <= 0.35, never worse than the market)" % (
+            r.get("dump_capture") or 0, r.get("capture_worst") or 0)
+    if k == "coiled":
+        return "bandwidth pctile %.0f -- needs <= 20 or a 3-session Keltner squeeze" % (r.get("bb_width_pctile") or 0)
+    if k == "low_valuation":
+        return "valuation score %.0f vs %s peers -- needs >= 55 (cheaper than most peers) or PEG <= 1.2 / EV-EBITDA <= 10 / FCF yield >= 6%%" % (
+            r.get("valuation_score") or 0, r.get("valuation_group") or "sector")
+    if k == "growth":
+        return "revenue %s%% y/y, industry %s%% -- needs >= 5%% on either" % (rnd(r.get("sales_yoy_pct"), 0), rnd(r.get("industry_rev_growth_pct"), 0))
+    if k == "industry_inflows":
+        return "%s flow score %s -- needs >= 55 with a positive leg" % (r.get("industry_etf"), rnd(r.get("flow_score"), 0))
+    return k
+
+
+def session_changes(stock_rows, session):
+    """what moved since the previous snapshot (tier upgrades / downgrades / entries / exits)."""
+    keys = sorted(k for k in list_keys(HIST_PREFIX) if k.endswith(".json.gz") and k[len(HIST_PREFIX):-8] < session)
+    if not keys:
+        return {"status": "no prior snapshot", "prev_session": None}
+    prev = s3_json(keys[-1]) or {}
+    prev_tier = {p_["t"]: p_.get("tier") for p_ in prev.get("picks") or []}
+    rank = {"FORTRESS_COIL": 0, "COILED": 1, "ACCUMULATING": 2, "WATCH": 3, "SCREENED": 4}
+    cur = {r["ticker"]: r["tier"] for r in stock_rows if r["tier"] in ("FORTRESS_COIL", "COILED", "ACCUMULATING")}
+    ups, downs, new, gone = [], [], [], []
+    for t, tier in cur.items():
+        pt_ = prev_tier.get(t)
+        if pt_ is None:
+            new.append({"ticker": t, "tier": tier})
+        elif rank[tier] < rank.get(pt_, 4):
+            ups.append({"ticker": t, "from": pt_, "to": tier})
+        elif rank[tier] > rank.get(pt_, 4):
+            downs.append({"ticker": t, "from": pt_, "to": tier})
+    for t, pt_ in prev_tier.items():
+        if t not in cur:
+            gone.append({"ticker": t, "was": pt_})
+    order = lambda x: rank.get(x.get("to") or x.get("tier") or "", 9)  # noqa: E731
+    return {"status": "ok", "prev_session": prev.get("session"),
+            "new_fortress": [x["ticker"] for x in ups + new if (x.get("to") or x.get("tier")) == "FORTRESS_COIL"],
+            "upgrades": sorted(ups, key=order)[:40], "downgrades": sorted(downs, key=order)[:40],
+            "new_entries": sorted(new, key=order)[:40], "exits": gone[:40],
+            "n_prev": len(prev_tier), "n_now": len(cur)}
 
 
 # ── ETF rows ─────────────────────────────────────────────────────────────
@@ -1772,6 +2435,217 @@ def snapshot_and_base_rates(stock_rows, bars, dates, session):
                      "past snapshots; also harvested fleet-wide as eng:fortress by justhodl-signal-harvester")}
 
 
+# ── walk-forward validation of the price-structure legs ─────────────────
+def lite_signals(b, pos, mkt_t):
+    """point-in-time price gates for one name as of position `pos` (inclusive)."""
+    start = max(0, pos - (P["sessions_loaded"] - 1))
+    c = b.c[start:pos + 1]
+    n = len(c)
+    if n < 300:
+        return None
+    c = list(c)
+    last = c[-1]
+    v = b.v[pos - 19:pos + 1]
+    adv = sum(c[-20 + i] * v[i] for i in range(len(v))) / max(1, len(v))
+    if last < P["min_price"] or adv < P["min_adv_usd"]:
+        return None
+    ema250 = ema_last(c, 250)
+    if ema250 is None:
+        return None
+    under = last < ema250
+    _, up, lob, bw = bb_series(c[-300:], 20, 2.0)
+    hist = [x for x in bw[-252:] if x is not None]
+    cur = bw[-1]
+    if cur is None or len(hist) < 100:
+        return None
+    bbp = 100.0 * sum(1 for x in hist if x <= cur) / len(hist)
+    h = list(b.h[pos - 99:pos + 1])
+    lo = list(b.l[pos - 99:pos + 1])
+    c100 = c[-100:]
+    atr = atr_series(h, lo, c100, 20)
+    e20 = ema_series(c100, 20)
+    sq_days = 0
+    km = P["keltner_atr_mult"]
+    for k in range(99, 39, -1):          # last 60 sessions; bb arrays are aligned to c[-300:]
+        j = 200 + k
+        if up[j] is None or atr[k] is None or e20[k] is None:
+            break
+        if up[j] < e20[k] + km * atr[k] and lob[j] > e20[k] - km * atr[k]:
+            sq_days += 1
+        else:
+            break
+    coiled = bbp <= P["bb_squeeze_pctile"] or sq_days >= 3
+    # episodes as of t
+    d = b.d
+    caps = []
+    worst = None
+    wsum = 0.0
+    wcap = 0.0
+    dsum = 0.0
+    dcap_ = 0.0
+    rets = mkt_t["rets"]
+    for e in mkt_t["episodes"]:
+        p0 = b.pos_at_or_before(e["peak_idx"])
+        p1 = b.pos_at_or_before(e["trough_idx"])
+        if p0 is None or p1 is None or p1 <= p0 or p0 < start:
+            continue
+        if e["peak_idx"] - d[p0] > 5 or e["trough_idx"] - d[p1] > 5:
+            continue
+        sr = (b.c[p1] / b.c[p0] - 1) * 100
+        cap = sr / e["spy_dd_pct"]
+        caps.append(cap)
+        worst = cap if worst is None else max(worst, cap)
+        wsum += e["weight"]
+        wcap += cap * e["weight"]
+        sd_ = 0.0
+        md_ = 0.0
+        for pp in range(p0 + 1, p1 + 1):
+            mr = rets.get(d[pp])
+            if mr is None or mr >= 0 or d[pp - 1] != d[pp] - 1:
+                continue
+            sd_ += b.c[pp] / b.c[pp - 1] - 1
+            md_ += mr
+        if md_ < 0:
+            dsum += e["weight"]
+            dcap_ += (sd_ / md_) * e["weight"]
+    capw = (wcap / wsum) if wsum else None
+    dcapw = (dcap_ / dsum) if dsum else None
+    ex = []
+    for idx in mkt_t["worst_idx"]:
+        q = b.pos_exact(idx)
+        if q is None or q == 0 or d[q - 1] != idx - 1:
+            continue
+        ex.append((b.c[q] / b.c[q - 1] - 1 - rets[idx]) * 1e4)
+    exm = mean(ex) if len(ex) >= 6 else None
+    resilient = None
+    if capw is not None or exm is not None:
+        ep_ok = (capw is not None and capw <= P["capture_barely_dipped"]
+                 and (worst is None or worst <= P["capture_worst_max"])
+                 and (dcapw is None or dcapw <= 0.6) and (exm is None or exm >= -75))
+        day_ok = (exm is not None and exm >= 25 and (capw is None or capw <= 0.7)
+                  and (worst is None or worst <= 1.5))
+        resilient = bool(ep_ok or day_ok)
+    knife = (n > 63 and last / c[-64] - 1 <= P["knife_ret_3m_pct"] / 100.0) or (last / ema250 - 1 <= P["knife_below_ema_pct"] / 100.0)
+    return {"under": under, "coiled": coiled, "resilient": resilient, "bbp": bbp,
+            "capture": capw, "worst_ex": exm, "knife": knife,
+            "n_gates": int(under) + int(bool(coiled)) + int(bool(resilient))}
+
+
+def run_backtest(event):
+    F = load_feeds()
+    etfs = {to_poly(str(t).upper()) for t, fv in F["finviz"].items() if is_etf_row(fv)}
+    etfs.update(F["flows_poly"].keys())
+    keys = session_keys(int(event.get("sessions") or P["backtest_sessions"]))
+    dates, bars = load_bars(keys, None)   # every clean ticker in the tape (delisted names included)
+    spy = bars.get("SPY")
+    if not spy or len(spy.c) < 900:
+        raise RuntimeError("SPY history too short for a walk-forward test")
+    W = P["sessions_loaded"]
+    step = int(event.get("step") or P["backtest_step"])
+    H1, H2 = 21, 63
+    spy_pos = {spy.d[i]: i for i in range(len(spy.d))}
+    t_list = list(range(W, len(dates) - H2, step))
+    log("backtest: %d sessions, %d test dates (%s..%s), universe %d" % (
+        len(dates), len(t_list), dates[t_list[0]] if t_list else None, dates[t_list[-1]] if t_list else None, len(bars)))
+    obs = []   # (t, sym, n_gates, under, coiled, resilient, bbp, capture, ex21, ex63, r21)
+    per_date = []
+    for t in t_list:
+        sp = spy_pos.get(t)
+        if sp is None:
+            continue
+        mkt_t = market_context(spy, dates, len(dates), asof_pos=sp, window=W)
+        sp21 = spy.pos_at_or_before(t + H1)
+        sp63 = spy.pos_at_or_before(t + H2)
+        spy_r21 = spy.c[sp21] / spy.c[sp] - 1
+        spy_r63 = spy.c[sp63] / spy.c[sp] - 1
+        n_t = 0
+        coh = []
+        for sym, b in bars.items():
+            if sym in etfs or sym == "SPY":
+                continue
+            pos = b.pos_exact(t)
+            if pos is None:
+                continue
+            sig = lite_signals(b, pos, mkt_t)
+            if sig is None:
+                continue
+            p21 = b.pos_at_or_before(t + H1)
+            p63 = b.pos_at_or_before(t + H2)
+            if p21 is None or p63 is None or b.d[p21] < t + H1 - 3 or b.d[p63] < t + H2 - 5:
+                continue
+            r21 = b.c[p21] / b.c[pos] - 1
+            r63 = b.c[p63] / b.c[pos] - 1
+            r21 = max(-0.95, min(3.0, r21))
+            r63 = max(-0.95, min(5.0, r63))
+            n_t += 1
+            ex21 = (r21 - spy_r21) * 100
+            ex63 = (r63 - spy_r63) * 100
+            obs.append((t, sig["n_gates"], sig["under"], sig["coiled"], sig["resilient"], sig["bbp"],
+                        sig["capture"], sig["knife"], ex21, ex63))
+            if sig["n_gates"] == 3 and not sig["knife"]:
+                coh.append(ex21)
+        per_date.append({"date": dates[t], "n_scored": n_t, "spy_fwd21_pct": round(spy_r21 * 100, 2),
+                         "spy_fwd63_pct": round(spy_r63 * 100, 2), "n_fortress3": len(coh),
+                         "fortress3_median_ex21_pct": rnd(median(coh), 2),
+                         "fortress3_hit21_pct": rnd(100.0 * sum(1 for x in coh if x > 0) / len(coh), 1) if coh else None,
+                         "n_dump_episodes_asof": mkt_t["n_episodes"]})
+        log("backtest %s: scored %d, 3/3 cohort %d" % (dates[t], n_t, len(coh)))
+
+    def stats(rows):
+        if not rows:
+            return {"n": 0}
+        e21 = [x[8] for x in rows]
+        e63 = [x[9] for x in rows]
+        return {"n": len(rows), "median_ex21_pct": rnd(median(e21), 2), "mean_ex21_pct": rnd(mean(e21), 2),
+                "hit21_pct": rnd(100.0 * sum(1 for x in e21 if x > 0) / len(e21), 1),
+                "median_ex63_pct": rnd(median(e63), 2), "mean_ex63_pct": rnd(mean(e63), 2),
+                "hit63_pct": rnd(100.0 * sum(1 for x in e63 if x > 0) / len(e63), 1)}
+    clean = [x for x in obs if not x[7]]
+    by_gates = {str(k): stats([x for x in clean if x[1] == k]) for k in range(4)}
+    fortress_tight = stats([x for x in clean if x[1] == 3 and x[5] <= 10])
+    resilient = stats([x for x in clean if x[4] is True])
+    not_resilient = stats([x for x in clean if x[4] is False])
+    under_only = stats([x for x in clean if x[2] and not x[3] and not x[4]])
+    knives = stats([x for x in obs if x[7]])
+    withcap = sorted([x for x in clean if x[6] is not None], key=lambda x: x[6])
+    deciles = {}
+    if len(withcap) >= 100:
+        k = len(withcap) // 10
+        for i in range(10):
+            seg = withcap[i * k:(i + 1) * k if i < 9 else len(withcap)]
+            deciles["D%d" % (i + 1)] = dict(stats(seg), capture_lo=rnd(seg[0][6], 2), capture_hi=rnd(seg[-1][6], 2))
+    spy_ex_note = "excess = name forward return minus SPY over the same sessions, percentage points; returns clipped to [-95%, +300%/+500%]"
+    out = {
+        "engine": ENGINE, "version": VERSION, "mode": "backtest",
+        "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "window_sessions": W, "sessions_loaded": len(dates), "first_session": dates[0], "last_session": dates[-1],
+        "test_dates": [d_["date"] for d_ in per_date], "step_sessions": step, "n_observations": len(obs),
+        "n_universe_scored_mean": rnd(mean([d_["n_scored"] for d_ in per_date]), 0),
+        "horizons": {"h1": H1, "h2": H2},
+        "by_price_gates": by_gates,
+        "fortress3": by_gates.get("3"), "fortress3_tight_bbw10": fortress_tight,
+        "resilient_vs_not": {"resilient": resilient, "not_resilient": not_resilient},
+        "under_ema250_only": under_only, "knife_guard_cohort": knives,
+        "by_capture_decile": deciles,
+        "per_date": per_date,
+        "method": ("Every %d sessions from %s, the three price-structure gates (under EMA250, dump-resilient, coiled) "
+                   "are scored exactly as the live engine scores them, using only bars up to that date (SPY episodes "
+                   "and worst days as of that date). Forward returns are read %d and %d sessions later." % (step, dates[W] if len(dates) > W else "?", H1, H2)),
+        "caveats": [
+            "Price-structure legs only: valuation, growth, flows, backlog and safety feeds have no point-in-time history and are NOT backtested.",
+            "Universe = every clean ticker with bars on the test date and $1M+ ADV (delisted names included, so survivorship bias is limited; today's ETF list is excluded).",
+            "Adjusted bars from the polygon-full warehouse; corporate actions as Polygon adjusts them.",
+            spy_ex_note,
+            "A walk-forward sample of ~%d dates is a check on direction and monotonicity, not a guarantee." % len(per_date),
+        ],
+        "diagnostics": {"log": LOG[-30:], "elapsed_s": round(time.time() - T0, 1)},
+    }
+    s3_put_json(BACKTEST_KEY, out)
+    log("backtest written: obs=%d 3/3=%s tight=%s %.0fs" % (len(obs), by_gates.get("3"), fortress_tight, time.time() - T0))
+    return {"ok": True, "mode": "backtest", "n_observations": len(obs), "fortress3": by_gates.get("3"),
+            "elapsed_s": round(time.time() - T0, 1)}
+
+
 DEFINITIONS = {
     "dump_capture": "Size-weighted mean of (stock return / SPY return) across every SPY peak-to-trough drawdown of at least 4% in the trailing year, weighted by the depth of each dump so the biggest dump counts most. 0.20 = the stock fell only a fifth of the market's dumps; negative = it rose while the market dumped. capture_worst is the single worst episode; a fortress may never have fallen more than the market (worst <= 1.0). Falls back to the down-day capture ratio when no episode overlaps the name's history.",
     "worst_days_excess_bps": "Average of (stock return minus SPY return) on SPY's worst 5% of days in the trailing year, in basis points. Positive = held up better than the market on its ugliest days.",
@@ -1799,6 +2673,46 @@ DEFINITIONS = {
     "nlav_coverage": "Net liquid asset value (cash + investments + live-marked crypto x0.85 receivables - debt) divided by market cap, from the asset-floor auditor. 0.6 = 60% of the price is already cash-like.",
     "rs_vs_industry_3m_pp": "Stock's 63-session return minus its industry ETF's, in percentage points. The O'Neil relative-strength leg: is the name leading its own group?",
     "base_rates": "Forward 21-session returns of this engine's OWN past picks, recomputed from the bar warehouse each run. Accrues from the first snapshot; nothing is claimed until measured.",
+    "capture_days_weighted": "Second, more robust read of the same dumps: inside each SPY drawdown episode, the stock's return summed over the market's DOWN days only, divided by SPY's -- idiosyncratic up-gaps on green days cannot flatter it. Weighted like dump_capture. The dump gate requires this read <= 0.6 so the two cannot contradict.",
+    "capture_recent_1y": "The size/recency-weighted capture restricted to episodes of the trailing year (episodes from the full three-year window drive dump_capture).",
+    "worst_days_tstat": "t-statistic of the worst-day excess return (mean / standard error). |t| > 2 = the edge over SPY on bad days is unlikely to be noise; the resilience pillar is shrunk toward neutral when the sample is thin (resilience_confidence).",
+    "worst_days_long_excess_bps": "Same worst-day excess, measured on SPY's worst 5% of days across the whole three-year window (a larger sample than the trailing-year set).",
+    "resilience_confidence": "0-1 evidence weight for the resilience read: half from the number of dump episodes that overlap the name (4+ = full), half from the number of matched worst days (12+ = full). Multiplies the deviation of the resilience pillar from 50.",
+    "absorption_clv": "Average closing location on SPY's worst days: (close - low) / (high - low). 0.8 = the stock closed near its high of the day while the market was being sold -- buyers absorbed the supply. worst_days_rel_volume shows whether that happened on above-average volume.",
+    "obv_slope_63": "On-Balance Volume change over 63 sessions in units of average daily volume per day (-1..+1). Positive while price is flat (ret 3m <= +2%) is an OBV divergence: cumulative volume is flowing in without the price paying for it -- the accumulation signature.",
+    "ad_slope_63": "Chaikin Accumulation/Distribution line slope, same units as obv_slope_63 but weighted by where each day closed in its range.",
+    "updown_volume_ratio_50": "Volume on up days divided by volume on down days over 50 sessions. > 1.3 = buyers are the aggressive side.",
+    "dark_pool_state": "FINRA ATS (dark-pool) share of consolidated volume, its acceleration and the state the dark-pool engine assigns (ACCUMULATION / DISTRIBUTION). Rising off-exchange share on a flat tape is institutional positioning; lags ~2-3 weeks by construction.",
+    "etf_pressure_21d_usd": "Mechanical demand from ETF creations: sum over every ETF that holds the name of (that ETF's 21-day net flow x the name's weight in it), from the constituent-pressure engine. Shown as % of market cap and as days of average dollar volume.",
+    "congress_buys_60d": "Congressional purchase disclosures naming the ticker in the last 60 days (STOCK Act filings), with the maximum disclosed dollar range. A cluster of members buying is a positioning read, not a fundamental one.",
+    "insider_cluster_n": "Number of distinct insiders buying in the open market inside the cluster window (insider-cluster scanner), total dollars and the highest role involved.",
+    "higher_lows": "Count of consecutive rising swing lows (5-session pivots) over the last 120 sessions. 3+ = an ascending base: sellers are being met at higher prices each time.",
+    "vcp_contractions": "Minervini volatility-contraction pattern: depth (%) of successive pullbacks from swing high to swing low. vcp_ok = the latest pullback is shallower than the one before and <= 12%; vcp_strict = three shrinking pullbacks ending <= 10%.",
+    "rs_leading": "O'Neil's relative-strength-line lead: the stock/SPY ratio is within 2% of its 52-week high while the price itself is 10%+ below its own 52-week high. Relative strength leads price.",
+    "weeks_since_52w_high": "Age of the base. O'Neil's proper bases run 7+ weeks; very old bases (40+ weeks) lose sponsorship.",
+    "squeeze_momentum_atr": "Carter-style squeeze momentum: the linear-regression value of (close minus the mid of the 20-day Donchian mid and SMA20) over 20 sessions, in ATRs. Positive and rising = the coil is leaning up before it releases.",
+    "cvar5_pct": "Conditional value-at-risk: the average daily return on the worst 5% of days in the trailing year. -4 = a bad day averages -4%. Also floors the dump-downside used in the asymmetry ratio (1.5x CVaR).",
+    "downside_dev_pct": "Annualised downside deviation (only negative daily returns count) -- the Sortino denominator.",
+    "ulcer_index": "Root-mean-square percentage drawdown from the running peak over the trailing year. Measures how deep and how long the name sat under water.",
+    "gaps_5pct_1y": "Number of overnight gaps of 5%+ (open vs prior close) in the trailing year, and the largest. Event-driven tapes (biotech binaries) gap; a fortress mostly does not.",
+    "amihud_illiq": "Amihud illiquidity: average |daily return| per $1M traded over 63 sessions. Higher = price moves more per dollar = thinner, more expensive to trade.",
+    "rate_beta": "Regression beta of the stock's daily returns on TLT (20+ year Treasuries) over the trailing year. Near 0 = indifferent to rate shocks.",
+    "dollar_beta": "Regression beta on UUP (US dollar index). Near 0 = indifferent to dollar shocks.",
+    "erp_vs_10y_pct": "Earnings yield (forward, else trailing) minus the 10-year Treasury yield, in percentage points. >= 2 = the equity risk premium on this name is real; +5 valuation bonus.",
+    "rule_of_40": "Revenue growth % + FCF margin % (FCF margin = FCF yield x P/S). Software names at 40+ earn a valuation bonus; shown for every name that has both inputs.",
+    "options": "Where the fleet's options engine covers the name: IV rank (100 = richest of the year; <= 25 = the vol market also sees a coil), variance risk premium, 25-delta skew, put/call volume ratio, net options premium, dealer gamma regime.",
+    "accumulation_score": "Pillar (weight 12): OBV and A/D slopes and divergences, up/down volume ratio, absorption on worst days, dark-pool state and acceleration, 13F net buying vs market cap, insider cluster / buys, Congressional purchases, institutional-transaction change, net buyback yield, ETF constituent pressure.",
+    "structure_score": "Pillar (weight 5): higher-lows count, VCP, RS-line lead, base age, squeeze momentum direction.",
+    "flows_pillar": "Pillar (weight 9): industry-ETF flow consensus (x2.5), sector-ETF consensus (x0.5), ETF constituent pressure as % of market cap (x1.5), flow persistence days (x0.5).",
+    "pillar_ranks": "Each pillar's cross-sectional percentile across every name scored today. The composite is half absolute-anchored pillars, half these ranks, so it is comparable across regimes and still reads in absolute terms.",
+    "confidence": "0-1 evidence confidence: 60% resilience_confidence + 40% pillar coverage. The composite is shrunk toward 50 by (0.5 + 0.5 x confidence) so thin evidence cannot top the board.",
+    "conviction": "Geometric mean of the six gate pillars (resilience, coil, location, valuation, growth, flows). Unlike a weighted average it punishes any single weak leg -- a fortress must be strong everywhere.",
+    "trade_plan": "Pivot = 60-session high; stop = max(range low x 0.99, close - 2.5 ATR); target = the NEARER of the analyst PT and the 52-week high (the first ceiling), target_2 the farther; a 2-ATR x sqrt(20) move if neither is above the price; reward_to_risk in R, capped at 20. Research shorthand for a ticket, not advice.",
+    "sizing": "Risk-parity weights across the picks: proportional to 1 / dump_downside so every position carries the same expected loss in a -10% SPY dump, capped at 15%, renormalised.",
+    "changes": "Tier moves since the previous snapshot: upgrades, downgrades, new entries into the top three tiers, exits, and the names that just became FORTRESS_COIL.",
+    "watch_trigger": "For a 5/6 name, the one gate that fails and the level that would flip it.",
+    "validation": "The weekly walk-forward backtest of the price-structure legs (data/fortress-backtest.json): 21- and 63-session excess returns vs SPY by number of price gates passed, by dump-capture decile, and per test date. Fundamentals and flows are not backtested (no point-in-time history) -- read the caveats.",
+    "regime": "Market backdrop from the fleet regime engines (regime-composite meta regime, vol regime) plus SPY vs EMA250 and breadth. A fortress screen is most useful entering or inside a dump; when nothing has dumped for a year the capture legs rest on the three-year window and the down-day read.",
 }
 
 
@@ -1808,6 +2722,8 @@ def lambda_handler(event=None, context=None):
     T0 = time.time()
     LOG.clear()
     event = event or {}
+    if str(event.get("mode") or "").lower() == "backtest":
+        return run_backtest(event)
     F = load_feeds()
     keep = set()
     for t in F["finviz"]:
@@ -1833,9 +2749,27 @@ def lambda_handler(event=None, context=None):
     etf_bars = {e: bars[e] for e in set(list(SECTOR_ETF.values()) + list(IND_ETF.values())) if e in bars}
     stock_rows = build_stock_rows(bars, dates, mkt, F, etf_bars)
     valuation_percentiles(stock_rows)
+    # industry-relative resilience percentile (lower capture = higher percentile)
+    by_ind = {}
+    for r in stock_rows:
+        if r.get("dump_capture") is not None:
+            by_ind.setdefault(r.get("industry") or "?", {})[r["ticker"]] = r["dump_capture"]
+    ind_rank = {}
+    for ind, vals in by_ind.items():
+        if len(vals) >= 5:
+            for tk, pr in pct_rank(vals).items():
+                ind_rank[tk] = round(100.0 - pr, 1)
+    for r in stock_rows:
+        r["industry_resilience_pctile"] = ind_rank.get(r["ticker"])
     for r in stock_rows:
         gates_and_tier(r)
-        composite_and_asymmetry(r)
+        composite_and_asymmetry(r)          # pass 1: absolute pillars
+    ranks = pillar_ranks(stock_rows)
+    for r in stock_rows:
+        composite_and_asymmetry(r, ranks)   # pass 2: rank-blended composite
+        r.pop("_pillars_raw", None)
+        r["trade_plan"] = trade_plan(r)
+        r["watch_trigger"] = watch_trigger(r) if r["gates_passed"] == 5 else None
     for r in stock_rows:
         r["reasons"] = reasons_for(r)
         r["invalidation"] = invalidation_for(r)
@@ -1850,7 +2784,15 @@ def lambda_handler(event=None, context=None):
                                       ("IGNITED", r.get("coil_state") == "IGNITED"),
                                       ("BIG_DUMP_PROOF", (r.get("capture_big_dumps") is not None
                                                           and r["capture_big_dumps"] <= P["capture_barely_dipped"])),
-                                      ("INSIDER_BUYING", bool(r.get("insider_buys_30d"))),
+                                      ("INSIDER_BUYING", bool(r.get("insider_buys_30d") or r.get("insider_cluster"))),
+                                      ("OBV_DIVERGENCE", bool(r.get("obv_divergence") or r.get("ad_divergence"))),
+                                      ("ABSORPTION", (r.get("absorption_clv") is not None and r["absorption_clv"] >= 0.6)),
+                                      ("DARK_POOL_ACCUM", str(r.get("dark_pool_state") or "").upper() == "ACCUMULATION"),
+                                      ("RS_LEADING", bool(r.get("rs_leading"))),
+                                      ("VCP", bool(r.get("vcp_ok"))),
+                                      ("HIGHER_LOWS", (r.get("higher_lows") or 0) >= 3),
+                                      ("ETF_PRESSURE", (r.get("etf_pressure_pct_mcap") is not None and r["etf_pressure_pct_mcap"] >= 0.3)),
+                                      ("CONGRESS_BUYING", bool(r.get("congress_buys_60d"))),
                                       ("SP500", r.get("sp500"))) if ok]
     tier_rank = {"FORTRESS_COIL": 0, "COILED": 1, "ACCUMULATING": 2, "WATCH": 3, "SCREENED": 4}
     stock_rows.sort(key=lambda r: (tier_rank[r["tier"]], -(r.get("composite") or 0)))
@@ -1882,15 +2824,41 @@ def lambda_handler(event=None, context=None):
                    "composite", "asymmetry", "close", "vs_ema250_pct", "dump_capture", "worst_days_excess_bps",
                    "bb_width_pctile", "ttm_squeeze_on", "coil_state", "valuation_score", "growth_score",
                    "flow_score", "industry_etf", "backlog_to_mcap", "contracts_90d_vs_mcap_pct",
-                   "safety_score", "ret_3m_pct", "flags"]
+                   "safety_score", "ret_3m_pct", "flags", "conviction", "confidence", "capture_worst",
+                   "obv_slope_63", "absorption_clv", "dark_pool_state", "higher_lows", "rs_leading"]
     ledger = [{k: (round(r[k], 3) if isinstance(r.get(k), float) else r.get(k)) for k in LEDGER_KEYS}
               for r in stock_rows if r["gates_passed"] >= 2 and r["tier"] == "SCREENED"][:2500]
     top_picks = [{"ticker": r["ticker"], "score": r.get("composite"), "tier": r["tier"],
+                  "conviction": r.get("conviction"), "confidence": r.get("confidence"),
                   "asymmetry": r.get("asymmetry"), "dump_capture": rnd(r.get("dump_capture"), 2),
+                  "dump_downside_pct": r.get("dump_downside_pct"),
                   "vs_ema250_pct": rnd(r.get("vs_ema250_pct"), 1),
                   "bb_width_pctile": rnd(r.get("bb_width_pctile"), 0),
-                  "industry_etf": r.get("industry_etf"), "reasons": r["reasons"][:4]}
+                  "industry_etf": r.get("industry_etf"), "trade_plan": r.get("trade_plan"),
+                  "reasons": r["reasons"][:4]}
                  for r in stock_rows if r["tier"] in ("FORTRESS_COIL", "COILED") and r.get("composite") is not None][:60]
+    sizing = risk_parity_sizing(top_picks[:25])
+    for p_ in top_picks:
+        p_["risk_parity_weight_pct"] = sizing.get(p_["ticker"])
+    changes = session_changes(stock_rows, session)
+    bt = F.get("backtest") or {}
+    validation = ({"status": "measured", "as_of": bt.get("as_of"), "n_observations": bt.get("n_observations"),
+                   "test_dates": (bt.get("test_dates") or [])[:1] + (bt.get("test_dates") or [])[-1:],
+                   "n_test_dates": len(bt.get("test_dates") or []),
+                   "by_price_gates": bt.get("by_price_gates"), "fortress3_tight_bbw10": bt.get("fortress3_tight_bbw10"),
+                   "resilient_vs_not": bt.get("resilient_vs_not"), "under_ema250_only": bt.get("under_ema250_only"),
+                   "knife_guard_cohort": bt.get("knife_guard_cohort"),
+                   "by_capture_decile": bt.get("by_capture_decile"), "per_date": (bt.get("per_date") or [])[-30:],
+                   "method": bt.get("method"), "caveats": bt.get("caveats")}
+                  if bt else {"status": "pending", "note": "weekly walk-forward backtest not yet written (justhodl-fortress-backtest-weekly, Sundays 09:00 UTC)"})
+    regime = dict(F.get("regime") or {})
+    regime.update({"spy_vs_ema250_pct": mkt.get("spy_vs_ema250_pct"), "spy_dd_from_high_pct": mkt.get("spy_dd_from_high_pct"),
+                   "n_dump_episodes_3y": mkt.get("n_episodes"), "n_dump_episodes_1y": mkt.get("n_episodes_recent"),
+                   "n_big_dumps_3y": mkt.get("n_big_dumps"), "y10_pct": F.get("y10"),
+                   "read": ("no SPY drawdown of 4%+ in the trailing year -- capture rests on the three-year window and the down-day read"
+                            if not mkt.get("n_episodes_recent") else
+                            "%d dump episode(s) in the trailing year, %d in the three-year window (%d of 8%%+)" % (
+                                mkt.get("n_episodes_recent"), mkt.get("n_episodes"), mkt.get("n_big_dumps")))})
     etf_board = [slim(r) for r in etf_rows if r["tier"] != "SCREENED"][:150]
     breadth = {
         "pct_under_ema250": rnd(100.0 * sum(1 for r in stock_rows if (r.get("vs_ema250_pct") or 0) < 0
@@ -1904,14 +2872,16 @@ def lambda_handler(event=None, context=None):
         "session": session, "sessions_loaded": len(dates), "bars_first": dates[0],
         "doctrine": ("Buy what the market could not push down: names that captured little or none of the "
                      "SPY dumps, sit under their 250-EMA in a Bollinger squeeze, are cheap versus their "
-                     "industry, growing, backed by industry inflows and an order book. Every leg is real "
-                     "data or an honest None. Research shorthand, not advice."),
+                     "industry, growing, backed by industry inflows and an order book -- and whose volume "
+                     "structure shows the dips being bought. Every leg is real data or an honest None; the "
+                     "price legs are walked forward through years of tape every week. Research shorthand, not advice."),
         "params": P, "weights": WEIGHTS, "gate_names": GATE_NAMES,
-        "market": {k: v for k, v in mkt.items() if k not in ("rets", "lb_rets", "worst_idx")},
+        "market": {k: v for k, v in mkt.items() if k not in ("rets", "lb_rets", "worst_idx", "worst_idx_long", "close_by_idx")},
         "breadth": breadth,
         "funnel": funnel, "tiers": tiers, "n_scored": len(stock_rows),
         "n_universe_bars": len(bars),
-        "top_picks": top_picks, "board": board, "ledger": ledger,
+        "top_picks": top_picks, "sizing": sizing, "changes": changes, "validation": validation, "regime": regime,
+        "board": board, "ledger": ledger,
         "etfs": etf_board, "etf_tiers": {t: sum(1 for r in etf_rows if r["tier"] == t)
                                           for t in ("ETF_FORTRESS", "ETF_COILED", "ETF_WATCH", "SCREENED")},
         "industries": industries,
@@ -1928,6 +2898,11 @@ def lambda_handler(event=None, context=None):
             "f13_flows": F.get("f13_asof"), "short_interest": F.get("short_asof"),
             "insider_radar": F.get("insider_asof"), "estimate_revisions": F.get("revisions_asof"),
             "sp500": F.get("sp500_asof"),
+            "stock_exposure": "etf-flows/stock-exposure-lookup.json (%d names)" % len(F.get("stock_exposure") or {}),
+            "dark_pool": "%s (week %s, %d names)" % (F.get("dark_asof"), F.get("dark_week"), len(F.get("dark") or {})),
+            "political_trades": F.get("congress_asof"), "options_analytics": F.get("options_asof"),
+            "regime_composite": (F.get("regime") or {}).get("as_of"), "vol_regime": (F.get("regime") or {}).get("vol_as_of"),
+            "yield_curve": F.get("yc_asof"), "backtest": (F.get("backtest") or {}).get("as_of") if F.get("backtest") else None,
         },
         "diagnostics": {"log": LOG[-40:], "elapsed_s": round(time.time() - T0, 1)},
     }

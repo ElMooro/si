@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="fortress-version" content="fortress-v1.0.2">
+<meta name="fortress-version" content="fortress-v2.0.0">
 <meta name="jh-marker" content="FORTRESS_COIL_V1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Fortress Coil · Dump-Resilient Accumulation Radar · JustHodl.AI</title>
@@ -55,8 +55,8 @@ tr.pin{background:var(--bg-elev)}
 .SCREENED{background:var(--bg-elev);color:var(--text-muted);border:1px solid var(--border)}
 .pos{color:var(--green)}.neg{color:var(--red)}.dim{color:var(--text-dim)}.mut{color:var(--text-muted)}
 .flag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.05em;border-radius:3px;padding:1px 5px;margin-right:3px;border:1px solid var(--border-light);color:var(--text-dim)}
-.flag.MAJOR_GROWTH,.flag.MAJOR_INFLOWS,.flag.MAJOR_BACKLOG,.flag.CONTRACTS,.flag.BIG_DUMP_PROOF{color:var(--green);border-color:rgba(34,197,94,.4)}
-.flag.TIGHT_COIL,.flag.PRE_BREAKOUT{color:var(--cyan);border-color:rgba(34,211,238,.4)}
+.flag.MAJOR_GROWTH,.flag.MAJOR_INFLOWS,.flag.MAJOR_BACKLOG,.flag.CONTRACTS,.flag.BIG_DUMP_PROOF,.flag.OBV_DIVERGENCE,.flag.ABSORPTION,.flag.DARK_POOL_ACCUM,.flag.ETF_PRESSURE,.flag.CONGRESS_BUYING{color:var(--green);border-color:rgba(34,197,94,.4)}
+.flag.TIGHT_COIL,.flag.PRE_BREAKOUT,.flag.RS_LEADING,.flag.VCP,.flag.HIGHER_LOWS{color:var(--cyan);border-color:rgba(34,211,238,.4)}
 .flag.IGNITED{color:var(--amber);border-color:rgba(245,158,11,.4)}
 .flag.INSIDER_BUYING{color:var(--violet);border-color:rgba(167,139,250,.4)}
 .detail{background:var(--bg-card);border-top:1px solid var(--border);padding:12px 14px;white-space:normal}
@@ -91,15 +91,16 @@ footer{margin-top:28px;border-top:1px solid var(--border);padding-top:12px;color
 <body>
 <div class="container">
 <header>
-  <h1>Fortress Coil<span class="sub">dump-resilient accumulation radar · stocks + ETFs · every metric defined below</span></h1>
+  <h1>Fortress Coil<span class="sub">dump-resilient accumulation radar · v2 evidence-grade · stocks + ETFs · walked forward weekly · every metric defined below</span></h1>
   <div class="meta" id="meta">loading…</div>
 </header>
 
-<div class="doctrine"><b>Doctrine.</b> Buy what the market could not push down. A name that <b>captured little or none of the SPY dumps</b>, sits <b>under its 250-day EMA</b> inside a <b>Bollinger squeeze</b>, is <b>cheap versus its own industry</b>, <b>growing</b>, backed by <b>industry ETF inflows</b> and an <b>order book / fresh contracts</b>, with a <b>liquid floor</b> under it — that is accumulation, not weakness. Six gates make the tier; nine pillars make the rank; upside room over empirical dump risk makes the asymmetry. Every leg is real data or an honest blank. Research shorthand, not advice.</div>
+<div class="doctrine"><b>Doctrine.</b> Buy what the market could not push down. A name that <b>captured little or none of the SPY dumps</b>, sits <b>under its 250-day EMA</b> inside a <b>Bollinger squeeze</b>, is <b>cheap versus its own industry</b>, <b>growing</b>, backed by <b>industry ETF inflows</b> and an <b>order book / fresh contracts</b>, with a <b>liquid floor</b> under it — that is accumulation, not weakness. Six gates make the tier; eleven pillars (now including <b>accumulation</b> read from volume structure, dark pools and smart money, and <b>structure</b> read from higher lows, VCP and the RS line) make the rank; upside room over empirical dump risk makes the asymmetry; the price legs are walked forward through years of tape every week (Validation tab). Every leg is real data or an honest blank. Research shorthand, not advice.</div>
 
 <div id="errbox"></div>
 
 <div class="strip" id="strip"></div>
+<div class="note" id="regime"></div>
 <div class="funnel" id="funnel"></div>
 
 <h2>Market dump context (the tape the capture is measured against)</h2>
@@ -109,7 +110,8 @@ footer{margin-top:28px;border-top:1px solid var(--border);padding-top:12px;color
   <button data-t="stocks" class="on">Stocks</button>
   <button data-t="etfs">ETFs</button>
   <button data-t="industries">Industries</button>
-  <button data-t="base">Base rates</button>
+  <button data-t="changes">Changes</button>
+  <button data-t="base">Validation</button>
   <button data-t="defs">Definitions</button>
 </div>
 
@@ -126,6 +128,14 @@ footer{margin-top:28px;border-top:1px solid var(--border);padding-top:12px;color
     <span class="chip" data-flag="TIGHT_COIL">tight coil</span>
     <span class="chip" data-flag="PRE_BREAKOUT">pre-breakout</span>
     <span class="chip" data-flag="BIG_DUMP_PROOF">big-dump proof</span>
+    <span class="chip" data-flag="OBV_DIVERGENCE">OBV divergence</span>
+    <span class="chip" data-flag="ABSORPTION">absorption</span>
+    <span class="chip" data-flag="DARK_POOL_ACCUM">dark-pool accum</span>
+    <span class="chip" data-flag="RS_LEADING">RS leading</span>
+    <span class="chip" data-flag="VCP">VCP</span>
+    <span class="chip" data-flag="HIGHER_LOWS">higher lows</span>
+    <span class="chip" data-flag="ETF_PRESSURE">ETF pressure</span>
+    <span class="chip" data-flag="CONGRESS_BUYING">congress buying</span>
     <span class="chip" data-flag="INSIDER_BUYING">insider buying</span>
     <span class="chip" data-flag="SP500">S&amp;P 500</span>
     <span class="small" id="count"></span>
@@ -144,6 +154,7 @@ footer{margin-top:28px;border-top:1px solid var(--border);padding-top:12px;color
   <p class="note">One row per industry ETF the stocks map to. Flow consensus, rotation leadership and RRG quadrant, the ETF's own dump capture and coil, and how many of its members currently clear the gates.</p>
 </div>
 
+<div id="pane-changes" style="display:none"><div id="changes"></div></div>
 <div id="pane-base" style="display:none"><div id="base"></div></div>
 <div id="pane-defs" style="display:none"><dl class="defs" id="defs"></dl><div id="params" class="note"></div></div>
 
@@ -172,12 +183,19 @@ var COLS=[
  {k:"market_cap",l:"Mkt cap",r:1,f:function(r){return money(r.market_cap);}},
  {k:"composite",l:"Comp",r:1,f:function(r){return n(r.composite,1);}},
  {k:"asymmetry",l:"Asym",r:1,f:function(r){return n(r.asymmetry,1,"x");}},
+ {k:"conviction",l:"Conv",r:1,f:function(r){return n(r.conviction,0);}},
+ {k:"confidence",l:"Conf",r:1,f:function(r){return n(r.confidence!=null?r.confidence*100:null,0,"%");}},
  {k:"dump_capture",l:"Capture",r:1,f:cap},
+ {k:"capture_worst",l:"Worst ep",r:1,f:function(r){return r.capture_worst==null?'<span class="mut">–</span>':'<span class="'+(r.capture_worst>1?"neg":"")+'">'+r.capture_worst.toFixed(2)+'</span>';}},
  {k:"worst_days_excess_bps",l:"Worst-day bps",r:1,f:function(r){return sgn(r.worst_days_excess_bps,0);}},
  {k:"vs_ema250_pct",l:"vs EMA250",r:1,f:function(r){return sgn(r.vs_ema250_pct,1,"%");}},
  {k:"bb_width_pctile",l:"BBW pct",r:1,f:function(r){return n(r.bb_width_pctile,0);}},
  {k:"squeeze_days",l:"Sq days",r:1,f:function(r){return (r.ttm_squeeze_on?'<span class="pos">':'<span class="mut">')+(r.squeeze_days||0)+'</span>';}},
  {k:"coil_state",l:"State",f:function(r){return '<span class="'+(r.coil_state==="IGNITED"?"neg":(r.coil_state==="PRE_BREAKOUT"?"pos":"dim"))+'">'+esc(r.coil_state||"")+'</span>';}},
+ {k:"accum",l:"Accum",r:1,f:function(r){return n(r.pillars&&r.pillars.accumulation,0);}},
+ {k:"struct",l:"Struct",r:1,f:function(r){return n(r.pillars&&r.pillars.structure,0);}},
+ {k:"obv_slope_63",l:"OBV",r:1,f:function(r){return sgn(r.obv_slope_63,2);}},
+ {k:"dark_pool_state",l:"Dark pool",f:function(r){var s=r.dark_pool_state||"";return '<span class="'+(s==="ACCUMULATION"?"pos":(s==="DISTRIBUTION"?"neg":"dim"))+'">'+esc(s.slice(0,5))+(r.dark_pool_pct!=null?' '+Math.round(r.dark_pool_pct)+'%':'')+'</span>';}},
  {k:"valuation_score",l:"Val",r:1,f:function(r){return n(r.valuation_score,0);}},
  {k:"growth_score",l:"Growth",r:1,f:function(r){return n(r.growth_score,0);}},
  {k:"flow_score",l:"Flows",r:1,f:function(r){var z=r.flows&&r.flows.z90;return n(r.flow_score,0)+(z!=null?' <span class="dim">z'+Number(z).toFixed(1)+'</span>':'');}},
@@ -185,6 +203,7 @@ var COLS=[
  {k:"backlog_to_mcap",l:"Backlog/mc",r:1,f:function(r){return n(r.backlog_to_mcap,2,"x");}},
  {k:"contracts_90d_vs_mcap_pct",l:"Contracts %mc",r:1,f:function(r){return n(r.contracts_90d_vs_mcap_pct,1,"%");}},
  {k:"safety_score",l:"Safety",r:1,f:function(r){return n(r.safety_score,0);}},
+ {k:"rr",l:"R:R",r:1,f:function(r){var p=r.trade_plan;return p?n(p.reward_to_risk,1,"R"):'<span class="mut">–</span>';}},
  {k:"ret_3m_pct",l:"3m",r:1,f:function(r){return sgn(r.ret_3m_pct,1,"%");}},
  {k:"flags",l:"Flags",f:flags}
 ];
@@ -235,6 +254,10 @@ function header(el,cols,sort,onclick){
 }
 function val(r,k){
   if(k==="z90"||k==="pct_aum_21d"||k==="true_pct_aum_20d"||k==="fv_flows_1m_pct")return r.flows?r.flows[k]:null;
+  if(k==="accum")return r.pillars?r.pillars.accumulation:null;
+  if(k==="struct")return r.pillars?r.pillars.structure:null;
+  if(k==="rr")return r.trade_plan?r.trade_plan.reward_to_risk:null;
+  if(k==="dark_pool_state")return r.dark_pool_state==="ACCUMULATION"?2:(r.dark_pool_state?1:0);
   if(k==="tiers")return (r.tiers&&((r.tiers.FORTRESS_COIL||0)*4+(r.tiers.COILED||0)*2+(r.tiers.ACCUMULATING||0)))||0;
   if(k==="flags")return (r.flags||[]).length;
   if(k==="tier")return {FORTRESS_COIL:0,COILED:1,ACCUMULATING:2,WATCH:3,ETF_FORTRESS:0,ETF_COILED:1,ETF_WATCH:2}[r.tier]??9;
@@ -277,8 +300,26 @@ function detailHtml(r){
   h+='<div><h4>Valuation &amp; growth</h4><div class="kv">valuation score <b>'+n(r.valuation_score,0)+'</b> vs '+esc(r.valuation_group||"")+' '+esc(r.valuation_group_name||"")+' · P/E <b>'+n(r.pe,1)+'</b> fwd <b>'+n(r.fwd_pe,1)+'</b> · PEG <b>'+n(r.peg,2)+'</b> · EV/EBITDA <b>'+n(r.ev_ebitda,1)+'</b> · P/S <b>'+n(r.ps,2)+'</b> · P/FCF <b>'+n(r.p_fcf,1)+'</b> · FCF yield <b>'+n(r.fcf_yield_pct,1,"%")+'</b> · ROIC <b>'+n(r.roic_pct,1,"%")+'</b> · PT upside <b>'+sgn(r.pt_upside_pct,0,"%")+'</b><br>revenue y/y <b>'+sgn(r.sales_yoy_pct,1,"%")+'</b> q/q <b>'+sgn(r.sales_qoq_pct,1,"%")+'</b> 3y <b>'+sgn(r.sales_3y_pct,1,"%")+'</b> · EPS y/y <b>'+sgn(r.eps_yoy_pct,1,"%")+'</b> q/q <b>'+sgn(r.eps_qoq_pct,1,"%")+'</b> next-y <b>'+sgn(r.eps_next_y_pct,1,"%")+'</b> · EPS revisions <b>'+sgn(r.eps_rev_pct,1,"%")+'</b><br>industry <b>'+esc(r.industry||"")+'</b>: rev growth <b>'+sgn(r.industry_rev_growth_pct,1,"%")+'</b> breadth <b>'+n(r.industry_rev_breadth_pct,0,"%")+'</b> · boom <b>'+n(r.industry_boom_score,0)+'</b> Δ20d <b>'+sgn(r.industry_boom_delta_20d,1)+'</b> · leadership <b>'+n(r.industry_leadership,0)+'</b> '+esc(r.industry_tag||"")+' · RRG <b>'+esc(r.industry_rrg||"–")+'</b></div></div>';
   h+='<div><h4>Flows · '+esc(r.industry_etf||"")+' ('+esc(r.industry_etf_name||"")+', '+esc(r.industry_etf_kind||"")+' ETF)</h4><div class="kv">consensus <b>'+n(r.flow_score,0)+'</b> from '+(f.n_sources||0)+' source(s)'+(r.industry_inflow_major?' · <span class="pos">MAJOR</span>':'')+'<br>Polygon z90 <b>'+sgn(f.z90,2)+'</b> · %AUM 21d <b>'+sgn(f.pct_aum_21d,2,"%")+'</b> 5d <b>'+sgn(f.pct_aum_5d,2,"%")+'</b> · quadrant <b>'+esc(f.quadrant||"–")+'</b> · persistence '+(f.persistence_days!=null?f.persistence_days+'d':'–')+'<br>true flow 20d <b>'+money(f.true_flow_20d_usd)+'</b> (<b>'+sgn(f.true_pct_aum_20d,2,"%")+'</b> AUM) · Finviz 1m <b>'+sgn(f.fv_flows_1m_pct,2,"%")+'</b> AUM, 3m <b>'+money(f.fv_flows_3m_usd)+'</b><br>sector '+esc(r.sector_etf||"")+' consensus <b>'+n(sf.score,0)+'</b> z <b>'+sgn(sf.z90,2)+'</b></div></div>';
   h+='<div><h4>Backlog · contracts · floor · positioning</h4><div class="kv">backlog <b>'+money(r.backlog_usd)+'</b> ('+esc(r.backlog_source||"none")+(r.backlog_asof?', '+esc(r.backlog_asof):'')+') = <b>'+n(r.backlog_to_mcap,2,"x")+'</b> mcap, <b>'+n(r.backlog_to_revenue,2,"x")+'</b> revenue · RPO q/q <b>'+sgn(r.rpo_qoq_pct,1,"%")+'</b> y/y <b>'+sgn(r.rpo_yoy_pct,1,"%")+'</b>'+(r.demand_accelerating!=null?' · demand '+(r.demand_accelerating?'<span class="pos">accelerating</span>':'<span class="dim">not accelerating</span>'):'')+' · committed coverage <b>'+n(r.committed_coverage,2,"x")+'</b><br>contracts 90d: <b>'+(r.contracts_90d_n||0)+'</b> wins, <b>'+money(r.contracts_90d_usd)+'</b> = <b>'+n(r.contracts_90d_vs_mcap_pct,1,"%")+'</b> of mcap'+(r.contracts_last?' (last '+esc(r.contracts_last)+')':'')+' · catalysts '+esc((r.catalyst_classes||[]).join(", ")||"–")+'<br>net liquid assets / mcap <b>'+n(r.nlav_coverage,2)+'</b> · Altman <b>'+n(r.altman_z,2)+'</b> · Piotroski <b>'+n(r.piotroski_f,0)+'</b> · Beneish <b>'+n(r.beneish_m,2)+'</b> · int. coverage <b>'+n(r.interest_coverage,1)+'</b> · ND/EBITDA <b>'+n(r.netdebt_to_ebitda,2)+'</b> · D/E <b>'+n(r.debt_to_equity,2)+'</b> · dilution y/y <b>'+sgn(r.dilution_yoy_pct,1,"%")+'</b> · buyback yield <b>'+sgn(r.net_buyback_yield_pct,1,"%")+'</b> · earnings in <b>'+(r.earnings_in_days==null?'–':r.earnings_in_days+'d')+'</b><br>short float <b>'+n(r.short_float_pct,1,"%")+'</b> DTC <b>'+n(r.days_to_cover,1)+'</b> ΔSI <b>'+sgn(r.si_change_pct,1,"%")+'</b> · 13F net <b>'+money(r.inst_net_usd)+'</b> whales <b>'+money(r.whale_net_usd)+'</b> ('+(r.inst_funds_holding||0)+' funds) · insider buys 30d <b>'+(r.insider_buys_30d||0)+'</b> '+money(r.insider_buy_usd_30d)+(r.insider_cluster?' <span class="pos">cluster</span>':'')+' · insider txn <b>'+sgn(r.insider_trans_pct,1,"%")+'</b> inst txn <b>'+sgn(r.inst_trans_pct,1,"%")+'</b></div></div>';
+  var tp=r.trade_plan||null,op=r.options||null;
+  h+='<div><h4>Accumulation &amp; smart money</h4><div class="kv">OBV slope 63d <b>'+sgn(r.obv_slope_63,3)+'</b> ADV/day'+(r.obv_divergence?' <span class="pos">DIVERGENCE</span>':'')+' · A/D slope <b>'+sgn(r.ad_slope_63,3)+'</b>'+(r.ad_divergence?' <span class="pos">DIVERGENCE</span>':'')+' · up/down volume 50d <b>'+n(r.updown_volume_ratio_50,2)+'</b><br>absorption on worst days: close-location <b>'+n(r.absorption_clv,2)+'</b> on <b>'+n(r.worst_days_rel_volume,2,"x")+'</b> volume · in-dump day-capture <b>'+n(r.capture_days_weighted,2)+'</b> · capture 1y <b>'+n(r.capture_recent_1y,2)+'</b> · worst-day t-stat <b>'+n(r.worst_days_tstat,1)+'</b> · 3y worst-day excess <b>'+sgn(r.worst_days_long_excess_bps,0)+' bps</b> · evidence <b>'+n(r.resilience_confidence!=null?r.resilience_confidence*100:null,0,"%")+'</b> · industry resilience pctile <b>'+n(r.industry_resilience_pctile,0)+'</b><br>dark pool: <b>'+esc(r.dark_pool_state||"–")+'</b> share '+n(r.dark_pool_pct,0,"%")+' accel '+sgn(r.dark_pool_accel,2)+(r.dark_conviction?' · '+esc(r.dark_conviction):'')+' · short z '+sgn(r.dark_short_z,1)+'<br>ETF creations: <b>'+money(r.etf_pressure_21d_usd)+'</b> 21d = <b>'+n(r.etf_pressure_pct_mcap,2,"%")+'</b> mcap, <b>'+n(r.etf_pressure_days_adv,2)+'</b> days of ADV ('+(r.n_etfs_holding||0)+' ETFs'+(r.etf_quadrant?', '+esc(r.etf_quadrant):'')+') · Congress buys 60d <b>'+(r.congress_buys_60d||0)+'</b>'+(r.congress_buy_usd_max?' up to '+money(r.congress_buy_usd_max):'')+' · insider cluster <b>'+(r.insider_cluster_n||'–')+'</b>'+(r.insider_cluster_usd?' '+money(r.insider_cluster_usd):'')+(r.insider_cluster_role?' ('+esc(r.insider_cluster_role)+')':'')+' · inst. ownership '+n(r.inst_own_pct,0,"%")+'</div></div>';
+  h+='<div><h4>Structure &amp; tail risk</h4><div class="kv">higher lows <b>'+(r.higher_lows==null?'–':r.higher_lows)+'</b> · VCP contractions <b>'+esc((r.vcp_contractions||[]).join("% > ")+(r.vcp_contractions&&r.vcp_contractions.length?"%":"–"))+'</b>'+(r.vcp_strict?' <span class="pos">STRICT</span>':(r.vcp_ok?' <span class="pos">OK</span>':''))+' · RS line vs high <b>'+sgn(r.rs_line_vs_high_pct,1,"%")+'</b>'+(r.rs_leading?' <span class="pos">LEADING</span>':'')+' · base age <b>'+n(r.weeks_since_52w_high,0)+' wks</b> · squeeze momentum <b>'+sgn(r.squeeze_momentum_atr,2)+' ATR</b>'+(r.squeeze_momentum_rising?' rising':'')+'<br>CVaR 5% <b>'+sgn(r.cvar5_pct,1,"%")+'</b> · downside dev <b>'+n(r.downside_dev_pct,0,"%")+'</b> · Ulcer <b>'+n(r.ulcer_index,1)+'</b> · gaps 5%+ (1y) <b>'+(r.gaps_5pct_1y==null?'–':r.gaps_5pct_1y)+'</b> (max '+n(r.max_gap_pct_1y,0,"%")+') · Amihud <b>'+n(r.amihud_illiq,4)+'</b> · rate β <b>'+sgn(r.rate_beta,2)+'</b> · dollar β <b>'+sgn(r.dollar_beta,2)+'</b> · runway <b>'+n(r.runway_months,0)+' mo</b><br>ERP vs 10y <b>'+sgn(r.erp_vs_10y_pct,1,"pp")+'</b> · rule of 40 <b>'+n(r.rule_of_40,0)+'</b> · FCF margin <b>'+n(r.fcf_margin_pct,1,"%")+'</b> · EPS next Q <b>'+sgn(r.eps_next_q_pct,0,"%")+'</b> · surprises EPS <b>'+sgn(r.eps_surprise_pct,1,"%")+'</b> rev <b>'+sgn(r.rev_surprise_pct,1,"%")+'</b>'+(op?'<br>options: IV rank <b>'+n(op.iv_rank,0)+'</b> · VRP <b>'+n(op.vrp,2)+'</b> · skew <b>'+sgn(op.skew_25d,2)+'</b> · P/C <b>'+n(op.pcr_vol,2)+'</b> · net premium <b>'+money(op.net_premium_usd)+'</b> · '+esc(op.gamma_regime||"")+' '+esc(op.signal||""):'')+'</div></div>';
+  if(tp)h+='<div><h4>Trade plan (research shorthand)</h4><div class="kv">pivot <b>'+n(tp.pivot,2)+'</b> ('+sgn(tp.pivot_dist_pct,1,"%")+') · stop <b>'+n(tp.stop,2)+'</b> (risk '+n(tp.risk_pct,1,"%")+') · target <b>'+n(tp.target,2)+'</b> (+'+n(tp.reward_pct,1,"%")+')'+(tp.target_2?' · target 2 <b>'+n(tp.target_2,2)+'</b>':'')+' · <b>'+n(tp.reward_to_risk,1,"R")+'</b><br><span class="dim">'+esc(tp.note)+'</span>'+(r.watch_trigger?'<br>to flip to FORTRESS: <b>'+esc(r.watch_trigger)+'</b>':'')+'</div>'+(r.pillar_ranks?'<div class="kv" style="margin-top:6px">pillar ranks (percentile): '+Object.keys(r.pillar_ranks).map(function(k){return k.replace(/_/g," ")+' '+Math.round(r.pillar_ranks[k]);}).join(" · ")+' · composite abs '+n(r.composite_abs,1)+'</div>':'')+'</div>';
   h+='</div></div>';
   return h;
+}
+function renderChanges(){
+  var c=DOC.changes||{};
+  if(c.status!=="ok"){$("changes").innerHTML='<p class="note">'+esc(c.status||"no data")+' — the first comparison needs two snapshots.</p>';return;}
+  function lst(t,rows,f){return '<h4 style="margin:12px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim)">'+t+' ('+rows.length+')</h4>'+(rows.length?'<div>'+rows.map(f).join(" · ")+'</div>':'<div class="dim">none</div>');}
+  var h='<div class="kv">vs '+esc(c.prev_session)+' · top-three tiers: '+c.n_prev+' → '+c.n_now+'</div>';
+  h+=lst("New FORTRESS COIL",c.new_fortress||[],function(t){return '<span class="tk">'+why(t)+'</span>';});
+  h+=lst("Upgrades",c.upgrades||[],function(x){return '<span class="tk">'+why(x.ticker)+'</span> <span class="dim">'+esc(x.from)+'→'+esc(x.to)+'</span>';});
+  h+=lst("New entries",c.new_entries||[],function(x){return '<span class="tk">'+why(x.ticker)+'</span> '+badge(x.tier);});
+  h+=lst("Downgrades",c.downgrades||[],function(x){return '<span class="tk">'+why(x.ticker)+'</span> <span class="dim">'+esc(x.from)+'→'+esc(x.to)+'</span>';});
+  h+=lst("Exits",c.exits||[],function(x){return '<span class="tk">'+why(x.ticker)+'</span> <span class="dim">was '+esc(x.was)+'</span>';});
+  var sz=DOC.sizing||{};var ks=Object.keys(sz);
+  if(ks.length)h+='<h4 style="margin:14px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim)">Risk-parity sizing across the picks (equal expected dump loss, cap 15%)</h4><div class="kv">'+ks.map(function(k){return '<span class="tk">'+why(k)+'</span> '+sz[k]+'%';}).join(" · ")+'</div>';
+  $("changes").innerHTML=h;
 }
 function renderStocks(){
   var rows=sortRows(filtered(),SORT);
@@ -304,11 +345,26 @@ function renderInd(){
   header($("ith"),ICOLS,ISORT,function(k){ISORT=ISORT.k===k?{k:k,d:-ISORT.d}:{k:k,d:-1};renderInd();});
   $("itb").innerHTML=rows.map(function(r){return '<tr>'+ICOLS.map(function(c){return '<td class="'+(c.r?"r":"")+'">'+c.f(r)+'</td>';}).join("")+'</tr>';}).join("");
 }
+function statRow(label,x){if(!x||!x.n)return '<tr><td>'+label+'</td><td class="r dim" colspan="6">no observations</td></tr>';return '<tr><td>'+label+'</td><td class="r">'+x.n+'</td><td class="r">'+sgn(x.median_ex21_pct,2,"%")+'</td><td class="r">'+n(x.hit21_pct,0,"%")+'</td><td class="r">'+sgn(x.median_ex63_pct,2,"%")+'</td><td class="r">'+n(x.hit63_pct,0,"%")+'</td><td class="r dim">'+sgn(x.mean_ex21_pct,2,"%")+'</td></tr>';}
 function renderBase(){
-  var b=DOC.base_rates||{};var h='<div class="kv">status <b>'+esc(b.status)+'</b> · horizon <b>'+esc(b.horizon_sessions)+' sessions</b> · snapshots graded <b>'+esc(b.snapshots_graded)+'</b> of '+esc(b.snapshots_total)+'</div><p class="note">'+esc(b.note||"")+'</p>';
+  var v=DOC.validation||{},b=DOC.base_rates||{};
+  var h='';
+  if(v.status==="measured"){
+    var g=v.by_price_gates||{};
+    h+='<div class="kv">walk-forward backtest of the PRICE-STRUCTURE legs · as of '+esc(v.as_of)+' · '+esc(v.n_observations)+' observations over '+esc(v.n_test_dates)+' test dates ('+esc((v.test_dates||[])[0])+' → '+esc((v.test_dates||[])[1])+')</div><p class="note">'+esc(v.method||"")+'</p>';
+    h+='<table class="mini"><tr><th>Cohort</th><th class="r">n</th><th class="r">median excess 21s</th><th class="r">hit 21s</th><th class="r">median excess 63s</th><th class="r">hit 63s</th><th class="r">mean 21s</th></tr>'
+      +statRow("0 price gates",g["0"])+statRow("1 gate",g["1"])+statRow("2 gates",g["2"])+statRow("<b>3/3: under EMA250 + dump-resilient + coiled</b>",g["3"])+statRow("3/3 + bandwidth ≤ 10th pctile",v.fortress3_tight_bbw10)
+      +statRow("dump-resilient (any)",(v.resilient_vs_not||{}).resilient)+statRow("not dump-resilient",(v.resilient_vs_not||{}).not_resilient)+statRow("under EMA250 only",v.under_ema250_only)+statRow("knife-guard cohort (excluded live)",v.knife_guard_cohort)+'</table>';
+    var d=v.by_capture_decile||{};var dk=Object.keys(d);
+    if(dk.length){h+='<h4 style="margin:14px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim)">By dump-capture decile (D1 = most resilient)</h4><table class="mini"><tr><th>Decile</th><th class="r">capture range</th><th class="r">n</th><th class="r">median excess 21s</th><th class="r">hit 21s</th><th class="r">median excess 63s</th><th class="r">hit 63s</th></tr>'+dk.map(function(k){var x=d[k];return '<tr><td>'+k+'</td><td class="r dim">'+n(x.capture_lo,2)+' … '+n(x.capture_hi,2)+'</td><td class="r">'+x.n+'</td><td class="r">'+sgn(x.median_ex21_pct,2,"%")+'</td><td class="r">'+n(x.hit21_pct,0,"%")+'</td><td class="r">'+sgn(x.median_ex63_pct,2,"%")+'</td><td class="r">'+n(x.hit63_pct,0,"%")+'</td></tr>';}).join("")+'</table>';}
+    var pd=v.per_date||[];
+    if(pd.length){h+='<h4 style="margin:14px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim)">Per test date — 3/3 cohort</h4><table class="mini"><tr><th>Date</th><th class="r">scored</th><th class="r">3/3 names</th><th class="r">median excess 21s</th><th class="r">hit 21s</th><th class="r">SPY fwd 21s</th><th class="r">SPY fwd 63s</th><th class="r">dumps as of</th></tr>'+pd.map(function(x){return '<tr><td>'+esc(x.date)+'</td><td class="r">'+x.n_scored+'</td><td class="r">'+x.n_fortress3+'</td><td class="r">'+sgn(x.fortress3_median_ex21_pct,2,"%")+'</td><td class="r">'+n(x.fortress3_hit21_pct,0,"%")+'</td><td class="r">'+sgn(x.spy_fwd21_pct,1,"%")+'</td><td class="r">'+sgn(x.spy_fwd63_pct,1,"%")+'</td><td class="r">'+x.n_dump_episodes_asof+'</td></tr>';}).join("")+'</table>';}
+    h+='<p class="note">'+(v.caveats||[]).map(esc).join(" · ")+'</p>';
+  } else h+='<p class="note">Validation: '+esc(v.note||v.status||"pending")+'</p>';
+  h+='<h4 style="margin:18px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim)">Own base rates (this engine\'s past picks, graded from the bar warehouse)</h4><div class="kv">status <b>'+esc(b.status)+'</b> · horizon <b>'+esc(b.horizon_sessions)+' sessions</b> · snapshots graded <b>'+esc(b.snapshots_graded)+'</b> of '+esc(b.snapshots_total)+'</div>';
   var bt=b.by_tier||{};var ks=Object.keys(bt);
   if(ks.length){h+='<table class="mini"><tr><th>Tier</th><th class="r">n</th><th class="r">median 21d</th><th class="r">median excess vs SPY</th><th class="r">hit rate vs SPY</th></tr>'+ks.map(function(k){var x=bt[k];return '<tr><td>'+badge(k)+'</td><td class="r">'+x.n+'</td><td class="r">'+sgn(x.median_ret_21d_pct,2,"%")+'</td><td class="r">'+sgn(x.median_excess_vs_spy_pct,2,"%")+'</td><td class="r">'+n(x.hit_rate_vs_spy_pct,0,"%")+'</td></tr>';}).join("")+'</table>';}
-  else h+='<p class="note">No snapshot is 21 sessions old yet. The engine grades its own picks from the bar warehouse; the fleet harvester (eng:fortress) grades them independently in the signal scorecard.</p>';
+  else h+='<p class="note">No snapshot is 21 sessions old yet; the fleet harvester (eng:fortress) grades the picks independently in the signal scorecard.</p>';
   $("base").innerHTML=h;
 }
 function renderDefs(){
@@ -338,12 +394,14 @@ function render(doc){
     +'<tr><td colspan="4" class="small">worst-day set: '+(m.worst_days||[]).length+' sessions (SPY\'s worst '+(100*((doc.params||{}).worst_day_quantile||0.05)).toFixed(0)+'%), lookback from '+esc(m.lookback_start)+' · SPY 1m '+sgn(m.spy_ret_1m_pct,1,"%")+' · 3m '+sgn(m.spy_ret_3m_pct,1,"%")+'</td></tr>';
   var secs={};ROWS.forEach(function(r){if(r.sector)secs[r.sector]=1;});
   $("f-sector").innerHTML='<option value="">All sectors</option>'+Object.keys(secs).sort().map(function(s){return '<option>'+esc(s)+'</option>';}).join("");
-  renderStocks();renderEtfs();renderInd();renderBase();renderDefs();
+  var rg=doc.regime||{};
+  $("regime").innerHTML='Regime: <b>'+esc(rg.meta_regime||"–")+'</b>'+(rg.meta_class?' ('+esc(rg.meta_class)+')':'')+' · vol regime <b>'+esc(rg.vol_regime||"–")+'</b> · 10y <b>'+n(rg.y10_pct,2,"%")+'</b> · '+esc(rg.read||"")+(doc.validation&&doc.validation.status==="measured"&&doc.validation.by_price_gates&&doc.validation.by_price_gates["3"]?' · backtest 3/3 cohort: median excess '+sgn(doc.validation.by_price_gates["3"].median_ex21_pct,2,"%")+' / 21s, hit '+n(doc.validation.by_price_gates["3"].hit21_pct,0,"%")+' (n '+doc.validation.by_price_gates["3"].n+')':'');
+  renderStocks();renderEtfs();renderInd();renderChanges();renderBase();renderDefs();
   var inp=doc.inputs||{};
   $("foot").innerHTML='Inputs: '+Object.keys(inp).map(function(k){return k+' <span class="dim">'+esc(String(inp[k]||"–").slice(0,80))+'</span>';}).join(" · ")+'<br>Marker FORTRESS_COIL_V1 · elapsed '+esc((doc.diagnostics||{}).elapsed_s)+'s · '+esc(doc.doctrine||"");
 }
 (function(){
-  document.querySelectorAll("#tabs button").forEach(function(bt){bt.onclick=function(){document.querySelectorAll("#tabs button").forEach(function(b){b.classList.remove("on");});bt.classList.add("on");["stocks","etfs","industries","base","defs"].forEach(function(p){$("pane-"+p).style.display=bt.dataset.t===p?"":"none";});};});
+  document.querySelectorAll("#tabs button").forEach(function(bt){bt.onclick=function(){document.querySelectorAll("#tabs button").forEach(function(b){b.classList.remove("on");});bt.classList.add("on");["stocks","etfs","industries","changes","base","defs"].forEach(function(p){$("pane-"+p).style.display=bt.dataset.t===p?"":"none";});};});
   ["f-tier","f-sector","f-cap"].forEach(function(id){$(id).onchange=renderStocks;});
   $("f-q").oninput=renderStocks;
   document.querySelectorAll(".chip").forEach(function(c){c.onclick=function(){FLAGS[c.dataset.flag]=!FLAGS[c.dataset.flag];c.classList.toggle("on",!!FLAGS[c.dataset.flag]);renderStocks();};});

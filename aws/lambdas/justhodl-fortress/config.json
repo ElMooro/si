@@ -3,14 +3,19 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory": 3008,
+  "memory": 8192,
   "timeout": 900,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "FORTRESS COIL: dump-resilient accumulation radar -- SPY-dump capture, worst-day excess, EMA250, Bollinger/Keltner squeeze from the polygon-full bar warehouse, fused with valuation, growth, industry ETF inflows, backlog/contracts, floor. data/fortress.json",
+  "description": "FORTRESS COIL v2: dump-resilient accumulation radar -- 3y SPY-dump capture (two reads), worst-day t-stats, EMA250, Bollinger/Keltner squeeze, volume-structure accumulation, VCP/RS-line structure, tail risk, flows, backlog, floor; weekly walk-forward ",
   "inherit_env": {
     "from_function": "justhodl-equity-research",
-    "keys": ["FMP_KEY", "POLYGON_API_KEY"]
+    "keys": [
+      "FMP_KEY",
+      "POLYGON_API_KEY"
+    ]
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-fortress-daily",
@@ -18,5 +23,12 @@
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "FORTRESS COIL daily 03:30 UTC Tue-Sat, after polygon-full lands the prior US session"
+  },
+  "eventbridge_scheduler_extra": {
+    "schedule_name": "justhodl-fortress-backtest-weekly",
+    "cron": "cron(0 9 ? * SUN *)",
+    "timezone": "UTC",
+    "input": "{\"mode\":\"backtest\"}",
+    "note": "created by ops 5086 (workflow handles only the primary block)"
   }
 }
