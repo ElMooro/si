@@ -124,10 +124,10 @@ def main():
         deploy_lambda(
             report=r, function_name=FN, source_dir=SRC, env_vars=env_vars,
             timeout=900, memory=8192, create_function_url=False, smoke=False,
-            description=("FORTRESS COIL v2: dump-resilient accumulation radar -- 3y SPY-dump capture "
-                         "(two reads), worst-day t-stats, EMA250, Bollinger/Keltner squeeze, volume-"
-                         "structure accumulation, VCP/RS-line structure, tail risk, flows, backlog, "
-                         "floor; weekly walk-forward backtest"),
+            description=("FORTRESS COIL v2: dump-resilient accumulation radar -- 3y SPY-dump capture, "
+                         "worst-day t-stats, EMA250, Bollinger/Keltner squeeze, volume-structure "
+                         "accumulation, VCP/RS-line structure, tail risk, flows, backlog, floor; "
+                         "weekly walk-forward backtest"),
         )
         # settle: State must be Active (ops-3735 trap: Pending after first create)
         for _ in range(40):
