@@ -1,4 +1,4 @@
-"""justhodl-global-business-cycle  v2.1.0  (real-time, equity-momentum-based)
+"""justhodl-global-business-cycle  v2.1.1  (real-time, equity-momentum-based)
 ═══════════════════════════════════════════════════════════════════════════
 The OECD CLI series on FRED stopped updating ~Jan 2024 (28+ months stale at
 time of writing). To provide a USEFUL global business cycle map with
@@ -36,6 +36,8 @@ acceptance gate: >= MIN_BARS daily bars AND last bar within MAX_STALE_DAYS):
     ALWAYS as an anomaly from its 100 normal (v2.0 treated the ~100 index level as
     a +-3 anomaly, which pinned USA at the 120 cap every run).
 
+v2.1.1 (ops 5096): a supplement whose scale is not recognised (neither ~100
+  index nor a small anomaly) is EXCLUDED and reported, never coerced.
 v2.1.0 (ops 5094/5095, 2026-09-01):
   - acceptance gate + candidate chain + basket + polygon ETF lane (CZE/HUN/NOR/GRC)
   - supplement anomaly fix (USA no longer saturates the cap)
@@ -65,7 +67,7 @@ try:
 except Exception:
     pass
 
-ENGINE_VERSION = "2.1.0"
+ENGINE_VERSION = "2.1.1"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUTPUT_KEY = "data/global-business-cycle.json"
@@ -432,11 +434,22 @@ def cli_from_composite(composite_pct):
 
 
 def supplement_anomaly(value):
-    """OECD CCI/BCI on FRED are normalised with long-run mean 100. Return the
-    anomaly in index points, clipped so a survey can never dominate prices.
-    A value that is already a small anomaly (|v| < 10) is passed through."""
-    v = float(value)
-    anom = v if abs(v) < 10 else v - 100.0
+    """OECD CCI/BCI on FRED are normalised with long-run mean 100 (prints in
+    ~[90,110]); a series already expressed as an anomaly prints in (-10,10).
+    Anything else (ops 5095 saw USACSCICP02STSAM print 53.26 and
+    CHNBSCICP02STSAM print exactly 0.0) is a scale this engine does not
+    understand -> None, and the caller EXCLUDES it. A guessed sign is not a
+    measurement. Recognised values are clipped to +-SUPPLEMENT_ANOM_CLIP."""
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return None
+    if 90.0 <= v <= 110.0:
+        anom = v - 100.0
+    elif -10.0 < v < 10.0 and v != 0.0:
+        anom = v
+    else:
+        return None
     return max(-SUPPLEMENT_ANOM_CLIP, min(SUPPLEMENT_ANOM_CLIP, anom))
 
 
@@ -499,8 +512,12 @@ def compute_cli_from_prices(prices, supplement=None):
         sup_status = supplement.get("status") or "unknown"
         if sup_status == "fresh":
             anom = supplement_anomaly(supplement["value"])
-            composite_pct = (composite_pct * (1 - SUPPLEMENT_WEIGHT)
-                             + anom * SUPPLEMENT_POINT_TO_PCT * SUPPLEMENT_WEIGHT)
+            if anom is None:
+                sup_status = f"scale-unrecognised ({supplement['value']}) -- excluded"
+                supplement["status"] = sup_status
+            else:
+                composite_pct = (composite_pct * (1 - SUPPLEMENT_WEIGHT)
+                                 + anom * SUPPLEMENT_POINT_TO_PCT * SUPPLEMENT_WEIGHT)
 
     # Map composite into a CLI-style score centered at 100 — soft clip (tanh):
     # identical to the v2.0 linear map near 100, bounded (80,120) without the
