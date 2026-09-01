@@ -9,8 +9,9 @@
 <meta name="theme-color" content="#8b5cf6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
-<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<!-- ops 5094: self-hosted, pinned (CSP script-src 'self'); no third-party CDN on the render path -->
+<script src="/assets/vendor/d3.v7.9.0.min.js"></script>
+<script src="/assets/vendor/topojson-client.v3.1.0.min.js"></script>
 <script src="/wss-client.js" defer></script>
 <style>
   :root {
@@ -320,7 +321,7 @@
 
   <!-- Methodology -->
   <section class="meth">
-    <strong>📚 Methodology &nbsp;·&nbsp; v2.0 Synthetic Composite Leading Indicator</strong>
+    <strong>📚 Methodology &nbsp;·&nbsp; v2.1 Synthetic Composite Leading Indicator</strong>
     <p style="margin-top:6px">
       The OECD's published Composite Leading Indicator (CLI) series via FRED stopped updating in
       <strong>January 2024</strong> (28+ months stale at time of writing); OECD's own SDMX REST API also
@@ -332,14 +333,28 @@
       <strong>Inputs:</strong> Yahoo Finance daily price history for each country's primary equity index
       (e.g. <code>^GSPC</code> for USA, <code>^N225</code> for Japan, <code>^GDAXI</code> for Germany,
       <code>^FTSE</code> for UK, <code>^BSESN</code> for India, <code>000001.SS</code> for China,
-      <code>EPOL</code> for Poland, <code>ECH</code> for Chile). For USA + China, the equity composite
-      is blended 75/25 with fresh OECD Consumer/Business Confidence (still fresh on FRED for those two:
-      <code>USACSCICP02STSAM</code>, <code>CHNBSCICP02STSAM</code>).
+      <code>EPOL</code> for Poland, <code>ECH</code> for Chile). Every price candidate must clear the same
+      <strong>acceptance gate</strong> (≥ 252 daily bars and a last bar ≤ 12 days old). When a market's
+      index symbol is dead on the source, the engine walks a fixed chain: alternate index symbols →
+      an <em>equal-weight blue-chip basket</em> of that exchange (tagged <code>basket</code>) → the
+      US-listed country ETF from JustHodl's own polygon-full warehouse (tagged <code>ETF proxy</code>) →
+      the freshest stale candidate, explicitly tagged <code>degraded</code> → <em>no data</em>. Nothing is
+      ever filled in. For USA + China, a fresh (≤ 3 months) OECD Consumer/Business Confidence reading
+      (<code>USACSCICP02STSAM</code>, <code>CHNBSCICP02STSAM</code>) is blended 75/25 as an
+      <em>anomaly from its 100 normal</em>; a stale reading is excluded and reported as such.
+    </p>
+    <p style="margin-top:6px">
+      <strong>Physical confirmation:</strong> each label is cross-checked against IMF PortWatch port
+      throughput (median YoY across ≥ 2 ports): <code>⚓ confirmed</code> when trade volume agrees with
+      the equity-derived phase, <code>⚓ divergent</code> when it contradicts it. If the port feed ships
+      empty, the previous run's read is carried forward and marked as such rather than erased.
     </p>
     <p style="margin-top:6px">
       <strong>Composite formula:</strong>
       <code>composite_pct = 0.35×ret_12m + 0.25×dist_200ma + 0.25×ret_3m + 0.15×ret_1m</code>;
-      <code>CLI = 100 + composite_pct × 0.5</code>, capped to [80, 120]. Each country is then classified
+      <code>CLI = 100 + 20 × tanh(0.025 × composite_pct)</code> — slope 0.5 at the 100 boundary (identical to
+      the v2.0 linear map) and soft-bounded to (80, 120), so strong markets keep their ordering instead
+      of piling up on a hard 120 cap. Each country is then classified
       into <em>EXPANSION</em>, <em>AT_RISK</em>, <em>RECESSION</em>, or <em>RECOVERY</em> based on the
       CLI level (vs. trend of 100) and the 3-month return direction. The breadth across countries —
       GDP-weighted — drives the <strong>global phase</strong>, which propagates into the Khalid Index,
@@ -350,19 +365,42 @@
       &middot; <a href="https://fred.stlouisfed.org">FRED · OECD CCI/BCI</a> (USA + CHN supplements) &middot;
       Engine: <code>justhodl-global-business-cycle</code> &middot;
       Schedule: daily 12:00 UTC &middot;
-      S3 output: <code>data/global-business-cycle.json</code> &middot; Schema 2.0 &middot;
-      Engine type: <code>synthetic_equity_momentum</code>
+      S3 output: <code>data/global-business-cycle.json</code> &middot; Schema 2.1 &middot;
+      Engine type: <code>synthetic_equity_momentum</code> &middot; Libraries self-hosted (d3 7.9.0, topojson-client 3.1.0, world-atlas 2.0.2)
     </p>
   </section>
 
 </div>
 
 <script>
-const SRC = "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json";
-const WORLD_TOPO = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+// ops 5094: same-origin /data/* route first (edge-cached 60s/300s, CSP 'self'),
+// raw S3 as the fallback. Topo is self-hosted (world-atlas 2.0.2 countries-110m).
+const SRC_CHAIN = [
+  "/data/global-business-cycle.json",
+  "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json"
+];
+const WORLD_TOPO = "/assets/vendor/world-atlas-2.0.2-countries-110m.json";
 
 let DATA = null;
 let WORLD = null;
+let LAST_GOOD = null;
+
+async function fetchJSON(urls, {timeoutMs = 9000, retries = 2} = {}) {
+  let lastErr = null;
+  for (const url of urls) {
+    for (let a = 0; a <= retries; a++) {
+      try {
+        const r = await fetch(url, {cache: "no-store", signal: AbortSignal.timeout(timeoutMs)});
+        if (!r.ok) throw new Error("HTTP " + r.status + " " + url);
+        return await r.json();
+      } catch (e) {
+        lastErr = e;
+        if (a < retries) await new Promise(res => setTimeout(res, 350 * Math.pow(2, a) + Math.random() * 200));
+      }
+    }
+  }
+  throw lastErr || new Error("fetch failed");
+}
 
 const PHASE_ORDER = ["EXPANSION","RECOVERY","AT_RISK","RECESSION","UNKNOWN"];
 
@@ -375,19 +413,49 @@ function ageStr(iso) {
 }
 function fmtPct(v) { return v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(2); }
 
+function mapNote(msg) {
+  const mapEl = document.getElementById("world-map");
+  let n = document.getElementById("map-note");
+  if (!n) {
+    n = document.createElement("div");
+    n.id = "map-note";
+    n.style.cssText = "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:12px;text-align:center;padding:20px;pointer-events:none";
+    mapEl.appendChild(n);
+  }
+  n.textContent = msg;
+  n.style.display = msg ? "flex" : "none";
+}
+
+// The data render never waits on the map layer: a blocked or slow map asset
+// degrades the map only (the 2026-09-01 failure mode was a CSP block on the
+// topo fetch taking the whole page down with it).
 async function load() {
   try {
-    const [dataR, topoR] = await Promise.all([
-      fetch(SRC, {cache:"no-store"}),
-      fetch(WORLD_TOPO)
-    ]);
-    if (!dataR.ok) throw new Error("data HTTP " + dataR.status);
-    DATA = await dataR.json();
-    WORLD = topoR.ok ? await topoR.json() : null;
-    render();
+    DATA = await fetchJSON(SRC_CHAIN);
+    LAST_GOOD = DATA;
   } catch (e) {
-    document.getElementById("decisiveText").textContent = "Failed to load: " + e.message;
-    console.error("[gbc]", e);
+    console.error("[gbc] data", e);
+    if (LAST_GOOD) { DATA = LAST_GOOD; }
+    else {
+      document.getElementById("decisiveText").textContent =
+        "Feed unavailable (" + e.message + "). The engine output lives at /data/global-business-cycle.json; retrying automatically.";
+      return;
+    }
+  }
+  render();
+  // observability hook for the runner's headless render gate (ops 5094); DATA/WORLD are lexical, not window props
+  window.__gbc = {engine_version: DATA.engine_version || DATA.schema_version, generated_at: DATA.generated_at,
+                  countries: Object.keys(DATA.by_country || {}).length, world: !!WORLD, page: "live"};
+  if (!WORLD) {
+    try {
+      WORLD = await fetchJSON([WORLD_TOPO], {timeoutMs: 12000, retries: 1});
+      mapNote("");
+      renderMap();
+      if (window.__gbc) window.__gbc.world = true;
+    } catch (e) {
+      console.error("[gbc] map layer", e);
+      mapNote("Map layer unavailable (" + e.message + ") — country data below is unaffected.");
+    }
   }
 }
 
@@ -505,9 +573,16 @@ function render() {
       }
       const ret3 = c.three_month_change;
       const ret12 = c.yoy_change;
-      const cliStr = c.cli_level != null ? c.cli_level.toFixed(2) : '—';
-      return `<div class="country-tile ${c.phase || 'UNKNOWN'}" title="${c.country_name} · ticker ${c.yahoo_symbol || '—'} · latest ${c.latest_date || '—'}">
-        <div class="ct-name">${c.country_name}<span class="ct-trend ${trend === 'rising' ? 'up' : trend === 'falling' ? 'down' : 'flat'}">${trendArrow}</span>${freshTag}</div>
+      const cliStr = c.cli_level != null ? c.cli_level.toFixed(2) : (c.reason || 'no data');
+      const phys = c.physical || {};
+      const physTag = phys.state === "CONFIRMED" ? `<span class="fresh-tag fresh-ok" title="port throughput agrees with the equity phase (${phys.n_ports} ports, median ${fmtPct(phys.median_yoy_pct)}% YoY)${phys.stale ? ' · carried from previous run' : ''}">⚓ confirmed</span>` :
+                      phys.state === "DIVERGENT" ? `<span class="fresh-tag fresh-warn" title="port throughput CONTRADICTS the equity phase (${phys.n_ports} ports, median ${fmtPct(phys.median_yoy_pct)}% YoY)${phys.stale ? ' · carried from previous run' : ''}">⚓ divergent</span>` : "";
+      const srcKind = c.source_kind || "yahoo";
+      const srcTag = srcKind === "basket" ? `<span class="fresh-tag fresh-warn" title="${c.source}">basket</span>` :
+                     srcKind === "polygon-etf" ? `<span class="fresh-tag fresh-warn" title="${c.source} (USD country ETF from the polygon-full warehouse)">ETF proxy</span>` :
+                     srcKind === "degraded" ? `<span class="fresh-tag fresh-stale" title="${c.source_degraded || ''}">degraded</span>` : "";
+      return `<div class="country-tile ${c.phase || 'UNKNOWN'}" title="${c.country_name} · source ${c.source || c.yahoo_symbol || 'none'} · latest ${c.latest_date || 'none'}${c.source_degraded ? ' · ' + c.source_degraded : ''}">
+        <div class="ct-name">${c.country_name}<span class="ct-trend ${trend === 'rising' ? 'up' : trend === 'falling' ? 'down' : 'flat'}">${trendArrow}</span>${freshTag}${physTag}${srcTag}</div>
         <div class="ct-cli">CLI ${cliStr} · 12m ${fmtPct(ret12)} · 3m ${fmtPct(ret3)}</div>
       </div>`;
     }).join("");
@@ -527,7 +602,7 @@ function render() {
 }
 
 function renderMap() {
-  if (!WORLD) return;
+  if (!WORLD || !DATA || typeof d3 === "undefined" || typeof topojson === "undefined") return;
   const mapEl = document.getElementById("world-map");
   // Clear existing svg if any (preserve tooltip element)
   const tt = document.getElementById("map-tooltip");
@@ -591,6 +666,8 @@ function renderMap() {
         <div class="tt-row"><span class="tt-k">z(5y)</span><span class="tt-v">${c.z_5y != null ? c.z_5y.toFixed(2) : '—'}</span></div>
         <div class="tt-row"><span class="tt-k">Region</span><span class="tt-v">${c.region}</span></div>
         <div class="tt-row"><span class="tt-k">GDP weight</span><span class="tt-v">${c.gdp_weight}%</span></div>
+        <div class="tt-row"><span class="tt-k">Source</span><span class="tt-v">${c.source || c.yahoo_symbol || 'none'}</span></div>
+        <div class="tt-row"><span class="tt-k">Physical</span><span class="tt-v">${(c.physical && c.physical.state) ? c.physical.state.toLowerCase() + (c.physical.n_ports ? ' · ' + c.physical.n_ports + ' ports ' + fmtPct(c.physical.median_yoy_pct) + '% YoY' : '') : 'n/a'}</span></div>
       `;
     })
     .on("mousemove", function(event) {

@@ -1,9 +1,9 @@
 {
   "function_name": "justhodl-global-business-cycle",
   "runtime": "python3.12",
-  "timeout": 600,
-  "memory": 1024,
-  "description": "Global Business Cycle engine v2.0 — synthetic CLI from Yahoo Finance equity momentum across 34 economies + FRED CCI/BCI for USA+CHN. Outputs current state (data/global-business-cycle.json) AND 5y weekly history (data/global-business-cycle-history.json). 4-phase classification + GDP-weighted regional/global aggregation + interpretation + cross-asset signals. Schedule: daily 12:00 UTC.",
+  "timeout": 900,
+  "memory": 1536,
+  "description": "Global Business Cycle v2.1.0: synthetic CLI (equity momentum) for 34 economies with index->basket->polygon-ETF source chain + acceptance gate; writes data/global-business-cycle.json + -history.json. Daily 12:00 UTC.",
   "environment": {
     "FRED_KEY": "2f057499936072679d8843d7fce99989",
     "S3_BUCKET": "justhodl-dashboard-live"

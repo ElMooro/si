@@ -1,4 +1,4 @@
-"""justhodl-global-business-cycle  v2.0  (real-time, equity-momentum-based)
+"""justhodl-global-business-cycle  v2.1.0  (real-time, equity-momentum-based)
 ═══════════════════════════════════════════════════════════════════════════
 The OECD CLI series on FRED stopped updating ~Jan 2024 (28+ months stale at
 time of writing). To provide a USEFUL global business cycle map with
@@ -24,9 +24,27 @@ key, same fields (phase, cli_level, six_month_change, trend, etc.) — so all
 downstream consumers (KI, risk, allocator, morning-intel, ai-chat, page)
 keep working without modification.
 
-Sources:
-  • Yahoo Finance chart API (free, real-time)  https://query1.finance.yahoo.com
-  • FRED (where fresh, supplementary)            https://api.stlouisfed.org
+Sources (ordered chain per country — each candidate must clear the same
+acceptance gate: >= MIN_BARS daily bars AND last bar within MAX_STALE_DAYS):
+  1. Yahoo Finance chart API, national index      https://query1.finance.yahoo.com
+  2. Yahoo Finance, equal-weight blue-chip BASKET  (markets whose index symbol
+     is dead on Yahoo: Prague, Budapest, Oslo, Athens)
+  3. polygon-full warehouse, US-listed country ETF (data/warm/polygon-full/grouped,
+     OUR OWN store — no third-party call at run time)
+  4. degraded: freshest stale candidate, flagged  (never a fake value)
+  • FRED OECD CCI/BCI supplement (USA/CHN) — used ONLY when <= 3 months old and
+    ALWAYS as an anomaly from its 100 normal (v2.0 treated the ~100 index level as
+    a +-3 anomaly, which pinned USA at the 120 cap every run).
+
+v2.1.0 (ops 5094/5095, 2026-09-01):
+  - acceptance gate + candidate chain + basket + polygon ETF lane (CZE/HUN/NOR/GRC)
+  - supplement anomaly fix (USA no longer saturates the cap)
+  - soft clip: CLI = 100 + 20*tanh(0.025*composite) — same 100 boundary, same
+    ordering, no saturation plateau at 120 (KOR/USA were pinned)
+  - physical layer: last-good carry-forward with provenance when portwatch ships
+    an empty ports list (previously every country flipped to UNCONFIRMED)
+  - schema additions are strictly additive (source, source_attempts,
+    supplement_status, days_stale, cli_transform, engine_version)
 
 Author: JustHodl.AI
 """
@@ -36,7 +54,10 @@ import time
 import urllib.request
 import urllib.error
 import urllib.parse
-from datetime import datetime, timezone
+import gzip
+import math
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 import boto3
 try:
@@ -44,9 +65,21 @@ try:
 except Exception:
     pass
 
+ENGINE_VERSION = "2.1.0"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUTPUT_KEY = "data/global-business-cycle.json"
+HISTORY_KEY = "data/global-business-cycle-history.json"
+BARS_ROOT = "data/warm/polygon-full/grouped/"
+
+# Acceptance gate for ANY price candidate (index, basket member, ETF)
+MIN_BARS = 252            # one full year — enough for ret_12m and the history pass
+MAX_STALE_DAYS = 12       # calendar days; a live national index never gaps this long
+                          # (CNY/Golden Week <= 9d). Longer = dead symbol on the source.
+SUPPLEMENT_MAX_MONTHS = 3         # Khalid's rule: <= 3 months old or not used at all
+SUPPLEMENT_POINT_TO_PCT = 5.0     # 1 OECD index point (normal=100) ~ 5 composite pct
+SUPPLEMENT_WEIGHT = 0.25          # equity composite 75% / survey 25%
+SUPPLEMENT_ANOM_CLIP = 3.0        # OECD CCI/BCI live in ~[97,103]; clip protects the cap
 
 S3 = boto3.client("s3", region_name="us-east-1")
 
@@ -146,7 +179,7 @@ def _yahoo_fetch_one(symbol, range_param, retries):
             for ts, c in zip(timestamps, closes):
                 if c is None:
                     continue
-                date_str = datetime.utcfromtimestamp(ts).strftime("%Y-%m-%d")
+                date_str = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
                 out.append((date_str, float(c)))
             if out:
                 return out
@@ -162,13 +195,209 @@ def _yahoo_fetch_one(symbol, range_param, retries):
     return []
 
 
-# Per-country fallback symbols for known-flaky markets
+# Per-country fallback symbols for known-flaky markets (index-level candidates)
 SYMBOL_FALLBACKS = {
-    "POL": ["WIG20.WA", "^WIG"],          # if EPOL fails, try Warsaw direct
-    "CZE": ["^PX", "PXTR.PR", "CEZP.PR", "KOMB.PR"],  # try generic ^PX, then ČEZ utility, then Komerční banka
-    "HUN": ["^BUX", "OTP.BD"],             # if BUX.BD fails, try generic ^BUX or OTP Bank as proxy
-    "CHL": ["^IPSA", "^SPCLXIPSA"],       # if ECH fails, try Santiago direct
+    "POL": ["WIG20.WA", "^WIG"],                 # if EPOL fails, try Warsaw direct
+    "CZE": ["^PX", "PXTR.PR"],                   # Prague index candidates (PX.PR 404s on Yahoo)
+    "HUN": ["^BUX"],                             # BUX.BD 404s on Yahoo
+    "CHL": ["^IPSA", "^SPCLXIPSA"],              # if ECH fails, try Santiago direct
+    "NOR": ["OBX.OL", "^OBX", "^OSEBX"],         # ^OSEAX stopped printing 2026-07-17
+    "GRC": ["^ATG"],                             # GD.AT intermittently stops mid-July
 }
+
+# Equal-weight blue-chip BASKETS — the national index reconstructed from its own
+# largest constituents when no index symbol clears the gate. A basket needs >= 3
+# accepted members; the label records exactly which members were used.
+BASKETS = {
+    "CZE": ["CEZ.PR", "KOMB.PR", "MONET.PR", "ERBAG.PR", "VIG.PR", "COLT.PR"],
+    "HUN": ["OTP.BD", "MOL.BD", "RICHT.BD", "MTELEKOM.BD"],
+    "NOR": ["EQNR.OL", "DNB.OL", "TEL.OL", "NHY.OL", "MOWI.OL", "YAR.OL", "ORK.OL", "AKRBP.OL"],
+    "GRC": ["OPAP.AT", "ETE.AT", "EUROB.AT", "TPEIR.AT", "ALPHA.AT", "PPC.AT", "MYTIL.AT", "OTE.AT"],
+}
+
+# US-listed country ETF for the polygon-full warehouse lane (our own store).
+# USD-denominated, so it also carries FX — used as the THIRD rung only and
+# labelled as such in `source`. Existence is checked in the warehouse, not assumed.
+POLYGON_ETF = {
+    "USA": "SPY", "CHN": "MCHI", "JPN": "EWJ", "DEU": "EWG", "IND": "INDA",
+    "GBR": "EWU", "FRA": "EWQ", "ITA": "EWI", "CAN": "EWC", "BRA": "EWZ",
+    "KOR": "EWY", "AUS": "EWA", "ESP": "EWP", "MEX": "EWW", "IDN": "EIDO",
+    "NLD": "EWN", "TUR": "TUR", "CHE": "EWL", "POL": "EPOL", "BEL": "EWK",
+    "SWE": "EWD", "IRL": "EIRL", "AUT": "EWO", "NOR": "ENOR", "ZAF": "EZA",
+    "DNK": "EDEN", "FIN": "EFNL", "CHL": "ECH", "PRT": "PGAL", "GRC": "GREK",
+    "NZL": "ENZL", "ISR": "EIS",
+}
+
+
+def _today():
+    return datetime.now(timezone.utc).date()
+
+
+def acceptable(prices):
+    """(ok, reason). A candidate is usable only if it has a full year of bars AND
+    is still printing. Anything else is tried-and-rejected with the reason kept."""
+    if not prices:
+        return False, "no bars"
+    if len(prices) < MIN_BARS:
+        return False, f"only {len(prices)} bars (< {MIN_BARS})"
+    try:
+        last = datetime.strptime(prices[-1][0], "%Y-%m-%d").date()
+    except Exception:
+        return False, "unparseable last date"
+    stale = (_today() - last).days
+    if stale > MAX_STALE_DAYS:
+        return False, f"stale {stale}d (last {prices[-1][0]})"
+    return True, f"{len(prices)} bars, last {prices[-1][0]}"
+
+
+def build_basket(symbols, range_param="5y"):
+    """Equal-weight, forward-filled, base-100 basket of accepted members.
+    Returns (prices, label, attempts)."""
+    members, attempts = {}, []
+    for s in symbols:
+        px = _yahoo_fetch_one(s, range_param, retries=2)
+        ok, why = acceptable(px)
+        attempts.append({"candidate": f"yahoo:{s}", "ok": ok, "why": why})
+        if ok:
+            members[s] = dict(px)
+    if len(members) < 3:
+        return [], None, attempts
+    all_dates = sorted(set().union(*[set(m) for m in members.values()]))
+    ff = {}
+    for s, m in members.items():
+        last, arr = None, {}
+        for d in all_dates:
+            if d in m:
+                last = m[d]
+            if last is not None:
+                arr[d] = last
+        ff[s] = arr
+    start = next((d for d in all_dates if all(d in ff[s] for s in ff)), None)
+    if start is None:
+        return [], None, attempts
+    base = {s: ff[s][start] for s in ff}
+    out = []
+    for d in all_dates:
+        if d < start:
+            continue
+        vals = [ff[s][d] / base[s] for s in ff if d in ff[s] and base[s] > 0]
+        if len(vals) < max(3, int(0.6 * len(ff))):
+            continue
+        out.append((d, 100.0 * sum(vals) / len(vals)))
+    return out, "basket:" + "+".join(sorted(members)), attempts
+
+
+class PolygonETFLane:
+    """Lazy reader of our own polygon-full grouped-daily warehouse (one gz doc per
+    session, all tickers). Loaded ONCE per run, only for the tickers requested,
+    only if at least one country needs it."""
+
+    def __init__(self, years=5, workers=12):
+        self.years = years
+        self.workers = workers
+        self.loaded = False
+        self.series = {}          # ticker -> [(date, close)]
+        self.n_sessions = 0
+        self.error = None
+
+    def _keys(self):
+        keys = []
+        yr0 = _today().year - self.years
+        pag = S3.get_paginator("list_objects_v2")
+        for yr in range(yr0, _today().year + 1):
+            for page in pag.paginate(Bucket=BUCKET, Prefix=f"{BARS_ROOT}{yr}/"):
+                for o in page.get("Contents") or []:
+                    if o["Key"].endswith(".json.gz"):
+                        keys.append(o["Key"])
+        keys.sort()
+        cutoff = (_today() - timedelta(days=365 * self.years)).isoformat()
+        return [k for k in keys if k.rsplit("/", 1)[1][:10] >= cutoff]
+
+    def _load_one(self, key, keep):
+        try:
+            body = S3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
+            j = json.loads(gzip.decompress(body))
+        except Exception as e:  # noqa: BLE001
+            return key, None, str(e)[:80]
+        d = key.rsplit("/", 1)[1][:10]
+        rows = []
+        for r in j.get("results") or []:
+            t = r.get("T")
+            c = r.get("c")
+            if t in keep and c is not None and c > 0:
+                rows.append((t, float(c)))
+        return d, rows, None
+
+    def load(self, tickers):
+        if self.loaded:
+            return
+        self.loaded = True
+        keep = set(t for t in tickers if t)
+        try:
+            keys = self._keys()
+        except Exception as e:  # noqa: BLE001
+            self.error = f"list failed: {str(e)[:120]}"
+            print(f"[polygon-lane] {self.error}")
+            return
+        if not keys:
+            self.error = "no grouped sessions found"
+            print(f"[polygon-lane] {self.error}")
+            return
+        acc = defaultdict(list)
+        errs = 0
+        with ThreadPoolExecutor(max_workers=self.workers) as ex:
+            for d, rows, err in ex.map(lambda k: self._load_one(k, keep), keys):
+                if rows is None:
+                    errs += 1
+                    continue
+                for t, c in rows:
+                    acc[t].append((d, c))
+        for t, rows in acc.items():
+            rows.sort()
+            self.series[t] = rows
+        self.n_sessions = len(keys)
+        print(f"[polygon-lane] {len(keys)} sessions, {len(self.series)}/{len(keep)} "
+              f"tickers present, {errs} unreadable sessions")
+
+    def get(self, ticker):
+        return self.series.get(ticker, [])
+
+
+def resolve_prices(iso3, primary, lane):
+    """Walk the source chain for one country. Returns
+    (prices, source_label, attempts, degraded_reason_or_None)."""
+    attempts = []
+    best_stale = None          # (last_date, prices, label) of the freshest rejected-for-staleness candidate
+    for sym in [primary] + SYMBOL_FALLBACKS.get(iso3, []):
+        px = _yahoo_fetch_one(sym, "5y", retries=2 if sym != primary else 3)
+        ok, why = acceptable(px)
+        attempts.append({"candidate": f"yahoo:{sym}", "ok": ok, "why": why})
+        if ok:
+            return px, f"yahoo:{sym}", attempts, None
+        if px and len(px) >= MIN_BARS and (best_stale is None or px[-1][0] > best_stale[0]):
+            best_stale = (px[-1][0], px, f"yahoo:{sym}")
+    if iso3 in BASKETS:
+        bpx, blabel, batt = build_basket(BASKETS[iso3])
+        attempts.extend(batt)
+        ok, why = acceptable(bpx) if bpx else (False, "basket needs >= 3 accepted members")
+        attempts.append({"candidate": f"basket:{iso3}", "ok": ok, "why": why})
+        if ok:
+            return bpx, blabel, attempts, None
+    etf = POLYGON_ETF.get(iso3)
+    if etf and lane is not None:
+        lane.load([POLYGON_ETF[k] for k in POLYGON_ETF])
+        epx = lane.get(etf)
+        ok, why = acceptable(epx)
+        if lane.error:
+            why = f"lane: {lane.error}"
+        attempts.append({"candidate": f"polygon-etf:{etf}", "ok": ok, "why": why})
+        if ok:
+            return epx, f"polygon-etf:{etf}", attempts, None
+    if best_stale is not None:
+        last_date, px, label = best_stale
+        stale_days = (_today() - datetime.strptime(last_date, "%Y-%m-%d").date()).days
+        return px, label, attempts, f"degraded: freshest candidate is {stale_days}d stale"
+    return [], None, attempts, "no candidate cleared the acceptance gate"
 
 
 def fred_latest(series_id):
@@ -195,6 +424,32 @@ def fred_latest(series_id):
 # ════════════════════════════════════════════════════════════════════════
 # Synthetic CLI computation from equity series
 # ════════════════════════════════════════════════════════════════════════
+def cli_from_composite(composite_pct):
+    """100 + 20*tanh(0.025*x): slope 0.5 at the 100 boundary (== v2.0 linear
+    map), asymptotes at 80/120 instead of clipping. Monotonic, so phase and
+    ordering are preserved; only the saturation plateau is gone."""
+    return 100.0 + 20.0 * math.tanh(0.025 * float(composite_pct))
+
+
+def supplement_anomaly(value):
+    """OECD CCI/BCI on FRED are normalised with long-run mean 100. Return the
+    anomaly in index points, clipped so a survey can never dominate prices.
+    A value that is already a small anomaly (|v| < 10) is passed through."""
+    v = float(value)
+    anom = v if abs(v) < 10 else v - 100.0
+    return max(-SUPPLEMENT_ANOM_CLIP, min(SUPPLEMENT_ANOM_CLIP, anom))
+
+
+def months_between(date_str):
+    """Calendar months between a YYYY-MM-DD date and today (floor)."""
+    try:
+        d = datetime.strptime(date_str[:10], "%Y-%m-%d").date()
+    except Exception:
+        return 999
+    t = _today()
+    return (t.year - d.year) * 12 + (t.month - d.month)
+
+
 def compute_cli_from_prices(prices, supplement=None):
     """Build a synthetic CLI proxy from a 2y price series.
     Returns dict matching v1 schema for backward compatibility."""
@@ -235,14 +490,22 @@ def compute_cli_from_prices(prices, supplement=None):
     weight_total = sum(w for _, _, w in components)
     composite_pct = weighted_sum / weight_total if weight_total > 0 else 0
 
-    # Blend with supplement (FRED CCI/BCI) if provided (75/25 blend)
+    # Blend with supplement (FRED OECD CCI/BCI) — ONLY when fresh, ALWAYS as an
+    # anomaly from the series' normal of 100 (v2.0 fed the ~100 level in as if it
+    # were a +-3 anomaly, which pinned USA at the 120 cap on every run).
+    equity_composite_pct = composite_pct
+    sup_status = "none"
     if supplement and supplement.get("value") is not None:
-        sup_val = supplement["value"]
-        composite_pct = composite_pct * 0.75 + sup_val * 10 * 0.25
+        sup_status = supplement.get("status") or "unknown"
+        if sup_status == "fresh":
+            anom = supplement_anomaly(supplement["value"])
+            composite_pct = (composite_pct * (1 - SUPPLEMENT_WEIGHT)
+                             + anom * SUPPLEMENT_POINT_TO_PCT * SUPPLEMENT_WEIGHT)
 
-    # Map composite percentage into CLI-style 0-200 score centered at 100
-    cli_level = 100 + composite_pct * 0.5
-    cli_level = max(80, min(120, cli_level))
+    # Map composite into a CLI-style score centered at 100 — soft clip (tanh):
+    # identical to the v2.0 linear map near 100, bounded (80,120) without the
+    # hard plateau that erased ordering among strong markets.
+    cli_level = cli_from_composite(composite_pct)
 
     # Trend (3m momentum direction)
     if ret_3m is None or abs(ret_3m) < 1.0:
@@ -296,6 +559,9 @@ def compute_cli_from_prices(prices, supplement=None):
         "history_n": n,
         "supplement_value": supplement.get("value") if supplement else None,
         "supplement_date": supplement.get("date") if supplement else None,
+        "supplement_status": sup_status,
+        "equity_composite_pct": round(equity_composite_pct, 2),
+        "cli_transform": "soft_clip_tanh_v2.1",
     }
 
 
@@ -344,10 +610,13 @@ def load_port_physical(country_meta):
         if isinstance(nm, str) and nm.strip():
             name_map.setdefault(nm.strip().lower(), iso.upper())
     agg = {}
-    for row in (pw.get("ports") or []):
+    rows_in = pw.get("ports")
+    if not isinstance(rows_in, list):
+        rows_in = pw.get("rows") if isinstance(pw.get("rows"), list) else []
+    for row in rows_in:
         if not isinstance(row, dict):
             continue
-        y = row.get("yoy_pct")
+        y = row.get("yoy_pct", row.get("yoy"))
         if not isinstance(y, (int, float)):
             continue
         cn = str(row.get("country") or "").strip().lower()
@@ -635,8 +904,7 @@ def compute_history_series(prices, frequency_days=5):
         weighted_sum = sum(v * w for v, w in components)
         weight_total = sum(w for _, w in components)
         composite_pct = weighted_sum / weight_total if weight_total > 0 else 0
-        cli = 100 + composite_pct * 0.5
-        cli = max(80, min(120, cli))
+        cli = cli_from_composite(composite_pct)
 
         # Phase (same logic as live engine)
         if ret_3m is None or abs(ret_3m) < 1.0:
@@ -1040,50 +1308,80 @@ def build_phase_summary(phase_returns_by_country, country_meta):
 # ════════════════════════════════════════════════════════════════════════
 # Main
 # ════════════════════════════════════════════════════════════════════════
+def _load_previous_output():
+    try:
+        return json.loads(S3.get_object(Bucket=BUCKET, Key=OUTPUT_KEY)["Body"].read())
+    except Exception as e:  # noqa: BLE001
+        print(f"[gbc] previous output unavailable: {str(e)[:80]}")
+        return None
+
+
 def lambda_handler(event=None, context=None):
     started = time.time()
-    print(f"[gbc] v2.0 start, {len(COUNTRY_MAP)} countries (equity-momentum-based)")
+    print(f"[gbc] v{ENGINE_VERSION} start, {len(COUNTRY_MAP)} countries (equity-momentum-based)")
+    previous_output = _load_previous_output()
+    lane = PolygonETFLane()
 
     by_country = {}
     prices_by_country = {}    # iso3 → list of (date, close)  for history pass
     fresh_count = 0
+    sources_used = defaultdict(int)
+    supplement_log = {}
     for iso3, yahoo_sym, region, name, weight, iso2 in COUNTRY_MAP:
-        fallbacks = SYMBOL_FALLBACKS.get(iso3, [])
-        prices, used_symbol = yahoo_chart(yahoo_sym, range_param="5y",
-                                            fallback_symbols=fallbacks)
+        prices, source, attempts, degraded = resolve_prices(iso3, yahoo_sym, lane)
         prices_by_country[iso3] = prices
         supplement = None
         if iso3 in FRED_SUPPLEMENT:
             supplement = fred_latest(FRED_SUPPLEMENT[iso3])
+            if supplement:
+                mo = months_between(supplement.get("date") or "")
+                supplement["months_stale"] = mo
+                supplement["status"] = "fresh" if mo <= SUPPLEMENT_MAX_MONTHS else f"stale {mo}mo (excluded)"
+                supplement["series_id"] = FRED_SUPPLEMENT[iso3]
+            supplement_log[iso3] = supplement or {"series_id": FRED_SUPPLEMENT[iso3], "status": "unavailable"}
 
         phase_info = compute_cli_from_prices(prices, supplement=supplement)
+        if degraded and phase_info.get("phase") != "UNKNOWN":
+            phase_info["reason"] = degraded
+        if not prices and attempts:
+            phase_info["reason"] = degraded or "no candidate cleared the acceptance gate"
 
         latest_date = phase_info.get("latest_date")
-        months_old = 999
+        months_old, days_old = 999, None
         if latest_date:
             try:
-                d = datetime.strptime(latest_date, "%Y-%m-%d")
-                now = datetime.utcnow()
-                months_old = (now.year - d.year) * 12 + (now.month - d.month)
+                d = datetime.strptime(latest_date, "%Y-%m-%d").date()
+                days_old = (_today() - d).days
+                months_old = max(0, days_old // 30)
                 if months_old <= 3:
                     fresh_count += 1
             except Exception:
                 pass
+        source_kind = (source or "none").split(":", 1)[0]
+        sources_used[source_kind if not degraded else "degraded"] += 1
 
         by_country[iso3] = {
             "iso3": iso3,
             "iso2": iso2,
-            "yahoo_symbol": used_symbol,
+            "yahoo_symbol": (source.split(":", 1)[1] if source and source.startswith("yahoo:") else source),
             "yahoo_symbol_primary": yahoo_sym,
+            "source": source,
+            "source_kind": source_kind,
+            "source_attempts": attempts,
+            "source_degraded": degraded,
             "country_name": name,
             "region": region,
             "gdp_weight": weight,
             "months_stale": months_old,
+            "days_stale": days_old,
             **phase_info,
         }
         print(f"[gbc] {iso3:<4} {(phase_info.get('phase') or 'UNK'):<10} "
               f"CLI={phase_info.get('cli_level')} 3m={phase_info.get('three_month_change')} "
-              f"latest={latest_date} ({months_old}mo)")
+              f"latest={latest_date} ({days_old}d) src={source} "
+              f"{'DEGRADED: ' + degraded if degraded else ''}")
+    print(f"[gbc] sources used: {dict(sources_used)} · supplements: "
+          f"{ {k: v.get('status') for k, v in supplement_log.items()} }")
 
     agg = aggregate(by_country)
     interp = interpret_global_cycle(agg, by_country)
@@ -1093,16 +1391,37 @@ def lambda_handler(event=None, context=None):
         _pmeta = {iso: {"name": r.get("country_name")}
                   for iso, r in by_country.items() if isinstance(r, dict)}
         _phys, _unmapped, _pw_gen = load_port_physical(_pmeta)
+        _phys_carried = None
+        if not _phys and previous_output:
+            # ops 5095: portwatch fills `ports` inside a try/except around the IMF
+            # ArcGIS call, so an upstream hiccup ships an EMPTY list and every
+            # country used to flip to UNCONFIRMED. Carry the previous run's
+            # physical read forward WITH provenance instead of erasing it.
+            _prev = previous_output.get("physical_confirmation") or {}
+            if (_prev.get("countries_with_ports") or 0) > 0:
+                _pw_gen = _prev.get("portwatch_generated_at")
+                _phys_carried = previous_output.get("generated_at")
+                for iso, row in by_country.items():
+                    pb = ((previous_output.get("by_country") or {}).get(iso) or {}).get("physical") or {}
+                    if pb.get("n_ports"):
+                        _phys[iso] = {k: pb[k] for k in ("n_ports", "median_yoy_pct", "min_yoy_pct",
+                                                          "worst_port", "n_disrupted") if k in pb}
+                print(f"[physical] portwatch ports list empty — carried {len(_phys)} "
+                      f"countries from previous run {_phys_carried}")
         _cs = {"CONFIRMED": 0, "DIVERGENT": 0, "UNCONFIRMED": 0}
         for iso, row in by_country.items():
             if not isinstance(row, dict):
                 continue
             blk = confirm_phase(row.get("phase"), _phys.get(iso.upper()))
+            if _phys_carried and blk.get("n_ports"):
+                blk["stale"] = True
+                blk["carried_from_run"] = _phys_carried
             row["physical"] = blk
             _cs[blk["state"]] = _cs.get(blk["state"], 0) + 1
         _phys_summary = {
             "source": "data/portwatch.json",
             "portwatch_generated_at": _pw_gen,
+            "carried_from_previous_run": _phys_carried,
             "countries_with_ports": len(_phys),
             "counts": _cs,
             "unmapped_port_countries": _unmapped,
@@ -1126,26 +1445,40 @@ def lambda_handler(event=None, context=None):
         _phys_summary = {"error": str(_pe)[:200]}
         print(f"[physical] failed: {str(_pe)[:120]}")
 
+    _sup_used = [k for k, v in supplement_log.items() if v.get("status") == "fresh"]
     output = {
-        "schema_version": "2.0",
+        "schema_version": "2.1",
+        "engine_version": ENGINE_VERSION,
         "engine_type": "synthetic_equity_momentum",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_sec": round(time.time() - started, 1),
         "countries_with_fresh_data": fresh_count,
         "countries_total": len(COUNTRY_MAP),
+        "sources_used": dict(sources_used),
+        "supplements": supplement_log,
+        "polygon_lane": {"loaded": lane.loaded, "sessions": lane.n_sessions,
+                         "tickers_present": len(lane.series), "error": lane.error},
+        "acceptance_gate": {"min_bars": MIN_BARS, "max_stale_days": MAX_STALE_DAYS},
         "methodology": {
-            "primary_source": "Yahoo Finance equity indices (real-time, ~0-1 day stale)",
-            "secondary_source": "FRED OECD CCI/BCI for USA + CHN (~1-2 mo stale)",
+            "primary_source": "Yahoo Finance national equity indices (real-time, ~0-1 day stale)",
+            "fallback_chain": ("index candidates -> equal-weight blue-chip basket (Yahoo) -> "
+                               "US-listed country ETF from the polygon-full warehouse (own store) "
+                               "-> degraded stale candidate (flagged) -> UNKNOWN; every candidate "
+                               f"must clear >= {MIN_BARS} bars and a last bar <= {MAX_STALE_DAYS} days old"),
+            "secondary_source": ("FRED OECD CCI/BCI for USA + CHN as an anomaly from 100, used only "
+                                 f"when <= {SUPPLEMENT_MAX_MONTHS} months old; used this run for: "
+                                 f"{_sup_used or 'none'}"),
             "rationale": ("OECD's Composite Leading Indicator series on FRED stopped "
                           "updating in Jan 2024 (28+ months stale). Equity-market "
                           "momentum is a well-established leading indicator (typically "
                           "leads economic activity by 6-12 months) and is updated daily, "
                           "so it serves as a reliable real-time proxy for the global "
                           "business cycle."),
-            "composite_formula": ("CLI = 100 + composite_pct * 0.5, capped [80,120]. "
-                                   "composite_pct = 0.35*ret12m + 0.25*dist_200ma + "
-                                   "0.25*ret3m + 0.15*ret1m. For USA+CHN blended 75/25 "
-                                   "with OECD CCI/BCI."),
+            "composite_formula": ("CLI = 100 + 20*tanh(0.025*composite_pct) — slope 0.5 at 100 "
+                                   "(the v2.0 linear map), soft-bounded (80,120). composite_pct = "
+                                   "0.35*ret12m + 0.25*dist_200ma + 0.25*ret3m + 0.15*ret1m. "
+                                   "Fresh OECD CCI/BCI anomaly (value-100, clipped +-3, x5) "
+                                   "blended 75/25 for USA+CHN."),
             "phase_classification": {
                 "EXPANSION": "CLI >= 100 AND 3-month return rising",
                 "AT_RISK":   "CLI >= 100 AND 3-month return falling (peak passing)",
@@ -1261,7 +1594,9 @@ def lambda_handler(event=None, context=None):
             history_by_country[iso3]["phase_returns"] = by_phase
 
     history_output = {
-        "schema_version": "2.3",
+        "schema_version": "2.4",
+        "engine_version": ENGINE_VERSION,
+        "cli_transform": "soft_clip_tanh_v2.1",
         "engine_type": "synthetic_equity_momentum_history",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "frequency": "weekly_5d",
@@ -1297,7 +1632,7 @@ def lambda_handler(event=None, context=None):
     }
 
     S3.put_object(
-        Bucket=BUCKET, Key="data/global-business-cycle-history.json",
+        Bucket=BUCKET, Key=HISTORY_KEY,
         Body=json.dumps(history_output, default=str).encode(),
         ContentType="application/json",
         CacheControl="public, max-age=3600, s-maxage=3600",
@@ -1307,9 +1642,11 @@ def lambda_handler(event=None, context=None):
           f"fresh={fresh_count}/{len(COUNTRY_MAP)}")
 
     return {"statusCode": 200, "body": json.dumps({
+        "engine_version": ENGINE_VERSION,
         "global_phase": agg["global_phase"],
         "global_avg_cli": agg["global_avg_cli"],
         "n_countries": len(by_country),
         "fresh_count": fresh_count,
+        "sources_used": dict(sources_used),
         "elapsed_sec": output["elapsed_sec"],
     })}

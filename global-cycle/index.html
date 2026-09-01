@@ -9,7 +9,8 @@
 <meta name="theme-color" content="#8b5cf6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
-<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<!-- ops 5094: self-hosted, pinned (CSP script-src 'self') -->
+<script src="/assets/vendor/d3.v7.9.0.min.js"></script>
 <script src="/wss-client.js" defer></script>
 <style>
   :root {
@@ -540,7 +541,27 @@
 <div class="tt" id="tooltip" style="display:none"></div>
 
 <script>
-const SRC = "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle-history.json";
+// ops 5094: same-origin /data/* route first (edge-cached, CSP 'self'), raw S3 fallback
+const SRC_CHAIN = [
+  "/data/global-business-cycle-history.json",
+  "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle-history.json"
+];
+async function fetchJSON(urls, {timeoutMs = 15000, retries = 2} = {}) {
+  let lastErr = null;
+  for (const url of urls) {
+    for (let a = 0; a <= retries; a++) {
+      try {
+        const r = await fetch(url, {cache: "no-store", signal: AbortSignal.timeout(timeoutMs)});
+        if (!r.ok) throw new Error("HTTP " + r.status + " " + url);
+        return await r.json();
+      } catch (e) {
+        lastErr = e;
+        if (a < retries) await new Promise(res => setTimeout(res, 400 * Math.pow(2, a) + Math.random() * 200));
+      }
+    }
+  }
+  throw lastErr || new Error("fetch failed");
+}
 const PHASE_COLORS = {
   EXPANSION:"#22c55e", AT_RISK:"#f59e0b",
   RECESSION:"#ef4444", RECOVERY:"#3b82f6",
@@ -663,8 +684,10 @@ function drawTransitionsOverlay(g, xScale, h, w, transitions) {
 
 async function load() {
   try {
-    const r = await fetch(SRC + "?cb=" + Date.now());
-    DATA = await r.json();
+    if (typeof d3 === "undefined") throw new Error("d3 failed to load from /assets/vendor");
+    DATA = await fetchJSON(SRC_CHAIN);
+    window.__gbc = {engine_version: DATA.engine_version || DATA.schema_version, generated_at: DATA.generated_at,
+                    countries: DATA.countries_count, page: "history"};
     document.getElementById("genTime").textContent = new Date(DATA.generated_at).toLocaleString();
     document.getElementById("ageStr").textContent = fmtAge(DATA.generated_at);
     render();
@@ -674,9 +697,10 @@ async function load() {
       window._rt = setTimeout(render, 200);
     });
   } catch (e) {
-    console.error(e);
-    document.getElementById("genTime").textContent = "Failed to load";
-    document.getElementById("ageStr").textContent = e.message;
+    console.error("[gbc-history]", e);
+    document.getElementById("genTime").textContent = "Feed unavailable";
+    document.getElementById("ageStr").textContent = e.message + " (retrying)";
+    setTimeout(load, 60000);
   }
 }
 

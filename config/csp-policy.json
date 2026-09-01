@@ -1,0 +1,411 @@
+{
+ "version": 1,
+ "generator": "scripts/gen_csp.py",
+ "cloudflare_rule_ref": "a2a-csp-header",
+ "cloudflare_phase": "http_response_headers_transform",
+ "hosts": [
+  "justhodl.ai",
+  "www.justhodl.ai"
+ ],
+ "upgrade_insecure_requests": true,
+ "fixed": {
+  "default-src": [
+   "'self'"
+  ],
+  "img-src": [
+   "'self'",
+   "data:",
+   "blob:",
+   "https:"
+  ],
+  "media-src": [
+   "'self'",
+   "data:",
+   "https:"
+  ],
+  "worker-src": [
+   "'self'",
+   "blob:"
+  ],
+  "manifest-src": [
+   "'self'"
+  ],
+  "object-src": [
+   "'none'"
+  ],
+  "base-uri": [
+   "'none'"
+  ],
+  "frame-ancestors": [
+   "'self'"
+  ]
+ },
+ "wildcards": {
+  "connect-src": [
+   "https://*.lambda-url.us-east-1.on.aws",
+   "wss://*.execute-api.us-east-1.amazonaws.com",
+   "https://*.execute-api.us-east-1.amazonaws.com",
+   "https://*.supabase.co",
+   "wss://*.supabase.co",
+   "https://*.raafouis.workers.dev",
+   "wss://*.raafouis.workers.dev"
+  ],
+  "frame-src": [
+   "https://*.tradingview.com",
+   "https://*.tradingview-widget.com"
+  ]
+ },
+ "extra": {
+  "script-src": [
+   "https://static.cloudflareinsights.com",
+   "https://challenges.cloudflare.com"
+  ],
+  "style-src": [
+   "https://cdn.jsdelivr.net",
+   "https://cdnjs.cloudflare.com",
+   "https://unpkg.com"
+  ],
+  "font-src": [
+   "https://fonts.gstatic.com",
+   "https://cdn.jsdelivr.net",
+   "https://cdnjs.cloudflare.com",
+   "https://unpkg.com"
+  ],
+  "connect-src": [
+   "https://static.cloudflareinsights.com",
+   "https://api.telegram.org",
+   "https://justhodl-dashboard-live.s3.amazonaws.com",
+   "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com",
+   "https://s3.amazonaws.com",
+   "https://s3.us-east-1.amazonaws.com",
+   "https://cdn.jsdelivr.net",
+   "https://cdnjs.cloudflare.com",
+   "https://unpkg.com",
+   "https://cdn.plot.ly"
+  ],
+  "frame-src": [
+   "https://challenges.cloudflare.com"
+  ]
+ },
+ "link_only_hosts": [
+  "https://www.economy.com",
+  "https://ftmo.com",
+  "https://journalplus.co",
+  "https://www.bitmex.com",
+  "https://www.wyckoffanalytics.com",
+  "https://www.interactivebrokers.com",
+  "https://www.moomoo.com",
+  "https://www.tastytrade.com",
+  "https://www.webull.com",
+  "https://www.tradingview.com",
+  "https://t.me",
+  "https://github.com",
+  "https://www.treasurydirect.gov",
+  "https://fred.stlouisfed.org",
+  "https://finance.yahoo.com",
+  "https://justhodl.ai",
+  "https://www.financialresearch.gov",
+  "https://fiscaldata.treasury.gov",
+  "https://s3.tradingview.com",
+  "https://cdn.tailwindcss.com",
+  "https://fonts.googleapis.com"
+ ],
+ "deny_hosts": [
+  "https://d3js.org"
+ ],
+ "notes": [
+  "Regenerate with: python3 scripts/gen_csp.py --write ; verify with --check.",
+  "ops 5094 upserts the Cloudflare transform rule from this file and renders key pages headless to prove zero violations.",
+  "script-src keeps 'unsafe-inline' because the fleet's pages carry inline scripts; escaping-by-construction remains the primary XSS control (thread 0003).",
+  "connect-src folds all Lambda function URLs into https://*.lambda-url.us-east-1.on.aws so new engines never break a page again."
+ ],
+ "generated": {
+  "script-src": [
+   "https://cdn.jsdelivr.net",
+   "https://cdn.plot.ly",
+   "https://cdn.tailwindcss.com",
+   "https://cdnjs.cloudflare.com",
+   "https://challenges.cloudflare.com",
+   "https://justhodl-data-proxy.raafouis.workers.dev",
+   "https://s3.tradingview.com",
+   "https://static.cloudflareinsights.com",
+   "https://unpkg.com"
+  ],
+  "style-src": [
+   "https://cdn.jsdelivr.net",
+   "https://cdnjs.cloudflare.com",
+   "https://fonts.googleapis.com",
+   "https://unpkg.com"
+  ],
+  "font-src": [
+   "https://cdn.jsdelivr.net",
+   "https://cdnjs.cloudflare.com",
+   "https://fonts.gstatic.com",
+   "https://unpkg.com"
+  ],
+  "frame-src": [
+   "https://*.tradingview-widget.com",
+   "https://*.tradingview.com",
+   "https://challenges.cloudflare.com",
+   "https://justhodl.ai"
+  ],
+  "connect-src": [
+   "https://*.execute-api.us-east-1.amazonaws.com",
+   "https://*.lambda-url.us-east-1.on.aws",
+   "https://*.raafouis.workers.dev",
+   "https://*.supabase.co",
+   "https://api.dexscreener.com",
+   "https://api.justhodl.ai",
+   "https://api.stlouisfed.org",
+   "https://api.telegram.org",
+   "https://cdn.jsdelivr.net",
+   "https://cdn.plot.ly",
+   "https://cdnjs.cloudflare.com",
+   "https://financialmodelingprep.com",
+   "https://justhodl-dashboard-live.s3.amazonaws.com",
+   "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com",
+   "https://macro-data-lake.s3.amazonaws.com",
+   "https://patentsview.org",
+   "https://s3.amazonaws.com",
+   "https://s3.us-east-1.amazonaws.com",
+   "https://static.cloudflareinsights.com",
+   "https://unpkg.com",
+   "https://web.archive.org",
+   "wss://*.execute-api.us-east-1.amazonaws.com",
+   "wss://*.raafouis.workers.dev",
+   "wss://*.supabase.co"
+  ]
+ },
+ "evidence": {
+  "script-src": {
+   "https://cdn.jsdelivr.net": [
+    "about.html",
+    "analogs.html",
+    "analytics.html",
+    "archive/exponential-search-dashboard.html",
+    "archive/macroeconomic-platform.html",
+    "backlog.html"
+   ],
+   "https://cdn.plot.ly": [
+    "ai_predictions.html",
+    "archive/exponential-search-dashboard.html",
+    "archive/macroeconomic-platform.html",
+    "fred.html",
+    "ny-fed.html",
+    "ofr.html"
+   ],
+   "https://cdn.tailwindcss.com": [
+    "alpha-families.html",
+    "carry.html",
+    "fundamental-graphs.html",
+    "global-sovereign.html",
+    "jsi.html",
+    "proven-portfolio.html"
+   ],
+   "https://cdnjs.cloudflare.com": [
+    "bls.html",
+    "brief.html",
+    "calibration-fleet.html",
+    "chart-patterns.html",
+    "dollar.html",
+    "eia.html"
+   ],
+   "https://justhodl-data-proxy.raafouis.workers.dev": [
+    "ecb-history.html",
+    "ecb.html"
+   ],
+   "https://s3.tradingview.com": [
+    "chart-pro.html"
+   ],
+   "https://unpkg.com": [
+    "chart-macro.html",
+    "chart-pro.html"
+   ]
+  },
+  "style-src": {
+   "https://fonts.googleapis.com": [
+    "13f.html",
+    "accuracy.html",
+    "agent/index.html",
+    "allocator.html",
+    "alpha-atlas.html",
+    "alpha-compass.html"
+   ]
+  },
+  "font-src": {},
+  "frame-src": {
+   "https://justhodl.ai": [
+    "downloads.html"
+   ]
+  },
+  "connect-src": {
+   "https://2ijajv2pntkgj5yw5c3ukh5oq40xsyaf.lambda-url.us-east-1.on.aws": [
+    "euro/index.html"
+   ],
+   "https://4dgpa7mv5dfipsh3gi2xim6uja0igozb.lambda-url.us-east-1.on.aws": [
+    "fred.html"
+   ],
+   "https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws": [
+    "compare.html",
+    "why.html"
+   ],
+   "https://a2orhvvfva3kh5r6jx5soijcbm0uecuw.lambda-url.us-east-1.on.aws": [
+    "tax-plan.html"
+   ],
+   "https://api.dexscreener.com": [
+    "dex.html"
+   ],
+   "https://api.justhodl.ai": [
+    "brain.html",
+    "chart-macro.html",
+    "dex.html",
+    "dxy.html",
+    "investor.html",
+    "journal.html"
+   ],
+   "https://api.stlouisfed.org": [
+    "euro/index.html"
+   ],
+   "https://bdmjenqcyvzouusfcgow.supabase.co": [
+    "auth-config.js"
+   ],
+   "https://bjr4vvgjakstv4juaxnhtcq7aq0xmaft.lambda-url.us-east-1.on.aws": [
+    "approvals.html"
+   ],
+   "https://c6bhlnugikpdjulunpf6qeu66q0ugtbg.lambda-url.us-east-1.on.aws": [
+    "trade-journal.html"
+   ],
+   "https://cdn.jsdelivr.net": [
+    "analytics.html",
+    "auth.js",
+    "jh-nav-drawer.js"
+   ],
+   "https://cdnjs.cloudflare.com": [
+    "brain.html"
+   ],
+   "https://ch5q2v5shekw5cxa5juzio2cd40gcasn.lambda-url.us-east-1.on.aws": [
+    "notifications.html"
+   ],
+   "https://enxmdjjowjfwiydpslyykokjee0qdvml.lambda-url.us-east-1.on.aws": [
+    "stock/index.html"
+   ],
+   "https://ff66pvk3anywuluh75k7khvpaq0tslft.lambda-url.us-east-1.on.aws": [
+    "nasdaq-datalink.html"
+   ],
+   "https://financialmodelingprep.com": [
+    "journal.html"
+   ],
+   "https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws": [
+    "fundamental-census.html",
+    "fundamental-graphs.html",
+    "why.html"
+   ],
+   "https://g65enkjk3uu4woaoy764ow3q340sppvg.lambda-url.us-east-1.on.aws": [
+    "archive/macroeconomic-platform.html",
+    "flow.html"
+   ],
+   "https://gxjvtintcxjn3f7cxvkirfm5wy0doaoy.lambda-url.us-east-1.on.aws": [
+    "census.html"
+   ],
+   "https://i70jxru6md.execute-api.us-east-1.amazonaws.com": [
+    "archive/exponential-search-dashboard.html",
+    "archive/macroeconomic-platform.html"
+   ],
+   "https://justhodl-ai-proxy.raafouis.workers.dev": [
+    "chart-macro.html",
+    "chart-pro.html"
+   ],
+   "https://justhodl-dashboard-live.s3.amazonaws.com": [
+    "0dte/index.html",
+    "13f.html",
+    "accum-composite.html",
+    "accumulation.html",
+    "accuracy.html",
+    "ai-alerts-cockpit-kit.js"
+   ],
+   "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com": [
+    "activist-13d.html",
+    "activity-nowcast.html",
+    "ai-rerating.html",
+    "alpha-scoreboard.html",
+    "analyst-actions.html",
+    "ark.html"
+   ],
+   "https://justhodl-data-proxy.raafouis.workers.dev": [
+    "13f.html",
+    "accumulation.html",
+    "affiliates.js",
+    "ai-alerts-cockpit-kit.js",
+    "ai-brief-kit.js",
+    "ai-digest-archive-kit.js"
+   ],
+   "https://k6tl5hqdw6ajgw4kiwcnxhe4jm0ovcul.lambda-url.us-east-1.on.aws": [
+    "why.html"
+   ],
+   "https://kzwn6o5kbm7kqdqoioiw32hd4m0rzzsr.lambda-url.us-east-1.on.aws": [
+    "watchlist.html"
+   ],
+   "https://macro-data-lake.s3.amazonaws.com": [
+    "ai_predictions.html"
+   ],
+   "https://nqzbtg3pnxhcyj4rdlmft2vu4y0xxfvk.lambda-url.us-east-1.on.aws": [
+    "agent/index.html"
+   ],
+   "https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws": [
+    "chart-pro.html",
+    "fg-catalog.js",
+    "jh-nav-drawer.js"
+   ],
+   "https://nwjtcrf4xwkc6n5r6u3vw7ub6m0wgpiv.lambda-url.us-east-1.on.aws": [
+    "fmp.html"
+   ],
+   "https://patentsview.org": [
+    "patent-velocity.html"
+   ],
+   "https://qgmut34alss5bvacffyklqqs3a0ckday.lambda-url.us-east-1.on.aws": [
+    "benzinga.html"
+   ],
+   "https://ru3djltl3oucvsocjrih37sowu0fxgkm.lambda-url.us-east-1.on.aws": [
+    "why.html"
+   ],
+   "https://s3.amazonaws.com": [
+    "blackout.html",
+    "bond-desk.html",
+    "brain-compiler.html",
+    "canaries.html",
+    "chart-macro.html",
+    "data-census.html"
+   ],
+   "https://s6ascg5dntry5w5elqedee77na0fcljz.lambda-url.us-east-1.on.aws": [
+    "ka/index.html"
+   ],
+   "https://sajhxaiui7tijd54pbqzeibzee0xgxho.lambda-url.us-east-1.on.aws": [
+    "screener/index.html"
+   ],
+   "https://tgo66l3w3s2trxoizqowfwvo240wclyw.lambda-url.us-east-1.on.aws": [
+    "wealth-plan.html"
+   ],
+   "https://vsxv2775x5aojiuwaoqb7wipam0rmuln.lambda-url.us-east-1.on.aws": [
+    "edge.html"
+   ],
+   "https://web.archive.org": [
+    "tools/wayback-ice-grab.js"
+   ],
+   "https://zmwuxvqqwexxzzgrw7g2ayql6i0fqrpi.lambda-url.us-east-1.on.aws": [
+    "stress.html"
+   ],
+   "https://zsgb72zf4ayw6ajw7phbyq6wzq0haobh.lambda-url.us-east-1.on.aws": [
+    "chart-macro.html"
+   ],
+   "wss://justhodl-data-proxy.raafouis.workers.dev": [
+    "chart-pro.html"
+   ],
+   "wss://q7vco36knh.execute-api.us-east-1.amazonaws.com": [
+    "wss-client.js"
+   ]
+  }
+ },
+ "header": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.plot.ly https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://challenges.cloudflare.com https://justhodl-data-proxy.raafouis.workers.dev https://s3.tradingview.com https://static.cloudflareinsights.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://unpkg.com; font-src 'self' data: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.gstatic.com https://unpkg.com; img-src 'self' data: blob: https:; media-src 'self' data: https:; connect-src 'self' https://*.execute-api.us-east-1.amazonaws.com https://*.lambda-url.us-east-1.on.aws https://*.raafouis.workers.dev https://*.supabase.co https://api.dexscreener.com https://api.justhodl.ai https://api.stlouisfed.org https://api.telegram.org https://cdn.jsdelivr.net https://cdn.plot.ly https://cdnjs.cloudflare.com https://financialmodelingprep.com https://justhodl-dashboard-live.s3.amazonaws.com https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com https://macro-data-lake.s3.amazonaws.com https://patentsview.org https://s3.amazonaws.com https://s3.us-east-1.amazonaws.com https://static.cloudflareinsights.com https://unpkg.com https://web.archive.org wss://*.execute-api.us-east-1.amazonaws.com wss://*.raafouis.workers.dev wss://*.supabase.co; frame-src 'self' https://*.tradingview-widget.com https://*.tradingview.com https://challenges.cloudflare.com https://justhodl.ai; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'self'; upgrade-insecure-requests",
+ "generated_at": "2026-09-01T23:42:51+00:00",
+ "n_files_scanned": 566
+}
