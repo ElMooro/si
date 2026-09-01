@@ -90,7 +90,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 ENGINE = "justhodl-fortress"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fortress.json"
@@ -2517,6 +2517,15 @@ def lite_signals(b, pos, mkt_t):
             continue
         ex.append((b.c[q] / b.c[q - 1] - 1 - rets[idx]) * 1e4)
     exm = mean(ex) if len(ex) >= 6 else None
+    ys, xs = [], []
+    for k in range(max(1, n - 252), n):
+        idx = d[start + k]
+        mr = rets.get(idx)
+        if mr is None or d[start + k - 1] != idx - 1:
+            continue
+        ys.append(c[k] / c[k - 1] - 1)
+        xs.append(mr)
+    beta = ols_beta(ys, xs) if len(xs) >= 120 else None
     resilient = None
     if capw is not None or exm is not None:
         ep_ok = (capw is not None and capw <= P["capture_barely_dipped"]
@@ -2527,7 +2536,7 @@ def lite_signals(b, pos, mkt_t):
         resilient = bool(ep_ok or day_ok)
     knife = (n > 63 and last / c[-64] - 1 <= P["knife_ret_3m_pct"] / 100.0) or (last / ema250 - 1 <= P["knife_below_ema_pct"] / 100.0)
     return {"under": under, "coiled": coiled, "resilient": resilient, "bbp": bbp,
-            "capture": capw, "worst_ex": exm, "knife": knife,
+            "capture": capw, "worst_ex": exm, "knife": knife, "beta": beta,
             "n_gates": int(under) + int(bool(coiled)) + int(bool(resilient))}
 
 
@@ -2581,7 +2590,7 @@ def run_backtest(event):
             ex21 = (r21 - spy_r21) * 100
             ex63 = (r63 - spy_r63) * 100
             obs.append((t, sig["n_gates"], sig["under"], sig["coiled"], sig["resilient"], sig["bbp"],
-                        sig["capture"], sig["knife"], ex21, ex63))
+                        sig["capture"], sig["knife"], ex21, ex63, r21 * 100, r63 * 100, spy_r21 * 100, spy_r63 * 100, sig["beta"]))
             if sig["n_gates"] == 3 and not sig["knife"]:
                 coh.append(ex21)
         per_date.append({"date": dates[t], "n_scored": n_t, "spy_fwd21_pct": round(spy_r21 * 100, 2),
@@ -2596,10 +2605,20 @@ def run_backtest(event):
             return {"n": 0}
         e21 = [x[8] for x in rows]
         e63 = [x[9] for x in rows]
+        r21s = [x[10] for x in rows]
+        r63s = [x[11] for x in rows]
+        al21 = [x[10] - x[14] * x[12] for x in rows if x[14] is not None]
+        al63 = [x[11] - x[14] * x[13] for x in rows if x[14] is not None]
+        betas = [x[14] for x in rows if x[14] is not None]
         return {"n": len(rows), "median_ex21_pct": rnd(median(e21), 2), "mean_ex21_pct": rnd(mean(e21), 2),
                 "hit21_pct": rnd(100.0 * sum(1 for x in e21 if x > 0) / len(e21), 1),
                 "median_ex63_pct": rnd(median(e63), 2), "mean_ex63_pct": rnd(mean(e63), 2),
-                "hit63_pct": rnd(100.0 * sum(1 for x in e63 if x > 0) / len(e63), 1)}
+                "hit63_pct": rnd(100.0 * sum(1 for x in e63 if x > 0) / len(e63), 1),
+                "median_ret21_pct": rnd(median(r21s), 2), "median_ret63_pct": rnd(median(r63s), 2),
+                "median_alpha21_pct": rnd(median(al21), 2) if al21 else None,
+                "median_alpha63_pct": rnd(median(al63), 2) if al63 else None,
+                "alpha21_hit_pct": rnd(100.0 * sum(1 for x in al21 if x > 0) / len(al21), 1) if al21 else None,
+                "median_beta": rnd(median(betas), 2) if betas else None}
     clean = [x for x in obs if not x[7]]
     by_gates = {str(k): stats([x for x in clean if x[1] == k]) for k in range(4)}
     fortress_tight = stats([x for x in clean if x[1] == 3 and x[5] <= 10])
@@ -2607,13 +2626,39 @@ def run_backtest(event):
     not_resilient = stats([x for x in clean if x[4] is False])
     under_only = stats([x for x in clean if x[2] and not x[3] and not x[4]])
     knives = stats([x for x in obs if x[7]])
+    # the location gate, measured: resilient + coiled with / without the EMA250 requirement
+    location_test = {
+        "resilient_coiled_under_ema250": by_gates["3"],
+        "resilient_coiled_above_ema250": stats([x for x in clean if x[4] and x[3] and not x[2]]),
+        "resilient_coiled_any_location": stats([x for x in clean if x[4] and x[3]]),
+        "coiled_above_ema250_not_resilient": stats([x for x in clean if x[3] and not x[2] and x[4] is False]),
+        "resilient_under_ema250_not_coiled": stats([x for x in clean if x[4] and x[2] and not x[3]]),
+        "all_above_ema250": stats([x for x in clean if not x[2]]),
+        "all_under_ema250": stats([x for x in clean if x[2]]),
+    }
+    # conditional on what SPY did next (the thesis is protection first)
+    def cond(pred):
+        rows = [x for x in clean if pred(x)]
+        return {"n_windows": len({x[0] for x in rows}),
+                "all": stats(rows), "fortress3": stats([x for x in rows if x[1] == 3]),
+                "resilient": stats([x for x in rows if x[4] is True]),
+                "not_resilient": stats([x for x in rows if x[4] is False]),
+                "spy_median_ret21_pct": rnd(median([x[12] for x in rows]), 2) if rows else None}
+    by_spy_direction = {
+        "spy_down_21s_le_-2pct": cond(lambda x: x[12] <= -2.0),
+        "spy_flat_21s": cond(lambda x: -2.0 < x[12] < 2.0),
+        "spy_up_21s_ge_2pct": cond(lambda x: x[12] >= 2.0),
+    }
     withcap = sorted([x for x in clean if x[6] is not None], key=lambda x: x[6])
     deciles = {}
+    deciles_down = {}
     if len(withcap) >= 100:
         k = len(withcap) // 10
         for i in range(10):
             seg = withcap[i * k:(i + 1) * k if i < 9 else len(withcap)]
             deciles["D%d" % (i + 1)] = dict(stats(seg), capture_lo=rnd(seg[0][6], 2), capture_hi=rnd(seg[-1][6], 2))
+            dn = [x for x in seg if x[12] <= -2.0]
+            deciles_down["D%d" % (i + 1)] = dict(stats(dn), capture_lo=rnd(seg[0][6], 2), capture_hi=rnd(seg[-1][6], 2))
     spy_ex_note = "excess = name forward return minus SPY over the same sessions, percentage points; returns clipped to [-95%, +300%/+500%]"
     out = {
         "engine": ENGINE, "version": VERSION, "mode": "backtest",
@@ -2627,6 +2672,9 @@ def run_backtest(event):
         "resilient_vs_not": {"resilient": resilient, "not_resilient": not_resilient},
         "under_ema250_only": under_only, "knife_guard_cohort": knives,
         "by_capture_decile": deciles,
+        "by_capture_decile_in_spy_down_windows": deciles_down,
+        "location_gate_test": location_test,
+        "by_spy_direction": by_spy_direction,
         "per_date": per_date,
         "method": ("Every %d sessions from %s, the three price-structure gates (under EMA250, dump-resilient, coiled) "
                    "are scored exactly as the live engine scores them, using only bars up to that date (SPY episodes "
@@ -2637,6 +2685,9 @@ def run_backtest(event):
             "Adjusted bars from the polygon-full warehouse; corporate actions as Polygon adjusts them.",
             spy_ex_note,
             "A walk-forward sample of ~%d dates is a check on direction and monotonicity, not a guarantee." % len(per_date),
+            "The median stock lags the cap-weighted SPY (0-gate cohort is the base rate) -- compare cohorts to that base rate, not to zero.",
+            "median_alpha = forward return minus trailing-252-session beta x SPY forward return: the fair yardstick for a low-beta basket.",
+            "by_spy_direction splits the test dates by what SPY did over the next 21 sessions: protection is the thesis, so read the down-window rows first.",
         ],
         "diagnostics": {"log": LOG[-30:], "elapsed_s": round(time.time() - T0, 1)},
     }
@@ -2711,7 +2762,7 @@ DEFINITIONS = {
     "sizing": "Risk-parity weights across the picks: proportional to 1 / dump_downside so every position carries the same expected loss in a -10% SPY dump, capped at 15%, renormalised.",
     "changes": "Tier moves since the previous snapshot: upgrades, downgrades, new entries into the top three tiers, exits, and the names that just became FORTRESS_COIL.",
     "watch_trigger": "For a 5/6 name, the one gate that fails and the level that would flip it.",
-    "validation": "The weekly walk-forward backtest of the price-structure legs (data/fortress-backtest.json): 21- and 63-session excess returns vs SPY by number of price gates passed, by dump-capture decile, and per test date. Fundamentals and flows are not backtested (no point-in-time history) -- read the caveats.",
+    "validation": "The weekly walk-forward backtest of the price-structure legs (data/fortress-backtest.json): 21- and 63-session excess returns vs SPY and beta-adjusted alpha by number of price gates passed, by dump-capture decile (all windows and SPY-down windows), the location-gate test (resilient+coiled with vs without the EMA250 requirement), the split by what SPY did next, and per test date. Fundamentals and flows are not backtested (no point-in-time history) -- read the caveats.",
     "regime": "Market backdrop from the fleet regime engines (regime-composite meta regime, vol regime) plus SPY vs EMA250 and breadth. A fortress screen is most useful entering or inside a dump; when nothing has dumped for a year the capture legs rest on the three-year window and the down-day read.",
 }
 
@@ -2848,7 +2899,10 @@ def lambda_handler(event=None, context=None):
                    "by_price_gates": bt.get("by_price_gates"), "fortress3_tight_bbw10": bt.get("fortress3_tight_bbw10"),
                    "resilient_vs_not": bt.get("resilient_vs_not"), "under_ema250_only": bt.get("under_ema250_only"),
                    "knife_guard_cohort": bt.get("knife_guard_cohort"),
-                   "by_capture_decile": bt.get("by_capture_decile"), "per_date": (bt.get("per_date") or [])[-30:],
+                   "by_capture_decile": bt.get("by_capture_decile"),
+                   "by_capture_decile_in_spy_down_windows": bt.get("by_capture_decile_in_spy_down_windows"),
+                   "location_gate_test": bt.get("location_gate_test"), "by_spy_direction": bt.get("by_spy_direction"),
+                   "per_date": (bt.get("per_date") or [])[-40:],
                    "method": bt.get("method"), "caveats": bt.get("caveats")}
                   if bt else {"status": "pending", "note": "weekly walk-forward backtest not yet written (justhodl-fortress-backtest-weekly, Sundays 09:00 UTC)"})
     regime = dict(F.get("regime") or {})

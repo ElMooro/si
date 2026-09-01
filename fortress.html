@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="fortress-version" content="fortress-v2.0.0">
+<meta name="fortress-version" content="fortress-v2.0.1">
 <meta name="jh-marker" content="FORTRESS_COIL_V1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Fortress Coil · Dump-Resilient Accumulation Radar · JustHodl.AI</title>
@@ -345,18 +345,24 @@ function renderInd(){
   header($("ith"),ICOLS,ISORT,function(k){ISORT=ISORT.k===k?{k:k,d:-ISORT.d}:{k:k,d:-1};renderInd();});
   $("itb").innerHTML=rows.map(function(r){return '<tr>'+ICOLS.map(function(c){return '<td class="'+(c.r?"r":"")+'">'+c.f(r)+'</td>';}).join("")+'</tr>';}).join("");
 }
-function statRow(label,x){if(!x||!x.n)return '<tr><td>'+label+'</td><td class="r dim" colspan="6">no observations</td></tr>';return '<tr><td>'+label+'</td><td class="r">'+x.n+'</td><td class="r">'+sgn(x.median_ex21_pct,2,"%")+'</td><td class="r">'+n(x.hit21_pct,0,"%")+'</td><td class="r">'+sgn(x.median_ex63_pct,2,"%")+'</td><td class="r">'+n(x.hit63_pct,0,"%")+'</td><td class="r dim">'+sgn(x.mean_ex21_pct,2,"%")+'</td></tr>';}
+function statRow(label,x){if(!x||!x.n)return '<tr><td>'+label+'</td><td class="r dim" colspan="8">no observations</td></tr>';return '<tr><td>'+label+'</td><td class="r">'+x.n+'</td><td class="r">'+sgn(x.median_ret21_pct,2,"%")+'</td><td class="r">'+sgn(x.median_ex21_pct,2,"%")+'</td><td class="r">'+sgn(x.median_alpha21_pct,2,"%")+'</td><td class="r">'+n(x.hit21_pct,0,"%")+'</td><td class="r">'+sgn(x.median_ex63_pct,2,"%")+'</td><td class="r">'+sgn(x.median_alpha63_pct,2,"%")+'</td><td class="r dim">'+n(x.median_beta,2)+'</td></tr>';}
+var STAT_HEAD='<tr><th>Cohort</th><th class="r">n</th><th class="r">median ret 21s</th><th class="r">excess vs SPY 21s</th><th class="r">β-adj alpha 21s</th><th class="r">hit 21s</th><th class="r">excess 63s</th><th class="r">alpha 63s</th><th class="r">β</th></tr>';
 function renderBase(){
   var v=DOC.validation||{},b=DOC.base_rates||{};
   var h='';
   if(v.status==="measured"){
     var g=v.by_price_gates||{};
     h+='<div class="kv">walk-forward backtest of the PRICE-STRUCTURE legs · as of '+esc(v.as_of)+' · '+esc(v.n_observations)+' observations over '+esc(v.n_test_dates)+' test dates ('+esc((v.test_dates||[])[0])+' → '+esc((v.test_dates||[])[1])+')</div><p class="note">'+esc(v.method||"")+'</p>';
-    h+='<table class="mini"><tr><th>Cohort</th><th class="r">n</th><th class="r">median excess 21s</th><th class="r">hit 21s</th><th class="r">median excess 63s</th><th class="r">hit 63s</th><th class="r">mean 21s</th></tr>'
-      +statRow("0 price gates",g["0"])+statRow("1 gate",g["1"])+statRow("2 gates",g["2"])+statRow("<b>3/3: under EMA250 + dump-resilient + coiled</b>",g["3"])+statRow("3/3 + bandwidth ≤ 10th pctile",v.fortress3_tight_bbw10)
+    h+='<table class="mini">'+STAT_HEAD
+      +statRow("0 price gates (base rate)",g["0"])+statRow("1 gate",g["1"])+statRow("2 gates",g["2"])+statRow("<b>3/3: under EMA250 + dump-resilient + coiled</b>",g["3"])+statRow("3/3 + bandwidth ≤ 10th pctile",v.fortress3_tight_bbw10)
       +statRow("dump-resilient (any)",(v.resilient_vs_not||{}).resilient)+statRow("not dump-resilient",(v.resilient_vs_not||{}).not_resilient)+statRow("under EMA250 only",v.under_ema250_only)+statRow("knife-guard cohort (excluded live)",v.knife_guard_cohort)+'</table>';
-    var d=v.by_capture_decile||{};var dk=Object.keys(d);
-    if(dk.length){h+='<h4 style="margin:14px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim)">By dump-capture decile (D1 = most resilient)</h4><table class="mini"><tr><th>Decile</th><th class="r">capture range</th><th class="r">n</th><th class="r">median excess 21s</th><th class="r">hit 21s</th><th class="r">median excess 63s</th><th class="r">hit 63s</th></tr>'+dk.map(function(k){var x=d[k];return '<tr><td>'+k+'</td><td class="r dim">'+n(x.capture_lo,2)+' … '+n(x.capture_hi,2)+'</td><td class="r">'+x.n+'</td><td class="r">'+sgn(x.median_ex21_pct,2,"%")+'</td><td class="r">'+n(x.hit21_pct,0,"%")+'</td><td class="r">'+sgn(x.median_ex63_pct,2,"%")+'</td><td class="r">'+n(x.hit63_pct,0,"%")+'</td></tr>';}).join("")+'</table>';}
+    var sd=v.by_spy_direction||{};var sk=Object.keys(sd);
+    if(sk.length){h+='<h4 style="margin:14px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim)">Conditioned on what SPY did over the next 21 sessions (protection is the thesis — read the down row first)</h4><table class="mini">'+STAT_HEAD.replace('<th>Cohort</th>','<th>SPY window · cohort</th>')+sk.map(function(k){var x=sd[k];return statRow('<b>'+esc(k.replace(/_/g," "))+'</b> · '+x.n_windows+' windows · SPY median '+sgn(x.spy_median_ret21_pct,1,"%")+' · all names',x.all)+statRow('&nbsp;&nbsp;3/3 fortress',x.fortress3)+statRow('&nbsp;&nbsp;dump-resilient',x.resilient)+statRow('&nbsp;&nbsp;not resilient',x.not_resilient);}).join("")+'</table>';}
+    var lt=v.location_gate_test||{};var lk=Object.keys(lt);
+    if(lk.length){h+='<h4 style="margin:14px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim)">The location gate, measured (resilient + coiled with and without the EMA250 requirement)</h4><table class="mini">'+STAT_HEAD+lk.map(function(k){return statRow(esc(k.replace(/_/g," ")),lt[k]);}).join("")+'</table>';}
+    function decTable(title,d){var dk=Object.keys(d||{});if(!dk.length)return '';return '<h4 style="margin:14px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim)">'+title+'</h4><table class="mini"><tr><th>Decile</th><th class="r">capture range</th><th class="r">n</th><th class="r">median ret 21s</th><th class="r">excess vs SPY 21s</th><th class="r">β-adj alpha 21s</th><th class="r">hit 21s</th><th class="r">excess 63s</th><th class="r">β</th></tr>'+dk.map(function(k){var x=d[k];if(!x||!x.n)return '<tr><td>'+k+'</td><td class="r dim" colspan="8">no observations</td></tr>';return '<tr><td>'+k+'</td><td class="r dim">'+n(x.capture_lo,2)+' … '+n(x.capture_hi,2)+'</td><td class="r">'+x.n+'</td><td class="r">'+sgn(x.median_ret21_pct,2,"%")+'</td><td class="r">'+sgn(x.median_ex21_pct,2,"%")+'</td><td class="r">'+sgn(x.median_alpha21_pct,2,"%")+'</td><td class="r">'+n(x.hit21_pct,0,"%")+'</td><td class="r">'+sgn(x.median_ex63_pct,2,"%")+'</td><td class="r dim">'+n(x.median_beta,2)+'</td></tr>';}).join("")+'</table>';}
+    h+=decTable("By dump-capture decile, all windows (D1 = most resilient last time)",v.by_capture_decile);
+    h+=decTable("By dump-capture decile, SPY-down windows only — does past resilience predict the NEXT dump?",v.by_capture_decile_in_spy_down_windows);
     var pd=v.per_date||[];
     if(pd.length){h+='<h4 style="margin:14px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim)">Per test date — 3/3 cohort</h4><table class="mini"><tr><th>Date</th><th class="r">scored</th><th class="r">3/3 names</th><th class="r">median excess 21s</th><th class="r">hit 21s</th><th class="r">SPY fwd 21s</th><th class="r">SPY fwd 63s</th><th class="r">dumps as of</th></tr>'+pd.map(function(x){return '<tr><td>'+esc(x.date)+'</td><td class="r">'+x.n_scored+'</td><td class="r">'+x.n_fortress3+'</td><td class="r">'+sgn(x.fortress3_median_ex21_pct,2,"%")+'</td><td class="r">'+n(x.fortress3_hit21_pct,0,"%")+'</td><td class="r">'+sgn(x.spy_fwd21_pct,1,"%")+'</td><td class="r">'+sgn(x.spy_fwd63_pct,1,"%")+'</td><td class="r">'+x.n_dump_episodes_asof+'</td></tr>';}).join("")+'</table>';}
     h+='<p class="note">'+(v.caveats||[]).map(esc).join(" · ")+'</p>';
