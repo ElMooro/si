@@ -27,6 +27,8 @@ Gates: G1-G7 as before (memory 8192 for the full-tape backtest), plus
       capture deciles present
   G9  daily re-run after the backtest carries validation.status=measured
 
+Re-run 2: after the OBV off-by-one fix (names with exactly 64 sessions).
+
 Previous op text follows (same gates, same verification).
 
 FORTRESS COIL (Khalid, 2026-08-31): stocks and ETFs that barely dipped /
