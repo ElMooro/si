@@ -60,7 +60,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.3"
+VERSION = "1.0.4"
 ENGINE = "justhodl-fortress"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fortress.json"
@@ -164,7 +164,9 @@ LEV_RX = re.compile(r"\b(2x|3x|-1x|ultra|bull|bear|inverse|short|leveraged|"
 # products whose "resilience" is an option overlay or a volatility bet, not accumulation
 OVERLAY_RX = re.compile(r"\bvix\b|volatility|market neutral|anti-beta|buffer|defined outcome|"
                         r"hedged|covered call|premium income|high income|enhanced (dividend|income)|"
-                        r"option income|overlay|floor etf|managed futures|long/short|tail risk", re.I)
+                        r"option income|overlay|floor etf|managed futures|long/short|tail risk|"
+                        r"target \d+|select income|advantage .*income|buy-?write|yieldmax|"
+                        r"option (strategy|premium)|derivative income|income (strategy|plus)", re.I)
 NON_OPERATING_RX = re.compile(r"^(closed-end fund|exchange traded fund|shell companies)", re.I)
 TICKER_OK = re.compile(r"^[A-Z]{1,5}(\.[AB])?$")
 
