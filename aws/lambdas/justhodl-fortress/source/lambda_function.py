@@ -60,7 +60,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 ENGINE = "justhodl-fortress"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fortress.json"
@@ -1135,6 +1135,8 @@ def safety_block(sym, fv, cs, ps, F, mcap, today):
         risks.append("max drawdown %.0f%% over the year" % mdd)
     if cov is not None and cov < 0:
         risks.append("net liquid assets negative (debt exceeds liquid assets)")
+    if adv is not None and adv < 5e6:
+        risks.append("thin liquidity: $%.1fM average daily dollar volume" % (adv / 1e6))
     return {"safety_score": (clamp(sc) if sc is not None else None), "nlav_coverage": cov,
             "altman_z": altman, "piotroski_f": pio, "beneish_m": ben,
             "interest_coverage": icov, "netdebt_to_ebitda": nd_e, "debt_to_equity": debt_eq,
@@ -1406,6 +1408,29 @@ def momentum_score(r):
     return (sum(w * v for w, v in parts) / sum(w for w, _ in parts)) if parts else None
 
 
+def dump_gate(r):
+    """Episode capture and worst-day behaviour must not contradict each other:
+    a name that rose through the drawdowns but bleeds on the single worst
+    days is not a fortress."""
+    cap = r.get("dump_capture")
+    ex = r.get("worst_days_excess_bps")
+    gr = r.get("worst_days_green_rate") or 0.0
+    if cap is None and ex is None:
+        return None
+    ep_ok = cap is not None and cap <= P["capture_barely_dipped"] and (ex is None or ex >= -75)
+    day_ok = ex is not None and ex >= 25 and gr >= 0.40 and (cap is None or cap <= 0.7)
+    return bool(ep_ok or day_ok)
+
+
+def coil_gate(r):
+    bp = r.get("bb_width_pctile")
+    sq = r.get("ttm_squeeze_on")
+    if bp is None and sq is None:
+        return None
+    return bool((bp is not None and bp <= P["bb_squeeze_pctile"])
+                or (sq and (r.get("squeeze_days") or 0) >= 3))
+
+
 def gates_and_tier(r):
     g = {
         "under_ema250": (r["vs_ema250_pct"] < 0) if r.get("vs_ema250_pct") is not None else None,
@@ -1417,15 +1442,8 @@ def gates_and_tier(r):
                    if (r.get("growth_score") is not None) else None),
         "industry_inflows": (bool(r.get("industry_inflow")) if r.get("flow_score") is not None else None),
     }
-    cap = r.get("dump_capture")
-    ex = r.get("worst_days_excess_bps")
-    gr = r.get("worst_days_green_rate")
-    if cap is not None or ex is not None:
-        g["dump_resilient"] = bool((cap is not None and cap <= P["capture_barely_dipped"])
-                                   or (ex is not None and ex >= 25 and (gr or 0) >= 0.40))
-    bp = r.get("bb_width_pctile")
-    if bp is not None or r.get("ttm_squeeze_on") is not None:
-        g["coiled"] = bool((bp is not None and bp <= P["bb_squeeze_pctile"]) or r.get("ttm_squeeze_on"))
+    g["dump_resilient"] = dump_gate(r)
+    g["coiled"] = coil_gate(r)
     passed = sum(1 for v in g.values() if v)
     tier = TIER_BY_GATES.get(passed, "SCREENED")
     caps = []
@@ -1492,9 +1510,15 @@ def reasons_for(r):
     R = []
     cap = r.get("dump_capture")
     if r.get("n_episodes"):
-        R.append("captured %s of the SPY dump across %d drawdown episode(s) (flat-or-up in %s of them)" % (
-            ("%.0f%%" % (cap * 100)) if cap is not None else "n/a", r["n_episodes"],
-            ("%.0f%%" % (r["flat_or_up_share"] * 100)) if r.get("flat_or_up_share") is not None else "n/a"))
+        fu = ("%.0f%%" % (r["flat_or_up_share"] * 100)) if r.get("flat_or_up_share") is not None else "n/a"
+        if cap is None:
+            R.append("%d SPY drawdown episode(s) overlapped; capture n/a" % r["n_episodes"])
+        elif cap < 0:
+            R.append("ROSE while SPY dumped: capture %.2f across %d drawdown episode(s), flat-or-up in %s of them" % (
+                cap, r["n_episodes"], fu))
+        else:
+            R.append("captured only %.0f%% of the SPY dump across %d drawdown episode(s), flat-or-up in %s of them" % (
+                cap * 100, r["n_episodes"], fu))
     if r.get("worst_days_excess_bps") is not None:
         R.append("on SPY's %d worst days: %+.0f bps vs SPY, green %.0f%% of the time" % (
             r["worst_days_n"], r["worst_days_excess_bps"], (r.get("worst_days_green_rate") or 0) * 100))
@@ -1567,7 +1591,13 @@ def build_etf_rows(bars, dates, mkt, F):
         lev = bool(LEV_RX.search(name)) or bool((F["flows_poly"].get(sym) or {}).get("leveraged"))
         if lev:
             continue
+        et = str(fv.get("etf_type") or "").lower()
+        in_fleet = sym in F["rotation"] or sym in F["flows_poly"] or sym in F["flows_true"]
+        if et and not et.startswith("equit") and not in_fleet:
+            continue  # bond / commodity / currency wrappers: trivially "resilient", not the brief
         ps = price_signals(b, mkt, {}, dates)
+        if (ps.get("vol_100d_pct") or 0) < 8.0:
+            continue  # cash-like vol: not an equity accumulation candidate
         fl = flow_legs(sym, F)
         rot = F["rotation"].get(sym) or {}
         aum = fnum(fv.get("aum"))
@@ -1590,19 +1620,14 @@ def build_etf_rows(bars, dates, mkt, F):
             "dump_resilient": None, "coiled": None,
             "inflows": (bool(fl.get("inflow")) if fl.get("score") is not None else None),
         }
-        cap = r.get("dump_capture")
-        ex = r.get("worst_days_excess_bps")
-        if cap is not None or ex is not None:
-            g["dump_resilient"] = bool((cap is not None and cap <= P["capture_barely_dipped"])
-                                       or (ex is not None and ex >= 25 and (r.get("worst_days_green_rate") or 0) >= 0.4))
-        bp = r.get("bb_width_pctile")
-        if bp is not None or r.get("ttm_squeeze_on") is not None:
-            g["coiled"] = bool((bp is not None and bp <= P["bb_squeeze_pctile"]) or r.get("ttm_squeeze_on"))
+        g["dump_resilient"] = dump_gate(r)
+        g["coiled"] = coil_gate(r)
         passed = sum(1 for v in g.values() if v)
         r["gates"] = g
         r["gates_passed"] = passed
         r["tier"] = {4: "ETF_FORTRESS", 3: "ETF_COILED", 2: "ETF_WATCH"}.get(passed, "SCREENED")
-        if (r.get("adv_usd_20d") or 0) < P["min_adv_usd"] and r["tier"] != "SCREENED":
+        if r["tier"] != "SCREENED" and ((r.get("adv_usd_20d") or 0) < P["min_adv_usd"]
+                                        or (aum is not None and aum < 5e7)):
             r["tier"] = "SCREENED"
         pil = {"resilience": resilience_score(r), "coil": coil_score(r),
                "location": location_score(r), "flows": fl.get("score"),
@@ -1727,7 +1752,7 @@ DEFINITIONS = {
     "beta_asymmetry": "Upside beta (regressed on SPY up-days) minus downside beta (SPY down-days). Positive = more sensitive to rallies than to dumps: a convex profile.",
     "vs_ema250_pct": "Distance from the true 250-session exponential moving average (SMA-seeded). Negative = below the long-term average = the accumulation zone this radar hunts. Below -35% is treated as a collapse, not accumulation (knife guard).",
     "bb_width_pctile": "Where today's Bollinger(20,2) bandwidth sits versus every day of the trailing year. 5 = tighter than 95% of its own history. Bottom 20% = coiled; bottom 10% = very tight.",
-    "ttm_squeeze_on": "Bollinger bands entirely inside the Keltner channel (EMA20 +/- 1.5 ATR20). A classic pre-expansion signature; squeeze_days counts how long it has held.",
+    "ttm_squeeze_on": "Bollinger bands entirely inside the Keltner channel (EMA20 +/- 1.5 ATR20). A classic pre-expansion signature; squeeze_days counts how long it has held. The coiled gate needs a bandwidth percentile <= 20 or a squeeze that has held >= 3 sessions.",
     "bb_pct_b": "Position inside the bands: 0 = lower band, 1 = upper band. 0.6-0.9 with a tight band = coiled near the top of its range.",
     "coil_state": "COILING = tight band and no release; PRE_BREAKOUT = pressing the upper band within 3% of the 60-session high; IGNITED = closed above the upper band on 1.5x volume (already released, chase risk); LOOSE = bands not compressed.",
     "atr_contraction": "ATR(20) / ATR(100). Below 1 = daily ranges are shrinking: volatility compression.",
@@ -1742,7 +1767,7 @@ DEFINITIONS = {
     "safety_score": "Downside cushion: net-liquid-asset coverage of market cap (floor auditor), Altman Z, Piotroski F, Beneish M, interest coverage or net debt/EBITDA, current ratio, positive FCF, dilution, beta, 1-year max drawdown, dollar liquidity, short-float extremes. Earnings inside 7 days subtracts 12 (binary event inside the coil).",
     "composite": "Weighted average of the nine pillars (weights published in the payload) computed only when at least 60% of the weight is covered by real data. Not a rating -- a ranking of confluence.",
     "asymmetry": "Upside room (median of analyst-PT upside and distance to the 52-week high) divided by the expected loss in a -10% SPY dump (10 x dump capture, floored at half of the name's own one-month sigma so a negative capture never reads as zero risk, cut by 30% when net liquid assets cover >= 50% of market cap; capped at 25). 3.0 = three points of room per point of empirical dump risk.",
-    "tier": "FORTRESS_COIL passes all six spec gates (under EMA250, dump-resilient, coiled, low valuation, growth, industry inflows); COILED five; ACCUMULATING four; WATCH three; SCREENED otherwise. The knife guard, hygiene floor and an already-ignited breakout cap the tier.",
+    "tier": "FORTRESS_COIL passes all six spec gates (under EMA250, dump-resilient, coiled, low valuation, growth, industry inflows); COILED five; ACCUMULATING four; WATCH three; SCREENED otherwise. Dump-resilient means episode capture <= 0.35 with worst-day excess not worse than -75 bps, or worst-day excess >= +25 bps with a >= 40% green rate and capture <= 0.7 -- the two reads may not contradict. The knife guard, hygiene floor and an already-ignited breakout cap the tier.",
     "nlav_coverage": "Net liquid asset value (cash + investments + live-marked crypto x0.85 receivables - debt) divided by market cap, from the asset-floor auditor. 0.6 = 60% of the price is already cash-like.",
     "rs_vs_industry_3m_pp": "Stock's 63-session return minus its industry ETF's, in percentage points. The O'Neil relative-strength leg: is the name leading its own group?",
     "base_rates": "Forward 21-session returns of this engine's OWN past picks, recomputed from the bar warehouse each run. Accrues from the first snapshot; nothing is claimed until measured.",
@@ -1822,7 +1847,7 @@ def lambda_handler(event=None, context=None):
             o[k] = v
         return o
 
-    board = [slim(r) for r in stock_rows if r["tier"] != "SCREENED"][:500]
+    board = [slim(r) for r in stock_rows if r["tier"] != "SCREENED"][:800]
     LEDGER_KEYS = ["ticker", "name", "sector", "industry", "cap_bucket", "market_cap", "tier", "gates_passed",
                    "composite", "asymmetry", "close", "vs_ema250_pct", "dump_capture", "worst_days_excess_bps",
                    "bb_width_pctile", "ttm_squeeze_on", "coil_state", "valuation_score", "growth_score",
