@@ -60,7 +60,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 ENGINE = "justhodl-fortress"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fortress.json"
@@ -161,6 +161,11 @@ IND_ETF_NAME = {
 }
 LEV_RX = re.compile(r"\b(2x|3x|-1x|ultra|bull|bear|inverse|short|leveraged|"
                     r"daily 2|daily 3)\b", re.I)
+# products whose "resilience" is an option overlay or a volatility bet, not accumulation
+OVERLAY_RX = re.compile(r"\bvix\b|volatility|market neutral|anti-beta|buffer|defined outcome|"
+                        r"hedged|covered call|premium income|high income|enhanced (dividend|income)|"
+                        r"option income|overlay|floor etf|managed futures|long/short|tail risk", re.I)
+NON_OPERATING_RX = re.compile(r"^(closed-end fund|exchange traded fund|shell companies)", re.I)
 TICKER_OK = re.compile(r"^[A-Z]{1,5}(\.[AB])?$")
 
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -1163,6 +1168,8 @@ def build_stock_rows(bars, dates, mkt, F, etf_bars):
         fv = F["finviz"].get(to_fv(sym))
         if not fv or is_etf_row(fv):
             continue
+        if NON_OPERATING_RX.match(str(fv.get("industry") or "")):
+            continue  # closed-end funds / shells are not operating companies
         n_fv += 1
         n = len(b.c)
         if n < 60:
@@ -1607,7 +1614,7 @@ def build_etf_rows(bars, dates, mkt, F):
             continue
         name = fv.get("company") or ""
         lev = bool(LEV_RX.search(name)) or bool((F["flows_poly"].get(sym) or {}).get("leveraged"))
-        if lev:
+        if lev or OVERLAY_RX.search(name):
             continue
         et = str(fv.get("etf_type") or "").lower()
         if "equit" not in et and sym not in IND_ETF.values() and sym not in SECTOR_ETF.values():
@@ -1620,6 +1627,8 @@ def build_etf_rows(bars, dates, mkt, F):
         aum = fnum(fv.get("aum"))
         if aum is not None and 0 < aum < 1e8:
             aum *= 1e6  # finviz $MM
+        if aum is not None and aum > 2e12:
+            aum = None  # bogus feed value (VXZ carried 4e13)
         r = {"ticker": sym, "name": name, "aum_usd": aum,
              "etf_type": fv.get("etf_type"), "kind": rot.get("kind"),
              "industry_name": IND_ETF_NAME.get(sym) or rot.get("name")}
