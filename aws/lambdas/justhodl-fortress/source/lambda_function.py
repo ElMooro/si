@@ -90,7 +90,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "2.0.1"
+VERSION = "2.1.0"
 ENGINE = "justhodl-fortress"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fortress.json"
@@ -102,6 +102,10 @@ P = {
     "sessions_loaded": 760,      # ~3 years: every SPY drawdown since 2023 feeds the capture statistics
     "lookback": 252,
     "episode_half_life": 252,    # recency weight on dump episodes (sessions)
+    "location_mode": "adaptive", # under | not_extended | adaptive (weekly backtest picks, with hysteresis)
+    "not_extended_max_pct": 15.0,  # not_extended: vs EMA250 <= +15% (and above the knife floor)
+    "adaptive_min_n": 100,       # both backtest arms need >= n observations
+    "adaptive_min_edge_pct": 0.5,  # the challenger must beat the spec by >= 0.5 pt of 63-session alpha
     "backtest_sessions": 1050,
     "backtest_step": 15,
     "dump_min_dd_pct": -4.0,     # SPY peak-to-trough that counts as a dump
@@ -129,8 +133,9 @@ WEIGHTS = {  # composite pillars, sum 100
 }
 GATE_PILLARS = ["resilience", "coil", "location", "valuation", "growth", "flows"]
 BACKTEST_KEY = "data/fortress-backtest.json"
-GATE_NAMES = ["under_ema250", "dump_resilient", "coiled", "low_valuation",
+GATE_NAMES = ["location", "dump_resilient", "coiled", "low_valuation",
               "growth", "industry_inflows"]
+LOCATION_MODE = {"mode": "under", "why": "spec default", "evidence": None}   # resolved per run from the backtest
 TIER_BY_GATES = {6: "FORTRESS_COIL", 5: "COILED", 4: "ACCUMULATING",
                  3: "WATCH"}
 
@@ -934,6 +939,17 @@ def price_signals(b, mkt, etf_bars, dates, aux=None):
     out["capture_median"] = median(caps)
     out["capture_mean"] = mean(caps)
     out["capture_worst"] = max(caps) if caps else None
+    # the never-worse-than-the-market rule is applied to the freshest window that has episodes:
+    # trailing year, else trailing two years, else the whole window
+    gate_caps, gate_win = None, None
+    ages = {(e["peak_date"], e["trough_date"]): e["age_sessions"] for e in mkt["episodes"]}
+    for win, key in ((252, "1y"), (504, "2y"), (10 ** 6, "3y")):
+        cc = [x["capture"] for x in ep_rows if x["capture"] is not None and ages.get((x["peak_date"], x["trough_date"]), 0) <= win]
+        if cc:
+            gate_caps, gate_win = cc, key
+            break
+    out["capture_worst_gate"] = max(gate_caps) if gate_caps else None
+    out["capture_worst_gate_window"] = gate_win
     wsum = sum(x["weight"] for x in ep_rows if x["capture"] is not None)
     out["capture_weighted"] = (sum(x["capture"] * x["weight"] for x in ep_rows if x["capture"] is not None) / wsum
                                if wsum else None)
@@ -1937,7 +1953,7 @@ def dump_gate(r):
     cap = r.get("dump_capture")
     ex = r.get("worst_days_excess_bps")
     gr = r.get("worst_days_green_rate") or 0.0
-    worst = r.get("capture_worst")
+    worst = r.get("capture_worst_gate") if r.get("capture_worst_gate") is not None else r.get("capture_worst")
     if cap is None and ex is None:
         return None
     dcap = r.get("capture_days_weighted")
@@ -1959,9 +1975,50 @@ def coil_gate(r):
                 or (sq and (r.get("squeeze_days") or 0) >= 3))
 
 
+def location_gate(r):
+    v = r.get("vs_ema250_pct")
+    if v is None:
+        return None
+    if LOCATION_MODE["mode"] == "not_extended":
+        return bool(P["knife_below_ema_pct"] < v <= P["not_extended_max_pct"])
+    return bool(v < 0)
+
+
+def resolve_location_mode(bt):
+    """adaptive: the weekly walk-forward decides between the spec (under EMA250) and
+    'not extended' (<= +15% over EMA250) on 63-session beta-adjusted alpha, with
+    hysteresis; anything less than clear evidence keeps the spec."""
+    mode = P["location_mode"]
+    LOCATION_MODE.update({"mode": "under" if mode == "adaptive" else mode,
+                          "why": "spec (%s)" % mode if mode != "adaptive" else "adaptive: no backtest yet -- spec default",
+                          "evidence": None})
+    if mode != "adaptive" or not bt:
+        return LOCATION_MODE
+    lt = bt.get("location_gate_test") or {}
+    under = lt.get("resilient_coiled_under_ema250") or {}
+    chal = lt.get("resilient_coiled_not_extended") or lt.get("resilient_coiled_above_ema250") or {}
+    ev = {"under": {k: under.get(k) for k in ("n", "median_alpha63_pct", "median_alpha21_pct", "hit21_pct")},
+          "not_extended": {k: chal.get(k) for k in ("n", "median_alpha63_pct", "median_alpha21_pct", "hit21_pct")},
+          "backtest_as_of": bt.get("as_of"), "arm": "resilient_coiled_not_extended" if lt.get("resilient_coiled_not_extended") else "resilient_coiled_above_ema250"}
+    LOCATION_MODE["evidence"] = ev
+    a_u = under.get("median_alpha63_pct")
+    a_c = chal.get("median_alpha63_pct")
+    if (under.get("n") or 0) >= P["adaptive_min_n"] and (chal.get("n") or 0) >= P["adaptive_min_n"] \
+            and a_u is not None and a_c is not None and a_c - a_u >= P["adaptive_min_edge_pct"]:
+        LOCATION_MODE["mode"] = "not_extended"
+        LOCATION_MODE["why"] = ("adaptive: 'not extended' beat 'under EMA250' by %.2f pts of 63-session alpha "
+                                "(%.2f vs %.2f, n %d vs %d) in the walk-forward of %s" % (
+                                    a_c - a_u, a_c, a_u, chal["n"], under["n"], str(bt.get("as_of"))[:10]))
+    else:
+        LOCATION_MODE["mode"] = "under"
+        LOCATION_MODE["why"] = "adaptive: spec kept -- challenger edge %s pts (needs >= %.1f with n >= %d both arms)" % (
+            (rnd(a_c - a_u, 2) if (a_u is not None and a_c is not None) else None), P["adaptive_min_edge_pct"], P["adaptive_min_n"])
+    return LOCATION_MODE
+
+
 def gates_and_tier(r):
     g = {
-        "under_ema250": (r["vs_ema250_pct"] < 0) if r.get("vs_ema250_pct") is not None else None,
+        "location": location_gate(r),
         "dump_resilient": None,
         "coiled": None,
         "low_valuation": r.get("low_valuation") if r.get("valuation_score") is not None else (
@@ -2046,6 +2103,10 @@ def composite_and_asymmetry(r, ranks=None):
     sig_m = (vol / math.sqrt(12)) if vol else None  # one-month 1-sigma move
     if cap is not None:
         downside = 10.0 * min(2.5, cap)                # empirical: capture x a -10% SPY dump
+        emp = empirical_dump_loss(cap)
+        r["empirical_dump_loss_pct"] = rnd(emp, 1)
+        if emp is not None:
+            downside = max(downside, emp)              # out-of-sample: what this capture decile lost in real SPY-down windows, scaled to -10%
         downside = max(downside, 0.5 * sig_m if sig_m else 2.0)  # idiosyncratic floor
         cv = r.get("cvar5_pct")
         if cv is not None:
@@ -2058,6 +2119,39 @@ def composite_and_asymmetry(r, ranks=None):
     r["upside_room_pct"] = rnd(upside, 1)
     r["dump_downside_pct"] = rnd(downside, 1)
     r["asymmetry"] = rnd(min(25.0, upside / downside), 2) if (upside is not None and downside) else None
+
+
+DECILE_LOSS = {"table": None, "spy_med": None}   # loaded per run from the backtest
+
+
+def load_decile_loss(bt):
+    DECILE_LOSS["table"] = None
+    DECILE_LOSS["spy_med"] = None
+    if not bt:
+        return
+    dd = bt.get("by_capture_decile_in_spy_down_windows") or {}
+    spy_med = ((bt.get("by_spy_direction") or {}).get("spy_down_21s_le_-2pct") or {}).get("spy_median_ret21_pct")
+    rows = []
+    for k, v in dd.items():
+        if v and v.get("n") and v.get("median_ret21_pct") is not None and v.get("capture_lo") is not None:
+            rows.append((v["capture_lo"], v["capture_hi"], v["median_ret21_pct"], v["n"]))
+    if len(rows) >= 5 and spy_med and spy_med < 0:
+        DECILE_LOSS["table"] = sorted(rows)
+        DECILE_LOSS["spy_med"] = spy_med
+
+
+def empirical_dump_loss(cap):
+    """median 21-session loss of the name's capture decile in real SPY-down windows,
+    scaled to a -10% SPY move (positive number = expected loss %)."""
+    tb = DECILE_LOSS["table"]
+    if not tb or cap is None:
+        return None
+    med = tb[-1][2]
+    for lo, hi, m, n in tb:
+        if cap <= hi:
+            med = m
+            break
+    return max(0.0, -med) * (10.0 / abs(DECILE_LOSS["spy_med"]))
 
 
 def pillar_ranks(rows):
@@ -2223,7 +2317,10 @@ def watch_trigger(r):
     if len(fails) != 1:
         return None
     k = fails[0]
-    if k == "under_ema250":
+    if k == "location":
+        if LOCATION_MODE["mode"] == "not_extended":
+            return "extended %.1f%% over EMA250 -- needs to trade within +%.0f%% of %.2f" % (
+                r.get("vs_ema250_pct") or 0, P["not_extended_max_pct"], r.get("ema250") or 0)
         return "above EMA250 by %.1f%% -- needs a pullback under %.2f" % (r.get("vs_ema250_pct") or 0, r.get("ema250") or 0)
     if k == "dump_resilient":
         return "dump capture %.2f (worst %.2f) -- needs the next SPY dump held (capture <= 0.35, never worse than the market)" % (
@@ -2307,7 +2404,7 @@ def build_etf_rows(bars, dates, mkt, F):
         r["leadership"] = fnum(rot.get("leadership_score"))
         r["rrg"] = ((F["rrg"].get(sym) or {}).get("quadrant") if isinstance(F["rrg"], dict) else None)
         g = {
-            "under_ema250": (r["vs_ema250_pct"] < 0) if r.get("vs_ema250_pct") is not None else None,
+            "location": location_gate(r),
             "dump_resilient": None, "coiled": None,
             "inflows": (bool(fl.get("inflow")) if fl.get("score") is not None else None),
         }
@@ -2478,7 +2575,7 @@ def lite_signals(b, pos, mkt_t):
     # episodes as of t
     d = b.d
     caps = []
-    worst = None
+    worst_by_win = {252: None, 504: None, 10 ** 6: None}
     wsum = 0.0
     wcap = 0.0
     dsum = 0.0
@@ -2494,7 +2591,9 @@ def lite_signals(b, pos, mkt_t):
         sr = (b.c[p1] / b.c[p0] - 1) * 100
         cap = sr / e["spy_dd_pct"]
         caps.append(cap)
-        worst = cap if worst is None else max(worst, cap)
+        for win in worst_by_win:
+            if e["age_sessions"] <= win:
+                worst_by_win[win] = cap if worst_by_win[win] is None else max(worst_by_win[win], cap)
         wsum += e["weight"]
         wcap += cap * e["weight"]
         sd_ = 0.0
@@ -2510,6 +2609,7 @@ def lite_signals(b, pos, mkt_t):
             dcap_ += (sd_ / md_) * e["weight"]
     capw = (wcap / wsum) if wsum else None
     dcapw = (dcap_ / dsum) if dsum else None
+    worst = next((v for v in (worst_by_win[252], worst_by_win[504], worst_by_win[10 ** 6]) if v is not None), None)
     ex = []
     for idx in mkt_t["worst_idx"]:
         q = b.pos_exact(idx)
@@ -2535,8 +2635,10 @@ def lite_signals(b, pos, mkt_t):
                   and (worst is None or worst <= 1.5))
         resilient = bool(ep_ok or day_ok)
     knife = (n > 63 and last / c[-64] - 1 <= P["knife_ret_3m_pct"] / 100.0) or (last / ema250 - 1 <= P["knife_below_ema_pct"] / 100.0)
+    vs_ema = (last / ema250 - 1) * 100
     return {"under": under, "coiled": coiled, "resilient": resilient, "bbp": bbp,
-            "capture": capw, "worst_ex": exm, "knife": knife, "beta": beta,
+            "capture": capw, "worst_ex": exm, "knife": knife, "beta": beta, "vs_ema": vs_ema,
+            "not_extended": bool(P["knife_below_ema_pct"] < vs_ema <= P["not_extended_max_pct"]),
             "n_gates": int(under) + int(bool(coiled)) + int(bool(resilient))}
 
 
@@ -2590,7 +2692,8 @@ def run_backtest(event):
             ex21 = (r21 - spy_r21) * 100
             ex63 = (r63 - spy_r63) * 100
             obs.append((t, sig["n_gates"], sig["under"], sig["coiled"], sig["resilient"], sig["bbp"],
-                        sig["capture"], sig["knife"], ex21, ex63, r21 * 100, r63 * 100, spy_r21 * 100, spy_r63 * 100, sig["beta"]))
+                        sig["capture"], sig["knife"], ex21, ex63, r21 * 100, r63 * 100, spy_r21 * 100, spy_r63 * 100, sig["beta"],
+                        sig["not_extended"]))
             if sig["n_gates"] == 3 and not sig["knife"]:
                 coh.append(ex21)
         per_date.append({"date": dates[t], "n_scored": n_t, "spy_fwd21_pct": round(spy_r21 * 100, 2),
@@ -2629,7 +2732,9 @@ def run_backtest(event):
     # the location gate, measured: resilient + coiled with / without the EMA250 requirement
     location_test = {
         "resilient_coiled_under_ema250": by_gates["3"],
+        "resilient_coiled_not_extended": stats([x for x in clean if x[4] and x[3] and x[15]]),
         "resilient_coiled_above_ema250": stats([x for x in clean if x[4] and x[3] and not x[2]]),
+        "resilient_coiled_extended_over_15pct": stats([x for x in clean if x[4] and x[3] and not x[15] and not x[2]]),
         "resilient_coiled_any_location": stats([x for x in clean if x[4] and x[3]]),
         "coiled_above_ema250_not_resilient": stats([x for x in clean if x[3] and not x[2] and x[4] is False]),
         "resilient_under_ema250_not_coiled": stats([x for x in clean if x[4] and x[2] and not x[3]]),
@@ -2676,6 +2781,8 @@ def run_backtest(event):
         "location_gate_test": location_test,
         "by_spy_direction": by_spy_direction,
         "per_date": per_date,
+        "location_gate_rule": "live gate = spec 'under EMA250' unless the 'not extended' arm (knife floor < vs EMA250 <= +%.0f%%) beats it by >= %.1f pt of 63-session alpha with n >= %d in both arms (adaptive, re-decided by this file weekly)" % (
+            P["not_extended_max_pct"], P["adaptive_min_edge_pct"], P["adaptive_min_n"]),
         "method": ("Every %d sessions from %s, the three price-structure gates (under EMA250, dump-resilient, coiled) "
                    "are scored exactly as the live engine scores them, using only bars up to that date (SPY episodes "
                    "and worst days as of that date). Forward returns are read %d and %d sessions later." % (step, dates[W] if len(dates) > W else "?", H1, H2)),
@@ -2698,7 +2805,7 @@ def run_backtest(event):
 
 
 DEFINITIONS = {
-    "dump_capture": "Size-weighted mean of (stock return / SPY return) across every SPY peak-to-trough drawdown of at least 4% in the trailing year, weighted by the depth of each dump so the biggest dump counts most. 0.20 = the stock fell only a fifth of the market's dumps; negative = it rose while the market dumped. capture_worst is the single worst episode; a fortress may never have fallen more than the market (worst <= 1.0). Falls back to the down-day capture ratio when no episode overlaps the name's history.",
+    "dump_capture": "Depth- and recency-weighted mean of (stock return / SPY return) across every SPY peak-to-trough drawdown of at least 4% in the three-year window (weight = |dump depth| x 0.5^(age / 252 sessions)), so the biggest and freshest dumps count most. 0.20 = the stock fell only a fifth of the market's dumps; negative = it rose while the market dumped. capture_worst is the single worst episode; a fortress may never have fallen more than the market (worst <= 1.0). Falls back to the down-day capture ratio when no episode overlaps the name's history.",
     "worst_days_excess_bps": "Average of (stock return minus SPY return) on SPY's worst 5% of days in the trailing year, in basis points. Positive = held up better than the market on its ugliest days.",
     "worst_days_green_rate": "Share of SPY's worst days on which the stock still closed UP.",
     "down_capture_pct": "Mean stock return on all SPY down-days divided by the mean SPY return on those days, x100. 40 = the stock falls 40% as much as SPY on red days; 0 or negative = it does not fall (or rises) when the market does.",
@@ -2720,7 +2827,7 @@ DEFINITIONS = {
     "safety_score": "Downside cushion: net-liquid-asset coverage of market cap (floor auditor), Altman Z, Piotroski F, Beneish M, interest coverage or net debt/EBITDA, current ratio, positive FCF, dilution, beta, 1-year max drawdown, dollar liquidity, short-float extremes. Earnings inside 7 days subtracts 12 (binary event inside the coil).",
     "composite": "Weighted average of the nine pillars (weights published in the payload) computed only when at least 60% of the weight is covered by real data. Not a rating -- a ranking of confluence.",
     "asymmetry": "Upside room (median of analyst-PT upside and distance to the 52-week high) divided by the expected loss in a -10% SPY dump (10 x dump capture, floored at half of the name's own one-month sigma so a negative capture never reads as zero risk, cut by 30% when net liquid assets cover >= 50% of market cap; capped at 25). 3.0 = three points of room per point of empirical dump risk.",
-    "tier": "FORTRESS_COIL passes all six spec gates (under EMA250, dump-resilient, coiled, low valuation, growth, industry inflows); COILED five; ACCUMULATING four; WATCH three; SCREENED otherwise. Dump-resilient means size-weighted episode capture <= 0.35, never worse than the market in any single dump (worst capture <= 1.0), with worst-day excess not worse than -75 bps; or worst-day excess >= +25 bps with a >= 40% green rate, capture <= 0.7 and worst <= 1.5 -- the two reads may not contradict. The knife guard, hygiene floor and an already-ignited breakout cap the tier.",
+    "tier": "FORTRESS_COIL passes all six gates (location -- under EMA250 by spec, or 'not extended' when the walk-forward says so, see location_gate; dump-resilient; coiled; low valuation; growth; industry inflows); COILED five; ACCUMULATING four; WATCH three; SCREENED otherwise. Dump-resilient means depth- and recency-weighted episode capture <= 0.35 over three years, never worse than the market in any dump of the freshest window that has them (capture_worst_gate <= 1.0), the in-dump down-day read <= 0.6, with worst-day excess not worse than -75 bps; or worst-day excess >= +25 bps with a >= 40% green rate, capture <= 0.7 and worst <= 1.5 -- the two reads may not contradict. The knife guard, hygiene floor and an already-ignited breakout cap the tier.",
     "nlav_coverage": "Net liquid asset value (cash + investments + live-marked crypto x0.85 receivables - debt) divided by market cap, from the asset-floor auditor. 0.6 = 60% of the price is already cash-like.",
     "rs_vs_industry_3m_pp": "Stock's 63-session return minus its industry ETF's, in percentage points. The O'Neil relative-strength leg: is the name leading its own group?",
     "base_rates": "Forward 21-session returns of this engine's OWN past picks, recomputed from the bar warehouse each run. Accrues from the first snapshot; nothing is claimed until measured.",
@@ -2763,6 +2870,9 @@ DEFINITIONS = {
     "changes": "Tier moves since the previous snapshot: upgrades, downgrades, new entries into the top three tiers, exits, and the names that just became FORTRESS_COIL.",
     "watch_trigger": "For a 5/6 name, the one gate that fails and the level that would flip it.",
     "validation": "The weekly walk-forward backtest of the price-structure legs (data/fortress-backtest.json): 21- and 63-session excess returns vs SPY and beta-adjusted alpha by number of price gates passed, by dump-capture decile (all windows and SPY-down windows), the location-gate test (resilient+coiled with vs without the EMA250 requirement), the split by what SPY did next, and per test date. Fundamentals and flows are not backtested (no point-in-time history) -- read the caveats.",
+    "location_gate": "The sixth gate. Spec = under the 250-day EMA (buying weakness). Mode 'adaptive' lets the weekly walk-forward decide: if resilient + coiled names that were NOT extended (within +15% of EMA250, above the knife floor) beat the under-EMA250 arm by >= 0.5 pt of 63-session beta-adjusted alpha with >= 100 observations in each arm, the live gate switches to 'not extended'; otherwise the spec stands. The payload states the mode, the reason and both arms' numbers every run; under-EMA250 stays visible as the location pillar and the vs-EMA250 column.",
+    "capture_worst_gate": "The never-worse-than-the-market rule applied to the freshest window that has dump episodes (trailing year, else two years, else three): one idiosyncratic blow-up two years ago no longer disqualifies a name whose recent dumps were all held. capture_worst (all three years) is still shown.",
+    "empirical_dump_loss_pct": "Out-of-sample downside: the median 21-session return of the name's dump-capture decile in the walk-forward's real SPY-down windows, scaled to a -10% SPY move. Replaces the theoretical 10 x capture when it is larger; the asymmetry ratio uses it.",
     "regime": "Market backdrop from the fleet regime engines (regime-composite meta regime, vol regime) plus SPY vs EMA250 and breadth. A fortress screen is most useful entering or inside a dump; when nothing has dumped for a year the capture legs rest on the three-year window and the down-day read.",
 }
 
@@ -2798,6 +2908,9 @@ def lambda_handler(event=None, context=None):
         len(mkt["episodes"]), sum(1 for e in mkt["episodes"] if e["big"]),
         len(mkt["worst_days"]), mkt["spy_vs_ema250_pct"]))
     etf_bars = {e: bars[e] for e in set(list(SECTOR_ETF.values()) + list(IND_ETF.values())) if e in bars}
+    resolve_location_mode(F.get("backtest"))
+    load_decile_loss(F.get("backtest"))
+    log("location gate: %s -- %s" % (LOCATION_MODE["mode"], LOCATION_MODE["why"]))
     stock_rows = build_stock_rows(bars, dates, mkt, F, etf_bars)
     valuation_percentiles(stock_rows)
     # industry-relative resilience percentile (lower capture = higher percentile)
@@ -2915,6 +3028,7 @@ def lambda_handler(event=None, context=None):
                                 mkt.get("n_episodes_recent"), mkt.get("n_episodes"), mkt.get("n_big_dumps")))})
     etf_board = [slim(r) for r in etf_rows if r["tier"] != "SCREENED"][:150]
     breadth = {
+        "pct_location_ok": rnd(100.0 * sum(1 for r in stock_rows if (r.get("gates") or {}).get("location")) / max(1, len(stock_rows)), 1),
         "pct_under_ema250": rnd(100.0 * sum(1 for r in stock_rows if (r.get("vs_ema250_pct") or 0) < 0
                                             and r.get("ema250_available")) / max(1, funnel["ema250_available"]), 1),
         "pct_coiled": rnd(100.0 * funnel["coiled"] / max(1, len(stock_rows)), 1),
@@ -2930,10 +3044,20 @@ def lambda_handler(event=None, context=None):
                      "structure shows the dips being bought. Every leg is real data or an honest None; the "
                      "price legs are walked forward through years of tape every week. Research shorthand, not advice."),
         "params": P, "weights": WEIGHTS, "gate_names": GATE_NAMES,
+        "gate_labels": {"location": ("under EMA250" if LOCATION_MODE["mode"] == "under" else "not extended (<= +%.0f%% over EMA250)" % P["not_extended_max_pct"]),
+                        "dump_resilient": "dump-resilient", "coiled": "coiled", "low_valuation": "low valuation",
+                        "growth": "growth", "industry_inflows": "industry inflows"},
         "market": {k: v for k, v in mkt.items() if k not in ("rets", "lb_rets", "worst_idx", "worst_idx_long", "close_by_idx")},
         "breadth": breadth,
         "funnel": funnel, "tiers": tiers, "n_scored": len(stock_rows),
         "n_universe_bars": len(bars),
+        "location_gate": dict(LOCATION_MODE, rule=("under EMA250" if LOCATION_MODE["mode"] == "under" else
+                                                    "not extended: %.0f%% < vs EMA250 <= +%.0f%%" % (P["knife_below_ema_pct"], P["not_extended_max_pct"]))),
+        "empirical_dump_loss": {"status": "measured" if DECILE_LOSS["table"] else "pending",
+                                "spy_median_down_window_pct": DECILE_LOSS["spy_med"],
+                                "deciles": [{"capture_lo": a, "capture_hi": b, "median_ret21_pct": c, "n": n_,
+                                             "loss_scaled_to_10pct_dump": rnd(max(0.0, -c) * (10.0 / abs(DECILE_LOSS["spy_med"])), 1)}
+                                            for a, b, c, n_ in (DECILE_LOSS["table"] or [])]},
         "top_picks": top_picks, "sizing": sizing, "changes": changes, "validation": validation, "regime": regime,
         "board": board, "ledger": ledger,
         "etfs": etf_board, "etf_tiers": {t: sum(1 for r in etf_rows if r["tier"] == t)
