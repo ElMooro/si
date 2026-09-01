@@ -1,0 +1,210 @@
+# ops 5093 -- global-cycle.html rendered in headless Chromium on the runner
+
+**Status:** failure  
+**Duration:** 59.0s  
+**Finished:** 2026-09-01T23:23:58+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| console_err | data_loaded | decisive | failed_req | failed_text | ladder | load_s | map_paths | map_with_data | page_errors | tiles | visit | world_loaded |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 16 | False | Failed to load: Failed to fetch | 6 | True | 0 | 10.5 | 0 | 0 | 0 | 0 | live-desktop | False |
+| 15 | False | Failed to load: Failed to fetch | 6 | True | 0 | 4.9 | 0 | 0 | 0 | 0 | live-desktop-warm1 | False |
+| 9 | False | Failed to load: Failed to fetch | 3 | True | 0 | 9.8 | 0 | 0 | 0 | 0 | live-desktop-warm2 | False |
+| 15 | False | Failed to load: Failed to fetch | 6 | True | 0 | 9.8 | 0 | 0 | 0 | 0 | live-mobile | False |
+| 4 | None |  | 2 | True | None | 9.8 | None | None | 0 | None | history-desktop | None |
+
+## Log
+- `23:22:59` started 2026-09-01T23:22:59+00:00
+- `23:22:59` pip installing playwright
+- `23:23:09` launched runner Google Chrome (channel=chrome)
+- `23:23:22` live-desktop: screenshot 5093-live-desktop.jpg (117133 bytes)
+## live-desktop -- https://justhodl.ai/global-cycle.html @ 1440x1000 (10.5s)
+
+- `23:23:22`   DOM title = "Global Business Cycle \u00b7 JustHodl.AI"
+- `23:23:22`   DOM decisive = "Failed to load: Failed to fetch"
+- `23:23:22`   DOM genTime = "loading\u2026"
+- `23:23:22`   DOM ageStr = ""
+- `23:23:22`   DOM globalPhase = "\u2014"
+- `23:23:22`   DOM globalCli = "avg CLI \u2014"
+- `23:23:22`   DOM pctExpansion = "\u2014%"
+- `23:23:22`   DOM pctRecovery = "\u2014%"
+- `23:23:22`   DOM pctAtRisk = "\u2014%"
+- `23:23:22`   DOM pctRecession = "\u2014%"
+- `23:23:22`   DOM countryCount = "\u2014"
+- `23:23:22`   DOM weightCovered = "\u2014 % world GDP"
+- `23:23:22`   DOM freshCount = "\u2014"
+- `23:23:22`   DOM freshSub = "\u22643 months stale per country"
+- `23:23:22`   DOM breadthCells = 0
+- `23:23:22`   DOM ladderCells = 0
+- `23:23:22`   DOM regions = 1
+- `23:23:22`   DOM tiles = 0
+- `23:23:22`   DOM mapPaths = 0
+- `23:23:22`   DOM mapWithData = 0
+- `23:23:22`   DOM mapPhases = {}
+- `23:23:22`   DOM mapSvgViewBox = null
+- `23:23:22`   DOM mapClientWidth = 1366
+- `23:23:22`   DOM mapBox = {"w": 1366, "h": 520, "top": 525}
+- `23:23:22`   DOM hasFailedText = true
+- `23:23:22`   DOM bodyChars = 10952
+- `23:23:22`   DOM rightRail = false
+- `23:23:22`   DOM swController = true
+- `23:23:22`   DOM d3 = "undefined"
+- `23:23:22`   DOM topojson = "undefined"
+- `23:23:22`   DOM dataLoaded = false
+- `23:23:22`   DOM worldLoaded = false
+- `23:23:22`   DOM firstVisibleText = "JUSTHODL\u00b7AI\nSPX 7,632.6 -0.7%\nNDX 26,100 -1.0%\nBTC 77,253 -1.7%\nGOLD 4,376 -0.5%\nUS10Y 4.75%\nVIX 14.9\nDXY 118.7 +0.3%\nCN GDP 21.05%\nUS CPI 2.95%\n19:23:21 ET\nCOMMAND CENTER \u2192\nJustHodl.AI\nDASHBOARD\nINTEL\n\ud83d\udfe2 LCE\n\ud83c\udf0d Cycle (live)\n\ud83d\udcc8 Cycle (history)\n\ud83c\udfdb AUCTIONS\n\ud83d\udcc8 BONDS\n\ud83c\udf2a STRESS\nRISK\nMACRO\n\ud83c\udf0d GLOBAL BUSINESS CYCLE\nSynt
+- `23:23:22`   page errors (0): []
+- `23:23:22`   console errors/warnings (16 of 16): [{"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/d3@7' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked."}, {"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/topojson-client@3' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has be"}, {"type": "error", "text": "Connecting to 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json' violates the following Content Security Policy directive: \"connect-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com https://s3.amazonaws.com https://justhodl-data-proxy.raafouis.workers.dev https://api.telegram"}, {"type": "error", "text": "Fetch API cannot load https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json. Refused to connect because it violates the document's Content Security Policy."}, {"type": "error", "text": "[gbc] TypeError: Failed to fetch\n    at load (https://justhodl.ai/global-cycle.html:386:7)\n    at https://justhodl.ai/global-cycle.html:610:1"}, {"type": "error", "text": "Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so '"}, {"type": "error", "text": "Connecting to 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east
+- `23:23:22`   failed requests (6): [{"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/topojson-client@3", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/topojson-client@3", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}]
+- `23:23:22`   key responses: [{"url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json", "status": 200, "type": "application/json"}, {"url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json", "status": 200, "type": "application/json"}]
+- `23:23:27` live-desktop-warm1: screenshot 5093-live-desktop-warm1.jpg (117234 bytes)
+## live-desktop-warm1 -- https://justhodl.ai/global-cycle.html @ 1440x1000 (4.9s)
+
+- `23:23:27`   DOM title = "Global Business Cycle \u00b7 JustHodl.AI"
+- `23:23:27`   DOM decisive = "Failed to load: Failed to fetch"
+- `23:23:27`   DOM genTime = "loading\u2026"
+- `23:23:27`   DOM ageStr = ""
+- `23:23:27`   DOM globalPhase = "\u2014"
+- `23:23:27`   DOM globalCli = "avg CLI \u2014"
+- `23:23:27`   DOM pctExpansion = "\u2014%"
+- `23:23:27`   DOM pctRecovery = "\u2014%"
+- `23:23:27`   DOM pctAtRisk = "\u2014%"
+- `23:23:27`   DOM pctRecession = "\u2014%"
+- `23:23:27`   DOM countryCount = "\u2014"
+- `23:23:27`   DOM weightCovered = "\u2014 % world GDP"
+- `23:23:27`   DOM freshCount = "\u2014"
+- `23:23:27`   DOM freshSub = "\u22643 months stale per country"
+- `23:23:27`   DOM breadthCells = 0
+- `23:23:27`   DOM ladderCells = 0
+- `23:23:27`   DOM regions = 1
+- `23:23:27`   DOM tiles = 0
+- `23:23:27`   DOM mapPaths = 0
+- `23:23:27`   DOM mapWithData = 0
+- `23:23:27`   DOM mapPhases = {}
+- `23:23:27`   DOM mapSvgViewBox = null
+- `23:23:27`   DOM mapClientWidth = 1366
+- `23:23:27`   DOM mapBox = {"w": 1366, "h": 520, "top": 525}
+- `23:23:27`   DOM hasFailedText = true
+- `23:23:27`   DOM bodyChars = 10952
+- `23:23:27`   DOM rightRail = false
+- `23:23:27`   DOM swController = true
+- `23:23:27`   DOM d3 = "undefined"
+- `23:23:27`   DOM topojson = "undefined"
+- `23:23:27`   DOM dataLoaded = false
+- `23:23:27`   DOM worldLoaded = false
+- `23:23:27`   DOM firstVisibleText = "JUSTHODL\u00b7AI\nSPX 7,632.6 -0.7%\nNDX 26,100 -1.0%\nBTC 77,253 -1.7%\nGOLD 4,376 -0.5%\nUS10Y 4.75%\nVIX 14.9\nDXY 118.7 +0.3%\nCN GDP 21.05%\nUS CPI 2.95%\n19:23:27 ET\nCOMMAND CENTER \u2192\nJustHodl.AI\nDASHBOARD\nINTEL\n\ud83d\udfe2 LCE\n\ud83c\udf0d Cycle (live)\n\ud83d\udcc8 Cycle (history)\n\ud83c\udfdb AUCTIONS\n\ud83d\udcc8 BONDS\n\ud83c\udf2a STRESS\nRISK\nMACRO\n\ud83c\udf0d GLOBAL BUSINESS CYCLE\nSynt
+- `23:23:27`   page errors (0): []
+- `23:23:27`   console errors/warnings (15 of 15): [{"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/d3@7' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked."}, {"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/topojson-client@3' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has be"}, {"type": "error", "text": "Connecting to 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json' violates the following Content Security Policy directive: \"connect-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com https://s3.amazonaws.com https://justhodl-data-proxy.raafouis.workers.dev https://api.telegram"}, {"type": "error", "text": "Fetch API cannot load https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json. Refused to connect because it violates the document's Content Security Policy."}, {"type": "error", "text": "[gbc] TypeError: Failed to fetch\n    at load (https://justhodl.ai/global-cycle.html:386:7)\n    at https://justhodl.ai/global-cycle.html:610:1"}, {"type": "error", "text": "Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so '"}, {"type": "error", "text": "Connecting to 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east
+- `23:23:27`   failed requests (6): [{"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/topojson-client@3", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/topojson-client@3", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}]
+- `23:23:27`   key responses: [{"url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json", "status": 200, "type": "application/json"}]
+- `23:23:37` live-desktop-warm2: screenshot 5093-live-desktop-warm2.jpg (117058 bytes)
+## live-desktop-warm2 -- https://justhodl.ai/global-cycle.html @ 1440x1000 (9.8s)
+
+- `23:23:37`   DOM title = "Global Business Cycle \u00b7 JustHodl.AI"
+- `23:23:37`   DOM decisive = "Failed to load: Failed to fetch"
+- `23:23:37`   DOM genTime = "loading\u2026"
+- `23:23:37`   DOM ageStr = ""
+- `23:23:37`   DOM globalPhase = "\u2014"
+- `23:23:37`   DOM globalCli = "avg CLI \u2014"
+- `23:23:37`   DOM pctExpansion = "\u2014%"
+- `23:23:37`   DOM pctRecovery = "\u2014%"
+- `23:23:37`   DOM pctAtRisk = "\u2014%"
+- `23:23:37`   DOM pctRecession = "\u2014%"
+- `23:23:37`   DOM countryCount = "\u2014"
+- `23:23:37`   DOM weightCovered = "\u2014 % world GDP"
+- `23:23:37`   DOM freshCount = "\u2014"
+- `23:23:37`   DOM freshSub = "\u22643 months stale per country"
+- `23:23:37`   DOM breadthCells = 0
+- `23:23:37`   DOM ladderCells = 0
+- `23:23:37`   DOM regions = 1
+- `23:23:37`   DOM tiles = 0
+- `23:23:37`   DOM mapPaths = 0
+- `23:23:37`   DOM mapWithData = 0
+- `23:23:37`   DOM mapPhases = {}
+- `23:23:37`   DOM mapSvgViewBox = null
+- `23:23:37`   DOM mapClientWidth = 1366
+- `23:23:37`   DOM mapBox = {"w": 1366, "h": 520, "top": 525}
+- `23:23:37`   DOM hasFailedText = true
+- `23:23:37`   DOM bodyChars = 10952
+- `23:23:37`   DOM rightRail = false
+- `23:23:37`   DOM swController = true
+- `23:23:37`   DOM d3 = "undefined"
+- `23:23:37`   DOM topojson = "undefined"
+- `23:23:37`   DOM dataLoaded = false
+- `23:23:37`   DOM worldLoaded = false
+- `23:23:37`   DOM firstVisibleText = "JUSTHODL\u00b7AI\nSPX 7,632.6 -0.7%\nNDX 26,100 -1.0%\nBTC 77,253 -1.7%\nGOLD 4,376 -0.5%\nUS10Y 4.75%\nVIX 14.9\nDXY 118.7 +0.3%\nCN GDP 21.05%\nUS CPI 2.95%\n19:23:37 ET\nCOMMAND CENTER \u2192\nJustHodl.AI\nDASHBOARD\nINTEL\n\ud83d\udfe2 LCE\n\ud83c\udf0d Cycle (live)\n\ud83d\udcc8 Cycle (history)\n\ud83c\udfdb AUCTIONS\n\ud83d\udcc8 BONDS\n\ud83c\udf2a STRESS\nRISK\nMACRO\n\ud83c\udf0d GLOBAL BUSINESS CYCLE\nSynt
+- `23:23:37`   page errors (0): []
+- `23:23:37`   console errors/warnings (9 of 9): [{"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/d3@7' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked."}, {"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/topojson-client@3' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has be"}, {"type": "error", "text": "Connecting to 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json' violates the following Content Security Policy directive: \"connect-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com https://s3.amazonaws.com https://justhodl-data-proxy.raafouis.workers.dev https://api.telegram"}, {"type": "error", "text": "Fetch API cannot load https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json. Refused to connect because it violates the document's Content Security Policy."}, {"type": "error", "text": "[gbc] TypeError: Failed to fetch\n    at load (https://justhodl.ai/global-cycle.html:386:7)\n    at https://justhodl.ai/global-cycle.html:610:1"}, {"type": "error", "text": "Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so '"}, {"type": "error", "text": "Connecting to 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east
+- `23:23:37`   failed requests (3): [{"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/topojson-client@3", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}]
+- `23:23:37`   key responses: [{"url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json", "status": 200, "type": "application/json"}]
+- `23:23:47` live-mobile: screenshot 5093-live-mobile.jpg (103378 bytes)
+## live-mobile -- https://justhodl.ai/global-cycle.html @ 390x844 (9.8s)
+
+- `23:23:47`   DOM title = "Global Business Cycle \u00b7 JustHodl.AI"
+- `23:23:47`   DOM decisive = "Failed to load: Failed to fetch"
+- `23:23:47`   DOM genTime = "loading\u2026"
+- `23:23:47`   DOM ageStr = ""
+- `23:23:47`   DOM globalPhase = "\u2014"
+- `23:23:47`   DOM globalCli = "avg CLI \u2014"
+- `23:23:47`   DOM pctExpansion = "\u2014%"
+- `23:23:47`   DOM pctRecovery = "\u2014%"
+- `23:23:47`   DOM pctAtRisk = "\u2014%"
+- `23:23:47`   DOM pctRecession = "\u2014%"
+- `23:23:47`   DOM countryCount = "\u2014"
+- `23:23:47`   DOM weightCovered = "\u2014 % world GDP"
+- `23:23:47`   DOM freshCount = "\u2014"
+- `23:23:47`   DOM freshSub = "\u22643 months stale per country"
+- `23:23:47`   DOM breadthCells = 0
+- `23:23:47`   DOM ladderCells = 0
+- `23:23:47`   DOM regions = 1
+- `23:23:47`   DOM tiles = 0
+- `23:23:47`   DOM mapPaths = 0
+- `23:23:47`   DOM mapWithData = 0
+- `23:23:47`   DOM mapPhases = {}
+- `23:23:47`   DOM mapSvgViewBox = null
+- `23:23:47`   DOM mapClientWidth = 316
+- `23:23:47`   DOM mapBox = {"w": 316, "h": 520, "top": 990}
+- `23:23:47`   DOM hasFailedText = true
+- `23:23:47`   DOM bodyChars = 10823
+- `23:23:47`   DOM rightRail = false
+- `23:23:47`   DOM swController = true
+- `23:23:47`   DOM d3 = "undefined"
+- `23:23:47`   DOM topojson = "undefined"
+- `23:23:47`   DOM dataLoaded = false
+- `23:23:47`   DOM worldLoaded = false
+- `23:23:47`   DOM firstVisibleText = "JUSTHODL\u00b7AI\nSPX\n7,632.6 -0.7%\nBTC\n77,253 -1.7%\nJustHodl.AI\nDASHBOARD\nINTEL\n\ud83d\udfe2 LCE\n\ud83c\udf0d Cycle (live)\n\ud83d\udcc8 Cycle (history)\n\ud83c\udfdb AUCTIONS\n\ud83d\udcc8 BONDS\n\ud83c\udf2a STRESS\nRISK\nMACRO\n\ud83c\udf0d GLOBAL BUSINESS CYCLE\nSynthetic Composite Leading Indicator across 34 major economies \u00b7 equity-momentum-based \u00b7 real-time (\u22643mo per country) \u00b7 4-
+- `23:23:47`   page errors (0): []
+- `23:23:47`   console errors/warnings (15 of 15): [{"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/d3@7' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked."}, {"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/topojson-client@3' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has be"}, {"type": "error", "text": "Connecting to 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json' violates the following Content Security Policy directive: \"connect-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com https://s3.amazonaws.com https://justhodl-data-proxy.raafouis.workers.dev https://api.telegram"}, {"type": "error", "text": "Fetch API cannot load https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json. Refused to connect because it violates the document's Content Security Policy."}, {"type": "error", "text": "[gbc] TypeError: Failed to fetch\n    at load (https://justhodl.ai/global-cycle.html:386:7)\n    at https://justhodl.ai/global-cycle.html:610:1"}, {"type": "error", "text": "Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so '"}, {"type": "error", "text": "Connecting to 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east
+- `23:23:47`   failed requests (6): [{"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/topojson-client@3", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/topojson-client@3", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}]
+- `23:23:47`   key responses: [{"url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json", "status": 200, "type": "application/json"}, {"url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json", "status": 200, "type": "application/json"}]
+- `23:23:57` history-desktop: screenshot 5093-history-desktop.jpg (136606 bytes)
+## history-desktop -- https://justhodl.ai/global-cycle/ @ 1440x1000 (9.8s)
+
+- `23:23:57`   DOM title = "Global Business Cycle \u00b7 History \u00b7 JustHodl.AI"
+- `23:23:57`   DOM svgs = 0
+- `23:23:57`   DOM paths = 0
+- `23:23:57`   DOM bodyChars = 2946
+- `23:23:57`   DOM hasFailedText = true
+- `23:23:57`   DOM firstVisibleText = "JustHodl.AI\nHome\nMacro\n\ud83d\udfe2 LCE\n\ud83c\udf0d Cycle (live)\n\ud83d\udcc8 Cycle (history)\nMorning brief\nScreener\nGlobal Business Cycle \u00b7 History\n5 years of weekly synthetic CLI per country \u2014 phase trajectory, breadth evolution, and country sparklines\nFailed to load\nd3 is not defined\nCURRENT EXPANSION BREADTH\n73.7%\nvs 12mo a"
+- `23:23:57`   page errors (0): []
+- `23:23:57`   console errors/warnings (4 of 4): [{"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/d3@7' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked."}, {"type": "error", "text": "Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so '"}, {"type": "error", "text": "Connecting to 'wss://q7vco36knh.execute-api.us-east-1.amazonaws.com/prod' violates the following Content Security Policy directive: \"connect-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com https://s3.amazonaws.com https://justhodl-data-proxy.raafouis.workers.dev https://api.telegram.org\""}, {"type": "error", "text": "ReferenceError: d3 is not defined\n    at renderPhaseMix (https://justhodl.ai/global-cycle/:786:15)\n    at render (https://justhodl.ai/global-cycle/:688:3)\n    at load (https://justhodl.ai/global-cycle/:670:5)"}]
+- `23:23:57`   failed requests (2): [{"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}]
+- `23:23:57`   key responses: [{"url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle-history.json?cb=1788305028118", "status": 200, "type": "application/json"}]
+## verdict
+
+- `23:23:58` ✗ live-desktop: 'Failed to load' visible
+- `23:23:58` ✗ live-desktop: map has 0 data paths
+- `23:23:58` ✗ live-desktop: DATA not loaded
+- `23:23:58` ✗ live-desktop-warm2: 'Failed to load' visible
+- `23:23:58` ✗ live-desktop-warm2: map has 0 data paths
+- `23:23:58` ✗ live-desktop-warm2: DATA not loaded
+- `23:23:58` ✗ live-mobile: 'Failed to load' visible
+- `23:23:58` ✗ live-mobile: map has 0 data paths
+- `23:23:58` ✗ live-mobile: DATA not loaded
