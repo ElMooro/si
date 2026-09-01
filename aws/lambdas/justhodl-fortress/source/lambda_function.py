@@ -90,7 +90,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 ENGINE = "justhodl-fortress"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fortress.json"
@@ -132,6 +132,12 @@ WEIGHTS = {  # composite pillars, sum 100
     "backlog_contracts": 5, "safety": 9,
 }
 GATE_PILLARS = ["resilience", "coil", "location", "valuation", "growth", "flows"]
+WEFF = {"weights": dict(WEIGHTS), "evidence": None, "why": "spec weights"}   # resolved per run from the backtest ICs
+# which walk-forward leg ICs govern each price pillar (None = fundamental pillar, spec weight kept)
+PILLAR_LEGS = {"resilience": (["neg_capture", "worst_ex"], "down"), "accumulation": (["obv_slope", "updown_ratio", "absorption_clv"], "all"),
+               "structure": (["rs_line", "higher_lows"], "all"), "coil": (["neg_bbp"], "all"),
+               "location": (["neg_vs_ema"], "all"), "momentum": (["ret_3m", "ret_12m"], "all")}
+P.update({"ic_min_dates": 12, "ic_weight_span": 0.5})
 BACKTEST_KEY = "data/fortress-backtest.json"
 GATE_NAMES = ["location", "dump_resilient", "coiled", "low_valuation",
               "growth", "industry_inflows"]
@@ -2064,19 +2070,20 @@ def composite_and_asymmetry(r, ranks=None):
     r["_pillars_raw"] = pillars
     num = 0.0
     den = 0.0
-    for k, w in WEIGHTS.items():
+    W = WEFF["weights"]
+    for k, w in W.items():
         v = pillars.get(k)
         if v is not None:
             num += w * clamp(v)
             den += w
     comp_abs = (num / den) if den >= 60 else None
-    cov = round(den / sum(WEIGHTS.values()), 2)
+    cov = round(den / sum(W.values()), 2)
     comp = comp_abs
     if ranks is not None and comp_abs is not None:
         rn = 0.0
         rd = 0.0
         pr = {}
-        for k, w in WEIGHTS.items():
+        for k, w in W.items():
             pv = (ranks.get(k) or {}).get(r["ticker"])
             if pv is not None:
                 rn += w * pv
@@ -2152,6 +2159,70 @@ def empirical_dump_loss(cap):
             med = m
             break
     return max(0.0, -med) * (10.0 / abs(DECILE_LOSS["spy_med"]))
+
+
+def resolve_weights(bt):
+    """evidence-based weights for the PRICE pillars: each spec weight is scaled by
+    0.5..1.5 from the t-statistic of its legs' walk-forward rank-IC (resilience is
+    judged on the SPY-down windows -- protection is the thesis; the others on all
+    windows, 63-session horizon). Fundamental pillars keep their spec weight; the
+    total is renormalised to 100. Anything short of >= ic_min_dates test dates
+    keeps the spec."""
+    WEFF["weights"] = dict(WEIGHTS)
+    WEFF["evidence"] = None
+    WEFF["why"] = "spec weights (no backtest IC table yet)"
+    ic = (bt or {}).get("leg_ic") or {}
+    if not ic:
+        return WEFF
+    span = P["ic_weight_span"]
+    ev = {}
+    w = dict(WEIGHTS)
+    for pillar, (legs, which) in PILLAR_LEGS.items():
+        ts = []
+        for leg in legs:
+            tab = (ic.get(leg) or {}).get("down_ret21" if which == "down" else "all_ex63") or {}
+            if (tab.get("n_dates") or 0) >= P["ic_min_dates"] and tab.get("tstat") is not None:
+                ts.append(tab["tstat"])
+        if not ts:
+            ev[pillar] = {"tstat": None, "multiplier": 1.0, "legs": legs, "basis": which}
+            continue
+        t = sum(ts) / len(ts)
+        mult = max(1.0 - span, min(1.0 + span, 1.0 + span * (t / 3.0)))
+        w[pillar] = WEIGHTS[pillar] * mult
+        ev[pillar] = {"tstat": round(t, 2), "multiplier": round(mult, 2), "legs": legs, "basis": which}
+    tot = sum(w.values())
+    WEFF["weights"] = {k: round(v * 100.0 / tot, 2) for k, v in w.items()}
+    WEFF["evidence"] = ev
+    WEFF["why"] = "price pillars scaled 0.5-1.5x by walk-forward IC t-stats (%s), renormalised to 100" % str((bt or {}).get("as_of"))[:10]
+    return WEFF
+
+
+def spearman(xs, ys):
+    """rank correlation of two equal-length lists (ties get mean ranks)."""
+    n = len(xs)
+    if n < 30:
+        return None
+    def ranks(v):
+        order = sorted(range(n), key=lambda i: v[i])
+        rk = [0.0] * n
+        i = 0
+        while i < n:
+            j = i
+            while j + 1 < n and v[order[j + 1]] == v[order[i]]:
+                j += 1
+            rr = (i + j) / 2.0 + 1.0
+            for k in range(i, j + 1):
+                rk[order[k]] = rr
+            i = j + 1
+        return rk
+    rx = ranks(xs)
+    ry = ranks(ys)
+    mx = sum(rx) / n
+    my = sum(ry) / n
+    sxy = sum((a - mx) * (b - my) for a, b in zip(rx, ry))
+    sxx = sum((a - mx) ** 2 for a in rx)
+    syy = sum((b - my) ** 2 for b in ry)
+    return sxy / math.sqrt(sxx * syy) if sxx > 0 and syy > 0 else None
 
 
 def pillar_ranks(rows):
@@ -2636,7 +2707,55 @@ def lite_signals(b, pos, mkt_t):
         resilient = bool(ep_ok or day_ok)
     knife = (n > 63 and last / c[-64] - 1 <= P["knife_ret_3m_pct"] / 100.0) or (last / ema250 - 1 <= P["knife_below_ema_pct"] / 100.0)
     vs_ema = (last / ema250 - 1) * 100
+    # volume structure (point-in-time): OBV slope, up/down volume, absorption on the worst days
+    vv = list(b.v[pos - 63:pos + 1])
+    cc = c[-64:]
+    obv = 0.0
+    upv = 0.0
+    dnv = 0.0
+    for i in range(1, 64):
+        chg = cc[i] - cc[i - 1]
+        if chg > 0:
+            obv += vv[i]
+            if i >= 14:
+                upv += vv[i]
+        elif chg < 0:
+            obv -= vv[i]
+            if i >= 14:
+                dnv += vv[i]
+    av = (sum(vv) / len(vv)) or 1.0
+    obv_slope = obv / (av * 63)
+    updown = (upv / dnv) if dnv > 0 else None
+    clvs = []
+    for idx in mkt_t["worst_idx"]:
+        q = b.pos_exact(idx)
+        if q is None:
+            continue
+        rng = b.h[q] - b.l[q]
+        clvs.append(((b.c[q] - b.l[q]) / rng) if rng > 0 else 0.5)
+    absorption = (sum(clvs) / len(clvs)) if len(clvs) >= 6 else None
+    # structure: RS line vs SPY, higher lows
+    cbi = mkt_t.get("close_by_idx") or {}
+    rs = []
+    for k in range(max(0, n - 252), n):
+        sc = cbi.get(d[start + k])
+        if sc:
+            rs.append(c[k] / sc)
+    rs_line = ((rs[-1] / max(rs) - 1) * 100) if len(rs) >= 120 else None
+    lows_i, _hi = swing_points(c[-120:], 5)
+    hl = 0
+    if len(lows_i) >= 2:
+        seg = c[-120:]
+        for j in range(len(lows_i) - 1, 0, -1):
+            if seg[lows_i[j]] > seg[lows_i[j - 1]]:
+                hl += 1
+            else:
+                break
+    ret_3m = (last / c[-64] - 1) * 100
+    ret_12m = (last / c[-253] - 1) * 100 if n > 253 else None
     return {"under": under, "coiled": coiled, "resilient": resilient, "bbp": bbp,
+            "obv_slope": obv_slope, "updown_ratio": updown, "absorption_clv": absorption,
+            "rs_line": rs_line, "higher_lows": (hl if lows_i else None), "ret_3m": ret_3m, "ret_12m": ret_12m,
             "capture": capw, "worst_ex": exm, "knife": knife, "beta": beta, "vs_ema": vs_ema,
             "not_extended": bool(P["knife_below_ema_pct"] < vs_ema <= P["not_extended_max_pct"]),
             "n_gates": int(under) + int(bool(coiled)) + int(bool(resilient))}
@@ -2693,7 +2812,12 @@ def run_backtest(event):
             ex63 = (r63 - spy_r63) * 100
             obs.append((t, sig["n_gates"], sig["under"], sig["coiled"], sig["resilient"], sig["bbp"],
                         sig["capture"], sig["knife"], ex21, ex63, r21 * 100, r63 * 100, spy_r21 * 100, spy_r63 * 100, sig["beta"],
-                        sig["not_extended"]))
+                        sig["not_extended"],
+                        {"neg_capture": (-sig["capture"] if sig["capture"] is not None else None),
+                         "worst_ex": sig["worst_ex"], "obv_slope": sig["obv_slope"], "updown_ratio": sig["updown_ratio"],
+                         "absorption_clv": sig["absorption_clv"], "rs_line": sig["rs_line"], "higher_lows": sig["higher_lows"],
+                         "neg_bbp": -sig["bbp"], "neg_vs_ema": -sig["vs_ema"], "ret_3m": sig["ret_3m"], "ret_12m": sig["ret_12m"],
+                         "neg_beta": (-sig["beta"] if sig["beta"] is not None else None)}))
             if sig["n_gates"] == 3 and not sig["knife"]:
                 coh.append(ex21)
         per_date.append({"date": dates[t], "n_scored": n_t, "spy_fwd21_pct": round(spy_r21 * 100, 2),
@@ -2764,6 +2888,40 @@ def run_backtest(event):
             deciles["D%d" % (i + 1)] = dict(stats(seg), capture_lo=rnd(seg[0][6], 2), capture_hi=rnd(seg[-1][6], 2))
             dn = [x for x in seg if x[12] <= -2.0]
             deciles_down["D%d" % (i + 1)] = dict(stats(dn), capture_lo=rnd(seg[0][6], 2), capture_hi=rnd(seg[-1][6], 2))
+    # rank-IC of every price leg vs forward excess, per test date, then aggregated
+    LEGS = ["neg_capture", "worst_ex", "obv_slope", "updown_ratio", "absorption_clv", "rs_line", "higher_lows",
+            "neg_bbp", "neg_vs_ema", "ret_3m", "ret_12m", "neg_beta"]
+    ic_series = {leg: {"all_ex21": [], "all_ex63": [], "down_ret21": []} for leg in LEGS}
+    by_t = {}
+    for x in clean:
+        by_t.setdefault(x[0], []).append(x)
+    for t, rows in by_t.items():
+        down = rows[0][12] <= -2.0 if rows else False
+        for leg in LEGS:
+            pairs = [(x[16][leg], x[8], x[9], x[10]) for x in rows if x[16].get(leg) is not None]
+            if len(pairs) < 100:
+                continue
+            xs = [p_[0] for p_ in pairs]
+            r1 = spearman(xs, [p_[1] for p_ in pairs])
+            r2 = spearman(xs, [p_[2] for p_ in pairs])
+            if r1 is not None:
+                ic_series[leg]["all_ex21"].append(r1)
+            if r2 is not None:
+                ic_series[leg]["all_ex63"].append(r2)
+            if down:
+                r3 = spearman(xs, [p_[3] for p_ in pairs])
+                if r3 is not None:
+                    ic_series[leg]["down_ret21"].append(r3)
+
+    def ic_stats(v):
+        if len(v) < 3:
+            return {"n_dates": len(v), "mean": None, "tstat": None, "hit_pct": None}
+        m = mean(v)
+        sd = std(v)
+        return {"n_dates": len(v), "mean": rnd(m, 4), "std": rnd(sd, 4),
+                "tstat": rnd(m / (sd / math.sqrt(len(v))), 2) if sd else None,
+                "hit_pct": rnd(100.0 * sum(1 for x in v if x > 0) / len(v), 1)}
+    leg_ic = {leg: {k: ic_stats(v) for k, v in ser.items()} for leg, ser in ic_series.items()}
     spy_ex_note = "excess = name forward return minus SPY over the same sessions, percentage points; returns clipped to [-95%, +300%/+500%]"
     out = {
         "engine": ENGINE, "version": VERSION, "mode": "backtest",
@@ -2780,6 +2938,10 @@ def run_backtest(event):
         "by_capture_decile_in_spy_down_windows": deciles_down,
         "location_gate_test": location_test,
         "by_spy_direction": by_spy_direction,
+        "leg_ic": leg_ic,
+        "leg_ic_note": ("Spearman rank correlation, per test date, between each price leg (signed so that higher = more of the thesis) "
+                        "and forward excess vs SPY (all windows, 21/63 sessions) or forward return (SPY-down windows only); "
+                        "mean, t-stat across dates and the share of dates with IC > 0. |t| >= 2 is the bar for evidence."),
         "per_date": per_date,
         "location_gate_rule": "live gate = spec 'under EMA250' unless the 'not extended' arm (knife floor < vs EMA250 <= +%.0f%%) beats it by >= %.1f pt of 63-session alpha with n >= %d in both arms (adaptive, re-decided by this file weekly)" % (
             P["not_extended_max_pct"], P["adaptive_min_edge_pct"], P["adaptive_min_n"]),
@@ -2870,6 +3032,8 @@ DEFINITIONS = {
     "changes": "Tier moves since the previous snapshot: upgrades, downgrades, new entries into the top three tiers, exits, and the names that just became FORTRESS_COIL.",
     "watch_trigger": "For a 5/6 name, the one gate that fails and the level that would flip it.",
     "validation": "The weekly walk-forward backtest of the price-structure legs (data/fortress-backtest.json): 21- and 63-session excess returns vs SPY and beta-adjusted alpha by number of price gates passed, by dump-capture decile (all windows and SPY-down windows), the location-gate test (resilient+coiled with vs without the EMA250 requirement), the split by what SPY did next, and per test date. Fundamentals and flows are not backtested (no point-in-time history) -- read the caveats.",
+    "weights_effective": "The composite weights actually used today. Spec weights for the fundamental pillars; each PRICE pillar (resilience, accumulation, structure, coil, location, momentum) is scaled 0.5x-1.5x by the t-statistic of its legs' walk-forward rank-IC -- resilience judged on the SPY-down windows (protection is the thesis), the rest on 63-session excess -- then everything is renormalised to 100. Needs >= 12 test dates; otherwise spec. weights_evidence shows the t-stats and multipliers.",
+    "leg_ic": "Walk-forward information coefficient of each price leg: the Spearman rank correlation, per test date, between the leg (signed so higher = more of the thesis) and forward excess vs SPY (21/63 sessions, all windows) or forward return (SPY-down windows). Reported as the mean, the t-statistic across dates and the share of dates with IC > 0. This is how the engine learns which of its own legs carry information.",
     "location_gate": "The sixth gate. Spec = under the 250-day EMA (buying weakness). Mode 'adaptive' lets the weekly walk-forward decide: if resilient + coiled names that were NOT extended (within +15% of EMA250, above the knife floor) beat the under-EMA250 arm by >= 0.5 pt of 63-session beta-adjusted alpha with >= 100 observations in each arm, the live gate switches to 'not extended'; otherwise the spec stands. The payload states the mode, the reason and both arms' numbers every run; under-EMA250 stays visible as the location pillar and the vs-EMA250 column.",
     "capture_worst_gate": "The never-worse-than-the-market rule applied to the freshest window that has dump episodes (trailing year, else two years, else three): one idiosyncratic blow-up two years ago no longer disqualifies a name whose recent dumps were all held. capture_worst (all three years) is still shown.",
     "empirical_dump_loss_pct": "Out-of-sample downside: the median 21-session return of the name's dump-capture decile in the walk-forward's real SPY-down windows, scaled to a -10% SPY move. Replaces the theoretical 10 x capture when it is larger; the asymmetry ratio uses it.",
@@ -2910,7 +3074,9 @@ def lambda_handler(event=None, context=None):
     etf_bars = {e: bars[e] for e in set(list(SECTOR_ETF.values()) + list(IND_ETF.values())) if e in bars}
     resolve_location_mode(F.get("backtest"))
     load_decile_loss(F.get("backtest"))
+    resolve_weights(F.get("backtest"))
     log("location gate: %s -- %s" % (LOCATION_MODE["mode"], LOCATION_MODE["why"]))
+    log("weights: %s -- %s" % (WEFF["weights"], WEFF["why"]))
     stock_rows = build_stock_rows(bars, dates, mkt, F, etf_bars)
     valuation_percentiles(stock_rows)
     # industry-relative resilience percentile (lower capture = higher percentile)
@@ -3015,6 +3181,7 @@ def lambda_handler(event=None, context=None):
                    "by_capture_decile": bt.get("by_capture_decile"),
                    "by_capture_decile_in_spy_down_windows": bt.get("by_capture_decile_in_spy_down_windows"),
                    "location_gate_test": bt.get("location_gate_test"), "by_spy_direction": bt.get("by_spy_direction"),
+                   "leg_ic": bt.get("leg_ic"), "leg_ic_note": bt.get("leg_ic_note"),
                    "per_date": (bt.get("per_date") or [])[-40:],
                    "method": bt.get("method"), "caveats": bt.get("caveats")}
                   if bt else {"status": "pending", "note": "weekly walk-forward backtest not yet written (justhodl-fortress-backtest-weekly, Sundays 09:00 UTC)"})
@@ -3043,7 +3210,9 @@ def lambda_handler(event=None, context=None):
                      "industry, growing, backed by industry inflows and an order book -- and whose volume "
                      "structure shows the dips being bought. Every leg is real data or an honest None; the "
                      "price legs are walked forward through years of tape every week. Research shorthand, not advice."),
-        "params": P, "weights": WEIGHTS, "gate_names": GATE_NAMES,
+        "params": P, "weights": WEIGHTS, "weights_effective": WEFF["weights"],
+        "weights_evidence": {"why": WEFF["why"], "pillars": WEFF["evidence"]},
+        "gate_names": GATE_NAMES,
         "gate_labels": {"location": ("under EMA250" if LOCATION_MODE["mode"] == "under" else "not extended (<= +%.0f%% over EMA250)" % P["not_extended_max_pct"]),
                         "dump_resilient": "dump-resilient", "coiled": "coiled", "low_valuation": "low valuation",
                         "growth": "growth", "industry_inflows": "industry inflows"},
