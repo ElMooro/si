@@ -1,0 +1,161 @@
+# ops 5087 -- justhodl-fortress v2 diagnostic (logs + disk)
+
+**Status:** success  
+**Duration:** 2.1s  
+**Finished:** 2026-09-01T03:50:43+00:00  
+
+## Data
+
+| backtest_as_of | backtest_err | backtest_obs | code_size | elapsed | err | fortress_as_of | last_update | memory | n_scored | session | sessions_loaded | state | timeout | version | version_env |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  | 143931 |  |  |  | Successful | 8192 |  |  |  | Active | 900 |  | 2.0.0 |
+|  |  |  |  | 40.0 | None | 2026-09-01T00:44:52+00:00 |  |  | 5177 | 2026-08-28 | 330 |  |  | 1.0.4 |  |
+| None | An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist. | None |  |  |  |  |  |  |  |  |  |  |  |  |  |
+
+## Log
+## function
+
+## disk
+
+- `03:50:42`   diag   12.0s bars 144/330 sessions, 9936 tickers
+- `03:50:42`   diag   13.6s bars 168/330 sessions, 10111 tickers
+- `03:50:42`   diag   15.3s bars 192/330 sessions, 10290 tickers
+- `03:50:42`   diag   16.9s bars 216/330 sessions, 10455 tickers
+- `03:50:42`   diag   18.6s bars 240/330 sessions, 10622 tickers
+- `03:50:42`   diag   20.4s bars 264/330 sessions, 10852 tickers
+- `03:50:42`   diag   22.2s bars 288/330 sessions, 11172 tickers
+- `03:50:42`   diag   24.0s bars 312/330 sessions, 11434 tickers
+- `03:50:42`   diag   25.4s bars 330/330 sessions, 11608 tickers
+- `03:50:42`   diag   25.4s market: 3 dump episodes (1 big), 12 worst days, SPY vs EMA250 9.56%
+- `03:50:42`   diag   34.8s stock rows built: 5177 (finviz-matched 5286)
+- `03:50:42`   diag   39.6s etf rows built: 2274
+## cloudwatch: last streams
+
+- `03:50:42` stream 18574db8b9e6d7b86279432a first=2026-09-01T03:38:57+00:00 last=2026-09-01T03:38:57+00:00
+- `03:50:42`   1 events, 1 kept
+- `03:50:42`   03:38:57 INIT_START Runtime Version: python:3.12.mainlinev2.v31	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:c1ab740f3656a72d7917665a940f8634df245489445f5a660de5a634d06c5433
+- `03:50:42` stream 1ed344ff9c561f1ef44449f1 first=2026-09-01T03:29:56+00:00 last=2026-09-01T03:30:59+00:00
+- `03:50:42`   313 events, 121 kept
+- `03:50:42`   03:29:56 INIT_START Runtime Version: python:3.12.mainlinev2.v31	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:c1ab740f3656a72d7917665a940f8634df245489445f5a660de5a634d06c5433
+- `03:50:42`   03:29:56 START RequestId: d82eaaf2-7235-4cd3-b452-6a21b780e399 Version: $LATEST
+- `03:50:42`   03:29:59 [fortress]    2.7s read miss data/fortress-backtest.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specifie
+- `03:50:42`   03:29:59 [fortress]    2.7s v2 feeds: stock_exposure=2328 dark=936 congress=26 options=58 insider_clusters=22 y10=4.67 regime=LATE_CYCLE/NORMAL backtest=None
+- `03:50:42`   03:29:59 [fortress]    2.7s feeds loaded in 2.7s: finviz=11632 census=497 boom=132 rotation=40 flows_poly=300 flows_true=128 backlog=121 mined=134 contracts=74 catalyst=215 floor=168/400 resilience=60 f13=7529 short=5799 insider=24 rev=12 
+- `03:50:42`   03:30:00 [fortress]    4.2s bars 24/760 sessions, 7226 tickers
+- `03:50:42`   03:30:01 [fortress]    5.1s bars 48/760 sessions, 7322 tickers
+- `03:50:42`   03:30:02 [fortress]    6.1s bars 72/760 sessions, 7411 tickers
+- `03:50:42`   03:30:03 [fortress]    7.1s bars 96/760 sessions, 7485 tickers
+- `03:50:42`   03:30:04 [fortress]    8.2s bars 120/760 sessions, 7582 tickers
+- `03:50:42`   03:30:05 [fortress]    9.2s bars 144/760 sessions, 7652 tickers
+- `03:50:42`   03:30:07 [fortress]   10.3s bars 168/760 sessions, 7743 tickers
+- `03:50:42`   03:33:19 [fortress]   39.8s bars 760/760 sessions, 11614 tickers
+- `03:50:42`   03:33:19 [fortress]   39.8s market: 8 dump episodes (4 big), 12 worst days, SPY vs EMA250 9.27%
+- `03:50:42`   03:33:41 [ERROR] IndexError: list index out of range | Traceback (most recent call last): |   File "/var/task/lambda_function.py", line 2750, in lambda_handler |     stock_rows = build_stock_rows(bars, dates, mkt, F, etf_bars) |   File "/v
+- `03:50:42`   03:33:41 END RequestId: 296a9646-b821-459f-b5ac-0d2dc0f6562f
+- `03:50:42`   03:33:41 REPORT RequestId: 296a9646-b821-459f-b5ac-0d2dc0f6562f	Duration: 61880.96 ms	Billed Duration: 61881 ms	Memory Size: 8192 MB	Max Memory Used: 737 MB	 | XRAY TraceId: 1-6a9646ce-5d39f74566b074e17744d72c	SegmentId: 9fa7efa3db404b08	S
+- `03:50:42`   03:35:23 START RequestId: d82eaaf2-7235-4cd3-b452-6a21b780e399 Version: $LATEST
+- `03:50:42`   03:35:24 [fortress]    1.7s read miss data/fortress-backtest.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specifie
+- `03:50:42`   03:35:24 [fortress]    1.7s v2 feeds: stock_exposure=2328 dark=936 congress=26 options=58 insider_clusters=22 y10=4.67 regime=LATE_CYCLE/NORMAL backtest=None
+- `03:50:42`   03:35:24 [fortress]    1.7s feeds loaded in 1.7s: finviz=11632 census=497 boom=132 rotation=40 flows_poly=300 flows_true=128 backlog=121 mined=134 contracts=74 catalyst=215 floor=168/400 resilience=60 f13=7529 short=5799 insider=24 rev=12 
+- `03:50:42`   03:35:26 [fortress]    3.0s bars 24/760 sessions, 7226 tickers
+- `03:50:42`   03:35:27 [fortress]    4.0s bars 48/760 sessions, 7322 tickers
+- `03:50:42`   03:35:28 [fortress]    5.0s bars 72/760 sessions, 7411 tickers
+- `03:50:42`   03:35:29 [fortress]    6.1s bars 96/760 sessions, 7485 tickers
+- `03:50:42`   03:35:30 [fortress]    7.1s bars 120/760 sessions, 7582 tickers
+- `03:50:42`   03:35:31 [fortress]    8.2s bars 144/760 sessions, 7652 tickers
+- `03:50:42`   03:35:32 [fortress]    9.3s bars 168/760 sessions, 7743 tickers
+- `03:50:42`   03:35:33 [fortress]   10.3s bars 192/760 sessions, 7821 tickers
+- `03:50:42`   03:35:34 [fortress]   11.4s bars 216/760 sessions, 7911 tickers
+- `03:50:42`   03:35:35 [fortress]   12.5s bars 240/760 sessions, 8021 tickers
+- `03:50:42`   03:35:36 [fortress]   13.5s bars 264/760 sessions, 8103 tickers
+- `03:50:42`   03:35:37 [fortress]   14.6s bars 288/760 sessions, 8261 tickers
+- `03:50:42`   03:35:38 [fortress]   15.7s bars 312/760 sessions, 8350 tickers
+- `03:50:42`   03:35:39 [fortress]   16.8s bars 336/760 sessions, 8489 tickers
+- `03:50:42`   03:35:41 [fortress]   18.0s bars 360/760 sessions, 8616 tickers
+- `03:50:42`   03:35:42 [fortress]   19.2s bars 384/760 sessions, 8755 tickers
+- `03:50:42`   03:35:43 [fortress]   20.4s bars 408/760 sessions, 8898 tickers
+- `03:50:42`   03:35:44 [fortress]   21.5s bars 432/760 sessions, 9004 tickers
+- `03:50:42`   03:35:45 [fortress]   22.7s bars 456/760 sessions, 9121 tickers
+- `03:50:42`   03:35:47 [fortress]   23.9s bars 480/760 sessions, 9298 tickers
+- `03:50:42`   03:35:48 [fortress]   25.1s bars 504/760 sessions, 9464 tickers
+- `03:50:42`   03:35:49 [fortress]   26.4s bars 528/760 sessions, 9616 tickers
+- `03:50:42`   03:35:50 [fortress]   27.7s bars 552/760 sessions, 9800 tickers
+- `03:50:42`   03:35:52 [fortress]   29.0s bars 576/760 sessions, 9995 tickers
+- `03:50:42`   03:35:53 [fortress]   30.3s bars 600/760 sessions, 10158 tickers
+- `03:50:42`   03:35:54 [fortress]   31.6s bars 624/760 sessions, 10336 tickers
+- `03:50:42`   03:35:56 [fortress]   33.0s bars 648/760 sessions, 10494 tickers
+- `03:50:42`   03:35:57 [fortress]   34.3s bars 672/760 sessions, 10667 tickers
+- `03:50:42`   03:35:58 [fortress]   35.8s bars 696/760 sessions, 10902 tickers
+- `03:50:42`   03:36:00 [fortress]   37.2s bars 720/760 sessions, 11226 tickers
+- `03:50:42`   03:36:01 [fortress]   38.6s bars 744/760 sessions, 11457 tickers
+- `03:50:42`   03:36:02 [fortress]   39.6s bars 760/760 sessions, 11614 tickers
+- `03:50:42`   03:36:02 [fortress]   39.6s market: 8 dump episodes (4 big), 12 worst days, SPY vs EMA250 9.27%
+- `03:50:42`   03:36:24 [ERROR] IndexError: list index out of range | Traceback (most recent call last): |   File "/var/task/lambda_function.py", line 2750, in lambda_handler |     stock_rows = build_stock_rows(bars, dates, mkt, F, etf_bars) |   File "/v
+- `03:50:42`   03:36:24 END RequestId: d82eaaf2-7235-4cd3-b452-6a21b780e399
+- `03:50:42`   03:36:24 REPORT RequestId: d82eaaf2-7235-4cd3-b452-6a21b780e399	Duration: 61358.51 ms	Billed Duration: 61359 ms	Memory Size: 8192 MB	Max Memory Used: 749 MB	 | XRAY TraceId: 1-6a9646b4-0aa90609290defc23caa932f	SegmentId: 03e54f1c077aa9c4	S
+- `03:50:42` stream 0f334315b6aef7dd9df2eb2e first=2026-09-01T03:30:22+00:00 last=2026-09-01T03:30:29+00:00
+- `03:50:43`   313 events, 121 kept
+- `03:50:43`   03:30:22 INIT_START Runtime Version: python:3.12.mainlinev2.v31	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:c1ab740f3656a72d7917665a940f8634df245489445f5a660de5a634d06c5433
+- `03:50:43`   03:30:22 START RequestId: 296a9646-b821-459f-b5ac-0d2dc0f6562f Version: $LATEST
+- `03:50:43`   03:30:24 [fortress]    1.8s read miss data/fortress-backtest.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specifie
+- `03:50:43`   03:30:24 [fortress]    1.8s v2 feeds: stock_exposure=2328 dark=936 congress=26 options=58 insider_clusters=22 y10=4.67 regime=LATE_CYCLE/NORMAL backtest=None
+- `03:50:43`   03:30:24 [fortress]    1.8s feeds loaded in 1.8s: finviz=11632 census=497 boom=132 rotation=40 flows_poly=300 flows_true=128 backlog=121 mined=134 contracts=74 catalyst=215 floor=168/400 resilience=60 f13=7529 short=5799 insider=24 rev=12 
+- `03:50:43`   03:30:26 [fortress]    3.6s bars 24/760 sessions, 7226 tickers
+- `03:50:43`   03:30:27 [fortress]    4.9s bars 48/760 sessions, 7322 tickers
+- `03:50:43`   03:30:29 [fortress]    6.2s bars 72/760 sessions, 7411 tickers
+- `03:50:43`   03:30:30 [fortress]    7.6s bars 96/760 sessions, 7485 tickers
+- `03:50:43`   03:30:31 [fortress]    9.0s bars 120/760 sessions, 7582 tickers
+- `03:50:43`   03:30:33 [fortress]   10.4s bars 144/760 sessions, 7652 tickers
+- `03:50:43`   03:30:34 [fortress]   11.8s bars 168/760 sessions, 7743 tickers
+- `03:50:43`   03:32:59 [fortress]   55.4s bars 760/760 sessions, 11614 tickers
+- `03:50:43`   03:32:59 [fortress]   55.4s market: 8 dump episodes (4 big), 12 worst days, SPY vs EMA250 9.27%
+- `03:50:43`   03:33:25 [ERROR] IndexError: list index out of range | Traceback (most recent call last): |   File "/var/task/lambda_function.py", line 2750, in lambda_handler |     stock_rows = build_stock_rows(bars, dates, mkt, F, etf_bars) |   File "/v
+- `03:50:43`   03:33:25 END RequestId: d82eaaf2-7235-4cd3-b452-6a21b780e399
+- `03:50:43`   03:33:25 REPORT RequestId: d82eaaf2-7235-4cd3-b452-6a21b780e399	Duration: 82184.88 ms	Billed Duration: 82185 ms	Memory Size: 8192 MB	Max Memory Used: 739 MB	 | XRAY TraceId: 1-6a9646b4-0aa90609290defc23caa932f	SegmentId: 4e54ba537e3c753f	S
+- `03:50:43`   03:35:52 START RequestId: 296a9646-b821-459f-b5ac-0d2dc0f6562f Version: $LATEST
+- `03:50:43`   03:35:53 [fortress]    1.8s read miss data/fortress-backtest.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specifie
+- `03:50:43`   03:35:53 [fortress]    1.8s v2 feeds: stock_exposure=2328 dark=936 congress=26 options=58 insider_clusters=22 y10=4.67 regime=LATE_CYCLE/NORMAL backtest=None
+- `03:50:43`   03:35:53 [fortress]    1.8s feeds loaded in 1.8s: finviz=11632 census=497 boom=132 rotation=40 flows_poly=300 flows_true=128 backlog=121 mined=134 contracts=74 catalyst=215 floor=168/400 resilience=60 f13=7529 short=5799 insider=24 rev=12 
+- `03:50:43`   03:35:55 [fortress]    3.6s bars 24/760 sessions, 7226 tickers
+- `03:50:43`   03:35:56 [fortress]    4.9s bars 48/760 sessions, 7322 tickers
+- `03:50:43`   03:35:58 [fortress]    6.3s bars 72/760 sessions, 7411 tickers
+- `03:50:43`   03:35:59 [fortress]    7.7s bars 96/760 sessions, 7485 tickers
+- `03:50:43`   03:36:01 [fortress]    9.1s bars 120/760 sessions, 7582 tickers
+- `03:50:43`   03:36:02 [fortress]   10.5s bars 144/760 sessions, 7652 tickers
+- `03:50:43`   03:36:04 [fortress]   12.1s bars 168/760 sessions, 7743 tickers
+- `03:50:43`   03:36:05 [fortress]   13.5s bars 192/760 sessions, 7821 tickers
+- `03:50:43`   03:36:07 [fortress]   15.0s bars 216/760 sessions, 7911 tickers
+- `03:50:43`   03:36:08 [fortress]   16.6s bars 240/760 sessions, 8021 tickers
+- `03:50:43`   03:36:10 [fortress]   18.1s bars 264/760 sessions, 8103 tickers
+- `03:50:43`   03:36:11 [fortress]   19.6s bars 288/760 sessions, 8261 tickers
+- `03:50:43`   03:36:13 [fortress]   21.3s bars 312/760 sessions, 8350 tickers
+- `03:50:43`   03:36:14 [fortress]   22.8s bars 336/760 sessions, 8489 tickers
+- `03:50:43`   03:36:16 [fortress]   24.4s bars 360/760 sessions, 8616 tickers
+- `03:50:43`   03:36:18 [fortress]   26.0s bars 384/760 sessions, 8755 tickers
+- `03:50:43`   03:36:19 [fortress]   27.6s bars 408/760 sessions, 8898 tickers
+- `03:50:43`   03:36:21 [fortress]   29.1s bars 432/760 sessions, 9004 tickers
+- `03:50:43`   03:36:22 [fortress]   30.8s bars 456/760 sessions, 9121 tickers
+- `03:50:43`   03:36:24 [fortress]   32.5s bars 480/760 sessions, 9298 tickers
+- `03:50:43`   03:36:26 [fortress]   34.1s bars 504/760 sessions, 9464 tickers
+- `03:50:43`   03:36:27 [fortress]   35.9s bars 528/760 sessions, 9616 tickers
+- `03:50:43`   03:36:29 [fortress]   37.7s bars 552/760 sessions, 9800 tickers
+- `03:50:43`   03:36:31 [fortress]   39.4s bars 576/760 sessions, 9995 tickers
+- `03:50:43`   03:36:33 [fortress]   41.3s bars 600/760 sessions, 10158 tickers
+- `03:50:43`   03:36:35 [fortress]   43.1s bars 624/760 sessions, 10336 tickers
+- `03:50:43`   03:36:37 [fortress]   45.0s bars 648/760 sessions, 10494 tickers
+- `03:50:43`   03:36:38 [fortress]   46.9s bars 672/760 sessions, 10667 tickers
+- `03:50:43`   03:36:40 [fortress]   48.8s bars 696/760 sessions, 10902 tickers
+- `03:50:43`   03:36:42 [fortress]   50.7s bars 720/760 sessions, 11226 tickers
+- `03:50:43`   03:36:44 [fortress]   52.8s bars 744/760 sessions, 11457 tickers
+- `03:50:43`   03:36:46 [fortress]   54.2s bars 760/760 sessions, 11614 tickers
+- `03:50:43`   03:36:46 [fortress]   54.2s market: 8 dump episodes (4 big), 12 worst days, SPY vs EMA250 9.27%
+- `03:50:43`   03:37:13 [ERROR] IndexError: list index out of range | Traceback (most recent call last): |   File "/var/task/lambda_function.py", line 2750, in lambda_handler |     stock_rows = build_stock_rows(bars, dates, mkt, F, etf_bars) |   File "/v
+- `03:50:43`   03:37:13 END RequestId: 296a9646-b821-459f-b5ac-0d2dc0f6562f
+- `03:50:43`   03:37:13 REPORT RequestId: 296a9646-b821-459f-b5ac-0d2dc0f6562f	Duration: 81390.55 ms	Billed Duration: 81391 ms	Memory Size: 8192 MB	Max Memory Used: 754 MB	 | XRAY TraceId: 1-6a9646ce-5d39f74566b074e17744d72c	SegmentId: 8d12ef95f44006fc	S
+- `03:50:43` stream 3b0b4988add8bbfec83c64b0 first=2026-09-01T00:44:11+00:00 last=2026-09-01T00:44:52+00:00
+- `03:50:43`   0 events, 0 kept
+- `03:50:43` stream 1cf04231b36a4fbd3720cc90 first=2026-09-01T00:33:18+00:00 last=2026-09-01T00:33:58+00:00
+- `03:50:43`   0 events, 0 kept
+## verdict
+
+- `03:50:43` see log tail above: look for 'Task timed out' (900s), 'Runtime exited' (OOM), or the last [fortress] progress line reached
