@@ -60,7 +60,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 ENGINE = "justhodl-fortress"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fortress.json"
@@ -75,7 +75,8 @@ P = {
     "big_dump_dd_pct": -8.0,
     "worst_day_quantile": 0.05,
     "worst_day_min_n": 12,
-    "capture_barely_dipped": 0.35,   # stock fell <= 35% of the SPY dump
+    "capture_barely_dipped": 0.35,   # size-weighted capture <= 35% of the SPY dumps
+    "capture_worst_max": 1.0,        # and never fell MORE than the market in any dump
     "bb_squeeze_pctile": 20.0,       # bandwidth in the bottom 20% of own year
     "bb_tight_pctile": 10.0,
     "keltner_atr_mult": 1.5,
@@ -706,13 +707,21 @@ def price_signals(b, mkt, etf_bars, dates):
     out["capture_median"] = median(caps)
     out["capture_mean"] = mean(caps)
     out["capture_worst"] = max(caps) if caps else None
+    wsum = sum(abs(x["spy_pct"]) for x in ep_rows if x["capture"] is not None)
+    out["capture_weighted"] = (sum(x["capture"] * abs(x["spy_pct"]) for x in ep_rows if x["capture"] is not None) / wsum
+                               if wsum else None)
+    if caps:
+        wx = max(ep_rows, key=lambda x: (x["capture"] if x["capture"] is not None else -9))
+        out["worst_episode"] = "%s..%s SPY %.1f%% stock %+.1f%%" % (wx["peak_date"], wx["trough_date"], wx["spy_pct"], wx["stock_pct"])
+    else:
+        out["worst_episode"] = None
     out["flat_or_up_share"] = (sum(1 for x in ep_rows if x["stock_pct"] >= 0) / len(ep_rows)) if ep_rows else None
     out["barely_dipped_share"] = (sum(1 for x in caps if x <= P["capture_barely_dipped"]) / len(caps)) if caps else None
     big = [x["capture"] for x in ep_rows if x["big"] and x["capture"] is not None]
     out["capture_big_dumps"] = median(big)
     # dump_capture: the one number -- episode-based when available, else day-based
     if caps:
-        out["dump_capture"] = out["capture_median"]
+        out["dump_capture"] = out["capture_weighted"]
         out["dump_capture_basis"] = "episodes"
     elif out.get("down_capture_pct") is not None:
         out["dump_capture"] = out["down_capture_pct"] / 100.0
@@ -1321,6 +1330,9 @@ def resilience_score(r):
     cap = r.get("dump_capture")
     if cap is not None:
         parts.append((3.0, lin_map(cap, 1.0, 0, -0.25, 100)))
+    worst = r.get("capture_worst")
+    if worst is not None:
+        parts.append((1.5, lin_map(worst, 2.0, 0, 0.0, 100)))
     ex = r.get("worst_days_excess_bps")
     if ex is not None:
         parts.append((2.0, lin_map(ex, -150, 0, 150, 100)))
@@ -1415,10 +1427,14 @@ def dump_gate(r):
     cap = r.get("dump_capture")
     ex = r.get("worst_days_excess_bps")
     gr = r.get("worst_days_green_rate") or 0.0
+    worst = r.get("capture_worst")
     if cap is None and ex is None:
         return None
-    ep_ok = cap is not None and cap <= P["capture_barely_dipped"] and (ex is None or ex >= -75)
-    day_ok = ex is not None and ex >= 25 and gr >= 0.40 and (cap is None or cap <= 0.7)
+    ep_ok = (cap is not None and cap <= P["capture_barely_dipped"]
+             and (worst is None or worst <= P["capture_worst_max"])
+             and (ex is None or ex >= -75))
+    day_ok = (ex is not None and ex >= 25 and gr >= 0.40 and (cap is None or cap <= 0.7)
+              and (worst is None or worst <= 1.5))
     return bool(ep_ok or day_ok)
 
 
@@ -1517,8 +1533,10 @@ def reasons_for(r):
             R.append("ROSE while SPY dumped: capture %.2f across %d drawdown episode(s), flat-or-up in %s of them" % (
                 cap, r["n_episodes"], fu))
         else:
-            R.append("captured only %.0f%% of the SPY dump across %d drawdown episode(s), flat-or-up in %s of them" % (
+            R.append("captured only %.0f%% of the SPY dumps (size-weighted) across %d episode(s), flat-or-up in %s of them" % (
                 cap * 100, r["n_episodes"], fu))
+        if r.get("capture_worst") is not None and r["capture_worst"] > 1.0:
+            R.append("but fell MORE than the market in its worst episode (%s)" % r.get("worst_episode"))
     if r.get("worst_days_excess_bps") is not None:
         R.append("on SPY's %d worst days: %+.0f bps vs SPY, green %.0f%% of the time" % (
             r["worst_days_n"], r["worst_days_excess_bps"], (r.get("worst_days_green_rate") or 0) * 100))
@@ -1592,9 +1610,8 @@ def build_etf_rows(bars, dates, mkt, F):
         if lev:
             continue
         et = str(fv.get("etf_type") or "").lower()
-        in_fleet = sym in F["rotation"] or sym in F["flows_poly"] or sym in F["flows_true"]
-        if et and not et.startswith("equit") and not in_fleet:
-            continue  # bond / commodity / currency wrappers: trivially "resilient", not the brief
+        if "equit" not in et and sym not in IND_ETF.values() and sym not in SECTOR_ETF.values():
+            continue  # bond / commodity / currency wrappers are not the brief (equity accumulation)
         ps = price_signals(b, mkt, {}, dates)
         if (ps.get("vol_100d_pct") or 0) < 8.0:
             continue  # cash-like vol: not an equity accumulation candidate
@@ -1745,7 +1762,7 @@ def snapshot_and_base_rates(stock_rows, bars, dates, session):
 
 
 DEFINITIONS = {
-    "dump_capture": "Median of (stock return / SPY return) across every SPY peak-to-trough drawdown of at least 4% in the trailing year. 0.20 = the stock fell only a fifth of the market's dump; negative = it rose while the market dumped. Falls back to the down-day capture ratio when no episode overlaps the name's history.",
+    "dump_capture": "Size-weighted mean of (stock return / SPY return) across every SPY peak-to-trough drawdown of at least 4% in the trailing year, weighted by the depth of each dump so the biggest dump counts most. 0.20 = the stock fell only a fifth of the market's dumps; negative = it rose while the market dumped. capture_worst is the single worst episode; a fortress may never have fallen more than the market (worst <= 1.0). Falls back to the down-day capture ratio when no episode overlaps the name's history.",
     "worst_days_excess_bps": "Average of (stock return minus SPY return) on SPY's worst 5% of days in the trailing year, in basis points. Positive = held up better than the market on its ugliest days.",
     "worst_days_green_rate": "Share of SPY's worst days on which the stock still closed UP.",
     "down_capture_pct": "Mean stock return on all SPY down-days divided by the mean SPY return on those days, x100. 40 = the stock falls 40% as much as SPY on red days; 0 or negative = it does not fall (or rises) when the market does.",
@@ -1767,7 +1784,7 @@ DEFINITIONS = {
     "safety_score": "Downside cushion: net-liquid-asset coverage of market cap (floor auditor), Altman Z, Piotroski F, Beneish M, interest coverage or net debt/EBITDA, current ratio, positive FCF, dilution, beta, 1-year max drawdown, dollar liquidity, short-float extremes. Earnings inside 7 days subtracts 12 (binary event inside the coil).",
     "composite": "Weighted average of the nine pillars (weights published in the payload) computed only when at least 60% of the weight is covered by real data. Not a rating -- a ranking of confluence.",
     "asymmetry": "Upside room (median of analyst-PT upside and distance to the 52-week high) divided by the expected loss in a -10% SPY dump (10 x dump capture, floored at half of the name's own one-month sigma so a negative capture never reads as zero risk, cut by 30% when net liquid assets cover >= 50% of market cap; capped at 25). 3.0 = three points of room per point of empirical dump risk.",
-    "tier": "FORTRESS_COIL passes all six spec gates (under EMA250, dump-resilient, coiled, low valuation, growth, industry inflows); COILED five; ACCUMULATING four; WATCH three; SCREENED otherwise. Dump-resilient means episode capture <= 0.35 with worst-day excess not worse than -75 bps, or worst-day excess >= +25 bps with a >= 40% green rate and capture <= 0.7 -- the two reads may not contradict. The knife guard, hygiene floor and an already-ignited breakout cap the tier.",
+    "tier": "FORTRESS_COIL passes all six spec gates (under EMA250, dump-resilient, coiled, low valuation, growth, industry inflows); COILED five; ACCUMULATING four; WATCH three; SCREENED otherwise. Dump-resilient means size-weighted episode capture <= 0.35, never worse than the market in any single dump (worst capture <= 1.0), with worst-day excess not worse than -75 bps; or worst-day excess >= +25 bps with a >= 40% green rate, capture <= 0.7 and worst <= 1.5 -- the two reads may not contradict. The knife guard, hygiene floor and an already-ignited breakout cap the tier.",
     "nlav_coverage": "Net liquid asset value (cash + investments + live-marked crypto x0.85 receivables - debt) divided by market cap, from the asset-floor auditor. 0.6 = 60% of the price is already cash-like.",
     "rs_vs_industry_3m_pp": "Stock's 63-session return minus its industry ETF's, in percentage points. The O'Neil relative-strength leg: is the name leading its own group?",
     "base_rates": "Forward 21-session returns of this engine's OWN past picks, recomputed from the bar warehouse each run. Accrues from the first snapshot; nothing is claimed until measured.",
@@ -1820,6 +1837,8 @@ def lambda_handler(event=None, context=None):
                                                       and r["bb_width_pctile"] <= P["bb_tight_pctile"])),
                                       ("PRE_BREAKOUT", r.get("coil_state") == "PRE_BREAKOUT"),
                                       ("IGNITED", r.get("coil_state") == "IGNITED"),
+                                      ("BIG_DUMP_PROOF", (r.get("capture_big_dumps") is not None
+                                                          and r["capture_big_dumps"] <= P["capture_barely_dipped"])),
                                       ("INSIDER_BUYING", bool(r.get("insider_buys_30d"))),
                                       ("SP500", r.get("sp500"))) if ok]
     tier_rank = {"FORTRESS_COIL": 0, "COILED": 1, "ACCUMULATING": 2, "WATCH": 3, "SCREENED": 4}

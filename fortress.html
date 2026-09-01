@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="fortress-version" content="fortress-v1.0.0">
+<meta name="fortress-version" content="fortress-v1.0.2">
 <meta name="jh-marker" content="FORTRESS_COIL_V1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Fortress Coil · Dump-Resilient Accumulation Radar · JustHodl.AI</title>
@@ -55,7 +55,7 @@ tr.pin{background:var(--bg-elev)}
 .SCREENED{background:var(--bg-elev);color:var(--text-muted);border:1px solid var(--border)}
 .pos{color:var(--green)}.neg{color:var(--red)}.dim{color:var(--text-dim)}.mut{color:var(--text-muted)}
 .flag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.05em;border-radius:3px;padding:1px 5px;margin-right:3px;border:1px solid var(--border-light);color:var(--text-dim)}
-.flag.MAJOR_GROWTH,.flag.MAJOR_INFLOWS,.flag.MAJOR_BACKLOG,.flag.CONTRACTS{color:var(--green);border-color:rgba(34,197,94,.4)}
+.flag.MAJOR_GROWTH,.flag.MAJOR_INFLOWS,.flag.MAJOR_BACKLOG,.flag.CONTRACTS,.flag.BIG_DUMP_PROOF{color:var(--green);border-color:rgba(34,197,94,.4)}
 .flag.TIGHT_COIL,.flag.PRE_BREAKOUT{color:var(--cyan);border-color:rgba(34,211,238,.4)}
 .flag.IGNITED{color:var(--amber);border-color:rgba(245,158,11,.4)}
 .flag.INSIDER_BUYING{color:var(--violet);border-color:rgba(167,139,250,.4)}
@@ -125,6 +125,7 @@ footer{margin-top:28px;border-top:1px solid var(--border);padding-top:12px;color
     <span class="chip" data-flag="CONTRACTS">contracts</span>
     <span class="chip" data-flag="TIGHT_COIL">tight coil</span>
     <span class="chip" data-flag="PRE_BREAKOUT">pre-breakout</span>
+    <span class="chip" data-flag="BIG_DUMP_PROOF">big-dump proof</span>
     <span class="chip" data-flag="INSIDER_BUYING">insider buying</span>
     <span class="chip" data-flag="SP500">S&amp;P 500</span>
     <span class="small" id="count"></span>
@@ -135,7 +136,7 @@ footer{margin-top:28px;border-top:1px solid var(--border);padding-top:12px;color
 
 <div id="pane-etfs" style="display:none">
   <div class="wrap"><table id="etbl"><thead id="eth"></thead><tbody id="etb"></tbody></table></div>
-  <p class="note">ETF gates: under EMA250 · dump-resilient · coiled · own inflows (Polygon creations, true ΔShares×NAV, Finviz). Leveraged / inverse products excluded. Valuation and growth are not scored for wrappers — that is honest, not missing.</p>
+  <p class="note">Equity ETFs only (US and ex-US equity wrappers plus the sector/industry set); bond, commodity and currency products are excluded because a cash-like wrapper is trivially "resilient". Gates: under EMA250 · dump-resilient · coiled · own inflows (Polygon creations, true ΔShares×NAV, Finviz). Leveraged / inverse products excluded. Valuation and growth are not scored for wrappers — that is honest, not missing.</p>
 </div>
 
 <div id="pane-industries" style="display:none">
@@ -269,7 +270,7 @@ function detailHtml(r){
   h+='<div><h4>Why it is on the board</h4><ul>'+(r.reasons||[]).map(function(x){return '<li>'+esc(x)+'</li>';}).join("")+'</ul>'+(r.invalidation?'<h4 style="margin-top:8px">Invalidation</h4><div class="small">'+esc(r.invalidation)+'</div>':'')+'</div>';
   h+='<div><h4>Pillars (composite '+n(r.composite,1)+' · coverage '+n(r.pillar_coverage!=null?r.pillar_coverage*100:null,0,"%")+')</h4>'+pillHtml(r.pillars,DOC.weights)+'<div class="kv" style="margin-top:6px">upside room <b>'+n(r.upside_room_pct,1,"%")+'</b> · dump downside <b>'+n(r.dump_downside_pct,1,"%")+'</b> · asymmetry <b>'+n(r.asymmetry,2,"x")+'</b></div>'
    +(r.risks&&r.risks.length?'<h4 style="margin-top:8px">Risks</h4><ul class="risk">'+r.risks.map(function(x){return '<li>'+esc(x)+'</li>';}).join("")+'</ul>':'')+'</div>';
-  h+='<div><h4>Dump resilience</h4><div class="kv">capture <b>'+n(r.dump_capture,2)+'</b> ('+esc(r.dump_capture_basis||"")+') · worst-days <b>'+sgn(r.worst_days_excess_bps,0)+' bps</b> · green <b>'+n(r.worst_days_green_rate!=null?r.worst_days_green_rate*100:null,0,"%")+'</b> · held <b>'+n(r.worst_days_held_rate!=null?r.worst_days_held_rate*100:null,0,"%")+'</b><br>down-capture <b>'+n(r.down_capture_pct,0)+'</b> · up-capture <b>'+n(r.up_capture_pct,0)+'</b> · β <b>'+n(r.beta_1y,2)+'</b> · β↓ <b>'+n(r.down_beta,2)+'</b> · β↑ <b>'+n(r.up_beta,2)+'</b> · asym β <b>'+sgn(r.beta_asymmetry,2)+'</b>'
+  h+='<div><h4>Dump resilience</h4><div class="kv">capture <b>'+n(r.dump_capture,2)+'</b> ('+esc(r.dump_capture_basis||"")+', size-weighted) · median <b>'+n(r.capture_median,2)+'</b> · worst <b>'+n(r.capture_worst,2)+'</b>'+(r.worst_episode?' <span class="dim">'+esc(r.worst_episode)+'</span>':'')+' · big dumps <b>'+n(r.capture_big_dumps,2)+'</b> · worst-days <b>'+sgn(r.worst_days_excess_bps,0)+' bps</b> · green <b>'+n(r.worst_days_green_rate!=null?r.worst_days_green_rate*100:null,0,"%")+'</b> · held <b>'+n(r.worst_days_held_rate!=null?r.worst_days_held_rate*100:null,0,"%")+'</b><br>down-capture <b>'+n(r.down_capture_pct,0)+'</b> · up-capture <b>'+n(r.up_capture_pct,0)+'</b> · β <b>'+n(r.beta_1y,2)+'</b> · β↓ <b>'+n(r.down_beta,2)+'</b> · β↑ <b>'+n(r.up_beta,2)+'</b> · asym β <b>'+sgn(r.beta_asymmetry,2)+'</b>'
    +(re?'<br>resilience engine: <b>'+n(re.score,0)+'</b> '+esc(re.stage||"")+(re.flow_confirmed?' flow-confirmed':''):'')+'</div>'
    +(ep?'<table class="mini" style="margin-top:6px"><tr><th>SPY episode</th><th class="r">SPY</th><th class="r">Stock</th><th class="r">Capture</th></tr>'+ep+'</table>':'<div class="small">no SPY drawdown episode overlaps this name\'s history</div>')+'</div>';
   h+='<div><h4>Coil &amp; location</h4><div class="kv">close <b>'+n(r.close,2)+'</b> · EMA250 <b>'+n(r.ema250,2)+'</b> ('+sgn(r.vs_ema250_pct,1,"%")+') · EMA200 '+sgn(r.vs_ema200_pct,1,"%")+' · SMA250 '+sgn(r.vs_sma250_pct,1,"%")+' · 52w high '+sgn(r.pct_from_52w_high,1,"%")+' · above 52w low +'+n(r.pct_above_52w_low,0,"%")+'<br>BB width <b>'+n(r.bb_width_pct,1,"%")+'</b> pctile <b>'+n(r.bb_width_pctile,0)+'</b>'+(r.bb_width_6m_low?' <span class="pos">6m low</span>':'')+' · %B <b>'+n(r.bb_pct_b,2)+'</b> · TTM squeeze <b>'+(r.ttm_squeeze_on?'ON':'off')+'</b> '+(r.squeeze_days||0)+'d · ATR20 <b>'+n(r.atr20_pct,1,"%")+'</b> (ratio '+n(r.atr_contraction,2)+') · vol 20d/100d <b>'+n(r.vol_20d_pct,0,"%")+'/'+n(r.vol_100d_pct,0,"%")+'</b> · volume dry-up <b>'+n(r.volume_dryup,2)+'</b><br>state <b>'+esc(r.coil_state||"")+'</b> · breakout level <b>'+n(r.breakout_level,2)+'</b> (+'+n(r.dist_to_breakout_pct,1,"%")+') · range low <b>'+n(r.range_low_60,2)+'</b> · 1m '+sgn(r.ret_1m_pct,1,"%")+' 3m '+sgn(r.ret_3m_pct,1,"%")+' 6m '+sgn(r.ret_6m_pct,1,"%")+' 12m '+sgn(r.ret_12m_pct,1,"%")+' · RS vs SPY 3m '+sgn(r.rs_vs_spy_3m_pp,1,"pp")+' · RS vs '+esc(r.industry_etf||"ind")+' 3m '+sgn(r.rs_vs_industry_3m_pp,1,"pp")+' · max DD 1y '+sgn(r.max_dd_1y_pct,0,"%")+' · ADV$ <b>'+money(r.adv_usd_20d)+'</b></div></div>';
