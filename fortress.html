@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="fortress-version" content="fortress-v2.2.0">
+<meta name="fortress-version" content="fortress-v2.2.2">
 <meta name="jh-marker" content="FORTRESS_COIL_V1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Fortress Coil · Dump-Resilient Accumulation Radar · JustHodl.AI</title>
@@ -41,6 +41,15 @@ h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--text
 table{width:100%;border-collapse:collapse;font-size:12px}
 th{position:sticky;top:0;background:var(--bg-card);color:var(--text-dim);font-weight:600;text-align:left;padding:7px 6px;border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;font-size:11px}
 th.r,td.r{text-align:right;font-family:var(--font-mono)}
+th .arrows{color:var(--text-dim);opacity:.35;font-size:9px;margin-left:3px;letter-spacing:-1px}
+th.active .arrows{opacity:1;color:var(--accent,#7cc4ff)}
+th .q{display:inline-block;width:13px;height:13px;line-height:13px;border-radius:50%;border:1px solid var(--border);color:var(--text-dim);font-size:9px;text-align:center;margin-left:4px;vertical-align:1px;position:relative;cursor:help;font-family:var(--font-body,inherit);font-weight:700}
+th .q:hover,th .q.open{border-color:var(--accent,#7cc4ff);color:var(--accent,#7cc4ff)}
+th .q .tip{display:none;position:absolute;left:-8px;top:18px;z-index:50;min-width:260px;max-width:340px;background:var(--bg-card);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:11px;line-height:1.45;font-weight:400;text-align:left;white-space:normal;text-transform:none;letter-spacing:0;box-shadow:0 8px 24px rgba(0,0,0,.45);font-family:var(--font-body,inherit)}
+th .q:hover .tip,th .q.open .tip{display:block}
+th.r .q .tip{left:auto;right:-4px}
+th .q .tip b{color:var(--accent,#7cc4ff)}
+th .q .tip .hint{display:block;margin-top:5px;color:var(--text-dim)}
 td{padding:6px 6px;border-bottom:1px solid var(--border);vertical-align:top;white-space:nowrap}
 tr.row:hover{background:var(--bg-hover);cursor:pointer}
 tr.pin{background:var(--bg-elev)}
@@ -248,10 +257,63 @@ var ICOLS=[
  {k:"boom_score",l:"Boom",r:1,f:function(r){return n(r.boom_score,0)+(r.boom_delta_20d!=null?' <span class="dim">'+(r.boom_delta_20d>0?"+":"")+r.boom_delta_20d+'</span>':'');}}
 ];
 
+var HELP={
+ tier:["Tier by gates passed","FORTRESS_COIL = all six gates (location · dump-resilient · coiled · low valuation · growth · industry inflows); COILED = five; ACCUMULATING = four; WATCH = three. The knife guard, hygiene floor and an already-ignited breakout cap the tier.","sorts best tier first"],
+ ticker:["Symbol","Click the row to open the evidence panel; the symbol links to the research desk.","alphabetical"],
+ name:["Company","Name from the Finviz universe.","alphabetical"],
+ industry:["Industry","Finviz industry; valuation percentiles are measured against these peers.","alphabetical"],
+ market_cap:["Market cap","Market capitalisation in USD (Finviz).","higher = larger"],
+ composite:["Composite 0-100","Weighted blend of the eleven pillars (today's effective weights are in the Validation tab), half absolute anchors and half cross-sectional percentile rank, then shrunk toward 50 by evidence confidence.","higher = better"],
+ asymmetry:["Asymmetry","Upside room ÷ empirical dump downside. Upside = analyst PT upside and distance to the 52-week high; downside = the larger of 10 × capture and the real median loss of the name's capture decile in past SPY-down windows (scaled to a -10% SPY), floored by volatility and CVaR.","higher = more convex"],
+ conviction:["Conviction","Geometric mean of the six gate pillars — unlike an average, one weak leg drags it down. A fortress must be strong everywhere.","higher = stronger everywhere"],
+ confidence:["Evidence confidence","How much evidence sits under the read: dump episodes overlapping the name (4+ = full), worst days matched (12+ = full) and data coverage. Low confidence shrinks the composite toward 50.","higher = more evidence"],
+ dump_capture:["Dump capture","Stock move ÷ SPY move across every SPY drawdown of 4%+ in three years, weighted by depth and recency. 0.20 = fell a fifth as much as the market; negative = rose while the market dumped. ≤ 0.35 passes the gate (with the never-worse rule and the down-day read).","lower = more resilient"],
+ capture_worst:["Worst episode","The single worst capture across the three-year window: > 1 means the name fell MORE than the market in that dump. The gate applies the never-worse rule to the freshest window (1y, else 2y); the panel shows both.","lower = better"],
+ worst_days_excess_bps:["Worst-day excess","Average return vs SPY on SPY's worst 5% of days in the trailing year, in basis points (100 bps = 1%). Positive = held up while the market was being sold.","higher = better"],
+ vs_ema250_pct:["vs EMA250","Distance from the 250-day exponential average. Negative = under it. Location gate: under EMA250 by spec, or 'not extended' (≤ +15%) when the walk-forward says that arm is better (see the line above the table).","spec favours negative"],
+ bb_width_pctile:["Bollinger width percentile","Today's band width vs the trailing year: ≤ 20 = tight coil, ≤ 10 = very tight. Tight bands have historically preceded the largest moves.","lower = tighter"],
+ squeeze_days:["Squeeze days","Consecutive sessions the Bollinger bands sit inside the Keltner channel (TTM squeeze). 3+ = squeeze on. Green = on today.","higher = longer compression"],
+ coil_state:["Coil state","LOOSE → COILING (tight bands or squeeze) → PRE_BREAKOUT (near the 60-day high, %B ≥ 0.7) → IGNITED (already broke out on volume — no longer a coil).","sorts most advanced first"],
+ accum:["Accumulation pillar 0-100","Volume structure and smart money: OBV / A-D divergence, up/down volume, absorption on the worst days, dark-pool state, 13F net buying, insider clusters, Congress, ETF-creation pressure.","higher = dips being bought"],
+ struct:["Structure pillar 0-100","Higher lows, Minervini VCP contractions, RS-line lead, base age, squeeze momentum direction.","higher = tighter structure"],
+ obv_slope_63:["OBV slope 63d","On-Balance Volume change over 63 sessions in average-daily-volume units per day (-1 … +1). Positive while price is flat = accumulation signature.","higher = more volume flowing in"],
+ dark_pool_state:["Dark pool","FINRA ATS (off-exchange) state from the dark-pool engine — ACCUMULATION / NEUTRAL / DISTRIBUTION — with the dark-pool share of volume. Lags ~2-3 weeks by construction.","sorts ACCUMULATION first"],
+ valuation_score:["Valuation 0-100","Cheapness vs industry peers: percentiles of PEG, EV/EBITDA, P/S, P/FCF, forward P/E, plus bonuses for FCF yield ≥ 6%, earnings yield ≥ 10y + 2pp, rule of 40 (software).","higher = cheaper"],
+ growth_score:["Growth 0-100","Revenue y/y and q/q, EPS y/y, next quarter, five-year, earnings and revenue surprises, and the industry's growth.","higher = faster"],
+ flow_score:["Industry flows 0-100","Consensus of three flow sources for the name's industry ETF; z = 90-day z-score of net creations. ≥ 55 with a positive leg passes the gate.","higher = money entering"],
+ industry_etf:["Industry ETF","The ETF whose flows are read for this name (sector SPDR when no industry ETF exists).","alphabetical"],
+ backlog_to_mcap:["Backlog / market cap","Remaining performance obligations or order book ÷ market cap (XBRL, mined filings).","higher = more contracted revenue vs size"],
+ contracts_90d_vs_mcap_pct:["Contracts 90d % mcap","Announced contract wins in the last 90 days as a share of market cap.","higher = more meaningful wins"],
+ safety_score:["Safety 0-100","Downside floor: net-liquid-asset coverage, net cash, debt, runway, CVaR, overnight gaps, Ulcer index, Amihud illiquidity, shareholder yield.","higher = safer"],
+ rr:["Reward to risk","Trade plan: (target − price) ÷ (price − stop). Target = the nearer of the analyst PT and the 52-week high; stop under the 60-day range low / 2.5 ATR. Capped at 20.","higher = more reward per unit of risk"],
+ ret_3m_pct:["3-month return","Price return over the last 63 sessions.","higher = stronger"],
+ flags:["Flags","Evidence badges (BIG_DUMP_PROOF, TIGHT_COIL, OBV_DIVERGENCE, RS_LEADING, VCP, DARK_POOL_ACCUM …). Definitions tab explains each.","sorts by number of flags"],
+ aum_usd:["AUM","Assets under management in USD (Finviz).","higher = larger"],
+ z90:["Flow z-score","90-day z-score of the ETF's net creations (Polygon flow engine). ≥ +1 = unusually strong inflows.","higher = stronger inflows"],
+ pct_aum_21d:["% AUM 21d","Net flow over 21 sessions as a share of AUM.","higher = more inflow"],
+ true_pct_aum_20d:["True % AUM 20d","Net creations from the true-flows engine (shares outstanding × NAV) as a share of AUM.","higher = more inflow"],
+ fv_flows_1m_pct:["Finviz 1m flows","One-month fund flows as a percentage of AUM (Finviz).","higher = more inflow"],
+ rs_vs_spy_3m_pp:["RS vs SPY 3m","Three-month return minus SPY's, in percentage points.","higher = leading"],
+ leadership:["Leadership","Rotation-dashboard leadership score for the ETF.","higher = leading"],
+ rrg:["RRG quadrant","Relative-rotation position: LEADING → WEAKENING → LAGGING → IMPROVING.","sorts LEADING first"],
+ etf:["ETF","Industry ETF ticker.","alphabetical"],
+ n_stocks:["Names","Number of scored stocks mapped to this industry ETF.","higher = more names"],
+ tiers:["Tier counts","Fortress / Coiled / Accumulating / Watch counts among the industry's names.","sorts by weighted tier count"],
+ top:["Top names","Highest-composite names in the industry (badge = tier).","—"],
+ flow_z90:["Flow z-score","90-day z-score of the industry ETF's net creations.","higher = stronger inflows"],
+ quadrant:["Flow quadrant","Flow-engine quadrant (e.g. ACCUMULATE / DISTRIBUTE) for the ETF.","sorts accumulate first"],
+ etf_vs_ema250_pct:["ETF vs EMA250","The industry ETF's own distance from its 250-day EMA.","negative = under"],
+ etf_dump_capture:["ETF capture","The industry ETF's own dump capture vs SPY.","lower = more resilient"],
+ etf_bb_width_pctile:["ETF BBW pct","The industry ETF's own Bollinger width percentile.","lower = tighter"],
+ industry_rev_growth_pct:["Industry revenue growth","Aggregate revenue growth of the industry (industry-boom engine).","higher = faster"],
+ boom_score:["Boom score","Industry-boom composite (growth, acceleration, breadth).","higher = hotter"]
+};
 function header(el,cols,sort,onclick){
-  el.innerHTML='<tr>'+cols.map(function(c){var a=sort.k===c.k?(sort.d<0?" ▼":" ▲"):"";return '<th class="'+(c.r?"r":"")+'" data-k="'+c.k+'">'+esc(c.l)+a+'</th>';}).join("")+'</tr>';
-  el.querySelectorAll("th").forEach(function(th){th.onclick=function(){onclick(th.dataset.k);};});
+  el.innerHTML='<tr>'+cols.map(function(c){var on=sort.k===c.k;var a=on?(sort.d<0?"▼":"▲"):"▲▼";var hp=HELP[c.k];var tip=hp?'<span class="q" data-k="'+c.k+'" title="">?<span class="tip"><b>'+esc(hp[0])+'</b><br>'+esc(hp[1])+'<span class="hint">'+esc(hp[2])+' · click the header to sort, click again to reverse</span></span></span>':'';return '<th class="'+(c.r?"r":"")+(on?" active":"")+'" data-k="'+c.k+'">'+esc(c.l)+'<span class="arrows">'+a+'</span>'+tip+'</th>';}).join("")+'</tr>';
+  el.querySelectorAll("th").forEach(function(th){th.onclick=function(e){if(e.target.classList&&(e.target.classList.contains("q")||e.target.closest&&e.target.closest(".q")))return;onclick(th.dataset.k);};});
+  el.querySelectorAll("th .q").forEach(function(q){q.onclick=function(e){e.stopPropagation();var was=q.classList.contains("open");el.querySelectorAll("th .q.open").forEach(function(x){x.classList.remove("open");});if(!was)q.classList.add("open");};});
 }
+document.addEventListener("click",function(e){if(!(e.target.closest&&e.target.closest("th .q")))document.querySelectorAll("th .q.open").forEach(function(x){x.classList.remove("open");});});
 function val(r,k){
   if(k==="z90"||k==="pct_aum_21d"||k==="true_pct_aum_20d"||k==="fv_flows_1m_pct")return r.flows?r.flows[k]:null;
   if(k==="accum")return r.pillars?r.pillars.accumulation:null;
@@ -261,10 +323,17 @@ function val(r,k){
   if(k==="tiers")return (r.tiers&&((r.tiers.FORTRESS_COIL||0)*4+(r.tiers.COILED||0)*2+(r.tiers.ACCUMULATING||0)))||0;
   if(k==="flags")return (r.flags||[]).length;
   if(k==="tier")return {FORTRESS_COIL:0,COILED:1,ACCUMULATING:2,WATCH:3,ETF_FORTRESS:0,ETF_COILED:1,ETF_WATCH:2}[r.tier]??9;
+  if(k==="coil_state")return {IGNITED:3,PRE_BREAKOUT:2,COILING:1,LOOSE:0}[r.coil_state]??-1;
+  if(k==="rrg")return {LEADING:3,IMPROVING:2,WEAKENING:1,LAGGING:0}[String(r.rrg||"").toUpperCase()]??-1;
+  if(k==="quadrant"||k==="etf_quadrant")return {ACCUMULATE:3,ACCUMULATION:3,INFLOW:3,NEUTRAL:2,ROTATE:1,DISTRIBUTE:0,DISTRIBUTION:0,OUTFLOW:0}[String(r[k]||"").toUpperCase().split(" ")[0]]??(r[k]?1:-1);
+  if(k==="top")return (r.top_names||[]).length;
+  if(k==="name"||k==="industry"||k==="industry_etf"||k==="ticker"||k==="etf")return String(r[k]||"").toUpperCase();
   return r[k];
 }
+var BEST_LOW={tier:1};   // keys whose ordinal is best-when-low: first click (▼ = "best first") sorts ascending
 function sortRows(rows,s){
-  return rows.slice().sort(function(a,b){var x=val(a,s.k),y=val(b,s.k);if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;if(typeof x==="string")return s.d*x.localeCompare(y);return s.d*(x-y);});
+  var d=BEST_LOW[s.k]?-s.d:s.d;
+  return rows.slice().sort(function(a,b){var x=val(a,s.k),y=val(b,s.k);if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;if(typeof x==="string")return d*x.localeCompare(y);return d*(x-y);});
 }
 function filtered(){
   var t=$("f-tier").value,sec=$("f-sector").value,cp=$("f-cap").value,q=$("f-q").value.trim().toLowerCase();
