@@ -1,269 +1,360 @@
-executing-against: 2db97a7afdd7b8a26086dc0973ca856a9524603d
-ops 5091 -- justhodl-fortress v2.2.1: full-warehouse walk-forward + Telegram alerts
-── G1 key inheritance ──
-── G2 deploy ──
-[12:17:52]   zip: 150788 bytes
-── 1. Lambda ──
-[12:17:52]   Lambda exists — updating
-[12:17:55] ✅   ✓ updated justhodl-fortress
-── G3 schedule (EventBridge Scheduler -- classic rule cap is saturated) ──
-── G4 first run (async, verified on disk) ──
-[12:17:59] async invoke fired at 2026-09-01T12:17:52+00:00; polling data/fortress.json (prev as_of=2026-09-01T12:13:00+00:00)
-[12:19:01]   poll 60s: not fresh yet
-[12:19:43]   engine:   46.2s bars 624/760 sessions, 10336 tickers
-[12:19:43]   engine:   48.3s bars 648/760 sessions, 10494 tickers
-[12:19:43]   engine:   50.4s bars 672/760 sessions, 10667 tickers
-[12:19:43]   engine:   52.6s bars 696/760 sessions, 10902 tickers
-[12:19:43]   engine:   54.6s bars 720/760 sessions, 11226 tickers
-[12:19:43]   engine:   56.9s bars 744/760 sessions, 11457 tickers
-[12:19:43]   engine:   58.4s bars 760/760 sessions, 11614 tickers
-[12:19:43]   engine:   58.4s market: 8 dump episodes (4 big), 12 worst days, SPY vs EMA250 9.27%
-[12:19:43]   engine:   58.4s location gate: not_extended -- adaptive: 'not extended' beat 'under EMA250' by 1.44 pts of 63-session alpha (-0.49 vs -1.93, n 1824 vs 596) in the walk-forward of 2026-09-01
-[12:19:43]   engine:   58.4s weights: {'resilience': 18.27, 'accumulation': 13.22, 'coil': 14.25, 'structure': 6.84, 'location': 2.44, 'valuation': 10.05, 'growth': 8.22, 'flows': 8.22, 'momentum': 5.71, 'backlog_contracts': 4.57, 'safety': 8.22} -- price pillars scaled 0.5-1.5x by walk-forward IC t-stats (2026-09-01), renormalised to 100
-[12:19:43]   engine:   86.7s stock rows built: 5181 (finviz-matched 5287)
-[12:19:43]   engine:   98.5s etf rows built: 2280
-── G5 real-data assertions (from S3, independent of the engine's own view) ──
-[12:19:43] regime: {"meta_regime": "LATE_CYCLE", "meta_class": "late-cycle", "composite_score": 54.7, "as_of": "2026-07-31T17:51:42.374086+00:00", "vol_regime": "NORMAL", "vol_score": 22.5, "vol_as_of": "2026-07-31T17:51:50+00:00", "spy_vs_ema250_pct": 9.27, "spy_dd_from_high_pct": -1.39, "n_dump_episodes_3y": 8, "n_dump_episodes_1y": 3, "n_big_dumps_3y": 4, "y10_pct": 4.67, "read": "3 dump episode(s) in the trailing year, 8 in the three-year window (4 of 8%+)"}
-[12:19:43] changes: {"status": "ok", "prev_session": "2026-08-28", "location_mode_changed": null, "new_fortress": [], "upgrades": [{"ticker": "ZBH", "from": "ACCUMULATING", "to": "COILED"}, {"ticker": "CWT", "from": "ACCUMULATING", "to": "COILED"}, {"ticker": "CNX", "from": "ACCUMULATING", "to": "COILED"}, {"ticker": "ED", "from": "ACCUMULATING", "to": "COILED"}, {"ticker": "NWFL", "from": "ACCUMULATING", "to": "COILED"}, {"ticker": "JBS", "from": "ACCUMULATING", "to": "COILED"}, {"ticker": "UAN", "from": "ACCUMULATING", "to": "COILED"}, {"ticker": "TMUS", "from": "ACCUMULATING", "to": "COILED"}], "downgrades": [{"ticker": "ZKH", "from": "COILED", "to": "ACCUMULATING"}, {"ticker": "PHAT", "from": "COILED", "to": "ACCUMULATING"}, {"ticker": "EVAX", "from": "COILED", "to": "ACCUMULATING"}, {"ticker": "NICE", "from": "COILED", "to": "ACCUMULATING"}, {"ticker": "OOMA", "from": "COILED", "to": "ACCUMULATING"}, {"ticker": "RAMP", "from": "COILED", "to": "ACCUMULATING"}, {"ticker": "ALC", "from": "COILED", "to": "ACCUMULATING"}, {"ticker": "PPL", "from": "COILED", "to": "ACCUMULATING"}], "new_entries": [{"ticker": "PLMR", "tier": "COILED"}, {"ticker": "NBBK", "tier": "COILED"}, {"ticker": "SR", "tier": "COILED"}, {"ticker": "NWN", "tier": "COILED"}, {"ticker": "SD", "tier": "COILED"}, {"ticker": "GD", "tier": "COILED"}, {"ticker": "BHB", "tier": "COILED"}, {"ticker": "CNTB", "tier": "COILED"}], "exits": [{"ticker": "INVH", "was": "COILED"}, {"ticker": "RBBN", "was": "COILED"}, {"ticker": "TAP", "was": "ACCUMULATING"}, {"ticker": "PBR", "was": "ACCUMULATING"}, {"ticker": "ITGR", "was": "ACCUMULATING"}, {"ticker": "VIST", "was": "ACCUMULATING"}, {"ticker": "PGC", "was": "ACCUMULATING"}, {"ticker": "MLCO", "was": "ACCUMULATING"}], "n_prev": 400, "n_now": 877}
-[12:19:43] sizing: {"INVA": 6.2, "ZBH": 3.8, "CWT": 4.3, "CNX": 4.3, "ED": 4.3, "NWFL": 4.5, "SNDX": 3.3, "JBS": 4.2, "UAN": 2.9, "PLMR": 4.3, "TMUS": 4.3, "REGN": 4.3, "CBIO": 1.9, "FRAF": 6.2, "CZNC": 4.5, "PINE": 4.3, "GMED": 4.2, "UNCY": 1.7, "NBBK": 4.5, "BRO": 4.0, "BBT": 4.3, "DFIN": 2.5, "NPB": 6.2, "STRA": 3.1, "ATEC": 1.7}
-[12:19:43] market window: 2023-08-21..2026-08-31 (760 sessions) episodes3y=8 recent=3 big=4
-[12:19:43] v2 FORTRESS_COIL INVA conv=74.9 conf=0.98 comp=73.5 abs=69.8 accum=46.9 struct=41.6 obv=0.0939 clv=0.3025 dcap=-0.1667 t=4.2646 dp=None hl=0 vcp=[6.1, 5.9, 7.7] rs=False cvar=-3.1931 plan={'pivot': 23.64, 'pivot_dist_pct': 13.8, 'stop': 20.3, 'risk_pct': 2.2, 'target': 23.74, 'reward_pct': 14.3, 'target_2': 35.0, 'reward_to_risk': 6.39, 'note': 'enter on the pivot break with volume or scale inside the coil; stop under the range low / 2.5 ATR'} trig=None
-[12:19:43] v2 COILED ZBH conv=36.7 conf=0.98 comp=71.4 abs=66.0 accum=54.5 struct=61.2 obv=0.1184 clv=0.3895 dcap=-0.0244 t=3.4794 dp=NEUTRAL hl=1 vcp=[4.4, 2.8, 9.6, 5.7] rs=False cvar=-4.9712 plan={'pivot': 101.38, 'pivot_dist_pct': 1.3, 'stop': 93.38, 'risk_pct': 6.7, 'target': 105.75, 'reward_pct': 5.7, 'target_2': 106.45, 'reward_to_risk': 0.86, 'note': 'enter on the pivot break with volume or scale inside the coil; stop under the range low / 2.5 ATR'} trig=dump capture 0.18 (worst 2.10) -- needs the next SPY dump held (capture <= 0.35, never worse than the market)
-[12:19:43] v2 COILED CWT conv=36.6 conf=0.98 comp=70.7 abs=66.1 accum=55.7 struct=68.3 obv=0.0832 clv=0.485 dcap=-0.099 t=4.7945 dp=None hl=4 vcp=[2.6, 3.0, 5.8, 1.9] rs=False cvar=-3.68 plan={'pivot': 52.44, 'pivot_dist_pct': 4.9, 'stop': 47.3, 'risk_pct': 5.3, 'target': 52.32, 'reward_pct': 4.7, 'target_2': 55.75, 'reward_to_risk': 0.88, 'note': 'enter on the pivot break with volume or scale inside the coil; stop under the range low / 2.5 ATR'} trig=XLU flow score 52.0 -- needs >= 55 with a positive leg
-[12:19:43] v2 COILED CNX conv=36.8 conf=0.98 comp=70.5 abs=66.3 accum=48.7 struct=72.8 obv=0.0728 clv=0.2705 dcap=0.1248 t=5.143 dp=None hl=2 vcp=[5.6, 5.7, 4.2, 2.2] rs=False cvar=-3.7225 plan={'pivot': 36.48, 'pivot_dist_pct': 0.3, 'stop': 34.18, 'risk_pct': 6.1, 'target': 38.83, 'reward_pct': 6.7, 'target_2': 41.7, 'reward_to_risk': 1.11, 'note': 'enter on the pivot break with volume or scale inside the coil; stop under the range low / 2.5 ATR'} trig=XOP flow score 47.0 -- needs >= 55 with a positive leg
-[12:19:43] v2 COILED ED conv=53.6 conf=0.98 comp=69.7 abs=65.7 accum=60.0 struct=54.7 obv=0.1459 clv=0.6253 dcap=-0.5145 t=7.1543 dp=NEUTRAL hl=1 vcp=[4.7, 3.3, 5.9, 2.6] rs=False cvar=-2.0965 plan={'pivot': 113.99, 'pivot_dist_pct': 6.5, 'stop': 103.27, 'risk_pct': 3.5, 'target': 110.7, 'reward_pct': 3.4, 'target_2': 114.84, 'reward_to_risk': 0.98, 'note': 'enter on the pivot break with volume or scale inside the coil; stop under the range low / 2.5 ATR'} trig=XLU flow score 52.0 -- needs >= 55 with a positive leg
-[12:19:43] v2 COILED NWFL conv=32.7 conf=0.98 comp=69.1 abs=64.6 accum=80.7 struct=53.1 obv=0.3045 clv=0.5666 dcap=0.4355 t=5.828 dp=None hl=1 vcp=[4.8, 4.3, 5.2, 1.5] rs=False cvar=-3.6449 plan={'pivot': 34.5, 'pivot_dist_pct': 1.0, 'stop': 32.05, 'risk_pct': 6.2, 'target': 36.5, 'reward_pct': 6.9, 'target_2': 36.5, 'reward_to_risk': 1.11, 'note': 'enter on the pivot break with volume or scale inside the coil; stop under the range low / 2.5 ATR'} trig=KRE flow score 19.0 -- needs >= 55 with a positive leg
-[12:19:43] probe AAPL: tier=ACCUMULATING comp=54.5 capture=1.0401 worst_bps=30.2592 vsEMA250=13.7743 bbw_pct=5.5556 val=16.369 growth=64.2238 flows=55.9062 etf=XLK
-[12:19:43] board FORTRESS_COIL INVA comp=73.5 asym=9.03 cap=-0.9985 ema=-2.1331 bbw=5.9524 val=100.0 g=55.6957 fl=69.375 bk=None ct=None flags=['MAJOR_INFLOWS', 'TIGHT_COIL', 'BIG_DUMP_PROOF', 'OBV_DIVERGENCE']
-[12:19:43]       - ROSE while SPY dumped: capture -1.00 across 8 drawdown episode(s), flat-or-up in 50% of them
-[12:19:43]       - but fell MORE than the market in its worst episode (2024-12-06..2025-01-10 SPY -4.5% stock -9.3%)
-[12:19:43]       - on SPY's 12 worst days: +169 bps vs SPY, green 42% of the time
-[12:19:43]       - 2.1% below the 250-day EMA
-[12:19:43]       - Bollinger bandwidth in the 6th percentile of its own year -- TTM squeeze ON for 13 sessions
-[12:19:43] board COILED ZBH comp=71.4 asym=0.81 cap=0.1766 ema=6.8509 bbw=4.7619 val=77.2141 g=45.4052 fl=77.0 bk=None ct=None flags=['MAJOR_INFLOWS', 'TIGHT_COIL', 'BIG_DUMP_PROOF', 'VCP']
-[12:19:43]       - captured only 18% of the SPY dumps (size-weighted) across 8 episode(s), flat-or-up in 25% of them
-[12:19:43]       - but fell MORE than the market in its worst episode (2025-10-29..2025-11-20 SPY -5.1% stock -10.7%)
-[12:19:43]       - on SPY's 12 worst days: +138 bps vs SPY, green 33% of the time
-[12:19:43]       - 6.9% above the 250-day EMA
-[12:19:43]       - Bollinger bandwidth in the 5th percentile of its own year -- TTM squeeze ON for 3 sessions
-[12:19:43] board COILED CWT comp=70.7 asym=1.24 cap=0.134 ema=6.4184 bbw=1.5873 val=80.2025 g=50.4048 fl=52.3125 bk=None ct=None flags=['TIGHT_COIL', 'BIG_DUMP_PROOF', 'VCP', 'HIGHER_LOWS']
-[12:19:43]       - captured only 13% of the SPY dumps (size-weighted) across 8 episode(s), flat-or-up in 50% of them
-[12:19:43]       - but fell MORE than the market in its worst episode (2024-12-06..2025-01-10 SPY -4.5% stock -14.0%)
-[12:19:43]       - on SPY's 12 worst days: +222 bps vs SPY, green 58% of the time
-[12:19:43]       - 6.4% above the 250-day EMA
-[12:19:43]       - Bollinger bandwidth in the 2th percentile of its own year -- TTM squeeze ON for 6 sessions
-[12:19:43] board COILED CNX comp=70.5 asym=1.63 cap=-0.1536 ema=3.199 bbw=10.3175 val=82.1437 g=57.3697 fl=46.625 bk=None ct=None flags=['PRE_BREAKOUT', 'VCP']
-[12:19:43]       - ROSE while SPY dumped: capture -0.15 across 8 drawdown episode(s), flat-or-up in 38% of them
-[12:19:43]       - but fell MORE than the market in its worst episode (2024-12-06..2025-01-10 SPY -4.5% stock -18.5%)
-[12:19:43]       - on SPY's 12 worst days: +169 bps vs SPY, green 42% of the time
-[12:19:43]       - 3.2% above the 250-day EMA
-[12:19:43]       - Bollinger bandwidth in the 10th percentile of its own year -- TTM squeeze ON for 6 sessions
-[12:19:43] board COILED ED comp=69.7 asym=0.82 cap=-0.5985 ema=0.435 bbw=2.381 val=58.2318 g=61.2987 fl=52.3125 bk=None ct=None flags=['MAJOR_GROWTH', 'TIGHT_COIL', 'BIG_DUMP_PROOF', 'ABSORPTION', 'VCP']
-[12:19:43]       - ROSE while SPY dumped: capture -0.60 across 8 drawdown episode(s), flat-or-up in 75% of them
-[12:19:43]       - but fell MORE than the market in its worst episode (2024-12-06..2025-01-10 SPY -4.5% stock -7.0%)
-[12:19:43]       - on SPY's 12 worst days: +265 bps vs SPY, green 92% of the time
-[12:19:43]       - 0.4% above the 250-day EMA
-[12:19:43]       - Bollinger bandwidth in the 2th percentile of its own year -- TTM squeeze ON for 6 sessions
-[12:19:43] board COILED NWFL comp=69.1 asym=0.61 cap=0.3602 ema=13.6145 bbw=1.9841 val=67.0266 g=76.6931 fl=18.6875 bk=None ct=None flags=['MAJOR_GROWTH', 'TIGHT_COIL', 'VCP']
-[12:19:43]       - captured only 36% of the SPY dumps (size-weighted) across 8 episode(s), flat-or-up in 38% of them
-[12:19:43]       - but fell MORE than the market in its worst episode (2024-12-06..2025-01-10 SPY -4.5% stock -16.1%)
-[12:19:43]       - on SPY's 12 worst days: +200 bps vs SPY, green 50% of the time
-[12:19:43]       - 13.6% above the 250-day EMA
-[12:19:43]       - Bollinger bandwidth in the 2th percentile of its own year -- TTM squeeze ON for 9 sessions
-[12:19:43] board COILED SNDX comp=68.9 asym=6.78 cap=0.4922 ema=-1.2371 bbw=1.9841 val=66.835 g=78.4197 fl=69.375 bk=None ct=None flags=['MAJOR_GROWTH', 'MAJOR_INFLOWS', 'TIGHT_COIL', 'VCP']
-[12:19:43]       - captured only 49% of the SPY dumps (size-weighted) across 8 episode(s), flat-or-up in 25% of them
-[12:19:43]       - but fell MORE than the market in its worst episode (2024-12-06..2025-01-10 SPY -4.5% stock -22.9%)
-[12:19:43]       - on SPY's 12 worst days: +67 bps vs SPY, green 25% of the time
-[12:19:43]       - 1.2% below the 250-day EMA
-[12:19:43]       - Bollinger bandwidth in the 2th percentile of its own year -- TTM squeeze ON for 8 sessions
-[12:19:43] board COILED JBS comp=68.9 asym=4.71 cap=-0.7229 ema=-4.514 bbw=17.4603 val=59.0658 g=60.35 fl=42.4062 bk=None ct=None flags=['MAJOR_GROWTH', 'BIG_DUMP_PROOF', 'DARK_POOL_ACCUM']
-[12:19:43]       - ROSE while SPY dumped: capture -0.72 across 3 drawdown episode(s), flat-or-up in 67% of them
-[12:19:43]       - on SPY's 12 worst days: +245 bps vs SPY, green 58% of the time
-[12:19:43]       - 4.5% below the 250-day EMA
-[12:19:43]       - Bollinger bandwidth in the 17th percentile of its own year -- TTM squeeze ON for 2 sessions
-[12:19:43]       - valuation cheaper than 59% of its industry peers (PEG 14.59)
-[12:19:43] episodes: [{"peak_date": "2023-09-01", "trough_date": "2023-10-27", "spy_dd_pct": -8.98, "closed": true}, {"peak_date": "2024-03-27", "trough_date": "2024-04-19", "spy_dd_pct": -5.35, "closed": true}, {"peak_date": "2024-07-16", "trough_date": "2024-08-05", "spy_dd_pct": -8.41, "closed": true}, {"peak_date": "2024-12-06", "trough_date": "2025-01-10", "spy_dd_pct": -4.49, "closed": true}, {"peak_date": "2025-02-19", "trough_date": "2025-04-08", "spy_dd_pct": -19.0, "closed": true}, {"peak_date": "2025-10-29", "trough_date": "2025-11-20", "spy_dd_pct": -5.07, "closed": true}, {"peak_date": "2026-01-27", "trough_date": "2026-03-30", "spy_dd_pct": -9.13, "closed": true}, {"peak_date": "2026-06-02", "trough_date": "2026-06-10", "spy_dd_pct": -4.49, "closed": true}]
-[12:19:43] industries top: [{"etf": "IGV", "n_stocks": 464, "tiers": {"COILED": 26, "ACCUMULATING": 100, "WATCH": 100, "SCREENED": 238}, "flow_score": 58.8, "inflow_major": false}, {"etf": "KRE", "n_stocks": 319, "tiers": {"COILED": 17, "ACCUMULATING": 70, "WATCH": 109, "SCREENED": 123}, "flow_score": 18.7, "inflow_major": false}, {"etf": "XBI", "n_stocks": 578, "tiers": {"FORTRESS_COIL": 1, "COILED": 15, "ACCUMULATING": 61, "WATCH": 120, "SCREENED": 381}, "flow_score": 69.4, "inflow_major": true}, {"etf": "XLRE", "n_stocks": 248, "tiers": {"COILED": 9, "ACCUMULATING": 37, "WATCH": 70, "SCREENED": 132}, "flow_score": 45.2, "inflow_major": false}, {"etf": "IHI", "n_stocks": 194, "tiers": {"COILED": 12, "ACCUMULATING": 27, "WATCH": 48, "SCREENED": 107}, "flow_score": 77.0, "inflow_major": true}, {"etf": "XLB", "n_stocks": 100, "tiers": {"COILED": 10, "ACCUMULATING": 31, "WATCH": 26, "SCREENED": 33}, "flow_score": 61.0, "inflow_major": false}, {"etf": "XLP", "n_stocks": 231, "tiers": {"COILED": 7, "ACCUMULATING": 34, "WATCH": 43, "SCREENED": 147}, "flow_score": 42.4, "inflow_major": false}, {"etf": "KIE", "n_stocks": 120, "tiers": {"COILED": 9, "ACCUMULATING": 29, "WATCH": 39, "SCREENED": 43}, "flow_score": 0.0, "inflow_major": false}]
-[12:19:43] etfs top: [{"ticker": "KBWP", "tier": "ETF_FORTRESS", "composite": 72.1, "dump_capture": -0.0598, "flow_score": 100.0}, {"ticker": "KXI", "tier": "ETF_FORTRESS", "composite": 70.5, "dump_capture": 0.125, "flow_score": 90.75}, {"ticker": "CSRE", "tier": "ETF_FORTRESS", "composite": 69.0, "dump_capture": 0.0976, "flow_score": 100.0}, {"ticker": "BKGI", "tier": "ETF_FORTRESS", "composite": 68.1, "dump_capture": 0.0479, "flow_score": 100.0}, {"ticker": "DIVZ", "tier": "ETF_FORTRESS", "composite": 65.8, "dump_capture": 0.2728, "flow_score": 88.625}, {"ticker": "SCHY", "tier": "ETF_FORTRESS", "composite": 63.5, "dump_capture": 0.2883, "flow_score": 99.875}, {"ticker": "GII", "tier": "ETF_FORTRESS", "composite": 63.3, "dump_capture": 0.194, "flow_score": 80.5}, {"ticker": "LPRE", "tier": "ETF_FORTRESS", "composite": 63.0, "dump_capture": 0.1188, "flow_score": 100.0}]
-[12:19:43] inputs: {"bars": "data/warm/polygon-full/grouped/ (2023-08-21..2026-08-31, 760 sessions)", "finviz_universe": "2026-08-31T22:00:37.715951+00:00", "fundamental_census_matrix": "2026-09-01T12:07:54.133048+00:00", "industry_boom": "2026-09-01T10:50:03.867271+00:00", "industry_rotation": "2026-08-31T21:38:24.333669+00:00", "etf_flows_polygon": "2026-08-31T22:00:25.581028+00:00", "etf_true_flows": "2026-08-31T15:45:23.111432+00:00", "backlog": "2026-09-01T11:30:47.022160+00:00", "backlog_mined": "2026-09-01T02:30:11+00:00", "deal_history": "2026-09-01T12:05:24.592545+00:00", "catalyst": "2026-09-01T02:29:32+00:00", "floor_audit": "2026-08-31T21:37:21+00:00", "resilience": "2026-08-31T22:46:01.117625+00:00", "f13_flows": "2026-09-01T11:06:31.162523+00:00", "short_interest": "2026-08-31T21:15:38.904686+00:00", "insider_radar": "2026-08-31T14:40:32.785479+00:00", "estimate_revisions": "2026-09-01T12:00:36.077239+00:00", "sp500": "2026-08-31T21:45:45.403867+00:00", "stock_exposure": "etf-flows/stock-exposure-lookup.json (2328 names)", "dark_pool": "2026-08-31T21:41:16.023658+00:00 (week 2026-08-10, 936 names)", "political_trades": "2026-08-31T13:45:28.717233+00:00", "options_analytics": "2026-08-31T21:30:51.401089+00:00", "regime_composite": "2026-07-31T17:51:42.374086+00:00", "vol_regime": "2026-07-31T17:51:50+00:00", "yield_curve": "2026-08-31T13:53:02.310441+00:00", "backtest": "2026-09-01T12:11:14+00:00"}
-[12:19:43] capture distribution over 3168 sampled rows: p10 -0.22 p25 0.37 p50 1.09 p75 2.11 p90 3.37; <=0.35: 780; <0: 443
-[12:19:43] worst-day excess bps: p10 -263 p50 21 p90 194; >=25: 1525
-[12:19:43] bb width pctile: p10 4 p50 38; <=20: 1018; squeeze on: 1044
-[12:19:43] worst days: [{"date": "2025-10-10", "spy_ret_pct": -2.7}, {"date": "2026-06-05", "spy_ret_pct": -2.58}, {"date": "2026-01-20", "spy_ret_pct": -2.04}, {"date": "2026-03-26", "spy_ret_pct": -1.79}, {"date": "2026-03-27", "spy_ret_pct": -1.71}, {"date": "2026-03-20", "spy_ret_pct": -1.7}, {"date": "2025-11-13", "spy_ret_pct": -1.66}, {"date": "2026-06-10", "spy_ret_pct": -1.58}, {"date": "2026-02-12", "spy_ret_pct": -1.54}, {"date": "2026-07-29", "spy_ret_pct": -1.54}, {"date": "2025-11-20", "spy_ret_pct": -1.52}, {"date": "2026-03-12", "spy_ret_pct": -1.52}]
-[12:19:43] breadth: {"pct_location_ok": 59.4, "pct_under_ema250": 50.2, "pct_coiled": 33.4, "pct_dump_resilient": 17.0}
-[12:19:43] etf ETF_FORTRESS KBWP comp=72.1 cap=-0.0598 worst=218.5766 ema=6.5548 bbw=11.9048 flow=100.0 vol100=20.1017 aum=288722551.0 type=US Equities | Invesco KBW Property & Casualty Insuranc
-[12:19:43] etf ETF_FORTRESS KXI comp=70.5 cap=0.125 worst=212.8407 ema=1.3197 bbw=2.381 flow=90.75 vol100=15.1051 aum=1090750939.0 type=Global Equities | iShares Global Consumer Staples ETF
-[12:19:43] etf ETF_FORTRESS CSRE comp=69.0 cap=0.0976 worst=109.0086 ema=3.413 bbw=11.1111 flow=100.0 vol100=13.8587 aum=573516000.0 type=US Equities | Cohen & Steers Real Estate Active ETF
-[12:19:43] etf ETF_FORTRESS BKGI comp=68.1 cap=0.0479 worst=126.8785 ema=3.6584 bbw=0.3968 flow=100.0 vol100=12.4192 aum=1568956055.0 type=Global Equities | BNY Mellon Global Infrastructure Income 
-[12:19:43] etf ETF_FORTRESS DIVZ comp=65.8 cap=0.2728 worst=142.29 ema=3.2822 bbw=3.1746 flow=88.625 vol100=11.1405 aum=307871981.0 type=US Equities | Polen Dividend Income ETF
-[12:19:43] etf ETF_FORTRESS SCHY comp=63.5 cap=0.2883 worst=108.9161 ema=6.9013 bbw=5.5556 flow=99.875 vol100=11.5294 aum=2616702041.0 type=Global Ex. US Equities | Schwab International Dividend Equity ETF
-[12:19:43] etf ETF_FORTRESS GII comp=63.3 cap=0.194 worst=120.5633 ema=1.3799 bbw=5.9524 flow=80.5 vol100=12.0604 aum=939865461.0 type=Global Equities | State Street SPDR S&P Global Infrastruct
-[12:19:43] etf ETF_FORTRESS LPRE comp=63.0 cap=0.1188 worst=93.9834 ema=4.634 bbw=17.4603 flow=100.0 vol100=15.8464 aum=181029600.0 type=US Equities | Long Pond Real Estate Select ETF
-[12:19:43] etf ETF_FORTRESS DJD comp=60.5 cap=0.3411 worst=106.7085 ema=9.0916 bbw=7.9365 flow=84.75 vol100=10.6017 aum=512076852.0 type=US Equities | Invesco Dow Jones Industrial Average Div
-[12:19:43] etf ETF_FORTRESS TPHD comp=56.9 cap=0.3491 worst=111.9057 ema=5.1115 bbw=1.9841 flow=65.0 vol100=9.9279 aum=365601308.0 type=US Equities | Timothy Plan High Dividend Stock ETF
-[12:19:43] etf ETF_FORTRESS FRI comp=54.7 cap=0.33 worst=113.962 ema=4.5556 bbw=11.1111 flow=71.625 vol100=14.7013 aum=197562563.0 type=US Equities | First Trust S&P REIT Index Fund
-[12:19:43] etf ETF_FORTRESS BBRE comp=54.0 cap=0.3392 worst=112.1019 ema=4.2669 bbw=13.0952 flow=71.75 vol100=14.9105 aum=1270497090.0 type=US Equities | JPMorgan BetaBuilders MSCI U.S. REIT ETF
-[12:19:43] etf ETF_FORTRESS USRT comp=53.8 cap=0.3408 worst=112.9967 ema=4.5377 bbw=13.8889 flow=68.5 vol100=14.8487 aum=4606497352.0 type=US Equities | iShares Core U.S. REIT ETF
-[12:19:43] etf ETF_FORTRESS SCHH comp=53.2 cap=0.3228 worst=115.5423 ema=3.5055 bbw=14.6825 flow=56.25 vol100=14.9081 aum=11281010423.0 type=US Equities | Schwab U.S. REIT ETF
-[12:19:43] row FORTRESS_COIL INVA small Biotechnology cap=-0.9985 worst_cap=2.07 n_ep=8 worst=168.638 green=0.4167 dc=-8.1633 bbw=5.9524 sq=13 vol100=24.4264 adv=13566302.1105 px=20.77 eps=[(-3.9, 0.43), (-2.22, 0.42), (6.76, -0.8), (-9.29, 2.07), (-4.33, 0.23), (20.43, -4.03), (16.18, -1.77), (7.73, -1.72)] risks=[]
-[12:19:43] row COILED ZBH large Medical Devices cap=0.1766 worst_cap=2.1 n_ep=8 worst=137.6573 green=0.3333 dc=10.5195 bbw=4.7619 sq=3 vol100=34.8293 adv=204981857.6255 px=100.04 eps=[(-13.61, 1.52), (-9.94, 1.86), (-0.39, 0.05), (-3.23, 0.72), (-0.53, 0.03), (-10.67, 2.1), (3.06, -0.33), (5.28, -1.18)] risks=[]
-[12:19:43] row COILED CWT mid Utilities - Regulated  cap=0.134 worst_cap=3.12 n_ep=8 worst=221.7118 green=0.5833 dc=-40.8897 bbw=1.5873 sq=6 vol100=26.5138 adv=21216221.393 px=49.97 eps=[(-3.31, 0.37), (-1.89, 0.35), (0.76, -0.09), (-14.0, 3.12), (3.92, -0.21), (-6.47, 1.28), (3.39, -0.37), (1.61, -0.36)] risks=[]
-[12:19:43] row COILED CNX mid Oil & Gas E&P cap=-0.1536 worst_cap=4.13 n_ep=8 worst=168.853 green=0.4167 dc=-28.2234 bbw=10.3175 sq=6 vol100=24.5614 adv=44489430.4598 px=36.38 eps=[(-6.48, 0.72), (1.18, -0.22), (-8.64, 1.03), (-18.52, 4.13), (-7.1, 0.37), (15.71, -3.1), (8.82, -0.97), (-0.36, 0.08)] risks=[]
-[12:19:43] row COILED ED large Utilities - Regulated  cap=-0.5985 worst_cap=1.57 n_ep=8 worst=265.4702 green=0.9167 dc=-75.7856 bbw=2.381 sq=6 vol100=17.9387 adv=238687233.8394 px=107.02 eps=[(-1.0, 0.11), (1.91, -0.36), (9.99, -1.19), (-7.03, 1.57), (11.33, -0.6), (4.07, -0.8), (7.63, -0.84), (3.67, -0.82)] risks=['Altman Z 1.17 -- distress zone']
-[12:19:43] row COILED NWFL small Banks - Regional cap=0.3602 worst_cap=3.57 n_ep=8 worst=199.9706 green=0.5 dc=8.2691 bbw=1.9841 sq=9 vol100=28.1856 adv=1089967.0856 px=34.16 eps=[(-8.49, 0.95), (-9.64, 1.8), (-14.31, 1.7), (-16.05, 3.57), (-14.23, 0.75), (2.71, -0.53), (3.32, -0.36), (4.09, -0.91)] risks=['thin liquidity: $1.1M average daily dollar volume']
-[12:19:43] row COILED SNDX small Biotechnology cap=0.4922 worst_cap=5.11 n_ep=8 worst=66.9388 green=0.25 dc=35.1069 bbw=1.9841 sq=8 vol100=47.2701 adv=25250209.6365 px=19.29 eps=[(-37.14, 4.14), (-9.84, 1.84), (-20.76, 2.47), (-22.93, 5.11), (-28.41, 1.5), (28.97, -5.71), (5.49, -0.6), (-4.4, 0.98)] risks=['short float 28% -- crowded short, violent both ways']
-[12:19:43] row COILED JBS large Packaged Foods cap=-0.7229 worst_cap=0.31 n_ep=3 worst=244.5452 green=0.5833 dc=46.4533 bbw=17.4603 sq=2 vol100=37.4682 adv=78062820.6867 px=13.44 eps=[(4.69, -0.92), (11.15, -1.22), (-1.39, 0.31)] risks=[]
-[12:19:43] row COILED UAN small Agricultural Inputs cap=-0.6537 worst_cap=0.89 n_ep=8 worst=203.6631 green=0.5 dc=-87.6263 bbw=29.3651 sq=0 vol100=35.2876 adv=6329683.0044 px=126.4 eps=[(2.07, -0.23), (-0.14, 0.03), (-6.4, 0.76), (-2.65, 0.59), (-16.91, 0.89), (6.11, -1.21), (32.98, -3.61), (-2.54, 0.57)] risks=['CVaR(5%) -6.5%: the worst twentieth of days average that loss']
-[12:19:43] row COILED PLMR mid Insurance - Property & cap=-0.2893 worst_cap=1.8 n_ep=8 worst=161.6723 green=0.3333 dc=-45.0658 bbw=15.0794 sq=3 vol100=40.2177 adv=28917605.4 px=132.57 eps=[(-5.2, 0.58), (-5.97, 1.12), (-3.35, 0.4), (-8.09, 1.8), (6.67, -0.35), (8.15, -1.61), (-1.83, 0.2), (8.27, -1.84)] risks=[]
-[12:19:43] row COILED TMUS large Telecom Services cap=-0.1218 worst_cap=2.97 n_ep=8 worst=243.1792 green=0.6667 dc=-42.4019 bbw=5.9524 sq=3 vol100=36.6193 adv=693867926.4692 px=180.44 eps=[(1.94, -0.22), (0.2, -0.04), (2.13, -0.25), (-13.32, 2.97), (-6.47, 0.34), (-2.09, 0.41), (15.96, -1.75), (-1.74, 0.39)] risks=['Altman Z 1.56 -- distress zone']
-[12:19:43] row COILED REGN large Biotechnology cap=0.3067 worst_cap=2.32 n_ep=8 worst=178.5882 green=0.5833 dc=40.7128 bbw=49.2063 sq=0 vol100=33.5267 adv=556234406.2658 px=799.08 eps=[(-6.79, 0.76), (-7.19, 1.34), (-2.17, 0.26), (-10.43, 2.32), (-18.79, 0.99), (12.88, -2.54), (-2.85, 0.31), (-0.21, 0.05)] risks=[]
-[12:19:43] row COILED CBIO small Biotechnology cap=-2.8987 worst_cap=-0.74 n_ep=4 worst=226.9102 green=0.4167 dc=29.7535 bbw=8.7302 sq=2 vol100=84.8631 adv=2836468.6603 px=16.6 eps=[(15.5, -1.73), (4.64, -0.92), (47.47, -5.2), (3.32, -0.74)] risks=['6 overnight gaps of 5%+ in the year (max 16%) -- event-driven tape', 'CVaR(5%) -10.3%: the worst twentieth of days average that loss', 'thin liquidity: $2.8M average daily dollar volume']
-[12:19:43] row COILED FRAF micro Banks - Regional cap=-0.3606 worst_cap=3.73 n_ep=8 worst=136.5563 green=0.5 dc=10.4668 bbw=8.7302 sq=36 vol100=27.4258 adv=1851061.4122 px=61.95 eps=[(9.52, -1.06), (14.46, -2.7), (7.56, -0.9), (-16.73, 3.73), (-12.17, 0.64), (7.11, -1.4), (6.63, -0.73), (5.3, -1.18)] risks=['thin liquidity: $1.9M average daily dollar volume']
-[12:19:43] row COILED CZNC small Banks - Regional cap=0.2834 worst_cap=2.55 n_ep=8 worst=194.387 green=0.4167 dc=1.5774 bbw=12.6984 sq=6 vol100=24.8623 adv=1707061.8779 px=25.34 eps=[(-3.93, 0.44), (-5.54, 1.04), (-14.32, 1.7), (-11.47, 2.55), (-12.62, 0.66), (-0.99, 0.19), (2.91, -0.32), (5.11, -1.14)] risks=['thin liquidity: $1.7M average daily dollar volume']
-[12:19:43] row COILED PINE small REIT - Retail cap=-0.1515 worst_cap=1.8 n_ep=8 worst=167.2397 green=0.3333 dc=-3.6601 bbw=0.3968 sq=8 vol100=24.598 adv=1945159.5657 px=19.46 eps=[(-16.18, 1.8), (-2.04, 0.38), (0.42, -0.05), (-6.63, 1.48), (-7.6, 0.4), (12.9, -2.54), (0.9, -0.1), (4.01, -0.89)] risks=['thin liquidity: $1.9M average daily dollar volume']
-[12:19:43] row COILED GMED large Medical Devices cap=-0.209 worst_cap=1.76 n_ep=8 worst=34.737 green=0.1667 dc=86.1798 bbw=19.4444 sq=0 vol100=39.9787 adv=111993230.1666 px=81.37 eps=[(-15.8, 1.76), (-5.11, 0.95), (-6.02, 0.72), (4.5, -1.0), (-18.37, 0.97), (33.83, -6.67), (-9.19, 1.01), (3.34, -0.74)] risks=[]
-[12:19:43] row COILED UNCY micro Biotechnology cap=0.8751 worst_cap=4.99 n_ep=8 worst=63.8505 green=0.25 dc=55.7188 bbw=12.3016 sq=2 vol100=106.5155 adv=3837203.4154 px=5.2 eps=[(-23.84, 2.65), (-26.71, 4.99), (-15.7, 1.87), (-8.77, 1.95), (-21.06, 1.11), (9.79, -1.93), (-15.14, 1.66), (6.36, -1.42)] risks=['CVaR(5%) -11.0%: the worst twentieth of days average that loss', 'thin liquidity: $3.8M average daily dollar volume']
-[12:19:43] row COILED NBBK small Banks - Regional cap=0.3385 worst_cap=3.37 n_ep=7 worst=187.9252 green=0.5833 dc=43.0513 bbw=18.254 sq=0 vol100=29.5029 adv=6952716.2511 px=22.33 eps=[(-1.23, 0.23), (-3.26, 0.39), (-15.15, 3.37), (-17.07, 0.9), (4.92, -0.97), (-1.57, 0.17), (2.45, -0.55)] risks=[]
-[12:19:43] row COILED BRO large Insurance Brokers cap=0.2712 worst_cap=1.47 n_ep=8 worst=251.8388 green=0.6667 dc=-37.7571 bbw=29.3651 sq=4 vol100=34.7526 adv=120896608.3246 px=72.17 eps=[(-8.85, 0.99), (-5.83, 1.09), (5.43, -0.65), (-6.62, 1.47), (0.09, -0.0), (-0.85, 0.17), (-11.95, 1.31), (6.34, -1.41)] risks=['share count +16% y/y -- dilution', 'Altman Z 1.59 -- distress zone']
-[12:19:43] row COILED BBT mid Banks - Regional cap=-0.487 worst_cap=-0.34 n_ep=3 worst=123.8983 green=0.25 dc=42.1541 bbw=1.7241 sq=0 vol100=25.3279 adv=21948400.8895 px=31.05 eps=[(4.63, -0.91), (3.1, -0.34), (1.89, -0.42)] risks=[]
-[12:19:43] row COILED DFIN small Software - Application cap=0.814 worst_cap=1.24 n_ep=8 worst=-12.8085 green=0.0833 dc=81.2721 bbw=1.1905 sq=5 vol100=46.7225 adv=9536050.8593 px=48.3 eps=[(6.73, -0.75), (2.0, -0.37), (-6.94, 0.83), (-3.45, 0.77), (-21.06, 1.11), (0.99, -0.2), (-10.81, 1.18), (-5.55, 1.24)] risks=['CVaR(5%) -7.7%: the worst twentieth of days average that loss']
-[12:19:43] row COILED NPB small Banks - Regional cap=0.2756 worst_cap=0.61 n_ep=4 worst=113.2885 green=0.4167 dc=82.1665 bbw=3.5714 sq=10 vol100=29.855 adv=2798133.6949 px=16.99 eps=[(-11.62, 0.61), (-0.13, 0.02), (-5.14, 0.56), (2.97, -0.66)] risks=['thin liquidity: $2.8M average daily dollar volume']
-[12:19:43] row COILED STRA small Education & Training S cap=0.641 worst_cap=2.41 n_ep=8 worst=196.5775 green=0.4167 dc=28.9375 bbw=23.4127 sq=4 vol100=41.8629 adv=19571822.7646 px=82.84 eps=[(1.72, -0.19), (-5.63, 1.05), (-20.31, 2.41), (-6.77, 1.51), (-24.71, 1.3), (-1.7, 0.34), (-1.75, 0.19), (2.98, -0.66)] risks=[]
-[12:19:43] board tiers: {"FORTRESS_COIL": 1, "COILED": 146, "ACCUMULATING": 653}
-── G6 history snapshot ──
-── G7 harvester contract ──
-── G8 weekly walk-forward backtest (schedule + first run verified on disk) ──
-[12:19:43] backtest schedule updated
-[12:19:43] backtest invoke fired at 2026-09-01T12:19:43+00:00; polling data/fortress-backtest.json
-[12:20:44]   poll 60s: backtest not written yet
-[12:21:44]   poll 120s: backtest not written yet
-[12:22:45]   poll 180s: backtest not written yet
-[12:22:55] gates 0: {"n": 34616, "median_ex21_pct": -0.8, "mean_ex21_pct": 0.23, "hit21_pct": 46.5, "median_ex63_pct": -2.9, "mean_ex63_pct": 0.34, "hit63_pct": 43.1, "median_ret21_pct": 0.19, "median_ret63_pct": 0.46, "median_alpha21_pct": -0.71, "median_alpha63_pct": -2.58, "alpha21_hit_pct": 46.7, "median_beta": 1.06}
-[12:22:55] gates 1: {"n": 46643, "median_ex21_pct": -1.18, "mean_ex21_pct": -0.42, "hit21_pct": 44.5, "median_ex63_pct": -3.56, "mean_ex63_pct": -0.96, "hit63_pct": 41.4, "median_ret21_pct": 0.13, "median_ret63_pct": 0.57, "median_alpha21_pct": -0.87, "median_alpha63_pct": -2.58, "alpha21_hit_pct": 45.4, "median_beta": 0.89}
-[12:22:55] gates 2: {"n": 14279, "median_ex21_pct": -1.24, "mean_ex21_pct": -0.51, "hit21_pct": 43.3, "median_ex63_pct": -3.68, "mean_ex63_pct": -1.33, "hit63_pct": 39.8, "median_ret21_pct": 0.22, "median_ret63_pct": 0.12, "median_alpha21_pct": -0.61, "median_alpha63_pct": -1.88, "alpha21_hit_pct": 45.7, "median_beta": 0.67}
-[12:22:55] gates 3: {"n": 1017, "median_ex21_pct": -1.14, "mean_ex21_pct": -1.36, "hit21_pct": 40.0, "median_ex63_pct": -4.4, "mean_ex63_pct": -3.44, "hit63_pct": 32.5, "median_ret21_pct": -0.18, "median_ret63_pct": -0.15, "median_alpha21_pct": -0.58, "median_alpha63_pct": -1.6, "alpha21_hit_pct": 45.0, "median_beta": 0.37}
-[12:22:55] 3/3 tight: {"n": 442, "median_ex21_pct": -1.01, "mean_ex21_pct": -1.2, "hit21_pct": 42.1, "median_ex63_pct": -3.77, "mean_ex63_pct": -2.85, "hit63_pct": 33.9, "median_ret21_pct": -0.17, "median_ret63_pct": -0.13, "median_alpha21_pct": -0.49, "median_alpha63_pct": -1.36, "alpha21_hit_pct": 45.7, "median_beta": 0.36}
-[12:22:55] resilient vs not: {"resilient": {"n": 17446, "median_ex21_pct": -1.32, "mean_ex21_pct": -1.1, "hit21_pct": 41.5, "median_ex63_pct": -3.7, "mean_ex63_pct": -2.48, "hit63_pct": 37.9, "median_ret21_pct": 0.02, "median_ret63_pct": 0.0, "median_alpha21_pct": -0.52, "median_alpha63_pct": -1.27, "alpha21_hit_pct": 45.5, "median_beta": 0.43}, "not_resilient": {"n": 79103, "median_ex21_pct": -0.96, "mean_ex21_pct": -0.01, "hit21_pct": 45.7, "median_ex63_pct": -3.28, "mean_ex63_pct": -0.15, "hit63_pct": 42.5, "median_ret21_pct": 0.22, "median_ret63_pct": 0.65, "median_alpha21_pct": -0.85, "median_alpha63_pct": -2.91, "alpha21_hit_pct": 46.0, "median_beta": 1.03}}
-[12:22:55] under only: {"n": 26656, "median_ex21_pct": -1.25, "mean_ex21_pct": -0.42, "hit21_pct": 44.5, "median_ex63_pct": -4.05, "mean_ex63_pct": -0.96, "hit63_pct": 41.1, "median_ret21_pct": 0.15, "median_ret63_pct": 0.74, "median_alpha21_pct": -1.05, "median_alpha63_pct": -3.7, "alpha21_hit_pct": 45.1, "median_beta": 1.0} knife: {"n": 7174, "median_ex21_pct": -5.56, "mean_ex21_pct": -5.09, "hit21_pct": 38.6, "median_ex63_pct": -15.9, "mean_ex63_pct": -11.03, "hit63_pct": 33.7, "median_ret21_pct": -4.72, "median_ret63_pct": -11.19, "median_alpha21_pct": -5.67, "median_alpha63_pct": -16.76, "alpha21_hit_pct": 38.2, "median_beta": 1.22}
-[12:22:55] decile D1: {"n": 9654, "median_ex21_pct": -1.94, "mean_ex21_pct": -1.44, "hit21_pct": 42.3, "median_ex63_pct": -4.32, "mean_ex63_pct": -2.55, "hit63_pct": 40.6, "median_ret21_pct": -0.54, "median_ret63_pct": -0.21, "median_alpha21_pct": -1.06, "median_alpha63_pct": -1.51, "alpha21_hit_pct": 44.4, "median_beta": 0.5, "capture_lo": -92.36, "capture_hi": 0.17}
-[12:22:55] decile D2: {"n": 9654, "median_ex21_pct": -1.09, "mean_ex21_pct": -0.48, "hit21_pct": 43.9, "median_ex63_pct": -3.51, "mean_ex63_pct": -1.57, "hit63_pct": 39.7, "median_ret21_pct": 0.11, "median_ret63_pct": 0.2, "median_alpha21_pct": -0.41, "median_alpha63_pct": -1.16, "alpha21_hit_pct": 47.1, "median_beta": 0.52, "capture_lo": 0.17, "capture_hi": 0.47}
-[12:22:55] decile D3: {"n": 9654, "median_ex21_pct": -1.24, "mean_ex21_pct": -0.77, "hit21_pct": 41.7, "median_ex63_pct": -3.65, "mean_ex63_pct": -2.38, "hit63_pct": 37.6, "median_ret21_pct": 0.18, "median_ret63_pct": -0.23, "median_alpha21_pct": -0.61, "median_alpha63_pct": -2.03, "alpha21_hit_pct": 45.1, "median_beta": 0.6, "capture_lo": 0.47, "capture_hi": 0.67}
-[12:22:55] decile D4: {"n": 9654, "median_ex21_pct": -0.95, "mean_ex21_pct": -0.43, "hit21_pct": 44.4, "median_ex63_pct": -3.54, "mean_ex63_pct": -1.76, "hit63_pct": 40.1, "median_ret21_pct": 0.22, "median_ret63_pct": 0.27, "median_alpha21_pct": -0.63, "median_alpha63_pct": -2.28, "alpha21_hit_pct": 46.0, "median_beta": 0.73, "capture_lo": 0.67, "capture_hi": 0.85}
-[12:22:55] decile D5: {"n": 9654, "median_ex21_pct": -0.84, "mean_ex21_pct": -0.52, "hit21_pct": 45.1, "median_ex63_pct": -3.22, "mean_ex63_pct": -1.73, "hit63_pct": 40.8, "median_ret21_pct": 0.31, "median_ret63_pct": 0.72, "median_alpha21_pct": -0.63, "median_alpha63_pct": -2.44, "alpha21_hit_pct": 45.9, "median_beta": 0.82, "capture_lo": 0.85, "capture_hi": 1.02}
-[12:22:55] decile D6: {"n": 9654, "median_ex21_pct": -0.79, "mean_ex21_pct": -0.25, "hit21_pct": 46.3, "median_ex63_pct": -2.9, "mean_ex63_pct": -1.05, "hit63_pct": 41.6, "median_ret21_pct": 0.44, "median_ret63_pct": 1.32, "median_alpha21_pct": -0.62, "median_alpha63_pct": -2.47, "alpha21_hit_pct": 46.7, "median_beta": 0.92, "capture_lo": 1.02, "capture_hi": 1.2}
-[12:22:55] decile D7: {"n": 9654, "median_ex21_pct": -0.72, "mean_ex21_pct": 0.25, "hit21_pct": 46.5, "median_ex63_pct": -2.35, "mean_ex63_pct": 0.21, "hit63_pct": 44.1, "median_ret21_pct": 0.49, "median_ret63_pct": 2.08, "median_alpha21_pct": -0.73, "median_alpha63_pct": -2.45, "alpha21_hit_pct": 46.5, "median_beta": 1.04, "capture_lo": 1.2, "capture_hi": 1.4}
-[12:22:55] decile D8: {"n": 9654, "median_ex21_pct": -1.06, "mean_ex21_pct": -0.22, "hit21_pct": 45.5, "median_ex63_pct": -2.98, "mean_ex63_pct": -0.27, "hit63_pct": 43.8, "median_ret21_pct": 0.27, "median_ret63_pct": 1.14, "median_alpha21_pct": -1.2, "median_alpha63_pct": -3.56, "alpha21_hit_pct": 44.9, "median_beta": 1.15, "capture_lo": 1.4, "capture_hi": 1.66}
-[12:22:55] decile D9: {"n": 9654, "median_ex21_pct": -0.67, "mean_ex21_pct": 0.57, "hit21_pct": 47.7, "median_ex63_pct": -2.48, "mean_ex63_pct": 1.86, "hit63_pct": 46.0, "median_ret21_pct": 0.62, "median_ret63_pct": 1.65, "median_alpha21_pct": -0.84, "median_alpha63_pct": -3.48, "alpha21_hit_pct": 47.0, "median_beta": 1.33, "capture_lo": 1.66, "capture_hi": 2.11}
-[12:22:55] decile D10: {"n": 9661, "median_ex21_pct": -1.5, "mean_ex21_pct": 1.22, "hit21_pct": 46.4, "median_ex63_pct": -6.16, "mean_ex63_pct": 3.49, "hit63_pct": 42.7, "median_ret21_pct": -0.5, "median_ret63_pct": -2.58, "median_alpha21_pct": -1.68, "median_alpha63_pct": -6.91, "alpha21_hit_pct": 45.5, "median_beta": 1.69, "capture_lo": 2.11, "capture_hi": 6.73}
-[12:22:55] date {"date": "2024-09-17", "n_scored": 3447, "spy_fwd21_pct": 3.42, "spy_fwd63_pct": 7.76, "n_fortress3": 37, "fortress3_median_ex21_pct": -3.55, "fortress3_hit21_pct": 24.3, "n_dump_episodes_asof": 5}
-[12:22:55] date {"date": "2024-10-08", "n_scored": 3517, "spy_fwd21_pct": 3.12, "spy_fwd63_pct": 2.85, "n_fortress3": 36, "fortress3_median_ex21_pct": -2.58, "fortress3_hit21_pct": 33.3, "n_dump_episodes_asof": 4}
-[12:22:55] date {"date": "2024-10-29", "n_scored": 3451, "spy_fwd21_pct": 2.93, "spy_fwd63_pct": 3.45, "n_fortress3": 43, "fortress3_median_ex21_pct": -0.97, "fortress3_hit21_pct": 48.8, "n_dump_episodes_asof": 4}
-[12:22:55] date {"date": "2024-11-19", "n_scored": 3560, "spy_fwd21_pct": -0.71, "spy_fwd63_pct": 1.17, "n_fortress3": 19, "fortress3_median_ex21_pct": -1.23, "fortress3_hit21_pct": 31.6, "n_dump_episodes_asof": 4}
-[12:22:55] date {"date": "2024-12-11", "n_scored": 3596, "spy_fwd21_pct": -4.16, "spy_fwd63_pct": -6.64, "n_fortress3": 35, "fortress3_median_ex21_pct": -0.49, "fortress3_hit21_pct": 45.7, "n_dump_episodes_asof": 3}
-[12:22:55] date {"date": "2025-01-03", "n_scored": 3716, "spy_fwd21_pct": 2.07, "spy_fwd63_pct": -14.79, "n_fortress3": 19, "fortress3_median_ex21_pct": -4.59, "fortress3_hit21_pct": 31.6, "n_dump_episodes_asof": 3}
-[12:22:55] date {"date": "2025-01-28", "n_scored": 3650, "spy_fwd21_pct": -3.22, "spy_fwd63_pct": -8.3, "n_fortress3": 22, "fortress3_median_ex21_pct": 4.88, "fortress3_hit21_pct": 81.8, "n_dump_episodes_asof": 6}
-[12:22:55] date {"date": "2025-02-19", "n_scored": 3542, "spy_fwd21_pct": -7.74, "spy_fwd63_pct": -3.28, "n_fortress3": 34, "fortress3_median_ex21_pct": 6.28, "fortress3_hit21_pct": 88.2, "n_dump_episodes_asof": 5}
-[12:22:55] date {"date": "2025-03-12", "n_scored": 3515, "spy_fwd21_pct": -6.14, "spy_fwd63_pct": 7.6, "n_fortress3": 49, "fortress3_median_ex21_pct": -0.49, "fortress3_hit21_pct": 34.7, "n_dump_episodes_asof": 6}
-[12:22:55] date {"date": "2025-04-02", "n_scored": 3438, "spy_fwd21_pct": 0.4, "spy_fwd63_pct": 10.77, "n_fortress3": 36, "fortress3_median_ex21_pct": -2.31, "fortress3_hit21_pct": 27.8, "n_dump_episodes_asof": 5}
-[12:22:55] date {"date": "2025-04-24", "n_scored": 3487, "spy_fwd21_pct": 5.93, "spy_fwd63_pct": 16.54, "n_fortress3": 7, "fortress3_median_ex21_pct": -0.7, "fortress3_hit21_pct": 42.9, "n_dump_episodes_asof": 6}
-[12:22:55] date {"date": "2025-05-15", "n_scored": 3398, "spy_fwd21_pct": 2.07, "spy_fwd63_pct": 8.97, "n_fortress3": 28, "fortress3_median_ex21_pct": -2.06, "fortress3_hit21_pct": 35.7, "n_dump_episodes_asof": 8}
-[12:22:55] date {"date": "2025-06-06", "n_scored": 3484, "spy_fwd21_pct": 4.16, "spy_fwd63_pct": 8.29, "n_fortress3": 52, "fortress3_median_ex21_pct": -1.81, "fortress3_hit21_pct": 23.1, "n_dump_episodes_asof": 7}
-[12:22:55] date {"date": "2025-06-30", "n_scored": 3616, "spy_fwd21_pct": 2.69, "spy_fwd63_pct": 7.42, "n_fortress3": 73, "fortress3_median_ex21_pct": -2.89, "fortress3_hit21_pct": 20.5, "n_dump_episodes_asof": 6}
-[12:22:55] date {"date": "2025-07-22", "n_scored": 3687, "spy_fwd21_pct": 1.47, "spy_fwd63_pct": 6.75, "n_fortress3": 51, "fortress3_median_ex21_pct": -0.42, "fortress3_hit21_pct": 49.0, "n_dump_episodes_asof": 6}
-[12:22:55] date {"date": "2025-08-12", "n_scored": 3575, "spy_fwd21_pct": 2.32, "spy_fwd63_pct": 6.03, "n_fortress3": 23, "fortress3_median_ex21_pct": -0.42, "fortress3_hit21_pct": 43.5, "n_dump_episodes_asof": 6}
-[12:22:55] date {"date": "2025-09-03", "n_scored": 3581, "spy_fwd21_pct": 3.96, "spy_fwd63_pct": 5.87, "n_fortress3": 55, "fortress3_median_ex21_pct": -4.94, "fortress3_hit21_pct": 18.2, "n_dump_episodes_asof": 6}
-[12:22:55] date {"date": "2025-09-24", "n_scored": 3671, "spy_fwd21_pct": 1.61, "spy_fwd63_pct": 4.06, "n_fortress3": 28, "fortress3_median_ex21_pct": -3.16, "fortress3_hit21_pct": 25.0, "n_dump_episodes_asof": 8}
-[12:22:55] date {"date": "2025-10-15", "n_scored": 3729, "spy_fwd21_pct": 1.03, "spy_fwd63_pct": 4.07, "n_fortress3": 25, "fortress3_median_ex21_pct": -1.28, "fortress3_hit21_pct": 28.0, "n_dump_episodes_asof": 9}
-[12:22:55] date {"date": "2025-11-05", "n_scored": 3642, "spy_fwd21_pct": 1.2, "spy_fwd63_pct": 1.92, "n_fortress3": 24, "fortress3_median_ex21_pct": -0.08, "fortress3_hit21_pct": 45.8, "n_dump_episodes_asof": 8}
-[12:22:55] date {"date": "2025-11-26", "n_scored": 3574, "spy_fwd21_pct": 1.2, "spy_fwd63_pct": 0.99, "n_fortress3": 27, "fortress3_median_ex21_pct": -3.22, "fortress3_hit21_pct": 11.1, "n_dump_episodes_asof": 8}
-[12:22:55] date {"date": "2025-12-18", "n_scored": 3621, "spy_fwd21_pct": 1.32, "spy_fwd63_pct": -3.12, "n_fortress3": 36, "fortress3_median_ex21_pct": 0.16, "fortress3_hit21_pct": 52.8, "n_dump_episodes_asof": 8}
-[12:22:55] date {"date": "2026-01-12", "n_scored": 3654, "spy_fwd21_pct": -0.46, "spy_fwd63_pct": -0.1, "n_fortress3": 65, "fortress3_median_ex21_pct": 2.61, "fortress3_hit21_pct": 76.9, "n_dump_episodes_asof": 7}
-[12:22:55] date {"date": "2026-02-03", "n_scored": 3651, "spy_fwd21_pct": -1.19, "spy_fwd63_pct": 4.97, "n_fortress3": 48, "fortress3_median_ex21_pct": 1.15, "fortress3_hit21_pct": 54.2, "n_dump_episodes_asof": 7}
-[12:22:55] date {"date": "2026-02-25", "n_scored": 3588, "spy_fwd21_pct": -6.93, "spy_fwd63_pct": 8.27, "n_fortress3": 33, "fortress3_median_ex21_pct": 0.83, "fortress3_hit21_pct": 57.6, "n_dump_episodes_asof": 7}
-[12:22:55] date {"date": "2026-03-18", "n_scored": 3589, "spy_fwd21_pct": 7.36, "spy_fwd63_pct": 12.02, "n_fortress3": 20, "fortress3_median_ex21_pct": -4.0, "fortress3_hit21_pct": 35.0, "n_dump_episodes_asof": 7}
-[12:22:55] date {"date": "2026-04-09", "n_scored": 3590, "spy_fwd21_pct": 8.49, "spy_fwd63_pct": 11.04, "n_fortress3": 22, "fortress3_median_ex21_pct": -8.76, "fortress3_hit21_pct": 13.6, "n_dump_episodes_asof": 7}
-[12:22:55] date {"date": "2026-04-30", "n_scored": 3566, "spy_fwd21_pct": 5.55, "spy_fwd63_pct": 3.95, "n_fortress3": 34, "fortress3_median_ex21_pct": -6.67, "fortress3_hit21_pct": 5.9, "n_dump_episodes_asof": 7}
-[12:22:55] date {"date": "2026-05-21", "n_scored": 3594, "spy_fwd21_pct": -1.23, "spy_fwd63_pct": 3.1, "n_fortress3": 36, "fortress3_median_ex21_pct": 1.67, "fortress3_hit21_pct": 63.9, "n_dump_episodes_asof": 7}
-[12:22:55] location resilient_coiled_under_ema250: {"n": 1017, "median_ex21_pct": -1.14, "mean_ex21_pct": -1.36, "hit21_pct": 40.0, "median_ex63_pct": -4.4, "mean_ex63_pct": -3.44, "hit63_pct": 32.5, "median_ret21_pct": -0.18, "median_ret63_pct": -0.15, "median_alpha21_pct": -0.58, "median_alpha63_pct": -1.6, "alpha21_hit_pct": 45.0, "median_beta": 0.37}
-[12:22:55] location resilient_coiled_not_extended: {"n": 3109, "median_ex21_pct": -1.27, "mean_ex21_pct": -0.99, "hit21_pct": 40.0, "median_ex63_pct": -3.78, "mean_ex63_pct": -2.84, "hit63_pct": 34.6, "median_ret21_pct": 0.0, "median_ret63_pct": 0.16, "median_alpha21_pct": -0.44, "median_alpha63_pct": -0.84, "alpha21_hit_pct": 44.9, "median_beta": 0.38}
-[12:22:55] location resilient_coiled_above_ema250: {"n": 2849, "median_ex21_pct": -1.29, "mean_ex21_pct": -0.56, "hit21_pct": 41.7, "median_ex63_pct": -3.03, "mean_ex63_pct": -1.7, "hit63_pct": 38.8, "median_ret21_pct": 0.18, "median_ret63_pct": 0.63, "median_alpha21_pct": -0.4, "median_alpha63_pct": -0.43, "alpha21_hit_pct": 45.7, "median_beta": 0.45}
-[12:22:55] location resilient_coiled_extended_over_15pct: {"n": 757, "median_ex21_pct": -0.86, "mean_ex21_pct": 0.15, "hit21_pct": 46.4, "median_ex63_pct": -1.13, "mean_ex63_pct": 0.64, "hit63_pct": 47.7, "median_ret21_pct": 0.77, "median_ret63_pct": 2.69, "median_alpha21_pct": -0.48, "median_alpha63_pct": 0.66, "alpha21_hit_pct": 48.0, "median_beta": 0.62}
-[12:22:55] location resilient_coiled_any_location: {"n": 3866, "median_ex21_pct": -1.23, "mean_ex21_pct": -0.77, "hit21_pct": 41.3, "median_ex63_pct": -3.38, "mean_ex63_pct": -2.16, "hit63_pct": 37.2, "median_ret21_pct": 0.08, "median_ret63_pct": 0.39, "median_alpha21_pct": -0.45, "median_alpha63_pct": -0.72, "alpha21_hit_pct": 45.5, "median_beta": 0.42}
-[12:22:55] location coiled_above_ema250_not_resilient: {"n": 10523, "median_ex21_pct": -0.86, "mean_ex21_pct": 0.22, "hit21_pct": 46.0, "median_ex63_pct": -2.68, "mean_ex63_pct": 0.1, "hit63_pct": 43.8, "median_ret21_pct": 0.3, "median_ret63_pct": 0.82, "median_alpha21_pct": -0.73, "median_alpha63_pct": -2.2, "alpha21_hit_pct": 46.2, "median_beta": 1.04}
-[12:22:55] location resilient_under_ema250_not_coiled: {"n": 4116, "median_ex21_pct": -1.47, "mean_ex21_pct": -1.42, "hit21_pct": 39.6, "median_ex63_pct": -4.61, "mean_ex63_pct": -3.54, "hit63_pct": 34.7, "median_ret21_pct": 0.07, "median_ret63_pct": -0.59, "median_alpha21_pct": -0.51, "median_alpha63_pct": -1.95, "alpha21_hit_pct": 45.2, "median_beta": 0.38}
-[12:22:55] location all_above_ema250: {"n": 57452, "median_ex21_pct": -0.93, "mean_ex21_pct": -0.03, "hit21_pct": 45.5, "median_ex63_pct": -2.97, "mean_ex63_pct": -0.22, "hit63_pct": 42.4, "median_ret21_pct": 0.16, "median_ret63_pct": 0.45, "median_alpha21_pct": -0.66, "median_alpha63_pct": -1.99, "alpha21_hit_pct": 46.4, "median_beta": 0.93}
-[12:22:55] location all_under_ema250: {"n": 39103, "median_ex21_pct": -1.24, "mean_ex21_pct": -0.47, "hit21_pct": 44.2, "median_ex63_pct": -4.03, "mean_ex63_pct": -1.1, "hit63_pct": 40.6, "median_ret21_pct": 0.17, "median_ret63_pct": 0.4, "median_alpha21_pct": -0.91, "median_alpha63_pct": -3.12, "alpha21_hit_pct": 45.3, "median_beta": 0.92}
-[12:22:55] direction spy_down_21s_le_-2pct: windows=5 spy_med=-6.14
-[12:22:55]    all: {"n": 16596, "median_ex21_pct": -1.02, "mean_ex21_pct": -1.29, "hit21_pct": 45.2, "median_ex63_pct": -4.35, "mean_ex63_pct": -2.97, "hit63_pct": 38.8, "median_ret21_pct": -6.68, "median_ret63_pct": -4.53, "median_alpha21_pct": -1.55, "median_alpha63_pct": -3.78, "alpha21_hit_pct": 41.7, "median_beta": 0.92}
-[12:22:55]    fortress3: {"n": 173, "median_ex21_pct": 1.2, "mean_ex21_pct": 1.06, "hit21_pct": 57.8, "median_ex63_pct": -5.33, "mean_ex63_pct": -4.27, "hit63_pct": 32.4, "median_ret21_pct": -4.94, "median_ret63_pct": -2.91, "median_alpha21_pct": -2.38, "median_alpha63_pct": -3.75, "alpha21_hit_pct": 32.4, "median_beta": 0.34}
-[12:22:55]    resilient: {"n": 3005, "median_ex21_pct": 1.65, "mean_ex21_pct": 1.39, "hit21_pct": 59.9, "median_ex63_pct": -2.48, "mean_ex63_pct": -2.84, "hit63_pct": 43.2, "median_ret21_pct": -3.75, "median_ret63_pct": -2.5, "median_alpha21_pct": -1.54, "median_alpha63_pct": -2.42, "alpha21_hit_pct": 39.6, "median_beta": 0.41}
-[12:22:55]    not_resilient: {"n": 13590, "median_ex21_pct": -1.81, "mean_ex21_pct": -1.88, "hit21_pct": 41.9, "median_ex63_pct": -4.86, "mean_ex63_pct": -3.0, "hit63_pct": 37.8, "median_ret21_pct": -7.4, "median_ret63_pct": -5.34, "median_alpha21_pct": -1.56, "median_alpha63_pct": -4.26, "alpha21_hit_pct": 42.1, "median_beta": 1.03}
-[12:22:55] direction spy_flat_21s: windows=11 spy_med=1.03
-[12:22:55]    all: {"n": 37242, "median_ex21_pct": -0.62, "mean_ex21_pct": -0.04, "hit21_pct": 46.9, "median_ex63_pct": -1.66, "mean_ex63_pct": 1.21, "hit63_pct": 46.0, "median_ret21_pct": 0.0, "median_ret63_pct": 1.38, "median_alpha21_pct": -0.45, "median_alpha63_pct": -1.0, "alpha21_hit_pct": 47.6, "median_beta": 0.92}
-[12:22:55]    fortress3: {"n": 395, "median_ex21_pct": -0.32, "mean_ex21_pct": -0.52, "hit21_pct": 47.3, "median_ex63_pct": -2.28, "mean_ex63_pct": -1.24, "hit63_pct": 40.3, "median_ret21_pct": 0.31, "median_ret63_pct": 0.11, "median_alpha21_pct": 0.18, "median_alpha63_pct": -0.74, "alpha21_hit_pct": 53.0, "median_beta": 0.36}
-[12:22:55]    resilient: {"n": 6236, "median_ex21_pct": -0.33, "mean_ex21_pct": 0.03, "hit21_pct": 47.5, "median_ex63_pct": -1.93, "mean_ex63_pct": -0.22, "hit63_pct": 42.6, "median_ret21_pct": 0.14, "median_ret63_pct": 0.8, "median_alpha21_pct": 0.03, "median_alpha63_pct": -0.17, "alpha21_hit_pct": 50.3, "median_beta": 0.42}
-[12:22:55]    not_resilient: {"n": 31003, "median_ex21_pct": -0.72, "mean_ex21_pct": -0.05, "hit21_pct": 46.8, "median_ex63_pct": -1.59, "mean_ex63_pct": 1.5, "hit63_pct": 46.7, "median_ret21_pct": -0.08, "median_ret63_pct": 1.64, "median_alpha21_pct": -0.61, "median_alpha63_pct": -1.36, "alpha21_hit_pct": 47.1, "median_beta": 1.02}
-[12:22:55] direction spy_up_21s_ge_2pct: windows=13 spy_med=3.42
-[12:22:55]    all: {"n": 42717, "median_ex21_pct": -1.47, "mean_ex21_pct": 0.07, "hit21_pct": 43.2, "median_ex63_pct": -4.53, "mean_ex63_pct": -1.2, "hit63_pct": 39.1, "median_ret21_pct": 2.35, "median_ret63_pct": 1.55, "median_alpha21_pct": -0.71, "median_alpha63_pct": -3.04, "alpha21_hit_pct": 46.1, "median_beta": 0.93}
-[12:22:55]    fortress3: {"n": 449, "median_ex21_pct": -3.01, "mean_ex21_pct": -3.04, "hit21_pct": 26.7, "median_ex63_pct": -5.35, "mean_ex63_pct": -5.05, "hit63_pct": 25.8, "median_ret21_pct": 0.45, "median_ret63_pct": 0.92, "median_alpha21_pct": -0.83, "median_alpha63_pct": -1.52, "alpha21_hit_pct": 42.8, "median_beta": 0.38}
-[12:22:55]    resilient: {"n": 8205, "median_ex21_pct": -3.13, "mean_ex21_pct": -2.87, "hit21_pct": 30.3, "median_ex63_pct": -5.49, "mean_ex63_pct": -4.08, "hit63_pct": 32.4, "median_ret21_pct": 0.84, "median_ret63_pct": 0.22, "median_alpha21_pct": -0.64, "median_alpha63_pct": -1.72, "alpha21_hit_pct": 43.9, "median_beta": 0.43}
-[12:22:55]    not_resilient: {"n": 34510, "median_ex21_pct": -0.86, "mean_ex21_pct": 0.77, "hit21_pct": 46.3, "median_ex63_pct": -4.16, "mean_ex63_pct": -0.52, "hit63_pct": 40.6, "median_ret21_pct": 3.02, "median_ret63_pct": 2.18, "median_alpha21_pct": -0.74, "median_alpha63_pct": -3.61, "alpha21_hit_pct": 46.6, "median_beta": 1.04}
-[12:22:55] down-decile D1: {"n": 1926, "median_ex21_pct": 0.4, "mean_ex21_pct": -0.63, "hit21_pct": 52.0, "median_ex63_pct": -4.31, "mean_ex63_pct": -4.16, "hit63_pct": 41.8, "median_ret21_pct": -4.96, "median_ret63_pct": -3.42, "median_alpha21_pct": -1.93, "median_alpha63_pct": -2.7, "alpha21_hit_pct": 41.4, "median_beta": 0.55, "capture_lo": -92.36, "capture_hi": 0.17}
-[12:22:55] down-decile D2: {"n": 1699, "median_ex21_pct": 1.2, "mean_ex21_pct": 0.93, "hit21_pct": 56.1, "median_ex63_pct": -2.73, "mean_ex63_pct": -2.42, "hit63_pct": 41.4, "median_ret21_pct": -4.27, "median_ret63_pct": -2.53, "median_alpha21_pct": -1.6, "median_alpha63_pct": -2.31, "alpha21_hit_pct": 41.1, "median_beta": 0.53, "capture_lo": 0.17, "capture_hi": 0.47}
-[12:22:55] down-decile D3: {"n": 1699, "median_ex21_pct": 0.76, "mean_ex21_pct": 0.35, "hit21_pct": 54.7, "median_ex63_pct": -2.08, "mean_ex63_pct": -2.18, "hit63_pct": 43.4, "median_ret21_pct": -4.76, "median_ret63_pct": -3.46, "median_alpha21_pct": -1.56, "median_alpha63_pct": -2.98, "alpha21_hit_pct": 40.3, "median_beta": 0.61, "capture_lo": 0.47, "capture_hi": 0.67}
-[12:22:55] down-decile D4: {"n": 1640, "median_ex21_pct": 0.12, "mean_ex21_pct": -0.2, "hit21_pct": 50.9, "median_ex63_pct": -3.22, "mean_ex63_pct": -2.54, "hit63_pct": 41.5, "median_ret21_pct": -5.6, "median_ret63_pct": -3.0, "median_alpha21_pct": -1.5, "median_alpha63_pct": -3.21, "alpha21_hit_pct": 42.0, "median_beta": 0.73, "capture_lo": 0.67, "capture_hi": 0.85}
-[12:22:55] down-decile D5: {"n": 1590, "median_ex21_pct": -0.3, "mean_ex21_pct": -0.38, "hit21_pct": 47.7, "median_ex63_pct": -3.09, "mean_ex63_pct": -2.71, "hit63_pct": 38.9, "median_ret21_pct": -5.9, "median_ret63_pct": -4.16, "median_alpha21_pct": -1.2, "median_alpha63_pct": -3.4, "alpha21_hit_pct": 40.6, "median_beta": 0.82, "capture_lo": 0.85, "capture_hi": 1.02}
-[12:22:55] down-decile D6: {"n": 1639, "median_ex21_pct": -0.76, "mean_ex21_pct": -0.77, "hit21_pct": 46.1, "median_ex63_pct": -3.51, "mean_ex63_pct": -2.75, "hit63_pct": 39.1, "median_ret21_pct": -6.38, "median_ret63_pct": -4.28, "median_alpha21_pct": -1.16, "median_alpha63_pct": -3.5, "alpha21_hit_pct": 43.6, "median_beta": 0.91, "capture_lo": 1.02, "capture_hi": 1.2}
-[12:22:55] down-decile D7: {"n": 1571, "median_ex21_pct": -1.6, "mean_ex21_pct": -1.23, "hit21_pct": 41.0, "median_ex63_pct": -4.27, "mean_ex63_pct": -3.36, "hit63_pct": 36.0, "median_ret21_pct": -7.34, "median_ret63_pct": -5.3, "median_alpha21_pct": -1.26, "median_alpha63_pct": -4.22, "alpha21_hit_pct": 42.5, "median_beta": 1.03, "capture_lo": 1.2, "capture_hi": 1.4}
-[12:22:55] down-decile D8: {"n": 1530, "median_ex21_pct": -3.12, "mean_ex21_pct": -3.16, "hit21_pct": 34.5, "median_ex63_pct": -6.69, "mean_ex63_pct": -5.06, "hit63_pct": 33.5, "median_ret21_pct": -9.0, "median_ret63_pct": -7.0, "median_alpha21_pct": -2.18, "median_alpha63_pct": -6.38, "alpha21_hit_pct": 39.2, "median_beta": 1.14, "capture_lo": 1.4, "capture_hi": 1.66}
-[12:22:55] down-decile D9: {"n": 1595, "median_ex21_pct": -3.73, "mean_ex21_pct": -2.95, "hit21_pct": 35.1, "median_ex63_pct": -6.5, "mean_ex63_pct": -3.36, "hit63_pct": 36.2, "median_ret21_pct": -9.48, "median_ret63_pct": -8.29, "median_alpha21_pct": -1.66, "median_alpha63_pct": -5.91, "alpha21_hit_pct": 42.7, "median_beta": 1.32, "capture_lo": 1.66, "capture_hi": 2.11}
-[12:22:55] down-decile D10: {"n": 1706, "median_ex21_pct": -6.4, "mean_ex21_pct": -5.12, "hit21_pct": 31.4, "median_ex63_pct": -9.89, "mean_ex63_pct": -1.2, "hit63_pct": 34.9, "median_ret21_pct": -11.82, "median_ret63_pct": -11.71, "median_alpha21_pct": -2.17, "median_alpha63_pct": -7.0, "alpha21_hit_pct": 43.4, "median_beta": 1.7, "capture_lo": 2.11, "capture_hi": 6.73}
-[12:22:55] IC neg_capture      21s {"n_dates": 29, "mean": -0.0181, "std": 0.1547, "tstat": -0.63, "hit_pct": 37.9} | 63s {"n_dates": 29, "mean": -0.0139, "std": 0.1528, "tstat": -0.49, "hit_pct": 44.8} | down {"n_dates": 5, "mean": 0.1838, "std": 0.0447, "tstat": 9.19, "hit_pct": 100.0}
-[12:22:55] IC worst_ex         21s {"n_dates": 29, "mean": -0.0374, "std": 0.1816, "tstat": -1.11, "hit_pct": 37.9} | 63s {"n_dates": 29, "mean": -0.0411, "std": 0.1994, "tstat": -1.11, "hit_pct": 37.9} | down {"n_dates": 5, "mean": 0.2215, "std": 0.146, "tstat": 3.39, "hit_pct": 100.0}
-[12:22:55] IC obv_slope        21s {"n_dates": 29, "mean": -0.0188, "std": 0.0572, "tstat": -1.76, "hit_pct": 41.4} | 63s {"n_dates": 29, "mean": -0.0154, "std": 0.0725, "tstat": -1.15, "hit_pct": 48.3} | down {"n_dates": 5, "mean": -0.0505, "std": 0.0738, "tstat": -1.53, "hit_pct": 40.0}
-[12:22:55] IC updown_ratio     21s {"n_dates": 29, "mean": -0.0126, "std": 0.0648, "tstat": -1.04, "hit_pct": 41.4} | 63s {"n_dates": 29, "mean": -0.0194, "std": 0.0678, "tstat": -1.54, "hit_pct": 37.9} | down {"n_dates": 5, "mean": -0.0252, "std": 0.0562, "tstat": -1.0, "hit_pct": 20.0}
-[12:22:55] IC absorption_clv   21s {"n_dates": 29, "mean": -0.0129, "std": 0.0718, "tstat": -0.97, "hit_pct": 34.5} | 63s {"n_dates": 29, "mean": -0.0066, "std": 0.0909, "tstat": -0.39, "hit_pct": 51.7} | down {"n_dates": 5, "mean": 0.0585, "std": 0.0905, "tstat": 1.45, "hit_pct": 60.0}
-[12:22:55] IC rs_line          21s {"n_dates": 29, "mean": 0.0359, "std": 0.0972, "tstat": 1.99, "hit_pct": 58.6} | 63s {"n_dates": 29, "mean": 0.0482, "std": 0.1052, "tstat": 2.47, "hit_pct": 72.4} | down {"n_dates": 5, "mean": 0.1055, "std": 0.1192, "tstat": 1.98, "hit_pct": 80.0}
-[12:22:55] IC higher_lows      21s {"n_dates": 29, "mean": 0.0041, "std": 0.0388, "tstat": 0.57, "hit_pct": 51.7} | 63s {"n_dates": 29, "mean": -0.0046, "std": 0.0575, "tstat": -0.43, "hit_pct": 48.3} | down {"n_dates": 5, "mean": -0.023, "std": 0.0524, "tstat": -0.98, "hit_pct": 20.0}
-[12:22:55] IC neg_bbp          21s {"n_dates": 29, "mean": 0.0066, "std": 0.0484, "tstat": 0.73, "hit_pct": 58.6} | 63s {"n_dates": 29, "mean": 0.0134, "std": 0.0422, "tstat": 1.71, "hit_pct": 65.5} | down {"n_dates": 5, "mean": -0.0039, "std": 0.0599, "tstat": -0.15, "hit_pct": 60.0}
-[12:22:55] IC neg_vs_ema       21s {"n_dates": 29, "mean": -0.0122, "std": 0.0917, "tstat": -0.72, "hit_pct": 55.2} | 63s {"n_dates": 29, "mean": -0.017, "std": 0.0911, "tstat": -1.01, "hit_pct": 41.4} | down {"n_dates": 5, "mean": 0.0289, "std": 0.1389, "tstat": 0.47, "hit_pct": 80.0}
-[12:22:55] IC ret_3m           21s {"n_dates": 29, "mean": -0.0135, "std": 0.0874, "tstat": -0.83, "hit_pct": 48.3} | 63s {"n_dates": 29, "mean": -0.0127, "std": 0.1132, "tstat": -0.61, "hit_pct": 48.3} | down {"n_dates": 5, "mean": -0.0819, "std": 0.1156, "tstat": -1.59, "hit_pct": 20.0}
-[12:22:55] IC ret_12m          21s {"n_dates": 29, "mean": 0.018, "std": 0.0944, "tstat": 1.02, "hit_pct": 51.7} | 63s {"n_dates": 29, "mean": 0.016, "std": 0.081, "tstat": 1.06, "hit_pct": 62.1} | down {"n_dates": 5, "mean": -0.0131, "std": 0.1206, "tstat": -0.24, "hit_pct": 20.0}
-[12:22:55] IC neg_beta         21s {"n_dates": 29, "mean": -0.0354, "std": 0.2069, "tstat": -0.92, "hit_pct": 37.9} | 63s {"n_dates": 29, "mean": -0.0309, "std": 0.2106, "tstat": -0.79, "hit_pct": 41.4} | down {"n_dates": 5, "mean": 0.2853, "std": 0.1439, "tstat": 4.43, "hit_pct": 100.0}
-── G9 daily re-run carries the validation block ──
-[12:24:18] location gate why: adaptive: 'not extended' beat 'under EMA250' by 0.76 pts of 63-session alpha (-0.84 vs -1.60, n 3109 vs 1017) in the walk-forward of 2026-09-01
-[12:24:18] location gate evidence: {"under": {"n": 1017, "median_alpha63_pct": -1.6, "median_alpha21_pct": -0.58, "hit21_pct": 40.0}, "not_extended": {"n": 3109, "median_alpha63_pct": -0.84, "median_alpha21_pct": -0.44, "hit21_pct": 40.0}, "backtest_as_of": "2026-09-01T12:22:54+00:00", "arm": "resilient_coiled_not_extended"}
-[12:24:18]   decile -92.36..0.17 n=1926 median ret21 -4.96 -> loss per -10% SPY 8.1
-[12:24:18]   decile 0.17..0.47 n=1699 median ret21 -4.27 -> loss per -10% SPY 7.0
-[12:24:18]   decile 0.47..0.67 n=1699 median ret21 -4.76 -> loss per -10% SPY 7.8
-[12:24:18]   decile 0.67..0.85 n=1640 median ret21 -5.6 -> loss per -10% SPY 9.1
-[12:24:18]   decile 0.85..1.02 n=1590 median ret21 -5.9 -> loss per -10% SPY 9.6
-[12:24:18]   decile 1.02..1.2 n=1639 median ret21 -6.38 -> loss per -10% SPY 10.4
-[12:24:18]   decile 1.2..1.4 n=1571 median ret21 -7.34 -> loss per -10% SPY 12.0
-[12:24:18]   decile 1.4..1.66 n=1530 median ret21 -9.0 -> loss per -10% SPY 14.7
-[12:24:18]   decile 1.66..2.11 n=1595 median ret21 -9.48 -> loss per -10% SPY 15.4
-[12:24:18]   decile 2.11..6.73 n=1706 median ret21 -11.82 -> loss per -10% SPY 19.3
-[12:24:18] weights_effective: {"resilience": 19.71, "accumulation": 9.8, "coil": 13.93, "structure": 5.77, "location": 3.28, "valuation": 10.84, "growth": 8.87, "flows": 8.87, "momentum": 5.11, "backlog_contracts": 4.93, "safety": 8.87}
-[12:24:18] weights_evidence: {"why": "price pillars scaled 0.5-1.5x by walk-forward IC t-stats (2026-09-01), renormalised to 100", "pillars": {"resilience": {"tstat": null, "multiplier": 1.0, "legs": ["neg_capture", "worst_ex"], "basis": "down"}, "accumulation": {"tstat": -1.03, "multiplier": 0.83, "legs": ["obv_slope", "updown_ratio", "absorption_clv"], "basis": "all"}, "structure": {"tstat": 1.02, "multiplier": 1.17, "legs": ["rs_line", "higher_lows"], "basis": "all"}, "coil": {"tstat": 1.71, "multiplier": 1.28, "legs": ["neg_bbp"], "basis": "all"}, "location": {"tstat": -1.01, "multiplier": 0.83, "legs": ["neg_vs_ema"], "basis": "all"}, "momentum": {"tstat": 0.23, "multiplier": 1.04, "legs": ["ret_3m", "ret_12m"], "basis": "all"}}}
-[12:24:18] funnel: {"location": 3078, "dump_resilient": 879, "coiled": 1728, "low_valuation": 2385, "growth": 4305, "industry_inflows": 1899, "hygiene_ok": 3502, "ema250_available": 4852, "scored": 5181}
-[12:24:18] breadth: {"pct_location_ok": 59.4, "pct_under_ema250": 50.2, "pct_coiled": 33.4, "pct_dump_resilient": 17.0}
-[12:24:18] tiers: {"FORTRESS_COIL": 1, "COILED": 146, "ACCUMULATING": 730, "WATCH": 1359, "SCREENED": 2945}
-[12:24:18] board FORTRESS_COIL INVA comp=75.3 conv=74.9 cap=-1.0 worst_gate=-1.72(1y) worst3y=2.07 vs_ema=-2.13 dd=5.7 emp=8.1 asym=7.32 gates=111111
-[12:24:18] board COILED ZBH comp=71.1 conv=36.7 cap=0.18 worst_gate=2.1(1y) worst3y=2.1 vs_ema=6.85 dd=7.5 emp=7.0 asym=0.81 gates=101111
-[12:24:18] board COILED CNX comp=70.5 conv=36.8 cap=-0.15 worst_gate=0.08(1y) worst3y=4.13 vs_ema=3.2 dd=8.1 emp=8.1 asym=1.32 gates=111110
-[12:24:18] board COILED CWT comp=70.5 conv=36.6 cap=0.13 worst_gate=1.28(1y) worst3y=3.12 vs_ema=6.42 dd=8.1 emp=8.1 asym=1.01 gates=111110
-[12:24:18] board COILED ED comp=69.7 conv=53.6 cap=-0.6 worst_gate=-0.8(1y) worst3y=1.57 vs_ema=0.43 dd=8.1 emp=8.1 asym=0.67 gates=111110
-[12:24:18] board COILED SNDX comp=69.3 conv=68.0 cap=0.49 worst_gate=0.98(1y) worst3y=5.11 vs_ema=-1.24 dd=8.7 emp=7.8 asym=6.78 gates=101111
-[12:24:18] board COILED UAN comp=69.1 conv=37.5 cap=-0.65 worst_gate=0.57(1y) worst3y=0.89 vs_ema=13.13 dd=9.8 emp=8.1 asym=0.93 gates=110111
-[12:24:18] board COILED JBS comp=68.9 conv=65.6 cap=-0.72 worst_gate=0.31(1y) worst3y=0.31 vs_ema=-4.51 dd=8.1 emp=8.1 asym=3.97 gates=111110
-[12:24:18] board COILED TMUS comp=68.6 conv=67.2 cap=-0.12 worst_gate=0.41(1y) worst3y=2.97 vs_ema=-9.21 dd=8.1 emp=8.1 asym=3.91 gates=111110
-[12:24:18] board COILED PINE comp=67.9 conv=38.7 cap=-0.15 worst_gate=-0.1(1y) worst3y=1.8 vs_ema=5.06 dd=8.1 emp=8.1 asym=1.43 gates=111110
-[12:24:18] board COILED NWFL comp=67.9 conv=32.7 cap=0.36 worst_gate=-0.36(1y) worst3y=3.57 vs_ema=13.61 dd=7.0 emp=7.0 asym=0.56 gates=111110
-[12:24:18] board COILED UNCY comp=67.3 conv=71.7 cap=0.88 worst_gate=1.66(1y) worst3y=4.99 vs_ema=-15.43 dd=16.6 emp=9.6 asym=15.36 gates=101111
-── G10 alert router: fortress check wired and firing ──
-[12:24:30] router invoke: status 200 payload {"statusCode": 200, "body": "{\"candidates\": 9, \"sent\": 9, \"suppressed\": 0, \"webhooks_configured\": 0, \"webhook_attempts\": 0, \"webhook_ok\": 0, \"duration_s\": 11.28}"}
-── Soft: page from the edge ──
-[12:24:30] ✅ fortress.html live at the edge with marker fortress-v2.2.0 (55558 bytes)
-[12:24:30] ✅ PASS_ALL -- justhodl-fortress live: 5181 scored, tiers {'FORTRESS_COIL': 1, 'COILED': 146, 'ACCUMULATING': 730, 'WATCH': 1359, 'SCREENED': 2945}, session 2026-08-31
+executing-against: c58b0cbeb516bfea13da5363ed56f431cba46aae
+ops 5092 -- global-cycle.html / justhodl-global-business-cycle forensics
+── S1 live feed on S3 ──
+[23:16:16] UNKNOWN rows: ['CZE']
+[23:16:16] stale>3mo rows: [('CZE', 999)]
+[23:16:16]   AUS  EXPANSION  sym=^AXJO        latest=2026-09-01 stale=0mo cli=101.27 3m=3.923 reason=None phys=CONFIRMED
+[23:16:16]   AUT  EXPANSION  sym=^ATX         latest=2026-09-01 stale=0mo cli=111.59 3m=10.739 reason=None phys=UNCONFIRMED
+[23:16:16]   BEL  EXPANSION  sym=^BFX         latest=2026-09-01 stale=0mo cli=105.86 3m=5.895 reason=None phys=UNCONFIRMED
+[23:16:16]   BRA  EXPANSION  sym=^BVSP        latest=2026-08-31 stale=1mo cli=105.62 3m=3.032 reason=None phys=UNCONFIRMED
+[23:16:16]   CAN  EXPANSION  sym=^GSPTSE      latest=2026-08-31 stale=1mo cli=106.54 3m=4.318 reason=None phys=UNCONFIRMED
+[23:16:16]   CHE  EXPANSION  sym=^SSMI        latest=2026-09-01 stale=0mo cli=104.7 3m=8.071 reason=None phys=UNCONFIRMED
+[23:16:16]   CHL  AT_RISK    sym=ECH          latest=2026-08-31 stale=1mo cli=104.61 3m=-2.002 reason=None phys=DIVERGENT
+[23:16:16]   CHN  AT_RISK    sym=000001.SS    latest=2026-09-01 stale=0mo cli=100.93 3m=-2.336 reason=None phys=CONFIRMED
+[23:16:16]   CZE  UNKNOWN    sym=PXTR.PR      latest=None stale=999mo cli=None 3m=None reason=insufficient_history phys=UNCONFIRMED
+[23:16:16]   DEU  EXPANSION  sym=^GDAXI       latest=2026-09-01 stale=0mo cli=102.87 3m=4.893 reason=None phys=DIVERGENT
+[23:16:16]   DNK  EXPANSION  sym=^OMXC25      latest=2026-09-01 stale=0mo cli=104.21 3m=6.679 reason=None phys=UNCONFIRMED
+[23:16:16]   ESP  EXPANSION  sym=^IBEX        latest=2026-09-01 stale=0mo cli=108.32 3m=9.154 reason=None phys=CONFIRMED
+[23:16:16]   FIN  AT_RISK    sym=^OMXH25      latest=2026-09-01 stale=0mo cli=105.93 3m=-2.133 reason=None phys=CONFIRMED
+[23:16:16]   FRA  EXPANSION  sym=^FCHI        latest=2026-09-01 stale=0mo cli=101.55 3m=2.001 reason=None phys=UNCONFIRMED
+[23:16:16]   GBR  EXPANSION  sym=^FTSE        latest=2026-09-01 stale=0mo cli=103.86 3m=3.724 reason=None phys=UNCONFIRMED
+[23:16:16]   GRC  EXPANSION  sym=GD.AT        latest=2026-09-01 stale=0mo cli=111.23 3m=17.349 reason=None phys=UNCONFIRMED
+[23:16:16]   HUN  EXPANSION  sym=OTP.BD       latest=2026-09-01 stale=0mo cli=110.79 3m=6.684 reason=None phys=UNCONFIRMED
+[23:16:16]   IDN  RECOVERY   sym=^JKSE        latest=2026-09-01 stale=0mo cli=98.07 3m=7.663 reason=None phys=UNCONFIRMED
+[23:16:16]   IND  RECOVERY   sym=^BSESN       latest=2026-09-01 stale=0mo cli=98.79 3m=3.074 reason=None phys=CONFIRMED
+[23:16:16]   IRL  EXPANSION  sym=^ISEQ        latest=2026-09-01 stale=0mo cli=107.26 3m=8.273 reason=None phys=UNCONFIRMED
+[23:16:16]   ISR  AT_RISK    sym=^TA125.TA    latest=2026-09-01 stale=0mo cli=105.01 3m=-4.392 reason=None phys=UNCONFIRMED
+[23:16:16]   ITA  EXPANSION  sym=FTSEMIB.MI   latest=2026-09-01 stale=0mo cli=105.59 3m=4.125 reason=None phys=UNCONFIRMED
+[23:16:16]   JPN  AT_RISK    sym=^N225        latest=2026-09-01 stale=0mo cli=111.0 3m=-1.074 reason=None phys=CONFIRMED
+[23:16:16]   KOR  AT_RISK    sym=^KS11        latest=2026-09-01 stale=0mo cli=120 3m=-19.353 reason=None phys=CONFIRMED
+[23:16:16]   MEX  AT_RISK    sym=^MXX         latest=2026-08-31 stale=1mo cli=100.88 3m=-5.022 reason=None phys=UNCONFIRMED
+[23:16:16]   NLD  EXPANSION  sym=^AEX         latest=2026-09-01 stale=0mo cli=105.95 3m=5.63 reason=None phys=UNCONFIRMED
+[23:16:16]   NOR  AT_RISK    sym=^OSEAX       latest=2026-07-17 stale=2mo cli=104.78 3m=-2.6 reason=None phys=UNCONFIRMED
+[23:16:16]   NZL  EXPANSION  sym=^NZ50        latest=2026-09-01 stale=0mo cli=102.25 3m=4.678 reason=None phys=UNCONFIRMED
+[23:16:16]   POL  EXPANSION  sym=EPOL         latest=2026-08-31 stale=1mo cli=110.84 3m=9.671 reason=None phys=UNCONFIRMED
+[23:16:16]   PRT  EXPANSION  sym=PSI20.LS     latest=2026-09-01 stale=0mo cli=105.95 3m=5.353 reason=None phys=UNCONFIRMED
+[23:16:16]   SWE  EXPANSION  sym=^OMX         latest=2026-09-01 stale=0mo cli=105.61 3m=4.009 reason=None phys=UNCONFIRMED
+[23:16:16]   TUR  EXPANSION  sym=XU100.IS     latest=2026-09-01 stale=0mo cli=106.01 3m=0.626 reason=None phys=UNCONFIRMED
+[23:16:16]   USA  EXPANSION  sym=^GSPC        latest=2026-08-31 stale=1mo cli=120 3m=1.399 reason=None phys=CONFIRMED
+[23:16:16]   ZAF  EXPANSION  sym=^J203.JO     latest=2026-09-01 stale=0mo cli=102.87 3m=2.953 reason=None phys=UNCONFIRMED
+[23:16:16] physical_confirmation: {"countries_with_ports": 11, "counts": {"CONFIRMED": 8, "DIVERGENT": 2, "UNCONFIRMED": 24}, "error": null}
+── S2 fleet witness: price-redundancy yahoo_success_rate ──
+── S3 lambda config / rule / metrics / logs ──
+[23:16:17]   Invocations 14d: 08-18=1, 08-19=1, 08-20=1, 08-21=1, 08-22=1, 08-23=1, 08-24=1, 08-25=1, 08-26=1, 08-27=1, 08-28=1, 08-29=1, 08-30=1, 08-31=1
+[23:16:17]   Errors      14d: 08-18=0, 08-19=0, 08-20=0, 08-21=0, 08-22=0, 08-23=0, 08-24=0, 08-25=0, 08-26=0, 08-27=0, 08-28=0, 08-29=0, 08-30=0, 08-31=0
+[23:16:18]   Throttles   14d: 08-18=0, 08-19=0, 08-20=0, 08-21=0, 08-22=0, 08-23=0, 08-24=0, 08-25=0, 08-26=0, 08-27=0, 08-28=0, 08-29=0, 08-30=0, 08-31=0
+[23:16:18]   Duration    14d: 08-18=99521, 08-19=93625, 08-20=107105, 08-21=39305, 08-22=40059, 08-23=110028, 08-24=55087, 08-25=30666, 08-26=39906, 08-27=77931, 08-28=38529, 08-29=33932, 08-30=51504, 08-31=74052
+[23:16:19]   LOG ── stream f5674572afcb77f0b1ea4c20 (last event 2026-09-01T12:01:35+00:00) ──
+[23:16:19]   LOG INIT_START Runtime Version: python:3.12.mainlinev2.v27	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:fb4a5cbb4aeb1909cf946882192e0e708d8756b3a866c3ab89a3cfcfffeca7bc
+[23:16:19]   LOG START RequestId: 17563a88-78ad-4a74-a2da-67e408ec6853 Version: $LATEST
+[23:16:19]   LOG [gbc] v2.0 start, 34 countries (equity-momentum-based)
+[23:16:19]   LOG [gbc] PX.PR failed: HTTP 404
+[23:16:19]   LOG [gbc] ^PX failed: no usable bars
+[23:16:19]   LOG [gbc] PX.PR fell back to PXTR.PR
+[23:16:19]   LOG [gbc] BUX.BD failed: HTTP 404
+[23:16:19]   LOG [gbc] ^BUX failed: no usable bars
+[23:16:19]   LOG [gbc] BUX.BD fell back to OTP.BD
+[23:16:19]   LOG [physical] 11 countries · {'CONFIRMED': 8, 'DIVERGENT': 2, 'UNCONFIRMED': 24}
+[23:16:19]   LOG [gbc-history] computing weekly history for 34 countries
+[23:16:19]   LOG [gbc-history] USA 201 weekly points (2022-09-01 → 2026-08-31)
+[23:16:19]   LOG [gbc-history] CHN 192 weekly points (2022-09-16 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] JPN 194 weekly points (2022-09-12 → 2026-08-25)
+[23:16:19]   LOG [gbc-history] DEU 205 weekly points (2022-08-25 → 2026-08-31)
+[23:16:19]   LOG [gbc-history] IND 197 weekly points (2022-09-07 → 2026-09-01)
+[23:16:19]   LOG [gbc-history] GBR 202 weekly points (2022-09-01 → 2026-08-25)
+[23:16:19]   LOG [gbc-history] FRA 206 weekly points (2022-08-23 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] ITA 204 weekly points (2022-08-26 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] CAN 201 weekly points (2022-09-01 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] BRA 199 weekly points (2022-09-02 → 2026-08-24)
+[23:16:19]   LOG [gbc-history] KOR 194 weekly points (2022-09-15 → 2026-08-31)
+[23:16:19]   LOG [gbc-history] AUS 203 weekly points (2022-08-31 → 2026-08-31)
+[23:16:19]   LOG [gbc-history] ESP 206 weekly points (2022-08-25 → 2026-09-01)
+[23:16:19]   LOG [gbc-history] MEX 201 weekly points (2022-08-29 → 2026-08-24)
+[23:16:19]   LOG [gbc-history] IDN 190 weekly points (2022-09-12 → 2026-09-01)
+[23:16:19]   LOG [gbc-history] NLD 206 weekly points (2022-08-23 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] TUR 200 weekly points (2022-09-01 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] CHE 201 weekly points (2022-08-30 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] POL 201 weekly points (2022-09-01 → 2026-08-31)
+[23:16:19]   LOG [gbc-history] BEL 206 weekly points (2022-08-23 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] SWE 201 weekly points (2022-08-31 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] IRL 204 weekly points (2022-08-29 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] AUT 204 weekly points (2022-08-29 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] NOR 195 weekly points (2022-08-31 → 2026-07-17)
+[23:16:19]   LOG [gbc-history] ZAF 200 weekly points (2022-09-05 → 2026-09-01)
+[23:16:19]   LOG [gbc-history] DNK 193 weekly points (2022-09-13 → 2026-08-25)
+[23:16:19]   LOG [gbc-history] FIN 201 weekly points (2022-08-31 → 2026-08-31)
+[23:16:19]   LOG [gbc-history] HUN 199 weekly points (2022-08-31 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] CHL 201 weekly points (2022-09-01 → 2026-08-31)
+[23:16:19]   LOG [gbc-history] PRT 206 weekly points (2022-08-23 → 2026-08-31)
+[23:16:19]   LOG [gbc-history] GRC 192 weekly points (2022-09-06 → 2026-07-15)
+[23:16:19]   LOG [gbc-history] NZL 200 weekly points (2022-09-04 → 2026-09-01)
+[23:16:19]   LOG [gbc-history] ISR 152 weekly points (2022-12-21 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] aggregate has 1090 dates (2022-08-23 → 2026-09-01)
+[23:16:19]   LOG [gbc-history] detected 22 confirmed transitions
+[23:16:19]   LOG [gbc-history]   2022-08-26 GLOBAL_EXPANSION → GLOBAL_CONTRACTION CLI 96.55 · persisted 11w
+[23:16:19]   LOG [gbc-history]   2022-09-09 GLOBAL_CONTRACTION → GLOBAL_EXPANSION CLI 97.78 · persisted 12w
+[23:16:19]   LOG [gbc-history]   2022-09-23 GLOBAL_EXPANSION → GLOBAL_CONTRACTION CLI 96.07 · persisted 46w
+[23:16:19]   LOG [gbc-history]   2022-11-28 GLOBAL_CONTRACTION → MIXED CLI 99.22 · persisted 5w
+[23:16:19]   LOG [gbc-history]   2022-12-05 MIXED → GLOBAL_EXPANSION CLI 99.91 · persisted 71w
+[23:16:19]   LOG [gbc-history]   2023-03-14 GLOBAL_EXPANSION → MIXED CLI 100.18 · persisted 8w
+[23:16:19]   LOG [gbc-history]   2023-03-24 MIXED → GLOBAL_EXPANSION CLI 99.79 · persisted 53w
+[23:16:19]   LOG [gbc-history]   2023-09-29 GLOBAL_EXPANSION → GLOBAL_CONTRACTION CLI 101.68 · persisted 35w
+[23:16:19]   LOG [gbc-history]   2023-11-17 GLOBAL_CONTRACTION → GLOBAL_EXPANSION CLI 102.1 · persisted 166w
+[23:16:19]   LOG [gbc-history]   2024-06-27 GLOBAL_EXPANSION → MIXED CLI 103.22 · persisted 6w
+[23:16:19]   LOG [gbc-history]   2024-07-05 MIXED → GLOBAL_EXPANSION CLI 103.67 · persisted 21w
+[23:16:19]   LOG [gbc-history]   2024-08-05 GLOBAL_EXPANSION → MIXED CLI 101.43 · persisted 18w
+[23:16:19]   LOG [gbc-history]   2024-08-29 MIXED → GLOBAL_EXPANSION CLI 102.93 · persisted 8w
+[23:16:19]   LOG [gbc-history]   2024-09-10 GLOBAL_EXPANSION → MIXED CLI 101.86 · persisted 5w
+[23:16:19]   LOG [gbc-history]   2024-09-17 MIXED → GLOBAL_EXPANSION CLI 102.49 · persisted 15w
+[23:16:19]   LOG [gbc-history]   2025-03-05 GLOBAL_EXPANSION → MIXED CLI 103.04 · persisted 17w
+[23:16:19]   LOG [gbc-history]   2025-04-07 MIXED → GLOBAL_CONTRACTION CLI 98.02 · persisted 7w
+[23:16:19]   LOG [gbc-history]   2025-04-16 GLOBAL_CONTRACTION → MIXED CLI 99.71 · persisted 10w
+[23:16:19]   LOG [gbc-history]   2025-05-13 MIXED → GLOBAL_PEAKING CLI 102.98 · persisted 11w
+[23:16:19]   LOG [gbc-history]   2025-06-03 GLOBAL_PEAKING → GLOBAL_EXPANSION CLI 102.86 · persisted 220w
+[23:16:19]   LOG [gbc-history]   2026-03-16 GLOBAL_EXPANSION → MIXED CLI 104.58 · persisted 17w
+[23:16:19]   LOG [gbc-history]   2026-04-14 MIXED → GLOBAL_EXPANSION CLI 106.47 · persisted 36w
+[23:16:19]   LOG [gbc-history] computed lead/lag for 33 countries in 1.10s
+[23:16:19]   LOG [gbc-history]   #1 IDN lag=+26w corr=0.171
+[23:16:19]   LOG [gbc-history]   #2 MEX lag=+4w corr=0.55
+[23:16:19]   LOG [gbc-history]   #3 BRA lag=+3w corr=0.462
+[23:16:19]   LOG [gbc-history]   #4 CAN lag=+1w corr=0.87
+[23:16:19]   LOG [gbc-history]   #5 ESP lag=+1w corr=0.823
+[23:16:19]   LOG [gbc-history]   #6 POL lag=+1w corr=0.705
+[23:16:19]   LOG [gbc-history]   #7 IRL lag=+1w corr=0.682
+[23:16:19]   LOG [gbc-history]   #8 AUS lag=+1w corr=0.591
+[23:16:19]   LOG [gbc-history]   #9 DEU lag=+1w corr=0.568
+[23:16:19]   LOG [gbc-history]   #10 FRA lag=+1w corr=0.363
+[23:16:19]   LOG [gbc-history] computed phase-conditional returns for 33 countries in 0.03s
+[23:16:19]   LOG [gbc-history]   EXPANSION: top → KOR mean 12.77% hit 0.726 n=106
+[23:16:19]   LOG [gbc-history]   AT_RISK: top → TUR mean 18.35% hit 0.829 n=35
+[23:16:19]   LOG [gbc-history]   RECESSION: top → POL mean 32.52% hit 1.0 n=20
+[23:16:19]   LOG [gbc-history]   RECOVERY: top → GRC mean 13.71% hit 1.0 n=5
+[23:16:19]   LOG ── stream 2d9043ec9cecae5f9ce1ebbd (last event 2026-08-31T12:01:12+00:00) ──
+[23:16:19]   LOG INIT_START Runtime Version: python:3.12.mainlinev2.v27	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:fb4a5cbb4aeb1909cf946882192e0e708d8756b3a866c3ab89a3cfcfffeca7bc
+[23:16:19]   LOG START RequestId: cb51d565-5d95-4a10-a06b-2b2ddc4d8a21 Version: $LATEST
+[23:16:19]   LOG [gbc] v2.0 start, 34 countries (equity-momentum-based)
+[23:16:19]   LOG [gbc] ^OSEAX failed: HTTP 404
+[23:16:19]   LOG [gbc] PX.PR failed: HTTP 404
+[23:16:19]   LOG [gbc] ^PX failed: no usable bars
+[23:16:19]   LOG [gbc] PX.PR fell back to PXTR.PR
+[23:16:19]   LOG [gbc] BUX.BD failed: HTTP 404
+[23:16:19]   LOG [gbc] ^BUX failed: no usable bars
+[23:16:19]   LOG [gbc] BUX.BD fell back to OTP.BD
+[23:16:19]   LOG [physical] 11 countries · {'CONFIRMED': 8, 'DIVERGENT': 2, 'UNCONFIRMED': 24}
+[23:16:19]   LOG [gbc-history] computing weekly history for 34 countries
+[23:16:19]   LOG [gbc-history] USA 201 weekly points (2022-08-30 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] CHN 192 weekly points (2022-09-15 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] JPN 195 weekly points (2022-09-09 → 2026-08-31)
+[23:16:19]   LOG [gbc-history] DEU 205 weekly points (2022-08-24 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] IND 197 weekly points (2022-09-06 → 2026-08-28)
+[23:16:19]   LOG [gbc-history] GBR 202 weekly points (2022-08-31 → 2026-08-24)
+[23:16:19]   LOG [gbc-history] FRA 206 weekly points (2022-08-22 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] ITA 204 weekly points (2022-08-25 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] CAN 201 weekly points (2022-08-31 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] BRA 200 weekly points (2022-09-01 → 2026-08-28)
+[23:16:19]   LOG [gbc-history] KOR 194 weekly points (2022-09-14 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] AUS 203 weekly points (2022-08-30 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] ESP 206 weekly points (2022-08-24 → 2026-08-28)
+[23:16:19]   LOG [gbc-history] MEX 202 weekly points (2022-08-26 → 2026-08-28)
+[23:16:19]   LOG [gbc-history] IDN 190 weekly points (2022-09-09 → 2026-08-28)
+[23:16:19]   LOG [gbc-history] NLD 206 weekly points (2022-08-22 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] TUR 200 weekly points (2022-08-31 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] CHE 201 weekly points (2022-08-29 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] POL 201 weekly points (2022-08-30 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] BEL 206 weekly points (2022-08-22 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] SWE 201 weekly points (2022-08-30 → 2026-08-25)
+[23:16:19]   LOG [gbc-history] IRL 204 weekly points (2022-08-26 → 2026-08-25)
+[23:16:19]   LOG [gbc-history] AUT 204 weekly points (2022-08-26 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] ZAF 200 weekly points (2022-09-02 → 2026-08-28)
+[23:16:19]   LOG [gbc-history] DNK 194 weekly points (2022-09-09 → 2026-08-28)
+[23:16:19]   LOG [gbc-history] FIN 201 weekly points (2022-08-30 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] HUN 199 weekly points (2022-08-30 → 2026-08-25)
+[23:16:19]   LOG [gbc-history] CHL 201 weekly points (2022-08-30 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] PRT 206 weekly points (2022-08-22 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] NZL 200 weekly points (2022-09-01 → 2026-08-27)
+[23:16:19]   LOG [gbc-history] ISR 152 weekly points (2022-12-20 → 2026-08-26)
+[23:16:19]   LOG [gbc-history] aggregate has 1083 dates (2022-08-22 → 2026-08-31)
+[23:16:19]   LOG [gbc-history] detected 25 confirmed transitions
+[23:16:19]   LOG [gbc-history]   2022-08-25 GLOBAL_EXPANSION → GLOBAL_CONTRACTION CLI 96.99 · persisted 14w
+[23:16:19]   LOG [gbc-history]   2022-09-14 GLOBAL_CONTRACTION → GLOBAL_EXPANSION CLI 98.33 · persisted 8w
+[23:16:19]   LOG [gbc-history]   2022-09-28 GLOBAL_EXPANSION → GLOBAL_CONTRACTION CLI 95.96 · persisted 45w
+[23:16:19]   LOG [gbc-history]   2022-12-01 GLOBAL_CONTRACTION → GLOBAL_EXPANSION CLI 100.09 · persisted 5w
+[23:16:19]   LOG [gbc-history]   2023-03-15 GLOBAL_EXPANSION → MIXED CLI 100.01 · persisted 5w
+[23:16:19]   LOG [gbc-history]   2023-03-22 MIXED → GLOBAL_EXPANSION CLI 99.62 · persisted 31w
+[23:16:19]   LOG [gbc-history]   2023-05-30 GLOBAL_EXPANSION → MIXED CLI 101.81 · persisted 11w
+[23:16:19]   LOG [gbc-history]   2023-06-13 MIXED → GLOBAL_EXPANSION CLI 102.84 · persisted 52w
+[23:16:19]   LOG [gbc-history]   2023-09-07 GLOBAL_EXPANSION → MIXED CLI 102.34 · persisted 14w
+[23:16:19]   LOG [gbc-history]   2023-09-27 MIXED → GLOBAL_CONTRACTION CLI 102.09 · persisted 42w
+[23:16:19]   LOG [gbc-history]   2023-11-15 GLOBAL_CONTRACTION → GLOBAL_EXPANSION CLI 101.8 · persisted 165w
+[23:16:19]   LOG [gbc-history]   2024-06-26 GLOBAL_EXPANSION → MIXED CLI 103.13 · persisted 5w
+[23:16:19]   LOG [gbc-history]   2024-07-03 MIXED → GLOBAL_EXPANSION CLI 103.21 · persisted 23w
+[23:16:19]   LOG [gbc-history]   2024-08-12 GLOBAL_EXPANSION → MIXED CLI 100.49 · persisted 12w
+[23:16:19]   LOG [gbc-history]   2024-08-28 MIXED → GLOBAL_EXPANSION CLI 103.01 · persisted 8w
+[23:16:19]   LOG [gbc-history]   2025-02-27 GLOBAL_EXPANSION → MIXED CLI 103.63 · persisted 15w
+[23:16:19]   LOG [gbc-history]   2025-03-20 MIXED → GLOBAL_CONTRACTION CLI 102.0 · persisted 5w
+[23:16:19]   LOG [gbc-history]   2025-03-27 GLOBAL_CONTRACTION → GLOBAL_PEAKING CLI 102.08 · persisted 5w
+[23:16:19]   LOG [gbc-history]   2025-04-03 GLOBAL_PEAKING → GLOBAL_CONTRACTION CLI 100.6 · persisted 14w
+[23:16:19]   LOG [gbc-history]   2025-04-23 GLOBAL_CONTRACTION → MIXED CLI 99.86 · persisted 7w
+[23:16:19]   LOG [gbc-history]   2025-05-02 MIXED → GLOBAL_PEAKING CLI 101.67 · persisted 5w
+[23:16:19]   LOG [gbc-history]   2025-06-02 GLOBAL_PEAKING → GLOBAL_EXPANSION CLI 102.84 · persisted 208w
+[23:16:19]   LOG [gbc-history]   2026-03-12 GLOBAL_EXPANSION → MIXED CLI 104.7 · persisted 7w
+[23:16:19]   LOG [gbc-history]   2026-03-20 MIXED → GLOBAL_PEAKING CLI 103.72 · persisted 22w
+[23:16:19]   LOG [gbc-history]   2026-04-17 GLOBAL_PEAKING → GLOBAL_EXPANSION CLI 107.1 · persisted 32w
+[23:16:19]   LOG [gbc-history] computed lead/lag for 31 countries in 1.06s
+[23:16:19]   LOG [gbc-history]   #1 IDN lag=+26w corr=0.155
+[23:16:19]   LOG [gbc-history]   #2 MEX lag=+4w corr=0.57
+[23:16:19]   LOG [gbc-history]   #3 BRA lag=+3w corr=0.461
+[23:16:19]   LOG [gbc-history]   #4 POL lag=+2w corr=0.685
+[23:16:19]   LOG [gbc-history]   #5 AUS lag=+2w corr=0.595
+[23:16:19]   LOG [gbc-history]   #6 PRT lag=+2w corr=0.576
+[23:16:19]   LOG [gbc-history]   #7 ESP lag=+1w corr=0.831
+[23:16:19]   LOG [gbc-history]   #8 BEL lag=+1w corr=0.807
+[23:16:19]   LOG [gbc-history]   #9 IRL lag=+1w corr=0.69
+[23:16:19]   LOG [gbc-history]   #10 FIN lag=+1w corr=0.669
+[23:16:19]   LOG [gbc-history] computed phase-conditional returns for 31 countries in 0.03s
+[23:16:19]   LOG [gbc-history]   EXPANSION: top → KOR mean 12.11% hit 0.703 n=111
+[23:16:19]   LOG [gbc-history]   AT_RISK: top → TUR mean 20.2% hit 0.824 n=34
+[23:16:19]   LOG [gbc-history]   RECESSION: top → POL mean 31.15% hit 1.0 n=20
+[23:16:19]   LOG [gbc-history]   RECOVERY: top → ITA mean 14.65% hit 1.0 n=8
+── S4 edge probes from the runner ──
+── S5 source probes from the runner (34 countries) ──
+[23:16:20] FMP key inherited from justhodl-equity-research: yes
+[23:17:11] tally (>=250 bars): {"yahoo_engine_ua": 32, "yahoo_browser_ua": 0, "fmp": 0, "stooq": 0}
+[23:17:11] stooq verified ids: {}
+[23:17:11] polygon-full grouped sessions this year: 166, latest data/warm/polygon-full/grouped/2026/2026-08-31.json.gz
+[23:17:11] ETF proxies present in latest session: 31/31; missing: none
+[23:17:11] latest session doc keys: ['queryCount', 'resultsCount', 'adjusted', 'results', 'status', 'request_id', 'count'] rows=12578
+── S6 async engine run, verified on disk ──
+[23:17:11] async invoke fired at 2026-09-01T23:17:11+00:00 (prev generated_at=2026-09-01T12:01:33.582946+00:00)
+── S6 log tail of this run ──
+[23:17:42]   LOG ── stream 8b2f4a3c9aeb15a2bbe3a03e (last event 2026-09-01T23:17:15+00:00) ──
+[23:17:42]   LOG INIT_START Runtime Version: python:3.12.mainlinev2.v27	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:fb4a5cbb4aeb1909cf946882192e0e708d8756b3a866c3ab89a3cfcfffeca7bc
+[23:17:42]   LOG START RequestId: 5643a98b-8a54-44bf-90f7-b1d3d77b5809 Version: $LATEST
+[23:17:42]   LOG [gbc] v2.0 start, 34 countries (equity-momentum-based)
+[23:17:42]   LOG [gbc] USA  EXPANSION  CLI=120 3m=0.415 latest=2026-09-01 (0mo)
+[23:17:42]   LOG [gbc] CHN  AT_RISK    CLI=101.19 3m=-1.761 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] JPN  EXPANSION  CLI=111.48 3m=-0.026 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] DEU  EXPANSION  CLI=103.32 3m=4.513 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] IND  RECOVERY   CLI=98.91 3m=3.622 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] GBR  EXPANSION  CLI=104.09 3m=4.386 latest=2026-08-27 (1mo)
+[23:17:42]   LOG [gbc] FRA  EXPANSION  CLI=101.77 3m=1.528 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] ITA  EXPANSION  CLI=106.13 3m=4.021 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] CAN  EXPANSION  CLI=105.81 3m=3.14 latest=2026-09-01 (0mo)
+[23:17:42]   LOG [gbc] BRA  EXPANSION  CLI=105.91 3m=3.171 latest=2026-09-01 (0mo)
+[23:17:42]   LOG [gbc] KOR  AT_RISK    CLI=120 3m=-16.68 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] AUS  EXPANSION  CLI=101.27 3m=3.97 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] ESP  EXPANSION  CLI=108.8 3m=9.315 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] MEX  AT_RISK    CLI=100.15 3m=-5.523 latest=2026-09-01 (0mo)
+[23:17:42]   LOG [gbc] IDN  RECOVERY   CLI=97.38 3m=5.142 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] NLD  EXPANSION  CLI=106.12 3m=5.406 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] TUR  EXPANSION  CLI=106.43 3m=4.598 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] CHE  EXPANSION  CLI=104.68 3m=7.371 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] POL  EXPANSION  CLI=110.73 3m=10.126 latest=2026-09-01 (0mo)
+[23:17:42]   LOG [gbc] BEL  EXPANSION  CLI=105.94 3m=5.13 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] SWE  EXPANSION  CLI=106.36 3m=6.937 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] IRL  EXPANSION  CLI=106.84 3m=7.932 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] AUT  EXPANSION  CLI=111.86 3m=10.232 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] NOR  AT_RISK    CLI=104.78 3m=-2.6 latest=2026-07-17 (2mo)
+[23:17:42]   LOG [gbc] ZAF  EXPANSION  CLI=103.02 3m=1.418 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] DNK  EXPANSION  CLI=104.02 3m=6.304 latest=2026-09-01 (0mo)
+[23:17:42]   LOG [gbc] FIN  EXPANSION  CLI=106.25 3m=-0.32 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] PX.PR failed: HTTP 404
+[23:17:42]   LOG [gbc] ^PX failed: no usable bars
+[23:17:42]   LOG [gbc] PX.PR fell back to PXTR.PR
+[23:17:42]   LOG [gbc] CZE  UNKNOWN    CLI=None 3m=None latest=None (999mo)
+[23:17:42]   LOG [gbc] BUX.BD failed: HTTP 404
+[23:17:42]   LOG [gbc] ^BUX failed: no usable bars
+[23:17:42]   LOG [gbc] BUX.BD fell back to OTP.BD
+[23:17:42]   LOG [gbc] HUN  EXPANSION  CLI=111.76 3m=10.557 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] CHL  EXPANSION  CLI=104.8 3m=-0.054 latest=2026-09-01 (0mo)
+[23:17:42]   LOG [gbc] PRT  EXPANSION  CLI=105.65 3m=5.344 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [gbc] GRC  EXPANSION  CLI=106.32 3m=5.983 latest=2026-07-17 (2mo)
+[23:17:42]   LOG [gbc] NZL  EXPANSION  CLI=102.25 3m=4.681 latest=2026-09-01 (0mo)
+[23:17:42]   LOG [gbc] ISR  AT_RISK    CLI=104.85 3m=-4.312 latest=2026-08-31 (1mo)
+[23:17:42]   LOG [physical] 0 countries · {'CONFIRMED': 0, 'DIVERGENT': 0, 'UNCONFIRMED': 34}
+[23:17:42]   LOG [gbc-history] computing weekly history for 34 countries
+[23:17:42]   LOG [gbc-history] USA 201 weekly points (2022-09-02 → 2026-09-01)
+[23:17:42]   LOG [gbc-history] CHN 192 weekly points (2022-09-16 → 2026-08-27)
+[23:17:42]   LOG [gbc-history] JPN 194 weekly points (2022-09-12 → 2026-08-25)
+[23:17:42]   LOG [gbc-history] DEU 205 weekly points (2022-08-25 → 2026-08-31)
+[23:17:42]   LOG [gbc-history] IND 196 weekly points (2022-09-07 → 2026-08-24)
+[23:17:42]   LOG [gbc-history] GBR 202 weekly points (2022-09-01 → 2026-08-25)
+[23:17:42]   LOG [gbc-history] FRA 206 weekly points (2022-08-23 → 2026-08-27)
+[23:17:42]   LOG [gbc-history] ITA 204 weekly points (2022-08-26 → 2026-08-27)
+[23:17:42]   LOG [gbc-history] CAN 201 weekly points (2022-09-02 → 2026-08-31)
+[23:17:42]   LOG [gbc-history] BRA 199 weekly points (2022-09-05 → 2026-08-25)
+[23:17:42]   LOG [gbc-history] KOR 194 weekly points (2022-09-15 → 2026-08-31)
+[23:17:42]   LOG [gbc-history] AUS 203 weekly points (2022-08-31 → 2026-08-31)
+[23:17:42]   LOG [gbc-history] ESP 205 weekly points (2022-08-25 → 2026-08-24)
+[23:17:42]   LOG [gbc-history] MEX 201 weekly points (2022-08-30 → 2026-08-25)
+[23:17:42]   LOG [gbc-history] IDN 189 weekly points (2022-09-12 → 2026-08-21)
+[23:17:42]   LOG [gbc-history] NLD 206 weekly points (2022-08-23 → 2026-08-27)
+[23:17:42]   LOG [gbc-history] TUR 200 weekly points (2022-09-01 → 2026-08-27)
+[23:17:42]   LOG [gbc-history] CHE 201 weekly points (2022-08-30 → 2026-08-27)
+[23:17:42]   LOG [gbc-history] POL 201 weekly points (2022-09-02 → 2026-09-01)
+[23:17:42]   LOG [gbc-history] BEL 206 weekly points (2022-08-23 → 2026-08-27)
+[23:17:42]   LOG [gbc-history] SWE 201 weekly points (2022-08-31 → 2026-08-26)
+[23:17:42]   LOG [gbc-history] IRL 204 weekly points (2022-08-29 → 2026-08-26)
+[23:17:42]   LOG [gbc-history] AUT 204 weekly points (2022-08-29 → 2026-08-27)
+[23:17:42]   LOG [gbc-history] NOR 195 weekly points (2022-08-31 → 2026-07-17)
+[23:17:42]   LOG [gbc-history] ZAF 199 weekly points (2022-09-05 → 2026-08-24)
+[23:17:42]   LOG [gbc-history] DNK 193 weekly points (2022-09-14 → 2026-08-26)
+[23:17:42]   LOG [gbc-history] FIN 201 weekly points (2022-08-31 → 2026-08-31)
+[23:17:42]   LOG [gbc-history] HUN 199 weekly points (2022-08-31 → 2026-08-26)
+[23:17:42]   LOG [gbc-history] CHL 201 weekly points (2022-09-02 → 2026-09-01)
+[23:17:42]   LOG [gbc-history] PRT 206 weekly points (2022-08-23 → 2026-08-31)
+[23:17:42]   LOG [gbc-history] GRC 192 weekly points (2022-09-06 → 2026-07-15)
+[23:17:42]   LOG [gbc-history] NZL 199 weekly points (2022-09-05 → 2026-08-24)
+[23:17:42]   LOG [gbc-history] ISR 152 weekly points (2022-12-21 → 2026-08-27)
+[23:17:42]   LOG [gbc-history] aggregate has 1097 dates (2022-08-23 → 2026-09-01)
+[23:17:42]   LOG [gbc-history] detected 26 confirmed transitions
+[23:17:42]   LOG [gbc-history]   2022-08-26 GLOBAL_EXPANSION → GLOBAL_CONTRACTION CLI 96.55 · persisted 11w
+[23:17:42]   LOG [gbc-history]   2022-09-12 GLOBAL_CONTRACTION → GLOBAL_EXPANSION CLI 98.7 · persisted 10w
+[23:17:42]   LOG [gbc-history]   2022-09-26 GLOBAL_EXPANSION → GLOBAL_CONTRACTION CLI 95.84 · persisted 46w
+[23:17:42]   LOG [gbc-history]   2022-11-29 GLOBAL_CONTRACTION → GLOBAL_EXPANSION CLI 99.14 · persisted 63w
+[23:17:42]   LOG [gbc-history]   2023-02-27 GLOBAL_EXPANSION → MIXED CLI 100.85 · persisted 5w
+[23:17:42]   LOG [gbc-history]   2023-03-06 MIXED → GLOBAL_EXPANSION CLI 101.05 · persisted 6w
+[23:17:42]   LOG [gbc-history]   2023-05-09 GLOBAL_EXPANSION → GLOBAL_PEAKING CLI 101.74 · persisted 5w
+[23:17:42]   LOG [gbc-history]   2023-05-16 GLOBAL_PEAKING → GLOBAL_EXPANSION CLI 102.01 · persisted 8w
+[23:17:42]   LOG [gbc-history]   2023-05-31 GLOBAL_EXPANSION → MIXED CLI 101.58 · persisted 5w
+[23:17:42]   LOG [gbc-history]   2023-06-07 MIXED → GLOBAL_EXPANSION CLI 102.21 · persisted 52w
+[23:17:42]   LOG [gbc-history]   2023-10-02 GLOBAL_EXPANSION → GLOBAL_CONTRACTION CLI 101.69 · persisted 30w
+[23:17:42]   LOG [gbc-history]   2023-11-16 GLOBAL_CONTRACTION → GLOBAL_EXPANSION CLI 101.53 · persisted 164w
+[23:17:42]   LOG [gbc-history]   2024-06-21 GLOBAL_EXPANSION → MIXED CLI 103.16 · persisted 9w
+[23:17:42]   LOG [gbc-history]   2024-07-04 MIXED → GLOBAL_EXPANSION CLI 103.49 · persisted 22w
+[23:17:42]   LOG [gbc-history]   2024-08-05 GLOBAL_EXPANSION → MIXED CLI 101.12 · persisted 18w
+[23:17:42]   LOG [gbc-history]   2024-08-29 MIXED → GLOBAL_EXPANSION CLI 103.2 · persisted 8w
+[23:17:42]   LOG [gbc-history]   2024-09-10 GLOBAL_EXPANSION → MIXED CLI 102.05 · persisted 5w
+[23:17:42]   LOG [gbc-history]   2024-09-17 MIXED → GLOBAL_EXPANSION CLI 102.41 · persisted 15w
+[23:17:42]   LOG [gbc-history]   2025-03-04 GLOBAL_EXPANSION → MIXED CLI 102.89 · persisted 21w
+[23:17:42]   LOG [gbc-history]   2025-03-28 MIXED → GLOBAL_PEAKING CLI 102.28 · persisted 8w
+[23:17:42]   LOG [gbc-history]   2025-04-07 GLOBAL_PEAKING → GLOBAL_CONTRACTION CLI 99.5 · persisted 8w
+[23:17:42]   LOG [gbc-history]   2025-04-16 GLOBAL_CONTRACTION → MIXED CLI 99.75 · persisted 10w
+[23:17:42]   LOG [gbc-history]   2025-05-07 MIXED → GLOBAL_PEAKING CLI 101.97 · persisted 15w
+[23:17:42]   LOG [gbc-history]   2025-05-29 GLOBAL_PEAKING → GLOBAL_EXPANSION CLI 103.0 · persisted 227w
+[23:17:42]   LOG [gbc-history]   2026-03-12 GLOBAL_EXPANSION → MIXED CLI 104.74 · persisted 15w
+[23:17:42]   LOG [gbc-history]   2026-04-15 MIXED → GLOBAL_EXPANSION CLI 106.62 · persisted 35w
+[23:17:42]   LOG [gbc-history] computed lead/lag for 33 countries in 1.12s
+[23:17:42]   LOG [gbc-history]   #1 IDN lag=+26w corr=0.18
+[23:17:42]   LOG [gbc-history]   #2 MEX lag=+3w corr=0.55
+[23:17:42]   LOG [gbc-history]   #3 BRA lag=+3w corr=0.458
+[23:17:42]   LOG [gbc-history]   #4 IRL lag=+1w corr=0.669
+[23:17:42]   LOG [gbc-history]   #5 NZL lag=+1w corr=0.668
+[23:17:42]   LOG [gbc-history]   #6 AUS lag=+1w corr=0.592
+[23:17:42]   LOG [gbc-history]   #7 PRT lag=+1w corr=0.569
+[23:17:42]   LOG [gbc-history]   #8 DEU lag=+1w corr=0.548
+[23:17:42]   LOG [gbc-history]   #9 FRA lag=+1w corr=0.344
+[23:17:42]   LOG [gbc-history]   #10 CAN lag=+0w corr=0.864
+[23:17:42]   LOG [gbc-history] computed phase-conditional returns for 33 countries in 0.03s
+[23:17:42]   LOG [gbc-history]   EXPANSION: top → KOR mean 12.77% hit 0.726 n=106
+[23:17:42]   LOG [gbc-history]   AT_RISK: top → TUR mean 18.35% hit 0.829 n=35
+[23:17:42]   LOG [gbc-history]   RECESSION: top → POL mean 31.69% hit 1.0 n=20
+[23:17:42]   LOG [gbc-history]   RECOVERY: top → GRC mean 13.71% hit 1.0 n=5
+[23:17:42]   LOG [gbc] done. global_phase=GLOBAL_EXPANSION avg_cli=108.79 fresh=33/34
+[23:17:42]   LOG END RequestId: 5643a98b-8a54-44bf-90f7-b1d3d77b5809
+[23:17:42]   LOG REPORT RequestId: 5643a98b-8a54-44bf-90f7-b1d3d77b5809	Duration: 21319.49 ms	Billed Duration: 21870 ms	Memory Size: 1536 MB	Max Memory Used: 113 MB	Init Duration: 549.97 ms	
+XRAY TraceId: 1-6a975cf7-32d67d045b8180994b6d5368	SegmentId: 02d29
+[23:17:42] VERDICT {"live_feed": "FRESH", "live_unknown": 1, "tally": {"yahoo_engine_ua": 32, "yahoo_browser_ua": 0, "fmp": 0, "stooq": 0}, "fresh_with_data": 33}
+[23:17:42] ✅ engine produced a fresh feed with 33/34 countries
 
-→ Report written to aws/ops/reports/latest/5091-fortress-v221-alerts.md
+→ Report written to aws/ops/reports/latest/5092-gbc-forensics.md
