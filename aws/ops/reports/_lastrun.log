@@ -1,186 +1,320 @@
-executing-against: cee3fedd24eb868a1d30309a784a3c77ff3d7473
-ops 5093 -- global-cycle.html rendered in headless Chromium on the runner
-[23:22:59] started 2026-09-01T23:22:59+00:00
-[23:22:59] pip installing playwright
-[23:23:09] launched runner Google Chrome (channel=chrome)
-[23:23:22] live-desktop: screenshot 5093-live-desktop.jpg (117133 bytes)
-── live-desktop -- https://justhodl.ai/global-cycle.html @ 1440x1000 (10.5s) ──
-[23:23:22]   DOM title = "Global Business Cycle \u00b7 JustHodl.AI"
-[23:23:22]   DOM decisive = "Failed to load: Failed to fetch"
-[23:23:22]   DOM genTime = "loading\u2026"
-[23:23:22]   DOM ageStr = ""
-[23:23:22]   DOM globalPhase = "\u2014"
-[23:23:22]   DOM globalCli = "avg CLI \u2014"
-[23:23:22]   DOM pctExpansion = "\u2014%"
-[23:23:22]   DOM pctRecovery = "\u2014%"
-[23:23:22]   DOM pctAtRisk = "\u2014%"
-[23:23:22]   DOM pctRecession = "\u2014%"
-[23:23:22]   DOM countryCount = "\u2014"
-[23:23:22]   DOM weightCovered = "\u2014 % world GDP"
-[23:23:22]   DOM freshCount = "\u2014"
-[23:23:22]   DOM freshSub = "\u22643 months stale per country"
-[23:23:22]   DOM breadthCells = 0
-[23:23:22]   DOM ladderCells = 0
-[23:23:22]   DOM regions = 1
-[23:23:22]   DOM tiles = 0
-[23:23:22]   DOM mapPaths = 0
-[23:23:22]   DOM mapWithData = 0
-[23:23:22]   DOM mapPhases = {}
-[23:23:22]   DOM mapSvgViewBox = null
-[23:23:22]   DOM mapClientWidth = 1366
-[23:23:22]   DOM mapBox = {"w": 1366, "h": 520, "top": 525}
-[23:23:22]   DOM hasFailedText = true
-[23:23:22]   DOM bodyChars = 10952
-[23:23:22]   DOM rightRail = false
-[23:23:22]   DOM swController = true
-[23:23:22]   DOM d3 = "undefined"
-[23:23:22]   DOM topojson = "undefined"
-[23:23:22]   DOM dataLoaded = false
-[23:23:22]   DOM worldLoaded = false
-[23:23:22]   DOM firstVisibleText = "JUSTHODL\u00b7AI\nSPX 7,632.6 -0.7%\nNDX 26,100 -1.0%\nBTC 77,253 -1.7%\nGOLD 4,376 -0.5%\nUS10Y 4.75%\nVIX 14.9\nDXY 118.7 +0.3%\nCN GDP 21.05%\nUS CPI 2.95%\n19:23:21 ET\nCOMMAND CENTER \u2192\nJustHodl.AI\nDASHBOARD\nINTEL\n\ud83d\udfe2 LCE\n\ud83c\udf0d Cycle (live)\n\ud83d\udcc8 Cycle (history)\n\ud83c\udfdb AUCTIONS\n\ud83d\udcc8 BONDS\n\ud83c\udf2a STRESS\nRISK\nMACRO\n\ud83c\udf0d GLOBAL BUSINESS CYCLE\nSynt
-[23:23:22]   page errors (0): []
-[23:23:22]   console errors/warnings (16 of 16): [{"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/d3@7' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked."}, {"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/topojson-client@3' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has be"}, {"type": "error", "text": "Connecting to 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json' violates the following Content Security Policy directive: \"connect-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com https://s3.amazonaws.com https://justhodl-data-proxy.raafouis.workers.dev https://api.telegram"}, {"type": "error", "text": "Fetch API cannot load https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json. Refused to connect because it violates the document's Content Security Policy."}, {"type": "error", "text": "[gbc] TypeError: Failed to fetch\n    at load (https://justhodl.ai/global-cycle.html:386:7)\n    at https://justhodl.ai/global-cycle.html:610:1"}, {"type": "error", "text": "Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so '"}, {"type": "error", "text": "Connecting to 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east
-[23:23:22]   failed requests (6): [{"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/topojson-client@3", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/topojson-client@3", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}]
-[23:23:22]   key responses: [{"url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json", "status": 200, "type": "application/json"}, {"url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json", "status": 200, "type": "application/json"}]
-[23:23:27] live-desktop-warm1: screenshot 5093-live-desktop-warm1.jpg (117234 bytes)
-── live-desktop-warm1 -- https://justhodl.ai/global-cycle.html @ 1440x1000 (4.9s) ──
-[23:23:27]   DOM title = "Global Business Cycle \u00b7 JustHodl.AI"
-[23:23:27]   DOM decisive = "Failed to load: Failed to fetch"
-[23:23:27]   DOM genTime = "loading\u2026"
-[23:23:27]   DOM ageStr = ""
-[23:23:27]   DOM globalPhase = "\u2014"
-[23:23:27]   DOM globalCli = "avg CLI \u2014"
-[23:23:27]   DOM pctExpansion = "\u2014%"
-[23:23:27]   DOM pctRecovery = "\u2014%"
-[23:23:27]   DOM pctAtRisk = "\u2014%"
-[23:23:27]   DOM pctRecession = "\u2014%"
-[23:23:27]   DOM countryCount = "\u2014"
-[23:23:27]   DOM weightCovered = "\u2014 % world GDP"
-[23:23:27]   DOM freshCount = "\u2014"
-[23:23:27]   DOM freshSub = "\u22643 months stale per country"
-[23:23:27]   DOM breadthCells = 0
-[23:23:27]   DOM ladderCells = 0
-[23:23:27]   DOM regions = 1
-[23:23:27]   DOM tiles = 0
-[23:23:27]   DOM mapPaths = 0
-[23:23:27]   DOM mapWithData = 0
-[23:23:27]   DOM mapPhases = {}
-[23:23:27]   DOM mapSvgViewBox = null
-[23:23:27]   DOM mapClientWidth = 1366
-[23:23:27]   DOM mapBox = {"w": 1366, "h": 520, "top": 525}
-[23:23:27]   DOM hasFailedText = true
-[23:23:27]   DOM bodyChars = 10952
-[23:23:27]   DOM rightRail = false
-[23:23:27]   DOM swController = true
-[23:23:27]   DOM d3 = "undefined"
-[23:23:27]   DOM topojson = "undefined"
-[23:23:27]   DOM dataLoaded = false
-[23:23:27]   DOM worldLoaded = false
-[23:23:27]   DOM firstVisibleText = "JUSTHODL\u00b7AI\nSPX 7,632.6 -0.7%\nNDX 26,100 -1.0%\nBTC 77,253 -1.7%\nGOLD 4,376 -0.5%\nUS10Y 4.75%\nVIX 14.9\nDXY 118.7 +0.3%\nCN GDP 21.05%\nUS CPI 2.95%\n19:23:27 ET\nCOMMAND CENTER \u2192\nJustHodl.AI\nDASHBOARD\nINTEL\n\ud83d\udfe2 LCE\n\ud83c\udf0d Cycle (live)\n\ud83d\udcc8 Cycle (history)\n\ud83c\udfdb AUCTIONS\n\ud83d\udcc8 BONDS\n\ud83c\udf2a STRESS\nRISK\nMACRO\n\ud83c\udf0d GLOBAL BUSINESS CYCLE\nSynt
-[23:23:27]   page errors (0): []
-[23:23:27]   console errors/warnings (15 of 15): [{"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/d3@7' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked."}, {"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/topojson-client@3' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has be"}, {"type": "error", "text": "Connecting to 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json' violates the following Content Security Policy directive: \"connect-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com https://s3.amazonaws.com https://justhodl-data-proxy.raafouis.workers.dev https://api.telegram"}, {"type": "error", "text": "Fetch API cannot load https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json. Refused to connect because it violates the document's Content Security Policy."}, {"type": "error", "text": "[gbc] TypeError: Failed to fetch\n    at load (https://justhodl.ai/global-cycle.html:386:7)\n    at https://justhodl.ai/global-cycle.html:610:1"}, {"type": "error", "text": "Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so '"}, {"type": "error", "text": "Connecting to 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east
-[23:23:27]   failed requests (6): [{"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/topojson-client@3", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/topojson-client@3", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}]
-[23:23:27]   key responses: [{"url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json", "status": 200, "type": "application/json"}]
-[23:23:37] live-desktop-warm2: screenshot 5093-live-desktop-warm2.jpg (117058 bytes)
-── live-desktop-warm2 -- https://justhodl.ai/global-cycle.html @ 1440x1000 (9.8s) ──
-[23:23:37]   DOM title = "Global Business Cycle \u00b7 JustHodl.AI"
-[23:23:37]   DOM decisive = "Failed to load: Failed to fetch"
-[23:23:37]   DOM genTime = "loading\u2026"
-[23:23:37]   DOM ageStr = ""
-[23:23:37]   DOM globalPhase = "\u2014"
-[23:23:37]   DOM globalCli = "avg CLI \u2014"
-[23:23:37]   DOM pctExpansion = "\u2014%"
-[23:23:37]   DOM pctRecovery = "\u2014%"
-[23:23:37]   DOM pctAtRisk = "\u2014%"
-[23:23:37]   DOM pctRecession = "\u2014%"
-[23:23:37]   DOM countryCount = "\u2014"
-[23:23:37]   DOM weightCovered = "\u2014 % world GDP"
-[23:23:37]   DOM freshCount = "\u2014"
-[23:23:37]   DOM freshSub = "\u22643 months stale per country"
-[23:23:37]   DOM breadthCells = 0
-[23:23:37]   DOM ladderCells = 0
-[23:23:37]   DOM regions = 1
-[23:23:37]   DOM tiles = 0
-[23:23:37]   DOM mapPaths = 0
-[23:23:37]   DOM mapWithData = 0
-[23:23:37]   DOM mapPhases = {}
-[23:23:37]   DOM mapSvgViewBox = null
-[23:23:37]   DOM mapClientWidth = 1366
-[23:23:37]   DOM mapBox = {"w": 1366, "h": 520, "top": 525}
-[23:23:37]   DOM hasFailedText = true
-[23:23:37]   DOM bodyChars = 10952
-[23:23:37]   DOM rightRail = false
-[23:23:37]   DOM swController = true
-[23:23:37]   DOM d3 = "undefined"
-[23:23:37]   DOM topojson = "undefined"
-[23:23:37]   DOM dataLoaded = false
-[23:23:37]   DOM worldLoaded = false
-[23:23:37]   DOM firstVisibleText = "JUSTHODL\u00b7AI\nSPX 7,632.6 -0.7%\nNDX 26,100 -1.0%\nBTC 77,253 -1.7%\nGOLD 4,376 -0.5%\nUS10Y 4.75%\nVIX 14.9\nDXY 118.7 +0.3%\nCN GDP 21.05%\nUS CPI 2.95%\n19:23:37 ET\nCOMMAND CENTER \u2192\nJustHodl.AI\nDASHBOARD\nINTEL\n\ud83d\udfe2 LCE\n\ud83c\udf0d Cycle (live)\n\ud83d\udcc8 Cycle (history)\n\ud83c\udfdb AUCTIONS\n\ud83d\udcc8 BONDS\n\ud83c\udf2a STRESS\nRISK\nMACRO\n\ud83c\udf0d GLOBAL BUSINESS CYCLE\nSynt
-[23:23:37]   page errors (0): []
-[23:23:37]   console errors/warnings (9 of 9): [{"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/d3@7' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked."}, {"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/topojson-client@3' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has be"}, {"type": "error", "text": "Connecting to 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json' violates the following Content Security Policy directive: \"connect-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com https://s3.amazonaws.com https://justhodl-data-proxy.raafouis.workers.dev https://api.telegram"}, {"type": "error", "text": "Fetch API cannot load https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json. Refused to connect because it violates the document's Content Security Policy."}, {"type": "error", "text": "[gbc] TypeError: Failed to fetch\n    at load (https://justhodl.ai/global-cycle.html:386:7)\n    at https://justhodl.ai/global-cycle.html:610:1"}, {"type": "error", "text": "Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so '"}, {"type": "error", "text": "Connecting to 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east
-[23:23:37]   failed requests (3): [{"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/topojson-client@3", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}]
-[23:23:37]   key responses: [{"url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json", "status": 200, "type": "application/json"}]
-[23:23:47] live-mobile: screenshot 5093-live-mobile.jpg (103378 bytes)
-── live-mobile -- https://justhodl.ai/global-cycle.html @ 390x844 (9.8s) ──
-[23:23:47]   DOM title = "Global Business Cycle \u00b7 JustHodl.AI"
-[23:23:47]   DOM decisive = "Failed to load: Failed to fetch"
-[23:23:47]   DOM genTime = "loading\u2026"
-[23:23:47]   DOM ageStr = ""
-[23:23:47]   DOM globalPhase = "\u2014"
-[23:23:47]   DOM globalCli = "avg CLI \u2014"
-[23:23:47]   DOM pctExpansion = "\u2014%"
-[23:23:47]   DOM pctRecovery = "\u2014%"
-[23:23:47]   DOM pctAtRisk = "\u2014%"
-[23:23:47]   DOM pctRecession = "\u2014%"
-[23:23:47]   DOM countryCount = "\u2014"
-[23:23:47]   DOM weightCovered = "\u2014 % world GDP"
-[23:23:47]   DOM freshCount = "\u2014"
-[23:23:47]   DOM freshSub = "\u22643 months stale per country"
-[23:23:47]   DOM breadthCells = 0
-[23:23:47]   DOM ladderCells = 0
-[23:23:47]   DOM regions = 1
-[23:23:47]   DOM tiles = 0
-[23:23:47]   DOM mapPaths = 0
-[23:23:47]   DOM mapWithData = 0
-[23:23:47]   DOM mapPhases = {}
-[23:23:47]   DOM mapSvgViewBox = null
-[23:23:47]   DOM mapClientWidth = 316
-[23:23:47]   DOM mapBox = {"w": 316, "h": 520, "top": 990}
-[23:23:47]   DOM hasFailedText = true
-[23:23:47]   DOM bodyChars = 10823
-[23:23:47]   DOM rightRail = false
-[23:23:47]   DOM swController = true
-[23:23:47]   DOM d3 = "undefined"
-[23:23:47]   DOM topojson = "undefined"
-[23:23:47]   DOM dataLoaded = false
-[23:23:47]   DOM worldLoaded = false
-[23:23:47]   DOM firstVisibleText = "JUSTHODL\u00b7AI\nSPX\n7,632.6 -0.7%\nBTC\n77,253 -1.7%\nJustHodl.AI\nDASHBOARD\nINTEL\n\ud83d\udfe2 LCE\n\ud83c\udf0d Cycle (live)\n\ud83d\udcc8 Cycle (history)\n\ud83c\udfdb AUCTIONS\n\ud83d\udcc8 BONDS\n\ud83c\udf2a STRESS\nRISK\nMACRO\n\ud83c\udf0d GLOBAL BUSINESS CYCLE\nSynthetic Composite Leading Indicator across 34 major economies \u00b7 equity-momentum-based \u00b7 real-time (\u22643mo per country) \u00b7 4-
-[23:23:47]   page errors (0): []
-[23:23:47]   console errors/warnings (15 of 15): [{"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/d3@7' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked."}, {"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/topojson-client@3' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has be"}, {"type": "error", "text": "Connecting to 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json' violates the following Content Security Policy directive: \"connect-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com https://s3.amazonaws.com https://justhodl-data-proxy.raafouis.workers.dev https://api.telegram"}, {"type": "error", "text": "Fetch API cannot load https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json. Refused to connect because it violates the document's Content Security Policy."}, {"type": "error", "text": "[gbc] TypeError: Failed to fetch\n    at load (https://justhodl.ai/global-cycle.html:386:7)\n    at https://justhodl.ai/global-cycle.html:610:1"}, {"type": "error", "text": "Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so '"}, {"type": "error", "text": "Connecting to 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east
-[23:23:47]   failed requests (6): [{"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/topojson-client@3", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://cdn.jsdelivr.net/npm/topojson-client@3", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}]
-[23:23:47]   key responses: [{"url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json", "status": 200, "type": "application/json"}, {"url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json", "status": 200, "type": "application/json"}]
-[23:23:57] history-desktop: screenshot 5093-history-desktop.jpg (136606 bytes)
-── history-desktop -- https://justhodl.ai/global-cycle/ @ 1440x1000 (9.8s) ──
-[23:23:57]   DOM title = "Global Business Cycle \u00b7 History \u00b7 JustHodl.AI"
-[23:23:57]   DOM svgs = 0
-[23:23:57]   DOM paths = 0
-[23:23:57]   DOM bodyChars = 2946
-[23:23:57]   DOM hasFailedText = true
-[23:23:57]   DOM firstVisibleText = "JustHodl.AI\nHome\nMacro\n\ud83d\udfe2 LCE\n\ud83c\udf0d Cycle (live)\n\ud83d\udcc8 Cycle (history)\nMorning brief\nScreener\nGlobal Business Cycle \u00b7 History\n5 years of weekly synthetic CLI per country \u2014 phase trajectory, breadth evolution, and country sparklines\nFailed to load\nd3 is not defined\nCURRENT EXPANSION BREADTH\n73.7%\nvs 12mo a"
-[23:23:57]   page errors (0): []
-[23:23:57]   console errors/warnings (4 of 4): [{"type": "error", "text": "Loading the script 'https://cdn.jsdelivr.net/npm/d3@7' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked."}, {"type": "error", "text": "Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com\". Note that 'script-src-elem' was not explicitly set, so '"}, {"type": "error", "text": "Connecting to 'wss://q7vco36knh.execute-api.us-east-1.amazonaws.com/prod' violates the following Content Security Policy directive: \"connect-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com https://s3.amazonaws.com https://justhodl-data-proxy.raafouis.workers.dev https://api.telegram.org\""}, {"type": "error", "text": "ReferenceError: d3 is not defined\n    at renderPhaseMix (https://justhodl.ai/global-cycle/:786:15)\n    at render (https://justhodl.ai/global-cycle/:688:3)\n    at load (https://justhodl.ai/global-cycle/:670:5)"}]
-[23:23:57]   failed requests (2): [{"url": "https://cdn.jsdelivr.net/npm/d3@7", "failure": "csp"}, {"url": "https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925", "failure": "csp"}]
-[23:23:57]   key responses: [{"url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle-history.json?cb=1788305028118", "status": 200, "type": "application/json"}]
+executing-against: 028319f9a970b7a6a3a6364b240c38fad25b19ce
+ops 5094 -- CSP policy-as-code: fix the edge header + prove global-cycle renders
+[23:49:10] started 2026-09-01T23:49:10+00:00
+── S1 live header before ──
+[23:49:10] https://justhodl.ai/global-cycle.html: HTTP 200 csp_len=422 jsdelivr_in_script_src=False
+[23:49:10]   before: default-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com; connect-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com https://s3.amazonaws.com https://justhodl-data-proxy.raafouis.workers.dev https://api.telegram.org; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'none'; frame-ancestors 'self'
+[23:49:10] https://www.justhodl.ai/global-cycle.html: HTTP 200 csp_len=422 jsdelivr_in_script_src=False
+[23:49:10]   before: default-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com; connect-src 'self' https://justhodl-dashboard-live.s3.amazonaws.com https://s3.amazonaws.com https://justhodl-data-proxy.raafouis.workers.dev https://api.telegram.org; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'none'; frame-ancestors 'self'
+── S2 policy-as-code ──
+[23:49:11] generated header (1682 chars, 566 files scanned):
+[23:49:11]   default-src 'self'
+[23:49:11]   script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.plot.ly https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://challenges.cloudflare.com https://justhodl-data-proxy.raafouis.workers.dev https://s3.tradingview.com https://static.cloudflareinsights.com https://unpkg.com
+[23:49:11]   style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://unpkg.com
+[23:49:11]   font-src 'self' data: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.gstatic.com https://unpkg.com
+[23:49:11]   img-src 'self' data: blob: https:
+[23:49:11]   media-src 'self' data: https:
+[23:49:11]   connect-src 'self' https://*.execute-api.us-east-1.amazonaws.com https://*.lambda-url.us-east-1.on.aws https://*.raafouis.workers.dev https://*.supabase.co https://api.dexscreener.com https://api.justhodl.ai https://api.stlouisfed.org https://api.telegram.org https://cdn.jsdelivr.net https://cdn.plot.ly https://cdnjs.cloudflare.com https://financialmodelingprep.com https://justhodl-dashboard-live.s3.amazonaws.com https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com https://macro-data-lake.s3.amazonaws.com https://patentsview.org https://s3.amazonaws.com https://s3.us-east-1.amazonaws.com https://static.cloudflareinsights.com https://unpkg.com https://web.archive.org wss://*.execute-api.us-east-1.amazonaws.com wss://*.raafouis.workers.dev wss://*.supabase.co
+[23:49:11]   frame-src 'self' https://*.tradingview-widget.com https://*.tradingview.com https://challenges.cloudflare.com https://justhodl.ai
+[23:49:11]   worker-src 'self' blob:
+[23:49:11]   manifest-src 'self'
+[23:49:11]   object-src 'none'
+[23:49:11]   base-uri 'none'
+[23:49:11]   frame-ancestors 'self'
+[23:49:11]   upgrade-insecure-requests
+── S3 Cloudflare upsert ──
+[23:49:12] zone fb59e2d0…
+[23:49:12] entrypoint ruleset 0c1dee9c… with 1 rule(s); 1 match ref/description
+[23:49:12] PATCH rule 8e753c02…: HTTP 200 success=True errors=[]
+[23:49:12] ✅ rule upserted via PATCH rule 8e753c02…
+── S4 edge propagation ──
+[23:49:33] ✅ edge serves the new header on 2 host(s) after 20s
+── S5 Pages deploy (vendored assets + patched page) ──
+[23:52:15] ✅ Pages deploy live after 162s: {"page": 200, "page_has_vendor": true, "vendor": {"/assets/vendor/d3.v7.9.0.min.js": [200, 279706], "/assets/vendor/topojson-client.v3.1.0.min.js": [200, 7169], "/assets/vendor/world-atlas-2.0.2-countries-110m.json": [200, 107761]}}
+── S6 headless render ──
+[23:52:15] pip installing playwright
+[23:52:18] launched runner Google Chrome (channel=chrome)
+── gc-desktop -- https://justhodl.ai/global-cycle.html @ 1440x1000 (10.2s) ──
+[23:52:29]   DOM title = "Global Business Cycle \u00b7 JustHodl.AI"
+[23:52:29]   DOM decisive = "GLOBAL EXPANSION \u00b7 74% of world GDP in expansion+recovery (avg CLI 108.79). Maximum cyclical risk exposure justified \u2014 overweight equity (especially EM + small caps), commodities, and HY credit. Underweight long duration"
+[23:52:29]   DOM genTime = "9/1/2026, 11:17:32 PM"
+[23:52:29]   DOM ageStr = "updated 0h ago"
+[23:52:29]   DOM globalPhase = "GLOBAL EXPANSION"
+[23:52:29]   DOM globalCli = "avg CLI 108.79"
+[23:52:29]   DOM pctExpansion = "67.7%"
+[23:52:29]   DOM countryCount = "34"
+[23:52:29]   DOM freshCount = "33/34"
+[23:52:29]   DOM freshSub = "1 country >3 months stale"
+[23:52:29]   DOM ladderCells = 10
+[23:52:29]   DOM regions = 6
+[23:52:29]   DOM tiles = 34
+[23:52:29]   DOM physTags = 34
+[23:52:29]   DOM mapPaths = 177
+[23:52:29]   DOM mapWithData = 34
+[23:52:29]   DOM mapNote = null
+[23:52:29]   DOM d3 = "object"
+[23:52:29]   DOM topojson = "object"
+[23:52:29]   DOM dataLoaded = true
+[23:52:29]   DOM worldLoaded = true
+[23:52:29]   DOM engineVersion = "2.0"
+[23:52:29]   DOM swController = true
+[23:52:29]   firstVisibleText = "JUSTHODL\u00b7AI\nSPX 7,632.6 -0.7%\nNDX 26,100 -1.0%\nBTC 77,544 -1.3%\nGOLD 4,381 -0.3%\nUS10Y 4.75%\nVIX 14.9\nDXY 118.7 +0.3%\nCN GDP 21.05%\nUS CPI 2.95%\n19:52:28 ET\nCOMMAND CENTER \u2192\nJustHodl.AI\nDASHBOARD\nINTEL\n\ud83d\udfe2 LCE\n\ud83c\udf0d Cycle (live)\n\ud83d\udcc8 Cycle (history)\n\ud83c\udfdb AUCT
+[23:52:29]   CSP violations (0): []
+[23:52:29]   page errors (0): []
+[23:52:29]   other console errors/warnings (1): [{"type": "error", "text": "Failed to load resource: the server responded with a status of 404 ()"}]
+[23:52:29]   failed requests (0): []
+── gc-mobile -- https://justhodl.ai/global-cycle.html @ 390x844 (10.0s) ──
+[23:52:39]   DOM title = "Global Business Cycle \u00b7 JustHodl.AI"
+[23:52:39]   DOM decisive = "GLOBAL EXPANSION \u00b7 74% of world GDP in expansion+recovery (avg CLI 108.79). Maximum cyclical risk exposure justified \u2014 overweight equity (especially EM + small caps), commodities, and HY credit. Underweight long duration"
+[23:52:39]   DOM genTime = "9/1/2026, 11:17:32 PM"
+[23:52:39]   DOM ageStr = "updated 0h ago"
+[23:52:39]   DOM globalPhase = "GLOBAL EXPANSION"
+[23:52:39]   DOM globalCli = "avg CLI 108.79"
+[23:52:39]   DOM pctExpansion = "67.7%"
+[23:52:39]   DOM countryCount = "34"
+[23:52:39]   DOM freshCount = "33/34"
+[23:52:39]   DOM freshSub = "1 country >3 months stale"
+[23:52:39]   DOM ladderCells = 10
+[23:52:39]   DOM regions = 6
+[23:52:39]   DOM tiles = 34
+[23:52:39]   DOM physTags = 34
+[23:52:39]   DOM mapPaths = 177
+[23:52:39]   DOM mapWithData = 34
+[23:52:39]   DOM mapNote = null
+[23:52:39]   DOM d3 = "object"
+[23:52:39]   DOM topojson = "object"
+[23:52:39]   DOM dataLoaded = true
+[23:52:39]   DOM worldLoaded = true
+[23:52:39]   DOM engineVersion = "2.0"
+[23:52:39]   DOM swController = true
+[23:52:39]   firstVisibleText = "JUSTHODL\u00b7AI\nSPX\n7,632.6 -0.7%\nBTC\n77,544 -1.3%\nJustHodl.AI\nDASHBOARD\nINTEL\n\ud83d\udfe2 LCE\n\ud83c\udf0d Cycle (live)\n\ud83d\udcc8 Cycle (history)\n\ud83c\udfdb AUCTIONS\n\ud83d\udcc8 BONDS\n\ud83c\udf2a STRESS\nRISK\nMACRO\n\ud83c\udf0d GLOBAL BUSINESS CYCLE\nSynthetic Composite Leading Indicator acros
+[23:52:39]   CSP violations (0): []
+[23:52:39]   page errors (0): []
+[23:52:39]   other console errors/warnings (2): [{"type": "error", "text": "Access to fetch at 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Fglobal-cycle.html&favs=0&sw=none&v=3276' from origin 'https://justhodl.ai' has been blocked by CORS policy: The 'Access-Control-Allow-Origin' header contains multiple values '*, *', but only one is allowed. Have the server send the header with a valid value."}, {"type": "error", "text": "Failed to load resource: net::ERR_FAILED"}]
+[23:52:39]   failed requests (1): [{"url": "https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Fglobal-cycle.html&favs=0&sw=none&v=3276", "failure": "net::ERR_FAILED"}]
+── gc-history -- https://justhodl.ai/global-cycle/ @ 1440x1000 (9.9s) ──
+[23:52:49]   DOM title = "Global Business Cycle \u00b7 History \u00b7 JustHodl.AI"
+[23:52:49]   DOM svgs = 41
+[23:52:49]   DOM paths = 85
+[23:52:49]   DOM genTime = "9/1/2026, 11:17:34 PM"
+[23:52:49]   DOM dataLoaded = true
+[23:52:49]   DOM d3 = "object"
+[23:52:49]   firstVisibleText = "JustHodl.AI\nHome\nMacro\n\ud83d\udfe2 LCE\n\ud83c\udf0d Cycle (live)\n\ud83d\udcc8 Cycle (history)\nMorning brief\nScreener\nGlobal Business Cycle \u00b7 History\n5 years of weekly synthetic CLI per country \u2014 phase trajectory, breadth evolution, and country sparklines\n9/1/2026, 11:17:34 PM\n35m ago\nCURRENT EXP
+[23:52:49]   CSP violations (0): []
+[23:52:49]   page errors (0): []
+[23:52:49]   other console errors/warnings (0): []
+[23:52:49]   failed requests (0): []
+── index -- https://justhodl.ai/ @ 1440x1000 (10.4s) ──
+[23:53:00]   DOM title = "JustHodl.AI \u00b7 Operator Console"
+[23:53:00]   DOM bodyChars = 38324
+[23:53:00]   DOM scripts = 19
+[23:53:00]   DOM fontsLoaded = 78
+[23:53:00]   firstVisibleText = "JUSTHODL\u00b7AI\nSPX 7,632.6 -0.7%\nNDX 26,100 -1.0%\nBTC 77,544 -1.3%\nGOLD 4,381 -0.3%\nUS10Y 4.75%\nVIX 14.9\nDXY 118.7 +0.3%\nCN GDP 21.05%\nUS CPI 2.95%\n19:52:59 ET\nCOMMAND CENTER \u2192\nNEW\n\u26a1 Institutional Intell"
+[23:53:00]   CSP violations (0): []
+[23:53:00]   page errors (0): []
+[23:53:00]   other console errors/warnings (2): [{"type": "error", "text": "Access to fetch at 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2F&favs=0&sw=none&v=3276' from origin 'https://justhodl.ai' has been blocked by CORS policy: The 'Access-Control-Allow-Origin' header contains multiple values '*, *', but only one is allowed. Have the server send the header with a valid value."}, {"type": "error", "text": "Failed to load resource: net::ERR_FAILED"}]
+[23:53:00]   failed requests (1): [{"url": "https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2F&favs=0&sw=none&v=3276", "failure": "net::ERR_FAILED"}]
+── chart-pro -- https://justhodl.ai/chart-pro.html @ 1440x1000 (12.3s) ──
+[23:53:12]   DOM title = "Chart Pro \u00b7 JustHodl.AI \u00b7 Trading Terminal"
+[23:53:12]   DOM bodyChars = 25209
+[23:53:12]   DOM scripts = 15
+[23:53:12]   DOM fontsLoaded = 8
+[23:53:12]   firstVisibleText = "JUSTHODL\u00b7AI\nSPX 7,632.6 -0.7%\nNDX 26,100 -1.0%\nBTC 77,544 -1.3%\nGOLD 4,381 -0.3%\nUS10Y 4.75%\nVIX 14.9\nDXY 118.7 +0.3%\nCN GDP 21.05%\nUS CPI 2.95%\n19:53:12 ET\nCOMMAND CENTER \u2192\nJustHodl\n\u00b7 CHART PRO\nHome\n"
+[23:53:12]   CSP violations (0): []
+[23:53:12]   page errors (0): []
+[23:53:12]   other console errors/warnings (50): [{"type": "error", "text": "Failed to load resource: the server responded with a status of 400 ()"}, {"type": "error", "text": "Failed to load resource: the server responded with a status of 400 ()"}, {"type": "error", "text": "Failed to load resource: the server responded with a status of 400 ()"}, {"type": "error", "text": "Failed to load resource: the server responded with a status of 400 ()"}, {"type": "error", "text": "Failed to load resource: the server responded with a status of 400 ()"}, {"type": "error", "text": "Failed to load resource: the server responded with a status of 400 ()"}, {"type": "error", "text": "Failed to load resource: the server responded with a status of 400 ()"}, {"type": "error", "text": "Failed to load resource: the server responded with a status of 400 ()"}]
+[23:53:12]   failed requests (3): [{"url": "https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Fchart-pro.html&favs=0&sw=none&v=3276", "failure": "net::ERR_FAILED"}, {"url": "https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=chartpro&lists=492&err=&sw=none&drawer=c3efc5d3&favs=0&lwc=true", "failure": "net::ERR_FAILED"}, {"url": "https://widget-sheriff.tradingview-widget.com/sheriff/api/v1/rules/search?origin=https%3A%2F%2Fjusthodl.ai", "failure": "net::ERR_ABORTED"}]
+── why -- https://justhodl.ai/why.html @ 1440x1000 (10.3s) ──
+[23:53:23]   DOM title = "Research Desk \u00b7 JustHodl.AI"
+[23:53:23]   DOM bodyChars = 14939
+[23:53:23]   DOM scripts = 8
+[23:53:23]   DOM fontsLoaded = 8
+[23:53:23]   firstVisibleText = "JUSTHODL\u00b7AI\nSPX 7,632.6 -0.7%\nNDX 26,100 -1.0%\nBTC 77,544 -1.3%\nGOLD 4,381 -0.3%\nUS10Y 4.75%\nVIX 14.9\nDXY 118.7 +0.3%\nCN GDP 21.05%\nUS CPI 2.95%\n19:53:22 ET\nCOMMAND CENTER \u2192\n\ud83c\udfdb Research Desk instituti"
+[23:53:23]   CSP violations (0): []
+[23:53:23]   page errors (2): ["Unexpected identifier 'font'", "Unexpected identifier 'font'"]
+[23:53:23]   other console errors/warnings (7): [{"type": "error", "text": "Failed to load resource: the server responded with a status of 403 ()"}, {"type": "error", "text": "Access to fetch at 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Fwhy.html&favs=0&sw=none&v=3276' from origin 'https://justhodl.ai' has been blocked by CORS policy: The 'Access-Control-Allow-Origin' header contains multiple values '*, *', but only one is allowed. Have the server send the header with a valid value."}, {"type": "error", "text": "Failed to load resource: net::ERR_FAILED"}, {"type": "error", "text": "Failed to load resource: the server responded with a status of 403 ()"}, {"type": "error", "text": "Failed to load resource: the server responded with a status of 403 ()"}, {"type": "error", "text": "Failed to load resource: the server responded with a status of 403 ()"}, {"type": "error", "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"}]
+[23:53:23]   failed requests (1): [{"url": "https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Fwhy.html&favs=0&sw=none&v=3276", "failure": "net::ERR_FAILED"}]
+── fortress -- https://justhodl.ai/fortress.html @ 1440x1000 (10.7s) ──
+[23:53:36]   DOM title = "Fortress Coil \u00b7 Dump-Resilient Accumulation Radar \u00b7 JustHodl.AI"
+[23:53:36]   DOM bodyChars = 166646
+[23:53:36]   DOM scripts = 6
+[23:53:36]   DOM fontsLoaded = 8
+[23:53:36]   firstVisibleText = "JUSTHODL\u00b7AI\nSPX 7,632.6 -0.7%\nNDX 26,100 -1.0%\nBTC 77,544 -1.3%\nGOLD 4,381 -0.3%\nUS10Y 4.75%\nVIX 14.9\nDXY 118.7 +0.3%\nCN GDP 21.05%\nUS CPI 2.95%\n19:53:33 ET\nCOMMAND CENTER \u2192\nFortress Coildump-resilien"
+[23:53:36]   CSP violations (0): []
+[23:53:36]   page errors (0): []
+[23:53:36]   other console errors/warnings (2): [{"type": "error", "text": "Access to fetch at 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Ffortress.html&favs=0&sw=none&v=3276' from origin 'https://justhodl.ai' has been blocked by CORS policy: The 'Access-Control-Allow-Origin' header contains multiple values '*, *', but only one is allowed. Have the server send the header with a valid value."}, {"type": "error", "text": "Failed to load resource: net::ERR_FAILED"}]
+[23:53:36]   failed requests (1): [{"url": "https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Ffortress.html&favs=0&sw=none&v=3276", "failure": "net::ERR_FAILED"}]
+── gc-warm1 -- https://justhodl.ai/global-cycle.html @ 1440x1000 (5.0s) ──
+[23:53:42]   DOM title = "Global Business Cycle \u00b7 JustHodl.AI"
+[23:53:42]   DOM decisive = "GLOBAL EXPANSION \u00b7 74% of world GDP in expansion+recovery (avg CLI 108.79). Maximum cyclical risk exposure justified \u2014 overweight equity (especially EM + small caps), commodities, and HY credit. Underweight long duration"
+[23:53:42]   DOM genTime = "9/1/2026, 11:17:32 PM"
+[23:53:42]   DOM ageStr = "updated 0h ago"
+[23:53:42]   DOM globalPhase = "GLOBAL EXPANSION"
+[23:53:42]   DOM globalCli = "avg CLI 108.79"
+[23:53:42]   DOM pctExpansion = "67.7%"
+[23:53:42]   DOM countryCount = "34"
+[23:53:42]   DOM freshCount = "33/34"
+[23:53:42]   DOM freshSub = "1 country >3 months stale"
+[23:53:42]   DOM ladderCells = 10
+[23:53:42]   DOM regions = 6
+[23:53:42]   DOM tiles = 34
+[23:53:42]   DOM physTags = 34
+[23:53:42]   DOM mapPaths = 177
+[23:53:42]   DOM mapWithData = 34
+[23:53:42]   DOM mapNote = null
+[23:53:42]   DOM d3 = "object"
+[23:53:42]   DOM topojson = "object"
+[23:53:42]   DOM dataLoaded = true
+[23:53:42]   DOM worldLoaded = true
+[23:53:42]   DOM engineVersion = "2.0"
+[23:53:42]   DOM swController = false
+[23:53:42]   firstVisibleText = "JUSTHODL\u00b7AI\nSPX 7,632.6 -0.7%\nNDX 26,100 -1.0%\nBTC 77,544 -1.3%\nGOLD 4,381 -0.3%\nUS10Y 4.75%\nVIX 14.9\nDXY 118.7 +0.3%\nCN GDP 21.05%\nUS CPI 2.95%\n19:53:41 ET\nCOMMAND CENTER \u2192\nJustHodl.AI\nDASHBOARD\nINTEL\n\ud83d\udfe2 LCE\n\ud83c\udf0d Cycle (live)\n\ud83d\udcc8 Cycle (history)\n\ud83c\udfdb AUCT
+[23:53:42]   CSP violations (0): []
+[23:53:42]   page errors (0): []
+[23:53:42]   other console errors/warnings (2): [{"type": "error", "text": "Access to fetch at 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Fglobal-cycle.html&favs=0&sw=none&v=3276' from origin 'https://justhodl.ai' has been blocked by CORS policy: The 'Access-Control-Allow-Origin' header contains multiple values '*, *', but only one is allowed. Have the server send the header with a valid value."}, {"type": "error", "text": "Failed to load resource: net::ERR_FAILED"}]
+[23:53:42]   failed requests (1): [{"url": "https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Fglobal-cycle.html&favs=0&sw=none&v=3276", "failure": "net::ERR_FAILED"}]
+── gc-warm2 -- https://justhodl.ai/global-cycle.html @ 1440x1000 (9.9s) ──
+[23:53:52]   DOM title = "Global Business Cycle \u00b7 JustHodl.AI"
+[23:53:52]   DOM decisive = "GLOBAL EXPANSION \u00b7 74% of world GDP in expansion+recovery (avg CLI 108.79). Maximum cyclical risk exposure justified \u2014 overweight equity (especially EM + small caps), commodities, and HY credit. Underweight long duration"
+[23:53:52]   DOM genTime = "9/1/2026, 11:17:32 PM"
+[23:53:52]   DOM ageStr = "updated 0h ago"
+[23:53:52]   DOM globalPhase = "GLOBAL EXPANSION"
+[23:53:52]   DOM globalCli = "avg CLI 108.79"
+[23:53:52]   DOM pctExpansion = "67.7%"
+[23:53:52]   DOM countryCount = "34"
+[23:53:52]   DOM freshCount = "33/34"
+[23:53:52]   DOM freshSub = "1 country >3 months stale"
+[23:53:52]   DOM ladderCells = 10
+[23:53:52]   DOM regions = 6
+[23:53:52]   DOM tiles = 34
+[23:53:52]   DOM physTags = 34
+[23:53:52]   DOM mapPaths = 177
+[23:53:52]   DOM mapWithData = 34
+[23:53:52]   DOM mapNote = null
+[23:53:52]   DOM d3 = "object"
+[23:53:52]   DOM topojson = "object"
+[23:53:52]   DOM dataLoaded = true
+[23:53:52]   DOM worldLoaded = true
+[23:53:52]   DOM engineVersion = "2.0"
+[23:53:52]   DOM swController = true
+[23:53:52]   firstVisibleText = "JUSTHODL\u00b7AI\nSPX 7,632.6 -0.7%\nNDX 26,100 -1.0%\nBTC 77,544 -1.3%\nGOLD 4,381 -0.3%\nUS10Y 4.75%\nVIX 14.9\nDXY 118.7 +0.3%\nCN GDP 21.05%\nUS CPI 2.95%\n19:53:51 ET\nCOMMAND CENTER \u2192\nJustHodl.AI\nDASHBOARD\nINTEL\n\ud83d\udfe2 LCE\n\ud83c\udf0d Cycle (live)\n\ud83d\udcc8 Cycle (history)\n\ud83c\udfdb AUCT
+[23:53:52]   CSP violations (0): []
+[23:53:52]   page errors (0): []
+[23:53:52]   other console errors/warnings (2): [{"type": "error", "text": "Access to fetch at 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Fglobal-cycle.html&favs=0&sw=yes&v=3276' from origin 'https://justhodl.ai' has been blocked by CORS policy: The 'Access-Control-Allow-Origin' header contains multiple values '*, *', but only one is allowed. Have the server send the header with a valid value."}, {"type": "error", "text": "Failed to load resource: net::ERR_FAILED"}]
+[23:53:52]   failed requests (1): [{"url": "https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Fglobal-cycle.html&favs=0&sw=yes&v=3276", "failure": "net::ERR_FAILED"}]
 ── verdict ──
-[23:23:58] ✗ live-desktop: 'Failed to load' visible
-[23:23:58] ✗ live-desktop: map has 0 data paths
-[23:23:58] ✗ live-desktop: DATA not loaded
-[23:23:58] ✗ live-desktop-warm2: 'Failed to load' visible
-[23:23:58] ✗ live-desktop-warm2: map has 0 data paths
-[23:23:58] ✗ live-desktop-warm2: DATA not loaded
-[23:23:58] ✗ live-mobile: 'Failed to load' visible
-[23:23:58] ✗ live-mobile: map has 0 data paths
-[23:23:58] ✗ live-mobile: DATA not loaded
+[23:53:52] ✅ VERDICT: GREEN -- CSP derived from code is live at the edge; global-cycle.html, /global-cycle/, index, chart-pro, why and fortress render with zero CSP violations
 
-→ Report written to aws/ops/reports/latest/5093-gbc-browser-render.md
-❌ OPS-FAIL: aws/ops/pending/ops_5093_gbc_browser_render.py
+→ Report written to aws/ops/reports/latest/5094-csp-policy-as-code.md
+ops 5095 -- justhodl-global-business-cycle v2.1.0 deploy + run + verify
+[23:53:53] started 2026-09-01T23:53:53+00:00
+── S1 BEFORE (live feed as deployed) ──
+[23:53:53] generated_at=2026-09-01T23:17:32.778530+00:00 schema=2.0 engine_version=None fresh=33
+[23:53:53]   USA  EXPANSION  CLI=120 3m=0.415 12m=17.374 src=^GSPC stale=0d phys=UNCONFIRMED  supplement=53.25921@2026-06-01
+[23:53:53]   CHN  AT_RISK    CLI=101.19 3m=-1.761 12m=8.724 src=000001.SS stale=1d phys=UNCONFIRMED  supplement=0.0@2026-05-01
+[23:53:53]   KOR  AT_RISK    CLI=120 3m=-16.68 12m=111.43 src=^KS11 stale=1d phys=UNCONFIRMED  supplement=None@None
+[23:53:53]   CZE  UNKNOWN    CLI=None 3m=None 12m=None src=PXTR.PR stale=999d phys=UNCONFIRMED reason=insufficient_history supplement=None@None
+[23:53:53]   HUN  EXPANSION  CLI=111.76 3m=10.557 12m=50.203 src=OTP.BD stale=1d phys=UNCONFIRMED  supplement=None@None
+[23:53:53]   NOR  AT_RISK    CLI=104.78 3m=-2.6 12m=22.17 src=^OSEAX stale=2d phys=UNCONFIRMED  supplement=None@None
+[23:53:53]   GRC  EXPANSION  CLI=106.32 3m=5.983 12m=24.73 src=GD.AT stale=2d phys=UNCONFIRMED  supplement=None@None
+[23:53:53]   physical: {"CONFIRMED": 0, "DIVERGENT": 0, "UNCONFIRMED": 34} countries_with_ports=0
+[23:53:53]   countries pinned at the 120 cap BEFORE: ['USA', 'KOR']
+── S2 wait for deploy ──
+[23:53:53] ✅ deployed: 2026-09-01T23:49:14.000+0000 timeout=900 mem=1536 status=Successful after 0s
+── S3 run the engine ──
+[23:53:53] async invoke status=202 at 2026-09-01T23:53:53+00:00
+[23:54:13]   polling… engine_version=None generated_at=2026-09-01T23:17:32.778530+00:00
+[23:54:33] ✅ fresh v2.1.0 feed on S3: generated_at=2026-09-01T23:54:26.888895+00:00 elapsed=32.6s after 40s
+── S4 per-country ──
+[23:54:33] global_phase=GLOBAL_EXPANSION avg_cli=103.13 coverage=100.0% mix={"EXPANSION": 68.0, "AT_RISK": 26.2, "RECOVERY": 5.8}
+[23:54:33] sources_used={"yahoo": 30, "basket": 4} polygon_lane={"loaded": false, "sessions": 0, "tickers_present": 0, "error": null}
+[23:54:33] supplements={"USA": {"date": "2026-06-01", "value": 53.25921, "months_stale": 3, "status": "fresh", "series_id": "USACSCICP02STSAM"}, "CHN": {"date": "2026-05-01", "value": 0.0, "months_stale": 4, "status": "stale 4mo (excluded)", "series_id": "CHNBSCICP02STSAM"}}
+[23:54:33] acceptance_gate={"min_bars": 252, "max_stale_days": 12} fresh=34/34
+[23:54:33]   AUS  EXPANSION  CLI=101.27 3m=3.97 12m=1.661 src=yahoo:^AXJO stale=1d phys=UNCONFIRMED 
+[23:54:33]   AUT  EXPANSION  CLI=110.64 3m=10.232 12m=46.678 src=yahoo:^ATX stale=1d phys=UNCONFIRMED 
+[23:54:33]   BEL  EXPANSION  CLI=105.77 3m=5.13 12m=23.471 src=yahoo:^BFX stale=1d phys=UNCONFIRMED 
+[23:54:33]   BRA  EXPANSION  CLI=105.74 3m=3.171 12m=29.105 src=yahoo:^BVSP stale=0d phys=UNCONFIRMED 
+[23:54:33]   CAN  EXPANSION  CLI=105.66 3m=3.14 12m=25.993 src=yahoo:^GSPTSE stale=0d phys=UNCONFIRMED 
+[23:54:33]   CHE  EXPANSION  CLI=104.6 3m=7.371 12m=17.478 src=yahoo:^SSMI stale=1d phys=UNCONFIRMED 
+[23:54:33]   CHL  EXPANSION  CLI=104.71 3m=-0.054 12m=26.378 src=yahoo:ECH stale=0d phys=UNCONFIRMED 
+[23:54:33]   CHN  AT_RISK    CLI=101.58 3m=-1.761 12m=8.724 src=yahoo:000001.SS stale=1d phys=UNCONFIRMED 
+[23:54:33]   CZE  EXPANSION  CLI=108.0 3m=12.181 12m=31.446 src=basket:CEZ.PR+ERBAG.PR+KOMB.PR+MONET.PR+VIG.PR stale=1d phys=UNCONFIRMED 
+[23:54:33]   DEU  EXPANSION  CLI=103.29 3m=4.513 12m=9.856 src=yahoo:^GDAXI stale=1d phys=UNCONFIRMED 
+[23:54:33]   DNK  EXPANSION  CLI=103.97 3m=6.304 12m=12.97 src=yahoo:^OMXC25 stale=0d phys=UNCONFIRMED 
+[23:54:33]   ESP  EXPANSION  CLI=108.27 3m=9.315 12m=35.839 src=yahoo:^IBEX stale=1d phys=UNCONFIRMED 
+[23:54:33]   FIN  EXPANSION  CLI=106.06 3m=-0.32 12m=29.459 src=yahoo:^OMXH25 stale=1d phys=UNCONFIRMED 
+[23:54:33]   FRA  EXPANSION  CLI=101.77 3m=1.528 12m=8.887 src=yahoo:^FCHI stale=1d phys=UNCONFIRMED 
+[23:54:33]   GBR  EXPANSION  CLI=104.03 3m=4.386 12m=17.472 src=yahoo:^FTSE stale=5d phys=UNCONFIRMED 
+[23:54:33]   GRC  EXPANSION  CLI=111.69 3m=18.814 12m=44.758 src=basket:ALPHA.AT+ETE.AT+EUROB.AT+PPC.AT+TPEIR.AT stale=1d phys=UNCONFIRMED 
+[23:54:33]   HUN  EXPANSION  CLI=109.73 3m=4.304 12m=45.043 src=basket:MOL.BD+MTELEKOM.BD+OTP.BD stale=1d phys=UNCONFIRMED 
+[23:54:33]   IDN  RECOVERY   CLI=97.4 3m=5.142 12m=-12.88 src=yahoo:^JKSE stale=1d phys=UNCONFIRMED 
+[23:54:33]   IND  RECOVERY   CLI=98.91 3m=3.622 12m=-5.987 src=yahoo:^BSESN stale=1d phys=UNCONFIRMED 
+[23:54:33]   IRL  EXPANSION  CLI=106.58 3m=7.932 12m=25.513 src=yahoo:^ISEQ stale=1d phys=UNCONFIRMED 
+[23:54:33]   ISR  AT_RISK    CLI=104.76 3m=-4.312 12m=29.734 src=yahoo:^TA125.TA stale=1d phys=UNCONFIRMED 
+[23:54:33]   ITA  EXPANSION  CLI=105.94 3m=4.021 12m=24.687 src=yahoo:FTSEMIB.MI stale=1d phys=UNCONFIRMED 
+[23:54:33]   JPN  EXPANSION  CLI=110.37 3m=-0.026 12m=52.869 src=yahoo:^N225 stale=1d phys=UNCONFIRMED 
+[23:54:33]   KOR  AT_RISK    CLI=115.5 3m=-16.68 12m=111.43 src=yahoo:^KS11 stale=1d phys=UNCONFIRMED 
+[23:54:33]   MEX  AT_RISK    CLI=100.15 3m=-5.523 12m=9.066 src=yahoo:^MXX stale=0d phys=UNCONFIRMED 
+[23:54:33]   NLD  EXPANSION  CLI=105.94 3m=5.406 12m=25.103 src=yahoo:^AEX stale=1d phys=UNCONFIRMED 
+[23:54:33]   NOR  AT_RISK    CLI=105.53 3m=-1.166 12m=26.265 src=basket:AKRBP.OL+DNB.OL+EQNR.OL+MOWI.OL+NHY.OL+ORK.OL+TEL.OL+YAR.OL stale=1d phys=UNCONFIRMED 
+[23:54:33]   NZL  EXPANSION  CLI=102.23 3m=4.658 12m=7.171 src=yahoo:^NZ50 stale=0d phys=UNCONFIRMED 
+[23:54:33]   POL  EXPANSION  CLI=109.81 3m=10.126 12m=42.157 src=yahoo:EPOL stale=0d phys=UNCONFIRMED 
+[23:54:33]   PRT  EXPANSION  CLI=105.51 3m=5.344 12m=22.919 src=yahoo:PSI20.LS stale=1d phys=UNCONFIRMED 
+[23:54:33]   SWE  EXPANSION  CLI=106.15 3m=6.937 12m=24.553 src=yahoo:^OMX stale=1d phys=UNCONFIRMED 
+[23:54:33]   TUR  EXPANSION  CLI=106.22 3m=4.598 12m=24.322 src=yahoo:XU100.IS stale=1d phys=UNCONFIRMED 
+[23:54:33]   USA  EXPANSION  CLI=101.22 3m=0.415 12m=17.374 src=yahoo:^GSPC stale=0d phys=UNCONFIRMED 
+[23:54:33]   ZAF  EXPANSION  CLI=103.0 3m=1.418 12m=13.496 src=yahoo:^J203.JO stale=1d phys=UNCONFIRMED 
+[23:54:33] with CLI: 34/34 · UNKNOWN: []
+[23:54:33] pinned at a cap: [] · degraded: []
+[23:54:33] USA: cli=101.22 equity_composite=8.25 supplement=53.25921@2026-06-01 status=fresh
+[23:54:33] physical: counts={"CONFIRMED": 0, "DIVERGENT": 0, "UNCONFIRMED": 34} countries_with_ports=0 carried_from_previous_run=None portwatch_at=2026-09-01T12:10:51.227119+00:00
+── S5 history + portwatch ──
+[23:54:33] history: schema=2.4 engine_version=2.1.0 generated_at=2026-09-01T23:54:28.256585+00:00 countries=34 transitions=24 cli_transform=soft_clip_tanh_v2.1
+[23:54:33] portwatch: generated_at=2026-09-01T12:10:51.227119+00:00 ports=0 with_yoy_pct=0 errors=["daily_choke: {'code': 429, 'message': 'Unable to perform query. Too many requests.', 'details': ['API calls quota exceeded (6015 requ", "daily_ports: {'code': 400, 'message': 'Cannot perform query. Invalid query parameters.', 'details': [\"'Invalid field: chokepoint1' pa", "ports_ref: {'code': 429
+── S6 log tail of this run ──
+[23:54:34] ── stream f2cf4e70b5e2ca8a61dd2e5f (43 events) ──
+[23:54:34]   [gbc] v2.1.0 start, 34 countries (equity-momentum-based)
+[23:54:34]   [gbc] USA  EXPANSION  CLI=101.22 3m=0.415 latest=2026-09-01 (0d) src=yahoo:^GSPC
+[23:54:34]   [gbc] CHN  AT_RISK    CLI=101.58 3m=-1.761 latest=2026-08-31 (1d) src=yahoo:000001.SS
+[23:54:34]   [gbc] JPN  EXPANSION  CLI=110.37 3m=-0.026 latest=2026-08-31 (1d) src=yahoo:^N225
+[23:54:34]   [gbc] DEU  EXPANSION  CLI=103.29 3m=4.513 latest=2026-08-31 (1d) src=yahoo:^GDAXI
+[23:54:34]   [gbc] IND  RECOVERY   CLI=98.91 3m=3.622 latest=2026-08-31 (1d) src=yahoo:^BSESN
+[23:54:34]   [gbc] GBR  EXPANSION  CLI=104.03 3m=4.386 latest=2026-08-27 (5d) src=yahoo:^FTSE
+[23:54:34]   [gbc] FRA  EXPANSION  CLI=101.77 3m=1.528 latest=2026-08-31 (1d) src=yahoo:^FCHI
+[23:54:34]   [gbc] ITA  EXPANSION  CLI=105.94 3m=4.021 latest=2026-08-31 (1d) src=yahoo:FTSEMIB.MI
+[23:54:34]   [gbc] CAN  EXPANSION  CLI=105.66 3m=3.14 latest=2026-09-01 (0d) src=yahoo:^GSPTSE
+[23:54:34]   [gbc] BRA  EXPANSION  CLI=105.74 3m=3.171 latest=2026-09-01 (0d) src=yahoo:^BVSP
+[23:54:34]   [gbc] KOR  AT_RISK    CLI=115.5 3m=-16.68 latest=2026-08-31 (1d) src=yahoo:^KS11
+[23:54:34]   [gbc] AUS  EXPANSION  CLI=101.27 3m=3.97 latest=2026-08-31 (1d) src=yahoo:^AXJO
+[23:54:34]   [gbc] ESP  EXPANSION  CLI=108.27 3m=9.315 latest=2026-08-31 (1d) src=yahoo:^IBEX
+[23:54:34]   [gbc] MEX  AT_RISK    CLI=100.15 3m=-5.523 latest=2026-09-01 (0d) src=yahoo:^MXX
+[23:54:34]   [gbc] IDN  RECOVERY   CLI=97.4 3m=5.142 latest=2026-08-31 (1d) src=yahoo:^JKSE
+[23:54:34]   [gbc] NLD  EXPANSION  CLI=105.94 3m=5.406 latest=2026-08-31 (1d) src=yahoo:^AEX
+[23:54:34]   [gbc] TUR  EXPANSION  CLI=106.22 3m=4.598 latest=2026-08-31 (1d) src=yahoo:XU100.IS
+[23:54:34]   [gbc] CHE  EXPANSION  CLI=104.6 3m=7.371 latest=2026-08-31 (1d) src=yahoo:^SSMI
+[23:54:34]   [gbc] POL  EXPANSION  CLI=109.81 3m=10.126 latest=2026-09-01 (0d) src=yahoo:EPOL
+[23:54:34]   [gbc] BEL  EXPANSION  CLI=105.77 3m=5.13 latest=2026-08-31 (1d) src=yahoo:^BFX
+[23:54:34]   [gbc] SWE  EXPANSION  CLI=106.15 3m=6.937 latest=2026-08-31 (1d) src=yahoo:^OMX
+[23:54:34]   [gbc] IRL  EXPANSION  CLI=106.58 3m=7.932 latest=2026-08-31 (1d) src=yahoo:^ISEQ
+[23:54:34]   [gbc] AUT  EXPANSION  CLI=110.64 3m=10.232 latest=2026-08-31 (1d) src=yahoo:^ATX
+[23:54:34]   [gbc] ^OBX failed: no usable bars
+[23:54:34]   [gbc] ^OSEBX failed: no usable bars
+[23:54:34]   [gbc] NOR  AT_RISK    CLI=105.53 3m=-1.166 latest=2026-08-31 (1d) src=basket:AKRBP.OL+DNB.OL+EQNR.OL+MOWI.OL+NHY.OL+ORK.OL+TEL.OL+YAR.OL
+[23:54:34]   [gbc] ZAF  EXPANSION  CLI=103.0 3m=1.418 latest=2026-08-31 (1d) src=yahoo:^J203.JO
+[23:54:34]   [gbc] DNK  EXPANSION  CLI=103.97 3m=6.304 latest=2026-09-01 (0d) src=yahoo:^OMXC25
+[23:54:34]   [gbc] FIN  EXPANSION  CLI=106.06 3m=-0.32 latest=2026-08-31 (1d) src=yahoo:^OMXH25
+[23:54:34]   [gbc] PX.PR failed: HTTP 404
+[23:54:34]   [gbc] ^PX failed: no usable bars
+[23:54:34]   [gbc] CZE  EXPANSION  CLI=108.0 3m=12.181 latest=2026-08-31 (1d) src=basket:CEZ.PR+ERBAG.PR+KOMB.PR+MONET.PR+VIG.PR
+[23:54:34]   [gbc] BUX.BD failed: HTTP 404
+[23:54:34]   [gbc] ^BUX failed: no usable bars
+[23:54:34]   [gbc] HUN  EXPANSION  CLI=109.73 3m=4.304 latest=2026-08-31 (1d) src=basket:MOL.BD+MTELEKOM.BD+OTP.BD
+[23:54:34]   [gbc] CHL  EXPANSION  CLI=104.71 3m=-0.054 latest=2026-09-01 (0d) src=yahoo:ECH
+[23:54:34]   [gbc] PRT  EXPANSION  CLI=105.51 3m=5.344 latest=2026-08-31 (1d) src=yahoo:PSI20.LS
+[23:54:34]   [gbc] ^ATG failed: no usable bars
+[23:54:34]   [gbc] OPAP.AT failed: HTTP 404
+[23:54:34]   [gbc] MYTIL.AT failed: HTTP 404
+── verdict ──
+[23:54:34] ✅ VERDICT: GREEN -- v2.1.0 live: 34/34 countries, USA CLI 101.22 (was pinned at 120), sources {"yahoo": 30, "basket": 4}, physical {"CONFIRMED": 0, "DIVERGENT": 0, "UNCONFIRMED": 34}
+
+→ Report written to aws/ops/reports/latest/5095-gbc-engine-v21-verify.md
