@@ -1,128 +1,128 @@
-executing-against: 8f05aa786bcfafc6a2258efff1adff02eade4007
-ops 5084 -- justhodl-fortress v1.0.3 redeploy + verified re-run
+executing-against: afe6d491ff6dba3e815fb253307660311a369759
+ops 5085 -- justhodl-fortress v1.0.4 redeploy + verified re-run
 ── G1 key inheritance ──
 ── G2 deploy ──
-[00:33:10]   zip: 126335 bytes
+[00:43:59]   zip: 126401 bytes
 ── 1. Lambda ──
-[00:33:10]   Lambda exists — updating
-[00:33:13] ✅   ✓ updated justhodl-fortress
+[00:44:00]   Lambda exists — updating
+[00:44:05] ✅   ✓ updated justhodl-fortress
 ── G3 schedule (EventBridge Scheduler -- classic rule cap is saturated) ──
 ── G4 first run (async, verified on disk) ──
-[00:33:18] async invoke fired at 2026-09-01T00:33:10+00:00; polling data/fortress.json (prev as_of=2026-09-01T00:31:52+00:00)
-[00:34:01]   engine:   10.9s bars 144/330 sessions, 9936 tickers
-[00:34:01]   engine:   12.5s bars 168/330 sessions, 10111 tickers
-[00:34:01]   engine:   14.2s bars 192/330 sessions, 10290 tickers
-[00:34:01]   engine:   15.8s bars 216/330 sessions, 10455 tickers
-[00:34:01]   engine:   17.5s bars 240/330 sessions, 10622 tickers
-[00:34:01]   engine:   19.2s bars 264/330 sessions, 10852 tickers
-[00:34:01]   engine:   20.9s bars 288/330 sessions, 11172 tickers
-[00:34:01]   engine:   22.7s bars 312/330 sessions, 11434 tickers
-[00:34:01]   engine:   24.0s bars 330/330 sessions, 11608 tickers
-[00:34:01]   engine:   24.0s market: 3 dump episodes (1 big), 12 worst days, SPY vs EMA250 9.56%
-[00:34:01]   engine:   33.3s stock rows built: 5177 (finviz-matched 5286)
-[00:34:01]   engine:   38.1s etf rows built: 2296
+[00:44:11] async invoke fired at 2026-09-01T00:43:59+00:00; polling data/fortress.json (prev as_of=2026-09-01T00:33:58+00:00)
+[00:44:56]   engine:   12.0s bars 144/330 sessions, 9936 tickers
+[00:44:56]   engine:   13.6s bars 168/330 sessions, 10111 tickers
+[00:44:56]   engine:   15.3s bars 192/330 sessions, 10290 tickers
+[00:44:56]   engine:   16.9s bars 216/330 sessions, 10455 tickers
+[00:44:56]   engine:   18.6s bars 240/330 sessions, 10622 tickers
+[00:44:56]   engine:   20.4s bars 264/330 sessions, 10852 tickers
+[00:44:56]   engine:   22.2s bars 288/330 sessions, 11172 tickers
+[00:44:56]   engine:   24.0s bars 312/330 sessions, 11434 tickers
+[00:44:56]   engine:   25.4s bars 330/330 sessions, 11608 tickers
+[00:44:56]   engine:   25.4s market: 3 dump episodes (1 big), 12 worst days, SPY vs EMA250 9.56%
+[00:44:56]   engine:   34.8s stock rows built: 5177 (finviz-matched 5286)
+[00:44:56]   engine:   39.6s etf rows built: 2274
 ── G5 real-data assertions (from S3, independent of the engine's own view) ──
-[00:34:01] probe MSFT: tier=SCREENED comp=47.5 capture=2.51 worst_bps=27.012 vsEMA250=14.048 bbw_pct=38.492 val=34.937 growth=73.637 flows=58.813 etf=IGV
-[00:34:01] board FORTRESS_COIL INVA comp=79.1 asym=16.23 cap=-2.3711 ema=-0.5924 bbw=5.5556 val=95.6715 g=60.6306 fl=69.375 bk=None ct=None flags=['MAJOR_INFLOWS', 'TIGHT_COIL', 'BIG_DUMP_PROOF']
-[00:34:01]       - ROSE while SPY dumped: capture -2.37 across 3 drawdown episode(s), flat-or-up in 100% of them
-[00:34:01]       - on SPY's 12 worst days: +169 bps vs SPY, green 42% of the time
-[00:34:01]       - 0.6% below the 250-day EMA
-[00:34:01]       - Bollinger bandwidth in the 6th percentile of its own year -- TTM squeeze ON for 12 sessions
-[00:34:01]       - valuation cheaper than 96% of its industry peers
-[00:34:01] board COILED UNCY comp=74.2 asym=16.27 cap=-0.0538 ema=-11.2181 bbw=14.6825 val=94.697 g=92.7244 fl=69.375 bk=None ct=None flags=['MAJOR_INFLOWS']
-[00:34:01]       - ROSE while SPY dumped: capture -0.05 across 3 drawdown episode(s), flat-or-up in 67% of them
-[00:34:01]       - but fell MORE than the market in its worst episode (2026-01-27..2026-03-30 SPY -9.1% stock -15.1%)
-[00:34:01]       - on SPY's 12 worst days: +64 bps vs SPY, green 25% of the time
-[00:34:01]       - 11.2% below the 250-day EMA
-[00:34:01]       - Bollinger bandwidth in the 15th percentile of its own year -- TTM squeeze ON for 1 sessions
-[00:34:01] board COILED RAMP comp=72.5 asym=0.22 cap=-0.4358 ema=15.6392 bbw=13.4921 val=69.0772 g=74.5984 fl=58.8125 bk=None ct=None flags=['MAJOR_GROWTH', 'BIG_DUMP_PROOF']
-[00:34:01]       - ROSE while SPY dumped: capture -0.44 across 3 drawdown episode(s), flat-or-up in 100% of them
-[00:34:01]       - on SPY's 12 worst days: +118 bps vs SPY, green 33% of the time
-[00:34:01]       - 15.6% above the 250-day EMA
-[00:34:01]       - Bollinger bandwidth in the 13th percentile of its own year -- TTM squeeze ON for 47 sessions
-[00:34:01]       - valuation cheaper than 69% of its industry peers
-[00:34:01] board COILED SNDX comp=69.2 asym=8.39 cap=-1.6066 ema=5.7733 bbw=2.381 val=66.835 g=92.3444 fl=69.375 bk=None ct=None flags=['MAJOR_GROWTH', 'MAJOR_INFLOWS', 'TIGHT_COIL', 'BIG_DUMP_PROOF']
-[00:34:01]       - ROSE while SPY dumped: capture -1.61 across 3 drawdown episode(s), flat-or-up in 67% of them
-[00:34:01]       - on SPY's 12 worst days: +67 bps vs SPY, green 25% of the time
-[00:34:01]       - 5.8% above the 250-day EMA
-[00:34:01]       - Bollinger bandwidth in the 2th percentile of its own year -- TTM squeeze ON for 7 sessions
-[00:34:01]       - valuation cheaper than 67% of its industry peers
-[00:34:01] board COILED BFAM comp=67.8 asym=3.98 cap=0.0377 ema=-14.574 bbw=13.4921 val=73.0754 g=45.2491 fl=52.6875 bk=None ct=None flags=[]
-[00:34:01]       - captured only 4% of the SPY dumps (size-weighted) across 3 episode(s), flat-or-up in 67% of them
-[00:34:01]       - but fell MORE than the market in its worst episode (2026-01-27..2026-03-30 SPY -9.1% stock -11.3%)
-[00:34:01]       - on SPY's 12 worst days: +204 bps vs SPY, green 75% of the time
-[00:34:01]       - 14.6% below the 250-day EMA
-[00:34:01]       - Bollinger bandwidth in the 13th percentile of its own year -- TTM squeeze ON for 3 sessions
-[00:34:01] board COILED BFS comp=67.6 asym=4.97 cap=-0.709 ema=-1.8533 bbw=13.8889 val=93.505 g=34.1628 fl=45.1875 bk=None ct=None flags=['BIG_DUMP_PROOF']
-[00:34:01]       - ROSE while SPY dumped: capture -0.71 across 3 drawdown episode(s), flat-or-up in 100% of them
-[00:34:01]       - on SPY's 12 worst days: +128 bps vs SPY, green 42% of the time
-[00:34:01]       - 1.9% below the 250-day EMA
-[00:34:01]       - Bollinger bandwidth in the 14th percentile of its own year -- TTM squeeze ON for 5 sessions
-[00:34:01]       - valuation cheaper than 94% of its industry peers
-[00:34:01] board COILED WM comp=66.8 asym=4.66 cap=-0.7989 ema=-2.3387 bbw=11.9048 val=61.7836 g=44.4222 fl=47.2812 bk=None ct=None flags=['BIG_DUMP_PROOF']
-[00:34:01]       - ROSE while SPY dumped: capture -0.80 across 3 drawdown episode(s), flat-or-up in 67% of them
-[00:34:01]       - on SPY's 12 worst days: +189 bps vs SPY, green 67% of the time
-[00:34:01]       - 2.3% below the 250-day EMA
-[00:34:01]       - Bollinger bandwidth in the 12th percentile of its own year -- TTM squeeze ON for 4 sessions
-[00:34:01]       - valuation cheaper than 62% of its industry peers (PEG 2.51)
-[00:34:01] board COILED STZ comp=66.4 asym=5.48 cap=0.1474 ema=-10.6975 bbw=11.5079 val=79.4792 g=41.2242 fl=42.4062 bk=None ct=None flags=[]
-[00:34:01]       - captured only 15% of the SPY dumps (size-weighted) across 3 episode(s), flat-or-up in 33% of them
-[00:34:01]       - on SPY's 12 worst days: +217 bps vs SPY, green 42% of the time
-[00:34:01]       - 10.7% below the 250-day EMA
-[00:34:01]       - Bollinger bandwidth in the 12th percentile of its own year -- TTM squeeze ON for 2 sessions
-[00:34:01]       - valuation cheaper than 79% of its sector peers (PEG 0.31)
-[00:34:01] episodes: [{"peak_date": "2025-10-29", "trough_date": "2025-11-20", "spy_dd_pct": -5.07, "closed": true}, {"peak_date": "2026-01-27", "trough_date": "2026-03-30", "spy_dd_pct": -9.13, "closed": true}, {"peak_date": "2026-06-02", "trough_date": "2026-06-10", "spy_dd_pct": -4.49, "closed": true}]
-[00:34:01] industries top: [{"etf": "IGV", "n_stocks": 464, "tiers": {"COILED": 17, "ACCUMULATING": 78, "WATCH": 115, "SCREENED": 254}, "flow_score": 58.8, "inflow_major": false}, {"etf": "XBI", "n_stocks": 577, "tiers": {"FORTRESS_COIL": 1, "COILED": 7, "ACCUMULATING": 45, "WATCH": 123, "SCREENED": 401}, "flow_score": 69.4, "inflow_major": true}, {"etf": "KRE", "n_stocks": 319, "tiers": {"COILED": 1, "ACCUMULATING": 42, "WATCH": 121, "SCREENED": 155}, "flow_score": 18.7, "inflow_major": false}, {"etf": "XLRE", "n_stocks": 248, "tiers": {"COILED": 5, "ACCUMULATING": 23, "WATCH": 59, "SCREENED": 161}, "flow_score": 45.2, "inflow_major": false}, {"etf": "XLB", "n_stocks": 100, "tiers": {"COILED": 5, "ACCUMULATING": 20, "WATCH": 35, "SCREENED": 40}, "flow_score": 61.0, "inflow_major": false}, {"etf": "IHI", "n_stocks": 194, "tiers": {"COILED": 4, "ACCUMULATING": 20, "WATCH": 56, "SCREENED": 114}, "flow_score": 77.0, "inflow_major": true}, {"etf": "XLP", "n_stocks": 231, "tiers": {"COILED": 2, "ACCUMULATING": 18, "WATCH": 52, "SCREENED": 159}, "flow_score": 42.4, "inflow_major": false}, {"etf": "XLU", "n_stocks": 86, "tiers": {"COILED": 2, "ACCUMULATING": 17, "WATCH": 39, "SCREENED": 28}, "flow_score": 52.3, "inflow_major": false}]
-[00:34:01] etfs top: [{"ticker": "KBWP", "tier": "ETF_COILED", "composite": 78.5, "dump_capture": -0.5039, "flow_score": 100.0}, {"ticker": "KXI", "tier": "ETF_COILED", "composite": 76.1, "dump_capture": -0.1376, "flow_score": 90.75}, {"ticker": "BKGI", "tier": "ETF_COILED", "composite": 72.4, "dump_capture": -0.2544, "flow_score": 100.0}, {"ticker": "DFMC", "tier": "ETF_COILED", "composite": 71.8, "dump_capture": 0.07, "flow_score": 100.0}, {"ticker": "CSRE", "tier": "ETF_COILED", "composite": 71.5, "dump_capture": -0.1439, "flow_score": 100.0}, {"ticker": "RSPU", "tier": "ETF_COILED", "composite": 67.1, "dump_capture": -0.242, "flow_score": 63.0}, {"ticker": "FAB", "tier": "ETF_COILED", "composite": 66.4, "dump_capture": 0.0932, "flow_score": 100.0}, {"ticker": "XHS", "tier": "ETF_COILED", "composite": 66.2, "dump_capture": 0.2187, "flow_score": 90.75}]
-[00:34:01] inputs: {"bars": "data/warm/polygon-full/grouped/ (2025-05-07..2026-08-28, 330 sessions)", "finviz_universe": "2026-08-31T22:00:37.715951+00:00", "fundamental_census_matrix": "2026-09-01T00:07:52.042094+00:00", "industry_boom": "2026-08-31T10:50:03.806562+00:00", "industry_rotation": "2026-08-31T21:38:24.333669+00:00", "etf_flows_polygon": "2026-08-31T22:00:25.581028+00:00", "etf_true_flows": "2026-08-31T15:45:23.111432+00:00", "backlog": "2026-08-31T11:30:46.752693+00:00", "backlog_mined": "2026-08-31T02:30:09+00:00", "deal_history": "2026-09-01T00:05:24.255543+00:00", "catalyst": "2026-08-31T02:29:32+00:00", "floor_audit": "2026-08-31T21:37:21+00:00", "resilience": "2026-08-31T22:46:01.117625+00:00", "f13_flows": "2026-08-31T23:06:38.303422+00:00", "short_interest": "2026-08-31T21:15:38.904686+00:00", "insider_radar": "2026-08-31T14:40:32.785479+00:00", "estimate_revisions": "2026-08-31T17:40:22.896922+00:00", "sp500": "2026-08-31T21:45:45.403867+00:00"}
-[00:34:01] capture distribution over 3299 sampled rows: p10 -1.14 p25 -0.21 p50 0.86 p75 2.5 p90 4.31; <=0.35: 1281; <0: 1005
-[00:34:01] worst-day excess bps: p10 -250 p50 37 p90 204; >=25: 1698
-[00:34:01] bb width pctile: p10 4 p50 40; <=20: 1015; squeeze on: 1062
-[00:34:01] worst days: [{"date": "2025-10-10", "spy_ret_pct": -2.7}, {"date": "2026-06-05", "spy_ret_pct": -2.58}, {"date": "2026-01-20", "spy_ret_pct": -2.04}, {"date": "2026-03-26", "spy_ret_pct": -1.79}, {"date": "2026-03-27", "spy_ret_pct": -1.71}, {"date": "2026-03-20", "spy_ret_pct": -1.7}, {"date": "2025-11-13", "spy_ret_pct": -1.66}, {"date": "2026-06-10", "spy_ret_pct": -1.58}, {"date": "2026-02-12", "spy_ret_pct": -1.54}, {"date": "2026-07-29", "spy_ret_pct": -1.54}, {"date": "2025-11-20", "spy_ret_pct": -1.52}, {"date": "2026-03-12", "spy_ret_pct": -1.52}]
-[00:34:01] breadth: {"pct_under_ema250": 48.4, "pct_coiled": 32.3, "pct_dump_resilient": 22.9}
-[00:34:01] etf ETF_COILED KBWP comp=78.5 cap=-0.5039 worst=218.5766 ema=7.9443 bbw=10.3175 flow=100.0 vol100=20.0763 aum=288722551.0 type=US Equities | Invesco KBW Property & Casualty Insuranc
-[00:34:01] etf ETF_COILED KXI comp=76.1 cap=-0.1376 worst=212.8407 ema=1.8575 bbw=1.1905 flow=90.75 vol100=15.4573 aum=1090750939.0 type=Global Equities | iShares Global Consumer Staples ETF
-[00:34:01] etf ETF_COILED BKGI comp=72.4 cap=-0.2544 worst=126.8785 ema=3.4743 bbw=2.381 flow=100.0 vol100=12.4478 aum=1568956055.0 type=Global Equities | BNY Mellon Global Infrastructure Income 
-[00:34:01] etf ETF_COILED DFMC comp=71.8 cap=0.07 worst=None ema=None bbw=16.129 flow=100.0 vol100=14.6762 aum=192890880.0 type=US Equities | U.S. Micro Cap Portfolio ETF Class Share
-[00:34:01] etf ETF_COILED CSRE comp=71.5 cap=-0.1439 worst=109.0086 ema=4.339 bbw=10.3175 flow=100.0 vol100=14.1645 aum=573516000.0 type=US Equities | Cohen & Steers Real Estate Active ETF
-[00:34:01] etf ETF_COILED RSPU comp=67.1 cap=-0.242 worst=154.671 ema=-2.2533 bbw=28.1746 flow=63.0 vol100=15.8143 aum=524186376.0 type=US Equities | Invesco S&P 500 Equal Weight Utilities E
-[00:34:01] etf ETF_COILED FAB comp=66.4 cap=0.0932 worst=91.308 ema=12.418 bbw=1.9841 flow=100.0 vol100=11.2543 aum=187442714.0 type=US Equities | First Trust Multi Cap Value AlphaDEX Fun
-[00:34:01] etf ETF_COILED XHS comp=66.2 cap=0.2187 worst=77.812 ema=17.6912 bbw=15.0794 flow=90.75 vol100=17.614 aum=214064243.0 type=US Equities | State Street SPDR S&P Health Care Servic
-[00:34:01] etf ETF_COILED GII comp=65.9 cap=-0.0976 worst=120.5633 ema=1.2382 bbw=8.3333 flow=80.5 vol100=12.2451 aum=939865461.0 type=Global Equities | State Street SPDR S&P Global Infrastruct
-[00:34:01] etf ETF_COILED OMAH comp=65.9 cap=0.1295 worst=134.2128 ema=-2.8267 bbw=90.0794 flow=100.0 vol100=9.2106 aum=1112238720.0 type=US Equity Income | VistaShares Target 15 Berkshire Select I
-[00:34:01] etf ETF_COILED MFSV comp=65.1 cap=0.248 worst=78.8115 ema=8.153 bbw=0.7937 flow=100.0 vol100=9.6287 aum=604003373.0 type=US Equities | MFS Active Value ETF
-[00:34:01] etf ETF_COILED SCHY comp=65.0 cap=0.1392 worst=108.9161 ema=7.407 bbw=4.7619 flow=99.875 vol100=11.8573 aum=2616702041.0 type=Global Ex. US Equities | Schwab International Dividend Equity ETF
-[00:34:01] etf ETF_COILED FUTY comp=65.0 cap=-0.1391 worst=134.1388 ema=-3.0027 bbw=31.3492 flow=67.125 vol100=16.0835 aum=2275526059.0 type=US Equities | Fidelity MSCI Utilities Index ETF
-[00:34:01] etf ETF_COILED USRT comp=64.9 cap=-0.2036 worst=112.9967 ema=5.8966 bbw=9.5238 flow=68.5 vol100=15.0017 aum=4606497352.0 type=US Equities | iShares Core U.S. REIT ETF
-[00:34:01] row FORTRESS_COIL INVA small Biotechnology cap=-2.3711 worst_cap=-1.72 n_ep=3 worst=168.638 green=0.4167 dc=-9.6041 bbw=5.5556 sq=12 vol100=24.5171 adv=13485001.2923 px=20.97 eps=[(20.43, -4.03), (16.18, -1.77), (7.73, -1.72)] risks=[]
-[00:34:01] row COILED UNCY micro Biotechnology cap=-0.0538 worst_cap=1.66 n_ep=3 worst=63.8505 green=0.25 dc=54.1456 bbw=14.6825 sq=1 vol100=106.6315 adv=3835546.0363 px=5.265 eps=[(9.79, -1.93), (-15.14, 1.66), (6.36, -1.42)] risks=['thin liquidity: $3.8M average daily dollar volume']
-[00:34:01] row COILED RAMP mid Software - Infrastruct cap=-0.4358 worst_cap=-0.05 n_ep=3 worst=118.0554 green=0.3333 dc=37.8805 bbw=13.4921 sq=47 vol100=43.4451 adv=32940630.5817 px=37.74 eps=[(3.43, -0.68), (4.49, -0.49), (0.24, -0.05)] risks=[]
-[00:34:01] row COILED SNDX small Biotechnology cap=-1.6066 worst_cap=0.98 n_ep=3 worst=66.9388 green=0.25 dc=33.3768 bbw=2.381 sq=7 vol100=47.2405 adv=25465437.7965 px=19.54 eps=[(28.97, -5.71), (5.49, -0.6), (-4.4, 0.98)] risks=['short float 28% -- crowded short, violent both ways']
-[00:34:01] row COILED BFAM mid Personal Services cap=0.0377 worst_cap=1.24 n_ep=3 worst=203.9397 green=0.75 dc=-5.628 bbw=13.4921 sq=3 vol100=49.0804 adv=45927201.508 px=74.81 eps=[(5.28, -1.04), (-11.32, 1.24), (5.34, -1.19)] risks=[]
-[00:34:01] row COILED BFS small REIT - Retail cap=-0.709 worst_cap=-0.46 n_ep=3 worst=127.8849 green=0.4167 dc=-6.2972 bbw=13.8889 sq=5 vol100=20.4893 adv=3321446.7842 px=33.27 eps=[(2.59, -0.51), (4.17, -0.46), (6.45, -1.44)] risks=['thin liquidity: $3.3M average daily dollar volume']
-[00:34:01] row COILED WM large Waste Management cap=-0.7989 worst_cap=0.07 n_ep=3 worst=189.2408 green=0.6667 dc=-57.137 bbw=11.9048 sq=4 vol100=22.1459 adv=427964878.7241 px=219.66 eps=[(9.76, -1.92), (-0.6, 0.07), (5.83, -1.3)] risks=[]
-[00:34:01] row COILED STZ large Beverages - Brewers cap=0.1474 worst_cap=0.7 n_ep=3 worst=216.5595 green=0.4167 dc=26.0289 bbw=11.5079 sq=2 vol100=33.014 adv=209854670.9174 px=130.69 eps=[(-0.4, 0.08), (-6.36, 0.7), (4.03, -0.9)] risks=[]
-[00:34:01] row COILED PPL large Utilities - Regulated  cap=-0.1675 worst_cap=0.51 n_ep=3 worst=188.5413 green=0.5833 dc=-9.7344 bbw=35.7143 sq=12 vol100=19.547 adv=269753756.3403 px=34.2 eps=[(-2.58, 0.51), (3.54, -0.39), (2.15, -0.48)] risks=['Altman Z 1.02 -- distress zone']
-[00:34:01] row COILED BGS micro Packaged Foods cap=-0.882 worst_cap=0.16 n_ep=3 worst=140.9058 green=0.3333 dc=38.9077 bbw=13.4921 sq=3 vol100=44.3723 adv=7666167.6073 px=3.52 eps=[(3.16, -0.62), (14.09, -1.54), (-0.74, 0.16)] risks=[]
-[00:34:01] row COILED CRC mid Oil & Gas E&P cap=-1.5928 worst_cap=1.02 n_ep=3 worst=115.946 green=0.5 dc=-19.2426 bbw=2.381 sq=4 vol100=37.3193 adv=42742344.7083 px=52.23 eps=[(-1.6, 0.32), (35.93, -3.94), (-4.6, 1.02)] risks=[]
-[00:34:01] row COILED CE mid Chemicals cap=-0.897 worst_cap=2.26 n_ep=3 worst=97.0441 green=0.3333 dc=44.0649 bbw=1.9841 sq=19 vol100=47.584 adv=75738925.0488 px=45.0 eps=[(-11.44, 2.26), (37.11, -4.06), (-8.85, 1.97)] risks=[]
-[00:34:01] row COILED FCN mid Consulting Services cap=0.2692 worst_cap=0.79 n_ep=3 worst=265.8175 green=0.5 dc=-0.5624 bbw=13.8889 sq=3 vol100=32.3045 adv=60845125.0339 px=153.74 eps=[(-4.01, 0.79), (-4.99, 0.55), (4.0, -0.89)] risks=[]
-[00:34:01] row COILED PHAT small Biotechnology cap=0.9703 worst_cap=2.85 n_ep=3 worst=141.0449 green=0.5833 dc=100.448 bbw=18.6508 sq=0 vol100=72.1391 adv=11636377.5972 px=9.18 eps=[(6.13, -1.21), (-26.0, 2.85), (1.76, -0.39)] risks=[]
-[00:34:01] row COILED EVAX nano Biotechnology cap=0.6472 worst_cap=1.41 n_ep=3 worst=126.9306 green=0.4167 dc=-11.3335 bbw=33.7302 sq=1 vol100=59.8384 adv=1802666.7114 px=3.01 eps=[(-7.13, 1.41), (-5.99, 0.66), (1.07, -0.24)] risks=['max drawdown -75% over the year', 'thin liquidity: $1.8M average daily dollar volume']
-[00:34:01] row COILED NPB small Banks - Regional cap=0.1204 worst_cap=0.56 n_ep=3 worst=113.2885 green=0.4167 dc=82.0961 bbw=2.7778 sq=9 vol100=30.4183 adv=2875482.2996 px=17.04 eps=[(-0.13, 0.02), (-5.14, 0.56), (2.97, -0.66)] risks=['thin liquidity: $2.9M average daily dollar volume']
-[00:34:01] row COILED TXNM mid Utilities - Regulated  cap=0.1252 worst_cap=0.67 n_ep=3 worst=168.7761 green=0.4167 dc=3.5331 bbw=28.9683 sq=4 vol100=6.1531 adv=43957010.4193 px=57.64 eps=[(1.69, -0.33), (-1.05, 0.11), (-3.01, 0.67)] risks=[]
-[00:34:01] row COILED ZKH small Internet Retail cap=0.4552 worst_cap=1.3 n_ep=3 worst=344.1236 green=0.5833 dc=88.0743 bbw=9.127 sq=17 vol100=61.4602 adv=1149839.7834 px=2.92 eps=[(2.67, -0.53), (-11.88, 1.3), (0.69, -0.15)] risks=['thin liquidity: $1.1M average daily dollar volume']
-[00:34:01] row COILED NVST mid Medical Instruments &  cap=-0.0628 worst_cap=0.86 n_ep=3 worst=-1.9861 green=0.25 dc=98.867 bbw=13.4921 sq=0 vol100=34.7704 adv=78604068.7444 px=27.13 eps=[(-4.35, 0.86), (0.62, -0.07), (4.88, -1.09)] risks=[]
-[00:34:01] row COILED VMD small Medical Devices cap=-1.5758 worst_cap=0.57 n_ep=3 worst=93.1883 green=0.4167 dc=26.2568 bbw=93.6508 sq=0 vol100=47.9105 adv=4742272.2313 px=8.82 eps=[(-2.91, 0.57), (25.5, -2.79), (6.86, -1.53)] risks=['thin liquidity: $4.7M average daily dollar volume']
-[00:34:01] row COILED OOMA small Software - Application cap=-0.5986 worst_cap=0.92 n_ep=3 worst=84.9941 green=0.25 dc=59.7983 bbw=54.7619 sq=3 vol100=47.7496 adv=8767887.927 px=22.91 eps=[(-4.66, 0.92), (16.56, -1.81), (-0.68, 0.15)] risks=[]
-[00:34:01] row COILED ATEC small Medical Devices cap=0.0169 worst_cap=3.06 n_ep=3 worst=22.4663 green=0.25 dc=113.7976 bbw=11.5079 sq=0 vol100=87.5379 adv=20324966.5254 px=9.44 eps=[(18.92, -3.73), (-27.92, 3.06), (8.69, -1.94)] risks=['max drawdown -69% over the year']
-[00:34:01] row COILED VICI large REIT - Diversified cap=0.2535 worst_cap=0.6 n_ep=3 worst=152.157 green=0.4167 dc=11.4096 bbw=16.6667 sq=20 vol100=21.2063 adv=240541596.7295 px=25.87 eps=[(-3.03, 0.6), (-4.88, 0.53), (3.16, -0.7)] risks=['Altman Z 1.35 -- distress zone']
-[00:34:01] row COILED DFIN small Software - Application cap=0.8201 worst_cap=1.24 n_ep=3 worst=-12.8085 green=0.0833 dc=81.569 bbw=1.1905 sq=4 vol100=46.7772 adv=10057838.0677 px=48.32 eps=[(0.99, -0.2), (-10.81, 1.18), (-5.55, 1.24)] risks=[]
-[00:34:01] board tiers: {"FORTRESS_COIL": 1, "COILED": 58, "ACCUMULATING": 440, "WATCH": 301}
+[00:44:56] probe MSFT: tier=SCREENED comp=47.5 capture=2.51 worst_bps=27.012 vsEMA250=14.048 bbw_pct=38.492 val=34.937 growth=73.637 flows=58.813 etf=IGV
+[00:44:56] board FORTRESS_COIL INVA comp=79.1 asym=16.23 cap=-2.3711 ema=-0.5924 bbw=5.5556 val=95.6715 g=60.6306 fl=69.375 bk=None ct=None flags=['MAJOR_INFLOWS', 'TIGHT_COIL', 'BIG_DUMP_PROOF']
+[00:44:56]       - ROSE while SPY dumped: capture -2.37 across 3 drawdown episode(s), flat-or-up in 100% of them
+[00:44:56]       - on SPY's 12 worst days: +169 bps vs SPY, green 42% of the time
+[00:44:56]       - 0.6% below the 250-day EMA
+[00:44:56]       - Bollinger bandwidth in the 6th percentile of its own year -- TTM squeeze ON for 12 sessions
+[00:44:56]       - valuation cheaper than 96% of its industry peers
+[00:44:56] board COILED UNCY comp=74.2 asym=16.27 cap=-0.0538 ema=-11.2181 bbw=14.6825 val=94.697 g=92.7244 fl=69.375 bk=None ct=None flags=['MAJOR_INFLOWS']
+[00:44:56]       - ROSE while SPY dumped: capture -0.05 across 3 drawdown episode(s), flat-or-up in 67% of them
+[00:44:56]       - but fell MORE than the market in its worst episode (2026-01-27..2026-03-30 SPY -9.1% stock -15.1%)
+[00:44:56]       - on SPY's 12 worst days: +64 bps vs SPY, green 25% of the time
+[00:44:56]       - 11.2% below the 250-day EMA
+[00:44:56]       - Bollinger bandwidth in the 15th percentile of its own year -- TTM squeeze ON for 1 sessions
+[00:44:56] board COILED RAMP comp=72.5 asym=0.22 cap=-0.4358 ema=15.6392 bbw=13.4921 val=69.0772 g=74.5984 fl=58.8125 bk=None ct=None flags=['MAJOR_GROWTH', 'BIG_DUMP_PROOF']
+[00:44:56]       - ROSE while SPY dumped: capture -0.44 across 3 drawdown episode(s), flat-or-up in 100% of them
+[00:44:56]       - on SPY's 12 worst days: +118 bps vs SPY, green 33% of the time
+[00:44:56]       - 15.6% above the 250-day EMA
+[00:44:56]       - Bollinger bandwidth in the 13th percentile of its own year -- TTM squeeze ON for 47 sessions
+[00:44:56]       - valuation cheaper than 69% of its industry peers
+[00:44:56] board COILED SNDX comp=69.2 asym=8.39 cap=-1.6066 ema=5.7733 bbw=2.381 val=66.835 g=92.3444 fl=69.375 bk=None ct=None flags=['MAJOR_GROWTH', 'MAJOR_INFLOWS', 'TIGHT_COIL', 'BIG_DUMP_PROOF']
+[00:44:56]       - ROSE while SPY dumped: capture -1.61 across 3 drawdown episode(s), flat-or-up in 67% of them
+[00:44:56]       - on SPY's 12 worst days: +67 bps vs SPY, green 25% of the time
+[00:44:56]       - 5.8% above the 250-day EMA
+[00:44:56]       - Bollinger bandwidth in the 2th percentile of its own year -- TTM squeeze ON for 7 sessions
+[00:44:56]       - valuation cheaper than 67% of its industry peers
+[00:44:56] board COILED BFAM comp=67.8 asym=3.98 cap=0.0377 ema=-14.574 bbw=13.4921 val=73.0754 g=45.2491 fl=52.6875 bk=None ct=None flags=[]
+[00:44:56]       - captured only 4% of the SPY dumps (size-weighted) across 3 episode(s), flat-or-up in 67% of them
+[00:44:56]       - but fell MORE than the market in its worst episode (2026-01-27..2026-03-30 SPY -9.1% stock -11.3%)
+[00:44:56]       - on SPY's 12 worst days: +204 bps vs SPY, green 75% of the time
+[00:44:56]       - 14.6% below the 250-day EMA
+[00:44:56]       - Bollinger bandwidth in the 13th percentile of its own year -- TTM squeeze ON for 3 sessions
+[00:44:56] board COILED BFS comp=67.6 asym=4.97 cap=-0.709 ema=-1.8533 bbw=13.8889 val=93.505 g=34.1628 fl=45.1875 bk=None ct=None flags=['BIG_DUMP_PROOF']
+[00:44:56]       - ROSE while SPY dumped: capture -0.71 across 3 drawdown episode(s), flat-or-up in 100% of them
+[00:44:56]       - on SPY's 12 worst days: +128 bps vs SPY, green 42% of the time
+[00:44:56]       - 1.9% below the 250-day EMA
+[00:44:56]       - Bollinger bandwidth in the 14th percentile of its own year -- TTM squeeze ON for 5 sessions
+[00:44:56]       - valuation cheaper than 94% of its industry peers
+[00:44:56] board COILED WM comp=66.8 asym=4.66 cap=-0.7989 ema=-2.3387 bbw=11.9048 val=61.7836 g=44.4222 fl=47.2812 bk=None ct=None flags=['BIG_DUMP_PROOF']
+[00:44:56]       - ROSE while SPY dumped: capture -0.80 across 3 drawdown episode(s), flat-or-up in 67% of them
+[00:44:56]       - on SPY's 12 worst days: +189 bps vs SPY, green 67% of the time
+[00:44:56]       - 2.3% below the 250-day EMA
+[00:44:56]       - Bollinger bandwidth in the 12th percentile of its own year -- TTM squeeze ON for 4 sessions
+[00:44:56]       - valuation cheaper than 62% of its industry peers (PEG 2.51)
+[00:44:56] board COILED STZ comp=66.4 asym=5.48 cap=0.1474 ema=-10.6975 bbw=11.5079 val=79.4792 g=41.2242 fl=42.4062 bk=None ct=None flags=[]
+[00:44:56]       - captured only 15% of the SPY dumps (size-weighted) across 3 episode(s), flat-or-up in 33% of them
+[00:44:56]       - on SPY's 12 worst days: +217 bps vs SPY, green 42% of the time
+[00:44:56]       - 10.7% below the 250-day EMA
+[00:44:56]       - Bollinger bandwidth in the 12th percentile of its own year -- TTM squeeze ON for 2 sessions
+[00:44:56]       - valuation cheaper than 79% of its sector peers (PEG 0.31)
+[00:44:56] episodes: [{"peak_date": "2025-10-29", "trough_date": "2025-11-20", "spy_dd_pct": -5.07, "closed": true}, {"peak_date": "2026-01-27", "trough_date": "2026-03-30", "spy_dd_pct": -9.13, "closed": true}, {"peak_date": "2026-06-02", "trough_date": "2026-06-10", "spy_dd_pct": -4.49, "closed": true}]
+[00:44:56] industries top: [{"etf": "IGV", "n_stocks": 464, "tiers": {"COILED": 17, "ACCUMULATING": 78, "WATCH": 115, "SCREENED": 254}, "flow_score": 58.8, "inflow_major": false}, {"etf": "XBI", "n_stocks": 577, "tiers": {"FORTRESS_COIL": 1, "COILED": 7, "ACCUMULATING": 45, "WATCH": 123, "SCREENED": 401}, "flow_score": 69.4, "inflow_major": true}, {"etf": "KRE", "n_stocks": 319, "tiers": {"COILED": 1, "ACCUMULATING": 42, "WATCH": 121, "SCREENED": 155}, "flow_score": 18.7, "inflow_major": false}, {"etf": "XLRE", "n_stocks": 248, "tiers": {"COILED": 5, "ACCUMULATING": 23, "WATCH": 59, "SCREENED": 161}, "flow_score": 45.2, "inflow_major": false}, {"etf": "XLB", "n_stocks": 100, "tiers": {"COILED": 5, "ACCUMULATING": 20, "WATCH": 35, "SCREENED": 40}, "flow_score": 61.0, "inflow_major": false}, {"etf": "IHI", "n_stocks": 194, "tiers": {"COILED": 4, "ACCUMULATING": 20, "WATCH": 56, "SCREENED": 114}, "flow_score": 77.0, "inflow_major": true}, {"etf": "XLP", "n_stocks": 231, "tiers": {"COILED": 2, "ACCUMULATING": 18, "WATCH": 52, "SCREENED": 159}, "flow_score": 42.4, "inflow_major": false}, {"etf": "XLU", "n_stocks": 86, "tiers": {"COILED": 2, "ACCUMULATING": 17, "WATCH": 39, "SCREENED": 28}, "flow_score": 52.3, "inflow_major": false}]
+[00:44:56] etfs top: [{"ticker": "KBWP", "tier": "ETF_COILED", "composite": 78.5, "dump_capture": -0.5039, "flow_score": 100.0}, {"ticker": "KXI", "tier": "ETF_COILED", "composite": 76.1, "dump_capture": -0.1376, "flow_score": 90.75}, {"ticker": "BKGI", "tier": "ETF_COILED", "composite": 72.4, "dump_capture": -0.2544, "flow_score": 100.0}, {"ticker": "DFMC", "tier": "ETF_COILED", "composite": 71.8, "dump_capture": 0.07, "flow_score": 100.0}, {"ticker": "CSRE", "tier": "ETF_COILED", "composite": 71.5, "dump_capture": -0.1439, "flow_score": 100.0}, {"ticker": "RSPU", "tier": "ETF_COILED", "composite": 67.1, "dump_capture": -0.242, "flow_score": 63.0}, {"ticker": "FAB", "tier": "ETF_COILED", "composite": 66.4, "dump_capture": 0.0932, "flow_score": 100.0}, {"ticker": "XHS", "tier": "ETF_COILED", "composite": 66.2, "dump_capture": 0.2187, "flow_score": 90.75}]
+[00:44:56] inputs: {"bars": "data/warm/polygon-full/grouped/ (2025-05-07..2026-08-28, 330 sessions)", "finviz_universe": "2026-08-31T22:00:37.715951+00:00", "fundamental_census_matrix": "2026-09-01T00:37:49.938332+00:00", "industry_boom": "2026-08-31T10:50:03.806562+00:00", "industry_rotation": "2026-08-31T21:38:24.333669+00:00", "etf_flows_polygon": "2026-08-31T22:00:25.581028+00:00", "etf_true_flows": "2026-08-31T15:45:23.111432+00:00", "backlog": "2026-08-31T11:30:46.752693+00:00", "backlog_mined": "2026-08-31T02:30:09+00:00", "deal_history": "2026-09-01T00:05:24.255543+00:00", "catalyst": "2026-08-31T02:29:32+00:00", "floor_audit": "2026-08-31T21:37:21+00:00", "resilience": "2026-08-31T22:46:01.117625+00:00", "f13_flows": "2026-08-31T23:06:38.303422+00:00", "short_interest": "2026-08-31T21:15:38.904686+00:00", "insider_radar": "2026-08-31T14:40:32.785479+00:00", "estimate_revisions": "2026-08-31T17:40:22.896922+00:00", "sp500": "2026-08-31T21:45:45.403867+00:00"}
+[00:44:56] capture distribution over 3299 sampled rows: p10 -1.14 p25 -0.21 p50 0.86 p75 2.5 p90 4.31; <=0.35: 1281; <0: 1005
+[00:44:56] worst-day excess bps: p10 -250 p50 37 p90 204; >=25: 1698
+[00:44:56] bb width pctile: p10 4 p50 40; <=20: 1015; squeeze on: 1062
+[00:44:56] worst days: [{"date": "2025-10-10", "spy_ret_pct": -2.7}, {"date": "2026-06-05", "spy_ret_pct": -2.58}, {"date": "2026-01-20", "spy_ret_pct": -2.04}, {"date": "2026-03-26", "spy_ret_pct": -1.79}, {"date": "2026-03-27", "spy_ret_pct": -1.71}, {"date": "2026-03-20", "spy_ret_pct": -1.7}, {"date": "2025-11-13", "spy_ret_pct": -1.66}, {"date": "2026-06-10", "spy_ret_pct": -1.58}, {"date": "2026-02-12", "spy_ret_pct": -1.54}, {"date": "2026-07-29", "spy_ret_pct": -1.54}, {"date": "2025-11-20", "spy_ret_pct": -1.52}, {"date": "2026-03-12", "spy_ret_pct": -1.52}]
+[00:44:56] breadth: {"pct_under_ema250": 48.4, "pct_coiled": 32.3, "pct_dump_resilient": 22.9}
+[00:44:56] etf ETF_COILED KBWP comp=78.5 cap=-0.5039 worst=218.5766 ema=7.9443 bbw=10.3175 flow=100.0 vol100=20.0763 aum=288722551.0 type=US Equities | Invesco KBW Property & Casualty Insuranc
+[00:44:56] etf ETF_COILED KXI comp=76.1 cap=-0.1376 worst=212.8407 ema=1.8575 bbw=1.1905 flow=90.75 vol100=15.4573 aum=1090750939.0 type=Global Equities | iShares Global Consumer Staples ETF
+[00:44:56] etf ETF_COILED BKGI comp=72.4 cap=-0.2544 worst=126.8785 ema=3.4743 bbw=2.381 flow=100.0 vol100=12.4478 aum=1568956055.0 type=Global Equities | BNY Mellon Global Infrastructure Income 
+[00:44:56] etf ETF_COILED DFMC comp=71.8 cap=0.07 worst=None ema=None bbw=16.129 flow=100.0 vol100=14.6762 aum=192890880.0 type=US Equities | U.S. Micro Cap Portfolio ETF Class Share
+[00:44:56] etf ETF_COILED CSRE comp=71.5 cap=-0.1439 worst=109.0086 ema=4.339 bbw=10.3175 flow=100.0 vol100=14.1645 aum=573516000.0 type=US Equities | Cohen & Steers Real Estate Active ETF
+[00:44:56] etf ETF_COILED RSPU comp=67.1 cap=-0.242 worst=154.671 ema=-2.2533 bbw=28.1746 flow=63.0 vol100=15.8143 aum=524186376.0 type=US Equities | Invesco S&P 500 Equal Weight Utilities E
+[00:44:56] etf ETF_COILED FAB comp=66.4 cap=0.0932 worst=91.308 ema=12.418 bbw=1.9841 flow=100.0 vol100=11.2543 aum=187442714.0 type=US Equities | First Trust Multi Cap Value AlphaDEX Fun
+[00:44:56] etf ETF_COILED XHS comp=66.2 cap=0.2187 worst=77.812 ema=17.6912 bbw=15.0794 flow=90.75 vol100=17.614 aum=214064243.0 type=US Equities | State Street SPDR S&P Health Care Servic
+[00:44:56] etf ETF_COILED GII comp=65.9 cap=-0.0976 worst=120.5633 ema=1.2382 bbw=8.3333 flow=80.5 vol100=12.2451 aum=939865461.0 type=Global Equities | State Street SPDR S&P Global Infrastruct
+[00:44:56] etf ETF_COILED MFSV comp=65.1 cap=0.248 worst=78.8115 ema=8.153 bbw=0.7937 flow=100.0 vol100=9.6287 aum=604003373.0 type=US Equities | MFS Active Value ETF
+[00:44:56] etf ETF_COILED SCHY comp=65.0 cap=0.1392 worst=108.9161 ema=7.407 bbw=4.7619 flow=99.875 vol100=11.8573 aum=2616702041.0 type=Global Ex. US Equities | Schwab International Dividend Equity ETF
+[00:44:56] etf ETF_COILED FUTY comp=65.0 cap=-0.1391 worst=134.1388 ema=-3.0027 bbw=31.3492 flow=67.125 vol100=16.0835 aum=2275526059.0 type=US Equities | Fidelity MSCI Utilities Index ETF
+[00:44:56] etf ETF_COILED USRT comp=64.9 cap=-0.2036 worst=112.9967 ema=5.8966 bbw=9.5238 flow=68.5 vol100=15.0017 aum=4606497352.0 type=US Equities | iShares Core U.S. REIT ETF
+[00:44:56] etf ETF_COILED FYT comp=64.9 cap=0.0982 worst=68.5058 ema=14.4508 bbw=1.9841 flow=97.75 vol100=14.5441 aum=198110144.0 type=US Equities | First Trust Small Cap Value AlphaDEX Fun
+[00:44:56] row FORTRESS_COIL INVA small Biotechnology cap=-2.3711 worst_cap=-1.72 n_ep=3 worst=168.638 green=0.4167 dc=-9.6041 bbw=5.5556 sq=12 vol100=24.5171 adv=13485001.2923 px=20.97 eps=[(20.43, -4.03), (16.18, -1.77), (7.73, -1.72)] risks=[]
+[00:44:56] row COILED UNCY micro Biotechnology cap=-0.0538 worst_cap=1.66 n_ep=3 worst=63.8505 green=0.25 dc=54.1456 bbw=14.6825 sq=1 vol100=106.6315 adv=3835546.0363 px=5.265 eps=[(9.79, -1.93), (-15.14, 1.66), (6.36, -1.42)] risks=['thin liquidity: $3.8M average daily dollar volume']
+[00:44:56] row COILED RAMP mid Software - Infrastruct cap=-0.4358 worst_cap=-0.05 n_ep=3 worst=118.0554 green=0.3333 dc=37.8805 bbw=13.4921 sq=47 vol100=43.4451 adv=32940630.5817 px=37.74 eps=[(3.43, -0.68), (4.49, -0.49), (0.24, -0.05)] risks=[]
+[00:44:56] row COILED SNDX small Biotechnology cap=-1.6066 worst_cap=0.98 n_ep=3 worst=66.9388 green=0.25 dc=33.3768 bbw=2.381 sq=7 vol100=47.2405 adv=25465437.7965 px=19.54 eps=[(28.97, -5.71), (5.49, -0.6), (-4.4, 0.98)] risks=['short float 28% -- crowded short, violent both ways']
+[00:44:56] row COILED BFAM mid Personal Services cap=0.0377 worst_cap=1.24 n_ep=3 worst=203.9397 green=0.75 dc=-5.628 bbw=13.4921 sq=3 vol100=49.0804 adv=45927201.508 px=74.81 eps=[(5.28, -1.04), (-11.32, 1.24), (5.34, -1.19)] risks=[]
+[00:44:56] row COILED BFS small REIT - Retail cap=-0.709 worst_cap=-0.46 n_ep=3 worst=127.8849 green=0.4167 dc=-6.2972 bbw=13.8889 sq=5 vol100=20.4893 adv=3321446.7842 px=33.27 eps=[(2.59, -0.51), (4.17, -0.46), (6.45, -1.44)] risks=['thin liquidity: $3.3M average daily dollar volume']
+[00:44:56] row COILED WM large Waste Management cap=-0.7989 worst_cap=0.07 n_ep=3 worst=189.2408 green=0.6667 dc=-57.137 bbw=11.9048 sq=4 vol100=22.1459 adv=427964878.7241 px=219.66 eps=[(9.76, -1.92), (-0.6, 0.07), (5.83, -1.3)] risks=[]
+[00:44:56] row COILED STZ large Beverages - Brewers cap=0.1474 worst_cap=0.7 n_ep=3 worst=216.5595 green=0.4167 dc=26.0289 bbw=11.5079 sq=2 vol100=33.014 adv=209854670.9174 px=130.69 eps=[(-0.4, 0.08), (-6.36, 0.7), (4.03, -0.9)] risks=[]
+[00:44:56] row COILED PPL large Utilities - Regulated  cap=-0.1675 worst_cap=0.51 n_ep=3 worst=188.5413 green=0.5833 dc=-9.7344 bbw=35.7143 sq=12 vol100=19.547 adv=269753756.3403 px=34.2 eps=[(-2.58, 0.51), (3.54, -0.39), (2.15, -0.48)] risks=['Altman Z 1.02 -- distress zone']
+[00:44:56] row COILED BGS micro Packaged Foods cap=-0.882 worst_cap=0.16 n_ep=3 worst=140.9058 green=0.3333 dc=38.9077 bbw=13.4921 sq=3 vol100=44.3723 adv=7666167.6073 px=3.52 eps=[(3.16, -0.62), (14.09, -1.54), (-0.74, 0.16)] risks=[]
+[00:44:56] row COILED CRC mid Oil & Gas E&P cap=-1.5928 worst_cap=1.02 n_ep=3 worst=115.946 green=0.5 dc=-19.2426 bbw=2.381 sq=4 vol100=37.3193 adv=42742344.7083 px=52.23 eps=[(-1.6, 0.32), (35.93, -3.94), (-4.6, 1.02)] risks=[]
+[00:44:56] row COILED CE mid Chemicals cap=-0.897 worst_cap=2.26 n_ep=3 worst=97.0441 green=0.3333 dc=44.0649 bbw=1.9841 sq=19 vol100=47.584 adv=75738925.0488 px=45.0 eps=[(-11.44, 2.26), (37.11, -4.06), (-8.85, 1.97)] risks=[]
+[00:44:56] row COILED FCN mid Consulting Services cap=0.2692 worst_cap=0.79 n_ep=3 worst=265.8175 green=0.5 dc=-0.5624 bbw=13.8889 sq=3 vol100=32.3045 adv=60845125.0339 px=153.74 eps=[(-4.01, 0.79), (-4.99, 0.55), (4.0, -0.89)] risks=[]
+[00:44:56] row COILED PHAT small Biotechnology cap=0.9703 worst_cap=2.85 n_ep=3 worst=141.0449 green=0.5833 dc=100.448 bbw=18.6508 sq=0 vol100=72.1391 adv=11636377.5972 px=9.18 eps=[(6.13, -1.21), (-26.0, 2.85), (1.76, -0.39)] risks=[]
+[00:44:56] row COILED EVAX nano Biotechnology cap=0.6472 worst_cap=1.41 n_ep=3 worst=126.9306 green=0.4167 dc=-11.3335 bbw=33.7302 sq=1 vol100=59.8384 adv=1802666.7114 px=3.01 eps=[(-7.13, 1.41), (-5.99, 0.66), (1.07, -0.24)] risks=['max drawdown -75% over the year', 'thin liquidity: $1.8M average daily dollar volume']
+[00:44:56] row COILED NPB small Banks - Regional cap=0.1204 worst_cap=0.56 n_ep=3 worst=113.2885 green=0.4167 dc=82.0961 bbw=2.7778 sq=9 vol100=30.4183 adv=2875482.2996 px=17.04 eps=[(-0.13, 0.02), (-5.14, 0.56), (2.97, -0.66)] risks=['thin liquidity: $2.9M average daily dollar volume']
+[00:44:56] row COILED TXNM mid Utilities - Regulated  cap=0.1252 worst_cap=0.67 n_ep=3 worst=168.7761 green=0.4167 dc=3.5331 bbw=28.9683 sq=4 vol100=6.1531 adv=43957010.4193 px=57.64 eps=[(1.69, -0.33), (-1.05, 0.11), (-3.01, 0.67)] risks=[]
+[00:44:56] row COILED ZKH small Internet Retail cap=0.4552 worst_cap=1.3 n_ep=3 worst=344.1236 green=0.5833 dc=88.0743 bbw=9.127 sq=17 vol100=61.4602 adv=1149839.7834 px=2.92 eps=[(2.67, -0.53), (-11.88, 1.3), (0.69, -0.15)] risks=['thin liquidity: $1.1M average daily dollar volume']
+[00:44:56] row COILED NVST mid Medical Instruments &  cap=-0.0628 worst_cap=0.86 n_ep=3 worst=-1.9861 green=0.25 dc=98.867 bbw=13.4921 sq=0 vol100=34.7704 adv=78604068.7444 px=27.13 eps=[(-4.35, 0.86), (0.62, -0.07), (4.88, -1.09)] risks=[]
+[00:44:56] row COILED VMD small Medical Devices cap=-1.5758 worst_cap=0.57 n_ep=3 worst=93.1883 green=0.4167 dc=26.2568 bbw=93.6508 sq=0 vol100=47.9105 adv=4742272.2313 px=8.82 eps=[(-2.91, 0.57), (25.5, -2.79), (6.86, -1.53)] risks=['thin liquidity: $4.7M average daily dollar volume']
+[00:44:56] row COILED OOMA small Software - Application cap=-0.5986 worst_cap=0.92 n_ep=3 worst=84.9941 green=0.25 dc=59.7983 bbw=54.7619 sq=3 vol100=47.7496 adv=8767887.927 px=22.91 eps=[(-4.66, 0.92), (16.56, -1.81), (-0.68, 0.15)] risks=[]
+[00:44:56] row COILED ATEC small Medical Devices cap=0.0169 worst_cap=3.06 n_ep=3 worst=22.4663 green=0.25 dc=113.7976 bbw=11.5079 sq=0 vol100=87.5379 adv=20324966.5254 px=9.44 eps=[(18.92, -3.73), (-27.92, 3.06), (8.69, -1.94)] risks=['max drawdown -69% over the year']
+[00:44:56] row COILED VICI large REIT - Diversified cap=0.2535 worst_cap=0.6 n_ep=3 worst=152.157 green=0.4167 dc=11.4096 bbw=16.6667 sq=20 vol100=21.2063 adv=240541596.7295 px=25.87 eps=[(-3.03, 0.6), (-4.88, 0.53), (3.16, -0.7)] risks=['Altman Z 1.35 -- distress zone']
+[00:44:56] row COILED DFIN small Software - Application cap=0.8201 worst_cap=1.24 n_ep=3 worst=-12.8085 green=0.0833 dc=81.569 bbw=1.1905 sq=4 vol100=46.7772 adv=10057838.0677 px=48.32 eps=[(0.99, -0.2), (-10.81, 1.18), (-5.55, 1.24)] risks=[]
+[00:44:56] board tiers: {"FORTRESS_COIL": 1, "COILED": 58, "ACCUMULATING": 440, "WATCH": 301}
 ── G6 history snapshot ──
 ── G7 harvester contract ──
 ── Soft: page from the edge ──
-[00:34:01] ✅ fortress.html live at the edge with marker fortress-v1.0.2 (38072 bytes)
-[00:34:01] ✅ PASS_ALL -- justhodl-fortress live: 5177 scored, tiers {'FORTRESS_COIL': 1, 'COILED': 58, 'ACCUMULATING': 440, 'WATCH': 1360, 'SCREENED': 3318}, session 2026-08-28
+[00:44:56] ✅ fortress.html live at the edge with marker fortress-v1.0.2 (38072 bytes)
+[00:44:56] ✅ PASS_ALL -- justhodl-fortress live: 5177 scored, tiers {'FORTRESS_COIL': 1, 'COILED': 58, 'ACCUMULATING': 440, 'WATCH': 1360, 'SCREENED': 3318}, session 2026-08-28
 
-→ Report written to aws/ops/reports/latest/5084-fortress-v103.md
+→ Report written to aws/ops/reports/latest/5085-fortress-v104.md
