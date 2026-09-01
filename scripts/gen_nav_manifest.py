@@ -85,6 +85,7 @@ FORCE = {  # ops 3302
     "/flows.html": "Equity Signals",                      # ops 4559: ETF true flows at NAV
     "/dark-pool.html": "Equity Signals",                  # ops 4559: FINRA ATS share-of-volume
     "/flow-lookthrough.html": "Equity Signals",           # ops 4559: tier-A mechanical constituent flow
+    "/fortress.html": "Equity Signals",   # ops 5081: Fortress Coil dump-resilient accumulation radar
     "/floor.html": "Risk & Crisis",   # ops 4919: asset-floor auditor —
     # "auditor" in the title otherwise collides with the System & Meta
     # "audit" keyword and files a risk desk under settings/legal.

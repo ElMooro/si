@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="fortress-version" content="fortress-v1.0.0">
+<meta name="jh-marker" content="FORTRESS_COIL_V1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Fortress Coil · Dump-Resilient Accumulation Radar · JustHodl.AI</title>
+<meta name="description" content="Stocks and ETFs that refused to fall during the market's dumps, sit under their 250-day EMA in a Bollinger squeeze, are cheap versus their industry, growing, backed by industry ETF inflows and an order book. Every leg real data, every metric defined.">
+<style>
+:root{--bg:#0a0a0a;--bg-card:#131313;--bg-elev:#181818;--bg-hover:#1f1f1f;
+--border:#262626;--border-light:#2e2e2e;--text:#e8e8e8;--text-dim:#888;
+--text-muted:#555;--accent:#facc15;--green:#22c55e;--red:#ef4444;
+--amber:#f59e0b;--blue:#3b82f6;--cyan:#22d3ee;--violet:#a78bfa;
+--font-mono:'SF Mono','JetBrains Mono',Menlo,Consolas,monospace;}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;font-size:13px}
+.container{max-width:1600px;margin:0 auto;padding:18px}
+header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+header h1{font-size:20px;font-weight:700}
+header h1 .sub{color:var(--text-dim);font-weight:400;font-size:12px;margin-left:10px}
+.meta{color:var(--text-dim);font-size:11px;font-family:var(--font-mono)}
+.doctrine{background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:12px 16px;margin-bottom:16px;color:var(--text-dim);font-size:12px}
+.doctrine b{color:var(--text)}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);margin:20px 0 10px;font-weight:600}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.strip>div{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.strip .v{font-family:var(--font-mono);font-size:18px;font-weight:700}
+.strip .l{color:var(--text-dim);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.funnel{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 14px}
+.funnel span{background:var(--bg-elev);border:1px solid var(--border-light);border-radius:5px;padding:4px 9px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim)}
+.funnel span b{color:var(--text)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin:18px 0 12px}
+.tabs button{background:none;border:none;color:var(--text-dim);padding:8px 14px;font-size:12.5px;cursor:pointer;border-bottom:2px solid transparent}
+.tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.filters select,.filters input{background:var(--bg-elev);color:var(--text);border:1px solid var(--border-light);border-radius:5px;padding:5px 8px;font-size:12px}
+.chip{background:var(--bg-elev);border:1px solid var(--border-light);border-radius:14px;padding:3px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;user-select:none}
+.chip.on{color:var(--accent);border-color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{position:sticky;top:0;background:var(--bg-card);color:var(--text-dim);font-weight:600;text-align:left;padding:7px 6px;border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;font-size:11px}
+th.r,td.r{text-align:right;font-family:var(--font-mono)}
+td{padding:6px 6px;border-bottom:1px solid var(--border);vertical-align:top;white-space:nowrap}
+tr.row:hover{background:var(--bg-hover);cursor:pointer}
+tr.pin{background:var(--bg-elev)}
+.tk{font-family:var(--font-mono);font-weight:700}
+.tk a{color:var(--text);text-decoration:none}
+.tk a:hover{color:var(--accent)}
+.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.05em;white-space:nowrap}
+.FORTRESS_COIL,.ETF_FORTRESS{background:rgba(34,197,94,.18);color:var(--green);border:1px solid rgba(34,197,94,.5)}
+.COILED,.ETF_COILED{background:rgba(34,211,238,.14);color:var(--cyan);border:1px solid rgba(34,211,238,.4)}
+.ACCUMULATING{background:rgba(167,139,250,.14);color:var(--violet);border:1px solid rgba(167,139,250,.4)}
+.WATCH,.ETF_WATCH{background:rgba(250,204,21,.12);color:var(--accent);border:1px solid rgba(250,204,21,.4)}
+.SCREENED{background:var(--bg-elev);color:var(--text-muted);border:1px solid var(--border)}
+.pos{color:var(--green)}.neg{color:var(--red)}.dim{color:var(--text-dim)}.mut{color:var(--text-muted)}
+.flag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.05em;border-radius:3px;padding:1px 5px;margin-right:3px;border:1px solid var(--border-light);color:var(--text-dim)}
+.flag.MAJOR_GROWTH,.flag.MAJOR_INFLOWS,.flag.MAJOR_BACKLOG,.flag.CONTRACTS{color:var(--green);border-color:rgba(34,197,94,.4)}
+.flag.TIGHT_COIL,.flag.PRE_BREAKOUT{color:var(--cyan);border-color:rgba(34,211,238,.4)}
+.flag.IGNITED{color:var(--amber);border-color:rgba(245,158,11,.4)}
+.flag.INSIDER_BUYING{color:var(--violet);border-color:rgba(167,139,250,.4)}
+.detail{background:var(--bg-card);border-top:1px solid var(--border);padding:12px 14px;white-space:normal}
+.detail .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.detail h4{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);margin-bottom:6px}
+.detail ul{margin-left:16px;color:var(--text)}
+.detail li{margin:2px 0;font-size:12px}
+.detail .risk li{color:#d9a066}
+.gates{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.gates span{font-family:var(--font-mono);font-size:11px;padding:3px 8px;border-radius:4px;border:1px solid var(--border-light)}
+.gates span.ok{color:var(--green);border-color:rgba(34,197,94,.45)}
+.gates span.no{color:var(--red);border-color:rgba(239,68,68,.4)}
+.gates span.na{color:var(--text-muted)}
+.pill{display:flex;align-items:center;gap:8px;font-size:11px;margin:3px 0}
+.pill .n{width:120px;color:var(--text-dim)}
+.pill .bar{flex:1;height:6px;background:var(--bg-elev);border-radius:3px;overflow:hidden}
+.pill .bar i{display:block;height:100%;background:var(--accent)}
+.pill .s{width:36px;text-align:right;font-family:var(--font-mono)}
+.mini{font-size:11px;border-collapse:collapse;width:100%}
+.mini td,.mini th{padding:3px 6px;border-bottom:1px solid var(--border);font-size:11px}
+.defs dt{font-family:var(--font-mono);color:var(--accent);margin-top:10px;font-size:12px}
+.defs dd{color:var(--text-dim);font-size:12px;margin-left:0;max-width:1100px}
+.note{color:var(--text-dim);font-size:11.5px;margin:8px 0}
+.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.4);color:var(--red);padding:12px;border-radius:8px;margin:14px 0}
+.small{font-size:11px;color:var(--text-dim)}
+.kv{font-family:var(--font-mono);font-size:11px;color:var(--text-dim)}
+.kv b{color:var(--text)}
+footer{margin-top:28px;border-top:1px solid var(--border);padding-top:12px;color:var(--text-muted);font-size:11px}
+.wrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <h1>Fortress Coil<span class="sub">dump-resilient accumulation radar · stocks + ETFs · every metric defined below</span></h1>
+  <div class="meta" id="meta">loading…</div>
+</header>
+
+<div class="doctrine"><b>Doctrine.</b> Buy what the market could not push down. A name that <b>captured little or none of the SPY dumps</b>, sits <b>under its 250-day EMA</b> inside a <b>Bollinger squeeze</b>, is <b>cheap versus its own industry</b>, <b>growing</b>, backed by <b>industry ETF inflows</b> and an <b>order book / fresh contracts</b>, with a <b>liquid floor</b> under it — that is accumulation, not weakness. Six gates make the tier; nine pillars make the rank; upside room over empirical dump risk makes the asymmetry. Every leg is real data or an honest blank. Research shorthand, not advice.</div>
+
+<div id="errbox"></div>
+
+<div class="strip" id="strip"></div>
+<div class="funnel" id="funnel"></div>
+
+<h2>Market dump context (the tape the capture is measured against)</h2>
+<div class="wrap"><table id="mkt" class="mini"></table></div>
+
+<div class="tabs" id="tabs">
+  <button data-t="stocks" class="on">Stocks</button>
+  <button data-t="etfs">ETFs</button>
+  <button data-t="industries">Industries</button>
+  <button data-t="base">Base rates</button>
+  <button data-t="defs">Definitions</button>
+</div>
+
+<div id="pane-stocks">
+  <div class="filters">
+    <select id="f-tier"><option value="">All tiers (board)</option><option>FORTRESS_COIL</option><option>COILED</option><option>ACCUMULATING</option><option>WATCH</option></select>
+    <select id="f-sector"><option value="">All sectors</option></select>
+    <select id="f-cap"><option value="">All caps</option><option value="mega">Mega</option><option value="large">Large</option><option value="mid">Mid</option><option value="small">Small</option><option value="micro">Micro</option><option value="nano">Nano</option></select>
+    <input id="f-q" placeholder="ticker / name / industry" size="26">
+    <span class="chip" data-flag="MAJOR_GROWTH">major growth</span>
+    <span class="chip" data-flag="MAJOR_INFLOWS">major inflows</span>
+    <span class="chip" data-flag="MAJOR_BACKLOG">major backlog</span>
+    <span class="chip" data-flag="CONTRACTS">contracts</span>
+    <span class="chip" data-flag="TIGHT_COIL">tight coil</span>
+    <span class="chip" data-flag="PRE_BREAKOUT">pre-breakout</span>
+    <span class="chip" data-flag="INSIDER_BUYING">insider buying</span>
+    <span class="chip" data-flag="SP500">S&amp;P 500</span>
+    <span class="small" id="count"></span>
+  </div>
+  <div class="wrap"><table id="tbl"><thead id="th"></thead><tbody id="tb"></tbody></table></div>
+  <p class="note">Click a row for the evidence stack (gates, pillars, reasons, risks, invalidation, every dump episode). Ticker links open the why.html research desk. Names that pass fewer than three gates are in the ledger inside the feed, not on this board.</p>
+</div>
+
+<div id="pane-etfs" style="display:none">
+  <div class="wrap"><table id="etbl"><thead id="eth"></thead><tbody id="etb"></tbody></table></div>
+  <p class="note">ETF gates: under EMA250 · dump-resilient · coiled · own inflows (Polygon creations, true ΔShares×NAV, Finviz). Leveraged / inverse products excluded. Valuation and growth are not scored for wrappers — that is honest, not missing.</p>
+</div>
+
+<div id="pane-industries" style="display:none">
+  <div class="wrap"><table id="itbl"><thead id="ith"></thead><tbody id="itb"></tbody></table></div>
+  <p class="note">One row per industry ETF the stocks map to. Flow consensus, rotation leadership and RRG quadrant, the ETF's own dump capture and coil, and how many of its members currently clear the gates.</p>
+</div>
+
+<div id="pane-base" style="display:none"><div id="base"></div></div>
+<div id="pane-defs" style="display:none"><dl class="defs" id="defs"></dl><div id="params" class="note"></div></div>
+
+<footer id="foot"></footer>
+</div>
+
+<script>
+var DATA="/data/fortress.json";
+var DOC=null, ROWS=[], FLAGS={}, SORT={k:"composite",d:-1}, ESORT={k:"composite",d:-1}, PIN=null;
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function n(v,d,suf){if(v==null||isNaN(v))return '<span class="mut">–</span>';var s=Number(v).toFixed(d==null?1:d);return s+(suf||"");}
+function sgn(v,d,suf){if(v==null||isNaN(v))return '<span class="mut">–</span>';var c=v>0?"pos":(v<0?"neg":"");return '<span class="'+c+'">'+(v>0?"+":"")+Number(v).toFixed(d==null?1:d)+(suf||"")+'</span>';}
+function money(v){if(v==null)return '<span class="mut">–</span>';var a=Math.abs(v);var s=a>=1e12?(v/1e12).toFixed(2)+"T":a>=1e9?(v/1e9).toFixed(1)+"B":a>=1e6?(v/1e6).toFixed(0)+"M":(v/1e3).toFixed(0)+"K";return "$"+s;}
+function badge(t){return '<span class="badge '+esc(t)+'">'+esc(t).replace("_"," ")+'</span>';}
+function flags(r){return (r.flags||[]).map(function(f){return '<span class="flag '+f+'">'+f.replace(/_/g," ")+'</span>';}).join("");}
+function cap(r){var c=r.dump_capture;if(c==null)return '<span class="mut">–</span>';var cls=c<=0?"pos":(c<=0.35?"pos":(c<=0.7?"":"neg"));return '<span class="'+cls+'">'+c.toFixed(2)+'</span>';}
+function showErr(m){$("errbox").innerHTML='<div class="err">'+esc(m)+'</div>';}
+function why(t){return '<a href="/why.html?ticker='+encodeURIComponent(t)+'" target="_blank" rel="noopener">'+esc(t)+'</a>';}
+
+var COLS=[
+ {k:"tier",l:"Tier",f:function(r){return badge(r.tier);}},
+ {k:"ticker",l:"Tkr",f:function(r){return '<span class="tk">'+why(r.ticker)+'</span>';}},
+ {k:"name",l:"Name",f:function(r){return '<span class="dim">'+esc((r.name||"").slice(0,28))+'</span>';}},
+ {k:"industry",l:"Industry",f:function(r){return '<span class="dim">'+esc((r.industry||"").slice(0,26))+'</span>';}},
+ {k:"market_cap",l:"Mkt cap",r:1,f:function(r){return money(r.market_cap);}},
+ {k:"composite",l:"Comp",r:1,f:function(r){return n(r.composite,1);}},
+ {k:"asymmetry",l:"Asym",r:1,f:function(r){return n(r.asymmetry,1,"x");}},
+ {k:"dump_capture",l:"Capture",r:1,f:cap},
+ {k:"worst_days_excess_bps",l:"Worst-day bps",r:1,f:function(r){return sgn(r.worst_days_excess_bps,0);}},
+ {k:"vs_ema250_pct",l:"vs EMA250",r:1,f:function(r){return sgn(r.vs_ema250_pct,1,"%");}},
+ {k:"bb_width_pctile",l:"BBW pct",r:1,f:function(r){return n(r.bb_width_pctile,0);}},
+ {k:"squeeze_days",l:"Sq days",r:1,f:function(r){return (r.ttm_squeeze_on?'<span class="pos">':'<span class="mut">')+(r.squeeze_days||0)+'</span>';}},
+ {k:"coil_state",l:"State",f:function(r){return '<span class="'+(r.coil_state==="IGNITED"?"neg":(r.coil_state==="PRE_BREAKOUT"?"pos":"dim"))+'">'+esc(r.coil_state||"")+'</span>';}},
+ {k:"valuation_score",l:"Val",r:1,f:function(r){return n(r.valuation_score,0);}},
+ {k:"growth_score",l:"Growth",r:1,f:function(r){return n(r.growth_score,0);}},
+ {k:"flow_score",l:"Flows",r:1,f:function(r){var z=r.flows&&r.flows.z90;return n(r.flow_score,0)+(z!=null?' <span class="dim">z'+Number(z).toFixed(1)+'</span>':'');}},
+ {k:"industry_etf",l:"Ind ETF",f:function(r){return '<span class="dim">'+esc(r.industry_etf||"")+'</span>';}},
+ {k:"backlog_to_mcap",l:"Backlog/mc",r:1,f:function(r){return n(r.backlog_to_mcap,2,"x");}},
+ {k:"contracts_90d_vs_mcap_pct",l:"Contracts %mc",r:1,f:function(r){return n(r.contracts_90d_vs_mcap_pct,1,"%");}},
+ {k:"safety_score",l:"Safety",r:1,f:function(r){return n(r.safety_score,0);}},
+ {k:"ret_3m_pct",l:"3m",r:1,f:function(r){return sgn(r.ret_3m_pct,1,"%");}},
+ {k:"flags",l:"Flags",f:flags}
+];
+var ECOLS=[
+ {k:"tier",l:"Tier",f:function(r){return badge(r.tier);}},
+ {k:"ticker",l:"Tkr",f:function(r){return '<span class="tk">'+why(r.ticker)+'</span>';}},
+ {k:"name",l:"Name",f:function(r){return '<span class="dim">'+esc((r.name||"").slice(0,34))+'</span>';}},
+ {k:"aum_usd",l:"AUM",r:1,f:function(r){return money(r.aum_usd);}},
+ {k:"composite",l:"Comp",r:1,f:function(r){return n(r.composite,1);}},
+ {k:"dump_capture",l:"Capture",r:1,f:cap},
+ {k:"worst_days_excess_bps",l:"Worst-day bps",r:1,f:function(r){return sgn(r.worst_days_excess_bps,0);}},
+ {k:"vs_ema250_pct",l:"vs EMA250",r:1,f:function(r){return sgn(r.vs_ema250_pct,1,"%");}},
+ {k:"bb_width_pctile",l:"BBW pct",r:1,f:function(r){return n(r.bb_width_pctile,0);}},
+ {k:"squeeze_days",l:"Sq days",r:1,f:function(r){return (r.ttm_squeeze_on?'<span class="pos">':'<span class="mut">')+(r.squeeze_days||0)+'</span>';}},
+ {k:"coil_state",l:"State",f:function(r){return '<span class="dim">'+esc(r.coil_state||"")+'</span>';}},
+ {k:"flow_score",l:"Flow score",r:1,f:function(r){return n(r.flow_score,0);}},
+ {k:"z90",l:"Flow z",r:1,f:function(r){return sgn(r.flows&&r.flows.z90,2);}},
+ {k:"pct_aum_21d",l:"%AUM 21d",r:1,f:function(r){return sgn(r.flows&&r.flows.pct_aum_21d,2,"%");}},
+ {k:"true_pct_aum_20d",l:"True %AUM 20d",r:1,f:function(r){return sgn(r.flows&&r.flows.true_pct_aum_20d,2,"%");}},
+ {k:"fv_flows_1m_pct",l:"Finviz 1m %",r:1,f:function(r){return sgn(r.flows&&r.flows.fv_flows_1m_pct,2,"%");}},
+ {k:"rs_vs_spy_3m_pp",l:"RS 3m",r:1,f:function(r){return sgn(r.rs_vs_spy_3m_pp,1,"pp");}},
+ {k:"leadership",l:"Lead",r:1,f:function(r){return n(r.leadership,0);}},
+ {k:"rrg",l:"RRG",f:function(r){return '<span class="dim">'+esc(r.rrg||"")+'</span>';}}
+];
+var ICOLS=[
+ {k:"etf",l:"ETF",f:function(r){return '<span class="tk">'+why(r.etf)+'</span>';}},
+ {k:"name",l:"Industry",f:function(r){return esc(r.name);}},
+ {k:"n_stocks",l:"Names",r:1,f:function(r){return r.n_stocks;}},
+ {k:"tiers",l:"Fortress / Coiled / Accum / Watch",f:function(r){var t=r.tiers||{};return '<span class="pos">'+(t.FORTRESS_COIL||0)+'</span> / '+(t.COILED||0)+' / '+(t.ACCUMULATING||0)+' / '+(t.WATCH||0);}},
+ {k:"top",l:"Top names",f:function(r){return (r.top_names||[]).map(function(x){return '<span class="tk" title="'+esc(x.tier)+'">'+why(x.ticker)+'</span>';}).join(" ");}},
+ {k:"flow_score",l:"Flow score",r:1,f:function(r){return n(r.flow_score,0)+(r.inflow_major?' <span class="pos">MAJOR</span>':'');}},
+ {k:"flow_z90",l:"Flow z",r:1,f:function(r){return sgn(r.flow_z90,2);}},
+ {k:"pct_aum_21d",l:"%AUM 21d",r:1,f:function(r){return sgn(r.pct_aum_21d,2,"%");}},
+ {k:"fv_flows_1m_pct",l:"Finviz 1m %",r:1,f:function(r){return sgn(r.fv_flows_1m_pct,2,"%");}},
+ {k:"quadrant",l:"Flow quadrant",f:function(r){return '<span class="dim">'+esc(r.quadrant||"")+'</span>';}},
+ {k:"leadership",l:"Lead",r:1,f:function(r){return n(r.leadership,0);}},
+ {k:"rrg",l:"RRG",f:function(r){return '<span class="dim">'+esc(r.rrg||"")+'</span>';}},
+ {k:"etf_vs_ema250_pct",l:"ETF vs EMA250",r:1,f:function(r){return sgn(r.etf_vs_ema250_pct,1,"%");}},
+ {k:"etf_dump_capture",l:"ETF capture",r:1,f:function(r){return n(r.etf_dump_capture,2);}},
+ {k:"etf_bb_width_pctile",l:"ETF BBW pct",r:1,f:function(r){return n(r.etf_bb_width_pctile,0);}},
+ {k:"industry_rev_growth_pct",l:"Ind rev g",r:1,f:function(r){return sgn(r.industry_rev_growth_pct,0,"%");}},
+ {k:"boom_score",l:"Boom",r:1,f:function(r){return n(r.boom_score,0)+(r.boom_delta_20d!=null?' <span class="dim">'+(r.boom_delta_20d>0?"+":"")+r.boom_delta_20d+'</span>':'');}}
+];
+
+function header(el,cols,sort,onclick){
+  el.innerHTML='<tr>'+cols.map(function(c){var a=sort.k===c.k?(sort.d<0?" ▼":" ▲"):"";return '<th class="'+(c.r?"r":"")+'" data-k="'+c.k+'">'+esc(c.l)+a+'</th>';}).join("")+'</tr>';
+  el.querySelectorAll("th").forEach(function(th){th.onclick=function(){onclick(th.dataset.k);};});
+}
+function val(r,k){
+  if(k==="z90"||k==="pct_aum_21d"||k==="true_pct_aum_20d"||k==="fv_flows_1m_pct")return r.flows?r.flows[k]:null;
+  if(k==="tiers")return (r.tiers&&((r.tiers.FORTRESS_COIL||0)*4+(r.tiers.COILED||0)*2+(r.tiers.ACCUMULATING||0)))||0;
+  if(k==="flags")return (r.flags||[]).length;
+  if(k==="tier")return {FORTRESS_COIL:0,COILED:1,ACCUMULATING:2,WATCH:3,ETF_FORTRESS:0,ETF_COILED:1,ETF_WATCH:2}[r.tier]??9;
+  return r[k];
+}
+function sortRows(rows,s){
+  return rows.slice().sort(function(a,b){var x=val(a,s.k),y=val(b,s.k);if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;if(typeof x==="string")return s.d*x.localeCompare(y);return s.d*(x-y);});
+}
+function filtered(){
+  var t=$("f-tier").value,sec=$("f-sector").value,cp=$("f-cap").value,q=$("f-q").value.trim().toLowerCase();
+  var fl=Object.keys(FLAGS).filter(function(k){return FLAGS[k];});
+  return ROWS.filter(function(r){
+    if(t&&r.tier!==t)return false;
+    if(sec&&r.sector!==sec)return false;
+    if(cp&&r.cap_bucket!==cp)return false;
+    if(q&&!((r.ticker||"").toLowerCase().includes(q)||(r.name||"").toLowerCase().includes(q)||(r.industry||"").toLowerCase().includes(q)))return false;
+    for(var i=0;i<fl.length;i++)if((r.flags||[]).indexOf(fl[i])<0)return false;
+    return true;
+  });
+}
+function gateHtml(g){
+  var order=["under_ema250","dump_resilient","coiled","low_valuation","growth","industry_inflows","inflows"];
+  return '<div class="gates">'+order.filter(function(k){return g&&(k in g);}).map(function(k){var v=g[k];var c=v===true?"ok":(v===false?"no":"na");return '<span class="'+c+'">'+(v===true?"●":(v===false?"○":"·"))+' '+k.replace(/_/g," ")+'</span>';}).join("")+'</div>';
+}
+function pillHtml(p,w){
+  return Object.keys(p||{}).map(function(k){var v=p[k];return '<div class="pill"><span class="n">'+k.replace(/_/g," ")+(w&&w[k]!=null?' <span class="mut">w'+w[k]+'</span>':'')+'</span><span class="bar"><i style="width:'+(v==null?0:Math.max(0,Math.min(100,v)))+'%;'+(v==null?'background:#333':'')+'"></i></span><span class="s">'+(v==null?'–':Math.round(v))+'</span></div>';}).join("");
+}
+function detailHtml(r){
+  var f=r.flows||{},sf=r.sector_flows||{},re=r.resilience_engine;
+  var ep=(r.episodes||[]).map(function(e){return '<tr><td>'+esc(e.peak_date)+' → '+esc(e.trough_date)+(e.closed?'':' <span class="dim">(open)</span>')+(e.big?' <span class="neg">BIG</span>':'')+'</td><td class="r">'+sgn(e.spy_pct,1,"%")+'</td><td class="r">'+sgn(e.stock_pct,1,"%")+'</td><td class="r">'+(e.capture==null?'–':e.capture.toFixed(2))+'</td></tr>';}).join("");
+  var h='<div class="detail">'+gateHtml(r.gates)+(r.tier_caps&&r.tier_caps.length?'<div class="note" style="color:#d9a066">'+r.tier_caps.map(esc).join(" · ")+'</div>':'');
+  h+='<div class="grid">';
+  h+='<div><h4>Why it is on the board</h4><ul>'+(r.reasons||[]).map(function(x){return '<li>'+esc(x)+'</li>';}).join("")+'</ul>'+(r.invalidation?'<h4 style="margin-top:8px">Invalidation</h4><div class="small">'+esc(r.invalidation)+'</div>':'')+'</div>';
+  h+='<div><h4>Pillars (composite '+n(r.composite,1)+' · coverage '+n(r.pillar_coverage!=null?r.pillar_coverage*100:null,0,"%")+')</h4>'+pillHtml(r.pillars,DOC.weights)+'<div class="kv" style="margin-top:6px">upside room <b>'+n(r.upside_room_pct,1,"%")+'</b> · dump downside <b>'+n(r.dump_downside_pct,1,"%")+'</b> · asymmetry <b>'+n(r.asymmetry,2,"x")+'</b></div>'
+   +(r.risks&&r.risks.length?'<h4 style="margin-top:8px">Risks</h4><ul class="risk">'+r.risks.map(function(x){return '<li>'+esc(x)+'</li>';}).join("")+'</ul>':'')+'</div>';
+  h+='<div><h4>Dump resilience</h4><div class="kv">capture <b>'+n(r.dump_capture,2)+'</b> ('+esc(r.dump_capture_basis||"")+') · worst-days <b>'+sgn(r.worst_days_excess_bps,0)+' bps</b> · green <b>'+n(r.worst_days_green_rate!=null?r.worst_days_green_rate*100:null,0,"%")+'</b> · held <b>'+n(r.worst_days_held_rate!=null?r.worst_days_held_rate*100:null,0,"%")+'</b><br>down-capture <b>'+n(r.down_capture_pct,0)+'</b> · up-capture <b>'+n(r.up_capture_pct,0)+'</b> · β <b>'+n(r.beta_1y,2)+'</b> · β↓ <b>'+n(r.down_beta,2)+'</b> · β↑ <b>'+n(r.up_beta,2)+'</b> · asym β <b>'+sgn(r.beta_asymmetry,2)+'</b>'
+   +(re?'<br>resilience engine: <b>'+n(re.score,0)+'</b> '+esc(re.stage||"")+(re.flow_confirmed?' flow-confirmed':''):'')+'</div>'
+   +(ep?'<table class="mini" style="margin-top:6px"><tr><th>SPY episode</th><th class="r">SPY</th><th class="r">Stock</th><th class="r">Capture</th></tr>'+ep+'</table>':'<div class="small">no SPY drawdown episode overlaps this name\'s history</div>')+'</div>';
+  h+='<div><h4>Coil &amp; location</h4><div class="kv">close <b>'+n(r.close,2)+'</b> · EMA250 <b>'+n(r.ema250,2)+'</b> ('+sgn(r.vs_ema250_pct,1,"%")+') · EMA200 '+sgn(r.vs_ema200_pct,1,"%")+' · SMA250 '+sgn(r.vs_sma250_pct,1,"%")+' · 52w high '+sgn(r.pct_from_52w_high,1,"%")+' · above 52w low +'+n(r.pct_above_52w_low,0,"%")+'<br>BB width <b>'+n(r.bb_width_pct,1,"%")+'</b> pctile <b>'+n(r.bb_width_pctile,0)+'</b>'+(r.bb_width_6m_low?' <span class="pos">6m low</span>':'')+' · %B <b>'+n(r.bb_pct_b,2)+'</b> · TTM squeeze <b>'+(r.ttm_squeeze_on?'ON':'off')+'</b> '+(r.squeeze_days||0)+'d · ATR20 <b>'+n(r.atr20_pct,1,"%")+'</b> (ratio '+n(r.atr_contraction,2)+') · vol 20d/100d <b>'+n(r.vol_20d_pct,0,"%")+'/'+n(r.vol_100d_pct,0,"%")+'</b> · volume dry-up <b>'+n(r.volume_dryup,2)+'</b><br>state <b>'+esc(r.coil_state||"")+'</b> · breakout level <b>'+n(r.breakout_level,2)+'</b> (+'+n(r.dist_to_breakout_pct,1,"%")+') · range low <b>'+n(r.range_low_60,2)+'</b> · 1m '+sgn(r.ret_1m_pct,1,"%")+' 3m '+sgn(r.ret_3m_pct,1,"%")+' 6m '+sgn(r.ret_6m_pct,1,"%")+' 12m '+sgn(r.ret_12m_pct,1,"%")+' · RS vs SPY 3m '+sgn(r.rs_vs_spy_3m_pp,1,"pp")+' · RS vs '+esc(r.industry_etf||"ind")+' 3m '+sgn(r.rs_vs_industry_3m_pp,1,"pp")+' · max DD 1y '+sgn(r.max_dd_1y_pct,0,"%")+' · ADV$ <b>'+money(r.adv_usd_20d)+'</b></div></div>';
+  h+='<div><h4>Valuation &amp; growth</h4><div class="kv">valuation score <b>'+n(r.valuation_score,0)+'</b> vs '+esc(r.valuation_group||"")+' '+esc(r.valuation_group_name||"")+' · P/E <b>'+n(r.pe,1)+'</b> fwd <b>'+n(r.fwd_pe,1)+'</b> · PEG <b>'+n(r.peg,2)+'</b> · EV/EBITDA <b>'+n(r.ev_ebitda,1)+'</b> · P/S <b>'+n(r.ps,2)+'</b> · P/FCF <b>'+n(r.p_fcf,1)+'</b> · FCF yield <b>'+n(r.fcf_yield_pct,1,"%")+'</b> · ROIC <b>'+n(r.roic_pct,1,"%")+'</b> · PT upside <b>'+sgn(r.pt_upside_pct,0,"%")+'</b><br>revenue y/y <b>'+sgn(r.sales_yoy_pct,1,"%")+'</b> q/q <b>'+sgn(r.sales_qoq_pct,1,"%")+'</b> 3y <b>'+sgn(r.sales_3y_pct,1,"%")+'</b> · EPS y/y <b>'+sgn(r.eps_yoy_pct,1,"%")+'</b> q/q <b>'+sgn(r.eps_qoq_pct,1,"%")+'</b> next-y <b>'+sgn(r.eps_next_y_pct,1,"%")+'</b> · EPS revisions <b>'+sgn(r.eps_rev_pct,1,"%")+'</b><br>industry <b>'+esc(r.industry||"")+'</b>: rev growth <b>'+sgn(r.industry_rev_growth_pct,1,"%")+'</b> breadth <b>'+n(r.industry_rev_breadth_pct,0,"%")+'</b> · boom <b>'+n(r.industry_boom_score,0)+'</b> Δ20d <b>'+sgn(r.industry_boom_delta_20d,1)+'</b> · leadership <b>'+n(r.industry_leadership,0)+'</b> '+esc(r.industry_tag||"")+' · RRG <b>'+esc(r.industry_rrg||"–")+'</b></div></div>';
+  h+='<div><h4>Flows · '+esc(r.industry_etf||"")+' ('+esc(r.industry_etf_name||"")+', '+esc(r.industry_etf_kind||"")+' ETF)</h4><div class="kv">consensus <b>'+n(r.flow_score,0)+'</b> from '+(f.n_sources||0)+' source(s)'+(r.industry_inflow_major?' · <span class="pos">MAJOR</span>':'')+'<br>Polygon z90 <b>'+sgn(f.z90,2)+'</b> · %AUM 21d <b>'+sgn(f.pct_aum_21d,2,"%")+'</b> 5d <b>'+sgn(f.pct_aum_5d,2,"%")+'</b> · quadrant <b>'+esc(f.quadrant||"–")+'</b> · persistence '+(f.persistence_days!=null?f.persistence_days+'d':'–')+'<br>true flow 20d <b>'+money(f.true_flow_20d_usd)+'</b> (<b>'+sgn(f.true_pct_aum_20d,2,"%")+'</b> AUM) · Finviz 1m <b>'+sgn(f.fv_flows_1m_pct,2,"%")+'</b> AUM, 3m <b>'+money(f.fv_flows_3m_usd)+'</b><br>sector '+esc(r.sector_etf||"")+' consensus <b>'+n(sf.score,0)+'</b> z <b>'+sgn(sf.z90,2)+'</b></div></div>';
+  h+='<div><h4>Backlog · contracts · floor · positioning</h4><div class="kv">backlog <b>'+money(r.backlog_usd)+'</b> ('+esc(r.backlog_source||"none")+(r.backlog_asof?', '+esc(r.backlog_asof):'')+') = <b>'+n(r.backlog_to_mcap,2,"x")+'</b> mcap, <b>'+n(r.backlog_to_revenue,2,"x")+'</b> revenue · RPO q/q <b>'+sgn(r.rpo_qoq_pct,1,"%")+'</b> y/y <b>'+sgn(r.rpo_yoy_pct,1,"%")+'</b>'+(r.demand_accelerating!=null?' · demand '+(r.demand_accelerating?'<span class="pos">accelerating</span>':'<span class="dim">not accelerating</span>'):'')+' · committed coverage <b>'+n(r.committed_coverage,2,"x")+'</b><br>contracts 90d: <b>'+(r.contracts_90d_n||0)+'</b> wins, <b>'+money(r.contracts_90d_usd)+'</b> = <b>'+n(r.contracts_90d_vs_mcap_pct,1,"%")+'</b> of mcap'+(r.contracts_last?' (last '+esc(r.contracts_last)+')':'')+' · catalysts '+esc((r.catalyst_classes||[]).join(", ")||"–")+'<br>net liquid assets / mcap <b>'+n(r.nlav_coverage,2)+'</b> · Altman <b>'+n(r.altman_z,2)+'</b> · Piotroski <b>'+n(r.piotroski_f,0)+'</b> · Beneish <b>'+n(r.beneish_m,2)+'</b> · int. coverage <b>'+n(r.interest_coverage,1)+'</b> · ND/EBITDA <b>'+n(r.netdebt_to_ebitda,2)+'</b> · D/E <b>'+n(r.debt_to_equity,2)+'</b> · dilution y/y <b>'+sgn(r.dilution_yoy_pct,1,"%")+'</b> · buyback yield <b>'+sgn(r.net_buyback_yield_pct,1,"%")+'</b> · earnings in <b>'+(r.earnings_in_days==null?'–':r.earnings_in_days+'d')+'</b><br>short float <b>'+n(r.short_float_pct,1,"%")+'</b> DTC <b>'+n(r.days_to_cover,1)+'</b> ΔSI <b>'+sgn(r.si_change_pct,1,"%")+'</b> · 13F net <b>'+money(r.inst_net_usd)+'</b> whales <b>'+money(r.whale_net_usd)+'</b> ('+(r.inst_funds_holding||0)+' funds) · insider buys 30d <b>'+(r.insider_buys_30d||0)+'</b> '+money(r.insider_buy_usd_30d)+(r.insider_cluster?' <span class="pos">cluster</span>':'')+' · insider txn <b>'+sgn(r.insider_trans_pct,1,"%")+'</b> inst txn <b>'+sgn(r.inst_trans_pct,1,"%")+'</b></div></div>';
+  h+='</div></div>';
+  return h;
+}
+function renderStocks(){
+  var rows=sortRows(filtered(),SORT);
+  header($("th"),COLS,SORT,function(k){SORT=SORT.k===k?{k:k,d:-SORT.d}:{k:k,d:-1};renderStocks();});
+  $("count").textContent=rows.length+" of "+ROWS.length+" board rows";
+  var h="";
+  rows.forEach(function(r,i){
+    h+='<tr class="row'+(PIN===r.ticker?' pin':'')+'" data-t="'+esc(r.ticker)+'">'+COLS.map(function(c){return '<td class="'+(c.r?"r":"")+'">'+c.f(r)+'</td>';}).join("")+'</tr>';
+    if(PIN===r.ticker)h+='<tr><td colspan="'+COLS.length+'" style="padding:0">'+detailHtml(r)+'</td></tr>';
+  });
+  $("tb").innerHTML=h||'<tr><td colspan="'+COLS.length+'" class="dim">No names match. Loosen a filter — or the tape has nothing coiled and resilient right now; that is information too.</td></tr>';
+  $("tb").querySelectorAll("tr.row").forEach(function(tr){tr.onclick=function(e){if(e.target.tagName==="A")return;PIN=PIN===tr.dataset.t?null:tr.dataset.t;renderStocks();};});
+}
+function renderEtfs(){
+  var rows=sortRows(DOC.etfs||[],ESORT);
+  header($("eth"),ECOLS,ESORT,function(k){ESORT=ESORT.k===k?{k:k,d:-ESORT.d}:{k:k,d:-1};renderEtfs();});
+  $("etb").innerHTML=rows.map(function(r){return '<tr class="row" data-t="'+esc(r.ticker)+'">'+ECOLS.map(function(c){return '<td class="'+(c.r?"r":"")+'">'+c.f(r)+'</td>';}).join("")+'</tr>'+(PIN===r.ticker?'<tr><td colspan="'+ECOLS.length+'" style="padding:0">'+detailHtml(r)+'</td></tr>':'');}).join("")||'<tr><td colspan="'+ECOLS.length+'" class="dim">No ETF clears two gates right now.</td></tr>';
+  $("etb").querySelectorAll("tr.row").forEach(function(tr){tr.onclick=function(e){if(e.target.tagName==="A")return;PIN=PIN===tr.dataset.t?null:tr.dataset.t;renderEtfs();};});
+}
+var ISORT={k:"tiers",d:-1};
+function renderInd(){
+  var rows=sortRows(DOC.industries||[],ISORT);
+  header($("ith"),ICOLS,ISORT,function(k){ISORT=ISORT.k===k?{k:k,d:-ISORT.d}:{k:k,d:-1};renderInd();});
+  $("itb").innerHTML=rows.map(function(r){return '<tr>'+ICOLS.map(function(c){return '<td class="'+(c.r?"r":"")+'">'+c.f(r)+'</td>';}).join("")+'</tr>';}).join("");
+}
+function renderBase(){
+  var b=DOC.base_rates||{};var h='<div class="kv">status <b>'+esc(b.status)+'</b> · horizon <b>'+esc(b.horizon_sessions)+' sessions</b> · snapshots graded <b>'+esc(b.snapshots_graded)+'</b> of '+esc(b.snapshots_total)+'</div><p class="note">'+esc(b.note||"")+'</p>';
+  var bt=b.by_tier||{};var ks=Object.keys(bt);
+  if(ks.length){h+='<table class="mini"><tr><th>Tier</th><th class="r">n</th><th class="r">median 21d</th><th class="r">median excess vs SPY</th><th class="r">hit rate vs SPY</th></tr>'+ks.map(function(k){var x=bt[k];return '<tr><td>'+badge(k)+'</td><td class="r">'+x.n+'</td><td class="r">'+sgn(x.median_ret_21d_pct,2,"%")+'</td><td class="r">'+sgn(x.median_excess_vs_spy_pct,2,"%")+'</td><td class="r">'+n(x.hit_rate_vs_spy_pct,0,"%")+'</td></tr>';}).join("")+'</table>';}
+  else h+='<p class="note">No snapshot is 21 sessions old yet. The engine grades its own picks from the bar warehouse; the fleet harvester (eng:fortress) grades them independently in the signal scorecard.</p>';
+  $("base").innerHTML=h;
+}
+function renderDefs(){
+  var d=DOC.definitions||{};
+  $("defs").innerHTML=Object.keys(d).map(function(k){return '<dt>'+esc(k)+'</dt><dd>'+esc(d[k])+'</dd>';}).join("");
+  var p=DOC.params||{},w=DOC.weights||{};
+  $("params").innerHTML='<b>Weights</b> '+Object.keys(w).map(function(k){return k+' '+w[k];}).join(" · ")+'<br><b>Parameters</b> '+Object.keys(p).map(function(k){return k+'='+p[k];}).join(" · ");
+}
+function render(doc){
+  DOC=doc;ROWS=doc.board||[];
+  var m=doc.market||{},t=doc.tiers||{},b=doc.breadth||{},f=doc.funnel||{};
+  $("meta").innerHTML='session <b>'+esc(doc.session)+'</b> · as of '+esc(doc.as_of)+' · '+esc(doc.engine)+' v'+esc(doc.version)+' · bars '+esc(doc.bars_first)+'→'+esc(doc.session)+' ('+esc(doc.sessions_loaded)+' sessions)';
+  $("strip").innerHTML=[
+    ['<span class="pos">'+(t.FORTRESS_COIL||0)+'</span>','Fortress coil (6/6 gates)'],
+    [(t.COILED||0),'Coiled (5/6)'],[(t.ACCUMULATING||0),'Accumulating (4/6)'],[(t.WATCH||0),'Watch (3/6)'],
+    [doc.n_scored,'Scored / '+esc(doc.n_universe_bars)+' with bars'],
+    [sgn(m.spy_vs_ema250_pct,1,"%"),'SPY vs EMA250'],
+    [sgn(m.spy_dd_from_high_pct,1,"%"),'SPY from 1y high'],
+    [n(b.pct_under_ema250,0,"%"),'Names under EMA250'],
+    [n(b.pct_coiled,0,"%"),'Names coiled'],
+    [n(b.pct_dump_resilient,0,"%"),'Names dump-resilient'],
+    [(doc.etf_tiers||{}).ETF_FORTRESS||0,'ETF fortress (4/4)']
+  ].map(function(x){return '<div><div class="v">'+x[0]+'</div><div class="l">'+x[1]+'</div></div>';}).join("");
+  $("funnel").innerHTML=['scored','hygiene_ok','ema250_available','under_ema250','dump_resilient','coiled','low_valuation','growth','industry_inflows'].map(function(k){return '<span>'+k.replace(/_/g," ")+' <b>'+(f[k]==null?'–':f[k])+'</b></span>';}).join("");
+  var eps=(m.episodes||[]);
+  $("mkt").innerHTML='<tr><th>SPY drawdown episode</th><th class="r">SPY</th><th class="r">Sessions</th><th>Status</th></tr>'+(eps.length?eps.map(function(e){return '<tr><td>'+esc(e.peak_date)+' → '+esc(e.trough_date)+(e.big?' <span class="neg">BIG</span>':'')+'</td><td class="r">'+sgn(e.spy_dd_pct,1,"%")+'</td><td class="r">'+e.sessions+'</td><td class="dim">'+(e.closed?'closed (recovered to a new high)':'OPEN — still below the peak')+'</td></tr>';}).join(""):'<tr><td colspan="4" class="dim">No SPY drawdown of 4%+ in the trailing '+esc(m.lookback_sessions)+' sessions — capture falls back to down-day behaviour.</td></tr>')
+    +'<tr><td colspan="4" class="small">worst-day set: '+(m.worst_days||[]).length+' sessions (SPY\'s worst '+(100*((doc.params||{}).worst_day_quantile||0.05)).toFixed(0)+'%), lookback from '+esc(m.lookback_start)+' · SPY 1m '+sgn(m.spy_ret_1m_pct,1,"%")+' · 3m '+sgn(m.spy_ret_3m_pct,1,"%")+'</td></tr>';
+  var secs={};ROWS.forEach(function(r){if(r.sector)secs[r.sector]=1;});
+  $("f-sector").innerHTML='<option value="">All sectors</option>'+Object.keys(secs).sort().map(function(s){return '<option>'+esc(s)+'</option>';}).join("");
+  renderStocks();renderEtfs();renderInd();renderBase();renderDefs();
+  var inp=doc.inputs||{};
+  $("foot").innerHTML='Inputs: '+Object.keys(inp).map(function(k){return k+' <span class="dim">'+esc(String(inp[k]||"–").slice(0,80))+'</span>';}).join(" · ")+'<br>Marker FORTRESS_COIL_V1 · elapsed '+esc((doc.diagnostics||{}).elapsed_s)+'s · '+esc(doc.doctrine||"");
+}
+(function(){
+  document.querySelectorAll("#tabs button").forEach(function(bt){bt.onclick=function(){document.querySelectorAll("#tabs button").forEach(function(b){b.classList.remove("on");});bt.classList.add("on");["stocks","etfs","industries","base","defs"].forEach(function(p){$("pane-"+p).style.display=bt.dataset.t===p?"":"none";});};});
+  ["f-tier","f-sector","f-cap"].forEach(function(id){$(id).onchange=renderStocks;});
+  $("f-q").oninput=renderStocks;
+  document.querySelectorAll(".chip").forEach(function(c){c.onclick=function(){FLAGS[c.dataset.flag]=!FLAGS[c.dataset.flag];c.classList.toggle("on",!!FLAGS[c.dataset.flag]);renderStocks();};});
+  fetch(DATA+"?cb="+Date.now(),{cache:"no-store"})
+   .then(function(r){if(!r.ok)throw new Error("feed HTTP "+r.status);return r.json();})
+   .then(render)
+   .catch(function(e){showErr("Could not load the fortress feed ("+e.message+"). The engine runs at 03:30 UTC Tue–Sat after the bar warehouse lands the prior session; if this persists the first run may not have completed yet.");});
+})();
+</script>
+<script src="/sidebar.js" defer></script>
+</body>
+</html>
