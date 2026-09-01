@@ -1,0 +1,110 @@
+# ops 5081 -- justhodl-fortress birth
+
+**Status:** success  
+**Duration:** 49.7s  
+**Finished:** 2026-09-01T00:20:57+00:00  
+
+## Data
+
+| as_of | base_rates | board | coverage_pct | donor | elapsed_s | etf_tiers | g1 | g2 | g3 | g4 | g5 | g6 | g7 | keys | last_update | ledger | memory | n_rows_sampled | n_scored | n_universe_bars | note | picks | runtime | schedule | schedule_expr | schedule_state | session | sessions_loaded | snapshot | state | tiers | timeout | top_picks |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  | justhodl-equity-research |  |  | PASS |  |  |  |  |  |  | ['FMP_KEY', 'FORTRESS_VERSION', 'POLYGON_API_KEY'] |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  | PASS |  |  |  |  |  |  | Successful |  | 3008 |  |  |  |  |  | python3.12 |  |  |  |  |  |  | Active |  | 900 |  |
+|  |  |  |  |  |  |  |  |  | PASS |  |  |  |  |  |  |  |  |  |  |  |  |  |  | updated |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | cron(30 3 ? * TUE-SAT *) | ENABLED |  |  |  |  |  |  |  |
+| 2026-09-01T00:20:54+00:00 |  |  |  |  | 38.0 | {'ETF_FORTRESS': 186, 'ETF_COILED': 299, 'ETF_WATCH': 636, 'SCREENED': 3318} |  |  |  | PASS |  |  |  |  |  |  |  |  | 5725 | 11608 |  |  |  |  |  |  | 2026-08-28 | 330 |  |  | {'FORTRESS_COIL': 8, 'COILED': 91, 'ACCUMULATING': 592, 'WATCH': 1489, 'SCREENED': 3545} |  |  |
+|  |  |  | {'dump_capture': 100.0, 'bb_width_pctile': 99.0, 'valuation_score': 86.1, 'flow_score': 100.0, 'vs_ema250_pct': 90.0, 'growth_score': 97.9, 'safety_score': 100.0} |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 3000 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  |  | 500 |  |  |  |  |  |  |  |  | PASS |  |  |  |  | 2500 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 60 |
+|  | accruing |  |  |  |  |  |  |  |  |  |  | PASS |  |  |  |  |  |  |  |  |  | 400 |  |  |  |  |  |  | data/fortress/history/2026-08-28.json.gz |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |  |  | PASS |  |  |  |  |  |  |  | justhodl-signal-harvester reads data/fortress.json top_picks as eng:fortress at 23:15 UTC |  |  |  |  |  |  |  |  |  |  |  | 60 |
+
+## Log
+## G1 key inheritance
+
+## G2 deploy
+
+- `00:20:07`   zip: 125023 bytes
+## 1. Lambda
+
+- `00:20:08`   Lambda exists — updating
+- `00:20:11` ✅   ✓ updated justhodl-fortress
+## G3 schedule (EventBridge Scheduler -- classic rule cap is saturated)
+
+## G4 first run (async, verified on disk)
+
+- `00:20:15` async invoke fired at 2026-09-01T00:20:07+00:00; polling data/fortress.json (prev as_of=none)
+- `00:20:56`   engine:   10.5s bars 144/330 sessions, 9936 tickers
+- `00:20:56`   engine:   12.0s bars 168/330 sessions, 10111 tickers
+- `00:20:56`   engine:   13.4s bars 192/330 sessions, 10290 tickers
+- `00:20:56`   engine:   14.9s bars 216/330 sessions, 10455 tickers
+- `00:20:56`   engine:   16.5s bars 240/330 sessions, 10622 tickers
+- `00:20:56`   engine:   18.0s bars 264/330 sessions, 10852 tickers
+- `00:20:56`   engine:   19.6s bars 288/330 sessions, 11172 tickers
+- `00:20:56`   engine:   21.2s bars 312/330 sessions, 11434 tickers
+- `00:20:56`   engine:   22.4s bars 330/330 sessions, 11608 tickers
+- `00:20:56`   engine:   22.4s market: 3 dump episodes (1 big), 12 worst days, SPY vs EMA250 9.56%
+- `00:20:56`   engine:   30.9s stock rows built: 5725 (finviz-matched 5938)
+- `00:20:56`   engine:   37.4s etf rows built: 4439
+## G5 real-data assertions (from S3, independent of the engine's own view)
+
+- `00:20:56` probe MSFT: tier=SCREENED comp=48.3 capture=2.3 worst_bps=27.012 vsEMA250=14.048 bbw_pct=38.492 val=34.937 growth=73.637 flows=58.813 etf=IGV
+- `00:20:56` board FORTRESS_COIL INVA comp=78.8 asym=16.23 cap=-1.77 ema=-0.5924 bbw=5.5556 val=95.6715 g=60.6306 fl=69.375 bk=None ct=None flags=['MAJOR_INFLOWS', 'TIGHT_COIL']
+- `00:20:56`       - captured -177% of the SPY dump across 3 drawdown episode(s) (flat-or-up in 100% of them)
+- `00:20:56`       - on SPY's 12 worst days: +169 bps vs SPY, green 42% of the time
+- `00:20:56`       - 0.6% below the 250-day EMA
+- `00:20:56`       - Bollinger bandwidth in the 6th percentile of its own year -- TTM squeeze ON for 12 sessions
+- `00:20:56`       - valuation cheaper than 96% of its industry peers
+- `00:20:56` board FORTRESS_COIL UNCY comp=77.4 asym=16.27 cap=-1.42 ema=-11.2181 bbw=14.6825 val=94.697 g=92.7244 fl=69.375 bk=None ct=None flags=['MAJOR_INFLOWS']
+- `00:20:56`       - captured -142% of the SPY dump across 3 drawdown episode(s) (flat-or-up in 67% of them)
+- `00:20:56`       - on SPY's 12 worst days: +64 bps vs SPY, green 25% of the time
+- `00:20:56`       - 11.2% below the 250-day EMA
+- `00:20:56`       - Bollinger bandwidth in the 15th percentile of its own year -- TTM squeeze ON for 1 sessions
+- `00:20:56`       - valuation cheaper than 95% of its industry peers
+- `00:20:56` board FORTRESS_COIL PHAT comp=74.6 asym=8.81 cap=-0.39 ema=-16.1736 bbw=18.6508 val=80.766 g=100.0 fl=69.375 bk=None ct=None flags=['MAJOR_GROWTH', 'MAJOR_INFLOWS']
+- `00:20:56`       - captured -39% of the SPY dump across 3 drawdown episode(s) (flat-or-up in 67% of them)
+- `00:20:56`       - on SPY's 12 worst days: +141 bps vs SPY, green 58% of the time
+- `00:20:56`       - 16.2% below the 250-day EMA
+- `00:20:56`       - Bollinger bandwidth in the 19th percentile of its own year
+- `00:20:56`       - valuation cheaper than 81% of its industry peers
+- `00:20:56` board FORTRESS_COIL ATEC comp=66.3 asym=4.97 cap=-1.94 ema=-20.7054 bbw=11.5079 val=58.9296 g=75.4551 fl=77.0 bk=None ct=None flags=['MAJOR_INFLOWS']
+- `00:20:56`       - captured -194% of the SPY dump across 3 drawdown episode(s) (flat-or-up in 67% of them)
+- `00:20:56`       - on SPY's 12 worst days: +22 bps vs SPY, green 25% of the time
+- `00:20:56`       - 20.7% below the 250-day EMA
+- `00:20:56`       - Bollinger bandwidth in the 12th percentile of its own year
+- `00:20:56`       - valuation cheaper than 59% of its industry peers (PEG 0.10)
+- `00:20:56` board FORTRESS_COIL RGR comp=66.1 asym=4.55 cap=-0.03 ema=-1.7024 bbw=16.6667 val=89.5552 g=74.3516 fl=61.3333 bk=None ct=None flags=['MAJOR_GROWTH', 'MAJOR_INFLOWS']
+- `00:20:56`       - captured -3% of the SPY dump across 3 drawdown episode(s) (flat-or-up in 67% of them)
+- `00:20:56`       - on SPY's 12 worst days: +17 bps vs SPY, green 8% of the time
+- `00:20:56`       - 1.7% below the 250-day EMA
+- `00:20:56`       - Bollinger bandwidth in the 17th percentile of its own year -- TTM squeeze ON for 2 sessions
+- `00:20:56`       - valuation cheaper than 90% of its industry peers
+- `00:20:56` board FORTRESS_COIL EVAX comp=65.6 asym=20.05 cap=0.66 ema=-17.4749 bbw=33.7302 val=82.9966 g=80.0424 fl=69.375 bk=None ct=None flags=['MAJOR_GROWTH', 'MAJOR_INFLOWS']
+- `00:20:56`       - captured 66% of the SPY dump across 3 drawdown episode(s) (flat-or-up in 33% of them)
+- `00:20:56`       - on SPY's 12 worst days: +127 bps vs SPY, green 42% of the time
+- `00:20:56`       - 17.5% below the 250-day EMA
+- `00:20:56`       - Bollinger bandwidth in the 34th percentile of its own year -- TTM squeeze ON for 1 sessions
+- `00:20:56`       - valuation cheaper than 83% of its industry peers
+- `00:20:56` board FORTRESS_COIL FBIO comp=62.4 asym=6.44 cap=-0.08 ema=-1.4004 bbw=4.7619 val=100.0 g=46.691 fl=69.375 bk=None ct=None flags=['MAJOR_INFLOWS', 'TIGHT_COIL']
+- `00:20:56`       - captured -8% of the SPY dump across 3 drawdown episode(s) (flat-or-up in 67% of them)
+- `00:20:56`       - on SPY's 12 worst days: -184 bps vs SPY, green 8% of the time
+- `00:20:56`       - 1.4% below the 250-day EMA
+- `00:20:56`       - Bollinger bandwidth in the 5th percentile of its own year -- TTM squeeze ON for 1 sessions
+- `00:20:56`       - valuation cheaper than 100% of its industry peers
+- `00:20:56` board FORTRESS_COIL AVNW comp=59.6 asym=3.94 cap=-0.28 ema=-6.6395 bbw=21.8254 val=69.8876 g=64.4188 fl=55.9062 bk=None ct=None flags=['MAJOR_GROWTH', 'MAJOR_INFLOWS']
+- `00:20:56`       - captured -28% of the SPY dump across 3 drawdown episode(s) (flat-or-up in 67% of them)
+- `00:20:56`       - on SPY's 12 worst days: -261 bps vs SPY, green 0% of the time
+- `00:20:56`       - 6.6% below the 250-day EMA
+- `00:20:56`       - Bollinger bandwidth in the 22th percentile of its own year -- TTM squeeze ON for 36 sessions
+- `00:20:56`       - valuation cheaper than 70% of its industry peers
+- `00:20:56` episodes: [{"peak_date": "2025-10-29", "trough_date": "2025-11-20", "spy_dd_pct": -5.07, "closed": true}, {"peak_date": "2026-01-27", "trough_date": "2026-03-30", "spy_dd_pct": -9.13, "closed": true}, {"peak_date": "2026-06-02", "trough_date": "2026-06-10", "spy_dd_pct": -4.49, "closed": true}]
+- `00:20:56` industries top: [{"etf": "IGV", "n_stocks": 464, "tiers": {"COILED": 28, "ACCUMULATING": 79, "WATCH": 120, "SCREENED": 237}, "flow_score": 58.8, "inflow_major": false}, {"etf": "XBI", "n_stocks": 577, "tiers": {"FORTRESS_COIL": 5, "COILED": 8, "ACCUMULATING": 67, "WATCH": 127, "SCREENED": 370}, "flow_score": 69.4, "inflow_major": true}, {"etf": "IHI", "n_stocks": 194, "tiers": {"FORTRESS_COIL": 1, "COILED": 9, "ACCUMULATING": 34, "WATCH": 50, "SCREENED": 100}, "flow_score": 77.0, "inflow_major": true}, {"etf": "KRE", "n_stocks": 319, "tiers": {"COILED": 1, "ACCUMULATING": 45, "WATCH": 134, "SCREENED": 139}, "flow_score": 18.7, "inflow_major": false}, {"etf": "XLRE", "n_stocks": 248, "tiers": {"COILED": 8, "ACCUMULATING": 25, "WATCH": 67, "SCREENED": 148}, "flow_score": 45.2, "inflow_major": false}, {"etf": "XLB", "n_stocks": 100, "tiers": {"COILED": 4, "ACCUMULATING": 32, "WATCH": 29, "SCREENED": 35}, "flow_score": 61.0, "inflow_major": false}, {"etf": "XLF", "n_stocks": 870, "tiers": {"COILED": 1, "ACCUMULATING": 35, "WATCH": 104, "SCREENED": 730}, "flow_score": 27.0, "inflow_major": false}, {"etf": "XLP", "n_stocks": 231, "tiers": {"COILED": 2, "ACCUMULATING": 29, "WATCH": 57, "SCREENED": 143}, "flow_score": 42.4, "inflow_major": false}]
+- `00:20:56` etfs top: [{"ticker": "AAA", "tier": "ETF_FORTRESS", "composite": 79.7, "dump_capture": 0.05, "flow_score": 100.0}, {"ticker": "PCMM", "tier": "ETF_FORTRESS", "composite": 78.5, "dump_capture": -0.02, "flow_score": 100.0}, {"ticker": "LDRT", "tier": "ETF_FORTRESS", "composite": 78.5, "dump_capture": 0.03, "flow_score": 100.0}, {"ticker": "TCAL", "tier": "ETF_FORTRESS", "composite": 78.1, "dump_capture": -0.01, "flow_score": 100.0}, {"ticker": "XFIV", "tier": "ETF_FORTRESS", "composite": 77.9, "dump_capture": 0.07, "flow_score": 100.0}, {"ticker": "IBTK", "tier": "ETF_FORTRESS", "composite": 77.6, "dump_capture": 0.06, "flow_score": 100.0}, {"ticker": "IBTL", "tier": "ETF_FORTRESS", "composite": 77.4, "dump_capture": 0.07, "flow_score": 100.0}, {"ticker": "IBMT", "tier": "ETF_FORTRESS", "composite": 77.1, "dump_capture": 0.02, "flow_score": 100.0}]
+- `00:20:56` inputs: {"bars": "data/warm/polygon-full/grouped/ (2025-05-07..2026-08-28, 330 sessions)", "finviz_universe": "2026-08-31T22:00:37.715951+00:00", "fundamental_census_matrix": "2026-09-01T00:07:52.042094+00:00", "industry_boom": "2026-08-31T10:50:03.806562+00:00", "industry_rotation": "2026-08-31T21:38:24.333669+00:00", "etf_flows_polygon": "2026-08-31T22:00:25.581028+00:00", "etf_true_flows": "2026-08-31T15:45:23.111432+00:00", "backlog": "2026-08-31T11:30:46.752693+00:00", "backlog_mined": "2026-08-31T02:30:09+00:00", "deal_history": "2026-09-01T00:05:24.255543+00:00", "catalyst": "2026-08-31T02:29:32+00:00", "floor_audit": "2026-08-31T21:37:21+00:00", "resilience": "2026-08-31T22:46:01.117625+00:00", "f13_flows": "2026-08-31T23:06:38.303422+00:00", "short_interest": "2026-08-31T21:15:38.904686+00:00", "insider_radar": "2026-08-31T14:40:32.785479+00:00", "estimate_revisions": "2026-08-31T17:40:22.896922+00:00", "sp500": "2026-08-31T21:45:45.403867+00:00"}
+## G6 history snapshot
+
+## G7 harvester contract
+
+## Soft: page from the edge
+
+- `00:20:57` ✅ fortress.html live at the edge with marker FORTRESS_COIL_V1 (37563 bytes)
+- `00:20:57` ✅ PASS_ALL -- justhodl-fortress live: 5725 scored, tiers {'FORTRESS_COIL': 8, 'COILED': 91, 'ACCUMULATING': 592, 'WATCH': 1489, 'SCREENED': 3545}, session 2026-08-28
