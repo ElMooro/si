@@ -913,7 +913,7 @@ a:hover { text-decoration: underline; }
   font-family: var(--font-mono);
 }
 .symbol-ticker { font-size: 15px; font-weight: 700; color: var(--fg-0); letter-spacing: 0.5px; }
-.symbol-name { font-size: 11.5px; color: var(--fg-2); }
+.symbol-name { font-size: 11.5px; color: var(--fg-2); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
 .symbol-price { font-size: 13px; font-weight: 600; color: var(--fg-0); margin-left: 10px; }
 .symbol-change { font-size: 11.5px; padding: 2px 6px; border-radius: 3px; }
 .symbol-change.up { color: var(--green); background: rgba(38,255,175,0.08); }
@@ -1877,6 +1877,14 @@ function jhCleanBars(bars) {
     if (b.time <= last) { if (b.time === last) out[out.length - 1] = b; continue; }
     out.push(b); last = b.time;
   }
+  return out;
+}
+function jhAggregateObs(points, span) {
+  // observation series → weekly (ISO week, Monday) or monthly last-value points; TradingView's MAX is weekly/monthly for this reason
+  if (span !== 'week' && span !== 'month') return points;
+  const key = (t) => { const d = new Date(t + 'T00:00:00Z'); if (span === 'month') return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-01'; const day = (d.getUTCDay() + 6) % 7; return new Date(d.getTime() - day * 86400000).toISOString().slice(0, 10); };
+  const out = []; let ck = null;
+  for (const p of points) { const k = key(p.time); if (k !== ck) { out.push({ time: k, value: p.value }); ck = k; } else out[out.length - 1].value = p.value; }
   return out;
 }
 function jhGroupN(bars, n) {
@@ -3949,6 +3957,9 @@ class ChartController {
     
     document.getElementById('active-ticker').textContent = ticker;
     document.getElementById('active-name').textContent = '';
+    { const psym = document.getElementById(`pane-symbol-${State.activeChartPane}`); if (psym) psym.textContent = ticker;
+      const pchg = document.getElementById(`pane-change-${State.activeChartPane}`); if (pchg) pchg.textContent = '—';
+      if (jhSeriesProvider(ticker) || ticker.includes(':')) { const pe = document.getElementById('active-price'), ce = document.getElementById('active-change'); if (pe) pe.textContent = '—'; if (ce) { ce.textContent = '—'; ce.className = 'symbol-change'; } } }
     UI.renderInfoPanel();
     UI.renderSignalStrip(ticker);
     document.querySelectorAll('.wl-row').forEach(el => {
@@ -4518,7 +4529,7 @@ class NativeChart {
       autoSize: true,
       layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
       grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
-      rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433' }, crosshair: { mode: 1 },
+      rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433', minBarSpacing: 0.001 }, crosshair: { mode: 1 },
     });
     const pctFmt = { type: 'custom', formatter: v => (v >= 0 ? '+' : '') + v.toFixed(2) + '%' };
     const style = State.changeStyle || 'histogram';
@@ -4861,7 +4872,7 @@ class NativeChart {
     const chart = NativeChart.createChart(host, {
       autoSize: true, layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
       grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
-      rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433' }, crosshair: { mode: 1 },
+      rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433', minBarSpacing: 0.001 }, crosshair: { mode: 1 },
     });
     const s = chart.addLineSeries({ color: '#22d3ee', lineWidth: 2 });
     s.setData(ratio);
@@ -4956,7 +4967,7 @@ class NativeChart {
     const chart = NativeChart.createChart(host, {
       autoSize: true, layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
       grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
-      rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433' }, crosshair: { mode: 1 },
+      rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433', minBarSpacing: 0.001 }, crosshair: { mode: 1 },
     });
     const area = chart.addAreaSeries({ lineColor: '#26ffaf', topColor: 'rgba(38,255,175,0.25)', bottomColor: 'rgba(38,255,175,0.02)', lineWidth: 2 });
     area.setData(idx);
@@ -5101,7 +5112,7 @@ class NativeChart {
         layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
         grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
         rightPriceScale: { borderColor: '#1c2433' },
-        timeScale: { borderColor: '#1c2433' }, crosshair: { mode: 1 },
+        timeScale: { borderColor: '#1c2433', minBarSpacing: 0.001 }, crosshair: { mode: 1 },
       });
       const cs = chart.addCandlestickSeries({ upColor: '#26ffaf', downColor: '#ff5577', borderUpColor: '#26ffaf', borderDownColor: '#ff5577', wickUpColor: '#26ffaf', wickDownColor: '#ff5577' });
       cs.setData(bars.map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
@@ -5146,6 +5157,16 @@ class NativeChart {
       const nameEl = document.getElementById('active-name'); if (nameEl) nameEl.textContent = d.name || '';
       const seen = new Set(); const clean = [];
       for (const b of bars) { if (!seen.has(b.time) && b.value != null && isFinite(b.value)) { seen.add(b.time); clean.push({ time: b.time, value: b.value }); } }
+      // ops 5140: header price / change and the pane label follow the series (they used to keep the previous equity's quote)
+      const lastPt = clean[clean.length - 1], prevPt = clean[clean.length - 2] || lastPt;
+      if (lastPt) {
+        const chgH = prevPt && prevPt.value ? ((lastPt.value - prevPt.value) / Math.abs(prevPt.value) * 100) : 0;
+        const pe = document.getElementById('active-price'), ce = document.getElementById('active-change');
+        if (pe) pe.textContent = jhFmtVal(lastPt.value) + (d.unit && String(d.unit).length <= 12 ? ' ' + d.unit : '');
+        if (ce) { ce.textContent = (chgH >= 0 ? '+' : '') + chgH.toFixed(2) + '%'; ce.className = 'symbol-change ' + (chgH >= 0 ? 'up' : 'dn'); }
+        const psym = document.getElementById(`pane-symbol-${paneIdx}`); if (psym) psym.textContent = symbol;
+        const pchg = document.getElementById(`pane-change-${paneIdx}`); if (pchg) { pchg.textContent = (chgH >= 0 ? '+' : '') + chgH.toFixed(2) + '%'; pchg.className = 'pane-symbol-change ' + (chgH >= 0 ? 'up' : 'dn'); }
+      }
       const cmL = State.changeMode;
       if (cmL && cmL !== 'price') {
         NativeChart.renderChangeHisto(paneIdx, clean, cmL, NativeChart.CHANGE_LABELS[cmL], symbol);
@@ -5158,7 +5179,7 @@ class NativeChart {
         autoSize: true,
         layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
         grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
-        rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433' }, crosshair: { mode: 1 },
+        rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433', minBarSpacing: 0.001 }, crosshair: { mode: 1 },
       });
       const ohlc = (d.ohlc || []);
       if (ohlc.length > 1) {
@@ -5169,8 +5190,10 @@ class NativeChart {
         const cs = chart.addCandlestickSeries({ upColor: '#26ffaf', downColor: '#ff5577', borderVisible: false, wickUpColor: '#26ffaf', wickDownColor: '#ff5577' });
         cs.setData(daily.map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
       } else {
+        const tfS = State.tf || { span: 'day', days: 250 };
+        const pts = jhAggregateObs(clean, tfS.span);
         const area = chart.addAreaSeries({ lineColor: '#22d3ee', topColor: 'rgba(34,211,238,0.25)', bottomColor: 'rgba(34,211,238,0.02)', lineWidth: 2 });
-        area.setData(clean);
+        area.setData(pts);
       }
       NativeChart.renderStatBlock(paneIdx, clean, symbol);
       chart.timeScale().fitContent();
@@ -5228,7 +5251,7 @@ class NativeChart {
         autoSize: true,
         layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
         grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
-        rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433' }, crosshair: { mode: 1 },
+        rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433', minBarSpacing: 0.001 }, crosshair: { mode: 1 },
       });
       const area = chart.addAreaSeries({ lineColor: '#22d3ee', topColor: 'rgba(34,211,238,0.25)', bottomColor: 'rgba(34,211,238,0.02)', lineWidth: 2 });
       const seen = new Set(); const clean = [];
@@ -5330,7 +5353,7 @@ class NativeChart {
         layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
         grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
         rightPriceScale: { borderColor: '#1c2433' },
-        timeScale: { borderColor: '#1c2433', timeVisible: intraday },
+        timeScale: { borderColor: '#1c2433', timeVisible: intraday, minBarSpacing: 0.001 },
         crosshair: { mode: 1 },
       });
       const candleSeries = chart.addCandlestickSeries({
@@ -7057,8 +7080,15 @@ async function init() {
   const rightDrawer = document.getElementById('right-sidebar');
   const edgeLeft = document.getElementById('edge-tab-left');
   const edgeRight = document.getElementById('edge-tab-right');
-  function setLeft(open) { leftDrawer.classList.toggle('open', open); edgeLeft.classList.toggle('hidden', open); try { localStorage.setItem('jh_wl_open', open ? '1' : '0'); } catch (e) {} }
+  function setLeft(open) { leftDrawer.classList.toggle('open', open); edgeLeft.classList.toggle('hidden', open); try { localStorage.setItem('jh_wl_open', open ? '1' : '0'); } catch (e) {} if (open) { try { UI.refreshWatchlist(); } catch (e) {} } }
   function setRight(open) { rightDrawer.classList.toggle('open', open); edgeRight.classList.toggle('hidden', open); }
+  // ops 5140: the WATCHLIST / INTEL edge tabs had hover styles but no click handler — clicking did nothing
+  edgeLeft.addEventListener('click', () => setLeft(true));
+  edgeRight.addEventListener('click', () => setRight(true));
+  const closeLeft = document.getElementById('close-left'), closeRight = document.getElementById('close-right');
+  if (closeLeft) closeLeft.addEventListener('click', () => setLeft(false));
+  if (closeRight) closeRight.addEventListener('click', () => setRight(false));
+  window.jhSetDrawers = (l, r) => { if (l != null) setLeft(!!l); if (r != null) setRight(!!r); };
   const setupsDrawer = document.getElementById('setups-drawer');
   // setups drawer removed 2026-07-10; alerts button lives in the toolbar now
   function setSetups() {}
