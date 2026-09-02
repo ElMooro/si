@@ -1,0 +1,49 @@
+# ops 5147 -- on-demand FRED banking diagnosis + search sources (v1.5.3)
+
+**Status:** failure  
+**Duration:** 96.2s  
+**Finished:** 2026-09-02T22:17:45+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## S1 deploy symdir v1.5.0
+
+- `22:16:09`   zip: 138186 bytes
+## 1. Lambda
+
+- `22:16:09`   Lambda exists — updating
+- `22:16:13` ✅   ✓ updated justhodl-symdir
+## S2 resolution + search
+
+- `22:16:27`   direct fred:DGS2MO: n=None first=None src=None err=HTTP Error 400: Bad Request trace=b/python3.12/urllib/request.py", line 492, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "/var/lang/lib/python3.12/urllib/request.py", line 639, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 400: Bad Request
+
+- `22:16:29`   direct fred:DGS3MO: n=11249 first=1981-09-01 src=warehouse:fred-scoped/Interest_Rates err= trace=
+- `22:16:31`   TVC:US02MY         n=None first=None last=None via=None src=None err=no market feed for TVC:US02MY and no warehouse equivalent (RuntimeError: no bars alts=[{'id': 'fred:DGS2MO', 'note': 'US Treasury constant-maturity yield, daily (FRED H.15)', 'error': 'HTTPError: HTTP Error 400: Bad Request'}]
+- `22:16:32`   ECONOMICS:USINTR   n=866 first=1954-07-01 last=2026-08-01 via=fred:FEDFUNDS src=warehouse:fred-scoped/Interest_Rates (+1 obs tail from FRED, bank healed) err= alts=None
+- `22:16:33`   TVC:DE10Y          n=842 first=1956-05-01 last=2026-06-01 via=fred:IRLTLT01DEM156N src=warehouse:fred-scoped/International_Data err= alts=None
+- `22:16:34`   TVC:US03MY         n=18157 first=1954-01-04 last=2026-08-31 via=fred:DTB3 src=warehouse:fred-scoped/Interest_Rates err= alts=None
+- `22:16:34`   search US02MY: facets=[{'provider': 'tv', 'provider_name': 'TradingView', 'n': 1}] rows=['TVC:US02MY'] tv sources=[{'id': 'fred:DGS2MO', 'provider': 'fred', 'provider_name': 'FRED', 'name': 'US Treasury constant-maturity yield, daily (FRED H.15)', 'freq': None, 'first': None, 'last': None, 'ohlc': False, 'note': 'US Treasury constant-maturity yield, daily (FRED H.15) — not in the catalog yet; banks on first open', 'banked': False}]
+- `22:16:35`   provider filter eurostat: rows=['eurostat:LFSA_URGANEDM', 'eurostat:LFST_R_LFU3RT', 'eurostat:LFSO_14LUNER', 'eurostat:LFSA_URGAEDDL', 'eurostat:LFST_R_LFUR2GAC'] facets=[('bls', 13005), ('fred', 12704), ('tv', 162), ('eurostat', 55), ('statcan', 20), ('worldbank', 19)]
+## S3 live page
+
+- `22:17:26`   page fetch /symsearch: {"facets": [{"provider": "tv", "provider_name": "TradingView", "n": 1}], "rows": [{"id": "TVC:US02MY", "sources": [{"id": "fred:DGS2MO", "provider": "fred", "provider_name": "FRED", "name": "US Treasury constant-maturity yield, daily (FRED H.15)", "freq": null, "first": null, "last": null, "ohlc": false, "note": "US Treasury constant-maturity yield, daily (FRED H.15) \u2014 not in the catalog yet; banks on first open", "banked": false}]}], "err": null} | HeaderSearch._facets=null
+- `22:17:26`   dropdown: {"chips": [], "rows": [{"id": "TVC:US02MY", "src": null}]}
+- `22:17:35`   TVC:US02MY chart: {"active": "TVC:US02MY", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "TVC:US02MY has no market feed the warehouse can bank.Same data in your warehouse:fred:DGS2MO \u203a"}
+- `22:17:45`   TVC:US10Y legend: {"legend": "TVC:US10Y O 4.78 H 4.81 L 4.77 C 4.80 +0.42% Vol \u2014"}
+## verdict
+
+- `22:17:45` ✗ TVC:US02MY did not resolve via fred:DGS2MO: via=None err=no market feed for TVC:US02MY and no warehouse equivalent (RuntimeError: no bars for TVC:US02MY (tv:all endpoints refused: data.tradingview.com/socket.io/webso)
+- `22:17:45` ✗ TVC:US03MY did not resolve via fred:DGS3MO: via=fred:DTB3 err=None
+- `22:17:45` ✗ no facet chips in the dropdown
+- `22:17:45` ✗ TVC:US02MY row has no source line: {'id': 'TVC:US02MY', 'src': None}
+- `22:17:45` ✗ TVC:US02MY did not chart: {"active": "TVC:US02MY", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "TVC:US02MY has no market feed the warehouse can bank.Same data in your warehouse:fred:DGS2MO \u203a"}
