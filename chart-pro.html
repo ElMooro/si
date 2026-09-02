@@ -1868,6 +1868,17 @@ function jhAggregateBars(daily, span, mult) {
   if (cur) out.push(cur);
   return mult > 1 ? jhGroupN(out, mult) : out;
 }
+function jhCleanBars(bars) {
+  // LightweightCharts treats an item with open undefined as whitespace and its bar colorer then throws "Value is null";
+  // duplicate or descending times throw too. Keep only finite OHLC rows with strictly ascending unique times.
+  const out = []; let last = '';
+  for (const b of bars) {
+    if (!b || !b.time || !isFinite(b.open) || !isFinite(b.high) || !isFinite(b.low) || !isFinite(b.close)) continue;
+    if (b.time <= last) { if (b.time === last) out[out.length - 1] = b; continue; }
+    out.push(b); last = b.time;
+  }
+  return out;
+}
 function jhGroupN(bars, n) {
   const out = [];
   for (let i = 0; i < bars.length; i += n) {
@@ -4554,7 +4565,8 @@ class NativeChart {
   }
   static disposePane(paneIdx) {
     const c = ChartSync.charts.get(paneIdx);
-    if (c) { try { c.remove(); } catch (e) {} ChartSync.unregister(paneIdx); if (State.nativeChart === c) State.nativeChart = null; }
+    if (c) { ChartSync.unregister(paneIdx); try { c.remove(); } catch (e) {} if (State.nativeChart === c) State.nativeChart = null; }
+    if (State._charts && State._charts[paneIdx]) { const h = State._charts[paneIdx]; if (h && h !== c && typeof h.remove === 'function') { try { h.remove(); } catch (e) {} } delete State._charts[paneIdx]; }
     setTimeout(() => NativeChart.reapDetached(), 60);
   }
   static async render(ticker) {
@@ -5146,7 +5158,7 @@ class NativeChart {
       if (ohlc.length > 1) {
         // TradingView-universe symbol / equity from the warehouse → candles, aggregated to the chosen span
         const tfS = State.tf || { span: 'day', mult: 1 };
-        let daily = ohlc.map(o => ({ time: o[0], open: o[1], high: o[2], low: o[3], close: o[4], volume: o[5] || 0 }));
+        let daily = jhCleanBars(ohlc.map(o => ({ time: o[0], open: o[1], high: o[2], low: o[3], close: o[4], volume: o[5] || 0 })));
         daily = jhAggregateBars(daily, tfS.span === 'week' || tfS.span === 'month' ? tfS.span : 'day', tfS.mult || 1);
         const cs = chart.addCandlestickSeries({ upColor: '#26ffaf', downColor: '#ff5577', borderVisible: false, wickUpColor: '#26ffaf', wickDownColor: '#ff5577' });
         cs.setData(daily.map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
@@ -5268,7 +5280,7 @@ class NativeChart {
           const d = await SymDir.series(ticker);
           const oh = (d && d.ohlc) || [];
           if (oh.length) {
-            let daily = oh.map(o => ({ time: o[0], open: o[1], high: o[2], low: o[3], close: o[4], volume: o[5] || 0, value: o[5] || 0 }));
+            let daily = jhCleanBars(oh.map(o => ({ time: o[0], open: o[1], high: o[2], low: o[3], close: o[4], volume: o[5] || 0, value: o[5] || 0 })));
             daily = jhAggregateBars(daily, tf.span, tf.mult || 1);
             daily.forEach(b => { b.value = b.volume || 0; });
             if (tf.days < 9999) daily = daily.slice(-Math.max(days, 60));
