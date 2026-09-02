@@ -18,7 +18,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.6.2"
+VERSION = "1.6.3"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -360,6 +360,11 @@ def lambda_handler(event=None, context=None):
         start = since
         if through:
             start = max(since, datetime.fromisoformat(through).replace(tzinfo=timezone.utc) - timedelta(days=3))
+            # v1.6.3: a store that does not reach back to the window start (a partial first fill)
+            # is backfilled once from `since`; otherwise year-ago comparisons can never exist
+            first = min((k.split("|", 1)[1] for k in store), default=None)
+            if first and first > (since + timedelta(days=7)).strftime("%Y-%m-%d"):
+                start = since
         page = 1000            # the IMF layers' maxRecordCount: asking for more returns 1000 and looks like a last page
         while offset < 120000:
             w = f"date >= timestamp '{start.strftime('%Y-%m-%d')}'"

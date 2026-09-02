@@ -37,7 +37,7 @@ def lambda_handler(event, context):
         SLA_OVERRIDES = {}
     rows, token = [], None
     while True:
-        kw = {"Bucket": S3_BUCKET, "Prefix": "data/", "MaxKeys": 1000}
+        kw = {"Bucket": S3_BUCKET, "Prefix": "data/", "MaxKeys": 1000, "Delimiter": "/"}   # ops 5111: top-level only (see fleet-monitor)
         if token:
             kw["ContinuationToken"] = token
         r = s3.list_objects_v2(**kw)

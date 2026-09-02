@@ -161,6 +161,7 @@ def lambda_handler(event=None, context=None):
     # never aged, so five entries from 2026-08-10 were still being
     # reported as "5 incidents logged" twenty days later. A log that only
     # ever grows stops meaning anything. Keep 14 days.
+    now = datetime.now(timezone.utc)      # ops 5111: was undefined here (NameError on every run since ops 5056)
     _cut = (now - timedelta(days=14)).isoformat()
     incidents = [i for i in (prev.get("incidents") or [])[:100]
                  if str(i.get("at") or "") >= _cut]

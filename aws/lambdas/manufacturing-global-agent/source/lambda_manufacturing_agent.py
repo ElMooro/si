@@ -22,15 +22,14 @@ def lambda_handler(event, context):
         'ISM_INVENTORIES': 'NAPMII',
         'ISM_PRICES_PAID': 'NAPMPRI',
         'ISM_BACKLOG': 'NAPMBI',
-        'ISM_EXPORTS': 'NAPMEI',
-        'ISM_IMPORTS': 'NAPMII',
+        # ops 5111: ISM export/import (NAPMEI/NAPMII) are no longer on FRED (400) -- removed, not faked
         
         # Regional Fed Manufacturing Surveys
-        'EMPIRE_STATE': 'GAFDIMSA',
-        'PHILLY_FED': 'GAPHDFBA',
-        'RICHMOND_FED': 'RMTSPL',
-        'DALLAS_FED': 'DALLASFEDFAB',
-        'KANSAS_CITY_FED': 'KCLFEDFAB',
+        # ops 5111: ids re-verified live on FRED (2026-08 prints); the dead ids answered 400 every run
+        'EMPIRE_STATE': 'GACDISA066MSFRBNY',
+        'PHILLY_FED': 'GACDFSA066MSFRBPHI',
+        'DALLAS_FED': 'BACTSAMFRBDAL',
+        # RICHMOND_FED (RMTSPL) and KANSAS_CITY_FED (KCLFEDFAB/KCFMCI) have no live FRED series -- removed
         
         # Industrial Production
         'INDUSTRIAL_PRODUCTION': 'INDPRO',
@@ -43,11 +42,8 @@ def lambda_handler(event, context):
         'MATERIALS': 'IPMAT',
         
         # Global Manufacturing PMIs
-        'CHINA_MANUFACTURING_PMI': 'CHEFMNM156N',
-        'EUROZONE_MANUFACTURING_PMI': 'EA19PRMNTO01IXOBM',
-        'JAPAN_MANUFACTURING_PMI': 'JPNPRMNTO01IXOBM',
-        'UK_MANUFACTURING_PMI': 'GBRPRMNTO01IXOBM',
-        'GERMANY_MANUFACTURING_PMI': 'DEUPRMNTO01IXOBM',
+        # ops 5111: CHEFMNM156N answers 400; the OECD MEI production mirrors (EA19/JPN/GBR/DEU PRMNTO01IXOBM)
+        # stopped in 2023-10 / 2024-03 and are not PMIs -- removed rather than shown as current
         'FRANCE_MANUFACTURING_PMI': 'FRAPRMNTO01IXOBM',
         
         # Manufacturing Employment

@@ -102,7 +102,8 @@ def _read(key):
 
 def list_outputs():
     keys = []
-    for pg in s3.get_paginator("list_objects_v2").paginate(Bucket=S3_BUCKET, Prefix="data/"):
+    # ops 5111: Delimiter="/" -- the undelimited walk over data/ (9.7M warehouse objects) timed out every run
+    for pg in s3.get_paginator("list_objects_v2").paginate(Bucket=S3_BUCKET, Prefix="data/", Delimiter="/"):
         for o in pg.get("Contents", []):
             k = o["Key"]
             if not k.endswith(".json") or "/" in k[len("data/"):]:

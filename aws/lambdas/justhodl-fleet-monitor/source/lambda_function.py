@@ -109,7 +109,10 @@ def sweep_data_outputs():
     token = None
     try:
         while True:
-            kw = {"Bucket": BUCKET, "Prefix": "data/", "MaxKeys": 1000}
+            # ops 5111: Delimiter="/" -- without it this walked the whole data/ tree
+            # (9.7M warehouse objects since the Aug warehouse program) and timed out
+            # every run with nothing logged; only depth-1 feeds were ever wanted
+            kw = {"Bucket": BUCKET, "Prefix": "data/", "MaxKeys": 1000, "Delimiter": "/"}
             if token:
                 kw["ContinuationToken"] = token
             resp = s3.list_objects_v2(**kw)

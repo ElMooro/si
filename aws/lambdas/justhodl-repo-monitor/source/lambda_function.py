@@ -78,11 +78,13 @@ def collect_reverse_repo():
                 ra=float(rps[0].get('totalAmtAccepted',0))/1e9;M['Fed_Repo_Operations']={'value':round(ra,1),'unit':'$B','label':'Fed Repo Ops (Lending)','status':'ACTIVE' if ra>0 else 'DORMANT','description':'Fed lending cash. Active = market needs liquidity'}
     except Exception as e:print(f"REPO_OPS_ERR:{e}")
     try:
-        srf=http_get("https://markets.newyorkfed.org/api/rp/srf/results/latest.json")
+        # ops 5111: /api/rp/srf/... answers 400 now; SRF operations are the fixed-rate repos on /api/rp/repo/fixed/
+        srf=http_get("https://markets.newyorkfed.org/api/rp/repo/fixed/results/latest.json")
         if srf and 'repo' in srf:
             sr=srf['repo']
-            if isinstance(sr,list) and sr:
-                sa=float(sr[0].get('totalAmtAccepted',0))/1e9;M['SRF_Usage']={'value':round(sa,1),'unit':'$B','label':'Standing Repo Facility','status':'STRESS' if sa>10 else 'NORMAL','description':'Emergency backstop. Usage = stress'}
+            ops=(sr.get('operations') if isinstance(sr,dict) else sr) or []
+            sa=sum(float(o.get('totalAmtAccepted') or 0) for o in ops if isinstance(o,dict))/1e9
+            M['SRF_Usage']={'value':round(sa,1),'unit':'$B','label':'Standing Repo Facility','status':'STRESS' if sa>10 else 'NORMAL','description':'Emergency backstop. Usage = stress ($0 = no take-up in the latest fixed-rate repo operation)','n_operations':len(ops)}
     except Exception as e:print(f"SRF_ERR:{e}")
     return M
 def collect_fed_facilities():
@@ -113,8 +115,10 @@ def collect_funding_spreads():
             if wl is not None and sl is not None:st='STRESS' if v>sl else 'WATCH' if v>wl else 'NORMAL'
             elif sid in['T10Y2Y','T10Y3M']:st='INVERTED' if v<0 else 'FLAT' if v<0.25 else 'NORMAL'
             M[sid]={'value':round(v,4),'unit':u,'label':lab,'history':h,'z_score':zs(v,h),'status':st,'fred_id':sid,'description':desc}
-    lib3m=fl('USD3MTD156N');sofr=fl('SOFR')
-    if lib3m is not None and sofr is not None:frao=round(lib3m-sofr,4);M['FRA_OIS_Proxy']={'value':frao,'unit':'%','label':'FRA-OIS Proxy','status':'STRESS' if frao>0.50 else 'WATCH' if frao>0.25 else 'NORMAL','description':'Key bank funding stress gauge'}
+    # ops 5111: 3M USD LIBOR (USD3MTD156N) ended in 2023 and FRED answers 400; the live term funding
+    # rate on FRED is the 90-day AA financial commercial paper rate -- CP minus SOFR is the funding-stress spread
+    lib3m=fl('RIFSPPFAAD90NB');sofr=fl('SOFR')
+    if lib3m is not None and sofr is not None:frao=round(lib3m-sofr,4);M['FRA_OIS_Proxy']={'value':frao,'unit':'%','label':'CP-OIS Proxy (90D AA fin CP - SOFR)','status':'STRESS' if frao>0.50 else 'WATCH' if frao>0.25 else 'NORMAL','description':'Bank funding stress gauge (term CP vs overnight SOFR); LIBOR discontinued 2023','fred_ids':['RIFSPPFAAD90NB','SOFR']}
     for sid,lab,desc in [('RIFSPPFAAD90NB','90D AA Financial CP','Corp funding cost'),('RIFSPPNAAD90NB','90D AA Nonfinancial CP','Real economy funding'),('DCPN3M','3M Dealer CP','Dealer costs')]:
         v=fl(sid);h=fh(sid,60)
         if v is not None:M[sid]={'value':round(v,3),'unit':'%','label':lab,'history':h,'fred_id':sid,'description':desc}
