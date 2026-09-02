@@ -1,89 +1,36 @@
-executing-against: faadb665190aa7a185a29af2a47484d2ead221c2
-ops 5108 -- fix wave 2: erroring engines one by one
-── 1. boj-full storm ──
-[02:10:17] benzinga-news-agent-warm targets: [('1', 'benzinga-news-agent', ''), ('bojfanout', 'justhodl-boj-full', '{"fanout": true}'), ('econdispatch', 'justhodl-census-us', '{"mode": "econ_dispatch", "shards": 12}'), ('gdelt-full', 'justhodl-gdelt-full', '{}'), ('repo', 'justhodl-repo', '{}')]
-[02:10:17] ✅ detached boj-full target(s) ['bojfanout'] from the 5-minute warm rule
-[02:10:17] carry-surface-4h extra targets: [('censusts', 'justhodl-census-us')]
-[02:10:18] ✅ schedule justhodl-boj-full-fanout created (rate 30 minutes)
-[02:10:18]   boj err: [ERROR] NameError: name 'api_key' is not defined
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 334, in lambda_handler
-    ds = api_drain_db(db, end, state)
-  File "/var/task/lambda_functi
-── 2. memory/timeout raises (live) ──
-[02:10:19] ✅ justhodl-signal-scorecard: 256MB/120s -> 1536MB/600s
-[02:10:20] ✅ justhodl-feed-registry: 256MB/120s -> 1024MB/600s
-[02:10:20] ✅ justhodl-global-liquidity: 256MB/120s -> 512MB/300s
-[02:10:21] ✅ justhodl-provider-window-sentinel: 256MB/120s -> 512MB/600s
-[02:10:22] ✅ justhodl-research-backtest: 512MB/240s -> 1024MB/900s
-[02:10:22] ✅ justhodl-signal-harvester: 512MB/300s -> 1024MB/900s
-[02:10:23] ✅ justhodl-fleet-monitor: 512MB/300s -> 1024MB/900s
-[02:10:24] ✅ justhodl-calibrator: 512MB/300s -> 2048MB/900s
-[02:10:25] ✅ justhodl-import-sentinel: 512MB/120s -> 1024MB/600s
-── 3. stock-screener redeploy ──
-[02:10:25]   zip: 122659 bytes
-── 1. Lambda ──
-[02:10:25]   Lambda exists — updating
-── 4. portwatch v1.6.1 ──
-[02:13:30] ✅ justhodl-portwatch deployed (2026-09-02T02:13:19.000+0000) after 182s
-[02:20:40] portwatch invoke 200 b'{"ok": true, "chokepoints": 28, "worst": {"name": "Kerch Strait", "z": -1.48, "vs_baseline_pct": -98.9, "status": "DISRUPTED"}, "rows": 10948}'
-[02:20:40] portwatch: v1.6.1 ok=True chokepoints=28 ports=50 with_yoy=0 daily_rows=10948 requests={"n": 20, "throttled_429": 0, "budget": 140} history_through={"choke": "2026-08-23", "ports": "2025-10-16"} errors=["ports_daily: {'code': 400, 'message': 'Cannot perform query. Invalid query parameters.', 'details': ['Unable to perform query. Please check your parameters.']} (using history through 2025-10-16, 3000 new rows merged)"]
-[02:20:41] ✅ justhodl-portwatch-daily -> cron(20 11 * * ? *)
-[02:20:41] portwatch schedules now: ['justhodl-portwatch-daily']
-── 5. census-us / insider-trades ──
-[02:20:41] ✅ justhodl-census-us deployed (2026-09-02T02:11:00.000+0000) after 0s
-[02:22:12] justhodl-census-us: UnboundLocalError lines after fix: 0 []; report: ["REPORT RequestId: 60611067-afcd-420d-ac4c-dd12ea09ca32\tDuration: 653.84 ms\tBilled Duration: 654 ms\tMemory Size: 1024 MB\tMax Memory Used: 121 MB\t\nXRAY TraceId: 1-6a97882b-5c621cc805b4099f014ceaf9\tSegmentId: 09217b2265f4d899\tSampled: true", "REPORT RequestId: c2b4065a-6fb7-40f4-b6b9-acc62641
-[02:22:13] ✅ justhodl-insider-trades deployed (2026-09-02T02:12:57.000+0000) after 0s
-[02:23:13] justhodl-insider-trades: KeyError lines after fix: 0 []; report: ["REPORT RequestId: 865cfc42-fd4e-4895-a3db-bb2c70c58b9a\tDuration: 18990.89 ms\tBilled Duration: 19344 ms\tMemory Size: 512 MB\tMax Memory Used: 113 MB\tInit Duration: 353.02 ms\t\nXRAY TraceId: 1-6a978855-079f9c826a040fb238ab7668\tSegmentId: 5c1408"]
-── 6. timeout forensics ──
-[02:23:14]   justhodl-fleet-monitor: no 'Task timed out' in 3d
-[02:23:15]   justhodl-feed-registry: no 'Task timed out' in 3d
-[02:23:16]   justhodl-research-backtest: no 'Task timed out' in 3d
-[02:23:16]   justhodl-global-liquidity: no 'Task timed out' in 3d
-[02:23:17]   justhodl-provider-window-sentinel: no 'Task timed out' in 3d
-[02:23:18]   justhodl-signal-harvester: no 'Task timed out' in 3d
-[02:23:18]   justhodl-imf-full: no 'Task timed out' in 3d
-[02:23:19]   justhodl-calibrator: no 'Task timed out' in 3d
-[02:23:19]   justhodl-signal-scorecard: no 'Task timed out' in 3d
-[02:23:20]   justhodl-import-sentinel: no 'Task timed out' in 3d
-[02:23:20] import-sentinel error lines (24h):
-[02:23:20]   [ERROR] NameError: name 'now' is not defined
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 164, in lambda_handler
-    _cut = (now - timedelta(days=14)).isoformat()
-[02:23:20]   [ERROR] NameError: name 'now' is not defined
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 164, in lambda_handler
-    _cut = (now - timedelta(days=14)).isoformat()
-[02:23:20]   [ERROR] NameError: name 'now' is not defined
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 164, in lambda_handler
-    _cut = (now - timedelta(days=14)).isoformat()
-[02:23:20]   [ERROR] NameError: name 'now' is not defined
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 164, in lambda_handler
-    _cut = (now - timedelta(days=14)).isoformat()
-[02:23:20]   [ERROR] NameError: name 'now' is not defined
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 164, in lambda_handler
-    _cut = (now - timedelta(days=14)).isoformat()
-[02:23:20]   [ERROR] NameError: name 'now' is not defined
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 164, in lambda_handler
-    _cut = (now - timedelta(days=14)).isoformat()
-── 7. fi-census / etf-census silent schedules ──
-[02:23:21] fi-census-sched: state=ENABLED expr=cron(0 7 2,16 * ? *) target=arn:aws:lambda:us-east-1:857687956942:function:justhodl-fi-census role=arn:aws:iam::857687956942:role/justhodl-scheduler-role input={} window={'Mode': 'OFF'}
-[02:23:21]   function arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-fi-census state=Active timeout=900 mem=768
-[02:23:21]   manual async invoke status=202
-[02:24:07]   report: ["REPORT RequestId: ea48f5bf-e2a9-47fe-8234-27dc1c8f00f9\tDuration: 20953.68 ms\tBilled Duration: 21375 ms\tMemory Size: 768 MB\tMax Memory Used: 108 MB\tInit Duration: 421.30 ms\t\nXRAY TraceId: 1-6a978899-556abc502b942e633de39267\tSegment errors: []
-[02:24:07] etf-census-sched: state=ENABLED expr=cron(30 6 2,16 * ? *) target=arn:aws:lambda:us-east-1:857687956942:function:justhodl-etf-census role=arn:aws:iam::857687956942:role/justhodl-scheduler-role input={} window={'Mode': 'OFF'}
-[02:24:08]   function arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-etf-census state=Active timeout=900 mem=1024
-[02:24:08]   manual async invoke status=202
-[02:24:53]   report: ["REPORT RequestId: 62e89396-4ef7-415b-bd84-360b9eaffb3a\tDuration: 23763.23 ms\tBilled Duration: 24259 ms\tMemory Size: 1024 MB\tMax Memory Used: 114 MB\tInit Duration: 494.77 ms\t\nXRAY TraceId: 1-6a9788c8-019678fb2e7628dc7362440d\tSegmen errors: []
-── verdict ──
-[02:24:53] ✗ stock-screener: Parameter validation failed:
-Invalid type for parameter Environment.Variables, value: None, type: <class 'NoneType'>, valid types: <class 'dict'>
-[02:24:53] ✗ portwatch: still no ports with yoy
+executing-against: 1c8350041c51c13f19b7afa2b0385ace77d5c60f
+ops 5109 -- probe replacements for the dead FRED ids / NY Fed endpoint (read-only)
+── plumbing-aggregator ──
+[02:25:23] WCBSL: SWPT->200 ('2026-08-26', '121') Assets: Central Bank Liquidity Swaps: Central Bank | WCBSL->400 None 
+[02:25:28] DRTSCLM: DRTSCLM->400 None  | DRTSCILM->200 ('2026-07-01', '0.0000000000') Net Percentage of Domestic Banks Tightening Standa | DRTSCLCC->200 ('2026-07-01', '6.7000000000') Net Percentage of Domestic Banks Tightening Standa | SUBLPDRCSM->200 ('2026-07-01', '-5.7') Net Percentage of Domestic Banks Tightening Standa | DRTSPM->200 ('2014-10-01', '-11.1') Net Percentage of Domestic Banks Tightening Standa
+[02:25:31] WGRESUS: WGRESUS->400 None  | WMTSECL1->200 ('2026-08-26', '2615246') Memorandum Items: Custody Holdings: Marketable U.S | WSHOMCB->200 ('2026-08-26', '1913585') Assets: Securities Held Outright: Mortgage-Backed  | FDHBFIN->200 ('2025-10-01', '9270.9') Federal Debt Held by Foreign and International Inv
+── repo-monitor ──
+[02:25:33] OTHL1690: OTHL1690->200 ('2026-08-26', '2568') Assets: Liquidity and Credit Facilities: Loans: Ma | WLCFLPCL->200 ('2026-08-26', '4890') Assets: Liquidity and Credit Facilities: Loans: Pr | WORAL->200 ('2026-08-26', '3') 
+[02:25:35] SOFR25: SOFR25->429 None  | SOFR1->429 None  | SOFR99->429 None 
+[02:25:37] SOFR75: SOFR75->429 None  | SOFR99->429 None 
+[02:25:38] USD3MTD156N: USD3MTD156N->429 None  | SOFR90DAYAVG->429 None  | TSFR3M->429 None 
+[02:25:40] WDTGAL: WDTGAL->429 None  | WTREGEN->429 None 
+[02:25:41] WLCFLPCL: WLCFLPCL->429 None 
+[02:25:41] SWPT: SWPT->429 None 
+── manufacturing-global-agent ──
+[02:25:43] DALLASFEDFAB: DALLASFEDFAB->429 None  | BACTSAMFRBDAL->429 None  | PROSAMFRBDAL->429 None 
+[02:25:46] KCLFEDFAB: KCLFEDFAB->429 None  | KCFMCI->429 None  | COMPRMTSAMFRBKC->429 None 
+[02:25:47] CHEFMNM156N: CHEFMNM156N->429 None  | CHNPRMNTO01IXOBM->429 None 
+[02:25:48] GAFDIMSA: GAFDIMSA->429 None  | GACDISA066MSFRBNY->429 None 
+[02:25:49] GAPHDFBA: GAPHDFBA->429 None  | GACDFSA066MSFRBPHI->429 None 
+[02:25:50] RMTSPL: RMTSPL->429 None 
+[02:25:50] NAPMEI: NAPMEI->429 None 
+[02:25:51] NAPMII: NAPMII->429 None 
+[02:25:52] EA19PRMNTO01IXOBM: EA19PRMNTO01IXOBM->429 None  | EA20PRMNTO01IXOBM->429 None 
+[02:25:53] JPNPRMNTO01IXOBM: JPNPRMNTO01IXOBM->429 None 
+[02:25:53] GBRPRMNTO01IXOBM: GBRPRMNTO01IXOBM->429 None 
+[02:25:54] DEUPRMNTO01IXOBM: DEUPRMNTO01IXOBM->429 None 
+── nyfed endpoints ──
+[02:25:54] https://markets.newyorkfed.org/api/rp/srf/results/latest.json: HTTP 400
+[02:25:55] https://markets.newyorkfed.org/api/rp/all/all/results/latest.json: 200 2282B { "repo": { "operations": [ { "operationId": "RP 090126 25", "auctionStatus": "Results", "operationDate": "2026-09-01", "settlementDate": "2026-09-01", "maturityDate": "2026-09-02", "operationType": "Repo", "operationMet
+[02:25:55] https://markets.newyorkfed.org/api/rp/repo/all/results/latest.json: 200 1628B { "repo": { "operations": [ { "operationId": "RP 090126 25", "auctionStatus": "Results", "operationDate": "2026-09-01", "settlementDate": "2026-09-01", "maturityDate": "2026-09-02", "operationType": "Repo", "operationMet
+[02:25:55] https://markets.newyorkfed.org/api/rp/repo/all/results/last/1.json: 200 830B { "repo": { "operations": [ { "operationId": "RP 090126 25", "auctionStatus": "Results", "operationDate": "2026-09-01", "settlementDate": "2026-09-01", "maturityDate": "2026-09-02", "operationType": "Repo", "operationMet
+[02:25:55] https://markets.newyorkfed.org/api/rp/all/all/results/last/3.json: 200 2282B { "repo": { "operations": [ { "operationId": "RP 090126 25", "auctionStatus": "Results", "operationDate": "2026-09-01", "settlementDate": "2026-09-01", "maturityDate": "2026-09-02", "operationType": "Repo", "operationMet
+[02:25:56] ✅ probe written to data/audit/fred-id-probe-5109.json
 
-→ Report written to aws/ops/reports/latest/5108-fix-wave-2.md
-❌ OPS-FAIL: aws/ops/pending/ops_5108_fix_wave_2.py
+→ Report written to aws/ops/reports/latest/5109-fred-id-probe.md
