@@ -1,19 +1,34 @@
-executing-against: 91afac7561cc89c46f324312ef0705ec82126ce4
-ops 5113 -- fix wave 6: post-deploy-only verification
-[04:04:50] ✅ justhodl-portwatch deployed (2026-09-02T03:28:56.000+0000) after 0s
-[04:19:57] ⚠ justhodl-census-us: deploy not observed within 900s
-[04:35:04] ⚠ justhodl-repo-monitor: deploy not observed within 900s
-── portwatch v1.6.5 ──
-[04:35:12] invoke 200 b'{"ok": true, "chokepoints": 28, "worst": {"name": "Kerch Strait", "z": -1.48, "vs_baseline_pct": -98.9, "status": "DISRUPTED"}, "rows": 10948}'
-[04:35:12] v1.6.5: ports=58 with_yoy=24 requests={"n": 9, "throttled_429": 0, "budget": 140} history_through={"choke": "2026-08-23", "ports": "2026-08-28"} errors=[]
-[04:35:12]   sample: [('Jeddah', 'Saudi Arabia', -68.1, 379), ('Keelung', 'Taiwan Province of China', -53.5, 379), ('Kaohsiung', 'Taiwan Province of China', -24.3, 379), ('Lirquen', 'Chile', -83.3, 374), ('Doha-Umm Said', 'Qatar', -72.2, 379), ('Ras Laffan', 'Qatar', -65.9, 379), ('Coronel', 'Chile', -55.6, 374), ('Abbot Point', 'Australia', -16.7, 379), ('Mejillones', 'Chile', -28.2, 374), ('Puerto Caldera', 'Chile', -33.3, 374)]
-[04:35:12]   n_days: [44, 64, 84, 84, 84, 84] … [379, 379, 379, 379]
-── census-us / repo-monitor / import-sentinel: invoke, settle 20 min, count errors after deploy ──
-[04:55:16] justhodl-census-us: since 2026-09-02T02:53+00:00 invocations=317 errors=0 samples=[]
-[04:55:16] justhodl-repo-monitor: since 2026-09-02T02:53+00:00 invocations=8 errors=0 samples=["HTTP_ERR[https://api.stlouisfed.org/fred/series/observations?series_i]:HTTP Error 400: Bad Request", "HTTP_ERR[https://api.stlouisfed.org/fred/series/observations?series_i]:HTTP Error 400: Bad Request", "HTTP_ERR[https://api.stlouisfed.org/fred/series/observations?series_i]:HTTP Error 429: Too Many Requests", "HTTP_ERR[https://api.stlouisfed.org/fred/series/observations?series_i]:HTTP Error 400: Bad Request", "HTTP_ERR[https://api.stlouisfed.org/fred/series/observations?series_i]:HTTP Error 40
-[04:55:17] justhodl-import-sentinel: since 2026-09-02T02:53+00:00 invocations=15 errors=0 samples=[]
+executing-against: 8cda69f70f99a4805b9981853bd04decaf9099e8
+ops 5114 -- closing wave
+── A. repo-monitor strictly after its 03:28 deploy ──
+[11:47:29] invocations=18 errors=0 HTTP_ERR lines: ["HTTP_ERR[https://api.stlouisfed.org/fred/series/observations?series_id=SOFR25&]:HTTP Error 429: Too Many Requests", "HTTP_ERR[https://api.stlouisfed.org/fred/series/observations?series_id=AMERIBOR&]:HTTP Error 429: Too Many Requests", "HTTP_ERR[https://api.stlouisfed.org/fred/series/observations?series_id=RRPONTSYD&]:HTTP Error 429: Too Many Requests", "HTTP_ERR[https://api.stlouisfed.org/fred/series/observations?series_id=SOFR&]:HTTP Error 429: Too Many Requests", "HTTP_ERR[https://api.stlouisfed.org/fred/series/observations?series_id=BAMLC0A4CBBB&]:HTTP Error 429: Too Many Requests"]
+── B. OECD walker retry progress ──
+[11:47:29] ledgers now: failures=444 (was 479) truncated=273 (was 264) done=1548 (was 1548) state_updated=2026-09-02 11:46:40+00:00
+[11:47:30] walker invocations/errors last 9h: 774/0
+[11:47:30] ✅ retries are shrinking the ledgers; schedules kept
+── C. small-error tail (7d samples) ──
+[11:47:31] justhodl-equity-research: 24h 193/0 · []
+[11:47:31] justhodl-cds-proxy: 24h 4/1 · []
+[11:47:32] justhodl-ecb-deep: 24h 146/2 · []
+[11:47:33] justhodl-fortress: 24h 7/0 · []
+[11:47:34] justhodl-outcome-checker: 24h 2/0 · []
+[11:47:34] fedliquidityapi: 24h 33/2 · []
+[11:47:35] justhodl-a2a-bus: 24h 938/0 · []
+[11:47:36] justhodl-cb-injection: 24h 2/1 · []
+[11:47:37] justhodl-ecb-derived: 24h 1/0 · []
+[11:47:38] justhodl-provider-catalog: 24h 24/0 · []
+[11:47:39] justhodl-risk-gate: 24h 25/0 · []
+[11:47:40] justhodl-real-economy-collector: 24h 1/0 · []
+[11:47:41] cftc-futures-positioning-agent: 24h 17/1 · ["[ERROR] Fetch https://api.polygon.io/v2/aggs/ticker/I:SPX/prev?adjusted=true&apiKey=zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d: HTTP Error 403: Forbidden"]
+── D. global cycle physical layer ──
+[11:47:41] portwatch: generated_at=2026-09-02T11:20:51.382111+00:00 ports=58 with_yoy=24
+[11:48:12] GBC v3.0.3: physical counts={"CONFIRMED": 2, "DIVERGENT": 1, "UNCONFIRMED": 31} countries_with_ports=4 carried=None multi_pillar=34 pillars={"survey": 32, "activity": 32, "trade": 34, "financial": 34, "equity": 34} global=GLOBAL_EXPANSION 100.14 p6m=0.34
+[11:48:12]   CONFIRMED: [('AUS', 5.0), ('FIN', 7.7)] · DIVERGENT: ['CHL']
+── E. fleet-wide errors: last 6h vs 7d baseline ──
+[11:48:32] 7d baseline (ops 5098): 1374186 invocations / 44882 errors = 3.27% ; last 6h: 3601 / 13 = 0.36% (6h scaled to 7d: 364 errors vs 44882)
+[11:48:32] top error producers (6h): justhodl-market-tape 6/78; justhodl-research-backtest 2/2; justhodl-ecb-deep 1/37; justhodl-engine-signal-map 1/43; cftc-futures-positioning-agent 1/2; justhodl-khalid-metrics 1/2; manufacturing-global-agent 1/1
+[11:48:32] fan-out members (6h): 34/63 invoked, errored: ['justhodl-khalid-metrics']
 ── verdict ──
-[04:55:17] ✗ justhodl-repo-monitor: 0 errors after deploy
+[11:48:32] ✅ VERDICT: GREEN
 
-→ Report written to aws/ops/reports/latest/5113-fix-wave-6.md
-❌ OPS-FAIL: aws/ops/pending/ops_5113_fix_wave_6.py
+→ Report written to aws/ops/reports/latest/5114-closing-wave.md
