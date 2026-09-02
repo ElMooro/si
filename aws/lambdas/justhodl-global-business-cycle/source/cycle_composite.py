@@ -114,7 +114,7 @@ def build_country(country_feats, grid, equity_monthly=None, end_idx=None):
         meta[name] = f
     if equity_monthly is not None and len(equity_monthly) == n:
         z = rolling_z(equity_monthly, min_obs=24)
-        feat_z["equity_momentum"] = z
+        feat_z["equity_momentum"] = ffill(z, 1)      # a month-end print stands until the next bar lands (max lag 1)
         meta["equity_momentum"] = {"pillar": "equity", "sign": 1, "freq": "M", "max_lag_months": 1,
                                    "label": "equity composite (12m/3m/1m return + 200d distance), own-history z",
                                    "latest_period": grid[end_idx], "months_stale": 0, "values": equity_monthly}

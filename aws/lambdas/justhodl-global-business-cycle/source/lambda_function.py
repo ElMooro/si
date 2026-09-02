@@ -1,4 +1,4 @@
-"""justhodl-global-business-cycle  v3.0.2  (multi-pillar composite; equity momentum is one pillar)
+"""justhodl-global-business-cycle  v3.0.3  (multi-pillar composite; equity momentum is one pillar)
 ═══════════════════════════════════════════════════════════════════════════
 The OECD CLI series on FRED stopped updating ~Jan 2024 (28+ months stale at
 time of writing). To provide a USEFUL global business cycle map with
@@ -97,7 +97,7 @@ except Exception as _cce:  # noqa: BLE001
     CC = None
     print(f"[gbc] cycle_composite unavailable: {_cce}")
 
-ENGINE_VERSION = "3.0.2"
+ENGINE_VERSION = "3.0.3"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUTPUT_KEY = "data/global-business-cycle.json"
