@@ -1,0 +1,56 @@
+# ops 5135 -- chart-pro: no leaked chart instances, signal feeds loading, clean console
+
+**Status:** failure  
+**Duration:** 255.9s  
+**Finished:** 2026-09-02T16:08:57+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## S1 static content live?
+
+- `16:04:43`   live: {"data": true, "plumbing": true, "chart": false}
+- `16:05:14`   live: {"data": true, "plumbing": true, "chart": false}
+- `16:05:46`   live: {"data": true, "plumbing": true, "chart": false}
+- `16:06:16`   live: {"data": true, "plumbing": true, "chart": false}
+- `16:06:47`   live: {"data": true, "plumbing": true, "chart": false}
+- `16:07:19`   live: {"data": true, "plumbing": true, "chart": false}
+- `16:07:51`   live: {"data": true, "plumbing": true, "chart": true}
+- `16:07:51` ✅   data.html static inventory: 57 providers, as_of 2026-09-02T15:48:53+00:00, totals {'providers': 57, 'datasets': 811254, 'keys': 1921835, 'gb': 530.39}
+## S2 chart-pro native charts (headless Chrome)
+
+- `16:08:03`   errors after initial load (NVDA): []
+- `16:08:12`   AAPL: {"active": "AAPL", "meta": null, "iframe": true, "paywall": false, "nativeSrc": null}
+- `16:08:21`   NVDA: {"active": "NVDA", "meta": null, "iframe": true, "paywall": false, "nativeSrc": null}
+- `16:08:30`   SSE:000001: {"active": "SSE:000001", "meta": null, "iframe": true, "paywall": false, "nativeSrc": null}
+- `16:08:39`   TVC:VIX: {"active": "TVC:VIX", "meta": null, "iframe": true, "paywall": false, "nativeSrc": null}
+- `16:08:48`   XETR:DAX: {"active": "XETR:DAX", "meta": null, "iframe": true, "paywall": false, "nativeSrc": null}
+- `16:08:57`   X:BTCUSD: {"active": "X:BTCUSD", "meta": null, "iframe": true, "paywall": false, "nativeSrc": null}
+- `16:08:57`   page error: {"msg": "Cannot assign to read only property 'createChart' of object '[object Object]'", "stack": "TypeError: Cannot assign to read only property 'createChart' of object '[object Object]'\n    at NativeChart._patchLWC (https://justhodl.ai/chart-pro.html:4550:35)\n    at NativeChart.render (https://justhodl.ai/chart-pro.html:4566:10)\n    at ChartController.loadTicker (https://justhodl.ai/chart-pro.html:3971:17)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:24)\n    at UtilityScript.evaluate (<anonymous>:318:18)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)", "sym": "AAPL"}
+- `16:08:57`   page error: {"msg": "Cannot assign to read only property 'createChart' of object '[object Object]'", "stack": "TypeError: Cannot assign to read only property 'createChart' of object '[object Object]'\n    at NativeChart._patchLWC (https://justhodl.ai/chart-pro.html:4550:35)\n    at NativeChart.render (https://justhodl.ai/chart-pro.html:4566:10)\n    at ChartController.loadTicker (https://justhodl.ai/chart-pro.html:3971:17)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:24)\n    at UtilityScript.evaluate (<anonymous>:318:18)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)", "sym": "NVDA"}
+- `16:08:57`   page error: {"msg": "Cannot assign to read only property 'createChart' of object '[object Object]'", "stack": "TypeError: Cannot assign to read only property 'createChart' of object '[object Object]'\n    at NativeChart._patchLWC (https://justhodl.ai/chart-pro.html:4550:35)\n    at NativeChart.render (https://justhodl.ai/chart-pro.html:4566:10)\n    at ChartController.loadTicker (https://justhodl.ai/chart-pro.html:3971:17)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:24)\n    at UtilityScript.evaluate (<anonymous>:318:18)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)", "sym": "SSE:000001"}
+- `16:08:57`   page error: {"msg": "Cannot assign to read only property 'createChart' of object '[object Object]'", "stack": "TypeError: Cannot assign to read only property 'createChart' of object '[object Object]'\n    at NativeChart._patchLWC (https://justhodl.ai/chart-pro.html:4550:35)\n    at NativeChart.render (https://justhodl.ai/chart-pro.html:4566:10)\n    at ChartController.loadTicker (https://justhodl.ai/chart-pro.html:3971:17)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:24)\n    at UtilityScript.evaluate (<anonymous>:318:18)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)", "sym": "TVC:VIX"}
+- `16:08:57`   page error: {"msg": "Cannot assign to read only property 'createChart' of object '[object Object]'", "stack": "TypeError: Cannot assign to read only property 'createChart' of object '[object Object]'\n    at NativeChart._patchLWC (https://justhodl.ai/chart-pro.html:4550:35)\n    at NativeChart.render (https://justhodl.ai/chart-pro.html:4566:10)\n    at ChartController.loadTicker (https://justhodl.ai/chart-pro.html:3971:17)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:24)\n    at UtilityScript.evaluate (<anonymous>:318:18)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)", "sym": "XETR:DAX"}
+- `16:08:57`   page error: {"msg": "Cannot assign to read only property 'createChart' of object '[object Object]'", "stack": "TypeError: Cannot assign to read only property 'createChart' of object '[object Object]'\n    at NativeChart._patchLWC (https://justhodl.ai/chart-pro.html:4550:35)\n    at NativeChart.render (https://justhodl.ai/chart-pro.html:4566:10)\n    at ChartController.loadTicker (https://justhodl.ai/chart-pro.html:3971:17)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:24)\n    at UtilityScript.evaluate (<anonymous>:318:18)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)", "sym": "X:BTCUSD"}
+- `16:08:57`   signal feeds loaded: {"cascade": true, "insider": true, "options": true, "live": 0}
+## verdict
+
+- `16:08:57` ✗ AAPL: TradingView widget/paywall
+- `16:08:57` ✗ AAPL: not from the warehouse: 
+- `16:08:57` ✗ AAPL: warehouse history does not reach back (None)
+- `16:08:57` ✗ NVDA: TradingView widget/paywall
+- `16:08:57` ✗ NVDA: not from the warehouse: 
+- `16:08:57` ✗ NVDA: warehouse history does not reach back (None)
+- `16:08:57` ✗ SSE:000001: TradingView widget/paywall
+- `16:08:57` ✗ SSE:000001: not from the warehouse: 
+- `16:08:57` ✗ TVC:VIX: TradingView widget/paywall
+- `16:08:57` ✗ TVC:VIX: not from the warehouse: 
+- `16:08:57` ✗ XETR:DAX: TradingView widget/paywall
+- `16:08:57` ✗ XETR:DAX: not from the warehouse: 
+- `16:08:57` ✗ X:BTCUSD: TradingView widget/paywall
+- `16:08:57` ✗ X:BTCUSD: not from the warehouse: 
+- `16:08:57` ✗ page errors 6: [{"msg": "Cannot assign to read only property 'createChart' of object '[object Object]'", "stack": "TypeError: Cannot assign to read only property 'createChart' of object '[object Object]'\n    at NativeChart._patchLWC (https://justhodl.ai/chart-pro.html:4550:35)\n    at NativeChart.render (https://
