@@ -1851,6 +1851,31 @@ function jhFmtVal(v) {
   if (a >= 1) return v.toFixed(2);
   return Number(v.toPrecision(3)).toString();
 }
+function jhAggregateBars(daily, span, mult) {
+  // daily OHLC → weekly (ISO week, Monday) or monthly bars; mult>1 groups consecutive buckets
+  if (!daily.length || span === 'day') return mult > 1 ? jhGroupN(daily, mult) : daily;
+  const key = (t) => {
+    const d = new Date(t + 'T00:00:00Z');
+    if (span === 'month') return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = (d.getUTCDay() + 6) % 7; const mon = new Date(d.getTime() - day * 86400000); return mon.toISOString().slice(0, 10);
+  };
+  const out = []; let cur = null, ck = null;
+  for (const b of daily) {
+    const k = key(b.time);
+    if (k !== ck) { if (cur) out.push(cur); ck = k; cur = { time: span === 'month' ? k + '-01' : k, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.volume || 0 }; }
+    else { cur.high = Math.max(cur.high, b.high); cur.low = Math.min(cur.low, b.low); cur.close = b.close; cur.volume += (b.volume || 0); }
+  }
+  if (cur) out.push(cur);
+  return mult > 1 ? jhGroupN(out, mult) : out;
+}
+function jhGroupN(bars, n) {
+  const out = [];
+  for (let i = 0; i < bars.length; i += n) {
+    const g = bars.slice(i, i + n);
+    out.push({ time: g[0].time, open: g[0].open, high: Math.max(...g.map(b => b.high)), low: Math.min(...g.map(b => b.low)), close: g[g.length - 1].close, volume: g.reduce((s, b) => s + (b.volume || 0), 0) });
+  }
+  return out;
+}
 function jhToast(msg) {
   let el = document.getElementById('jh-toast');
   if (!el) { el = document.createElement('div'); el.id = 'jh-toast'; el.style.cssText = 'position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--bg-1);border:1px solid var(--green);color:var(--fg-0);padding:8px 14px;border-radius:8px;font:12px var(--font-mono);z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,.5);display:none'; document.body.appendChild(el); }
@@ -3933,29 +3958,10 @@ class ChartController {
     // Forced TradingView
     if (engine === 'tv') { return this.loadTV(ticker, knownFull); }
     
-    // AUTO mode
-    // Crypto / forex → native via Yahoo (bypasses TradingView)
-    if (type === 'crypto' || type === 'forex') { NativeChart.render(ticker); return; }
-    
-    // Probe Polygon for equities — if it has data, use reliable native; else TV
-    const paneIdx = State.activeChartPane;
-    const container = document.getElementById(`tv-container-${paneIdx}`);
-    if (container) container.innerHTML = `<div class="tv-placeholder"><span class="ticker">${UI.esc(ticker)}</span><span>Resolving best chart source…</span></div>`;
-    
-    let hasPolygon = false;
-    if (/^[A-Z][A-Z.\-]{0,6}$/.test(ticker)) {
-      try {
-        const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(ticker)}&days=5`);
-        if (r.ok) { const d = await r.json(); hasPolygon = (d.bars && d.bars.length > 0); }
-      } catch (e) { hasPolygon = false; }
-    }
-    if (State.activeTicker !== ticker) return;
-    
-    if (hasPolygon) {
-      NativeChart.render(ticker);
-    } else {
-      this.loadTV(ticker, knownFull);
-    }
+    // AUTO mode (ops 5125): every symbol charts natively from the JustHodl warehouse — equities, ETFs,
+    // indices, crypto, FX and every TradingView-universe symbol (banked server-side on first open).
+    // The TradingView widget is used only when the user explicitly picks the TV engine.
+    NativeChart.render(ticker);
     if (window.jhSyncUrl) window.jhSyncUrl();
   }
   
@@ -4540,6 +4546,8 @@ class NativeChart {
     }
     if (jhSeriesProvider(ticker)) return this.renderSeries(ticker);
     if (ticker.startsWith('DBN:')) return this.renderLine(ticker, 'DBN');
+    // ops 5125: any EXCHANGE:SYMBOL (TVC:VIX, ECONOMICS:DEUR, SSE:000001, NASDAQ:AAPL…) → warehouse bars (tv-bars universe)
+    if (ticker.includes(':') && !ticker.startsWith('FRED:')) return this.renderSeries(ticker);
     const type = State.symbolType[ticker] || this.guessType(ticker);
     if (type) State.symbolType[ticker] = type;  // cache the guess
     if (type === 'crypto') return this.renderYahoo(ticker, this.cryptoToYahoo(ticker), 'Crypto');
@@ -5109,8 +5117,18 @@ class NativeChart {
         grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
         rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433' }, crosshair: { mode: 1 },
       });
-      const area = chart.addAreaSeries({ lineColor: '#22d3ee', topColor: 'rgba(34,211,238,0.25)', bottomColor: 'rgba(34,211,238,0.02)', lineWidth: 2 });
-      area.setData(clean);
+      const ohlc = (d.ohlc || []);
+      if (ohlc.length > 1) {
+        // TradingView-universe symbol / equity from the warehouse → candles, aggregated to the chosen span
+        const tfS = State.tf || { span: 'day', mult: 1 };
+        let daily = ohlc.map(o => ({ time: o[0], open: o[1], high: o[2], low: o[3], close: o[4], volume: 0 }));
+        daily = jhAggregateBars(daily, tfS.span === 'week' || tfS.span === 'month' ? tfS.span : 'day', tfS.mult || 1);
+        const cs = chart.addCandlestickSeries({ upColor: '#26ffaf', downColor: '#ff5577', borderVisible: false, wickUpColor: '#26ffaf', wickDownColor: '#ff5577' });
+        cs.setData(daily.map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
+      } else {
+        const area = chart.addAreaSeries({ lineColor: '#22d3ee', topColor: 'rgba(34,211,238,0.25)', bottomColor: 'rgba(34,211,238,0.02)', lineWidth: 2 });
+        area.setData(clean);
+      }
       NativeChart.renderStatBlock(paneIdx, clean, symbol);
       chart.timeScale().fitContent();
       const tfDays = (State.tf && State.tf.days) || 9999;
@@ -5218,7 +5236,22 @@ class NativeChart {
       }
       const jhYSym = JH_INDEX_MAP[ticker] || ticker.replace(/\./g, '-');
       let bars = [], jhSrc = 'Polygon';
-      if (tf.days >= 9999) { bars = await jhYahooBars(jhYSym, tf.days); if (bars.length) jhSrc = 'Yahoo full history'; }
+      // ops 5125: the JustHodl warehouse first (full history since inception, banked on S3); Polygon/Yahoo only for
+      // intraday spans or when the warehouse has nothing for this ticker yet
+      if (tf.span === 'day' || tf.span === 'week' || tf.span === 'month') {
+        try {
+          const d = await SymDir.series(ticker);
+          const oh = (d && d.ohlc) || [];
+          if (oh.length) {
+            let daily = oh.map(o => ({ time: o[0], open: o[1], high: o[2], low: o[3], close: o[4], volume: 0 }));
+            daily = jhAggregateBars(daily, tf.span, tf.mult || 1);
+            if (tf.days < 9999) daily = daily.slice(-Math.max(days, 60));
+            bars = daily;
+            jhSrc = 'JustHodl warehouse' + (String(d.source || '').includes('banked') ? ' · banked now' : '') + (d.first ? ' · since ' + d.first.slice(0, 4) : '');
+          }
+        } catch (e) { /* fall through to Polygon */ }
+      }
+      if (!bars.length && tf.days >= 9999) { bars = await jhYahooBars(jhYSym, tf.days); if (bars.length) jhSrc = 'Yahoo full history'; }
       if (!bars.length) {
         const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(ticker)}&mult=${tf.mult}&span=${tf.span}&days=${days}`);
         const data = await r.json();
@@ -5234,9 +5267,8 @@ class NativeChart {
           if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `${ticker} has no native (Polygon) data — % change needs native data. Try a US equity/ETF, FRED, or crypto/forex symbol.`; }
           return;
         }
-        // Price mode → auto-fall back to TradingView instead of dead-ending
-        if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `${ticker} not on Polygon — loading via TradingView…`; }
-        ChartController.loadTV(ticker);
+        // ops 5125: no warehouse bars yet — say so (the TradingView widget is only used when the user picks the TV engine)
+        if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `${ticker}: no bars in the JustHodl warehouse yet — the directory could not bank it from TradingView (check the symbol's exchange, e.g. NASDAQ:${ticker}).`; }
         return;
       }
       // FRED-style % change mode → histogram or line (overrides candle render)
@@ -5577,7 +5609,7 @@ class UniverseSearch {
     if (kind === 'equity' && full && full.includes(':')) {
       // Cache full symbol for non-stocks; bare for stocks handled in resolver
       const isStockLike = /^[A-Z]{1,5}$/.test(ticker);
-      if (!isStockLike) State.symbolResolution[ticker] = full;
+      if (!isStockLike) { State.symbolResolution[ticker] = full; ticker = full; }   // ops 5125: chart the full id from the warehouse
     }
     const match = this.currentResults.find(r => r.ticker === ticker);
     if (match && match.type) State.symbolType[ticker] = (match.type || '').toLowerCase();
@@ -5711,7 +5743,8 @@ class HeaderSearch {
     const r = this.results[i];
     if (!r) return;
     if (r.kind === 'dataset') { DatasetBrowser.open(r.id, r.name); this.close(); return; }
-    const id = r.ticker || r.id;
+    // ops 5125: TradingView-universe results that are not plain US tickers load by their full EXCHANGE:SYMBOL id
+    const id = (r.kind === 'equity' && r.full && r.full.includes(':') && !/^[A-Z]{1,5}$/.test(r.ticker || '')) ? r.full : (r.ticker || r.id);
     if (r.kind === 'equity' && r.type) State.symbolType[id] = r.type;
     if (r.kind === 'equity' && r.full && r.full.includes(':') && !/^[A-Z]{1,5}$/.test(id)) State.symbolResolution[id] = r.full;
     if (r.kind === 'instrument' && r.type) State.symbolType[id] = String(r.type).toLowerCase();
@@ -5834,6 +5867,7 @@ class AddSymbol {
     // crypto/forex/futures use the exchange-qualified full symbol.
     const result = this.currentResults.find(r => r.symbol === symbol);
     if (result && result._row) SymDir.remember(result._row);   // ops 5117: directory series carry their metadata
+    if (result && result.type !== 'data' && result.full && result.full.includes(':') && !/^[A-Z]{1,5}$/.test(symbol)) symbol = result.full;   // ops 5125: non-US → full id
     if (result && result.type !== 'data') {
       const type = (result.type || '').toLowerCase();
       if (type) State.symbolType[symbol] = type;

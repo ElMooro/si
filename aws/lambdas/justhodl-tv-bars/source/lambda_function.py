@@ -276,14 +276,121 @@ def safe_name(sym):
     return re.sub(r"[^A-Za-z0-9_.\-!]", "__", sym)
 
 
-def bank_symbol(sym, token, cookie, countback=20000, budget=45):
-    """v1.1 (ops 5124): bank ANY TradingView symbol (EXCHANGE:SYMBOL) under
+Y_SUFFIX = {"SSE": ".SS", "SZSE": ".SZ", "NSE": ".NS", "BSE": ".BO", "TSE": ".T", "HKEX": ".HK", "LSE": ".L", "XETR": ".DE", "FWB": ".DE",
+            "TSX": ".TO", "TSXV": ".V", "ASX": ".AX", "SGX": ".SI", "KRX": ".KS", "TWSE": ".TW", "MIL": ".MI", "BME": ".MC", "SIX": ".SW",
+            "OMXSTO": ".ST", "OMXCOP": ".CO", "OMXHEX": ".HE", "OSL": ".OL", "MOEX": ".ME", "BMFBOVESPA": ".SA", "BVMF": ".SA", "BMV": ".MX",
+            "JSE": ".JO", "TADAWUL": ".SR", "EURONEXT": ".PA", "NZX": ".NZ", "IDX": ".JK", "SET": ".BK", "PSE": ".PS", "TASE": ".TA",
+            "WSE": ".WA", "BIST": ".IS", "VIE": ".VI", "EGX": ".CA", "BCBA": ".BA", "BVL": ".LM", "BCS": ".SN", "BVC": ".CL"}
+Y_INDEX = {"TVC:VIX": "^VIX", "CBOE:VIX": "^VIX", "TVC:SPX": "^GSPC", "SP:SPX": "^GSPC", "TVC:NDX": "^NDX", "NASDAQ:NDX": "^NDX", "TVC:DJI": "^DJI",
+           "DJ:DJI": "^DJI", "TVC:RUT": "^RUT", "TVC:DXY": "DX-Y.NYB", "TVC:US10Y": "^TNX", "TVC:US30Y": "^TYX", "TVC:US05Y": "^FVX", "TVC:US13W": "^IRX",
+           "TVC:GOLD": "GC=F", "TVC:SILVER": "SI=F", "TVC:USOIL": "CL=F", "TVC:UKOIL": "BZ=F", "TVC:NI225": "^N225", "TVC:HSI": "^HSI", "HSI:HSI": "^HSI",
+           "FTSE:UKX": "^FTSE", "XETR:DAX": "^GDAXI", "TVC:DEU40": "^GDAXI", "TVC:CAC40": "^FCHI", "TVC:STOXX50E": "^STOXX50E", "TVC:SX5E": "^STOXX50E",
+           "TVC:KOSPI": "^KS11", "TVC:SENSEX": "^BSESN", "TVC:NIFTY": "^NSEI", "TVC:SSEC": "000001.SS", "SSE:000001": "000001.SS", "TVC:SHCOMP": "000001.SS",
+           "TVC:MOVE": "^MOVE", "TVC:VXN": "^VXN", "CBOE:VXN": "^VXN", "TVC:SPGSCI": "^SPGSCI", "TVC:BDI": "^BDIY", "INDEX:BTCUSD": "BTC-USD", "CRYPTOCAP:BTC": "BTC-USD",
+           "NASDAQ:NDX100": "^NDX", "TVC:RUI": "^RUI", "TVC:SP500": "^GSPC", "AMEX:SPY": "SPY", "TVC:NYA": "^NYA", "TVC:XAU": "^XAU", "TVC:HUI": "^HUI"}
+Y_FUT = {"ES": "ES=F", "NQ": "NQ=F", "YM": "YM=F", "RTY": "RTY=F", "ZN": "ZN=F", "ZB": "ZB=F", "ZF": "ZF=F", "ZT": "ZT=F", "GC": "GC=F", "SI": "SI=F",
+         "HG": "HG=F", "CL": "CL=F", "NG": "NG=F", "BZ": "BZ=F", "ZC": "ZC=F", "ZS": "ZS=F", "ZW": "ZW=F", "6E": "6E=F", "6J": "6J=F", "6B": "6B=F",
+         "DX": "DX=F", "VX": "^VIX", "PL": "PL=F", "PA": "PA=F", "KC": "KC=F", "SB": "SB=F", "CC": "CC=F", "CT": "CT=F", "LE": "LE=F", "HE": "HE=F"}
+_FEED = {}
+
+
+def tv_to_yahoo(sym):
+    """TradingView EXCHANGE:SYMBOL -> Yahoo symbol candidates (the fleet's symbol-feed resolutions first)."""
+    if not _FEED:
+        try:
+            fd = _gj("data/symbol-feed.json", {})
+            _FEED["r"] = fd.get("resolved") or {}
+            _FEED["p"] = fd.get("prices") or {}
+        except Exception:
+            _FEED["r"], _FEED["p"] = {}, {}
+    out = []
+    rs = _FEED.get("r", {}).get(sym)
+    if isinstance(rs, str):
+        out.append(rs)
+    elif isinstance(rs, dict) and rs.get("ysym"):
+        out.append(rs["ysym"])
+    pr = _FEED.get("p", {}).get(sym)
+    if isinstance(pr, dict) and pr.get("ysym"):
+        out.append(pr["ysym"])
+    if sym in Y_INDEX:
+        out.append(Y_INDEX[sym])
+    if ":" in sym:
+        ex, bare = sym.split(":", 1)
+        ex = ex.upper()
+        if ex in ("NASDAQ", "NYSE", "AMEX", "CBOE", "OTC", "ARCA", "BATS", "NYSEARCA"):
+            out.append(bare.replace(".", "-").replace("/", "-"))
+        elif ex in ("FX", "FX_IDC", "OANDA", "FOREXCOM", "SAXO", "PEPPERSTONE", "CAPITALCOM", "FXCM", "ICEEUR", "ICEUS") and re.fullmatch(r"[A-Z]{6}", bare):
+            out.append(bare + "=X")
+        elif ex in ("COINBASE", "BINANCE", "BITSTAMP", "KRAKEN", "CRYPTO", "BITFINEX", "GEMINI", "OKX", "BYBIT", "CRYPTOCAP", "INDEX"):
+            m = re.match(r"^([A-Z0-9]{2,10})(USDT|USDC|USD|BUSD)$", bare)
+            if m:
+                out.append(m.group(1) + "-USD")
+        elif ex in ("CME_MINI", "CME", "CBOT", "COMEX", "NYMEX", "CBOT_MINI", "COMEX_MINI", "NYMEX_MINI", "ICE", "ICEEUR", "ICEUS", "EUREX", "CBOE_FUT"):
+            m = re.match(r"^([A-Z0-9]{1,4}?)[0-9]?!$", bare) or re.match(r"^([A-Z0-9]{1,4})$", bare)
+            if m and m.group(1) in Y_FUT:
+                out.append(Y_FUT[m.group(1)])
+        elif ex in Y_SUFFIX:
+            b = bare
+            if ex == "HKEX" and b.isdigit():
+                b = b.zfill(4)
+            out.append(b + Y_SUFFIX[ex])
+        elif ex == "TVC":
+            out.append("^" + bare)
+        elif ex in ("ECONOMICS", "FRED", "QUANDL"):
+            pass
+    return list(dict.fromkeys(x for x in out if x))
+
+
+def yahoo_bars(ysym, rng="max"):
+    """Full daily history from Yahoo's chart API (the same endpoint the fleet's symbol-feed uses from Lambda)."""
+    import urllib.request
+    url = ("https://query1.finance.yahoo.com/v8/finance/chart/%s?range=%s&interval=1d&events=div%%2Csplit"
+           % (urllib.request.quote(ysym), rng))
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36", "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=25) as r:
+        j = json.loads(r.read().decode("utf-8", "ignore"))
+    res = ((j.get("chart") or {}).get("result") or [None])[0]
+    if not res:
+        raise RuntimeError(str(((j.get("chart") or {}).get("error") or {}).get("description") or "no result")[:80])
+    ts = res.get("timestamp") or []
+    q = ((res.get("indicators") or {}).get("quote") or [{}])[0]
+    rows = []
+    for i, t in enumerate(ts):
+        try:
+            o, h, l, c = q["open"][i], q["high"][i], q["low"][i], q["close"][i]
+        except Exception:
+            continue
+        if c is None or o is None:
+            continue
+        v = (q.get("volume") or [None] * len(ts))[i]
+        rows.append([int(t), float(o), float(h if h is not None else c), float(l if l is not None else c), float(c), float(v or 0)])
+    return rows
+
+
+def bank_symbol(sym, token, cookie, countback=20000, budget=45, ysym=None, refresh=False):
+    """v1.1 (ops 5124/5125): bank ANY TradingView symbol (EXCHANGE:SYMBOL) under
     data/warm/tv-bars/universe/{safe}.json.gz -- append-only union with what is
-    already banked, so a countback of 120 on a nightly refresh keeps a full
-    history current. Returns the doc (bars oldest-first: [ts, o, h, l, c])."""
-    rows = pull(sym, token, cookie, countback=countback, budget=budget)
+    already banked. Source order: TradingView chart socket (session) when it
+    answers, else Yahoo's chart API resolved through the fleet's symbol map
+    (full history since inception, volume included). Returns (doc, key)."""
+    rows, src, err = [], None, []
+    if cookie:
+        try:
+            rows = pull(sym, token, cookie, countback=countback, budget=min(budget, 12))
+            src = "tradingview-ws (session-auth, server-side)"
+        except Exception as e:
+            err.append("tv:" + str(e)[:70])
     if not rows:
-        raise RuntimeError("no bars returned for %s" % sym)
+        for y in ([ysym] if ysym else []) + tv_to_yahoo(sym):
+            try:
+                rows = yahoo_bars(y, rng=("6mo" if refresh else "max"))
+                if rows:
+                    src = "yahoo-chart:%s" % y
+                    break
+            except Exception as e:
+                err.append("yahoo %s: %s" % (y, str(e)[:60]))
+    if not rows:
+        raise RuntimeError("no bars for %s (%s)" % (sym, "; ".join(err)[:200] or "no yahoo mapping"))
     key = "data/warm/tv-bars/universe/%s.json.gz" % safe_name(sym)
     prev = {}
     try:
@@ -296,7 +403,7 @@ def bank_symbol(sym, token, cookie, countback=20000, budget=45):
     merged = [prev[k] for k in sorted(prev)]
     d0 = datetime.fromtimestamp(merged[0][0], tz=timezone.utc).strftime("%Y-%m-%d")
     d1 = datetime.fromtimestamp(merged[-1][0], tz=timezone.utc).strftime("%Y-%m-%d")
-    doc = {"symbol": sym, "tv_symbol": sym, "source": "tradingview-ws (session-auth, server-side)",
+    doc = {"symbol": sym, "tv_symbol": sym, "source": src,
            "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"), "n": len(merged),
            "first_date": d0, "last_date": d1, "pulled_now": len(rows), "bars": merged}
     s3.put_object(Bucket=BUCKET, Key=key, Body=gzip.compress(json.dumps(doc).encode()),
@@ -323,9 +430,8 @@ def universe_pull(event, context):
     """mode=pull: on-demand banking for chart-pro (symdir calls this synchronously the first time a
     TradingView symbol is opened). No lease, no catalog state; touches only universe/."""
     token, cookie = _session()
-    if not cookie:
-        return {"ok": False, "error": "session_missing"}
     syms = [str(x) for x in (event.get("tv_symbols") or []) if x][:8]
+    ymap = event.get("ysym") or {}
     countback = int(event.get("countback") or 20000)
     out, idx = {}, _gj(UNIV_IDX_KEY, {"symbols": {}})
     for sym in syms:
@@ -333,8 +439,8 @@ def universe_pull(event, context):
             out[sym] = {"ok": False, "error": "budget"}
             break
         try:
-            doc, key = bank_symbol(sym, token, cookie, countback=countback, budget=int(event.get("budget") or 40))
-            out[sym] = {"ok": True, "key": key, "n": doc["n"], "first": doc["first_date"], "last": doc["last_date"]}
+            doc, key = bank_symbol(sym, token, cookie, countback=countback, budget=int(event.get("budget") or 40), ysym=ymap.get(sym))
+            out[sym] = {"ok": True, "key": key, "n": doc["n"], "first": doc["first_date"], "last": doc["last_date"], "source": doc["source"]}
             idx["symbols"][sym] = {"key": key, "n": doc["n"], "first": doc["first_date"], "last": doc["last_date"],
                                    "as_of": doc["as_of"]}
         except Exception as e:
@@ -352,8 +458,6 @@ def universe_refresh(event, context):
     """mode=refresh: nightly, fan-out shards over the banked universe with a short countback
     (append-only union) so every opened symbol stays current without re-pulling its history."""
     token, cookie = _session()
-    if not cookie:
-        return {"ok": False, "error": "session_missing"}
     idx = _gj(UNIV_IDX_KEY, {"symbols": {}})
     syms = sorted(idx.get("symbols") or {})
     shard, nshards = int(event.get("shard") or 0), int(event.get("nshards") or 1)
@@ -376,7 +480,7 @@ def universe_refresh(event, context):
             skipped += 1
             continue
         try:
-            doc, key = bank_symbol(sym, token, cookie, countback=int(event.get("countback") or 120), budget=25)
+            doc, key = bank_symbol(sym, token, cookie, countback=int(event.get("countback") or 120), budget=25, refresh=True)
             idx["symbols"][sym] = {"key": key, "n": doc["n"], "first": doc["first_date"], "last": doc["last_date"], "as_of": doc["as_of"]}
             done += 1
         except Exception as e:

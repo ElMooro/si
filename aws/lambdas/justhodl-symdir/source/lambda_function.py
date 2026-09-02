@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.1.2"
+VERSION = "1.2.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -432,7 +432,7 @@ def build(event, context):
             seen.add(full)
             tvpop = 0.58 if ex.upper() in ("TVC", "CBOE", "NASDAQ", "NYSE", "AMEX", "ECONOMICS", "FRED", "INDEX", "CME", "CBOT", "NYMEX", "COMEX", "ICEUS", "ICEEUR", "SP", "DJ") else 0.38
             docs.append(doc(full, "tv", name, "instrument", tvpop,
-                            extra={"ex": ex, "type": (v.get("category") or "tv").lower(), "mkt": "tv", "src": src.lower()}))
+                            extra={"ex": ex, "type": (v.get("category") or "tv").lower(), "mkt": "tv", "src": src.lower(), "sid": (v.get("source_id") or None)}))
             instruments.append([full, name[:80], ex, (v.get("category") or "tv").lower(), "tv", tvpop])
             counts["tv-dictionary"] = counts.get("tv-dictionary", 0) + 1
         return {"counts": counts, "finviz": len(fin), "symbology": len(sym)}
@@ -1651,7 +1651,7 @@ def _result(sid, prov, obs, name=None, unit=None, freq=None, source=None, extra=
         vv = _f(v)
         if dd and vv is not None:
             clean[dd] = vv
-    pts = sorted(clean.items())
+    pts = [[k, v] for k, v in sorted(clean.items())]      # lists, like the JSON cache returns them (quote() bisects on them)
     out = {"id": sid, "provider": prov, "provider_name": PROV_NAME.get(prov, prov), "name": name or sid, "unit": unit, "freq": freq,
            "source": source, "n": len(pts), "first": pts[0][0] if pts else None, "last": pts[-1][0] if pts else None,
            "obs": pts, "as_of": _iso(), "version": VERSION}
@@ -2013,10 +2013,110 @@ def r_bls(sid, rest, d):
     return _result(sid, "bls", obs, name=(d[D_TITLE] if d else rest), source="bls-api-v2")
 
 
+# ---------------- TradingView universe (any EXCHANGE:SYMBOL) and US equities, from the warehouse
+TV_UNIV = "data/warm/tv-bars/universe/"
+_lambda = boto3.client("lambda", region_name="us-east-1", config=Config(read_timeout=90, retries={"max_attempts": 1}))
+
+
+def _tv_safe(sym):
+    return re.sub(r"[^A-Za-z0-9_.\-!]", "__", sym)
+
+
+def _tv_bank_doc(sym):
+    return _get_json(TV_UNIV + _tv_safe(sym) + ".json.gz")
+
+
+def _tv_pull(syms, budget=35, ysym=None):
+    """Bank symbols on demand through justhodl-tv-bars (mode=pull); returns {sym: result}."""
+    try:
+        resp = _lambda.invoke(FunctionName="justhodl-tv-bars", InvocationType="RequestResponse",
+                              Payload=json.dumps({"mode": "pull", "tv_symbols": list(syms), "budget": budget, "ysym": ysym or {}}).encode())
+        body = json.loads(resp["Payload"].read() or b"{}")
+        return body.get("results") or {}
+    except Exception as e:  # noqa: BLE001
+        return {sym: {"ok": False, "error": str(e)[:120]} for sym in syms}
+
+
+def _bars_result(sid, prov, doc, name, source, extra=None):
+    bars = doc.get("bars") or []
+    ohlc = []
+    for b in bars:
+        try:
+            dt = datetime.fromtimestamp(int(b[0]), tz=timezone.utc).strftime("%Y-%m-%d")
+            ohlc.append([dt, float(b[1]), float(b[2]), float(b[3]), float(b[4])])
+        except Exception:  # noqa: BLE001
+            continue
+    out = _result(sid, prov, [(o[0], o[4]) for o in ohlc], name=name, freq="D", source=source, extra=extra)
+    out["ohlc"] = ohlc
+    return out
+
+
+def r_tvsym(sid, sym, d):
+    """'TVC:VIX' -> data/warm/tv-bars/universe/TVC__VIX.json.gz, banked on demand the first time.
+    Symbols Khalid's dictionary already resolved to a warehouse provider (ECONOMICS:DEUR -> FRED:LRHUTTTTDEM156S)
+    are served by that resolver -- the same series, from S3, with its full history."""
+    ex = (d[D_EXTRA] or {}) if d else {}
+    src_prov, src_id = (ex.get("src") or "").lower(), ex.get("sid")
+    if src_id and src_prov in ("fred", "ecb", "ofr", "nyfed", "eurostat", "boj", "bls", "worldbank"):
+        inner = src_id.split(":", 1)[1] if ":" in src_id and src_id.split(":", 1)[0].lower() == src_prov else src_id
+        try:
+            out = fetch_series("%s:%s" % (src_prov, inner))
+            out["id"], out["tv_symbol"], out["via"] = sid, sym, "%s:%s" % (src_prov, inner)
+            out["name"] = (d[D_TITLE] if d else None) or out.get("name")
+            return out
+        except Exception as e:  # noqa: BLE001
+            pass                                   # fall through to the bars bank
+    doc = _tv_bank_doc(sym)
+    src = "warehouse:tv-bars"
+    if not doc:
+        res = _tv_pull([sym])
+        r0 = res.get(sym) or {}
+        if not r0.get("ok"):
+            raise ValueError("not banked yet and the bank pull failed: %s" % (r0.get("error") or "unknown"))
+        doc = _tv_bank_doc(sym)
+        src = "warehouse:tv-bars (banked just now)"
+    name = (d[D_TITLE] if d else None) or sym
+    return _bars_result(sid, "tv", doc or {}, name, src + " · " + str((doc or {}).get("source") or ""), extra={"tv_symbol": sym, "banked_at": (doc or {}).get("as_of")})
+
+
+def r_equity(sid, ticker, d):
+    """Bare US ticker -> warehouse bars: us-equities-daily if present, else the TradingView universe
+    (banked on demand under the ticker's primary exchange; NASDAQ/NYSE/AMEX/CBOE/OTC tried in turn)."""
+    t = ticker.upper()
+    j = _get_json("data/warm/us-equities-daily/%s.json.gz" % t) or _get_json("data/warm/us-equities-daily/%s.json" % t)
+    if isinstance(j, dict) and (j.get("bars") or j.get("observations")):
+        bars = j.get("bars") or []
+        if bars and isinstance(bars[0], list) and len(bars[0]) >= 5 and isinstance(bars[0][0], (int, float)):
+            return _bars_result(sid, "equity", j, (d[D_TITLE] if d else t), "warehouse:us-equities-daily")
+        obs = j.get("observations") or [(b.get("date"), b.get("close")) for b in bars if isinstance(b, dict)]
+        return _result(sid, "equity", [(o.get("date"), o.get("close") or o.get("value")) if isinstance(o, dict) else o for o in obs],
+                       name=(d[D_TITLE] if d else t), freq="D", source="warehouse:us-equities-daily")
+    mkt = ((d[D_EXTRA] or {}).get("mkt") if d else None) or ""
+    core = t.split(":", 1)[1] if ":" in t else t
+    if t.startswith("X:") or mkt == "crypto":
+        m = re.match(r"^([A-Z0-9]{2,10})(USDT|USDC|USD)$", core)
+        ysym, bank = ((m.group(1) + "-USD") if m else core), "X:" + core
+    elif t.startswith("C:") or mkt == "fx":
+        ysym, bank = core + "=X", "C:" + core
+    elif t.startswith("I:") or mkt == "indices":
+        ysym, bank = {"SPX": "^GSPC", "NDX": "^NDX", "DJI": "^DJI", "VIX": "^VIX", "RUT": "^RUT", "NYA": "^NYA", "XAU": "^XAU", "HUI": "^HUI", "SOX": "^SOX",
+                      "OEX": "^OEX", "RUI": "^RUI", "TNX": "^TNX", "TYX": "^TYX", "IRX": "^IRX", "FVX": "^FVX", "COMP": "^IXIC", "IXIC": "^IXIC"}.get(core, "^" + core), "I:" + core
+    else:
+        ysym, bank = core.replace(".", "-").replace("/", "-"), "US:" + core
+    doc = _tv_bank_doc(bank)
+    if not doc:
+        res = _tv_pull([bank], budget=25, ysym={bank: ysym}).get(bank) or {}
+        if not res.get("ok"):
+            raise ValueError("no warehouse bars for %s (%s -> %s): %s" % (t, bank, ysym, (res.get("error") or "")[:120]))
+        doc = _tv_bank_doc(bank)
+        return _bars_result(sid, "equity", doc or {}, (d[D_TITLE] if d else t), "warehouse:tv-bars (banked just now) · " + str((doc or {}).get("source") or ""), extra={"bank": bank, "ysym": ysym})
+    return _bars_result(sid, "equity", doc, (d[D_TITLE] if d else t), "warehouse:tv-bars · " + str(doc.get("source") or ""), extra={"bank": bank, "ysym": ysym})
+
+
 RESOLVERS = {"fred": r_fred, "te": r_te, "eurostat": r_eurostat, "ecb": r_ecb, "nyfed": r_nyfed, "ofr": r_ofr,
              "ofr-hfm": lambda s, r, d: r_ofr(s, r, d, "ofr-hfm"), "ofr-bsrm": lambda s, r, d: r_ofr(s, r, d, "ofr-bsrm"),
              "boj": r_boj, "statcan": r_statcan, "worldbank": r_worldbank, "treasury": r_treasury, "boe": r_boe, "census": r_census, "bls": r_bls}
-CACHE_TTL = {"fred": 6 * 3600, "te": 86400, "eurostat": 86400, "ecb": 6 * 3600, "nyfed": 3600, "ofr": 6 * 3600, "boj": 86400, "statcan": 86400,
+CACHE_TTL = {"tv": 6 * 3600, "equity": 6 * 3600, "fred": 6 * 3600, "te": 86400, "eurostat": 86400, "ecb": 6 * 3600, "nyfed": 3600, "ofr": 6 * 3600, "boj": 86400, "statcan": 86400,
              "worldbank": 86400, "treasury": 6 * 3600, "boe": 86400, "census": 86400, "bls": 86400}
 
 
@@ -2026,9 +2126,16 @@ def fetch_series(sid, nocache=False):
         sid = "fred:" + sid[5:]
     prov, _, rest = sid.partition(":")
     prov = prov.lower()
-    sid = prov + ":" + rest
-    if prov not in RESOLVERS or not rest:
-        raise ValueError("no resolver for '%s'" % prov)
+    if prov in RESOLVERS and rest:
+        sid = prov + ":" + rest
+    elif ":" in sid and sid.split(":", 1)[0].upper() not in ("X", "C", "I", "TV"):
+        prov, rest, sid = "tv", sid.upper(), sid.upper()                                                    # EXCHANGE:SYMBOL (TradingView universe)
+    else:
+        if sid.upper().startswith("TV:"):
+            sid = sid[3:]
+            prov, rest, sid = "tv", sid.upper(), sid.upper()
+        else:
+            prov, rest, sid = "equity", sid.upper(), sid.upper()                                            # bare ticker or Polygon X:/C:/I:
     ttl = CACHE_TTL.get(prov, 21600)
     if not nocache:
         c, age = _cache_get(sid, ttl)
@@ -2037,7 +2144,12 @@ def fetch_series(sid, nocache=False):
             c["cache_age_s"] = int(age)
             return c
     d = _doc_lookup(sid)
-    out = RESOLVERS[prov](sid, rest, d)
+    if prov == "tv":
+        out = r_tvsym(sid, rest, d)
+    elif prov == "equity":
+        out = r_equity(sid, rest, d)
+    else:
+        out = RESOLVERS[prov](sid, rest, d)
     if out.get("n"):
         _cache_put(sid, out)
     out["cached"] = False
@@ -2055,6 +2167,8 @@ def quote(ids):
             prov = sid.split(":", 1)[0].lower()
             if prov == "fred" and not sid.startswith("fred:"):
                 sid = "fred:" + sid.split(":", 1)[1]
+            if prov not in RESOLVERS:
+                sid = sid.upper()
             c, age = _cache_get(sid, 10 * 86400)
             if c is None and fetch_budget > 0:
                 fetch_budget -= 1
