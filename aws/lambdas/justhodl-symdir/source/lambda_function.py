@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -275,7 +275,7 @@ def doc(id_, prov, title, kind, pop=0.0, unit=None, freq=None, first=None, last=
 
 def build(event, context):
     t0 = time.time()
-    budget = int(event.get("budget_s") or 780)
+    budget = int(event.get("budget_s") or 600)   # stages; the index build + pickles + uploads need the rest of the 900s
     log = {"version": VERSION, "started_at": _iso(), "sources": {}, "skipped": [], "errors": {}}
     docs, instruments = [], []
     pool = ThreadPoolExecutor(max_workers=32)
@@ -430,32 +430,12 @@ def build(event, context):
                             key=root, extra=extra or None))
         # banked series the category crawl never titled (CPILFESL, PAYEMS, ~1.3k): title from the banked
         # file's meta now, and a real FRED title fetched incrementally (rate-limited ledger, ~150 per build)
+        # titles for these come from the ledger that mode=titles fills (hourly, most-popular-first);
+        # the build itself never calls the FRED API -- 400 sequential title fetches inside the build
+        # pushed it past the 900s Lambda timeout (ops 5119)
         titles = _get_json(SD + "fred-titles.json") or {}
         untitled = [sid for sid in banked if sid not in best]
         fetched = 0
-        if FRED_KEY:
-            def bank_pop(sid):
-                try:
-                    return int(((_get_json("data/warm/fred-scoped/%s/%s.json" % (banked[sid], sid)) or {}).get("meta") or {}).get("popularity") or 0)
-                except Exception:  # noqa: BLE001
-                    return 0
-            todo_t = [sid for sid in untitled if sid not in titles]
-            todo_t.sort(key=lambda sid: -bank_pop(sid))      # PAYEMS / CPILFESL first, county-level tails last
-            for sid in todo_t:
-                if fetched >= 400 or left() < 150:
-                    break
-                try:
-                    j = _http_json("https://api.stlouisfed.org/fred/series?series_id=%s&api_key=%s&file_type=json" % (urllib.parse.quote(sid), FRED_KEY), timeout=20)
-                    ser = (j.get("seriess") or [{}])[0]
-                    if ser.get("title"):
-                        titles[sid] = {"title": ser["title"], "units": ser.get("units_short"), "freq": ser.get("frequency_short"), "sa": ser.get("seasonal_adjustment_short"),
-                                       "pop": ser.get("popularity"), "obs_start": ser.get("observation_start"), "obs_end": ser.get("observation_end")}
-                        fetched += 1
-                        time.sleep(0.3)
-                except Exception as e:  # noqa: BLE001
-                    titles[sid] = {"title": None, "err": str(e)[:60]}
-                    time.sleep(0.6)
-            _put_json(SD + "fred-titles.json", titles, cache="no-cache")
 
         def bank_meta(sid):
             try:
@@ -474,6 +454,7 @@ def build(event, context):
         # mirrors/archives that are neither catalogued nor banked still get a doc
         for sid in (te | arch) - set(best) - set(banked):
             docs.append(doc("fred:" + sid, "fred", sid, "series", 0.3, extra={"te": int(sid in te), "arch": int(sid in arch)}))
+        _put_json(SD + "fred-untitled.json", {"ids": untitled, "banked_root": {sid: banked[sid] for sid in untitled}, "as_of": _iso()}, cache="no-cache")
         return {"meta_pages": len(pages), "catalog": len(best), "banked": n_b, "untitled_banked": len(untitled), "titles_fetched_now": fetched,
                 "titles_ledger": sum(1 for v in titles.values() if v.get("title")), "te_mirror": len(te), "archived": len(arch)}
 
@@ -919,6 +900,53 @@ def build(event, context):
            "errors": log["errors"], "series_level_via_tier1": {"eurostat": 564204235, "ecb": 3240832}}
     _put_json(SD + "manifest.json", man, cache="public, max-age=120")
     return man
+
+
+def fetch_titles(event, context):
+    """mode=titles (hourly): real FRED titles for banked ids the category crawl never titled, most
+    popular first, ~500 per run at 0.35s spacing (FRED allows 120 req/min). Idempotent; no-op when
+    the ledger covers every untitled id. The next build reads the ledger."""
+    limit = int(event.get("limit") or 500)
+    todo_doc = _get_json(SD + "fred-untitled.json") or {}
+    ids, roots = todo_doc.get("ids") or [], todo_doc.get("banked_root") or {}
+    titles = _get_json(SD + "fred-titles.json") or {}
+    todo = [sid for sid in ids if not (titles.get(sid) or {}).get("title") and (titles.get(sid) or {}).get("tries", 0) < 3]
+    if not todo or not FRED_KEY:
+        return {"ok": True, "left": len(todo), "fetched": 0, "ledger": sum(1 for v in titles.values() if v.get("title"))}
+    pool = ThreadPoolExecutor(max_workers=32)
+
+    def bank_pop(sid):
+        if (titles.get(sid) or {}).get("pop") is not None:
+            return int(titles[sid]["pop"] or 0)
+        try:
+            return int(((_get_json("data/warm/fred-scoped/%s/%s.json" % (roots.get(sid), sid)) or {}).get("meta") or {}).get("popularity") or 0)
+        except Exception:  # noqa: BLE001
+            return 0
+    pops = dict(zip(todo, pool.map(bank_pop, todo)))
+    pool.shutdown(wait=False)
+    todo.sort(key=lambda sid: -pops.get(sid, 0))
+    fetched, t0 = 0, time.time()
+    for sid in todo[:limit]:
+        if context and context.get_remaining_time_in_millis() < 60000:
+            break
+        try:
+            j = _http_json("https://api.stlouisfed.org/fred/series?series_id=%s&api_key=%s&file_type=json" % (urllib.parse.quote(sid), FRED_KEY), timeout=20)
+            ser = (j.get("seriess") or [{}])[0]
+            if ser.get("title"):
+                titles[sid] = {"title": ser["title"], "units": ser.get("units_short"), "freq": ser.get("frequency_short"), "sa": ser.get("seasonal_adjustment_short"),
+                               "pop": ser.get("popularity"), "obs_start": ser.get("observation_start"), "obs_end": ser.get("observation_end")}
+                fetched += 1
+            else:
+                titles[sid] = {"title": None, "tries": (titles.get(sid) or {}).get("tries", 0) + 1, "pop": pops.get(sid)}
+        except Exception as e:  # noqa: BLE001
+            titles[sid] = {"title": None, "tries": (titles.get(sid) or {}).get("tries", 0) + 1, "err": str(e)[:60], "pop": pops.get(sid)}
+            if "429" in str(e):
+                time.sleep(3)
+        time.sleep(0.35)
+        if fetched % 50 == 0:
+            _put_json(SD + "fred-titles.json", titles, cache="no-cache")
+    _put_json(SD + "fred-titles.json", titles, cache="no-cache")
+    return {"ok": True, "fetched": fetched, "left": len(todo) - fetched, "ledger": sum(1 for v in titles.values() if v.get("title")), "elapsed_s": round(time.time() - t0, 1)}
 
 
 # ================================================================ RUNTIME INDEX
@@ -1800,6 +1828,8 @@ def lambda_handler(event, context):
     qs = event.get("queryStringParameters") or {}
     if mode == "build":
         return build(event, context)
+    if mode == "titles":
+        return fetch_titles(event, context)
     if mode == "warm" or path == "/warm":
         # keep-warm ping (every 5 min): also the moment a warm container notices a newer daily build
         force = qs.get("force") == "1"
