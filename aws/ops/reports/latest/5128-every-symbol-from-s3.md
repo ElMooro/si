@@ -1,0 +1,83 @@
+# ops 5128 -- every symbol from the warehouse: daily bars since inception (re-bank in place), aliases, native page
+
+**Status:** failure  
+**Duration:** 343.3s  
+**Finished:** 2026-09-02T15:09:43+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| banked | families | rebanked | step | symbols | symdir_version |
+|---|---|---|---|---|---|
+|  |  |  | S1 |  | 1.2.0 |
+|  |  | 8 | rebank | 13 |  |
+| 11 | 16 |  | S2 |  |  |
+
+## Log
+## S1 deploy tv-bars v1.1 + symdir v1.2.0
+
+- `15:04:00`   zip: 107422 bytes
+## 1. Lambda
+
+- `15:04:00`   Lambda exists — updating
+- `15:04:04` ✅   ✓ updated justhodl-tv-bars
+- `15:04:07`   zip: 132808 bytes
+## 1. Lambda
+
+- `15:04:07`   Lambda exists — updating
+- `15:04:10` ✅   ✓ updated justhodl-symdir
+- `15:07:56` ✅   rebuilt docs=1,374,434 elapsed=209.9s
+- `15:08:16`   re-bank AMEX:SPY           ok=True n=8861 first=1993-01-29 src=yahoo-chart:SPY err=None
+- `15:08:16`   re-bank CME_MINI:ES1!      ok=True n=6621 first=2000-09-18 src=yahoo-chart:ES=F err=None
+- `15:08:16`   re-bank COINBASE:BTCUSD    ok=True n=4370 first=2014-09-17 src=yahoo-chart:BTC-USD err=None
+- `15:08:16`   re-bank FX:EURUSD          ok=True n=5989 first=2003-12-01 src=yahoo-chart:EURUSD=X err=None
+- `15:08:16`   re-bank HKEX:700           ok=True n=5753 first=2004-06-16 src=yahoo-chart:0700.HK err=None
+- `15:08:16`   re-bank I:SPX              ok=False n=None first=None src=None err=RuntimeError: no bars for I:SPX (tv:all endpoints refused: data.tradingview.com/socket.io/websocket?from= )
+- `15:08:24`   re-bank NASDAQ:AAPL        ok=True n=11692 first=1980-12-12 src=yahoo-chart:AAPL err=None
+- `15:08:24`   re-bank SSE:000001         ok=True n=7418 first=1997-07-02 src=yahoo-chart:000001.SS err=None
+- `15:08:24`   re-bank US:AAPL            ok=False n=None first=None src=None err=RuntimeError: no bars for US:AAPL (tv:all endpoints refused: data.tradingview.com/socket.io/websocket?from= )
+- `15:08:24`   re-bank US:BRK.B           ok=False n=None first=None src=None err=RuntimeError: no bars for US:BRK.B (tv:all endpoints refused: data.tradingview.com/socket.io/websocket?from= )
+- `15:08:24`   re-bank US:NVDA            ok=False n=None first=None src=None err=RuntimeError: no bars for US:NVDA (tv:all endpoints refused: data.tradingview.com/socket.io/websocket?from= )
+- `15:08:24`   re-bank X:BTCUSD           ok=False n=None first=None src=None err=RuntimeError: no bars for X:BTCUSD (tv:all endpoints refused: data.tradingview.com/socket.io/websocket?from= )
+- `15:08:26`   re-bank XETR:DAX           ok=True n=9936 first=1987-11-30 src=yahoo-chart:^GDAXI err=None
+## S2 /series across symbol families (bank on first open, then S3)
+
+- `15:08:26`   TVC:VIX            n=  9262 first=1990-01-02 last=2026-08-28    247ms ohlc=0 src=warehouse:fred-scoped/Financial_Indicators via=fred:VIXCLS err=
+- `15:08:29`   AAPL               n=   169 first=1984-12-01 last=2026-09-02   1139ms ohlc=169 src=warehouse:tv-bars · yahoo-chart:AAPL via=None err=
+- `15:08:29`   NASDAQ:AAPL        n= 11580 first=1980-12-12 last=2026-09-02    440ms ohlc=11692 src=warehouse:tv-bars · yahoo-chart:AAPL via=None err=
+- `15:08:30`   SSE:000001         n=  7186 first=1997-07-02 last=2026-09-02    317ms ohlc=7418 src=warehouse:tv-bars · yahoo-chart:000001.SS via=None err=
+- `15:08:30`   FX:EURUSD          n=  5988 first=2003-12-01 last=2026-09-02    317ms ohlc=5989 src=warehouse:tv-bars · yahoo-chart:EURUSD=X via=None err=
+- `15:08:31`   X:BTCUSD           n=   145 first=2014-10-01 last=2026-09-02    110ms ohlc=145 src=warehouse:tv-bars · yahoo-chart:BTC-USD via=None err=
+- `15:08:31`   COINBASE:BTCUSD    n=  4369 first=2014-09-17 last=2026-09-02    211ms ohlc=4370 src=warehouse:tv-bars · yahoo-chart:BTC-USD via=None err=
+- `15:08:31`   CME_MINI:ES1!      n=  6620 first=2000-09-18 last=2026-09-02    230ms ohlc=6621 src=warehouse:tv-bars · yahoo-chart:ES=F via=None err=
+- `15:08:32`   HKEX:700           n=  5567 first=2004-06-16 last=2026-09-02    317ms ohlc=5753 src=warehouse:tv-bars · yahoo-chart:0700.HK via=None err=
+- `15:08:33` ✗   ECONOMICS:DEUR: HTTP Error 500: Internal Server Error
+- `15:08:33`   I:SPX              n=   169 first=1984-12-01 last=2026-09-02    129ms ohlc=169 src=warehouse:tv-bars · yahoo-chart:^GSPC via=None err=
+- `15:08:33`   BRK.B              n=   365 first=1996-06-01 last=2026-09-02    152ms ohlc=365 src=warehouse:tv-bars · yahoo-chart:BRK-B via=None err=
+- `15:08:34`   AMEX:SPY           n=  8600 first=1993-01-29 last=2026-09-02    354ms ohlc=8861 src=warehouse:tv-bars · yahoo-chart:SPY via=None err=
+- `15:08:35` ✗   OTC:AAAIF: HTTP Error 500: Internal Server Error
+- `15:08:36`   XETR:DAX           n=  9825 first=1987-11-30 last=2026-09-02    381ms ohlc=9936 src=warehouse:tv-bars · yahoo-chart:^GDAXI via=None err=
+- `15:08:36`   NVDA               n=   333 first=1999-02-01 last=2026-09-02    135ms ohlc=333 src=warehouse:tv-bars · yahoo-chart:NVDA via=None err=
+- `15:08:38`   quote TVC:VIX          ok=True last=14.43 @2026-08-28 chg%=-0.551 err=None
+- `15:08:38`   quote AAPL             ok=True last=325.0299987792969 @2026-09-02 chg%=-0.031 err=None
+- `15:08:38`   quote ECONOMICS:DEUR   ok=False last=None @None chg%=None err=not banked yet and the bank pull failed: RuntimeError: no bars for ECONOMICS:DEUR (tv:all endpoints 
+- `15:08:38`   quote fred:DGS10       ok=True last=4.69 @2026-08-06 chg%=1.296 err=None
+- `15:08:38`   universe index: n_symbols=13 failures=17
+## S3 live page: native charts, no widget paywall
+
+- `15:09:07`   page TVC:VIX: {"active": "TVC:VIX", "meta": "FRED \u00b7 14.43 Index -0.55% \u00b7 9,262 obs \u00b7 1990-01-02\u21922026-08-28 \u00b7 D \u00b7 warehouse", "loading": "Loading TVC:VIX \u2014 full history\u2026", "iframe": false, "paywall": false, "name": "CBOE Volatility Index: VIX", "nativeSrc": null}
+- `15:09:16`   page AAPL: {"active": "AAPL", "meta": "$325.03 -0.03% \u00b7 169 bars \u00b7 JustHodl warehouse \u00b7 since 1984", "loading": "Loading AAPL from Polygon\u2026", "iframe": false, "paywall": false, "name": "", "nativeSrc": "JustHodl warehouse \u00b7 since 1984"}
+- `15:09:25`   page SSE:000001: {"active": "SSE:000001", "meta": "TradingView \u00b7 3,941.4 -0.97% \u00b7 7,186 obs \u00b7 1997-07-02\u21922026-09-02 \u00b7 D \u00b7 warehouse", "loading": "Loading SSE:000001 \u2014 full history\u2026", "iframe": false, "paywall": false, "name": "000001 (SSE)", "nativeSrc": "JustHodl warehouse \u00b7 since 1984"}
+- `15:09:34`   page ECONOMICS:DEUR: {"active": "ECONOMICS:DEUR", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "No observations for ECONOMICS:DEUR \u2014 not banked yet and the bank pull failed: RuntimeError: no bars for ECONOMICS:DEUR (tv:all endpoints refused: data.tradingview.com/socket.io/websocket?from= )", "iframe": false, "paywall": false, "name": "", "nativeSrc": "JustHodl warehouse \u00b7 since 1984"}
+- `15:09:34` ⚠   ECONOMICS:DEUR: not servable from the warehouse (no alias to a provider series)
+- `15:09:43`   page NVDA: {"active": "NVDA", "meta": "$223.54 +2.81% \u00b7 250 bars \u00b7 JustHodl warehouse \u00b7 since 1999", "loading": "Loading NVDA from Polygon\u2026", "iframe": false, "paywall": false, "name": "", "nativeSrc": "JustHodl warehouse \u00b7 since 1999"}
+## verdict
+
+- `15:09:43` ✗ AAPL: only 169 bars -- not daily granularity
+- `15:09:43` ✗ I:SPX: only 169 bars -- not daily granularity
+- `15:09:43` ✗ page errors ['Value is null', 'Value is null']
