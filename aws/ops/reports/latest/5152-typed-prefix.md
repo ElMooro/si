@@ -1,0 +1,27 @@
+# ops 5152 -- typed prefixes resolve to the real symbol (TVC:US10 -> TVC:US10Y)
+
+**Status:** success  
+**Duration:** 230.9s  
+**Finished:** 2026-09-02T23:58:20+00:00  
+
+## Log
+## S1 deploy
+
+- `23:54:29`   zip: 140698 bytes
+## 1. Lambda
+
+- `23:54:29`   Lambda exists — updating
+- `23:54:32` ✅   ✓ updated justhodl-symdir
+## S2 resolution
+
+- `23:54:50`   TVC:US10 -> id=TVC:US10Y resolved_from=TVC:US10 n=16154 ohlc=16154 src=warehouse:tv-bars · yahoo-chart:^TNX (TVC:US10 → TVC:US10Y) err= alts=[]
+- `23:54:52`   TVC:US1 -> id=TVC:US1 n=None resolved_from=None err=no market feed for TVC:US1 and no warehouse equivalent (RuntimeError: no bars for TVC:US1 (tv:all en alts=['TVC:US10', 'TVC:US10Y', 'TVC:US10Y-FRED:MORTGAGE15US', 'TVC:US10Y-FRED:MORTGAGE30US', 'TVC:US10Y-TVC:IT10Y']
+- `23:54:53`   TVC:US10Y -> n=16154 ohlc=16154 resolved_from=None
+## S3 live page: type TVC:US10 + Enter immediately
+
+- `23:57:51`   typed 'TVC:US10' + Enter: {"active": "TVC:US10Y", "meta": "TradingView \u00b7 4.80 +0.00% \u00b7 16,154 obs \u00b7 1962-01-02\u21922026-09-02 \u00b7 D \u00b7 warehouse", "loading": "Loading TVC:US10 \u2014 full history\u2026", "ticker": "TVC:US10Y"}
+- `23:58:05`   typed 'US02MY' + Enter: {"active": "TVC:US02MY", "meta": "US Treasury \u00b7 3.89 Percent +0.00% \u00b7 1,970 obs \u00b7 2018-10-16\u21922026-09-02 \u00b7 D \u00b7 warehouse", "loading": "Loading TVC:US02MY \u2014 full history\u2026", "ticker": "TVC:US02MY"}
+- `23:58:20`   typed 'TVC:US02MY' + Enter: {"active": "TVC:US02MY", "meta": "US Treasury \u00b7 3.89 Percent +0.00% \u00b7 1,970 obs \u00b7 2018-10-16\u21922026-09-02 \u00b7 D \u00b7 warehouse", "loading": "Loading US02MY (TVC) \u2014 full history\u2026", "ticker": "TVC:US02MY"}
+## verdict
+
+- `23:58:20` ✅ PASS_ALL: typed prefixes resolve to the real symbol; Enter never loads raw text before the directory answers
