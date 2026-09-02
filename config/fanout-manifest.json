@@ -1,0 +1,710 @@
+{
+ "version": 2,
+ "generated_at": "2026-09-02T01:17:54+00:00",
+ "source": "ops 5106: rebuilt from members' invocation signatures (no rule/schedule, died 2026-07-31..08-02) and their Jul 15-30 firing hours vs the live tick rules",
+ "ticks": {
+  "daily-morn": [
+   "MLPredictor",
+   "daily-liquidity-report",
+   "justhodl-activist-filings-scanner",
+   "justhodl-asymmetric-hunter",
+   "justhodl-calls-backtest",
+   "justhodl-deep-value-screener",
+   "justhodl-divergence-scanner",
+   "justhodl-email-reports-v2",
+   "justhodl-eps-revision-velocity",
+   "justhodl-fed-speak",
+   "justhodl-khalid-metrics",
+   "justhodl-momentum-breakout",
+   "justhodl-momentum-scanner",
+   "justhodl-morning-brief-tg",
+   "justhodl-narrative-density-tracker",
+   "justhodl-nobrainer-rationale",
+   "justhodl-position-sizer-v2",
+   "justhodl-pre-pump-detector",
+   "justhodl-revenue-acceleration",
+   "justhodl-risk-sizer",
+   "justhodl-sector-earnings-diffusion",
+   "justhodl-theme-rotation-engine",
+   "justhodl-volatility-squeeze-hunter",
+   "ofrapi",
+   "permanent-market-intelligence",
+   "scrapeMacroData",
+   "treasury-auto-updater",
+   "ultimate-multi-agent"
+  ],
+  "daily-eve": [
+   "bls-employment-api-v2",
+   "justhodl-correlation-breaks",
+   "justhodl-dep-graph",
+   "justhodl-microcap-float-squeeze",
+   "justhodl-options-flow-scanner",
+   "justhodl-signal-portfolio",
+   "justhodl-tape-reader",
+   "justhodl-watchlist-debate"
+  ],
+  "daily-06utc": [
+   "ecb-data-daily-updater",
+   "justhodl-theme-detector"
+  ],
+  "daily-16utc": [
+   "justhodl-ab-test",
+   "justhodl-smart-money-cluster"
+  ],
+  "every_6h": [
+   "justhodl-ab-test",
+   "justhodl-smart-money-cluster"
+  ],
+  "4hourly": [
+   "justhodl-allocator",
+   "justhodl-auction-interpreter",
+   "justhodl-bond-regime-detector",
+   "justhodl-ml-predictions",
+   "justhodl-sector-tilt",
+   "justhodl-universe-builder"
+  ],
+  "15min": [
+   "justhodl-bloomberg-v8",
+   "justhodl-data-collector",
+   "justhodl-health-monitor",
+   "justhodl-market-interpreter",
+   "justhodl-nobrainer-tracker",
+   "justhodl-regime-composite",
+   "justhodl-reports-builder",
+   "justhodl-synthetic-monitor",
+   "justhodl-vol-regime",
+   "justhodl-whats-changed"
+  ],
+  "daily-17utc": [
+   "justhodl-bloomberg-v8",
+   "justhodl-data-collector",
+   "justhodl-health-monitor",
+   "justhodl-market-interpreter",
+   "justhodl-nobrainer-tracker",
+   "justhodl-regime-composite",
+   "justhodl-reports-builder",
+   "justhodl-synthetic-monitor",
+   "justhodl-vol-regime",
+   "justhodl-whats-changed"
+  ],
+  "hourly": [
+   "justhodl-bloomberg-v8",
+   "justhodl-data-collector",
+   "justhodl-health-monitor",
+   "justhodl-market-interpreter",
+   "justhodl-nobrainer-tracker",
+   "justhodl-regime-composite",
+   "justhodl-reports-builder",
+   "justhodl-synthetic-monitor",
+   "justhodl-vol-regime",
+   "justhodl-whats-changed"
+  ],
+  "daily-15utc": [
+   "justhodl-correlation-surface"
+  ],
+  "daily-08utc": [
+   "justhodl-earnings-pead",
+   "justhodl-earnings-whisper",
+   "justhodl-pead-detector",
+   "justhodl-theme-tier-classifier"
+  ],
+  "30min": [
+   "justhodl-position-monitor"
+  ],
+  "daily-07utc": [
+   "justhodl-supply-inflection-scanner"
+  ]
+ },
+ "disabled": [],
+ "assignment": {
+  "MLPredictor": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "bls-employment-api-v2": {
+   "fired_hours": [
+    22
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-eve"
+   ]
+  },
+  "daily-liquidity-report": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "ecb-data-daily-updater": {
+   "fired_hours": [
+    6
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-06utc"
+   ]
+  },
+  "justhodl-ab-test": {
+   "fired_hours": [
+    16
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-16utc",
+    "every_6h"
+   ]
+  },
+  "justhodl-activist-filings-scanner": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-allocator": {
+   "fired_hours": [
+    18
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "4hourly"
+   ]
+  },
+  "justhodl-asymmetric-hunter": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-auction-interpreter": {
+   "fired_hours": [
+    18
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "4hourly"
+   ]
+  },
+  "justhodl-bloomberg-v8": {
+   "fired_hours": [
+    17
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "15min",
+    "daily-17utc",
+    "hourly"
+   ]
+  },
+  "justhodl-bond-regime-detector": {
+   "fired_hours": [
+    18
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "4hourly"
+   ]
+  },
+  "justhodl-calls-backtest": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-correlation-breaks": {
+   "fired_hours": [
+    22
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-eve"
+   ]
+  },
+  "justhodl-correlation-surface": {
+   "fired_hours": [
+    15
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-15utc"
+   ]
+  },
+  "justhodl-data-collector": {
+   "fired_hours": [
+    17
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "15min",
+    "daily-17utc",
+    "hourly"
+   ]
+  },
+  "justhodl-deep-value-screener": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-dep-graph": {
+   "fired_hours": [
+    22
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-eve"
+   ]
+  },
+  "justhodl-divergence-scanner": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-earnings-pead": {
+   "fired_hours": [
+    8
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-08utc"
+   ]
+  },
+  "justhodl-earnings-whisper": {
+   "fired_hours": [
+    8
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-08utc"
+   ]
+  },
+  "justhodl-email-reports-v2": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-eps-revision-velocity": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-fed-speak": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-health-monitor": {
+   "fired_hours": [
+    17
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "15min",
+    "daily-17utc",
+    "hourly"
+   ]
+  },
+  "justhodl-khalid-metrics": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-market-interpreter": {
+   "fired_hours": [
+    17
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "15min",
+    "daily-17utc",
+    "hourly"
+   ]
+  },
+  "justhodl-microcap-float-squeeze": {
+   "fired_hours": [
+    22
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-eve"
+   ]
+  },
+  "justhodl-ml-predictions": {
+   "fired_hours": [
+    18
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "4hourly"
+   ]
+  },
+  "justhodl-momentum-breakout": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-momentum-scanner": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-morning-brief-tg": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-narrative-density-tracker": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-nobrainer-rationale": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-nobrainer-tracker": {
+   "fired_hours": [
+    17
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "15min",
+    "daily-17utc",
+    "hourly"
+   ]
+  },
+  "justhodl-options-flow-scanner": {
+   "fired_hours": [
+    22
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-eve"
+   ]
+  },
+  "justhodl-pead-detector": {
+   "fired_hours": [
+    8
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-08utc"
+   ]
+  },
+  "justhodl-position-monitor": {
+   "fired_hours": [
+    14
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "30min"
+   ]
+  },
+  "justhodl-position-sizer-v2": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-pre-pump-detector": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-regime-composite": {
+   "fired_hours": [
+    17
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "15min",
+    "daily-17utc",
+    "hourly"
+   ]
+  },
+  "justhodl-reports-builder": {
+   "fired_hours": [
+    17
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "15min",
+    "daily-17utc",
+    "hourly"
+   ]
+  },
+  "justhodl-revenue-acceleration": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-risk-sizer": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-sector-earnings-diffusion": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-sector-tilt": {
+   "fired_hours": [
+    18
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "4hourly"
+   ]
+  },
+  "justhodl-signal-portfolio": {
+   "fired_hours": [
+    22
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-eve"
+   ]
+  },
+  "justhodl-smart-money-cluster": {
+   "fired_hours": [
+    16
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-16utc",
+    "every_6h"
+   ]
+  },
+  "justhodl-supply-inflection-scanner": {
+   "fired_hours": [
+    7
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-07utc"
+   ]
+  },
+  "justhodl-synthetic-monitor": {
+   "fired_hours": [
+    17
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "15min",
+    "daily-17utc",
+    "hourly"
+   ]
+  },
+  "justhodl-tape-reader": {
+   "fired_hours": [
+    22
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-eve"
+   ]
+  },
+  "justhodl-theme-detector": {
+   "fired_hours": [
+    6
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-06utc"
+   ]
+  },
+  "justhodl-theme-rotation-engine": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-theme-tier-classifier": {
+   "fired_hours": [
+    8
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-08utc"
+   ]
+  },
+  "justhodl-universe-builder": {
+   "fired_hours": [
+    18
+   ],
+   "per_day": 1.06,
+   "ticks": [
+    "4hourly"
+   ]
+  },
+  "justhodl-vol-regime": {
+   "fired_hours": [
+    17
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "15min",
+    "daily-17utc",
+    "hourly"
+   ]
+  },
+  "justhodl-volatility-squeeze-hunter": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "justhodl-watchlist-debate": {
+   "fired_hours": [
+    22
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-eve"
+   ]
+  },
+  "justhodl-whats-changed": {
+   "fired_hours": [
+    17
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "15min",
+    "daily-17utc",
+    "hourly"
+   ]
+  },
+  "ofrapi": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.88,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "permanent-market-intelligence": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "scrapeMacroData": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "treasury-auto-updater": {
+   "fired_hours": [
+    11
+   ],
+   "per_day": 1.0,
+   "ticks": [
+    "daily-morn"
+   ]
+  },
+  "ultimate-multi-agent": {
+   "fired_hours": [],
+   "per_day": 3.69,
+   "ticks": [
+    "daily-morn"
+   ],
+   "defaulted": true
+  }
+ },
+ "doctrine": "This is the fan-out router's manifest. config/schedule-manifest.json is the declarative rules/schedules snapshot and must never be written here."
+}
