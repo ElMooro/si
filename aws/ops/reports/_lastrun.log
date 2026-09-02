@@ -1,30 +1,55 @@
-executing-against: 548abb35e92b515dd9804d966fdff874be16b15e
-ops 5121 -- symbol directory v1.1.0: Eurostat/ECB dimension labels
+executing-against: d4196e8e5232cd59cd588bab65f6f1ccddeb3409
+ops 5122 -- symbol directory v1.1.1: 6144MB, reload storm fixed, ranking hints
 ── S1 redeploy ──
-[13:56:51]   zip: 128535 bytes
+[14:00:24]   zip: 130578 bytes
 ── 1. Lambda ──
-[13:56:51]   Lambda exists — updating
-[13:56:56] ✅   ✓ updated justhodl-symdir
-── S2 launch the codelist lane ──
-[13:57:02] ✅ schedule created: justhodl-symdir-codelists rate(20 minutes)
-── S3 wait for DSDs, verify labels ──
-[13:57:32]   ecb done=0 eurostat done=0 (failed 0) shards=[None, None, None, None]
-[13:58:03]   ecb done=25 eurostat done=100 (failed 0) shards=[None, None, None, None]
-[13:58:33]   ecb done=25 eurostat done=200 (failed 0) shards=[None, None, None, None]
-[13:59:04]   ecb done=50 eurostat done=350 (failed 0) shards=[None, None, None, None]
-[13:59:04]   codelists-ecb-0: done=50 left=None total=None failed=0 sample_fail=[] last_run=None
-[13:59:04]   codelists-eurostat-0: done=75 left=None total=None failed=0 sample_fail=[] last_run=None
-[13:59:04]   codelists-eurostat-1: done=100 left=None total=None failed=0 sample_fail=[] last_run=None
-[13:59:05]   codelists-eurostat-2: done=100 left=None total=None failed=0 sample_fail=[] last_run=None
-[13:59:05]   codelists-eurostat-3: done=75 left=None total=None failed=0 sample_fail=[] last_run=None
-[13:59:07]   browse ecb:EXR 'usd daily' 2533ms labeled=True matched=4 first=['Daily · Narrow EER group of trading partners (fixed composition) · US dollar · Nominal effective exch. rate · Average', 'Daily · Extended EER group of trading partners (fixed composition) · US dollar · Nominal effective exch. rate · Average'] facets={'FREQ': [['Q', 1508, 'Quarterly'], ['A', 1300, 'Annual']], 'CURRENCY': [['E02', 604, 'Extended EER group of trading partners (fixed composition)'], ['E03', 573, 'Broad EER group of trading partners (fixed composition)']], 'CURRENCY_DENOM': [['EUR', 396, 'Euro'], ['BGN', 141, 'Bulgarian lev']]}
-[13:59:09]   series ecb EXR USD 2082ms n=7084 name='ECB reference exchange rate, US dollar/Euro, 2.15 pm (C.E.T.)'
-[13:59:10]   drill ecb 855ms rows=[('ecb:EXR:EXR.D.USD.EUR.SP00.A', 'Daily · US dollar · Euro · Spot · Average', True)]
-[13:59:11]   browse eurostat:AVIA_GOOAC 675ms labeled=True total=381000 first=['Annual · Flight · Freight and mail commercial air flights · CHARLEROI/BRUSSELS SOUTH airport · Slovakia', 'Annual · Flight · Freight and mail commercial air flights · CHARLEROI/BRUSSELS SOUTH airport · Türkiye']
-[13:59:11]     facets: {'freq': [['A', 4096, 'Annual']], 'unit': [['FLIGHT', 4096, 'Flight']], 'tra_meas': [['CAF_FRM', 4096, 'Freight and mail commercial air flights']], 'rep_airp': [['BE_EBLG', 38, 'LIEGE airport'], ['BE_EBOS', 38, 'OOSTENDE/BRUGGE airport'], ['BG_LBSF', 38, 'SOFIA airport']]}
-── S4 live page: labeled facet chips ──
-[13:59:35]   page dataset browser ecb:EXR: {"open": true, "rows": 300, "chips": ["Extended EER group of tradi\u2026 (E02)", "Narrow EER group of trading\u2026 (E01)", "Broad EER group of trading \u2026 (E03)", "Swiss franc (CHF)", "Chinese yuan renminbi (CNY)", "Czech koruna (CZK)", "Danish krone (DKK)", "Algerian dinar (DZD)"], "hint": "dimension labels on; type codes or words (e.g. DE, monthly, chain linked) to narrow; giant flows scan the first 120000 series", "first": ["Annual \u00b7 Swiss franc \u00b7 Euro \u00b7 Spot \u00b7 Average", "Annual \u00b7 Swiss franc \u00b7 Euro \u00b7 Spot \u00b7 End-of-period", "Annual \u00b7 Chinese yuan renminbi \u00b7 Euro \u00b7 Spot \u00b7 Average"]}
+[14:00:24]   Lambda exists — updating
+[14:00:27] ✅   ✓ updated justhodl-symdir
+── S2 rebuild + warm reload semantics ──
+[14:00:42]   pre-build warm 9581ms: built_at=2026-09-02T13:55:25+00:00 reloaded=False
+[14:05:06] ✅ rebuilt docs=1,374,429 elapsed=249.8s titles ledger=1100 untitled=1311
+[14:05:15]   warm after build: 8027ms built_at=2026-09-02T14:04:31+00:00 reloaded=True | repeat 244ms reloaded=False | repeat 258ms reloaded=False
+── S3 ranking battery (function URL, warm) ──
+[14:05:15] ✗   'sofr'                        214ms total=    798 top=['fred:SOFR', 'nyfed:sofr', 'SOFR', 'fred:SOFRINDEX', 'CMCMARKETS:SOFR3MO', 'fred:SOFR30DAYAVG']  want nyfed:sofr in top 1
+[14:05:15] ✅   'dgs10'                       234ms total=      1 top=['fred:DGS10']  want fred:DGS10 in top 1
+[14:05:15] ✅   'AAPL'                        216ms total=     14 top=['AAPL', 'NASDAQ:AAPL', 'I:AAPLCW', 'I:AAPLDI', 'I:AAPLIO', 'AAPB']  want AAPL in top 1
+[14:05:16] ✅   'unrate'                      217ms total=     16 top=['fred:UNRATE', 'fred:UNRATENSA', 'fred:UNRATEMD', 'fred:UNRATECTM', 'fred:UNRATERH', 'fred:UNRATERM']  want fred:UNRATE in top 1
+[14:05:16] ✅   'TVC:VIX'                     221ms total=    746 top=['TVC:VIX', 'TVC:MOVE', 'fred:VIXCLS', 'fred:GVZCLS', 'fred:OVXCLS', 'fred:VXVCLS']  want TVC:VIX in top 1
+[14:05:19] ✅   'payrolls'                   2895ms total= 157587 top=['fred:PAYEMS', 'fred:JTSJOL', 'fred:OPHNFB', 'fred:JTSQUR', 'fred:JTSHIR', 'fred:JTSLDL']  want fred:PAYEMS in top 5
+[14:05:19] ✅   'nonfarm payrolls'            358ms total=  14198 top=['fred:PAYEMS', 'fred:JTSJOL', 'fred:OPHNFB', 'fred:JTSQUR', 'fred:JTSHIR', 'fred:JTSLDL']  want fred:PAYEMS in top 5
+[14:05:20] ✅   'cpi'                         989ms total= 222729 top=['imf:CPI', 'fred:CPIAUCSL', 'CPIX', 'fred:CPILFESL', 'CPII', 'fred:CPIAUCNS']  want fred:CPIAUCSL in top 5
+[14:05:20] ✅   'consumer price index'        363ms total=  24462 top=['fred:CPIAUCSL', 'fred:CPILFESL', 'fred:CPIAUCNS', 'fred:CPIENGSL', 'fred:CPIMEDNS', 'fred:CUSR0000SETA02']  want fred:CPIAUCSL in top 5
+[14:05:21] ✅   'unemployment rate germany'   253ms total=    192 top=['fred:LRHUTTTTDEM156S', 'ECONOMICS:DEUR', 'ECONOMICS:GEUR', 'fred:LRHUTTTTDEQ156S', 'fred:LRUNTTTTDEQ156S', 'fred:LRHUTTTTDEM156N']  want fred:LRHUTTTTDEM156S in top 5
+[14:05:21] ✅   'canada employment'           246ms total=   1034 top=['statcan:10100001', 'statcan:10100025', 'statcan:10100026', 'statcan:10100038', 'statcan:11100027', 'statcan:11100029']  want statcan: in top 10
+[14:05:21] ✅   'nama_10_gdp'                 278ms total=     23 top=['eurostat:NAMA_10_GDP', 'eurostat:NAMA_10R_3GDP', 'eurostat:NAMA_10_PC', 'eurostat:NAMA_10R_2GDP', 'eurostat:NAMA_10R_3POPGDP', 'eurostat:NAMA_10R_2GVAGR']  want eurostat:NAMA_10_GDP in top 1
+[14:05:22] ✅   'gdp'                         729ms total= 148310 top=['fred:GDP', 'fred:GDPA', 'fred:GDPNOW', 'fred:GDPC1', 'fred:JHGDPBRINDX', 'eurostat:NAIDA_10_GDP']  want fred:GDP in top 3
+[14:05:22] ✅   'real gdp'                    396ms total=  28734 top=['fred:GDPC1', 'eurostat:TEC00115', 'eurostat:SDG_08_10', 'eurostat:TIPSNA40', 'fred:RGDPNACNA666NRUG', 'fred:STLENI']  want fred:GDPC1 in top 5
+[14:05:23] ✅   'm2'                          279ms total=  17565 top=['fred:M2', 'fred:M2SL', 'fred:M2NS', 'fred:M2V', 'fred:M2REAL', 'fred:M2MSL']  want fred:M2SL in top 3
+[14:05:23] ✅   '10 year treasury yield'      285ms total=    154 top=['fred:DGS10', 'fred:T10Y2Y', 'fred:T10Y3M', 'fred:DFII10', 'fred:BAA10Y', 'fred:GS10']  want fred:DGS10 in top 3
+[14:05:23] ✅   'bank of japan'               382ms total=  66949 top=['fred:JPNASSETS', 'boj:BP01', 'boj:BS02', 'boj:IR02', 'boj:IR03', 'boj:MD02']  want boj: in top 5
+[14:05:24] ✗   'money market funds'          228ms total=   2506 top=['fred:MMMFFAQ027S', 'fred:MMMFTAQ027S', 'fred:BOGZ1FL632051103Q', 'fred:WRMFNS', 'fred:MMMFFAA027N', 'fred:BOGZ1FL633061105Q']  want ofr: in top 12
+[14:05:24] ✅   'euro dollar exchange rate'   227ms total=     22 top=['fred:DEXUSEU', 'fred:EXUSEU', 'fred:AEXUSEU', 'fred:CCUSMA02EZM618N', 'fred:CCUSMA02EZQ618N', 'fred:CCUSMA02EZM661N']  want fred:DEXUSEU in top 5
+[14:05:24] ✅   'japan cpi'                   487ms total=  61412 top=['fred:JPNCPIALLMINMEI', 'fred:CPALTT01JPM657N', 'fred:JPNPCPIPCPPPT', 'fred:JPNCPALTT01CTGYM', 'fred:CPALCY01JPM661N', 'fred:CPALTT01JPM661S']  want fred: in top 3
+[14:05:24] ✅   'fed balance sheet'           237ms total=     32 top=['fred:WALCL', 'statcan:10100051', 'statcan:10100052', 'statcan:10100056', 'statcan:10100062', 'statcan:10100067']  want fred:WALCL in top 5
+[14:05:25] ✅   'initial claims'              214ms total=    111 top=['fred:ICSA', 'fred:ICNSA', 'fred:IC4WSA', 'fred:CAICLAIMS', 'fred:PAICLAIMS', 'fred:TXICLAIMS']  want fred:ICSA in top 5
+[14:05:25] ✅   'vix'                         232ms total=    436 top=['CBOE:VIX', 'CAPITALCOM:VIX', 'HOSE:VIX', 'PEPPERSTONE:VIX', 'TVC:VIX', 'I:VIX']  want TVC:VIX in top 5
+[14:05:25] ✅   'bitcoin'                     221ms total=    198 top=['BIXI', 'fred:CBBTCUSD', 'INDEX:BTCUSD', 'ABTC', 'X:BCHNUSD', 'X:BCHUSD']  want X:BTCUSD in top 10
+[14:05:25] ✅   'nvidia'                      217ms total=      5 top=['NVDA', 'NASDAQ:NVDA', 'NVDQ', 'NVDX', 'NVPS']  want NVDA in top 1
+[14:05:26] ✅   'hicp'                        282ms total=  15562 top=['ecb:HICP', 'eurostat:PRC_HICP_APC', 'eurostat:PRC_HICP_FP', 'eurostat:PRC_HICP_AIND', 'eurostat:PRC_HICP_CMON', 'eurostat:PRC_HICP_MIDX']  want eurostat: in top 8
+[14:05:26]   (info) 'core cpi': fred:CPILFESL · Consumer Price Index for All Urban C | worldbank:CORENS · Core CPI,not seas.adj,,, | worldbank:CORESA · Core CPI,seas.adj,,, | fred:CORESTICKM159SFRBATL · Sticky Price Consumer Price Index le | fred:PCEPILFE · Personal Consumption Expenditures Ex
+[14:05:26]   (info) 'jobless claims': fred:ICSA · Initial Claims | fred:CCSA · Continued Claims (Insured Unemployme | fred:CC4WSA · 4-Week Moving Average of Continued C | fred:CCNSA · Continued Claims (Insured Unemployme | fred:MOCCLAIMS · Continued Claims (Insured Unemployme
+[14:05:27]   (info) 'housing starts': fred:HOUST · New Privately-Owned Housing Units St | statcan:34100096 · Canada Mortgage and Housing Corporat | statcan:34100097 · Canada Mortgage and Housing Corporat | statcan:34100102 · Canada Mortgage and Housing Corporat | statcan:34100103 · Canada Mortgage and Housing Corporat
+[14:05:27]   (info) 'oil price': fred:OILPRICE · Spot Oil Price: West Texas Intermedi | fred:DCOILWTICO · Crude Oil Prices: West Texas Interme | fred:DCOILBRENTEU · Crude Oil Prices: Brent - Europe | fred:WTISPLC · Spot Crude Oil Price: West Texas Int | fred:MCOILWTICO · Crude Oil Prices: West Texas Interme
+[14:05:27]   (info) 'yield curve': fred:T10Y2Y · 10-Year Treasury Constant Maturity M | fred:T10Y3M · 10-Year Treasury Constant Maturity M | ecb:YC · Financial market data - yield curve | eurostat:IRT_EURYLD_D · Euro yield curves - daily data | eurostat:IRT_H_EURYLD_D · Euro yield curves - daily data
+── S4 spot checks ──
+[14:05:28]   statcan vector 459ms n=123 first=2009-09-01 last=2026-03-01 src=statcan-wds
+[14:05:28]   fred:PAYEMS: name='All Employees, Total Nonfarm'
+[14:05:28]   fred:CPILFESL: name='Consumer Price Index for All Urban Consumers: All Items Less Food and Energy in U.S. City Average'
+[14:05:28]   eurostat NAMA_10_GDP: 'Gross domestic product (GDP) and main components (output, expenditure and income) - annual data'
+[14:05:29]   worker /symsearch payrolls 1044ms: ['fred:PAYEMS', 'fred:JTSJOL', 'fred:OPHNFB']
 ── verdict ──
-[13:59:35] ✅ PASS_ALL: v1.1.0 live; Eurostat/ECB series now carry dimension labels in browse, drill, series names and facet chips; the codelist lane drains every 20 min
+[14:05:29] ✗ ranking 'sofr': ['fred:SOFR'] lacks nyfed:sofr
+[14:05:29] ✗ ranking 'money market funds': ['fred:MMMFFAQ027S', 'fred:MMMFTAQ027S', 'fred:BOGZ1FL632051103Q', 'fred:WRMFNS', 'fred:MMMFFAA027N', 'fred:BOGZ1FL633061105Q', 'fred:BOGZ1FA632051103Q', 'fred:BOGZ1FL634090043Q'] lacks ofr:
 
-→ Report written to aws/ops/reports/latest/5121-symdir-labels.md
+→ Report written to aws/ops/reports/latest/5122-symdir-v111.md
+❌ OPS-FAIL: aws/ops/pending/ops_5122_symdir_v111.py
