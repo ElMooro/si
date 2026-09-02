@@ -1,0 +1,60 @@
+# ops 5134 -- chart-pro: clean console on native charts
+
+**Status:** failure  
+**Duration:** 423.2s  
+**Finished:** 2026-09-02T15:59:12+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## S1 static content live?
+
+- `15:52:10`   live: {"data": true, "plumbing": true, "chart": false}
+- `15:52:41`   live: {"data": true, "plumbing": true, "chart": false}
+- `15:53:13`   live: {"data": true, "plumbing": true, "chart": false}
+- `15:53:44`   live: {"data": true, "plumbing": true, "chart": false}
+- `15:54:16`   live: {"data": true, "plumbing": true, "chart": false}
+- `15:54:47`   live: {"data": true, "plumbing": true, "chart": false}
+- `15:55:18`   live: {"data": true, "plumbing": true, "chart": false}
+- `15:55:49`   live: {"data": true, "plumbing": true, "chart": false}
+- `15:56:21`   live: {"data": true, "plumbing": true, "chart": false}
+- `15:56:52`   live: {"data": true, "plumbing": true, "chart": false}
+- `15:57:25`   live: {"data": true, "plumbing": true, "chart": false}
+- `15:57:56`   live: {"data": true, "plumbing": true, "chart": true}
+- `15:57:56` ✅   data.html static inventory: 57 providers, as_of 2026-09-02T15:48:53+00:00, totals {'providers': 57, 'datasets': 811254, 'keys': 1921835, 'gb': 530.39}
+## S2 chart-pro native charts (headless Chrome)
+
+- `15:58:17`   errors after initial load (NVDA): []
+- `15:58:26`   AAPL: {"active": "AAPL", "meta": "$325.03 +0.16% \u00b7 250 bars \u00b7 JustHodl warehouse \u00b7 since 1980", "iframe": false, "paywall": false, "nativeSrc": "JustHodl warehouse \u00b7 since 1980"}
+- `15:58:35`   NVDA: {"active": "NVDA", "meta": "$223.54 -1.32% \u00b7 250 bars \u00b7 JustHodl warehouse \u00b7 since 1999", "iframe": false, "paywall": false, "nativeSrc": "JustHodl warehouse \u00b7 since 1999"}
+- `15:58:44`   SSE:000001: {"active": "SSE:000001", "meta": "TradingView \u00b7 3,941.4 -0.97% \u00b7 7,186 obs \u00b7 1997-07-02\u21922026-09-02 \u00b7 D \u00b7 warehouse", "iframe": false, "paywall": false, "nativeSrc": "JustHodl warehouse \u00b7 since 1999"}
+- `15:58:53`   TVC:VIX: {"active": "TVC:VIX", "meta": "FRED \u00b7 14.43 Index -0.55% \u00b7 9,262 obs \u00b7 1990-01-02\u21922026-08-28 \u00b7 D \u00b7 warehouse", "iframe": false, "paywall": false, "nativeSrc": "JustHodl warehouse \u00b7 since 1999"}
+- `15:59:03`   XETR:DAX: {"active": "XETR:DAX", "meta": "TradingView \u00b7 25,846.9 -0.47% \u00b7 9,825 obs \u00b7 1987-11-30\u21922026-09-02 \u00b7 D \u00b7 warehouse", "iframe": false, "paywall": false, "nativeSrc": "JustHodl warehouse \u00b7 since 1999"}
+- `15:59:12`   X:BTCUSD: {"active": "X:BTCUSD", "meta": "equity \u00b7 77,213.7 -0.25% \u00b7 4,369 obs \u00b7 2014-09-17\u21922026-09-02 \u00b7 D \u00b7 warehouse", "iframe": false, "paywall": false, "nativeSrc": "JustHodl warehouse \u00b7 since 1999"}
+- `15:59:12`   page error: {"msg": "Value is null", "stack": "Uncaught Error: Value is null\n    at f (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2212)\n    at Candlestick (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:46283)\n    at Hs (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:47531)\n    at ne (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:30743)\n    at <anonymous> (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2", "sym": "AAPL"}
+- `15:59:12`   page error: {"msg": "Value is null", "stack": "Uncaught Error: Value is null\n    at f (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2212)\n    at Candlestick (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:46283)\n    at Hs (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:47531)\n    at ne (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:30743)\n    at <anonymous> (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2", "sym": "AAPL"}
+- `15:59:12`   page error: {"msg": "Value is null", "stack": "Uncaught Error: Value is null\n    at f (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2212)\n    at Candlestick (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:46283)\n    at Hs (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:47531)\n    at ne (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:30743)\n    at <anonymous> (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2", "sym": "AAPL"}
+- `15:59:12`   page error: {"msg": "Value is null", "stack": "Uncaught Error: Value is null\n    at f (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2212)\n    at Candlestick (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:46283)\n    at Hs (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:47531)\n    at ne (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:30743)\n    at <anonymous> (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2", "sym": "NVDA"}
+- `15:59:12`   page error: {"msg": "Value is null", "stack": "Uncaught Error: Value is null\n    at f (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2212)\n    at Candlestick (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:46283)\n    at Hs (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:47531)\n    at ne (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:30743)\n    at <anonymous> (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2", "sym": "NVDA"}
+- `15:59:12`   page error: {"msg": "Value is null", "stack": "Uncaught Error: Value is null\n    at f (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2212)\n    at Candlestick (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:46283)\n    at Hs (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:47531)\n    at ne (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:30743)\n    at <anonymous> (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2", "sym": "NVDA"}
+- `15:59:12`   page error: {"msg": "Value is null", "stack": "Uncaught Error: Value is null\n    at f (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2212)\n    at Candlestick (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:46283)\n    at Hs (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:47531)\n    at ne (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:30743)\n    at <anonymous> (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2", "sym": "SSE:000001"}
+- `15:59:12`   page error: {"msg": "Value is null", "stack": "Uncaught Error: Value is null\n    at f (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2212)\n    at Candlestick (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:46283)\n    at Hs (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:47531)\n    at ne (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:30743)\n    at <anonymous> (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2", "sym": "SSE:000001"}
+- `15:59:12`     4x HTTP 400 https://justhodl-data-proxy.raafouis.workers.dev/https://justhodl-data-proxy.raafouis.workers.dev/data/polygon-options-flow.json
+- `15:59:12`     3x HTTP 400 https://justhodl-data-proxy.raafouis.workers.dev/https://justhodl-data-proxy.raafouis.workers.dev/data/dislocations.json
+- `15:59:12`     3x HTTP 400 https://justhodl-data-proxy.raafouis.workers.dev/https://justhodl-data-proxy.raafouis.workers.dev/data/opportunities.json
+- `15:59:12`     2x HTTP 400 https://justhodl-data-proxy.raafouis.workers.dev/https://justhodl-data-proxy.raafouis.workers.dev/data/theme-cascade.json
+- `15:59:12`     2x HTTP 400 https://justhodl-data-proxy.raafouis.workers.dev/https://justhodl-data-proxy.raafouis.workers.dev/data/insider-clusters.json
+- `15:59:12`     2x HTTP 400 https://justhodl-data-proxy.raafouis.workers.dev/https://justhodl-data-proxy.raafouis.workers.dev/data/retail-sentiment.json
+- `15:59:12`     2x HTTP 400 https://justhodl-data-proxy.raafouis.workers.dev/https://justhodl-data-proxy.raafouis.workers.dev/data/trade-tickets.json
+- `15:59:12`     2x HTTP 400 https://justhodl-data-proxy.raafouis.workers.dev/https://justhodl-data-proxy.raafouis.workers.dev/data/predictions-snapshots/latest.json
+- `15:59:12`     2x HTTP 400 https://justhodl-data-proxy.raafouis.workers.dev/https://justhodl-data-proxy.raafouis.workers.dev/data/cascade-calibration.json
+- `15:59:12`     2x HTTP 400 https://justhodl-data-proxy.raafouis.workers.dev/https://justhodl-data-proxy.raafouis.workers.dev/data/trade-tickets-ai-rationale.json
+- `15:59:12`     2x HTTP 400 https://justhodl-data-proxy.raafouis.workers.dev/https://justhodl-data-proxy.raafouis.workers.dev/data/executive-intel.json
+- `15:59:12`     2x HTTP 400 https://justhodl-data-proxy.raafouis.workers.dev/https://justhodl-data-proxy.raafouis.workers.dev/data/political-ai-investigation.json
+## verdict
+
+- `15:59:12` ✗ page errors 15: [{"msg": "Value is null", "stack": "Uncaught Error: Value is null\n    at f (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:2212)\n    at Candlestick (https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js:6:46283)\n
