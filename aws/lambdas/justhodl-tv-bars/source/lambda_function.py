@@ -456,7 +456,7 @@ def universe_pull(event, context):
             out[sym] = {"ok": False, "error": "budget"}
             break
         try:
-            doc, key = bank_symbol(sym, token, cookie, countback=countback, budget=int(event.get("budget") or 40), ysym=ymap.get(sym))
+            doc, key = bank_symbol(sym, token, cookie, countback=(120 if event.get("refresh") else countback), budget=int(event.get("budget") or 40), ysym=ymap.get(sym), refresh=bool(event.get("refresh")))
             out[sym] = {"ok": True, "key": key, "n": doc["n"], "first": doc["first_date"], "last": doc["last_date"], "source": doc["source"]}
             idx["symbols"][sym] = {"key": key, "n": doc["n"], "first": doc["first_date"], "last": doc["last_date"],
                                    "as_of": doc["as_of"]}

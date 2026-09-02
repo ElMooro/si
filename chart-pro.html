@@ -864,6 +864,9 @@ a:hover { text-decoration: underline; }
 }
 .native-chart-head .nch-sym { font-size: 16px; font-weight: 700; color: var(--fg-0); }
 .native-chart-head .nch-meta { font-size: 11px; color: var(--fg-3); margin-top: 2px; }
+.native-chart-head .nch-legend { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-2); margin-top: 3px; display: flex; gap: 10px; flex-wrap: wrap; }
+.native-chart-head .nch-legend .lg-t { color: var(--fg-4); }
+.native-chart-head .nch-legend b { font-weight: 600; }
 .native-chart-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--fg-3); font-family: var(--font-mono); font-size: 11.5px; }
 
 /* Macro data catalog */
@@ -1537,6 +1540,12 @@ a:hover { text-decoration: underline; }
         <button class="tf-btn" id="tf-zoom-in" title="Finer interval (also: + key)">+</button>
         <button class="tf-btn" id="tf-zoom-out" title="Coarser interval (also: − key)">−</button>
         <button class="tf-btn" id="tf-fit" title="Fit all bars in view (also: 0 key)">⌂</button>
+        <span style="width:1px;height:16px;background:var(--border);margin:0 4px;display:inline-block"></span>
+        <button class="tf-btn ct-btn active" data-ct="candles" title="Candlesticks">🕯</button>
+        <button class="tf-btn ct-btn" data-ct="bars" title="OHLC bars">▥</button>
+        <button class="tf-btn ct-btn" data-ct="line" title="Line">〰</button>
+        <button class="tf-btn ct-btn" data-ct="area" title="Area">▲</button>
+        <button class="tf-btn ct-btn" data-ct="ha" title="Heikin-Ashi">🟧</button>
       </div>
       <div class="tf-bar chg-bar" id="chg-bar" title="FRED-style period-over-period % change">
         <button class="chg-btn active" data-chg="price">Price</button>
@@ -2103,6 +2112,7 @@ const State = {
   activeTabId: null,
   chartEngine: 'auto',   // 'auto' | 'tv' (TradingView) | 'native' (Polygon + Lightweight Charts)
   tf: { mult: 1, span: 'day', days: 250 },  // active native timeframe
+  chartType: 'candles',   // ops 5142: candles | bars | line | area | ha (Heikin-Ashi) for OHLC charts
   compareSymbol: null,   // overlay symbol for relative comparison
   ratioSymbol: null,     // denominator for a ratio/spread chart (TICKER ÷ ratioSymbol)
   seasonality: false,    // show avg monthly seasonality view
@@ -4561,6 +4571,49 @@ class NativeChart {
   // ops 5135: every render replaced the pane's innerHTML but never disposed the previous LightweightCharts
   // instance — its autoSize ResizeObserver kept drawing into a detached canvas and threw "Value is null"
   // (3 uncaught errors per symbol switch). Track every instance and reap the detached ones.
+  // ops 5142: TradingView-style chart types + OHLC legend for any OHLC series
+  static heikinAshi(bars) {
+    const out = []; let pO = null, pC = null;
+    for (const b of bars) {
+      const c = (b.open + b.high + b.low + b.close) / 4;
+      const o = pO == null ? (b.open + b.close) / 2 : (pO + pC) / 2;
+      out.push({ time: b.time, open: o, high: Math.max(b.high, o, c), low: Math.min(b.low, o, c), close: c, volume: b.volume, value: b.value });
+      pO = o; pC = c;
+    }
+    return out;
+  }
+  static mainSeries(chart, bars, opts = {}) {
+    const ct = State.chartType || 'candles';
+    const up = '#26ffaf', dn = '#ff5577';
+    let series, data = bars, kind = ct;
+    if (ct === 'ha') { data = NativeChart.heikinAshi(bars); series = chart.addCandlestickSeries({ upColor: up, downColor: dn, borderVisible: false, wickUpColor: up, wickDownColor: dn }); series.setData(data.map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close }))); }
+    else if (ct === 'bars') { series = chart.addBarSeries({ upColor: up, downColor: dn, thinBars: bars.length > 400 }); series.setData(bars.map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close }))); }
+    else if (ct === 'line') { series = chart.addLineSeries({ color: opts.lineColor || '#22d3ee', lineWidth: 2 }); series.setData(bars.map(b => ({ time: b.time, value: b.close }))); }
+    else if (ct === 'area') { series = chart.addAreaSeries({ lineColor: '#22d3ee', topColor: 'rgba(34,211,238,0.25)', bottomColor: 'rgba(34,211,238,0.02)', lineWidth: 2 }); series.setData(bars.map(b => ({ time: b.time, value: b.close }))); }
+    else { kind = 'candles'; series = chart.addCandlestickSeries({ upColor: up, downColor: dn, borderUpColor: up, borderDownColor: dn, wickUpColor: up, wickDownColor: dn }); series.setData(bars.map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close }))); }
+    return { series, kind, data };
+  }
+  static attachLegend(chart, series, paneIdx, bars, unitPrefix = '$') {
+    const head = document.querySelector(`#tv-container-${paneIdx} .native-chart-head`);
+    if (!head || !bars.length) return;
+    let lg = head.querySelector('.nch-legend');
+    if (!lg) { lg = document.createElement('div'); lg.className = 'nch-legend'; head.appendChild(lg); }
+    const fmt = (v) => (v == null || !isFinite(v)) ? '—' : (unitPrefix === '$' && Math.abs(v) >= 1 ? v.toFixed(2) : jhFmtVal(v));
+    const byTime = new Map(bars.map(b => [b.time, b]));
+    const render = (b, prev) => {
+      if (!b) return;
+      const chg = prev && prev.close ? ((b.close - prev.close) / Math.abs(prev.close) * 100) : null;
+      const col = (b.close >= b.open) ? '#26ffaf' : '#ff5577';
+      lg.innerHTML = `<span class="lg-t">${UI.esc(String(b.time))}</span> <span>O <b style="color:${col}">${fmt(b.open)}</b></span> <span>H <b style="color:${col}">${fmt(b.high)}</b></span> <span>L <b style="color:${col}">${fmt(b.low)}</b></span> <span>C <b style="color:${col}">${fmt(b.close)}</b></span>${chg != null ? ` <span style="color:${chg >= 0 ? '#26ffaf' : '#ff5577'}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</span>` : ''}${b.volume ? ` <span>V <b>${jhFmtVal(b.volume)}</b></span>` : ''}`;
+    };
+    render(bars[bars.length - 1], bars[bars.length - 2]);
+    chart.subscribeCrosshairMove(param => {
+      if (!param || !param.time) { render(bars[bars.length - 1], bars[bars.length - 2]); return; }
+      const t = typeof param.time === 'string' ? param.time : (param.time && param.time.year ? `${param.time.year}-${String(param.time.month).padStart(2, '0')}-${String(param.time.day).padStart(2, '0')}` : String(param.time));
+      const b = byTime.get(t); if (!b) return;
+      const i = bars.indexOf(b); render(b, i > 0 ? bars[i - 1] : null);
+    });
+  }
   // the LightweightCharts namespace object is frozen (assigning createChart throws), so instances are
   // tracked through this wrapper instead of a monkeypatch
   static createChart(el, opts) {
@@ -5187,8 +5240,8 @@ class NativeChart {
         const tfS = State.tf || { span: 'day', mult: 1 };
         let daily = jhCleanBars(ohlc.map(o => ({ time: o[0], open: o[1], high: o[2], low: o[3], close: o[4], volume: o[5] || 0 })));
         daily = jhAggregateBars(daily, tfS.span === 'week' || tfS.span === 'month' ? tfS.span : 'day', tfS.mult || 1);
-        const cs = chart.addCandlestickSeries({ upColor: '#26ffaf', downColor: '#ff5577', borderVisible: false, wickUpColor: '#26ffaf', wickDownColor: '#ff5577' });
-        cs.setData(daily.map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
+        const { series: cs } = NativeChart.mainSeries(chart, daily);
+        NativeChart.attachLegend(chart, cs, paneIdx, daily, '');
       } else {
         const tfS = State.tf || { span: 'day', days: 250 };
         const pts = jhAggregateObs(clean, tfS.span);
@@ -5315,6 +5368,16 @@ class NativeChart {
             if (tf.days < 9999) daily = daily.slice(-Math.max(days, 60));
             bars = daily;
             jhSrc = 'JustHodl warehouse' + (String(d.source || '').includes('banked') ? ' · banked now' : '') + (d.first ? ' · since ' + d.first.slice(0, 4) : '');
+            // ops 5142: live tail — the forming session from Polygon on top of the banked history (TradingView shows today's candle)
+            if (/^[A-Z][A-Z.\-]{0,9}$/.test(ticker) && tf.span === 'day') {
+              try {
+                const lr = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(ticker)}&mult=1&span=day&days=7`);
+                const live = lr.ok ? ((await lr.json()).bars || []) : [];
+                const lastT = bars.length ? bars[bars.length - 1].time : '';
+                const fresh = live.filter(b => b.time && b.time > lastT && isFinite(b.close)).map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.value || b.volume || 0, value: b.value || b.volume || 0 }));
+                if (fresh.length) { bars = bars.concat(fresh); jhSrc += ' · live ' + fresh[fresh.length - 1].time; }
+              } catch (e) { /* warehouse only */ }
+            }
           }
         } catch (e) { /* fall through to Polygon */ }
       }
@@ -5356,11 +5419,8 @@ class NativeChart {
         timeScale: { borderColor: '#1c2433', timeVisible: intraday, minBarSpacing: 0.001 },
         crosshair: { mode: 1 },
       });
-      const candleSeries = chart.addCandlestickSeries({
-        upColor: '#26ffaf', downColor: '#ff5577', borderUpColor: '#26ffaf',
-        borderDownColor: '#ff5577', wickUpColor: '#26ffaf', wickDownColor: '#ff5577',
-      });
-      candleSeries.setData(bars.map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
+      const { series: candleSeries } = NativeChart.mainSeries(chart, bars);
+      NativeChart.attachLegend(chart, candleSeries, paneIdx, bars, '$');
       
       // Moving averages (MA20 cyan, MA50 amber)
       const sma = (period) => {
@@ -5831,6 +5891,7 @@ class HeaderSearch {
     else if (e.key === 'Enter') {
       e.preventDefault();
       if (open && this.results[this.sel]) this.pick(this.sel);
+      else if (this.results && this.results.length) { this.pick(Math.max(0, this.sel)); }   // ops 5142: Enter = top result (HQMCB10YRP typed bare → fred:HQMCB10YRP)
       else { const q = jhCanonId(input.value); if (q) { WatchlistManager.rememberSymbol(q, jhSeriesProvider(q) ? 'series' : 'equity'); ChartController.loadTicker(q); this.close(); input.blur(); } }
     }
     else if (e.key === 'Escape') { this.close(); input.blur(); }
@@ -6871,8 +6932,15 @@ async function init() {
   indBtn.classList.toggle('active', Object.values(State.indicators).some(Boolean));
   
   // ── Timeframe bar ──
-  document.querySelectorAll('.tf-btn').forEach(b => b.addEventListener('click', () => {
-    document.querySelectorAll('.tf-btn').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.ct-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.ct-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); State.chartType = b.dataset.ct; try { localStorage.setItem('jh_chart_type', State.chartType); } catch (e) {}
+    const t = State.activeTicker; State.activeTicker = '__r'; ChartController.loadTicker(t);
+  }));
+  try { const ct = localStorage.getItem('jh_chart_type'); if (ct) { State.chartType = ct; document.querySelectorAll('.ct-btn').forEach(x => x.classList.toggle('active', x.dataset.ct === ct)); } } catch (e) {}
+  document.querySelectorAll('.tf-btn:not(.ct-btn)').forEach(b => b.addEventListener('click', () => {
+    if (!b.dataset.span) return;
+    document.querySelectorAll('.tf-btn:not(.ct-btn)').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     State.tf = { mult: parseInt(b.dataset.mult), span: b.dataset.span, days: parseInt(b.dataset.days) };
     // Native timeframes only apply to the native engine; nudge engine if on TV

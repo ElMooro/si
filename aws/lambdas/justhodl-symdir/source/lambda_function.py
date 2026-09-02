@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -1191,6 +1191,59 @@ def label_key(prov, flow, key, fn=None, dims=None, max_len=220):
     return txt if len(txt) <= max_len else txt[:max_len - 1] + "…"
 
 
+def fred_updates(event, context):
+    """mode=fredupdates (every 15 min): FRED publishes which series changed (fred/series/updates, ordered by
+    last_updated). Pull the window since the last cursor, intersect with the bank, heal those tails only --
+    the warehouse follows the source's own release clock instead of a guessed cadence."""
+    if not FRED_KEY:
+        return {"ok": False, "error": "no FRED_KEY"}
+    ix = load_index()
+    st = _get_json(SD + "_state/fredupdates.json") or {}
+    now = _now()
+    start = st.get("cursor") or (now - timedelta(hours=6)).strftime("%Y%m%d%H%M")
+    end = now.strftime("%Y%m%d%H%M")
+    banked = {}
+    for d in ix["docs"]:
+        if d[D_PROV] == "fred" and d[D_KEY]:
+            banked[d[D_ID].split(":", 1)[1]] = d
+    updated, healed, added, offset, pages = [], 0, 0, 0, 0
+    t0 = time.time()
+    while pages < 25 and (not context or context.get_remaining_time_in_millis() > 60000):
+        try:
+            j = _http_json("https://api.stlouisfed.org/fred/series/updates?api_key=%s&file_type=json&start_time=%s&end_time=%s&limit=1000&offset=%d"
+                           % (FRED_KEY, start, end, offset), timeout=40)
+        except Exception as e:  # noqa: BLE001
+            st.update({"last_error": str(e)[:120], "updated_at": _iso()})
+            _put_json(SD + "_state/fredupdates.json", st, cache="no-cache")
+            return {"ok": False, "error": str(e)[:120]}
+        rows = j.get("seriess") or []
+        pages += 1
+        for r in rows:
+            sid = r.get("id")
+            if sid in banked:
+                updated.append(sid)
+        if len(rows) < 1000:
+            break
+        offset += 1000
+        time.sleep(0.5)
+    for sid in updated:
+        if context and context.get_remaining_time_in_millis() < 45000:
+            break
+        d = banked[sid]
+        try:
+            j = _get_json("data/warm/fred-scoped/%s/%s.json" % (d[D_KEY], sid))
+            j, k = _fred_tail_refresh(d[D_KEY], sid, j, d[D_FREQ], force=True)
+            if k:
+                healed += 1
+                added += k
+                time.sleep(0.45)
+        except Exception:  # noqa: BLE001
+            continue
+    st.update({"cursor": end, "updated_at": _iso(), "window": [start, end], "fred_updated": len(updated), "healed": healed, "obs_added": added, "pages": pages, "s": round(time.time() - t0, 1)})
+    _put_json(SD + "_state/fredupdates.json", st, cache="no-cache")
+    return {"ok": True, "window": [start, end], "fred_updated_in_bank": len(updated), "healed": healed, "obs_added": added, "pages": pages}
+
+
 def fred_fresh(event, context):
     """mode=fredfresh (hourly): keep the headline banked FRED series current without waiting for an open --
     walk banked D/W series most-popular-first (cursor in data/symdir/_state/fredfresh.json), ~limit per run
@@ -1716,7 +1769,7 @@ def _doc_lookup(sid):
 FRED_STALE_DAYS = {"D": 4, "W": 10, "BW": 18, "M": 40, "Q": 100, "SA": 200, "A": 400}
 
 
-def _fred_tail_refresh(root, sid, j, freq):
+def _fred_tail_refresh(root, sid, j, freq, force=False):
     """The fred-catalog engine drains once and never revisits a banked doc (DGS10 sat at 2026-08-06 on
     2026-09-02). When the bank is older than its cadence allows, pull the tail from FRED, merge append-only
     and rewrite the doc in place -- the warehouse heals on open, exactly like the tv-bars universe."""
@@ -1728,7 +1781,7 @@ def _fred_tail_refresh(root, sid, j, freq):
         age = (_now().date() - date.fromisoformat(last[:10])).days
     except Exception:  # noqa: BLE001
         return j, 0
-    if age <= FRED_STALE_DAYS.get((freq or "D")[:2].upper(), 40):
+    if not force and age <= FRED_STALE_DAYS.get((freq or "D")[:2].upper(), 40):
         return j, 0
     try:
         t = _http_json("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s&file_type=json&observation_start=%s&limit=100000"
@@ -2105,11 +2158,11 @@ def _tv_bank_doc(sym):
     return _get_json(TV_UNIV + _tv_safe(sym) + ".json.gz")
 
 
-def _tv_pull(syms, budget=35, ysym=None):
+def _tv_pull(syms, budget=35, ysym=None, refresh=False):
     """Bank symbols on demand through justhodl-tv-bars (mode=pull); returns {sym: result}."""
     try:
         resp = _lambda.invoke(FunctionName="justhodl-tv-bars", InvocationType="RequestResponse",
-                              Payload=json.dumps({"mode": "pull", "tv_symbols": list(syms), "budget": budget, "ysym": ysym or {}}).encode())
+                              Payload=json.dumps({"mode": "pull", "tv_symbols": list(syms), "budget": budget, "ysym": ysym or {}, "refresh": bool(refresh)}).encode())
         body = json.loads(resp["Payload"].read() or b"{}")
         return body.get("results") or {}
     except Exception as e:  # noqa: BLE001
@@ -2136,26 +2189,47 @@ def r_tvsym(sid, sym, d):
     are served by that resolver -- the same series, from S3, with its full history."""
     ex = (d[D_EXTRA] or {}) if d else {}
     src_prov, src_id = (ex.get("src") or "").lower(), ex.get("sid")
-    if src_id and src_prov in ("fred", "ecb", "ofr", "nyfed", "eurostat", "boj", "bls", "worldbank"):
-        inner = src_id.split(":", 1)[1] if ":" in src_id and src_id.split(":", 1)[0].lower() == src_prov else src_id
-        try:
-            out = fetch_series("%s:%s" % (src_prov, inner))
-            out["id"], out["tv_symbol"], out["via"] = sid, sym, "%s:%s" % (src_prov, inner)
-            out["name"] = (d[D_TITLE] if d else None) or out.get("name")
-            return out
-        except Exception as e:  # noqa: BLE001
-            pass                                   # fall through to the bars bank
+    name = (d[D_TITLE] if d else None) or sym
+    # 1. OHLC bank (candles) -- banked on first open, healed when stale
     doc = _tv_bank_doc(sym)
     src = "warehouse:tv-bars"
+    if doc and _bank_stale(doc):
+        res = _tv_pull([sym], refresh=True)
+        if (res.get(sym) or {}).get("ok"):
+            doc = _tv_bank_doc(sym)
+            src = "warehouse:tv-bars (tail healed)"
     if not doc:
         res = _tv_pull([sym])
         r0 = res.get(sym) or {}
-        if not r0.get("ok"):
-            raise ValueError("not banked yet and the bank pull failed: %s" % (r0.get("error") or "unknown"))
-        doc = _tv_bank_doc(sym)
-        src = "warehouse:tv-bars (banked just now)"
-    name = (d[D_TITLE] if d else None) or sym
-    return _bars_result(sid, "tv", doc or {}, name, src + " · " + str((doc or {}).get("source") or ""), extra={"tv_symbol": sym, "banked_at": (doc or {}).get("as_of")})
+        if r0.get("ok"):
+            doc = _tv_bank_doc(sym)
+            src = "warehouse:tv-bars (banked just now)"
+        else:
+            bank_err = r0.get("error") or "unknown"
+    if doc:
+        return _bars_result(sid, "tv", doc, name, src + " · " + str(doc.get("source") or ""), extra={"tv_symbol": sym, "banked_at": doc.get("as_of")})
+    # 2. no bars source: the dictionary's provider series (close-only) is still the full history
+    if src_id and src_prov in ("fred", "ecb", "ofr", "nyfed", "eurostat", "boj", "bls", "worldbank"):
+        inner = src_id.split(":", 1)[1] if ":" in src_id and src_id.split(":", 1)[0].lower() == src_prov else src_id
+        out = fetch_series("%s:%s" % (src_prov, inner))
+        out["id"], out["tv_symbol"], out["via"] = sid, sym, "%s:%s" % (src_prov, inner)
+        out["name"] = name or out.get("name")
+        return out
+    raise ValueError("not banked yet and the bank pull failed: %s" % bank_err)
+
+
+def _bank_stale(doc, max_days=2):
+    """A universe bank doc is stale when its last bar is older than the last 2 weekdays (nightly refresh missed / new symbol)."""
+    try:
+        last = date.fromisoformat((doc.get("last_date") or "")[:10])
+    except Exception:  # noqa: BLE001
+        return False
+    d, n = _now().date(), 0
+    while n < max_days:
+        d -= timedelta(days=1)
+        if d.weekday() < 5:
+            n += 1
+    return last < d
 
 
 def r_equity(sid, ticker, d):
@@ -2183,6 +2257,10 @@ def r_equity(sid, ticker, d):
     else:
         ysym, bank = core.replace(".", "-").replace("/", "-"), "US:" + core
     doc = _tv_bank_doc(bank)
+    if doc and _bank_stale(doc):
+        if (_tv_pull([bank], budget=25, ysym={bank: ysym}, refresh=True).get(bank) or {}).get("ok"):
+            doc = _tv_bank_doc(bank)
+            return _bars_result(sid, "equity", doc or {}, (d[D_TITLE] if d else t), "warehouse:tv-bars (tail healed) · " + str((doc or {}).get("source") or ""), extra={"bank": bank, "ysym": ysym})
     if not doc:
         res = _tv_pull([bank], budget=25, ysym={bank: ysym}).get(bank) or {}
         if not res.get("ok"):
@@ -2197,6 +2275,30 @@ RESOLVERS = {"fred": r_fred, "te": r_te, "eurostat": r_eurostat, "ecb": r_ecb, "
              "boj": r_boj, "statcan": r_statcan, "worldbank": r_worldbank, "treasury": r_treasury, "boe": r_boe, "census": r_census, "bls": r_bls}
 CACHE_TTL = {"tv": 6 * 3600, "equity": 6 * 3600, "fred": 6 * 3600, "te": 86400, "eurostat": 86400, "ecb": 6 * 3600, "nyfed": 3600, "ofr": 6 * 3600, "boj": 86400, "statcan": 86400,
              "worldbank": 86400, "treasury": 6 * 3600, "boe": 86400, "census": 86400, "bls": 86400}
+
+
+def _bare_resolve(bare):
+    """Bare id -> provider id when it is not a known instrument but IS a directory series (FRED wins ties)."""
+    try:
+        ix = load_index()
+    except Exception:  # noqa: BLE001
+        return None
+    rows, _ = _prefix_range(ix["ids"], bare, cap=3)
+    if any(k == bare for k, i in rows) and any(ix["docs"][i][D_KIND] == "instrument" for k, i in rows if k == bare):
+        return None
+    if bare.startswith(("X:", "C:", "I:")):
+        return None
+    cands = []
+    lo = bisect.bisect_left(ix["bare"], (bare,))
+    hi = bisect.bisect_right(ix["bare"], (bare, float("inf")))
+    for k, i in ix["bare"][lo:hi]:
+        d = ix["docs"][i]
+        if d[D_KIND] == "series" and d[D_PROV] in RESOLVERS:
+            cands.append(d)
+    if not cands:
+        return None
+    cands.sort(key=lambda d: (0 if d[D_PROV] == "fred" else 1, -d[D_POP]))
+    return cands[0][D_ID]
 
 
 def fetch_series(sid, nocache=False):
@@ -2214,7 +2316,14 @@ def fetch_series(sid, nocache=False):
             sid = sid[3:]
             prov, rest, sid = "tv", sid.upper(), sid.upper()
         else:
-            prov, rest, sid = "equity", sid.upper(), sid.upper()                                            # bare ticker or Polygon X:/C:/I:
+            # a bare id: an instrument charts as an equity; otherwise a series id typed without its provider
+            # (HQMCB10YRP -> fred:HQMCB10YRP) resolves through the directory's bare index, FRED first
+            bare = sid.upper()
+            hit = _bare_resolve(bare)
+            if hit:
+                prov, rest, sid = hit.split(":", 1)[0], hit.split(":", 1)[1], hit
+            else:
+                prov, rest, sid = "equity", bare, bare                                                       # bare ticker or Polygon X:/C:/I:
     ttl = CACHE_TTL.get(prov, 21600)
     if not nocache:
         c, age = _cache_get(sid, ttl)
@@ -2293,6 +2402,8 @@ def lambda_handler(event, context):
         return codelists_lane(event, context)
     if mode == "fredfresh":
         return fred_fresh(event, context)
+    if mode == "fredupdates":
+        return fred_updates(event, context)
     if mode == "warm" or path == "/warm":
         # keep-warm ping (every 5 min): also the moment a warm container notices a newer daily build
         force = qs.get("force") == "1"
