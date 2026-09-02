@@ -1,0 +1,32 @@
+# ops 5104 -- GBC v3.0.3 equity pillar carry-forward
+
+**Status:** success  
+**Duration:** 66.7s  
+**Finished:** 2026-09-02T01:03:51+00:00  
+
+## Data
+
+| cli | equity_z | iso | phase |
+|---|---|---|---|
+| 102.51 | 0.068 | USA | EXPANSION |
+| 93.38 | 0.027 | CHN | RECESSION |
+| 102.35 | 0.599 | JPN | AT_RISK |
+| 98.99 | -0.173 | DEU | RECOVERY |
+| 102.99 | 0.81 | GBR | EXPANSION |
+| 102.4 | -1.134 | IND | EXPANSION |
+| 108.56 | 0.837 | KOR | AT_RISK |
+| 100.79 | 0.569 | BRA | AT_RISK |
+
+## Log
+- `01:03:10` ✅ deployed after 26s
+- `01:03:51` composite: multi=34 pillar_counts={"survey": 32, "activity": 32, "trade": 34, "financial": 34, "equity": 33} features_age=0.1h
+- `01:03:51` global: GLOBAL_EXPANSION 100.22 mix={"EXPANSION": 53.3, "AT_RISK": 9.1, "RECESSION": 23.1, "RECOVERY": 14.5} p6m=0.336 latest={"period": "2026-09", "global_z": 0.019, "cli": 100.19, "n": 34, "weight_covered": 84.4, "expansion_breadth_pct": 67.8, "breadth_unweighted_pct": 67.6}
+- `01:03:51`   USA EXPANSION cli=102.51 conf=0.82 pillars=survey:0.255 activity:0.194 trade:0.73 financial:0.178 equity:0.068
+- `01:03:51`   CHN RECESSION cli=93.38 conf=0.73 pillars=survey:-0.573 activity:-0.842 trade:1.177 financial:-1.755 equity:0.027
+- `01:03:51`   JPN AT_RISK cli=102.35 conf=0.58 pillars=survey:0.19 activity:-0.034 trade:0.751 financial:0.167 equity:0.599
+- `01:03:51`   DEU RECOVERY cli=98.99 conf=0.67 pillars=survey:-0.481 activity:-0.309 trade:0.003 financial:0.586 equity:-0.173
+- `01:03:51`   GBR EXPANSION cli=102.99 conf=0.73 pillars=survey:0.251 activity:-0.066 trade:0.394 financial:0.424 equity:0.81
+- `01:03:51`   IND EXPANSION cli=102.4 conf=0.78 pillars=survey:0.469 activity:0.19 trade:0.335 financial:0.473 equity:-1.134
+- `01:03:51`   KOR AT_RISK cli=108.56 conf=0.79 pillars=survey:1.023 activity:0.275 trade:2.152 financial:0.814 equity:0.837
+- `01:03:51`   BRA AT_RISK cli=100.79 conf=0.4 pillars=survey:0.068 activity:0.019 trade:-0.213 financial:0.064 equity:0.569
+- `01:03:51` ✅ VERDICT: GREEN -- v3.0.3: equity pillar 33/34, global GLOBAL_EXPANSION 100.22, p6m 0.336
