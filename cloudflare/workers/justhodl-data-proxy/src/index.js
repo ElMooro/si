@@ -1382,6 +1382,60 @@ export default {
       }
     }
 
+    // ops 5116: symbol directory + series service (justhodl-symdir) behind the
+    // justhodl domain. The browser never talks to *.lambda-url.on.aws directly
+    // (ad-blockers / corporate proxies kill that host, see equity-research
+    // fallback above). Endpoint is discovered from S3 so the worker can ship
+    // before the function exists; SYMDIR_URL var overrides when set.
+    //   /symsearch?q=   -> /search   (edge 120s)
+    //   /browse?ds=&q=  -> /browse   (edge 300s)
+    //   /series?id=     -> /series   (edge 900s; full-history observations)
+    //   /quote?ids=     -> /quote    (edge 600s; watchlist last/prev/chg)
+    if (url.pathname === "/symsearch" || url.pathname === "/browse" ||
+        url.pathname === "/series" || url.pathname === "/quote" || url.pathname === "/symdir-health") {
+      const routeMap = { "/symsearch": "/search", "/browse": "/browse", "/series": "/series", "/quote": "/quote", "/symdir-health": "/health" };
+      const ttlMap = { "/symsearch": 120, "/browse": 300, "/series": 900, "/quote": 600, "/symdir-health": 30 };
+      const upath = routeMap[url.pathname];
+      const ttl = ttlMap[url.pathname];
+      let base = (env && env.SYMDIR_URL) ? String(env.SYMDIR_URL).replace(/\/+$/, "") : "";
+      if (!base) {
+        try {
+          const ep = await fetch(`${BUCKET_BASE}/data/symdir/endpoint.json`, { cf: { cacheTtl: 300, cacheEverything: true } });
+          if (ep.ok) base = String((await ep.json()).url || "").replace(/\/+$/, "");
+        } catch (_) { /* fall through */ }
+      }
+      if (!base) {
+        return new Response(JSON.stringify({ error: "symbol directory endpoint not published yet", rows: [], obs: [] }),
+          { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      const nocache = url.searchParams.get("nocache") === "1";
+      const SYMDIR_VER = "v5116a";
+      const cacheKey = new Request(`${url.origin}/__symdir_${SYMDIR_VER}__${upath}?${url.searchParams.toString()}`, { method: "GET" });
+      const cache = caches.default;
+      let resp = nocache ? null : await cache.match(cacheKey);
+      let status = "HIT";
+      if (!resp) {
+        status = "MISS";
+        let up;
+        try {
+          up = await fetch(base + upath + url.search, { headers: { "User-Agent": "justhodl-data-proxy" } });
+        } catch (e) {
+          return new Response(JSON.stringify({ error: "symdir fetch failed", detail: String(e), rows: [], obs: [] }),
+            { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+        }
+        const body = await up.arrayBuffer();
+        resp = new Response(body, { status: up.status, headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": `public, max-age=${Math.min(ttl, 60)}, s-maxage=${ttl}`,
+          "X-Symdir-Upstream": up.status === 200 ? "ok" : String(up.status),
+          ...corsHeaders() } });
+        if (up.ok && !nocache) ctx.waitUntil(cache.put(cacheKey, resp.clone()));
+      }
+      const h = new Headers(resp.headers);
+      h.set("X-Edge-Cache", status);
+      return new Response(resp.body, { status: resp.status, headers: h });
+    }
+
     if (url.pathname === "/tv-search") {
       // GET /tv-search?text=AAPL → proxy TradingView symbol search (full universe)
       const text = (url.searchParams.get("text") || "").trim();

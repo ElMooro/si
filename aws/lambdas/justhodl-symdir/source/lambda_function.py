@@ -1,4 +1,4 @@
-"""justhodl-symdir v1.0.0 -- symbol directory, search and series service (ops 5116).
+"""justhodl-symdir v1.0.1 -- symbol directory, search and series service (ops 5116/5118).
 
 Khalid: "every single ticker and data (every single one) with its entire
 history should be searchable on chart-pro search bar and watchlist and can be
@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -412,10 +412,47 @@ def build(event, context):
             docs.append(doc("fred:" + sid, "fred", r.get("title"), "series", 0.15 + 0.85 * min(pop, 100) / 100.0,
                             unit=r.get("units"), freq=r.get("freq"), first=r.get("obs_start"), last=r.get("obs_end"),
                             key=root, extra=extra or None))
-        # mirrors/archives that are not in the catalog at all still get a doc
-        for sid in (te | arch) - set(best):
+        # banked series the category crawl never titled (CPILFESL, PAYEMS, ~1.3k): title from the banked
+        # file's meta now, and a real FRED title fetched incrementally (rate-limited ledger, ~150 per build)
+        titles = _get_json(SD + "fred-titles.json") or {}
+        untitled = [sid for sid in banked if sid not in best]
+        fetched = 0
+        if FRED_KEY:
+            for sid in untitled:
+                if sid in titles or fetched >= 150 or left() < 120:
+                    continue
+                try:
+                    j = _http_json("https://api.stlouisfed.org/fred/series?series_id=%s&api_key=%s&file_type=json" % (urllib.parse.quote(sid), FRED_KEY), timeout=20)
+                    ser = (j.get("seriess") or [{}])[0]
+                    if ser.get("title"):
+                        titles[sid] = {"title": ser["title"], "units": ser.get("units_short"), "freq": ser.get("frequency_short"), "sa": ser.get("seasonal_adjustment_short"),
+                                       "pop": ser.get("popularity"), "obs_start": ser.get("observation_start"), "obs_end": ser.get("observation_end")}
+                        fetched += 1
+                        time.sleep(0.45)
+                except Exception as e:  # noqa: BLE001
+                    titles[sid] = {"title": None, "err": str(e)[:60]}
+                    time.sleep(0.6)
+            _put_json(SD + "fred-titles.json", titles, cache="no-cache")
+
+        def bank_meta(sid):
+            try:
+                return (_get_json("data/warm/fred-scoped/%s/%s.json" % (banked[sid], sid)) or {}).get("meta") or {}
+            except Exception:  # noqa: BLE001
+                return {}
+        metas = dict(zip(untitled, pool.map(bank_meta, untitled)))
+        for sid in untitled:
+            t = titles.get(sid) or {}
+            m = metas.get(sid) or {}
+            pop = int(t.get("pop") or m.get("popularity") or 0)
+            title = t.get("title") or ("%s — %s" % (" · ".join(x for x in (m.get("category"), m.get("root")) if x), sid) if m else sid)
+            docs.append(doc("fred:" + sid, "fred", title, "series", 0.15 + 0.85 * min(pop, 100) / 100.0, unit=t.get("units"), freq=t.get("freq"),
+                            first=t.get("obs_start"), last=t.get("obs_end"), key=banked[sid],
+                            extra={"te": int(sid in te), "arch": int(sid in arch), "untitled": 0 if t.get("title") else 1}))
+        # mirrors/archives that are neither catalogued nor banked still get a doc
+        for sid in (te | arch) - set(best) - set(banked):
             docs.append(doc("fred:" + sid, "fred", sid, "series", 0.3, extra={"te": int(sid in te), "arch": int(sid in arch)}))
-        return {"meta_pages": len(pages), "catalog": len(best), "banked": n_b, "te_mirror": len(te), "archived": len(arch)}
+        return {"meta_pages": len(pages), "catalog": len(best), "banked": n_b, "untitled_banked": len(untitled), "titles_fetched_now": fetched,
+                "titles_ledger": sum(1 for v in titles.values() if v.get("title")), "te_mirror": len(te), "archived": len(arch)}
 
     # ---------------- SDMX dataflow catalogs + Tier-0 counts
     def sdmx_catalog(prov, cat_key, tier0_key, name_fix=None):
@@ -451,8 +488,27 @@ def build(event, context):
             if nm and fid in flows:
                 flows[fid] = nm.group(1).strip()
 
+    def eurostat_names(flows):
+        b, _, _ = _http("https://ec.europa.eu/eurostat/api/dissemination/catalogue/toc/txt?lang=en", timeout=60)
+        lines = b.decode("utf-8", "replace").split("\n")
+        hdr = [h.strip().strip('"').lower() for h in lines[0].split("\t")]
+        ti = hdr.index("title") if "title" in hdr else 0
+        ci = hdr.index("code") if "code" in hdr else 1
+        n = 0
+        for ln in lines[1:]:
+            p = ln.split("\t")
+            if len(p) <= max(ti, ci):
+                continue
+            code = p[ci].strip().strip('"').upper()
+            title = p[ti].strip().strip('"')
+            if code in flows and title:
+                if flows[code] != title:
+                    n += 1
+                flows[code] = title
+        log["sources"].setdefault("eurostat-toc", {})["renamed"] = n
+
     def st_eurostat():
-        return sdmx_catalog("eurostat", "data/warm/eurostat/catalog.json.gz", "data/index/eurostat/flows.json.gz")
+        return sdmx_catalog("eurostat", "data/warm/eurostat/catalog.json.gz", "data/index/eurostat/flows.json.gz", eurostat_names)
 
     def st_ecb():
         return sdmx_catalog("ecb", "data/warm/ecb/catalog.json.gz", "data/index/ecb/flows.json.gz", ecb_names)
@@ -643,6 +699,17 @@ def build(event, context):
                 continue
             d = _get_json(k) or {}
             dsn = d.get("dataset") or k.rsplit("/", 1)[-1][:-8]
+            obs = d.get("observations")
+            if isinstance(obs, list) and obs and isinstance(obs[0], dict) and "date" in obs[0]:
+                # the fiscaldata engine already reduced this dataset to one headline series
+                vk = next((x for x in obs[0].keys() if x not in ("date", "record_date") and _f(obs[0].get(x)) is not None), "value")
+                dates = [o.get("date") for o in obs]
+                mixed = len(set(dates)) < 0.9 * len(dates)      # several category rows per date flattened into one list
+                docs.append(doc("treasury:" + dsn, "treasury", "FiscalData " + dsn.replace("_", " ") + (" (%s)" % vk.replace("_", " ") if vk != "value" else "") + (" (mixed rows)" if mixed else ""),
+                                "series", 0.55 if not mixed else 0.3, unit=d.get("unit"), first=norm_period(min(dates)), last=norm_period(max(dates)),
+                                key=k, n=len(obs), extra={"field": vk, "ds": dsn, "mixed": int(mixed)}))
+                n += 1
+                continue
             rows = d.get("payload") or d.get("data") or d.get("rows") or []
             if isinstance(rows, dict):
                 rows = rows.get("data") or []
@@ -797,7 +864,7 @@ def build(event, context):
         ts.update(tokens(idpart))
         ts.add(d[D_PROV])
         ex = d[D_EXTRA] or {}
-        for fld in ("sector", "industry", "cat", "topics", "ds"):
+        for fld in ("cat", "topics", "ds"):
             if ex.get(fld):
                 ts.update(tokens(str(ex[fld])))
         for t in ts:
@@ -893,32 +960,41 @@ def search(q, limit=40, prov=None, kind=None):
     hits = {}
     detail = {"id_exact": 0, "id_prefix": 0, "token_and": 0, "token_or": 0}
     # 1. exact + prefix on ids (with and without provider prefix)
+    id_hit = set()
     for pairs, isbare in ((ix["ids"], False), (ix["bare"], True)):
         rows, total = _prefix_range(pairs, Q, cap=300)
         for k, i in rows:
-            base = 200 if k == Q else max(0, 90 - (len(k) - len(Q)) * 2)
-            if isbare:
-                base *= 0.92
+            # an exact id match scores the same with or without the provider prefix ("sofr" must find
+            # nyfed:sofr as strongly as the SOFR ETF; popularity then orders them); prefix matches on the
+            # bare part are discounted a little against full-id prefix matches
+            base = 200 if k == Q else max(0, 90 - (len(k) - len(Q)) * 2) * (0.92 if isbare else 1.0)
             if base > hits.get(i, (0, 0))[0]:
                 hits[i] = (base, 0)
+            id_hit.add(i)
             detail["id_exact" if k == Q else "id_prefix"] += 1
-    # 2. token search with prefix expansion + synonyms
+    # 2. token search: word-prefix expansion on the query tokens; synonyms match EXACT index tokens only
+    #    (prefix-expanding a synonym like "de" for germany turned "degree" into a match) and count less
     toks = tokens(q)
+    syn_only = defaultdict(int)
     if toks:
         groups = []
         for t in toks:
-            cand = set(_expand(t, toklist, index))
+            direct = set()
+            for c in _expand(t, toklist, index):
+                direct.update(index[c])
+            via_syn = set()
             for syn in SYN.get(t, []):
-                cand.update(_expand(syn, toklist, index, cap=60))
-            s = set()
-            for c in cand:
-                s.update(index[c])
-            groups.append(s)
+                if syn in index:
+                    via_syn.update(index[syn])
+            via_syn -= direct
+            for i in via_syn:
+                syn_only[i] += 1
+            groups.append(direct | via_syn)
         inter = set.intersection(*groups) if groups and all(groups) else set()
         if inter:
             detail["token_and"] = len(inter)
             for i in inter:
-                b = 60 + (10 if len(toks) > 1 else 0)
+                b = 60 + (10 if len(toks) > 1 else 0) - 14 * syn_only.get(i, 0)
                 if b > hits.get(i, (0, 0))[0]:
                     hits[i] = (b, len(toks))
         if len(inter) < limit and len(toks) > 1:
@@ -929,12 +1005,26 @@ def search(q, limit=40, prov=None, kind=None):
             for i, c in cnt.items():
                 if i in inter or c < max(1, len(toks) - 1):
                     continue
-                b = 25 + 12 * c
+                b = 25 + 12 * c - 14 * syn_only.get(i, 0)
                 if b > hits.get(i, (0, 0))[0]:
                     hits[i] = (b, c)
             detail["token_or"] = sum(1 for c in cnt.values() if c >= max(1, len(toks) - 1))
-    if not hits:
-        return {"q": q, "rows": [], "total": 0, "detail": detail, "suggest": _suggest(q, toklist, index)}
+    # 3. series-level drill for prov:FLOW:KEY-shaped queries against the 567M-series Tier-1 index --
+    #    runs whether or not the token index matched anything (a full series id never matches a doc)
+    drill = None
+    m = re.match(r"^(eurostat|ecb):([A-Za-z0-9_@\-]+)(?::(.*))?$", q, re.I)
+    if m:
+        try:
+            drill = tier1_prefix(m.group(1).lower(), m.group(2).upper(), (m.group(3) or "").upper(), 40)
+        except Exception as e:  # noqa: BLE001
+            drill = {"error": str(e)[:120], "rows": []}
+        # the dataset itself is a hit too (query = its id + a key)
+        rows_ds, _ = _prefix_range(ix["ids"], (m.group(1) + ":" + m.group(2)).upper(), cap=3)
+        for k, i in rows_ds:
+            if k == (m.group(1) + ":" + m.group(2)).upper() and i not in hits:
+                hits[i] = (120, 0)
+    if not hits and not (drill and drill.get("rows")):
+        return {"q": q, "rows": [], "total": 0, "detail": detail, "suggest": _suggest(q, toklist, index), "series_hits": drill}
     ql = q.lower()
     scored = []
     for i, (b, nt) in hits.items():
@@ -943,7 +1033,10 @@ def search(q, limit=40, prov=None, kind=None):
             continue
         if kind and d[D_KIND] != kind:
             continue
-        s = b + pop[i] * 18 + PROV_WEIGHT.get(d[D_PROV], 3)
+        pw = PROV_WEIGHT.get(d[D_PROV], 3)
+        if d[D_KIND] == "instrument" and i not in id_hit:
+            pw = 4          # a company NAME matching a macro phrase is rarely what the query wants
+        s = b + pop[i] * 18 + pw
         tl = d[D_TITLE].lower()
         if tl.startswith(ql):
             s += 14
@@ -955,13 +1048,8 @@ def search(q, limit=40, prov=None, kind=None):
     scored.sort(key=lambda x: (-x[0], docs[x[1]][D_ID]))
     rows = [doc_row(docs[i], s) for s, i in scored[:limit]]
     out = {"q": q, "rows": rows, "total": len(scored), "detail": detail}
-    # 3. series-level drill for prov:FLOW:KEY-shaped queries against the 567M-series Tier-1 index
-    m = re.match(r"^(eurostat|ecb):([A-Za-z0-9_@\-]+)(?::(.*))?$", q, re.I)
-    if m:
-        try:
-            out["series_hits"] = tier1_prefix(m.group(1).lower(), m.group(2).upper(), (m.group(3) or "").upper(), 40)
-        except Exception as e:  # noqa: BLE001
-            out["series_hits_error"] = str(e)[:120]
+    if drill is not None:
+        out["series_hits"] = drill
     return out
 
 
@@ -1051,16 +1139,16 @@ def tier1_prefix(prov, flow, keypfx, limit=40):
                 break
         return {"flow": flow, "known": True, "tier": 1, "total_in_flow": bm.get("n"), "rows": rows[:limit]}
     rec = flows[flow]
-    lo, hi = rec.get("lo", 0), min(rec.get("hi", 0), rec.get("lo", 0) + 12)
-    for p in range(lo, hi + 1):
-        for r in _page_rows(prov, flow, p):
-            if r["id"].startswith(pfx):
-                rows.append(_page_row(prov, flow, r))
-                if len(rows) >= limit:
-                    break
-        if len(rows) >= limit:
-            break
-    return {"flow": flow, "known": True, "tier": 0, "total_in_flow": rec.get("series"), "rows": rows[:limit]}
+    lo, hi = rec.get("lo", 0), min(rec.get("hi", 0), rec.get("lo", 0) + 160)
+    pages = list(range(lo, hi + 1))
+    with ThreadPoolExecutor(16) as ex:
+        for prs in ex.map(lambda p: _page_rows(prov, flow, p), pages):
+            for r in prs:
+                if r["id"].startswith(pfx):
+                    rows.append(_page_row(prov, flow, r))
+            if len(rows) >= limit:
+                break
+    return {"flow": flow, "known": True, "tier": 0, "total_in_flow": rec.get("series"), "pages_scanned": len(pages), "rows": rows[:limit]}
 
 
 def browse(ds, q="", limit=200, offset=0):
@@ -1145,10 +1233,20 @@ def browse(ds, q="", limit=200, offset=0):
 
 
 def _stream_gz_lines(key, max_bytes=None):
+    """Lines of a gzipped text object. StatCan cubes are gzip(zip(csv)): the walker banked the
+    full-table zip and gzipped it, so a PK magic after gunzip means "open the first CSV member"."""
     raw = _get(key)
     if max_bytes and len(raw) > max_bytes:
         raise ValueError("object too large to scan interactively (%d bytes)" % len(raw))
-    f = io.TextIOWrapper(gzip.GzipFile(fileobj=io.BytesIO(raw), mode="rb"), encoding="utf-8", errors="ignore", newline="")
+    body = gzip.GzipFile(fileobj=io.BytesIO(raw), mode="rb")
+    head = body.read(4)
+    body = io.BytesIO(head + body.read())
+    if head[:2] == b"PK":
+        import zipfile
+        z = zipfile.ZipFile(body)
+        names = [n for n in z.namelist() if n.lower().endswith(".csv") and "metadata" not in n.lower()] or z.namelist()
+        body = z.open(names[0])
+    f = io.TextIOWrapper(body, encoding="utf-8-sig", errors="ignore", newline="")
     for ln in f:
         yield ln.rstrip("\r\n")
 
@@ -1453,11 +1551,13 @@ def r_boj(sid, rest, d):
     db, _, code = rest.partition(":")
     keys = [o["Key"] for o in _list("data/warm/boj-full/api/%s/" % db) if o["Key"].endswith(".json.gz")]
     obs, name, unit, freq = [], None, None, None
+    parts_hit, vals_seen = 0, 0
     with ThreadPoolExecutor(16) as ex:
         for j in ex.map(lambda k: _get_json(k) or {}, keys):
             for r in j.get("RESULTSET") or []:
                 if r.get("SERIES_CODE") != code:
                     continue
+                parts_hit += 1
                 name = name or r.get("NAME_OF_TIME_SERIES")
                 unit = unit or r.get("UNIT")
                 freq = freq or r.get("FREQUENCY")
@@ -1470,6 +1570,7 @@ def r_boj(sid, rest, d):
                         break
                 if vv is None:
                     continue
+                vals_seen += len(vv)
                 for dt, v in zip(dts, vv):
                     ds = str(dt)
                     if len(ds) == 6:
@@ -1477,7 +1578,8 @@ def r_boj(sid, rest, d):
                     elif len(ds) == 8:
                         ds = ds[:4] + "-" + ds[4:6] + "-" + ds[6:]
                     obs.append((ds, v))
-    return _result(sid, "boj", obs, name=name or (d[D_TITLE] if d else code), unit=unit, freq=freq, source="warehouse:boj api parts (%d)" % len(keys))
+    diag = {"parts": len(keys), "parts_with_code": parts_hit, "values_seen": vals_seen, "values_nonnull": sum(1 for _, v in obs if v is not None)}
+    return _result(sid, "boj", obs, name=name or (d[D_TITLE] if d else code), unit=unit, freq=freq, source="warehouse:boj api parts (%d)" % len(keys), extra={"diag": diag})
 
 
 def r_statcan(sid, rest, d):
@@ -1522,9 +1624,12 @@ def r_worldbank(sid, rest, d):
 
 def r_treasury(sid, rest, d):
     dsn, _, field = rest.partition(":")
-    if not d or not d[D_KEY]:
-        raise ValueError("unknown treasury series")
-    j = _get_json(d[D_KEY]) or {}
+    key = (d[D_KEY] if d else None) or ("data/warm/treasury/%s.json.gz" % dsn.lower())
+    j = _get_json(key) or {}
+    obs = j.get("observations")
+    if isinstance(obs, list) and obs and isinstance(obs[0], dict) and "date" in obs[0]:
+        vk = ((d[D_EXTRA] or {}).get("field") if d else None) or field or next((x for x in obs[0].keys() if x not in ("date", "record_date") and _f(obs[0].get(x)) is not None), "value")
+        return _result(sid, "treasury", [(o.get("date"), o.get(vk)) for o in obs], name=(d[D_TITLE] if d else "FiscalData " + dsn), unit=j.get("unit"), source="warehouse:treasury")
     rows = j.get("payload") or j.get("data") or j.get("rows") or []
     if isinstance(rows, dict):
         rows = rows.get("data") or []
@@ -1671,8 +1776,17 @@ def lambda_handler(event, context):
     if mode == "build":
         return build(event, context)
     if mode == "warm" or path == "/warm":
-        ix = load_index()
-        return {"ok": True, "docs": len(ix["docs"]), "load_s": ix.get("load_s"), "built_at": ix.get("built_at")}
+        # keep-warm ping (every 5 min): also the moment a warm container notices a newer daily build
+        force = qs.get("force") == "1"
+        if not force and _IDX["docs"] is not None:
+            man = _get_json(SD + "manifest.json") or {}
+            if (man.get("built_at") or "") > (_IDX.get("built_at") or ""):
+                force = True
+        ix = load_index(force=force)
+        out = {"ok": True, "docs": len(ix["docs"]), "load_s": ix.get("load_s"), "built_at": ix.get("built_at"), "reloaded": force}
+        if path == "/warm":
+            return _resp(out, ttl=0)
+        return out
     if mode == "search" or path == "/search":
         q = qs.get("q") or event.get("q") or ""
         try:
