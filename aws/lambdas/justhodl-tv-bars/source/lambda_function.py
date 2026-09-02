@@ -299,17 +299,18 @@ def tv_to_yahoo(sym):
     if not _FEED:
         try:
             fd = _gj("data/symbol-feed.json", {})
-            _FEED["r"] = fd.get("resolved") or {}
-            _FEED["p"] = fd.get("prices") or {}
+            # `resolved` is a COUNT in symbol-feed.json; the per-symbol Yahoo symbol lives in prices[sym].ysym
+            _FEED["r"] = fd.get("resolved") if isinstance(fd.get("resolved"), dict) else {}
+            _FEED["p"] = fd.get("prices") if isinstance(fd.get("prices"), dict) else {}
         except Exception:
             _FEED["r"], _FEED["p"] = {}, {}
     out = []
-    rs = _FEED.get("r", {}).get(sym)
+    rs = _FEED["r"].get(sym) if isinstance(_FEED.get("r"), dict) else None
     if isinstance(rs, str):
         out.append(rs)
     elif isinstance(rs, dict) and rs.get("ysym"):
         out.append(rs["ysym"])
-    pr = _FEED.get("p", {}).get(sym)
+    pr = _FEED["p"].get(sym) if isinstance(_FEED.get("p"), dict) else None
     if isinstance(pr, dict) and pr.get("ysym"):
         out.append(pr["ysym"])
     if sym in Y_INDEX:
