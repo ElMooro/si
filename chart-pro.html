@@ -5360,6 +5360,11 @@ class NativeChart {
       if (tf.span === 'day' || tf.span === 'week' || tf.span === 'month') {
         try {
           const d = await SymDir.series(ticker);
+          if (d && d.provider && d.provider !== 'equity' && d.provider !== 'tv' && !(d.ohlc || []).length && (d.obs || []).length) {
+            // ops 5143: a bare id the directory resolved to a data series (HQMCB10YRP -> fred) charts as a series
+            State.activeTicker = d.id || ticker; document.getElementById('active-ticker').textContent = d.id || ticker;
+            return NativeChart.renderSeries(d.id || ticker);
+          }
           const oh = (d && d.ohlc) || [];
           if (oh.length) {
             let daily = jhCleanBars(oh.map(o => ({ time: o[0], open: o[1], high: o[2], low: o[3], close: o[4], volume: o[5] || 0, value: o[5] || 0 })));

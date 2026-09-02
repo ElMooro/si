@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.4.0"
+VERSION = "1.4.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -1209,13 +1209,19 @@ def fred_updates(event, context):
     updated, healed, added, offset, pages = [], 0, 0, 0, 0
     t0 = time.time()
     while pages < 25 and (not context or context.get_remaining_time_in_millis() > 60000):
-        try:
-            j = _http_json("https://api.stlouisfed.org/fred/series/updates?api_key=%s&file_type=json&start_time=%s&end_time=%s&limit=1000&offset=%d"
-                           % (FRED_KEY, start, end, offset), timeout=40)
-        except Exception as e:  # noqa: BLE001
-            st.update({"last_error": str(e)[:120], "updated_at": _iso()})
-            _put_json(SD + "_state/fredupdates.json", st, cache="no-cache")
-            return {"ok": False, "error": str(e)[:120]}
+        j = None
+        for attempt in range(4):
+            try:
+                j = _http_json("https://api.stlouisfed.org/fred/series/updates?api_key=%s&file_type=json&start_time=%s&end_time=%s&limit=1000&offset=%d"
+                               % (FRED_KEY, start, end, offset), timeout=40)
+                break
+            except Exception as e:  # noqa: BLE001
+                if "429" in str(e) and attempt < 3:
+                    time.sleep(20 * (attempt + 1))        # FRED: 120 req/min shared with the hourly rotation and heal-on-open
+                    continue
+                st.update({"last_error": str(e)[:120], "updated_at": _iso()})
+                _put_json(SD + "_state/fredupdates.json", st, cache="no-cache")
+                return {"ok": False, "error": str(e)[:120]}
         rows = j.get("seriess") or []
         pages += 1
         for r in rows:
@@ -1271,7 +1277,7 @@ def fred_fresh(event, context):
             if k:
                 healed += 1
                 added += k
-                time.sleep(0.5)          # only real FRED calls pace the run
+                time.sleep(0.7)          # only real FRED calls pace the run (120/min shared)
         except Exception:  # noqa: BLE001
             continue
     st.update({"cursor": (cur + done) % n, "n": n, "updated_at": _iso(), "last_run": {"done": done, "healed": healed, "obs_added": added, "s": round(time.time() - t0, 1)}})
@@ -1783,10 +1789,18 @@ def _fred_tail_refresh(root, sid, j, freq, force=False):
         return j, 0
     if not force and age <= FRED_STALE_DAYS.get((freq or "D")[:2].upper(), 40):
         return j, 0
-    try:
-        t = _http_json("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s&file_type=json&observation_start=%s&limit=100000"
-                       % (urllib.parse.quote(sid), FRED_KEY, last[:10]), timeout=30)
-    except Exception:  # noqa: BLE001
+    t = None
+    for attempt in range(2):
+        try:
+            t = _http_json("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s&file_type=json&observation_start=%s&limit=100000"
+                           % (urllib.parse.quote(sid), FRED_KEY, last[:10]), timeout=30)
+            break
+        except Exception as e:  # noqa: BLE001
+            if "429" in str(e) and attempt == 0:
+                time.sleep(15)
+                continue
+            return j, 0
+    if t is None:
         return j, 0
     tail = [o for o in t.get("observations") or [] if o.get("date") and o.get("date") > last]
     if not tail:
