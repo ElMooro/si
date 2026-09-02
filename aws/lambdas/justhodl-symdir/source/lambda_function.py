@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -237,14 +237,30 @@ SYN = {
 PROV_WEIGHT = {"instrument": 12, "fred": 8, "ecb": 7, "eurostat": 6, "nyfed": 7, "ofr": 6, "oecd": 5, "bis": 6, "imf": 5,
                "boj": 5, "statcan": 4, "worldbank": 4, "te": 5, "treasury": 5, "fiscaldata": 4, "boe": 5, "census": 4,
                "bls": 6, "cboe": 6, "tv": 9, "ofr-hfm": 4, "ofr-bsrm": 4, "banxico": 4, "snb": 4, "bcb": 4}
+PROV_TOKENS = {"statcan": ("canada", "statistic", "canadian"), "boj": ("japan", "bank"), "ecb": ("euro", "european", "central", "bank"),
+               "eurostat": ("eu", "europe", "european"), "boe": ("england", "uk", "bank"), "census": ("census", "us"), "bls": ("bls", "labor", "us"),
+               "nyfed": ("fed", "new", "york", "us"), "worldbank": ("world", "bank"), "fred": ("fred",), "ofr": ("ofr", "treasury"), "imf": ("imf",),
+               "bis": ("bis", "settlement"), "oecd": ("oecd",), "treasury": ("treasury", "us", "fiscal")}
 PROV_NAME = {"fred": "FRED", "ecb": "ECB", "eurostat": "Eurostat", "oecd": "OECD", "bis": "BIS", "imf": "IMF", "boj": "BoJ",
              "statcan": "StatCan", "worldbank": "World Bank", "nyfed": "NY Fed", "ofr": "OFR", "ofr-hfm": "OFR HFM",
              "ofr-bsrm": "OFR BSRM", "te": "TE mirror", "treasury": "FiscalData", "fiscaldata": "FiscalData", "boe": "BoE",
              "census": "Census", "bls": "BLS", "cboe": "Cboe", "tv": "TradingView", "instrument": "Market", "banxico": "Banxico"}
 
 
+def _stem(t):
+    # light plural stemming, applied identically at index and query time: funds->fund, payrolls->payroll,
+    # indexes->index; leaves short tokens, digits and -ss/-us/-is words alone
+    if len(t) > 3 and t.endswith("s") and not t.endswith(("ss", "us", "is")) and not t.isdigit():
+        if t.endswith("ies") and len(t) > 4:
+            return t[:-3] + "y"
+        if t.endswith("es") and len(t) > 4 and t[-3] in "xsz":
+            return t[:-2]
+        return t[:-1]
+    return t
+
+
 def tokens(s):
-    return [t for t in TOK_RE.findall((s or "").lower()) if t not in STOP]
+    return [_stem(t) for t in TOK_RE.findall((s or "").lower()) if t not in STOP]
 
 
 # doc tuple layout
@@ -418,9 +434,16 @@ def build(event, context):
         untitled = [sid for sid in banked if sid not in best]
         fetched = 0
         if FRED_KEY:
-            for sid in untitled:
-                if sid in titles or fetched >= 150 or left() < 120:
-                    continue
+            def bank_pop(sid):
+                try:
+                    return int(((_get_json("data/warm/fred-scoped/%s/%s.json" % (banked[sid], sid)) or {}).get("meta") or {}).get("popularity") or 0)
+                except Exception:  # noqa: BLE001
+                    return 0
+            todo_t = [sid for sid in untitled if sid not in titles]
+            todo_t.sort(key=lambda sid: -bank_pop(sid))      # PAYEMS / CPILFESL first, county-level tails last
+            for sid in todo_t:
+                if fetched >= 400 or left() < 150:
+                    break
                 try:
                     j = _http_json("https://api.stlouisfed.org/fred/series?series_id=%s&api_key=%s&file_type=json" % (urllib.parse.quote(sid), FRED_KEY), timeout=20)
                     ser = (j.get("seriess") or [{}])[0]
@@ -428,7 +451,7 @@ def build(event, context):
                         titles[sid] = {"title": ser["title"], "units": ser.get("units_short"), "freq": ser.get("frequency_short"), "sa": ser.get("seasonal_adjustment_short"),
                                        "pop": ser.get("popularity"), "obs_start": ser.get("observation_start"), "obs_end": ser.get("observation_end")}
                         fetched += 1
-                        time.sleep(0.45)
+                        time.sleep(0.3)
                 except Exception as e:  # noqa: BLE001
                     titles[sid] = {"title": None, "err": str(e)[:60]}
                     time.sleep(0.6)
@@ -499,8 +522,8 @@ def build(event, context):
             p = ln.split("\t")
             if len(p) <= max(ti, ci):
                 continue
-            code = p[ci].strip().strip('"').upper()
-            title = p[ti].strip().strip('"')
+            code = p[ci].strip().strip('"').strip().upper()
+            title = p[ti].strip().strip('"').strip()
             if code in flows and title:
                 if flows[code] != title:
                     n += 1
@@ -863,6 +886,7 @@ def build(event, context):
         idpart = d[D_ID].split(":", 1)[1] if ":" in d[D_ID] and d[D_PROV] != "tv" else d[D_ID]
         ts.update(tokens(idpart))
         ts.add(d[D_PROV])
+        ts.update(PROV_TOKENS.get(d[D_PROV], ()))
         ex = d[D_EXTRA] or {}
         for fld in ("cat", "topics", "ds"):
             if ex.get(fld):
@@ -970,7 +994,8 @@ def search(q, limit=40, prov=None, kind=None):
             base = 200 if k == Q else max(0, 90 - (len(k) - len(Q)) * 2) * (0.92 if isbare else 1.0)
             if base > hits.get(i, (0, 0))[0]:
                 hits[i] = (base, 0)
-            id_hit.add(i)
+            if k == Q:
+                id_hit.add(i)
             detail["id_exact" if k == Q else "id_prefix"] += 1
     # 2. token search: word-prefix expansion on the query tokens; synonyms match EXACT index tokens only
     #    (prefix-expanding a synonym like "de" for germany turned "degree" into a match) and count less
@@ -994,7 +1019,7 @@ def search(q, limit=40, prov=None, kind=None):
         if inter:
             detail["token_and"] = len(inter)
             for i in inter:
-                b = 60 + (10 if len(toks) > 1 else 0) - 14 * syn_only.get(i, 0)
+                b = 60 + (10 if len(toks) > 1 else 0) - 10 * syn_only.get(i, 0)
                 if b > hits.get(i, (0, 0))[0]:
                     hits[i] = (b, len(toks))
         if len(inter) < limit and len(toks) > 1:
@@ -1005,7 +1030,7 @@ def search(q, limit=40, prov=None, kind=None):
             for i, c in cnt.items():
                 if i in inter or c < max(1, len(toks) - 1):
                     continue
-                b = 25 + 12 * c - 14 * syn_only.get(i, 0)
+                b = 25 + 12 * c - 10 * syn_only.get(i, 0)
                 if b > hits.get(i, (0, 0))[0]:
                     hits[i] = (b, c)
             detail["token_or"] = sum(1 for c in cnt.values() if c >= max(1, len(toks) - 1))
@@ -1035,8 +1060,8 @@ def search(q, limit=40, prov=None, kind=None):
             continue
         pw = PROV_WEIGHT.get(d[D_PROV], 3)
         if d[D_KIND] == "instrument" and i not in id_hit:
-            pw = 4          # a company NAME matching a macro phrase is rarely what the query wants
-        s = b + pop[i] * 18 + pw
+            pw = 4          # a company NAME (or a symbol merely starting with the query) is rarely what a macro query wants
+        s = b + pop[i] * 28 + pw
         tl = d[D_TITLE].lower()
         if tl.startswith(ql):
             s += 14
@@ -1589,7 +1614,7 @@ def r_statcan(sid, rest, d):
     obs, src, name = [], None, None
     vid = vec.lower().lstrip("v")
     try:
-        j = _http_json("https://www150.statcan.gc.ca/t1/wds/rest/getDataFromVectorByReferencePeriodRange?vectorIds=\"%s\"&startRefPeriod=1900-01-01&endReferencePeriod=2100-01-01" % vid, timeout=40)
+        j = _http_json("https://www150.statcan.gc.ca/t1/wds/rest/getDataFromVectorByReferencePeriodRange?vectorIds=%%22%s%%22&startRefPeriod=1900-01-01&endReferencePeriod=2100-01-01" % vid, timeout=40)
         for blk in j if isinstance(j, list) else []:
             for p in (blk.get("object") or {}).get("vectorDataPoint") or []:
                 obs.append((p.get("refPer"), p.get("value")))
