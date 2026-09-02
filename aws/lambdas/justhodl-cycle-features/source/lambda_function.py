@@ -49,7 +49,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/cycle/features.json.gz"
 MANIFEST_KEY = "data/cycle/features-manifest.json"
@@ -387,16 +387,17 @@ def load_oecd_kei(feat, status):
         cand[key].put(row.get("TIME_PERIOD"), v)
 
     def pick(area, measure, activities, adjustments, transformations, min_obs=36):
-        best = None
-        for act in activities:
-            for adj in adjustments:
-                for tr in transformations:
+        """Freshest qualifying series wins; the preference orders only break ties
+        (ops 5102: Germany's PRVM/BTE split ended 2023-12 while PRVM/C runs to 2026-06)."""
+        best, best_key = None, None
+        for ai, act in enumerate(activities):
+            for ji, adj in enumerate(adjustments):
+                for ti, tr in enumerate(transformations):
                     for (a, m, ac, ad, t, u), s in cand.items():
                         if a == area and m == measure and (act is None or ac == act) and (adj is None or ad == adj) and (tr is None or t == tr) and len(s) >= min_obs:
-                            if best is None or s.latest() > best.latest() or (s.latest() == best.latest() and len(s) > len(best)):
-                                best = s
-                    if best is not None:
-                        return best
+                            key = (s.latest() or "", -ai, -ji, -ti, len(s))
+                            if best is None or key > best_key:
+                                best, best_key = s, key
         return best
 
     got = defaultdict(int)

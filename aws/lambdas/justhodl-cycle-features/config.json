@@ -9,7 +9,7 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Cycle feature store v1.1.0: per-country monthly business-cycle features from OECD (live CLI + KEI/labour warehouse), BIS (credit/property/REER/gap/DSR), Eurostat (surveys/unemployment), fleet sovereign desk -> data/cycle/features.json.gz. Daily 10:30 UTC.",
+  "description": "Cycle feature store v1.1.1: per-country monthly business-cycle features from OECD (live CLI + KEI/labour warehouse), BIS (credit/property/REER/gap/DSR), Eurostat (surveys/unemployment), fleet sovereign desk -> data/cycle/features.json.gz. Daily 10:30 UTC.",
   "environment": {
     "S3_BUCKET": "justhodl-dashboard-live"
   }

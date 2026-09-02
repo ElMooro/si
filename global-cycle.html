@@ -176,6 +176,22 @@
   .country-tile .fresh-tag.fresh-warn  { background:rgba(245,158,11,.16); color:var(--p-atrisk); }
   .country-tile .fresh-tag.fresh-stale { background:rgba(239,68,68,.16); color:var(--p-recession); }
   .country-tile .ct-trend { float:right; font-size:10px; }
+  .country-tile .pbar { display:flex; gap:3px; align-items:flex-end; height:16px; margin-top:4px; }
+  .country-tile .pbar span { flex:1; display:block; border-radius:2px 2px 0 0; background:var(--border); min-height:2px; position:relative; }
+  .country-tile .pbar span.pos { background:var(--p-expansion); }
+  .country-tile .pbar span.neg { background:var(--p-recession); align-self:flex-start; border-radius:0 0 2px 2px; }
+  .country-tile .pbar span.na  { background:var(--border); opacity:.35; }
+  .country-tile .pbar-lbl { display:flex; gap:3px; font-size:8px; color:var(--text-muted); font-family:ui-monospace, monospace; letter-spacing:.3px; }
+  .country-tile .pbar-lbl span { flex:1; text-align:center; }
+  .pillars-section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:18px; }
+  .pillars-section h3 { font-size:13px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.6px; font-weight:700; margin-bottom:10px; }
+  .pillar-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+  .pillar-card { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+  .pillar-card .k { font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; }
+  .pillar-card .v { font-size:17px; font-weight:700; font-family:ui-monospace, monospace; margin-top:3px; }
+  .pillar-card .sub { font-size:10.5px; color:var(--text-dim); margin-top:2px; line-height:1.4; }
+  .drivers { margin-top:12px; font-size:12px; color:var(--text-dim); line-height:1.6; }
+  .drivers b { color:var(--text); }
   .country-tile .ct-trend.up   { color:var(--p-expansion); }
   .country-tile .ct-trend.down { color:var(--p-recession); }
   .country-tile .ct-trend.flat { color:var(--text-muted); }
@@ -272,6 +288,12 @@
     <div class="hero-stat"><div class="k">DATA FRESHNESS</div>
       <div class="v" id="freshCount" style="color:var(--p-expansion)">—</div>
       <div class="sub" id="freshSub">≤3 months stale per country</div></div>
+    <div class="hero-stat"><div class="k">DOWNTURN RISK · 6M</div>
+      <div class="v" id="downturnProb">…</div>
+      <div class="sub" id="downturnSub">calibrated on own history</div></div>
+    <div class="hero-stat"><div class="k">COMPOSITE BASIS</div>
+      <div class="v" id="basisCount">…</div>
+      <div class="sub" id="basisSub">survey · financial · activity · trade · equity</div></div>
   </section>
 
   <!-- Decisive call -->
@@ -289,6 +311,13 @@
     <h3 style="font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:10px">
       ⚖️ Cross-Asset Implications</h3>
     <div class="ladder" id="ladder"></div>
+  </section>
+
+  <!-- Pillar breadth + drivers (v3) -->
+  <section class="pillars-section" id="pillarsSection" style="display:none">
+    <h3>🧭 Pillar breadth · GDP-weighted z by pillar across 34 economies</h3>
+    <div class="pillar-grid" id="pillarGrid"></div>
+    <div class="drivers" id="driversText"></div>
   </section>
 
   <!-- World map -->
@@ -321,13 +350,32 @@
 
   <!-- Methodology -->
   <section class="meth">
-    <strong>📚 Methodology &nbsp;·&nbsp; v2.1 Synthetic Composite Leading Indicator</strong>
+    <strong>📚 Methodology &nbsp;·&nbsp; v3 Multi-Pillar Composite Cycle Indicator</strong>
     <p style="margin-top:6px">
-      The OECD's published Composite Leading Indicator (CLI) series via FRED stopped updating in
-      <strong>January 2024</strong> (28+ months stale at time of writing); OECD's own SDMX REST API also
-      returns 404/429 for these dataflows. To deliver a useful real-time global cycle map, this engine
-      constructs a <strong>synthetic CLI per country from equity-market momentum</strong>, which is a
-      well-documented leading indicator typically leading economic activity by 6-12 months.
+      Each economy's cycle read is a <strong>composite of five pillars</strong> built from JustHodl's own
+      warehouses, refreshed daily by the <code>justhodl-cycle-features</code> feature store:
+      <em>survey</em> (OECD Composite Leading Indicator where published, OECD business + consumer confidence,
+      order books and production expectations, Eurostat ESI / consumer / industry confidence for EU members),
+      <em>financial</em> (long-minus-short interest rate curve, BIS private-credit impulse, real house prices,
+      real broad effective exchange rate, broad money growth, policy-rate change), <em>activity</em>
+      (industrial production and retail volume y/y, unemployment 12-month change), <em>trade</em>
+      (merchandise exports and imports y/y, export order books) and <em>equity</em> (the v2 momentum
+      composite). Every feature is standardised against its <strong>own prior history</strong> (up to 120
+      months, at least 36, clipped ±3, sign-adjusted for its cyclical direction), carried forward for at most
+      its publication lag (monthly 4 months, quarterly 7) and otherwise excluded rather than filled in.
+      Pillars are averaged, then combined with weights survey 0.35 · financial 0.25 · activity 0.20 ·
+      trade 0.10 · equity 0.10, renormalised over the pillars each country actually has;
+      <code>CLI = 100 + 20 × tanh(z / 2)</code>. A country needs at least two non-equity pillars to be
+      classified from the composite (tagged otherwise); its equity-only read is always kept alongside.
+      The <strong>6-month downturn probability</strong> is a logistic fit of the GDP-weighted composite and
+      its 3-month change against "GDP-weighted industrial production y/y six months ahead &lt; 0" over the
+      platform's own monthly history since 2004 — an in-sample calibration shown with its AUC, not a
+      validated forecast.
+    </p>
+    <p style="margin-top:6px">
+      <strong>Equity pillar (v2.1, kept in full):</strong> the OECD CLI series via FRED stopped in January 2024,
+      so the equity-momentum synthetic CLI remains the daily, real-time pillar and the fallback wherever the
+      feature store is thin.
     </p>
     <p style="margin-top:6px">
       <strong>Inputs:</strong> Yahoo Finance daily price history for each country's primary equity index
@@ -445,7 +493,9 @@ async function load() {
   render();
   // observability hook for the runner's headless render gate (ops 5094); DATA/WORLD are lexical, not window props
   window.__gbc = {engine_version: DATA.engine_version || DATA.schema_version, generated_at: DATA.generated_at,
-                  countries: Object.keys(DATA.by_country || {}).length, world: !!WORLD, page: "live"};
+                  countries: Object.keys(DATA.by_country || {}).length, world: !!WORLD, page: "live",
+                  composite: !!(DATA.composite && DATA.composite.available), multi_pillar: (DATA.composite || {}).countries_multi_pillar || 0,
+                  downturn_p: (DATA.downturn_probability_6m || {}).probability_now};
   if (!WORLD) {
     try {
       WORLD = await fetchJSON([WORLD_TOPO], {timeoutMs: 12000, retries: 1});
@@ -457,6 +507,52 @@ async function load() {
       mapNote("Map layer unavailable (" + e.message + ") — country data below is unaffected.");
     }
   }
+}
+
+function compositeRows(c) {
+  const nc = c.composite;
+  if (!nc) return `<div class="tt-row"><span class="tt-k">Basis</span><span class="tt-v">${c.phase_basis || 'equity-only'}</span></div>`;
+  const pz = nc.pillars || {};
+  const pil = ["survey","financial","activity","trade","equity"].filter(k => pz[k]).map(k => `${k[0].toUpperCase()} ${pz[k].z >= 0 ? '+' : ''}${pz[k].z.toFixed(2)}`).join(" · ");
+  const drivers = (c.components || []).filter(x => x.used && x.contribution != null).sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution)).slice(0, 3)
+    .map(x => `${x.name} ${x.contribution >= 0 ? '+' : ''}${x.contribution.toFixed(2)}`).join(", ");
+  return `
+        <div class="tt-row"><span class="tt-k">Composite z</span><span class="tt-v">${nc.composite_z >= 0 ? '+' : ''}${nc.composite_z.toFixed(2)} (${nc.basis}${c.equity_cli_level != null ? ', equity-only CLI ' + c.equity_cli_level.toFixed(1) + ' ' + (c.equity_phase || '') : ''})</span></div>
+        <div class="tt-row"><span class="tt-k">Pillars</span><span class="tt-v">${pil || 'n/a'}</span></div>
+        <div class="tt-row"><span class="tt-k">Confidence</span><span class="tt-v">${nc.confidence != null ? nc.confidence.toFixed(2) : 'n/a'} · ${nc.n_features} features · ${(nc.diffusion_rising * 100).toFixed(0)}% rising</span></div>
+        <div class="tt-row"><span class="tt-k">Drivers</span><span class="tt-v">${drivers || 'n/a'}</span></div>`;
+}
+
+function renderPillars(byCountry, comp, cal) {
+  const sec = document.getElementById("pillarsSection");
+  if (!sec) return;
+  if (!comp || !comp.available) { sec.style.display = "none"; return; }
+  sec.style.display = "";
+  const grid = document.getElementById("pillarGrid");
+  const keys = ["survey","financial","activity","trade","equity"];
+  const w = comp.pillar_weights || {};
+  const cards = keys.map(k => {
+    let num = 0, den = 0, n = 0, pos = 0;
+    for (const c of Object.values(byCountry)) {
+      const pz = c.composite && c.composite.pillars && c.composite.pillars[k];
+      if (!pz) continue;
+      const gw = c.gdp_weight || 0;
+      num += gw * pz.z; den += gw; n += 1; if (pz.z > 0) pos += 1;
+    }
+    const z = den > 0 ? num / den : null;
+    const col = z == null ? "var(--text-muted)" : z >= 0.25 ? "var(--p-expansion)" : z <= -0.25 ? "var(--p-recession)" : "var(--p-atrisk)";
+    return `<div class="pillar-card"><div class="k">${k} · w ${(w[k] != null ? w[k] : 0).toFixed(2)}</div>
+      <div class="v" style="color:${col}">${z == null ? 'n/a' : (z >= 0 ? '+' : '') + z.toFixed(2)}</div>
+      <div class="sub">${n} countries · ${n ? (pos / n * 100).toFixed(0) : 0}% above trend</div></div>`;
+  }).join("");
+  grid.innerHTML = cards;
+  const g = DATA.global_composite_latest || {};
+  const fs = comp.features_generated_at ? new Date(comp.features_generated_at).toLocaleString() : "n/a";
+  document.getElementById("driversText").innerHTML =
+    `<b>Global composite</b> z ${g.global_z != null ? (g.global_z >= 0 ? '+' : '') + g.global_z.toFixed(2) : 'n/a'} (CLI ${g.cli != null ? g.cli.toFixed(2) : 'n/a'}) across ${g.n || 0} economies / ${g.weight_covered || 0}% of world GDP · ` +
+    `expansion breadth ${g.expansion_breadth_pct != null ? g.expansion_breadth_pct.toFixed(0) + '%' : 'n/a'} (GDP-weighted), ${g.breadth_unweighted_pct != null ? g.breadth_unweighted_pct.toFixed(0) + '%' : 'n/a'} of countries above trend. ` +
+    (cal && cal.ok ? `<b>Downturn model</b>: logit = ${cal.coefficients.intercept} ${cal.coefficients.global_z >= 0 ? '+' : ''}${cal.coefficients.global_z}·z ${cal.coefficients.d3 >= 0 ? '+' : ''}${cal.coefficients.d3}·Δ3m, fitted on ${cal.n_obs} months (${cal.sample_start}→${cal.sample_end}), target ${cal.target}. ${cal.caveat}. ` : "") +
+    `Feature store ${fs} (v${comp.features_version || '?'}); pillar weights renormalised over the pillars each country actually has.`;
 }
 
 function render() {
@@ -503,6 +599,31 @@ function render() {
         : (stale + " " + (stale === 1 ? "country" : "countries") + " >3 months stale");
     }
   }
+
+  // v3: downturn probability, composite basis, pillar breadth
+  const comp = DATA.composite || {};
+  const cal = DATA.downturn_probability_6m || {};
+  const dp = document.getElementById("downturnProb"), ds = document.getElementById("downturnSub");
+  if (dp) {
+    if (cal.ok && cal.probability_now != null) {
+      const pr = cal.probability_now * 100;
+      dp.textContent = pr.toFixed(0) + "%";
+      dp.style.color = pr >= 60 ? "var(--p-recession)" : pr >= 40 ? "var(--p-atrisk)" : "var(--p-expansion)";
+      ds.textContent = "P(world IP y/y < 0 in 6m) · in-sample AUC " + (cal.in_sample_auc != null ? cal.in_sample_auc.toFixed(2) : "n/a") +
+                       " · base rate " + (cal.base_rate != null ? (cal.base_rate * 100).toFixed(0) + "%" : "n/a") + " · " + (cal.sample_start || "") + "→" + (cal.sample_end || "");
+    } else { dp.textContent = "n/a"; ds.textContent = cal.reason || "composite unavailable"; }
+  }
+  const bc = document.getElementById("basisCount"), bs = document.getElementById("basisSub");
+  if (bc) {
+    if (comp.available) {
+      bc.textContent = (comp.countries_multi_pillar || 0) + "/" + Object.keys(byCountry).length;
+      bc.style.color = "var(--p-expansion)";
+      const pc = comp.pillar_counts || {};
+      bs.textContent = "multi-pillar · survey " + (pc.survey || 0) + " · financial " + (pc.financial || 0) + " · activity " + (pc.activity || 0) +
+                       " · trade " + (pc.trade || 0) + " · equity " + (pc.equity || 0) + " · features " + (comp.features_generated_at ? ageStr(comp.features_generated_at) : "n/a");
+    } else { bc.textContent = "equity-only"; bc.style.color = "var(--p-atrisk)"; bs.textContent = comp.reason || "feature store unavailable"; }
+  }
+  renderPillars(byCountry, comp, cal);
 
   // Breadth bar
   const bar = document.getElementById("breadthBar");
@@ -581,9 +702,23 @@ function render() {
       const srcTag = srcKind === "basket" ? `<span class="fresh-tag fresh-warn" title="${c.source}">basket</span>` :
                      srcKind === "polygon-etf" ? `<span class="fresh-tag fresh-warn" title="${c.source} (USD country ETF from the polygon-full warehouse)">ETF proxy</span>` :
                      srcKind === "degraded" ? `<span class="fresh-tag fresh-stale" title="${c.source_degraded || ''}">degraded</span>` : "";
-      return `<div class="country-tile ${c.phase || 'UNKNOWN'}" title="${c.country_name} · source ${c.source || c.yahoo_symbol || 'none'} · latest ${c.latest_date || 'none'}${c.source_degraded ? ' · ' + c.source_degraded : ''}">
-        <div class="ct-name">${c.country_name}<span class="ct-trend ${trend === 'rising' ? 'up' : trend === 'falling' ? 'down' : 'flat'}">${trendArrow}</span>${freshTag}${physTag}${srcTag}</div>
-        <div class="ct-cli">CLI ${cliStr} · 12m ${fmtPct(ret12)} · 3m ${fmtPct(ret3)}</div>
+      const nc = c.composite || null;
+      const basisTag = c.phase_basis === "multi-pillar" ? "" :
+                       c.phase_basis === "thin" ? `<span class="fresh-tag fresh-warn" title="fewer than two non-equity pillars available — phase rests on the equity read">thin</span>` :
+                       `<span class="fresh-tag fresh-warn" title="no feature store read — phase rests on the equity read">equity-only</span>`;
+      const confTag = nc && nc.confidence != null ? `<span class="fresh-tag ${nc.confidence >= 0.6 ? 'fresh-ok' : nc.confidence >= 0.35 ? 'fresh-warn' : 'fresh-stale'}" title="confidence = pillar coverage × feature agreement (${nc.n_features} features, coverage ${nc.coverage}, agreement ${nc.agreement})">conf ${nc.confidence.toFixed(2)}</span>` : "";
+      const pz = (nc && nc.pillars) || {};
+      const pb = ["survey","financial","activity","trade","equity"].map(k => {
+        const z = pz[k] ? pz[k].z : null;
+        if (z == null) return `<span class="na" title="${k}: not available"></span>`;
+        const h = Math.max(2, Math.min(16, Math.abs(z) / 2 * 16));
+        return `<span class="${z >= 0 ? 'pos' : 'neg'}" style="height:${h.toFixed(0)}px" title="${k}: z ${z >= 0 ? '+' : ''}${z.toFixed(2)} (${pz[k].n} feature${pz[k].n === 1 ? '' : 's'}: ${(pz[k].features || []).join(', ')})"></span>`;
+      }).join("");
+      const eqStr = (c.equity_cli_level != null && c.phase_basis === "multi-pillar") ? ` · eq ${c.equity_cli_level.toFixed(1)}` : "";
+      return `<div class="country-tile ${c.phase || 'UNKNOWN'}" title="${c.country_name} · ${c.phase_basis || 'equity-only'}${nc ? ' · composite z ' + nc.composite_z + ' · ' + nc.n_features + ' features' : ''} · equity source ${c.source || c.yahoo_symbol || 'none'} · latest ${c.latest_date || 'none'}${c.source_degraded ? ' · ' + c.source_degraded : ''}">
+        <div class="ct-name">${c.country_name}<span class="ct-trend ${trend === 'rising' ? 'up' : trend === 'falling' ? 'down' : 'flat'}">${trendArrow}</span>${freshTag}${physTag}${srcTag}${basisTag}${confTag}</div>
+        <div class="ct-cli">CLI ${cliStr}${eqStr} · 12m ${fmtPct(ret12)} · 3m ${fmtPct(ret3)}</div>
+        ${nc ? `<div class="pbar">${pb}</div><div class="pbar-lbl"><span>S</span><span>F</span><span>A</span><span>T</span><span>E</span></div>` : ''}
       </div>`;
     }).join("");
     const sec = document.createElement("div");
@@ -668,6 +803,7 @@ function renderMap() {
         <div class="tt-row"><span class="tt-k">GDP weight</span><span class="tt-v">${c.gdp_weight}%</span></div>
         <div class="tt-row"><span class="tt-k">Source</span><span class="tt-v">${c.source || c.yahoo_symbol || 'none'}</span></div>
         <div class="tt-row"><span class="tt-k">Physical</span><span class="tt-v">${(c.physical && c.physical.state) ? c.physical.state.toLowerCase() + (c.physical.n_ports ? ' · ' + c.physical.n_ports + ' ports ' + fmtPct(c.physical.median_yoy_pct) + '% YoY' : '') : 'n/a'}</span></div>
+        ${compositeRows(c)}
       `;
     })
     .on("mousemove", function(event) {

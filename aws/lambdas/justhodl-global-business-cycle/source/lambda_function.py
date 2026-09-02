@@ -1,4 +1,4 @@
-"""justhodl-global-business-cycle  v3.0.1  (multi-pillar composite; equity momentum is one pillar)
+"""justhodl-global-business-cycle  v3.0.2  (multi-pillar composite; equity momentum is one pillar)
 ═══════════════════════════════════════════════════════════════════════════
 The OECD CLI series on FRED stopped updating ~Jan 2024 (28+ months stale at
 time of writing). To provide a USEFUL global business cycle map with
@@ -97,7 +97,7 @@ except Exception as _cce:  # noqa: BLE001
     CC = None
     print(f"[gbc] cycle_composite unavailable: {_cce}")
 
-ENGINE_VERSION = "3.0.1"
+ENGINE_VERSION = "3.0.2"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUTPUT_KEY = "data/global-business-cycle.json"
@@ -1563,8 +1563,12 @@ def lambda_handler(event=None, context=None):
             row["composite"] = nc
             row["components"] = built.get("components")
             composite_hist[iso3] = built.get("history") or []
+            _eqn = sum(1 for v in eq if v is not None)
+            _eqz = next((c.get("z") for c in (built.get("components") or []) if c.get("name") == "equity_momentum"), None)
+            _eqr = next((c.get("reason") for c in (built.get("components") or []) if c.get("name") == "equity_momentum"), None)
             print(f"[gbc-v3] {iso3} {row['phase_basis']:<12} composite cli={row.get('cli_level')} phase={row.get('phase')} "
-                  f"pillars={list((nc or {}).get('pillars', {}).keys())} conf={(nc or {}).get('confidence')}")
+                  f"pillars={list((nc or {}).get('pillars', {}).keys())} conf={(nc or {}).get('confidence')} "
+                  f"eq_bars={len(prices_by_country.get(iso3) or [])} eq_months={_eqn} eq_z={_eqz} {('eq_reason=' + str(_eqr)) if _eqr else ''}")
         composite_summary = {"available": True, "features_generated_at": features.get("generated_at"),
                              "features_age_h": features.get("_age_h"), "features_version": features.get("version"),
                              "countries_multi_pillar": n_multi, "countries_thin_or_equity": n_thin,
