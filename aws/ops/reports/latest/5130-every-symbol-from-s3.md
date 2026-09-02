@@ -1,0 +1,74 @@
+# ops 5130 -- every symbol from the warehouse: closure (daily bars for every bank key, volume, no page errors)
+
+**Status:** failure  
+**Duration:** 973.0s  
+**Finished:** 2026-09-02T15:30:37+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| banked | families | rebanked | step | symbols | symdir_version |
+|---|---|---|---|---|---|
+|  |  |  | S1 |  | 1.2.1 |
+|  |  | 13 | rebank | 13 |  |
+| 14 | 16 |  | S2 |  |  |
+
+## Log
+## S1 deploy tv-bars v1.1 + symdir v1.2.0
+
+- `15:14:24`   zip: 107604 bytes
+## 1. Lambda
+
+- `15:14:25`   Lambda exists — updating
+- `15:14:28` ✅   ✓ updated justhodl-tv-bars
+- `15:14:31`   zip: 132831 bytes
+## 1. Lambda
+
+- `15:14:31`   Lambda exists — updating
+- `15:14:34` ✅   ✓ updated justhodl-symdir
+- `15:15:01`   re-bank AMEX:SPY           ok=True n=8861 first=1993-01-29 src=yahoo-chart:SPY err=None
+- `15:15:01`   re-bank CME_MINI:ES1!      ok=True n=6621 first=2000-09-18 src=yahoo-chart:ES=F err=None
+- `15:15:01`   re-bank COINBASE:BTCUSD    ok=True n=4370 first=2014-09-17 src=yahoo-chart:BTC-USD err=None
+- `15:15:01`   re-bank FX:EURUSD          ok=True n=5990 first=2003-12-01 src=yahoo-chart:EURUSD=X err=None
+- `15:15:01`   re-bank HKEX:700           ok=True n=5753 first=2004-06-16 src=yahoo-chart:0700.HK err=None
+- `15:15:01`   re-bank I:SPX              ok=True n=24953 first=1927-12-30 src=yahoo-chart:^GSPC err=None
+- `15:15:12`   re-bank NASDAQ:AAPL        ok=True n=11692 first=1980-12-12 src=yahoo-chart:AAPL err=None
+- `15:15:12`   re-bank SSE:000001         ok=True n=7418 first=1997-07-02 src=yahoo-chart:000001.SS err=None
+- `15:15:12`   re-bank US:AAPL            ok=True n=11692 first=1980-12-12 src=yahoo-chart:AAPL err=None
+- `15:15:12`   re-bank US:BRK.B           ok=True n=7992 first=1996-05-09 src=yahoo-chart:BRK-B err=None
+- `15:15:12`   re-bank US:NVDA            ok=True n=7279 first=1999-01-22 src=yahoo-chart:NVDA err=None
+- `15:15:12`   re-bank X:BTCUSD           ok=True n=4370 first=2014-09-17 src=yahoo-chart:BTC-USD err=None
+- `15:15:15`   re-bank XETR:DAX           ok=True n=9936 first=1987-11-30 src=yahoo-chart:^GDAXI err=None
+## S2 /series across symbol families (bank on first open, then S3)
+
+- `15:15:15`   TVC:VIX            n=  9262 first=1990-01-02 last=2026-08-28    322ms ohlc=0 src=warehouse:fred-scoped/Financial_Indicators via=fred:VIXCLS err=
+- `15:15:18`   AAPL               n= 11580 first=1980-12-12 last=2026-09-02   2744ms ohlc=11692 src=warehouse:tv-bars · yahoo-chart:AAPL via=None err=
+- `15:15:19`   NASDAQ:AAPL        n= 11580 first=1980-12-12 last=2026-09-02    551ms ohlc=11692 src=warehouse:tv-bars · yahoo-chart:AAPL via=None err=
+- `15:15:19`   SSE:000001         n=  7186 first=1997-07-02 last=2026-09-02    447ms ohlc=7418 src=warehouse:tv-bars · yahoo-chart:000001.SS via=None err=
+- `15:15:20`   FX:EURUSD          n=  5988 first=2003-12-01 last=2026-09-02    335ms ohlc=5990 src=warehouse:tv-bars · yahoo-chart:EURUSD=X via=None err=
+- `15:15:21`   X:BTCUSD           n=  4369 first=2014-09-17 last=2026-09-02    356ms ohlc=4370 src=warehouse:tv-bars · yahoo-chart:BTC-USD via=None err=
+- `15:15:21`   COINBASE:BTCUSD    n=  4369 first=2014-09-17 last=2026-09-02    268ms ohlc=4370 src=warehouse:tv-bars · yahoo-chart:BTC-USD via=None err=
+- `15:15:22`   CME_MINI:ES1!      n=  6620 first=2000-09-18 last=2026-09-02    284ms ohlc=6621 src=warehouse:tv-bars · yahoo-chart:ES=F via=None err=
+- `15:15:22`   HKEX:700           n=  5567 first=2004-06-16 last=2026-09-02    324ms ohlc=5753 src=warehouse:tv-bars · yahoo-chart:0700.HK via=None err=
+- `15:15:24` ✗   ECONOMICS:DEUR: HTTP Error 500: Internal Server Error
+- `15:15:25`   I:SPX              n= 24841 first=1927-12-30 last=2026-09-02    929ms ohlc=24953 src=warehouse:tv-bars · yahoo-chart:^GSPC via=None err=
+- `15:15:26`   BRK.B              n=  7760 first=1996-05-09 last=2026-09-02    412ms ohlc=7992 src=warehouse:tv-bars · yahoo-chart:BRK-B via=None err=
+- `15:15:26`   AMEX:SPY           n=  8600 first=1993-01-29 last=2026-09-02    402ms ohlc=8861 src=warehouse:tv-bars · yahoo-chart:SPY via=None err=
+- `15:15:28` ✗   OTC:AAAIF: HTTP Error 500: Internal Server Error
+- `15:15:29`   XETR:DAX           n=  9825 first=1987-11-30 last=2026-09-02    468ms ohlc=9936 src=warehouse:tv-bars · yahoo-chart:^GDAXI via=None err=
+- `15:15:29`   NVDA               n=  7064 first=1999-01-22 last=2026-09-02    424ms ohlc=7279 src=warehouse:tv-bars · yahoo-chart:NVDA via=None err=
+- `15:15:31`   quote TVC:VIX          ok=True last=14.43 @2026-08-28 chg%=-0.551 err=None
+- `15:15:31`   quote AAPL             ok=True last=325.0299987792969 @2026-09-02 chg%=-0.031 err=None
+- `15:15:31`   quote ECONOMICS:DEUR   ok=False last=None @None chg%=None err=not banked yet and the bank pull failed: RuntimeError: no bars for ECONOMICS:DEUR (tv:all endpoints 
+- `15:15:31`   quote fred:DGS10       ok=True last=4.69 @2026-08-06 chg%=1.296 err=None
+- `15:15:31`   universe index: n_symbols=13 failures=17
+## S3 live page: native charts, no widget paywall
+
+## verdict
+
+- `15:30:37` ✗ page did not deploy the ops 5125 client within 15 min
