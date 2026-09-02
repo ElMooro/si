@@ -1,0 +1,41 @@
+# ops 5146 -- search bar shows every source; TradingView-only symbols resolve to the warehouse (v1.5.2)
+
+**Status:** failure  
+**Duration:** 235.8s  
+**Finished:** 2026-09-02T22:13:23+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## S1 deploy symdir v1.5.0
+
+- `22:09:27`   zip: 138126 bytes
+## 1. Lambda
+
+- `22:09:28`   Lambda exists — updating
+- `22:09:31` ✅   ✓ updated justhodl-symdir
+## S2 resolution + search
+
+- `22:10:05`   TVC:US02MY         n=None first=None last=None via=None src=None err=no market feed for TVC:US02MY and no warehouse equivalent (RuntimeError: no bars alts=[{'id': 'fred:DGS2MO', 'note': 'US Treasury constant-maturity yield, daily (FRED H.15)'}]
+- `22:10:07`   ECONOMICS:USINTR   n=866 first=1954-07-01 last=2026-08-01 via=fred:FEDFUNDS src=warehouse:fred-scoped/Interest_Rates (+1 obs tail from FRED, bank healed) err= alts=None
+- `22:10:09`   TVC:DE10Y          n=842 first=1956-05-01 last=2026-06-01 via=fred:IRLTLT01DEM156N src=warehouse:fred-scoped/International_Data err= alts=None
+- `22:10:11`   TVC:US03MY         n=18157 first=1954-01-04 last=2026-08-31 via=fred:DTB3 src=warehouse:fred-scoped/Interest_Rates err= alts=None
+- `22:10:11`   search US02MY: facets=[{'provider': 'tv', 'provider_name': 'TradingView', 'n': 1}] rows=['TVC:US02MY'] tv sources=[{'id': 'fred:DGS2MO', 'provider': 'fred', 'provider_name': 'FRED', 'name': 'US Treasury constant-maturity yield, daily (FRED H.15)', 'freq': None, 'first': None, 'last': None, 'ohlc': False, 'note': 'US Treasury constant-maturity yield, daily (FRED H.15) — not in the catalog yet; banks on first open', 'banked': False}]
+- `22:10:12`   provider filter eurostat: rows=['eurostat:LFSA_URGANEDM', 'eurostat:LFST_R_LFU3RT', 'eurostat:LFSO_14LUNER', 'eurostat:LFSA_URGAEDDL', 'eurostat:LFST_R_LFUR2GAC'] facets=[('bls', 13005), ('fred', 12704), ('tv', 162), ('eurostat', 55), ('statcan', 20), ('worldbank', 19)]
+## S3 live page
+
+- `22:13:04`   page fetch /symsearch: {"facets": [{"provider": "tv", "provider_name": "TradingView", "n": 1}], "rows": [{"id": "TVC:US02MY", "sources": [{"id": "fred:DGS2MO", "provider": "fred", "provider_name": "FRED", "name": "US Treasury constant-maturity yield, daily (FRED H.15)", "freq": null, "first": null, "last": null, "ohlc": false, "note": "US Treasury constant-maturity yield, daily (FRED H.15) \u2014 not in the catalog yet; banks on first open", "banked": false}]}], "err": null} | HeaderSearch._facets=null
+- `22:13:04`   dropdown: {"chips": [], "rows": [{"id": "TVC:US02MY", "src": null}]}
+- `22:13:13`   TVC:US02MY chart: {"active": "TVC:US02MY", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "TVC:US02MY has no market feed the warehouse can bank.Same data in your warehouse:fred:DGS2MO \u203a"}
+- `22:13:23`   TVC:US10Y legend: {"legend": "TVC:US10Y O 4.78 H 4.81 L 4.77 C 4.80 +0.42% Vol \u2014"}
+## verdict
+
+- `22:13:23` ✗ TVC:US02MY did not resolve via fred:DGS2MO: via=None err=no market feed for TVC:US02MY and no warehouse equivalent (RuntimeError: no bars for TVC:US02MY (tv:all endpoints refused: data.tradingview.com/socket.io/webso)
+- `22:13:23` ✗ TVC:US03MY did not resolve via fred:DGS3MO: via=fred:DTB3 err=None
+- `22:13:23` ✗ no facet chips in the dropdown
+- `22:13:23` ✗ TVC:US02MY row has no source line: {'id': 'TVC:US02MY', 'src': None}
+- `22:13:23` ✗ TVC:US02MY did not chart: {"active": "TVC:US02MY", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "TVC:US02MY has no market feed the warehouse can bank.Same data in your warehouse:fred:DGS2MO \u203a"}
