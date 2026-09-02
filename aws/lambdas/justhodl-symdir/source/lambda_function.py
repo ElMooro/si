@@ -954,9 +954,10 @@ def fetch_titles(event, context):
 SDMX_STRUCT = {
     "eurostat": ["https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/dataflow/ESTAT/%s?references=descendants&detail=referencepartial",
                  "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/dataflow/ESTAT/%s?references=descendants"],
-    "ecb": ["https://data-api.ecb.europa.eu/service/dataflow/ECB/%s?references=descendants&detail=referencepartial",
-            "https://data-api.ecb.europa.eu/service/dataflow/all/%s?references=descendants",
-            "https://data-api.ecb.europa.eu/service/dataflow/ECB.DISS/%s?references=descendants"],
+    # ECB: no Accept header (the 406 trap from the data lane) and the proven ?format=sdmx-2.1 from ecb_names
+    "ecb": ["https://data-api.ecb.europa.eu/service/dataflow/ECB/%s?references=descendants&detail=referencepartial&format=sdmx-2.1",
+            "https://data-api.ecb.europa.eu/service/dataflow/all/%s?references=descendants&format=sdmx-2.1",
+            "https://data-api.ecb.europa.eu/service/dataflow/ECB.DISS/%s?references=descendants&format=sdmx-2.1"],
 }
 
 
@@ -1044,7 +1045,7 @@ def codelists_lane(event, context):
         got, err = None, "no xml"
         for tmpl in SDMX_STRUCT[prov]:
             try:
-                b, status, _ = _http(tmpl % urllib.parse.quote(f), timeout=60, headers={"Accept": "application/xml"}, retries=1)
+                b, status, _ = _http(tmpl % urllib.parse.quote(f), timeout=60, headers=({"Accept": "application/xml"} if prov == "eurostat" else None), retries=1)
                 if b and b.lstrip().startswith((b"<", b"\xef\xbb\xbf")):
                     got = b
                     break
