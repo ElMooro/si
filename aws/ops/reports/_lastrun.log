@@ -1,41 +1,29 @@
-executing-against: 27c2a24a5950844386a14a19429fd905b251e275
-ops 5144 -- search bar shows every source; TradingView-only symbols resolve to the warehouse
+executing-against: 8d0d7de8ea57e917412659897e916ea16959a1e4
+ops 5145 -- search bar shows every source; TradingView-only symbols resolve to the warehouse (re-run)
 ── S1 deploy symdir v1.5.0 ──
-[21:55:56]   zip: 137299 bytes
+[22:01:55]   zip: 137382 bytes
 ── 1. Lambda ──
-[21:55:56]   Lambda exists — updating
-[21:55:59] ✅   ✓ updated justhodl-symdir
+[22:01:56]   Lambda exists — updating
+[22:01:59] ✅   ✓ updated justhodl-symdir
 ── S2 resolution + search ──
+[22:02:28]   TVC:US02MY         n=None first=None last=None via=None src=None err=no market feed for TVC:US02MY and no warehouse equivalent (RuntimeError: no bars alts=[{'id': 'fred:DGS2MO', 'note': 'US Treasury constant-maturity yield, daily (FRED H.15)'}]
+[22:02:42]   ECONOMICS:USINTR   n=866 first=1954-07-01 last=2026-08-01 via=fred:FEDFUNDS src=warehouse:fred-scoped/Interest_Rates (+1 obs tail from FRED, bank healed) err= alts=None
+[22:02:45]   TVC:DE10Y          n=842 first=1956-05-01 last=2026-06-01 via=fred:IRLTLT01DEM156N src=warehouse:fred-scoped/International_Data err= alts=None
+[22:02:48]   TVC:US03MY         n=18157 first=1954-01-04 last=2026-08-31 via=fred:DTB3 src=warehouse:fred-scoped/Interest_Rates err= alts=None
+[22:02:48]   search US02MY: facets=[{'provider': 'tv', 'provider_name': 'TradingView', 'n': 1}] rows=['TVC:US02MY'] tv sources=[]
+[22:02:48]   provider filter eurostat: rows=['eurostat:LFSA_URGANEDM', 'eurostat:LFST_R_LFU3RT', 'eurostat:LFSO_14LUNER', 'eurostat:LFSA_URGAEDDL', 'eurostat:LFST_R_LFUR2GAC'] facets=[('bls', 13005), ('fred', 12704), ('tv', 162), ('eurostat', 55), ('statcan', 20), ('worldbank', 19)]
+── S3 live page ──
+[22:03:17]   dropdown: {"chips": [], "rows": [{"id": "TVC:US02MY", "src": null}]}
+[22:03:26]   TVC:US02MY chart: {"active": "TVC:US02MY", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "TVC:US02MY has no market feed the warehouse can bank.Same data in your warehouse:fred:DGS2MO \u203a"}
+[22:03:35]   TVC:US10Y legend: {"legend": "TVC:US10Y O 4.78 H 4.81 L 4.77 C 4.80 +0.42% Vol \u2014"}
+── verdict ──
+[22:03:36] ✗ TVC:US02MY did not resolve via fred:DGS2MO: via=None err=no market feed for TVC:US02MY and no warehouse equivalent (RuntimeError: no bars for TVC:US02MY (tv:all endpoints refused: data.tradingview.com/socket.io/webso)
+[22:03:36] ✗ TVC:DE10Y did not resolve via fred:IRLTLT01DEUM156N: via=fred:IRLTLT01DEM156N err=None
+[22:03:36] ✗ TVC:US03MY did not resolve via fred:DGS3MO: via=fred:DTB3 err=None
+[22:03:36] ✗ TVC:US02MY row lacks its warehouse source: {'id': 'TVC:US02MY', 'symbol': 'TVC:US02MY', 'name': 'US02MY (TVC)', 'provider': 'tv', 'provider_name': 'TradingView', 'kind': 'instrument', 'chartable': True, 'unit': None, 'freq': None, 'first': None, 'last': None, 'n': None, 'pop': 0.58, 'ex': 'TVC', 'type': 'unmapped', 'mkt': 'tv', 'src': '', 'score': 239.24, 'sources': []}
+[22:03:36] ✗ no facet chips in the dropdown
+[22:03:36] ✗ TVC:US02MY row has no source line: {'id': 'TVC:US02MY', 'src': None}
+[22:03:36] ✗ TVC:US02MY did not chart: {"active": "TVC:US02MY", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "TVC:US02MY has no market feed the warehouse can bank.Same data in your warehouse:fred:DGS2MO \u203a"}
 
-→ Report written to aws/ops/reports/latest/5144-search-sources.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5144_search_sources.py", line 161, in <module>
-    main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5144_search_sources.py", line 73, in main
-    d = http_json(url + "/series?id=" + urllib.parse.quote(sid) + "&nocache=1")
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5144_search_sources.py", line 49, in http_json
-    return json.loads(http(url, timeout).decode("utf-8", "replace"))
-                      ^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5144_search_sources.py", line 44, in http
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/urllib/request.py", line 215, in urlopen
-    return opener.open(url, data, timeout)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/urllib/request.py", line 521, in open
-    response = meth(req, response)
-               ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/urllib/request.py", line 630, in http_response
-    response = self.parent.error(
-               ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/urllib/request.py", line 559, in error
-    return self._call_chain(*args)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/urllib/request.py", line 492, in _call_chain
-    result = func(*args)
-             ^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/urllib/request.py", line 639, in http_error_default
-    raise HTTPError(req.full_url, code, msg, hdrs, fp)
-urllib.error.HTTPError: HTTP Error 500: Internal Server Error
-❌ OPS-FAIL: aws/ops/pending/ops_5144_search_sources.py
+→ Report written to aws/ops/reports/latest/5145-search-sources.md
+❌ OPS-FAIL: aws/ops/pending/ops_5145_search_sources.py
