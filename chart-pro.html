@@ -2003,7 +2003,7 @@ class DatasetBrowser {
     // facets: dimension → top values (from the scanned sample)
     const fac = d.facets || {};
     const fh = Object.entries(fac).filter(([k, v]) => v && v.length > 1 && v.length < 400).slice(0, 10).map(([k, v]) =>
-      `<span class="dsb-fgroup"><b>${UI.esc(k)}</b>${v.slice(0, 12).map(([val, n]) => `<span class="dsb-chip ${this.chips.includes(val) ? 'on' : ''}" data-chip="${UI.esc(val)}" title="${n} series">${UI.esc(val)}</span>`).join('')}</span>`).join('');
+      `<span class="dsb-fgroup"><b>${UI.esc(k)}</b>${v.slice(0, 12).map(([val, n, lab]) => `<span class="dsb-chip ${this.chips.includes(val) ? 'on' : ''}" data-chip="${UI.esc(val)}" title="${UI.esc(lab || val)} · ${n} series">${UI.esc(lab ? (String(lab).length > 28 ? String(lab).slice(0, 27) + '…' : lab) + ' (' + val + ')' : val)}</span>`).join('')}</span>`).join('');
     document.getElementById('dsb-facets').innerHTML = fh;
     document.getElementById('dsb-facets').querySelectorAll('.dsb-chip').forEach(ch => ch.addEventListener('click', () => {
       const v = ch.dataset.chip; const i = this.chips.indexOf(v); if (i >= 0) this.chips.splice(i, 1); else this.chips = [v]; this.load();

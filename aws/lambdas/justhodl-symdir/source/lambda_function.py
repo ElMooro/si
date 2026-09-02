@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.0.3"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -949,6 +949,191 @@ def fetch_titles(event, context):
     return {"ok": True, "fetched": fetched, "left": len(todo) - fetched, "ledger": sum(1 for v in titles.values() if v.get("title")), "elapsed_s": round(time.time() - t0, 1)}
 
 
+# ================================================================ CODELISTS (Eurostat / ECB dimension labels)
+
+SDMX_STRUCT = {
+    "eurostat": ["https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/dataflow/ESTAT/%s?references=descendants&detail=referencepartial",
+                 "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/dataflow/ESTAT/%s?references=descendants"],
+    "ecb": ["https://data-api.ecb.europa.eu/service/dataflow/ECB/%s?references=descendants&detail=referencepartial",
+            "https://data-api.ecb.europa.eu/service/dataflow/all/%s?references=descendants",
+            "https://data-api.ecb.europa.eu/service/dataflow/ECB.DISS/%s?references=descendants"],
+}
+
+
+def _lname(el):
+    return el.tag.split("}")[-1]
+
+
+def parse_sdmx_structure(xml_bytes):
+    """SDMX-ML 2.1 structure message -> (dims [(dim_id, codelist_key)], codelists {key: {id, name, codes{code: label}}}).
+    Namespace-agnostic; English names preferred. codelist_key = AGENCY:ID."""
+    import xml.etree.ElementTree as ET
+    root = ET.fromstring(xml_bytes)
+    cls, dims = {}, []
+
+    def name_of(el):
+        best = None
+        for ch in el:
+            if _lname(ch) == "Name":
+                lang = ch.attrib.get("{http://www.w3.org/XML/1998/namespace}lang", "")
+                if lang == "en":
+                    return (ch.text or "").strip()
+                if best is None:
+                    best = (ch.text or "").strip()
+        return best or ""
+    for el in root.iter():
+        ln = _lname(el)
+        if ln == "Codelist":
+            key = "%s:%s" % (el.attrib.get("agencyID", ""), el.attrib.get("id", ""))
+            codes = {}
+            for c in el:
+                if _lname(c) == "Code":
+                    codes[c.attrib.get("id", "")] = name_of(c)
+            cls[key] = {"id": el.attrib.get("id"), "agency": el.attrib.get("agencyID"), "name": name_of(el), "codes": codes}
+        elif ln == "DimensionList" and not dims:
+            for d in el:
+                if _lname(d) != "Dimension":
+                    continue
+                did = d.attrib.get("id", "")
+                clk = None
+                for e in d.iter():
+                    if _lname(e) == "Enumeration":
+                        for ref in e:
+                            if _lname(ref) == "Ref":
+                                clk = "%s:%s" % (ref.attrib.get("agencyID", ""), ref.attrib.get("id", ""))
+                dims.append((did, clk))
+    return dims, cls
+
+
+def codelists_lane(event, context):
+    """mode=codelists: fan-out orchestrator (fanout=N) or one shard (shard=i, nshards=N) of the dimension-label
+    build for eurostat/ecb. Per flow: ONE structure request -> data/symdir/dsd/{prov}/{FLOW}.json (dimension order
+    + codelist keys) and the codes merged into data/symdir/cl/{prov}/{KEY}.json (union across flows, so partial
+    codelists from many flows converge on the full list). State per shard; big flows first; resumable."""
+    prov = (event.get("provider") or "eurostat").lower()
+    if event.get("fanout"):
+        # orchestrator: {"fanout": 4} for one provider or {"fanout": {"eurostat": 4, "ecb": 1}}; a shard whose
+        # state says nothing is left is not invoked (the 20-minute schedule then costs nothing once complete)
+        plan = event["fanout"] if isinstance(event["fanout"], dict) else {prov: int(event["fanout"])}
+        out = {}
+        lc = boto3.client("lambda", region_name="us-east-1")
+        for pv, n in plan.items():
+            n = int(n)
+            out[pv] = []
+            for i in range(n):
+                st = _get_json("%s_state/codelists-%s-%d.json" % (SD, pv, i)) or {}
+                if st.get("left") == 0 and (st.get("nshards") == n):
+                    continue
+                lc.invoke(FunctionName=context.function_name, InvocationType="Event",
+                          Payload=json.dumps({"mode": "codelists", "provider": pv, "shard": i, "nshards": n}).encode())
+                out[pv].append(i)
+        return {"ok": True, "fanned_out": out}
+    shard, nshards = int(event.get("shard") or 0), int(event.get("nshards") or 1)
+    st_key = "%s_state/codelists-%s-%d.json" % (SD, prov, shard)
+    st = _get_json(st_key) or {"done": [], "failed": {}, "shard": shard, "nshards": nshards}
+    done, failed = set(st.get("done") or []), st.get("failed") or {}
+    flows = tier0(prov).get("flows") or {}
+    def shard_of(f):        # stable across processes (str hash is randomised per interpreter)
+        return int(hashlib.md5(f.encode()).hexdigest(), 16) % nshards
+    todo = sorted((f for f in flows if shard_of(f) == shard and f not in done and failed.get(f, {}).get("tries", 0) < 3),
+                  key=lambda f: -(flows[f].get("series") or 0))
+    t0, n_ok, n_fail, budget = time.time(), 0, 0, int(event.get("budget_s") or 780)
+    for f in todo:
+        if time.time() - t0 > budget or (context and context.get_remaining_time_in_millis() < 45000):
+            break
+        got, err = None, "no xml"
+        for tmpl in SDMX_STRUCT[prov]:
+            try:
+                b, status, _ = _http(tmpl % urllib.parse.quote(f), timeout=60, headers={"Accept": "application/xml"}, retries=1)
+                if b and b.lstrip().startswith((b"<", b"\xef\xbb\xbf")):
+                    got = b
+                    break
+                err = "non-xml %d" % status
+            except Exception as e:  # noqa: BLE001
+                err = str(e)[:80]
+        if not got:
+            failed[f] = {"tries": failed.get(f, {}).get("tries", 0) + 1, "err": err}
+            n_fail += 1
+            continue
+        try:
+            dims, cls = parse_sdmx_structure(got)
+        except Exception as e:  # noqa: BLE001
+            failed[f] = {"tries": failed.get(f, {}).get("tries", 0) + 1, "err": "parse:" + str(e)[:60]}
+            n_fail += 1
+            continue
+        if not dims:
+            failed[f] = {"tries": failed.get(f, {}).get("tries", 0) + 1, "err": "no dimensions"}
+            n_fail += 1
+            continue
+        for key, cl in cls.items():
+            ck = "%scl/%s/%s.json" % (SD, prov, key.replace(":", "__"))
+            cur = _get_json(ck) or {"id": cl["id"], "agency": cl["agency"], "name": cl["name"], "codes": {}}
+            merged = dict(cur.get("codes") or {})
+            merged.update({c: n for c, n in cl["codes"].items() if n})
+            if len(merged) != len(cur.get("codes") or {}) or not cur.get("name"):
+                cur["codes"], cur["n"], cur["name"], cur["as_of"] = merged, len(merged), cur.get("name") or cl["name"], _iso()
+                _put_json(ck, cur, cache="public, max-age=3600")
+        _put_json("%sdsd/%s/%s.json" % (SD, prov, f), {"flow": f, "provider": prov, "dims": [{"id": d, "cl": c} for d, c in dims], "as_of": _iso()}, cache="public, max-age=3600")
+        done.add(f)
+        failed.pop(f, None)
+        n_ok += 1
+        if n_ok % 25 == 0:
+            st.update({"done": sorted(done), "failed": failed, "updated_at": _iso()})
+            _put_json(st_key, st, cache="no-cache")
+        time.sleep(0.25)
+    st.update({"done": sorted(done), "failed": failed, "updated_at": _iso(), "left": len([f for f in todo if f not in done and failed.get(f, {}).get("tries", 0) < 3]),
+               "total_shard": len([f for f in flows if shard_of(f) == shard]), "last_run": {"ok": n_ok, "fail": n_fail, "s": round(time.time() - t0, 1)}})
+    _put_json(st_key, st, cache="no-cache")
+    return {"ok": True, "provider": prov, "shard": shard, "nshards": nshards, "done": len(done), "left": st["left"], "ok_now": n_ok, "fail_now": n_fail, "elapsed_s": round(time.time() - t0, 1)}
+
+
+_DSD_CACHE, _CL_CACHE = {}, {}
+
+
+def labeler(prov, flow):
+    """Return (dims, fn(pos, code) -> label|None) for a flow, or (None, None) when no DSD has been built yet."""
+    k = prov + "/" + flow
+    if k not in _DSD_CACHE:
+        _DSD_CACHE[k] = _get_json("%sdsd/%s/%s.json" % (SD, prov, flow))
+        if len(_DSD_CACHE) > 400:
+            _DSD_CACHE.pop(next(iter(_DSD_CACHE)))
+    dsd = _DSD_CACHE[k]
+    if not dsd:
+        return None, None
+    dims = dsd.get("dims") or []
+    maps = []
+    for d in dims:
+        ck = d.get("cl")
+        if ck and ck not in _CL_CACHE:
+            _CL_CACHE[ck] = ((_get_json("%scl/%s/%s.json" % (SD, prov, ck.replace(":", "__"))) or {}).get("codes") or {})
+            if len(_CL_CACHE) > 600:
+                _CL_CACHE.pop(next(iter(_CL_CACHE)))
+        maps.append(_CL_CACHE.get(ck) or {})
+
+    def fn(pos, code):
+        if pos < len(maps):
+            return maps[pos].get(code)
+        return None
+    return dims, fn
+
+
+def label_key(prov, flow, key, fn=None, dims=None, max_len=220):
+    """'A.CLV05_MEUR.D31.BA' -> 'Annual · Chain linked volumes (2005), million euro · Changes in inventories · Bosnia and Herzegovina'."""
+    if fn is None:
+        dims, fn = labeler(prov, flow)
+    if fn is None:
+        return None
+    parts = key.split(".")
+    if prov == "ecb" and parts and parts[0] == flow:      # ECB keys carry the flow as the first element
+        parts = parts[1:]
+    out = []
+    for i, c in enumerate(parts):
+        lab = fn(i, c)
+        out.append(lab if lab else c)
+    txt = " · ".join(out)
+    return txt if len(txt) <= max_len else txt[:max_len - 1] + "…"
+
+
 # ================================================================ RUNTIME INDEX
 
 _IDX = {"loaded_at": None, "docs": None, "pop": None, "index": None, "toklist": None, "ids": None, "bare": None, "built_at": None}
@@ -1151,8 +1336,10 @@ def _t1_read_block(prov, flow, b):
     return out
 
 
-def _t1_row(prov, flow, e):
-    return {"id": e["id"], "symbol": e["id"].split(":", 2)[-1], "name": "%s · %s" % (flow, e["id"].split(":", 2)[-1]), "provider": prov,
+def _t1_row(prov, flow, e, fn=None, dims=None):
+    key = e["id"].split(":", 2)[-1]
+    lab = label_key(prov, flow, key, fn, dims) if fn else None
+    return {"id": e["id"], "symbol": key, "name": lab or ("%s · %s" % (flow, key)), "labeled": bool(lab), "provider": prov,
             "provider_name": PROV_NAME.get(prov), "kind": "series", "chartable": True, "geo": e.get("g"), "first": e.get("f"), "last": e.get("l"),
             "n": e.get("n"), "last_value": e.get("v"), "flow": flow}
 
@@ -1162,8 +1349,10 @@ def _page_rows(prov, flow, pnum):
     return [r for r in (d.get("rows") or []) if r.get("flow") == flow]
 
 
-def _page_row(prov, flow, r):
-    return {"id": r["id"], "symbol": r["id"].split(":", 2)[-1], "name": r.get("name") or r["id"], "provider": prov, "provider_name": PROV_NAME.get(prov),
+def _page_row(prov, flow, r, fn=None, dims=None):
+    key = r["id"].split(":", 2)[-1]
+    lab = label_key(prov, flow, key, fn, dims) if fn else None
+    return {"id": r["id"], "symbol": key, "name": lab or r.get("name") or r["id"], "labeled": bool(lab), "provider": prov, "provider_name": PROV_NAME.get(prov),
             "kind": "series", "chartable": True, "geo": r.get("geo"), "first": r.get("first_obs"), "last": r.get("last_obs"), "n": r.get("n_obs"),
             "last_value": r.get("last_value"), "unit": r.get("unit"), "freq": r.get("freq"), "flow": flow, "dims": r.get("dims")}
 
@@ -1178,6 +1367,7 @@ def tier1_prefix(prov, flow, keypfx, limit=40):
     pfx = "%s:%s:%s" % (prov, flow, keypfx)
     bm = blocks_map(prov, flow)
     rows = []
+    ldims, lfn = labeler(prov, flow)
     if bm and bm.get("blocks"):
         bl = bm["blocks"]
         keys = [b["k"] for b in bl]
@@ -1185,7 +1375,7 @@ def tier1_prefix(prov, flow, keypfx, limit=40):
         for j in range(i, min(i + 3, len(bl))):
             for e in _t1_read_block(prov, flow, bl[j]):
                 if e["id"].startswith(pfx):
-                    rows.append(_t1_row(prov, flow, e))
+                    rows.append(_t1_row(prov, flow, e, lfn, ldims))
                     if len(rows) >= limit:
                         break
             if len(rows) >= limit or (bl[j]["k"] > pfx + "\uffff"):
@@ -1198,7 +1388,7 @@ def tier1_prefix(prov, flow, keypfx, limit=40):
         for prs in ex.map(lambda p: _page_rows(prov, flow, p), pages):
             for r in prs:
                 if r["id"].startswith(pfx):
-                    rows.append(_page_row(prov, flow, r))
+                    rows.append(_page_row(prov, flow, r, lfn, ldims))
             if len(rows) >= limit:
                 break
     return {"flow": flow, "known": True, "tier": 0, "total_in_flow": rec.get("series"), "pages_scanned": len(pages), "rows": rows[:limit]}
@@ -1220,7 +1410,18 @@ def browse(ds, q="", limit=200, offset=0):
         total = rec.get("series")
         bm = blocks_map(prov, flow)
         rows, facets, scanned = [], defaultdict(lambda: defaultdict(int)), 0
+        ldims, lfn = labeler(prov, flow)
+        dim_names = [d["id"] for d in (ldims or [])]
+        qtoks = [t for t in ql.replace(",", " ").split() if t]
         MAX_SCAN = 120000
+
+        def matches(sid, key, extra):
+            # every query token must appear in the id, a dimension code, its label, or the geo
+            if not qtoks:
+                return True
+            lab = (label_key(prov, flow, key, lfn, ldims) or "") if lfn else ""
+            hay = (sid + " " + key.replace(".", " ") + " " + lab + " " + extra).lower()
+            return all(t in hay for t in qtoks)
         if bm and bm.get("blocks"):
             bl = bm["blocks"]
             for b in bl:
@@ -1229,12 +1430,14 @@ def browse(ds, q="", limit=200, offset=0):
                 for e in _t1_read_block(prov, flow, b):
                     scanned += 1
                     key = e["id"].split(":", 2)[-1]
-                    dims = key.split(".")
-                    for pos, v in enumerate(dims[:12]):
-                        facets["d%d" % pos][v] += 1
-                    if ql and ql not in e["id"].lower() and ql not in (e.get("g") or "").lower():
+                    parts = key.split(".")
+                    if prov == "ecb" and parts and parts[0] == flow:
+                        parts = parts[1:]
+                    for pos, v in enumerate(parts[:12]):
+                        facets[dim_names[pos] if pos < len(dim_names) else "d%d" % pos][v] += 1
+                    if not matches(e["id"].lower(), key, (e.get("g") or "")):
                         continue
-                    rows.append(_t1_row(prov, flow, e))
+                    rows.append(_t1_row(prov, flow, e, lfn, ldims))
             tier = 1
         else:
             lo, hi = rec.get("lo", 0), rec.get("hi", 0)
@@ -1245,14 +1448,19 @@ def browse(ds, q="", limit=200, offset=0):
                     scanned += 1
                     for k, v in (r.get("dims") or {}).items():
                         facets[k][str(v)] += 1
-                    if ql and ql not in r["id"].lower() and ql not in (r.get("name") or "").lower() and ql not in (r.get("geo") or "").lower():
+                    key = r["id"].split(":", 2)[-1]
+                    if not matches(r["id"].lower(), key, (r.get("name") or "") + " " + (r.get("geo") or "")):
                         continue
-                    rows.append(_page_row(prov, flow, r))
+                    rows.append(_page_row(prov, flow, r, lfn, ldims))
             tier = 0
-        fac = {k: sorted(v.items(), key=lambda kv: -kv[1])[:40] for k, v in facets.items()}
-        return {"ds": ds, "flow": flow, "tier": tier, "total": total, "scanned": scanned, "truncated": scanned < (total or 0),
+        # facets carry labels when the DSD is built: [code, count, label]
+        fac = {}
+        for k, v in facets.items():
+            pos = dim_names.index(k) if k in dim_names else None
+            fac[k] = [[c, n, (lfn(pos, c) if (lfn and pos is not None) else None)] for c, n in sorted(v.items(), key=lambda kv: -kv[1])[:40]]
+        return {"ds": ds, "flow": flow, "tier": tier, "total": total, "scanned": scanned, "truncated": scanned < (total or 0), "labeled": lfn is not None,
                 "rows": rows[offset:offset + limit], "matched": len(rows), "facets": fac,
-                "hint": "type dimension codes (e.g. DE, M, CLV10_MEUR) to narrow; giant flows scan the first %d series" % MAX_SCAN}
+                "hint": ("dimension labels on" if lfn else "labels not built yet for this dataset — codes shown") + "; type codes or words (e.g. DE, monthly, chain linked) to narrow; giant flows scan the first %d series" % MAX_SCAN}
     if prov == "statcan":
         return browse_statcan(rest, ql, limit, offset)
     if prov == "worldbank":
@@ -1492,19 +1700,17 @@ def r_eurostat(sid, rest, d):
             ku = key.upper()
             for ln in it:
                 kp, tab, vp = ln.partition("\t")
-                if tab and kp.strip().upper() == ku:
+                # the TSV key part is comma-separated ("A,CLV10_MEUR,B1GQ,DE"); the series key uses dots
+                if tab and kp.strip().replace(",", ".").upper() == ku:
                     vals = [v.strip() for v in vp.split("\t")]
                     obs = [(periods[i], vals[i]) for i in range(min(len(vals), len(periods)))]
                     break
             src = (src + " -> " if src else "") + "warehouse:eurostat raw"
         except StopIteration:
             pass
-    name = None
-    if d:
-        name = d[D_TITLE]
-    else:
-        fd = _doc_lookup("eurostat:" + flow)
-        name = (fd[D_TITLE] + " · " + key) if fd else (flow + " · " + key)
+    fd = _doc_lookup("eurostat:" + flow)
+    lab = label_key("eurostat", flow, key)
+    name = ((fd[D_TITLE] + " — ") if fd else (flow + " — ")) + (lab or key)
     dims = key.split(".")
     return _result(sid, "eurostat", obs or [], name=name, freq=dims[0] if dims else None, source=src,
                    extra={"flow": flow, "key": key, "source_url": "https://ec.europa.eu/eurostat/databrowser/view/%s" % flow.lower()})
@@ -1561,7 +1767,7 @@ def r_ecb(sid, rest, d):
             except Exception:  # noqa: BLE001
                 continue
         src = (src + " -> " if src else "") + "warehouse:ecb raw (%d slices)" % len(files)
-    name = meta.get("TITLE_COMPL") or meta.get("TITLE") or (d[D_TITLE] if d else None) or (flow + " · " + skey)
+    name = meta.get("TITLE_COMPL") or meta.get("TITLE") or label_key("ecb", flow, skey) or (d[D_TITLE] if d else None) or (flow + " · " + skey)
     return _result(sid, "ecb", obs, name=name, unit=meta.get("UNIT") or meta.get("UNIT_MEASURE"), freq=meta.get("FREQ") or skey.split(".")[0], source=src,
                    extra={"flow": flow, "key": skey, "source_url": "https://data.ecb.europa.eu/data/datasets/%s/%s.%s" % (flow, flow, skey)})
 
@@ -1830,6 +2036,8 @@ def lambda_handler(event, context):
         return build(event, context)
     if mode == "titles":
         return fetch_titles(event, context)
+    if mode == "codelists":
+        return codelists_lane(event, context)
     if mode == "warm" or path == "/warm":
         # keep-warm ping (every 5 min): also the moment a warm container notices a newer daily build
         force = qs.get("force") == "1"
