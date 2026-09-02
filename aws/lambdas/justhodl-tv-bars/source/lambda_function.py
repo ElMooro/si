@@ -345,8 +345,13 @@ def tv_to_yahoo(sym):
 def yahoo_bars(ysym, rng="max"):
     """Full daily history from Yahoo's chart API (the same endpoint the fleet's symbol-feed uses from Lambda)."""
     import urllib.request
-    url = ("https://query1.finance.yahoo.com/v8/finance/chart/%s?range=%s&interval=1d&events=div%%2Csplit"
-           % (urllib.request.quote(ysym), rng))
+    if rng == "max":
+        # range=max answers with MONTHLY bars (5126: AAPL 169 bars since 1984); an explicit epoch window returns daily
+        url = ("https://query1.finance.yahoo.com/v8/finance/chart/%s?period1=-2208988800&period2=%d&interval=1d&events=div%%2Csplit"
+               % (urllib.request.quote(ysym), int(time.time()) + 86400))
+    else:
+        url = ("https://query1.finance.yahoo.com/v8/finance/chart/%s?range=%s&interval=1d&events=div%%2Csplit"
+               % (urllib.request.quote(ysym), rng))
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36", "Accept": "application/json"})
     with urllib.request.urlopen(req, timeout=25) as r:
         j = json.loads(r.read().decode("utf-8", "ignore"))

@@ -5258,6 +5258,7 @@ class NativeChart {
         bars = data.bars || [];
       }
       if (!bars.length) { bars = await jhYahooBars(jhYSym, days); if (bars.length) jhSrc = 'Yahoo fallback'; }
+      State.nativeSrc = jhSrc;
       if (jhSrc !== 'Polygon') { const jm = document.getElementById(`nch-meta-${paneIdx}`); if (jm) jm.textContent = jhSrc; }
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
       if (loadingEl) loadingEl.style.display = 'none';
@@ -5367,7 +5368,7 @@ class NativeChart {
       const prev = bars[bars.length - 2] || last;
       const chg = prev.close ? ((last.close - prev.close) / prev.close * 100) : 0;
       const metaEl = document.getElementById(`nch-meta-${paneIdx}`);
-      if (metaEl) metaEl.innerHTML = `$${last.close.toFixed(2)} <span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span> · ${bars.length}d`;
+      if (metaEl) metaEl.innerHTML = `$${last.close.toFixed(2)} <span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span> · ${bars.length.toLocaleString()} bars · <span style="color:var(--fg-4)">${UI.esc(jhSrc)}</span>`;
       
       // Price-level alert lines (per-user)
       NativeChart.drawPriceAlerts(candleSeries, ticker);

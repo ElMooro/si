@@ -415,6 +415,7 @@ def build(event, context):
             counts["finviz-only"] = counts.get("finviz-only", 0) + 1
         # Khalid's TradingView symbol dictionary (his 492 watchlists): EXCHANGE:SYMBOL with the authoritative name
         dic = (_get_json("data/symbol-dictionary.json") or {}).get("dictionary") or {}
+        aliases = (_get_json("data/symbol-aliases.json") or {}).get("aliases") or {}       # justhodl-symbol-resolver: bare/full TV symbol -> provider:id
         for full, v in dic.items():
             if not isinstance(v, dict):
                 continue
@@ -431,8 +432,13 @@ def build(event, context):
                 continue
             seen.add(full)
             tvpop = 0.58 if ex.upper() in ("TVC", "CBOE", "NASDAQ", "NYSE", "AMEX", "ECONOMICS", "FRED", "INDEX", "CME", "CBOT", "NYMEX", "COMEX", "ICEUS", "ICEEUR", "SP", "DJ") else 0.38
+            src_l, src_id = src.lower(), (v.get("source_id") or None)
+            if src_l not in ("fred", "ecb", "ofr", "nyfed", "eurostat", "boj", "bls", "worldbank") or not src_id:
+                al = aliases.get(full) or aliases.get(symb)
+                if isinstance(al, str) and ":" in al:
+                    src_l, src_id = al.split(":", 1)[0].lower(), al
             docs.append(doc(full, "tv", name, "instrument", tvpop,
-                            extra={"ex": ex, "type": (v.get("category") or "tv").lower(), "mkt": "tv", "src": src.lower(), "sid": (v.get("source_id") or None)}))
+                            extra={"ex": ex, "type": (v.get("category") or "tv").lower(), "mkt": "tv", "src": src_l, "sid": src_id}))
             instruments.append([full, name[:80], ex, (v.get("category") or "tv").lower(), "tv", tvpop])
             counts["tv-dictionary"] = counts.get("tv-dictionary", 0) + 1
         return {"counts": counts, "finviz": len(fin), "symbology": len(sym)}
