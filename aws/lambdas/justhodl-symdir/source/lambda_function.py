@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.5.2"
+VERSION = "1.5.3"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -2343,6 +2343,7 @@ def r_tvsym(sid, sym, d):
         except Exception as e:  # noqa: BLE001
             dict_err = "dictionary %s:%s failed: %s" % (src_prov, inner, str(e)[:60])     # a wrong source_id must not end the search
     # 3. TradingView-only concept (TVC:US02MY has no market feed) -> the warehouse series that carries it
+    alt_err = []
     for pid, note in tv_equivalents(sym):
         try:
             out = fetch_series(pid)
@@ -2351,10 +2352,12 @@ def r_tvsym(sid, sym, d):
                 out["name"] = name if name != sym else out.get("name")
                 out["source"] = "%s (%s → %s)" % (out.get("source"), sym, pid)
                 return out
-        except Exception:  # noqa: BLE001
+            alt_err.append((pid, "no observations"))
+        except Exception as e:  # noqa: BLE001
+            alt_err.append((pid, "%s: %s" % (type(e).__name__, str(e)[:140])))
             continue
     err = ValueError("no market feed for %s and no warehouse equivalent (%s%s)" % (sym, bank_err[:100], ("; " + dict_err) if dict_err else ""))
-    err.alternatives = [{"id": pid, "note": note} for pid, note in tv_equivalents(sym)]
+    err.alternatives = [{"id": pid, "note": note, "error": dict(alt_err).get(pid)} for pid, note in tv_equivalents(sym)]
     raise err
 
 
