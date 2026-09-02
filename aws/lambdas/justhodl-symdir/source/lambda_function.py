@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.6.0"
+VERSION = "1.6.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -2431,7 +2431,7 @@ def _ust_fetch_year(year):
     """Treasury's daily par yield curve XML (the source FRED's H.15 mirrors; it also carries the 2- and 4-month CMTs)."""
     import xml.etree.ElementTree as ET
     url = "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=%s" % year
-    b, _, _ = _http(url, timeout=60, headers={"Accept": "application/xml"})
+    b, _, _ = _http(url, timeout=(240 if year == "all" else 60), headers={"Accept": "application/xml"}, retries=1)
     root = ET.fromstring(b)
     out = {}
     for el in root.iter():
@@ -2445,22 +2445,56 @@ def _ust_fetch_year(year):
     return out
 
 
-def ust_curve(force=False):
+def ust_bank(event=None, context=None):
+    """mode=ustbank: bank the whole Treasury par yield curve (1990→today, 13 tenors). First bank pulls the
+    single `all` document (one request); later runs refresh the current year only. Scheduled daily 21:30 UTC
+    (Treasury posts the curve ~15:30–17:00 ET) and triggered once by a request that finds no bank."""
     doc = _get_json(UST_KEY) or {"rows": {}, "as_of": None}
     rows = doc.get("rows") or {}
-    last = max(rows) if rows else None
-    stale = force or not rows or (_now().date() - date.fromisoformat(last)).days > 1
-    if stale:
-        years = list(range(1990, _now().year + 1)) if not rows else [_now().year] + ([_now().year - 1] if _now().month == 1 else [])
-        for y in years:
+    t0 = time.time()
+    if not rows or (event or {}).get("full"):
+        try:
+            rows.update(_ust_fetch_year("all"))
+        except Exception as e:  # noqa: BLE001
+            doc.setdefault("errors", {})["all"] = str(e)[:100]
+            for y in range(1990, _now().year + 1):
+                if context and context.get_remaining_time_in_millis() < 60000:
+                    break
+                try:
+                    rows.update(_ust_fetch_year(str(y)))
+                except Exception as e2:  # noqa: BLE001
+                    doc.setdefault("errors", {})[str(y)] = str(e2)[:80]
+    else:
+        for y in [_now().year] + ([_now().year - 1] if _now().month == 1 else []):
             try:
                 rows.update(_ust_fetch_year(str(y)))
             except Exception as e:  # noqa: BLE001
                 doc.setdefault("errors", {})[str(y)] = str(e)[:80]
-            time.sleep(0.2)
-        doc.update({"rows": rows, "as_of": _iso(), "n_days": len(rows), "source": "home.treasury.gov daily_treasury_yield_curve", "tenors": list(UST_TENORS)})
-        s3.put_object(Bucket=BUCKET, Key=UST_KEY, Body=gzip.compress(json.dumps(doc, separators=(",", ":")).encode()), ContentType="application/json", ContentEncoding="gzip",
-                      CacheControl="public, max-age=900")
+    doc.update({"rows": rows, "as_of": _iso(), "n_days": len(rows), "first": min(rows) if rows else None, "last": max(rows) if rows else None,
+                "source": "home.treasury.gov daily_treasury_yield_curve", "tenors": list(UST_TENORS), "elapsed_s": round(time.time() - t0, 1)})
+    s3.put_object(Bucket=BUCKET, Key=UST_KEY, Body=gzip.compress(json.dumps(doc, separators=(",", ":")).encode()), ContentType="application/json", ContentEncoding="gzip",
+                  CacheControl="public, max-age=900")
+    return {"ok": bool(rows), "n_days": len(rows), "first": doc.get("first"), "last": doc.get("last"), "elapsed_s": doc["elapsed_s"], "errors": doc.get("errors")}
+
+
+def ust_curve():
+    """Request path: never fetch 37 years inline. Missing bank -> kick mode=ustbank (Event) and tell the caller;
+    stale bank (> 1 weekday) -> refresh the current year inline (one small request)."""
+    doc = _get_json(UST_KEY)
+    if not doc or not doc.get("rows"):
+        try:
+            _lambda.invoke(FunctionName=os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "justhodl-symdir"), InvocationType="Event", Payload=json.dumps({"mode": "ustbank"}).encode())
+        except Exception:  # noqa: BLE001
+            pass
+        raise ValueError("banking the Treasury par yield curve now (1990→today, one-time) — open again in a minute")
+    if _bank_stale({"last_date": doc.get("last") or max(doc["rows"])}):
+        try:
+            doc["rows"].update(_ust_fetch_year(str(_now().year)))
+            doc.update({"as_of": _iso(), "n_days": len(doc["rows"]), "last": max(doc["rows"])})
+            s3.put_object(Bucket=BUCKET, Key=UST_KEY, Body=gzip.compress(json.dumps(doc, separators=(",", ":")).encode()), ContentType="application/json", ContentEncoding="gzip",
+                          CacheControl="public, max-age=900")
+        except Exception:  # noqa: BLE001
+            pass
     return doc
 
 
@@ -2622,6 +2656,8 @@ def lambda_handler(event, context):
         return fred_fresh(event, context)
     if mode == "fredupdates":
         return fred_updates(event, context)
+    if mode == "ustbank":
+        return ust_bank(event, context)
     if mode == "warm" or path == "/warm":
         # keep-warm ping (every 5 min): also the moment a warm container notices a newer daily build
         force = qs.get("force") == "1"
