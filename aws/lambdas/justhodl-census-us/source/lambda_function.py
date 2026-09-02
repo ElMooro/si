@@ -558,8 +558,7 @@ def refresh(state, ctx):
                       (ovr.get("full_time") or "from 1900").format(cur=_now().year),
                       "state:" + code, tp), timeout=120)
                 if st == 204:
-                    gr[code] = 0          # legit-empty state (v116)
-                    i += 1
+                    gr[code] = 0          # legit-empty state (v116); ops 5112: no `i` in this loop (was i += 1 -> UnboundLocalError)
                     continue
                 rows = parse_rows(text) if st == 200 else None
                 if rows:
