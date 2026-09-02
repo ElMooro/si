@@ -135,7 +135,7 @@ def api_drain_db(db, budget_end, state):
         st["skipped_leased"] = int(st.get("skipped_leased", 0)) + 1
         return st
     st["lease_until"] = budget_end + 60
-    _put(api_key(db), st)
+    _put(_dbstate_key(db), st)   # ops 5110: was api_key(db) -- undefined -> NameError on every per-db child run
     codes = st.get("codes") or []
     now_y = datetime.now(timezone.utc).year
     wins, y = [], API_START

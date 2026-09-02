@@ -508,12 +508,12 @@ PLUMB_ENRICH = [
     ("SOFR90DAYAVG", "SOFR 90-Day Average", "l1_funding", "%"),
     ("SOFR180DAYAVG", "SOFR 180-Day Average", "l1_funding", "%"),
     ("WRESBAL", "Reserve Balances (ample-regime marker)", "l1_funding", "M USD"),
-    ("WCBSL", "Central Bank Swap Lines", "l1_funding", "M USD"),
+    ("SWPT", "Central Bank Liquidity Swaps (H.4.1)", "l1_funding", "M USD"),
     ("DPCREDIT", "Discount Window Primary Credit", "l1_funding", "%"),
     # B) L2 bank risk appetite — H.8 + SLOOS
     ("DRTSCILM", "SLOOS: C&I Tightening", "l2_bank", "%"),
     ("DRTSCLCC", "SLOOS: Consumer Credit Tightening", "l2_bank", "%"),
-    ("DRTSCLM", "SLOOS: Mortgage Tightening", "l2_bank", "%"),
+    ("SUBLPDRCSM", "SLOOS: Mortgage Tightening", "l2_bank", "%"),
     ("TOTBKCR", "Total Bank Credit", "l2_bank", "B USD"),
     ("BUSLOANS", "C&I Loans, All Banks", "l2_bank", "B USD"),
     ("REALLN", "Real Estate Loans, All Banks", "l2_bank", "B USD"),
@@ -525,7 +525,7 @@ PLUMB_ENRICH = [
     ("CCSA", "Continuing Claims", "l3_real", "count"),
     ("ICNSA", "Initial Claims (NSA)", "l3_real", "count"),
     # D) L4 cross-border / offshore dollar
-    ("WGRESUS", "Foreign Official Holdings of Treasuries", "l4_cross", "M USD"),
+    ("WMTSECL1", "Foreign Official Custody Holdings of Treasuries (H.4.1)", "l4_cross", "M USD"),
     ("DTWEXBGS", "Broad Dollar Index", "l4_cross", "index"),
     ("DTWEXEMEGS", "USD vs Emerging Markets", "l4_cross", "index"),
     # canary inputs

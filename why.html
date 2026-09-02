@@ -4217,7 +4217,7 @@ async function fixInstCounts(t){
     var hitB=null,hitS=null;
     for(var i=0;i<labels.length;i++){var tx=(labels[i].textContent||'').trim();
       if(tx==='≥5% FILERS · LAST 24M')hitB=labels[i];
-      if(tx==='SELLERS (THIS FEED)</span><span style='font-size:9px;color:#5d6b82;display:block'>13D/13G reports ≥5% crossings only — sellers structurally invisible; real $ selling in Dollar Flows')hitS=labels[i];}
+      if(tx.indexOf('SELLERS (THIS FEED)')===0)hitS=labels[i];}
     function setv(lbl,val,note){if(!lbl)return;var v=lbl.nextElementSibling||lbl.parentElement.querySelector('div:last-child');
       if(v){v.innerHTML=val+(note?' <span style="font-size:10px;color:#5d6b82">'+note+'</span>':'');}}
     if(!f){setv(hitB,'n/a','(not in 13F flow feed)');setv(hitS,'n/a','(not in 13F flow feed)');return;}

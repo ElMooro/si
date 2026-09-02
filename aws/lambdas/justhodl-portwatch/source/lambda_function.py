@@ -18,7 +18,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.6.1"
+VERSION = "1.6.2"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -144,8 +144,13 @@ def _q(url, params, timeout=30, retries=3):
     for i in range(retries):
         _REQ["n"] += 1
         try:
-            r = urllib.request.urlopen(
-                urllib.request.Request(url + "?" + qs, headers=UA), timeout=timeout)
+            # v1.6.2: long where-clauses (quoted id lists) exceed what the layer accepts on
+            # a GET ('Unable to perform query. Please check your parameters.') -> POST
+            if len(qs) > 1200:
+                req = urllib.request.Request(url, data=qs.encode(), headers={**UA, "Content-Type": "application/x-www-form-urlencoded"})
+            else:
+                req = urllib.request.Request(url + "?" + qs, headers=UA)
+            r = urllib.request.urlopen(req, timeout=timeout)
             j = json.loads(r.read())
             if isinstance(j, dict) and j.get("error"):
                 err = j["error"]
@@ -528,9 +533,15 @@ def lambda_handler(event=None, context=None):
                 return (0 if any(p3 in c3 for p3 in _PRIO) else 1, i2)
             _ids_all = sorted(cand, key=_pk)
             out["ports_ref_matched_total"] = len(_ids_all)
-            ids = ",".join("'" + i + "'" for i in _ids_all[:120])
-            prow, perr = fetch_daily(DAILY_PORTS,
-                                     "portid IN (" + ids + ")", store=hist.setdefault("ports", {}))
+            # v1.6.2: chunks of 40 ids per query; each chunk merges into the same history store
+            prow, perr = [], None
+            _chunks = [_ids_all[k:k + 40] for k in range(0, min(len(_ids_all), 120), 40)]
+            for _ch in _chunks:
+                ids = ",".join("'" + i + "'" for i in _ch)
+                _rows, _err = fetch_daily(DAILY_PORTS, "portid IN (" + ids + ")", store=hist.setdefault("ports", {}))
+                if _err:
+                    perr = (perr + " | " if perr else "") + _err[:160]
+            prow = _store_rows(hist.get("ports") or {})
             if perr:
                 out["errors"].append("ports_daily: " + perr)
             out["history_through"]["ports"] = _store_through(hist.get("ports") or {})
