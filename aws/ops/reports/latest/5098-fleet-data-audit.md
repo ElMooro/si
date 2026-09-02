@@ -1,0 +1,305 @@
+# ops 5098 -- fleet audit: providers, engines, feeds, and the business-cycle series they hold
+
+**Status:** success  
+**Duration:** 78.7s  
+**Finished:** 2026-09-02T00:16:44+00:00  
+
+## Data
+
+| feed | keys | per_country | s3_age_h |
+|---|---|---|---|
+| activity-nowcast | 19 | None | 11.7 |
+| air-cargo | 19 | None | 13.6 |
+| apac-leadlag | 11 | None | 13.9 |
+| apac-leadlag-series | 3 | None | 13.9 |
+| asia-leads | 13 | None | 13.9 |
+| bea-economic | 10 | None | 2.2 |
+| bis-crossborder | 11 | None | 38.6 |
+| bls-labor | 10 | None | 2.2 |
+| boom-stage | 12 | None | 11.7 |
+| canary-grid | 15 | None | 5.7 |
+| canary-macro | 24 | None | 1.0 |
+| census-economic | 8 | None | 2.1 |
+| china-liquidity | 14 | None | 9.7 |
+| china-liquidity-history | 2 | None | 9.7 |
+| commodity-curves | 16 | None | 3.2 |
+| construction-housing | 13 | None | 13.2 |
+| consumer-pulse | 22 | None | 11.6 |
+| credit-composite | 10 | None | 2.6 |
+| credit-stress | 18 | None | 2.1 |
+| cross-asset-regime | 14 | None | 3.7 |
+| cycle-clock | 24 | None | 0.7 |
+| dollar-radar | 21 | None | 5.0 |
+| econ-calendar | 17 | None | 13.2 |
+| esi | 15 | None | 11.7 |
+| esi-history | 2 | None | 11.7 |
+| eurodollar-plumbing | 22 | None | 12.2 |
+| freight-pulse | 18 | None | 12.4 |
+| fx-intelligence | 10 | None | 10.7 |
+| gdelt-news | 6 | None | 0.1 |
+| geopolitical-risk | 10 | None | 12.7 |
+| global-business-cycle | 16 | 34 | 0.2 |
+| global-business-cycle-history | 18 | 34 | 0.2 |
+| global-flow-desk | 12 | None | 1.4 |
+| global-flows | 10 | 3 | 14.3 |
+| global-liquidity | 14 | None | 10.2 |
+| global-liquidity-history | 2 | None | 10.2 |
+| global-macro | 11 | 15 | 2.0 |
+| global-recession | 17 | 33 | 11.6 |
+| global-sovereign | 24 | 45 | 6.0 |
+| grid-queue | 16 | None | 11.4 |
+| hiring-velocity | 12 | None | 59.7 |
+| import-canary | 14 | None | 10.6 |
+| import-canary-history | 2 | None | 10.6 |
+| indicator-bus | 6 | None | 12.0 |
+| labor-leading | 7 | None | 7.5 |
+| leading-markets | 21 | None | 1.8 |
+| leading-markets-history | 2 | None | 1.8 |
+| macro-leads | 8 | None | 11.9 |
+| macro-nowcast | 20 | None | 0.0 |
+| macro-surprise | 17 | None | 2.4 |
+| market-extremes | 17 | None | 1.2 |
+| nowcast-desk | 8 | None | 10.7 |
+| oecd-cli | 7 | 15 | 4.7 |
+| peru-copper | 8 | None | 1.0 |
+| port-cargo | 24 | None | 11.6 |
+| portwatch | 24 | None | 12.1 |
+| ppi-acceleration | 18 | None | 9.0 |
+| regime-composite | 16 | None | 774.4 |
+| seasonality | 7 | None | 37.2 |
+| singapore-nodx | 9 | None | 19.9 |
+| sovereign-stress | 24 | None | 12.2 |
+| taiwan-moea | 8 | None | 1.0 |
+| trade-nowcast | 10 | None | 11.4 |
+| us-cycle | 11 | None | 11.9 |
+
+## Log
+- `00:15:26` started 2026-09-02T00:15:26+00:00
+## S1 providers / warehouses
+
+- `00:15:26` hub as_of=2026-09-01T23:48:53+00:00 providers=57 breakdown={"provider_datasets": 778993, "instruments": 25281}
+- `00:15:26`   eurostat           Eurostat                           datasets=8191/8152 cov=100.0 keys=1136599 MB=321818.9 series=564204235 freshest=0.9h denied=None
+- `00:15:26`   gdelt              GDELT — global events              datasets=402061/None cov=None keys=402061 MB=92111.63 series=None freshest=0.0h denied=None
+- `00:15:26`   bls                BLS — Bureau of Labor Statistics   datasets=1686/None cov=None keys=1686 MB=43789.38 series=None freshest=0.3h denied=None
+- `00:15:26`   statcan            Statistics Canada                  datasets=8268/8267 cov=100.0 keys=8268 MB=31053.69 series=None freshest=0.9h denied=5
+- `00:15:26`   fred               FRED — St. Louis Fed               datasets=280633/None cov=None keys=280633 MB=11259.3 series=277540 freshest=0.0h denied=None
+- `00:15:26`   sec-midas          SEC MIDAS — market structure       datasets=51/None cov=None keys=51 MB=6919.67 series=None freshest=21.3h denied=None
+- `00:15:26`   sec-dera           SEC DERA — statement datasets      datasets=72/None cov=None keys=72 MB=5729.67 series=None freshest=2.5h denied=None
+- `00:15:26`   ecb                ECB — SDMX                         datasets=756/None cov=None keys=7237 MB=4928.94 series=3240832 freshest=0.0h denied=None
+- `00:15:26`   imf                IMF — SDMX/MFS                     datasets=471/None cov=None keys=471 MB=3495.86 series=None freshest=0.9h denied=None
+- `00:15:26`   sec-bulk           SEC — bulk XBRL                    datasets=2/None cov=None keys=2 MB=2969.01 series=None freshest=4.2h denied=None
+- `00:15:26`   worldbank          World Bank                         datasets=58968/None cov=None keys=58968 MB=982.41 series=None freshest=0.9h denied=None
+- `00:15:26`   oecd               OECD                               datasets=1073/1546 cov=69.4 keys=1073 MB=940.82 series=1546 freshest=0.9h denied=481
+- `00:15:26`   nyfed-research     NY Fed — Research Data (SCE/HHDC/D datasets=513/None cov=None keys=513 MB=703.44 series=None freshest=21.3h denied=None
+- `00:15:26`   finra              FINRA — Query API                  datasets=10/None cov=None keys=10 MB=700.14 series=None freshest=7.5h denied=None
+- `00:15:26`   polygon            Polygon.io — US equities           datasets=1534/None cov=None keys=1534 MB=565.83 series=None freshest=0.1h denied=None
+- `00:15:26`   gleif              GLEIF — LEI system                 datasets=6/None cov=None keys=6 MB=533.29 series=None freshest=0.9h denied=None
+- `00:15:26`   sec-edgar          SEC EDGAR — filings index          datasets=139/None cov=None keys=139 MB=359.7 series=None freshest=0.3h denied=None
+- `00:15:26`   eiopa              EIOPA — Solvency II RFR            datasets=73/None cov=None keys=73 MB=263.99 series=None freshest=0.9h denied=None
+- `00:15:26`   dol                US DOL — ETA claims                datasets=78/None cov=None keys=78 MB=164.56 series=None freshest=0.5h denied=None
+- `00:15:26`   boe                Bank of England — IADB             datasets=74/None cov=None keys=74 MB=160.55 series=None freshest=0.9h denied=None
+- `00:15:26`   fed-board          Federal Reserve Board — DDP        datasets=43/None cov=None keys=43 MB=115.1 series=None freshest=0.8h denied=None
+- `00:15:26`   boj                Bank of Japan                      datasets=9638/None cov=None keys=9638 MB=79.44 series=None freshest=0.9h denied=None
+- `00:15:26`   treasury           US Treasury — FiscalData           datasets=84/None cov=None keys=84 MB=74.13 series=None freshest=0.3h denied=None
+- `00:15:26`   bis                BIS — Bank for Intl Settlements    datasets=56/29 cov=100.0 keys=56 MB=58.1 series=29 freshest=0.9h denied=None
+- `00:15:26`   te-mirror          Trading Economics — FRED Mirror    datasets=160/None cov=None keys=160 MB=41.41 series=225 freshest=0.2h denied=None
+- `00:15:26`   census-us          US Census Bureau                   datasets=359/None cov=None keys=359 MB=37.91 series=0 freshest=0.2h denied=None
+- `00:15:26`   yahoo              Yahoo Finance                      datasets=66/None cov=None keys=66 MB=34.77 series=None freshest=0.5h denied=None
+- `00:15:26`   cftc               CFTC — futures positioning         datasets=32/None cov=None keys=32 MB=32.91 series=None freshest=0.8h denied=None
+- `00:15:26`   snb                Swiss National Bank                datasets=24/None cov=None keys=24 MB=28.42 series=None freshest=0.9h denied=None
+- `00:15:26`   bcb                Banco Central do Brasil            datasets=22/None cov=None keys=22 MB=28.4 series=None freshest=0.9h denied=None
+- `00:15:26`   other              Other / mixed-signature            datasets=152/None cov=None keys=152 MB=23.22 series=None freshest=0.1h denied=None
+- `00:15:26`   nyfed              NY Fed — Markets API               datasets=1946/None cov=None keys=1946 MB=13.73 series=1539 freshest=0.0h denied=None
+- `00:15:26`   ofr                OFR — Office of Financial Research datasets=482/None cov=None keys=482 MB=7.62 series=442 freshest=0.2h denied=None
+- `00:15:26`   bea                BEA — Bureau of Economic Analysis  datasets=143/None cov=None keys=143 MB=6.89 series=253 freshest=0.3h denied=None
+- `00:15:26`   cl-datos           Chile — datos.gob.cl               datasets=15/None cov=None keys=15 MB=5.31 series=None freshest=151.8h denied=None
+- `00:15:26`   ofr-bsrm           OFR — Bank Systemic Risk Monitor   datasets=501/None cov=None keys=501 MB=2.29 series=None freshest=21.3h denied=None
+- `00:15:26`   ofr-hfm            OFR — Hedge Fund Monitor           datasets=498/None cov=None keys=498 MB=1.58 series=None freshest=0.7h denied=None
+- `00:15:26`   ofr-site           OFR — Site Data Files              datasets=6/None cov=None keys=6 MB=1.48 series=None freshest=21.3h denied=None
+- `00:15:26`   te-feed            Trading Economics — Country Snapsh datasets=1/None cov=None keys=1 MB=0.88 series=None freshest=21.3h denied=None
+- `00:15:26`   ofr-fsi            OFR — Financial Stress Index       datasets=2/None cov=None keys=2 MB=0.52 series=None freshest=0.5h denied=None
+- `00:15:26`   hk-data            Hong Kong — data.gov.hk            datasets=37/None cov=None keys=37 MB=0.5 series=None freshest=7.8h denied=None
+- `00:15:26`   cboe               Cboe                               datasets=11/None cov=None keys=11 MB=0.37 series=None freshest=0.1h denied=None
+- `00:15:26`   tic                US Treasury — TIC                  datasets=10/None cov=None keys=10 MB=0.25 series=None freshest=21.3h denied=None
+- `00:15:26`   dbnomics           DBnomics                           datasets=15/None cov=None keys=15 MB=0.21 series=None freshest=0.9h denied=None
+- `00:15:26`   banxico            Banxico — SIE API                  datasets=5/None cov=None keys=5 MB=0.16 series=None freshest=0.9h denied=None
+- `00:15:26`   coinmetrics        CoinMetrics — community            datasets=11/None cov=None keys=11 MB=0.11 series=None freshest=0.9h denied=None
+- `00:15:26`   chicagofed         Chicago Fed — NFCI                 datasets=1/None cov=None keys=1 MB=0.05 series=None freshest=0.5h denied=None
+- `00:15:26`   clevelandfed       Cleveland Fed — yield-curve model  datasets=1/None cov=None keys=1 MB=0.05 series=None freshest=0.5h denied=None
+- `00:15:26`   atlantafed         Atlanta Fed — GDPNow               datasets=2/None cov=None keys=2 MB=0.05 series=None freshest=0.5h denied=None
+- `00:15:26`   nasa               NASA POWER — ag weather            datasets=5/None cov=None keys=5 MB=0.03 series=None freshest=0.9h denied=None
+- `00:15:26`   occ                OCC — options volume               datasets=4/None cov=None keys=4 MB=0.02 series=None freshest=0.9h denied=None
+- `00:15:26`   taiwan-moea        Taiwan MOEA — Statistics Dept.     datasets=1/None cov=None keys=1 MB=0.01 series=None freshest=0.5h denied=None
+- `00:15:26`   peru-copper        Banco Central de Reserva del Perú  datasets=1/None cov=None keys=1 MB=0.0 series=None freshest=0.6h denied=None
+- `00:15:26`   kr-ecos            Korea — Bank of Korea ECOS         datasets=0/None cov=None keys=0 MB=0.0 series=None freshest=Noneh denied=None
+- `00:15:26`   indicator-bus      Canonical Indicator Bus            datasets=18738/None cov=None keys=1 MB=1.42 series=None freshest=11.6h denied=None
+- `00:15:26`   equity-research-tickers Equity Research Universe           datasets=911/None cov=None keys=911 MB=258.09 series=None freshest=0.6h denied=None
+- `00:15:26`   tradingview-vault-live TradingView Vault (LIVE)           datasets=5632/None cov=None keys=1 MB=3.7 series=None freshest=12.2h denied=None
+- `00:15:26` data/warm/ has 62 provider prefixes; not represented in the hub by slug: ['_audit', 'archived-fred', 'asia-trade', 'backlog', 'blackswan', 'census-econ', 'dtcc-fails', 'dtcc', 'edgar-filings', 'fiscaldata-full', 'frbddp-full', 'icma-sftr', 'official-yields', 'playbooks', 'portwatch', 'real-economy', 'repo-master', 'sec-ftd', 'te-yields', 'tv-bars', 'us-equities-daily', 'usgov']
+- `00:15:31` state docs: 14 prefixes carry _state/; >48h silent: {"census-us": {"n_state_docs": 2, "newest_age_h": 168.4}}
+- `00:15:31` ⚠ import-sentinel feed: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
+## S2 engines: inventory x schedules x 7d invocations/errors
+
+- `00:15:41` 872 Lambda functions
+- `00:15:41` schedule manifest: 597 functions have an ENABLED rule/schedule
+- `00:16:19` classes: {'OK': 581, 'ORCHESTRATED': 144, 'ORPHAN_IDLE': 111, 'SOME_ERRORS': 21, 'ERRORING': 13, 'SCHEDULED_SILENT': 2}
+- `00:16:19`   SCHEDULED_SILENT (2): justhodl-fi-census inv=0 err=0; justhodl-etf-census inv=0 err=0
+- `00:16:19`   ERRORING (13): justhodl-boj-full inv=39474 err=37422; justhodl-import-sentinel inv=1729 err=1059; justhodl-insider-trades inv=882 err=667; justhodl-fleet-monitor inv=189 err=189; justhodl-stock-screener inv=149 err=149; justhodl-signal-scorecard inv=42 err=42; justhodl-calibrator inv=42 err=42; justhodl-imf-full inv=24 err=24; justhodl-signal-harvester inv=21 err=21; justhodl-feed-registry inv=21 err=21; justhodl-research-backtest inv=21 err=21; justhodl-ici-flows inv=6 err=6; justhodl-provider-window-sentinel inv=2 err=1
+- `00:16:19`   SOME_ERRORS (21): justhodl-series-extractor inv=8440 err=3073; justhodl-census-us inv=7333 err=1845; justhodl-gdelt-full inv=737 err=108; justhodl-market-tape inv=2089 err=77; manufacturing-global-agent inv=51 err=25; justhodl-repo-monitor inv=357 err=22; fedliquidityapi inv=226 err=19; justhodl-equity-research inv=1311 err=7; justhodl-cds-proxy inv=20 err=6; justhodl-ecb-deep inv=1014 err=6; justhodl-fortress inv=26 err=6; justhodl-plumbing-aggregator inv=172 err=4; justhodl-provider-catalog inv=184 err=3; justhodl-risk-gate inv=177 err=3; justhodl-outcome-checker inv=17 err=3; justhodl-ecb-derived inv=9 err=3; justhodl-a2a-bus inv=6566 err=2; justhodl-cb-injection inv=9 err=2; justhodl-global-liquidity inv=7 err=2; cftc-futures-positioning-agent inv=117 err=1; justhodl-real-economy-collector inv=10 err=1
+- `00:16:19`   ORPHAN_IDLE (111): justhodl-data-collector, justhodl-synthetic-monitor, justhodl-asymmetric-scorer, ofrapi, justhodl-momentum-scanner, justhodl-volatility-squeeze-hunter, justhodl-tv-bars, justhodl-theme-tier-classifier, justhodl-fed-speak, justhodl-divergence-scanner, macro-report-api, justhodl-position-sizer-v2, ecb-data-daily-updater, justhodl-screener-alerts, justhodl-subscribe, justhodl-email-reports-v2, justhodl-portfolio-admin, justhodl-universe-builder, justhodl-insider-cluster-scanner, justhodl-momentum-breakout, justhodl-liquidity-agent, justhodl-bond-regime-detector, justhodl-daily-macro-report, justhodl-microcap-float-squeeze, justhodl-eps-revision-velocity, justhodl-earnings-whisper, justhodl-ecb-full-catalog, justhodl-ai-council, justhodl-ab-test, economyapi, justhodl-investor-agents, aiapi-market-analyzer, justhodl-allocator, autonomous-ai-processor, treasury-auto-updater, justhodl-regime-composite, justhodl-transcript-query, permanent-market-intelligence, justhodl-earnings, ultimate-multi-agent, ecb, justhodl-sector-tilt, justhodl-narrative-density-tracker, justhodl-dep-graph, justhodl-tv-notes-ingest, justhodl-treasury-proxy, justhodl-position-monitor, justhodl-market-interpreter, justhodl-prompt-iterator, scrapeMacroData, justhodl-history-api, justhodl-theme-rotation-engine, daily-liquidity-report, justhodl-asymmetric-hunter, MLPredictor, justhodl-ask-desk, justhodl-signal-portfolio, justhodl-fleet-auditor, justhodl-reports-builder, justhodl-deep-value-screener, justhodl-nobrainer-tracker, justhodl-vol-regime, justhodl-correlation-breaks, multi-agent-orchestrator, justhodl-supply-inflection-scanner, justhodl-email-reports, justhodl-theme-detector, justhodl-khalid-metrics, justhodl-screen-backtest, justhodl-options-flow-scanner, justhodl-watchlist-debate, justhodl-pre-pump-detector, justhodl-activist-filings-scanner, bls-employment-api-v2, justhodl-ml-predictions, justhodl-sector-earnings-diffusion, justhodl-api-keys-admin, justhodl-morning-brief-tg, justhodl-ask, justhodl-stock-ai-research …
+## S3 feeds: data/*.json freshness
+
+- `00:16:20` 960 top-level feeds; age buckets {'<1d': 785, '<3d': 33, '>30d': 89, '<30d': 41, '<7d': 12}
+- `00:16:20` stale >7d (130): feedback-summary.json 120d; history-api-url.json 118d; user-trades-stats.json 117d; user-trades.json 117d; user-watchlist.json 117d; _freshness-status.json 102d; eventbridge-audit.json 100d; system-audit.json 99d; _probe_shares.json 90d; history-index.json 85d; market-internals-history.json 83d; backtest-summary.json 82d; quiver-lobbying-cache.json 82d; finviz-signals-state.json 78d; askdesk-config.json 76d; quiver-congress-cache.json 68d; llm-cost-audit.json 59d; page-ai-live.json 58d; page-ai-manifest.json 58d; engine-wiring.json 57d; subscribe-endpoint.json 57d; tv-bookmarklet.json 57d; tv-pipeline-status.json 57d; engine-registry.json 56d; source-utilization.json 56d; tv-ingest-config.json 51d; ka-config.json 50d; khalid-config.json 50d; symbol-map.json 50d; global-sovereign-longhistory.json 47d; signal-suppress.json 46d; config-backtest-url.json 44d; stale-triage.json 43d; tv-fleet-map.json 37d; page-manifest.json 36d; activist-filings-state.json 32d; activist-filings.json 32d; allocator.json 32d; bus-consumers.json 32d; correlation-surface.json 32d; deep-value.json 32d; dependency-graph.json 32d; earnings-pead.json 32d; earnings-whisper.json 32d; eps-revision-velocity.json 32d; family-defs.json 32d; fed-speak-state.json 32d; fed-speak.json 32d; fleet-inventory.json 32d; fleet-map.json 32d; microcap-float-squeeze.json 32d; momentum-breakout.json 32d; momentum-scanner.json 32d; morning-brief-latest.json 32d; narrative-density.json 32d; nobrainers-rationale.json 32d; nobrainers.json 32d; pead-signals.json 32d; pre-pump-signals.json 32d; regime-composite-history.json 32d; regime-composite.json 32d; revenue-acceleration.json 32d; risk-sizer.json 32d; sector-earnings-diffusion-state.json 32d; sector-earnings-diffusion.json 32d; sector-tilt.json 32d; smart-money-clusters.json 32d; supply-inflection.json 32d; synthetic-monitor-prev.json 32d; synthetic-monitor.json 32d; tape-reader.json 32d; theme-rotation-state.json 32d; theme-tiers.json 32d; themes-detected.json 32d; universe.json 32d; vol-regime.json 32d; volatility-squeeze.json 32d; whats-changed.json 32d; engine-alpha.json 31d; ka-analysis.json 31d; ka-metrics.json 31d; khalid-analysis.json 31d; khalid-metrics.json 31d; signal-scorecard.json 31d; ab-test-results.json 30d; alpha-atlas.json 30d; correlation-breaks.json 30d; ecb-confidence.json 30d; quantum-desk-sources.json 30d; fleet-audit-history.json 29d; fleet-audit-queue.json 29d; fleet-audit.json 29d; ai-council.json 28d; alpha-triage.json 28d; asymmetric-scorer.json 28d; calibration-snapshot.json 28d; cq-catalog.json 28d; insider-clusters.json 28d; ofr-stfm.json 28d; auction-tenor-signals.json 27d; macro-frontrun-sniffer-history.json 27d; auction-crisis-alert-state.json 26d; divergence-interpreted-state.json 26d; divergence-interpreted.json 26d; frontrun-sniffer-history.json 26d; feed-registry.json 23d; fleet-false-negative-audit.json 23d; activist-13d.json 22d; ice-alt-sources.json 18d; ice-gap-hunt.json 18d; ice-source-sweep.json 18d; tv-bars-status.json 18d; ice-alt-claims-investig.json 17d; repo-coverage.json 17d; repo-gap-audit.json 16d; repo-master-inventory.json 16d; soma-cusip-status.json 16d; earnings.json 15d; industry-case.json 15d; tape-truth.json 15d
+## S4 business-cycle series discovery across the macro warehouses
+
+- `00:16:20` OECD catalog: 1546 dataflows (ok)
+- `00:16:20` OECD walked: 1068 objects across 1068 flow ids
+- `00:16:20` OECD cycle-relevant dataflows: 229 (walked: 0)
+- `00:16:20`     --   DF_TEST_MEI                              TEST - Main Economic Indicators Publication objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_AFDD_STAT_ANNEX@DF_TAB02             Africa's Development Dynamics (AfDD) Table 02 - Annual real  objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_AFDD_STAT_ANNEX@DF_TAB04             Africa's Development Dynamics (AfDD) Table 04 - Annual real  objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_AFDD_STAT_ANNEX@DF_TAB17             Africa's Development Dynamics (AfDD) Table 17 - Trade by man objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_AFDD_STAT_ANNEX@DF_TAB18             Africa's Development Dynamics (AfDD) Table 18 - Export diver objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_AFDD_STAT_ANNEX@DF_TAB19             Africa's Development Dynamics (AfDD) Table 19 - Global and r objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_AFDD_STAT_ANNEX@DF_TAB26             Africa's Development Dynamics (AfDD) Table 26 - Electricity  objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_AFDD_STAT_ANNEX@DF_TAB28             Africa's Development Dynamics (AfDD) Table 28 - Internationa objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_AFDD_STAT_ANNEX@DF_TAB32             Africa's Development Dynamics (AfDD) Table 32 - Employment b objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_AFDD_STAT_ANNEX_RECENT@DF_TAB01      Africa's Development Dynamics (AfDD) Table 01 - Indicators o objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_AFDD_STAT_ANNEX_RECENT@DF_TAB31      Africa's Development Dynamics (AfDD) Table 31 - Informal eco objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_AFDD_STAT_ANNEX_RECENT@DF_TAB35      Africa's Development Dynamics (AfDD) Table 35 - Employment b objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_AFDD_STAT_ANNEX_RECENT@DF_TAB36      Africa's Development Dynamics (AfDD) Table 36 - Employment b objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_AIR_EMISSIONS@DF_AIR_EMISSIONS       Air emissions - Air pollutants Inventories objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_AIR_GHG@DF_AIR_GHG                   Air emissions - Greenhouse gas emissions Inventories objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_ALFS@DF_ALFS_EMP                     Employment by activites and status (ALFS) objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_ALFS@DF_ALFS_EMP_ICSE93              Employment by professional status (ICSE-93) objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_ALFS@DF_ALFS_EMP_ISIC                Employment by activities (ISIC Rev. 4) objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_AN_HOUSE_PRICES@DF_HOUSE_PRICES      Analytical house prices indicators objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_BATIS@DF_BATIS                       Balanced trade in services (BaTIS) objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_BIMTS@DF_BIMTS_CPA_2_1               Balanced international merchandise trade statistics (BIMTS)  objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_BIMTS@DF_BIMTS_HS2017_2D             Balanced international merchandise trade statistics (BIMTS)  objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_BIMTS@DF_BIMTS_HS2017_4D             Balanced international merchandise trade statistics (BIMTS)  objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_BIMTS_6D@DF_BIMTS_HS2017_6D          Balanced international merchandise trade statistics (BIMTS)  objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_BOP@DF_TIS                           International trade in services objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_BTIGE@DF_BTIGE                       Bilateral Trade in goods by end-use objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_CAPMF@DF_CAPMF                       Climate actions and policies measurement framework objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_CPU@DF_CPU                           Climate Policy Uncertainty objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_DAC2@DF_DAC2B                        DAC2B: Other official flows (OOF) and export credits objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_DIGITAL_TRADE@DF_DIGITAL_TRADE       Digital Trade - Experimental estimates objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_DUR@DF_AVD_DUR                       Average duration of unemployment objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_DUR@DF_DUR_D                         Unemployment by duration objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_DUR@DF_DUR_I                         Incidence of unemployment by duration objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_EAG_LSO_EA@DF_LSO_NEAC_DISTR_DURUNEMP Duration of unemployment distribution among unemployed adult objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_EAG_LSO_EA@DF_LSO_NEAC_EMP           Employment rates of adults, by educational attainment, age g objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_EAG_LSO_EA@DF_LSO_NEAC_EMP_FIELD     Employment rates of tertiary-educated adults, by field of st objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_EAG_LSO_EA@DF_LSO_NEAC_EMP_MIGR      Employment rates of adults, by educational attainment, age g objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_EAG_LSO_EA@DF_LSO_NEAC_UNEMP         Unemployment rates of adults, by educational attainment, age objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_EAG_LSO_EA@DF_LSO_NEAC_UNEMPLOYED    Share of unemployed adults among all adults, by educational  objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_EAG_LSO_EA@DF_LSO_NEAC_UNEMP_FIELD   Unemployment rates of tertiary-educated adults, by field of  objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_EAG_LSO_EA@DF_LSO_NEAC_UNEMP_MIGR    Unemployment rates of adults, by educational attainment, age objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_EAG_LSO_EA@DF_LSO_TRANS_MIGR         Share of young adults who are not employment nor in formal e objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_EAG_UOE_FIN@DF_UOE_INDIC_FIN_GDP     Expenditure on educational institutions as a percentage of G objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_EPL@DF_EPL                           Strictness of employment protection objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FFS@DF_FFS_ALB                       Inventory of Energy Subsidies and Support Measures in the We objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FFS@DF_FFS_BIH                       Inventory of Energy Subsidies and Support Measures in the We objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FFS@DF_FFS_IDN                       Fossil Fuel Support - Indonesia objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FFS@DF_FFS_MKD                       Inventory of Energy Subsidies and Support Measures in the We objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FFS@DF_FFS_MNE                       Inventory of Energy Subsidies and Support Measures in the We objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FFS@DF_FFS_SRB                       Inventory of Energy Subsidies and Support Measures in the We objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FFS@DF_FFS_WBC                       Inventory of Energy Subsidies and Support Measures in the We objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FFS@DF_FFS_XKV                       Inventory of Energy Subsidies and Support Measures in the We objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FISH_EMP@DF_FISH_EMPL                Employment in fisheries, aquaculture and processing objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FISH_TRADE@DF_FISH_TRADE             International trade of fisheries commodities objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FTPT@DF_FTPT                         Full-time and part-time employment objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FTPT@DF_FTPT_COMMON                  Full-time and part-time employment based on OECD-harmonized  objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FTPT@DF_FTPT_COMMON_INC              Incidence of full-time and part-time employment based on OEC objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FTPT@DF_FTPT_INC_GEN                 Gender share of part-time employment objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FTPT@DF_FTPT_NATIONAL                Full-time and part-time employment based on national definit objs=0 MB=0.0 age=Noneh
+- `00:16:20`     --   DSD_FTPT@DF_FTPT_NATIONAL_INC            Incidence of full-time and part-time employment based on nat objs=0 MB=0.0 age=Noneh
+- `00:16:20` OECD CLI objects: [('DSD_FUA_CLIM@DF_CLIM_PROJ.dat.gz', 3819024), ('DSD_FUA_CLIM@DF_COASTAL_FLOOD.dat.gz', 1518305), ('DSD_FUA_CLIM@DF_DROUGHT.dat.gz', 974216), ('DSD_FUA_CLIM@DF_HEAT_STRESS.dat.gz', 2887249), ('DSD_FUA_CLIM@DF_LAND_TEMP.dat.gz', 1586673), ('DSD_FUA_CLIM@DF_PRECIP.dat.gz', 4875150), ('DSD_FUA_CLIM@DF_RIVER_FLOOD.dat.gz', 2468281), ('DSD_FUA_CLIM@DF_TEMPERATURES.dat.gz', 3222481)]
+- `00:16:21`   data/warm/oecd/data/DSD_FUA_CLIM@DF_PRECIP.dat.gz (4875150 B, 607.3h): head='DATAFLOW,REF_AREA,FREQ,MEASURE,UNIT_MEASURE,RET_PERIOD,HEAT_STRESS,TERRITORIAL_LEVEL,PROJ_SCENARIO,TIME_PERIOD,OBS_VALUE,OBS_STATUS,UNIT_MULT,DECIMALS\r\nOECD.CFE.EDS:DSD_FUA_CLIM@DF_PRECIP(1.4),CL002C,A,EXT_PRECIP_DAYS_CHG_1981_2010,D_Y,_Z,_Z,CITY,_Z,1981,0,A,0,1\r\nOECD.CFE.EDS:DSD_FUA_CLIM@DF_PRECIP(1.4),CL002C,A,EXT_PRECIP_DAYS_CHG_1981_2010,D_Y,_Z,_Z,CITY,_Z,1982,0,A,0,1\r\nOECD.CFE.EDS:DSD_FUA_CLIM@DF_PRECIP(1.4),CL002C,A,EXT_PRECIP_DAYS_CHG_1981_2010,D_Y,_Z,_Z,CITY,_Z,1983,0,A,0,1\r\nOECD.CFE.EDS:DSD_FUA_CLIM@DF_PRECIP(1.4),CL002C,A,EXT_PRECIP_DAYS_CHG_1981_2010,D_Y,_Z,_Z,CITY,_Z,1984,0,A,0,1\r\n'
+- `00:16:22`   CLI rows=355690 areas=2554 latest periods: [('CL002C', '2024'), ('AUS12C', '2024'), ('AUS13C', '2024'), ('AUS14C', '2024'), ('AUS19C', '2024'), ('BE001C', '2024'), ('BE008C', '2024'), ('BE012C', '2024'), ('BE002C', '2024'), ('BE003C', '2024'), ('BE004C', '2024'), ('BE006C', '2024'), ('BE007C', '2024'), ('BE009C', '2024'), ('BE010C', '2024'), ('BE011C', '2024'), ('BE013C', '2024'), ('BE014C', '2024'), ('BG012C', '2024'), ('BG003C', '2024'), ('CAN05C', '2024'), ('CAN06C', '2024'), ('CAN08C', '2024'), ('CAN15C', '2024'), ('CAN20C', '2024'), ('CAN23C', '2024'), ('CL001C', '2024'), ('CL003C', '2024'), ('CL004C', '2024'), ('CL005C', '2024'), ('CL006C', '2024'), ('CL007C', '2024'), ('CL008C', '2024'), ('COL24C', '2024'), ('CZ012C', '2024'), ('CZ002C', '2024'), ('CZ015C', '2024'), ('CZ004C', '2024'), ('CZ005C', '2024'), ('CZ006C', '2024')]
+- `00:16:22` IMF: prefixes ['data/warm/imf-full/_probe/', 'data/warm/imf-full/_state/', 'data/warm/imf-full/src/']
+- `00:16:22`   data/warm/imf-full/_state/state.json: keys=['version', 'phase', 'queue', 'have', 'failures', 'universe', 'lease_until', 'as_of', 'n_banked', 'catalog_endpoint', 'last_discover']
+- `00:16:23` IMF cycle-relevant dataflows: 0: []
+- `00:16:23` World Bank state: {"version": "1.0.0", "phase": "COMPLETE", "queue": 0, "have": 29468, "failures": 22, "lease_until": 0, "n_indicators": 29490, "as_of": "2026-09-01T22:32:49+00:00", "n_banked": 29468, "bytes_total": 473415663}
+- `00:16:23` eurostat Tier-0: 8147 flows, cycle-relevant 10; sample: [{"flow": "BD_ESIZE_R3", "title": "", "series": 95500}, {"flow": "MET_BD_ESIZE", "title": "", "series": 17500}, {"flow": "MIGR_DUBRESI", "title": "", "series": 296500}, {"flow": "MIGR_RESICT1_1", "title": "", "series": 111000}, {"flow": "MIGR_RESICT1_2", "title": "", "series": 196000}, {"flow": "MIGR_RESICT1_3", "title": "", "series": 174500}, {"flow": "MIGR_RESICT2_1", "title": "", "series": 20500}, {"flow": "MIGR_RESICT2_2", "title": "", "series": 122000}, {"flow": "MIGR_RESICT3", "title": "", "series": 247365}, {"flow": "URT_BD_ESIZE", "title": "", "series": 19500}]
+- `00:16:23` ecb Tier-0: 207 flows, cycle-relevant 0; sample: []
+- `00:16:23` BIS catalog 29 dataflows; walked objects 28: ['BIS_REL_CAL.dat.gz', 'WS_CBPOL.dat.gz', 'WS_CBS_PUB.dat.gz', 'WS_CBTA.dat.gz', 'WS_CPMI_CASHLESS.dat.gz', 'WS_CPMI_CT1.dat.gz', 'WS_CPMI_CT2.dat.gz', 'WS_CPMI_DEVICES.dat.gz', 'WS_CPMI_INSTITUT.dat.gz', 'WS_CPMI_MACRO.dat.gz', 'WS_CPMI_PARTICIP.dat.gz', 'WS_CPMI_SYSTEMS.dat.gz', 'WS_CPP.dat.gz', 'WS_CREDIT_GAP.dat.gz', 'WS_DEBT_SEC2_PUB.dat.gz', 'WS_DER_OTC_TOV.dat.gz', 'WS_DPP.dat.gz', 'WS_DSR.dat.gz', 'WS_EER.dat.gz', 'WS_GLI.dat.gz', 'WS_LBS_D_PUB.dat.gz', 'WS_LONG_CPI.dat.gz', 'WS_NA_SEC_DSS.dat.gz', 'WS_OTC_DERIV2.dat.gz', 'WS_SPP.dat.gz', 'WS_TC.dat.gz', 'WS_XRU.dat.gz', 'WS_XTD_DERIV.dat.gz']
+- `00:16:24` FRED scoped manifest keys=['updated_at', 'categories', 'categories_done', 'categories_total', 'series_seen', 'series_excluded_stale', 'series_excluded_discontinued', 'series_skipped_already', 'accounting', 'n_categories_expanded', 'series_imported', 'phase2'] n=None
+- `00:16:24` te-mirror index: 4 entries keys=['symbols', 'updated_at', 'n_symbols', 'mean_agree_pct']
+- `00:16:34` other warm lanes (sampled up to 4000 objects each): {"_audit": {"objects_sampled": 5, "mb_sampled": 0.0, "newest_age_h": 21.7}, "archived-fred": {"objects_sampled": 23, "mb_sampled": 6.3, "newest_age_h": 429.1}, "asia-trade": {"objects_sampled": 54, "mb_sampled": 5.8, "newest_age_h": 8.2}, "backlog": {"objects_sampled": 184, "mb_sampled": 0.2, "newest_age_h": 21.8}, "banxico": {"objects_sampled": 1, "mb_sampled": 0.1, "newest_age_h": 3.0}, "blackswan": {"objects_sampled": 1301, "mb_sampled": 8.3, "newest_age_h": 21.7}, "bls-full": {"objects_sampled": 1661, "mb_sampled": 43789.3, "newest_age_h": 21.8}, "boe-full": {"objects_sampled": 48, "mb_sampled": 132.1, "newest_age_h": 21.7}, "boe": {"objects_sampled": 1, "mb_sampled": 0.0, "newest_age_h": 3.0}, "boj-full": {"objects_sampled": 4000, "mb_sampled": 17.1, "newest_age_h": 21.8}, "census-econ": {"objects_sampled": 4000, "mb_sampled": 4182.0, "newest_age_h": -0.0}, "census-us": {"objects_sampled": 359, "mb_sampled": 37.9, "newest_age_h": 0.1}, "cftc": {"objects_sampled": 3, "mb_sampled": 4.4, "newest_age_h": 4.6}, "dol-full": {"objects_sampled": 72, "mb_sampled": 160.6, "newest_age_h": 21.8}, "dtcc-fails": {"objects_sampled": 2, "mb_sampled": 0.0, "newest_age_h": 22.3}, "dtcc": {"objects_sampled": 1, "mb_sampled": 0.3, "newest_age_h": 0.1}, "ecb-mmsr": {"objects_sampled": 4, "mb_sampled": 0.0, "newest_age_h": 0.1}, "edgar-filings": {"objects_sampled": 138, "mb_sampled": 358.8, "newest_age_h": 18.7}, "eiopa": {"objects_sampled": 69, "mb_sampled": 264.0, "newest_age_h": 27.0}, "finra-full": {"objects_sampled": 10, "mb_sampled": 700.1, "newest_age_h": 8.0}, "fiscaldata-full": {"objects_sampled": 35, "mb_sampled": 45.3, "newest_age_h": 21.7}, "frbddp-full": {"objects_sampled": 19, "mb_sampled": 80.0, "newest_age_h": 21.8}, "fred-canary": {"objects_sampled": 15, "mb_sampled": 4.6, "newest_age_h": 1.0}, "fred-catalog": {"objects_sampled": 2229, "mb_sampled": 429.2, "newest_age_h": 569.9}, "fred-scoped": {"objects_sampled": 4000, "mb_sampled": 169.9, "newest_age_h": 437.3}, "gdelt": {"objects_sampled": 1, "mb_sampled": 0.1, "newest_age_h": 3.0}, "gleif": {"objects_sampled": 2, "mb_sampled": 533.3, "newest_age_h": 4.6}, "icma-sftr": {"objects_sampled": 30, "mb_sampled": 0.1, "newest_age_h": 7.9}, "nasa-power": {"objects_sampled": 1, "mb_sampled": 0.0, "newest_age_h": 3.0}, "nyfed-markets": {"objects_sampled": 1906, "mb_sampled": 12.4, "newest_age_h": 0.0}, "nyfed-research": {"objects_sampled": 513, "mb_sampled": 703.4, "newest_age_h": 21.7}, "nyfed": {"objects_sample
+- `00:16:34` polygon-full grouped sessions this year: 166, newest 2026-08-31.json.gz
+- `00:16:35` gdelt-full prefixes: ['data/warm/gdelt-full/_state/', 'data/warm/gdelt-full/v1/', 'data/warm/gdelt-full/v2/']
+## S5 cycle-adjacent engine feeds
+
+- `00:16:35`   activity-nowcast                 s3_age=11.7h gen_age=11.8h per_country=null n_series={"key": "components", "n": 6} keys=['schema_version', 'method', 'generated_at', 'elapsed_s', 'ok', 'activity_index', 'activity_z', 'regime', 'regime_label', 'momentum', 'momentum_z', 'headline']
+- `00:16:35`   air-cargo                        s3_age=13.6h gen_age=13.6h per_country=null n_series=null keys=['ok', 'version', 'generated_at', 'airport', 'errors', 'attribution', 'fetch_via', 'xlsx_bytes', 'rows_parsed', 'cols', 'tonnes', 'tonnes_k']
+- `00:16:35`   apac-leadlag                     s3_age=13.9h gen_age=14.0h per_country=null n_series=null keys=['engine', 'version', 'generated_at', 'window_days', 'horizons', 'series_days', 'us_symbols_loaded', 'pairs', 'proven_leads', 'status', 'read']
+- `00:16:35`   apac-leadlag-series              s3_age=13.9h gen_age=14.0h per_country=null n_series=null keys=['generated_at', 'asia', 'us_close']
+- `00:16:35`   asia-leads                       s3_age=13.9h gen_age=13.9h per_country=null n_series=null keys=['engine', 'version', 'generated_at', 'korea_exports', 'korea_flash', 'korea_flash_tape', 'taiwan_orders', 'taiwan_exports', 'siblings', 'methodology', 'sources', 'disclaimer']
+- `00:16:35`   bea-economic                     s3_age=2.2h gen_age=2.2h per_country=null n_series=null keys=['generated_at', 'source', 'gdp', 'pce_inflation', 'income', '_error', 'gdp_gdi', 'gdp_contributions_pp', 'corporate_profits', '_blocks_live']
+- `00:16:36`   bis-crossborder                  s3_age=38.6h gen_age=38.6h per_country=null n_series=null keys=['ok', 'version', 'generated_at', 'source', 'units', 'by_counterparty', 'errors', 'offshore_centres', 'em_asia', 'total', 'counterparties_in_response']
+- `00:16:36`   bls-labor                        s3_age=2.2h gen_age=2.2h per_country=null n_series=null keys=['generated_at', 'source', 'api_version', 'key_valid', 'summary', 'labor_market', 'inflation', 'productivity', '_series_live', '_error']
+- `00:16:36`   boom-stage                       s3_age=11.7h gen_age=11.7h per_country=null n_series={"key": "signals", "n": 0} keys=['ok', 'version', 'generated_at', 'pairs', 'signals', 'divergences', 'breadth', 'macro', 'signals_note', 'headline', 'method', 'doctrine']
+- `00:16:36`   canary-grid                      s3_age=5.7h gen_age=5.7h per_country=null n_series={"key": "signals", "n": 65} keys=['schema_version', 'method', 'generated_at', 'elapsed_s', 'early_warning_level', 'band', 'headline', 'sub_grids', 'freshness', 'signals', 'top_deteriorating', 'n_available']
+- `00:16:36`   canary-macro                     s3_age=1.0h gen_age=1.0h per_country=null n_series=null keys=['as_of', 'source', 'ICSA', 'IC4WSA', 'CCSA', 'CC4WSA', 'IURSA', 'USSLIND', 'USPHCI', 'T10Y3M', 'T10Y2Y', 'T10YFF']
+- `00:16:36`   census-economic                  s3_age=2.1h gen_age=2.2h per_country=null n_series=null keys=['generated_at', 'source', 'summary', 'retail', 'control_group', 'manufacturing_orders', '_series_live', '_fetch_error']
+- `00:16:36`   china-liquidity                  s3_age=9.7h gen_age=9.7h per_country=null n_series=null keys=['schema_version', 'method', 'generated_at', 'elapsed_s', 'fred_failed', 'series_resolved', 'regime', 'regime_read', 'money', 'credit_impulse', 'interbank_rate', 'currency']
+- `00:16:36`   china-liquidity-history          s3_age=9.7h gen_age=9.7h per_country=null n_series=null keys=['snapshots', 'updated_at']
+- `00:16:37`   commodity-curves                 s3_age=3.2h gen_age=3.2h per_country=null n_series=null keys=['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'source', 'spy_20d', 'fred_metrics', 'etf_metrics', 'n_fred', 'n_etf', 'n_fred_with_data', 'n_etf_with_data']
+- `00:16:37`   construction-housing             s3_age=13.2h gen_age=13.2h per_country=null n_series={"key": "series", "n": 10} keys=['schema_version', 'method', 'generated_at', 'elapsed_s', 'regime', 'regime_color', 'cycle_score', 'read', 'signals', 'series', 'n_resolved', 'n_series']
+- `00:16:37`   consumer-pulse                   s3_age=11.6h gen_age=11.6h per_country=null n_series={"key": "components", "n": 8} keys=['schema_version', 'method', 'generated_at', 'elapsed_s', 'ok', 'pulse_index', 'pulse_z', 'regime', 'regime_label', 'momentum', 'momentum_z', 'headline']
+- `00:16:37`   credit-composite                 s3_age=2.6h gen_age=2.6h per_country=null n_series=null keys=['ok', 'version', 'generated_at', 'elapsed_s', 'composite', 'lenses', 'plans', 'logged', 'thresholds', 'methodology']
+- `00:16:37`   credit-stress                    s3_age=2.1h gen_age=2.1h per_country=null n_series={"key": "metrics", "n": 12} keys=['generated_at', 'europe_sovereign', 'wl_research', 'generated_at_unix', 'dealer_positioning', 'version', 'elapsed_seconds', 'data_date', 'current_bps', 'metrics', 'derived_spreads', 'current_yields_pct']
+- `00:16:37`   cross-asset-regime               s3_age=3.7h gen_age=3.7h per_country=null n_series=null keys=['schema_version', 'method', 'generated_at', 'duration_s', 'asset_universe', 'stats', 'regime_5d', 'regime_20d', 'regime_60d', 'regime_change', 'correlation_matrix_30d', 'correlation_matrix_90d']
+- `00:16:37`   cycle-clock                      s3_age=0.7h gen_age=0.7h per_country=null n_series=null keys=['engine', 'version', 'generated_at', 'wl_research', 'duration_s', 'verdict', 'synthesis', 'trajectory', 'track_record', 'data_integrity', 'ai', 'cycle']
+- `00:16:37`   divergence-engine-v2             MISSING (An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist)
+- `00:16:37`   dollar-radar                     s3_age=5.0h gen_age=5.0h per_country=null n_series=null keys=['schema_version', 'engine', 'generated_at', 'wl_research', 'build_seconds', 'dollar_pressure', 'regime', 'regime_note', 'headline', 'canaries_pump', 'canaries_dump', 'canaries']
+- `00:16:38`   econ-calendar                    s3_age=13.2h gen_age=13.2h per_country=null n_series=null keys=['schema_version', 'engine', 'generated_at', 'build_seconds', 'data_source', 'feed_status', 'window', 'headline', 'next_major', 'counts', 'this_week', 'upcoming']
+- `00:16:38`   esi                              s3_age=11.7h gen_age=11.7h per_country=null n_series=null keys=['schema_version', 'method', 'generated_at', 'composite_7d', 'composite_30d', 'composite_60d', 'n_events_7d', 'n_events_30d', 'n_events_60d', 'regime', 'regime_interpretation', 'by_category']
+- `00:16:38`   esi-history                      s3_age=11.7h gen_age=11.7h per_country=null n_series=null keys=['snapshots', 'updated_at']
+- `00:16:38`   eurodollar-plumbing              s3_age=12.2h gen_age=12.2h per_country=null n_series=null keys=['engine', 'version', 'bis_crossborder', 'generated_at', 'euro_policy_corridor', 'wl_research', 'plumbing_health', 'verdict', 'composite_score', 'score', 'stress_score', 'severity']
+- `00:16:38`   freight-pulse                    s3_age=12.4h gen_age=12.4h per_country=null n_series={"key": "series", "n": 6} keys=['ok', 'version', 'generated_at', 'engine_class', 'composite_role', 'lag_months', 'role_note', 'series', 'errors', 'composite', 'verdict', 'inflections']
+- `00:16:38`   fx-intelligence                  s3_age=10.7h gen_age=10.7h per_country=null n_series=null keys=['engine', 'version', 'generated_at', 'headline', 'usd_regime', 'currencies', 'rate_differentials', 'positioning', 'freshness', 'errors']
+- `00:16:38`   gdelt-news                       s3_age=0.1h gen_age=0.1h per_country=null n_series=null keys=['generated_at', 'gdelt_timestamp', 'stats', 'themes', 'asset_sentiment', 'headlines_by_tone']
+- `00:16:39`   geopolitical-risk                s3_age=12.7h gen_age=12.8h per_country=null n_series=null keys=['ok', 'version', 'generated_at', 'sources', 'top_country', 'global_temp', 'rankings', 'gssi_cross', 'escalating', 'methodology']
+- `00:16:39`   global-business-cycle            s3_age=0.2h gen_age=0.2h per_country={"key": "by_country", "n": 34, "fields": ["iso3", "iso2", "yahoo_symbol", "yahoo_symbol_primary", "source", "source_kind n_series=null keys=['schema_version', 'engine_version', 'engine_type', 'generated_at', 'elapsed_sec', 'countries_with_fresh_data', 'countries_total', 'sources_used', 'supplements', 'polygon_lane', 'acceptance_gate', 'methodology']
+- `00:16:39`   global-business-cycle-history    s3_age=0.2h gen_age=0.2h per_country={"key": "by_country", "n": 34, "fields": ["iso3", "iso2", "country_name", "region", "gdp_weight", "yahoo_symbol", "n_poi n_series=null keys=['schema_version', 'engine_version', 'cli_transform', 'engine_type', 'generated_at', 'frequency', 'history_elapsed_sec', 'countries_count', 'transitions_count', 'lead_lag_count', 'lead_lag_max_lag_weeks', 'lead_lag_methodology']
+- `00:16:39`   global-flow-desk                 s3_age=1.4h gen_age=1.4h per_country=null n_series=null keys=['engine', 'version', 'generated_at', 'asset_classes', 'sectors', 'inst_vs_retail', 'hot_money', 'capex', 'ai_brief', 'ai_brief_src', 'history', 'method']
+- `00:16:40`   global-flows                     s3_age=14.3h gen_age=14.3h per_country={"key": "countries", "n": 3, "fields": ["status", "freq", "unit", "source", "specialty", "series", "latest_period"]} n_series=null keys=['v', 'engine', 'as_of', 'generated_at', 'doctrine', 'countries', 'deferred', 'composites', 'diag', 'status']
+- `00:16:40`   global-liquidity                 s3_age=10.2h gen_age=10.2h per_country=null n_series=null keys=['schema_version', 'method', 'generated_at', 'wl_research', 'elapsed_s', 'fred_failed', 'global_liquidity_index', 'fed_net_liquidity', 'broad_money', 'regime', 'regime_read', 'global_impulse_13w_pct']
+- `00:16:40`   global-liquidity-history         s3_age=10.2h gen_age=10.2h per_country=null n_series=null keys=['snapshots', 'updated_at']
+- `00:16:40`   global-macro                     s3_age=2.0h gen_age=2.0h per_country={"key": "countries", "n": 15, "fields": ["code", "name", "unemployment", "ip_yoy", "equity_3m", "composite_score", "n_co n_series=null keys=['schema_version', 'method', 'as_of', 'n_countries', 'n_with_data', 'regime_counts', 'global_avg_composite', 'global_regime', 'countries', 'rankings', 'duration_s']
+- `00:16:40`   global-recession                 s3_age=11.6h gen_age=11.6h per_country={"key": "countries", "n": 33, "fields": ["confirmation", "confirmation_detail", "iso3", "region", "gdp_weight", "phase", n_series=null keys=['engine', 'version', 'generated_at', 'global_recession_prob_pct', 'band', 'coverage', 'breadth', 'confirmation', 'by_region', 'countries', 'excluded', 'us_crosscheck']
+- `00:16:40`   global-sovereign                 s3_age=6.0h gen_age=6.0h per_country={"key": "countries", "n": 45, "fields": ["country", "region", "yield_10y_pct", "cds_bp", "cds_default_prob_pct", "spread n_series=null keys=['version', 'ok', 'generated_at', 'elapsed_s', 'n_countries', 'n_errors', 'errors', 'global_avg_stress', 'global_avg_cds_bp', 'eurodollar_hub_stress_0_100', 'eurodollar_hub_avg_cds_bp', 'eurodollar_hub_worst']
+- `00:16:40`   grid-queue                       s3_age=11.4h gen_age=11.4h per_country=null n_series=null keys=['version', 'generated_at', 'national', 'large_load_queue', 'queue_velocity', 'impact_map', 'lbnl_priors', 'iso_queues', 'queue', 'planned_capacity', 'industrial_load', 'hotspots']
+- `00:16:41`   hiring-velocity                  s3_age=59.7h gen_age=59.7h per_country=null n_series=null keys=['schema_version', 'method', 'generated_at', 'elapsed_s', 'n_scanned', 'n_scored', 'n_errors', 'counts', 'top_50', 'expansion_inflections', 'double_confirmed', 'methodology']
+- `00:16:41`   import-canary                    s3_age=10.6h gen_age=10.6h per_country=null n_series={"key": "signals", "n": 16} keys=['version', 'generated_at', 'data_month', 'lag_note', 'n_lines', 'lines', 'naics_lines', 'signals', 'industry_rollup', 'degraded', 'coverage', 'scope_note']
+- `00:16:41`   import-canary-history            s3_age=10.6h gen_age=10.6h per_country=null n_series=null keys=['lines', 'updated_at']
+- `00:16:41`   indicator-bus                    s3_age=12.0h gen_age=12.0h per_country=null n_series={"key": "indicators", "n": 18738} keys=['generated_at', 'marker', 'n', 'origin', 'indicators', 'elapsed_s']
+- `00:16:41`   labor-leading                    s3_age=7.5h gen_age=7.5h per_country=null n_series=null keys=['generated_at', 'jolts', 'challenger', 'claims', 'regime', 'interpretation', 'fetch_duration_s']
+- `00:16:41`   leading-markets                  s3_age=1.8h gen_age=1.8h per_country=null n_series=null keys=['schema_version', 'method', 'generated_at', 'elapsed_s', 'fmp_failed', 'n_markets', 'benchmark', 'turning_point_signal', 'signal_read', 'flashing_buckets', 'leading_score', 'risk_score']
+- `00:16:41`   leading-markets-history          s3_age=1.8h gen_age=1.8h per_country=null n_series=null keys=['snapshots', 'updated_at']
+- `00:16:42`   macro-leads                      s3_age=11.9h gen_age=11.9h per_country=null n_series=null keys=['generated_at', 'source', 'copper_gold_silver', 'rate_cut_diffusion', 'geopolitical_risk', 'heavy_truck_sales', 'freight_activity', '_populated']
+- `00:16:42`   macro-nowcast                    s3_age=0.0h gen_age=0.0h per_country=null n_series={"key": "components", "n": 7} keys=['v', 'generated_at', 'global_confidence', 'wl_research', 'duration_s', 'raw_score', 'normalized_score', 'regime', 'regime_color', 'coverage_pct', 'n_components_used', 'n_components_failed']
+- `00:16:42`   macro-regime                     MISSING (An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist)
+- `00:16:42`   macro-surprise                   s3_age=2.4h gen_age=2.4h per_country=null n_series=null keys=['version', 'generated_at', 'n_indicators_tracked', 'n_indicators_computed', 'composite_z', 'growth_z', 'inflation_z', 'regime', 'regime_description', 'by_indicator', 'by_category', 'top_beats']
+- `00:16:42`   market-extremes                  s3_age=1.2h gen_age=1.2h per_country=null n_series=null keys=['schema_version', 'engine', 'generated_at', 'build_seconds', 'posture', 'posture_color', 'headline', 'radar_note', 'cycle_position', 'cycle_position_scale', 'scores', 'top_canaries']
+- `00:16:42`   nowcast-desk                     s3_age=10.7h gen_age=10.8h per_country=null n_series=null keys=['generated_at', 'source', 'gdp_nowcast', 'underlying_inflation', 'growth_confirmation', 'wage_growth_tracker', 'nowcast_quadrant', '_blocks_live']
+- `00:16:42`   oecd-cli                         s3_age=4.7h gen_age=4.7h per_country={"key": "by_country", "n": 15, "fields": ["country", "cli", "prior_cli", "trend", "phase"]} n_series=null keys=['generated_at', 'as_of_period', 'global_avg_cli', 'by_country', 'interpretation', 'fetch_errors', 'fetch_duration_s']
+- `00:16:42`   peru-copper                      s3_age=1.0h gen_age=1.0h per_country=null n_series=null keys=['engine', 'generated_at', 'source', 'unit', 'note', 'copper_production', 'read', 'headline']
+- `00:16:43`   port-cargo                       s3_age=11.6h gen_age=11.6h per_country=null n_series=null keys=['engine', 'version', 'date_field_type', 'engine_class', 'evidence_tier', 'lag_months', 'generated_at', 'duration_s', 'fetch_status', 'complete_through', 'true_latest_date', 'ragged_days_trimmed']
+- `00:16:43`   portwatch                        s3_age=12.1h gen_age=12.1h per_country=null n_series=null keys=['ok', 'version', 'generated_at', 'chokepoints', 'disruptions', 'errors', 'attribution', 'ref_n', 'daily_layer', 'daily_rows', 'metric_field', 'pids_seen']
+- `00:16:43`   ppi-acceleration                 s3_age=9.0h gen_age=9.0h per_country=null n_series=null keys=['version', 'generated_at', 'n_lines', 'n_accelerating', 'n_decelerating', 'n_base_rate_ready', 'n_universe', 'coverage_pct', 'drop_reasons', 'error_messages', 'dropped_ids', 'top_accelerating']
+- `00:16:43`   regime-composite                 s3_age=774.4h gen_age=774.4h per_country=null n_series=null keys=['schema_version', 'version', 'generated_at', 'wl_research', 'duration_s', 'meta_regime', 'meta_narrative', 'meta_class', 'composite_score', 'dimensions', 'modules', 'n_modules_total']
+- `00:16:43`   seasonality                      s3_age=37.2h gen_age=37.2h per_country=null n_series=null keys=['schema_version', 'method', 'generated_at', 'current_period', 'per_symbol', 'highest_favor_today', 'duration_s']
+- `00:16:43`   singapore-nodx                   s3_age=19.9h gen_age=19.9h per_country=null n_series=null keys=['engine', 'generated_at', 'source', 'unit', 'note', 'nodx_total', 'electronics', 'integrated_circuits', 'headline']
+- `00:16:43`   sovereign-stress                 s3_age=12.2h gen_age=12.2h per_country=null n_series=null keys=['schema_version', 'version', 'method', 'generated_at', 'elapsed_s', 'ok', 'headline', 'europe_stress', 'systemic_stress_ciss', 'sovereign_stress_sovciss', 'asia_sovereigns', 'most_stressed_sovereign']
+- `00:16:43`   taiwan-moea                      s3_age=1.0h gen_age=1.0h per_country=null n_series=null keys=['engine', 'generated_at', 'source', 'note', 'export_orders', 'semiconductor', 'headline', '_errors']
+- `00:16:44`   trade-nowcast                    s3_age=11.4h gen_age=11.4h per_country=null n_series={"key": "series", "n": 4} keys=['ok', 'version', 'generated_at', 'series', 'errors', 'bdi', 'cpb_wtm', 'rate_pressure', 'verdict', 'plain']
+- `00:16:44`   us-cycle                         s3_age=11.9h gen_age=11.9h per_country=null n_series=null keys=['engine', 'version', 'generated_at', 'duration_s', 'pillars', 'charts', 'alerts', 'cycle_score', 'signals_logged', 'brain_audit_source', 'methodology']
+- `00:16:44` ✅ audit written to data/audit/fleet-data-audit-5098.json
+## verdict
+
+- `00:16:44` ✅ providers=57 warm_prefixes=62 engines=872 classes={'OK': 581, 'ORCHESTRATED': 144, 'ORPHAN_IDLE': 111, 'SOME_ERRORS': 21, 'ERRORING': 13, 'SCHEDULED_SILENT': 2} feeds=960 stale7d=130 oecd_cycle_flows=229 (walked 0)
