@@ -1,0 +1,45 @@
+# ops 5121 -- symbol directory v1.1.0: Eurostat/ECB dimension labels
+
+**Status:** success  
+**Duration:** 164.7s  
+**Finished:** 2026-09-02T13:59:35+00:00  
+
+## Data
+
+| docs | step | version |
+|---|---|---|
+| 1374420 | S1 | 1.1.0 |
+
+## Log
+## S1 redeploy
+
+- `13:56:51`   zip: 128535 bytes
+## 1. Lambda
+
+- `13:56:51`   Lambda exists — updating
+- `13:56:56` ✅   ✓ updated justhodl-symdir
+## S2 launch the codelist lane
+
+- `13:57:02` ✅ schedule created: justhodl-symdir-codelists rate(20 minutes)
+## S3 wait for DSDs, verify labels
+
+- `13:57:32`   ecb done=0 eurostat done=0 (failed 0) shards=[None, None, None, None]
+- `13:58:03`   ecb done=25 eurostat done=100 (failed 0) shards=[None, None, None, None]
+- `13:58:33`   ecb done=25 eurostat done=200 (failed 0) shards=[None, None, None, None]
+- `13:59:04`   ecb done=50 eurostat done=350 (failed 0) shards=[None, None, None, None]
+- `13:59:04`   codelists-ecb-0: done=50 left=None total=None failed=0 sample_fail=[] last_run=None
+- `13:59:04`   codelists-eurostat-0: done=75 left=None total=None failed=0 sample_fail=[] last_run=None
+- `13:59:04`   codelists-eurostat-1: done=100 left=None total=None failed=0 sample_fail=[] last_run=None
+- `13:59:05`   codelists-eurostat-2: done=100 left=None total=None failed=0 sample_fail=[] last_run=None
+- `13:59:05`   codelists-eurostat-3: done=75 left=None total=None failed=0 sample_fail=[] last_run=None
+- `13:59:07`   browse ecb:EXR 'usd daily' 2533ms labeled=True matched=4 first=['Daily · Narrow EER group of trading partners (fixed composition) · US dollar · Nominal effective exch. rate · Average', 'Daily · Extended EER group of trading partners (fixed composition) · US dollar · Nominal effective exch. rate · Average'] facets={'FREQ': [['Q', 1508, 'Quarterly'], ['A', 1300, 'Annual']], 'CURRENCY': [['E02', 604, 'Extended EER group of trading partners (fixed composition)'], ['E03', 573, 'Broad EER group of trading partners (fixed composition)']], 'CURRENCY_DENOM': [['EUR', 396, 'Euro'], ['BGN', 141, 'Bulgarian lev']]}
+- `13:59:09`   series ecb EXR USD 2082ms n=7084 name='ECB reference exchange rate, US dollar/Euro, 2.15 pm (C.E.T.)'
+- `13:59:10`   drill ecb 855ms rows=[('ecb:EXR:EXR.D.USD.EUR.SP00.A', 'Daily · US dollar · Euro · Spot · Average', True)]
+- `13:59:11`   browse eurostat:AVIA_GOOAC 675ms labeled=True total=381000 first=['Annual · Flight · Freight and mail commercial air flights · CHARLEROI/BRUSSELS SOUTH airport · Slovakia', 'Annual · Flight · Freight and mail commercial air flights · CHARLEROI/BRUSSELS SOUTH airport · Türkiye']
+- `13:59:11`     facets: {'freq': [['A', 4096, 'Annual']], 'unit': [['FLIGHT', 4096, 'Flight']], 'tra_meas': [['CAF_FRM', 4096, 'Freight and mail commercial air flights']], 'rep_airp': [['BE_EBLG', 38, 'LIEGE airport'], ['BE_EBOS', 38, 'OOSTENDE/BRUGGE airport'], ['BG_LBSF', 38, 'SOFIA airport']]}
+## S4 live page: labeled facet chips
+
+- `13:59:35`   page dataset browser ecb:EXR: {"open": true, "rows": 300, "chips": ["Extended EER group of tradi\u2026 (E02)", "Narrow EER group of trading\u2026 (E01)", "Broad EER group of trading \u2026 (E03)", "Swiss franc (CHF)", "Chinese yuan renminbi (CNY)", "Czech koruna (CZK)", "Danish krone (DKK)", "Algerian dinar (DZD)"], "hint": "dimension labels on; type codes or words (e.g. DE, monthly, chain linked) to narrow; giant flows scan the first 120000 series", "first": ["Annual \u00b7 Swiss franc \u00b7 Euro \u00b7 Spot \u00b7 Average", "Annual \u00b7 Swiss franc \u00b7 Euro \u00b7 Spot \u00b7 End-of-period", "Annual \u00b7 Chinese yuan renminbi \u00b7 Euro \u00b7 Spot \u00b7 Average"]}
+## verdict
+
+- `13:59:35` ✅ PASS_ALL: v1.1.0 live; Eurostat/ECB series now carry dimension labels in browse, drill, series names and facet chips; the codelist lane drains every 20 min
