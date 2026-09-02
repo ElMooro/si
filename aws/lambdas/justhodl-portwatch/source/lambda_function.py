@@ -9,14 +9,16 @@ data/portwatch.json. Attribution: IMF PortWatch (portwatch.imf.org),
 UN Global Platform AIS. stdlib-only; source carries full history so no
 self-ledger needed; never fabricates.
 """
+import gzip
 import json
+import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.5.0"
+VERSION = "1.6.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -127,17 +129,39 @@ EXPORT_NATIONS = (("taiwan province of china", "Taiwan"),
                   ("saudi", "Saudi Arabia"))
 
 
-def _q(url, params, timeout=30):
+_REQ = {"n": 0, "throttled": 0}
+REQ_BUDGET = 60          # v1.6: incremental history makes ~4 requests a run; this is a runaway guard
+
+
+def _q(url, params, timeout=30, retries=3):
+    """One ArcGIS query with 429 backoff (20s / 60s / 120s). The IMF layer is
+    shared and keyless; Lambda's egress IPs are shared too, so a 429 says
+    nothing about our own volume -- back off, then fall back to history."""
+    if _REQ["n"] >= REQ_BUDGET:
+        return {"_err": f"request budget {REQ_BUDGET} exhausted"}
     qs = urllib.parse.urlencode({**params, "f": "json"})
-    try:
-        r = urllib.request.urlopen(
-            urllib.request.Request(url + "?" + qs, headers=UA), timeout=timeout)
-        j = json.loads(r.read())
-        if isinstance(j, dict) and j.get("error"):
-            return {"_err": str(j["error"])[:120]}
-        return j
-    except Exception as e:
-        return {"_err": str(e)[:120]}
+    last = None
+    for i in range(retries):
+        _REQ["n"] += 1
+        try:
+            r = urllib.request.urlopen(
+                urllib.request.Request(url + "?" + qs, headers=UA), timeout=timeout)
+            j = json.loads(r.read())
+            if isinstance(j, dict) and j.get("error"):
+                err = j["error"]
+                last = str(err)[:160]
+                if str(err.get("code")) == "429" or "Too many" in last or "quota" in last.lower():
+                    _REQ["throttled"] += 1
+                    if i < retries - 1:
+                        time.sleep((20, 60, 120)[min(i, 2)])
+                        continue
+                return {"_err": last}
+            return j
+        except Exception as e:
+            last = str(e)[:120]
+            if i < retries - 1:
+                time.sleep(5)
+    return {"_err": last or "unknown"}
 
 
 def _feats(j):
@@ -240,10 +264,66 @@ def attach_industry_exposure(port, ind_map):
     }
 
 
+HIST_KEY = "data/warm/portwatch/history/daily-rows.json.gz"
+HIST_DAYS = 450
+
+
+def _row_date(a):
+    d = a.get("date")
+    try:
+        if isinstance(d, (int, float)):
+            return datetime.fromtimestamp(d / 1000, tz=timezone.utc).date()
+        return datetime.fromisoformat(str(d)[:10]).date()
+    except Exception:
+        return None
+
+
+def _load_history():
+    try:
+        o = S3.get_object(Bucket=BUCKET, Key=HIST_KEY)
+        return json.loads(gzip.decompress(o["Body"].read()))
+    except Exception:
+        return {"choke": {}, "ports": {}, "through": {}, "version": VERSION}
+
+
+def _save_history(h):
+    try:
+        S3.put_object(Bucket=BUCKET, Key=HIST_KEY, Body=gzip.compress(json.dumps(h).encode()),
+                      ContentType="application/gzip")
+    except Exception as e:
+        print(f"[portwatch] history save failed: {e}")
+
+
+def _merge_rows(store, rows, id_keys=("portid", "chokepoint_id")):
+    """store: {"pid|YYYY-MM-DD": attrs}. Returns number of new/updated rows."""
+    n = 0
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=HIST_DAYS)).date()
+    for a in rows:
+        pid = str(next((a.get(k) for k in id_keys if a.get(k) is not None), "") or "")
+        ds = _row_date(a)
+        if not pid or ds is None or ds < cutoff:
+            continue
+        store[f"{pid}|{ds.isoformat()}"] = a
+        n += 1
+    for k in [k for k in store if k.split("|", 1)[1] < cutoff.isoformat()]:
+        del store[k]
+    return n
+
+
+def _store_rows(store):
+    return list(store.values())
+
+
+def _store_through(store):
+    return max((k.split("|", 1)[1] for k in store), default=None)
+
+
 def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     since = now - timedelta(days=400)
     since_ms = int(since.timestamp() * 1000)
+    _REQ["n"], _REQ["throttled"] = 0, 0
+    hist = _load_history()
 
     out = {"ok": False, "version": VERSION, "generated_at": now.isoformat(),
            "chokepoints": [], "disruptions": [], "errors": [],
@@ -265,39 +345,54 @@ def lambda_handler(event=None, context=None):
 
     # 2) daily chokepoint series (primary layer; fallback = Daily_Ports
     #    filtered to chokepoint ids)
-    def fetch_daily(url, extra_where=""):
+    def fetch_daily(url, extra_where="", store=None):
+        """v1.6 incremental: with a history store, only the days since its last
+        date (minus 3 for late revisions) are requested; the returned rows are
+        the merged store, so a throttled source degrades to 'history through
+        <date>' instead of an empty document."""
         rows, offset = [], 0
+        through = _store_through(store) if store is not None else None
+        start = since
+        if through:
+            start = max(since, datetime.fromisoformat(through).replace(tzinfo=timezone.utc) - timedelta(days=3))
+        page = 2000
         while offset < 60000:
-            w = f"date >= timestamp '{since.strftime('%Y-%m-%d')}'"
+            w = f"date >= timestamp '{start.strftime('%Y-%m-%d')}'"
             if extra_where:
                 w += " AND " + extra_where
             j = _q(url, {"where": w, "outFields": "*",
                          "orderByFields": "date ASC",
                          "resultOffset": offset,
-                         "resultRecordCount": 1000})
+                         "resultRecordCount": page})
             if j.get("_err"):
+                if store is not None and store:
+                    _merge_rows(store, rows)
+                    return _store_rows(store), f"{j['_err']} (using history through {_store_through(store)}, {len(rows)} new rows merged)"
                 return rows, j["_err"]
             fs = _feats(j)
             rows += fs
-            if len(fs) < 1000:
-                return rows, None
-            offset += 1000
+            if len(fs) < page:
+                break
+            offset += page
+        if store is not None:
+            _merge_rows(store, rows)
+            return _store_rows(store), None
         return rows, None
 
-    rows, err = fetch_daily(DAILY_CHOKE)
+    rows, err = fetch_daily(DAILY_CHOKE, store=hist.setdefault("choke", {}))
     src_layer = "Daily_Chokepoints_Data"
-    if err or not rows:
-        if err:
-            out["errors"].append("daily_choke: " + err)
-        if names:
-            ids = ",".join(sorted(names)[:30])
-            rows, err2 = fetch_daily(DAILY_PORTS,
-                                     f"portid IN ({ids})")
-            src_layer = "Daily_Ports_Data(filtered)"
-            if err2:
-                out["errors"].append("daily_ports: " + err2)
+    if err:
+        out["errors"].append("daily_choke: " + err)
+    if not rows and names:
+        # ids are strings on this layer: quote them (v1.5 sent chokepoint1 bare -> 'Invalid field: chokepoint1')
+        ids = ",".join("'" + str(n2) + "'" for n2 in sorted(names)[:30])
+        rows, err2 = fetch_daily(DAILY_PORTS, f"portid IN ({ids})", store=hist.setdefault("choke_fallback", {}))
+        src_layer = "Daily_Ports_Data(filtered)"
+        if err2:
+            out["errors"].append("daily_ports: " + err2)
     out["daily_layer"] = src_layer
     out["daily_rows"] = len(rows)
+    out["history_through"] = {"choke": _store_through(hist.get("choke") or {})}
 
     # 3) aggregate per chokepoint
     by = {}
@@ -435,9 +530,10 @@ def lambda_handler(event=None, context=None):
             out["ports_ref_matched_total"] = len(_ids_all)
             ids = ",".join("'" + i + "'" for i in _ids_all[:120])
             prow, perr = fetch_daily(DAILY_PORTS,
-                                     "portid IN (" + ids + ")")
+                                     "portid IN (" + ids + ")", store=hist.setdefault("ports", {}))
             if perr:
                 out["errors"].append("ports_daily: " + perr)
+            out["history_through"]["ports"] = _store_through(hist.get("ports") or {})
             pby = {}
             pmetric = None
             for a2 in prow:
@@ -561,6 +657,8 @@ def lambda_handler(event=None, context=None):
         out["industry_exposure_summary"] = {"error": str(_ie)[:200]}
         print("[industry] failed: %s" % str(_ie)[:120])
 
+    _save_history(hist)
+    out["requests"] = {"n": _REQ["n"], "throttled_429": _REQ["throttled"], "budget": REQ_BUDGET}
     S3.put_object(Bucket=BUCKET, Key=KEY,
                   Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json",

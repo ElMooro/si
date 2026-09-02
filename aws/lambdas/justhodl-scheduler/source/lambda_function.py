@@ -39,7 +39,11 @@ import boto3
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
-MANIFEST_KEY = "config/schedule-manifest.json"
+# ops 5106: the router's manifest lives on its OWN key. On 2026-08-01 ops 4237
+# wrote the declarative rules/schedules snapshot to config/schedule-manifest.json
+# (no "ticks"), and every tick answered "no jobs" for 32 days.
+MANIFEST_KEY = os.environ.get("FANOUT_MANIFEST_KEY", "config/fanout-manifest.json")
+LEGACY_MANIFEST_KEY = "config/schedule-manifest.json"
 MAX_WORKERS = 24
 
 s3 = boto3.client("s3", region_name=REGION)
@@ -47,12 +51,20 @@ lam = boto3.client("lambda", region_name=REGION)
 
 
 def _load_manifest():
-    try:
-        o = s3.get_object(Bucket=BUCKET, Key=MANIFEST_KEY)
-        m = json.loads(o["Body"].read())
-        return m, None
-    except Exception as e:
-        return None, str(e)
+    """The fan-out manifest ({"ticks": {...}, "disabled": [...]}). Falls back to the
+    legacy key only if it still carries a "ticks" block; a manifest without ticks
+    is refused loudly instead of silently fanning out to nothing."""
+    err = None
+    for key in (MANIFEST_KEY, LEGACY_MANIFEST_KEY):
+        try:
+            o = s3.get_object(Bucket=BUCKET, Key=key)
+            m = json.loads(o["Body"].read())
+            if isinstance(m.get("ticks"), dict) and m["ticks"]:
+                return m, None
+            err = f"{key}: no ticks block"
+        except Exception as e:
+            err = f"{key}: {str(e)[:120]}"
+    return None, err
 
 
 def _invoke_one(fn_name):
@@ -72,6 +84,7 @@ def lambda_handler(event, context):
 
     manifest, err = _load_manifest()
     if not manifest:
+        print(f"[scheduler] MANIFEST UNUSABLE: {err}")
         return {"statusCode": 500, "body": json.dumps({"err": f"manifest load failed: {err}"})}
 
     disabled = set(manifest.get("disabled") or [])
