@@ -1,0 +1,69 @@
+# ops 5125 -- every symbol from the warehouse; no TradingView widget in AUTO mode
+
+**Status:** failure  
+**Duration:** 390.8s  
+**Finished:** 2026-09-02T14:43:45+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| banked | families | step | symdir_version |
+|---|---|---|---|
+|  |  | S1 | 1.2.0 |
+| 1 | 15 | S2 |  |
+
+## Log
+## S1 deploy tv-bars v1.1 + symdir v1.2.0
+
+- `14:37:14`   zip: 107231 bytes
+## 1. Lambda
+
+- `14:37:14`   Lambda exists — updating
+- `14:37:17` ✅   ✓ updated justhodl-tv-bars
+- `14:37:21`   zip: 132664 bytes
+## 1. Lambda
+
+- `14:37:21`   Lambda exists — updating
+- `14:37:24` ✅   ✓ updated justhodl-symdir
+- `14:42:10` ✅   rebuilt docs=1,374,433 elapsed=265.4s
+## S2 /series across symbol families (bank on first open, then S3)
+
+- `14:42:21`   TVC:VIX            n=  9262 first=1990-01-02 last=2026-08-28   2874ms ohlc=0 src=warehouse:fred-scoped/Financial_Indicators via=fred:VIXCLS err=
+- `14:42:23` ✗   AAPL: HTTP Error 500: Internal Server Error
+- `14:42:25` ✗   NASDAQ:AAPL: HTTP Error 500: Internal Server Error
+- `14:42:26` ✗   SSE:000001: HTTP Error 500: Internal Server Error
+- `14:42:28` ✗   FX:EURUSD: HTTP Error 500: Internal Server Error
+- `14:42:30` ✗   X:BTCUSD: HTTP Error 500: Internal Server Error
+- `14:42:31` ✗   COINBASE:BTCUSD: HTTP Error 500: Internal Server Error
+- `14:42:33` ✗   CME_MINI:ES1!: HTTP Error 500: Internal Server Error
+- `14:42:34` ✗   HKEX:700: HTTP Error 500: Internal Server Error
+- `14:42:36` ✗   ECONOMICS:DEUR: HTTP Error 500: Internal Server Error
+- `14:42:37` ✗   I:SPX: HTTP Error 500: Internal Server Error
+- `14:42:39` ✗   BRK.B: HTTP Error 500: Internal Server Error
+- `14:42:41` ✗   AMEX:SPY: HTTP Error 500: Internal Server Error
+- `14:42:42` ✗   OTC:AAAIF: HTTP Error 500: Internal Server Error
+- `14:42:44` ✗   XETR:DAX: HTTP Error 500: Internal Server Error
+- `14:42:47`   quote TVC:VIX          ok=True last=14.43 @2026-08-28 chg%=-0.551 err=None
+- `14:42:47`   quote AAPL             ok=False last=None @None chg%=None err=no warehouse bars for AAPL (US:AAPL -> AAPL): AttributeError: 'int' object has no attribute 'get'
+- `14:42:47`   quote ECONOMICS:DEUR   ok=False last=None @None chg%=None err=not banked yet and the bank pull failed: AttributeError: 'int' object has no attribute 'get'
+- `14:42:47`   quote fred:DGS10       ok=True last=4.69 @2026-08-06 chg%=1.296 err=None
+- `14:42:47`   universe index: n_symbols=0 failures=16
+## S3 live page: native charts, no widget paywall
+
+- `14:43:08`   page TVC:VIX: {"active": "TVC:VIX", "meta": "FRED \u00b7 14.43 Index -0.55% \u00b7 9,262 obs \u00b7 1990-01-02\u21922026-08-28 \u00b7 D \u00b7 warehouse", "loading": "Loading TVC:VIX \u2014 full history\u2026", "iframe": false, "paywall": false, "name": "CBOE Volatility Index: VIX"}
+- `14:43:17`   page AAPL: {"active": "AAPL", "meta": "$324.59 -0.17% \u00b7 172d", "loading": "Loading AAPL from Polygon\u2026", "iframe": false, "paywall": false, "name": ""}
+- `14:43:26`   page SSE:000001: {"active": "SSE:000001", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "No observations for SSE:000001 \u2014 not banked yet and the bank pull failed: AttributeError: 'int' object has no attribute 'get'", "iframe": false, "paywall": false, "name": ""}
+- `14:43:35`   page ECONOMICS:DEUR: {"active": "ECONOMICS:DEUR", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "No observations for ECONOMICS:DEUR \u2014 not banked yet and the bank pull failed: AttributeError: 'int' object has no attribute 'get'", "iframe": false, "paywall": false, "name": ""}
+- `14:43:44`   page NVDA: {"active": "NVDA", "meta": "$222.68 +2.41% \u00b7 172d", "loading": "Loading NVDA from Polygon\u2026", "iframe": false, "paywall": false, "name": ""}
+## verdict
+
+- `14:43:45` ✗ only 1/15 symbols banked
+- `14:43:45` ✗ AAPL: chart did not render natively: {"active": "AAPL", "meta": "$324.59 -0.17% \u00b7 172d", "loading": "Loading AAPL from Polygon\u2026", "iframe": false, "paywall": false, "name": ""}
+- `14:43:45` ✗ SSE:000001: chart did not render natively: {"active": "SSE:000001", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "No observations for SSE:000001 \u2014 not banked yet and the bank pull 
+- `14:43:45` ✗ ECONOMICS:DEUR: chart did not render natively: {"active": "ECONOMICS:DEUR", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "No observations for ECONOMICS:DEUR \u2014 not banked yet and the ba
+- `14:43:45` ✗ NVDA: chart did not render natively: {"active": "NVDA", "meta": "$222.68 +2.41% \u00b7 172d", "loading": "Loading NVDA from Polygon\u2026", "iframe": false, "paywall": false, "name": ""}

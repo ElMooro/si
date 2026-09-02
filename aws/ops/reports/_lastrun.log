@@ -1,35 +1,48 @@
-executing-against: 4a3fc6bf388759f5de4af6a2a11e758fc3a71bf7
-ops 5124 -- every symbol from the warehouse: tv-bars universe lane
-── S1 deploy tv-bars v1.1 ──
-[14:29:50]   zip: 104878 bytes
+executing-against: c380d5f27b51214f956531ee2c304968da884a38
+ops 5125 -- every symbol from the warehouse; no TradingView widget in AUTO mode
+── S1 deploy tv-bars v1.1 + symdir v1.2.0 ──
+[14:37:14]   zip: 107231 bytes
 ── 1. Lambda ──
-[14:29:50]   Lambda exists — updating
-[14:29:53] ✅   ✓ updated justhodl-tv-bars
-── S2 prove pulls across symbol families ──
-[14:30:01]   invoke ['TVC:VIX', 'NASDAQ:AAPL', 'ECONOMICS:DEUR', 'SSE:000001', 'FX:EURUSD'] -> 4678ms ok=True err=None universe=0
-[14:30:01]     TVC:VIX            ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
-[14:30:01]     NASDAQ:AAPL        ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
-[14:30:01]     ECONOMICS:DEUR     ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
-[14:30:01]     SSE:000001         ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
-[14:30:01]     FX:EURUSD          ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
-[14:30:05]   invoke ['COINBASE:BTCUSD', 'AMEX:SPY', 'SP:SPX', 'OTC:AAAIF', 'CME_MINI:ES1!'] -> 3257ms ok=True err=None universe=0
-[14:30:05]     COINBASE:BTCUSD    ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
-[14:30:05]     AMEX:SPY           ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
-[14:30:05]     SP:SPX             ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
-[14:30:05]     OTC:AAAIF          ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
-[14:30:05]     CME_MINI:ES1!      ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
-[14:30:05] ⚠   TVC__VIX doc unreadable: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
-── S3 warehouse layouts: us-equities-daily, tv-bars ──
-[14:30:05]   data/warm/us-equities-daily/: objects=20 sub=[] keys=[('data/warm/us-equities-daily/2026-08-05.json.gz', 411215), ('data/warm/us-equities-daily/2026-08-06.json.gz', 410513), ('data/warm/us-equities-daily/2026-08-07.json.gz', 412059), ('data/warm/us-equities-daily/2026-08-10.json.gz', 412471), ('data/warm/us-equities-daily/2026-08-11.json.gz', 410936), ('data/warm/us-equities-daily/2026-08-12.json.gz', 410801), ('data/warm/us-equities-daily/2026-08-13.json.gz', 413342), ('data/warm/us-equities-daily/2026-08-14.json.gz', 411251), ('data/warm/us-equities-daily/2026-08-17.json.gz', 415973), ('data/warm/us-equities-daily/2026-08-18.json.gz', 413087), ('data/warm/us-equities-daily/2026-08-19.json.gz', 415834), ('data/warm/us-equities-daily/2026-08-20.json.gz', 413254)]
-[14:30:05]     HEAD data/warm/us-equities-daily/2026-08-05.json.gz: {"date": "2026-08-05", "n_tickers": 12392, "raw_snapshot_key": "data/raw/polygon/2026-08-06/6440675a4f7f.json.gz", "results": [{"T": "DMO", "v": 85057.1129, "vw": 10.3734, "o": 10.43, "c": 10.38, "h": 10.44, "l": 10.33, "t": 1785960000000, "n": 409}, {"T": "IDX", "v": 26094.85965, "vw": 11.23, "o": 11.23, "c": 11.23, "h": 11.27, "l": 11.19, "t": 1785960000000, "n": 141}, {"T": "TRTX", "v": 933604.731202, "vw": 7.9435, "o": 8.02, "c": 7.94, "h": 8.02, "l": 7.9, "t": 1785960000000, "n": 10739}, {"
-[14:30:05]   data/warm/tv-bars/: objects=3 sub=['data/warm/tv-bars/universe/'] keys=[('data/warm/tv-bars/_index.json', 74), ('data/warm/tv-bars/_state.json', 6051)]
-[14:30:05]   ICE lane index: n_symbols=0 sample=[]
-── S4 nightly refresh schedule ──
-[14:30:05] ✅ schedule created: justhodl-tv-bars-universe-refresh cron(30 2 * * ? *)
+[14:37:14]   Lambda exists — updating
+[14:37:17] ✅   ✓ updated justhodl-tv-bars
+[14:37:21]   zip: 132664 bytes
+── 1. Lambda ──
+[14:37:21]   Lambda exists — updating
+[14:37:24] ✅   ✓ updated justhodl-symdir
+[14:42:10] ✅   rebuilt docs=1,374,433 elapsed=265.4s
+── S2 /series across symbol families (bank on first open, then S3) ──
+[14:42:21]   TVC:VIX            n=  9262 first=1990-01-02 last=2026-08-28   2874ms ohlc=0 src=warehouse:fred-scoped/Financial_Indicators via=fred:VIXCLS err=
+[14:42:23] ✗   AAPL: HTTP Error 500: Internal Server Error
+[14:42:25] ✗   NASDAQ:AAPL: HTTP Error 500: Internal Server Error
+[14:42:26] ✗   SSE:000001: HTTP Error 500: Internal Server Error
+[14:42:28] ✗   FX:EURUSD: HTTP Error 500: Internal Server Error
+[14:42:30] ✗   X:BTCUSD: HTTP Error 500: Internal Server Error
+[14:42:31] ✗   COINBASE:BTCUSD: HTTP Error 500: Internal Server Error
+[14:42:33] ✗   CME_MINI:ES1!: HTTP Error 500: Internal Server Error
+[14:42:34] ✗   HKEX:700: HTTP Error 500: Internal Server Error
+[14:42:36] ✗   ECONOMICS:DEUR: HTTP Error 500: Internal Server Error
+[14:42:37] ✗   I:SPX: HTTP Error 500: Internal Server Error
+[14:42:39] ✗   BRK.B: HTTP Error 500: Internal Server Error
+[14:42:41] ✗   AMEX:SPY: HTTP Error 500: Internal Server Error
+[14:42:42] ✗   OTC:AAAIF: HTTP Error 500: Internal Server Error
+[14:42:44] ✗   XETR:DAX: HTTP Error 500: Internal Server Error
+[14:42:47]   quote TVC:VIX          ok=True last=14.43 @2026-08-28 chg%=-0.551 err=None
+[14:42:47]   quote AAPL             ok=False last=None @None chg%=None err=no warehouse bars for AAPL (US:AAPL -> AAPL): AttributeError: 'int' object has no attribute 'get'
+[14:42:47]   quote ECONOMICS:DEUR   ok=False last=None @None chg%=None err=not banked yet and the bank pull failed: AttributeError: 'int' object has no attribute 'get'
+[14:42:47]   quote fred:DGS10       ok=True last=4.69 @2026-08-06 chg%=1.296 err=None
+[14:42:47]   universe index: n_symbols=0 failures=16
+── S3 live page: native charts, no widget paywall ──
+[14:43:08]   page TVC:VIX: {"active": "TVC:VIX", "meta": "FRED \u00b7 14.43 Index -0.55% \u00b7 9,262 obs \u00b7 1990-01-02\u21922026-08-28 \u00b7 D \u00b7 warehouse", "loading": "Loading TVC:VIX \u2014 full history\u2026", "iframe": false, "paywall": false, "name": "CBOE Volatility Index: VIX"}
+[14:43:17]   page AAPL: {"active": "AAPL", "meta": "$324.59 -0.17% \u00b7 172d", "loading": "Loading AAPL from Polygon\u2026", "iframe": false, "paywall": false, "name": ""}
+[14:43:26]   page SSE:000001: {"active": "SSE:000001", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "No observations for SSE:000001 \u2014 not banked yet and the bank pull failed: AttributeError: 'int' object has no attribute 'get'", "iframe": false, "paywall": false, "name": ""}
+[14:43:35]   page ECONOMICS:DEUR: {"active": "ECONOMICS:DEUR", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "No observations for ECONOMICS:DEUR \u2014 not banked yet and the bank pull failed: AttributeError: 'int' object has no attribute 'get'", "iframe": false, "paywall": false, "name": ""}
+[14:43:44]   page NVDA: {"active": "NVDA", "meta": "$222.68 +2.41% \u00b7 172d", "loading": "Loading NVDA from Polygon\u2026", "iframe": false, "paywall": false, "name": ""}
 ── verdict ──
-[14:30:05] ✗ TVC:VIX did not bank: RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
-[14:30:05] ✗ NASDAQ:AAPL did not bank: RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
-[14:30:05] ✗ only 0/10 probe symbols banked with >1000 bars
+[14:43:45] ✗ only 1/15 symbols banked
+[14:43:45] ✗ AAPL: chart did not render natively: {"active": "AAPL", "meta": "$324.59 -0.17% \u00b7 172d", "loading": "Loading AAPL from Polygon\u2026", "iframe": false, "paywall": false, "name": ""}
+[14:43:45] ✗ SSE:000001: chart did not render natively: {"active": "SSE:000001", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "No observations for SSE:000001 \u2014 not banked yet and the bank pull 
+[14:43:45] ✗ ECONOMICS:DEUR: chart did not render natively: {"active": "ECONOMICS:DEUR", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "No observations for ECONOMICS:DEUR \u2014 not banked yet and the ba
+[14:43:45] ✗ NVDA: chart did not render natively: {"active": "NVDA", "meta": "$222.68 +2.41% \u00b7 172d", "loading": "Loading NVDA from Polygon\u2026", "iframe": false, "paywall": false, "name": ""}
 
-→ Report written to aws/ops/reports/latest/5124-tv-bars-universe.md
-❌ OPS-FAIL: aws/ops/pending/ops_5124_tv_bars_universe.py
+→ Report written to aws/ops/reports/latest/5125-every-symbol-from-s3.md
+❌ OPS-FAIL: aws/ops/pending/ops_5125_every_symbol_from_s3.py
