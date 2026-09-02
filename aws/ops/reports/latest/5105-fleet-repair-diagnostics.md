@@ -1,0 +1,507 @@
+# ops 5105 -- fleet repair diagnostics for every engine on the 5098 lists
+
+**Status:** success  
+**Duration:** 193.0s  
+**Finished:** 2026-09-02T01:11:31+00:00  
+
+## Data
+
+| cls | consumers | fn | inv90d | last_active | rules | schedules | url | verdict |
+|---|---|---|---|---|---|---|---|---|
+| ORPHAN_IDLE | 0 | justhodl-data-collector | 152 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| SOME_ERRORS | 12 | justhodl-provider-catalog | 710 | 2026-09-01 | 1 | 0 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | justhodl-synthetic-monitor | 479 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-asymmetric-scorer | 60 | 2026-08-04 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | ofrapi | 1948 | 2026-08-01 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| SOME_ERRORS | 0 | justhodl-cds-proxy | 212 | 2026-09-01 | 1 | 0 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | justhodl-momentum-scanner | 59 | 2026-08-01 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 12 | justhodl-volatility-squeeze-hunter | 59 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| ERRORING | 0 | justhodl-ici-flows | 68 | 2026-08-27 | 1 | 0 | False | FIX_ERRORS |
+| SOME_ERRORS | 57 | justhodl-equity-research | 8317 | 2026-09-01 | 0 | 0 | True | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | justhodl-tv-bars | 7 | 2026-08-15 | 1 | 0 | False | DORMANT_UNCONSUMED |
+| SOME_ERRORS | 0 | justhodl-gdelt-full | 1017 | 2026-09-02 | 1 | 1 | False | FIX_ERRORS |
+| SCHEDULED_SILENT | 0 | justhodl-fi-census | 13 | 2026-08-23 | 0 | 1 | False | SILENT_SCHEDULE |
+| ORPHAN_IDLE | 12 | justhodl-theme-tier-classifier | 59 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| ERRORING | 0 | justhodl-boj-full | 40189 | 2026-09-02 | 1 | 1 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | justhodl-fed-speak | 59 | 2026-08-01 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-divergence-scanner | 59 | 2026-08-01 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | macro-report-api | 0 | None | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 9 | justhodl-position-sizer-v2 | 59 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| SOME_ERRORS | 0 | justhodl-ecb-deep | 2150 | 2026-09-01 | 0 | 1 | False | FIX_ERRORS |
+| ERRORING | 0 | justhodl-provider-window-sentinel | 5 | 2026-08-30 | 0 | 1 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | ecb-data-daily-updater | 59 | 2026-08-01 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ERRORING | 10 | justhodl-import-sentinel | 4060 | 2026-09-02 | 1 | 1 | False | FIX_ERRORS |
+| ERRORING | 0 | justhodl-stock-screener | 674 | 2026-09-01 | 1 | 0 | True | FIX_ERRORS |
+| ERRORING | 0 | justhodl-signal-scorecard | 336 | 2026-09-01 | 1 | 0 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | justhodl-screener-alerts | 64 | 2026-08-05 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ERRORING | 0 | justhodl-imf-full | 60 | 2026-09-01 | 0 | 2 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | justhodl-subscribe | 8 | 2026-07-06 | 0 | 0 | True | API_DRIVEN |
+| ERRORING | 0 | justhodl-calibrator | 304 | 2026-09-01 | 0 | 0 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | justhodl-email-reports-v2 | 60 | 2026-08-01 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-portfolio-admin | 0 | None | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | justhodl-universe-builder | 71 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-insider-cluster-scanner | 62 | 2026-08-04 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| SOME_ERRORS | 6 | justhodl-risk-gate | 726 | 2026-09-01 | 1 | 1 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 12 | justhodl-momentum-breakout | 59 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 4 | justhodl-liquidity-agent | 68 | 2026-08-05 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 0 | justhodl-bond-regime-detector | 70 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-daily-macro-report | 0 | None | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 12 | justhodl-microcap-float-squeeze | 58 | 2026-07-31 | 0 | 0 | False | RESURRECT |
+| ERRORING | 0 | justhodl-signal-harvester | 152 | 2026-09-01 | 1 | 0 | False | FIX_ERRORS |
+| SOME_ERRORS | 1 | justhodl-series-extractor | 23045 | 2026-09-01 | 4 | 0 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 12 | justhodl-eps-revision-velocity | 59 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 0 | justhodl-earnings-whisper | 59 | 2026-08-01 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 10 | justhodl-ecb-full-catalog | 3 | 2026-08-18 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 0 | justhodl-ai-council | 3 | 2026-08-04 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 20 | justhodl-ab-test | 59 | 2026-08-02 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 0 | economyapi | 2 | 2026-08-05 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 16 | justhodl-investor-agents | 2 | 2026-07-14 | 0 | 0 | True | API_DRIVEN |
+| SOME_ERRORS | 0 | justhodl-a2a-bus | 61189 | 2026-09-02 | 0 | 0 | True | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | aiapi-market-analyzer | 1153 | 2026-08-05 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 4 | justhodl-allocator | 71 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 0 | autonomous-ai-processor | 0 | None | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | treasury-auto-updater | 59 | 2026-08-01 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-regime-composite | 155 | 2026-07-31 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | justhodl-transcript-query | 1 | 2026-07-08 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| SOME_ERRORS | 18 | justhodl-plumbing-aggregator | 828 | 2026-09-01 | 1 | 0 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | permanent-market-intelligence | 59 | 2026-08-01 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-earnings | 2 | 2026-08-18 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | ultimate-multi-agent | 99 | 2026-08-01 | 0 | 0 | True | API_DRIVEN |
+| SOME_ERRORS | 0 | justhodl-cb-injection | 221 | 2026-09-01 | 1 | 0 | False | FIX_ERRORS |
+| ERRORING | 0 | justhodl-fleet-monitor | 1302 | 2026-09-01 | 3 | 1 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | ecb | 0 | None | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-sector-tilt | 70 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-narrative-density-tracker | 59 | 2026-08-01 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| SOME_ERRORS | 0 | justhodl-repo-monitor | 1476 | 2026-09-01 | 2 | 0 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | justhodl-dep-graph | 58 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-tv-notes-ingest | 30218 | 2026-08-24 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | justhodl-treasury-proxy | 3 | 2026-08-11 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | justhodl-position-monitor | 260 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-market-interpreter | 152 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-prompt-iterator | 10 | 2026-07-26 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | scrapeMacroData | 59 | 2026-08-01 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | justhodl-history-api | 1 | 2026-07-08 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | justhodl-theme-rotation-engine | 97 | 2026-08-01 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | daily-liquidity-report | 59 | 2026-08-01 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 11 | justhodl-asymmetric-hunter | 59 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 0 | MLPredictor | 59 | 2026-08-01 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 4 | justhodl-ask-desk | 6 | 2026-06-12 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | justhodl-signal-portfolio | 58 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-fleet-auditor | 5 | 2026-08-03 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-reports-builder | 152 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ERRORING | 1 | justhodl-insider-trades | 2811 | 2026-09-01 | 1 | 0 | True | FIX_ERRORS |
+| SOME_ERRORS | 0 | cftc-futures-positioning-agent | 894 | 2026-09-01 | 1 | 0 | True | FIX_ERRORS |
+| ORPHAN_IDLE | 20 | justhodl-deep-value-screener | 59 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 27 | justhodl-nobrainer-tracker | 152 | 2026-07-31 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 3 | justhodl-vol-regime | 153 | 2026-07-31 | 0 | 0 | False | RESURRECT |
+| SOME_ERRORS | 0 | justhodl-real-economy-collector | 366 | 2026-09-01 | 0 | 1 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | justhodl-correlation-breaks | 59 | 2026-08-02 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | multi-agent-orchestrator | 0 | None | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 6 | justhodl-supply-inflection-scanner | 65 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| SOME_ERRORS | 0 | justhodl-census-us | 7769 | 2026-09-02 | 2 | 1 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | justhodl-email-reports | 0 | None | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 6 | justhodl-theme-detector | 59 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| SOME_ERRORS | 16 | justhodl-outcome-checker | 331 | 2026-09-01 | 2 | 0 | False | FIX_ERRORS |
+| ERRORING | 0 | justhodl-feed-registry | 101 | 2026-09-01 | 0 | 1 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 11 | justhodl-khalid-metrics | 126 | 2026-08-01 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 4 | justhodl-screen-backtest | 5 | 2026-07-20 | 0 | 0 | True | API_DRIVEN |
+| ERRORING | 0 | justhodl-research-backtest | 110 | 2026-09-01 | 1 | 0 | True | FIX_ERRORS |
+| ORPHAN_IDLE | 12 | justhodl-options-flow-scanner | 58 | 2026-07-31 | 0 | 0 | False | RESURRECT |
+| SOME_ERRORS | 0 | justhodl-fortress | 26 | 2026-09-01 | 0 | 2 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | justhodl-watchlist-debate | 60 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 12 | justhodl-pre-pump-detector | 59 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 12 | justhodl-activist-filings-scanner | 59 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 0 | bls-employment-api-v2 | 65 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-ml-predictions | 70 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 23 | justhodl-sector-earnings-diffusion | 59 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 0 | justhodl-api-keys-admin | 0 | None | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 1 | justhodl-morning-brief-tg | 60 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 0 | justhodl-ask | 11 | 2026-07-14 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | justhodl-stock-ai-research | 0 | None | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | nyfed-primary-dealer-fetcher | 0 | None | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 25 | justhodl-bloomberg-v8 | 170 | 2026-07-31 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 61 | justhodl-nobrainer-rationale | 69 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| SOME_ERRORS | 0 | fedliquidityapi | 1702 | 2026-09-01 | 0 | 0 | True | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | justhodl-fred-proxy | 9 | 2026-08-11 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | justhodl-auction-interpreter | 70 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-correlation-surface | 58 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 3 | justhodl-calibration-snapshot | 261 | 2026-08-04 | 0 | 0 | False | RESURRECT |
+| SOME_ERRORS | 0 | manufacturing-global-agent | 717 | 2026-09-01 | 0 | 0 | True | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | justhodl-whats-changed | 59 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| SCHEDULED_SILENT | 0 | justhodl-etf-census | 14 | 2026-08-23 | 0 | 1 | False | SILENT_SCHEDULE |
+| ORPHAN_IDLE | 0 | justhodl-ecb-proxy | 4 | 2026-08-11 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | justhodl-public-api-demo | 0 | None | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | justhodl-tenor-signal-interpreter | 71 | 2026-08-05 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| SOME_ERRORS | 18 | justhodl-ecb-derived | 127 | 2026-09-01 | 1 | 0 | False | FIX_ERRORS |
+| ORPHAN_IDLE | 12 | justhodl-revenue-acceleration | 59 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 0 | justhodl-charts-agent | 1 | 2026-07-13 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | justhodl-industry-case | 2 | 2026-08-18 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-activist-13d | 60 | 2026-08-10 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-health-monitor | 479 | 2026-07-31 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 16 | justhodl-chat-api | 0 | None | 0 | 0 | False | RESURRECT_NEVER_RAN_90D |
+| SOME_ERRORS | 0 | justhodl-global-liquidity | 158 | 2026-09-01 | 1 | 0 | True | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | nyfed-financial-stability-fetcher | 0 | None | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 8 | justhodl-eurostat-history | 1 | 2026-08-02 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 0 | justhodl-tape-truth | 3 | 2026-08-18 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | nyfedapi-isolated | 0 | None | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 12 | justhodl-smart-money-cluster | 58 | 2026-07-31 | 0 | 0 | False | RESURRECT |
+| SOME_ERRORS | 4 | justhodl-market-tape | 17366 | 2026-09-02 | 0 | 1 | True | FIX_ERRORS |
+| ORPHAN_IDLE | 0 | nasdaq-datalink-agent | 9 | 2026-08-25 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | justhodl-feedback | 3 | 2026-08-01 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 12 | justhodl-tape-reader | 58 | 2026-07-31 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 12 | justhodl-earnings-pead | 59 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 12 | justhodl-pead-detector | 59 | 2026-08-01 | 0 | 0 | False | RESURRECT |
+| ORPHAN_IDLE | 0 | justhodl-risk-sizer | 59 | 2026-08-01 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-valuations-agent | 3 | 2026-08-01 | 0 | 0 | True | API_DRIVEN |
+| ORPHAN_IDLE | 0 | justhodl-calls-backtest | 59 | 2026-08-01 | 0 | 0 | False | DORMANT_UNCONSUMED |
+| ORPHAN_IDLE | 0 | justhodl-soma-cusip | 2 | 2026-08-16 | 0 | 0 | False | DORMANT_UNCONSUMED |
+
+## Log
+- `01:08:19` 147 engines to diagnose: {"ERRORING": 13, "SOME_ERRORS": 21, "SCHEDULED_SILENT": 2, "ORPHAN_IDLE": 111}
+## A. live schedule inventory
+
+- `01:08:48` rules -> 545 targets on 465 functions; scheduler 351 schedules on 338 functions
+## B. output keys -> consumers
+
+- `01:08:48` output keys resolved for 47 of 147 engines
+## C. per-engine fact sheets
+
+- `01:08:49`   justhodl-data-collector                      ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=152 last_active=2026-07-31 cadence/d=3.2 keys=[] consumers=0
+- `01:08:52`   justhodl-provider-catalog                    SOME_ERRORS      -> FIX_ERRORS               rules=[('justhodl-provider-catalog-hourly', 'ENABLED')] sched=[] url=False inv90=710 last_active=2026-09-01 cadence/d=26.3 keys=['data/audit/provider-join-debug.json', 'data/audit/provider-join-lastgood.json', 'data/provider-catalog.json'] consumers=12
+- `01:08:52`       data/audit/provider-join-debug.json: age=0.3h pages=[] engines=[]
+- `01:08:52`       data/audit/provider-join-lastgood.json: age=0.3h pages=[] engines=[]
+- `01:08:52`       data/provider-catalog.json: age=0.2h pages=['cloudflare/workers/justhodl-data-proxy/src/index.js', 'data.html'] engines=['justhodl-import-sentinel']
+- `01:08:52`       REPORT RequestId: a4026834-46c4-4905-8683-8708233426e2	Duration: 332888.67 ms	Billed Duration: 333403 ms	Memory Size: 1024 MB	Max Memory Used: 280 MB	Init Duration: 514.09 ms	
+XRAY TraceId: 1-6a939a14
+- `01:08:53`   justhodl-synthetic-monitor                   ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=479 last_active=2026-07-31 cadence/d=10.0 keys=[] consumers=0
+- `01:08:54`   justhodl-asymmetric-scorer                   ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=60 last_active=2026-08-04 cadence/d=1.0 keys=[] consumers=0
+- `01:08:54`   ofrapi                                       ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=1948 last_active=2026-08-01 cadence/d=33.0 keys=[] consumers=0
+- `01:08:57`   justhodl-cds-proxy                           SOME_ERRORS      -> FIX_ERRORS               rules=[('cds-proxy-tri-daily', 'ENABLED')] sched=[] url=False inv90=212 last_active=2026-09-01 cadence/d=2.6 keys=[] consumers=0
+- `01:08:57`       REPORT RequestId: 5b059d7c-c0dd-440f-86d5-d88d18248d91	Duration: 63051.71 ms	Billed Duration: 63052 ms	Memory Size: 256 MB	Max Memory Used: 99 MB	
+XRAY TraceId: 1-6a957ae9-34efd9013d17ce4523ddf95a	Seg
+- `01:08:57`   justhodl-momentum-scanner                    ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=[] consumers=0
+- `01:08:58`   justhodl-volatility-squeeze-hunter           ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=['data/universe.json'] consumers=12
+- `01:08:58`       data/universe.json: age=775.0h pages=['web/intel/index.html', 'sectors.html', 'intel/index.html', 'fleet-audit.html'] engines=['justhodl-universe-builder', 'justhodl-best-setups', 'justhodl-backlog', 'justhodl-readthrough']
+- `01:09:00`   justhodl-ici-flows                           ERRORING         -> FIX_ERRORS               rules=[('justhodl-ici-flows-weekly', 'ENABLED')] sched=[] url=False inv90=68 last_active=2026-08-27 cadence/d=3.6 keys=[] consumers=0
+- `01:09:00`       ERR: [ERROR] RuntimeError: no ICI data (mmf=0 ltf=0) — seed histories
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 281, in lambda_handler
+    raise RuntimeError("no ICI data (mmf=%d ltf=%d) —
+- `01:09:00`       ERR: [ltf] seed https://www.ici.org/sitemap.xml: HTTP Error 403: Forbidden
+- `01:09:00`       ERR: [ltf] seed https://www.ici.org/research: HTTP Error 403: Forbidden
+- `01:09:02`   justhodl-equity-research                     SOME_ERRORS      -> FIX_ERRORS               rules=[] sched=[] url=True inv90=8317 last_active=2026-09-01 cadence/d=92.4 keys=['data/asset-compass.json', 'data/backlog.json', 'data/finviz-groups.json'] consumers=57
+- `01:09:02`       data/asset-compass.json: age=2.9h pages=['asset-compass.html', 'credit-desk.html', 'compass.html'] engines=['justhodl-asset-compass', 'justhodl-quantum-desk', 'justhodl-master-allocator', 'justhodl-spx-beaters']
+- `01:09:02`       data/backlog.json: age=13.6h pages=['dossier.html', 'stock-buying.html', 'backlog.html', 'chart-pro.html'] engines=['justhodl-deep-value-overlap', 'justhodl-backlog', 'justhodl-readthrough', 'justhodl-invest']
+- `01:09:02`       data/finviz-groups.json: age=2.9h pages=['finviz-signals.html', 'sector-flow.html', 'industry-rotation.html'] engines=['justhodl-industry-rotation', 'justhodl-industry-boom', 'justhodl-asset-discovery']
+- `01:09:02`       ERR: [claude] PARSE ERROR: no JSON object found
+- `01:09:02`       ERR: [claude_call] Anthropic failed (HTTP Error 400: Bad Request); routing via llm_router (GLM-5.1)
+- `01:09:02`       REPORT RequestId: 0997ccc5-1188-4bdc-888a-f2ba93d10aed	Duration: 87.47 ms	Billed Duration: 671 ms	Memory Size: 1024 MB	Max Memory Used: 105 MB	Init Duration: 582.83 ms	
+XRAY TraceId: 1-6a938833-50ebad
+- `01:09:03`   justhodl-tv-bars                             ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[('justhodl-tv-bars-hourly', 'DISABLED')] sched=[] url=False inv90=7 last_active=2026-08-15 cadence/d=3.5 keys=['data/tv-bars-status.json'] consumers=0
+- `01:09:03`       data/tv-bars-status.json: age=421.1h pages=[] engines=[]
+- `01:09:05`   justhodl-gdelt-full                          SOME_ERRORS      -> FIX_ERRORS               rules=[('benzinga-news-agent-warm', 'ENABLED')] sched=[('justhodl-gdelt-full-30m', 'ENABLED')] url=False inv90=1017 last_active=2026-09-02 cadence/d=101.7 keys=[] consumers=0
+- `01:09:05`       REPORT RequestId: 516a9395-6ce3-400b-8f3d-d92d66f237a5	Duration: 3043.51 ms	Billed Duration: 3603 ms	Memory Size: 1024 MB	Max Memory Used: 98 MB	Init Duration: 558.97 ms	
+XRAY TraceId: 1-6a93957f-051b
+- `01:09:06`   justhodl-fi-census                           SCHEDULED_SILENT -> SILENT_SCHEDULE          rules=[] sched=[('fi-census-sched', 'ENABLED')] url=False inv90=13 last_active=2026-08-23 cadence/d=2.2 keys=[] consumers=0
+- `01:09:07`   justhodl-theme-tier-classifier               ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=['data/theme-tiers.json', 'data/themes-detected.json'] consumers=12
+- `01:09:07`       data/theme-tiers.json: age=761.1h pages=['why-cross-signal.html', 'theme-tiers.html', 'alpha-scoreboard.html'] engines=['justhodl-master-ranker', 'justhodl-asymmetric-hunter', 'justhodl-history-snapshotter']
+- `01:09:07`       data/themes-detected.json: age=763.1h pages=['resilience.html'] engines=['justhodl-scarcity-radar', 'justhodl-supply-inflection-scanner', 'justhodl-asymmetric-hunter', 'justhodl-bottleneck-boom']
+- `01:09:09`   justhodl-boj-full                            ERRORING         -> FIX_ERRORS               rules=[('benzinga-news-agent-warm', 'ENABLED')] sched=[('justhodl-boj-full-12h', 'ENABLED')] url=False inv90=40189 last_active=2026-09-02 cadence/d=5023.6 keys=[] consumers=0
+- `01:09:09`       REPORT RequestId: c96a9395-699b-46fd-9712-a4751038bdbe	Duration: 16253.05 ms	Billed Duration: 16719 ms	Memory Size: 1536 MB	Max Memory Used: 121 MB	Init Duration: 465.01 ms	
+XRAY TraceId: 1-6a939578-7
+- `01:09:10`   justhodl-fed-speak                           ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=[] consumers=0
+- `01:09:10`   justhodl-divergence-scanner                  ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=[] consumers=0
+- `01:09:11`   macro-report-api                             ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=0 last_active=None cadence/d=0 keys=[] consumers=0
+- `01:09:11`   justhodl-position-sizer-v2                   ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=['data/risk-gate.json'] consumers=9
+- `01:09:11`       data/risk-gate.json: age=0.4h pages=['risk-gate.html'] engines=['justhodl-self-critique', 'justhodl-data-census', 'justhodl-quantum-desk', 'justhodl-fabrication-weekly']
+- `01:09:14`   justhodl-ecb-deep                            SOME_ERRORS      -> FIX_ERRORS               rules=[] sched=[('justhodl-ecb-deep-10min', 'ENABLED')] url=False inv90=2150 last_active=2026-09-01 cadence/d=143.3 keys=[] consumers=0
+- `01:09:14`       REPORT RequestId: 276a9386-71a7-4b68-b42e-de11b5f419e3	Duration: 271692.28 ms	Billed Duration: 272202 ms	Memory Size: 4096 MB	Max Memory Used: 1512 MB	Init Duration: 509.68 ms	
+XRAY TraceId: 1-6a93869
+- `01:09:15`   justhodl-provider-window-sentinel            ERRORING         -> FIX_ERRORS               rules=[] sched=[('justhodl-provider-window-sentinel-weekly', 'ENABLED')] url=False inv90=5 last_active=2026-08-30 cadence/d=1.7 keys=[] consumers=0
+- `01:09:15`       REPORT RequestId: 296a93f1-107c-4a25-b29e-736191abef63	Duration: 120000.00 ms	Billed Duration: 120528 ms	Memory Size: 256 MB	Max Memory Used: 99 MB	Init Duration: 527.27 ms	Status: timeout
+XRAY TraceI
+- `01:09:16`   ecb-data-daily-updater                       ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=[] consumers=0
+- `01:09:18`   justhodl-import-sentinel                     ERRORING         -> FIX_ERRORS               rules=[('null', 'ENABLED')] sched=[('justhodl-import-sentinel-10min', 'ENABLED')] url=False inv90=4060 last_active=2026-09-02 cadence/d=169.2 keys=['data/warm/nyfed-markets/pd-state.json', 'data/warm/nyfed/latest-summary.json'] consumers=10
+- `01:09:18`       data/warm/nyfed-markets/pd-state.json: age=0.9h pages=[] engines=['justhodl-nyfed-markets-full', 'justhodl-provider-catalog']
+- `01:09:18`       data/warm/nyfed/latest-summary.json: age=19.7h pages=[] engines=['justhodl-edgar-full-index', 'justhodl-nyfed-markets-full', 'justhodl-treasury-fiscal-full', 'justhodl-usgov-direct']
+- `01:09:18`       REPORT RequestId: 1b6a9386-521b-421d-9027-f0ff9b44e81b	Duration: 718.61 ms	Billed Duration: 1152 ms	Memory Size: 512 MB	Max Memory Used: 107 MB	Init Duration: 433.07 ms	
+XRAY TraceId: 1-6a93866f-3276e
+- `01:09:20`   justhodl-stock-screener                      ERRORING         -> FIX_ERRORS               rules=[('justhodl-stock-screener-4h', 'ENABLED')] sched=[] url=True inv90=674 last_active=2026-09-01 cadence/d=8.5 keys=[] consumers=0
+- `01:09:20`       ERR: REPORT RequestId: 3252d6f7-dae3-49de-ae80-2ecf5768fea5	Duration: 104.70 ms	Billed Duration: 105 ms	Memory Size: 1280 MB	Max Memory Used: 51 MB	Status: error	Error Type: Runtime.Unknown
+XRAY TraceId: 1-6a8ea75b-23700aac38
+- `01:09:20`       ERR: INIT_REPORT Init Duration: 96.67 ms	Phase: invoke	Status: error	Error Type: Runtime.Unknown
+- `01:09:20`       ERR: [ERROR] NameError: name 'boto3' is not defined
+Traceback (most recent call last):
+  File "/var/lang/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package
+- `01:09:20`       INIT_REPORT Init Duration: 117.12 ms	Phase: invoke	Status: error	Error Type: Runtime.Unknown
+- `01:09:22`   justhodl-signal-scorecard                    ERRORING         -> FIX_ERRORS               rules=[('signal-scorecard-daily', 'ENABLED')] sched=[] url=False inv90=336 last_active=2026-09-01 cadence/d=3.7 keys=[] consumers=0
+- `01:09:22`       REPORT RequestId: 98d5d505-8020-4c72-9d15-0a7ea46f1e39	Duration: 120000.00 ms	Billed Duration: 120000 ms	Memory Size: 256 MB	Max Memory Used: 255 MB	Status: timeout
+XRAY TraceId: 1-6a940641-3a450afb7d
+- `01:09:24`   justhodl-screener-alerts                     ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=64 last_active=2026-08-05 cadence/d=1.2 keys=[] consumers=0
+- `01:09:26`   justhodl-imf-full                            ERRORING         -> FIX_ERRORS               rules=[] sched=[('justhodl-imf-full-weekly', 'ENABLED'), ('justhodl-imf-full-6h', 'ENABLED')] url=False inv90=60 last_active=2026-09-01 cadence/d=6.7 keys=[] consumers=0
+- `01:09:26`       REPORT RequestId: 676a9395-6d71-4eb3-823f-1f9a869baa05	Duration: 850000.00 ms	Billed Duration: 850000 ms	Memory Size: 1024 MB	Max Memory Used: 156 MB	Status: timeout
+XRAY TraceId: 1-6a93958c-03e6a4ea7
+- `01:09:27`   justhodl-subscribe                           ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=8 last_active=2026-07-06 cadence/d=8.0 keys=[] consumers=0
+- `01:09:29`   justhodl-calibrator                          ERRORING         -> FIX_ERRORS               rules=[] sched=[] url=False inv90=304 last_active=2026-09-01 cadence/d=3.4 keys=[] consumers=0
+- `01:09:29`       REPORT RequestId: fba7be35-fdc6-452b-83dc-b4b193c72cea	Duration: 300000.00 ms	Billed Duration: 300000 ms	Memory Size: 512 MB	Max Memory Used: 511 MB	Status: timeout
+XRAY TraceId: 1-6a94a09e-01a3b9435c
+- `01:09:30`   justhodl-email-reports-v2                    ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=60 last_active=2026-08-01 cadence/d=1.0 keys=[] consumers=0
+- `01:09:30`   justhodl-portfolio-admin                     ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=0 last_active=None cadence/d=0 keys=[] consumers=0
+- `01:09:31`   justhodl-universe-builder                    ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=71 last_active=2026-07-31 cadence/d=1.5 keys=[] consumers=0
+- `01:09:32`   justhodl-insider-cluster-scanner             ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=62 last_active=2026-08-04 cadence/d=1.0 keys=[] consumers=0
+- `01:09:34`   justhodl-risk-gate                           SOME_ERRORS      -> FIX_ERRORS               rules=[('justhodl-risk-gate-hourly', 'ENABLED')] sched=[('risk-gate-daily', 'ENABLED')] url=False inv90=726 last_active=2026-09-01 cadence/d=19.1 keys=['data/official-pulse.json', 'data/treasury-rehypo.json'] consumers=6
+- `01:09:34`       data/official-pulse.json: age=112.1h pages=['foreign-flows.html'] engines=['justhodl-official-pulse']
+- `01:09:34`       data/treasury-rehypo.json: age=3.5h pages=['treasury-rehypo.html'] engines=['justhodl-quantum-desk', 'justhodl-treasury-rehypo', 'justhodl-plumbing-aggregator']
+- `01:09:34`       REPORT RequestId: 211b34de-1afc-4ff6-9427-4a96afa3c778	Duration: 84415.26 ms	Billed Duration: 84920 ms	Memory Size: 1024 MB	Max Memory Used: 164 MB	Init Duration: 504.74 ms	
+XRAY TraceId: 1-6a9389f8-4
+- `01:09:35`   justhodl-momentum-breakout                   ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=['data/universe.json'] consumers=12
+- `01:09:35`       data/universe.json: age=775.0h pages=['web/intel/index.html', 'sectors.html', 'intel/index.html', 'fleet-audit.html'] engines=['justhodl-universe-builder', 'justhodl-best-setups', 'justhodl-backlog', 'justhodl-readthrough']
+- `01:09:36`   justhodl-liquidity-agent                     ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=68 last_active=2026-08-05 cadence/d=1.1 keys=['data/fred-cache.json'] consumers=4
+- `01:09:36`       data/fred-cache.json: age=8.4h pages=['global-macro.html'] engines=['justhodl-capex-pulse', 'justhodl-global-tide', 'justhodl-daily-report-v3']
+- `01:09:36`   justhodl-bond-regime-detector                ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=70 last_active=2026-07-31 cadence/d=1.5 keys=[] consumers=0
+- `01:09:37`   justhodl-daily-macro-report                  ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=0 last_active=None cadence/d=0 keys=[] consumers=0
+- `01:09:38`   justhodl-microcap-float-squeeze              ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=58 last_active=2026-07-31 cadence/d=1.0 keys=['data/universe.json'] consumers=12
+- `01:09:38`       data/universe.json: age=775.0h pages=['web/intel/index.html', 'sectors.html', 'intel/index.html', 'fleet-audit.html'] engines=['justhodl-universe-builder', 'justhodl-best-setups', 'justhodl-backlog', 'justhodl-readthrough']
+- `01:09:40`   justhodl-signal-harvester                    ERRORING         -> FIX_ERRORS               rules=[('signal-harvester-daily', 'ENABLED')] sched=[] url=False inv90=152 last_active=2026-09-01 cadence/d=2.0 keys=[] consumers=0
+- `01:09:40`       REPORT RequestId: abbf2f48-2a05-47ce-b325-e66e99acf12a	Duration: 300000.00 ms	Billed Duration: 300000 ms	Memory Size: 512 MB	Max Memory Used: 105 MB	Status: timeout
+XRAY TraceId: 1-6a94b97f-2029173420
+- `01:09:44`   justhodl-series-extractor                    SOME_ERRORS      -> FIX_ERRORS               rules=[('justhodl-series-extractor-5min', 'ENABLED'), ('justhodl-series-extractor-5min', 'ENABLED')] sched=[] url=False inv90=23045 last_active=2026-09-01 cadence/d=960.2 keys=['data/audit/engine-writes-overrides.json', 'data/providers/%s/series/page-%04d.json'] consumers=1
+- `01:09:44`       data/audit/engine-writes-overrides.json: age=611.2h pages=[] engines=['justhodl-provider-catalog']
+- `01:09:44`       data/providers/%s/series/page-%04d.json: age=missingh pages=[] engines=[]
+- `01:09:44`       ERR: REPORT RequestId: 6b4cbb85-d07f-4c48-afe9-66500dffedf9	Duration: 47880.46 ms	Billed Duration: 47881 ms	Memory Size: 1536 MB	Max Memory Used: 1535 MB	Status: error	Error Type: Runtime.OutOfMemory
+XRAY TraceId: 1-6a8e533f-
+- `01:09:44`       ERR: REPORT RequestId: 6b4cbb85-d07f-4c48-afe9-66500dffedf9	Duration: 50369.88 ms	Billed Duration: 50370 ms	Memory Size: 1536 MB	Max Memory Used: 1535 MB	Status: error	Error Type: Runtime.OutOfMemory
+XRAY TraceId: 1-6a8e533f-
+- `01:09:44`       ERR: REPORT RequestId: 3a24592d-6c57-4a64-a3b5-ca6baad74837	Duration: 49833.29 ms	Billed Duration: 49834 ms	Memory Size: 1536 MB	Max Memory Used: 1535 MB	Status: error	Error Type: Runtime.OutOfMemory
+XRAY TraceId: 1-6a8e5213-
+- `01:09:44`       REPORT RequestId: 68b8bcb4-a661-4a2e-b649-892a3e4d8776	Duration: 407.83 ms	Billed Duration: 408 ms	Memory Size: 10240 MB	Max Memory Used: 368 MB	
+XRAY TraceId: 1-6a9384e5-374219000667f2617cfff921	Segm
+- `01:09:45`   justhodl-eps-revision-velocity               ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=['data/universe.json'] consumers=12
+- `01:09:45`       data/universe.json: age=775.0h pages=['web/intel/index.html', 'sectors.html', 'intel/index.html', 'fleet-audit.html'] engines=['justhodl-universe-builder', 'justhodl-best-setups', 'justhodl-backlog', 'justhodl-readthrough']
+- `01:09:45`   justhodl-earnings-whisper                    ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=[] consumers=0
+- `01:09:46`   justhodl-ecb-full-catalog                    ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=3 last_active=2026-08-18 cadence/d=3.0 keys=['data/warm/ecb/catalog-summary.json', 'data/warm/ecb/catalog.json.gz'] consumers=10
+- `01:09:46`       data/warm/ecb/catalog-summary.json: age=341.6h pages=[] engines=['justhodl-fred-tag-crawler']
+- `01:09:46`       data/warm/ecb/catalog.json.gz: age=341.6h pages=['data.html'] engines=['justhodl-census-us', 'justhodl-bis-gleif', 'justhodl-sdmx-walker', 'justhodl-import-sentinel']
+- `01:09:47`   justhodl-ai-council                          ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=3 last_active=2026-08-04 cadence/d=3.0 keys=[] consumers=0
+- `01:09:47`   justhodl-ab-test                             ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=59 last_active=2026-08-02 cadence/d=1.0 keys=['data/morning-intel.json', 'data/report.json'] consumers=20
+- `01:09:47`       data/morning-intel.json: age=missingh pages=[] engines=['justhodl-history-snapshotter', 'justhodl-reversal-radar', 'justhodl-morning-brief-tg', 'justhodl-whats-changed']
+- `01:09:47`       data/report.json: age=8.4h pages=['index.html', 'ath.html', 'bonds.html', 'bot/index.html'] engines=['justhodl-divergence-scanner', 'justhodl-bloomberg-v8', 'justhodl-risk-sizer', 'justhodl-allocator']
+- `01:09:48`   economyapi                                   ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=2 last_active=2026-08-05 cadence/d=1.0 keys=[] consumers=0
+- `01:09:49`   justhodl-investor-agents                     ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=2 last_active=2026-07-14 cadence/d=1.0 keys=['data/report.json'] consumers=16
+- `01:09:49`       data/report.json: age=8.4h pages=['index.html', 'ath.html', 'bonds.html', 'bot/index.html'] engines=['justhodl-divergence-scanner', 'justhodl-bloomberg-v8', 'justhodl-risk-sizer', 'justhodl-allocator']
+- `01:09:51`   justhodl-a2a-bus                             SOME_ERRORS      -> FIX_ERRORS               rules=[] sched=[] url=True inv90=61189 last_active=2026-09-02 cadence/d=2039.6 keys=[] consumers=0
+- `01:09:51`       REPORT RequestId: b3ecec64-da44-485d-9fe4-d9bc2ed02601	Duration: 3506.42 ms	Billed Duration: 3507 ms	Memory Size: 512 MB	Max Memory Used: 103 MB	
+XRAY TraceId: 1-6a9382b8-0f333b7965588a3c48138d83	Segm
+- `01:09:52`   aiapi-market-analyzer                        ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=1153 last_active=2026-08-05 cadence/d=18.3 keys=[] consumers=0
+- `01:09:54`   justhodl-allocator                           ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=71 last_active=2026-08-01 cadence/d=1.4 keys=['data/indicator-bus.json'] consumers=4
+- `01:09:54`       data/indicator-bus.json: age=12.9h pages=[] engines=['justhodl-quantum-desk', 'justhodl-global-recession', 'justhodl-domain-barometers', 'justhodl-provider-catalog']
+- `01:09:54`   autonomous-ai-processor                      ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=0 last_active=None cadence/d=0 keys=[] consumers=0
+- `01:09:55`   treasury-auto-updater                        ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=[] consumers=0
+- `01:09:55`   justhodl-regime-composite                    ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=155 last_active=2026-07-31 cadence/d=3.2 keys=[] consumers=0
+- `01:09:56`   justhodl-transcript-query                    ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=1 last_active=2026-07-08 cadence/d=1.0 keys=[] consumers=0
+- `01:09:58`   justhodl-plumbing-aggregator                 SOME_ERRORS      -> FIX_ERRORS               rules=[('justhodl-plumbing-aggregator-hourly', 'ENABLED')] sched=[] url=False inv90=828 last_active=2026-09-01 cadence/d=10.6 keys=['data/hkma.json', 'data/plumbing-history.json', 'data/settlement-fails.json'] consumers=18
+- `01:09:58`       data/hkma.json: age=16.1h pages=['opportunities.html'] engines=['justhodl-eurodollar-plumbing', 'justhodl-hkma-monitor', 'justhodl-bond-desk']
+- `01:09:58`       data/plumbing-history.json: age=0.5h pages=['plumbing.html'] engines=['justhodl-warroom-weights']
+- `01:09:58`       data/settlement-fails.json: age=3.6h pages=['risk-regime.html', 'sovereign.html', 'ofr.html', 'primary-dealers.html'] engines=['justhodl-eurodollar-plumbing', 'justhodl-settlement-fails', 'justhodl-liquidity-inflection', 'justhodl-credit-composite']
+- `01:09:58`       ERR: [plumbing] HTTP fail: https://api.stlouisfed.org/fred/series/observations?series_id=WGRESUS&api_key=2f → HTTP Error 400: Bad Request
+- `01:09:58`       ERR: [plumbing] HTTP fail: https://api.stlouisfed.org/fred/series/observations?series_id=DRTSCLM&api_key=2f → HTTP Error 400: Bad Request
+- `01:09:58`       ERR: [plumbing] HTTP fail: https://api.stlouisfed.org/fred/series/observations?series_id=WCBSL&api_key=2f05 → HTTP Error 400: Bad Request
+- `01:09:58`       REPORT RequestId: 607f7d23-6974-4351-ae00-058f3d7e3616	Duration: 30981.60 ms	Billed Duration: 31548 ms	Memory Size: 1024 MB	Max Memory Used: 157 MB	Init Duration: 565.59 ms	
+XRAY TraceId: 1-6a9389a7-4
+- `01:09:59`   permanent-market-intelligence                ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=[] consumers=0
+- `01:09:59`   justhodl-earnings                            ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=2 last_active=2026-08-18 cadence/d=2.0 keys=[] consumers=0
+- `01:10:00`   ultimate-multi-agent                         ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=99 last_active=2026-08-01 cadence/d=4.0 keys=[] consumers=0
+- `01:10:02`   justhodl-cb-injection                        SOME_ERRORS      -> FIX_ERRORS               rules=[('cb-injection-daily', 'ENABLED')] sched=[] url=False inv90=221 last_active=2026-09-01 cadence/d=2.5 keys=[] consumers=0
+- `01:10:02`       REPORT RequestId: f4cd46c4-878e-4115-b212-034d34ec6d7a	Duration: 27941.86 ms	Billed Duration: 28445 ms	Memory Size: 256 MB	Max Memory Used: 100 MB	Init Duration: 503.12 ms	
+XRAY TraceId: 1-6a942972-67
+- `01:10:05`   justhodl-fleet-monitor                       ERRORING         -> FIX_ERRORS               rules=[('fleet-monitor-3h', 'ENABLED'), ('justhodl-fleet-monitor-6h', 'DISABLED')] sched=[('fleet-monitor-sched', 'ENABLED')] url=False inv90=1302 last_active=2026-09-01 cadence/d=14.6 keys=[] consumers=0
+- `01:10:05`       REPORT RequestId: 436a9395-6742-4adb-8b87-76f6a0ebfca7	Duration: 300000.00 ms	Billed Duration: 300000 ms	Memory Size: 512 MB	Max Memory Used: 102 MB	Status: timeout
+XRAY TraceId: 1-6a939573-7d9f50692b
+- `01:10:05`   ecb                                          ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=0 last_active=None cadence/d=0 keys=[] consumers=0
+- `01:10:06`   justhodl-sector-tilt                         ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=70 last_active=2026-07-31 cadence/d=1.5 keys=[] consumers=0
+- `01:10:07`   justhodl-narrative-density-tracker           ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=[] consumers=0
+- `01:10:09`   justhodl-repo-monitor                        SOME_ERRORS      -> FIX_ERRORS               rules=[('justhodl-repo-30min', 'ENABLED'), ('justhodl-repo-daily', 'ENABLED')] sched=[] url=False inv90=1476 last_active=2026-09-01 cadence/d=16.8 keys=[] consumers=0
+- `01:10:09`       ERR: HTTP_ERR[https://api.stlouisfed.org/fred/series/observations?series_i]:HTTP Error 400: Bad Request
+- `01:10:09`       ERR: HTTP_ERR[https://markets.newyorkfed.org/api/rp/srf/results/latest.jso]:HTTP Error 400: Bad Request
+- `01:10:09`       REPORT RequestId: b2b198bf-4d78-4356-bd50-4bc7d9fe7281	Duration: 28936.80 ms	Billed Duration: 29469 ms	Memory Size: 512 MB	Max Memory Used: 102 MB	Init Duration: 531.91 ms	
+XRAY TraceId: 1-6a938405-52
+- `01:10:10`   justhodl-dep-graph                           ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=58 last_active=2026-07-31 cadence/d=1.0 keys=[] consumers=0
+- `01:10:10`   justhodl-tv-notes-ingest                     ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=30218 last_active=2026-08-24 cadence/d=2158.4 keys=[] consumers=0
+- `01:10:11`   justhodl-treasury-proxy                      ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=3 last_active=2026-08-11 cadence/d=1.0 keys=[] consumers=0
+- `01:10:12`   justhodl-position-monitor                    ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=260 last_active=2026-07-31 cadence/d=5.5 keys=[] consumers=0
+- `01:10:12`   justhodl-market-interpreter                  ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=152 last_active=2026-07-31 cadence/d=3.2 keys=[] consumers=0
+- `01:10:14`   justhodl-prompt-iterator                     ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=10 last_active=2026-07-26 cadence/d=1.2 keys=[] consumers=0
+- `01:10:14`   scrapeMacroData                              ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=[] consumers=0
+- `01:10:15`   justhodl-history-api                         ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=1 last_active=2026-07-08 cadence/d=1.0 keys=[] consumers=0
+- `01:10:16`   justhodl-theme-rotation-engine               ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=97 last_active=2026-08-01 cadence/d=1.6 keys=[] consumers=0
+- `01:10:16`   daily-liquidity-report                       ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=[] consumers=0
+- `01:10:18`   justhodl-asymmetric-hunter                   ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=['data/nobrainers.json'] consumers=11
+- `01:10:18`       data/nobrainers.json: age=758.1h pages=['web/intel/index.html', 'why-cross-signal.html', 'intel/index.html', 'nobrainers.html'] engines=['openbb-websocket-handler', 'justhodl-compound-aggregator', 'justhodl-master-ranker', 'justhodl-convexity-scorer']
+- `01:10:19`   MLPredictor                                  ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=[] consumers=0
+- `01:10:20`   justhodl-ask-desk                            ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=6 last_active=2026-06-12 cadence/d=6.0 keys=['data/engine-manifest.json'] consumers=4
+- `01:10:20`       data/engine-manifest.json: age=0.0h pages=['data-census.html'] engines=['justhodl-contract-gate', 'justhodl-feed-catalog', 'justhodl-audit-loop']
+- `01:10:20`   justhodl-signal-portfolio                    ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=58 last_active=2026-07-31 cadence/d=1.0 keys=[] consumers=0
+- `01:10:21`   justhodl-fleet-auditor                       ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=5 last_active=2026-08-03 cadence/d=5.0 keys=['data/fleet-audit-queue.json'] consumers=0
+- `01:10:21`       data/fleet-audit-queue.json: age=701.3h pages=[] engines=[]
+- `01:10:22`   justhodl-reports-builder                     ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=152 last_active=2026-07-31 cadence/d=3.2 keys=[] consumers=0
+- `01:10:24`   justhodl-insider-trades                      ERRORING         -> FIX_ERRORS               rules=[('justhodl-insider-trades-30min', 'ENABLED')] sched=[] url=True inv90=2811 last_active=2026-09-01 cadence/d=37.0 keys=['data/insider-trades-full.json'] consumers=1
+- `01:10:24`       data/insider-trades-full.json: age=342.4h pages=['insiders.html'] engines=[]
+- `01:10:24`       ERR: [ERROR] KeyError: 'side'
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 988, in lambda_handler
+    summary = stats_summary(all_txns)
+  File "/var/task/lambda_function.py", line 780, in sta
+- `01:10:24`       REPORT RequestId: 7a5cb3ad-1529-4b23-ba22-b5971d1ebc38	Duration: 7388.43 ms	Billed Duration: 7389 ms	Memory Size: 512 MB	Max Memory Used: 114 MB	
+XRAY TraceId: 1-6a9383e9-055296f75b2632ad19cb4754	Segm
+- `01:10:26`   cftc-futures-positioning-agent               SOME_ERRORS      -> FIX_ERRORS               rules=[('cftc-cot-weekly-update', 'ENABLED')] sched=[] url=True inv90=894 last_active=2026-09-01 cadence/d=9.9 keys=[] consumers=0
+- `01:10:26`       REPORT RequestId: 093e83d0-984e-4e0a-bc52-6ca31587b7ff	Duration: 1.78 ms	Billed Duration: 421 ms	Memory Size: 512 MB	Max Memory Used: 96 MB	Init Duration: 418.44 ms	
+XRAY TraceId: 1-6a93891b-5583e37a7
+- `01:10:27`   justhodl-deep-value-screener                 ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=['data/asymmetric-scorer.json', 'data/universe.json'] consumers=20
+- `01:10:27`       data/asymmetric-scorer.json: age=675.5h pages=['ticker.html', 'why-cross-signal.html', 'alpha-scoreboard.html'] engines=['justhodl-master-ranker', 'justhodl-ai-brief', 'justhodl-best-ideas', 'justhodl-history-snapshotter']
+- `01:10:27`       data/universe.json: age=775.0h pages=['web/intel/index.html', 'sectors.html', 'intel/index.html', 'fleet-audit.html'] engines=['justhodl-universe-builder', 'justhodl-best-setups', 'justhodl-backlog', 'justhodl-readthrough']
+- `01:10:28`   justhodl-nobrainer-tracker                   ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=152 last_active=2026-07-31 cadence/d=3.2 keys=['data/nobrainers.json', 'data/report.json'] consumers=27
+- `01:10:28`       data/nobrainers.json: age=758.1h pages=['web/intel/index.html', 'why-cross-signal.html', 'intel/index.html', 'nobrainers.html'] engines=['openbb-websocket-handler', 'justhodl-compound-aggregator', 'justhodl-master-ranker', 'justhodl-convexity-scorer']
+- `01:10:28`       data/report.json: age=8.4h pages=['index.html', 'ath.html', 'bonds.html', 'bot/index.html'] engines=['justhodl-divergence-scanner', 'justhodl-bloomberg-v8', 'justhodl-risk-sizer', 'justhodl-allocator']
+- `01:10:29`   justhodl-vol-regime                          ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=153 last_active=2026-07-31 cadence/d=3.2 keys=['data/user-watchlist.json'] consumers=3
+- `01:10:29`       data/user-watchlist.json: age=2817.7h pages=['watchlist.html', 'master-rank.html'] engines=['justhodl-watchlist']
+- `01:10:31`   justhodl-real-economy-collector              SOME_ERRORS      -> FIX_ERRORS               rules=[] sched=[('justhodl-real-economy-collector', 'ENABLED')] url=False inv90=366 last_active=2026-09-01 cadence/d=16.6 keys=[] consumers=0
+- `01:10:31`       REPORT RequestId: 896a9395-70f0-45d1-b9a3-82a1da67b8de	Duration: 40196.24 ms	Billed Duration: 40703 ms	Memory Size: 1024 MB	Max Memory Used: 124 MB	Init Duration: 506.55 ms	
+XRAY TraceId: 1-6a939599-7
+- `01:10:32`   justhodl-correlation-breaks                  ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=59 last_active=2026-08-02 cadence/d=1.0 keys=[] consumers=0
+- `01:10:32`   multi-agent-orchestrator                     ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=0 last_active=None cadence/d=0 keys=[] consumers=0
+- `01:10:33`   justhodl-supply-inflection-scanner           ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=65 last_active=2026-08-01 cadence/d=1.1 keys=['data/supply-inflection.json'] consumers=6
+- `01:10:33`       data/supply-inflection.json: age=762.1h pages=['supply-inflection.html'] engines=['justhodl-cyclical-bagger', 'justhodl-scarcity-radar', 'justhodl-master-ranker', 'justhodl-asymmetric-hunter']
+- `01:10:35`   justhodl-census-us                           SOME_ERRORS      -> FIX_ERRORS               rules=[('benzinga-news-agent-warm', 'ENABLED'), ('carry-surface-4h', 'ENABLED')] sched=[('justhodl-census-us-15min', 'ENABLED')] url=False inv90=7769 last_active=2026-09-02 cadence/d=706.3 keys=[] consumers=0
+- `01:10:35`       ERR: [ERROR] UnboundLocalError: cannot access local variable 'gr' where it is not associated with a value
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 696, in lambda_handler
+    refresh(state
+- `01:10:35`       REPORT RequestId: 716a9385-0c05-411f-acf4-74dada3805ec	Duration: 24428.23 ms	Billed Duration: 24963 ms	Memory Size: 1024 MB	Max Memory Used: 203 MB	Init Duration: 534.50 ms	
+XRAY TraceId: 1-6a938538-3
+- `01:10:36`   justhodl-email-reports                       ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=0 last_active=None cadence/d=0 keys=[] consumers=0
+- `01:10:36`   justhodl-theme-detector                      ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=['data/themes-detected.json'] consumers=6
+- `01:10:36`       data/themes-detected.json: age=763.1h pages=['resilience.html'] engines=['justhodl-scarcity-radar', 'justhodl-supply-inflection-scanner', 'justhodl-asymmetric-hunter', 'justhodl-bottleneck-boom']
+- `01:10:38`   justhodl-outcome-checker                     SOME_ERRORS      -> FIX_ERRORS               rules=[('justhodl-outcome-checker-4h', 'ENABLED'), ('justhodl-outcome-checker-daily', 'ENABLED')] sched=[] url=False inv90=331 last_active=2026-09-01 cadence/d=3.7 keys=['data/report.json'] consumers=16
+- `01:10:38`       data/report.json: age=8.4h pages=['index.html', 'ath.html', 'bonds.html', 'bot/index.html'] engines=['justhodl-divergence-scanner', 'justhodl-bloomberg-v8', 'justhodl-risk-sizer', 'justhodl-allocator']
+- `01:10:38`       ERR: [PRICE-AT] ONDO@2026-07-18: HTTP Error 404: Not Found
+- `01:10:38`       ERR: [PRICE-AT] ONDO@2026-07-02: HTTP Error 404: Not Found
+- `01:10:38`       ERR: [PRICE-AT] ONDO@2026-07-19: HTTP Error 404: Not Found
+- `01:10:38`       REPORT RequestId: facb3ad6-494f-49b0-9dd8-adcbb39e8087	Duration: 296198.16 ms	Billed Duration: 296793 ms	Memory Size: 1024 MB	Max Memory Used: 246 MB	Init Duration: 594.19 ms	
+XRAY TraceId: 1-6a94a09e
+- `01:10:41`   justhodl-feed-registry                       ERRORING         -> FIX_ERRORS               rules=[] sched=[('justhodl-feed-registry-daily', 'ENABLED')] url=False inv90=101 last_active=2026-09-01 cadence/d=2.1 keys=[] consumers=0
+- `01:10:41`       REPORT RequestId: 376a93db-f83e-4b6e-b74e-e6c74698ef3e	Duration: 120000.00 ms	Billed Duration: 120000 ms	Memory Size: 256 MB	Max Memory Used: 101 MB	Status: timeout
+XRAY TraceId: 1-6a93dc0c-4b87babd61
+- `01:10:42`   justhodl-khalid-metrics                      ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=126 last_active=2026-08-01 cadence/d=2.1 keys=['data/khalid-analysis.json', 'data/khalid-config.json', 'data/khalid-metrics.json'] consumers=11
+- `01:10:42`       data/khalid-analysis.json: age=745.5h pages=['risk-desk.html'] engines=['justhodl-ka-metrics', 'justhodl-khalid-metrics', 'justhodl-history-snapshotter']
+- `01:10:42`       data/khalid-config.json: age=1189.1h pages=[] engines=['justhodl-ka-metrics', 'justhodl-khalid-metrics', 'justhodl-fleet-freshness-monitor', 'justhodl-history-snapshotter']
+- `01:10:42`       data/khalid-metrics.json: age=745.5h pages=[] engines=['justhodl-ka-metrics', 'justhodl-khalid-metrics', 'justhodl-history-snapshotter']
+- `01:10:43`   justhodl-screen-backtest                     ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=5 last_active=2026-07-20 cadence/d=2.5 keys=['data/spx-history-deep.json'] consumers=4
+- `01:10:43`       data/spx-history-deep.json: age=65.0h pages=[] engines=['justhodl-spx-history', 'justhodl-liquidity-inflection', 'justhodl-confluence-meta', 'justhodl-spx-ma']
+- `01:10:45`   justhodl-research-backtest                   ERRORING         -> FIX_ERRORS               rules=[('justhodl-research-backtest-daily', 'ENABLED')] sched=[] url=True inv90=110 last_active=2026-09-01 cadence/d=1.2 keys=[] consumers=0
+- `01:10:45`       REPORT RequestId: 58cc8b74-adc3-4d9c-a488-0e2a7dc83b70	Duration: 240000.00 ms	Billed Duration: 240000 ms	Memory Size: 512 MB	Max Memory Used: 116 MB	Status: timeout
+XRAY TraceId: 1-6a940d3f-2e28fe5207
+- `01:10:46`   justhodl-options-flow-scanner                ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=58 last_active=2026-07-31 cadence/d=1.0 keys=['data/universe.json'] consumers=12
+- `01:10:46`       data/universe.json: age=775.0h pages=['web/intel/index.html', 'sectors.html', 'intel/index.html', 'fleet-audit.html'] engines=['justhodl-universe-builder', 'justhodl-best-setups', 'justhodl-backlog', 'justhodl-readthrough']
+- `01:10:47`   justhodl-fortress                            SOME_ERRORS      -> FIX_ERRORS               rules=[] sched=[('justhodl-fortress-backtest-weekly', 'ENABLED'), ('justhodl-fortress-daily', 'ENABLED')] url=False inv90=26 last_active=2026-09-01 cadence/d=13.0 keys=[] consumers=0
+- `01:10:47`       REPORT RequestId: 208dc106-8095-4ae1-af62-6ff7672d19c2	Duration: 36850.99 ms	Billed Duration: 37388 ms	Memory Size: 3008 MB	Max Memory Used: 521 MB	Init Duration: 536.30 ms	
+XRAY TraceId: 1-6a961bb7-2
+- `01:10:49`   justhodl-watchlist-debate                    ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=60 last_active=2026-07-31 cadence/d=1.0 keys=[] consumers=0
+- `01:10:50`   justhodl-pre-pump-detector                   ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=['data/universe.json'] consumers=12
+- `01:10:50`       data/universe.json: age=775.0h pages=['web/intel/index.html', 'sectors.html', 'intel/index.html', 'fleet-audit.html'] engines=['justhodl-universe-builder', 'justhodl-best-setups', 'justhodl-backlog', 'justhodl-readthrough']
+- `01:10:51`   justhodl-activist-filings-scanner            ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=['data/universe.json'] consumers=12
+- `01:10:51`       data/universe.json: age=775.0h pages=['web/intel/index.html', 'sectors.html', 'intel/index.html', 'fleet-audit.html'] engines=['justhodl-universe-builder', 'justhodl-best-setups', 'justhodl-backlog', 'justhodl-readthrough']
+- `01:10:52`   bls-employment-api-v2                        ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=65 last_active=2026-07-31 cadence/d=1.1 keys=[] consumers=0
+- `01:10:52`   justhodl-ml-predictions                      ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=70 last_active=2026-07-31 cadence/d=1.5 keys=[] consumers=0
+- `01:10:54`   justhodl-sector-earnings-diffusion           ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=['data/eps-revision-velocity.json', 'data/universe.json'] consumers=23
+- `01:10:54`       data/eps-revision-velocity.json: age=758.1h pages=['why-cross-signal.html', 'eps-velocity.html', 'alpha-scoreboard.html'] engines=['justhodl-earnings-whisper', 'justhodl-opportunity-screener', 'justhodl-eps-revision-velocity', 'justhodl-compound-aggregator']
+- `01:10:54`       data/universe.json: age=775.0h pages=['web/intel/index.html', 'sectors.html', 'intel/index.html', 'fleet-audit.html'] engines=['justhodl-universe-builder', 'justhodl-best-setups', 'justhodl-backlog', 'justhodl-readthrough']
+- `01:10:54`   justhodl-api-keys-admin                      ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=0 last_active=None cadence/d=0 keys=[] consumers=0
+- `01:10:55`   justhodl-morning-brief-tg                    ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=60 last_active=2026-08-01 cadence/d=1.0 keys=['data/morning-brief-latest.json'] consumers=1
+- `01:10:55`       data/morning-brief-latest.json: age=758.1h pages=[] engines=['justhodl-history-snapshotter']
+- `01:10:55`   justhodl-ask                                 ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=11 last_active=2026-07-14 cadence/d=5.5 keys=[] consumers=0
+- `01:10:56`   justhodl-stock-ai-research                   ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=0 last_active=None cadence/d=0 keys=[] consumers=0
+- `01:10:56`   nyfed-primary-dealer-fetcher                 ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=0 last_active=None cadence/d=0 keys=[] consumers=0
+- `01:10:57`   justhodl-bloomberg-v8                        ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=170 last_active=2026-07-31 cadence/d=3.5 keys=['data/leading-markets.json', 'data/report.json'] consumers=25
+- `01:10:57`       data/leading-markets.json: age=2.6h pages=['defcon.html'] engines=['justhodl-bloomberg-v8', 'justhodl-allocator', 'justhodl-leading-markets', 'justhodl-crisis-composite']
+- `01:10:57`       data/report.json: age=8.4h pages=['index.html', 'ath.html', 'bonds.html', 'bot/index.html'] engines=['justhodl-divergence-scanner', 'justhodl-bloomberg-v8', 'justhodl-risk-sizer', 'justhodl-allocator']
+- `01:10:58`   justhodl-nobrainer-rationale                 ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=69 last_active=2026-08-01 cadence/d=1.2 keys=['data/compound-signals.json', 'data/deep-value.json', 'data/eps-revision-velocity.json'] consumers=61
+- `01:10:58`       data/compound-signals.json: age=3.9h pages=['web/intel/index.html', 'compound-signals.html', 'why-cross-signal.html', 'intel/index.html'] engines=['justhodl-chart-data', 'openbb-websocket-handler', 'justhodl-compound-aggregator', 'justhodl-master-ranker']
+- `01:10:58`       data/deep-value.json: age=758.1h pages=['why-cross-signal.html', 'deep-value.html', 'alpha-scoreboard.html'] engines=['justhodl-deep-value-screener', 'justhodl-compound-aggregator', 'justhodl-master-ranker', 'justhodl-best-ideas']
+- `01:10:58`       data/eps-revision-velocity.json: age=758.1h pages=['why-cross-signal.html', 'eps-velocity.html', 'alpha-scoreboard.html'] engines=['justhodl-earnings-whisper', 'justhodl-opportunity-screener', 'justhodl-eps-revision-velocity', 'justhodl-compound-aggregator']
+- `01:11:00`   fedliquidityapi                              SOME_ERRORS      -> FIX_ERRORS               rules=[] sched=[] url=True inv90=1702 last_active=2026-09-01 cadence/d=18.9 keys=[] consumers=0
+- `01:11:00`       REPORT RequestId: 6f02ed2c-81f9-4360-abdd-0a3de2523ae7	Duration: 3964.45 ms	Billed Duration: 4095 ms	Memory Size: 256 MB	Max Memory Used: 97 MB	Init Duration: 130.51 ms	
+XRAY TraceId: 1-6a938ae5-2e015
+- `01:11:01`   justhodl-fred-proxy                          ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=9 last_active=2026-08-11 cadence/d=1.3 keys=[] consumers=0
+- `01:11:02`   justhodl-auction-interpreter                 ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=70 last_active=2026-07-31 cadence/d=1.5 keys=[] consumers=0
+- `01:11:03`   justhodl-correlation-surface                 ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=58 last_active=2026-07-31 cadence/d=1.0 keys=[] consumers=0
+- `01:11:03`   justhodl-calibration-snapshot                ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=261 last_active=2026-08-04 cadence/d=5.4 keys=['data/ab-test-results.json'] consumers=3
+- `01:11:03`       data/ab-test-results.json: age=725.8h pages=[] engines=['justhodl-ab-test', 'justhodl-morning-brief-tg', 'justhodl-whats-changed']
+- `01:11:05`   manufacturing-global-agent                   SOME_ERRORS      -> FIX_ERRORS               rules=[] sched=[] url=True inv90=717 last_active=2026-09-01 cadence/d=8.0 keys=[] consumers=0
+- `01:11:05`       ERR: Error fetching CHINA_MANUFACTURING_PMI: HTTP Error 400: Bad Request
+- `01:11:05`       ERR: Error fetching KANSAS_CITY_FED: HTTP Error 400: Bad Request
+- `01:11:05`       ERR: Error fetching DALLAS_FED: HTTP Error 400: Bad Request
+- `01:11:05`       REPORT RequestId: 71b371f1-544e-41b6-8063-d71901b76bc9	Duration: 9827.31 ms	Billed Duration: 10121 ms	Memory Size: 512 MB	Max Memory Used: 98 MB	Init Duration: 292.78 ms	
+XRAY TraceId: 1-6a93ef5c-5426
+- `01:11:06`   justhodl-whats-changed                       ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=59 last_active=2026-07-31 cadence/d=1.0 keys=[] consumers=0
+- `01:11:07`   justhodl-etf-census                          SCHEDULED_SILENT -> SILENT_SCHEDULE          rules=[] sched=[('etf-census-sched', 'ENABLED')] url=False inv90=14 last_active=2026-08-23 cadence/d=2.3 keys=[] consumers=0
+- `01:11:07`   justhodl-ecb-proxy                           ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=4 last_active=2026-08-11 cadence/d=1.0 keys=[] consumers=0
+- `01:11:08`   justhodl-public-api-demo                     ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=0 last_active=None cadence/d=0 keys=[] consumers=0
+- `01:11:08`   justhodl-tenor-signal-interpreter            ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=71 last_active=2026-08-05 cadence/d=1.4 keys=[] consumers=0
+- `01:11:11`   justhodl-ecb-derived                         SOME_ERRORS      -> FIX_ERRORS               rules=[('justhodl-ecb-derived-daily', 'ENABLED')] sched=[] url=False inv90=127 last_active=2026-09-01 cadence/d=1.5 keys=['data/ecb-derived.json', 'data/ecb-detail.json', 'data/ecb-hist/ciss_ea.json'] consumers=18
+- `01:11:11`       data/ecb-derived.json: age=10.5h pages=['eu-dump-radar.html', 'ecb.html'] engines=['justhodl-global-tide', 'justhodl-brain-sync', 'justhodl-smart-wake', 'justhodl-signal-board']
+- `01:11:11`       data/ecb-detail.json: age=10.5h pages=['risk-regime.html', 'ecb-detail.html', 'ecb.html'] engines=['justhodl-euro-fragmentation', 'justhodl-global-tide', 'justhodl-cb-injection', 'justhodl-ecb-detail']
+- `01:11:11`       data/ecb-hist/ciss_ea.json: age=91.1h pages=[] engines=['justhodl-crisis-composite']
+- `01:11:11`       REPORT RequestId: 29a97940-5d43-4ab3-89cc-1f51c83400ab	Duration: 81824.68 ms	Billed Duration: 82474 ms	Memory Size: 256 MB	Max Memory Used: 130 MB	Init Duration: 648.87 ms	
+XRAY TraceId: 1-6a9440c9-70
+- `01:11:13`   justhodl-revenue-acceleration                ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=['data/universe.json'] consumers=12
+- `01:11:13`       data/universe.json: age=775.0h pages=['web/intel/index.html', 'sectors.html', 'intel/index.html', 'fleet-audit.html'] engines=['justhodl-universe-builder', 'justhodl-best-setups', 'justhodl-backlog', 'justhodl-readthrough']
+- `01:11:13`   justhodl-charts-agent                        ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=1 last_active=2026-07-13 cadence/d=1.0 keys=[] consumers=0
+- `01:11:14`   justhodl-industry-case                       ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=2 last_active=2026-08-18 cadence/d=2.0 keys=[] consumers=0
+- `01:11:15`   justhodl-activist-13d                        ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=60 last_active=2026-08-10 cadence/d=1.0 keys=[] consumers=0
+- `01:11:15`   justhodl-health-monitor                      ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=479 last_active=2026-07-31 cadence/d=10.0 keys=[] consumers=0
+- `01:11:16`   justhodl-chat-api                            ORPHAN_IDLE      -> RESURRECT_NEVER_RAN_90D  rules=[] sched=[] url=False inv90=0 last_active=None cadence/d=0 keys=['data/report.json'] consumers=16
+- `01:11:16`       data/report.json: age=8.4h pages=['index.html', 'ath.html', 'bonds.html', 'bot/index.html'] engines=['justhodl-divergence-scanner', 'justhodl-bloomberg-v8', 'justhodl-risk-sizer', 'justhodl-allocator']
+- `01:11:18`   justhodl-global-liquidity                    SOME_ERRORS      -> FIX_ERRORS               rules=[('global-liquidity-daily', 'ENABLED')] sched=[] url=True inv90=158 last_active=2026-09-01 cadence/d=2.0 keys=[] consumers=0
+- `01:11:18`       REPORT RequestId: 5ef86671-2853-4d2d-8bf3-1af1b329e055	Duration: 120000.00 ms	Billed Duration: 120508 ms	Memory Size: 256 MB	Max Memory Used: 97 MB	Init Duration: 507.07 ms	Status: timeout
+XRAY TraceI
+- `01:11:19`   nyfed-financial-stability-fetcher            ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=0 last_active=None cadence/d=0 keys=[] consumers=0
+- `01:11:19`   justhodl-eurostat-history                    ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=1 last_active=2026-08-02 cadence/d=1.0 keys=['data/ecb-confidence.json', 'data/ecb-hist/%s.json'] consumers=8
+- `01:11:19`       data/ecb-confidence.json: age=725.6h pages=[] engines=[]
+- `01:11:19`       data/ecb-hist/%s.json: age=missingh pages=[] engines=['justhodl-etf-true-flows', 'justhodl-floor-audit', 'justhodl-census-us', 'justhodl-usd-funding']
+- `01:11:20`   justhodl-tape-truth                          ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=3 last_active=2026-08-18 cadence/d=3.0 keys=[] consumers=0
+- `01:11:21`   nyfedapi-isolated                            ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=0 last_active=None cadence/d=0 keys=[] consumers=0
+- `01:11:21`   justhodl-smart-money-cluster                 ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=58 last_active=2026-07-31 cadence/d=1.0 keys=['data/13f-positions.json'] consumers=12
+- `01:11:21`       data/13f-positions.json: age=0.0h pages=['dossier.html', 'ticker.html', '13f.html', 'sector-flow.html'] engines=['justhodl-ai-chat', 'justhodl-regime-composite', 'justhodl-attention-confluence', 'justhodl-morning-intelligence']
+- `01:11:24`   justhodl-market-tape                         SOME_ERRORS      -> FIX_ERRORS               rules=[] sched=[('justhodl-market-tape-5min', 'ENABLED')] url=True inv90=17366 last_active=2026-09-02 cadence/d=294.3 keys=['data/indicator-bus.json'] consumers=4
+- `01:11:24`       data/indicator-bus.json: age=12.9h pages=[] engines=['justhodl-quantum-desk', 'justhodl-global-recession', 'justhodl-domain-barometers', 'justhodl-provider-catalog']
+- `01:11:24`       REPORT RequestId: 436a9384-0fab-4bdc-b902-2edc1c63dd07	Duration: 1995.20 ms	Billed Duration: 1996 ms	Memory Size: 192 MB	Max Memory Used: 108 MB	
+XRAY TraceId: 1-6a93841f-1337b1587087842b6cd59d97	Segm
+- `01:11:25`   nasdaq-datalink-agent                        ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=9 last_active=2026-08-25 cadence/d=1.5 keys=[] consumers=0
+- `01:11:26`   justhodl-feedback                            ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=3 last_active=2026-08-01 cadence/d=1.5 keys=[] consumers=0
+- `01:11:27`   justhodl-tape-reader                         ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=58 last_active=2026-07-31 cadence/d=1.0 keys=['data/universe.json'] consumers=12
+- `01:11:27`       data/universe.json: age=775.0h pages=['web/intel/index.html', 'sectors.html', 'intel/index.html', 'fleet-audit.html'] engines=['justhodl-universe-builder', 'justhodl-best-setups', 'justhodl-backlog', 'justhodl-readthrough']
+- `01:11:27`   justhodl-earnings-pead                       ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=['data/universe.json'] consumers=12
+- `01:11:27`       data/universe.json: age=775.0h pages=['web/intel/index.html', 'sectors.html', 'intel/index.html', 'fleet-audit.html'] engines=['justhodl-universe-builder', 'justhodl-best-setups', 'justhodl-backlog', 'justhodl-readthrough']
+- `01:11:28`   justhodl-pead-detector                       ORPHAN_IDLE      -> RESURRECT                rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=['data/universe.json'] consumers=12
+- `01:11:28`       data/universe.json: age=775.0h pages=['web/intel/index.html', 'sectors.html', 'intel/index.html', 'fleet-audit.html'] engines=['justhodl-universe-builder', 'justhodl-best-setups', 'justhodl-backlog', 'justhodl-readthrough']
+- `01:11:29`   justhodl-risk-sizer                          ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=[] consumers=0
+- `01:11:30`   justhodl-valuations-agent                    ORPHAN_IDLE      -> API_DRIVEN               rules=[] sched=[] url=True inv90=3 last_active=2026-08-01 cadence/d=1.0 keys=[] consumers=0
+- `01:11:31`   justhodl-calls-backtest                      ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=59 last_active=2026-08-01 cadence/d=1.0 keys=[] consumers=0
+- `01:11:31`   justhodl-soma-cusip                          ORPHAN_IDLE      -> DORMANT_UNCONSUMED       rules=[] sched=[] url=False inv90=2 last_active=2026-08-16 cadence/d=2.0 keys=[] consumers=0
+## D. summary
+
+- `01:11:31` API_DRIVEN (28): MLPredictor, aiapi-market-analyzer, autonomous-ai-processor, economyapi, justhodl-api-keys-admin, justhodl-ask, justhodl-ask-desk, justhodl-charts-agent, justhodl-ecb-proxy, justhodl-feedback, justhodl-fred-proxy, justhodl-history-api, justhodl-investor-agents, justhodl-khalid-metrics, justhodl-portfolio-admin, justhodl-public-api-demo, justhodl-regime-composite, justhodl-screen-backtest, justhodl-stock-ai-research, justhodl-subscribe, justhodl-theme-rotation-engine, justhodl-treasury-proxy, justhodl-tv-notes-ingest, justhodl-valuations-agent, multi-agent-orchestrator, nasdaq-datalink-agent, scrapeMacroData, ultimate-multi-agent
+- `01:11:31` DORMANT_UNCONSUMED (52): bls-employment-api-v2, daily-liquidity-report, ecb, ecb-data-daily-updater, justhodl-activist-13d, justhodl-ai-council, justhodl-asymmetric-scorer, justhodl-auction-interpreter, justhodl-bond-regime-detector, justhodl-calls-backtest, justhodl-correlation-breaks, justhodl-correlation-surface, justhodl-daily-macro-report, justhodl-data-collector, justhodl-dep-graph, justhodl-divergence-scanner, justhodl-earnings, justhodl-earnings-whisper, justhodl-email-reports, justhodl-email-reports-v2, justhodl-fed-speak, justhodl-fleet-auditor, justhodl-health-monitor, justhodl-industry-case, justhodl-insider-cluster-scanner, justhodl-market-interpreter, justhodl-ml-predictions, justhodl-momentum-scanner, justhodl-narrative-density-tracker, justhodl-position-monitor, justhodl-prompt-iterator, justhodl-reports-builder, justhodl-risk-sizer, justhodl-screener-alerts, justhodl-sector-tilt, justhodl-signal-portfolio, justhodl-soma-cusip, justhodl-synthetic-monitor, justhodl-tape-truth, justhodl-tenor-signal-interpreter, justhodl-transcript-query, justhodl-tv-bars, justhodl-universe-builder, justhodl-watchlist-debate, justhodl-whats-changed, macro-report-api, nyfed-financial-stability-fetcher, nyfed-primary-dealer-fetcher, nyfedapi-isolated, ofrapi, permanent-market-intelligence, treasury-auto-updater
+- `01:11:31` FIX_ERRORS (34): cftc-futures-positioning-agent, fedliquidityapi, justhodl-a2a-bus, justhodl-boj-full, justhodl-calibrator, justhodl-cb-injection, justhodl-cds-proxy, justhodl-census-us, justhodl-ecb-deep, justhodl-ecb-derived, justhodl-equity-research, justhodl-feed-registry, justhodl-fleet-monitor, justhodl-fortress, justhodl-gdelt-full, justhodl-global-liquidity, justhodl-ici-flows, justhodl-imf-full, justhodl-import-sentinel, justhodl-insider-trades, justhodl-market-tape, justhodl-outcome-checker, justhodl-plumbing-aggregator, justhodl-provider-catalog, justhodl-provider-window-sentinel, justhodl-real-economy-collector, justhodl-repo-monitor, justhodl-research-backtest, justhodl-risk-gate, justhodl-series-extractor, justhodl-signal-harvester, justhodl-signal-scorecard, justhodl-stock-screener, manufacturing-global-agent
+- `01:11:31` RESURRECT (30): justhodl-ab-test, justhodl-activist-filings-scanner, justhodl-allocator, justhodl-asymmetric-hunter, justhodl-bloomberg-v8, justhodl-calibration-snapshot, justhodl-deep-value-screener, justhodl-earnings-pead, justhodl-ecb-full-catalog, justhodl-eps-revision-velocity, justhodl-eurostat-history, justhodl-liquidity-agent, justhodl-microcap-float-squeeze, justhodl-momentum-breakout, justhodl-morning-brief-tg, justhodl-nobrainer-rationale, justhodl-nobrainer-tracker, justhodl-options-flow-scanner, justhodl-pead-detector, justhodl-position-sizer-v2, justhodl-pre-pump-detector, justhodl-revenue-acceleration, justhodl-sector-earnings-diffusion, justhodl-smart-money-cluster, justhodl-supply-inflection-scanner, justhodl-tape-reader, justhodl-theme-detector, justhodl-theme-tier-classifier, justhodl-vol-regime, justhodl-volatility-squeeze-hunter
+- `01:11:31` RESURRECT_NEVER_RAN_90D (1): justhodl-chat-api
+- `01:11:31` SILENT_SCHEDULE (2): justhodl-etf-census, justhodl-fi-census
+- `01:11:31` death dates of RESURRECT candidates: {"2026-07-31": 7, "2026-08-01": 18, "2026-08-02": 2, "2026-08-04": 1, "2026-08-05": 1, "2026-08-18": 1}
+- `01:11:31`   2026-07-31: justhodl-bloomberg-v8, justhodl-microcap-float-squeeze, justhodl-nobrainer-tracker, justhodl-options-flow-scanner, justhodl-smart-money-cluster, justhodl-tape-reader, justhodl-vol-regime
+- `01:11:31`   2026-08-01: justhodl-activist-filings-scanner, justhodl-allocator, justhodl-asymmetric-hunter, justhodl-deep-value-screener, justhodl-earnings-pead, justhodl-eps-revision-velocity, justhodl-momentum-breakout, justhodl-morning-brief-tg, justhodl-nobrainer-rationale, justhodl-pead-detector, justhodl-position-sizer-v2, justhodl-pre-pump-detector, justhodl-revenue-acceleration, justhodl-sector-earnings-diffusion, justhodl-supply-inflection-scanner, justhodl-theme-detector, justhodl-theme-tier-classifier, justhodl-volatility-squeeze-hunter
+- `01:11:31`   2026-08-02: justhodl-ab-test, justhodl-eurostat-history
+- `01:11:31`   2026-08-04: justhodl-calibration-snapshot
+- `01:11:31`   2026-08-05: justhodl-liquidity-agent
+- `01:11:31`   2026-08-18: justhodl-ecb-full-catalog
+- `01:11:31` ✅ diagnostics written: 147 engines, verdicts {"DORMANT_UNCONSUMED": 52, "FIX_ERRORS": 34, "RESURRECT": 30, "SILENT_SCHEDULE": 2, "API_DRIVEN": 28, "RESURRECT_NEVER_RAN_90D": 1}
