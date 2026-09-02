@@ -5849,6 +5849,9 @@ class HeaderSearch {
   }
   
   static render(partial) {
+    try { return this._render(partial); } catch (e) { console.error('HeaderSearch.render failed', e); const dd = document.getElementById('hsearch-dropdown'); if (dd && !dd.innerHTML) dd.innerHTML = '<div class="hs-empty">search render error — see console</div>'; }
+  }
+  static _render(partial) {
     const dd = document.getElementById('hsearch-dropdown');
     const g = this._groups || { favorites: [], justhodl: [], instruments: [], series: [], datasets: [], equity: [] };
     ['favorites', 'justhodl', 'instruments', 'series', 'datasets', 'equity'].forEach(k => { g[k] = g[k] || []; });

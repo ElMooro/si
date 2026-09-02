@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.5.3"
+VERSION = "1.6.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -260,7 +260,7 @@ PROV_TOKENS = {"statcan": ("canada", "statistic", "canadian"), "boj": ("japan", 
                "eurostat": ("eu", "europe", "european"), "boe": ("england", "uk", "bank"), "census": ("census", "us"), "bls": ("bls", "labor", "us"),
                "nyfed": ("fed", "new", "york", "us"), "worldbank": ("world", "bank"), "fred": ("fred",), "ofr": ("ofr", "treasury"), "imf": ("imf",),
                "bis": ("bis", "settlement"), "oecd": ("oecd",), "treasury": ("treasury", "us", "fiscal")}
-PROV_NAME = {"fred": "FRED", "ecb": "ECB", "eurostat": "Eurostat", "oecd": "OECD", "bis": "BIS", "imf": "IMF", "boj": "BoJ",
+PROV_NAME = {"ustpar": "US Treasury", "official-yields": "Official yields", "fred": "FRED", "ecb": "ECB", "eurostat": "Eurostat", "oecd": "OECD", "bis": "BIS", "imf": "IMF", "boj": "BoJ",
              "statcan": "StatCan", "worldbank": "World Bank", "nyfed": "NY Fed", "ofr": "OFR", "ofr-hfm": "OFR HFM",
              "ofr-bsrm": "OFR BSRM", "te": "TE mirror", "treasury": "FiscalData", "fiscaldata": "FiscalData", "boe": "BoE",
              "census": "Census", "bls": "BLS", "cboe": "Cboe", "tv": "TradingView", "instrument": "Market", "banxico": "Banxico"}
@@ -2271,9 +2271,15 @@ def tv_equivalents(sym):
             cc, num, mm = m.group(1), m.group(2), m.group(3)
             tenor = _TENOR.get(num + ("M" if mm else ""))
             if cc == "US" and tenor:
-                out.append(("fred:DGS" + tenor, "US Treasury constant-maturity yield, daily (FRED H.15)"))
-                if tenor == "10":
-                    out.append(("fred:DGS10", "10-year, daily"))
+                ust = (num.lstrip("0") + ("M" if mm else "Y"))
+                if ust in ("2M", "4M"):                 # FRED's H.15 set has no 2- or 4-month CMT; Treasury's par curve does
+                    out.append(("ustpar:" + ust, "US Treasury par yield curve, daily (home.treasury.gov)"))
+                if tenor not in ("2MO", "4MO"):        # FRED has no DGS2MO / DGS4MO (verified: "series does not exist")
+                    out.append(("fred:DGS" + tenor, "US Treasury constant-maturity yield, daily (FRED H.15)"))
+                if ust in UST_TENORS and ust not in ("2M", "4M"):
+                    out.append(("ustpar:" + ust, "US Treasury par yield curve, daily (home.treasury.gov)"))
+            if cc == "DE" and not mm and num == "10":
+                out.append(("official-yields:de-10y-bbk", "Bund 10-year, daily (Bundesbank)"))
             if cc in _ISO3 and not mm and num == "10":
                 out.append(("fred:IRLTLT01%sM156N" % cc, "10-year government bond yield, monthly (OECD via FRED)"))
             if cc in _ISO3 and not mm and num in ("03", "3") and cc != "US":
@@ -2299,6 +2305,9 @@ def sources_for(sym):
         if d:
             rows.append({"id": pid, "provider": d[D_PROV], "provider_name": PROV_NAME.get(d[D_PROV], d[D_PROV]), "name": d[D_TITLE], "freq": d[D_FREQ], "first": d[D_FIRST],
                          "last": d[D_LAST], "ohlc": False, "note": note, "banked": bool(d[D_KEY])})
+        elif prov in ("ustpar", "official-yields"):
+            rows.append({"id": pid, "provider": prov, "provider_name": PROV_NAME.get(prov, prov), "name": note, "freq": "D", "first": "1990" if prov == "ustpar" else None, "last": None, "ohlc": False,
+                         "note": note, "banked": True})
         else:
             rows.append({"id": pid, "provider": prov, "provider_name": PROV_NAME.get(prov, prov), "name": note, "freq": None, "first": None, "last": None, "ohlc": False,
                          "note": note + " — not in the catalog yet; banks on first open", "banked": False})
@@ -2413,10 +2422,76 @@ def r_equity(sid, ticker, d):
     return _bars_result(sid, "equity", doc, (d[D_TITLE] if d else t), "warehouse:tv-bars · " + str(doc.get("source") or ""), extra={"bank": bank, "ysym": ysym})
 
 
-RESOLVERS = {"fred": r_fred, "te": r_te, "eurostat": r_eurostat, "ecb": r_ecb, "nyfed": r_nyfed, "ofr": r_ofr,
+UST_TENORS = {"1M": "BC_1MONTH", "2M": "BC_2MONTH", "3M": "BC_3MONTH", "4M": "BC_4MONTH", "6M": "BC_6MONTH", "1Y": "BC_1YEAR", "2Y": "BC_2YEAR", "3Y": "BC_3YEAR",
+              "5Y": "BC_5YEAR", "7Y": "BC_7YEAR", "10Y": "BC_10YEAR", "20Y": "BC_20YEAR", "30Y": "BC_30YEAR"}
+UST_KEY = "data/warm/treasury-par/curve.json.gz"
+
+
+def _ust_fetch_year(year):
+    """Treasury's daily par yield curve XML (the source FRED's H.15 mirrors; it also carries the 2- and 4-month CMTs)."""
+    import xml.etree.ElementTree as ET
+    url = "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=%s" % year
+    b, _, _ = _http(url, timeout=60, headers={"Accept": "application/xml"})
+    root = ET.fromstring(b)
+    out = {}
+    for el in root.iter():
+        if _lname(el) != "properties":
+            continue
+        row = {_lname(c): (c.text or "").strip() for c in el}
+        d = (row.get("NEW_DATE") or "")[:10]
+        if not d:
+            continue
+        out[d] = {t: _f(row.get(col)) for t, col in UST_TENORS.items()}
+    return out
+
+
+def ust_curve(force=False):
+    doc = _get_json(UST_KEY) or {"rows": {}, "as_of": None}
+    rows = doc.get("rows") or {}
+    last = max(rows) if rows else None
+    stale = force or not rows or (_now().date() - date.fromisoformat(last)).days > 1
+    if stale:
+        years = list(range(1990, _now().year + 1)) if not rows else [_now().year] + ([_now().year - 1] if _now().month == 1 else [])
+        for y in years:
+            try:
+                rows.update(_ust_fetch_year(str(y)))
+            except Exception as e:  # noqa: BLE001
+                doc.setdefault("errors", {})[str(y)] = str(e)[:80]
+            time.sleep(0.2)
+        doc.update({"rows": rows, "as_of": _iso(), "n_days": len(rows), "source": "home.treasury.gov daily_treasury_yield_curve", "tenors": list(UST_TENORS)})
+        s3.put_object(Bucket=BUCKET, Key=UST_KEY, Body=gzip.compress(json.dumps(doc, separators=(",", ":")).encode()), ContentType="application/json", ContentEncoding="gzip",
+                      CacheControl="public, max-age=900")
+    return doc
+
+
+def r_ustpar(sid, tenor, d):
+    tenor = tenor.upper()
+    if tenor not in UST_TENORS:
+        raise ValueError("tenor %s not in %s" % (tenor, list(UST_TENORS)))
+    doc = ust_curve()
+    obs = [(dt, v.get(tenor)) for dt, v in sorted((doc.get("rows") or {}).items()) if v.get(tenor) is not None]
+    return _result(sid, "ustpar", obs, name="US Treasury par yield curve %s (daily, Treasury)" % tenor, unit="Percent", freq="D",
+                   source="warehouse:treasury-par (%s)" % (doc.get("source") or "treasury.gov"), extra={"tenor": tenor, "as_of": doc.get("as_of")})
+
+
+def r_official_yield(sid, rest, d):
+    """official-yields lane (justhodl-repo): de-10y-bbk (Bundesbank daily), ea-aaa-10y-ecb."""
+    key = "data/warm/official-yields/%s.json" % rest
+    j = _get_json(key) or {}
+    pts = j.get("points") or j.get("observations") or j.get("series") or []
+    obs = []
+    for o in pts:
+        if isinstance(o, dict):
+            obs.append((o.get("date") or o.get("d"), o.get("value") if o.get("value") is not None else o.get("v")))
+        elif isinstance(o, (list, tuple)) and len(o) >= 2:
+            obs.append((o[0], o[1]))
+    return _result(sid, "official-yields", obs, name=j.get("name") or j.get("title") or rest, unit="Percent", freq="D", source="warehouse:official-yields (%s)" % (j.get("source") or rest))
+
+
+RESOLVERS = {"ustpar": r_ustpar, "official-yields": r_official_yield, "fred": r_fred, "te": r_te, "eurostat": r_eurostat, "ecb": r_ecb, "nyfed": r_nyfed, "ofr": r_ofr,
              "ofr-hfm": lambda s, r, d: r_ofr(s, r, d, "ofr-hfm"), "ofr-bsrm": lambda s, r, d: r_ofr(s, r, d, "ofr-bsrm"),
              "boj": r_boj, "statcan": r_statcan, "worldbank": r_worldbank, "treasury": r_treasury, "boe": r_boe, "census": r_census, "bls": r_bls}
-CACHE_TTL = {"tv": 6 * 3600, "equity": 6 * 3600, "fred": 6 * 3600, "te": 86400, "eurostat": 86400, "ecb": 6 * 3600, "nyfed": 3600, "ofr": 6 * 3600, "boj": 86400, "statcan": 86400,
+CACHE_TTL = {"ustpar": 3600, "official-yields": 3600, "tv": 6 * 3600, "equity": 6 * 3600, "fred": 6 * 3600, "te": 86400, "eurostat": 86400, "ecb": 6 * 3600, "nyfed": 3600, "ofr": 6 * 3600, "boj": 86400, "statcan": 86400,
              "worldbank": 86400, "treasury": 6 * 3600, "boe": 86400, "census": 86400, "bls": 86400}
 
 
