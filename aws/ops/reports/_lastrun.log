@@ -1,13 +1,119 @@
-executing-against: 723efcfa8ce98a4c79ccdb9933e99d075f259e52
-ops 5119 -- symbol directory v1.0.2: ranking refinements
+executing-against: 24242592db19e46842861a5881de087eba464523
+ops 5120 -- symbol directory v1.0.3: titles lane + stage budget + ranking battery
+── S0 why the 5119 build never landed (CloudWatch) ──
+[13:43:07]   f36e2528feaf: REPORT RequestId: f06a9826-c10f-4ec1-9b34-eb7eb5bdab61	Duration: 9801.93 ms	Billed Duration: 10374 ms	Memory Size: 3008 MB	Max Memory Used: 2425 MB	Init Duration: 571.12 ms
+[13:43:08]   dd566416621b: REPORT RequestId: f06a9824-690f-4ec1-9b34-eb7eb5bdab61	Duration: 9687.28 ms	Billed Duration: 10247 ms	Memory Size: 3008 MB	Max Memory Used: 2424 MB	Init Duration: 559.19 ms
+[13:43:08]   dd566416621b: REPORT RequestId: f06a9823-3d0f-4ec1-9b34-eb7eb5bdab61	Duration: 120452.82 ms	Billed Duration: 120453 ms	Memory Size: 3008 MB	Max Memory Used: 3008 MB	Status: error	Error Type: Runtime.OutOfMemory
+[13:43:08]   dd566416621b: REPORT RequestId: f06a9825-950f-4ec1-9b34-eb7eb5bdab61	Duration: 9960.09 ms	Billed Duration: 9961 ms	Memory Size: 3008 MB	Max Memory Used: 2420 MB
+[13:43:08]   dd566416621b: REPORT RequestId: f06a9823-3d0f-4ec1-9b34-eb7eb5bdab61	Duration: 443826.77 ms	Billed Duration: 443827 ms	Memory Size: 3008 MB	Max Memory Used: 3008 MB	Status: error	Error Type: Runtime.OutOfMemory
+[13:43:08]   b91603fb92ef: REPORT RequestId: f06a9820-e50f-4ec1-9b34-eb7eb5bdab61	Duration: 10234.65 ms	Billed Duration: 10809 ms	Memory Size: 3008 MB	Max Memory Used: 2424 MB	Init Duration: 573.43 ms
+[13:43:08]   52a62dbdd6f2: REPORT RequestId: fefd1978-06aa-4796-ac2e-5d8dc517e3c7	Duration: 78.65 ms	Billed Duration: 631 ms	Memory Size: 3008 MB	Max Memory Used: 97 MB	Init Duration: 551.59 ms
+[13:43:08]   52a62dbdd6f2: REPORT RequestId: 860afb0a-f349-4783-97c3-02572d60e31a	Duration: 9095.44 ms	Billed Duration: 9096 ms	Memory Size: 3008 MB	Max Memory Used: 2425 MB
+[13:43:08]   52a62dbdd6f2: REPORT RequestId: 946f7d8c-d491-4524-bf9b-efa986c51a7a	Duration: 374339.18 ms	Billed Duration: 374340 ms	Memory Size: 3008 MB	Max Memory Used: 3008 MB	Status: error	Error Type: Runtime.OutOfMemory
+[13:43:08]   83247dd10453: REPORT RequestId: f06a9822-110f-4ec1-9b34-eb7eb5bdab61	Duration: 10507.96 ms	Billed Duration: 11040 ms	Memory Size: 3008 MB	Max Memory Used: 2423 MB	Init Duration: 531.29 ms
+[13:43:08]   83247dd10453: REPORT RequestId: f5b1d65d-3aa2-4a1d-b739-b41acd384dbb	Duration: 157.74 ms	Billed Duration: 158 ms	Memory Size: 3008 MB	Max Memory Used: 2423 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 049d3f87-b770-4e1b-9a66-542212f0d293	Duration: 79.97 ms	Billed Duration: 596 ms	Memory Size: 3008 MB	Max Memory Used: 97 MB	Init Duration: 515.93 ms
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 68bcc5ff-0e0d-404c-9b04-9b000fc8f6e1	Duration: 415243.95 ms	Billed Duration: 415244 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: c4a1269e-3a0e-4bf7-8db5-28f43bfaec9b	Duration: 7545.96 ms	Billed Duration: 7546 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 65f72801-5166-4d1d-b1fc-5f80cc4c50d6	Duration: 2181.15 ms	Billed Duration: 2182 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 05965abd-adc7-4f0b-a10a-fe5ceb53ebfd	Duration: 1.68 ms	Billed Duration: 2 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: ae5dfbaf-d7d0-4fc0-897b-6a4132f7bfd3	Duration: 1.90 ms	Billed Duration: 2 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 5b2d2c12-5133-448d-8645-f29524721c15	Duration: 1.87 ms	Billed Duration: 2 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 46c5103f-477e-44ac-8588-d3e267195d09	Duration: 4.85 ms	Billed Duration: 5 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: fd9c672b-4214-4e67-b1d8-85922b82b9c5	Duration: 232.24 ms	Billed Duration: 233 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: d912723d-ec28-45f1-86fc-5c5c6dd97b8c	Duration: 627.82 ms	Billed Duration: 628 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: ccb326f9-4287-46f9-9cff-4ad5609e311b	Duration: 97.04 ms	Billed Duration: 98 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: d9a872e1-b6c5-42c9-b2eb-40928881e487	Duration: 22.28 ms	Billed Duration: 23 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 55988994-b720-4ddc-a667-c64e9072805c	Duration: 13.41 ms	Billed Duration: 14 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: e561801a-c15e-4ad2-8a0d-6a156cc7d645	Duration: 61.05 ms	Billed Duration: 62 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 8f89b04e-a90b-4070-a5e5-071aa57c6599	Duration: 414.25 ms	Billed Duration: 415 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: fa516b92-dee3-4d72-ba42-c8d8d5bf397d	Duration: 39.98 ms	Billed Duration: 40 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 07bb2288-6342-4609-b3c2-25ab75ad4259	Duration: 67.00 ms	Billed Duration: 67 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 04a1037e-bba1-4db4-836a-f026e3df0c3e	Duration: 7.84 ms	Billed Duration: 8 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: a0e55bfb-0f9a-4c81-ae2c-68503b5527ba	Duration: 15.59 ms	Billed Duration: 16 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 30dc8f63-d69b-4751-88be-b7e39619a9ec	Duration: 11.14 ms	Billed Duration: 12 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 96bbb79c-8e41-4087-9276-2e4dd4a870cf	Duration: 1155.44 ms	Billed Duration: 1156 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: e836728d-7aed-4715-a7bf-f9ecad4da327	Duration: 645.00 ms	Billed Duration: 646 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 63fd5e6c-0670-44a6-9461-31490c1c9b07	Duration: 538.04 ms	Billed Duration: 539 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 6a7c6e2c-8f51-46b9-a35d-b6d2f6722920	Duration: 59.43 ms	Billed Duration: 60 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 79f02a7f-0c50-4bea-8dc4-f538b84d59ec	Duration: 105.56 ms	Billed Duration: 106 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 5d0f01c4-5d88-43d9-8342-17f84aaf2b29	Duration: 260.73 ms	Billed Duration: 261 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 29de212f-1435-4f90-b420-1d6ff37cb0c8	Duration: 2470.40 ms	Billed Duration: 2471 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 308e8456-95bf-4c2f-a1a2-42572ee9e9be	Duration: 2402.00 ms	Billed Duration: 2403 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 57504359-9f15-4ea3-83f6-85ef3b44f3ae	Duration: 2403.08 ms	Billed Duration: 2404 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 7cbfc6bf-d39f-4ce2-aa03-8e30d4f69f5d	Duration: 125.67 ms	Billed Duration: 126 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 0555eec7-d52a-4dc3-85cc-10ebedd9be14	Duration: 33.42 ms	Billed Duration: 34 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 5c6da677-ee39-4bb9-a4ae-c13f43e287ea	Duration: 1.77 ms	Billed Duration: 2 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 5bba300e-dc8f-404a-b894-f9e9f24c9b61	Duration: 1.81 ms	Billed Duration: 2 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 340d6da4-6819-4125-9bd1-8a8def586878	Duration: 64.05 ms	Billed Duration: 65 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 71fde28f-c451-4396-aca5-99ac11727812	Duration: 31.28 ms	Billed Duration: 32 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: e506ac70-4e1e-4698-874f-8ef5b46559d0	Duration: 1.79 ms	Billed Duration: 2 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 6cfce158-d258-4a8a-aa9d-40abdaf4a75f	Duration: 108.61 ms	Billed Duration: 109 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 95c382b9-fc9e-475d-9eb1-b0d056437126	Duration: 32.25 ms	Billed Duration: 33 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: f8f64755-6287-407b-a70a-f0ea02001d80	Duration: 35.71 ms	Billed Duration: 36 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 034ed4b3-90da-4e0b-bd94-108564f310e8	Duration: 23.88 ms	Billed Duration: 24 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 9236b9f6-6ebe-4f75-a6f3-e4cae87662d7	Duration: 193.33 ms	Billed Duration: 194 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: 8a6a01a2-3fdb-4031-aac0-5230bd3a390e	Duration: 108.03 ms	Billed Duration: 109 ms	Memory Size: 3008 MB	Max Memory Used: 2993 MB
+[13:43:09]   2cb897d5ac71: REPORT RequestId: f06a9823-3d0f-4ec1-9b34-eb7eb5bdab61	Duration: 334506.78 ms	Billed Duration: 334507 ms	Memory Size: 3008 MB	Max Memory Used: 3008 MB	Status: error	Error Type: Runtime.OutOfMemory
 ── S1 redeploy ──
-[13:24:16]   zip: 124582 bytes
+[13:43:09]   zip: 125139 bytes
 ── 1. Lambda ──
-[13:24:16]   Lambda exists — updating
-[13:24:19] ✅   ✓ updated justhodl-symdir
-── S2 rebuild + warm reload ──
-[13:24:33]   pre-build warm: built_at=2026-09-02T13:22:03+00:00 docs=1374410
-[13:39:38] ✗ rebuild did not land in 15 min
+[13:43:09]   Lambda exists — updating
+[13:43:13] ✅   ✓ updated justhodl-symdir
+── S2 build -> titles -> build ──
+[13:43:18] ✅ schedule created: justhodl-symdir-titles rate(1 hour)
+[13:43:27]   pre-build warm: built_at=2026-09-02T13:42:59+00:00 docs=1309627
+[13:51:35] ✅   build A: docs=1,374,417 elapsed=227.7s skipped=['bls-no-title:bg.series', 'bls-no-title:li.series', 'bls-no-title:bp.series', 'bls-no-title:jl.series', 'bls-no-title:pr.series', 'bls-no-title:eb.series', 'bls-no-title:ec.series', 'bls-no-title:gg.series', 'bls-no-title:jt.series', 'bls-no-title:ee.series', 'bls-no-title:in.series', 'bls-no-title:cc.series', 'bls-no-title:mw.series', 'bls-no-title:mu.series', 'bls-no-title:gp.series', 'bls-no-title:si.series', 'bls-no-title:hs.series', 'bls-no-title:pd.series', 'bls-no-title:sm.series', 'bls-no-title:sh.series', 'bls-no-title:sa.series', 'bls-no-title:ml.series', 'bls-no-title:nc.series', 'bls-no-title:cf.series', 'bls-no-title:hc.series', 'bls:cd.series', 'bls:tu.series', 'bls:nb.series', 'bls:cx.series', 'bls:fa.series', 'bls:ii.series'] fred untitled=1311 ledger=700
+[13:52:06]   titles ledger: 700 titled (PAYEMS)
+[13:55:49] ✅   build B: docs=1,374,420 elapsed=219.8s skipped=['bls-no-title:bg.series', 'bls-no-title:li.series', 'bls-no-title:bp.series', 'bls-no-title:jl.series', 'bls-no-title:pr.series', 'bls-no-title:eb.series', 'bls-no-title:ec.series', 'bls-no-title:gg.series', 'bls-no-title:jt.series', 'bls-no-title:ee.series', 'bls-no-title:in.series', 'bls-no-title:cc.series', 'bls-no-title:mw.series', 'bls-no-title:mu.series', 'bls-no-title:gp.series', 'bls-no-title:si.series', 'bls-no-title:hs.series', 'bls-no-title:pd.series', 'bls-no-title:sm.series', 'bls-no-title:sh.series', 'bls-no-title:sa.series', 'bls-no-title:ml.series', 'bls-no-title:nc.series', 'bls-no-title:cf.series', 'bls-no-title:hc.series', 'bls:cd.series', 'bls:tu.series', 'bls:nb.series', 'bls:cx.series', 'bls:fa.series', 'bls:ii.series'] fred untitled=1311 ledger=800
+[13:55:57]   post-build warm 7877ms: built_at=2026-09-02T13:55:25+00:00 reloaded=False docs=1374420
+── S3 ranking battery (function URL, warm) ──
+[13:55:57] ✅   'sofr'                        242ms total=    798 top=['nyfed:sofr', 'fred:SOFR', 'SOFR', 'fred:SOFRINDEX', 'CMCMARKETS:SOFR3MO', 'fred:SOFR30DAYAVG']  want nyfed:sofr in top 1
+[13:55:57] ✅   'dgs10'                       216ms total=      1 top=['fred:DGS10']  want fred:DGS10 in top 1
+[13:55:58] ✅   'AAPL'                        208ms total=     14 top=['AAPL', 'NASDAQ:AAPL', 'I:AAPLCW', 'I:AAPLDI', 'I:AAPLIO', 'AAPB']  want AAPL in top 1
+[13:55:58] ✅   'unrate'                      213ms total=     16 top=['fred:UNRATE', 'fred:UNRATENSA', 'fred:UNRATEMD', 'fred:UNRATECTM', 'fred:UNRATERH', 'fred:UNRATERM']  want fred:UNRATE in top 1
+[13:55:58] ✅   'TVC:VIX'                     240ms total=    746 top=['TVC:VIX', 'TVC:MOVE', 'fred:VIXCLS', 'cboe:vix-curve', 'fred:VXAPLCLS', 'fred:GVZCLS']  want TVC:VIX in top 1
+[13:56:01] ✗   'payrolls'                   2490ms total=   7907 top=['fred:ADPWNUSNERSA', 'fred:M08326USM144NNBR', 'fred:CES0500000017', 'fred:ADPMNUSNERSA', 'bls:CES0500000017', 'bls:CES0500000035']  want fred:PAYEMS in top 5
+[13:56:01] ✗   'nonfarm payrolls'            225ms total=    224 top=['fred:ADPWNUSNERSA', 'fred:ADPMNUSNERSA', 'fred:TOTLQ', 'fred:ADPWINDMANNERSA', 'fred:PRSCQ', 'fred:ADPMNUSNERNSA']  want fred:PAYEMS in top 3
+[13:56:02] ✅   'cpi'                         965ms total= 222719 top=['imf:CPI', 'CPIX', 'CPII', 'fred:CPIAUCSL', 'fred:CPILFESL', 'fred:CPIAUCNS']  want fred:CPIAUCSL in top 5
+[13:56:02] ✅   'consumer price index'        348ms total=  24271 top=['fred:CPIAUCSL', 'fred:CPILFESL', 'fred:CPIAUCNS', 'fred:CPIMEDNS', 'fred:CUSR0000SETA02', 'fred:CPALTT01USM657N']  want fred:CPIAUCSL in top 5
+[13:56:02] ✅   'unemployment rate germany'   249ms total=    192 top=['fred:LRHUTTTTDEM156S', 'ECONOMICS:DEUR', 'ECONOMICS:GEUR', 'fred:LRHUTTTTDEQ156S', 'fred:LRUNTTTTDEQ156S', 'fred:LRHUTTTTDEM156N']  want fred:LRHUTTTTDEM156S in top 5
+[13:56:03] ✗   'canada employment'           240ms total=   1034 top=['fred:LFEACNTTCAA647N', 'bls:LAUCS234857500000005', 'fred:CANPEFANA', 'fred:LFEACNTTCAQ647S', 'fred:LFEAMNTTCAA647N', 'fred:LFEAMNTTCAM647S']  want statcan: in top 8
+[13:56:03] ✅   'nama_10_gdp'                 298ms total=     23 top=['eurostat:NAMA_10_GDP', 'eurostat:NAMA_10R_3GDP', 'eurostat:NAMA_10_PC', 'eurostat:NAMA_10R_2GDP', 'eurostat:NAMA_10R_3POPGDP', 'eurostat:NAMA_10R_2GVAGR']  want eurostat:NAMA_10_GDP in top 1
+[13:56:04] ✅   'gdp'                         718ms total= 148277 top=['fred:GDP', 'fred:GDPA', 'fred:GDPNOW', 'fred:JHGDPBRINDX', 'eurostat:NAIDA_10_GDP', 'eurostat:NAIDQ_10_GDP']  want fred:GDP in top 3
+[13:56:04] ✗   'real gdp'                    420ms total=  28734 top=['fred:RGDPNACNA666NRUG', 'fred:STLENI', 'fred:ZAFNGDPRPCPCPPPT', 'fred:RGDPNAUSA666NRUG', 'fred:RGDPNATWA666NRUG', 'fred:RGDPNAJPA666NRUG']  want fred:GDPC1 in top 5
+[13:56:04] ✅   'm2'                          302ms total=  17563 top=['fred:M2', 'fred:M2SL', 'fred:M2NS', 'fred:M2V', 'fred:M2REAL', 'fred:M2MSL']  want fred:M2SL in top 3
+[13:56:05] ✅   '10 year treasury yield'      295ms total=    152 top=['fred:DGS10', 'fred:DFII10', 'fred:BAA10Y', 'fred:GS10', 'fred:AAA10Y', 'fred:WGS10YR']  want fred:DGS10 in top 3
+[13:56:05] ✅   'bank of japan'               386ms total=  66949 top=['fred:JPNASSETS', 'ECONOMICS:JPCBBS', 'boj:BP01', 'boj:BS02', 'boj:IR02', 'boj:IR03']  want boj: in top 5
+[13:56:05] ✗   'money market funds'          242ms total=   2506 top=['fred:MMMFFAQ027S', 'fred:MMMFTAQ027S', 'fred:BOGZ1FL632051103Q', 'fred:WRMFNS', 'fred:MMMFFAA027N', 'fred:BOGZ1FL633061105Q']  want ofr: in top 8
+[13:56:06] ✅   'euro dollar exchange rate'   234ms total=     22 top=['fred:DEXUSEU', 'fred:EXUSEU', 'fred:AEXUSEU', 'fred:CCUSMA02EZM618N', 'fred:CCUSMA02EZQ618N', 'fred:CCUSMA02EZM661N']  want fred:DEXUSEU in top 5
+[13:56:06] ✅   'japan cpi'                   520ms total=  61412 top=['fred:JPNCPIALLMINMEI', 'fred:JPNCPALTT01CTGYM', 'fred:CPALTT01JPM661S', 'fred:CPALTT01JPM659N', 'fred:QJPN628BIS', 'fred:CCRETT01JPM661N']  want fred: in top 3
+[13:56:06] ✗   'fed balance sheet'           240ms total=     31 top=['ECONOMICS:RUCBBS', 'fred:QBPBSTLKFEDREPO', 'fred:QBPBSTASFEDREVREPO', 'statcan:10100051', 'statcan:10100052', 'statcan:10100056']  want fred:WALCL in top 5
+[13:56:07] ✅   'initial claims'              217ms total=    111 top=['fred:ICSA', 'fred:ICNSA', 'fred:IC4WSA', 'fred:CAICLAIMS', 'fred:PAICLAIMS', 'fred:TXICLAIMS']  want fred:ICSA in top 5
+[13:56:07] ✅   'vix'                         223ms total=    436 top=['CAPITALCOM:VIX', 'CBOE:VIX', 'HOSE:VIX', 'PEPPERSTONE:VIX', 'TVC:VIX', 'I:VIX']  want TVC:VIX in top 5
+[13:56:07] ✗   'bitcoin'                     218ms total=    156 top=['BIXI', 'fred:CBBTCUSD', 'ABTC', 'INDEX:BTCUSD', 'ARKB', 'BAGY']  want X:BTCUSD in top 8
+[13:56:07] ✅   'nvidia'                      209ms total=      5 top=['NVDA', 'NASDAQ:NVDA', 'NVDQ', 'NVDX', 'NVPS']  want NVDA in top 1
+[13:56:07] ✅   'hicp'                        250ms total=   6873 top=['ecb:HICP', 'eurostat:PRC_HICP_APC', 'eurostat:PRC_HICP_FP', 'eurostat:PRC_HICP_AIND', 'eurostat:PRC_HICP_CMON', 'eurostat:PRC_HICP_MIDX']  want eurostat: in top 8
+[13:56:08]   (info) 'core cpi': worldbank:CORENS · Core CPI,not seas.adj,,, | worldbank:CORESA · Core CPI,seas.adj,,, | fred:CORESTICKM159SFRBATL · Sticky Price Consumer Price Index le | statcan:18100256 · Consumer Price Index (CPI) statistic | statcan:18100259 · Historical (real-time) releases of C
+[13:56:08]   (info) 'jobless claims': fred:CCSA · Continued Claims (Insured Unemployme | fred:CC4WSA · 4-Week Moving Average of Continued C | fred:CCNSA · Continued Claims (Insured Unemployme | fred:MOCCLAIMS · Continued Claims (Insured Unemployme | bls:LNU04096687 · (unadj) Unemployment rate - Experien
+[13:56:08]   (info) 'housing starts': fred:HOUST · New Privately-Owned Housing Units St | fred:HOUST1F · New Privately-Owned Housing Units St | fred:HOUST5F · New Privately-Owned Housing Units St | fred:HOUSTSFLAA1FQ · New Privately Owned Housing Starts i | ECONOMICS:GBHS · United Kingdom — Housing Starts
+[13:56:09]   (info) 'oil price': fred:OILPRICE · Spot Oil Price: West Texas Intermedi | fred:DCOILWTICO · Crude Oil Prices: West Texas Interme | fred:DCOILBRENTEU · Crude Oil Prices: Brent - Europe | fred:WTISPLC · Spot Crude Oil Price: West Texas Int | fred:MCOILWTICO · Crude Oil Prices: West Texas Interme
+[13:56:09]   (info) 'yield curve': ecb:YC · Financial market data - yield curve | eurostat:IRT_EURYLD_D · Euro yield curves - daily data | eurostat:IRT_H_EURYLD_D · Euro yield curves - daily data | eurostat:IRT_EURYLD_A · Euro yield curves - annual data | eurostat:IRT_EURYLD_Q · Euro yield curves - quarterly data
+── S4 spot checks ──
+[13:56:10]   statcan vector 813ms n=123 first=2009-09-01 last=2026-03-01 src=statcan-wds
+[13:56:10]   fred:PAYEMS: name='All Employees, Total Nonfarm'
+[13:56:10]   fred:CPILFESL: name='Consumer Price Index for All Urban Consumers: All Items Less Food and Energy in U.S. City Average'
+[13:56:10]   eurostat NAMA_10_GDP: 'Gross domestic product (GDP) and main components (output, expenditure and income) - annual data'
+[13:56:11]   worker /symsearch payrolls 1013ms: ['fred:ADPWNUSNERSA', 'fred:M08326USM144NNBR', 'fred:CES0500000017']
+── verdict ──
+[13:56:11] ✗ warm container did not reload the newer build
+[13:56:11] ✗ ranking 'payrolls': ['fred:ADPWNUSNERSA', 'fred:M08326USM144NNBR', 'fred:CES0500000017', 'fred:ADPMNUSNERSA', 'bls:CES0500000017'] lacks fred:PAYEMS
+[13:56:11] ✗ ranking 'nonfarm payrolls': ['fred:ADPWNUSNERSA', 'fred:ADPMNUSNERSA', 'fred:TOTLQ'] lacks fred:PAYEMS
+[13:56:11] ✗ ranking 'canada employment': ['fred:LFEACNTTCAA647N', 'bls:LAUCS234857500000005', 'fred:CANPEFANA', 'fred:LFEACNTTCAQ647S', 'fred:LFEAMNTTCAA647N', 'fred:LFEAMNTTCAM647S', 'fred:LFEMTTTTCAM647S', 'fred:LFEACNTTCAM647N'] lacks statcan:
+[13:56:11] ✗ ranking 'real gdp': ['fred:RGDPNACNA666NRUG', 'fred:STLENI', 'fred:ZAFNGDPRPCPCPPPT', 'fred:RGDPNAUSA666NRUG', 'fred:RGDPNATWA666NRUG'] lacks fred:GDPC1
+[13:56:11] ✗ ranking 'money market funds': ['fred:MMMFFAQ027S', 'fred:MMMFTAQ027S', 'fred:BOGZ1FL632051103Q', 'fred:WRMFNS', 'fred:MMMFFAA027N', 'fred:BOGZ1FL633061105Q', 'fred:BOGZ1FA632051103Q', 'fred:BOGZ1FL634090043Q'] lacks ofr:
+[13:56:11] ✗ ranking 'fed balance sheet': ['ECONOMICS:RUCBBS', 'fred:QBPBSTLKFEDREPO', 'fred:QBPBSTASFEDREVREPO', 'statcan:10100051', 'statcan:10100052'] lacks fred:WALCL
+[13:56:11] ✗ ranking 'bitcoin': ['BIXI', 'fred:CBBTCUSD', 'ABTC', 'INDEX:BTCUSD', 'ARKB', 'BAGY', 'BBB', 'BCCC'] lacks X:BTCUSD
 
-→ Report written to aws/ops/reports/latest/5119-symdir-v102.md
-❌ OPS-FAIL: aws/ops/pending/ops_5119_symdir_v102.py
+→ Report written to aws/ops/reports/latest/5120-symdir-v103.md
+❌ OPS-FAIL: aws/ops/pending/ops_5120_symdir_v103.py
