@@ -1,0 +1,45 @@
+# ops 5117 -- shape probes for the symbol directory residuals
+
+**Status:** success  
+**Duration:** 81.8s  
+**Finished:** 2026-09-02T12:56:38+00:00  
+
+## Log
+## statcan cube bytes
+
+- `12:55:16`   10100001: 3874 bytes magic=b'\x1f\x8b\x08\x00'
+- `12:55:16`     gunzipped 3950 bytes, inner magic=b'PK\x03\x04'
+- `12:55:16`     ZIP members: ['10100001.csv', '10100001_MetaData.csv']
+- `12:55:16`     member head: ﻿"REF_DATE","GEO","DGUID","Federal public sector employment","UOM","UOM_ID","SCALAR_FACTOR","SCALAR_ID","VECTOR","COORDINATE","VALUE","STATUS","SYMBOL","TERMINATED","DECIMALS"⏎"1999","Canada","","Federal public sector employees, as per Statistics Canada's statistical universe","Persons","249","units ","0","v30411572","1.1","421500","","","","0"⏎"1999","Canada","","Federal government business enterprise employees, as per Statistics Canada's statistical universe","Persons","249","units ","0","v30411573","1.2","93332","","","","0"⏎"1999","Canada","","Federal government employees, as per Statist
+- `12:55:16`   10100002: 36005 bytes magic=b'\x1f\x8b\x08\x00'
+- `12:55:16`     gunzipped 42974 bytes, inner magic=b'PK\x03\x04'
+- `12:55:16`     ZIP members: ['10100002.csv', '10100002_MetaData.csv']
+- `12:55:16`     member head: ﻿"REF_DATE","GEO","DGUID","Central government debt","UOM","UOM_ID","SCALAR_FACTOR","SCALAR_ID","VECTOR","COORDINATE","VALUE","STATUS","SYMBOL","TERMINATED","DECIMALS"⏎"2009-04","Canada","2016A000011124","A. Federal debt (accumulated deficit), (B - E)","Dollars","81","millions","6","v86822802","1.1","","..","","","0"⏎"2009-04","Canada","2016A000011124","B. Net debt, (C - D)","Dollars","81","millions","6","v86822803","1.2","","..","","","0"⏎"2009-04","Canada","2016A000011124","C. Liabilities, gross debt","Dollars","81","millions","6","v86822804","1.3","","..","","","0"⏎"2009-04","Canada","2016A0
+- `12:55:18`   14100287: 41865926 bytes magic=b'\x1f\x8b\x08\x00'
+- `12:55:18`     gunzipped 41943040 bytes, inner magic=b'PK\x03\x04'
+- `12:55:18`     not gzip? File is not a zip file; raw head: b'\x1f\x8b\x08\x00\x9c\x18vj\x02\xffLyctd]\xd7mR\xa9\xd8\xb6mt\x92\x0e\xbactl\xdb\xb6\x9dT:F\xc7N\xc7\xb6m\xdb\xb6m\xa7\x83/\xcf{\xff\xdc\x1a\xa3j\xee\x1fgm\xac}\xd6\\s\x8e\x92\x97\x82\x00b\x80\xc1\xc0\xc0\x80\xc1\xc2C\xeb\x80\xfd\x7f\x1f\x84\xaf/+;+\x0b\x0b\x1b\xd7w&#\'\xd7\xf1\x8e\x8d[\x8a\x16\x97\x0b\xb7\xab\xa2\xe3\x14-/\x9c0\xbb\xed8\xac\x10j\x8c\x1e,\\2\x0f\x82N\xc5\xfa`\x19\x07\x82<[1\xb9)\xee\xc3\xba\x97\xde?\xfbj\xf6*\xaa\x94\xd5\x827z*\xa9\xcbV\xa4.\xd1\xf9\';1\xbdU1\xea\xcf\xea\xf8\xf0\x9f[\x9fw\x9f\xbewU[\xef\xaf[\xbe\x0fc\xfc\xdeO\x13\x9f\x8f\x13~\xff.\x9b\x92?_\xca>\x1f\x87\xfc>\x16\x0e\xfc>\x0f\xfb\xba\xfc>^\xc6\xda\xf8\xfd>n\xdf\x87\xdc\xb6>\x0f\xfa\x92\x91\xb7\xfc\xde\x9f\x0fB\xb2:?\xae\xdf\xe5\x96\xfc\x9e\xf7\x8a\xf8}\xde\x1c_"\xf4>\x86\x86\xdc>o\x0e\xee\xa6\xfc:\xde\x1e\xae\xba|\x9f5?\xc3\xf4|\x9e_w6\x96\xba\xde\x1f\xf6\x0e\xaa>\x9f\xd7\x9e\x9a>_\xec\xce'
+## boj VALUES shape
+
+- `12:55:18`   data/warm/boj-full/api/BP01/part00147_2005.json.gz size=4655 resultset=40 msg='Successfully completed'
+- `12:55:18`     record keys: ['SERIES_CODE', 'NAME_OF_TIME_SERIES', 'UNIT', 'FREQUENCY', 'CATEGORY', 'LAST_UPDATE', 'VALUES']
+- `12:55:18`     VALUES type=dict keys=['SURVEY_DATES', 'VALUES'] sample={'SURVEY_DATES': '[200501, 200502, 200503, 200504, 200505, 200506, 200507, 200508, 200509, 200510, 200511, 200512, 200601, 200602, 200603,', 'VALUES': '[None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,'}
+- `12:55:18`   data/warm/boj-full/api/BP01/part00148_2015.json.gz size=29479 resultset=40 msg='Successfully completed'
+- `12:55:18`     record keys: ['SERIES_CODE', 'NAME_OF_TIME_SERIES', 'UNIT', 'FREQUENCY', 'CATEGORY', 'LAST_UPDATE', 'VALUES']
+- `12:55:18`     VALUES type=dict keys=['SURVEY_DATES', 'VALUES'] sample={'SURVEY_DATES': '[201501, 201502, 201503, 201504, 201505, 201506, 201507, 201508, 201509, 201510, 201511, 201512, 201601, 201602, 201603,', 'VALUES': '[11.49568708, 333.93525765, 74.78132532, 41.076462, 183.0235463, 1400.28556, 638.11000127, 98.17416949, 99.2868, 145.980'}
+## eurostat english TOC
+
+- `12:55:22`   TOC lines=12242 header='"title"\t"code"\t"type"\t"last update of data"\t"last table structure change"\t"data start"\t"data end"\t"values"'
+- `12:55:22`   TOC failed: list index out of range
+## fred untitled banked ids
+
+- `12:55:33`   meta pages=2229 titled ids=746200 famous present=['CPIAUCSL', 'DEXUSEU', 'DFF', 'M2SL', 'SP500', 'T10Y2Y', 'VIXCLS', 'WALCL'] famous MISSING=['CPILFESL', 'PAYEMS']
+- `12:56:37`   banked=276797 untitled banked=1311 sample=['ARGCCUSMA02STM', 'ARGCCUSMA02STQ', 'ARGXTEXVA01CXMLM', 'ARGXTEXVA01CXMLQ', 'ARGXTEXVA01CXMLSAM', 'ARGXTEXVA01CXMLSAQ', 'ARGXTEXVA01GPSAM', 'ARGXTEXVA01GPSAQ', 'ARGXTEXVA01GYSAM', 'ARGXTEXVA01GYSAQ', 'ARGXTEXVA01NCMLM', 'ARGXTEXVA01NCMLQ']
+- `12:56:37`   banked meta ARGCCUSMA02STM: {"id": "ARGCCUSMA02STM", "popularity": 49, "category": "Argentina", "root": "International Data", "last_updated": "2026-07-16"} n_obs=810
+- `12:56:37`   banked meta ARGCCUSMA02STQ: {"id": "ARGCCUSMA02STQ", "popularity": 22, "category": "Argentina", "root": "International Data", "last_updated": "2026-07-16"} n_obs=270
+- `12:56:37`   banked meta CPILFESL: {"id": "CPILFESL", "popularity": 83, "category": "Special Indexes", "root": "Prices", "last_updated": "2026-07-14"} n_obs=833
+- `12:56:37`   banked meta PAYEMS: {"id": "PAYEMS", "popularity": 87, "category": "Total Nonfarm", "root": "Population, Employment, & Labor Markets", "last_updated": "2026-08-07"} n_obs=1051
+## treasury warm doc keys
+
+- `12:56:37`   data/warm/treasury/debt_to_penny.json.gz: keys=['dataset', 'unit', 'source_url', 'raw_snapshot_key', 'n_obs', 'span_note', 'observations'] obs_sample=[{'date': '2016-09-14', 'value': 19480514004421.76}, {'date': '2016-09-15', 'value': 19508241572025.55}]
+- `12:56:38`   data/warm/treasury/avg_interest_rates.json.gz: keys=['dataset', 'unit', 'source_url', 'raw_snapshot_key', 'n_obs', 'span_note', 'observations'] obs_sample=[{'date': '2014-02-28', 'value': 0.084}, {'date': '2014-02-28', 'value': 1.802}]
+- `12:56:38` ✅ probes done
