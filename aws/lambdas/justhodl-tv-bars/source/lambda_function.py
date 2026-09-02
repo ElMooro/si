@@ -269,7 +269,136 @@ def build_worklist():
     return sorted(set(ids))
 
 
+UNIV_IDX_KEY = "data/warm/tv-bars/universe/_index.json"
+
+
+def safe_name(sym):
+    return re.sub(r"[^A-Za-z0-9_.\-!]", "__", sym)
+
+
+def bank_symbol(sym, token, cookie, countback=20000, budget=45):
+    """v1.1 (ops 5124): bank ANY TradingView symbol (EXCHANGE:SYMBOL) under
+    data/warm/tv-bars/universe/{safe}.json.gz -- append-only union with what is
+    already banked, so a countback of 120 on a nightly refresh keeps a full
+    history current. Returns the doc (bars oldest-first: [ts, o, h, l, c])."""
+    rows = pull(sym, token, cookie, countback=countback, budget=budget)
+    if not rows:
+        raise RuntimeError("no bars returned for %s" % sym)
+    key = "data/warm/tv-bars/universe/%s.json.gz" % safe_name(sym)
+    prev = {}
+    try:
+        old = json.loads(gzip.decompress(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()))
+        prev = {int(b[0]): b for b in old.get("bars") or []}
+    except Exception:
+        pass
+    for b in rows:
+        prev[int(b[0])] = b
+    merged = [prev[k] for k in sorted(prev)]
+    d0 = datetime.fromtimestamp(merged[0][0], tz=timezone.utc).strftime("%Y-%m-%d")
+    d1 = datetime.fromtimestamp(merged[-1][0], tz=timezone.utc).strftime("%Y-%m-%d")
+    doc = {"symbol": sym, "tv_symbol": sym, "source": "tradingview-ws (session-auth, server-side)",
+           "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"), "n": len(merged),
+           "first_date": d0, "last_date": d1, "pulled_now": len(rows), "bars": merged}
+    s3.put_object(Bucket=BUCKET, Key=key, Body=gzip.compress(json.dumps(doc).encode()),
+                  ContentType="application/gzip", CacheControl="public, max-age=900")
+    return doc, key
+
+
+def _session():
+    session = _p("/justhodl/tradingview/sessionid")
+    sign = _p("/justhodl/tradingview/sessionid_sign")
+    dev = _p("/justhodl/tradingview/device_t")
+    token = _p("/justhodl/tradingview/auth_token") or "unauthorized_user_token"
+    if not session:
+        return None, None
+    cookie = "sessionid=%s" % session
+    if sign:
+        cookie += "; sessionid_sign=%s" % sign
+    if dev:
+        cookie += "; device_t=%s" % dev
+    return token, cookie
+
+
+def universe_pull(event, context):
+    """mode=pull: on-demand banking for chart-pro (symdir calls this synchronously the first time a
+    TradingView symbol is opened). No lease, no catalog state; touches only universe/."""
+    token, cookie = _session()
+    if not cookie:
+        return {"ok": False, "error": "session_missing"}
+    syms = [str(x) for x in (event.get("tv_symbols") or []) if x][:8]
+    countback = int(event.get("countback") or 20000)
+    out, idx = {}, _gj(UNIV_IDX_KEY, {"symbols": {}})
+    for sym in syms:
+        if context and context.get_remaining_time_in_millis() < 20000:
+            out[sym] = {"ok": False, "error": "budget"}
+            break
+        try:
+            doc, key = bank_symbol(sym, token, cookie, countback=countback, budget=int(event.get("budget") or 40))
+            out[sym] = {"ok": True, "key": key, "n": doc["n"], "first": doc["first_date"], "last": doc["last_date"]}
+            idx["symbols"][sym] = {"key": key, "n": doc["n"], "first": doc["first_date"], "last": doc["last_date"],
+                                   "as_of": doc["as_of"]}
+        except Exception as e:
+            out[sym] = {"ok": False, "error": "%s: %s" % (type(e).__name__, str(e)[:120])}
+            idx.setdefault("failures", {})[sym] = {"err": str(e)[:100], "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+        time.sleep(0.4)
+    idx["updated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    idx["n_symbols"] = len(idx["symbols"])
+    s3.put_object(Bucket=BUCKET, Key=UNIV_IDX_KEY, Body=json.dumps(idx, default=str).encode(),
+                  ContentType="application/json", CacheControl="no-cache")
+    return {"ok": True, "results": out, "universe": idx["n_symbols"]}
+
+
+def universe_refresh(event, context):
+    """mode=refresh: nightly, fan-out shards over the banked universe with a short countback
+    (append-only union) so every opened symbol stays current without re-pulling its history."""
+    token, cookie = _session()
+    if not cookie:
+        return {"ok": False, "error": "session_missing"}
+    idx = _gj(UNIV_IDX_KEY, {"symbols": {}})
+    syms = sorted(idx.get("symbols") or {})
+    shard, nshards = int(event.get("shard") or 0), int(event.get("nshards") or 1)
+    if event.get("fanout"):
+        n = int(event["fanout"])
+        lc = boto3.client("lambda", region_name="us-east-1")
+        for i in range(n):
+            lc.invoke(FunctionName=context.function_name, InvocationType="Event",
+                      Payload=json.dumps({"mode": "refresh", "shard": i, "nshards": n}).encode())
+        return {"ok": True, "fanned_out": n, "universe": len(syms)}
+    import hashlib
+    mine = [x for x in syms if int(hashlib.md5(x.encode()).hexdigest(), 16) % nshards == shard]
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    done = fail = skipped = 0
+    for sym in mine:
+        if context and context.get_remaining_time_in_millis() < 25000:
+            break
+        meta = idx["symbols"].get(sym) or {}
+        if (meta.get("as_of") or "")[:10] == today:
+            skipped += 1
+            continue
+        try:
+            doc, key = bank_symbol(sym, token, cookie, countback=int(event.get("countback") or 120), budget=25)
+            idx["symbols"][sym] = {"key": key, "n": doc["n"], "first": doc["first_date"], "last": doc["last_date"], "as_of": doc["as_of"]}
+            done += 1
+        except Exception as e:
+            idx.setdefault("failures", {})[sym] = {"err": str(e)[:100], "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+            fail += 1
+        time.sleep(0.4)
+    # per-shard write of the shared index: merge with the latest copy to keep other shards' updates
+    cur = _gj(UNIV_IDX_KEY, {"symbols": {}})
+    cur.setdefault("symbols", {}).update({k: v for k, v in idx["symbols"].items() if k in mine})
+    cur["updated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    cur["n_symbols"] = len(cur["symbols"])
+    s3.put_object(Bucket=BUCKET, Key=UNIV_IDX_KEY, Body=json.dumps(cur, default=str).encode(),
+                  ContentType="application/json", CacheControl="no-cache")
+    return {"ok": True, "shard": shard, "nshards": nshards, "mine": len(mine), "refreshed": done, "failed": fail, "skipped_today": skipped}
+
+
 def lambda_handler(event, context):
+    event = event or {}
+    if event.get("mode") == "pull":
+        return universe_pull(event, context)
+    if event.get("mode") == "refresh":
+        return universe_refresh(event, context)
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     session = _p("/justhodl/tradingview/sessionid")
     sign = _p("/justhodl/tradingview/sessionid_sign")
