@@ -1,0 +1,544 @@
+# ops 5115 -- symbol directory discovery: every catalog, warehouse grammar and index the search must cover
+
+**Status:** success  
+**Duration:** 90.5s  
+**Finished:** 2026-09-02T12:12:31+00:00  
+
+## Log
+## A. provider hub and per-provider catalogs
+
+- `12:11:01` hub keys: as_of, providers, breakdown, series_extras, datasets_total, reconcile_ok, totals
+- `12:11:01` hub providers=57 as_of=2026-09-02T11:48:53+00:00
+- `12:11:01` hub provider entry example: {"slug": "eurostat", "name": "Eurostat", "api": "ec.europa.eu/eurostat SDMX", "datasets": 8191, "datasets_target": 8152, "coverage_pct": 100.0, "coverage_note": "at_or_above_target", "coverage_basis": "keys/keys (walker n_total \u2014 same unit)", "denied_source_side": null, "unit": "keys", "n_keys": 1136599, "total_mb": 321818.89, "hot_feeds": 43, "series_count": 564204235, "catalog_note": "derived series store: 564,204,235 series across 1,128,408 pages (312.9 GB) \u2014 counted, not mirrored", "freshest_h": 0.1}
+- `12:11:02`   eurostat                   keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/eurostat/data/NAIO_10_FGDE.dat.gz", "bytes": 41955848, "age_h": 597.6, "status": "live", "engines": ["justhodl-sdmx-walker"]}
+- `12:11:02`       series-manifest: {"provider": "eurostat", "updated_at": "2026-09-02T11:27:54+00:00", "flows_total": 8147, "flows_parsed": 8147, "series_extracted": 564204235, "n_pages": 1128408, "pages": 1128408, "pages_bytes": 312925983874, "page_size": 500, "note": "series_extracted is a SEPARATE metric from the provider's datasets/datasets_total headline \u2014 it is not folded in until fully parsed (ops 4547).", "ui_rule": "r…
+- `12:11:02`   gdelt                      keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/gdelt-full/v1/2003.zip", "bytes": 193990838, "age_h": 199.6, "status": "live", "engines": []}
+- `12:11:02`   bls                        keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/bls-full/src/cb/cb.series", "bytes": 3878441693, "age_h": 226.8, "status": "live", "engines": []}
+- `12:11:02`   statcan                    keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/statcan/data/98100089.dat.gz", "bytes": 41955210, "age_h": 612.9, "status": "live", "engines": ["justhodl-sdmx-walker", "justhodl-global-expansion"]}
+- `12:11:02`   fred                       keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/brain.json", "bytes": 6372991, "age_h": 26.8, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-brain-sync", "justhodl-tradingview"]}
+- `12:11:02`   sec-midas                  keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[51] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/sec-midas/raw/individual_security_exchange_2026_q2.zip", "bytes": 199194827, "age_h": 331.2, "status": "live", "engines": []}
+- `12:11:02`   sec-dera                   keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[73] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/sec-dera/hist/2025q3.zip", "bytes": 127842298, "age_h": 330.8, "status": "live", "engines": []}
+- `12:11:02`   ecb                        keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/warm/ecb/data/IVF__2015_2019.dat.gz", "bytes": 57586614, "age_h": 23.2, "status": "live", "engines": []}
+- `12:11:02`       series-manifest: {"provider": "ecb", "updated_at": "2026-09-02T11:27:58+00:00", "flows_total": 207, "flows_parsed": 207, "series_extracted": 3240832, "n_pages": 6481, "pages": 6481, "pages_bytes": 2330628602, "page_size": 500, "note": "series_extracted is a SEPARATE metric from the provider's datasets/datasets_total headline \u2014 it is not folded in until fully parsed (ops 4547).", "ui_rule": "require 2+ char se…
+- `12:11:02`   imf                        keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/imf-full/src/BOP.xml.gz", "bytes": 92791335, "age_h": 204.3, "status": "live", "engines": []}
+- `12:11:02`   sec-bulk                   keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[2] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/sec-bulk/submissions.zip", "bytes": 1561523113, "age_h": 4.2, "status": "live", "engines": []}
+- `12:11:02`   worldbank                  keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/finviz-universe.json", "bytes": 16056764, "age_h": 13.8, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-edgar-authority", "justhodl-etf-constituents", "justhodl-finviz-universe", "justhodl-fundamental-census"]}
+- `12:11:02`   oecd                       keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/oecd/data/DSD_RAT@DF_EFF.dat.gz", "bytes": 12108697, "age_h": 486.6, "status": "live", "engines": ["justhodl-sdmx-walker"]}
+- `12:11:02`   nyfed-research             keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/nyfed-research/sce/medialibrary_interactives_sce_sce_downloads_data_frbny-sce-public-microdata-20-24.xlsx", "bytes": 60000000, "age_h": 9.3, "status": "live", "engines": []}
+- `12:11:02`   finra                      keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[10] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/finra-full/src/otcMarket__monthlySummary.jsonl.gz", "bytes": 218517865, "age_h": 183.7, "status": "live", "engines": []}
+- `12:11:02`   polygon                    keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/finra-short-history.json", "bytes": 73299642, "age_h": 10.8, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-finra-short"]}
+- `12:11:02`   gleif                      keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[6] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/warm/gleif/golden-copy-lei2.zip", "bytes": 501077290, "age_h": 4.2, "status": "live", "engines": []}
+- `12:11:02`   sec-edgar                  keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/edgar-filings/full-index/2024-QTR1.master.idx.gz", "bytes": 4476775, "age_h": 330.8, "status": "live", "engines": []}
+- `12:11:02`   eiopa                      keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[73] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/eiopa/hist/25c29c55-ac43-4b65-84f8-597b8b8b8239_en?filename=EIOPA_FSR_RFR_20240630.zip", "bytes": 4537498, "age_h": 330.7, "status": "live", "engines": []}
+- `12:11:02`   dol                        keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[78] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/dol-full/src/ar2112.csv", "bytes": 23289614, "age_h": 9.3, "status": "live", "engines": []}
+- `12:11:02`   boe                        keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[74] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/warm/boe-full/curves/glcnominalddata.zip", "bytes": 39035542, "age_h": 188.4, "status": "live", "engines": []}
+- `12:11:02`   fed-board                  keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[43] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/warm/frbddp-full/Z1.zip", "bytes": 36411976, "age_h": 177.7, "status": "live", "engines": []}
+- `12:11:02`   boj                        keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/finviz-universe.json", "bytes": 16056764, "age_h": 13.8, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-edgar-authority", "justhodl-etf-constituents", "justhodl-finviz-universe", "justhodl-fundamental-census"]}
+- `12:11:02`   treasury                   keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[84] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/finviz-universe.json", "bytes": 16056764, "age_h": 13.8, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-edgar-authority", "justhodl-etf-constituents", "justhodl-finviz-universe", "justhodl-fundamental-census"]}
+- `12:11:02`   bis                        keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[58] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/finviz-universe.json", "bytes": 16056764, "age_h": 13.8, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-edgar-authority", "justhodl-etf-constituents", "justhodl-finviz-universe", "justhodl-fundamental-census"]}
+- `12:11:02`   te-mirror                  keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/te-mirror/BAMLCC8A015PYTRIV.json", "bytes": 416354, "age_h": 16.2, "status": "live", "engines": []}
+- `12:11:02`   census-us                  keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/census-us/govsemp/full.json.gz", "bytes": 4579994, "age_h": 9.2, "status": "live", "engines": []}
+- `12:11:02`   yahoo                      keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[66] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/finviz-universe.json", "bytes": 16056764, "age_h": 13.8, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-edgar-authority", "justhodl-etf-constituents", "justhodl-finviz-universe", "justhodl-fundamental-census"]}
+- `12:11:02`   cftc                       keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[32] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/finviz-universe.json", "bytes": 16056764, "age_h": 13.8, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-edgar-authority", "justhodl-etf-constituents", "justhodl-finviz-universe", "justhodl-fundamental-census"]}
+- `12:11:02`   snb                        keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[24] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/finviz-universe.json", "bytes": 16056764, "age_h": 13.8, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-edgar-authority", "justhodl-etf-constituents", "justhodl-finviz-universe", "justhodl-fundamental-census"]}
+- `12:11:02`   bcb                        keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[22] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/finviz-universe.json", "bytes": 16056764, "age_h": 13.8, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-edgar-authority", "justhodl-etf-constituents", "justhodl-finviz-universe", "justhodl-fundamental-census"]}
+- `12:11:02`   other                      keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/brain.json", "bytes": 6372991, "age_h": 26.8, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-brain-sync", "justhodl-tradingview"]}
+- `12:11:02`   nyfed                      keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/warm/nyfed-markets/pd/all-timeseries.csv.gz", "bytes": 4093317, "age_h": 399.1, "status": "live", "engines": []}
+- `12:11:02`   ofr                        keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/warm/ofr/dataset-repo.json.gz", "bytes": 2193751, "age_h": 6.4, "status": "live", "engines": []}
+- `12:11:02`   bea                        keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/usgov/bea/tables/NIPA/T20405.json.gz", "bytes": 243644, "age_h": 335.1, "status": "live", "engines": []}
+- `12:11:02`   cl-datos                   keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[15] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/asia-trade/cl/comercio-exterior2__f04ff60c-dc5f-4529-8d63-2611e81774ef.csv.gz", "bytes": 2073348, "age_h": 163.8, "status": "live", "engines": []}
+- `12:11:02`   ofr-bsrm                   keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/ofr-bsrm/ofr_bsrm.xlsx", "bytes": 597243, "age_h": 329.2, "status": "live", "engines": []}
+- `12:11:02`   ofr-hfm                    keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[100] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/ofr-hfm/state.json", "bytes": 35040, "age_h": 0.7, "status": "live", "engines": []}
+- `12:11:02`   ofr-site                   keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[6] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/ofr-site/data_financial-instrument-reference-database_data_fird.json", "bytes": 1183413, "age_h": 403.2, "status": "live", "engines": []}
+- `12:11:02`   te-feed                    keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[1] fields=age_h,bytes,engines,hot,key,status 
+- `12:11:02`       sample keys: {"key": "data/te-feed.json", "bytes": 878865, "age_h": 9.3, "hot": true, "status": "live", "engines": ["justhodl-te-feed", "justhodl-tradingview"]}
+- `12:11:02`   ofr-fsi                    keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[2] fields=age_h,bytes,engines,hot,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/ofr-fsi/fsi.csv", "bytes": 513145, "age_h": 403.2, "status": "live", "engines": []}
+- `12:11:02`   hk-data                    keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[37] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/asia-trade/hk/hk-censtatd-tablechart-b2xx0003__f05aeed4-b15c-42a3-9081-1037384b96ff.xlsx.gz", "bytes": 222501, "age_h": 163.8, "status": "live", "engines": []}
+- `12:11:02`   cboe                       keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[11] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/vix-curve-history.json", "bytes": 160677, "age_h": 0.1, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-vix-curve"]}
+- `12:11:02`   tic                        keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[10] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/tic-full/mfhhis01.txt", "bytes": 99488, "age_h": 177.6, "status": "live", "engines": []}
+- `12:11:02`   dbnomics                   keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[15] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/families.json", "bytes": 103586, "age_h": 0.5, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-families-feed", "justhodl-tradingview"]}
+- `12:11:02`   banxico                    keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[5] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/warm/banxico/core-series.json.gz", "bytes": 130657, "age_h": 2.5, "status": "live", "engines": []}
+- `12:11:02`   coinmetrics                keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[11] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/cryptoquant-onchain.json", "bytes": 54714, "age_h": 14.7, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-crypto-exchange-flows", "justhodl-crypto-miners", "justhodl-onchain-ratios"]}
+- `12:11:02`   chicagofed                 keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[1] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/fred-canary/nfci.csv.gz", "bytes": 46344, "age_h": 0.5, "status": "live", "engines": ["justhodl-canary-macro"]}
+- `12:11:02`   clevelandfed               keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[1] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/fred-canary/cleveland-model.csv.gz", "bytes": 47487, "age_h": 0.5, "status": "live", "engines": ["justhodl-canary-macro"]}
+- `12:11:02`   atlantafed                 keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[2] fields=age_h,bytes,engines,key,status 
+- `12:11:02`       sample keys: {"key": "data/warm/fred-canary/atlanta-gdpnow.xlsx", "bytes": 48304, "age_h": 624.6, "status": "live", "engines": ["justhodl-canary-macro"]}
+- `12:11:02`   nasa                       keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[5] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/provider-catalog.json", "bytes": 24368, "age_h": 0.9, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-provider-catalog"]}
+- `12:11:02`   occ                        keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[4] fields=age_h,bytes,engines,hot,key,status,via 
+- `12:11:02`       sample keys: {"key": "data/provider-catalog.json", "bytes": 24368, "age_h": 0.9, "hot": true, "via": "rollup", "status": "live", "engines": ["justhodl-provider-catalog"]}
+- `12:11:02`   taiwan-moea                keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[1] fields=age_h,bytes,engines,hot,key,status 
+- `12:11:02`       sample keys: {"key": "data/taiwan-moea.json", "bytes": 7559, "age_h": 0.5, "hot": true, "status": "live", "engines": ["justhodl-apac-flows", "justhodl-bottleneck-boom", "justhodl-taiwan-moea"]}
+- `12:11:02`   peru-copper                keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys | keys[1] fields=age_h,bytes,engines,hot,key,status 
+- `12:11:02`       sample keys: {"key": "data/peru-copper.json", "bytes": 2655, "age_h": 0.6, "hot": true, "status": "live", "engines": ["justhodl-peru-copper"]}
+- `12:11:02`   kr-ecos                    keys=slug,name,api,engines,as_of,n_keys,derived,total_bytes,total_mb,freshest_h,series,page_size,n_pages,keys |  
+- `12:11:02`   indicator-bus              catalog ERROR An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+- `12:11:02`   equity-research-tickers    catalog ERROR An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+- `12:11:02`   tradingview-vault-live     catalog ERROR An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+## B. data/warm/{prefix}/ layouts and one sample object head each
+
+- `12:11:02` warm prefixes (62): _audit, archived-fred, asia-trade, backlog, banxico, bis, blackswan, bls-full, boe-full, boe, boj-full, census-econ, census-us, cftc, dol-full, dtcc-fails, dtcc, ecb-mmsr, ecb, edgar-filings, eiopa, eurostat, finra-full, fiscaldata-full, frbddp-full, fred-canary, fred-catalog, fred-scoped, gdelt-full, gdelt, gleif, icma-sftr, imf-full, nasa-power, nyfed-markets, nyfed-research, nyfed, oecd, official-yields, ofr-bsrm, ofr-fsi, ofr-hfm, ofr-site, ofr, playbooks, polygon-full, portwatch, real-economy, repo-master, sec-bulk, sec-dera, sec-ftd, sec-midas, statcan, te-mirror, te-yields, tic-full, treasury, tv-bars, us-equities-daily, usgov, worldbank-full
+- `12:11:07`   warm/fred-scoped: sub=['data/warm/fred-scoped/Academic_Data/', 'data/warm/fred-scoped/Banking/', 'data/warm/fred-scoped/Business_Lending/', 'data/warm/fred-scoped/Dollar_TradeWeighted/', 'data/warm/fred-scoped/EU_Sovereign_Yields/', 'data/warm/fred-scoped/Exchange_Rates/', 'data/warm/fred-scoped/FRED_Repo_Complex/', 'data/warm/fred-scoped/Financial_Indicators/', 'data/warm/fred-scoped/Foreign_Exchange_Intervention/', 'data/warm/fred-scoped/ICE_BofA_OAS/', 'data/warm/fred-scoped/Interest_Rates/', 'data/warm/fred-scoped/International_Data/'] sampled=2000+ objs / 96.9MB
+- `12:11:07`       key data/warm/fred-scoped/_permanence_probe_c.json (2B)
+- `12:11:07`       key data/warm/fred-scoped/_permanence_probe_te.json (2B)
+- `12:11:07`       key data/warm/fred-scoped/Academic_Data/CANEPUINDXM.json (53878B)
+- `12:11:07`       key data/warm/fred-scoped/Academic_Data/CATEPUINDXM.json (58093B)
+- `12:11:07`       key data/warm/fred-scoped/Academic_Data/CHNMAINLANDEPU.json (102477B)
+- `12:11:07`       key data/warm/fred-scoped/Academic_Data/CHNMAINLANDTPU.json (36513B)
+- `12:11:07`       HEAD data/warm/fred-scoped/Academic_Data/CANEPUINDXM.json: {"meta": {"id": "CANEPUINDXM", "popularity": 17, "category": "Economic Policy Uncertainty", "root": "Academic Data", "last_updated": "2026-08-05"}, "observations": [{"realtime_start": "2026-08-05", "realtime_end": "2026-08-05", "date": "1985-01-01", "value": "106.92593"}, {"realtime_start": "2026-08-05", "realtime_end": "2026-08-05", "date": "1985-02-01", "value": "114.69938"}, {"realtime_start": "2026-08-05", "realt
+- `12:11:07`       HEAD data/warm/fred-scoped/Academic_Data/CATEPUINDXM.json: {"meta": {"id": "CATEPUINDXM", "popularity": 13, "category": "Economic Policy Uncertainty", "root": "Academic Data", "last_updated": "2026-08-05"}, "observations": [{"realtime_start": "2026-08-05", "realtime_end": "2026-08-05", "date": "1985-01-01", "value": "213.67883454378006"}, {"realtime_start": "2026-08-05", "realtime_end": "2026-08-05", "date": "1985-02-01", "value": "155.42602201382735"}, {"realtime_start": "2
+- `12:11:07`   warm/fred-catalog: sub=['data/warm/fred-catalog/series-meta/'] sampled=2000+ objs / 385.1MB
+- `12:11:07`       key data/warm/fred-catalog/series-meta/page-0000.json (185361B)
+- `12:11:07`       key data/warm/fred-catalog/series-meta/page-0001.json (181445B)
+- `12:11:07`       key data/warm/fred-catalog/series-meta/page-0002.json (181505B)
+- `12:11:07`       key data/warm/fred-catalog/series-meta/page-0003.json (181616B)
+- `12:11:07`       key data/warm/fred-catalog/series-meta/page-0004.json (181419B)
+- `12:11:07`       key data/warm/fred-catalog/series-meta/page-0005.json (181463B)
+- `12:11:07`       HEAD data/warm/fred-catalog/series-meta/page-0000.json: {"page": 0, "count": 500, "rows": [{"id": "LODINIM066N", "title": "University of Louisville and Oklahoma State University: LoDI National Index", "freq": "M", "units": "Index", "seasonal_adj": "NSA", "popularity": 8, "obs_start": "2008-05-01", "obs_end": "2025-07-01", "last_updated": "2025-07-01 08:31:01-05", "category_id": 33060, "source_url": "https://fred.stlouisfed.org/series/LODINIM066N"}, {"id": "KCPRS", "title"
+- `12:11:07`       HEAD data/warm/fred-catalog/series-meta/page-0001.json: {"page": 1, "count": 500, "rows": [{"id": "HC01ESTVC1605123", "title": "High School Graduate or Higher (5-year estimate) in St. Francis County, AR", "freq": "A", "units": "%", "seasonal_adj": "NSA", "popularity": 1, "obs_start": "2010-01-01", "obs_end": "2024-01-01", "last_updated": "2026-01-29 09:44:51-06", "category_id": 33500, "source_url": "https://fred.stlouisfed.org/series/HC01ESTVC1605123"}, {"id": "HC01ESTVC1
+- `12:11:07`   warm/eurostat: sub=['data/warm/eurostat/data/'] sampled=2000+ objs / 3410.2MB
+- `12:11:07`       key data/warm/eurostat/catalog.json.gz (178685B)
+- `12:11:07`       key data/warm/eurostat/catalog.json.gz (178685B)
+- `12:11:07`       key data/warm/eurostat/data/AACT_ALI01.dat.gz (12223B)
+- `12:11:07`       key data/warm/eurostat/data/AACT_ALI01_R.dat.gz (7701B)
+- `12:11:07`       key data/warm/eurostat/data/AACT_ALI02.dat.gz (32764B)
+- `12:11:07`       key data/warm/eurostat/data/AACT_ALI02_R.dat.gz (5958B)
+- `12:11:07`       HEAD data/warm/eurostat/catalog.json.gz: {"as_of": "2026-09-02T07:36:41+00:00", "source_url": "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/dataflow/ESTAT/all", "raw_snapshot_key": "data/raw/eurostat/2026-09-02/e2d68b0543bc.json.gz", "n_dataflows": 8152, "dataflows": [{"id": "AACT_ALI01", "name": "Agricultural labour input statistics - absolute figures (thousand annual work units)", "version": "1.0"}, {"id": "AACT_ALI01_R", "name": "Statistiques
+- `12:11:07`       HEAD data/warm/eurostat/catalog.json.gz: {"as_of": "2026-09-02T07:36:41+00:00", "source_url": "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/dataflow/ESTAT/all", "raw_snapshot_key": "data/raw/eurostat/2026-09-02/e2d68b0543bc.json.gz", "n_dataflows": 8152, "dataflows": [{"id": "AACT_ALI01", "name": "Agricultural labour input statistics - absolute figures (thousand annual work units)", "version": "1.0"}, {"id": "AACT_ALI01_R", "name": "Statistiques
+- `12:11:07`   warm/ecb: sub=['data/warm/ecb/data/'] sampled=578 objs / 2510.8MB
+- `12:11:07`       key data/warm/ecb/catalog-summary.json (929B)
+- `12:11:07`       key data/warm/ecb/catalog.json.gz (4236B)
+- `12:11:07`       key data/warm/ecb/coverage.json (8640B)
+- `12:11:07`       key data/warm/ecb/failures-classified.json (646B)
+- `12:11:07`       key data/warm/ecb/catalog-summary.json (929B)
+- `12:11:07`       key data/warm/ecb/catalog.json.gz (4236B)
+- `12:11:07`       HEAD data/warm/ecb/catalog-summary.json: {"as_of": "2026-08-18T19:34:38+00:00", "n_dataflows": 214, "accept_winner": "no-accept", "key_flows_present": ["BSI", "EXR", "FM", "ICP", "MIR", "STS", "YC"], "sample": [{"id": "AGR", "agency": "ECB", "name": "AGR", "version": "1.0"}, {"id": "AME", "agency": "ECB", "name": "AMECO", "version": "1.0"}, {"id": "BKN", "agency": "ECB", "name": "Banknotes statistics", "version": "1.0"}, {"id": "BLS", "agency": "ECB", "name
+- `12:11:07`       HEAD data/warm/ecb/catalog.json.gz: {"as_of": "2026-08-18T19:34:38+00:00", "source_url": "https://data-api.ecb.europa.eu/service/dataflow", "raw_snapshot_key": "data/raw/ecb/2026-08-18/a35a61cf38f3.json.gz", "n_dataflows": 214, "agencies": {"ECB": 104, "ECB.DISS": 89, "ESTAT": 11, "EUROSTAT": 6, "IMF": 4}, "note": "dataflow registry, ALL portal maintainer agencies; per-dataset series pulls = E10 backfill", "accept_winner": "no-accept", "negotiation": [
+- `12:11:07`   warm/oecd: sub=['data/warm/oecd/cycle/', 'data/warm/oecd/data/'] sampled=1110 objs / 978.0MB
+- `12:11:07`       key data/warm/oecd/catalog.json.gz (29327B)
+- `12:11:07`       key data/warm/oecd/flow-triplets.json.gz (14694B)
+- `12:11:07`       key data/warm/oecd/catalog.json.gz (29327B)
+- `12:11:07`       key data/warm/oecd/cycle/DF_BTS.csv.gz (970311B)
+- `12:11:07`       key data/warm/oecd/cycle/DF_CLI.csv.gz (63549B)
+- `12:11:07`       key data/warm/oecd/cycle/DF_CS.csv.gz (131453B)
+- `12:11:07`       HEAD data/warm/oecd/catalog.json.gz: {"as_of": "2026-09-02T07:36:41+00:00", "source_url": "https://sdmx.oecd.org/public/rest/dataflow/all/all/latest", "raw_snapshot_key": "data/raw/oecd/2026-09-02/004fa6925f6e.json.gz", "n_dataflows": 1546, "dataflows": [{"id": "DF_AEI2023_DASHBOARD", "name": "Agri-Environmental indicators: 2023 Dashboard Archived", "version": "1.0"}, {"id": "DF_AEI2024_DASHBOARD", "name": "Agri-Environmental indicators: 2024 Dashboard"
+- `12:11:07`       HEAD data/warm/oecd/flow-triplets.json.gz: {"map": {"SEEA_AEA_A": "ESTAT,SEEA_AEA_A,1.4", "DF_SDG_GLC": "IAEG-SDGs,DF_SDG_GLC,1.20", "DF_SDG_GLH": "IAEG-SDGs,DF_SDG_GLH,1.20", "DSD_FUA_CLIM@DF_CLIM_PROJ": "OECD.CFE.EDS,DSD_FUA_CLIM@DF_CLIM_PROJ,1.4", "DSD_FUA_CLIM@DF_COASTAL_FLOOD": "OECD.CFE.EDS,DSD_FUA_CLIM@DF_COASTAL_FLOOD,1.4", "DSD_FUA_CLIM@DF_DROUGHT": "OECD.CFE.EDS,DSD_FUA_CLIM@DF_DROUGHT,1.4", "DSD_FUA_CLIM@DF_FIRES": "OECD.CFE.EDS,DSD_FUA_CLIM@DF_FIR
+- `12:11:07`   warm/bis: sub=['data/warm/bis/cycle/', 'data/warm/bis/data/'] sampled=31 objs / 29.8MB
+- `12:11:07`       key data/warm/bis/catalog.json.gz (749B)
+- `12:11:07`       key data/warm/bis/catalog.json.gz (749B)
+- `12:11:07`       key data/warm/bis/cycle/WS_CBPOL_M.csv.gz (59466B)
+- `12:11:07`       key data/warm/bis/cycle/WS_EER_M.csv.gz (72170B)
+- `12:11:07`       key data/warm/bis/data/BIS_REL_CAL.dat.gz (4273B)
+- `12:11:07`       key data/warm/bis/data/WS_CBPOL.dat.gz (408013B)
+- `12:11:07`       HEAD data/warm/bis/catalog.json.gz: {"as_of": "2026-09-02T07:36:17+00:00", "source_url": "https://stats.bis.org/api/v1/dataflow/BIS/all/latest", "raw_snapshot_key": "data/raw/bis/2026-09-02/24917bb65d89.json.gz", "n_dataflows": 29, "dataflows": [{"id": "BIS_REL_CAL", "name": "BIS_RELEASE_CALENDAR", "version": "1.0"}, {"id": "WS_CBPOL", "name": "Central bank policy rates", "version": "1.0"}, {"id": "WS_CBS_PUB", "name": "Consolidated banking", "version"
+- `12:11:07`       HEAD data/warm/bis/catalog.json.gz: {"as_of": "2026-09-02T07:36:17+00:00", "source_url": "https://stats.bis.org/api/v1/dataflow/BIS/all/latest", "raw_snapshot_key": "data/raw/bis/2026-09-02/24917bb65d89.json.gz", "n_dataflows": 29, "dataflows": [{"id": "BIS_REL_CAL", "name": "BIS_RELEASE_CALENDAR", "version": "1.0"}, {"id": "WS_CBPOL", "name": "Central bank policy rates", "version": "1.0"}, {"id": "WS_CBS_PUB", "name": "Consolidated banking", "version"
+- `12:11:07`   warm/statcan: sub=['data/warm/statcan/data/'] sampled=2000+ objs / 7963.5MB
+- `12:11:07`       key data/warm/statcan/cube-catalog.json.gz (499593B)
+- `12:11:07`       key data/warm/statcan/cube-catalog.json.gz (499593B)
+- `12:11:07`       key data/warm/statcan/data/10100001.dat.gz (3874B)
+- `12:11:07`       key data/warm/statcan/data/10100002.dat.gz (36005B)
+- `12:11:07`       key data/warm/statcan/data/10100003.dat.gz (504532B)
+- `12:11:07`       key data/warm/statcan/data/10100004.dat.gz (854954B)
+- `12:11:07`       HEAD data/warm/statcan/cube-catalog.json.gz: {"source_url": "https://www150.statcan.gc.ca/t1/wds/rest/getAllCubesListLite", "raw_snapshot_key": "data/raw/statcan/2026-09-02/0c3f3dddbdb7.json.gz", "note": "full cube catalog = 100% worklist", "payload": [{"productId": 10100001, "cansimId": "183-0021", "cubeTitleEn": "Federal public sector employment reconciliation of Treasury Board of Canada Secretariat, Public Service Commission of Canada and Statistics Canada s
+- `12:11:07`       HEAD data/warm/statcan/cube-catalog.json.gz: {"source_url": "https://www150.statcan.gc.ca/t1/wds/rest/getAllCubesListLite", "raw_snapshot_key": "data/raw/statcan/2026-09-02/0c3f3dddbdb7.json.gz", "note": "full cube catalog = 100% worklist", "payload": [{"productId": 10100001, "cansimId": "183-0021", "cubeTitleEn": "Federal public sector employment reconciliation of Treasury Board of Canada Secretariat, Public Service Commission of Canada and Statistics Canada s
+- `12:11:07`   warm/boj-full: sub=['data/warm/boj-full/_state/', 'data/warm/boj-full/api/'] sampled=2000+ objs / 12.3MB
+- `12:11:07`       key data/warm/boj-full/bis1-1_q_en.zip (2548991B)
+- `12:11:07`       key data/warm/boj-full/bis1-2_q_en.zip (2082440B)
+- `12:11:07`       key data/warm/boj-full/bis2-1_q_en.zip (527765B)
+- `12:11:07`       key data/warm/boj-full/bis2-2_q_en.zip (370445B)
+- `12:11:07`       key data/warm/boj-full/bp_m_en.zip (2378470B)
+- `12:11:07`       key data/warm/boj-full/cgpi_m_en.zip (343239B)
+- `12:11:07`       HEAD data/warm/boj-full/bis1-1_q_en.zip: PK    I�\��)BK�& ��   bis1-1_q_en.csvUT	 �63j�63jux �	  �   ��Y�$�yh���8K7}���a�m��� )$8�@�Z�� �@�g`'Α����=�$X� T*V#�W� 3����������x<��޶}�s���O�Ͼ���s�zn_��c=w���ܹ�;�s�z�\ϵ�\[ϵ�\[���\_���\_ύ��Xύ��X�]�k=w����\����\���ܽ���s�z��ms]�ϱ�9�?yn_���}=����ܱ�;�s�z�\ϝ�s=w���z����z����z����z����zn���zn���ܵ���s�zn���zn���z�^���{=��˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˾�˱�˱�
+- `12:11:07`       HEAD data/warm/boj-full/bis1-2_q_en.zip: PK    GI�\���x�� �h�   bis1-2_q_en.csvUT	 e73je73jux �	  �   ��ۚeIy&j��U�S'}2{���0}I$QUu餟 B��:2SZ����~6="�J�Z-��L�L��1���}����^ײ��?���>�s��:��߭�w���6���m�w���>�����w���1w���w��]��k�wm���ߝ�w���9w�����>�����ݘ��wc�n��]�w���5w��eq]�m�g�������u�n��[����m�n��������}�n�������c�;����]��k�wm�;�����s�������>�����ݘ��wc������y]�y]�y]�y]�y]�y]�y]�y]�y]�y]�y]�y]�y]�y]�y]�y]�y]�y]�y]�y]�y]�y]�y]�y
+- `12:11:07`       HEAD data/warm/boj-full/api/BP01/part00001_1955.json.gz: {⏎"STATUS":200,⏎"MESSAGEID":"M181030I",⏎"MESSAGE":"Successfully completed with no applicable data",⏎"DATE":"2026-08-26T12:57:22.447+09:00",⏎"PARAMETER":{⏎"FORMAT":"JSON",⏎"LANG":"EN",⏎"DB":"BP01",⏎"STARTDATE":"195501",⏎"ENDDATE":"196412",⏎"STARTPOSITION":""⏎},⏎"NEXTPOSITION":null,⏎"RESULTSET":[⏎{⏎"SERIES_CODE":"BPBP6D1A",⏎"NAME_OF_TIME_SERIES":"External Assets and Liabilities of Banks, etc./Total/Assets",⏎"UNIT":"100
+- `12:11:07`   warm/nyfed: sub=[] sampled=6 objs / 0.0MB
+- `12:11:07`       key data/warm/nyfed/bgcr.json.gz (3207B)
+- `12:11:07`       key data/warm/nyfed/effr.json.gz (2539B)
+- `12:11:07`       key data/warm/nyfed/latest-summary.json (717B)
+- `12:11:07`       key data/warm/nyfed/obfr.json.gz (2718B)
+- `12:11:07`       key data/warm/nyfed/sofr.json.gz (3465B)
+- `12:11:07`       key data/warm/nyfed/tgcr.json.gz (3209B)
+- `12:11:07`       HEAD data/warm/nyfed/bgcr.json.gz: {"rate": "bgcr", "kind": "secured", "source_url": "https://markets.newyorkfed.org/api/rates/secured/bgcr/last/500.json", "raw_snapshot_key": "data/raw/nyfed/2026-09-02/547440059089.json.gz", "n_obs": 500, "observations": [{"date": "2024-08-28", "rate": 5.34, "volume_bn": 778}, {"date": "2024-08-29", "rate": 5.32, "volume_bn": 777}, {"date": "2024-08-30", "rate": 5.32, "volume_bn": 767}, {"date": "2024-09-03", "rate":
+- `12:11:07`       HEAD data/warm/nyfed/effr.json.gz: {"rate": "effr", "kind": "unsecured", "source_url": "https://markets.newyorkfed.org/api/rates/unsecured/effr/last/500.json", "raw_snapshot_key": "data/raw/nyfed/2026-09-02/06a19c61dc3e.json.gz", "n_obs": 500, "observations": [{"date": "2024-09-03", "rate": 5.33, "volume_bn": 100}, {"date": "2024-09-04", "rate": 5.33, "volume_bn": 103}, {"date": "2024-09-05", "rate": 5.33, "volume_bn": 102}, {"date": "2024-09-06", "ra
+- `12:11:07`       HEAD data/warm/nyfed/latest-summary.json: {"as_of": "2026-09-02T05:25:07+00:00", "rates": {"sofr": {"current": 3.68, "date": "2026-08-31", "chg_1d_bp": 3.0, "volume_bn": 3056, "n_obs": 500, "span": "2024-08-28..2026-08-31"}, "tgcr": {"current": 3.67, "date": "2026-08-31", "chg_1d_bp": 4.0, "volume_bn": 1181, "n_obs": 500, "span": "2024-08-28..2026-08-31"}, "bgcr": {"current": 3.67, "date": "2026-08-31", "chg_1d_bp": 4.0, "volume_bn": 1207, "n_obs": 500, "spa
+- `12:11:07`   warm/ofr: sub=['data/warm/ofr/series/'] sampled=446 objs / 6.5MB
+- `12:11:07`       key data/warm/ofr/dataset-mmf.json.gz (55499B)
+- `12:11:07`       key data/warm/ofr/dataset-nypd.json.gz (460916B)
+- `12:11:07`       key data/warm/ofr/dataset-repo.json.gz (2193751B)
+- `12:11:07`       key data/warm/ofr/state.json (20337B)
+- `12:11:07`       key data/warm/ofr/dataset-mmf.json.gz (55499B)
+- `12:11:07`       key data/warm/ofr/dataset-nypd.json.gz (460916B)
+- `12:11:07`       HEAD data/warm/ofr/dataset-mmf.json.gz: {"source_url": "https://data.financialresearch.gov/v1/series/dataset?dataset=mmf", "raw_snapshot_key": "data/raw/ofr/2026-09-02/01964d195eda.json.gz", "as_of": "2026-09-02T11:15:49+00:00", "n_series": 42, "payload": {"short_name": "U.S. Money Market Funds", "long_name": "OFR U.S. Money Market Fund Data Release", "timeseries": {"MMF-MMF_AG_TOT-M": {"timeseries": {"aggregation": [["2010-11-30", 434141816591.42], ["2010
+- `12:11:07`       HEAD data/warm/ofr/dataset-nypd.json.gz: {"source_url": "https://data.financialresearch.gov/v1/series/dataset?dataset=nypd", "raw_snapshot_key": "data/raw/ofr/2026-09-02/0d346aa6fccb.json.gz", "as_of": "2026-09-02T11:15:49+00:00", "n_series": 194, "payload": {"short_name": "Primary Dealer Statistics", "long_name": "Federal Reserve Bank of New York Primary Dealer Statistics", "timeseries": {"NYPD-PD_AFtD_AG-A": {"timeseries": {"disclosure_edits": [], "aggreg
+- `12:11:07`       HEAD data/warm/ofr/state.json: {"done": ["FNYR-BGCR-A", "FNYR-BGCR_1Pctl-A", "FNYR-BGCR_25Pctl-A", "FNYR-BGCR_75Pctl-A", "FNYR-BGCR_99Pctl-A", "FNYR-BGCR_UV-A", "FNYR-EFFR-A", "FNYR-EFFR_1Pctl-A", "FNYR-EFFR_25Pctl-A", "FNYR-EFFR_75Pctl-A", "FNYR-EFFR_99Pctl-A", "FNYR-EFFR_UV-A", "FNYR-OBFR-A", "FNYR-OBFR_1Pctl-A", "FNYR-OBFR_25Pctl-A", "FNYR-OBFR_75Pctl-A", "FNYR-OBFR_99Pctl-A", "FNYR-OBFR_UV-A", "FNYR-SOFR-A", "FNYR-SOFR_1Pctl-A", "FNYR-SOFR_25P
+- `12:11:07`   warm/ofr-bsrm: sub=['data/warm/ofr-bsrm/series/'] sampled=501 objs / 2.3MB
+- `12:11:07`       key data/warm/ofr-bsrm/_last-check.json (209B)
+- `12:11:07`       key data/warm/ofr-bsrm/ofr_bsrm.xlsx (597243B)
+- `12:11:07`       key data/warm/ofr-bsrm/ofr_bsrm_international_scores.xlsx (161171B)
+- `12:11:07`       key data/warm/ofr-bsrm/_last-check.json (209B)
+- `12:11:07`       key data/warm/ofr-bsrm/ofr_bsrm.xlsx (597243B)
+- `12:11:07`       key data/warm/ofr-bsrm/ofr_bsrm_international_scores.xlsx (161171B)
+- `12:11:07`       HEAD data/warm/ofr-bsrm/_last-check.json: {"at": "2026-09-02T02:29:54+00:00", "engine": "src-mirror", "files": {"ofr_bsrm.xlsx": {"status": "unchanged", "bytes": 597243}, "ofr_bsrm_international_scores.xlsx": {"status": "unchanged", "bytes": 161171}}}
+- `12:11:07`       HEAD data/warm/ofr-bsrm/ofr_bsrm.xlsx: PK    �t�\AMb�   �      docProps/app.xmlM�=1D��q��A�Bb@�R��{/�dC�B~�9��noF�⏎g*�-�T��"� ��N]�n�h�cy ;�Ό�HI`���	���M��F�r�xN��pe'å!�rmީ�5�&����;i^PK    �t�\�pgc�   +     docProps/core.xml͒�J�0�_Ero�i�H����IApA����`�d�ݷ���]D�cf~���N�|���F2�n&;�$Tذ#Q I��T�	77�>ZI�3 H�!uU�`���$aa%���J���|<�Z��3���%�%�/�i:�a�黀z%����vNNɬ�q˱ɹyoO�/y�¸D�)�%#�p�.�_�����uU�Eu[��߉��y_\
+- `12:11:07`       HEAD data/warm/ofr-bsrm/series/FICC-SPONSORED_REPO_VOL.json.gz: {"FICC-SPONSORED_REPO_VOL": {"timeseries": {"aggregation": [["2020-04-02", 170440018792.5], ["2020-05-15", 149573163787.69], ["2020-06-02", 140561817890.42], ["2020-07-14", 131333205535.58], ["2020-07-20", 123164235480.4], ["2021-01-11", 105333045955.1], ["2021-01-13", 96357880306.96], ["2021-01-20", 92161628095.9], ["2021-02-12", 70987846262.44], ["2021-02-16", 80440751550.51], ["2021-03-04", 73556066568.35], ["2021
+- `12:11:07`   warm/ofr-hfm: sub=['data/warm/ofr-hfm/series/'] sampled=498 objs / 1.6MB
+- `12:11:07`       key data/warm/ofr-hfm/state.json (35040B)
+- `12:11:07`       key data/warm/ofr-hfm/series/FICC-SPONSORED_REPO_VOL.json.gz (19988B)
+- `12:11:07`       key data/warm/ofr-hfm/series/FICC-SPONSORED_REVREPO_VOL.json.gz (20458B)
+- `12:11:07`       key data/warm/ofr-hfm/series/FPF-ALLQHF_ALTERNATE_COUNT.json.gz (1129B)
+- `12:11:07`       key data/warm/ofr-hfm/series/FPF-ALLQHF_CANGATE_PERCENT.json.gz (1143B)
+- `12:11:07`       key data/warm/ofr-hfm/series/FPF-ALLQHF_CANSUSPEND_PERCENT.json.gz (1050B)
+- `12:11:07`       HEAD data/warm/ofr-hfm/state.json: {"done": ["FICC-SPONSORED_REPO_VOL", "FICC-SPONSORED_REVREPO_VOL", "FPF-ALLQHF_ALTERNATE_COUNT", "FPF-ALLQHF_CANGATE_PERCENT", "FPF-ALLQHF_CANSUSPEND_PERCENT", "FPF-ALLQHF_CDSDOWN250BPS_P5", "FPF-ALLQHF_CDSDOWN250BPS_P50", "FPF-ALLQHF_CDSUP250BPS_P5", "FPF-ALLQHF_CDSUP250BPS_P50", "FPF-ALLQHF_COUNT", "FPF-ALLQHF_CREDIT_OPENPOSITIONS_AVERAGE", "FPF-ALLQHF_CURRENCYDOWN20P_P5", "FPF-ALLQHF_CURRENCYDOWN20P_P50", "FPF-ALL
+- `12:11:07`       HEAD data/warm/ofr-hfm/series/FICC-SPONSORED_REPO_VOL.json.gz: {"FICC-SPONSORED_REPO_VOL": {"timeseries": {"aggregation": [["2020-04-02", 170440018792.5], ["2020-05-15", 149573163787.69], ["2020-06-02", 140561817890.42], ["2020-07-14", 131333205535.58], ["2020-07-20", 123164235480.4], ["2021-01-11", 105333045955.1], ["2021-01-13", 96357880306.96], ["2021-01-20", 92161628095.9], ["2021-02-12", 70987846262.44], ["2021-02-16", 80440751550.51], ["2021-03-04", 73556066568.35], ["2021
+- `12:11:07`   warm/ofr-fsi: sub=[] sampled=1 objs / 0.5MB
+- `12:11:07`       key data/warm/ofr-fsi/fsi.csv (513145B)
+- `12:11:07`       key data/warm/ofr-fsi/fsi.csv (513145B)
+- `12:11:07`       HEAD data/warm/ofr-fsi/fsi.csv: Date,OFR FSI,Credit,Equity valuation,Safe assets,Funding,Volatility,United States,Other advanced economies,Emerging markets⏎2000-01-03,2.14,0.54,-0.051,0.67,0.472,0.509,1.769,0.521,-0.15⏎2000-01-04,2.421,0.604,0.079,0.627,0.55,0.561,2.084,0.474,-0.137⏎2000-01-05,2.297,0.575,0.08,0.653,0.501,0.488,2.023,0.406,-0.132⏎2000-01-06,2.292,0.546,0.082,0.581,0.566,0.517,2.064,0.355,-0.127⏎2000-01-07,2.005,0.662,-0.011,0.519,0
+- `12:11:07`       HEAD data/warm/ofr-fsi/fsi.csv: Date,OFR FSI,Credit,Equity valuation,Safe assets,Funding,Volatility,United States,Other advanced economies,Emerging markets⏎2000-01-03,2.14,0.54,-0.051,0.67,0.472,0.509,1.769,0.521,-0.15⏎2000-01-04,2.421,0.604,0.079,0.627,0.55,0.561,2.084,0.474,-0.137⏎2000-01-05,2.297,0.575,0.08,0.653,0.501,0.488,2.023,0.406,-0.132⏎2000-01-06,2.292,0.546,0.082,0.581,0.566,0.517,2.064,0.355,-0.127⏎2000-01-07,2.005,0.662,-0.011,0.519,0
+- `12:11:07`   warm/te-mirror: sub=[] sampled=159 objs / 41.4MB
+- `12:11:07`       key data/warm/te-mirror/AAA10Y.json (389348B)
+- `12:11:07`       key data/warm/te-mirror/BAA10Y.json (389319B)
+- `12:11:07`       key data/warm/te-mirror/BAMLC0A0CM.json (301600B)
+- `12:11:07`       key data/warm/te-mirror/BAMLC0A0CMEY.json (301609B)
+- `12:11:07`       key data/warm/te-mirror/BAMLC0A0CMSYTW.json (301659B)
+- `12:11:07`       key data/warm/te-mirror/BAMLC0A1CAAA.json (301528B)
+- `12:11:07`       HEAD data/warm/te-mirror/AAA10Y.json: {"id": "AAA10Y", "source": "tradingeconomics /fred/historical/ mirror", "as_of": "2026-09-01T18:33:31+00:00", "n": 10000, "first": "1983-01-03", "last": "2023-01-03", "near_row_cap": true, "cross_check": {"fred_doc_found": true, "shared_dates": 10000, "agree": 10000, "agree_pct": 100.0}, "observations": [{"date": "1983-01-03", "value": 1.45}, {"date": "1983-01-04", "value": 1.42}, {"date": "1983-01-05", "value": 1.44
+- `12:11:07`       HEAD data/warm/te-mirror/BAA10Y.json: {"id": "BAA10Y", "source": "tradingeconomics /fred/historical/ mirror", "as_of": "2026-09-01T18:33:31+00:00", "n": 10000, "first": "1986-01-02", "last": "2025-12-31", "near_row_cap": true, "cross_check": {"fred_doc_found": true, "shared_dates": 10000, "agree": 10000, "agree_pct": 100.0}, "observations": [{"date": "1986-01-02", "value": 2.34}, {"date": "1986-01-03", "value": 2.3}, {"date": "1986-01-06", "value": 2.29}
+- `12:11:07`   warm/treasury: sub=[] sampled=7 objs / 0.1MB
+- `12:11:07`       key data/warm/treasury/avg_interest_rates.json.gz (9876B)
+- `12:11:07`       key data/warm/treasury/debt_outstanding.json.gz (3019B)
+- `12:11:07`       key data/warm/treasury/debt_to_penny.json.gz (30834B)
+- `12:11:07`       key data/warm/treasury/interest_expense.json.gz (17473B)
+- `12:11:07`       key data/warm/treasury/latest-summary.json (909B)
+- `12:11:07`       key data/warm/treasury/rates_of_exchange.json.gz (9499B)
+- `12:11:07`       HEAD data/warm/treasury/avg_interest_rates.json.gz: {"dataset": "avg_interest_rates", "unit": "percent (by security class rows)", "source_url": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates?sort=-record_date&page[size]=2500", "raw_snapshot_key": "data/raw/treasury/2026-09-02/7b55baf1db03.json.gz", "n_obs": 2500, "span_note": "single-page pull (2500 newest); older backfill = E10 orchestrator", "observations": [{"da
+- `12:11:07`       HEAD data/warm/treasury/debt_outstanding.json.gz: {"dataset": "debt_outstanding", "unit": "USD", "source_url": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/debt_outstanding?sort=-record_date&page[size]=2500", "raw_snapshot_key": "data/raw/treasury/2026-09-02/398d7596ceda.json.gz", "n_obs": 237, "span_note": "single-page pull (2500 newest); older backfill = E10 orchestrator", "observations": [{"date": "1790-01-01", "value": 710605
+- `12:11:07`       HEAD data/warm/treasury/latest-summary.json: {"as_of": "2026-09-02T05:55:09+00:00", "datasets": {"debt_to_penny": {"current": 40175641071634.14, "date": "2026-08-31", "unit": "USD", "n_obs": 2500, "span": "2016-09-14..2026-08-31"}, "rates_of_exchange": {"current": 25.833, "date": "2026-06-30", "unit": "per USD (multi-currency rows)", "n_obs": 2500, "span": "2022-12-31..2026-06-30"}, "avg_interest_rates": {"current": 3.447, "date": "2026-07-31", "unit": "percent
+- `12:11:07`   warm/fiscaldata-full: sub=['data/warm/fiscaldata-full/_state/', 'data/warm/fiscaldata-full/src/'] sampled=35 objs / 45.3MB
+- `12:11:07`       key data/warm/fiscaldata-full/manifest.json (432B)
+- `12:11:07`       key data/warm/fiscaldata-full/_state/state.json (10713B)
+- `12:11:07`       key data/warm/fiscaldata-full/manifest.json (432B)
+- `12:11:07`       key data/warm/fiscaldata-full/src/v1_accounting_dts_adjustment_public_debt_transactions_cash_basis.jsonl.gz (841514B)
+- `12:11:07`       key data/warm/fiscaldata-full/src/v1_accounting_dts_debt_subject_to_limit.jsonl.gz (365029B)
+- `12:11:07`       key data/warm/fiscaldata-full/src/v1_accounting_dts_deposits_withdrawals_operating_cash.jsonl.gz (12595717B)
+- `12:11:07`       HEAD data/warm/fiscaldata-full/src/v1_accounting_dts_adjustment_public_debt_transactions_cash_basis.jsonl.gz: {"record_date":"2005-10-03","transaction_type":"Public Debt Cash Issues","adj_type":"Public Debt Issues (Table III-A)","adj_type_desc":"null","adj_today_amt":"192315","adj_mtd_amt":"192315","adj_fytd_amt":"192315","table_nbr":"III-B","table_nm":"Adjustment of Public Debt Transactions to Cash Basis","sub_table_name":"Transactions","src_line_nbr":"1","record_fiscal_year":"2006","record_fiscal_quarter":"1","record_calen
+- `12:11:07`       HEAD data/warm/fiscaldata-full/src/v1_accounting_dts_debt_subject_to_limit.jsonl.gz: {"record_date":"2005-10-03","debt_catg":"Debt Held by the Public","debt_catg_desc":"null","close_today_bal":"4599132","open_today_bal":"4601239","open_month_bal":"4601239","open_fiscal_year_bal":"4601239","table_nbr":"III-C","table_nm":"Debt Subject to Limit","sub_table_name":"Balance Transactions","src_line_nbr":"1","record_fiscal_year":"2006","record_fiscal_quarter":"1","record_calendar_year":"2005","record_calenda
+- `12:11:07`   warm/boe: sub=[] sampled=1 objs / 0.0MB
+- `12:11:07`       key data/warm/boe/sonia-history.csv.gz (38892B)
+- `12:11:07`       key data/warm/boe/sonia-history.csv.gz (38892B)
+- `12:11:07`       HEAD data/warm/boe/sonia-history.csv.gz: <!DOCTYPE html>⏎<html lang="en" class="no-js">⏎    <head>⏎    <meta charset="utf-8">⏎    <meta http-equiv="Content-type" content="text/html; charset=utf-8">⏎    <meta http-equiv="X-UA-Compatible" content="IE=edge">⏎    <meta name="viewport" content="width=device-width, initial-scale=1.0">⏎    <meta name="format-detection" content="telephone=no">⏎    <title>Data Series | Bank of England | Database</title>⏎   
+- `12:11:07`       HEAD data/warm/boe/sonia-history.csv.gz: <!DOCTYPE html>⏎<html lang="en" class="no-js">⏎    <head>⏎    <meta charset="utf-8">⏎    <meta http-equiv="Content-type" content="text/html; charset=utf-8">⏎    <meta http-equiv="X-UA-Compatible" content="IE=edge">⏎    <meta name="viewport" content="width=device-width, initial-scale=1.0">⏎    <meta name="format-detection" content="telephone=no">⏎    <title>Data Series | Bank of England | Database</title>⏎   
+- `12:11:07`   warm/boe-full: sub=['data/warm/boe-full/_state/', 'data/warm/boe-full/curves/', 'data/warm/boe-full/iadb/'] sampled=48 objs / 132.1MB
+- `12:11:07`       key data/warm/boe-full/manifest.json (384B)
+- `12:11:07`       key data/warm/boe-full/_state/state.json (9638B)
+- `12:11:07`       key data/warm/boe-full/curves/blcnomddata.zip (22802657B)
+- `12:11:07`       key data/warm/boe-full/curves/blcnominalmonthedata.zip (1408690B)
+- `12:11:07`       key data/warm/boe-full/curves/glcinflationddata.zip (24665198B)
+- `12:11:07`       key data/warm/boe-full/curves/glcinflationmonthedata.zip (1288294B)
+- `12:11:07`       HEAD data/warm/boe-full/curves/blcnomddata.zip: PK    �>U��h;AI &�Q (   BLC Nominal daily data_2016 to 2021.xlsx�weP]A�&<�;��;\.ww�����[���������,y[[�[�j����ߙ���9s���>?d�a� `!�!  �!(O~�@B@P�A@`B�Ci}��q2�q�Sv�3q�ar��"˅����_������t����	�����`�O6��y��D��R�8.�y���C;Mr7�k�>#�>���ϐ1⏎dTu�y0�o4��%>||Sk[�Rr�R�)U����_vm���F�\�+yEC]�g��H�?X�F)��W�i~V��l�I���ȓ�-��Һ�/�ƥ�Yjϖe���$��v��%�!��,�V���t�����������;y���K�TmI"}Cd?a][�o��SK�
+- `12:11:07`       HEAD data/warm/boe-full/curves/blcnominalmonthedata.zip: PK    ��>U�0�� � ,   BLC Nominal month end data_1990 to 2015.xlsx�cteM.��ض;��tlu��m�6;�m۶�᎝���~�9��qƸ��=�����Y5�Z{m�� P 0   $ ��Ui1�  �  � 0`Z"6֎�֎��n��?]�,�� ����������1�2"�ǌ�Av�WUbG�b>�ۍ�l{��p��a⏎�|��E�d^L�n�G^v�t&�[��^��w����_+����w	R��.��~�⏎��%�����1�L70�CR�W�R��pc(=7�\�Ea�RrFUk�<�`r�,��}��K�3�N�(�N�X^W�U��+T���8}����5�JO� ��`�Sp�pTF���C�~f<�޶坵Q�P3�W_���i�]]p� �6BĐ��	0_
+- `12:11:07`       HEAD data/warm/boe-full/iadb/CFMBI59.csv.gz: DATE,CFMBI59⏎31 Jan 2004,5.33⏎29 Feb 2004,5.41⏎31 Mar 2004,5.52⏎30 Apr 2004,5.62⏎31 May 2004,5.74⏎30 Jun 2004,5.9⏎31 Jul 2004,6.04⏎31 Aug 2004,6.1⏎30 Sep 2004,6.16⏎31 Oct 2004,6.28⏎30 Nov 2004,6.23⏎31 Dec 2004,6.26⏎31 Jan 2005,6.2⏎28 Feb 2005,6.15⏎31 Mar 2005,6.19⏎30 Apr 2005,6.2⏎31 May 2005,6.2⏎30 Jun 2005,6.34⏎31 Jul 2005,6.25⏎31 Aug 2005,6.13⏎30 Sep 2005,6.07⏎31 Oct 2005,6.01⏎30 Nov 2005,6.0
+- `12:11:07`   warm/frbddp-full: sub=['data/warm/frbddp-full/_state/'] sampled=19 objs / 80.0MB
+- `12:11:07`       key data/warm/frbddp-full/CHGDEL.zip (280471B)
+- `12:11:07`       key data/warm/frbddp-full/CP.zip (6269300B)
+- `12:11:07`       key data/warm/frbddp-full/E2.zip (884034B)
+- `12:11:07`       key data/warm/frbddp-full/FOR.zip (26346B)
+- `12:11:07`       key data/warm/frbddp-full/G17.zip (8579425B)
+- `12:11:07`       key data/warm/frbddp-full/G19.zip (604353B)
+- `12:11:07`       HEAD data/warm/frbddp-full/CHGDEL.zip: PK    �J�=}dX0@  l     CHGDEL_CHGDEL.xsd�X]o�0}�WXy�J��2��*JC[)�Ҷ��$����v(ݯ�u> l]E�i_�����9��rv�NY�T���۳�H�	���px�ź8�t�֪����h*���Z��B�e߶�3�AR&A�\Aw.V��2�t&��D���^_]z�C������P��f4cz`��(Kf	��Z�d�i���Z\WG��Q��]���]!���^���z�O�T}gr�|V|��[�br��K!5�g��#�:���ΥDrŻ�Za��r�2���k2e��ܴB��x�T�Dg�J�l�C�����`m��@� ا��\��&ZPYc��L��:�ft�q�j���^����ff $��iLa�x���⏎4��ލ/�(���@����P�᷻z&
+- `12:11:07`       HEAD data/warm/frbddp-full/CP.zip: PK    �Xq4�Ci�*  ~     CP_OUTST.xsdՙ�r�0��<�Ƨ�����{���Loa/�F�\I���e�Lڴ���ث_���EX���S�� $��u�+�yBغ�-������n��'��),֠�8����F�����_AS��5�R�<V�� ���ї��"�G^!R`*�"�⏎�T���9�dE �VJ�e��, g��BD#0��1�������:�^]u���'s�@%|%��?�~M9��*�%iƅB��-=H�2Eceҩ�w_���2�A�8��x3kߛ�  =���H�ג�R*��B��yfT{�Z�I�X�}1�L�Ȕa�#Δ^���qm{}�(H���^�UK�0���|�D4��>煠��9�z�Wk��ѹ���S����R� x��ꍂ��.���B��#ѹ��N��cu
+- `12:11:07`   warm/census-us: sub=['data/warm/census-us/_state/', 'data/warm/census-us/advm3/', 'data/warm/census-us/aies-basic/', 'data/warm/census-us/aies-ecom/', 'data/warm/census-us/aies-exp01/', 'data/warm/census-us/aies-exp02/', 'data/warm/census-us/aies-inv/', 'data/warm/census-us/aies-miscsector/', 'data/warm/census-us/asm-area2012/', 'data/warm/census-us/asm-area2017/', 'data/warm/census-us/asm-benchmark2017/', 'data/warm/census-us/asm-benchmark2022/'] sampled=359 objs / 37.9MB
+- `12:11:07`       key data/warm/census-us/catalog.json.gz (2090B)
+- `12:11:07`       key data/warm/census-us/_state/grammar-overrides.json (1591B)
+- `12:11:07`       key data/warm/census-us/_state/state.json (36474B)
+- `12:11:07`       key data/warm/census-us/advm3/full.json.gz (768756B)
+- `12:11:07`       key data/warm/census-us/advm3/manifest.json (414B)
+- `12:11:07`       key data/warm/census-us/aies-basic/full.json.gz (234B)
+- `12:11:07`       HEAD data/warm/census-us/catalog.json.gz: {"as_of": "2026-09-02T02:35:47+00:00", "n_total": 56, "universe_timeseries": 94, "excluded_families": {"idb": 2, "intltrade": 36}, "datasets": [{"slug": "advm3", "family": "eits", "title": "Time Series Economic Indicators Time Series -: Advance Report on Durable Goods Manufacturers' Shipments, Inventories, and Orders", "url": "https://api.census.gov/data/timeseries/eits/advm3", "modified": "2019-07-17"}, {"slug": "bf
+- `12:11:07`       HEAD data/warm/census-us/advm3/full.json.gz: [["cell_value", "data_type_code", "category_code", "seasonally_adj", "time_slot_id", "error_data", "geo_level_code", "program_code", "time", "us"], ["41503", "NO", "ODG", "no", "0", "no", "US", "M3ADV", "2007-06", "1"], ["35190", "NO", "ODG", "no", "0", "no", "US", "M3ADV", "2007-12", "1"], ["38791", "NO", "ODG", "yes", "0", "no", "US", "M3ADV", "2007-06", "1"], ["38510", "NO", "ODG", "yes", "0", "no", "US", "M3ADV",
+- `12:11:07`   warm/census-econ: sub=['data/warm/census-econ/abscb/', 'data/warm/census-econ/abscbo/', 'data/warm/census-econ/abscs/', 'data/warm/census-econ/absmcb/', 'data/warm/census-econ/absnesd/', 'data/warm/census-econ/absnesdo/', 'data/warm/census-econ/abstcb/', 'data/warm/census-econ/acs5/', 'data/warm/census-econ/aiesnonemp/', 'data/warm/census-econ/ase/', 'data/warm/census-econ/cbp/', 'data/warm/census-econ/cfsarea/'] sampled=2000+ objs / 1841.0MB
+- `12:11:07`       key data/warm/census-econ/abscb/abscb/2017/g1-c0.json.gz (381994B)
+- `12:11:07`       key data/warm/census-econ/abscb/abscb/2017/g2-c0.json.gz (4557639B)
+- `12:11:07`       key data/warm/census-econ/abscb/abscb/2017/g3-c0.json.gz (1086884B)
+- `12:11:07`       key data/warm/census-econ/abscb/abscb/2018/g1-c0.json.gz (70582B)
+- `12:11:07`       key data/warm/census-econ/abscb/abscb/2018/g2-c0.json.gz (403253B)
+- `12:11:07`       key data/warm/census-econ/abscb/abscb/2019/g1-c0.json.gz (143281B)
+- `12:11:07`       HEAD data/warm/census-econ/abscb/abscb/2017/g1-c0.json.gz: [["BUSCHAR", "CBSA", "COUNTY", "CSA", "ECPLACE", "EMP", "EMPSZFI", "EMP_PCT", "EMP_PCT_S", "EMP_S", "ETH_GROUP", "FIRMPDEMP", "FIRMPDEMP_PCT", "FIRMPDEMP_PCT_S", "FIRMPDEMP_S", "GEOCOMP", "GEO_ID", "INDGROUP", "INDLEVEL", "METDIV", "NAICS2017", "NATION", "PAYANN", "PAYANN_PCT", "PAYANN_PCT_S", "PAYANN_S", "QDESC", "RACE_GROUP", "RCPPDEMP", "RCPPDEMP_PCT", "RCPPDEMP_PCT_S", "RCPPDEMP_S", "RCPSZFI", "SECTOR", "SEX", "S
+- `12:11:07`       HEAD data/warm/census-econ/abscb/abscb/2017/g2-c0.json.gz: [["BUSCHAR", "CBSA", "COUNTY", "CSA", "ECPLACE", "EMP", "EMPSZFI", "EMP_PCT", "EMP_PCT_S", "EMP_S", "ETH_GROUP", "FIRMPDEMP", "FIRMPDEMP_PCT", "FIRMPDEMP_PCT_S", "FIRMPDEMP_S", "GEOCOMP", "GEO_ID", "INDGROUP", "INDLEVEL", "METDIV", "NAICS2017", "NATION", "PAYANN", "PAYANN_PCT", "PAYANN_PCT_S", "PAYANN_S", "QDESC", "RACE_GROUP", "RCPPDEMP", "RCPPDEMP_PCT", "RCPPDEMP_PCT_S", "RCPPDEMP_S", "RCPSZFI", "SECTOR", "SEX", "S
+- `12:11:07`   warm/polygon-full: sub=['data/warm/polygon-full/_state/', 'data/warm/polygon-full/grouped/'] sampled=1261 objs / 410.8MB
+- `12:11:07`       key data/warm/polygon-full/manifest.json (449B)
+- `12:11:07`       key data/warm/polygon-full/_state/state.json (273B)
+- `12:11:07`       key data/warm/polygon-full/grouped/2021/2021-08-26.json.gz (305041B)
+- `12:11:07`       key data/warm/polygon-full/grouped/2021/2021-08-27.json.gz (304838B)
+- `12:11:07`       key data/warm/polygon-full/grouped/2021/2021-08-30.json.gz (305869B)
+- `12:11:07`       key data/warm/polygon-full/grouped/2021/2021-08-31.json.gz (308748B)
+- `12:11:07`       HEAD data/warm/polygon-full/grouped/2021/2021-08-26.json.gz: {"queryCount":10522,"resultsCount":10522,"adjusted":true,"results":[{"T":"IBBQ","v":3949,"vw":26.835,"o":26.91,"c":26.76,"h":26.93,"l":26.7333,"t":1630008000000,"n":78},{"T":"CASS","v":34340,"vw":44.3264,"o":44.39,"c":44.14,"h":44.62,"l":44.1,"t":1630008000000,"n":720},{"T":"FPAC","v":49341,"vw":9.9191,"o":9.94,"c":9.93,"h":9.94,"l":9.908,"t":1630008000000,"n":324},{"T":"NYCB","v":1.249066333333e+06,"vw":37.1568,"o":
+- `12:11:07`       HEAD data/warm/polygon-full/grouped/2021/2021-08-27.json.gz: {"queryCount":10505,"resultsCount":10505,"adjusted":true,"results":[{"T":"NHTC","v":12722,"vw":6.5597,"o":6.46,"c":6.5,"h":6.8037,"l":6.46,"t":1630094400000,"n":201},{"T":"BCPC","v":128502,"vw":137.1284,"o":134.19,"c":137.87,"h":138.18,"l":133.02,"t":1630094400000,"n":2703},{"T":"YTRA","v":140589,"vw":1.8974,"o":1.94,"c":1.9,"h":1.957,"l":1.85,"t":1630094400000,"n":400},{"T":"FLEX","v":2.095074e+06,"vw":18.647,"o":18
+- `12:11:07`   warm/cftc: sub=[] sampled=3 objs / 4.4MB
+- `12:11:07`       key data/warm/cftc/disaggregated_futures.json.gz (2533054B)
+- `12:11:07`       key data/warm/cftc/latest-summary.json (301B)
+- `12:11:07`       key data/warm/cftc/legacy_futures.json.gz (1861825B)
+- `12:11:07`       key data/warm/cftc/disaggregated_futures.json.gz (2533054B)
+- `12:11:07`       key data/warm/cftc/latest-summary.json (301B)
+- `12:11:07`       key data/warm/cftc/legacy_futures.json.gz (1861825B)
+- `12:11:07`       HEAD data/warm/cftc/disaggregated_futures.json.gz: {"dataset": "disaggregated_futures", "socrata_id": "72hh-3qpy", "source_url": "https://publicreporting.cftc.gov/resource/72hh-3qpy.json?$order=report_date_as_yyyy_mm_dd%20DESC&$limit=5000", "raw_snapshot_key": "data/raw/cftc/2026-09-02/6262265e09bf.json.gz", "n_rows": 5000, "span_note": "newest 5000 rows; deep backfill = E10", "rows": [{"id": "26082586565AF", "market_and_exchange_names": "GULF # 6 FUEL OIL CRACK - NE
+- `12:11:07`       HEAD data/warm/cftc/latest-summary.json: {"as_of": "2026-09-02T07:36:21+00:00", "datasets": {"legacy_futures": {"n_rows": 5000, "latest_report": "2026-08-25", "oldest_in_pull": "2026-05-26", "n_report_dates": 14}, "disaggregated_futures": {"n_rows": 5000, "latest_report": "2026-08-25", "oldest_in_pull": "2026-04-21", "n_report_dates": 19}}}
+- `12:11:07`   warm/eiopa: sub=['data/warm/eiopa/hist/'] sampled=69 objs / 264.0MB
+- `12:11:07`       key data/warm/eiopa/rfr-latest.zip.gz (3275068B)
+- `12:11:07`       key data/warm/eiopa/hist/09fdd70d-a0a0-40ee-b585-3cce60e20e14_en?filename=EIOPA_RFR_20231031.zip (3737808B)
+- `12:11:07`       key data/warm/eiopa/hist/0a7327c0-374c-4315-a9b2-e283ef6a2402_en?filename=Dual%20run%20-%20December%202021.zip (4348279B)
+- `12:11:07`       key data/warm/eiopa/hist/0b31806d-7457-46f7-92b0-527bd9ff0474_en?filename=EIOPA_RFR_20230731.zip (3737675B)
+- `12:11:07`       key data/warm/eiopa/hist/1254244e-00da-4abf-a9e9-2403dfb20100_en?filename=6%20April%202020.zip (4339650B)
+- `12:11:07`       key data/warm/eiopa/hist/14a68fa3-48f2-4106-bc4a-86102e74e590_en?filename=16%20June%202020.zip (4336964B)
+- `12:11:07`       HEAD data/warm/eiopa/rfr-latest.zip.gz: PK   �s]            '   EIOPA_RFR_20260731_Term_Structures.xlsxux         UT �pj��pj��pjܷeP�Q.8�� ���;��w��H ��5��{���d����������V���]3�L�����y��o���  ` �������c� �9 @ �J:ػ�ۻ~�r4w�g���������g���?�����{��ۻ؟l�P%�};D7��}��>׹��VT��$����2�αX��Q4�K35*���̶�,Ձ�څ+���)q|\|Θ1����9uA�:��hhf�w����)�.��M�ʼi��!3�⏎,gNj;r���c���I��D`L��0LGlZF$��3��W�Tޢ�}���4-mD�F8'NH$s�
+- `12:11:07`       HEAD data/warm/eiopa/hist/09fdd70d-a0a0-40ee-b585-3cce60e20e14_en?filename=EIOPA_RFR_20231031.zip: PK   �XcWf�0!� �    EIOPA_RFR_20231031_PD_CoD.xlsx�Zct%M�'�͉m{����m'۞ۙضmMl۶�~k�=g���{�ߪ�>���y�*ipt�/ �   $ �l/�`  �  h �`Z�v�N&�Nz?��8�0��X�B�Q������1��i�>xIyN@�)׿d`É�1m�6�Z��|MR#i=�A���!�RJE�=?��w��[ E0f��evn���*bF��T��)5^0Z����Z؜�2��R�j������ު��F�5��RU�Kn��Ӝ���љf� ����jP�*d�N���Ȉ�	c��U���or^�1��ϐ���/jk��a'X=&I�����ϔ4!�a����`��!c��[8?*��<��B5\b9n����H_'�~([/�"�'>�VW��
+- `12:11:07`   warm/banxico: sub=[] sampled=1 objs / 0.1MB
+- `12:11:07`       key data/warm/banxico/core-series.json.gz (130657B)
+- `12:11:07`       key data/warm/banxico/core-series.json.gz (130657B)
+- `12:11:07`       HEAD data/warm/banxico/core-series.json.gz: {"source_url": "https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718,SF61745,SP68257/datos", "raw_snapshot_key": "data/raw/banxico/2026-09-02/6e0beca6cbb9.json.gz", "note": "FIX rate, TIIE28, CPI", "payload": {"bmx": {"series": [{"idSerie": "SP68257", "titulo": "Valor de UDIS", "datos": [{"fecha": "04/04/1995", "dato": "1.000000"}, {"fecha": "05/04/1995", "dato": "1.001918"}, {"fecha": "06/04/1995", "dato"
+- `12:11:07`       HEAD data/warm/banxico/core-series.json.gz: {"source_url": "https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718,SF61745,SP68257/datos", "raw_snapshot_key": "data/raw/banxico/2026-09-02/6e0beca6cbb9.json.gz", "note": "FIX rate, TIIE28, CPI", "payload": {"bmx": {"series": [{"idSerie": "SP68257", "titulo": "Valor de UDIS", "datos": [{"fecha": "04/04/1995", "dato": "1.000000"}, {"fecha": "05/04/1995", "dato": "1.001918"}, {"fecha": "06/04/1995", "dato"
+- `12:11:07`   warm/tic-full: sub=['data/warm/tic-full/_state/'] sampled=10 objs / 0.2MB
+- `12:11:07`       key data/warm/tic-full/bctype.txt (9119B)
+- `12:11:07`       key data/warm/tic-full/bltype.txt (9068B)
+- `12:11:07`       key data/warm/tic-full/manifest.json (411B)
+- `12:11:07`       key data/warm/tic-full/mfh.txt (7486B)
+- `12:11:07`       key data/warm/tic-full/mfhhis01.txt (99488B)
+- `12:11:07`       key data/warm/tic-full/s1_99996.txt (77077B)
+- `12:11:07`       HEAD data/warm/tic-full/bctype.txt: ⏎⏎⏎                                                                                         ⏎                                                                                         ⏎                                                                                         ⏎                                                       Claims on Foreigners by Type and Counterparty 1/ as of:  June 2026⏎                  
+- `12:11:07`       HEAD data/warm/tic-full/bltype.txt: ⏎⏎⏎                                                                               ⏎                                                                               ⏎                                                                               ⏎                                           Total Liabilities to Foreigners by Type and Holder 1/ as of:  June 2026⏎                                                      (
+- `12:11:07`   warm/nyfed-research: sub=['data/warm/nyfed-research/datahub/', 'data/warm/nyfed-research/dfa/', 'data/warm/nyfed-research/haircuts-series/', 'data/warm/nyfed-research/haircuts/', 'data/warm/nyfed-research/hhdc/', 'data/warm/nyfed-research/sce/'] sampled=513 objs / 703.4MB
+- `12:11:07`       key data/warm/nyfed-research/_last-check.json (321B)
+- `12:11:07`       key data/warm/nyfed-research/_manifest.json (119256B)
+- `12:11:07`       key data/warm/nyfed-research/_last-check.json (321B)
+- `12:11:07`       key data/warm/nyfed-research/_manifest.json (119256B)
+- `12:11:07`       key data/warm/nyfed-research/datahub/medialibrary_interactives_markets_data_assets_data_contingency.json (10675B)
+- `12:11:07`       key data/warm/nyfed-research/dfa/tsy_data_2010_q3.xls (398848B)
+- `12:11:07`       HEAD data/warm/nyfed-research/_last-check.json: {"at": "2026-09-02T02:32:59+00:00", "engine": "src-mirror", "sources": 431, "haircuts": {"tri-party-repo_data_current.xlsx": {"status": "fresh", "bytes": 217243}, "tri-party-repo_preNov25_history.xlsx": {"status": "fresh", "bytes": 439002}}, "mirrored": 429, "fresh": 423, "unchanged": 6, "errors": 0, "new_harvested": 0}
+- `12:11:07`       HEAD data/warm/nyfed-research/_last-check.json: {"at": "2026-09-02T02:32:59+00:00", "engine": "src-mirror", "sources": 431, "haircuts": {"tri-party-repo_data_current.xlsx": {"status": "fresh", "bytes": 217243}, "tri-party-repo_preNov25_history.xlsx": {"status": "fresh", "bytes": 439002}}, "mirrored": 429, "fresh": 423, "unchanged": 6, "errors": 0, "new_harvested": 0}
+- `12:11:07`       HEAD data/warm/nyfed-research/dfa/tsy_data_2010_q3.xls: ��ࡱ�                >  ��	               	         ����    ����                  ������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������
+- `12:11:07`   warm/gleif: sub=[] sampled=2 objs / 533.4MB
+- `12:11:07`       key data/warm/gleif/golden-copy-lei2.zip (501077290B)
+- `12:11:07`       key data/warm/gleif/isin-lei-latest.zip (32281239B)
+- `12:11:07`       key data/warm/gleif/golden-copy-lei2.zip (501077290B)
+- `12:11:07`       key data/warm/gleif/isin-lei-latest.zip (32281239B)
+- `12:11:07`       HEAD data/warm/gleif/golden-copy-lei2.zip: PK-   �"]�	����������3  20260902-0000-gleif-goldencopy-lei2-golden-copy.csv  kd�'   ���    ���v�8�6���1�;`�ſ�ǒ�8�`�+�T0�0��79ܙ�*�v������.��s�� x�%K"A�Q��-� (������/I�r�K��ۇo��I���c��χ�C7���Ǐ�?�mw*����/���_�ܠ�\���o���/�_r�+n���K�}����}ɵ��!��b/��7Ďn�����׏�=|y��Ꮣ�O��7�a��"�3�KbS��%��_����/IL����8�Ij�d��1�K���������ө��?|����!���A��ӿ����/Ϲ��÷��������|������_��B���ۇϟ�#����W�]
+- `12:11:07`       HEAD data/warm/gleif/isin-lei-latest.zip: PK   /@!]!�"������   lei-isin-20260901T071510.csv��[��8�m�o[�I�'z�D ����\�#sGV���:gD���t!�l-�e���?_�k�I�fJ���f4�P�Yc����^I��-�^��_B��$�C�z[�WVdE����K�2M�$+�����r2/�3��]�W��m��*�i�F�E4q�M����>��/i��m1��������,�9U��o�B^r���K��Z�հ���w�{.�+}϶�iR|[���E��_e��>�|��b���I?V�Xz�S�>Y���ma~̓��d��2�X�uڨ�����_c�=��^Tw���E��ߣ�UWI�?Xȏ����������������%�|�H�,��o�xeY�T�|=Z�i��`��,L����X��F�I⏎u!��Q4J
+- `12:11:07`   warm/asia-trade: sub=['data/warm/asia-trade/_state/', 'data/warm/asia-trade/cl/', 'data/warm/asia-trade/hk/'] sampled=54 objs / 5.8MB
+- `12:11:07`       key data/warm/asia-trade/manifest.json (493B)
+- `12:11:07`       key data/warm/asia-trade/_state/state.json (15634B)
+- `12:11:07`       key data/warm/asia-trade/cl/3782__6dbfe596-8f4b-4c8c-9d50-13ca62f040e6.csv.gz (856B)
+- `12:11:07`       key data/warm/asia-trade/cl/3792__97ce68fa-63ca-48f8-9010-55cc7ce4087a.csv.gz (856B)
+- `12:11:07`       key data/warm/asia-trade/cl/comercio-exterior2__79a8c99d-febe-4773-962c-6cadff16d373.csv.gz (1969620B)
+- `12:11:07`       key data/warm/asia-trade/cl/comercio-exterior2__f04ff60c-dc5f-4529-8d63-2611e81774ef.csv.gz (2073348B)
+- `12:11:07`       HEAD data/warm/asia-trade/cl/3782__6dbfe596-8f4b-4c8c-9d50-13ca62f040e6.csv.gz: COMERCIO EXTERIOR DE CHILE;;;;;;;;;⏎;;;;;;;;;⏎;;Enero - Diciembre;;Variaci�n anual;Diciembre;;Variaci�n anual;;⏎;;2011;2012;;2011;2012;;;⏎Total exportaciones (FOB);;81.411;78.813;-3,2%;7.218;7.714;6,9%;;⏎Total exportaciones mineras;;48.865;47.076;-3,7%;4.484;5.117;14,1%;;⏎;Total exportaciones de cobre;44.438;42.723;-3,9%;4.142;4.704;13,6%;;⏎;Total exportaciones resto de miner�a;4.427;4.353;-1,7%;342;412;20,7%;
+- `12:11:07`       HEAD data/warm/asia-trade/cl/3792__97ce68fa-63ca-48f8-9010-55cc7ce4087a.csv.gz: COMERCIO EXTERIOR DE CHILE;;;;;;;;;⏎;;;;;;;;;⏎;;Enero - Diciembre;;Variaci�n anual;Diciembre;;Variaci�n anual;;⏎;;2011;2012;;2011;2012;;;⏎Total exportaciones (FOB);;81.411;78.813;-3,2%;7.218;7.714;6,9%;;⏎Total exportaciones mineras;;48.865;47.076;-3,7%;4.484;5.117;14,1%;;⏎;Total exportaciones de cobre;44.438;42.723;-3,9%;4.142;4.704;13,6%;;⏎;Total exportaciones resto de miner�a;4.427;4.353;-1,7%;342;412;20,7%;
+- `12:11:07`   warm/archived-fred: sub=[] sampled=23 objs / 6.3MB
+- `12:11:07`       key data/warm/archived-fred/BAMLC0A0CM.json (284237B)
+- `12:11:07`       key data/warm/archived-fred/BAMLC0A1CAAA.json (280128B)
+- `12:11:07`       key data/warm/archived-fred/BAMLC0A2CAAEY.json (284173B)
+- `12:11:07`       key data/warm/archived-fred/BAMLC0A3CA.json (259014B)
+- `12:11:07`       key data/warm/archived-fred/BAMLC0A3CAEY.json (259213B)
+- `12:11:07`       key data/warm/archived-fred/BAMLC0A4CBBB.json (284445B)
+- `12:11:07`       HEAD data/warm/archived-fred/BAMLC0A0CM.json: {"id": "BAMLC0A0CM", "source": "wayback-raw", "capture": "20240901", "page_url": "", "updated_at": "2026-08-15T02:52:57+00:00", "n": 6948, "first": "1996-12-31", "last": "2023-08-14", "observations": [{"date": "1996-12-31", "value": "0.6"}, {"date": "1997-01-02", "value": "0.6"}, {"date": "1997-01-03", "value": "0.61"}, {"date": "1997-01-06", "value": "0.61"}, {"date": "1997-01-07", "value": "0.61"}, {"date": "1997-0
+- `12:11:07`       HEAD data/warm/archived-fred/BAMLC0A1CAAA.json: {"id": "BAMLC0A1CAAA", "source": "wayback-raw", "capture": "20250601", "page_url": "", "updated_at": "2026-08-15T02:52:57+00:00", "n": 6849, "first": "1996-12-31", "last": "2023-03-28", "observations": [{"date": "1996-12-31", "value": "0.3"}, {"date": "1997-01-02", "value": "0.26"}, {"date": "1997-01-03", "value": "0.31"}, {"date": "1997-01-06", "value": "0.26"}, {"date": "1997-01-07", "value": "0.28"}, {"date": "199
+- `12:11:07`   warm/_audit: sub=[] sampled=5 objs / 0.0MB
+- `12:11:07`       key data/warm/_audit/cadence-map.json (22930B)
+- `12:11:07`       key data/warm/_audit/depth-audit.json (3896B)
+- `12:11:07`       key data/warm/_audit/expedite-4lane.json (2154B)
+- `12:11:07`       key data/warm/_audit/five-priority.json (2263B)
+- `12:11:07`       key data/warm/_audit/refresh-orphans.json (366B)
+- `12:11:07`       key data/warm/_audit/cadence-map.json (22930B)
+- `12:11:07`       HEAD data/warm/_audit/cadence-map.json: {⏎ "as_of": "2026-08-23T20:49:39+00:00",⏎ "ops": 4954,⏎ "import_relevant": [⏎  {⏎   "src": "scheduler",⏎   "name": "data-census-daily",⏎   "group": "default",⏎   "expr": "cron(45 12 * * ? *)",⏎   "state": "ENABLED",⏎   "fn": "justhodl-data-census",⏎   "input": "{\"source\": \"schedule\"}"⏎  },⏎  {⏎   "src": "scheduler",⏎   "name": "fundamental-census-sched",⏎   "group": "default",⏎   "expr": "cron(0 6 1,15 * ? *)",⏎ 
+- `12:11:07`       HEAD data/warm/_audit/depth-audit.json: {⏎ "as_of": "2026-08-24T00:22:36+00:00",⏎ "ops": 4957,⏎ "rows": [⏎  {⏎   "slug": "bls",⏎   "keys": 0,⏎   "mb": 0.0,⏎   "obs_min": null,⏎   "obs_max": null,⏎   "class": "THIN",⏎   "universe": "download.bls.gov time.series: full CPI/CES/JOLTS/LAUS/PPI flat files, millions of series since 1913"⏎  },⏎  {⏎   "slug": "worldbank",⏎   "keys": 0,⏎   "mb": 0.0,⏎   "obs_min": null,⏎   "obs_max": null,⏎   "class": "THIN",⏎   "un
+- `12:11:07`   warm/backlog: sub=[] sampled=186 objs / 0.2MB
+- `12:11:07`       key data/warm/backlog/A.json (832B)
+- `12:11:07`       key data/warm/backlog/ABT.json (829B)
+- `12:11:07`       key data/warm/backlog/ACGL.json (845B)
+- `12:11:07`       key data/warm/backlog/ACM.json (985B)
+- `12:11:07`       key data/warm/backlog/ACN.json (844B)
+- `12:11:07`       key data/warm/backlog/ADBE.json (845B)
+- `12:11:07`       HEAD data/warm/backlog/A.json: {"ticker": "A", "fetched_at": "2026-08-21T02:07:22+00:00", "series": [{"date": "2026-06-01", "form": "10-Q", "value": null, "src": "https://www.sec.gov/Archives/edgar/data/1090872/000109087226000055/a-20260430.htm"}, {"date": "2026-03-03", "form": "10-Q", "value": null, "src": "https://www.sec.gov/Archives/edgar/data/1090872/000109087226000023/a-20260131.htm"}, {"date": "2025-12-22", "form": "10-K", "value": null, "s
+- `12:11:07`       HEAD data/warm/backlog/ABT.json: {"ticker": "ABT", "fetched_at": "2026-08-29T02:29:46+00:00", "series": [{"date": "2026-07-28", "form": "10-Q", "value": null, "src": "https://www.sec.gov/Archives/edgar/data/1800/000162828026050134/abt-20260630.htm"}, {"date": "2026-04-29", "form": "10-Q", "value": null, "src": "https://www.sec.gov/Archives/edgar/data/1800/000162828026028357/abt-20260331.htm"}, {"date": "2026-02-20", "form": "10-K", "value": null, "s
+- `12:11:07`   warm/blackswan: sub=[] sampled=1301 objs / 8.3MB
+- `12:11:07`       key data/warm/blackswan/A191RL1Q225SBEA.json (11505B)
+- `12:11:07`       key data/warm/blackswan/ACDGNO.json (12655B)
+- `12:11:07`       key data/warm/blackswan/ADXTNO.json (12955B)
+- `12:11:07`       key data/warm/blackswan/AISRSA.json (12023B)
+- `12:11:07`       key data/warm/blackswan/ALTSALES.json (12314B)
+- `12:11:07`       key data/warm/blackswan/AMTMNO.json (12955B)
+- `12:11:07`       HEAD data/warm/blackswan/A191RL1Q225SBEA.json: {"series": [{"date": "1951-07-01", "value": 8.5}, {"date": "1951-10-01", "value": 0.9}, {"date": "1952-01-01", "value": 4.3}, {"date": "1952-04-01", "value": 0.8}, {"date": "1952-07-01", "value": 2.9}, {"date": "1952-10-01", "value": 13.8}, {"date": "1953-01-01", "value": 7.7}, {"date": "1953-04-01", "value": 3.1}, {"date": "1953-07-01", "value": -2.2}, {"date": "1953-10-01", "value": -5.9}, {"date": "1954-01-01", "v
+- `12:11:07`       HEAD data/warm/blackswan/ACDGNO.json: {"series": [{"date": "2001-07-01", "value": 30927.0}, {"date": "2001-08-01", "value": 31176.0}, {"date": "2001-09-01", "value": 29162.0}, {"date": "2001-10-01", "value": 29859.0}, {"date": "2001-11-01", "value": 31309.0}, {"date": "2001-12-01", "value": 32059.0}, {"date": "2002-01-01", "value": 32041.0}, {"date": "2002-02-01", "value": 31261.0}, {"date": "2002-03-01", "value": 29902.0}, {"date": "2002-04-01", "value"
+- `12:11:07`   warm/bls-full: sub=['data/warm/bls-full/_state/', 'data/warm/bls-full/src/'] sampled=1661 objs / 43789.3MB
+- `12:11:07`       key data/warm/bls-full/manifest.json (378B)
+- `12:11:07`       key data/warm/bls-full/_state/state.json (193782B)
+- `12:11:07`       key data/warm/bls-full/manifest.json (378B)
+- `12:11:07`       key data/warm/bls-full/src/ap/ap.area (2114B)
+- `12:11:07`       key data/warm/bls-full/src/ap/ap.contacts (987B)
+- `12:11:07`       key data/warm/bls-full/src/ap/ap.data.0.Current (8941300B)
+- `12:11:07`       HEAD data/warm/bls-full/src/ap/ap.area: area_code	area_name⏎0000	U.S. city average⏎0100	Northeast⏎0110	New England⏎0120	Middle Atlantic⏎0200	Midwest⏎0230	East North Central⏎0240	West North Central⏎0300	South⏎0350	South Atlantic⏎0360	East South Central⏎0370	West South Central⏎0400	West⏎0480	Mountain⏎0490	Pacific⏎A104	Pittsburgh, PA⏎A105	Buffalo-Niagara Falls, NY⏎A106	Scranton, PA⏎A210	Cleveland-Akron, OH⏎A212	Milwaukee-Racine, WI⏎A213	Ci
+- `12:11:07`       HEAD data/warm/bls-full/src/ap/ap.contacts: Consumer Price Indexes Contacts⏎⏎⏎For hard copies of Consumer Price Index publications or historical data ⏎and help with general index questions, including escalator clauses in⏎contracts:⏎⏎Information and Analysis: (202) 691-7000 ⏎⏎For more information about how we treat and price commodity and service ⏎items in the Consumer Price Index:⏎⏎    Food: (202) 691-6988 ⏎⏎    Housing (rent and owners' equivale
+- `12:11:07`       HEAD data/warm/bls-full/src/ap/ap.data.0.Current: series_id        	year	period	       value	footnote_codes⏎APU0000701111    	1995	M01	       0.238	⏎APU0000701111    	1995	M02	       0.242	⏎APU0000701111    	1995	M03	       0.242	⏎APU0000701111    	1995	M04	       0.236	⏎APU0000701111    	1995	M05	       0.244	⏎APU0000701111    	1995	M06	       0.244	⏎APU0000701111    	1995	M07	       0.248	⏎APU0000701111    	1995	M08	       0.255	⏎APU0000701111    	1995	M0
+- `12:11:07`   warm/dol-full: sub=['data/warm/dol-full/_state/', 'data/warm/dol-full/src/'] sampled=72 objs / 160.7MB
+- `12:11:07`       key data/warm/dol-full/manifest.json (306B)
+- `12:11:07`       key data/warm/dol-full/_state/state.json (11769B)
+- `12:11:07`       key data/warm/dol-full/manifest.json (306B)
+- `12:11:07`       key data/warm/dol-full/src/ac207.csv (82463B)
+- `12:11:07`       key data/warm/dol-full/src/ac218.csv (20346B)
+- `12:11:07`       key data/warm/dol-full/src/ac227.csv (262024B)
+- `12:11:07`       HEAD data/warm/dol-full/src/ac207.csv: "st","rptdate","c1","c2","c3","c4","c5","c6","c7","c8","c9","c10","c11","c12","c13","c14","c15","c16","c17","c18","c19","c20","c21","c22","c23","c24","c25","c26"⏎"AK","1991-12-31",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0⏎"AK","1992-03-31",313,194,7,7,2,1,16,3,0,0,9,3,0,0,296,1,0,0,0,0,184,0,0,0,0,0⏎"AK","1992-06-30",1015,584,24,13,9,5,69,9,0,1,38,9,0,1,944,4,0,0,0,0,546,2,0,0,0,0⏎"AK","1992-09-30",1238,736
+- `12:11:07`       HEAD data/warm/dol-full/src/ac218.csv: "st","rptdate","c1","c2","c3"⏎"AK","1991-12-31",0,0,0⏎"AK","1992-03-31",6706,468,6238⏎"AK","1992-06-30",5195,431,4764⏎"AK","1992-09-30",4240,261,3979⏎"AK","1992-12-31",5431,305,5126⏎"AK","1993-03-31",7487,433,7054⏎"AK","1993-06-30",8365,504,7861⏎"AK","1993-09-30",4916,314,4602⏎"AK","1993-12-31",4223,133,4090⏎"AK","1994-03-31",1643,52,1591⏎"AK","1994-06-30",2,0,2⏎"AK","1994-09-30",3,0,3⏎"AK","1994-12-31",3,1,2⏎"AK","1
+- `12:11:07`   warm/dtcc-fails: sub=[] sampled=2 objs / 0.0MB
+- `12:11:07`       key data/warm/dtcc-fails/agency.json (11084B)
+- `12:11:07`       key data/warm/dtcc-fails/treasury.json (12007B)
+- `12:11:07`       key data/warm/dtcc-fails/agency.json (11084B)
+- `12:11:07`       key data/warm/dtcc-fails/treasury.json (12007B)
+- `12:11:07`       HEAD data/warm/dtcc-fails/agency.json: {"id":"DTCC-AGENCY-FAILS","title":"FICC daily GROSS Agency settlement fails (USD)","banked_at":"2026-09-02T02:51:32+00:00","source":"dtcc.com/data/failsdata.csv","observations":[{"date":"2025-08-14","value":66519196.42},{"date":"2025-08-15","value":69225256.42},{"date":"2025-08-18","value":61443382.2},{"date":"2025-08-19","value":68536289.7},{"date":"2025-08-20","value":50365801.0},{"date":"2025-08-21","value":628474
+- `12:11:07`       HEAD data/warm/dtcc-fails/treasury.json: {"id":"DTCC-TREASURY-FAILS","title":"FICC daily GROSS Treasury settlement fails (USD; FtD+FtR aggregated, can double-count -- NY Fed caveat)","banked_at":"2026-09-02T02:51:32+00:00","source":"dtcc.com/data/failsdata.csv","observations":[{"date":"2025-08-14","value":26847573156.82},{"date":"2025-08-15","value":27075872216.42},{"date":"2025-08-18","value":44793679462.28},{"date":"2025-08-19","value":23503557167.6},{"da
+- `12:11:07`   warm/dtcc: sub=[] sampled=1 objs / 0.3MB
+- `12:11:07`       key data/warm/dtcc/daily-treasury-fails.csv (314023B)
+- `12:11:07`       key data/warm/dtcc/daily-treasury-fails.csv (314023B)
+- `12:11:07`       HEAD data/warm/dtcc/daily-treasury-fails.csv: ⏎⏎⏎<!DOCTYPE html>⏎<html>⏎<head><meta name="viewport" content="width=device-width, initial-scale=1" /><title>⏎	500⏎</title><link rel="stylesheet" type="text/css" href="/Presentation/Includes/css/jquery.kwicks.css" /><link href="/Presentation/Includes/css/sc-player-red.css" rel="stylesheet" /><link rel="stylesheet" media="print" href="/Presentation/Includes/css/print.css" /><link rel="stylesheet" type="text/css
+- `12:11:07`       HEAD data/warm/dtcc/daily-treasury-fails.csv: ⏎⏎⏎<!DOCTYPE html>⏎<html>⏎<head><meta name="viewport" content="width=device-width, initial-scale=1" /><title>⏎	500⏎</title><link rel="stylesheet" type="text/css" href="/Presentation/Includes/css/jquery.kwicks.css" /><link href="/Presentation/Includes/css/sc-player-red.css" rel="stylesheet" /><link rel="stylesheet" media="print" href="/Presentation/Includes/css/print.css" /><link rel="stylesheet" type="text/css
+- `12:11:07`   warm/ecb-mmsr: sub=[] sampled=4 objs / 0.0MB
+- `12:11:07`       key data/warm/ecb-mmsr/de-on-borrow-turnover.json (2755B)
+- `12:11:07`       key data/warm/ecb-mmsr/es-on-borrow-turnover.json (2732B)
+- `12:11:07`       key data/warm/ecb-mmsr/fr-on-borrow-turnover.json (2751B)
+- `12:11:07`       key data/warm/ecb-mmsr/it-on-borrow-turnover.json (2724B)
+- `12:11:07`       key data/warm/ecb-mmsr/de-on-borrow-turnover.json (2755B)
+- `12:11:07`       key data/warm/ecb-mmsr/es-on-borrow-turnover.json (2732B)
+- `12:11:07`       HEAD data/warm/ecb-mmsr/de-on-borrow-turnover.json: {"id":"MMSR-DE-ON-BO-AT","source":"ECB data-api MMSR","banked_at":"2026-09-02T12:01:32+00:00","observations":[{"date":"2018-03-13","value":17385.57},{"date":"2018-05-02","value":14771.98},{"date":"2018-06-19","value":14873.62},{"date":"2018-07-31","value":15460.46},{"date":"2018-09-18","value":16025.5},{"date":"2018-10-30","value":13819.51},{"date":"2018-12-18","value":13345.91},{"date":"2019-01-29","value":11724.19}
+- `12:11:07`       HEAD data/warm/ecb-mmsr/es-on-borrow-turnover.json: {"id":"MMSR-ES-ON-BO-AT","source":"ECB data-api MMSR","banked_at":"2026-09-02T12:01:32+00:00","observations":[{"date":"2018-03-13","value":8458.01},{"date":"2018-05-02","value":9095.92},{"date":"2018-06-19","value":9827.34},{"date":"2018-07-31","value":8810.39},{"date":"2018-09-18","value":8090.31},{"date":"2018-10-30","value":7395.88},{"date":"2018-12-18","value":7959.02},{"date":"2019-01-29","value":7391.57},{"date
+- `12:11:07`   warm/edgar-filings: sub=['data/warm/edgar-filings/2026/', 'data/warm/edgar-filings/full-index/'] sampled=138 objs / 358.9MB
+- `12:11:07`       key data/warm/edgar-filings/latest-summary.json (557B)
+- `12:11:07`       key data/warm/edgar-filings/2026/QTR3.json.gz (2910265B)
+- `12:11:07`       key data/warm/edgar-filings/full-index/1993-QTR1.master.idx.gz (436B)
+- `12:11:07`       key data/warm/edgar-filings/full-index/1993-QTR2.master.idx.gz (411B)
+- `12:11:07`       key data/warm/edgar-filings/full-index/1993-QTR3.master.idx.gz (585B)
+- `12:11:07`       key data/warm/edgar-filings/full-index/1993-QTR4.master.idx.gz (931B)
+- `12:11:07`       HEAD data/warm/edgar-filings/latest-summary.json: {"as_of": "2026-09-02T05:35:47+00:00", "quarter": "2026-QTR3", "n_filings": 223364, "warm_key": "data/warm/edgar-filings/2026/QTR3.json.gz", "size_gz_mb": 2.91, "top_forms": {"4": 49418, "424B2": 35411, "144": 13052, "N-PX": 11678, "8-K": 11423, "NPORT-P": 9631, "13F-HR": 9310, "SCHEDULE 13G/A": 7664, "D": 6987, "3": 5855, "10-Q": 5171, "FWP": 5028, "6-K": 4934, "SCHEDULE 13G": 4688, "D/A": 3654}, "format_note": "gz-
+- `12:11:07`       HEAD data/warm/edgar-filings/2026/QTR3.json.gz: {"as_of": "2026-09-02T05:35:47+00:00", "source_url": "https://www.sec.gov/Archives/edgar/full-index/2026/QTR3/master.idx", "raw_snapshot_key": "data/raw/sec/2026-09-02/dd3eaf696e1e.json.gz", "n_filings": 223364, "filings": [{"cik": "0001000097", "company": "KINGDON CAPITAL MANAGEMENT, L.L.C.", "form": "13F-HR", "date": "2026-08-14", "path": "edgar/data/1000097/0001000097-26-000006.txt"}, {"cik": "0001000097", "compan
+- `12:11:07`   warm/finra-full: sub=['data/warm/finra-full/_state/', 'data/warm/finra-full/src/'] sampled=10 objs / 700.1MB
+- `12:11:07`       key data/warm/finra-full/manifest.json (433B)
+- `12:11:07`       key data/warm/finra-full/_state/state.json (4051B)
+- `12:11:07`       key data/warm/finra-full/manifest.json (433B)
+- `12:11:07`       key data/warm/finra-full/src/otcMarket__blocksSummary.jsonl.gz (242620B)
+- `12:11:07`       key data/warm/finra-full/src/otcMarket__consolidatedShortInterest.jsonl.gz (168098633B)
+- `12:11:07`       key data/warm/finra-full/src/otcMarket__monthlyDownloadDetails.jsonl.gz (3757B)
+- `12:11:07`       HEAD data/warm/finra-full/src/otcMarket__blocksSummary.jsonl.gz: {"atsOtc":null,"ATSBlockSharePercent":2.04,"lastUpdateDate":"2016-10-03","ATSBlockBusinessSharePercent":38.65,"averageTradeSize":11120,"averageBlockSizeRank":4,"ATSBlockCount":8563,"initialPublishedDate":"2016-10-03","summaryStartDate":"2016-08-01","ATSBlockQuantity":51907960,"ATSShareRank":22,"averageBlockSize":6062,"ATSBlockTradeRank":19,"averageTradeSizeRank":6,"ATSTradeRank":27,"ATSBlockBusinessTradePercent":70.9
+- `12:11:07`       HEAD data/warm/finra-full/src/otcMarket__consolidatedShortInterest.jsonl.gz: {"stockSplitFlag":null,"previousShortPositionQuantity":4767556,"averageDailyVolumeQuantity":2012318,"issueName":"Agilent Technologies Inc.","currentShortPositionQuantity":4851353,"changePreviousNumber":83797,"accountingYearMonthNumber":20200415,"settlementDate":"2020-04-15","marketClassCode":"NYSE","symbolCode":"A","daysToCoverQuantity":2.41,"issuerServicesGroupExchangeCode":"A","revisionFlag":null,"changePercent":1.
+- `12:11:07`   warm/fred-canary: sub=[] sampled=15 objs / 4.6MB
+- `12:11:07`       key data/warm/fred-canary/atlanta-gdpnow.csv.gz (426B)
+- `12:11:07`       key data/warm/fred-canary/atlanta-gdpnow.xlsx (48304B)
+- `12:11:07`       key data/warm/fred-canary/bls-labor.json.gz (13260B)
+- `12:11:07`       key data/warm/fred-canary/cleveland-model.csv.gz (47487B)
+- `12:11:07`       key data/warm/fred-canary/consumer_housing.csv.gz (52230B)
+- `12:11:07`       key data/warm/fred-canary/credit_cycle.csv.gz (56184B)
+- `12:11:07`       HEAD data/warm/fred-canary/atlanta-gdpnow.csv.gz: observation_date,GDPNOW⏎2011-07-01,3.2445⏎2011-10-01,5.1684⏎2012-01-01,3.0151⏎2012-04-01,0.2243⏎2012-07-01,1.8490⏎2012-10-01,0.0776⏎2013-01-01,2.8718⏎2013-04-01,1.3000⏎2013-07-01,2.3233⏎2013-10-01,3.1249⏎2014-01-01,0.3489⏎2014-04-01,2.6666⏎2014-07-01,2.6999⏎2014-10-01,3.4918⏎2015-01-01,0.0988⏎2015-04-01,2.4328⏎2015-07-01,1.0637⏎2015-10-01,1.0179⏎2016-01-01,0.6209⏎2016-04-01,1.8333⏎2016-07-01,2.0953⏎2016-10-01,2.8814⏎
+- `12:11:07`       HEAD data/warm/fred-canary/atlanta-gdpnow.xlsx: ⏎⏎<!DOCTYPE html>⏎<html lang="en">⏎<head>⏎    ⏎<meta charset="UTF-8" />⏎<meta name="viewport" content="width=device-width,initial-scale=1" />⏎    <title>404 Page - Not Found - Federal Reserve Bank of Atlanta</title>⏎    <meta property="og:title" content="404 Page - Not Found" />⏎    <meta name="twitter:title" content="404 Page - Not Found">⏎    <meta name="afo_title" content="404 Page - Not Found">⏎    <m
+- `12:11:07`   warm/gdelt-full: sub=['data/warm/gdelt-full/_state/', 'data/warm/gdelt-full/v1/', 'data/warm/gdelt-full/v2/'] sampled=2000+ objs / 28310.6MB
+- `12:11:07`       key data/warm/gdelt-full/manifest.json (487B)
+- `12:11:07`       key data/warm/gdelt-full/_state/state.json (1754B)
+- `12:11:07`       key data/warm/gdelt-full/_state/v1-queue.json.gz (12332B)
+- `12:11:07`       key data/warm/gdelt-full/manifest.json (487B)
+- `12:11:07`       key data/warm/gdelt-full/v1/1979.zip (14276482B)
+- `12:11:07`       key data/warm/gdelt-full/v1/1980.zip (18619859B)
+- `12:11:07`       HEAD data/warm/gdelt-full/v1/1979.zip: PK    �`�B���� z�  1979.csvUT	 ���Q� Sux         �]�V�J�}��⏎�u�Z�����4K�*�·�e�Po*p��Y�>�P�����c����%$�R��F�e����������ikT��|��TMc&I^Η�����E�&���JlYtUg��i���%�V�?�g�i�kL��E�s9"_�Q�%�%9\�| �4�⏎~i*<�1KX�!;E%��~��������/ohe��J5-.��s�����Ķ:}(^ߑg�j�q�L��wb�&��,[3,�>!U�v��a�:S.W�����Li=�� �5���*�mrNm�����âÃ!�^�M>#�̸ A� Q� (\��<�Z���t�p�����3ş��o�Y���)�e������7jZ��s�P-�0	�f
+- `12:11:07`       HEAD data/warm/gdelt-full/v1/1980.zip: PK    �`�B*<��-L	  1980.csvUT	 ���Q0�Qux         �]�v⺒��<�g�J��o��,�� 9�t��;���I�ݓ~�y�y���*dlla'�Ob�1��*���*�$�I�9�\B(��e+�$/�����3��	#��8>��<>9�����l�����jOz�����?�"pGR,fI���9�s�"��V]�u1}Z�E���1z^<�8i]?LL�'����.\D!�'8$�-��ń-�u�rI�S�v��G0�Z��������v9�]��f�6������,���n�i��PA⏎���M|6��?������?Vӛ����Y8oCx6�ȵ�ڡ6�ʱN�å�պW'���X_'�r��M� �n��h�^������u5���J@��ځ�A��M��F��P�:
+## C. serving index (Tier 0 / Tier 1) state and record schemas
+
+- `12:11:07` index manifest: {"schema": 1, "generated_at": "2026-08-30T01:24:42+00:00", "providers": {"eurostat": {"tier0": "data/index/eurostat/flows.json.gz", "tier0_schema": 3, "flows": 8147, "series": 564204235, "counts_exact": true, "pages": 1128408, "page_size": 500, "tier1_prefix": "data/index/eurostat/t1/", "tier1_flows": 1224, "tier1_entries": 149711901, "tier1_block_size": 4096, "tier1_complete": false}, "ecb": {"tier0": "data/index/ecb/flows.json.gz", "tier0_schema": 3, "flows": 207, "series": 3240832, "counts_exact": true, "pages": 6481, "page_size": 500, "tier1_prefix": "data/index/ecb/t1/", "tier1_flows": 17, "tier1_entries": 2619231, "tier1_block_size": 4096, "tier1_complete": true}}, "protocol": {"tier0": "GET index/{provider}/flows.json.gz -- one gzipped document, every flow with lo/hi page range and an exact series count. Search it client-side; it is ~100KB.", "pages": "data/providers/{provider}/series/page-{n:04d}.json holds 500 series rows. A flow's rows live in pages lo..hi INCLUSIVE, which is a superset -- pages straddle flows, so filter rows by the `flow` field.", "tier1": "For flows with a t1 entry: GET index/{provider}/t1/{FLOW}.blocks.json, binary-search `blocks` on `k` (first id in each block), then issue an HTTP Range request for bytes o..o+c-1 of index/{provider}/t1/{FLOW}.jsonl. One block, one read.", "threshold": "Tier 1 exists only for flows spanning more than 100 pages; smaller flows are served by fetching their page range."}, "base": "/data/index/", "note": "served only …
+- `12:11:07` t1-eurostat state: {"entries": 519158505, "blocks": 127499, "bytes": 65024008865, "entry_schema": 2, "rebuilt_for": "v2-entries", "updated_at": "2026-08-30T18:40:58+00:00", "last_flow": "CENS_21COBHS_R3", "candidates_left": 0, "candidates_total": 3}
+- `12:11:08` tier0 eurostat: schema=3 flows=8147 keys=['schema', 'provider', 'built_at', 'pages_total', 'flows_total', 'flows_indexed', 'anchored', 'interpolated', 'series_total', 'page_size', 'note', 'flows']
+- `12:11:08`    tier0 entries: [["AACT_ALI01", {"lo": 0, "hi": 1, "anchored": true, "est_series_max": 1000, "series": 111, "exact": true}], ["AACT_ALI01_R", {"lo": 0, "hi": 1, "anchored": false, "est_series_max": 1000, "series": 319, "exact": true}]]
+- `12:11:08`    t1 CENS_21COBHS_R3: n=7912555 blocks=1932 schema=2 first rows: [{"id": "eurostat:CENS_21COBHS_R3:A.EU_OTH.FAM.F.TOTAL.NR.CZ07", "f": "2021", "l": "2021", "n": null, "g": "CZ07", "v": 9393.0, "p": 162478}, {"id": "eurostat:CENS_21COBHS_R3:A.EU_OTH.FAM.F.TOTAL.NR.CZ071", "f": "2021", "l": "2021", "n": null, "g": "CZ071", "v": 4771.0, "p": 162478}, {"id": "eurostat:CENS_21COBHS_R3:A.EU_OTH.FAM.F.TOTAL.NR.CZ072", "f": "2021", "l": "2021", "n": null, "g": "CZ072", "v": 4622.0, "p": 162478}]
+- `12:11:08`    page-0000 keys=['page', 'count', 'rows'] rows=500 sample: [{"id": "eurostat:AACT_ALI01:A.AM400000.THS_AWU.AT", "flow": "AACT_ALI01", "name": "AACT_ALI01 \u00b7 A \u00b7 AM400000 \u00b7 THS_AWU \u2026", "dims": {"freq": "A", "am_item": "AM400000", "unit": "THS_AWU", "geo": "AT"}, "unit": "THS_AWU", "freq": "A", "geo": "AT", "first_obs": "1973", "last_obs": "2025", "last_value": 114.47, "status": "LIVE", "source_url": "https://ec.europa.eu/eurostat/databrowser/view/AACT_ALI01", "raw_key": "data/warm/eurostat/data/AACT_ALI01.dat.gz", "engines": []}, {"id": "eurostat:AACT_ALI01:A.AM400000.THS_AWU.BE", "flow": "AACT_ALI01", "name": "AACT_ALI01 \u00b7 A \u00b7 AM400000 \u00b7 THS_AWU \u2026", "dims": {"freq": "A", "am_item": "AM400000", "unit": "THS_AWU", "geo": "BE"}, "unit": "THS_AWU", "freq": "A", "geo": "BE", "first_obs": "1973", "last_obs": "2025", "last_value": 49.39, "status": "LIVE", "source_url": "https://ec.europa.eu/eurostat/databrowser/vi…
+- `12:11:08` t1-ecb state: {"entries": 2619231, "blocks": 649, "bytes": 322167467, "entry_schema": 2, "rebuilt_for": "v2-entries", "updated_at": "2026-08-30T14:43:57+00:00", "last_flow": "DCM", "candidates_left": 0, "candidates_total": 17}
+- `12:11:09` tier0 ecb: schema=3 flows=207 keys=['schema', 'provider', 'built_at', 'pages_total', 'flows_total', 'flows_indexed', 'anchored', 'interpolated', 'series_total', 'page_size', 'note', 'flows']
+- `12:11:09`    tier0 entries: [["AGR", {"lo": 0, "hi": 1, "anchored": true, "est_series_max": 1000, "series": 10, "exact": true}], ["AME", {"lo": 0, "hi": 1, "anchored": false, "est_series_max": 1000, "series": 124, "exact": true}]]
+- `12:11:09`    t1 CSEC: n=738218 blocks=181 schema=2 first rows: [{"id": "ecb:CSEC:CSEC.M.N.AT.W0.S1.S1.N.L.F.F3.L._Z.EUR.EUR.F.V.N._T", "f": "1990-01", "l": "2025-04", "n": 410, "g": "AT", "v": -836.8102080005015, "p": 436}, {"id": "ecb:CSEC:CSEC.M.N.AT.W0.S1.S1.N.L.F.F3.L._Z.EUR.EUR.M.V.N._T", "f": "2020-12", "l": "2025-04", "n": 25, "g": "AT", "v": -1079.1653372272604, "p": 1315}, {"id": "ecb:CSEC:CSEC.M.N.AT.W0.S1.S1.N.L.F.F3.L._Z.EUR.X1.F.V.N._T", "f": "1990-01", "l": "2025-04", "n": 336, "g": "AT", "v": -356.48562004276346, "p": 442}]
+- `12:11:09`    page-0000 keys=['page', 'count', 'rows'] rows=500 sample: [{"id": "ecb:AGR:AGR.M.I10.N.AGRI.X00000.4F0.N.IX", "flow": "AGR", "name": "AGR \u00b7 AGR \u00b7 M \u00b7 I10 \u2026", "dims": {"FREQ": "M", "REF_AREA": "I10", "ADJUSTMENT": "N", "BCS_CONCEPT": "AGRI", "BCS_CLASS": "X00000", "DATA_PROVIDER": "4F0", "TRANSFORMATION": "N", "UNIT_MEASURE": "IX", "CONF_STATUS": "F", "TIME_PER_COLLECT": "A", "DATA_COMP": "Experimental data, weighted average of XCEREA, XMEAT0, XDAIR0, XOILS0 using consumption weights.", "UNIT_INDEX_BASE": "2015=100"}, "unit": "IX", "freq": "M", "geo": "I10", "first_obs": "2000-01", "last_obs": "2026-07", "last_value": 166.19, "n_obs": 319, "status": "LIVE", "source_url": "https://data.ecb.europa.eu/data/datasets/AGR", "raw_key": "data/warm/ecb/data/AGR.dat.gz", "engines": []}, {"id": "ecb:AGR:AGR.M.I10.N.AGRI.XCEREA.4F0.N.IX", "flow": "AGR", "name": "AGR \u00b7 AGR \u00b7 M \u00b7 I10 \u2026", "dims": {"FREQ": "M", "REF_AREA"…
+## D. FRED catalog + banked series addressability
+
+- `12:11:09` fred-series-meta state: {"cats_done": [32263, 3008, 33060, 22, 15, 24, 46, 23, 32360, 32145, 12, 11, 32250, 33500, 33001, 32241, 33509, 104, 2, 32216, 4, 33717, 32261, 31, 32220, 32264, 32955, 32265, 32956, 27281, 32043, 32061, 32849, 32071, 32233, 33833, 33951, 33825, 33201, 33891, 33839, 33061, 33934, 33100, 33402, 8, 33120, 33442, 34000, 34309, 33123, 34009, 33058, 51, 121, 114, 33057, 117, 33491, 34003, 116, 115, 82, 94, 95, 32219, 105, 158, 124, 123, 25, 29, 96, 28, 30, 26, 32242, 122, 32215, 32218, 32414, 33119, 32457, 33831, 32240, 33731, 18, 5, 33441, 33492, 33202, 33203, 32217, 9, 33913, 120, 32348, 33059, 34005, 34007, 32298, 118, 33056, 33446, 32299, 32995, 99, 34111, 32239, 32996, 32406, 33439, 32361, 3…
+- `12:11:10` series-meta pages sampled=2229
+- `12:11:10` series-meta page-0000: keys=['page', 'count', 'rows'] count=500 sample=[{"id": "LODINIM066N", "title": "University of Louisville and Oklahoma State University: LoDI National Index", "freq": "M", "units": "Index", "seasonal_adj": "NSA", "popularity": 8, "obs_start": "2008-05-01", "obs_end": "2025-07-01", "last_updated": "2025-07-01 08:31:01-05", "category_id": 33060, "source_url": "https://fred.stlouisfed.org/series/LODINIM066N"}, {"id": "KCPRS", "title": "Kansas City Fed's Policy Rate Skew (KCPRS)", "freq": "D", "units": "Percentage Points", "seasonal_adj": "NSA", "popularity": 27, "obs_start": "1989-04-03", "obs_end": "2026-08-06", "last_updated": "2026-08-07 11:31:11-05", "category_id": 22, "source_url": "https://fred.stlouisfed.org/series/KCPRS"}]
+- `12:11:10` fred-scoped manifest: {"updated_at": "2026-09-02T12:09:22+00:00", "categories_done": 4169, "categories_total": 4169, "series_seen": 884361, "series_excluded_stale": 3846, "series_excluded_discontinued": 1555, "series_skipped_already": 203397, "n_categories_expanded": 4169, "series_imported": 282141, "phase2": "drain", "queue_total": 275299, "queue_cursor": 275299, "rate_rpm": 24.0, "next_popularity": 0, "min_popularity_cut": null, "freshness_rule": "last_updated within 90 days; older = excluded, never silently imported", "priority_rule": "drain order = FRED popularity desc (priority drain v2.2, ops 4576)", "engine_version": "2.3.0", "import_scope": "full_catalog", "status": "COMPLETE_WITH_LEAKS"}
+- `12:12:19` fred-scoped objects: 277540 across 19 roots: [["U.S._Regional_Data", 112947], ["International_Data", 43719], ["National_Accounts", 41577], ["Population,_Employment,_&_Labor_Markets", 24980], ["Production_&_Business_Activity", 24129], ["Financial_Indicators", 12167], ["Prices", 10955], ["Banking", 3681], ["FRED_Repo_Complex", 1015], ["Academic_Data", 867], ["Interest_Rates", 693], ["Monetary_Data", 482], ["Business_Lending", 140], ["ICE_BofA_OAS", 108], ["Exchange_Rates", 58], ["Dollar_TradeWeighted", 9], ["Foreign_Exchange_Intervention", 5], ["EU_Sovereign_Yields", 4], ["Plumbing_L0", 2]]
+- `12:12:20` warm/fred (unscoped) sub=[] sampled=0
+## E. instrument universes on S3
+
+- `12:12:21`   data/finviz-universe.json: {"bytes": 16056764, "modified": "2026-09-01 22:00:40", "keys": ["generated_at", "source", "n_tickers", "n_with_short_float", "by_ticker"], "dict:by_ticker": {"n": 11636, "sample": {"A": {"ticker": "A", "company": "Agilent Technologies Inc", "sector": "Healthcare", "industry": "Diagnostics & Research", "country": "USA", "market_cap": 42345.02, "pe": 29.52, "fwd_pe": 22.21, "peg": 2.19, "ps": 5.74, "pb": 5.74, "p_cash": 24.09, "p_fcf": 33.42, "div_yield": 0.68, "payout_ratio": 21.7, "eps_ttm": 5.08, "eps_growth_ty": 10.96, "eps_growth_ny": 8.84, "eps_growth_5y": 14.68, "eps_growth_n5y": 10.12, "sales_growth_5y": 5.41, "eps_growth_qoq": 8.5, "sales_growth_qoq": 8.06, "shares_out": 281.97, "float_shares": 281.48, "insider_own_pct": 0.34, "insider_trans_pct": -0.17, "inst_own_pct": 95.31, "inst_trans_pct": 0.98, "short_float_pct": 1.84, "short_ratio": 2.32, "roa": 11.0, "roe": 20.97, "roic": …
+- `12:12:21`   data/symbol-dictionary.json: {"bytes": 1797567, "modified": "2026-08-30 07:16:59", "keys": ["generated_at", "version", "n_symbols", "n_named", "n_provisional", "n_priced", "named_pct", "filled_this_run", "sources", "how_to_read", "dictionary", "elapsed_s"], "dict:dictionary": {"n": 10745, "sample": {"(1-TVC:VIX)/AMEX:XLU": {"source": "FORMULA", "source_id": "(1-TVC:VIX)/AMEX:XLU", "confidence": 1.0, "name": "Composite: (1-TVC:VIX)/AMEX:XLU", "category": "formula", "frequency": "D"}}}}
+- `12:12:21`   data/tv-watchlists.json: {"bytes": 503551, "modified": "2026-08-24 19:40:22", "keys": ["generated_at", "source", "n_lists", "lists"], "list:lists": {"n": 492, "sample": {"id": "163605178", "name": "10 YR High Quality Market (HQM)  - PREDICT FUTURE LIQUIDITY TREND REVERSAL", "symbols": ["FRED:HQMCB10YRP", "FRED:HQMCB10YR"], "n": 2, "color": null}}}
+- `12:12:22`   data/symbology/master.json: {"bytes": 3804373, "modified": "2026-09-02 05:16:06", "keys": ["as_of", "spec", "n_tickers", "n_ciks", "coverage", "enrichment_status", "by_ticker"], "dict:by_ticker": {"n": 10391, "sample": {"NVDA": {"ticker": "NVDA", "cik": "0001045810", "name": "NVIDIA CORP", "cusip": "67066G104", "isin": "US67066G1040", "figi": "BBG000BBJQV0", "sedol": null, "lei": "549300S4KLFTLO7GSQ80", "source": {"kind": "sec", "url": "https://www.sec.gov/files/company_tickers.json", "raw_snapshot_key": "data/raw/sec/2026-09-02/5c44b7caddfd.json.gz"}, "figi_name": "NVIDIA CORP"}}}}
+- `12:12:22`   data/symbol-feed.json: {"bytes": 396308, "modified": "2026-09-02 11:34:42", "keys": ["generated_at", "marker", "targets", "resolved", "prices", "run_ok", "run_err", "elapsed_s"], "dict:prices": {"n": 8167, "sample": {"SSE:000001": {"value": 3832.262, "ysym": "000001.SS", "asof": "2026-07-31T15:26"}}}}
+- `12:12:22`   data/symbol-aliases.json: {"bytes": 319572, "modified": "2026-09-02 11:51:14", "keys": ["generated_at", "marker", "aliases", "detail", "n_aliases", "fred_tickers_total", "fred_verified", "fred_dead", "verified_this_run", "fred_calls_this_run", "coverage_pct", "by_route", "economics_total", "economics_aliased", "economics_candidates"], "dict:aliases": {"n": 956, "sample": {"A053RC1Q027SBEA": "fred:A053RC1Q027SBEA"}}}
+- `12:12:22`   data/tv-descriptions.json: missing (An error occurred (404) when calling the HeadObject operation: Not Found)
+- `12:12:23`   data/indicator-bus.json: {"bytes": 1416339, "modified": "2026-09-01 12:15:23", "keys": ["generated_at", "marker", "n", "origin", "indicators", "elapsed_s"], "dict:indicators": {"n": 18738, "sample": {"DXY": {"v": 98.8, "asof": "yahoo_5d", "src": "yahoo:DX-Y.NYB"}}}}
+- `12:12:23`   data/indicator-bus/registry.json: missing (An error occurred (404) when calling the HeadObject operation: Not Found)
+- `12:12:24`   data/thesis-state-v2.json.gz: {"bytes": 14004170, "modified": "2026-09-01 22:47:00", "keys": ["stamp", "weekly"], "dict:weekly": {"n": 2890, "sample": {"FRED:M2SL": {"1990-01": 3166.8, "1990-05": 3179.2, "1990-09": 3190.1, "1990-13": 3201.6, "1990-18": 3200.6, "1990-22": 3213.7, "1990-26": 3224.5, "1990-31": 3242.0, "1990-35": 3254.6, "1990-40": 3259.3, "1990-44": 3262.6, "1990-48": 3271.8, "1991-01": 3287.7, "1991-05": 3304.5, "1991-09": 3321.9, "1991-14": 3332.4, "1991-18": 3343.0, "1991-22": 3351.9, "1991-27": 3356.1, "1991-31": 3355.0, "1991-35": 3354.9, "1991-40": 3360.1, "1991-44": 3365.5, "1991-48": 3372.2, "1992-01": 3381.2, "1992-05": 3400.0, "1992-09": 3403.9, "1992-14": 3399.7, "1992-18": 3398.6, "1992-23": 3393.4, "1992-27": 3393.9, "1992-31": 3398.8, "1992-36": 3410.3, "1992-40": 3423.8, "1992-44": 3426.5, "1992-49": 3424.7, "1992-53": 3419.1, "1993-05": 3414.5, "1993-09": 3411.7, "1993-13": 3411.3, "199…
+- `12:12:25`   data/sp500.json: {"bytes": 124206, "modified": "2026-09-01 21:45:46", "keys": ["ok", "engine", "engine_v", "marker", "as_of", "index", "valuation", "forward", "yield", "quality", "growth", "balance", "macro_cross", "sectors", "member_fields"], "list:member_fields": {"n": 41, "sample": "px_chg_since_census_pct"}}
+- `12:12:25`   data/etf-universe.json: missing (An error occurred (404) when calling the HeadObject operation: Not Found)
+- `12:12:25` indicator-bus keys: [('data/indicator-bus.json', 1416339), ('data/indicator-bus.json', 1416339)] sub=[]
+## F. Polygon reference universe (live API, first page per market)
+
+- `12:12:25`   stocks: page1=1000 next=True sample={"ticker": "A", "name": "Agilent Technologies Inc.", "market": "stocks", "locale": "us", "primary_exchange": "XNYS", "type": "CS", "currency_name": "usd", "cik": "0001090872", "composite_figi": "BBG000C2V3D6"}
+- `12:12:26`   otc: page1=1000 next=True sample={"ticker": "AAAIF", "name": "ALTERNATIVE INVSTMENT TR", "market": "otc", "locale": "us", "primary_exchange": "OTC Link", "type": "FUND", "currency_name": "USD", "cik": null, "composite_figi": null}
+- `12:12:27`   indices: page1=1000 next=True sample={"ticker": "I:A1BSC", "name": "Dow Jones Americas Basic Materials Index", "market": "indices", "locale": "us", "primary_exchange": null, "type": null, "currency_name": null, "cik": null, "composite_figi": null}
+- `12:12:28`   crypto: page1=625 next=False sample={"ticker": "X:00USD", "name": "00 Token - United States dollar", "market": "crypto", "locale": "global", "primary_exchange": null, "type": null, "currency_name": "United States dollar", "cik": null, "composite_figi": null}
+- `12:12:29`   fx: page1=1000 next=True sample={"ticker": "C:AEDAUD", "name": "United Arab Emirates dirham - Australian dollar", "market": "fx", "locale": "global", "primary_exchange": null, "type": null, "currency_name": "Australian dollar", "cik": null, "composite_figi": null}
+## G. existing serving functions (URLs) the page already depends on
+
+- `12:12:30`   justhodl-chart-data: mem=512 to=60 mod=2026-08-02T20:19:05 url=https://zsgb72zf4ayw6ajw7phbyq6wzq0haobh.lambda-url.us-east-1.on.aws/
+- `12:12:30`   justhodl-fred-proxy: mem=256 to=30 mod=2026-05-31T13:25:28 url=https://4dgpa7mv5dfipsh3gi2xim6uja0igozb.lambda-url.us-east-1.on.aws/
+- `12:12:30`   justhodl-wl-series-api: mem=2048 to=60 mod=2026-07-13T22:42:50 url=https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/
+- `12:12:30`   justhodl-symbol-search: absent (An error occurred (ResourceNotFoundException) when calling t)
+- `12:12:31`   justhodl-series-fetch: absent (An error occurred (ResourceNotFoundException) when calling t)
+- `12:12:31` ✅ discovery written: 57 provider catalogs, 42 warm layouts, index + fred + universes + polygon reference
