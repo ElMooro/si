@@ -91,7 +91,7 @@ def list_prefix(prefix, delimiter=None):
     return objs, pre
 
 
-def profile_sdmx_csv(body, area_col_candidates=("REF_AREA", "LOCATION", "REF_AREA_ISO3", "COUNTRY", "geo", "GEO"),
+def profile_sdmx_csv(body, area_col_candidates=("REF_AREA", "BORROWERS_CTY", "LOCATION", "REF_AREA_ISO3", "COUNTRY", "geo", "GEO"),
                      max_rows=3_000_000):
     """Generic SDMX-CSV profiler: dimensions (distinct values), areas, latest
     TIME_PERIOD per (area, measure-ish key), row count."""
@@ -116,22 +116,25 @@ def profile_sdmx_csv(body, area_col_candidates=("REF_AREA", "LOCATION", "REF_ARE
     latest = {}
     n = 0
     areas = Counter()
-    measure_col = next((col[c] for c in ("MEASURE", "INDICATOR", "SUBJECT", "TC_BORROWERS", "na_item", "indic", "indic_bt", "s_adj") if c in col), None)
+    measure_col = next((col[c] for c in ("MEASURE", "INDICATOR", "SUBJECT", "TC_BORROWERS", "DSR_BORROWERS", "CG_DTYPE", "VALUE", "EER_TYPE", "na_item", "indic", "indic_bt", "s_adj") if c in col), None)
+    freq_col = col.get("FREQ", col.get("FREQUENCY", col.get("freq")))
     for row in rd:
         n += 1
         if n > max_rows:
             break
         if len(row) <= max(tp or 0, ov or 0):
             continue
-        a = row[area_col] if area_col is not None else "_"
+        a = row[area_col] if area_col is not None and area_col < len(row) else "_"
         areas[a] += 1
         for h in distinct:
-            if len(distinct[h]) < 60:
-                distinct[h][row[col[h]]] += 1
+            ci = col[h]
+            if ci < len(row) and len(distinct[h]) < 60:
+                distinct[h][row[ci]] += 1
         if tp is not None:
             t = row[tp]
-            m = row[measure_col] if measure_col is not None else "_"
-            k = (a, m)
+            m = row[measure_col] if measure_col is not None and measure_col < len(row) else "_"
+            f = row[freq_col] if freq_col is not None and freq_col < len(row) else "_"
+            k = (a, f"{m}/{f}")
             if t > latest.get(k, ""):
                 latest[k] = t
     per_area_latest = defaultdict(dict)
@@ -216,6 +219,45 @@ def main():
             except Exception as e:  # noqa: BLE001
                 r.warn(f"  {fid}: profile failed {str(e)[:140]}")
         OUT["oecd"] = {"walked": len(byid), "candidates": want, "profiles": prof}
+        wst, _, e = get_json("data/_state/sdmx-walk-oecd.json")
+        if wst:
+            fl = wst.get("failures") or {}
+            cli_f = {k: str(v)[:160] for k, v in fl.items() if re.search(r"STES|CLI|MEI|BTS", k, re.I)}
+            done_stes = [d for d in (wst.get("done") or []) if re.search(r"STES|CLI", str(d), re.I)]
+            r.log(f"walker state as_of={wst.get('as_of')} done={len(wst.get('done') or [])} failures={len(fl)} truncated={len(wst.get('truncated') or [])} "
+                  f"lease_until={wst.get('lease_until')} · STES/CLI/MEI failures: {json.dumps(cli_f)[:1500]} · done STES: {done_stes[:10]}")
+            OUT["oecd"]["walker_state"] = {"as_of": wst.get("as_of"), "n_done": len(wst.get("done") or []), "n_failures": len(fl), "stes_failures": cli_f}
+        else:
+            r.warn(f"walker state unreadable: {e}")
+        # live probe of the CLI dataflow from the runner (small window) -- the source of truth for v3's survey pillar
+        import urllib.request
+        import urllib.error
+        for label, url in (("DF_CLI 2015+", "https://sdmx.oecd.org/public/rest/data/OECD.SDD.STES,DSD_STES@DF_CLI,4.1/.M.LI...AA...H?startPeriod=2015-01&format=csvfilewithlabels"),
+                           ("DF_CLI all 2024+", "https://sdmx.oecd.org/public/rest/data/OECD.SDD.STES,DSD_STES@DF_CLI,/all?startPeriod=2024-01&format=csvfile"),
+                           ("DF_CLI 4.0 all 2024+", "https://sdmx.oecd.org/public/rest/data/OECD.SDD.STES,DSD_STES@DF_CLI,4.0/all?startPeriod=2024-01&format=csvfile")):
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "JustHodl ops5099 (+https://justhodl.ai)", "Accept": "text/csv, application/vnd.sdmx.data+csv"})
+                with urllib.request.urlopen(req, timeout=60) as resp:
+                    body = resp.read()
+                p = profile_sdmx_csv(body)
+                iso_latest = {}
+                for a, mv in (p.get("latest_by_area") or {}).items():
+                    i3 = area_to_iso3(a)
+                    if i3:
+                        iso_latest[i3] = mv
+                r.log(f"LIVE OECD {label}: HTTP 200 {len(body)} B rows={p.get('rows')} areas={p.get('n_areas')} ours={len(iso_latest)}/34 header={p.get('header')[:16]} "
+                      f"dims={json.dumps({k: v[:12] for k, v in (p.get('dims') or {}).items()})[:900]}")
+                r.log(f"  sample latest: {json.dumps(dict(list(iso_latest.items())[:8]))[:700]}")
+                OUT["oecd"].setdefault("live_probe", {})[label] = {"bytes": len(body), "rows": p.get("rows"), "n_areas": p.get("n_areas"), "ours": len(iso_latest),
+                                                                    "dims": p.get("dims"), "header": p.get("header"), "iso_latest": iso_latest}
+                for i3, mv in iso_latest.items():
+                    for m, tt in mv.items():
+                        mark(f"oecd-live:DF_CLI:{m}", i3, tt, url)
+                break
+            except urllib.error.HTTPError as he:
+                r.warn(f"LIVE OECD {label}: HTTP {he.code} {str(he.read()[:200])}")
+            except Exception as ex:  # noqa: BLE001
+                r.warn(f"LIVE OECD {label}: {str(ex)[:160]}")
 
         # ── S2 BIS ────────────────────────────────────────────────────────
         r.section("S2 BIS flows")
@@ -393,7 +435,7 @@ def main():
             r.log(f"port-cargo keys: {list(pc.keys())[:30]}; complete_through={pc.get('complete_through')} true_latest={pc.get('true_latest_date')}")
             for k in ("by_country", "countries", "country_rollup", "ports"):
                 v = pc.get(k)
-                if isinstance(v, (dict, list)):
+                if isinstance(v, (dict, list)) and len(v):
                     r.log(f"  port-cargo.{k}: n={len(v)} sample={json.dumps((list(v.values())[0] if isinstance(v, dict) else v[0]))[:400]}")
         al, _, e = get_json("data/asia-leads.json")
         if al:
