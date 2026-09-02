@@ -1,4 +1,4 @@
-"""justhodl-global-business-cycle  v2.1.1  (real-time, equity-momentum-based)
+"""justhodl-global-business-cycle  v2.1.2  (real-time, equity-momentum-based)
 ═══════════════════════════════════════════════════════════════════════════
 The OECD CLI series on FRED stopped updating ~Jan 2024 (28+ months stale at
 time of writing). To provide a USEFUL global business cycle map with
@@ -36,6 +36,13 @@ acceptance gate: >= MIN_BARS daily bars AND last bar within MAX_STALE_DAYS):
     ALWAYS as an anomaly from its 100 normal (v2.0 treated the ~100 index level as
     a +-3 anomaly, which pinned USA at the 120 cap every run).
 
+v2.1.2 (ops 5097): supplements are standardised against their OWN trailing
+  history (z-score of the latest print vs the prior <= 7y of monthly obs,
+  1 z = 1.5 index points, clipped +-3). FRED re-based both series to OECD
+  "percentage balance" units (USA prints ~50-60, CHN ~0 +-2), so a fixed
+  "normal = 100" transform is wrong and any fixed transform is fragile;
+  own-history standardisation is scale-agnostic. Still used only when the
+  latest print is <= 3 months old and >= 24 prior obs exist.
 v2.1.1 (ops 5096): a supplement whose scale is not recognised (neither ~100
   index nor a small anomaly) is EXCLUDED and reported, never coerced.
 v2.1.0 (ops 5094/5095, 2026-09-01):
@@ -67,7 +74,7 @@ try:
 except Exception:
     pass
 
-ENGINE_VERSION = "2.1.1"
+ENGINE_VERSION = "2.1.2"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUTPUT_KEY = "data/global-business-cycle.json"
@@ -79,9 +86,12 @@ MIN_BARS = 252            # one full year — enough for ret_12m and the history
 MAX_STALE_DAYS = 12       # calendar days; a live national index never gaps this long
                           # (CNY/Golden Week <= 9d). Longer = dead symbol on the source.
 SUPPLEMENT_MAX_MONTHS = 3         # Khalid's rule: <= 3 months old or not used at all
-SUPPLEMENT_POINT_TO_PCT = 5.0     # 1 OECD index point (normal=100) ~ 5 composite pct
+SUPPLEMENT_POINT_TO_PCT = 5.0     # 1 index point of anomaly ~ 5 composite pct
 SUPPLEMENT_WEIGHT = 0.25          # equity composite 75% / survey 25%
-SUPPLEMENT_ANOM_CLIP = 3.0        # OECD CCI/BCI live in ~[97,103]; clip protects the cap
+SUPPLEMENT_ANOM_CLIP = 3.0        # anomaly in index points is clipped to +-3
+SUPPLEMENT_Z_TO_POINTS = 1.5      # OECD normalised CCI/BCI have sd ~1.5 points: 1 z = 1.5 pts
+SUPPLEMENT_MIN_HIST = 24          # need >= 24 prior monthly obs to standardise
+SUPPLEMENT_HIST_OBS = 90          # ~7.5y of monthly prints pulled from FRED
 
 S3 = boto3.client("s3", region_name="us-east-1")
 
@@ -402,6 +412,60 @@ def resolve_prices(iso3, primary, lane):
     return [], None, attempts, "no candidate cleared the acceptance gate"
 
 
+def fred_recent(series_id, limit=SUPPLEMENT_HIST_OBS):
+    """Most recent `limit` valid observations, ascending [(date, value)]."""
+    url = (f"https://api.stlouisfed.org/fred/series/observations"
+           f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
+           f"&sort_order=desc&limit={limit}")
+    out = []
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "JH-GBC/2.1"})
+        with urllib.request.urlopen(req, timeout=12) as r:
+            data = json.loads(r.read().decode("utf-8"))
+        for o in data.get("observations", []):
+            v = o.get("value")
+            if v in (".", "", None):
+                continue
+            try:
+                out.append((o["date"], float(v)))
+            except (ValueError, TypeError):
+                continue
+    except Exception as e:  # noqa: BLE001
+        print(f"[gbc] FRED {series_id} failed: {e}")
+    out.sort()
+    return out
+
+
+def standardise_supplement(series_id, obs):
+    """Scale-agnostic supplement: z-score of the latest print against its own
+    prior history, mapped to OECD-style index points and clipped. Returns the
+    dict consumed by compute_cli_from_prices (status 'fresh' only when usable)."""
+    if not obs:
+        return {"series_id": series_id, "status": "unavailable"}
+    latest_date, latest = obs[-1]
+    mo = months_between(latest_date)
+    sup = {"series_id": series_id, "date": latest_date, "value": latest, "months_stale": mo,
+           "n_hist": len(obs) - 1, "method": "z-score of latest vs own prior history -> index points (1z=1.5pt, clip +-3)"}
+    if mo > SUPPLEMENT_MAX_MONTHS:
+        sup["status"] = f"stale {mo}mo (excluded)"
+        return sup
+    hist = [v for _, v in obs[:-1]]
+    if len(hist) < SUPPLEMENT_MIN_HIST:
+        sup["status"] = f"only {len(hist)} prior obs (< {SUPPLEMENT_MIN_HIST}) -- excluded"
+        return sup
+    mean = sum(hist) / len(hist)
+    var = sum((v - mean) ** 2 for v in hist) / len(hist)
+    std = var ** 0.5
+    if std <= 1e-9:
+        sup["status"] = "flat history (sd 0) -- excluded"
+        return sup
+    z = (latest - mean) / std
+    anom = max(-SUPPLEMENT_ANOM_CLIP, min(SUPPLEMENT_ANOM_CLIP, z * SUPPLEMENT_Z_TO_POINTS))
+    sup.update({"status": "fresh", "hist_mean": round(mean, 3), "hist_std": round(std, 3),
+                "z": round(z, 3), "anomaly_points": round(anom, 3)})
+    return sup
+
+
 def fred_latest(series_id):
     """Fetch the most recent valid observation from FRED."""
     url = (f"https://api.stlouisfed.org/fred/series/observations"
@@ -511,7 +575,9 @@ def compute_cli_from_prices(prices, supplement=None):
     if supplement and supplement.get("value") is not None:
         sup_status = supplement.get("status") or "unknown"
         if sup_status == "fresh":
-            anom = supplement_anomaly(supplement["value"])
+            anom = supplement.get("anomaly_points")
+            if anom is None:
+                anom = supplement_anomaly(supplement["value"])   # legacy caller without standardisation
             if anom is None:
                 sup_status = f"scale-unrecognised ({supplement['value']}) -- excluded"
                 supplement["status"] = sup_status
@@ -577,6 +643,8 @@ def compute_cli_from_prices(prices, supplement=None):
         "supplement_value": supplement.get("value") if supplement else None,
         "supplement_date": supplement.get("date") if supplement else None,
         "supplement_status": sup_status,
+        "supplement_z": supplement.get("z") if supplement else None,
+        "supplement_anomaly_points": supplement.get("anomaly_points") if supplement else None,
         "equity_composite_pct": round(equity_composite_pct, 2),
         "cli_transform": "soft_clip_tanh_v2.1",
     }
@@ -1349,13 +1417,8 @@ def lambda_handler(event=None, context=None):
         prices_by_country[iso3] = prices
         supplement = None
         if iso3 in FRED_SUPPLEMENT:
-            supplement = fred_latest(FRED_SUPPLEMENT[iso3])
-            if supplement:
-                mo = months_between(supplement.get("date") or "")
-                supplement["months_stale"] = mo
-                supplement["status"] = "fresh" if mo <= SUPPLEMENT_MAX_MONTHS else f"stale {mo}mo (excluded)"
-                supplement["series_id"] = FRED_SUPPLEMENT[iso3]
-            supplement_log[iso3] = supplement or {"series_id": FRED_SUPPLEMENT[iso3], "status": "unavailable"}
+            supplement = standardise_supplement(FRED_SUPPLEMENT[iso3], fred_recent(FRED_SUPPLEMENT[iso3]))
+            supplement_log[iso3] = supplement
 
         phase_info = compute_cli_from_prices(prices, supplement=supplement)
         if degraded and phase_info.get("phase") != "UNKNOWN":
@@ -1482,9 +1545,10 @@ def lambda_handler(event=None, context=None):
                                "US-listed country ETF from the polygon-full warehouse (own store) "
                                "-> degraded stale candidate (flagged) -> UNKNOWN; every candidate "
                                f"must clear >= {MIN_BARS} bars and a last bar <= {MAX_STALE_DAYS} days old"),
-            "secondary_source": ("FRED OECD CCI/BCI for USA + CHN as an anomaly from 100, used only "
-                                 f"when <= {SUPPLEMENT_MAX_MONTHS} months old; used this run for: "
-                                 f"{_sup_used or 'none'}"),
+            "secondary_source": ("FRED OECD CCI/BCI for USA + CHN standardised against their own "
+                                 "trailing history (z-score -> index points, 1z=1.5pt, clip +-3), used "
+                                 f"only when <= {SUPPLEMENT_MAX_MONTHS} months old with >= "
+                                 f"{SUPPLEMENT_MIN_HIST} prior obs; used this run for: {_sup_used or 'none'}"),
             "rationale": ("OECD's Composite Leading Indicator series on FRED stopped "
                           "updating in Jan 2024 (28+ months stale). Equity-market "
                           "momentum is a well-established leading indicator (typically "
@@ -1494,8 +1558,8 @@ def lambda_handler(event=None, context=None):
             "composite_formula": ("CLI = 100 + 20*tanh(0.025*composite_pct) — slope 0.5 at 100 "
                                    "(the v2.0 linear map), soft-bounded (80,120). composite_pct = "
                                    "0.35*ret12m + 0.25*dist_200ma + 0.25*ret3m + 0.15*ret1m. "
-                                   "Fresh OECD CCI/BCI anomaly (value-100, clipped +-3, x5) "
-                                   "blended 75/25 for USA+CHN."),
+                                   "Fresh OECD CCI/BCI standardised vs own history (z*1.5 pts, "
+                                   "clipped +-3, x5) blended 75/25 for USA+CHN."),
             "phase_classification": {
                 "EXPANSION": "CLI >= 100 AND 3-month return rising",
                 "AT_RISK":   "CLI >= 100 AND 3-month return falling (peak passing)",
