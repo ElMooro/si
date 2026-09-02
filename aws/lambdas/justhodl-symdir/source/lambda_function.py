@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.5.0"
+VERSION = "1.5.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -2274,7 +2274,7 @@ def r_tvsym(sid, sym, d):
     name = (d[D_TITLE] if d else None) or sym
     # 1. OHLC bank (candles) -- banked on first open, healed when stale
     doc = _tv_bank_doc(sym)
-    src = "warehouse:tv-bars"
+    src, bank_err = "warehouse:tv-bars", "bank not attempted"
     if doc and _bank_stale(doc):
         res = _tv_pull([sym], refresh=True)
         if (res.get(sym) or {}).get("ok"):
@@ -2291,12 +2291,17 @@ def r_tvsym(sid, sym, d):
     if doc:
         return _bars_result(sid, "tv", doc, name, src + " · " + str(doc.get("source") or ""), extra={"tv_symbol": sym, "banked_at": doc.get("as_of")})
     # 2. no bars source: the dictionary's provider series (close-only) is still the full history
+    dict_err = ""
     if src_id and src_prov in ("fred", "ecb", "ofr", "nyfed", "eurostat", "boj", "bls", "worldbank"):
         inner = src_id.split(":", 1)[1] if ":" in src_id and src_id.split(":", 1)[0].lower() == src_prov else src_id
-        out = fetch_series("%s:%s" % (src_prov, inner))
-        out["id"], out["tv_symbol"], out["via"] = sid, sym, "%s:%s" % (src_prov, inner)
-        out["name"] = name or out.get("name")
-        return out
+        try:
+            out = fetch_series("%s:%s" % (src_prov, inner))
+            if out.get("n"):
+                out["id"], out["tv_symbol"], out["via"] = sid, sym, "%s:%s" % (src_prov, inner)
+                out["name"] = name or out.get("name")
+                return out
+        except Exception as e:  # noqa: BLE001
+            dict_err = "dictionary %s:%s failed: %s" % (src_prov, inner, str(e)[:60])     # a wrong source_id must not end the search
     # 3. TradingView-only concept (TVC:US02MY has no market feed) -> the warehouse series that carries it
     for pid, note in tv_equivalents(sym):
         try:
@@ -2308,7 +2313,7 @@ def r_tvsym(sid, sym, d):
                 return out
         except Exception:  # noqa: BLE001
             continue
-    err = ValueError("no market feed for %s and no warehouse equivalent (%s)" % (sym, bank_err[:120]))
+    err = ValueError("no market feed for %s and no warehouse equivalent (%s%s)" % (sym, bank_err[:100], ("; " + dict_err) if dict_err else ""))
     err.alternatives = [{"id": pid, "note": note} for pid, note in tv_equivalents(sym)]
     raise err
 
