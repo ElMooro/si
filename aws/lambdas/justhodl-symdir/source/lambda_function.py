@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.2.1"
+VERSION = "1.3.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -1191,6 +1191,41 @@ def label_key(prov, flow, key, fn=None, dims=None, max_len=220):
     return txt if len(txt) <= max_len else txt[:max_len - 1] + "…"
 
 
+def fred_fresh(event, context):
+    """mode=fredfresh (hourly): keep the headline banked FRED series current without waiting for an open --
+    walk banked D/W series most-popular-first (cursor in data/symdir/_state/fredfresh.json), ~limit per run
+    at FRED's pace, tail-merge in place. Everything else heals on open (r_fred)."""
+    ix = load_index()
+    limit = int(event.get("limit") or 400)
+    st = _get_json(SD + "_state/fredfresh.json") or {"cursor": 0}
+    cands = [d for d in ix["docs"] if d[D_PROV] == "fred" and d[D_KEY] and (d[D_FREQ] or "")[:1].upper() in ("D", "W") and d[D_POP] >= 0.3]
+    cands.sort(key=lambda d: (-d[D_POP], d[D_ID]))
+    n = len(cands)
+    if not n:
+        return {"ok": True, "n": 0}
+    cur = int(st.get("cursor") or 0) % n
+    done, healed, added = 0, 0, 0
+    t0 = time.time()
+    for i in range(limit):
+        if context and context.get_remaining_time_in_millis() < 30000:
+            break
+        d = cands[(cur + i) % n]
+        sid = d[D_ID].split(":", 1)[1]
+        try:
+            j = _get_json("data/warm/fred-scoped/%s/%s.json" % (d[D_KEY], sid))
+            j, k = _fred_tail_refresh(d[D_KEY], sid, j, d[D_FREQ])
+            done += 1
+            if k:
+                healed += 1
+                added += k
+                time.sleep(0.5)          # only real FRED calls pace the run
+        except Exception:  # noqa: BLE001
+            continue
+    st.update({"cursor": (cur + done) % n, "n": n, "updated_at": _iso(), "last_run": {"done": done, "healed": healed, "obs_added": added, "s": round(time.time() - t0, 1)}})
+    _put_json(SD + "_state/fredfresh.json", st, cache="no-cache")
+    return {"ok": True, "n": n, "done": done, "healed": healed, "obs_added": added, "cursor": st["cursor"]}
+
+
 # ================================================================ RUNTIME INDEX
 
 _IDX = {"loaded_at": None, "docs": None, "pop": None, "index": None, "toklist": None, "ids": None, "bare": None, "built_at": None}
@@ -1678,14 +1713,52 @@ def _doc_lookup(sid):
     return None
 
 
+FRED_STALE_DAYS = {"D": 4, "W": 10, "BW": 18, "M": 40, "Q": 100, "SA": 200, "A": 400}
+
+
+def _fred_tail_refresh(root, sid, j, freq):
+    """The fred-catalog engine drains once and never revisits a banked doc (DGS10 sat at 2026-08-06 on
+    2026-09-02). When the bank is older than its cadence allows, pull the tail from FRED, merge append-only
+    and rewrite the doc in place -- the warehouse heals on open, exactly like the tv-bars universe."""
+    obs = (j or {}).get("observations") or []
+    if not obs or not FRED_KEY:
+        return j, 0
+    last = max((o.get("date") or "") for o in obs)
+    try:
+        age = (_now().date() - date.fromisoformat(last[:10])).days
+    except Exception:  # noqa: BLE001
+        return j, 0
+    if age <= FRED_STALE_DAYS.get((freq or "D")[:2].upper(), 40):
+        return j, 0
+    try:
+        t = _http_json("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s&file_type=json&observation_start=%s&limit=100000"
+                       % (urllib.parse.quote(sid), FRED_KEY, last[:10]), timeout=30)
+    except Exception:  # noqa: BLE001
+        return j, 0
+    tail = [o for o in t.get("observations") or [] if o.get("date") and o.get("date") > last]
+    if not tail:
+        return j, 0
+    merged = obs + [{"date": o["date"], "value": o.get("value")} for o in tail]
+    j["observations"] = merged
+    meta = j.setdefault("meta", {})
+    meta["last_updated"], meta["tail_refreshed_at"], meta["tail_refreshed_by"] = tail[-1]["date"], _iso(), "justhodl-symdir %s" % VERSION
+    try:
+        s3.put_object(Bucket=BUCKET, Key="data/warm/fred-scoped/%s/%s.json" % (root, sid), Body=json.dumps(j, separators=(",", ":")).encode(),
+                      ContentType="application/json", CacheControl="public, max-age=900")
+    except Exception:  # noqa: BLE001
+        pass
+    return j, len(tail)
+
+
 def r_fred(sid, rest, d):
     root = d[D_KEY] if d else None
     obs, src, name = [], None, d[D_TITLE] if d else rest
     if root:
         try:
             j = _get_json("data/warm/fred-scoped/%s/%s.json" % (root, rest))
+            j, added = _fred_tail_refresh(root, rest, j, (d[D_FREQ] if d else None) or ((j or {}).get("meta") or {}).get("frequency"))
             obs = [(o.get("date"), o.get("value")) for o in (j or {}).get("observations") or []]
-            src = "warehouse:fred-scoped/%s" % root
+            src = "warehouse:fred-scoped/%s" % root + (" (+%d obs tail from FRED, bank healed)" % added if added else "")
         except Exception:  # noqa: BLE001
             obs = []
     if not obs and FRED_KEY:
@@ -2218,6 +2291,8 @@ def lambda_handler(event, context):
         return fetch_titles(event, context)
     if mode == "codelists":
         return codelists_lane(event, context)
+    if mode == "fredfresh":
+        return fred_fresh(event, context)
     if mode == "warm" or path == "/warm":
         # keep-warm ping (every 5 min): also the moment a warm container notices a newer daily build
         force = qs.get("force") == "1"
