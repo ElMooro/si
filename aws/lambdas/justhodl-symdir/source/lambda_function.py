@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.6.1"
+VERSION = "1.6.2"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -2339,19 +2339,7 @@ def r_tvsym(sid, sym, d):
             bank_err = r0.get("error") or "unknown"
     if doc:
         return _bars_result(sid, "tv", doc, name, src + " · " + str(doc.get("source") or ""), extra={"tv_symbol": sym, "banked_at": doc.get("as_of")})
-    # 2. no bars source: the dictionary's provider series (close-only) is still the full history
-    dict_err = ""
-    if src_id and src_prov in ("fred", "ecb", "ofr", "nyfed", "eurostat", "boj", "bls", "worldbank"):
-        inner = src_id.split(":", 1)[1] if ":" in src_id and src_id.split(":", 1)[0].lower() == src_prov else src_id
-        try:
-            out = fetch_series("%s:%s" % (src_prov, inner))
-            if out.get("n"):
-                out["id"], out["tv_symbol"], out["via"] = sid, sym, "%s:%s" % (src_prov, inner)
-                out["name"] = name or out.get("name")
-                return out
-        except Exception as e:  # noqa: BLE001
-            dict_err = "dictionary %s:%s failed: %s" % (src_prov, inner, str(e)[:60])     # a wrong source_id must not end the search
-    # 3. TradingView-only concept (TVC:US02MY has no market feed) -> the warehouse series that carries it
+    # 2. curated warehouse equivalents first (TVC:DE10Y -> Bundesbank daily before the OECD monthly the dictionary knows)
     alt_err = []
     for pid, note in tv_equivalents(sym):
         try:
@@ -2365,6 +2353,18 @@ def r_tvsym(sid, sym, d):
         except Exception as e:  # noqa: BLE001
             alt_err.append((pid, "%s: %s" % (type(e).__name__, str(e)[:140])))
             continue
+    # 3. the dictionary's provider series (close-only) as the generic fallback
+    dict_err = ""
+    if src_id and src_prov in ("fred", "ecb", "ofr", "nyfed", "eurostat", "boj", "bls", "worldbank"):
+        inner = src_id.split(":", 1)[1] if ":" in src_id and src_id.split(":", 1)[0].lower() == src_prov else src_id
+        try:
+            out = fetch_series("%s:%s" % (src_prov, inner))
+            if out.get("n"):
+                out["id"], out["tv_symbol"], out["via"] = sid, sym, "%s:%s" % (src_prov, inner)
+                out["name"] = name or out.get("name")
+                return out
+        except Exception as e:  # noqa: BLE001
+            dict_err = "dictionary %s:%s failed: %s" % (src_prov, inner, str(e)[:60])     # a wrong source_id must not end the search
     err = ValueError("no market feed for %s and no warehouse equivalent (%s%s)" % (sym, bank_err[:100], ("; " + dict_err) if dict_err else ""))
     err.alternatives = [{"id": pid, "note": note, "error": dict(alt_err).get(pid)} for pid, note in tv_equivalents(sym)]
     raise err
