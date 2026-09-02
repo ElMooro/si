@@ -5203,13 +5203,21 @@ class NativeChart {
           loadingEl.style.display = 'flex';
           const alts = (d.alternatives || []);
           loadingEl.innerHTML = alts.length
-            ? `<div style="text-align:center"><div>${UI.esc(symbol)} has no market feed the warehouse can bank.</div><div style="margin-top:8px;color:var(--fg-2)">Same data in your warehouse:</div>${alts.map(a => `<button class="tf-btn" style="margin:6px 4px 0;color:var(--cyan);border:1px solid var(--cyan)" data-alt="${UI.esc(a.id)}" title="${UI.esc(a.note || '')}">${UI.esc(a.id)} ›</button>`).join('')}</div>`
-            : `No observations for ${UI.esc(symbol)}${d.error ? ' — ' + UI.esc(String(d.error).slice(0, 160)) : ''}`;
+            ? `<div style="text-align:center"><div>${UI.esc(symbol)} is not a symbol the warehouse knows.</div><div style="margin-top:8px;color:var(--fg-2)">Did you mean:</div>${alts.map(a => `<button class="tf-btn" style="margin:6px 4px 0;color:var(--cyan);border:1px solid var(--cyan)" data-alt="${UI.esc(a.id)}" title="${UI.esc(a.note || '')}">${UI.esc(a.id)}${a.note && a.note.startsWith('closest') ? '' : ' (same data)'} ›</button>`).join('')}</div>`
+            : `No data source for ${UI.esc(symbol)} — try the search bar; it lists every source that carries this symbol.`;
           loadingEl.querySelectorAll('[data-alt]').forEach(b => b.addEventListener('click', () => ChartController.loadTicker(b.dataset.alt)));
         }
         return;
       }
       if (State.activeTicker !== symbol) return;
+      if (d.resolved_from && d.id && d.id !== symbol) {
+        // ops 5152: a typed prefix (TVC:US10) resolved to the real symbol (TVC:US10Y) — the chart shows the real one
+        symbol = d.id; State.activeTicker = d.id;
+        const at = document.getElementById('active-ticker'); if (at) at.textContent = d.id;
+        const sy = container.querySelector('.nch-sym'); if (sy) { sy.textContent = d.id; sy.title = d.id; }
+        const ps = document.getElementById(`pane-symbol-${paneIdx}`); if (ps) ps.textContent = d.id;
+        jhToast(`${d.resolved_from} → ${d.id}`);
+      }
       SymDir.remember({ id: symbol, name: d.name, provider: d.provider, unit: d.unit, freq: d.freq, first: d.first, last: d.last, kind: 'series' });
       WatchlistManager.saveLocal();
       const nameEl = document.getElementById('active-name'); if (nameEl) nameEl.textContent = d.name || '';
@@ -5916,7 +5924,21 @@ class HeaderSearch {
       e.preventDefault();
       if (open && this.results[this.sel]) this.pick(this.sel);
       else if (this.results && this.results.length) { this.pick(Math.max(0, this.sel)); }   // ops 5142: Enter = top result (HQMCB10YRP typed bare → fred:HQMCB10YRP)
-      else { const q = jhCanonId(input.value); if (q) { WatchlistManager.rememberSymbol(q, jhSeriesProvider(q) ? 'series' : 'equity'); ChartController.loadTicker(q); this.close(); input.blur(); } }
+      else {
+        // ops 5152: Enter before the directory answered (a cold search container takes seconds) — wait for it,
+        // then take the top result; only when the directory truly has nothing does the raw text load
+        const q0 = input.value; const seq0 = this._seq;
+        const dd = document.getElementById('hsearch-dropdown'); if (dd) { dd.classList.add('open'); dd.innerHTML = '<div class="hs-empty">Searching every ticker and data series…</div>'; }
+        SymDir.query(q0.trim(), 40, this._provFilter || '').then(() => {
+          if (this._seq !== seq0) return;
+          if (this.results && this.results.length) { this.pick(0); return; }
+          setTimeout(() => {
+            if (this._seq !== seq0) return;
+            if (this.results && this.results.length) { this.pick(0); return; }
+            const q = jhCanonId(q0); if (q) { WatchlistManager.rememberSymbol(q, jhSeriesProvider(q) ? 'series' : 'equity'); ChartController.loadTicker(q); this.close(); input.blur(); }
+          }, 350);
+        });
+      }
     }
     else if (e.key === 'Escape') { this.close(); input.blur(); }
   }

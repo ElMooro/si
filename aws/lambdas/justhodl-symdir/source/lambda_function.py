@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.6.2"
+VERSION = "1.7.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -2553,7 +2553,53 @@ def _bare_resolve(bare):
     return cands[0][D_ID]
 
 
-def fetch_series(sid, nocache=False):
+def closest_ids(sid, limit=5):
+    """Directory ids that extend the typed id (TVC:US10 -> TVC:US10Y, TVC:US10Y…), most popular first."""
+    try:
+        ix = load_index()
+    except Exception:  # noqa: BLE001
+        return []
+    Q = sid.upper().strip()
+    rows, _ = _prefix_range(ix["ids"], Q, cap=200)
+    out = [(ix["pop"][i], ix["docs"][i]) for k, i in rows if k != Q]
+    if ":" in Q:
+        bare = Q.split(":", 1)[1]
+        rows2, _ = _prefix_range(ix["bare"], bare, cap=200)
+        out += [(ix["pop"][i] - 0.05, ix["docs"][i]) for k, i in rows2 if ix["docs"][i][D_ID].upper() != Q]
+    seen, res = set(), []
+    for pop, d in sorted(out, key=lambda x: -x[0]):
+        if d[D_ID] in seen or d[D_KIND] == "dataset":
+            continue
+        seen.add(d[D_ID])
+        res.append({"id": d[D_ID], "note": "closest symbol: %s" % (d[D_TITLE] or "")[:60], "pop": round(float(pop), 3)})
+        if len(res) >= limit:
+            break
+    return res
+
+
+def fetch_series(sid, nocache=False, _depth=0):
+    try:
+        return _fetch_series(sid, nocache=nocache)
+    except Exception as e:  # noqa: BLE001
+        if _depth > 0 or not sid or ":" not in sid:
+            raise
+        cands = closest_ids(sid)
+        # a typed id that is the prefix of a clearly better-known real id resolves to it (TVC:US10 -> TVC:US10Y)
+        if cands and (len(cands) == 1 or cands[0]["pop"] >= cands[1]["pop"] + 0.1 or cands[0]["id"].upper().startswith(sid.upper().strip())):
+            try:
+                out = fetch_series(cands[0]["id"], nocache=nocache, _depth=1)
+                out["resolved_from"], out["requested"] = sid, sid
+                out["source"] = "%s (%s → %s)" % (out.get("source"), sid, cands[0]["id"])
+                return out
+            except Exception:  # noqa: BLE001
+                pass
+        alts = list(getattr(e, "alternatives", None) or []) + [c for c in cands if c["id"] not in {a.get("id") for a in (getattr(e, "alternatives", None) or [])}]
+        err = ValueError(str(e)[:200])
+        err.alternatives = alts[:6]
+        raise err
+
+
+def _fetch_series(sid, nocache=False):
     sid = (sid or "").strip()
     if sid.upper().startswith("FRED:"):
         sid = "fred:" + sid[5:]
