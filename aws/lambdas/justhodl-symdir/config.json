@@ -9,7 +9,7 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Symbol directory v1.2.0 (ops 5125): daily build over every catalog (instruments, FRED, Eurostat/ECB + Tier-1 + labels, OECD, BIS, IMF, StatCan, BOJ, WB, NY Fed, OFR, FiscalData, BoE, Census, BLS); /search /browse /series /quote; equities + TV universe from S3.",
+  "description": "Symbol directory v1.2.0 (ops 5125): daily build over every catalog (instruments, FRED, Eurostat/ECB + Tier-1 + labels, OECD, BIS, IMF, StatCan, BOJ, WB, NY Fed, OFR, FiscalData, BoE, Census, BLS); /search /browse /series /quote; every symbol from S3.",
   "environment": {
     "S3_BUCKET": "justhodl-dashboard-live",
     "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",
