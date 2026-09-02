@@ -4558,15 +4558,21 @@ class NativeChart {
     return ch;
   }
   static reapDetached() {
-    const live = NativeChart._live || [];
-    for (let i = live.length - 1; i >= 0; i--) {
-      if (!live[i].el || !live[i].el.isConnected) { try { live[i].ch.remove(); } catch (e) {} live.splice(i, 1); }
-    }
+    // two frames later, so a chart's own pending animation frame / resize callback settles before remove()
+    // (removing inside the same tick surfaced one "Object is disposed" per load)
+    const run = () => {
+      const live = NativeChart._live || [];
+      for (let i = live.length - 1; i >= 0; i--) {
+        if (!live[i].el || !live[i].el.isConnected) { try { live[i].ch.remove(); } catch (e) {} live.splice(i, 1); }
+      }
+    };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => requestAnimationFrame(run)); else setTimeout(run, 32);
   }
   static disposePane(paneIdx) {
     const c = ChartSync.charts.get(paneIdx);
-    if (c) { ChartSync.unregister(paneIdx); try { c.remove(); } catch (e) {} if (State.nativeChart === c) State.nativeChart = null; }
-    if (State._charts && State._charts[paneIdx]) { const h = State._charts[paneIdx]; if (h && h !== c && typeof h.remove === 'function') { try { h.remove(); } catch (e) {} } delete State._charts[paneIdx]; }
+    if (c) { ChartSync.unregister(paneIdx); if (State.nativeChart === c) State.nativeChart = null; }
+    if (State._charts && State._charts[paneIdx]) delete State._charts[paneIdx];
+    // the pane's previous chart is removed once its element is detached by the new render (reapDetached), never mid-frame
     setTimeout(() => NativeChart.reapDetached(), 60);
   }
   static async render(ticker) {
