@@ -5818,6 +5818,10 @@ class HeaderSearch {
       this._facets = d.facets || [];
       SymDir.noteRows(rows);
       const seen = new Set([...this._groups.instruments.map(r => r.id.toUpperCase()), ...lt]);
+      // ops 5146: rows the instant client-side list already shows still take the server's knowledge
+      // (sources, name) — otherwise a TradingView symbol never shows what the warehouse holds for it
+      const byId = new Map(rows.map(r => [r.id.toUpperCase(), r]));
+      this._groups.instruments.forEach(r => { const sr = byId.get(r.id.toUpperCase()); if (sr) { if (Array.isArray(sr.sources)) r.sources = sr.sources; if (sr.name && !r.name) r.name = sr.name; } });
       const sh = (d.series_hits && d.series_hits.rows) || [];
       SymDir.noteRows(sh);
       this._groups.series = [...sh, ...rows.filter(r => r.kind === 'series')].filter(r => !seen.has(r.id.toUpperCase())).slice(0, 14);

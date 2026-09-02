@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.5.1"
+VERSION = "1.5.2"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -158,6 +158,25 @@ def _http(url, timeout=25, headers=None, data=None, retries=2):
 def _http_json(url, timeout=25, headers=None):
     b, _, _ = _http(url, timeout=timeout, headers=headers)
     return json.loads(b.decode("utf-8", "replace"))
+
+
+_FRED_LAST = [0.0]
+
+
+def fred_get(url, timeout=30, tries=4):
+    """Every FRED call goes through here: >=0.35s spacing and 429 backoff (2s/6s/15s)."""
+    for attempt in range(tries):
+        wait = 0.35 - (time.time() - _FRED_LAST[0])
+        if wait > 0:
+            time.sleep(wait)
+        try:
+            _FRED_LAST[0] = time.time()
+            return _http_json(url, timeout=timeout)
+        except Exception as e:  # noqa: BLE001
+            if "429" in str(e) and attempt < tries - 1:
+                time.sleep((2, 6, 15)[min(attempt, 2)])
+                continue
+            raise
 
 
 def _f(v):
@@ -493,6 +512,9 @@ def build(event, context):
         # the build itself never calls the FRED API -- 400 sequential title fetches inside the build
         # pushed it past the 900s Lambda timeout (ops 5119)
         titles = _get_json(SD + "fred-titles.json") or {}
+        for sid, t in titles.items():          # ids banked on demand by the resolver (DGS2MO) join the directory
+            if t.get("on_demand_root") and sid not in banked:
+                banked[sid] = t["on_demand_root"]
         untitled = [sid for sid in banked if sid not in best]
         fetched = 0
 
@@ -986,7 +1008,7 @@ def fetch_titles(event, context):
         if context and context.get_remaining_time_in_millis() < 60000:
             break
         try:
-            j = _http_json("https://api.stlouisfed.org/fred/series?series_id=%s&api_key=%s&file_type=json" % (urllib.parse.quote(sid), FRED_KEY), timeout=20)
+            j = fred_get("https://api.stlouisfed.org/fred/series?series_id=%s&api_key=%s&file_type=json" % (urllib.parse.quote(sid), FRED_KEY), timeout=20)
             ser = (j.get("seriess") or [{}])[0]
             if ser.get("title"):
                 titles[sid] = {"title": ser["title"], "units": ser.get("units_short"), "freq": ser.get("frequency_short"), "sa": ser.get("seasonal_adjustment_short"),
@@ -1212,8 +1234,8 @@ def fred_updates(event, context):
         j = None
         for attempt in range(4):
             try:
-                j = _http_json("https://api.stlouisfed.org/fred/series/updates?api_key=%s&file_type=json&start_time=%s&end_time=%s&limit=1000&offset=%d"
-                               % (FRED_KEY, start, end, offset), timeout=40)
+                j = fred_get("https://api.stlouisfed.org/fred/series/updates?api_key=%s&file_type=json&start_time=%s&end_time=%s&limit=1000&offset=%d"
+                             % (FRED_KEY, start, end, offset), timeout=40)
                 break
             except Exception as e:  # noqa: BLE001
                 if "429" in str(e) and attempt < 3:
@@ -1803,13 +1825,10 @@ def _fred_tail_refresh(root, sid, j, freq, force=False):
     t = None
     for attempt in range(2):
         try:
-            t = _http_json("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s&file_type=json&observation_start=%s&limit=100000"
-                           % (urllib.parse.quote(sid), FRED_KEY, last[:10]), timeout=30)
+            t = fred_get("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s&file_type=json&observation_start=%s&limit=100000"
+                         % (urllib.parse.quote(sid), FRED_KEY, last[:10]), timeout=30)
             break
-        except Exception as e:  # noqa: BLE001
-            if "429" in str(e) and attempt == 0:
-                time.sleep(15)
-                continue
+        except Exception:  # noqa: BLE001
             return j, 0
     if t is None:
         return j, 0
@@ -1840,10 +1859,28 @@ def r_fred(sid, rest, d):
         except Exception:  # noqa: BLE001
             obs = []
     if not obs and FRED_KEY:
-        j = _http_json("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s&file_type=json&observation_start=1776-07-04&limit=100000"
-                       % (urllib.parse.quote(rest), FRED_KEY), timeout=30)
+        j = fred_get("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s&file_type=json&observation_start=1776-07-04&limit=100000"
+                     % (urllib.parse.quote(rest), FRED_KEY), timeout=30)
         obs = [(o.get("date"), o.get("value")) for o in j.get("observations") or []]
         src = "fred-api"
+        if obs:
+            # the catalog crawl leaked this id (COMPLETE_WITH_LEAKS) -- bank it now so it is warehouse-served from here on
+            try:
+                meta = (fred_get("https://api.stlouisfed.org/fred/series?series_id=%s&api_key=%s&file_type=json" % (urllib.parse.quote(rest), FRED_KEY), timeout=20).get("seriess") or [{}])[0]
+                bank = {"meta": {"id": rest, "title": meta.get("title"), "units": meta.get("units_short"), "frequency": meta.get("frequency_short"), "seasonal_adjustment": meta.get("seasonal_adjustment_short"),
+                                 "popularity": meta.get("popularity"), "observation_start": meta.get("observation_start"), "observation_end": meta.get("observation_end"), "last_updated": meta.get("last_updated"),
+                                 "root": "On_Demand", "banked_by": "justhodl-symdir %s" % VERSION, "banked_at": _iso()},
+                        "observations": [{"date": a, "value": b} for a, b in obs]}
+                s3.put_object(Bucket=BUCKET, Key="data/warm/fred-scoped/On_Demand/%s.json" % rest, Body=json.dumps(bank, separators=(",", ":")).encode(),
+                              ContentType="application/json", CacheControl="public, max-age=900")
+                led = _get_json(SD + "fred-titles.json") or {}
+                led[rest] = {"title": meta.get("title"), "units": meta.get("units_short"), "freq": meta.get("frequency_short"), "sa": meta.get("seasonal_adjustment_short"),
+                             "pop": meta.get("popularity"), "obs_start": meta.get("observation_start"), "obs_end": meta.get("observation_end"), "on_demand_root": "On_Demand"}
+                _put_json(SD + "fred-titles.json", led, cache="no-cache")
+                src = "fred-api (banked on demand → warehouse)"
+                name = meta.get("title") or name
+            except Exception:  # noqa: BLE001
+                pass
     ex = (d[D_EXTRA] if d else None) or {}
     merged = {norm_period(a): _f(b) for a, b in obs if norm_period(a) and _f(b) is not None}
     added = 0
@@ -2237,11 +2274,10 @@ def tv_equivalents(sym):
                 out.append(("fred:DGS" + tenor, "US Treasury constant-maturity yield, daily (FRED H.15)"))
                 if tenor == "10":
                     out.append(("fred:DGS10", "10-year, daily"))
-            iso = _ISO3.get(cc)
-            if iso and not mm and num == "10":
-                out.append(("fred:IRLTLT01%sM156N" % iso, "10-year government bond yield, monthly (OECD via FRED)"))
-            if iso and not mm and num in ("03", "3") and cc != "US":
-                out.append(("fred:IR3TIB01%sM156N" % iso, "3-month interbank rate, monthly (OECD via FRED)"))
+            if cc in _ISO3 and not mm and num == "10":
+                out.append(("fred:IRLTLT01%sM156N" % cc, "10-year government bond yield, monthly (OECD via FRED)"))
+            if cc in _ISO3 and not mm and num in ("03", "3") and cc != "US":
+                out.append(("fred:IR3TIB01%sM156N" % cc, "3-month interbank rate, monthly (OECD via FRED)"))
             if cc == "US" and mm and num == "03":
                 out.append(("fred:DTB3", "3-month T-bill secondary market, daily"))
     if ex == "ECONOMICS" and bare in ECON_EQUIV:
@@ -2259,9 +2295,13 @@ def sources_for(sym):
     rows = []
     for pid, note in tv_equivalents(sym):
         d = _doc_lookup(pid)
+        prov = pid.split(":", 1)[0]
         if d:
             rows.append({"id": pid, "provider": d[D_PROV], "provider_name": PROV_NAME.get(d[D_PROV], d[D_PROV]), "name": d[D_TITLE], "freq": d[D_FREQ], "first": d[D_FIRST],
                          "last": d[D_LAST], "ohlc": False, "note": note, "banked": bool(d[D_KEY])})
+        else:
+            rows.append({"id": pid, "provider": prov, "provider_name": PROV_NAME.get(prov, prov), "name": note, "freq": None, "first": None, "last": None, "ohlc": False,
+                         "note": note + " — not in the catalog yet; banks on first open", "banked": False})
     return rows
 
 
