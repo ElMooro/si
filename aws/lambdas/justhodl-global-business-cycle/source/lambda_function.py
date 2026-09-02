@@ -1,4 +1,4 @@
-"""justhodl-global-business-cycle  v3.0.0  (multi-pillar composite; equity momentum is one pillar)
+"""justhodl-global-business-cycle  v3.0.1  (multi-pillar composite; equity momentum is one pillar)
 ═══════════════════════════════════════════════════════════════════════════
 The OECD CLI series on FRED stopped updating ~Jan 2024 (28+ months stale at
 time of writing). To provide a USEFUL global business cycle map with
@@ -36,6 +36,13 @@ acceptance gate: >= MIN_BARS daily bars AND last bar within MAX_STALE_DAYS):
     ALWAYS as an anomaly from its 100 normal (v2.0 treated the ~100 index level as
     a +-3 anomaly, which pinned USA at the 120 cap every run).
 
+v3.0.1 (ops 5102): each feature's standardised value is carried forward for
+  at most its max lag (monthly 4, quarterly 7) so history months hold what a
+  nowcast would have seen and the last history row equals the nowcast; a
+  component's staleness is measured from its actual last print. Feature
+  store v1.1 adds the trade pillar (KEI exports/imports, BTS export orders),
+  curve/CCI/unemployment for all countries, money growth, REER 34/34, policy
+  rates 24/34, order books and production expectations.
 v3.0.0 (ops 5100, 2026-09-02): MULTI-PILLAR COMPOSITE. Reads the feature store
   written by justhodl-cycle-features (data/cycle/features.json.gz -- OECD CLI/
   KEI/labour, BIS credit/property/REER, Eurostat surveys, fleet sovereign desk)
@@ -90,7 +97,7 @@ except Exception as _cce:  # noqa: BLE001
     CC = None
     print(f"[gbc] cycle_composite unavailable: {_cce}")
 
-ENGINE_VERSION = "3.0.0"
+ENGINE_VERSION = "3.0.1"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUTPUT_KEY = "data/global-business-cycle.json"

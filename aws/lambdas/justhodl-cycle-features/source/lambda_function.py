@@ -1,4 +1,14 @@
-"""justhodl-cycle-features  v1.0.0 -- feature store for the global business cycle.
+"""justhodl-cycle-features  v1.1.0 -- feature store for the global business cycle.
+
+v1.1.0 (ops 5102): live-first OECD lanes. The walked DSD_KEI@DF_KEI file is
+truncated at the walker's 40MB cap (5 of 22 measures), so KEI is now pulled
+live for our 34 countries (22 measures: production, retail, exports, imports,
+BCI, CCI, unemployment, long/short rates, money, CLI...), plus DF_BTS (order
+books, production expectations, export orders), DF_CS (consumer confidence),
+DF_FINMARK (rates fallback), and the BIS API for monthly REER (34/34) and
+policy rates (24/34). Every live pull is cached to data/warm/oecd/cycle/ and
+data/warm/bis/cycle/; a failed pull falls back to a cache <= 45 days old; the
+walked warehouse file remains the last fallback. Requests are paced.
 
 Turns the warehouses the platform already holds into ONE compact document of
 per-country, monthly, cycle-ready features that justhodl-global-business-cycle
@@ -39,7 +49,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/cycle/features.json.gz"
 MANIFEST_KEY = "data/cycle/features-manifest.json"
@@ -79,8 +89,13 @@ FEATURE_META = {
     "house_real_yoy":  ("financial", +1, "real residential property prices, % y/y"),
     "reer_12m":        ("financial", -1, "real broad effective exchange rate, 12-month % change"),
     "curve":           ("financial", +1, "long-term minus short-term interest rate (pp)"),
+    "money_yoy":       ("financial", +1, "broad money, % y/y"),
+    "policy_12m":      ("financial", -1, "central bank policy rate, 12-month change (pp)"),
+    "order_books":     ("survey",    +1, "OECD BTS manufacturing order books, balance"),
+    "prod_expect":     ("survey",    +1, "OECD BTS production expectations (future tendency), balance"),
     "exports_yoy":     ("trade",     +1, "merchandise exports value, % y/y"),
     "imports_yoy":     ("trade",     +1, "merchandise imports value, % y/y"),
+    "export_orders":   ("trade",     +1, "OECD BTS export order books, balance"),
     # side metrics (not in the composite; reported for fragility context)
     "credit_gap":      ("side",      -1, "BIS credit-to-GDP gap (pp)"),
     "dsr":             ("side",      -1, "BIS debt service ratio, private non-financial (%)"),
@@ -255,6 +270,62 @@ def fnum(v):
         return None
 
 
+# ── live lanes with cache ────────────────────────────────────────────────────
+CACHE_MAX_AGE_D = 45
+AREAS = "+".join(ISO3)
+ISO2_LIST = "+".join(ISO2[i] for i in ISO3)
+OECD_BASE = "https://sdmx.oecd.org/public/rest/data/OECD.SDD.STES,"
+LANES = {
+    # name: (url, cache key, fallback warehouse key or None)
+    "KEI": (OECD_BASE + f"DSD_KEI@DF_KEI,/{AREAS}.M........?startPeriod=1995-01&format=csvfile",
+            "data/warm/oecd/cycle/DF_KEI.csv.gz", "data/warm/oecd/data/DSD_KEI@DF_KEI.dat.gz"),
+    "BTS": (OECD_BASE + f"DSD_STES@DF_BTS,/{AREAS}.M.........?startPeriod=1995-01&format=csvfile",
+            "data/warm/oecd/cycle/DF_BTS.csv.gz", None),
+    "CS": (OECD_BASE + f"DSD_STES@DF_CS,/{AREAS}.M.........?startPeriod=1995-01&format=csvfile",
+           "data/warm/oecd/cycle/DF_CS.csv.gz", None),
+    "FINMARK": (OECD_BASE + f"DSD_STES@DF_FINMARK,/{AREAS}.M.IRLT+IR3TIB+IRSTCI......?startPeriod=1995-01&format=csvfile",
+                "data/warm/oecd/cycle/DF_FINMARK.csv.gz", None),
+    "BIS_EER": (f"https://stats.bis.org/api/v2/data/dataflow/BIS/WS_EER/1.0/M.R.B.{ISO2_LIST}?startPeriod=1995-01&format=csv",
+                "data/warm/bis/cycle/WS_EER_M.csv.gz", "data/warm/bis/data/WS_EER.dat.gz"),
+    "BIS_CBPOL": (f"https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.{ISO2_LIST}?startPeriod=1995-01&format=csv",
+                  "data/warm/bis/cycle/WS_CBPOL_M.csv.gz", None),
+}
+
+
+def fetch_lane(name, status, pace_s=3):
+    """Live pull -> cache; on failure cache (<= 45d) -> warehouse fallback. Returns (body, source_label)."""
+    url, cache_key, fallback = LANES[name]
+    time.sleep(pace_s)
+    body, st = http_get(url, timeout=150)
+    if body is not None and len(body) > 1000:
+        try:
+            S3.put_object(Bucket=BUCKET, Key=cache_key, Body=gzip.compress(body), ContentType="application/gzip",
+                          Metadata={"as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"), "url": url[:900]})
+        except Exception as e:  # noqa: BLE001
+            log(f"{name}: cache write failed {str(e)[:80]}")
+        status[f"lane_{name}"] = {"ok": True, "source": "live", "bytes": len(body)}
+        return body, "live"
+    log(f"{name}: live failed ({st}); trying cache")
+    try:
+        cached, lm = get_bytes(cache_key)
+        age_d = (datetime.now(timezone.utc) - lm).total_seconds() / 86400
+        if age_d <= CACHE_MAX_AGE_D:
+            status[f"lane_{name}"] = {"ok": True, "source": f"cache {age_d:.0f}d", "bytes": len(cached), "live_error": str(st)[:80]}
+            return cached, f"cache {age_d:.0f}d"
+        log(f"{name}: cache too old ({age_d:.0f}d)")
+    except Exception as e:  # noqa: BLE001
+        log(f"{name}: no cache ({str(e)[:60]})")
+    if fallback:
+        try:
+            wb, lm = get_bytes(fallback)
+            status[f"lane_{name}"] = {"ok": True, "source": "warehouse fallback", "bytes": len(wb), "live_error": str(st)[:80]}
+            return wb, "warehouse"
+        except Exception as e:  # noqa: BLE001
+            log(f"{name}: warehouse fallback failed {str(e)[:60]}")
+    status[f"lane_{name}"] = {"ok": False, "error": f"live {st}; no usable cache/fallback"}
+    return None, None
+
+
 # ── OECD live CLI (paced, cached) ───────────────────────────────────────────
 def load_oecd_cli(feat, status):
     url = ("https://sdmx.oecd.org/public/rest/data/OECD.SDD.STES,DSD_STES@DF_CLI,4.1/"
@@ -285,7 +356,7 @@ def load_oecd_cli(feat, status):
             continue
         feat[area]["cli_oecd"].put(row.get("TIME_PERIOD"), v)
         n += 1
-    covered = [a for a in feat if len(feat[a]["cli_oecd"])]
+    covered = [a for a in feat if len(feat[a].get("cli_oecd") or [])]
     status["oecd_cli"] = {"ok": True, "source": src, "rows": n, "countries": len(covered),
                           "latest": max((feat[a]["cli_oecd"].latest() or "") for a in covered) if covered else None}
     log(f"OECD DF_CLI ({src}): {n} rows, {len(covered)} countries, latest {status['oecd_cli']['latest']}")
@@ -293,11 +364,11 @@ def load_oecd_cli(feat, status):
 
 # ── OECD KEI (warehouse) ────────────────────────────────────────────────────
 def load_oecd_kei(feat, status):
-    try:
-        body, lm = get_bytes("data/warm/oecd/data/DSD_KEI@DF_KEI.dat.gz")
-    except Exception as e:  # noqa: BLE001
-        status["oecd_kei"] = {"ok": False, "error": str(e)[:80]}
+    body, src = fetch_lane("KEI", status)
+    if body is None:
+        status["oecd_kei"] = {"ok": False, "error": "no KEI data from any lane"}
         return
+    lm = datetime.now(timezone.utc)
     # collect candidate series: (area, measure, activity, adjustment, transformation, unit) -> Series
     cand = defaultdict(lambda: Series("M"))
     measures = defaultdict(int)
@@ -350,17 +421,32 @@ def load_oecd_kei(feat, status):
             if s is not None and len(s):
                 feat[area][name] = s
                 got[name] += 1
-        for meas, name in (("XTEXVA", "exports_yoy"), ("XTIMVA", "imports_yoy")):
-            s = pick(area, meas, [None], ["Y", "N", None], ["GY"])
+        for meas, name in (("EX", "exports_yoy"), ("IM", "imports_yoy"), ("XTEXVA", "exports_yoy"), ("XTIMVA", "imports_yoy")):
+            if name in feat[area] and len(feat[area][name]):
+                continue
+            s = pick(area, meas, [None], ["Y", "N", "_Z", None], ["GY"])
             if s is None:
-                lvl = pick(area, meas, [None], ["Y", "N", None], ["_Z"])
+                lvl = pick(area, meas, [None], ["Y", "N", "_Z", None], ["_Z"])
                 s = lvl.yoy() if lvl is not None else None
             if s is not None and len(s):
                 feat[area][name] = s
                 got[name] += 1
+        s = pick(area, "MABM", [None], ["Y", "N", "_Z", None], ["GY"])
+        if s is None:
+            lvl = pick(area, "MABM", [None], ["Y", "N", "_Z", None], ["_Z"])
+            s = lvl.yoy() if lvl is not None else None
+        if s is not None and len(s):
+            feat[area]["money_yoy"] = s
+            got["money_yoy"] += 1
+        u = pick(area, "UNEMP", [None], ["Y", "N", "_Z", None], ["_Z", None])
+        if u is not None and len(u) >= 36:
+            feat[area]["unemp_12m"] = u.diff(12)
+            feat[area]["unemp_12m"].level = u
+            feat[area]["unemp_12m"].src_override = "OECD DSD_KEI@DF_KEI UNEMP"
+            got["unemp_12m"] += 1
         lt = pick(area, "IRLT", [None], [None], ["_Z", None], min_obs=24)
         stt = None
-        for m in ("IRSTCI", "IR3TIB", "IRSTCB", "IRSTPI"):
+        for m in ("IR3TIB", "IRSTCI", "IRSTCB", "IRSTPI"):
             stt = pick(area, m, [None], [None], ["_Z", None], min_obs=24)
             if stt is not None:
                 break
@@ -369,8 +455,13 @@ def load_oecd_kei(feat, status):
             if len(cv):
                 feat[area]["curve"] = cv
                 got["curve"] += 1
-    status["oecd_kei"] = {"ok": True, "file_age_h": round((datetime.now(timezone.utc) - lm).total_seconds() / 3600, 1),
-                          "measures_seen": dict(sorted(measures.items(), key=lambda kv: -kv[1])[:40]), "features": dict(got)}
+        li = pick(area, "LI", [None], ["AA", "Y", "_Z", None], ["_Z", "IX", None], min_obs=36)
+        if li is not None and not len(feat[area].get("cli_oecd") or []):
+            feat[area]["cli_oecd"] = li
+            feat[area]["cli_oecd"].src_override = "OECD DSD_KEI@DF_KEI LI"
+            got["cli_from_kei"] += 1
+    status["oecd_kei"] = {"ok": True, "source": src, "measures_seen": dict(sorted(measures.items(), key=lambda kv: -kv[1])[:40]),
+                          "features": dict(got)}
     log(f"OECD KEI: measures {list(measures)[:30]} -> features {dict(got)}")
 
 
@@ -401,12 +492,154 @@ def load_oecd_unemployment(feat, status):
                     best = s
             if best is not None:
                 break
-        if best is not None:
+        if best is not None and ("unemp_12m" not in feat[area] or (feat[area]["unemp_12m"].level.latest() or "") < (best.latest() or "")):
             feat[area]["unemp_12m"] = best.diff(12)
             feat[area]["unemp_12m"].level = best
+            feat[area]["unemp_12m"].src_override = "OECD DSD_LFS@DF_IALFS_UNE_M"
             got += 1
     status["oecd_lfs"] = {"ok": True, "countries": got, "file_age_h": round((datetime.now(timezone.utc) - lm).total_seconds() / 3600, 1)}
     log(f"OECD LFS unemployment: {got} countries")
+
+
+# ── OECD business tendency + consumer surveys + FINMARK ───────────────────────
+def _stes_candidates(body, feat, keep_measures):
+    cand = defaultdict(lambda: Series("M"))
+    for row in sdmx_rows(body):
+        if row.get("FREQ") != "M":
+            continue
+        area = row.get("REF_AREA")
+        m = row.get("MEASURE")
+        if area not in feat or m not in keep_measures:
+            continue
+        v = fnum(row.get("OBS_VALUE"))
+        if v is None:
+            continue
+        cand[(area, m, row.get("ACTIVITY", ""), row.get("ADJUSTMENT", ""), row.get("TIME_HORIZ", ""))].put(row.get("TIME_PERIOD"), v)
+    return cand
+
+
+def _pick_stes(cand, area, measure, activities, horizons, min_obs=36):
+    best = None
+    for act in activities:
+        for hz in horizons:
+            for (a, m, ac, ad, h), s in cand.items():
+                if a == area and m == measure and (act is None or ac == act) and (hz is None or h == hz) and len(s) >= min_obs:
+                    if best is None or (s.latest() or "") > (best.latest() or ""):
+                        best = s
+            if best is not None:
+                return best
+    return best
+
+
+def load_oecd_bts(feat, status):
+    body, src = fetch_lane("BTS", status)
+    if body is None:
+        return
+    cand = _stes_candidates(body, feat, {"BCICP", "OB", "PR", "XR", "EM", "CURT"})
+    got = defaultdict(int)
+    for area in feat:
+        if "bci" not in feat[area]:
+            s = _pick_stes(cand, area, "BCICP", ["_Z", "C", None], ["_Z", None])
+            if s is not None:
+                feat[area]["bci"] = s
+                feat[area]["bci"].src_override = "OECD DSD_STES@DF_BTS BCICP"
+                got["bci"] += 1
+        s = _pick_stes(cand, area, "OB", ["C", None], ["_Z", "C", None])
+        if s is not None:
+            feat[area]["order_books"] = s
+            got["order_books"] += 1
+        s = _pick_stes(cand, area, "PR", ["C", None], ["FT", "T", None])
+        if s is not None:
+            feat[area]["prod_expect"] = s
+            got["prod_expect"] += 1
+        s = _pick_stes(cand, area, "XR", ["C", None], ["_Z", "C", None])
+        if s is not None:
+            feat[area]["export_orders"] = s
+            got["export_orders"] += 1
+    status["oecd_bts"] = {"ok": True, "source": src, "features": dict(got)}
+    log(f"OECD BTS ({src}): {dict(got)}")
+
+
+def load_oecd_cs(feat, status):
+    body, src = fetch_lane("CS", status)
+    if body is None:
+        return
+    cand = _stes_candidates(body, feat, {"CCICP"})
+    got = 0
+    for area in feat:
+        if "cci" in feat[area]:
+            continue
+        s = _pick_stes(cand, area, "CCICP", ["_Z", None], ["_Z", None])
+        if s is not None:
+            feat[area]["cci"] = s
+            feat[area]["cci"].src_override = "OECD DSD_STES@DF_CS CCICP"
+            got += 1
+    status["oecd_cs"] = {"ok": True, "source": src, "countries_added": got}
+    log(f"OECD CS ({src}): cci added for {got}")
+
+
+def load_oecd_finmark(feat, status):
+    need = [a for a in feat if "curve" not in feat[a]]
+    if not need:
+        status["oecd_finmark"] = {"ok": True, "skipped": "curve complete from KEI"}
+        return
+    body, src = fetch_lane("FINMARK", status)
+    if body is None:
+        return
+    cand = _stes_candidates(body, feat, {"IRLT", "IR3TIB", "IRSTCI"})
+    got = 0
+    for area in need:
+        lt = _pick_stes(cand, area, "IRLT", [None], [None], min_obs=24)
+        st = _pick_stes(cand, area, "IR3TIB", [None], [None], min_obs=24) or _pick_stes(cand, area, "IRSTCI", [None], [None], min_obs=24)
+        if lt is not None and st is not None:
+            cv = lt.minus(st)
+            if len(cv):
+                feat[area]["curve"] = cv
+                feat[area]["curve"].src_override = "OECD DSD_STES@DF_FINMARK IRLT-IR3TIB"
+                got += 1
+    status["oecd_finmark"] = {"ok": True, "source": src, "countries_added": got}
+    log(f"OECD FINMARK ({src}): curve added for {got}")
+
+
+def load_bis_live(feat, status):
+    body, src = fetch_lane("BIS_EER", status, pace_s=1)
+    if body is not None:
+        cand = defaultdict(lambda: Series("M"))
+        for row in sdmx_rows(body):
+            if row.get("FREQ") != "M" or row.get("EER_TYPE") != "R" or row.get("EER_BASKET") != "B":
+                continue
+            i3 = ISO2_TO_3.get(row.get("REF_AREA"))
+            if i3 in feat:
+                v = fnum(row.get("OBS_VALUE"))
+                if v is not None:
+                    cand[i3].put(row.get("TIME_PERIOD"), v)
+        got = 0
+        for i3, s in cand.items():
+            if len(s) >= 36:
+                feat[i3]["reer_12m"] = s.pct(12)
+                feat[i3]["reer_12m"].level = s
+                got += 1
+        status["bis_WS_EER"] = {"ok": True, "source": src, "countries": got}
+        log(f"BIS EER ({src}): {got} countries")
+    body, src = fetch_lane("BIS_CBPOL", status, pace_s=1)
+    if body is not None:
+        cand = defaultdict(lambda: Series("M"))
+        for row in sdmx_rows(body):
+            if row.get("FREQ") != "M":
+                continue
+            i3 = ISO2_TO_3.get(row.get("REF_AREA"))
+            if i3 in feat:
+                v = fnum(row.get("OBS_VALUE"))
+                if v is not None:
+                    cand[i3].put(row.get("TIME_PERIOD"), v)
+        got = 0
+        for i3, s in cand.items():
+            if len(s) >= 36:
+                feat[i3]["policy_12m"] = s.diff(12)
+                feat[i3]["policy_12m"].level = s
+                got += 1
+        status["bis_WS_CBPOL"] = {"ok": True, "source": src, "countries": got}
+        log(f"BIS CBPOL ({src}): {got} countries")
 
 
 # ── BIS ───────────────────────────────────────────────────────────────────────
@@ -470,7 +703,7 @@ def load_bis(feat, status):
                 got += 1
         status["bis_WS_SPP"] = {"ok": True, "countries": got}
         log(f"BIS WS_SPP real house prices: {got} countries")
-    body, lm = read("WS_EER")
+    body, lm = read("WS_EER") if any("reer_12m" not in feat[i] for i in feat) else (None, None)
     if body:
         cand = defaultdict(lambda: Series("M"))
         for row in sdmx_rows(body):
@@ -484,12 +717,12 @@ def load_bis(feat, status):
                 cand[i3].put(row.get("TIME_PERIOD"), v)
         got = 0
         for i3, s in cand.items():
-            if len(s) >= 36:
+            if len(s) >= 36 and "reer_12m" not in feat[i3]:
                 feat[i3]["reer_12m"] = s.pct(12)
                 feat[i3]["reer_12m"].level = s
                 got += 1
-        status["bis_WS_EER"] = {"ok": True, "countries": got}
-        log(f"BIS WS_EER REER 12m: {got} countries")
+        status["bis_WS_EER_warehouse"] = {"ok": True, "countries_added": got}
+        log(f"BIS WS_EER (warehouse) REER 12m: {got} countries added")
     body, lm = read("WS_CREDIT_GAP")
     if body:
         got = 0
@@ -546,13 +779,15 @@ def eurostat_tsv(flow):
 def load_eurostat(feat, status):
     spec = [("EI_BSCO_M", "cons_conf_eu", {"indic": "BS-CSMCI", "s_adj": "SA"}),
             ("EI_BSSI_M_R2", "esi", {"indic": "BS-ESI-I", "s_adj": "SA"}),
-            ("EI_BSIN_M_R2", "ind_conf_eu", {"indic": "BS-ICI-BAL", "s_adj": "SA"}),
+            ("EI_BSIN_M_R2", "ind_conf_eu", {"indic": ("BS-ICI-BAL", "BS-ICI", "BS-ICI-BAL-SA"), "s_adj": "SA"}),
             ("EI_LMHR_M", "unemp_eu", {"indic": "LM-UN-T-TOT", "s_adj": "SA", "unit": "PC_ACT"})]
     for flow, name, want in spec:
         try:
             got = 0
+            seen_indic = set()
             for key, periods, vals, lm in eurostat_tsv(flow):
-                if any(key.get(k) != v for k, v in want.items()):
+                seen_indic.add(key.get("indic"))
+                if any((key.get(k) not in v) if isinstance(v, tuple) else (key.get(k) != v) for k, v in want.items()):
                     continue
                 i3 = ISO2_TO_3.get(key.get("geo"))
                 if i3 not in feat:
@@ -574,8 +809,9 @@ def load_eurostat(feat, status):
                     else:
                         feat[i3][name] = s
                     got += 1
-            status[f"eurostat_{flow}"] = {"ok": True, "countries": got, "file_age_h": round((datetime.now(timezone.utc) - lm).total_seconds() / 3600, 1)}
-            log(f"Eurostat {flow} -> {name}: {got} countries")
+            status[f"eurostat_{flow}"] = {"ok": True, "countries": got, "file_age_h": round((datetime.now(timezone.utc) - lm).total_seconds() / 3600, 1),
+                                          "indic_seen": sorted(x for x in seen_indic if x)[:20]}
+            log(f"Eurostat {flow} -> {name}: {got} countries (indic seen {sorted(x for x in seen_indic if x)[:8]})")
         except Exception as e:  # noqa: BLE001
             status[f"eurostat_{flow}"] = {"ok": False, "error": str(e)[:100]}
             log(f"Eurostat {flow} failed: {str(e)[:100]}")
@@ -626,6 +862,10 @@ def lambda_handler(event=None, context=None):
     load_oecd_cli(feat, status)
     load_oecd_kei(feat, status)
     load_oecd_unemployment(feat, status)
+    load_oecd_bts(feat, status)
+    load_oecd_cs(feat, status)
+    load_oecd_finmark(feat, status)
+    load_bis_live(feat, status)
     load_bis(feat, status)
     load_eurostat(feat, status)
     load_fleet_feeds(feat, status)
@@ -662,7 +902,10 @@ def lambda_handler(event=None, context=None):
                             "unemp_12m": "OECD DSD_LFS@DF_IALFS_UNE_M", "credit_impulse": "BIS WS_TC (P/A, % GDP)",
                             "house_real_yoy": "BIS WS_SPP (real, y/y)", "reer_12m": "BIS WS_EER (real, broad)",
                             "credit_gap": "BIS WS_CREDIT_GAP", "dsr": "BIS WS_DSR", "esi": "Eurostat EI_BSSI_M_R2",
-                            "cons_conf_eu": "Eurostat EI_BSCO_M", "ind_conf_eu": "Eurostat EI_BSIN_M_R2"}.get(name, name)}
+                            "cons_conf_eu": "Eurostat EI_BSCO_M", "ind_conf_eu": "Eurostat EI_BSIN_M_R2",
+                            "money_yoy": "OECD DSD_KEI@DF_KEI MABM", "policy_12m": "BIS WS_CBPOL (monthly)",
+                            "order_books": "OECD DSD_STES@DF_BTS OB", "prod_expect": "OECD DSD_STES@DF_BTS PR",
+                            "export_orders": "OECD DSD_STES@DF_BTS XR"}.get(name, name)}
         countries[iso] = {"features": fs, "n_features": len(fs),
                           "pillars": sorted({v["pillar"] for v in fs.values() if v["pillar"] != "side"})}
         coverage[iso] = {"n_features": len(fs), "pillars": countries[iso]["pillars"],

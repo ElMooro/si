@@ -103,7 +103,10 @@ def build_country(country_feats, grid, equity_monthly=None, end_idx=None):
         vals = f.get("values") or []
         if len(vals) != n:
             continue
-        gap = 2 if f.get("freq") == "M" else 3 if f.get("freq") == "Q" else 1
+        # a print stands until the next one arrives, for at most the feature's max lag
+        # (monthly 4, quarterly 7): history months then carry exactly what a nowcast
+        # would have seen, and the last history row equals the nowcast
+        gap = int(f.get("max_lag_months") or 4)
         z = rolling_z(vals)
         z = ffill(z, gap)
         sign = f.get("sign", 1) or 1
@@ -148,22 +151,24 @@ def build_country(country_feats, grid, equity_monthly=None, end_idx=None):
     for name, zs in feat_z.items():
         f = meta[name]
         max_lag = int(f.get("max_lag_months") or 4)
-        j = None
-        for k in range(end_idx, max(-1, end_idx - max_lag - 1), -1):
-            if zs[k] is not None:
-                j = k
-                break
-        stale = None if j is None else end_idx - j
         vals = f.get("values") or []
-        latest_val = vals[j] if j is not None and j < len(vals) else f.get("latest_value")
+        jr = None                      # index of the last actual print at or before end_idx
+        for k in range(min(end_idx, len(vals) - 1), -1, -1):
+            if vals[k] is not None:
+                jr = k
+                break
+        stale = None if jr is None else end_idx - jr
+        used = zs[end_idx] is not None and stale is not None and stale <= max_lag
+        latest_val = vals[jr] if jr is not None else f.get("latest_value")
         comp = {"name": name, "pillar": f.get("pillar"), "label": f.get("label"), "sign": f.get("sign", 1), "freq": f.get("freq"),
-                "latest_period": f.get("latest_period"), "months_stale": f.get("months_stale", stale), "source": f.get("source"),
+                "latest_period": f.get("latest_period"), "months_stale": stale, "source": f.get("source"),
                 "value": (round(latest_val, 3) if isinstance(latest_val, (int, float)) else None),
-                "level_latest": f.get("level_latest"), "z": (round(zs[j], 3) if j is not None else None),
-                "used": j is not None, "reason": None if j is not None else f"no standardised print within {max_lag} months"}
+                "level_latest": f.get("level_latest"), "z": (round(zs[end_idx], 3) if used else None),
+                "used": used, "reason": None if used else (f"last print {stale} months ago > max lag {max_lag}" if stale is not None
+                                                            else "no print" if jr is None else "no standardised value (history too short)")}
         components.append(comp)
-        if j is not None:
-            now_members[f["pillar"]].append((name, zs[j]))
+        if used:
+            now_members[f["pillar"]].append((name, zs[end_idx]))
     if not now_members:
         return {"history": history, "nowcast": None, "components": components}
     pz = {p: sum(v for _, v in xs) / len(xs) for p, xs in now_members.items()}
