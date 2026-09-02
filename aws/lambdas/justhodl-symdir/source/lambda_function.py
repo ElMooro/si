@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.1.1"
+VERSION = "1.1.2"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -288,7 +288,7 @@ FAMOUS = {"WALCL": "fed balance sheet total assets federal reserve", "WTREGEN": 
           "DTWEXBGS": "dollar index broad dxy", "DEXUSEU": "eurusd euro dollar", "DEXJPUS": "usdjpy yen", "DEXCHUS": "usdcny yuan", "DEXUSUK": "gbpusd pound",
           "VIXCLS": "vix volatility", "BAMLH0A0HYM2": "high yield spread oas junk", "BAMLC0A0CM": "investment grade spread oas", "DCOILWTICO": "wti crude oil price",
           "DCOILBRENTEU": "brent crude oil price", "GOLDAMGBD228NLBM": "gold price", "SP500": "s&p 500 spx", "NFCI": "financial conditions chicago fed",
-          "MORTGAGE30US": "30 year mortgage rate", "TOTALSA": "vehicle sales", "BUSLOANS": "commercial industrial loans", "SOFR": "sofr repo rate", "TB3MS": "3 month t-bill",
+          "MORTGAGE30US": "30 year mortgage rate", "TOTALSA": "vehicle sales", "BUSLOANS": "commercial industrial loans", "TB3MS": "3 month t-bill",
           "CPIENGSL": "energy cpi", "PPIACO": "ppi all commodities", "JTSJOL": "jolts job openings", "CIVPART": "labor force participation", "AHETPI": "average hourly earnings wages",
           "PSAVERT": "personal saving rate", "PCE": "personal consumption expenditures", "DSPIC96": "real disposable income", "GFDEBTN": "federal debt total public",
           "FYFSD": "federal deficit surplus", "BOPGSTB": "trade balance goods services", "NETEXP": "net exports", "EXPGS": "exports", "IMPGS": "imports"}
@@ -714,7 +714,7 @@ def build(event, context):
         for rate, nm in (("sofr", "Secured Overnight Financing Rate (SOFR)"), ("effr", "Effective Federal Funds Rate (EFFR)"),
                          ("obfr", "Overnight Bank Funding Rate (OBFR)"), ("tgcr", "Tri-Party General Collateral Rate (TGCR)"),
                          ("bgcr", "Broad General Collateral Rate (BGCR)")):
-            docs.append(doc("nyfed:" + rate, "nyfed", nm, "series", 0.9, unit="Percent", freq="D", key="data/warm/nyfed/%s.json.gz" % rate))
+            docs.append(doc("nyfed:" + rate, "nyfed", nm, "series", 0.95, unit="Percent", freq="D", key="data/warm/nyfed/%s.json.gz" % rate))
             docs.append(doc("nyfed:%s:volume" % rate, "nyfed", nm.split(" (")[0] + " volume ($bn)", "series", 0.6, unit="$bn", freq="D",
                             key="data/warm/nyfed/%s.json.gz" % rate, extra={"field": "volume_bn"}))
             n += 2
@@ -1335,7 +1335,7 @@ def search(q, limit=40, prov=None, kind=None):
         if tl.startswith(ql):
             s += 14
         elif ql in tl:
-            s += 6
+            s += 10 if d[D_KIND] == "dataset" else 6      # a dataset whose title carries the whole phrase opens N series on the topic
         if d[D_KIND] == "dataset":
             s += 3 if (d[D_N] or 0) > 100 else 0
             if toks and len(toks) > 1 and d[D_PROV] in ("statcan", "eurostat", "ecb", "worldbank", "ofr", "boj", "census", "treasury"):
