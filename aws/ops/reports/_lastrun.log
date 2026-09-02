@@ -1,61 +1,169 @@
-executing-against: 38cc54a63ca7ca89b1504a429637525dd72702e6
-ops 5128 -- every symbol from the warehouse: daily bars since inception (re-bank in place), aliases, native page
-── S1 deploy tv-bars v1.1 + symdir v1.2.0 ──
-[15:04:00]   zip: 107422 bytes
-── 1. Lambda ──
-[15:04:00]   Lambda exists — updating
-[15:04:04] ✅   ✓ updated justhodl-tv-bars
-[15:04:07]   zip: 132808 bytes
-── 1. Lambda ──
-[15:04:07]   Lambda exists — updating
-[15:04:10] ✅   ✓ updated justhodl-symdir
-[15:07:56] ✅   rebuilt docs=1,374,434 elapsed=209.9s
-[15:08:16]   re-bank AMEX:SPY           ok=True n=8861 first=1993-01-29 src=yahoo-chart:SPY err=None
-[15:08:16]   re-bank CME_MINI:ES1!      ok=True n=6621 first=2000-09-18 src=yahoo-chart:ES=F err=None
-[15:08:16]   re-bank COINBASE:BTCUSD    ok=True n=4370 first=2014-09-17 src=yahoo-chart:BTC-USD err=None
-[15:08:16]   re-bank FX:EURUSD          ok=True n=5989 first=2003-12-01 src=yahoo-chart:EURUSD=X err=None
-[15:08:16]   re-bank HKEX:700           ok=True n=5753 first=2004-06-16 src=yahoo-chart:0700.HK err=None
-[15:08:16]   re-bank I:SPX              ok=False n=None first=None src=None err=RuntimeError: no bars for I:SPX (tv:all endpoints refused: data.tradingview.com/socket.io/websocket?from= )
-[15:08:24]   re-bank NASDAQ:AAPL        ok=True n=11692 first=1980-12-12 src=yahoo-chart:AAPL err=None
-[15:08:24]   re-bank SSE:000001         ok=True n=7418 first=1997-07-02 src=yahoo-chart:000001.SS err=None
-[15:08:24]   re-bank US:AAPL            ok=False n=None first=None src=None err=RuntimeError: no bars for US:AAPL (tv:all endpoints refused: data.tradingview.com/socket.io/websocket?from= )
-[15:08:24]   re-bank US:BRK.B           ok=False n=None first=None src=None err=RuntimeError: no bars for US:BRK.B (tv:all endpoints refused: data.tradingview.com/socket.io/websocket?from= )
-[15:08:24]   re-bank US:NVDA            ok=False n=None first=None src=None err=RuntimeError: no bars for US:NVDA (tv:all endpoints refused: data.tradingview.com/socket.io/websocket?from= )
-[15:08:24]   re-bank X:BTCUSD           ok=False n=None first=None src=None err=RuntimeError: no bars for X:BTCUSD (tv:all endpoints refused: data.tradingview.com/socket.io/websocket?from= )
-[15:08:26]   re-bank XETR:DAX           ok=True n=9936 first=1987-11-30 src=yahoo-chart:^GDAXI err=None
-── S2 /series across symbol families (bank on first open, then S3) ──
-[15:08:26]   TVC:VIX            n=  9262 first=1990-01-02 last=2026-08-28    247ms ohlc=0 src=warehouse:fred-scoped/Financial_Indicators via=fred:VIXCLS err=
-[15:08:29]   AAPL               n=   169 first=1984-12-01 last=2026-09-02   1139ms ohlc=169 src=warehouse:tv-bars · yahoo-chart:AAPL via=None err=
-[15:08:29]   NASDAQ:AAPL        n= 11580 first=1980-12-12 last=2026-09-02    440ms ohlc=11692 src=warehouse:tv-bars · yahoo-chart:AAPL via=None err=
-[15:08:30]   SSE:000001         n=  7186 first=1997-07-02 last=2026-09-02    317ms ohlc=7418 src=warehouse:tv-bars · yahoo-chart:000001.SS via=None err=
-[15:08:30]   FX:EURUSD          n=  5988 first=2003-12-01 last=2026-09-02    317ms ohlc=5989 src=warehouse:tv-bars · yahoo-chart:EURUSD=X via=None err=
-[15:08:31]   X:BTCUSD           n=   145 first=2014-10-01 last=2026-09-02    110ms ohlc=145 src=warehouse:tv-bars · yahoo-chart:BTC-USD via=None err=
-[15:08:31]   COINBASE:BTCUSD    n=  4369 first=2014-09-17 last=2026-09-02    211ms ohlc=4370 src=warehouse:tv-bars · yahoo-chart:BTC-USD via=None err=
-[15:08:31]   CME_MINI:ES1!      n=  6620 first=2000-09-18 last=2026-09-02    230ms ohlc=6621 src=warehouse:tv-bars · yahoo-chart:ES=F via=None err=
-[15:08:32]   HKEX:700           n=  5567 first=2004-06-16 last=2026-09-02    317ms ohlc=5753 src=warehouse:tv-bars · yahoo-chart:0700.HK via=None err=
-[15:08:33] ✗   ECONOMICS:DEUR: HTTP Error 500: Internal Server Error
-[15:08:33]   I:SPX              n=   169 first=1984-12-01 last=2026-09-02    129ms ohlc=169 src=warehouse:tv-bars · yahoo-chart:^GSPC via=None err=
-[15:08:33]   BRK.B              n=   365 first=1996-06-01 last=2026-09-02    152ms ohlc=365 src=warehouse:tv-bars · yahoo-chart:BRK-B via=None err=
-[15:08:34]   AMEX:SPY           n=  8600 first=1993-01-29 last=2026-09-02    354ms ohlc=8861 src=warehouse:tv-bars · yahoo-chart:SPY via=None err=
-[15:08:35] ✗   OTC:AAAIF: HTTP Error 500: Internal Server Error
-[15:08:36]   XETR:DAX           n=  9825 first=1987-11-30 last=2026-09-02    381ms ohlc=9936 src=warehouse:tv-bars · yahoo-chart:^GDAXI via=None err=
-[15:08:36]   NVDA               n=   333 first=1999-02-01 last=2026-09-02    135ms ohlc=333 src=warehouse:tv-bars · yahoo-chart:NVDA via=None err=
-[15:08:38]   quote TVC:VIX          ok=True last=14.43 @2026-08-28 chg%=-0.551 err=None
-[15:08:38]   quote AAPL             ok=True last=325.0299987792969 @2026-09-02 chg%=-0.031 err=None
-[15:08:38]   quote ECONOMICS:DEUR   ok=False last=None @None chg%=None err=not banked yet and the bank pull failed: RuntimeError: no bars for ECONOMICS:DEUR (tv:all endpoints 
-[15:08:38]   quote fred:DGS10       ok=True last=4.69 @2026-08-06 chg%=1.296 err=None
-[15:08:38]   universe index: n_symbols=13 failures=17
-── S3 live page: native charts, no widget paywall ──
-[15:09:07]   page TVC:VIX: {"active": "TVC:VIX", "meta": "FRED \u00b7 14.43 Index -0.55% \u00b7 9,262 obs \u00b7 1990-01-02\u21922026-08-28 \u00b7 D \u00b7 warehouse", "loading": "Loading TVC:VIX \u2014 full history\u2026", "iframe": false, "paywall": false, "name": "CBOE Volatility Index: VIX", "nativeSrc": null}
-[15:09:16]   page AAPL: {"active": "AAPL", "meta": "$325.03 -0.03% \u00b7 169 bars \u00b7 JustHodl warehouse \u00b7 since 1984", "loading": "Loading AAPL from Polygon\u2026", "iframe": false, "paywall": false, "name": "", "nativeSrc": "JustHodl warehouse \u00b7 since 1984"}
-[15:09:25]   page SSE:000001: {"active": "SSE:000001", "meta": "TradingView \u00b7 3,941.4 -0.97% \u00b7 7,186 obs \u00b7 1997-07-02\u21922026-09-02 \u00b7 D \u00b7 warehouse", "loading": "Loading SSE:000001 \u2014 full history\u2026", "iframe": false, "paywall": false, "name": "000001 (SSE)", "nativeSrc": "JustHodl warehouse \u00b7 since 1984"}
-[15:09:34]   page ECONOMICS:DEUR: {"active": "ECONOMICS:DEUR", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "No observations for ECONOMICS:DEUR \u2014 not banked yet and the bank pull failed: RuntimeError: no bars for ECONOMICS:DEUR (tv:all endpoints refused: data.tradingview.com/socket.io/websocket?from= )", "iframe": false, "paywall": false, "name": "", "nativeSrc": "JustHodl warehouse \u00b7 since 1984"}
-[15:09:34] ⚠   ECONOMICS:DEUR: not servable from the warehouse (no alias to a provider series)
-[15:09:43]   page NVDA: {"active": "NVDA", "meta": "$223.54 +2.81% \u00b7 250 bars \u00b7 JustHodl warehouse \u00b7 since 1999", "loading": "Loading NVDA from Polygon\u2026", "iframe": false, "paywall": false, "name": "", "nativeSrc": "JustHodl warehouse \u00b7 since 1999"}
-── verdict ──
-[15:09:43] ✗ AAPL: only 169 bars -- not daily granularity
-[15:09:43] ✗ I:SPX: only 169 bars -- not daily granularity
-[15:09:43] ✗ page errors ['Value is null', 'Value is null']
+executing-against: 5e41cacebba2ec4a145826e7293298c301a27dfa
+ops 5129 -- macro coverage reconciliation vs the external data.html audit
+── A. what the auditor could not see ──
+[15:10:16] hub: 57 providers, 811,171 datasets, 530.39 GB (as_of 2026-09-02T14:48:53+00:00)
+[15:10:16]   audit claim 'data.html only names ECB and FRED' = the page's provider grid is client-rendered; fixed by scripts/bake_data_inventory.py (static table + JSON at Pages build)
+[15:10:16]   warm prefixes (62): _audit, archived-fred, asia-trade, backlog, banxico, bis, blackswan, bls-full, boe-full, boe, boj-full, census-econ, census-us, cftc, dol-full, dtcc-fails, dtcc, ecb-mmsr, ecb, edgar-filings, eiopa, eurostat, finra-full, fiscaldata-full, frbddp-full, fred-canary, fred-catalog, fred-scoped, gdelt-full, gdelt, gleif, icma-sftr, imf-full, nasa-power, nyfed-markets, nyfed-research, nyfed, oecd, official-yields, ofr-bsrm, ofr-fsi, ofr-hfm, ofr-site, ofr, playbooks, polygon-full, portwatch, real-economy, repo-master, sec-bulk, sec-dera, sec-ftd, sec-midas, statcan, te-mirror, te-yields, tic-full, treasury, tv-bars, us-equities-daily, usgov, worldbank-full
+── B. FRED banked series named by the audit (first obs / last obs / n) ──
+[15:10:21]   us_liquidity         banked 19/20: WALCL(2002→2026-08), WTREGEN(2002→2026-08), RRPONTSYD(2003→2026-08), WRESBAL(2002→2026-08), RESPPLLOPNWW(2002→2026-08), WORAL(2002→2026-08), SWPT(2002→2026-08), WLRRAL(2002→2026-08), SOFR(2018→2026-08) …
+[15:10:21]       not banked: H41RESPPALDKNWW
+[15:10:21]   us_credit            banked 17/19: BAMLC0A0CM(1996→2026-08), BAMLH0A0HYM2(1996→2026-08), BAMLEMCBPIOAS(1998→2026-08), BAMLC0A4CBBB(1996→2026-08), DRTSCILM(1990→2026-07), DRTSCIS(1990→2026-07), TOTCI(1973→2026-07), BUSLOANS(1947→2026-06), ANFCI(1971→2026-07) …
+[15:10:21]       not banked: NFCI, STLFSI4
+[15:10:21]   fx_usd               banked 12/16: DTWEXBGS(2006→2026-07), DTWEXAFEGS(2006→2026-07), DTWEXEMEGS(2006→2026-07), DEXUSEU(1999→2026-07), DEXJPUS(1971→2026-07), DEXCHUS(1981→2026-07), DEXUSUK(1971→2026-07), DEXKOUS(1981→2026-07), DEXBZUS(1995→2026-07) …
+[15:10:21]       not banked: VIXCLS, EVZCLS, JPYUSD, USDONTD156N
+[15:10:21]   global_cb            banked 1/12: IRLTLT01DEM156N(1970→2026-06)
+[15:10:21]       not banked: JPNASSETS, ECBASSETSW, UKASSETS, CHNASSETS, SNBASSETS, TOTALASSETS, IRLTLT01JPM156N, INTGSTJPM193N, IR3TIB01EZM156N, ECBDFR, ECBMLFR
+[15:10:21]   us_manufacturing     banked 3/18: AMTMNO(1992→2026-06), AMTMUO(1992→2026-06), AWHMAN(1939→2026-07)
+[15:10:21]       not banked: INDPRO, IPMAN, TCU, MCUMFN, DGORDER, NEWORDER, MANEMP, UMTMTI, ISRATIO, BUSINV, GACDISA066MSFRBNY, GACDFSA066MSFRBPHI, TXPCTDEMSA, RMFSA, MNFCTRIRSA
+[15:10:21]   global_manufacturing banked 0/16: 
+[15:10:21]       not banked: JPNPROINDMISMEI, DEUPROINDMISMEI, KORPROINDMISMEI, CHNPRINTO01IXPYM, EA19PRINTO01GYSAM, MEXPROINDMISMEI, BRAPROINDMISMEI, INDPROINDMISMEI, OECDPRINTO01GYSAM, XTEXVA01KRM667S, XTEXVA01TWM667S, XTEXVA01CNM667S, XTEXVA01DEM667S, XTEXVA01JPM667S, XTEXVA01MXM667S, XTEXVA01VNM667S
+[15:10:21]   em_frontier          banked 7/19: EMVOVERALLEMV(1985→2026-06), DEXBZUS(1995→2026-07), DEXINUS(1973→2026-07), DEXSFUS(1980→2026-07), DEXTHUS(1981→2026-07), DEXMAUS(1971→2026-07), DEXKOUS(1981→2026-07)
+[15:10:21]       not banked: TEDRATE, VXEEMCLS, RBBRBIS, RBINBIS, RBMXBIS, RBZABIS, RBTRBIS, RBIDBIS, TRESEGCHM052N, TRESEGBRM052N, TRESEGINM052N, TRESEGMXM052N
+── C. plumbing / liquidity / bonds / FX providers actually held ──
+[15:10:21]   OFR: datasets ['dataset-mmf.json.gz', 'dataset-nypd.json.gz', 'dataset-repo.json.gz'] · HFM series 497 · BSRM series 498 · FSI True
+[15:10:21]   OFR repo mnemonics: 164 · NCCBR/bilateral: []
+[15:10:21]   NY Fed markets: warm/nyfed ['bgcr.json.gz', 'effr.json.gz', 'latest-summary.json', 'obfr.json.gz', 'sofr.json.gz', 'tgcr.json.gz'] · warm/nyfed-markets 1000 keys ['ambs-history.json.gz', 'fxs-history.json.gz', 'fs-latest.json.gz', 'fs-previous.json.gz', 'si-latest.json.gz', 'si-previous.json.gz', 'wi-latest.json.gz', 'wi-previous.json.gz']
+[15:10:21]   BIS: ['catalog.json.gz', 'WS_CBPOL_M.csv.gz', 'WS_EER_M.csv.gz', 'BIS_REL_CAL.dat.gz', 'WS_CBPOL.dat.gz', 'WS_CBS_PUB.dat.gz', 'WS_CBTA.dat.gz', 'WS_CPMI_CASHLESS.dat.gz', 'WS_CPMI_CT1.dat.gz', 'WS_CPMI_CT2.dat.gz', 'WS_CPMI_DEVICES.dat.gz', 'WS_CPMI_INSTITUT.dat.gz', 'WS_CPMI_MACRO.dat.gz', 'WS_CPMI_PARTICIP.dat.gz', 'WS_CPMI_SYSTEMS.dat.gz', 'WS_CPP.dat.gz', 'WS_CREDIT_GAP.dat.gz', 'WS_DEBT_SEC2_PUB.dat.gz', 'WS_DER_OTC_TOV.dat.gz', 'WS_DPP.dat.gz', 'WS_DSR.dat.gz', 'WS_EER.dat.gz', 'WS_GLI.dat.gz', 'WS_LBS_D_PUB.dat.gz', 'WS_LONG_CPI.dat.gz', 'WS_NA_SEC_DSS.dat.gz', 'WS_OTC_DERIV2.dat.gz', 'WS_SPP.dat.gz', 'WS_TC.dat.gz', 'WS_XRU.dat.gz', 'WS_XTD_DERIV.dat.gz']
+[15:10:21]       WS_LBS         HAVE
+[15:10:21]       WS_GLI         HAVE
+[15:10:21]       WS_CBS         HAVE
+[15:10:21]       WS_DEBT_SEC    HAVE
+[15:10:21]       WS_TC          HAVE
+[15:10:21]       WS_CREDIT_GAP  HAVE
+[15:10:21]       WS_DSR         HAVE
+[15:10:21]       WS_EER         HAVE
+[15:10:21]       WS_CBPOL       HAVE
+[15:10:21]       WS_CBTA        HAVE
+[15:10:21]       WS_SPP         HAVE
+[15:10:21]       WS_XRU         HAVE
+[15:10:21]       WS_OTC         HAVE
+[15:10:21]   ECB flows in the series index: 207 · CISS True · BSI True · MIR True · FM True · YC True · EXR True · GFS True · BP6 True · QSA True
+[15:10:21]   IMF flows banked: 218 e.g. ['AEA', 'AFRREO', 'AFRREO_2025_OCT_VINTAGE', 'ANEA', 'ANEA_2026_APR_VINTAGE', 'ANEA_2026_FEB_VINTAGE', 'ANEA_2026_JAN_VINTAGE', 'ANEA_2026_MAY_VINTAGE', 'APDREO', 'APDREO_2025_OCT_VINTAGE', 'BOP', 'BOP_2026_APR_VINTAGE', 'BOP_2026_FEB_VINTAGE', 'BOP_2026_JAN_VINTAGE', 'BOP_2026_MAY_VINTAGE', 'BOP_AGG', 'CCI', 'CFBL', 'CO2E', 'CO2EEIEM', 'COFER', 'COFER_2025_OCT_VINTAGE', 'CPI', 'CPI_2026_APR_VINTAGE', 'CPI_2026_FEB_VINTAGE', 'CPI_2026_JAN_VINTAGE', 'CPI_2026_MAY_VINTAGE', 'CPI_WCA', 'CPI_WCA_2026_APR_VINTAGE', 'CPI_WCA_2026_FEB_VINTAGE']
+[15:10:21]       IFS      missing
+[15:10:21]       BOP      HAVE
+[15:10:21]       COFER    HAVE
+[15:10:21]       DOT      missing
+[15:10:21]       FSI      HAVE
+[15:10:21]       PCPS     HAVE
+[15:10:21]       WEO      HAVE
+[15:10:21]       GFSR     missing
+[15:10:21]       IRFCL    HAVE
+[15:10:21]       CDIS     missing
+[15:10:21]       CPIS     missing
+[15:10:21]       MFS      HAVE
+[15:10:21]       FAS      HAVE
+[15:10:22]   OECD flows banked: 1104 · CLI True · KEI True · STES/MEI True · BTS False
+[15:10:22]   FRB DDP packages: ['CHGDEL.zip', 'CP.zip', 'E2.zip', 'FOR.zip', 'G17.zip', 'G19.zip', 'G20.zip', 'H10.zip', 'H15.zip', 'H3.zip', 'H41.zip', 'H6.zip', 'H8.zip', 'PRATES.zip', 'SCOOS.zip', 'SLOOS.zip', 'Z1.zip', 'manifest.json']
+[15:10:22]   FiscalData endpoints: 33 e.g. ['v1_accounting_dts_adjustment_public_debt', 'v1_accounting_dts_debt_subject_to_limit.', 'v1_accounting_dts_deposits_withdrawals_o', 'v1_accounting_dts_federal_tax_deposits.j', 'v1_accounting_dts_income_tax_refunds_iss', 'v1_accounting_dts_inter_agency_tax_trans', 'v1_accounting_dts_operating_cash_balance', 'v1_accounting_dts_public_debt_transactio']
+[15:10:22]   TIC files: ['state.json', 'bctype.txt', 'bltype.txt', 'manifest.json', 'mfh.txt', 'mfhhis01.txt', 's1_99996.txt', 'slt1d.txt', 'slt2d.txt', 'slt3d.txt']
+[15:10:22]   CFTC: ['disaggregated_futures.json.gz', 'latest-summary.json', 'legacy_futures.json.gz']
+[15:10:22]   coinmetrics      0 keys e.g. []
+[15:10:22]   cboe             0 keys e.g. []
+[15:10:22]   dtcc             1 keys e.g. ['daily-treasury-fails.csv']
+[15:10:22]   dtcc-fails       2 keys e.g. ['agency.json', 'treasury.json']
+[15:10:22]   sec-ftd          410 keys+ e.g. ['_manifest.json', 'cnsfails200907a.csv.gz', 'cnsfails200907b.csv.gz', 'cnsfails200908a.csv.gz']
+[15:10:22]   icma-sftr        30 keys e.g. ['newt-5-6-cash-value-eur-mn.json', 'newt-5-6-collateral-mv-eur-mn.json', 'newt-5-6-n-transactions.json', 'newt-all-sfts-total-sft-cash-value']
+[15:10:22]   official-yields  2 keys e.g. ['de-10y-bbk.json', 'ea-aaa-10y-ecb.json']
+[15:10:22]   te-yields        4 keys e.g. ['france-10y.json', 'germany-10y.json', 'italy-10y.json', 'spain-10y.json']
+[15:10:22]   repo-master      1 keys e.g. ['inventory.json.gz']
+[15:10:22]   ecb-mmsr         4 keys e.g. ['de-on-borrow-turnover.json', 'es-on-borrow-turnover.json', 'fr-on-borrow-turnover.json', 'it-on-borrow-turnover.json']
+[15:10:22]   boe-full         48 keys e.g. ['state.json', 'blcnomddata.zip', 'blcnominalmonthedata.zip', 'glcinflationddata.zip']
+[15:10:22]   boj-full         1000 keys+ e.g. ['api_BP01.json', 'api_BS01.json', 'api_BS02.json', 'api_FF.json']
+[15:10:22]   snb              0 keys e.g. []
+[15:10:22]   bcb              0 keys e.g. []
+[15:10:22]   banxico          1 keys e.g. ['core-series.json.gz']
+── D. real economy: manufacturing, IP, ports, exports, hubs ──
+[15:10:22]   PortWatch feed: keys=['ok', 'version', 'generated_at', 'chokepoints', 'disruptions', 'errors', 'attribution', 'ref_n', 'daily_layer', 'daily_rows'] ports=58 as_of=2026-09-02T11:20:51.382111+00:00
+[15:10:22]   warm/portwatch: 2 keys e.g. ['daily-rows.json.gz', 'layer-choice.json']
+[15:10:23]   Census EITS timeseries datasets: 21 ['advm3', 'bfs', 'ftd', 'ftdadv', 'hv', 'm3', 'marts', 'mhs', 'mhs2', 'mrts', 'mrtsadv', 'mtis', 'mwts', 'mwtsadv', 'qfr', 'qpr', 'qss', 'qtax', 'resconst', 'ressales', 'vip']
+[15:10:23]   BLS surveys banked: ['ap', 'bd', 'bg', 'bp', 'ca', 'cb', 'cc', 'cd', 'ce', 'cf', 'ch', 'ci', 'cm', 'cs', 'cu', 'cw', 'cx', 'eb', 'ec', 'ee', 'ei', 'ep', 'fa', 'fi', 'fm', 'fw', 'gg', 'gp', 'hc', 'hs', 'ii', 'in', 'ip', 'is', 'jl', 'jt', 'kv', 'la', 'le', 'li', 'ln', 'lu', 'ml', 'mp', 'mu', 'mw', 'nb', 'nc', 'nd', 'nw', 'oe', 'or', 'pc', 'pd', 'pr', 'sa', 'sh', 'si', 'sm', 'su', 'tu', 'wd', 'wm', 'wp', 'ws']
+[15:10:23]   taiwan-moea    hub datasets=1 freshest=1.5h warm keys=0
+[15:10:23]   kr-ecos        hub datasets=0 freshest=Noneh warm keys=0
+[15:10:23]   hk-data        hub datasets=37 freshest=22.8h warm keys=0
+[15:10:23]   cl-datos       hub datasets=15 freshest=166.8h warm keys=0
+[15:10:23]   peru-copper    hub datasets=1 freshest=1.6h warm keys=0
+[15:10:23]   asia-trade     hub datasets=None freshest=Noneh warm keys=54+
+[15:10:23]   real-economy   hub datasets=None freshest=Noneh warm keys=33+
+[15:10:23]   gdelt-full     hub datasets=None freshest=Noneh warm keys=1000+
+[15:10:23]   feed freight-pulse        HAVE 2026-09-02T11:50:21 keys=['ok', 'version', 'generated_at', 'engine_class', 'composite_role', 'lag_months', 'role_note', 'series'] sources=None
+[15:10:23]   feed port-cargo           HAVE 2026-09-02T12:41:46 keys=['engine', 'version', 'date_field_type', 'engine_class', 'evidence_tier', 'lag_months', 'generated_at', 'duration_s'] sources=None
+[15:10:23]   feed trade-nowcast        HAVE 2026-09-02T12:50:11 keys=['ok', 'version', 'generated_at', 'series', 'errors', 'bdi', 'cpb_wtm', 'rate_pressure'] sources=None
+[15:10:23]   feed global-flows         HAVE 2026-09-02T10:00:22 keys=['v', 'engine', 'as_of', 'generated_at', 'doctrine', 'countries', 'deferred', 'composites'] sources=None
+[15:10:23]   feed asia-leads           HAVE 2026-09-02T10:20:44 keys=['engine', 'version', 'generated_at', 'korea_exports', 'korea_flash', 'korea_flash_tape', 'taiwan_orders', 'taiwan_exports'] sources=['FRED XTEXVA01KRM667N', 'FRED VALEXPTWM052N']
+[15:10:23]   feed esi                  HAVE 2026-09-02T12:30:48 keys=['schema_version', 'method', 'generated_at', 'composite_7d', 'composite_30d', 'composite_60d', 'n_events_7d', 'n_events_30d'] sources=None
+[15:10:24]   feed oecd-cli             HAVE 2026-09-02T13:36:20 keys=['engine_version', 'generated_at', 'as_of_period', 'as_of_age_months', 'source', 'global_avg_cli', 'oecd_total_cli', 'n_countries'] sources=OECD DSD_STES@DF_CLI via cycle-features cache (2026-09-02)
+[15:10:24]   feed macro-nowcast        HAVE 2026-09-02T14:12:43 keys=['v', 'generated_at', 'global_confidence', 'wl_research', 'duration_s', 'raw_score', 'normalized_score', 'regime'] sources=None
+[15:10:24]   feed global-liquidity     HAVE 2026-09-02T14:02:15 keys=['schema_version', 'method', 'generated_at', 'wl_research', 'elapsed_s', 'fred_failed', 'global_liquidity_index', 'fed_net_liquidity'] sources=None
+[15:10:24]   feed eurodollar-plumbing  HAVE 2026-09-02T12:03:23 keys=['engine', 'version', 'bis_crossborder', 'generated_at', 'euro_policy_corridor', 'wl_research', 'plumbing_health', 'verdict'] sources=None
+[15:10:24]   feed dollar-radar         HAVE 2026-09-02T13:16:05 keys=['schema_version', 'engine', 'generated_at', 'wl_research', 'build_seconds', 'dollar_pressure', 'regime', 'regime_note'] sources=None
+[15:10:24]   feed global-sovereign     HAVE 2026-09-02T06:16:53 keys=['version', 'ok', 'generated_at', 'elapsed_s', 'n_countries', 'n_errors', 'errors', 'global_avg_stress'] sources=World Government Bonds (worldgovernmentbonds.com) — live 10Y yield, sovereign CDS, spread-vs-Bund, rating, central-bank 
+[15:10:24]   feed sovereign-stress     HAVE 2026-09-02T12:05:26 keys=['schema_version', 'version', 'method', 'generated_at', 'elapsed_s', 'ok', 'headline', 'europe_stress'] sources=['ECB Data Portal — CISS systemic stress', 'ECB Data Portal — SovCISS sovereign stress', 'World Government Bonds — Asian
+[15:10:24]   feed credit-stress        HAVE 2026-09-01T22:10:39 keys=['generated_at', 'europe_sovereign', 'wl_research', 'generated_at_unix', 'dealer_positioning', 'version', 'elapsed_seconds', 'data_date'] sources=None
+[15:10:24]   feed global-recession     HAVE 2026-09-02T12:40:07 keys=['engine', 'version', 'generated_at', 'global_recession_prob_pct', 'band', 'coverage', 'breadth', 'confirmation'] sources=None
+── E. verdict per requested domain ──
+[15:10:24]   financial_plumbing_us        HAVE (deep)
+[15:10:24]       evidence: OFR 3 datasets incl. repo (164 mnemonics), HFM 497, BSRM 498, FSI; NY Fed rates + volumes ['bgcr.json.gz', 'effr.json.gz', 'latest-summary.json', 'obfr.json.gz', 'sofr.json.gz', 'tgcr.json.gz']; FRED WALCL/TGA/RRP/reserves banked; FRB DDP 18 packages; FiscalData 33 endpoints
+[15:10:24]       gap: FIMA repo pool + foreign official RRP (FRED H41 lines exist; wire into net-liquidity identity)
+[15:10:24]       gap: SRF usage (NY Fed operations CSV)
+[15:10:24]       gap: FHLB advances (FRED/FHFA)
+[15:10:24]       gap: NCCBR split: check OFR repo mnemonics
+[15:10:24]   global_liquidity             PARTIAL
+[15:10:24]       evidence: BIS flows held: ['catalog.json.gz', 'WS_CBPOL_M.csv.gz', 'WS_EER_M.csv.gz', 'BIS_REL_CAL.dat.gz', 'WS_CBPOL.dat.gz', 'WS_CBS_PUB.dat.gz', 'WS_CBTA.dat.gz', 'WS_CPMI_CASHLESS.dat.gz', 'WS_CPMI_CT1.dat.gz', 'WS_CPMI_CT2.dat.gz', 'WS_CPMI_DEVICES.dat.gz', 'WS_CPMI_INSTITUT.dat.gz', 'WS_CPMI_MACRO.dat.g
+[15:10:24]       gap: GLI present
+[15:10:24]       gap: LBS present
+[15:10:24]       gap: IDS present
+[15:10:24]       gap: PBoC MLF/RRR/7d reverse repo volumes — china-liquidity feed exists; verify source depth
+[15:10:24]   eurodollar_liquidity         PARTIAL
+[15:10:24]       evidence: eurodollar-plumbing feed + TIC bctype/bltype + ECB MMSR turnover + ICE/ICMA where banked
+[15:10:24]       gap: BIS LBS/CBS by currency (the eurodollar quantity)
+[15:10:24]       gap: cross-currency basis (3m/5y EUR, JPY, GBP, CHF) — no free official source; reconstruct from FX forwards + OIS or license
+[15:10:24]       gap: Fed liquidity swap lines outstanding — NY Fed central-bank liquidity swaps CSV, free
+[15:10:24]       gap: FIMA repo usage — H.4.1 line, free
+[15:10:24]   bond_liquidity_stress        PARTIAL
+[15:10:24]       evidence: ICE BofA OAS family banked (92 mirrored at 100% agreement), MOVE via TV dictionary, auctions/FiscalData, official-yields, repo-master
+[15:10:24]       gap: swap spreads (2s/10s/30s) — no free daily official source; BIS/ECB partial
+[15:10:24]       gap: TRACE aggregated depth — FINRA authenticated tier (key held, no secret)
+[15:10:24]       gap: sovereign CDS — licensed only
+[15:10:24]       gap: EMBI/CEMBI — licensed; proxy via EMB/CEMB/HYEM bars now banked on demand in the universe
+[15:10:24]   global_forex_usd_shortage    PARTIAL
+[15:10:24]       evidence: FRED DTWEX broad/AFE/EME + bilateral spot banked; ECB EXR full history; VIX/EVZ; coinmetrics stablecoin lane
+[15:10:24]       gap: cross-currency basis (see eurodollar)
+[15:10:24]       gap: IMF COFER + IFS reserves — check imf-full for COFER/IFS below
+[15:10:24]       gap: FX implied vols beyond EVZ — licensed
+[15:10:24]       gap: EM reserves weekly (national CBs) — partial via banxico/bcb/snb lanes
+[15:10:24]   us_manufacturing             HAVE
+[15:10:24]       evidence: FRED INDPRO/TCU/AMTMNO/DGORDER + regional Fed surveys banked; Census EITS 21 datasets (M3, ADVM3, MTIS…); BLS CES/PR surveys
+[15:10:24]       gap: ISM PMI (licensed) — regional Fed diffusion + S&P flash are the free proxies
+[15:10:24]       gap: S&P Global US PMI — licensed
+[15:10:24]   global_manufacturing_hubs    PARTIAL
+[15:10:24]       evidence: OECD KEI/STES/CLI/BTS banked; Eurostat STS full; FRED OECD-sourced IP/exports for KR/TW/CN/DE/JP/MX/VN; taiwan-moea live; esi feed
+[15:10:24]       gap: Korea customs exports (first 10/20 days) — kr-ecos lane holds 0 datasets (dead lane, needs a key or the MOTIE/KITA route)
+[15:10:24]       gap: CPB World Trade Monitor — free monthly xlsx, not banked
+[15:10:24]       gap: national PMIs (Caixin/NBS China, DE, TW, KR, JP, VN, MX, IN) — NBS free; others licensed
+[15:10:24]       gap: electricity load (Ember/EIA/ENTSO-E) — free, not banked
+[15:10:24]   ports_ip_exports             PARTIAL
+[15:10:24]       evidence: PortWatch feed 58 ports; port-cargo, freight-pulse, trade-nowcast feeds; census intltrade excluded by directive
+[15:10:24]       gap: PortWatch full universe (~2,000 ports + 28 chokepoints, ArcGIS API, free) — extend from 24 ports
+[15:10:24]       gap: freight indices (FBX/Drewry/SCFI) — scrape/licensed; Baltic Dry via TV universe bank
+[15:10:24]       gap: UN Comtrade HS-level — free API, not banked
+[15:10:24]   em_frontier                  PARTIAL
+[15:10:24]       evidence: FRED EM FX/reserves/BIS REER banked; global-sovereign/sovereign-stress feeds; World Bank 29.5k indicators; capital-flow desk
+[15:10:24]       gap: IIF portfolio flows / EPFR — licensed
+[15:10:24]       gap: EMBI/CEMBI — licensed
+[15:10:24]       gap: IMF IFS/COFER/BOP official reserves & short-term external debt — imf-full has 218 flows; verify IFS/BOP presence above
+[15:10:24]       gap: frontier parallel FX / Eurobond bid-ask — licensed or scraped
+[15:10:24]       gap: WB IDS external debt — free, check worldbank-full
+── F. audit claims scorecard ──
+[15:10:24]   data.html only names ECB and FRED                FALSE (client-rendered grid; static bake added)
+[15:10:24]   ECB 406 outage                                   TRUE, already fixed (ops 4893; csvdata with no Accept)
+[15:10:24]   oldest-first truncation trap                     TRUE, already handled (ecb-deep time-slicing; extractor merges slices)
+[15:10:24]   fake inception years                             TRUE, already fixed (ops 4895)
+[15:10:24]   agency catalog gap /dataflow/ECB=104 vs all=214  TRUE, already handled (catalog uses /service/dataflow = 214)
+[15:10:24]   revision policy drift                            UNVERIFIED — full-window rotation is the doctrine; add a revision-audit op
+[15:10:24]   plumbing.html weights inconsistent               TRUE — badges 25/35/25/20/20 vs engine 25/30/15/10/20; fixed in this push, badge now bound from the feed
+[15:10:24]   desks render Loading… for scrapers               TRUE for non-JS readers; data.html static inventory baked; other desks: candidate for the same bake
+[15:10:24]   BIS GLI/LBS missing                              PARTIAL — BIS lane holds 31 objects; GLI/LBS/IDS present
+[15:10:24]   PortWatch fragile                                PARTIAL — 24 ports live with 379d history; full universe is a lane away
+[15:10:24] ✅ coverage matrix written: data/audit/macro-coverage-5129.json
 
-→ Report written to aws/ops/reports/latest/5128-every-symbol-from-s3.md
-❌ OPS-FAIL: aws/ops/pending/ops_5128_every_symbol_from_s3.py
+→ Report written to aws/ops/reports/latest/5129-macro-coverage.md
