@@ -1,0 +1,32 @@
+# ops 5141 -- FRED bank freshness: heal on open + hourly headline rotation
+
+**Status:** success  
+**Duration:** 518.4s  
+**Finished:** 2026-09-02T18:59:03+00:00  
+
+## Log
+## S1 deploy symdir v1.3.0 + hourly fredfresh schedule
+
+- `18:50:25`   zip: 133894 bytes
+## 1. Lambda
+
+- `18:50:25`   Lambda exists — updating
+- `18:50:29` ✅   ✓ updated justhodl-symdir
+- `18:50:34` ✅ schedule created: justhodl-symdir-fredfresh rate(1 hour)
+## S2 heal on open
+
+- `18:50:48`   fred:DGS10           n=16151 last=2026-08-31 src=warehouse:fred-scoped/Interest_Rates (+17 obs tail from FRED, bank healed)
+- `18:50:49`   fred:SOFR            n=2102 last=2026-09-01 src=warehouse:fred-scoped/Interest_Rates (+18 obs tail from FRED, bank healed)
+- `18:50:51`   fred:DFF             n=26360 last=2026-08-31 src=warehouse:fred-scoped/Interest_Rates (+25 obs tail from FRED, bank healed)
+- `18:50:52`   fred:VIXCLS          n=9264 last=2026-09-01 src=warehouse:fred-scoped/Financial_Indicators (+18 obs tail from FRED, bank healed)
+- `18:50:53`   fred:BAMLH0A0HYM2    n=7748 last=2026-09-01 src=warehouse:fred-scoped/Interest_Rates (+18 obs tail from FRED, bank healed)
+- `18:50:54`   fred:UNRATE          n=942 last=2026-07-01 src=warehouse:fred-scoped/Population,_Employment,_&_Labor_Markets
+## S3 fredfresh run
+
+- `18:59:02`   fredfresh: {"ok": true, "n": 483, "done": 300, "healed": 59, "obs_added": 725, "cursor": 300}
+## S4 the bank doc carries the tail
+
+- `18:59:03`   DGS10 bank: n=16151 last=2026-08-31 meta={"id": "DGS10", "realtime_start": "2026-08-09", "realtime_end": "2026-08-09", "title": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis", "observat
+## verdict
+
+- `18:59:03` ✅ PASS_ALL: banked FRED series heal on open and headline daily/weekly series rotate hourly; DGS10 current in the warehouse

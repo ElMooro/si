@@ -1,18 +1,23 @@
-executing-against: c2eb576611fc82e8a19604975c173bfc098ee1b1
-ops 5140 -- chart-pro: MAX = whole history, watchlist tab opens, header follows the series
-── S1 wait for the page ──
-[18:43:01] ✅ page live with the fix
-── S2 watchlist drawer ──
-[18:43:22]   before={'open': False, 'tabHidden': False} after tab click={'open': True, 'tabHidden': True, 'rows': 0, 'x': 0} after ×={'open': False, 'tabHidden': False}
-── S3 TVC:US10Y across timeframes ──
-[18:43:31]   1D (default): {"active": "TVC:US10Y", "tf": {"mult": 1, "span": "day", "days": 250}, "vr": {"from": "2025-12-01", "to": "2026-08-06"}, "width": 1918, "meta": "FRED \u00b7 4.69 % +1.30% \u00b7 16,134 obs \u00b7 1962-01-02\u21922026-08-06 \u00b7 D \u00b7 warehouse", "price": "4.69 %", "chg": "+1.30%", "pane": "TVC:US10Y", "nameH": 16, "name": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis"}
-[18:43:40]   MAX: {"active": "TVC:US10Y", "tf": {"mult": 1, "span": "week", "days": 9999}, "vr": {"from": "1962-01-01", "to": "2026-08-03"}, "width": 1918, "meta": "FRED \u00b7 4.69 % +1.30% \u00b7 16,134 obs \u00b7 1962-01-02\u21922026-08-06 \u00b7 D \u00b7 warehouse", "price": "4.69 %", "chg": "+1.30%", "pane": "TVC:US10Y", "nameH": 16, "name": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis"}
-[18:43:49]   5Y: {"active": "TVC:US10Y", "tf": {"mult": 1, "span": "day", "days": 1825}, "vr": {"from": "2021-08-09", "to": "2026-08-06"}, "width": 1918, "meta": "FRED \u00b7 4.69 % +1.30% \u00b7 16,134 obs \u00b7 1962-01-02\u21922026-08-06 \u00b7 D \u00b7 warehouse", "price": "4.69 %", "chg": "+1.30%", "pane": "TVC:US10Y", "nameH": 16, "name": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis"}
-[18:43:58]   1M: {"active": "TVC:US10Y", "tf": {"mult": 1, "span": "month", "days": 3650}, "vr": {"from": "2016-09-01", "to": "2026-08-01"}, "width": 1918, "meta": "FRED \u00b7 4.69 % +1.30% \u00b7 16,134 obs \u00b7 1962-01-02\u21922026-08-06 \u00b7 D \u00b7 warehouse", "price": "4.69 %", "chg": "+1.30%", "pane": "TVC:US10Y", "nameH": 16, "name": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis"}
-[18:43:58] ⚠   1M (monthly, 10y window) starts 2016-09-01
-── S4 header follows the series ──
-[18:43:58]   header: {"active": "TVC:US10Y", "tf": {"mult": 1, "span": "month", "days": 3650}, "vr": {"from": "2016-09-01", "to": "2026-08-01"}, "width": 1918, "meta": "FRED \u00b7 4.69 % +1.30% \u00b7 16,134 obs \u00b7 1962-01-02\u21922026-08-06 \u00b7 D \u00b7 warehouse", "price": "4.69 %", "chg": "+1.30%", "pane": "TVC:US10Y", "nameH": 16, "name": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis"}
+executing-against: a3c55935361b0cf0fcdb09f3080f00bf4ab790fb
+ops 5141 -- FRED bank freshness: heal on open + hourly headline rotation
+── S1 deploy symdir v1.3.0 + hourly fredfresh schedule ──
+[18:50:25]   zip: 133894 bytes
+── 1. Lambda ──
+[18:50:25]   Lambda exists — updating
+[18:50:29] ✅   ✓ updated justhodl-symdir
+[18:50:34] ✅ schedule created: justhodl-symdir-fredfresh rate(1 hour)
+── S2 heal on open ──
+[18:50:48]   fred:DGS10           n=16151 last=2026-08-31 src=warehouse:fred-scoped/Interest_Rates (+17 obs tail from FRED, bank healed)
+[18:50:49]   fred:SOFR            n=2102 last=2026-09-01 src=warehouse:fred-scoped/Interest_Rates (+18 obs tail from FRED, bank healed)
+[18:50:51]   fred:DFF             n=26360 last=2026-08-31 src=warehouse:fred-scoped/Interest_Rates (+25 obs tail from FRED, bank healed)
+[18:50:52]   fred:VIXCLS          n=9264 last=2026-09-01 src=warehouse:fred-scoped/Financial_Indicators (+18 obs tail from FRED, bank healed)
+[18:50:53]   fred:BAMLH0A0HYM2    n=7748 last=2026-09-01 src=warehouse:fred-scoped/Interest_Rates (+18 obs tail from FRED, bank healed)
+[18:50:54]   fred:UNRATE          n=942 last=2026-07-01 src=warehouse:fred-scoped/Population,_Employment,_&_Labor_Markets
+── S3 fredfresh run ──
+[18:59:02]   fredfresh: {"ok": true, "n": 483, "done": 300, "healed": 59, "obs_added": 725, "cursor": 300}
+── S4 the bank doc carries the tail ──
+[18:59:03]   DGS10 bank: n=16151 last=2026-08-31 meta={"id": "DGS10", "realtime_start": "2026-08-09", "realtime_end": "2026-08-09", "title": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis", "observat
 ── verdict ──
-[18:43:58] ✅ PASS_ALL: MAX shows 1962→2026, the WATCHLIST tab opens and closes, the header shows the series value and name on one line
+[18:59:03] ✅ PASS_ALL: banked FRED series heal on open and headline daily/weekly series rotate hourly; DGS10 current in the warehouse
 
-→ Report written to aws/ops/reports/latest/5140-chartpro-max-drawer.md
+→ Report written to aws/ops/reports/latest/5141-fred-freshness.md
