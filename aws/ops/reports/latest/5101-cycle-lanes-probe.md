@@ -1,0 +1,94 @@
+# ops 5101 -- probe live OECD STES / BIS lanes for the v3 trade, curve, CCI, REER gaps
+
+**Status:** success  
+**Duration:** 125.7s  
+**Finished:** 2026-09-02T00:47:06+00:00  
+
+## Data
+
+| bytes | ours | probe | rows | seconds | status |
+|---|---|---|---|---|---|
+| 11396113 | 34 | oecd_finmark_all | 121912 | 3.4 | 200 |
+| 3839053 | 34 | oecd_finmark_key | 41544 | 3.9 | 200 |
+| 21520386 | 34 | oecd_bts_all | 265652 | 6.5 | 200 |
+| 2818793 | 32 | oecd_cs_all | 34658 | 3.5 | 200 |
+| 65 | None | oecd_trade_all | None | 0.3 | 404 |
+| 11080662 | 34 | oecd_indserv_key | 116495 | 6.0 | 200 |
+| 34371856 | 34 | oecd_kei_live | 396973 | 22.9 | 200 |
+| 79647968 | 34 | oecd_kei_live_all | 914609 | 19.8 | 200 |
+| 800781 | 34 | bis_eer_monthly | 10846 | 2.1 | 200 |
+| 1526208 | 34 | bis_eer_monthly_all | 20416 | 2.1 | 200 |
+| 3294602 | 24 | bis_cbpol_monthly | 7149 | 1.3 | 200 |
+
+## Log
+## oecd_finmark_all
+
+- `00:45:04` HTTP 200 11396113 B in 3.4s 
+- `00:45:05`   rows=121912 areas=51 ours=34/34 header=['DATAFLOW', 'REF_AREA', 'FREQ', 'MEASURE', 'UNIT_MEASURE', 'ACTIVITY', 'ADJUSTMENT', 'TRANSFORMATION', 'TIME_HORIZ', 'METHODOLOGY', 'TIME_PERIOD', 'OBS_VALUE', 'OBS_STATUS', 'UNIT_MULT']
+- `00:45:05`   dims={"DATAFLOW": ["OECD.SDD.STES:DSD_STES@DF_FINMARK(4.0)"], "REF_AREA": ["EA20", "LVA", "ZAF", "BEL", "FIN", "IRL", "LUX", "NLD", "PRT", "DEU", "CHE", "ESP", "NZL", "ISR", "NOR", "USA", "CAN", "GBR", "GRC", "SVK", "DNK", "KOR", "POL", "LTU", "HUN", "JPN", "COL", "ISL", "ROU", "SWE"], "FREQ": ["M", "Q", "A"], "MEASURE": ["SHARE", "IRSTCI", "IR3TIB", "CCRE", "IRLT", "CC", "CCULC"], "UNIT_MEASURE": ["PA", "IX", "XDC_USD"], "ACTIVITY": ["_Z"], "ADJUSTMENT": ["_Z"], "TRANSFORMATION": ["_Z"], "TIME_HORIZ": ["_Z"], "METHODOLOGY": ["N"], "BASE_PER": ["", "2015"]}
+- `00:45:05`   ours latest sample: {"USA": {"IRSTCI/M": "2026-08", "IR3TIB/M": "2026-07", "IRLT/M": "2026-07", "IR3TIB/Q": "2026-Q2", "IRLT/Q": "2026-Q2", "IRSTCI/Q": "2026-Q2", "IRSTCI/A": "2025", "IRLT/A": "2025", "IR3TIB/A": "2025", "CCRE/M": "2026-07", "CCRE/A": "2025", "CCULC/A": "2025", "SHARE/A": "2025", "SHARE/Q": "2026-Q2", "SHARE/M": "2026-08", "CCRE/Q": "2026-Q2", "CCULC/Q": "2026-Q2"}, "FRA": {"IRSTCI/M": "2026-08", "IR3TIB/M": "2026-08", "IRLT/M": "2026-07", "IR3TIB/Q": "2026-Q2", "IRLT/Q": "2026-Q2", "IRSTCI/Q": "2026-Q2", "IRSTCI/A": "2025", "IRLT/A": "2025", "IR3TIB/A": "2025", "CCRE/M": "2026-07", "CCRE/A": "2025", "CCULC/A": "2025", "SHARE/A": "2025", "SHARE/Q": "2026-Q2", "SHARE/M": "2026-08", "CCRE/Q": "2026-Q2", "CCULC/Q": "2026-Q2"}, "ZAF": {"IRSTCI/M": "2026-06", "IR3TIB/M": "2026-06", "IRLT/M": "2026-06", "IR3TIB/Q": "2026-Q2", "IRLT/Q": "2026-Q2", "IRSTCI/Q": "2026-Q2", "IRSTCI/A": "2025", "IRLT/A
+## oecd_finmark_key
+
+- `00:45:12` HTTP 200 3839053 B in 3.9s 
+- `00:45:13`   rows=41544 areas=34 ours=34/34 header=['DATAFLOW', 'REF_AREA', 'FREQ', 'MEASURE', 'UNIT_MEASURE', 'ACTIVITY', 'ADJUSTMENT', 'TRANSFORMATION', 'TIME_HORIZ', 'METHODOLOGY', 'TIME_PERIOD', 'OBS_VALUE', 'OBS_STATUS', 'UNIT_MULT']
+- `00:45:13`   dims={"DATAFLOW": ["OECD.SDD.STES:DSD_STES@DF_FINMARK(4.0)"], "REF_AREA": ["DEU", "ESP", "NOR", "ISR", "AUS", "BEL", "FIN", "FRA", "CAN", "GRC", "NZL", "AUT", "IRL", "ITA", "NLD", "CHE", "PRT", "USA", "ZAF", "CZE", "GBR", "KOR", "DNK", "POL", "JPN", "HUN", "SWE", "CHL", "MEX", "IDN"], "FREQ": ["M"], "MEASURE": ["SHARE", "IRSTCI", "IR3TIB", "IRLT"], "UNIT_MEASURE": ["PA", "IX"], "ACTIVITY": ["_Z"], "ADJUSTMENT": ["_Z"], "TRANSFORMATION": ["_Z"], "TIME_HORIZ": ["_Z"], "METHODOLOGY": ["N"], "BASE_PER": ["", "2015"]}
+- `00:45:13`   ours latest sample: {"USA": {"IRSTCI/M": "2026-08", "IR3TIB/M": "2026-07", "IRLT/M": "2026-07", "SHARE/M": "2026-08"}, "FRA": {"IRSTCI/M": "2026-08", "IR3TIB/M": "2026-08", "IRLT/M": "2026-07", "SHARE/M": "2026-08"}, "ZAF": {"IRSTCI/M": "2026-06", "IR3TIB/M": "2026-06", "IRLT/M": "2026-06", "SHARE/M": "2026-08"}, "DEU": {"IRSTCI/M": "2026-08", "IR3TIB/M": "2026-08", "IRLT/M": "2026-08", "SHARE/M": "2026-08"}, "SWE": {"IRSTCI/M": "2020-10", "IR3TIB/M": "2026-08", "IRLT/M": "2026-08", "SHARE/M": "2026-08"}, "IND": {"IRSTCI/M": "2026-07", "IR3TIB/M": "2026-07", "IRLT/M": "2026-07", "SHARE/M": "2026-08"}}
+## oecd_bts_all
+
+- `00:45:23` HTTP 200 21520386 B in 6.5s 
+- `00:45:24`   rows=265652 areas=48 ours=34/34 header=['DATAFLOW', 'REF_AREA', 'FREQ', 'MEASURE', 'UNIT_MEASURE', 'ACTIVITY', 'ADJUSTMENT', 'TRANSFORMATION', 'TIME_HORIZ', 'METHODOLOGY', 'TIME_PERIOD', 'OBS_VALUE', 'OBS_STATUS', 'UNIT_MULT']
+- `00:45:24`   dims={"DATAFLOW": ["OECD.SDD.STES:DSD_STES@DF_BTS(4.0)"], "REF_AREA": ["DEU", "AUT", "DNK", "NLD", "BEL", "FRA", "FIN", "SWE", "GRC", "PRT", "EA20", "ITA", "SVK", "CZE", "LVA", "HUN", "LTU", "BGR", "ROU", "POL", "ESP", "EST", "SVN", "IRL", "GBR", "CHE", "TUR", "BRA", "HRV", "COL"], "FREQ": ["M", "Q", "A"], "MEASURE": ["EM", "BCICP", "BU", "PR", "OB", "SP", "DE", "FG", "XR", "VS", "OD", "CURT", "OI"], "UNIT_MEASURE": ["PB"], "ACTIVITY": ["C", "G47", "GTU", "F", "A_F_HTU"], "ADJUSTMENT": ["Y"], "TRANSFORMATION": ["_Z"], "TIME_HORIZ": ["FT", "T", "C", "_Z"], "METHODOLOGY": ["N"], "BASE_PER": [""]}
+- `00:45:24`   ours latest sample: {"USA": {"PR/M": "2026-07", "BCICP/M": "2026-07", "EM/M": "2026-07", "OI/M": "2026-07", "CURT/M": "2026-07", "XR/M": "2026-07", "OB/M": "2026-07", "CURT/A": "2025", "BCICP/Q": "2026-Q2", "EM/Q": "2026-Q2", "CURT/Q": "2026-Q2"}, "NLD": {"PR/M": "2026-08", "BCICP/M": "2026-08", "SP/M": "2026-08", "EM/M": "2026-08", "XR/M": "2026-08", "OB/M": "2026-08", "FG/M": "2026-08", "VS/M": "2026-08", "OD/M": "2026-08", "BU/M": "2026-08", "DE/M": "2026-08", "BCICP/A": "2025", "CURT/A": "2025", "OI/Q": "2026-Q3", "CURT/Q": "2026-Q3"}, "DEU": {"PR/M": "2026-08", "BCICP/M": "2026-08", "SP/M": "2026-08", "EM/M": "2026-08", "OI/M": "2026-08", "XR/M": "2026-08", "OB/M": "2026-08", "FG/M": "2026-08", "VS/M": "2026-08", "OD/M": "2026-08", "BU/M": "2026-08", "DE/M": "2026-08", "CURT/A": "2025", "OI/Q": "2026-Q3", "CURT/Q": "2026-Q3"}, "FRA": {"PR/M": "2026-08", "BCICP/M": "2026-08", "SP/M": "2026-08", "EM/M": 
+## oecd_cs_all
+
+- `00:45:32` HTTP 200 2818793 B in 3.5s 
+- `00:45:32`   rows=34658 areas=46 ours=32/34 header=['DATAFLOW', 'REF_AREA', 'FREQ', 'MEASURE', 'UNIT_MEASURE', 'ACTIVITY', 'ADJUSTMENT', 'TRANSFORMATION', 'TIME_HORIZ', 'METHODOLOGY', 'TIME_PERIOD', 'OBS_VALUE', 'OBS_STATUS', 'UNIT_MULT']
+- `00:45:32`   dims={"DATAFLOW": ["OECD.SDD.STES:DSD_STES@DF_CS(4.0)"], "REF_AREA": ["USA", "NLD", "BEL", "AUS", "DNK", "FRA", "EA20", "AUT", "IRL", "GRC", "PRT", "ESP", "CZE", "HUN", "FIN", "SVN", "DEU", "SWE", "SVK", "ITA", "EST", "LVA", "POL", "BGR", "ROU", "LTU", "GBR", "COL", "LUX", "TUR"], "FREQ": ["M", "Q"], "MEASURE": ["CCICP", "ES", "IN"], "UNIT_MEASURE": ["PB"], "ACTIVITY": ["_Z"], "ADJUSTMENT": ["Y"], "TRANSFORMATION": ["_Z"], "TIME_HORIZ": ["FT", "_Z"], "METHODOLOGY": ["N"], "BASE_PER": [""]}
+- `00:45:32`   ours latest sample: {"USA": {"CCICP/M": "2026-08", "ES/M": "2026-08", "IN/M": "2026-08", "IN/Q": "2026-Q2"}, "NLD": {"CCICP/M": "2026-08", "ES/M": "2026-08", "IN/M": "2026-08"}, "GBR": {"CCICP/M": "2026-08", "ES/M": "2026-08", "IN/M": "2020-12"}, "BEL": {"CCICP/M": "2026-08", "ES/M": "2026-08", "IN/M": "2026-08"}, "AUS": {"CCICP/M": "2026-08", "ES/M": "2026-08", "IN/M": "2026-08"}, "ITA": {"CCICP/M": "2026-08", "ES/M": "2026-08", "IN/M": "2026-08"}}
+## oecd_trade_all
+
+- `00:45:36` HTTP 404 65 B in 0.3s HTTP 404
+- `00:45:36`   body head: b'Could not find Dataflow and/or DSD related with this data request'
+## oecd_indserv_key
+
+- `00:45:46` HTTP 200 11080662 B in 6.0s 
+- `00:45:47`   rows=116495 areas=34 ours=34/34 header=['DATAFLOW', 'REF_AREA', 'FREQ', 'MEASURE', 'UNIT_MEASURE', 'ACTIVITY', 'ADJUSTMENT', 'TRANSFORMATION', 'TIME_HORIZ', 'METHODOLOGY', 'TIME_PERIOD', 'OBS_VALUE', 'OBS_STATUS', 'UNIT_MULT']
+- `00:45:47`   dims={"DATAFLOW": ["OECD.SDD.STES:DSD_STES@DF_INDSERV(4.3)"], "REF_AREA": ["BEL", "POL", "ESP", "DEU", "NOR", "PRT", "SWE", "FIN", "NLD", "HUN", "FRA", "ITA", "TUR", "CZE", "DNK", "USA", "JPN", "AUT", "CAN", "KOR", "GRC", "GBR", "ISR", "BRA", "CHL", "IRL", "CHE", "ZAF", "MEX", "IND"], "FREQ": ["M"], "MEASURE": ["PRVM", "TOCAPA", "TOVM", "NODW", "WSDW"], "UNIT_MEASURE": ["IX", "VEH"], "ACTIVITY": ["G45", "C", "BTE", "G47", "F", "D", "F41", "MIG_NRG"], "ADJUSTMENT": ["Y", "N"], "TRANSFORMATION": ["_Z"], "TIME_HORIZ": ["_Z"], "METHODOLOGY": ["N"], "BASE_PER": ["2015", ""]}
+- `00:45:47`   ours latest sample: {"FRA": {"PRVM/M": "2026-06", "TOVM/M": "2026-07", "TOCAPA/M": "2026-07", "NODW/M": "2026-06"}, "AUS": {"TOCAPA/M": "2026-07", "NODW/M": "2026-06"}, "DEU": {"PRVM/M": "2026-06", "TOCAPA/M": "2026-06", "TOVM/M": "2026-06", "NODW/M": "2026-06"}, "KOR": {"TOVM/M": "2026-06", "PRVM/M": "2026-06", "TOCAPA/M": "2026-06", "NODW/M": "2018-12"}, "FIN": {"PRVM/M": "2026-06", "TOVM/M": "2026-06", "TOCAPA/M": "2026-06", "NODW/M": "2026-05"}, "HUN": {"PRVM/M": "2026-06", "TOVM/M": "2026-06", "TOCAPA/M": "2026-06", "NODW/M": "2026-05"}}
+## oecd_kei_live
+
+- `00:46:14` HTTP 200 34371856 B in 22.9s 
+- `00:46:15`   rows=396973 areas=34 ours=34/34 header=['DATAFLOW', 'REF_AREA', 'FREQ', 'MEASURE', 'UNIT_MEASURE', 'ACTIVITY', 'ADJUSTMENT', 'TRANSFORMATION', 'TIME_PERIOD', 'OBS_VALUE', 'OBS_STATUS', 'UNIT_MULT', 'DECIMALS', 'BASE_PER']
+- `00:46:15`   dims={"DATAFLOW": ["OECD.SDD.STES:DSD_KEI@DF_KEI(4.0)"], "REF_AREA": ["CAN", "USA", "HUN", "POL", "GBR", "SWE", "KOR", "ITA", "DEU", "ISR", "NLD", "ESP", "JPN", "CZE", "DNK", "BEL", "PRT", "FRA", "FIN", "MEX", "TUR", "NOR", "ZAF", "CHL", "BRA", "AUT", "GRC", "CHE", "AUS", "IND"], "FREQ": ["M"], "MEASURE": ["PRVM", "EX", "IM", "CP", "TOVM", "TOCAPA", "SHARE", "MABM", "PP", "NODW", "MANM", "IRSTCI", "CC", "H_EARN", "IR3TIB", "IRLT", "CCICP", "UNEMP", "BCICP", "LI", "RS", "EMP"], "UNIT_MEASURE": ["GR", "IX", "PA", "USD", "PB", "XDC_USD", "PT_LF", "PS"], "ACTIVITY": ["_Z", "_T", "C", "BTE", "G47", "G45", "F", "F41"], "ADJUSTMENT": ["Y", "_Z", "AA", "RT"], "TRANSFORMATION": ["_Z", "G1", "GY"], "BASE_PER": ["", "2015"]}
+- `00:46:15`   ours latest sample: {"HUN": {"UNEMP/M": "2026-06", "EX/M": "2026-07", "SHARE/M": "2026-06", "IRLT/M": "2026-06", "CCICP/M": "2026-08", "CC/M": "2026-07", "CP/M": "2025-12", "IR3TIB/M": "2026-06", "TOCAPA/M": "2019-12", "IM/M": "2026-07", "H_EARN/M": "2026-03", "PRVM/M": "2026-06", "PP/M": "2022-12", "BCICP/M": "2026-08", "TOVM/M": "2026-06", "MANM/M": "2026-05", "MABM/M": "2026-05", "IRSTCI/M": "2026-06", "NODW/M": "2026-05"}, "CAN": {"EMP/M": "2026-07", "UNEMP/M": "2026-07", "EX/M": "2026-06", "IR3TIB/M": "2026-06", "SHARE/M": "2026-06", "CP/M": "2026-07", "IRLT/M": "2026-08", "IM/M": "2026-06", "CC/M": "2026-07", "MABM/M": "2026-04", "MANM/M": "2026-04", "TOCAPA/M": "2026-06", "PRVM/M": "2026-05", "H_EARN/M": "2026-04", "PP/M": "2022-12", "TOVM/M": "2026-06", "RS/M": "2026-02", "LI/M": "2026-06", "NODW/M": "2026-06", "IRSTCI/M": "2026-06"}, "ESP": {"EX/M": "2026-06", "UNEMP/M": "2026-06", "IR3TIB/M": "202
+## oecd_kei_live_all
+
+- `00:46:39` HTTP 200 79647968 B in 19.8s 
+- `00:46:43`   rows=914609 areas=56 ours=34/34 header=['DATAFLOW', 'REF_AREA', 'FREQ', 'MEASURE', 'UNIT_MEASURE', 'ACTIVITY', 'ADJUSTMENT', 'TRANSFORMATION', 'TIME_PERIOD', 'OBS_VALUE', 'OBS_STATUS', 'UNIT_MULT', 'DECIMALS', 'BASE_PER']
+- `00:46:43`   dims={"DATAFLOW": ["OECD.SDD.STES:DSD_KEI@DF_KEI(4.0)"], "REF_AREA": ["OECDE", "OECD", "HRV", "EA20", "BRA", "FRA", "EU27_2020", "SVK", "LUX", "CAN", "HUN", "KOR", "ITA", "FIN", "POL", "CZE", "SVN", "PRT", "NLD", "LVA", "DNK", "JPN", "BEL", "ISR", "EST", "NOR", "LTU", "ZAF", "AUT", "CHL"], "FREQ": ["M", "Q", "A"], "MEASURE": ["PRVM", "IM", "EX", "CP", "TOVM", "SHARE", "PP", "MABM", "NODW", "TOCAPA", "H_EARN", "MANM", "CC", "IRSTCI", "IR3TIB", "IRLT", "UNEMP", "EMP", "ULC", "BCICP", "B1GQ_Q", "CCICP", "P3_S13_Q", "P7_Q", "P3_S1M_Q", "P51G_Q", "P6_Q", "CA_GDP", "LI", "RS"], "UNIT_MEASURE": ["GR", "IX", "PA", "USD", "PB", "XDC_USD", "PT_LF", "PS", "PT_B1GQ"], "ACTIVITY": ["_T", "_Z", "C", "BTE", "G47", "F", "F41", "G45"], "ADJUSTMENT": ["Y", "_Z", "AA", "RT"], "TRANSFORMATION": ["_Z", "G1", "GY"], "BASE_PER": ["", "2015"]}
+- `00:46:43`   ours latest sample: {"AUT": {"TOVM/M": "2026-06", "PRVM/M": "2026-06", "PRVM/A": "2025", "PRVM/Q": "2026-Q2", "TOVM/A": "2025", "TOVM/Q": "2026-Q2", "PP/Q": "2022-Q4", "PP/A": "2022", "PP/M": "2022-12", "BCICP/M": "2026-08", "BCICP/Q": "2026-Q2", "TOCAPA/M": "2023-03", "IRSTCI/A": "2025", "IRSTCI/Q": "2026-Q2", "IRSTCI/M": "2026-06", "IM/Q": "2026-Q2", "CCICP/M": "2026-08", "IRLT/M": "2026-07", "IM/M": "2026-06", "IM/A": "2025", "EX/M": "2026-06", "EX/Q": "2026-Q2", "IR3TIB/M": "2026-06", "IR3TIB/Q": "2026-Q2", "IR3TIB/A": "2025", "EX/A": "2025", "UNEMP/A": "2025", "UNEMP/M": "2026-06", "UNEMP/Q": "2026-Q2", "CA_GDP/A": "2025", "CA_GDP/Q": "2026-Q1", "EMP/A": "2025", "EMP/Q": "2026-Q1", "CC/M": "2026-07", "CC/Q": "2026-Q2", "CC/A": "2025", "IRLT/Q": "2026-Q2", "CP/M": "2025-12", "CP/A": "2025", "CP/Q": "2025-Q4", "ULC/A": "2025", "ULC/Q": "2026-Q1", "B1GQ_Q/Q": "2026-Q2", "P3_S1M_Q/Q": "2026-Q2", "P3_S13_Q/
+## bis_eer_monthly
+
+- `00:46:49` HTTP 200 800781 B in 2.1s 
+- `00:46:49`   rows=10846 areas=34 ours=34/34 header=['FREQ', 'EER_TYPE', 'EER_BASKET', 'REF_AREA', 'UNIT_MEASURE', 'TIME_FORMAT', 'COLLECTION', 'TITLE_TS', 'TIME_PERIOD', 'OBS_VALUE', 'OBS_STATUS', 'OBS_CONF', 'OBS_PRE_BREAK']
+- `00:46:49`   dims={"FREQ": ["M"], "EER_TYPE": ["R"], "EER_BASKET": ["B"], "REF_AREA": ["TR", "ZA", "US", "NL", "MX", "NO", "NZ", "PL", "PT", "SE", "HU", "ID", "IN", "IE", "IL", "KR", "IT", "JP", "CL", "CN", "CA", "CH", "CZ", "DE", "ES", "DK", "GB", "GR", "FI", "FR"], "UNIT_MEASURE": ["882"], "OBS_PRE_BREAK": [""]}
+- `00:46:49`   ours latest sample: {"TR": {"_/M": "2026-07"}, "ZA": {"_/M": "2026-07"}, "US": {"_/M": "2026-07"}, "NL": {"_/M": "2026-07"}, "MX": {"_/M": "2026-07"}, "NO": {"_/M": "2026-07"}}
+## bis_eer_monthly_all
+
+- `00:46:55` HTTP 200 1526208 B in 2.1s 
+- `00:46:55`   rows=20416 areas=64 ours=34/34 header=['FREQ', 'EER_TYPE', 'EER_BASKET', 'REF_AREA', 'UNIT_MEASURE', 'TIME_FORMAT', 'COLLECTION', 'TITLE_TS', 'TIME_PERIOD', 'OBS_VALUE', 'OBS_STATUS', 'OBS_CONF', 'OBS_PRE_BREAK']
+- `00:46:55`   dims={"FREQ": ["M"], "EER_TYPE": ["R"], "EER_BASKET": ["B"], "REF_AREA": ["AE", "TH", "TR", "SI", "SK", "XM", "ZA", "TW", "US", "MY", "NL", "MT", "MX", "PE", "PH", "NO", "NZ", "RO", "RS", "PL", "PT", "SE", "SG", "RU", "SA", "HU", "ID", "HK", "HR", "IN"], "UNIT_MEASURE": ["882"], "OBS_PRE_BREAK": [""]}
+- `00:46:55`   ours latest sample: {"TR": {"_/M": "2026-07"}, "ZA": {"_/M": "2026-07"}, "US": {"_/M": "2026-07"}, "NL": {"_/M": "2026-07"}, "MX": {"_/M": "2026-07"}, "NO": {"_/M": "2026-07"}}
+## bis_cbpol_monthly
+
+- `00:47:00` HTTP 200 3294602 B in 1.3s 
+- `00:47:00`   rows=7149 areas=24 ours=24/34 header=['FREQ', 'REF_AREA', 'UNIT_MEASURE', 'UNIT_MULT', 'TIME_FORMAT', 'COMPILATION', 'DECIMALS', 'SOURCE_REF', 'SUPP_INFO_BREAKS', 'TITLE', 'TIME_PERIOD', 'OBS_VALUE', 'OBS_STATUS', 'OBS_CONF']
+- `00:47:00`   dims={"FREQ": ["M"], "REF_AREA": ["BR", "AU", "CH", "CL", "CA", "GB", "DK", "CZ", "IL", "HU", "MX", "KR", "PL", "NZ", "NO", "US", "SE", "ZA", "CN", "IN", "TR", "ID", "JP", "GR"], "UNIT_MEASURE": ["368"], "COMPILATION": ["From 5 Mar 1999 onwards Central Bank target, money market (SELIC) overnight rate; from 1 Jul 1996 to 4 Mar 1999: Central Bank official rediscount rate; from 4 Jun 1986 to 30 Jun 1996: official market intervention rate, representative rate.", "From 2 Aug 1990 onwards: cash rate target; from 23 Jan 1990 to 1 Aug 1990: middle of the cash rate target range; from 7 Apr 1976 to 22 Jan 1990: interbank overnight cash rate.", "From 13 June 2019 onwards SNB Policy rate; From 1 Jan 2000 to 12 June 2019 mid-point of the SNB target range; from 1 Jan 1946 to 31 Dec 1999: discount rate.", "From 1997 onwards: official monetary policy rate.", "From 1 Jun 1994 onwards: Central Bank target, overnight rate; from 27 Jul 1960 to 31 May 1994: official bank rate.", "From 3 Aug 2006 onwards: official bank rate; from 6 May 1997 to 2 Aug 2006: repo rate; from 20 Aug 1981 to 5 May 1997: minimum Bank of England Band 1 dealing rate; from 16 Oct 1972 to 19 Aug 1981: minimum lending rate; from 1 Jan 1946 to 15 Oct 1972: bank rate.", "From 1 April 1992 onwards: interest rate of the certificates of deposits; from  2 Jan 1979 to 31 Mar 1992: official discount rate; from 1 Jan 1946 to 1 Jan 1979: disc
+- `00:47:00`   ours latest sample: {"BR": {"_/M": "2026-07"}, "AU": {"_/M": "2026-07"}, "CH": {"_/M": "2026-07"}, "CL": {"_/M": "2026-07"}, "CA": {"_/M": "2026-07"}, "GB": {"_/M": "2026-07"}}
+## P8 walked KEI inventory
+
+- `00:47:06` walked KEI: 480007 rows; monthly measures: PRVM: 51 areas, ours 33, transforms ['G1', 'GY', '_Z']; TOVM: 47 areas, ours 30, transforms ['G1', 'GY', '_Z']; BCICP: 37 areas, ours 25, transforms ['_Z']; H_EARN: 17 areas, ours 11, transforms ['G1', 'GY', '_Z']; PP: 36 areas, ours 23, transforms ['G1', 'GY', '_Z']
+- `00:47:06`   last line (truncation check): 'OECD.SDD.STES:D'
+## verdict
+
+- `00:47:06` ✅ lanes with >= 10 of our countries: ['oecd_finmark_all', 'oecd_finmark_key', 'oecd_bts_all', 'oecd_cs_all', 'oecd_indserv_key', 'oecd_kei_live', 'oecd_kei_live_all', 'bis_eer_monthly', 'bis_eer_monthly_all', 'bis_cbpol_monthly']
