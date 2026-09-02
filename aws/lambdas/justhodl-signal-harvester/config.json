@@ -9,7 +9,7 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Universal signal harvester: snapshots every engine's published top picks point-in-time into justhodl-signals so the existing outcome-checker/scorecard/confluence/fade/conviction pipeline computes per-engine edge across the full fleet (not just the ~47 that hand-log). De-duped 6d, point-in-time baseline price, skip-on-no-price.",
+  "description": "Universal signal harvester: snapshots every engine's published top picks point-in-time into justhodl-signals so the existing outcome-checker/scorecard/confluence/fade/conviction pipeline computes per-engine edge across the full fleet (not just the ~4",
   "schedule": {
     "rule_name": "signal-harvester-daily",
     "cron": "cron(15 23 * * ? *)",
