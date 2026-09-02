@@ -1,0 +1,40 @@
+# ops 5151 -- equivalents before dictionary; dropdown chips with evidence (v1.6.2)
+
+**Status:** success  
+**Duration:** 102.6s  
+**Finished:** 2026-09-02T22:53:12+00:00  
+
+## Log
+## S1 deploy symdir v1.5.0
+
+- `22:51:29`   zip: 140153 bytes
+## 1. Lambda
+
+- `22:51:30`   Lambda exists — updating
+- `22:51:33` ✅   ✓ updated justhodl-symdir
+## S1b Treasury par curve: bank offline, daily schedule
+
+- `22:51:38` ✅ schedule updated
+- `22:51:57`   ustbank: {"ok": true, "n_days": 9175, "first": "1990-01-02", "last": "2026-09-02", "elapsed_s": 18.2, "errors": null}
+## S2 resolution + search
+
+- `22:52:08`   direct ustpar:2M: n=1970 first=2018-10-16 last=2026-09-02 src=warehouse:treasury-par (home.treasury.gov daily_treasury_yield_curve) err=
+- `22:52:09`   direct ustpar:10Y: n=9174 first=1990-01-02 last=2026-09-02 src=warehouse:treasury-par (home.treasury.gov daily_treasury_yield_curve) err=
+- `22:52:10`   direct official-yields:de-10y-bbk: n=7377 first=1997-08-07 last=2026-08-31 src=warehouse:official-yields (Bundesbank BBSIS) err=
+- `22:52:13`   TVC:US02MY         n=1970 first=2018-10-16 last=2026-09-02 via=ustpar:2M src=warehouse:treasury-par (home.treasury.gov daily_treasury_yield_curve) (TVC:US02MY → ustpar err= alts=None
+- `22:52:14`   ECONOMICS:USINTR   n=866 first=1954-07-01 last=2026-08-01 via=fred:FEDFUNDS src=warehouse:fred-scoped/Interest_Rates (+1 obs tail from FRED, bank healed) (ECONOMICS:USINT err= alts=None
+- `22:52:15`   TVC:DE10Y          n=7377 first=1997-08-07 last=2026-08-31 via=official-yields:de-10y-bbk src=warehouse:official-yields (Bundesbank BBSIS) (TVC:DE10Y → official-yields:de-10y-bbk) err= alts=None
+- `22:52:17`   TVC:US03MY         n=11249 first=1981-09-01 last=2026-08-31 via=fred:DGS3MO src=warehouse:fred-scoped/Interest_Rates (TVC:US03MY → fred:DGS3MO) err= alts=None
+- `22:52:17`   search US02MY: facets=[{'provider': 'tv', 'provider_name': 'TradingView', 'n': 1}] rows=['TVC:US02MY'] tv sources=[{'id': 'ustpar:2M', 'provider': 'ustpar', 'provider_name': 'US Treasury', 'name': 'US Treasury par yield curve, daily (home.treasury.gov)', 'freq': 'D', 'first': '1990', 'last': None, 'ohlc': False, 'note': 'US Treasury par yield curve, daily (home.treasury.gov)', 'banked': True}]
+- `22:52:17`   provider filter eurostat: rows=['eurostat:LFSA_URGANEDM', 'eurostat:LFST_R_LFU3RT', 'eurostat:LFSO_14LUNER', 'eurostat:LFSA_URGAEDDL', 'eurostat:LFST_R_LFUR2GAC'] facets=[('bls', 13005), ('fred', 12704), ('tv', 162), ('eurostat', 55), ('statcan', 20), ('worldbank', 19)]
+## S3 live page
+
+- `22:52:52`   query promise: {"key": "us02my|40|", "resolved_ms": 7987, "facets": [{"provider": "tv", "provider_name": "TradingView", "n": 1}], "failed": null, "rows": 1, "timing": [{"ms": 10031, "status": 200}]}
+- `22:52:53`   after await: _facets=[{"provider": "tv", "provider_name": "TradingView", "n": 1}] groups={"favorites": 0, "justhodl": 0, "instruments": 1, "series": 0, "datasets": 0, "equity": 0} render_src="render(partial) {\n    try { return this._render(partial); } catch (e) { console.error('HeaderSearch.render failed', e); "
+- `22:52:53`   page fetch /symsearch: {"facets": [{"provider": "tv", "provider_name": "TradingView", "n": 1}], "rows": [{"id": "TVC:US02MY", "sources": [{"id": "ustpar:2M", "provider": "ustpar", "provider_name": "US Treasury", "name": "US Treasury par yield curve, daily (home.treasury.gov)", "freq": "D", "first": "1990", "last": null, "ohlc": false, "note": "US Treasury par yield curve, daily (home.treasury.gov)", "banked": true}]}], "err": null} | HeaderSearch._facets=[{"provider": "tv", "provider_name": "TradingView", "n": 1}]
+- `22:52:53`   dropdown: {"chips": ["all 1", "TradingView 1"], "rows": [{"id": "TVC:US02MY", "src": "US Treasury 2M \u00b7 D \u00b7 1990\u2192?"}]}
+- `22:53:02`   TVC:US02MY chart: {"active": "TVC:US02MY", "meta": "US Treasury \u00b7 3.89 Percent +0.00% \u00b7 1,970 obs \u00b7 2018-10-16\u21922026-09-02 \u00b7 D \u00b7 warehouse", "loading": "Loading TVC:US02MY \u2014 full history\u2026"}
+- `22:53:11`   TVC:US10Y legend: {"legend": "TVC:US10Y O 4.78 H 4.81 L 4.77 C 4.80 +0.42% Vol \u2014"}
+## verdict
+
+- `22:53:12` ✅ PASS_ALL: the search bar shows every source with counts and cadence; TradingView-only symbols chart from their warehouse equivalent
