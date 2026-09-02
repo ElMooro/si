@@ -1,24 +1,18 @@
-executing-against: 8709005c29ce8ac53d4ab04ae40a37bcec6d1def
-ops 5139 -- chart-pro: zero page errors on native renders
-── S1 static content live? ──
-[18:03:27]   live: {"data": true, "plumbing": true, "chart": false}
-[18:03:59]   live: {"data": true, "plumbing": true, "chart": false}
-[18:04:31]   live: {"data": true, "plumbing": true, "chart": false}
-[18:05:02]   live: {"data": true, "plumbing": true, "chart": false}
-[18:05:34]   live: {"data": true, "plumbing": true, "chart": false}
-[18:06:05]   live: {"data": true, "plumbing": true, "chart": false}
-[18:06:36]   live: {"data": true, "plumbing": true, "chart": true}
-[18:06:36] ✅   data.html static inventory: 57 providers, as_of 2026-09-02T17:48:53+00:00, totals {'providers': 57, 'datasets': 811797, 'keys': 1922378, 'gb': 530.42}
-── S2 chart-pro native charts (headless Chrome) ──
-[18:07:10]   errors after initial load (NVDA): []
-[18:07:19]   AAPL: {"active": "AAPL", "meta": "$325.03 -0.03% \u00b7 250 bars \u00b7 JustHodl warehouse \u00b7 since 1980", "iframe": false, "paywall": false, "nativeSrc": "JustHodl warehouse \u00b7 since 1980"}
-[18:07:28]   NVDA: {"active": "NVDA", "meta": "$223.54 +2.81% \u00b7 250 bars \u00b7 JustHodl warehouse \u00b7 since 1999", "iframe": false, "paywall": false, "nativeSrc": "JustHodl warehouse \u00b7 since 1999"}
-[18:07:37]   SSE:000001: {"active": "SSE:000001", "meta": "TradingView \u00b7 3,941.4 -0.97% \u00b7 7,186 obs \u00b7 1997-07-02\u21922026-09-02 \u00b7 D \u00b7 warehouse", "iframe": false, "paywall": false, "nativeSrc": "JustHodl warehouse \u00b7 since 1999"}
-[18:07:46]   TVC:VIX: {"active": "TVC:VIX", "meta": "FRED \u00b7 14.43 Index -0.55% \u00b7 9,262 obs \u00b7 1990-01-02\u21922026-08-28 \u00b7 D \u00b7 warehouse", "iframe": false, "paywall": false, "nativeSrc": "JustHodl warehouse \u00b7 since 1999"}
-[18:07:55]   XETR:DAX: {"active": "XETR:DAX", "meta": "TradingView \u00b7 25,846.9 -0.47% \u00b7 9,825 obs \u00b7 1987-11-30\u21922026-09-02 \u00b7 D \u00b7 warehouse", "iframe": false, "paywall": false, "nativeSrc": "JustHodl warehouse \u00b7 since 1999"}
-[18:08:04]   X:BTCUSD: {"active": "X:BTCUSD", "meta": "equity \u00b7 77,213.7 -0.25% \u00b7 4,369 obs \u00b7 2014-09-17\u21922026-09-02 \u00b7 D \u00b7 warehouse", "iframe": false, "paywall": false, "nativeSrc": "JustHodl warehouse \u00b7 since 1999"}
-[18:08:04]   signal feeds loaded: {"cascade": true, "insider": true, "options": true, "live": 1}
+executing-against: c2eb576611fc82e8a19604975c173bfc098ee1b1
+ops 5140 -- chart-pro: MAX = whole history, watchlist tab opens, header follows the series
+── S1 wait for the page ──
+[18:43:01] ✅ page live with the fix
+── S2 watchlist drawer ──
+[18:43:22]   before={'open': False, 'tabHidden': False} after tab click={'open': True, 'tabHidden': True, 'rows': 0, 'x': 0} after ×={'open': False, 'tabHidden': False}
+── S3 TVC:US10Y across timeframes ──
+[18:43:31]   1D (default): {"active": "TVC:US10Y", "tf": {"mult": 1, "span": "day", "days": 250}, "vr": {"from": "2025-12-01", "to": "2026-08-06"}, "width": 1918, "meta": "FRED \u00b7 4.69 % +1.30% \u00b7 16,134 obs \u00b7 1962-01-02\u21922026-08-06 \u00b7 D \u00b7 warehouse", "price": "4.69 %", "chg": "+1.30%", "pane": "TVC:US10Y", "nameH": 16, "name": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis"}
+[18:43:40]   MAX: {"active": "TVC:US10Y", "tf": {"mult": 1, "span": "week", "days": 9999}, "vr": {"from": "1962-01-01", "to": "2026-08-03"}, "width": 1918, "meta": "FRED \u00b7 4.69 % +1.30% \u00b7 16,134 obs \u00b7 1962-01-02\u21922026-08-06 \u00b7 D \u00b7 warehouse", "price": "4.69 %", "chg": "+1.30%", "pane": "TVC:US10Y", "nameH": 16, "name": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis"}
+[18:43:49]   5Y: {"active": "TVC:US10Y", "tf": {"mult": 1, "span": "day", "days": 1825}, "vr": {"from": "2021-08-09", "to": "2026-08-06"}, "width": 1918, "meta": "FRED \u00b7 4.69 % +1.30% \u00b7 16,134 obs \u00b7 1962-01-02\u21922026-08-06 \u00b7 D \u00b7 warehouse", "price": "4.69 %", "chg": "+1.30%", "pane": "TVC:US10Y", "nameH": 16, "name": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis"}
+[18:43:58]   1M: {"active": "TVC:US10Y", "tf": {"mult": 1, "span": "month", "days": 3650}, "vr": {"from": "2016-09-01", "to": "2026-08-01"}, "width": 1918, "meta": "FRED \u00b7 4.69 % +1.30% \u00b7 16,134 obs \u00b7 1962-01-02\u21922026-08-06 \u00b7 D \u00b7 warehouse", "price": "4.69 %", "chg": "+1.30%", "pane": "TVC:US10Y", "nameH": 16, "name": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis"}
+[18:43:58] ⚠   1M (monthly, 10y window) starts 2016-09-01
+── S4 header follows the series ──
+[18:43:58]   header: {"active": "TVC:US10Y", "tf": {"mult": 1, "span": "month", "days": 3650}, "vr": {"from": "2016-09-01", "to": "2026-08-01"}, "width": 1918, "meta": "FRED \u00b7 4.69 % +1.30% \u00b7 16,134 obs \u00b7 1962-01-02\u21922026-08-06 \u00b7 D \u00b7 warehouse", "price": "4.69 %", "chg": "+1.30%", "pane": "TVC:US10Y", "nameH": 16, "name": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis"}
 ── verdict ──
-[18:08:04] ✅ PASS_ALL: data.html inventory static, plumbing weights corrected, chart-pro charts every symbol from the warehouse with daily history
+[18:43:58] ✅ PASS_ALL: MAX shows 1962→2026, the WATCHLIST tab opens and closes, the header shows the series value and name on one line
 
-→ Report written to aws/ops/reports/latest/5139-chartpro-clean.md
+→ Report written to aws/ops/reports/latest/5140-chartpro-max-drawer.md

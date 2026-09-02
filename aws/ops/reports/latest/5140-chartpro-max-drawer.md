@@ -1,0 +1,26 @@
+# ops 5140 -- chart-pro: MAX = whole history, watchlist tab opens, header follows the series
+
+**Status:** success  
+**Duration:** 273.2s  
+**Finished:** 2026-09-02T18:43:58+00:00  
+
+## Log
+## S1 wait for the page
+
+- `18:43:01` ✅ page live with the fix
+## S2 watchlist drawer
+
+- `18:43:22`   before={'open': False, 'tabHidden': False} after tab click={'open': True, 'tabHidden': True, 'rows': 0, 'x': 0} after ×={'open': False, 'tabHidden': False}
+## S3 TVC:US10Y across timeframes
+
+- `18:43:31`   1D (default): {"active": "TVC:US10Y", "tf": {"mult": 1, "span": "day", "days": 250}, "vr": {"from": "2025-12-01", "to": "2026-08-06"}, "width": 1918, "meta": "FRED \u00b7 4.69 % +1.30% \u00b7 16,134 obs \u00b7 1962-01-02\u21922026-08-06 \u00b7 D \u00b7 warehouse", "price": "4.69 %", "chg": "+1.30%", "pane": "TVC:US10Y", "nameH": 16, "name": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis"}
+- `18:43:40`   MAX: {"active": "TVC:US10Y", "tf": {"mult": 1, "span": "week", "days": 9999}, "vr": {"from": "1962-01-01", "to": "2026-08-03"}, "width": 1918, "meta": "FRED \u00b7 4.69 % +1.30% \u00b7 16,134 obs \u00b7 1962-01-02\u21922026-08-06 \u00b7 D \u00b7 warehouse", "price": "4.69 %", "chg": "+1.30%", "pane": "TVC:US10Y", "nameH": 16, "name": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis"}
+- `18:43:49`   5Y: {"active": "TVC:US10Y", "tf": {"mult": 1, "span": "day", "days": 1825}, "vr": {"from": "2021-08-09", "to": "2026-08-06"}, "width": 1918, "meta": "FRED \u00b7 4.69 % +1.30% \u00b7 16,134 obs \u00b7 1962-01-02\u21922026-08-06 \u00b7 D \u00b7 warehouse", "price": "4.69 %", "chg": "+1.30%", "pane": "TVC:US10Y", "nameH": 16, "name": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis"}
+- `18:43:58`   1M: {"active": "TVC:US10Y", "tf": {"mult": 1, "span": "month", "days": 3650}, "vr": {"from": "2016-09-01", "to": "2026-08-01"}, "width": 1918, "meta": "FRED \u00b7 4.69 % +1.30% \u00b7 16,134 obs \u00b7 1962-01-02\u21922026-08-06 \u00b7 D \u00b7 warehouse", "price": "4.69 %", "chg": "+1.30%", "pane": "TVC:US10Y", "nameH": 16, "name": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis"}
+- `18:43:58` ⚠   1M (monthly, 10y window) starts 2016-09-01
+## S4 header follows the series
+
+- `18:43:58`   header: {"active": "TVC:US10Y", "tf": {"mult": 1, "span": "month", "days": 3650}, "vr": {"from": "2016-09-01", "to": "2026-08-01"}, "width": 1918, "meta": "FRED \u00b7 4.69 % +1.30% \u00b7 16,134 obs \u00b7 1962-01-02\u21922026-08-06 \u00b7 D \u00b7 warehouse", "price": "4.69 %", "chg": "+1.30%", "pane": "TVC:US10Y", "nameH": 16, "name": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis"}
+## verdict
+
+- `18:43:58` ✅ PASS_ALL: MAX shows 1962→2026, the WATCHLIST tab opens and closes, the header shows the series value and name on one line
