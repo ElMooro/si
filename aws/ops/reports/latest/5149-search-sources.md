@@ -1,16 +1,15 @@
-executing-against: b7a5d43501cfd5d59a495edfbad23b48ddd1abbb
-ops 5149 -- Treasury par curve + Bundesbank sources; search chips (v1.6.0)
-── S1 deploy symdir v1.5.0 ──
-[22:28:31]   zip: 139488 bytes
-── 1. Lambda ──
-[22:28:31]   Lambda exists — updating
-[22:28:34] ✅   ✓ updated justhodl-symdir
-── S2 resolution + search ──
+# ops 5149 -- Treasury par curve + Bundesbank sources; search chips (v1.6.0)
 
-→ Report written to aws/ops/reports/latest/5149-search-sources.md
+**Status:** failure  
+**Duration:** 608.1s  
+**Finished:** 2026-09-02T22:38:39+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_5149_search_sources.py", line 173, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_5149_search_sources.py", line 77, in main
     d = http_json(url + "/series?id=" + sid + "&nocache=1", timeout=600)
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -56,4 +55,16 @@ Traceback (most recent call last):
     return self._sslobj.read(len, buffer)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 TimeoutError: The read operation timed out
-❌ OPS-FAIL: aws/ops/pending/ops_5149_search_sources.py
+
+```
+
+## Log
+## S1 deploy symdir v1.5.0
+
+- `22:28:31`   zip: 139488 bytes
+## 1. Lambda
+
+- `22:28:31`   Lambda exists — updating
+- `22:28:34` ✅   ✓ updated justhodl-symdir
+## S2 resolution + search
+
