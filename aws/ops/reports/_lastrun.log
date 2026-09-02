@@ -1,36 +1,17 @@
-executing-against: 4b450f6064213b9bfb6f7bad64a057ebbf0cfa7e
-ops 5147 -- on-demand FRED banking diagnosis + search sources (v1.5.3)
-── S1 deploy symdir v1.5.0 ──
-[22:16:09]   zip: 138186 bytes
-── 1. Lambda ──
-[22:16:09]   Lambda exists — updating
-[22:16:13] ✅   ✓ updated justhodl-symdir
-── S2 resolution + search ──
-[22:16:27]   direct fred:DGS2MO: n=None first=None src=None err=HTTP Error 400: Bad Request trace=b/python3.12/urllib/request.py", line 492, in _call_chain
-    result = func(*args)
-             ^^^^^^^^^^^
-  File "/var/lang/lib/python3.12/urllib/request.py", line 639, in http_error_default
-    raise HTTPError(req.full_url, code, msg, hdrs, fp)
-urllib.error.HTTPError: HTTP Error 400: Bad Request
+executing-against: 7fd503f9bb483a3478e5c1ec9471453736785ba1
+ops 5148 -- FRED 2-month id + dropdown facets diagnosis
+── A. FRED ──
+[22:22:05]   series DGS2MO: HTTP 400 {"error_code":400,"error_message":"Bad Request.  The series does not exist."}
+[22:22:06]   series DGS4MO: HTTP 400 {"error_code":400,"error_message":"Bad Request.  The series does not exist."}
+[22:22:07]   series DGS1MO: HTTP 200 {"realtime_start":"2026-09-02","realtime_end":"2026-09-02","seriess":[{"id":"DGS1MO","realtime_start":"2026-09-02","realtime_end":"2026-09-02","title":"Market Y
+[22:22:08]   series DGS3MO: HTTP 200 {"realtime_start":"2026-09-02","realtime_end":"2026-09-02","seriess":[{"id":"DGS3MO","realtime_start":"2026-09-02","realtime_end":"2026-09-02","title":"Market Y
+[22:22:09]   search '2-Month Treasury Constant Maturity': [('T10Y2Y', '10-Year Treasury Constant Maturity Minus 2-Year Treasury Constant Matu', 'D'), ('T10Y2YM', '10-Year Treasury Constant Maturity Minus 2-Year Treasury Constant Matu', 'M'), ('DGS2', 'Market Yield on U.S. Treasury Securities at 2-Year Constant Maturity, ', 'D'), ('GS2', 'Market Yield on U.S. Treasury Securities at 2-Year Constant Maturity, ', 'M'), ('WGS2YR', 'Market Yield on U.S. Treasury Securities at 2-Year Constant Maturity, ', 'W'), ('RIFLGFCY02NA', 'Market Yield on U.S. Treasury Securities at 2-Year Constant Maturity, ', 'A'), ('WTP5A11', '5-Year 2-3/8% Treasury Inflation-Indexed Note, Due 4/15/2011 (DISCONTI', 'W'), ('DTP5A11', '5-Year 2-3/8% Treasury Inflation-Indexed Note, Due 4/15/2011 (DISCONTI', 'D')]
+[22:22:09]   observations DGS2MO full-history URL: HTTP 400 {"error_code":400,"error_message":"Bad Request.  The series does not exist."}
+[22:22:10]   observations DGS2MO minimal URL: HTTP 400 {"error_code":400,"error_message":"Bad Request.  The series does not exist."}
+── B. dropdown runtime ──
+[22:22:36]   served page has the facets code: {"marker": true, "src": "onInput(q) {\n    q = (q || '').trim();\n    const dd = document.getElementById('hsearch-dropdown');\n    if (!q) { this.close(); return; }\n    this._seq++; const seq = this._seq;\n    // Instant local: J"}
+[22:22:43]   runtime: {"seq": 6, "facets": [{"provider": "tv", "provider_name": "TradingView", "n": 1}], "keys": ["u|40|", "us|40|", "us0|40|", "us02|40|", "us02m|40|", "us02my|40|"], "groups": {"favorites": 0, "justhodl": 0, "instruments": 1, "series": 0, "datasets": 0, "equity": 0}, "cached": {"facets": [{"provider": "tv", "provider_name": "TradingView", "n": 1}], "failed": null, "rows": ["TVC:US02MY"], "err": null}, "instr": [{"id": "TVC:US02MY", "sources": [{"id": "fred:DGS2MO", "provider": "fred", "provider_name": "FRED", "name": "US Treasury constant-maturity yield, daily (FRED H.15)", "freq": null, "first": null, "last": null, "ohlc": false, "note": "US Treasury constant-maturity yield, daily (FRED H.15) \u2014 not in the catalog yet; banks on first open", "banked": false}]}]}
+[22:22:43]   console: ["error: Access to fetch at 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Fchart-pro.html&favs=0&sw=none&v=3276' from origin 'https://justhodl.ai' has been blocked by COR", "error: Failed to load resource: net::ERR_FAILED", "error: Access to fetch at 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=chartpro&lists=492&err=&sw=none&drawer=c3efc5d3&favs=0&lwc=true' from origin 'https://justhodl.ai'", "error: Failed to load resource: net::ERR_FAILED", "error: Access to fetch at 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda
+[22:22:43] ✅ diagnosis complete
 
-[22:16:29]   direct fred:DGS3MO: n=11249 first=1981-09-01 src=warehouse:fred-scoped/Interest_Rates err= trace=
-[22:16:31]   TVC:US02MY         n=None first=None last=None via=None src=None err=no market feed for TVC:US02MY and no warehouse equivalent (RuntimeError: no bars alts=[{'id': 'fred:DGS2MO', 'note': 'US Treasury constant-maturity yield, daily (FRED H.15)', 'error': 'HTTPError: HTTP Error 400: Bad Request'}]
-[22:16:32]   ECONOMICS:USINTR   n=866 first=1954-07-01 last=2026-08-01 via=fred:FEDFUNDS src=warehouse:fred-scoped/Interest_Rates (+1 obs tail from FRED, bank healed) err= alts=None
-[22:16:33]   TVC:DE10Y          n=842 first=1956-05-01 last=2026-06-01 via=fred:IRLTLT01DEM156N src=warehouse:fred-scoped/International_Data err= alts=None
-[22:16:34]   TVC:US03MY         n=18157 first=1954-01-04 last=2026-08-31 via=fred:DTB3 src=warehouse:fred-scoped/Interest_Rates err= alts=None
-[22:16:34]   search US02MY: facets=[{'provider': 'tv', 'provider_name': 'TradingView', 'n': 1}] rows=['TVC:US02MY'] tv sources=[{'id': 'fred:DGS2MO', 'provider': 'fred', 'provider_name': 'FRED', 'name': 'US Treasury constant-maturity yield, daily (FRED H.15)', 'freq': None, 'first': None, 'last': None, 'ohlc': False, 'note': 'US Treasury constant-maturity yield, daily (FRED H.15) — not in the catalog yet; banks on first open', 'banked': False}]
-[22:16:35]   provider filter eurostat: rows=['eurostat:LFSA_URGANEDM', 'eurostat:LFST_R_LFU3RT', 'eurostat:LFSO_14LUNER', 'eurostat:LFSA_URGAEDDL', 'eurostat:LFST_R_LFUR2GAC'] facets=[('bls', 13005), ('fred', 12704), ('tv', 162), ('eurostat', 55), ('statcan', 20), ('worldbank', 19)]
-── S3 live page ──
-[22:17:26]   page fetch /symsearch: {"facets": [{"provider": "tv", "provider_name": "TradingView", "n": 1}], "rows": [{"id": "TVC:US02MY", "sources": [{"id": "fred:DGS2MO", "provider": "fred", "provider_name": "FRED", "name": "US Treasury constant-maturity yield, daily (FRED H.15)", "freq": null, "first": null, "last": null, "ohlc": false, "note": "US Treasury constant-maturity yield, daily (FRED H.15) \u2014 not in the catalog yet; banks on first open", "banked": false}]}], "err": null} | HeaderSearch._facets=null
-[22:17:26]   dropdown: {"chips": [], "rows": [{"id": "TVC:US02MY", "src": null}]}
-[22:17:35]   TVC:US02MY chart: {"active": "TVC:US02MY", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "TVC:US02MY has no market feed the warehouse can bank.Same data in your warehouse:fred:DGS2MO \u203a"}
-[22:17:45]   TVC:US10Y legend: {"legend": "TVC:US10Y O 4.78 H 4.81 L 4.77 C 4.80 +0.42% Vol \u2014"}
-── verdict ──
-[22:17:45] ✗ TVC:US02MY did not resolve via fred:DGS2MO: via=None err=no market feed for TVC:US02MY and no warehouse equivalent (RuntimeError: no bars for TVC:US02MY (tv:all endpoints refused: data.tradingview.com/socket.io/webso)
-[22:17:45] ✗ TVC:US03MY did not resolve via fred:DGS3MO: via=fred:DTB3 err=None
-[22:17:45] ✗ no facet chips in the dropdown
-[22:17:45] ✗ TVC:US02MY row has no source line: {'id': 'TVC:US02MY', 'src': None}
-[22:17:45] ✗ TVC:US02MY did not chart: {"active": "TVC:US02MY", "meta": "SERIES \u00b7 loading full history\u2026", "loading": "TVC:US02MY has no market feed the warehouse can bank.Same data in your warehouse:fred:DGS2MO \u203a"}
-
-→ Report written to aws/ops/reports/latest/5147-search-sources.md
-❌ OPS-FAIL: aws/ops/pending/ops_5147_search_sources.py
+→ Report written to aws/ops/reports/latest/5148-diag.md
