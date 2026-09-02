@@ -1,4 +1,4 @@
-import json,boto3,os,ssl,traceback
+import json,boto3,os,ssl,time,traceback
 from datetime import datetime,timezone,timedelta
 from urllib import request as urllib_request
 from _sentry_lite import track_errors
@@ -17,6 +17,7 @@ def http_get(url,timeout=15):
         with urllib_request.urlopen(req,timeout=timeout,context=ctx) as r:return json.loads(r.read().decode('utf-8'))
     except Exception as e:print(f"HTTP_ERR[{url.split('api_key=')[0][-90:]}]:{e}");return None   # ops 5112: show the series id, never the key
 def get_fred(sid,n=30):
+    time.sleep(0.35)   # ops 5113: ~20 FRED calls in a burst were tripping 429s inside the engine's own run
     d=http_get(f"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED_API_KEY}&file_type=json&limit={n}&sort_order=desc")
     if not d or 'observations' not in d:return[]
     r=[]
@@ -44,8 +45,8 @@ def collect_repo_rates():
         M['SOFR_EFFR_Spread']={'value':sp,'unit':'bps_x100','label':'SOFR - Fed Funds Spread','status':st,'description':'Repo tightness. Widening = collateral stress','threshold':{'normal':0.05,'watch':0.10,'stress':0.20}}
     obfr=fl('OBFR');obfr_h=fh('OBFR',90)
     if obfr is not None:M['OBFR']={'value':obfr,'unit':'%','label':'Overnight Bank Funding Rate','history':obfr_h,'z_score':zs(obfr,obfr_h),'description':'Fed funds + eurodollar','fred_id':'OBFR'}
-    sv=fl('SOFRVOLUME');sv_h=fh('SOFRVOLUME',90)
-    if sv is not None:M['SOFR_Volume']={'value':round(sv/1e9,1),'unit':'$B','label':'SOFR Transaction Volume','history':[{'date':h['date'],'value':round(h['value']/1e9,1)} for h in sv_h],'description':'Daily repo volume','fred_id':'SOFRVOLUME'}
+    sv=fl('SOFRVOL');sv_h=fh('SOFRVOL',90)
+    if sv is not None:M['SOFR_Volume']={'value':round(sv/1e9,1),'unit':'$B','label':'SOFR Transaction Volume','history':[{'date':h['date'],'value':round(h['value']/1e9,1)} for h in sv_h],'description':'Daily repo volume','fred_id':'SOFRVOL'}
     s75=fl('SOFR75');s25=fl('SOFR25')
     if s75 is not None and s25 is not None:
         disp=round(s75-s25,4);M['SOFR_Dispersion']={'value':disp,'unit':'bps_x100','label':'SOFR Dispersion (75th-25th)','status':'NORMAL' if disp<0.03 else 'WATCH' if disp<0.08 else 'STRESS','description':'Wide = fragmented repo market'}

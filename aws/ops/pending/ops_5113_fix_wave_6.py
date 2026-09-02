@@ -1,4 +1,4 @@
-"""ops_5113 -- fix wave 6: post-deploy-only verification of the last three.
+"""ops_5113 -- fix wave 6 (rev2): post-deploy-only verification of the last three.
 
   * census-us: the geo_state branch of refresh() had `i += 1` with no `i` in
     scope (a second UnboundLocalError site); repo-monitor: SOFRVOLUME -> SOFRVOL
