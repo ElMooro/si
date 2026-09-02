@@ -318,6 +318,17 @@ def tv_to_yahoo(sym):
     if ":" in sym:
         ex, bare = sym.split(":", 1)
         ex = ex.upper()
+        # symdir's deterministic bank keys for bare tickers and Polygon-style ids
+        if ex == "US":
+            out.append(bare.replace(".", "-").replace("/", "-"))
+        elif ex == "X":
+            m = re.match(r"^([A-Z0-9]{2,10})(USDT|USDC|USD)$", bare)
+            out.append((m.group(1) + "-USD") if m else bare)
+        elif ex == "C":
+            out.append(bare + "=X")
+        elif ex == "I":
+            out.append({"SPX": "^GSPC", "NDX": "^NDX", "DJI": "^DJI", "VIX": "^VIX", "RUT": "^RUT", "NYA": "^NYA", "XAU": "^XAU", "HUI": "^HUI", "SOX": "^SOX",
+                        "OEX": "^OEX", "RUI": "^RUI", "TNX": "^TNX", "TYX": "^TYX", "IRX": "^IRX", "FVX": "^FVX", "COMP": "^IXIC", "IXIC": "^IXIC"}.get(bare, "^" + bare))
         if ex in ("NASDAQ", "NYSE", "AMEX", "CBOE", "OTC", "ARCA", "BATS", "NYSEARCA"):
             out.append(bare.replace(".", "-").replace("/", "-"))
         elif ex in ("FX", "FX_IDC", "OANDA", "FOREXCOM", "SAXO", "PEPPERSTONE", "CAPITALCOM", "FXCM", "ICEEUR", "ICEUS") and re.fullmatch(r"[A-Z]{6}", bare):

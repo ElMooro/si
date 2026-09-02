@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -2049,7 +2049,7 @@ def _bars_result(sid, prov, doc, name, source, extra=None):
     for b in bars:
         try:
             dt = datetime.fromtimestamp(int(b[0]), tz=timezone.utc).strftime("%Y-%m-%d")
-            ohlc.append([dt, float(b[1]), float(b[2]), float(b[3]), float(b[4])])
+            ohlc.append([dt, float(b[1]), float(b[2]), float(b[3]), float(b[4]), float(b[5]) if len(b) > 5 and b[5] is not None else 0.0])
         except Exception:  # noqa: BLE001
             continue
     out = _result(sid, prov, [(o[0], o[4]) for o in ohlc], name=name, freq="D", source=source, extra=extra)

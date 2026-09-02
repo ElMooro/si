@@ -5121,7 +5121,7 @@ class NativeChart {
       if (ohlc.length > 1) {
         // TradingView-universe symbol / equity from the warehouse → candles, aggregated to the chosen span
         const tfS = State.tf || { span: 'day', mult: 1 };
-        let daily = ohlc.map(o => ({ time: o[0], open: o[1], high: o[2], low: o[3], close: o[4], volume: 0 }));
+        let daily = ohlc.map(o => ({ time: o[0], open: o[1], high: o[2], low: o[3], close: o[4], volume: o[5] || 0 }));
         daily = jhAggregateBars(daily, tfS.span === 'week' || tfS.span === 'month' ? tfS.span : 'day', tfS.mult || 1);
         const cs = chart.addCandlestickSeries({ upColor: '#26ffaf', downColor: '#ff5577', borderVisible: false, wickUpColor: '#26ffaf', wickDownColor: '#ff5577' });
         cs.setData(daily.map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close })));
@@ -5243,8 +5243,9 @@ class NativeChart {
           const d = await SymDir.series(ticker);
           const oh = (d && d.ohlc) || [];
           if (oh.length) {
-            let daily = oh.map(o => ({ time: o[0], open: o[1], high: o[2], low: o[3], close: o[4], volume: 0 }));
+            let daily = oh.map(o => ({ time: o[0], open: o[1], high: o[2], low: o[3], close: o[4], volume: o[5] || 0, value: o[5] || 0 }));
             daily = jhAggregateBars(daily, tf.span, tf.mult || 1);
+            daily.forEach(b => { b.value = b.volume || 0; });
             if (tf.days < 9999) daily = daily.slice(-Math.max(days, 60));
             bars = daily;
             jhSrc = 'JustHodl warehouse' + (String(d.source || '').includes('banked') ? ' · banked now' : '') + (d.first ? ' · since ' + d.first.slice(0, 4) : '');
@@ -5336,7 +5337,7 @@ class NativeChart {
         color: 'rgba(34,211,238,0.3)',
       });
       volSeries.priceScale().applyOptions({ scaleMargins: { top: 0.85, bottom: 0 } });
-      volSeries.setData(bars.map(b => ({ time: b.time, value: b.value, color: b.close >= b.open ? 'rgba(38,255,175,0.25)' : 'rgba(255,85,119,0.25)' })));
+      volSeries.setData(bars.map(b => ({ time: b.time, value: (b.value != null ? b.value : (b.volume || 0)), color: b.close >= b.open ? 'rgba(38,255,175,0.25)' : 'rgba(255,85,119,0.25)' })));
       chart.timeScale().fitContent();
       State.nativeChart = chart; ChartSync.register(paneIdx, chart);
       
