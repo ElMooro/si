@@ -1,129 +1,89 @@
-executing-against: fd78dccecd5b09dca31a9164eb974844f4896b0e
-ops 5106 -- restore the fan-out cluster silenced on 2026-08-01
-── A. proof ──
-[01:17:55] router log (2d, 0 lines): []
-[01:17:55] legacy key config/schedule-manifest.json: keys=['version', 'generated_at', 'source', 'doctrine', 'rules', 'schedules'] has_ticks=False source=ops_4237 snapshot of live AWS after the ops 4229-4232 cleanup
-[01:18:45] tick rules -> router: [{"rule": "jhk-tick-15min", "state": "ENABLED", "expr": "cron(53 17 * * ? *)", "tick": "15min"}, {"rule": "jhk-tick-30min", "state": "ENABLED", "expr": "cron(55 14 * * ? *)", "tick": "30min"}, {"rule": "jhk-tick-4hourly", "state": "ENABLED", "expr": "cron(6 18 * * ? *)", "tick": "4hourly"}, {"rule": "jhk-tick-5min", "state": "ENABLED", "expr": "cron(24 21 * * ? *)", "tick": "5min"}, {"rule": "jhk-tick-daily-06utc", "state": "ENABLED", "expr": "cron(0 6 * * ? *)", "tick": "daily-06utc"}, {"rule": "jhk-tick-daily-07utc", "state": "ENABLED", "expr": "cron(0 7 * * ? *)", "tick": "daily-07utc"}, {"rule": "jhk-tick-daily-08utc", "state": "ENABLED", "expr": "cron(0 8 * * ? *)", "tick": "daily-08utc"}, {"rule": "jhk-tick-daily-15utc", "state": "ENABLED", "expr": "cron(0 15 * * ? *)", "tick": "daily-15utc"}, {"rule": "jhk-tick-daily-16utc", "state": "ENABLED", "expr": "cron(0 16 * * ? *)", "tick": "daily-16utc"}, {"rule": "jhk-tick-daily-17utc", "state": "ENABLED", "expr": "cron(0 17 * * ? *)", "tick": "daily-17utc"}, {"rule": "jhk-tick-daily-eve", "state": "ENABLED", "expr": "cron(0 22 * * ? *)", "tick": "daily-eve"}, {"rule": "jhk-tick-daily-morn", "state": "ENABLED", "expr": "cron(0 11 * * ? *)", "tick": "daily-morn"}, {"rule": "jhk-tick-every_3h", "state": "ENABLED", "expr": "cron(17 19 * * ? *)", "tick": "every_3h"}, {"rule": "jhk-tick-every_6h", "state": "ENABLED", "expr": "cron(22 16 * * ? *)", "tick": "every_6h"}, {"rule": "jhk-tick-hourly", "state": "ENABLED", "expr": "cron(5
-[01:18:45] tick -> UTC hours: {"15min": [17], "30min": [14], "4hourly": [18], "5min": [21], "daily-06utc": [6], "daily-07utc": [7], "daily-08utc": [8], "daily-15utc": [15], "daily-16utc": [16], "daily-17utc": [17], "daily-eve": [22], "daily-morn": [11], "every_3h": [19], "every_6h": [16], "hourly": [17], "monthly": [12], "weekly-sun": [12]}
-[01:18:46] router invocations last 7d (daily): [16, 15, 16, 15, 15, 15, 15]
-── B. membership + tick assignment ──
-[01:18:46] 63 fan-out members by signature: MLPredictor, bls-employment-api-v2, daily-liquidity-report, ecb-data-daily-updater, justhodl-ab-test, justhodl-activist-filings-scanner, justhodl-allocator, justhodl-asymmetric-hunter, justhodl-auction-interpreter, justhodl-bloomberg-v8, justhodl-bond-regime-detector, justhodl-calls-backtest, justhodl-correlation-breaks, justhodl-correlation-surface, justhodl-data-collector, justhodl-deep-value-screener, justhodl-dep-graph, justhodl-divergence-scanner, justhodl-earnings-pead, justhodl-earnings-whisper, justhodl-email-reports-v2, justhodl-eps-revision-velocity, justhodl-fed-speak, justhodl-health-monitor, justhodl-khalid-metrics, justhodl-market-interpreter, justhodl-microcap-float-squeeze, justhodl-ml-predictions, justhodl-momentum-breakout, justhodl-momentum-scanner, justhodl-morning-brief-tg, justhodl-narrative-density-tracker, justhodl-nobrainer-rationale, justhodl-nobrainer-tracker, justhodl-options-flow-scanner, justhodl-pead-detector, justhodl-position-monitor, justhodl-position-sizer-v2, justhodl-pre-pump-detector, justhodl-regime-composite, justhodl-reports-builder, justhodl-revenue-acceleration, justhodl-risk-sizer, justhodl-sector-earnings-diffusion, justhodl-sector-tilt, justhodl-signal-portfolio, justhodl-smart-money-cluster, justhodl-supply-inflection-scanner, justhodl-synthetic-monitor, justhodl-tape-reader, justhodl-theme-detector, justhodl-theme-rotation-engine, justhodl-theme-tier-classifier, justhodl-universe-builder, justhodl-vol-regime, justhodl-volatility-squeeze-hunter, justhodl-watchlist-debate, justhodl-whats-changed, ofrapi, permanent-market-intelligence, scrapeMacroData, treasury-auto-updater, ultimate-multi-agent
-[01:18:46]   MLPredictor                                  hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   bls-employment-api-v2                        hours=[22] per_day=1.0 -> ['daily-eve']
-[01:18:46]   daily-liquidity-report                       hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   ecb-data-daily-updater                       hours=[6] per_day=1.0 -> ['daily-06utc']
-[01:18:46]   justhodl-ab-test                             hours=[16] per_day=1.0 -> ['daily-16utc', 'every_6h']
-[01:18:46]   justhodl-activist-filings-scanner            hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-allocator                           hours=[18] per_day=1.0 -> ['4hourly']
-[01:18:46]   justhodl-asymmetric-hunter                   hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-auction-interpreter                 hours=[18] per_day=1.0 -> ['4hourly']
-[01:18:46]   justhodl-bloomberg-v8                        hours=[17] per_day=1.0 -> ['15min', 'daily-17utc', 'hourly']
-[01:18:46]   justhodl-bond-regime-detector                hours=[18] per_day=1.0 -> ['4hourly']
-[01:18:46]   justhodl-calls-backtest                      hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-correlation-breaks                  hours=[22] per_day=1.0 -> ['daily-eve']
-[01:18:46]   justhodl-correlation-surface                 hours=[15] per_day=1.0 -> ['daily-15utc']
-[01:18:46]   justhodl-data-collector                      hours=[17] per_day=1.0 -> ['15min', 'daily-17utc', 'hourly']
-[01:18:46]   justhodl-deep-value-screener                 hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-dep-graph                           hours=[22] per_day=1.0 -> ['daily-eve']
-[01:18:46]   justhodl-divergence-scanner                  hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-earnings-pead                       hours=[8] per_day=1.0 -> ['daily-08utc']
-[01:18:46]   justhodl-earnings-whisper                    hours=[8] per_day=1.0 -> ['daily-08utc']
-[01:18:46]   justhodl-email-reports-v2                    hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-eps-revision-velocity               hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-fed-speak                           hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-health-monitor                      hours=[17] per_day=1.0 -> ['15min', 'daily-17utc', 'hourly']
-[01:18:46]   justhodl-khalid-metrics                      hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-market-interpreter                  hours=[17] per_day=1.0 -> ['15min', 'daily-17utc', 'hourly']
-[01:18:46]   justhodl-microcap-float-squeeze              hours=[22] per_day=1.0 -> ['daily-eve']
-[01:18:46]   justhodl-ml-predictions                      hours=[18] per_day=1.0 -> ['4hourly']
-[01:18:46]   justhodl-momentum-breakout                   hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-momentum-scanner                    hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-morning-brief-tg                    hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-narrative-density-tracker           hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-nobrainer-rationale                 hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-nobrainer-tracker                   hours=[17] per_day=1.0 -> ['15min', 'daily-17utc', 'hourly']
-[01:18:46]   justhodl-options-flow-scanner                hours=[22] per_day=1.0 -> ['daily-eve']
-[01:18:46]   justhodl-pead-detector                       hours=[8] per_day=1.0 -> ['daily-08utc']
-[01:18:46]   justhodl-position-monitor                    hours=[14] per_day=1.0 -> ['30min']
-[01:18:46]   justhodl-position-sizer-v2                   hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-pre-pump-detector                   hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-regime-composite                    hours=[17] per_day=1.0 -> ['15min', 'daily-17utc', 'hourly']
-[01:18:46]   justhodl-reports-builder                     hours=[17] per_day=1.0 -> ['15min', 'daily-17utc', 'hourly']
-[01:18:46]   justhodl-revenue-acceleration                hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-risk-sizer                          hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-sector-earnings-diffusion           hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-sector-tilt                         hours=[18] per_day=1.0 -> ['4hourly']
-[01:18:46]   justhodl-signal-portfolio                    hours=[22] per_day=1.0 -> ['daily-eve']
-[01:18:46]   justhodl-smart-money-cluster                 hours=[16] per_day=1.0 -> ['daily-16utc', 'every_6h']
-[01:18:46]   justhodl-supply-inflection-scanner           hours=[7] per_day=1.0 -> ['daily-07utc']
-[01:18:46]   justhodl-synthetic-monitor                   hours=[17] per_day=1.0 -> ['15min', 'daily-17utc', 'hourly']
-[01:18:46]   justhodl-tape-reader                         hours=[22] per_day=1.0 -> ['daily-eve']
-[01:18:46]   justhodl-theme-detector                      hours=[6] per_day=1.0 -> ['daily-06utc']
-[01:18:46]   justhodl-theme-rotation-engine               hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-theme-tier-classifier               hours=[8] per_day=1.0 -> ['daily-08utc']
-[01:18:46]   justhodl-universe-builder                    hours=[18] per_day=1.06 -> ['4hourly']
-[01:18:46]   justhodl-vol-regime                          hours=[17] per_day=1.0 -> ['15min', 'daily-17utc', 'hourly']
-[01:18:46]   justhodl-volatility-squeeze-hunter           hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   justhodl-watchlist-debate                    hours=[22] per_day=1.0 -> ['daily-eve']
-[01:18:46]   justhodl-whats-changed                       hours=[17] per_day=1.0 -> ['15min', 'daily-17utc', 'hourly']
-[01:18:46]   ofrapi                                       hours=[11] per_day=1.88 -> ['daily-morn']
-[01:18:46]   permanent-market-intelligence                hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   scrapeMacroData                              hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   treasury-auto-updater                        hours=[11] per_day=1.0 -> ['daily-morn']
-[01:18:46]   ultimate-multi-agent                         hours=[] per_day=3.69 -> ['daily-morn'] (default)
-[01:18:46] ticks: {"daily-morn": 28, "daily-eve": 8, "daily-06utc": 2, "daily-16utc": 2, "every_6h": 2, "4hourly": 6, "15min": 10, "daily-17utc": 10, "hourly": 10, "daily-15utc": 1, "daily-08utc": 4, "30min": 1, "daily-07utc": 1}
-── C. write manifest + redeploy router ──
-[01:18:47] ✅ manifest written to s3://justhodl-dashboard-live/config/fanout-manifest.json and config/fanout-manifest.json
-[01:18:47]   zip: 100354 bytes
+executing-against: faadb665190aa7a185a29af2a47484d2ead221c2
+ops 5108 -- fix wave 2: erroring engines one by one
+── 1. boj-full storm ──
+[02:10:17] benzinga-news-agent-warm targets: [('1', 'benzinga-news-agent', ''), ('bojfanout', 'justhodl-boj-full', '{"fanout": true}'), ('econdispatch', 'justhodl-census-us', '{"mode": "econ_dispatch", "shards": 12}'), ('gdelt-full', 'justhodl-gdelt-full', '{}'), ('repo', 'justhodl-repo', '{}')]
+[02:10:17] ✅ detached boj-full target(s) ['bojfanout'] from the 5-minute warm rule
+[02:10:17] carry-surface-4h extra targets: [('censusts', 'justhodl-census-us')]
+[02:10:18] ✅ schedule justhodl-boj-full-fanout created (rate 30 minutes)
+[02:10:18]   boj err: [ERROR] NameError: name 'api_key' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 334, in lambda_handler
+    ds = api_drain_db(db, end, state)
+  File "/var/task/lambda_functi
+── 2. memory/timeout raises (live) ──
+[02:10:19] ✅ justhodl-signal-scorecard: 256MB/120s -> 1536MB/600s
+[02:10:20] ✅ justhodl-feed-registry: 256MB/120s -> 1024MB/600s
+[02:10:20] ✅ justhodl-global-liquidity: 256MB/120s -> 512MB/300s
+[02:10:21] ✅ justhodl-provider-window-sentinel: 256MB/120s -> 512MB/600s
+[02:10:22] ✅ justhodl-research-backtest: 512MB/240s -> 1024MB/900s
+[02:10:22] ✅ justhodl-signal-harvester: 512MB/300s -> 1024MB/900s
+[02:10:23] ✅ justhodl-fleet-monitor: 512MB/300s -> 1024MB/900s
+[02:10:24] ✅ justhodl-calibrator: 512MB/300s -> 2048MB/900s
+[02:10:25] ✅ justhodl-import-sentinel: 512MB/120s -> 1024MB/600s
+── 3. stock-screener redeploy ──
+[02:10:25]   zip: 122659 bytes
 ── 1. Lambda ──
-[01:18:47]   Lambda exists — updating
-[01:18:53] ✅   ✓ updated justhodl-scheduler
-── D. fire + verify ──
-[01:19:01] router tick 15min: {"statusCode": 200, "body": "{\"tick\": \"15min\", \"invoked_ok\": 10, \"invoked_err\": 0, \"elapsed_s\": 0.69, \"errors\": []}"}
-[01:19:01] router tick 30min: {"statusCode": 200, "body": "{\"tick\": \"30min\", \"invoked_ok\": 1, \"invoked_err\": 0, \"elapsed_s\": 0.1, \"errors\": []}"}
-[01:19:01] router tick 4hourly: {"statusCode": 200, "body": "{\"tick\": \"4hourly\", \"invoked_ok\": 6, \"invoked_err\": 0, \"elapsed_s\": 0.31, \"errors\": []}"}
-[01:19:02] router tick daily-06utc: {"statusCode": 200, "body": "{\"tick\": \"daily-06utc\", \"invoked_ok\": 2, \"invoked_err\": 0, \"elapsed_s\": 0.19, \"errors\": []}"}
-[01:19:02] router tick daily-07utc: {"statusCode": 200, "body": "{\"tick\": \"daily-07utc\", \"invoked_ok\": 1, \"invoked_err\": 0, \"elapsed_s\": 0.11, \"errors\": []}"}
-[01:19:02] router tick daily-08utc: {"statusCode": 200, "body": "{\"tick\": \"daily-08utc\", \"invoked_ok\": 4, \"invoked_err\": 0, \"elapsed_s\": 0.28, \"errors\": []}"}
-[01:19:03] router tick daily-15utc: {"statusCode": 200, "body": "{\"tick\": \"daily-15utc\", \"invoked_ok\": 1, \"invoked_err\": 0, \"elapsed_s\": 0.09, \"errors\": []}"}
-[01:19:03] router tick daily-16utc: {"statusCode": 200, "body": "{\"tick\": \"daily-16utc\", \"invoked_ok\": 2, \"invoked_err\": 0, \"elapsed_s\": 0.15, \"errors\": []}"}
-[01:19:03] router tick daily-17utc: {"statusCode": 200, "body": "{\"tick\": \"daily-17utc\", \"invoked_ok\": 10, \"invoked_err\": 0, \"elapsed_s\": 0.51, \"errors\": []}"}
-[01:19:04] router tick daily-eve: {"statusCode": 200, "body": "{\"tick\": \"daily-eve\", \"invoked_ok\": 8, \"invoked_err\": 0, \"elapsed_s\": 0.43, \"errors\": []}"}
-[01:19:05] router tick daily-morn: {"statusCode": 200, "body": "{\"tick\": \"daily-morn\", \"invoked_ok\": 28, \"invoked_err\": 0, \"elapsed_s\": 1.46, \"errors\": []}"}
-[01:19:06] router tick every_6h: {"statusCode": 200, "body": "{\"tick\": \"every_6h\", \"invoked_ok\": 2, \"invoked_err\": 0, \"elapsed_s\": 0.13, \"errors\": []}"}
-[01:19:06] router tick hourly: {"statusCode": 200, "body": "{\"tick\": \"hourly\", \"invoked_ok\": 10, \"invoked_err\": 0, \"elapsed_s\": 0.53, \"errors\": []}"}
-[01:26:10] invoked 62/63: MLPredictor, bls-employment-api-v2, daily-liquidity-report, ecb-data-daily-updater, justhodl-ab-test, justhodl-activist-filings-scanner, justhodl-allocator, justhodl-asymmetric-hunter, justhodl-auction-interpreter, justhodl-bloomberg-v8, justhodl-bond-regime-detector, justhodl-calls-backtest, justhodl-correlation-breaks, justhodl-correlation-surface, justhodl-data-collector, justhodl-deep-value-screener, justhodl-dep-graph, justhodl-divergence-scanner, justhodl-earnings-pead, justhodl-earnings-whisper, justhodl-email-reports-v2, justhodl-eps-revision-velocity, justhodl-fed-speak, justhodl-health-monitor, justhodl-khalid-metrics, justhodl-market-interpreter, justhodl-microcap-float-squeeze, justhodl-ml-predictions, justhodl-momentum-breakout, justhodl-momentum-scanner, justhodl-morning-brief-tg, justhodl-narrative-density-tracker, justhodl-nobrainer-rationale, justhodl-nobrainer-tracker, justhodl-options-flow-scanner, justhodl-pead-detector, justhodl-position-monitor, justhodl-position-sizer-v2, justhodl-pre-pump-detector, justhodl-regime-composite, justhodl-reports-builder, justhodl-revenue-acceleration, justhodl-risk-sizer, justhodl-sector-earnings-diffusion, justhodl-sector-tilt, justhodl-signal-portfolio, justhodl-smart-money-cluster, justhodl-supply-inflection-scanner, justhodl-synthetic-monitor, justhodl-tape-reader, justhodl-theme-detector, justhodl-theme-rotation-engine, justhodl-theme-tier-classifier, justhodl-universe-builder, justhodl-vol-regime, justhodl-volatility-squeeze-hunter, justhodl-watchlist-debate, justhodl-whats-changed, ofrapi, permanent-market-intelligence, scrapeMacroData, treasury-auto-updater
-[01:26:10] errored 0: 
-[01:26:10] feeds advanced (24): [["justhodl-activist-filings-scanner", "data/universe.json"], ["justhodl-asymmetric-hunter", "data/nobrainers.json"], ["justhodl-deep-value-screener", "data/universe.json"], ["justhodl-earnings-pead", "data/universe.json"], ["justhodl-eps-revision-velocity", "data/universe.json"], ["justhodl-khalid-metrics", "data/khalid-metrics.json"], ["justhodl-microcap-float-squeeze", "data/universe.json"], ["justhodl-momentum-breakout", "data/universe.json"], ["justhodl-morning-brief-tg", "data/morning-brief-latest.json"], ["justhodl-nobrainer-rationale", "data/deep-value.json"], ["justhodl-nobrainer-rationale", "data/eps-revision-velocity.json"], ["justhodl-nobrainer-tracker", "data/nobrainers.json"], ["justhodl-options-flow-scanner", "data/universe.json"], ["justhodl-pead-detector", "data/universe.json"], ["justhodl-pre-pump-detector", "data/universe.json"], ["justhodl-revenue-acceleration", "data/universe.json"], ["justhodl-sector-earnings-diffusion", "data/eps-revision-velocity.json"], ["justhodl-sector-earnings-diffusion", "data/universe.json"], ["justhodl-supply-inflection-scanner", "data/supply-inflection.json"], ["justhodl-tape-reader", "data/universe.json"], ["justhodl-theme-detector", "data/themes-detected.json"], ["justhodl-theme-tier-classifier", "data/theme-tiers.json"], ["justhodl-theme-tier-classifier", "data/themes-detected.json"], ["justhodl-volatility-squeeze-hunter", "data/universe.json"]]
-[01:26:10] not invoked (1): ultimate-multi-agent
+[02:10:25]   Lambda exists — updating
+── 4. portwatch v1.6.1 ──
+[02:13:30] ✅ justhodl-portwatch deployed (2026-09-02T02:13:19.000+0000) after 182s
+[02:20:40] portwatch invoke 200 b'{"ok": true, "chokepoints": 28, "worst": {"name": "Kerch Strait", "z": -1.48, "vs_baseline_pct": -98.9, "status": "DISRUPTED"}, "rows": 10948}'
+[02:20:40] portwatch: v1.6.1 ok=True chokepoints=28 ports=50 with_yoy=0 daily_rows=10948 requests={"n": 20, "throttled_429": 0, "budget": 140} history_through={"choke": "2026-08-23", "ports": "2025-10-16"} errors=["ports_daily: {'code': 400, 'message': 'Cannot perform query. Invalid query parameters.', 'details': ['Unable to perform query. Please check your parameters.']} (using history through 2025-10-16, 3000 new rows merged)"]
+[02:20:41] ✅ justhodl-portwatch-daily -> cron(20 11 * * ? *)
+[02:20:41] portwatch schedules now: ['justhodl-portwatch-daily']
+── 5. census-us / insider-trades ──
+[02:20:41] ✅ justhodl-census-us deployed (2026-09-02T02:11:00.000+0000) after 0s
+[02:22:12] justhodl-census-us: UnboundLocalError lines after fix: 0 []; report: ["REPORT RequestId: 60611067-afcd-420d-ac4c-dd12ea09ca32\tDuration: 653.84 ms\tBilled Duration: 654 ms\tMemory Size: 1024 MB\tMax Memory Used: 121 MB\t\nXRAY TraceId: 1-6a97882b-5c621cc805b4099f014ceaf9\tSegmentId: 09217b2265f4d899\tSampled: true", "REPORT RequestId: c2b4065a-6fb7-40f4-b6b9-acc62641
+[02:22:13] ✅ justhodl-insider-trades deployed (2026-09-02T02:12:57.000+0000) after 0s
+[02:23:13] justhodl-insider-trades: KeyError lines after fix: 0 []; report: ["REPORT RequestId: 865cfc42-fd4e-4895-a3db-bb2c70c58b9a\tDuration: 18990.89 ms\tBilled Duration: 19344 ms\tMemory Size: 512 MB\tMax Memory Used: 113 MB\tInit Duration: 353.02 ms\t\nXRAY TraceId: 1-6a978855-079f9c826a040fb238ab7668\tSegmentId: 5c1408"]
+── 6. timeout forensics ──
+[02:23:14]   justhodl-fleet-monitor: no 'Task timed out' in 3d
+[02:23:15]   justhodl-feed-registry: no 'Task timed out' in 3d
+[02:23:16]   justhodl-research-backtest: no 'Task timed out' in 3d
+[02:23:16]   justhodl-global-liquidity: no 'Task timed out' in 3d
+[02:23:17]   justhodl-provider-window-sentinel: no 'Task timed out' in 3d
+[02:23:18]   justhodl-signal-harvester: no 'Task timed out' in 3d
+[02:23:18]   justhodl-imf-full: no 'Task timed out' in 3d
+[02:23:19]   justhodl-calibrator: no 'Task timed out' in 3d
+[02:23:19]   justhodl-signal-scorecard: no 'Task timed out' in 3d
+[02:23:20]   justhodl-import-sentinel: no 'Task timed out' in 3d
+[02:23:20] import-sentinel error lines (24h):
+[02:23:20]   [ERROR] NameError: name 'now' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 164, in lambda_handler
+    _cut = (now - timedelta(days=14)).isoformat()
+[02:23:20]   [ERROR] NameError: name 'now' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 164, in lambda_handler
+    _cut = (now - timedelta(days=14)).isoformat()
+[02:23:20]   [ERROR] NameError: name 'now' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 164, in lambda_handler
+    _cut = (now - timedelta(days=14)).isoformat()
+[02:23:20]   [ERROR] NameError: name 'now' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 164, in lambda_handler
+    _cut = (now - timedelta(days=14)).isoformat()
+[02:23:20]   [ERROR] NameError: name 'now' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 164, in lambda_handler
+    _cut = (now - timedelta(days=14)).isoformat()
+[02:23:20]   [ERROR] NameError: name 'now' is not defined
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 164, in lambda_handler
+    _cut = (now - timedelta(days=14)).isoformat()
+── 7. fi-census / etf-census silent schedules ──
+[02:23:21] fi-census-sched: state=ENABLED expr=cron(0 7 2,16 * ? *) target=arn:aws:lambda:us-east-1:857687956942:function:justhodl-fi-census role=arn:aws:iam::857687956942:role/justhodl-scheduler-role input={} window={'Mode': 'OFF'}
+[02:23:21]   function arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-fi-census state=Active timeout=900 mem=768
+[02:23:21]   manual async invoke status=202
+[02:24:07]   report: ["REPORT RequestId: ea48f5bf-e2a9-47fe-8234-27dc1c8f00f9\tDuration: 20953.68 ms\tBilled Duration: 21375 ms\tMemory Size: 768 MB\tMax Memory Used: 108 MB\tInit Duration: 421.30 ms\t\nXRAY TraceId: 1-6a978899-556abc502b942e633de39267\tSegment errors: []
+[02:24:07] etf-census-sched: state=ENABLED expr=cron(30 6 2,16 * ? *) target=arn:aws:lambda:us-east-1:857687956942:function:justhodl-etf-census role=arn:aws:iam::857687956942:role/justhodl-scheduler-role input={} window={'Mode': 'OFF'}
+[02:24:08]   function arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-etf-census state=Active timeout=900 mem=1024
+[02:24:08]   manual async invoke status=202
+[02:24:53]   report: ["REPORT RequestId: 62e89396-4ef7-415b-bd84-360b9eaffb3a\tDuration: 23763.23 ms\tBilled Duration: 24259 ms\tMemory Size: 1024 MB\tMax Memory Used: 114 MB\tInit Duration: 494.77 ms\t\nXRAY TraceId: 1-6a9788c8-019678fb2e7628dc7362440d\tSegmen errors: []
 ── verdict ──
-[01:26:10] ✅ VERDICT: GREEN -- fan-out restored: 63 members across ticks {'daily-morn': 28, 'daily-eve': 8, 'daily-06utc': 2, 'daily-16utc': 2, 'every_6h': 2, '4hourly': 6, '15min': 10, 'daily-17utc': 10, 'hourly': 10, 'daily-15utc': 1, 'daily-08utc': 4, '30min': 1, 'daily-07utc': 1}; 62 invoked now, 0 errored (-> FIX_ERRORS wave), 24 feeds advanced
+[02:24:53] ✗ stock-screener: Parameter validation failed:
+Invalid type for parameter Environment.Variables, value: None, type: <class 'NoneType'>, valid types: <class 'dict'>
+[02:24:53] ✗ portwatch: still no ports with yoy
 
-→ Report written to aws/ops/reports/latest/5106-fanout-restore.md
-ops 5107 -- portwatch v1.6 + oecd-cli v2.0.0 + global-recession OECD leg
-── 1. portwatch v1.6 ──
-[01:26:11] ✅ justhodl-portwatch deployed (v1.6) after 0s
-[01:26:15] sync invoke status 200 payload b'{"ok": true, "chokepoints": 28, "worst": {"name": "Makassar Strait", "z": -0.71, "vs_baseline_pct": -10.2, "status": "NORMAL"}, "rows": 1000}'
-[01:26:15] portwatch: version=1.6.0 ok=True chokepoints=28 ports=42 with_yoy=0 requests={"n": 7, "throttled_429": 0, "budget": 60} history_through={"choke": "2025-09-02", "ports": "2025-08-21"} daily_rows=1000 errors=[]
-[01:26:16] ⚠ log tail justhodl-portwatch: An error occurred (InvalidParameterException) when calling the FilterLogEvents o
-[01:26:16] portwatch schedules now: ['justhodl-portwatch-daily', 'portwatch-sched']
-[01:26:16] ✅ justhodl-portwatch-daily -> cron(20 11 * * ? *)
-[01:26:16] ✅ deleted duplicate schedule portwatch-sched (11:20)
-── 2. oecd-cli v2.0.0 ──
-[01:26:16] ✅ justhodl-oecd-cli deployed (v2.0.0) after 0s
-[01:26:18] invoke status 200 payload b'{"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\\"ok\\": true, \\"period\\": \\"2026-06\\", \\"global_avg\\": 100.83, \\"us_cli\\": 100.8, \\"oecd_cli\\": null, \\"n_countries\\": 18}"}'
-[01:26:18] oecd-cli: version=2.0.0 as_of=2026-06-01 age=3mo countries=18 aggregates=4 avg=100.83 oecd_total=None source=OECD DSD_STES@DF_CLI via cycle-features cache (2026-09-02)
-[01:26:18]   interpretation: US CLI at 100.8 signals expansion phase.
-[01:26:18]   USA: cli=100.8 prior=100.76 phase=expansion composite=102.51/EXPANSION
-[01:26:18]   CHN: cli=98.57 prior=98.6 phase=slowdown composite=93.38/RECESSION
-[01:26:18]   DEU: cli=100.72 prior=100.76 phase=expansion composite=98.99/RECOVERY
-[01:26:18]   JPN: cli=100.3 prior=100.24 phase=neutral composite=102.35/AT_RISK
-[01:26:18]   OECD: cli=None prior=None phase=None composite=None/None
-[01:26:18] ⚠ log tail justhodl-oecd-cli: An error occurred (InvalidParameterException) when calling the FilterLogEvents o
-── 3. global-recession OECD leg ──
-[01:26:33] global-recession: prob=30.5 band=WATCH — pockets of stress oecd_period=2026-06-01 oecd_usable=True age=3 counts={"CONFIRMED": 7, "DIVERGENT": 10, "UNCONFIRMED": 17} ports_countries=0
-── verdict ──
-[01:26:33] ✗ portwatch: no ports with yoy after v1.6 run
-
-→ Report written to aws/ops/reports/latest/5107-portwatch-oecdcli.md
-❌ OPS-FAIL: aws/ops/pending/ops_5107_portwatch_oecdcli.py
+→ Report written to aws/ops/reports/latest/5108-fix-wave-2.md
+❌ OPS-FAIL: aws/ops/pending/ops_5108_fix_wave_2.py
