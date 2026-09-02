@@ -1,54 +1,35 @@
-executing-against: 2052326e5f2743d73ead93b4c0980146da556ff4
-ops 5123 -- symbol directory v1.1.2: ranking closure
-── S1 redeploy ──
-[14:11:01]   zip: 130613 bytes
+executing-against: 4a3fc6bf388759f5de4af6a2a11e758fc3a71bf7
+ops 5124 -- every symbol from the warehouse: tv-bars universe lane
+── S1 deploy tv-bars v1.1 ──
+[14:29:50]   zip: 104878 bytes
 ── 1. Lambda ──
-[14:11:02]   Lambda exists — updating
-[14:11:05] ✅   ✓ updated justhodl-symdir
-── S2 rebuild + warm reload semantics ──
-[14:11:19]   pre-build warm 8593ms: built_at=2026-09-02T14:04:31+00:00 reloaded=False
-[14:15:02] ✅ rebuilt docs=1,374,426 elapsed=204.1s titles ledger=1165 untitled=1311
-[14:15:10]   warm after build: 7143ms built_at=2026-09-02T14:14:25+00:00 reloaded=True | repeat 260ms reloaded=False | repeat 257ms reloaded=False
-── S3 ranking battery (function URL, warm) ──
-[14:15:10] ✅   'sofr'                        217ms total=    798 top=['nyfed:sofr', 'fred:SOFR', 'SOFR', 'fred:SOFRINDEX', 'CMCMARKETS:SOFR3MO', 'fred:SOFR30DAYAVG']  want nyfed:sofr in top 1
-[14:15:10] ✅   'dgs10'                       220ms total=      1 top=['fred:DGS10']  want fred:DGS10 in top 1
-[14:15:10] ✅   'AAPL'                        238ms total=     14 top=['AAPL', 'NASDAQ:AAPL', 'I:AAPLCW', 'I:AAPLDI', 'I:AAPLIO', 'AAPB']  want AAPL in top 1
-[14:15:11] ✅   'unrate'                      217ms total=     16 top=['fred:UNRATE', 'fred:UNRATENSA', 'fred:UNRATEMD', 'fred:UNRATECTM', 'fred:UNRATERH', 'fred:UNRATERM']  want fred:UNRATE in top 1
-[14:15:11] ✅   'TVC:VIX'                     222ms total=    746 top=['TVC:VIX', 'TVC:MOVE', 'fred:VIXCLS', 'fred:GVZCLS', 'fred:OVXCLS', 'fred:VXVCLS']  want TVC:VIX in top 1
-[14:15:13] ✅   'payrolls'                   2591ms total= 157587 top=['fred:PAYEMS', 'fred:JTSJOL', 'fred:OPHNFB', 'fred:JTSQUR', 'fred:JTSHIR', 'fred:JTSLDL']  want fred:PAYEMS in top 5
-[14:15:14] ✅   'nonfarm payrolls'            314ms total=  14198 top=['fred:PAYEMS', 'fred:JTSJOL', 'fred:OPHNFB', 'fred:JTSQUR', 'fred:JTSHIR', 'fred:JTSLDL']  want fred:PAYEMS in top 5
-[14:15:14] ✅   'cpi'                         796ms total= 222738 top=['imf:CPI', 'fred:CPIAUCSL', 'CPIX', 'fred:CPILFESL', 'CPII', 'fred:CPIAUCNS']  want fred:CPIAUCSL in top 5
-[14:15:15] ✅   'consumer price index'        311ms total=  24462 top=['fred:CPIAUCSL', 'fred:CPILFESL', 'fred:CPIAUCNS', 'fred:CPIENGSL', 'fred:CPIMEDNS', 'fred:CUSR0000SETA02']  want fred:CPIAUCSL in top 5
-[14:15:15] ✅   'unemployment rate germany'   242ms total=    192 top=['fred:LRHUTTTTDEM156S', 'ECONOMICS:DEUR', 'ECONOMICS:GEUR', 'fred:LRHUTTTTDEQ156S', 'fred:LRUNTTTTDEQ156S', 'fred:LRHUTTTTDEM156N']  want fred:LRHUTTTTDEM156S in top 5
-[14:15:15] ✅   'canada employment'           226ms total=   1034 top=['statcan:10100001', 'statcan:10100025', 'statcan:10100026', 'statcan:10100038', 'statcan:11100027', 'statcan:11100029']  want statcan: in top 10
-[14:15:16] ✅   'nama_10_gdp'                 260ms total=     23 top=['eurostat:NAMA_10_GDP', 'eurostat:NAMA_10R_3GDP', 'eurostat:NAMA_10_PC', 'eurostat:NAMA_10R_2GDP', 'eurostat:NAMA_10R_3POPGDP', 'eurostat:NAMA_10R_2GVAGR']  want eurostat:NAMA_10_GDP in top 1
-[14:15:16] ✅   'gdp'                         608ms total= 148328 top=['fred:GDP', 'fred:GDPA', 'fred:GDPNOW', 'fred:GDPC1', 'fred:JHGDPBRINDX', 'eurostat:NAIDA_10_GDP']  want fred:GDP in top 3
-[14:15:16] ✅   'real gdp'                    362ms total=  28734 top=['fred:GDPC1', 'eurostat:TEC00115', 'eurostat:SDG_08_10', 'eurostat:TIPSNA40', 'fred:RGDPNACNA666NRUG', 'fred:STLENI']  want fred:GDPC1 in top 5
-[14:15:17] ✅   'm2'                          273ms total=  17565 top=['fred:M2', 'fred:M2SL', 'fred:M2NS', 'fred:M2V', 'fred:M2REAL', 'fred:M2MSL']  want fred:M2SL in top 3
-[14:15:17] ✅   '10 year treasury yield'      267ms total=    154 top=['fred:DGS10', 'fred:T10Y2Y', 'fred:T10Y3M', 'fred:DFII10', 'fred:BAA10Y', 'fred:GS10']  want fred:DGS10 in top 3
-[14:15:17] ✅   'bank of japan'               342ms total=  66949 top=['fred:JPNASSETS', 'boj:BP01', 'boj:BS02', 'boj:IR02', 'boj:IR03', 'boj:MD02']  want boj: in top 5
-[14:15:18] ✗   'money market funds'          241ms total=   2506 top=['fred:MMMFFAQ027S', 'fred:MMMFTAQ027S', 'fred:BOGZ1FL632051103Q', 'fred:WRMFNS', 'fred:MMMFFAA027N', 'fred:BOGZ1FL633061105Q']  want ofr: in top 15
-[14:15:18] ✅   'euro dollar exchange rate'   230ms total=     22 top=['fred:DEXUSEU', 'fred:EXUSEU', 'fred:AEXUSEU', 'fred:CCUSMA02EZM618N', 'fred:CCUSMA02EZQ618N', 'fred:CCUSMA02EZM661N']  want fred:DEXUSEU in top 5
-[14:15:18] ✅   'japan cpi'                   417ms total=  61412 top=['fred:JPNCPIALLMINMEI', 'fred:CPALTT01JPM657N', 'fred:JPNPCPIPCPPPT', 'fred:JPNCPALTT01CTGYM', 'fred:CPALCY01JPM661N', 'fred:CPALTT01JPM661S']  want fred: in top 3
-[14:15:18] ✅   'fed balance sheet'           229ms total=     32 top=['fred:WALCL', 'statcan:10100051', 'statcan:10100052', 'statcan:10100056', 'statcan:10100062', 'statcan:10100067']  want fred:WALCL in top 5
-[14:15:19] ✅   'initial claims'              222ms total=    111 top=['fred:ICSA', 'fred:ICNSA', 'fred:IC4WSA', 'fred:CAICLAIMS', 'fred:PAICLAIMS', 'fred:TXICLAIMS']  want fred:ICSA in top 5
-[14:15:19] ✅   'vix'                         221ms total=    436 top=['CBOE:VIX', 'CAPITALCOM:VIX', 'HOSE:VIX', 'PEPPERSTONE:VIX', 'TVC:VIX', 'I:VIX']  want TVC:VIX in top 5
-[14:15:19] ✅   'bitcoin'                     227ms total=    198 top=['BIXI', 'fred:CBBTCUSD', 'INDEX:BTCUSD', 'ABTC', 'X:BCHNUSD', 'X:BCHUSD']  want X:BTCUSD in top 10
-[14:15:19] ✅   'nvidia'                      224ms total=      5 top=['NVDA', 'NASDAQ:NVDA', 'NVDQ', 'NVDX', 'NVPS']  want NVDA in top 1
-[14:15:20] ✅   'hicp'                        276ms total=  15562 top=['ecb:HICP', 'eurostat:PRC_HICP_APC', 'eurostat:PRC_HICP_FP', 'eurostat:PRC_HICP_AIND', 'eurostat:PRC_HICP_CMON', 'eurostat:PRC_HICP_MIDX']  want eurostat: in top 8
-[14:15:20]   (info) 'core cpi': fred:CPILFESL · Consumer Price Index for All Urban C | worldbank:CORENS · Core CPI,not seas.adj,,, | worldbank:CORESA · Core CPI,seas.adj,,, | fred:CORESTICKM159SFRBATL · Sticky Price Consumer Price Index le | fred:PCEPILFE · Personal Consumption Expenditures Ex
-[14:15:20]   (info) 'jobless claims': fred:ICSA · Initial Claims | fred:CCSA · Continued Claims (Insured Unemployme | fred:CC4WSA · 4-Week Moving Average of Continued C | fred:CCNSA · Continued Claims (Insured Unemployme | fred:MOCCLAIMS · Continued Claims (Insured Unemployme
-[14:15:20]   (info) 'housing starts': fred:HOUST · New Privately-Owned Housing Units St | statcan:34100096 · Canada Mortgage and Housing Corporat | statcan:34100097 · Canada Mortgage and Housing Corporat | statcan:34100102 · Canada Mortgage and Housing Corporat | statcan:34100103 · Canada Mortgage and Housing Corporat
-[14:15:21]   (info) 'oil price': fred:OILPRICE · Spot Oil Price: West Texas Intermedi | fred:DCOILWTICO · Crude Oil Prices: West Texas Interme | fred:DCOILBRENTEU · Crude Oil Prices: Brent - Europe | fred:WTISPLC · Spot Crude Oil Price: West Texas Int | fred:MCOILWTICO · Crude Oil Prices: West Texas Interme
-[14:15:21]   (info) 'yield curve': fred:T10Y2Y · 10-Year Treasury Constant Maturity M | ecb:YC · Financial market data - yield curve | eurostat:IRT_EURYLD_D · Euro yield curves - daily data | fred:T10Y3M · 10-Year Treasury Constant Maturity M | eurostat:IRT_H_EURYLD_D · Euro yield curves - daily data
-── S4 spot checks ──
-[14:15:22]   statcan vector 1050ms n=123 first=2009-09-01 last=2026-03-01 src=statcan-wds
-[14:15:22]   fred:PAYEMS: name='All Employees, Total Nonfarm'
-[14:15:22]   fred:CPILFESL: name='Consumer Price Index for All Urban Consumers: All Items Less Food and Energy in U.S. City Average'
-[14:15:23]   eurostat NAMA_10_GDP: 'Gross domestic product (GDP) and main components (output, expenditure and income) - annual data'
-[14:15:31]   worker /symsearch payrolls 8580ms: ['fred:PAYEMS', 'fred:JTSJOL', 'fred:OPHNFB']
+[14:29:50]   Lambda exists — updating
+[14:29:53] ✅   ✓ updated justhodl-tv-bars
+── S2 prove pulls across symbol families ──
+[14:30:01]   invoke ['TVC:VIX', 'NASDAQ:AAPL', 'ECONOMICS:DEUR', 'SSE:000001', 'FX:EURUSD'] -> 4678ms ok=True err=None universe=0
+[14:30:01]     TVC:VIX            ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+[14:30:01]     NASDAQ:AAPL        ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+[14:30:01]     ECONOMICS:DEUR     ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+[14:30:01]     SSE:000001         ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+[14:30:01]     FX:EURUSD          ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+[14:30:05]   invoke ['COINBASE:BTCUSD', 'AMEX:SPY', 'SP:SPX', 'OTC:AAAIF', 'CME_MINI:ES1!'] -> 3257ms ok=True err=None universe=0
+[14:30:05]     COINBASE:BTCUSD    ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+[14:30:05]     AMEX:SPY           ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+[14:30:05]     SP:SPX             ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+[14:30:05]     OTC:AAAIF          ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+[14:30:05]     CME_MINI:ES1!      ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+[14:30:05] ⚠   TVC__VIX doc unreadable: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
+── S3 warehouse layouts: us-equities-daily, tv-bars ──
+[14:30:05]   data/warm/us-equities-daily/: objects=20 sub=[] keys=[('data/warm/us-equities-daily/2026-08-05.json.gz', 411215), ('data/warm/us-equities-daily/2026-08-06.json.gz', 410513), ('data/warm/us-equities-daily/2026-08-07.json.gz', 412059), ('data/warm/us-equities-daily/2026-08-10.json.gz', 412471), ('data/warm/us-equities-daily/2026-08-11.json.gz', 410936), ('data/warm/us-equities-daily/2026-08-12.json.gz', 410801), ('data/warm/us-equities-daily/2026-08-13.json.gz', 413342), ('data/warm/us-equities-daily/2026-08-14.json.gz', 411251), ('data/warm/us-equities-daily/2026-08-17.json.gz', 415973), ('data/warm/us-equities-daily/2026-08-18.json.gz', 413087), ('data/warm/us-equities-daily/2026-08-19.json.gz', 415834), ('data/warm/us-equities-daily/2026-08-20.json.gz', 413254)]
+[14:30:05]     HEAD data/warm/us-equities-daily/2026-08-05.json.gz: {"date": "2026-08-05", "n_tickers": 12392, "raw_snapshot_key": "data/raw/polygon/2026-08-06/6440675a4f7f.json.gz", "results": [{"T": "DMO", "v": 85057.1129, "vw": 10.3734, "o": 10.43, "c": 10.38, "h": 10.44, "l": 10.33, "t": 1785960000000, "n": 409}, {"T": "IDX", "v": 26094.85965, "vw": 11.23, "o": 11.23, "c": 11.23, "h": 11.27, "l": 11.19, "t": 1785960000000, "n": 141}, {"T": "TRTX", "v": 933604.731202, "vw": 7.9435, "o": 8.02, "c": 7.94, "h": 8.02, "l": 7.9, "t": 1785960000000, "n": 10739}, {"
+[14:30:05]   data/warm/tv-bars/: objects=3 sub=['data/warm/tv-bars/universe/'] keys=[('data/warm/tv-bars/_index.json', 74), ('data/warm/tv-bars/_state.json', 6051)]
+[14:30:05]   ICE lane index: n_symbols=0 sample=[]
+── S4 nightly refresh schedule ──
+[14:30:05] ✅ schedule created: justhodl-tv-bars-universe-refresh cron(30 2 * * ? *)
 ── verdict ──
-[14:15:31] ✗ ranking 'money market funds': ['fred:MMMFFAQ027S', 'fred:MMMFTAQ027S', 'fred:BOGZ1FL632051103Q', 'fred:WRMFNS', 'fred:MMMFFAA027N', 'fred:BOGZ1FL633061105Q', 'fred:BOGZ1FA632051103Q', 'fred:BOGZ1FL634090043Q'] lacks ofr:
+[14:30:05] ✗ TVC:VIX did not bank: RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+[14:30:05] ✗ NASDAQ:AAPL did not bank: RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+[14:30:05] ✗ only 0/10 probe symbols banked with >1000 bars
 
-→ Report written to aws/ops/reports/latest/5123-symdir-v112.md
-❌ OPS-FAIL: aws/ops/pending/ops_5123_symdir_v112.py
+→ Report written to aws/ops/reports/latest/5124-tv-bars-universe.md
+❌ OPS-FAIL: aws/ops/pending/ops_5124_tv_bars_universe.py

@@ -1,0 +1,56 @@
+# ops 5124 -- every symbol from the warehouse: tv-bars universe lane
+
+**Status:** failure  
+**Duration:** 15.2s  
+**Finished:** 2026-09-02T14:30:05+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| banked_over_1000 | probes | state | step | update |
+|---|---|---|---|---|
+|  |  | Active | S1 | Successful |
+| 0 | 10 |  | S2 |  |
+
+## Log
+## S1 deploy tv-bars v1.1
+
+- `14:29:50`   zip: 104878 bytes
+## 1. Lambda
+
+- `14:29:50`   Lambda exists — updating
+- `14:29:53` ✅   ✓ updated justhodl-tv-bars
+## S2 prove pulls across symbol families
+
+- `14:30:01`   invoke ['TVC:VIX', 'NASDAQ:AAPL', 'ECONOMICS:DEUR', 'SSE:000001', 'FX:EURUSD'] -> 4678ms ok=True err=None universe=0
+- `14:30:01`     TVC:VIX            ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+- `14:30:01`     NASDAQ:AAPL        ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+- `14:30:01`     ECONOMICS:DEUR     ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+- `14:30:01`     SSE:000001         ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+- `14:30:01`     FX:EURUSD          ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+- `14:30:05`   invoke ['COINBASE:BTCUSD', 'AMEX:SPY', 'SP:SPX', 'OTC:AAAIF', 'CME_MINI:ES1!'] -> 3257ms ok=True err=None universe=0
+- `14:30:05`     COINBASE:BTCUSD    ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+- `14:30:05`     AMEX:SPY           ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+- `14:30:05`     SP:SPX             ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+- `14:30:05`     OTC:AAAIF          ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+- `14:30:05`     CME_MINI:ES1!      ok=False n=None first=None last=None err=RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+- `14:30:05` ⚠   TVC__VIX doc unreadable: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
+## S3 warehouse layouts: us-equities-daily, tv-bars
+
+- `14:30:05`   data/warm/us-equities-daily/: objects=20 sub=[] keys=[('data/warm/us-equities-daily/2026-08-05.json.gz', 411215), ('data/warm/us-equities-daily/2026-08-06.json.gz', 410513), ('data/warm/us-equities-daily/2026-08-07.json.gz', 412059), ('data/warm/us-equities-daily/2026-08-10.json.gz', 412471), ('data/warm/us-equities-daily/2026-08-11.json.gz', 410936), ('data/warm/us-equities-daily/2026-08-12.json.gz', 410801), ('data/warm/us-equities-daily/2026-08-13.json.gz', 413342), ('data/warm/us-equities-daily/2026-08-14.json.gz', 411251), ('data/warm/us-equities-daily/2026-08-17.json.gz', 415973), ('data/warm/us-equities-daily/2026-08-18.json.gz', 413087), ('data/warm/us-equities-daily/2026-08-19.json.gz', 415834), ('data/warm/us-equities-daily/2026-08-20.json.gz', 413254)]
+- `14:30:05`     HEAD data/warm/us-equities-daily/2026-08-05.json.gz: {"date": "2026-08-05", "n_tickers": 12392, "raw_snapshot_key": "data/raw/polygon/2026-08-06/6440675a4f7f.json.gz", "results": [{"T": "DMO", "v": 85057.1129, "vw": 10.3734, "o": 10.43, "c": 10.38, "h": 10.44, "l": 10.33, "t": 1785960000000, "n": 409}, {"T": "IDX", "v": 26094.85965, "vw": 11.23, "o": 11.23, "c": 11.23, "h": 11.27, "l": 11.19, "t": 1785960000000, "n": 141}, {"T": "TRTX", "v": 933604.731202, "vw": 7.9435, "o": 8.02, "c": 7.94, "h": 8.02, "l": 7.9, "t": 1785960000000, "n": 10739}, {"
+- `14:30:05`   data/warm/tv-bars/: objects=3 sub=['data/warm/tv-bars/universe/'] keys=[('data/warm/tv-bars/_index.json', 74), ('data/warm/tv-bars/_state.json', 6051)]
+- `14:30:05`   ICE lane index: n_symbols=0 sample=[]
+## S4 nightly refresh schedule
+
+- `14:30:05` ✅ schedule created: justhodl-tv-bars-universe-refresh cron(30 2 * * ? *)
+## verdict
+
+- `14:30:05` ✗ TVC:VIX did not bank: RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+- `14:30:05` ✗ NASDAQ:AAPL did not bank: RuntimeError: all endpoints refused: data.tradingview.com/socket.io/websocket?from= -> handshake b'HTTP/1.1 400 Bad Request' [data.tra
+- `14:30:05` ✗ only 0/10 probe symbols banked with >1000 bars
