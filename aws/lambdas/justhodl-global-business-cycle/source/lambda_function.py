@@ -1,4 +1,4 @@
-"""justhodl-global-business-cycle  v2.1.2  (real-time, equity-momentum-based)
+"""justhodl-global-business-cycle  v3.0.0  (multi-pillar composite; equity momentum is one pillar)
 ═══════════════════════════════════════════════════════════════════════════
 The OECD CLI series on FRED stopped updating ~Jan 2024 (28+ months stale at
 time of writing). To provide a USEFUL global business cycle map with
@@ -36,6 +36,17 @@ acceptance gate: >= MIN_BARS daily bars AND last bar within MAX_STALE_DAYS):
     ALWAYS as an anomaly from its 100 normal (v2.0 treated the ~100 index level as
     a +-3 anomaly, which pinned USA at the 120 cap every run).
 
+v3.0.0 (ops 5100, 2026-09-02): MULTI-PILLAR COMPOSITE. Reads the feature store
+  written by justhodl-cycle-features (data/cycle/features.json.gz -- OECD CLI/
+  KEI/labour, BIS credit/property/REER, Eurostat surveys, fleet sovereign desk)
+  and fuses five pillars per country: survey 0.35, financial 0.25, activity
+  0.20, trade 0.10, equity 0.10 -- each feature standardised on its own history,
+  freshness-gated, sign-adjusted (cycle_composite.py). When >= 2 non-equity
+  pillars are present the country's cli_level/phase/trend come from the
+  composite; otherwise the v2 equity read stands and is flagged `thin`. The
+  equity-only fields are kept verbatim as equity_* for every consumer and the
+  page. Adds a monthly composite history since 2004 and a calibrated 6-month
+  downturn probability (data/global-business-cycle-composite-history.json).
 v2.1.2 (ops 5097): supplements are standardised against their OWN trailing
   history (z-score of the latest print vs the prior <= 7y of monthly obs,
   1 z = 1.5 index points, clipped +-3). FRED re-based both series to OECD
@@ -73,12 +84,20 @@ try:
     import _fred_shim  # noqa: F401
 except Exception:
     pass
+try:
+    import cycle_composite as CC
+except Exception as _cce:  # noqa: BLE001
+    CC = None
+    print(f"[gbc] cycle_composite unavailable: {_cce}")
 
-ENGINE_VERSION = "2.1.2"
+ENGINE_VERSION = "3.0.0"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUTPUT_KEY = "data/global-business-cycle.json"
 HISTORY_KEY = "data/global-business-cycle-history.json"
+COMPOSITE_HISTORY_KEY = "data/global-business-cycle-composite-history.json"
+FEATURES_KEY = "data/cycle/features.json.gz"
+FEATURES_MAX_AGE_H = 72          # a feature store older than 3 days is not a nowcast
 BARS_ROOT = "data/warm/polygon-full/grouped/"
 
 # Acceptance gate for ANY price candidate (index, basket member, ETF)
@@ -1393,6 +1412,49 @@ def build_phase_summary(phase_returns_by_country, country_meta):
 # ════════════════════════════════════════════════════════════════════════
 # Main
 # ════════════════════════════════════════════════════════════════════════
+def equity_monthly_composite(prices, grid):
+    """The v2 equity composite (0.35*ret12m + 0.25*dist200 + 0.25*ret3m + 0.15*ret1m)
+    evaluated at each month-end of the grid -> list aligned to grid (None where
+    < 252 bars of history)."""
+    out = [None] * len(grid)
+    if not prices or len(prices) < 260:
+        return out
+    gi = {m: i for i, m in enumerate(grid)}
+    last_idx = {}
+    for i, (d, _) in enumerate(prices):
+        last_idx[d[:7]] = i
+    for mo, i in last_idx.items():
+        g = gi.get(mo)
+        if g is None or i < 252:
+            continue
+        p = prices[i][1]
+        r12 = (p / prices[i - 252][1] - 1) * 100 if prices[i - 252][1] > 0 else None
+        r3 = (p / prices[i - 63][1] - 1) * 100 if prices[i - 63][1] > 0 else None
+        r1 = (p / prices[i - 21][1] - 1) * 100 if prices[i - 21][1] > 0 else None
+        ma = sum(pp for _, pp in prices[i - 199:i + 1]) / 200
+        d200 = (p / ma - 1) * 100 if ma > 0 else 0.0
+        comps = [(r12, 0.35), (d200, 0.25), (r3, 0.25), (r1, 0.15)]
+        comps = [(v, w) for v, w in comps if v is not None]
+        wt = sum(w for _, w in comps)
+        out[g] = round(sum(v * w for v, w in comps) / wt, 3) if wt else None
+    return out
+
+
+def _load_features():
+    try:
+        o = S3.get_object(Bucket=BUCKET, Key=FEATURES_KEY)
+        body = o["Body"].read()
+        if body[:2] == b"\x1f\x8b":
+            body = gzip.decompress(body)
+        doc = json.loads(body)
+        age_h = (datetime.now(timezone.utc) - o["LastModified"]).total_seconds() / 3600
+        doc["_age_h"] = round(age_h, 1)
+        return doc
+    except Exception as e:  # noqa: BLE001
+        print(f"[gbc] feature store unavailable: {str(e)[:100]}")
+        return None
+
+
 def _load_previous_output():
     try:
         return json.loads(S3.get_object(Bucket=BUCKET, Key=OUTPUT_KEY)["Body"].read())
@@ -1463,6 +1525,52 @@ def lambda_handler(event=None, context=None):
     print(f"[gbc] sources used: {dict(sources_used)} · supplements: "
           f"{ {k: v.get('status') for k, v in supplement_log.items()} }")
 
+    # ── v3 MULTI-PILLAR COMPOSITE ─────────────────────────────────────────
+    features = _load_features() if CC is not None else None
+    composite_summary = {"available": False}
+    composite_hist = {}
+    grid = []
+    _fage = features.get("_age_h") if features else None
+    if features and (_fage if _fage is not None else 999) <= FEATURES_MAX_AGE_H:
+        grid = features["grid"]["months"]
+        fc = features.get("countries") or {}
+        n_multi, n_thin, pillar_counts = 0, 0, defaultdict(int)
+        for iso3, row in by_country.items():
+            eq = equity_monthly_composite(prices_by_country.get(iso3) or [], grid)
+            built = CC.build_country((fc.get(iso3) or {}).get("features"), grid, equity_monthly=eq)
+            nc = built.get("nowcast")
+            row["equity_cli_level"] = row.get("cli_level")
+            row["equity_phase"] = row.get("phase")
+            row["equity_trend"] = row.get("trend")
+            if nc and nc["basis"] == "multi-pillar":
+                row["cli_level"] = nc["cli"]
+                row["phase"] = nc["phase"]
+                row["trend"] = nc["trend"]
+                row["phase_basis"] = "multi-pillar"
+                n_multi += 1
+                for p in nc["pillars"]:
+                    pillar_counts[p] += 1
+            else:
+                row["phase_basis"] = "equity-only" if not nc else "thin"
+                n_thin += 1
+            row["composite"] = nc
+            row["components"] = built.get("components")
+            composite_hist[iso3] = built.get("history") or []
+            print(f"[gbc-v3] {iso3} {row['phase_basis']:<12} composite cli={row.get('cli_level')} phase={row.get('phase')} "
+                  f"pillars={list((nc or {}).get('pillars', {}).keys())} conf={(nc or {}).get('confidence')}")
+        composite_summary = {"available": True, "features_generated_at": features.get("generated_at"),
+                             "features_age_h": features.get("_age_h"), "features_version": features.get("version"),
+                             "countries_multi_pillar": n_multi, "countries_thin_or_equity": n_thin,
+                             "pillar_counts": dict(pillar_counts), "pillar_weights": CC.PILLAR_WEIGHTS,
+                             "method": ("own-history z (120 obs, min 36, clip 3) per feature, sign-adjusted; pillar = mean; "
+                                        "composite = weighted mean over present pillars; CLI = 100 + 20*tanh(z/2)")}
+    else:
+        for row in by_country.values():
+            row["phase_basis"] = "equity-only"
+        composite_summary = {"available": False, "reason": ("feature store missing" if not features else
+                             f"feature store stale ({features.get('_age_h')}h > {FEATURES_MAX_AGE_H}h)")}
+    print(f"[gbc-v3] composite summary: {json.dumps(composite_summary)[:300]}")
+
     agg = aggregate(by_country)
     interp = interpret_global_cycle(agg, by_country)
 
@@ -1526,8 +1634,28 @@ def lambda_handler(event=None, context=None):
         print(f"[physical] failed: {str(_pe)[:120]}")
 
     _sup_used = [k for k, v in supplement_log.items() if v.get("status") == "fresh"]
+    global_comp_hist, calibration = [], {"ok": False, "reason": "composite unavailable"}
+    if composite_summary.get("available") and composite_hist:
+        weights = {iso3: w for iso3, _, _, _, w, _ in COUNTRY_MAP}
+        global_comp_hist = CC.aggregate_history(composite_hist, weights, grid)
+        # target: GDP-weighted industrial production y/y from the feature store
+        target = {}
+        fc = features.get("countries") or {}
+        for i, mo in enumerate(grid):
+            num = den = 0.0
+            for iso3, w in weights.items():
+                f = ((fc.get(iso3) or {}).get("features") or {}).get("ip_yoy")
+                v = (f or {}).get("values", [None] * len(grid))[i] if f else None
+                if v is not None:
+                    num += w * v
+                    den += w
+            if den >= 40:                       # at least ~40% of world GDP reporting
+                target[mo] = num / den
+        calibration = CC.calibrate_downturn(global_comp_hist, target, grid) if global_comp_hist else calibration
+        calibration["target_series_months"] = len(target)
+        calibration["target_latest"] = max(target) if target else None
     output = {
-        "schema_version": "2.1",
+        "schema_version": "3.0",
         "engine_version": ENGINE_VERSION,
         "engine_type": "synthetic_equity_momentum",
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -1539,6 +1667,9 @@ def lambda_handler(event=None, context=None):
         "polygon_lane": {"loaded": lane.loaded, "sessions": lane.n_sessions,
                          "tickers_present": len(lane.series), "error": lane.error},
         "acceptance_gate": {"min_bars": MIN_BARS, "max_stale_days": MAX_STALE_DAYS},
+        "composite": composite_summary,
+        "downturn_probability_6m": calibration,
+        "global_composite_latest": (global_comp_hist[-1] if global_comp_hist else None),
         "methodology": {
             "primary_source": "Yahoo Finance national equity indices (real-time, ~0-1 day stale)",
             "fallback_chain": ("index candidates -> equal-weight blue-chip basket (Yahoo) -> "
@@ -1580,6 +1711,22 @@ def lambda_handler(event=None, context=None):
         ContentType="application/json",
         CacheControl="public, max-age=3600, s-maxage=3600",
     )
+
+    if composite_summary.get("available"):
+        comp_doc = {"schema_version": "3.0", "engine_version": ENGINE_VERSION, "generated_at": output["generated_at"],
+                    "frequency": "monthly", "grid": {"start": grid[0], "end": grid[-1]},
+                    "features_generated_at": features.get("generated_at"), "pillar_weights": CC.PILLAR_WEIGHTS,
+                    "by_country": {iso3: {"country_name": by_country[iso3].get("country_name"), "region": by_country[iso3].get("region"),
+                                          "gdp_weight": by_country[iso3].get("gdp_weight"), "n_points": len(h),
+                                          "first_period": h[0]["period"] if h else None, "last_period": h[-1]["period"] if h else None,
+                                          "history": h, "nowcast": by_country[iso3].get("composite")}
+                                   for iso3, h in composite_hist.items()},
+                    "global": global_comp_hist, "downturn_probability_6m": calibration,
+                    "methodology": composite_summary.get("method")}
+        S3.put_object(Bucket=BUCKET, Key=COMPOSITE_HISTORY_KEY, Body=json.dumps(comp_doc, default=str).encode(),
+                      ContentType="application/json", CacheControl="public, max-age=3600, s-maxage=3600")
+        print(f"[gbc-v3] composite history written: {len(composite_hist)} countries, global points {len(global_comp_hist)}, "
+              f"downturn p={calibration.get('probability_now')} auc={calibration.get('in_sample_auc')}")
 
     # ─────────────────────────────────────────────────────────────────────
     # SECOND PASS: weekly rolling CLI history for each country
@@ -1724,6 +1871,8 @@ def lambda_handler(event=None, context=None):
 
     return {"statusCode": 200, "body": json.dumps({
         "engine_version": ENGINE_VERSION,
+        "composite": {k: composite_summary.get(k) for k in ("available", "countries_multi_pillar", "pillar_counts")},
+        "downturn_probability_6m": calibration.get("probability_now"),
         "global_phase": agg["global_phase"],
         "global_avg_cli": agg["global_avg_cli"],
         "n_countries": len(by_country),
