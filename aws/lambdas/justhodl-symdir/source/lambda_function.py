@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.4.1"
+VERSION = "1.5.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -1421,8 +1421,10 @@ def search(q, limit=40, prov=None, kind=None):
         return {"q": q, "rows": [], "total": 0, "detail": detail, "suggest": _suggest(q, toklist, index), "series_hits": drill}
     ql = q.lower()
     scored = []
+    facets_all = defaultdict(int)
     for i, (b, nt) in hits.items():
         d = docs[i]
+        facets_all[d[D_PROV]] += 1
         if prov and d[D_PROV] != prov:
             continue
         if kind and d[D_KIND] != kind:
@@ -1445,7 +1447,16 @@ def search(q, limit=40, prov=None, kind=None):
         scored.append((s, i))
     scored.sort(key=lambda x: (-x[0], docs[x[1]][D_ID]))
     rows = [doc_row(docs[i], s) for s, i in scored[:limit]]
-    out = {"q": q, "rows": rows, "total": len(scored), "detail": detail}
+    facets = facets_all          # counts over every provider, even when one is filtered in
+    for row in rows:
+        if row["provider"] == "tv" and ":" in row["id"]:
+            srcs = sources_for(row["id"])
+            if srcs:
+                row["sources"] = srcs
+            elif row["id"].split(":")[0].upper() in ("ECONOMICS", "TVC") and not (row.get("src") in ("fred", "ecb", "yahoo") and row.get("sid")):
+                row["sources"] = []                      # TradingView-only: no warehouse source yet -> shown as such
+    out = {"q": q, "rows": rows, "total": len(scored), "detail": detail,
+           "facets": sorted(({"provider": p, "provider_name": PROV_NAME.get(p, p.upper()), "n": n} for p, n in facets.items()), key=lambda x: -x["n"])}
     if drill is not None:
         out["series_hits"] = drill
     return out
@@ -2197,6 +2208,63 @@ def _bars_result(sid, prov, doc, name, source, extra=None):
     return out
 
 
+# TradingView symbols that exist only inside TradingView (no Yahoo/exchange feed) map to the warehouse series that
+# carry the same concept. Each entry lists every source we hold, best first; the search shows them all and the
+# resolver serves the first that answers.
+_TENOR = {"01M": "1MO", "02M": "2MO", "03M": "3MO", "04M": "4MO", "06M": "6MO", "01": "1", "02": "2", "03": "3", "05": "5", "07": "7", "10": "10", "20": "20", "30": "30"}
+_ISO3 = {"US": "USA", "DE": "DEU", "GB": "GBR", "UK": "GBR", "JP": "JPN", "FR": "FRA", "IT": "ITA", "ES": "ESP", "CA": "CAN", "AU": "AUS", "CN": "CHN", "KR": "KOR", "IN": "IND",
+         "BR": "BRA", "MX": "MEX", "TR": "TUR", "ZA": "ZAF", "CH": "CHE", "NL": "NLD", "PT": "PRT", "GR": "GRC", "SE": "SWE", "NO": "NOR", "DK": "DNK", "FI": "FIN", "AT": "AUT",
+         "BE": "BEL", "IE": "IRL", "PL": "POL", "CZ": "CZE", "HU": "HUN", "NZ": "NZL", "IL": "ISR", "ID": "IDN", "RU": "RUS", "CL": "CHL", "CO": "COL", "SG": "SGP", "HK": "HKG"}
+ECON_EQUIV = {"USINTR": "fred:FEDFUNDS", "USCPI": "fred:CPIAUCSL", "USCCPI": "fred:CPILFESL", "USUR": "fred:UNRATE", "USGDP": "fred:GDP", "USGDPQQ": "fred:A191RL1Q225SBEA",
+              "USNFP": "fred:PAYEMS", "USIJC": "fred:ICSA", "USCJC": "fred:CCSA", "USRSM": "fred:RSAFS", "USIP": "fred:INDPRO", "USM2": "fred:M2SL", "USBOT": "fred:BOPGSTB",
+              "USPPI": "fred:PPIACO", "USHS": "fred:HOUST", "USBP": "fred:PERMIT", "USCS": "fred:UMCSENT", "USDGO": "fred:DGORDER", "USPCE": "fred:PCEPI", "USCPCE": "fred:PCEPILFE",
+              "USTBL": "fred:BOPGSTB", "USGD": "fred:GFDEBTN", "USAHE": "fred:AHETPI", "USPART": "fred:CIVPART", "USJO": "fred:JTSJOL", "USBBS": "fred:WALCL", "USCBBS": "fred:WALCL",
+              "EUINTR": "fred:ECBDFR", "DEUR": "fred:LRHUTTTTDEM156S", "DECPI": "fred:DEUCPIALLMINMEI", "DEGDPQQ": "fred:CLVMNACSCAB1GQDE", "GBINTR": "fred:IRSTCB01GBM156N",
+              "GBCPI": "fred:GBRCPIALLMINMEI", "JPINTR": "fred:IRSTCB01JPM156N", "JPCPI": "fred:JPNCPIALLMINMEI", "CNGDP": "fred:MKTGDPCNA646NWDB", "CNCPI": "fred:CHNCPIALLMINMEI",
+              "CAINTR": "fred:IRSTCB01CAM156N", "AUINTR": "fred:IRSTCB01AUM156N", "USDXY": "fred:DTWEXBGS"}
+
+
+def tv_equivalents(sym):
+    """[(provider_id, note)] for a TradingView symbol we cannot bank from a market feed."""
+    ex, _, bare = sym.upper().partition(":")
+    out = []
+    if ex == "TVC":
+        m = re.match(r"^([A-Z]{2})(\d{2})(M?)Y$", bare)          # US02MY, DE10Y, JP30Y
+        if m:
+            cc, num, mm = m.group(1), m.group(2), m.group(3)
+            tenor = _TENOR.get(num + ("M" if mm else ""))
+            if cc == "US" and tenor:
+                out.append(("fred:DGS" + tenor, "US Treasury constant-maturity yield, daily (FRED H.15)"))
+                if tenor == "10":
+                    out.append(("fred:DGS10", "10-year, daily"))
+            iso = _ISO3.get(cc)
+            if iso and not mm and num == "10":
+                out.append(("fred:IRLTLT01%sM156N" % iso, "10-year government bond yield, monthly (OECD via FRED)"))
+            if iso and not mm and num in ("03", "3") and cc != "US":
+                out.append(("fred:IR3TIB01%sM156N" % iso, "3-month interbank rate, monthly (OECD via FRED)"))
+            if cc == "US" and mm and num == "03":
+                out.append(("fred:DTB3", "3-month T-bill secondary market, daily"))
+    if ex == "ECONOMICS" and bare in ECON_EQUIV:
+        out.append((ECON_EQUIV[bare], "same indicator, official source"))
+    seen, uniq = set(), []
+    for i, n in out:
+        if i and i not in seen:
+            seen.add(i)
+            uniq.append((i, n))
+    return uniq
+
+
+def sources_for(sym):
+    """Every source we hold for a symbol's concept, with what each carries (the search bar shows this)."""
+    rows = []
+    for pid, note in tv_equivalents(sym):
+        d = _doc_lookup(pid)
+        if d:
+            rows.append({"id": pid, "provider": d[D_PROV], "provider_name": PROV_NAME.get(d[D_PROV], d[D_PROV]), "name": d[D_TITLE], "freq": d[D_FREQ], "first": d[D_FIRST],
+                         "last": d[D_LAST], "ohlc": False, "note": note, "banked": bool(d[D_KEY])})
+    return rows
+
+
 def r_tvsym(sid, sym, d):
     """'TVC:VIX' -> data/warm/tv-bars/universe/TVC__VIX.json.gz, banked on demand the first time.
     Symbols Khalid's dictionary already resolved to a warehouse provider (ECONOMICS:DEUR -> FRED:LRHUTTTTDEM156S)
@@ -2229,7 +2297,20 @@ def r_tvsym(sid, sym, d):
         out["id"], out["tv_symbol"], out["via"] = sid, sym, "%s:%s" % (src_prov, inner)
         out["name"] = name or out.get("name")
         return out
-    raise ValueError("not banked yet and the bank pull failed: %s" % bank_err)
+    # 3. TradingView-only concept (TVC:US02MY has no market feed) -> the warehouse series that carries it
+    for pid, note in tv_equivalents(sym):
+        try:
+            out = fetch_series(pid)
+            if out.get("n"):
+                out["id"], out["tv_symbol"], out["via"], out["via_note"] = sid, sym, pid, note
+                out["name"] = name if name != sym else out.get("name")
+                out["source"] = "%s (%s → %s)" % (out.get("source"), sym, pid)
+                return out
+        except Exception:  # noqa: BLE001
+            continue
+    err = ValueError("no market feed for %s and no warehouse equivalent (%s)" % (sym, bank_err[:120]))
+    err.alternatives = [{"id": pid, "note": note} for pid, note in tv_equivalents(sym)]
+    raise err
 
 
 def _bank_stale(doc, max_days=2):
@@ -2457,7 +2538,8 @@ def lambda_handler(event, context):
             out["ms"] = int((time.time() - t) * 1000)
             return _resp(out, ttl=900)
         except Exception as e:  # noqa: BLE001
-            return _resp({"id": sid, "obs": [], "error": str(e)[:200], "trace": traceback.format_exc()[-600:]}, 500, ttl=0)
+            alts = getattr(e, "alternatives", None) or []
+            return _resp({"id": sid, "obs": [], "error": str(e)[:200], "alternatives": alts, "trace": traceback.format_exc()[-600:]}, 500, ttl=0)
     if mode == "quote" or path == "/quote":
         ids = (qs.get("ids") or event.get("ids") or "")
         if isinstance(ids, str):

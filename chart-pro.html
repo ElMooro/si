@@ -177,6 +177,15 @@ a:hover { text-decoration: underline; }
 .hs-prov.eurostat, .hs-prov.ecb { color: #7cc4ff; border-color: #7cc4ff; }
 .hs-prov.instrument { color: var(--cyan); border-color: var(--cyan); }
 .hs-prov.dataset { color: var(--amber); border-color: var(--amber); }
+.hs-sources { margin-top: 2px; display: flex; flex-wrap: wrap; gap: 6px; }
+.hs-src { font-family: var(--font-mono); font-size: 9px; color: var(--fg-3); border: 1px solid var(--border); border-radius: 3px; padding: 0 5px; }
+.hs-src b { color: var(--violet); font-weight: 600; }
+.hs-src.none { color: var(--amber); border-color: var(--amber); }
+.hs-facets { display: flex; flex-wrap: wrap; gap: 5px; padding: 7px 12px; border-bottom: 1px solid var(--border); background: var(--bg-2); }
+.hs-facet { font-family: var(--font-mono); font-size: 9.5px; padding: 1px 7px; border-radius: 10px; border: 1px solid var(--border); color: var(--fg-2); cursor: pointer; }
+.hs-facet b { color: var(--fg-0); }
+.hs-facet.on { background: var(--cyan); color: var(--bg); border-color: var(--cyan); }
+.hs-facet.on b { color: var(--bg); }
 .hs-add { width: 22px; height: 22px; border-radius: 5px; border: 1px solid var(--border); background: var(--bg-2); color: var(--fg-2); font-family: var(--font-mono); font-size: 14px; line-height: 1; cursor: pointer; opacity: 0.45; display: flex; align-items: center; justify-content: center; }
 .hs-row:hover .hs-add, .hs-row.sel .hs-add { opacity: 1; }
 .hs-add:hover { color: var(--bg); background: var(--green); border-color: var(--green); }
@@ -1941,10 +1950,10 @@ class SymDir {
     out.sort((a, b) => b.sc - a.sc);
     return out.slice(0, limit).map(x => x.r);
   }
-  static query(q, limit = 30) {
-    const key = q.toLowerCase().trim() + '|' + limit;
+  static query(q, limit = 30, provider = '') {
+    const key = q.toLowerCase().trim() + '|' + limit + '|' + provider;
     if (this._cache.has(key)) return this._cache.get(key);
-    const p = fetch(`${PROXY}/symsearch?q=${encodeURIComponent(q)}&limit=${limit}`).then(r => r.ok ? r.json() : { rows: [] }).catch(() => ({ rows: [], failed: true }));
+    const p = fetch(`${PROXY}/symsearch?q=${encodeURIComponent(q)}&limit=${limit}${provider ? '&provider=' + encodeURIComponent(provider) : ''}`).then(r => r.ok ? r.json() : { rows: [] }).catch(() => ({ rows: [], failed: true }));
     this._cache.set(key, p); if (this._cache.size > 400) this._cache.delete(this._cache.keys().next().value);
     return p;
   }
@@ -2004,9 +2013,16 @@ class SymDir {
     const meta = this.rowMeta(r);
     const tag = isDs ? `<span class="hs-prov dataset">${UI.esc(this.provLabel(r.provider))} · browse ›</span>` : `<span class="hs-prov ${provCls}">${UI.esc(this.provLabel(r.provider))}${r.ex && r.kind === 'instrument' ? ' · ' + UI.esc(r.ex) : ''}</span>`;
     const add = isDs ? '<span></span>' : `<button class="hs-add" data-add="${UI.esc(r.id)}" title="Add to watchlist">+</button>`;
+    // ops 5144: what the warehouse holds for a TradingView symbol — every source, with its cadence and span
+    let srcLine = '';
+    if (Array.isArray(r.sources)) {
+      srcLine = r.sources.length
+        ? `<div class="hs-sources">${r.sources.map(x => `<span class="hs-src" title="${UI.esc(x.note || '')}">${UI.esc(x.provider_name || x.provider)} <b>${UI.esc(x.id.split(':').slice(1).join(':'))}</b> · ${UI.esc(x.freq || '?')} · ${UI.esc((x.first || '?').slice(0, 4))}→${UI.esc((x.last || '?').slice(0, 4))}${x.banked ? '' : ' · not banked'}</span>`).join('')}</div>`
+        : `<div class="hs-sources"><span class="hs-src none">TradingView-only — no warehouse source yet</span></div>`;
+    }
     return `<div class="hs-row ${cls} ${i === sel ? 'sel' : ''}" data-ticker="${UI.esc(r.id)}" data-i="${i}" data-kind="${cls}" title="${UI.esc(r.id)}">
       <span class="hs-tk ${cls}">${UI.esc(sym)}</span>
-      <span class="hs-name">${UI.esc(r.name || '')}${meta ? `<small>${UI.esc(meta)}</small>` : ''}</span>
+      <span class="hs-name">${UI.esc(r.name || '')}${meta ? `<small>${UI.esc(meta)}</small>` : ''}${srcLine}</span>
       ${tag}${add}</div>`;
   }
   static wireRows(container, onPick) {
@@ -4593,27 +4609,6 @@ class NativeChart {
     else { kind = 'candles'; series = chart.addCandlestickSeries({ upColor: up, downColor: dn, borderUpColor: up, borderDownColor: dn, wickUpColor: up, wickDownColor: dn }); series.setData(bars.map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close }))); }
     return { series, kind, data };
   }
-  static attachLegend(chart, series, paneIdx, bars, unitPrefix = '$') {
-    const head = document.querySelector(`#tv-container-${paneIdx} .native-chart-head`);
-    if (!head || !bars.length) return;
-    let lg = head.querySelector('.nch-legend');
-    if (!lg) { lg = document.createElement('div'); lg.className = 'nch-legend'; head.appendChild(lg); }
-    const fmt = (v) => (v == null || !isFinite(v)) ? '—' : (unitPrefix === '$' && Math.abs(v) >= 1 ? v.toFixed(2) : jhFmtVal(v));
-    const byTime = new Map(bars.map(b => [b.time, b]));
-    const render = (b, prev) => {
-      if (!b) return;
-      const chg = prev && prev.close ? ((b.close - prev.close) / Math.abs(prev.close) * 100) : null;
-      const col = (b.close >= b.open) ? '#26ffaf' : '#ff5577';
-      lg.innerHTML = `<span class="lg-t">${UI.esc(String(b.time))}</span> <span>O <b style="color:${col}">${fmt(b.open)}</b></span> <span>H <b style="color:${col}">${fmt(b.high)}</b></span> <span>L <b style="color:${col}">${fmt(b.low)}</b></span> <span>C <b style="color:${col}">${fmt(b.close)}</b></span>${chg != null ? ` <span style="color:${chg >= 0 ? '#26ffaf' : '#ff5577'}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</span>` : ''}${b.volume ? ` <span>V <b>${jhFmtVal(b.volume)}</b></span>` : ''}`;
-    };
-    render(bars[bars.length - 1], bars[bars.length - 2]);
-    chart.subscribeCrosshairMove(param => {
-      if (!param || !param.time) { render(bars[bars.length - 1], bars[bars.length - 2]); return; }
-      const t = typeof param.time === 'string' ? param.time : (param.time && param.time.year ? `${param.time.year}-${String(param.time.month).padStart(2, '0')}-${String(param.time.day).padStart(2, '0')}` : String(param.time));
-      const b = byTime.get(t); if (!b) return;
-      const i = bars.indexOf(b); render(b, i > 0 ? bars[i - 1] : null);
-    });
-  }
   // the LightweightCharts namespace object is frozen (assigning createChart throws), so instances are
   // tracked through this wrapper instead of a monkeypatch
   static createChart(el, opts) {
@@ -5203,7 +5198,17 @@ class NativeChart {
       const bars = (d.obs || []).map(o => ({ time: o[0], value: o[1] }));
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
       if (loadingEl) loadingEl.style.display = 'none';
-      if (!bars.length) { if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = `No observations for ${symbol}${d.error ? ' — ' + d.error : ''}`; } return; }
+      if (!bars.length) {
+        if (loadingEl) {
+          loadingEl.style.display = 'flex';
+          const alts = (d.alternatives || []);
+          loadingEl.innerHTML = alts.length
+            ? `<div style="text-align:center"><div>${UI.esc(symbol)} has no market feed the warehouse can bank.</div><div style="margin-top:8px;color:var(--fg-2)">Same data in your warehouse:</div>${alts.map(a => `<button class="tf-btn" style="margin:6px 4px 0;color:var(--cyan);border:1px solid var(--cyan)" data-alt="${UI.esc(a.id)}" title="${UI.esc(a.note || '')}">${UI.esc(a.id)} ›</button>`).join('')}</div>`
+            : `No observations for ${UI.esc(symbol)}${d.error ? ' — ' + UI.esc(String(d.error).slice(0, 160)) : ''}`;
+          loadingEl.querySelectorAll('[data-alt]').forEach(b => b.addEventListener('click', () => ChartController.loadTicker(b.dataset.alt)));
+        }
+        return;
+      }
       if (State.activeTicker !== symbol) return;
       SymDir.remember({ id: symbol, name: d.name, provider: d.provider, unit: d.unit, freq: d.freq, first: d.first, last: d.last, kind: 'series' });
       WatchlistManager.saveLocal();
@@ -5241,7 +5246,7 @@ class NativeChart {
         let daily = jhCleanBars(ohlc.map(o => ({ time: o[0], open: o[1], high: o[2], low: o[3], close: o[4], volume: o[5] || 0 })));
         daily = jhAggregateBars(daily, tfS.span === 'week' || tfS.span === 'month' ? tfS.span : 'day', tfS.mult || 1);
         const { series: cs } = NativeChart.mainSeries(chart, daily);
-        NativeChart.attachLegend(chart, cs, paneIdx, daily, '');
+        NativeChart.attachLegend(paneIdx, chart, cs, daily, symbol);   // the page's floating O/H/L/C legend (same one equities use)
       } else {
         const tfS = State.tf || { span: 'day', days: 250 };
         const pts = jhAggregateObs(clean, tfS.span);
@@ -5425,7 +5430,6 @@ class NativeChart {
         crosshair: { mode: 1 },
       });
       const { series: candleSeries } = NativeChart.mainSeries(chart, bars);
-      NativeChart.attachLegend(chart, candleSeries, paneIdx, bars, '$');
       
       // Moving averages (MA20 cyan, MA50 amber)
       const sma = (period) => {
@@ -5808,9 +5812,10 @@ class HeaderSearch {
     this.render(true);
     if (!SymDir.instruments) SymDir.loadInstruments().then(() => { if (seq === this._seq) this.onInput(q); });
     // Server: the symbol directory (every data series + dataset across every provider), then TradingView for what's left
-    SymDir.query(q, 40).then(d => {
+    SymDir.query(q, 40, this._provFilter || '').then(d => {
       if (seq !== this._seq) return;
       const rows = d.rows || [];
+      this._facets = d.facets || [];
       SymDir.noteRows(rows);
       const seen = new Set([...this._groups.instruments.map(r => r.id.toUpperCase()), ...lt]);
       const sh = (d.series_hits && d.series_hits.rows) || [];
@@ -5853,6 +5858,12 @@ class HeaderSearch {
     }
     let idx = 0; let html = '';
     const section = (label, items, fn) => { if (!items.length) return ''; let s = `<div class="hs-group">${label}</div>`; items.forEach(it => { s += fn(it, idx); idx++; }); return s; };
+    // ops 5144: every source that has something for this query, with counts — click to filter
+    const fac = this._facets || [];
+    if (fac.length) {
+      html += `<div class="hs-facets"><span class="hs-facet ${this._provFilter ? '' : 'on'}" data-prov="">all ${fac.reduce((a, f) => a + f.n, 0).toLocaleString()}</span>` +
+        fac.slice(0, 12).map(f => `<span class="hs-facet ${this._provFilter === f.provider ? 'on' : ''}" data-prov="${UI.esc(f.provider)}">${UI.esc(f.provider_name)} <b>${f.n.toLocaleString()}</b></span>`).join('') + `</div>`;
+    }
     html += section('★ Favorites', g.favorites, (r, i) => {
       return `<div class="hs-row ${i===this.sel?'sel':''}" data-ticker="${UI.esc(r.ticker)}" data-i="${i}" data-full="${UI.esc(r.full||'')}"><span class="hs-tk" style="color:var(--amber)">${UI.esc(r.display || r.ticker)}</span><span class="hs-name">${UI.esc(r.name||'')}</span><span class="hs-tag">${UI.esc(r.kind||'fav')}</span></div>`;
     });
@@ -5870,6 +5881,7 @@ class HeaderSearch {
     html += `<div class="hs-foot"><span>↑↓ navigate</span><span>↵ load</span><span>+ add to watchlist</span><span>esc close</span><span>${this.results.length} results${partial ? ' · searching…' : ''}</span></div>`;
     dd.innerHTML = html;
     SymDir.wireRows(dd, (el) => this.pick(+el.dataset.i));
+    dd.querySelectorAll('.hs-facet').forEach(el => el.addEventListener('click', (ev) => { ev.stopPropagation(); this._provFilter = el.dataset.prov || ''; const inp = document.getElementById('search-input'); this.onInput(inp.value); }));
   }
   
   static pick(i) {
