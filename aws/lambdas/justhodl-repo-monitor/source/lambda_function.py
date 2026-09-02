@@ -15,7 +15,7 @@ def http_get(url,timeout=15):
     try:
         req=urllib_request.Request(url,headers={'User-Agent':'JustHodl/1.0','Accept':'application/json'})
         with urllib_request.urlopen(req,timeout=timeout,context=ctx) as r:return json.loads(r.read().decode('utf-8'))
-    except Exception as e:print(f"HTTP_ERR[{url[:60]}]:{e}");return None
+    except Exception as e:print(f"HTTP_ERR[{url.split('api_key=')[0][-90:]}]:{e}");return None   # ops 5112: show the series id, never the key
 def get_fred(sid,n=30):
     d=http_get(f"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED_API_KEY}&file_type=json&limit={n}&sort_order=desc")
     if not d or 'observations' not in d:return[]

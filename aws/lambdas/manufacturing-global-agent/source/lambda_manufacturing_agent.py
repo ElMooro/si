@@ -13,15 +13,9 @@ def lambda_handler(event, context):
     
     # Complete manufacturing indicators
     manufacturing_indicators = {
-        # US Manufacturing (ISM)
-        'ISM_COMPOSITE': 'NAPM',
-        'ISM_NEW_ORDERS': 'NAPMNOI',
-        'ISM_PRODUCTION': 'NAPMPRI',
-        'ISM_EMPLOYMENT': 'NAPMEI',
-        'ISM_SUPPLIER_DELIVERIES': 'NAPMSDI',
-        'ISM_INVENTORIES': 'NAPMII',
-        'ISM_PRICES_PAID': 'NAPMPRI',
-        'ISM_BACKLOG': 'NAPMBI',
+        # ops 5112: the ISM (NAPM*) series were withdrawn from FRED years ago -- every id answered 400 on
+        # every run; removed. ISM is licensed data and has no free official mirror; the regional Fed
+        # surveys below are the live manufacturing-survey inputs.
         # ops 5111: ISM export/import (NAPMEI/NAPMII) are no longer on FRED (400) -- removed, not faked
         
         # Regional Fed Manufacturing Surveys
