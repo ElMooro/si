@@ -586,8 +586,9 @@ def refresh(state, ctx):
                                       yf.format(y=y) if yf else str(y),
                                       VARIANTS[vi], tp))
                 if st == 204:
-                    gr[code] = 0          # legit-empty state (v116)
-                    i += 1
+                    # ops 5108: this branch iterates YEARS, not states -- the
+                    # copy-pasted gr[code]/i from the geo_state rung raised
+                    # UnboundLocalError on every empty year (1,845 errors/7d)
                     continue
                 rows = parse_rows(text) if st == 200 else None
                 if rows:

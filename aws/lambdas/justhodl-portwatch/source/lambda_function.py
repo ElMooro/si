@@ -18,7 +18,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.6.0"
+VERSION = "1.6.1"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -130,7 +130,7 @@ EXPORT_NATIONS = (("taiwan province of china", "Taiwan"),
 
 
 _REQ = {"n": 0, "throttled": 0}
-REQ_BUDGET = 60          # v1.6: incremental history makes ~4 requests a run; this is a runaway guard
+REQ_BUDGET = 140         # v1.6: a first fill is ~60 pages (400d x 24 chokepoints + 120 ports at 1000 rows/page); incremental runs ~5
 
 
 def _q(url, params, timeout=30, retries=3):
@@ -355,8 +355,8 @@ def lambda_handler(event=None, context=None):
         start = since
         if through:
             start = max(since, datetime.fromisoformat(through).replace(tzinfo=timezone.utc) - timedelta(days=3))
-        page = 2000
-        while offset < 60000:
+        page = 1000            # the IMF layers' maxRecordCount: asking for more returns 1000 and looks like a last page
+        while offset < 120000:
             w = f"date >= timestamp '{start.strftime('%Y-%m-%d')}'"
             if extra_where:
                 w += " AND " + extra_where
@@ -371,9 +371,9 @@ def lambda_handler(event=None, context=None):
                 return rows, j["_err"]
             fs = _feats(j)
             rows += fs
-            if len(fs) < page:
+            if len(fs) < page and not j.get("exceededTransferLimit"):
                 break
-            offset += page
+            offset += len(fs) if fs else page
         if store is not None:
             _merge_rows(store, rows)
             return _store_rows(store), None

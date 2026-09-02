@@ -689,6 +689,16 @@ def merge_and_window(prior: list, fresh: list) -> list:
     out = []
     # Process fresh first so newest entries win on dupe
     for record in fresh + prior:
+        if not isinstance(record, dict):
+            continue
+        # ops 5108: legacy prior rows carried no `side` and no date, so they never
+        # aged out of the window and stats_summary raised KeyError('side') on every
+        # run (667 errors/7d). Undated rows cannot be windowed -> dropped; side is
+        # derived from the Form 4 code when missing (P = open-market purchase).
+        if not (record.get("filed_at") or record.get("txn_date")):
+            continue
+        if not record.get("side"):
+            record["side"] = "buy" if str(record.get("code") or "P").upper() in ("P", "A") else "sell"
         key = (record.get("accession"), record.get("ticker"), record.get("insider"),
                record.get("side"), record.get("shares"))
         if key in seen:
@@ -777,7 +787,7 @@ def detect_big_buys(transactions: list) -> list:
 
 
 def stats_summary(transactions: list) -> dict:
-    buys = [t for t in transactions if t["side"] == "buy"]
+    buys = [t for t in transactions if t.get("side") == "buy"]
     return {
         "total_buys": len(buys),
         "total_value_usd": round(sum(t["value"] for t in buys), 2),
@@ -1012,10 +1022,10 @@ def lambda_handler(event, context):
         "fleet": fetch_insider_fleet(s3),
         "clusters": clusters[:30],
         "big_buys": big_buys[:30],
-        "transactions": [t for t in all_txns if t["side"] == "buy"][:1200],   # cap for size
+        "transactions": [t for t in all_txns if t.get("side") == "buy"][:1200],   # cap for size
         # management SELLING (share-flows joins this; parsed all along,
         # was dropped at output until 2026-07-11)
-        "sell_transactions": [t for t in all_txns if t["side"] == "sell"][:500],
+        "sell_transactions": [t for t in all_txns if t.get("side") == "sell"][:500],
     }
 
     # ── v3.0 structural coverage: full surface + honest caps + ledger + ratchet ──
