@@ -1,0 +1,24 @@
+{
+  "function_name": "justhodl-symdir",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 3008,
+  "timeout": 900,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Symbol directory v1.0.0 (ops 5116): daily build over every catalog (instruments, FRED, Eurostat/ECB + Tier-1 drill, OECD, BIS, IMF, StatCan, BOJ, WB, NY Fed, OFR, FiscalData, BoE, Census, BLS) -> data/symdir/; /search /browse /series /quote for chart-pro.",
+  "environment": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",
+    "FRED_KEY": "2f057499936072679d8843d7fce99989"
+  },
+  "inherit_env": {
+    "from_function": "bls-labor-agent",
+    "keys": [
+      "BLS_API_KEY"
+    ]
+  }
+}

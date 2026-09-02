@@ -1,0 +1,1716 @@
+"""justhodl-symdir v1.0.0 -- symbol directory, search and series service (ops 5116).
+
+Khalid: "every single ticker and data (every single one) with its entire
+history should be searchable on chart-pro search bar and watchlist and can be
+added to the watchlist exactly as in tradingview".
+
+TradingView's symbol search is a server-side directory: symbol, description,
+exchange/type, ranked by prefix and popularity, ~100ms. This engine is that
+directory for the whole platform:
+
+  mode=build  (daily 05:40 UTC + on demand)
+      One document per searchable thing, across every catalog we hold:
+        instruments : Polygon reference (stocks/otc/indices/crypto/fx) merged
+                      with finviz names/sector/mcap, symbology master,
+                      Khalid's TradingView symbol dictionary
+        fred        : full FRED catalog (series-meta pages: title/units/freq/
+                      popularity) + which of them are banked and WHERE
+        eurostat    : 8,152 dataflows (names) + exact Tier-0 series counts;
+                      the 564M series themselves are reached through Tier-1
+        ecb         : 214 dataflows + Tier-0 counts (3.24M series via Tier-1)
+        oecd / bis / imf / statcan : dataflow + cube catalogs (names)
+        boj         : every series code + name from the api parts (120k)
+        worldbank   : indicator catalog (live API, names) -> countries
+        nyfed / ofr / ofr-hfm / ofr-bsrm / te-mirror / archived-fred /
+        treasury / fiscaldata / boe / census-us / bls(series titles) / cboe
+      Written to data/symdir/: instruments.json.gz (client-side instant
+      ticker search), docs.pkl.gz + index.pkl.gz (server search), manifest.
+
+  /search?q=   token search with word-prefix expansion, synonyms, exact and
+               prefix id matching, popularity + provider ranking. Series-level
+               ids of eurostat/ecb (prov:FLOW:KEY...) are resolved through the
+               Tier-1 block maps (one Range read), so every one of the 567M
+               series is reachable by id even though only flows are in the
+               token index.
+  /browse?ds=  series inside a dataset: Tier-1/pages for eurostat+ecb (with
+               dimension facets from the scanned sample), cube vectors for
+               statcan, countries for a World Bank indicator, DB series for BOJ,
+               parent-linked docs for census/treasury/ofr.
+  /series?id=  full-history observations for any id, per-provider resolver,
+               S3 result cache (data/series-cache/) so repeat opens are one GET.
+  /quote?ids=  last / previous / change for watchlist rows (cache-first).
+  mode=warm    keep-warm ping: loads the index so the next search is warm.
+
+Doctrine: real data only; the warehouse is the primary source and the live
+API is the fallback (or the primary where the warehouse holds only metadata
+and the raw file is a multi-hundred-MB scan); never fabricate a name -- a
+series without a title shows its code.
+"""
+import bisect
+import csv
+import gzip
+import hashlib
+import io
+import json
+import math
+import os
+import pickle
+import re
+import time
+import traceback
+import urllib.error
+import urllib.parse
+import urllib.request
+from array import array
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
+from datetime import date, datetime, timedelta, timezone
+
+import boto3
+from botocore.config import Config
+
+VERSION = "1.0.0"
+BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
+POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
+FRED_KEY = os.environ.get("FRED_KEY", "")
+BLS_KEY = os.environ.get("BLS_API_KEY", "")
+SD = "data/symdir/"
+CACHE_PREFIX = "data/series-cache/"
+s3 = boto3.client("s3", region_name="us-east-1",
+                  config=Config(max_pool_connections=64, retries={"max_attempts": 4}))
+UA = "justhodl-symdir/%s (+https://justhodl.ai)" % VERSION
+
+# ---------------------------------------------------------------- helpers
+
+def _now():
+    return datetime.now(timezone.utc)
+
+
+def _iso():
+    return _now().isoformat(timespec="seconds")
+
+
+def _get(key, rng=None):
+    kw = {"Bucket": BUCKET, "Key": key}
+    if rng:
+        kw["Range"] = rng
+    return s3.get_object(**kw)["Body"].read()
+
+
+def _get_json(key, default=None):
+    try:
+        b = _get(key)
+        if key.endswith(".gz") or b[:2] == b"\x1f\x8b":
+            b = gzip.decompress(b)
+        return json.loads(b)
+    except Exception:  # noqa: BLE001
+        return default
+
+
+def _put_json(key, obj, cache="public, max-age=300", gz=False):
+    body = json.dumps(obj, separators=(",", ":"), default=str).encode()
+    if gz:
+        body = gzip.compress(body, 6)
+    s3.put_object(Bucket=BUCKET, Key=key, Body=body, ContentType="application/json",
+                  CacheControl=cache, **({"ContentEncoding": "gzip"} if gz and not key.endswith(".gz") else {}))
+    return len(body)
+
+
+def _list(prefix, max_keys=None):
+    tok, out = None, []
+    while True:
+        kw = {"Bucket": BUCKET, "Prefix": prefix, "MaxKeys": 1000}
+        if tok:
+            kw["ContinuationToken"] = tok
+        d = s3.list_objects_v2(**kw)
+        out.extend(d.get("Contents") or [])
+        tok = d.get("NextContinuationToken")
+        if not tok or (max_keys and len(out) >= max_keys):
+            break
+    return out
+
+
+def _http(url, timeout=25, headers=None, data=None, retries=2):
+    h = {"User-Agent": UA}
+    if headers:
+        h.update(headers)
+    last = None
+    for i in range(retries + 1):
+        try:
+            req = urllib.request.Request(url, headers=h, data=data)
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return r.read(), r.status, dict(r.headers)
+        except urllib.error.HTTPError as e:
+            last = e
+            if e.code in (429, 500, 502, 503, 504) and i < retries:
+                time.sleep(1.2 * (i + 1))
+                continue
+            raise
+        except Exception as e:  # noqa: BLE001
+            last = e
+            if i < retries:
+                time.sleep(0.8 * (i + 1))
+                continue
+            raise
+    raise last
+
+
+def _http_json(url, timeout=25, headers=None):
+    b, _, _ = _http(url, timeout=timeout, headers=headers)
+    return json.loads(b.decode("utf-8", "replace"))
+
+
+def _f(v):
+    try:
+        if v is None:
+            return None
+        if isinstance(v, (int, float)):
+            return float(v) if math.isfinite(float(v)) else None
+        s = str(v).strip().replace(",", "")
+        if s in ("", ".", ":", "NA", "N/A", "null", "None", "-", "..", "x", "F"):
+            return None
+        s = s.split(" ")[0]
+        return float(s)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def norm_period(p):
+    """Any statistical period string -> ISO YYYY-MM-DD (period start)."""
+    if p is None:
+        return None
+    s = str(p).strip().upper().replace("_", "-")
+    if len(s) == 10 and s[4] == "-" and s[7] == "-":
+        return s
+    if len(s) >= 10 and s[4] == "-" and s[7] == "-" and s[10:11] in ("T", " "):
+        return s[:10]
+    m = re.match(r"^(\d{4})-?W(\d{1,2})$", s)
+    if m:
+        y, w = int(m.group(1)), int(m.group(2))
+        jan4 = date(y, 1, 4)
+        mon = jan4 - timedelta(days=jan4.weekday())
+        return (mon + timedelta(weeks=w - 1)).isoformat()
+    m = re.match(r"^(\d{4})-?Q(\d)$", s)
+    if m:
+        return "%s-%02d-01" % (m.group(1), (int(m.group(2)) - 1) * 3 + 1)
+    m = re.match(r"^(\d{4})-?S(\d)$", s)
+    if m:
+        return "%s-%02d-01" % (m.group(1), (int(m.group(2)) - 1) * 6 + 1)
+    m = re.match(r"^(\d{4})-?M?(\d{2})$", s)
+    if m:
+        return "%s-%s-01" % (m.group(1), m.group(2))
+    m = re.match(r"^(\d{4})(\d{2})(\d{2})$", s)
+    if m:
+        return "%s-%s-%s" % m.groups()
+    m = re.match(r"^(\d{4})$", s)
+    if m:
+        return s + "-01-01"
+    m = re.match(r"^(\d{1,2})/(\d{1,2})/(\d{4})$", s)          # dd/mm/yyyy (banxico)
+    if m:
+        return "%s-%02d-%02d" % (m.group(3), int(m.group(2)), int(m.group(1)))
+    m = re.match(r"^(\d{1,2}) ([A-Z]{3}) (\d{4})$", s)          # 31 Jan 2004 (BoE)
+    if m:
+        mon = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"].index(m.group(2)) + 1
+        return "%s-%02d-%02d" % (m.group(3), mon, int(m.group(1)))
+    m = re.match(r"^(\d{4})-(\d{2})-(\d{2})", s)
+    if m:
+        return "%s-%s-%s" % m.groups()
+    return None
+
+
+TOK_RE = re.compile(r"[a-z0-9]+")
+STOP = {"the", "of", "and", "in", "for", "to", "by", "a", "an", "on", "at", "from", "all", "vs", "per", "with", "or"}
+SYN = {
+    "gdp": ["gross", "domestic", "product"], "cpi": ["consumer", "price", "index"], "ppi": ["producer", "price"],
+    "unemployment": ["jobless", "unemployed"], "jobless": ["unemployment"], "fedfunds": ["federal", "funds"],
+    "fed": ["federal", "reserve"], "treasury": ["treasuries", "government", "bond"], "yield": ["rate"],
+    "fx": ["exchange", "rate"], "forex": ["exchange", "rate"], "eur": ["euro"], "usd": ["dollar"], "gbp": ["sterling", "pound"],
+    "jpy": ["yen"], "oil": ["crude", "petroleum", "wti", "brent"], "gold": ["xau"], "btc": ["bitcoin"], "eth": ["ethereum"],
+    "m2": ["money", "supply"], "payrolls": ["nonfarm", "employment", "payems"], "nfp": ["nonfarm", "payrolls"],
+    "inflation": ["cpi", "hicp", "prices"], "hicp": ["inflation", "harmonised"], "housing": ["house", "housing", "homes"],
+    "pmi": ["purchasing", "managers"], "ism": ["manufacturing", "pmi"], "vix": ["volatility"], "sofr": ["secured", "overnight"],
+    "repo": ["repurchase"], "10y": ["10", "year"], "2y": ["2", "year"], "30y": ["30", "year"], "germany": ["de", "deutschland"],
+    "uk": ["united", "kingdom", "gb"], "us": ["united", "states", "usa"], "eu": ["euro", "area", "european", "union"],
+    "china": ["cn", "chinese"], "japan": ["jp"], "canada": ["ca"], "retail": ["sales"], "trade": ["exports", "imports"],
+    "balance": ["sheet"], "liquidity": ["reserves", "balance"], "spread": ["oas", "spreads"],
+}
+PROV_WEIGHT = {"instrument": 12, "fred": 8, "ecb": 7, "eurostat": 6, "nyfed": 7, "ofr": 6, "oecd": 5, "bis": 6, "imf": 5,
+               "boj": 5, "statcan": 4, "worldbank": 4, "te": 5, "treasury": 5, "fiscaldata": 4, "boe": 5, "census": 4,
+               "bls": 6, "cboe": 6, "tv": 9, "ofr-hfm": 4, "ofr-bsrm": 4, "banxico": 4, "snb": 4, "bcb": 4}
+PROV_NAME = {"fred": "FRED", "ecb": "ECB", "eurostat": "Eurostat", "oecd": "OECD", "bis": "BIS", "imf": "IMF", "boj": "BoJ",
+             "statcan": "StatCan", "worldbank": "World Bank", "nyfed": "NY Fed", "ofr": "OFR", "ofr-hfm": "OFR HFM",
+             "ofr-bsrm": "OFR BSRM", "te": "TE mirror", "treasury": "FiscalData", "fiscaldata": "FiscalData", "boe": "BoE",
+             "census": "Census", "bls": "BLS", "cboe": "Cboe", "tv": "TradingView", "instrument": "Market", "banxico": "Banxico"}
+
+
+def tokens(s):
+    return [t for t in TOK_RE.findall((s or "").lower()) if t not in STOP]
+
+
+# doc tuple layout
+D_ID, D_PROV, D_TITLE, D_KIND, D_POP, D_UNIT, D_FREQ, D_FIRST, D_LAST, D_KEY, D_N, D_EXTRA = range(12)
+
+
+def doc(id_, prov, title, kind, pop=0.0, unit=None, freq=None, first=None, last=None, key=None, n=None, extra=None):
+    return [id_, prov, (title or "")[:220], kind, round(min(max(pop, 0.0), 1.0), 4), unit, freq, first, last, key, n, extra]
+
+
+# ================================================================ BUILD
+
+def build(event, context):
+    t0 = time.time()
+    budget = int(event.get("budget_s") or 780)
+    log = {"version": VERSION, "started_at": _iso(), "sources": {}, "skipped": [], "errors": {}}
+    docs, instruments = [], []
+    pool = ThreadPoolExecutor(max_workers=32)
+
+    def left():
+        return budget - (time.time() - t0)
+
+    def stage(name, fn, optional=True):
+        if left() < 40 and optional:
+            log["skipped"].append(name)
+            return
+        ts = time.time()
+        n0 = len(docs)
+        try:
+            info = fn() or {}
+            info["docs"] = len(docs) - n0
+            info["s"] = round(time.time() - ts, 1)
+            log["sources"][name] = info
+        except Exception as e:  # noqa: BLE001
+            log["errors"][name] = (str(e)[:200] + " | " + traceback.format_exc()[-400:])
+            log["sources"][name] = {"docs": len(docs) - n0, "s": round(time.time() - ts, 1), "error": str(e)[:120]}
+
+    # ---------------- instruments: Polygon reference + finviz + symbology + TV dictionary
+    def st_instruments():
+        fin = (_get_json("data/finviz-universe.json") or {}).get("by_ticker") or {}
+        sym = (_get_json("data/symbology/master.json") or {}).get("by_ticker") or {}
+        mcap = {t: (v.get("market_cap") or 0) for t, v in fin.items()}
+        ranks = {t: i for i, (t, _) in enumerate(sorted(mcap.items(), key=lambda kv: -kv[1]))}
+        nfin = max(len(ranks), 1)
+        seen = set()
+        counts = {}
+        for mkt in ("stocks", "otc", "indices", "crypto", "fx"):
+            url = ("https://api.polygon.io/v3/reference/tickers?market=%s&active=true&limit=1000&apiKey=%s" % (mkt, POLYGON_KEY))
+            pages = 0
+            while url and pages < 80 and left() > 60:
+                try:
+                    d = _http_json(url, timeout=30)
+                except Exception as e:  # noqa: BLE001
+                    log["errors"]["polygon-" + mkt] = str(e)[:120]
+                    break
+                pages += 1
+                for r in d.get("results") or []:
+                    tk = r.get("ticker")
+                    if not tk or tk in seen:
+                        continue
+                    seen.add(tk)
+                    name = r.get("name") or ""
+                    typ = (r.get("type") or ("index" if mkt == "indices" else mkt)).lower()
+                    ex = r.get("primary_exchange") or ("OTC" if mkt == "otc" else mkt.upper())
+                    f = fin.get(tk) or {}
+                    if f.get("company") and mkt == "stocks":
+                        name = f["company"]
+                    if mkt == "stocks":
+                        pop = 0.35 + 0.65 * (1 - ranks[tk] / nfin) if tk in ranks else 0.25
+                    elif mkt == "otc":
+                        pop = 0.08
+                    elif mkt == "indices":
+                        pop = 0.3
+                    else:
+                        pop = 0.3
+                    if mkt == "indices" and not name.lower().startswith("dow jones"):
+                        pop += 0.05
+                    extra = {"ex": ex, "type": typ, "mkt": mkt}
+                    if f.get("sector"):
+                        extra["sector"] = f["sector"]
+                        extra["industry"] = f.get("industry")
+                    if f.get("market_cap"):
+                        extra["mcap_mm"] = f["market_cap"]
+                    if sym.get(tk, {}).get("isin"):
+                        extra["isin"] = sym[tk]["isin"]
+                    docs.append(doc(tk, "instrument", name, "instrument", pop, extra=extra))
+                    instruments.append([tk, name[:80], ex, typ, mkt, round(pop, 3)])
+                    counts[mkt] = counts.get(mkt, 0) + 1
+                nxt = d.get("next_url")
+                url = (nxt + "&apiKey=" + POLYGON_KEY) if nxt else None
+        # finviz names for tickers Polygon did not return (e.g. class shares) -> still searchable
+        for tk, f in fin.items():
+            if tk in seen or not f.get("company"):
+                continue
+            seen.add(tk)
+            pop = 0.35 + 0.65 * (1 - ranks[tk] / nfin) if tk in ranks else 0.25
+            docs.append(doc(tk, "instrument", f["company"], "instrument", pop,
+                            extra={"ex": "US", "type": "cs", "mkt": "stocks", "sector": f.get("sector"), "industry": f.get("industry")}))
+            instruments.append([tk, f["company"][:80], "US", "cs", "stocks", round(pop, 3)])
+            counts["finviz-only"] = counts.get("finviz-only", 0) + 1
+        # Khalid's TradingView symbol dictionary (his 492 watchlists): EXCHANGE:SYMBOL with the authoritative name
+        dic = (_get_json("data/symbol-dictionary.json") or {}).get("dictionary") or {}
+        for full, v in dic.items():
+            if not isinstance(v, dict):
+                continue
+            name = v.get("name") or ""
+            src = (v.get("source") or "").upper()
+            if src == "FORMULA" or "/" in full or "*" in full or "+" in full:
+                continue
+            if ":" not in full:
+                continue
+            ex, symb = full.split(":", 1)
+            if ex.upper() == "FRED":
+                continue                     # FRED ids come from the catalog with full metadata
+            if full in seen:
+                continue
+            seen.add(full)
+            docs.append(doc(full, "tv", name, "instrument", 0.45,
+                            extra={"ex": ex, "type": (v.get("category") or "tv").lower(), "mkt": "tv", "src": src.lower()}))
+            instruments.append([full, name[:80], ex, (v.get("category") or "tv").lower(), "tv", 0.45])
+            counts["tv-dictionary"] = counts.get("tv-dictionary", 0) + 1
+        return {"counts": counts, "finviz": len(fin), "symbology": len(sym)}
+
+    # ---------------- FRED: full catalog meta + banked map
+    def st_fred():
+        keys = _list("data/warm/fred-catalog/series-meta/")
+        pages = [k["Key"] for k in keys if k["Key"].endswith(".json")]
+        banked = {}
+        # 277k banked objects across 19 root folders: list the roots in parallel (one prefix per thread)
+        roots = [c["Prefix"] for c in s3.list_objects_v2(Bucket=BUCKET, Prefix="data/warm/fred-scoped/", Delimiter="/").get("CommonPrefixes", [])]
+        for objs in pool.map(_list, roots):
+            for o in objs:
+                parts = o["Key"].split("/")
+                if len(parts) == 5 and parts[4].endswith(".json") and not parts[4].startswith("_"):
+                    banked[parts[4][:-5]] = parts[3]
+        te = {o["Key"].rsplit("/", 1)[-1][:-5] for o in _list("data/warm/te-mirror/") if o["Key"].endswith(".json")}
+        arch = {o["Key"].rsplit("/", 1)[-1][:-5] for o in _list("data/warm/archived-fred/") if o["Key"].endswith(".json")}
+        best = {}
+
+        def rd(k):
+            try:
+                return (_get_json(k) or {}).get("rows") or []
+            except Exception:  # noqa: BLE001
+                return []
+        for rows in pool.map(rd, pages):
+            for r in rows:
+                sid = r.get("id")
+                if not sid:
+                    continue
+                pop = int(r.get("popularity") or 0)
+                if sid not in best or pop > best[sid][0]:
+                    best[sid] = (pop, r)
+        n_b = 0
+        for sid, (pop, r) in best.items():
+            root = banked.get(sid)
+            extra = {}
+            if sid in te:
+                extra["te"] = 1
+            if sid in arch:
+                extra["arch"] = 1
+            if r.get("seasonal_adj"):
+                extra["sa"] = r["seasonal_adj"]
+            if root:
+                n_b += 1
+            docs.append(doc("fred:" + sid, "fred", r.get("title"), "series", 0.15 + 0.85 * min(pop, 100) / 100.0,
+                            unit=r.get("units"), freq=r.get("freq"), first=r.get("obs_start"), last=r.get("obs_end"),
+                            key=root, extra=extra or None))
+        # mirrors/archives that are not in the catalog at all still get a doc
+        for sid in (te | arch) - set(best):
+            docs.append(doc("fred:" + sid, "fred", sid, "series", 0.3, extra={"te": int(sid in te), "arch": int(sid in arch)}))
+        return {"meta_pages": len(pages), "catalog": len(best), "banked": n_b, "te_mirror": len(te), "archived": len(arch)}
+
+    # ---------------- SDMX dataflow catalogs + Tier-0 counts
+    def sdmx_catalog(prov, cat_key, tier0_key, name_fix=None):
+        cat = _get_json(cat_key) or {}
+        flows = {}
+        for f in cat.get("dataflows") or []:
+            if f.get("id"):
+                flows[f["id"]] = f.get("name") or f["id"]
+        if name_fix:
+            try:
+                name_fix(flows)
+            except Exception as e:  # noqa: BLE001
+                log["errors"][prov + "-names"] = str(e)[:120]
+        t0d = _get_json(tier0_key) or {}
+        cnt = {k: (v.get("series") or v.get("est_series_max") or 0) for k, v in (t0d.get("flows") or {}).items()}
+        for fid in set(flows) | set(cnt):
+            n = cnt.get(fid)
+            title = flows.get(fid) or fid
+            pop = 0.2 + (min(math.log10(n + 1), 7) / 7) * 0.6 if n else 0.25
+            docs.append(doc(prov + ":" + fid, prov, title, "dataset", pop, n=n,
+                            extra={"tier1": 1} if n and n > 50000 else None))
+        return {"flows": len(flows), "tier0": len(cnt)}
+
+    def ecb_names(flows):
+        # catalog names collapsed to ids for many flows; the dataflow endpoint carries the English names
+        if sum(1 for k, v in flows.items() if v == k) < 20:
+            return
+        b, _, _ = _http("https://data-api.ecb.europa.eu/service/dataflow/all?format=sdmx-2.1", timeout=40)
+        x = b.decode("utf-8", "replace")
+        for m in re.finditer(r'<(?:str:)?Dataflow[^>]*\sid="([^"]+)"[^>]*>(.*?)</(?:str:)?Dataflow>', x, re.S):
+            fid = m.group(1)
+            nm = re.search(r'<(?:com:)?Name[^>]*xml:lang="en"[^>]*>([^<]+)<', m.group(2)) or re.search(r'<(?:com:)?Name[^>]*>([^<]+)<', m.group(2))
+            if nm and fid in flows:
+                flows[fid] = nm.group(1).strip()
+
+    def st_eurostat():
+        return sdmx_catalog("eurostat", "data/warm/eurostat/catalog.json.gz", "data/index/eurostat/flows.json.gz")
+
+    def st_ecb():
+        return sdmx_catalog("ecb", "data/warm/ecb/catalog.json.gz", "data/index/ecb/flows.json.gz", ecb_names)
+
+    def st_oecd():
+        cat = _get_json("data/warm/oecd/catalog.json.gz") or {}
+        trip = (_get_json("data/warm/oecd/flow-triplets.json.gz") or {}).get("map") or {}
+        n = 0
+        for f in cat.get("dataflows") or []:
+            if f.get("id"):
+                docs.append(doc("oecd:" + f["id"], "oecd", f.get("name") or f["id"], "dataset", 0.3, extra={"triplet": trip.get(f["id"])}))
+                n += 1
+        return {"flows": n}
+
+    def st_bis():
+        cat = _get_json("data/warm/bis/catalog.json.gz") or {}
+        n = 0
+        for f in cat.get("dataflows") or []:
+            if f.get("id"):
+                docs.append(doc("bis:" + f["id"], "bis", f.get("name") or f["id"], "dataset", 0.35))
+                n += 1
+        return {"flows": n}
+
+    def st_imf():
+        found = None
+        for k in ("data/warm/imf-full/catalog.json.gz", "data/warm/imf-full/catalog.json", "data/warm/imf-full/manifest.json", "data/warm/imf/catalog.json.gz"):
+            d = _get_json(k)
+            if d:
+                found = (k, d)
+                break
+        n = 0
+        if found:
+            k, d = found
+            items = d.get("dataflows") or d.get("flows") or d.get("datasets") or d.get("items") or []
+            if isinstance(items, dict):
+                items = [{"id": a, "name": (b.get("name") if isinstance(b, dict) else b)} for a, b in items.items()]
+            for f in items:
+                fid = f.get("id") or f.get("slug")
+                if fid:
+                    docs.append(doc("imf:" + fid, "imf", f.get("name") or f.get("title") or fid, "dataset", 0.3))
+                    n += 1
+        if n == 0:
+            for o in _list("data/warm/imf-full/src/"):
+                base = o["Key"].rsplit("/", 1)[-1]
+                fid = base.split(".")[0]
+                if fid and not fid.startswith("_"):
+                    docs.append(doc("imf:" + fid, "imf", fid, "dataset", 0.25, key=o["Key"]))
+                    n += 1
+        return {"flows": n, "catalog": found[0] if found else None}
+
+    def st_statcan():
+        cat = _get_json("data/warm/statcan/cube-catalog.json.gz") or {}
+        have = {o["Key"].rsplit("/", 1)[-1].split(".")[0] for o in _list("data/warm/statcan/data/")}
+        n = 0
+        for c in cat.get("payload") or []:
+            pid = str(c.get("productId") or "")
+            if not pid:
+                continue
+            docs.append(doc("statcan:" + pid, "statcan", c.get("cubeTitleEn") or pid, "dataset", 0.3,
+                            first=str(c.get("cubeStartDate") or "")[:10] or None, last=str(c.get("cubeEndDate") or "")[:10] or None,
+                            key=("data/warm/statcan/data/%s.dat.gz" % pid) if pid in have else None,
+                            extra={"cansim": c.get("cansimId"), "freq": c.get("frequencyCode")}))
+            n += 1
+        return {"cubes": n, "banked": len(have)}
+
+    def st_boj():
+        objs = [o["Key"] for o in _list("data/warm/boj-full/api/") if o["Key"].endswith(".json.gz")]
+        seen = {}
+
+        def rd(k):
+            try:
+                d = _get_json(k) or {}
+                out = []
+                db = ((d.get("PARAMETER") or {}).get("DB")) or k.split("/")[4]
+                for r in d.get("RESULTSET") or []:
+                    sc = r.get("SERIES_CODE")
+                    if sc:
+                        vals = r.get("VALUES") or {}
+                        dts = vals.get("SURVEY_DATES") or []
+                        out.append((db, sc, r.get("NAME_OF_TIME_SERIES"), r.get("UNIT"), r.get("FREQUENCY"), r.get("CATEGORY"),
+                                    str(dts[0]) if dts else None, str(dts[-1]) if dts else None, len(dts)))
+                return out
+            except Exception:  # noqa: BLE001
+                return []
+        partial = False
+        for out in pool.map(rd, objs):
+            if left() < 150:
+                partial = True
+                break
+            for db, sc, nm, un, fr, cat, f0, l0, n in out:
+                cur = seen.get(sc)
+                if cur is None:
+                    seen[sc] = [db, nm, un, fr, cat, f0, l0, n]
+                else:
+                    if f0 and (not cur[5] or f0 < cur[5]):
+                        cur[5] = f0
+                    if l0 and (not cur[6] or l0 > cur[6]):
+                        cur[6] = l0
+                    cur[7] += n
+        dbs = set()
+        for sc, (db, nm, un, fr, cat, f0, l0, n) in seen.items():
+            dbs.add(db)
+            fq = {"MONTHLY": "M", "QUARTERLY": "Q", "ANNUAL": "A", "DAILY": "D", "WEEKLY": "W", "SEMIANNUAL": "S"}.get((fr or "").upper(), fr)
+            docs.append(doc("boj:%s:%s" % (db, sc), "boj", nm or sc, "series", 0.3, unit=un, freq=fq,
+                            first=norm_period(f0[:6] if f0 and len(f0) >= 6 else f0), last=norm_period(l0[:6] if l0 and len(l0) >= 6 else l0),
+                            key=db, n=n, extra={"cat": (cat or "")[:60]}))
+        for db in sorted(dbs):
+            docs.append(doc("boj:" + db, "boj", "Bank of Japan database " + db, "dataset", 0.3, n=sum(1 for v in seen.values() if v[0] == db)))
+        return {"parts": len(objs), "series": len(seen), "dbs": len(dbs), "partial": partial}
+
+    def st_worldbank():
+        cat = None
+        for k in ("data/warm/worldbank-full/indicators.json.gz", "data/warm/worldbank-full/catalog.json.gz", "data/warm/worldbank/catalog.json.gz"):
+            cat = _get_json(k)
+            if cat:
+                break
+        items = []
+        if isinstance(cat, dict):
+            items = cat.get("indicators") or cat.get("dataflows") or cat.get("items") or []
+        if not items:
+            d = _http_json("https://api.worldbank.org/v2/indicator?format=json&per_page=30000", timeout=60)
+            items = d[1] if isinstance(d, list) and len(d) > 1 else []
+            _put_json(SD + "wb-indicators.json.gz", items, gz=True)
+        try:
+            cs = _http_json("https://api.worldbank.org/v2/country?format=json&per_page=400", timeout=40)
+            countries = [{"id": c["id"], "iso2": c.get("iso2Code"), "name": c.get("name"), "region": (c.get("region") or {}).get("value")}
+                         for c in (cs[1] if isinstance(cs, list) and len(cs) > 1 else [])]
+            _put_json(SD + "wb-countries.json", countries)
+        except Exception as e:  # noqa: BLE001
+            log["errors"]["wb-countries"] = str(e)[:120]
+            countries = _get_json(SD + "wb-countries.json") or []
+        n = 0
+        for it in items:
+            iid = it.get("id")
+            if not iid:
+                continue
+            src = it.get("source") or {}
+            topics = ", ".join(t.get("value") or "" for t in (it.get("topics") or []) if t.get("value"))
+            docs.append(doc("worldbank:" + iid, "worldbank", it.get("name") or iid, "dataset", 0.28,
+                            n=len(countries) or None, extra={"src": (src.get("value") if isinstance(src, dict) else src), "topics": topics[:80] or None}))
+            n += 1
+        return {"indicators": n, "countries": len(countries)}
+
+    def st_nyfed():
+        n = 0
+        for rate, nm in (("sofr", "Secured Overnight Financing Rate (SOFR)"), ("effr", "Effective Federal Funds Rate (EFFR)"),
+                         ("obfr", "Overnight Bank Funding Rate (OBFR)"), ("tgcr", "Tri-Party General Collateral Rate (TGCR)"),
+                         ("bgcr", "Broad General Collateral Rate (BGCR)")):
+            docs.append(doc("nyfed:" + rate, "nyfed", nm, "series", 0.9, unit="Percent", freq="D", key="data/warm/nyfed/%s.json.gz" % rate))
+            docs.append(doc("nyfed:%s:volume" % rate, "nyfed", nm.split(" (")[0] + " volume ($bn)", "series", 0.6, unit="$bn", freq="D",
+                            key="data/warm/nyfed/%s.json.gz" % rate, extra={"field": "volume_bn"}))
+            n += 2
+        return {"series": n}
+
+    def st_ofr():
+        n = 0
+        for o in _list("data/warm/ofr/"):
+            k = o["Key"]
+            if not (k.startswith("data/warm/ofr/dataset-") and k.endswith(".json.gz")):
+                continue
+            d = _get_json(k) or {}
+            pl = d.get("payload") or {}
+            dsn = k.rsplit("/", 1)[-1][len("dataset-"):-8]
+            docs.append(doc("ofr:" + dsn, "ofr", pl.get("long_name") or pl.get("short_name") or dsn, "dataset", 0.5,
+                            n=len(pl.get("timeseries") or {})))
+            for mn, ts in (pl.get("timeseries") or {}).items():
+                meta = (ts or {}).get("metadata") or {}
+                agg = ((ts or {}).get("timeseries") or {}).get("aggregation") or []
+                nm = meta.get("long_name") or meta.get("short_name") or meta.get("name") or mn
+                docs.append(doc("ofr:" + mn, "ofr", nm, "series", 0.55, unit=meta.get("unit") or meta.get("units"),
+                                freq=meta.get("frequency"), first=agg[0][0] if agg else None, last=agg[-1][0] if agg else None,
+                                key=k, n=len(agg) or None, extra={"ds": dsn}))
+                n += 1
+        for prov, pre in (("ofr-hfm", "data/warm/ofr-hfm/series/"), ("ofr-bsrm", "data/warm/ofr-bsrm/series/")):
+            for o in _list(pre):
+                base = o["Key"].rsplit("/", 1)[-1]
+                if base.endswith(".json.gz"):
+                    mn = base[:-8]
+                    docs.append(doc(prov + ":" + mn, prov, mn.replace("_", " ").replace("-", " · "), "series", 0.35, key=o["Key"]))
+                    n += 1
+        return {"series": n}
+
+    def st_treasury():
+        n = 0
+        for o in _list("data/warm/treasury/"):
+            k = o["Key"]
+            if not k.endswith(".json.gz"):
+                continue
+            d = _get_json(k) or {}
+            dsn = d.get("dataset") or k.rsplit("/", 1)[-1][:-8]
+            rows = d.get("payload") or d.get("data") or d.get("rows") or []
+            if isinstance(rows, dict):
+                rows = rows.get("data") or []
+            if not rows:
+                continue
+            fields = [f for f in rows[0].keys() if f != "record_date" and _f(rows[0].get(f)) is not None]
+            dates = [r.get("record_date") for r in rows]
+            unique = len(set(dates)) == len(dates)
+            docs.append(doc("treasury:" + dsn, "treasury", "FiscalData " + dsn.replace("_", " "), "dataset", 0.45,
+                            n=len(fields) if unique else None, key=k, extra={"unique_dates": unique}))
+            if unique:
+                for f in fields:
+                    docs.append(doc("treasury:%s:%s" % (dsn, f), "treasury", "%s — %s" % (dsn.replace("_", " "), f.replace("_", " ")),
+                                    "series", 0.4, unit=d.get("unit"), key=k, n=len(rows), extra={"field": f, "ds": dsn}))
+                    n += 1
+        return {"series": n}
+
+    def st_boe():
+        n = 0
+        for o in _list("data/warm/boe-full/iadb/"):
+            base = o["Key"].rsplit("/", 1)[-1]
+            if base.endswith(".csv.gz"):
+                code = base[:-7]
+                docs.append(doc("boe:" + code, "boe", "Bank of England IADB " + code, "series", 0.4, key=o["Key"]))
+                n += 1
+        return {"series": n}
+
+    def st_census():
+        cat = _get_json("data/warm/census-us/catalog.json.gz") or {}
+        n = 0
+        for dsd in cat.get("datasets") or []:
+            slug = dsd.get("slug")
+            if not slug or dsd.get("family") != "eits":
+                continue
+            title = (dsd.get("title") or slug).replace("Time Series Economic Indicators Time Series -: ", "")
+            docs.append(doc("census:" + slug, "census", title, "dataset", 0.5, key="data/warm/census-us/%s/full.json.gz" % slug))
+            rows = _get_json("data/warm/census-us/%s/full.json.gz" % slug) or []
+            if not rows or len(rows) < 2:
+                continue
+            hdr = rows[0]
+            ix = {h: i for i, h in enumerate(hdr)}
+            need = ("data_type_code", "category_code", "seasonally_adj", "time")
+            if not all(x in ix for x in need):
+                continue
+            combos = {}
+            for r in rows[1:]:
+                try:
+                    key = (r[ix["data_type_code"]], r[ix["category_code"]], r[ix["seasonally_adj"]], r[ix["geo_level_code"]] if "geo_level_code" in ix else "US")
+                except Exception:  # noqa: BLE001
+                    continue
+                t = r[ix["time"]]
+                c = combos.get(key)
+                if c is None:
+                    combos[key] = [t, t, 1]
+                else:
+                    if t < c[0]:
+                        c[0] = t
+                    if t > c[1]:
+                        c[1] = t
+                    c[2] += 1
+            for (dt, cc, sa, geo), (f0, l0, cnt) in combos.items():
+                sid = "census:%s:%s:%s:%s:%s" % (slug, dt, cc, sa, geo)
+                docs.append(doc(sid, "census", "%s · %s · %s · %s" % (title[:90], dt, cc, "SA" if str(sa).lower() == "yes" else "NSA"),
+                                "series", 0.38, first=norm_period(f0), last=norm_period(l0), key="data/warm/census-us/%s/full.json.gz" % slug, n=cnt,
+                                extra={"ds": slug, "dt": dt, "cc": cc, "sa": sa, "geo": geo}))
+                n += 1
+        return {"series": n}
+
+    def st_bls():
+        n, files = 0, []
+        for o in _list("data/warm/bls-full/src/"):
+            k = o["Key"]
+            if k.endswith(".series") and o["Size"] < 60_000_000:
+                files.append((k, o["Size"]))
+        for k, sz in sorted(files, key=lambda x: x[1]):
+            if left() < 90 or n > 400000:
+                log["skipped"].append("bls:" + k.rsplit("/", 1)[-1])
+                continue
+            try:
+                txt = _get(k).decode("utf-8", "replace")
+            except Exception:  # noqa: BLE001
+                continue
+            lines = txt.split("\n")
+            if not lines:
+                continue
+            hdr = [h.strip() for h in lines[0].split("\t")]
+            if "series_id" not in hdr:
+                continue
+            ti = hdr.index("series_title") if "series_title" in hdr else None
+            if ti is None:
+                log["skipped"].append("bls-no-title:" + k.rsplit("/", 1)[-1])
+                continue
+            si = hdr.index("series_id")
+            by = hdr.index("begin_year") if "begin_year" in hdr else None
+            ey = hdr.index("end_year") if "end_year" in hdr else None
+            surv = k.split("/")[4]
+            for ln in lines[1:]:
+                p = ln.split("\t")
+                if len(p) <= max(si, ti):
+                    continue
+                sid = p[si].strip()
+                if not sid:
+                    continue
+                docs.append(doc("bls:" + sid, "bls", p[ti].strip(), "series", 0.4,
+                                first=(p[by].strip() + "-01-01") if by is not None and len(p) > by and p[by].strip().isdigit() else None,
+                                last=(p[ey].strip() + "-01-01") if ey is not None and len(p) > ey and p[ey].strip().isdigit() else None,
+                                extra={"survey": surv}))
+                n += 1
+        return {"series": n, "files": len(files)}
+
+    def st_cboe():
+        n = 0
+        d = _get_json("data/vix-curve-history.json")
+        if isinstance(d, dict):
+            docs.append(doc("cboe:vix-curve", "cboe", "Cboe VIX futures term structure history", "dataset", 0.5, key="data/vix-curve-history.json"))
+            n += 1
+        return {"docs": n}
+
+    stage("instruments", st_instruments, optional=False)
+    stage("fred", st_fred, optional=False)
+    stage("eurostat", st_eurostat)
+    stage("ecb", st_ecb)
+    stage("oecd", st_oecd)
+    stage("bis", st_bis)
+    stage("imf", st_imf)
+    stage("statcan", st_statcan)
+    stage("nyfed", st_nyfed)
+    stage("ofr", st_ofr)
+    stage("treasury", st_treasury)
+    stage("boe", st_boe)
+    stage("census", st_census)
+    stage("cboe", st_cboe)
+    stage("boj", st_boj)
+    stage("worldbank", st_worldbank)
+    stage("bls", st_bls)
+    pool.shutdown(wait=False)
+
+    # ---------------- dedupe by id (keep the higher-popularity doc)
+    by_id = {}
+    for d in docs:
+        cur = by_id.get(d[D_ID])
+        if cur is None or d[D_POP] > cur[D_POP]:
+            by_id[d[D_ID]] = d
+    docs = list(by_id.values())
+    docs.sort(key=lambda d: (-d[D_POP], d[D_ID]))
+
+    # ---------------- inverted index
+    post = defaultdict(lambda: array("I"))
+    for i, d in enumerate(docs):
+        ts = set(tokens(d[D_TITLE]))
+        idpart = d[D_ID].split(":", 1)[1] if ":" in d[D_ID] and d[D_PROV] != "tv" else d[D_ID]
+        ts.update(tokens(idpart))
+        ts.add(d[D_PROV])
+        ex = d[D_EXTRA] or {}
+        for fld in ("sector", "industry", "cat", "topics", "ds"):
+            if ex.get(fld):
+                ts.update(tokens(str(ex[fld])))
+        for t in ts:
+            post[t].append(i)
+    index = dict(post)
+    toklist = sorted(index)
+    ids = sorted((d[D_ID].upper(), i) for i, d in enumerate(docs))
+    bare = sorted((d[D_ID].rsplit(":", 1)[-1].upper(), i) for i, d in enumerate(docs) if ":" in d[D_ID])
+    pop = array("f", (d[D_POP] for d in docs))
+    blob = pickle.dumps({"version": VERSION, "built_at": _iso(), "docs": docs, "pop": pop}, protocol=5)
+    blob_i = pickle.dumps({"version": VERSION, "index": index, "toklist": toklist, "ids": ids, "bare": bare}, protocol=5)
+    gz1 = gzip.compress(blob, 5)
+    gz2 = gzip.compress(blob_i, 5)
+    s3.put_object(Bucket=BUCKET, Key=SD + "docs.pkl.gz", Body=gz1, ContentType="application/octet-stream", CacheControl="no-cache")
+    s3.put_object(Bucket=BUCKET, Key=SD + "index.pkl.gz", Body=gz2, ContentType="application/octet-stream", CacheControl="no-cache")
+    instruments.sort(key=lambda r: -r[5])
+    ib = gzip.compress(json.dumps({"built_at": _iso(), "n": len(instruments), "cols": ["symbol", "name", "exchange", "type", "market", "pop"],
+                                   "rows": instruments}, separators=(",", ":")).encode(), 7)
+    s3.put_object(Bucket=BUCKET, Key=SD + "instruments.json.gz", Body=ib, ContentType="application/json", ContentEncoding="gzip",
+                  CacheControl="public, max-age=21600")
+    prov_counts = defaultdict(lambda: {"series": 0, "dataset": 0, "instrument": 0})
+    for d in docs:
+        prov_counts[d[D_PROV]][d[D_KIND]] += 1
+    man = {"version": VERSION, "built_at": _iso(), "elapsed_s": round(time.time() - t0, 1), "docs": len(docs), "tokens": len(index),
+           "postings": sum(len(v) for v in index.values()), "instruments": len(instruments),
+           "bytes": {"docs_pkl_gz": len(gz1), "index_pkl_gz": len(gz2), "instruments_json_gz": len(ib)},
+           "providers": {k: dict(v) for k, v in prov_counts.items()}, "sources": log["sources"], "skipped": log["skipped"],
+           "errors": log["errors"], "series_level_via_tier1": {"eurostat": 564204235, "ecb": 3240832}}
+    _put_json(SD + "manifest.json", man, cache="public, max-age=120")
+    return man
+
+
+# ================================================================ RUNTIME INDEX
+
+_IDX = {"loaded_at": None, "docs": None, "pop": None, "index": None, "toklist": None, "ids": None, "bare": None, "built_at": None}
+_T0CACHE, _T1CACHE = {}, {}
+
+
+def load_index(force=False):
+    if _IDX["docs"] is not None and not force:
+        return _IDX
+    t = time.time()
+    a = pickle.loads(gzip.decompress(_get(SD + "docs.pkl.gz")))
+    b = pickle.loads(gzip.decompress(_get(SD + "index.pkl.gz")))
+    _IDX.update({"docs": a["docs"], "pop": a["pop"], "index": b["index"], "toklist": b["toklist"], "ids": b["ids"], "bare": b["bare"],
+                 "loaded_at": _iso(), "built_at": a.get("built_at"), "load_s": round(time.time() - t, 2)})
+    return _IDX
+
+
+def _prefix_range(sorted_pairs, prefix, cap=400):
+    lo = bisect.bisect_left(sorted_pairs, (prefix,))
+    hi = bisect.bisect_right(sorted_pairs, (prefix + "\uffff",))
+    return sorted_pairs[lo:min(hi, lo + cap)], hi - lo
+
+
+def _expand(tok, toklist, index, cap=250):
+    lo = bisect.bisect_left(toklist, tok)
+    hi = bisect.bisect_right(toklist, tok + "\uffff")
+    cands = toklist[lo:hi]
+    if len(cands) > cap:
+        exact = [tok] if tok in index else []
+        cands = exact + sorted((c for c in cands if c != tok), key=lambda c: -len(index[c]))[:cap]
+    return cands
+
+
+def doc_row(d, score=None):
+    ex = d[D_EXTRA] or {}
+    prov = d[D_PROV]
+    kind = d[D_KIND]
+    chartable = (kind == "series") or (kind == "instrument")
+    if prov in ("oecd", "bis", "imf") and kind == "dataset":
+        chartable = False
+    row = {"id": d[D_ID], "symbol": d[D_ID].split(":", 1)[1] if (":" in d[D_ID] and prov != "tv" and kind != "instrument") else d[D_ID],
+           "name": d[D_TITLE], "provider": prov, "provider_name": PROV_NAME.get(prov, prov.upper()), "kind": kind, "chartable": chartable,
+           "unit": d[D_UNIT], "freq": d[D_FREQ], "first": d[D_FIRST], "last": d[D_LAST], "n": d[D_N], "pop": d[D_POP]}
+    if kind == "dataset":
+        row["browse"] = prov in ("eurostat", "ecb", "statcan", "worldbank", "boj", "census", "treasury", "ofr")
+    for k in ("ex", "type", "mkt", "sector", "industry", "sa", "te", "arch", "src", "ds"):
+        if ex.get(k) is not None:
+            row[k] = ex[k]
+    if score is not None:
+        row["score"] = round(score, 2)
+    return row
+
+
+def search(q, limit=40, prov=None, kind=None):
+    ix = load_index()
+    docs, index, toklist, pop = ix["docs"], ix["index"], ix["toklist"], ix["pop"]
+    q = (q or "").strip()
+    if not q:
+        return {"q": q, "rows": [], "total": 0}
+    Q = q.upper().replace(" ", "")
+    hits = {}
+    detail = {"id_exact": 0, "id_prefix": 0, "token_and": 0, "token_or": 0}
+    # 1. exact + prefix on ids (with and without provider prefix)
+    for pairs, isbare in ((ix["ids"], False), (ix["bare"], True)):
+        rows, total = _prefix_range(pairs, Q, cap=300)
+        for k, i in rows:
+            base = 200 if k == Q else max(0, 90 - (len(k) - len(Q)) * 2)
+            if isbare:
+                base *= 0.92
+            if base > hits.get(i, (0, 0))[0]:
+                hits[i] = (base, 0)
+            detail["id_exact" if k == Q else "id_prefix"] += 1
+    # 2. token search with prefix expansion + synonyms
+    toks = tokens(q)
+    if toks:
+        groups = []
+        for t in toks:
+            cand = set(_expand(t, toklist, index))
+            for syn in SYN.get(t, []):
+                cand.update(_expand(syn, toklist, index, cap=60))
+            s = set()
+            for c in cand:
+                s.update(index[c])
+            groups.append(s)
+        inter = set.intersection(*groups) if groups and all(groups) else set()
+        if inter:
+            detail["token_and"] = len(inter)
+            for i in inter:
+                b = 60 + (10 if len(toks) > 1 else 0)
+                if b > hits.get(i, (0, 0))[0]:
+                    hits[i] = (b, len(toks))
+        if len(inter) < limit and len(toks) > 1:
+            cnt = defaultdict(int)
+            for g in groups:
+                for i in g:
+                    cnt[i] += 1
+            for i, c in cnt.items():
+                if i in inter or c < max(1, len(toks) - 1):
+                    continue
+                b = 25 + 12 * c
+                if b > hits.get(i, (0, 0))[0]:
+                    hits[i] = (b, c)
+            detail["token_or"] = sum(1 for c in cnt.values() if c >= max(1, len(toks) - 1))
+    if not hits:
+        return {"q": q, "rows": [], "total": 0, "detail": detail, "suggest": _suggest(q, toklist, index)}
+    ql = q.lower()
+    scored = []
+    for i, (b, nt) in hits.items():
+        d = docs[i]
+        if prov and d[D_PROV] != prov:
+            continue
+        if kind and d[D_KIND] != kind:
+            continue
+        s = b + pop[i] * 18 + PROV_WEIGHT.get(d[D_PROV], 3)
+        tl = d[D_TITLE].lower()
+        if tl.startswith(ql):
+            s += 14
+        elif ql in tl:
+            s += 6
+        if d[D_KIND] == "dataset":
+            s += 3 if (d[D_N] or 0) > 100 else 0
+        scored.append((s, i))
+    scored.sort(key=lambda x: (-x[0], docs[x[1]][D_ID]))
+    rows = [doc_row(docs[i], s) for s, i in scored[:limit]]
+    out = {"q": q, "rows": rows, "total": len(scored), "detail": detail}
+    # 3. series-level drill for prov:FLOW:KEY-shaped queries against the 567M-series Tier-1 index
+    m = re.match(r"^(eurostat|ecb):([A-Za-z0-9_@\-]+)(?::(.*))?$", q, re.I)
+    if m:
+        try:
+            out["series_hits"] = tier1_prefix(m.group(1).lower(), m.group(2).upper(), (m.group(3) or "").upper(), 40)
+        except Exception as e:  # noqa: BLE001
+            out["series_hits_error"] = str(e)[:120]
+    return out
+
+
+def _suggest(q, toklist, index, n=8):
+    toks = tokens(q)
+    if not toks:
+        return []
+    t = toks[-1]
+    for pre in (t, t[:4], t[:3], t[:2]):
+        if len(pre) < 2:
+            break
+        c = _expand(pre, toklist, index, cap=400)
+        c = sorted(c, key=lambda x: -len(index[x]))[:n]
+        if c:
+            return c
+    return []
+
+
+# ---------------- Tier-0 / Tier-1 access for eurostat + ecb
+
+def tier0(prov):
+    if prov not in _T0CACHE:
+        _T0CACHE[prov] = _get_json("data/index/%s/flows.json.gz" % prov) or {"flows": {}}
+    return _T0CACHE[prov]
+
+
+def blocks_map(prov, flow):
+    k = prov + "/" + flow
+    if k not in _T1CACHE:
+        _T1CACHE[k] = _get_json("data/index/%s/t1/%s.blocks.json" % (prov, flow))
+        if len(_T1CACHE) > 300:
+            _T1CACHE.pop(next(iter(_T1CACHE)))
+    return _T1CACHE[k]
+
+
+def _t1_read_block(prov, flow, b):
+    txt = _get("data/index/%s/t1/%s.jsonl" % (prov, flow), rng="bytes=%d-%d" % (b["o"], b["o"] + b["c"] - 1)).decode("utf-8", "replace")
+    out = []
+    for ln in txt.split("\n"):
+        ln = ln.strip()
+        if ln.startswith("{") and ln.endswith("}"):
+            try:
+                out.append(json.loads(ln))
+            except Exception:  # noqa: BLE001
+                pass
+    return out
+
+
+def _t1_row(prov, flow, e):
+    return {"id": e["id"], "symbol": e["id"].split(":", 2)[-1], "name": "%s · %s" % (flow, e["id"].split(":", 2)[-1]), "provider": prov,
+            "provider_name": PROV_NAME.get(prov), "kind": "series", "chartable": True, "geo": e.get("g"), "first": e.get("f"), "last": e.get("l"),
+            "n": e.get("n"), "last_value": e.get("v"), "flow": flow}
+
+
+def _page_rows(prov, flow, pnum):
+    d = _get_json("data/providers/%s/series/page-%04d.json" % (prov, pnum)) or {}
+    return [r for r in (d.get("rows") or []) if r.get("flow") == flow]
+
+
+def _page_row(prov, flow, r):
+    return {"id": r["id"], "symbol": r["id"].split(":", 2)[-1], "name": r.get("name") or r["id"], "provider": prov, "provider_name": PROV_NAME.get(prov),
+            "kind": "series", "chartable": True, "geo": r.get("geo"), "first": r.get("first_obs"), "last": r.get("last_obs"), "n": r.get("n_obs"),
+            "last_value": r.get("last_value"), "unit": r.get("unit"), "freq": r.get("freq"), "flow": flow, "dims": r.get("dims")}
+
+
+def tier1_prefix(prov, flow, keypfx, limit=40):
+    """Exact/prefix series-id lookup inside one flow: binary-search the block map, one Range read."""
+    t0d = tier0(prov)
+    flows = t0d.get("flows") or {}
+    if flow not in flows:
+        cands = [f for f in flows if f.startswith(flow)][:12]
+        return {"flow": flow, "known": False, "flows_matching": cands, "rows": []}
+    pfx = "%s:%s:%s" % (prov, flow, keypfx)
+    bm = blocks_map(prov, flow)
+    rows = []
+    if bm and bm.get("blocks"):
+        bl = bm["blocks"]
+        keys = [b["k"] for b in bl]
+        i = max(0, bisect.bisect_right(keys, pfx) - 1)
+        for j in range(i, min(i + 3, len(bl))):
+            for e in _t1_read_block(prov, flow, bl[j]):
+                if e["id"].startswith(pfx):
+                    rows.append(_t1_row(prov, flow, e))
+                    if len(rows) >= limit:
+                        break
+            if len(rows) >= limit or (bl[j]["k"] > pfx + "\uffff"):
+                break
+        return {"flow": flow, "known": True, "tier": 1, "total_in_flow": bm.get("n"), "rows": rows[:limit]}
+    rec = flows[flow]
+    lo, hi = rec.get("lo", 0), min(rec.get("hi", 0), rec.get("lo", 0) + 12)
+    for p in range(lo, hi + 1):
+        for r in _page_rows(prov, flow, p):
+            if r["id"].startswith(pfx):
+                rows.append(_page_row(prov, flow, r))
+                if len(rows) >= limit:
+                    break
+        if len(rows) >= limit:
+            break
+    return {"flow": flow, "known": True, "tier": 0, "total_in_flow": rec.get("series"), "rows": rows[:limit]}
+
+
+def browse(ds, q="", limit=200, offset=0):
+    """List series inside a dataset, with a text filter and dimension facets from the scanned sample."""
+    ds = (ds or "").strip()
+    q = (q or "").strip()
+    prov, _, rest = ds.partition(":")
+    prov = prov.lower()
+    ql = q.lower()
+    if prov in ("eurostat", "ecb"):
+        flow = rest.upper()
+        t0d = tier0(prov)
+        rec = (t0d.get("flows") or {}).get(flow)
+        if not rec:
+            return {"ds": ds, "error": "unknown flow", "rows": []}
+        total = rec.get("series")
+        bm = blocks_map(prov, flow)
+        rows, facets, scanned = [], defaultdict(lambda: defaultdict(int)), 0
+        MAX_SCAN = 120000
+        if bm and bm.get("blocks"):
+            bl = bm["blocks"]
+            for b in bl:
+                if scanned >= MAX_SCAN or len(rows) >= offset + limit:
+                    break
+                for e in _t1_read_block(prov, flow, b):
+                    scanned += 1
+                    key = e["id"].split(":", 2)[-1]
+                    dims = key.split(".")
+                    for pos, v in enumerate(dims[:12]):
+                        facets["d%d" % pos][v] += 1
+                    if ql and ql not in e["id"].lower() and ql not in (e.get("g") or "").lower():
+                        continue
+                    rows.append(_t1_row(prov, flow, e))
+            tier = 1
+        else:
+            lo, hi = rec.get("lo", 0), rec.get("hi", 0)
+            for p in range(lo, min(hi, lo + 40) + 1):
+                if len(rows) >= offset + limit or scanned >= MAX_SCAN:
+                    break
+                for r in _page_rows(prov, flow, p):
+                    scanned += 1
+                    for k, v in (r.get("dims") or {}).items():
+                        facets[k][str(v)] += 1
+                    if ql and ql not in r["id"].lower() and ql not in (r.get("name") or "").lower() and ql not in (r.get("geo") or "").lower():
+                        continue
+                    rows.append(_page_row(prov, flow, r))
+            tier = 0
+        fac = {k: sorted(v.items(), key=lambda kv: -kv[1])[:40] for k, v in facets.items()}
+        return {"ds": ds, "flow": flow, "tier": tier, "total": total, "scanned": scanned, "truncated": scanned < (total or 0),
+                "rows": rows[offset:offset + limit], "matched": len(rows), "facets": fac,
+                "hint": "type dimension codes (e.g. DE, M, CLV10_MEUR) to narrow; giant flows scan the first %d series" % MAX_SCAN}
+    if prov == "statcan":
+        return browse_statcan(rest, ql, limit, offset)
+    if prov == "worldbank":
+        cs = _get_json(SD + "wb-countries.json") or []
+        rows = []
+        for c in cs:
+            if ql and ql not in (c.get("name") or "").lower() and ql != (c.get("id") or "").lower():
+                continue
+            rows.append({"id": "worldbank:%s:%s" % (rest, c["id"]), "symbol": "%s:%s" % (rest, c["id"]), "name": "%s — %s" % (rest, c.get("name")),
+                         "provider": "worldbank", "provider_name": "World Bank", "kind": "series", "chartable": True, "geo": c["id"], "region": c.get("region")})
+        return {"ds": ds, "total": len(cs), "rows": rows[offset:offset + limit], "matched": len(rows)}
+    # docs-linked children (boj DB, census dataset, treasury dataset, ofr dataset)
+    ix = load_index()
+    rows = []
+    for d in ix["docs"]:
+        if d[D_KIND] != "series":
+            continue
+        ok = False
+        if prov == "boj" and d[D_PROV] == "boj" and d[D_KEY] == rest:
+            ok = True
+        elif prov in ("census", "treasury", "ofr") and d[D_PROV] == prov and (d[D_EXTRA] or {}).get("ds") == rest:
+            ok = True
+        if not ok:
+            continue
+        if ql and ql not in d[D_TITLE].lower() and ql not in d[D_ID].lower():
+            continue
+        rows.append(doc_row(d))
+        if len(rows) >= offset + limit + 2000:
+            break
+    return {"ds": ds, "total": len(rows), "rows": rows[offset:offset + limit], "matched": len(rows)}
+
+
+def _stream_gz_lines(key, max_bytes=None):
+    raw = _get(key)
+    if max_bytes and len(raw) > max_bytes:
+        raise ValueError("object too large to scan interactively (%d bytes)" % len(raw))
+    f = io.TextIOWrapper(gzip.GzipFile(fileobj=io.BytesIO(raw), mode="rb"), encoding="utf-8", errors="ignore", newline="")
+    for ln in f:
+        yield ln.rstrip("\r\n")
+
+
+def browse_statcan(pid, ql, limit, offset, max_rows=400000):
+    key = "data/warm/statcan/data/%s.dat.gz" % pid
+    try:
+        it = _stream_gz_lines(key, max_bytes=90_000_000)
+        hdr = next(it)
+    except StopIteration:
+        return {"ds": "statcan:" + pid, "rows": [], "error": "empty cube"}
+    except Exception as e:  # noqa: BLE001
+        return {"ds": "statcan:" + pid, "rows": [], "error": str(e)[:160]}
+    cols = next(csv.reader([hdr]))
+    ix = {c.strip().lstrip("\ufeff"): i for i, c in enumerate(cols)}
+    vi = ix.get("VECTOR")
+    di = ix.get("REF_DATE")
+    if vi is None:
+        return {"ds": "statcan:" + pid, "rows": [], "error": "no VECTOR column"}
+    label_cols = [i for c, i in ix.items() if c not in ("REF_DATE", "DGUID", "UOM_ID", "SCALAR_ID", "VECTOR", "COORDINATE", "VALUE", "STATUS", "SYMBOL", "TERMINATED", "DECIMALS")]
+    seen, rows, n = {}, [], 0
+    rd = csv.reader(it)
+    for p in rd:
+        n += 1
+        if n > max_rows:
+            break
+        if len(p) <= vi:
+            continue
+        v = p[vi]
+        if v in seen:
+            e = seen[v]
+            d0 = p[di] if di is not None and di < len(p) else None
+            if d0:
+                if e["first"] is None or d0 < e["first"]:
+                    e["first"] = d0
+                if e["last"] is None or d0 > e["last"]:
+                    e["last"] = d0
+            e["n"] += 1
+            continue
+        label = " · ".join(p[i] for i in label_cols if i < len(p) and p[i])
+        e = {"id": "statcan:%s:%s" % (pid, v), "symbol": v, "name": label[:200], "provider": "statcan", "provider_name": "StatCan", "kind": "series",
+             "chartable": True, "first": p[di] if di is not None and di < len(p) else None, "last": p[di] if di is not None and di < len(p) else None, "n": 1}
+        seen[v] = e
+    for e in seen.values():
+        e["first"], e["last"] = norm_period(e["first"]), norm_period(e["last"])
+        if ql and ql not in e["name"].lower() and ql != e["symbol"].lower():
+            continue
+        rows.append(e)
+    return {"ds": "statcan:" + pid, "total": len(seen), "scanned_rows": n, "truncated": n > max_rows, "rows": rows[offset:offset + limit], "matched": len(rows)}
+
+
+# ================================================================ SERIES RESOLVERS
+
+def _cache_key(sid):
+    h = hashlib.sha1(sid.encode()).hexdigest()
+    return "%s%s/%s.json" % (CACHE_PREFIX, h[:2], h)
+
+
+def _cache_get(sid, max_age_s):
+    try:
+        o = s3.get_object(Bucket=BUCKET, Key=_cache_key(sid))
+        age = (_now() - o["LastModified"]).total_seconds()
+        if age > max_age_s:
+            return None, age
+        return json.loads(o["Body"].read()), age
+    except Exception:  # noqa: BLE001
+        return None, None
+
+
+def _cache_put(sid, docd):
+    try:
+        _put_json(_cache_key(sid), docd, cache="public, max-age=1800")
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def _result(sid, prov, obs, name=None, unit=None, freq=None, source=None, extra=None):
+    clean = {}
+    for d, v in obs:
+        dd = norm_period(d)
+        vv = _f(v)
+        if dd and vv is not None:
+            clean[dd] = vv
+    pts = sorted(clean.items())
+    out = {"id": sid, "provider": prov, "provider_name": PROV_NAME.get(prov, prov), "name": name or sid, "unit": unit, "freq": freq,
+           "source": source, "n": len(pts), "first": pts[0][0] if pts else None, "last": pts[-1][0] if pts else None,
+           "obs": pts, "as_of": _iso(), "version": VERSION}
+    if extra:
+        out.update(extra)
+    return out
+
+
+def _doc_lookup(sid):
+    try:
+        ix = load_index()
+        rows, _ = _prefix_range(ix["ids"], sid.upper(), cap=3)
+        for k, i in rows:
+            if k == sid.upper():
+                return ix["docs"][i]
+    except Exception:  # noqa: BLE001
+        return None
+    return None
+
+
+def r_fred(sid, rest, d):
+    root = d[D_KEY] if d else None
+    obs, src, name = [], None, d[D_TITLE] if d else rest
+    if root:
+        try:
+            j = _get_json("data/warm/fred-scoped/%s/%s.json" % (root, rest))
+            obs = [(o.get("date"), o.get("value")) for o in (j or {}).get("observations") or []]
+            src = "warehouse:fred-scoped/%s" % root
+        except Exception:  # noqa: BLE001
+            obs = []
+    if not obs and FRED_KEY:
+        j = _http_json("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s&file_type=json&observation_start=1776-07-04&limit=100000"
+                       % (urllib.parse.quote(rest), FRED_KEY), timeout=30)
+        obs = [(o.get("date"), o.get("value")) for o in j.get("observations") or []]
+        src = "fred-api"
+    ex = (d[D_EXTRA] if d else None) or {}
+    merged = {norm_period(a): _f(b) for a, b in obs if norm_period(a) and _f(b) is not None}
+    added = 0
+    for flag, key in (("te", "data/warm/te-mirror/%s.json" % rest), ("arch", "data/warm/archived-fred/%s.json" % rest)):
+        if ex.get(flag):
+            j = _get_json(key) or {}
+            for o in j.get("observations") or []:
+                dd, vv = norm_period(o.get("date")), _f(o.get("value"))
+                if dd and vv is not None and dd not in merged:
+                    merged[dd] = vv
+                    added += 1
+    return _result(sid, "fred", list(merged.items()), name=name, unit=d[D_UNIT] if d else None, freq=d[D_FREQ] if d else None,
+                   source=src, extra={"mirror_points_added": added} if added else None)
+
+
+def r_te(sid, rest, d):
+    j = _get_json("data/warm/te-mirror/%s.json" % rest) or _get_json("data/warm/archived-fred/%s.json" % rest) or {}
+    return _result(sid, "te", [(o.get("date"), o.get("value")) for o in j.get("observations") or []], name=(d[D_TITLE] if d else rest), source="warehouse:te-mirror")
+
+
+def _parse_eurostat_tsv(txt, key=None):
+    lines = txt.split("\n")
+    if not lines:
+        return None, None
+    hdr = lines[0].rstrip("\r")
+    dims_part, sep, periods_part = hdr.partition("\\TIME_PERIOD")
+    if not sep:
+        return None, None
+    periods = [p.strip() for p in periods_part.split("\t") if p.strip()]
+    for ln in lines[1:]:
+        ln = ln.rstrip("\r")
+        if not ln:
+            continue
+        kp, tab, vp = ln.partition("\t")
+        if not tab:
+            continue
+        if key and kp.strip().upper() != key.upper():
+            continue
+        vals = [v.strip() for v in vp.split("\t")]
+        obs = [(periods[i], vals[i]) for i in range(min(len(vals), len(periods))) if _f(vals[i]) is not None]
+        return kp.strip(), obs
+    return None, None
+
+
+def r_eurostat(sid, rest, d):
+    flow, _, key = rest.partition(":")
+    flow = flow.upper()
+    if not key:
+        raise ValueError("eurostat needs FLOW:KEY")
+    obs, src = None, None
+    try:
+        b, _, _ = _http("https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/%s/%s?format=TSV&compressed=false" % (flow, urllib.parse.quote(key)), timeout=40)
+        txt = b.decode("utf-8", "replace")
+        if txt.startswith("\x1f\x8b") or b[:2] == b"\x1f\x8b":
+            txt = gzip.decompress(b).decode("utf-8", "replace")
+        _, obs = _parse_eurostat_tsv(txt)
+        src = "eurostat-api"
+    except Exception as e:  # noqa: BLE001
+        src = "api-failed:" + str(e)[:60]
+    if not obs:
+        # warehouse raw scan (bounded): one row in {FLOW}.dat.gz whose key matches
+        rk = "data/warm/eurostat/data/%s.dat.gz" % flow
+        try:
+            head = s3.head_object(Bucket=BUCKET, Key=rk)
+            if head["ContentLength"] > 200_000_000:
+                raise ValueError("raw flow too large for an interactive scan (%d MB)" % (head["ContentLength"] // 1_000_000))
+            it = _stream_gz_lines(rk)
+            hdr = next(it)
+            dims_part, sep, periods_part = hdr.partition("\\TIME_PERIOD")
+            periods = [p.strip() for p in periods_part.split("\t") if p.strip()]
+            ku = key.upper()
+            for ln in it:
+                kp, tab, vp = ln.partition("\t")
+                if tab and kp.strip().upper() == ku:
+                    vals = [v.strip() for v in vp.split("\t")]
+                    obs = [(periods[i], vals[i]) for i in range(min(len(vals), len(periods)))]
+                    break
+            src = (src + " -> " if src else "") + "warehouse:eurostat raw"
+        except StopIteration:
+            pass
+    name = None
+    if d:
+        name = d[D_TITLE]
+    else:
+        fd = _doc_lookup("eurostat:" + flow)
+        name = (fd[D_TITLE] + " · " + key) if fd else (flow + " · " + key)
+    dims = key.split(".")
+    return _result(sid, "eurostat", obs or [], name=name, freq=dims[0] if dims else None, source=src,
+                   extra={"flow": flow, "key": key, "source_url": "https://ec.europa.eu/eurostat/databrowser/view/%s" % flow.lower()})
+
+
+def _parse_ecb_csv(txt, want_key=None):
+    rd = csv.reader(io.StringIO(txt))
+    hdr = next(rd, None)
+    if not hdr:
+        return [], {}
+    ix = {h: i for i, h in enumerate(hdr)}
+    ki, ti, vi = ix.get("KEY"), ix.get("TIME_PERIOD"), ix.get("OBS_VALUE")
+    if ti is None or vi is None:
+        return [], {}
+    obs, meta = [], {}
+    for p in rd:
+        if len(p) <= max(ti, vi):
+            continue
+        if want_key and ki is not None and p[ki] != want_key:
+            continue
+        obs.append((p[ti], p[vi]))
+        if not meta:
+            for f in ("TITLE", "TITLE_COMPL", "UNIT", "UNIT_MEASURE", "FREQ"):
+                if f in ix and ix[f] < len(p):
+                    meta[f] = p[ix[f]]
+    return obs, meta
+
+
+def r_ecb(sid, rest, d):
+    flow, _, key = rest.partition(":")
+    flow = flow.upper()
+    if not key:
+        raise ValueError("ecb needs FLOW:KEY")
+    skey = key[len(flow) + 1:] if key.upper().startswith(flow + ".") else key
+    obs, meta, src = [], {}, None
+    try:
+        b, _, _ = _http("https://data-api.ecb.europa.eu/service/data/%s/%s?format=csvdata" % (flow, urllib.parse.quote(skey)), timeout=40)
+        obs, meta = _parse_ecb_csv(b.decode("utf-8", "replace"))
+        src = "ecb-api"
+    except Exception as e:  # noqa: BLE001
+        src = "api-failed:" + str(e)[:60]
+    if not obs:
+        files = sorted(o["Key"] for o in _list("data/warm/ecb/data/") if o["Key"].rsplit("/", 1)[-1].split("__")[0].split(".")[0] == flow and o["Key"].endswith(".dat.gz"))
+        want = key if key.upper().startswith(flow + ".") else flow + "." + key
+        for fk in files:
+            try:
+                raw = _get(fk)
+                if len(raw) > 250_000_000:
+                    continue
+                txt = gzip.decompress(raw).decode("utf-8", "replace")
+                o2, m2 = _parse_ecb_csv(txt, want_key=want)
+                obs.extend(o2)
+                meta = meta or m2
+            except Exception:  # noqa: BLE001
+                continue
+        src = (src + " -> " if src else "") + "warehouse:ecb raw (%d slices)" % len(files)
+    name = meta.get("TITLE_COMPL") or meta.get("TITLE") or (d[D_TITLE] if d else None) or (flow + " · " + skey)
+    return _result(sid, "ecb", obs, name=name, unit=meta.get("UNIT") or meta.get("UNIT_MEASURE"), freq=meta.get("FREQ") or skey.split(".")[0], source=src,
+                   extra={"flow": flow, "key": skey, "source_url": "https://data.ecb.europa.eu/data/datasets/%s/%s.%s" % (flow, flow, skey)})
+
+
+def r_nyfed(sid, rest, d):
+    rate, _, field = rest.partition(":")
+    kind = "unsecured" if rate in ("effr", "obfr") else "secured"
+    obs, src = [], None
+    try:
+        j = _http_json("https://markets.newyorkfed.org/api/rates/%s/%s/search.json?startDate=2014-01-01" % (kind, rate), timeout=30)
+        for r in j.get("refRates") or []:
+            obs.append((r.get("effectiveDate"), r.get("volumeInBillions") if field == "volume" else r.get("percentRate")))
+        src = "nyfed-api"
+    except Exception as e:  # noqa: BLE001
+        src = "api-failed:" + str(e)[:60]
+    if not obs:
+        j = _get_json("data/warm/nyfed/%s.json.gz" % rate) or {}
+        obs = [(o.get("date"), o.get("volume_bn") if field == "volume" else o.get("rate")) for o in j.get("observations") or []]
+        src = (src or "") + " warehouse:nyfed"
+    return _result(sid, "nyfed", obs, name=(d[D_TITLE] if d else rest.upper()), unit="$bn" if field == "volume" else "Percent", freq="D", source=src)
+
+
+def r_ofr(sid, rest, d, prov="ofr"):
+    if d and d[D_KEY]:
+        j = _get_json(d[D_KEY]) or {}
+        if prov == "ofr":
+            ts = ((j.get("payload") or {}).get("timeseries") or {}).get(rest) or {}
+            meta = ts.get("metadata") or {}
+            agg = (ts.get("timeseries") or {}).get("aggregation") or []
+            return _result(sid, prov, [(a, b) for a, b in agg], name=d[D_TITLE], unit=meta.get("unit") or d[D_UNIT], freq=d[D_FREQ], source="warehouse:ofr")
+        blob = j.get(rest) or next(iter(j.values()), {}) if isinstance(j, dict) else {}
+        agg = ((blob or {}).get("timeseries") or {}).get("aggregation") or []
+        return _result(sid, prov, [(a, b) for a, b in agg], name=d[D_TITLE], source="warehouse:" + prov)
+    j = _http_json("https://data.financialresearch.gov/v1/series/timeseries?mnemonic=%s" % urllib.parse.quote(rest), timeout=30)
+    agg = j if isinstance(j, list) else (j.get("timeseries") or {}).get("aggregation") or []
+    return _result(sid, prov, [(a, b) for a, b in agg], name=rest, source="ofr-api")
+
+
+def r_boj(sid, rest, d):
+    db, _, code = rest.partition(":")
+    keys = [o["Key"] for o in _list("data/warm/boj-full/api/%s/" % db) if o["Key"].endswith(".json.gz")]
+    obs, name, unit, freq = [], None, None, None
+    with ThreadPoolExecutor(16) as ex:
+        for j in ex.map(lambda k: _get_json(k) or {}, keys):
+            for r in j.get("RESULTSET") or []:
+                if r.get("SERIES_CODE") != code:
+                    continue
+                name = name or r.get("NAME_OF_TIME_SERIES")
+                unit = unit or r.get("UNIT")
+                freq = freq or r.get("FREQUENCY")
+                vals = r.get("VALUES") or {}
+                dts = vals.get("SURVEY_DATES") or []
+                vv = None
+                for k2, v2 in vals.items():
+                    if k2 != "SURVEY_DATES" and isinstance(v2, list):
+                        vv = v2
+                        break
+                if vv is None:
+                    continue
+                for dt, v in zip(dts, vv):
+                    ds = str(dt)
+                    if len(ds) == 6:
+                        ds = ds[:4] + "-" + ds[4:]
+                    elif len(ds) == 8:
+                        ds = ds[:4] + "-" + ds[4:6] + "-" + ds[6:]
+                    obs.append((ds, v))
+    return _result(sid, "boj", obs, name=name or (d[D_TITLE] if d else code), unit=unit, freq=freq, source="warehouse:boj api parts (%d)" % len(keys))
+
+
+def r_statcan(sid, rest, d):
+    pid, _, vec = rest.partition(":")
+    if not vec:
+        raise ValueError("statcan needs PRODUCT:VECTOR")
+    obs, src, name = [], None, None
+    vid = vec.lower().lstrip("v")
+    try:
+        j = _http_json("https://www150.statcan.gc.ca/t1/wds/rest/getDataFromVectorByReferencePeriodRange?vectorIds=\"%s\"&startRefPeriod=1900-01-01&endReferencePeriod=2100-01-01" % vid, timeout=40)
+        for blk in j if isinstance(j, list) else []:
+            for p in (blk.get("object") or {}).get("vectorDataPoint") or []:
+                obs.append((p.get("refPer"), p.get("value")))
+        src = "statcan-wds"
+    except Exception as e:  # noqa: BLE001
+        src = "api-failed:" + str(e)[:60]
+    if not obs:
+        it = _stream_gz_lines("data/warm/statcan/data/%s.dat.gz" % pid, max_bytes=90_000_000)
+        cols = next(csv.reader([next(it)]))
+        ix = {c.strip().lstrip("\ufeff"): i for i, c in enumerate(cols)}
+        vi, di, vali = ix.get("VECTOR"), ix.get("REF_DATE"), ix.get("VALUE")
+        for p in csv.reader(it):
+            if len(p) > max(vi, di, vali) and p[vi].lower() == vec.lower():
+                obs.append((p[di], p[vali]))
+        src = (src or "") + " warehouse:statcan cube"
+    return _result(sid, "statcan", obs, name=(d[D_TITLE] if d else "%s %s" % (pid, vec)), source=src)
+
+
+def r_worldbank(sid, rest, d):
+    ind, _, iso = rest.partition(":")
+    if not iso:
+        raise ValueError("worldbank needs INDICATOR:COUNTRY")
+    j = _http_json("https://api.worldbank.org/v2/country/%s/indicator/%s?format=json&per_page=20000" % (iso, ind), timeout=40)
+    rows = j[1] if isinstance(j, list) and len(j) > 1 and j[1] else []
+    name = None
+    obs = []
+    for r in rows:
+        name = name or "%s — %s" % ((r.get("indicator") or {}).get("value"), (r.get("country") or {}).get("value"))
+        obs.append((r.get("date"), r.get("value")))
+    return _result(sid, "worldbank", obs, name=name or sid, freq="A", source="worldbank-api")
+
+
+def r_treasury(sid, rest, d):
+    dsn, _, field = rest.partition(":")
+    if not d or not d[D_KEY]:
+        raise ValueError("unknown treasury series")
+    j = _get_json(d[D_KEY]) or {}
+    rows = j.get("payload") or j.get("data") or j.get("rows") or []
+    if isinstance(rows, dict):
+        rows = rows.get("data") or []
+    fld = (d[D_EXTRA] or {}).get("field") or field
+    return _result(sid, "treasury", [(r.get("record_date"), r.get(fld)) for r in rows], name=d[D_TITLE], unit=j.get("unit"), source="warehouse:treasury")
+
+
+def r_boe(sid, rest, d):
+    key = (d[D_KEY] if d else None) or ("data/warm/boe-full/iadb/%s.csv.gz" % rest)
+    obs = []
+    it = _stream_gz_lines(key)
+    hdr = next(it, "")
+    for ln in it:
+        p = ln.split(",")
+        if len(p) >= 2:
+            obs.append((p[0].strip(), p[1].strip()))
+    return _result(sid, "boe", obs, name=(d[D_TITLE] if d else rest), source="warehouse:boe iadb")
+
+
+def r_census(sid, rest, d):
+    p = rest.split(":")
+    if len(p) < 5:
+        raise ValueError("census needs DATASET:DATA_TYPE:CATEGORY:SA:GEO")
+    slug, dt, cc, sa, geo = p[:5]
+    rows = _get_json("data/warm/census-us/%s/full.json.gz" % slug) or []
+    if len(rows) < 2:
+        raise ValueError("no census rows")
+    ix = {h: i for i, h in enumerate(rows[0])}
+    obs = []
+    for r in rows[1:]:
+        try:
+            if r[ix["data_type_code"]] == dt and r[ix["category_code"]] == cc and str(r[ix["seasonally_adj"]]) == sa and (ix.get("geo_level_code") is None or r[ix["geo_level_code"]] == geo):
+                obs.append((r[ix["time"]], r[ix["cell_value"]]))
+        except Exception:  # noqa: BLE001
+            continue
+    return _result(sid, "census", obs, name=(d[D_TITLE] if d else sid), freq="M", source="warehouse:census-us")
+
+
+def r_bls(sid, rest, d):
+    if not BLS_KEY:
+        raise ValueError("BLS_API_KEY not configured")
+    obs = []
+    y1 = int((d[D_FIRST] or "1950")[:4]) if d else 1950
+    y2 = _now().year
+    y = y1
+    while y <= y2:
+        payload = json.dumps({"seriesid": [rest], "startyear": str(y), "endyear": str(min(y + 19, y2)), "registrationkey": BLS_KEY}).encode()
+        b, _, _ = _http("https://api.bls.gov/publicAPI/v2/timeseries/data/", timeout=40, headers={"Content-Type": "application/json"}, data=payload)
+        j = json.loads(b)
+        for s in ((j.get("Results") or {}).get("series") or []):
+            for o in s.get("data") or []:
+                per = o.get("period") or ""
+                if per.startswith("M") and per != "M13":
+                    obs.append(("%s-%s-01" % (o["year"], per[1:]), o.get("value")))
+                elif per.startswith("Q") and per != "Q05":
+                    obs.append(("%s-%02d-01" % (o["year"], (int(per[1:]) - 1) * 3 + 1), o.get("value")))
+                elif per == "A01" or per == "M13" or per == "Q05":
+                    obs.append(("%s-01-01" % o["year"], o.get("value"))) if per == "A01" else None
+                elif per.startswith("S"):
+                    obs.append(("%s-%02d-01" % (o["year"], (int(per[1:]) - 1) * 6 + 1), o.get("value")))
+        y += 20
+    return _result(sid, "bls", obs, name=(d[D_TITLE] if d else rest), source="bls-api-v2")
+
+
+RESOLVERS = {"fred": r_fred, "te": r_te, "eurostat": r_eurostat, "ecb": r_ecb, "nyfed": r_nyfed, "ofr": r_ofr,
+             "ofr-hfm": lambda s, r, d: r_ofr(s, r, d, "ofr-hfm"), "ofr-bsrm": lambda s, r, d: r_ofr(s, r, d, "ofr-bsrm"),
+             "boj": r_boj, "statcan": r_statcan, "worldbank": r_worldbank, "treasury": r_treasury, "boe": r_boe, "census": r_census, "bls": r_bls}
+CACHE_TTL = {"fred": 6 * 3600, "te": 86400, "eurostat": 86400, "ecb": 6 * 3600, "nyfed": 3600, "ofr": 6 * 3600, "boj": 86400, "statcan": 86400,
+             "worldbank": 86400, "treasury": 6 * 3600, "boe": 86400, "census": 86400, "bls": 86400}
+
+
+def fetch_series(sid, nocache=False):
+    sid = (sid or "").strip()
+    if sid.upper().startswith("FRED:"):
+        sid = "fred:" + sid[5:]
+    prov, _, rest = sid.partition(":")
+    prov = prov.lower()
+    sid = prov + ":" + rest
+    if prov not in RESOLVERS or not rest:
+        raise ValueError("no resolver for '%s'" % prov)
+    ttl = CACHE_TTL.get(prov, 21600)
+    if not nocache:
+        c, age = _cache_get(sid, ttl)
+        if c:
+            c["cached"] = True
+            c["cache_age_s"] = int(age)
+            return c
+    d = _doc_lookup(sid)
+    out = RESOLVERS[prov](sid, rest, d)
+    if out.get("n"):
+        _cache_put(sid, out)
+    out["cached"] = False
+    return out
+
+
+def quote(ids):
+    out = {}
+    fetch_budget = 12
+    for sid in ids[:60]:
+        sid = sid.strip()
+        if not sid:
+            continue
+        try:
+            prov = sid.split(":", 1)[0].lower()
+            if prov == "fred" and not sid.startswith("fred:"):
+                sid = "fred:" + sid.split(":", 1)[1]
+            c, age = _cache_get(sid, 10 * 86400)
+            if c is None and fetch_budget > 0:
+                fetch_budget -= 1
+                c = fetch_series(sid)
+            if not c or not c.get("obs"):
+                out[sid] = {"ok": False}
+                continue
+            obs = c["obs"]
+            last, prev = obs[-1], (obs[-2] if len(obs) > 1 else None)
+            def _at(days):
+                target = (datetime.fromisoformat(last[0]) - timedelta(days=days)).date().isoformat()
+                i = bisect.bisect_right(obs, [target, float("inf")]) - 1
+                return obs[i][1] if i >= 0 else None
+            m1, q1, y1 = _at(30), _at(91), _at(365)
+            pct = lambda a, b: (round((a - b) / abs(b) * 100, 3) if (a is not None and b not in (None, 0)) else None)  # noqa: E731
+            out[sid] = {"ok": True, "name": c.get("name"), "unit": c.get("unit"), "freq": c.get("freq"), "last": last[1], "last_date": last[0],
+                        "prev": prev[1] if prev else None, "prev_date": prev[0] if prev else None, "chg": (last[1] - prev[1]) if prev else None,
+                        "chg_pct": pct(last[1], prev[1]) if prev else None, "mom_pct": pct(last[1], m1), "qoq_pct": pct(last[1], q1), "yoy_pct": pct(last[1], y1),
+                        "n": c.get("n"), "first": c.get("first"), "spark": [v for _, v in obs[-40:]], "cached": c.get("cached", True)}
+        except Exception as e:  # noqa: BLE001
+            out[sid] = {"ok": False, "error": str(e)[:100]}
+    return out
+
+
+# ================================================================ HANDLER
+
+def _resp(obj, status=200, ttl=60):
+    return {"statusCode": status,
+            "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=%d" % ttl, "X-Symdir": VERSION},
+            "body": json.dumps(obj, separators=(",", ":"), default=str)}
+
+
+def lambda_handler(event, context):
+    event = event or {}
+    mode = event.get("mode")
+    path = (event.get("rawPath") or "").rstrip("/")
+    qs = event.get("queryStringParameters") or {}
+    if mode == "build":
+        return build(event, context)
+    if mode == "warm" or path == "/warm":
+        ix = load_index()
+        return {"ok": True, "docs": len(ix["docs"]), "load_s": ix.get("load_s"), "built_at": ix.get("built_at")}
+    if mode == "search" or path == "/search":
+        q = qs.get("q") or event.get("q") or ""
+        try:
+            lim = max(1, min(int(qs.get("limit") or event.get("limit") or 40), 200))
+            t = time.time()
+            out = search(q, lim, prov=(qs.get("provider") or None), kind=(qs.get("kind") or None))
+            out["ms"] = int((time.time() - t) * 1000)
+            out["built_at"] = _IDX.get("built_at")
+            return _resp(out, ttl=120)
+        except Exception as e:  # noqa: BLE001
+            return _resp({"q": q, "rows": [], "error": str(e)[:200], "trace": traceback.format_exc()[-600:]}, 500, ttl=0)
+    if mode == "browse" or path == "/browse":
+        try:
+            t = time.time()
+            out = browse(qs.get("ds") or event.get("ds"), qs.get("q") or "", max(1, min(int(qs.get("limit") or 200), 1000)), int(qs.get("offset") or 0))
+            out["ms"] = int((time.time() - t) * 1000)
+            return _resp(out, ttl=300)
+        except Exception as e:  # noqa: BLE001
+            return _resp({"rows": [], "error": str(e)[:200], "trace": traceback.format_exc()[-600:]}, 500, ttl=0)
+    if mode == "series" or path == "/series":
+        sid = qs.get("id") or event.get("id") or ""
+        try:
+            t = time.time()
+            out = fetch_series(sid, nocache=(qs.get("nocache") == "1"))
+            out["ms"] = int((time.time() - t) * 1000)
+            return _resp(out, ttl=900)
+        except Exception as e:  # noqa: BLE001
+            return _resp({"id": sid, "obs": [], "error": str(e)[:200], "trace": traceback.format_exc()[-600:]}, 500, ttl=0)
+    if mode == "quote" or path == "/quote":
+        ids = (qs.get("ids") or event.get("ids") or "")
+        if isinstance(ids, str):
+            ids = ids.split(",")
+        t = time.time()
+        out = quote(ids)
+        return _resp({"quotes": out, "ms": int((time.time() - t) * 1000)}, ttl=600)
+    if path in ("", "/", "/health"):
+        man = _get_json(SD + "manifest.json") or {}
+        return _resp({"ok": True, "version": VERSION, "index_loaded": _IDX["docs"] is not None, "docs": len(_IDX["docs"]) if _IDX["docs"] else None,
+                      "directory_built_at": man.get("built_at"), "directory_docs": man.get("docs"),
+                      "routes": ["/search?q=", "/browse?ds=&q=", "/series?id=", "/quote?ids=", "/warm"]}, ttl=30)
+    return _resp({"error": "unknown route", "path": path}, 404, ttl=0)
