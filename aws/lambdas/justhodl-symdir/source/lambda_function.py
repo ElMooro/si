@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -263,6 +263,56 @@ def tokens(s):
     return [_stem(t) for t in TOK_RE.findall((s or "").lower()) if t not in STOP]
 
 
+SYN = {_stem(k): [_stem(x) for x in v] for k, v in SYN.items()}      # query and index are both stemmed
+PROV_TOKENS = {k: tuple(_stem(x) for x in v) for k, v in PROV_TOKENS.items()}
+SYN.setdefault("bitcoin", []).extend(["btc", "btcusd", "xbt"])
+SYN.setdefault("ethereum", []).extend(["eth", "ethusd"])
+SYN.setdefault("core", []).extend(["less", "excluding", "ex"])
+SYN.setdefault("nonfarm", []).extend(["payroll", "payem"])
+SYN.setdefault("payroll", []).extend(["nonfarm", "payem", "employee"])
+# phrase tags: a title containing the phrase gets the acronym token at index time ("Real Gross Domestic Product" -> gdp)
+PHRASE_TAGS = [(("gross", "domestic", "product"), "gdp"), (("consumer", "price", "index"), "cpi"), (("producer", "price", "index"), "ppi"),
+               (("purchasing", "manager"), "pmi"), (("federal", "fund"), "fedfund"), (("nonfarm",), "payroll"), (("unemployment", "rate"), "unemployment"),
+               (("exchange", "rate"), "fx"), (("balance", "sheet"), "balancesheet"), (("money", "supply"), "m2"), (("treasury",), "treasury"),
+               (("harmonised", "index", "consumer", "price"), "hicp"), (("harmonized", "index", "consumer", "price"), "hicp"),
+               (("secured", "overnight", "financing"), "sofr"), (("effective", "federal", "fund"), "effr"), (("volatility", "index"), "vix")]
+# famous ids whose FRED titles do not say what people call them (search hints, not data): "fed balance sheet" -> WALCL
+FAMOUS = {"WALCL": "fed balance sheet total assets federal reserve", "WTREGEN": "treasury general account tga fed", "RRPONTSYD": "reverse repo rrp fed overnight",
+          "WRESBAL": "bank reserves fed", "TOTRESNS": "total reserves fed", "BOGMBASE": "monetary base", "DFF": "fed funds effective rate", "FEDFUNDS": "fed funds rate",
+          "DGS10": "10 year treasury yield us10y", "DGS2": "2 year treasury yield us02y", "DGS30": "30 year treasury yield us30y", "DGS5": "5 year treasury yield",
+          "T10Y2Y": "yield curve 10y 2y spread", "T10Y3M": "yield curve 10y 3m spread", "T10YIE": "10 year breakeven inflation expectations",
+          "UNRATE": "unemployment rate jobless", "PAYEMS": "nonfarm payrolls nfp jobs", "ICSA": "initial jobless claims", "CCSA": "continuing jobless claims",
+          "CPIAUCSL": "cpi inflation headline", "CPILFESL": "core cpi inflation", "PCEPI": "pce inflation", "PCEPILFE": "core pce inflation",
+          "GDPC1": "real gdp", "GDP": "nominal gdp", "M2SL": "m2 money supply", "M1SL": "m1 money supply", "INDPRO": "industrial production",
+          "HOUST": "housing starts", "PERMIT": "building permits", "RSAFS": "retail sales", "DGORDER": "durable goods orders", "UMCSENT": "consumer sentiment michigan",
+          "DTWEXBGS": "dollar index broad dxy", "DEXUSEU": "eurusd euro dollar", "DEXJPUS": "usdjpy yen", "DEXCHUS": "usdcny yuan", "DEXUSUK": "gbpusd pound",
+          "VIXCLS": "vix volatility", "BAMLH0A0HYM2": "high yield spread oas junk", "BAMLC0A0CM": "investment grade spread oas", "DCOILWTICO": "wti crude oil price",
+          "DCOILBRENTEU": "brent crude oil price", "GOLDAMGBD228NLBM": "gold price", "SP500": "s&p 500 spx", "NFCI": "financial conditions chicago fed",
+          "MORTGAGE30US": "30 year mortgage rate", "TOTALSA": "vehicle sales", "BUSLOANS": "commercial industrial loans", "SOFR": "sofr repo rate", "TB3MS": "3 month t-bill",
+          "CPIENGSL": "energy cpi", "PPIACO": "ppi all commodities", "JTSJOL": "jolts job openings", "CIVPART": "labor force participation", "AHETPI": "average hourly earnings wages",
+          "PSAVERT": "personal saving rate", "PCE": "personal consumption expenditures", "DSPIC96": "real disposable income", "GFDEBTN": "federal debt total public",
+          "FYFSD": "federal deficit surplus", "BOPGSTB": "trade balance goods services", "NETEXP": "net exports", "EXPGS": "exports", "IMPGS": "imports"}
+
+
+def doc_tokens(d):
+    """Tokens indexed for a doc: title + id parts + provider names + phrase tags + famous aliases."""
+    ts = set(tokens(d[D_TITLE]))
+    idpart = d[D_ID].split(":", 1)[1] if ":" in d[D_ID] and d[D_PROV] != "tv" else d[D_ID]
+    ts.update(tokens(idpart))
+    ts.add(d[D_PROV])
+    ts.update(PROV_TOKENS.get(d[D_PROV], ()))
+    tt = tokens(d[D_TITLE])
+    tset = set(tt)
+    for phrase, tag in PHRASE_TAGS:
+        if all(w in tset for w in phrase):
+            ts.add(tag)
+    if d[D_PROV] == "fred":
+        fam = FAMOUS.get(d[D_ID].split(":", 1)[1])
+        if fam:
+            ts.update(tokens(fam))
+    return ts
+
+
 # doc tuple layout
 D_ID, D_PROV, D_TITLE, D_KIND, D_POP, D_UNIT, D_FREQ, D_FIRST, D_LAST, D_KEY, D_N, D_EXTRA = range(12)
 
@@ -334,6 +384,8 @@ def build(event, context):
                         pop = 0.08
                     elif mkt == "indices":
                         pop = 0.3
+                    elif mkt == "crypto":
+                        pop = 0.5 if tk.endswith("USD") else 0.3
                     else:
                         pop = 0.3
                     if mkt == "indices" and not name.lower().startswith("dow jones"):
@@ -378,9 +430,10 @@ def build(event, context):
             if full in seen:
                 continue
             seen.add(full)
-            docs.append(doc(full, "tv", name, "instrument", 0.45,
+            tvpop = 0.58 if ex.upper() in ("TVC", "CBOE", "NASDAQ", "NYSE", "AMEX", "ECONOMICS", "FRED", "INDEX", "CME", "CBOT", "NYMEX", "COMEX", "ICEUS", "ICEEUR", "SP", "DJ") else 0.38
+            docs.append(doc(full, "tv", name, "instrument", tvpop,
                             extra={"ex": ex, "type": (v.get("category") or "tv").lower(), "mkt": "tv", "src": src.lower()}))
-            instruments.append([full, name[:80], ex, (v.get("category") or "tv").lower(), "tv", 0.45])
+            instruments.append([full, name[:80], ex, (v.get("category") or "tv").lower(), "tv", tvpop])
             counts["tv-dictionary"] = counts.get("tv-dictionary", 0) + 1
         return {"counts": counts, "finviz": len(fin), "symbology": len(sym)}
 
@@ -571,7 +624,7 @@ def build(event, context):
             pid = str(c.get("productId") or "")
             if not pid:
                 continue
-            docs.append(doc("statcan:" + pid, "statcan", c.get("cubeTitleEn") or pid, "dataset", 0.3,
+            docs.append(doc("statcan:" + pid, "statcan", c.get("cubeTitleEn") or pid, "dataset", 0.4,
                             first=str(c.get("cubeStartDate") or "")[:10] or None, last=str(c.get("cubeEndDate") or "")[:10] or None,
                             key=("data/warm/statcan/data/%s.dat.gz" % pid) if pid in have else None,
                             extra={"cansim": c.get("cansimId"), "freq": c.get("frequencyCode")}))
@@ -863,11 +916,7 @@ def build(event, context):
     # ---------------- inverted index
     post = defaultdict(lambda: array("I"))
     for i, d in enumerate(docs):
-        ts = set(tokens(d[D_TITLE]))
-        idpart = d[D_ID].split(":", 1)[1] if ":" in d[D_ID] and d[D_PROV] != "tv" else d[D_ID]
-        ts.update(tokens(idpart))
-        ts.add(d[D_PROV])
-        ts.update(PROV_TOKENS.get(d[D_PROV], ()))
+        ts = doc_tokens(d)
         ex = d[D_EXTRA] or {}
         for fld in ("cat", "topics", "ds"):
             if ex.get(fld):
@@ -879,21 +928,22 @@ def build(event, context):
     ids = sorted((d[D_ID].upper(), i) for i, d in enumerate(docs))
     bare = sorted((d[D_ID].rsplit(":", 1)[-1].upper(), i) for i, d in enumerate(docs) if ":" in d[D_ID])
     pop = array("f", (d[D_POP] for d in docs))
-    blob = pickle.dumps({"version": VERSION, "built_at": _iso(), "docs": docs, "pop": pop}, protocol=5)
+    built_at = _iso()          # ONE stamp for pickle + manifest: the warm-ping reload check compares them
+    blob = pickle.dumps({"version": VERSION, "built_at": built_at, "docs": docs, "pop": pop}, protocol=5)
     blob_i = pickle.dumps({"version": VERSION, "index": index, "toklist": toklist, "ids": ids, "bare": bare}, protocol=5)
     gz1 = gzip.compress(blob, 5)
     gz2 = gzip.compress(blob_i, 5)
     s3.put_object(Bucket=BUCKET, Key=SD + "docs.pkl.gz", Body=gz1, ContentType="application/octet-stream", CacheControl="no-cache")
     s3.put_object(Bucket=BUCKET, Key=SD + "index.pkl.gz", Body=gz2, ContentType="application/octet-stream", CacheControl="no-cache")
     instruments.sort(key=lambda r: -r[5])
-    ib = gzip.compress(json.dumps({"built_at": _iso(), "n": len(instruments), "cols": ["symbol", "name", "exchange", "type", "market", "pop"],
+    ib = gzip.compress(json.dumps({"built_at": built_at, "n": len(instruments), "cols": ["symbol", "name", "exchange", "type", "market", "pop"],
                                    "rows": instruments}, separators=(",", ":")).encode(), 7)
     s3.put_object(Bucket=BUCKET, Key=SD + "instruments.json.gz", Body=ib, ContentType="application/json", ContentEncoding="gzip",
                   CacheControl="public, max-age=21600")
     prov_counts = defaultdict(lambda: {"series": 0, "dataset": 0, "instrument": 0})
     for d in docs:
         prov_counts[d[D_PROV]][d[D_KIND]] += 1
-    man = {"version": VERSION, "built_at": _iso(), "elapsed_s": round(time.time() - t0, 1), "docs": len(docs), "tokens": len(index),
+    man = {"version": VERSION, "built_at": built_at, "finished_at": _iso(), "elapsed_s": round(time.time() - t0, 1), "docs": len(docs), "tokens": len(index),
            "postings": sum(len(v) for v in index.values()), "instruments": len(instruments),
            "bytes": {"docs_pkl_gz": len(gz1), "index_pkl_gz": len(gz2), "instruments_json_gz": len(ib)},
            "providers": {k: dict(v) for k, v in prov_counts.items()}, "sources": log["sources"], "skipped": log["skipped"],
@@ -1144,6 +1194,11 @@ _T0CACHE, _T1CACHE = {}, {}
 def load_index(force=False):
     if _IDX["docs"] is not None and not force:
         return _IDX
+    if force:
+        for k in ("docs", "pop", "index", "toklist", "ids", "bare"):
+            _IDX[k] = None
+        import gc
+        gc.collect()
     t = time.time()
     a = pickle.loads(gzip.decompress(_get(SD + "docs.pkl.gz")))
     b = pickle.loads(gzip.decompress(_get(SD + "index.pkl.gz")))
@@ -1283,6 +1338,10 @@ def search(q, limit=40, prov=None, kind=None):
             s += 6
         if d[D_KIND] == "dataset":
             s += 3 if (d[D_N] or 0) > 100 else 0
+            if toks and len(toks) > 1 and d[D_PROV] in ("statcan", "eurostat", "ecb", "worldbank", "ofr", "boj", "census", "treasury"):
+                s += 8          # a browsable dataset is a strong answer to a topical multi-word query
+        if d[D_PROV] == "fred" and d[D_ID].split(":", 1)[1] in FAMOUS:
+            s += 6
         scored.append((s, i))
     scored.sort(key=lambda x: (-x[0], docs[x[1]][D_ID]))
     rows = [doc_row(docs[i], s) for s, i in scored[:limit]]
