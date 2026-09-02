@@ -1,0 +1,41 @@
+# ops 5131 -- FRED bank coverage of the audit-named series (uncapped listing)
+
+**Status:** success  
+**Duration:** 37.2s  
+**Finished:** 2026-09-02T15:31:49+00:00  
+
+## Data
+
+| banked | domain | missing |
+|---|---|---|
+| 19 | us_liquidity | 1 |
+| 19 | us_credit | 0 |
+| 13 | fx_usd | 3 |
+| 6 | global_cb | 6 |
+| 16 | us_manufacturing | 2 |
+| 6 | global_manufacturing | 10 |
+| 17 | em_frontier | 2 |
+
+## Log
+## A. what the auditor could not see
+
+- `15:31:12` hub: 57 providers, 811,171 datasets, 530.39 GB (as_of 2026-09-02T14:48:53+00:00)
+- `15:31:12`   audit claim 'data.html only names ECB and FRED' = the page's provider grid is client-rendered; fixed by scripts/bake_data_inventory.py (static table + JSON at Pages build)
+- `15:31:12`   warm prefixes (62): _audit, archived-fred, asia-trade, backlog, banxico, bis, blackswan, bls-full, boe-full, boe, boj-full, census-econ, census-us, cftc, dol-full, dtcc-fails, dtcc, ecb-mmsr, ecb, edgar-filings, eiopa, eurostat, finra-full, fiscaldata-full, frbddp-full, fred-canary, fred-catalog, fred-scoped, gdelt-full, gdelt, gleif, icma-sftr, imf-full, nasa-power, nyfed-markets, nyfed-research, nyfed, oecd, official-yields, ofr-bsrm, ofr-fsi, ofr-hfm, ofr-site, ofr, playbooks, polygon-full, portwatch, real-economy, repo-master, sec-bulk, sec-dera, sec-ftd, sec-midas, statcan, te-mirror, te-yields, tic-full, treasury, tv-bars, us-equities-daily, usgov, worldbank-full
+## B. FRED banked series named by the audit (first obs / last obs / n)
+
+- `15:31:49`   us_liquidity         banked 19/20: WALCL(2002→2026-08), WTREGEN(2002→2026-08), RRPONTSYD(2003→2026-08), WRESBAL(2002→2026-08), RESPPLLOPNWW(2002→2026-08), WORAL(2002→2026-08), SWPT(2002→2026-08), WLRRAL(2002→2026-08), SOFR(2018→2026-08) …
+- `15:31:49`       not banked: H41RESPPALDKNWW
+- `15:31:49`   us_credit            banked 19/19: BAMLC0A0CM(1996→2026-08), BAMLH0A0HYM2(1996→2026-08), BAMLEMCBPIOAS(1998→2026-08), BAMLC0A4CBBB(1996→2026-08), DRTSCILM(1990→2026-07), DRTSCIS(1990→2026-07), TOTCI(1973→2026-07), BUSLOANS(1947→2026-06), NFCI(1971→2026-07) …
+- `15:31:49`   fx_usd               banked 13/16: DTWEXBGS(2006→2026-07), DTWEXAFEGS(2006→2026-07), DTWEXEMEGS(2006→2026-07), DEXUSEU(1999→2026-07), DEXJPUS(1971→2026-07), DEXCHUS(1981→2026-07), DEXUSUK(1971→2026-07), DEXKOUS(1981→2026-07), DEXBZUS(1995→2026-07) …
+- `15:31:49`       not banked: EVZCLS, JPYUSD, USDONTD156N
+- `15:31:49`   global_cb            banked 6/12: JPNASSETS(1998→2026-07), ECBASSETSW(1999→2026-07), IRLTLT01DEM156N(1956→2026-06), IRLTLT01JPM156N(1989→2026-06), ECBDFR(1999→2026-08), ECBMLFR(1999→2026-08)
+- `15:31:49`       not banked: UKASSETS, CHNASSETS, SNBASSETS, TOTALASSETS, INTGSTJPM193N, IR3TIB01EZM156N
+- `15:31:49`   us_manufacturing     banked 16/18: INDPRO(1919→2026-06), IPMAN(1972→2026-06), TCU(1967→2026-06), MCUMFN(1972→2026-06), AMTMNO(1992→2026-06), DGORDER(1992→2026-06), NEWORDER(1992→2026-06), AMTMUO(1992→2026-06), MANEMP(1939→2026-07) …
+- `15:31:49`       not banked: TXPCTDEMSA, RMFSA
+- `15:31:49`   global_manufacturing banked 6/16: OECDPRINTO01GYSAM(1976→2026-04), XTEXVA01KRM667S(1957→2026-04), XTEXVA01CNM667S(1992→2026-04), XTEXVA01DEM667S(1957→2026-03), XTEXVA01JPM667S(1957→2026-04), XTEXVA01MXM667S(1980→2026-04)
+- `15:31:49`       not banked: JPNPROINDMISMEI, DEUPROINDMISMEI, KORPROINDMISMEI, CHNPRINTO01IXPYM, EA19PRINTO01GYSAM, MEXPROINDMISMEI, BRAPROINDMISMEI, INDPROINDMISMEI, XTEXVA01TWM667S, XTEXVA01VNM667S
+- `15:31:49`   em_frontier          banked 17/19: EMVOVERALLEMV(1985→2026-06), VXEEMCLS(2011→2026-08), DEXBZUS(1995→2026-07), DEXINUS(1973→2026-07), DEXSFUS(1980→2026-07), DEXTHUS(1981→2026-07), DEXMAUS(1971→2026-07), DEXKOUS(1981→2026-07), RBBRBIS(1994→2026-06) …
+- `15:31:49`       not banked: TEDRATE, TRESEGCHM052N
+- `15:31:49`   fred-scoped banked total (uncapped): 276,797
+- `15:31:49` ✅ coverage matrix written: data/audit/macro-coverage-5131-fred.json
