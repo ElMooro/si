@@ -172,7 +172,7 @@
       <div class="layer" data-layer="L1" onclick="setActiveLayer('L1')">
         <div class="layer-header">
           <span class="name">L1 — Eurodollar Plumbing</span>
-          <span class="weight">35%</span>
+          <span class="weight">30%</span>
         </div>
         <div class="layer-body">
           <div class="layer-score" id="L1score">—</div>
@@ -183,7 +183,7 @@
       <div class="layer" data-layer="L2" onclick="setActiveLayer('L2')">
         <div class="layer-header">
           <span class="name">L2 — Bank Risk Appetite</span>
-          <span class="weight">25%</span>
+          <span class="weight">15%</span>
         </div>
         <div class="layer-body">
           <div class="layer-score" id="L2score">—</div>
@@ -194,7 +194,7 @@
       <div class="layer" data-layer="L3" onclick="setActiveLayer('L3')">
         <div class="layer-header">
           <span class="name">L3 — Real-Side Damage</span>
-          <span class="weight">20%</span>
+          <span class="weight">10%</span>
         </div>
         <div class="layer-body">
           <div class="layer-score" id="L3score">—</div>
@@ -320,6 +320,11 @@ function renderLayers() {
     labelEl.className = 'layer-label score-' + label;
     document.getElementById(lid + 'coverage').textContent =
       `${layer.n_with_data || 0}/${layer.n_indicators || 0} indicators`;
+    // ops 5129: the badge is the engine's weight (LAYER_WEIGHTS in justhodl-plumbing-aggregator), never a stale literal
+    if (layer.weight != null) {
+      const w = document.querySelector(`.layer[data-layer="${lid}"] .weight`);
+      if (w) w.textContent = Math.round(Number(layer.weight) * 100) + '%';
+    }
   }
 }
 

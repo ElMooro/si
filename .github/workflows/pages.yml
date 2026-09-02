@@ -98,6 +98,9 @@ jobs:
       - name: Bake engine directory (real live wiring status)
         run: python3 scripts/bake_engine_directory.py _site || true
 
+      - name: Bake data-plane inventory into data.html (ops 5129: non-JS readers see all providers)
+        run: python3 scripts/bake_data_inventory.py _site || true
+
       - name: Reskin legacy palette -> Amber (all pages; index+screener untouched)
         run: python3 scripts/reskin_site.py _site || true
       - name: Content-hash stamp ALL shared JS/CSS (html + dynamic in-JS refs)  # ops 3370
