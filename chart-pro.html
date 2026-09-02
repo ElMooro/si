@@ -2136,7 +2136,10 @@ const FLAG_COLORS = ['none','red','orange','yellow','green','blue','purple'];
 class DataService {
   static async fetch(path) {
     try {
-      const r = await fetch(`${PROXY}/${path}?t=${Date.now()}`);
+      // ops 5135: every signal feed was fetched as PROXY + "https://…" (68 HTTP 400s per load) — the cascade,
+      // insider, options, retail, trade-ticket and prediction watchlists were silently empty. Absolute URLs pass through.
+      const url = /^https?:\/\//i.test(path) ? path : `${PROXY}/${path}`;
+      const r = await fetch(`${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`);
       if (!r.ok) return null;
       return await r.json();
     } catch (e) {
@@ -4533,8 +4536,31 @@ class NativeChart {
   // Back-compat alias
   static renderChangeHisto(paneIdx, series, mode, label, ticker) { return this.renderChange(paneIdx, series, mode, label, ticker); }
   
+  // ops 5135: every render replaced the pane's innerHTML but never disposed the previous LightweightCharts
+  // instance — its autoSize ResizeObserver kept drawing into a detached canvas and threw "Value is null"
+  // (3 uncaught errors per symbol switch). Track every instance and reap the detached ones.
+  static _patchLWC() {
+    if (typeof LightweightCharts === 'undefined' || LightweightCharts.__jhPatched) return;
+    const orig = LightweightCharts.createChart;
+    NativeChart._live = [];
+    LightweightCharts.createChart = function (el, opts) { const ch = orig.call(this, el, opts); NativeChart._live.push({ el, ch }); return ch; };
+    LightweightCharts.__jhPatched = true;
+  }
+  static reapDetached() {
+    const live = NativeChart._live || [];
+    for (let i = live.length - 1; i >= 0; i--) {
+      if (!live[i].el || !live[i].el.isConnected) { try { live[i].ch.remove(); } catch (e) {} live.splice(i, 1); }
+    }
+  }
+  static disposePane(paneIdx) {
+    const c = ChartSync.charts.get(paneIdx);
+    if (c) { try { c.remove(); } catch (e) {} ChartSync.unregister(paneIdx); if (State.nativeChart === c) State.nativeChart = null; }
+    setTimeout(() => NativeChart.reapDetached(), 60);
+  }
   static async render(ticker) {
     const paneIdx = State.activeChartPane;
+    this._patchLWC();
+    this.disposePane(paneIdx);
     if (ticker.startsWith('BASKET:')) { this._shell(paneIdx, ticker, ticker.slice(7)); return this.renderBasket(paneIdx, ticker.slice(7)); }
     if (State.ratioSymbol && State.ratioSymbol !== ticker) {
       this._shell(paneIdx, ticker, `${ticker} ÷ ${State.ratioSymbol}`);
