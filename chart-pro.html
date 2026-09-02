@@ -6175,6 +6175,7 @@ class FundamentalsService {
   // Return the fundamentals data object (cached), for callers that need values
   // rather than rendered HTML (e.g. the overview quote panel + analyst-PT lines).
   static async get(ticker) {
+    if (!ticker || ticker.includes(':') || !/^[A-Z][A-Z.\-]{0,9}$/.test(ticker)) return null;   // ops 5134: data series / TV-universe ids have no FMP profile (was a 400 per open)
     if (this.cache[ticker]) return this.cache[ticker];
     try {
       const r = await fetch(`${PROXY}/fundamentals?ticker=${encodeURIComponent(ticker)}`);
@@ -6236,6 +6237,7 @@ class FundamentalsService {
 class NewsService {
   static cache = {};
   static async load(ticker) {
+    if (!ticker || ticker.includes(':') || !/^[A-Z][A-Z.\-]{0,9}$/.test(ticker)) return [];   // ops 5134: no news endpoint for series / TV-universe ids
     const el = document.getElementById(`news-list-${ticker}`);
     if (!el) return;
     if (this.cache[ticker]) { el.innerHTML = this.render(this.cache[ticker]); return; }
