@@ -4503,7 +4503,7 @@ class NativeChart {
       if (le) { le.style.display = 'flex'; le.textContent = `Not enough history for ${this.CHANGE_LABELS[mode]} on ${ticker}`; }
       return;
     }
-    const chart = LightweightCharts.createChart(chartEl, {
+    const chart = NativeChart.createChart(chartEl, {
       autoSize: true,
       layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
       grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
@@ -4539,12 +4539,12 @@ class NativeChart {
   // ops 5135: every render replaced the pane's innerHTML but never disposed the previous LightweightCharts
   // instance — its autoSize ResizeObserver kept drawing into a detached canvas and threw "Value is null"
   // (3 uncaught errors per symbol switch). Track every instance and reap the detached ones.
-  static _patchLWC() {
-    if (typeof LightweightCharts === 'undefined' || LightweightCharts.__jhPatched) return;
-    const orig = LightweightCharts.createChart;
-    NativeChart._live = [];
-    LightweightCharts.createChart = function (el, opts) { const ch = orig.call(this, el, opts); NativeChart._live.push({ el, ch }); return ch; };
-    LightweightCharts.__jhPatched = true;
+  // the LightweightCharts namespace object is frozen (assigning createChart throws), so instances are
+  // tracked through this wrapper instead of a monkeypatch
+  static createChart(el, opts) {
+    const ch = LightweightCharts.createChart(el, opts);
+    (NativeChart._live = NativeChart._live || []).push({ el, ch });
+    return ch;
   }
   static reapDetached() {
     const live = NativeChart._live || [];
@@ -4559,7 +4559,6 @@ class NativeChart {
   }
   static async render(ticker) {
     const paneIdx = State.activeChartPane;
-    this._patchLWC();
     this.disposePane(paneIdx);
     if (ticker.startsWith('BASKET:')) { this._shell(paneIdx, ticker, ticker.slice(7)); return this.renderBasket(paneIdx, ticker.slice(7)); }
     if (State.ratioSymbol && State.ratioSymbol !== ticker) {
@@ -4732,7 +4731,7 @@ class NativeChart {
         const rs = al === 0 ? 100 : ag / al;
         rsi.push({ time: bars[i].time, value: 100 - 100 / (1 + rs) });
       }
-      const c = LightweightCharts.createChart(rsiEl, baseOpts(110));
+      const c = NativeChart.createChart(rsiEl, baseOpts(110));
       const s = c.addLineSeries({ color: '#22d3ee', lineWidth: 1, lastValueVisible: true });
       s.setData(rsi);
       s.createPriceLine({ price: 70, color: 'rgba(255,85,119,0.4)', lineWidth: 1, lineStyle: 2 });
@@ -4748,7 +4747,7 @@ class NativeChart {
       const e12 = ema(closes, 12), e26 = ema(closes, 26);
       const macdLine = closes.map((_, i) => e12[i] - e26[i]);
       const signal = ema(macdLine, 9);
-      const c = LightweightCharts.createChart(macdEl, baseOpts(110));
+      const c = NativeChart.createChart(macdEl, baseOpts(110));
       const hist = c.addHistogramSeries({ priceLineVisible: false });
       const ml = c.addLineSeries({ color: '#22d3ee', lineWidth: 1, lastValueVisible: false });
       const sl = c.addLineSeries({ color: '#fbbf24', lineWidth: 1, lastValueVisible: false });
@@ -4776,7 +4775,7 @@ class NativeChart {
       if (!LB) {
         if (lbl) lbl.textContent = 'Δ% ROC — daily/weekly/monthly timeframes only';
       } else {
-        const c = LightweightCharts.createChart(rocEl, baseOpts(132));
+        const c = NativeChart.createChart(rocEl, baseOpts(132));
         const COLS = { W: '#22d3ee', M: '#26ffaf', Q: '#c084fc', Y: '#e8c86a' };
         const NAMES = { W: 'WoW', M: 'MoM', Q: 'QoQ', Y: 'YoY' };
         let zeroed = false;
@@ -4841,7 +4840,7 @@ class NativeChart {
     if (!ratio.length) { const le=document.getElementById(`nch-loading-${paneIdx}`); if(le){le.style.display='flex';le.textContent=`No overlapping dates for ${baseTicker}/${denomTicker}`;} return; }
     host.innerHTML = '';
     if (typeof LightweightCharts === 'undefined') return;
-    const chart = LightweightCharts.createChart(host, {
+    const chart = NativeChart.createChart(host, {
       autoSize: true, layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
       grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
       rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433' }, crosshair: { mode: 1 },
@@ -4936,7 +4935,7 @@ class NativeChart {
     });
     host.innerHTML = '';
     if (typeof LightweightCharts === 'undefined') return;
-    const chart = LightweightCharts.createChart(host, {
+    const chart = NativeChart.createChart(host, {
       autoSize: true, layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
       grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
       rightPriceScale: { borderColor: '#1c2433' }, timeScale: { borderColor: '#1c2433' }, crosshair: { mode: 1 },
@@ -5079,7 +5078,7 @@ class NativeChart {
       }
       const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
       if (!chartEl || typeof LightweightCharts === 'undefined') return;
-      const chart = LightweightCharts.createChart(chartEl, {
+      const chart = NativeChart.createChart(chartEl, {
         autoSize: true,
         layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
         grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
@@ -5137,7 +5136,7 @@ class NativeChart {
       }
       const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
       if (!chartEl || typeof LightweightCharts === 'undefined') return;
-      const chart = LightweightCharts.createChart(chartEl, {
+      const chart = NativeChart.createChart(chartEl, {
         autoSize: true,
         layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
         grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
@@ -5207,7 +5206,7 @@ class NativeChart {
       }
       const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
       if (!chartEl || typeof LightweightCharts === 'undefined') return;
-      const chart = LightweightCharts.createChart(chartEl, {
+      const chart = NativeChart.createChart(chartEl, {
         autoSize: true,
         layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
         grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
@@ -5308,7 +5307,7 @@ class NativeChart {
       const chartEl = document.getElementById(`nch-chart-${paneIdx}`);
       if (!chartEl || typeof LightweightCharts === 'undefined') return;
       const intraday = (tf.span === 'minute' || tf.span === 'hour');
-      const chart = LightweightCharts.createChart(chartEl, {
+      const chart = NativeChart.createChart(chartEl, {
         autoSize: true,
         layout: { background: { color: '#0a0e14' }, textColor: '#a8b3c7', fontFamily: "'IBM Plex Mono',monospace" },
         grid: { vertLines: { color: '#1c2433' }, horzLines: { color: '#1c2433' } },
@@ -7424,7 +7423,7 @@ class JHF {
       if(!j.points||!j.points.length){c.innerHTML='<div style="padding:20px;color:#ff5577;font:12px monospace">no cached series for '+esc(sym)+'</div>';return;}
       if(!window.LightweightCharts){c.innerHTML='<div style="padding:20px;color:#ff5577;font:12px monospace">chart library not loaded</div>';return;}
       c.innerHTML='';
-      ovChart=LightweightCharts.createChart(c,{autoSize:true,layout:{background:{color:'transparent'},textColor:'#a8b3c7',fontFamily:"'IBM Plex Mono',monospace"},grid:{vertLines:{color:'#1c2433'},horzLines:{color:'#1c2433'}},timeScale:{borderColor:'#1c2433'},rightPriceScale:{borderColor:'#1c2433'}});
+      ovChart=NativeChart.createChart(c,{autoSize:true,layout:{background:{color:'transparent'},textColor:'#a8b3c7',fontFamily:"'IBM Plex Mono',monospace"},grid:{vertLines:{color:'#1c2433'},horzLines:{color:'#1c2433'}},timeScale:{borderColor:'#1c2433'},rightPriceScale:{borderColor:'#1c2433'}});
       function wk2d(w){var q=String(w).split('-'),y=+q[0],n=+q[1];if(!n||String(w).length>7)return String(w).slice(0,10);var d=new Date(Date.UTC(y,0,4));var dow=(d.getUTCDay()||7);d.setUTCDate(d.getUTCDate()-dow+1+(n-1)*7);return d.toISOString().slice(0,10);}ovChart.addLineSeries({color:'#26ffaf',lineWidth:2}).setData(j.points.map(function(p){return{time:wk2d(p[0]),value:+p[1]};}));
       ovChart.timeScale().fitContent();
     }).catch(function(){c.innerHTML='<div style="padding:20px;color:#ff5577;font:12px monospace">series api unreachable</div>';});
