@@ -11,11 +11,16 @@ s3=boto3.client('s3')
 FRED_API_KEY=os.environ.get('FRED_API_KEY','2f057499936072679d8843d7fce99989')
 S3_BUCKET=os.environ.get('S3_BUCKET','justhodl-dashboard-live')
 ctx=ssl.create_default_context();ctx.check_hostname=False;ctx.verify_mode=ssl.CERT_NONE
-def http_get(url,timeout=15):
-    try:
-        req=urllib_request.Request(url,headers={'User-Agent':'JustHodl/1.0','Accept':'application/json'})
-        with urllib_request.urlopen(req,timeout=timeout,context=ctx) as r:return json.loads(r.read().decode('utf-8'))
-    except Exception as e:print(f"HTTP_ERR[{url.split('api_key=')[0][-90:]}]:{e}");return None   # ops 5112: show the series id, never the key
+def http_get(url,timeout=15,retries=3):
+    # ops 5114: the FRED key is shared by many engines; a 429 is retried after 3/9s before the metric is dropped
+    for i in range(retries):
+        try:
+            req=urllib_request.Request(url,headers={'User-Agent':'JustHodl/1.0','Accept':'application/json'})
+            with urllib_request.urlopen(req,timeout=timeout,context=ctx) as r:return json.loads(r.read().decode('utf-8'))
+        except Exception as e:
+            if '429' in str(e) and i<retries-1:time.sleep(3*(3**i));continue
+            print(f"HTTP_ERR[{url.split('api_key=')[0][-90:]}]:{e}");return None   # ops 5112: show the series id, never the key
+    return None
 def get_fred(sid,n=30):
     time.sleep(0.35)   # ops 5113: ~20 FRED calls in a burst were tripping 429s inside the engine's own run
     d=http_get(f"https://api.stlouisfed.org/fred/series/observations?series_id={sid}&api_key={FRED_API_KEY}&file_type=json&limit={n}&sort_order=desc")
