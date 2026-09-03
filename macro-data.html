@@ -1,655 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Macro Data · JustHodl.AI</title>
-<meta name="description" content="Global manufacturing PMI · Securities & banking · BEA GDP & national accounts">
-<style>
-:root{
-  --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a;
-  --bg-glow:rgba(0,212,255,0.04);
-  --border:rgba(120,145,180,0.12); --border-hover:rgba(120,145,180,0.28); --border-strong:rgba(120,145,180,0.40);
-  --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
-  --green:#38ffa8; --green-dim:#1b8a5c;
-  --amber:#ffb13d; --amber-dim:#8a5e10;
-  --red:#ff5c7a; --red-dim:#8a2c44;
-  --cyan:#00d4ff; --cyan-dim:#0a6080;
-  --violet:#a78bfa;
-  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
-  --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
-  --radius:4px;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
-a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
-::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-track{background:var(--bg-sunken)}
-::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px}
-.topbar{position:sticky;top:0;z-index:50;background:rgba(7,9,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:52px;gap:28px}
-.brand{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:1.5px;color:var(--fg-1);display:flex;align-items:center;gap:8px}
-.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2.5s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
-.brand span{color:var(--cyan);font-weight:500}
-.nav-links{display:flex;gap:0;flex:1;overflow-x:auto}
-.nav-links a{font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:0 14px;height:52px;display:flex;align-items:center;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
-.nav-links a:hover{color:var(--fg-1);border-bottom-color:var(--cyan-dim);background:var(--bg-glow)}
-.nav-links a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
-.topbar-meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1px;display:flex;align-items:center;gap:14px}
-.status-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:3px;font-weight:600;border:1px solid currentColor}
-.status-pill.green{background:rgba(56,255,168,.06);color:var(--green)}
-.status-pill.red{background:rgba(255,92,122,.06);color:var(--red)}
-.status-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor}
-
-.page{max-width:1620px;margin:0 auto;padding:24px}
-.page-head{margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--border)}
-.page-head h1{font-family:var(--font-mono);font-size:18px;font-weight:600;letter-spacing:2.5px;color:var(--fg-1);text-transform:uppercase;margin-bottom:6px}
-.page-head .sub{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);letter-spacing:1px}
-
-.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-bottom:24px;background:var(--border);border:1px solid var(--border-strong);border-radius:var(--radius);overflow:hidden}
-.strip-cell{background:var(--bg-raised);padding:18px 20px}
-.strip-cell .label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
-.strip-cell .value{font-family:var(--font-mono);font-size:30px;font-weight:600;line-height:1;margin-bottom:4px}
-.strip-cell .sub{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:.5px}
-.strip-cell.green .value{color:var(--green)}.strip-cell.amber .value{color:var(--amber)}.strip-cell.red .value{color:var(--red)}.strip-cell.cyan .value{color:var(--cyan)}
-@media (max-width:1024px){.strip{grid-template-columns:repeat(2,1fr)}}
-
-.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:24px}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:24px}
-.grid-1{display:grid;grid-template-columns:1fr;gap:18px;margin-bottom:24px}
-@media (max-width:1100px){.grid-2,.grid-3{grid-template-columns:1fr}}
-
-.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative}
-.card::before,.card::after{content:'';position:absolute;width:10px;height:10px;border-color:var(--border-strong);border-style:solid}
-.card::before{top:6px;left:6px;border-width:1px 0 0 1px}
-.card::after{bottom:6px;right:6px;border-width:0 1px 1px 0}
-.card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
-.card-title{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:2.5px;color:var(--fg-2);text-transform:uppercase}
-.card-subtitle{font-family:var(--font-mono);font-size:9px;color:var(--fg-3);letter-spacing:1px}
-
-table.tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px}
-table.tbl th{text-align:left;font-weight:500;letter-spacing:1.5px;color:var(--fg-3);font-size:9px;padding:8px 6px;border-bottom:1px solid var(--border);text-transform:uppercase}
-table.tbl th.r{text-align:right}
-table.tbl td{padding:9px 6px;border-bottom:1px solid rgba(120,145,180,.06);color:var(--fg-2);vertical-align:middle}
-table.tbl td.r{text-align:right;font-variant-numeric:tabular-nums}
-table.tbl tr:hover td{background:rgba(120,145,180,.04)}
-table.tbl tr:last-child td{border-bottom:none}
-.metric-name{color:var(--fg-1);font-weight:500}
-.chg-pos{color:var(--green)}.chg-neg{color:var(--red)}
-
-.signal-badge{display:inline-block;padding:2px 7px;font-family:var(--font-mono);font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-radius:2px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--fg-2)}
-.signal-badge.high,.signal-badge.strong{color:var(--red);border-color:var(--red-dim);background:rgba(255,92,122,.05)}
-.signal-badge.elevated{color:var(--amber);border-color:var(--amber-dim);background:rgba(255,177,61,.05)}
-.signal-badge.weak,.signal-badge.normal{color:var(--green);border-color:var(--green-dim);background:rgba(56,255,168,.05)}
-.signal-badge.expansion{color:var(--green);border-color:var(--green-dim);background:rgba(56,255,168,.05)}
-.signal-badge.contraction{color:var(--red);border-color:var(--red-dim);background:rgba(255,92,122,.05)}
-.signal-badge.spike{color:var(--cyan);border-color:var(--cyan-dim);background:rgba(0,212,255,.05)}
-
-.empty-state{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);font-style:italic;padding:18px;text-align:center}
-.skel{background:linear-gradient(90deg,var(--bg-elevated) 0%,var(--bg-raised) 50%,var(--bg-elevated) 100%);background-size:200% 100%;animation:shimmer 1.6s linear infinite;border-radius:3px;height:14px;margin-bottom:8px}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.err{color:var(--red);font-family:var(--font-mono);font-size:11px;padding:12px;background:rgba(255,92,122,.04);border:1px solid var(--red-dim);border-radius:3px}
-
-.footer{border-top:1px solid var(--border);padding:24px;margin-top:16px;text-align:center;font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--fg-3);text-transform:uppercase}
-
-</style>
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#facc15">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
-<script src="/wss-client.js" defer></script>
-<script src="/tenor-signals.js" defer></script>
-<script src="/liquidity-credit.js" defer></script>
-<script src="/liquidity-pulse.js" defer></script>
-<script src="/ai-brief-kit.js"></script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Macro & Economic Data · JustHodl AI</title>
+<meta name="description" content="Macro &amp; Economic Data · every indexed series, your categories, danger rules — the same engine that lives inside Chart Pro, as its own page.">
+<link rel="stylesheet" href="/assets/jh-workspaces.css">
+<!-- generated by scripts/build_workspaces.py from chart-pro.html -- do not edit by hand -->
 </head>
-<body>
-
-<header class="topbar">
-  <a class="brand" href="/"><span class="dot"></span>JUSTHODL<span>·AI</span></a>
-  <nav class="nav-links">
-    <a href="/">DESK</a>
-    <a href="/stock/">STOCK</a>
-    <a href="/screener/">SCREENER</a>
-    <a href="/edge.html">EDGE</a>
-    <a href="/intelligence.html">INTEL</a>
-    <a href="/liquidity.html">LIQUIDITY</a>
-    <a href="/flow.html">FLOW</a>
-    <a href="/crypto/">CRYPTO</a>
-    <a href="/positioning/">COT</a>
-    <a href="/risk.html">RISK</a>
-    <a href="/stress.html" style="color:#ef4444;font-weight:600">🌪 STRESS</a>
-    <a href="/auctions.html" style="color:#3b82f6;font-weight:600">🏛 AUCTIONS</a>
-    <a href="/bonds.html" style="color:#06b6d4;font-weight:600">📈 BONDS</a>
-    <a href="/volatility.html">VOL</a>
-    <a href="/system.html">SYSTEM</a>
-    <a href="/investor.html">INVESTORS</a>
-  </nav>
-  <div class="topbar-meta">
-    <span id="clock">—</span>
-    <span class="status-pill green" id="statusPill">LIVE</span>
+<body class="jh-ws-page">
+<header class="ws-header">
+  <a class="ws-brand" href="/">JustHodl<span>.AI</span></a>
+  <span class="ws-crumb">Macro &amp; Economic Data · every indexed series, your categories, danger rules</span>
+  <div class="ws-links">
+    <a href="/heatmap.html">Universe Heatmap</a>
+    <a href="/chart-pro.html" title="Open the full terminal">Chart Pro ↗</a>
+    <span data-auth-slot></span>
   </div>
 </header>
-
-<main class="page">
-  <div class="page-head">
-    <h1>MACRO DATA</h1>
-<div id="ai-decisive-call" style="max-width:1280px;margin:14px auto 8px;padding:0 18px"></div>
-<script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","macro-data-decisive-call");</script>
-    <div class="sub">Composite nowcast · global manufacturing PMI · banking sector loans · BEA GDP &amp; economic accounts</div>
-  </div>
-
-  <!-- ────────── MACRO NOWCAST (composite z-score) ────────── -->
-  <section class="card" style="margin-bottom:24px">
-    <div class="card-head" style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
-      <div>
-        <div class="card-title">COMPOSITE NOWCAST</div>
-        <div class="card-subtitle">Weighted z-score from 7 FRED series · refreshed every 6h</div>
-      </div>
-      <div id="nowcastUpdated" style="font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:.5px">—</div>
-    </div>
-    <div id="nowcastStrip" class="strip" style="margin-top:14px;margin-bottom:18px">
-      <div class="strip-cell"><div class="label">Loading…</div><div class="value">…</div></div>
-    </div>
-    <!-- ── Historical chart (10y monthly replay) ── -->
-    <div id="nowcastHistoryWrap" style="margin-bottom:18px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px;font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1.5px;text-transform:uppercase">
-        <span>10-year historical replay (no look-ahead)</span>
-        <span id="nowcastHistMeta">—</span>
-      </div>
-      <div id="nowcastHistChart" style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:3px;padding:12px;min-height:220px"></div>
-      <div id="nowcastHistLegend" style="display:flex;flex-wrap:wrap;gap:14px;margin-top:6px;font-family:var(--font-mono);font-size:10px;color:var(--fg-3)"></div>
-    </div>
-    <div id="nowcastComponents" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;font-family:var(--font-mono);font-size:11px">
-      <div class="skel"></div><div class="skel"></div><div class="skel"></div>
-    </div>
-    <!-- ── SPY forward returns conditional on regime ── -->
-    <div id="nowcastRegimeSpyWrap" style="margin-top:18px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px;font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1.5px;text-transform:uppercase">
-        <span>SPY forward returns by regime · 10y replay</span>
-        <span style="color:var(--cyan)">no look-ahead bias</span>
-      </div>
-      <div id="nowcastRegimeSpyTable" style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:3px;padding:0;overflow-x:auto"></div>
-      <div style="margin-top:6px;font-family:var(--font-mono);font-size:10px;color:var(--fg-3);font-style:italic">
-        For each historical month classified as regime R, SPY total return is computed at 1/3/6/12 months forward.
-        The current regime's row is highlighted — that's the historical track record of what to expect.
-      </div>
-    </div>
-    <div id="nowcastMethodology" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:10px;color:var(--fg-3);line-height:1.55">—</div>
-  </section>
-  <!-- ────────────────────────────────────────────────────── -->
-
-  <div class="grid-2">
-    <section class="card">
-      <div class="card-head">
-        <div><div class="card-title">GLOBAL MANUFACTURING PMI</div><div class="card-subtitle">Eurozone · Japan · UK · expansion vs contraction</div></div>
-      </div>
-      <div id="manufBody"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
-    </section>
-    <section class="card">
-      <div class="card-head">
-        <div><div class="card-title">SECURITIES &amp; BANKING</div><div class="card-subtitle">Total loans · Business loans · Real estate loans · 1W</div></div>
-      </div>
-      <div id="bankingBody"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
-    </section>
-  </div>
-  <div class="grid-1">
-    <section class="card">
-      <div class="card-head">
-        <div><div class="card-title">BEA · GDP &amp; ECONOMIC ACCOUNTS</div><div class="card-subtitle">Bureau of Economic Analysis · National accounts · Personal income · Trade · Consumer spending</div></div>
-      </div>
-      <div id="beaBody" style="overflow-x:auto"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
-    </section>
-  </div>
-
-
-<div style="max-width:1500px; margin:18px auto; padding:0 18px;">
-  <div id="tenor-signals-panel"></div>
-<div id="liquidity-credit-panel" style="margin-top:18px"></div>
-<div id="liquidity-pulse-panel" style="margin-bottom:18px"></div>
-
-</div>
-</main>
-
-<footer class="footer">
-  <div>JUSTHODL · AI · MACRO DATA</div>
-  <div style="margin-top:8px;color:var(--fg-4)">Powered by manufacturing-global-agent · securities-banking-agent · bea-economic-agent</div>
-</footer>
-
-<script>
-const URLS = {"manufacturing": "https://api.justhodl.ai/agent/manufacturing", "banking": "https://api.justhodl.ai/agent/banking", "bea": "https://api.justhodl.ai/agent/bea"};
-
-function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function fmtNum(n,d=2){if(n==null||isNaN(n))return'—';return Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d})}
-function fmtSigned(n,d=2){if(n==null||isNaN(n))return'—';const s=Number(n)>=0?'+':'';return s+Number(n).toFixed(d)+'%'}
-function chgClass(n){if(n==null||isNaN(n))return'';return Number(n)>=0?'chg-pos':'chg-neg'}
-function updateClock(){document.getElementById('clock').textContent = new Date().toISOString().slice(11,16) + ' UTC'}
-function signalCls(s){
-  const u = String(s||'').toUpperCase();
-  if(/HIGH|CRISIS|STRESS|VERY_STRONG|STRONG/.test(u))return 'strong';
-  if(/ELEVATED|CAUTION|WARNING/.test(u))return 'elevated';
-  if(/WEAK|NORMAL/.test(u))return 'weak';
-  if(/EXPANSION/.test(u))return 'expansion';
-  if(/CONTRACTION/.test(u))return 'contraction';
-  if(/SPIKE/.test(u))return 'spike';
-  return '';
-}
-async function fetchAgent(url){
-  const r = await fetch(url);
-  if(!r.ok) throw new Error('HTTP '+r.status+' '+url);
-  const wrapped = await r.json();
-  if(wrapped.statusCode && typeof wrapped.body === 'string'){
-    return JSON.parse(wrapped.body);
-  }
-  return wrapped;
-}
-
-function renderMetricsTable(targetId, dataDict, opts){
-  opts = opts || {};
-  const target = document.getElementById(targetId);
-  if(!target) return;
-  if(!dataDict || Object.keys(dataDict).length === 0){
-    target.innerHTML = `<div class="empty-state">${escHtml(opts.empty || 'No data')}</div>`;
-    return;
-  }
-  const cols = opts.cols || ['1D','1W','1M'];
-  let html = `<table class="tbl"><thead><tr><th>METRIC</th><th class="r">CURRENT</th>`;
-  for(const c of cols) html += `<th class="r">${escHtml(c)}</th>`;
-  html += `<th>SIGNAL</th></tr></thead><tbody>`;
-  for(const [k, v] of Object.entries(dataDict)){
-    if(!v || typeof v !== 'object') continue;
-    const ch = v.changes || {};
-    const cur = v.current;
-    let curDisp = '—';
-    if(cur != null){
-      curDisp = Math.abs(cur) >= 1000 ? fmtNum(cur, 0) : fmtNum(cur, 2);
-    }
-    html += `<tr><td class="metric-name">${escHtml(k.replace(/_/g,' '))}</td><td class="r">${curDisp}</td>`;
-    for(const c of cols){
-      const x = ch[c];
-      html += `<td class="r ${chgClass(x)}">${fmtSigned(x)}</td>`;
-    }
-    html += `<td><span class="signal-badge ${signalCls(v.signal)}">${escHtml(v.signal||'—')}</span></td></tr>`;
-  }
-  html += '</tbody></table>';
-  target.innerHTML = html;
-}
-
-
-function renderBeaTable(targetId, beaSection, sectionName){
-  const target = document.getElementById(targetId);
-  if(!beaSection || !beaSection.length){
-    target.innerHTML = `<div class="empty-state">No ${escHtml(sectionName)} data</div>`;
-    return;
-  }
-  let html = `<table class="tbl" style="min-width:880px"><thead><tr>
-    <th style="min-width:260px">SERIES</th><th>PERIOD</th><th class="r">VALUE</th><th>UNIT</th>
-  </tr></thead><tbody>`;
-  for(const row of beaSection.slice(0, 30)){
-    const desc = row.LineDescription || '—';
-    const period = row.TimePeriod || '—';
-    const val = row.DataValue || '—';
-    const unit = row.CL_UNIT || '—';
-    html += `<tr><td class="metric-name">${escHtml(desc)}</td><td>${escHtml(period)}</td><td class="r">${escHtml(val)}</td><td style="font-size:9px">${escHtml(unit)}</td></tr>`;
-  }
-  html += '</tbody></table>';
-  target.innerHTML = html;
-}
-
-// ─── COMPOSITE NOWCAST ──────────────────────────────────────────────
-
-// SPY forward-return table conditional on each regime. Highlights the
-// CURRENT regime row so Khalid sees the historical track-record of
-// what to expect from this regime.
-function renderRegimeSpyTable(d){
-  const wrap = document.getElementById('nowcastRegimeSpyTable');
-  if (!wrap) return;
-  const perf = d.regime_spy_performance || {};
-  const horizons = d.regime_spy_horizons || ['1m','3m','6m','12m'];
-  const currentRegime = d.regime;
-  const order = ['STRONG EXPANSION','EXPANSION','MUDDLE','SLOWING','CONTRACTION RISK'];
-  const colors = {
-    'STRONG EXPANSION':'var(--green)','EXPANSION':'var(--green)',
-    'MUDDLE':'var(--amber)','SLOWING':'#ffb13d','CONTRACTION RISK':'var(--red)',
-  };
-
-  const rows = order.filter(r => perf[r]).map(regime => {
-    const info = perf[regime];
-    const isCurrent = regime === currentRegime;
-    const cells = horizons.map(h => {
-      const stat = info.horizons?.[h];
-      if (!stat) return `<td style="text-align:right;color:var(--fg-3);padding:8px 12px">—</td>`;
-      const mean = stat.mean_pct;
-      const median = stat.median_pct;
-      const hit = stat.hit_rate_pct;
-      const meanColor = mean > 0 ? 'var(--green)' : mean < 0 ? 'var(--red)' : 'var(--fg-2)';
-      return `<td style="text-align:right;padding:8px 12px;font-size:11.5px">
-        <div style="color:${meanColor};font-weight:600">${mean >= 0 ? '+' : ''}${mean.toFixed(2)}%</div>
-        <div style="color:var(--fg-3);font-size:9.5px">med ${median >= 0 ? '+' : ''}${median.toFixed(2)}%</div>
-        <div style="color:var(--fg-3);font-size:9px">hit ${hit.toFixed(0)}% · n=${stat.n}</div>
-      </td>`;
-    }).join('');
-    const bg = isCurrent ? 'background:rgba(0,212,255,0.05);border-left:2px solid var(--cyan)' : '';
-    return `<tr style="${bg}">
-      <td style="padding:8px 12px;font-weight:${isCurrent?'700':'500'};color:${colors[regime]};font-size:11.5px;white-space:nowrap">
-        ${isCurrent ? '◆ ' : '  '}${regime}
-      </td>
-      <td style="text-align:right;padding:8px 12px;color:var(--fg-2);font-size:11px">${info.n_obs} mo</td>
-      ${cells}
-    </tr>`;
-  });
-
-  if (rows.length === 0){
-    wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--fg-3);font-style:italic">SPY history not yet available — re-run Lambda after FRED SP500 fetch settles</div>';
-    return;
-  }
-
-  wrap.innerHTML = `
-    <table style="width:100%;border-collapse:collapse;font-family:var(--font-mono)">
-      <thead>
-        <tr style="border-bottom:1px solid var(--border);background:var(--bg-sunken)">
-          <th style="text-align:left;padding:8px 12px;font-size:9.5px;letter-spacing:1.2px;color:var(--fg-3);font-weight:500">REGIME</th>
-          <th style="text-align:right;padding:8px 12px;font-size:9.5px;letter-spacing:1.2px;color:var(--fg-3);font-weight:500">OBS</th>
-          ${horizons.map(h => `<th style="text-align:right;padding:8px 12px;font-size:9.5px;letter-spacing:1.2px;color:var(--fg-3);font-weight:500">SPY ${h}</th>`).join('')}
-        </tr>
-      </thead>
-      <tbody>${rows.join('')}</tbody>
-    </table>`;
-}
-
-// SVG line chart of the 10y historical track. Y-axis clipped to ±3.5
-// (extreme outliers like COVID -19 noted off-chart). X-axis is months
-// (no labels — fits the data-density-first aesthetic).
-function renderNowcastHistChart(d){
-  const wrap = document.getElementById('nowcastHistWrap') || document.getElementById('nowcastHistChart');
-  const chart = document.getElementById('nowcastHistChart');
-  const meta = document.getElementById('nowcastHistMeta');
-  const legend = document.getElementById('nowcastHistLegend');
-  const hist = d.historical_scores || [];
-  const summary = d.historical_summary || {};
-
-  if (!hist.length){
-    chart.innerHTML = '<div style="color:var(--fg-3);font-size:11px;font-style:italic;text-align:center;padding:60px 0">No historical data yet</div>';
-    return;
-  }
-
-  // Y-axis clip range
-  const Y_MIN = -3.5;
-  const Y_MAX = 3.5;
-  // Extreme values for annotation
-  const offChart = hist.filter(h => h.score < Y_MIN || h.score > Y_MAX);
-  const minPt = hist.reduce((a, b) => b.score < a.score ? b : a);
-  const maxPt = hist.reduce((a, b) => b.score > a.score ? b : a);
-
-  // Layout
-  const W = 960, H = 240, P = {l: 36, r: 12, t: 8, b: 22};
-  const innerW = W - P.l - P.r, innerH = H - P.t - P.b;
-
-  const x = i => P.l + (i / (hist.length - 1)) * innerW;
-  const y = s => {
-    const clipped = Math.max(Y_MIN, Math.min(Y_MAX, s));
-    return P.t + (1 - (clipped - Y_MIN) / (Y_MAX - Y_MIN)) * innerH;
-  };
-
-  // Threshold y-positions
-  const yStrong = y(1.0), yExp = y(0.3), yMud = y(-0.3), ySlow = y(-1.0);
-
-  // Regime color bands (top to bottom of chart)
-  // STRONG EXPANSION (>1.0): green
-  // EXPANSION (0.3 to 1.0): light green
-  // MUDDLE (-0.3 to 0.3): yellow
-  // SLOWING (-1.0 to -0.3): amber
-  // CONTRACTION (<-1.0): red
-  const bands = [
-    {y1: P.t, y2: yStrong, fill: 'rgba(56,255,168,0.10)'},   // strong-exp
-    {y1: yStrong, y2: yExp, fill: 'rgba(56,255,168,0.05)'}, // expansion
-    {y1: yExp, y2: yMud, fill: 'rgba(255,196,0,0.05)'},     // muddle (top half)
-    {y1: yMud, y2: ySlow, fill: 'rgba(255,177,61,0.08)'},   // slowing
-    {y1: ySlow, y2: P.t + innerH, fill: 'rgba(255,92,122,0.10)'}, // contraction
-  ];
-
-  // Score path
-  let path = '';
-  hist.forEach((h, i) => {
-    path += (i === 0 ? 'M' : 'L') + x(i).toFixed(1) + ',' + y(h.score).toFixed(1) + ' ';
-  });
-
-  // Date axis ticks: every ~2 years
-  const tickCount = 6;
-  const ticks = [];
-  for (let i = 0; i <= tickCount; i++){
-    const idx = Math.floor((hist.length - 1) * i / tickCount);
-    ticks.push({x: x(idx), label: hist[idx]?.date?.slice(0,7) || ''});
-  }
-
-  // Y-axis labels at thresholds
-  const yLabels = [
-    {y: y(1.0), label: '+1.0', sub: 'expansion'},
-    {y: y(0.3), label: '+0.3', sub: ''},
-    {y: y(0), label: '0', sub: ''},
-    {y: y(-0.3), label: '-0.3', sub: ''},
-    {y: y(-1.0), label: '-1.0', sub: 'contraction'},
-  ];
-
-  // Current point
-  const lastIdx = hist.length - 1;
-  const lastX = x(lastIdx);
-  const lastY = y(hist[lastIdx].score);
-
-  const svg = `
-  <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block">
-    <!-- background -->
-    <rect x="${P.l}" y="${P.t}" width="${innerW}" height="${innerH}" fill="var(--bg-sunken)"/>
-
-    <!-- regime bands -->
-    ${bands.map(b => `<rect x="${P.l}" y="${b.y1}" width="${innerW}" height="${b.y2 - b.y1}" fill="${b.fill}"/>`).join('')}
-
-    <!-- threshold lines -->
-    <line x1="${P.l}" y1="${y(0)}" x2="${P.l + innerW}" y2="${y(0)}" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="2,3"/>
-
-    <!-- score line -->
-    <path d="${path}" fill="none" stroke="var(--cyan)" stroke-width="1.5" opacity="0.95"/>
-
-    <!-- current value highlight -->
-    <circle cx="${lastX}" cy="${lastY}" r="4" fill="${d.regime_color === 'green' ? 'var(--green)' : d.regime_color === 'red' ? 'var(--red)' : d.regime_color === 'amber' ? 'var(--amber)' : 'var(--amber)'}" stroke="var(--bg-base)" stroke-width="1.5"/>
-
-    <!-- y-axis tick labels -->
-    ${yLabels.map(l => `
-      <line x1="${P.l - 3}" y1="${l.y}" x2="${P.l}" y2="${l.y}" stroke="var(--fg-3)" stroke-width="1"/>
-      <text x="${P.l - 6}" y="${l.y + 3}" font-family="IBM Plex Mono,monospace" font-size="9" fill="var(--fg-3)" text-anchor="end">${l.label}</text>
-    `).join('')}
-
-    <!-- x-axis ticks -->
-    ${ticks.map(t => `
-      <text x="${t.x}" y="${H - 5}" font-family="IBM Plex Mono,monospace" font-size="9" fill="var(--fg-3)" text-anchor="middle">${t.label}</text>
-    `).join('')}
-
-    <!-- annotation: extreme low (e.g. COVID) -->
-    ${offChart.length ? `
-      <text x="${P.l + 8}" y="${P.t + innerH - 8}" font-family="IBM Plex Mono,monospace" font-size="9" fill="var(--red)">
-        ${offChart.length} mo off-chart (min ${minPt.score.toFixed(1)}, ${minPt.date.slice(0,7)})
-      </text>
-    ` : ''}
-  </svg>`;
-  chart.innerHTML = svg;
-
-  // Meta line
-  meta.textContent = `${summary.first_date?.slice(0,7) || ''} → ${summary.last_date?.slice(0,7) || ''} · ${summary.n_months} months · today at ${summary.current_score_percentile}th pctile`;
-
-  // Legend
-  const dist = summary.regime_distribution || {};
-  const total = Object.values(dist).reduce((a,b)=>a+b,0) || 1;
-  const colors = {
-    'STRONG EXPANSION': 'var(--green)',
-    'EXPANSION': 'var(--green)',
-    'MUDDLE': 'var(--amber)',
-    'SLOWING': '#ffb13d',
-    'CONTRACTION RISK': 'var(--red)',
-  };
-  legend.innerHTML = ['STRONG EXPANSION','EXPANSION','MUDDLE','SLOWING','CONTRACTION RISK']
-    .map(k => {
-      const n = dist[k] || 0;
-      const pct = (n / total * 100).toFixed(1);
-      return `<span><span style="display:inline-block;width:10px;height:10px;background:${colors[k]};margin-right:5px;vertical-align:-1px;border-radius:2px"></span>${k}: ${n}mo (${pct}%)</span>`;
-    }).join('');
-}
-
-async function loadNowcast(){
-  const stripEl = document.getElementById('nowcastStrip');
-  const compsEl = document.getElementById('nowcastComponents');
-  const updEl = document.getElementById('nowcastUpdated');
-  const methEl = document.getElementById('nowcastMethodology');
-  try {
-    const r = await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/macro-nowcast.json?_=' + Date.now());
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const d = await r.json();
-
-    const score = d.normalized_score;
-    const regime = d.regime || '—';
-    const color = (d.regime_color === 'green') ? 'green'
-                : (d.regime_color === 'red') ? 'red'
-                : (d.regime_color === 'amber') ? 'amber' : 'cyan';
-    stripEl.innerHTML = `
-      <div class="strip-cell ${color}">
-        <div class="label">Composite score</div>
-        <div class="value">${score >= 0 ? '+' : ''}${score?.toFixed(2) ?? '—'}</div>
-        <div class="sub">z-score units · weighted</div>
-      </div>
-      <div class="strip-cell ${color}">
-        <div class="label">Regime</div>
-        <div class="value" style="font-size:18px">${regime}</div>
-        <div class="sub">vs trailing 5y baseline</div>
-      </div>
-      <div class="strip-cell">
-        <div class="label">Coverage</div>
-        <div class="value">${d.coverage_pct?.toFixed(0) ?? '—'}%</div>
-        <div class="sub">${d.n_components_used}/${(d.n_components_used + d.n_components_failed)} components used</div>
-      </div>
-      <div class="strip-cell">
-        <div class="label">Generated</div>
-        <div class="value" style="font-size:18px">${d.duration_s?.toFixed(2) ?? '—'}s</div>
-        <div class="sub">last build duration</div>
-      </div>
-    `;
-
-    // Historical chart
-    renderNowcastHistChart(d);
-    // Regime SPY performance table
-    renderRegimeSpyTable(d);
-
-    const comps = d.components || [];
-    compsEl.innerHTML = comps.map(c => {
-      const ok = c.contribution !== null && c.contribution !== undefined;
-      const contrib = ok ? c.contribution : null;
-      const colorVar = !ok ? 'fg-3' : (contrib > 0 ? 'green' : contrib < 0 ? 'red' : 'fg-2');
-      const z = (c.z !== null && c.z !== undefined) ? (c.z >= 0 ? '+' : '') + c.z.toFixed(2) : 'N/A';
-      const raw = (c.raw_value !== null && c.raw_value !== undefined)
-                  ? (c.transform === 'yoy_pct' ? `${c.raw_value.toFixed(2)}% YoY` : c.raw_value.toFixed(2))
-                  : '—';
-      const errLine = c.error ? `<div style="color:var(--amber);font-size:10px;margin-top:2px">${c.error}</div>` : '';
-      return `
-        <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:3px;padding:10px 12px">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-            <div>
-              <div style="color:var(--fg-1);font-weight:600;font-size:11px">${c.fred_id}</div>
-              <div style="color:var(--fg-3);font-size:9.5px;letter-spacing:.5px;margin-top:2px">${c.label}</div>
-            </div>
-            <div style="text-align:right">
-              <div style="color:var(--${colorVar});font-weight:600">z=${z}</div>
-              <div style="color:var(--fg-3);font-size:9.5px;margin-top:2px">w=${c.weight >= 0 ? '+' : ''}${c.weight}</div>
-            </div>
-          </div>
-          <div style="margin-top:8px;display:flex;justify-content:space-between;color:var(--fg-2);font-size:10px">
-            <span>${raw}</span>
-            <span style="color:var(--${colorVar})">${ok ? (contrib >= 0 ? '+' : '') + contrib.toFixed(3) : '—'}</span>
-          </div>
-          ${errLine}
+<main>
+<div class="heatmap-modal open" id="macro-modal" role="dialog" aria-modal="true" aria-labelledby="macro-modal-title" aria-hidden="true">
+  <div class="heatmap-content" style="width:80vw;max-width:1000px">
+    <div class="heatmap-header">
+      <div class="heatmap-title" id="macro-modal-title">📈 Macro &amp; Economic Data</div>
+      <div style="flex:1;display:flex;align-items:center;gap:8px;margin:0 16px">
+        <input type="text" id="macro-search-input" placeholder="Search all public macro — FRED + ECB, IMF, World Bank, OECD, BIS, Eurostat (millions of series)" style="flex:1;background:var(--bg-2);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-family:var(--font-mono);font-size:12px;color:var(--fg-1);outline:none">
+        <div class="macro-head-actions">
+          <span class="macro-reorder-hint">⠿ DRAG TO REORDER · ARROWS ON HANDLE</span>
+          <button class="macro-manage-btn" id="macro-add-series" type="button">+ SERIES</button>
+          <button class="macro-manage-btn" id="macro-add-category" type="button">+ CATEGORY</button>
+          <button class="macro-manage-btn danger" id="macro-reset" type="button" title="Restore the original curated catalog">RESET</button>
+          <a class="macro-manage-btn macro-open-page" href="/macro-data.html" target="_blank" rel="noopener" title="Open Macro &amp; Economic Data as its own page">↗ PAGE</a>
         </div>
-      `;
-    }).join('');
+      </div>
+      <button class="modal-close" id="macro-close" type="button" aria-label="Close macro catalog">×</button>
+    </div>
+    <div class="macro-body" id="macro-body">
+      <div class="wl-loading">Loading catalog…</div>
+    </div>
+  </div>
+</div>
 
-    updEl.textContent = d.generated_at ? `Updated ${d.generated_at}` : '';
-    methEl.textContent = d.methodology || '';
-  } catch (e) {
-    stripEl.innerHTML = `<div class="strip-cell"><div class="label">Nowcast unavailable</div><div class="value" style="font-size:14px;color:var(--amber)">${e.message}</div><div class="sub">Lambda may not have run yet</div></div>`;
-    compsEl.innerHTML = '';
-    methEl.textContent = '';
-  }
-}
+<div class="new-wl-modal" id="macro-editor-modal" role="dialog" aria-modal="true" aria-labelledby="macro-editor-title" aria-hidden="true">
+  <div class="macro-editor-content">
+    <div class="macro-editor-head">
+      <span id="macro-editor-title">Add series</span>
+      <button class="modal-close" id="macro-editor-close" type="button" aria-label="Close editor">×</button>
+    </div>
+    <div class="macro-editor-body">
+      <div class="macro-field" id="macro-category-name-field" hidden>
+        <label for="macro-category-name">Category name</label>
+        <input id="macro-category-name" type="text" maxlength="80" autocomplete="off" placeholder="Example: Funding stress">
+      </div>
+      <div class="macro-field" id="macro-category-icon-field" hidden>
+        <label for="macro-category-icon">Category icon or short label</label>
+        <input id="macro-category-icon" type="text" maxlength="12" autocomplete="off" placeholder="Example: ⚠">
+      </div>
+      <div id="macro-series-fields">
+        <div class="macro-field">
+          <label for="macro-series-search">Find any indexed series</label>
+          <input id="macro-series-search" type="text" autocomplete="off" placeholder="Search by natural name, alias, provider, or exact ID">
+        </div>
+        <div class="macro-picker-results" id="macro-picker-results">
+          <div class="macro-picker-empty">Type at least two characters to search every indexed provider.</div>
+        </div>
+        <div class="macro-selected-series" id="macro-selected-series" hidden></div>
+        <div class="macro-form-row">
+          <div class="macro-field">
+            <label for="macro-series-category">Category</label>
+            <select id="macro-series-category"></select>
+          </div>
+          <div class="macro-field">
+            <label for="macro-series-title">Display name</label>
+            <input id="macro-series-title" type="text" maxlength="120" autocomplete="off">
+          </div>
+        </div>
+        <div class="macro-form-row">
+          <div class="macro-field">
+            <label for="macro-series-unit">Unit label</label>
+            <input id="macro-series-unit" type="text" maxlength="30" autocomplete="off" placeholder="%, index, USD…">
+          </div>
+          <div class="macro-field">
+            <label for="macro-alert-type">Danger rule</label>
+            <select id="macro-alert-type">
+              <option value="none">No alert</option>
+              <option value="value_above">Latest value above</option>
+              <option value="value_below">Latest value below</option>
+              <option value="move_up">Change rises by</option>
+              <option value="move_down">Change falls by</option>
+              <option value="move_abs">Absolute change exceeds</option>
+            </select>
+          </div>
+        </div>
+        <div class="macro-form-row" id="macro-alert-options">
+          <div class="macro-field">
+            <label for="macro-alert-threshold">Danger threshold</label>
+            <input id="macro-alert-threshold" type="number" step="any" autocomplete="off" placeholder="Example: 10">
+          </div>
+          <div class="macro-field">
+            <label for="macro-alert-horizon">Change horizon</label>
+            <select id="macro-alert-horizon">
+              <option value="D">Daily</option>
+              <option value="W">Weekly</option>
+              <option value="M">Monthly</option>
+              <option value="Q">Quarterly</option>
+              <option value="Y">Yearly</option>
+            </select>
+          </div>
+        </div>
+        <div class="macro-editor-note">Change rules use percentage change for the selected horizon. Value rules compare the latest raw observation. A triggered rule flashes red until the data moves out of danger or you edit the rule.</div>
+      </div>
+    </div>
+    <div class="macro-editor-actions">
+      <button class="macro-manage-btn" id="macro-editor-cancel" type="button">CANCEL</button>
+      <button class="macro-save-btn" id="macro-editor-save" type="button">SAVE</button>
+    </div>
+  </div>
+</div>
 
-async function load(){
-  // Composite nowcast first (separate file from agent endpoints)
-  loadNowcast();
 
-  // Load 3 agents in parallel
-  const [manuf, banking, bea] = await Promise.allSettled([
-    fetchAgent(URLS.manufacturing),
-    fetchAgent(URLS.banking),
-    fetchAgent(URLS.bea),
-  ]);
-
-  let allOk = true;
-
-  if(manuf.status === 'fulfilled'){
-    const d = manuf.value;
-    // Combine us + global
-    const merged = {...(d.us_manufacturing||{}), ...(d.global_manufacturing||{})};
-    renderMetricsTable('manufBody', merged, {cols:['1D','1M']});
-  }else{
-    document.getElementById('manufBody').innerHTML = `<div class="err">⚠ Manufacturing: ${escHtml(manuf.reason.message)}</div>`;
-    allOk = false;
-  }
-
-  if(banking.status === 'fulfilled'){
-    renderMetricsTable('bankingBody', banking.value.banking_metrics || {}, {cols:['1W']});
-  }else{
-    document.getElementById('bankingBody').innerHTML = `<div class="err">⚠ Banking: ${escHtml(banking.reason.message)}</div>`;
-    allOk = false;
-  }
-
-  if(bea.status === 'fulfilled'){
-    const d = bea.value;
-    const beaData = d.bea_data || {};
-    // Pick GDP if available, else first key
-    const candidates = ['gdp', 'personal_income', 'consumer_spending', 'trade'];
-    let chosenKey = null;
-    let chosenList = null;
-    for(const k of candidates){
-      if(beaData[k] && beaData[k].length){ chosenKey = k; chosenList = beaData[k]; break; }
-    }
-    if(!chosenList){
-      const keys = Object.keys(beaData);
-      if(keys.length){ chosenKey = keys[0]; chosenList = beaData[keys[0]]; }
-    }
-    if(chosenList){
-      renderBeaTable('beaBody', chosenList, chosenKey || 'BEA');
-    }else{
-      document.getElementById('beaBody').innerHTML = '<div class="empty-state">No BEA tables in response</div>';
-    }
-  }else{
-    document.getElementById('beaBody').innerHTML = `<div class="err">⚠ BEA: ${escHtml(bea.reason.message)}</div>`;
-    allOk = false;
-  }
-
-  if(allOk){
-    document.getElementById('statusPill').textContent = 'LIVE';
-    document.getElementById('statusPill').className = 'status-pill green';
-  }else{
-    document.getElementById('statusPill').textContent = 'PARTIAL';
-    document.getElementById('statusPill').className = 'status-pill red';
-  }
-}
-
-
-updateClock();
-setInterval(updateClock, 1000);
-load();
-setInterval(load, 300000);
+</main>
+<script src="/auth-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js"></script>
+<script src="/assets/jh-workspaces.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    try { if (window.JustHodlAuth) JustHodlAuth.init(); } catch (e) {}
+    JH_WS.boot('macro');
+  });
 </script>
-
-  <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
-<script src="/sidebar.js" defer></script>
 </body>
 </html>
