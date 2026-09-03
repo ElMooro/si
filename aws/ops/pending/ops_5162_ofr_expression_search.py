@@ -187,8 +187,11 @@ def main():
         fn_url = lam.get_function_url_config(
             FunctionName=SYMDIR_FN)["FunctionUrl"].rstrip("/")
         warm = http_json(fn_url + "/warm?force=1", timeout=300)
-        if warm.get("version") != VERSION or not warm.get("docs"):
-            failures.append("fresh Symdir 1.10.0 index did not materialize")
+        if (warm.get("docs") != manifest.get("docs")
+                or warm.get("built_at") != manifest.get("built_at")
+                or not warm.get("warehouse_ready")):
+            failures.append(
+                "fresh Symdir index or warehouse FTS did not materialize")
 
         rep.section("S2 verify natural names and aliases")
         searches = (
