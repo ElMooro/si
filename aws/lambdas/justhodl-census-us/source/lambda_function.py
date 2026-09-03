@@ -47,7 +47,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import boto3
 
@@ -624,6 +624,7 @@ ECON_ROOT = "data/warm/census-econ/"
 ECON_SCOPE = "data/_state/census-econ-scope.json"
 ECON_OVER = "data/_state/census-econ-oversize-s%d.json"
 ECON_DISPATCH_SHARDS = 12
+ECON_DISPATCH_STATE = "data/_state/census-econ-dispatch.json"
 
 
 def _over_load(shards):
@@ -698,7 +699,16 @@ def _econ_build_queue(state):
 
 
 def _econ_entry(e, state, t0, ctx, over=None, shard=0):
-    """One dataset-vintage: variables in chunks x geography levels."""
+    """One dataset-vintage: variables in chunks x geography levels.
+
+    econ-v2 (ops 5168): resumable. A BUDGET break records the (geo, chunk)
+    cursor in the shard state; the next run for the same entry skips
+    everything before it instead of re-downloading and re-writing the
+    whole entry from geo 0 / chunk 0 -- which is how a heavy entry kept a
+    shard in DRAIN forever and re-PUT the same files every run."""
+    tag = e["ds"] + "@" + str(e.get("vintage"))
+    cur = state.get("cursor") or {}
+    gi0, ci0 = (int(cur.get("gi", 0)), int(cur.get("ci", 0))) if cur.get("tag") == tag else (0, 0)
     base = ("https://api.census.gov/data/%s/%s" % (e["vintage"], e["ds"])
             if e.get("vintage") else
             "https://api.census.gov/data/%s" % e["ds"])
@@ -736,7 +746,11 @@ def _econ_entry(e, state, t0, ctx, over=None, shard=0):
             skipped += 1
             continue          # known oversize for this dataset
         for ci in range(0, len(names), VAR_CHUNK):
+            if (gi, ci) < (gi0, ci0):
+                continue                       # already banked in an earlier run
             if time.time() - t0 > ECON_BUDGET:
+                state["cursor"] = {"tag": tag, "gi": gi, "ci": ci,
+                                   "at": _now().isoformat()}
                 return rows, "BUDGET"
             chunk = names[ci:ci + VAR_CHUNK]
             q = "get=" + ",".join(chunk) + "&for=" + \
@@ -778,29 +792,55 @@ def _econ_entry(e, state, t0, ctx, over=None, shard=0):
         state.setdefault("oversize", {})[e["ds"]] = oversize[:6]
     if skipped:
         state["geo_skips"] = int(state.get("geo_skips", 0)) + skipped
+    if (state.get("cursor") or {}).get("tag") == tag:
+        state["cursor"] = None                 # entry finished: cursor retired
     return rows, None
 
 
-def econ_run(ctx, shard=0, shards=1):
+ECON_LEASE_S = 840         # < timeout: a crashed run's lease expires by itself
+
+
+def econ_run(ctx, shard=0, shards=1, recatalog=False):
     """Sharded by tag hash: each shard owns a disjoint slice of the queue
     and its OWN state document, so concurrent runs can never share a
     cursor. Same property that makes the eurostat/ecb lanes safe under a
-    cadence shorter than their timeout."""
+    cadence shorter than their timeout.
+
+    econ-v2 (ops 5168):
+      * LEASE -- two runs of the same shard can no longer overlap and
+        clobber each other's state document (last-writer-wins was
+        erasing progress under the old 5-minute dispatch).
+      * a COMPLETE shard returns immediately unless told to recatalog;
+        it no longer re-downloads the Census data.json on every dispatch.
+      * BUDGET breaks persist the intra-entry cursor (see _econ_entry)."""
     t0 = time.time()
     global ECON_STATE
     if shards > 1:
         ECON_STATE = "data/_state/census-econ-s%d.json" % shard
     state = gj(ECON_STATE) or {
-        "version": "econ-v1", "phase": "CATALOG", "queue": [],
+        "version": "econ-v2", "phase": "CATALOG", "queue": [],
         "done": [], "failures": {}, "n_total": 0, "n_done": 0,
         "rows_total": 0,
         "note": "macro/finance/industry/employment scope only; "
                 "demographics excluded by directive"}
+    state["version"] = "econ-v2"
     state["shard"], state["shards"] = shard, shards
     state.setdefault("failures", {})
     state.setdefault("done", [])
-    if state.get("phase") in (None, "CATALOG") or not state.get("queue"):
+    now_iso = _now().isoformat()
+    lease = state.get("lease_until") or ""
+    if lease > now_iso:
+        return {"mode": "econ", "shard": shard, "skipped": "leased",
+                "lease_until": lease}
+    if state.get("phase") == "COMPLETE" and not state.get("queue") and not recatalog:
+        return {"mode": "econ", "shard": shard, "skipped": "complete",
+                "n_done": state.get("n_done"), "n_total": state.get("n_total")}
+    state["lease_until"] = (_now() + timedelta(seconds=ECON_LEASE_S)).isoformat()
+    pj(ECON_STATE, state)
+    if state.get("phase") in (None, "CATALOG") or recatalog or (
+            not state.get("queue") and state.get("phase") != "COMPLETE"):
         state = _econ_build_queue(state)
+        state["last_recatalog"] = now_iso
     over = _over_load(shards)
     state["oversize_known"] = len(over)
     drained = 0
@@ -817,7 +857,8 @@ def econ_run(ctx, shard=0, shards=1):
             n, err = 0, "%s: %s" % (type(ex).__name__, str(ex)[:70])
         if err == "BUDGET":
             state["rows_total"] += n
-            break
+            state["budget_breaks"] = int(state.get("budget_breaks", 0)) + 1
+            break                              # cursor persisted below
         if err and att < 3:
             # retried while it can still advance; retired on the third
             # failure so one bad vintage cannot block the queue behind it
@@ -839,6 +880,7 @@ def econ_run(ctx, shard=0, shards=1):
         state["phase"] = "COMPLETE"
     state["queue_left"] = len(state.get("queue") or [])
     state["updated_at"] = _now().isoformat()
+    state["lease_until"] = None
     pj(ECON_STATE, state)
     return {"mode": "econ", "phase": state["phase"],
             "n_done": state["n_done"], "n_total": state["n_total"],
@@ -862,22 +904,43 @@ def lambda_handler(event, ctx):
         fn = os.environ.get("AWS_LAMBDA_FUNCTION_NAME",
                             "justhodl-census-us")
         _lam = boto3.client("lambda", region_name="us-east-1")
-        sent = 0
+        # econ-v2 (ops 5168): dispatch only shards with work. COMPLETE
+        # shards are re-cataloged once a day (new vintages appear on
+        # data.json) instead of on every tick.
+        dstate = gj(ECON_DISPATCH_STATE) or {}
+        last = dstate.get("last_recatalog") or ""
+        recat = bool(event.get("recatalog")) or last < (
+            _now() - timedelta(hours=24)).isoformat()
+        sent, skipped = 0, []
         for k in range(n):
+            st = gj("data/_state/census-econ-s%d.json" % k) or {}
+            live = bool(st.get("queue")) or st.get("phase") != "COMPLETE"
+            if not live and not recat:
+                skipped.append(k)
+                continue
             try:
                 _lam.invoke(FunctionName=fn, InvocationType="Event",
                             Payload=json.dumps({"mode": "econ",
                                                 "shard": k,
-                                                "shards": n}).encode())
+                                                "shards": n,
+                                                "recatalog": recat}).encode())
                 sent += 1
             except Exception:
                 pass
-        return {"mode": "econ_dispatch", "shards": n, "invoked": sent}
+        if recat:
+            dstate["last_recatalog"] = _now().isoformat()
+        dstate["last_dispatch"] = _now().isoformat()
+        dstate["last_invoked"] = sent
+        dstate["last_skipped_complete"] = skipped
+        pj(ECON_DISPATCH_STATE, dstate)
+        return {"mode": "econ_dispatch", "shards": n, "invoked": sent,
+                "skipped_complete": skipped, "recatalog": recat}
     if event.get("mode") == "econ":
         # separate state, separate prefix -- the timeseries lane is
         # untouched by this path
         return econ_run(ctx, int(event.get("shard") or 0),
-                        int(event.get("shards") or 1))
+                        int(event.get("shards") or 1),
+                        recatalog=bool(event.get("recatalog")))
     state = gj(STATE_KEY) or {
         "version": "1.1.4", "phase": "CATALOG", "queue": [],
         "datasets": {}, "catalog": {}, "failures": {},
@@ -960,4 +1023,4 @@ def lambda_handler(event, ctx):
             "failures": len(state["failures"])}
 
 
-ENGINE_VERSION = "justhodl-census-us v1.1.4 ops4951 bounded-range"
+ENGINE_VERSION = "justhodl-census-us v1.1.5 ops5168 econ-v2 lease+cursor+skip-complete"

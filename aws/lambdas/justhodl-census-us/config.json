@@ -6,7 +6,7 @@
   "memory": 1024,
   "timeout": 850,
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "US Census FULL timeseries universe v1.1.0: every timeseries dataset (EITS+BDS+ASM+QWI+SAIPE+SAHIE+more) since inception; intltrade->import-canary, idb excluded; time/YEAR grammar + geo variants; 15-min heartbeat drains+refreshes. data/warm/census-us/",
+  "description": "US Census FULL timeseries universe v1.1.5 + econ-v2 (ops 5168): dispatcher invokes only shards with work and re-catalogs daily; per-shard lease against overlapping runs; resumable (geo,chunk) cursor on BUDGET. 15-min heartbeat drains+refreshes timeseries. data/warm/census-us/ + data/warm/census-econ/",
   "env": {
     "S3_BUCKET": "justhodl-dashboard-live",
     "CENSUS_API_KEY": "8423ffa543d0e95cdba580f2e381649b6772f515"
