@@ -30,3 +30,10 @@ SUPABASE_URL = "https://bdmjenqcyvzouusfcgow.supabase.co"
 binding = "USER_DATA"
 id = "43a046649f05407dac2b9e50a489e2e9"
 
+[[durable_objects.bindings]]
+name = "WORKSPACE_COORDINATOR"
+class_name = "WorkspaceCoordinator"
+
+[[migrations]]
+tag = "workspace-v1"
+new_sqlite_classes = ["WorkspaceCoordinator"]

@@ -150,6 +150,39 @@ async function handleGov(url) {
   });
 }
 
+export class WorkspaceCoordinator {
+  constructor(state) {
+    this.state = state;
+  }
+
+  async fetch(request) {
+    if (request.method === "GET") {
+      const stored = await this.state.storage.get("workspace");
+      return jsonResp(stored || { empty: true });
+    }
+    if (request.method !== "PUT") return jsonResp({ error: "method not allowed" }, 405);
+
+    let incoming;
+    try {
+      incoming = await request.json();
+    } catch (e) {
+      return jsonResp({ error: "invalid json" }, 400);
+    }
+
+    return this.state.storage.transaction(async (txn) => {
+      const current = await txn.get("workspace");
+      const currentRevision = current ? Number(current.revision) || 0 : 0;
+      if (incoming.baseRevision !== currentRevision || incoming.revision <= currentRevision) {
+        return jsonResp({ error: "revision conflict", revision: currentRevision }, 409);
+      }
+      const stored = { ...incoming };
+      delete stored.baseRevision;
+      await txn.put("workspace", stored);
+      return jsonResp({ ok: true, saved_at: Date.now(), revision: stored.revision });
+    });
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -701,6 +734,73 @@ export default {
         globalThis.__jhTokCache.set(tok, { uid, exp: now + 120000 });
         return uid;
       } catch (e) { return null; }
+    }
+
+    // GET /workspace/home — load the signed-in user's home workspace.
+    // PUT /workspace/home — replace it atomically (JSON, 500KB maximum).
+    // The user id is derived exclusively from a verified Supabase Bearer token;
+    // no path or body identity is accepted.
+    if (url.pathname === "/workspace/home") {
+      if (request.method !== "GET" && request.method !== "PUT") {
+        return new Response("method not allowed", {
+          status: 405,
+          headers: { "Allow": "GET, PUT, OPTIONS", ...corsHeaders() },
+        });
+      }
+      if (!env.WORKSPACE_COORDINATOR) return jsonResp({ error: "workspace store unavailable" }, 503);
+      const workspaceUid = await verifySupabaseUser();
+      if (!workspaceUid) return jsonResp({ error: "auth required" }, 401);
+      const coordinatorId = env.WORKSPACE_COORDINATOR.idFromName(workspaceUid);
+      const coordinator = env.WORKSPACE_COORDINATOR.get(coordinatorId);
+
+      if (request.method === "GET") {
+        const stored = await coordinator.fetch("https://workspace.internal/state");
+        return new Response(stored.body, {
+          status: stored.status,
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "private, no-store",
+            ...corsHeaders(),
+          },
+        });
+      }
+
+      const declaredLength = Number(request.headers.get("Content-Length") || 0);
+      if (declaredLength > 500000) return jsonResp({ error: "payload too large" }, 413);
+      let bodyText;
+      let body;
+      try {
+        bodyText = await request.text();
+        if (new TextEncoder().encode(bodyText).byteLength > 500000) {
+          return jsonResp({ error: "payload too large" }, 413);
+        }
+        body = JSON.parse(bodyText);
+        if (!body || typeof body !== "object" || Array.isArray(body)) {
+          return jsonResp({ error: "workspace must be a JSON object" }, 400);
+        }
+        if (!Array.isArray(body.cards) || body.cards.length > 500) {
+          return jsonResp({ error: "workspace card limit is 500" }, 400);
+        }
+        if (!Number.isSafeInteger(body.revision) || body.revision < 1
+            || !Number.isSafeInteger(body.baseRevision) || body.baseRevision < 0) {
+          return jsonResp({ error: "workspace revision required" }, 400);
+        }
+      } catch (e) {
+        return jsonResp({ error: "invalid json" }, 400);
+      }
+      const saved = await coordinator.fetch("https://workspace.internal/state", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      return new Response(saved.body, {
+        status: saved.status,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "private, no-store",
+          ...corsHeaders(),
+        },
+      });
     }
 
     // GET /plan/self — server-authoritative plan for the signed-in user

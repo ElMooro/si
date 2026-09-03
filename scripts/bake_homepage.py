@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-# --- restore-guard (2026-07-07): this bake targets the Command Center v2 layout only.
-# The live homepage was restored to the pre-redesign Operator Console; do not touch it.
+# --- layout-guard: this legacy bake targets the retired Command Center v2 only.
+# The configurable Engine Workspace and classic Operator Console must stay untouched.
 import sys as _sys
 _html_path = _sys.argv[1] if len(_sys.argv) > 1 else '_site/index.html'
 try:
