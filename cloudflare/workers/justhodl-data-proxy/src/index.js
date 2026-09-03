@@ -1391,10 +1391,10 @@ export default {
     //   /browse?ds=&q=  -> /browse   (edge 300s)
     //   /series?id=     -> /series   (edge 900s; full-history observations)
     //   /quote?ids=     -> /quote    (edge 600s; watchlist last/prev/chg)
-    if (url.pathname === "/symsearch" || url.pathname === "/browse" ||
+    if (url.pathname === "/symsearch" || url.pathname === "/browse" || url.pathname === "/explorer" ||
         url.pathname === "/series" || url.pathname === "/quote" || url.pathname === "/symdir-health") {
-      const routeMap = { "/symsearch": "/search", "/browse": "/browse", "/series": "/series", "/quote": "/quote", "/symdir-health": "/health" };
-      const ttlMap = { "/symsearch": 120, "/browse": 300, "/series": 900, "/quote": 600, "/symdir-health": 30 };
+      const routeMap = { "/symsearch": "/search", "/browse": "/browse", "/explorer": "/explorer", "/series": "/series", "/quote": "/quote", "/symdir-health": "/health" };
+      const ttlMap = { "/symsearch": 120, "/browse": 300, "/explorer": 300, "/series": 900, "/quote": 600, "/symdir-health": 30 };
       const upath = routeMap[url.pathname];
       const ttl = ttlMap[url.pathname];
       let base = (env && env.SYMDIR_URL) ? String(env.SYMDIR_URL).replace(/\/+$/, "") : "";

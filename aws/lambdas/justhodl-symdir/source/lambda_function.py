@@ -69,7 +69,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.7.0"
+VERSION = "1.8.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -2679,6 +2679,80 @@ def quote(ids):
     return out
 
 
+# ================================================================ EXPLORER (every provider -> every dataset/series, paged)
+
+_HUB = {"doc": None, "at": 0}
+
+
+def hub():
+    if not _HUB["doc"] or time.time() - _HUB["at"] > 900:
+        _HUB["doc"] = _get_json("data/provider-catalog.json") or {}
+        _HUB["at"] = time.time()
+    return _HUB["doc"]
+
+
+def explorer(qs):
+    """The Data Explorer behind chart-pro: no provider -> every provider with what it holds (hub counts + directory
+    counts); provider=slug -> its datasets/series from the directory (paged, filtered, most popular first), falling
+    back to the provider's hub catalog file for providers the directory does not index."""
+    prov = (qs.get("provider") or "").strip().lower()
+    q = (qs.get("q") or "").strip().lower()
+    kind = (qs.get("kind") or "").strip()
+    offset, limit = int(qs.get("offset") or 0), max(1, min(int(qs.get("limit") or 200), 500))
+    ix = load_index()
+    docs = ix["docs"]
+    if not prov:
+        counts = defaultdict(lambda: {"series": 0, "dataset": 0, "instrument": 0})
+        for d in docs:
+            counts[d[D_PROV]][d[D_KIND]] += 1
+        h = hub()
+        out = []
+        for p in h.get("providers") or []:
+            slug = p.get("slug")
+            c = counts.get(slug, {})
+            out.append({"slug": slug, "name": p.get("name"), "api": p.get("api"), "datasets": p.get("datasets"), "series_count": p.get("series_count"), "mb": p.get("total_mb"),
+                        "freshest_h": p.get("freshest_h"), "coverage_pct": p.get("coverage_pct"), "in_directory": dict(c), "note": (p.get("catalog_note") or "")[:160],
+                        "engines": (p.get("engines") or [])[:6]})
+        for slug, c in counts.items():
+            if slug not in {x["slug"] for x in out}:
+                out.append({"slug": slug, "name": PROV_NAME.get(slug, slug.upper()), "in_directory": dict(c), "virtual": True})
+        out.sort(key=lambda x: -(sum((x.get("in_directory") or {}).values()) + (x.get("datasets") or 0)))
+        return {"providers": out, "as_of": h.get("as_of"), "totals": h.get("totals"), "directory_docs": len(docs),
+                "series_level": {"eurostat": 564204235, "ecb": 3240832}}
+    toks = tokens(q) if q else []
+    rows, total = [], 0
+    for i, d in enumerate(docs):
+        if d[D_PROV] != prov:
+            continue
+        if kind and d[D_KIND] != kind:
+            continue
+        if toks:
+            hay = (d[D_TITLE] + " " + d[D_ID]).lower()
+            if not all(t in hay for t in toks):
+                continue
+        total += 1
+        if total > offset and len(rows) < limit:
+            rows.append(doc_row(d))
+    if total == 0 and not toks:
+        cat = _get_json("data/providers/%s.json" % prov) or {}
+        items = cat.get("datasets") or cat.get("items") or cat.get("files") or []
+        if isinstance(items, dict):
+            items = [dict(v, id=k) if isinstance(v, dict) else {"id": k, "name": str(v)} for k, v in items.items()]
+        total = len(items)
+        for it in items[offset:offset + limit]:
+            rows.append({"id": "%s:%s" % (prov, it.get("id") or it.get("key") or it.get("name")), "symbol": it.get("id") or it.get("key") or "", "name": it.get("name") or it.get("title") or it.get("id") or "",
+                         "provider": prov, "provider_name": PROV_NAME.get(prov, prov.upper()), "kind": "dataset", "chartable": False, "browse": False,
+                         "first": it.get("first"), "last": it.get("last") or it.get("updated"), "n": it.get("rows") or it.get("n"), "mb": it.get("mb") or it.get("size_mb")})
+    facets = defaultdict(int)
+    for d in docs:
+        if d[D_PROV] == prov:
+            facets[d[D_KIND]] += 1
+    h = next((p for p in (hub().get("providers") or []) if p.get("slug") == prov), None) or {}
+    return {"provider": prov, "provider_name": h.get("name") or PROV_NAME.get(prov, prov.upper()), "api": h.get("api"), "hub": {k: h.get(k) for k in ("datasets", "series_count", "total_mb", "freshest_h", "coverage_pct", "catalog_note")},
+            "total": total, "offset": offset, "limit": limit, "rows": rows, "kinds": dict(facets),
+            "series_level_via_browse": prov in ("eurostat", "ecb", "statcan", "worldbank", "boj", "census", "treasury", "ofr")}
+
+
 # ================================================================ HANDLER
 
 def _resp(obj, status=200, ttl=60):
@@ -2745,6 +2819,14 @@ def lambda_handler(event, context):
         except Exception as e:  # noqa: BLE001
             alts = getattr(e, "alternatives", None) or []
             return _resp({"id": sid, "obs": [], "error": str(e)[:200], "alternatives": alts, "trace": traceback.format_exc()[-600:]}, 500, ttl=0)
+    if mode == "explorer" or path == "/explorer":
+        try:
+            t = time.time()
+            out = explorer(qs)
+            out["ms"] = int((time.time() - t) * 1000)
+            return _resp(out, ttl=300)
+        except Exception as e:  # noqa: BLE001
+            return _resp({"rows": [], "error": str(e)[:200], "trace": traceback.format_exc()[-600:]}, 500, ttl=0)
     if mode == "quote" or path == "/quote":
         ids = (qs.get("ids") or event.get("ids") or "")
         if isinstance(ids, str):
