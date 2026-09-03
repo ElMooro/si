@@ -1,24 +1,24 @@
-executing-against: 07f311290683ab296839d743386914086ac5448a
-ops 5174 -- Universe Heatmap browser QA (1440 / 768 / 390)
-── P0 deploy ──
-[22:31:00] ✅    live chart-pro.html carries the new workspace after 180s
-── P1 render + hydration + modes/horizons at three widths ──
-── P2-P7 editor, search, danger, keyboard reorder, touch reorder, migration, focus ──
-── verdict ──
-[22:31:41] ✗    1440px P1: Page.evaluate: ReferenceError: Heatmap is not defined
-    at eval (eval at evaluate (:311:30), <anonymous>:1:15)
-    at UtilityScript.evaluate (<anonymous>:318:
-[22:31:41] ✗    768px P1: Page.evaluate: ReferenceError: Heatmap is not defined
-    at eval (eval at evaluate (:311:30), <anonymous>:1:15)
-    at UtilityScript.evaluate (<anonymous>:318:
-[22:31:41] ✗    390px P1: Page.evaluate: ReferenceError: Heatmap is not defined
-    at eval (eval at evaluate (:311:30), <anonymous>:1:15)
-    at UtilityScript.evaluate (<anonymous>:318:
-[22:31:41] ✗    P2-P7: Page.evaluate: ReferenceError: Heatmap is not defined
-    at eval (eval at evaluate (:311:30), <anonymous>:1:15)
-    at UtilityScript.evaluate (<anonymous>:318:18)
-    at UtilityScript.<anonymous> (<a
-[22:31:41]    RED: 4 failure(s)
+executing-against: 1f7028e495c111d2b43f263a6e14d040b01d7416
+ops 5175 -- Heatmap scope probe
+[22:33:28]    live html bytes=672380 has_marker=True has_class=True
+[22:33:28]    inline script 0: 477731 chars -> SYNTAX ERROR /tmp/live_s0.js:7129
+    if (mode === 'cascade') return `rgba(201,148,46,${(0.08 + Math.min(1) / 200) * 0.55).toFixed(3)})`;
+                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-→ Report written to aws/ops/reports/latest/ops_5174_heatmap_browser_qa.md
-❌ OPS-FAIL: aws/ops/pending/ops_5174_heatmap_browser_qa.py
+SyntaxError: Missing } in template expression
+    at wrapSafe (node:internal/modules/c
+[22:33:28]    inline script 1: 102 chars -> OK 
+[22:33:28]    inline script 2: 21980 chars -> OK 
+[22:33:28]    inline script 3: 8964 chars -> OK 
+[22:33:28]    inline script 4: 930 chars -> OK 
+[22:33:47]    typeof -> {'Heatmap': 'undefined', 'MacroData': 'undefined', 'UI': 'undefined', 'State': 'undefined', 'PROXY': 'undefined', 'btn': True, 'modal': True, 'editor': True}
+[22:33:47] ⚠    pageerror: Missing } in template expression
+[22:33:47] ⚠    pageerror: Missing } in template expression
+[22:33:47] ⚠    console: error: Access to fetch at 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=%2Fchart-pro.html&favs=0&sw=none&v=3276' from origin 'https://justhodl.ai' has been blocked by COR
+[22:33:47] ⚠    console: error: Failed to load resource: net::ERR_FAILED
+[22:33:47] ⚠    console: error: Failed to load resource: the server responded with a status of 404 ()
+[22:33:47] ⚠    console: error: Access to fetch at 'https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page=chartpro&lists=492&err=&sw=none&drawer=c3efc5d3&favs=0&lwc=true' from origin 'https://justhodl.ai'
+[22:33:47] ⚠    console: error: Failed to load resource: net::ERR_FAILED
+
+→ Report written to aws/ops/reports/latest/ops_5175_heatmap_scope_probe.md
+❌ OPS-FAIL: aws/ops/pending/ops_5175_heatmap_scope_probe.py
